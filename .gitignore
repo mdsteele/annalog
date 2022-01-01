@@ -1,1 +1,3 @@
 /out/
+/scratch/
+/tests/*.pyc

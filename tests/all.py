@@ -17,55 +17,23 @@
 # with Annalog.  If not, see <http://www.gnu.org/licenses/>.                  #
 #=============================================================================#
 
-ROMNAME = annalog
+from __future__ import print_function
 
-SRCDIR = src
-OUTDIR = out
-BINDIR = $(OUTDIR)/bin
-DATADIR = $(OUTDIR)/data
-OBJDIR = $(OUTDIR)/obj
-
-CFGFILE = $(SRCDIR)/linker.cfg
-LABELFILE = $(OUTDIR)/$(ROMNAME).labels.txt
-ROMFILE = $(OUTDIR)/$(ROMNAME).nes
-
-ASMFILES := $(shell find $(SRCDIR) -name '*.asm')
-INCFILES := $(shell find $(SRCDIR) -name '*.inc')
-
-OBJFILES := $(patsubst $(SRCDIR)/%.asm,$(OBJDIR)/%.o,$(ASMFILES))
+import lint
 
 #=============================================================================#
 
-.PHONY: rom
-rom: $(ROMFILE)
+def run_tests():
+    results = [0, 0]
+    def run(module):
+        (num_passed, num_failed) = module.run_tests()
+        results[0] += num_passed
+        results[1] += num_failed
+    run(lint)
+    print('all: {} passed, {} failed'.format(*results))
+    return tuple(results)
 
-.PHONY: run
-run: $(ROMFILE)
-	fceux $<
-
-.PHONY: test
-test:
-	python tests/all.py
-
-.PHONY: clean
-clean:
-	rm -rf $(OUTDIR)
-
-#=============================================================================#
-
-$(ROMFILE) $(LABELFILE): $(CFGFILE) $(OBJFILES)
-	@echo "Linking $@"
-	@mkdir -p $(@D)
-	@ld65 -Ln $(LABELFILE) -o $@ -C $(CFGFILE) $(OBJFILES)
-$(LABELFILE): $(ROMFILE)
-
-define compile-asm
-	@echo "Compiling $<"
-	@mkdir -p $(@D)
-	@ca65 --target nes -W1 --debug-info -o $@ $<
-endef
-
-$(OBJDIR)/%.o: $(SRCDIR)/%.asm $(INCFILES)
-	$(compile-asm)
+if __name__ == '__main__':
+    run_tests()
 
 #=============================================================================#
