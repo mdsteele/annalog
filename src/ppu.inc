@@ -93,12 +93,15 @@ Hw_PpuData_rw = $2007
 ;;;=========================================================================;;;
 
 .STRUCT sName
-    Tiles_u8_arr .byte 960
-    Attrs_u8_arr .byte 64
+    Tiles_u8_arr   .byte 960
+    Attrs_u8_arr64 .byte 64
 .ENDSTRUCT
+.ASSERT sName::Attrs_u8_arr64 = kScreenWidthTiles * kScreenHeightTiles, error
+.ASSERT .sizeof(sName) = $400, error
 
 ;;; See https://wiki.nesdev.org/w/index.php/PPU_nametables
-Ppu_Nametables_sName_arr4 = $2000
+Ppu_Nametable0_sName = $2000
+Ppu_Nametable3_sName = $2c00
 
 ;;;=========================================================================;;;
 

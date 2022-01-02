@@ -106,16 +106,20 @@ Hw_Mmc3IrqEnable_wo = $e001
 ;;; MMC3 bank settings for this particular game:
 kMmc3BankFlags = bMmc3Bank::FourBankChr0000 | bMmc3Bank::SwappablePrgC000
 
+.MACRO _set_bank REG, ARG
+    lda #kMmc3BankFlags | (REG)
+    sta Hw_Mmc3BankSelect_wo
+    lda ARG
+    sta Hw_Mmc3BankData_wo
+.ENDMACRO
+
 ;;; Loads the A register with the given argument, then sets that as the current
 ;;; PRGA bank number.
 ;;;
 ;;; Examples:
 ;;;     prga_bank #<.bank(FuncA_Foo)
 .MACRO prga_bank ARG
-    lda #kMmc3BankFlags | eMmc3Bank::PrgBankA000
-    sta Hw_Mmc3BankSelect_wo
-    lda ARG
-    sta Hw_Mmc3BankData_wo
+    _set_bank eMmc3Bank::PrgBankA000, ARG
 .ENDMACRO
 
 ;;; Loads the A register with the given argument, then sets that as the current
@@ -124,10 +128,61 @@ kMmc3BankFlags = bMmc3Bank::FourBankChr0000 | bMmc3Bank::SwappablePrgC000
 ;;; Examples:
 ;;;     prgc_bank #<.bank(DataC_Foo)
 .MACRO prgc_bank ARG
-    lda #kMmc3BankFlags | eMmc3Bank::PrgBank8OrC
-    sta Hw_Mmc3BankSelect_wo
-    lda ARG
-    sta Hw_Mmc3BankData_wo
+    _set_bank eMmc3Bank::PrgBank8OrC, ARG
+.ENDMACRO
+
+;;; Loads the A register with the given argument, then sets that as the current
+;;; bank number for CHR $0000-$03ff.
+;;;
+;;; Examples:
+;;;     chr00_bank #<.bank(Ppu_ChrFoo)
+.MACRO chr00_bank ARG
+    _set_bank eMmc3Bank::ChrBank0Of4, ARG
+.ENDMACRO
+
+;;; Loads the A register with the given argument, then sets that as the current
+;;; bank number for CHR $0400-$07ff.
+;;;
+;;; Examples:
+;;;     chr04_bank #<.bank(Ppu_ChrFoo)
+.MACRO chr04_bank ARG
+    _set_bank eMmc3Bank::ChrBank1Of4, ARG
+.ENDMACRO
+
+;;; Loads the A register with the given argument, then sets that as the current
+;;; bank number for CHR $0800-$0bff.
+;;;
+;;; Examples:
+;;;     chr08_bank #<.bank(Ppu_ChrFoo)
+.MACRO chr08_bank ARG
+    _set_bank eMmc3Bank::ChrBank2Of4, ARG
+.ENDMACRO
+
+;;; Loads the A register with the given argument, then sets that as the current
+;;; bank number for CHR $0c00-$0fff.
+;;;
+;;; Examples:
+;;;     chr0c_bank #<.bank(Ppu_ChrFoo)
+.MACRO chr0c_bank ARG
+    _set_bank eMmc3Bank::ChrBank3Of4, ARG
+.ENDMACRO
+
+;;; Loads the A register with the given argument, then sets that as the current
+;;; bank number for CHR $1000-$17ff.  Only even-numbered banks are supported.
+;;;
+;;; Examples:
+;;;     chr10_bank #<.bank(Ppu_ChrFoo)
+.MACRO chr10_bank ARG
+    _set_bank eMmc3Bank::ChrBank0Of2, ARG
+.ENDMACRO
+
+;;; Loads the A register with the given argument, then sets that as the current
+;;; bank number for CHR $1800-$1fff.  Only even-numbered banks are supported.
+;;;
+;;; Examples:
+;;;     chr18_bank #<.bank(Ppu_ChrFoo)
+.MACRO chr18_bank ARG
+    _set_bank eMmc3Bank::ChrBank1Of2, ARG
 .ENDMACRO
 
 ;;;=========================================================================;;;

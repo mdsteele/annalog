@@ -25,15 +25,18 @@ BINDIR = $(OUTDIR)/bin
 DATADIR = $(OUTDIR)/data
 OBJDIR = $(OUTDIR)/obj
 
+AHI2CHR = $(BINDIR)/ahi2chr
 LABEL2NL = $(BINDIR)/label2nl
 
 CFGFILE = $(SRCDIR)/linker.cfg
 LABELFILE = $(OUTDIR)/$(ROMNAME).labels.txt
 ROMFILE = $(OUTDIR)/$(ROMNAME).nes
 
+AHIFILES := $(shell find $(SRCDIR) -name '*.ahi')
 ASMFILES := $(shell find $(SRCDIR) -name '*.asm')
 INCFILES := $(shell find $(SRCDIR) -name '*.inc')
 
+CHRFILES := $(patsubst $(SRCDIR)/%.ahi,$(DATADIR)/%.chr,$(AHIFILES))
 OBJFILES := $(patsubst $(SRCDIR)/%.asm,$(OBJDIR)/%.o,$(ASMFILES))
 
 #=============================================================================#
@@ -61,6 +64,14 @@ define compile-c
 	@cc -Wall -Werror -o $@ $<
 endef
 
+$(AHI2CHR): build/ahi2chr.c
+	$(compile-c)
+
+$(DATADIR)/%.chr: $(SRCDIR)/%.ahi $(AHI2CHR)
+	@echo "Converting $<"
+	@mkdir -p $(@D)
+	@$(AHI2CHR) < $< > $@
+
 $(LABEL2NL): build/label2nl.c
 	$(compile-c)
 
@@ -87,6 +98,9 @@ define compile-asm
 	@mkdir -p $(@D)
 	@ca65 --target nes -W1 --debug-info -o $@ $<
 endef
+
+$(OBJDIR)/chr.o: $(SRCDIR)/chr.asm $(INCFILES) $(CHRFILES)
+	$(compile-asm)
 
 $(OBJDIR)/%.o: $(SRCDIR)/%.asm $(INCFILES)
 	$(compile-asm)

@@ -21,15 +21,12 @@ kSizeofChr = 16
 
 ;;;=========================================================================;;;
 
-.SEGMENT "CHR"
+.SEGMENT "CHR_Font"
 
-Ppu_PatternTable0:
-    .assert * = $0000, error
-    .res 256 * kSizeofChr
-
-Ppu_PatternTable1:
-    .assert * = $1000, error
-    .res 256 * kSizeofChr
-    .assert * = $2000, error
+.EXPORT Ppu_ChrFont
+Ppu_ChrFont:
+    .incbin "out/data/tiles/font.chr"
+    .res 34 * kSizeofChr
+    .assert * - Ppu_ChrFont = kSizeofChr * 128, error
 
 ;;;=========================================================================;;;

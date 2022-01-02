@@ -23,6 +23,7 @@
 .INCLUDE "ppu.inc"
 
 .IMPORT Main_Title
+.IMPORT Ppu_ChrFont
 
 ;;;=========================================================================;;;
 
@@ -73,10 +74,6 @@ _DisableRenderingAndIrqs:
     ;; On a soft reset, we want to disable rendering during VBlank.
     lda #0
     sta Hw_PpuMask_wo   ; disable rendering
-    ;; Set nametable mirroring to horizontal (which is what we'll want for
-    ;; implementing four-way scrolling).
-    ldx #eMmc3Mirror::Horizontal
-    stx Hw_Mmc3Mirroring_wo
     ;; Disable all IRQ sources for now.
     sta Hw_Mmc3IrqDisable_wo  ; disable MMC3 IRQ
     sta Hw_DmcFlags_wo        ; disable DMC IRQ
@@ -121,8 +118,42 @@ _InitPalettes:
     inx
     dey
     bne @loop
-_InitAttributeTables:
-    ;; TODO
+_InitPpuMapping:
+    ;; Set nametable mirroring to horizontal (which is what we'll want for
+    ;; implementing four-way scrolling).
+    lda #eMmc3Mirror::Horizontal
+    sta Hw_Mmc3Mirroring_wo
+    ;; Set all CHR ROM banks to a known state.
+    chr00_bank #<.bank(Ppu_ChrFont)
+    chr04_bank #<.bank(Ppu_ChrFont) + 1
+    chr08_bank #2
+    chr0c_bank #3
+    chr10_bank #4
+    chr18_bank #6
+_InitAttributeTable0:
+    ;; Set all blocks in nametable 0 to use BG palette 0.
+    ldax #Ppu_Nametable0_sName + sName::Attrs_u8_arr64
+    bit Hw_PpuStatus_ro  ; reset the Hw_PpuAddr_w2 write-twice latch
+    sta Hw_PpuAddr_w2
+    stx Hw_PpuAddr_w2
+    lda #0
+    ldx #64
+    @loop:
+    sta Hw_PpuData_rw
+    dex
+    bne @loop
+_InitAttributeTable3:
+    ;; Set all blocks in nametable 3 to use BG palette 0.
+    ldax #Ppu_Nametable3_sName + sName::Attrs_u8_arr64
+    bit Hw_PpuStatus_ro  ; reset the Hw_PpuAddr_w2 write-twice latch
+    sta Hw_PpuAddr_w2
+    stx Hw_PpuAddr_w2
+    lda #0
+    ldx #64
+    @loop:
+    sta Hw_PpuData_rw
+    dex
+    bne @loop
 _Finish:
     ;; Enable interrupts and start the game.
     lda #bPpuCtrl::EnableNmi | bPpuCtrl::ObjPat1
