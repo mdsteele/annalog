@@ -56,4 +56,17 @@
     _hi_byte lda, ARG
 .ENDMACRO
 
+;;; LDXY (load a 16-bit value into XY)
+;;;
+;;; Loads a 16-bit value, putting the low byte in Y and the high byte in X.
+;;;
+;;; Examples:
+;;;     ldxy #$1234       ; immidiate mode; sets Y to $34 and X to $12
+;;;     ldxy Zp_Foo_u16   ; zeropage mode; sets [Foo] to Y and [Foo+1] to X
+;;;     ldxy Ram_Foo_u16  ; absolute mode; sets [Foo] to Y and [Foo+1] to X
+.MACRO ldxy ARG
+    _lo_byte ldy, ARG
+    _hi_byte ldx, ARG
+.ENDMACRO
+
 ;;;=========================================================================;;;
