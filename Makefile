@@ -25,6 +25,8 @@ BINDIR = $(OUTDIR)/bin
 DATADIR = $(OUTDIR)/data
 OBJDIR = $(OUTDIR)/obj
 
+LABEL2NL = $(BINDIR)/label2nl
+
 CFGFILE = $(SRCDIR)/linker.cfg
 LABELFILE = $(OUTDIR)/$(ROMNAME).labels.txt
 ROMFILE = $(OUTDIR)/$(ROMNAME).nes
@@ -40,7 +42,7 @@ OBJFILES := $(patsubst $(SRCDIR)/%.asm,$(OBJDIR)/%.o,$(ASMFILES))
 rom: $(ROMFILE)
 
 .PHONY: run
-run: $(ROMFILE)
+run: $(ROMFILE) $(ROMFILE).ram.nl $(ROMFILE).3.nl
 	fceux $<
 
 .PHONY: test
@@ -50,6 +52,27 @@ test:
 .PHONY: clean
 clean:
 	rm -rf $(OUTDIR)
+
+#=============================================================================#
+
+define compile-c
+	@echo "Compiling $<"
+	@mkdir -p $(@D)
+	@cc -Wall -Werror -o $@ $<
+endef
+
+$(LABEL2NL): build/label2nl.c
+	$(compile-c)
+
+$(ROMFILE).ram.nl: $(LABELFILE) $(LABEL2NL)
+	@echo "Generating $@"
+	@mkdir -p $(@D)
+	@$(LABEL2NL) 0000 07ff < $< > $@
+
+$(ROMFILE).3.nl: $(LABELFILE) $(LABEL2NL)
+	@echo "Generating $@"
+	@mkdir -p $(@D)
+	@$(LABEL2NL) 8000 9fff c000 ffff < $< > $@
 
 #=============================================================================#
 
