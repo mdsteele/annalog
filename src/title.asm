@@ -18,12 +18,16 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "charmap.inc"
+.INCLUDE "joypad.inc"
 .INCLUDE "macros.inc"
 .INCLUDE "ppu.inc"
 
 .IMPORT Func_ClearRestOfOam
 .IMPORT Func_ProcessFrame
+.IMPORT Func_UpdateButtons
 .IMPORTZP Zp_OamOffset_u8
+.IMPORTZP Zp_P1ButtonsHeld_bJoypad
+.IMPORTZP Zp_P1ButtonsPressed_bJoypad
 .IMPORTZP Zp_Render_bPpuMask
 .IMPORTZP Zp_ScrollX_u8
 .IMPORTZP Zp_ScrollY_u8
@@ -79,6 +83,19 @@ _DrawTitleString:
     dey
     bne @loop
 _GameLoop:
+    jsr Func_UpdateButtons
+    lda Zp_P1ButtonsHeld_bJoypad
+    and #bJoypad::Left
+    beq @noLeft
+    dec Zp_ScrollX_u8
+    @noLeft:
+    lda Zp_P1ButtonsPressed_bJoypad
+    and #bJoypad::Right
+    beq @noRight
+    lda Zp_ScrollX_u8
+    add #15
+    sta Zp_ScrollX_u8
+    @noRight:
     jsr Func_ProcessFrame
     jmp _GameLoop
 .ENDPROC
