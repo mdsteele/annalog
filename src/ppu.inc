@@ -106,10 +106,10 @@ Ppu_Nametable3_sName = $2c00
 ;;;=========================================================================;;;
 
 .STRUCT sPal
-    C0 .byte
-    C1 .byte
-    C2 .byte
-    C3 .byte
+    C0_u6 .byte
+    C1_u6 .byte
+    C2_u6 .byte
+    C3_u6 .byte
 .ENDSTRUCT
 
 ;;; See https://wiki.nesdev.org/w/index.php/PPU_palettes

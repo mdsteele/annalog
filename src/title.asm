@@ -23,6 +23,8 @@
 .INCLUDE "ppu.inc"
 
 .IMPORT Func_ClearRestOfOam
+.IMPORT Func_FadeIn
+.IMPORT Func_FadeOut
 .IMPORT Func_ProcessFrame
 .IMPORT Func_UpdateButtons
 .IMPORT Ram_PpuTransfer_arr
@@ -80,12 +82,6 @@ End:
 ;;; @prereq Rendering is disabled.
 .EXPORT Main_Title
 .PROC Main_Title
-    ;; Set up screen settings:
-    lda #bPpuMask::BgMain | bPpuMask::ObjMain
-    sta Zp_Render_bPpuMask
-    lda #0
-    sta Zp_ScrollX_u8
-    sta Zp_ScrollY_u8
     ;; Clear OAM:
     sta Zp_OamOffset_u8
     jsr Func_ClearRestOfOam
@@ -118,13 +114,22 @@ _DrawTitleString:
     inx
     dey
     bne @loop
+_FadeIn:
+    lda #bPpuMask::BgMain | bPpuMask::ObjMain
+    sta Zp_Render_bPpuMask
+    lda #0
+    sta Zp_ScrollX_u8
+    sta Zp_ScrollY_u8
+    jsr Func_FadeIn
 _GameLoop:
     jsr Func_UpdateButtons
+    ;; Check D-pad left.
     lda Zp_P1ButtonsHeld_bJoypad
     and #bJoypad::Left
     beq @noLeft
     dec Zp_ScrollX_u8
     @noLeft:
+    ;; Check D-pad right.
     lda Zp_P1ButtonsPressed_bJoypad
     and #bJoypad::Right
     beq @noRight
@@ -132,6 +137,16 @@ _GameLoop:
     add #15
     sta Zp_ScrollX_u8
     @noRight:
+    ;; Check SELECT button.
+    lda Zp_P1ButtonsPressed_bJoypad
+    and #bJoypad::Select
+    beq @noSelect
+    jsr Func_FadeOut
+    lda #bPpuMask::BgMain | bPpuMask::ObjMain
+    sta Zp_Render_bPpuMask
+    jsr Func_FadeIn
+    @noSelect:
+    ;; Check START button.
     lda Zp_P1ButtonsPressed_bJoypad
     and #bJoypad::Start
     beq @noStart
