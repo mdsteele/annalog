@@ -42,6 +42,25 @@ Zp_Render_bPpuMask: .res 1
 Zp_ScrollX_u8: .res 1
 Zp_ScrollY_u8: .res 1
 
+;;; The current length of Ram_PpuTransfer_arr, in bytes.  When Zp_NmiReady_bool
+;;; is set, the NMI handler will transfer the data and reset this back to zero.
+.EXPORTZP Zp_PpuTransferLen_u8
+Zp_PpuTransferLen_u8: .res 1
+
+;;;=========================================================================;;;
+
+.SEGMENT "RAM_PpuTransfer"
+
+;;; Storage for data that the NMI hanlder should transfer to the PPU the next
+;;; time that Zp_NmiReady_bool is set.  Consists of zero or more entries, where
+;;; each entry consists of:
+;;;     - Value to set for Hw_PpuCtrl_wo (1 byte, must include EnableNmi)
+;;;     - Destination PPU address (2 bytes, *big*-endian)
+;;;     - Length (1 byte, must be nonzero)
+;;;     - Data to transfer (length bytes)
+.EXPORT Ram_PpuTransfer_arr
+Ram_PpuTransfer_arr: .res $80
+
 ;;;=========================================================================;;;
 
 .SEGMENT "PRGE_Nmi"
@@ -66,12 +85,32 @@ _TransferOamData:
     lda #>Ram_Oam_sObj_arr64
     sta Hw_OamDma_wo
 _TransferPpuData:
-    ;; TODO
+    bit Hw_PpuStatus_ro  ; reset the Hw_PpuAddr_w2 write-twice latch
+    ldx #0
+    @entryLoop:
+    lda Ram_PpuTransfer_arr, x  ; control byte
+    bpl @done
+    sta Hw_PpuCtrl_wo
+    inx
+    .repeat 2
+    lda Ram_PpuTransfer_arr, x  ; PPU addr
+    sta Hw_PpuAddr_w2
+    inx
+    .endrepeat
+    ldy Ram_PpuTransfer_arr, x  ; length
+    inx
+    @dataLoop:
+    lda Ram_PpuTransfer_arr, x
+    sta Hw_PpuData_rw
+    inx
+    dey
+    bne @dataLoop
+    beq @entryLoop  ; unconditional
+    @done:
 _UpdatePpuRegisters:
     ;; Update other PPU registers.  Note that writing to Hw_PpuAddr_w2 (as
     ;; above) can corrupt the scroll position, so we must write Hw_PpuScroll_w2
     ;; afterwards.  See https://wiki.nesdev.org/w/index.php/PPU_scrolling.
-    bit Hw_PpuStatus_ro  ; reset the Hw_PpuScroll_w2 write-twice latch
     lda Zp_ScrollX_u8
     sta Hw_PpuScroll_w2
     lda Zp_ScrollY_u8
@@ -80,8 +119,11 @@ _UpdatePpuRegisters:
     sta Hw_PpuCtrl_wo
     lda Zp_Render_bPpuMask
     sta Hw_PpuMask_wo
-    ;; Indicate that we are done updating the PPU.
-    inc Zp_NmiReady_bool  ; change from true ($ff) to false ($00)
+    ;; Mark the PPU transfer buffer as empty and indicate that we are done
+    ;; updating the PPU.
+    lda #0
+    sta Zp_PpuTransferLen_u8
+    sta Zp_NmiReady_bool
 _DoneUpdatingPpu:
     ;; Restore registers and return.  (Note that the rti instruction
     ;; automatically restores processor flags, so we don't need a plp
@@ -98,6 +140,10 @@ _DoneUpdatingPpu:
 ;;; the next NMI to complete.
 .EXPORT Func_ProcessFrame
 .PROC Func_ProcessFrame
+    ;; Zero-terminate the PPU transfer buffer.
+    ldx Zp_PpuTransferLen_u8
+    lda #0
+    sta Ram_PpuTransfer_arr, x
     ;; Tell the NMI handler that we are ready for it to transfer data, then
     ;; wait until it finishes.
     dec Zp_NmiReady_bool  ; change from false ($00) to true ($ff)

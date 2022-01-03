@@ -25,9 +25,11 @@
 .IMPORT Func_ClearRestOfOam
 .IMPORT Func_ProcessFrame
 .IMPORT Func_UpdateButtons
+.IMPORT Ram_PpuTransfer_arr
 .IMPORTZP Zp_OamOffset_u8
 .IMPORTZP Zp_P1ButtonsHeld_bJoypad
 .IMPORTZP Zp_P1ButtonsPressed_bJoypad
+.IMPORTZP Zp_PpuTransferLen_u8
 .IMPORTZP Zp_Render_bPpuMask
 .IMPORTZP Zp_ScrollX_u8
 .IMPORTZP Zp_ScrollY_u8
@@ -39,6 +41,40 @@
 .PROC Data_TitleString_u8_arr
     .byte "ANNALOG"
 End:
+.ENDPROC
+
+.PROC Data_StartString_u8_arr
+    .byte "start was pressed"
+End:
+.ENDPROC
+
+.PROC Func_DisplayStartString
+    ldy Zp_PpuTransferLen_u8
+    lda #bPpuCtrl::EnableNmi | bPpuCtrl::Inc32
+    sta Ram_PpuTransfer_arr, y
+    iny
+    .linecont +
+    ldax #Ppu_Nametable0_sName + sName::Tiles_u8_arr + \
+          kScreenWidthTiles * 3 + 7
+    .linecont -
+    sta Ram_PpuTransfer_arr, y
+    iny
+    txa
+    sta Ram_PpuTransfer_arr, y
+    iny
+    lda #Data_StartString_u8_arr::End - Data_StartString_u8_arr
+    sta Ram_PpuTransfer_arr, y
+    iny
+    ldx #0
+    @loop:
+    lda Data_StartString_u8_arr, x
+    sta Ram_PpuTransfer_arr, y
+    iny
+    inx
+    cpx #Data_StartString_u8_arr::End - Data_StartString_u8_arr
+    bne @loop
+    sty Zp_PpuTransferLen_u8
+    rts
 .ENDPROC
 
 ;;; @prereq Rendering is disabled.
@@ -96,6 +132,11 @@ _GameLoop:
     add #15
     sta Zp_ScrollX_u8
     @noRight:
+    lda Zp_P1ButtonsPressed_bJoypad
+    and #bJoypad::Start
+    beq @noStart
+    jsr Func_DisplayStartString
+    @noStart:
     jsr Func_ProcessFrame
     jmp _GameLoop
 .ENDPROC
