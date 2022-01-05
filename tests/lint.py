@@ -21,6 +21,7 @@ from __future__ import print_function
 
 import os
 import re
+import sys
 
 #=============================================================================#
 
@@ -39,59 +40,67 @@ IMPORT_PATTERN = re.compile(r'^\.IMPORT(?:ZP)? +(.+)$')
 
 #=============================================================================#
 
+def src_and_test_entries():
+    for entry in os.walk('src'):
+        yield entry
+    for entry in os.walk('tests'):
+        yield entry
+
+def src_and_test_filepaths(*exts):
+    for (dirpath, dirnames, filenames) in src_and_test_entries():
+        for filename in filenames:
+            for ext in exts:
+                if filename.endswith(ext):
+                    yield os.path.join(dirpath, filename)
+                    break
+
+#=============================================================================#
+
 def run_tests():
     num_passed = 0
     num_failed = 0
     # Check for suspicious regex patterns.
     for (message, pattern) in PATTERNS:
         num_matches = 0
-        for (dirpath, dirnames, filenames) in os.walk('src'):
-            for filename in filenames:
-                if not (filename.endswith('.asm') or
-                        filename.endswith('.inc')):
-                    continue
-                filepath = os.path.join(dirpath, filename)
-                for (line_number, line) in enumerate(open(filepath)):
-                    if pattern.search(line):
-                        if num_matches == 0:
-                            print('LINT: found ' + message)
-                        num_matches += 1
-                        print('  {}:{}:'.format(filepath, line_number + 1))
-                        print('    ' + line.strip())
+        for filepath in src_and_test_filepaths('.asm', '.inc'):
+            for (line_number, line) in enumerate(open(filepath)):
+                if pattern.search(line):
+                    if num_matches == 0:
+                        print('LINT: found ' + message)
+                    num_matches += 1
+                    print('  {}:{}:'.format(filepath, line_number + 1))
+                    print('    ' + line.strip())
         if num_matches == 0: num_passed += 1
         else: num_failed += 1
     # Check imports within each ASM file.
-    for (dirpath, dirnames, filenames) in os.walk('src'):
-        for filename in filenames:
-            if not filename.endswith('.asm'): continue
-            imports = []
-            filepath = os.path.join(dirpath, filename)
+    for filepath in src_and_test_filepaths('.asm'):
+        imports = []
+        for line in open(filepath):
+            match = IMPORT_PATTERN.match(line)
+            if match:
+                imports.append(match.group(1))
+        # Check that the imports are sorted.
+        if imports == sorted(imports):
+            num_passed += 1
+        else:
+            num_failed += 1
+            print('LINT: unsorted imports in ' + filepath)
+        # Check that all imports are used.
+        num_unused = 0
+        for identifier in imports:
             for line in open(filepath):
-                match = IMPORT_PATTERN.match(line)
-                if match:
-                    imports.append(match.group(1))
-            # Check that the imports are sorted.
-            if imports == sorted(imports):
-                num_passed += 1
+                if not IMPORT_PATTERN.match(line) and identifier in line:
+                    break
             else:
-                num_failed += 1
-                print('LINT: unsorted imports in ' + filepath)
-            # Check that all imports are used.
-            num_unused = 0
-            for identifier in imports:
-                for line in open(filepath):
-                    if not IMPORT_PATTERN.match(line) and identifier in line:
-                        break
-                else:
-                    num_unused += 1
-                    print('LINT: unused import {} in {}'
-                          .format(identifier, filepath))
-            if num_unused == 0: num_passed += 1
-            else: num_failed += 1
+                num_unused += 1
+                print('LINT: unused import {} in {}'
+                      .format(identifier, filepath))
+        if num_unused == 0: num_passed += 1
+        else: num_failed += 1
     print('lint: {} passed, {} failed'.format(num_passed, num_failed))
     return (num_passed, num_failed)
 
 if __name__ == '__main__':
-    run_tests()
+    sys.exit(run_tests()[1])
 
 #=============================================================================#

@@ -21,11 +21,14 @@ ROMNAME = annalog
 
 SRCDIR = src
 OUTDIR = out
+TESTDIR = tests
 BINDIR = $(OUTDIR)/bin
 DATADIR = $(OUTDIR)/data
 OBJDIR = $(OUTDIR)/obj
+SIM65DIR = $(OUTDIR)/sim65
 
 AHI2CHR = $(BINDIR)/ahi2chr
+BG2ROOM = $(BINDIR)/bg2room
 LABEL2NL = $(BINDIR)/label2nl
 
 CFGFILE = $(SRCDIR)/linker.cfg
@@ -34,10 +37,12 @@ ROMFILE = $(OUTDIR)/$(ROMNAME).nes
 
 AHIFILES := $(shell find $(SRCDIR) -name '*.ahi')
 ASMFILES := $(shell find $(SRCDIR) -name '*.asm')
+BGFILES := $(shell find $(SRCDIR) -name '*.bg')
 INCFILES := $(shell find $(SRCDIR) -name '*.inc')
 
 CHRFILES := $(patsubst $(SRCDIR)/%.ahi,$(DATADIR)/%.chr,$(AHIFILES))
 OBJFILES := $(patsubst $(SRCDIR)/%.asm,$(OBJDIR)/%.o,$(ASMFILES))
+ROOMFILES := $(patsubst $(SRCDIR)/%.bg,$(DATADIR)/%.room,$(BGFILES))
 
 #=============================================================================#
 
@@ -49,8 +54,9 @@ run: $(ROMFILE) $(ROMFILE).ram.nl $(ROMFILE).3.nl
 	fceux $<
 
 .PHONY: test
-test:
-	python tests/all.py
+test: $(SIM65DIR)/terrain
+	python tests/lint.py
+	sim65 $(SIM65DIR)/terrain
 
 .PHONY: clean
 clean:
@@ -72,6 +78,14 @@ $(DATADIR)/%.chr: $(SRCDIR)/%.ahi $(AHI2CHR)
 	@mkdir -p $(@D)
 	@$(AHI2CHR) < $< > $@
 
+$(BG2ROOM): build/bg2room.c
+	$(compile-c)
+
+$(DATADIR)/%.room: $(SRCDIR)/%.bg $(BG2ROOM)
+	@echo "Converting $<"
+	@mkdir -p $(@D)
+	@$(BG2ROOM) < $< > $@
+
 $(LABEL2NL): build/label2nl.c
 	$(compile-c)
 
@@ -87,6 +101,23 @@ $(ROMFILE).3.nl: $(LABELFILE) $(LABEL2NL)
 
 #=============================================================================#
 
+define link-test
+	@echo "Linking $@"
+	@mkdir -p $(@D)
+	@ld65 -o $@ -C $^
+endef
+
+$(SIM65DIR)/terrain: $(TESTDIR)/terrain.cfg $(SIM65DIR)/terrain.o \
+                     $(OBJDIR)/terrain.o $(SIM65DIR)/sim65.o
+	$(link-test)
+
+$(SIM65DIR)/%.o: $(TESTDIR)/%.asm $(INCFILES)
+	@echo "Assembling $<"
+	@mkdir -p $(@D)
+	@ca65 --target sim6502 -o $@ $<
+
+#=============================================================================#
+
 $(ROMFILE) $(LABELFILE): $(CFGFILE) $(OBJFILES)
 	@echo "Linking $@"
 	@mkdir -p $(@D)
@@ -94,12 +125,15 @@ $(ROMFILE) $(LABELFILE): $(CFGFILE) $(OBJFILES)
 $(LABELFILE): $(ROMFILE)
 
 define compile-asm
-	@echo "Compiling $<"
+	@echo "Assembling $<"
 	@mkdir -p $(@D)
 	@ca65 --target nes -W1 --debug-info -o $@ $<
 endef
 
 $(OBJDIR)/chr.o: $(SRCDIR)/chr.asm $(INCFILES) $(CHRFILES)
+	$(compile-asm)
+
+$(OBJDIR)/room.o: $(SRCDIR)/room.asm $(INCFILES) $(ROOMFILES)
 	$(compile-asm)
 
 $(OBJDIR)/%.o: $(SRCDIR)/%.asm $(INCFILES)

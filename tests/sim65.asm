@@ -17,26 +17,13 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
-kSizeofChr = 16
-
-;;;=========================================================================;;;
-
-.SEGMENT "CHR_Cave"
-
-.EXPORT Ppu_ChrCave
-Ppu_ChrCave:
-    .incbin "out/data/tiles/cave.chr"
-    .res 49 * kSizeofChr
-    .assert * - Ppu_ChrCave = kSizeofChr * 64, error
-
-;;;=========================================================================;;;
-
-.SEGMENT "CHR_Font"
-
-.EXPORT Ppu_ChrFont
-Ppu_ChrFont:
-    .incbin "out/data/tiles/font.chr"
-    .res 34 * kSizeofChr
-    .assert * - Ppu_ChrFont = kSizeofChr * 128, error
+.SEGMENT "HEADER"
+    ;; See https://cc65.github.io/doc/sim65.html#toc5
+    .byte "sim65"
+    .byte 2      ; version
+    .byte 0      ; CPU type (0 = 6502)
+    .byte $fe    ; C stack pointer
+    .addr $1000  ; load address
+    .addr $1000  ; reset address
 
 ;;;=========================================================================;;;

@@ -20,14 +20,19 @@
 .INCLUDE "charmap.inc"
 .INCLUDE "joypad.inc"
 .INCLUDE "macros.inc"
+.INCLUDE "mmc3.inc"
 .INCLUDE "ppu.inc"
+.INCLUDE "room.inc"
 
+.IMPORT DataC_TallRoom_sRoom
+.IMPORT FuncA_Terrain_FillNametables
 .IMPORT Func_ClearRestOfOam
 .IMPORT Func_FadeIn
 .IMPORT Func_FadeOut
 .IMPORT Func_ProcessFrame
 .IMPORT Func_UpdateButtons
 .IMPORT Ram_PpuTransfer_arr
+.IMPORTZP Zp_Current_sRoom
 .IMPORTZP Zp_OamOffset_u8
 .IMPORTZP Zp_P1ButtonsHeld_bJoypad
 .IMPORTZP Zp_P1ButtonsPressed_bJoypad
@@ -86,6 +91,8 @@ End:
     sta Zp_OamOffset_u8
     jsr Func_ClearRestOfOam
 _ClearNametable0:
+    lda #bPpuCtrl::EnableNmi | bPpuCtrl::ObjPat1
+    sta Hw_PpuCtrl_wo
     ldax #Ppu_Nametable0_sName + sName::Tiles_u8_arr
     bit Hw_PpuStatus_ro  ; reset the Hw_PpuAddr_w2 write-twice latch
     sta Hw_PpuAddr_w2
@@ -98,7 +105,20 @@ _ClearNametable0:
     bne @loop
     dex
     bpl @loop
+_DrawTerrain:
+    prgc_bank #<.bank(DataC_TallRoom_sRoom)
+    ldx #.sizeof(sRoom) - 1
+    @loop:
+    lda DataC_TallRoom_sRoom, x
+    sta Zp_Current_sRoom, x
+    dex
+    bpl @loop
+    prga_bank #<.bank(FuncA_Terrain_FillNametables)
+    lda #0  ; param: left block column index
+    jsr FuncA_Terrain_FillNametables
 _DrawTitleString:
+    lda #bPpuCtrl::EnableNmi | bPpuCtrl::ObjPat1
+    sta Hw_PpuCtrl_wo
     .linecont +
     ldax #Ppu_Nametable0_sName + sName::Tiles_u8_arr + \
           kScreenWidthTiles * 14 + 12

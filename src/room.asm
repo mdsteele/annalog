@@ -17,26 +17,28 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
-kSizeofChr = 16
+.INCLUDE "room.inc"
 
 ;;;=========================================================================;;;
 
-.SEGMENT "CHR_Cave"
+.SEGMENT "PRGC_Room"
 
-.EXPORT Ppu_ChrCave
-Ppu_ChrCave:
-    .incbin "out/data/tiles/cave.chr"
-    .res 49 * kSizeofChr
-    .assert * - Ppu_ChrCave = kSizeofChr * 64, error
+DataC_ShortRoomTerrain_arr:
+:   .incbin "out/data/rooms/short.room"
+    .assert * - :- = 16 * 16, error
 
-;;;=========================================================================;;;
+DataC_TallRoomTerrain_arr:
+:   .incbin "out/data/rooms/tall.room"
+    .assert * - :- = 16 * 24, error
 
-.SEGMENT "CHR_Font"
-
-.EXPORT Ppu_ChrFont
-Ppu_ChrFont:
-    .incbin "out/data/tiles/font.chr"
-    .res 34 * kSizeofChr
-    .assert * - Ppu_ChrFont = kSizeofChr * 128, error
+.EXPORT DataC_TallRoom_sRoom
+DataC_TallRoom_sRoom:
+:   .assert * - :- = sRoom::WidthBlocks_u8, error
+    .byte 16
+    .assert * - :- = sRoom::IsTall_bool, error
+    .byte $ff
+    .assert * - :- = sRoom::TerrainData_ptr, error
+    .addr DataC_TallRoomTerrain_arr
+    .assert * - :- = .sizeof(sRoom), error
 
 ;;;=========================================================================;;;

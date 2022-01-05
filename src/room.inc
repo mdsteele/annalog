@@ -17,26 +17,26 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
-kSizeofChr = 16
+;; The height of a "tall" room, in blocks.  A "short" room is
+;; kScreenHeightBlocks = 15 blocks tall, fitting vertically in the first
+;; nametable.  A "tall" room extends into the top portion of the second
+;; nametable by (kTallRoomHeightBlocks - kScreenHeightBlocks) = 9 blocks.
+kTallRoomHeightBlocks = 24
 
 ;;;=========================================================================;;;
 
-.SEGMENT "CHR_Cave"
-
-.EXPORT Ppu_ChrCave
-Ppu_ChrCave:
-    .incbin "out/data/tiles/cave.chr"
-    .res 49 * kSizeofChr
-    .assert * - Ppu_ChrCave = kSizeofChr * 64, error
-
-;;;=========================================================================;;;
-
-.SEGMENT "CHR_Font"
-
-.EXPORT Ppu_ChrFont
-Ppu_ChrFont:
-    .incbin "out/data/tiles/font.chr"
-    .res 34 * kSizeofChr
-    .assert * - Ppu_ChrFont = kSizeofChr * 128, error
+;; Stores basic information about a single room.
+.STRUCT sRoom
+    ;; The width of the room, in blocks.  This should never be less than
+    ;; kScreenWidthBlocks = 16.
+    WidthBlocks_u8  .byte
+    ;; True ($ff) if the room is "tall" (kTallRoomHeightBlocks blocks tall), or
+    ;; false ($00) if it is short (kScreenHeightBlocks blocks tall).
+    IsTall_bool     .byte
+    ;; A pointer to the terrain block data for this room, which stores 1 byte
+    ;; per block in column-major order.  For "short" rooms, new columns start
+    ;; every 16 bytes; for "tall" rooms, new columns start every 24 bytes.
+    TerrainData_ptr .addr
+.ENDSTRUCT
 
 ;;;=========================================================================;;;

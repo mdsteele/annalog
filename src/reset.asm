@@ -23,6 +23,7 @@
 .INCLUDE "ppu.inc"
 
 .IMPORT Main_Title
+.IMPORT Ppu_ChrCave
 .IMPORT Ppu_ChrFont
 
 ;;;=========================================================================;;;
@@ -126,7 +127,7 @@ _InitPpuMapping:
     ;; Set all CHR ROM banks to a known state.
     chr00_bank #<.bank(Ppu_ChrFont)
     chr04_bank #<.bank(Ppu_ChrFont) + 1
-    chr08_bank #2
+    chr08_bank #<.bank(Ppu_ChrCave)
     chr0c_bank #3
     chr10_bank #4
     chr18_bank #6

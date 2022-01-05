@@ -17,26 +17,46 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
-kSizeofChr = 16
+.INCLUDE "../src/macros.inc"
+.INCLUDE "../src/room.inc"
+
+.IMPORT FuncA_Terrain_GetColumnPtr
+.IMPORTZP Zp_Current_sRoom
+.IMPORTZP Zp_TerrainColumn_u8_arr_ptr
 
 ;;;=========================================================================;;;
 
-.SEGMENT "CHR_Cave"
+kTerrainDataPtr = $80ff
+kBlockColumnIndex = 11
+kExpectedStripePtr = $8207
 
-.EXPORT Ppu_ChrCave
-Ppu_ChrCave:
-    .incbin "out/data/tiles/cave.chr"
-    .res 49 * kSizeofChr
-    .assert * - Ppu_ChrCave = kSizeofChr * 64, error
+.LINECONT +
+.ASSERT kTerrainDataPtr + kBlockColumnIndex * kTallRoomHeightBlocks = \
+        kExpectedStripePtr, error
+.LINECONT -
 
 ;;;=========================================================================;;;
 
-.SEGMENT "CHR_Font"
+.SEGMENT "MAIN"
 
-.EXPORT Ppu_ChrFont
-Ppu_ChrFont:
-    .incbin "out/data/tiles/font.chr"
-    .res 34 * kSizeofChr
-    .assert * - Ppu_ChrFont = kSizeofChr * 128, error
+SetUp:
+    lda #$ff
+    sta Zp_Current_sRoom + sRoom::IsTall_bool
+    ldax #kTerrainDataPtr
+    stx Zp_Current_sRoom + sRoom::TerrainData_ptr + 0
+    sta Zp_Current_sRoom + sRoom::TerrainData_ptr + 1
+Test:
+    lda #kBlockColumnIndex
+    jsr FuncA_Terrain_GetColumnPtr
+Verify:
+    lda Zp_TerrainColumn_u8_arr_ptr + 0
+    sub #<kExpectedStripePtr
+    bne Exit
+    lda Zp_TerrainColumn_u8_arr_ptr + 1
+    sub #>kExpectedStripePtr
+    bne Exit
+    lda #0
+Exit:
+    jmp $fff9  ; exit process with A as the status code (error if nonzero)
 
 ;;;=========================================================================;;;
