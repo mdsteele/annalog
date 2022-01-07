@@ -23,6 +23,8 @@
 
 kTileWidthPx = 8
 kTileHeightPx = 8
+kBlockWidthPx = kTileWidthPx * 2
+kBlockHeightPx = kTileHeightPx * 2
 kScreenWidthBlocks = 16
 kScreenHeightBlocks = 15
 kScreenWidthTiles = kScreenWidthBlocks * 2

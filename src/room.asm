@@ -33,8 +33,8 @@ DataC_TallRoomTerrain_arr:
 
 .EXPORT DataC_TallRoom_sRoom
 DataC_TallRoom_sRoom:
-:   .assert * - :- = sRoom::WidthBlocks_u8, error
-    .byte 16
+:   .assert * - :- = sRoom::MaxScrollX_u16, error
+    .word $160
     .assert * - :- = sRoom::IsTall_bool, error
     .byte $ff
     .assert * - :- = sRoom::TerrainData_ptr, error

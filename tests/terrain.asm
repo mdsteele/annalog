@@ -38,7 +38,10 @@ kExpectedStripePtr = $8207
 ;;;=========================================================================;;;
 
 .SEGMENT "MAIN"
-
+    sei
+    cld
+    ldx #$ff
+    txs
 SetUp:
     lda #$ff
     sta Zp_Current_sRoom + sRoom::IsTall_bool

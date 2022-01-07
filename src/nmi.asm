@@ -38,9 +38,9 @@ Zp_Render_bPpuMask: .res 1
 
 ;;; The NMI handler will copy these to Hw_PpuScroll_w2 when Zp_NmiReady_bool is
 ;;; set.
-.EXPORTZP Zp_ScrollX_u8, Zp_ScrollY_u8
-Zp_ScrollX_u8: .res 1
-Zp_ScrollY_u8: .res 1
+.EXPORTZP Zp_PpuScrollX_u8, Zp_PpuScrollY_u8
+Zp_PpuScrollX_u8: .res 1
+Zp_PpuScrollY_u8: .res 1
 
 ;;; The current length of Ram_PpuTransfer_arr, in bytes.  When Zp_NmiReady_bool
 ;;; is set, the NMI handler will transfer the data and reset this back to zero.
@@ -111,9 +111,9 @@ _UpdatePpuRegisters:
     ;; Update other PPU registers.  Note that writing to Hw_PpuAddr_w2 (as
     ;; above) can corrupt the scroll position, so we must write Hw_PpuScroll_w2
     ;; afterwards.  See https://wiki.nesdev.org/w/index.php/PPU_scrolling.
-    lda Zp_ScrollX_u8
+    lda Zp_PpuScrollX_u8
     sta Hw_PpuScroll_w2
-    lda Zp_ScrollY_u8
+    lda Zp_PpuScrollY_u8
     sta Hw_PpuScroll_w2
     lda #bPpuCtrl::EnableNmi | bPpuCtrl::ObjPat1
     sta Hw_PpuCtrl_wo

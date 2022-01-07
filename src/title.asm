@@ -20,26 +20,21 @@
 .INCLUDE "charmap.inc"
 .INCLUDE "joypad.inc"
 .INCLUDE "macros.inc"
-.INCLUDE "mmc3.inc"
 .INCLUDE "ppu.inc"
-.INCLUDE "room.inc"
 
-.IMPORT DataC_TallRoom_sRoom
-.IMPORT FuncA_Terrain_FillNametables
 .IMPORT Func_ClearRestOfOam
 .IMPORT Func_FadeIn
 .IMPORT Func_FadeOut
 .IMPORT Func_ProcessFrame
 .IMPORT Func_UpdateButtons
+.IMPORT Main_Explore
 .IMPORT Ram_PpuTransfer_arr
-.IMPORTZP Zp_Current_sRoom
 .IMPORTZP Zp_OamOffset_u8
-.IMPORTZP Zp_P1ButtonsHeld_bJoypad
 .IMPORTZP Zp_P1ButtonsPressed_bJoypad
+.IMPORTZP Zp_PpuScrollX_u8
+.IMPORTZP Zp_PpuScrollY_u8
 .IMPORTZP Zp_PpuTransferLen_u8
 .IMPORTZP Zp_Render_bPpuMask
-.IMPORTZP Zp_ScrollX_u8
-.IMPORTZP Zp_ScrollY_u8
 
 ;;;=========================================================================;;;
 
@@ -88,6 +83,7 @@ End:
 .EXPORT Main_Title
 .PROC Main_Title
     ;; Clear OAM:
+    lda #0
     sta Zp_OamOffset_u8
     jsr Func_ClearRestOfOam
 _ClearNametable0:
@@ -105,17 +101,6 @@ _ClearNametable0:
     bne @loop
     dex
     bpl @loop
-_DrawTerrain:
-    prgc_bank #<.bank(DataC_TallRoom_sRoom)
-    ldx #.sizeof(sRoom) - 1
-    @loop:
-    lda DataC_TallRoom_sRoom, x
-    sta Zp_Current_sRoom, x
-    dex
-    bpl @loop
-    prga_bank #<.bank(FuncA_Terrain_FillNametables)
-    lda #0  ; param: left block column index
-    jsr FuncA_Terrain_FillNametables
 _DrawTitleString:
     lda #bPpuCtrl::EnableNmi | bPpuCtrl::ObjPat1
     sta Hw_PpuCtrl_wo
@@ -138,39 +123,18 @@ _FadeIn:
     lda #bPpuMask::BgMain | bPpuMask::ObjMain
     sta Zp_Render_bPpuMask
     lda #0
-    sta Zp_ScrollX_u8
-    sta Zp_ScrollY_u8
+    sta Zp_PpuScrollX_u8
+    sta Zp_PpuScrollY_u8
     jsr Func_FadeIn
 _GameLoop:
     jsr Func_UpdateButtons
-    ;; Check D-pad left.
-    lda Zp_P1ButtonsHeld_bJoypad
-    and #bJoypad::Left
-    beq @noLeft
-    dec Zp_ScrollX_u8
-    @noLeft:
-    ;; Check D-pad right.
-    lda Zp_P1ButtonsPressed_bJoypad
-    and #bJoypad::Right
-    beq @noRight
-    lda Zp_ScrollX_u8
-    add #15
-    sta Zp_ScrollX_u8
-    @noRight:
-    ;; Check SELECT button.
-    lda Zp_P1ButtonsPressed_bJoypad
-    and #bJoypad::Select
-    beq @noSelect
-    jsr Func_FadeOut
-    lda #bPpuMask::BgMain | bPpuMask::ObjMain
-    sta Zp_Render_bPpuMask
-    jsr Func_FadeIn
-    @noSelect:
     ;; Check START button.
     lda Zp_P1ButtonsPressed_bJoypad
     and #bJoypad::Start
     beq @noStart
     jsr Func_DisplayStartString
+    jsr Func_FadeOut
+    jmp Main_Explore
     @noStart:
     jsr Func_ProcessFrame
     jmp _GameLoop

@@ -27,9 +27,10 @@ kTallRoomHeightBlocks = 24
 
 ;; Stores basic information about a single room.
 .STRUCT sRoom
-    ;; The width of the room, in blocks.  This should never be less than
-    ;; kScreenWidthBlocks = 16.
-    WidthBlocks_u8  .byte
+    ;; The maximum permitted scroll X-coordinate, in pixels.  This should be
+    ;; equal to (N - kScreenWidthBlocks) * kBlockWidthPx, where N is the width
+    ;; of the room in blocks.
+    MaxScrollX_u16  .word
     ;; True ($ff) if the room is "tall" (kTallRoomHeightBlocks blocks tall), or
     ;; false ($00) if it is short (kScreenHeightBlocks blocks tall).
     IsTall_bool     .byte

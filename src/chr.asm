@@ -25,9 +25,9 @@ kSizeofChr = 16
 
 .EXPORT Ppu_ChrCave
 Ppu_ChrCave:
-    .incbin "out/data/tiles/cave.chr"
+:   .incbin "out/data/tiles/cave.chr"
     .res 49 * kSizeofChr
-    .assert * - Ppu_ChrCave = kSizeofChr * 64, error
+    .assert * - :- = kSizeofChr * 64, error
 
 ;;;=========================================================================;;;
 
@@ -35,8 +35,18 @@ Ppu_ChrCave:
 
 .EXPORT Ppu_ChrFont
 Ppu_ChrFont:
-    .incbin "out/data/tiles/font.chr"
+:   .incbin "out/data/tiles/font.chr"
     .res 34 * kSizeofChr
-    .assert * - Ppu_ChrFont = kSizeofChr * 128, error
+    .assert * - :- = kSizeofChr * 128, error
+
+;;;=========================================================================;;;
+
+.SEGMENT "CHR_Player"
+
+.EXPORT Ppu_ChrPlayer
+Ppu_ChrPlayer:
+:   .incbin "out/data/tiles/cursor.chr"
+    .res 124 * kSizeofChr
+    .assert * - :- = kSizeofChr * 128, error
 
 ;;;=========================================================================;;;

@@ -37,7 +37,7 @@
     .if _is_immediate ARG
     op #>(_get_immediate ARG)
     .else
-    op (ARG) + 1
+    op ARG + 1
     .endif
 .ENDMACRO
 
@@ -49,8 +49,8 @@
 ;;;
 ;;; Examples:
 ;;;     ldax #$1234       ; immidiate mode; sets X to $34 and A to $12
-;;;     ldax Zp_Foo_u16   ; zeropage mode; sets [Foo] to X and [Foo+1] to A
-;;;     ldax Ram_Foo_u16  ; absolute mode; sets [Foo] to X and [Foo+1] to A
+;;;     ldax Zp_Foo_u16   ; zeropage mode; sets X to [Foo] and A to [Foo+1]
+;;;     ldax Ram_Foo_u16  ; absolute mode; sets X to [Foo] and A to [Foo+1]
 .MACRO ldax ARG
     _lo_byte ldx, ARG
     _hi_byte lda, ARG
@@ -62,11 +62,23 @@
 ;;;
 ;;; Examples:
 ;;;     ldxy #$1234       ; immidiate mode; sets Y to $34 and X to $12
-;;;     ldxy Zp_Foo_u16   ; zeropage mode; sets [Foo] to Y and [Foo+1] to X
-;;;     ldxy Ram_Foo_u16  ; absolute mode; sets [Foo] to Y and [Foo+1] to X
+;;;     ldxy Zp_Foo_u16   ; zeropage mode; sets Y to [Foo] and X to [Foo+1]
+;;;     ldxy Ram_Foo_u16  ; absolute mode; sets Y to [Foo] and X to [Foo+1]
 .MACRO ldxy ARG
     _lo_byte ldy, ARG
     _hi_byte ldx, ARG
+.ENDMACRO
+
+;;; STAX (store a 16-bit value from AX)
+;;;
+;;; Stores a 16-bit value, using X as the low byte and A as the high byte.
+;;;
+;;; Examples:
+;;;     stax Zp_Foo_u16   ; zeropage mode; sets [Foo] to X and [Foo+1] to A
+;;;     stax Ram_Foo_u16  ; absolute mode; sets [Foo] to X and [Foo+1] to A
+.MACRO stax ARG
+    _lo_byte stx, ARG
+    _hi_byte sta, ARG
 .ENDMACRO
 
 ;;;=========================================================================;;;

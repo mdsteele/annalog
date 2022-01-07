@@ -22,9 +22,11 @@
 .INCLUDE "mmc3.inc"
 .INCLUDE "ppu.inc"
 
+.IMPORT Func_ClearRestOfOam
 .IMPORT Main_Title
 .IMPORT Ppu_ChrCave
 .IMPORT Ppu_ChrFont
+.IMPORT Ppu_ChrPlayer
 
 ;;;=========================================================================;;;
 
@@ -95,6 +97,7 @@ _ClearRam:
     sta $0700, x
     inx
     bne @loop
+    jsr Func_ClearRestOfOam
 _WaitForSecondVBlank:
     ;; Wait for the second VBlank.  After this, the PPU should be warmed up.
     bit Hw_PpuStatus_ro  ; Reading this implicitly clears the VBlank bit.
@@ -129,7 +132,7 @@ _InitPpuMapping:
     chr04_bank #<.bank(Ppu_ChrFont) + 1
     chr08_bank #<.bank(Ppu_ChrCave)
     chr0c_bank #3
-    chr10_bank #4
+    chr10_bank #<.bank(Ppu_ChrPlayer)
     chr18_bank #6
 _InitAttributeTable0:
     ;; Set all blocks in nametable 0 to use BG palette 0.
