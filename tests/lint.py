@@ -34,6 +34,8 @@ PATTERNS = [
         r'^ *(ad[cd]|and|cmp|cp[xy]|eor|ora|sub|sbc|ld[a-z]+) +[a-z0-9$%.]')),
     ('tab character', re.compile(r'\t')),
     ('unindented .directive', re.compile(r'^\.[a-z]')),
+    ('wrong comment style',
+     re.compile(r'^ +;;;|^;; |^ *; |^[^;]*[^; ][^;]*;;')),
 ]
 
 IMPORT_PATTERN = re.compile(r'^\.IMPORT(?:ZP)? +(.+)$')

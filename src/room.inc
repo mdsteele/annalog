@@ -17,15 +17,15 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
-;; The height of a "tall" room, in blocks.  A "short" room is
-;; kScreenHeightBlocks = 15 blocks tall, fitting vertically in the first
-;; nametable.  A "tall" room extends into the top portion of the second
-;; nametable by (kTallRoomHeightBlocks - kScreenHeightBlocks) = 9 blocks.
+;;; The height of a "tall" room, in blocks.  A "short" room is
+;;; kScreenHeightBlocks = 15 blocks tall, fitting vertically in the first
+;;; nametable.  A "tall" room extends into the top portion of the second
+;;; nametable by (kTallRoomHeightBlocks - kScreenHeightBlocks) = 9 blocks.
 kTallRoomHeightBlocks = 24
 
 ;;;=========================================================================;;;
 
-;; Stores basic information about a single room.
+;;; Stores basic information about a single room.
 .STRUCT sRoom
     ;; The maximum permitted scroll X-coordinate, in pixels.  This should be
     ;; equal to (N - kScreenWidthBlocks) * kBlockWidthPx, where N is the width
