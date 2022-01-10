@@ -1,27 +1,27 @@
-@BG 0 0 0 16x24
+@BG 0 0 0 35x24
 >cave
 
-
-
-
-    ABAAAAAC
-
-        ABAC
-
-                ABAAAC
-
-
-  ABAAAAAAAAAAAAAC
-
-
-                ABAAAAAAAAAC
-
-      ABAC
-
-              ABAAAC
-
-                      ABAAAAAC
-    ABAC
-
-            ABAAAC
-  ABAAAAAAAA      AAAAAAAC
+                  AH  AG
+  ADADADADADADAD    AA    ADADADADADADADADADADADADADADADADADADADADAD
+AH              AEADADADAF                                          AG
+AH  ABAAAAAC                                                ABAAAC  AG
+AH  AEAD  AH                      ABAAAAAAAAAAAAAC          AE  AH  AG
+AH      AEAF              ABAAAAAA        ADADADAF            AGAH  AG
+AH                        AEADADADADADADAF                    AEAF  AG
+AH              ABAAAC                                ABAC          AG
+AH              AEADAF                                AEAF          AG
+AH                            ABAAAAAAAAAAAAAAAAAC                  AG
+  AAAAAAAAAAAAAAAC            AG            AD  AH                  AG
+  ADADADADADADADAF            AEADADADAD  AH  AG  AAAAAAAC          AG
+AH                                      AG  AA  ADADADADAF      ABAA
+AH              ABAAAAAAAAAC            AG    AH                AG
+AH              AEADADADADAF            AG    AH                AEAD
+AH    ABAC                              AG    AH                    AG
+AH    AEAF                      ABAC    AG    AH      ABAAAAAC      AG
+AH            ABAAAC            AEAF    AG    AH      AEADADAF      AG
+AH            AG  AF                    AG    AH                    AG
+AH            AEAF      ABAAAC          AG    AH                    AG
+AH  ABAC              AB    AH      ABAA        AAAAAAAAAAAC        AG
+AH  AG  AC            AG    AH      AG                    AH        AG
+  AA      AAAAAAAAAAAA        AAAAAA          ADAD          AAAAAAAA
+                                            AH    AG

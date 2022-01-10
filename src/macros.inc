@@ -69,6 +69,19 @@
     _hi_byte ldx, ARG
 .ENDMACRO
 
+;;; LDYA (load a 16-bit value into YA)
+;;;
+;;; Loads a 16-bit value, putting the low byte in A and the high byte in Y.
+;;;
+;;; Examples:
+;;;     ldya #$1234       ; immidiate mode; sets A to $34 and Y to $12
+;;;     ldya Zp_Foo_u16   ; zeropage mode; sets A to [Foo] and Y to [Foo+1]
+;;;     ldya Ram_Foo_u16  ; absolute mode; sets A to [Foo] and Y to [Foo+1]
+.MACRO ldya ARG
+    _lo_byte lda, ARG
+    _hi_byte ldy, ARG
+.ENDMACRO
+
 ;;; STAX (store a 16-bit value from AX)
 ;;;
 ;;; Stores a 16-bit value, using X as the low byte and A as the high byte.

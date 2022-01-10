@@ -21,6 +21,10 @@
 .INCLUDE "ppu.inc"
 .INCLUDE "room.inc"
 
+.IMPORT Ram_PpuTransfer_arr
+.IMPORTZP Zp_PpuTransferLen_u8
+.IMPORTZP Zp_Tmp1_byte
+
 ;;;=========================================================================;;;
 
 .ZEROPAGE
@@ -37,19 +41,22 @@ Zp_TerrainColumn_u8_arr_ptr: .res 2
 ;;; Temporary variable for FuncA_Terrain_FillNametables.
 Zp_TerrainColumnIndexLimit_u8: .res 1
 
+;;; Temporary variable for FuncA_Terrain_TransferTileColumn.
+Zp_NametableColumnIndex_u8: .res 1
+
 ;;;=========================================================================;;;
 
 .SEGMENT "PRGA_Terrain"
 
 .SCOPE DataA_Terrain_Table
 UpperLeft_u8_arr:
-    .byte $00, $86, $84, $86
+    .byte $00, $86, $84, $86, $00, $80, $82, $80, $00
 UpperRight_u8_arr:
-    .byte $00, $86, $86, $85
+    .byte $00, $86, $86, $85, $00, $00, $80, $00, $81
 LowerLeft_u8_arr:
-    .byte $00, $00, $81, $00
+    .byte $00, $00, $81, $00, $87, $81, $87, $81, $00
 LowerRight_u8_arr:
-    .byte $00, $00, $82, $81
+    .byte $00, $00, $82, $81, $87, $87, $80, $00, $80
 .ENDSCOPE
 
 ;;; Populates Zp_TerrainColumn_u8_arr_ptr with a pointer to the start of the
@@ -67,7 +74,7 @@ LowerRight_u8_arr:
     .endrepeat
     ;; We now have (col * 8).  If the room is short, we want (col * 16), and if
     ;; it's tall we want (col * 24).
-    bit Zp_Current_sRoom + sRoom::IsTall_bool
+    bit <(Zp_Current_sRoom + sRoom::IsTall_bool)
     bmi _TallRoom
 _ShortRoom:
     asl a                                ; lo byte of (col * 16)
@@ -88,10 +95,10 @@ _SetPtr:
     ;; At this point, the lo byte of (col * height) is in a, and the hi byte is
     ;; in (Zp_TerrainColumn_u8_arr_ptr + 1).  Add that to the current room's
     ;; TerrainData_ptr and store the result in Zp_TerrainColumn_u8_arr_ptr.
-    add Zp_Current_sRoom + sRoom::TerrainData_ptr + 0
+    add <(Zp_Current_sRoom + sRoom::TerrainData_ptr + 0)
     sta Zp_TerrainColumn_u8_arr_ptr + 0
     lda Zp_TerrainColumn_u8_arr_ptr + 1
-    adc Zp_Current_sRoom + sRoom::TerrainData_ptr + 1
+    adc <(Zp_Current_sRoom + sRoom::TerrainData_ptr + 1)
     sta Zp_TerrainColumn_u8_arr_ptr + 1
     rts
 .ENDPROC
@@ -125,7 +132,7 @@ _BlockColumnLoop:
     sta Hw_PpuAddr_w2
     @tileLoop:
     lda (Zp_TerrainColumn_u8_arr_ptr), y
-    tax  ; now x is the block type
+    tax  ; terrain block type
     lda DataA_Terrain_Table::UpperLeft_u8_arr, x
     sta Hw_PpuData_rw
     lda DataA_Terrain_Table::LowerLeft_u8_arr, x
@@ -135,7 +142,7 @@ _BlockColumnLoop:
     bne @tileLoop
 .ENDSCOPE
 .SCOPE
-    bit Zp_Current_sRoom + sRoom::IsTall_bool
+    bit <(Zp_Current_sRoom + sRoom::IsTall_bool)
     bpl @shortRoom
     pla  ; now a is the tile column index for the left side of the blocks
     pha
@@ -145,7 +152,7 @@ _BlockColumnLoop:
     sta Hw_PpuAddr_w2
     @tileLoop:
     lda (Zp_TerrainColumn_u8_arr_ptr), y
-    tax  ; now x is the block type
+    tax  ; terrain block type
     lda DataA_Terrain_Table::UpperLeft_u8_arr, x
     sta Hw_PpuData_rw
     lda DataA_Terrain_Table::LowerLeft_u8_arr, x
@@ -166,7 +173,7 @@ _BlockColumnLoop:
     sta Hw_PpuAddr_w2
     @tileLoop:
     lda (Zp_TerrainColumn_u8_arr_ptr), y
-    tax  ; now x is the block type
+    tax  ; terrain block type
     lda DataA_Terrain_Table::UpperRight_u8_arr, x
     sta Hw_PpuData_rw
     lda DataA_Terrain_Table::LowerRight_u8_arr, x
@@ -176,7 +183,7 @@ _BlockColumnLoop:
     bne @tileLoop
 .ENDSCOPE
 .SCOPE
-    bit Zp_Current_sRoom + sRoom::IsTall_bool
+    bit <(Zp_Current_sRoom + sRoom::IsTall_bool)
     bpl @shortRoom
     pla  ; now a is the tile column index for the right side of the blocks
     pha
@@ -186,7 +193,7 @@ _BlockColumnLoop:
     sta Hw_PpuAddr_w2
     @tileLoop:
     lda (Zp_TerrainColumn_u8_arr_ptr), y
-    tax  ; now x is the block type
+    tax  ; terrain block type
     lda DataA_Terrain_Table::UpperRight_u8_arr, x
     sta Hw_PpuData_rw
     lda DataA_Terrain_Table::LowerRight_u8_arr, x
@@ -202,6 +209,112 @@ _BlockColumnLoop:
     add #1
     cmp Zp_TerrainColumnIndexLimit_u8
     jne _BlockColumnLoop
+    rts
+.ENDPROC
+
+;;; Buffers a PPU transfer to update one tile column from the current room.
+;;; @param A The index of the room tile column to transfer.
+.EXPORT FuncA_Terrain_TransferTileColumn
+.PROC FuncA_Terrain_TransferTileColumn
+    tax
+    .assert kScreenWidthTiles = $20, error
+    and #$1f
+    sta Zp_NametableColumnIndex_u8
+    txa
+    lsr a  ; param: room block column index
+    jsr FuncA_Terrain_GetColumnPtr
+    ;; Buffer a PPU transfer for the upper nametable.
+.PROC _UpperTransfer
+    ldx Zp_PpuTransferLen_u8
+    txa
+    add #4 + kScreenHeightTiles
+    sta Zp_PpuTransferLen_u8
+    lda #bPpuCtrl::EnableNmi | bPpuCtrl::Inc32
+    sta Ram_PpuTransfer_arr, x
+    inx
+    lda #>Ppu_Nametable0_sName
+    sta Ram_PpuTransfer_arr, x
+    inx
+    .assert <Ppu_Nametable0_sName = 0, error
+    lda Zp_NametableColumnIndex_u8
+    sta Ram_PpuTransfer_arr, x
+    inx
+    lda #kScreenHeightTiles
+    sta Ram_PpuTransfer_arr, x
+    inx
+    ldy #0  ; param: starting block row index
+    jsr FuncA_Terrain_TransferTileColumnData
+.ENDPROC
+    ;; If this is a tall room, then we need to also buffer a PPU transfer for
+    ;; the lower nametable.
+    bit <(Zp_Current_sRoom + sRoom::IsTall_bool)
+    bpl _Return
+.PROC _LowerTransfer
+    ldx Zp_PpuTransferLen_u8
+    txa
+    add #4 + (kTallRoomHeightTiles - kScreenHeightTiles)
+    sta Zp_PpuTransferLen_u8
+    lda #bPpuCtrl::EnableNmi | bPpuCtrl::Inc32
+    sta Ram_PpuTransfer_arr, x
+    inx
+    lda #>Ppu_Nametable3_sName
+    sta Ram_PpuTransfer_arr, x
+    inx
+    .assert <Ppu_Nametable3_sName = 0, error
+    lda Zp_NametableColumnIndex_u8
+    sta Ram_PpuTransfer_arr, x
+    inx
+    lda #kTallRoomHeightTiles - kScreenHeightTiles
+    sta Ram_PpuTransfer_arr, x
+    inx
+    ldy #kScreenHeightBlocks  ; param: starting block row index
+    jsr FuncA_Terrain_TransferTileColumnData
+.ENDPROC
+_Return:
+    rts
+.ENDPROC
+
+;;; Helper function for FuncA_Terrain_TransferTileColumn.  Fills out a PPU
+;;; transfer entry with the data for a particular tile column in the current
+;;; room.
+;;; @prereq Zp_NametableColumnIndex_u8 holds the index of the nametable tile
+;;;         column that should be updated.
+;;; @prereq The PPU transfer entry header has already been written.
+;;; @prereq Zp_PpuTransferLen_u8 is set as though the entry were complete.
+;;; @param X PPU transfer array index for start of the entry's data.
+;;; @param Y Starting block row index.
+.PROC FuncA_Terrain_TransferTileColumnData
+    sty Zp_Tmp1_byte  ; block row index
+    lda Zp_NametableColumnIndex_u8
+    and #$01
+    bne _Right
+_Left:
+    ldy Zp_Tmp1_byte  ; block row index
+    lda (Zp_TerrainColumn_u8_arr_ptr), y
+    tay  ; terrain block type
+    lda DataA_Terrain_Table::UpperLeft_u8_arr, y
+    sta Ram_PpuTransfer_arr, x
+    inx
+    lda DataA_Terrain_Table::LowerLeft_u8_arr, y
+    sta Ram_PpuTransfer_arr, x
+    inx
+    inc Zp_Tmp1_byte  ; block row index
+    cpx Zp_PpuTransferLen_u8
+    bne _Left
+    rts
+_Right:
+    ldy Zp_Tmp1_byte  ; block row index
+    lda (Zp_TerrainColumn_u8_arr_ptr), y
+    tay  ; terrain block type
+    lda DataA_Terrain_Table::UpperRight_u8_arr, y
+    sta Ram_PpuTransfer_arr, x
+    inx
+    lda DataA_Terrain_Table::LowerRight_u8_arr, y
+    sta Ram_PpuTransfer_arr, x
+    inx
+    inc Zp_Tmp1_byte  ; block row index
+    cpx Zp_PpuTransferLen_u8
+    bne _Right
     rts
 .ENDPROC
 

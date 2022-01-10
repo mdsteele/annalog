@@ -29,12 +29,12 @@ DataC_ShortRoomTerrain_arr:
 
 DataC_TallRoomTerrain_arr:
 :   .incbin "out/data/rooms/tall.room"
-    .assert * - :- = 16 * 24, error
+    .assert * - :- = 35 * 24, error
 
 .EXPORT DataC_TallRoom_sRoom
 DataC_TallRoom_sRoom:
 :   .assert * - :- = sRoom::MaxScrollX_u16, error
-    .word $160
+    .word $130
     .assert * - :- = sRoom::IsTall_bool, error
     .byte $ff
     .assert * - :- = sRoom::TerrainData_ptr, error

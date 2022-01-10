@@ -26,6 +26,7 @@
 
 .IMPORT DataC_TallRoom_sRoom
 .IMPORT FuncA_Terrain_FillNametables
+.IMPORT FuncA_Terrain_TransferTileColumn
 .IMPORT Func_ClearRestOfOam
 .IMPORT Func_FadeIn
 .IMPORT Func_ProcessFrame
@@ -37,8 +38,13 @@
 .IMPORTZP Zp_PpuScrollX_u8
 .IMPORTZP Zp_PpuScrollY_u8
 .IMPORTZP Zp_Render_bPpuMask
+.IMPORTZP Zp_Tmp1_byte
+.IMPORTZP Zp_Tmp2_byte
 
 ;;;=========================================================================;;;
+
+;;; How fast the avatar moves, in pixels per frame.
+kAvatarSpeed = 2
 
 ;;; The largest value that may be stored in Zp_ScrollGoalY_u8.
 kMaxScrolllY = kTallRoomHeightBlocks * kBlockHeightPx - kScreenHeightPx
@@ -188,12 +194,49 @@ _Done:
 ;;; for the current room as necessary.
 .PROC Func_ScrollTowardsGoal
     ;; TODO: track towards the goal instead of locking directly onto it
-    ldax Zp_ScrollGoalX_u16
-    stx Zp_PpuScrollX_u8
-    sta Zp_ScrollXHi_u8
-    ;; TODO: transfer terrain tile columns to the PPU as we scroll horizontally
     lda Zp_ScrollGoalY_u8
     sta Zp_PpuScrollY_u8
+_ScrollHorz:
+    ;; Calculate the index of the leftmost room tile column that is currently
+    ;; in the nametable, and put that index in Zp_Tmp1_byte.
+    lda Zp_PpuScrollX_u8
+    add #kTileWidthPx - 1
+    sta Zp_Tmp1_byte
+    lda Zp_ScrollXHi_u8
+    adc #0
+    .repeat 3
+    lsr a
+    ror Zp_Tmp1_byte
+    .endrepeat
+    ;; Update the current scroll.
+    ;; TODO: track towards the goal instead of locking directly onto it
+    ldya Zp_ScrollGoalX_u16
+    sty Zp_ScrollXHi_u8
+    sta Zp_PpuScrollX_u8
+    ;; Calculate the index of the leftmost room tile column that should now be
+    ;; in the nametable, and put that index in Zp_Tmp2_byte.
+    lda Zp_PpuScrollX_u8
+    add #kTileWidthPx - 1
+    sta Zp_Tmp2_byte
+    lda Zp_ScrollXHi_u8
+    adc #0
+    .repeat 3
+    lsr a
+    ror Zp_Tmp2_byte
+    .endrepeat
+    ;; Determine if we need to update the nametable; if so, set A to the index
+    ;; of the room tile column that should be loaded.
+    lda Zp_Tmp2_byte
+    cmp Zp_Tmp1_byte
+    beq _DoneTransfer
+    bmi _DoTransfer
+    add #kScreenWidthTiles - 1
+_DoTransfer:
+    tax
+    prga_bank #<.bank(FuncA_Terrain_TransferTileColumn)
+    txa
+    jsr FuncA_Terrain_TransferTileColumn
+_DoneTransfer:
     rts
 .ENDPROC
 
@@ -204,7 +247,7 @@ _Done:
     and #bJoypad::Left
     beq @noLeft
     lda Zp_AvatarPosX_i16 + 0
-    sub #2
+    sub #kAvatarSpeed
     sta Zp_AvatarPosX_i16 + 0
     lda Zp_AvatarPosX_i16 + 1
     sbc #0
@@ -215,7 +258,7 @@ _Done:
     and #bJoypad::Right
     beq @noRight
     lda Zp_AvatarPosX_i16 + 0
-    add #2
+    add #kAvatarSpeed
     sta Zp_AvatarPosX_i16 + 0
     lda Zp_AvatarPosX_i16 + 1
     adc #0
@@ -226,7 +269,7 @@ _Done:
     and #bJoypad::Up
     beq @noUp
     lda Zp_AvatarPosY_i16 + 0
-    sub #2
+    sub #kAvatarSpeed
     sta Zp_AvatarPosY_i16 + 0
     lda Zp_AvatarPosY_i16 + 1
     sbc #0
@@ -237,7 +280,7 @@ _Done:
     and #bJoypad::Down
     beq @noDown
     lda Zp_AvatarPosY_i16 + 0
-    add #2
+    add #kAvatarSpeed
     sta Zp_AvatarPosY_i16 + 0
     lda Zp_AvatarPosY_i16 + 1
     adc #0

@@ -37,6 +37,22 @@ kExpectedStripePtr = $8207
 
 ;;;=========================================================================;;;
 
+.ZEROPAGE
+
+.EXPORTZP Zp_PpuTransferLen_u8
+Zp_PpuTransferLen_u8: .res 1
+.EXPORTZP Zp_Tmp1_byte
+Zp_Tmp1_byte: .res 1
+
+;;;=========================================================================;;;
+
+.BSS
+
+.EXPORT Ram_PpuTransfer_arr
+Ram_PpuTransfer_arr: .res 80
+
+;;;=========================================================================;;;
+
 .SEGMENT "MAIN"
     sei
     cld

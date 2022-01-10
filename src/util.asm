@@ -17,29 +17,12 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
-;;; The height of a "tall" room, in blocks.  A "short" room is
-;;; kScreenHeightBlocks = 15 blocks tall, fitting vertically in the first
-;;; nametable.  A "tall" room extends into the top portion of the second
-;;; nametable by (kTallRoomHeightBlocks - kScreenHeightBlocks) = 9 blocks.
-kTallRoomHeightBlocks = 24
+.ZEROPAGE
 
-kTallRoomHeightTiles = kTallRoomHeightBlocks * 2
-
-;;;=========================================================================;;;
-
-;;; Stores basic information about a single room.
-.STRUCT sRoom
-    ;; The maximum permitted scroll X-coordinate, in pixels.  This should be
-    ;; equal to (N - kScreenWidthBlocks) * kBlockWidthPx, where N is the width
-    ;; of the room in blocks.
-    MaxScrollX_u16  .word
-    ;; True ($ff) if the room is "tall" (kTallRoomHeightBlocks blocks tall), or
-    ;; false ($00) if it is short (kScreenHeightBlocks blocks tall).
-    IsTall_bool     .byte
-    ;; A pointer to the terrain block data for this room, which stores 1 byte
-    ;; per block in column-major order.  For "short" rooms, new columns start
-    ;; every 16 bytes; for "tall" rooms, new columns start every 24 bytes.
-    TerrainData_ptr .addr
-.ENDSTRUCT
+;;; Temporary variables that any function can use.  In general, it should be
+;;; assumed that these are not preserved across function calls.
+.EXPORTZP Zp_Tmp1_byte, Zp_Tmp2_byte
+Zp_Tmp1_byte: .res 1
+Zp_Tmp2_byte: .res 1
 
 ;;;=========================================================================;;;
