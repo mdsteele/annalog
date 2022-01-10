@@ -21,6 +21,7 @@
 .INCLUDE "../src/room.inc"
 
 .IMPORT FuncA_Terrain_GetColumnPtr
+.IMPORT Func_ExpectAEqualsY
 .IMPORTZP Zp_Current_sRoom
 .IMPORTZP Zp_TerrainColumn_u8_arr_ptr
 
@@ -49,7 +50,7 @@ Zp_Tmp1_byte: .res 1
 .BSS
 
 .EXPORT Ram_PpuTransfer_arr
-Ram_PpuTransfer_arr: .res 80
+Ram_PpuTransfer_arr: .res $80
 
 ;;;=========================================================================;;;
 
@@ -69,13 +70,13 @@ Test:
     jsr FuncA_Terrain_GetColumnPtr
 Verify:
     lda Zp_TerrainColumn_u8_arr_ptr + 0
-    sub #<kExpectedStripePtr
-    bne Exit
+    ldy #<kExpectedStripePtr
+    jsr Func_ExpectAEqualsY
     lda Zp_TerrainColumn_u8_arr_ptr + 1
-    sub #>kExpectedStripePtr
-    bne Exit
+    ldy #>kExpectedStripePtr
+    jsr Func_ExpectAEqualsY
+Success:
     lda #0
-Exit:
     jmp $fff9  ; exit process with A as the status code (error if nonzero)
 
 ;;;=========================================================================;;;
