@@ -33,7 +33,8 @@ Zp_OamOffset_u8: .res 1
 .SEGMENT "RAM_Oam"
 
 .EXPORT Ram_Oam_sObj_arr64
-Ram_Oam_sObj_arr64: .res .sizeof(sObj) * 64
+Ram_Oam_sObj_arr64: .res .sizeof(sObj) * kNumOamSlots
+.ASSERT kNumOamSlots = 64, error
 
 ;;;=========================================================================;;;
 

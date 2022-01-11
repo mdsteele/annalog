@@ -49,6 +49,16 @@ kAvatarSpeed = 2
 ;;; The largest value that may be stored in Zp_ScrollGoalY_u8.
 kMaxScrolllY = kTallRoomHeightBlocks * kBlockHeightPx - kScreenHeightPx
 
+;;; Modes that the player avatar can be in.  The number for each of these enum
+;;; values is the starting tile ID to use for the avatar objects when the
+;;; avatar is in that mode.
+.ENUM ePlayer
+    Standing = $04
+    Reading  = $08
+    Running  = $0c
+    Jumping  = $10
+.ENDENUM
+
 ;;;=========================================================================;;;
 
 .ZEROPAGE
@@ -78,6 +88,13 @@ Zp_ScrollXHi_u8: .res 1
 Zp_AvatarPosX_i16: .res 2
 Zp_AvatarPosY_i16: .res 2
 
+;;; The object flags to apply for the player avatar.  In particular, if
+;;; bObj::FlipH is set, then the avatar will face left instead of right.
+Zp_AvatarFlags_bObj: .res 1
+
+;;; What mode the avatar is currently in (e.g. standing, jumping, etc.).
+Zp_AvatarMode_ePlayer: .res 1
+
 ;;;=========================================================================;;;
 
 .SEGMENT "PRG8_Explore"
@@ -95,10 +112,13 @@ Zp_AvatarPosY_i16: .res 2
     sta Zp_PpuScrollY_u8
     sta Zp_AvatarPosX_i16 + 1
     sta Zp_AvatarPosY_i16 + 1
+    sta Zp_AvatarFlags_bObj
     lda #128
     sta Zp_AvatarPosX_i16 + 0
     lda #120
     sta Zp_AvatarPosY_i16 + 0
+    lda #ePlayer::Standing
+    sta Zp_AvatarMode_ePlayer
 _LoadRoom:
     prgc_bank #<.bank(DataC_TallRoom_sRoom)
     ldx #.sizeof(sRoom) - 1
@@ -159,6 +179,7 @@ _GameLoop:
     blt _SetGoal
 _MaxGoal:
     lda #kMaxScrolllY
+    .assert kMaxScrolllY > 0, error
     bne _SetGoal  ; unconditional
 _MinGoal:
     lda #0
@@ -252,6 +273,8 @@ _DoneTransfer:
     lda Zp_AvatarPosX_i16 + 1
     sbc #0
     sta Zp_AvatarPosX_i16 + 1
+    lda #bObj::FlipH
+    sta Zp_AvatarFlags_bObj
     @noLeft:
     ;; Check D-pad right.
     lda Zp_P1ButtonsHeld_bJoypad
@@ -263,6 +286,8 @@ _DoneTransfer:
     lda Zp_AvatarPosX_i16 + 1
     adc #0
     sta Zp_AvatarPosX_i16 + 1
+    lda #0
+    sta Zp_AvatarFlags_bObj
     @noRight:
     ;; Check D-pad up.
     lda Zp_P1ButtonsHeld_bJoypad
@@ -274,6 +299,8 @@ _DoneTransfer:
     lda Zp_AvatarPosY_i16 + 1
     sbc #0
     sta Zp_AvatarPosY_i16 + 1
+    lda #ePlayer::Jumping
+    sta Zp_AvatarMode_ePlayer
     @noUp:
     ;; Check D-pad down.
     lda Zp_P1ButtonsHeld_bJoypad
@@ -285,45 +312,105 @@ _DoneTransfer:
     lda Zp_AvatarPosY_i16 + 1
     adc #0
     sta Zp_AvatarPosY_i16 + 1
+    lda #ePlayer::Standing
+    sta Zp_AvatarMode_ePlayer
     @noDown:
     rts
 .ENDPROC
 
-;;; Allocates and populates OAM slots for the player avatar based on its
-;;; current state.
 .PROC Func_ExploreDrawAvatar
+    ;; We need to allocate four objects.  If there's not room in OAM, give up.
     ldy Zp_OamOffset_u8
-    ;; Set X-position.
-    lda Zp_AvatarPosX_i16 + 0
-    sub Zp_PpuScrollX_u8
-    tax
-    lda Zp_AvatarPosX_i16 + 1
-    sbc Zp_ScrollXHi_u8
-    bne @done
-    txa
-    sta Ram_Oam_sObj_arr64 + sObj::XPos_u8, y
-    ;; Set Y-position.
+    cpy #.sizeof(sObj) * (kNumOamSlots - 4) + 1
+    blt _ObjectYPositions
+_NotVisible:
+    rts
+_ObjectYPositions:
+    ;; Determine the avatar's center Y position on screen; if the avatar is
+    ;; completely offscreen vertically, return without allocating any objects.
     lda Zp_AvatarPosY_i16 + 0
     sub Zp_PpuScrollY_u8
-    tax
+    tax  ; center Y position on screen
     lda Zp_AvatarPosY_i16 + 1
     sbc #0
-    bne @done
+    bne _NotVisible
+    cpx #kScreenHeightPx + kTileHeightPx
+    bge _NotVisible
     txa
-    cmp #kScreenHeightPx
-    bge @done
-    sta Ram_Oam_sObj_arr64 + sObj::YPos_u8, y
-    ;; Set flags.
-    lda #0
-    sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
-    ;; Set tile IDs.
-    lda #0
-    sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
-    ;; Update OAM offset.
+    ;; Set the vertical positions of the four objects.
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::YPos_u8, y
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::YPos_u8, y
+    sub #kTileHeightPx
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::YPos_u8, y
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::YPos_u8, y
+_ObjectXPositions:
+    ;; Determine the avatar's center X position on screen; if the avatar is
+    ;; completely offscreen to the left, return without allocating any objects.
+    lda Zp_AvatarPosX_i16 + 0
+    sub Zp_PpuScrollX_u8
+    tax  ; center X position on screen (lo)
+    lda Zp_AvatarPosX_i16 + 1
+    sbc Zp_ScrollXHi_u8
+    sta Zp_Tmp1_byte  ; center X position on screen (hi)
+    bmi _NotVisible
+    ;; If the center of the avatar is offscreen to the right, hide the two
+    ;; right-hand objects.
+    beq @rightSide
+    lda #$ff
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::YPos_u8, y
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::YPos_u8, y
+    @rightSide:
+    txa  ; center X position on screen (lo)
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::XPos_u8, y
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::XPos_u8, y
+    ;; Determine the avatar's left edge X position on screen; if the avatar is
+    ;; completely offscreen to the right, return without allocating any
+    ;; objects.  If the left edge is offscreen to the left, hide the two
+    ;; left-hand objects.
+    sub #kTileWidthPx
+    tax  ; left X position on screen (lo)
+    lda Zp_Tmp1_byte  ; center X position on screen (hi)
+    sbc #0
+    beq @leftSide
+    bpl _NotVisible
+    lda #$ff
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::YPos_u8, y
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::YPos_u8, y
+    @leftSide:
+    txa  ; left X position on screen (lo)
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::XPos_u8, y
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::XPos_u8, y
+_ObjectFlags:
+    lda Zp_AvatarFlags_bObj
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Flags_bObj, y
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Flags_bObj, y
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Flags_bObj, y
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Flags_bObj, y
+    and #bObj::FlipH
+    bne _ObjectTilesFacingLeft
+_ObjectTilesFacingRight:
+    lda Zp_AvatarMode_ePlayer
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Tile_u8, y
+    add #1
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Tile_u8, y
+    adc #1
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Tile_u8, y
+    adc #1
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Tile_u8, y
+    bne _FinishAllocation  ; unconditional
+_ObjectTilesFacingLeft:
+    lda Zp_AvatarMode_ePlayer
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Tile_u8, y
+    add #1
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Tile_u8, y
+    adc #1
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Tile_u8, y
+    adc #1
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Tile_u8, y
+_FinishAllocation:
     tya
-    add #.sizeof(sObj)
+    add #.sizeof(sObj) * 4
     sta Zp_OamOffset_u8
-    @done:
     rts
 .ENDPROC
 
