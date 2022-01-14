@@ -57,6 +57,7 @@ run: $(ROMFILE) $(ROMFILE).ram.nl $(ROMFILE).3.nl
 test: $(SIM65DIR)/terrain
 	python tests/lint.py
 	sim65 $(SIM65DIR)/terrain
+	python tests/style.py
 
 .PHONY: clean
 clean:

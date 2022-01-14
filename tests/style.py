@@ -26,11 +26,15 @@ import sys
 #=============================================================================#
 
 PATTERNS = [
-    ('incorrect ZP export', re.compile(r'\.EXPORT +Zp')),
-    ('incorrect ZP import', re.compile(r'\.IMPORT +Zp')),
-    ('suspicious address', re.compile(
-        r'^ *(ad[cd]|and|cmp|cp[xy]|eor|ora|sub|sbc|ld[a-z]+) +[a-z0-9$%.]')),
+    ('indented .DIRECTIVE', re.compile(r'^ +\.[A-Z]')),
+    ('over-long line', re.compile(r'^.{80,}\n$')),
+    ('tab character', re.compile(r'\t')),
+    ('unindented .directive', re.compile(r'^\.[a-z]')),
+    ('wrong comment style',
+     re.compile(r'^ +;;;|^;;[^;]|^ *; |^[^;]*[^; ][^;]*;;')),
 ]
+
+IMPORT_PATTERN = re.compile(r'^\.IMPORT(?:ZP)? +(.+)$')
 
 #=============================================================================#
 
@@ -60,13 +64,38 @@ def run_tests():
             for (line_number, line) in enumerate(open(filepath)):
                 if pattern.search(line):
                     if num_matches == 0:
-                        print('LINT: found ' + message)
+                        print('STYLE: found ' + message)
                     num_matches += 1
                     print('  {}:{}:'.format(filepath, line_number + 1))
                     print('    ' + line.strip())
         if num_matches == 0: num_passed += 1
         else: num_failed += 1
-    print('lint: {} passed, {} failed'.format(num_passed, num_failed))
+    # Check imports within each ASM file.
+    for filepath in src_and_test_filepaths('.asm'):
+        imports = []
+        for line in open(filepath):
+            match = IMPORT_PATTERN.match(line)
+            if match:
+                imports.append(match.group(1))
+        # Check that the imports are sorted.
+        if imports == sorted(imports):
+            num_passed += 1
+        else:
+            num_failed += 1
+            print('STYLE: unsorted imports in ' + filepath)
+        # Check that all imports are used.
+        num_unused = 0
+        for identifier in imports:
+            for line in open(filepath):
+                if not IMPORT_PATTERN.match(line) and identifier in line:
+                    break
+            else:
+                num_unused += 1
+                print('STYLE: unused import {} in {}'
+                      .format(identifier, filepath))
+        if num_unused == 0: num_passed += 1
+        else: num_failed += 1
+    print('style: {} passed, {} failed'.format(num_passed, num_failed))
     return (num_passed, num_failed)
 
 if __name__ == '__main__':
