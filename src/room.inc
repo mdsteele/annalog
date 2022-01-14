@@ -25,6 +25,11 @@ kTallRoomHeightBlocks = 24
 
 kTallRoomHeightTiles = kTallRoomHeightBlocks * 2
 
+;;; Some parts of the code assume that a room tile column fits in one byte.
+;;; This puts the maximum width of a room at 8 screens, which is plenty wide.
+kMaxRoomWidthTiles = $100
+kMaxRoomWidthBlocks = kMaxRoomWidthTiles / 2
+
 ;;;=========================================================================;;;
 
 ;;; Stores basic information about a single room.

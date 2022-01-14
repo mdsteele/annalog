@@ -33,8 +33,9 @@
 .EXPORTZP Zp_Current_sRoom
 Zp_Current_sRoom: .tag sRoom
 
-;;; Return value for FuncA_Terrain_GetColumnPtr.  This will point to the
-;;; beginning (top) of the requested terrain block column in the current room.
+;;; Return value for FuncA_Terrain_GetColumnPtrFor* functions.  This will point
+;;; to the beginning (top) of the requested terrain block column in the current
+;;; room.
 .EXPORTZP Zp_TerrainColumn_u8_arr_ptr
 Zp_TerrainColumn_u8_arr_ptr: .res 2
 
@@ -61,14 +62,26 @@ LowerRight_u8_arr:
 
 ;;; Populates Zp_TerrainColumn_u8_arr_ptr with a pointer to the start of the
 ;;; requested terrain block column in the current room.
-;;; @param A The index of the terrain block column.
-.EXPORT FuncA_Terrain_GetColumnPtr
-.PROC FuncA_Terrain_GetColumnPtr
-    ;; Currently, a is col.  Calculate (col * 8), with the lo byte in a, and
-    ;; the hi byte in (Zp_TerrainColumn_u8_arr_ptr + 1).
+;;; @param A The index of the room block column.
+.EXPORT FuncA_Terrain_GetColumnPtrForBlockIndex
+.PROC FuncA_Terrain_GetColumnPtrForBlockIndex
+    asl a
+    .assert * = FuncA_Terrain_GetColumnPtrForTileIndex, error  ; fall through
+.ENDPROC
+
+;;; Populates Zp_TerrainColumn_u8_arr_ptr with a pointer to the start of the
+;;; terrain block column in the current room that contains the specified room
+;;; tile column.
+;;; @param A The index of the room tile column.
+.EXPORT FuncA_Terrain_GetColumnPtrForTileIndex
+.PROC FuncA_Terrain_GetColumnPtrForTileIndex
+    and #$fe
+    ;; Currently, a is (col * 2), where col is the room block column index.
+    ;; Calculate (col * 8), with the lo byte in a, and the hi byte in
+    ;; (Zp_TerrainColumn_u8_arr_ptr + 1).
     ldx #0
     stx Zp_TerrainColumn_u8_arr_ptr + 1
-    .repeat 3
+    .repeat 2
     asl a
     rol Zp_TerrainColumn_u8_arr_ptr + 1
     .endrepeat
@@ -118,7 +131,7 @@ _SetPtr:
     txa  ; now a is the starting block column index
 _BlockColumnLoop:
     pha
-    jsr FuncA_Terrain_GetColumnPtr
+    jsr FuncA_Terrain_GetColumnPtrForBlockIndex
     pla
     pha
 .SCOPE
@@ -220,9 +233,8 @@ _BlockColumnLoop:
     .assert kScreenWidthTiles = $20, error
     and #$1f
     sta Zp_NametableColumnIndex_u8
-    txa
-    lsr a  ; param: room block column index
-    jsr FuncA_Terrain_GetColumnPtr
+    txa  ; param: room tile column index
+    jsr FuncA_Terrain_GetColumnPtrForTileIndex
     ;; Buffer a PPU transfer for the upper nametable.
 .PROC _UpperTransfer
     ldx Zp_PpuTransferLen_u8

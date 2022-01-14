@@ -26,6 +26,7 @@
 
 .IMPORT DataC_TallRoom_sRoom
 .IMPORT FuncA_Terrain_FillNametables
+.IMPORT FuncA_Terrain_GetColumnPtrForTileIndex
 .IMPORT FuncA_Terrain_TransferTileColumn
 .IMPORT Func_ClearRestOfOam
 .IMPORT Func_FadeIn
@@ -35,16 +36,35 @@
 .IMPORTZP Zp_Current_sRoom
 .IMPORTZP Zp_OamOffset_u8
 .IMPORTZP Zp_P1ButtonsHeld_bJoypad
+.IMPORTZP Zp_P1ButtonsPressed_bJoypad
 .IMPORTZP Zp_PpuScrollX_u8
 .IMPORTZP Zp_PpuScrollY_u8
 .IMPORTZP Zp_Render_bPpuMask
+.IMPORTZP Zp_TerrainColumn_u8_arr_ptr
 .IMPORTZP Zp_Tmp1_byte
 .IMPORTZP Zp_Tmp2_byte
+.IMPORTZP Zp_Tmp3_byte
 
 ;;;=========================================================================;;;
 
-;;; How fast the avatar moves, in pixels per frame.
-kAvatarSpeed = 2
+;;; How far the player avatar's bounding box extends in each direction from the
+;;; avatar's position.
+kAvatarBoundingBoxUp = 6
+kAvatarBoundingBoxDown = 10
+kAvatarBoundingBoxLeft = 4
+kAvatarBoundingBoxRight = 4
+
+;;; How fast the player avatar is allowed to move, in pixels per frame.
+kAvatarMaxSpeedX = 2
+kAvatarMaxSpeedY = 5
+
+;;; The (signed, 16-bit) initial velocity of the player avatar when jumping, in
+;;; subpixels per frame.
+kAvatarJumpVelocity = $ffff & -810
+
+;;; The acceleration applied to the player avatar when in midair, in subpixels
+;;; per frame per frame.
+kAvatarGravity = 48
 
 ;;; The largest value that may be stored in Zp_ScrollGoalY_u8.
 kMaxScrolllY = kTallRoomHeightBlocks * kBlockHeightPx - kScreenHeightPx
@@ -88,6 +108,9 @@ Zp_ScrollXHi_u8: .res 1
 Zp_AvatarPosX_i16: .res 2
 Zp_AvatarPosY_i16: .res 2
 
+;;; The current vertical velocity of the player avatar, in subpixels per frame.
+Zp_AvatarVelY_i16: .res 2
+
 ;;; The object flags to apply for the player avatar.  In particular, if
 ;;; bObj::FlipH is set, then the avatar will face left instead of right.
 Zp_AvatarFlags_bObj: .res 1
@@ -110,12 +133,14 @@ Zp_AvatarMode_ePlayer: .res 1
     sta Zp_ScrollXHi_u8
     sta Zp_PpuScrollX_u8
     sta Zp_PpuScrollY_u8
+    sta Zp_AvatarVelY_i16 + 0
+    sta Zp_AvatarVelY_i16 + 1
     sta Zp_AvatarPosX_i16 + 1
     sta Zp_AvatarPosY_i16 + 1
     sta Zp_AvatarFlags_bObj
-    lda #128
+    lda #$88
     sta Zp_AvatarPosX_i16 + 0
-    lda #120
+    lda #$66
     sta Zp_AvatarPosY_i16 + 0
     lda #ePlayer::Standing
     sta Zp_AvatarMode_ePlayer
@@ -263,12 +288,17 @@ _DoneTransfer:
 
 ;;; Updates the player avatar state based on the current joypad state.
 .PROC Func_ExploreMoveAvatar
+_JoypadLeft:
     ;; Check D-pad left.
     lda Zp_P1ButtonsHeld_bJoypad
     and #bJoypad::Left
     beq @noLeft
+    ;; If left and right are both held, ignore both.
+    lda Zp_P1ButtonsHeld_bJoypad
+    and #bJoypad::Right
+    bne _DoneLeftRight
     lda Zp_AvatarPosX_i16 + 0
-    sub #kAvatarSpeed
+    sub #kAvatarMaxSpeedX
     sta Zp_AvatarPosX_i16 + 0
     lda Zp_AvatarPosX_i16 + 1
     sbc #0
@@ -276,12 +306,13 @@ _DoneTransfer:
     lda #bObj::FlipH
     sta Zp_AvatarFlags_bObj
     @noLeft:
+_JoypadRight:
     ;; Check D-pad right.
     lda Zp_P1ButtonsHeld_bJoypad
     and #bJoypad::Right
     beq @noRight
     lda Zp_AvatarPosX_i16 + 0
-    add #kAvatarSpeed
+    add #kAvatarMaxSpeedX
     sta Zp_AvatarPosX_i16 + 0
     lda Zp_AvatarPosX_i16 + 1
     adc #0
@@ -289,32 +320,123 @@ _DoneTransfer:
     lda #0
     sta Zp_AvatarFlags_bObj
     @noRight:
-    ;; Check D-pad up.
-    lda Zp_P1ButtonsHeld_bJoypad
-    and #bJoypad::Up
-    beq @noUp
-    lda Zp_AvatarPosY_i16 + 0
-    sub #kAvatarSpeed
-    sta Zp_AvatarPosY_i16 + 0
-    lda Zp_AvatarPosY_i16 + 1
-    sbc #0
-    sta Zp_AvatarPosY_i16 + 1
+_DoneLeftRight:
+_JoypadStartJump:
+    ;; Check A button (jump).
+    lda Zp_P1ButtonsPressed_bJoypad
+    and #bJoypad::AButton
+    beq @noJump
     lda #ePlayer::Jumping
+    cmp Zp_AvatarMode_ePlayer
+    beq @noJump
     sta Zp_AvatarMode_ePlayer
-    @noUp:
-    ;; Check D-pad down.
-    lda Zp_P1ButtonsHeld_bJoypad
-    and #bJoypad::Down
-    beq @noDown
-    lda Zp_AvatarPosY_i16 + 0
-    add #kAvatarSpeed
+    ldax #kAvatarJumpVelocity
+    stax Zp_AvatarVelY_i16
+    ;; TODO: play a jumping sound
+    @noJump:
+_ApplyVelY:
+    ldy #0
+    lda Zp_AvatarVelY_i16 + 1
+    bpl @nonnegative
+    dey  ; now y is $ff
+    @nonnegative:
+    lda Zp_AvatarVelY_i16 + 1
+    add Zp_AvatarPosY_i16 + 0
     sta Zp_AvatarPosY_i16 + 0
+    tya
+    adc Zp_AvatarPosY_i16 + 1
+    sta Zp_AvatarPosY_i16 + 1
+_CheckForFloor:
+    ;; Calculate the room block row index just below the avatar's feet, and
+    ;; store it in Zp_Tmp1_byte.
+    lda Zp_AvatarPosY_i16 + 0
+    add #kAvatarBoundingBoxDown + 1
+    sta Zp_Tmp1_byte
     lda Zp_AvatarPosY_i16 + 1
     adc #0
-    sta Zp_AvatarPosY_i16 + 1
+    .repeat 4
+    lsr a
+    ror Zp_Tmp1_byte
+    .endrepeat
+    ;; Calculate the room tile column index at the avatar's left side, and
+    ;; store it in Zp_Tmp2_byte.
+    lda Zp_AvatarPosX_i16 + 0
+    sub #kAvatarBoundingBoxLeft + 1
+    sta Zp_Tmp2_byte
+    lda Zp_AvatarPosX_i16 + 1
+    sbc #0
+    .repeat 3
+    lsr a
+    ror Zp_Tmp2_byte
+    .endrepeat
+    ;; Calculate the room tile column index at the avatar's right side, and
+    ;; store it in Zp_Tmp3_byte.
+    lda Zp_AvatarPosX_i16 + 0
+    add #kAvatarBoundingBoxRight + 1
+    sta Zp_Tmp3_byte
+    lda Zp_AvatarPosX_i16 + 1
+    adc #0
+    .repeat 3
+    lsr a
+    ror Zp_Tmp3_byte
+    .endrepeat
+    ;; Check whether either of the blocks below the player avatar are solid.
+    ;; TODO: Don't hold Tmp variables across function calls.
+    prga_bank #<.bank(FuncA_Terrain_GetColumnPtrForTileIndex)
+    lda Zp_Tmp2_byte  ; param: room tile column index (left side of avatar)
+    jsr FuncA_Terrain_GetColumnPtrForTileIndex
+    ldy Zp_Tmp1_byte
+    lda (Zp_TerrainColumn_u8_arr_ptr), y  ; terrain block type
+    bne @solid
+    lda Zp_Tmp3_byte  ; param: room tile column index (right side of avatar)
+    jsr FuncA_Terrain_GetColumnPtrForTileIndex
+    ldy Zp_Tmp1_byte  ; room block row index (bottom of avatar)
+    lda (Zp_TerrainColumn_u8_arr_ptr), y  ; terrain block type
+    bne @solid
+    @empty:
+    ;; There's no floor beneath us, so start falling.
+    lda #ePlayer::Jumping
+    sta Zp_AvatarMode_ePlayer
+    bne @done  ; unconditional
+    @solid:
+    ;; We've hit the floor, so end jumping mode, set vertical velocity to zero,
+    ;; and set vertical position to just above the floor we hit.
     lda #ePlayer::Standing
     sta Zp_AvatarMode_ePlayer
-    @noDown:
+    lda #0
+    sta Zp_AvatarVelY_i16 + 0
+    sta Zp_AvatarVelY_i16 + 1
+    .repeat 4
+    asl Zp_Tmp1_byte
+    rol a
+    .endrepeat
+    tax
+    lda Zp_Tmp1_byte
+    sub #kAvatarBoundingBoxDown
+    sta Zp_AvatarPosY_i16 + 0
+    txa
+    sbc #0
+    sta Zp_AvatarPosY_i16 + 1
+    @done:
+_ApplyGravity:
+    lda Zp_AvatarMode_ePlayer
+    cmp #ePlayer::Jumping
+    blt @noGravity
+    lda #kAvatarGravity
+    add Zp_AvatarVelY_i16 + 0
+    sta Zp_AvatarVelY_i16 + 0
+    lda #0
+    adc Zp_AvatarVelY_i16 + 1
+    ;; If moving downward, check for terminal velocity:
+    bmi @setVelYHi
+    cmp #kAvatarMaxSpeedY
+    blt @setVelYHi
+    lda #0
+    sta Zp_AvatarVelY_i16 + 0
+    lda #kAvatarMaxSpeedY
+    @setVelYHi:
+    sta Zp_AvatarVelY_i16 + 1
+    @noGravity:
     rts
 .ENDPROC
 

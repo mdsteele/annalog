@@ -20,7 +20,7 @@
 .INCLUDE "../src/macros.inc"
 .INCLUDE "../src/room.inc"
 
-.IMPORT FuncA_Terrain_GetColumnPtr
+.IMPORT FuncA_Terrain_GetColumnPtrForBlockIndex
 .IMPORT Func_ExpectAEqualsY
 .IMPORTZP Zp_Current_sRoom
 .IMPORTZP Zp_TerrainColumn_u8_arr_ptr
@@ -67,7 +67,7 @@ SetUp:
     sta Zp_Current_sRoom + sRoom::TerrainData_ptr + 1
 Test:
     lda #kBlockColumnIndex
-    jsr FuncA_Terrain_GetColumnPtr
+    jsr FuncA_Terrain_GetColumnPtrForBlockIndex
 Verify:
     lda Zp_TerrainColumn_u8_arr_ptr + 0
     ldy #<kExpectedStripePtr

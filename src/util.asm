@@ -21,8 +21,9 @@
 
 ;;; Temporary variables that any function can use.  In general, it should be
 ;;; assumed that these are not preserved across function calls.
-.EXPORTZP Zp_Tmp1_byte, Zp_Tmp2_byte
+.EXPORTZP Zp_Tmp1_byte, Zp_Tmp2_byte, Zp_Tmp3_byte
 Zp_Tmp1_byte: .res 1
 Zp_Tmp2_byte: .res 1
+Zp_Tmp3_byte: .res 1
 
 ;;;=========================================================================;;;
