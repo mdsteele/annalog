@@ -17,19 +17,31 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
+.INCLUDE "irq.inc"
+.INCLUDE "mmc3.inc"
 .INCLUDE "oam.inc"
 .INCLUDE "ppu.inc"
 
+.IMPORT Ram_Active_sIrq
+.IMPORT Ram_Buffered_sIrq
 .IMPORT Ram_Oam_sObj_arr64
+.IMPORTZP Zp_IrqIndex_u8
+.IMPORTZP Zp_IrqNextRender_bPpuMask
 
 ;;;=========================================================================;;;
 
 .ZEROPAGE
 
-;;; Set this to 1 to signal that PPU transfer data is ready to be consumed by
-;;; the NMI handler.  The NMI handler will set it back to 0 once the data is
-;;; transferred.
+;;; Set this to true ($ff) to signal that PPU transfer data is ready to be
+;;; consumed by the NMI handler.  The NMI handler will set it back to false
+;;; ($00) once the data is transferred.
 Zp_NmiReady_bool: .res 1
+
+;;; Set this to true ($ff) to signal that the NMI handler should copy
+;;; Ram_Buffered_sIrq to Ram_Active_sIrq for the next frame.  The NMI handler
+;;; will set it back to false ($00) once the table is copied.
+.EXPORTZP Zp_TransferIrqTable_bool
+Zp_TransferIrqTable_bool: .res 1
 
 ;;; The NMI handler will copy this to Hw_PpuMask_wo when Zp_NmiReady_bool is
 ;;; set.
@@ -119,12 +131,33 @@ _UpdatePpuRegisters:
     sta Hw_PpuCtrl_wo
     lda Zp_Render_bPpuMask
     sta Hw_PpuMask_wo
+_TransferIrqTable:
+    bit Zp_TransferIrqTable_bool
+    bpl @done
+    ldx #.sizeof(sIrq) - 1
+    @loop:
+    lda Ram_Buffered_sIrq, x
+    sta Ram_Active_sIrq, x
+    dex
+    bpl @loop
+    inc Zp_TransferIrqTable_bool  ; change from true ($ff) to false ($00)
+    @done:
+_FinishUpdatingPpu:
     ;; Mark the PPU transfer buffer as empty and indicate that we are done
     ;; updating the PPU.
     lda #0
     sta Zp_PpuTransferLen_u8
     sta Zp_NmiReady_bool
 _DoneUpdatingPpu:
+    ;; Set up the IRQ counter for this frame.
+    lda Ram_Active_sIrq + sIrq::Latch_u8_arr + 0
+    sta Hw_Mmc3IrqLatch_wo
+    sta Hw_Mmc3IrqReload_wo
+    lda Ram_Active_sIrq + sIrq::Render_bPpuMask_arr + 0
+    sta Zp_IrqNextRender_bPpuMask
+    lda #0
+    sta Zp_IrqIndex_u8
+    ;; TODO: Once we have an audio driver, this is where we'll call it.
     ;; Restore registers and return.  (Note that the rti instruction
     ;; automatically restores processor flags, so we don't need a plp
     ;; instruction here.)

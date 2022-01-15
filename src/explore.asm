@@ -17,6 +17,7 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
+.INCLUDE "irq.inc"
 .INCLUDE "joypad.inc"
 .INCLUDE "macros.inc"
 .INCLUDE "mmc3.inc"
@@ -32,6 +33,7 @@
 .IMPORT Func_FadeIn
 .IMPORT Func_ProcessFrame
 .IMPORT Func_UpdateButtons
+.IMPORT Ram_Buffered_sIrq
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORTZP Zp_Current_sRoom
 .IMPORTZP Zp_OamOffset_u8
@@ -44,6 +46,7 @@
 .IMPORTZP Zp_Tmp1_byte
 .IMPORTZP Zp_Tmp2_byte
 .IMPORTZP Zp_Tmp3_byte
+.IMPORTZP Zp_TransferIrqTable_bool
 
 ;;;=========================================================================;;;
 
@@ -151,6 +154,24 @@ Zp_AvatarMode_ePlayer: .res 1
     sta Zp_AvatarPosY_i16 + 0
     lda #ePlayer::Standing
     sta Zp_AvatarMode_ePlayer
+_InitIrqTable:
+    ;; First entry:
+    lda #190
+    sta Ram_Buffered_sIrq + sIrq::Latch_u8_arr + 0
+    lda #bPpuMask::BgMain
+    sta Ram_Buffered_sIrq + sIrq::Render_bPpuMask_arr + 0
+    lda #0
+    sta Ram_Buffered_sIrq + sIrq::ScrollY_u8_arr + 0
+    ;; Second entry:
+    lda #5
+    sta Ram_Buffered_sIrq + sIrq::Latch_u8_arr + 1
+    lda #bPpuMask::BgMain | bPpuMask::ObjMain
+    sta Ram_Buffered_sIrq + sIrq::Render_bPpuMask_arr + 1
+    lda #$ff
+    sta Ram_Buffered_sIrq + sIrq::ScrollY_u8_arr + 1  ; $ff = no scroll change
+    sta Ram_Buffered_sIrq + sIrq::Latch_u8_arr + 2    ; $ff = no more entries
+    ;; Ready to transfer:
+    sta Zp_TransferIrqTable_bool
 _LoadRoom:
     prgc_bank #<.bank(DataC_TallRoom_sRoom)
     ldx #.sizeof(sRoom) - 1

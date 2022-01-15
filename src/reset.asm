@@ -18,6 +18,7 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "apu.inc"
+.INCLUDE "irq.inc"
 .INCLUDE "macros.inc"
 .INCLUDE "mmc3.inc"
 .INCLUDE "ppu.inc"
@@ -27,6 +28,7 @@
 .IMPORT Ppu_ChrCave
 .IMPORT Ppu_ChrFont
 .IMPORT Ppu_ChrPlayer
+.IMPORT Ram_Active_sIrq
 
 ;;;=========================================================================;;;
 
@@ -48,15 +50,15 @@ kSharedBgColor = $0f  ; black
     dex  ; now x is $ff
     txs
     ;; Set mapper PRG ROM bank for $a000 and jump to rest of reset code.
-    prga_bank #<.bank(MainA_ResetExt)
-    jmp MainA_ResetExt
+    prga_bank #<.bank(MainA_Reset_Ext)
+    jmp MainA_Reset_Ext
 .ENDPROC
 
 ;;;=========================================================================;;;
 
-.SEGMENT "PRGA_ResetExt"
+.SEGMENT "PRGA_Reset"
 
-.PROC MainA_ResetExt
+.PROC MainA_Reset_Ext
     ;; Disable SRAM access for now.
     lda #bMmc3PrgRam::DenyWrites
     sta Hw_Mmc3PrgRamProtect_wo
@@ -82,7 +84,7 @@ _DisableRenderingAndIrqs:
     sta Hw_DmcFlags_wo        ; disable DMC IRQ
     ldx #bApuCount::DisableIrq
     stx Hw_ApuCount_wo        ; disable APU counter IRQ
-_ClearRam:
+_InitializeRam:
     ;; We've still got time to burn until the second VBlank, so this is a good
     ;; time to initialize RAM.
     tax  ; now x is 0
@@ -97,7 +99,12 @@ _ClearRam:
     sta $0700, x
     inx
     bne @loop
+    ;; May as well also clear OAM (note that Zp_OamOffset_u8 is zero, since we
+    ;; just zeroed all of RAM).
     jsr Func_ClearRestOfOam
+    ;; Mark the active IRQ table as empty.
+    lda #$ff
+    sta Ram_Active_sIrq + sIrq::Latch_u8_arr + 0
 _WaitForSecondVBlank:
     ;; Wait for the second VBlank.  After this, the PPU should be warmed up.
     bit Hw_PpuStatus_ro  ; Reading this implicitly clears the VBlank bit.
@@ -117,7 +124,7 @@ _InitPalettes:
     ldx #0
     ldy #.sizeof(sPal) * 8
     @loop:
-    lda DataA_ResetExt_Palettes_sPal_arr8, x
+    lda DataA_Reset_Palettes_sPal_arr8, x
     sta Hw_PpuData_rw
     inx
     dey
@@ -161,12 +168,13 @@ _InitAttributeTable3:
 _Finish:
     ;; Enable interrupts and start the game.
     lda #bPpuCtrl::EnableNmi | bPpuCtrl::ObjPat1
-    sta Hw_PpuCtrl_wo  ; enable VBlank NMI
-    cli                ; enable maskable (IRQ) interrupts
+    sta Hw_PpuCtrl_wo        ; enable VBlank NMI
+    sta Hw_Mmc3IrqEnable_wo  ; enable HBlank IRQ
+    cli                      ; enable maskable (IRQ) interrupts
     jmp Main_Title
 .ENDPROC
 
-.PROC DataA_ResetExt_Palettes_sPal_arr8
+.PROC DataA_Reset_Palettes_sPal_arr8
     .repeat 4
     ;; BG palette 0:
     .byte kSharedBgColor
@@ -187,6 +195,6 @@ _Finish:
     .byte $30  ; white
     .endrepeat
 .ENDPROC
-.ASSERT * - DataA_ResetExt_Palettes_sPal_arr8 = .sizeof(sPal) * 8, error
+.ASSERT * - DataA_Reset_Palettes_sPal_arr8 = .sizeof(sPal) * 8, error
 
 ;;;=========================================================================;;;

@@ -29,6 +29,7 @@ PATTERNS = [
     ('indented .DIRECTIVE', re.compile(r'^ +\.[A-Z]')),
     ('over-long line', re.compile(r'^.{80,}\n$')),
     ('tab character', re.compile(r'\t')),
+    ('trailing whitespace', re.compile(r' $')),
     ('unindented .directive', re.compile(r'^\.[a-z]')),
     ('wrong comment style',
      re.compile(r'^ +;;;|^;;[^;]|^ *; |^[^;]*[^; ][^;]*;;')),
