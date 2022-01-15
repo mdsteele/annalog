@@ -63,6 +63,7 @@ LowerRight_u8_arr:
 ;;; Populates Zp_TerrainColumn_u8_arr_ptr with a pointer to the start of the
 ;;; requested terrain block column in the current room.
 ;;; @param A The index of the room block column.
+;;; @preserve Zp_Tmp*_byte
 .EXPORT FuncA_Terrain_GetColumnPtrForBlockIndex
 .PROC FuncA_Terrain_GetColumnPtrForBlockIndex
     asl a
@@ -73,6 +74,7 @@ LowerRight_u8_arr:
 ;;; terrain block column in the current room that contains the specified room
 ;;; tile column.
 ;;; @param A The index of the room tile column.
+;;; @preserve Zp_Tmp*_byte
 .EXPORT FuncA_Terrain_GetColumnPtrForTileIndex
 .PROC FuncA_Terrain_GetColumnPtrForTileIndex
     and #$fe
