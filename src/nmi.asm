@@ -127,7 +127,7 @@ _UpdatePpuRegisters:
     sta Hw_PpuScroll_w2
     lda Zp_PpuScrollY_u8
     sta Hw_PpuScroll_w2
-    lda #bPpuCtrl::EnableNmi | bPpuCtrl::ObjPat1
+    lda #kPpuCtrlFlagsHorz
     sta Hw_PpuCtrl_wo
     lda Zp_Render_bPpuMask
     sta Hw_PpuMask_wo

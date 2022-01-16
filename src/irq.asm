@@ -110,7 +110,7 @@ Ram_Buffered_sIrq: .tag sIrq
     and #$f8
     asl a
     asl a
-    ldx #4  ; this value is hand-tuned to make the loop finish as HBlank starts
+    ldx #5  ; this value is hand-tuned to make the loop finish as HBlank starts
     @busyLoop:
     dex
     bne @busyLoop

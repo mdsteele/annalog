@@ -52,7 +52,7 @@ White_u6_arr:
     ;; Buffer the palette data to be transferred to the PPU.
     tay
     ldx Zp_PpuTransferLen_u8
-    lda #bPpuCtrl::EnableNmi
+    lda #kPpuCtrlFlagsHorz
     sta Ram_PpuTransfer_arr + 0, x
     lda #>Ppu_BgColors_u6_arr2
     sta Ram_PpuTransfer_arr + 1, x

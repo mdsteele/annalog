@@ -54,9 +54,10 @@ run: $(ROMFILE) $(ROMFILE).ram.nl $(ROMFILE).3.nl
 	fceux $<
 
 .PHONY: test
-test: $(SIM65DIR)/terrain
+test: $(SIM65DIR)/terrain $(SIM65DIR)/window
 	python tests/lint.py
 	sim65 $(SIM65DIR)/terrain
+	sim65 $(SIM65DIR)/window
 	python tests/style.py
 
 .PHONY: clean
@@ -108,14 +109,14 @@ define link-test
 	@ld65 -o $@ -C $^
 endef
 
-$(SIM65DIR)/terrain: $(TESTDIR)/terrain.cfg $(SIM65DIR)/terrain.o \
-                     $(OBJDIR)/terrain.o $(SIM65DIR)/sim65.o
-	$(link-test)
-
 $(SIM65DIR)/%.o: $(TESTDIR)/%.asm $(INCFILES)
 	@echo "Assembling $<"
 	@mkdir -p $(@D)
 	@ca65 --target sim6502 -o $@ $<
+
+$(SIM65DIR)/%: $(TESTDIR)/%.cfg $(SIM65DIR)/%.o $(OBJDIR)/%.o \
+               $(SIM65DIR)/sim65.o
+	$(link-test)
 
 #=============================================================================#
 

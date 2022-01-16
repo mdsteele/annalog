@@ -51,6 +51,12 @@ Hw_PpuCtrl_wo = $2000
     NameMask  = %00000011  ; bits used to specify base nametable for scrolling
 .ENDSCOPE
 
+;;; The base set of bPpuCtrl flags used by this particular game.  The Horz
+;;; version is used when writing horizontal data to the PPU (Inc32 cleared);
+;;; the Vert version is used when writing vertical data to the PPU (Inc32 set).
+kPpuCtrlFlagsHorz = bPpuCtrl::EnableNmi | bPpuCtrl::ObjPat1
+kPpuCtrlFlagsVert = kPpuCtrlFlagsHorz | bPpuCtrl::Inc32
+
 ;;;=========================================================================;;;
 
 ;;; PPU rendering mask.  Set this to zero to disable rendering, which will

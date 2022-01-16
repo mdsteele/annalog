@@ -52,7 +52,7 @@ End:
 
 .PROC Func_DisplayStartString
     ldy Zp_PpuTransferLen_u8
-    lda #bPpuCtrl::EnableNmi | bPpuCtrl::Inc32
+    lda #kPpuCtrlFlagsVert
     sta Ram_PpuTransfer_arr, y
     iny
     .linecont +
@@ -87,7 +87,7 @@ End:
     sta Zp_OamOffset_u8
     jsr Func_ClearRestOfOam
 _ClearNametable0:
-    lda #bPpuCtrl::EnableNmi | bPpuCtrl::ObjPat1
+    lda #kPpuCtrlFlagsHorz
     sta Hw_PpuCtrl_wo
     ldax #Ppu_Nametable0_sName + sName::Tiles_u8_arr
     bit Hw_PpuStatus_ro  ; reset the Hw_PpuAddr_w2 write-twice latch
@@ -102,7 +102,7 @@ _ClearNametable0:
     dex
     bpl @loop
 _DrawTitleString:
-    lda #bPpuCtrl::EnableNmi | bPpuCtrl::ObjPat1
+    lda #kPpuCtrlFlagsHorz
     sta Hw_PpuCtrl_wo
     .linecont +
     ldax #Ppu_Nametable0_sName + sName::Tiles_u8_arr + \

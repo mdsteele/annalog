@@ -94,4 +94,16 @@
     _hi_byte sta, ARG
 .ENDMACRO
 
+;;; STXY (store a 16-bit value from XY)
+;;;
+;;; Stores a 16-bit value, using Y as the low byte and X as the high byte.
+;;;
+;;; Examples:
+;;;     stxy Zp_Foo_u16   ; zeropage mode; sets [Foo] to Y and [Foo+1] to X
+;;;     stxy Ram_Foo_u16  ; absolute mode; sets [Foo] to Y and [Foo+1] to X
+.MACRO stxy ARG
+    _lo_byte sty, ARG
+    _hi_byte stx, ARG
+.ENDMACRO
+
 ;;;=========================================================================;;;

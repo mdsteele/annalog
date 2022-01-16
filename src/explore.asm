@@ -17,7 +17,6 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
-.INCLUDE "irq.inc"
 .INCLUDE "joypad.inc"
 .INCLUDE "macros.inc"
 .INCLUDE "mmc3.inc"
@@ -33,7 +32,9 @@
 .IMPORT Func_FadeIn
 .IMPORT Func_ProcessFrame
 .IMPORT Func_UpdateButtons
-.IMPORT Ram_Buffered_sIrq
+.IMPORT Func_Window_DirectDrawTopBorder
+.IMPORT Func_Window_SetUpIrq
+.IMPORT Func_Window_TransferBottomBorder
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORTZP Zp_Current_sRoom
 .IMPORTZP Zp_OamOffset_u8
@@ -46,7 +47,7 @@
 .IMPORTZP Zp_Tmp1_byte
 .IMPORTZP Zp_Tmp2_byte
 .IMPORTZP Zp_Tmp3_byte
-.IMPORTZP Zp_TransferIrqTable_bool
+.IMPORTZP Zp_WindowTop_u8
 
 ;;;=========================================================================;;;
 
@@ -155,23 +156,10 @@ Zp_AvatarMode_ePlayer: .res 1
     lda #ePlayer::Standing
     sta Zp_AvatarMode_ePlayer
 _InitIrqTable:
-    ;; First entry:
-    lda #190
-    sta Ram_Buffered_sIrq + sIrq::Latch_u8_arr + 0
-    lda #bPpuMask::BgMain
-    sta Ram_Buffered_sIrq + sIrq::Render_bPpuMask_arr + 0
-    lda #0
-    sta Ram_Buffered_sIrq + sIrq::ScrollY_u8_arr + 0
-    ;; Second entry:
-    lda #5
-    sta Ram_Buffered_sIrq + sIrq::Latch_u8_arr + 1
-    lda #bPpuMask::BgMain | bPpuMask::ObjMain
-    sta Ram_Buffered_sIrq + sIrq::Render_bPpuMask_arr + 1
-    lda #$ff
-    sta Ram_Buffered_sIrq + sIrq::ScrollY_u8_arr + 1  ; $ff = no scroll change
-    sta Ram_Buffered_sIrq + sIrq::Latch_u8_arr + 2    ; $ff = no more entries
-    ;; Ready to transfer:
-    sta Zp_TransferIrqTable_bool
+    lda #kScreenHeightPx - kTileHeightPx * 10
+    sta Zp_WindowTop_u8
+    jsr Func_Window_SetUpIrq
+    jsr Func_Window_DirectDrawTopBorder
 _LoadRoom:
     prgc_bank #<.bank(DataC_TallRoom_sRoom)
     ldx #.sizeof(sRoom) - 1
@@ -198,6 +186,7 @@ _FadeIn:
     jsr Func_FadeIn
 _GameLoop:
     jsr Func_UpdateButtons
+    jsr Func_ExporeCheckForPause
     jsr Func_SetScrollGoalFromAvatar
     jsr Func_ScrollTowardsGoal
     jsr Func_ExploreMoveAvatar
@@ -205,6 +194,16 @@ _GameLoop:
     jsr Func_ClearRestOfOam
     jsr Func_ProcessFrame
     jmp _GameLoop
+.ENDPROC
+
+.PROC Func_ExporeCheckForPause
+    lda Zp_P1ButtonsPressed_bJoypad
+    and #bJoypad::Start
+    beq _Done
+    lda #3  ; param: window row
+    jsr Func_Window_TransferBottomBorder
+_Done:
+    rts
 .ENDPROC
 
 ;;; Sets Zp_ScrollGoalX_u16 and Zp_ScrollGoalY_u8 such that the player avatar

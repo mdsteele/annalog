@@ -167,7 +167,7 @@ _InitAttributeTable3:
     bne @loop
 _Finish:
     ;; Enable interrupts and start the game.
-    lda #bPpuCtrl::EnableNmi | bPpuCtrl::ObjPat1
+    lda #kPpuCtrlFlagsHorz
     sta Hw_PpuCtrl_wo        ; enable VBlank NMI
     sta Hw_Mmc3IrqEnable_wo  ; enable HBlank IRQ
     cli                      ; enable maskable (IRQ) interrupts

@@ -125,7 +125,7 @@ _SetPtr:
 .EXPORT FuncA_Terrain_FillNametables
 .PROC FuncA_Terrain_FillNametables
     bit Hw_PpuStatus_ro  ; reset the Hw_PpuAddr_w2 write-twice latch
-    ldx #bPpuCtrl::EnableNmi | bPpuCtrl::ObjPat1 | bPpuCtrl::Inc32
+    ldx #kPpuCtrlFlagsVert
     stx Hw_PpuCtrl_wo
     tax
     add #kScreenWidthBlocks
@@ -243,7 +243,7 @@ _BlockColumnLoop:
     txa
     add #4 + kScreenHeightTiles
     sta Zp_PpuTransferLen_u8
-    lda #bPpuCtrl::EnableNmi | bPpuCtrl::Inc32
+    lda #kPpuCtrlFlagsVert
     sta Ram_PpuTransfer_arr, x
     inx
     lda #>Ppu_Nametable0_sName
@@ -268,7 +268,7 @@ _BlockColumnLoop:
     txa
     add #4 + (kTallRoomHeightTiles - kScreenHeightTiles)
     sta Zp_PpuTransferLen_u8
-    lda #bPpuCtrl::EnableNmi | bPpuCtrl::Inc32
+    lda #kPpuCtrlFlagsVert
     sta Ram_PpuTransfer_arr, x
     inx
     lda #>Ppu_Nametable3_sName
