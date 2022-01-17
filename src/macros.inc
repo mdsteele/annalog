@@ -106,4 +106,16 @@
     _hi_byte stx, ARG
 .ENDMACRO
 
+;;; STYA (store a 16-bit value from YA)
+;;;
+;;; Stores a 16-bit value, using A as the low byte and Y as the high byte.
+;;;
+;;; Examples:
+;;;     stya Zp_Foo_u16   ; zeropage mode; sets [Foo] to A and [Foo+1] to Y
+;;;     stya Ram_Foo_u16  ; absolute mode; sets [Foo] to A and [Foo+1] to Y
+.MACRO stya ARG
+    _lo_byte sta, ARG
+    _hi_byte sty, ARG
+.ENDMACRO
+
 ;;;=========================================================================;;;
