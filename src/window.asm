@@ -17,13 +17,10 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
-;;; For this game, the "window" refers to the bottom portion of the lower
-;;; nametable, which we use HBlank IRQs to scroll into view from the bottom of
-;;; the screen.
-
 .INCLUDE "irq.inc"
 .INCLUDE "macros.inc"
 .INCLUDE "ppu.inc"
+.INCLUDE "window.inc"
 
 .IMPORT Ram_Buffered_sIrq
 .IMPORT Ram_PpuTransfer_arr
@@ -33,20 +30,7 @@
 
 ;;;=========================================================================;;;
 
-;;; The nametable tile row (of the lower nametable) that the window starts on.
-kWindowStartRow = 18
-
-;;; The largest number of tile rows that we ever draw to the window.
-kWindowMaxNumRows = kScreenHeightTiles - kWindowStartRow
-
-;;; Tile IDs for drawing pieces of the window border.
-kWindowTileIdBlank       = $00
-kWindowTileIdTopLeft     = $3a
-kWindowTileIdTopRight    = $3b
-kWindowTileIdBottomLeft  = $3c
-kWindowTileIdBottomRight = $3d
-kWindowTileIdHorz        = $3e
-kWindowTileIdVert        = $3f
+.ASSERT kWindowStartRow + kWindowMaxNumRows = kScreenHeightTiles, error
 
 ;;; The PPU address in the lower nametable for the leftmost tile column of the
 ;;; window start row.
@@ -65,6 +49,11 @@ Ppu_WindowTopLeft = Ppu_Nametable3_sName + sName::Tiles_u8_arr + \
 ;;; greater than or equal to this.
 .EXPORTZP Zp_WindowTop_u8
 Zp_WindowTop_u8: .res 1
+
+;;; The index of the next window row that needs to be transferred to the PPU as
+;;; the window scrolls in.
+.EXPORTZP Zp_WindowNextRowToTransfer_u8
+Zp_WindowNextRowToTransfer_u8: .res 1
 
 ;;;=========================================================================;;;
 
@@ -133,8 +122,7 @@ _Done:
 .ENDPROC
 
 ;;; Appends a new PPU transfer entry to draw the bottom border of the window at
-;;; the specified row.
-;;; @param A The window tile row to draw to.
+;;; the next row.
 .EXPORT Func_Window_TransferBottomBorder
 .PROC Func_Window_TransferBottomBorder
     jsr Func_Window_PrepareRowTransfer
@@ -159,8 +147,7 @@ _Done:
     rts
 .ENDPROC
 
-;;; Appends a new PPU transfer entry to fully clear the specified window row.
-;;; @param A The window tile row to draw to.
+;;; Appends a new PPU transfer entry to fully clear the next window row.
 .EXPORT Func_Window_TransferClearRow
 .PROC Func_Window_TransferClearRow
     jsr Func_Window_PrepareRowTransfer
@@ -174,14 +161,15 @@ _Done:
     rts
 .ENDPROC
 
-;;; Given a window row index, sets up a new PPU transfer entry to write
-;;; kScreenWidthTiles tiles to the appropriate nametable row.  Writes the entry
-;;; header, updates Zp_PpuTransferLen_u8, and returns the starting index for
-;;; the data, which the caller can then fill in.
-;;; @param A The window tile row, from 0 (inclusive) to kWindowMaxNumRows
-;;;     (exclusive).
+;;; Sets up a new PPU transfer entry to write kScreenWidthTiles tiles to the
+;;; nametable for the next window row.  This function writes the entry header,
+;;; updates Zp_PpuTransferLen_u8, and then returns the starting index for the
+;;; data, which the caller can then fill in.
 ;;; @return X The index into Ram_PpuTransfer_arr for the start of the data.
+.EXPORT Func_Window_PrepareRowTransfer
 .PROC Func_Window_PrepareRowTransfer
+    lda Zp_WindowNextRowToTransfer_u8
+    inc Zp_WindowNextRowToTransfer_u8
     ;; Get the transfer destination address, and store it in Zp_Tmp1_byte (hi)
     ;; and Y (lo).
     jsr Func_Window_GetRowPpuAddr  ; returns XY

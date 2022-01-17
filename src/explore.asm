@@ -34,7 +34,7 @@
 .IMPORT Func_UpdateButtons
 .IMPORT Func_Window_DirectDrawTopBorder
 .IMPORT Func_Window_SetUpIrq
-.IMPORT Func_Window_TransferBottomBorder
+.IMPORT Main_Console_OpenWindow
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORTZP Zp_Current_sRoom
 .IMPORTZP Zp_OamOffset_u8
@@ -74,9 +74,6 @@ kAvatarJumpVelocity = $ffff & -810
 ;;; subpixels per frame per frame.
 kAvatarGravity = 48
 
-;;; The largest value that may be stored in Zp_ScrollGoalY_u8.
-kMaxScrolllY = kTallRoomHeightBlocks * kBlockHeightPx - kScreenHeightPx
-
 ;;; Modes that the player avatar can be in.  The number for each of these enum
 ;;; values is the starting tile ID to use for the avatar objects when the
 ;;; avatar is in that mode.
@@ -101,9 +98,7 @@ Zp_ScrollGoalX_u16: .res 2
 ;;; The desired vertical scroll position; i.e. the position, in room-space
 ;;; pixels, of the top edge of the screen.  Note that this is unsigned, to
 ;;; simplify the comparison logic (we never want to scroll past the top edge of
-;;; the room anyway).  Since kMaxScrolllY fits in one byte, this only needs to
-;;; be one byte (unlike Zp_ScrollGoalX_u16).
-.ASSERT kMaxScrolllY <= $ff, error
+;;; the room anyway).
 Zp_ScrollGoalY_u8: .res 1
 
 ;;; The high byte of the current horizontal scroll position (the low byte is
@@ -131,10 +126,11 @@ Zp_AvatarMode_ePlayer: .res 1
 
 .SEGMENT "PRG8_Explore"
 
-;;; Mode for exploring and platforming within rooms.
+;;; Mode for exploring and platforming within a room, when entering the room
+;;; e.g. from a door or from the title screen.
 ;;; @prereq Rendering is disabled.
-.EXPORT Main_Explore
-.PROC Main_Explore
+.EXPORT Main_Explore_Enter
+.PROC Main_Explore_Enter
     lda #0
     sta Zp_ScrollGoalX_u16 + 0
     sta Zp_ScrollGoalX_u16 + 1
@@ -155,8 +151,8 @@ Zp_AvatarMode_ePlayer: .res 1
     sta Zp_AvatarPosY_i16 + 0
     lda #ePlayer::Standing
     sta Zp_AvatarMode_ePlayer
-_InitIrqTable:
-    lda #kScreenHeightPx - kTileHeightPx * 10
+_InitializeWindow:
+    lda #$ff
     sta Zp_WindowTop_u8
     jsr Func_Window_SetUpIrq
     jsr Func_Window_DirectDrawTopBorder
@@ -184,61 +180,73 @@ _FadeIn:
     sta Zp_PpuScrollX_u8
     sta Zp_PpuScrollY_u8
     jsr Func_FadeIn
+    .assert * = Main_Explore_Continue, error, "fallthrough"
+.ENDPROC
+
+;;; Mode for exploring and platforming within a room, when continuing after
+;;; e.g. closing a window.
+;;; @prereq Rendering is enabled.
+;;; @prereq Explore mode is already initialized.
+.EXPORT Main_Explore_Continue
+.PROC Main_Explore_Continue
 _GameLoop:
-    jsr Func_UpdateButtons
-    jsr Func_ExporeCheckForPause
-    jsr Func_SetScrollGoalFromAvatar
-    jsr Func_ScrollTowardsGoal
-    jsr Func_ExploreMoveAvatar
     jsr Func_ExploreDrawAvatar
     jsr Func_ClearRestOfOam
     jsr Func_ProcessFrame
-    jmp _GameLoop
-.ENDPROC
-
-.PROC Func_ExporeCheckForPause
+    jsr Func_UpdateButtons
+    jsr Func_SetScrollGoalFromAvatar
+    jsr Func_ScrollTowardsGoal
+.PROC _CheckForPause
     lda Zp_P1ButtonsPressed_bJoypad
     and #bJoypad::Start
-    beq _Done
-    lda #3  ; param: window row
-    jsr Func_Window_TransferBottomBorder
-_Done:
-    rts
+    jne Main_Console_OpenWindow
+.ENDPROC
+    jsr Func_ExploreMoveAvatar
+    jmp _GameLoop
 .ENDPROC
 
 ;;; Sets Zp_ScrollGoalX_u16 and Zp_ScrollGoalY_u8 such that the player avatar
 ;;; would be as close to the center of the screen as possible, while still
 ;;; keeping the scroll goal within the valid range for the current room.
+.EXPORT Func_SetScrollGoalFromAvatar
 .PROC Func_SetScrollGoalFromAvatar
-    ;; If we're in a tall room, we can scroll vertically...
+    ;; Calculate half visible height of the screen (the part not covered by the
+    ;; window), and store it in Zp_Tmp1_byte.
+    lda Zp_WindowTop_u8
+    cmp #kScreenHeightPx
+    blt @windowVisible
+    lda #kScreenHeightPx
+    @windowVisible:
+    sta Zp_Tmp1_byte
+    ;; Calculate the maximum permitted scroll-Y and store it in Zp_Tmp2_byte.
+    lda #kScreenHeightPx
     bit <(Zp_Current_sRoom + sRoom::IsTall_bool)
-    bmi _Vert
-    ;; ...but if we're in a short room, lock the vertical scroll to zero and
-    ;; just scroll horizontally.
-    lda #0
-    sta Zp_ScrollGoalY_u8
-    beq _Horz  ; unconditional
-.PROC _Vert
+    bpl @shortRoom
+    lda #<(kTallRoomHeightBlocks * kBlockHeightPx)
+    @shortRoom:
+    sub Zp_Tmp1_byte
+    sta Zp_Tmp2_byte
+.PROC _SetScrollGoalY
     lda Zp_AvatarPosY_i16 + 0
-    sub #kScreenHeightPx / 2
+    lsr Zp_Tmp1_byte
+    sub Zp_Tmp1_byte
     tax
     lda Zp_AvatarPosY_i16 + 1
     sbc #0
     bmi _MinGoal
     bne _MaxGoal
     txa
-    cmp #kMaxScrolllY
+    cmp Zp_Tmp2_byte
     blt _SetGoal
 _MaxGoal:
-    lda #kMaxScrolllY
-    .assert kMaxScrolllY > 0, error
-    bne _SetGoal  ; unconditional
+    lda Zp_Tmp2_byte
+    jmp _SetGoal
 _MinGoal:
     lda #0
 _SetGoal:
     sta Zp_ScrollGoalY_u8
 .ENDPROC
-.PROC _Horz
+.PROC _SetScrollGoalX
     lda Zp_AvatarPosX_i16 + 0
     sub #kScreenWidthPx / 2
     tax
@@ -265,6 +273,7 @@ _Done:
 ;;; Updates the scroll position for next frame to move closer to
 ;;; Zp_ScrollGoalX_u16 and Zp_ScrollGoalY_u8, transferring nametable updates
 ;;; for the current room as necessary.
+.EXPORT Func_ScrollTowardsGoal
 .PROC Func_ScrollTowardsGoal
     ;; TODO: track towards the goal instead of locking directly onto it
     lda Zp_ScrollGoalY_u8
@@ -688,6 +697,7 @@ _DoneLeftRight:
     rts
 .ENDPROC
 
+.EXPORT Func_ExploreDrawAvatar
 .PROC Func_ExploreDrawAvatar
     ;; We need to allocate four objects.  If there's not room in OAM, give up.
     ldy Zp_OamOffset_u8
@@ -698,6 +708,7 @@ _NotVisible:
 _ObjectYPositions:
     ;; Determine the avatar's center Y position on screen; if the avatar is
     ;; completely offscreen vertically, return without allocating any objects.
+    ;; TODO: Avoid drawing objects on top of the window.
     lda Zp_AvatarPosY_i16 + 0
     sub Zp_PpuScrollY_u8
     tax  ; center Y position on screen

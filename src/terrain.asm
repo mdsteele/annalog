@@ -67,7 +67,7 @@ LowerRight_u8_arr:
 .EXPORT FuncA_Terrain_GetColumnPtrForBlockIndex
 .PROC FuncA_Terrain_GetColumnPtrForBlockIndex
     asl a
-    .assert * = FuncA_Terrain_GetColumnPtrForTileIndex, error  ; fall through
+    .assert * = FuncA_Terrain_GetColumnPtrForTileIndex, error, "fallthrough"
 .ENDPROC
 
 ;;; Populates Zp_TerrainColumn_u8_arr_ptr with a pointer to the start of the

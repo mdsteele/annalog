@@ -27,7 +27,7 @@
 .IMPORT Func_FadeOut
 .IMPORT Func_ProcessFrame
 .IMPORT Func_UpdateButtons
-.IMPORT Main_Explore
+.IMPORT Main_Explore_Enter
 .IMPORT Ram_PpuTransfer_arr
 .IMPORTZP Zp_OamOffset_u8
 .IMPORTZP Zp_P1ButtonsPressed_bJoypad
@@ -134,7 +134,7 @@ _GameLoop:
     beq @noStart
     jsr Func_DisplayStartString
     jsr Func_FadeOut
-    jmp Main_Explore
+    jmp Main_Explore_Enter
     @noStart:
     jsr Func_ProcessFrame
     jmp _GameLoop
