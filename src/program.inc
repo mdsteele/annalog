@@ -23,20 +23,20 @@
 ;;;=========================================================================;;;
 
 .ENUM eOpcode
-    Empty = $00  ; (no args)        Jumps to program start (in zero cycles).
-    Copy  = $10  ; r, r/i           Sets register to value of second arg.
-    Swap  = $20  ; r, r             Swaps values of two registers.
-    Add   = $30  ; r, r/i, r/i      Sets register to sum of other args.
-    Sub   = $40  ; r, r/i, r/i      Sets register to difference of other args.
-    Mul   = $50  ; r, r/i, r/i      Sets register to product of other args.
-    Goto  = $60  ; addr             Jumps to an absolute address (0-15).
-    Skip  = $70  ; r/i              Skips next N instructions.
-    If    = $80  ; oper, r/i, r/i   Skips next instruction if false.
-    Til   = $90  ; oper, r/i, r/i   Jumps to prev instruction if false.
-    Act   = $a0  ; (no args)        Performs machine action (e.g. firing gun).
-    Move  = $b0  ; dir              Moves machine in the specified direction.
-    End   = $e0  ; (no args)        Halts the program.
-    Nop   = $f0  ; (no args)        Does nothing (but still takes a cycle).
+    Empty = $0  ; (no args)        Jumps to program start (in zero cycles).
+    Copy  = $1  ; r, r/i           Sets register to value of second arg.
+    Swap  = $2  ; r, r             Swaps values of two registers.
+    Add   = $3  ; r, r/i, r/i      Sets register to sum of other args.
+    Sub   = $4  ; r, r/i, r/i      Sets register to difference of other args.
+    Mul   = $5  ; r, r/i, r/i      Sets register to product of other args.
+    Goto  = $6  ; addr             Jumps to an absolute address (0-15).
+    Skip  = $7  ; r/i              Skips next N instructions.
+    If    = $8  ; oper, r/i, r/i   Skips next instruction if false.
+    Til   = $9  ; oper, r/i, r/i   Jumps to prev instruction if false.
+    Act   = $a  ; (no args)        Performs machine action (e.g. firing gun).
+    Move  = $b  ; dir              Moves machine in the specified direction.
+    End   = $e  ; (no args)        Halts the program.
+    Nop   = $f  ; (no args)        Does nothing (but still takes a cycle).
 .ENDENUM
 
 ;;;=========================================================================;;;

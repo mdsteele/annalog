@@ -119,3 +119,69 @@
 .ENDMACRO
 
 ;;;=========================================================================;;;
+
+;;; DIV (divide A by a constant power of 2)
+;;; Affects flags: N Z C
+;;;
+;;; The argument must be a constant immediate value equal to 2, 4, 8, or 16.
+;;;
+;;; Examples:
+;;;     div #$10            ; divides A by 16
+;;;     div #.sizeof(sObj)  ; divides A by .sizeof(sObj)
+.MACRO div ARG
+    .if !_is_immediate ARG
+    .error "div only supports immediate addressing"
+    .elseif !.const(_get_immediate ARG)
+    .error "div argument must be a constant"
+    .elseif 2 = _get_immediate ARG
+    lsr a
+    .elseif 4 = _get_immediate ARG
+    lsr a
+    lsr a
+    .elseif 8 = _get_immediate ARG
+    lsr a
+    lsr a
+    lsr a
+    .elseif 16 = _get_immediate ARG
+    lsr a
+    lsr a
+    lsr a
+    lsr a
+    .else
+    .error .sprintf("unsupported div argument: %d", _get_immediate ARG)
+    .endif
+.ENDMACRO
+
+;;; MUL (multiply A by a constant power of 2)
+;;; Affects flags: N Z C
+;;;
+;;; The argument must be a constant immediate value equal to 2, 4, 8, or 16.
+;;;
+;;; Examples:
+;;;     mul #$10            ; multiplies A by 16
+;;;     mul #.sizeof(sObj)  ; multiplies A by .sizeof(sObj)
+.MACRO mul ARG
+    .if !_is_immediate ARG
+    .error "mul only supports immediate addressing"
+    .elseif !.const(_get_immediate ARG)
+    .error "mul argument must be a constant"
+    .elseif 2 = _get_immediate ARG
+    asl a
+    .elseif 4 = _get_immediate ARG
+    asl a
+    asl a
+    .elseif 8 = _get_immediate ARG
+    asl a
+    asl a
+    asl a
+    .elseif 16 = _get_immediate ARG
+    asl a
+    asl a
+    asl a
+    asl a
+    .else
+    .error .sprintf("unsupported mul argument: %d", _get_immediate ARG)
+    .endif
+.ENDMACRO
+
+;;;=========================================================================;;;

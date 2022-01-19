@@ -29,7 +29,8 @@ PATTERNS = [
     ('incorrect ZP export', re.compile(r'\.EXPORT +Zp')),
     ('incorrect ZP import', re.compile(r'\.IMPORT +Zp')),
     ('suspicious address', re.compile(
-        r'^ *(ad[cd]|and|cmp|cp[xy]|eor|ora|sub|sbc|ld[a-z]+) +[a-z0-9$%.]')),
+        r'^ *(ad[cd]|and|cmp|cp[xy]|eor|ora|sub|sbc|ld[a-z]+) +'
+        r'([a-z0-9$%.]|Func|Main)')),
 ]
 
 #=============================================================================#

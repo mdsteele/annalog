@@ -50,6 +50,10 @@ Ppu_WindowTopLeft = Ppu_Nametable3_sName + sName::Tiles_u8_arr + \
 .EXPORTZP Zp_WindowTop_u8
 Zp_WindowTop_u8: .res 1
 
+;;; Stores the goal value for Zp_WindowTop_u8 while scrolling the window.
+.EXPORTZP Zp_WindowTopGoal_u8
+Zp_WindowTopGoal_u8: .res 1
+
 ;;; The index of the next window row that needs to be transferred to the PPU as
 ;;; the window scrolls in.
 .EXPORTZP Zp_WindowNextRowToTransfer_u8
