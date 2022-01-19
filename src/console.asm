@@ -50,6 +50,14 @@
 
 ;;;=========================================================================;;;
 
+.LINECONT +
+.DEFINE OpcodeLabels \
+    _OpEmpty, _OpCopy, _OpSwap, _OpAdd, _OpSub, _OpMul, _OpGoto, _OpSkip, \
+    _OpIf, _OpTil, _OpAct, _OpMove, _OpEnd, _OpEnd, _OpEnd, _OpNop
+.LINECONT -
+
+;;;=========================================================================;;;
+
 ;;; How many pixels of blank space we keep between the bottom of the console
 ;;; window border and the bottom of the screen.  This margin should be at least
 ;;; 12 pixels to avoid any of the console border being hidden by TV overscan
@@ -524,37 +532,18 @@ _Interior:
     sta Zp_Tmp1_byte
     ;; Extract the opcode and jump to the correct label below.
     and #$f0
-    lsr a
-    lsr a
-    lsr a
+    div #$10
     tay
-    lda _JumpTable, y
+    lda _JumpTable_ptr_0_arr, y
     sta Zp_Tmp_ptr + 0
-    lda _JumpTable + 1, y
+    lda _JumpTable_ptr_1_arr, y
     sta Zp_Tmp_ptr + 1
     jmp (Zp_Tmp_ptr)
 _Write7Spaces:
-    ldya #@string
-    jsr _WriteString3
+    jsr _Write3Spaces
     jmp _Write4Spaces
-    @string: .byte "   "
-_JumpTable:
-    .addr _OpEmpty
-    .addr _OpCopy
-    .addr _OpSwap
-    .addr _OpAdd
-    .addr _OpSub
-    .addr _OpMul
-    .addr _OpGoto
-    .addr _OpSkip
-    .addr _OpIf
-    .addr _OpTil
-    .addr _OpAct
-    .addr _OpMove
-    .addr _OpEnd  ; unused opcode
-    .addr _OpEnd  ; unused opcode
-    .addr _OpEnd
-    .addr _OpNop
+_JumpTable_ptr_0_arr: .lobytes OpcodeLabels
+_JumpTable_ptr_1_arr: .hibytes OpcodeLabels
 _OpEmpty:
     ldya #@string
     jsr _WriteString5
@@ -733,9 +722,9 @@ _WriteComparisonOperator:
 .PROC Func_Console_GetCurrentInstNumFields
     jsr Func_Console_GetCurrentOpcode  ; returns A
     tay
-    ldx _Table, y
+    ldx _NumFields_u8_arr, y
     rts
-_Table:
+_NumFields_u8_arr:
     .byte 1  ; Empty
     .byte 3  ; Copy
     .byte 3  ; Swap
@@ -759,33 +748,17 @@ _Table:
 ;;; @return A The width minus one.
 .PROC Func_Console_GetCurrentFieldWidth
     jsr Func_Console_GetCurrentOpcode  ; returns A
-    asl a
     tay
-    lda _PtrTable, y
+    lda _FieldWidths_u8_arr_ptr_0_arr, y
     sta Zp_Tmp_ptr + 0
-    lda _PtrTable + 1, y
+    lda _FieldWidths_u8_arr_ptr_1_arr, y
     sta Zp_Tmp_ptr + 1
     ;; Look up the field width in that table.
     ldy Zp_ConsoleFieldNumber_u8
     lda (Zp_Tmp_ptr), y
     rts
-_PtrTable:
-    .addr _OpEmpty
-    .addr _OpCopy
-    .addr _OpSwap
-    .addr _OpAdd
-    .addr _OpSub
-    .addr _OpMul
-    .addr _OpGoto
-    .addr _OpSkip
-    .addr _OpIf
-    .addr _OpTil
-    .addr _OpAct
-    .addr _OpMove
-    .addr _OpEnd  ; unused opcode
-    .addr _OpEnd  ; unused opcode
-    .addr _OpEnd
-    .addr _OpNop
+_FieldWidths_u8_arr_ptr_0_arr: .lobytes OpcodeLabels
+_FieldWidths_u8_arr_ptr_1_arr: .hibytes OpcodeLabels
 _OpEmpty:
     .byte 5
 _OpCopy:
@@ -815,33 +788,17 @@ _OpNop:
 ;;; @return A The field offset.
 .PROC Func_Console_GetCurrentFieldOffset
     jsr Func_Console_GetCurrentOpcode  ; returns A
-    asl a
     tay
-    lda _PtrTable, y
+    lda _FieldOffsets_u8_arr_ptr_0_arr, y
     sta Zp_Tmp_ptr + 0
-    lda _PtrTable + 1, y
+    lda _FieldOffsets_u8_arr_ptr_1_arr, y
     sta Zp_Tmp_ptr + 1
     ;; Look up the field offset in that table.
     ldy Zp_ConsoleFieldNumber_u8
     lda (Zp_Tmp_ptr), y
     rts
-_PtrTable:
-    .addr _OpEmpty
-    .addr _OpCopy
-    .addr _OpSwap
-    .addr _OpAdd
-    .addr _OpSub
-    .addr _OpMul
-    .addr _OpGoto
-    .addr _OpSkip
-    .addr _OpIf
-    .addr _OpTil
-    .addr _OpAct
-    .addr _OpMove
-    .addr _OpEnd  ; unused opcode
-    .addr _OpEnd  ; unused opcode
-    .addr _OpEnd
-    .addr _OpNop
+_FieldOffsets_u8_arr_ptr_0_arr: .lobytes OpcodeLabels
+_FieldOffsets_u8_arr_ptr_1_arr: .hibytes OpcodeLabels
 _OpEmpty:
 _OpAct:
 _OpEnd:
@@ -870,34 +827,18 @@ _OpTil:
 ;;; range 0-6 inclusive).
 .PROC Func_Console_SetFieldForNominalOffset
     jsr Func_Console_GetCurrentOpcode  ; returns A
-    asl a
     tay
-    lda _PtrTable, y
+    lda _FieldNumbers_u8_arr7_ptr_0_arr, y
     sta Zp_Tmp_ptr + 0
-    lda _PtrTable + 1, y
+    lda _FieldNumbers_u8_arr7_ptr_1_arr, y
     sta Zp_Tmp_ptr + 1
     ;; Look up the field number in that table.
     ldy Zp_ConsoleNominalFieldOffset_u8
     lda (Zp_Tmp_ptr), y
     sta Zp_ConsoleFieldNumber_u8
     rts
-_PtrTable:
-    .addr _OpEmpty
-    .addr _OpCopy
-    .addr _OpSwap
-    .addr _OpAdd
-    .addr _OpSub
-    .addr _OpMul
-    .addr _OpGoto
-    .addr _OpSkip
-    .addr _OpIf
-    .addr _OpTil
-    .addr _OpAct
-    .addr _OpMove
-    .addr _OpEnd  ; unused opcode
-    .addr _OpEnd  ; unused opcode
-    .addr _OpEnd
-    .addr _OpNop
+_FieldNumbers_u8_arr7_ptr_0_arr: .lobytes OpcodeLabels
+_FieldNumbers_u8_arr7_ptr_1_arr: .hibytes OpcodeLabels
 _OpEmpty:
 _OpAct:
 _OpEnd:
