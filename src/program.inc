@@ -22,6 +22,7 @@
 
 ;;;=========================================================================;;;
 
+;;; Opcode values for program instructions.
 .ENUM eOpcode
     Empty = $0  ; (no args)        Jumps to program start (in zero cycles).
     Copy  = $1  ; r, r/i           Sets register to value of second arg.
@@ -41,12 +42,40 @@
 
 ;;;=========================================================================;;;
 
+;;; Types of fields that can appear in written program instructions.
+.ENUM eField
+    Opcode     ; the instruction's opcode
+    LValue     ; a writable register
+    RValue     ; an immediate value (0-9) or readable register
+    Address    ; an instruction number (for GOTO instructions)
+    Compare    ; a comparison operator (for IF and TIL instructions)
+    Direction  ; a cardinal direction (for MOVE instructions)
+.ENDENUM
+
+;;; Comparison operators that can be used in IF and TIL instructions.
+.ENUM eCmp
+    Eq  ; equal
+    Ne  ; not equal
+    Lt  ; less than
+    Gt  ; greater than
+    Le  ; less than or equal
+    Ge  ; greater than or equal
+.ENDENUM
+
+;;; Directions that can be used in MOVE instructions.
+.ENUM eDir
+    Up
+    Down
+    Left
+    Right
+.ENDENUM
+
+;;;=========================================================================;;;
+
 ;;; One instruction in a program for an in-game machine.
 .STRUCT sInst
-    ;; For zero- and one-argument opcodes, this is ignored.  For two-argument
-    ;; opcodes, the low nibble stores the second argument.  For three-argument
-    ;; opcodes, the high nibble stores the second argument, and the low nibble
-    ;; stores the third argument.
+    ;; The low nibble stores the second argument (if any), and the high nibble
+    ;; stores the third argument (if any).
     Arg_byte .byte
     ;; The high nibble stores an eOpcode, and the low nibble stores the first
     ;; argument (if any).

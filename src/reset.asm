@@ -115,7 +115,7 @@ _InitPalettes:
     ;; We're back in VBlank, and the PPU should be warmed up now, so this is a
     ;; good time to initialize our palette data.  Note that even when rendering
     ;; is disabled (as it is right now), palette data should only be updated
-    ;; during VBlank, since otherwise we may glitch the backgroundc color (see
+    ;; during VBlank, since otherwise we may glitch the background color (see
     ;; https://wiki.nesdev.org/w/index.php/The_frame_and_NMIs).
     ldax #Ppu_Palettes_sPal_arr8
     bit Hw_PpuStatus_ro  ; reset the Hw_PpuAddr_w2 write-twice latch

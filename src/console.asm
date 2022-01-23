@@ -27,10 +27,12 @@
 
 .IMPORT Func_ClearRestOfOam
 .IMPORT Func_ExploreDrawAvatar
+.IMPORT Func_Menu_EditSelectedField
 .IMPORT Func_ProcessFrame
 .IMPORT Func_ScrollTowardsGoal
 .IMPORT Func_SetScrollGoalFromAvatar
 .IMPORT Func_UpdateButtons
+.IMPORT Func_Window_GetRowPpuAddr
 .IMPORT Func_Window_PrepareRowTransfer
 .IMPORT Func_Window_SetUpIrq
 .IMPORT Func_Window_TransferBottomBorder
@@ -40,6 +42,7 @@
 .IMPORT Ram_PpuTransfer_arr
 .IMPORTZP Zp_OamOffset_u8
 .IMPORTZP Zp_P1ButtonsPressed_bJoypad
+.IMPORTZP Zp_PpuTransferLen_u8
 .IMPORTZP Zp_Tmp1_byte
 .IMPORTZP Zp_Tmp2_byte
 .IMPORTZP Zp_Tmp3_byte
@@ -55,6 +58,12 @@
     _OpEmpty, _OpCopy, _OpSwap, _OpAdd, _OpSub, _OpMul, _OpGoto, _OpSkip, \
     _OpIf, _OpTil, _OpAct, _OpMove, _OpEnd, _OpEnd, _OpEnd, _OpNop
 .LINECONT -
+
+.MACRO OPCODE_TABLE arg
+    .repeat $10, index
+    .byte .mid(index * 2, 1, {OpcodeLabels}) - arg
+    .endrepeat
+.ENDMACRO
 
 ;;;=========================================================================;;;
 
@@ -84,12 +93,16 @@ kConsoleTileIdTimes      = $57
 ;;; The OBJ palette number used for the console cursor.
 kCursorObjPalette = 0
 
+;;; The width of an instruction in the console, in tiles.
+kInstructionWidthTiles = 7
+
 ;;;=========================================================================;;;
 
 .ZEROPAGE
 
 ;;; The number of instruction rows in the console window (i.e. not including
 ;;; the borders or the bottom margin).
+.EXPORTZP Zp_ConsoleNumInstRows_u8
 Zp_ConsoleNumInstRows_u8: .res 1
 
 ;;; The "current" instruction number within Ram_Console_sProgram.  While
@@ -144,7 +157,7 @@ Ram_Console_sProgram: .tag sProgram
     stax Ram_Console_sProgram + $0c
     ldax #$82a1
     stax Ram_Console_sProgram + $0e
-    ldax #$936a
+    ldax #$956a
     stax Ram_Console_sProgram + $10
     ldax #$a000
     stax Ram_Console_sProgram + $12
@@ -243,6 +256,18 @@ _CheckIfDone:
     lda Zp_P1ButtonsPressed_bJoypad
     and #bJoypad::BButton
     jne Main_Console_CloseWindow
+_CheckInsert:
+    lda Zp_P1ButtonsPressed_bJoypad
+    and #bJoypad::Select
+    beq @noInsert
+    jsr Func_Console_InsertInstruction
+    @noInsert:
+_CheckEditField:
+    lda Zp_P1ButtonsPressed_bJoypad
+    and #bJoypad::AButton
+    beq @noEdit
+    jsr Func_Menu_EditSelectedField
+    @noEdit:
 .PROC _MoveCursorVertically
     ;; Store the max number of instructions in Zp_Tmp1_byte.
     lda Zp_ConsoleNumInstRows_u8
@@ -371,7 +396,19 @@ _UpdateScrolling:
     jmp _GameLoop
 .ENDPROC
 
+.PROC Func_Console_InsertInstruction
+    ;; TODO: If there's no room to insert an instruction, bail.
+    ;; TODO: Insert a new Empty instruction above the current one (updating any
+    ;;   GOTO instruction addresses as needed), and set current
+    ;;   instruction/field/column to point to the new Empty instruction.
+    ;; TODO: Redraw all instructions in the console (over a couple of frames).
+    ;; TODO: Switch to menu mode for the current field (which will be the
+    ;;   opcode field of the new Empty instruction).
+    rts
+.ENDPROC
+
 ;;; Allocates and populates OAM slots for the console cursor.
+.EXPORT Func_Console_DrawCursorObjects
 .PROC Func_Console_DrawCursorObjects
     jsr Func_Console_GetCurrentFieldWidth
     sta Zp_Tmp3_byte
@@ -514,6 +551,51 @@ _Interior:
     rts
 .ENDPROC
 
+;;; Appends a PPU transfer entry to redraw the current instruction.
+.EXPORT Func_Console_TransferInstruction
+.PROC Func_Console_TransferInstruction
+    ;; Get the transfer destination address, and store it in Zp_Tmp1_byte (lo)
+    ;; and Zp_Tmp2_byte (hi).
+    lda Zp_ConsoleInstNumber_u8
+    cmp Zp_ConsoleNumInstRows_u8
+    blt @leftColumn
+    sub Zp_ConsoleNumInstRows_u8
+    @leftColumn:
+    add #1  ; add 1 for the top border
+    jsr Func_Window_GetRowPpuAddr  ; returns XY
+    sty Zp_Tmp1_byte
+    lda #14
+    ldy Zp_ConsoleInstNumber_u8
+    cpy Zp_ConsoleNumInstRows_u8
+    bge @rightColumn
+    lda #4
+    @rightColumn:
+    add Zp_Tmp1_byte
+    sta Zp_Tmp1_byte  ; transfer destination (lo)
+    txa
+    adc #0
+    sta Zp_Tmp2_byte  ; transfer destination (hi)
+    ;; Update Zp_PpuTransferLen_u8.
+    ldx Zp_PpuTransferLen_u8
+    txa
+    add #4 + kInstructionWidthTiles
+    sta Zp_PpuTransferLen_u8
+    ;; Write the transfer entry header.
+    lda #kPpuCtrlFlagsHorz
+    sta Ram_PpuTransfer_arr, x
+    inx
+    lda Zp_Tmp2_byte  ; transfer destination (hi)
+    sta Ram_PpuTransfer_arr, x
+    inx
+    lda Zp_Tmp1_byte  ; transfer destination (lo)
+    sta Ram_PpuTransfer_arr, x
+    inx
+    lda #kInstructionWidthTiles
+    sta Ram_PpuTransfer_arr, x
+    inx
+    .assert * = Func_Console_WriteInstTransferData, error, "fallthrough"
+.ENDPROC
+
 ;;; Writes seven bytes into a PPU transfer entry with the text of instruction
 ;;; number Zp_ConsoleInstNumber_u8 within Ram_Console_sProgram.
 ;;; @param X PPU transfer array index within an entry's data.
@@ -531,7 +613,6 @@ _Interior:
     lda Ram_Console_sProgram + sProgram::Code_sInst_arr + sInst::Op_byte, y
     sta Zp_Tmp1_byte
     ;; Extract the opcode and jump to the correct label below.
-    and #$f0
     div #$10
     tay
     lda _JumpTable_ptr_0_arr, y
@@ -596,10 +677,10 @@ _OpIf:
     ldya #@string
     jsr _WriteString3
     lda Zp_Tmp2_byte
-    jsr _WriteHighRegisterOrImmediate
+    jsr _WriteLowRegisterOrImmediate
     jsr _WriteComparisonOperator
     lda Zp_Tmp2_byte
-    jsr _WriteLowRegisterOrImmediate
+    jsr _WriteHighRegisterOrImmediate
     jmp _Write1Space
     @string: .byte "IF "
 _OpTil:
@@ -607,10 +688,10 @@ _OpTil:
     jsr _WriteString3
     jsr _Write1Space
     lda Zp_Tmp2_byte
-    jsr _WriteHighRegisterOrImmediate
+    jsr _WriteLowRegisterOrImmediate
     jsr _WriteComparisonOperator
     lda Zp_Tmp2_byte
-    jmp _WriteLowRegisterOrImmediate
+    jmp _WriteHighRegisterOrImmediate
     @string: .byte "TIL"
 _OpAct:
     ldya #@string
@@ -665,12 +746,12 @@ _WriteBinop:
     jsr _WriteLowRegisterOrImmediate
     jsr _WriteArrowLeft
     lda Zp_Tmp2_byte
-    jsr _WriteHighRegisterOrImmediate
+    jsr _WriteLowRegisterOrImmediate
     pla
     sta Ram_PpuTransfer_arr, x
     inx
     lda Zp_Tmp2_byte
-    jsr _WriteLowRegisterOrImmediate
+    jsr _WriteHighRegisterOrImmediate
     jmp _Write2Spaces
 _Write4Spaces:
     lda #kWindowTileIdBlank
@@ -749,16 +830,14 @@ _NumFields_u8_arr:
 .PROC Func_Console_GetCurrentFieldWidth
     jsr Func_Console_GetCurrentOpcode  ; returns A
     tay
-    lda _FieldWidths_u8_arr_ptr_0_arr, y
-    sta Zp_Tmp_ptr + 0
-    lda _FieldWidths_u8_arr_ptr_1_arr, y
-    sta Zp_Tmp_ptr + 1
-    ;; Look up the field width in that table.
-    ldy Zp_ConsoleFieldNumber_u8
-    lda (Zp_Tmp_ptr), y
+    lda _OpcodeTable_u8_arr, y
+    add Zp_ConsoleFieldNumber_u8
+    tay
+    lda _WidthTable_u8_arr, y
     rts
-_FieldWidths_u8_arr_ptr_0_arr: .lobytes OpcodeLabels
-_FieldWidths_u8_arr_ptr_1_arr: .hibytes OpcodeLabels
+_OpcodeTable_u8_arr:
+    OPCODE_TABLE _WidthTable_u8_arr
+_WidthTable_u8_arr:
 _OpEmpty:
     .byte 5
 _OpCopy:
@@ -789,16 +868,14 @@ _OpNop:
 .PROC Func_Console_GetCurrentFieldOffset
     jsr Func_Console_GetCurrentOpcode  ; returns A
     tay
-    lda _FieldOffsets_u8_arr_ptr_0_arr, y
-    sta Zp_Tmp_ptr + 0
-    lda _FieldOffsets_u8_arr_ptr_1_arr, y
-    sta Zp_Tmp_ptr + 1
-    ;; Look up the field offset in that table.
-    ldy Zp_ConsoleFieldNumber_u8
-    lda (Zp_Tmp_ptr), y
+    lda _OpcodeTable_u8_arr, y
+    add Zp_ConsoleFieldNumber_u8
+    tay
+    lda _OffsetTable_u8_arr, y
     rts
-_FieldOffsets_u8_arr_ptr_0_arr: .lobytes OpcodeLabels
-_FieldOffsets_u8_arr_ptr_1_arr: .hibytes OpcodeLabels
+_OpcodeTable_u8_arr:
+    OPCODE_TABLE _OffsetTable_u8_arr
+_OffsetTable_u8_arr:
 _OpEmpty:
 _OpAct:
 _OpEnd:
@@ -828,17 +905,15 @@ _OpTil:
 .PROC Func_Console_SetFieldForNominalOffset
     jsr Func_Console_GetCurrentOpcode  ; returns A
     tay
-    lda _FieldNumbers_u8_arr7_ptr_0_arr, y
-    sta Zp_Tmp_ptr + 0
-    lda _FieldNumbers_u8_arr7_ptr_1_arr, y
-    sta Zp_Tmp_ptr + 1
-    ;; Look up the field number in that table.
-    ldy Zp_ConsoleNominalFieldOffset_u8
-    lda (Zp_Tmp_ptr), y
+    lda _OpcodeTable_u8_arr, y
+    add Zp_ConsoleNominalFieldOffset_u8
+    tay
+    lda _FieldTable_u8_arr, y
     sta Zp_ConsoleFieldNumber_u8
     rts
-_FieldNumbers_u8_arr7_ptr_0_arr: .lobytes OpcodeLabels
-_FieldNumbers_u8_arr7_ptr_1_arr: .hibytes OpcodeLabels
+_OpcodeTable_u8_arr:
+    OPCODE_TABLE _FieldTable_u8_arr
+_FieldTable_u8_arr:
 _OpEmpty:
 _OpAct:
 _OpEnd:
@@ -862,6 +937,218 @@ _OpTil:
     .byte 0, 0, 0, 1, 1, 2, 3
 .ENDPROC
 
+;;; Returns the eField for the currently-selected instruction field.
+;;; @return A The eField value.
+.EXPORT Func_Console_GetCurrentFieldType
+.PROC Func_Console_GetCurrentFieldType
+    jsr Func_Console_GetCurrentOpcode  ; returns A
+    tay
+    lda _OpcodeTable_u8_arr, y
+    add Zp_ConsoleFieldNumber_u8
+    tay
+    lda _TypeTable_u8_arr, y
+    rts
+_OpcodeTable_u8_arr:
+    OPCODE_TABLE _TypeTable_u8_arr
+_TypeTable_u8_arr:
+_OpEmpty:
+_OpAct:
+_OpEnd:
+_OpNop:
+    .byte eField::Opcode
+_OpCopy:
+    .byte eField::LValue, eField::Opcode, eField::RValue
+_OpSwap:
+    .byte eField::LValue, eField::Opcode, eField::LValue
+_OpAdd:
+_OpSub:
+_OpMul:
+    .byte eField::LValue, eField::Opcode, eField::RValue, eField::Opcode
+    .byte eField::RValue
+_OpGoto:
+    .byte eField::Opcode, eField::Address
+_OpSkip:
+    .byte eField::Opcode, eField::RValue
+_OpIf:
+_OpTil:
+    .byte eField::Opcode, eField::RValue, eField::Compare, eField::RValue
+_OpMove:
+    .byte eField::Opcode, eField::Direction
+.ENDPROC
+
+;;; Returns the argument slot number for the currently-selected instruction
+;;; field.  The opcode nibble of the sInst is slot 0, the first argument nibble
+;;; is slot 1, and so on.
+;;; @return A Slot number for the field (0-3).
+.PROC Func_Console_GetCurrentFieldSlot
+    jsr Func_Console_GetCurrentOpcode  ; returns A
+    tay
+    lda _OpcodeTable_u8_arr, y
+    add Zp_ConsoleFieldNumber_u8
+    tay
+    lda _SlotTable_u8_arr, y
+    rts
+_OpcodeTable_u8_arr:
+    OPCODE_TABLE _SlotTable_u8_arr
+_SlotTable_u8_arr:
+_OpEmpty:
+_OpAct:
+_OpEnd:
+_OpNop:
+    .byte 0
+_OpCopy:
+_OpSwap:
+    .byte 1, 0, 2
+_OpAdd:
+_OpSub:
+_OpMul:
+    .byte 1, 0, 2, 0, 3
+_OpGoto:
+_OpSkip:
+_OpMove:
+    .byte 0, 1
+_OpIf:
+_OpTil:
+    .byte 0, 2, 1, 3
+.ENDPROC
+
+;;; Returns the value of the currently selected instruction field.
+;;; @return A The value of the field (0-15).
+.EXPORT Func_Console_GetCurrentFieldValue
+.PROC Func_Console_GetCurrentFieldValue
+    jsr Func_Console_GetCurrentFieldSlot  ; returns A
+    tay  ; field slot
+    lda Zp_ConsoleInstNumber_u8
+    mul #.sizeof(sInst)
+    tax  ; sProgram byte index
+    lda Ram_Console_sProgram + sProgram::Code_sInst_arr + sInst::Op_byte, x
+    dey
+    bmi @highNibble
+    dey
+    bmi @lowNibble
+    lda Ram_Console_sProgram + sProgram::Code_sInst_arr + sInst::Arg_byte, x
+    dey
+    bmi @lowNibble
+    @highNibble:
+    div #$10
+    rts
+    @lowNibble:
+    and #$0f
+    rts
+.ENDPROC
+
+;;; Sets the value of the currently selected instruction field.  If that field
+;;; is the opcode, then other fields may also be updated.
+;;; @param A The new field value.
+.EXPORT Func_Console_SetCurrentFieldValue
+.PROC Func_Console_SetCurrentFieldValue
+    pha  ; new value
+    jsr Func_Console_GetCurrentFieldSlot  ; returns A
+    tay  ; field slot
+    lda Zp_ConsoleInstNumber_u8
+    mul #.sizeof(sInst)
+    tax  ; sProgram byte index
+    pla  ; new value
+    dey
+    bmi _SetOpcode
+    dey
+    bmi _SetArg1
+    dey
+    bmi _SetArg2
+_SetArg3:
+    mul #$10
+    sta Zp_Tmp1_byte  ; new value (in high nibble)
+    lda Ram_Console_sProgram + sProgram::Code_sInst_arr + sInst::Arg_byte, x
+    and #$0f
+    ora Zp_Tmp1_byte
+    sta Ram_Console_sProgram + sProgram::Code_sInst_arr + sInst::Arg_byte, x
+    rts
+_SetArg2:
+    sta Zp_Tmp1_byte  ; new value
+    lda Ram_Console_sProgram + sProgram::Code_sInst_arr + sInst::Arg_byte, x
+    and #$f0
+    ora Zp_Tmp1_byte
+    sta Ram_Console_sProgram + sProgram::Code_sInst_arr + sInst::Arg_byte, x
+    rts
+_SetArg1:
+    sta Zp_Tmp1_byte  ; new value
+    lda Ram_Console_sProgram + sProgram::Code_sInst_arr + sInst::Op_byte, x
+    and #$f0
+    ora Zp_Tmp1_byte
+    sta Ram_Console_sProgram + sProgram::Code_sInst_arr + sInst::Op_byte, x
+    rts
+_SetOpcode:
+    pha  ; new opcode
+    jsr Func_Console_GetCurrentOpcode
+    sta Zp_Tmp1_byte  ; old opcode
+    pla  ; new opcode
+    cmp Zp_Tmp1_byte
+    bne @update
+    rts
+    @update:
+    tay  ; new opcode
+    lda Zp_ConsoleInstNumber_u8
+    mul #.sizeof(sInst)
+    tax  ; sProgram byte index
+    lda _JumpTable_ptr_0_arr, y
+    sta Zp_Tmp_ptr + 0
+    lda _JumpTable_ptr_1_arr, y
+    sta Zp_Tmp_ptr + 1
+    jmp (Zp_Tmp_ptr)
+_JumpTable_ptr_0_arr: .lobytes OpcodeLabels
+_JumpTable_ptr_1_arr: .hibytes OpcodeLabels
+_OpEmpty:
+_OpAct:
+_OpEnd:
+_OpNop:
+    tya  ; new opcode
+    mul #$10
+    sta Ram_Console_sProgram + sProgram::Code_sInst_arr + sInst::Op_byte, x
+    jmp _ZeroArgByte
+_OpCopy:
+    ;; TODO: Switch to COPY opcode.  If coming from SWAP, keep args.  If
+    ;;   coming from ADD/SUB/MUL, just remove third arg.  Otherwise, initialize
+    ;;   args to A <- 0.
+    rts
+_OpSwap:
+    ;; TODO: Switch to SWAP opcode.  If coming from COPY, keep args if
+    ;;   possible, otherwise copy first arg to second.  If coming from
+    ;;   ADD/SUB/MUL, do the same (but first remove third arg).  Otherwise,
+    ;;   initialize args to A <-> A.
+    rts
+_OpAdd:
+_OpSub:
+_OpMul:
+    ;; TODO: Switch to ADD/SUB/MUL opcode.  If coming from ADD/SUB/MUL, leave
+    ;;   all args the same.  If coming from COPY/SWAP, keep first two args, and
+    ;;   initialize third arg to 1 for ADD/SUB or 2 for MUL.  Otherwise,
+    ;;   initialize args to e.g. A <- A + 1 or A <- A x 2.
+    rts
+_OpGoto:
+    lda #eOpcode::Goto * $10
+    sta Ram_Console_sProgram + sProgram::Code_sInst_arr + sInst::Op_byte, x
+    bne _ZeroArgByte  ; unconditional
+_OpSkip:
+    lda #eOpcode::Skip * $10 + 1
+    sta Ram_Console_sProgram + sProgram::Code_sInst_arr + sInst::Op_byte, x
+    bne _ZeroArgByte  ; unconditional
+_OpIf:
+_OpTil:
+    ;; TODO: Switch to IF/TIL opcode.  If coming from IF/TIL, leave all args
+    ;;   the same.  Otherwise, initialize args to A = 0.
+    rts
+_OpMove:
+    lda #eOpcode::Move * $10
+    .assert eDir::Up = $0, error
+    ;; TODO: If the current machine does not support vertical movement, then
+    ;;   do an `ora #eDir::Left`.
+    sta Ram_Console_sProgram + sProgram::Code_sInst_arr + sInst::Op_byte, x
+_ZeroArgByte:
+    lda #0
+    sta Ram_Console_sProgram + sProgram::Code_sInst_arr + sInst::Arg_byte, x
+    rts
+.ENDPROC
+
 ;;; Returns the opcode for the currently-selected instruction.
 ;;; @return A The eOpcode value.
 .PROC Func_Console_GetCurrentOpcode
@@ -869,7 +1156,6 @@ _OpTil:
     mul #.sizeof(sInst)
     tay
     lda Ram_Console_sProgram + sProgram::Code_sInst_arr + sInst::Op_byte, y
-    and #$f0
     div #$10
     rts
 .ENDPROC

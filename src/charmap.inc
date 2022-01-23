@@ -26,9 +26,8 @@
 .CHARMAP $27, $06  ; "'"
 .CHARMAP $2b, $07  ; '+'
 .CHARMAP $2d, $08  ; '-'
-.CHARMAP $3c, $09  ; '<'
-.CHARMAP $3d, $0a  ; '='
-.CHARMAP $7e, $0b  ; '~' (for not-equals sign)
+.CHARMAP $3c, $0b  ; '<'
+.CHARMAP $3d, $09  ; '='
 .CHARMAP $3e, $0c  ; '>'
 
 .CHARMAP $30, $10  ; '0'

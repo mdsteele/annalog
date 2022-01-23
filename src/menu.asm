@@ -1,0 +1,859 @@
+;;;=========================================================================;;;
+;;; Copyright 2022 Matthew D. Steele <mdsteele@alum.mit.edu>                ;;;
+;;;                                                                         ;;;
+;;; This file is part of Annalog.                                           ;;;
+;;;                                                                         ;;;
+;;; Annalog is free software: you can redistribute it and/or modify it      ;;;
+;;; under the terms of the GNU General Public License as published by the   ;;;
+;;; Free Software Foundation, either version 3 of the License, or (at your  ;;;
+;;; option) any later version.                                              ;;;
+;;;                                                                         ;;;
+;;; Annalog is distributed in the hope that it will be useful, but WITHOUT  ;;;
+;;; ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   ;;;
+;;; FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   ;;;
+;;; for more details.                                                       ;;;
+;;;                                                                         ;;;
+;;; You should have received a copy of the GNU General Public License along ;;;
+;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
+;;;=========================================================================;;;
+
+.INCLUDE "charmap.inc"
+.INCLUDE "joypad.inc"
+.INCLUDE "macros.inc"
+.INCLUDE "menu.inc"
+.INCLUDE "oam.inc"
+.INCLUDE "ppu.inc"
+.INCLUDE "program.inc"
+
+.IMPORT Func_ClearRestOfOam
+.IMPORT Func_Console_DrawCursorObjects
+.IMPORT Func_Console_GetCurrentFieldType
+.IMPORT Func_Console_GetCurrentFieldValue
+.IMPORT Func_Console_SetCurrentFieldValue
+.IMPORT Func_Console_TransferInstruction
+.IMPORT Func_ExploreDrawAvatar
+.IMPORT Func_ProcessFrame
+.IMPORT Func_ScrollTowardsGoal
+.IMPORT Func_SetScrollGoalFromAvatar
+.IMPORT Func_UpdateButtons
+.IMPORT Func_Window_GetRowPpuAddr
+.IMPORT Ram_Oam_sObj_arr64
+.IMPORT Ram_PpuTransfer_arr
+.IMPORTZP Zp_ConsoleNumInstRows_u8
+.IMPORTZP Zp_OamOffset_u8
+.IMPORTZP Zp_P1ButtonsPressed_bJoypad
+.IMPORTZP Zp_PpuTransferLen_u8
+.IMPORTZP Zp_Tmp1_byte
+.IMPORTZP Zp_Tmp2_byte
+.IMPORTZP Zp_Tmp3_byte
+.IMPORTZP Zp_Tmp4_byte
+.IMPORTZP Zp_Tmp_ptr
+.IMPORTZP Zp_WindowTop_u8
+
+;;;=========================================================================;;;
+
+;;; The width of the console menu, in tiles.
+kMenuWidthTiles = 8
+
+;;; The topmost window row in the menu area of the console.
+kMenuStartWindowRow = 1
+
+;;; The leftmost nametable tile column in the menu area of the console.
+kMenuStartTileColumn = 22
+
+;;; The OBJ palette number used for the menu cursor.
+kMenuCursorObjPalette = 0
+
+;;;=========================================================================;;;
+
+.ZEROPAGE
+
+;;; A pointer to the static data for the current menu type.
+Zp_Current_sMenu_ptr: .res 2
+
+;;; The currently-selected menu item (0-15).
+Zp_MenuItem_u8: .res 1
+
+;;;=========================================================================;;;
+
+.SEGMENT "RAM_Menu"
+
+;;; The menu row (0-7) for each menu item, or $ff if the item is absent.
+Ram_MenuRows_u8_arr: .res kMaxMenuItems
+
+;;; The menu column (0-7) for each menu item.
+Ram_MenuCols_u8_arr: .res kMaxMenuItems
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRG8_Menu"
+
+;;; +--------+
+;;; |COPY ADD|
+;;; |SWAP SUB|
+;;; |GOTO MUL|
+;;; |SKIP IF |
+;;; |MOVE TIL|
+;;; |ACT  NOP|
+;;; |     END|
+;;; |delete  |
+;;; +--------+
+.PROC Data_Menu_Opcode_sMenu
+_Start:
+    .assert * - _Start = sMenu::WidthsMinusOne_u8_arr, error
+    .byte 5, 3, 3, 2, 2, 2, 3, 3, 1, 2, 2, 3, 0, 0, 2, 2
+    .assert * - _Start = sMenu::Labels_u8_arr_ptr_arr, error
+    .addr _LabelEmpty, _LabelCopy, _LabelSwap, _LabelAdd, _LabelSub, _LabelMul
+    .addr _LabelGoto, _LabelSkip, _LabelIf, _LabelTil, _LabelAct, _LabelMove
+    .addr _LabelEnd, _LabelEnd, _LabelEnd, _LabelNop
+    .assert * - _Start = sMenu::OnUp_func_ptr, error
+    .addr _OnUp
+    .assert * - _Start = sMenu::OnDown_func_ptr, error
+    .addr _OnDown
+    .assert * - _Start = sMenu::OnLeft_func_ptr, error
+    .addr _OnLeft
+    .assert * - _Start = sMenu::OnRight_func_ptr, error
+    .addr _OnRight
+    .assert * - _Start = .sizeof(sMenu), error
+_LabelEmpty: .byte "delete"
+_LabelCopy:  .byte "COPY"
+_LabelSwap:  .byte "SWAP"
+_LabelAdd:   .byte "ADD"
+_LabelSub:   .byte "SUB"
+_LabelMul:   .byte "MUL"
+_LabelGoto:  .byte "GOTO"
+_LabelSkip:  .byte "SKIP"
+_LabelIf:    .byte "IF"
+_LabelTil:   .byte "TIL"
+_LabelAct:   .byte "ACT"
+_LabelMove:  .byte "MOVE"
+_LabelEnd:   .byte "END"
+_LabelNop:   .byte "NOP"
+_OnUp:
+    ldx Zp_MenuItem_u8
+    lda Ram_MenuRows_u8_arr, x
+    sta Zp_Tmp1_byte  ; current menu row
+    lda Ram_MenuCols_u8_arr, x
+    sta Zp_Tmp2_byte  ; current menu col
+    lda #0
+    sta Zp_Tmp3_byte  ; best new row so far
+    lda #$ff
+    sta Zp_Tmp4_byte  ; best new item so far
+    ;; Check all menu items, and find the lowest possible one that is still
+    ;; above the current item and in the same column.
+    ldx #kMaxMenuItems - 1
+    @loop:
+    lda Ram_MenuCols_u8_arr, x
+    cmp Zp_Tmp2_byte  ; current menu col
+    bne @continue
+    lda Ram_MenuRows_u8_arr, x
+    cmp Zp_Tmp1_byte  ; current menu row
+    bge @continue
+    cmp Zp_Tmp3_byte  ; best new row so far
+    blt @continue
+    sta Zp_Tmp3_byte  ; best new row so far
+    stx Zp_Tmp4_byte  ; best new item so far
+    @continue:
+    dex
+    bpl @loop
+    ;; If we found any such item, set it as the new selected item.
+    lda Zp_Tmp4_byte  ; best new item so far
+    bmi @doNotSet
+    sta Zp_MenuItem_u8
+    @doNotSet:
+    rts
+_OnDown:
+    ldx Zp_MenuItem_u8
+    lda Ram_MenuRows_u8_arr, x
+    sta Zp_Tmp1_byte  ; current menu row
+    lda Ram_MenuCols_u8_arr, x
+    sta Zp_Tmp2_byte  ; current menu col
+    ;; If we don't find anything else, default to the "delete" option at the
+    ;; bottom.
+    ldy Zp_ConsoleNumInstRows_u8
+    dey
+    sty Zp_Tmp3_byte  ; best new row so far
+    lda #eOpcode::Empty
+    sta Zp_Tmp4_byte  ; best new item so far
+    ;; Check all menu items, and find the highest possible one that is still
+    ;; below the current item and in the same column.
+    ldx #kMaxMenuItems - 1
+    @loop:
+    lda Ram_MenuCols_u8_arr, x
+    cmp Zp_Tmp2_byte  ; current menu col
+    bne @continue
+    lda Ram_MenuRows_u8_arr, x
+    cmp Zp_Tmp1_byte  ; current menu row
+    ble @continue
+    cmp Zp_Tmp3_byte  ; best new row so far
+    bge @continue
+    sta Zp_Tmp3_byte  ; best new row so far
+    stx Zp_Tmp4_byte  ; best new item so far
+    @continue:
+    dex
+    bpl @loop
+    ;; Set whatever we found as the new selected item.
+    lda Zp_Tmp4_byte  ; best new item so far
+    sta Zp_MenuItem_u8
+    rts
+_OnLeft:
+    ldx Zp_MenuItem_u8
+    lda Ram_MenuRows_u8_arr, x
+    sta Zp_Tmp1_byte  ; current menu row
+    ldx #kMaxMenuItems - 1
+    @loop:
+    lda Ram_MenuCols_u8_arr, x
+    bne @continue
+    lda Ram_MenuRows_u8_arr, x
+    cmp Zp_Tmp1_byte  ; current menu row
+    bne @continue
+    stx Zp_MenuItem_u8
+    rts
+    @continue:
+    dex
+    bpl @loop
+    rts
+_OnRight:
+    ldx Zp_MenuItem_u8
+    lda Ram_MenuRows_u8_arr, x
+    sta Zp_Tmp1_byte  ; current menu row
+    ldx #kMaxMenuItems - 1
+    @loop:
+    lda Ram_MenuCols_u8_arr, x
+    beq @continue
+    lda Ram_MenuRows_u8_arr, x
+    cmp Zp_Tmp1_byte  ; current menu row
+    bne @continue
+    stx Zp_MenuItem_u8
+    rts
+    @continue:
+    dex
+    bpl @loop
+    rts
+.ENDPROC
+
+;;; Initializes Zp_Current_sMenu_ptr, Ram_MenuRows_u8_arr, and
+;;; Ram_MenuCols_u8_arr appropriately for an instruction opcode menu.
+.PROC Func_Menu_SetUpOpcodeMenu
+    ldax #Data_Menu_Opcode_sMenu
+    stax Zp_Current_sMenu_ptr
+    ;; Set columns for all menu items:
+    ldx #kMaxMenuItems - 1
+    @loop:
+    lda _Columns_u8_arr, x
+    sta Ram_MenuCols_u8_arr, x
+    dex
+    bpl @loop
+    ;; Set rows for menu items in left-hand column:
+    ldx #0
+    ;; TODO: Check if COPY opcode is unlocked.
+    stx Ram_MenuRows_u8_arr + eOpcode::Copy
+    inx
+    ;; TODO: Check if SWAP opcode is unlocked.
+    stx Ram_MenuRows_u8_arr + eOpcode::Swap
+    inx
+    ;; TODO: Check if GOTO opcode is unlocked.
+    stx Ram_MenuRows_u8_arr + eOpcode::Goto
+    inx
+    ;; TODO: Check if SKIP opcode is unlocked.
+    stx Ram_MenuRows_u8_arr + eOpcode::Skip
+    inx
+    ;; TODO: Check if machine supports ACT opcode.
+    stx Ram_MenuRows_u8_arr + eOpcode::Act
+    inx
+    ;; TODO: Check if machine supports MOVE opcode.
+    stx Ram_MenuRows_u8_arr + eOpcode::Move
+    ldx Zp_ConsoleNumInstRows_u8
+    dex
+    stx Ram_MenuRows_u8_arr + eOpcode::Empty
+    ;; Set rows for menu items in right-hand column:
+    ldx #0
+    ;; TODO: Check if ADD/SUB opcodes are unlocked.
+    stx Ram_MenuRows_u8_arr + eOpcode::Add
+    inx
+    stx Ram_MenuRows_u8_arr + eOpcode::Sub
+    inx
+    ;; TODO: Check if MUL opcode is unlocked.
+    stx Ram_MenuRows_u8_arr + eOpcode::Mul
+    inx
+    ;; TODO: Check if IF opcode is unlocked.
+    stx Ram_MenuRows_u8_arr + eOpcode::If
+    inx
+    ;; TODO: Check if TIL opcode is unlocked.
+    stx Ram_MenuRows_u8_arr + eOpcode::Til
+    inx
+    ;; TODO: Check if NOP opcode is unlocked.
+    stx Ram_MenuRows_u8_arr + eOpcode::Nop
+    inx
+    stx Ram_MenuRows_u8_arr + eOpcode::End
+    rts
+_Columns_u8_arr:
+    .byte 0, 0, 0, 5, 5, 5, 0, 0, 5, 5, 0, 0, 0, 5, 5, 5
+.ENDPROC
+
+;;; +--------+
+;;; |        |
+;;; |        |
+;;; |   A    |
+;;; |   B    |
+;;; |   C    |
+;;; |        |
+;;; |        |
+;;; |        |
+;;; +--------+
+
+;;; Initializes Zp_Current_sMenu_ptr, Ram_MenuRows_u8_arr, and
+;;; Ram_MenuCols_u8_arr appropriately for an L-value menu.
+.PROC Func_Menu_SetUpLValueMenu
+    jmp Func_Menu_SetUpAddressMenu  ; TODO: implement L-value menu
+.ENDPROC
+
+;;; +--------+
+;;; |        |
+;;; |        |
+;;; |  0     |
+;;; | 123 AX |
+;;; | 456 BY |
+;;; | 789 CZ |
+;;; |        |
+;;; |        |
+;;; +--------+
+
+;;; Initializes Zp_Current_sMenu_ptr, Ram_MenuRows_u8_arr, and
+;;; Ram_MenuCols_u8_arr appropriately for an R-value menu.
+.PROC Func_Menu_SetUpRValueMenu
+    jmp Func_Menu_SetUpAddressMenu  ; TODO: implement R-value menu
+.ENDPROC
+
+;;; +--------+
+;;; |  0  8  |
+;;; |  1  9  |
+;;; |  2  a  |
+;;; |  3  b  |
+;;; |  4  c  |
+;;; |  5  d  |
+;;; |  6  e  |
+;;; |  7  f  |
+;;; +--------+
+.PROC Data_Menu_Address_sMenu
+_Start:
+    .assert * - _Start = sMenu::WidthsMinusOne_u8_arr, error
+    .byte 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+    .assert * - _Start = sMenu::Labels_u8_arr_ptr_arr, error
+    .repeat kMaxMenuItems, index
+    .addr _Labels + index
+    .endrepeat
+    .assert * - _Start = sMenu::OnUp_func_ptr, error
+    .addr _OnUp
+    .assert * - _Start = sMenu::OnDown_func_ptr, error
+    .addr _OnDown
+    .assert * - _Start = sMenu::OnLeft_func_ptr, error
+    .addr _OnLeft
+    .assert * - _Start = sMenu::OnRight_func_ptr, error
+    .addr _OnRight
+    .assert * - _Start = .sizeof(sMenu), error
+_Labels: .byte "0123456789", $1a, $1b, $1c, $1d, $1e, $1f
+_OnUp:
+    ldx Zp_MenuItem_u8
+    bne @decrement
+    lda Zp_ConsoleNumInstRows_u8
+    asl a
+    tax
+    @decrement:
+    dex
+    stx Zp_MenuItem_u8
+    rts
+_OnDown:
+    lda Zp_ConsoleNumInstRows_u8
+    asl a
+    sta Zp_Tmp1_byte
+    ldx Zp_MenuItem_u8
+    inx
+    cpx Zp_Tmp1_byte
+    blt @setItem
+    ldx #0
+    @setItem:
+    stx Zp_MenuItem_u8
+    rts
+_OnLeft:
+    lda Zp_MenuItem_u8
+    sub Zp_ConsoleNumInstRows_u8
+    bmi @doNotSet
+    sta Zp_MenuItem_u8
+    @doNotSet:
+    rts
+_OnRight:
+    lda Zp_MenuItem_u8
+    cmp Zp_ConsoleNumInstRows_u8
+    bge @doNotSet
+    add Zp_ConsoleNumInstRows_u8
+    sta Zp_MenuItem_u8
+    @doNotSet:
+    rts
+.ENDPROC
+
+;;; Initializes Zp_Current_sMenu_ptr, Ram_MenuRows_u8_arr, and
+;;; Ram_MenuCols_u8_arr appropriately for an instruction address menu.
+.PROC Func_Menu_SetUpAddressMenu
+    ldax #Data_Menu_Address_sMenu
+    stax Zp_Current_sMenu_ptr
+    ldx #0
+    ldy Zp_ConsoleNumInstRows_u8
+    @loop:
+    txa
+    sta Ram_MenuRows_u8_arr, x
+    sta Ram_MenuRows_u8_arr, y
+    lda #2
+    sta Ram_MenuCols_u8_arr, x
+    lda #5
+    sta Ram_MenuCols_u8_arr, y
+    iny
+    inx
+    cpx Zp_ConsoleNumInstRows_u8
+    bne @loop
+    rts
+.ENDPROC
+
+;;; +--------+
+;;; |        |
+;;; |  =  /  |
+;;; |        |
+;;; |  <  >  |
+;;; |        |
+;;; |  {  }  |
+;;; |        |
+;;; |        |
+;;; +--------+
+.PROC Data_Menu_Compare_sMenu
+_Start:
+    .assert * - _Start = sMenu::WidthsMinusOne_u8_arr, error
+    .byte 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+    .assert * - _Start = sMenu::Labels_u8_arr_ptr_arr, error
+    .addr _LabelEq, _LabelNe, _LabelLt, _LabelGt, _LabelLe, _LabelGe
+    .addr 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+    .assert * - _Start = sMenu::OnUp_func_ptr, error
+    .addr _OnUp
+    .assert * - _Start = sMenu::OnDown_func_ptr, error
+    .addr _OnDown
+    .assert * - _Start = sMenu::OnLeft_func_ptr, error
+    .addr _OnLeft
+    .assert * - _Start = sMenu::OnRight_func_ptr, error
+    .addr _OnRight
+    .assert * - _Start = .sizeof(sMenu), error
+_LabelEq: .byte "="
+_LabelNe: .byte $0a
+_LabelLt: .byte "<"
+_LabelGt: .byte ">"
+_LabelLe: .byte $0d
+_LabelGe: .byte $0e
+_OnUp:
+    lda Zp_MenuItem_u8
+    sub #2
+    bge _SetItem
+    rts
+_OnDown:
+    lda Zp_MenuItem_u8
+    add #2
+    cmp #6
+    blt _SetItem
+    rts
+_OnLeft:
+    lda Zp_MenuItem_u8
+    and #$06
+    bpl _SetItem  ; unconditional
+_OnRight:
+    lda Zp_MenuItem_u8
+    ora #$01
+_SetItem:
+    sta Zp_MenuItem_u8
+    rts
+.ENDPROC
+
+;;; Initializes Zp_Current_sMenu_ptr, Ram_MenuRows_u8_arr, and
+;;; Ram_MenuCols_u8_arr appropriately for a comparison operator menu.
+.PROC Func_Menu_SetUpCompareMenu
+    ldax #Data_Menu_Compare_sMenu
+    stax Zp_Current_sMenu_ptr
+    ;; Store the starting row in Zp_Tmp1_byte.
+    lda Zp_ConsoleNumInstRows_u8
+    sub #5
+    lsr a
+    sta Zp_Tmp1_byte
+    ;; Set up rows and cols.
+    ldx #5
+    @loop:
+    txa
+    and #$06
+    add Zp_Tmp1_byte
+    sta Ram_MenuRows_u8_arr, x
+    txa
+    and #$01
+    bne @rightCol
+    lda #2
+    bne @setCol  ; unconditional
+    @rightCol:
+    lda #5
+    @setCol:
+    sta Ram_MenuCols_u8_arr, x
+    dex
+    bpl @loop
+    rts
+.ENDPROC
+
+;;; +--------+
+;;; |        |
+;;; |   ^    |
+;;; |        |
+;;; | <   >  |
+;;; |        |
+;;; |   v    |
+;;; |        |
+;;; |        |
+;;; +--------+
+.PROC Data_Menu_Direction_sMenu
+_Start:
+    .assert * - _Start = sMenu::WidthsMinusOne_u8_arr, error
+    .byte 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+    .assert * - _Start = sMenu::Labels_u8_arr_ptr_arr, error
+    .repeat 4
+    .addr _LabelUp, _LabelDown, _LabelLeft, _LabelRight
+    .endrepeat
+    .assert * - _Start = sMenu::OnUp_func_ptr, error
+    .addr _OnUp
+    .assert * - _Start = sMenu::OnDown_func_ptr, error
+    .addr _OnDown
+    .assert * - _Start = sMenu::OnLeft_func_ptr, error
+    .addr _OnLeft
+    .assert * - _Start = sMenu::OnRight_func_ptr, error
+    .addr _OnRight
+    .assert * - _Start = .sizeof(sMenu), error
+_LabelUp:    .byte $5a
+_LabelDown:  .byte $5b
+_LabelLeft:  .byte $5c
+_LabelRight: .byte $5d
+_OnUp:
+    ldx #eDir::Up
+    bpl _SetItem  ; unconditional
+_OnDown:
+    ldx #eDir::Down
+    bpl _SetItem  ; unconditional
+_OnLeft:
+    ldx #eDir::Left
+    bpl _SetItem  ; unconditional
+_OnRight:
+    ldx #eDir::Right
+_SetItem:
+    lda Ram_MenuRows_u8_arr, x
+    bmi @done
+    stx Zp_MenuItem_u8
+    @done:
+    rts
+.ENDPROC
+
+;;; Initializes Zp_Current_sMenu_ptr, Ram_MenuRows_u8_arr, and
+;;; Ram_MenuCols_u8_arr appropriately for a direction menu.
+.PROC Func_Menu_SetUpDirectionMenu
+    ldax #Data_Menu_Direction_sMenu
+    stax Zp_Current_sMenu_ptr
+    ;; Store the starting row in Zp_Tmp1_byte.
+    lda Zp_ConsoleNumInstRows_u8
+    sub #5
+    lsr a
+    sta Zp_Tmp1_byte
+    ;; TODO: Check if the current machine supports vertical movement.
+    lda Zp_Tmp1_byte
+    sta Ram_MenuRows_u8_arr + eDir::Up
+    add #4
+    sta Ram_MenuRows_u8_arr + eDir::Down
+    lda #3
+    sta Ram_MenuCols_u8_arr + eDir::Up
+    sta Ram_MenuCols_u8_arr + eDir::Down
+    ;; TODO: Check if the current machine supports horizontal movement.
+    ldx Zp_Tmp1_byte
+    inx
+    inx
+    stx Ram_MenuRows_u8_arr + eDir::Left
+    stx Ram_MenuRows_u8_arr + eDir::Right
+    lda #1
+    sta Ram_MenuCols_u8_arr + eDir::Left
+    lda #5
+    sta Ram_MenuCols_u8_arr + eDir::Right
+    rts
+.ENDPROC
+
+;;; Initializes Zp_Current_sMenu_ptr, Zp_MenuItem_u8, Ram_MenuRows_u8_arr, and
+;;; Ram_MenuCols_u8_arr appropriately for editing the currently-selected field.
+.PROC Func_Menu_SetUpCurrentFieldMenu
+    ;; Clear items.
+    lda #$ff
+    ldx #kMaxMenuItems - 1
+    @loop:
+    sta Ram_MenuRows_u8_arr, x
+    dex
+    bpl @loop
+    ;; Set current menu item.
+    jsr Func_Console_GetCurrentFieldValue  ; returns A
+    sta Zp_MenuItem_u8
+    ;; Jump to field-type-specific setup function.
+    jsr Func_Console_GetCurrentFieldType  ; returns A
+    asl a
+    tay
+    lda _JumpTable_ptr_arr + 0, y
+    sta Zp_Tmp_ptr + 0
+    lda _JumpTable_ptr_arr + 1, y
+    sta Zp_Tmp_ptr + 1
+    jmp (Zp_Tmp_ptr)
+_JumpTable_ptr_arr:
+    .addr Func_Menu_SetUpOpcodeMenu
+    .addr Func_Menu_SetUpLValueMenu
+    .addr Func_Menu_SetUpRValueMenu
+    .addr Func_Menu_SetUpAddressMenu
+    .addr Func_Menu_SetUpCompareMenu
+    .addr Func_Menu_SetUpDirectionMenu
+.ENDPROC
+
+;;; Transfers the specified menu row (0-7) to the PPU.
+;;; @param X The menu row to transfer.
+;;; @preserve X
+.PROC Func_Menu_TransferMenuRow
+    stx Zp_Tmp3_byte  ; menu row
+_WriteTransferEntryHeader:
+    ;; Get the transfer destination address, and store it in Zp_Tmp1_byte (lo)
+    ;; and Zp_Tmp2_byte (hi).
+    .assert kMenuStartWindowRow = 1, error
+    inx
+    txa  ; window row
+    jsr Func_Window_GetRowPpuAddr  ; returns XY
+    tya
+    add #kMenuStartTileColumn
+    sta Zp_Tmp1_byte  ; transfer destination (lo)
+    txa
+    adc #0
+    sta Zp_Tmp2_byte  ; transfer destination (hi)
+    ;; Update Zp_PpuTransferLen_u8.
+    ldx Zp_PpuTransferLen_u8
+    txa
+    add #4 + kMenuWidthTiles
+    sta Zp_PpuTransferLen_u8
+    ;; Write the transfer entry header.
+    lda #kPpuCtrlFlagsHorz
+    sta Ram_PpuTransfer_arr, x
+    inx
+    lda Zp_Tmp2_byte  ; transfer destination (hi)
+    sta Ram_PpuTransfer_arr, x
+    inx
+    lda Zp_Tmp1_byte  ; transfer destination (lo)
+    sta Ram_PpuTransfer_arr, x
+    inx
+    lda #kMenuWidthTiles
+    sta Ram_PpuTransfer_arr, x
+    inx
+_InitTransferData:
+    ;; Fill the transfer data with spaces for now.
+    stx Zp_Tmp1_byte  ; start of transfer data
+    lda #0
+    @loop:
+    sta Ram_PpuTransfer_arr, x
+    inx
+    cpx Zp_PpuTransferLen_u8
+    bne @loop
+_TransferLabels:
+    ;; Update the transfer data with any menu labels in this row.
+    ldy #kMaxMenuItems - 1
+    @itemLoop:
+    lda Ram_MenuRows_u8_arr, y
+    cmp Zp_Tmp3_byte  ; menu row
+    bne @noLabel
+    sty Zp_Tmp2_byte  ; item index
+    ;; Make Zp_Tmp_ptr point to start of the label string.
+    tya
+    asl a
+    add #sMenu::Labels_u8_arr_ptr_arr
+    tay
+    lda (Zp_Current_sMenu_ptr), y
+    sta Zp_Tmp_ptr + 0
+    iny
+    lda (Zp_Current_sMenu_ptr), y
+    sta Zp_Tmp_ptr + 1
+    ;; Set Zp_Tmp4_byte to the (width - 1) of the label.
+    lda Zp_Tmp2_byte  ; item index
+    add #sMenu::WidthsMinusOne_u8_arr
+    tay
+    lda (Zp_Current_sMenu_ptr), y  ; item width
+    sta Zp_Tmp4_byte  ; the label's (width - 1)
+    ;; Set X to the PPU transfer array index for the last byte in the label.
+    adc Ram_MenuCols_u8_arr, y  ; starting menu col
+    adc Zp_Tmp1_byte  ; start of transfer data
+    tax
+    ;; Copy the label into the PPU transfer entry.
+    ldy Zp_Tmp4_byte  ; the label's (width - 1)
+    @labelLoop:
+    lda (Zp_Tmp_ptr), y  ; label chr
+    sta Ram_PpuTransfer_arr, x
+    dex
+    dey
+    bpl @labelLoop
+    ;; Restore Y as the item loop index, and move on to the next item (if any).
+    ldy Zp_Tmp2_byte  ; item index
+    @noLabel:
+    dey
+    bpl @itemLoop
+    ldx Zp_Tmp3_byte  ; menu row
+    rts
+.ENDPROC
+
+;;; Allocates and populates OAM slots for the console menu cursor.
+.PROC Func_Menu_DrawCursorObjects
+    ldx Zp_MenuItem_u8
+_XPosition:
+    lda Ram_MenuCols_u8_arr, x
+    mul #kTileWidthPx
+    add #kMenuStartTileColumn * kTileWidthPx
+    sta Zp_Tmp2_byte  ; cursor left X-position, in pixels
+_CursorWidth:
+    txa
+    add #sMenu::WidthsMinusOne_u8_arr
+    tay
+    lda (Zp_Current_sMenu_ptr), y
+    sta Zp_Tmp3_byte  ; cursor (width - 1), in tiles
+_YPosition:
+    ;; Calculate the window row that the cursor is in.
+    lda Ram_MenuRows_u8_arr, x
+    add #kMenuStartWindowRow
+    ;; Calculate the Y-position of the objects and store in Zp_Tmp1_byte.
+    mul #kTileHeightPx
+    adc Zp_WindowTop_u8  ; carry will by clear
+    adc #$ff  ; subtract 1 (carry will still be clear)
+    sta Zp_Tmp1_byte  ; cursor Y-position, in pixels
+_PrepareForLoop:
+    ldx Zp_Tmp3_byte  ; cursor (width - 1), in tiles
+    ldy Zp_OamOffset_u8
+_ObjectLoop:
+    ;; Set Y-position.
+    lda Zp_Tmp1_byte  ; Y-position
+    sta Ram_Oam_sObj_arr64 + sObj::YPos_u8, y
+    ;; Set and increment X-position.
+    lda Zp_Tmp2_byte  ; X-position
+    sta Ram_Oam_sObj_arr64 + sObj::XPos_u8, y
+    add #kTileWidthPx
+    sta Zp_Tmp2_byte  ; X-position
+    ;; Set flags.
+    lda #bObj::Pri | kMenuCursorObjPalette
+    sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
+    ;; Set tile ID.
+    lda Zp_Tmp3_byte  ; cursor (width - 1), in tiles
+    beq @tileSingle
+    cpx Zp_Tmp3_byte  ; cursor (width - 1), in tiles
+    beq @tileLeft
+    txa
+    beq @tileRight
+    @tileMiddle:
+    lda #$02
+    bne @setTile  ; unconditional
+    @tileRight:
+    lda #$03
+    bne @setTile  ; unconditional
+    @tileLeft:
+    lda #$01
+    bne @setTile  ; unconditional
+    @tileSingle:
+    lda #$00
+    @setTile:
+    sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
+    ;; Move offset to the next object.
+    .repeat .sizeof(sObj)
+    iny
+    .endrepeat
+    dex
+    bpl _ObjectLoop
+    sty Zp_OamOffset_u8
+    rts
+.ENDPROC
+
+;;; Given a function pointer offset in sMenu (e.g. sMenu::OnUp_func_ptr) for a
+;;; D-pad direciton, updates Zp_MenuItem_u8 appropriately to move the menu
+;;; cursor in the direction, based on the current menu layout.
+;;; @param Y The sMenu function pointer offset.
+.PROC Func_Menu_MoveCursor
+    lda (Zp_Current_sMenu_ptr), y
+    sta Zp_Tmp_ptr + 0
+    iny
+    lda (Zp_Current_sMenu_ptr), y
+    sta Zp_Tmp_ptr + 1
+    jmp (Zp_Tmp_ptr)
+.ENDPROC
+
+;;; Mode for the console instruction field editing menu.
+;;; TODO: Make this a Main that jumps back to console edit mode when done.
+.EXPORT Func_Menu_EditSelectedField
+.PROC Func_Menu_EditSelectedField
+    jsr Func_Menu_SetUpCurrentFieldMenu
+_TransferMenuRows:
+    ldx #0  ; param: menu row to transfer
+    @loop:
+    jsr Func_Menu_TransferMenuRow  ; preserves X
+    inx
+    cpx Zp_ConsoleNumInstRows_u8
+    blt @loop
+_GameLoop:
+    jsr Func_Menu_DrawCursorObjects
+    ;; TODO: Darken console field cursor.
+    jsr Func_Console_DrawCursorObjects
+    jsr Func_ExploreDrawAvatar
+    jsr Func_ClearRestOfOam
+    jsr Func_ProcessFrame
+    jsr Func_UpdateButtons
+_CheckForCancel:
+    lda Zp_P1ButtonsPressed_bJoypad
+    and #bJoypad::BButton
+    bne _Cancel
+_CheckForDone:
+    lda Zp_P1ButtonsPressed_bJoypad
+    and #bJoypad::AButton
+    bne _Finish
+_MoveCursorUp:
+    lda Zp_P1ButtonsPressed_bJoypad
+    and #bJoypad::Up
+    beq @noUp
+    ldy #sMenu::OnUp_func_ptr  ; param: sMenu func ptr offset
+    jsr Func_Menu_MoveCursor
+    @noUp:
+_MoveCursorDown:
+    lda Zp_P1ButtonsPressed_bJoypad
+    and #bJoypad::Down
+    beq @noDown
+    ldy #sMenu::OnDown_func_ptr  ; param: sMenu func ptr offset
+    jsr Func_Menu_MoveCursor
+    @noDown:
+_MoveCursorLeft:
+    lda Zp_P1ButtonsPressed_bJoypad
+    and #bJoypad::Left
+    beq @noLeft
+    ldy #sMenu::OnLeft_func_ptr  ; param: sMenu func ptr offset
+    jsr Func_Menu_MoveCursor
+    @noLeft:
+_MoveCursorRight:
+    lda Zp_P1ButtonsPressed_bJoypad
+    and #bJoypad::Right
+    beq @noRight
+    ldy #sMenu::OnRight_func_ptr  ; param: sMenu func ptr offset
+    jsr Func_Menu_MoveCursor
+    @noRight:
+_UpdateScrolling:
+    jsr Func_SetScrollGoalFromAvatar
+    jsr Func_ScrollTowardsGoal
+    jmp _GameLoop
+_Finish:
+    lda Zp_MenuItem_u8
+    jsr Func_Console_SetCurrentFieldValue
+    ;; TODO: If the current instruction is now Empty, remove it (updating any
+    ;;   GOTO instruction addresses as needed), set the current
+    ;;   field/column to zero, and redraw all instructions (over a couple of
+    ;;   frames) instead of just the current instruction.
+    jsr Func_Console_TransferInstruction
+_Cancel:
+    ;; TODO: Redraw the status box over the menu.
+    rts
+.ENDPROC
+
+;;;=========================================================================;;;

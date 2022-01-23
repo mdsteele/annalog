@@ -17,15 +17,25 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
-.ZEROPAGE
+;;; The maximum number of selectable items in a menu.
+.DEFINE kMaxMenuItems 16
 
-;;; Temporary variables that any function can use.  In general, it should be
-;;; assumed that these are not preserved across function calls.
-.EXPORTZP Zp_Tmp1_byte, Zp_Tmp2_byte, Zp_Tmp3_byte, Zp_Tmp4_byte, Zp_Tmp_ptr
-Zp_Tmp1_byte: .res 1
-Zp_Tmp2_byte: .res 1
-Zp_Tmp3_byte: .res 1
-Zp_Tmp4_byte: .res 1
-Zp_Tmp_ptr: .res 2
+;;;=========================================================================;;;
+
+;;; Represents static data about a console instruction field editing menu.
+.STRUCT sMenu
+    ;; The (width - 1) of each menu item, in tiles.
+    WidthsMinusOne_u8_arr   .res kMaxMenuItems
+    ;; Pointers to the label string for each menu item.  Each string is assumed
+    ;; to have length equal to the corresponding value in Widths_u8_arr.
+    Labels_u8_arr_ptr_arr   .res kMaxMenuItems * 2
+    ;; Pointers to the functions to be called when the player presses various
+    ;; directions on the D-pad; each function should update Zp_MenuItem_u8
+    ;; appropriately based on the menu layout.
+    OnUp_func_ptr           .res 2
+    OnDown_func_ptr         .res 2
+    OnLeft_func_ptr         .res 2
+    OnRight_func_ptr        .res 2
+.ENDSTRUCT
 
 ;;;=========================================================================;;;
