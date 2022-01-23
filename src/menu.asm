@@ -397,6 +397,8 @@ _OnRight:
 .PROC Func_Menu_SetUpAddressMenu
     ldax #Data_Menu_Address_sMenu
     stax Zp_Current_sMenu_ptr
+    ;; TODO: Exclude menu items for empty instructions (and also in cursor
+    ;;   movement functions above).
     ldx #0
     ldy Zp_ConsoleNumInstRows_u8
     @loop:
@@ -851,6 +853,8 @@ _Finish:
     ;;   field/column to zero, and redraw all instructions (over a couple of
     ;;   frames) instead of just the current instruction.
     jsr Func_Console_TransferInstruction
+    ;; TODO: If the current instruction was previously empty, and the next
+    ;;   instruction is empty, then redraw the next instruction too.
 _Cancel:
     ;; TODO: Redraw the status box over the menu.
     rts

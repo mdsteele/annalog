@@ -1098,55 +1098,129 @@ _SetOpcode:
 _JumpTable_ptr_0_arr: .lobytes OpcodeLabels
 _JumpTable_ptr_1_arr: .hibytes OpcodeLabels
 _OpEmpty:
+_OpGoto:
 _OpAct:
 _OpEnd:
 _OpNop:
     tya  ; new opcode
     mul #$10
     sta Ram_Console_sProgram + sProgram::Code_sInst_arr + sInst::Op_byte, x
-    jmp _ZeroArgByte
+    jmp _ZeroArgByteAndFieldNumber
 _OpCopy:
-    ;; TODO: Switch to COPY opcode.  If coming from SWAP, keep args.  If
-    ;;   coming from ADD/SUB/MUL, just remove third arg.  Otherwise, initialize
-    ;;   args to A <- 0.
-    rts
+    ;; If coming from SWAP, leave both args the same.
+    lda Zp_Tmp1_byte  ; old opcode
+    cmp #eOpcode::Swap
+    beq _UpdateOpcodeOnly
+    ;; If coming from ADD/SUB/MUL, just remove third arg.
+    cmp #eOpcode::Add
+    beq @clearThirdArg
+    cmp #eOpcode::Sub
+    beq @clearThirdArg
+    cmp #eOpcode::Mul
+    beq @clearThirdArg
+    ;; Otherwise, initialize args to A <- 0.
+    lda #eOpcode::Copy * $10 + $0a
+    sta Ram_Console_sProgram + sProgram::Code_sInst_arr + sInst::Op_byte, x
+    lda #$00
+    sta Ram_Console_sProgram + sProgram::Code_sInst_arr + sInst::Arg_byte, x
+    lda #1
+    bne _SetFieldNumber  ; unconditional
+    ;; Clear third arg to 0.
+    @clearThirdArg:
+    lda Ram_Console_sProgram + sProgram::Code_sInst_arr + sInst::Arg_byte, x
+    and #$0f
+    sta Ram_Console_sProgram + sProgram::Code_sInst_arr + sInst::Arg_byte, x
+    jsr _UpdateOpcodeOnly
+    lda #1
+    bne _SetFieldNumber  ; unconditional
 _OpSwap:
-    ;; TODO: Switch to SWAP opcode.  If coming from COPY, keep args if
-    ;;   possible, otherwise copy first arg to second.  If coming from
-    ;;   ADD/SUB/MUL, do the same (but first remove third arg).  Otherwise,
-    ;;   initialize args to A <-> A.
+    ;; TODO: If coming from COPY, keep args if possible, otherwise copy first
+    ;;   arg to second.
+    ;; TODO: If coming from ADD/SUB/MUL, do the same (but first remove third
+    ;;   arg).
+    ;; Otherwise, initialize args to A <-> A.
+    lda #eOpcode::Swap * $10 + $0a
+    sta Ram_Console_sProgram + sProgram::Code_sInst_arr + sInst::Op_byte, x
+    lda #$0a
+    sta Ram_Console_sProgram + sProgram::Code_sInst_arr + sInst::Arg_byte, x
+    lda #1
+    bne _SetFieldNumber  ; unconditional
+_UpdateOpcodeOnly:
+    tya  ; new opcode
+    mul #$10
+    sta Zp_Tmp2_byte
+    lda Ram_Console_sProgram + sProgram::Code_sInst_arr + sInst::Op_byte, x
+    and #$0f
+    ora Zp_Tmp2_byte
+    sta Ram_Console_sProgram + sProgram::Code_sInst_arr + sInst::Op_byte, x
+    rts
+_ZeroArgByteAndFieldNumber:
+    lda #0
+    sta Ram_Console_sProgram + sProgram::Code_sInst_arr + sInst::Arg_byte, x
+_SetFieldNumber:
+    sta Zp_ConsoleFieldNumber_u8
+    jsr Func_Console_GetCurrentFieldOffset  ; returns A
+    sta Zp_ConsoleNominalFieldOffset_u8
     rts
 _OpAdd:
 _OpSub:
 _OpMul:
-    ;; TODO: Switch to ADD/SUB/MUL opcode.  If coming from ADD/SUB/MUL, leave
-    ;;   all args the same.  If coming from COPY/SWAP, keep first two args, and
-    ;;   initialize third arg to 1 for ADD/SUB or 2 for MUL.  Otherwise,
-    ;;   initialize args to e.g. A <- A + 1 or A <- A x 2.
-    rts
-_OpGoto:
-    lda #eOpcode::Goto * $10
+    ;; If coming from ADD/SUB/MUL, leave all args the same.
+    lda Zp_Tmp1_byte  ; old opcode
+    cmp #eOpcode::Add
+    beq _UpdateOpcodeOnly
+    cmp #eOpcode::Sub
+    beq _UpdateOpcodeOnly
+    cmp #eOpcode::Mul
+    beq _UpdateOpcodeOnly
+    ;; If coming from COPY/SWAP, keep first two args, and initialize third arg.
+    cmp #eOpcode::Copy
+    beq @setThirdArg
+    cmp #eOpcode::Swap
+    beq @setThirdArg
+    ;; Otherwise, initialize args to A <- A op 1.
+    tya  ; new opcode
+    mul #$10
+    ora #$0a
     sta Ram_Console_sProgram + sProgram::Code_sInst_arr + sInst::Op_byte, x
-    bne _ZeroArgByte  ; unconditional
+    lda #$1a
+    sta Ram_Console_sProgram + sProgram::Code_sInst_arr + sInst::Arg_byte, x
+    lda #1
+    bne _SetFieldNumber  ; unconditional
+    ;; Initialize third arg to 1.
+    @setThirdArg:
+    lda Ram_Console_sProgram + sProgram::Code_sInst_arr + sInst::Arg_byte, x
+    and #$0f
+    ora #$10
+    sta Ram_Console_sProgram + sProgram::Code_sInst_arr + sInst::Arg_byte, x
+    bne _UpdateOpcodeOnly  ; unconditional
 _OpSkip:
-    lda #eOpcode::Skip * $10 + 1
+    lda #eOpcode::Skip * $10 + $01
     sta Ram_Console_sProgram + sProgram::Code_sInst_arr + sInst::Op_byte, x
-    bne _ZeroArgByte  ; unconditional
+    bne _ZeroArgByteAndFieldNumber  ; unconditional
 _OpIf:
 _OpTil:
-    ;; TODO: Switch to IF/TIL opcode.  If coming from IF/TIL, leave all args
-    ;;   the same.  Otherwise, initialize args to A = 0.
-    rts
+    ;; If coming from IF/TIL, leave all args the same.
+    lda Zp_Tmp1_byte  ; old opcode
+    cmp #eOpcode::If
+    beq _UpdateOpcodeOnly
+    cmp #eOpcode::Til
+    beq _UpdateOpcodeOnly
+    ;; Otherwise, initialize args to A = 0.
+    tya  ; new opcode
+    mul #$10
+    sta Ram_Console_sProgram + sProgram::Code_sInst_arr + sInst::Op_byte, x
+    lda #$0a
+    sta Ram_Console_sProgram + sProgram::Code_sInst_arr + sInst::Arg_byte, x
+    lda #0
+    beq _SetFieldNumber  ; unconditional
 _OpMove:
     lda #eOpcode::Move * $10
     .assert eDir::Up = $0, error
     ;; TODO: If the current machine does not support vertical movement, then
     ;;   do an `ora #eDir::Left`.
     sta Ram_Console_sProgram + sProgram::Code_sInst_arr + sInst::Op_byte, x
-_ZeroArgByte:
-    lda #0
-    sta Ram_Console_sProgram + sProgram::Code_sInst_arr + sInst::Arg_byte, x
-    rts
+    bne _ZeroArgByteAndFieldNumber  ; unconditional
 .ENDPROC
 
 ;;; Returns the opcode for the currently-selected instruction.
