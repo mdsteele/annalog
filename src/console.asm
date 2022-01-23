@@ -120,6 +120,10 @@ Zp_ConsoleFieldNumber_u8: .res 1
 ;;; choose whichever field in each instruction has roughly this offset.
 Zp_ConsoleNominalFieldOffset_u8: .res 1
 
+;;; If set to true ($ff), the console instruction cursor will be drawn
+;;; "diminished", making it less visually prominent.
+Zp_ConsoleCursorIsDiminished_bool: .res 1
+
 ;;;=========================================================================;;;
 
 .SEGMENT "RAM_Console"
@@ -246,6 +250,7 @@ _UpdateScrolling:
     sta Zp_ConsoleInstNumber_u8
     sta Zp_ConsoleFieldNumber_u8
     sta Zp_ConsoleNominalFieldOffset_u8
+    sta Zp_ConsoleCursorIsDiminished_bool
 _GameLoop:
     jsr Func_Console_DrawCursorObjects
     jsr Func_ExploreDrawAvatar
@@ -266,7 +271,11 @@ _CheckEditField:
     lda Zp_P1ButtonsPressed_bJoypad
     and #bJoypad::AButton
     beq @noEdit
+    lda #$ff
+    sta Zp_ConsoleCursorIsDiminished_bool
     jsr Func_Menu_EditSelectedField
+    lda #$00
+    sta Zp_ConsoleCursorIsDiminished_bool
     @noEdit:
 .PROC _MoveCursorVertically
     ;; Store the max number of instructions in Zp_Tmp1_byte.
@@ -453,6 +462,24 @@ _ObjectLoop:
     lda #bObj::Pri | kCursorObjPalette
     sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
     ;; Set tile ID.
+    lda Zp_ConsoleCursorIsDiminished_bool
+    bpl @undiminished
+    lda Zp_Tmp3_byte
+    beq @dimSingle
+    cpx Zp_Tmp3_byte
+    beq @dimLeft
+    txa
+    bne @continue
+    @dimRight:
+    lda #$07
+    bne @setTile  ; unconditional
+    @dimLeft:
+    lda #$05
+    bne @setTile  ; unconditional
+    @dimSingle:
+    lda #$04
+    bne @setTile  ; unconditional
+    @undiminished:
     lda Zp_Tmp3_byte
     beq @tileSingle
     cpx Zp_Tmp3_byte
@@ -476,6 +503,7 @@ _ObjectLoop:
     .repeat .sizeof(sObj)
     iny
     .endrepeat
+    @continue:
     dex
     bpl _ObjectLoop
     sty Zp_OamOffset_u8

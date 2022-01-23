@@ -47,7 +47,7 @@ Ppu_ChrFont:
 Ppu_ChrPlayer:
 :   .incbin "out/data/tiles/cursor.chr"
     .incbin "out/data/tiles/player.chr"
-    .res $6c * kSizeofChr
+    .res $68 * kSizeofChr
     .assert * - :- = kSizeofChr * 128, error
 
 ;;;=========================================================================;;;

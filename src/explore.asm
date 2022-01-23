@@ -78,10 +78,10 @@ kAvatarGravity = 48
 ;;; values is the starting tile ID to use for the avatar objects when the
 ;;; avatar is in that mode.
 .ENUM ePlayer
-    Standing = $04
-    Reading  = $08
-    Running  = $0c
-    Jumping  = $10
+    Standing = $08
+    Reading  = $0c
+    Running  = $10
+    Jumping  = $14
 .ENDENUM
 
 ;;;=========================================================================;;;
