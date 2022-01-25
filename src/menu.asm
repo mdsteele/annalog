@@ -21,16 +21,17 @@
 .INCLUDE "joypad.inc"
 .INCLUDE "macros.inc"
 .INCLUDE "menu.inc"
+.INCLUDE "mmc3.inc"
 .INCLUDE "oam.inc"
 .INCLUDE "ppu.inc"
 .INCLUDE "program.inc"
 
+.IMPORT FuncA_Console_DrawFieldCursorObjects
+.IMPORT FuncA_Console_GetCurrentFieldType
+.IMPORT FuncA_Console_GetCurrentFieldValue
+.IMPORT FuncA_Console_SetCurrentFieldValue
+.IMPORT FuncA_Console_TransferInstruction
 .IMPORT Func_ClearRestOfOam
-.IMPORT Func_Console_DrawCursorObjects
-.IMPORT Func_Console_GetCurrentFieldType
-.IMPORT Func_Console_GetCurrentFieldValue
-.IMPORT Func_Console_SetCurrentFieldValue
-.IMPORT Func_Console_TransferInstruction
 .IMPORT Func_ExploreDrawAvatar
 .IMPORT Func_ProcessFrame
 .IMPORT Func_ScrollTowardsGoal
@@ -86,7 +87,7 @@ Ram_MenuCols_u8_arr: .res kMaxMenuItems
 
 ;;;=========================================================================;;;
 
-.SEGMENT "PRG8_Menu"
+.SEGMENT "PRGA_Console"
 
 ;;; +--------+
 ;;; |COPY ADD|
@@ -98,7 +99,7 @@ Ram_MenuCols_u8_arr: .res kMaxMenuItems
 ;;; |     END|
 ;;; |delete  |
 ;;; +--------+
-.PROC Data_Menu_Opcode_sMenu
+.PROC DataA_Console_Opcode_sMenu
 _Start:
     .assert * - _Start = sMenu::WidthsMinusOne_u8_arr, error
     .byte 5, 3, 3, 2, 2, 2, 3, 3, 1, 2, 2, 3, 0, 0, 2, 2
@@ -234,8 +235,8 @@ _OnRight:
 
 ;;; Initializes Zp_Current_sMenu_ptr, Ram_MenuRows_u8_arr, and
 ;;; Ram_MenuCols_u8_arr appropriately for an instruction opcode menu.
-.PROC Func_Menu_SetUpOpcodeMenu
-    ldax #Data_Menu_Opcode_sMenu
+.PROC FuncA_Console_SetUpOpcodeMenu
+    ldax #DataA_Console_Opcode_sMenu
     stax Zp_Current_sMenu_ptr
     ;; Set columns for all menu items:
     ldx #kMaxMenuItems - 1
@@ -304,8 +305,8 @@ _Columns_u8_arr:
 
 ;;; Initializes Zp_Current_sMenu_ptr, Ram_MenuRows_u8_arr, and
 ;;; Ram_MenuCols_u8_arr appropriately for an L-value menu.
-.PROC Func_Menu_SetUpLValueMenu
-    jmp Func_Menu_SetUpAddressMenu  ; TODO: implement L-value menu
+.PROC FuncA_Console_SetUpLValueMenu
+    jmp FuncA_Console_SetUpAddressMenu  ; TODO: implement L-value menu
 .ENDPROC
 
 ;;; +--------+
@@ -321,8 +322,8 @@ _Columns_u8_arr:
 
 ;;; Initializes Zp_Current_sMenu_ptr, Ram_MenuRows_u8_arr, and
 ;;; Ram_MenuCols_u8_arr appropriately for an R-value menu.
-.PROC Func_Menu_SetUpRValueMenu
-    jmp Func_Menu_SetUpAddressMenu  ; TODO: implement R-value menu
+.PROC FuncA_Console_SetUpRValueMenu
+    jmp FuncA_Console_SetUpAddressMenu  ; TODO: implement R-value menu
 .ENDPROC
 
 ;;; +--------+
@@ -335,7 +336,7 @@ _Columns_u8_arr:
 ;;; |  6  e  |
 ;;; |  7  f  |
 ;;; +--------+
-.PROC Data_Menu_Address_sMenu
+.PROC DataA_Console_Address_sMenu
 _Start:
     .assert * - _Start = sMenu::WidthsMinusOne_u8_arr, error
     .byte 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
@@ -394,8 +395,8 @@ _OnRight:
 
 ;;; Initializes Zp_Current_sMenu_ptr, Ram_MenuRows_u8_arr, and
 ;;; Ram_MenuCols_u8_arr appropriately for an instruction address menu.
-.PROC Func_Menu_SetUpAddressMenu
-    ldax #Data_Menu_Address_sMenu
+.PROC FuncA_Console_SetUpAddressMenu
+    ldax #DataA_Console_Address_sMenu
     stax Zp_Current_sMenu_ptr
     ;; TODO: Exclude menu items for empty instructions (and also in cursor
     ;;   movement functions above).
@@ -426,7 +427,7 @@ _OnRight:
 ;;; |        |
 ;;; |        |
 ;;; +--------+
-.PROC Data_Menu_Compare_sMenu
+.PROC DataA_Console_Compare_sMenu
 _Start:
     .assert * - _Start = sMenu::WidthsMinusOne_u8_arr, error
     .byte 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
@@ -473,8 +474,8 @@ _SetItem:
 
 ;;; Initializes Zp_Current_sMenu_ptr, Ram_MenuRows_u8_arr, and
 ;;; Ram_MenuCols_u8_arr appropriately for a comparison operator menu.
-.PROC Func_Menu_SetUpCompareMenu
-    ldax #Data_Menu_Compare_sMenu
+.PROC FuncA_Console_SetUpCompareMenu
+    ldax #DataA_Console_Compare_sMenu
     stax Zp_Current_sMenu_ptr
     ;; Store the starting row in Zp_Tmp1_byte.
     lda Zp_ConsoleNumInstRows_u8
@@ -512,7 +513,7 @@ _SetItem:
 ;;; |        |
 ;;; |        |
 ;;; +--------+
-.PROC Data_Menu_Direction_sMenu
+.PROC DataA_Console_Direction_sMenu
 _Start:
     .assert * - _Start = sMenu::WidthsMinusOne_u8_arr, error
     .byte 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
@@ -554,8 +555,8 @@ _SetItem:
 
 ;;; Initializes Zp_Current_sMenu_ptr, Ram_MenuRows_u8_arr, and
 ;;; Ram_MenuCols_u8_arr appropriately for a direction menu.
-.PROC Func_Menu_SetUpDirectionMenu
-    ldax #Data_Menu_Direction_sMenu
+.PROC FuncA_Console_SetUpDirectionMenu
+    ldax #DataA_Console_Direction_sMenu
     stax Zp_Current_sMenu_ptr
     ;; Store the starting row in Zp_Tmp1_byte.
     lda Zp_ConsoleNumInstRows_u8
@@ -585,7 +586,7 @@ _SetItem:
 
 ;;; Initializes Zp_Current_sMenu_ptr, Zp_MenuItem_u8, Ram_MenuRows_u8_arr, and
 ;;; Ram_MenuCols_u8_arr appropriately for editing the currently-selected field.
-.PROC Func_Menu_SetUpCurrentFieldMenu
+.PROC FuncA_Console_SetUpCurrentFieldMenu
     ;; Clear items.
     lda #$ff
     ldx #kMaxMenuItems - 1
@@ -594,10 +595,10 @@ _SetItem:
     dex
     bpl @loop
     ;; Set current menu item.
-    jsr Func_Console_GetCurrentFieldValue  ; returns A
+    jsr FuncA_Console_GetCurrentFieldValue  ; returns A
     sta Zp_MenuItem_u8
     ;; Jump to field-type-specific setup function.
-    jsr Func_Console_GetCurrentFieldType  ; returns A
+    jsr FuncA_Console_GetCurrentFieldType  ; returns A
     asl a
     tay
     lda _JumpTable_ptr_arr + 0, y
@@ -606,18 +607,18 @@ _SetItem:
     sta Zp_Tmp_ptr + 1
     jmp (Zp_Tmp_ptr)
 _JumpTable_ptr_arr:
-    .addr Func_Menu_SetUpOpcodeMenu
-    .addr Func_Menu_SetUpLValueMenu
-    .addr Func_Menu_SetUpRValueMenu
-    .addr Func_Menu_SetUpAddressMenu
-    .addr Func_Menu_SetUpCompareMenu
-    .addr Func_Menu_SetUpDirectionMenu
+    .addr FuncA_Console_SetUpOpcodeMenu
+    .addr FuncA_Console_SetUpLValueMenu
+    .addr FuncA_Console_SetUpRValueMenu
+    .addr FuncA_Console_SetUpAddressMenu
+    .addr FuncA_Console_SetUpCompareMenu
+    .addr FuncA_Console_SetUpDirectionMenu
 .ENDPROC
 
 ;;; Transfers the specified menu row (0-7) to the PPU.
 ;;; @param X The menu row to transfer.
 ;;; @preserve X
-.PROC Func_Menu_TransferMenuRow
+.PROC FuncA_Console_TransferMenuRow
     stx Zp_Tmp3_byte  ; menu row
 _WriteTransferEntryHeader:
     ;; Get the transfer destination address, and store it in Zp_Tmp1_byte (lo)
@@ -705,7 +706,7 @@ _TransferLabels:
 .ENDPROC
 
 ;;; Allocates and populates OAM slots for the console menu cursor.
-.PROC Func_Menu_DrawCursorObjects
+.PROC FuncA_Console_DrawMenuCursorObjects
     ldx Zp_MenuItem_u8
 _XPosition:
     lda Ram_MenuCols_u8_arr, x
@@ -776,7 +777,37 @@ _ObjectLoop:
 ;;; D-pad direciton, updates Zp_MenuItem_u8 appropriately to move the menu
 ;;; cursor in the direction, based on the current menu layout.
 ;;; @param Y The sMenu function pointer offset.
-.PROC Func_Menu_MoveCursor
+.PROC FuncA_Console_MoveMenuCursor
+_MoveCursorUp:
+    lda Zp_P1ButtonsPressed_bJoypad
+    and #bJoypad::Up
+    beq @noUp
+    ldy #sMenu::OnUp_func_ptr
+    jsr _MenuFunc
+    @noUp:
+_MoveCursorDown:
+    lda Zp_P1ButtonsPressed_bJoypad
+    and #bJoypad::Down
+    beq @noDown
+    ldy #sMenu::OnDown_func_ptr
+    jsr _MenuFunc
+    @noDown:
+_MoveCursorLeft:
+    lda Zp_P1ButtonsPressed_bJoypad
+    and #bJoypad::Left
+    beq @noLeft
+    ldy #sMenu::OnLeft_func_ptr
+    jsr _MenuFunc
+    @noLeft:
+_MoveCursorRight:
+    lda Zp_P1ButtonsPressed_bJoypad
+    and #bJoypad::Right
+    beq @noRight
+    ldy #sMenu::OnRight_func_ptr
+    jsr _MenuFunc
+    @noRight:
+    rts
+_MenuFunc:
     lda (Zp_Current_sMenu_ptr), y
     sta Zp_Tmp_ptr + 0
     iny
@@ -785,74 +816,56 @@ _ObjectLoop:
     jmp (Zp_Tmp_ptr)
 .ENDPROC
 
+;;;=========================================================================;;;
+
+.SEGMENT "PRG8_Menu"
+
 ;;; Mode for the console instruction field editing menu.
 ;;; TODO: Make this a Main that jumps back to console edit mode when done.
 .EXPORT Func_Menu_EditSelectedField
 .PROC Func_Menu_EditSelectedField
-    jsr Func_Menu_SetUpCurrentFieldMenu
+    prga_bank #<.bank(FuncA_Console_SetUpCurrentFieldMenu)
+    jsr FuncA_Console_SetUpCurrentFieldMenu
 _TransferMenuRows:
     ldx #0  ; param: menu row to transfer
     @loop:
-    jsr Func_Menu_TransferMenuRow  ; preserves X
+    jsr FuncA_Console_TransferMenuRow  ; preserves X
     inx
     cpx Zp_ConsoleNumInstRows_u8
     blt @loop
 _GameLoop:
-    jsr Func_Menu_DrawCursorObjects
-    ;; TODO: Darken console field cursor.
-    jsr Func_Console_DrawCursorObjects
+    prga_bank #<.bank(FuncA_Console_DrawMenuCursorObjects)
+    jsr FuncA_Console_DrawMenuCursorObjects
+    jsr FuncA_Console_DrawFieldCursorObjects
     jsr Func_ExploreDrawAvatar
     jsr Func_ClearRestOfOam
     jsr Func_ProcessFrame
     jsr Func_UpdateButtons
 _CheckForCancel:
+    prga_bank #<.bank(FuncA_Console_MoveMenuCursor)
+    ;; B button:
     lda Zp_P1ButtonsPressed_bJoypad
     and #bJoypad::BButton
     bne _Cancel
-_CheckForDone:
+    ;; A button:
     lda Zp_P1ButtonsPressed_bJoypad
     and #bJoypad::AButton
     bne _Finish
-_MoveCursorUp:
-    lda Zp_P1ButtonsPressed_bJoypad
-    and #bJoypad::Up
-    beq @noUp
-    ldy #sMenu::OnUp_func_ptr  ; param: sMenu func ptr offset
-    jsr Func_Menu_MoveCursor
-    @noUp:
-_MoveCursorDown:
-    lda Zp_P1ButtonsPressed_bJoypad
-    and #bJoypad::Down
-    beq @noDown
-    ldy #sMenu::OnDown_func_ptr  ; param: sMenu func ptr offset
-    jsr Func_Menu_MoveCursor
-    @noDown:
-_MoveCursorLeft:
-    lda Zp_P1ButtonsPressed_bJoypad
-    and #bJoypad::Left
-    beq @noLeft
-    ldy #sMenu::OnLeft_func_ptr  ; param: sMenu func ptr offset
-    jsr Func_Menu_MoveCursor
-    @noLeft:
-_MoveCursorRight:
-    lda Zp_P1ButtonsPressed_bJoypad
-    and #bJoypad::Right
-    beq @noRight
-    ldy #sMenu::OnRight_func_ptr  ; param: sMenu func ptr offset
-    jsr Func_Menu_MoveCursor
-    @noRight:
+    ;; D-pad:
+    jsr FuncA_Console_MoveMenuCursor
 _UpdateScrolling:
     jsr Func_SetScrollGoalFromAvatar
     jsr Func_ScrollTowardsGoal
     jmp _GameLoop
 _Finish:
     lda Zp_MenuItem_u8
-    jsr Func_Console_SetCurrentFieldValue
+    jsr FuncA_Console_SetCurrentFieldValue
     ;; TODO: If the current instruction is now Empty, remove it (updating any
     ;;   GOTO instruction addresses as needed), set the current
     ;;   field/column to zero, and redraw all instructions (over a couple of
     ;;   frames) instead of just the current instruction.
-    jsr Func_Console_TransferInstruction
+    prga_bank #<.bank(FuncA_Console_TransferInstruction)
+    jsr FuncA_Console_TransferInstruction
     ;; TODO: If the current instruction was previously empty, and the next
     ;;   instruction is empty, then redraw the next instruction too.
 _Cancel:

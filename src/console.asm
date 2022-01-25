@@ -20,6 +20,7 @@
 .INCLUDE "charmap.inc"
 .INCLUDE "joypad.inc"
 .INCLUDE "macros.inc"
+.INCLUDE "mmc3.inc"
 .INCLUDE "oam.inc"
 .INCLUDE "ppu.inc"
 .INCLUDE "program.inc"
@@ -200,7 +201,8 @@ _ScrollWindowUp:
     @notDone:
     sta Zp_WindowTop_u8
     jsr Func_Window_SetUpIrq
-    jsr Func_Console_TransferNextWindowRow
+    prga_bank #<.bank(FuncA_Console_TransferNextWindowRow)
+    jsr FuncA_Console_TransferNextWindowRow
 _CheckIfDone:
     lda Zp_WindowTop_u8
     cmp Zp_WindowTopGoal_u8
@@ -252,22 +254,25 @@ _UpdateScrolling:
     sta Zp_ConsoleNominalFieldOffset_u8
     sta Zp_ConsoleCursorIsDiminished_bool
 _GameLoop:
-    jsr Func_Console_DrawCursorObjects
+    prga_bank #<.bank(FuncA_Console_DrawFieldCursorObjects)
+    jsr FuncA_Console_DrawFieldCursorObjects
     jsr Func_ExploreDrawAvatar
     jsr Func_ClearRestOfOam
     jsr Func_ProcessFrame
     jsr Func_UpdateButtons
-_CheckIfDone:
+_CheckButtons:
+    prga_bank #<.bank(FuncA_Console_InsertInstruction)
+    ;; B button:
     lda Zp_P1ButtonsPressed_bJoypad
     and #bJoypad::BButton
     jne Main_Console_CloseWindow
-_CheckInsert:
+    ;; Select button:
     lda Zp_P1ButtonsPressed_bJoypad
     and #bJoypad::Select
     beq @noInsert
-    jsr Func_Console_InsertInstruction
+    jsr FuncA_Console_InsertInstruction
     @noInsert:
-_CheckEditField:
+    ;; A button:
     lda Zp_P1ButtonsPressed_bJoypad
     and #bJoypad::AButton
     beq @noEdit
@@ -277,6 +282,19 @@ _CheckEditField:
     lda #$00
     sta Zp_ConsoleCursorIsDiminished_bool
     @noEdit:
+    ;; D-pad:
+    jsr FuncA_Console_MoveFieldCursor
+_UpdateScrolling:
+    jsr Func_SetScrollGoalFromAvatar
+    jsr Func_ScrollTowardsGoal
+    jmp _GameLoop
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Console"
+
+.PROC FuncA_Console_MoveFieldCursor
 .PROC _MoveCursorVertically
     ;; Store the max number of instructions in Zp_Tmp1_byte.
     lda Zp_ConsoleNumInstRows_u8
@@ -335,11 +353,11 @@ _CheckUp:
     @select:
     stx Zp_ConsoleInstNumber_u8
 _FinishUpDown:
-    jsr Func_Console_SetFieldForNominalOffset
+    jsr FuncA_Console_SetFieldForNominalOffset
 _NoUpOrDown:
 .ENDPROC
 .PROC _MoveCursorHorizontally
-    jsr Func_Console_GetCurrentInstNumFields  ; returns X
+    jsr FuncA_Console_GetCurrentInstNumFields  ; returns X
     stx Zp_Tmp1_byte  ; num fields
 _CheckLeft:
     lda Zp_P1ButtonsPressed_bJoypad
@@ -357,7 +375,7 @@ _CheckLeft:
     ;; Looks like we're in the right-hand column, so move to the last field of
     ;; the instruction on the same row in the left-hand column.
     sta Zp_ConsoleInstNumber_u8
-    jsr Func_Console_GetCurrentInstNumFields  ; returns X
+    jsr FuncA_Console_GetCurrentInstNumFields  ; returns X
     dex
     @setFieldNumber:
     stx Zp_ConsoleFieldNumber_u8
@@ -382,7 +400,7 @@ _CheckRight:
     sta Zp_ConsoleInstNumber_u8
     ;; If we're now beyond the first empty instruction, then undo what we just
     ;; did, and go back to the left-hand instruction column.
-    jsr Func_IsPrevInstructionEmpty  ; returns Z
+    jsr FuncA_IsPrevInstructionEmpty  ; returns Z
     bne @prevInstNotEmpty
     lda Zp_ConsoleInstNumber_u8
     sub Zp_ConsoleNumInstRows_u8
@@ -395,17 +413,14 @@ _CheckRight:
     @setFieldNumber:
     stx Zp_ConsoleFieldNumber_u8
 _FinishLeftRight:
-    jsr Func_Console_GetCurrentFieldOffset  ; returns A
+    jsr FuncA_Console_GetCurrentFieldOffset  ; returns A
     sta Zp_ConsoleNominalFieldOffset_u8
 _NoLeftOrRight:
 .ENDPROC
-_UpdateScrolling:
-    jsr Func_SetScrollGoalFromAvatar
-    jsr Func_ScrollTowardsGoal
-    jmp _GameLoop
+    rts
 .ENDPROC
 
-.PROC Func_Console_InsertInstruction
+.PROC FuncA_Console_InsertInstruction
     ;; TODO: If there's no room to insert an instruction, bail.
     ;; TODO: Insert a new Empty instruction above the current one (updating any
     ;;   GOTO instruction addresses as needed), and set current
@@ -416,12 +431,12 @@ _UpdateScrolling:
     rts
 .ENDPROC
 
-;;; Allocates and populates OAM slots for the console cursor.
-.EXPORT Func_Console_DrawCursorObjects
-.PROC Func_Console_DrawCursorObjects
-    jsr Func_Console_GetCurrentFieldWidth
+;;; Allocates and populates OAM slots for the console instruction field cursor.
+.EXPORT FuncA_Console_DrawFieldCursorObjects
+.PROC FuncA_Console_DrawFieldCursorObjects
+    jsr FuncA_Console_GetCurrentFieldWidth
     sta Zp_Tmp3_byte
-    jsr Func_Console_GetCurrentFieldOffset
+    jsr FuncA_Console_GetCurrentFieldOffset
     mul #kTileWidthPx
     sta Zp_Tmp2_byte
 _YPosition:
@@ -512,7 +527,7 @@ _ObjectLoop:
 
 ;;; Transfers the next console window row (if any) that still needs to be
 ;;; transferred to the PPU.
-.PROC Func_Console_TransferNextWindowRow
+.PROC FuncA_Console_TransferNextWindowRow
     lda Zp_WindowNextRowToTransfer_u8
     sub #1
     cmp Zp_ConsoleNumInstRows_u8
@@ -550,7 +565,7 @@ _Interior:
     lda #kConsoleTileIdColon
     sta Ram_PpuTransfer_arr, x
     inx
-    jsr Func_Console_WriteInstTransferData
+    jsr FuncA_Console_WriteInstTransferData
     inx
     ;; Calculate the instruction number for the right column.
     lda Zp_ConsoleInstNumber_u8
@@ -563,7 +578,7 @@ _Interior:
     lda #kConsoleTileIdColon
     sta Ram_PpuTransfer_arr, x
     inx
-    jsr Func_Console_WriteInstTransferData
+    jsr FuncA_Console_WriteInstTransferData
     inx
     ;; Draw the status box.
     ;; TODO: Make a real implementation for drawing the status box.
@@ -580,8 +595,8 @@ _Interior:
 .ENDPROC
 
 ;;; Appends a PPU transfer entry to redraw the current instruction.
-.EXPORT Func_Console_TransferInstruction
-.PROC Func_Console_TransferInstruction
+.EXPORT FuncA_Console_TransferInstruction
+.PROC FuncA_Console_TransferInstruction
     ;; Get the transfer destination address, and store it in Zp_Tmp1_byte (lo)
     ;; and Zp_Tmp2_byte (hi).
     lda Zp_ConsoleInstNumber_u8
@@ -621,15 +636,15 @@ _Interior:
     lda #kInstructionWidthTiles
     sta Ram_PpuTransfer_arr, x
     inx
-    .assert * = Func_Console_WriteInstTransferData, error, "fallthrough"
+    .assert * = FuncA_Console_WriteInstTransferData, error, "fallthrough"
 .ENDPROC
 
 ;;; Writes seven bytes into a PPU transfer entry with the text of instruction
 ;;; number Zp_ConsoleInstNumber_u8 within Ram_Console_sProgram.
 ;;; @param X PPU transfer array index within an entry's data.
 ;;; @return X Updated PPU transfer array index.
-.PROC Func_Console_WriteInstTransferData
-    jsr Func_IsPrevInstructionEmpty
+.PROC FuncA_Console_WriteInstTransferData
+    jsr FuncA_IsPrevInstructionEmpty
     beq _Write7Spaces
     ;; Store the Arg_byte in Zp_Tmp2_byte.
     lda Zp_ConsoleInstNumber_u8
@@ -828,8 +843,8 @@ _WriteComparisonOperator:
 
 ;;; Returns the number of fields for the currently-selected instruction.
 ;;; @return X The number of fields.
-.PROC Func_Console_GetCurrentInstNumFields
-    jsr Func_Console_GetCurrentOpcode  ; returns A
+.PROC FuncA_Console_GetCurrentInstNumFields
+    jsr FuncA_Console_GetCurrentOpcode  ; returns A
     tay
     ldx _NumFields_u8_arr, y
     rts
@@ -855,8 +870,8 @@ _NumFields_u8_arr:
 ;;; Returns the width of the currently-selected instruction field, in tiles,
 ;;; minus one.
 ;;; @return A The width minus one.
-.PROC Func_Console_GetCurrentFieldWidth
-    jsr Func_Console_GetCurrentOpcode  ; returns A
+.PROC FuncA_Console_GetCurrentFieldWidth
+    jsr FuncA_Console_GetCurrentOpcode  ; returns A
     tay
     lda _OpcodeTable_u8_arr, y
     add Zp_ConsoleFieldNumber_u8
@@ -893,8 +908,8 @@ _OpNop:
 ;;; Returns the horizontal offset of the currently-selected instruction field,
 ;;; in tiles.  This can range from 0-6 inclusive.
 ;;; @return A The field offset.
-.PROC Func_Console_GetCurrentFieldOffset
-    jsr Func_Console_GetCurrentOpcode  ; returns A
+.PROC FuncA_Console_GetCurrentFieldOffset
+    jsr FuncA_Console_GetCurrentOpcode  ; returns A
     tay
     lda _OpcodeTable_u8_arr, y
     add Zp_ConsoleFieldNumber_u8
@@ -930,8 +945,8 @@ _OpTil:
 ;;; Sets Zp_ConsoleFieldNumber_u8 to whichever field in the current instruction
 ;;; best overlaps with Zp_ConsoleNominalFieldOffset_u8 (which must be in the
 ;;; range 0-6 inclusive).
-.PROC Func_Console_SetFieldForNominalOffset
-    jsr Func_Console_GetCurrentOpcode  ; returns A
+.PROC FuncA_Console_SetFieldForNominalOffset
+    jsr FuncA_Console_GetCurrentOpcode  ; returns A
     tay
     lda _OpcodeTable_u8_arr, y
     add Zp_ConsoleNominalFieldOffset_u8
@@ -967,9 +982,9 @@ _OpTil:
 
 ;;; Returns the eField for the currently-selected instruction field.
 ;;; @return A The eField value.
-.EXPORT Func_Console_GetCurrentFieldType
-.PROC Func_Console_GetCurrentFieldType
-    jsr Func_Console_GetCurrentOpcode  ; returns A
+.EXPORT FuncA_Console_GetCurrentFieldType
+.PROC FuncA_Console_GetCurrentFieldType
+    jsr FuncA_Console_GetCurrentOpcode  ; returns A
     tay
     lda _OpcodeTable_u8_arr, y
     add Zp_ConsoleFieldNumber_u8
@@ -1008,8 +1023,8 @@ _OpMove:
 ;;; field.  The opcode nibble of the sInst is slot 0, the first argument nibble
 ;;; is slot 1, and so on.
 ;;; @return A Slot number for the field (0-3).
-.PROC Func_Console_GetCurrentFieldSlot
-    jsr Func_Console_GetCurrentOpcode  ; returns A
+.PROC FuncA_Console_GetCurrentFieldSlot
+    jsr FuncA_Console_GetCurrentOpcode  ; returns A
     tay
     lda _OpcodeTable_u8_arr, y
     add Zp_ConsoleFieldNumber_u8
@@ -1042,9 +1057,9 @@ _OpTil:
 
 ;;; Returns the value of the currently selected instruction field.
 ;;; @return A The value of the field (0-15).
-.EXPORT Func_Console_GetCurrentFieldValue
-.PROC Func_Console_GetCurrentFieldValue
-    jsr Func_Console_GetCurrentFieldSlot  ; returns A
+.EXPORT FuncA_Console_GetCurrentFieldValue
+.PROC FuncA_Console_GetCurrentFieldValue
+    jsr FuncA_Console_GetCurrentFieldSlot  ; returns A
     tay  ; field slot
     lda Zp_ConsoleInstNumber_u8
     mul #.sizeof(sInst)
@@ -1068,10 +1083,10 @@ _OpTil:
 ;;; Sets the value of the currently selected instruction field.  If that field
 ;;; is the opcode, then other fields may also be updated.
 ;;; @param A The new field value.
-.EXPORT Func_Console_SetCurrentFieldValue
-.PROC Func_Console_SetCurrentFieldValue
+.EXPORT FuncA_Console_SetCurrentFieldValue
+.PROC FuncA_Console_SetCurrentFieldValue
     pha  ; new value
-    jsr Func_Console_GetCurrentFieldSlot  ; returns A
+    jsr FuncA_Console_GetCurrentFieldSlot  ; returns A
     tay  ; field slot
     lda Zp_ConsoleInstNumber_u8
     mul #.sizeof(sInst)
@@ -1107,7 +1122,7 @@ _SetArg1:
     rts
 _SetOpcode:
     pha  ; new opcode
-    jsr Func_Console_GetCurrentOpcode
+    jsr FuncA_Console_GetCurrentOpcode
     sta Zp_Tmp1_byte  ; old opcode
     pla  ; new opcode
     cmp Zp_Tmp1_byte
@@ -1187,7 +1202,7 @@ _ZeroArgByteAndFieldNumber:
     sta Ram_Console_sProgram + sProgram::Code_sInst_arr + sInst::Arg_byte, x
 _SetFieldNumber:
     sta Zp_ConsoleFieldNumber_u8
-    jsr Func_Console_GetCurrentFieldOffset  ; returns A
+    jsr FuncA_Console_GetCurrentFieldOffset  ; returns A
     sta Zp_ConsoleNominalFieldOffset_u8
     rts
 _OpAdd:
@@ -1253,7 +1268,7 @@ _OpMove:
 
 ;;; Returns the opcode for the currently-selected instruction.
 ;;; @return A The eOpcode value.
-.PROC Func_Console_GetCurrentOpcode
+.PROC FuncA_Console_GetCurrentOpcode
     lda Zp_ConsoleInstNumber_u8
     mul #.sizeof(sInst)
     tay
@@ -1266,7 +1281,7 @@ _OpMove:
 ;;; instruction in the program.
 ;;; @return Z Set if the previous instruction is empty; cleared if the previous
 ;;;     instruction is not empty (or if we're on the first instruction).
-.PROC Func_IsPrevInstructionEmpty
+.PROC FuncA_IsPrevInstructionEmpty
     ldy Zp_ConsoleInstNumber_u8
     dey
     bmi @done
