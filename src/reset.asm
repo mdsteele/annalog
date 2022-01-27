@@ -59,8 +59,8 @@ kSharedBgColor = $0f  ; black
 .SEGMENT "PRGA_Reset"
 
 .PROC MainA_Reset_Ext
-    ;; Disable SRAM access for now.
-    lda #bMmc3PrgRam::DenyWrites
+    ;; Enable SRAM, but disable writes for now.
+    lda #bMmc3PrgRam::Enable | bMmc3PrgRam::DenyWrites
     sta Hw_Mmc3PrgRamProtect_wo
 _WaitForFirstVBlank:
     ;; We need to wait for the PPU to warm up before can start the game.  The
@@ -89,14 +89,9 @@ _InitializeRam:
     ;; time to initialize RAM.
     tax  ; now x is 0
     @loop:
-    sta $0000, x
-    sta $0100, x
-    sta $0200, x
-    sta $0300, x
-    sta $0400, x
-    sta $0500, x
-    sta $0600, x
-    sta $0700, x
+    .repeat $08, index
+    sta $100 * index, x
+    .endrepeat
     inx
     bne @loop
     ;; May as well also clear OAM (note that Zp_OamOffset_u8 is zero, since we

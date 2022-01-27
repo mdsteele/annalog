@@ -18,6 +18,7 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "charmap.inc"
+.INCLUDE "flag.inc"
 .INCLUDE "joypad.inc"
 .INCLUDE "macros.inc"
 .INCLUDE "menu.inc"
@@ -40,6 +41,7 @@
 .IMPORT Func_Window_GetRowPpuAddr
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORT Ram_PpuTransfer_arr
+.IMPORT Sram_ProgressFlags_arr
 .IMPORTZP Zp_ConsoleNumInstRows_u8
 .IMPORTZP Zp_OamOffset_u8
 .IMPORTZP Zp_P1ButtonsPressed_bJoypad
@@ -238,14 +240,14 @@ _OnRight:
 .PROC FuncA_Console_SetUpOpcodeMenu
     ldax #DataA_Console_Opcode_sMenu
     stax Zp_Current_sMenu_ptr
-    ;; Set columns for all menu items:
+_SetColumnsForAllMenuItem:
     ldx #kMaxMenuItems - 1
     @loop:
     lda _Columns_u8_arr, x
     sta Ram_MenuCols_u8_arr, x
     dex
     bpl @loop
-    ;; Set rows for menu items in left-hand column:
+_SetRowsForMenuLeftColumn:
     ldx #0
     ;; TODO: Check if COPY opcode is unlocked.
     stx Ram_MenuRows_u8_arr + eOpcode::Copy
@@ -256,9 +258,13 @@ _OnRight:
     ;; TODO: Check if GOTO opcode is unlocked.
     stx Ram_MenuRows_u8_arr + eOpcode::Goto
     inx
-    ;; TODO: Check if SKIP opcode is unlocked.
+    ;; Check if SKIP opcode is unlocked.
+    lda Sram_ProgressFlags_arr + (eFlag::UpgradeOpcodeSkip >> 3)
+    and #1 << (eFlag::UpgradeOpcodeSkip & $07)
+    beq @noSkipOpcode
     stx Ram_MenuRows_u8_arr + eOpcode::Skip
     inx
+    @noSkipOpcode:
     ;; TODO: Check if machine supports ACT opcode.
     stx Ram_MenuRows_u8_arr + eOpcode::Act
     inx
@@ -267,7 +273,7 @@ _OnRight:
     ldx Zp_ConsoleNumInstRows_u8
     dex
     stx Ram_MenuRows_u8_arr + eOpcode::Empty
-    ;; Set rows for menu items in right-hand column:
+_SetRowsForMenuRightColumn:
     ldx #0
     ;; TODO: Check if ADD/SUB opcodes are unlocked.
     stx Ram_MenuRows_u8_arr + eOpcode::Add
@@ -280,9 +286,13 @@ _OnRight:
     ;; TODO: Check if IF opcode is unlocked.
     stx Ram_MenuRows_u8_arr + eOpcode::If
     inx
-    ;; TODO: Check if TIL opcode is unlocked.
+    ;; Check if TIL opcode is unlocked.
+    lda Sram_ProgressFlags_arr + (eFlag::UpgradeOpcodeTil >> 3)
+    and #1 << (eFlag::UpgradeOpcodeTil & $07)
+    beq @noTilOpcode
     stx Ram_MenuRows_u8_arr + eOpcode::Til
     inx
+    @noTilOpcode:
     ;; TODO: Check if NOP opcode is unlocked.
     stx Ram_MenuRows_u8_arr + eOpcode::Nop
     inx

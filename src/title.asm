@@ -18,8 +18,10 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "charmap.inc"
+.INCLUDE "flag.inc"
 .INCLUDE "joypad.inc"
 .INCLUDE "macros.inc"
+.INCLUDE "mmc3.inc"
 .INCLUDE "ppu.inc"
 
 .IMPORT Func_ClearRestOfOam
@@ -28,12 +30,11 @@
 .IMPORT Func_ProcessFrame
 .IMPORT Func_UpdateButtons
 .IMPORT Main_Explore_Enter
-.IMPORT Ram_PpuTransfer_arr
+.IMPORT Sram_MagicNumber_u8
 .IMPORTZP Zp_OamOffset_u8
 .IMPORTZP Zp_P1ButtonsPressed_bJoypad
 .IMPORTZP Zp_PpuScrollX_u8
 .IMPORTZP Zp_PpuScrollY_u8
-.IMPORTZP Zp_PpuTransferLen_u8
 .IMPORTZP Zp_Render_bPpuMask
 
 ;;;=========================================================================;;;
@@ -45,37 +46,26 @@
 End:
 .ENDPROC
 
-.PROC Data_StartString_u8_arr
-    .byte "start was pressed"
-End:
-.ENDPROC
-
-.PROC Func_DisplayStartString
-    ldy Zp_PpuTransferLen_u8
-    lda #kPpuCtrlFlagsVert
-    sta Ram_PpuTransfer_arr, y
-    iny
-    .linecont +
-    ldax #Ppu_Nametable0_sName + sName::Tiles_u8_arr + \
-          kScreenWidthTiles * 3 + 7
-    .linecont -
-    sta Ram_PpuTransfer_arr, y
-    iny
-    txa
-    sta Ram_PpuTransfer_arr, y
-    iny
-    lda #Data_StartString_u8_arr::End - Data_StartString_u8_arr
-    sta Ram_PpuTransfer_arr, y
-    iny
-    ldx #0
+;;; Erases all of SRAM and creates a save file for a new game.
+.PROC Func_ResetSramForNewGame
+    ;; Enable writes to SRAM.
+    lda #bMmc3PrgRam::Enable
+    sta Hw_Mmc3PrgRamProtect_wo
+    ;; Zero all of SRAM.
+    lda #0
+    tax
     @loop:
-    lda Data_StartString_u8_arr, x
-    sta Ram_PpuTransfer_arr, y
-    iny
+    .repeat $20, index
+    sta $6000 + $100 * index, x
+    .endrepeat
     inx
-    cpx #Data_StartString_u8_arr::End - Data_StartString_u8_arr
     bne @loop
-    sty Zp_PpuTransferLen_u8
+    ;; Mark the save file as present.
+    lda #kSaveMagicNumber
+    sta Sram_MagicNumber_u8
+    ;; Disable writes to SRAM.
+    lda #bMmc3PrgRam::Enable | bMmc3PrgRam::DenyWrites
+    sta Hw_Mmc3PrgRamProtect_wo
     rts
 .ENDPROC
 
@@ -132,8 +122,8 @@ _GameLoop:
     lda Zp_P1ButtonsPressed_bJoypad
     and #bJoypad::Start
     beq @noStart
-    jsr Func_DisplayStartString
     jsr Func_FadeOut
+    jsr Func_ResetSramForNewGame
     jmp Main_Explore_Enter
     @noStart:
     jsr Func_ProcessFrame

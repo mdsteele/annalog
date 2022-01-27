@@ -1,0 +1,40 @@
+;;;=========================================================================;;;
+;;; Copyright 2022 Matthew D. Steele <mdsteele@alum.mit.edu>                ;;;
+;;;                                                                         ;;;
+;;; This file is part of Annalog.                                           ;;;
+;;;                                                                         ;;;
+;;; Annalog is free software: you can redistribute it and/or modify it      ;;;
+;;; under the terms of the GNU General Public License as published by the   ;;;
+;;; Free Software Foundation, either version 3 of the License, or (at your  ;;;
+;;; option) any later version.                                              ;;;
+;;;                                                                         ;;;
+;;; Annalog is distributed in the hope that it will be useful, but WITHOUT  ;;;
+;;; ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   ;;;
+;;; FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   ;;;
+;;; for more details.                                                       ;;;
+;;;                                                                         ;;;
+;;; You should have received a copy of the GNU General Public License along ;;;
+;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
+;;;=========================================================================;;;
+
+;;; When Sram_MagicNumber_u8 is set to this, the save file exists.  Otherwise,
+;;; the save file is considered empty.  This value is chosen such that an SRAM
+;;; chip initialized to all zeros ($00), all ones ($ff), or even random-ish-ly
+;;; is unlikely to initialize Sram_MagicNumber_u8 to this value.
+kSaveMagicNumber = $b2
+
+;;;=========================================================================;;;
+
+;;; Progress flags for the save file, each of which can be cleared or set.
+;;; These represent things like "has this upgrade been acquired?" or "has this
+;;; boss been defeated?" or "is this switch turned on?"
+.ENUM eFlag
+    UpgradeMaxInstructions0  ; Each of these four upgrades
+    UpgradeMaxInstructions1  ; increases the maximum number
+    UpgradeMaxInstructions2  ; of instructions in a program
+    UpgradeMaxInstructions3  ; by two.
+    UpgradeOpcodeSkip
+    UpgradeOpcodeTil
+.ENDENUM
+
+;;;=========================================================================;;;
