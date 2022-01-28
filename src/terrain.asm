@@ -21,6 +21,10 @@
 .INCLUDE "ppu.inc"
 .INCLUDE "room.inc"
 
+.IMPORT DataA_Terrain_LowerLeft_u8_arr
+.IMPORT DataA_Terrain_LowerRight_u8_arr
+.IMPORT DataA_Terrain_UpperLeft_u8_arr
+.IMPORT DataA_Terrain_UpperRight_u8_arr
 .IMPORT Ram_PpuTransfer_arr
 .IMPORTZP Zp_PpuTransferLen_u8
 .IMPORTZP Zp_Tmp1_byte
@@ -48,17 +52,6 @@ Zp_NametableColumnIndex_u8: .res 1
 ;;;=========================================================================;;;
 
 .SEGMENT "PRGA_Terrain"
-
-.SCOPE DataA_Terrain_Table
-UpperLeft_u8_arr:
-    .byte $00, $86, $84, $86, $00, $80, $82, $80, $00
-UpperRight_u8_arr:
-    .byte $00, $86, $86, $85, $00, $00, $80, $00, $81
-LowerLeft_u8_arr:
-    .byte $00, $00, $81, $00, $87, $81, $87, $81, $00
-LowerRight_u8_arr:
-    .byte $00, $00, $82, $81, $87, $87, $80, $00, $80
-.ENDSCOPE
 
 ;;; Populates Zp_TerrainColumn_u8_arr_ptr with a pointer to the start of the
 ;;; requested terrain block column in the current room.
@@ -148,9 +141,9 @@ _BlockColumnLoop:
     @tileLoop:
     lda (Zp_TerrainColumn_u8_arr_ptr), y
     tax  ; terrain block type
-    lda DataA_Terrain_Table::UpperLeft_u8_arr, x
+    lda DataA_Terrain_UpperLeft_u8_arr, x
     sta Hw_PpuData_rw
-    lda DataA_Terrain_Table::LowerLeft_u8_arr, x
+    lda DataA_Terrain_LowerLeft_u8_arr, x
     sta Hw_PpuData_rw
     iny
     cpy #kScreenHeightBlocks
@@ -168,9 +161,9 @@ _BlockColumnLoop:
     @tileLoop:
     lda (Zp_TerrainColumn_u8_arr_ptr), y
     tax  ; terrain block type
-    lda DataA_Terrain_Table::UpperLeft_u8_arr, x
+    lda DataA_Terrain_UpperLeft_u8_arr, x
     sta Hw_PpuData_rw
-    lda DataA_Terrain_Table::LowerLeft_u8_arr, x
+    lda DataA_Terrain_LowerLeft_u8_arr, x
     sta Hw_PpuData_rw
     iny
     cpy #kTallRoomHeightBlocks
@@ -189,9 +182,9 @@ _BlockColumnLoop:
     @tileLoop:
     lda (Zp_TerrainColumn_u8_arr_ptr), y
     tax  ; terrain block type
-    lda DataA_Terrain_Table::UpperRight_u8_arr, x
+    lda DataA_Terrain_UpperRight_u8_arr, x
     sta Hw_PpuData_rw
-    lda DataA_Terrain_Table::LowerRight_u8_arr, x
+    lda DataA_Terrain_LowerRight_u8_arr, x
     sta Hw_PpuData_rw
     iny
     cpy #kScreenHeightBlocks
@@ -209,9 +202,9 @@ _BlockColumnLoop:
     @tileLoop:
     lda (Zp_TerrainColumn_u8_arr_ptr), y
     tax  ; terrain block type
-    lda DataA_Terrain_Table::UpperRight_u8_arr, x
+    lda DataA_Terrain_UpperRight_u8_arr, x
     sta Hw_PpuData_rw
-    lda DataA_Terrain_Table::LowerRight_u8_arr, x
+    lda DataA_Terrain_LowerRight_u8_arr, x
     sta Hw_PpuData_rw
     iny
     cpy #kTallRoomHeightBlocks
@@ -306,10 +299,10 @@ _Left:
     ldy Zp_Tmp1_byte  ; block row index
     lda (Zp_TerrainColumn_u8_arr_ptr), y
     tay  ; terrain block type
-    lda DataA_Terrain_Table::UpperLeft_u8_arr, y
+    lda DataA_Terrain_UpperLeft_u8_arr, y
     sta Ram_PpuTransfer_arr, x
     inx
-    lda DataA_Terrain_Table::LowerLeft_u8_arr, y
+    lda DataA_Terrain_LowerLeft_u8_arr, y
     sta Ram_PpuTransfer_arr, x
     inx
     inc Zp_Tmp1_byte  ; block row index
@@ -320,10 +313,10 @@ _Right:
     ldy Zp_Tmp1_byte  ; block row index
     lda (Zp_TerrainColumn_u8_arr_ptr), y
     tay  ; terrain block type
-    lda DataA_Terrain_Table::UpperRight_u8_arr, y
+    lda DataA_Terrain_UpperRight_u8_arr, y
     sta Ram_PpuTransfer_arr, x
     inx
-    lda DataA_Terrain_Table::LowerRight_u8_arr, y
+    lda DataA_Terrain_LowerRight_u8_arr, y
     sta Ram_PpuTransfer_arr, x
     inx
     inc Zp_Tmp1_byte  ; block row index

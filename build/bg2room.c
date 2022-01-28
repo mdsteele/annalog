@@ -79,8 +79,16 @@ int from_base64(int ch) {
 }
 
 char get_block_id(const char *tileset, int tile_index) {
-  if (0 == strcmp(tileset, "cave")) {
-    return 0x01 + tile_index;
+  if (0 == strcmp(tileset, "r0")) {
+    return 0x00 + tile_index;
+  } else if (0 == strcmp(tileset, "r1")) {
+    return 0x10 + tile_index;
+  } else if (0 == strcmp(tileset, "r2")) {
+    return 0x20 + tile_index;
+  } else if (0 == strcmp(tileset, "r3")) {
+    return 0x30 + tile_index;
+  } else if (0 == strcmp(tileset, "r4")) {
+    return 0x40 + tile_index;
   } else {
     ERROR("unknown tileset: %s\n", tileset);
   }

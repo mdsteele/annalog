@@ -1,27 +1,29 @@
 @BG 0 0 0 35x24
->cave
+>r0
+>r1
+>r4
 
-                  AH  AG
-  ADADADADADADAD    AA    ADADADADADADADADADADADADADADADADADADADADAD
-AH              AEADADADAF                                          AG
-AH  ABAAAAAC                                                ABAAAC  AG
-AH  AEAD  AH                      ABAAAAAAAAAAAAAC          AE  AH  AG
-AH      AEAF              ABAAAAAA        ADADADAF            AGAH  AG
-AH                        AEADADADADADADAF                    AEAF  AG
-AH              ABAAAC                                ABAC          AG
-AH              AEADAF                                AEAF          AG
-AH                            ABAAAAAAAAAAAAAAAAAC                  AG
-  AAAAAAAAAAAAAAAC            AG            AD  AH                  AG
-  ADADADADADADADAF            AEADADADAD  AH  AG  AAAAAAAC          AG
-AH                                      AG  AA  ADADADADAF      ABAA
-AH              ABAAAAAAAAAC            AG    AH                AG
-AH              AEADADADADAF            AG    AH                AEAD
-AH    ABAC                              AG    AH                    AG
-AH    AEAF                      ABAC    AG    AH      ABAAAAAC      AG
-AH            ABAAAC            AEAF    AG    AH      AEADADAF      AG
-AH            AG  AF                    AG    AH                    AG
-AH            AEAF      ABAAAC          AG    AH                    AG
-AH  ABAC              AB    AH      ABAA        AAAAAAAAAAAC        AG
-AH  AG  AC            AG    AH      AG                    AH        AG
-  AA      AAAAAAAAAAAA        AAAAAA          ADAD          AAAAAAAA
-                                            AH    AG
+            CHCHCH                                        CH
+  CHCHCHCHCI      CGCHCHCHCHCHCHCHCHCHCHCHCHCHCHCHCHCH  CN  CGCHCHCH
+CN                                                    CGCI          CM
+CN                                                                  CM
+CN                                CACBCF                            CM
+  CECECBCBCC                          CGCBCECF  CDCECECECECECECC    CM
+  CHCI          BABC          CO          CMCN  CM          CN      CM
+CN              CACBCC                    CMCN  CM          CN    CA
+CN        AB              CO              CMCN  CM          CN      CM
+CN    CACECECECECF                        CMCN  CM            CC    CM
+CN      CGCHCHCHCI                        CMCN  CM      CHCHCI      CM
+  CECC                CACECECECECC        CMCN  CGCHCHCI          CA
+  CI                    CGCHCHCI          CGCI                      CM
+CN    CO                                              BA  BCCDCF    CM
+CN    CP  CO                                  BA    BACDCECE  CN    CM
+CNBDBE      BD                  CACBCBCC    CDCECECECE      CHCI    CM
+CKCKCKCKCKCKCKCL                            CGCHCHCHCH    CI        CM
+              CI        CO                            CMCN          CM
+    CHCHCHCHCI                                        CGCI          CM
+CICP                CP                                BBBC          CM
+CP        CPCJCKCKCKCKCKCLCP                          CJCL          CM
+CP  BB  BBCP              CKCKCKCP  BD      CP  BE    CMCN  BB  BDBBCM
+CKCKCKCKCKCK      CHCHCH        CKCKCKCKCKCKCKCKCKCKCK    CKCKCKCKCK
+                CN      CM

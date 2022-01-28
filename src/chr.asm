@@ -26,7 +26,8 @@ kSizeofChr = 16
 .EXPORT Ppu_ChrCave
 Ppu_ChrCave:
 :   .incbin "out/data/tiles/cave.chr"
-    .res $31 * kSizeofChr
+    .res $2d * kSizeofChr
+    .incbin "out/data/tiles/console.chr"
     .assert * - :- = kSizeofChr * 64, error
 
 ;;;=========================================================================;;;

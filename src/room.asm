@@ -24,11 +24,11 @@
 .SEGMENT "PRGC_Room"
 
 DataC_ShortRoomTerrain_arr:
-:   .incbin "out/data/rooms/short.room"
+:   .incbin "out/data/short.room"
     .assert * - :- = 16 * 16, error
 
 DataC_TallRoomTerrain_arr:
-:   .incbin "out/data/rooms/tall.room"
+:   .incbin "out/data/tall.room"
     .assert * - :- = 35 * 24, error
 
 .EXPORT DataC_TallRoom_sRoom

@@ -74,6 +74,9 @@ kAvatarJumpVelocity = $ffff & -810
 ;;; subpixels per frame per frame.
 kAvatarGravity = 48
 
+;;; Terrain block IDs greater than or equal to this are considered solid.
+kFirstSolidTerrainType = $40
+
 ;;; Modes that the player avatar can be in.  The number for each of these enum
 ;;; values is the starting tile ID to use for the avatar objects when the
 ;;; avatar is in that mode.
@@ -382,10 +385,12 @@ _Right:
     jsr FuncA_Terrain_GetColumnPtrForTileIndex  ; preserves Zp_Tmp*_byte
     ldy Zp_Tmp1_byte  ; room block row index (bottom of avatar)
     lda (Zp_TerrainColumn_u8_arr_ptr), y  ; terrain block type
-    bne @solid
+    cmp #kFirstSolidTerrainType
+    bge @solid
     ldy Zp_Tmp2_byte  ; room block row index (top of avatar)
     lda (Zp_TerrainColumn_u8_arr_ptr), y  ; terrain block type
-    beq _Done
+    cmp #kFirstSolidTerrainType
+    blt _Done
     ;; We've hit the right wall, so set horizontal velocity to zero, and set
     ;; horizontal position to just to the left of the wall we hit.
     @solid:
@@ -422,10 +427,12 @@ _Left:
     jsr FuncA_Terrain_GetColumnPtrForTileIndex  ; preserves Zp_Tmp*_byte
     ldy Zp_Tmp1_byte  ; room block row index (bottom of avatar)
     lda (Zp_TerrainColumn_u8_arr_ptr), y  ; terrain block type
-    bne @solid
+    cmp #kFirstSolidTerrainType
+    bge @solid
     ldy Zp_Tmp2_byte  ; room block row index (top of avatar)
     lda (Zp_TerrainColumn_u8_arr_ptr), y  ; terrain block type
-    beq _Done
+    cmp #kFirstSolidTerrainType
+    blt _Done
     ;; We've hit the left wall, so set horizontal velocity to zero, and set
     ;; horizontal position to just to the right of the wall we hit.
     @solid:
@@ -501,12 +508,14 @@ _Down:
     jsr FuncA_Terrain_GetColumnPtrForTileIndex  ; preserves Zp_Tmp*_byte
     ldy Zp_Tmp3_byte  ; room block row index (bottom of avatar)
     lda (Zp_TerrainColumn_u8_arr_ptr), y  ; terrain block type
-    bne @solid
+    cmp #kFirstSolidTerrainType
+    bge @solid
     lda Zp_Tmp2_byte  ; param: room tile column index (right side of avatar)
     jsr FuncA_Terrain_GetColumnPtrForTileIndex  ; preserves Zp_Tmp*_byte
     ldy Zp_Tmp3_byte  ; room block row index (bottom of avatar)
     lda (Zp_TerrainColumn_u8_arr_ptr), y  ; terrain block type
-    bne @solid
+    cmp #kFirstSolidTerrainType
+    bge @solid
     @empty:
     ;; There's no floor beneath us, so start falling.
     lda #ePlayer::Jumping
@@ -550,12 +559,14 @@ _Up:
     jsr FuncA_Terrain_GetColumnPtrForTileIndex  ; preserves Zp_Tmp*_byte
     ldy Zp_Tmp3_byte  ; room block row index (top of avatar)
     lda (Zp_TerrainColumn_u8_arr_ptr), y  ; terrain block type
-    bne @solid
+    cmp #kFirstSolidTerrainType
+    bge @solid
     lda Zp_Tmp2_byte  ; param: room tile column index (right side of avatar)
     jsr FuncA_Terrain_GetColumnPtrForTileIndex  ; preserves Zp_Tmp*_byte
     ldy Zp_Tmp3_byte  ; room block row index (top of avatar)
     lda (Zp_TerrainColumn_u8_arr_ptr), y  ; terrain block type
-    beq _Done
+    cmp #kFirstSolidTerrainType
+    blt _Done
     @solid:
     ;; We've hit the ceiling, so set vertical velocity to zero, and set
     ;; vertical position to just below the ceiling we hit.

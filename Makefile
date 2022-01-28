@@ -24,11 +24,13 @@ OUTDIR = out
 TESTDIR = tests
 BINDIR = $(OUTDIR)/bin
 DATADIR = $(OUTDIR)/data
+GENDIR = $(OUTDIR)/gen
 OBJDIR = $(OUTDIR)/obj
 SIM65DIR = $(OUTDIR)/sim65
 
 AHI2CHR = $(BINDIR)/ahi2chr
 BG2ROOM = $(BINDIR)/bg2room
+BG2TSET = $(BINDIR)/bg2tset
 LABEL2NL = $(BINDIR)/label2nl
 
 CFGFILE = $(SRCDIR)/linker.cfg
@@ -41,10 +43,13 @@ BGFILES := $(shell find $(SRCDIR) -name '*.bg')
 INCFILES := $(shell find $(SRCDIR) -name '*.inc')
 
 CHRFILES := $(patsubst $(SRCDIR)/%.ahi,$(DATADIR)/%.chr,$(AHIFILES))
-OBJFILES := $(patsubst $(SRCDIR)/%.asm,$(OBJDIR)/%.o,$(ASMFILES))
-ROOMFILES := $(patsubst $(SRCDIR)/%.bg,$(DATADIR)/%.room,$(BGFILES))
+GENFILES := $(GENDIR)/tileset.asm
+OBJFILES := $(patsubst $(SRCDIR)/%.asm,$(OBJDIR)/%.o,$(ASMFILES)) \
+            $(patsubst $(GENDIR)/%.asm,$(GENDIR)/%.o,$(GENFILES))
+ROOMFILES := $(patsubst $(SRCDIR)/rooms/%.bg,$(DATADIR)/%.room,$(BGFILES))
 
 #=============================================================================#
+# Phony targets:
 
 .PHONY: rom
 rom: $(ROMFILE)
@@ -65,6 +70,7 @@ clean:
 	rm -rf $(OUTDIR)
 
 #=============================================================================#
+# Build tools:
 
 define compile-c
 	@echo "Compiling $<"
@@ -75,21 +81,35 @@ endef
 $(AHI2CHR): build/ahi2chr.c
 	$(compile-c)
 
+$(BG2ROOM): build/bg2room.c
+	$(compile-c)
+
+$(BG2TSET): build/bg2tset.c
+	$(compile-c)
+
+$(LABEL2NL): build/label2nl.c
+	$(compile-c)
+
+#=============================================================================#
+# Generated files:
+
 $(DATADIR)/%.chr: $(SRCDIR)/%.ahi $(AHI2CHR)
 	@echo "Converting $<"
 	@mkdir -p $(@D)
 	@$(AHI2CHR) < $< > $@
 
-$(BG2ROOM): build/bg2room.c
-	$(compile-c)
-
-$(DATADIR)/%.room: $(SRCDIR)/%.bg $(BG2ROOM)
+$(DATADIR)/%.room: $(SRCDIR)/rooms/%.bg $(BG2ROOM)
 	@echo "Converting $<"
 	@mkdir -p $(@D)
 	@$(BG2ROOM) < $< > $@
 
-$(LABEL2NL): build/label2nl.c
-	$(compile-c)
+$(GENDIR)/tileset.asm: $(SRCDIR)/tileset.bg $(BG2TSET)
+	@echo "Generating $@"
+	@mkdir -p $(@D)
+	@mkdir -p $(OUTDIR)/blocks
+	@$(BG2TSET) < $< > $@
+
+.SECONDARY: $(GENFILES)
 
 $(ROMFILE).ram.nl: $(LABELFILE) $(LABEL2NL)
 	@echo "Generating $@"
@@ -102,6 +122,7 @@ $(ROMFILE).3.nl: $(LABELFILE) $(LABEL2NL)
 	@$(LABEL2NL) 8000 9fff c000 ffff < $< > $@
 
 #=============================================================================#
+# ASM tests:
 
 define link-test
 	@echo "Linking $@"
@@ -119,12 +140,7 @@ $(SIM65DIR)/%: $(TESTDIR)/%.cfg $(SIM65DIR)/%.o $(OBJDIR)/%.o \
 	$(link-test)
 
 #=============================================================================#
-
-$(ROMFILE) $(LABELFILE): $(CFGFILE) $(OBJFILES)
-	@echo "Linking $@"
-	@mkdir -p $(@D)
-	@ld65 -Ln $(LABELFILE) -o $@ -C $(CFGFILE) $(OBJFILES)
-$(LABELFILE): $(ROMFILE)
+# OBJ files:
 
 define compile-asm
 	@echo "Assembling $<"
@@ -140,5 +156,17 @@ $(OBJDIR)/room.o: $(SRCDIR)/room.asm $(INCFILES) $(ROOMFILES)
 
 $(OBJDIR)/%.o: $(SRCDIR)/%.asm $(INCFILES)
 	$(compile-asm)
+
+$(GENDIR)/%.o: $(GENDIR)/%.asm
+	$(compile-asm)
+
+#=============================================================================#
+# Game ROM:
+
+$(ROMFILE) $(LABELFILE): $(CFGFILE) $(OBJFILES)
+	@echo "Linking $@"
+	@mkdir -p $(@D)
+	@ld65 -Ln $(LABELFILE) -o $@ -C $(CFGFILE) $(OBJFILES)
+$(LABELFILE): $(ROMFILE)
 
 #=============================================================================#

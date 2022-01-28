@@ -54,6 +54,18 @@ Ram_PpuTransfer_arr: .res $80
 
 ;;;=========================================================================;;;
 
+.CODE
+
+.EXPORT DataA_Terrain_UpperLeft_u8_arr, DataA_Terrain_UpperRight_u8_arr
+.EXPORT DataA_Terrain_LowerLeft_u8_arr, DataA_Terrain_LowerRight_u8_arr
+DataA_Terrain_UpperLeft_u8_arr:
+DataA_Terrain_LowerLeft_u8_arr:
+DataA_Terrain_UpperRight_u8_arr:
+DataA_Terrain_LowerRight_u8_arr:
+    .res $100
+
+;;;=========================================================================;;;
+
 .SEGMENT "MAIN"
     sei
     cld
