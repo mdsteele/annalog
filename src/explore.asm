@@ -17,6 +17,7 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
+.INCLUDE "device.inc"
 .INCLUDE "joypad.inc"
 .INCLUDE "macros.inc"
 .INCLUDE "mmc3.inc"
@@ -29,12 +30,16 @@
 .IMPORT FuncA_Terrain_GetColumnPtrForTileIndex
 .IMPORT FuncA_Terrain_TransferTileColumn
 .IMPORT Func_ClearRestOfOam
+.IMPORT Func_DrawObjectsForAllDevices
 .IMPORT Func_FadeIn
 .IMPORT Func_ProcessFrame
 .IMPORT Func_UpdateButtons
 .IMPORT Func_Window_DirectDrawTopBorder
 .IMPORT Func_Window_SetUpIrq
 .IMPORT Main_Console_OpenWindow
+.IMPORT Ram_DeviceBlockCol_u8_arr
+.IMPORT Ram_DeviceBlockRow_u8_arr
+.IMPORT Ram_DeviceType_eDevice_arr
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORTZP Zp_Current_sRoom
 .IMPORTZP Zp_OamOffset_u8
@@ -54,7 +59,7 @@
 ;;; How far the player avatar's bounding box extends in each direction from the
 ;;; avatar's position.
 kAvatarBoundingBoxUp = 6
-kAvatarBoundingBoxDown = 10
+kAvatarBoundingBoxDown = 9
 kAvatarBoundingBoxLeft = 5
 kAvatarBoundingBoxRight = 5
 
@@ -81,10 +86,10 @@ kFirstSolidTerrainType = $40
 ;;; values is the starting tile ID to use for the avatar objects when the
 ;;; avatar is in that mode.
 .ENUM ePlayer
-    Standing = $08
-    Reading  = $0c
-    Running  = $10
-    Jumping  = $14
+    Standing = $0a
+    Reading  = $0e
+    Running  = $12
+    Jumping  = $16
 .ENDENUM
 
 ;;;=========================================================================;;;
@@ -107,7 +112,9 @@ Zp_ScrollGoalY_u8: .res 1
 ;;; The high byte of the current horizontal scroll position (the low byte is
 ;;; stored in Zp_PpuScrollX_u8, and together they form a single u16).  This
 ;;; high byte doesn't matter for PPU scrolling, but does matter for comparisons
-;;; of the current scroll position with Zp_ScrollGoalX_u16.
+;;; of the current scroll position with Zp_ScrollGoalX_u16 or 16-bit object
+;;; positions.
+.EXPORTZP Zp_ScrollXHi_u8
 Zp_ScrollXHi_u8: .res 1
 
 ;;; The current X/Y positions of the player avatar, in room-space pixels.
@@ -134,17 +141,22 @@ Zp_AvatarMode_ePlayer: .res 1
 ;;; @prereq Rendering is disabled.
 .EXPORT Main_Explore_Enter
 .PROC Main_Explore_Enter
+    ;; Initialize avatar state.
+    lda #ePlayer::Standing
+    sta Zp_AvatarMode_ePlayer
     lda #0
+    sta Zp_AvatarVelX_i16 + 0
+    sta Zp_AvatarVelX_i16 + 1
+    sta Zp_AvatarVelY_i16 + 0
+    sta Zp_AvatarVelY_i16 + 1
+    ;; TODO: Init other state based on the room and the device we're entering
+    ;;   through.
     sta Zp_ScrollGoalX_u16 + 0
     sta Zp_ScrollGoalX_u16 + 1
     sta Zp_ScrollGoalY_u8
     sta Zp_ScrollXHi_u8
     sta Zp_PpuScrollX_u8
     sta Zp_PpuScrollY_u8
-    sta Zp_AvatarVelX_i16 + 0
-    sta Zp_AvatarVelX_i16 + 1
-    sta Zp_AvatarVelY_i16 + 0
-    sta Zp_AvatarVelY_i16 + 1
     sta Zp_AvatarPosX_i16 + 1
     sta Zp_AvatarPosY_i16 + 1
     sta Zp_AvatarFlags_bObj
@@ -152,8 +164,12 @@ Zp_AvatarMode_ePlayer: .res 1
     sta Zp_AvatarPosX_i16 + 0
     lda #$66
     sta Zp_AvatarPosY_i16 + 0
-    lda #ePlayer::Standing
-    sta Zp_AvatarMode_ePlayer
+    lda #eDevice::Console
+    sta Ram_DeviceType_eDevice_arr + 0
+    lda #8
+    sta Ram_DeviceBlockRow_u8_arr + 0
+    lda #5
+    sta Ram_DeviceBlockCol_u8_arr + 0
 _InitializeWindow:
     lda #$ff
     sta Zp_WindowTop_u8
@@ -174,7 +190,7 @@ _DrawTerrain:
 _InitObjects:
     lda #0
     sta Zp_OamOffset_u8
-    jsr Func_ExploreDrawAvatar
+    jsr Func_DrawObjectsForRoom
     jsr Func_ClearRestOfOam
 _FadeIn:
     lda #bPpuMask::BgMain | bPpuMask::ObjMain
@@ -193,7 +209,7 @@ _FadeIn:
 .EXPORT Main_Explore_Continue
 .PROC Main_Explore_Continue
 _GameLoop:
-    jsr Func_ExploreDrawAvatar
+    jsr Func_DrawObjectsForRoom
     jsr Func_ClearRestOfOam
     jsr Func_ProcessFrame
     jsr Func_UpdateButtons
@@ -708,8 +724,17 @@ _DoneLeftRight:
     rts
 .ENDPROC
 
-.EXPORT Func_ExploreDrawAvatar
-.PROC Func_ExploreDrawAvatar
+;;; Allocates and populates OAM slots for everything in the room that should
+;;; always be visible: the player avatar, machines, enemies, and devices.
+.EXPORT Func_DrawObjectsForRoom
+.PROC Func_DrawObjectsForRoom
+    jsr Func_DrawObjectsForPlayerAvatar
+    ;; TODO: Draw objects for e.g. machines and enemies
+    jmp Func_DrawObjectsForAllDevices
+.ENDPROC
+
+;;; Allocates and populates OAM slots for the player avatar.
+.PROC Func_DrawObjectsForPlayerAvatar
     ;; We need to allocate four objects.  If there's not room in OAM, give up.
     ldy Zp_OamOffset_u8
     cpy #.sizeof(sObj) * (kNumOamSlots - 4) + 1

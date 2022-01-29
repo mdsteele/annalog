@@ -18,6 +18,7 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "charmap.inc"
+.INCLUDE "console.inc"
 .INCLUDE "flag.inc"
 .INCLUDE "joypad.inc"
 .INCLUDE "macros.inc"
@@ -33,7 +34,7 @@
 .IMPORT FuncA_Console_SetCurrentFieldValue
 .IMPORT FuncA_Console_TransferInstruction
 .IMPORT Func_ClearRestOfOam
-.IMPORT Func_ExploreDrawAvatar
+.IMPORT Func_DrawObjectsForRoom
 .IMPORT Func_ProcessFrame
 .IMPORT Func_ScrollTowardsGoal
 .IMPORT Func_SetScrollGoalFromAvatar
@@ -761,16 +762,16 @@ _ObjectLoop:
     txa
     beq @tileRight
     @tileMiddle:
-    lda #$02
+    lda #kConsoleObjTileIdCursorSolidMiddle
     bne @setTile  ; unconditional
     @tileRight:
-    lda #$03
+    lda #kConsoleObjTileIdCursorSolidRight
     bne @setTile  ; unconditional
     @tileLeft:
-    lda #$01
+    lda #kConsoleObjTileIdCursorSolidLeft
     bne @setTile  ; unconditional
     @tileSingle:
-    lda #$00
+    lda #kConsoleObjTileIdCursorSolidSingle
     @setTile:
     sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
     ;; Move offset to the next object.
@@ -847,7 +848,7 @@ _GameLoop:
     prga_bank #<.bank(FuncA_Console_DrawMenuCursorObjects)
     jsr FuncA_Console_DrawMenuCursorObjects
     jsr FuncA_Console_DrawFieldCursorObjects
-    jsr Func_ExploreDrawAvatar
+    jsr Func_DrawObjectsForRoom
     jsr Func_ClearRestOfOam
     jsr Func_ProcessFrame
     jsr Func_UpdateButtons

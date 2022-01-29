@@ -17,39 +17,13 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
-kSizeofChr = 16
-
-;;;=========================================================================;;;
-
-.SEGMENT "CHR_Cave"
-
-.EXPORT Ppu_ChrCave
-Ppu_ChrCave:
-:   .incbin "out/data/tiles/cave.chr"
-    .res $2d * kSizeofChr
-    .incbin "out/data/tiles/console.chr"
-    .assert * - :- = kSizeofChr * 64, error
-
-;;;=========================================================================;;;
-
-.SEGMENT "CHR_Font"
-
-.EXPORT Ppu_ChrFont
-Ppu_ChrFont:
-:   .incbin "out/data/tiles/font.chr"
-    .res $22 * kSizeofChr
-    .assert * - :- = kSizeofChr * 128, error
-
-;;;=========================================================================;;;
-
-.SEGMENT "CHR_Player"
-
-.EXPORT Ppu_ChrPlayer
-Ppu_ChrPlayer:
-:   .incbin "out/data/tiles/cursor.chr"
-    .incbin "out/data/tiles/screen.chr"
-    .incbin "out/data/tiles/player.chr"
-    .res $66 * kSizeofChr
-    .assert * - :- = kSizeofChr * 128, error
+;;; OBJ tile IDs for drawing the console field/menu cursors.
+kConsoleObjTileIdCursorSolidSingle = $00
+kConsoleObjTileIdCursorSolidLeft   = $01
+kConsoleObjTileIdCursorSolidRight  = $03
+kConsoleObjTileIdCursorSolidMiddle = $02
+kConsoleObjTileIdCursorDimSingle   = $04
+kConsoleObjTileIdCursorDimLeft     = $05
+kConsoleObjTileIdCursorDimRight    = $07
 
 ;;;=========================================================================;;;

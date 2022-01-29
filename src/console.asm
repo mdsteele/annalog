@@ -18,6 +18,7 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "charmap.inc"
+.INCLUDE "console.inc"
 .INCLUDE "joypad.inc"
 .INCLUDE "macros.inc"
 .INCLUDE "mmc3.inc"
@@ -27,7 +28,7 @@
 .INCLUDE "window.inc"
 
 .IMPORT Func_ClearRestOfOam
-.IMPORT Func_ExploreDrawAvatar
+.IMPORT Func_DrawObjectsForRoom
 .IMPORT Func_Menu_EditSelectedField
 .IMPORT Func_ProcessFrame
 .IMPORT Func_ScrollTowardsGoal
@@ -80,7 +81,7 @@ kConsoleMarginBottomPx = 12
 ;;; How fast the console window scrolls up/down, in pixels per frame.
 kConsoleWindowScrollSpeed = 6
 
-;;; Tile IDs for drawing the contents of the console window.
+;;; BG tile IDs for drawing the contents of the console window.
 kConsoleTileIdArrowFirst = $5a
 kConsoleTileIdArrowLeft  = $5c
 kConsoleTileIdArrowRight = $5d
@@ -188,7 +189,7 @@ _InitWindow:
     sub Zp_Tmp1_byte
     sta Zp_WindowTopGoal_u8
 _GameLoop:
-    jsr Func_ExploreDrawAvatar
+    jsr Func_DrawObjectsForRoom
     jsr Func_ClearRestOfOam
     jsr Func_ProcessFrame
     jsr Func_UpdateButtons
@@ -219,7 +220,7 @@ _UpdateScrolling:
 ;;; @prereq Explore mode is initialized.
 .PROC Main_Console_CloseWindow
 _GameLoop:
-    jsr Func_ExploreDrawAvatar
+    jsr Func_DrawObjectsForRoom
     jsr Func_ClearRestOfOam
     jsr Func_ProcessFrame
     jsr Func_UpdateButtons
@@ -256,7 +257,7 @@ _UpdateScrolling:
 _GameLoop:
     prga_bank #<.bank(FuncA_Console_DrawFieldCursorObjects)
     jsr FuncA_Console_DrawFieldCursorObjects
-    jsr Func_ExploreDrawAvatar
+    jsr Func_DrawObjectsForRoom
     jsr Func_ClearRestOfOam
     jsr Func_ProcessFrame
     jsr Func_UpdateButtons
@@ -486,13 +487,13 @@ _ObjectLoop:
     txa
     bne @continue
     @dimRight:
-    lda #$07
+    lda #kConsoleObjTileIdCursorDimRight
     bne @setTile  ; unconditional
     @dimLeft:
-    lda #$05
+    lda #kConsoleObjTileIdCursorDimLeft
     bne @setTile  ; unconditional
     @dimSingle:
-    lda #$04
+    lda #kConsoleObjTileIdCursorDimSingle
     bne @setTile  ; unconditional
     @undiminished:
     lda Zp_Tmp3_byte
@@ -502,16 +503,16 @@ _ObjectLoop:
     txa
     beq @tileRight
     @tileMiddle:
-    lda #$02
+    lda #kConsoleObjTileIdCursorSolidMiddle
     bne @setTile  ; unconditional
     @tileRight:
-    lda #$03
+    lda #kConsoleObjTileIdCursorSolidRight
     bne @setTile  ; unconditional
     @tileLeft:
-    lda #$01
+    lda #kConsoleObjTileIdCursorSolidLeft
     bne @setTile  ; unconditional
     @tileSingle:
-    lda #$00
+    lda #kConsoleObjTileIdCursorSolidSingle
     @setTile:
     sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
     ;; Move offset to the next object.
