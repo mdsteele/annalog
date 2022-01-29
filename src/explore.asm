@@ -42,6 +42,7 @@
 .IMPORT Ram_DeviceType_eDevice_arr
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORTZP Zp_Current_sRoom
+.IMPORTZP Zp_FrameCounter_u8
 .IMPORTZP Zp_OamOffset_u8
 .IMPORTZP Zp_P1ButtonsHeld_bJoypad
 .IMPORTZP Zp_P1ButtonsPressed_bJoypad
@@ -52,6 +53,7 @@
 .IMPORTZP Zp_Tmp1_byte
 .IMPORTZP Zp_Tmp2_byte
 .IMPORTZP Zp_Tmp3_byte
+.IMPORTZP Zp_Tmp4_byte
 .IMPORTZP Zp_WindowTop_u8
 
 ;;;=========================================================================;;;
@@ -91,6 +93,11 @@ kFirstSolidTerrainType = $40
     Running  = $12
     Jumping  = $16
 .ENDENUM
+
+;;; The OBJ palette number and tile ID used for the visual prompt that appears
+;;; when the player avatar is near a device.
+kDevicePromptObjPalette = 0
+kDevicePromptObjTileId = $06
 
 ;;;=========================================================================;;;
 
@@ -132,6 +139,9 @@ Zp_AvatarFlags_bObj: .res 1
 ;;; What mode the avatar is currently in (e.g. standing, jumping, etc.).
 Zp_AvatarMode_ePlayer: .res 1
 
+;;; The index of the device that the player avatar is near, or $ff if none.
+Zp_NearbyDevice_u8: .res 1
+
 ;;;=========================================================================;;;
 
 .SEGMENT "PRG8_Explore"
@@ -141,6 +151,8 @@ Zp_AvatarMode_ePlayer: .res 1
 ;;; @prereq Rendering is disabled.
 .EXPORT Main_Explore_Enter
 .PROC Main_Explore_Enter
+    lda #$ff
+    sta Zp_NearbyDevice_u8
     ;; Initialize avatar state.
     lda #ePlayer::Standing
     sta Zp_AvatarMode_ePlayer
@@ -213,15 +225,69 @@ _GameLoop:
     jsr Func_ClearRestOfOam
     jsr Func_ProcessFrame
     jsr Func_UpdateButtons
+    jsr Func_FindNearbyDevice
     jsr Func_SetScrollGoalFromAvatar
     jsr Func_ScrollTowardsGoal
-.PROC _CheckForPause
+.PROC _CheckForActivateDevice
     lda Zp_P1ButtonsPressed_bJoypad
-    and #bJoypad::Start
-    jne Main_Console_OpenWindow
+    and #bJoypad::BButton
+    beq _Done
+    ldx Zp_NearbyDevice_u8
+    bmi _Done
+    lda Ram_DeviceType_eDevice_arr, x
+    cmp #eDevice::Console
+    jeq Main_Console_OpenWindow
+    ;; TODO: Implement interacting with other device types.
+_Done:
 .ENDPROC
     jsr Func_ExploreMoveAvatar
     jmp _GameLoop
+.ENDPROC
+
+;;; Sets Zp_NearbyDevice_u8 to the index of the device that the player avatar
+;;; is near (if any), or to $ff if the avatar is not near a device.
+.PROC Func_FindNearbyDevice
+    ;; Check if the player avatar is airborne; if so, treat them as not near
+    ;; any device.
+    lda Zp_AvatarMode_ePlayer
+    cmp #ePlayer::Jumping
+    bne @notJumping
+    ldx #$ff
+    bne @done  ; unconditional
+    @notJumping:
+    ;; Calculate the player avatar's room block row and store it in
+    ;; Zp_Tmp1_byte.
+    lda Zp_AvatarPosY_i16 + 0
+    sta Zp_Tmp1_byte
+    lda Zp_AvatarPosY_i16 + 1
+    .repeat 4
+    lsr a
+    ror Zp_Tmp1_byte
+    .endrepeat
+    ;; Calculate the player avatar's room block column and store it in
+    ;; Zp_Tmp2_byte.
+    lda Zp_AvatarPosX_i16 + 0
+    sta Zp_Tmp2_byte
+    lda Zp_AvatarPosX_i16 + 1
+    .repeat 4
+    lsr a
+    ror Zp_Tmp2_byte
+    .endrepeat
+    ;; Find a device with the same block row/col.
+    ldx #kMaxDevices - 1
+    @loop:
+    lda Ram_DeviceBlockCol_u8_arr, x
+    cmp Zp_Tmp2_byte  ; player block col
+    bne @continue
+    lda Ram_DeviceBlockRow_u8_arr, x
+    cmp Zp_Tmp1_byte  ; player block row
+    beq @done
+    @continue:
+    dex
+    bpl @loop
+    @done:
+    stx Zp_NearbyDevice_u8
+    rts
 .ENDPROC
 
 ;;; Sets Zp_ScrollGoalX_u16 and Zp_ScrollGoalY_u8 such that the player avatar
@@ -607,6 +673,8 @@ _ApplyGravity:
     rts
 .ENDPROC
 
+;;; Update the player avatar's velocity and flags based on controller input
+;;; (left/right and jump).
 .PROC Func_PlayerApplyJoypad
 _JoypadLeft:
     ;; Check D-pad left.
@@ -702,10 +770,13 @@ _DoneLeftRight:
     rts
 .ENDPROC
 
+;;; Update the player avatar's Y-velocity to apply gravity.
 .PROC Func_PlayerApplyGravity
+    ;; Only apply gravity if the player avatar is airborne.
     lda Zp_AvatarMode_ePlayer
     cmp #ePlayer::Jumping
     blt @noGravity
+    ;; Accelerate the player avatar downwards.
     lda #kAvatarGravity
     add Zp_AvatarVelY_i16 + 0
     sta Zp_AvatarVelY_i16 + 0
@@ -729,6 +800,7 @@ _DoneLeftRight:
 .EXPORT Func_DrawObjectsForRoom
 .PROC Func_DrawObjectsForRoom
     jsr Func_DrawObjectsForPlayerAvatar
+    jsr Func_DrawObjectsForDevicePrompt
     ;; TODO: Draw objects for e.g. machines and enemies
     jmp Func_DrawObjectsForAllDevices
 .ENDPROC
@@ -828,6 +900,68 @@ _FinishAllocation:
     tya
     add #.sizeof(sObj) * 4
     sta Zp_OamOffset_u8
+    rts
+.ENDPROC
+
+;;; Allocates and populates OAM slots for the visual prompt that appears when
+;;; the player avatar is near a device.
+.PROC Func_DrawObjectsForDevicePrompt
+    lda Zp_NearbyDevice_u8
+    bmi _NotVisible
+    ;; Calculate the screen X-position and store it in Zp_Tmp1_byte:
+    lda Zp_AvatarPosX_i16 + 0
+    sub Zp_PpuScrollX_u8
+    sta Zp_Tmp1_byte
+    lda Zp_AvatarPosX_i16 + 1
+    sbc Zp_ScrollXHi_u8
+    sta Zp_Tmp2_byte
+    lda Zp_Tmp1_byte
+    sub #kTileWidthPx / 2
+    sta Zp_Tmp1_byte  ; screen pixel X-pos
+    lda Zp_Tmp2_byte
+    sbc #0
+    bne _NotVisible
+    ;; Calculate the Y-offset and store it in Zp_Tmp4_byte:
+    lda Zp_FrameCounter_u8
+    lsr a
+    lsr a
+    lsr a
+    and #$03
+    cmp #$03
+    bne @noZigZag
+    lda #$01
+    @noZigZag:
+    add #3 + kTileWidthPx * 2
+    sta Zp_Tmp4_byte  ; Y-offset
+    ;; Calculate the screen Y-position and store it in Zp_Tmp2_byte:
+    lda Zp_AvatarPosY_i16 + 0
+    sub Zp_PpuScrollY_u8
+    sta Zp_Tmp2_byte
+    lda Zp_AvatarPosY_i16 + 1
+    sbc #0
+    sta Zp_Tmp3_byte
+    lda Zp_Tmp2_byte
+    sub Zp_Tmp4_byte  ; Y-offset
+    sta Zp_Tmp2_byte  ; screen pixel Y-pos
+    lda Zp_Tmp3_byte
+    sbc #0
+    bne _NotVisible
+    ;; Set object attributes.
+    ldy Zp_OamOffset_u8
+    lda Zp_Tmp2_byte  ; screen pixel Y-pos
+    sta Ram_Oam_sObj_arr64 + sObj::YPos_u8, y
+    lda Zp_Tmp1_byte  ; screen pixel X-pos
+    sta Ram_Oam_sObj_arr64 + sObj::XPos_u8, y
+    lda #kDevicePromptObjPalette
+    sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
+    lda #kDevicePromptObjTileId
+    sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
+    ;; Update the OAM offset.
+    .repeat .sizeof(sObj)
+    iny
+    .endrepeat
+    sty Zp_OamOffset_u8
+_NotVisible:
     rts
 .ENDPROC
 

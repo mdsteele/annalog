@@ -59,6 +59,11 @@ Zp_PpuScrollY_u8: .res 1
 .EXPORTZP Zp_PpuTransferLen_u8
 Zp_PpuTransferLen_u8: .res 1
 
+;;; A counter that gets incremented by every call to Func_ProcessFrame.  It can
+;;; be used to drive looping animations.
+.EXPORTZP Zp_FrameCounter_u8
+Zp_FrameCounter_u8: .res 1
+
 ;;;=========================================================================;;;
 
 .SEGMENT "RAM_PpuTransfer"
@@ -173,6 +178,7 @@ _DoneUpdatingPpu:
 ;;; the next NMI to complete.
 .EXPORT Func_ProcessFrame
 .PROC Func_ProcessFrame
+    inc Zp_FrameCounter_u8
     ;; Zero-terminate the PPU transfer buffer.
     ldx Zp_PpuTransferLen_u8
     lda #0
