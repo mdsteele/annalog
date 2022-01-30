@@ -21,13 +21,6 @@
 
 ;;;=========================================================================;;;
 
-;;; The number of distinct saved programs in the game.  Each machine in the
-;;; game uses one of these programs, although in a few cases, multiple machines
-;;; may share the same program.
-kNumPrograms = 16
-
-;;;=========================================================================;;;
-
 .SEGMENT "SRAM"
 
 ;;; If equal to kSaveMagicNumber, then this save file exists.  If equal to any
@@ -57,6 +50,7 @@ Sram_ProgressFlags_arr:
 ;;;   we can draw a minimap on the pause screen.
 
 ;;; An array of the player's saved programs.
+.EXPORT Sram_Programs_sProgram_arr
 Sram_Programs_sProgram_arr:
     .assert * & $1f = 0, error, "32-byte alignment"
     .assert .sizeof(sProgram) = $20, error

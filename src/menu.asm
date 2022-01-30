@@ -21,6 +21,7 @@
 .INCLUDE "console.inc"
 .INCLUDE "flag.inc"
 .INCLUDE "joypad.inc"
+.INCLUDE "machine.inc"
 .INCLUDE "macros.inc"
 .INCLUDE "menu.inc"
 .INCLUDE "mmc3.inc"
@@ -44,6 +45,7 @@
 .IMPORT Ram_PpuTransfer_arr
 .IMPORT Sram_ProgressFlags_arr
 .IMPORTZP Zp_ConsoleNumInstRows_u8
+.IMPORTZP Zp_Console_sMachine_ptr
 .IMPORTZP Zp_OamOffset_u8
 .IMPORTZP Zp_P1ButtonsPressed_bJoypad
 .IMPORTZP Zp_PpuTransferLen_u8
@@ -259,18 +261,29 @@ _SetRowsForMenuLeftColumn:
     ;; TODO: Check if GOTO opcode is unlocked.
     stx Ram_MenuRows_u8_arr + eOpcode::Goto
     inx
-    ;; Check if SKIP opcode is unlocked.
+    ;; Check if the SKIP opcode is unlocked.
     lda Sram_ProgressFlags_arr + (eFlag::UpgradeOpcodeSkip >> 3)
     and #1 << (eFlag::UpgradeOpcodeSkip & $07)
     beq @noSkipOpcode
     stx Ram_MenuRows_u8_arr + eOpcode::Skip
     inx
     @noSkipOpcode:
-    ;; TODO: Check if machine supports ACT opcode.
+    ;; Check if this machine supports the ACT opcode.
+    ldy #sMachine::Flags_bMachine
+    lda (Zp_Console_sMachine_ptr), y
+    tay
+    and #bMachine::Act
+    beq @noActOpcode
     stx Ram_MenuRows_u8_arr + eOpcode::Act
     inx
-    ;; TODO: Check if machine supports MOVE opcode.
+    @noActOpcode:
+    ;; Check if this machine supports the MOVE opcode.
+    tya  ; machine flags
+    and #bMachine::MoveH | bMachine::MoveV
+    beq @noMoveOpcode
     stx Ram_MenuRows_u8_arr + eOpcode::Move
+    @noMoveOpcode:
+    ;; Put an entry for the EMPTY opcode on the last row of the menu.
     ldx Zp_ConsoleNumInstRows_u8
     dex
     stx Ram_MenuRows_u8_arr + eOpcode::Empty
@@ -287,7 +300,7 @@ _SetRowsForMenuRightColumn:
     ;; TODO: Check if IF opcode is unlocked.
     stx Ram_MenuRows_u8_arr + eOpcode::If
     inx
-    ;; Check if TIL opcode is unlocked.
+    ;; Check if the TIL opcode is unlocked.
     lda Sram_ProgressFlags_arr + (eFlag::UpgradeOpcodeTil >> 3)
     and #1 << (eFlag::UpgradeOpcodeTil & $07)
     beq @noTilOpcode
@@ -297,6 +310,7 @@ _SetRowsForMenuRightColumn:
     ;; TODO: Check if NOP opcode is unlocked.
     stx Ram_MenuRows_u8_arr + eOpcode::Nop
     inx
+    ;; The END opcode is always available.
     stx Ram_MenuRows_u8_arr + eOpcode::End
     rts
 _Columns_u8_arr:
@@ -574,7 +588,13 @@ _SetItem:
     sub #5
     lsr a
     sta Zp_Tmp1_byte
-    ;; TODO: Check if the current machine supports vertical movement.
+    ;; Check if this machine supports moving vertically.
+    ldy #sMachine::Flags_bMachine
+    lda (Zp_Console_sMachine_ptr), y
+    tay
+    and #bMachine::MoveV
+    beq @noMoveVert
+    ;; If so, position menu items for up/down.
     lda Zp_Tmp1_byte
     sta Ram_MenuRows_u8_arr + eDir::Up
     add #4
@@ -582,7 +602,12 @@ _SetItem:
     lda #3
     sta Ram_MenuCols_u8_arr + eDir::Up
     sta Ram_MenuCols_u8_arr + eDir::Down
-    ;; TODO: Check if the current machine supports horizontal movement.
+    @noMoveVert:
+    ;; Check if this machine supports moving horizontally.
+    tya  ; machine flags
+    and #bMachine::MoveH
+    beq @noMoveHorz
+    ;; If so, position menu items for left/right.
     ldx Zp_Tmp1_byte
     inx
     inx
@@ -592,6 +617,7 @@ _SetItem:
     sta Ram_MenuCols_u8_arr + eDir::Left
     lda #5
     sta Ram_MenuCols_u8_arr + eDir::Right
+    @noMoveHorz:
     rts
 .ENDPROC
 
@@ -784,10 +810,8 @@ _ObjectLoop:
     rts
 .ENDPROC
 
-;;; Given a function pointer offset in sMenu (e.g. sMenu::OnUp_func_ptr) for a
-;;; D-pad direciton, updates Zp_MenuItem_u8 appropriately to move the menu
-;;; cursor in the direction, based on the current menu layout.
-;;; @param Y The sMenu function pointer offset.
+;;; Moves the console menu cursor (updating Zp_MenuItem_u8 appropriately) based
+;;; on the current joypad state.
 .PROC FuncA_Console_MoveMenuCursor
 _MoveCursorUp:
     lda Zp_P1ButtonsPressed_bJoypad

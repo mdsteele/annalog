@@ -62,6 +62,13 @@ Ram_DeviceBlockRow_u8_arr: .res kMaxDevices
 .EXPORT Ram_DeviceBlockCol_u8_arr
 Ram_DeviceBlockCol_u8_arr: .res kMaxDevices
 
+;;; The "target" for each device, whose meaning depends on the device type:
+;;;   * For consoles, this is the machine index.
+;;;   * For levers, this is TODO switch state index?
+;;;   * For signs, this is TODO dialogue number?
+.EXPORT Ram_DeviceTarget_u8_arr
+Ram_DeviceTarget_u8_arr: .res kMaxDevices
+
 ;;; TODO: Store other data for each device (e.g. machine number for consoles).
 
 ;;;=========================================================================;;;

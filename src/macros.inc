@@ -123,7 +123,8 @@
 ;;; DIV (divide A by a constant power of 2)
 ;;; Affects flags: N Z C
 ;;;
-;;; The argument must be a constant immediate value equal to 2, 4, 8, or 16.
+;;; The argument must be a constant immediate value equal to 2, 4, 8, 16, or
+;;; 32.
 ;;;
 ;;; Examples:
 ;;;     div #$10            ; divides A by 16
@@ -143,10 +144,13 @@
     lsr a
     lsr a
     .elseif 16 = _get_immediate ARG
+    .repeat 4
     lsr a
+    .endrepeat
+    .elseif 32 = _get_immediate ARG
+    .repeat 5
     lsr a
-    lsr a
-    lsr a
+    .endrepeat
     .else
     .error .sprintf("unsupported div argument: %d", _get_immediate ARG)
     .endif
@@ -155,7 +159,8 @@
 ;;; MUL (multiply A by a constant power of 2)
 ;;; Affects flags: N Z C
 ;;;
-;;; The argument must be a constant immediate value equal to 2, 4, 8, or 16.
+;;; The argument must be a constant immediate value equal to 2, 4, 8, 16, or
+;;; 32.
 ;;;
 ;;; Examples:
 ;;;     mul #$10            ; multiplies A by 16
@@ -175,10 +180,13 @@
     asl a
     asl a
     .elseif 16 = _get_immediate ARG
+    .repeat 4
     asl a
+    .endrepeat
+    .elseif 32 = _get_immediate ARG
+    .repeat 5
     asl a
-    asl a
-    asl a
+    .endrepeat
     .else
     .error .sprintf("unsupported mul argument: %d", _get_immediate ARG)
     .endif

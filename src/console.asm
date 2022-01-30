@@ -20,6 +20,7 @@
 .INCLUDE "charmap.inc"
 .INCLUDE "console.inc"
 .INCLUDE "joypad.inc"
+.INCLUDE "machine.inc"
 .INCLUDE "macros.inc"
 .INCLUDE "mmc3.inc"
 .INCLUDE "oam.inc"
@@ -42,6 +43,8 @@
 .IMPORT Main_Explore_Continue
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORT Ram_PpuTransfer_arr
+.IMPORT Sram_Programs_sProgram_arr
+.IMPORTZP Zp_Machines_sMachine_arr_ptr
 .IMPORTZP Zp_OamOffset_u8
 .IMPORTZP Zp_P1ButtonsPressed_bJoypad
 .IMPORTZP Zp_PpuTransferLen_u8
@@ -102,6 +105,13 @@ kInstructionWidthTiles = 7
 
 .ZEROPAGE
 
+;;; The index of the machine that the console is controlling.
+Zp_ConsoleMachineIndex_u8: .res 1
+
+;;; A pointer to the static data for the machine the console is controlling.
+.EXPORTZP Zp_Console_sMachine_ptr
+Zp_Console_sMachine_ptr: .res 2
+
 ;;; The number of instruction rows in the console window (i.e. not including
 ;;; the borders or the bottom margin).
 .EXPORTZP Zp_ConsoleNumInstRows_u8
@@ -141,40 +151,15 @@ Ram_Console_sProgram: .tag sProgram
 ;;; Mode for scrolling in the console window.
 ;;; @prereq Rendering is enabled.
 ;;; @prereq Explore mode is initialized.
+;;; @param A The machine index to open a console for.
 .EXPORT Main_Console_OpenWindow
 .PROC Main_Console_OpenWindow
+    sta Zp_ConsoleMachineIndex_u8
+    prga_bank #<.bank(FuncA_Console_LoadProgram)
+    jsr FuncA_Console_LoadProgram
     ;; TODO: Get actual number of instructions from progress data
     lda #8
     sta Zp_ConsoleNumInstRows_u8
-    ;; TODO: Load the correct program from SRAM
-    ldax #$1a07
-    stax Ram_Console_sProgram + $00
-    ldax #$2a0b
-    stax Ram_Console_sProgram + $02
-    ldax #$3ab1
-    stax Ram_Console_sProgram + $04
-    ldax #$4a1b
-    stax Ram_Console_sProgram + $06
-    ldax #$5ab2
-    stax Ram_Console_sProgram + $08
-    ldax #$6200
-    stax Ram_Console_sProgram + $0a
-    ldax #$7a00
-    stax Ram_Console_sProgram + $0c
-    ldax #$82a1
-    stax Ram_Console_sProgram + $0e
-    ldax #$956a
-    stax Ram_Console_sProgram + $10
-    ldax #$a000
-    stax Ram_Console_sProgram + $12
-    ldax #$b100
-    stax Ram_Console_sProgram + $14
-    ldax #$e000
-    stax Ram_Console_sProgram + $16
-    ldax #$f000
-    stax Ram_Console_sProgram + $18
-    ldax #$0000
-    stax Ram_Console_sProgram + $1a
 _InitWindow:
     lda #kScreenHeightPx - kConsoleWindowScrollSpeed
     sta Zp_WindowTop_u8
@@ -262,11 +247,14 @@ _GameLoop:
     jsr Func_ProcessFrame
     jsr Func_UpdateButtons
 _CheckButtons:
-    prga_bank #<.bank(FuncA_Console_InsertInstruction)
+    prga_bank #<.bank(FuncA_Console_SaveProgram)
     ;; B button:
     lda Zp_P1ButtonsPressed_bJoypad
     and #bJoypad::BButton
-    jne Main_Console_CloseWindow
+    beq @noClose
+    jsr FuncA_Console_SaveProgram
+    jmp Main_Console_CloseWindow
+    @noClose:
     ;; Select button:
     lda Zp_P1ButtonsPressed_bJoypad
     and #bJoypad::Select
@@ -295,6 +283,76 @@ _UpdateScrolling:
 
 .SEGMENT "PRGA_Console"
 
+;;; Returns a pointer to the SRAM program for the current machine.
+;;; @prereq Zp_Console_sMachine_ptr has been initialized.
+;;; @return Zp_Tmp_ptr A pointer to the sProgram in SRAM.
+.PROC FuncA_Console_GetSramProgramPtr
+    ;; Store the machine's program number in A.
+    ldy #sMachine::Code_eProgram
+    lda (Zp_Machines_sMachine_arr_ptr), y
+    ;; Calculate the 16-bit byte offset into Sram_Programs_sProgram_arr,
+    ;; putting the lo byte in A and the hi byte in Zp_Tmp1_byte.
+    .assert sMachine::Code_eProgram = 0, error
+    sty Zp_Tmp1_byte  ; Y is currently zero
+    .repeat .sizeof(sProgram)
+    asl a
+    rol Zp_Tmp1_byte
+    .endrepeat
+    ;; Calculate a pointer to the start of the sProgram in SRAM and store it in
+    ;; Zp_Tmp_ptr.
+    add #<Sram_Programs_sProgram_arr
+    sta Zp_Tmp_ptr + 0
+    lda Zp_Tmp1_byte
+    adc #>Sram_Programs_sProgram_arr
+    sta Zp_Tmp_ptr + 1
+    rts
+.ENDPROC
+
+;;; Initializes Zp_Console_sMachine_ptr and Ram_Console_sProgram for the
+;;; current machine.
+;;; @prereq Zp_ConsoleMachineIndex_u8 has been initialized.
+.PROC FuncA_Console_LoadProgram
+    ;; Initialize Zp_Console_sMachine_ptr.
+    lda Zp_ConsoleMachineIndex_u8
+    .assert .sizeof(sMachine) * kMaxMachines <= $100, error
+    mul #.sizeof(sMachine)
+    add Zp_Machines_sMachine_arr_ptr + 0
+    sta Zp_Console_sMachine_ptr + 0
+    lda Zp_Machines_sMachine_arr_ptr + 1
+    adc #0
+    sta Zp_Console_sMachine_ptr + 1
+    ;; Initialize Ram_Console_sProgram from SRAM.
+    jsr FuncA_Console_GetSramProgramPtr  ; returns Zp_Tmp_ptr
+    ldy #.sizeof(sProgram) - 1
+    @loop:
+    lda (Zp_Tmp_ptr), y
+    sta Ram_Console_sProgram, y
+    dey
+    bpl @loop
+    rts
+.ENDPROC
+
+;;; Saves Ram_Console_sProgram back to SRAM.
+;;; @prereq Zp_Console_sMachine_ptr has been initialized.
+.PROC FuncA_Console_SaveProgram
+    jsr FuncA_Console_GetSramProgramPtr  ; returns Zp_Tmp_ptr
+    ;; Enable writes to SRAM.
+    lda #bMmc3PrgRam::Enable
+    sta Hw_Mmc3PrgRamProtect_wo
+    ;; Copy Ram_Console_sProgram back to SRAM.
+    ldy #.sizeof(sProgram) - 1
+    @loop:
+    lda Ram_Console_sProgram, y
+    sta (Zp_Tmp_ptr), y
+    dey
+    bpl @loop
+    ;; Disable writes to SRAM.
+    lda #bMmc3PrgRam::Enable | bMmc3PrgRam::DenyWrites
+    sta Hw_Mmc3PrgRamProtect_wo
+    rts
+.ENDPROC
+
+;;; Moves the console field cursor based on the current joypad state.
 .PROC FuncA_Console_MoveFieldCursor
 .PROC _MoveCursorVertically
     ;; Store the max number of instructions in Zp_Tmp1_byte.
@@ -642,6 +700,7 @@ _Interior:
 
 ;;; Writes seven bytes into a PPU transfer entry with the text of instruction
 ;;; number Zp_ConsoleInstNumber_u8 within Ram_Console_sProgram.
+;;; @prereq Zp_Console_sMachine_ptr is initialized.
 ;;; @param X PPU transfer array index within an entry's data.
 ;;; @return X Updated PPU transfer array index.
 .PROC FuncA_Console_WriteInstTransferData
@@ -823,12 +882,14 @@ _WriteHighRegisterOrImmediate:
     div #$10
 _WriteLowRegisterOrImmediate:
     and #$0f
-    cmp #$0a
+    cmp #$0a  ; immediate values are 0-9; registers are $a-$f
     bge @register
-    add #kConsoleTileIdDigitZero
+    add #kConsoleTileIdDigitZero  ; Get tile ID for immediate value (0-9).
     bne @write  ; unconditional
-    @register:
-    add #$16  ; TODO: Determine correct register name.
+    @register:                             ; This is a register ($a-$f), so
+    sub #$0a - sMachine::RegNames_u8_arr6  ; subtract $a to get the index into
+    tay                                    ; RegNames, and add RegNames_u8_arr6
+    lda (Zp_Console_sMachine_ptr), y       ; to get offset into sMachine.
     @write:
     sta Ram_PpuTransfer_arr, x
     inx
@@ -1259,10 +1320,19 @@ _OpTil:
     lda #0
     beq _SetFieldNumber  ; unconditional
 _OpMove:
-    lda #eOpcode::Move * $10
-    .assert eDir::Up = $0, error
-    ;; TODO: If the current machine does not support vertical movement, then
-    ;;   do an `ora #eDir::Left`.
+    ;; Check if this machine supports moving vertically.
+    ldy #sMachine::Flags_bMachine
+    lda (Zp_Console_sMachine_ptr), y
+    and #bMachine::MoveV
+    beq @moveHorz
+    ;; If so, default to moving up.
+    lda #eOpcode::Move * $10 + eDir::Up
+    .assert eOpcode::Move <> 0, error
+    bne @setOp  ; unconditional
+    ;; Otherwise, default to moving right.
+    @moveHorz:
+    lda #eOpcode::Move * $10 + eDir::Right
+    @setOp:
     sta Ram_Console_sProgram + sProgram::Code_sInst_arr + sInst::Op_byte, x
     bne _ZeroArgByteAndFieldNumber  ; unconditional
 .ENDPROC

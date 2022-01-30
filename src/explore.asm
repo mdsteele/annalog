@@ -25,6 +25,7 @@
 .INCLUDE "ppu.inc"
 .INCLUDE "room.inc"
 
+.IMPORT DataC_Machines_sMachine_arr
 .IMPORT DataC_TallRoom_sRoom
 .IMPORT FuncA_Terrain_FillNametables
 .IMPORT FuncA_Terrain_GetColumnPtrForTileIndex
@@ -39,10 +40,12 @@
 .IMPORT Main_Console_OpenWindow
 .IMPORT Ram_DeviceBlockCol_u8_arr
 .IMPORT Ram_DeviceBlockRow_u8_arr
+.IMPORT Ram_DeviceTarget_u8_arr
 .IMPORT Ram_DeviceType_eDevice_arr
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORTZP Zp_Current_sRoom
 .IMPORTZP Zp_FrameCounter_u8
+.IMPORTZP Zp_Machines_sMachine_arr_ptr
 .IMPORTZP Zp_OamOffset_u8
 .IMPORTZP Zp_P1ButtonsHeld_bJoypad
 .IMPORTZP Zp_P1ButtonsPressed_bJoypad
@@ -182,6 +185,8 @@ Zp_NearbyDevice_u8: .res 1
     sta Ram_DeviceBlockRow_u8_arr + 0
     lda #5
     sta Ram_DeviceBlockCol_u8_arr + 0
+    lda #0
+    sta Ram_DeviceTarget_u8_arr + 0
 _InitializeWindow:
     lda #$ff
     sta Zp_WindowTop_u8
@@ -195,6 +200,8 @@ _LoadRoom:
     sta Zp_Current_sRoom, x
     dex
     bpl @loop
+    ldax #DataC_Machines_sMachine_arr
+    stax Zp_Machines_sMachine_arr_ptr
 _DrawTerrain:
     prga_bank #<.bank(FuncA_Terrain_FillNametables)
     lda #0  ; param: left block column index
@@ -236,7 +243,10 @@ _GameLoop:
     bmi _Done
     lda Ram_DeviceType_eDevice_arr, x
     cmp #eDevice::Console
-    jeq Main_Console_OpenWindow
+    bne @notConsole
+    lda Ram_DeviceTarget_u8_arr, x  ; param: machine index
+    jmp Main_Console_OpenWindow
+    @notConsole:
     ;; TODO: Implement interacting with other device types.
 _Done:
 .ENDPROC

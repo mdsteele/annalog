@@ -91,3 +91,16 @@
 .ENDSTRUCT
 
 ;;;=========================================================================;;;
+
+;;; The list of programs in the save file.  Each machine in the game uses one
+;;; of these programs, although in a few cases, multiple machines may share the
+;;; same program.
+.ENUM eProgram
+    JailCellDoor
+    JailElevator
+    NUM_VALUES
+.ENDENUM
+
+kNumPrograms = eProgram::NUM_VALUES
+
+;;;=========================================================================;;;

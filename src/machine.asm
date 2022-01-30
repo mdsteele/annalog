@@ -17,18 +17,45 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
-;;; The maximum number of devices that can exist at once in a room.
-kMaxDevices = 8
+.INCLUDE "charmap.inc"
+.INCLUDE "machine.inc"
+.INCLUDE "program.inc"
 
 ;;;=========================================================================;;;
 
-;;; Types of devices in a room that the player can interact with while standing
-;;; in front.
-.ENUM eDevice
-    None
-    Console
-    Lever
-    Sign
-.ENDENUM
+.ZEROPAGE
+
+;;; A pointer to the machine data array for the current area.  This is expected
+;;; to point somewhere in PRGC.
+.EXPORTZP Zp_Machines_sMachine_arr_ptr
+Zp_Machines_sMachine_arr_ptr: .res 2
+
+;;;=========================================================================;;;
+
+.SEGMENT "RAM_Machine"
+
+;;; The current status for each machine.
+Ram_MachineStatus_eMachine_arr: .res kMaxMachines
+
+;;; The program counter for each machine.
+Ram_MachinePc_u8_arr: .res kMaxMachines
+
+;;; The value of the $a register for each machine.
+Ram_MachineRegA_u8_arr: .res kMaxMachines
+
+;;; TODO: Machine position and other state.
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGC_Room"
+
+.EXPORT DataC_Machines_sMachine_arr
+.PROC DataC_Machines_sMachine_arr
+    .byte eProgram::JailCellDoor
+    .byte bMachine::MoveV
+    .byte "T", "R", 0, 0, 0, "Y"
+    .res $18  ; TODO: other sMachine fields
+.ENDPROC
+.ASSERT * - DataC_Machines_sMachine_arr = .sizeof(sMachine) * 1, error
 
 ;;;=========================================================================;;;
