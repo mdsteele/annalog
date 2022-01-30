@@ -193,3 +193,61 @@
 .ENDMACRO
 
 ;;;=========================================================================;;;
+
+;;; Begins a struct data definition.
+;;;
+;;; Example:
+;;;     .PROC Data_ListOfFoos_sFoo_arr
+;;;         D_STRUCT sFoo
+;;;         d_byte Bar_u8_arr4, $01, $02, $03, $04
+;;;         d_addr Baz_func_ptr, Func_FooBaz
+;;;         D_END
+;;;         D_STRUCT sFoo
+;;;         ;; ...and so on.
+;;;         D_END
+;;;     .ENDPROC
+.MACRO D_STRUCT struct
+    .define d_struct_name struct
+    .scope
+d_struct_begin:
+.ENDMACRO
+
+;;; Defines one or more addrs within a D_STRUCT/D_END block.
+.MACRO d_addr field, v1
+    .assert * - d_struct_begin = d_struct_name::field, error, "wrong offset"
+    .if .paramcount > 1
+    .addr v1
+    .endif
+.ENDMACRO
+
+;;; Defines one or more bytes within a D_STRUCT/D_END block.
+.MACRO d_byte field, v1, v2, v3, v4, v5, v6
+    .assert * - d_struct_begin = d_struct_name::field, error, "wrong offset"
+    .if .paramcount > 1
+    .byte v1
+    .endif
+    .if .paramcount > 2
+    .byte v2
+    .endif
+    .if .paramcount > 3
+    .byte v3
+    .endif
+    .if .paramcount > 4
+    .byte v4
+    .endif
+    .if .paramcount > 5
+    .byte v5
+    .endif
+    .if .paramcount > 6
+    .byte v6
+    .endif
+.ENDMACRO
+
+;;; Ends a D_STRUCT data definition.
+.MACRO D_END
+    .assert * - d_struct_begin = .sizeof(d_struct_name), error, "wrong size"
+    .endscope
+    .undefine d_struct_name
+.ENDMACRO
+
+;;;=========================================================================;;;

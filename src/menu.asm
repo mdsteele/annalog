@@ -105,22 +105,18 @@ Ram_MenuCols_u8_arr: .res kMaxMenuItems
 ;;; |delete  |
 ;;; +--------+
 .PROC DataA_Console_Opcode_sMenu
-_Start:
-    .assert * - _Start = sMenu::WidthsMinusOne_u8_arr, error
+    D_STRUCT sMenu
+    d_byte WidthsMinusOne_u8_arr
     .byte 5, 3, 3, 2, 2, 2, 3, 3, 1, 2, 2, 3, 0, 0, 2, 2
-    .assert * - _Start = sMenu::Labels_u8_arr_ptr_arr, error
+    d_addr Labels_u8_arr_ptr_arr
     .addr _LabelEmpty, _LabelCopy, _LabelSwap, _LabelAdd, _LabelSub, _LabelMul
     .addr _LabelGoto, _LabelSkip, _LabelIf, _LabelTil, _LabelAct, _LabelMove
     .addr _LabelEnd, _LabelEnd, _LabelEnd, _LabelNop
-    .assert * - _Start = sMenu::OnUp_func_ptr, error
-    .addr _OnUp
-    .assert * - _Start = sMenu::OnDown_func_ptr, error
-    .addr _OnDown
-    .assert * - _Start = sMenu::OnLeft_func_ptr, error
-    .addr _OnLeft
-    .assert * - _Start = sMenu::OnRight_func_ptr, error
-    .addr _OnRight
-    .assert * - _Start = .sizeof(sMenu), error
+    d_addr OnUp_func_ptr,    _OnUp
+    d_addr OnDown_func_ptr,  _OnDown
+    d_addr OnLeft_func_ptr,  _OnLeft
+    d_addr OnRight_func_ptr, _OnRight
+    D_END
 _LabelEmpty: .byte "delete"
 _LabelCopy:  .byte "COPY"
 _LabelSwap:  .byte "SWAP"
@@ -363,21 +359,18 @@ _Columns_u8_arr:
 ;;; +--------+
 .PROC DataA_Console_Address_sMenu
 _Start:
-    .assert * - _Start = sMenu::WidthsMinusOne_u8_arr, error
+    D_STRUCT sMenu
+    d_byte WidthsMinusOne_u8_arr
     .byte 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-    .assert * - _Start = sMenu::Labels_u8_arr_ptr_arr, error
+    d_addr Labels_u8_arr_ptr_arr
     .repeat kMaxMenuItems, index
     .addr _Labels + index
     .endrepeat
-    .assert * - _Start = sMenu::OnUp_func_ptr, error
-    .addr _OnUp
-    .assert * - _Start = sMenu::OnDown_func_ptr, error
-    .addr _OnDown
-    .assert * - _Start = sMenu::OnLeft_func_ptr, error
-    .addr _OnLeft
-    .assert * - _Start = sMenu::OnRight_func_ptr, error
-    .addr _OnRight
-    .assert * - _Start = .sizeof(sMenu), error
+    d_addr OnUp_func_ptr,    _OnUp
+    d_addr OnDown_func_ptr,  _OnDown
+    d_addr OnLeft_func_ptr,  _OnLeft
+    d_addr OnRight_func_ptr, _OnRight
+    D_END
 _Labels: .byte "0123456789", $1a, $1b, $1c, $1d, $1e, $1f
 _OnUp:
     ldx Zp_MenuItem_u8
@@ -454,20 +447,17 @@ _OnRight:
 ;;; +--------+
 .PROC DataA_Console_Compare_sMenu
 _Start:
-    .assert * - _Start = sMenu::WidthsMinusOne_u8_arr, error
+    D_STRUCT sMenu
+    d_byte WidthsMinusOne_u8_arr
     .byte 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-    .assert * - _Start = sMenu::Labels_u8_arr_ptr_arr, error
+    d_addr Labels_u8_arr_ptr_arr
     .addr _LabelEq, _LabelNe, _LabelLt, _LabelGt, _LabelLe, _LabelGe
     .addr 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-    .assert * - _Start = sMenu::OnUp_func_ptr, error
-    .addr _OnUp
-    .assert * - _Start = sMenu::OnDown_func_ptr, error
-    .addr _OnDown
-    .assert * - _Start = sMenu::OnLeft_func_ptr, error
-    .addr _OnLeft
-    .assert * - _Start = sMenu::OnRight_func_ptr, error
-    .addr _OnRight
-    .assert * - _Start = .sizeof(sMenu), error
+    d_addr OnUp_func_ptr,    _OnUp
+    d_addr OnDown_func_ptr,  _OnDown
+    d_addr OnLeft_func_ptr,  _OnLeft
+    d_addr OnRight_func_ptr, _OnRight
+    D_END
 _LabelEq: .byte "="
 _LabelNe: .byte $0a
 _LabelLt: .byte "<"
@@ -540,21 +530,17 @@ _SetItem:
 ;;; +--------+
 .PROC DataA_Console_Direction_sMenu
 _Start:
-    .assert * - _Start = sMenu::WidthsMinusOne_u8_arr, error
+    D_STRUCT sMenu
+    d_byte WidthsMinusOne_u8_arr
     .byte 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-    .assert * - _Start = sMenu::Labels_u8_arr_ptr_arr, error
-    .repeat 4
+    d_addr Labels_u8_arr_ptr_arr
     .addr _LabelUp, _LabelDown, _LabelLeft, _LabelRight
-    .endrepeat
-    .assert * - _Start = sMenu::OnUp_func_ptr, error
-    .addr _OnUp
-    .assert * - _Start = sMenu::OnDown_func_ptr, error
-    .addr _OnDown
-    .assert * - _Start = sMenu::OnLeft_func_ptr, error
-    .addr _OnLeft
-    .assert * - _Start = sMenu::OnRight_func_ptr, error
-    .addr _OnRight
-    .assert * - _Start = .sizeof(sMenu), error
+    .addr 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+    d_addr OnUp_func_ptr,    _OnUp
+    d_addr OnDown_func_ptr,  _OnDown
+    d_addr OnLeft_func_ptr,  _OnLeft
+    d_addr OnRight_func_ptr, _OnRight
+    D_END
 _LabelUp:    .byte $5a
 _LabelDown:  .byte $5b
 _LabelLeft:  .byte $5c

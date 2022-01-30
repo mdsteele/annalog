@@ -19,6 +19,7 @@
 
 .INCLUDE "charmap.inc"
 .INCLUDE "machine.inc"
+.INCLUDE "macros.inc"
 .INCLUDE "program.inc"
 
 ;;;=========================================================================;;;
@@ -51,11 +52,12 @@ Ram_MachineRegA_u8_arr: .res kMaxMachines
 
 .EXPORT DataC_Machines_sMachine_arr
 .PROC DataC_Machines_sMachine_arr
-    .byte eProgram::JailCellDoor
-    .byte bMachine::MoveV
-    .byte "T", "R", 0, 0, 0, "Y"
+    D_STRUCT sMachine
+    d_byte Code_eProgram, eProgram::JailCellDoor
+    d_byte Flags_bMachine, bMachine::MoveV
+    d_byte RegNames_u8_arr6, "T", "R", 0, 0, 0, "Y"
     .res $18  ; TODO: other sMachine fields
+    D_END
 .ENDPROC
-.ASSERT * - DataC_Machines_sMachine_arr = .sizeof(sMachine) * 1, error
 
 ;;;=========================================================================;;;
