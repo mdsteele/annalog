@@ -37,6 +37,8 @@ PATTERNS = [
 
 IMPORT_PATTERN = re.compile(r'^\.IMPORT(?:ZP)? +(.+)$')
 
+INCLUDE_PATTERN = re.compile(r'^\.INCLUDE +"([^"]+)"')
+
 #=============================================================================#
 
 def src_and_test_entries():
@@ -96,6 +98,19 @@ def run_tests():
                       .format(identifier, filepath))
         if num_unused == 0: num_passed += 1
         else: num_failed += 1
+    # Check includes within each ASM file.
+    for filepath in src_and_test_filepaths('.asm'):
+        includes = []
+        for line in open(filepath):
+            match = INCLUDE_PATTERN.match(line)
+            if match:
+                includes.append(match.group(1))
+        # Check that the includes are sorted.
+        if includes == sorted(includes):
+            num_passed += 1
+        else:
+            num_failed += 1
+            print('STYLE: unsorted includes in ' + filepath)
     print('style: {} passed, {} failed'.format(num_passed, num_failed))
     return (num_passed, num_failed)
 
