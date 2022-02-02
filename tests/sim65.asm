@@ -144,7 +144,19 @@ _SerializeActual:
     jsr Func_BufferHexByte
 _Finish:
     jsr Func_WriteBuffer
+    .assert * = Exit_Failure, error, "fallthrough"
+.ENDPROC
+
+;;; Exits the process with a failing error code.
+.PROC Exit_Failure
     lda #1
+    jmp $fff9  ; exit process with A as the status code (error if nonzero)
+.ENDPROC
+
+;;; Exits the process with a succesful error code.
+.EXPORT Exit_Success
+.PROC Exit_Success
+    lda #0
     jmp $fff9  ; exit process with A as the status code (error if nonzero)
 .ENDPROC
 

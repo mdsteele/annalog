@@ -23,6 +23,7 @@
 .INCLUDE "macros.inc"
 .INCLUDE "mmc3.inc"
 .INCLUDE "ppu.inc"
+.INCLUDE "program.inc"
 
 .IMPORT Func_ClearRestOfOam
 .IMPORT Func_FadeIn
@@ -31,6 +32,7 @@
 .IMPORT Func_UpdateButtons
 .IMPORT Main_Explore_Enter
 .IMPORT Sram_MagicNumber_u8
+.IMPORTZP Zp_MachineMaxInstructions_u8
 .IMPORTZP Zp_OamOffset_u8
 .IMPORTZP Zp_P1ButtonsPressed_bJoypad
 .IMPORTZP Zp_PpuScrollX_u8
@@ -124,6 +126,8 @@ _GameLoop:
     beq @noStart
     jsr Func_FadeOut
     jsr Func_ResetSramForNewGame
+    lda #kMaxProgramLength
+    sta Zp_MachineMaxInstructions_u8
     jmp Main_Explore_Enter
     @noStart:
     jsr Func_ProcessFrame

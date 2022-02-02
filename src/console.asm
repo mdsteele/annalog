@@ -37,6 +37,7 @@
 .IMPORT Func_Menu_EditSelectedField
 .IMPORT Func_ProcessFrame
 .IMPORT Func_ScrollTowardsGoal
+.IMPORT Func_SetMachineIndex
 .IMPORT Func_SetScrollGoalFromAvatar
 .IMPORT Func_UpdateButtons
 .IMPORT Func_Window_GetRowPpuAddr
@@ -47,8 +48,9 @@
 .IMPORT Main_Explore_Continue
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORT Ram_PpuTransfer_arr
-.IMPORT Sram_Programs_sProgram_arr
-.IMPORTZP Zp_Machines_sMachine_arr_ptr
+.IMPORTZP Zp_Current_sMachine_ptr
+.IMPORTZP Zp_Current_sProgram_ptr
+.IMPORTZP Zp_MachineMaxInstructions_u8
 .IMPORTZP Zp_OamOffset_u8
 .IMPORTZP Zp_P1ButtonsPressed_bJoypad
 .IMPORTZP Zp_PpuTransferLen_u8
@@ -103,12 +105,8 @@ kInstructionWidthTiles = 7
 
 .ZEROPAGE
 
-;;; The index of the machine that the console is controlling.
-Zp_ConsoleMachineIndex_u8: .res 1
-
-;;; A pointer to the static data for the machine the console is controlling.
-.EXPORTZP Zp_Console_sMachine_ptr
-Zp_Console_sMachine_ptr: .res 2
+;;; A pointer to the program in SRAM that the console is currently editing.
+Zp_ConsoleSram_sProgram_ptr: .res 2
 
 ;;; The number of instruction rows in the console window (i.e. not including
 ;;; the borders or the bottom margin).
@@ -153,14 +151,14 @@ Ram_Console_sProgram: .tag sProgram
 ;;; Mode for scrolling in the console window.
 ;;; @prereq Rendering is enabled.
 ;;; @prereq Explore mode is initialized.
-;;; @param A The machine index to open a console for.
+;;; @param X The machine index to open a console for.
 .EXPORT Main_Console_OpenWindow
 .PROC Main_Console_OpenWindow
-    sta Zp_ConsoleMachineIndex_u8
+    jsr Func_SetMachineIndex
     prga_bank #<.bank(FuncA_Console_LoadProgram)
     jsr FuncA_Console_LoadProgram
-    ;; TODO: Get actual number of instructions from progress data
-    lda #8
+    lda Zp_MachineMaxInstructions_u8
+    div #2
     sta Zp_ConsoleNumInstRows_u8
 _InitWindow:
     lda #kScreenHeightPx - kConsoleWindowScrollSpeed
@@ -285,59 +283,29 @@ _UpdateScrolling:
 
 .SEGMENT "PRGA_Console"
 
-;;; Returns a pointer to the SRAM program for the current machine.
-;;; @prereq Zp_Console_sMachine_ptr has been initialized.
-;;; @return Zp_Tmp_ptr A pointer to the sProgram in SRAM.
-.PROC FuncA_Console_GetSramProgramPtr
-    ;; Store the machine's program number in A.
-    ldy #sMachine::Code_eProgram
-    lda (Zp_Machines_sMachine_arr_ptr), y
-    ;; Calculate the 16-bit byte offset into Sram_Programs_sProgram_arr,
-    ;; putting the lo byte in A and the hi byte in Zp_Tmp1_byte.
-    .assert sMachine::Code_eProgram = 0, error
-    sty Zp_Tmp1_byte  ; Y is currently zero
-    .repeat .sizeof(sProgram)
-    asl a
-    rol Zp_Tmp1_byte
-    .endrepeat
-    ;; Calculate a pointer to the start of the sProgram in SRAM and store it in
-    ;; Zp_Tmp_ptr.
-    add #<Sram_Programs_sProgram_arr
-    sta Zp_Tmp_ptr + 0
-    lda Zp_Tmp1_byte
-    adc #>Sram_Programs_sProgram_arr
-    sta Zp_Tmp_ptr + 1
-    rts
-.ENDPROC
-
-;;; Initializes Zp_Console_sMachine_ptr and Ram_Console_sProgram for the
-;;; current machine.
-;;; @prereq Zp_ConsoleMachineIndex_u8 has been initialized.
+;;; Copies Zp_Current_sProgram_ptr to Zp_ConsoleSram_sProgram_ptr, then loads
+;;; the program from SRAM into Ram_Console_sProgram, then makes
+;;; Zp_Current_sProgram_ptr point to Ram_Console_sProgram.
+;;; @prereq Zp_Current_sProgram_ptr has been initialized.
 .PROC FuncA_Console_LoadProgram
-    ;; Initialize Zp_Console_sMachine_ptr.
-    lda Zp_ConsoleMachineIndex_u8
-    .assert .sizeof(sMachine) * kMaxMachines <= $100, error
-    mul #.sizeof(sMachine)
-    add Zp_Machines_sMachine_arr_ptr + 0
-    sta Zp_Console_sMachine_ptr + 0
-    lda Zp_Machines_sMachine_arr_ptr + 1
-    adc #0
-    sta Zp_Console_sMachine_ptr + 1
+    ldax Zp_Current_sProgram_ptr
+    stax Zp_ConsoleSram_sProgram_ptr
     ;; Initialize Ram_Console_sProgram from SRAM.
-    jsr FuncA_Console_GetSramProgramPtr  ; returns Zp_Tmp_ptr
     ldy #.sizeof(sProgram) - 1
     @loop:
-    lda (Zp_Tmp_ptr), y
+    lda (Zp_ConsoleSram_sProgram_ptr), y
     sta Ram_Console_sProgram, y
     dey
     bpl @loop
+    ;; Make Zp_Current_sProgram_ptr point to Ram_Console_sProgram.
+    ldax #Ram_Console_sProgram
+    stax Zp_Current_sProgram_ptr
     rts
 .ENDPROC
 
 ;;; Saves Ram_Console_sProgram back to SRAM.
-;;; @prereq Zp_Console_sMachine_ptr has been initialized.
+;;; @prereq Zp_ConsoleSram_sProgram_ptr has been initialized.
 .PROC FuncA_Console_SaveProgram
-    jsr FuncA_Console_GetSramProgramPtr  ; returns Zp_Tmp_ptr
     ;; Enable writes to SRAM.
     lda #bMmc3PrgRam::Enable
     sta Hw_Mmc3PrgRamProtect_wo
@@ -345,7 +313,7 @@ _UpdateScrolling:
     ldy #.sizeof(sProgram) - 1
     @loop:
     lda Ram_Console_sProgram, y
-    sta (Zp_Tmp_ptr), y
+    sta (Zp_ConsoleSram_sProgram_ptr), y
     dey
     bpl @loop
     ;; Disable writes to SRAM.
@@ -702,7 +670,7 @@ _Interior:
 
 ;;; Writes seven bytes into a PPU transfer entry with the text of instruction
 ;;; number Zp_ConsoleInstNumber_u8 within Ram_Console_sProgram.
-;;; @prereq Zp_Console_sMachine_ptr is initialized.
+;;; @prereq Zp_Current_sMachine_ptr is initialized.
 ;;; @param X PPU transfer array index within an entry's data.
 ;;; @return X Updated PPU transfer array index.
 .PROC FuncA_Console_WriteInstTransferData
@@ -891,7 +859,7 @@ _WriteLowRegisterOrImmediate:
     @register:                             ; This is a register ($a-$f), so
     sub #$0a - sMachine::RegNames_u8_arr6  ; subtract $a to get the index into
     tay                                    ; RegNames, and add RegNames_u8_arr6
-    lda (Zp_Console_sMachine_ptr), y       ; to get offset into sMachine.
+    lda (Zp_Current_sMachine_ptr), y       ; to get offset into sMachine.
     @write:
     sta Ram_PpuTransfer_arr, x
     inx

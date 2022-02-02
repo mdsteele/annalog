@@ -59,8 +59,9 @@ run: $(ROMFILE) $(ROMFILE).ram.nl $(ROMFILE).3.nl
 	fceux $<
 
 .PHONY: test
-test: $(SIM65DIR)/terrain $(SIM65DIR)/window
+test: $(SIM65DIR)/machine $(SIM65DIR)/terrain $(SIM65DIR)/window
 	python tests/lint.py
+	sim65 $(SIM65DIR)/machine
 	sim65 $(SIM65DIR)/terrain
 	sim65 $(SIM65DIR)/window
 	python tests/style.py

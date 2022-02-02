@@ -20,6 +20,7 @@
 .INCLUDE "../src/irq.inc"
 .INCLUDE "../src/macros.inc"
 
+.IMPORT Exit_Success
 .IMPORT Func_ExpectAEqualsY
 .IMPORT Func_Window_GetRowPpuAddr
 
@@ -68,7 +69,6 @@ Verify:
     ldy #>kExpectedPpuAddr
     jsr Func_ExpectAEqualsY
 Success:
-    lda #0
-    jmp $fff9  ; exit process with A as the status code (error if nonzero)
+    jmp Exit_Success
 
 ;;;=========================================================================;;;

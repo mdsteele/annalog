@@ -244,12 +244,14 @@ _GameLoop:
     lda Ram_DeviceType_eDevice_arr, x
     cmp #eDevice::Console
     bne @notConsole
-    lda Ram_DeviceTarget_u8_arr, x  ; param: machine index
+    lda Ram_DeviceTarget_u8_arr, x
+    tax  ; param: machine index
     jmp Main_Console_OpenWindow
     @notConsole:
     ;; TODO: Implement interacting with other device types.
 _Done:
 .ENDPROC
+    ;; TODO: Tick machines.
     jsr Func_ExploreMoveAvatar
     jmp _GameLoop
 .ENDPROC

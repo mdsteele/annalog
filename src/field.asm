@@ -25,7 +25,7 @@
 .IMPORTZP Zp_ConsoleFieldNumber_u8
 .IMPORTZP Zp_ConsoleInstNumber_u8
 .IMPORTZP Zp_ConsoleNominalFieldOffset_u8
-.IMPORTZP Zp_Console_sMachine_ptr
+.IMPORTZP Zp_Current_sMachine_ptr
 .IMPORTZP Zp_Tmp1_byte
 .IMPORTZP Zp_Tmp2_byte
 .IMPORTZP Zp_Tmp_ptr
@@ -471,7 +471,7 @@ _OpTil:
 _OpMove:
     ;; Check if this machine supports moving vertically.
     ldy #sMachine::Flags_bMachine
-    lda (Zp_Console_sMachine_ptr), y
+    lda (Zp_Current_sMachine_ptr), y
     and #bMachine::MoveV
     beq @moveHorz
     ;; If so, default to moving up.

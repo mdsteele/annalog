@@ -20,6 +20,7 @@
 .INCLUDE "../src/macros.inc"
 .INCLUDE "../src/room.inc"
 
+.IMPORT Exit_Success
 .IMPORT FuncA_Terrain_GetColumnPtrForBlockIndex
 .IMPORT Func_ExpectAEqualsY
 .IMPORTZP Zp_Current_sRoom
@@ -88,7 +89,6 @@ Verify:
     ldy #>kExpectedStripePtr
     jsr Func_ExpectAEqualsY
 Success:
-    lda #0
-    jmp $fff9  ; exit process with A as the status code (error if nonzero)
+    jmp Exit_Success
 
 ;;;=========================================================================;;;

@@ -20,6 +20,9 @@
 ;;; The maximum number of devices that can exist at once in an area.
 kMaxMachines = 8
 
+;;; The number of padding bytes at the end of each sMachine struct.
+.DEFINE kMachinePadding 8
+
 ;;;=========================================================================;;;
 
 ;;; Flags indicating features of a given machine.
@@ -27,6 +30,7 @@ kMaxMachines = 8
     MoveH  = %10000000  ; The machine supports MOVE left/right instructions.
     MoveV  = %01000000  ; The machine supports MOVE up/down instructions.
     Act    = %00100000  ; The machine supports ACT instructions.
+    WriteB = %00010000  ; The $b register is writable.
     WriteC = %00001000  ; The $c register is writable.
     WriteD = %00000100  ; The $d register is writable.
     WriteE = %00000010  ; The $e register is writable.
@@ -38,7 +42,7 @@ kMaxMachines = 8
     Halted     ; Empty program, or an END instruction was reached.
     Running    ; The machine is executing its program.
     Resetting  ; The machine is resetting to its original position.
-    ErrMove    ; Error: The machine tried to move, but couldn't.
+    Error      ; The machine tried to do something it couldn't do.
 .ENDENUM
 
 ;;; Static data about a particular machine.
@@ -49,16 +53,23 @@ kMaxMachines = 8
     Flags_bMachine    .byte
     ;; The names (i.e. BG tile IDs) for registers $a through $f.
     RegNames_u8_arr6  .res 6
-    ;; Functions to call when a register from $c to $f is read/written.
-    ;; TODO: What is the signature of these functions?
+    ;; Function to initialize machine-specific state (when entering the area).
+    Init_func_ptr     .addr
+    ;; Function to call when a register from $b to $f is read.
+    ;; @param A The register to read ($b-$f).
+    ;; @return A The value of the register (0-9).
     ReadReg_func_ptr  .addr
+    ;; Function to call when a register from $b to $f is written.
+    ;; @param A The register to write to ($b-$f).
+    ;; @param X The value to write (0-9).
     WriteReg_func_ptr .addr
     ;; Function to call when the machine tries to move.
-    ;; TODO: What is the signature of this function?
-    Move_func_ptr     .addr
+    ;; @param X The eDir value for the direction to move in.
+    ;; @return Z Cleared if the machine was able to move, set otherwise.
+    TryMove_func_ptr  .addr
     ;; Function to call when the machine tries to act.
-    ;; TODO: What is the signature of this function?
-    Act_func_ptr      .addr
+    ;; @return Z Cleared if the machine was able to act, set otherwise.
+    TryAct_func_ptr   .addr
     ;; Function to call each frame to update the machine.
     ;; TODO: What is the signature of this function?
     Tick_func_ptr     .addr
@@ -69,7 +80,7 @@ kMaxMachines = 8
     ;; TODO: What is the signature of this function?
     Reset_func_ptr    .addr
     ;; Unused space to pad .sizeof(sMachine) to a power of 2.
-    Reserved          .res $0a
+    Padding           .res kMachinePadding
 .ENDSTRUCT
 .ASSERT .sizeof(sMachine) = $20, error
 

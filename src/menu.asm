@@ -45,7 +45,7 @@
 .IMPORT Ram_PpuTransfer_arr
 .IMPORT Sram_ProgressFlags_arr
 .IMPORTZP Zp_ConsoleNumInstRows_u8
-.IMPORTZP Zp_Console_sMachine_ptr
+.IMPORTZP Zp_Current_sMachine_ptr
 .IMPORTZP Zp_OamOffset_u8
 .IMPORTZP Zp_P1ButtonsPressed_bJoypad
 .IMPORTZP Zp_PpuTransferLen_u8
@@ -266,7 +266,7 @@ _SetRowsForMenuLeftColumn:
     @noSkipOpcode:
     ;; Check if this machine supports the ACT opcode.
     ldy #sMachine::Flags_bMachine
-    lda (Zp_Console_sMachine_ptr), y
+    lda (Zp_Current_sMachine_ptr), y
     tay
     and #bMachine::Act
     beq @noActOpcode
@@ -576,7 +576,7 @@ _SetItem:
     sta Zp_Tmp1_byte
     ;; Check if this machine supports moving vertically.
     ldy #sMachine::Flags_bMachine
-    lda (Zp_Console_sMachine_ptr), y
+    lda (Zp_Current_sMachine_ptr), y
     tay
     and #bMachine::MoveV
     beq @noMoveVert
