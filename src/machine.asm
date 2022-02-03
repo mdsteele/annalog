@@ -34,6 +34,10 @@
     _OpIf, _OpTil, _OpAct, _OpMove, _OpEnd, _OpEnd, _OpEnd, _OpNop
 .LINECONT -
 
+;;; Constants for 6502 processor flags.
+kPFlagC = $01  ; carry flag
+kPFlagZ = $02  ; zero flag
+
 ;;;=========================================================================;;;
 
 .ZEROPAGE
@@ -279,8 +283,33 @@ _OpIf:
     bne _IncrementPcByX  ; unconditional
 _OpTil:
     jsr _EvalConditional  ; sets Z if condition is true
-    bne _IncrementPc
-    beq _DecrementPc  ; unconditional
+    beq _IncrementPc
+_DecrementPc:
+    ldx Zp_MachineIndex_u8
+    lda Ram_MachinePc_u8_arr, x
+    beq @wrap
+    sub #1
+    sta Ram_MachinePc_u8_arr, x
+    rts
+    @wrap:
+    lda Zp_MachineMaxInstructions_u8
+    mul #.sizeof(sInst)
+    tay
+    .assert sInst::Op_byte = .sizeof(sInst) - 1, error
+    dey
+    @loop:
+    lda (Zp_Current_sProgram_ptr), y
+    and #$f0
+    bne @break
+    .repeat .sizeof(sInst)
+    dey
+    .endrepeat
+    bpl @loop
+    @break:
+    tya
+    div #.sizeof(sInst)
+    sta Ram_MachinePc_u8_arr, x
+    rts
 _OpAct:
     jsr Func_MachineTryAct  ; clears Z on success
     bne _IncrementPc
@@ -336,9 +365,6 @@ _IncrementPcByX:
     ldx Zp_MachineIndex_u8
     sta Ram_MachinePc_u8_arr, x
     rts
-_DecrementPc:
-    ;; TODO: Implement _DecrementPc
-    rts
 .PROC _EvalConditional
     lda <(Zp_Current_sInst + sInst::Arg_byte)
     and #$0f  ; param: immediate value or register to read
@@ -367,30 +393,36 @@ _DecrementPc:
     beq _Le
 _Ge:
     ;; Set Z if C was set.
-    eor #$01
-    and #$01
+    eor #kPFlagC
+    and #kPFlagC
     rts
 _Eq:
     ;; Set Z if Z was set.
-    eor #$02
-    and #$02
+    eor #kPFlagZ
+    and #kPFlagZ
     rts
 _Ne:
     ;; Set Z if Z was cleared.
-    and #$02
+    and #kPFlagZ
     rts
 _Lt:
     ;; Set Z if C was cleared.
-    and #$01
+    and #kPFlagC
     rts
 _Gt:
     ;; Set Z if C was set and Z was cleared.
-    eor #$01
-    and #$03
+    eor #kPFlagC
+    and #kPFlagC | kPFlagZ
     rts
 _Le:
     ;; Set Z if C was cleared or Z was set.
-    ;; TODO: Implement LE comparison.
+    tax
+    and #kPFlagC
+    beq @done
+    txa
+    eor #kPFlagZ
+    and #kPFlagZ
+    @done:
     rts
 .ENDPROC
 .ENDPROC

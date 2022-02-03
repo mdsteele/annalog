@@ -55,6 +55,9 @@ Zp_Tmp_ptr: .res 2
 Zp_TestMachinePosX_u8: .res 1
 Zp_TestMachinePosY_u8: .res 1
 
+;;; Counter that is incremented whenever the machine executes an ACT opcode.
+Zp_TestMachineActCounter_u8: .res 1
+
 ;;; The number of instructions to execute during the test.
 Zp_TestCycleCount_u8: .res 1
 
@@ -66,16 +69,15 @@ Zp_TestCycleCount_u8: .res 1
 .PROC Sram_Programs_sProgram_arr
     .res .sizeof(sProgram) * kTestProgramIndex
 TestProgram:
-    ;; TODO: Test other opcodes.
     .word $b300  ; MOVE >
-    .word $7500  ; SKIP 5
+    .word $94e5  ; TIL 5<=X
     .word $b000  ; MOVE ^
+    .word $1a0f  ; A <- Y
+    .word $a000  ; ACT
+    .word $814a  ; IF A!=4
+    .word $6200  ; GOTO 2
     .word $b300  ; MOVE >
     .word $e000  ; END
-    .word $0000
-    .word $0000
-    .word $0000
-    .word $0000
     .word $0000
     .word $0000
     .word $0000
@@ -92,12 +94,12 @@ TestMachine:
     D_STRUCT sMachine
     d_byte Code_eProgram, kTestProgramIndex
     d_byte Flags_bMachine, bMachine::MoveV | bMachine::MoveH
-    d_byte RegNames_u8_arr6, "T", 0, 0, 0, "X", "Y"
+    d_byte RegNames_u8_arr6, "A", 0, 0, 0, "X", "Y"
     d_addr Init_func_ptr, _Init
     d_addr ReadReg_func_ptr, _ReadReg
     d_addr WriteReg_func_ptr, Func_MachineError
     d_addr TryMove_func_ptr, _TryMove
-    d_addr TryAct_func_ptr, Func_MachineError
+    d_addr TryAct_func_ptr, _TryAct
     d_addr Tick_func_ptr, _Tick
     d_addr Draw_func_ptr, _Draw
     d_addr Reset_func_ptr, _Reset
@@ -108,6 +110,8 @@ _Init:
     lda #1
     sta Zp_TestMachinePosX_u8
     sta Zp_TestMachinePosY_u8
+    lda #0
+    sta Zp_TestMachineActCounter_u8
     rts
 _ReadReg:
     cmp #$e
@@ -144,12 +148,14 @@ _TryMove:
     beq @error
     dex
     stx Zp_TestMachinePosY_u8
+    inx  ; clear Z flag, to indicate success
     rts
     @moveLeft:
     ldx Zp_TestMachinePosX_u8
     beq @error
     dex
     stx Zp_TestMachinePosX_u8
+    inx  ; clear Z flag, to indicate success
     rts
     @moveRight:
     ldx Zp_TestMachinePosX_u8
@@ -157,6 +163,9 @@ _TryMove:
     beq @error
     inx
     stx Zp_TestMachinePosX_u8
+    rts
+_TryAct:
+    inc Zp_TestMachineActCounter_u8
     rts
 _Tick:
 _Draw:
@@ -217,9 +226,12 @@ InitMachine:
     lda Zp_TestMachinePosY_u8
     ldy #1
     jsr Func_ExpectAEqualsY
+    lda Zp_TestMachineActCounter_u8
+    ldy #0
+    jsr Func_ExpectAEqualsY
 ExecuteInstructions:
     ;; Execute some instructions.
-    lda #13
+    lda #30
     sta Zp_TestCycleCount_u8
     @loop:
     jsr Func_MachineExecuteNext
@@ -227,10 +239,14 @@ ExecuteInstructions:
     bne @loop
     ;; Verify that the machine is in the expected X/Y position.
     lda Zp_TestMachinePosX_u8
-    ldy #3
+    ldy #6
     jsr Func_ExpectAEqualsY
     lda Zp_TestMachinePosY_u8
-    ldy #2
+    ldy #4
+    jsr Func_ExpectAEqualsY
+    ;; Verify that the machine ACTed the expected number of times.
+    lda Zp_TestMachineActCounter_u8
+    ldy #3
     jsr Func_ExpectAEqualsY
     ;; Verify that the machine is halted (from executing an END instruction).
     ldx Zp_MachineIndex_u8

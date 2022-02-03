@@ -325,10 +325,6 @@ _UpdateScrolling:
 ;;; Moves the console field cursor based on the current joypad state.
 .PROC FuncA_Console_MoveFieldCursor
 .PROC _MoveCursorVertically
-    ;; Store the max number of instructions in Zp_Tmp1_byte.
-    lda Zp_ConsoleNumInstRows_u8
-    asl a
-    sta Zp_Tmp1_byte  ; max num instructions
 _CheckDown:
     lda Zp_P1ButtonsPressed_bJoypad
     and #bJoypad::Down
@@ -346,7 +342,7 @@ _CheckDown:
     ;; Increment the instruction number, but if that would exceed the max
     ;; number of instructions in the console window, then wrap back to zero.
     inx
-    cpx Zp_Tmp1_byte  ; max num instructions
+    cpx Zp_MachineMaxInstructions_u8
     blt @noWrap
     @wrap:
     ldx #0
@@ -376,7 +372,7 @@ _CheckUp:
     ;; Otherwise, keep looking.  If there are no empty instructions, we'll
     ;; select the last instruction.
     inx
-    cpx Zp_Tmp1_byte  ; max num instructions
+    cpx Zp_MachineMaxInstructions_u8
     blt @loop
     dex
     @select:
