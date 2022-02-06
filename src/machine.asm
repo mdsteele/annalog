@@ -21,8 +21,10 @@
 .INCLUDE "machine.inc"
 .INCLUDE "macros.inc"
 .INCLUDE "program.inc"
+.INCLUDE "room.inc"
 
 .IMPORT Sram_Programs_sProgram_arr
+.IMPORTZP Zp_Current_sRoom
 .IMPORTZP Zp_Tmp1_byte
 .IMPORTZP Zp_Tmp_ptr
 
@@ -48,21 +50,17 @@ kPFlagZ = $02  ; zero flag
 .EXPORTZP Zp_MachineMaxInstructions_u8
 Zp_MachineMaxInstructions_u8: .res 1
 
-;;; A pointer to the machine data array for the current area.  This is
-;;; generally expected to point somewhere in PRGC.
-.EXPORTZP Zp_Machines_sMachine_arr_ptr
-Zp_Machines_sMachine_arr_ptr: .res 2
-
 ;;; The index of the "current" machine, used for indexing into
-;;; Zp_Machines_sMachine_arr_ptr as well as Ram_MachinePc_u8_arr and friends.
+;;; sRoom::Machines_sMachine_arr_ptr as well as Ram_MachinePc_u8_arr and
+;;; friends.
 ;;; This is either the machine that's currently executing, or (if the console
 ;;; window is open) the machine that the console is controlling.
 .EXPORTZP Zp_MachineIndex_u8
 Zp_MachineIndex_u8: .res 1
 
 ;;; A convenience pointer to entry number Zp_MachineIndex_u8 in the
-;;; Zp_Machines_sMachine_arr_ptr array.  Whenever Zp_MachineIndex_u8 is
-;;; updated, this should also be updated to match.
+;;; Zp_Current_sRoom + sRoom::Machines_sMachine_arr_ptr array.  Whenever
+;;; Zp_MachineIndex_u8 is updated, this should also be updated to match.
 .EXPORTZP Zp_Current_sMachine_ptr
 Zp_Current_sMachine_ptr: .res 2
 
@@ -80,61 +78,24 @@ Zp_Current_sInst: .tag sInst
 
 .SEGMENT "RAM_Machine"
 
-;;; The current status for each machine in the area, indexed by
+;;; The current status for each machine in the room, indexed by
 ;;; Zp_MachineIndex_u8.
 .EXPORT Ram_MachineStatus_eMachine_arr
 Ram_MachineStatus_eMachine_arr: .res kMaxMachines
 
-;;; The program counter for each machine in the area, indexed by
+;;; The program counter for each machine in the room, indexed by
 ;;; Zp_MachineIndex_u8.
 .EXPORT Ram_MachinePc_u8_arr
 Ram_MachinePc_u8_arr: .res kMaxMachines
 
-;;; The value of the $a register for each machine in the area, indexed by
+;;; The value of the $a register for each machine in the room, indexed by
 ;;; Zp_MachineIndex_u8.
 Ram_MachineRegA_u8_arr: .res kMaxMachines
 
-;;; TODO: Machine position and other state.
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGC_Room"
-
-.EXPORT DataC_Machines_sMachine_arr
-.PROC DataC_Machines_sMachine_arr
-    D_STRUCT sMachine
-    d_byte Code_eProgram, eProgram::JailCellDoor
-    d_byte Flags_bMachine, bMachine::MoveV
-    d_byte RegNames_u8_arr6, "T", "R", 0, 0, 0, "Y"
-    d_addr Init_func_ptr, _Init
-    d_addr ReadReg_func_ptr, _ReadReg
-    d_addr WriteReg_func_ptr, Func_MachineError
-    d_addr TryMove_func_ptr, _TryMove
-    d_addr TryAct_func_ptr, Func_MachineError
-    d_addr Tick_func_ptr, _Tick
-    d_addr Draw_func_ptr, _Draw
-    d_addr Reset_func_ptr, _Reset
-    d_byte Padding
-    .res kMachinePadding
-    D_END
-_Init:
-    ;; TODO: Implement Init for JailCellDoor machine.
-    rts
-_ReadReg:
-    lda #0  ; TODO: Implement ReadReg for JailCellDoor machine.
-    rts
-_TryMove:
-    jmp Func_MachineError  ; TODO: Implement TryMove for JailCellDoor machine.
-_Tick:
-    ;; TODO: Implement Tick for JailCellDoor machine.
-    rts
-_Draw:
-    ;; TODO: Implement Draw for JailCellDoor machine.
-    rts
-_Reset:
-    ;; TODO: Implement Reset for JailCellDoor machine.
-    rts
-.ENDPROC
+;;; RAM that each room's machines can divvy up however they want to store their
+;;; state.
+.EXPORT Ram_MachineState
+Ram_MachineState: .res kMachineStateSize
 
 ;;;=========================================================================;;;
 
@@ -155,8 +116,9 @@ _Reset:
 
 ;;; Sets Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr, and makes
 ;;; Zp_Current_sProgram_ptr point to the machine's program in SRAM.
-;;; @prereq Zp_Machines_sMachine_arr_ptr is initialized.
+;;; @prereq Zp_Current_sRoom is initialized.
 ;;; @param X The machine index to set.
+;;; @preserve X
 .EXPORT Func_SetMachineIndex
 .PROC Func_SetMachineIndex
     stx Zp_MachineIndex_u8
@@ -164,9 +126,9 @@ _Reset:
     txa
     .assert .sizeof(sMachine) * kMaxMachines <= $100, error
     mul #.sizeof(sMachine)
-    add Zp_Machines_sMachine_arr_ptr + 0
+    add <(Zp_Current_sRoom + sRoom::Machines_sMachine_arr_ptr + 0)
     sta Zp_Current_sMachine_ptr + 0
-    lda Zp_Machines_sMachine_arr_ptr + 1
+    lda <(Zp_Current_sRoom + sRoom::Machines_sMachine_arr_ptr + 1)
     adc #0
     sta Zp_Current_sMachine_ptr + 1
     ;; Store the machine's program number in A.
@@ -189,36 +151,6 @@ _Reset:
     adc #>Sram_Programs_sProgram_arr
     sta Zp_Current_sProgram_ptr + 1
     rts
-.ENDPROC
-
-;;; Executes the next instruction on the current machine.
-;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
-;;; @prereq Zp_Current_sProgram_ptr is initialized.
-.EXPORT Func_MachineInit
-.PROC Func_MachineInit
-    ldx Zp_MachineIndex_u8
-    ;; Init the machine's PC and $a register to zero.
-    lda #0
-    sta Ram_MachinePc_u8_arr, x
-    sta Ram_MachineRegA_u8_arr, x
-    ;; Init the machine's status to Halted if the program is empty, or Running
-    ;; otherwise.
-    ldy #.sizeof(sInst) * 0 + sInst::Op_byte
-    lda (Zp_Current_sProgram_ptr), y
-    and #$f0
-    beq @emptyProgram
-    lda #eMachine::Running
-    @emptyProgram:
-    .assert eMachine::Halted = 0, error
-    sta Ram_MachineStatus_eMachine_arr, x
-    ;; Initialize any machine-specific state.
-    ldy #sMachine::Init_func_ptr
-    lda (Zp_Current_sMachine_ptr), y
-    sta Zp_Tmp_ptr + 0
-    iny
-    lda (Zp_Current_sMachine_ptr), y
-    sta Zp_Tmp_ptr + 1
-    jmp (Zp_Tmp_ptr)
 .ENDPROC
 
 ;;; Executes the next instruction on the current machine.
@@ -311,7 +243,8 @@ _DecrementPc:
     sta Ram_MachinePc_u8_arr, x
     rts
 _OpAct:
-    jsr Func_MachineTryAct  ; clears Z on success
+    ldy #sMachine::TryAct_func_ptr  ; param: function pointer offset
+    jsr Func_MachineCall  ; clears Z on success
     bne _IncrementPc
     rts
 _OpMove:
@@ -320,7 +253,8 @@ _OpMove:
     jsr Func_MachineRead  ; returns A
     and #$03  ; turn 0-9 value into 2-bit eDir value
     tax  ; param: eDir value
-    jsr Func_MachineTryMove  ; clears Z on success
+    ldy #sMachine::TryMove_func_ptr  ; param: function pointer offset
+    jsr Func_MachineCall  ; clears Z on success
     bne _IncrementPc
     rts
 _OpEnd:
@@ -427,38 +361,6 @@ _Le:
 .ENDPROC
 .ENDPROC
 
-;;; Attempts to make the current machine perform its action.  If the machine
-;;; is not ready to act yet (e.g. because it's still moving, or because its
-;;; last action hasn't cooled off yet), then Z will be set, and the machine
-;;; should remain on the same opcode.
-;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
-;;; @return Z Cleared if the machine was able to act, set otherwise.
-.PROC Func_MachineTryAct
-    ldy #sMachine::TryAct_func_ptr
-    lda (Zp_Current_sMachine_ptr), y
-    sta Zp_Tmp_ptr + 0
-    iny
-    lda (Zp_Current_sMachine_ptr), y
-    sta Zp_Tmp_ptr + 1
-    jmp (Zp_Tmp_ptr)  ; sMachine::TryAct_func_ptr returns Z
-.ENDPROC
-
-;;; Attempts to make the current machine move in the specified direction.  If
-;;; the machine is not ready to move yet (e.g. because it's still moving), then
-;;; Z will be set, and the machine should remain on the same opcode.
-;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
-;;; @param X The eDir value for the direction to move in.
-;;; @return Z Cleared if the machine was able to move, set otherwise.
-.PROC Func_MachineTryMove
-    ldy #sMachine::TryMove_func_ptr
-    lda (Zp_Current_sMachine_ptr), y
-    sta Zp_Tmp_ptr + 0
-    iny
-    lda (Zp_Current_sMachine_ptr), y
-    sta Zp_Tmp_ptr + 1
-    jmp (Zp_Tmp_ptr)  ; sMachine::TryMove_func_ptr returns Z
-.ENDPROC
-
 ;;; Reads a value from a register of the current machine.
 ;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
 ;;; @param A The 4-bit immediate (0-9) or register ($a-$f) value.
@@ -467,15 +369,8 @@ _Le:
     cmp #$0a
     blt @immediate
     beq @readRegA
-    tax  ; register to read from
-    ldy #sMachine::ReadReg_func_ptr
-    lda (Zp_Current_sMachine_ptr), y
-    sta Zp_Tmp_ptr + 0
-    iny
-    lda (Zp_Current_sMachine_ptr), y
-    sta Zp_Tmp_ptr + 1
-    txa  ; param: register to read from
-    jmp (Zp_Tmp_ptr)  ; sMachine::ReadReg_func_ptr returns A
+    ldy #sMachine::ReadReg_func_ptr  ; param: function pointer offset
+    jmp Func_MachineCall  ; sMachine::ReadReg_func_ptr returns A
     @readRegA:
     ldx Zp_MachineIndex_u8
     lda Ram_MachineRegA_u8_arr, x
@@ -490,19 +385,100 @@ _Le:
 .PROC Func_MachineWrite
     cmp #$0a
     beq @writeRegA
-    sta Zp_Tmp1_byte  ; register to write to
-    ldy #sMachine::WriteReg_func_ptr
+    ldy #sMachine::WriteReg_func_ptr  ; param: function pointer offset
+    jmp Func_MachineCall
+    @writeRegA:
+    txa  ; the value to write
+    ldx Zp_MachineIndex_u8
+    sta Ram_MachineRegA_u8_arr, x
+    rts
+.ENDPROC
+
+;;; Calls the specified function for the current machine.
+;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
+;;; @param Y The byte offset for a function pointer in sMachine.
+;;; @param A The A parameter for the function (if any).
+;;; @param X The X parameter for the function (if any).
+;;; @return Whatever the called function returns (if anything).
+.PROC Func_MachineCall
+    sta Zp_Tmp1_byte
     lda (Zp_Current_sMachine_ptr), y
     sta Zp_Tmp_ptr + 0
     iny
     lda (Zp_Current_sMachine_ptr), y
     sta Zp_Tmp_ptr + 1
-    lda Zp_Tmp1_byte  ; param: register to write to
+    lda Zp_Tmp1_byte
     jmp (Zp_Tmp_ptr)
-    @writeRegA:
-    txa  ; the value to write
-    ldx Zp_MachineIndex_u8
+.ENDPROC
+
+;;; Initializes state for all machines in the room.
+.EXPORT Func_InitAllMachines
+.PROC Func_InitAllMachines
+    ldx #0
+    @loop:
+    jsr Func_SetMachineIndex  ; preserves X
+    ;; Init the machine's PC and $a register to zero.
+    lda #0
+    sta Ram_MachinePc_u8_arr, x
     sta Ram_MachineRegA_u8_arr, x
+    ;; Init the machine's status to Halted if the program is empty, or Running
+    ;; otherwise.
+    ldy #.sizeof(sInst) * 0 + sInst::Op_byte
+    lda (Zp_Current_sProgram_ptr), y
+    and #$f0
+    beq @emptyProgram
+    lda #eMachine::Running
+    @emptyProgram:
+    .assert eMachine::Halted = 0, error
+    sta Ram_MachineStatus_eMachine_arr, x
+    ;; Initialize any machine-specific state.
+    txa
+    pha
+    ldy #sMachine::Init_func_ptr  ; param: function pointer offset
+    jsr Func_MachineCall
+    pla
+    tax
+    ;; Continue to the next machine.
+    inx
+    cpx <(Zp_Current_sRoom + sRoom::NumMachines_u8)
+    blt @loop
+    rts
+.ENDPROC
+
+;;; Performs per-frame state updates for all machines in the room.
+.EXPORT Func_TickAllMachines
+.PROC Func_TickAllMachines
+    ldx #0
+    @loop:
+    txa
+    pha
+    jsr Func_SetMachineIndex
+    jsr Func_MachineExecuteNext
+    ldy #sMachine::Tick_func_ptr  ; param: function pointer offset
+    jsr Func_MachineCall
+    pla
+    tax
+    inx
+    cpx <(Zp_Current_sRoom + sRoom::NumMachines_u8)
+    blt @loop
+    rts
+.ENDPROC
+
+;;; Allocates and populates OAM slots for all machines in the room.
+.EXPORT Func_DrawObjectsForAllMachines
+.PROC Func_DrawObjectsForAllMachines
+    ldx #0
+    @loop:
+    txa
+    pha
+    jsr Func_SetMachineIndex
+    ldy #sMachine::Draw_func_ptr  ; param: function pointer offset
+    jsr Func_MachineCall
+    pla
+    tax
+    inx
+    cpx <(Zp_Current_sRoom + sRoom::NumMachines_u8)
+    blt @loop
     rts
 .ENDPROC
 

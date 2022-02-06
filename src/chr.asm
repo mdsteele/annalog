@@ -49,7 +49,8 @@ Ppu_ChrPlayer:
 :   .incbin "out/data/tiles/cursor.chr"
     .incbin "out/data/tiles/screen.chr"
     .incbin "out/data/tiles/player.chr"
-    .res $66 * kSizeofChr
+    .incbin "out/data/tiles/machine.chr"
+    .res $62 * kSizeofChr
     .assert * - :- = kSizeofChr * 128, error
 
 ;;;=========================================================================;;;

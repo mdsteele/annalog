@@ -37,14 +37,19 @@ kMaxRoomWidthBlocks = kMaxRoomWidthTiles / 2
     ;; The maximum permitted scroll X-coordinate, in pixels.  This should be
     ;; equal to (N - kScreenWidthBlocks) * kBlockWidthPx, where N is the width
     ;; of the room in blocks.
-    MaxScrollX_u16  .word
+    MaxScrollX_u16            .word
     ;; True ($ff) if the room is "tall" (kTallRoomHeightBlocks blocks tall), or
     ;; false ($00) if it is short (kScreenHeightBlocks blocks tall).
-    IsTall_bool     .byte
+    IsTall_bool               .byte
     ;; A pointer to the terrain block data for this room, which stores 1 byte
     ;; per block in column-major order.  For "short" rooms, new columns start
     ;; every 16 bytes; for "tall" rooms, new columns start every 24 bytes.
-    TerrainData_ptr .addr
+    TerrainData_ptr           .addr
+    ;; The number of entries in the Machines_sMachine_arr_ptr array.  This must
+    ;; be no greater than kMaxMachines.
+    NumMachines_u8            .byte
+    ;; A pointer to the machine data array for this room.
+    Machines_sMachine_arr_ptr .addr
 .ENDSTRUCT
 
 ;;;=========================================================================;;;

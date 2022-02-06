@@ -23,6 +23,9 @@ kMaxMachines = 8
 ;;; The number of padding bytes at the end of each sMachine struct.
 .DEFINE kMachinePadding 8
 
+;;; How many bytes of RAM are reserved for room-specific machine state.
+kMachineStateSize = $c0
+
 ;;;=========================================================================;;;
 
 ;;; Flags indicating features of a given machine.
@@ -74,7 +77,6 @@ kMaxMachines = 8
     ;; TODO: What is the signature of this function?
     Tick_func_ptr     .addr
     ;; Function to call each frame to draw the machine's objects.
-    ;; TODO: What is the signature of this function?
     Draw_func_ptr     .addr
     ;; Function to call to reset the machine.
     ;; TODO: What is the signature of this function?

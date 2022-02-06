@@ -25,15 +25,18 @@
 .INCLUDE "ppu.inc"
 .INCLUDE "room.inc"
 
-.IMPORT DataC_Machines_sMachine_arr
 .IMPORT DataC_TallRoom_sRoom
 .IMPORT FuncA_Terrain_FillNametables
 .IMPORT FuncA_Terrain_GetColumnPtrForTileIndex
 .IMPORT FuncA_Terrain_TransferTileColumn
+.IMPORT Func_AllocObjectsFor2x2Shape
 .IMPORT Func_ClearRestOfOam
 .IMPORT Func_DrawObjectsForAllDevices
+.IMPORT Func_DrawObjectsForAllMachines
 .IMPORT Func_FadeIn
+.IMPORT Func_InitAllMachines
 .IMPORT Func_ProcessFrame
+.IMPORT Func_TickAllMachines
 .IMPORT Func_UpdateButtons
 .IMPORT Func_Window_DirectDrawTopBorder
 .IMPORT Func_Window_SetUpIrq
@@ -45,13 +48,14 @@
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORTZP Zp_Current_sRoom
 .IMPORTZP Zp_FrameCounter_u8
-.IMPORTZP Zp_Machines_sMachine_arr_ptr
 .IMPORTZP Zp_OamOffset_u8
 .IMPORTZP Zp_P1ButtonsHeld_bJoypad
 .IMPORTZP Zp_P1ButtonsPressed_bJoypad
 .IMPORTZP Zp_PpuScrollX_u8
 .IMPORTZP Zp_PpuScrollY_u8
 .IMPORTZP Zp_Render_bPpuMask
+.IMPORTZP Zp_ShapePosX_i16
+.IMPORTZP Zp_ShapePosY_i16
 .IMPORTZP Zp_TerrainColumn_u8_arr_ptr
 .IMPORTZP Zp_Tmp1_byte
 .IMPORTZP Zp_Tmp2_byte
@@ -63,8 +67,8 @@
 
 ;;; How far the player avatar's bounding box extends in each direction from the
 ;;; avatar's position.
-kAvatarBoundingBoxUp = 6
-kAvatarBoundingBoxDown = 9
+kAvatarBoundingBoxUp = 7
+kAvatarBoundingBoxDown = 8
 kAvatarBoundingBoxLeft = 5
 kAvatarBoundingBoxRight = 5
 
@@ -195,13 +199,13 @@ _InitializeWindow:
 _LoadRoom:
     prgc_bank #<.bank(DataC_TallRoom_sRoom)
     ldx #.sizeof(sRoom) - 1
+    .assert .sizeof(sRoom) <= $80, error
     @loop:
     lda DataC_TallRoom_sRoom, x
     sta Zp_Current_sRoom, x
     dex
     bpl @loop
-    ldax #DataC_Machines_sMachine_arr
-    stax Zp_Machines_sMachine_arr_ptr
+    jsr Func_InitAllMachines
 _DrawTerrain:
     prga_bank #<.bank(FuncA_Terrain_FillNametables)
     lda #0  ; param: left block column index
@@ -251,7 +255,7 @@ _GameLoop:
     ;; TODO: Implement interacting with other device types.
 _Done:
 .ENDPROC
-    ;; TODO: Tick machines.
+    jsr Func_TickAllMachines
     jsr Func_ExploreMoveAvatar
     jmp _GameLoop
 .ENDPROC
@@ -813,74 +817,30 @@ _DoneLeftRight:
 .PROC Func_DrawObjectsForRoom
     jsr Func_DrawObjectsForPlayerAvatar
     jsr Func_DrawObjectsForDevicePrompt
-    ;; TODO: Draw objects for e.g. machines and enemies
+    jsr Func_DrawObjectsForAllMachines
+    ;; TODO: Draw objects for e.g. enemies
     jmp Func_DrawObjectsForAllDevices
 .ENDPROC
 
 ;;; Allocates and populates OAM slots for the player avatar.
 .PROC Func_DrawObjectsForPlayerAvatar
-    ;; We need to allocate four objects.  If there's not room in OAM, give up.
-    ldy Zp_OamOffset_u8
-    cpy #.sizeof(sObj) * (kNumOamSlots - 4) + 1
-    blt _ObjectYPositions
-_NotVisible:
-    rts
-_ObjectYPositions:
-    ;; Determine the avatar's center Y position on screen; if the avatar is
-    ;; completely offscreen vertically, return without allocating any objects.
-    ;; TODO: Avoid drawing objects on top of the window.
+    ;; Calculate screen-space Y-position.
     lda Zp_AvatarPosY_i16 + 0
     sub Zp_PpuScrollY_u8
-    tax  ; center Y position on screen
+    sta Zp_ShapePosY_i16 + 0
     lda Zp_AvatarPosY_i16 + 1
     sbc #0
-    bne _NotVisible
-    cpx #kScreenHeightPx + kTileHeightPx
-    bge _NotVisible
-    txa
-    ;; Set the vertical positions of the four objects.
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::YPos_u8, y
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::YPos_u8, y
-    sub #kTileHeightPx
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::YPos_u8, y
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::YPos_u8, y
-_ObjectXPositions:
-    ;; Determine the avatar's center X position on screen; if the avatar is
-    ;; completely offscreen to the left, return without allocating any objects.
+    sta Zp_ShapePosY_i16 + 1
+    ;; Calculate screen-space X-position.
     lda Zp_AvatarPosX_i16 + 0
     sub Zp_PpuScrollX_u8
-    tax  ; center X position on screen (lo)
+    sta Zp_ShapePosX_i16 + 0
     lda Zp_AvatarPosX_i16 + 1
     sbc Zp_ScrollXHi_u8
-    sta Zp_Tmp1_byte  ; center X position on screen (hi)
-    bmi _NotVisible
-    ;; If the center of the avatar is offscreen to the right, hide the two
-    ;; right-hand objects.
-    beq @rightSide
-    lda #$ff
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::YPos_u8, y
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::YPos_u8, y
-    @rightSide:
-    txa  ; center X position on screen (lo)
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::XPos_u8, y
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::XPos_u8, y
-    ;; Determine the avatar's left edge X position on screen; if the avatar is
-    ;; completely offscreen to the right, return without allocating any
-    ;; objects.  If the left edge is offscreen to the left, hide the two
-    ;; left-hand objects.
-    sub #kTileWidthPx
-    tax  ; left X position on screen (lo)
-    lda Zp_Tmp1_byte  ; center X position on screen (hi)
-    sbc #0
-    beq @leftSide
-    bpl _NotVisible
-    lda #$ff
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::YPos_u8, y
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::YPos_u8, y
-    @leftSide:
-    txa  ; left X position on screen (lo)
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::XPos_u8, y
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::XPos_u8, y
+    sta Zp_ShapePosX_i16 + 1
+    ;; Allocate objects.
+    jsr Func_AllocObjectsFor2x2Shape  ; sets C if offscreen; returns Y
+    bcs _Done
 _ObjectFlags:
     lda Zp_AvatarFlags_bObj
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Flags_bObj, y
@@ -898,7 +858,7 @@ _ObjectTilesFacingRight:
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Tile_u8, y
     adc #1
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Tile_u8, y
-    bne _FinishAllocation  ; unconditional
+    bne _Done  ; unconditional
 _ObjectTilesFacingLeft:
     lda Zp_AvatarMode_ePlayer
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Tile_u8, y
@@ -908,10 +868,7 @@ _ObjectTilesFacingLeft:
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Tile_u8, y
     adc #1
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Tile_u8, y
-_FinishAllocation:
-    tya
-    add #.sizeof(sObj) * 4
-    sta Zp_OamOffset_u8
+_Done:
     rts
 .ENDPROC
 

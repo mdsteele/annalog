@@ -243,6 +243,14 @@ d_struct_begin:
     .endif
 .ENDMACRO
 
+;;; Defines one or more words within a D_STRUCT/D_END block.
+.MACRO d_word field, v1
+    .assert * - d_struct_begin = d_struct_name::field, error, "wrong offset"
+    .if .paramcount > 1
+    .word v1
+    .endif
+.ENDMACRO
+
 ;;; Ends a D_STRUCT data definition.
 .MACRO D_END
     .assert * - d_struct_begin = .sizeof(d_struct_name), error, "wrong size"

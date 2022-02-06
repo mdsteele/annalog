@@ -20,12 +20,13 @@
 .INCLUDE "../src/machine.inc"
 .INCLUDE "../src/macros.inc"
 .INCLUDE "../src/program.inc"
+.INCLUDE "../src/room.inc"
 
 .IMPORT Exit_Success
 .IMPORT Func_ExpectAEqualsY
+.IMPORT Func_InitAllMachines
 .IMPORT Func_MachineError
 .IMPORT Func_MachineExecuteNext
-.IMPORT Func_MachineInit
 .IMPORT Func_SetMachineIndex
 .IMPORT Ram_MachinePc_u8_arr
 .IMPORT Ram_MachineStatus_eMachine_arr
@@ -33,11 +34,10 @@
 .IMPORTZP Zp_Current_sProgram_ptr
 .IMPORTZP Zp_MachineIndex_u8
 .IMPORTZP Zp_MachineMaxInstructions_u8
-.IMPORTZP Zp_Machines_sMachine_arr_ptr
 
 ;;;=========================================================================;;;
 
-.DEFINE kTestMachineIndex 4
+.DEFINE kTestMachineIndex 0
 .DEFINE kTestProgramIndex 3
 
 kMaxTestMachinePosX = 9
@@ -50,6 +50,9 @@ kMaxTestMachinePosY = 9
 .EXPORTZP Zp_Tmp1_byte, Zp_Tmp_ptr
 Zp_Tmp1_byte: .res 1
 Zp_Tmp_ptr: .res 2
+
+.EXPORTZP Zp_Current_sRoom
+Zp_Current_sRoom: .tag sRoom
 
 ;;; The current X/Y position of the test machine.
 Zp_TestMachinePosX_u8: .res 1
@@ -89,7 +92,6 @@ TestProgram:
 .ENDPROC
 
 .PROC Data_Machines_sMachine_arr
-    .res .sizeof(sMachine) * kTestMachineIndex
 TestMachine:
     D_STRUCT sMachine
     d_byte Code_eProgram, kTestProgramIndex
@@ -183,9 +185,11 @@ _Reset:
 SetMachineIndex:
     lda #kMaxProgramLength
     sta Zp_MachineMaxInstructions_u8
-    ;; Set the current machine.
     ldax #Data_Machines_sMachine_arr
-    stax Zp_Machines_sMachine_arr_ptr
+    stax <(Zp_Current_sRoom + sRoom::Machines_sMachine_arr_ptr)
+    lda #1
+    sta <(Zp_Current_sRoom + sRoom::NumMachines_u8)
+    ;; Set the current machine.
     ldx #kTestMachineIndex  ; param: machine index
     jsr Func_SetMachineIndex
     ;; Verify that the correct machine index was set.
@@ -208,15 +212,13 @@ SetMachineIndex:
     jsr Func_ExpectAEqualsY
 InitMachine:
     ;; Initialize the machine.
-    jsr Func_MachineInit
+    jsr Func_InitAllMachines
     ;; Verify that the PC starts at zero.
-    ldx Zp_MachineIndex_u8
-    lda Ram_MachinePc_u8_arr, x
+    lda Ram_MachinePc_u8_arr + kTestMachineIndex
     ldy #0
     jsr Func_ExpectAEqualsY
     ;; Verify that the machine is ready to run.
-    ldx Zp_MachineIndex_u8
-    lda Ram_MachineStatus_eMachine_arr, x
+    lda Ram_MachineStatus_eMachine_arr + kTestMachineIndex
     ldy #eMachine::Running
     jsr Func_ExpectAEqualsY
     ;; Verify that the machine state was initialized.
@@ -249,8 +251,7 @@ ExecuteInstructions:
     ldy #3
     jsr Func_ExpectAEqualsY
     ;; Verify that the machine is halted (from executing an END instruction).
-    ldx Zp_MachineIndex_u8
-    lda Ram_MachineStatus_eMachine_arr, x
+    lda Ram_MachineStatus_eMachine_arr + kTestMachineIndex
     ldy #eMachine::Halted
     jsr Func_ExpectAEqualsY
     jmp Exit_Success
