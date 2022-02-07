@@ -30,7 +30,14 @@
 kNumFadeSteps = 4
 kFramesPerStep = 7
 
-Ppu_BgColors_u6_arr2 = Ppu_Palettes_sPal_arr8 + .sizeof(sPal) * 0 + sPal::C2_u6
+.LINECONT +
+Ppu_Bg0Colors_u6_arr2 = \
+    Ppu_Palettes_sPal_arr8 + .sizeof(sPal) * 0 + sPal::C2_u6
+Ppu_Obj0Colors_u6_arr2 = \
+    Ppu_Palettes_sPal_arr8 + .sizeof(sPal) * 4 + sPal::C2_u6
+Ppu_Obj1Colors_u6_arr2 = \
+    Ppu_Palettes_sPal_arr8 + .sizeof(sPal) * 5 + sPal::C2_u6
+.LINECONT -
 
 ;;;=========================================================================;;;
 
@@ -38,38 +45,60 @@ Ppu_BgColors_u6_arr2 = Ppu_Palettes_sPal_arr8 + .sizeof(sPal) * 0 + sPal::C2_u6
 
 .SCOPE Data_FadeColors
 Gray_u6_arr:
-    .byte $0f, $0f, $2d, $00
+    .byte $0f, $2d, $2d, $00
     .assert * - Gray_u6_arr = kNumFadeSteps, error
+Green_u6_arr:
+    .byte $0f, $09, $0a, $1a
+    .assert * - Green_u6_arr = kNumFadeSteps, error
+Red_u6_arr:
+    .byte $0f, $06, $06, $16
+    .assert * - Red_u6_arr = kNumFadeSteps, error
 White_u6_arr:
     .byte $0f, $2d, $3d, $30
     .assert * - White_u6_arr = kNumFadeSteps, error
 .ENDSCOPE
 
 ;;; Updates PPU palettes for fade step A, then waits for kFramesPerStep frames.
-;;; @param A The fade step, from 0 (faded fully out) to kNumFadeSteps - 1.
-;;; @preserve A
+;;; @param Y The fade step, from 0 (faded fully out) to kNumFadeSteps - 1.
+;;; @preserve Y
 .PROC Func_FadeTransferAndWait
     ;; Buffer the palette data to be transferred to the PPU.
-    tay
     ldx Zp_PpuTransferLen_u8
     lda #kPpuCtrlFlagsHorz
-    sta Ram_PpuTransfer_arr + 0, x
-    lda #>Ppu_BgColors_u6_arr2
-    sta Ram_PpuTransfer_arr + 1, x
-    lda #<Ppu_BgColors_u6_arr2
-    sta Ram_PpuTransfer_arr + 2, x
+    sta Ram_PpuTransfer_arr +  0, x
+    sta Ram_PpuTransfer_arr +  6, x
+    sta Ram_PpuTransfer_arr + 12, x
+    lda #>Ppu_Bg0Colors_u6_arr2
+    sta Ram_PpuTransfer_arr +  1, x
+    lda #<Ppu_Bg0Colors_u6_arr2
+    sta Ram_PpuTransfer_arr +  2, x
+    lda #>Ppu_Obj0Colors_u6_arr2
+    sta Ram_PpuTransfer_arr +  7, x
+    lda #<Ppu_Obj0Colors_u6_arr2
+    sta Ram_PpuTransfer_arr +  8, x
+    lda #>Ppu_Obj1Colors_u6_arr2
+    sta Ram_PpuTransfer_arr + 13, x
+    lda #<Ppu_Obj1Colors_u6_arr2
+    sta Ram_PpuTransfer_arr + 14, x
     lda #2
-    sta Ram_PpuTransfer_arr + 3, x
-    lda Data_FadeColors::Gray_u6_arr, y
-    sta Ram_PpuTransfer_arr + 4, x
+    sta Ram_PpuTransfer_arr +  3, x
+    sta Ram_PpuTransfer_arr +  9, x
+    sta Ram_PpuTransfer_arr + 15, x
+    lda Data_FadeColors::Gray_u6_arr,  y
+    sta Ram_PpuTransfer_arr +  4, x
+    lda Data_FadeColors::Red_u6_arr,   y
+    sta Ram_PpuTransfer_arr + 10, x
+    lda Data_FadeColors::Green_u6_arr, y
+    sta Ram_PpuTransfer_arr + 16, x
     lda Data_FadeColors::White_u6_arr, y
-    sta Ram_PpuTransfer_arr + 5, x
-    ;; TODO: Also fade object palettes.
+    sta Ram_PpuTransfer_arr +  5, x
+    sta Ram_PpuTransfer_arr + 11, x
+    sta Ram_PpuTransfer_arr + 17, x
     txa
-    add #6
+    add #18
     sta Zp_PpuTransferLen_u8
-    tya
     ;; Process kFramesPerStep frames.
+    tya
     pha
     lda #kFramesPerStep
     @waitLoop:
@@ -79,6 +108,7 @@ White_u6_arr:
     sub #1
     bne @waitLoop
     pla
+    tay
     rts
 .ENDPROC
 
@@ -87,11 +117,11 @@ White_u6_arr:
 ;;; this.
 .EXPORT Func_FadeIn
 .PROC Func_FadeIn
-    lda #0
+    ldy #0
     @stepLoop:
-    jsr Func_FadeTransferAndWait  ; preserves A
-    add #1
-    cmp #kNumFadeSteps
+    jsr Func_FadeTransferAndWait  ; preserves Y
+    iny
+    cpy #kNumFadeSteps
     bne @stepLoop
     rts
 .ENDPROC
@@ -99,13 +129,13 @@ White_u6_arr:
 ;;; Fades out the screen over a number of frames, then disables rendering.
 .EXPORT Func_FadeOut
 .PROC Func_FadeOut
-    lda #kNumFadeSteps - 1
+    ldy #kNumFadeSteps - 1
     @stepLoop:
-    jsr Func_FadeTransferAndWait  ; preserves A
-    sub #1
+    jsr Func_FadeTransferAndWait  ; preserves Y
+    dey
     bne @stepLoop
-    ;; A is now zero, so we can use it to diable rendering.
-    sta Zp_Render_bPpuMask
+    ;; Y is now zero, so we can use it to diable rendering.
+    sty Zp_Render_bPpuMask
     jmp Func_ProcessFrame
 .ENDPROC
 
