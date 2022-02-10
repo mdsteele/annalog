@@ -42,9 +42,9 @@ kMachineStateSize = $c0
 
 ;;; States that a given machine can be in.
 .ENUM eMachine
-    Halted     ; Empty program, or an END instruction was reached.
     Running    ; The machine is executing its program.
     Resetting  ; The machine is resetting to its original position.
+    Ended      ; An END instruction was reached.
     Error      ; The machine tried to do something it couldn't do.
 .ENDENUM
 
@@ -68,18 +68,16 @@ kMachineStateSize = $c0
     WriteReg_func_ptr .addr
     ;; Function to call when the machine tries to move.
     ;; @param X The eDir value for the direction to move in.
-    ;; @return Z Cleared if the machine was able to move, set otherwise.
+    ;; @return C Cleared if the machine was able to move, set otherwise.
     TryMove_func_ptr  .addr
     ;; Function to call when the machine tries to act.
-    ;; @return Z Cleared if the machine was able to act, set otherwise.
+    ;; @return C Cleared if the machine was able to act, set otherwise.
     TryAct_func_ptr   .addr
     ;; Function to call each frame to update the machine.
-    ;; TODO: What is the signature of this function?
     Tick_func_ptr     .addr
     ;; Function to call each frame to draw the machine's objects.
     Draw_func_ptr     .addr
-    ;; Function to call to reset the machine.
-    ;; TODO: What is the signature of this function?
+    ;; Function to call to start resetting the machine.
     Reset_func_ptr    .addr
     ;; Unused space to pad .sizeof(sMachine) to a power of 2.
     Padding           .res kMachinePadding

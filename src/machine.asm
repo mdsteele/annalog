@@ -101,16 +101,17 @@ Ram_MachineState: .res kMachineStateSize
 
 .SEGMENT "PRG8_Machine"
 
-;;; Marks the current machine as having an error and returns zero.
+;;; Marks the current machine as having an error, sets C, and returns zero.
 ;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
 ;;; @return A Always zero.
-;;; @return Z Always set.
+;;; @return C Always set.
 .EXPORT Func_MachineError
 .PROC Func_MachineError
     ldx Zp_MachineIndex_u8
     lda #eMachine::Error
     sta Ram_MachineStatus_eMachine_arr, x
-    lda #0  ; return zero and set Z to indicate failure
+    lda #0  ; return zero for ReadReg
+    sec  ; set C to indicate failure for TryAct/TryMove
     rts
 .ENDPROC
 
@@ -159,7 +160,7 @@ Ram_MachineState: .res kMachineStateSize
 .EXPORT Func_MachineExecuteNext
 .PROC Func_MachineExecuteNext
     ldx Zp_MachineIndex_u8
-    ;; Check if the machine is running.
+    ;; Check if the machine is running; if not, do nothing.
     lda Ram_MachineStatus_eMachine_arr, x
     cmp #eMachine::Running
     beq @running
@@ -191,11 +192,41 @@ _OpCopy:
     lda <(Zp_Current_sInst + sInst::Arg_byte)
     and #$0f  ; param: immediate value or register to read
     jsr Func_MachineRead  ; returns A
+_SetLValueToA:
     tax       ; param: value to write
     lda <(Zp_Current_sInst + sInst::Op_byte)
     and #$0f  ; param: register to write to
     jsr Func_MachineWrite
     jmp _IncrementPc
+_OpAdd:
+    lda <(Zp_Current_sInst + sInst::Arg_byte)
+    and #$0f  ; param: immediate value or register to read
+    jsr Func_MachineRead  ; returns A
+    pha
+    lda <(Zp_Current_sInst + sInst::Arg_byte)
+    div #$10  ; param: immediate value or register to read
+    jsr Func_MachineRead  ; returns A
+    sta Zp_Tmp1_byte
+    pla
+    add Zp_Tmp1_byte
+    cmp #10
+    blt _SetLValueToA
+    lda #9
+    bne _SetLValueToA  ; unconditional
+_OpSub:
+    lda <(Zp_Current_sInst + sInst::Arg_byte)
+    and #$0f  ; param: immediate value or register to read
+    jsr Func_MachineRead  ; returns A
+    pha
+    lda <(Zp_Current_sInst + sInst::Arg_byte)
+    div #$10  ; param: immediate value or register to read
+    jsr Func_MachineRead  ; returns A
+    sta Zp_Tmp1_byte
+    pla
+    sub Zp_Tmp1_byte
+    bge _SetLValueToA
+    lda #0
+    beq _SetLValueToA  ; unconditional
 _OpGoto:
     lda <(Zp_Current_sInst + sInst::Op_byte)
     and #$0f
@@ -244,8 +275,8 @@ _DecrementPc:
     rts
 _OpAct:
     ldy #sMachine::TryAct_func_ptr  ; param: function pointer offset
-    jsr Func_MachineCall  ; clears Z on success
-    bne _IncrementPc
+    jsr Func_MachineCall  ; clears C on success
+    bcc _IncrementPc
     rts
 _OpMove:
     lda <(Zp_Current_sInst + sInst::Op_byte)
@@ -254,19 +285,17 @@ _OpMove:
     and #$03  ; turn 0-9 value into 2-bit eDir value
     tax  ; param: eDir value
     ldy #sMachine::TryMove_func_ptr  ; param: function pointer offset
-    jsr Func_MachineCall  ; clears Z on success
-    bne _IncrementPc
+    jsr Func_MachineCall  ; clears C on success
+    bcc _IncrementPc
     rts
 _OpEnd:
-    lda #eMachine::Halted
+    lda #eMachine::Ended
     sta Ram_MachineStatus_eMachine_arr, x
+_OpEmpty:
     rts
 _OpSwap:
-_OpAdd:
-_OpSub:
 _OpMul:
     ;; TODO: Implement executing SWAP/ADD/SUB/MUL instructions.
-_OpEmpty:
 _OpNop:
 _IncrementPc:
     ldx #1
@@ -394,6 +423,34 @@ _Le:
     rts
 .ENDPROC
 
+;;; Resets the current machine's PC and $a register, and puts the machine into
+;;; resetting mode.  A resetting machine will move back to its original
+;;; position and state (over some period of time) without executing
+;;; instructions, and once fully reset, will start running again.
+;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
+.EXPORT Func_MachineReset
+.PROC Func_MachineReset
+    ldx Zp_MachineIndex_u8
+    ;; Reset the machine's PC and $a register to zero.
+    lda #0
+    sta Ram_MachinePc_u8_arr, x
+    sta Ram_MachineRegA_u8_arr, x
+    ;; Set the machine's status to Resetting.
+    lda #eMachine::Resetting
+    sta Ram_MachineStatus_eMachine_arr, x
+    ;; Start resetting the machine.
+    ldy #sMachine::Reset_func_ptr  ; param: function pointer offset
+    jmp Func_MachineCall
+.ENDPROC
+
+;;; Calls the current machine's per-frame tick function.
+;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
+.EXPORT Func_MachineTick
+.PROC Func_MachineTick
+    ldy #sMachine::Tick_func_ptr  ; param: function pointer offset
+    .assert * = Func_MachineCall, error, "fallthrough"
+.ENDPROC
+
 ;;; Calls the specified function for the current machine.
 ;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
 ;;; @param Y The byte offset for a function pointer in sMachine.
@@ -417,19 +474,11 @@ _Le:
     ldx #0
     @loop:
     jsr Func_SetMachineIndex  ; preserves X
-    ;; Init the machine's PC and $a register to zero.
+    ;; Init the machine's PC and $a register to zero, and status to Running.
     lda #0
     sta Ram_MachinePc_u8_arr, x
     sta Ram_MachineRegA_u8_arr, x
-    ;; Init the machine's status to Halted if the program is empty, or Running
-    ;; otherwise.
-    ldy #.sizeof(sInst) * 0 + sInst::Op_byte
-    lda (Zp_Current_sProgram_ptr), y
-    and #$f0
-    beq @emptyProgram
-    lda #eMachine::Running
-    @emptyProgram:
-    .assert eMachine::Halted = 0, error
+    .assert eMachine::Running = 0, error
     sta Ram_MachineStatus_eMachine_arr, x
     ;; Initialize any machine-specific state.
     txa
@@ -445,17 +494,17 @@ _Le:
     rts
 .ENDPROC
 
-;;; Performs per-frame state updates for all machines in the room.
-.EXPORT Func_TickAllMachines
-.PROC Func_TickAllMachines
+;;; Executes instructions and performs per-frame state updates for all machines
+;;; in the room.
+.EXPORT Func_ExecuteAllMachines
+.PROC Func_ExecuteAllMachines
     ldx #0
     @loop:
     txa
     pha
     jsr Func_SetMachineIndex
     jsr Func_MachineExecuteNext
-    ldy #sMachine::Tick_func_ptr  ; param: function pointer offset
-    jsr Func_MachineCall
+    jsr Func_MachineTick
     pla
     tax
     inx

@@ -33,10 +33,10 @@
 .IMPORT Func_ClearRestOfOam
 .IMPORT Func_DrawObjectsForAllDevices
 .IMPORT Func_DrawObjectsForAllMachines
+.IMPORT Func_ExecuteAllMachines
 .IMPORT Func_FadeIn
 .IMPORT Func_InitAllMachines
 .IMPORT Func_ProcessFrame
-.IMPORT Func_TickAllMachines
 .IMPORT Func_UpdateButtons
 .IMPORT Func_Window_DirectDrawTopBorder
 .IMPORT Func_Window_SetUpIrq
@@ -255,7 +255,7 @@ _GameLoop:
     ;; TODO: Implement interacting with other device types.
 _Done:
 .ENDPROC
-    jsr Func_TickAllMachines
+    jsr Func_ExecuteAllMachines
     jsr Func_ExploreMoveAvatar
     jmp _GameLoop
 .ENDPROC

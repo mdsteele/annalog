@@ -34,6 +34,8 @@
 .IMPORT FuncA_Console_SetFieldForNominalOffset
 .IMPORT Func_ClearRestOfOam
 .IMPORT Func_DrawObjectsForRoom
+.IMPORT Func_MachineReset
+.IMPORT Func_MachineTick
 .IMPORT Func_Menu_EditSelectedField
 .IMPORT Func_ProcessFrame
 .IMPORT Func_ScrollTowardsGoal
@@ -155,6 +157,7 @@ Ram_Console_sProgram: .tag sProgram
 .EXPORT Main_Console_OpenWindow
 .PROC Main_Console_OpenWindow
     jsr Func_SetMachineIndex
+    jsr Func_MachineReset
     prga_bank #<.bank(FuncA_Console_LoadProgram)
     jsr FuncA_Console_LoadProgram
     lda Zp_MachineMaxInstructions_u8
@@ -276,6 +279,7 @@ _CheckButtons:
 _UpdateScrolling:
     jsr Func_SetScrollGoalFromAvatar
     jsr Func_ScrollTowardsGoal
+    jsr Func_MachineTick
     jmp _GameLoop
 .ENDPROC
 

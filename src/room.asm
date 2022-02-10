@@ -45,10 +45,20 @@ kJailCellDoorMachineIndex = 0
 ;;; machine, in pixels.
 kJailCellDoorPosX = $0038
 
+;;; The min, max, and initial room-space Y-positions for the center of the jail
+;;; cell door machine, in pixels.
+kJailCellDoorMinPosY = $78
+kJailCellDoorMaxPosY = $88
+kJailCellDoorInitPosY = kJailCellDoorMaxPosY
+
+;;; How fast the jail cell door moves, in pixels per frame.
+kJailCellDoorSpeed = 1
+
 ;;; Defines room-specific machine state data for this particular room.
 .STRUCT sState
     JailCellDoorRegY_u8 .byte
-    JailCellDoorPosY_i16 .word
+    JailCellDoorPosY_u8 .byte
+    JailCellDoorVelY_i8 .byte
 .ENDSTRUCT
 .ASSERT .sizeof(sState) <= kMachineStateSize, error
 
@@ -94,10 +104,11 @@ kJailCellDoorPosX = $0038
     .res kMachinePadding
     D_END
 _Init:
-    ldax #$0088
-    stax Ram_MachineState + sState::JailCellDoorPosY_i16
+    lda #kJailCellDoorInitPosY
+    sta Ram_MachineState + sState::JailCellDoorPosY_u8
     lda #0
     sta Ram_MachineState + sState::JailCellDoorRegY_u8
+    sta Ram_MachineState + sState::JailCellDoorVelY_i8
     rts
 _ReadReg:
     cmp #$f
@@ -107,6 +118,11 @@ _ReadReg:
     lda Ram_MachineState + sState::JailCellDoorRegY_u8
     rts
 _TryMove:
+    lda Ram_MachineState + sState::JailCellDoorVelY_i8
+    beq @ready
+    sec  ; set C to indicate not ready yet
+    rts
+    @ready:
     ldy Ram_MachineState + sState::JailCellDoorRegY_u8
     cpx #eDir::Up
     beq @moveUp
@@ -115,26 +131,45 @@ _TryMove:
     @error:
     jmp Func_MachineError
     @moveUp:
-    cpy #0
+    tya
     bne @error
+    lda #$ff & -kJailCellDoorSpeed
     iny
     bne @setY  ; unconditional
     @moveDown:
-    cpy #0
+    tya
     beq @error
+    lda #kJailCellDoorSpeed
     dey
     @setY:
     sty Ram_MachineState + sState::JailCellDoorRegY_u8
+    sta Ram_MachineState + sState::JailCellDoorVelY_i8
+    clc  ; clear C to indicate success
     rts
 _Tick:
-    ;; TODO: Implement Tick for JailCellDoor machine.
+    lda Ram_MachineState + sState::JailCellDoorVelY_i8
+    beq @finishResetting
+    add Ram_MachineState + sState::JailCellDoorPosY_u8
+    sta Ram_MachineState + sState::JailCellDoorPosY_u8
+    and #$0f
+    cmp #$08
+    bne @done
+    lda #0
+    sta Ram_MachineState + sState::JailCellDoorVelY_i8
+    @finishResetting:
+    lda Ram_MachineStatus_eMachine_arr + kJailCellDoorMachineIndex
+    cmp #eMachine::Resetting
+    bne @done
+    lda #eMachine::Running
+    sta Ram_MachineStatus_eMachine_arr + kJailCellDoorMachineIndex
+    @done:
     rts
 _Draw:
     ;; Calculate screen-space Y-position.
-    lda Ram_MachineState + sState::JailCellDoorPosY_i16 + 0
+    lda Ram_MachineState + sState::JailCellDoorPosY_u8
     sub Zp_PpuScrollY_u8
     sta Zp_ShapePosY_i16 + 0
-    lda Ram_MachineState + sState::JailCellDoorPosY_i16 + 1
+    lda #0
     sbc #0
     sta Zp_ShapePosY_i16 + 1
     ;; Calculate screen-space X-position.
@@ -174,7 +209,14 @@ _Draw:
     @done:
     rts
 _Reset:
-    ;; TODO: Implement Reset for JailCellDoor machine.
+    lda #0
+    sta Ram_MachineState + sState::JailCellDoorRegY_u8
+    lda Ram_MachineState + sState::JailCellDoorPosY_u8
+    cmp #kJailCellDoorMaxPosY
+    bge @done
+    lda #kJailCellDoorSpeed
+    sta Ram_MachineState + sState::JailCellDoorVelY_i8
+    @done:
     rts
 .ENDPROC
 

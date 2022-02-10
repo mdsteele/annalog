@@ -76,13 +76,13 @@ TestProgram:
     .word $94e5  ; TIL 5<=X
     .word $b000  ; MOVE ^
     .word $1a0f  ; A <- Y
+    .word $3aa2  ; A <- 2 + A
+    .word $4a1a  ; A <- A - 1
     .word $a000  ; ACT
-    .word $814a  ; IF A!=4
+    .word $815a  ; IF A!=5
     .word $6200  ; GOTO 2
     .word $b300  ; MOVE >
     .word $e000  ; END
-    .word $0000
-    .word $0000
     .word $0000
     .word $0000
     .word $0000
@@ -144,20 +144,21 @@ _TryMove:
     beq @error
     inx
     stx Zp_TestMachinePosY_u8
+    clc  ; clear C to indicate success
     rts
     @moveDown:
     ldx Zp_TestMachinePosY_u8
     beq @error
     dex
     stx Zp_TestMachinePosY_u8
-    inx  ; clear Z flag, to indicate success
+    clc  ; clear C to indicate success
     rts
     @moveLeft:
     ldx Zp_TestMachinePosX_u8
     beq @error
     dex
     stx Zp_TestMachinePosX_u8
-    inx  ; clear Z flag, to indicate success
+    clc  ; clear C to indicate success
     rts
     @moveRight:
     ldx Zp_TestMachinePosX_u8
@@ -165,9 +166,11 @@ _TryMove:
     beq @error
     inx
     stx Zp_TestMachinePosX_u8
+    clc  ; clear C to indicate success
     rts
 _TryAct:
     inc Zp_TestMachineActCounter_u8
+    clc  ; clear C to indicate success
     rts
 _Tick:
 _Draw:
@@ -250,9 +253,9 @@ ExecuteInstructions:
     lda Zp_TestMachineActCounter_u8
     ldy #3
     jsr Func_ExpectAEqualsY
-    ;; Verify that the machine is halted (from executing an END instruction).
+    ;; Verify that the machine hit an END instruction.
     lda Ram_MachineStatus_eMachine_arr + kTestMachineIndex
-    ldy #eMachine::Halted
+    ldy #eMachine::Ended
     jsr Func_ExpectAEqualsY
     jmp Exit_Success
 
