@@ -90,9 +90,18 @@ Ram_MenuRows_u8_arr: .res kMaxMenuItems
 ;;; The menu column (0-7) for each menu item.
 Ram_MenuCols_u8_arr: .res kMaxMenuItems
 
+;;; The names (i.e. BG tile IDs) for registers $a through $f for the current
+;;; machine.
+Ram_MenuRegNames_u8_arr6: .res 6
+
 ;;;=========================================================================;;;
 
 .SEGMENT "PRGA_Console"
+
+.PROC DataA_Console_NumberLabels_u8_arr
+    .byte "0123456789", $1a, $1b, $1c, $1d, $1e, $1f
+    .assert * - DataA_Console_NumberLabels_u8_arr = kMaxMenuItems, error
+.ENDPROC
 
 ;;; +--------+
 ;;; |COPY ADD|
@@ -239,7 +248,7 @@ _OnRight:
 .PROC FuncA_Console_SetUpOpcodeMenu
     ldax #DataA_Console_Opcode_sMenu
     stax Zp_Current_sMenu_ptr
-_SetColumnsForAllMenuItem:
+_SetColumnsForAllMenuItems:
     ldx #kMaxMenuItems - 1
     @loop:
     lda _Columns_u8_arr, x
@@ -316,35 +325,286 @@ _Columns_u8_arr:
 ;;; +--------+
 ;;; |        |
 ;;; |        |
-;;; |   A    |
-;;; |   B    |
-;;; |   C    |
-;;; |        |
+;;; |  0     |
+;;; | 123 AB |
+;;; | 456 CD |
+;;; | 789 EF |
 ;;; |        |
 ;;; |        |
 ;;; +--------+
+.PROC DataA_Console_Value_sMenu
+    D_STRUCT sMenu
+    d_byte WidthsMinusOne_u8_arr
+    .byte 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+    d_addr Labels_u8_arr_ptr_arr
+    .repeat 10, index
+    .addr DataA_Console_NumberLabels_u8_arr + index
+    .endrepeat
+    .repeat 6, index
+    .addr Ram_MenuRegNames_u8_arr6 + index
+    .endrepeat
+    d_addr OnUp_func_ptr,    _OnUp
+    d_addr OnDown_func_ptr,  _OnDown
+    d_addr OnLeft_func_ptr,  _OnLeft
+    d_addr OnRight_func_ptr, _OnRight
+    D_END
+_OnUp:
+    lda Zp_MenuItem_u8
+    cmp #4
+    bge @doNotGoToZero
+    lda #0
+    beq @setToA  ; unconditional
+    @doNotGoToZero:
+    cmp #$a
+    bge @register
+    sub #3
+    bpl @setToA  ; unconditional
+    @register:
+    tax
+    @loop1:
+    dex
+    dex
+    cpx #$a
+    blt @tryOtherColumn
+    lda Ram_MenuRows_u8_arr, x
+    bmi @loop1
+    bpl @setToX  ; unconditional
+    @tryOtherColumn:
+    lda Zp_MenuItem_u8
+    eor #$01
+    tax
+    @loop2:
+    dex
+    dex
+    cpx #$a
+    blt @doNotSet
+    lda Ram_MenuRows_u8_arr, x
+    bmi @loop2
+    @setToX:
+    txa
+    @setToA:
+    sta Zp_MenuItem_u8
+    @doNotSet:
+    rts
+_OnDown:
+    lda Zp_MenuItem_u8
+    bne @notAtZero
+    lda #2
+    bne @setToA  ; unconditional
+    @notAtZero:
+    cmp #$a
+    bge @register
+    cmp #7
+    bge @doNotSet
+    add #3
+    bne @setToA  ; unconditional
+    @register:
+    tax
+    @loop1:
+    inx
+    inx
+    cpx #$10
+    bge @tryOtherColumn
+    lda Ram_MenuRows_u8_arr, x
+    bmi @loop1
+    bpl @setToX  ; unconditional
+    @tryOtherColumn:
+    lda Zp_MenuItem_u8
+    eor #$01
+    tax
+    @loop2:
+    inx
+    inx
+    cpx #$10
+    bge @doNotSet
+    lda Ram_MenuRows_u8_arr, x
+    bmi @loop2
+    @setToX:
+    txa
+    @setToA:
+    sta Zp_MenuItem_u8
+    @doNotSet:
+    rts
+_OnLeft:
+    ldx Zp_MenuItem_u8
+    bne @notAtZero
+    lda #1
+    bne @setToA  ; unconditional
+    @notAtZero:
+    lda Ram_MenuRows_u8_arr, x
+    sta Zp_Tmp1_byte  ; current menu row
+    lda Ram_MenuCols_u8_arr, x
+    sta Zp_Tmp2_byte  ; current menu col
+    lda #0
+    sta Zp_Tmp3_byte  ; best new col so far
+    lda #$ff
+    sta Zp_Tmp4_byte  ; best new item so far
+    ;; Check all menu items, and find the rightmost possible one that is still
+    ;; to the left of the current item and in the same row.
+    ldx #kMaxMenuItems - 1
+    @loop:
+    lda Ram_MenuRows_u8_arr, x
+    cmp Zp_Tmp1_byte  ; current menu row
+    bne @continue
+    lda Ram_MenuCols_u8_arr, x
+    cmp Zp_Tmp2_byte  ; current menu col
+    bge @continue
+    cmp Zp_Tmp3_byte  ; best new col so far
+    blt @continue
+    sta Zp_Tmp3_byte  ; best new col so far
+    stx Zp_Tmp4_byte  ; best new item so far
+    @continue:
+    dex
+    bpl @loop
+    ;; If we found any such item, set it as the new selected item.
+    lda Zp_Tmp4_byte  ; best new item so far
+    bmi @doNotSet
+    @setToA:
+    sta Zp_MenuItem_u8
+    @doNotSet:
+    rts
+_OnRight:
+    ldx Zp_MenuItem_u8
+    bne @notAtZero
+    lda #3
+    bne @setToA  ; unconditional
+    @notAtZero:
+    lda Ram_MenuRows_u8_arr, x
+    sta Zp_Tmp1_byte  ; current menu row
+    lda Ram_MenuCols_u8_arr, x
+    sta Zp_Tmp2_byte  ; current menu col
+    lda #$ff
+    sta Zp_Tmp3_byte  ; best new col so far
+    sta Zp_Tmp4_byte  ; best new item so far
+    ;; Check all menu items, and find the leftmost possible one that is still
+    ;; to the right of the current item and in the same row.
+    ldx #kMaxMenuItems - 1
+    @loop:
+    lda Ram_MenuRows_u8_arr, x
+    cmp Zp_Tmp1_byte  ; current menu row
+    bne @continue
+    lda Ram_MenuCols_u8_arr, x
+    cmp Zp_Tmp2_byte  ; current menu col
+    ble @continue
+    cmp Zp_Tmp3_byte  ; best new col so far
+    bge @continue
+    sta Zp_Tmp3_byte  ; best new col so far
+    stx Zp_Tmp4_byte  ; best new item so far
+    @continue:
+    dex
+    bpl @loop
+    ;; If we found any such item, set it as the new selected item.
+    lda Zp_Tmp4_byte  ; best new item so far
+    bmi @doNotSet
+    @setToA:
+    sta Zp_MenuItem_u8
+    @doNotSet:
+    rts
+.ENDPROC
 
 ;;; Initializes Zp_Current_sMenu_ptr, Ram_MenuRows_u8_arr, and
 ;;; Ram_MenuCols_u8_arr appropriately for an L-value menu.
 .PROC FuncA_Console_SetUpLValueMenu
-    jmp FuncA_Console_SetUpAddressMenu  ; TODO: implement L-value menu
+    jsr FuncA_Console_SetUpValueMenuCommon
+_SetColumnsForAllMenuItems:
+    ldx #kMaxMenuItems - 1
+    @loop:
+    lda _Columns_u8_arr, x
+    sta Ram_MenuCols_u8_arr, x
+    dex
+    bpl @loop
+_DisableMenuItemsForReadOnlyRegisters:
+    ldy #sMachine::Flags_bMachine
+    lda (Zp_Current_sMachine_ptr), y
+    sta Zp_Tmp1_byte  ; machine flags
+    lda #$ff
+    .assert bMachine::WriteF = $01, error
+    .assert bMachine::WriteE = $02, error
+    .assert bMachine::WriteD = $04, error
+    .assert bMachine::WriteC = $08, error
+    .assert bMachine::WriteB = $10, error
+    ldx #$f
+    @loop:
+    lsr Zp_Tmp1_byte
+    bcs @continue
+    sta Ram_MenuRows_u8_arr, x
+    @continue:
+    dex
+    cpx #$a
+    bne @loop
+    rts
+_Columns_u8_arr:
+    .byte 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 4, 3, 4, 3, 4
 .ENDPROC
-
-;;; +--------+
-;;; |        |
-;;; |        |
-;;; |  0     |
-;;; | 123 AX |
-;;; | 456 BY |
-;;; | 789 CZ |
-;;; |        |
-;;; |        |
-;;; +--------+
 
 ;;; Initializes Zp_Current_sMenu_ptr, Ram_MenuRows_u8_arr, and
 ;;; Ram_MenuCols_u8_arr appropriately for an R-value menu.
 .PROC FuncA_Console_SetUpRValueMenu
-    jmp FuncA_Console_SetUpAddressMenu  ; TODO: implement R-value menu
+    jsr FuncA_Console_SetUpValueMenuCommon
+_SetColumnsForAllMenuItems:
+    ldx #kMaxMenuItems - 1
+    @loop:
+    lda _Columns_u8_arr, x
+    sta Ram_MenuCols_u8_arr, x
+    dex
+    bpl @loop
+_SetRowsForImmediateValues:
+    lda Zp_ConsoleNumInstRows_u8
+    sub #4
+    lsr a
+    tax
+    stx Ram_MenuRows_u8_arr + 0
+    inx
+    stx Ram_MenuRows_u8_arr + 1
+    stx Ram_MenuRows_u8_arr + 2
+    stx Ram_MenuRows_u8_arr + 3
+    inx
+    stx Ram_MenuRows_u8_arr + 4
+    stx Ram_MenuRows_u8_arr + 5
+    stx Ram_MenuRows_u8_arr + 6
+    inx
+    stx Ram_MenuRows_u8_arr + 7
+    stx Ram_MenuRows_u8_arr + 8
+    stx Ram_MenuRows_u8_arr + 9
+    rts
+_Columns_u8_arr:
+    .byte 2, 1, 2, 3, 1, 2, 3, 1, 2, 3, 5, 6, 5, 6, 5, 6
+.ENDPROC
+
+;;; Helper function for FuncA_Console_SetUpLValueMenu and
+;;; FuncA_Console_SetUpRValueMenu.
+.PROC FuncA_Console_SetUpValueMenuCommon
+    ldax #DataA_Console_Value_sMenu
+    stax Zp_Current_sMenu_ptr
+_CopyRegNames:
+    ldy #sMachine::RegNames_u8_arr6 + 5
+    ldx #5
+    @loop:
+    lda (Zp_Current_sMachine_ptr), y
+    sta Ram_MenuRegNames_u8_arr6, x
+    dey
+    dex
+    bpl @loop
+_SetRowsForRegisters:
+    lda Zp_ConsoleNumInstRows_u8
+    sub #4
+    lsr a
+    sta Zp_Tmp1_byte  ; starting row
+    ldy #$f
+    ldx #5
+    @loop:
+    lda Ram_MenuRegNames_u8_arr6, x
+    beq @continue
+    txa
+    lsr a
+    sec
+    adc Zp_Tmp1_byte  ; starting row
+    sta Ram_MenuRows_u8_arr, y
+    @continue:
+    dey
+    dex
+    bpl @loop
+    rts
 .ENDPROC
 
 ;;; +--------+
@@ -358,20 +618,18 @@ _Columns_u8_arr:
 ;;; |  7  f  |
 ;;; +--------+
 .PROC DataA_Console_Address_sMenu
-_Start:
     D_STRUCT sMenu
     d_byte WidthsMinusOne_u8_arr
     .byte 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
     d_addr Labels_u8_arr_ptr_arr
     .repeat kMaxMenuItems, index
-    .addr _Labels + index
+    .addr DataA_Console_NumberLabels_u8_arr + index
     .endrepeat
     d_addr OnUp_func_ptr,    _OnUp
     d_addr OnDown_func_ptr,  _OnDown
     d_addr OnLeft_func_ptr,  _OnLeft
     d_addr OnRight_func_ptr, _OnRight
     D_END
-_Labels: .byte "0123456789", $1a, $1b, $1c, $1d, $1e, $1f
 _OnUp:
     ldx Zp_MenuItem_u8
     bne @decrement
@@ -446,7 +704,6 @@ _OnRight:
 ;;; |        |
 ;;; +--------+
 .PROC DataA_Console_Compare_sMenu
-_Start:
     D_STRUCT sMenu
     d_byte WidthsMinusOne_u8_arr
     .byte 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
@@ -529,7 +786,6 @@ _SetItem:
 ;;; |        |
 ;;; +--------+
 .PROC DataA_Console_Direction_sMenu
-_Start:
     D_STRUCT sMenu
     d_byte WidthsMinusOne_u8_arr
     .byte 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0

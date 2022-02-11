@@ -295,7 +295,7 @@ _OpEmpty:
     rts
 _OpSwap:
 _OpMul:
-    ;; TODO: Implement executing SWAP/ADD/SUB/MUL instructions.
+    ;; TODO: Implement executing SWAP/MUL instructions.
 _OpNop:
 _IncrementPc:
     ldx #1
