@@ -20,6 +20,12 @@
 ;;; The maximum number of devices that can exist at once in a room.
 kMaxDevices = 8
 
+;;; The OBJ tile IDs used for various device objects.
+kConsoleScreenTileIdOk  = $08
+kConsoleScreenTileIdErr = $09
+kLeverHandleTileIdDown  = $1e
+kLeverHandleTileIdUp    = $1f
+
 ;;;=========================================================================;;;
 
 ;;; Types of devices in a room that the player can interact with while standing

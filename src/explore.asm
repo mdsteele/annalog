@@ -37,6 +37,8 @@
 .IMPORT Func_FadeIn
 .IMPORT Func_InitAllMachines
 .IMPORT Func_ProcessFrame
+.IMPORT Func_TickAllDevices
+.IMPORT Func_ToggleLeverDevice
 .IMPORT Func_UpdateButtons
 .IMPORT Func_Window_DirectDrawTopBorder
 .IMPORT Func_Window_SetUpIrq
@@ -88,6 +90,9 @@ kAvatarJumpVelocity = $ffff & -810
 ;;; subpixels per frame per frame.
 kAvatarGravity = 48
 
+;;; The OBJ palette number to use for the player avatar.
+kAvatarPalette = 1
+
 ;;; Terrain block IDs greater than or equal to this are considered solid.
 kFirstSolidTerrainType = $40
 
@@ -103,7 +108,7 @@ kFirstSolidTerrainType = $40
 
 ;;; The OBJ palette number and tile ID used for the visual prompt that appears
 ;;; when the player avatar is near a device.
-kDevicePromptObjPalette = 0
+kDevicePromptObjPalette = 1
 kDevicePromptObjTileId = $06
 
 ;;;=========================================================================;;;
@@ -178,6 +183,7 @@ Zp_NearbyDevice_u8: .res 1
     sta Zp_PpuScrollY_u8
     sta Zp_AvatarPosX_i16 + 1
     sta Zp_AvatarPosY_i16 + 1
+    lda #kAvatarPalette
     sta Zp_AvatarFlags_bObj
     lda #$88
     sta Zp_AvatarPosX_i16 + 0
@@ -191,6 +197,14 @@ Zp_NearbyDevice_u8: .res 1
     sta Ram_DeviceBlockCol_u8_arr + 0
     lda #0
     sta Ram_DeviceTarget_u8_arr + 0
+    lda #eDevice::Lever
+    sta Ram_DeviceType_eDevice_arr + 1
+    lda #4
+    sta Ram_DeviceBlockRow_u8_arr + 1
+    lda #4
+    sta Ram_DeviceBlockCol_u8_arr + 1
+    lda #0
+    sta Ram_DeviceTarget_u8_arr + 1
 _InitializeWindow:
     lda #$ff
     sta Zp_WindowTop_u8
@@ -247,14 +261,20 @@ _GameLoop:
     bmi _Done
     lda Ram_DeviceType_eDevice_arr, x
     cmp #eDevice::Console
-    bne @notConsole
+    beq _Console
+    cmp #eDevice::Lever
+    beq _Lever
+    ;; TODO: Implement interacting with other device types.
+    bne _Done  ; unconditional
+_Console:
     lda Ram_DeviceTarget_u8_arr, x
     tax  ; param: machine index
     jmp Main_Console_OpenWindow
-    @notConsole:
-    ;; TODO: Implement interacting with other device types.
+_Lever:
+    jsr Func_ToggleLeverDevice
 _Done:
 .ENDPROC
+    jsr Func_TickAllDevices
     jsr Func_ExecuteAllMachines
     jsr Func_ExploreMoveAvatar
     jmp _GameLoop
@@ -715,7 +735,7 @@ _JoypadLeft:
     lda #$ff & -kAvatarMaxSpeedX
     @noMax:
     sta Zp_AvatarVelX_i16 + 1
-    lda #bObj::FlipH
+    lda #kAvatarPalette | bObj::FlipH
     sta Zp_AvatarFlags_bObj
     bne _DoneLeftRight  ; unconditional
     @noLeft:
@@ -738,9 +758,10 @@ _JoypadRight:
     lda #kAvatarMaxSpeedX
     @noMax:
     sta Zp_AvatarVelX_i16 + 1
-    lda #0
+    lda #kAvatarPalette
     sta Zp_AvatarFlags_bObj
-    beq _DoneLeftRight  ; unconditional
+    .assert kAvatarPalette > 0, error
+    bne _DoneLeftRight  ; unconditional
     @noRight:
 _NeitherLeftNorRight:
     ;; Decelerate.

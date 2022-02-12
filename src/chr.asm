@@ -17,6 +17,10 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
+.INCLUDE "device.inc"
+
+;;;=========================================================================;;;
+
 kSizeofChr = 16
 
 ;;;=========================================================================;;;
@@ -26,9 +30,9 @@ kSizeofChr = 16
 .EXPORT Ppu_ChrCave
 Ppu_ChrCave:
 :   .incbin "out/data/tiles/cave.chr"
-    .res $2d * kSizeofChr
-    .incbin "out/data/tiles/console.chr"
-    .assert * - :- = kSizeofChr * 64, error
+    .res $2b * kSizeofChr
+    .incbin "out/data/tiles/device.chr"
+    .assert * - :- = kSizeofChr * $40, error
 
 ;;;=========================================================================;;;
 
@@ -38,7 +42,7 @@ Ppu_ChrCave:
 Ppu_ChrFont:
 :   .incbin "out/data/tiles/font.chr"
     .res $22 * kSizeofChr
-    .assert * - :- = kSizeofChr * 128, error
+    .assert * - :- = kSizeofChr * $80, error
 
 ;;;=========================================================================;;;
 
@@ -47,10 +51,13 @@ Ppu_ChrFont:
 .EXPORT Ppu_ChrPlayer
 Ppu_ChrPlayer:
 :   .incbin "out/data/tiles/cursor.chr"
+    .assert * - :- = kSizeofChr * kConsoleScreenTileIdOk, error
     .incbin "out/data/tiles/screen.chr"
     .incbin "out/data/tiles/player.chr"
     .incbin "out/data/tiles/machine.chr"
-    .res $62 * kSizeofChr
-    .assert * - :- = kSizeofChr * 128, error
+    .assert * - :- = kSizeofChr * kLeverHandleTileIdDown, error
+    .incbin "out/data/tiles/lever.chr"
+    .res $60 * kSizeofChr
+    .assert * - :- = kSizeofChr * $80, error
 
 ;;;=========================================================================;;;

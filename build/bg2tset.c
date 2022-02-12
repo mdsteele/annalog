@@ -255,8 +255,8 @@ char *read_tileset_name(FILE *file) {
 char get_tile_id(const char *tileset, int tile_index) {
   if (0 == strcmp(tileset, "cave")) {
     return 0x80 + tile_index;
-  } else if (0 == strcmp(tileset, "console")) {
-    return 0xbc + tile_index;
+  } else if (0 == strcmp(tileset, "device")) {
+    return 0xba + tile_index;
   } else {
     ERROR("unknown tileset: %s\n", tileset);
   }

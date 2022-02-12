@@ -54,8 +54,12 @@ kJailCellDoorInitPosY = kJailCellDoorMaxPosY
 ;;; How fast the jail cell door moves, in pixels per frame.
 kJailCellDoorSpeed = 1
 
+;;; The OBJ palette number to use for machines in this room.
+kMachinePalette = 1
+
 ;;; Defines room-specific machine state data for this particular room.
 .STRUCT sState
+    LeverState_u1       .byte
     JailCellDoorRegY_u8 .byte
     JailCellDoorPosY_u8 .byte
     JailCellDoorVelY_i8 .byte
@@ -91,7 +95,7 @@ kJailCellDoorSpeed = 1
     D_STRUCT sMachine
     d_byte Code_eProgram, eProgram::JailCellDoor
     d_byte Flags_bMachine, bMachine::MoveV
-    d_byte RegNames_u8_arr6, "A", 0, 0, 0, 0, "Y"
+    d_byte RegNames_u8_arr6, "A", 0, "L", 0, 0, "Y"
     d_addr Init_func_ptr, _Init
     d_addr ReadReg_func_ptr, _ReadReg
     d_addr WriteReg_func_ptr, Func_MachineError
@@ -111,9 +115,14 @@ _Init:
     sta Ram_MachineState + sState::JailCellDoorVelY_i8
     rts
 _ReadReg:
+    cmp #$c
+    beq @readRegL
     cmp #$f
     beq @readRegY
     jmp Func_MachineError
+    @readRegL:
+    lda Ram_MachineState + sState::LeverState_u1
+    rts
     @readRegY:
     lda Ram_MachineState + sState::JailCellDoorRegY_u8
     rts
@@ -183,12 +192,12 @@ _Draw:
     jsr Func_AllocObjectsFor2x2Shape  ; sets C if offscreen; returns Y
     bcs @done
     ;; Set flags and tile IDs.
-    lda #0
+    lda #kMachinePalette
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Flags_bObj, y
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Flags_bObj, y
-    lda #bObj::FlipH
+    lda #kMachinePalette | bObj::FlipH
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Flags_bObj, y
-    lda #bObj::FlipV
+    lda #kMachinePalette | bObj::FlipV
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Flags_bObj, y
     lda #$1d
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Tile_u8, y

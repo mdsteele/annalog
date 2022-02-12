@@ -68,7 +68,7 @@ kMenuStartWindowRow = 1
 kMenuStartTileColumn = 22
 
 ;;; The OBJ palette number used for the menu cursor.
-kMenuCursorObjPalette = 0
+kMenuCursorObjPalette = 1
 
 ;;;=========================================================================;;;
 

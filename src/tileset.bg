@@ -1,9 +1,9 @@
 @BG 0 0 0 32x10
 >cave
->console
+>device
 
-    BABC
-    BBBD
+    BCBE
+    BDBFBABB
         AO
   AL  AMAN    AJAK
 

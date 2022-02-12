@@ -98,7 +98,7 @@ kConsoleTileIdPlus       = $07
 kConsoleTileIdTimes      = $57
 
 ;;; The OBJ palette number used for the console cursor.
-kCursorObjPalette = 0
+kCursorObjPalette = 1
 
 ;;; The width of an instruction in the console, in tiles.
 kInstructionWidthTiles = 7

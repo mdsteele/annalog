@@ -24,11 +24,17 @@
 .IMPORT Ram_PpuTransfer_arr
 .IMPORTZP Zp_PpuTransferLen_u8
 .IMPORTZP Zp_Render_bPpuMask
+.IMPORTZP Zp_Tmp1_byte
 
 ;;;=========================================================================;;;
 
 kNumFadeSteps = 4
 kFramesPerStep = 7
+
+.DEFINE kNumTransferEntries 4
+.DEFINE kTransferDataLen 2
+kTransferEntryLen = 4 + kTransferDataLen
+kTotalTransferLen = kTransferEntryLen * kNumTransferEntries
 
 .LINECONT +
 Ppu_Bg0Colors_u6_arr2 = \
@@ -37,6 +43,13 @@ Ppu_Obj0Colors_u6_arr2 = \
     Ppu_Palettes_sPal_arr8 + .sizeof(sPal) * 4 + sPal::C2_u6
 Ppu_Obj1Colors_u6_arr2 = \
     Ppu_Palettes_sPal_arr8 + .sizeof(sPal) * 5 + sPal::C2_u6
+Ppu_Obj2Colors_u6_arr2 = \
+    Ppu_Palettes_sPal_arr8 + .sizeof(sPal) * 6 + sPal::C2_u6
+.DEFINE TransferAddrs \
+    Ppu_Bg0Colors_u6_arr2 \
+    Ppu_Obj0Colors_u6_arr2 \
+    Ppu_Obj1Colors_u6_arr2 \
+    Ppu_Obj2Colors_u6_arr2
 .LINECONT -
 
 ;;;=========================================================================;;;
@@ -58,45 +71,49 @@ White_u6_arr:
     .assert * - White_u6_arr = kNumFadeSteps, error
 .ENDSCOPE
 
+.PROC Data_FadeTransferTemplate_u8_arr
+:   .repeat kNumTransferEntries, i
+    .byte kPpuCtrlFlagsHorz
+    .byte >.mid(i, 1, {TransferAddrs})
+    .byte <.mid(i, 1, {TransferAddrs})
+    .byte kTransferDataLen
+    .res kTransferDataLen
+    .endrepeat
+    .assert * - :- = kTotalTransferLen, error
+.ENDPROC
+
 ;;; Updates PPU palettes for fade step A, then waits for kFramesPerStep frames.
 ;;; @param Y The fade step, from 0 (faded fully out) to kNumFadeSteps - 1.
 ;;; @preserve Y
 .PROC Func_FadeTransferAndWait
-    ;; Buffer the palette data to be transferred to the PPU.
+    ;; Write entry headers for all the transfer entries.
+    sty Zp_Tmp1_byte  ; fade step
     ldx Zp_PpuTransferLen_u8
-    lda #kPpuCtrlFlagsHorz
-    sta Ram_PpuTransfer_arr +  0, x
-    sta Ram_PpuTransfer_arr +  6, x
-    sta Ram_PpuTransfer_arr + 12, x
-    lda #>Ppu_Bg0Colors_u6_arr2
-    sta Ram_PpuTransfer_arr +  1, x
-    lda #<Ppu_Bg0Colors_u6_arr2
-    sta Ram_PpuTransfer_arr +  2, x
-    lda #>Ppu_Obj0Colors_u6_arr2
-    sta Ram_PpuTransfer_arr +  7, x
-    lda #<Ppu_Obj0Colors_u6_arr2
-    sta Ram_PpuTransfer_arr +  8, x
-    lda #>Ppu_Obj1Colors_u6_arr2
-    sta Ram_PpuTransfer_arr + 13, x
-    lda #<Ppu_Obj1Colors_u6_arr2
-    sta Ram_PpuTransfer_arr + 14, x
-    lda #2
-    sta Ram_PpuTransfer_arr +  3, x
-    sta Ram_PpuTransfer_arr +  9, x
-    sta Ram_PpuTransfer_arr + 15, x
+    ldy #0
+    @loop:
+    lda Data_FadeTransferTemplate_u8_arr, y
+    sta Ram_PpuTransfer_arr, x
+    inx
+    iny
+    cpy #kTotalTransferLen
+    bne @loop
+    lda Zp_PpuTransferLen_u8
+    stx Zp_PpuTransferLen_u8
+    tax
+    ldy Zp_Tmp1_byte  ; fade step
+    ;; Fill in the data to transfer for all the entries.
     lda Data_FadeColors::Gray_u6_arr,  y
-    sta Ram_PpuTransfer_arr +  4, x
+    sta Ram_PpuTransfer_arr + kTransferEntryLen * 0 + 4, x
+    sta Ram_PpuTransfer_arr + kTransferEntryLen * 1 + 4, x
     lda Data_FadeColors::Red_u6_arr,   y
-    sta Ram_PpuTransfer_arr + 10, x
+    sta Ram_PpuTransfer_arr + kTransferEntryLen * 2 + 4, x
     lda Data_FadeColors::Green_u6_arr, y
-    sta Ram_PpuTransfer_arr + 16, x
+    sta Ram_PpuTransfer_arr + kTransferEntryLen * 3 + 4, x
     lda Data_FadeColors::White_u6_arr, y
-    sta Ram_PpuTransfer_arr +  5, x
-    sta Ram_PpuTransfer_arr + 11, x
-    sta Ram_PpuTransfer_arr + 17, x
-    txa
-    add #18
-    sta Zp_PpuTransferLen_u8
+    .repeat kNumTransferEntries, i
+    sta Ram_PpuTransfer_arr + kTransferEntryLen * i + 5, x
+    .endrepeat
+_Wait:
     ;; Process kFramesPerStep frames.
     tya
     pha

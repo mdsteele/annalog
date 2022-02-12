@@ -170,20 +170,20 @@ _Finish:
 .ENDPROC
 
 .PROC DataA_Reset_Palettes_sPal_arr8
-    .repeat 4
-    ;; BG palette 0:
+    ;; BG palettes, and obj palette 0:
+    .repeat 5
     .byte kSharedBgColor
     .byte $0f  ; black
     .byte $00  ; dark gray
     .byte $30  ; white
     .endrepeat
-    .repeat 2
-    ;; Obj palette 0:
+    ;; Obj palette 1:
     .byte kSharedBgColor
     .byte $0f  ; black
     .byte $16  ; medium red
     .byte $30  ; white
-    ;; Obj palette 1:
+    ;; Obj palettes 2 and 3:
+    .repeat 2
     .byte kSharedBgColor
     .byte $0f  ; black
     .byte $1a  ; medium green
