@@ -18,11 +18,13 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "device.inc"
+.INCLUDE "machine.inc"
 .INCLUDE "macros.inc"
 .INCLUDE "oam.inc"
 .INCLUDE "ppu.inc"
 .INCLUDE "room.inc"
 
+.IMPORT Ram_MachineStatus_eMachine_arr
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORTZP Zp_OamOffset_u8
 .IMPORTZP Zp_PpuScrollX_u8
@@ -31,6 +33,7 @@
 .IMPORTZP Zp_Tmp1_byte
 .IMPORTZP Zp_Tmp2_byte
 .IMPORTZP Zp_Tmp3_byte
+.IMPORTZP Zp_Tmp4_byte
 .IMPORTZP Zp_Tmp_ptr
 .IMPORTZP Zp_WindowTop_u8
 
@@ -154,15 +157,33 @@ _DevConsole:
     lda Zp_Tmp3_byte  ; room pixel X-pos (hi)
     sbc Zp_ScrollXHi_u8
     bne @notVisible
+    ;; Determine if the machine has an error.
+    lda Ram_DeviceTarget_u8_arr, x
+    tay  ; machine index
+    lda Ram_MachineStatus_eMachine_arr, y
+    cmp #eMachine::Error
+    beq @machineError
+    lda #kConsoleScreenPaletteOk
+    sta Zp_Tmp3_byte  ; flags
+    lda #kConsoleScreenTileIdOk
+    sta Zp_Tmp4_byte  ; tile ID
+    .assert kConsoleScreenTileIdOk > 0, error
+    bne @setAttrs  ; unconditional
+    @machineError:
+    lda #kConsoleScreenPaletteErr
+    sta Zp_Tmp3_byte  ; flags
+    lda #kConsoleScreenTileIdErr
+    sta Zp_Tmp4_byte  ; tile ID
     ;; Set object attributes.
+    @setAttrs:
     ldy Zp_OamOffset_u8
     lda Zp_Tmp1_byte  ; screen pixel Y-pos
     sta Ram_Oam_sObj_arr64 + sObj::YPos_u8, y
     lda Zp_Tmp2_byte  ; screen pixel X-pos
     sta Ram_Oam_sObj_arr64 + sObj::XPos_u8, y
-    lda #kConsoleScreenPaletteOk
+    lda Zp_Tmp3_byte  ; flags
     sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
-    lda #kConsoleScreenTileIdOk
+    lda Zp_Tmp4_byte  ; tile ID
     sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
     ;; Update the OAM offset.
     .repeat .sizeof(sObj)
