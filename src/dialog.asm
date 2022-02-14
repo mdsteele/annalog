@@ -22,6 +22,7 @@
 .INCLUDE "joypad.inc"
 .INCLUDE "macros.inc"
 .INCLUDE "mmc3.inc"
+.INCLUDE "oam.inc"
 .INCLUDE "ppu.inc"
 .INCLUDE "window.inc"
 
@@ -37,8 +38,10 @@
 .IMPORT Func_Window_TransferBottomBorder
 .IMPORT Func_Window_TransferClearRow
 .IMPORT Main_Explore_Continue
+.IMPORT Ram_Oam_sObj_arr64
 .IMPORT Ram_PpuTransfer_arr
 .IMPORTZP Zp_FrameCounter_u8
+.IMPORTZP Zp_OamOffset_u8
 .IMPORTZP Zp_P1ButtonsPressed_bJoypad
 .IMPORTZP Zp_PpuTransferLen_u8
 .IMPORTZP Zp_Tmp1_byte
@@ -67,6 +70,11 @@ kDialogWindowTopGoal = kScreenHeightPx - \
 
 ;;; How fast the dialog window scrolls up/down, in pixels per frame.
 kDialogWindowScrollSpeed = 4
+
+;;; The OBJ palette number and tile ID used for the visual prompt that appears
+;;; when dialog is paused.
+kDialogPromptObjPalette = 1
+kDialogPromptObjTileId = $08
 
 ;;;=========================================================================;;;
 
@@ -190,7 +198,7 @@ _UpdateScrolling:
 ;;; @prereq Explore mode is initialized.
 .PROC Main_Dialog_Run
 _GameLoop:
-    ;; TODO: If dialog is paused, draw a "press A to continue" prompt.
+    jsr Func_Dialog_DrawObjectsForPrompt
     jsr Func_DrawObjectsForRoom
     jsr Func_ClearRestOfOam
     jsr Func_ProcessFrame
@@ -470,6 +478,41 @@ _EndOfLine:
     add #1
     cmp #kDialogTextStartRow + kDialogNumTextRows
     bne @rowLoop
+    rts
+.ENDPROC
+
+;;; Allocates and populates OAM slots for the visual prompt that appears when
+;;; dialog is paused.
+.PROC Func_Dialog_DrawObjectsForPrompt
+    bit Zp_DialogPaused_bool
+    bpl _NotPaused
+_DrawPrompt:
+    ;; Calculate the screen Y-position.
+    lda Zp_FrameCounter_u8
+    lsr a
+    lsr a
+    lsr a
+    and #$03
+    cmp #$03
+    bne @noZigZag
+    lda #$01
+    @noZigZag:
+    add #kScreenHeightPx - kWindowMarginBottomPx - $12
+    ;; Set object attributes.
+    ldy Zp_OamOffset_u8
+    sta Ram_Oam_sObj_arr64 + sObj::YPos_u8, y
+    lda #$e8
+    sta Ram_Oam_sObj_arr64 + sObj::XPos_u8, y
+    lda #kDialogPromptObjPalette
+    sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
+    lda #kDialogPromptObjTileId
+    sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
+    ;; Update the OAM offset.
+    .repeat .sizeof(sObj)
+    iny
+    .endrepeat
+    sty Zp_OamOffset_u8
+_NotPaused:
     rts
 .ENDPROC
 

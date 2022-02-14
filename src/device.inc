@@ -21,10 +21,10 @@
 kMaxDevices = 8
 
 ;;; The OBJ tile IDs used for various device objects.
-kConsoleScreenTileIdOk  = $08
-kConsoleScreenTileIdErr = $09
-kLeverHandleTileIdDown  = $1e
-kLeverHandleTileIdUp    = $1f
+kConsoleScreenTileIdOk  = $1e
+kConsoleScreenTileIdErr = $1f
+kLeverHandleTileIdDown  = $20
+kLeverHandleTileIdUp    = $21
 
 ;;;=========================================================================;;;
 
