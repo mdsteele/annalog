@@ -21,35 +21,59 @@
 
 ;;;=========================================================================;;;
 
-kSizeofChr = 16
+.DEFINE kSizeofChr 16
 
 ;;;=========================================================================;;;
 
 .SEGMENT "CHR_Cave"
 
 .EXPORT Ppu_ChrCave
-Ppu_ChrCave:
+.PROC Ppu_ChrCave
 :   .incbin "out/data/tiles/cave.chr"
-    .res $2b * kSizeofChr
+    .res $27 * kSizeofChr
     .incbin "out/data/tiles/device.chr"
     .assert * - :- = kSizeofChr * $40, error
+.ENDPROC
 
 ;;;=========================================================================;;;
 
-.SEGMENT "CHR_Font"
+.SEGMENT "CHR_FontUpper"
 
-.EXPORT Ppu_ChrFont
-Ppu_ChrFont:
-:   .incbin "out/data/tiles/font.chr"
-    .res $22 * kSizeofChr
-    .assert * - :- = kSizeofChr * $80, error
+.EXPORT Ppu_ChrFontUpper
+.PROC Ppu_ChrFontUpper
+:   .incbin "out/data/tiles/font_upper.chr"
+    .assert * - :- = kSizeofChr * $40, error
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "CHR_FontLower01"
+
+.EXPORT Ppu_ChrFontLower01
+.PROC Ppu_ChrFontLower01
+:   .incbin "out/data/tiles/font_lower.chr"
+    .res $10 * kSizeofChr
+    .incbin "out/data/tiles/portrait01.chr"
+    .assert * - :- = kSizeofChr * $40, error
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "CHR_FontLower02"
+
+.PROC Ppu_ChrFontLower02
+:   .incbin "out/data/tiles/font_lower.chr"
+    .res $10 * kSizeofChr
+    .incbin "out/data/tiles/portrait02.chr"
+    .assert * - :- = kSizeofChr * $40, error
+.ENDPROC
 
 ;;;=========================================================================;;;
 
 .SEGMENT "CHR_Player"
 
 .EXPORT Ppu_ChrPlayer
-Ppu_ChrPlayer:
+.PROC Ppu_ChrPlayer
 :   .incbin "out/data/tiles/cursor.chr"
     .assert * - :- = kSizeofChr * kConsoleScreenTileIdOk, error
     .incbin "out/data/tiles/screen.chr"
@@ -59,5 +83,6 @@ Ppu_ChrPlayer:
     .incbin "out/data/tiles/lever.chr"
     .res $60 * kSizeofChr
     .assert * - :- = kSizeofChr * $80, error
+.ENDPROC
 
 ;;;=========================================================================;;;

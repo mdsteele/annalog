@@ -26,7 +26,8 @@
 .IMPORT Func_ClearRestOfOam
 .IMPORT Main_Title
 .IMPORT Ppu_ChrCave
-.IMPORT Ppu_ChrFont
+.IMPORT Ppu_ChrFontLower01
+.IMPORT Ppu_ChrFontUpper
 .IMPORT Ppu_ChrPlayer
 .IMPORT Ram_Active_sIrq
 
@@ -130,12 +131,12 @@ _InitPpuMapping:
     lda #eMmc3Mirror::Horizontal
     sta Hw_Mmc3Mirroring_wo
     ;; Set all CHR ROM banks to a known state.
-    chr00_bank #<.bank(Ppu_ChrFont)
-    chr04_bank #<.bank(Ppu_ChrFont) + 1
+    chr00_bank #<.bank(Ppu_ChrFontUpper)
+    chr04_bank #<.bank(Ppu_ChrFontLower01)
     chr08_bank #<.bank(Ppu_ChrCave)
-    chr0c_bank #3
+    chr0c_bank #$07
     chr10_bank #<.bank(Ppu_ChrPlayer)
-    chr18_bank #6
+    chr18_bank #$0e
 _InitAttributeTable0:
     ;; Set all blocks in nametable 0 to use BG palette 0.
     ldax #Ppu_Nametable0_sName + sName::Attrs_u8_arr64
@@ -170,19 +171,19 @@ _Finish:
 .ENDPROC
 
 .PROC DataA_Reset_Palettes_sPal_arr8
-    ;; BG palettes, and obj palette 0:
+    ;; BG palettes 0-3 and OBJ palette 0:
     .repeat 5
     .byte kSharedBgColor
     .byte $0f  ; black
     .byte $00  ; dark gray
     .byte $30  ; white
     .endrepeat
-    ;; Obj palette 1:
+    ;; OBJ palette 1:
     .byte kSharedBgColor
     .byte $0f  ; black
     .byte $16  ; medium red
     .byte $30  ; white
-    ;; Obj palettes 2 and 3:
+    ;; OBJ palettes 2 and 3:
     .repeat 2
     .byte kSharedBgColor
     .byte $0f  ; black

@@ -17,34 +17,26 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
-;;; For this game, the "window" refers to the bottom portion of the lower
-;;; nametable, which we use HBlank IRQs to scroll into view from the bottom of
-;;; the screen.
+;;; A sDialog struct is a variable-length sequence of one or more entries,
+;;; terminated by a zero byte.  Each entry consists of a 2-byte ePortrait value
+;;; followed by one window's worth of text, with the text terminated by a
+;;; kDialogTextEnd byte.
 
 ;;;=========================================================================;;;
 
-;;; The nametable tile row (of the lower nametable) that the window starts on.
-kWindowStartRow = 18
+;;; A pair of CHR04 bank numbers; the lo byte is the bank number to use when
+;;; dialog is paused, and the hi byte is the bank number to alternate with the
+;;; first to animate the portrait while text is being written.
+.ENUM ePortrait
+    Woman = $0201
+.ENDENUM
 
-;;; The largest number of tile rows that we ever draw to the window.
-kWindowMaxNumRows = 12
+;;;=========================================================================;;;
 
-;;; How many pixels of blank space we keep between the bottom of the window's
-;;; bottom border and the bottom of the screen.  This margin should be at least
-;;; 12 pixels to avoid any of the window border being hidden by TV overscan
-;;; (see https://wiki.nesdev.org/w/index.php/Overscan).  However, it must be
-;;; less than 16 pixels in order to prevent the explore mode scroll-Y from
-;;; leaving the upper nametable when the window is fully open and the player is
-;;; at the bottom of a tall room.
-kWindowMarginBottomPx = 12
-
-;;; Tile IDs for drawing pieces of the window border.
-kWindowTileIdBlank       = $00
-kWindowTileIdTopLeft     = $3a
-kWindowTileIdTopRight    = $3b
-kWindowTileIdBottomLeft  = $3c
-kWindowTileIdBottomRight = $3d
-kWindowTileIdHorz        = $3e
-kWindowTileIdVert        = $3f
+;;; Special characters in dialog text indicating linebreaks and end-of-text.
+kDialogTextNewline = $fe
+kDialogTextEnd     = $ff
+.CHARMAP $24, kDialogTextNewline  ; '$'
+.CHARMAP $23, kDialogTextEnd      ; '#'
 
 ;;;=========================================================================;;;

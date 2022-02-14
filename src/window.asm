@@ -167,12 +167,14 @@ _Done:
 
 ;;; Sets up a new PPU transfer entry to write kScreenWidthTiles tiles to the
 ;;; nametable for the next window row.  This function writes the entry header,
-;;; updates Zp_PpuTransferLen_u8, and then returns the starting index for the
-;;; data, which the caller can then fill in.
+;;; increments Zp_WindowNextRowToTransfer_u8, updates Zp_PpuTransferLen_u8, and
+;;; then returns the starting index for the data, which the caller can then
+;;; fill in.
+;;; @prereq Zp_WindowNextRowToTransfer_u8 has been set.
 ;;; @return X The index into Ram_PpuTransfer_arr for the start of the data.
 .EXPORT Func_Window_PrepareRowTransfer
 .PROC Func_Window_PrepareRowTransfer
-    lda Zp_WindowNextRowToTransfer_u8
+    lda Zp_WindowNextRowToTransfer_u8  ; param: window tile row
     inc Zp_WindowNextRowToTransfer_u8
     ;; Get the transfer destination address, and store it in Zp_Tmp1_byte (hi)
     ;; and Y (lo).

@@ -43,6 +43,7 @@
 .IMPORT Func_Window_DirectDrawTopBorder
 .IMPORT Func_Window_SetUpIrq
 .IMPORT Main_Console_OpenWindow
+.IMPORT Main_Dialog_OpenWindow
 .IMPORT Ram_DeviceBlockCol_u8_arr
 .IMPORT Ram_DeviceBlockRow_u8_arr
 .IMPORT Ram_DeviceTarget_u8_arr
@@ -205,6 +206,14 @@ Zp_NearbyDevice_u8: .res 1
     sta Ram_DeviceBlockCol_u8_arr + 1
     lda #0
     sta Ram_DeviceTarget_u8_arr + 1
+    lda #eDevice::Sign
+    sta Ram_DeviceType_eDevice_arr + 2
+    lda #10
+    sta Ram_DeviceBlockRow_u8_arr + 2
+    lda #12
+    sta Ram_DeviceBlockCol_u8_arr + 2
+    lda #0
+    sta Ram_DeviceTarget_u8_arr + 2
 _InitializeWindow:
     lda #$ff
     sta Zp_WindowTop_u8
@@ -264,8 +273,11 @@ _GameLoop:
     beq _Console
     cmp #eDevice::Lever
     beq _Lever
-    ;; TODO: Implement interacting with other device types.
-    bne _Done  ; unconditional
+    cmp #eDevice::Sign
+    bne _Done
+_Sign:
+    lda Ram_DeviceTarget_u8_arr, x  ; param: dialog index
+    jmp Main_Dialog_OpenWindow
 _Console:
     lda Ram_DeviceTarget_u8_arr, x
     tax  ; param: machine index

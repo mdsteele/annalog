@@ -74,15 +74,6 @@
 
 ;;;=========================================================================;;;
 
-;;; How many pixels of blank space we keep between the bottom of the console
-;;; window border and the bottom of the screen.  This margin should be at least
-;;; 12 pixels to avoid any of the console border being hidden by TV overscan
-;;; (see https://wiki.nesdev.org/w/index.php/Overscan).  However, it must be
-;;; less than 16 pixels in order to prevent the explore mode scroll-Y from
-;;; leaving the upper nametable when the window is fully open and the player is
-;;; at the bottom of a tall room.
-kConsoleMarginBottomPx = 12
-
 ;;; How fast the console window scrolls up/down, in pixels per frame.
 kConsoleWindowScrollSpeed = 6
 
@@ -173,7 +164,7 @@ _InitWindow:
     lda Zp_ConsoleNumInstRows_u8
     mul #kTileHeightPx
     sta Zp_Tmp1_byte
-    lda #kScreenHeightPx - (kTileHeightPx * 2 + kConsoleMarginBottomPx)
+    lda #kScreenHeightPx - (kTileHeightPx * 2 + kWindowMarginBottomPx)
     sub Zp_Tmp1_byte
     sta Zp_WindowTopGoal_u8
 _GameLoop:
@@ -557,13 +548,13 @@ _ObjectLoop:
 ;;; Transfers the next console window row (if any) that still needs to be
 ;;; transferred to the PPU.
 .PROC FuncA_Console_TransferNextWindowRow
-    lda Zp_WindowNextRowToTransfer_u8
-    sub #1
-    cmp Zp_ConsoleNumInstRows_u8
+    ldy Zp_WindowNextRowToTransfer_u8
+    dey
+    cpy Zp_ConsoleNumInstRows_u8
     blt _Interior
     beq _BottomBorder
 _BottomMargin:
-    cmp #kWindowMaxNumRows
+    cpy #kWindowMaxNumRows
     blt @clear
     rts
     @clear:
