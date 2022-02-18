@@ -33,6 +33,7 @@
 .IMPORT FuncA_Console_GetCurrentFieldType
 .IMPORT FuncA_Console_GetCurrentFieldValue
 .IMPORT FuncA_Console_SetCurrentFieldValue
+.IMPORT FuncA_Console_TransferAllInstructions
 .IMPORT FuncA_Console_TransferInstruction
 .IMPORT Func_ClearRestOfOam
 .IMPORT Func_DrawObjectsForRoom
@@ -1154,7 +1155,9 @@ _NowNotEmpty:
 _NowEmpty:
     ;; The instruction is empty now.  If it already was before, we're done.
     txa  ; zero if instruction was empty
-    beq _Done
+    bne @doRemove
+    rts
+    @doRemove:
     ;; The instruction is empty now, but didn't used to be, so we need to
     ;; remove it and shift all following instructions back by one.
 _ShiftInstructions:
@@ -1225,27 +1228,7 @@ _RewriteGotos:
     cpx #.sizeof(sInst) * kMaxProgramLength
     blt @loop
 _RedrawInstructions:
-    ;; Redraw all instructions (over the course of two frames, since it's too
-    ;; much to transfer to the PPU all in one frame).
-    lda Zp_ConsoleInstNumber_u8
-    pha  ; current instruction number
-    lda #0
-    sta Zp_ConsoleInstNumber_u8
-    @loop:
-    jsr FuncA_Console_TransferInstruction
-    inc Zp_ConsoleInstNumber_u8
-    ldx Zp_ConsoleInstNumber_u8
-    cpx Zp_ConsoleNumInstRows_u8
-    bne @continue
-    jsr Func_ProcessFrame
-    ldx Zp_ConsoleInstNumber_u8
-    @continue:
-    cpx Zp_MachineMaxInstructions_u8
-    blt @loop
-    pla  ; current instruction number
-    sta Zp_ConsoleInstNumber_u8
-_Done:
-    rts
+    jmp FuncA_Console_TransferAllInstructions
 .ENDPROC
 
 ;;;=========================================================================;;;

@@ -251,11 +251,11 @@ _GameLoop:
     jsr Func_ProcessFrame
     jsr Func_UpdateButtons
 _CheckButtons:
-    prga_bank #<.bank(FuncA_Console_SaveProgram)
     ;; B button:
     lda Zp_P1ButtonsPressed_bJoypad
     and #bJoypad::BButton
     beq @noClose
+    prga_bank #<.bank(FuncA_Console_SaveProgram)
     jsr FuncA_Console_SaveProgram
     jmp Main_Console_CloseWindow
     @noClose:
@@ -263,17 +263,21 @@ _CheckButtons:
     lda Zp_P1ButtonsPressed_bJoypad
     and #bJoypad::Select
     beq @noInsert
-    jsr FuncA_Console_InsertInstruction
+    prga_bank #<.bank(FuncA_Console_TryInsertInstruction)
+    jsr FuncA_Console_TryInsertInstruction  ; sets C on success
+    bcs @edit
     @noInsert:
     ;; A button:
     lda Zp_P1ButtonsPressed_bJoypad
     and #bJoypad::AButton
     beq @noEdit
+    @edit:
     lda #$ff
     sta Zp_ConsoleCursorIsDiminished_bool
     jmp Main_Menu_EditSelectedField
     @noEdit:
     ;; D-pad:
+    prga_bank #<.bank(FuncA_Console_MoveFieldCursor)
     jsr FuncA_Console_MoveFieldCursor
 _UpdateScrolling:
     jsr Func_SetScrollGoalFromAvatar
@@ -448,14 +452,74 @@ _NoLeftOrRight:
     rts
 .ENDPROC
 
-.PROC FuncA_Console_InsertInstruction
-    ;; TODO: If there's no room to insert an instruction, bail.
-    ;; TODO: Insert a new Empty instruction above the current one (updating any
-    ;;   GOTO instruction addresses as needed), and set current
-    ;;   instruction/field/column to point to the new Empty instruction.
-    ;; TODO: Redraw all instructions in the console (over a couple of frames).
-    ;; TODO: Switch to menu mode for the current field (which will be the
-    ;;   opcode field of the new Empty instruction).
+;;; Inserts a new instruction (if there's room) above the current one and
+;;; redraws all instrutions.  If there's no room for a new instruction, clears
+;;; C and returns without redrawing anything.
+;;; @return C Set if an instruction was successfully inserted.
+.PROC FuncA_Console_TryInsertInstruction
+    ;; Check if the final instruction in the program is empty; if not, we can't
+    ;; insert a new instruction.
+    lda Zp_MachineMaxInstructions_u8
+    mul #.sizeof(sInst)
+    sta Zp_Tmp1_byte  ; machine max program byte length
+    tay
+    .assert sInst::Op_byte = .sizeof(sInst) - 1, error
+    dey
+    lda Ram_Console_sProgram, y
+    and #$f0
+    beq @canInsert
+    clc  ; clear C to indicate failure
+    rts
+    @canInsert:
+_ShiftInstructions:
+    lda Zp_ConsoleInstNumber_u8
+    mul #.sizeof(sInst)
+    sta Zp_Tmp2_byte  ; byte offset for current instruction
+    ldy Zp_Tmp1_byte  ; machine max program byte length
+    ldx Zp_Tmp1_byte  ; machine max program byte length
+    .repeat .sizeof(sInst)
+    dex
+    .endrepeat
+    @loop:
+    dex
+    dey
+    lda Ram_Console_sProgram + sProgram::Code_sInst_arr, x
+    sta Ram_Console_sProgram + sProgram::Code_sInst_arr, y
+    cpx Zp_Tmp2_byte  ; byte offset for current instruction
+    bne @loop
+    ;; Set the current instruction to END, and select field zero.
+    lda #eOpcode::End * $10
+    sta Ram_Console_sProgram + sProgram::Code_sInst_arr + sInst::Op_byte, x
+    lda #0
+    sta Ram_Console_sProgram + sProgram::Code_sInst_arr + sInst::Arg_byte, x
+    sta Zp_ConsoleFieldNumber_u8
+    sta Zp_ConsoleNominalFieldOffset_u8
+_RewriteGotos:
+    ;; Loop over all instructions.
+    ldx #0  ; byte offset into program
+    @loop:
+    ;; If this is not a GOTO instruction, skip it.
+    lda Ram_Console_sProgram + sProgram::Code_sInst_arr + sInst::Op_byte, x
+    and #$f0
+    cmp #eOpcode::Goto * $10
+    bne @continue
+    ;; Get the destination address of the GOTO.
+    lda Ram_Console_sProgram + sProgram::Code_sInst_arr + sInst::Op_byte, x
+    and #$0f
+    ;; If it points to before the inserted instruction, no change is needed.
+    cmp Zp_ConsoleInstNumber_u8
+    blt @continue
+    ;; Otherwise, increment the destination address.
+    inc Ram_Console_sProgram + sProgram::Code_sInst_arr + sInst::Op_byte, x
+    @continue:
+    .repeat .sizeof(sInst)
+    inx
+    .endrepeat
+    cpx #.sizeof(sInst) * kMaxProgramLength
+    blt @loop
+_Finish:
+    jsr FuncA_Console_TransferAllInstructions
+    sec  ; set C to indicate success
     rts
 .ENDPROC
 
@@ -619,6 +683,31 @@ _Interior:
     bne @loop
     lda #kWindowTileIdVert
     sta Ram_PpuTransfer_arr, x
+    rts
+.ENDPROC
+
+;;; Redraws all instructions (over the course of two frames, since it's too
+;;; much to transfer to the PPU all in one frame).
+.EXPORT FuncA_Console_TransferAllInstructions
+.PROC FuncA_Console_TransferAllInstructions
+    lda Zp_ConsoleInstNumber_u8
+    pha  ; current instruction number
+    lda #0
+    sta Zp_ConsoleInstNumber_u8
+    @loop:
+    jsr FuncA_Console_TransferInstruction
+    inc Zp_ConsoleInstNumber_u8
+    ldx Zp_ConsoleInstNumber_u8
+    cpx Zp_ConsoleNumInstRows_u8
+    bne @continue
+    jsr Func_ProcessFrame
+    ldx Zp_ConsoleInstNumber_u8
+    @continue:
+    cpx Zp_MachineMaxInstructions_u8
+    blt @loop
+    jsr Func_ProcessFrame
+    pla  ; current instruction number
+    sta Zp_ConsoleInstNumber_u8
     rts
 .ENDPROC
 
