@@ -41,11 +41,13 @@
 .IMPORT Func_SetScrollGoalFromAvatar
 .IMPORT Func_UpdateButtons
 .IMPORT Func_Window_GetRowPpuAddr
+.IMPORT Ram_Console_sProgram
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORT Ram_PpuTransfer_arr
 .IMPORT Sram_ProgressFlags_arr
 .IMPORTZP Zp_ConsoleNumInstRows_u8
 .IMPORTZP Zp_Current_sMachine_ptr
+.IMPORTZP Zp_MachineMaxInstructions_u8
 .IMPORTZP Zp_OamOffset_u8
 .IMPORTZP Zp_P1ButtonsPressed_bJoypad
 .IMPORTZP Zp_PpuTransferLen_u8
@@ -632,22 +634,21 @@ _SetRowsForRegisters:
     D_END
 _OnUp:
     ldx Zp_MenuItem_u8
-    bne @decrement
-    lda Zp_ConsoleNumInstRows_u8
-    asl a
-    tax
-    @decrement:
     dex
+    bpl @setItem
+    ldx Zp_MachineMaxInstructions_u8
+    @loop:
+    dex
+    lda Ram_MenuRows_u8_arr, x
+    bmi @loop
+    @setItem:
     stx Zp_MenuItem_u8
     rts
 _OnDown:
-    lda Zp_ConsoleNumInstRows_u8
-    asl a
-    sta Zp_Tmp1_byte
     ldx Zp_MenuItem_u8
     inx
-    cpx Zp_Tmp1_byte
-    blt @setItem
+    lda Ram_MenuRows_u8_arr, x
+    bpl @setItem
     ldx #0
     @setItem:
     stx Zp_MenuItem_u8
@@ -664,7 +665,10 @@ _OnRight:
     cmp Zp_ConsoleNumInstRows_u8
     bge @doNotSet
     add Zp_ConsoleNumInstRows_u8
-    sta Zp_MenuItem_u8
+    tax
+    lda Ram_MenuRows_u8_arr, x
+    bmi @doNotSet
+    stx Zp_MenuItem_u8
     @doNotSet:
     rts
 .ENDPROC
@@ -674,22 +678,32 @@ _OnRight:
 .PROC FuncA_Console_SetUpAddressMenu
     ldax #DataA_Console_Address_sMenu
     stax Zp_Current_sMenu_ptr
-    ;; TODO: Exclude menu items for empty instructions (and also in cursor
-    ;;   movement functions above).
     ldx #0
-    ldy Zp_ConsoleNumInstRows_u8
+    ldy #sInst::Op_byte
     @loop:
+    lda Ram_Console_sProgram, y
+    and #$f0
+    beq @done
+    txa
+    sub Zp_ConsoleNumInstRows_u8
+    bge @rightColumn
+    @leftColumn:
     txa
     sta Ram_MenuRows_u8_arr, x
-    sta Ram_MenuRows_u8_arr, y
     lda #2
-    sta Ram_MenuCols_u8_arr, x
+    bne @setCol  ; unconditional
+    @rightColumn:
+    sta Ram_MenuRows_u8_arr, x
     lda #5
-    sta Ram_MenuCols_u8_arr, y
-    iny
+    @setCol:
+    sta Ram_MenuCols_u8_arr, x
     inx
-    cpx Zp_ConsoleNumInstRows_u8
-    bne @loop
+    .repeat .sizeof(sInst)
+    iny
+    .endrepeat
+    cpx Zp_MachineMaxInstructions_u8
+    blt @loop
+    @done:
     rts
 .ENDPROC
 
