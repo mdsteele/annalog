@@ -99,10 +99,14 @@ $(DATADIR)/%.chr: $(SRCDIR)/%.ahi $(AHI2CHR)
 	@mkdir -p $(@D)
 	@$(AHI2CHR) < $< > $@
 
+.SECONDARY: $(CHRFILES)
+
 $(DATADIR)/%.room: $(SRCDIR)/rooms/%.bg $(BG2ROOM)
 	@echo "Converting $<"
 	@mkdir -p $(@D)
 	@$(BG2ROOM) < $< > $@
+
+.SECONDARY: $(ROOMFILES)
 
 $(GENDIR)/tileset.asm: $(SRCDIR)/tileset.bg $(BG2TSET)
 	@echo "Generating $@"
@@ -152,7 +156,7 @@ endef
 $(OBJDIR)/chr.o: $(SRCDIR)/chr.asm $(INCFILES) $(CHRFILES)
 	$(compile-asm)
 
-$(OBJDIR)/room.o: $(SRCDIR)/room.asm $(INCFILES) $(ROOMFILES)
+$(OBJDIR)/rooms/%.o: $(SRCDIR)/rooms/%.asm $(INCFILES) $(DATADIR)/%.room
 	$(compile-asm)
 
 $(OBJDIR)/%.o: $(SRCDIR)/%.asm $(INCFILES)

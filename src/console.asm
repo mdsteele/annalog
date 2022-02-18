@@ -139,7 +139,7 @@ Ram_Console_sProgram: .tag sProgram
 
 ;;;=========================================================================;;;
 
-.SEGMENT "PRG8_Console"
+.SEGMENT "PRG8"
 
 ;;; Mode for scrolling in the console window.
 ;;; @prereq Rendering is enabled.

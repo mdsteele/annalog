@@ -21,7 +21,7 @@
 .INCLUDE "../src/room.inc"
 
 .IMPORT Exit_Success
-.IMPORT FuncA_Terrain_GetColumnPtrForBlockIndex
+.IMPORT FuncA_Terrain_GetColumnPtrForTileIndex
 .IMPORT Func_ExpectAEqualsY
 .IMPORTZP Zp_Current_sRoom
 .IMPORTZP Zp_TerrainColumn_u8_arr_ptr
@@ -43,8 +43,9 @@ kExpectedStripePtr = $8207
 
 .EXPORTZP Zp_PpuTransferLen_u8
 Zp_PpuTransferLen_u8: .res 1
-.EXPORTZP Zp_Tmp1_byte
+.EXPORTZP Zp_Tmp1_byte, Zp_Tmp2_byte
 Zp_Tmp1_byte: .res 1
+Zp_Tmp2_byte: .res 1
 
 ;;;=========================================================================;;;
 
@@ -79,8 +80,8 @@ SetUp:
     stx Zp_Current_sRoom + sRoom::TerrainData_ptr + 0
     sta Zp_Current_sRoom + sRoom::TerrainData_ptr + 1
 Test:
-    lda #kBlockColumnIndex
-    jsr FuncA_Terrain_GetColumnPtrForBlockIndex
+    lda #kBlockColumnIndex * 2
+    jsr FuncA_Terrain_GetColumnPtrForTileIndex
 Verify:
     lda Zp_TerrainColumn_u8_arr_ptr + 0
     ldy #<kExpectedStripePtr

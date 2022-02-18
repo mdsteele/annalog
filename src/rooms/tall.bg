@@ -3,27 +3,27 @@
 >r1
 >r4
 
-            CHCHCH                                        CH
-  CHCHCHCHCI      CGCHCHCHCHCHCHCHCHCHCHCHCHCHCHCHCHCH  CN  CGCHCHCH
-CN                                                    CGCI          CM
-CN                                                                  CM
-CN      AC                        CACBCF                            CM
-  CECECBCBCC                          CGCBCECF  CDCECECECECECECC    CM
-  CHCI          BABC          CO          CMCN  CM          CN      CM
-CN              CACBCC                    CMCN  CM          CN    CA
-CN        AB              CO              CMCN  CM          CN      CM
-CN    CACECECECECF                        CMCN  CM            CC    CM
-CN      CGCHCHCHCI      AD                CMCN  CM      CHCHCI      CM
-  CECC                CACECECECECC        CMCN  CGCHCHCI          CA
-  CI                    CGCHCHCI          CGCI                      CM
-CN    CO                                              BA  BCCDCF    CM
-CN    CP  CO                                  BA    BACDCECE  CN    CM
-CNBDBE      BD                  CACBCBCC    CDCECECECE      CHCI    CM
-CKCKCKCKCKCKCKCL                            CGCHCHCHCH    CI        CM
-              CI        CO                            CMCN          CM
-    CHCHCHCHCI                                        CGCI          CM
-CICP                CP                                BBBC          CM
-CP        CPCJCKCKCKCKCKCLCP                          CJCL          CM
-CP  BB  BBCP              CKCKCKCP  BD      CP  BE    CMCN  BB  BDBBCM
-CKCKCKCKCKCK      CHCHCH        CKCKCKCKCKCKCKCKCKCKCK    CKCKCKCKCK
+            CHCHCH                                      CH
+    CHCHCHCI      CGCHCHCHCHCHCHCHCHCHCHCHCHCHCHCHCH  CN  CGCHCH
+  CN                                                CGCI        CGCHCH
+  CN
+  CN    AC                        CACBCF
+    CECBCBCC                          CGCBCECF  CDCECECECECF    CACECE
+    CI          BABC          CO          CMCN  CM        CN      CM
+  CN            CACBCC                    CMCN  CM          CC    CM
+  CN      AB              CO              CMCN  CM        CN      CM
+  CN  CACBCECECECF                        CMCN  CM        CN    CA
+  CN      CGCHCHCI      AD                CMCN  CM        CN      CM
+    CF                CACECECECECC        CMCN  CGCHCHCHCHCHCC    CM
+CHCHCI                  CGCHCHCI          CGCI                    CM
+        CO                                          BA  BC      CA
+        CP  CO                                BA  BACDCECECF      CM
+    BDBE  BD                    CACBCBCC    CDCECECE      CHCBCC  CM
+CKCKCKCKCKCKCKCL                            CGCHCHCH    CI        CM
+              CI        CO                          CMCN          CM
+      CHCHCHCI                                      CGCI        CD
+  CNCP              CP                              BBBC        CGCHCH
+  CP      CPCJCKCKCKCKCKCLCP                        CJCL
+  CP  BBBBCP              CKCKCKCP  BD      CP  BE  CMCN  BB  BDBB
+  CKCKCKCKCK      CHCHCH        CKCKCKCKCKCKCKCKCKCK    CKCKCKCKCKCKCK
                 CN      CM

@@ -47,7 +47,7 @@ Ram_Oam_sObj_arr64: .res .sizeof(sObj) * kNumOamSlots
 
 ;;;=========================================================================;;;
 
-.SEGMENT "PRG8_Oam"
+.SEGMENT "PRG8"
 
 ;;; Clears all remaining object entries in Ram_Oam_sObj_arr64, starting with
 ;;; the one indicated by Zp_OamOffset_u8, then sets Zp_OamOffset_u8 to zero.

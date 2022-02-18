@@ -61,7 +61,7 @@ Zp_WindowNextRowToTransfer_u8: .res 1
 
 ;;;=========================================================================;;;
 
-.SEGMENT "PRG8_Window"
+.SEGMENT "PRG8"
 
 ;;; Populates Ram_Buffered_sIrq appropriately for the current value of
 ;;; Zp_WindowTop_u8, and schedules it for transfer.  This should be called

@@ -25,7 +25,7 @@
 .INCLUDE "ppu.inc"
 .INCLUDE "room.inc"
 
-.IMPORT DataC_TallRoom_sRoom
+.IMPORT Data_RoomBanks_u8_arr
 .IMPORT FuncA_Terrain_FillNametables
 .IMPORT FuncA_Terrain_GetColumnPtrForTileIndex
 .IMPORT FuncA_Terrain_TransferTileColumn
@@ -34,8 +34,10 @@
 .IMPORT Func_DrawObjectsForAllDevices
 .IMPORT Func_DrawObjectsForAllMachines
 .IMPORT Func_ExecuteAllMachines
+.IMPORT Func_ExitCurrentRoom
 .IMPORT Func_FadeIn
-.IMPORT Func_InitAllMachines
+.IMPORT Func_FadeOut
+.IMPORT Func_LoadRoom
 .IMPORT Func_ProcessFrame
 .IMPORT Func_TickAllDevices
 .IMPORT Func_ToggleLeverDevice
@@ -138,6 +140,7 @@ Zp_ScrollGoalY_u8: .res 1
 Zp_ScrollXHi_u8: .res 1
 
 ;;; The current X/Y positions of the player avatar, in room-space pixels.
+.EXPORTZP Zp_AvatarPosX_i16, Zp_AvatarPosY_i16
 Zp_AvatarPosX_i16: .res 2
 Zp_AvatarPosY_i16: .res 2
 
@@ -157,16 +160,42 @@ Zp_NearbyDevice_u8: .res 1
 
 ;;;=========================================================================;;;
 
-.SEGMENT "PRG8_Explore"
+.SEGMENT "PRG8"
 
 ;;; Mode for exploring and platforming within a room, when entering the room
-;;; e.g. from a door or from the title screen.
+;;; from a device (e.g. the console the game was last saved from).
 ;;; @prereq Rendering is disabled.
-.EXPORT Main_Explore_Enter
-.PROC Main_Explore_Enter
-    lda #$ff
-    sta Zp_NearbyDevice_u8
-    ;; Initialize avatar state.
+;;; @param X The eRoom value for the room to enter.
+;;; @param Y The device index to enter from.
+.EXPORT Main_Explore_EnterFromDevice
+.PROC Main_Explore_EnterFromDevice
+    sty Zp_NearbyDevice_u8
+    prgc_bank Data_RoomBanks_u8_arr, x
+    jsr Func_LoadRoom
+    ;; Position the avatar in front of device number Zp_NearbyDevice_u8.
+    ldx Zp_NearbyDevice_u8
+    lda #0
+    sta Zp_AvatarPosX_i16 + 1
+    sta Zp_AvatarPosY_i16 + 1
+    lda Ram_DeviceBlockCol_u8_arr, x
+    .assert kMaxRoomWidthBlocks <= $80, error
+    asl a      ; Since kMaxRoomWidthBlocks <= $80, the device block col fits in
+    .repeat 3  ; seven bits, so the first ASL won't set the carry bit, so we
+    asl a      ; only need to ROL (Zp_AvatarPosX_i16 + 1) after the second ASL.
+    rol Zp_AvatarPosX_i16 + 1
+    .endrepeat
+    ora #$06
+    sta Zp_AvatarPosX_i16 + 0
+    lda Ram_DeviceBlockRow_u8_arr, x
+    .assert kTallRoomHeightBlocks <= $20, error
+    asl a  ; Since kTallRoomHeightBlocks <= $20, the device block row fits in
+    asl a  ; five bits, so the first three ASL's won't set the carry bit, so
+    asl a  ; we only need to ROL (Zp_AvatarPosY_i16 + 1) after the fourth ASL.
+    asl a
+    rol Zp_AvatarPosY_i16 + 1
+    ora #kBlockHeightPx - kAvatarBoundingBoxDown
+    sta Zp_AvatarPosY_i16 + 0
+    ;; Make the avatar stand still, facing to the right.
     lda #ePlayer::Standing
     sta Zp_AvatarMode_ePlayer
     lda #0
@@ -174,64 +203,39 @@ Zp_NearbyDevice_u8: .res 1
     sta Zp_AvatarVelX_i16 + 1
     sta Zp_AvatarVelY_i16 + 0
     sta Zp_AvatarVelY_i16 + 1
-    ;; TODO: Init other state based on the room and the device we're entering
-    ;;   through.
-    sta Zp_ScrollGoalX_u16 + 0
-    sta Zp_ScrollGoalX_u16 + 1
-    sta Zp_ScrollGoalY_u8
-    sta Zp_ScrollXHi_u8
-    sta Zp_PpuScrollX_u8
-    sta Zp_PpuScrollY_u8
-    sta Zp_AvatarPosX_i16 + 1
-    sta Zp_AvatarPosY_i16 + 1
     lda #kAvatarPalette
     sta Zp_AvatarFlags_bObj
-    lda #$88
-    sta Zp_AvatarPosX_i16 + 0
-    lda #$66
-    sta Zp_AvatarPosY_i16 + 0
-    lda #eDevice::Console
-    sta Ram_DeviceType_eDevice_arr + 0
-    lda #8
-    sta Ram_DeviceBlockRow_u8_arr + 0
-    lda #5
-    sta Ram_DeviceBlockCol_u8_arr + 0
-    lda #0
-    sta Ram_DeviceTarget_u8_arr + 0
-    lda #eDevice::Lever
-    sta Ram_DeviceType_eDevice_arr + 1
-    lda #4
-    sta Ram_DeviceBlockRow_u8_arr + 1
-    lda #4
-    sta Ram_DeviceBlockCol_u8_arr + 1
-    lda #0
-    sta Ram_DeviceTarget_u8_arr + 1
-    lda #eDevice::Sign
-    sta Ram_DeviceType_eDevice_arr + 2
-    lda #10
-    sta Ram_DeviceBlockRow_u8_arr + 2
-    lda #12
-    sta Ram_DeviceBlockCol_u8_arr + 2
-    lda #0
-    sta Ram_DeviceTarget_u8_arr + 2
+    .assert * = Main_Explore_Enter, error, "fallthrough"
+.ENDPROC
+
+;;; Helper mode for entering a room.
+.PROC Main_Explore_Enter
 _InitializeWindow:
     lda #$ff
     sta Zp_WindowTop_u8
     jsr Func_Window_SetUpIrq
     jsr Func_Window_DirectDrawTopBorder
-_LoadRoom:
-    prgc_bank #<.bank(DataC_TallRoom_sRoom)
-    ldx #.sizeof(sRoom) - 1
-    .assert .sizeof(sRoom) <= $80, error
-    @loop:
-    lda DataC_TallRoom_sRoom, x
-    sta Zp_Current_sRoom, x
-    dex
-    bpl @loop
-    jsr Func_InitAllMachines
+_InitializeScrolling:
+    jsr Func_SetScrollGoalFromAvatar
+    lda Zp_ScrollGoalY_u8
+    sta Zp_PpuScrollY_u8
+    ldax Zp_ScrollGoalX_u16
+    stx Zp_PpuScrollX_u8
+    sta Zp_ScrollXHi_u8
 _DrawTerrain:
     prga_bank #<.bank(FuncA_Terrain_FillNametables)
-    lda #0  ; param: left block column index
+    ;; Calculate the index of the leftmost room tile column that should be in
+    ;; the nametable.
+    lda Zp_PpuScrollX_u8
+    add #kTileWidthPx - 1
+    sta Zp_Tmp1_byte
+    lda Zp_ScrollXHi_u8
+    adc #0
+    .repeat 3
+    lsr a
+    ror Zp_Tmp1_byte
+    .endrepeat
+    lda Zp_Tmp1_byte  ; param: left block column index
     jsr FuncA_Terrain_FillNametables
 _InitObjects:
     lda #0
@@ -241,9 +245,6 @@ _InitObjects:
 _FadeIn:
     lda #bPpuMask::BgMain | bPpuMask::ObjMain
     sta Zp_Render_bPpuMask
-    lda #0
-    sta Zp_PpuScrollX_u8
-    sta Zp_PpuScrollY_u8
     jsr Func_FadeIn
     .assert * = Main_Explore_Continue, error, "fallthrough"
 .ENDPROC
@@ -288,8 +289,77 @@ _Done:
 .ENDPROC
     jsr Func_TickAllDevices
     jsr Func_ExecuteAllMachines
-    jsr Func_ExploreMoveAvatar
-    jmp _GameLoop
+    jsr Func_ExploreMoveAvatar  ; returns Z and A
+    beq _GameLoop
+    .assert * = Main_Explore_GoThroughDoor, error, "fallthrough"
+.ENDPROC
+
+;;; Mode for leaving the current room through a door and entering the next
+;;; room.
+;;; @param A The eDoor value for the side of the room the player hit.
+.PROC Main_Explore_GoThroughDoor
+    ;; Fade out the current room.
+    pha  ; eDoor value
+    jsr Func_DrawObjectsForRoom
+    jsr Func_ClearRestOfOam
+    jsr Func_FadeOut
+    pla  ; eDoor value
+_CalculateDoor:
+    ;; Calculate the bDoor value from the eDoor and the avatar's position.
+    tay  ; eDoor value
+    and #bDoor::EastWest
+    beq @upDown
+    @eastWest:
+    bit <(Zp_Current_sRoom + sRoom::IsTall_bool)
+    bpl @upperHalf
+    @tall:
+    lda Zp_AvatarPosY_i16 + 1
+    bmi @upperHalf
+    bne @lowerHalf
+    lda Zp_AvatarPosY_i16 + 0
+    cmp #(kTallRoomHeightBlocks / 2) * kBlockHeightPx
+    bge @lowerHalf
+    @upperHalf:
+    tya  ; eDoor value
+    bne _LoadNextRoom  ; unconditional
+    @lowerHalf:
+    tya  ; eDoor value
+    ora #1
+    bne _LoadNextRoom  ; unconditional
+    @upDown:
+    ;; TODO: determine screen number for up/down doors
+_LoadNextRoom:
+    pha  ; bDoor value
+    tax  ; param: bDoor value
+    jsr Func_ExitCurrentRoom  ; returns A
+    tax  ; param: eRoom value
+    prgc_bank Data_RoomBanks_u8_arr, x
+    jsr Func_LoadRoom
+    pla  ; bDoor value
+_RepositionAvatar:
+    ;; Extract eDoor value from bDoor value.
+    and #bDoor::SideMask
+    ;; Reposition avatar based on eDoor value and new room size.
+    cmp #eDoor::Eastern
+    bne @eastern
+    ;; TODO: handle up/down doors
+    @western:
+    lda <(Zp_Current_sRoom + sRoom::MinScrollX_u8)
+    add #8
+    sta Zp_AvatarPosX_i16 + 0
+    lda #0
+    sta Zp_AvatarPosX_i16 + 1
+    beq @doorDone  ; unconditional
+    @eastern:
+    lda <(Zp_Current_sRoom + sRoom::MaxScrollX_u16 + 0)
+    add #kScreenWidthPx - 8
+    sta Zp_AvatarPosX_i16 + 0
+    lda <(Zp_Current_sRoom + sRoom::MaxScrollX_u16 + 1)
+    adc #0
+    sta Zp_AvatarPosX_i16 + 1
+    @doorDone:
+_EnterNextRoom:
+    jmp Main_Explore_Enter
 .ENDPROC
 
 ;;; Sets Zp_NearbyDevice_u8 to the index of the device that the player avatar
@@ -343,22 +413,22 @@ _Done:
 ;;; keeping the scroll goal within the valid range for the current room.
 .EXPORT Func_SetScrollGoalFromAvatar
 .PROC Func_SetScrollGoalFromAvatar
-    ;; Calculate half visible height of the screen (the part not covered by the
+    ;; Calculate the visible height of the screen (the part not covered by the
     ;; window), and store it in Zp_Tmp1_byte.
     lda Zp_WindowTop_u8
     cmp #kScreenHeightPx
     blt @windowVisible
     lda #kScreenHeightPx
     @windowVisible:
-    sta Zp_Tmp1_byte
+    sta Zp_Tmp1_byte  ; visible screen height
     ;; Calculate the maximum permitted scroll-Y and store it in Zp_Tmp2_byte.
     lda #kScreenHeightPx
     bit <(Zp_Current_sRoom + sRoom::IsTall_bool)
     bpl @shortRoom
     lda #<(kTallRoomHeightBlocks * kBlockHeightPx)
     @shortRoom:
-    sub Zp_Tmp1_byte
-    sta Zp_Tmp2_byte
+    sub Zp_Tmp1_byte  ; visible screen height
+    sta Zp_Tmp2_byte  ; max scroll-Y
 .PROC _SetScrollGoalY
     lda Zp_AvatarPosY_i16 + 0
     lsr Zp_Tmp1_byte
@@ -380,24 +450,31 @@ _SetGoal:
     sta Zp_ScrollGoalY_u8
 .ENDPROC
 .PROC _SetScrollGoalX
+    ;; Compute the signed 16-bit horizontal scroll goal, storing it in AX.
     lda Zp_AvatarPosX_i16 + 0
     sub #kScreenWidthPx / 2
     tax
     lda Zp_AvatarPosX_i16 + 1
     sbc #0
-    bmi _MinGoal
-    cmp <(Zp_Current_sRoom + sRoom::MaxScrollX_u16 + 1)
-    blt _Done
-    bne _MaxGoal
-    cpx <(Zp_Current_sRoom + sRoom::MaxScrollX_u16 + 0)
-    blt _Done
-_MaxGoal:
-    ldax <(Zp_Current_sRoom + sRoom::MaxScrollX_u16)
-    jmp _Done
-_MinGoal:
+    ;; Check AX against the current room's MinScrollX_u8, and clamp if needed.
+    bmi @minGoal  ; if AX is negative, clamp to min scroll value
+    bne @notMin   ; min scroll is 8-bit, so if A > 0, then AX > min
+    cpx <(Zp_Current_sRoom + sRoom::MinScrollX_u8)
+    bge @notMin
+    @minGoal:
+    ldx <(Zp_Current_sRoom + sRoom::MinScrollX_u8)
     lda #0
-    tax
-_Done:
+    beq _SetGoalToAX  ; unconditional
+    @notMin:
+    ;; Check AX against the current room's MaxScrollX_u16, and clamp if needed.
+    cmp <(Zp_Current_sRoom + sRoom::MaxScrollX_u16 + 1)
+    blt _SetGoalToAX
+    bne @maxGoal
+    cpx <(Zp_Current_sRoom + sRoom::MaxScrollX_u16 + 0)
+    blt _SetGoalToAX
+    @maxGoal:
+    ldax <(Zp_Current_sRoom + sRoom::MaxScrollX_u16)
+_SetGoalToAX:
     stax Zp_ScrollGoalX_u16
 .ENDPROC
     rts
@@ -456,6 +533,8 @@ _DoneTransfer:
 .ENDPROC
 
 ;;; Updates the player avatar state based on the current joypad state.
+;;; @return Z Cleared if the player avatar hit a door, set otherwise.
+;;; @return A The eDoor that the player avatar hit, or eDoor::None for none.
 ;;; TODO: This should probably be in the same PRGA bank as terrain functions.
 .PROC Func_ExploreMoveAvatar
     jsr Func_PlayerApplyJoypad
@@ -471,6 +550,51 @@ _ApplyVelX:
     tya
     adc Zp_AvatarPosX_i16 + 1
     sta Zp_AvatarPosX_i16 + 1
+.PROC _DetectHorzDoor
+    lda Zp_AvatarVelX_i16 + 1
+    bmi _Western
+_Eastern:
+    ;; Calculate the room pixel X-position where the avatar will be offscreen
+    ;; to the right, storing the result in Zp_Tmp1_byte (lo) and A (hi).
+    lda <(Zp_Current_sRoom + sRoom::MaxScrollX_u16 + 0)
+    add #<(kScreenWidthPx + kAvatarBoundingBoxLeft)
+    sta Zp_Tmp1_byte
+    lda <(Zp_Current_sRoom + sRoom::MaxScrollX_u16 + 1)
+    adc #>(kScreenWidthPx + kAvatarBoundingBoxLeft)
+    ;; Compare the avatar's position to the offscreen position.
+    cmp Zp_AvatarPosX_i16 + 1
+    beq @checkLoByte
+    bge _NoHitDoor
+    @hitDoor:
+    lda #eDoor::Eastern
+    rts
+    @checkLoByte:
+    lda Zp_AvatarPosX_i16 + 0
+    cmp Zp_Tmp1_byte  ; door X-position (lo)
+    bge @hitDoor
+    blt _NoHitDoor  ; unconditional
+_Western:
+    ;; If the avatar's X-position is negative, then we definitely hit the
+    ;; western door (although this should not happen in practice).  On the
+    ;; other hand, if the hi byte of the avatar's X-position is greater than
+    ;; zero, then we definitely didn't hit the western door.
+    lda Zp_AvatarPosX_i16 + 1
+    bmi @hitDoor
+    bne _NoHitDoor
+    ;; Calculate the room pixel X-position where the avatar will be fully
+    ;; hidden by the one-tile-wide mask on the left side of the screen, storing
+    ;; the result in A.
+    lda <(Zp_Current_sRoom + sRoom::MinScrollX_u8 + 0)
+    add #kTileWidthPx - kAvatarBoundingBoxRight
+    ;; Compare the avatar's position to the offscreen position.  By this point,
+    ;; we already know that the hi byte of the avatar's position is zero.
+    cmp Zp_AvatarPosX_i16 + 0
+    blt _NoHitDoor
+    @hitDoor:
+    lda #eDoor::Western
+    rts
+_NoHitDoor:
+.ENDPROC
 .PROC _DetectHorzCollision
     ;; Calculate the room block row index that the avatar's feet are in, and
     ;; store it in Zp_Tmp1_byte.
@@ -594,6 +718,9 @@ _ApplyVelY:
     tya
     adc Zp_AvatarPosY_i16 + 1
     sta Zp_AvatarPosY_i16 + 1
+.PROC _DetectVertDoor
+    ;; TODO: Implement top/bottom doors.
+.ENDPROC
 .PROC _DetectVertCollision
     ;; Calculate the room tile column index that the avatar's left side is in,
     ;; and store it in Zp_Tmp1_byte.
@@ -718,6 +845,7 @@ _Done:
 .ENDPROC
 _ApplyGravity:
     jsr Func_PlayerApplyGravity
+    lda #eDoor::None  ; indicate that no door was hit
     rts
 .ENDPROC
 

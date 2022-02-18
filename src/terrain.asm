@@ -28,6 +28,7 @@
 .IMPORT Ram_PpuTransfer_arr
 .IMPORTZP Zp_PpuTransferLen_u8
 .IMPORTZP Zp_Tmp1_byte
+.IMPORTZP Zp_Tmp2_byte
 
 ;;;=========================================================================;;;
 
@@ -37,7 +38,7 @@
 .EXPORTZP Zp_Current_sRoom
 Zp_Current_sRoom: .tag sRoom
 
-;;; Return value for FuncA_Terrain_GetColumnPtrFor* functions.  This will point
+;;; Return value for FuncA_Terrain_GetColumnPtrForTileIndex.  This will point
 ;;; to the beginning (top) of the requested terrain block column in the current
 ;;; room.
 .EXPORTZP Zp_TerrainColumn_u8_arr_ptr
@@ -52,16 +53,6 @@ Zp_NametableColumnIndex_u8: .res 1
 ;;;=========================================================================;;;
 
 .SEGMENT "PRGA_Terrain"
-
-;;; Populates Zp_TerrainColumn_u8_arr_ptr with a pointer to the start of the
-;;; requested terrain block column in the current room.
-;;; @param A The index of the room block column.
-;;; @preserve Zp_Tmp*_byte
-.EXPORT FuncA_Terrain_GetColumnPtrForBlockIndex
-.PROC FuncA_Terrain_GetColumnPtrForBlockIndex
-    asl a
-    .assert * = FuncA_Terrain_GetColumnPtrForTileIndex, error, "fallthrough"
-.ENDPROC
 
 ;;; Populates Zp_TerrainColumn_u8_arr_ptr with a pointer to the start of the
 ;;; terrain block column in the current room that contains the specified room
@@ -114,28 +105,28 @@ _SetPtr:
 ;;; Directly fills the PPU nametables with terrain tile data for the current
 ;;; room.
 ;;; @prereq Rendering is disabled.
-;;; @param A The block column index for the left side of the screen.
+;;; @param A The tile column index for the left side of the screen.
 .EXPORT FuncA_Terrain_FillNametables
 .PROC FuncA_Terrain_FillNametables
+    sta Zp_Tmp1_byte  ; current room tile column index
+    add #kScreenWidthTiles - 1
+    sta Zp_Tmp2_byte  ; final room tile column index
     bit Hw_PpuStatus_ro  ; reset the Hw_PpuAddr_w2 write-twice latch
     ldx #kPpuCtrlFlagsVert
     stx Hw_PpuCtrl_wo
-    tax
-    add #kScreenWidthBlocks
-    sta Zp_TerrainColumnIndexLimit_u8
-    txa  ; now a is the starting block column index
-_BlockColumnLoop:
-    pha
-    jsr FuncA_Terrain_GetColumnPtrForBlockIndex
-    pla
-    pha
-.SCOPE
-    asl a  ; now a is the tile column index for the left side of the blocks
-    pha
-    ldy #0  ; y will count the block row index
+_TileColumnLoop:
+    lda Zp_Tmp1_byte  ; param: room tile column index
+    jsr FuncA_Terrain_GetColumnPtrForTileIndex  ; preserves Zp_Tmp*_byte
+    ldy #0  ; room block row index
+    lda Zp_Tmp1_byte  ; room tile column index
+    and #$01
+    bne _RightSide
+_LeftSide:
 .SCOPE
     ldx #>Ppu_Nametable0_sName
     .assert <Ppu_Nametable0_sName = 0, error
+    lda Zp_Tmp1_byte  ; room tile column index
+    and #$1f
     stx Hw_PpuAddr_w2
     sta Hw_PpuAddr_w2
     @tileLoop:
@@ -152,10 +143,10 @@ _BlockColumnLoop:
 .SCOPE
     bit <(Zp_Current_sRoom + sRoom::IsTall_bool)
     bpl @shortRoom
-    pla  ; now a is the tile column index for the left side of the blocks
-    pha
     ldx #>Ppu_Nametable3_sName
     .assert <Ppu_Nametable3_sName = 0, error
+    lda Zp_Tmp1_byte  ; room tile column index
+    and #$1f
     stx Hw_PpuAddr_w2
     sta Hw_PpuAddr_w2
     @tileLoop:
@@ -170,13 +161,13 @@ _BlockColumnLoop:
     bne @tileLoop
     @shortRoom:
 .ENDSCOPE
-    pla     ; now a is the tile column index for the left side of the blocks
-    add #1  ; now a is the tile column index for the right side of the blocks
-    pha
-    ldy #0  ; y will count the block row index
+    jmp _Continue
+_RightSide:
 .SCOPE
     ldx #>Ppu_Nametable0_sName
     .assert <Ppu_Nametable0_sName = 0, error
+    lda Zp_Tmp1_byte  ; room tile column index
+    and #$1f
     stx Hw_PpuAddr_w2
     sta Hw_PpuAddr_w2
     @tileLoop:
@@ -193,10 +184,10 @@ _BlockColumnLoop:
 .SCOPE
     bit <(Zp_Current_sRoom + sRoom::IsTall_bool)
     bpl @shortRoom
-    pla  ; now a is the tile column index for the right side of the blocks
-    pha
     ldx #>Ppu_Nametable3_sName
     .assert <Ppu_Nametable3_sName = 0, error
+    lda Zp_Tmp1_byte  ; room tile column index
+    and #$1f
     stx Hw_PpuAddr_w2
     sta Hw_PpuAddr_w2
     @tileLoop:
@@ -211,12 +202,13 @@ _BlockColumnLoop:
     bne @tileLoop
     @shortRoom:
 .ENDSCOPE
-    pla
-.ENDSCOPE
-    pla  ; now a is the current block column index
-    add #1
-    cmp Zp_TerrainColumnIndexLimit_u8
-    jne _BlockColumnLoop
+_Continue:
+    lda Zp_Tmp1_byte  ; current room tile column index
+    cmp Zp_Tmp2_byte  ; final room tile column index
+    beq _Done
+    inc Zp_Tmp1_byte  ; current room tile column index
+    jmp _TileColumnLoop
+_Done:
     rts
 .ENDPROC
 

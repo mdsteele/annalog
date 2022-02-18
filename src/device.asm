@@ -76,7 +76,7 @@ Ram_DeviceBlockCol_u8_arr: .res kMaxDevices
 ;;;   * For consoles, this is the machine index.
 ;;;   * For levers, this is the byte offset into Ram_MachineState for the
 ;;;     lever's state value (0 or 1).
-;;;   * For signs, this is TODO dialogue number?
+;;;   * For signs, this is the dialog index.
 .EXPORT Ram_DeviceTarget_u8_arr
 Ram_DeviceTarget_u8_arr: .res kMaxDevices
 
@@ -86,7 +86,7 @@ Ram_DeviceAnim_u8_arr: .res kMaxDevices
 
 ;;;=========================================================================;;;
 
-.SEGMENT "PRG8_Device"
+.SEGMENT "PRG8"
 
 ;;; Toggles a lever device to the other position, changing its state and
 ;;; initializing its animation.

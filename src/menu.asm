@@ -1095,7 +1095,7 @@ _MenuFunc:
 
 ;;;=========================================================================;;;
 
-.SEGMENT "PRG8_Menu"
+.SEGMENT "PRG8"
 
 ;;; Mode for the console instruction field editing menu.
 ;;; TODO: Make this a Main that jumps back to console edit mode when done.

@@ -24,6 +24,7 @@
 .INCLUDE "mmc3.inc"
 .INCLUDE "oam.inc"
 .INCLUDE "ppu.inc"
+.INCLUDE "room.inc"
 .INCLUDE "window.inc"
 
 .IMPORT Func_ClearRestOfOam
@@ -40,11 +41,13 @@
 .IMPORT Main_Explore_Continue
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORT Ram_PpuTransfer_arr
+.IMPORTZP Zp_Current_sRoom
 .IMPORTZP Zp_FrameCounter_u8
 .IMPORTZP Zp_OamOffset_u8
 .IMPORTZP Zp_P1ButtonsPressed_bJoypad
 .IMPORTZP Zp_PpuTransferLen_u8
 .IMPORTZP Zp_Tmp1_byte
+.IMPORTZP Zp_Tmp_ptr
 .IMPORTZP Zp_WindowNextRowToTransfer_u8
 .IMPORTZP Zp_WindowTopGoal_u8
 .IMPORTZP Zp_WindowTop_u8
@@ -105,20 +108,7 @@ Zp_DialogText_ptr: .res 2
 
 ;;;=========================================================================;;;
 
-.SEGMENT "PRG8_Dialog"
-
-.PROC Data_TestDialog_sDialog
-    .word ePortrait::Woman
-    .byte "Lorem ipsum dolor sit$"
-    .byte "amet, consectetur$"
-    .byte "adipiscing elit, sed$"
-    .byte "do eiusmod tempor.#"
-    .word ePortrait::Woman
-    .byte "Ut enim ad minim$"
-    .byte "veniam, quis nostrud$"
-    .byte "exercitation.#"
-    .byte 0
-.ENDPROC
+.SEGMENT "PRG8"
 
 ;;; Mode for scrolling in the dialog window.
 ;;; @prereq Rendering is enabled.
@@ -126,9 +116,24 @@ Zp_DialogText_ptr: .res 2
 ;;; @param A The dialog index.
 .EXPORT Main_Dialog_OpenWindow
 .PROC Main_Dialog_OpenWindow
-    ;; TODO: Get actual dialog ptr from dialog index.
-    ldax #Data_TestDialog_sDialog
-    stax Zp_DialogText_ptr
+    asl a
+    sta Zp_Tmp1_byte  ; byte offset into dialogs array
+    ;; Copy the current room's Dialogs_sDialog_ptr_arr_ptr into Zp_Tmp_ptr.
+    ldy #sRoomExt::Dialogs_sDialog_ptr_arr_ptr
+    lda (Zp_Current_sRoom + sRoom::Ext_sRoomExt_ptr), y
+    sta Zp_Tmp_ptr + 0
+    iny
+    lda (Zp_Current_sRoom + sRoom::Ext_sRoomExt_ptr), y
+    sta Zp_Tmp_ptr + 1
+    ;; Index into Dialogs_sDialog_ptr_arr_ptr using the byte offset we already
+    ;; calculated, and copy the resulting pointer into Zp_DialogText_ptr.
+    ldy Zp_Tmp1_byte  ; byte offset into dialogs array
+    lda (Zp_Tmp_ptr), y
+    sta Zp_DialogText_ptr + 0
+    iny
+    lda (Zp_Tmp_ptr), y
+    sta Zp_DialogText_ptr + 1
+    ;; Load the first portrait of the dialog.
     jsr Func_Dialog_LoadNextPortrait
 _InitWindow:
     lda #kScreenHeightPx - kDialogWindowScrollSpeed

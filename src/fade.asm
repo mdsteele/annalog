@@ -54,7 +54,7 @@ Ppu_Obj2Colors_u6_arr2 = \
 
 ;;;=========================================================================;;;
 
-.SEGMENT "PRG8_Fade"
+.SEGMENT "PRG8"
 
 .SCOPE Data_FadeColors
 Gray_u6_arr:

@@ -17,42 +17,50 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
-;;; The maximum number of devices that can exist at once in a room.
-kMaxDevices = 8
-
-;;; The OBJ tile IDs used for various device objects.
-kConsoleScreenTileIdOk  = $1e
-kConsoleScreenTileIdErr = $1f
-kLeverHandleTileIdDown  = $20
-kLeverHandleTileIdUp    = $21
+.INCLUDE "../device.inc"
+.INCLUDE "../macros.inc"
+.INCLUDE "../room.inc"
 
 ;;;=========================================================================;;;
 
-;;; Types of devices in a room that the player can interact with while standing
-;;; in front.
-.ENUM eDevice
-    None
-    Console
-    Lever
-    Sign
-.ENDENUM
+.SEGMENT "PRGC_Room"
 
-;;;=========================================================================;;;
-
-;;; Static information about a given device.
-.STRUCT sDevice
-    ;; The type of this device.
-    Type_eDevice .byte
-    ;; The room block row for this device.
-    BlockRow_u8  .byte
-    ;; The room block column for this device.
-    BlockCol_u8  .byte
-    ;; The "target" for this device, whose meaning depends on the device type:
-    ;;   * For consoles, this is the machine index.
-    ;;   * For levers, this is the byte offset into Ram_MachineState for the
-    ;;     lever's state value (0 or 1).
-    ;;   * For signs, this is the dialog index.
-    Target_u8    .byte
-.ENDSTRUCT
+.EXPORT DataC_ShortRoom_sRoom
+.PROC DataC_ShortRoom_sRoom
+    D_STRUCT sRoom
+    d_byte MinScrollX_u8, $10
+    d_word MaxScrollX_u16, $10
+    d_byte IsTall_bool, $00
+    d_addr TerrainData_ptr, _TerrainData
+    d_byte NumMachines_u8, 0
+    d_addr Machines_sMachine_arr_ptr, 0
+    d_addr Ext_sRoomExt_ptr, _Ext_sRoomExt
+    D_END
+_TerrainData:
+:   .incbin "out/data/short.room"
+    .assert * - :- = 18 * 16, error
+_Ext_sRoomExt:
+    D_STRUCT sRoomExt
+    d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
+    d_addr Dialogs_sDialog_ptr_arr_ptr, 0
+    d_addr Exits_sDoor_arr_ptr, _Exits_sDoor_arr
+    d_addr Init_func_ptr, _Init
+    D_END
+_Devices_sDevice_arr:
+    .byte eDevice::None
+_Exits_sDoor_arr:
+    D_STRUCT sDoor
+    d_byte Exit_bDoor, eDoor::Western | 0
+    d_word PositionAdjust_i16, $10
+    d_byte Destination_eRoom, eRoom::TallRoom
+    D_END
+    D_STRUCT sDoor
+    d_byte Exit_bDoor, eDoor::Eastern | 0
+    d_word PositionAdjust_i16, $30
+    d_byte Destination_eRoom, eRoom::TallRoom
+    D_END
+_Init:
+    rts
+.ENDPROC
 
 ;;;=========================================================================;;;

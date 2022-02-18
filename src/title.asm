@@ -30,7 +30,7 @@
 .IMPORT Func_FadeOut
 .IMPORT Func_ProcessFrame
 .IMPORT Func_UpdateButtons
-.IMPORT Main_Explore_Enter
+.IMPORT Main_Explore_EnterFromDevice
 .IMPORT Sram_MagicNumber_u8
 .IMPORTZP Zp_MachineMaxInstructions_u8
 .IMPORTZP Zp_OamOffset_u8
@@ -41,7 +41,7 @@
 
 ;;;=========================================================================;;;
 
-.SEGMENT "PRG8_Title"
+.SEGMENT "PRG8"
 
 .PROC Data_TitleString_u8_arr
     .byte "ANNALOG"
@@ -128,7 +128,9 @@ _GameLoop:
     jsr Func_ResetSramForNewGame
     lda #kMaxProgramLength
     sta Zp_MachineMaxInstructions_u8
-    jmp Main_Explore_Enter
+    ldx #0  ; param: room number
+    ldy #0  ; param: device index
+    jmp Main_Explore_EnterFromDevice
     @noStart:
     jsr Func_ProcessFrame
     jmp _GameLoop

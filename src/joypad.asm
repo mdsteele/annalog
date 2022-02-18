@@ -34,7 +34,7 @@ Zp_P1ButtonsPressed_bJoypad: .res 1
 
 ;;;=========================================================================;;;
 
-.SEGMENT "PRG8_Joypad"
+.SEGMENT "PRG8"
 
 ;;; Helper function for Func_UpdateButtons.  Reads buttons from joypad and
 ;;; populates Zp_P1ButtonsHeld_bJoypad.

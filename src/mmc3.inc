@@ -106,10 +106,14 @@ Hw_Mmc3IrqEnable_wo = $e001
 ;;; MMC3 bank settings for this particular game:
 kMmc3BankFlags = bMmc3Bank::FourBankChr0000 | bMmc3Bank::SwappablePrgC000
 
-.MACRO _set_bank REG, ARG
+.MACRO _set_bank REG, ARG1, ARG2
     lda #kMmc3BankFlags | (REG)
     sta Hw_Mmc3BankSelect_wo
-    lda ARG
+    .if .not .blank(ARG2)
+    lda ARG1, ARG2
+    .else
+    lda ARG1
+    .endif
     sta Hw_Mmc3BankData_wo
 .ENDMACRO
 
@@ -117,7 +121,8 @@ kMmc3BankFlags = bMmc3Bank::FourBankChr0000 | bMmc3Bank::SwappablePrgC000
 ;;; PRGA bank number.
 ;;;
 ;;; Examples:
-;;;     prga_bank #<.bank(FuncA_Foo)
+;;;     prga_bank #<.bank(FuncA_Foo)    ; use immediate value bank number
+;;;     prga_bank Zp_BankNumber_u8      ; get bank number from variable
 .MACRO prga_bank ARG
     _set_bank eMmc3Bank::PrgBankA000, ARG
 .ENDMACRO
@@ -126,9 +131,11 @@ kMmc3BankFlags = bMmc3Bank::FourBankChr0000 | bMmc3Bank::SwappablePrgC000
 ;;; PRGC bank number.
 ;;;
 ;;; Examples:
-;;;     prgc_bank #<.bank(DataC_Foo)
-.MACRO prgc_bank ARG
-    _set_bank eMmc3Bank::PrgBank8OrC, ARG
+;;;     prgc_bank #<.bank(DataC_Foo)    ; use immediate value bank number
+;;;     prgc_bank Zp_BankNumber_u8      ; get bank number from variable
+;;;     prgc_bank Data_Banks_u8_arr, x  ; get bank number from array
+.MACRO prgc_bank ARG1, ARG2
+    _set_bank eMmc3Bank::PrgBank8OrC, ARG1, ARG2
 .ENDMACRO
 
 ;;; Loads the A register with the given argument, then sets that as the current

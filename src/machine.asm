@@ -99,7 +99,7 @@ Ram_MachineState: .res kMachineStateSize
 
 ;;;=========================================================================;;;
 
-.SEGMENT "PRG8_Machine"
+.SEGMENT "PRG8"
 
 ;;; Marks the current machine as having an error, sets C, and returns zero.
 ;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
@@ -472,6 +472,7 @@ _Le:
 .EXPORT Func_InitAllMachines
 .PROC Func_InitAllMachines
     ldx #0
+    beq @while  ; unconditional
     @loop:
     jsr Func_SetMachineIndex  ; preserves X
     ;; Init the machine's PC and $a register to zero, and status to Running.
@@ -489,6 +490,7 @@ _Le:
     tax
     ;; Continue to the next machine.
     inx
+    @while:
     cpx <(Zp_Current_sRoom + sRoom::NumMachines_u8)
     blt @loop
     rts
@@ -499,6 +501,7 @@ _Le:
 .EXPORT Func_ExecuteAllMachines
 .PROC Func_ExecuteAllMachines
     ldx #0
+    beq @while  ; unconditional
     @loop:
     txa
     pha
@@ -508,6 +511,7 @@ _Le:
     pla
     tax
     inx
+    @while:
     cpx <(Zp_Current_sRoom + sRoom::NumMachines_u8)
     blt @loop
     rts
@@ -517,6 +521,7 @@ _Le:
 .EXPORT Func_DrawObjectsForAllMachines
 .PROC Func_DrawObjectsForAllMachines
     ldx #0
+    beq @while  ; unconditional
     @loop:
     txa
     pha
@@ -526,6 +531,7 @@ _Le:
     pla
     tax
     inx
+    @while:
     cpx <(Zp_Current_sRoom + sRoom::NumMachines_u8)
     blt @loop
     rts
