@@ -36,7 +36,6 @@
 .IMPORT Func_DrawObjectsForRoom
 .IMPORT Func_MachineReset
 .IMPORT Func_MachineTick
-.IMPORT Func_Menu_EditSelectedField
 .IMPORT Func_ProcessFrame
 .IMPORT Func_ScrollTowardsGoal
 .IMPORT Func_SetMachineIndex
@@ -48,6 +47,7 @@
 .IMPORT Func_Window_TransferBottomBorder
 .IMPORT Func_Window_TransferClearRow
 .IMPORT Main_Explore_Continue
+.IMPORT Main_Menu_EditSelectedField
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORT Ram_PpuTransfer_arr
 .IMPORTZP Zp_Current_sMachine_ptr
@@ -186,7 +186,7 @@ _ScrollWindowUp:
 _CheckIfDone:
     lda Zp_WindowTop_u8
     cmp Zp_WindowTopGoal_u8
-    jeq Main_Console_Edit
+    jeq Main_Console_StartEditing
 _UpdateScrolling:
     jsr Func_SetScrollGoalFromAvatar
     jsr Func_ScrollTowardsGoal
@@ -226,12 +226,22 @@ _UpdateScrolling:
 ;;; @prereq Rendering is enabled.
 ;;; @prereq The console window is fully visible.
 ;;; @prereq Explore mode is initialized.
-.PROC Main_Console_Edit
+.PROC Main_Console_StartEditing
     ;; Initialize the cursor.
     lda #0
     sta Zp_ConsoleInstNumber_u8
     sta Zp_ConsoleFieldNumber_u8
     sta Zp_ConsoleNominalFieldOffset_u8
+    .assert * = Main_Console_ContinueEditing, error, "fallthrough"
+.ENDPROC
+
+;;; Mode for editing a program in the console window.
+;;; @prereq Rendering is enabled.
+;;; @prereq The console window is fully visible.
+;;; @prereq Explore mode is initialized.
+.EXPORT Main_Console_ContinueEditing
+.PROC Main_Console_ContinueEditing
+    lda #0
     sta Zp_ConsoleCursorIsDiminished_bool
 _GameLoop:
     prga_bank #<.bank(FuncA_Console_DrawFieldCursorObjects)
@@ -261,9 +271,7 @@ _CheckButtons:
     beq @noEdit
     lda #$ff
     sta Zp_ConsoleCursorIsDiminished_bool
-    jsr Func_Menu_EditSelectedField
-    lda #$00
-    sta Zp_ConsoleCursorIsDiminished_bool
+    jmp Main_Menu_EditSelectedField
     @noEdit:
     ;; D-pad:
     jsr FuncA_Console_MoveFieldCursor
@@ -420,7 +428,7 @@ _CheckRight:
     sta Zp_ConsoleInstNumber_u8
     ;; If we're now beyond the first empty instruction, then undo what we just
     ;; did, and go back to the left-hand instruction column.
-    jsr FuncA_IsPrevInstructionEmpty  ; returns Z
+    jsr FuncA_Console_IsPrevInstructionEmpty  ; returns Z
     bne @prevInstNotEmpty
     lda Zp_ConsoleInstNumber_u8
     sub Zp_ConsoleNumInstRows_u8
@@ -665,7 +673,7 @@ _Interior:
 ;;; @param X PPU transfer array index within an entry's data.
 ;;; @return X Updated PPU transfer array index.
 .PROC FuncA_Console_WriteInstTransferData
-    jsr FuncA_IsPrevInstructionEmpty
+    jsr FuncA_Console_IsPrevInstructionEmpty
     beq _Write7Spaces
     ;; Store the Arg_byte in Zp_Tmp2_byte.
     lda Zp_ConsoleInstNumber_u8
@@ -868,7 +876,7 @@ _WriteComparisonOperator:
 ;;; instruction in the program.
 ;;; @return Z Set if the previous instruction is empty; cleared if the previous
 ;;;     instruction is not empty (or if we're on the first instruction).
-.PROC FuncA_IsPrevInstructionEmpty
+.PROC FuncA_Console_IsPrevInstructionEmpty
     ldy Zp_ConsoleInstNumber_u8
     dey
     bmi @done

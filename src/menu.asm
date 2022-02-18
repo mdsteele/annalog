@@ -41,10 +41,12 @@
 .IMPORT Func_SetScrollGoalFromAvatar
 .IMPORT Func_UpdateButtons
 .IMPORT Func_Window_GetRowPpuAddr
+.IMPORT Main_Console_ContinueEditing
 .IMPORT Ram_Console_sProgram
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORT Ram_PpuTransfer_arr
 .IMPORT Sram_ProgressFlags_arr
+.IMPORTZP Zp_ConsoleInstNumber_u8
 .IMPORTZP Zp_ConsoleNumInstRows_u8
 .IMPORTZP Zp_Current_sMachine_ptr
 .IMPORTZP Zp_MachineMaxInstructions_u8
@@ -1107,17 +1109,158 @@ _MenuFunc:
     jmp (Zp_Tmp_ptr)
 .ENDPROC
 
+;;; Calls FuncA_Console_SetCurrentFieldValue with Zp_MenuItem_u8, then performs
+;;; PPU transfers to redraw any instructions as needed (possibly over multiple
+;;; frames).
+.PROC FuncA_Console_MenuSetValue
+    ;; Check if the current instruction was previously empty.
+    lda Zp_ConsoleInstNumber_u8
+    mul #.sizeof(sInst)
+    tay
+    lda Ram_Console_sProgram + sProgram::Code_sInst_arr + sInst::Op_byte, y
+    and #$f0
+    pha  ; zero if instruction was empty
+    ;; Set the field value.
+    lda Zp_MenuItem_u8  ; param: new field value
+    jsr FuncA_Console_SetCurrentFieldValue
+    ;; Check if the instruction is empty now.
+    pla  ; zero if instruction was empty
+    tax
+    lda Zp_ConsoleInstNumber_u8
+    mul #.sizeof(sInst)
+    tay
+    lda Ram_Console_sProgram + sProgram::Code_sInst_arr + sInst::Op_byte, y
+    and #$f0
+    beq _NowEmpty
+_NowNotEmpty:
+    ;; The instruction is non-empty now.  If it was non-empty before too, then
+    ;; we only need to redraw the current instruction.
+    txa  ; zero if instruction was empty
+    bne @transferCurrent
+    ;; The instruction was empty before and is now non-empty, so we need to
+    ;; redraw the next (empty) instruction, if there is one.
+    ldx Zp_ConsoleInstNumber_u8
+    inx
+    cpx Zp_MachineMaxInstructions_u8
+    beq @transferCurrent
+    ;; Redraw the next instruction.
+    stx Zp_ConsoleInstNumber_u8
+    jsr FuncA_Console_TransferInstruction
+    dec Zp_ConsoleInstNumber_u8
+    ;; Redraw the current instruction.
+    @transferCurrent:
+    jsr FuncA_Console_TransferInstruction
+    rts
+_NowEmpty:
+    ;; The instruction is empty now.  If it already was before, we're done.
+    txa  ; zero if instruction was empty
+    beq _Done
+    ;; The instruction is empty now, but didn't used to be, so we need to
+    ;; remove it and shift all following instructions back by one.
+_ShiftInstructions:
+    ;; Shift all instructions after the current one back one slot.
+    lda Zp_ConsoleInstNumber_u8
+    mul #.sizeof(sInst)
+    tax  ; byte offset for instruction
+    tay  ; byte offset for following instruction
+    .repeat .sizeof(sInst)
+    iny
+    .endrepeat
+    bne @compare  ; unconditional
+    @loop:
+    lda Ram_Console_sProgram + sProgram::Code_sInst_arr, y
+    sta Ram_Console_sProgram + sProgram::Code_sInst_arr, x
+    inx
+    iny
+    @compare:
+    cpy #.sizeof(sInst) * kMaxProgramLength
+    blt @loop
+    ;; Mark the final instruction empty.
+    lda Zp_MachineMaxInstructions_u8
+    mul #.sizeof(sInst)
+    tax
+    lda #0
+    .repeat .sizeof(sInst)
+    dex
+    sta Ram_Console_sProgram + sProgram::Code_sInst_arr, x
+    .endrepeat
+_RewriteGotos:
+    ;; Loop over all instructions.
+    ldx #0  ; byte offset into program
+    @loop:
+    ;; If this is not a GOTO instruction, skip it.
+    lda Ram_Console_sProgram + sProgram::Code_sInst_arr + sInst::Op_byte, x
+    and #$f0
+    cmp #eOpcode::Goto * $10
+    bne @continue
+    ;; Get the destination address of the GOTO.
+    lda Ram_Console_sProgram + sProgram::Code_sInst_arr + sInst::Op_byte, x
+    and #$0f
+    ;; If it points to before the removed instruction, no change is needed.
+    cmp Zp_ConsoleInstNumber_u8
+    blt @continue
+    ;; If it points to after the removed instruction, decrement the address.
+    bne @decrement
+    ;; Otherwise, the GOTO points to the removed instruction exactly.  If that
+    ;; address still points to a non-empty instruction (which used to be the
+    ;; next instruction, before we shifted things), leave the address the same.
+    mul #.sizeof(sInst)
+    tay
+    lda Ram_Console_sProgram + sProgram::Code_sInst_arr + sInst::Op_byte, y
+    and #$f0
+    bne @continue
+    ;; Otherwise, the removed instruction that the GOTO points to was the last
+    ;; instruction, so its old "next" instruction was instruction zero, so make
+    ;; the GOTO point to that.
+    lda #eOpcode::Goto * $10 + 0
+    sta Ram_Console_sProgram + sProgram::Code_sInst_arr + sInst::Op_byte, x
+    bne @continue  ; unconditional
+    ;; Decrement the destination address.
+    @decrement:
+    dec Ram_Console_sProgram + sProgram::Code_sInst_arr + sInst::Op_byte, x
+    @continue:
+    .repeat .sizeof(sInst)
+    inx
+    .endrepeat
+    cpx #.sizeof(sInst) * kMaxProgramLength
+    blt @loop
+_RedrawInstructions:
+    ;; Redraw all instructions (over the course of two frames, since it's too
+    ;; much to transfer to the PPU all in one frame).
+    lda Zp_ConsoleInstNumber_u8
+    pha  ; current instruction number
+    lda #0
+    sta Zp_ConsoleInstNumber_u8
+    @loop:
+    jsr FuncA_Console_TransferInstruction
+    inc Zp_ConsoleInstNumber_u8
+    ldx Zp_ConsoleInstNumber_u8
+    cpx Zp_ConsoleNumInstRows_u8
+    bne @continue
+    jsr Func_ProcessFrame
+    ldx Zp_ConsoleInstNumber_u8
+    @continue:
+    cpx Zp_MachineMaxInstructions_u8
+    blt @loop
+    pla  ; current instruction number
+    sta Zp_ConsoleInstNumber_u8
+_Done:
+    rts
+.ENDPROC
+
 ;;;=========================================================================;;;
 
 .SEGMENT "PRG8"
 
 ;;; Mode for the console instruction field editing menu.
-;;; TODO: Make this a Main that jumps back to console edit mode when done.
-.EXPORT Func_Menu_EditSelectedField
-.PROC Func_Menu_EditSelectedField
+;;; @prereq Rendering is enabled.
+;;; @prereq The console window is fully visible.
+;;; @prereq Explore mode is initialized.
+.EXPORT Main_Menu_EditSelectedField
+.PROC Main_Menu_EditSelectedField
     prga_bank #<.bank(FuncA_Console_SetUpCurrentFieldMenu)
     jsr FuncA_Console_SetUpCurrentFieldMenu
-_TransferMenuRows:
+    ;; Transfer menu rows.
     ldx #0  ; param: menu row to transfer
     @loop:
     jsr FuncA_Console_TransferMenuRow  ; preserves X
@@ -1133,7 +1276,6 @@ _GameLoop:
     jsr Func_ProcessFrame
     jsr Func_UpdateButtons
 _CheckForCancel:
-    prga_bank #<.bank(FuncA_Console_MoveMenuCursor)
     ;; B button:
     lda Zp_P1ButtonsPressed_bJoypad
     and #bJoypad::BButton
@@ -1141,27 +1283,19 @@ _CheckForCancel:
     ;; A button:
     lda Zp_P1ButtonsPressed_bJoypad
     and #bJoypad::AButton
-    bne _Finish
+    bne _SetValue
     ;; D-pad:
+    prga_bank #<.bank(FuncA_Console_MoveMenuCursor)
     jsr FuncA_Console_MoveMenuCursor
 _UpdateScrolling:
     jsr Func_SetScrollGoalFromAvatar
     jsr Func_ScrollTowardsGoal
     jmp _GameLoop
-_Finish:
-    lda Zp_MenuItem_u8
-    jsr FuncA_Console_SetCurrentFieldValue
-    ;; TODO: If the current instruction is now Empty, remove it (updating any
-    ;;   GOTO instruction addresses as needed), set the current
-    ;;   field/column to zero, and redraw all instructions (over a couple of
-    ;;   frames) instead of just the current instruction.
-    prga_bank #<.bank(FuncA_Console_TransferInstruction)
-    jsr FuncA_Console_TransferInstruction
-    ;; TODO: If the current instruction was previously empty, and the next
-    ;;   instruction is empty, then redraw the next instruction too.
+_SetValue:
+    prga_bank #<.bank(FuncA_Console_MenuSetValue)
+    jsr FuncA_Console_MenuSetValue
 _Cancel:
-    ;; TODO: Redraw the status box over the menu.
-    rts
+    jmp Main_Console_ContinueEditing
 .ENDPROC
 
 ;;;=========================================================================;;;
