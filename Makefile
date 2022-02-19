@@ -168,7 +168,8 @@ $(GENDIR)/%.o: $(GENDIR)/%.asm
 #=============================================================================#
 # Game ROM:
 
-$(ROMFILE) $(LABELFILE): $(CFGFILE) $(OBJFILES)
+$(ROMFILE) $(LABELFILE): $(CFGFILE) $(OBJFILES) tests/lint.py
+	python tests/lint.py
 	@echo "Linking $@"
 	@mkdir -p $(@D)
 	@ld65 -Ln $(LABELFILE) -o $@ -C $(CFGFILE) $(OBJFILES)

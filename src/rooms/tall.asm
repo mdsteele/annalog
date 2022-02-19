@@ -72,7 +72,7 @@ kMachinePalette = 1
 
 .SEGMENT "PRGC_Room"
 
-.PROC DataC_TallRoomMachines_sMachine_arr
+.PROC DataC_Room_TallMachines_sMachine_arr
     D_STRUCT sMachine
     d_byte Code_eProgram, eProgram::JailCellDoor
     d_byte Flags_bMachine, bMachine::MoveV
@@ -210,15 +210,15 @@ _Reset:
     rts
 .ENDPROC
 
-.EXPORT DataC_TallRoom_sRoom
-.PROC DataC_TallRoom_sRoom
+.EXPORT DataC_Room_Tall_sRoom
+.PROC DataC_Room_Tall_sRoom
     D_STRUCT sRoom
     d_byte MinScrollX_u8, $08
     d_word MaxScrollX_u16, $120
     d_byte IsTall_bool, $ff
     d_addr TerrainData_ptr, _TerrainData
     d_byte NumMachines_u8, 1
-    d_addr Machines_sMachine_arr_ptr, DataC_TallRoomMachines_sMachine_arr
+    d_addr Machines_sMachine_arr_ptr, DataC_Room_TallMachines_sMachine_arr
     d_addr Ext_sRoomExt_ptr, _Ext_sRoomExt
     D_END
 _TerrainData:

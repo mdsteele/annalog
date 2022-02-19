@@ -21,8 +21,8 @@
 .INCLUDE "macros.inc"
 .INCLUDE "room.inc"
 
-.IMPORT DataC_ShortRoom_sRoom
-.IMPORT DataC_TallRoom_sRoom
+.IMPORT DataC_Room_Short_sRoom
+.IMPORT DataC_Room_Tall_sRoom
 .IMPORT Func_InitAllMachines
 .IMPORT Ram_DeviceAnim_u8_arr
 .IMPORT Ram_DeviceBlockCol_u8_arr
@@ -41,8 +41,8 @@
 
 .LINECONT +
 .DEFINE RoomPtrs \
-    DataC_TallRoom_sRoom, \
-    DataC_ShortRoom_sRoom
+    DataC_Room_Tall_sRoom, \
+    DataC_Room_Short_sRoom
 .LINECONT -
 
 ;;; Pointers to sRoom structs for all rooms in the game, indexed by eRoom

@@ -25,8 +25,8 @@
 
 .SEGMENT "PRGC_Room"
 
-.EXPORT DataC_ShortRoom_sRoom
-.PROC DataC_ShortRoom_sRoom
+.EXPORT DataC_Room_Short_sRoom
+.PROC DataC_Room_Short_sRoom
     D_STRUCT sRoom
     d_byte MinScrollX_u8, $10
     d_word MaxScrollX_u16, $10

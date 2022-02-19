@@ -33,6 +33,16 @@ PATTERNS = [
         r'([a-z0-9$%.]|Func|Main)')),
 ]
 
+SEGMENT_DECL_PATTERN = re.compile(r'^\.SEGMENT +"([a-zA-Z0-9_]*)"')
+PROC_DECL_PATTERN = re.compile(r'^\.PROC +([a-zA-Z0-9_]+)')
+LOCAL_PROC_NAME = re.compile(r'^_[a-zA-Z0-9_]+$')  # e.g. _Foobar
+PRGA_PROC_NAME = re.compile(  # e.g. FuncA_SegmentName_Foobar
+    '^(?:DataA|FuncA|MainA)_([a-zA-Z0-9]+)_[a-zA-Z0-9_]+$')
+PRGC_PROC_NAME = re.compile(  # e.g. DataC_SegmentName_Foobar_sBaz_arr
+    '^(?:DataC|FuncC|MainC)_([a-zA-Z0-9]+)_[a-zA-Z0-9_]+$')
+UNBANKED_PROC_NAME = re.compile(  # e.g. Main_Foobar
+    '^(?:Data|Exit|Func|Int|Main|Ppu|Sram)_[a-zA-Z0-9_]+$')
+
 #=============================================================================#
 
 def src_and_test_entries():
@@ -51,26 +61,45 @@ def src_and_test_filepaths(*exts):
 
 #=============================================================================#
 
+def is_valid_proc_name_for_segment(proc, segment):
+    if LOCAL_PROC_NAME.match(proc):
+        return True
+    elif segment.startswith('PRGA_'):
+        match = PRGA_PROC_NAME.match(proc)
+        if match is None or match.group(1) != segment[5:]:
+            return False
+    elif segment.startswith('PRGC_'):
+        match = PRGC_PROC_NAME.match(proc)
+        if match is None or match.group(1) != segment[5:]:
+            return False
+    elif not UNBANKED_PROC_NAME.match(proc):
+        return False
+    return True
+
 def run_tests():
-    num_passed = 0
-    num_failed = 0
-    # Check for suspicious regex patterns.
-    for (message, pattern) in PATTERNS:
-        num_matches = 0
-        for filepath in src_and_test_filepaths('.asm', '.inc'):
-            for (line_number, line) in enumerate(open(filepath)):
+    failed = False
+    for filepath in src_and_test_filepaths('.asm', '.inc'):
+        segment = ''
+        for (line_number, line) in enumerate(open(filepath)):
+            def fail(message):
+                print('LINT: {}:{}: found {}'.format(
+                    filepath, line_number + 1, message))
+                print('    ' + line.strip())
+                failed = True
+            for (message, pattern) in PATTERNS:
                 if pattern.search(line):
-                    if num_matches == 0:
-                        print('LINT: found ' + message)
-                    num_matches += 1
-                    print('  {}:{}:'.format(filepath, line_number + 1))
-                    print('    ' + line.strip())
-        if num_matches == 0: num_passed += 1
-        else: num_failed += 1
-    print('lint: {} passed, {} failed'.format(num_passed, num_failed))
-    return (num_passed, num_failed)
+                    fail(message)
+            match = SEGMENT_DECL_PATTERN.match(line)
+            if match:
+                segment = match.group(1)
+            match = PROC_DECL_PATTERN.match(line)
+            if match:
+                proc = match.group(1)
+                if not is_valid_proc_name_for_segment(proc, segment):
+                    fail('misnamed proc for segment {}'.format(segment))
+    return failed
 
 if __name__ == '__main__':
-    sys.exit(run_tests()[1])
+    sys.exit(run_tests())
 
 #=============================================================================#
