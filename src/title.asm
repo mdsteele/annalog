@@ -25,6 +25,7 @@
 .INCLUDE "ppu.inc"
 .INCLUDE "program.inc"
 
+.IMPORT FuncA_Upgrade_ComputeMaxInstructions
 .IMPORT Func_ClearRestOfOam
 .IMPORT Func_FadeIn
 .IMPORT Func_FadeOut
@@ -32,7 +33,7 @@
 .IMPORT Func_UpdateButtons
 .IMPORT Main_Explore_EnterFromDevice
 .IMPORT Sram_MagicNumber_u8
-.IMPORTZP Zp_MachineMaxInstructions_u8
+.IMPORT Sram_ProgressFlags_arr
 .IMPORTZP Zp_OamOffset_u8
 .IMPORTZP Zp_P1ButtonsPressed_bJoypad
 .IMPORTZP Zp_PpuScrollX_u8
@@ -65,6 +66,9 @@ End:
     ;; Mark the save file as present.
     lda #kSaveMagicNumber
     sta Sram_MagicNumber_u8
+    ;; TODO: Temporary for development: Add some upgrades.
+    lda #$07
+    sta Sram_ProgressFlags_arr + 0
     ;; Disable writes to SRAM.
     lda #bMmc3PrgRam::Enable | bMmc3PrgRam::DenyWrites
     sta Hw_Mmc3PrgRamProtect_wo
@@ -123,17 +127,17 @@ _GameLoop:
     ;; Check START button.
     lda Zp_P1ButtonsPressed_bJoypad
     and #bJoypad::Start
-    beq @noStart
+    bne _StartGame
+    jsr Func_ProcessFrame
+    jmp _GameLoop
+_StartGame:
     jsr Func_FadeOut
     jsr Func_ResetSramForNewGame
-    lda #kMaxProgramLength
-    sta Zp_MachineMaxInstructions_u8
+    prga_bank #<.bank(FuncA_Upgrade_ComputeMaxInstructions)
+    jsr FuncA_Upgrade_ComputeMaxInstructions
     ldx #0  ; param: room number
     ldy #0  ; param: device index
     jmp Main_Explore_EnterFromDevice
-    @noStart:
-    jsr Func_ProcessFrame
-    jmp _GameLoop
 .ENDPROC
 
 ;;;=========================================================================;;;

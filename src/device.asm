@@ -24,6 +24,8 @@
 .INCLUDE "ppu.inc"
 .INCLUDE "room.inc"
 
+.IMPORT Func_AllocObjectsFor2x2Shape
+.IMPORT Func_SetUpgradeShapeFlagsAndTileIds
 .IMPORT Ram_MachineState
 .IMPORT Ram_MachineStatus_eMachine_arr
 .IMPORT Ram_Oam_sObj_arr64
@@ -31,6 +33,8 @@
 .IMPORTZP Zp_PpuScrollX_u8
 .IMPORTZP Zp_PpuScrollY_u8
 .IMPORTZP Zp_ScrollXHi_u8
+.IMPORTZP Zp_ShapePosX_i16
+.IMPORTZP Zp_ShapePosY_i16
 .IMPORTZP Zp_Tmp1_byte
 .IMPORTZP Zp_Tmp2_byte
 .IMPORTZP Zp_Tmp3_byte
@@ -40,7 +44,14 @@
 
 ;;;=========================================================================;;;
 
-.DEFINE DeviceTypeLabels _DevNone, _DevConsole, _DevLever, _DevSign
+.LINECONT +
+.DEFINE DeviceDrawFuncs \
+    Func_Device_DrawNone, \
+    Func_Device_DrawConsole, \
+    Func_Device_DrawLever, \
+    Func_Device_DrawSign, \
+    Func_Device_DrawUpgrade
+.LINECONT -
 
 ;;; The OBJ palette numbers used for various device objects.
 kConsoleScreenPaletteOk  = 2
@@ -72,11 +83,7 @@ Ram_DeviceBlockRow_u8_arr: .res kMaxDevices
 .EXPORT Ram_DeviceBlockCol_u8_arr
 Ram_DeviceBlockCol_u8_arr: .res kMaxDevices
 
-;;; The "target" for each device, whose meaning depends on the device type:
-;;;   * For consoles, this is the machine index.
-;;;   * For levers, this is the byte offset into Ram_MachineState for the
-;;;     lever's state value (0 or 1).
-;;;   * For signs, this is the dialog index.
+;;; The "target" for each device (see sDevice::Target_u8 for details).
 .EXPORT Ram_DeviceTarget_u8_arr
 Ram_DeviceTarget_u8_arr: .res kMaxDevices
 
@@ -140,12 +147,29 @@ Ram_DeviceAnim_u8_arr: .res kMaxDevices
     lda _JumpTable_ptr_1_arr, y
     sta Zp_Tmp_ptr + 1
     jmp (Zp_Tmp_ptr)
-_JumpTable_ptr_0_arr: .lobytes DeviceTypeLabels
-_JumpTable_ptr_1_arr: .hibytes DeviceTypeLabels
-_DevNone:
-_DevSign:
+_JumpTable_ptr_0_arr: .lobytes DeviceDrawFuncs
+_JumpTable_ptr_1_arr: .hibytes DeviceDrawFuncs
+.ENDPROC
+
+;;; Allocates and populates OAM slots for a sign device.
+;;; @param X The device index.
+;;; @preserve X
+.PROC Func_Device_DrawSign
+    ;; There's nothing to draw for sign devices.
+    .assert * = Func_Device_DrawNone, error, "fallthrough"
+.ENDPROC
+
+;;; No-op draw function for an empty device slot.
+;;; @param X The device index.
+;;; @preserve X
+.PROC Func_Device_DrawNone
     rts
-_DevConsole:
+.ENDPROC
+
+;;; Allocates and populates OAM slots for a console device.
+;;; @param X The device index.
+;;; @preserve X
+.PROC Func_Device_DrawConsole
     ;; Compute the room pixel Y-position of the top of the console, storing the
     ;; hi byte in Zp_Tmp2_byte and the lo byte in A.
     lda #0
@@ -232,7 +256,12 @@ _DevConsole:
     sty Zp_OamOffset_u8
     @notVisible:
     rts
-_DevLever:
+.ENDPROC
+
+;;; Allocates and populates OAM slots for a lever device.
+;;; @param X The device index.
+;;; @preserve X
+.PROC Func_Device_DrawLever
     ;; Compute the animation frame number, storing it in Zp_Tmp4_byte.
     lda Ram_DeviceAnim_u8_arr, x
     div #kLeverAnimSlowdown
@@ -301,7 +330,7 @@ _DevLever:
     sta Zp_Tmp2_byte  ; room pixel X-pos (lo)
     jmp @sideDone
     @rightSide:
-    add #8
+    add #kTileWidthPx
     sta Zp_Tmp2_byte  ; room pixel X-pos (lo)
     lda Zp_Tmp3_byte
     adc #0
@@ -345,6 +374,82 @@ _LeverTileIds_u8_arr:
     .byte kLeverHandleTileIdUp
     .byte kLeverHandleTileIdDown
     .assert * - _LeverTileIds_u8_arr = kLeverNumAnimFrames, error
+.ENDPROC
+
+;;; Allocates and populates OAM slots for an upgrade device.
+;;; @param X The device index.
+;;; @preserve X
+.PROC Func_Device_DrawUpgrade
+    ;; Compute the room pixel Y-position of the top of the upgrade device,
+    ;; storing the hi byte in Zp_Tmp1_byte and the lo byte in A.
+    lda #0
+    sta Zp_Tmp1_byte
+    lda Ram_DeviceBlockRow_u8_arr, x
+    .assert kTallRoomHeightBlocks <= $20, error
+    asl a  ; Since kTallRoomHeightBlocks <= $20, the device block row fits in
+    asl a  ; five bits, so the first three ASL's won't set the carry bit, so
+    asl a  ; we only need to ROL Zp_Tmp1_byte after the fourth ASL.
+    asl a
+    rol Zp_Tmp1_byte
+    ;; Compute the room pixel Y-position of the center of the upgrade shape,
+    ;; storing the hi byte in Zp_Tmp1_byte and the lo byte in Zp_Tmp2_byte.
+    ldy Ram_DeviceAnim_u8_arr, x
+    add _YOffsets_u8_arr, y
+    sta Zp_Tmp2_byte  ; room pixel Y-pos (lo)
+    lda Zp_Tmp1_byte
+    adc #0
+    sta Zp_Tmp1_byte  ; room pixel Y-pos (hi)
+    ;; Compute the screen pixel Y-position of the center of the upgrade shape,
+    ;; storing it in Zp_ShapePosY_i16.
+    lda Zp_Tmp2_byte  ; room pixel Y-pos (lo)
+    sub Zp_PpuScrollY_u8
+    sta Zp_ShapePosY_i16 + 0
+    lda Zp_Tmp1_byte  ; room pixel Y-pos (hi)
+    sbc #0
+    sta Zp_ShapePosY_i16 + 1
+    ;; Compute the room pixel X-position of the left side of the upgrade,
+    ;; storing the hi byte in Zp_Tmp1_byte and the lo byte in A.
+    lda #0
+    sta Zp_Tmp1_byte  ; room pixel X-pos (hi)
+    lda Ram_DeviceBlockCol_u8_arr, x
+    .assert kMaxRoomWidthBlocks <= $80, error
+    asl a      ; Since kMaxRoomWidthBlocks <= $80, the device block col fits in
+    .repeat 3  ; seven bits, so the first ASL won't set the carry bit, so we
+    asl a      ; only need to ROL Zp_Tmp1_byte starting after the second ASL.
+    rol Zp_Tmp1_byte
+    .endrepeat
+    ;; Compute the room pixel X-position of the center of the upgrade, storing
+    ;; the hi byte in Zp_Tmp1_byte and the lo byte in Zp_Tmp2_byte.
+    add #kTileWidthPx
+    sta Zp_Tmp2_byte  ; room pixel X-pos (lo)
+    lda Zp_Tmp1_byte
+    adc #0
+    sta Zp_Tmp1_byte  ; room pixel X-pos (hi)
+    ;; Compute the screen pixel X-position of the center of the upgrade,
+    ;; storing it in Zp_ShapePosX_i16.
+    lda Zp_Tmp2_byte  ; room pixel X-pos (lo)
+    sub Zp_PpuScrollX_u8
+    sta Zp_ShapePosX_i16 + 0
+    lda Zp_Tmp1_byte  ; room pixel X-pos (hi)
+    sbc Zp_ScrollXHi_u8
+    sta Zp_ShapePosX_i16 + 1
+    ;; Allocate objects.
+    txa
+    pha
+    jsr Func_AllocObjectsFor2x2Shape  ; sets C if offscreen; returns Y
+    pla
+    tax
+    bcc @onscreen
+    rts
+    @onscreen:
+    ;; Set flags and tile IDs.
+    lda Ram_DeviceTarget_u8_arr, x  ; param: eFlag value
+    jmp Func_SetUpgradeShapeFlagsAndTileIds  ; preserves X
+_YOffsets_u8_arr:
+    ;; [12 - int(round(40 * x * (1-x))) for x in (y/24. for y in range(24))]
+    .byte 12, 10, 9, 8, 6, 5, 4, 4, 3, 3, 2, 2
+    .byte 2, 2, 2, 3, 3, 4, 4, 5, 6, 8, 9, 10
+    .assert * - _YOffsets_u8_arr = kUpgradeDeviceAnimStart + 1, error
 .ENDPROC
 
 ;;;=========================================================================;;;

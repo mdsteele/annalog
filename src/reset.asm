@@ -29,6 +29,7 @@
 .IMPORT Ppu_ChrFontLower01
 .IMPORT Ppu_ChrFontUpper
 .IMPORT Ppu_ChrPlayer
+.IMPORT Ppu_ChrUpgrade
 .IMPORT Ram_Active_sIrq
 
 ;;;=========================================================================;;;
@@ -136,7 +137,7 @@ _InitPpuMapping:
     chr08_bank #<.bank(Ppu_ChrCave)
     chr0c_bank #$07
     chr10_bank #<.bank(Ppu_ChrPlayer)
-    chr18_bank #$0e
+    chr18_bank #<.bank(Ppu_ChrUpgrade)
 _InitAttributeTable0:
     ;; Set all blocks in nametable 0 to use BG palette 0.
     ldax #Ppu_Nametable0_sName + sName::Attrs_u8_arr64

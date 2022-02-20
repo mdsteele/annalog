@@ -293,11 +293,10 @@ _UpdateScrolling:
     cpy #kDialogNumTextRows
     blt _Interior
     beq _BottomBorder
-_BottomMargin:
     cpy #kWindowMaxNumRows
-    blt @clear
+    blt _BottomMargin
     rts
-    @clear:
+_BottomMargin:
     jmp Func_Window_TransferClearRow
 _BottomBorder:
     jmp Func_Window_TransferBottomBorder

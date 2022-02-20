@@ -23,6 +23,14 @@
 ;;; is unlikely to initialize Sram_MagicNumber_u8 to this value.
 kSaveMagicNumber = $b2
 
+;;; How many upgrades there are that increase the maximum number of program
+;;; instructions.
+.DEFINE kNumMaxInstructionUpgrades 4
+
+;;; How many extra program instructions are permitted per max-instructions
+;;; upgrade.
+.DEFINE kNumExtraInstructionsPerUpgrade 2
+
 ;;;=========================================================================;;;
 
 ;;; Progress flags for the save file, each of which can be cleared or set.
@@ -32,7 +40,7 @@ kSaveMagicNumber = $b2
     UpgradeMaxInstructions0  ; Each of these four upgrades
     UpgradeMaxInstructions1  ; increases the maximum number
     UpgradeMaxInstructions2  ; of instructions in a program
-    UpgradeMaxInstructions3  ; by two.
+    UpgradeMaxInstructions3  ; by kNumExtraInstructionsPerUpgrade.
     UpgradeOpcodeSkip
     UpgradeOpcodeTil
 .ENDENUM

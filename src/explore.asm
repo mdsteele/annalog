@@ -46,6 +46,7 @@
 .IMPORT Func_Window_SetUpIrq
 .IMPORT Main_Console_OpenWindow
 .IMPORT Main_Dialog_OpenWindow
+.IMPORT Main_Upgrade_OpenWindow
 .IMPORT Ram_DeviceBlockCol_u8_arr
 .IMPORT Ram_DeviceBlockRow_u8_arr
 .IMPORT Ram_DeviceTarget_u8_arr
@@ -275,14 +276,18 @@ _GameLoop:
     cmp #eDevice::Lever
     beq _Lever
     cmp #eDevice::Sign
+    beq _Sign
+    cmp #eDevice::Upgrade
     bne _Done
-_Sign:
-    lda Ram_DeviceTarget_u8_arr, x  ; param: dialog index
-    jmp Main_Dialog_OpenWindow
+_Upgrade:
+    jmp Main_Upgrade_OpenWindow
 _Console:
     lda Ram_DeviceTarget_u8_arr, x
     tax  ; param: machine index
     jmp Main_Console_OpenWindow
+_Sign:
+    lda Ram_DeviceTarget_u8_arr, x  ; param: dialog index
+    jmp Main_Dialog_OpenWindow
 _Lever:
     jsr Func_ToggleLeverDevice
 _Done:
@@ -394,6 +399,9 @@ _EnterNextRoom:
     ;; Find a device with the same block row/col.
     ldx #kMaxDevices - 1
     @loop:
+    lda Ram_DeviceType_eDevice_arr, x
+    .assert eDevice::None = 0, error
+    beq @continue
     lda Ram_DeviceBlockCol_u8_arr, x
     cmp Zp_Tmp2_byte  ; player block col
     bne @continue

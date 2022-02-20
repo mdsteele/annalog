@@ -18,8 +18,11 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "../device.inc"
+.INCLUDE "../flag.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../room.inc"
+
+.IMPORT Ram_DeviceAnim_u8_arr
 
 ;;;=========================================================================;;;
 
@@ -47,6 +50,24 @@ _Ext_sRoomExt:
     d_addr Init_func_ptr, _Init
     D_END
 _Devices_sDevice_arr:
+    D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::Upgrade
+    d_byte BlockRow_u8, 12
+    d_byte BlockCol_u8, 6
+    d_byte Target_u8, eFlag::UpgradeOpcodeTil
+    D_END
+    D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::Upgrade
+    d_byte BlockRow_u8, 5
+    d_byte BlockCol_u8, 5
+    d_byte Target_u8, eFlag::UpgradeOpcodeSkip
+    D_END
+    D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::Upgrade
+    d_byte BlockRow_u8, 12
+    d_byte BlockCol_u8, 4
+    d_byte Target_u8, eFlag::UpgradeMaxInstructions3
+    D_END
     .byte eDevice::None
 _Exits_sDoor_arr:
     D_STRUCT sDoor
@@ -60,6 +81,9 @@ _Exits_sDoor_arr:
     d_byte Destination_eRoom, eRoom::TallRoom
     D_END
 _Init:
+    ;; Animate the upgrade device.
+    lda #kUpgradeDeviceAnimStart
+    sta Ram_DeviceAnim_u8_arr + 0
     rts
 .ENDPROC
 

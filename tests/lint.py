@@ -77,7 +77,7 @@ def is_valid_proc_name_for_segment(proc, segment):
     return True
 
 def run_tests():
-    failed = False
+    failed = [False]
     for filepath in src_and_test_filepaths('.asm', '.inc'):
         segment = ''
         for (line_number, line) in enumerate(open(filepath)):
@@ -85,7 +85,7 @@ def run_tests():
                 print('LINT: {}:{}: found {}'.format(
                     filepath, line_number + 1, message))
                 print('    ' + line.strip())
-                failed = True
+                failed[0] = True
             for (message, pattern) in PATTERNS:
                 if pattern.search(line):
                     fail(message)
@@ -97,7 +97,7 @@ def run_tests():
                 proc = match.group(1)
                 if not is_valid_proc_name_for_segment(proc, segment):
                     fail('misnamed proc for segment {}'.format(segment))
-    return failed
+    return failed[0]
 
 if __name__ == '__main__':
     sys.exit(run_tests())

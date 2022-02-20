@@ -26,6 +26,10 @@ kConsoleScreenTileIdErr = $1f
 kLeverHandleTileIdDown  = $20
 kLeverHandleTileIdUp    = $21
 
+;;; The initial value to set in Ram_DeviceAnim_u8_arr when animating an upgrade
+;;; device.
+kUpgradeDeviceAnimStart = 23
+
 ;;;=========================================================================;;;
 
 ;;; Types of devices in a room that the player can interact with while standing
@@ -35,6 +39,7 @@ kLeverHandleTileIdUp    = $21
     Console
     Lever
     Sign
+    Upgrade
 .ENDENUM
 
 ;;;=========================================================================;;;
@@ -48,10 +53,13 @@ kLeverHandleTileIdUp    = $21
     ;; The room block column for this device.
     BlockCol_u8  .byte
     ;; The "target" for this device, whose meaning depends on the device type:
-    ;;   * For consoles, this is the machine index.
+    ;;   * For consoles, this is the machine index (i.e. the index into the
+    ;;     current room's sRoom::Machines_sMachine_arr_ptr).
     ;;   * For levers, this is the byte offset into Ram_MachineState for the
     ;;     lever's state value (0 or 1).
-    ;;   * For signs, this is the dialog index.
+    ;;   * For signs, this is the dialog index (i.e. the index into the current
+    ;;     room's sRoomExt::Dialogs_sDialog_ptr_arr_ptr).
+    ;;   * For upgrades, this is the eFlag value.
     Target_u8    .byte
 .ENDSTRUCT
 

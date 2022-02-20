@@ -86,3 +86,14 @@
 .ENDPROC
 
 ;;;=========================================================================;;;
+
+.SEGMENT "CHR_Upgrade"
+
+.EXPORT Ppu_ChrUpgrade
+.PROC Ppu_ChrUpgrade
+:   .incbin "out/data/tiles/upgrade.chr"
+    .res $78 * kSizeofChr
+    .assert * - :- = kSizeofChr * $80, error
+.ENDPROC
+
+;;;=========================================================================;;;
