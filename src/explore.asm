@@ -43,10 +43,12 @@
 .IMPORT Func_ToggleLeverDevice
 .IMPORT Func_UpdateButtons
 .IMPORT Func_Window_DirectDrawTopBorder
-.IMPORT Func_Window_SetUpIrq
+.IMPORT Func_Window_Disable
 .IMPORT Main_Console_OpenWindow
 .IMPORT Main_Dialog_OpenWindow
+.IMPORT Main_Pause
 .IMPORT Main_Upgrade_OpenWindow
+.IMPORT Ppu_ChrCave
 .IMPORT Ram_DeviceBlockCol_u8_arr
 .IMPORT Ram_DeviceBlockRow_u8_arr
 .IMPORT Ram_DeviceTarget_u8_arr
@@ -206,16 +208,20 @@ Zp_NearbyDevice_u8: .res 1
     sta Zp_AvatarVelY_i16 + 1
     lda #kAvatarPalette
     sta Zp_AvatarFlags_bObj
-    .assert * = Main_Explore_Enter, error, "fallthrough"
+    .assert * = Main_Explore_Unpause, error, "fallthrough"
 .ENDPROC
 
-;;; Helper mode for entering a room.
-.PROC Main_Explore_Enter
-_InitializeWindow:
-    lda #$ff
-    sta Zp_WindowTop_u8
-    jsr Func_Window_SetUpIrq
+;;; Mode for exploring and platforming within a room, when continuing after
+;;; the pause screen (or when the room is otherwise loaded, but with the screen
+;;; faded out).
+;;; @prereq Rendering is disabled.
+;;; @prereq Room is loaded and avatar is positioned.
+.EXPORT Main_Explore_Unpause
+.PROC Main_Explore_Unpause
+    jsr Func_Window_Disable
     jsr Func_Window_DirectDrawTopBorder
+    ;; TODO: Set the appropriate chr08_bank for the current room.
+    chr08_bank #<.bank(Ppu_ChrCave)
 _InitializeScrolling:
     jsr Func_SetScrollGoalFromAvatar
     lda Zp_ScrollGoalY_u8
@@ -261,40 +267,48 @@ _GameLoop:
     jsr Func_ClearRestOfOam
     jsr Func_ProcessFrame
     jsr Func_UpdateButtons
+_CheckForPause:
+    lda Zp_P1ButtonsPressed_bJoypad
+    and #bJoypad::Start
+    beq @done
+    jsr Func_FadeOut
+    jmp Main_Pause
+    @done:
+_CheckForActivateDevice:
     jsr Func_FindNearbyDevice
-    jsr Func_SetScrollGoalFromAvatar
-    jsr Func_ScrollTowardsGoal
-.PROC _CheckForActivateDevice
     lda Zp_P1ButtonsPressed_bJoypad
     and #bJoypad::BButton
-    beq _Done
+    beq @done
     ldx Zp_NearbyDevice_u8
-    bmi _Done
+    bmi @done
     lda Ram_DeviceType_eDevice_arr, x
     cmp #eDevice::Console
-    beq _Console
+    beq @console
     cmp #eDevice::Lever
-    beq _Lever
+    beq @lever
     cmp #eDevice::Sign
-    beq _Sign
+    beq @sign
     cmp #eDevice::Upgrade
-    bne _Done
-_Upgrade:
+    bne @done
+    @upgrade:
     jmp Main_Upgrade_OpenWindow
-_Console:
+    @console:
     lda Ram_DeviceTarget_u8_arr, x
     tax  ; param: machine index
     jmp Main_Console_OpenWindow
-_Sign:
+    @sign:
     lda Ram_DeviceTarget_u8_arr, x  ; param: dialog index
     jmp Main_Dialog_OpenWindow
-_Lever:
+    @lever:
     jsr Func_ToggleLeverDevice
-_Done:
-.ENDPROC
+    @done:
+_UpdateScrolling:
+    jsr Func_SetScrollGoalFromAvatar
+    jsr Func_ScrollTowardsGoal
+_Tick:
     jsr Func_TickAllDevices
     jsr Func_ExecuteAllMachines
-    jsr Func_ExploreMoveAvatar  ; returns Z and A
+    jsr Func_ExploreMoveAvatar  ; clears Z if entering door; returns eDoor in A
     beq _GameLoop
     .assert * = Main_Explore_GoThroughDoor, error, "fallthrough"
 .ENDPROC
@@ -364,7 +378,7 @@ _RepositionAvatar:
     sta Zp_AvatarPosX_i16 + 1
     @doorDone:
 _EnterNextRoom:
-    jmp Main_Explore_Enter
+    jmp Main_Explore_Unpause
 .ENDPROC
 
 ;;; Sets Zp_NearbyDevice_u8 to the index of the device that the player avatar

@@ -29,3 +29,14 @@ Zp_Tmp4_byte: .res 1
 Zp_Tmp_ptr: .res 2
 
 ;;;=========================================================================;;;
+
+.SEGMENT "PRG8"
+
+.EXPORT Data_PowersOfTwo_u8_arr8
+.PROC Data_PowersOfTwo_u8_arr8
+    .repeat 8, i
+    .byte 1 << i
+    .endrepeat
+.ENDPROC
+
+;;;=========================================================================;;;

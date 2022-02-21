@@ -41,8 +41,14 @@ kSaveMagicNumber = $b2
     UpgradeMaxInstructions1  ; increases the maximum number
     UpgradeMaxInstructions2  ; of instructions in a program
     UpgradeMaxInstructions3  ; by kNumExtraInstructionsPerUpgrade.
+    UpgradeOpcodeCopy
+    UpgradeOpcodeSwap
+    UpgradeOpcodeAddSub
+    UpgradeOpcodeMul
+    UpgradeOpcodeIfGoto
     UpgradeOpcodeSkip
     UpgradeOpcodeTil
+    UpgradeOpcodeNop
 .ENDENUM
 
 ;;;=========================================================================;;;

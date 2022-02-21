@@ -63,6 +63,15 @@ Zp_WindowNextRowToTransfer_u8: .res 1
 
 .SEGMENT "PRG8"
 
+;;; Sets Zp_WindowTop_u8 to put the window offscreen, then calls
+;;; Func_Window_SetUpIrq.
+.EXPORT Func_Window_Disable
+.PROC Func_Window_Disable
+    lda #$ff
+    sta Zp_WindowTop_u8
+    .assert * = Func_Window_SetUpIrq, error, "fallthrough"
+.ENDPROC
+
 ;;; Populates Ram_Buffered_sIrq appropriately for the current value of
 ;;; Zp_WindowTop_u8, and schedules it for transfer.  This should be called
 ;;; whenever the value of Zp_WindowTop_u8 is changed.

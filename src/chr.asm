@@ -70,6 +70,17 @@
 
 ;;;=========================================================================;;;
 
+.SEGMENT "CHR_Pause"
+
+.EXPORT Ppu_ChrPause
+.PROC Ppu_ChrPause
+:   .incbin "out/data/tiles/upgrade.chr"
+    .res $2c * kSizeofChr
+    .assert * - :- = kSizeofChr * $40, error
+.ENDPROC
+
+;;;=========================================================================;;;
+
 .SEGMENT "CHR_Player"
 
 .EXPORT Ppu_ChrPlayer
@@ -92,7 +103,7 @@
 .EXPORT Ppu_ChrUpgrade
 .PROC Ppu_ChrUpgrade
 :   .incbin "out/data/tiles/upgrade.chr"
-    .res $78 * kSizeofChr
+    .res $6c * kSizeofChr
     .assert * - :- = kSizeofChr * $80, error
 .ENDPROC
 

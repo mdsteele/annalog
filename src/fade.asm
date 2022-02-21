@@ -29,7 +29,7 @@
 ;;;=========================================================================;;;
 
 kNumFadeSteps = 4
-kFramesPerStep = 7
+kFramesPerStep = 5
 
 .DEFINE kNumTransferEntries 4
 .DEFINE kTransferDataLen 2

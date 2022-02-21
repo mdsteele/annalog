@@ -28,6 +28,7 @@
 .INCLUDE "program.inc"
 .INCLUDE "window.inc"
 
+.IMPORT Data_PowersOfTwo_u8_arr8
 .IMPORT Func_ClearRestOfOam
 .IMPORT Func_DrawObjectsForRoom
 .IMPORT Func_ProcessFrame
@@ -248,15 +249,10 @@ _UpdateScrolling:
     sta Zp_CurrentUpgrade_eFlag
     and #$07
     tay
-    lda Ram_DeviceTarget_u8_arr, x
+    lda Ram_DeviceTarget_u8_arr, x  ; eFlag value
     div #$08
     tax
-    lda #$00
-    sec
-    @loop:
-    rol a
-    dey
-    bpl @loop
+    lda Data_PowersOfTwo_u8_arr8, y
     ora Sram_ProgressFlags_arr, x
     ;; Enable writes to SRAM.
     ldy #bMmc3PrgRam::Enable
@@ -306,12 +302,30 @@ _UpdateScrolling:
 MaxInstructions1_u8_arr: .byte "     PROGRAM RAM", $ff
 MaxInstructions2_u8_arr: .byte "Increases max program", $ff
 MaxInstructions3_u8_arr: .byte "size by 2 instructions.", $ff
+OpcodeCopy1_u8_arr:      .byte "     COPY OPCODE", $ff
+OpcodeCopy2_u8_arr:      .byte "Copys a value into a", $ff
+OpcodeCopy3_u8_arr:      .byte "register.", $ff
+OpcodeSwap1_u8_arr:      .byte "     SWAP OPCODE", $ff
+OpcodeSwap2_u8_arr:      .byte "Exchanges the values of", $ff
+OpcodeSwap3_u8_arr:      .byte "two registers.", $ff
+OpcodeAddSub1_u8_arr:    .byte "   ADD SUB OPCODES", $ff
+OpcodeAddSub2_u8_arr:    .byte "Adds or subtracts two", $ff
+OpcodeAddSub3_u8_arr:    .byte "values.", $ff
+OpcodeMul1_u8_arr:       .byte "      MUL OPCODE", $ff
+OpcodeMul2_u8_arr:       .byte "Multiplies two values.", $ff
+OpcodeMul3_u8_arr:       .byte $ff
+OpcodeIfGoto1_u8_arr:    .byte "      IF OPCODE", $ff
+OpcodeIfGoto2_u8_arr:    .byte "Skips next instruction", $ff
+OpcodeIfGoto3_u8_arr:    .byte "if condition is false.", $ff
 OpcodeSkip1_u8_arr:      .byte "     SKIP OPCODE", $ff
 OpcodeSkip2_u8_arr:      .byte "Skips over a variable", $ff
 OpcodeSkip3_u8_arr:      .byte "number of instructions.", $ff
 OpcodeTil1_u8_arr:       .byte "      TIL OPCODE", $ff
 OpcodeTil2_u8_arr:       .byte "Repeats last instruction", $ff
 OpcodeTil3_u8_arr:       .byte "until condition is met.", $ff
+OpcodeNop1_u8_arr:       .byte "      NOP OPCODE", $ff
+OpcodeNop2_u8_arr:       .byte "Has no effect.", $ff
+OpcodeNop3_u8_arr:       .byte $ff
 .ENDPROC
 
 ;;; Transfers the next upgrade window row (if any) that still needs to be
@@ -391,6 +405,26 @@ _DescTable_ptr_arr:
     .addr DataA_Upgrade_Descriptions::MaxInstructions2_u8_arr
     .addr DataA_Upgrade_Descriptions::MaxInstructions3_u8_arr
     .endrepeat
+    .assert * - _DescTable_ptr_arr = 6 * eFlag::UpgradeOpcodeCopy, error
+    .addr DataA_Upgrade_Descriptions::OpcodeCopy1_u8_arr
+    .addr DataA_Upgrade_Descriptions::OpcodeCopy2_u8_arr
+    .addr DataA_Upgrade_Descriptions::OpcodeCopy3_u8_arr
+    .assert * - _DescTable_ptr_arr = 6 * eFlag::UpgradeOpcodeSwap, error
+    .addr DataA_Upgrade_Descriptions::OpcodeSwap1_u8_arr
+    .addr DataA_Upgrade_Descriptions::OpcodeSwap2_u8_arr
+    .addr DataA_Upgrade_Descriptions::OpcodeSwap3_u8_arr
+    .assert * - _DescTable_ptr_arr = 6 * eFlag::UpgradeOpcodeAddSub, error
+    .addr DataA_Upgrade_Descriptions::OpcodeAddSub1_u8_arr
+    .addr DataA_Upgrade_Descriptions::OpcodeAddSub2_u8_arr
+    .addr DataA_Upgrade_Descriptions::OpcodeAddSub3_u8_arr
+    .assert * - _DescTable_ptr_arr = 6 * eFlag::UpgradeOpcodeMul, error
+    .addr DataA_Upgrade_Descriptions::OpcodeMul1_u8_arr
+    .addr DataA_Upgrade_Descriptions::OpcodeMul2_u8_arr
+    .addr DataA_Upgrade_Descriptions::OpcodeMul3_u8_arr
+    .assert * - _DescTable_ptr_arr = 6 * eFlag::UpgradeOpcodeIfGoto, error
+    .addr DataA_Upgrade_Descriptions::OpcodeIfGoto1_u8_arr
+    .addr DataA_Upgrade_Descriptions::OpcodeIfGoto2_u8_arr
+    .addr DataA_Upgrade_Descriptions::OpcodeIfGoto3_u8_arr
     .assert * - _DescTable_ptr_arr = 6 * eFlag::UpgradeOpcodeSkip, error
     .addr DataA_Upgrade_Descriptions::OpcodeSkip1_u8_arr
     .addr DataA_Upgrade_Descriptions::OpcodeSkip2_u8_arr
@@ -399,6 +433,10 @@ _DescTable_ptr_arr:
     .addr DataA_Upgrade_Descriptions::OpcodeTil1_u8_arr
     .addr DataA_Upgrade_Descriptions::OpcodeTil2_u8_arr
     .addr DataA_Upgrade_Descriptions::OpcodeTil3_u8_arr
+    .assert * - _DescTable_ptr_arr = 6 * eFlag::UpgradeOpcodeNop, error
+    .addr DataA_Upgrade_Descriptions::OpcodeNop1_u8_arr
+    .addr DataA_Upgrade_Descriptions::OpcodeNop2_u8_arr
+    .addr DataA_Upgrade_Descriptions::OpcodeNop3_u8_arr
 .ENDPROC
 
 ;;; Allocates and populates OAM slots for the upgrade symbol that appears

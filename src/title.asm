@@ -31,6 +31,7 @@
 .IMPORT Func_FadeOut
 .IMPORT Func_ProcessFrame
 .IMPORT Func_UpdateButtons
+.IMPORT Func_Window_Disable
 .IMPORT Main_Explore_EnterFromDevice
 .IMPORT Sram_MagicNumber_u8
 .IMPORT Sram_ProgressFlags_arr
@@ -67,7 +68,7 @@ End:
     lda #kSaveMagicNumber
     sta Sram_MagicNumber_u8
     ;; TODO: Temporary for development: Add some upgrades.
-    lda #$07
+    lda #$f7
     sta Sram_ProgressFlags_arr + 0
     ;; Disable writes to SRAM.
     lda #bMmc3PrgRam::Enable | bMmc3PrgRam::DenyWrites
@@ -78,6 +79,7 @@ End:
 ;;; @prereq Rendering is disabled.
 .EXPORT Main_Title
 .PROC Main_Title
+    jsr Func_Window_Disable
     ;; Clear OAM:
     lda #0
     sta Zp_OamOffset_u8
