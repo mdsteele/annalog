@@ -17,6 +17,7 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
+.INCLUDE "../charmap.inc"
 .INCLUDE "../device.inc"
 .INCLUDE "../flag.inc"
 .INCLUDE "../macros.inc"
@@ -27,6 +28,11 @@
 ;;;=========================================================================;;;
 
 .SEGMENT "PRGC_Room"
+
+.EXPORT DataC_Room_AreaName_u8_arr
+.PROC DataC_Room_AreaName_u8_arr
+    .byte "Prison Caves", $ff
+.ENDPROC
 
 .EXPORT DataC_Room_Short_sRoom
 .PROC DataC_Room_Short_sRoom
@@ -44,6 +50,7 @@ _TerrainData:
     .assert * - :- = 18 * 16, error
 _Ext_sRoomExt:
     D_STRUCT sRoomExt
+    d_addr AreaName_u8_arr_ptr, DataC_Room_AreaName_u8_arr
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
     d_addr Dialogs_sDialog_ptr_arr_ptr, 0
     d_addr Exits_sDoor_arr_ptr, _Exits_sDoor_arr

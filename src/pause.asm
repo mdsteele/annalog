@@ -23,6 +23,7 @@
 .INCLUDE "macros.inc"
 .INCLUDE "mmc3.inc"
 .INCLUDE "ppu.inc"
+.INCLUDE "room.inc"
 .INCLUDE "window.inc"
 
 .IMPORT Data_PowersOfTwo_u8_arr8
@@ -35,6 +36,7 @@
 .IMPORT Main_Explore_Unpause
 .IMPORT Ppu_ChrPause
 .IMPORT Sram_ProgressFlags_arr
+.IMPORTZP Zp_Current_sRoom
 .IMPORTZP Zp_P1ButtonsPressed_bJoypad
 .IMPORTZP Zp_PpuScrollX_u8
 .IMPORTZP Zp_PpuScrollY_u8
@@ -42,6 +44,7 @@
 .IMPORTZP Zp_Tmp1_byte
 .IMPORTZP Zp_Tmp2_byte
 .IMPORTZP Zp_Tmp3_byte
+.IMPORTZP Zp_Tmp_ptr
 
 ;;;=========================================================================;;;
 
@@ -111,11 +114,6 @@ kSize = * - Start
 
 kAreaNameStartCol = DataA_Pause_CurrentAreaLabel_u8_arr::kAreaNameStartCol
 
-;;; TODO: get rid of this, and use the current area data instead
-.PROC DataA_Pause_CurrentAreaName_u8_arr
-    .byte "Deep Crypt", $ff
-.ENDPROC
-
 ;;; Directly fills PPU nametable 0 with BG tile data for the pause screen.
 .PROC FuncA_Pause_DirectDrawBg
     lda #kPpuCtrlFlagsHorz
@@ -149,13 +147,21 @@ _DrawCurrentAreaLabel:
     cpx #DataA_Pause_CurrentAreaLabel_u8_arr::kSize
     blt @loop
 _DrawCurrentAreaName:
+    ;; Copy the current room's AreaName_u8_arr_ptr into Zp_Tmp_ptr.
+    ldy #sRoomExt::AreaName_u8_arr_ptr
+    lda (Zp_Current_sRoom + sRoom::Ext_sRoomExt_ptr), y
+    sta Zp_Tmp_ptr + 0
+    iny
+    lda (Zp_Current_sRoom + sRoom::Ext_sRoomExt_ptr), y
+    sta Zp_Tmp_ptr + 1
+    ;; Draw the room's area name.
     ldy #0
     beq @start  ; unconditional
     @loop:
     sta Hw_PpuData_rw
     iny
     @start:
-    lda DataA_Pause_CurrentAreaName_u8_arr, y
+    lda (Zp_Tmp_ptr), y
     bpl @loop
     @break:
 _FinishCurrentAreaLine:
@@ -183,7 +189,6 @@ _DrawMinimap:
     cpx #17
     bne @rowLoop
 _DrawItems:
-    ;; TODO: actually draw items
     ldx #0
     @rowLoop:
     jsr _DrawLineBreak  ; preserves X

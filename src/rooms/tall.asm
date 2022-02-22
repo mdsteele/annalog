@@ -26,6 +26,7 @@
 .INCLUDE "../program.inc"
 .INCLUDE "../room.inc"
 
+.IMPORT DataC_Room_AreaName_u8_arr
 .IMPORT Func_AllocObjectsFor2x2Shape
 .IMPORT Func_MachineError
 .IMPORT Ram_MachineState
@@ -226,6 +227,7 @@ _TerrainData:
     .assert * - :- = 35 * 24, error
 _Ext_sRoomExt:
     D_STRUCT sRoomExt
+    d_addr AreaName_u8_arr_ptr, DataC_Room_AreaName_u8_arr
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
     d_addr Dialogs_sDialog_ptr_arr_ptr, _Dialogs_sDialog_ptr_arr
     d_addr Exits_sDoor_arr_ptr, _Exits_sDoor_arr

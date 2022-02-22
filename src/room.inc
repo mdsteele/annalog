@@ -117,6 +117,9 @@ kMaxRoomWidthBlocks = kMaxRoomWidthTiles / 2
 ;;; Extended information about a room that (compared to the information in
 ;;; sRoom) doesn't need to be as directly accessible from Zp_Current_sRoom.
 .STRUCT sRoomExt
+    ;; A pointer to a $ff-terminated string with the name of the area that this
+    ;; room belongs to.
+    AreaName_u8_arr_ptr         .addr
     ;; A pointer to a static array of devices that should always be loaded into
     ;; the room upon entering, terminated by a zero (i.e. eDevice::None).  The
     ;; dynamic set of devices can optionally be modified afterwards by the
