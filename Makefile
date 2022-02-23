@@ -29,6 +29,7 @@ OBJDIR = $(OUTDIR)/obj
 SIM65DIR = $(OUTDIR)/sim65
 
 AHI2CHR = $(BINDIR)/ahi2chr
+BG2MINI = $(BINDIR)/bg2mini
 BG2ROOM = $(BINDIR)/bg2room
 BG2TSET = $(BINDIR)/bg2tset
 LABEL2NL = $(BINDIR)/label2nl
@@ -82,6 +83,9 @@ endef
 $(AHI2CHR): build/ahi2chr.c
 	$(compile-c)
 
+$(BG2MINI): build/bg2mini.c
+	$(compile-c)
+
 $(BG2ROOM): build/bg2room.c
 	$(compile-c)
 
@@ -100,6 +104,13 @@ $(DATADIR)/%.chr: $(SRCDIR)/%.ahi $(AHI2CHR)
 	@$(AHI2CHR) < $< > $@
 
 .SECONDARY: $(CHRFILES)
+
+$(DATADIR)/minimap: $(SRCDIR)/minimap.bg $(BG2MINI)
+	@echo "Converting $<"
+	@mkdir -p $(@D)
+	@$(BG2MINI) < $< > $@
+
+.SECONDARY: $(DATADIR)/minimap
 
 $(DATADIR)/%.room: $(SRCDIR)/rooms/%.bg $(BG2ROOM)
 	@echo "Converting $<"
@@ -154,6 +165,9 @@ define compile-asm
 endef
 
 $(OBJDIR)/chr.o: $(SRCDIR)/chr.asm $(INCFILES) $(CHRFILES)
+	$(compile-asm)
+
+$(OBJDIR)/pause.o: $(SRCDIR)/pause.asm $(INCFILES) $(DATADIR)/minimap
 	$(compile-asm)
 
 $(OBJDIR)/rooms/%.o: $(SRCDIR)/rooms/%.asm $(INCFILES) $(DATADIR)/%.room

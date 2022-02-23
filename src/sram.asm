@@ -17,6 +17,7 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
+.INCLUDE "pause.inc"
 .INCLUDE "program.inc"
 
 ;;;=========================================================================;;;
@@ -36,18 +37,26 @@ Sram_RespawnRoomNumber_u8: .res 1
 ;;; when continuing a saved game (e.g. a particular door or console).
 Sram_RespawnDeviceNumber_u8: .res 1
 
-.RES $1d
+.RES $0d
+
+;;; A bit array indicating which minimap cells have been explored.  The array
+;;; contains one u16 for each minimap column; if the minimap cell at row R and
+;;; column C has been explored, then the Rth bit of the Cth u16 in this array
+;;; will be set.
+.EXPORT Sram_Minimap_u16_arr
+Sram_Minimap_u16_arr:
+    .assert * & $0f = 0, error, "16-byte alignment"
+    .assert kMinimapHeight <= 16, error
+    .res 2 * kMinimapWidth
 
 ;;; A bit array of progress flags.  Given an eFlag value N, bit number (N & 7)
 ;;; of the (N >> 3)-th byte of this array indicates whether the flag is set (1)
 ;;; or cleared (0).
 .EXPORT Sram_ProgressFlags_arr
 Sram_ProgressFlags_arr:
-    .assert * & $1f = 0, error, "32-byte alignment"
+:   .assert * & $1f = 0, error, "32-byte alignment"
     .res $20
-
-;;; TODO: Store a bit array of which rooms/map tiles have been visited, so that
-;;;   we can draw a minimap on the pause screen.
+    .assert (* - :-) * 8 = $100, error
 
 ;;; An array of the player's saved programs.
 .EXPORT Sram_Programs_sProgram_arr

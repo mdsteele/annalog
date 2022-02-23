@@ -74,8 +74,13 @@
 
 .EXPORT Ppu_ChrPause
 .PROC Ppu_ChrPause
-:   .incbin "out/data/tiles/upgrade.chr"
-    .res $2c * kSizeofChr
+:   .incbin "out/data/tiles/minimap1.chr"
+    .res $07 * kSizeofChr
+    .incbin "out/data/tiles/minimap2.chr"
+    .res $07 * kSizeofChr
+    .incbin "out/data/tiles/minimap3.chr"
+    .res $03 * kSizeofChr
+    .incbin "out/data/tiles/upgrade.chr"
     .assert * - :- = kSizeofChr * $40, error
 .ENDPROC
 

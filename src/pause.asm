@@ -22,6 +22,7 @@
 .INCLUDE "joypad.inc"
 .INCLUDE "macros.inc"
 .INCLUDE "mmc3.inc"
+.INCLUDE "pause.inc"
 .INCLUDE "ppu.inc"
 .INCLUDE "room.inc"
 .INCLUDE "window.inc"
@@ -35,6 +36,7 @@
 .IMPORT Func_Window_Disable
 .IMPORT Main_Explore_Unpause
 .IMPORT Ppu_ChrPause
+.IMPORT Sram_Minimap_u16_arr
 .IMPORT Sram_ProgressFlags_arr
 .IMPORTZP Zp_Current_sRoom
 .IMPORTZP Zp_P1ButtonsPressed_bJoypad
@@ -48,17 +50,19 @@
 
 ;;;=========================================================================;;;
 
+;;; The BG tile ID for an unexplored tile on the minimap.
+kMinimapTileIdUnexplored  = $80
 ;;; The BG tile ID for the bottom-left tile for all upgrade symbols.  Add 1 to
 ;;; this to get the the bottom-right tile ID for those symbols.
-kUpgradeTileIdBottomLeft  = $80
+kUpgradeTileIdBottomLeft  = $ac
 ;;; The BG tile ID for the top-left tile of the symbol for max-instruction
 ;;; upgrades.  Add 1 to this to get the the top-right tile ID for that symbol.
-kMaxInstTileIdTopLeft     = $82
+kMaxInstTileIdTopLeft     = $ae
 ;;; The BG tile ID for the top-left tile for the symbol of the first
 ;;; non-max-instruction upgrade.  Add 1 to this to get the the top-right tile
 ;;; ID for that symbol, then add another 1 to get the top-left tile ID for the
 ;;; next upgrade, and so on.
-kRemainingTileIdTopLeft   = $84
+kRemainingTileIdTopLeft   = $b0
 
 ;;;=========================================================================;;;
 
@@ -102,6 +106,14 @@ _Tick:
 
 .SEGMENT "PRGA_Pause"
 
+;;; The tile ID grid for the minimap (stored in row-major order).
+.PROC DataA_Pause_Minimap_u8_arr
+:   .incbin "out/data/minimap"
+    .assert * - :- = kMinimapWidth * kMinimapHeight, error
+.ENDPROC
+
+;;; The "Current area:" label that is drawn on the pause screen, along with
+;;; some of the surrounding tiles.
 .PROC DataA_Pause_CurrentAreaLabel_u8_arr
 Start:
     .byte kWindowTileIdTopRight, kWindowTileIdBlank
@@ -112,6 +124,7 @@ kAreaNameStartCol = * - LineStart
 kSize = * - Start
 .ENDPROC
 
+;;; The screen tile column that the area name begins on.
 kAreaNameStartCol = DataA_Pause_CurrentAreaLabel_u8_arr::kAreaNameStartCol
 
 ;;; Directly fills PPU nametable 0 with BG tile data for the pause screen.
@@ -175,19 +188,17 @@ _FinishCurrentAreaLine:
     cpy #kScreenWidthTiles - kAreaNameStartCol - 2
     blt @loop
 _DrawMinimap:
-    ;; TODO: actually draw minimap
+    jsr _DrawBlankLine
+    ldya #DataA_Pause_Minimap_u8_arr
+    stya Zp_Tmp_ptr
     ldx #0
     @rowLoop:
-    jsr _DrawLineBreak  ; preserves X
-    lda #kWindowTileIdBlank
-    ldy #kScreenWidthTiles - 4
-    @colLoop:
-    sta Hw_PpuData_rw
-    dey
-    bne @colLoop
+    jsr _DrawLineBreak  ; preserves X and Zp_Tmp_ptr
+    jsr FuncA_Pause_DirectDrawMinimapLine  ; preserves X, advances Zp_Tmp_ptr
     inx
-    cpx #17
+    cpx #kMinimapHeight
     bne @rowLoop
+    jsr _DrawBlankLine
 _DrawItems:
     ldx #0
     @rowLoop:
@@ -228,6 +239,83 @@ _DrawLineBreak:
     sty Hw_PpuData_rw
     sta Hw_PpuData_rw
     rts
+_DrawBlankLine:
+    jsr _DrawLineBreak
+    lda #kWindowTileIdBlank
+    ldy #kScreenWidthTiles - 4
+    @colLoop:
+    sta Hw_PpuData_rw
+    dey
+    bne @colLoop
+    rts
+.ENDPROC
+
+;;; Writes BG tile data for one line of the pause screen minimap (not including
+;;; the borders) directly to the PPU.
+;;; @param Zp_Tmp_ptr The start of the minimap tile data row.
+;;; @param X The minimap row (0-15).
+;;; @return Zp_Tmp_ptr The start of the next minimap tile data row.
+;;; @preserve X
+.PROC FuncA_Pause_DirectDrawMinimapLine
+    ;; Draw left margin.
+    lda #kWindowTileIdBlank
+    sta Hw_PpuData_rw
+    sta Hw_PpuData_rw
+    ;; Determine the bitmask we should use for this minimap row, and store it
+    ;; in Zp_Tmp1_byte.
+    txa
+    and #$07
+    tay
+    lda Data_PowersOfTwo_u8_arr8, y
+    sta Zp_Tmp1_byte  ; mask
+    ;; Save X in Zp_Tmp2_byte so we can use X for something else and later
+    ;; restore it.
+    stx Zp_Tmp2_byte  ; minimap row
+    ;; We'll use Y as the byte index into the minimap tile data (starting from
+    ;; Zp_Tmp_ptr).
+    ldy #0
+    ;; We'll use X as the byte index into Sram_Minimap_u16_arr.  If we're in
+    ;; the first eight rows, we'll be checking our bitmask against the low
+    ;; eight bits of each u16; otherwise, we'll be checking against the high
+    ;; eight bits.
+    txa
+    ldx #0
+    cmp #8
+    blt @colLoop
+    inx
+    ;; For each tile in this minimap row, check if the player has explored
+    ;; that screen.  If so, draw that minimap tile; otherwise, draw a blank
+    ;; tile.
+    @colLoop:
+    lda Sram_Minimap_u16_arr, x
+    and Zp_Tmp1_byte  ; mask
+    bne @explored
+    lda #kMinimapTileIdUnexplored
+    .assert kMinimapTileIdUnexplored > 0, error
+    bne @draw  ; unconditional
+    @explored:
+    lda (Zp_Tmp_ptr), y
+    @draw:
+    sta Hw_PpuData_rw
+    inx
+    inx
+    iny
+    cpy #kMinimapWidth
+    blt @colLoop
+    ;; Advance Zp_Tmp_ptr.
+    tya
+    add Zp_Tmp_ptr + 0
+    sta Zp_Tmp_ptr + 0
+    lda #0
+    adc Zp_Tmp_ptr + 1
+    sta Zp_Tmp_ptr + 1
+    ;; Restore X (since this function needs to preserve it).
+    ldx Zp_Tmp2_byte  ; minimap row
+    ;; Draw right margin.
+    lda #kWindowTileIdBlank
+    sta Hw_PpuData_rw
+    sta Hw_PpuData_rw
+    rts
 .ENDPROC
 
 ;;; Writes BG tile data for one line of the items section of the pause screen
@@ -237,12 +325,17 @@ _DrawLineBreak:
 .PROC FuncA_Pause_DirectDrawItemsLine
 .PROC _DrawConduits
     ;; TODO: actually draw conduits
-    lda #kWindowTileIdBlank
-    ldy #14
-    @loop:
+    lda _ConduitTiles, x
+    ldy #kWindowTileIdBlank
+    sty Hw_PpuData_rw
+    sty Hw_PpuData_rw
+    sty Hw_PpuData_rw
+    .repeat 8
     sta Hw_PpuData_rw
-    dey
-    bne @loop
+    .endrepeat
+    sty Hw_PpuData_rw
+    sty Hw_PpuData_rw
+    sty Hw_PpuData_rw
 .ENDPROC
 .PROC _DrawUpgrades
     ;; Calculate the eFlag value for the first upgrade on this line, and store
@@ -311,6 +404,8 @@ _DrawLineBreak:
     sta Hw_PpuData_rw
 .ENDPROC
     rts
+_ConduitTiles:
+    .byte "-=- M "
 .ENDPROC
 
 ;;; Allocates and populates OAM slots for objects that should be drawn on the

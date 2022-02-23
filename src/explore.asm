@@ -865,6 +865,7 @@ _Up:
     sta Zp_AvatarPosY_i16 + 1
 _Done:
 .ENDPROC
+    ;; TODO: Mark current screen as explored on the minimap.
 _ApplyGravity:
     jsr Func_PlayerApplyGravity
     lda #eDoor::None  ; indicate that no door was hit
