@@ -25,6 +25,7 @@
 .INCLUDE "ppu.inc"
 .INCLUDE "room.inc"
 
+.IMPORT Data_PowersOfTwo_u8_arr8
 .IMPORT Data_RoomBanks_u8_arr
 .IMPORT FuncA_Terrain_FillNametables
 .IMPORT FuncA_Terrain_GetColumnPtrForTileIndex
@@ -54,6 +55,7 @@
 .IMPORT Ram_DeviceTarget_u8_arr
 .IMPORT Ram_DeviceType_eDevice_arr
 .IMPORT Ram_Oam_sObj_arr64
+.IMPORT Sram_Minimap_u16_arr
 .IMPORTZP Zp_Current_sRoom
 .IMPORTZP Zp_FrameCounter_u8
 .IMPORTZP Zp_OamOffset_u8
@@ -865,9 +867,86 @@ _Up:
     sta Zp_AvatarPosY_i16 + 1
 _Done:
 .ENDPROC
-    ;; TODO: Mark current screen as explored on the minimap.
-_ApplyGravity:
-    jsr Func_PlayerApplyGravity
+.PROC _MarkMinimap
+    ;; Calculate the current minimap row and store it in Y.
+    ldy <(Zp_Current_sRoom + sRoom::MinimapStartRow_u8)
+    bit <(Zp_Current_sRoom + sRoom::IsTall_bool)
+    bpl @upperHalf
+    @tall:
+    lda Zp_AvatarPosY_i16 + 1
+    bmi @upperHalf
+    bne @lowerHalf
+    lda Zp_AvatarPosY_i16 + 0
+    cmp #(kTallRoomHeightBlocks / 2) * kBlockHeightPx
+    blt @upperHalf
+    @lowerHalf:
+    iny
+    @upperHalf:
+    ;; Determine the bitmask to use for Sram_Minimap_u16_arr, and store it in
+    ;; Zp_Tmp1_byte.
+    tya
+    and #$07
+    tax
+    lda Data_PowersOfTwo_u8_arr8, x
+    sta Zp_Tmp1_byte  ; mask
+    ;; Calculate the byte offset into Sram_Minimap_u16_arr and store it in X.
+    lda Zp_AvatarPosX_i16 + 1
+    bmi @leftSide
+    cmp <(Zp_Current_sRoom + sRoom::MinimapWidth_u8)
+    blt @middle
+    @rightSide:
+    ldx <(Zp_Current_sRoom + sRoom::MinimapWidth_u8)
+    dex
+    txa
+    @middle:
+    add <(Zp_Current_sRoom + sRoom::MinimapStartCol_u8)
+    bcc @setCol  ; unconditional
+    @leftSide:
+    lda <(Zp_Current_sRoom + sRoom::MinimapStartCol_u8)
+    @setCol:
+    mul #2
+    tax  ; byte index into Sram_Minimap_u16_arr
+    cpy #$08
+    blt @loByte
+    inx
+    @loByte:
+    ;; Check if minimap needs to be updated.
+    lda Sram_Minimap_u16_arr, x
+    ora Zp_Tmp1_byte  ; mask
+    cmp Sram_Minimap_u16_arr, x
+    beq @done
+    ;; Enable writes to SRAM.
+    ldy #bMmc3PrgRam::Enable
+    sty Hw_Mmc3PrgRamProtect_wo
+    ;; Update minimap.
+    sta Sram_Minimap_u16_arr, x
+    ;; Disable writes to SRAM.
+    ldy #bMmc3PrgRam::Enable | bMmc3PrgRam::DenyWrites
+    sty Hw_Mmc3PrgRamProtect_wo
+    @done:
+.ENDPROC
+.PROC _ApplyGravity
+    ;; Only apply gravity if the player avatar is airborne.
+    lda Zp_AvatarMode_ePlayer
+    cmp #ePlayer::Jumping
+    blt @noGravity
+    ;; Accelerate the player avatar downwards.
+    lda #kAvatarGravity
+    add Zp_AvatarVelY_i16 + 0
+    sta Zp_AvatarVelY_i16 + 0
+    lda #0
+    adc Zp_AvatarVelY_i16 + 1
+    ;; If moving downward, check for terminal velocity:
+    bmi @setVelYHi
+    cmp #kAvatarMaxSpeedY
+    blt @setVelYHi
+    lda #0
+    sta Zp_AvatarVelY_i16 + 0
+    lda #kAvatarMaxSpeedY
+    @setVelYHi:
+    sta Zp_AvatarVelY_i16 + 1
+    @noGravity:
+.ENDPROC
     lda #eDoor::None  ; indicate that no door was hit
     rts
 .ENDPROC
@@ -967,31 +1046,6 @@ _DoneLeftRight:
     stax Zp_AvatarVelY_i16
     ;; TODO: play a jumping sound
     @noJump:
-    rts
-.ENDPROC
-
-;;; Update the player avatar's Y-velocity to apply gravity.
-.PROC Func_PlayerApplyGravity
-    ;; Only apply gravity if the player avatar is airborne.
-    lda Zp_AvatarMode_ePlayer
-    cmp #ePlayer::Jumping
-    blt @noGravity
-    ;; Accelerate the player avatar downwards.
-    lda #kAvatarGravity
-    add Zp_AvatarVelY_i16 + 0
-    sta Zp_AvatarVelY_i16 + 0
-    lda #0
-    adc Zp_AvatarVelY_i16 + 1
-    ;; If moving downward, check for terminal velocity:
-    bmi @setVelYHi
-    cmp #kAvatarMaxSpeedY
-    blt @setVelYHi
-    lda #0
-    sta Zp_AvatarVelY_i16 + 0
-    lda #kAvatarMaxSpeedY
-    @setVelYHi:
-    sta Zp_AvatarVelY_i16 + 1
-    @noGravity:
     rts
 .ENDPROC
 

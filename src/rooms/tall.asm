@@ -217,6 +217,9 @@ _Reset:
     d_byte MinScrollX_u8, $08
     d_word MaxScrollX_u16, $120
     d_byte IsTall_bool, $ff
+    d_byte MinimapStartRow_u8, 3
+    d_byte MinimapStartCol_u8, 2
+    d_byte MinimapWidth_u8, 2
     d_addr TerrainData_ptr, _TerrainData
     d_byte NumMachines_u8, 1
     d_addr Machines_sMachine_arr_ptr, DataC_Room_TallMachines_sMachine_arr

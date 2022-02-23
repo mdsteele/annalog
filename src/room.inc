@@ -101,6 +101,13 @@ kMaxRoomWidthBlocks = kMaxRoomWidthTiles / 2
     ;; True ($ff) if the room is "tall" (kTallRoomHeightBlocks blocks tall), or
     ;; false ($00) if it is short (kScreenHeightBlocks blocks tall).
     IsTall_bool               .byte
+    ;; The minimap row number for the room (if it's a short room) or for the
+    ;; top half of the room (if it's a tall room).
+    MinimapStartRow_u8        .byte
+    ;; The minimap column number for the leftmost screen of the room.
+    MinimapStartCol_u8        .byte
+    ;; How many minimap columns this room spans (1-8).
+    MinimapWidth_u8           .byte
     ;; A pointer to the terrain block data for this room, which stores 1 byte
     ;; per block in column-major order.  For "short" rooms, new columns start
     ;; every 16 bytes; for "tall" rooms, new columns start every 24 bytes.
