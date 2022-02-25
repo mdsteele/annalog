@@ -34,6 +34,16 @@
     .byte "Prison Caves", $ff
 .ENDPROC
 
+.EXPORT DataC_Room_AreaCells_u8_arr2_arr
+.PROC DataC_Room_AreaCells_u8_arr2_arr
+    .byte 3, 2
+    .byte 3, 3
+    .byte 4, 1
+    .byte 4, 2
+    .byte 4, 3
+    .byte $ff
+.ENDPROC
+
 .EXPORT DataC_Room_Short_sRoom
 .PROC DataC_Room_Short_sRoom
     D_STRUCT sRoom
@@ -54,6 +64,7 @@ _TerrainData:
 _Ext_sRoomExt:
     D_STRUCT sRoomExt
     d_addr AreaName_u8_arr_ptr, DataC_Room_AreaName_u8_arr
+    d_addr AreaCells_u8_arr2_arr_ptr, DataC_Room_AreaCells_u8_arr2_arr
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
     d_addr Dialogs_sDialog_ptr_arr_ptr, 0
     d_addr Exits_sDoor_arr_ptr, _Exits_sDoor_arr

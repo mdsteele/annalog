@@ -22,6 +22,7 @@
 .INCLUDE "joypad.inc"
 .INCLUDE "macros.inc"
 .INCLUDE "mmc3.inc"
+.INCLUDE "oam.inc"
 .INCLUDE "pause.inc"
 .INCLUDE "ppu.inc"
 .INCLUDE "room.inc"
@@ -36,9 +37,14 @@
 .IMPORT Func_Window_Disable
 .IMPORT Main_Explore_Unpause
 .IMPORT Ppu_ChrPause
+.IMPORT Ram_Oam_sObj_arr64
 .IMPORT Sram_Minimap_u16_arr
 .IMPORT Sram_ProgressFlags_arr
+.IMPORTZP Zp_AvatarMinimapCol_u8
+.IMPORTZP Zp_AvatarMinimapRow_u8
 .IMPORTZP Zp_Current_sRoom
+.IMPORTZP Zp_FrameCounter_u8
+.IMPORTZP Zp_OamOffset_u8
 .IMPORTZP Zp_P1ButtonsPressed_bJoypad
 .IMPORTZP Zp_PpuScrollX_u8
 .IMPORTZP Zp_PpuScrollY_u8
@@ -52,6 +58,10 @@
 
 ;;; The BG tile ID for an unexplored tile on the minimap.
 kMinimapTileIdUnexplored  = $80
+
+;;; The OBJ tile ID for marking the current area on the minimap.
+kMinimapAreaObjTileId     = $02
+
 ;;; The BG tile ID for the bottom-left tile for all upgrade symbols.  Add 1 to
 ;;; this to get the the bottom-right tile ID for those symbols.
 kUpgradeTileIdBottomLeft  = $ac
@@ -64,6 +74,15 @@ kMaxInstTileIdTopLeft     = $ae
 ;;; next upgrade, and so on.
 kRemainingTileIdTopLeft   = $b0
 
+;;; The screen pixel positions for the top and left edges of the minimap rect.
+kMinimapTopPx  = $28
+kMinimapLeftPx = $20
+
+;;; The OBJ palette numbers for marking the current area and blinking the
+;;; current screen on the minimap.
+kMinimapCurrentAreaPalette   = 0
+kMinimapCurrentScreenPalette = 1
+
 ;;;=========================================================================;;;
 
 .SEGMENT "PRG8"
@@ -72,6 +91,10 @@ kRemainingTileIdTopLeft   = $b0
 ;;; @prereq Rendering is disabled.
 .EXPORT Main_Pause
 .PROC Main_Pause
+    ;; Reset the frame counter before drawing any objects so that the
+    ;; current-position blink will be in aconsistent state as we fade in.
+    lda #0
+    sta Zp_FrameCounter_u8
     chr08_bank #<.bank(Ppu_ChrPause)
     jsr Func_Window_Disable
     prga_bank #<.bank(FuncA_Pause_DirectDrawBg)
@@ -411,7 +434,84 @@ _ConduitTiles:
 ;;; Allocates and populates OAM slots for objects that should be drawn on the
 ;;; pause screen minimap.
 .PROC FuncA_Pause_DrawObjectsForMinimap
-    ;; TODO: draw objects for minimap
+    ;; Copy the current room's AreaCells_u8_arr2_arr_ptr into Zp_Tmp_ptr.
+    ldy #sRoomExt::AreaCells_u8_arr2_arr_ptr
+    lda (Zp_Current_sRoom + sRoom::Ext_sRoomExt_ptr), y
+    sta Zp_Tmp_ptr + 0
+    iny
+    lda (Zp_Current_sRoom + sRoom::Ext_sRoomExt_ptr), y
+    sta Zp_Tmp_ptr + 1
+    ;; Draw an object for each explored minimap cell in the array.
+    ldy #0
+    beq @continue  ; unconditional
+    @loop:
+    ;; At this point, A holds the most recently read minimap row.  Store it in
+    ;; Zp_Tmp1_byte for later.
+    iny
+    sta Zp_Tmp1_byte  ; minimap row
+    ;; Determine the bitmask we should use for this minimap row, and store it
+    ;; in Zp_Tmp3_byte.
+    and #$07
+    tax
+    lda Data_PowersOfTwo_u8_arr8, x
+    sta Zp_Tmp3_byte  ; mask
+    ;; Read the minimap col and store it in Zp_Tmp2_byte for later.
+    lda (Zp_Tmp_ptr), y
+    iny
+    sta Zp_Tmp2_byte  ; minimap col
+    ;; We'll use X as the byte index into Sram_Minimap_u16_arr.  If we're in
+    ;; the first eight rows, we'll be checking our bitmask against the low
+    ;; eight bits of each u16; otherwise, we'll be checking against the high
+    ;; eight bits.
+    mul #2
+    tax
+    lda Zp_Tmp1_byte  ; minimap row
+    cmp #$08
+    blt @loByte
+    inx
+    @loByte:
+    ;; Check if this minimap cell has been explored.  If not, don't draw an
+    ;; object for this cell.
+    lda Sram_Minimap_u16_arr, x
+    and Zp_Tmp3_byte  ; mask
+    beq @continue
+    ;; If this minimap cell is the avatar's current position, blink its color.
+    lda Zp_Tmp1_byte  ; minimap row
+    cmp Zp_AvatarMinimapRow_u8
+    bne @noBlink
+    lda Zp_Tmp2_byte  ; minimap col
+    cmp Zp_AvatarMinimapCol_u8
+    bne @noBlink
+    lda Zp_FrameCounter_u8
+    and #$10
+    beq @noBlink
+    @blink:
+    lda #bObj::Pri | kMinimapCurrentScreenPalette
+    bne @setFlags  ; unconditional
+    @noBlink:
+    lda #bObj::Pri | kMinimapCurrentAreaPalette
+    @setFlags:
+    ;; Draw an object for this minimap cell.
+    ldx Zp_OamOffset_u8
+    sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, x
+    lda Zp_Tmp1_byte  ; minimap row
+    mul #kTileHeightPx
+    adc #kMinimapTopPx - 1
+    sta Ram_Oam_sObj_arr64 + sObj::YPos_u8, x
+    lda Zp_Tmp2_byte  ; minimap col
+    mul #kTileWidthPx
+    adc #kMinimapLeftPx
+    sta Ram_Oam_sObj_arr64 + sObj::XPos_u8, x
+    lda #kMinimapAreaObjTileId
+    sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, x
+    .repeat .sizeof(sObj)
+    inx
+    .endrepeat
+    stx Zp_OamOffset_u8
+    ;; Read the minimap row (or $ff terminator) for the next iteration.
+    @continue:
+    lda (Zp_Tmp_ptr), y
+    bpl @loop
     rts
 .ENDPROC
 

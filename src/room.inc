@@ -127,6 +127,9 @@ kMaxRoomWidthBlocks = kMaxRoomWidthTiles / 2
     ;; A pointer to a $ff-terminated string with the name of the area that this
     ;; room belongs to.
     AreaName_u8_arr_ptr         .addr
+    ;; A pointer to a $ff-terminated array of row/col pairs listing the minimap
+    ;; cells that constitute the area that this room belongs to.
+    AreaCells_u8_arr2_arr_ptr   .addr
     ;; A pointer to a static array of devices that should always be loaded into
     ;; the room upon entering, terminated by a zero (i.e. eDevice::None).  The
     ;; dynamic set of devices can optionally be modified afterwards by the

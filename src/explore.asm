@@ -149,6 +149,11 @@ Zp_ScrollXHi_u8: .res 1
 Zp_AvatarPosX_i16: .res 2
 Zp_AvatarPosY_i16: .res 2
 
+;;; The current minimap cell that the avatar is in.
+.EXPORTZP Zp_AvatarMinimapRow_u8, Zp_AvatarMinimapCol_u8
+Zp_AvatarMinimapRow_u8: .res 1
+Zp_AvatarMinimapCol_u8: .res 1
+
 ;;; The current velocity of the player avatar, in subpixels per frame.
 Zp_AvatarVelX_i16: .res 2
 Zp_AvatarVelY_i16: .res 2
@@ -224,6 +229,7 @@ Zp_NearbyDevice_u8: .res 1
     jsr Func_Window_DirectDrawTopBorder
     ;; TODO: Set the appropriate chr08_bank for the current room.
     chr08_bank #<.bank(Ppu_ChrCave)
+    jsr Func_UpdateAndMarkMinimap
 _InitializeScrolling:
     jsr Func_SetScrollGoalFromAvatar
     lda Zp_ScrollGoalY_u8
@@ -556,6 +562,75 @@ _DoneTransfer:
     rts
 .ENDPROC
 
+;;; Recomputes Zp_AvatarMinimapRow_u8 and Zp_AvatarMinimapCol_u8 from the
+;;; avatar's current position and room, then (if necessary) updates SRAM to
+;;; mark that minimap cell as explored.
+.PROC Func_UpdateAndMarkMinimap
+_UpdateMinimapRow:
+    ldy <(Zp_Current_sRoom + sRoom::MinimapStartRow_u8)
+    bit <(Zp_Current_sRoom + sRoom::IsTall_bool)
+    bpl @upperHalf
+    @tall:
+    lda Zp_AvatarPosY_i16 + 1
+    bmi @upperHalf
+    bne @lowerHalf
+    lda Zp_AvatarPosY_i16 + 0
+    cmp #(kTallRoomHeightBlocks / 2) * kBlockHeightPx
+    blt @upperHalf
+    @lowerHalf:
+    iny
+    @upperHalf:
+    sty Zp_AvatarMinimapRow_u8
+_UpdateMinimapCol:
+    lda Zp_AvatarPosX_i16 + 1
+    bmi @leftSide
+    cmp <(Zp_Current_sRoom + sRoom::MinimapWidth_u8)
+    blt @middle
+    @rightSide:
+    ldx <(Zp_Current_sRoom + sRoom::MinimapWidth_u8)
+    dex
+    txa
+    @middle:
+    add <(Zp_Current_sRoom + sRoom::MinimapStartCol_u8)
+    bcc @setCol  ; unconditional
+    @leftSide:
+    lda <(Zp_Current_sRoom + sRoom::MinimapStartCol_u8)
+    @setCol:
+    sta Zp_AvatarMinimapCol_u8
+_MarkMinimap:
+    ;; Determine the bitmask to use for Sram_Minimap_u16_arr, and store it in
+    ;; Zp_Tmp1_byte.
+    lda Zp_AvatarMinimapRow_u8
+    tay
+    and #$07
+    tax
+    lda Data_PowersOfTwo_u8_arr8, x
+    sta Zp_Tmp1_byte  ; mask
+    ;; Calculate the byte offset into Sram_Minimap_u16_arr and store it in X.
+    lda Zp_AvatarMinimapCol_u8
+    mul #2
+    tax  ; byte index into Sram_Minimap_u16_arr
+    cpy #$08
+    blt @loByte
+    inx
+    @loByte:
+    ;; Check if minimap needs to be updated.
+    lda Sram_Minimap_u16_arr, x
+    ora Zp_Tmp1_byte  ; mask
+    cmp Sram_Minimap_u16_arr, x
+    beq @done
+    ;; Enable writes to SRAM.
+    ldy #bMmc3PrgRam::Enable
+    sty Hw_Mmc3PrgRamProtect_wo
+    ;; Update minimap.
+    sta Sram_Minimap_u16_arr, x
+    ;; Disable writes to SRAM.
+    ldy #bMmc3PrgRam::Enable | bMmc3PrgRam::DenyWrites
+    sty Hw_Mmc3PrgRamProtect_wo
+    @done:
+    rts
+.ENDPROC
+
 ;;; Updates the player avatar state based on the current joypad state.
 ;;; @return Z Cleared if the player avatar hit a door, set otherwise.
 ;;; @return A The eDoor that the player avatar hit, or eDoor::None for none.
@@ -867,64 +942,7 @@ _Up:
     sta Zp_AvatarPosY_i16 + 1
 _Done:
 .ENDPROC
-.PROC _MarkMinimap
-    ;; Calculate the current minimap row and store it in Y.
-    ldy <(Zp_Current_sRoom + sRoom::MinimapStartRow_u8)
-    bit <(Zp_Current_sRoom + sRoom::IsTall_bool)
-    bpl @upperHalf
-    @tall:
-    lda Zp_AvatarPosY_i16 + 1
-    bmi @upperHalf
-    bne @lowerHalf
-    lda Zp_AvatarPosY_i16 + 0
-    cmp #(kTallRoomHeightBlocks / 2) * kBlockHeightPx
-    blt @upperHalf
-    @lowerHalf:
-    iny
-    @upperHalf:
-    ;; Determine the bitmask to use for Sram_Minimap_u16_arr, and store it in
-    ;; Zp_Tmp1_byte.
-    tya
-    and #$07
-    tax
-    lda Data_PowersOfTwo_u8_arr8, x
-    sta Zp_Tmp1_byte  ; mask
-    ;; Calculate the byte offset into Sram_Minimap_u16_arr and store it in X.
-    lda Zp_AvatarPosX_i16 + 1
-    bmi @leftSide
-    cmp <(Zp_Current_sRoom + sRoom::MinimapWidth_u8)
-    blt @middle
-    @rightSide:
-    ldx <(Zp_Current_sRoom + sRoom::MinimapWidth_u8)
-    dex
-    txa
-    @middle:
-    add <(Zp_Current_sRoom + sRoom::MinimapStartCol_u8)
-    bcc @setCol  ; unconditional
-    @leftSide:
-    lda <(Zp_Current_sRoom + sRoom::MinimapStartCol_u8)
-    @setCol:
-    mul #2
-    tax  ; byte index into Sram_Minimap_u16_arr
-    cpy #$08
-    blt @loByte
-    inx
-    @loByte:
-    ;; Check if minimap needs to be updated.
-    lda Sram_Minimap_u16_arr, x
-    ora Zp_Tmp1_byte  ; mask
-    cmp Sram_Minimap_u16_arr, x
-    beq @done
-    ;; Enable writes to SRAM.
-    ldy #bMmc3PrgRam::Enable
-    sty Hw_Mmc3PrgRamProtect_wo
-    ;; Update minimap.
-    sta Sram_Minimap_u16_arr, x
-    ;; Disable writes to SRAM.
-    ldy #bMmc3PrgRam::Enable | bMmc3PrgRam::DenyWrites
-    sty Hw_Mmc3PrgRamProtect_wo
-    @done:
-.ENDPROC
+    jsr Func_UpdateAndMarkMinimap
 .PROC _ApplyGravity
     ;; Only apply gravity if the player avatar is airborne.
     lda Zp_AvatarMode_ePlayer
