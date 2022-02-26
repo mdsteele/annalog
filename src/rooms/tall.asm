@@ -58,6 +58,11 @@ kJailCellDoorInitPosY = kJailCellDoorMaxPosY
 ;;; How fast the jail cell door moves, in pixels per frame.
 kJailCellDoorSpeed = 1
 
+;;; Various OBJ tile IDs used for drawing the machines in this room.
+kMachineTileIdLightOff = $60
+kMachineTileIdLightOn  = $61
+kMachineTileIdCorner   = $63
+
 ;;; The OBJ palette number to use for machines in this room.
 kMachinePalette = 1
 
@@ -182,7 +187,7 @@ _Draw:
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Flags_bObj, y
     lda #kMachinePalette | bObj::FlipV
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Flags_bObj, y
-    lda #$1d
+    lda #kMachineTileIdCorner
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Tile_u8, y
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Tile_u8, y
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Tile_u8, y
@@ -192,10 +197,10 @@ _Draw:
     lda Zp_FrameCounter_u8
     and #$08
     beq @lightOff
-    lda #$1b
+    lda #kMachineTileIdLightOn
     bne @setLight  ; unconditional
     @lightOff:
-    lda #$1a
+    lda #kMachineTileIdLightOff
     @setLight:
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Tile_u8, y
     @done:

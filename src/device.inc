@@ -21,10 +21,10 @@
 kMaxDevices = 8
 
 ;;; The OBJ tile IDs used for various device objects.
-kConsoleScreenTileIdOk  = $1e
-kConsoleScreenTileIdErr = $1f
-kLeverHandleTileIdDown  = $20
-kLeverHandleTileIdUp    = $21
+kConsoleScreenTileIdOk  = $0a
+kConsoleScreenTileIdErr = $0b
+kLeverHandleTileIdDown  = $0c
+kLeverHandleTileIdUp    = $0d
 
 ;;; The initial value to set in Ram_DeviceAnim_u8_arr when animating an upgrade
 ;;; device.

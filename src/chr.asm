@@ -91,13 +91,15 @@
 .EXPORT Ppu_ChrPlayer
 .PROC Ppu_ChrPlayer
 :   .incbin "out/data/tiles/cursor.chr"
-    .incbin "out/data/tiles/player.chr"
-    .incbin "out/data/tiles/machine.chr"
     .assert * - :- = kSizeofChr * kConsoleScreenTileIdOk, error
     .incbin "out/data/tiles/screen.chr"
     .assert * - :- = kSizeofChr * kLeverHandleTileIdDown, error
     .incbin "out/data/tiles/lever.chr"
-    .res $5e * kSizeofChr
+    .res $12 * kSizeofChr
+    .incbin "out/data/tiles/player.chr"
+    .res $20 * kSizeofChr
+    .incbin "out/data/tiles/machine.chr"
+    .res $1c * kSizeofChr
     .assert * - :- = kSizeofChr * $80, error
 .ENDPROC
 

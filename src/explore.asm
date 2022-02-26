@@ -107,12 +107,19 @@ kFirstSolidTerrainType = $40
 ;;; Modes that the player avatar can be in.  The number for each of these enum
 ;;; values is the starting tile ID to use for the avatar objects when the
 ;;; avatar is in that mode.
-.ENUM ePlayer
-    Standing = $0a
-    Reading  = $0e
-    Running  = $12
-    Jumping  = $16
+.ENUM eAvatar
+    Standing = $20  ; (grounded) standing still on the ground
+    Landing  = $24  ; (grounded) just landed from a jump
+    Reading  = $28  ; (grounded) facing away from camera (e.g. to read a sign)
+    Running1 = $2c  ; (grounded) running along the ground (1st frame)
+    Running2 = $30  ; (grounded) running along the ground (2nd frame)
+    Jumping  = $34  ; (airborne) jumping up
+    Floating = $38  ; (airborne) mid-jump hang time
+    Falling  = $3c  ; (airborne) falling down
 .ENDENUM
+
+;;; Any eAvatar modes greater than or equal to this are considered airborne.
+kFirstAirborneAvatarMode = eAvatar::Jumping
 
 ;;; The OBJ palette number and tile ID used for the visual prompt that appears
 ;;; when the player avatar is near a device.
@@ -163,7 +170,11 @@ Zp_AvatarVelY_i16: .res 2
 Zp_AvatarFlags_bObj: .res 1
 
 ;;; What mode the avatar is currently in (e.g. standing, jumping, etc.).
-Zp_AvatarMode_ePlayer: .res 1
+Zp_AvatarMode_eAvatar: .res 1
+
+;;; How many more frames the player avatar should stay in eAvatar::Landing mode
+;;; (after landing from a jump).
+Zp_AvatarRecover_u8: .res 1
 
 ;;; The index of the device that the player avatar is near, or $ff if none.
 Zp_NearbyDevice_u8: .res 1
@@ -206,9 +217,10 @@ Zp_NearbyDevice_u8: .res 1
     ora #kBlockHeightPx - kAvatarBoundingBoxDown
     sta Zp_AvatarPosY_i16 + 0
     ;; Make the avatar stand still, facing to the right.
-    lda #ePlayer::Standing
-    sta Zp_AvatarMode_ePlayer
+    lda #eAvatar::Standing
+    sta Zp_AvatarMode_eAvatar
     lda #0
+    sta Zp_AvatarRecover_u8
     sta Zp_AvatarVelX_i16 + 0
     sta Zp_AvatarVelX_i16 + 1
     sta Zp_AvatarVelY_i16 + 0
@@ -299,12 +311,18 @@ _CheckForActivateDevice:
     cmp #eDevice::Upgrade
     bne @done
     @upgrade:
+    lda #$ff
+    sta Zp_NearbyDevice_u8
     jmp Main_Upgrade_OpenWindow
     @console:
+    lda #eAvatar::Reading
+    sta Zp_AvatarMode_eAvatar
     lda Ram_DeviceTarget_u8_arr, x
     tax  ; param: machine index
     jmp Main_Console_OpenWindow
     @sign:
+    lda #eAvatar::Reading
+    sta Zp_AvatarMode_eAvatar
     lda Ram_DeviceTarget_u8_arr, x  ; param: dialog index
     jmp Main_Dialog_OpenWindow
     @lever:
@@ -396,12 +414,12 @@ _EnterNextRoom:
 .PROC Func_FindNearbyDevice
     ;; Check if the player avatar is airborne; if so, treat them as not near
     ;; any device.
-    lda Zp_AvatarMode_ePlayer
-    cmp #ePlayer::Jumping
-    bne @notJumping
+    lda Zp_AvatarMode_eAvatar
+    cmp #kFirstAirborneAvatarMode
+    blt @notAirborne
     ldx #$ff
     bne @done  ; unconditional
-    @notJumping:
+    @notAirborne:
     ;; Calculate the player avatar's room block row and store it in
     ;; Zp_Tmp1_byte.
     lda Zp_AvatarPosY_i16 + 0
@@ -620,7 +638,7 @@ _ObjectFlags:
     and #bObj::FlipH
     bne _ObjectTilesFacingLeft
 _ObjectTilesFacingRight:
-    lda Zp_AvatarMode_ePlayer
+    lda Zp_AvatarMode_eAvatar
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Tile_u8, y
     add #1
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Tile_u8, y
@@ -630,7 +648,7 @@ _ObjectTilesFacingRight:
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Tile_u8, y
     bne _Done  ; unconditional
 _ObjectTilesFacingLeft:
-    lda Zp_AvatarMode_ePlayer
+    lda Zp_AvatarMode_eAvatar
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Tile_u8, y
     add #1
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Tile_u8, y
@@ -647,6 +665,9 @@ _Done:
 .PROC Func_DrawObjectsForDevicePrompt
     lda Zp_NearbyDevice_u8
     bmi _NotVisible
+    lda Zp_AvatarMode_eAvatar
+    cmp #eAvatar::Reading
+    beq _NotVisible
     ;; Calculate the screen X-position and store it in Zp_Tmp1_byte:
     lda Zp_AvatarPosX_i16 + 0
     sub Zp_PpuScrollX_u8
@@ -846,10 +867,11 @@ _DoneLeftRight:
     lda Zp_P1ButtonsPressed_bJoypad
     and #bJoypad::AButton
     beq @noJump
-    lda #ePlayer::Jumping
-    cmp Zp_AvatarMode_ePlayer
-    beq @noJump
-    sta Zp_AvatarMode_ePlayer
+    lda Zp_AvatarMode_eAvatar
+    cmp #kFirstAirborneAvatarMode
+    bge @noJump
+    lda #eAvatar::Jumping
+    sta Zp_AvatarMode_eAvatar
     ldax #kAvatarJumpVelocity
     stax Zp_AvatarVelY_i16
     ;; TODO: play a jumping sound
@@ -1063,7 +1085,51 @@ _Done:
     .endrepeat
     ;; Check if the player is moving up or down.
     lda Zp_AvatarVelY_i16 + 1
-    bmi _Up
+    bpl _Down
+_Up:
+    ;; Calculate the room block row index just above the avatar's head, and
+    ;; store it in Zp_Tmp3_byte.
+    lda Zp_AvatarPosY_i16 + 0
+    sub #kAvatarBoundingBoxUp + 1
+    sta Zp_Tmp3_byte
+    lda Zp_AvatarPosY_i16 + 1
+    sbc #0
+    .repeat 4
+    lsr a
+    ror Zp_Tmp3_byte
+    .endrepeat
+    ;; Check for tile collisions.
+    lda Zp_Tmp1_byte  ; param: room tile column index (left side of avatar)
+    jsr FuncA_Terrain_GetColumnPtrForTileIndex  ; preserves Zp_Tmp*_byte
+    ldy Zp_Tmp3_byte  ; room block row index (top of avatar)
+    lda (Zp_TerrainColumn_u8_arr_ptr), y  ; terrain block type
+    cmp #kFirstSolidTerrainType
+    bge @solid
+    lda Zp_Tmp2_byte  ; param: room tile column index (right side of avatar)
+    jsr FuncA_Terrain_GetColumnPtrForTileIndex  ; preserves Zp_Tmp*_byte
+    ldy Zp_Tmp3_byte  ; room block row index (top of avatar)
+    lda (Zp_TerrainColumn_u8_arr_ptr), y  ; terrain block type
+    cmp #kFirstSolidTerrainType
+    blt @done
+    @solid:
+    ;; We've hit the ceiling, so set vertical velocity to zero, and set
+    ;; vertical position to just below the ceiling we hit.
+    lda #0
+    sta Zp_AvatarVelY_i16 + 0
+    sta Zp_AvatarVelY_i16 + 1
+    .repeat 4
+    asl Zp_Tmp3_byte
+    rol a
+    .endrepeat
+    tax
+    lda Zp_Tmp3_byte
+    add #kBlockHeightPx + kAvatarBoundingBoxUp
+    sta Zp_AvatarPosY_i16 + 0
+    txa
+    adc #0
+    sta Zp_AvatarPosY_i16 + 1
+    @done:
+    jmp _Done
 _Down:
     ;; Calculate the room block row index just below the avatar's feet, and
     ;; store it in Zp_Tmp3_byte.
@@ -1091,14 +1157,51 @@ _Down:
     bge @solid
     @empty:
     ;; There's no floor beneath us, so start falling.
-    lda #ePlayer::Jumping
-    sta Zp_AvatarMode_ePlayer
+    lda Zp_AvatarVelY_i16 + 1
+    cmp #2
+    blt @floating
+    lda #eAvatar::Falling
+    bne @setMode  ; unconditional
+    @floating:
+    lda #eAvatar::Floating
+    @setMode:
+    sta Zp_AvatarMode_eAvatar
     jmp _Done
     @solid:
-    ;; We've hit the floor, so end jumping mode, set vertical velocity to zero,
-    ;; and set vertical position to just above the floor we hit.
-    lda #ePlayer::Standing
-    sta Zp_AvatarMode_ePlayer
+    ;; We've hit the floor, so update the avatar mode.
+    lda Zp_AvatarMode_eAvatar
+    cmp #kFirstAirborneAvatarMode
+    bge @wasAirborne
+    lda Zp_AvatarRecover_u8
+    beq @standOrRun
+    dec Zp_AvatarRecover_u8
+    bne @doneRecover
+    @standOrRun:
+    lda Zp_AvatarVelX_i16 + 1
+    beq @standing
+    lda Zp_FrameCounter_u8
+    and #$08
+    bne @running2
+    @running1:
+    lda #eAvatar::Running1
+    bne @setAvatarMode  ; unconditional
+    @running2:
+    lda #eAvatar::Running2
+    bne @setAvatarMode  ; unconditional
+    @standing:
+    lda #eAvatar::Standing
+    bne @setAvatarMode  ; unconditional
+    @wasAirborne:
+    ldx Zp_AvatarVelY_i16 + 1
+    lda DataA_Terrain_AvatarRecoverFrames_u8_arr, x
+    beq @standOrRun
+    sta Zp_AvatarRecover_u8
+    lda #eAvatar::Landing
+    @setAvatarMode:
+    sta Zp_AvatarMode_eAvatar
+    @doneRecover:
+    ;; Set vertical velocity to zero, and set vertical position to just above
+    ;; the floor we hit.
     lda #0
     sta Zp_AvatarVelY_i16 + 0
     sta Zp_AvatarVelY_i16 + 1
@@ -1113,56 +1216,13 @@ _Down:
     txa
     sbc #0
     sta Zp_AvatarPosY_i16 + 1
-    jmp _Done
-_Up:
-    ;; Calculate the room block row index just above the avatar's head, and
-    ;; store it in Zp_Tmp3_byte.
-    lda Zp_AvatarPosY_i16 + 0
-    sub #kAvatarBoundingBoxUp + 1
-    sta Zp_Tmp3_byte
-    lda Zp_AvatarPosY_i16 + 1
-    sbc #0
-    .repeat 4
-    lsr a
-    ror Zp_Tmp3_byte
-    .endrepeat
-    ;; Check for tile collisions.
-    lda Zp_Tmp1_byte  ; param: room tile column index (left side of avatar)
-    jsr FuncA_Terrain_GetColumnPtrForTileIndex  ; preserves Zp_Tmp*_byte
-    ldy Zp_Tmp3_byte  ; room block row index (top of avatar)
-    lda (Zp_TerrainColumn_u8_arr_ptr), y  ; terrain block type
-    cmp #kFirstSolidTerrainType
-    bge @solid
-    lda Zp_Tmp2_byte  ; param: room tile column index (right side of avatar)
-    jsr FuncA_Terrain_GetColumnPtrForTileIndex  ; preserves Zp_Tmp*_byte
-    ldy Zp_Tmp3_byte  ; room block row index (top of avatar)
-    lda (Zp_TerrainColumn_u8_arr_ptr), y  ; terrain block type
-    cmp #kFirstSolidTerrainType
-    blt _Done
-    @solid:
-    ;; We've hit the ceiling, so set vertical velocity to zero, and set
-    ;; vertical position to just below the ceiling we hit.
-    lda #0
-    sta Zp_AvatarVelY_i16 + 0
-    sta Zp_AvatarVelY_i16 + 1
-    .repeat 4
-    asl Zp_Tmp3_byte
-    rol a
-    .endrepeat
-    tax
-    lda Zp_Tmp3_byte
-    add #kBlockHeightPx + kAvatarBoundingBoxUp
-    sta Zp_AvatarPosY_i16 + 0
-    txa
-    adc #0
-    sta Zp_AvatarPosY_i16 + 1
 _Done:
 .ENDPROC
     jsr Func_UpdateAndMarkMinimap
 .PROC _ApplyGravity
     ;; Only apply gravity if the player avatar is airborne.
-    lda Zp_AvatarMode_ePlayer
-    cmp #ePlayer::Jumping
+    lda Zp_AvatarMode_eAvatar
+    cmp #kFirstAirborneAvatarMode
     blt @noGravity
     ;; Accelerate the player avatar downwards.
     lda #kAvatarGravity
@@ -1183,6 +1243,14 @@ _Done:
 .ENDPROC
     lda #eDoor::None  ; indicate that no door was hit
     rts
+.ENDPROC
+
+;;; Maps from non-negative (Zp_AvatarVelY_i16 + 1) values to the value to set
+;;; for Zp_AvatarRecover_u8.  The higher the downward speed, the longer the
+;;; recovery time.
+.PROC DataA_Terrain_AvatarRecoverFrames_u8_arr
+:   .byte 0, 0, 8, 8, 12, 18
+    .assert * - :- = kAvatarMaxSpeedY + 1, error
 .ENDPROC
 
 ;;;=========================================================================;;;
