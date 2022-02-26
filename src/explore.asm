@@ -86,6 +86,10 @@ kAvatarBoundingBoxRight = 5
 kAvatarMaxSpeedX = 2
 kAvatarMaxSpeedY = 5
 
+;;; If the player stops holding the jump button while jumping, then the
+;;; avatar's upward speed is immediately capped to this many pixels per frame.
+kAvatarStopJumpSpeed = 1
+
 ;;; The horizontal acceleration applied to the player avatar when holding the
 ;;; left/right arrows, in subpixels per frame per frame.
 kAvatarHorzAccel = 70
@@ -863,19 +867,36 @@ _NeitherLeftNorRight:
     adc Zp_AvatarVelX_i16 + 1
     sta Zp_AvatarVelX_i16 + 1
 _DoneLeftRight:
-    ;; Check A button (jump).
-    lda Zp_P1ButtonsPressed_bJoypad
-    and #bJoypad::AButton
-    beq @noJump
     lda Zp_AvatarMode_eAvatar
     cmp #kFirstAirborneAvatarMode
-    bge @noJump
-    lda #eAvatar::Jumping
-    sta Zp_AvatarMode_eAvatar
+    bge _Airborne
+_Grounded:
+    ;; If the player presses the jump button while grounded, start a jump.
+    lda Zp_P1ButtonsPressed_bJoypad
+    and #bJoypad::AButton
+    beq _DoneJump
+    ;; TODO: play a jumping sound
     ldax #kAvatarJumpVelocity
     stax Zp_AvatarVelY_i16
-    ;; TODO: play a jumping sound
-    @noJump:
+    lda #eAvatar::Jumping
+    sta Zp_AvatarMode_eAvatar
+    bne _DoneJump  ; unconditional
+_Airborne:
+    ;; If the player stops holding the jump button while airborne, cap the
+    ;; upward speed to kAvatarStopJumpSpeed (that is, the Y velocity will be
+    ;; greater than or equal to -kAvatarStopJumpSpeed).
+    lda Zp_P1ButtonsHeld_bJoypad
+    and #bJoypad::AButton
+    bne _DoneJump
+    lda Zp_AvatarVelY_i16 + 1
+    bpl _DoneJump
+    cmp #$ff & -kAvatarStopJumpSpeed
+    bge _DoneJump
+    lda #$ff & -kAvatarStopJumpSpeed
+    sta Zp_AvatarVelY_i16 + 1
+    lda #$00
+    sta Zp_AvatarVelY_i16 + 0
+_DoneJump:
 .ENDPROC
 .PROC _ApplyVelX
     ldy #0
