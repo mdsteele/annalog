@@ -312,11 +312,13 @@ _CheckForActivateDevice:
     @done:
 _UpdateScrolling:
     jsr Func_SetScrollGoalFromAvatar
-    jsr Func_ScrollTowardsGoal
+    prga_bank #<.bank(FuncA_Terrain_ScrollTowardsGoal)
+    jsr FuncA_Terrain_ScrollTowardsGoal
 _Tick:
     jsr Func_TickAllDevices
     jsr Func_ExecuteAllMachines
-    jsr Func_ExploreMoveAvatar  ; clears Z if entering door; returns eDoor in A
+    prga_bank #<.bank(FuncA_Terrain_ExploreMoveAvatar)
+    jsr FuncA_Terrain_ExploreMoveAvatar  ; clears Z if door; returns eDoor in A
     beq _GameLoop
     .assert * = Main_Explore_GoThroughDoor, error, "fallthrough"
 .ENDPROC
@@ -510,58 +512,6 @@ _SetGoalToAX:
     rts
 .ENDPROC
 
-;;; Updates the scroll position for next frame to move closer to
-;;; Zp_ScrollGoalX_u16 and Zp_ScrollGoalY_u8, transferring nametable updates
-;;; for the current room as necessary.
-.EXPORT Func_ScrollTowardsGoal
-.PROC Func_ScrollTowardsGoal
-    ;; TODO: track towards the goal instead of locking directly onto it
-    lda Zp_ScrollGoalY_u8
-    sta Zp_PpuScrollY_u8
-_ScrollHorz:
-    ;; Calculate the index of the leftmost room tile column that is currently
-    ;; in the nametable, and put that index in Zp_Tmp1_byte.
-    lda Zp_PpuScrollX_u8
-    add #kTileWidthPx - 1
-    sta Zp_Tmp1_byte
-    lda Zp_ScrollXHi_u8
-    adc #0
-    .repeat 3
-    lsr a
-    ror Zp_Tmp1_byte
-    .endrepeat
-    ;; Update the current scroll.
-    ;; TODO: track towards the goal instead of locking directly onto it
-    ldya Zp_ScrollGoalX_u16
-    sty Zp_ScrollXHi_u8
-    sta Zp_PpuScrollX_u8
-    ;; Calculate the index of the leftmost room tile column that should now be
-    ;; in the nametable, and put that index in Zp_Tmp2_byte.
-    lda Zp_PpuScrollX_u8
-    add #kTileWidthPx - 1
-    sta Zp_Tmp2_byte
-    lda Zp_ScrollXHi_u8
-    adc #0
-    .repeat 3
-    lsr a
-    ror Zp_Tmp2_byte
-    .endrepeat
-    ;; Determine if we need to update the nametable; if so, set A to the index
-    ;; of the room tile column that should be loaded.
-    lda Zp_Tmp2_byte
-    cmp Zp_Tmp1_byte
-    beq _DoneTransfer
-    bmi _DoTransfer
-    add #kScreenWidthTiles - 1
-_DoTransfer:
-    tax
-    prga_bank #<.bank(FuncA_Terrain_TransferTileColumn)
-    txa
-    jsr FuncA_Terrain_TransferTileColumn
-_DoneTransfer:
-    rts
-.ENDPROC
-
 ;;; Recomputes Zp_AvatarMinimapRow_u8 and Zp_AvatarMinimapCol_u8 from the
 ;;; avatar's current position and room, then (if necessary) updates SRAM to
 ;;; mark that minimap cell as explored.
@@ -628,442 +578,6 @@ _MarkMinimap:
     ldy #bMmc3PrgRam::Enable | bMmc3PrgRam::DenyWrites
     sty Hw_Mmc3PrgRamProtect_wo
     @done:
-    rts
-.ENDPROC
-
-;;; Updates the player avatar state based on the current joypad state.
-;;; @return Z Cleared if the player avatar hit a door, set otherwise.
-;;; @return A The eDoor that the player avatar hit, or eDoor::None for none.
-;;; TODO: This should probably be in the same PRGA bank as terrain functions.
-.PROC Func_ExploreMoveAvatar
-    jsr Func_PlayerApplyJoypad
-_ApplyVelX:
-    ldy #0
-    lda Zp_AvatarVelX_i16 + 1
-    bpl @nonnegative
-    dey  ; now y is $ff
-    @nonnegative:
-    lda Zp_AvatarVelX_i16 + 1
-    add Zp_AvatarPosX_i16 + 0
-    sta Zp_AvatarPosX_i16 + 0
-    tya
-    adc Zp_AvatarPosX_i16 + 1
-    sta Zp_AvatarPosX_i16 + 1
-.PROC _DetectHorzDoor
-    lda Zp_AvatarVelX_i16 + 1
-    bmi _Western
-_Eastern:
-    ;; Calculate the room pixel X-position where the avatar will be offscreen
-    ;; to the right, storing the result in Zp_Tmp1_byte (lo) and A (hi).
-    lda <(Zp_Current_sRoom + sRoom::MaxScrollX_u16 + 0)
-    add #<(kScreenWidthPx + kAvatarBoundingBoxLeft)
-    sta Zp_Tmp1_byte
-    lda <(Zp_Current_sRoom + sRoom::MaxScrollX_u16 + 1)
-    adc #>(kScreenWidthPx + kAvatarBoundingBoxLeft)
-    ;; Compare the avatar's position to the offscreen position.
-    cmp Zp_AvatarPosX_i16 + 1
-    beq @checkLoByte
-    bge _NoHitDoor
-    @hitDoor:
-    lda #eDoor::Eastern
-    rts
-    @checkLoByte:
-    lda Zp_AvatarPosX_i16 + 0
-    cmp Zp_Tmp1_byte  ; door X-position (lo)
-    bge @hitDoor
-    blt _NoHitDoor  ; unconditional
-_Western:
-    ;; If the avatar's X-position is negative, then we definitely hit the
-    ;; western door (although this should not happen in practice).  On the
-    ;; other hand, if the hi byte of the avatar's X-position is greater than
-    ;; zero, then we definitely didn't hit the western door.
-    lda Zp_AvatarPosX_i16 + 1
-    bmi @hitDoor
-    bne _NoHitDoor
-    ;; Calculate the room pixel X-position where the avatar will be fully
-    ;; hidden by the one-tile-wide mask on the left side of the screen, storing
-    ;; the result in A.
-    lda <(Zp_Current_sRoom + sRoom::MinScrollX_u8 + 0)
-    add #kTileWidthPx - kAvatarBoundingBoxRight
-    ;; Compare the avatar's position to the offscreen position.  By this point,
-    ;; we already know that the hi byte of the avatar's position is zero.
-    cmp Zp_AvatarPosX_i16 + 0
-    blt _NoHitDoor
-    @hitDoor:
-    lda #eDoor::Western
-    rts
-_NoHitDoor:
-.ENDPROC
-.PROC _DetectHorzCollision
-    ;; Calculate the room block row index that the avatar's feet are in, and
-    ;; store it in Zp_Tmp1_byte.
-    lda Zp_AvatarPosY_i16 + 0
-    add #kAvatarBoundingBoxDown - 1
-    sta Zp_Tmp1_byte
-    lda Zp_AvatarPosY_i16 + 1
-    adc #0
-    .repeat 4
-    lsr a
-    ror Zp_Tmp1_byte
-    .endrepeat
-    ;; Calculate the room block row index that the avatar's head is in, and
-    ;; store it in Zp_Tmp2_byte.
-    lda Zp_AvatarPosY_i16 + 0
-    sub #kAvatarBoundingBoxUp
-    sta Zp_Tmp2_byte
-    lda Zp_AvatarPosY_i16 + 1
-    sbc #0
-    .repeat 4
-    lsr a
-    ror Zp_Tmp2_byte
-    .endrepeat
-    ;; Check if the player is moving to the left or to the right.
-    lda Zp_AvatarVelX_i16 + 1
-    bmi _Left
-_Right:
-    ;; Calculate the room tile column index at the avatar's right side, and
-    ;; store it in Zp_Tmp3_byte.
-    lda Zp_AvatarPosX_i16 + 0
-    add #kAvatarBoundingBoxRight + 1
-    sta Zp_Tmp3_byte
-    lda Zp_AvatarPosX_i16 + 1
-    adc #0
-    .repeat 3
-    lsr a
-    ror Zp_Tmp3_byte
-    .endrepeat
-    ;; Check for tile collisions.
-    prga_bank #<.bank(FuncA_Terrain_GetColumnPtrForTileIndex)
-    lda Zp_Tmp3_byte  ; param: room tile column index (right side of avatar)
-    jsr FuncA_Terrain_GetColumnPtrForTileIndex  ; preserves Zp_Tmp*_byte
-    ldy Zp_Tmp1_byte  ; room block row index (bottom of avatar)
-    lda (Zp_TerrainColumn_u8_arr_ptr), y  ; terrain block type
-    cmp #kFirstSolidTerrainType
-    bge @solid
-    ldy Zp_Tmp2_byte  ; room block row index (top of avatar)
-    lda (Zp_TerrainColumn_u8_arr_ptr), y  ; terrain block type
-    cmp #kFirstSolidTerrainType
-    blt _Done
-    ;; We've hit the right wall, so set horizontal velocity to zero, and set
-    ;; horizontal position to just to the left of the wall we hit.
-    @solid:
-    lda #0
-    sta Zp_AvatarVelX_i16 + 0
-    sta Zp_AvatarVelX_i16 + 1
-    .repeat 3
-    asl Zp_Tmp3_byte
-    rol a
-    .endrepeat
-    tax
-    lda Zp_Tmp3_byte
-    sub #kAvatarBoundingBoxRight
-    sta Zp_AvatarPosX_i16 + 0
-    txa
-    sbc #0
-    sta Zp_AvatarPosX_i16 + 1
-    jmp _Done
-_Left:
-    ;; Calculate the room tile column index to the left of the avatar, and
-    ;; store it in Zp_Tmp3_byte.
-    lda Zp_AvatarPosX_i16 + 0
-    sub #kAvatarBoundingBoxLeft + 1
-    sta Zp_Tmp3_byte
-    lda Zp_AvatarPosX_i16 + 1
-    sbc #0
-    .repeat 3
-    lsr a
-    ror Zp_Tmp3_byte
-    .endrepeat
-    ;; Check for tile collisions.
-    prga_bank #<.bank(FuncA_Terrain_GetColumnPtrForTileIndex)
-    lda Zp_Tmp3_byte  ; param: room tile column index (left side of avatar)
-    jsr FuncA_Terrain_GetColumnPtrForTileIndex  ; preserves Zp_Tmp*_byte
-    ldy Zp_Tmp1_byte  ; room block row index (bottom of avatar)
-    lda (Zp_TerrainColumn_u8_arr_ptr), y  ; terrain block type
-    cmp #kFirstSolidTerrainType
-    bge @solid
-    ldy Zp_Tmp2_byte  ; room block row index (top of avatar)
-    lda (Zp_TerrainColumn_u8_arr_ptr), y  ; terrain block type
-    cmp #kFirstSolidTerrainType
-    blt _Done
-    ;; We've hit the left wall, so set horizontal velocity to zero, and set
-    ;; horizontal position to just to the right of the wall we hit.
-    @solid:
-    lda #0
-    sta Zp_AvatarVelX_i16 + 0
-    sta Zp_AvatarVelX_i16 + 1
-    .repeat 3
-    asl Zp_Tmp3_byte
-    rol a
-    .endrepeat
-    tax
-    lda Zp_Tmp3_byte
-    add #kTileWidthPx + kAvatarBoundingBoxLeft
-    sta Zp_AvatarPosX_i16 + 0
-    txa
-    adc #0
-    sta Zp_AvatarPosX_i16 + 1
-_Done:
-.ENDPROC
-_ApplyVelY:
-    ldy #0
-    lda Zp_AvatarVelY_i16 + 1
-    bpl @nonnegative
-    dey  ; now y is $ff
-    @nonnegative:
-    lda Zp_AvatarVelY_i16 + 1
-    add Zp_AvatarPosY_i16 + 0
-    sta Zp_AvatarPosY_i16 + 0
-    tya
-    adc Zp_AvatarPosY_i16 + 1
-    sta Zp_AvatarPosY_i16 + 1
-.PROC _DetectVertDoor
-    ;; TODO: Implement top/bottom doors.
-.ENDPROC
-.PROC _DetectVertCollision
-    ;; Calculate the room tile column index that the avatar's left side is in,
-    ;; and store it in Zp_Tmp1_byte.
-    lda Zp_AvatarPosX_i16 + 0
-    sub #kAvatarBoundingBoxLeft
-    sta Zp_Tmp1_byte
-    lda Zp_AvatarPosX_i16 + 1
-    sbc #0
-    .repeat 3
-    lsr a
-    ror Zp_Tmp1_byte
-    .endrepeat
-    ;; Calculate the room tile column index at the avatar's right side is in,
-    ;; and store it in Zp_Tmp2_byte.
-    lda Zp_AvatarPosX_i16 + 0
-    add #kAvatarBoundingBoxRight - 1
-    sta Zp_Tmp2_byte
-    lda Zp_AvatarPosX_i16 + 1
-    adc #0
-    .repeat 3
-    lsr a
-    ror Zp_Tmp2_byte
-    .endrepeat
-    ;; Check if the player is moving up or down.
-    lda Zp_AvatarVelY_i16 + 1
-    bmi _Up
-_Down:
-    ;; Calculate the room block row index just below the avatar's feet, and
-    ;; store it in Zp_Tmp3_byte.
-    lda Zp_AvatarPosY_i16 + 0
-    add #kAvatarBoundingBoxDown
-    sta Zp_Tmp3_byte
-    lda Zp_AvatarPosY_i16 + 1
-    adc #0
-    .repeat 4
-    lsr a
-    ror Zp_Tmp3_byte
-    .endrepeat
-    ;; Check for tile collisions.
-    prga_bank #<.bank(FuncA_Terrain_GetColumnPtrForTileIndex)
-    lda Zp_Tmp1_byte  ; param: room tile column index (left side of avatar)
-    jsr FuncA_Terrain_GetColumnPtrForTileIndex  ; preserves Zp_Tmp*_byte
-    ldy Zp_Tmp3_byte  ; room block row index (bottom of avatar)
-    lda (Zp_TerrainColumn_u8_arr_ptr), y  ; terrain block type
-    cmp #kFirstSolidTerrainType
-    bge @solid
-    lda Zp_Tmp2_byte  ; param: room tile column index (right side of avatar)
-    jsr FuncA_Terrain_GetColumnPtrForTileIndex  ; preserves Zp_Tmp*_byte
-    ldy Zp_Tmp3_byte  ; room block row index (bottom of avatar)
-    lda (Zp_TerrainColumn_u8_arr_ptr), y  ; terrain block type
-    cmp #kFirstSolidTerrainType
-    bge @solid
-    @empty:
-    ;; There's no floor beneath us, so start falling.
-    lda #ePlayer::Jumping
-    sta Zp_AvatarMode_ePlayer
-    jmp _Done
-    @solid:
-    ;; We've hit the floor, so end jumping mode, set vertical velocity to zero,
-    ;; and set vertical position to just above the floor we hit.
-    lda #ePlayer::Standing
-    sta Zp_AvatarMode_ePlayer
-    lda #0
-    sta Zp_AvatarVelY_i16 + 0
-    sta Zp_AvatarVelY_i16 + 1
-    .repeat 4
-    asl Zp_Tmp3_byte
-    rol a
-    .endrepeat
-    tax
-    lda Zp_Tmp3_byte
-    sub #kAvatarBoundingBoxDown
-    sta Zp_AvatarPosY_i16 + 0
-    txa
-    sbc #0
-    sta Zp_AvatarPosY_i16 + 1
-    jmp _Done
-_Up:
-    ;; Calculate the room block row index just above the avatar's head, and
-    ;; store it in Zp_Tmp3_byte.
-    lda Zp_AvatarPosY_i16 + 0
-    sub #kAvatarBoundingBoxUp + 1
-    sta Zp_Tmp3_byte
-    lda Zp_AvatarPosY_i16 + 1
-    sbc #0
-    .repeat 4
-    lsr a
-    ror Zp_Tmp3_byte
-    .endrepeat
-    ;; Check for tile collisions.
-    prga_bank #<.bank(FuncA_Terrain_GetColumnPtrForTileIndex)
-    lda Zp_Tmp1_byte  ; param: room tile column index (left side of avatar)
-    jsr FuncA_Terrain_GetColumnPtrForTileIndex  ; preserves Zp_Tmp*_byte
-    ldy Zp_Tmp3_byte  ; room block row index (top of avatar)
-    lda (Zp_TerrainColumn_u8_arr_ptr), y  ; terrain block type
-    cmp #kFirstSolidTerrainType
-    bge @solid
-    lda Zp_Tmp2_byte  ; param: room tile column index (right side of avatar)
-    jsr FuncA_Terrain_GetColumnPtrForTileIndex  ; preserves Zp_Tmp*_byte
-    ldy Zp_Tmp3_byte  ; room block row index (top of avatar)
-    lda (Zp_TerrainColumn_u8_arr_ptr), y  ; terrain block type
-    cmp #kFirstSolidTerrainType
-    blt _Done
-    @solid:
-    ;; We've hit the ceiling, so set vertical velocity to zero, and set
-    ;; vertical position to just below the ceiling we hit.
-    lda #0
-    sta Zp_AvatarVelY_i16 + 0
-    sta Zp_AvatarVelY_i16 + 1
-    .repeat 4
-    asl Zp_Tmp3_byte
-    rol a
-    .endrepeat
-    tax
-    lda Zp_Tmp3_byte
-    add #kBlockHeightPx + kAvatarBoundingBoxUp
-    sta Zp_AvatarPosY_i16 + 0
-    txa
-    adc #0
-    sta Zp_AvatarPosY_i16 + 1
-_Done:
-.ENDPROC
-    jsr Func_UpdateAndMarkMinimap
-.PROC _ApplyGravity
-    ;; Only apply gravity if the player avatar is airborne.
-    lda Zp_AvatarMode_ePlayer
-    cmp #ePlayer::Jumping
-    blt @noGravity
-    ;; Accelerate the player avatar downwards.
-    lda #kAvatarGravity
-    add Zp_AvatarVelY_i16 + 0
-    sta Zp_AvatarVelY_i16 + 0
-    lda #0
-    adc Zp_AvatarVelY_i16 + 1
-    ;; If moving downward, check for terminal velocity:
-    bmi @setVelYHi
-    cmp #kAvatarMaxSpeedY
-    blt @setVelYHi
-    lda #0
-    sta Zp_AvatarVelY_i16 + 0
-    lda #kAvatarMaxSpeedY
-    @setVelYHi:
-    sta Zp_AvatarVelY_i16 + 1
-    @noGravity:
-.ENDPROC
-    lda #eDoor::None  ; indicate that no door was hit
-    rts
-.ENDPROC
-
-;;; Update the player avatar's velocity and flags based on controller input
-;;; (left/right and jump).
-.PROC Func_PlayerApplyJoypad
-_JoypadLeft:
-    ;; Check D-pad left.
-    lda Zp_P1ButtonsHeld_bJoypad
-    and #bJoypad::Left
-    beq @noLeft
-    ;; If left and right are both held, ignore both.
-    lda Zp_P1ButtonsHeld_bJoypad
-    and #bJoypad::Right
-    bne _NeitherLeftNorRight
-    ;; Accelerate to the left.
-    lda Zp_AvatarVelX_i16 + 0
-    sub #kAvatarHorzAccel
-    sta Zp_AvatarVelX_i16 + 0
-    lda Zp_AvatarVelX_i16 + 1
-    sbc #0
-    bpl @noMax
-    cmp #$ff & (1 - kAvatarMaxSpeedX)
-    bge @noMax
-    lda #0
-    sta Zp_AvatarVelX_i16 + 0
-    lda #$ff & -kAvatarMaxSpeedX
-    @noMax:
-    sta Zp_AvatarVelX_i16 + 1
-    lda #kAvatarPalette | bObj::FlipH
-    sta Zp_AvatarFlags_bObj
-    bne _DoneLeftRight  ; unconditional
-    @noLeft:
-_JoypadRight:
-    ;; Check D-pad right.
-    lda Zp_P1ButtonsHeld_bJoypad
-    and #bJoypad::Right
-    beq @noRight
-    ;; Accelerate to the right.
-    lda Zp_AvatarVelX_i16 + 0
-    add #kAvatarHorzAccel
-    sta Zp_AvatarVelX_i16 + 0
-    lda Zp_AvatarVelX_i16 + 1
-    adc #0
-    bmi @noMax
-    cmp #kAvatarMaxSpeedX
-    blt @noMax
-    lda #0
-    sta Zp_AvatarVelX_i16 + 0
-    lda #kAvatarMaxSpeedX
-    @noMax:
-    sta Zp_AvatarVelX_i16 + 1
-    lda #kAvatarPalette
-    sta Zp_AvatarFlags_bObj
-    .assert kAvatarPalette > 0, error
-    bne _DoneLeftRight  ; unconditional
-    @noRight:
-_NeitherLeftNorRight:
-    ;; Decelerate.
-    lda Zp_AvatarVelX_i16 + 1
-    bmi @negative
-    bne @positive
-    lda Zp_AvatarVelX_i16 + 0
-    cmp #kAvatarHorzAccel
-    blt @stop
-    @positive:
-    ldy #$ff & -kAvatarHorzAccel
-    ldx #$ff
-    bne @decel  ; unconditional
-    @negative:
-    ldy #kAvatarHorzAccel
-    ldx #0
-    beq @decel  ; unconditional
-    @stop:
-    lda #0
-    sta Zp_AvatarVelX_i16 + 0
-    sta Zp_AvatarVelX_i16 + 1
-    beq _DoneLeftRight  ; unconditional
-    @decel:
-    tya
-    add Zp_AvatarVelX_i16 + 0
-    sta Zp_AvatarVelX_i16 + 0
-    txa
-    adc Zp_AvatarVelX_i16 + 1
-    sta Zp_AvatarVelX_i16 + 1
-_DoneLeftRight:
-    ;; Check A button (jump).
-    lda Zp_P1ButtonsPressed_bJoypad
-    and #bJoypad::AButton
-    beq @noJump
-    lda #ePlayer::Jumping
-    cmp Zp_AvatarMode_ePlayer
-    beq @noJump
-    sta Zp_AvatarMode_ePlayer
-    ldax #kAvatarJumpVelocity
-    stax Zp_AvatarVelY_i16
-    ;; TODO: play a jumping sound
-    @noJump:
     rts
 .ENDPROC
 
@@ -1187,6 +701,487 @@ _Done:
     .endrepeat
     sty Zp_OamOffset_u8
 _NotVisible:
+    rts
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Terrain"
+
+;;; Updates the scroll position for next frame to move closer to
+;;; Zp_ScrollGoalX_u16 and Zp_ScrollGoalY_u8, transferring nametable updates
+;;; for the current room as necessary.
+.EXPORT FuncA_Terrain_ScrollTowardsGoal
+.PROC FuncA_Terrain_ScrollTowardsGoal
+    ;; TODO: track towards the goal instead of locking directly onto it
+    lda Zp_ScrollGoalY_u8
+    sta Zp_PpuScrollY_u8
+_ScrollHorz:
+    ;; Calculate the index of the leftmost room tile column that is currently
+    ;; in the nametable, and put that index in Zp_Tmp1_byte.
+    lda Zp_PpuScrollX_u8
+    add #kTileWidthPx - 1
+    sta Zp_Tmp1_byte
+    lda Zp_ScrollXHi_u8
+    adc #0
+    .repeat 3
+    lsr a
+    ror Zp_Tmp1_byte
+    .endrepeat
+    ;; Update the current scroll.
+    ;; TODO: track towards the goal instead of locking directly onto it
+    ldya Zp_ScrollGoalX_u16
+    sty Zp_ScrollXHi_u8
+    sta Zp_PpuScrollX_u8
+    ;; Calculate the index of the leftmost room tile column that should now be
+    ;; in the nametable, and put that index in Zp_Tmp2_byte.
+    lda Zp_PpuScrollX_u8
+    add #kTileWidthPx - 1
+    sta Zp_Tmp2_byte
+    lda Zp_ScrollXHi_u8
+    adc #0
+    .repeat 3
+    lsr a
+    ror Zp_Tmp2_byte
+    .endrepeat
+    ;; Determine if we need to update the nametable; if so, set A to the index
+    ;; of the room tile column that should be loaded.
+    lda Zp_Tmp2_byte
+    cmp Zp_Tmp1_byte
+    beq _DoneTransfer
+    bmi _DoTransfer
+    add #kScreenWidthTiles - 1
+_DoTransfer:
+    jsr FuncA_Terrain_TransferTileColumn
+_DoneTransfer:
+    rts
+.ENDPROC
+
+;;; Updates the player avatar state based on the current joypad state.
+;;; @return Z Cleared if the player avatar hit a door, set otherwise.
+;;; @return A The eDoor that the player avatar hit, or eDoor::None for none.
+.PROC FuncA_Terrain_ExploreMoveAvatar
+.PROC _PlayerApplyJoypad
+_JoypadLeft:
+    ;; Check D-pad left.
+    lda Zp_P1ButtonsHeld_bJoypad
+    and #bJoypad::Left
+    beq @noLeft
+    ;; If left and right are both held, ignore both.
+    lda Zp_P1ButtonsHeld_bJoypad
+    and #bJoypad::Right
+    bne _NeitherLeftNorRight
+    ;; Accelerate to the left.
+    lda Zp_AvatarVelX_i16 + 0
+    sub #kAvatarHorzAccel
+    sta Zp_AvatarVelX_i16 + 0
+    lda Zp_AvatarVelX_i16 + 1
+    sbc #0
+    bpl @noMax
+    cmp #$ff & (1 - kAvatarMaxSpeedX)
+    bge @noMax
+    lda #0
+    sta Zp_AvatarVelX_i16 + 0
+    lda #$ff & -kAvatarMaxSpeedX
+    @noMax:
+    sta Zp_AvatarVelX_i16 + 1
+    lda #kAvatarPalette | bObj::FlipH
+    sta Zp_AvatarFlags_bObj
+    bne _DoneLeftRight  ; unconditional
+    @noLeft:
+_JoypadRight:
+    ;; Check D-pad right.
+    lda Zp_P1ButtonsHeld_bJoypad
+    and #bJoypad::Right
+    beq @noRight
+    ;; Accelerate to the right.
+    lda Zp_AvatarVelX_i16 + 0
+    add #kAvatarHorzAccel
+    sta Zp_AvatarVelX_i16 + 0
+    lda Zp_AvatarVelX_i16 + 1
+    adc #0
+    bmi @noMax
+    cmp #kAvatarMaxSpeedX
+    blt @noMax
+    lda #0
+    sta Zp_AvatarVelX_i16 + 0
+    lda #kAvatarMaxSpeedX
+    @noMax:
+    sta Zp_AvatarVelX_i16 + 1
+    lda #kAvatarPalette
+    sta Zp_AvatarFlags_bObj
+    .assert kAvatarPalette > 0, error
+    bne _DoneLeftRight  ; unconditional
+    @noRight:
+_NeitherLeftNorRight:
+    ;; Decelerate.
+    lda Zp_AvatarVelX_i16 + 1
+    bmi @negative
+    bne @positive
+    lda Zp_AvatarVelX_i16 + 0
+    cmp #kAvatarHorzAccel
+    blt @stop
+    @positive:
+    ldy #$ff & -kAvatarHorzAccel
+    ldx #$ff
+    bne @decel  ; unconditional
+    @negative:
+    ldy #kAvatarHorzAccel
+    ldx #0
+    beq @decel  ; unconditional
+    @stop:
+    lda #0
+    sta Zp_AvatarVelX_i16 + 0
+    sta Zp_AvatarVelX_i16 + 1
+    beq _DoneLeftRight  ; unconditional
+    @decel:
+    tya
+    add Zp_AvatarVelX_i16 + 0
+    sta Zp_AvatarVelX_i16 + 0
+    txa
+    adc Zp_AvatarVelX_i16 + 1
+    sta Zp_AvatarVelX_i16 + 1
+_DoneLeftRight:
+    ;; Check A button (jump).
+    lda Zp_P1ButtonsPressed_bJoypad
+    and #bJoypad::AButton
+    beq @noJump
+    lda #ePlayer::Jumping
+    cmp Zp_AvatarMode_ePlayer
+    beq @noJump
+    sta Zp_AvatarMode_ePlayer
+    ldax #kAvatarJumpVelocity
+    stax Zp_AvatarVelY_i16
+    ;; TODO: play a jumping sound
+    @noJump:
+.ENDPROC
+.PROC _ApplyVelX
+    ldy #0
+    lda Zp_AvatarVelX_i16 + 1
+    bpl @nonnegative
+    dey  ; now y is $ff
+    @nonnegative:
+    lda Zp_AvatarVelX_i16 + 1
+    add Zp_AvatarPosX_i16 + 0
+    sta Zp_AvatarPosX_i16 + 0
+    tya
+    adc Zp_AvatarPosX_i16 + 1
+    sta Zp_AvatarPosX_i16 + 1
+.ENDPROC
+.PROC _DetectHorzDoor
+    lda Zp_AvatarVelX_i16 + 1
+    bmi _Western
+_Eastern:
+    ;; Calculate the room pixel X-position where the avatar will be offscreen
+    ;; to the right, storing the result in Zp_Tmp1_byte (lo) and A (hi).
+    lda <(Zp_Current_sRoom + sRoom::MaxScrollX_u16 + 0)
+    add #<(kScreenWidthPx + kAvatarBoundingBoxLeft)
+    sta Zp_Tmp1_byte
+    lda <(Zp_Current_sRoom + sRoom::MaxScrollX_u16 + 1)
+    adc #>(kScreenWidthPx + kAvatarBoundingBoxLeft)
+    ;; Compare the avatar's position to the offscreen position.
+    cmp Zp_AvatarPosX_i16 + 1
+    beq @checkLoByte
+    bge _NoHitDoor
+    @hitDoor:
+    lda #eDoor::Eastern
+    rts
+    @checkLoByte:
+    lda Zp_AvatarPosX_i16 + 0
+    cmp Zp_Tmp1_byte  ; door X-position (lo)
+    bge @hitDoor
+    blt _NoHitDoor  ; unconditional
+_Western:
+    ;; If the avatar's X-position is negative, then we definitely hit the
+    ;; western door (although this should not happen in practice).  On the
+    ;; other hand, if the hi byte of the avatar's X-position is greater than
+    ;; zero, then we definitely didn't hit the western door.
+    lda Zp_AvatarPosX_i16 + 1
+    bmi @hitDoor
+    bne _NoHitDoor
+    ;; Calculate the room pixel X-position where the avatar will be fully
+    ;; hidden by the one-tile-wide mask on the left side of the screen, storing
+    ;; the result in A.
+    lda <(Zp_Current_sRoom + sRoom::MinScrollX_u8 + 0)
+    add #kTileWidthPx - kAvatarBoundingBoxRight
+    ;; Compare the avatar's position to the offscreen position.  By this point,
+    ;; we already know that the hi byte of the avatar's position is zero.
+    cmp Zp_AvatarPosX_i16 + 0
+    blt _NoHitDoor
+    @hitDoor:
+    lda #eDoor::Western
+    rts
+_NoHitDoor:
+.ENDPROC
+.PROC _DetectHorzCollision
+    ;; Calculate the room block row index that the avatar's feet are in, and
+    ;; store it in Zp_Tmp1_byte.
+    lda Zp_AvatarPosY_i16 + 0
+    add #kAvatarBoundingBoxDown - 1
+    sta Zp_Tmp1_byte
+    lda Zp_AvatarPosY_i16 + 1
+    adc #0
+    .repeat 4
+    lsr a
+    ror Zp_Tmp1_byte
+    .endrepeat
+    ;; Calculate the room block row index that the avatar's head is in, and
+    ;; store it in Zp_Tmp2_byte.
+    lda Zp_AvatarPosY_i16 + 0
+    sub #kAvatarBoundingBoxUp
+    sta Zp_Tmp2_byte
+    lda Zp_AvatarPosY_i16 + 1
+    sbc #0
+    .repeat 4
+    lsr a
+    ror Zp_Tmp2_byte
+    .endrepeat
+    ;; Check if the player is moving to the left or to the right.
+    lda Zp_AvatarVelX_i16 + 1
+    bmi _Left
+_Right:
+    ;; Calculate the room tile column index at the avatar's right side, and
+    ;; store it in Zp_Tmp3_byte.
+    lda Zp_AvatarPosX_i16 + 0
+    add #kAvatarBoundingBoxRight + 1
+    sta Zp_Tmp3_byte
+    lda Zp_AvatarPosX_i16 + 1
+    adc #0
+    .repeat 3
+    lsr a
+    ror Zp_Tmp3_byte
+    .endrepeat
+    ;; Check for tile collisions.
+    lda Zp_Tmp3_byte  ; param: room tile column index (right side of avatar)
+    jsr FuncA_Terrain_GetColumnPtrForTileIndex  ; preserves Zp_Tmp*_byte
+    ldy Zp_Tmp1_byte  ; room block row index (bottom of avatar)
+    lda (Zp_TerrainColumn_u8_arr_ptr), y  ; terrain block type
+    cmp #kFirstSolidTerrainType
+    bge @solid
+    ldy Zp_Tmp2_byte  ; room block row index (top of avatar)
+    lda (Zp_TerrainColumn_u8_arr_ptr), y  ; terrain block type
+    cmp #kFirstSolidTerrainType
+    blt _Done
+    ;; We've hit the right wall, so set horizontal velocity to zero, and set
+    ;; horizontal position to just to the left of the wall we hit.
+    @solid:
+    lda #0
+    sta Zp_AvatarVelX_i16 + 0
+    sta Zp_AvatarVelX_i16 + 1
+    .repeat 3
+    asl Zp_Tmp3_byte
+    rol a
+    .endrepeat
+    tax
+    lda Zp_Tmp3_byte
+    sub #kAvatarBoundingBoxRight
+    sta Zp_AvatarPosX_i16 + 0
+    txa
+    sbc #0
+    sta Zp_AvatarPosX_i16 + 1
+    jmp _Done
+_Left:
+    ;; Calculate the room tile column index to the left of the avatar, and
+    ;; store it in Zp_Tmp3_byte.
+    lda Zp_AvatarPosX_i16 + 0
+    sub #kAvatarBoundingBoxLeft + 1
+    sta Zp_Tmp3_byte
+    lda Zp_AvatarPosX_i16 + 1
+    sbc #0
+    .repeat 3
+    lsr a
+    ror Zp_Tmp3_byte
+    .endrepeat
+    ;; Check for tile collisions.
+    lda Zp_Tmp3_byte  ; param: room tile column index (left side of avatar)
+    jsr FuncA_Terrain_GetColumnPtrForTileIndex  ; preserves Zp_Tmp*_byte
+    ldy Zp_Tmp1_byte  ; room block row index (bottom of avatar)
+    lda (Zp_TerrainColumn_u8_arr_ptr), y  ; terrain block type
+    cmp #kFirstSolidTerrainType
+    bge @solid
+    ldy Zp_Tmp2_byte  ; room block row index (top of avatar)
+    lda (Zp_TerrainColumn_u8_arr_ptr), y  ; terrain block type
+    cmp #kFirstSolidTerrainType
+    blt _Done
+    ;; We've hit the left wall, so set horizontal velocity to zero, and set
+    ;; horizontal position to just to the right of the wall we hit.
+    @solid:
+    lda #0
+    sta Zp_AvatarVelX_i16 + 0
+    sta Zp_AvatarVelX_i16 + 1
+    .repeat 3
+    asl Zp_Tmp3_byte
+    rol a
+    .endrepeat
+    tax
+    lda Zp_Tmp3_byte
+    add #kTileWidthPx + kAvatarBoundingBoxLeft
+    sta Zp_AvatarPosX_i16 + 0
+    txa
+    adc #0
+    sta Zp_AvatarPosX_i16 + 1
+_Done:
+.ENDPROC
+.PROC _ApplyVelY
+    ldy #0
+    lda Zp_AvatarVelY_i16 + 1
+    bpl @nonnegative
+    dey  ; now y is $ff
+    @nonnegative:
+    lda Zp_AvatarVelY_i16 + 1
+    add Zp_AvatarPosY_i16 + 0
+    sta Zp_AvatarPosY_i16 + 0
+    tya
+    adc Zp_AvatarPosY_i16 + 1
+    sta Zp_AvatarPosY_i16 + 1
+.ENDPROC
+.PROC _DetectVertDoor
+    ;; TODO: Implement top/bottom doors.
+.ENDPROC
+.PROC _DetectVertCollision
+    ;; Calculate the room tile column index that the avatar's left side is in,
+    ;; and store it in Zp_Tmp1_byte.
+    lda Zp_AvatarPosX_i16 + 0
+    sub #kAvatarBoundingBoxLeft
+    sta Zp_Tmp1_byte
+    lda Zp_AvatarPosX_i16 + 1
+    sbc #0
+    .repeat 3
+    lsr a
+    ror Zp_Tmp1_byte
+    .endrepeat
+    ;; Calculate the room tile column index at the avatar's right side is in,
+    ;; and store it in Zp_Tmp2_byte.
+    lda Zp_AvatarPosX_i16 + 0
+    add #kAvatarBoundingBoxRight - 1
+    sta Zp_Tmp2_byte
+    lda Zp_AvatarPosX_i16 + 1
+    adc #0
+    .repeat 3
+    lsr a
+    ror Zp_Tmp2_byte
+    .endrepeat
+    ;; Check if the player is moving up or down.
+    lda Zp_AvatarVelY_i16 + 1
+    bmi _Up
+_Down:
+    ;; Calculate the room block row index just below the avatar's feet, and
+    ;; store it in Zp_Tmp3_byte.
+    lda Zp_AvatarPosY_i16 + 0
+    add #kAvatarBoundingBoxDown
+    sta Zp_Tmp3_byte
+    lda Zp_AvatarPosY_i16 + 1
+    adc #0
+    .repeat 4
+    lsr a
+    ror Zp_Tmp3_byte
+    .endrepeat
+    ;; Check for tile collisions.
+    lda Zp_Tmp1_byte  ; param: room tile column index (left side of avatar)
+    jsr FuncA_Terrain_GetColumnPtrForTileIndex  ; preserves Zp_Tmp*_byte
+    ldy Zp_Tmp3_byte  ; room block row index (bottom of avatar)
+    lda (Zp_TerrainColumn_u8_arr_ptr), y  ; terrain block type
+    cmp #kFirstSolidTerrainType
+    bge @solid
+    lda Zp_Tmp2_byte  ; param: room tile column index (right side of avatar)
+    jsr FuncA_Terrain_GetColumnPtrForTileIndex  ; preserves Zp_Tmp*_byte
+    ldy Zp_Tmp3_byte  ; room block row index (bottom of avatar)
+    lda (Zp_TerrainColumn_u8_arr_ptr), y  ; terrain block type
+    cmp #kFirstSolidTerrainType
+    bge @solid
+    @empty:
+    ;; There's no floor beneath us, so start falling.
+    lda #ePlayer::Jumping
+    sta Zp_AvatarMode_ePlayer
+    jmp _Done
+    @solid:
+    ;; We've hit the floor, so end jumping mode, set vertical velocity to zero,
+    ;; and set vertical position to just above the floor we hit.
+    lda #ePlayer::Standing
+    sta Zp_AvatarMode_ePlayer
+    lda #0
+    sta Zp_AvatarVelY_i16 + 0
+    sta Zp_AvatarVelY_i16 + 1
+    .repeat 4
+    asl Zp_Tmp3_byte
+    rol a
+    .endrepeat
+    tax
+    lda Zp_Tmp3_byte
+    sub #kAvatarBoundingBoxDown
+    sta Zp_AvatarPosY_i16 + 0
+    txa
+    sbc #0
+    sta Zp_AvatarPosY_i16 + 1
+    jmp _Done
+_Up:
+    ;; Calculate the room block row index just above the avatar's head, and
+    ;; store it in Zp_Tmp3_byte.
+    lda Zp_AvatarPosY_i16 + 0
+    sub #kAvatarBoundingBoxUp + 1
+    sta Zp_Tmp3_byte
+    lda Zp_AvatarPosY_i16 + 1
+    sbc #0
+    .repeat 4
+    lsr a
+    ror Zp_Tmp3_byte
+    .endrepeat
+    ;; Check for tile collisions.
+    lda Zp_Tmp1_byte  ; param: room tile column index (left side of avatar)
+    jsr FuncA_Terrain_GetColumnPtrForTileIndex  ; preserves Zp_Tmp*_byte
+    ldy Zp_Tmp3_byte  ; room block row index (top of avatar)
+    lda (Zp_TerrainColumn_u8_arr_ptr), y  ; terrain block type
+    cmp #kFirstSolidTerrainType
+    bge @solid
+    lda Zp_Tmp2_byte  ; param: room tile column index (right side of avatar)
+    jsr FuncA_Terrain_GetColumnPtrForTileIndex  ; preserves Zp_Tmp*_byte
+    ldy Zp_Tmp3_byte  ; room block row index (top of avatar)
+    lda (Zp_TerrainColumn_u8_arr_ptr), y  ; terrain block type
+    cmp #kFirstSolidTerrainType
+    blt _Done
+    @solid:
+    ;; We've hit the ceiling, so set vertical velocity to zero, and set
+    ;; vertical position to just below the ceiling we hit.
+    lda #0
+    sta Zp_AvatarVelY_i16 + 0
+    sta Zp_AvatarVelY_i16 + 1
+    .repeat 4
+    asl Zp_Tmp3_byte
+    rol a
+    .endrepeat
+    tax
+    lda Zp_Tmp3_byte
+    add #kBlockHeightPx + kAvatarBoundingBoxUp
+    sta Zp_AvatarPosY_i16 + 0
+    txa
+    adc #0
+    sta Zp_AvatarPosY_i16 + 1
+_Done:
+.ENDPROC
+    jsr Func_UpdateAndMarkMinimap
+.PROC _ApplyGravity
+    ;; Only apply gravity if the player avatar is airborne.
+    lda Zp_AvatarMode_ePlayer
+    cmp #ePlayer::Jumping
+    blt @noGravity
+    ;; Accelerate the player avatar downwards.
+    lda #kAvatarGravity
+    add Zp_AvatarVelY_i16 + 0
+    sta Zp_AvatarVelY_i16 + 0
+    lda #0
+    adc Zp_AvatarVelY_i16 + 1
+    ;; If moving downward, check for terminal velocity:
+    bmi @setVelYHi
+    cmp #kAvatarMaxSpeedY
+    blt @setVelYHi
+    lda #0
+    sta Zp_AvatarVelY_i16 + 0
+    lda #kAvatarMaxSpeedY
+    @setVelYHi:
+    sta Zp_AvatarVelY_i16 + 1
+    @noGravity:
+.ENDPROC
+    lda #eDoor::None  ; indicate that no door was hit
     rts
 .ENDPROC
 

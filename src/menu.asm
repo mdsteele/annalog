@@ -35,10 +35,10 @@
 .IMPORT FuncA_Console_SetCurrentFieldValue
 .IMPORT FuncA_Console_TransferAllInstructions
 .IMPORT FuncA_Console_TransferInstruction
+.IMPORT FuncA_Terrain_ScrollTowardsGoal
 .IMPORT Func_ClearRestOfOam
 .IMPORT Func_DrawObjectsForRoom
 .IMPORT Func_ProcessFrame
-.IMPORT Func_ScrollTowardsGoal
 .IMPORT Func_SetScrollGoalFromAvatar
 .IMPORT Func_UpdateButtons
 .IMPORT Func_Window_GetRowPpuAddr
@@ -1272,7 +1272,8 @@ _CheckForCancel:
     jsr FuncA_Console_MoveMenuCursor
 _UpdateScrolling:
     jsr Func_SetScrollGoalFromAvatar
-    jsr Func_ScrollTowardsGoal
+    prga_bank #<.bank(FuncA_Terrain_ScrollTowardsGoal)
+    jsr FuncA_Terrain_ScrollTowardsGoal
     jmp _GameLoop
 _SetValue:
     prga_bank #<.bank(FuncA_Console_MenuSetValue)

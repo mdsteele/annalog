@@ -29,10 +29,10 @@
 .INCLUDE "window.inc"
 
 .IMPORT Data_PowersOfTwo_u8_arr8
+.IMPORT FuncA_Terrain_ScrollTowardsGoal
 .IMPORT Func_ClearRestOfOam
 .IMPORT Func_DrawObjectsForRoom
 .IMPORT Func_ProcessFrame
-.IMPORT Func_ScrollTowardsGoal
 .IMPORT Func_SetScrollGoalFromAvatar
 .IMPORT Func_UpdateButtons
 .IMPORT Func_Window_PrepareRowTransfer
@@ -141,7 +141,8 @@ _CheckIfDone:
     jeq Main_Upgrade_RunWindow
 _UpdateScrolling:
     jsr Func_SetScrollGoalFromAvatar
-    jsr Func_ScrollTowardsGoal
+    prga_bank #<.bank(FuncA_Terrain_ScrollTowardsGoal)
+    jsr FuncA_Terrain_ScrollTowardsGoal
     jmp _GameLoop
 .ENDPROC
 
@@ -172,7 +173,8 @@ _CheckIfDone:
     jeq Main_Explore_Continue
 _UpdateScrolling:
     jsr Func_SetScrollGoalFromAvatar
-    jsr Func_ScrollTowardsGoal
+    prga_bank #<.bank(FuncA_Terrain_ScrollTowardsGoal)
+    jsr FuncA_Terrain_ScrollTowardsGoal
     jmp _GameLoop
 .ENDPROC
 
@@ -196,7 +198,8 @@ _CheckButtons:
     @done:
 _UpdateScrolling:
     jsr Func_SetScrollGoalFromAvatar
-    jsr Func_ScrollTowardsGoal
+    prga_bank #<.bank(FuncA_Terrain_ScrollTowardsGoal)
+    jsr FuncA_Terrain_ScrollTowardsGoal
     jmp _GameLoop
 .ENDPROC
 

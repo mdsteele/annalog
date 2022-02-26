@@ -32,12 +32,12 @@
 .IMPORT FuncA_Console_GetCurrentFieldWidth
 .IMPORT FuncA_Console_GetCurrentInstNumFields
 .IMPORT FuncA_Console_SetFieldForNominalOffset
+.IMPORT FuncA_Terrain_ScrollTowardsGoal
 .IMPORT Func_ClearRestOfOam
 .IMPORT Func_DrawObjectsForRoom
 .IMPORT Func_MachineReset
 .IMPORT Func_MachineTick
 .IMPORT Func_ProcessFrame
-.IMPORT Func_ScrollTowardsGoal
 .IMPORT Func_SetMachineIndex
 .IMPORT Func_SetScrollGoalFromAvatar
 .IMPORT Func_UpdateButtons
@@ -189,7 +189,8 @@ _CheckIfDone:
     jeq Main_Console_StartEditing
 _UpdateScrolling:
     jsr Func_SetScrollGoalFromAvatar
-    jsr Func_ScrollTowardsGoal
+    prga_bank #<.bank(FuncA_Terrain_ScrollTowardsGoal)
+    jsr FuncA_Terrain_ScrollTowardsGoal
     jmp _GameLoop
 .ENDPROC
 
@@ -218,7 +219,8 @@ _CheckIfDone:
     jeq Main_Explore_Continue
 _UpdateScrolling:
     jsr Func_SetScrollGoalFromAvatar
-    jsr Func_ScrollTowardsGoal
+    prga_bank #<.bank(FuncA_Terrain_ScrollTowardsGoal)
+    jsr FuncA_Terrain_ScrollTowardsGoal
     jmp _GameLoop
 .ENDPROC
 
@@ -281,7 +283,8 @@ _CheckButtons:
     jsr FuncA_Console_MoveFieldCursor
 _UpdateScrolling:
     jsr Func_SetScrollGoalFromAvatar
-    jsr Func_ScrollTowardsGoal
+    prga_bank #<.bank(FuncA_Terrain_ScrollTowardsGoal)
+    jsr FuncA_Terrain_ScrollTowardsGoal
     jsr Func_MachineTick
     jmp _GameLoop
 .ENDPROC
