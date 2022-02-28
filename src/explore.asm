@@ -24,14 +24,15 @@
 .INCLUDE "oam.inc"
 .INCLUDE "ppu.inc"
 .INCLUDE "room.inc"
+.INCLUDE "terrain.inc"
 
 .IMPORT Data_PowersOfTwo_u8_arr8
 .IMPORT Data_RoomBanks_u8_arr
 .IMPORT FuncA_Terrain_FillNametables
-.IMPORT FuncA_Terrain_GetColumnPtrForTileIndex
 .IMPORT FuncA_Terrain_TransferTileColumn
 .IMPORT Func_AllocObjectsFor2x2Shape
 .IMPORT Func_ClearRestOfOam
+.IMPORT Func_DrawObjectsForAllActors
 .IMPORT Func_DrawObjectsForAllDevices
 .IMPORT Func_DrawObjectsForAllMachines
 .IMPORT Func_ExecuteAllMachines
@@ -40,6 +41,8 @@
 .IMPORT Func_FadeOut
 .IMPORT Func_LoadRoom
 .IMPORT Func_ProcessFrame
+.IMPORT Func_Terrain_GetColumnPtrForTileIndex
+.IMPORT Func_TickAllActors
 .IMPORT Func_TickAllDevices
 .IMPORT Func_ToggleLeverDevice
 .IMPORT Func_UpdateButtons
@@ -104,9 +107,6 @@ kAvatarGravity = 48
 
 ;;; The OBJ palette number to use for the player avatar.
 kAvatarPalette = 1
-
-;;; Terrain block IDs greater than or equal to this are considered solid.
-kFirstSolidTerrainType = $40
 
 ;;; Modes that the player avatar can be in.  The number for each of these enum
 ;;; values is the starting tile ID to use for the avatar objects when the
@@ -337,6 +337,7 @@ _UpdateScrolling:
     prga_bank #<.bank(FuncA_Terrain_ScrollTowardsGoal)
     jsr FuncA_Terrain_ScrollTowardsGoal
 _Tick:
+    jsr Func_TickAllActors
     jsr Func_TickAllDevices
     jsr Func_ExecuteAllMachines
     prga_bank #<.bank(FuncA_Terrain_ExploreMoveAvatar)
@@ -607,6 +608,7 @@ _MarkMinimap:
 ;;; always be visible: the player avatar, machines, enemies, and devices.
 .EXPORT Func_DrawObjectsForRoom
 .PROC Func_DrawObjectsForRoom
+    jsr Func_DrawObjectsForAllActors
     jsr Func_DrawObjectsForPlayerAvatar
     jsr Func_DrawObjectsForDevicePrompt
     jsr Func_DrawObjectsForAllMachines
@@ -650,7 +652,8 @@ _ObjectTilesFacingRight:
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Tile_u8, y
     adc #1
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Tile_u8, y
-    bne _Done  ; unconditional
+_Done:
+    rts
 _ObjectTilesFacingLeft:
     lda Zp_AvatarMode_eAvatar
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Tile_u8, y
@@ -660,7 +663,6 @@ _ObjectTilesFacingLeft:
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Tile_u8, y
     adc #1
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Tile_u8, y
-_Done:
     rts
 .ENDPROC
 
@@ -996,7 +998,7 @@ _Right:
     .endrepeat
     ;; Check for tile collisions.
     lda Zp_Tmp3_byte  ; param: room tile column index (right side of avatar)
-    jsr FuncA_Terrain_GetColumnPtrForTileIndex  ; preserves Zp_Tmp*_byte
+    jsr Func_Terrain_GetColumnPtrForTileIndex  ; preserves Zp_Tmp*_byte
     ldy Zp_Tmp1_byte  ; room block row index (bottom of avatar)
     lda (Zp_TerrainColumn_u8_arr_ptr), y  ; terrain block type
     cmp #kFirstSolidTerrainType
@@ -1037,7 +1039,7 @@ _Left:
     .endrepeat
     ;; Check for tile collisions.
     lda Zp_Tmp3_byte  ; param: room tile column index (left side of avatar)
-    jsr FuncA_Terrain_GetColumnPtrForTileIndex  ; preserves Zp_Tmp*_byte
+    jsr Func_Terrain_GetColumnPtrForTileIndex  ; preserves Zp_Tmp*_byte
     ldy Zp_Tmp1_byte  ; room block row index (bottom of avatar)
     lda (Zp_TerrainColumn_u8_arr_ptr), y  ; terrain block type
     cmp #kFirstSolidTerrainType
@@ -1121,13 +1123,13 @@ _Up:
     .endrepeat
     ;; Check for tile collisions.
     lda Zp_Tmp1_byte  ; param: room tile column index (left side of avatar)
-    jsr FuncA_Terrain_GetColumnPtrForTileIndex  ; preserves Zp_Tmp*_byte
+    jsr Func_Terrain_GetColumnPtrForTileIndex  ; preserves Zp_Tmp*_byte
     ldy Zp_Tmp3_byte  ; room block row index (top of avatar)
     lda (Zp_TerrainColumn_u8_arr_ptr), y  ; terrain block type
     cmp #kFirstSolidTerrainType
     bge @solid
     lda Zp_Tmp2_byte  ; param: room tile column index (right side of avatar)
-    jsr FuncA_Terrain_GetColumnPtrForTileIndex  ; preserves Zp_Tmp*_byte
+    jsr Func_Terrain_GetColumnPtrForTileIndex  ; preserves Zp_Tmp*_byte
     ldy Zp_Tmp3_byte  ; room block row index (top of avatar)
     lda (Zp_TerrainColumn_u8_arr_ptr), y  ; terrain block type
     cmp #kFirstSolidTerrainType
@@ -1165,13 +1167,13 @@ _Down:
     .endrepeat
     ;; Check for tile collisions.
     lda Zp_Tmp1_byte  ; param: room tile column index (left side of avatar)
-    jsr FuncA_Terrain_GetColumnPtrForTileIndex  ; preserves Zp_Tmp*_byte
+    jsr Func_Terrain_GetColumnPtrForTileIndex  ; preserves Zp_Tmp*_byte
     ldy Zp_Tmp3_byte  ; room block row index (bottom of avatar)
     lda (Zp_TerrainColumn_u8_arr_ptr), y  ; terrain block type
     cmp #kFirstSolidTerrainType
     bge @solid
     lda Zp_Tmp2_byte  ; param: room tile column index (right side of avatar)
-    jsr FuncA_Terrain_GetColumnPtrForTileIndex  ; preserves Zp_Tmp*_byte
+    jsr Func_Terrain_GetColumnPtrForTileIndex  ; preserves Zp_Tmp*_byte
     ldy Zp_Tmp3_byte  ; room block row index (bottom of avatar)
     lda (Zp_TerrainColumn_u8_arr_ptr), y  ; terrain block type
     cmp #kFirstSolidTerrainType

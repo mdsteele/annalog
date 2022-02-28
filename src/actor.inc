@@ -17,34 +17,29 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
-.ZEROPAGE
-
-;;; Temporary variables that any function can use.  In general, it should be
-;;; assumed that these are not preserved across function calls.
-.EXPORTZP Zp_Tmp1_byte, Zp_Tmp2_byte, Zp_Tmp3_byte, Zp_Tmp4_byte, Zp_Tmp_ptr
-Zp_Tmp1_byte: .res 1
-Zp_Tmp2_byte: .res 1
-Zp_Tmp3_byte: .res 1
-Zp_Tmp4_byte: .res 1
-Zp_Tmp_ptr: .res 2
+;;; The maximum number of actors that can exist at once in a room.
+kMaxActors = 8
 
 ;;;=========================================================================;;;
 
-.SEGMENT "PRG8"
+;;; Types of actors in a room (e.g. enemies or projectiles).
+.ENUM eActor
+    None
+    Crawler
+.ENDENUM
 
-;;; Does nothing and returns immediately.  Can be used as a null function
-;;; pointer.
-.EXPORT Func_Noop
-.PROC Func_Noop
-    rts
-.ENDPROC
+;;;=========================================================================;;;
 
-;;; Maps from N to 2^N for 0 <= N < 8.
-.EXPORT Data_PowersOfTwo_u8_arr8
-.PROC Data_PowersOfTwo_u8_arr8
-    .repeat 8, i
-    .byte 1 << i
-    .endrepeat
-.ENDPROC
+;;; Static information about an actor.
+.STRUCT sActor
+    ;; The type of this actor.
+    Type_eActor .byte
+    ;; The room tile row for this actor.
+    TileRow_u8  .byte
+    ;; The room tile column for this actor.
+    TileCol_u8  .byte
+    ;; Type-specific initial state data.
+    State_byte  .byte
+.ENDSTRUCT
 
 ;;;=========================================================================;;;

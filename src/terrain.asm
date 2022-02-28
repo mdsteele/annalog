@@ -38,7 +38,7 @@
 .EXPORTZP Zp_Current_sRoom
 Zp_Current_sRoom: .tag sRoom
 
-;;; Return value for FuncA_Terrain_GetColumnPtrForTileIndex.  This will point
+;;; Return value for Func_Terrain_GetColumnPtrForTileIndex.  This will point
 ;;; to the beginning (top) of the requested terrain block column in the current
 ;;; room.
 .EXPORTZP Zp_TerrainColumn_u8_arr_ptr
@@ -52,15 +52,15 @@ Zp_NametableColumnIndex_u8: .res 1
 
 ;;;=========================================================================;;;
 
-.SEGMENT "PRGA_Terrain"
+.SEGMENT "PRG8"
 
 ;;; Populates Zp_TerrainColumn_u8_arr_ptr with a pointer to the start of the
 ;;; terrain block column in the current room that contains the specified room
 ;;; tile column.
 ;;; @param A The index of the room tile column.
-;;; @preserve Zp_Tmp*_byte
-.EXPORT FuncA_Terrain_GetColumnPtrForTileIndex
-.PROC FuncA_Terrain_GetColumnPtrForTileIndex
+;;; @preserve Zp_Tmp*
+.EXPORT Func_Terrain_GetColumnPtrForTileIndex
+.PROC Func_Terrain_GetColumnPtrForTileIndex
     and #$fe
     ;; Currently, a is (col * 2), where col is the room block column index.
     ;; Calculate (col * 8), with the lo byte in a, and the hi byte in
@@ -102,6 +102,10 @@ _SetPtr:
     rts
 .ENDPROC
 
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Terrain"
+
 ;;; Directly fills the PPU nametables with terrain tile data for the current
 ;;; room.
 ;;; @prereq Rendering is disabled.
@@ -116,7 +120,7 @@ _SetPtr:
     stx Hw_PpuCtrl_wo
 _TileColumnLoop:
     lda Zp_Tmp1_byte  ; param: room tile column index
-    jsr FuncA_Terrain_GetColumnPtrForTileIndex  ; preserves Zp_Tmp*_byte
+    jsr Func_Terrain_GetColumnPtrForTileIndex  ; preserves Zp_Tmp*_byte
     ldy #0  ; room block row index
     lda Zp_Tmp1_byte  ; room tile column index
     and #$01
@@ -221,7 +225,7 @@ _Done:
     and #$1f
     sta Zp_NametableColumnIndex_u8
     txa  ; param: room tile column index
-    jsr FuncA_Terrain_GetColumnPtrForTileIndex
+    jsr Func_Terrain_GetColumnPtrForTileIndex
     ;; Buffer a PPU transfer for the upper nametable.
 .PROC _UpperTransfer
     ldx Zp_PpuTransferLen_u8

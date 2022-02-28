@@ -25,6 +25,7 @@
 .INCLUDE "room.inc"
 
 .IMPORT Func_AllocObjectsFor2x2Shape
+.IMPORT Func_Noop
 .IMPORT Func_SetUpgradeShapeFlagsAndTileIds
 .IMPORT Ram_MachineState
 .IMPORT Ram_MachineStatus_eMachine_arr
@@ -43,6 +44,9 @@
 .IMPORTZP Zp_WindowTop_u8
 
 ;;;=========================================================================;;;
+
+Func_Device_DrawNone = Func_Noop
+Func_Device_DrawSign = Func_Noop
 
 .LINECONT +
 .DEFINE DeviceDrawFuncs \
@@ -149,21 +153,6 @@ Ram_DeviceAnim_u8_arr: .res kMaxDevices
     jmp (Zp_Tmp_ptr)
 _JumpTable_ptr_0_arr: .lobytes DeviceDrawFuncs
 _JumpTable_ptr_1_arr: .hibytes DeviceDrawFuncs
-.ENDPROC
-
-;;; Allocates and populates OAM slots for a sign device.
-;;; @param X The device index.
-;;; @preserve X
-.PROC Func_Device_DrawSign
-    ;; There's nothing to draw for sign devices.
-    .assert * = Func_Device_DrawNone, error, "fallthrough"
-.ENDPROC
-
-;;; No-op draw function for an empty device slot.
-;;; @param X The device index.
-;;; @preserve X
-.PROC Func_Device_DrawNone
-    rts
 .ENDPROC
 
 ;;; Allocates and populates OAM slots for a console device.

@@ -21,6 +21,7 @@
 .INCLUDE "oam.inc"
 .INCLUDE "ppu.inc"
 
+.IMPORTZP Zp_Tmp1_byte
 .IMPORTZP Zp_WindowTop_u8
 
 ;;;=========================================================================;;;
@@ -83,6 +84,7 @@ Ram_Oam_sObj_arr64: .res .sizeof(sObj) * kNumOamSlots
 ;;;
 ;;; @return C Set if no OAM slots were allocated, cleared otherwise.
 ;;; @return Y The OAM byte offset for the first of the four objects.
+;;; @preserve X
 .EXPORT Func_AllocObjectsFor2x2Shape
 .PROC Func_AllocObjectsFor2x2Shape
     ldy Zp_OamOffset_u8
@@ -128,7 +130,7 @@ _ObjectXPositions:
     ;; objects.  If the left edge is offscreen to the left, hide the two
     ;; left-hand objects.
     sub #kTileWidthPx
-    tax  ; left X position on screen (lo)
+    sta Zp_Tmp1_byte  ; left X position on screen (lo)
     lda Zp_ShapePosX_i16 + 1
     sbc #0
     beq @leftSide
@@ -137,7 +139,7 @@ _ObjectXPositions:
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::YPos_u8, y
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::YPos_u8, y
     @leftSide:
-    txa  ; left X position on screen (lo)
+    lda Zp_Tmp1_byte  ; left X position on screen (lo)
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::XPos_u8, y
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::XPos_u8, y
 _FinishAllocation:

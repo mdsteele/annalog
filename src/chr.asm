@@ -110,7 +110,8 @@
 .EXPORT Ppu_ChrUpgrade
 .PROC Ppu_ChrUpgrade
 :   .incbin "out/data/tiles/upgrade.chr"
-    .res $6c * kSizeofChr
+    .incbin "out/data/tiles/crawler.chr"
+    .res $60 * kSizeofChr
     .assert * - :- = kSizeofChr * $80, error
 .ENDPROC
 

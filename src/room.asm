@@ -17,6 +17,7 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
+.INCLUDE "actor.inc"
 .INCLUDE "device.inc"
 .INCLUDE "macros.inc"
 .INCLUDE "room.inc"
@@ -24,6 +25,13 @@
 .IMPORT DataC_Room_Short_sRoom
 .IMPORT DataC_Room_Tall_sRoom
 .IMPORT Func_InitAllMachines
+.IMPORT Ram_ActorFlags_bObj_arr
+.IMPORT Ram_ActorPosX_i16_0_arr
+.IMPORT Ram_ActorPosX_i16_1_arr
+.IMPORT Ram_ActorPosY_i16_0_arr
+.IMPORT Ram_ActorPosY_i16_1_arr
+.IMPORT Ram_ActorState_byte_arr
+.IMPORT Ram_ActorType_eActor_arr
 .IMPORT Ram_DeviceAnim_u8_arr
 .IMPORT Ram_DeviceBlockCol_u8_arr
 .IMPORT Ram_DeviceBlockRow_u8_arr
@@ -83,6 +91,65 @@ _CopyRoomStruct:
     sta Zp_Current_sRoom, y
     dey
     bpl @loop
+_LoadActors:
+    ;; Copy the current room's Actors_sActor_arr_ptr into Zp_Tmp_ptr.
+    ldy #sRoomExt::Actors_sActor_arr_ptr
+    lda (Zp_Current_sRoom + sRoom::Ext_sRoomExt_ptr), y
+    sta Zp_Tmp_ptr + 0
+    iny
+    lda (Zp_Current_sRoom + sRoom::Ext_sRoomExt_ptr), y
+    sta Zp_Tmp_ptr + 1
+    ;; Copy room actor structs into actor RAM.
+    ldx #0  ; actor index
+    ldy #0  ; byte offset into Actors_sActor_arr_ptr
+    @copyLoop:
+    ;; Actor type:
+    .assert sActor::Type_eActor = 0, error
+    lda (Zp_Tmp_ptr), y
+    .assert eActor::None = 0, error
+    beq @copyDone
+    sta Ram_ActorType_eActor_arr, x
+    iny
+    ;; Y-position:
+    lda #0
+    sta Ram_ActorPosY_i16_1_arr, x
+    .assert sActor::TileRow_u8 = 1, error
+    lda (Zp_Tmp_ptr), y
+    iny
+    .repeat 3
+    asl a
+    rol Ram_ActorPosY_i16_1_arr, x
+    .endrepeat
+    sta Ram_ActorPosY_i16_0_arr, x
+    ;; X-position:
+    lda #0
+    sta Ram_ActorPosX_i16_1_arr, x
+    .assert sActor::TileCol_u8 = 2, error
+    lda (Zp_Tmp_ptr), y
+    iny
+    .repeat 3
+    asl a
+    rol Ram_ActorPosX_i16_1_arr, x
+    .endrepeat
+    sta Ram_ActorPosX_i16_0_arr, x
+    ;; State:
+    .assert sActor::State_byte = 3, error
+    lda (Zp_Tmp_ptr), y
+    iny
+    sta Ram_ActorState_byte_arr, x
+    lda #0
+    sta Ram_ActorFlags_bObj_arr, x
+    ;; Continue to next sActor entry.
+    .assert .sizeof(sActor) = 4, error
+    inx
+    bne @copyLoop  ; unconditional
+    ;; Clear remaining slots in actor RAM.
+    @clearLoop:
+    sta Ram_ActorType_eActor_arr, x  ; A is already eActor::None
+    inx
+    @copyDone:
+    cpx #kMaxActors
+    blt @clearLoop
 _LoadDevices:
     ;; Copy the current room's Devices_sDevice_arr_ptr into Zp_Tmp_ptr.
     ldy #sRoomExt::Devices_sDevice_arr_ptr

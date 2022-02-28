@@ -17,34 +17,7 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
-.ZEROPAGE
-
-;;; Temporary variables that any function can use.  In general, it should be
-;;; assumed that these are not preserved across function calls.
-.EXPORTZP Zp_Tmp1_byte, Zp_Tmp2_byte, Zp_Tmp3_byte, Zp_Tmp4_byte, Zp_Tmp_ptr
-Zp_Tmp1_byte: .res 1
-Zp_Tmp2_byte: .res 1
-Zp_Tmp3_byte: .res 1
-Zp_Tmp4_byte: .res 1
-Zp_Tmp_ptr: .res 2
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRG8"
-
-;;; Does nothing and returns immediately.  Can be used as a null function
-;;; pointer.
-.EXPORT Func_Noop
-.PROC Func_Noop
-    rts
-.ENDPROC
-
-;;; Maps from N to 2^N for 0 <= N < 8.
-.EXPORT Data_PowersOfTwo_u8_arr8
-.PROC Data_PowersOfTwo_u8_arr8
-    .repeat 8, i
-    .byte 1 << i
-    .endrepeat
-.ENDPROC
+;;; Terrain block IDs greater than or equal to this are considered solid.
+kFirstSolidTerrainType = $40
 
 ;;;=========================================================================;;;

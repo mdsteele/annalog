@@ -17,6 +17,7 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
+.INCLUDE "../actor.inc"
 .INCLUDE "../charmap.inc"
 .INCLUDE "../device.inc"
 .INCLUDE "../flag.inc"
@@ -65,11 +66,14 @@ _Ext_sRoomExt:
     D_STRUCT sRoomExt
     d_addr AreaName_u8_arr_ptr, DataC_Room_AreaName_u8_arr
     d_addr AreaCells_u8_arr2_arr_ptr, DataC_Room_AreaCells_u8_arr2_arr
+    d_addr Actors_sActor_arr_ptr, _Actors_sActor_arr
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
     d_addr Dialogs_sDialog_ptr_arr_ptr, 0
     d_addr Exits_sDoor_arr_ptr, _Exits_sDoor_arr
     d_addr Init_func_ptr, _Init
     D_END
+_Actors_sActor_arr:
+    .byte eActor::None
 _Devices_sDevice_arr:
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Upgrade
