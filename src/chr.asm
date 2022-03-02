@@ -99,7 +99,7 @@
     .res $12 * kSizeofChr
     .assert * - :- = kSizeofChr * eAvatar::Standing, error
     .incbin "out/data/tiles/player.chr"
-    .res $20 * kSizeofChr
+    .res $18 * kSizeofChr
     .incbin "out/data/tiles/machine.chr"
     .res $1c * kSizeofChr
     .assert * - :- = kSizeofChr * $80, error

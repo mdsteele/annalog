@@ -22,13 +22,15 @@
 ;;; avatar is in that mode.
 .ENUM eAvatar
     Standing = $20  ; (grounded) standing still on the ground
-    Landing  = $24  ; (grounded) just landed from a jump
-    Reading  = $28  ; (grounded) facing away from camera (e.g. to read a sign)
-    Running1 = $2c  ; (grounded) running along the ground (1st frame)
-    Running2 = $30  ; (grounded) running along the ground (2nd frame)
-    Jumping  = $34  ; (airborne) jumping up
-    Floating = $38  ; (airborne) mid-jump hang time
-    Falling  = $3c  ; (airborne) falling down
+    Looking  = $24  ; (grounded) standing still and looking upward
+    Ducking  = $28  ; (grounded) crouching still on the ground
+    Landing  = $2c  ; (grounded) just landed from a jump
+    Reading  = $30  ; (grounded) facing away from camera (e.g. to read a sign)
+    Running1 = $34  ; (grounded) running along the ground (1st frame)
+    Running2 = $38  ; (grounded) running along the ground (2nd frame)
+    Jumping  = $3c  ; (airborne) jumping up
+    Floating = $40  ; (airborne) mid-jump hang time
+    Falling  = $44  ; (airborne) falling down
 .ENDENUM
 
 ;;; Any eAvatar modes greater than or equal to this are considered airborne.

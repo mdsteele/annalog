@@ -644,7 +644,7 @@ _Down:
     lda Zp_AvatarRecover_u8
     beq @standOrRun
     dec Zp_AvatarRecover_u8
-    bne @doneRecover
+    bne @landing
     @standOrRun:
     lda Zp_AvatarVelX_i16 + 1
     beq @standing
@@ -658,17 +658,32 @@ _Down:
     lda #eAvatar::Running2
     bne @setAvatarMode  ; unconditional
     @standing:
+    lda Zp_P1ButtonsHeld_bJoypad
+    and #bJoypad::Down
+    bne @ducking
+    lda Zp_P1ButtonsHeld_bJoypad
+    and #bJoypad::Up
+    bne @looking
     lda #eAvatar::Standing
+    bne @setAvatarMode  ; unconditional
+    @ducking:
+    lda #eAvatar::Ducking
+    bne @setAvatarMode  ; unconditional
+    @looking:
+    lda #eAvatar::Looking
     bne @setAvatarMode  ; unconditional
     @wasAirborne:
     ldx Zp_AvatarVelY_i16 + 1
     lda DataA_Terrain_AvatarRecoverFrames_u8_arr, x
     beq @standOrRun
     sta Zp_AvatarRecover_u8
+    @landing:
+    lda Zp_P1ButtonsHeld_bJoypad
+    and #bJoypad::Down
+    bne @ducking
     lda #eAvatar::Landing
     @setAvatarMode:
     sta Zp_AvatarMode_eAvatar
-    @doneRecover:
     ;; Set vertical velocity to zero, and set vertical position to just above
     ;; the floor we hit.
     lda #0
