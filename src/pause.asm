@@ -35,7 +35,7 @@
 .IMPORT Func_ProcessFrame
 .IMPORT Func_UpdateButtons
 .IMPORT Func_Window_Disable
-.IMPORT Main_Explore_Unpause
+.IMPORT Main_Explore_FadeIn
 .IMPORT Ppu_ChrPause
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORT Sram_Minimap_u16_arr
@@ -119,7 +119,7 @@ _CheckForUnause:
     and #bJoypad::Start | bJoypad::BButton | bJoypad::AButton
     beq @done
     jsr Func_FadeOut
-    jmp Main_Explore_Unpause
+    jmp Main_Explore_FadeIn
     @done:
 _Tick:
     jmp _GameLoop

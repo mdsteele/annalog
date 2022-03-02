@@ -17,6 +17,7 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
+.INCLUDE "avatar.inc"
 .INCLUDE "device.inc"
 
 ;;;=========================================================================;;;
@@ -96,6 +97,7 @@
     .assert * - :- = kSizeofChr * kLeverHandleTileIdDown, error
     .incbin "out/data/tiles/lever.chr"
     .res $12 * kSizeofChr
+    .assert * - :- = kSizeofChr * eAvatar::Standing, error
     .incbin "out/data/tiles/player.chr"
     .res $20 * kSizeofChr
     .incbin "out/data/tiles/machine.chr"

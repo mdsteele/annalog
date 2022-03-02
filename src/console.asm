@@ -32,9 +32,9 @@
 .IMPORT FuncA_Console_GetCurrentFieldWidth
 .IMPORT FuncA_Console_GetCurrentInstNumFields
 .IMPORT FuncA_Console_SetFieldForNominalOffset
+.IMPORT FuncA_Objects_DrawObjectsForRoom
 .IMPORT FuncA_Terrain_ScrollTowardsGoal
 .IMPORT Func_ClearRestOfOam
-.IMPORT Func_DrawObjectsForRoom
 .IMPORT Func_MachineReset
 .IMPORT Func_MachineTick
 .IMPORT Func_ProcessFrame
@@ -168,7 +168,8 @@ _InitWindow:
     sub Zp_Tmp1_byte
     sta Zp_WindowTopGoal_u8
 _GameLoop:
-    jsr Func_DrawObjectsForRoom
+    prga_bank #<.bank(FuncA_Objects_DrawObjectsForRoom)
+    jsr FuncA_Objects_DrawObjectsForRoom
     jsr Func_ClearRestOfOam
     jsr Func_ProcessFrame
     jsr Func_UpdateButtons
@@ -200,7 +201,8 @@ _UpdateScrolling:
 ;;; @prereq Explore mode is initialized.
 .PROC Main_Console_CloseWindow
 _GameLoop:
-    jsr Func_DrawObjectsForRoom
+    prga_bank #<.bank(FuncA_Objects_DrawObjectsForRoom)
+    jsr FuncA_Objects_DrawObjectsForRoom
     jsr Func_ClearRestOfOam
     jsr Func_ProcessFrame
     jsr Func_UpdateButtons
@@ -248,7 +250,8 @@ _UpdateScrolling:
 _GameLoop:
     prga_bank #<.bank(FuncA_Console_DrawFieldCursorObjects)
     jsr FuncA_Console_DrawFieldCursorObjects
-    jsr Func_DrawObjectsForRoom
+    prga_bank #<.bank(FuncA_Objects_DrawObjectsForRoom)
+    jsr FuncA_Objects_DrawObjectsForRoom
     jsr Func_ClearRestOfOam
     jsr Func_ProcessFrame
     jsr Func_UpdateButtons

@@ -29,7 +29,7 @@
 
 .IMPORT DataC_Room_AreaCells_u8_arr2_arr
 .IMPORT DataC_Room_AreaName_u8_arr
-.IMPORT Func_AllocObjectsFor2x2Shape
+.IMPORT FuncA_Objects_Alloc2x2Shape
 .IMPORT Func_MachineError
 .IMPORT Ram_MachineState
 .IMPORT Ram_MachineStatus_eMachine_arr
@@ -91,7 +91,7 @@ kMachinePalette = 1
     d_addr TryMove_func_ptr, _TryMove
     d_addr TryAct_func_ptr, Func_MachineError
     d_addr Tick_func_ptr, _Tick
-    d_addr Draw_func_ptr, _Draw
+    d_addr Draw_func_ptr, FuncA_Objects_DrawJailCellDoorMachine
     d_addr Reset_func_ptr, _Reset
     d_byte Padding
     .res kMachinePadding
@@ -160,50 +160,6 @@ _Tick:
     bne @done
     lda #eMachine::Running
     sta Ram_MachineStatus_eMachine_arr + kJailCellDoorMachineIndex
-    @done:
-    rts
-_Draw:
-    ;; Calculate screen-space Y-position.
-    lda Ram_MachineState + sState::JailCellDoorPosY_u8
-    sub Zp_PpuScrollY_u8
-    sta Zp_ShapePosY_i16 + 0
-    lda #0
-    sbc #0
-    sta Zp_ShapePosY_i16 + 1
-    ;; Calculate screen-space X-position.
-    lda #<kJailCellDoorPosX
-    sub Zp_PpuScrollX_u8
-    sta Zp_ShapePosX_i16 + 0
-    lda #>kJailCellDoorPosX
-    sbc Zp_ScrollXHi_u8
-    sta Zp_ShapePosX_i16 + 1
-    ;; Allocate objects.
-    jsr Func_AllocObjectsFor2x2Shape  ; sets C if offscreen; returns Y
-    bcs @done
-    ;; Set flags and tile IDs.
-    lda #kMachinePalette
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Flags_bObj, y
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Flags_bObj, y
-    lda #kMachinePalette | bObj::FlipH
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Flags_bObj, y
-    lda #kMachinePalette | bObj::FlipV
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Flags_bObj, y
-    lda #kMachineTileIdCorner
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Tile_u8, y
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Tile_u8, y
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Tile_u8, y
-    lda Ram_MachineStatus_eMachine_arr + kJailCellDoorMachineIndex
-    cmp #eMachine::Error
-    bne @lightOff
-    lda Zp_FrameCounter_u8
-    and #$08
-    beq @lightOff
-    lda #kMachineTileIdLightOn
-    bne @setLight  ; unconditional
-    @lightOff:
-    lda #kMachineTileIdLightOff
-    @setLight:
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Tile_u8, y
     @done:
     rts
 _Reset:
@@ -311,6 +267,57 @@ _Exits_sDoor_arr:
 _Init:
     lda #1
     sta Ram_MachineState + sState::LeverState_u1
+    rts
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Objects"
+
+;;; The Draw_func_ptr implementation for the JailCellDoor machine.
+.PROC FuncA_Objects_DrawJailCellDoorMachine
+    ;; Calculate screen-space Y-position.
+    lda Ram_MachineState + sState::JailCellDoorPosY_u8
+    sub Zp_PpuScrollY_u8
+    sta Zp_ShapePosY_i16 + 0
+    lda #0
+    sbc #0
+    sta Zp_ShapePosY_i16 + 1
+    ;; Calculate screen-space X-position.
+    lda #<kJailCellDoorPosX
+    sub Zp_PpuScrollX_u8
+    sta Zp_ShapePosX_i16 + 0
+    lda #>kJailCellDoorPosX
+    sbc Zp_ScrollXHi_u8
+    sta Zp_ShapePosX_i16 + 1
+    ;; Allocate objects.
+    jsr FuncA_Objects_Alloc2x2Shape  ; sets C if offscreen; returns Y
+    bcs @done
+    ;; Set flags and tile IDs.
+    lda #kMachinePalette
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Flags_bObj, y
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Flags_bObj, y
+    lda #kMachinePalette | bObj::FlipH
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Flags_bObj, y
+    lda #kMachinePalette | bObj::FlipV
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Flags_bObj, y
+    lda #kMachineTileIdCorner
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Tile_u8, y
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Tile_u8, y
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Tile_u8, y
+    lda Ram_MachineStatus_eMachine_arr + kJailCellDoorMachineIndex
+    cmp #eMachine::Error
+    bne @lightOff
+    lda Zp_FrameCounter_u8
+    and #$08
+    beq @lightOff
+    lda #kMachineTileIdLightOn
+    bne @setLight  ; unconditional
+    @lightOff:
+    lda #kMachineTileIdLightOff
+    @setLight:
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Tile_u8, y
+    @done:
     rts
 .ENDPROC
 

@@ -517,9 +517,13 @@ _Le:
     rts
 .ENDPROC
 
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Objects"
+
 ;;; Allocates and populates OAM slots for all machines in the room.
-.EXPORT Func_DrawObjectsForAllMachines
-.PROC Func_DrawObjectsForAllMachines
+.EXPORT FuncA_Objects_DrawAllMachines
+.PROC FuncA_Objects_DrawAllMachines
     ldx #0
     beq @while  ; unconditional
     @loop:

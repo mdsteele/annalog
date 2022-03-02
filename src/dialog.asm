@@ -27,9 +27,9 @@
 .INCLUDE "room.inc"
 .INCLUDE "window.inc"
 
+.IMPORT FuncA_Objects_DrawObjectsForRoom
 .IMPORT FuncA_Terrain_ScrollTowardsGoal
 .IMPORT Func_ClearRestOfOam
-.IMPORT Func_DrawObjectsForRoom
 .IMPORT Func_ProcessFrame
 .IMPORT Func_SetScrollGoalFromAvatar
 .IMPORT Func_UpdateButtons
@@ -144,7 +144,8 @@ _InitWindow:
     lda #kDialogWindowTopGoal
     sta Zp_WindowTopGoal_u8
 _GameLoop:
-    jsr Func_DrawObjectsForRoom
+    prga_bank #<.bank(FuncA_Objects_DrawObjectsForRoom)
+    jsr FuncA_Objects_DrawObjectsForRoom
     jsr Func_ClearRestOfOam
     jsr Func_ProcessFrame
     jsr Func_UpdateButtons
@@ -175,7 +176,8 @@ _UpdateScrolling:
 ;;; @prereq Explore mode is initialized.
 .PROC Main_Dialog_CloseWindow
 _GameLoop:
-    jsr Func_DrawObjectsForRoom
+    prga_bank #<.bank(FuncA_Objects_DrawObjectsForRoom)
+    jsr FuncA_Objects_DrawObjectsForRoom
     jsr Func_ClearRestOfOam
     jsr Func_ProcessFrame
     jsr Func_UpdateButtons
@@ -206,7 +208,8 @@ _UpdateScrolling:
 .PROC Main_Dialog_Run
 _GameLoop:
     jsr Func_Dialog_DrawObjectsForPrompt
-    jsr Func_DrawObjectsForRoom
+    prga_bank #<.bank(FuncA_Objects_DrawObjectsForRoom)
+    jsr FuncA_Objects_DrawObjectsForRoom
     jsr Func_ClearRestOfOam
     jsr Func_ProcessFrame
     jsr Func_UpdateButtons

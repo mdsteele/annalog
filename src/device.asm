@@ -24,9 +24,9 @@
 .INCLUDE "ppu.inc"
 .INCLUDE "room.inc"
 
-.IMPORT Func_AllocObjectsFor2x2Shape
+.IMPORT FuncA_Objects_Alloc2x2Shape
+.IMPORT FuncA_Objects_SetUpgradeFlagsAndTileIds
 .IMPORT Func_Noop
-.IMPORT Func_SetUpgradeShapeFlagsAndTileIds
 .IMPORT Ram_MachineState
 .IMPORT Ram_MachineStatus_eMachine_arr
 .IMPORT Ram_Oam_sObj_arr64
@@ -45,16 +45,16 @@
 
 ;;;=========================================================================;;;
 
-Func_Device_DrawNone = Func_Noop
-Func_Device_DrawSign = Func_Noop
+FuncA_Objects_DrawNoneDevice = Func_Noop
+FuncA_Objects_DrawSignDevice = Func_Noop
 
 .LINECONT +
 .DEFINE DeviceDrawFuncs \
-    Func_Device_DrawNone, \
-    Func_Device_DrawConsole, \
-    Func_Device_DrawLever, \
-    Func_Device_DrawSign, \
-    Func_Device_DrawUpgrade
+    FuncA_Objects_DrawNoneDevice, \
+    FuncA_Objects_DrawConsoleDevice, \
+    FuncA_Objects_DrawLeverDevice, \
+    FuncA_Objects_DrawSignDevice, \
+    FuncA_Objects_DrawUpgradeDevice
 .LINECONT -
 
 ;;; The OBJ palette numbers used for various device objects.
@@ -129,12 +129,16 @@ Ram_DeviceAnim_u8_arr: .res kMaxDevices
     rts
 .ENDPROC
 
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Objects"
+
 ;;; Allocates and populates OAM slots for all devices in the room.
-.EXPORT Func_DrawObjectsForAllDevices
-.PROC Func_DrawObjectsForAllDevices
+.EXPORT FuncA_Objects_DrawAllDevices
+.PROC FuncA_Objects_DrawAllDevices
     ldx #kMaxDevices - 1
     @loop:
-    jsr Func_DrawObjectsForOneDevice  ; preserves X
+    jsr FuncA_Objects_DrawOneDevice  ; preserves X
     dex
     bpl @loop
     rts
@@ -143,7 +147,7 @@ Ram_DeviceAnim_u8_arr: .res kMaxDevices
 ;;; Allocates and populates OAM slots (if any) for one device.
 ;;; @param X The device index.
 ;;; @preserve X
-.PROC Func_DrawObjectsForOneDevice
+.PROC FuncA_Objects_DrawOneDevice
     lda Ram_DeviceType_eDevice_arr, x
     tay
     lda _JumpTable_ptr_0_arr, y
@@ -158,7 +162,7 @@ _JumpTable_ptr_1_arr: .hibytes DeviceDrawFuncs
 ;;; Allocates and populates OAM slots for a console device.
 ;;; @param X The device index.
 ;;; @preserve X
-.PROC Func_Device_DrawConsole
+.PROC FuncA_Objects_DrawConsoleDevice
     ;; Compute the room pixel Y-position of the top of the console, storing the
     ;; hi byte in Zp_Tmp2_byte and the lo byte in A.
     lda #0
@@ -250,7 +254,7 @@ _JumpTable_ptr_1_arr: .hibytes DeviceDrawFuncs
 ;;; Allocates and populates OAM slots for a lever device.
 ;;; @param X The device index.
 ;;; @preserve X
-.PROC Func_Device_DrawLever
+.PROC FuncA_Objects_DrawLeverDevice
     ;; Compute the animation frame number, storing it in Zp_Tmp4_byte.
     lda Ram_DeviceAnim_u8_arr, x
     div #kLeverAnimSlowdown
@@ -368,7 +372,7 @@ _LeverTileIds_u8_arr:
 ;;; Allocates and populates OAM slots for an upgrade device.
 ;;; @param X The device index.
 ;;; @preserve X
-.PROC Func_Device_DrawUpgrade
+.PROC FuncA_Objects_DrawUpgradeDevice
     ;; Compute the room pixel Y-position of the top of the upgrade device,
     ;; storing the hi byte in Zp_Tmp1_byte and the lo byte in A.
     lda #0
@@ -425,7 +429,7 @@ _LeverTileIds_u8_arr:
     ;; Allocate objects.
     txa
     pha
-    jsr Func_AllocObjectsFor2x2Shape  ; sets C if offscreen; returns Y
+    jsr FuncA_Objects_Alloc2x2Shape  ; sets C if offscreen; returns Y
     pla
     tax
     bcc @onscreen
@@ -433,7 +437,7 @@ _LeverTileIds_u8_arr:
     @onscreen:
     ;; Set flags and tile IDs.
     lda Ram_DeviceTarget_u8_arr, x  ; param: eFlag value
-    jmp Func_SetUpgradeShapeFlagsAndTileIds  ; preserves X
+    jmp FuncA_Objects_SetUpgradeFlagsAndTileIds  ; preserves X
 _YOffsets_u8_arr:
     ;; [12 - int(round(40 * x * (1-x))) for x in (y/24. for y in range(24))]
     .byte 12, 10, 9, 8, 6, 5, 4, 4, 3, 3, 2, 2

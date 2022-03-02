@@ -35,9 +35,9 @@
 .IMPORT FuncA_Console_SetCurrentFieldValue
 .IMPORT FuncA_Console_TransferAllInstructions
 .IMPORT FuncA_Console_TransferInstruction
+.IMPORT FuncA_Objects_DrawObjectsForRoom
 .IMPORT FuncA_Terrain_ScrollTowardsGoal
 .IMPORT Func_ClearRestOfOam
-.IMPORT Func_DrawObjectsForRoom
 .IMPORT Func_ProcessFrame
 .IMPORT Func_SetScrollGoalFromAvatar
 .IMPORT Func_UpdateButtons
@@ -1254,7 +1254,8 @@ _GameLoop:
     prga_bank #<.bank(FuncA_Console_DrawMenuCursorObjects)
     jsr FuncA_Console_DrawMenuCursorObjects
     jsr FuncA_Console_DrawFieldCursorObjects
-    jsr Func_DrawObjectsForRoom
+    prga_bank #<.bank(FuncA_Objects_DrawObjectsForRoom)
+    jsr FuncA_Objects_DrawObjectsForRoom
     jsr Func_ClearRestOfOam
     jsr Func_ProcessFrame
     jsr Func_UpdateButtons

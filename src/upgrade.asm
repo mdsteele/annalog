@@ -29,9 +29,9 @@
 .INCLUDE "window.inc"
 
 .IMPORT Data_PowersOfTwo_u8_arr8
+.IMPORT FuncA_Objects_DrawObjectsForRoom
 .IMPORT FuncA_Terrain_ScrollTowardsGoal
 .IMPORT Func_ClearRestOfOam
-.IMPORT Func_DrawObjectsForRoom
 .IMPORT Func_ProcessFrame
 .IMPORT Func_SetScrollGoalFromAvatar
 .IMPORT Func_UpdateButtons
@@ -118,9 +118,9 @@ _InitWindow:
     lda #kUpgradeWindowTopGoal
     sta Zp_WindowTopGoal_u8
 _GameLoop:
-    prga_bank #<.bank(FuncA_Upgrade_DrawUpgradeSymbol)
-    jsr FuncA_Upgrade_DrawUpgradeSymbol
-    jsr Func_DrawObjectsForRoom
+    prga_bank #<.bank(FuncA_Objects_DrawUpgradeSymbol)
+    jsr FuncA_Objects_DrawUpgradeSymbol
+    jsr FuncA_Objects_DrawObjectsForRoom
     jsr Func_ClearRestOfOam
     jsr Func_ProcessFrame
     jsr Func_UpdateButtons
@@ -152,9 +152,9 @@ _UpdateScrolling:
 ;;; @prereq Explore mode is initialized.
 .PROC Main_Upgrade_CloseWindow
 _GameLoop:
-    prga_bank #<.bank(FuncA_Upgrade_DrawUpgradeSymbol)
-    jsr FuncA_Upgrade_DrawUpgradeSymbol
-    jsr Func_DrawObjectsForRoom
+    prga_bank #<.bank(FuncA_Objects_DrawUpgradeSymbol)
+    jsr FuncA_Objects_DrawUpgradeSymbol
+    jsr FuncA_Objects_DrawObjectsForRoom
     jsr Func_ClearRestOfOam
     jsr Func_ProcessFrame
     jsr Func_UpdateButtons
@@ -184,9 +184,9 @@ _UpdateScrolling:
 ;;; @prereq Explore mode is initialized.
 .PROC Main_Upgrade_RunWindow
 _GameLoop:
-    prga_bank #<.bank(FuncA_Upgrade_DrawUpgradeSymbol)
-    jsr FuncA_Upgrade_DrawUpgradeSymbol
-    jsr Func_DrawObjectsForRoom
+    prga_bank #<.bank(FuncA_Objects_DrawUpgradeSymbol)
+    jsr FuncA_Objects_DrawUpgradeSymbol
+    jsr FuncA_Objects_DrawObjectsForRoom
     jsr Func_ClearRestOfOam
     jsr Func_ProcessFrame
     jsr Func_UpdateButtons
@@ -201,38 +201,6 @@ _UpdateScrolling:
     prga_bank #<.bank(FuncA_Terrain_ScrollTowardsGoal)
     jsr FuncA_Terrain_ScrollTowardsGoal
     jmp _GameLoop
-.ENDPROC
-
-;;; Populates the OAM flags and tile IDs for four objects making up an upgrade
-;;; symbol.  The allocated objects must be in the order: top-left, bottom-left,
-;;; top-right, bottom-right.
-;;; @param A The eFlag value for the upgrade.
-;;; @param Y The OAM byte offset for the first of the four objects.
-;;; @preserve X
-.EXPORT Func_SetUpgradeShapeFlagsAndTileIds
-.PROC Func_SetUpgradeShapeFlagsAndTileIds
-    .assert kNumMaxInstructionUpgrades = 4, error
-    sub #eFlag::UpgradeMaxInstructions3 + 1
-    blt @upgradeMaxInstructions
-    mul #2
-    add #kRemainingTileIdTopLeft
-    bcc @setTileIds  ; unconditional
-    @upgradeMaxInstructions:
-    lda #kMaxInstTileIdTopLeft
-    @setTileIds:
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Tile_u8, y
-    add #1
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Tile_u8, y
-    lda #kUpgradeTileIdBottomLeft
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Tile_u8, y
-    lda #kUpgradeTileIdBottomRight
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Tile_u8, y
-    lda #kUpgradeSymbolPalette
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Flags_bObj, y
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Flags_bObj, y
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Flags_bObj, y
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Flags_bObj, y
-    rts
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -442,9 +410,13 @@ _DescTable_ptr_arr:
     .addr DataA_Upgrade_Descriptions::OpcodeNop3_u8_arr
 .ENDPROC
 
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Objects"
+
 ;;; Allocates and populates OAM slots for the upgrade symbol that appears
 ;;; within the upgrade window.
-.PROC FuncA_Upgrade_DrawUpgradeSymbol
+.PROC FuncA_Objects_DrawUpgradeSymbol
     ldy Zp_OamOffset_u8
     ;; Compute the screen pixel Y-position of the top of the symbol.
     lda Zp_FrameCounter_u8
@@ -470,7 +442,7 @@ _DescTable_ptr_arr:
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::XPos_u8, y
     ;; Set flags and tile IDs.
     lda Zp_CurrentUpgrade_eFlag  ; param: eFlag
-    jsr Func_SetUpgradeShapeFlagsAndTileIds
+    jsr FuncA_Objects_SetUpgradeFlagsAndTileIds
     ;; Finish.
     tya
     add #.sizeof(sObj) * 4
@@ -481,6 +453,38 @@ _YOffsets_u8_arr16:
     ;; [13 + int(round(sin(x * pi / 8))) for x in range(16)]
     .byte 13, 13, 14, 14, 14, 14, 14, 13, 13, 13, 12, 12, 12, 12, 12, 13
     .assert * - _YOffsets_u8_arr16 = 16, error
+.ENDPROC
+
+;;; Populates the OAM flags and tile IDs for four objects making up an upgrade
+;;; symbol.  The allocated objects must be in the order: top-left, bottom-left,
+;;; top-right, bottom-right.
+;;; @param A The eFlag value for the upgrade.
+;;; @param Y The OAM byte offset for the first of the four objects.
+;;; @preserve X
+.EXPORT FuncA_Objects_SetUpgradeFlagsAndTileIds
+.PROC FuncA_Objects_SetUpgradeFlagsAndTileIds
+    .assert kNumMaxInstructionUpgrades = 4, error
+    sub #eFlag::UpgradeMaxInstructions3 + 1
+    blt @upgradeMaxInstructions
+    mul #2
+    add #kRemainingTileIdTopLeft
+    bcc @setTileIds  ; unconditional
+    @upgradeMaxInstructions:
+    lda #kMaxInstTileIdTopLeft
+    @setTileIds:
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Tile_u8, y
+    add #1
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Tile_u8, y
+    lda #kUpgradeTileIdBottomLeft
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Tile_u8, y
+    lda #kUpgradeTileIdBottomRight
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Tile_u8, y
+    lda #kUpgradeSymbolPalette
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Flags_bObj, y
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Flags_bObj, y
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Flags_bObj, y
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Flags_bObj, y
+    rts
 .ENDPROC
 
 ;;;=========================================================================;;;

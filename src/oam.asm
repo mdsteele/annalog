@@ -71,6 +71,10 @@ Ram_Oam_sObj_arr64: .res .sizeof(sObj) * kNumOamSlots
     rts
 .ENDPROC
 
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Objects"
+
 ;;; Allocates and sets X/Y positions for a 2x2 grid of objects, taking into
 ;;; account the window position and hiding any of the objects as necessary.
 ;;;
@@ -85,8 +89,8 @@ Ram_Oam_sObj_arr64: .res .sizeof(sObj) * kNumOamSlots
 ;;; @return C Set if no OAM slots were allocated, cleared otherwise.
 ;;; @return Y The OAM byte offset for the first of the four objects.
 ;;; @preserve X
-.EXPORT Func_AllocObjectsFor2x2Shape
-.PROC Func_AllocObjectsFor2x2Shape
+.EXPORT FuncA_Objects_Alloc2x2Shape
+.PROC FuncA_Objects_Alloc2x2Shape
     ldy Zp_OamOffset_u8
 _ObjectYPositions:
     ;; If the shape is completely offscreen vertically or behind the window,

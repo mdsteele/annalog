@@ -22,7 +22,7 @@
 .INCLUDE "oam.inc"
 .INCLUDE "terrain.inc"
 
-.IMPORT Func_AllocObjectsFor2x2Shape
+.IMPORT FuncA_Objects_Alloc2x2Shape
 .IMPORT Func_Noop
 .IMPORT Func_Terrain_GetColumnPtrForTileIndex
 .IMPORT Ram_Oam_sObj_arr64
@@ -37,7 +37,7 @@
 
 ;;;=========================================================================;;;
 
-;;; First-tile-ID values that can be passed to Func_Actor_DrawObjects2x2 for
+;;; First-tile-ID values that can be passed to FuncA_Objects_Draw2x2Actor for
 ;;; various actor animation frames.
 kCrawlerFirstTileId1 = $94
 kCrawlerFirstTileId2 = $98
@@ -45,8 +45,8 @@ kCrawlerFirstTileId3 = $9c
 
 ;;;=========================================================================;;;
 
-Func_Actor_DrawNone = Func_Noop
 Func_Actor_TickNone = Func_Noop
+FuncA_Objects_DrawNoneActor = Func_Noop
 
 .LINECONT +
 .DEFINE ActorTickFuncs \
@@ -56,8 +56,8 @@ Func_Actor_TickNone = Func_Noop
 
 .LINECONT +
 .DEFINE ActorDrawFuncs \
-    Func_Actor_DrawNone, \
-    Func_Actor_DrawCrawler
+    FuncA_Objects_DrawNoneActor, \
+    FuncA_Objects_DrawCrawlerActor
 .LINECONT -
 
 ;;;=========================================================================;;;
@@ -100,17 +100,6 @@ Ram_ActorFlags_bObj_arr: .res kMaxActors
     rts
 .ENDPROC
 
-;;; Allocates and populates OAM slots for all actors in the room.
-.EXPORT Func_DrawObjectsForAllActors
-.PROC Func_DrawObjectsForAllActors
-    ldx #kMaxActors - 1
-    @loop:
-    jsr Func_DrawObjectsForOneActor  ; preserves X
-    dex
-    bpl @loop
-    rts
-.ENDPROC
-
 ;;; Performs per-frame updates for one actor.
 ;;; @param X The actor index.
 ;;; @preserve X
@@ -124,21 +113,6 @@ Ram_ActorFlags_bObj_arr: .res kMaxActors
     jmp (Zp_Tmp_ptr)
 _JumpTable_ptr_0_arr: .lobytes ActorTickFuncs
 _JumpTable_ptr_1_arr: .hibytes ActorTickFuncs
-.ENDPROC
-
-;;; Allocates and populates OAM slots (if any) for one actor.
-;;; @param X The actor index.
-;;; @preserve X
-.PROC Func_DrawObjectsForOneActor
-    lda Ram_ActorType_eActor_arr, x
-    tay
-    lda _JumpTable_ptr_0_arr, y
-    sta Zp_Tmp_ptr + 0
-    lda _JumpTable_ptr_1_arr, y
-    sta Zp_Tmp_ptr + 1
-    jmp (Zp_Tmp_ptr)
-_JumpTable_ptr_0_arr: .lobytes ActorDrawFuncs
-_JumpTable_ptr_1_arr: .hibytes ActorDrawFuncs
 .ENDPROC
 
 ;;; Performs per-frame updates for a crawler actor.
@@ -232,10 +206,40 @@ _StartMove:
     rts
 .ENDPROC
 
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Objects"
+
+;;; Allocates and populates OAM slots for all actors in the room.
+.EXPORT FuncA_Objects_DrawAllActors
+.PROC FuncA_Objects_DrawAllActors
+    ldx #kMaxActors - 1
+    @loop:
+    jsr FuncA_Objects_DrawOneActor  ; preserves X
+    dex
+    bpl @loop
+    rts
+.ENDPROC
+
+;;; Allocates and populates OAM slots (if any) for one actor.
+;;; @param X The actor index.
+;;; @preserve X
+.PROC FuncA_Objects_DrawOneActor
+    lda Ram_ActorType_eActor_arr, x
+    tay
+    lda _JumpTable_ptr_0_arr, y
+    sta Zp_Tmp_ptr + 0
+    lda _JumpTable_ptr_1_arr, y
+    sta Zp_Tmp_ptr + 1
+    jmp (Zp_Tmp_ptr)
+_JumpTable_ptr_0_arr: .lobytes ActorDrawFuncs
+_JumpTable_ptr_1_arr: .hibytes ActorDrawFuncs
+.ENDPROC
+
 ;;; Allocates and populates OAM slots for a crawler actor.
 ;;; @param X The actor index.
 ;;; @preserve X
-.PROC Func_Actor_DrawCrawler
+.PROC FuncA_Objects_DrawCrawlerActor
     lda Ram_ActorState_byte_arr, x
     and #$08
     bne @frame2
@@ -251,7 +255,7 @@ _StartMove:
     @frame3:
     lda #kCrawlerFirstTileId3
     @draw:
-    jmp Func_Actor_DrawObjects2x2  ; preserves X
+    jmp FuncA_Objects_Draw2x2Actor  ; preserves X
 .ENDPROC
 
 ;;; Allocates and populates OAM slots for the specified actor, using the given
@@ -259,7 +263,7 @@ _StartMove:
 ;;; @param A The first tile ID.
 ;;; @param X The actor index.
 ;;; @preserve X
-.PROC Func_Actor_DrawObjects2x2
+.PROC FuncA_Objects_Draw2x2Actor
     pha  ; first tile ID
     ;; Calculate screen-space Y-position.
     lda Ram_ActorPosY_i16_0_arr, x
@@ -276,7 +280,7 @@ _StartMove:
     sbc Zp_ScrollXHi_u8
     sta Zp_ShapePosX_i16 + 1
     ;; Allocate objects.
-    jsr Func_AllocObjectsFor2x2Shape  ; preserves X, returns C and Y
+    jsr FuncA_Objects_Alloc2x2Shape  ; preserves X, returns C and Y
     pla  ; first tile ID
     bcs _Done
     sta Zp_Tmp1_byte  ; first tile ID
