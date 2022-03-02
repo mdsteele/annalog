@@ -32,7 +32,7 @@ PATTERNS = [
     ('trailing whitespace', re.compile(r' $')),
     ('unindented .directive', re.compile(r'^\.[a-z]')),
     ('wrong comment style',
-     re.compile(r'^ +;;;|^;;[^;]|^ *; |^[^;]*[^; ][^;]*;;')),
+     re.compile(r'^[ \t]+;;;|^;;[^;]|^[ \t]*; |^[^;]*[^; \t][^;]*;;')),
 ]
 
 IMPORT_PATTERN = re.compile(r'^\.IMPORT(?:ZP)? +(.+)$')
@@ -58,46 +58,53 @@ def src_and_test_filepaths(*exts):
 #=============================================================================#
 
 def run_tests():
-    num_passed = 0
-    num_failed = 0
+    failed = False
     # Check for suspicious regex patterns.
     for (message, pattern) in PATTERNS:
         num_matches = 0
         for filepath in src_and_test_filepaths('.asm', '.inc'):
             for (line_number, line) in enumerate(open(filepath)):
                 if pattern.search(line):
+                    failed = True
                     if num_matches == 0:
                         print('STYLE: found ' + message)
                     num_matches += 1
                     print('  {}:{}:'.format(filepath, line_number + 1))
                     print('    ' + line.strip())
-        if num_matches == 0: num_passed += 1
-        else: num_failed += 1
     # Check imports within each ASM file.
     for filepath in src_and_test_filepaths('.asm'):
         imports = []
+        repeated_imports = []
         for line in open(filepath):
             match = IMPORT_PATTERN.match(line)
             if match:
-                imports.append(match.group(1))
+                identifier = match.group(1)
+                if identifier in imports:
+                    repeated_imports.append(identifier)
+                imports.append(identifier)
+        # Check that nothing is imported twice.
+        if repeated_imports:
+            failed = True
+            print('STYLE: repeated imports in {}'.format(filepath))
+            for identifier in repeated_imports:
+                print('    {}'.format(identifier))
         # Check that the imports are sorted.
-        if imports == sorted(imports):
-            num_passed += 1
-        else:
-            num_failed += 1
+        if imports != sorted(imports):
+            failed = True
             print('STYLE: unsorted imports in ' + filepath)
         # Check that all imports are used.
-        num_unused = 0
+        unused_imports = []
         for identifier in imports:
             for line in open(filepath):
                 if not IMPORT_PATTERN.match(line) and identifier in line:
                     break
             else:
-                num_unused += 1
-                print('STYLE: unused import {} in {}'
-                      .format(identifier, filepath))
-        if num_unused == 0: num_passed += 1
-        else: num_failed += 1
+                unused_imports.append(identifier)
+        if unused_imports:
+            failed = True
+            print('STYLE: unused imports in {}'.format(filepath))
+            for identifier in unused_imports:
+                print('    {}'.format(identifier))
     # Check includes within each ASM file.
     for filepath in src_and_test_filepaths('.asm'):
         includes = []
@@ -106,15 +113,12 @@ def run_tests():
             if match:
                 includes.append(match.group(1))
         # Check that the includes are sorted.
-        if includes == sorted(includes):
-            num_passed += 1
-        else:
-            num_failed += 1
+        if includes != sorted(includes):
+            failed = True
             print('STYLE: unsorted includes in ' + filepath)
-    print('style: {} passed, {} failed'.format(num_passed, num_failed))
-    return (num_passed, num_failed)
+    return failed
 
 if __name__ == '__main__':
-    sys.exit(run_tests()[1])
+    sys.exit(run_tests())
 
 #=============================================================================#
