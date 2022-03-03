@@ -113,39 +113,12 @@ Zp_DialogText_ptr: .res 2
 ;;; Mode for scrolling in the dialog window.
 ;;; @prereq Rendering is enabled.
 ;;; @prereq Explore mode is initialized.
-;;; @param A The dialog index.
+;;; @param X The dialog index.
 .EXPORT Main_Dialog_OpenWindow
 .PROC Main_Dialog_OpenWindow
-    asl a
-    sta Zp_Tmp1_byte  ; byte offset into dialogs array
-    ;; Copy the current room's Dialogs_sDialog_ptr_arr_ptr into Zp_Tmp_ptr.
-    ldy #sRoomExt::Dialogs_sDialog_ptr_arr_ptr
-    lda (Zp_Current_sRoom + sRoom::Ext_sRoomExt_ptr), y
-    sta Zp_Tmp_ptr + 0
-    iny
-    lda (Zp_Current_sRoom + sRoom::Ext_sRoomExt_ptr), y
-    sta Zp_Tmp_ptr + 1
-    ;; Index into Dialogs_sDialog_ptr_arr_ptr using the byte offset we already
-    ;; calculated, and copy the resulting pointer into Zp_DialogText_ptr.
-    ldy Zp_Tmp1_byte  ; byte offset into dialogs array
-    lda (Zp_Tmp_ptr), y
-    sta Zp_DialogText_ptr + 0
-    iny
-    lda (Zp_Tmp_ptr), y
-    sta Zp_DialogText_ptr + 1
-    ;; Load the first portrait of the dialog.
-    jsr Func_Dialog_LoadNextPortrait
-_InitWindow:
-    lda #kScreenHeightPx - kDialogWindowScrollSpeed
-    sta Zp_WindowTop_u8
-    jsr Func_Window_SetUpIrq
-    lda #1
-    sta Zp_WindowNextRowToTransfer_u8
-    lda #kDialogWindowTopGoal
-    sta Zp_WindowTopGoal_u8
+    jsr_prga FuncA_Dialog_Init
 _GameLoop:
-    prga_bank #<.bank(FuncA_Objects_DrawObjectsForRoom)
-    jsr FuncA_Objects_DrawObjectsForRoom
+    jsr_prga FuncA_Objects_DrawObjectsForRoom
     jsr Func_ClearRestOfOam
     jsr Func_ProcessFrame
     jsr Func_UpdateButtons
@@ -158,15 +131,14 @@ _ScrollWindowUp:
     @notDone:
     sta Zp_WindowTop_u8
     jsr Func_Window_SetUpIrq
-    jsr Func_Dialog_TransferNextWindowRow
+    jsr_prga FuncA_Dialog_TransferNextWindowRow
 _CheckIfDone:
     lda Zp_WindowTop_u8
     cmp Zp_WindowTopGoal_u8
     jeq Main_Dialog_Run
 _UpdateScrolling:
     jsr Func_SetScrollGoalFromAvatar
-    prga_bank #<.bank(FuncA_Terrain_ScrollTowardsGoal)
-    jsr FuncA_Terrain_ScrollTowardsGoal
+    jsr_prga FuncA_Terrain_ScrollTowardsGoal
     jmp _GameLoop
 .ENDPROC
 
@@ -176,8 +148,7 @@ _UpdateScrolling:
 ;;; @prereq Explore mode is initialized.
 .PROC Main_Dialog_CloseWindow
 _GameLoop:
-    prga_bank #<.bank(FuncA_Objects_DrawObjectsForRoom)
-    jsr FuncA_Objects_DrawObjectsForRoom
+    jsr_prga FuncA_Objects_DrawObjectsForRoom
     jsr Func_ClearRestOfOam
     jsr Func_ProcessFrame
     jsr Func_UpdateButtons
@@ -196,8 +167,7 @@ _CheckIfDone:
     jeq Main_Explore_Continue
 _UpdateScrolling:
     jsr Func_SetScrollGoalFromAvatar
-    prga_bank #<.bank(FuncA_Terrain_ScrollTowardsGoal)
-    jsr FuncA_Terrain_ScrollTowardsGoal
+    jsr_prga FuncA_Terrain_ScrollTowardsGoal
     jmp _GameLoop
 .ENDPROC
 
@@ -207,62 +177,114 @@ _UpdateScrolling:
 ;;; @prereq Explore mode is initialized.
 .PROC Main_Dialog_Run
 _GameLoop:
-    jsr Func_Dialog_DrawObjectsForPrompt
-    prga_bank #<.bank(FuncA_Objects_DrawObjectsForRoom)
-    jsr FuncA_Objects_DrawObjectsForRoom
+    jsr_prga FuncA_Dialog_DrawObjectsForPrompt
+    jsr_prga FuncA_Objects_DrawObjectsForRoom
     jsr Func_ClearRestOfOam
     jsr Func_ProcessFrame
     jsr Func_UpdateButtons
+_Tick:
+    jsr_prga FuncA_Dialog_Tick  ; sets C if window should be closed; returns X
+    chr04_bank x
+    jcs Main_Dialog_CloseWindow
+_UpdateScrolling:
+    jsr Func_SetScrollGoalFromAvatar
+    jsr_prga FuncA_Terrain_ScrollTowardsGoal
+    jmp _GameLoop
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Dialog"
+
+;;; Initializes dialog mode.
+;;; @param X The dialog index.
+.PROC FuncA_Dialog_Init
+    txa
+    asl a
+    sta Zp_Tmp1_byte  ; byte offset into dialogs array
+    ;; Copy the current room's Dialogs_sDialog_ptr_arr_ptr into Zp_Tmp_ptr.
+    ldy #sRoomExt::Dialogs_sDialog_ptr_arr_ptr
+    lda (Zp_Current_sRoom + sRoom::Ext_sRoomExt_ptr), y
+    sta Zp_Tmp_ptr + 0
+    iny
+    lda (Zp_Current_sRoom + sRoom::Ext_sRoomExt_ptr), y
+    sta Zp_Tmp_ptr + 1
+    ;; Index into Dialogs_sDialog_ptr_arr_ptr using the byte offset we already
+    ;; calculated, and copy the resulting pointer into Zp_DialogText_ptr.
+    ldy Zp_Tmp1_byte  ; byte offset into dialogs array
+    lda (Zp_Tmp_ptr), y
+    sta Zp_DialogText_ptr + 0
+    iny
+    lda (Zp_Tmp_ptr), y
+    sta Zp_DialogText_ptr + 1
+    ;; Load the first portrait of the dialog.
+    jsr FuncA_Dialog_LoadNextPortrait
+_InitWindow:
+    lda #kScreenHeightPx - kDialogWindowScrollSpeed
+    sta Zp_WindowTop_u8
+    jsr Func_Window_SetUpIrq
+    lda #1
+    sta Zp_WindowNextRowToTransfer_u8
+    lda #kDialogWindowTopGoal
+    sta Zp_WindowTopGoal_u8
+    rts
+.ENDPROC
+
+;;; Updates the dialog text based on joypad input.
+;;; @return X The CHR04 bank number that should be set.
+;;; @return C Set if dialog is finished and the window should be closed.
+.PROC FuncA_Dialog_Tick
 _CheckBButton:
     lda Zp_P1ButtonsPressed_bJoypad
     and #bJoypad::BButton
-    beq @done
-    jmp Main_Dialog_CloseWindow
-    @done:
+    bne _CloseWindow
 _CheckAButton:
     lda Zp_P1ButtonsPressed_bJoypad
     and #bJoypad::AButton
     beq @done
     bit Zp_DialogPaused_bool
     bpl @skip
-    jsr Func_Dialog_TransferClearText
+    jsr FuncA_Dialog_TransferClearText
     ldy #0
     lda (Zp_DialogText_ptr), y
-    bne @next
-    jmp Main_Dialog_CloseWindow
-    @next:
-    jsr Func_Dialog_LoadNextPortrait
-    jmp _GameLoop
+    beq _CloseWindow
+    jsr FuncA_Dialog_LoadNextPortrait
+    jmp _AnimatePortrait
     @skip:
-    chr04_bank Zp_PortraitRestBank_u8
-    jsr Func_Dialog_TransferRestOfText
-    jmp _GameLoop
+    jsr FuncA_Dialog_TransferRestOfText
+    ldx Zp_PortraitRestBank_u8
+    bne _ContinueDialog  ; unconditional
     @done:
 _UpdateText:
     bit Zp_DialogPaused_bool
-    bmi @paused
-    jsr Func_Dialog_TransferNextCharacter
-    ;; Animate portrait:
+    bpl @notPaused
+    ldx Zp_PortraitRestBank_u8
+    bne _ContinueDialog  ; unconditional
+    @notPaused:
+    jsr FuncA_Dialog_TransferNextCharacter
+_AnimatePortrait:
     lda Zp_FrameCounter_u8
     and #$08
-    beq @paused
-    chr04_bank Zp_PortraitAnimBank_u8
-    jmp @done
-    @paused:
-    chr04_bank Zp_PortraitRestBank_u8
+    beq @rest
+    ldx Zp_PortraitAnimBank_u8
+    bne @done  ; unconditional
+    @rest:
+    ldx Zp_PortraitRestBank_u8
     @done:
-_UpdateScrolling:
-    jsr Func_SetScrollGoalFromAvatar
-    prga_bank #<.bank(FuncA_Terrain_ScrollTowardsGoal)
-    jsr FuncA_Terrain_ScrollTowardsGoal
-    jmp _GameLoop
+_ContinueDialog:
+    clc  ; Clear C to indicate that dialog should continue.
+    rts
+_CloseWindow:
+    ldx Zp_PortraitRestBank_u8
+    sec  ; Set C to indicate that we should close the dialog window.
+    rts
 .ENDPROC
 
 ;;; Reads the 2-byte ePortrait value that Zp_DialogText_ptr points to,
 ;;; initializes dialog variables appropriately, and then advances
 ;;; Zp_DialogText_ptr to point to the start of the text.
 ;;; @prereq Zp_DialogText_ptr is pointing to an ePortrait.
-.PROC Func_Dialog_LoadNextPortrait
+.PROC FuncA_Dialog_LoadNextPortrait
     lda #kDialogTextStartCol
     sta Zp_DialogTextCol_u8
     lda #kDialogTextStartRow
@@ -276,12 +298,12 @@ _UpdateScrolling:
     sta Zp_PortraitAnimBank_u8
     iny
     chr04_bank Zp_PortraitRestBank_u8
-    .assert * = Func_Dialog_AdvanceTextPtr, error, "fallthrough"
+    .assert * = FuncA_Dialog_AdvanceTextPtr, error, "fallthrough"
 .ENDPROC
 
 ;;; Adds Y to Zp_DialogText_ptr and stores the result in Zp_DialogText_ptr.
 ;;; @param Y The byte offset to add to Zp_DialogText_ptr.
-.PROC Func_Dialog_AdvanceTextPtr
+.PROC FuncA_Dialog_AdvanceTextPtr
     tya
     add Zp_DialogText_ptr + 0
     sta Zp_DialogText_ptr + 0
@@ -293,7 +315,7 @@ _UpdateScrolling:
 
 ;;; Transfers the next dialog window row (if any) that still needs to be
 ;;; transferred to the PPU.
-.PROC Func_Dialog_TransferNextWindowRow
+.PROC FuncA_Dialog_TransferNextWindowRow
     ldy Zp_WindowNextRowToTransfer_u8
     dey
     cpy #kDialogNumTextRows
@@ -341,12 +363,12 @@ _Interior:
 ;;; Transfers the next character of dialog text (if any) to the PPU.  If an
 ;;; end-of-line/text marker is reached, updates dialog variables accordingly.
 ;;; @prereq Zp_DialogPaused_bool is false and Zp_DialogText_ptr points to text.
-.PROC Func_Dialog_TransferNextCharacter
+.PROC FuncA_Dialog_TransferNextCharacter
     ldy #0
     lda (Zp_DialogText_ptr), y
     pha
     iny
-    jsr Func_Dialog_AdvanceTextPtr
+    jsr FuncA_Dialog_AdvanceTextPtr
     pla
     cmp #kDialogTextNewline
     beq _Newline
@@ -391,7 +413,7 @@ _End:
 ;;; marker to the PPU, then updates dialog variables accordingly (in
 ;;; particular, Zp_DialogPaused_bool will be set to true when this returns).
 ;;; @prereq Zp_DialogPaused_bool is false and Zp_DialogText_ptr points to text.
-.PROC Func_Dialog_TransferRestOfText
+.PROC FuncA_Dialog_TransferRestOfText
     ;; If the next character is already an end-of-line/text marker, don't
     ;; create a transfer entry for this line.
     ldy #0
@@ -446,7 +468,7 @@ _EndOfLine:
     sta Zp_DialogPaused_bool
     @advance:
     iny  ; Skip past the end-of-line/text marker.
-    jsr Func_Dialog_AdvanceTextPtr
+    jsr FuncA_Dialog_AdvanceTextPtr
     ;; Check whether there are still more lines to transfer.
     bit Zp_DialogPaused_bool
     bpl _TransferLine
@@ -454,7 +476,7 @@ _EndOfLine:
 .ENDPROC
 
 ;;; Buffers a PPU transfer to clear all text from the dialog window.
-.PROC Func_Dialog_TransferClearText
+.PROC FuncA_Dialog_TransferClearText
     lda #kDialogTextStartRow
     @rowLoop:
     pha
@@ -493,7 +515,7 @@ _EndOfLine:
 
 ;;; Allocates and populates OAM slots for the visual prompt that appears when
 ;;; dialog is paused.
-.PROC Func_Dialog_DrawObjectsForPrompt
+.PROC FuncA_Dialog_DrawObjectsForPrompt
     bit Zp_DialogPaused_bool
     bpl _NotPaused
 _DrawPrompt:

@@ -107,8 +107,7 @@ Zp_CurrentUpgrade_eFlag: .res 1
 ;;; @param X The upgrade's device index.
 .EXPORT Main_Upgrade_OpenWindow
 .PROC Main_Upgrade_OpenWindow
-    prga_bank #<.bank(FuncA_Upgrade_Collect)
-    jsr FuncA_Upgrade_Collect
+    jsr_prga FuncA_Upgrade_Collect
 _InitWindow:
     lda #kScreenHeightPx - kUpgradeWindowScrollSpeed
     sta Zp_WindowTop_u8
@@ -133,16 +132,14 @@ _ScrollWindowUp:
     @notDone:
     sta Zp_WindowTop_u8
     jsr Func_Window_SetUpIrq
-    prga_bank #<.bank(FuncA_Upgrade_TransferNextWindowRow)
-    jsr FuncA_Upgrade_TransferNextWindowRow
+    jsr_prga FuncA_Upgrade_TransferNextWindowRow
 _CheckIfDone:
     lda Zp_WindowTop_u8
     cmp Zp_WindowTopGoal_u8
     jeq Main_Upgrade_RunWindow
 _UpdateScrolling:
     jsr Func_SetScrollGoalFromAvatar
-    prga_bank #<.bank(FuncA_Terrain_ScrollTowardsGoal)
-    jsr FuncA_Terrain_ScrollTowardsGoal
+    jsr_prga FuncA_Terrain_ScrollTowardsGoal
     jmp _GameLoop
 .ENDPROC
 
@@ -173,8 +170,7 @@ _CheckIfDone:
     jeq Main_Explore_Continue
 _UpdateScrolling:
     jsr Func_SetScrollGoalFromAvatar
-    prga_bank #<.bank(FuncA_Terrain_ScrollTowardsGoal)
-    jsr FuncA_Terrain_ScrollTowardsGoal
+    jsr_prga FuncA_Terrain_ScrollTowardsGoal
     jmp _GameLoop
 .ENDPROC
 
@@ -198,8 +194,7 @@ _CheckButtons:
     @done:
 _UpdateScrolling:
     jsr Func_SetScrollGoalFromAvatar
-    prga_bank #<.bank(FuncA_Terrain_ScrollTowardsGoal)
-    jsr FuncA_Terrain_ScrollTowardsGoal
+    jsr_prga FuncA_Terrain_ScrollTowardsGoal
     jmp _GameLoop
 .ENDPROC
 

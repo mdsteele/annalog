@@ -135,8 +135,7 @@ _GameLoop:
 _StartGame:
     jsr Func_FadeOut
     jsr Func_ResetSramForNewGame
-    prga_bank #<.bank(FuncA_Upgrade_ComputeMaxInstructions)
-    jsr FuncA_Upgrade_ComputeMaxInstructions
+    jsr_prga FuncA_Upgrade_ComputeMaxInstructions
     ldx #0  ; param: room number
     ldy #0  ; param: device index
     jmp Main_Explore_EnterFromDevice

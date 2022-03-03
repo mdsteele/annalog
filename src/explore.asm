@@ -167,8 +167,7 @@ _DrawTerrain:
 _InitObjects:
     lda #0
     sta Zp_OamOffset_u8
-    prga_bank #<.bank(FuncA_Objects_DrawObjectsForRoom)
-    jsr FuncA_Objects_DrawObjectsForRoom
+    jsr_prga FuncA_Objects_DrawObjectsForRoom
     jsr Func_ClearRestOfOam
 _FadeIn:
     lda #bPpuMask::BgMain | bPpuMask::ObjMain
@@ -184,8 +183,7 @@ _FadeIn:
 .EXPORT Main_Explore_Continue
 .PROC Main_Explore_Continue
 _GameLoop:
-    prga_bank #<.bank(FuncA_Objects_DrawObjectsForRoom)
-    jsr FuncA_Objects_DrawObjectsForRoom
+    jsr_prga FuncA_Objects_DrawObjectsForRoom
     jsr Func_ClearRestOfOam
     jsr Func_ProcessFrame
     jsr Func_UpdateButtons
@@ -225,21 +223,20 @@ _CheckForActivateDevice:
     @sign:
     lda #eAvatar::Reading
     sta Zp_AvatarMode_eAvatar
-    lda Ram_DeviceTarget_u8_arr, x  ; param: dialog index
+    lda Ram_DeviceTarget_u8_arr, x
+    tax  ; param: dialog index
     jmp Main_Dialog_OpenWindow
     @lever:
     jsr Func_ToggleLeverDevice
     @done:
 _UpdateScrolling:
     jsr Func_SetScrollGoalFromAvatar
-    prga_bank #<.bank(FuncA_Terrain_ScrollTowardsGoal)
-    jsr FuncA_Terrain_ScrollTowardsGoal
+    jsr_prga FuncA_Terrain_ScrollTowardsGoal
 _Tick:
     jsr Func_TickAllActors
     jsr Func_TickAllDevices
     jsr Func_ExecuteAllMachines
-    prga_bank #<.bank(FuncA_Terrain_ExploreMoveAvatar)
-    jsr FuncA_Terrain_ExploreMoveAvatar  ; clears Z if door; returns eDoor in A
+    jsr_prga FuncA_Terrain_ExploreMoveAvatar  ; clears Z if door; returns A
     jeq _GameLoop
     .assert * = Main_Explore_GoThroughDoor, error, "fallthrough"
 .ENDPROC
@@ -250,8 +247,7 @@ _Tick:
 .PROC Main_Explore_GoThroughDoor
     ;; Fade out the current room.
     pha  ; eDoor value
-    prga_bank #<.bank(FuncA_Objects_DrawObjectsForRoom)
-    jsr FuncA_Objects_DrawObjectsForRoom
+    jsr_prga FuncA_Objects_DrawObjectsForRoom
     jsr Func_ClearRestOfOam
     jsr Func_FadeOut
     pla  ; eDoor value

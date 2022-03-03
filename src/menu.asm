@@ -1001,7 +1001,8 @@ _TransferLabels:
     rts
 .ENDPROC
 
-;;; Allocates and populates OAM slots for the console menu cursor.
+;;; Allocates and populates OAM slots for the console menu cursor and field
+;;; cursor.
 .PROC FuncA_Console_DrawMenuCursorObjects
     ldx Zp_MenuItem_u8
 _XPosition:
@@ -1066,7 +1067,8 @@ _ObjectLoop:
     dex
     bpl _ObjectLoop
     sty Zp_OamOffset_u8
-    rts
+_DrawFieldCursor:
+    jmp FuncA_Console_DrawFieldCursorObjects
 .ENDPROC
 
 ;;; Moves the console menu cursor (updating Zp_MenuItem_u8 appropriately) based
@@ -1241,8 +1243,7 @@ _RedrawInstructions:
 ;;; @prereq Explore mode is initialized.
 .EXPORT Main_Menu_EditSelectedField
 .PROC Main_Menu_EditSelectedField
-    prga_bank #<.bank(FuncA_Console_SetUpCurrentFieldMenu)
-    jsr FuncA_Console_SetUpCurrentFieldMenu
+    jsr_prga FuncA_Console_SetUpCurrentFieldMenu
     ;; Transfer menu rows.
     ldx #0  ; param: menu row to transfer
     @loop:
@@ -1251,11 +1252,8 @@ _RedrawInstructions:
     cpx Zp_ConsoleNumInstRows_u8
     blt @loop
 _GameLoop:
-    prga_bank #<.bank(FuncA_Console_DrawMenuCursorObjects)
-    jsr FuncA_Console_DrawMenuCursorObjects
-    jsr FuncA_Console_DrawFieldCursorObjects
-    prga_bank #<.bank(FuncA_Objects_DrawObjectsForRoom)
-    jsr FuncA_Objects_DrawObjectsForRoom
+    jsr_prga FuncA_Console_DrawMenuCursorObjects
+    jsr_prga FuncA_Objects_DrawObjectsForRoom
     jsr Func_ClearRestOfOam
     jsr Func_ProcessFrame
     jsr Func_UpdateButtons
@@ -1269,16 +1267,13 @@ _CheckForCancel:
     and #bJoypad::AButton
     bne _SetValue
     ;; D-pad:
-    prga_bank #<.bank(FuncA_Console_MoveMenuCursor)
-    jsr FuncA_Console_MoveMenuCursor
+    jsr_prga FuncA_Console_MoveMenuCursor
 _UpdateScrolling:
     jsr Func_SetScrollGoalFromAvatar
-    prga_bank #<.bank(FuncA_Terrain_ScrollTowardsGoal)
-    jsr FuncA_Terrain_ScrollTowardsGoal
+    jsr_prga FuncA_Terrain_ScrollTowardsGoal
     jmp _GameLoop
 _SetValue:
-    prga_bank #<.bank(FuncA_Console_MenuSetValue)
-    jsr FuncA_Console_MenuSetValue
+    jsr_prga FuncA_Console_MenuSetValue
 _Cancel:
     jmp Main_Console_ContinueEditing
 .ENDPROC

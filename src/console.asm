@@ -149,8 +149,7 @@ Ram_Console_sProgram: .tag sProgram
 .PROC Main_Console_OpenWindow
     jsr Func_SetMachineIndex
     jsr Func_MachineReset
-    prga_bank #<.bank(FuncA_Console_LoadProgram)
-    jsr FuncA_Console_LoadProgram
+    jsr_prga FuncA_Console_LoadProgram
     lda Zp_MachineMaxInstructions_u8
     div #2
     sta Zp_ConsoleNumInstRows_u8
@@ -168,8 +167,7 @@ _InitWindow:
     sub Zp_Tmp1_byte
     sta Zp_WindowTopGoal_u8
 _GameLoop:
-    prga_bank #<.bank(FuncA_Objects_DrawObjectsForRoom)
-    jsr FuncA_Objects_DrawObjectsForRoom
+    jsr_prga FuncA_Objects_DrawObjectsForRoom
     jsr Func_ClearRestOfOam
     jsr Func_ProcessFrame
     jsr Func_UpdateButtons
@@ -182,16 +180,14 @@ _ScrollWindowUp:
     @notDone:
     sta Zp_WindowTop_u8
     jsr Func_Window_SetUpIrq
-    prga_bank #<.bank(FuncA_Console_TransferNextWindowRow)
-    jsr FuncA_Console_TransferNextWindowRow
+    jsr_prga FuncA_Console_TransferNextWindowRow
 _CheckIfDone:
     lda Zp_WindowTop_u8
     cmp Zp_WindowTopGoal_u8
     jeq Main_Console_StartEditing
 _UpdateScrolling:
     jsr Func_SetScrollGoalFromAvatar
-    prga_bank #<.bank(FuncA_Terrain_ScrollTowardsGoal)
-    jsr FuncA_Terrain_ScrollTowardsGoal
+    jsr_prga FuncA_Terrain_ScrollTowardsGoal
     jmp _GameLoop
 .ENDPROC
 
@@ -201,8 +197,7 @@ _UpdateScrolling:
 ;;; @prereq Explore mode is initialized.
 .PROC Main_Console_CloseWindow
 _GameLoop:
-    prga_bank #<.bank(FuncA_Objects_DrawObjectsForRoom)
-    jsr FuncA_Objects_DrawObjectsForRoom
+    jsr_prga FuncA_Objects_DrawObjectsForRoom
     jsr Func_ClearRestOfOam
     jsr Func_ProcessFrame
     jsr Func_UpdateButtons
@@ -221,8 +216,7 @@ _CheckIfDone:
     jeq Main_Explore_Continue
 _UpdateScrolling:
     jsr Func_SetScrollGoalFromAvatar
-    prga_bank #<.bank(FuncA_Terrain_ScrollTowardsGoal)
-    jsr FuncA_Terrain_ScrollTowardsGoal
+    jsr_prga FuncA_Terrain_ScrollTowardsGoal
     jmp _GameLoop
 .ENDPROC
 
@@ -248,10 +242,8 @@ _UpdateScrolling:
     lda #0
     sta Zp_ConsoleCursorIsDiminished_bool
 _GameLoop:
-    prga_bank #<.bank(FuncA_Console_DrawFieldCursorObjects)
-    jsr FuncA_Console_DrawFieldCursorObjects
-    prga_bank #<.bank(FuncA_Objects_DrawObjectsForRoom)
-    jsr FuncA_Objects_DrawObjectsForRoom
+    jsr_prga FuncA_Console_DrawFieldCursorObjects
+    jsr_prga FuncA_Objects_DrawObjectsForRoom
     jsr Func_ClearRestOfOam
     jsr Func_ProcessFrame
     jsr Func_UpdateButtons
@@ -260,16 +252,14 @@ _CheckButtons:
     lda Zp_P1ButtonsPressed_bJoypad
     and #bJoypad::BButton
     beq @noClose
-    prga_bank #<.bank(FuncA_Console_SaveProgram)
-    jsr FuncA_Console_SaveProgram
+    jsr_prga FuncA_Console_SaveProgram
     jmp Main_Console_CloseWindow
     @noClose:
     ;; Select button:
     lda Zp_P1ButtonsPressed_bJoypad
     and #bJoypad::Select
     beq @noInsert
-    prga_bank #<.bank(FuncA_Console_TryInsertInstruction)
-    jsr FuncA_Console_TryInsertInstruction  ; sets C on success
+    jsr_prga FuncA_Console_TryInsertInstruction  ; sets C on success
     bcs @edit
     @noInsert:
     ;; A button:
@@ -282,12 +272,10 @@ _CheckButtons:
     jmp Main_Menu_EditSelectedField
     @noEdit:
     ;; D-pad:
-    prga_bank #<.bank(FuncA_Console_MoveFieldCursor)
-    jsr FuncA_Console_MoveFieldCursor
+    jsr_prga FuncA_Console_MoveFieldCursor
 _UpdateScrolling:
     jsr Func_SetScrollGoalFromAvatar
-    prga_bank #<.bank(FuncA_Terrain_ScrollTowardsGoal)
-    jsr FuncA_Terrain_ScrollTowardsGoal
+    jsr_prga FuncA_Terrain_ScrollTowardsGoal
     jsr Func_MachineTick
     jmp _GameLoop
 .ENDPROC

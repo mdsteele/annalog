@@ -111,83 +111,95 @@ kMmc3BankFlags = bMmc3Bank::FourBankChr0000 | bMmc3Bank::SwappablePrgC000
     sta Hw_Mmc3BankSelect_wo
     .if .not .blank(ARG2)
     lda ARG1, ARG2
+    sta Hw_Mmc3BankData_wo
+    .elseif .match({ARG1}, x)
+    stx Hw_Mmc3BankData_wo
     .else
     lda ARG1
-    .endif
     sta Hw_Mmc3BankData_wo
+    .endif
 .ENDMACRO
 
-;;; Loads the A register with the given argument, then sets that as the current
-;;; PRGA bank number.
+;;; Sets the given argument as the PRGA bank number.  The A register and the N
+;;; and Z flags are destroyed in the process.
 ;;;
 ;;; Examples:
 ;;;     prga_bank #<.bank(FuncA_Foo)    ; use immediate value bank number
 ;;;     prga_bank Zp_BankNumber_u8      ; get bank number from variable
+;;;     prga_bank x                     ; use X as the bank number
 .MACRO prga_bank ARG
     _set_bank eMmc3Bank::PrgBankA000, ARG
 .ENDMACRO
 
-;;; Loads the A register with the given argument, then sets that as the current
-;;; PRGC bank number.
+;;; Switches the PRGA bank number to that of the given function, then calls
+;;; that function.  Note that the A register and the N and Z flags are
+;;; destroyed by the bank-switching process, so this cannot be used for
+;;; functions that take any of those as arguments.
+;;;
+;;; Example:
+;;;     jsr_prga FuncA_Baz_Foobar  ; switches to PRGA_Baz and calls function
+.MACRO jsr_prga ARG
+    .assert ARG >= $a000 && ARG < $c000, error
+    prga_bank #<.bank(ARG)
+    jsr ARG
+.ENDMACRO
+
+;;; Sets the given argument as the PRGC bank number.  The A register and the N
+;;; and Z flags are destroyed in the process.
 ;;;
 ;;; Examples:
 ;;;     prgc_bank #<.bank(DataC_Foo)    ; use immediate value bank number
 ;;;     prgc_bank Zp_BankNumber_u8      ; get bank number from variable
 ;;;     prgc_bank Data_Banks_u8_arr, x  ; get bank number from array
+;;;     prgc_bank x                     ; use X as the bank number
 .MACRO prgc_bank ARG1, ARG2
     _set_bank eMmc3Bank::PrgBank8OrC, ARG1, ARG2
 .ENDMACRO
 
-;;; Loads the A register with the given argument, then sets that as the current
-;;; bank number for CHR $0000-$03ff.
+;;; Sets the given argument as the bank number for CHR $0000-$03ff.  The A
+;;; register and the N and Z flags are destroyed in the process.
 ;;;
-;;; Examples:
-;;;     chr00_bank #<.bank(Ppu_ChrFoo)
+;;; This operation accepts the same arguments as prga_bank.
 .MACRO chr00_bank ARG
     _set_bank eMmc3Bank::ChrBank0Of4, ARG
 .ENDMACRO
 
-;;; Loads the A register with the given argument, then sets that as the current
-;;; bank number for CHR $0400-$07ff.
+;;; Sets the given argument as the bank number for CHR $0400-$07ff.  The A
+;;; register and the N and Z flags are destroyed in the process.
 ;;;
-;;; Examples:
-;;;     chr04_bank #<.bank(Ppu_ChrFoo)
+;;; This operation accepts the same arguments as prga_bank.
 .MACRO chr04_bank ARG
     _set_bank eMmc3Bank::ChrBank1Of4, ARG
 .ENDMACRO
 
-;;; Loads the A register with the given argument, then sets that as the current
-;;; bank number for CHR $0800-$0bff.
+;;; Sets the given argument as the bank number for CHR $0800-$0bff.  The A
+;;; register and the N and Z flags are destroyed in the process.
 ;;;
-;;; Examples:
-;;;     chr08_bank #<.bank(Ppu_ChrFoo)
+;;; This operation accepts the same arguments as prga_bank.
 .MACRO chr08_bank ARG
     _set_bank eMmc3Bank::ChrBank2Of4, ARG
 .ENDMACRO
 
-;;; Loads the A register with the given argument, then sets that as the current
-;;; bank number for CHR $0c00-$0fff.
+;;; Sets the given argument as the bank number for CHR $0c00-$0fff.  The A
+;;; register and the N and Z flags are destroyed in the process.
 ;;;
-;;; Examples:
-;;;     chr0c_bank #<.bank(Ppu_ChrFoo)
+;;; This operation accepts the same arguments as prga_bank.
 .MACRO chr0c_bank ARG
     _set_bank eMmc3Bank::ChrBank3Of4, ARG
 .ENDMACRO
 
-;;; Loads the A register with the given argument, then sets that as the current
-;;; bank number for CHR $1000-$17ff.  Only even-numbered banks are supported.
+;;; Sets the given argument as the bank number for CHR $1000-$17ff.  The A
+;;; register and the N and Z flags are destroyed in the process.
 ;;;
-;;; Examples:
-;;;     chr10_bank #<.bank(Ppu_ChrFoo)
+;;; This operation accepts the same arguments as prga_bank.
 .MACRO chr10_bank ARG
     _set_bank eMmc3Bank::ChrBank0Of2, ARG
 .ENDMACRO
 
-;;; Loads the A register with the given argument, then sets that as the current
-;;; bank number for CHR $1800-$1fff.  Only even-numbered banks are supported.
+;;; Sets the given argument as the bank number for CHR $1800-$1fff.  The A
+;;; register and the N and Z flags are destroyed in the process.
 ;;;
-;;; Examples:
-;;;     chr18_bank #<.bank(Ppu_ChrFoo)
+;;; This operation accepts the same arguments as prga_bank.
 .MACRO chr18_bank ARG
     _set_bank eMmc3Bank::ChrBank1Of2, ARG
 .ENDMACRO

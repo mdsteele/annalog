@@ -35,7 +35,7 @@ PATTERNS = [
 
 SEGMENT_DECL_PATTERN = re.compile(r'^\.SEGMENT +"([a-zA-Z0-9_]*)"')
 PROC_DECL_PATTERN = re.compile(r'^\.PROC +([a-zA-Z0-9_]+)')
-BANK_SWITCH_PATTERN = re.compile(r'^ *(?:prga|prgc)_bank ')
+BANK_SWITCH_PATTERN = re.compile(r'^ *(?:(?:prga|prgc)_bank|jsr_prga) ')
 
 LOCAL_PROC_NAME = re.compile(r'^_[a-zA-Z0-9_]+$')  # e.g. _Foobar
 PRGA_PROC_NAME = re.compile(  # e.g. FuncA_SegmentName_Foobar
@@ -102,10 +102,11 @@ def run_tests():
                     fail('misnamed proc for segment {}'.format(segment))
                 if not proc.startswith('_'):
                     top_proc = proc
-            match = BANK_SWITCH_PATTERN.match(line)
-            if match:
-                if not top_proc.startswith('Main_'):
-                    fail('bank switch not in a Main'.format(top_proc))
+            if top_proc:
+                match = BANK_SWITCH_PATTERN.match(line)
+                if match:
+                    if not top_proc.startswith('Main_'):
+                        fail('bank switch not in a Main'.format(top_proc))
     return failed[0]
 
 if __name__ == '__main__':
