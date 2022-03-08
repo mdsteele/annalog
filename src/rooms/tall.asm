@@ -31,9 +31,19 @@
 .IMPORT DataC_Room_AreaName_u8_arr
 .IMPORT FuncA_Objects_Alloc2x2Shape
 .IMPORT Func_MachineError
+.IMPORT Func_MovePlatformVert
 .IMPORT Ram_MachineState
 .IMPORT Ram_MachineStatus_eMachine_arr
 .IMPORT Ram_Oam_sObj_arr64
+.IMPORT Ram_PlatformBottom_i16_0_arr
+.IMPORT Ram_PlatformBottom_i16_1_arr
+.IMPORT Ram_PlatformExists_bool_arr
+.IMPORT Ram_PlatformLeft_i16_0_arr
+.IMPORT Ram_PlatformLeft_i16_1_arr
+.IMPORT Ram_PlatformRight_i16_0_arr
+.IMPORT Ram_PlatformRight_i16_1_arr
+.IMPORT Ram_PlatformTop_i16_0_arr
+.IMPORT Ram_PlatformTop_i16_1_arr
 .IMPORTZP Zp_FrameCounter_u8
 .IMPORTZP Zp_PpuScrollX_u8
 .IMPORTZP Zp_PpuScrollY_u8
@@ -102,6 +112,21 @@ _Init:
     lda #0
     sta Ram_MachineState + sState::JailCellDoorRegY_u8
     sta Ram_MachineState + sState::JailCellDoorVelY_i8
+    lda #$ff
+    sta Ram_PlatformExists_bool_arr + 0
+    lda #kJailCellDoorPosX - $08
+    sta Ram_PlatformLeft_i16_0_arr + 0
+    add #$10
+    sta Ram_PlatformRight_i16_0_arr + 0
+    lda #kJailCellDoorInitPosY - $08
+    sta Ram_PlatformTop_i16_0_arr + 0
+    add #$10
+    sta Ram_PlatformBottom_i16_0_arr + 0
+    lda #0
+    sta Ram_PlatformTop_i16_1_arr + 0
+    sta Ram_PlatformBottom_i16_1_arr + 0
+    sta Ram_PlatformLeft_i16_1_arr + 0
+    sta Ram_PlatformRight_i16_1_arr + 0
     rts
 _ReadReg:
     cmp #$c
@@ -147,6 +172,9 @@ _TryMove:
 _Tick:
     lda Ram_MachineState + sState::JailCellDoorVelY_i8
     beq @finishResetting
+    ldx #0  ; param: platform index
+    jsr Func_MovePlatformVert
+    lda Ram_MachineState + sState::JailCellDoorVelY_i8
     add Ram_MachineState + sState::JailCellDoorPosY_u8
     sta Ram_MachineState + sState::JailCellDoorPosY_u8
     and #$0f

@@ -24,6 +24,7 @@
 
 .IMPORT DataC_Room_Short_sRoom
 .IMPORT DataC_Room_Tall_sRoom
+.IMPORT Func_ClearPlatforms
 .IMPORT Func_InitAllMachines
 .IMPORT Ram_ActorFlags_bObj_arr
 .IMPORT Ram_ActorPosX_i16_0_arr
@@ -91,6 +92,8 @@ _CopyRoomStruct:
     sta Zp_Current_sRoom, y
     dey
     bpl @loop
+_ClearPlatforms:
+    jsr Func_ClearPlatforms
 _LoadActors:
     ;; Copy the current room's Actors_sActor_arr_ptr into Zp_Tmp_ptr.
     ldy #sRoomExt::Actors_sActor_arr_ptr

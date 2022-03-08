@@ -28,11 +28,11 @@
 .INCLUDE "terrain.inc"
 
 .IMPORT Data_RoomBanks_u8_arr
+.IMPORT FuncA_Avatar_ExploreMove
 .IMPORT FuncA_Objects_DrawAllActors
 .IMPORT FuncA_Objects_DrawAllDevices
 .IMPORT FuncA_Objects_DrawAllMachines
 .IMPORT FuncA_Objects_DrawPlayerAvatar
-.IMPORT FuncA_Terrain_ExploreMoveAvatar
 .IMPORT FuncA_Terrain_FillNametables
 .IMPORT FuncA_Terrain_TransferTileColumn
 .IMPORT Func_Avatar_PositionAtNearbyDevice
@@ -236,7 +236,7 @@ _Tick:
     jsr Func_TickAllActors
     jsr Func_TickAllDevices
     jsr Func_ExecuteAllMachines
-    jsr_prga FuncA_Terrain_ExploreMoveAvatar  ; clears Z if door; returns A
+    jsr_prga FuncA_Avatar_ExploreMove  ; clears Z if door; returns eDoor in A
     jeq _GameLoop
     .assert * = Main_Explore_GoThroughDoor, error, "fallthrough"
 .ENDPROC
