@@ -38,6 +38,7 @@
 .IMPORT FuncA_Objects_DrawObjectsForRoom
 .IMPORT FuncA_Terrain_ScrollTowardsGoal
 .IMPORT Func_ClearRestOfOam
+.IMPORT Func_MachineTick
 .IMPORT Func_ProcessFrame
 .IMPORT Func_SetScrollGoalFromAvatar
 .IMPORT Func_UpdateButtons
@@ -262,15 +263,27 @@ _SetColumnsForAllMenuItems:
     bpl @loop
 _SetRowsForMenuLeftColumn:
     ldx #0
-    ;; TODO: Check if COPY opcode is unlocked.
+    ;; Check if the COPY opcode is unlocked.
+    lda Sram_ProgressFlags_arr + (eFlag::UpgradeOpcodeCopy >> 3)
+    and #1 << (eFlag::UpgradeOpcodeCopy & $07)
+    beq @noCopyOpcode
     stx Ram_MenuRows_u8_arr + eOpcode::Copy
     inx
-    ;; TODO: Check if SWAP opcode is unlocked.
+    @noCopyOpcode:
+    ;; Check if the SWAP opcode is unlocked.
+    lda Sram_ProgressFlags_arr + (eFlag::UpgradeOpcodeSwap >> 3)
+    and #1 << (eFlag::UpgradeOpcodeSwap & $07)
+    beq @noSwapOpcode
     stx Ram_MenuRows_u8_arr + eOpcode::Swap
     inx
-    ;; TODO: Check if GOTO opcode is unlocked.
+    @noSwapOpcode:
+    ;; Check if the GOTO opcode is unlocked.
+    lda Sram_ProgressFlags_arr + (eFlag::UpgradeOpcodeIfGoto >> 3)
+    and #1 << (eFlag::UpgradeOpcodeIfGoto & $07)
+    beq @noGotoOpcode
     stx Ram_MenuRows_u8_arr + eOpcode::Goto
     inx
+    @noGotoOpcode:
     ;; Check if the SKIP opcode is unlocked.
     lda Sram_ProgressFlags_arr + (eFlag::UpgradeOpcodeSkip >> 3)
     and #1 << (eFlag::UpgradeOpcodeSkip & $07)
@@ -299,17 +312,29 @@ _SetRowsForMenuLeftColumn:
     stx Ram_MenuRows_u8_arr + eOpcode::Empty
 _SetRowsForMenuRightColumn:
     ldx #0
-    ;; TODO: Check if ADD/SUB opcodes are unlocked.
+    ;; Check if the ADD/SUB opcodes are unlocked.
+    lda Sram_ProgressFlags_arr + (eFlag::UpgradeOpcodeAddSub >> 3)
+    and #1 << (eFlag::UpgradeOpcodeAddSub & $07)
+    beq @noAddSubOpcodes
     stx Ram_MenuRows_u8_arr + eOpcode::Add
     inx
     stx Ram_MenuRows_u8_arr + eOpcode::Sub
     inx
-    ;; TODO: Check if MUL opcode is unlocked.
+    @noAddSubOpcodes:
+    ;; Check if the MUL opcode is unlocked.
+    lda Sram_ProgressFlags_arr + (eFlag::UpgradeOpcodeMul >> 3)
+    and #1 << (eFlag::UpgradeOpcodeMul & $07)
+    beq @noMulOpcode
     stx Ram_MenuRows_u8_arr + eOpcode::Mul
     inx
-    ;; TODO: Check if IF opcode is unlocked.
+    @noMulOpcode:
+    ;; Check if the IF opcode is unlocked.
+    lda Sram_ProgressFlags_arr + (eFlag::UpgradeOpcodeIfGoto >> 3)
+    and #1 << (eFlag::UpgradeOpcodeIfGoto & $07)
+    beq @noIfOpcode
     stx Ram_MenuRows_u8_arr + eOpcode::If
     inx
+    @noIfOpcode:
     ;; Check if the TIL opcode is unlocked.
     lda Sram_ProgressFlags_arr + (eFlag::UpgradeOpcodeTil >> 3)
     and #1 << (eFlag::UpgradeOpcodeTil & $07)
@@ -317,9 +342,13 @@ _SetRowsForMenuRightColumn:
     stx Ram_MenuRows_u8_arr + eOpcode::Til
     inx
     @noTilOpcode:
-    ;; TODO: Check if NOP opcode is unlocked.
+    ;; Check if the NOP opcode is unlocked.
+    lda Sram_ProgressFlags_arr + (eFlag::UpgradeOpcodeNop >> 3)
+    and #1 << (eFlag::UpgradeOpcodeNop & $07)
+    beq @noNopOpcode
     stx Ram_MenuRows_u8_arr + eOpcode::Nop
     inx
+    @noNopOpcode:
     ;; The END opcode is always available.
     stx Ram_MenuRows_u8_arr + eOpcode::End
     rts
@@ -794,11 +823,11 @@ _SetItem:
 
 ;;; +--------+
 ;;; |        |
+;;; |        |
 ;;; |   ^    |
-;;; |        |
-;;; | <   >  |
-;;; |        |
+;;; |  < >   |
 ;;; |   v    |
+;;; |        |
 ;;; |        |
 ;;; |        |
 ;;; +--------+
@@ -844,7 +873,7 @@ _SetItem:
     stax Zp_Current_sMenu_ptr
     ;; Store the starting row in Zp_Tmp1_byte.
     lda Zp_ConsoleNumInstRows_u8
-    sub #5
+    sub #3
     lsr a
     sta Zp_Tmp1_byte
     ;; Check if this machine supports moving vertically.
@@ -856,7 +885,7 @@ _SetItem:
     ;; If so, position menu items for up/down.
     lda Zp_Tmp1_byte
     sta Ram_MenuRows_u8_arr + eDir::Up
-    add #4
+    add #2
     sta Ram_MenuRows_u8_arr + eDir::Down
     lda #3
     sta Ram_MenuCols_u8_arr + eDir::Up
@@ -869,12 +898,11 @@ _SetItem:
     ;; If so, position menu items for left/right.
     ldx Zp_Tmp1_byte
     inx
-    inx
     stx Ram_MenuRows_u8_arr + eDir::Left
     stx Ram_MenuRows_u8_arr + eDir::Right
-    lda #1
+    lda #2
     sta Ram_MenuCols_u8_arr + eDir::Left
-    lda #5
+    lda #4
     sta Ram_MenuCols_u8_arr + eDir::Right
     @noMoveHorz:
     rts
@@ -1271,6 +1299,7 @@ _CheckForCancel:
 _UpdateScrolling:
     jsr Func_SetScrollGoalFromAvatar
     jsr_prga FuncA_Terrain_ScrollTowardsGoal
+    jsr Func_MachineTick
     jmp _GameLoop
 _SetValue:
     jsr_prga FuncA_Console_MenuSetValue

@@ -73,12 +73,14 @@ kMaxRoomWidthBlocks = kMaxRoomWidthTiles / 2
 
 ;;; The list of rooms in the game.
 .ENUM eRoom
+    PrisonCell
+    PrisonEscape
     TallRoom
     ShortRoom
     NUM_VALUES
 .ENDENUM
 
-.DEFINE kNumRooms 2
+.DEFINE kNumRooms 4
 .ASSERT kNumRooms = eRoom::NUM_VALUES, error
 
 ;;;=========================================================================;;;

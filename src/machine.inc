@@ -26,6 +26,9 @@ kMaxMachines = 8
 ;;; How many bytes of RAM are reserved for room-specific machine state.
 kMachineStateSize = $c0
 
+;;; The OBJ palette number used for the blinking error light on machines.
+kMachineLightPalette = 1
+
 ;;;=========================================================================;;;
 
 ;;; Flags indicating features of a given machine.

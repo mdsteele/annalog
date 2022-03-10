@@ -85,6 +85,49 @@ Ram_PlatformRight_i16_1_arr: .res kMaxPlatforms
     rts
 .ENDPROC
 
+;;; Moves the specified platform right or left by the specified delta.  If the
+;;; player avatar is standing on the platform, it will be moved along with it.
+;;; @param A How many pixels to move the platform by (signed).
+;;; @param X The platform index.
+;;; @preserve X
+.EXPORT Func_MovePlatformHorz
+.PROC Func_MovePlatformHorz
+    ;; Sign-extend the move delta to 16 bits.
+    ldy #0
+    and #$ff
+    bpl @nonnegative
+    dey  ; now Y is $ff
+    @nonnegative:
+    sta Zp_Tmp1_byte  ; move delta (lo)
+    sty Zp_Tmp2_byte  ; move delta (hi)
+    ;; Move the platform's left edge.
+    lda Ram_PlatformLeft_i16_0_arr, x
+    add Zp_Tmp1_byte  ; move delta (lo)
+    sta Ram_PlatformLeft_i16_0_arr, x
+    lda Ram_PlatformLeft_i16_1_arr, x
+    adc Zp_Tmp2_byte  ; move delta (hi)
+    sta Ram_PlatformLeft_i16_1_arr, x
+    ;; Move the platform's right edge.
+    lda Ram_PlatformRight_i16_0_arr, x
+    add Zp_Tmp1_byte  ; move delta (lo)
+    sta Ram_PlatformRight_i16_0_arr, x
+    lda Ram_PlatformRight_i16_1_arr, x
+    adc Zp_Tmp2_byte  ; move delta (hi)
+    sta Ram_PlatformRight_i16_1_arr, x
+    ;; If the player avatar is riding the platform, move the avatar as well.
+    cpx Zp_AvatarPlatformIndex_u8
+    bne @notRiding
+    lda Zp_AvatarPosX_i16 + 0
+    add Zp_Tmp1_byte  ; move delta (lo)
+    sta Zp_AvatarPosX_i16 + 0
+    lda Zp_AvatarPosX_i16 + 1
+    adc Zp_Tmp2_byte  ; move delta (hi)
+    sta Zp_AvatarPosX_i16 + 1
+    @notRiding:
+    ;; TODO: Check if the avatar has been crushed.
+    rts
+.ENDPROC
+
 ;;; Moves the specified platform up or down by the specified delta.  If the
 ;;; player avatar is standing on the platform, it will be moved along with it.
 ;;; @param A How many pixels to move the platform by (signed).

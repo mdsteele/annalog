@@ -22,8 +22,10 @@
 .INCLUDE "macros.inc"
 .INCLUDE "room.inc"
 
-.IMPORT DataC_Room_Short_sRoom
-.IMPORT DataC_Room_Tall_sRoom
+.IMPORT DataC_Prison_Cell_sRoom
+.IMPORT DataC_Prison_Escape_sRoom
+.IMPORT DataC_Prison_Short_sRoom
+.IMPORT DataC_Prison_Tall_sRoom
 .IMPORT Func_ClearPlatforms
 .IMPORT Func_InitAllMachines
 .IMPORT Ram_ActorFlags_bObj_arr
@@ -50,8 +52,10 @@
 
 .LINECONT +
 .DEFINE RoomPtrs \
-    DataC_Room_Tall_sRoom, \
-    DataC_Room_Short_sRoom
+    DataC_Prison_Cell_sRoom, \
+    DataC_Prison_Escape_sRoom, \
+    DataC_Prison_Tall_sRoom, \
+    DataC_Prison_Short_sRoom
 .LINECONT -
 
 ;;; Pointers to sRoom structs for all rooms in the game, indexed by eRoom

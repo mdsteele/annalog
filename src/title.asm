@@ -34,7 +34,6 @@
 .IMPORT Func_Window_Disable
 .IMPORT Main_Explore_EnterFromDevice
 .IMPORT Sram_MagicNumber_u8
-.IMPORT Sram_ProgressFlags_arr
 .IMPORTZP Zp_OamOffset_u8
 .IMPORTZP Zp_P1ButtonsPressed_bJoypad
 .IMPORTZP Zp_PpuScrollX_u8
@@ -67,9 +66,6 @@ End:
     ;; Mark the save file as present.
     lda #kSaveMagicNumber
     sta Sram_MagicNumber_u8
-    ;; TODO: Temporary for development: Add some upgrades.
-    lda #$f7
-    sta Sram_ProgressFlags_arr + 0
     ;; Disable writes to SRAM.
     lda #bMmc3PrgRam::Enable | bMmc3PrgRam::DenyWrites
     sta Hw_Mmc3PrgRamProtect_wo
