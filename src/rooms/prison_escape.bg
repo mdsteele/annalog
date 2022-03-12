@@ -1,29 +1,30 @@
 @BG 0 0 0 33x24
 >r0
 >r1
+>r3
 >r4
 
 
-      CHCHCHCHCHCHCH        CHCHCHCHCHCHCHCHCH    CHCHCH
-  CHCI              CGCHCHCI                  CGCI      CM
-CN                                  BC                  CG
-CN                              CO  CO                    CG
-CN        BA  BDBE            BBCP  CP      CDCF            CGCHCH
-CN      CACBCBCBCECF          CDCP          CMCNCDCF
-  CF            CGCHCBCF      CPCPBA    BACDCK    CN
-  CN  BC              CGCBCECECPCJCECECECECK      CN    CDCECECECE
-    CECECF                CM  CK                    CECE
-      CHCHCBCC            CM  CHCHCHCHCHCHCHCHCH
-    CI                AD  CMCI                  CGCH          CNCP
-  CI                CDCECBCI                        CM      CPCPCP
-CN              CDCECHCI        CACBCBCC            CG    CNCPCPCP
-CN      BA    CACHCI                          CO      CM      CPCP
-CLCP    CO                                          BBCM      CNCP
-  CNBD                                              CACICG
-  CNCP                  BABC                              CG
-    CP          CJCL  CACBCECF                    CJCL      CGCHCH
-    CLCP        CMCN      CGCI                    CMCN
-      CP        CMCNCF  BE      ABBA              CMCNCP  CDCECECE
-      CPCPCPCPCPCM  CNCECECECECECECECF            CM  CNCPCM
-      CNCPCPCPCKCP                  CPCPCPCPCPCKCLCJ    CP
-          CK                    CPCPCPCPCPCP
+      DHDHDHDHDHDHDH        DHDHDHDHDHDHDHDHDH    DHDHDH
+  DHDI              DGDHDHDI                  DGDI      DM
+DN                                  BC                  DG
+DN                              DO  DO                    DG
+DN        BA  BDBE            BBDP  DP      DDDF            DGDHDH
+DN      DADBDBDBDEDF          DDDP          DMDNDDDF
+  DF            DGDHDBDF      DPDPBA    BADDDK    DN
+  DN  BC              DGDBDEDEDPDJDEDEDEDEDK      DN    DDDEDEDEDE
+    DEDEDF                DM  DK                    DEDE
+      DHDHDBDC            DM  DHDHDHDHDHDHDHDHDH
+    DI                AD  DMDI                  DGDH          DNDP
+  DI                DDDEDBDI                        DM      DPDPDP
+DN              DDDEDHDI        DADBDBDC            DG    DNDPDPDP
+DN      BA    DADHDI                          DO      DM      DPDP
+DLDP    DO                                          BBDM      DNDP
+  DNBD                                              DADIDG
+  DNDP                  BABC                              DG
+    DP          DJDL  DADBDEDF                    DJDL      DGDHDH
+    DLDP        DMDN      DGDI                    DMDN
+      DPCPCPCPCPDMDNDF  BE      ABBA              DMDNDP  DDDEDEDE
+      DPDPDPDPDPDM  DNDEDEDEDEDEDEDEDFCPCPCPCPCPCPDM  DNDPDM
+      DNDPDPDPDKDP                  DPDPDPDPDPDKDLDJ    DP
+          DK                    DPDPDPDPDPDP

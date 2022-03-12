@@ -31,7 +31,7 @@
 .EXPORT Ppu_ChrCave
 .PROC Ppu_ChrCave
 :   .incbin "out/data/tiles/cave.chr"
-    .res $27 * kSizeofChr
+    .res $26 * kSizeofChr
     .incbin "out/data/tiles/device.chr"
     .assert * - :- = kSizeofChr * $40, error
 .ENDPROC
