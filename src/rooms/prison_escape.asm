@@ -136,7 +136,8 @@ _Machines_sMachine_arr:
     D_STRUCT sMachine
     d_byte Code_eProgram, eProgram::PrisonEscapeCarriage
     d_byte Flags_bMachine, bMachine::MoveH
-    d_byte RegNames_u8_arr6, "A", 0, 0, 0, "X", 0
+    d_byte Status_eDiagram, eDiagram::Barrier  ; TODO: use a different diagram
+    d_byte RegNames_u8_arr5, 0, 0, 0, "X", 0
     d_addr Init_func_ptr, _Carriage_Init
     d_addr ReadReg_func_ptr, _Carriage_ReadReg
     d_addr WriteReg_func_ptr, Func_MachineError

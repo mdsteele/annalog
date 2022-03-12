@@ -53,7 +53,7 @@
 .EXPORT Ppu_ChrFontLower01
 .PROC Ppu_ChrFontLower01
 :   .incbin "out/data/tiles/font_lower.chr"
-    .res $10 * kSizeofChr
+    .incbin "out/data/tiles/diagram01.chr"
     .incbin "out/data/tiles/portrait01.chr"
     .assert * - :- = kSizeofChr * $40, error
 .ENDPROC

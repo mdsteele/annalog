@@ -32,6 +32,7 @@
 .IMPORT FuncA_Console_GetCurrentFieldWidth
 .IMPORT FuncA_Console_GetCurrentInstNumFields
 .IMPORT FuncA_Console_SetFieldForNominalOffset
+.IMPORT FuncA_Console_WriteStatusTransferData
 .IMPORT FuncA_Objects_DrawObjectsForRoom
 .IMPORT FuncA_Terrain_ScrollTowardsGoal
 .IMPORT Func_ClearRestOfOam
@@ -94,6 +95,9 @@ kCursorObjPalette = 1
 ;;; The width of an instruction in the console, in tiles.
 kInstructionWidthTiles = 7
 
+;;; The name (i.e. BG tile ID) for register $a.
+kRegNameA = $20  ; 'A'
+
 ;;;=========================================================================;;;
 
 .ZEROPAGE
@@ -137,6 +141,11 @@ Zp_ConsoleCursorIsDiminished_bool: .res 1
 .EXPORT Ram_Console_sProgram
 Ram_Console_sProgram: .tag sProgram
 
+;;; The names (i.e. BG tile IDs) for registers $a through $f for the current
+;;; machine.
+.EXPORT Ram_ConsoleRegNames_u8_arr6
+Ram_ConsoleRegNames_u8_arr6: .res 6
+
 ;;;=========================================================================;;;
 
 .SEGMENT "PRG8"
@@ -147,25 +156,7 @@ Ram_Console_sProgram: .tag sProgram
 ;;; @param X The machine index to open a console for.
 .EXPORT Main_Console_OpenWindow
 .PROC Main_Console_OpenWindow
-    jsr Func_SetMachineIndex
-    jsr Func_MachineReset
-    jsr_prga FuncA_Console_LoadProgram
-    lda Zp_MachineMaxInstructions_u8
-    div #2
-    sta Zp_ConsoleNumInstRows_u8
-_InitWindow:
-    lda #kScreenHeightPx - kConsoleWindowScrollSpeed
-    sta Zp_WindowTop_u8
-    jsr Func_Window_SetUpIrq
-    lda #1
-    sta Zp_WindowNextRowToTransfer_u8
-    ;; Calculate the window top goal from the number of instruction rows.
-    lda Zp_ConsoleNumInstRows_u8
-    mul #kTileHeightPx
-    sta Zp_Tmp1_byte
-    lda #kScreenHeightPx - (kTileHeightPx * 2 + kWindowMarginBottomPx)
-    sub Zp_Tmp1_byte
-    sta Zp_WindowTopGoal_u8
+    jsr_prga FuncA_Console_Init
 _GameLoop:
     jsr_prga FuncA_Objects_DrawObjectsForRoom
     jsr Func_ClearRestOfOam
@@ -283,6 +274,47 @@ _UpdateScrolling:
 ;;;=========================================================================;;;
 
 .SEGMENT "PRGA_Console"
+
+;;; Initializes console mode.
+;;; @prereq Rendering is enabled.
+;;; @prereq Explore mode is initialized.
+;;; @param X The machine index to open a console for.
+.PROC FuncA_Console_Init
+    jsr Func_SetMachineIndex
+    jsr Func_MachineReset
+    jsr FuncA_Console_LoadProgram
+    lda Zp_MachineMaxInstructions_u8
+    div #2
+    sta Zp_ConsoleNumInstRows_u8
+_CopyRegNames:
+    ldy #sMachine::RegNames_u8_arr5 + 4
+    ldx #5
+    @loop:
+    lda (Zp_Current_sMachine_ptr), y
+    sta Ram_ConsoleRegNames_u8_arr6, x
+    dey
+    dex
+    bpl @loop
+    lda #kRegNameA
+    sta Ram_ConsoleRegNames_u8_arr6 + 0
+_SetDiagram:
+    ldy #sMachine::Status_eDiagram
+    chr04_bank (Zp_Current_sMachine_ptr), y
+_InitWindow:
+    lda #kScreenHeightPx - kConsoleWindowScrollSpeed
+    sta Zp_WindowTop_u8
+    jsr Func_Window_SetUpIrq
+    lda #1
+    sta Zp_WindowNextRowToTransfer_u8
+    ;; Calculate the window top goal from the number of instruction rows.
+    lda Zp_ConsoleNumInstRows_u8
+    mul #kTileHeightPx
+    sta Zp_Tmp1_byte
+    lda #kScreenHeightPx - (kTileHeightPx * 2 + kWindowMarginBottomPx)
+    sub Zp_Tmp1_byte
+    sta Zp_WindowTopGoal_u8
+    rts
+.ENDPROC
 
 ;;; Copies Zp_Current_sProgram_ptr to Zp_ConsoleSram_sProgram_ptr, then loads
 ;;; the program from SRAM into Ram_Console_sProgram, then makes
@@ -666,16 +698,10 @@ _Interior:
     jsr FuncA_Console_WriteInstTransferData
     inx
     ;; Draw the status box.
-    ;; TODO: Make a real implementation for drawing the status box.
-    lda #kWindowTileIdBlank
-    ldy #8
-    @loop:
-    sta Ram_PpuTransfer_arr, x
-    inx
+    ldy Zp_WindowNextRowToTransfer_u8
     dey
-    bne @loop
-    lda #kWindowTileIdVert
-    sta Ram_PpuTransfer_arr, x
+    dey  ; param: status box row
+    jsr FuncA_Console_WriteStatusTransferData
     rts
 .ENDPROC
 
@@ -937,10 +963,10 @@ _WriteLowRegisterOrImmediate:
     bge @register
     add #kConsoleTileIdDigitZero  ; Get tile ID for immediate value (0-9).
     bne @write  ; unconditional
-    @register:                             ; This is a register ($a-$f), so
-    sub #$0a - sMachine::RegNames_u8_arr6  ; subtract $a to get the index into
-    tay                                    ; RegNames, and add RegNames_u8_arr6
-    lda (Zp_Current_sMachine_ptr), y       ; to get offset into sMachine.
+    @register:
+    sub #$0a
+    tay
+    lda Ram_ConsoleRegNames_u8_arr6, y
     @write:
     sta Ram_PpuTransfer_arr, x
     inx

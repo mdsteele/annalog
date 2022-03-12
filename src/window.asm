@@ -118,7 +118,7 @@ _Done:
     sta Hw_PpuAddr_w2
     stx Hw_PpuAddr_w2
     lda #kWindowTileIdBlank
-    stx Hw_PpuData_rw
+    sta Hw_PpuData_rw
     lda #kWindowTileIdTopLeft
     sta Hw_PpuData_rw
     lda #kWindowTileIdHorz

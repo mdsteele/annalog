@@ -96,7 +96,8 @@ TestMachine:
     D_STRUCT sMachine
     d_byte Code_eProgram, kTestProgramIndex
     d_byte Flags_bMachine, bMachine::MoveV | bMachine::MoveH
-    d_byte RegNames_u8_arr6, "A", 0, 0, 0, "X", "Y"
+    d_byte Status_eDiagram, eDiagram::Barrier
+    d_byte RegNames_u8_arr5, 0, 0, 0, "X", "Y"
     d_addr Init_func_ptr, _Init
     d_addr ReadReg_func_ptr, _ReadReg
     d_addr WriteReg_func_ptr, Func_MachineError

@@ -34,6 +34,7 @@
 .IMPORT FuncA_Console_GetCurrentFieldValue
 .IMPORT FuncA_Console_SetCurrentFieldValue
 .IMPORT FuncA_Console_TransferAllInstructions
+.IMPORT FuncA_Console_TransferAllStatusRows
 .IMPORT FuncA_Console_TransferInstruction
 .IMPORT FuncA_Objects_DrawObjectsForRoom
 .IMPORT FuncA_Terrain_ScrollTowardsGoal
@@ -44,6 +45,7 @@
 .IMPORT Func_UpdateButtons
 .IMPORT Func_Window_GetRowPpuAddr
 .IMPORT Main_Console_ContinueEditing
+.IMPORT Ram_ConsoleRegNames_u8_arr6
 .IMPORT Ram_Console_sProgram
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORT Ram_PpuTransfer_arr
@@ -96,14 +98,11 @@ Ram_MenuRows_u8_arr: .res kMaxMenuItems
 ;;; The menu column (0-7) for each menu item.
 Ram_MenuCols_u8_arr: .res kMaxMenuItems
 
-;;; The names (i.e. BG tile IDs) for registers $a through $f for the current
-;;; machine.
-Ram_MenuRegNames_u8_arr6: .res 6
-
 ;;;=========================================================================;;;
 
 .SEGMENT "PRGA_Console"
 
+;;; BG tile IDs for numbers, from 0 through 15.
 .PROC DataA_Console_NumberLabels_u8_arr
     .byte "0123456789", $1a, $1b, $1c, $1d, $1e, $1f
     .assert * - DataA_Console_NumberLabels_u8_arr = kMaxMenuItems, error
@@ -375,7 +374,7 @@ _Columns_u8_arr:
     .addr DataA_Console_NumberLabels_u8_arr + index
     .endrepeat
     .repeat 6, index
-    .addr Ram_MenuRegNames_u8_arr6 + index
+    .addr Ram_ConsoleRegNames_u8_arr6 + index
     .endrepeat
     d_addr OnUp_func_ptr,    _OnUp
     d_addr OnDown_func_ptr,  _OnDown
@@ -610,15 +609,6 @@ _Columns_u8_arr:
 .PROC FuncA_Console_SetUpValueMenuCommon
     ldax #DataA_Console_Value_sMenu
     stax Zp_Current_sMenu_ptr
-_CopyRegNames:
-    ldy #sMachine::RegNames_u8_arr6 + 5
-    ldx #5
-    @loop:
-    lda (Zp_Current_sMachine_ptr), y
-    sta Ram_MenuRegNames_u8_arr6, x
-    dey
-    dex
-    bpl @loop
 _SetRowsForRegisters:
     lda Zp_ConsoleNumInstRows_u8
     sub #4
@@ -627,7 +617,7 @@ _SetRowsForRegisters:
     ldy #$f
     ldx #5
     @loop:
-    lda Ram_MenuRegNames_u8_arr6, x
+    lda Ram_ConsoleRegNames_u8_arr6, x
     beq @continue
     txa
     lsr a
@@ -1289,7 +1279,7 @@ _CheckForCancel:
     ;; B button:
     lda Zp_P1ButtonsPressed_bJoypad
     and #bJoypad::BButton
-    bne _Cancel
+    bne _ExitMenu
     ;; A button:
     lda Zp_P1ButtonsPressed_bJoypad
     and #bJoypad::AButton
@@ -1303,7 +1293,8 @@ _UpdateScrolling:
     jmp _GameLoop
 _SetValue:
     jsr_prga FuncA_Console_MenuSetValue
-_Cancel:
+_ExitMenu:
+    jsr_prga FuncA_Console_TransferAllStatusRows
     jmp Main_Console_ContinueEditing
 .ENDPROC
 

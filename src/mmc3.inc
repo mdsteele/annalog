@@ -124,11 +124,13 @@ kMmc3BankFlags = bMmc3Bank::FourBankChr0000 | bMmc3Bank::SwappablePrgC000
 ;;; and Z flags are destroyed in the process.
 ;;;
 ;;; Examples:
-;;;     prga_bank #<.bank(FuncA_Foo)    ; use immediate value bank number
-;;;     prga_bank Zp_BankNumber_u8      ; get bank number from variable
-;;;     prga_bank x                     ; use X as the bank number
-.MACRO prga_bank ARG
-    _set_bank eMmc3Bank::PrgBankA000, ARG
+;;;     prga_bank #<.bank(DataC_Foo)        ; uses immediate value bank number
+;;;     prga_bank Zp_BankNumber_u8          ; gets bank number from variable
+;;;     prga_bank Data_Banks_u8_arr, x      ; gets bank number from array
+;;;     prga_bank (Zp_Banks_u8_arr_ptr), y  ; gets bank number from indirection
+;;;     prga_bank x                         ; uses X as the bank number
+.MACRO prga_bank ARG1, ARG2
+    _set_bank eMmc3Bank::PrgBankA000, ARG1, ARG2
 .ENDMACRO
 
 ;;; Switches the PRGA bank number to that of the given function, then calls
@@ -147,11 +149,7 @@ kMmc3BankFlags = bMmc3Bank::FourBankChr0000 | bMmc3Bank::SwappablePrgC000
 ;;; Sets the given argument as the PRGC bank number.  The A register and the N
 ;;; and Z flags are destroyed in the process.
 ;;;
-;;; Examples:
-;;;     prgc_bank #<.bank(DataC_Foo)    ; use immediate value bank number
-;;;     prgc_bank Zp_BankNumber_u8      ; get bank number from variable
-;;;     prgc_bank Data_Banks_u8_arr, x  ; get bank number from array
-;;;     prgc_bank x                     ; use X as the bank number
+;;; This operation accepts the same arguments as prga_bank.
 .MACRO prgc_bank ARG1, ARG2
     _set_bank eMmc3Bank::PrgBank8OrC, ARG1, ARG2
 .ENDMACRO
@@ -160,48 +158,48 @@ kMmc3BankFlags = bMmc3Bank::FourBankChr0000 | bMmc3Bank::SwappablePrgC000
 ;;; register and the N and Z flags are destroyed in the process.
 ;;;
 ;;; This operation accepts the same arguments as prga_bank.
-.MACRO chr00_bank ARG
-    _set_bank eMmc3Bank::ChrBank0Of4, ARG
+.MACRO chr00_bank ARG1, ARG2
+    _set_bank eMmc3Bank::ChrBank0Of4, ARG1, ARG2
 .ENDMACRO
 
 ;;; Sets the given argument as the bank number for CHR $0400-$07ff.  The A
 ;;; register and the N and Z flags are destroyed in the process.
 ;;;
 ;;; This operation accepts the same arguments as prga_bank.
-.MACRO chr04_bank ARG
-    _set_bank eMmc3Bank::ChrBank1Of4, ARG
+.MACRO chr04_bank ARG1, ARG2
+    _set_bank eMmc3Bank::ChrBank1Of4, ARG1, ARG2
 .ENDMACRO
 
 ;;; Sets the given argument as the bank number for CHR $0800-$0bff.  The A
 ;;; register and the N and Z flags are destroyed in the process.
 ;;;
 ;;; This operation accepts the same arguments as prga_bank.
-.MACRO chr08_bank ARG
-    _set_bank eMmc3Bank::ChrBank2Of4, ARG
+.MACRO chr08_bank ARG1, ARG2
+    _set_bank eMmc3Bank::ChrBank2Of4, ARG1, ARG2
 .ENDMACRO
 
 ;;; Sets the given argument as the bank number for CHR $0c00-$0fff.  The A
 ;;; register and the N and Z flags are destroyed in the process.
 ;;;
 ;;; This operation accepts the same arguments as prga_bank.
-.MACRO chr0c_bank ARG
-    _set_bank eMmc3Bank::ChrBank3Of4, ARG
+.MACRO chr0c_bank ARG1, ARG2
+    _set_bank eMmc3Bank::ChrBank3Of4, ARG1, ARG2
 .ENDMACRO
 
 ;;; Sets the given argument as the bank number for CHR $1000-$17ff.  The A
 ;;; register and the N and Z flags are destroyed in the process.
 ;;;
 ;;; This operation accepts the same arguments as prga_bank.
-.MACRO chr10_bank ARG
-    _set_bank eMmc3Bank::ChrBank0Of2, ARG
+.MACRO chr10_bank ARG1, ARG2
+    _set_bank eMmc3Bank::ChrBank0Of2, ARG1, ARG2
 .ENDMACRO
 
 ;;; Sets the given argument as the bank number for CHR $1800-$1fff.  The A
 ;;; register and the N and Z flags are destroyed in the process.
 ;;;
 ;;; This operation accepts the same arguments as prga_bank.
-.MACRO chr18_bank ARG
-    _set_bank eMmc3Bank::ChrBank1Of2, ARG
+.MACRO chr18_bank ARG1, ARG2
+    _set_bank eMmc3Bank::ChrBank1Of2, ARG1, ARG2
 .ENDMACRO
 
 ;;;=========================================================================;;;

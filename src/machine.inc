@@ -31,6 +31,13 @@ kMachineLightPalette = 1
 
 ;;;=========================================================================;;;
 
+;;; CHR04 bank numbers to set for various machine status diagrams.
+.ENUM eDiagram
+    Barrier = $01
+.ENDENUM
+
+;;;=========================================================================;;;
+
 ;;; Flags indicating features of a given machine.
 .SCOPE bMachine
     MoveH  = %10000000  ; The machine supports MOVE left/right instructions.
@@ -57,8 +64,10 @@ kMachineLightPalette = 1
     Code_eProgram     .byte
     ;; Which features this machine supports.
     Flags_bMachine    .byte
-    ;; The names (i.e. BG tile IDs) for registers $a through $f.
-    RegNames_u8_arr6  .res 6
+    ;; The diagram to display in the console status box.
+    Status_eDiagram   .byte
+    ;; The names (i.e. BG tile IDs) for registers $b through $f.
+    RegNames_u8_arr5  .res 5
     ;; Function to initialize machine-specific state (when entering the area).
     Init_func_ptr     .addr
     ;; Function to call when a register from $b to $f is read.
