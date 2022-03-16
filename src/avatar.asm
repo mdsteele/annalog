@@ -43,6 +43,7 @@
 .IMPORTZP Zp_P1ButtonsPressed_bJoypad
 .IMPORTZP Zp_PpuScrollX_u8
 .IMPORTZP Zp_PpuScrollY_u8
+.IMPORTZP Zp_Render_bPpuMask
 .IMPORTZP Zp_ScrollXHi_u8
 .IMPORTZP Zp_ShapePosX_i16
 .IMPORTZP Zp_ShapePosY_i16
@@ -65,9 +66,13 @@ kAvatarStopJumpSpeed = 1
 ;;; left/right arrows, in subpixels per frame per frame.
 kAvatarHorzAccel = 70
 
-;;; The (signed, 16-bit) initial velocity of the player avatar when jumping, in
-;;; subpixels per frame.
+;;; The (signed, 16-bit) initial Y-velocity of the player avatar when jumping,
+;;; in subpixels per frame.
 kAvatarJumpVelocity = $ffff & -810
+
+;;; The (signed, 16-bit) initial Y-velocity to set for the player avatar when
+;;; it takes damage and is temporarily stunned.
+kAvatarStunVelY = $ffff & -300
 
 ;;; The vertical acceleration applied to the player avatar when in midair, in
 ;;; subpixels per frame per frame.
@@ -75,6 +80,9 @@ kAvatarGravity = 48
 
 ;;; The OBJ palette number to use for the player avatar.
 kAvatarPalette = 1
+
+;;; How many frames to blink the screen when the avatar is almost healed.
+kAvatarHealBlinkFrames = 14
 
 ;;;=========================================================================;;;
 
@@ -108,9 +116,14 @@ Zp_AvatarMode_eAvatar: .res 1
 Zp_AvatarRecover_u8: .res 1
 
 ;;; Temporary variable that records whether the player avatar has just collided
-;;; with something.
+;;; with a wall/platform.
 .EXPORTZP Zp_AvatarCollided_bool
 Zp_AvatarCollided_bool: .res 1
+
+;;; If zero, the player avatar is at full health; otherwise, the avatar has
+;;; been harmed, and will be back to full health in this many frames.
+.EXPORTZP Zp_AvatarHarmTimer_u8
+Zp_AvatarHarmTimer_u8: .res 1
 
 ;;;=========================================================================;;;
 
@@ -147,6 +160,7 @@ Zp_AvatarCollided_bool: .res 1
     lda #eAvatar::Standing
     sta Zp_AvatarMode_eAvatar
     lda #0
+    sta Zp_AvatarHarmTimer_u8
     sta Zp_AvatarRecover_u8
     sta Zp_AvatarVelX_i16 + 0
     sta Zp_AvatarVelX_i16 + 1
@@ -154,6 +168,54 @@ Zp_AvatarCollided_bool: .res 1
     sta Zp_AvatarVelY_i16 + 1
     lda #kAvatarPalette
     sta Zp_AvatarFlags_bObj
+    rts
+.ENDPROC
+
+;;; Deals damage to the player avatar, stunning them.
+;;; @preserve X
+.EXPORT Func_HarmAvatar
+.PROC Func_HarmAvatar
+    lda Zp_AvatarHarmTimer_u8
+    ;; If the player avatar is at full health, stun and damage them.
+    beq _Harm
+    ;; Otherwise, if the player avatar is no longer still invincible from the
+    ;; last time they took damage, kill them.
+    cmp #kAvatarHarmHealFrames - kAvatarHarmInvincibileFrames
+    blt Func_KillAvatar
+    rts
+_Harm:
+    ;; Mark the avatar as damaged.
+    lda #kAvatarHarmHealFrames
+    sta Zp_AvatarHarmTimer_u8
+    ;; Make the avatar go flying backwards.
+    lda #eAvatar::Jumping
+    sta Zp_AvatarMode_eAvatar
+    lda #<kAvatarStunVelY
+    sta Zp_AvatarVelY_i16 + 0
+    lda #>kAvatarStunVelY
+    sta Zp_AvatarVelY_i16 + 1
+    ;; Set the avatar's X-velocity depending on which way its facing.
+    .assert bObj::FlipH = $40, error
+    bit Zp_AvatarFlags_bObj
+    bvc @facingRight
+    @facingLeft:
+    lda #kAvatarMaxSpeedX
+    bne @setVelX  ; unconditional
+    @facingRight:
+    lda #$ff & -kAvatarMaxSpeedX
+    @setVelX:
+    sta Zp_AvatarVelX_i16 + 1
+    lda #0
+    sta Zp_AvatarVelX_i16 + 0
+    rts
+.ENDPROC
+
+;;; Kills the player avatar.
+;;; @preserve X
+.EXPORT Func_KillAvatar
+.PROC Func_KillAvatar
+    lda #kAvatarHarmDeath
+    sta Zp_AvatarHarmTimer_u8
     rts
 .ENDPROC
 
@@ -236,7 +298,15 @@ _MarkMinimap:
 ;;; @return A The eDoor that the player avatar hit, or eDoor::None for none.
 .EXPORT FuncA_Avatar_ExploreMove
 .PROC FuncA_Avatar_ExploreMove
+    ldx Zp_AvatarHarmTimer_u8
+    beq @doneHealing
+    dex
+    stx Zp_AvatarHarmTimer_u8
+    cpx #kAvatarHarmHealFrames - kAvatarHarmStunFrames
+    bge @doneJoypad
+    @doneHealing:
     jsr FuncA_Avatar_ApplyJoypad
+    @doneJoypad:
 .PROC _ApplyVelX
     ldy #0
     sty Zp_AvatarCollided_bool
@@ -587,6 +657,8 @@ _Done:
     lda #eAvatar::Running2
     bne @setAvatarMode  ; unconditional
     @standing:
+    lda Zp_AvatarHarmTimer_u8
+    bne @ducking
     lda Zp_P1ButtonsHeld_bJoypad
     and #bJoypad::Down
     bne @ducking
@@ -779,9 +851,33 @@ _DoneJump:
 
 .SEGMENT "PRGA_Objects"
 
-;;; Allocates and populates OAM slots for the player avatar.
+;;; Allocates and populates OAM slots for the player avatar.  Also sets
+;;; Zp_Render_bPpuMask appropriately for the player avatar's health.
 .EXPORT FuncA_Objects_DrawPlayerAvatar
 .PROC FuncA_Objects_DrawPlayerAvatar
+    ;; Tint the screen red if the avatar is not at full health.
+    lda Zp_AvatarHarmTimer_u8
+    beq @whiteScreen
+    cmp #kAvatarHealBlinkFrames
+    bge @redScreen
+    and #$02
+    bne @whiteScreen
+    @redScreen:
+    lda #bPpuMask::BgMain | bPpuMask::ObjMain | bPpuMask::EmphRed
+    bne @setRender  ; unconditional
+    @whiteScreen:
+    lda #bPpuMask::BgMain | bPpuMask::ObjMain
+    @setRender:
+    sta Zp_Render_bPpuMask
+    ;; If the avatar is temporarily invinvible, blink the objects.
+    lda Zp_AvatarHarmTimer_u8
+    cmp #kAvatarHarmHealFrames - kAvatarHarmInvincibileFrames
+    blt @notInvincible
+    lda Zp_FrameCounter_u8
+    and #$02
+    bne _Done
+    @notInvincible:
+_AllocObjects:
     ;; Calculate screen-space Y-position.
     lda Zp_AvatarPosY_i16 + 0
     sub Zp_PpuScrollY_u8

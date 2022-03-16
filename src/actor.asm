@@ -18,14 +18,18 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "actor.inc"
+.INCLUDE "avatar.inc"
 .INCLUDE "macros.inc"
 .INCLUDE "oam.inc"
 .INCLUDE "terrain.inc"
 
 .IMPORT FuncA_Objects_Alloc2x2Shape
+.IMPORT Func_HarmAvatar
 .IMPORT Func_Noop
 .IMPORT Func_Terrain_GetColumnPtrForTileIndex
 .IMPORT Ram_Oam_sObj_arr64
+.IMPORTZP Zp_AvatarPosX_i16
+.IMPORTZP Zp_AvatarPosY_i16
 .IMPORTZP Zp_PpuScrollX_u8
 .IMPORTZP Zp_PpuScrollY_u8
 .IMPORTZP Zp_ScrollXHi_u8
@@ -89,6 +93,21 @@ Ram_ActorFlags_bObj_arr: .res kMaxActors
 
 .SEGMENT "PRG8"
 
+;;; How far an actor's bounding box extends in each direction from the actor's
+;;; position, indexed by eActor value.
+.PROC Data_ActorBoundingBoxUp_u8_arr
+    .byte 0, 0
+.ENDPROC
+.PROC Data_ActorBoundingBoxDown_u8_arr
+    .byte 0, 8
+.ENDPROC
+.PROC Data_ActorBoundingBoxLeft_u8_arr
+    .byte 0, 7
+.ENDPROC
+.PROC Data_ActorBoundingBoxRight_u8_arr
+    .byte 0, 7
+.ENDPROC
+
 ;;; Performs per-frame updates for each actor in the room.
 .EXPORT Func_TickAllActors
 .PROC Func_TickAllActors
@@ -123,7 +142,7 @@ _JumpTable_ptr_1_arr: .hibytes ActorTickFuncs
     beq _StartMove
     dec Ram_ActorState_byte_arr, x
     cmp #$18
-    blt _Done
+    blt _DetectCollision
     lda Ram_ActorFlags_bObj_arr, x
     and #bObj::FlipH
     bne _MoveLeft
@@ -134,8 +153,7 @@ _MoveRight:
     lda Ram_ActorPosX_i16_1_arr, x
     adc #0
     sta Ram_ActorPosX_i16_1_arr, x
-_Done:
-    rts
+    jmp Func_Actor_HarmAvatarIfCollision  ; preserves X
 _MoveLeft:
     lda Ram_ActorPosX_i16_0_arr, x
     sub #1
@@ -143,7 +161,8 @@ _MoveLeft:
     lda Ram_ActorPosX_i16_1_arr, x
     sbc #0
     sta Ram_ActorPosX_i16_1_arr, x
-    rts
+_DetectCollision:
+    jmp Func_Actor_HarmAvatarIfCollision  ; preserves X
 _StartMove:
     ;; Compute the room tile column index for the center of the crawler,
     ;; storing it in Y.
@@ -203,6 +222,78 @@ _StartMove:
     @continueForward:
     lda #$1f
     sta Ram_ActorState_byte_arr, x
+    rts
+.ENDPROC
+
+;;; Checks if the actor is colliding with the player avatar; if so, harms the
+;;; avatar.
+;;; @param X The actor index.
+;;; @preserve X
+.PROC Func_Actor_HarmAvatarIfCollision
+    ldy Ram_ActorType_eActor_arr, x
+    ;; Check right side.
+    lda Data_ActorBoundingBoxRight_u8_arr, y
+    add #kAvatarBoundingBoxLeft
+    adc Ram_ActorPosX_i16_0_arr, x
+    sta Zp_Tmp1_byte
+    lda Ram_ActorPosX_i16_1_arr, x
+    adc #0
+    cmp Zp_AvatarPosX_i16 + 1
+    blt _NoHit
+    bne @hitRight
+    lda Zp_Tmp1_byte
+    cmp Zp_AvatarPosX_i16 + 0
+    ble _NoHit
+    @hitRight:
+    ;; Check left side.
+    lda Data_ActorBoundingBoxLeft_u8_arr, y
+    add #kAvatarBoundingBoxRight
+    sta Zp_Tmp1_byte
+    lda Ram_ActorPosX_i16_0_arr, x
+    sub Zp_Tmp1_byte
+    sta Zp_Tmp1_byte
+    lda Ram_ActorPosX_i16_1_arr, x
+    sbc #0
+    cmp Zp_AvatarPosX_i16 + 1
+    blt @hitLeft
+    bne _NoHit
+    lda Zp_Tmp1_byte
+    cmp Zp_AvatarPosX_i16 + 0
+    bge _NoHit
+    @hitLeft:
+    ;; Check top side.
+    lda Data_ActorBoundingBoxUp_u8_arr, y
+    add #kAvatarBoundingBoxDown
+    sta Zp_Tmp1_byte
+    lda Ram_ActorPosY_i16_0_arr, x
+    sub Zp_Tmp1_byte
+    sta Zp_Tmp1_byte
+    lda Ram_ActorPosY_i16_1_arr, x
+    sbc #0
+    cmp Zp_AvatarPosY_i16 + 1
+    blt @hitTop
+    bne _NoHit
+    lda Zp_Tmp1_byte
+    cmp Zp_AvatarPosY_i16 + 0
+    bge _NoHit
+    @hitTop:
+    ;; Check bottom side.
+    lda Data_ActorBoundingBoxDown_u8_arr, y
+    add #kAvatarBoundingBoxUp
+    adc Ram_ActorPosY_i16_0_arr, x
+    sta Zp_Tmp1_byte
+    lda Ram_ActorPosY_i16_1_arr, x
+    adc #0
+    cmp Zp_AvatarPosY_i16 + 1
+    blt _NoHit
+    bne @hitBottom
+    lda Zp_Tmp1_byte
+    cmp Zp_AvatarPosY_i16 + 0
+    ble _NoHit
+    @hitBottom:
+_Hit:
+    jmp Func_HarmAvatar  ; preserves X
+_NoHit:
     rts
 .ENDPROC
 

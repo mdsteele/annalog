@@ -26,6 +26,22 @@ kAvatarBoundingBoxRight = 5
 
 ;;;=========================================================================;;;
 
+;;; How long it takes the player avatar to heal after taking damage, in frames.
+kAvatarHarmHealFrames = 240
+
+;;; How long the player avatar is stunned after taking damage, in frames.
+kAvatarHarmStunFrames = 20
+
+;;; How long the player avatar stays invincible after taking damage, in frames.
+kAvatarHarmInvincibileFrames = 60
+
+;;; If Zp_AvatarHarmTimer_u8 is set to this, then the avatar has been killed
+;;; and we should go to death mode.
+kAvatarHarmDeath = $ff
+.ASSERT kAvatarHarmDeath > kAvatarHarmHealFrames, error
+
+;;;=========================================================================;;;
+
 ;;; Modes that the player avatar can be in.  The number for each of these enum
 ;;; values is the starting tile ID to use for the avatar objects when the
 ;;; avatar is in that mode.

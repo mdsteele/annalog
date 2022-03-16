@@ -53,6 +53,7 @@
 .IMPORT Main_Console_OpenWindow
 .IMPORT Main_Dialog_OpenWindow
 .IMPORT Main_Pause
+.IMPORT Main_Title
 .IMPORT Main_Upgrade_OpenWindow
 .IMPORT Ppu_ChrCave
 .IMPORT Ram_DeviceBlockCol_u8_arr
@@ -60,6 +61,7 @@
 .IMPORT Ram_DeviceTarget_u8_arr
 .IMPORT Ram_DeviceType_eDevice_arr
 .IMPORT Ram_Oam_sObj_arr64
+.IMPORTZP Zp_AvatarHarmTimer_u8
 .IMPORTZP Zp_AvatarMode_eAvatar
 .IMPORTZP Zp_AvatarPosX_i16
 .IMPORTZP Zp_AvatarPosY_i16
@@ -164,14 +166,12 @@ _DrawTerrain:
     .endrepeat
     lda Zp_Tmp1_byte  ; param: left block column index
     jsr FuncA_Terrain_FillNametables
-_InitObjects:
+_InitObjectsAndFadeIn:
     lda #0
     sta Zp_OamOffset_u8
     jsr_prga FuncA_Objects_DrawObjectsForRoom
     jsr Func_ClearRestOfOam
-_FadeIn:
-    lda #bPpuMask::BgMain | bPpuMask::ObjMain
-    sta Zp_Render_bPpuMask
+    ;; Zp_Render_bPpuMask will be set by FuncA_Objects_DrawObjectsForRoom.
     jsr Func_FadeIn
     .assert * = Main_Explore_Continue, error, "fallthrough"
 .ENDPROC
@@ -236,6 +236,9 @@ _Tick:
     jsr Func_TickAllActors
     jsr Func_TickAllDevices
     jsr Func_ExecuteAllMachines
+    lda Zp_AvatarHarmTimer_u8
+    cmp #kAvatarHarmDeath
+    jeq Main_Explore_Death
     jsr_prga FuncA_Avatar_ExploreMove  ; clears Z if door; returns eDoor in A
     jeq _GameLoop
     .assert * = Main_Explore_GoThroughDoor, error, "fallthrough"
@@ -307,6 +310,15 @@ _RepositionAvatar:
     @doorDone:
 _EnterNextRoom:
     jmp Main_Explore_FadeIn
+.ENDPROC
+
+;;; Mode for when the avatar has just been killed while exploring.
+;;; @prereq Rendering is enabled.
+;;; @prereq Explore mode is already initialized.
+.PROC Main_Explore_Death
+    ;; TODO: Animate the avatar blinking red or collapasing or something.
+    jsr Func_FadeOut
+    jmp Main_Title
 .ENDPROC
 
 ;;; Sets Zp_NearbyDevice_u8 to the index of the device that the player avatar
