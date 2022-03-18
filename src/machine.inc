@@ -34,6 +34,7 @@ kMachineLightPalette = 1
 ;;; CHR04 bank numbers to set for various machine status diagrams.
 .ENUM eDiagram
     Barrier = $01
+    Trolley = $02
 .ENDENUM
 
 ;;;=========================================================================;;;
