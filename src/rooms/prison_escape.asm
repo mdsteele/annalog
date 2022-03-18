@@ -24,79 +24,74 @@
 .INCLUDE "../machine.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
+.INCLUDE "../platform.inc"
 .INCLUDE "../ppu.inc"
 .INCLUDE "../program.inc"
 .INCLUDE "../room.inc"
 
 .IMPORT DataC_Prison_AreaCells_u8_arr2_arr
 .IMPORT DataC_Prison_AreaName_u8_arr
+.IMPORT FuncA_Objects_Alloc1x1Shape
 .IMPORT FuncA_Objects_Alloc2x2Shape
+.IMPORT FuncA_Objects_MoveShapeDownOneTile
+.IMPORT FuncA_Objects_MoveShapeRightOneTile
+.IMPORT FuncA_Objects_MoveShapeUpOneTile
+.IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
 .IMPORT Func_MachineError
 .IMPORT Func_MovePlatformHorz
 .IMPORT Func_Noop
 .IMPORT Ram_MachineState
 .IMPORT Ram_MachineStatus_eMachine_arr
 .IMPORT Ram_Oam_sObj_arr64
-.IMPORT Ram_PlatformBottom_i16_0_arr
-.IMPORT Ram_PlatformBottom_i16_1_arr
-.IMPORT Ram_PlatformExists_bool_arr
-.IMPORT Ram_PlatformLeft_i16_0_arr
-.IMPORT Ram_PlatformLeft_i16_1_arr
-.IMPORT Ram_PlatformRight_i16_0_arr
-.IMPORT Ram_PlatformRight_i16_1_arr
-.IMPORT Ram_PlatformTop_i16_0_arr
-.IMPORT Ram_PlatformTop_i16_1_arr
 .IMPORTZP Zp_FrameCounter_u8
-.IMPORTZP Zp_PpuScrollX_u8
-.IMPORTZP Zp_PpuScrollY_u8
-.IMPORTZP Zp_ScrollXHi_u8
 .IMPORTZP Zp_ShapePosX_i16
-.IMPORTZP Zp_ShapePosY_i16
 
 ;;;=========================================================================;;;
 
-;;; The machine index for the PrisonEscapeCarriage machine in this room.
-kCarriageMachineIndex = 0
+;;; The machine index for the PrisonEscapeTrolley machine in this room.
+kTrolleyMachineIndex = 0
 
-;;; The platform index for the PrisonEscapeCarriage machine in this room.
-kCarriagePlatformIndex = 0
+;;; The platform indices for the PrisonEscapeTrolley machine and its girder.
+kTrolleyPlatformIndex = 0
+kGirderPlatformIndex  = 1
 
-;;; The origin position of the PrisonEscapeCarriage platform, in room pixels.
-kCarriageOriginX = $00f0
-kCarriageOriginY = $0120
+;;; The maximum permitted value for sState::TrolleyRegX_u8.
+kTrolleyMaxRegX = 7
 
-;;; The width and height of the PrisonEscapeCarriage platform, in pixels.
-kCarriageWidthPx  = $20
-kCarriageHeightPx = $10
+;;; How fast the PrisonEscapeTrolley platform moves, in pixels per frame.
+kTrolleySpeed = 1
 
-;;; The maximum permitted value for sState::CarriageRegX_u8.
-kCarriageMaxRegX = 8
+;;; How many frames the PrisonEscapeTrolley machine spends per move operation.
+kTrolleyCountdown = kBlockWidthPx / kTrolleySpeed
 
-;;; How fast the PrisonEscapeCarriage platform moves, in pixels per frame.
-kCarriageSpeed = 1
+;;; Various OBJ tile IDs used for drawing the PrisonEscapeTrolley machine.
+kTrolleyTileIdLightOff = $60
+kTrolleyTileIdLightOn  = $61
+kTrolleyTileIdCorner   = $63
+kTrolleyTileIdWheel    = $65
+kTrolleyTileIdRopeVert = $66
+kTrolleyTileIdPulley   = $67
+kTrolleyTileIdRopeDiag = $68
+kTrolleyTileIdGirder   = $69
 
-;;; How many frames the PrisonEscapeCarriage machine spends per move operation.
-kCarriageCountdown = kBlockWidthPx / kCarriageSpeed
-
-;;; Various OBJ tile IDs used for drawing the PrisonEscapeCarriage machine.
-kCarriageTileIdLightOff = $60
-kCarriageTileIdLightOn  = $61
-kCarriageTileIdCorner   = $63
-kCarriageTileIdSurface  = $64
+;;; The OBJ palette number used for various parts of the PrisonEscapeTrolley
+;;; machine.
+kTrolleyGirderPalette = 0
+kTrolleyRopePalette   = 0
 
 ;;; Defines room-specific machine state data for this particular room.
 .STRUCT sState
-    ;; The current value of the PrisonEscapeCarriage machine's X register.
-    CarriageRegX_u8      .byte
-    ;; The goal value of the PrisonEscapeCarriage machine's X register; it will
+    ;; The current value of the PrisonEscapeTrolley machine's X register.
+    TrolleyRegX_u8      .byte
+    ;; The goal value of the PrisonEscapeTrolley machine's X register; it will
     ;; keep moving until this is reached.
-    CarriageGoalX_u8     .byte
-    ;; Nonzero if the PrisonEscapeCarriage machine is moving; this is how many
+    TrolleyGoalX_u8     .byte
+    ;; Nonzero if the PrisonEscapeTrolley machine is moving; this is how many
     ;; more frames until it finishes the current move operation.
-    CarriageCountdown_u8 .byte
-    ;; If CarriageCountdown_u8 is nonzero, this is the direction the machine is
+    TrolleyCountdown_u8 .byte
+    ;; If TrolleyCountdown_u8 is nonzero, this is the direction the machine is
     ;; currently moving.
-    CarriageMove_eDir    .byte
+    TrolleyMove_eDir    .byte
 .ENDSTRUCT
 .ASSERT .sizeof(sState) <= kMachineStateSize, error
 
@@ -122,6 +117,7 @@ _Ext_sRoomExt:
     D_STRUCT sRoomExt
     d_addr AreaName_u8_arr_ptr, DataC_Prison_AreaName_u8_arr
     d_addr AreaCells_u8_arr2_arr_ptr, DataC_Prison_AreaCells_u8_arr2_arr
+    d_addr Platforms_sPlatform_arr_ptr, _Platforms_sPlatform_arr
     d_addr Actors_sActor_arr_ptr, _Actors_sActor_arr
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
     d_addr Dialogs_sDialog_ptr_arr_ptr, _Dialogs_sDialog_ptr_arr
@@ -132,23 +128,39 @@ _TerrainData:
 :   .incbin "out/data/prison_escape.room"
     .assert * - :- = 33 * 24, error
 _Machines_sMachine_arr:
-    .assert kCarriageMachineIndex = 0, error
+    .assert kTrolleyMachineIndex = 0, error
     D_STRUCT sMachine
-    d_byte Code_eProgram, eProgram::PrisonEscapeCarriage
+    d_byte Code_eProgram, eProgram::PrisonEscapeTrolley
     d_byte Flags_bMachine, bMachine::MoveH
     d_byte Status_eDiagram, eDiagram::Barrier  ; TODO: use a different diagram
     d_byte RegNames_u8_arr5, 0, 0, 0, "X", 0
-    d_addr Init_func_ptr, _Carriage_Init
-    d_addr ReadReg_func_ptr, _Carriage_ReadReg
+    d_addr Init_func_ptr, _Trolley_Init
+    d_addr ReadReg_func_ptr, _Trolley_ReadReg
     d_addr WriteReg_func_ptr, Func_MachineError
-    d_addr TryMove_func_ptr, _Carriage_TryMove
+    d_addr TryMove_func_ptr, _Trolley_TryMove
     d_addr TryAct_func_ptr, Func_MachineError
-    d_addr Tick_func_ptr, _Carriage_Tick
-    d_addr Draw_func_ptr, FuncA_Objects_PrisonEscapeCarriage_Draw
-    d_addr Reset_func_ptr, _Carriage_Reset
+    d_addr Tick_func_ptr, _Trolley_Tick
+    d_addr Draw_func_ptr, FuncA_Objects_PrisonEscapeTrolley_Draw
+    d_addr Reset_func_ptr, _Trolley_Reset
     d_byte Padding
     .res kMachinePadding
     D_END
+_Platforms_sPlatform_arr:
+    .assert kTrolleyPlatformIndex = 0, error
+    D_STRUCT sPlatform
+    d_byte WidthPx_u8,  $10
+    d_byte HeightPx_u8, $0e
+    d_word Left_i16,  $0100
+    d_word Top_i16,   $00c0
+    D_END
+    .assert kGirderPlatformIndex = 1, error
+    D_STRUCT sPlatform
+    d_byte WidthPx_u8,  $20
+    d_byte HeightPx_u8, $08
+    d_word Left_i16,  $00f8
+    d_word Top_i16,   $0120
+    D_END
+    .byte 0
 _Actors_sActor_arr:
     D_STRUCT sActor
     d_byte Type_eActor, eActor::Crawler
@@ -168,7 +180,7 @@ _Devices_sDevice_arr:
     d_byte Type_eDevice, eDevice::Console
     d_byte BlockRow_u8, 20
     d_byte BlockCol_u8, 16
-    d_byte Target_u8, kCarriageMachineIndex
+    d_byte Target_u8, kTrolleyMachineIndex
     D_END
     .byte eDevice::None
 _Dialogs_sDialog_ptr_arr:
@@ -195,43 +207,28 @@ _Exits_sDoor_arr:
     d_word PositionAdjust_i16, $30
     d_byte Destination_eRoom, eRoom::TallRoom
     D_END
-_Carriage_Init:
+_Trolley_Init:
     ;; Initialize the machine.
     lda #0
-    sta Ram_MachineState + sState::CarriageRegX_u8
-    sta Ram_MachineState + sState::CarriageGoalX_u8
-    sta Ram_MachineState + sState::CarriageCountdown_u8
-    sta Ram_MachineState + sState::CarriageMove_eDir
-    ;; Initialize the platform for the machine.
-    lda #$ff
-    sta Ram_PlatformExists_bool_arr + kCarriagePlatformIndex
-    ldax #kCarriageOriginX
-    sta Ram_PlatformLeft_i16_1_arr + kCarriagePlatformIndex
-    stx Ram_PlatformLeft_i16_0_arr + kCarriagePlatformIndex
-    ldax #kCarriageOriginY
-    sta Ram_PlatformTop_i16_1_arr + kCarriagePlatformIndex
-    stx Ram_PlatformTop_i16_0_arr + kCarriagePlatformIndex
-    ldax #kCarriageOriginX + kCarriageWidthPx
-    sta Ram_PlatformRight_i16_1_arr + kCarriagePlatformIndex
-    stx Ram_PlatformRight_i16_0_arr + kCarriagePlatformIndex
-    ldax #kCarriageOriginY + kCarriageHeightPx
-    sta Ram_PlatformBottom_i16_1_arr + kCarriagePlatformIndex
-    stx Ram_PlatformBottom_i16_0_arr + kCarriagePlatformIndex
+    sta Ram_MachineState + sState::TrolleyRegX_u8
+    sta Ram_MachineState + sState::TrolleyGoalX_u8
+    sta Ram_MachineState + sState::TrolleyCountdown_u8
+    sta Ram_MachineState + sState::TrolleyMove_eDir
     rts
-_Carriage_ReadReg:
-    lda Ram_MachineState + sState::CarriageRegX_u8
+_Trolley_ReadReg:
+    lda Ram_MachineState + sState::TrolleyRegX_u8
     rts
-_Carriage_TryMove:
-    lda Ram_MachineState + sState::CarriageCountdown_u8
+_Trolley_TryMove:
+    lda Ram_MachineState + sState::TrolleyCountdown_u8
     beq @ready
     sec  ; set C to indicate not ready yet
     rts
     @ready:
-    lda Ram_MachineState + sState::CarriageRegX_u8
+    lda Ram_MachineState + sState::TrolleyRegX_u8
     cpx #eDir::Left
     beq @moveLeft
     @moveRight:
-    cmp #kCarriageMaxRegX
+    cmp #kTrolleyMaxRegX
     bge @error
     tay
     iny
@@ -241,16 +238,16 @@ _Carriage_TryMove:
     beq @error
     dey
     @success:
-    sty Ram_MachineState + sState::CarriageGoalX_u8
+    sty Ram_MachineState + sState::TrolleyGoalX_u8
     clc  ; clear C to indicate success
     rts
     @error:
     jmp Func_MachineError
-_Carriage_Tick:
-    lda Ram_MachineState + sState::CarriageCountdown_u8
+_Trolley_Tick:
+    lda Ram_MachineState + sState::TrolleyCountdown_u8
     bne @continueMove
-    ldy Ram_MachineState + sState::CarriageRegX_u8
-    cpy Ram_MachineState + sState::CarriageGoalX_u8
+    ldy Ram_MachineState + sState::TrolleyRegX_u8
+    cpy Ram_MachineState + sState::TrolleyGoalX_u8
     beq @finishResetting
     bge @beginMoveLeft
     @beginMoveRight:
@@ -261,34 +258,40 @@ _Carriage_Tick:
     ldx #eDir::Left
     dey
     @beginMove:
-    sty Ram_MachineState + sState::CarriageRegX_u8
-    stx Ram_MachineState + sState::CarriageMove_eDir
-    lda #kCarriageCountdown
-    sta Ram_MachineState + sState::CarriageCountdown_u8
+    sty Ram_MachineState + sState::TrolleyRegX_u8
+    stx Ram_MachineState + sState::TrolleyMove_eDir
+    lda #kTrolleyCountdown
+    sta Ram_MachineState + sState::TrolleyCountdown_u8
     @continueMove:
-    dec Ram_MachineState + sState::CarriageCountdown_u8
-    ldx Ram_MachineState + sState::CarriageMove_eDir
+    dec Ram_MachineState + sState::TrolleyCountdown_u8
+    ldx Ram_MachineState + sState::TrolleyMove_eDir
     cpx #eDir::Left
     beq @continueMoveLeft
     @continueMoveRight:
-    lda #kCarriageSpeed          ; param: move delta
-    ldx #kCarriagePlatformIndex  ; param: platform index
+    lda #kTrolleySpeed          ; param: move delta
+    ldx #kTrolleyPlatformIndex  ; param: platform index
+    jsr Func_MovePlatformHorz
+    lda #kTrolleySpeed          ; param: move delta
+    ldx #kGirderPlatformIndex   ; param: platform index
     jmp Func_MovePlatformHorz
     @continueMoveLeft:
-    lda #$ff & -kCarriageSpeed   ; param: move delta
-    ldx #kCarriagePlatformIndex  ; param: platform index
+    lda #$ff & -kTrolleySpeed   ; param: move delta
+    ldx #kTrolleyPlatformIndex  ; param: platform index
+    jsr Func_MovePlatformHorz
+    lda #$ff & -kTrolleySpeed   ; param: move delta
+    ldx #kGirderPlatformIndex   ; param: platform index
     jmp Func_MovePlatformHorz
     @finishResetting:
-    lda Ram_MachineStatus_eMachine_arr + kCarriageMachineIndex
+    lda Ram_MachineStatus_eMachine_arr + kTrolleyMachineIndex
     cmp #eMachine::Resetting
     bne @notResetting
     lda #eMachine::Running
-    sta Ram_MachineStatus_eMachine_arr + kCarriageMachineIndex
+    sta Ram_MachineStatus_eMachine_arr + kTrolleyMachineIndex
     @notResetting:
     rts
-_Carriage_Reset:
+_Trolley_Reset:
     lda #0
-    sta Ram_MachineState + sState::CarriageGoalX_u8
+    sta Ram_MachineState + sState::TrolleyGoalX_u8
     ;; TODO: Turn the machine around if it's currently moving right.
     rts
 .ENDPROC
@@ -297,90 +300,136 @@ _Carriage_Reset:
 
 .SEGMENT "PRGA_Objects"
 
-.PROC FuncA_Objects_PrisonEscapeCarriage_Draw
-    ;; Calculate top edge in screen space.
-    lda Ram_PlatformTop_i16_0_arr + kCarriagePlatformIndex
-    sub Zp_PpuScrollY_u8
-    sta Zp_ShapePosY_i16 + 0
-    lda Ram_PlatformTop_i16_1_arr + kCarriagePlatformIndex
-    sbc #0
-    sta Zp_ShapePosY_i16 + 1
-    ;; Calculate left edge in screen space.
-    lda Ram_PlatformLeft_i16_0_arr + kCarriagePlatformIndex
-    sub Zp_PpuScrollX_u8
-    sta Zp_ShapePosX_i16 + 0
-    lda Ram_PlatformLeft_i16_1_arr + kCarriagePlatformIndex
-    sbc Zp_ScrollXHi_u8
-    sta Zp_ShapePosX_i16 + 1
-    ;; Adjust Y-position.
-    lda Zp_ShapePosY_i16 + 0
-    add #kTileHeightPx
-    sta Zp_ShapePosY_i16 + 0
-    lda Zp_ShapePosY_i16 + 1
-    adc #0
-    sta Zp_ShapePosY_i16 + 1
-_LeftHalf:
-    ;; Adjust X-position.
-    lda Zp_ShapePosX_i16 + 0
-    add #kTileWidthPx
-    sta Zp_ShapePosX_i16 + 0
-    lda Zp_ShapePosX_i16 + 1
-    adc #0
-    sta Zp_ShapePosX_i16 + 1
+.PROC FuncA_Objects_PrisonEscapeTrolley_Draw
+_Trolley:
     ;; Allocate objects.
+    ldx #kTrolleyPlatformIndex  ; param: platform index
+    jsr FuncA_Objects_SetShapePosToPlatformTopLeft
+    jsr FuncA_Objects_MoveShapeDownOneTile
+    jsr FuncA_Objects_MoveShapeRightOneTile
     jsr FuncA_Objects_Alloc2x2Shape  ; sets C if offscreen; returns Y
     bcs @done
     ;; Set flags and tile IDs.
     lda #kMachineLightPalette
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Flags_bObj, y
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Flags_bObj, y
-    lda #kMachineLightPalette | bObj::FlipH
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Flags_bObj, y
     lda #kMachineLightPalette | bObj::FlipV
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Flags_bObj, y
+    lda #kTrolleyRopePalette
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Flags_bObj, y
+    lda #kTrolleyRopePalette | bObj::FlipH
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Flags_bObj, y
-    lda #kCarriageTileIdCorner
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Tile_u8, y
-    lda #kCarriageTileIdSurface
+    lda #kTrolleyTileIdCorner
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Tile_u8, y
+    lda #kTrolleyTileIdWheel
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Tile_u8, y
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Tile_u8, y
-    lda Ram_MachineStatus_eMachine_arr + kCarriageMachineIndex
+    lda Ram_MachineStatus_eMachine_arr + kTrolleyMachineIndex
     cmp #eMachine::Error
     bne @lightOff
     lda Zp_FrameCounter_u8
     and #$08
     beq @lightOff
-    lda #kCarriageTileIdLightOn
+    lda #kTrolleyTileIdLightOn
     bne @setLight  ; unconditional
     @lightOff:
-    lda #kCarriageTileIdLightOff
+    lda #kTrolleyTileIdLightOff
     @setLight:
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Tile_u8, y
     @done:
-_RightHalf:
-    ;; Adjust X-position.
+_Girder:
+    ldx #kGirderPlatformIndex  ; param: platform index
+    jsr FuncA_Objects_SetShapePosToPlatformTopLeft
+    ldx #4
+    bne @startLoop  ; unconditional
+    @loop:
+    jsr FuncA_Objects_MoveShapeRightOneTile
+    @startLoop:
+    jsr FuncA_Objects_Alloc1x1Shape  ; preserves X, returns C and Y
+    bcs @continue
+    lda #kTrolleyTileIdGirder
+    sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
+    lda #kTrolleyGirderPalette
+    sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
+    @continue:
+    dex
+    bne @loop
+_RopeTriangle:
+    ;; The rope triangle tiles are shaped like this:
+    ;;
+    ;;     3/\4
+    ;;    2/  \1
+    ;;
+    ;; Tile 1:
+    jsr FuncA_Objects_MoveShapeUpOneTile
+    jsr FuncA_Objects_Alloc1x1Shape  ; returns C and Y
+    bcs @skip1
+    lda #kTrolleyTileIdRopeDiag
+    sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
+    lda #bObj::FlipH | kTrolleyRopePalette
+    sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
+    @skip1:
+    ;; Tile 2:
     lda Zp_ShapePosX_i16 + 0
-    add #kTileWidthPx * 2
+    sub #kTileWidthPx * 3
     sta Zp_ShapePosX_i16 + 0
     lda Zp_ShapePosX_i16 + 1
-    adc #0
+    sbc #0
     sta Zp_ShapePosX_i16 + 1
-    ;; Allocate objects.
-    jsr FuncA_Objects_Alloc2x2Shape  ; sets C if offscreen; returns Y
-    bcs @done
-    ;; Set flags and tile IDs.
-    lda #kMachineLightPalette
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Flags_bObj, y
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Flags_bObj, y
-    lda #kMachineLightPalette | bObj::FlipV
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Flags_bObj, y
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Flags_bObj, y
-    lda #kCarriageTileIdSurface
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Tile_u8, y
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Tile_u8, y
-    lda #kCarriageTileIdCorner
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Tile_u8, y
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Tile_u8, y
-    @done:
+    jsr FuncA_Objects_Alloc1x1Shape  ; returns C and Y
+    bcs @skip2
+    lda #kTrolleyTileIdRopeDiag
+    sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
+    lda #kTrolleyRopePalette
+    sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
+    @skip2:
+    ;; Tile 3:
+    jsr FuncA_Objects_MoveShapeRightOneTile
+    jsr FuncA_Objects_MoveShapeUpOneTile
+    jsr FuncA_Objects_Alloc1x1Shape  ; returns C and Y
+    bcs @skip3
+    lda #kTrolleyTileIdRopeDiag
+    sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
+    lda #kTrolleyRopePalette
+    sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
+    @skip3:
+    ;; Tile 4:
+    jsr FuncA_Objects_MoveShapeRightOneTile
+    jsr FuncA_Objects_Alloc1x1Shape  ; returns C and Y
+    bcs @skip4
+    lda #kTrolleyTileIdRopeDiag
+    sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
+    lda #bObj::FlipH | kTrolleyRopePalette
+    sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
+    @skip4:
+_RopeVertical:
+    ;; Pulley:
+    lda Zp_ShapePosX_i16 + 0
+    sub #kTileWidthPx / 2
+    sta Zp_ShapePosX_i16 + 0
+    lda Zp_ShapePosX_i16 + 1
+    sbc #0
+    sta Zp_ShapePosX_i16 + 1
+    jsr FuncA_Objects_MoveShapeUpOneTile
+    jsr FuncA_Objects_Alloc1x1Shape  ; returns C and Y
+    bcs @skipPulley
+    lda #kTrolleyTileIdPulley
+    sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
+    lda #kTrolleyRopePalette
+    sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
+    @skipPulley:
+    ;; Other rope segments:
+    ldx #7
+    @loop:
+    jsr FuncA_Objects_MoveShapeUpOneTile
+    jsr FuncA_Objects_Alloc1x1Shape  ; preserves X, returns C and Y
+    bcs @continue
+    lda #kTrolleyTileIdRopeVert
+    sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
+    lda #kTrolleyRopePalette
+    sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
+    @continue:
+    dex
+    bne @loop
     rts
 .ENDPROC
 

@@ -75,6 +75,103 @@ Ram_Oam_sObj_arr64: .res .sizeof(sObj) * kNumOamSlots
 
 .SEGMENT "PRGA_Objects"
 
+;;; Moves Zp_ShapePosX_i16 rightwards by the width of one tile.
+;;; @preserve X, Y
+.EXPORT FuncA_Objects_MoveShapeRightOneTile
+.PROC FuncA_Objects_MoveShapeRightOneTile
+    lda Zp_ShapePosX_i16 + 0
+    add #kTileWidthPx
+    sta Zp_ShapePosX_i16 + 0
+    lda Zp_ShapePosX_i16 + 1
+    adc #0
+    sta Zp_ShapePosX_i16 + 1
+    rts
+.ENDPROC
+
+;;; Moves Zp_ShapePosX_i16 leftwards by the width of one tile.
+;;; @preserve X, Y
+.EXPORT FuncA_Objects_MoveShapeLeftOneTile
+.PROC FuncA_Objects_MoveShapeLeftOneTile
+    lda Zp_ShapePosX_i16 + 0
+    sub #kTileWidthPx
+    sta Zp_ShapePosX_i16 + 0
+    lda Zp_ShapePosX_i16 + 1
+    sbc #0
+    sta Zp_ShapePosX_i16 + 1
+    rts
+.ENDPROC
+
+;;; Moves Zp_ShapePosY_i16 downwards by the height of one tile.
+;;; @preserve X, Y
+.EXPORT FuncA_Objects_MoveShapeDownOneTile
+.PROC FuncA_Objects_MoveShapeDownOneTile
+    lda Zp_ShapePosY_i16 + 0
+    add #kTileHeightPx
+    sta Zp_ShapePosY_i16 + 0
+    lda Zp_ShapePosY_i16 + 1
+    adc #0
+    sta Zp_ShapePosY_i16 + 1
+    rts
+.ENDPROC
+
+;;; Moves Zp_ShapePosY_i16 upwards by the height of one tile.
+;;; @preserve X, Y
+.EXPORT FuncA_Objects_MoveShapeUpOneTile
+.PROC FuncA_Objects_MoveShapeUpOneTile
+    lda Zp_ShapePosY_i16 + 0
+    sub #kTileHeightPx
+    sta Zp_ShapePosY_i16 + 0
+    lda Zp_ShapePosY_i16 + 1
+    sbc #0
+    sta Zp_ShapePosY_i16 + 1
+    rts
+.ENDPROC
+
+;;; Allocates and sets the X/Y position for a single object.  The top-left
+;;; corner of the object is given by Zp_ShapePosX_i16 and Zp_ShapePosY_i16.
+;;; These variables will be preserved by this function.
+;;;
+;;; If the object would be offscreen (or behind the window), then it isn't
+;;; allocated (and C is cleared).  Otherwise, the caller should use the
+;;; returned OAM byte offset in Y to set the object's flags and tile ID.
+;;;
+;;; @return C Set if no OAM slot was allocated, cleared otherwise.
+;;; @return Y The OAM byte offset for the allocated object.
+;;; @preserve X
+.EXPORT FuncA_Objects_Alloc1x1Shape
+.PROC FuncA_Objects_Alloc1x1Shape
+    ;; If the shape is offscreen horizontally, return without allocating any
+    ;; objects.
+    lda Zp_ShapePosX_i16 + 1
+    bne @notVisible
+    ;; If the object is offscreen vertically or behind the window, return
+    ;; without allocating the object.
+    lda Zp_ShapePosY_i16 + 1
+    bne @notVisible
+    lda Zp_ShapePosY_i16 + 0
+    cmp #kScreenHeightPx
+    bge @notVisible
+    cmp Zp_WindowTop_u8
+    blt @visible
+    @notVisible:
+    sec  ; Set C to indicate that no object was allocated.
+    rts
+    @visible:
+    ;; Set the vertical position of the object.
+    sub #1
+    ldy Zp_OamOffset_u8
+    sta Ram_Oam_sObj_arr64 + sObj::YPos_u8, y
+    ;; Set the horizontal position of the object.
+    lda Zp_ShapePosX_i16 + 0
+    sta Ram_Oam_sObj_arr64 + sObj::XPos_u8, y
+    ;; Update the OAM offset.
+    tya
+    add #.sizeof(sObj)
+    sta Zp_OamOffset_u8
+    clc  ; Clear C to indicate that an object was allocated.
+    rts
+.ENDPROC
+
 ;;; Allocates and sets X/Y positions for a 2x2 grid of objects, taking into
 ;;; account the window position and hiding any of the objects as necessary.
 ;;;

@@ -101,7 +101,7 @@
     .incbin "out/data/tiles/player.chr"
     .res $18 * kSizeofChr
     .incbin "out/data/tiles/machine.chr"
-    .res $1b * kSizeofChr
+    .res $16 * kSizeofChr
     .assert * - :- = kSizeofChr * $80, error
 .ENDPROC
 

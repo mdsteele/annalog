@@ -21,3 +21,17 @@
 kMaxPlatforms = 8
 
 ;;;=========================================================================;;;
+
+;;; Describes a platform's initial size and position.
+.STRUCT sPlatform
+    ;; The width of the platform, in pixels.  Must be nonzero.
+    WidthPx_u8  .byte
+    ;; The height of the platform, in pixels.  Must be nonzero.
+    HeightPx_u8 .byte
+    ;; The room pixel X-position of the left edge of the platform.
+    Left_i16    .word
+    ;; The room pixel Y-position of the top edge of the platform.
+    Top_i16     .word
+.ENDSTRUCT
+
+;;;=========================================================================;;;

@@ -20,12 +20,18 @@
 .INCLUDE "avatar.inc"
 .INCLUDE "macros.inc"
 .INCLUDE "platform.inc"
+.INCLUDE "ppu.inc"
 
 .IMPORTZP Zp_AvatarCollided_bool
 .IMPORTZP Zp_AvatarPosX_i16
 .IMPORTZP Zp_AvatarPosY_i16
 .IMPORTZP Zp_AvatarVelX_i16
 .IMPORTZP Zp_AvatarVelY_i16
+.IMPORTZP Zp_PpuScrollX_u8
+.IMPORTZP Zp_PpuScrollY_u8
+.IMPORTZP Zp_ScrollXHi_u8
+.IMPORTZP Zp_ShapePosX_i16
+.IMPORTZP Zp_ShapePosY_i16
 .IMPORTZP Zp_Tmp1_byte
 .IMPORTZP Zp_Tmp2_byte
 
@@ -424,6 +430,33 @@ _Collided:
     lda #$ff
     sta Zp_AvatarCollided_bool
 _Return:
+    rts
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Objects"
+
+;;; Populates Zp_ShapePosX_i16 and Zp_ShapePosY_i16 with the screen position of
+;;; the top-left corner of the specified platform.
+;;; @param X The platform index.
+;;; @preserve X, Y
+.EXPORT FuncA_Objects_SetShapePosToPlatformTopLeft
+.PROC FuncA_Objects_SetShapePosToPlatformTopLeft
+    ;; Calculate top edge in screen space.
+    lda Ram_PlatformTop_i16_0_arr, x
+    sub Zp_PpuScrollY_u8
+    sta Zp_ShapePosY_i16 + 0
+    lda Ram_PlatformTop_i16_1_arr, x
+    sbc #0
+    sta Zp_ShapePosY_i16 + 1
+    ;; Calculate left edge in screen space.
+    lda Ram_PlatformLeft_i16_0_arr, x
+    sub Zp_PpuScrollX_u8
+    sta Zp_ShapePosX_i16 + 0
+    lda Ram_PlatformLeft_i16_1_arr, x
+    sbc Zp_ScrollXHi_u8
+    sta Zp_ShapePosX_i16 + 1
     rts
 .ENDPROC
 

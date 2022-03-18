@@ -52,12 +52,15 @@ _Ext_sRoomExt:
     D_STRUCT sRoomExt
     d_addr AreaName_u8_arr_ptr, DataC_Prison_AreaName_u8_arr
     d_addr AreaCells_u8_arr2_arr_ptr, DataC_Prison_AreaCells_u8_arr2_arr
+    d_addr Platforms_sPlatform_arr_ptr, _Platforms_sPlatform_arr
     d_addr Actors_sActor_arr_ptr, _Actors_sActor_arr
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
     d_addr Dialogs_sDialog_ptr_arr_ptr, 0
     d_addr Exits_sDoor_arr_ptr, _Exits_sDoor_arr
     d_addr Init_func_ptr, _Init
     D_END
+_Platforms_sPlatform_arr:
+    .byte 0
 _Actors_sActor_arr:
     .byte eActor::None
 _Devices_sDevice_arr:

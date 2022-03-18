@@ -178,6 +178,13 @@ _DoneUpdatingPpu:
 ;;; the next NMI to complete.
 .EXPORT Func_ProcessFrame
 .PROC Func_ProcessFrame
+    ;; Change this to ".if 1" to enable frame budget debugging.
+    .if 0
+    lda Zp_Render_bPpuMask
+    ora #bPpuMask::EmphGreen
+    sta Hw_PpuMask_wo
+    .endif
+    ;; Increment animation counter.
     inc Zp_FrameCounter_u8
     ;; Zero-terminate the PPU transfer buffer.
     ldx Zp_PpuTransferLen_u8

@@ -24,6 +24,7 @@
 .INCLUDE "../machine.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
+.INCLUDE "../platform.inc"
 .INCLUDE "../ppu.inc"
 .INCLUDE "../program.inc"
 .INCLUDE "../room.inc"
@@ -31,27 +32,16 @@
 .IMPORT DataC_Prison_AreaCells_u8_arr2_arr
 .IMPORT DataC_Prison_AreaName_u8_arr
 .IMPORT FuncA_Objects_Alloc2x2Shape
+.IMPORT FuncA_Objects_MoveShapeDownOneTile
+.IMPORT FuncA_Objects_MoveShapeRightOneTile
+.IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
 .IMPORT Func_MachineError
 .IMPORT Func_MovePlatformVert
 .IMPORT Func_Noop
 .IMPORT Ram_MachineState
 .IMPORT Ram_MachineStatus_eMachine_arr
 .IMPORT Ram_Oam_sObj_arr64
-.IMPORT Ram_PlatformBottom_i16_0_arr
-.IMPORT Ram_PlatformBottom_i16_1_arr
-.IMPORT Ram_PlatformExists_bool_arr
-.IMPORT Ram_PlatformLeft_i16_0_arr
-.IMPORT Ram_PlatformLeft_i16_1_arr
-.IMPORT Ram_PlatformRight_i16_0_arr
-.IMPORT Ram_PlatformRight_i16_1_arr
-.IMPORT Ram_PlatformTop_i16_0_arr
-.IMPORT Ram_PlatformTop_i16_1_arr
 .IMPORTZP Zp_FrameCounter_u8
-.IMPORTZP Zp_PpuScrollX_u8
-.IMPORTZP Zp_PpuScrollY_u8
-.IMPORTZP Zp_ScrollXHi_u8
-.IMPORTZP Zp_ShapePosX_i16
-.IMPORTZP Zp_ShapePosY_i16
 
 ;;;=========================================================================;;;
 
@@ -60,14 +50,6 @@ kBarrierMachineIndex = 0
 
 ;;; The platform index for the PrisonCellBarrier machine in this room.
 kBarrierPlatformIndex = 0
-
-;;; The origin position of the PrisonCellBarrier platform, in room pixels.
-kBarrierOriginX = $0020
-kBarrierOriginY = $0080
-
-;;; The width and height of the PrisonCellBarrier platform, in pixels.
-kBarrierWidthPx  = $10
-kBarrierHeightPx = $20
 
 ;;; The initial value for sState::BarrierRegY_u8.
 kBarrierInitRegY = 1
@@ -125,6 +107,7 @@ _Ext_sRoomExt:
     D_STRUCT sRoomExt
     d_addr AreaName_u8_arr_ptr, DataC_Prison_AreaName_u8_arr
     d_addr AreaCells_u8_arr2_arr_ptr, DataC_Prison_AreaCells_u8_arr2_arr
+    d_addr Platforms_sPlatform_arr_ptr, _Platforms_sPlatform_arr
     d_addr Actors_sActor_arr_ptr, _Actors_sActor_arr
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
     d_addr Dialogs_sDialog_ptr_arr_ptr, _Dialogs_sDialog_ptr_arr
@@ -152,6 +135,15 @@ _Machines_sMachine_arr:
     d_byte Padding
     .res kMachinePadding
     D_END
+_Platforms_sPlatform_arr:
+    .assert kBarrierPlatformIndex = 0, error
+    D_STRUCT sPlatform
+    d_byte WidthPx_u8,  $10
+    d_byte HeightPx_u8, $20
+    d_word Left_i16,  $0020
+    d_word Top_i16,   $0080
+    D_END
+    .byte 0
 _Actors_sActor_arr:
     .byte eActor::None
 _Devices_sDevice_arr:
@@ -195,21 +187,6 @@ _Barrier_Init:
     lda #0
     sta Ram_MachineState + sState::BarrierCountdown_u8
     sta Ram_MachineState + sState::BarrierMove_eDir
-    ;; Initialize the platform for the machine.
-    lda #$ff
-    sta Ram_PlatformExists_bool_arr + kBarrierPlatformIndex
-    ldax #kBarrierOriginX
-    sta Ram_PlatformLeft_i16_1_arr + kBarrierPlatformIndex
-    stx Ram_PlatformLeft_i16_0_arr + kBarrierPlatformIndex
-    ldax #kBarrierOriginY
-    sta Ram_PlatformTop_i16_1_arr + kBarrierPlatformIndex
-    stx Ram_PlatformTop_i16_0_arr + kBarrierPlatformIndex
-    ldax #kBarrierOriginX + kBarrierWidthPx
-    sta Ram_PlatformRight_i16_1_arr + kBarrierPlatformIndex
-    stx Ram_PlatformRight_i16_0_arr + kBarrierPlatformIndex
-    ldax #kBarrierOriginY + kBarrierHeightPx
-    sta Ram_PlatformBottom_i16_1_arr + kBarrierPlatformIndex
-    stx Ram_PlatformBottom_i16_0_arr + kBarrierPlatformIndex
     rts
 _Barrier_ReadReg:
     lda Ram_MachineState + sState::BarrierRegY_u8
@@ -291,36 +268,12 @@ _Barrier_Reset:
 .SEGMENT "PRGA_Objects"
 
 .PROC FuncA_Objects_PrisonCellBarrier_Draw
-    ;; Calculate top edge in screen space.
-    lda Ram_PlatformTop_i16_0_arr + kBarrierPlatformIndex
-    sub Zp_PpuScrollY_u8
-    sta Zp_ShapePosY_i16 + 0
-    lda Ram_PlatformTop_i16_1_arr + kBarrierPlatformIndex
-    sbc #0
-    sta Zp_ShapePosY_i16 + 1
-    ;; Calculate left edge in screen space.
-    lda Ram_PlatformLeft_i16_0_arr + kBarrierPlatformIndex
-    sub Zp_PpuScrollX_u8
-    sta Zp_ShapePosX_i16 + 0
-    lda Ram_PlatformLeft_i16_1_arr + kBarrierPlatformIndex
-    sbc Zp_ScrollXHi_u8
-    sta Zp_ShapePosX_i16 + 1
-    ;; Adjust Y-position.
-    lda Zp_ShapePosY_i16 + 0
-    add #kTileHeightPx
-    sta Zp_ShapePosY_i16 + 0
-    lda Zp_ShapePosY_i16 + 1
-    adc #0
-    sta Zp_ShapePosY_i16 + 1
+    ldx #kBarrierPlatformIndex  ; param: platform index
+    jsr FuncA_Objects_SetShapePosToPlatformTopLeft
 _TopHalf:
-    ;; Adjust X-position.
-    lda Zp_ShapePosX_i16 + 0
-    add #kTileWidthPx
-    sta Zp_ShapePosX_i16 + 0
-    lda Zp_ShapePosX_i16 + 1
-    adc #0
-    sta Zp_ShapePosX_i16 + 1
     ;; Allocate objects.
+    jsr FuncA_Objects_MoveShapeDownOneTile
+    jsr FuncA_Objects_MoveShapeRightOneTile
     jsr FuncA_Objects_Alloc2x2Shape  ; sets C if offscreen; returns Y
     bcs @done
     ;; Set flags and tile IDs.
@@ -340,14 +293,9 @@ _TopHalf:
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Tile_u8, y
     @done:
 _BottomHalf:
-    ;; Adjust Y-position.
-    lda Zp_ShapePosY_i16 + 0
-    add #kTileHeightPx * 2
-    sta Zp_ShapePosY_i16 + 0
-    lda Zp_ShapePosY_i16 + 1
-    adc #0
-    sta Zp_ShapePosY_i16 + 1
     ;; Allocate objects.
+    jsr FuncA_Objects_MoveShapeDownOneTile
+    jsr FuncA_Objects_MoveShapeDownOneTile
     jsr FuncA_Objects_Alloc2x2Shape  ; sets C if offscreen; returns Y
     bcs @done
     ;; Set flags and tile IDs.

@@ -132,6 +132,11 @@ kMaxRoomWidthBlocks = kMaxRoomWidthTiles / 2
     ;; A pointer to a $ff-terminated array of row/col pairs listing the minimap
     ;; cells that constitute the area that this room belongs to.
     AreaCells_u8_arr2_arr_ptr   .addr
+    ;; A pointer to a static array of platforms that should always be loaded
+    ;; into the room upon entering, terminated by a zero.  The dynamic set of
+    ;; platforms can optionally be modified afterwards by the room's
+    ;; Init_func_ptr.
+    Platforms_sPlatform_arr_ptr .addr
     ;; A pointer to a static array of actors that should always be loaded into
     ;; the room upon entering, terminated by a zero (i.e. eActor::None).  The
     ;; dynamic set of actors can optionally be modified afterwards by the

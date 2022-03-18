@@ -20,13 +20,13 @@
 .INCLUDE "actor.inc"
 .INCLUDE "device.inc"
 .INCLUDE "macros.inc"
+.INCLUDE "platform.inc"
 .INCLUDE "room.inc"
 
 .IMPORT DataC_Prison_Cell_sRoom
 .IMPORT DataC_Prison_Escape_sRoom
 .IMPORT DataC_Prison_Short_sRoom
 .IMPORT DataC_Prison_Tall_sRoom
-.IMPORT Func_ClearPlatforms
 .IMPORT Func_InitAllMachines
 .IMPORT Ram_ActorFlags_bObj_arr
 .IMPORT Ram_ActorPosX_i16_0_arr
@@ -40,9 +40,19 @@
 .IMPORT Ram_DeviceBlockRow_u8_arr
 .IMPORT Ram_DeviceTarget_u8_arr
 .IMPORT Ram_DeviceType_eDevice_arr
+.IMPORT Ram_PlatformBottom_i16_0_arr
+.IMPORT Ram_PlatformBottom_i16_1_arr
+.IMPORT Ram_PlatformExists_bool_arr
+.IMPORT Ram_PlatformLeft_i16_0_arr
+.IMPORT Ram_PlatformLeft_i16_1_arr
+.IMPORT Ram_PlatformRight_i16_0_arr
+.IMPORT Ram_PlatformRight_i16_1_arr
+.IMPORT Ram_PlatformTop_i16_0_arr
+.IMPORT Ram_PlatformTop_i16_1_arr
 .IMPORTZP Zp_AvatarPosY_i16
 .IMPORTZP Zp_Current_sRoom
 .IMPORTZP Zp_Tmp1_byte
+.IMPORTZP Zp_Tmp2_byte
 .IMPORTZP Zp_Tmp_ptr
 
 ;;;=========================================================================;;;
@@ -96,8 +106,61 @@ _CopyRoomStruct:
     sta Zp_Current_sRoom, y
     dey
     bpl @loop
-_ClearPlatforms:
-    jsr Func_ClearPlatforms
+_LoadPlatforms:
+    ;; Copy the current room's Platforms_sPlatform_arr_ptr into Zp_Tmp_ptr.
+    ldy #sRoomExt::Platforms_sPlatform_arr_ptr
+    lda (Zp_Current_sRoom + sRoom::Ext_sRoomExt_ptr), y
+    sta Zp_Tmp_ptr + 0
+    iny
+    lda (Zp_Current_sRoom + sRoom::Ext_sRoomExt_ptr), y
+    sta Zp_Tmp_ptr + 1
+    ;; Copy room platform structs into platform RAM.
+    ldx #0  ; platform index
+    ldy #0  ; byte offset into Platforms_sPlatform_arr_ptr
+    @copyLoop:
+    .assert sPlatform::WidthPx_u8 = 0, error
+    lda (Zp_Tmp_ptr), y
+    beq @copyDone
+    sta Zp_Tmp1_byte  ; platform width
+    iny
+    .assert sPlatform::HeightPx_u8 = 1, error
+    lda (Zp_Tmp_ptr), y
+    sta Zp_Tmp2_byte  ; platform height
+    iny
+    .assert sPlatform::Left_i16 = 2, error
+    lda (Zp_Tmp_ptr), y
+    sta Ram_PlatformLeft_i16_0_arr, x
+    add Zp_Tmp1_byte  ; platform width
+    sta Ram_PlatformRight_i16_0_arr, x
+    iny
+    lda (Zp_Tmp_ptr), y
+    sta Ram_PlatformLeft_i16_1_arr, x
+    adc #0
+    sta Ram_PlatformRight_i16_1_arr, x
+    iny
+    .assert sPlatform::Top_i16 = 4, error
+    lda (Zp_Tmp_ptr), y
+    sta Ram_PlatformTop_i16_0_arr, x
+    add Zp_Tmp2_byte  ; platform height
+    sta Ram_PlatformBottom_i16_0_arr, x
+    iny
+    lda (Zp_Tmp_ptr), y
+    sta Ram_PlatformTop_i16_1_arr, x
+    adc #0
+    sta Ram_PlatformBottom_i16_1_arr, x
+    iny
+    .assert .sizeof(sPlatform) = 6, error
+    lda #$ff
+    sta Ram_PlatformExists_bool_arr, x
+    inx
+    bne @copyLoop  ; unconditional
+    ;; Clear remaining slots in platform RAM.
+    @clearLoop:
+    sta Ram_PlatformExists_bool_arr, x  ; A is already zero
+    inx
+    @copyDone:
+    cpx #kMaxPlatforms
+    blt @clearLoop
 _LoadActors:
     ;; Copy the current room's Actors_sActor_arr_ptr into Zp_Tmp_ptr.
     ldy #sRoomExt::Actors_sActor_arr_ptr
