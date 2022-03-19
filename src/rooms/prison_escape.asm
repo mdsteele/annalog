@@ -186,11 +186,11 @@ _Devices_sDevice_arr:
 _Dialogs_sDialog_ptr_arr:
     .addr _Dialog0_sDialog
 _Dialog0_sDialog:
-    .word ePortrait::Woman
+    .word ePortrait::Sign
     .byte "Of course, it wasn't$"
     .byte "the orcs that caused$"
     .byte "our downfall.#"
-    .word ePortrait::Woman
+    .word ePortrait::Sign
     .byte "Their arrival was$"
     .byte "simply the inevitable$"
     .byte "result of our own$"

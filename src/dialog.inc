@@ -29,6 +29,7 @@
 ;;; first to animate the portrait while text is being written.
 .ENUM ePortrait
     Woman = $0201
+    Sign =  $0303
 .ENDENUM
 
 ;;;=========================================================================;;;

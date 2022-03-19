@@ -71,6 +71,17 @@
 
 ;;;=========================================================================;;;
 
+.SEGMENT "CHR_FontLower03"
+
+.PROC Ppu_ChrFontLower03
+:   .incbin "out/data/tiles/font_lower.chr"
+    .res $10 * kSizeofChr
+    .incbin "out/data/tiles/portrait03.chr"
+    .assert * - :- = kSizeofChr * $40, error
+.ENDPROC
+
+;;;=========================================================================;;;
+
 .SEGMENT "CHR_Pause"
 
 .EXPORT Ppu_ChrPause

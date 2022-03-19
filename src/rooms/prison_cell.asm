@@ -163,7 +163,7 @@ _Devices_sDevice_arr:
 _Dialogs_sDialog_ptr_arr:
     .addr _Dialog0_sDialog
 _Dialog0_sDialog:
-    .word ePortrait::Woman
+    .word ePortrait::Sign
     .byte "We were once a great$"
     .byte "civilization. Then one$"
     .byte "day, the orcs came...#"
