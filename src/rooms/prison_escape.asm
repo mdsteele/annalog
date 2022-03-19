@@ -204,8 +204,8 @@ _Exits_sDoor_arr:
     D_END
     D_STRUCT sDoor
     d_byte Exit_bDoor, eDoor::Eastern | 1
-    d_word PositionAdjust_i16, $30
-    d_byte Destination_eRoom, eRoom::TallRoom
+    d_word PositionAdjust_i16, $ffff & -$90
+    d_byte Destination_eRoom, eRoom::PrisonTunnel
     D_END
 _Trolley_Init:
     ;; Initialize the machine.

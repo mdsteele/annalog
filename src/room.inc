@@ -32,6 +32,21 @@ kMaxRoomWidthBlocks = kMaxRoomWidthTiles / 2
 
 ;;;=========================================================================;;;
 
+;;; The list of rooms in the game.
+.ENUM eRoom
+    PrisonCell
+    PrisonEscape
+    PrisonTunnel
+    TallRoom
+    ShortRoom
+    NUM_VALUES
+.ENDENUM
+
+.DEFINE kNumRooms 5
+.ASSERT kNumRooms = eRoom::NUM_VALUES, error
+
+;;;=========================================================================;;;
+
 ;;; Specifies which side of the room a given door is on.
 .ENUM eDoor
     None       = 0
@@ -68,20 +83,6 @@ kMaxRoomWidthBlocks = kMaxRoomWidthTiles / 2
     ;; The room number that this door leads to.
     Destination_eRoom  .byte
 .ENDSTRUCT
-
-;;;=========================================================================;;;
-
-;;; The list of rooms in the game.
-.ENUM eRoom
-    PrisonCell
-    PrisonEscape
-    TallRoom
-    ShortRoom
-    NUM_VALUES
-.ENDENUM
-
-.DEFINE kNumRooms 4
-.ASSERT kNumRooms = eRoom::NUM_VALUES, error
 
 ;;;=========================================================================;;;
 
