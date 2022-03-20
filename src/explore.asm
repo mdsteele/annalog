@@ -85,6 +85,16 @@
 kDevicePromptObjPalette = 1
 kDevicePromptObjTileId = $09
 
+;;; The higher the number, the more slowly the camera tracks towards the scroll
+;;; goal.
+.DEFINE kScrollXSlowdown 2
+.DEFINE kScrollYSlowdown 2
+
+;;; The maximum speed that the screen is allowed to scroll horizontally and
+;;; vertically, in pixels per frame.
+kMaxScrollXSpeed = 7
+kMaxScrollYSpeed = 4
+
 ;;;=========================================================================;;;
 
 .ZEROPAGE
@@ -375,6 +385,7 @@ _EnterNextRoom:
 ;;; keeping the scroll goal within the valid range for the current room.
 .EXPORT Func_SetScrollGoalFromAvatar
 .PROC Func_SetScrollGoalFromAvatar
+.PROC _SetScrollGoalY
     ;; Calculate the visible height of the screen (the part not covered by the
     ;; window), and store it in Zp_Tmp1_byte.
     lda Zp_WindowTop_u8
@@ -391,24 +402,26 @@ _EnterNextRoom:
     @shortRoom:
     sub Zp_Tmp1_byte  ; visible screen height
     sta Zp_Tmp2_byte  ; max scroll-Y
-.PROC _SetScrollGoalY
-    lda Zp_AvatarPosY_i16 + 0
+    ;; Halve the visible screen height, then subtract that from the player
+    ;; avatar's Y-position.
     lsr Zp_Tmp1_byte
-    sub Zp_Tmp1_byte
+    lda Zp_AvatarPosY_i16 + 0
+    sub Zp_Tmp1_byte  ; half visible screen height
     tax
     lda Zp_AvatarPosY_i16 + 1
     sbc #0
-    bmi _MinGoal
-    bne _MaxGoal
+    ;; Clamp the result to within the permitted scroll-Y range.
+    bmi @minGoal
+    bne @maxGoal
     txa
-    cmp Zp_Tmp2_byte
-    blt _SetGoal
-_MaxGoal:
-    lda Zp_Tmp2_byte
-    jmp _SetGoal
-_MinGoal:
+    cmp Zp_Tmp2_byte  ; max scroll-Y
+    blt @setGoalToA
+    @maxGoal:
+    lda Zp_Tmp2_byte  ; max scroll-Y
+    jmp @setGoalToA
+    @minGoal:
     lda #0
-_SetGoal:
+    @setGoalToA:
     sta Zp_ScrollGoalY_u8
 .ENDPROC
 .PROC _SetScrollGoalX
@@ -451,10 +464,65 @@ _SetGoalToAX:
 ;;; for the current room as necessary.
 .EXPORT FuncA_Terrain_ScrollTowardsGoal
 .PROC FuncA_Terrain_ScrollTowardsGoal
-    ;; TODO: track towards the goal instead of locking directly onto it
+_TrackScrollYTowardsGoal:
+    ;; Compute the delta from the current scroll-Y position to the goal
+    ;; position, storing it in A.
     lda Zp_ScrollGoalY_u8
+    sub Zp_PpuScrollY_u8
+    blt @goalLessThanCurr
+    ;; If the delta is positive, then we need to scroll down.  Divide the delta
+    ;; by (1 << kScrollYSlowdown) to get the amount we'll scroll by this frame,
+    ;; but cap it at a maximum of kMaxScrollYSpeed.
+    @goalMoreThanCurr:
+    .repeat kScrollYSlowdown
+    lsr a
+    .endrepeat
+    cmp #kMaxScrollYSpeed
+    blt @scrollByA
+    lda #kMaxScrollYSpeed
+    bne @scrollByA  ; unconditional
+    ;; If the delta is negative, then we need to scroll up.  Divide the
+    ;; (negative) delta by (1 << kScrollYSlowdown), roughly, to get the amount
+    ;; we'll scroll by this frame, but cap it at a minimum of
+    ;; -kMaxScrollYSpeed.
+    @goalLessThanCurr:
+    .repeat kScrollYSlowdown
+    sec
+    ror a
+    .endrepeat
+    cmp #$ff & -kMaxScrollYSpeed
+    bge @scrollByA
+    lda #$ff & -kMaxScrollYSpeed
+    ;; Add YA to the current scroll-X position.
+    @scrollByA:
+    add Zp_PpuScrollY_u8
     sta Zp_PpuScrollY_u8
-_ScrollHorz:
+    @doneScrollVert:
+_ClampScrollY:
+    ;; Calculate the visible height of the screen (the part not covered by the
+    ;; window), and store it in Zp_Tmp1_byte.
+    lda Zp_WindowTop_u8
+    cmp #kScreenHeightPx
+    blt @windowVisible
+    lda #kScreenHeightPx
+    @windowVisible:
+    sta Zp_Tmp1_byte  ; visible screen height
+    ;; Calculate the maximum permitted scroll-Y and store it in Zp_Tmp2_byte.
+    lda #kScreenHeightPx
+    bit <(Zp_Current_sRoom + sRoom::IsTall_bool)
+    bpl @shortRoom
+    lda #<(kTallRoomHeightBlocks * kBlockHeightPx)
+    @shortRoom:
+    sub Zp_Tmp1_byte  ; visible screen height
+    sta Zp_Tmp2_byte  ; max scroll-Y
+    ;; Clamp Zp_PpuScrollY_u8 to no more than the permitted value.
+    lda Zp_PpuScrollY_u8
+    cmp Zp_Tmp2_byte  ; max scroll-Y
+    blt @done
+    lda Zp_Tmp2_byte  ; max scroll-Y
+    sta Zp_PpuScrollY_u8
+    @done:
+_PrepareToScrollHorz:
     ;; Calculate the index of the leftmost room tile column that is currently
     ;; in the nametable, and put that index in Zp_Tmp1_byte.
     lda Zp_PpuScrollX_u8
@@ -466,11 +534,56 @@ _ScrollHorz:
     lsr a
     ror Zp_Tmp1_byte
     .endrepeat
-    ;; Update the current scroll.
-    ;; TODO: track towards the goal instead of locking directly onto it
-    ldya Zp_ScrollGoalX_u16
-    sty Zp_ScrollXHi_u8
+_TrackScrollXTowardsGoal:
+    ldy #0
+    ;; Compute the delta from the current scroll-X position to the goal
+    ;; position, storing it in Zp_Tmp2_byte (lo) and A (hi).
+    lda Zp_ScrollGoalX_u16 + 0
+    sub Zp_PpuScrollX_u8
+    sta Zp_Tmp2_byte  ; delta (lo)
+    lda Zp_ScrollGoalX_u16 + 1
+    sbc Zp_ScrollXHi_u8
+    bmi @goalLessThanCurr
+    ;; If the delta is positive, then we need to scroll to the right.  Divide
+    ;; the delta by (1 << kScrollXSlowdown) to get the amount we'll scroll by
+    ;; this frame, but cap it at a maximum of kMaxScrollXSpeed.
+    @goalMoreThanCurr:
+    .assert kMaxScrollXSpeed << kScrollXSlowdown < $100, error
+    bne @maxScroll
+    lda Zp_Tmp2_byte  ; delta (lo)
+    .repeat kScrollXSlowdown
+    lsr a
+    .endrepeat
+    cmp #kMaxScrollXSpeed
+    blt @scrollByYA
+    @maxScroll:
+    lda #kMaxScrollXSpeed
+    bne @scrollByYA  ; unconditional
+    ;; If the delta is negative, then we need to scroll to the left.  Divide
+    ;; the (negative) delta by (1 << kScrollXSlowdown), roughly, to get the
+    ;; amount we'll scroll by this frame, but cap it at a minimum of
+    ;; -kMaxScrollXSpeed.
+    @goalLessThanCurr:
+    dey  ; now Y is $ff
+    cmp #$ff
+    bne @minScroll
+    lda Zp_Tmp2_byte  ; delta (lo)
+    .repeat kScrollXSlowdown
+    sec
+    ror a
+    .endrepeat
+    cmp #$ff & -kMaxScrollXSpeed
+    bge @scrollByYA
+    @minScroll:
+    lda #$ff & -kMaxScrollXSpeed
+    ;; Add YA to the current scroll-X position.
+    @scrollByYA:
+    add Zp_PpuScrollX_u8
     sta Zp_PpuScrollX_u8
+    tya
+    adc Zp_ScrollXHi_u8
+    sta Zp_ScrollXHi_u8
+_UpdateNametable:
     ;; Calculate the index of the leftmost room tile column that should now be
     ;; in the nametable, and put that index in Zp_Tmp2_byte.
     lda Zp_PpuScrollX_u8
@@ -484,14 +597,14 @@ _ScrollHorz:
     .endrepeat
     ;; Determine if we need to update the nametable; if so, set A to the index
     ;; of the room tile column that should be loaded.
-    lda Zp_Tmp2_byte
-    cmp Zp_Tmp1_byte
-    beq _DoneTransfer
-    bmi _DoTransfer
+    lda Zp_Tmp2_byte  ; new leftmost room tile column
+    cmp Zp_Tmp1_byte  ; old leftmost room tile column
+    beq @doneTransfer
+    bmi @doTransfer
     add #kScreenWidthTiles - 1
-_DoTransfer:
+    @doTransfer:
     jsr FuncA_Terrain_TransferTileColumn
-_DoneTransfer:
+    @doneTransfer:
     rts
 .ENDPROC
 
