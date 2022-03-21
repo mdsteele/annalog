@@ -25,7 +25,6 @@
 
 .IMPORT DataC_Prison_Cell_sRoom
 .IMPORT DataC_Prison_Escape_sRoom
-.IMPORT DataC_Prison_Short_sRoom
 .IMPORT DataC_Prison_Tall_sRoom
 .IMPORT DataC_Prison_Tunnel_sRoom
 .IMPORT Func_InitAllMachines
@@ -66,8 +65,7 @@
     DataC_Prison_Cell_sRoom, \
     DataC_Prison_Escape_sRoom, \
     DataC_Prison_Tunnel_sRoom, \
-    DataC_Prison_Tall_sRoom, \
-    DataC_Prison_Short_sRoom
+    DataC_Prison_Tall_sRoom
 .LINECONT -
 
 ;;; Pointers to sRoom structs for all rooms in the game, indexed by eRoom
@@ -280,38 +278,40 @@ _CallInit:
     jmp (Zp_Tmp_ptr)
 .ENDPROC
 
-;;; Called when exiting the room via a door.
-;;; @param X The bDoor value for the door the player went through.
+;;; Called when exiting the room via a passage.  Shifts the avatar position
+;;; perpendicular to the passage direction, and determines the destination room
+;;; number.
+;;; @param X The bPassage value for the passage the player went through.
 ;;; @return A The eRoom value for the room that should be loaded next.
-.EXPORT Func_ExitCurrentRoom
-.PROC Func_ExitCurrentRoom
-    stx Zp_Tmp1_byte  ; bDoor value
-    ;; Copy the current room's Exits_sDoor_arr_ptr into Zp_Tmp_ptr.
-    ldy #sRoomExt::Exits_sDoor_arr_ptr
+.EXPORT Func_ExitCurrentRoomViaPassage
+.PROC Func_ExitCurrentRoomViaPassage
+    stx Zp_Tmp1_byte  ; bPassage value
+    ;; Copy the current room's Passages_sPassage_arr_ptr into Zp_Tmp_ptr.
+    ldy #sRoomExt::Passages_sPassage_arr_ptr
     lda (Zp_Current_sRoom + sRoom::Ext_sRoomExt_ptr), y
     sta Zp_Tmp_ptr + 0
     iny
     lda (Zp_Current_sRoom + sRoom::Ext_sRoomExt_ptr), y
     sta Zp_Tmp_ptr + 1
-    ;; Find the sDoor entry for the bDoor the player went through.
-    .assert sDoor::Exit_bDoor = 0, error
+    ;; Find the sPassage entry for the bPassage the player went through.
+    .assert sPassage::Exit_bPassage = 0, error
     ldy #0
     beq @find  ; unconditional
     @wrongSide:
-    .repeat .sizeof(sDoor)
+    .repeat .sizeof(sPassage)
     iny
     .endrepeat
     @find:
-    lda (Zp_Tmp_ptr), y  ; ExitSide_eDoor
-    cmp Zp_Tmp1_byte  ; bDoor value
+    lda (Zp_Tmp_ptr), y  ; ExitSide_ePassage
+    cmp Zp_Tmp1_byte  ; bPassage value
     bne @wrongSide
-    .assert sDoor::PositionAdjust_i16 = 1, error
+    .assert sPassage::PositionAdjust_i16 = 1, error
     iny
     lda (Zp_Tmp_ptr), y  ; PositionAdjust_i16 + 0
     iny
     clc
-    .assert bDoor::EastWest = $80, error
-    bit Zp_Tmp1_byte  ; bDoor value
+    .assert bPassage::EastWest = $80, error
+    bit Zp_Tmp1_byte  ; bPassage value
     bpl @upDown
     @eastWest:
     adc Zp_AvatarPosY_i16 + 0
@@ -323,7 +323,7 @@ _CallInit:
     @upDown:
     ;; TODO: add PositionAdjust_i16 to Zp_AvatarPosX_i16
     @returnDestination:
-    .assert sDoor::Destination_eRoom = 3, error
+    .assert sPassage::Destination_eRoom = 3, error
     iny
     lda (Zp_Tmp_ptr), y  ; Destination_eRoom
     rts

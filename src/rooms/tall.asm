@@ -21,6 +21,7 @@
 .INCLUDE "../charmap.inc"
 .INCLUDE "../device.inc"
 .INCLUDE "../dialog.inc"
+.INCLUDE "../flag.inc"
 .INCLUDE "../machine.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
@@ -29,6 +30,7 @@
 
 .IMPORT DataC_Prison_AreaCells_u8_arr2_arr
 .IMPORT DataC_Prison_AreaName_u8_arr
+.IMPORT Ram_DeviceAnim_u8_arr
 .IMPORT Ram_MachineState
 
 ;;;=========================================================================;;;
@@ -68,7 +70,7 @@ _Ext_sRoomExt:
     d_addr Actors_sActor_arr_ptr, _Actors_sActor_arr
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
     d_addr Dialogs_sDialog_ptr_arr_ptr, _Dialogs_sDialog_ptr_arr
-    d_addr Exits_sDoor_arr_ptr, _Exits_sDoor_arr
+    d_addr Passages_sPassage_arr_ptr, _Passages_sPassage_arr
     d_addr Init_func_ptr, _Init
     D_END
 _Platforms_sPlatform_arr:
@@ -100,6 +102,12 @@ _Devices_sDevice_arr:
     d_byte BlockCol_u8, 12
     d_byte Target_u8, 0
     D_END
+    D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::Upgrade
+    d_byte BlockRow_u8, 13
+    d_byte BlockCol_u8, 6
+    d_byte Target_u8, eFlag::UpgradeOpcodeTil
+    D_END
     .byte eDevice::None
 _Dialogs_sDialog_ptr_arr:
     .addr _Dialog0_sDialog
@@ -114,25 +122,28 @@ _Dialog0_sDialog:
     .byte "veniam, quis nostrud$"
     .byte "exercitation.#"
     .byte 0
-_Exits_sDoor_arr:
-    D_STRUCT sDoor
-    d_byte Exit_bDoor, eDoor::Western | 1
-    d_word PositionAdjust_i16, $ffff & -$30
-    d_byte Destination_eRoom, eRoom::ShortRoom
+_Passages_sPassage_arr:
+    D_STRUCT sPassage
+    d_byte Exit_bPassage, ePassage::Western | 1
+    d_word PositionAdjust_i16, $ffff & -$50
+    d_byte Destination_eRoom, eRoom::PrisonCell
     D_END
-    D_STRUCT sDoor
-    d_byte Exit_bDoor, eDoor::Eastern | 0
-    d_word PositionAdjust_i16, $ffff & -$10
-    d_byte Destination_eRoom, eRoom::ShortRoom
+    D_STRUCT sPassage
+    d_byte Exit_bPassage, ePassage::Eastern | 0
+    d_word PositionAdjust_i16, $50
+    d_byte Destination_eRoom, eRoom::PrisonCell
     D_END
-    D_STRUCT sDoor
-    d_byte Exit_bDoor, eDoor::Eastern | 1
-    d_word PositionAdjust_i16, $ffff & -$120
-    d_byte Destination_eRoom, eRoom::ShortRoom
+    D_STRUCT sPassage
+    d_byte Exit_bPassage, ePassage::Eastern | 1
+    d_word PositionAdjust_i16, $ffff & -$c0
+    d_byte Destination_eRoom, eRoom::PrisonCell
     D_END
 _Init:
     lda #1
     sta Ram_MachineState + sState::LeverState_u1
+    ;; Animate the upgrade device.
+    lda #kUpgradeDeviceAnimStart
+    sta Ram_DeviceAnim_u8_arr + 2
     rts
 .ENDPROC
 

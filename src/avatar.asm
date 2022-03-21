@@ -294,8 +294,8 @@ _MarkMinimap:
 .SEGMENT "PRGA_Avatar"
 
 ;;; Updates the player avatar state based on the current joypad state.
-;;; @return Z Cleared if the player avatar hit a door, set otherwise.
-;;; @return A The eDoor that the player avatar hit, or eDoor::None for none.
+;;; @return Z Cleared if the player avatar hit a passage, set otherwise.
+;;; @return A The ePassage that the player avatar hit, or ePassage::None.
 .EXPORT FuncA_Avatar_ExploreMove
 .PROC FuncA_Avatar_ExploreMove
     ldx Zp_AvatarHarmTimer_u8
@@ -321,7 +321,7 @@ _MarkMinimap:
     adc Zp_AvatarPosX_i16 + 1
     sta Zp_AvatarPosX_i16 + 1
 .ENDPROC
-.PROC _DetectHorzDoor
+.PROC _DetectHorzPassage
     lda Zp_AvatarVelX_i16 + 1
     bmi _Western
 _Eastern:
@@ -335,23 +335,23 @@ _Eastern:
     ;; Compare the avatar's position to the offscreen position.
     cmp Zp_AvatarPosX_i16 + 1
     beq @checkLoByte
-    bge _NoHitDoor
-    @hitDoor:
-    lda #eDoor::Eastern
+    bge _NoHitPassage
+    @hitPassage:
+    lda #ePassage::Eastern
     rts
     @checkLoByte:
     lda Zp_AvatarPosX_i16 + 0
-    cmp Zp_Tmp1_byte  ; door X-position (lo)
-    bge @hitDoor
-    blt _NoHitDoor  ; unconditional
+    cmp Zp_Tmp1_byte  ; passage X-position (lo)
+    bge @hitPassage
+    blt _NoHitPassage  ; unconditional
 _Western:
     ;; If the avatar's X-position is negative, then we definitely hit the
-    ;; western door (although this should not happen in practice).  On the
+    ;; western passage (although this should not happen in practice).  On the
     ;; other hand, if the hi byte of the avatar's X-position is greater than
-    ;; zero, then we definitely didn't hit the western door.
+    ;; zero, then we definitely didn't hit the western passage.
     lda Zp_AvatarPosX_i16 + 1
-    bmi @hitDoor
-    bne _NoHitDoor
+    bmi @hitPassage
+    bne _NoHitPassage
     ;; Calculate the room pixel X-position where the avatar will be fully
     ;; hidden by the one-tile-wide mask on the left side of the screen, storing
     ;; the result in A.
@@ -360,11 +360,11 @@ _Western:
     ;; Compare the avatar's position to the offscreen position.  By this point,
     ;; we already know that the hi byte of the avatar's position is zero.
     cmp Zp_AvatarPosX_i16 + 0
-    blt _NoHitDoor
-    @hitDoor:
-    lda #eDoor::Western
+    blt _NoHitPassage
+    @hitPassage:
+    lda #ePassage::Western
     rts
-_NoHitDoor:
+_NoHitPassage:
 .ENDPROC
 .PROC _DetectHorzCollisionWithTerrain
     ;; Calculate the room block row index that the avatar's feet are in, and
@@ -500,8 +500,8 @@ _Done:
     adc Zp_AvatarPosY_i16 + 1
     sta Zp_AvatarPosY_i16 + 1
 .ENDPROC
-.PROC _DetectVertDoor
-    ;; TODO: Implement top/bottom doors.
+.PROC _DetectVertPassage
+    ;; TODO: Implement top/bottom passages.
 .ENDPROC
 .PROC _DetectVertCollisionWithTerrain
     ;; Calculate the room tile column index that the avatar's left side is in,
@@ -694,7 +694,7 @@ _Done:
 .ENDPROC
     jsr Func_UpdateAndMarkMinimap
     jsr FuncA_Avatar_ApplyGravity
-    lda #eDoor::None  ; indicate that no door was hit
+    lda #ePassage::None  ; indicate that no passage was hit
     rts
 .ENDPROC
 

@@ -52,7 +52,7 @@ _Ext_sRoomExt:
     d_addr Actors_sActor_arr_ptr, _Actors_sActor_arr
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
     d_addr Dialogs_sDialog_ptr_arr_ptr, 0
-    d_addr Exits_sDoor_arr_ptr, _Exits_sDoor_arr
+    d_addr Passages_sPassage_arr_ptr, _Passages_sPassage_arr
     d_addr Init_func_ptr, Func_Noop
     D_END
 _TerrainData:
@@ -76,14 +76,14 @@ _Actors_sActor_arr:
     .byte eActor::None
 _Devices_sDevice_arr:
     .byte eDevice::None
-_Exits_sDoor_arr:
-    D_STRUCT sDoor
-    d_byte Exit_bDoor, eDoor::Western | 0
+_Passages_sPassage_arr:
+    D_STRUCT sPassage
+    d_byte Exit_bPassage, ePassage::Western | 0
     d_word PositionAdjust_i16, $90
     d_byte Destination_eRoom, eRoom::PrisonEscape
     D_END
-    D_STRUCT sDoor
-    d_byte Exit_bDoor, eDoor::Eastern | 0
+    D_STRUCT sPassage
+    d_byte Exit_bPassage, ePassage::Eastern | 0
     d_word PositionAdjust_i16, $30
     d_byte Destination_eRoom, eRoom::TallRoom
     D_END

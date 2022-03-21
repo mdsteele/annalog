@@ -121,7 +121,7 @@ _Ext_sRoomExt:
     d_addr Actors_sActor_arr_ptr, _Actors_sActor_arr
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
     d_addr Dialogs_sDialog_ptr_arr_ptr, _Dialogs_sDialog_ptr_arr
-    d_addr Exits_sDoor_arr_ptr, _Exits_sDoor_arr
+    d_addr Passages_sPassage_arr_ptr, _Passages_sPassage_arr
     d_addr Init_func_ptr, Func_Noop
     D_END
 _TerrainData:
@@ -196,14 +196,14 @@ _Dialog0_sDialog:
     .byte "result of our own$"
     .byte "failures.#"
     .byte 0
-_Exits_sDoor_arr:
-    D_STRUCT sDoor
-    d_byte Exit_bDoor, eDoor::Eastern | 0
+_Passages_sPassage_arr:
+    D_STRUCT sPassage
+    d_byte Exit_bPassage, ePassage::Eastern | 0
     d_word PositionAdjust_i16, $20
     d_byte Destination_eRoom, eRoom::PrisonCell
     D_END
-    D_STRUCT sDoor
-    d_byte Exit_bDoor, eDoor::Eastern | 1
+    D_STRUCT sPassage
+    d_byte Exit_bPassage, ePassage::Eastern | 1
     d_word PositionAdjust_i16, $ffff & -$90
     d_byte Destination_eRoom, eRoom::PrisonTunnel
     D_END

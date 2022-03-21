@@ -38,7 +38,7 @@
 .IMPORT Func_Avatar_PositionAtNearbyDevice
 .IMPORT Func_ClearRestOfOam
 .IMPORT Func_ExecuteAllMachines
-.IMPORT Func_ExitCurrentRoom
+.IMPORT Func_ExitCurrentRoomViaPassage
 .IMPORT Func_FadeIn
 .IMPORT Func_FadeOut
 .IMPORT Func_LoadRoom
@@ -249,25 +249,26 @@ _Tick:
     lda Zp_AvatarHarmTimer_u8
     cmp #kAvatarHarmDeath
     jeq Main_Explore_Death
-    jsr_prga FuncA_Avatar_ExploreMove  ; clears Z if door; returns eDoor in A
+    jsr_prga FuncA_Avatar_ExploreMove  ; if passage, clears Z and returns A
     jeq _GameLoop
-    .assert * = Main_Explore_GoThroughDoor, error, "fallthrough"
+    .assert * = Main_Explore_GoThroughPassage, error, "fallthrough"
 .ENDPROC
 
-;;; Mode for leaving the current room through a door and entering the next
+;;; Mode for leaving the current room through a passage and entering the next
 ;;; room.
-;;; @param A The eDoor value for the side of the room the player hit.
-.PROC Main_Explore_GoThroughDoor
+;;; @param A The ePassage value for the side of the room the player hit.
+.PROC Main_Explore_GoThroughPassage
     ;; Fade out the current room.
-    pha  ; eDoor value
+    pha  ; ePassage value
     jsr_prga FuncA_Objects_DrawObjectsForRoom
     jsr Func_ClearRestOfOam
     jsr Func_FadeOut
-    pla  ; eDoor value
-_CalculateDoor:
-    ;; Calculate the bDoor value from the eDoor and the avatar's position.
-    tay  ; eDoor value
-    and #bDoor::EastWest
+    pla  ; ePassage value
+_CalculatePassage:
+    ;; Calculate the bPassage value from the ePassage and the avatar's
+    ;; position.
+    tay  ; ePassage value
+    and #bPassage::EastWest
     beq @upDown
     @eastWest:
     bit <(Zp_Current_sRoom + sRoom::IsTall_bool)
@@ -280,36 +281,36 @@ _CalculateDoor:
     cmp #(kTallRoomHeightBlocks / 2) * kBlockHeightPx
     bge @lowerHalf
     @upperHalf:
-    tya  ; eDoor value
+    tya  ; ePassage value
     bne _LoadNextRoom  ; unconditional
     @lowerHalf:
-    tya  ; eDoor value
+    tya  ; ePassage value
     ora #1
     bne _LoadNextRoom  ; unconditional
     @upDown:
-    ;; TODO: determine screen number for up/down doors
+    ;; TODO: determine screen number for up/down passages
 _LoadNextRoom:
-    pha  ; bDoor value
-    tax  ; param: bDoor value
-    jsr Func_ExitCurrentRoom  ; returns A
+    pha  ; bPassage value
+    tax  ; param: bPassage value
+    jsr Func_ExitCurrentRoomViaPassage  ; returns A
     tax  ; param: eRoom value
     prgc_bank Data_RoomBanks_u8_arr, x
     jsr Func_LoadRoom
-    pla  ; bDoor value
+    pla  ; bPassage value
 _RepositionAvatar:
-    ;; Extract eDoor value from bDoor value.
-    and #bDoor::SideMask
-    ;; Reposition avatar based on eDoor value and new room size.
-    cmp #eDoor::Eastern
+    ;; Extract ePassage value from bPassage value.
+    and #bPassage::SideMask
+    ;; Reposition avatar based on ePassage value and new room size.
+    cmp #ePassage::Eastern
     bne @eastern
-    ;; TODO: handle up/down doors
+    ;; TODO: handle up/down passages
     @western:
     lda <(Zp_Current_sRoom + sRoom::MinScrollX_u8)
     add #8
     sta Zp_AvatarPosX_i16 + 0
     lda #0
     sta Zp_AvatarPosX_i16 + 1
-    beq @doorDone  ; unconditional
+    beq @passageDone  ; unconditional
     @eastern:
     lda <(Zp_Current_sRoom + sRoom::MaxScrollX_u16 + 0)
     add #kScreenWidthPx - 8
@@ -317,7 +318,7 @@ _RepositionAvatar:
     lda <(Zp_Current_sRoom + sRoom::MaxScrollX_u16 + 1)
     adc #0
     sta Zp_AvatarPosX_i16 + 1
-    @doorDone:
+    @passageDone:
 _EnterNextRoom:
     jmp Main_Explore_FadeIn
 .ENDPROC

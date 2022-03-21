@@ -111,7 +111,7 @@ _Ext_sRoomExt:
     d_addr Actors_sActor_arr_ptr, _Actors_sActor_arr
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
     d_addr Dialogs_sDialog_ptr_arr_ptr, _Dialogs_sDialog_ptr_arr
-    d_addr Exits_sDoor_arr_ptr, _Exits_sDoor_arr
+    d_addr Passages_sPassage_arr_ptr, _Passages_sPassage_arr
     d_addr Init_func_ptr, Func_Noop
     D_END
 _TerrainData:
@@ -168,15 +168,15 @@ _Dialog0_sDialog:
     .byte "civilization. Then one$"
     .byte "day, the orcs came...#"
     .byte 0
-_Exits_sDoor_arr:
-    D_STRUCT sDoor
-    d_byte Exit_bDoor, eDoor::Western | 0
+_Passages_sPassage_arr:
+    D_STRUCT sPassage
+    d_byte Exit_bPassage, ePassage::Western | 0
     d_word PositionAdjust_i16, $ffff & -$20
     d_byte Destination_eRoom, eRoom::PrisonEscape
     D_END
-    D_STRUCT sDoor
-    d_byte Exit_bDoor, eDoor::Eastern | 0
-    d_word PositionAdjust_i16, $30
+    D_STRUCT sPassage
+    d_byte Exit_bPassage, ePassage::Eastern | 0
+    d_word PositionAdjust_i16, $50
     d_byte Destination_eRoom, eRoom::TallRoom
     D_END
 _Barrier_Init:

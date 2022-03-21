@@ -38,17 +38,16 @@ kMaxRoomWidthBlocks = kMaxRoomWidthTiles / 2
     PrisonEscape
     PrisonTunnel
     TallRoom
-    ShortRoom
     NUM_VALUES
 .ENDENUM
 
-.DEFINE kNumRooms 5
+.DEFINE kNumRooms 4
 .ASSERT kNumRooms = eRoom::NUM_VALUES, error
 
 ;;;=========================================================================;;;
 
-;;; Specifies which side of the room a given door is on.
-.ENUM eDoor
+;;; Specifies which side of the room a given passage is on.
+.ENUM ePassage
     None       = 0
     Top        = %01000000
     Bottom     = %01100000
@@ -56,31 +55,32 @@ kMaxRoomWidthBlocks = kMaxRoomWidthTiles / 2
     Eastern    = %10100000
 .ENDENUM
 
-;;; Specifies a particular door exit from a room.  The three highest bits
-;;; specify the side of the room the door is on (as an eDoor value), and the
-;;; three lowest bits specify which screen of the room the door is on:
-;;;     * For east/west doors in short rooms, the screen number is 0.
-;;;     * For east/west doors in tall rooms, the screen number is 0 for the top
-;;;       half of the room, or 1 for the bottom half.
-;;;     * For up/down doors, the screen number is 0 for the westernmost screen
-;;;       of the room, and (N - 1) for the easternmost screen of a room that's
-;;;       N screens wide.
-.SCOPE bDoor
-    EastWest   = %10000000  ; if set, this is an east/west door
-    UpDown     = %01000000  ; if set, this is an up/down door
-    SideMask   = %11100000  ; bits used for the eDoor value
+;;; Specifies a particular passage exit from a room.  The three highest bits
+;;; specify the side of the room the passage is on (as an ePassage value), and
+;;; the three lowest bits specify which screen of the room the passage is on:
+;;;     * For east/west passages in short rooms, the screen number is 0.
+;;;     * For east/west passages in tall rooms, the screen number is 0 for the
+;;;       top half of the room, or 1 for the bottom half.
+;;;     * For up/down passages, the screen number is 0 for the westernmost
+;;;       screen of the room, and (N - 1) for the easternmost screen of a room
+;;;       that's N screens wide.
+.SCOPE bPassage
+    EastWest   = %10000000  ; if set, this is an east/west passage
+    UpDown     = %01000000  ; if set, this is an up/down passage
+    SideMask   = %11100000  ; bits used for the ePassage value
     ScreenMask = %00000111  ; bits used for the screen number
 .ENDSCOPE
 
-;;; Stores attributes for a particular door exit from a room.
-.STRUCT sDoor
+;;; Stores attributes for a particular passage exit from a room.
+.STRUCT sPassage
     ;; Where in the room the exit is (which side and which screen number).
-    Exit_bDoor         .byte
-    ;; The number (in pixels) to add to Zp_AvatarPosY_i16 (for east/west doors)
-    ;; or Zp_AvatarPosX_i16 (for up/down doors) when transitioning through this
-    ;; exit, in order to line up with the entrance in the other room.
+    Exit_bPassage         .byte
+    ;; The number (in pixels) to add to Zp_AvatarPosY_i16 (for east/west
+    ;; passages) or Zp_AvatarPosX_i16 (for up/down passages) when transitioning
+    ;; through this exit, in order to line up with the entrance in the other
+    ;; room.
     PositionAdjust_i16 .word
-    ;; The room number that this door leads to.
+    ;; The room number that this passage leads to.
     Destination_eRoom  .byte
 .ENDSTRUCT
 
@@ -89,15 +89,15 @@ kMaxRoomWidthBlocks = kMaxRoomWidthTiles / 2
 ;;; Stores basic information about a single room.
 .STRUCT sRoom
     ;; The minimum permitted scroll X-coordinate, in pixels.
-    ;;     * If the room has no doors on the western edge, this should be 0.
-    ;;     * If the room does have a western door, this should generally be
+    ;;     * If the room has no passages on the western edge, this should be 0.
+    ;;     * If the room does have a western passage, this should generally be
     ;;       either 8 or 16.
     MinScrollX_u8             .byte
     ;; The maximum permitted scroll X-coordinate, in pixels.  If the terrain
     ;; data is N blocks wide, then:
-    ;;     * If the room has no doors on the eastern edge, this should be equal
-    ;;       to (N - kScreenWidthBlocks) * kBlockWidthPx.
-    ;;     * If the room does have an eastern door, this should be equal to
+    ;;     * If the room has no passages on the eastern edge, this should be
+    ;;       equal to (N - kScreenWidthBlocks) * kBlockWidthPx.
+    ;;     * If the room does have an eastern passage, this should be equal to
     ;;       (N - kScreenWidthBlocks - 1) * kBlockWidthPx, so that the last
     ;;       terrain column will be hidden offscreen.
     MaxScrollX_u16            .word
@@ -150,8 +150,8 @@ kMaxRoomWidthBlocks = kMaxRoomWidthTiles / 2
     Devices_sDevice_arr_ptr     .addr
     ;; A pointer to an array of pointers to dialogs used in this room.
     Dialogs_sDialog_ptr_arr_ptr .addr
-    ;; A pointer to the list of door exits from this room.
-    Exits_sDoor_arr_ptr         .addr
+    ;; A pointer to the list of passage exits from this room.
+    Passages_sPassage_arr_ptr   .addr
     ;; Function to initialize room-specific state when entering the room.
     Init_func_ptr               .addr
 .ENDSTRUCT
