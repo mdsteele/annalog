@@ -41,7 +41,6 @@
 .IMPORT Func_ClearRestOfOam
 .IMPORT Func_MachineTick
 .IMPORT Func_ProcessFrame
-.IMPORT Func_SetScrollGoalFromAvatar
 .IMPORT Func_UpdateButtons
 .IMPORT Func_Window_GetRowPpuAddr
 .IMPORT Main_Console_ContinueEditing
@@ -551,11 +550,11 @@ _DisableMenuItemsForReadOnlyRegisters:
     lda (Zp_Current_sMachine_ptr), y
     sta Zp_Tmp1_byte  ; machine flags
     lda #$ff
+    sta Ram_MenuRows_u8_arr + $b  ; the B register is always read-only
     .assert bMachine::WriteF = $01, error
     .assert bMachine::WriteE = $02, error
     .assert bMachine::WriteD = $04, error
     .assert bMachine::WriteC = $08, error
-    .assert bMachine::WriteB = $10, error
     ldx #$f
     @loop:
     lsr Zp_Tmp1_byte
@@ -563,7 +562,7 @@ _DisableMenuItemsForReadOnlyRegisters:
     sta Ram_MenuRows_u8_arr, x
     @continue:
     dex
-    cpx #$a
+    cpx #$b
     bne @loop
     rts
 _Columns_u8_arr:
@@ -1287,7 +1286,6 @@ _CheckForCancel:
     ;; D-pad:
     jsr_prga FuncA_Console_MoveMenuCursor
 _UpdateScrolling:
-    jsr Func_SetScrollGoalFromAvatar
     jsr_prga FuncA_Terrain_ScrollTowardsGoal
     jsr Func_MachineTick
     jmp _GameLoop

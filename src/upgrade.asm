@@ -50,6 +50,7 @@
 .IMPORTZP Zp_OamOffset_u8
 .IMPORTZP Zp_P1ButtonsPressed_bJoypad
 .IMPORTZP Zp_PpuTransferLen_u8
+.IMPORTZP Zp_ScrollGoalY_u8
 .IMPORTZP Zp_Tmp1_byte
 .IMPORTZP Zp_Tmp_ptr
 .IMPORTZP Zp_WindowNextRowToTransfer_u8
@@ -107,15 +108,7 @@ Zp_CurrentUpgrade_eFlag: .res 1
 ;;; @param X The upgrade's device index.
 .EXPORT Main_Upgrade_OpenWindow
 .PROC Main_Upgrade_OpenWindow
-    jsr_prga FuncA_Upgrade_Collect
-_InitWindow:
-    lda #kScreenHeightPx - kUpgradeWindowScrollSpeed
-    sta Zp_WindowTop_u8
-    jsr Func_Window_SetUpIrq
-    lda #1
-    sta Zp_WindowNextRowToTransfer_u8
-    lda #kUpgradeWindowTopGoal
-    sta Zp_WindowTopGoal_u8
+    jsr_prga FuncA_Upgrade_Init
 _GameLoop:
     prga_bank #<.bank(FuncA_Objects_DrawUpgradeSymbol)
     jsr FuncA_Objects_DrawUpgradeSymbol
@@ -138,7 +131,6 @@ _CheckIfDone:
     cmp Zp_WindowTopGoal_u8
     jeq Main_Upgrade_RunWindow
 _UpdateScrolling:
-    jsr Func_SetScrollGoalFromAvatar
     jsr_prga FuncA_Terrain_ScrollTowardsGoal
     jmp _GameLoop
 .ENDPROC
@@ -193,7 +185,6 @@ _CheckButtons:
     jmp Main_Upgrade_CloseWindow
     @done:
 _UpdateScrolling:
-    jsr Func_SetScrollGoalFromAvatar
     jsr_prga FuncA_Terrain_ScrollTowardsGoal
     jmp _GameLoop
 .ENDPROC
@@ -201,6 +192,26 @@ _UpdateScrolling:
 ;;;=========================================================================;;;
 
 .SEGMENT "PRGA_Upgrade"
+
+;;; Initializes upgrade mode.
+;;; @param X The upgrade device index.
+.PROC FuncA_Upgrade_Init
+    jsr FuncA_Upgrade_Collect
+_SetScrollGoal:
+    jsr Func_SetScrollGoalFromAvatar
+    lda Zp_ScrollGoalY_u8
+    add #(kScreenHeightPx - kUpgradeWindowTopGoal) / 2
+    sta Zp_ScrollGoalY_u8
+_InitWindow:
+    lda #kScreenHeightPx - kUpgradeWindowScrollSpeed
+    sta Zp_WindowTop_u8
+    jsr Func_Window_SetUpIrq
+    lda #1
+    sta Zp_WindowNextRowToTransfer_u8
+    lda #kUpgradeWindowTopGoal
+    sta Zp_WindowTopGoal_u8
+    rts
+.ENDPROC
 
 ;;; Removes the specified upgrade device from the room, sets that upgrade's
 ;;; flag in SRAM as collected (updating Zp_MachineMaxInstructions_u8 as

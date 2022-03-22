@@ -21,7 +21,7 @@
 kMaxMachines = 8
 
 ;;; The number of padding bytes at the end of each sMachine struct.
-.DEFINE kMachinePadding 8
+.DEFINE kMachinePadding 6
 
 ;;; How many bytes of RAM are reserved for room-specific machine state.
 kMachineStateSize = $c0
@@ -44,7 +44,6 @@ kMachineLightPalette = 1
     MoveH  = %10000000  ; The machine supports MOVE left/right instructions.
     MoveV  = %01000000  ; The machine supports MOVE up/down instructions.
     Act    = %00100000  ; The machine supports ACT instructions.
-    WriteB = %00010000  ; The $b register is writable.
     WriteC = %00001000  ; The $c register is writable.
     WriteD = %00000100  ; The $d register is writable.
     WriteE = %00000010  ; The $e register is writable.
@@ -67,16 +66,19 @@ kMachineLightPalette = 1
     Flags_bMachine    .byte
     ;; The diagram to display in the console status box.
     Status_eDiagram   .byte
-    ;; The names (i.e. BG tile IDs) for registers $b through $f.
-    RegNames_u8_arr5  .res 5
+    ;; The X/Y scroll goal to set when using a console to program this machine.
+    ScrollGoalX_u16   .word
+    ScrollGoalY_u8    .byte
+    ;; The names (i.e. BG tile IDs) for registers $c through $f.
+    RegNames_u8_arr4  .res 4
     ;; Function to initialize machine-specific state (when entering the area).
     Init_func_ptr     .addr
-    ;; Function to call when a register from $b to $f is read.
-    ;; @param A The register to read ($b-$f).
+    ;; Function to call when a register from $c to $f is read.
+    ;; @param A The register to read ($c-$f).
     ;; @return A The value of the register (0-9).
     ReadReg_func_ptr  .addr
-    ;; Function to call when a register from $b to $f is written.
-    ;; @param A The register to write to ($b-$f).
+    ;; Function to call when a register from $c to $f is written.
+    ;; @param A The register to write to ($c-$f).
     ;; @param X The value to write (0-9).
     WriteReg_func_ptr .addr
     ;; Function to call when the machine tries to move.

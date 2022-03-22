@@ -57,6 +57,8 @@
 .IMPORTZP Zp_OamOffset_u8
 .IMPORTZP Zp_P1ButtonsPressed_bJoypad
 .IMPORTZP Zp_PpuTransferLen_u8
+.IMPORTZP Zp_ScrollGoalX_u16
+.IMPORTZP Zp_ScrollGoalY_u8
 .IMPORTZP Zp_Tmp1_byte
 .IMPORTZP Zp_Tmp2_byte
 .IMPORTZP Zp_Tmp3_byte
@@ -95,8 +97,9 @@ kCursorObjPalette = 1
 ;;; The width of an instruction in the console, in tiles.
 kInstructionWidthTiles = 7
 
-;;; The name (i.e. BG tile ID) for register $a.
+;;; The names (i.e. BG tile IDs) for registers $a and $b.
 kRegNameA = $20  ; 'A'
+kRegNameB = $21  ; 'B'
 
 ;;;=========================================================================;;;
 
@@ -177,7 +180,6 @@ _CheckIfDone:
     cmp Zp_WindowTopGoal_u8
     jeq Main_Console_StartEditing
 _UpdateScrolling:
-    jsr Func_SetScrollGoalFromAvatar
     jsr_prga FuncA_Terrain_ScrollTowardsGoal
     jmp _GameLoop
 .ENDPROC
@@ -265,7 +267,6 @@ _CheckButtons:
     ;; D-pad:
     jsr_prga FuncA_Console_MoveFieldCursor
 _UpdateScrolling:
-    jsr Func_SetScrollGoalFromAvatar
     jsr_prga FuncA_Terrain_ScrollTowardsGoal
     jsr Func_MachineTick
     jmp _GameLoop
@@ -286,20 +287,37 @@ _UpdateScrolling:
     lda Zp_MachineMaxInstructions_u8
     div #2
     sta Zp_ConsoleNumInstRows_u8
-_CopyRegNames:
-    ldy #sMachine::RegNames_u8_arr5 + 4
-    ldx #5
-    @loop:
-    lda (Zp_Current_sMachine_ptr), y
-    sta Ram_ConsoleRegNames_u8_arr6, x
-    dey
-    dex
-    bpl @loop
-    lda #kRegNameA
-    sta Ram_ConsoleRegNames_u8_arr6 + 0
 _SetDiagram:
     ldy #sMachine::Status_eDiagram
     chr04_bank (Zp_Current_sMachine_ptr), y
+_SetScrollGoal:
+    .assert sMachine::ScrollGoalX_u16 = 1 + sMachine::Status_eDiagram, error
+    iny  ; now Y is sMachine::ScrollGoalX_u16 + 0
+    lda (Zp_Current_sMachine_ptr), y
+    sta Zp_ScrollGoalX_u16 + 0
+    iny  ; now Y is sMachine::ScrollGoalX_u16 + 1
+    lda (Zp_Current_sMachine_ptr), y
+    sta Zp_ScrollGoalX_u16 + 1
+    .assert sMachine::ScrollGoalY_u8 = 2 + sMachine::ScrollGoalX_u16, error
+    iny  ; now Y is sMachine::ScrollGoalY_u8
+    lda (Zp_Current_sMachine_ptr), y
+    sta Zp_ScrollGoalY_u8
+_CopyRegNames:
+    .assert sMachine::RegNames_u8_arr4 = 1 + sMachine::ScrollGoalY_u8, error
+    iny  ; now Y is sMachine::RegNames_u8_arr4
+    ldx #2
+    @loop:
+    lda (Zp_Current_sMachine_ptr), y
+    sta Ram_ConsoleRegNames_u8_arr6, x
+    iny
+    inx
+    cpx #6
+    blt @loop
+    ;; TODO: Set A/B register name to #0 if that register isn't unlocked yet.
+    lda #kRegNameA
+    sta Ram_ConsoleRegNames_u8_arr6 + 0
+    lda #kRegNameB
+    sta Ram_ConsoleRegNames_u8_arr6 + 1
 _InitWindow:
     lda #kScreenHeightPx - kConsoleWindowScrollSpeed
     sta Zp_WindowTop_u8

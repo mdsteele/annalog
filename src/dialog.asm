@@ -46,6 +46,7 @@
 .IMPORTZP Zp_OamOffset_u8
 .IMPORTZP Zp_P1ButtonsPressed_bJoypad
 .IMPORTZP Zp_PpuTransferLen_u8
+.IMPORTZP Zp_ScrollGoalY_u8
 .IMPORTZP Zp_Tmp1_byte
 .IMPORTZP Zp_Tmp_ptr
 .IMPORTZP Zp_WindowNextRowToTransfer_u8
@@ -137,7 +138,6 @@ _CheckIfDone:
     cmp Zp_WindowTopGoal_u8
     jeq Main_Dialog_Run
 _UpdateScrolling:
-    jsr Func_SetScrollGoalFromAvatar
     jsr_prga FuncA_Terrain_ScrollTowardsGoal
     jmp _GameLoop
 .ENDPROC
@@ -187,7 +187,6 @@ _Tick:
     chr04_bank x
     jcs Main_Dialog_CloseWindow
 _UpdateScrolling:
-    jsr Func_SetScrollGoalFromAvatar
     jsr_prga FuncA_Terrain_ScrollTowardsGoal
     jmp _GameLoop
 .ENDPROC
@@ -219,6 +218,11 @@ _UpdateScrolling:
     sta Zp_DialogText_ptr + 1
     ;; Load the first portrait of the dialog.
     jsr FuncA_Dialog_LoadNextPortrait
+_SetScrollGoal:
+    jsr Func_SetScrollGoalFromAvatar
+    lda Zp_ScrollGoalY_u8
+    add #(kScreenHeightPx - kDialogWindowTopGoal) / 2
+    sta Zp_ScrollGoalY_u8
 _InitWindow:
     lda #kScreenHeightPx - kDialogWindowScrollSpeed
     sta Zp_WindowTop_u8

@@ -104,12 +104,14 @@ kMaxScrollYSpeed = 4
 ;;; simplify the comparison logic (we never want to scroll past the left edge
 ;;; of the room anyway).  Rooms can be several screens wide, so this needs to
 ;;; be two bytes.
+.EXPORTZP Zp_ScrollGoalX_u16
 Zp_ScrollGoalX_u16: .res 2
 
 ;;; The desired vertical scroll position; i.e. the position, in room-space
 ;;; pixels, of the top edge of the screen.  Note that this is unsigned, to
 ;;; simplify the comparison logic (we never want to scroll past the top edge of
 ;;; the room anyway).
+.EXPORTZP Zp_ScrollGoalY_u8
 Zp_ScrollGoalY_u8: .res 1
 
 ;;; The high byte of the current horizontal scroll position (the low byte is
@@ -387,27 +389,17 @@ _EnterNextRoom:
 .EXPORT Func_SetScrollGoalFromAvatar
 .PROC Func_SetScrollGoalFromAvatar
 .PROC _SetScrollGoalY
-    ;; Calculate the visible height of the screen (the part not covered by the
-    ;; window), and store it in Zp_Tmp1_byte.
-    lda Zp_WindowTop_u8
-    cmp #kScreenHeightPx
-    blt @windowVisible
-    lda #kScreenHeightPx
-    @windowVisible:
-    sta Zp_Tmp1_byte  ; visible screen height
-    ;; Calculate the maximum permitted scroll-Y and store it in Zp_Tmp2_byte.
-    lda #kScreenHeightPx
+    ;; Calculate the maximum permitted scroll-Y and store it in Zp_Tmp1_byte.
+    lda #0
     bit <(Zp_Current_sRoom + sRoom::IsTall_bool)
     bpl @shortRoom
-    lda #<(kTallRoomHeightBlocks * kBlockHeightPx)
+    lda #kTallRoomHeightBlocks * kBlockHeightPx - kScreenHeightPx
     @shortRoom:
-    sub Zp_Tmp1_byte  ; visible screen height
-    sta Zp_Tmp2_byte  ; max scroll-Y
-    ;; Halve the visible screen height, then subtract that from the player
-    ;; avatar's Y-position.
-    lsr Zp_Tmp1_byte
+    sta Zp_Tmp1_byte  ; max scroll-Y
+    ;; Subtract half the screen height from the player avatar's Y-position,
+    ;; storing the result in AX.
     lda Zp_AvatarPosY_i16 + 0
-    sub Zp_Tmp1_byte  ; half visible screen height
+    sub #kScreenHeightPx / 2
     tax
     lda Zp_AvatarPosY_i16 + 1
     sbc #0
@@ -415,10 +407,10 @@ _EnterNextRoom:
     bmi @minGoal
     bne @maxGoal
     txa
-    cmp Zp_Tmp2_byte  ; max scroll-Y
+    cmp Zp_Tmp1_byte  ; max scroll-Y
     blt @setGoalToA
     @maxGoal:
-    lda Zp_Tmp2_byte  ; max scroll-Y
+    lda Zp_Tmp1_byte  ; max scroll-Y
     jmp @setGoalToA
     @minGoal:
     lda #0

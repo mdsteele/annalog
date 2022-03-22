@@ -133,7 +133,9 @@ _Machines_sMachine_arr:
     d_byte Code_eProgram, eProgram::PrisonEscapeTrolley
     d_byte Flags_bMachine, bMachine::MoveH
     d_byte Status_eDiagram, eDiagram::Trolley
-    d_byte RegNames_u8_arr5, 0, 0, 0, "X", 0
+    d_word ScrollGoalX_u16, $c0
+    d_byte ScrollGoalY_u8, $b0
+    d_byte RegNames_u8_arr4, 0, 0, "X", 0
     d_addr Init_func_ptr, _Trolley_Init
     d_addr ReadReg_func_ptr, _Trolley_ReadReg
     d_addr WriteReg_func_ptr, Func_MachineError

@@ -97,7 +97,9 @@ TestMachine:
     d_byte Code_eProgram, kTestProgramIndex
     d_byte Flags_bMachine, bMachine::MoveV | bMachine::MoveH
     d_byte Status_eDiagram, eDiagram::Barrier
-    d_byte RegNames_u8_arr5, 0, 0, 0, "X", "Y"
+    d_word ScrollGoalX_u16, 0
+    d_byte ScrollGoalY_u8, 0
+    d_byte RegNames_u8_arr4, 0, 0, "X", "Y"
     d_addr Init_func_ptr, _Init
     d_addr ReadReg_func_ptr, _ReadReg
     d_addr WriteReg_func_ptr, Func_MachineError
