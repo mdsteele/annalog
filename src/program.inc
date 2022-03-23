@@ -97,6 +97,7 @@
 ;;; same program.
 .ENUM eProgram
     PrisonCellBarrier
+    PrisonCellBlaster
     PrisonEscapeTrolley
     NUM_VALUES
 .ENDENUM

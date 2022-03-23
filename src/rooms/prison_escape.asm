@@ -206,8 +206,8 @@ _Passages_sPassage_arr:
     D_END
     D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Eastern | 1
-    d_word PositionAdjust_i16, $ffff & -$90
-    d_byte Destination_eRoom, eRoom::PrisonTunnel
+    d_word PositionAdjust_i16, $20
+    d_byte Destination_eRoom, eRoom::PrisonCell
     D_END
 _Trolley_Init:
     ;; Initialize the machine.

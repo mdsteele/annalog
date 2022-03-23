@@ -45,16 +45,15 @@
 
 ;;;=========================================================================;;;
 
-;;; The machine index for the PrisonCellBarrier machine in this room.
+;;; The machine indices for the machines in this room.
 kBarrierMachineIndex = 0
+kBlasterMachineIndex = 1
 
 ;;; The platform index for the PrisonCellBarrier machine in this room.
 kBarrierPlatformIndex = 0
 
-;;; The initial value for sState::BarrierRegY_u8.
+;;; The initial and max values for sState::BarrierRegY_u8.
 kBarrierInitRegY = 1
-
-;;; The maximum permitted value for sState::BarrierRegY_u8.
 kBarrierMaxRegY = 1
 
 ;;; How fast the PrisonCellBarrier platform moves, in pixels per frame.
@@ -93,11 +92,11 @@ kBarrierTileIdSurface  = $62
 .PROC DataC_Prison_Cell_sRoom
     D_STRUCT sRoom
     d_byte MinScrollX_u8, $10
-    d_word MaxScrollX_u16, $10
-    d_byte IsTall_bool, $00
+    d_word MaxScrollX_u16, $110
+    d_byte IsTall_bool, $ff
     d_byte MinimapStartRow_u8, 2
     d_byte MinimapStartCol_u8, 3
-    d_byte MinimapWidth_u8, 1
+    d_byte MinimapWidth_u8, 2
     d_addr TerrainData_ptr, _TerrainData
     d_byte NumMachines_u8, 1
     d_addr Machines_sMachine_arr_ptr, _Machines_sMachine_arr
@@ -116,7 +115,7 @@ _Ext_sRoomExt:
     D_END
 _TerrainData:
 :   .incbin "out/data/prison_cell.room"
-    .assert * - :- = 18 * 16, error
+    .assert * - :- = 34 * 24, error
 _Machines_sMachine_arr:
     .assert kBarrierMachineIndex = 0, error
     D_STRUCT sMachine
@@ -137,6 +136,25 @@ _Machines_sMachine_arr:
     d_byte Padding
     .res kMachinePadding
     D_END
+    .assert kBlasterMachineIndex = 1, error
+    D_STRUCT sMachine
+    d_byte Code_eProgram, eProgram::PrisonCellBlaster
+    d_byte Flags_bMachine, bMachine::MoveH | bMachine::Act
+    d_byte Status_eDiagram, eDiagram::Trolley  ; TODO
+    d_word ScrollGoalX_u16, $110
+    d_byte ScrollGoalY_u8, $50
+    d_byte RegNames_u8_arr4, 0, 0, "X", 0
+    d_addr Init_func_ptr, _Blaster_Init
+    d_addr ReadReg_func_ptr, _Blaster_ReadReg
+    d_addr WriteReg_func_ptr, Func_MachineError
+    d_addr TryMove_func_ptr, _Blaster_TryMove
+    d_addr TryAct_func_ptr, _Blaster_TryAct
+    d_addr Tick_func_ptr, _Blaster_Tick
+    d_addr Draw_func_ptr, FuncA_Objects_PrisonCellBlaster_Draw
+    d_addr Reset_func_ptr, _Blaster_Reset
+    d_byte Padding
+    .res kMachinePadding
+    D_END
 _Platforms_sPlatform_arr:
     .assert kBarrierPlatformIndex = 0, error
     D_STRUCT sPlatform
@@ -151,15 +169,21 @@ _Actors_sActor_arr:
 _Devices_sDevice_arr:
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Sign
-    d_byte BlockRow_u8, 11
-    d_byte BlockCol_u8, 8
+    d_byte BlockRow_u8, 12
+    d_byte BlockCol_u8, 9
     d_byte Target_u8, 0
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Console
     d_byte BlockRow_u8, 4
-    d_byte BlockCol_u8, 4
+    d_byte BlockCol_u8, 3
     d_byte Target_u8, kBarrierMachineIndex
+    D_END
+    D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::Console
+    d_byte BlockRow_u8, 15
+    d_byte BlockCol_u8, 31
+    d_byte Target_u8, kBlasterMachineIndex
     D_END
     .byte eDevice::None
 _Dialogs_sDialog_ptr_arr:
@@ -173,6 +197,11 @@ _Dialog0_sDialog:
 _Passages_sPassage_arr:
     D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Western | 0
+    d_word PositionAdjust_i16, $ffff & -$20
+    d_byte Destination_eRoom, eRoom::PrisonEscape
+    D_END
+    D_STRUCT sPassage
+    d_byte Exit_bPassage, ePassage::Western | 1
     d_word PositionAdjust_i16, $ffff & -$20
     d_byte Destination_eRoom, eRoom::PrisonEscape
     D_END
@@ -263,6 +292,24 @@ _Barrier_Reset:
     sta Ram_MachineState + sState::BarrierGoalY_u8
     ;; TODO: Turn the machine around if it's currently moving up.
     rts
+_Blaster_Init:
+    ;; TODO
+    rts
+_Blaster_ReadReg:
+    lda #0  ; TODO
+    rts
+_Blaster_TryMove:
+    ;; TODO
+    jmp Func_MachineError
+_Blaster_TryAct:
+    ;; TODO
+    jmp Func_MachineError
+_Blaster_Tick:
+    ;; TODO
+    rts
+_Blaster_Reset:
+    ;; TODO
+    rts
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -326,6 +373,11 @@ _BottomHalf:
     @setLight:
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Tile_u8, y
     @done:
+    rts
+.ENDPROC
+
+.PROC FuncA_Objects_PrisonCellBlaster_Draw
+    ;; TODO
     rts
 .ENDPROC
 

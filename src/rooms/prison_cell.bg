@@ -1,20 +1,29 @@
-@BG 0 0 0 18x15
+@BG 0 0 0 34x24
 >r0
 >r1
 >r4
 
 
-          CHCHCHCHCICPCPCHCH
-    CHCHCI          CP      CG
-  CN                          CG
-  CP    AB          BA          CM
-  CDCECECECF        CO        BBCM
-  CPCPCM  CI                  CPCP
-CHCI  CGCI                  BD  CM
-                  BABC      CACBCHCH
-                  CACC
-CECECF
-    CNBABECP  BCAD  BABA      CDCFCP
-    CNCPCPCPCDCECECFCPCPCDCFCPCMCPCP
-  CLCPCPCPCPCPCP  CPCPCPCMCNCPCPCPCP
-CPCPCPCPCPCPCPCPCPCPCPCPCMCPCPCPCPCP
+          CHCHCHCHCICPCPCH
+    CHCHCI                CM
+  CN                      CGCH
+  CN  AB                      CM
+  CPCDCECECF                  CM        CNCPCMCNCPCPCPCPCPCP
+  CPCPCM  CI      CACC        CM      CNCP  CMCN    CP    CNCM
+  CN  CMCN                  BBCP    CNCPCP  CGCI  CPCPCP  CPCGCICM
+CHCI  CGCI                  CPCPCM  CN                          CM
+                  BABC        CPCPCPCP                          CPCP
+CECECF            CACC
+    CNBABE
+    CNCPCDCECF  BCAD      BA  CDCFCPCPCDCECECFCKCKCPCPCDCECECFCPCPCP
+    CPCPCPCPCPCDCECECFCPCPCDCFCMCPCPCPCPCM  CP      CP      CNCPCP
+CPCPCPCPCPCPCPCPCGCHCICPCPCPCPCPCPCPCLCPCPCPCLCPCPCPCPCGCHCICPCPCM
+CPCPCPCPCLCP            CPCPCPCPCLCP                          ABCP
+CPCPCPCP                                CPCKCPCPCKCLCJCKCKCPCPCPCJ
+CPCPCP        CPCPCKCKCPCPCPCPCKCPCPCPCPCJ  CN      CM      CP
+    CP      CPCJ        CPCP        CLCM    CN      CP      CN
+CHCHCI    CJCP          CNCM        CN      CN      CPCM    CN
+          CPCKCM          CP        CP      CN      CLCP    CNCM
+CECECECECFCJ  CP          CP        CPCM    CP        CPCM  CPCM
+              CPCP      CNCP      CNCPCM    CP        CPCM  CPCM
+              CNCP      CNCPCM    CPCPCP  CNCP        CPCM  CPCM
