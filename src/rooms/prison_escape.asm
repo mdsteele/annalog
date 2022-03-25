@@ -29,6 +29,7 @@
 .INCLUDE "../program.inc"
 .INCLUDE "../room.inc"
 
+.IMPORT DataA_Room_Prison_sTileset
 .IMPORT DataC_Prison_AreaCells_u8_arr2_arr
 .IMPORT DataC_Prison_AreaName_u8_arr
 .IMPORT FuncA_Objects_Alloc1x1Shape
@@ -117,6 +118,7 @@ _Ext_sRoomExt:
     D_STRUCT sRoomExt
     d_addr AreaName_u8_arr_ptr, DataC_Prison_AreaName_u8_arr
     d_addr AreaCells_u8_arr2_arr_ptr, DataC_Prison_AreaCells_u8_arr2_arr
+    d_addr Terrain_sTileset_ptr, DataA_Room_Prison_sTileset
     d_addr Platforms_sPlatform_arr_ptr, _Platforms_sPlatform_arr
     d_addr Actors_sActor_arr_ptr, _Actors_sActor_arr
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr

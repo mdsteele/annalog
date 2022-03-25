@@ -20,23 +20,19 @@
 .INCLUDE "macros.inc"
 .INCLUDE "ppu.inc"
 .INCLUDE "room.inc"
+.INCLUDE "tileset.inc"
 
-.IMPORT DataA_Terrain_LowerLeft_u8_arr
-.IMPORT DataA_Terrain_LowerRight_u8_arr
-.IMPORT DataA_Terrain_UpperLeft_u8_arr
-.IMPORT DataA_Terrain_UpperRight_u8_arr
 .IMPORT Ram_PpuTransfer_arr
+.IMPORTZP Zp_Current_sRoom
+.IMPORTZP Zp_Current_sTileset
 .IMPORTZP Zp_PpuTransferLen_u8
 .IMPORTZP Zp_Tmp1_byte
 .IMPORTZP Zp_Tmp2_byte
+.IMPORTZP Zp_Tmp3_byte
 
 ;;;=========================================================================;;;
 
 .ZEROPAGE
-
-;;; The currently-loaded room.
-.EXPORTZP Zp_Current_sRoom
-Zp_Current_sRoom: .tag sRoom
 
 ;;; Return value for Func_Terrain_GetColumnPtrForTileIndex.  This will point
 ;;; to the beginning (top) of the requested terrain block column in the current
@@ -135,11 +131,13 @@ _LeftSide:
     sta Hw_PpuAddr_w2
     @tileLoop:
     lda (Zp_TerrainColumn_u8_arr_ptr), y
-    tax  ; terrain block type
-    lda DataA_Terrain_UpperLeft_u8_arr, x
+    sty Zp_Tmp3_byte  ; room block row index
+    tay  ; terrain block type
+    lda (Zp_Current_sTileset + sTileset::UpperLeft_u8_arr_ptr), y
     sta Hw_PpuData_rw
-    lda DataA_Terrain_LowerLeft_u8_arr, x
+    lda (Zp_Current_sTileset + sTileset::LowerLeft_u8_arr_ptr), y
     sta Hw_PpuData_rw
+    ldy Zp_Tmp3_byte  ; room block row index
     iny
     cpy #kScreenHeightBlocks
     bne @tileLoop
@@ -155,11 +153,13 @@ _LeftSide:
     sta Hw_PpuAddr_w2
     @tileLoop:
     lda (Zp_TerrainColumn_u8_arr_ptr), y
-    tax  ; terrain block type
-    lda DataA_Terrain_UpperLeft_u8_arr, x
+    sty Zp_Tmp3_byte  ; room block row index
+    tay  ; terrain block type
+    lda (Zp_Current_sTileset + sTileset::UpperLeft_u8_arr_ptr), y
     sta Hw_PpuData_rw
-    lda DataA_Terrain_LowerLeft_u8_arr, x
+    lda (Zp_Current_sTileset + sTileset::LowerLeft_u8_arr_ptr), y
     sta Hw_PpuData_rw
+    ldy Zp_Tmp3_byte  ; room block row index
     iny
     cpy #kTallRoomHeightBlocks
     bne @tileLoop
@@ -176,11 +176,13 @@ _RightSide:
     sta Hw_PpuAddr_w2
     @tileLoop:
     lda (Zp_TerrainColumn_u8_arr_ptr), y
-    tax  ; terrain block type
-    lda DataA_Terrain_UpperRight_u8_arr, x
+    sty Zp_Tmp3_byte  ; room block row index
+    tay  ; terrain block type
+    lda (Zp_Current_sTileset + sTileset::UpperRight_u8_arr_ptr), y
     sta Hw_PpuData_rw
-    lda DataA_Terrain_LowerRight_u8_arr, x
+    lda (Zp_Current_sTileset + sTileset::LowerRight_u8_arr_ptr), y
     sta Hw_PpuData_rw
+    ldy Zp_Tmp3_byte  ; room block row index
     iny
     cpy #kScreenHeightBlocks
     bne @tileLoop
@@ -196,11 +198,13 @@ _RightSide:
     sta Hw_PpuAddr_w2
     @tileLoop:
     lda (Zp_TerrainColumn_u8_arr_ptr), y
-    tax  ; terrain block type
-    lda DataA_Terrain_UpperRight_u8_arr, x
+    sty Zp_Tmp3_byte  ; room block row index
+    tay  ; terrain block type
+    lda (Zp_Current_sTileset + sTileset::UpperRight_u8_arr_ptr), y
     sta Hw_PpuData_rw
-    lda DataA_Terrain_LowerRight_u8_arr, x
+    lda (Zp_Current_sTileset + sTileset::LowerRight_u8_arr_ptr), y
     sta Hw_PpuData_rw
+    ldy Zp_Tmp3_byte  ; room block row index
     iny
     cpy #kTallRoomHeightBlocks
     bne @tileLoop
@@ -295,10 +299,10 @@ _Left:
     ldy Zp_Tmp1_byte  ; block row index
     lda (Zp_TerrainColumn_u8_arr_ptr), y
     tay  ; terrain block type
-    lda DataA_Terrain_UpperLeft_u8_arr, y
+    lda (Zp_Current_sTileset + sTileset::UpperLeft_u8_arr_ptr), y
     sta Ram_PpuTransfer_arr, x
     inx
-    lda DataA_Terrain_LowerLeft_u8_arr, y
+    lda (Zp_Current_sTileset + sTileset::LowerLeft_u8_arr_ptr), y
     sta Ram_PpuTransfer_arr, x
     inx
     inc Zp_Tmp1_byte  ; block row index
@@ -309,10 +313,10 @@ _Right:
     ldy Zp_Tmp1_byte  ; block row index
     lda (Zp_TerrainColumn_u8_arr_ptr), y
     tay  ; terrain block type
-    lda DataA_Terrain_UpperRight_u8_arr, y
+    lda (Zp_Current_sTileset + sTileset::UpperRight_u8_arr_ptr), y
     sta Ram_PpuTransfer_arr, x
     inx
-    lda DataA_Terrain_LowerRight_u8_arr, y
+    lda (Zp_Current_sTileset + sTileset::LowerRight_u8_arr_ptr), y
     sta Ram_PpuTransfer_arr, x
     inx
     inc Zp_Tmp1_byte  ; block row index

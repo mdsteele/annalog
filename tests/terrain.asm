@@ -19,11 +19,11 @@
 
 .INCLUDE "../src/macros.inc"
 .INCLUDE "../src/room.inc"
+.INCLUDE "../src/tileset.inc"
 
 .IMPORT Exit_Success
 .IMPORT Func_ExpectAEqualsY
 .IMPORT Func_Terrain_GetColumnPtrForTileIndex
-.IMPORTZP Zp_Current_sRoom
 .IMPORTZP Zp_TerrainColumn_u8_arr_ptr
 
 ;;;=========================================================================;;;
@@ -41,11 +41,16 @@ kExpectedStripePtr = $8207
 
 .ZEROPAGE
 
+.EXPORTZP Zp_Current_sRoom
+Zp_Current_sRoom: .tag sRoom
+.EXPORTZP Zp_Current_sTileset
+Zp_Current_sTileset: .tag sTileset
 .EXPORTZP Zp_PpuTransferLen_u8
 Zp_PpuTransferLen_u8: .res 1
-.EXPORTZP Zp_Tmp1_byte, Zp_Tmp2_byte
+.EXPORTZP Zp_Tmp1_byte, Zp_Tmp2_byte, Zp_Tmp3_byte
 Zp_Tmp1_byte: .res 1
 Zp_Tmp2_byte: .res 1
+Zp_Tmp3_byte: .res 1
 
 ;;;=========================================================================;;;
 

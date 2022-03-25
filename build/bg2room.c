@@ -49,7 +49,7 @@ void expect_newline(void) {
   }
 }
 
-char *read_tileset(void) {
+char *read_tileset_name(void) {
   int ch = fgetc(stdin);
   if (ch == '\n') return NULL;
   int index = 0;
@@ -60,6 +60,18 @@ char *read_tileset(void) {
     buffer[index++] = ch;
   }
   return strcpy(calloc(index + 1, sizeof(char)), buffer);
+}
+
+unsigned char from_hex(int ch) {
+  if (ch >= '0' && ch <= '9') {
+    return ch - '0';
+  } else if (ch >= 'a' && ch <= 'f') {
+    return ch - 'a' + 0xa;
+  } else if (ch >= 'A' && ch <= 'F') {
+    return ch - 'A' + 0xA;
+  } else {
+    ERROR("Invalid hex digit character: 0x%02x\n", ch);
+  }
 }
 
 int from_base64(int ch) {
@@ -78,20 +90,14 @@ int from_base64(int ch) {
   }
 }
 
-char get_block_id(const char *tileset, int tile_index) {
-  if (0 == strcmp(tileset, "r0")) {
-    return 0x00 + tile_index;
-  } else if (0 == strcmp(tileset, "r1")) {
-    return 0x10 + tile_index;
-  } else if (0 == strcmp(tileset, "r2")) {
-    return 0x20 + tile_index;
-  } else if (0 == strcmp(tileset, "r3")) {
-    return 0x30 + tile_index;
-  } else if (0 == strcmp(tileset, "r4")) {
-    return 0x40 + tile_index;
-  } else {
-    ERROR("unknown tileset: %s\n", tileset);
+unsigned char get_block_id(const char *tileset_name, int tile_index) {
+  if (tile_index < 0 || tile_index >= 0x10) {
+    ERROR("Invalid tile index: %d\n", tile_index);
   }
+  const size_t size = strlen(tileset_name);
+  if (size < 1) ERROR("Empty tileset name\n");
+  const int row_index = from_hex(tileset_name[size - 1]);
+  return 0x10 * row_index + tile_index;
 }
 
 /*===========================================================================*/
@@ -113,18 +119,18 @@ int main(int argc, char **argv) {
   char *tilesets[MAX_TILESETS] = {0};
   int num_tilesets = 0;
   while (1) {
-    char *tileset = read_tileset();
-    if (tileset == NULL) break;
+    char *tileset_name = read_tileset_name();
+    if (tileset_name == NULL) break;
     if (num_tilesets >= MAX_TILESETS) {
       ERROR("too many tilesets\n");
     }
-    tilesets[num_tilesets++] = tileset;
+    tilesets[num_tilesets++] = tileset_name;
   }
 
   // Read the BG grid, which appears in row-major order, and store the output
   // data in column-major order.
   const int grid_size = width * stride;
-  char *grid = calloc(grid_size, sizeof(char));
+  unsigned char *grid = calloc(grid_size, sizeof(unsigned char));
   for (int row = 0; row < height; ++row) {
     for (int col = 0; col < width; ++col) {
       const int ch = fgetc(stdin);
@@ -139,7 +145,7 @@ int main(int argc, char **argv) {
         ERROR("tileset index %d out of range\n", tileset_index);
       }
       const int tile_index = from_base64(fgetc(stdin));
-      char *block = &grid[stride * col + row];
+      unsigned char *block = &grid[stride * col + row];
       if (tileset_index < 0 || tile_index < 0) {
         *block = 0x00;
       } else {
@@ -151,7 +157,7 @@ int main(int argc, char **argv) {
   }
 
   // Write output data.
-  if (fwrite(grid, sizeof(char), grid_size, stdout) != grid_size) {
+  if (fwrite(grid, sizeof(unsigned char), grid_size, stdout) != grid_size) {
     ERROR("failed to write output\n");
   }
 

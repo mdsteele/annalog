@@ -133,6 +133,8 @@ kMaxRoomWidthBlocks = kMaxRoomWidthTiles / 2
     ;; A pointer to a $ff-terminated array of row/col pairs listing the minimap
     ;; cells that constitute the area that this room belongs to.
     AreaCells_u8_arr2_arr_ptr   .addr
+    ;; A pointer to the tileset used for this room's terrain.
+    Terrain_sTileset_ptr        .addr
     ;; A pointer to a static array of platforms that should always be loaded
     ;; into the room upon entering, terminated by a zero.  The dynamic set of
     ;; platforms can optionally be modified afterwards by the room's

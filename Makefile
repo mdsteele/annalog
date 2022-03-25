@@ -40,14 +40,18 @@ ROMFILE = $(OUTDIR)/$(ROMNAME).nes
 
 AHIFILES := $(shell find $(SRCDIR) -name '*.ahi')
 ASMFILES := $(shell find $(SRCDIR) -name '*.asm')
-BGFILES := $(shell find $(SRCDIR) -name '*.bg')
 INCFILES := $(shell find $(SRCDIR) -name '*.inc')
+ROOM_BG_FILES := $(shell find $(SRCDIR)/rooms -name '*.bg')
+TSET_BG_FILES := $(shell find $(SRCDIR)/tilesets -name '*.bg')
 
 CHRFILES := $(patsubst $(SRCDIR)/%.ahi,$(DATADIR)/%.chr,$(AHIFILES))
-GENFILES := $(GENDIR)/tileset.asm
-OBJFILES := $(patsubst $(SRCDIR)/%.asm,$(OBJDIR)/%.o,$(ASMFILES)) \
-            $(patsubst $(GENDIR)/%.asm,$(GENDIR)/%.o,$(GENFILES))
-ROOMFILES := $(patsubst $(SRCDIR)/rooms/%.bg,$(DATADIR)/%.room,$(BGFILES))
+GENFILES := \
+  $(patsubst $(SRCDIR)/tilesets/%.bg,$(GENDIR)/tilesets/%.asm,$(TSET_BG_FILES))
+OBJFILES := \
+  $(patsubst $(SRCDIR)/%.asm,$(OBJDIR)/%.o,$(ASMFILES)) \
+  $(patsubst $(GENDIR)/%.asm,$(GENDIR)/%.o,$(GENFILES))
+ROOMFILES := \
+  $(patsubst $(SRCDIR)/rooms/%.bg,$(DATADIR)/%.room,$(ROOM_BG_FILES))
 
 #=============================================================================#
 # Phony targets:
@@ -119,11 +123,11 @@ $(DATADIR)/%.room: $(SRCDIR)/rooms/%.bg $(BG2ROOM)
 
 .SECONDARY: $(ROOMFILES)
 
-$(GENDIR)/tileset.asm: $(SRCDIR)/tileset.bg $(BG2TSET)
+$(GENDIR)/tilesets/%.asm: $(SRCDIR)/tilesets/%.bg $(BG2TSET) $(AHIFILES)
 	@echo "Generating $@"
 	@mkdir -p $(@D)
 	@mkdir -p $(OUTDIR)/blocks
-	@$(BG2TSET) < $< > $@
+	@$(BG2TSET) $* < $< > $@
 
 .SECONDARY: $(GENFILES)
 
@@ -176,7 +180,7 @@ $(OBJDIR)/rooms/%.o: $(SRCDIR)/rooms/%.asm $(INCFILES) $(DATADIR)/%.room
 $(OBJDIR)/%.o: $(SRCDIR)/%.asm $(INCFILES)
 	$(compile-asm)
 
-$(GENDIR)/%.o: $(GENDIR)/%.asm
+$(GENDIR)/%.o: $(GENDIR)/%.asm $(INCFILES)
 	$(compile-asm)
 
 #=============================================================================#

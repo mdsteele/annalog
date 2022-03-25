@@ -26,22 +26,23 @@
 .INCLUDE "ppu.inc"
 .INCLUDE "room.inc"
 .INCLUDE "terrain.inc"
+.INCLUDE "tileset.inc"
 
-.IMPORT Data_RoomBanks_u8_arr
+.IMPORT DataA_Room_Banks_u8_arr
 .IMPORT FuncA_Avatar_ExploreMove
 .IMPORT FuncA_Objects_DrawAllActors
 .IMPORT FuncA_Objects_DrawAllDevices
 .IMPORT FuncA_Objects_DrawAllMachines
 .IMPORT FuncA_Objects_DrawPlayerAvatar
+.IMPORT FuncA_Room_ExitViaPassage
+.IMPORT FuncA_Room_Load
 .IMPORT FuncA_Terrain_FillNametables
 .IMPORT FuncA_Terrain_TransferTileColumn
 .IMPORT Func_Avatar_PositionAtNearbyDevice
 .IMPORT Func_ClearRestOfOam
 .IMPORT Func_ExecuteAllMachines
-.IMPORT Func_ExitCurrentRoomViaPassage
 .IMPORT Func_FadeIn
 .IMPORT Func_FadeOut
-.IMPORT Func_LoadRoom
 .IMPORT Func_ProcessFrame
 .IMPORT Func_TickAllActors
 .IMPORT Func_TickAllDevices
@@ -55,7 +56,6 @@
 .IMPORT Main_Pause
 .IMPORT Main_Title
 .IMPORT Main_Upgrade_OpenWindow
-.IMPORT Ppu_ChrCave
 .IMPORT Ram_DeviceBlockCol_u8_arr
 .IMPORT Ram_DeviceBlockRow_u8_arr
 .IMPORT Ram_DeviceTarget_u8_arr
@@ -66,6 +66,7 @@
 .IMPORTZP Zp_AvatarPosX_i16
 .IMPORTZP Zp_AvatarPosY_i16
 .IMPORTZP Zp_Current_sRoom
+.IMPORTZP Zp_Current_sTileset
 .IMPORTZP Zp_FrameCounter_u8
 .IMPORTZP Zp_OamOffset_u8
 .IMPORTZP Zp_P1ButtonsPressed_bJoypad
@@ -138,8 +139,9 @@ Zp_NearbyDevice_u8: .res 1
 .EXPORT Main_Explore_EnterFromDevice
 .PROC Main_Explore_EnterFromDevice
     sty Zp_NearbyDevice_u8
-    prgc_bank Data_RoomBanks_u8_arr, x
-    jsr Func_LoadRoom
+    prga_bank #<.bank(DataA_Room_Banks_u8_arr)
+    prgc_bank DataA_Room_Banks_u8_arr, x
+    jsr FuncA_Room_Load
     jsr Func_Avatar_PositionAtNearbyDevice
     .assert * = Main_Explore_FadeIn, error, "fallthrough"
 .ENDPROC
@@ -153,8 +155,7 @@ Zp_NearbyDevice_u8: .res 1
 .PROC Main_Explore_FadeIn
     jsr Func_Window_Disable
     jsr Func_Window_DirectDrawTopBorder
-    ;; TODO: Set the appropriate chr08_bank for the current room.
-    chr08_bank #<.bank(Ppu_ChrCave)
+    chr08_bank <(Zp_Current_sTileset + sTileset::Chr08Bank_u8)
     jsr Func_UpdateAndMarkMinimap
 _InitializeScrolling:
     jsr Func_SetScrollGoalFromAvatar
@@ -294,10 +295,10 @@ _CalculatePassage:
 _LoadNextRoom:
     pha  ; bPassage value
     tax  ; param: bPassage value
-    jsr Func_ExitCurrentRoomViaPassage  ; returns A
+    jsr_prga FuncA_Room_ExitViaPassage  ; returns A
     tax  ; param: eRoom value
-    prgc_bank Data_RoomBanks_u8_arr, x
-    jsr Func_LoadRoom
+    prgc_bank DataA_Room_Banks_u8_arr, x
+    jsr FuncA_Room_Load
     pla  ; bPassage value
 _RepositionAvatar:
     ;; Extract ePassage value from bPassage value.

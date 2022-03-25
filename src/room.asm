@@ -22,6 +22,7 @@
 .INCLUDE "macros.inc"
 .INCLUDE "platform.inc"
 .INCLUDE "room.inc"
+.INCLUDE "tileset.inc"
 
 .IMPORT DataC_Prison_Cell_sRoom
 .IMPORT DataC_Prison_Escape_sRoom
@@ -50,15 +51,11 @@
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORT Ram_PlatformTop_i16_1_arr
 .IMPORTZP Zp_AvatarPosY_i16
-.IMPORTZP Zp_Current_sRoom
 .IMPORTZP Zp_Tmp1_byte
 .IMPORTZP Zp_Tmp2_byte
 .IMPORTZP Zp_Tmp_ptr
 
 ;;;=========================================================================;;;
-
-;;; TODO: Move these data tables into PRGA somewhere.
-.SEGMENT "PRG8"
 
 .LINECONT +
 .DEFINE RoomPtrs \
@@ -68,20 +65,36 @@
     DataC_Prison_Tall_sRoom
 .LINECONT -
 
+;;;=========================================================================;;;
+
+.ZEROPAGE
+
+;;; The currently-loaded room.
+.EXPORTZP Zp_Current_sRoom
+Zp_Current_sRoom: .tag sRoom
+
+;;; The currently-loaded tileset.
+.EXPORTZP Zp_Current_sTileset
+Zp_Current_sTileset: .tag sTileset
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Room"
+
 ;;; Pointers to sRoom structs for all rooms in the game, indexed by eRoom
 ;;; values.
-.PROC Data_Rooms_sRoom_ptr_0_arr
+.PROC DataA_Room_Table_sRoom_ptr_0_arr
 :   .lobytes RoomPtrs
     .assert * - :- = kNumRooms, error
 .ENDPROC
-.PROC Data_Rooms_sRoom_ptr_1_arr
+.PROC DataA_Room_Table_sRoom_ptr_1_arr
 :   .hibytes RoomPtrs
     .assert * - :- = kNumRooms, error
 .ENDPROC
 
 ;;; PRGC bank numbers for all rooms in the game, indexed by eRoom values.
-.EXPORT Data_RoomBanks_u8_arr
-.PROC Data_RoomBanks_u8_arr
+.EXPORT DataA_Room_Banks_u8_arr
+.PROC DataA_Room_Banks_u8_arr
     .repeat kNumRooms, index
     .byte <.bank(.mid(index * 2, 1, {RoomPtrs}))
     .endrepeat
@@ -90,12 +103,12 @@
 ;;; Loads and initializes data for the specified room.
 ;;; @prereq The correct PRGC bank has been set for the room to be loaded.
 ;;; @param X The eRoom value for the room to load.
-.EXPORT Func_LoadRoom
-.PROC Func_LoadRoom
+.EXPORT FuncA_Room_Load
+.PROC FuncA_Room_Load
     ;; Get a pointer to the sRoom struct and store it in Zp_Tmp_ptr.
-    lda Data_Rooms_sRoom_ptr_0_arr, x
+    lda DataA_Room_Table_sRoom_ptr_0_arr, x
     sta Zp_Tmp_ptr + 0
-    lda Data_Rooms_sRoom_ptr_1_arr, x
+    lda DataA_Room_Table_sRoom_ptr_1_arr, x
     sta Zp_Tmp_ptr + 1
 _CopyRoomStruct:
     ;; Copy the sRoom struct into Zp_Current_sRoom.
@@ -104,6 +117,22 @@ _CopyRoomStruct:
     @loop:
     lda (Zp_Tmp_ptr), y
     sta Zp_Current_sRoom, y
+    dey
+    bpl @loop
+_CopyTilesetStruct:
+    ;; Copy the current room's Terrain_sTileset_ptr into Zp_Tmp_ptr.
+    ldy #sRoomExt::Terrain_sTileset_ptr
+    lda (Zp_Current_sRoom + sRoom::Ext_sRoomExt_ptr), y
+    sta Zp_Tmp_ptr + 0
+    iny
+    lda (Zp_Current_sRoom + sRoom::Ext_sRoomExt_ptr), y
+    sta Zp_Tmp_ptr + 1
+    ;; Copy the sTileset struct into Zp_Current_sTileset.
+    ldy #.sizeof(sTileset) - 1
+    .assert .sizeof(sTileset) <= $80, error
+    @loop:
+    lda (Zp_Tmp_ptr), y
+    sta Zp_Current_sTileset, y
     dey
     bpl @loop
 _LoadPlatforms:
@@ -263,12 +292,12 @@ _LoadDevices:
     cpx #kMaxDevices
     blt @clearLoop
 _CallInit:
-    jsr Func_InitCurrentRoom
+    jsr FuncA_Room_InitCurrentRoom
     jmp Func_InitAllMachines
 .ENDPROC
 
 ;;; Calls the current room's Init_func_ptr function.
-.PROC Func_InitCurrentRoom
+.PROC FuncA_Room_InitCurrentRoom
     ldy #sRoomExt::Init_func_ptr
     lda (Zp_Current_sRoom + sRoom::Ext_sRoomExt_ptr), y
     sta Zp_Tmp_ptr + 0
@@ -283,8 +312,8 @@ _CallInit:
 ;;; number.
 ;;; @param X The bPassage value for the passage the player went through.
 ;;; @return A The eRoom value for the room that should be loaded next.
-.EXPORT Func_ExitCurrentRoomViaPassage
-.PROC Func_ExitCurrentRoomViaPassage
+.EXPORT FuncA_Room_ExitViaPassage
+.PROC FuncA_Room_ExitViaPassage
     stx Zp_Tmp1_byte  ; bPassage value
     ;; Copy the current room's Passages_sPassage_arr_ptr into Zp_Tmp_ptr.
     ldy #sRoomExt::Passages_sPassage_arr_ptr
