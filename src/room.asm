@@ -43,13 +43,13 @@
 .IMPORT Ram_DeviceType_eDevice_arr
 .IMPORT Ram_PlatformBottom_i16_0_arr
 .IMPORT Ram_PlatformBottom_i16_1_arr
-.IMPORT Ram_PlatformExists_bool_arr
 .IMPORT Ram_PlatformLeft_i16_0_arr
 .IMPORT Ram_PlatformLeft_i16_1_arr
 .IMPORT Ram_PlatformRight_i16_0_arr
 .IMPORT Ram_PlatformRight_i16_1_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORT Ram_PlatformTop_i16_1_arr
+.IMPORT Ram_PlatformType_ePlatform_arr
 .IMPORTZP Zp_AvatarPosY_i16
 .IMPORTZP Zp_Tmp1_byte
 .IMPORTZP Zp_Tmp2_byte
@@ -147,16 +147,22 @@ _LoadPlatforms:
     ldx #0  ; platform index
     ldy #0  ; byte offset into Platforms_sPlatform_arr_ptr
     @copyLoop:
-    .assert sPlatform::WidthPx_u8 = 0, error
+    .assert sPlatform::Type_ePlatform = 0, error
+    lda (Zp_Tmp_ptr), y
+    .assert ePlatform::None = 0, error
+    beq @copyDone
+    sta Ram_PlatformType_ePlatform_arr, x
+    iny
+    .assert sPlatform::WidthPx_u8 = 1, error
     lda (Zp_Tmp_ptr), y
     beq @copyDone
     sta Zp_Tmp1_byte  ; platform width
     iny
-    .assert sPlatform::HeightPx_u8 = 1, error
+    .assert sPlatform::HeightPx_u8 = 2, error
     lda (Zp_Tmp_ptr), y
     sta Zp_Tmp2_byte  ; platform height
     iny
-    .assert sPlatform::Left_i16 = 2, error
+    .assert sPlatform::Left_i16 = 3, error
     lda (Zp_Tmp_ptr), y
     sta Ram_PlatformLeft_i16_0_arr, x
     add Zp_Tmp1_byte  ; platform width
@@ -167,7 +173,7 @@ _LoadPlatforms:
     adc #0
     sta Ram_PlatformRight_i16_1_arr, x
     iny
-    .assert sPlatform::Top_i16 = 4, error
+    .assert sPlatform::Top_i16 = 5, error
     lda (Zp_Tmp_ptr), y
     sta Ram_PlatformTop_i16_0_arr, x
     add Zp_Tmp2_byte  ; platform height
@@ -178,14 +184,12 @@ _LoadPlatforms:
     adc #0
     sta Ram_PlatformBottom_i16_1_arr, x
     iny
-    .assert .sizeof(sPlatform) = 6, error
-    lda #$ff
-    sta Ram_PlatformExists_bool_arr, x
+    .assert .sizeof(sPlatform) = 7, error
     inx
     bne @copyLoop  ; unconditional
     ;; Clear remaining slots in platform RAM.
     @clearLoop:
-    sta Ram_PlatformExists_bool_arr, x  ; A is already zero
+    sta Ram_PlatformType_ePlatform_arr, x  ; A is already ePlatform::None
     inx
     @copyDone:
     cpx #kMaxPlatforms

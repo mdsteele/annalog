@@ -115,10 +115,10 @@ Zp_AvatarMode_eAvatar: .res 1
 ;;; (after landing from a jump).
 Zp_AvatarRecover_u8: .res 1
 
-;;; Temporary variable that records whether the player avatar has just collided
-;;; with a wall/platform.
-.EXPORTZP Zp_AvatarCollided_bool
-Zp_AvatarCollided_bool: .res 1
+;;; Temporary variable that records what kind of wall/platform the player
+;;; avatar has just collided with (if any).
+.EXPORTZP Zp_AvatarCollided_ePlatform
+Zp_AvatarCollided_ePlatform: .res 1
 
 ;;; If zero, the player avatar is at full health; otherwise, the avatar has
 ;;; been harmed, and will be back to full health in this many frames.
@@ -309,7 +309,8 @@ _MarkMinimap:
     @doneJoypad:
 .PROC _ApplyVelX
     ldy #0
-    sty Zp_AvatarCollided_bool
+    .assert ePlatform::None = 0, error
+    sty Zp_AvatarCollided_ePlatform
     lda Zp_AvatarVelX_i16 + 1
     bpl @nonnegative
     dey  ; now y is $ff
@@ -418,8 +419,8 @@ _MovingRight:
     ;; We've hit the right wall, so set horizontal position to just to the left
     ;; of the wall we hit.
     @solid:
-    lda #$ff
-    sta Zp_AvatarCollided_bool
+    lda #ePlatform::Solid
+    sta Zp_AvatarCollided_ePlatform
     lda #0
     .repeat 3
     asl Zp_Tmp3_byte
@@ -459,8 +460,8 @@ _MovingLeft:
     ;; We've hit the left wall, so set horizontal position to just to the right
     ;; of the wall we hit.
     @solid:
-    lda #$ff
-    sta Zp_AvatarCollided_bool
+    lda #ePlatform::Solid
+    sta Zp_AvatarCollided_ePlatform
     lda #0
     .repeat 3
     asl Zp_Tmp3_byte
@@ -479,16 +480,22 @@ _Done:
     jsr FuncA_Avatar_CollideWithAllPlatformsHorz
 .PROC _HandleHorzCollision
     ;; If there was a horizontal collision, set horizontal velocity to zero.
-    bit Zp_AvatarCollided_bool
-    bpl @noCollision
-    lda #0
-    sta Zp_AvatarVelX_i16 + 0
-    sta Zp_AvatarVelX_i16 + 1
-    @noCollision:
+    lda Zp_AvatarCollided_ePlatform
+    .assert ePlatform::None = 0, error
+    beq @doneCollision
+    ldx #0
+    stx Zp_AvatarVelX_i16 + 0
+    stx Zp_AvatarVelX_i16 + 1
+    ;; Check for special platform effects.
+    cmp #ePlatform::Harm
+    bne @doneCollision
+    jsr Func_HarmAvatar
+    @doneCollision:
 .ENDPROC
 .PROC _ApplyVelY
     ldy #0
-    sty Zp_AvatarCollided_bool
+    .assert ePlatform::None = 0, error
+    sty Zp_AvatarCollided_ePlatform
     lda Zp_AvatarVelY_i16 + 1
     bpl @nonnegative
     dey  ; now y is $ff
@@ -569,8 +576,8 @@ _MovingUp:
     txa
     adc #0
     sta Zp_AvatarPosY_i16 + 1
-    lda #$ff
-    sta Zp_AvatarCollided_bool
+    lda #ePlatform::Solid
+    sta Zp_AvatarCollided_ePlatform
     @done:
     jmp _Done
 _MovingDown:
@@ -624,15 +631,16 @@ _MovingDown:
     txa
     sbc #0
     sta Zp_AvatarPosY_i16 + 1
-    lda #$ff
-    sta Zp_AvatarCollided_bool
+    lda #ePlatform::Solid
+    sta Zp_AvatarCollided_ePlatform
 _Done:
 .ENDPROC
     jsr FuncA_Avatar_CollideWithAllPlatformsVert
 .PROC _HandleVertCollision
     ;; Check if there was a vertical collision (with terrain or platforms).
-    bit Zp_AvatarCollided_bool
-    bpl @noCollision
+    lda Zp_AvatarCollided_ePlatform
+    .assert ePlatform::None = 0, error
+    beq @doneCollision
     ;; If the avatar was moving down, it needs to land.
     lda Zp_AvatarVelY_i16 + 1
     bmi @doneLanding
@@ -690,7 +698,12 @@ _Done:
     lda #0
     sta Zp_AvatarVelY_i16 + 0
     sta Zp_AvatarVelY_i16 + 1
-    @noCollision:
+    ;; Check for special platform effects.
+    lda Zp_AvatarCollided_ePlatform
+    cmp #ePlatform::Harm
+    bne @doneCollision
+    jsr Func_HarmAvatar
+    @doneCollision:
 .ENDPROC
     jsr Func_UpdateAndMarkMinimap
     jsr FuncA_Avatar_ApplyGravity

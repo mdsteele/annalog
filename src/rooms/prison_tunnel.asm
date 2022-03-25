@@ -20,6 +20,7 @@
 .INCLUDE "../actor.inc"
 .INCLUDE "../device.inc"
 .INCLUDE "../macros.inc"
+.INCLUDE "../platform.inc"
 .INCLUDE "../room.inc"
 
 .IMPORT DataA_Room_Prison_sTileset
@@ -61,7 +62,7 @@ _TerrainData:
 :   .incbin "out/data/prison_tunnel.room"
     .assert * - :- = 18 * 16, error
 _Platforms_sPlatform_arr:
-    .byte 0
+    .byte ePlatform::None
 _Actors_sActor_arr:
     D_STRUCT sActor
     d_byte Type_eActor, eActor::Crawler

@@ -25,6 +25,7 @@
 .INCLUDE "../machine.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
+.INCLUDE "../platform.inc"
 .INCLUDE "../program.inc"
 .INCLUDE "../room.inc"
 
@@ -76,7 +77,7 @@ _Ext_sRoomExt:
     d_addr Init_func_ptr, _Init
     D_END
 _Platforms_sPlatform_arr:
-    .byte 0
+    .byte ePlatform::None
 _Actors_sActor_arr:
     D_STRUCT sActor
     d_byte Type_eActor, eActor::Crawler

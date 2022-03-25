@@ -22,16 +22,26 @@ kMaxPlatforms = 8
 
 ;;;=========================================================================;;;
 
+;;; Types of platform in a room.
+.ENUM ePlatform
+    None
+    Solid  ; safe to stand on
+    Harm   ; harms the player avatar on contact
+.ENDENUM
+
+;;;=========================================================================;;;
+
 ;;; Describes a platform's initial size and position.
 .STRUCT sPlatform
+    Type_ePlatform .byte
     ;; The width of the platform, in pixels.  Must be nonzero.
-    WidthPx_u8  .byte
+    WidthPx_u8     .byte
     ;; The height of the platform, in pixels.  Must be nonzero.
-    HeightPx_u8 .byte
+    HeightPx_u8    .byte
     ;; The room pixel X-position of the left edge of the platform.
-    Left_i16    .word
+    Left_i16       .word
     ;; The room pixel Y-position of the top edge of the platform.
-    Top_i16     .word
+    Top_i16        .word
 .ENDSTRUCT
 
 ;;;=========================================================================;;;

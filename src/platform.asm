@@ -22,7 +22,7 @@
 .INCLUDE "platform.inc"
 .INCLUDE "ppu.inc"
 
-.IMPORTZP Zp_AvatarCollided_bool
+.IMPORTZP Zp_AvatarCollided_ePlatform
 .IMPORTZP Zp_AvatarPosX_i16
 .IMPORTZP Zp_AvatarPosY_i16
 .IMPORTZP Zp_AvatarVelX_i16
@@ -47,10 +47,10 @@ Zp_AvatarPlatformIndex_u8: .res 1
 
 .SEGMENT "RAM_Platform"
 
-;;; For each platform, true ($ff) if the platform exists, false ($00)
-;;; otherwise.
-.EXPORT Ram_PlatformExists_bool_arr
-Ram_PlatformExists_bool_arr: .res kMaxPlatforms
+;;; The type for each platform in the room (or ePlatform::None for an empty
+;;; slot).
+.EXPORT Ram_PlatformType_ePlatform_arr
+Ram_PlatformType_ePlatform_arr: .res kMaxPlatforms
 
 ;;; The room pixel Y-position of the top edge of each platform.
 .EXPORT Ram_PlatformTop_i16_0_arr, Ram_PlatformTop_i16_1_arr
@@ -75,21 +75,6 @@ Ram_PlatformRight_i16_1_arr: .res kMaxPlatforms
 ;;;=========================================================================;;;
 
 .SEGMENT "PRG8"
-
-;;; Removes all platforms.
-.EXPORT Func_ClearPlatforms
-.PROC Func_ClearPlatforms
-    lda #$ff
-    sta Zp_AvatarPlatformIndex_u8
-    lda #0
-    ldx #kMaxPlatforms - 1
-    @loop:
-    sta Ram_PlatformExists_bool_arr, x
-    dex
-    .assert kMaxPlatforms <= $80, error
-    bpl @loop
-    rts
-.ENDPROC
 
 ;;; Moves the specified platform right or left by the specified delta.  If the
 ;;; player avatar is standing on the platform, it will be moved along with it.
@@ -182,14 +167,15 @@ Ram_PlatformRight_i16_1_arr: .res kMaxPlatforms
 .SEGMENT "PRGA_Avatar"
 
 ;;; Checks for horizontal collisions between the player avatar and all
-;;; platforms.  If any collision occurs, updates the avatar's Y-position and
-;;; sets Zp_AvatarCollided_bool to true.
+;;; platforms.  If any collision occurs, updates the avatar's X-position and
+;;; sets Zp_AvatarCollided_ePlatform to the hit platform's type.
 .EXPORT FuncA_Avatar_CollideWithAllPlatformsHorz
 .PROC FuncA_Avatar_CollideWithAllPlatformsHorz
     ldx #kMaxPlatforms - 1
     @loop:
-    lda Ram_PlatformExists_bool_arr, x
-    bpl @continue
+    lda Ram_PlatformType_ePlatform_arr, x
+    .assert ePlatform::None = 0, error
+    beq @continue
     jsr FuncA_Avatar_CollideWithOnePlatformHorz  ; preserves X
     @continue:
     dex
@@ -200,7 +186,7 @@ Ram_PlatformRight_i16_1_arr: .res kMaxPlatforms
 
 ;;; Checks for horizontal collisions between the player avatar and the
 ;;; specified platform.  If a collision occurs, updates the avatar's X-position
-;;; and sets Zp_AvatarCollided_bool to true.
+;;; and sets Zp_AvatarCollided_ePlatform to the platform's type.
 ;;; @param X The platform index.
 ;;; @preserve X
 .PROC FuncA_Avatar_CollideWithOnePlatformHorz
@@ -299,23 +285,25 @@ _MovingLeft:
     lda Zp_Tmp2_byte  ; platform right edge + bbox (hi)
     sta Zp_AvatarPosX_i16 + 1
 _Collided:
-    lda #$ff
-    sta Zp_AvatarCollided_bool
+    lda Ram_PlatformType_ePlatform_arr, x
+    sta Zp_AvatarCollided_ePlatform
 _Return:
     rts
 .ENDPROC
 
 ;;; Checks for vertical collisions between the player avatar and all platforms.
 ;;; If any collision occurs, updates the avatar's Y-position and sets
-;;; Zp_AvatarCollided_bool to true.  Also updates Zp_AvatarPlatformIndex_u8.
+;;; Zp_AvatarCollided_ePlatform to the hit platform's type.  Also updates
+;;; Zp_AvatarPlatformIndex_u8.
 .EXPORT FuncA_Avatar_CollideWithAllPlatformsVert
 .PROC FuncA_Avatar_CollideWithAllPlatformsVert
     lda #$ff
     sta Zp_AvatarPlatformIndex_u8
     ldx #kMaxPlatforms - 1
     @loop:
-    lda Ram_PlatformExists_bool_arr, x
-    bpl @continue
+    lda Ram_PlatformType_ePlatform_arr, x
+    .assert ePlatform::None = 0, error
+    beq @continue
     jsr FuncA_Avatar_CollideWithOnePlatformVert  ; preserves X
     @continue:
     dex
@@ -326,7 +314,7 @@ _Return:
 
 ;;; Checks for vertical collisions between the player avatar and the specified
 ;;; platform.  If a collision occurs, updates the avatar's Y-position and sets
-;;; Zp_AvatarCollided_bool to true.
+;;; Zp_AvatarCollided_ePlatform to the platform's type.
 ;;; @param X The platform index.
 ;;; @preserve X
 .PROC FuncA_Avatar_CollideWithOnePlatformVert
@@ -427,8 +415,8 @@ _MovingDown:
     ;; Record that the avatar is now riding this platform.
     stx Zp_AvatarPlatformIndex_u8
 _Collided:
-    lda #$ff
-    sta Zp_AvatarCollided_bool
+    lda Ram_PlatformType_ePlatform_arr, x
+    sta Zp_AvatarCollided_ePlatform
 _Return:
     rts
 .ENDPROC
