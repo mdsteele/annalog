@@ -118,6 +118,19 @@
 
 ;;;=========================================================================;;;
 
+.SEGMENT "CHR_Town"
+
+.EXPORT Ppu_ChrTown
+.PROC Ppu_ChrTown
+:   .incbin "out/data/tiles/forest.chr"
+    .incbin "out/data/tiles/house.chr"
+    .res $0d * kSizeofChr
+    .incbin "out/data/tiles/device.chr"
+    .assert * - :- = kSizeofChr * $40, error
+.ENDPROC
+
+;;;=========================================================================;;;
+
 .SEGMENT "CHR_Upgrade"
 
 .EXPORT Ppu_ChrUpgrade

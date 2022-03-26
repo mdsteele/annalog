@@ -38,10 +38,11 @@ kMaxRoomWidthBlocks = kMaxRoomWidthTiles / 2
     PrisonEscape
     PrisonTunnel
     TallRoom
+    TownOutdoors
     NUM_VALUES
 .ENDENUM
 
-.DEFINE kNumRooms 4
+.DEFINE kNumRooms 5
 .ASSERT kNumRooms = eRoom::NUM_VALUES, error
 
 ;;;=========================================================================;;;

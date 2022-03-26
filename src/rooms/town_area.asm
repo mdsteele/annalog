@@ -17,44 +17,24 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
-.INCLUDE "macros.inc"
-.INCLUDE "tileset.inc"
-
-.IMPORT DataA_Terrain_PrisonLowerLeft_u8_arr
-.IMPORT DataA_Terrain_PrisonLowerRight_u8_arr
-.IMPORT DataA_Terrain_PrisonUpperLeft_u8_arr
-.IMPORT DataA_Terrain_PrisonUpperRight_u8_arr
-.IMPORT DataA_Terrain_TownLowerLeft_u8_arr
-.IMPORT DataA_Terrain_TownLowerRight_u8_arr
-.IMPORT DataA_Terrain_TownUpperLeft_u8_arr
-.IMPORT DataA_Terrain_TownUpperRight_u8_arr
-.IMPORT Ppu_ChrCave
-.IMPORT Ppu_ChrTown
+.INCLUDE "../charmap.inc"
 
 ;;;=========================================================================;;;
 
-.SEGMENT "PRGA_Room"
+.SEGMENT "PRGC_Town"
 
-.EXPORT DataA_Room_Prison_sTileset
-.PROC DataA_Room_Prison_sTileset
-    D_STRUCT sTileset
-    d_addr UpperLeft_u8_arr_ptr,  DataA_Terrain_PrisonUpperLeft_u8_arr
-    d_addr LowerLeft_u8_arr_ptr,  DataA_Terrain_PrisonLowerLeft_u8_arr
-    d_addr UpperRight_u8_arr_ptr, DataA_Terrain_PrisonUpperRight_u8_arr
-    d_addr LowerRight_u8_arr_ptr, DataA_Terrain_PrisonLowerRight_u8_arr
-    d_byte Chr08Bank_u8, <.bank(Ppu_ChrCave)
-    D_END
+.EXPORT DataC_Town_AreaName_u8_arr
+.PROC DataC_Town_AreaName_u8_arr
+    .byte "Bartik Town", $ff
 .ENDPROC
 
-.EXPORT DataA_Room_Town_sTileset
-.PROC DataA_Room_Town_sTileset
-    D_STRUCT sTileset
-    d_addr UpperLeft_u8_arr_ptr,  DataA_Terrain_TownUpperLeft_u8_arr
-    d_addr LowerLeft_u8_arr_ptr,  DataA_Terrain_TownLowerLeft_u8_arr
-    d_addr UpperRight_u8_arr_ptr, DataA_Terrain_TownUpperRight_u8_arr
-    d_addr LowerRight_u8_arr_ptr, DataA_Terrain_TownLowerRight_u8_arr
-    d_byte Chr08Bank_u8, <.bank(Ppu_ChrTown)
-    D_END
+.EXPORT DataC_Town_AreaCells_u8_arr2_arr
+.PROC DataC_Town_AreaCells_u8_arr2_arr
+    .byte 0, 11
+    .byte 0, 12
+    .byte 0, 13
+    .byte 0, 14
+    .byte $ff
 .ENDPROC
 
 ;;;=========================================================================;;;

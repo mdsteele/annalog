@@ -24,6 +24,7 @@
 .INCLUDE "mmc3.inc"
 .INCLUDE "ppu.inc"
 .INCLUDE "program.inc"
+.INCLUDE "room.inc"
 
 .IMPORT FuncA_Upgrade_ComputeMaxInstructions
 .IMPORT Func_ClearRestOfOam
@@ -132,7 +133,7 @@ _StartGame:
     jsr Func_FadeOut
     jsr Func_ResetSramForNewGame
     jsr_prga FuncA_Upgrade_ComputeMaxInstructions
-    ldx #0  ; param: room number
+    ldx #eRoom::TownOutdoors  ; param: room number
     ldy #0  ; param: device index
     jmp Main_Explore_EnterFromDevice
 .ENDPROC
