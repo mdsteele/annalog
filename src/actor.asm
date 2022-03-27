@@ -96,16 +96,28 @@ Ram_ActorFlags_bObj_arr: .res kMaxActors
 ;;; How far an actor's bounding box extends in each direction from the actor's
 ;;; position, indexed by eActor value.
 .PROC Data_ActorBoundingBoxUp_u8_arr
-    .byte 0, 0
+    D_ENUM eActor
+    d_byte None,    0
+    d_byte Crawler, 0
+    D_END
 .ENDPROC
 .PROC Data_ActorBoundingBoxDown_u8_arr
-    .byte 0, 8
+    D_ENUM eActor
+    d_byte None,    0
+    d_byte Crawler, 8
+    D_END
 .ENDPROC
 .PROC Data_ActorBoundingBoxLeft_u8_arr
-    .byte 0, 7
+    D_ENUM eActor
+    d_byte None,    0
+    d_byte Crawler, 7
+    D_END
 .ENDPROC
 .PROC Data_ActorBoundingBoxRight_u8_arr
-    .byte 0, 7
+    D_ENUM eActor
+    d_byte None,    0
+    d_byte Crawler, 7
+    D_END
 .ENDPROC
 
 ;;; Performs per-frame updates for each actor in the room.

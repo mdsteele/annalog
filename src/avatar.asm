@@ -18,6 +18,7 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "avatar.inc"
+.INCLUDE "device.inc"
 .INCLUDE "joypad.inc"
 .INCLUDE "macros.inc"
 .INCLUDE "mmc3.inc"
@@ -34,6 +35,7 @@
 .IMPORT Func_Terrain_GetColumnPtrForTileIndex
 .IMPORT Ram_DeviceBlockCol_u8_arr
 .IMPORT Ram_DeviceBlockRow_u8_arr
+.IMPORT Ram_DeviceType_eDevice_arr
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORT Sram_Minimap_u16_arr
 .IMPORTZP Zp_Current_sRoom
@@ -145,7 +147,8 @@ Zp_AvatarHarmTimer_u8: .res 1
     asl a      ; only need to ROL (Zp_AvatarPosX_i16 + 1) after the second ASL.
     rol Zp_AvatarPosX_i16 + 1
     .endrepeat
-    ora #$06
+    ldy Ram_DeviceType_eDevice_arr, x
+    ora _DeviceOffset_u8_arr, y
     sta Zp_AvatarPosX_i16 + 0
     lda Ram_DeviceBlockRow_u8_arr, x
     .assert kTallRoomHeightBlocks <= $20, error
@@ -169,6 +172,15 @@ Zp_AvatarHarmTimer_u8: .res 1
     lda #kAvatarPalette
     sta Zp_AvatarFlags_bObj
     rts
+_DeviceOffset_u8_arr:
+    D_ENUM eDevice
+    d_byte None,    $08
+    d_byte Console, $06
+    d_byte Door,    $08
+    d_byte Lever,   $06
+    d_byte Sign,    $06
+    d_byte Upgrade, $08
+    D_END
 .ENDPROC
 
 ;;; Deals damage to the player avatar, stunning them.

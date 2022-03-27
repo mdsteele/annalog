@@ -351,7 +351,9 @@ _SetRowsForMenuRightColumn:
     stx Ram_MenuRows_u8_arr + eOpcode::End
     rts
 _Columns_u8_arr:
+    D_ENUM eOpcode
     .byte 0, 0, 0, 5, 5, 5, 0, 0, 5, 5, 0, 0, 0, 5, 5, 5
+    D_END
 .ENDPROC
 
 ;;; +--------+
@@ -920,12 +922,14 @@ _SetItem:
     sta Zp_Tmp_ptr + 1
     jmp (Zp_Tmp_ptr)
 _JumpTable_ptr_arr:
-    .addr FuncA_Console_SetUpOpcodeMenu
-    .addr FuncA_Console_SetUpLValueMenu
-    .addr FuncA_Console_SetUpRValueMenu
-    .addr FuncA_Console_SetUpAddressMenu
-    .addr FuncA_Console_SetUpCompareMenu
-    .addr FuncA_Console_SetUpDirectionMenu
+    D_ENUM eField, 2
+    d_addr Opcode,    FuncA_Console_SetUpOpcodeMenu
+    d_addr LValue,    FuncA_Console_SetUpLValueMenu
+    d_addr RValue,    FuncA_Console_SetUpRValueMenu
+    d_addr Address,   FuncA_Console_SetUpAddressMenu
+    d_addr Compare,   FuncA_Console_SetUpCompareMenu
+    d_addr Direction, FuncA_Console_SetUpDirectionMenu
+    D_END
 .ENDPROC
 
 ;;; Transfers the specified menu row (0-7) to the PPU.

@@ -26,6 +26,7 @@ kMaxActors = 8
 .ENUM eActor
     None
     Crawler
+    NUM_VALUES
 .ENDENUM
 
 ;;;=========================================================================;;;

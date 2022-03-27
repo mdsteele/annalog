@@ -72,6 +72,7 @@
 .IMPORTZP Zp_P1ButtonsPressed_bJoypad
 .IMPORTZP Zp_PpuScrollX_u8
 .IMPORTZP Zp_PpuScrollY_u8
+.IMPORTZP Zp_Previous_eRoom
 .IMPORTZP Zp_Render_bPpuMask
 .IMPORTZP Zp_Tmp1_byte
 .IMPORTZP Zp_Tmp2_byte
@@ -217,6 +218,8 @@ _CheckForActivateDevice:
     lda Ram_DeviceType_eDevice_arr, x
     cmp #eDevice::Console
     beq @console
+    cmp #eDevice::Door
+    beq @door
     cmp #eDevice::Lever
     beq @lever
     cmp #eDevice::Sign
@@ -233,6 +236,8 @@ _CheckForActivateDevice:
     lda Ram_DeviceTarget_u8_arr, x
     tax  ; param: machine index
     jmp Main_Console_OpenWindow
+    @door:
+    jmp Main_Explore_GoThroughDoor
     @sign:
     lda #eAvatar::Reading
     sta Zp_AvatarMode_eAvatar
@@ -323,6 +328,46 @@ _RepositionAvatar:
     sta Zp_AvatarPosX_i16 + 1
     @passageDone:
 _EnterNextRoom:
+    jmp Main_Explore_FadeIn
+.ENDPROC
+
+;;; Mode for leaving the current room through a door device and entering the
+;;; next room.
+;;; @prereq Rendering is enabled.
+;;; @prereq Explore mode is already initialized.
+;;; @prereq Zp_NearbyDevice_u8 holds the index of a door device.
+.PROC Main_Explore_GoThroughDoor
+    lda #eAvatar::Reading
+    sta Zp_AvatarMode_eAvatar
+_FadeOut:
+    jsr_prga FuncA_Objects_DrawObjectsForRoom
+    jsr Func_ClearRestOfOam
+    jsr Func_FadeOut
+_LoadNextRoom:
+    prga_bank #<.bank(DataA_Room_Banks_u8_arr)
+    ldy Zp_NearbyDevice_u8
+    ldx Ram_DeviceTarget_u8_arr, y  ; param: eRoom value
+    prgc_bank DataA_Room_Banks_u8_arr, x
+    jsr FuncA_Room_Load
+_RepositionAvatar:
+    ;; Find the corresponding door to enter from in the new room.
+    ldx #kMaxDevices - 1
+    @loop:
+    lda Ram_DeviceType_eDevice_arr, x
+    cmp #eDevice::Door
+    bne @continue
+    lda Ram_DeviceTarget_u8_arr, x
+    cmp Zp_Previous_eRoom
+    beq @break
+    @continue:
+    dex
+    .assert kMaxDevices <= $80, error
+    bpl @loop
+    inx
+    @break:
+    stx Zp_NearbyDevice_u8
+    jsr Func_Avatar_PositionAtNearbyDevice
+_FadeIn:
     jmp Main_Explore_FadeIn
 .ENDPROC
 

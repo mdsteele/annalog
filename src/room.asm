@@ -26,8 +26,8 @@
 
 .IMPORT DataC_Prison_Cell_sRoom
 .IMPORT DataC_Prison_Escape_sRoom
-.IMPORT DataC_Prison_Tall_sRoom
 .IMPORT DataC_Prison_Tunnel_sRoom
+.IMPORT DataC_Town_House1_sRoom
 .IMPORT DataC_Town_Outdoors_sRoom
 .IMPORT Func_InitAllMachines
 .IMPORT Ram_ActorFlags_bObj_arr
@@ -63,7 +63,7 @@
     DataC_Prison_Cell_sRoom, \
     DataC_Prison_Escape_sRoom, \
     DataC_Prison_Tunnel_sRoom, \
-    DataC_Prison_Tall_sRoom, \
+    DataC_Town_House1_sRoom, \
     DataC_Town_Outdoors_sRoom
 .LINECONT -
 
@@ -71,7 +71,14 @@
 
 .ZEROPAGE
 
-;;; The currently-loaded room.
+;;; The room number for the previously-loaded room.
+.EXPORTZP Zp_Previous_eRoom
+Zp_Previous_eRoom: .res 1
+
+;;; The room number for the currently-loaded room.
+Zp_Current_eRoom: .res 1
+
+;;; Data for the currently-loaded room.
 .EXPORTZP Zp_Current_sRoom
 Zp_Current_sRoom: .tag sRoom
 
@@ -107,6 +114,9 @@ Zp_Current_sTileset: .tag sTileset
 ;;; @param X The eRoom value for the room to load.
 .EXPORT FuncA_Room_Load
 .PROC FuncA_Room_Load
+    lda Zp_Current_eRoom
+    sta Zp_Previous_eRoom
+    stx Zp_Current_eRoom
     ;; Get a pointer to the sRoom struct and store it in Zp_Tmp_ptr.
     lda DataA_Room_Table_sRoom_ptr_0_arr, x
     sta Zp_Tmp_ptr + 0

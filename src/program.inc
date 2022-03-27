@@ -38,6 +38,7 @@
     Move  = $b  ; dir              Moves machine in the specified direction.
     End   = $e  ; (no args)        Halts the program.
     Nop   = $f  ; (no args)        Does nothing (but still takes a cycle).
+    NUM_VALUES
 .ENDENUM
 
 ;;;=========================================================================;;;
@@ -50,6 +51,7 @@
     Address    ; an instruction number (for GOTO instructions)
     Compare    ; a comparison operator (for IF and TIL instructions)
     Direction  ; a cardinal direction (for MOVE instructions)
+    NUM_VALUES
 .ENDENUM
 
 ;;; Comparison operators that can be used in IF and TIL instructions.

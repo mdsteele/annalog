@@ -194,6 +194,28 @@
 
 ;;;=========================================================================;;;
 
+;;; Begins a list data definition, indexed by enum values.
+;;;
+;;; Example:
+;;;     .PROC Data_FoodMapping_u8_arr
+;;;         D_ENUM eFood
+;;;         d_byte Spam,  kSpamValue
+;;;         d_byte Eggs,  kEggsValue
+;;;         d_byte Bacon, kBaconValue
+;;;         D_END
+;;;     .ENDPROC
+.MACRO D_ENUM enum, mult
+    .define d_type enum
+    .scope
+    .if .paramcount > 1
+d_mult = mult
+    .else
+d_mult = 1
+    .endif
+d_total = enum::NUM_VALUES * d_mult
+d_begin:
+.ENDMACRO
+
 ;;; Begins a struct data definition.
 ;;;
 ;;; Example:
@@ -207,22 +229,24 @@
 ;;;         D_END
 ;;;     .ENDPROC
 .MACRO D_STRUCT struct
-    .define d_struct_name struct
+    .define d_type struct
     .scope
-d_struct_begin:
+d_mult = 1
+d_total = .sizeof(struct)
+d_begin:
 .ENDMACRO
 
-;;; Defines one or more addrs within a D_STRUCT/D_END block.
+;;; Defines one or more addrs within a D_ENUM or D_STRUCT block.
 .MACRO d_addr field, v1
-    .assert * - d_struct_begin = d_struct_name::field, error, "wrong offset"
+    .assert * - d_begin = d_type::field * d_mult, error, "wrong offset"
     .if .paramcount > 1
     .addr v1
     .endif
 .ENDMACRO
 
-;;; Defines one or more bytes within a D_STRUCT/D_END block.
+;;; Defines one or more bytes within a D_ENUM or D_STRUCT block.
 .MACRO d_byte field, v1, v2, v3, v4, v5, v6
-    .assert * - d_struct_begin = d_struct_name::field, error, "wrong offset"
+    .assert * - d_begin = d_type::field * d_mult, error, "wrong offset"
     .if .paramcount > 1
     .byte v1
     .endif
@@ -243,19 +267,19 @@ d_struct_begin:
     .endif
 .ENDMACRO
 
-;;; Defines one or more words within a D_STRUCT/D_END block.
+;;; Defines one or more words within a D_ENUM or D_STRUCT block.
 .MACRO d_word field, v1
-    .assert * - d_struct_begin = d_struct_name::field, error, "wrong offset"
+    .assert * - d_begin = d_type::field * d_mult, error, "wrong offset"
     .if .paramcount > 1
     .word v1
     .endif
 .ENDMACRO
 
-;;; Ends a D_STRUCT data definition.
+;;; Ends a D_ENUM or D_STRUCT data definition.
 .MACRO D_END
-    .assert * - d_struct_begin = .sizeof(d_struct_name), error, "wrong size"
+    .assert * - d_begin = d_total, error, "wrong size"
     .endscope
-    .undefine d_struct_name
+    .undefine d_type
 .ENDMACRO
 
 ;;;=========================================================================;;;

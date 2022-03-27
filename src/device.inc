@@ -37,9 +37,11 @@ kUpgradeDeviceAnimStart = 23
 .ENUM eDevice
     None
     Console
+    Door
     Lever
     Sign
     Upgrade
+    NUM_VALUES
 .ENDENUM
 
 ;;;=========================================================================;;;
@@ -55,6 +57,7 @@ kUpgradeDeviceAnimStart = 23
     ;; The "target" for this device, whose meaning depends on the device type:
     ;;   * For consoles, this is the machine index (i.e. the index into the
     ;;     current room's sRoom::Machines_sMachine_arr_ptr).
+    ;;   * For doors, this is the eRoom value for the destination room.
     ;;   * For levers, this is the byte offset into Ram_MachineState for the
     ;;     lever's state value (0 or 1).
     ;;   * For signs, this is the dialog index (i.e. the index into the current

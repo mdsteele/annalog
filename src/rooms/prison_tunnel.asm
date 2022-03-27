@@ -19,6 +19,8 @@
 
 .INCLUDE "../actor.inc"
 .INCLUDE "../device.inc"
+.INCLUDE "../flag.inc"
+.INCLUDE "../machine.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../platform.inc"
 .INCLUDE "../room.inc"
@@ -26,7 +28,16 @@
 .IMPORT DataA_Room_Prison_sTileset
 .IMPORT DataC_Prison_AreaCells_u8_arr2_arr
 .IMPORT DataC_Prison_AreaName_u8_arr
-.IMPORT Func_Noop
+.IMPORT Ram_DeviceAnim_u8_arr
+.IMPORT Ram_MachineState
+
+;;;=========================================================================;;;
+
+;;; Defines room-specific machine state data for this particular room.
+.STRUCT sState
+    LeverState_u1 .byte
+.ENDSTRUCT
+.ASSERT .sizeof(sState) <= kMachineStateSize, error
 
 ;;;=========================================================================;;;
 
@@ -38,8 +49,8 @@
     d_byte MinScrollX_u8, $10
     d_word MaxScrollX_u16, $10
     d_byte IsTall_bool, $00
-    d_byte MinimapStartRow_u8, 3
-    d_byte MinimapStartCol_u8, 3
+    d_byte MinimapStartRow_u8, 2
+    d_byte MinimapStartCol_u8, 5
     d_byte MinimapWidth_u8, 1
     d_addr TerrainData_ptr, _TerrainData
     d_byte NumMachines_u8, 0
@@ -56,7 +67,7 @@ _Ext_sRoomExt:
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
     d_addr Dialogs_sDialog_ptr_arr_ptr, 0
     d_addr Passages_sPassage_arr_ptr, _Passages_sPassage_arr
-    d_addr Init_func_ptr, Func_Noop
+    d_addr Init_func_ptr, _Init
     D_END
 _TerrainData:
 :   .incbin "out/data/prison_tunnel.room"
@@ -78,18 +89,37 @@ _Actors_sActor_arr:
     D_END
     .byte eActor::None
 _Devices_sDevice_arr:
+    D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::Lever
+    d_byte BlockRow_u8, 8
+    d_byte BlockCol_u8, 9
+    d_byte Target_u8, sState::LeverState_u1
+    D_END
+    D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::Upgrade
+    d_byte BlockRow_u8, 10
+    d_byte BlockCol_u8, 3
+    d_byte Target_u8, eFlag::UpgradeOpcodeTil
+    D_END
     .byte eDevice::None
 _Passages_sPassage_arr:
     D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Western | 0
-    d_word PositionAdjust_i16, $90
-    d_byte Destination_eRoom, eRoom::PrisonEscape
+    d_word PositionAdjust_i16, $10
+    d_byte Destination_eRoom, eRoom::PrisonCell
     D_END
     D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Eastern | 0
-    d_word PositionAdjust_i16, $30
-    d_byte Destination_eRoom, eRoom::TallRoom
+    d_word PositionAdjust_i16, $50
+    d_byte Destination_eRoom, eRoom::PrisonCell
     D_END
+_Init:
+    lda #0
+    sta Ram_MachineState + sState::LeverState_u1
+    ;; Animate the upgrade device.
+    lda #kUpgradeDeviceAnimStart
+    sta Ram_DeviceAnim_u8_arr + 1
+    rts
 .ENDPROC
 
 ;;;=========================================================================;;;

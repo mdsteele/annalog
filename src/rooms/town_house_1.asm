@@ -18,9 +18,7 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "../actor.inc"
-.INCLUDE "../charmap.inc"
 .INCLUDE "../device.inc"
-.INCLUDE "../dialog.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../platform.inc"
 .INCLUDE "../room.inc"
@@ -34,15 +32,15 @@
 
 .SEGMENT "PRGC_Town"
 
-.EXPORT DataC_Town_Outdoors_sRoom
-.PROC DataC_Town_Outdoors_sRoom
+.EXPORT DataC_Town_House1_sRoom
+.PROC DataC_Town_House1_sRoom
     D_STRUCT sRoom
     d_byte MinScrollX_u8, $0
-    d_word MaxScrollX_u16, $100
+    d_word MaxScrollX_u16, $0
     d_byte IsTall_bool, $00
     d_byte MinimapStartRow_u8, 0
     d_byte MinimapStartCol_u8, 11
-    d_byte MinimapWidth_u8, 2
+    d_byte MinimapWidth_u8, 1
     d_addr TerrainData_ptr, _TerrainData
     d_byte NumMachines_u8, 0
     d_addr Machines_sMachine_arr_ptr, 0
@@ -56,44 +54,25 @@ _Ext_sRoomExt:
     d_addr Platforms_sPlatform_arr_ptr, _Platforms_sPlatform_arr
     d_addr Actors_sActor_arr_ptr, _Actors_sActor_arr
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
-    d_addr Dialogs_sDialog_ptr_arr_ptr, _Dialogs_sDialog_ptr_arr
+    d_addr Dialogs_sDialog_ptr_arr_ptr, 0
     d_addr Passages_sPassage_arr_ptr, 0
     d_addr Init_func_ptr, Func_Noop
     D_END
 _TerrainData:
-:   .incbin "out/data/town_outdoors.room"
-    .assert * - :- = 32 * 16, error
+:   .incbin "out/data/town_house_1.room"
+    .assert * - :- = 16 * 16, error
 _Platforms_sPlatform_arr:
     .byte ePlatform::None
 _Actors_sActor_arr:
     .byte eActor::None
 _Devices_sDevice_arr:
     D_STRUCT sDevice
-    d_byte Type_eDevice, eDevice::Sign
-    d_byte BlockRow_u8, 12
-    d_byte BlockCol_u8, 19
-    d_byte Target_u8, 0
-    D_END
-    D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Door
     d_byte BlockRow_u8, 12
-    d_byte BlockCol_u8, 4
-    d_byte Target_u8, eRoom::TownHouse1
+    d_byte BlockCol_u8, 6
+    d_byte Target_u8, eRoom::TownOutdoors
     D_END
     .byte eDevice::None
-_Dialogs_sDialog_ptr_arr:
-    .addr _Dialog0_sDialog
-_Dialog0_sDialog:
-    .word ePortrait::Sign
-    .byte "Lorem ipsum dolor sit$"
-    .byte "amet, consectetur$"
-    .byte "adipiscing elit, sed$"
-    .byte "do eiusmod tempor.#"
-    .word ePortrait::Sign
-    .byte "Ut enim ad minim$"
-    .byte "veniam, quis nostrud$"
-    .byte "exercitation.#"
-    .byte 0
 .ENDPROC
 
 ;;;=========================================================================;;;

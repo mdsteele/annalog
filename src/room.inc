@@ -37,7 +37,7 @@ kMaxRoomWidthBlocks = kMaxRoomWidthTiles / 2
     PrisonCell
     PrisonEscape
     PrisonTunnel
-    TallRoom
+    TownHouse1
     TownOutdoors
     NUM_VALUES
 .ENDENUM

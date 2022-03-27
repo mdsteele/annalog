@@ -210,8 +210,8 @@ _Passages_sPassage_arr:
     D_END
     D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Eastern | 0
-    d_word PositionAdjust_i16, $50
-    d_byte Destination_eRoom, eRoom::TallRoom
+    d_word PositionAdjust_i16, $ffff & -$10
+    d_byte Destination_eRoom, eRoom::PrisonTunnel
     D_END
 _Barrier_Init:
     ;; Initialize the machine.

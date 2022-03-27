@@ -57,22 +57,24 @@
     ldx _NumFields_u8_arr, y
     rts
 _NumFields_u8_arr:
-    .byte 1  ; Empty
-    .byte 3  ; Copy
-    .byte 3  ; Swap
-    .byte 5  ; Add
-    .byte 5  ; Sub
-    .byte 5  ; Mul
-    .byte 2  ; Goto
-    .byte 2  ; Skip
-    .byte 4  ; If
-    .byte 4  ; Til
-    .byte 1  ; Act
-    .byte 2  ; Move
+    D_ENUM eOpcode
+    d_byte Empty, 1
+    d_byte Copy,  3
+    d_byte Swap,  3
+    d_byte Add,   5
+    d_byte Sub,   5
+    d_byte Mul,   5
+    d_byte Goto,  2
+    d_byte Skip,  2
+    d_byte If,    4
+    d_byte Til,   4
+    d_byte Act,   1
+    d_byte Move,  2
     .byte 1  ; unused opcode
     .byte 1  ; unused opcode
-    .byte 1  ; End
-    .byte 1  ; Nop
+    d_byte End,   1
+    d_byte Nop,   1
+    D_END
 .ENDPROC
 
 ;;; Returns the width of the currently-selected instruction field, in tiles,
