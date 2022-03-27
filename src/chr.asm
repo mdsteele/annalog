@@ -131,6 +131,17 @@
 
 ;;;=========================================================================;;;
 
+.SEGMENT "CHR_Townsfolk"
+
+.EXPORT Ppu_ChrTownsfolk
+.PROC Ppu_ChrTownsfolk
+:   .incbin "out/data/tiles/townsfolk.chr"
+    .res $78 * kSizeofChr
+    .assert * - :- = kSizeofChr * $80, error
+.ENDPROC
+
+;;;=========================================================================;;;
+
 .SEGMENT "CHR_Upgrade"
 
 .EXPORT Ppu_ChrUpgrade

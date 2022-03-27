@@ -121,6 +121,10 @@ kMaxRoomWidthBlocks = kMaxRoomWidthTiles / 2
     NumMachines_u8            .byte
     ;; A pointer to the machine data array for this room.
     Machines_sMachine_arr_ptr .addr
+    ;; The default CHR18 bank number to set for this room.  The room's
+    ;; Init_func_ptr can modify this in Zp_Current_sRoom to override the
+    ;; default.
+    Chr18Bank_u8              .byte
     ;; Extended information about the room.
     Ext_sRoomExt_ptr          .addr
 .ENDSTRUCT

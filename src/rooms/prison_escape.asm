@@ -41,6 +41,7 @@
 .IMPORT Func_MachineError
 .IMPORT Func_MovePlatformHorz
 .IMPORT Func_Noop
+.IMPORT Ppu_ChrUpgrade
 .IMPORT Ram_MachineState
 .IMPORT Ram_MachineStatus_eMachine_arr
 .IMPORT Ram_Oam_sObj_arr64
@@ -112,6 +113,7 @@ kTrolleyRopePalette   = 0
     d_addr TerrainData_ptr, _TerrainData
     d_byte NumMachines_u8, 1
     d_addr Machines_sMachine_arr_ptr, _Machines_sMachine_arr
+    d_byte Chr18Bank_u8, <.bank(Ppu_ChrUpgrade)
     d_addr Ext_sRoomExt_ptr, _Ext_sRoomExt
     D_END
 _Ext_sRoomExt:

@@ -20,6 +20,7 @@
 .INCLUDE "actor.inc"
 .INCLUDE "device.inc"
 .INCLUDE "macros.inc"
+.INCLUDE "mmc3.inc"
 .INCLUDE "platform.inc"
 .INCLUDE "room.inc"
 .INCLUDE "tileset.inc"

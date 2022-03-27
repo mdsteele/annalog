@@ -157,6 +157,7 @@ Zp_NearbyDevice_u8: .res 1
     jsr Func_Window_Disable
     jsr Func_Window_DirectDrawTopBorder
     chr08_bank <(Zp_Current_sTileset + sTileset::Chr08Bank_u8)
+    chr18_bank <(Zp_Current_sRoom + sRoom::Chr18Bank_u8)
     jsr Func_UpdateAndMarkMinimap
 _InitializeScrolling:
     jsr Func_SetScrollGoalFromAvatar
@@ -655,9 +656,9 @@ _UpdateNametable:
 ;;; always be visible: the player avatar, machines, enemies, and devices.
 .EXPORT FuncA_Objects_DrawObjectsForRoom
 .PROC FuncA_Objects_DrawObjectsForRoom
-    jsr FuncA_Objects_DrawAllActors
     jsr FuncA_Objects_DrawPlayerAvatar
     jsr FuncA_Objects_DrawDevicePrompt
+    jsr FuncA_Objects_DrawAllActors
     jsr FuncA_Objects_DrawAllMachines
     jmp FuncA_Objects_DrawAllDevices
 .ENDPROC

@@ -21,9 +21,12 @@
 .INCLUDE "avatar.inc"
 .INCLUDE "macros.inc"
 .INCLUDE "oam.inc"
+.INCLUDE "ppu.inc"
 .INCLUDE "terrain.inc"
 
+.IMPORT FuncA_Objects_Alloc1x1Shape
 .IMPORT FuncA_Objects_Alloc2x2Shape
+.IMPORT FuncA_Objects_MoveShapeUpOneTile
 .IMPORT Func_HarmAvatar
 .IMPORT Func_Noop
 .IMPORT Func_Terrain_GetColumnPtrForTileIndex
@@ -47,6 +50,11 @@ kCrawlerFirstTileId1 = $94
 kCrawlerFirstTileId2 = $98
 kCrawlerFirstTileId3 = $9c
 
+;;; How fast a toddler walks, in pixels per frame.
+kToddlerSpeed = 1
+;;; How long a toddler walks before turning around, in frames.
+kToddlerTime = 100
+
 ;;;=========================================================================;;;
 
 Func_Actor_TickNone = Func_Noop
@@ -55,13 +63,17 @@ FuncA_Objects_DrawNoneActor = Func_Noop
 .LINECONT +
 .DEFINE ActorTickFuncs \
     Func_Actor_TickNone, \
-    Func_Actor_TickCrawler
+    Func_Actor_TickChild, \
+    Func_Actor_TickCrawler, \
+    Func_Actor_TickToddler
 .LINECONT -
 
 .LINECONT +
 .DEFINE ActorDrawFuncs \
     FuncA_Objects_DrawNoneActor, \
-    FuncA_Objects_DrawCrawlerActor
+    FuncA_Objects_DrawChildActor, \
+    FuncA_Objects_DrawCrawlerActor, \
+    FuncA_Objects_DrawToddlerActor
 .LINECONT -
 
 ;;;=========================================================================;;;
@@ -98,25 +110,33 @@ Ram_ActorFlags_bObj_arr: .res kMaxActors
 .PROC Data_ActorBoundingBoxUp_u8_arr
     D_ENUM eActor
     d_byte None,    0
+    d_byte Child,   7
     d_byte Crawler, 0
+    d_byte Toddler, 4
     D_END
 .ENDPROC
 .PROC Data_ActorBoundingBoxDown_u8_arr
     D_ENUM eActor
     d_byte None,    0
+    d_byte Child,   8
     d_byte Crawler, 8
+    d_byte Toddler, 8
     D_END
 .ENDPROC
 .PROC Data_ActorBoundingBoxLeft_u8_arr
     D_ENUM eActor
     d_byte None,    0
+    d_byte Child,   5
     d_byte Crawler, 7
+    d_byte Toddler, 3
     D_END
 .ENDPROC
 .PROC Data_ActorBoundingBoxRight_u8_arr
     D_ENUM eActor
     d_byte None,    0
+    d_byte Child,   5
     d_byte Crawler, 7
+    d_byte Toddler, 4
     D_END
 .ENDPROC
 
@@ -144,6 +164,27 @@ Ram_ActorFlags_bObj_arr: .res kMaxActors
     jmp (Zp_Tmp_ptr)
 _JumpTable_ptr_0_arr: .lobytes ActorTickFuncs
 _JumpTable_ptr_1_arr: .hibytes ActorTickFuncs
+.ENDPROC
+
+;;; Performs per-frame updates for a child actor.
+;;; @param X The actor index.
+;;; @preserve X
+.PROC Func_Actor_TickChild
+    lda Ram_ActorPosX_i16_1_arr, x
+    cmp Zp_AvatarPosX_i16 + 1
+    blt @faceRight
+    bne @faceLeft
+    lda Ram_ActorPosX_i16_0_arr, x
+    cmp Zp_AvatarPosX_i16 + 0
+    blt @faceRight
+    @faceLeft:
+    lda #bObj::FlipH
+    bne @setFlags  ; unconditional
+    @faceRight:
+    lda #0
+    @setFlags:
+    sta Ram_ActorFlags_bObj_arr, x
+    rts
 .ENDPROC
 
 ;;; Performs per-frame updates for a crawler actor.
@@ -234,6 +275,40 @@ _StartMove:
     @continueForward:
     lda #$1f
     sta Ram_ActorState_byte_arr, x
+    rts
+.ENDPROC
+
+;;; Performs per-frame updates for a toddler actor.
+;;; @param X The actor index.
+;;; @preserve X
+.PROC Func_Actor_TickToddler
+    dec Ram_ActorState_byte_arr, x
+    bne @move
+    @turnAround:
+    lda Ram_ActorFlags_bObj_arr, x
+    eor #bObj::FlipH
+    sta Ram_ActorFlags_bObj_arr, x
+    lda #kToddlerTime
+    sta Ram_ActorState_byte_arr, x
+    @move:
+    lda Ram_ActorFlags_bObj_arr, x
+    and #bObj::FlipH
+    bne @moveLeft
+    @moveRight:
+    lda Ram_ActorPosX_i16_0_arr, x
+    add #kToddlerSpeed
+    sta Ram_ActorPosX_i16_0_arr, x
+    lda Ram_ActorPosX_i16_1_arr, x
+    adc #0
+    sta Ram_ActorPosX_i16_1_arr, x
+    rts
+    @moveLeft:
+    lda Ram_ActorPosX_i16_0_arr, x
+    sub #kToddlerSpeed
+    sta Ram_ActorPosX_i16_0_arr, x
+    lda Ram_ActorPosX_i16_1_arr, x
+    sbc #0
+    sta Ram_ActorPosX_i16_1_arr, x
     rts
 .ENDPROC
 
@@ -339,6 +414,14 @@ _JumpTable_ptr_0_arr: .lobytes ActorDrawFuncs
 _JumpTable_ptr_1_arr: .hibytes ActorDrawFuncs
 .ENDPROC
 
+;;; Allocates and populates OAM slots for a child actor.
+;;; @param X The actor index.
+;;; @preserve X
+.PROC FuncA_Objects_DrawChildActor
+    lda Ram_ActorState_byte_arr, x
+    jmp FuncA_Objects_Draw2x2Actor  ; preserves X
+.ENDPROC
+
 ;;; Allocates and populates OAM slots for a crawler actor.
 ;;; @param X The actor index.
 ;;; @preserve X
@@ -359,6 +442,68 @@ _JumpTable_ptr_1_arr: .hibytes ActorDrawFuncs
     lda #kCrawlerFirstTileId3
     @draw:
     jmp FuncA_Objects_Draw2x2Actor  ; preserves X
+.ENDPROC
+
+;;; Allocates and populates OAM slots for a toddler actor.
+;;; @param X The actor index.
+;;; @preserve X
+.PROC FuncA_Objects_DrawToddlerActor
+    lda Ram_ActorState_byte_arr, x
+    and #$08
+    beq @draw
+    lda #$02
+    @draw:
+    ora #$80
+    jmp FuncA_Objects_Draw1x2Actor  ; preserves X
+.ENDPROC
+
+;;; Allocates and populates OAM slots for the specified actor, using the given
+;;; first tile ID and the subsequent tile ID.
+;;; @param A The first tile ID.
+;;; @param X The actor index.
+;;; @preserve X
+.PROC FuncA_Objects_Draw1x2Actor
+    pha  ; first tile ID
+    ;; Calculate screen-space Y-position.
+    lda Ram_ActorPosY_i16_0_arr, x
+    sub Zp_PpuScrollY_u8
+    sta Zp_ShapePosY_i16 + 0
+    lda Ram_ActorPosY_i16_1_arr, x
+    sbc #0
+    sta Zp_ShapePosY_i16 + 1
+    ;; Calculate screen-space X-position.
+    lda Ram_ActorPosX_i16_0_arr, x
+    sub Zp_PpuScrollX_u8
+    sta Zp_ShapePosX_i16 + 0
+    lda Ram_ActorPosX_i16_1_arr, x
+    sbc Zp_ScrollXHi_u8
+    sta Zp_ShapePosX_i16 + 1
+    lda Zp_ShapePosX_i16 + 0
+    sub #kTileWidthPx / 2
+    sta Zp_ShapePosX_i16 + 0
+    lda Zp_ShapePosX_i16 + 1
+    sbc #0
+    sta Zp_ShapePosX_i16 + 1
+    ;; Allocate lower object.
+    jsr FuncA_Objects_Alloc1x1Shape
+    bcs @doneLower
+    pla  ; first tile ID
+    pha  ; first tile ID
+    adc #1  ; carry bit is already clear
+    sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
+    lda Ram_ActorFlags_bObj_arr, x
+    sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
+    @doneLower:
+    ;; Allocate upper object.
+    jsr FuncA_Objects_MoveShapeUpOneTile
+    jsr FuncA_Objects_Alloc1x1Shape
+    pla  ; first tile ID
+    bcs @doneUpper
+    sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
+    lda Ram_ActorFlags_bObj_arr, x
+    sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
+    @doneUpper:
+    rts
 .ENDPROC
 
 ;;; Allocates and populates OAM slots for the specified actor, using the given
