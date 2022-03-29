@@ -29,6 +29,10 @@ kMachineStateSize = $c0
 ;;; The OBJ palette number used for the blinking error light on machines.
 kMachineLightPalette = 1
 
+;;; The names (i.e. BG/OBJ tile IDs) for registers $a and $b.
+kMachineRegNameA = $20  ; 'A'
+kMachineRegNameB = $21  ; 'B'
+
 ;;;=========================================================================;;;
 
 ;;; CHR04 bank numbers to set for various machine status diagrams.

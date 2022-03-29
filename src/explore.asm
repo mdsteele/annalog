@@ -33,6 +33,7 @@
 .IMPORT FuncA_Objects_DrawAllActors
 .IMPORT FuncA_Objects_DrawAllDevices
 .IMPORT FuncA_Objects_DrawAllMachines
+.IMPORT FuncA_Objects_DrawMachineHud
 .IMPORT FuncA_Objects_DrawPlayerAvatar
 .IMPORT FuncA_Room_ExitViaPassage
 .IMPORT FuncA_Room_Load
@@ -128,6 +129,11 @@ Zp_ScrollXHi_u8: .res 1
 .EXPORTZP Zp_NearbyDevice_u8
 Zp_NearbyDevice_u8: .res 1
 
+;;; If true ($ff), the register value HUD will be displayed (assuming that
+;;; Zp_HudMachineIndex_u8 is also valid); if false ($00), the register value
+;;; HUD will not be drawn.
+Zp_HudEnabled_bool: .res 1
+
 ;;;=========================================================================;;;
 
 .SEGMENT "PRG8"
@@ -202,6 +208,14 @@ _GameLoop:
     jsr Func_ClearRestOfOam
     jsr Func_ProcessFrame
     jsr Func_UpdateButtons
+_CheckForToggleHud:
+    lda Zp_P1ButtonsPressed_bJoypad
+    and #bJoypad::Select
+    beq @done
+    lda Zp_HudEnabled_bool
+    eor #$ff
+    sta Zp_HudEnabled_bool
+    @done:
 _CheckForPause:
     lda Zp_P1ButtonsPressed_bJoypad
     and #bJoypad::Start
@@ -234,6 +248,8 @@ _CheckForActivateDevice:
     @console:
     lda #eAvatar::Reading
     sta Zp_AvatarMode_eAvatar
+    lda #$ff
+    sta Zp_HudEnabled_bool
     lda Ram_DeviceTarget_u8_arr, x
     tax  ; param: machine index
     jmp Main_Console_OpenWindow
@@ -656,6 +672,10 @@ _UpdateNametable:
 ;;; always be visible: the player avatar, machines, enemies, and devices.
 .EXPORT FuncA_Objects_DrawObjectsForRoom
 .PROC FuncA_Objects_DrawObjectsForRoom
+    bit Zp_HudEnabled_bool
+    bpl @skipHud
+    jsr FuncA_Objects_DrawMachineHud
+    @skipHud:
     jsr FuncA_Objects_DrawPlayerAvatar
     jsr FuncA_Objects_DrawDevicePrompt
     jsr FuncA_Objects_DrawAllActors

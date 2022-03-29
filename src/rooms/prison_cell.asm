@@ -65,10 +65,10 @@ kBarrierSpeed = 1
 kBarrierCountdown = $10
 
 ;;; Various OBJ tile IDs used for drawing the PrisonCellBarrier machine.
-kBarrierTileIdLightOff = $60
-kBarrierTileIdLightOn  = $61
-kBarrierTileIdCorner   = $63
-kBarrierTileIdSurface  = $62
+kBarrierTileIdLightOff = $70
+kBarrierTileIdLightOn  = $71
+kBarrierTileIdCorner   = $73
+kBarrierTileIdSurface  = $72
 
 ;;; Defines room-specific machine state data for this particular room.
 .STRUCT sState

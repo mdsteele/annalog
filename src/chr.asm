@@ -107,12 +107,14 @@
     .incbin "out/data/tiles/screen.chr"
     .assert * - :- = kSizeofChr * kLeverHandleTileIdDown, error
     .incbin "out/data/tiles/lever.chr"
-    .res $12 * kSizeofChr
+    .res $02 * kSizeofChr
+    .incbin "out/data/tiles/font_hilight.chr"
+    .res $06 * kSizeofChr
     .assert * - :- = kSizeofChr * eAvatar::Standing, error
     .incbin "out/data/tiles/player.chr"
-    .res $18 * kSizeofChr
+    .res $08 * kSizeofChr
     .incbin "out/data/tiles/machine.chr"
-    .res $16 * kSizeofChr
+    .res $06 * kSizeofChr
     .assert * - :- = kSizeofChr * $80, error
 .ENDPROC
 

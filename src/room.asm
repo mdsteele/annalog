@@ -53,6 +53,7 @@
 .IMPORT Ram_PlatformTop_i16_1_arr
 .IMPORT Ram_PlatformType_ePlatform_arr
 .IMPORTZP Zp_AvatarPosY_i16
+.IMPORTZP Zp_HudMachineIndex_u8
 .IMPORTZP Zp_Tmp1_byte
 .IMPORTZP Zp_Tmp2_byte
 .IMPORTZP Zp_Tmp_ptr
@@ -118,12 +119,12 @@ Zp_Current_sTileset: .tag sTileset
     lda Zp_Current_eRoom
     sta Zp_Previous_eRoom
     stx Zp_Current_eRoom
+_CopyRoomStruct:
     ;; Get a pointer to the sRoom struct and store it in Zp_Tmp_ptr.
     lda DataA_Room_Table_sRoom_ptr_0_arr, x
     sta Zp_Tmp_ptr + 0
     lda DataA_Room_Table_sRoom_ptr_1_arr, x
     sta Zp_Tmp_ptr + 1
-_CopyRoomStruct:
     ;; Copy the sRoom struct into Zp_Current_sRoom.
     ldy #.sizeof(sRoom) - 1
     .assert .sizeof(sRoom) <= $80, error
@@ -308,6 +309,9 @@ _LoadDevices:
     @copyDone:
     cpx #kMaxDevices
     blt @clearLoop
+_ClearHud:
+    lda #$ff
+    sta Zp_HudMachineIndex_u8
 _CallInit:
     jsr FuncA_Room_InitCurrentRoom
     jmp Func_InitAllMachines

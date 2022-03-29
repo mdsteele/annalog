@@ -101,7 +101,7 @@ _Devices_sDevice_arr:
     d_byte Type_eDevice, eDevice::Upgrade
     d_byte BlockRow_u8, 10
     d_byte BlockCol_u8, 3
-    d_byte Target_u8, eFlag::UpgradeOpcodeTil
+    d_byte Target_u8, eFlag::UpgradeOpcodeCopy
     D_END
     .byte eDevice::None
 _Passages_sPassage_arr:

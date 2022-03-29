@@ -67,14 +67,14 @@ kTrolleySpeed = 1
 kTrolleyCountdown = kBlockWidthPx / kTrolleySpeed
 
 ;;; Various OBJ tile IDs used for drawing the PrisonEscapeTrolley machine.
-kTrolleyTileIdLightOff = $60
-kTrolleyTileIdLightOn  = $61
-kTrolleyTileIdCorner   = $63
-kTrolleyTileIdWheel    = $65
-kTrolleyTileIdRopeVert = $66
-kTrolleyTileIdPulley   = $67
-kTrolleyTileIdRopeDiag = $68
-kTrolleyTileIdGirder   = $69
+kTrolleyTileIdLightOff = $70
+kTrolleyTileIdLightOn  = $71
+kTrolleyTileIdCorner   = $73
+kTrolleyTileIdWheel    = $75
+kTrolleyTileIdRopeVert = $76
+kTrolleyTileIdPulley   = $77
+kTrolleyTileIdRopeDiag = $78
+kTrolleyTileIdGirder   = $79
 
 ;;; The OBJ palette number used for various parts of the PrisonEscapeTrolley
 ;;; machine.

@@ -53,6 +53,7 @@
 .IMPORT Ram_PpuTransfer_arr
 .IMPORTZP Zp_Current_sMachine_ptr
 .IMPORTZP Zp_Current_sProgram_ptr
+.IMPORTZP Zp_HudMachineIndex_u8
 .IMPORTZP Zp_MachineMaxInstructions_u8
 .IMPORTZP Zp_OamOffset_u8
 .IMPORTZP Zp_P1ButtonsPressed_bJoypad
@@ -96,10 +97,6 @@ kCursorObjPalette = 1
 
 ;;; The width of an instruction in the console, in tiles.
 kInstructionWidthTiles = 7
-
-;;; The names (i.e. BG tile IDs) for registers $a and $b.
-kRegNameA = $20  ; 'A'
-kRegNameB = $21  ; 'B'
 
 ;;;=========================================================================;;;
 
@@ -281,6 +278,7 @@ _UpdateScrolling:
 ;;; @prereq Explore mode is initialized.
 ;;; @param X The machine index to open a console for.
 .PROC FuncA_Console_Init
+    stx Zp_HudMachineIndex_u8
     jsr Func_SetMachineIndex
     jsr Func_MachineReset
     jsr FuncA_Console_LoadProgram
@@ -314,9 +312,9 @@ _CopyRegNames:
     cpx #6
     blt @loop
     ;; TODO: Set A/B register name to #0 if that register isn't unlocked yet.
-    lda #kRegNameA
+    lda #kMachineRegNameA
     sta Ram_ConsoleRegNames_u8_arr6 + 0
-    lda #kRegNameB
+    lda #kMachineRegNameB
     sta Ram_ConsoleRegNames_u8_arr6 + 1
 _InitWindow:
     lda #kScreenHeightPx - kConsoleWindowScrollSpeed
@@ -694,7 +692,8 @@ _Interior:
     sub #2
     sta Zp_ConsoleInstNumber_u8
     ;; Draw the instruction for the left column.
-    add #kConsoleTileIdDigitZero
+    .assert kConsoleTileIdDigitZero & $0f = 0, error
+    ora #kConsoleTileIdDigitZero
     sta Ram_PpuTransfer_arr, x
     inx
     lda #kConsoleTileIdColon
@@ -707,7 +706,8 @@ _Interior:
     add Zp_ConsoleNumInstRows_u8
     sta Zp_ConsoleInstNumber_u8
     ;; Draw the instruction for the right column.
-    add #kConsoleTileIdDigitZero
+    .assert kConsoleTileIdDigitZero & $0f = 0, error
+    ora #kConsoleTileIdDigitZero
     sta Ram_PpuTransfer_arr, x
     inx
     lda #kConsoleTileIdColon
@@ -859,7 +859,8 @@ _OpGoto:
     jsr _WriteString5
     lda Zp_Tmp1_byte
     and #$0f
-    add #kConsoleTileIdDigitZero
+    .assert kConsoleTileIdDigitZero & $0f = 0, error
+    ora #kConsoleTileIdDigitZero
     sta Ram_PpuTransfer_arr, x
     inx
     jmp _Write1Space
@@ -979,7 +980,8 @@ _WriteLowRegisterOrImmediate:
     and #$0f
     cmp #$0a  ; immediate values are 0-9; registers are $a-$f
     bge @register
-    add #kConsoleTileIdDigitZero  ; Get tile ID for immediate value (0-9).
+    .assert kConsoleTileIdDigitZero & $0f = 0, error
+    ora #kConsoleTileIdDigitZero  ; Get tile ID for immediate value (0-9).
     bne @write  ; unconditional
     @register:
     sub #$0a

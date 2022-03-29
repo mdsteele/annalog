@@ -46,16 +46,16 @@ kAvatarHarmDeath = $ff
 ;;; values is the starting tile ID to use for the avatar objects when the
 ;;; avatar is in that mode.
 .ENUM eAvatar
-    Standing = $20  ; (grounded) standing still on the ground
-    Looking  = $24  ; (grounded) standing still and looking upward
-    Ducking  = $28  ; (grounded) crouching still on the ground
-    Landing  = $2c  ; (grounded) just landed from a jump
-    Reading  = $30  ; (grounded) facing away from camera (e.g. to read a sign)
-    Running1 = $34  ; (grounded) running along the ground (1st frame)
-    Running2 = $38  ; (grounded) running along the ground (2nd frame)
-    Jumping  = $3c  ; (airborne) jumping up
-    Floating = $40  ; (airborne) mid-jump hang time
-    Falling  = $44  ; (airborne) falling down
+    Standing = $40  ; (grounded) standing still on the ground
+    Looking  = $44  ; (grounded) standing still and looking upward
+    Ducking  = $48  ; (grounded) crouching still on the ground
+    Landing  = $4c  ; (grounded) just landed from a jump
+    Reading  = $50  ; (grounded) facing away from camera (e.g. to read a sign)
+    Running1 = $54  ; (grounded) running along the ground (1st frame)
+    Running2 = $58  ; (grounded) running along the ground (2nd frame)
+    Jumping  = $5c  ; (airborne) jumping up
+    Floating = $60  ; (airborne) mid-jump hang time
+    Falling  = $64  ; (airborne) falling down
 .ENDENUM
 
 ;;; Any eAvatar modes greater than or equal to this are considered airborne.

@@ -280,7 +280,7 @@ MaxInstructions1_u8_arr: .byte "     PROGRAM RAM", $ff
 MaxInstructions2_u8_arr: .byte "Increases max program", $ff
 MaxInstructions3_u8_arr: .byte "size by 2 instructions.", $ff
 OpcodeCopy1_u8_arr:      .byte "     COPY OPCODE", $ff
-OpcodeCopy2_u8_arr:      .byte "Copys a value into a", $ff
+OpcodeCopy2_u8_arr:      .byte "Copies a value into a", $ff
 OpcodeCopy3_u8_arr:      .byte "register.", $ff
 OpcodeSwap1_u8_arr:      .byte "     SWAP OPCODE", $ff
 OpcodeSwap2_u8_arr:      .byte "Exchanges the values of", $ff

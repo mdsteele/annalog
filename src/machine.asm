@@ -17,7 +17,6 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
-.INCLUDE "charmap.inc"
 .INCLUDE "machine.inc"
 .INCLUDE "macros.inc"
 .INCLUDE "program.inc"
@@ -90,6 +89,7 @@ Ram_MachinePc_u8_arr: .res kMaxMachines
 
 ;;; The value of the $a register for each machine in the room, indexed by
 ;;; Zp_MachineIndex_u8.
+.EXPORT Ram_MachineRegA_u8_arr
 Ram_MachineRegA_u8_arr: .res kMaxMachines
 
 ;;; RAM that each room's machines can divvy up however they want to store their
@@ -390,10 +390,11 @@ _Le:
 .ENDPROC
 .ENDPROC
 
-;;; Reads a value from a register of the current machine.
+;;; Reads an immediate or register value for the current machine.
 ;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
 ;;; @param A The 4-bit immediate (0-9) or register ($a-$f) value.
 ;;; @return A The value that was read (0-9).
+.EXPORT Func_MachineRead
 .PROC Func_MachineRead
     cmp #$0a
     blt @immediate
