@@ -1,7 +1,7 @@
 @BG 0 0 0 32x15
->town_0
->town_1
->town_4
+>outdoors_0
+>outdoors_1
+>outdoors_4
 
   AN    AN  AO        AN    AN    AN    AN  AO        AN    AN
     AN    AO    AP  AN  AO    AN    AN    AO    AO  AN  AO    AN

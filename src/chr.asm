@@ -82,6 +82,35 @@
 
 ;;;=========================================================================;;;
 
+.SEGMENT "CHR_Indoors"
+
+.EXPORT Ppu_ChrIndoors
+.PROC Ppu_ChrIndoors
+:   .incbin "out/data/tiles/indoors.chr"
+    .res $08 * kSizeofChr
+    .incbin "out/data/tiles/window.chr"
+    .incbin "out/data/tiles/furniture.chr"
+    .res $18 * kSizeofChr
+    .assert * - :- = kSizeofChr * $40, error
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "CHR_Outdoors"
+
+.EXPORT Ppu_ChrOutdoors
+.PROC Ppu_ChrOutdoors
+:   .incbin "out/data/tiles/outdoors.chr"
+    .incbin "out/data/tiles/roof.chr"
+    .incbin "out/data/tiles/window.chr"
+    .incbin "out/data/tiles/house.chr"
+    .res $0d * kSizeofChr
+    .incbin "out/data/tiles/device.chr"
+    .assert * - :- = kSizeofChr * $40, error
+.ENDPROC
+
+;;;=========================================================================;;;
+
 .SEGMENT "CHR_Pause"
 
 .EXPORT Ppu_ChrPause
@@ -116,19 +145,6 @@
     .incbin "out/data/tiles/machine.chr"
     .res $06 * kSizeofChr
     .assert * - :- = kSizeofChr * $80, error
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "CHR_Town"
-
-.EXPORT Ppu_ChrTown
-.PROC Ppu_ChrTown
-:   .incbin "out/data/tiles/forest.chr"
-    .incbin "out/data/tiles/house.chr"
-    .res $0d * kSizeofChr
-    .incbin "out/data/tiles/device.chr"
-    .assert * - :- = kSizeofChr * $40, error
 .ENDPROC
 
 ;;;=========================================================================;;;

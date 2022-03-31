@@ -20,20 +20,47 @@
 .INCLUDE "macros.inc"
 .INCLUDE "tileset.inc"
 
+.IMPORT DataA_Terrain_IndoorsLowerLeft_u8_arr
+.IMPORT DataA_Terrain_IndoorsLowerRight_u8_arr
+.IMPORT DataA_Terrain_IndoorsUpperLeft_u8_arr
+.IMPORT DataA_Terrain_IndoorsUpperRight_u8_arr
+.IMPORT DataA_Terrain_OutdoorsLowerLeft_u8_arr
+.IMPORT DataA_Terrain_OutdoorsLowerRight_u8_arr
+.IMPORT DataA_Terrain_OutdoorsUpperLeft_u8_arr
+.IMPORT DataA_Terrain_OutdoorsUpperRight_u8_arr
 .IMPORT DataA_Terrain_PrisonLowerLeft_u8_arr
 .IMPORT DataA_Terrain_PrisonLowerRight_u8_arr
 .IMPORT DataA_Terrain_PrisonUpperLeft_u8_arr
 .IMPORT DataA_Terrain_PrisonUpperRight_u8_arr
-.IMPORT DataA_Terrain_TownLowerLeft_u8_arr
-.IMPORT DataA_Terrain_TownLowerRight_u8_arr
-.IMPORT DataA_Terrain_TownUpperLeft_u8_arr
-.IMPORT DataA_Terrain_TownUpperRight_u8_arr
 .IMPORT Ppu_ChrCave
-.IMPORT Ppu_ChrTown
+.IMPORT Ppu_ChrIndoors
+.IMPORT Ppu_ChrOutdoors
 
 ;;;=========================================================================;;;
 
 .SEGMENT "PRGA_Room"
+
+.EXPORT DataA_Room_Indoors_sTileset
+.PROC DataA_Room_Indoors_sTileset
+    D_STRUCT sTileset
+    d_addr UpperLeft_u8_arr_ptr,  DataA_Terrain_IndoorsUpperLeft_u8_arr
+    d_addr LowerLeft_u8_arr_ptr,  DataA_Terrain_IndoorsLowerLeft_u8_arr
+    d_addr UpperRight_u8_arr_ptr, DataA_Terrain_IndoorsUpperRight_u8_arr
+    d_addr LowerRight_u8_arr_ptr, DataA_Terrain_IndoorsLowerRight_u8_arr
+    d_byte Chr08Bank_u8, <.bank(Ppu_ChrIndoors)
+    D_END
+.ENDPROC
+
+.EXPORT DataA_Room_Outdoors_sTileset
+.PROC DataA_Room_Outdoors_sTileset
+    D_STRUCT sTileset
+    d_addr UpperLeft_u8_arr_ptr,  DataA_Terrain_OutdoorsUpperLeft_u8_arr
+    d_addr LowerLeft_u8_arr_ptr,  DataA_Terrain_OutdoorsLowerLeft_u8_arr
+    d_addr UpperRight_u8_arr_ptr, DataA_Terrain_OutdoorsUpperRight_u8_arr
+    d_addr LowerRight_u8_arr_ptr, DataA_Terrain_OutdoorsLowerRight_u8_arr
+    d_byte Chr08Bank_u8, <.bank(Ppu_ChrOutdoors)
+    D_END
+.ENDPROC
 
 .EXPORT DataA_Room_Prison_sTileset
 .PROC DataA_Room_Prison_sTileset
@@ -43,17 +70,6 @@
     d_addr UpperRight_u8_arr_ptr, DataA_Terrain_PrisonUpperRight_u8_arr
     d_addr LowerRight_u8_arr_ptr, DataA_Terrain_PrisonLowerRight_u8_arr
     d_byte Chr08Bank_u8, <.bank(Ppu_ChrCave)
-    D_END
-.ENDPROC
-
-.EXPORT DataA_Room_Town_sTileset
-.PROC DataA_Room_Town_sTileset
-    D_STRUCT sTileset
-    d_addr UpperLeft_u8_arr_ptr,  DataA_Terrain_TownUpperLeft_u8_arr
-    d_addr LowerLeft_u8_arr_ptr,  DataA_Terrain_TownLowerLeft_u8_arr
-    d_addr UpperRight_u8_arr_ptr, DataA_Terrain_TownUpperRight_u8_arr
-    d_addr LowerRight_u8_arr_ptr, DataA_Terrain_TownLowerRight_u8_arr
-    d_byte Chr08Bank_u8, <.bank(Ppu_ChrTown)
     D_END
 .ENDPROC
 
