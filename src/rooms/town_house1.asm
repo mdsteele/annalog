@@ -25,7 +25,7 @@
 .INCLUDE "../platform.inc"
 .INCLUDE "../room.inc"
 
-.IMPORT DataA_Room_Outdoors_sTileset
+.IMPORT DataA_Room_Indoors_sTileset
 .IMPORT DataC_Town_AreaCells_u8_arr2_arr
 .IMPORT DataC_Town_AreaName_u8_arr
 .IMPORT Func_Noop
@@ -35,15 +35,15 @@
 
 .SEGMENT "PRGC_Town"
 
-.EXPORT DataC_Town_Outdoors_sRoom
-.PROC DataC_Town_Outdoors_sRoom
+.EXPORT DataC_Town_House1_sRoom
+.PROC DataC_Town_House1_sRoom
     D_STRUCT sRoom
     d_byte MinScrollX_u8, $0
-    d_word MaxScrollX_u16, $100
+    d_word MaxScrollX_u16, $0
     d_byte IsTall_bool, $00
     d_byte MinimapStartRow_u8, 0
     d_byte MinimapStartCol_u8, 11
-    d_byte MinimapWidth_u8, 2
+    d_byte MinimapWidth_u8, 1
     d_addr TerrainData_ptr, _TerrainData
     d_byte NumMachines_u8, 0
     d_addr Machines_sMachine_arr_ptr, 0
@@ -54,7 +54,7 @@ _Ext_sRoomExt:
     D_STRUCT sRoomExt
     d_addr AreaName_u8_arr_ptr, DataC_Town_AreaName_u8_arr
     d_addr AreaCells_u8_arr2_arr_ptr, DataC_Town_AreaCells_u8_arr2_arr
-    d_addr Terrain_sTileset_ptr, DataA_Room_Outdoors_sTileset
+    d_addr Terrain_sTileset_ptr, DataA_Room_Indoors_sTileset
     d_addr Platforms_sPlatform_arr_ptr, _Platforms_sPlatform_arr
     d_addr Actors_sActor_arr_ptr, _Actors_sActor_arr
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
@@ -63,44 +63,50 @@ _Ext_sRoomExt:
     d_addr Init_func_ptr, Func_Noop
     D_END
 _TerrainData:
-:   .incbin "out/data/town_outdoors.room"
-    .assert * - :- = 32 * 16, error
+:   .incbin "out/data/town_house1.room"
+    .assert * - :- = 16 * 16, error
 _Platforms_sPlatform_arr:
     .byte ePlatform::None
 _Actors_sActor_arr:
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::Child
+    d_byte TileRow_u8, 25
+    d_byte TileCol_u8, 20
+    d_byte State_byte, kChildPonytail
+    D_END
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::Toddler
+    d_byte TileRow_u8, 25
+    d_byte TileCol_u8, 16
+    d_byte State_byte, 55
+    D_END
     .byte eActor::None
 _Devices_sDevice_arr:
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Sign
     d_byte BlockRow_u8, 12
-    d_byte BlockCol_u8, 19
+    d_byte BlockCol_u8, 9
+    d_byte Target_u8, 0
+    D_END
+    D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::Sign
+    d_byte BlockRow_u8, 12
+    d_byte BlockCol_u8, 10
     d_byte Target_u8, 0
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Door
     d_byte BlockRow_u8, 12
-    d_byte BlockCol_u8, 4
-    d_byte Target_u8, eRoom::TownHouse1
-    D_END
-    D_STRUCT sDevice
-    d_byte Type_eDevice, eDevice::Door
-    d_byte BlockRow_u8, 12
-    d_byte BlockCol_u8, 12
-    d_byte Target_u8, eRoom::TownHouse2
+    d_byte BlockCol_u8, 6
+    d_byte Target_u8, eRoom::TownOutdoors
     D_END
     .byte eDevice::None
 _Dialogs_sDialog_ptr_arr:
     .addr _Dialog0_sDialog
 _Dialog0_sDialog:
-    .word ePortrait::Sign
-    .byte "Lorem ipsum dolor sit$"
-    .byte "amet, consectetur$"
-    .byte "adipiscing elit, sed$"
-    .byte "do eiusmod tempor.#"
-    .word ePortrait::Sign
-    .byte "Ut enim ad minim$"
-    .byte "veniam, quis nostrud$"
-    .byte "exercitation.#"
+    .word ePortrait::Woman
+    .byte "My sister keeps peeing$"
+    .byte "her pants!#"
     .byte 0
 .ENDPROC
 

@@ -35,8 +35,8 @@
 
 .SEGMENT "PRGC_Town"
 
-.EXPORT DataC_Town_House1_sRoom
-.PROC DataC_Town_House1_sRoom
+.EXPORT DataC_Town_House2_sRoom
+.PROC DataC_Town_House2_sRoom
     D_STRUCT sRoom
     d_byte MinScrollX_u8, $0
     d_word MaxScrollX_u16, $0
@@ -63,41 +63,35 @@ _Ext_sRoomExt:
     d_addr Init_func_ptr, Func_Noop
     D_END
 _TerrainData:
-:   .incbin "out/data/town_house_1.room"
+:   .incbin "out/data/town_house2.room"
     .assert * - :- = 16 * 16, error
 _Platforms_sPlatform_arr:
     .byte ePlatform::None
 _Actors_sActor_arr:
     D_STRUCT sActor
-    d_byte Type_eActor, eActor::Child
-    d_byte TileRow_u8, 25
-    d_byte TileCol_u8, 20
-    d_byte State_byte, kChildPonytail
-    D_END
-    D_STRUCT sActor
-    d_byte Type_eActor, eActor::Toddler
+    d_byte Type_eActor, eActor::Adult
     d_byte TileRow_u8, 25
     d_byte TileCol_u8, 16
-    d_byte State_byte, 55
+    d_byte State_byte, kAdultWoman
     D_END
     .byte eActor::None
 _Devices_sDevice_arr:
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Sign
     d_byte BlockRow_u8, 12
-    d_byte BlockCol_u8, 9
+    d_byte BlockCol_u8, 7
     d_byte Target_u8, 0
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Sign
     d_byte BlockRow_u8, 12
-    d_byte BlockCol_u8, 10
+    d_byte BlockCol_u8, 8
     d_byte Target_u8, 0
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Door
     d_byte BlockRow_u8, 12
-    d_byte BlockCol_u8, 6
+    d_byte BlockCol_u8, 5
     d_byte Target_u8, eRoom::TownOutdoors
     D_END
     .byte eDevice::None
@@ -105,8 +99,14 @@ _Dialogs_sDialog_ptr_arr:
     .addr _Dialog0_sDialog
 _Dialog0_sDialog:
     .word ePortrait::Woman
-    .byte "My sister keeps peeing$"
-    .byte "her pants!#"
+    .byte "Can't sleep, Anna?#"
+    .word ePortrait::Woman
+    .byte "Your brother Alex is$"
+    .byte "up late, too.#"
+    .word ePortrait::Woman
+    .byte "I think he went$"
+    .byte "outside somewhere. Why$"
+    .byte "don't you go find him?#"
     .byte 0
 .ENDPROC
 

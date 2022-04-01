@@ -25,7 +25,7 @@
 .INCLUDE "room.inc"
 
 .IMPORT FuncA_Objects_Alloc2x2Shape
-.IMPORT FuncA_Objects_SetUpgradeFlagsAndTileIds
+.IMPORT FuncA_Objects_SetUpgradeTileIds
 .IMPORT Func_Noop
 .IMPORT Ram_MachineState
 .IMPORT Ram_MachineStatus_eMachine_arr
@@ -63,6 +63,7 @@ FuncA_Objects_DrawSignDevice = Func_Noop
 kConsoleScreenPaletteOk  = 2
 kConsoleScreenPaletteErr = 1
 kLeverHandlePalette      = 0
+kUpgradePalette          = 0
 
 ;;; The number of animation frames a lever device has (i.e. the number of
 ;;; distinct ways of drawing it).
@@ -429,17 +430,14 @@ _LeverTileIds_u8_arr:
     sbc Zp_ScrollXHi_u8
     sta Zp_ShapePosX_i16 + 1
     ;; Allocate objects.
-    txa
-    pha
-    jsr FuncA_Objects_Alloc2x2Shape  ; sets C if offscreen; returns Y
-    pla
-    tax
+    lda #kUpgradePalette  ; param: object flags
+    jsr FuncA_Objects_Alloc2x2Shape  ; preserves X, returns C and Y
     bcc @onscreen
     rts
     @onscreen:
     ;; Set flags and tile IDs.
     lda Ram_DeviceTarget_u8_arr, x  ; param: eFlag value
-    jmp FuncA_Objects_SetUpgradeFlagsAndTileIds  ; preserves X
+    jmp FuncA_Objects_SetUpgradeTileIds  ; preserves X
 _YOffsets_u8_arr:
     ;; [12 - int(round(40 * x * (1-x))) for x in (y/24. for y in range(24))]
     .byte 12, 10, 9, 8, 6, 5, 4, 4, 3, 3, 2, 2

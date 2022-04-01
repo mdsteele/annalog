@@ -446,9 +446,15 @@ _DescTable_ptr_arr:
     lda #kUpgradeSymbolLeft + kTileWidthPx
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::XPos_u8, y
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::XPos_u8, y
-    ;; Set flags and tile IDs.
+    ;; Set flags.
+    lda #kUpgradeSymbolPalette
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Flags_bObj, y
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Flags_bObj, y
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Flags_bObj, y
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Flags_bObj, y
+    ;; Set tile IDs.
     lda Zp_CurrentUpgrade_eFlag  ; param: eFlag
-    jsr FuncA_Objects_SetUpgradeFlagsAndTileIds
+    jsr FuncA_Objects_SetUpgradeTileIds
     ;; Finish.
     tya
     add #.sizeof(sObj) * 4
@@ -461,14 +467,14 @@ _YOffsets_u8_arr16:
     .assert * - _YOffsets_u8_arr16 = 16, error
 .ENDPROC
 
-;;; Populates the OAM flags and tile IDs for four objects making up an upgrade
-;;; symbol.  The allocated objects must be in the order: top-left, bottom-left,
+;;; Populates the tile IDs for four objects making up an upgrade symbol.
+;;; The allocated objects must be in the order: top-left, bottom-left,
 ;;; top-right, bottom-right.
 ;;; @param A The eFlag value for the upgrade.
 ;;; @param Y The OAM byte offset for the first of the four objects.
 ;;; @preserve X
-.EXPORT FuncA_Objects_SetUpgradeFlagsAndTileIds
-.PROC FuncA_Objects_SetUpgradeFlagsAndTileIds
+.EXPORT FuncA_Objects_SetUpgradeTileIds
+.PROC FuncA_Objects_SetUpgradeTileIds
     .assert kNumMaxInstructionUpgrades = 4, error
     sub #eFlag::UpgradeMaxInstructions3 + 1
     blt @upgradeMaxInstructions
@@ -485,11 +491,6 @@ _YOffsets_u8_arr16:
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Tile_u8, y
     lda #kUpgradeTileIdBottomRight
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Tile_u8, y
-    lda #kUpgradeSymbolPalette
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Flags_bObj, y
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Flags_bObj, y
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Flags_bObj, y
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Flags_bObj, y
     rts
 .ENDPROC
 

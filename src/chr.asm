@@ -153,8 +153,9 @@
 
 .EXPORT Ppu_ChrTownsfolk
 .PROC Ppu_ChrTownsfolk
-:   .incbin "out/data/tiles/townsfolk.chr"
-    .res $78 * kSizeofChr
+:   .incbin "out/data/tiles/townsfolk1.chr"
+    .incbin "out/data/tiles/townsfolk2.chr"
+    .res $72 * kSizeofChr
     .assert * - :- = kSizeofChr * $80, error
 .ENDPROC
 

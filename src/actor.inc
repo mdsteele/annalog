@@ -20,6 +20,9 @@
 ;;; The maximum number of actors that can exist at once in a room.
 kMaxActors = 8
 
+;;; State bytes to set for eActor::Adult for various adults.
+kAdultWoman = $88
+
 ;;; State bytes to set for eActor::Child for various children.
 kChildPonytail = $84
 
@@ -28,6 +31,7 @@ kChildPonytail = $84
 ;;; Types of actors in a room (e.g. townsfolk, enemies, or projectiles).
 .ENUM eActor
     None
+    Adult
     Child
     Crawler
     Toddler

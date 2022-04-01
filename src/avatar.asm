@@ -902,7 +902,7 @@ _DoneJump:
     and #$02
     bne _Done
     @notInvincible:
-_AllocObjects:
+_GetPosition:
     ;; Calculate screen-space Y-position.
     lda Zp_AvatarPosY_i16 + 0
     sub Zp_PpuScrollY_u8
@@ -917,18 +917,10 @@ _AllocObjects:
     lda Zp_AvatarPosX_i16 + 1
     sbc Zp_ScrollXHi_u8
     sta Zp_ShapePosX_i16 + 1
-    ;; Allocate objects.
-    jsr FuncA_Objects_Alloc2x2Shape  ; sets C if offscreen; returns Y
+_DrawObjects:
+    lda Zp_AvatarFlags_bObj  ; param: object flags
+    jsr FuncA_Objects_Alloc2x2Shape  ; preserves X, returns C and Y
     bcs _Done
-_ObjectFlags:
-    lda Zp_AvatarFlags_bObj
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Flags_bObj, y
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Flags_bObj, y
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Flags_bObj, y
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Flags_bObj, y
-    and #bObj::FlipH
-    bne _ObjectTilesFacingLeft
-_ObjectTilesFacingRight:
     lda Zp_AvatarMode_eAvatar
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Tile_u8, y
     add #1
@@ -938,16 +930,6 @@ _ObjectTilesFacingRight:
     adc #1
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Tile_u8, y
 _Done:
-    rts
-_ObjectTilesFacingLeft:
-    lda Zp_AvatarMode_eAvatar
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Tile_u8, y
-    add #1
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Tile_u8, y
-    adc #1
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Tile_u8, y
-    adc #1
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Tile_u8, y
     rts
 .ENDPROC
 

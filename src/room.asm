@@ -29,6 +29,7 @@
 .IMPORT DataC_Prison_Escape_sRoom
 .IMPORT DataC_Prison_Tunnel_sRoom
 .IMPORT DataC_Town_House1_sRoom
+.IMPORT DataC_Town_House2_sRoom
 .IMPORT DataC_Town_Outdoors_sRoom
 .IMPORT Func_InitAllMachines
 .IMPORT Ram_ActorFlags_bObj_arr
@@ -66,6 +67,7 @@
     DataC_Prison_Escape_sRoom, \
     DataC_Prison_Tunnel_sRoom, \
     DataC_Town_House1_sRoom, \
+    DataC_Town_House2_sRoom, \
     DataC_Town_Outdoors_sRoom
 .LINECONT -
 

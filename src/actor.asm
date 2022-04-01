@@ -25,6 +25,7 @@
 .INCLUDE "terrain.inc"
 
 .IMPORT FuncA_Objects_Alloc1x1Shape
+.IMPORT FuncA_Objects_Alloc2x1Shape
 .IMPORT FuncA_Objects_Alloc2x2Shape
 .IMPORT FuncA_Objects_MoveShapeUpOneTile
 .IMPORT Func_HarmAvatar
@@ -63,6 +64,7 @@ FuncA_Objects_DrawNoneActor = Func_Noop
 .LINECONT +
 .DEFINE ActorTickFuncs \
     Func_Actor_TickNone, \
+    Func_Actor_TickAdult, \
     Func_Actor_TickChild, \
     Func_Actor_TickCrawler, \
     Func_Actor_TickToddler
@@ -71,6 +73,7 @@ FuncA_Objects_DrawNoneActor = Func_Noop
 .LINECONT +
 .DEFINE ActorDrawFuncs \
     FuncA_Objects_DrawNoneActor, \
+    FuncA_Objects_DrawAdultActor, \
     FuncA_Objects_DrawChildActor, \
     FuncA_Objects_DrawCrawlerActor, \
     FuncA_Objects_DrawToddlerActor
@@ -110,6 +113,7 @@ Ram_ActorFlags_bObj_arr: .res kMaxActors
 .PROC Data_ActorBoundingBoxUp_u8_arr
     D_ENUM eActor
     d_byte None,    0
+    d_byte Adult,  13
     d_byte Child,   7
     d_byte Crawler, 0
     d_byte Toddler, 4
@@ -118,6 +122,7 @@ Ram_ActorFlags_bObj_arr: .res kMaxActors
 .PROC Data_ActorBoundingBoxDown_u8_arr
     D_ENUM eActor
     d_byte None,    0
+    d_byte Adult,   8
     d_byte Child,   8
     d_byte Crawler, 8
     d_byte Toddler, 8
@@ -126,6 +131,7 @@ Ram_ActorFlags_bObj_arr: .res kMaxActors
 .PROC Data_ActorBoundingBoxLeft_u8_arr
     D_ENUM eActor
     d_byte None,    0
+    d_byte Adult,   5
     d_byte Child,   5
     d_byte Crawler, 7
     d_byte Toddler, 3
@@ -134,6 +140,7 @@ Ram_ActorFlags_bObj_arr: .res kMaxActors
 .PROC Data_ActorBoundingBoxRight_u8_arr
     D_ENUM eActor
     d_byte None,    0
+    d_byte Adult,   5
     d_byte Child,   5
     d_byte Crawler, 7
     d_byte Toddler, 4
@@ -166,7 +173,14 @@ _JumpTable_ptr_0_arr: .lobytes ActorTickFuncs
 _JumpTable_ptr_1_arr: .hibytes ActorTickFuncs
 .ENDPROC
 
-;;; Performs per-frame updates for a child actor.
+;;; Performs per-frame updates for an adult townsfolk actor.
+;;; @param X The actor index.
+;;; @preserve X
+.PROC Func_Actor_TickAdult
+    .assert * = Func_Actor_TickChild, error, "fallthrough"
+.ENDPROC
+
+;;; Performs per-frame updates for a child townsfolk actor.
 ;;; @param X The actor index.
 ;;; @preserve X
 .PROC Func_Actor_TickChild
@@ -187,7 +201,7 @@ _JumpTable_ptr_1_arr: .hibytes ActorTickFuncs
     rts
 .ENDPROC
 
-;;; Performs per-frame updates for a crawler actor.
+;;; Performs per-frame updates for a crawler enemy actor.
 ;;; @param X The actor index.
 ;;; @preserve X
 .PROC Func_Actor_TickCrawler
@@ -278,7 +292,7 @@ _StartMove:
     rts
 .ENDPROC
 
-;;; Performs per-frame updates for a toddler actor.
+;;; Performs per-frame updates for a toddler townsfolk actor.
 ;;; @param X The actor index.
 ;;; @preserve X
 .PROC Func_Actor_TickToddler
@@ -414,15 +428,23 @@ _JumpTable_ptr_0_arr: .lobytes ActorDrawFuncs
 _JumpTable_ptr_1_arr: .hibytes ActorDrawFuncs
 .ENDPROC
 
-;;; Allocates and populates OAM slots for a child actor.
+;;; Allocates and populates OAM slots for an adult townsfolk actor.
+;;; @param X The actor index.
+;;; @preserve X
+.PROC FuncA_Objects_DrawAdultActor
+    lda Ram_ActorState_byte_arr, x  ; param: first tile ID
+    jmp FuncA_Objects_Draw2x3Actor  ; preserves X
+.ENDPROC
+
+;;; Allocates and populates OAM slots for a child townsfolk actor.
 ;;; @param X The actor index.
 ;;; @preserve X
 .PROC FuncA_Objects_DrawChildActor
-    lda Ram_ActorState_byte_arr, x
+    lda Ram_ActorState_byte_arr, x  ; param: first tile ID
     jmp FuncA_Objects_Draw2x2Actor  ; preserves X
 .ENDPROC
 
-;;; Allocates and populates OAM slots for a crawler actor.
+;;; Allocates and populates OAM slots for a crawler enemy actor.
 ;;; @param X The actor index.
 ;;; @preserve X
 .PROC FuncA_Objects_DrawCrawlerActor
@@ -444,7 +466,7 @@ _JumpTable_ptr_1_arr: .hibytes ActorDrawFuncs
     jmp FuncA_Objects_Draw2x2Actor  ; preserves X
 .ENDPROC
 
-;;; Allocates and populates OAM slots for a toddler actor.
+;;; Allocates and populates OAM slots for a toddler townsfolk actor.
 ;;; @param X The actor index.
 ;;; @preserve X
 .PROC FuncA_Objects_DrawToddlerActor
@@ -457,13 +479,11 @@ _JumpTable_ptr_1_arr: .hibytes ActorDrawFuncs
     jmp FuncA_Objects_Draw1x2Actor  ; preserves X
 .ENDPROC
 
-;;; Allocates and populates OAM slots for the specified actor, using the given
-;;; first tile ID and the subsequent tile ID.
-;;; @param A The first tile ID.
+;;; Sets Zp_ShapePosX_i16 and Zp_ShapePosY_i16 to the screen-space position of
+;;; the specified actor.
 ;;; @param X The actor index.
 ;;; @preserve X
-.PROC FuncA_Objects_Draw1x2Actor
-    pha  ; first tile ID
+.PROC FuncA_Objects_PositionActorShape
     ;; Calculate screen-space Y-position.
     lda Ram_ActorPosY_i16_0_arr, x
     sub Zp_PpuScrollY_u8
@@ -478,6 +498,18 @@ _JumpTable_ptr_1_arr: .hibytes ActorDrawFuncs
     lda Ram_ActorPosX_i16_1_arr, x
     sbc Zp_ScrollXHi_u8
     sta Zp_ShapePosX_i16 + 1
+    rts
+.ENDPROC
+
+;;; Allocates and populates OAM slots for the specified actor, using the given
+;;; first tile ID and the subsequent tile ID.
+;;; @param A The first tile ID.
+;;; @param X The actor index.
+;;; @preserve X
+.PROC FuncA_Objects_Draw1x2Actor
+    pha  ; first tile ID
+    jsr FuncA_Objects_PositionActorShape  ; preserves X
+    ;; Adjust X-position.
     lda Zp_ShapePosX_i16 + 0
     sub #kTileWidthPx / 2
     sta Zp_ShapePosX_i16 + 0
@@ -485,7 +517,7 @@ _JumpTable_ptr_1_arr: .hibytes ActorDrawFuncs
     sbc #0
     sta Zp_ShapePosX_i16 + 1
     ;; Allocate lower object.
-    jsr FuncA_Objects_Alloc1x1Shape
+    jsr FuncA_Objects_Alloc1x1Shape  ; preserves X
     bcs @doneLower
     pla  ; first tile ID
     pha  ; first tile ID
@@ -495,8 +527,8 @@ _JumpTable_ptr_1_arr: .hibytes ActorDrawFuncs
     sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
     @doneLower:
     ;; Allocate upper object.
-    jsr FuncA_Objects_MoveShapeUpOneTile
-    jsr FuncA_Objects_Alloc1x1Shape
+    jsr FuncA_Objects_MoveShapeUpOneTile  ; preserves X
+    jsr FuncA_Objects_Alloc1x1Shape  ; preserves X
     pla  ; first tile ID
     bcs @doneUpper
     sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
@@ -513,34 +545,11 @@ _JumpTable_ptr_1_arr: .hibytes ActorDrawFuncs
 ;;; @preserve X
 .PROC FuncA_Objects_Draw2x2Actor
     pha  ; first tile ID
-    ;; Calculate screen-space Y-position.
-    lda Ram_ActorPosY_i16_0_arr, x
-    sub Zp_PpuScrollY_u8
-    sta Zp_ShapePosY_i16 + 0
-    lda Ram_ActorPosY_i16_1_arr, x
-    sbc #0
-    sta Zp_ShapePosY_i16 + 1
-    ;; Calculate screen-space X-position.
-    lda Ram_ActorPosX_i16_0_arr, x
-    sub Zp_PpuScrollX_u8
-    sta Zp_ShapePosX_i16 + 0
-    lda Ram_ActorPosX_i16_1_arr, x
-    sbc Zp_ScrollXHi_u8
-    sta Zp_ShapePosX_i16 + 1
-    ;; Allocate objects.
+    jsr FuncA_Objects_PositionActorShape  ; preserves X
+    lda Ram_ActorFlags_bObj_arr, x  ; param: object flags
     jsr FuncA_Objects_Alloc2x2Shape  ; preserves X, returns C and Y
     pla  ; first tile ID
-    bcs _Done
-    sta Zp_Tmp1_byte  ; first tile ID
-    lda Ram_ActorFlags_bObj_arr, x
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Flags_bObj, y
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Flags_bObj, y
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Flags_bObj, y
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Flags_bObj, y
-    and #bObj::FlipH
-    bne _FacingLeft
-_FacingRight:
-    lda Zp_Tmp1_byte  ; first tile ID
+    bcs @done
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Tile_u8, y
     add #1
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Tile_u8, y
@@ -548,17 +557,43 @@ _FacingRight:
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Tile_u8, y
     adc #1
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Tile_u8, y
-_Done:
+    @done:
     rts
-_FacingLeft:
-    lda Zp_Tmp1_byte  ; first tile ID
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Tile_u8, y
-    add #1
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Tile_u8, y
-    adc #1
+.ENDPROC
+
+;;; Allocates and populates OAM slots for the specified actor, using the given
+;;; first tile ID and the five subsequent tile IDs.
+;;; @param A The first tile ID.
+;;; @param X The actor index.
+;;; @preserve X
+.PROC FuncA_Objects_Draw2x3Actor
+    pha  ; first tile ID
+    jsr FuncA_Objects_PositionActorShape  ; preserves X
+_BottomThird:
+    lda Ram_ActorFlags_bObj_arr, x  ; param: object flags
+    jsr FuncA_Objects_Alloc2x1Shape  ; preserves X, returns C and Y
+    bcs @doneBottom
+    pla  ; first tile ID
+    pha  ; first tile ID
+    add #2
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Tile_u8, y
-    adc #1
+    adc #3
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Tile_u8, y
+    @doneBottom:
+_TopTwoThirds:
+    jsr FuncA_Objects_MoveShapeUpOneTile
+    lda Ram_ActorFlags_bObj_arr, x  ; param: object flags
+    jsr FuncA_Objects_Alloc2x2Shape  ; preserves X, returns C and Y
+    pla  ; first tile ID
+    bcs @doneTop
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Tile_u8, y
+    add #1
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Tile_u8, y
+    adc #2
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Tile_u8, y
+    adc #1
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Tile_u8, y
+    @doneTop:
     rts
 .ENDPROC
 

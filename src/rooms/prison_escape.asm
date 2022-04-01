@@ -329,6 +329,7 @@ _Trolley:
     jsr FuncA_Objects_SetShapePosToPlatformTopLeft
     jsr FuncA_Objects_MoveShapeDownOneTile
     jsr FuncA_Objects_MoveShapeRightOneTile
+    lda #0  ; param: object flags
     jsr FuncA_Objects_Alloc2x2Shape  ; sets C if offscreen; returns Y
     bcs @done
     ;; Set flags and tile IDs.

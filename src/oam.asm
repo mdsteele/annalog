@@ -22,6 +22,7 @@
 .INCLUDE "ppu.inc"
 
 .IMPORTZP Zp_Tmp1_byte
+.IMPORTZP Zp_Tmp2_byte
 .IMPORTZP Zp_WindowTop_u8
 
 ;;;=========================================================================;;;
@@ -172,23 +173,140 @@ Ram_Oam_sObj_arr64: .res .sizeof(sObj) * kNumOamSlots
     rts
 .ENDPROC
 
-;;; Allocates and sets X/Y positions for a 2x2 grid of objects, taking into
-;;; account the window position and hiding any of the objects as necessary.
+;;; Allocates and sets X/Y positions and flags for a 2x1 grid of objects (that
+;;; is, two tiles wide and one tile high), taking into account the window
+;;; position and hiding any of the objects as necessary.
+;;;
+;;; The screen-space top-center of the 2x1 grid is given by Zp_ShapePosX_i16
+;;; and Zp_ShapePosY_i16.  These variables will be preserved by this function.
+;;;
+;;; If both of the objects would be offscreen, then none are allocated (and C
+;;; is cleared).  Otherwise, the caller should use the returned OAM byte
+;;; offset in Y to set the objects' tile IDs.  If bObj::FlipH was cleared, then
+;;; the left object will come first, followed by the right; if bObj::FlipH was
+;;; set, then right object will come first instead.
+;;;
+;;; @param A The Flags_bObj value to set for each object.  If bObj::FlipH is
+;;;     included, then the order of the two objects will be reversed.
+;;; @return C Set if no OAM slots were allocated, cleared otherwise.
+;;; @return Y The OAM byte offset for the first of the four objects.
+;;; @preserve X
+.EXPORT FuncA_Objects_Alloc2x1Shape
+.PROC FuncA_Objects_Alloc2x1Shape
+    sta Zp_Tmp2_byte  ; Flags_bObj to set
+_ObjectYPositions:
+    ;; If the object is offscreen vertically or behind the window, return
+    ;; without allocating the object.
+    lda Zp_ShapePosY_i16 + 1
+    bne _NotVisible
+    lda Zp_ShapePosY_i16 + 0
+    cmp #kScreenHeightPx
+    bge _NotVisible
+    cmp Zp_WindowTop_u8
+    bge _NotVisible
+    ;; Set the vertical positions of the two objects.
+    sub #1
+    ldy Zp_OamOffset_u8
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::YPos_u8, y
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::YPos_u8, y
+_RightObjectXPosition:
+    ;; Determine the shape's center X position on screen; if the shape is
+    ;; completely offscreen to the left, return without allocating any objects.
+    lda Zp_ShapePosX_i16 + 1
+    bmi _NotVisible
+    ;; If the center of the shape is offscreen to the right, hide the
+    ;; right-hand object.
+    beq @show
+    @hide:
+    lda #$ff
+    bit Zp_Tmp2_byte  ; Flags_bObj to set
+    .assert bObj::FlipH = $40, error
+    bvs @hideFlipped
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::YPos_u8, y
+    bvc @doneRight  ; unconditional
+    @hideFlipped:
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::YPos_u8, y
+    bvs @doneRight  ; unconditional
+    @show:
+    lda Zp_ShapePosX_i16 + 0
+    bit Zp_Tmp2_byte  ; Flags_bObj to set
+    .assert bObj::FlipH = $40, error
+    bvs @showFlipped
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::XPos_u8, y
+    bvc @doneRight  ; unconditional
+    @showFlipped:
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::XPos_u8, y
+    @doneRight:
+_LeftObjectXPosition:
+    ;; Determine the shape's left edge X position on screen; if the shape is
+    ;; completely offscreen to the right, return without allocating any
+    ;; objects.  If the left edge is offscreen to the left, hide the left-hand
+    ;; object.
+    sub #kTileWidthPx
+    sta Zp_Tmp1_byte  ; left X position on screen (lo)
+    lda Zp_ShapePosX_i16 + 1
+    sbc #0
+    beq @show
+    bpl _NotVisible
+    @hide:
+    lda #$ff
+    bit Zp_Tmp2_byte  ; Flags_bObj to set
+    .assert bObj::FlipH = $40, error
+    bvs @hideFlipped
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::YPos_u8, y
+    bvc @doneLeft  ; unconditional
+    @hideFlipped:
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::YPos_u8, y
+    bvs @doneLeft  ; unconditional
+    @show:
+    lda Zp_Tmp1_byte  ; left X position on screen (lo)
+    bit Zp_Tmp2_byte  ; Flags_bObj to set
+    .assert bObj::FlipH = $40, error
+    bvs @showFlipped
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::XPos_u8, y
+    bvc @doneLeft  ; unconditional
+    @showFlipped:
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::XPos_u8, y
+    @doneLeft:
+_FinishAllocation:
+    ;; Set the object flags.
+    lda Zp_Tmp2_byte  ; Flags_bObj to set
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Flags_bObj, y
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Flags_bObj, y
+    ;; Update the OAM offset.
+    tya
+    add #.sizeof(sObj) * 2
+    sta Zp_OamOffset_u8
+    clc  ; Clear C to indicate that an object was allocated.
+    rts
+_NotVisible:
+    sec  ; Set C to indicate that no objects were allocated.
+    rts
+.ENDPROC
+
+;;; Allocates and sets X/Y positions and flags for a 2x2 grid of objects,
+;;; taking into account the window position and hiding any of the objects as
+;;; necessary.
 ;;;
 ;;; The screen-space center of the 2x2 grid is given by Zp_ShapePosX_i16 and
 ;;; Zp_ShapePosY_i16.  These variables will be preserved by this function.
 ;;;
-;;; If all of the objects would be offscreen, then none are allocated (and C is
-;;; cleared).  Otherwise, the caller should use the returned OAM byte offset in
-;;; Y to set the objects' flags and tile IDs; the allocated objects will be in
-;;; the order: top-left, bottom-left, top-right, bottom-right.
+;;; If all of the objects would be offscreen, then none are allocated (and C
+;;; is cleared).  Otherwise, the caller should use the returned OAM byte
+;;; offset in Y to set the objects' tile IDs.  If bObj::FlipH was cleared, then
+;;; the allocated objects will be in the order: top-left, bottom-left,
+;;; top-right, bottom-right.  If bObj::FlipH was set, then the allocated
+;;; objects will instead be in the order: top-right, bottom-right, top-left,
+;;; bottom-left.
 ;;;
+;;; @param A The Flags_bObj value to set for each object.  If bObj::FlipH is
+;;;     included, then the order of the two objects will be reversed.
 ;;; @return C Set if no OAM slots were allocated, cleared otherwise.
 ;;; @return Y The OAM byte offset for the first of the four objects.
 ;;; @preserve X
 .EXPORT FuncA_Objects_Alloc2x2Shape
 .PROC FuncA_Objects_Alloc2x2Shape
-    ldy Zp_OamOffset_u8
+    sta Zp_Tmp2_byte  ; Flags_bObj to set
 _ObjectYPositions:
     ;; If the shape is completely offscreen vertically or behind the window,
     ;; return without allocating any objects.
@@ -202,6 +320,7 @@ _ObjectYPositions:
     bge _NotVisible
     ;; Set the vertical positions of the four objects.
     sub #1
+    ldy Zp_OamOffset_u8
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::YPos_u8, y
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::YPos_u8, y
     add #kTileHeightPx
@@ -211,21 +330,43 @@ _ObjectYPositions:
     @bottom:
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::YPos_u8, y
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::YPos_u8, y
-_ObjectXPositions:
+    jmp _RightObjectXPositions
+_NotVisible:
+    sec  ; Set C to indicate that no objects were allocated.
+    rts
+_RightObjectXPositions:
     ;; Determine the shape's center X position on screen; if the shape is
     ;; completely offscreen to the left, return without allocating any objects.
     lda Zp_ShapePosX_i16 + 1
     bmi _NotVisible
     ;; If the center of the shape is offscreen to the right, hide the two
     ;; right-hand objects.
-    beq @rightSide
+    beq @show
+    @hide:
     lda #$ff
+    bit Zp_Tmp2_byte  ; Flags_bObj to set
+    .assert bObj::FlipH = $40, error
+    bvs @hideFlipped
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::YPos_u8, y
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::YPos_u8, y
-    @rightSide:
+    bvc @doneRight  ; unconditional
+    @hideFlipped:
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::YPos_u8, y
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::YPos_u8, y
+    bvs @doneRight  ; unconditional
+    @show:
     lda Zp_ShapePosX_i16 + 0
+    bit Zp_Tmp2_byte  ; Flags_bObj to set
+    .assert bObj::FlipH = $40, error
+    bvs @showFlipped
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::XPos_u8, y
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::XPos_u8, y
+    bvc @doneRight  ; unconditional
+    @showFlipped:
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::XPos_u8, y
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::XPos_u8, y
+    @doneRight:
+_LeftObjectXPositions:
     ;; Determine the shape's left edge X position on screen; if the shape is
     ;; completely offscreen to the right, return without allocating any
     ;; objects.  If the left edge is offscreen to the left, hide the two
@@ -234,23 +375,44 @@ _ObjectXPositions:
     sta Zp_Tmp1_byte  ; left X position on screen (lo)
     lda Zp_ShapePosX_i16 + 1
     sbc #0
-    beq @leftSide
+    beq @show
     bpl _NotVisible
+    @hide:
     lda #$ff
+    bit Zp_Tmp2_byte  ; Flags_bObj to set
+    .assert bObj::FlipH = $40, error
+    bvs @hideFlipped
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::YPos_u8, y
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::YPos_u8, y
-    @leftSide:
+    bvc @doneLeft  ; unconditional
+    @hideFlipped:
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::YPos_u8, y
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::YPos_u8, y
+    bvs @doneLeft  ; unconditional
+    @show:
     lda Zp_Tmp1_byte  ; left X position on screen (lo)
+    bit Zp_Tmp2_byte  ; Flags_bObj to set
+    .assert bObj::FlipH = $40, error
+    bvs @showFlipped
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::XPos_u8, y
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::XPos_u8, y
+    bvc @doneLeft  ; unconditional
+    @showFlipped:
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::XPos_u8, y
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::XPos_u8, y
+    @doneLeft:
 _FinishAllocation:
+    ;; Set the object flags.
+    lda Zp_Tmp2_byte  ; Flags_bObj to set
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Flags_bObj, y
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Flags_bObj, y
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Flags_bObj, y
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Flags_bObj, y
+    ;; Update the OAM offset.
     tya
     add #.sizeof(sObj) * 4
     sta Zp_OamOffset_u8
     clc  ; Clear C to indicate that objects were allocated.
-    rts
-_NotVisible:
-    sec  ; Set C to indicate that no objects were allocated.
     rts
 .ENDPROC
 
