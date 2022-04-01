@@ -47,6 +47,9 @@ kMaxTestMachinePosY = 9
 
 .ZEROPAGE
 
+.EXPORTZP Zp_P1ButtonsHeld_bJoypad
+Zp_P1ButtonsHeld_bJoypad: .res 1
+
 .EXPORTZP Zp_Tmp1_byte, Zp_Tmp_ptr
 Zp_Tmp1_byte: .res 1
 Zp_Tmp_ptr: .res 2

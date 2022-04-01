@@ -17,6 +17,7 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
+.INCLUDE "joypad.inc"
 .INCLUDE "machine.inc"
 .INCLUDE "macros.inc"
 .INCLUDE "program.inc"
@@ -24,6 +25,7 @@
 
 .IMPORT Sram_Programs_sProgram_arr
 .IMPORTZP Zp_Current_sRoom
+.IMPORTZP Zp_P1ButtonsHeld_bJoypad
 .IMPORTZP Zp_Tmp1_byte
 .IMPORTZP Zp_Tmp_ptr
 
@@ -399,11 +401,19 @@ _Le:
     cmp #$0a
     blt @immediate
     beq @readRegA
+    cmp #$0b
+    beq @readRegB
     ldy #sMachine::ReadReg_func_ptr  ; param: function pointer offset
     jmp Func_MachineCall  ; sMachine::ReadReg_func_ptr returns A
     @readRegA:
     ldx Zp_MachineIndex_u8
     lda Ram_MachineRegA_u8_arr, x
+    rts
+    @readRegB:
+    lda Zp_P1ButtonsHeld_bJoypad
+    and #bJoypad::BButton
+    beq @immediate
+    lda #1
     @immediate:
     rts
 .ENDPROC

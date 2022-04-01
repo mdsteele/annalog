@@ -90,7 +90,11 @@ _RegisterA:
     jsr FuncA_Objects_DrawHudRegister
     @done:
 _RegisterB:
-    ;; TODO: Draw register B when unlocked (once it is implemented).
+    ;; TODO: Only show register B when unlocked.
+    lda #kMachineRegNameB
+    sta Zp_HudRegisterName_u8
+    lda #$b  ; param: register
+    jsr FuncA_Objects_DrawHudRegister
 _OtherRegisters:
     .repeat 4, index
     .scope
