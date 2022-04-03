@@ -23,9 +23,6 @@
 
 /*===========================================================================*/
 
-#define MINIMAP_WIDTH 24
-#define MINIMAP_HEIGHT 15
-
 #define MAX_TILESETS 64
 
 /*===========================================================================*/
@@ -80,6 +77,12 @@ char get_tile_id(const char *tileset, int tile_index) {
     return 0x90 + tile_index;
   } else if (0 == strcmp(tileset, "minimap3")) {
     return 0xa0 + tile_index;
+  } else if (0 == strcmp(tileset, "title1")) {
+    return 0x80 + tile_index;
+  } else if (0 == strcmp(tileset, "title2")) {
+    return 0x90 + tile_index;
+  } else if (0 == strcmp(tileset, "title3")) {
+    return 0xa0 + tile_index;
   } else {
     ERROR("unknown tileset: %s\n", tileset);
   }
@@ -92,9 +95,6 @@ int main(int argc, char **argv) {
   int width, height;
   if (fscanf(stdin, "@BG 0 0 0 %ux%u", &width, &height) != 2) {
     ERROR("Invalid header\n");
-  }
-  if (width != MINIMAP_WIDTH || height != MINIMAP_HEIGHT) {
-    ERROR("Invalid size: %dx%d\n", width, height);
   }
   expect_newline();
 

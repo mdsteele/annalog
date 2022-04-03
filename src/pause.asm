@@ -115,7 +115,7 @@ _Tick:
 
 ;;; The tile ID grid for the minimap (stored in row-major order).
 .PROC DataA_Pause_Minimap_u8_arr
-:   .incbin "out/data/minimap"
+:   .incbin "out/data/minimap.map"
     .assert * - :- = kMinimapWidth * kMinimapHeight, error
 .ENDPROC
 

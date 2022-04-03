@@ -149,6 +149,19 @@
 
 ;;;=========================================================================;;;
 
+.SEGMENT "CHR_Title"
+
+.EXPORT Ppu_ChrTitle
+.PROC Ppu_ChrTitle
+:   .incbin "out/data/tiles/title1.chr"
+    .incbin "out/data/tiles/title2.chr"
+    .incbin "out/data/tiles/title3.chr"
+    .res $1c * kSizeofChr
+    .assert * - :- = kSizeofChr * $40, error
+.ENDPROC
+
+;;;=========================================================================;;;
+
 .SEGMENT "CHR_Townsfolk"
 
 .EXPORT Ppu_ChrTownsfolk

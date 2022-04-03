@@ -29,7 +29,7 @@ OBJDIR = $(OUTDIR)/obj
 SIM65DIR = $(OUTDIR)/sim65
 
 AHI2CHR = $(BINDIR)/ahi2chr
-BG2MINI = $(BINDIR)/bg2mini
+BG2MAP = $(BINDIR)/bg2map
 BG2ROOM = $(BINDIR)/bg2room
 BG2TSET = $(BINDIR)/bg2tset
 LABEL2NL = $(BINDIR)/label2nl
@@ -87,7 +87,7 @@ endef
 $(AHI2CHR): build/ahi2chr.c
 	$(compile-c)
 
-$(BG2MINI): build/bg2mini.c
+$(BG2MAP): build/bg2map.c
 	$(compile-c)
 
 $(BG2ROOM): build/bg2room.c
@@ -109,12 +109,19 @@ $(DATADIR)/%.chr: $(SRCDIR)/%.ahi $(AHI2CHR)
 
 .SECONDARY: $(CHRFILES)
 
-$(DATADIR)/minimap: $(SRCDIR)/minimap.bg $(BG2MINI)
+$(DATADIR)/minimap.map: $(SRCDIR)/minimap.bg $(BG2MAP)
 	@echo "Converting $<"
 	@mkdir -p $(@D)
-	@$(BG2MINI) < $< > $@
+	@$(BG2MAP) < $< > $@
 
-.SECONDARY: $(DATADIR)/minimap
+.SECONDARY: $(DATADIR)/minimap.map
+
+$(DATADIR)/title.map: $(SRCDIR)/title.bg $(BG2MAP)
+	@echo "Converting $<"
+	@mkdir -p $(@D)
+	@$(BG2MAP) < $< > $@
+
+.SECONDARY: $(DATADIR)/title.map
 
 $(DATADIR)/%.room: $(SRCDIR)/rooms/%.bg $(BG2ROOM)
 	@echo "Converting $<"
@@ -171,7 +178,10 @@ endef
 $(OBJDIR)/chr.o: $(SRCDIR)/chr.asm $(INCFILES) $(CHRFILES)
 	$(compile-asm)
 
-$(OBJDIR)/pause.o: $(SRCDIR)/pause.asm $(INCFILES) $(DATADIR)/minimap
+$(OBJDIR)/pause.o: $(SRCDIR)/pause.asm $(INCFILES) $(DATADIR)/minimap.map
+	$(compile-asm)
+
+$(OBJDIR)/title.o: $(SRCDIR)/title.asm $(INCFILES) $(DATADIR)/title.map
 	$(compile-asm)
 
 $(OBJDIR)/rooms/%.o: $(SRCDIR)/rooms/%.asm $(INCFILES) $(DATADIR)/%.room

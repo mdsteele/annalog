@@ -17,7 +17,6 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
-.INCLUDE "charmap.inc"
 .INCLUDE "flag.inc"
 .INCLUDE "joypad.inc"
 .INCLUDE "macros.inc"
@@ -34,6 +33,7 @@
 .IMPORT Func_UpdateButtons
 .IMPORT Func_Window_Disable
 .IMPORT Main_Explore_EnterFromDevice
+.IMPORT Ppu_ChrTitle
 .IMPORT Sram_MagicNumber_u8
 .IMPORTZP Zp_OamOffset_u8
 .IMPORTZP Zp_P1ButtonsPressed_bJoypad
@@ -43,15 +43,104 @@
 
 ;;;=========================================================================;;;
 
+;;; The nametable tile row (of the upper nametable) that the game title starts
+;;; on.
+kTitleStartRow = 10
+
+;;; The PPU address in the upper nametable for the top-left corner of the game
+;;; title.
+.LINECONT +
+Ppu_TitleTopLeft = Ppu_Nametable0_sName + sName::Tiles_u8_arr + \
+    kScreenWidthTiles * kTitleStartRow
+.LINECONT -
+
+;;;=========================================================================;;;
+
 .SEGMENT "PRG8"
 
-.PROC Data_TitleString_u8_arr
-    .byte "ANNALOG"
+;;; Mode for displaying the title screen.
+;;; @prereq Rendering is disabled.
+.EXPORT Main_Title
+.PROC Main_Title
+    jsr_prga FuncA_Title_InitAndFadeIn
+_GameLoop:
+    jsr Func_UpdateButtons
+    ;; Check START button.
+    lda Zp_P1ButtonsPressed_bJoypad
+    and #bJoypad::Start
+    bne _StartGame
+    jsr Func_ProcessFrame
+    jmp _GameLoop
+_StartGame:
+    jsr Func_FadeOut
+    jsr_prga FuncA_Title_ResetSramForNewGame
+    jsr_prga FuncA_Upgrade_ComputeMaxInstructions
+    ldx #eRoom::TownOutdoors  ; param: room number
+    ldy #0  ; param: device index
+    jmp Main_Explore_EnterFromDevice
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Title"
+
+;;; The tile ID grid for the game title (stored in row-major order).
+.PROC DataA_Title_Map_u8_arr
+:   .incbin "out/data/title.map"
+    .assert * - :- = kScreenWidthTiles * 3, error
 End:
 .ENDPROC
 
+;;; Initializes title mode, then fades in the screen.
+;;; @prereq Rendering is disabled.
+.PROC FuncA_Title_InitAndFadeIn
+    jsr Func_Window_Disable
+    chr08_bank #<.bank(Ppu_ChrTitle)
+_ClearOam:
+    lda #0
+    sta Zp_OamOffset_u8
+    jsr Func_ClearRestOfOam
+_ClearUpperNametable:
+    lda #kPpuCtrlFlagsHorz
+    sta Hw_PpuCtrl_wo
+    ldax #Ppu_Nametable0_sName + sName::Tiles_u8_arr
+    bit Hw_PpuStatus_ro  ; reset the Hw_PpuAddr_w2 write-twice latch
+    sta Hw_PpuAddr_w2
+    stx Hw_PpuAddr_w2
+    lda #0
+    ldxy #kScreenWidthTiles * kScreenHeightTiles
+    @loop:
+    sta Hw_PpuData_rw
+    dey
+    bne @loop
+    dex
+    bpl @loop
+_DrawTitle:
+    lda #kPpuCtrlFlagsHorz
+    sta Hw_PpuCtrl_wo
+    ldax #Ppu_TitleTopLeft
+    bit Hw_PpuStatus_ro  ; reset the Hw_PpuAddr_w2 write-twice latch
+    sta Hw_PpuAddr_w2
+    stx Hw_PpuAddr_w2
+    ldy #DataA_Title_Map_u8_arr::End - DataA_Title_Map_u8_arr
+    ldx #0
+    @loop:
+    lda DataA_Title_Map_u8_arr, x
+    sta Hw_PpuData_rw
+    inx
+    dey
+    bne @loop
+_FadeIn:
+    lda #bPpuMask::BgMain | bPpuMask::ObjMain
+    sta Zp_Render_bPpuMask
+    lda #0
+    sta Zp_PpuScrollX_u8
+    sta Zp_PpuScrollY_u8
+    jmp Func_FadeIn
+.ENDPROC
+
 ;;; Erases all of SRAM and creates a save file for a new game.
-.PROC Func_ResetSramForNewGame
+.PROC FuncA_Title_ResetSramForNewGame
     ;; Enable writes to SRAM.
     lda #bMmc3PrgRam::Enable
     sta Hw_Mmc3PrgRamProtect_wo
@@ -71,71 +160,6 @@ End:
     lda #bMmc3PrgRam::Enable | bMmc3PrgRam::DenyWrites
     sta Hw_Mmc3PrgRamProtect_wo
     rts
-.ENDPROC
-
-;;; @prereq Rendering is disabled.
-.EXPORT Main_Title
-.PROC Main_Title
-    jsr Func_Window_Disable
-    ;; Clear OAM:
-    lda #0
-    sta Zp_OamOffset_u8
-    jsr Func_ClearRestOfOam
-_ClearNametable0:
-    lda #kPpuCtrlFlagsHorz
-    sta Hw_PpuCtrl_wo
-    ldax #Ppu_Nametable0_sName + sName::Tiles_u8_arr
-    bit Hw_PpuStatus_ro  ; reset the Hw_PpuAddr_w2 write-twice latch
-    sta Hw_PpuAddr_w2
-    stx Hw_PpuAddr_w2
-    lda #0
-    ldxy #kScreenWidthTiles * kScreenHeightTiles
-    @loop:
-    sta Hw_PpuData_rw
-    dey
-    bne @loop
-    dex
-    bpl @loop
-_DrawTitleString:
-    lda #kPpuCtrlFlagsHorz
-    sta Hw_PpuCtrl_wo
-    .linecont +
-    ldax #Ppu_Nametable0_sName + sName::Tiles_u8_arr + \
-          kScreenWidthTiles * 14 + 12
-    .linecont -
-    bit Hw_PpuStatus_ro  ; reset the Hw_PpuAddr_w2 write-twice latch
-    sta Hw_PpuAddr_w2
-    stx Hw_PpuAddr_w2
-    ldy #Data_TitleString_u8_arr::End - Data_TitleString_u8_arr
-    ldx #0
-    @loop:
-    lda Data_TitleString_u8_arr, x
-    sta Hw_PpuData_rw
-    inx
-    dey
-    bne @loop
-_FadeIn:
-    lda #bPpuMask::BgMain | bPpuMask::ObjMain
-    sta Zp_Render_bPpuMask
-    lda #0
-    sta Zp_PpuScrollX_u8
-    sta Zp_PpuScrollY_u8
-    jsr Func_FadeIn
-_GameLoop:
-    jsr Func_UpdateButtons
-    ;; Check START button.
-    lda Zp_P1ButtonsPressed_bJoypad
-    and #bJoypad::Start
-    bne _StartGame
-    jsr Func_ProcessFrame
-    jmp _GameLoop
-_StartGame:
-    jsr Func_FadeOut
-    jsr Func_ResetSramForNewGame
-    jsr_prga FuncA_Upgrade_ComputeMaxInstructions
-    ldx #eRoom::TownOutdoors  ; param: room number
-    ldy #0  ; param: device index
-    jmp Main_Explore_EnterFromDevice
 .ENDPROC
 
 ;;;=========================================================================;;;

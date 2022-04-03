@@ -27,7 +27,7 @@
 .IMPORT Main_Title
 .IMPORT Ppu_ChrFontLower01
 .IMPORT Ppu_ChrFontUpper
-.IMPORT Ppu_ChrOutdoors
+.IMPORT Ppu_ChrPause
 .IMPORT Ppu_ChrPlayer
 .IMPORT Ppu_ChrUpgrade
 .IMPORT Ram_Active_sIrq
@@ -134,8 +134,8 @@ _InitPpuMapping:
     ;; Set all CHR ROM banks to a known state.
     chr00_bank #<.bank(Ppu_ChrFontUpper)
     chr04_bank #<.bank(Ppu_ChrFontLower01)
-    chr08_bank #<.bank(Ppu_ChrOutdoors)
-    chr0c_bank #$07
+    chr08_bank #<.bank(Ppu_ChrPause)
+    chr0c_bank #<.bank(Ppu_ChrPause)
     chr10_bank #<.bank(Ppu_ChrPlayer)
     chr18_bank #<.bank(Ppu_ChrUpgrade)
 _InitAttributeTable0:
