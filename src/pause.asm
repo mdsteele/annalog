@@ -29,9 +29,9 @@
 .INCLUDE "window.inc"
 
 .IMPORT Data_PowersOfTwo_u8_arr8
+.IMPORT FuncA_Fade_In
+.IMPORT FuncA_Fade_Out
 .IMPORT Func_ClearRestOfOam
-.IMPORT Func_FadeIn
-.IMPORT Func_FadeOut
 .IMPORT Func_ProcessFrame
 .IMPORT Func_UpdateButtons
 .IMPORT Func_Window_Disable
@@ -92,7 +92,8 @@ kMinimapCurrentScreenPalette = 1
 .EXPORT Main_Pause
 .PROC Main_Pause
     chr08_bank #<.bank(Ppu_ChrPause)
-    jsr_prga FuncA_Pause_InitAndFadeIn
+    jsr_prga FuncA_Pause_Init
+    jsr_prga FuncA_Fade_In
 _GameLoop:
     jsr_prga FuncA_Pause_DrawObjectsForMinimap
     jsr Func_ClearRestOfOam
@@ -102,7 +103,7 @@ _CheckForUnause:
     lda Zp_P1ButtonsPressed_bJoypad
     and #bJoypad::Start | bJoypad::BButton | bJoypad::AButton
     beq @done
-    jsr Func_FadeOut
+    jsr_prga FuncA_Fade_Out
     jmp Main_Explore_FadeIn
     @done:
 _Tick:
@@ -134,9 +135,9 @@ kSize = * - Start
 ;;; The screen tile column that the area name begins on.
 kAreaNameStartCol = DataA_Pause_CurrentAreaLabel_u8_arr::kAreaNameStartCol
 
-;;; Initializes pause mode, then fades in the screen.
+;;; Initializes pause mode.
 ;;; @prereq Rendering is disabled.
-.PROC FuncA_Pause_InitAndFadeIn
+.PROC FuncA_Pause_Init
     ;; Reset the frame counter before drawing any objects so that the
     ;; current-position blink will be in aconsistent state as we fade in.
     lda #0
@@ -146,13 +147,13 @@ _DrawScreen:
     jsr FuncA_Pause_DirectDrawBg
     jsr FuncA_Pause_DrawObjectsForMinimap
     jsr Func_ClearRestOfOam
-_FadeIn:
+_SetRenderState:
     lda #bPpuMask::BgMain | bPpuMask::ObjMain
     sta Zp_Render_bPpuMask
     lda #0
     sta Zp_PpuScrollX_u8
     sta Zp_PpuScrollY_u8
-    jmp Func_FadeIn
+    rts
 .ENDPROC
 
 ;;; Directly fills PPU nametable 0 with BG tile data for the pause screen.

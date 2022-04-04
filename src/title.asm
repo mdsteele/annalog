@@ -25,10 +25,10 @@
 .INCLUDE "program.inc"
 .INCLUDE "room.inc"
 
+.IMPORT FuncA_Fade_In
+.IMPORT FuncA_Fade_Out
 .IMPORT FuncA_Upgrade_ComputeMaxInstructions
 .IMPORT Func_ClearRestOfOam
-.IMPORT Func_FadeIn
-.IMPORT Func_FadeOut
 .IMPORT Func_ProcessFrame
 .IMPORT Func_UpdateButtons
 .IMPORT Func_Window_Disable
@@ -62,7 +62,8 @@ Ppu_TitleTopLeft = Ppu_Nametable0_sName + sName::Tiles_u8_arr + \
 ;;; @prereq Rendering is disabled.
 .EXPORT Main_Title
 .PROC Main_Title
-    jsr_prga FuncA_Title_InitAndFadeIn
+    jsr_prga FuncA_Title_Init
+    jsr_prga FuncA_Fade_In
 _GameLoop:
     jsr Func_UpdateButtons
     ;; Check START button.
@@ -72,7 +73,9 @@ _GameLoop:
     jsr Func_ProcessFrame
     jmp _GameLoop
 _StartGame:
-    jsr Func_FadeOut
+    jsr_prga FuncA_Fade_Out
+    ldy #$00  ; param: attribute byte
+    jsr_prga FuncA_Title_FillUpperAttributeTable
     jsr_prga FuncA_Title_ResetSramForNewGame
     jsr_prga FuncA_Upgrade_ComputeMaxInstructions
     ldx #eRoom::TownOutdoors  ; param: room number
@@ -91,9 +94,9 @@ _StartGame:
 End:
 .ENDPROC
 
-;;; Initializes title mode, then fades in the screen.
+;;; Initializes title mode.
 ;;; @prereq Rendering is disabled.
-.PROC FuncA_Title_InitAndFadeIn
+.PROC FuncA_Title_Init
     jsr Func_Window_Disable
     chr08_bank #<.bank(Ppu_ChrTitle)
 _ClearOam:
@@ -130,13 +133,31 @@ _DrawTitle:
     inx
     dey
     bne @loop
-_FadeIn:
+_InitAttributeTable:
+    ldy #$55  ; param: attribute byte
+    jsr FuncA_Title_FillUpperAttributeTable
+_SetRenderState:
     lda #bPpuMask::BgMain | bPpuMask::ObjMain
     sta Zp_Render_bPpuMask
     lda #0
     sta Zp_PpuScrollX_u8
     sta Zp_PpuScrollY_u8
-    jmp Func_FadeIn
+    rts
+.ENDPROC
+
+;;; Fills the upper attribute table with the given byte.
+;;; @param Y The attribute byte to set.
+.PROC FuncA_Title_FillUpperAttributeTable
+    ldax #Ppu_Nametable0_sName + sName::Attrs_u8_arr64
+    bit Hw_PpuStatus_ro  ; reset the Hw_PpuAddr_w2 write-twice latch
+    sta Hw_PpuAddr_w2
+    stx Hw_PpuAddr_w2
+    ldx #64
+    @loop:
+    sty Hw_PpuData_rw
+    dex
+    bne @loop
+    rts
 .ENDPROC
 
 ;;; Erases all of SRAM and creates a save file for a new game.

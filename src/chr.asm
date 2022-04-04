@@ -156,7 +156,7 @@
 :   .incbin "out/data/tiles/title1.chr"
     .incbin "out/data/tiles/title2.chr"
     .incbin "out/data/tiles/title3.chr"
-    .res $1c * kSizeofChr
+    .res $1b * kSizeofChr
     .assert * - :- = kSizeofChr * $40, error
 .ENDPROC
 

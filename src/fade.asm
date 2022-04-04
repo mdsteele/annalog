@@ -25,96 +25,185 @@
 .IMPORTZP Zp_PpuTransferLen_u8
 .IMPORTZP Zp_Render_bPpuMask
 .IMPORTZP Zp_Tmp1_byte
+.IMPORTZP Zp_Tmp_ptr
 
 ;;;=========================================================================;;;
+
+kColorBlack    = $0f  ; black
+kColorGray3    = $00  ; dark gray
+kColorGray2    = $2d  ; darker gray
+kColorGray1    = $2d  ; darker gray
+kColorGreen3   = $1a  ; medium green
+kColorGreen2   = $0a  ; dark green
+kColorGreen1   = $09  ; dark chartreuse
+kColorRed3     = $16  ; medium red
+kColorRed2     = $06  ; dark red
+kColorRed1     = $06  ; dark red
+kColorWhite3   = $30  ; white
+kColorWhite2   = $3d  ; light gray
+kColorWhite1   = $2d  ; dark gray
 
 kNumFadeSteps = 4
 kFramesPerStep = 5
 
-.DEFINE kNumTransferEntries 4
-.DEFINE kTransferDataLen 2
-kTransferEntryLen = 4 + kTransferDataLen
-kTotalTransferLen = kTransferEntryLen * kNumTransferEntries
+kPalettesTransferLen = .sizeof(sPal) * 8
 
 .LINECONT +
-Ppu_Bg0Colors_u6_arr2 = \
-    Ppu_Palettes_sPal_arr8 + .sizeof(sPal) * 0 + sPal::C2_u6
-Ppu_Obj0Colors_u6_arr2 = \
-    Ppu_Palettes_sPal_arr8 + .sizeof(sPal) * 4 + sPal::C2_u6
-Ppu_Obj1Colors_u6_arr2 = \
-    Ppu_Palettes_sPal_arr8 + .sizeof(sPal) * 5 + sPal::C2_u6
-Ppu_Obj2Colors_u6_arr2 = \
-    Ppu_Palettes_sPal_arr8 + .sizeof(sPal) * 6 + sPal::C2_u6
-.DEFINE TransferAddrs \
-    Ppu_Bg0Colors_u6_arr2 \
-    Ppu_Obj0Colors_u6_arr2 \
-    Ppu_Obj1Colors_u6_arr2 \
-    Ppu_Obj2Colors_u6_arr2
+.DEFINE PalettesPtrs \
+    DataA_Fade_Palettes1_sPal_arr8, \
+    DataA_Fade_Palettes2_sPal_arr8, \
+    DataA_Fade_Palettes3_sPal_arr8
 .LINECONT -
 
 ;;;=========================================================================;;;
 
-.SEGMENT "PRG8"
+.SEGMENT "PRGA_Fade"
 
-.SCOPE Data_FadeColors
-Gray_u6_arr:
-    .byte $0f, $2d, $2d, $00
-    .assert * - Gray_u6_arr = kNumFadeSteps, error
-Green_u6_arr:
-    .byte $0f, $09, $0a, $1a
-    .assert * - Green_u6_arr = kNumFadeSteps, error
-Red_u6_arr:
-    .byte $0f, $06, $06, $16
-    .assert * - Red_u6_arr = kNumFadeSteps, error
-White_u6_arr:
-    .byte $0f, $2d, $3d, $30
-    .assert * - White_u6_arr = kNumFadeSteps, error
-.ENDSCOPE
-
-.PROC Data_FadeTransferTemplate_u8_arr
-:   .repeat kNumTransferEntries, i
-    .byte kPpuCtrlFlagsHorz
-    .byte >.mid(i, 1, {TransferAddrs})
-    .byte <.mid(i, 1, {TransferAddrs})
-    .byte kTransferDataLen
-    .res kTransferDataLen
-    .endrepeat
-    .assert * - :- = kTotalTransferLen, error
+;;; Pointers to palette sets for each nonzero fade step, indexed by (step - 1).
+.PROC DataA_Fade_Palettes_sPal_arr8_ptr_0_arr
+    .lobytes PalettesPtrs
+.ENDPROC
+.PROC DataA_Fade_Palettes_sPal_arr8_ptr_1_arr
+    .hibytes PalettesPtrs
 .ENDPROC
 
-;;; Updates PPU palettes for fade step A, then waits for kFramesPerStep frames.
+;;; The palette set for fade step 3.
+.PROC DataA_Fade_Palettes3_sPal_arr8
+    .repeat 2
+    D_STRUCT sPal
+    d_byte C0_u6, kColorBlack
+    d_byte C1_u6, kColorBlack
+    d_byte C2_u6, kColorGray3
+    d_byte C3_u6, kColorWhite3
+    D_END
+    D_STRUCT sPal
+    d_byte C0_u6, kColorBlack
+    d_byte C1_u6, kColorBlack
+    d_byte C2_u6, kColorRed3
+    d_byte C3_u6, kColorWhite3
+    D_END
+    D_STRUCT sPal
+    d_byte C0_u6, kColorBlack
+    d_byte C1_u6, kColorBlack
+    d_byte C2_u6, kColorGreen3
+    d_byte C3_u6, kColorWhite3
+    D_END
+    D_STRUCT sPal
+    d_byte C0_u6, kColorBlack
+    d_byte C1_u6, kColorBlack
+    d_byte C2_u6, kColorRed3
+    d_byte C3_u6, kColorWhite3
+    D_END
+    .endrepeat
+.ENDPROC
+
+;;; The palette set for fade step 2.
+.PROC DataA_Fade_Palettes2_sPal_arr8
+    .repeat 2
+    D_STRUCT sPal
+    d_byte C0_u6, kColorBlack
+    d_byte C1_u6, kColorBlack
+    d_byte C2_u6, kColorGray2
+    d_byte C3_u6, kColorWhite2
+    D_END
+    D_STRUCT sPal
+    d_byte C0_u6, kColorBlack
+    d_byte C1_u6, kColorBlack
+    d_byte C2_u6, kColorRed2
+    d_byte C3_u6, kColorWhite2
+    D_END
+    D_STRUCT sPal
+    d_byte C0_u6, kColorBlack
+    d_byte C1_u6, kColorBlack
+    d_byte C2_u6, kColorGreen2
+    d_byte C3_u6, kColorWhite2
+    D_END
+    D_STRUCT sPal
+    d_byte C0_u6, kColorBlack
+    d_byte C1_u6, kColorBlack
+    d_byte C2_u6, kColorRed3
+    d_byte C3_u6, kColorWhite3
+    D_END
+    .endrepeat
+.ENDPROC
+
+;;; The palette set for fade step 1.
+.PROC DataA_Fade_Palettes1_sPal_arr8
+    .repeat 2
+    D_STRUCT sPal
+    d_byte C0_u6, kColorBlack
+    d_byte C1_u6, kColorBlack
+    d_byte C2_u6, kColorGray1
+    d_byte C3_u6, kColorWhite1
+    D_END
+    D_STRUCT sPal
+    d_byte C0_u6, kColorBlack
+    d_byte C1_u6, kColorBlack
+    d_byte C2_u6, kColorRed1
+    d_byte C3_u6, kColorWhite1
+    D_END
+    D_STRUCT sPal
+    d_byte C0_u6, kColorBlack
+    d_byte C1_u6, kColorBlack
+    d_byte C2_u6, kColorGreen1
+    d_byte C3_u6, kColorWhite1
+    D_END
+    D_STRUCT sPal
+    d_byte C0_u6, kColorBlack
+    d_byte C1_u6, kColorBlack
+    d_byte C2_u6, kColorRed3
+    d_byte C3_u6, kColorWhite3
+    D_END
+    .endrepeat
+.ENDPROC
+
+;;; Updates PPU palettes and/or Zp_Render_bPpuMask for the specified fade step.
 ;;; @param Y The fade step, from 0 (faded fully out) to kNumFadeSteps - 1.
 ;;; @preserve Y
-.PROC Func_FadeTransferAndWait
-    ;; Write entry headers for all the transfer entries.
+.PROC FuncA_Fade_TransferPalettes
     sty Zp_Tmp1_byte  ; fade step
+    bne @enable
+    sty Zp_Render_bPpuMask
+    rts
+    @enable:
+    ;; Make Zp_Tmp_ptr point to the palettes array for this fade step.
+    dey
+    lda DataA_Fade_Palettes_sPal_arr8_ptr_0_arr, y
+    sta Zp_Tmp_ptr + 0
+    lda DataA_Fade_Palettes_sPal_arr8_ptr_1_arr, y
+    sta Zp_Tmp_ptr + 1
+    ;; Write the transfer entry header.
     ldx Zp_PpuTransferLen_u8
+    lda #kPpuCtrlFlagsHorz
+    sta Ram_PpuTransfer_arr, x
+    inx
+    lda #>Ppu_Palettes_sPal_arr8
+    sta Ram_PpuTransfer_arr, x
+    inx
+    lda #<Ppu_Palettes_sPal_arr8
+    sta Ram_PpuTransfer_arr, x
+    inx
+    lda #kPalettesTransferLen
+    sta Ram_PpuTransfer_arr, x
+    inx
+    ;; Write the transfer entry data.
     ldy #0
     @loop:
-    lda Data_FadeTransferTemplate_u8_arr, y
+    lda (Zp_Tmp_ptr), y
     sta Ram_PpuTransfer_arr, x
     inx
     iny
-    cpy #kTotalTransferLen
-    bne @loop
-    lda Zp_PpuTransferLen_u8
+    cpy #kPalettesTransferLen
+    blt @loop
+    ;; Update the PPU transfer array length and restore Y.
     stx Zp_PpuTransferLen_u8
-    tax
     ldy Zp_Tmp1_byte  ; fade step
-    ;; Fill in the data to transfer for all the entries.
-    lda Data_FadeColors::Gray_u6_arr,  y
-    sta Ram_PpuTransfer_arr + kTransferEntryLen * 0 + 4, x
-    sta Ram_PpuTransfer_arr + kTransferEntryLen * 1 + 4, x
-    lda Data_FadeColors::Red_u6_arr,   y
-    sta Ram_PpuTransfer_arr + kTransferEntryLen * 2 + 4, x
-    lda Data_FadeColors::Green_u6_arr, y
-    sta Ram_PpuTransfer_arr + kTransferEntryLen * 3 + 4, x
-    lda Data_FadeColors::White_u6_arr, y
-    .repeat kNumTransferEntries, i
-    sta Ram_PpuTransfer_arr + kTransferEntryLen * i + 5, x
-    .endrepeat
-_Wait:
-    ;; Process kFramesPerStep frames.
+    rts
+.ENDPROC
+
+;;; Waits for kFramesPerStep frames.
+;;; @preserve Y
+.PROC FuncA_Fade_Wait
     tya
     pha
     lda #kFramesPerStep
@@ -132,28 +221,35 @@ _Wait:
 ;;; Fades in the screen over a number of frames.  Variables such as
 ;;; Zp_Render_bPpuMask, scrolling, and shadow OAM must be set up before calling
 ;;; this.
-.EXPORT Func_FadeIn
-.PROC Func_FadeIn
-    ldy #0
+;;; @prereq Rendering is disabled.
+.EXPORT FuncA_Fade_In
+.PROC FuncA_Fade_In
+    ;; Note that even with rendering disabled (as it is now), palette data
+    ;; should only be updated during VBlank, since otherwise we may glitch the
+    ;; background color (see https://www.nesdev.org/wiki/The_frame_and_NMIs).
+    ;; So we always use the PPU transfer array instead of writing palette data
+    ;; directly to the PPU.
+    ldy #1
     @stepLoop:
-    jsr Func_FadeTransferAndWait  ; preserves Y
+    jsr FuncA_Fade_TransferPalettes  ; preserves Y
+    jsr FuncA_Fade_Wait              ; preserves Y
     iny
     cpy #kNumFadeSteps
-    bne @stepLoop
+    blt @stepLoop
     rts
 .ENDPROC
 
 ;;; Fades out the screen over a number of frames, then disables rendering.
-.EXPORT Func_FadeOut
-.PROC Func_FadeOut
-    ldy #kNumFadeSteps - 1
+.EXPORT FuncA_Fade_Out
+.PROC FuncA_Fade_Out
+    jsr FuncA_Fade_Wait
+    ldy #kNumFadeSteps - 2
     @stepLoop:
-    jsr Func_FadeTransferAndWait  ; preserves Y
+    jsr FuncA_Fade_TransferPalettes  ; preserves Y
+    jsr FuncA_Fade_Wait              ; preserves Y
     dey
-    bne @stepLoop
-    ;; Y is now zero, so we can use it to diable rendering.
-    sty Zp_Render_bPpuMask
-    jmp Func_ProcessFrame
+    bpl @stepLoop
+    rts
 .ENDPROC
 
 ;;;=========================================================================;;;

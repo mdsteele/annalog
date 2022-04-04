@@ -30,6 +30,8 @@
 
 .IMPORT DataA_Room_Banks_u8_arr
 .IMPORT FuncA_Avatar_ExploreMove
+.IMPORT FuncA_Fade_In
+.IMPORT FuncA_Fade_Out
 .IMPORT FuncA_Objects_DrawAllActors
 .IMPORT FuncA_Objects_DrawAllDevices
 .IMPORT FuncA_Objects_DrawAllMachines
@@ -42,8 +44,6 @@
 .IMPORT Func_Avatar_PositionAtNearbyDevice
 .IMPORT Func_ClearRestOfOam
 .IMPORT Func_ExecuteAllMachines
-.IMPORT Func_FadeIn
-.IMPORT Func_FadeOut
 .IMPORT Func_ProcessFrame
 .IMPORT Func_TickAllActors
 .IMPORT Func_TickAllDevices
@@ -193,7 +193,7 @@ _InitObjectsAndFadeIn:
     jsr_prga FuncA_Objects_DrawObjectsForRoom
     jsr Func_ClearRestOfOam
     ;; Zp_Render_bPpuMask will be set by FuncA_Objects_DrawObjectsForRoom.
-    jsr Func_FadeIn
+    jsr_prga FuncA_Fade_In
     .assert * = Main_Explore_Continue, error, "fallthrough"
 .ENDPROC
 
@@ -220,7 +220,7 @@ _CheckForPause:
     lda Zp_P1ButtonsPressed_bJoypad
     and #bJoypad::Start
     beq @done
-    jsr Func_FadeOut
+    jsr_prga FuncA_Fade_Out
     jmp Main_Pause
     @done:
 _CheckForActivateDevice:
@@ -287,7 +287,7 @@ _Tick:
     pha  ; ePassage value
     jsr_prga FuncA_Objects_DrawObjectsForRoom
     jsr Func_ClearRestOfOam
-    jsr Func_FadeOut
+    jsr_prga FuncA_Fade_Out
     pla  ; ePassage value
 _CalculatePassage:
     ;; Calculate the bPassage value from the ePassage and the avatar's
@@ -359,7 +359,7 @@ _EnterNextRoom:
 _FadeOut:
     jsr_prga FuncA_Objects_DrawObjectsForRoom
     jsr Func_ClearRestOfOam
-    jsr Func_FadeOut
+    jsr_prga FuncA_Fade_Out
 _LoadNextRoom:
     prga_bank #<.bank(DataA_Room_Banks_u8_arr)
     ldy Zp_NearbyDevice_u8
@@ -393,7 +393,7 @@ _FadeIn:
 ;;; @prereq Explore mode is already initialized.
 .PROC Main_Explore_Death
     ;; TODO: Animate the avatar blinking red or collapasing or something.
-    jsr Func_FadeOut
+    jsr_prga FuncA_Fade_Out
     jmp Main_Title
 .ENDPROC
 

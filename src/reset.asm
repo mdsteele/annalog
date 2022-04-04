@@ -67,9 +67,9 @@ kSharedBgColor = $0f  ; black
 _WaitForFirstVBlank:
     ;; We need to wait for the PPU to warm up before can start the game.  The
     ;; standard strategy for this is to wait for two VBlanks to occur (for
-    ;; details, see https://wiki.nesdev.org/w/index.php/Init_code and
-    ;; https://wiki.nesdev.org/w/index.php/PPU_power_up_state#Best_practice).
-    ;; For now, we'll wait for first VBlank.
+    ;; details, see https://www.nesdev.org/wiki/Init_code and
+    ;; https://www.nesdev.org/wiki/PPU_power_up_state#Best_practice).  For now,
+    ;; we'll wait for first VBlank.
     bit Hw_PpuStatus_ro  ; Reading this implicitly clears the VBlank bit.
     @loop:
     bit Hw_PpuStatus_ro  ; Set N (negative) CPU flag to value of VBlank bit.
@@ -108,24 +108,6 @@ _WaitForSecondVBlank:
     @loop:
     bit Hw_PpuStatus_ro  ; Set N (negative) CPU flag to value of VBlank bit.
     bpl @loop            ; Continue looping until the VBlank bit is set again.
-_InitPalettes:
-    ;; We're back in VBlank, and the PPU should be warmed up now, so this is a
-    ;; good time to initialize our palette data.  Note that even when rendering
-    ;; is disabled (as it is right now), palette data should only be updated
-    ;; during VBlank, since otherwise we may glitch the background color (see
-    ;; https://wiki.nesdev.org/w/index.php/The_frame_and_NMIs).
-    ldax #Ppu_Palettes_sPal_arr8
-    bit Hw_PpuStatus_ro  ; reset the Hw_PpuAddr_w2 write-twice latch
-    sta Hw_PpuAddr_w2
-    stx Hw_PpuAddr_w2
-    ldx #0
-    ldy #.sizeof(sPal) * 8
-    @loop:
-    lda DataA_Reset_Palettes_sPal_arr8, x
-    sta Hw_PpuData_rw
-    inx
-    dey
-    bne @loop
 _InitPpuMapping:
     ;; Set nametable mirroring to horizontal (which is what we'll want for
     ;; implementing four-way scrolling).
@@ -170,28 +152,5 @@ _Finish:
     cli                      ; enable maskable (IRQ) interrupts
     jmp Main_Title
 .ENDPROC
-
-.PROC DataA_Reset_Palettes_sPal_arr8
-    ;; BG palettes 0-3 and OBJ palette 0:
-    .repeat 5
-    .byte kSharedBgColor
-    .byte $0f  ; black
-    .byte $00  ; dark gray
-    .byte $30  ; white
-    .endrepeat
-    ;; OBJ palette 1:
-    .byte kSharedBgColor
-    .byte $0f  ; black
-    .byte $16  ; medium red
-    .byte $30  ; white
-    ;; OBJ palettes 2 and 3:
-    .repeat 2
-    .byte kSharedBgColor
-    .byte $0f  ; black
-    .byte $1a  ; medium green
-    .byte $30  ; white
-    .endrepeat
-.ENDPROC
-.ASSERT * - DataA_Reset_Palettes_sPal_arr8 = .sizeof(sPal) * 8, error
 
 ;;;=========================================================================;;;
