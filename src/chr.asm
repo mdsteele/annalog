@@ -116,7 +116,7 @@
 .EXPORT Ppu_ChrPause
 .PROC Ppu_ChrPause
 :   .incbin "out/data/tiles/minimap1.chr"
-    .res $06 * kSizeofChr
+    .res $05 * kSizeofChr
     .incbin "out/data/tiles/minimap2.chr"
     .res $07 * kSizeofChr
     .incbin "out/data/tiles/minimap3.chr"

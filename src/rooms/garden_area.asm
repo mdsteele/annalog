@@ -21,30 +21,37 @@
 
 ;;;=========================================================================;;;
 
-.SEGMENT "PRGC_Prison"
+.SEGMENT "PRGC_Garden"
 
-.EXPORT DataC_Prison_AreaName_u8_arr
-.PROC DataC_Prison_AreaName_u8_arr
-    .byte "Prison Caves", $ff
+.EXPORT DataC_Garden_AreaName_u8_arr
+.PROC DataC_Garden_AreaName_u8_arr
+    .byte "Vine Garden", $ff
 .ENDPROC
 
-.EXPORT DataC_Prison_AreaCells_u8_arr2_arr
-.PROC DataC_Prison_AreaCells_u8_arr2_arr
-    .byte 1, 5
-    .byte 1, 6
-    .byte 1, 7
-    .byte 2, 3
-    .byte 2, 4
-    .byte 2, 5
-    .byte 2, 6
-    .byte 2, 7
-    .byte 2, 8
-    .byte 2, 9
-    .byte 3, 3
-    .byte 3, 4
-    .byte 3, 5
-    .byte 3, 6
-    .byte 4, 6
+.EXPORT DataC_Garden_AreaCells_u8_arr2_arr
+.PROC DataC_Garden_AreaCells_u8_arr2_arr
+    .byte  6,  6
+    .byte  7,  5
+    .byte  7,  6
+    .byte  7,  7
+    .byte  7,  8
+    .byte  7,  9
+    .byte  8,  5
+    .byte  8,  6
+    .byte  8,  7
+    .byte  8,  8
+    .byte  8,  9
+    .byte  8, 10
+    .byte  8, 11
+    .byte  9,  6
+    .byte  9,  7
+    .byte  9,  8
+    .byte  9,  9
+    .byte  9, 10
+    .byte  9, 11
+    .byte 10,  6
+    .byte 10,  7
+    .byte 10,  8
     .byte $ff
 .ENDPROC
 

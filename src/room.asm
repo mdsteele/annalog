@@ -25,6 +25,7 @@
 .INCLUDE "room.inc"
 .INCLUDE "tileset.inc"
 
+.IMPORT DataC_Garden_Landing_sRoom
 .IMPORT DataC_Prison_Cell_sRoom
 .IMPORT DataC_Prison_Escape_sRoom
 .IMPORT DataC_Prison_Tunnel_sRoom
@@ -63,6 +64,7 @@
 
 .LINECONT +
 .DEFINE RoomPtrs \
+    DataC_Garden_Landing_sRoom, \
     DataC_Prison_Cell_sRoom, \
     DataC_Prison_Escape_sRoom, \
     DataC_Prison_Tunnel_sRoom, \
