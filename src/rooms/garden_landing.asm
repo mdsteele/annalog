@@ -90,6 +90,11 @@ _Passages_sPassage_arr:
     d_word PositionAdjust_i16, $ffff & -$50
     d_byte Destination_eRoom, eRoom::PrisonCell  ; TODO
     D_END
+    D_STRUCT sPassage
+    d_byte Exit_bPassage, ePassage::Top | 0
+    d_word PositionAdjust_i16, $110
+    d_byte Destination_eRoom, eRoom::PrisonCell
+    D_END
 _Init:
     rts
 .ENDPROC

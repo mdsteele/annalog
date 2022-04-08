@@ -291,7 +291,7 @@ _Tick:
     pla  ; ePassage value
 _CalculatePassage:
     ;; Calculate the bPassage value from the ePassage and the avatar's
-    ;; position.
+    ;; position, storing it in A.
     tay  ; ePassage value
     and #bPassage::EastWest
     beq @upDown
@@ -313,7 +313,22 @@ _CalculatePassage:
     ora #1
     bne _LoadNextRoom  ; unconditional
     @upDown:
-    ;; TODO: determine screen number for up/down passages
+    lda Zp_AvatarPosX_i16 + 1
+    bmi @leftSide
+    cmp <(Zp_Current_sRoom + sRoom::MinimapWidth_u8)
+    blt @setScreenNumber
+    bge @rightSide  ; unconditional
+    @leftSide:
+    lda #0
+    beq @setScreenNumber  ; unconditional
+    @rightSide:
+    ldx <(Zp_Current_sRoom + sRoom::MinimapWidth_u8)
+    dex
+    txa
+    @setScreenNumber:
+    sta Zp_Tmp1_byte  ; screen number
+    tya  ; ePassage value
+    ora Zp_Tmp1_byte  ; screen number
 _LoadNextRoom:
     pha  ; bPassage value
     tax  ; param: bPassage value
@@ -326,17 +341,48 @@ _RepositionAvatar:
     ;; Extract ePassage value from bPassage value.
     and #bPassage::SideMask
     ;; Reposition avatar based on ePassage value and new room size.
-    cmp #ePassage::Eastern
-    bne @eastern
-    ;; TODO: handle up/down passages
-    @western:
+    .assert bPassage::EastWest = $80, error
+    bmi @eastWest
+    @upDown:
+    cmp #ePassage::Bottom
+    beq @bottomPassage
+    bne @topPassage  ; unconditional
+    @eastWest:
+    cmp #ePassage::Western
+    beq @westernPassage
+    ;; If we went through an eastern passage, place the avatar on the west edge
+    ;; of the new room.
+    @easternPassage:
     lda <(Zp_Current_sRoom + sRoom::MinScrollX_u8)
     add #8
     sta Zp_AvatarPosX_i16 + 0
     lda #0
     sta Zp_AvatarPosX_i16 + 1
     beq @passageDone  ; unconditional
-    @eastern:
+    ;; If we went through a bottom passage, place the avatar on the top edge
+    ;; of the new room.
+    @bottomPassage:
+    lda #kTileHeightPx + 1
+    sta Zp_AvatarPosY_i16 + 0
+    lda #0
+    sta Zp_AvatarPosY_i16 + 1
+    beq @passageDone  ; unconditional
+    ;; If we went through a top passage, place the avatar on the bottom edge
+    ;; of the new room.
+    @topPassage:
+    lda <(Zp_Current_sRoom + sRoom::IsTall_bool)
+    bne @tall
+    @short:
+    ldx #kScreenHeightPx - (kAvatarBoundingBoxDown + 1)
+    bne @finishBottom  ; unconditional
+    @tall:
+    ldax #kTallRoomHeightBlocks * kBlockHeightPx - (kAvatarBoundingBoxDown + 1)
+    @finishBottom:
+    stax Zp_AvatarPosY_i16
+    bne @passageDone  ; unconditional
+    ;; If we went through a western passage, place the avatar on the east edge
+    ;; of the new room.
+    @westernPassage:
     lda <(Zp_Current_sRoom + sRoom::MaxScrollX_u16 + 0)
     add #kScreenWidthPx - 8
     sta Zp_AvatarPosX_i16 + 0

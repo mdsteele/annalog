@@ -342,7 +342,7 @@ _Eastern:
     ;; to the right, storing the result in Zp_Tmp1_byte (lo) and A (hi).
     lda <(Zp_Current_sRoom + sRoom::MaxScrollX_u16 + 0)
     add #<(kScreenWidthPx + kAvatarBoundingBoxLeft)
-    sta Zp_Tmp1_byte
+    sta Zp_Tmp1_byte  ; passage X-position (lo)
     lda <(Zp_Current_sRoom + sRoom::MaxScrollX_u16 + 1)
     adc #>(kScreenWidthPx + kAvatarBoundingBoxLeft)
     ;; Compare the avatar's position to the offscreen position.
@@ -520,7 +520,51 @@ _Done:
     sta Zp_AvatarPosY_i16 + 1
 .ENDPROC
 .PROC _DetectVertPassage
-    ;; TODO: Implement top/bottom passages.
+    lda Zp_AvatarVelY_i16 + 1
+    bmi _Top
+_Bottom:
+    ;; Calculate the room pixel Y-position where the avatar will be touching
+    ;; the bottom edge of the room, storing the result in Zp_Tmp1_byte (lo) and
+    ;; A (hi).
+    lda <(Zp_Current_sRoom + sRoom::IsTall_bool)
+    bne @tall
+    @short:
+    ldx #kScreenHeightPx - kAvatarBoundingBoxDown
+    bne @finishHeight  ; unconditional
+    @tall:
+    ldax #kTallRoomHeightBlocks * kBlockHeightPx - kAvatarBoundingBoxDown
+    @finishHeight:
+    stx Zp_Tmp1_byte  ; passage Y-position (lo)
+    ;; Compare the avatar's position to the passage position.
+    cmp Zp_AvatarPosY_i16 + 1
+    beq @checkLoByte
+    bge _NoHitPassage
+    @hitPassage:
+    lda #ePassage::Bottom
+    rts
+    @checkLoByte:
+    lda Zp_AvatarPosY_i16 + 0
+    cmp Zp_Tmp1_byte  ; passage Y-position (lo)
+    bge @hitPassage
+    blt _NoHitPassage  ; unconditional
+_Top:
+    ;; If the avatar's Y-position is negative, then we definitely hit the top
+    ;; passage (although this should not happen in practice).  On the other
+    ;; hand, if the hi byte of the avatar's Y-position is greater than zero,
+    ;; then we definitely didn't hit the western passage.
+    lda Zp_AvatarPosY_i16 + 1
+    bmi @hitPassage
+    bne _NoHitPassage
+    ;; Check if the top of the avatar is touching the top of the room.  By this
+    ;; point, we already know that the hi byte of the avatar's position is
+    ;; zero.
+    lda #kAvatarBoundingBoxUp
+    cmp Zp_AvatarPosY_i16 + 0
+    blt _NoHitPassage
+    @hitPassage:
+    lda #ePassage::Top
+    rts
+_NoHitPassage:
 .ENDPROC
 .PROC _DetectVertCollisionWithTerrain
     ;; Calculate the room tile column index that the avatar's left side is in,

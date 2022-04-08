@@ -77,7 +77,7 @@ kMaxRoomWidthBlocks = kMaxRoomWidthTiles / 2
 ;;; Stores attributes for a particular passage exit from a room.
 .STRUCT sPassage
     ;; Where in the room the exit is (which side and which screen number).
-    Exit_bPassage         .byte
+    Exit_bPassage      .byte
     ;; The number (in pixels) to add to Zp_AvatarPosY_i16 (for east/west
     ;; passages) or Zp_AvatarPosX_i16 (for up/down passages) when transitioning
     ;; through this exit, in order to line up with the entrance in the other

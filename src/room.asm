@@ -54,6 +54,7 @@
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORT Ram_PlatformTop_i16_1_arr
 .IMPORT Ram_PlatformType_ePlatform_arr
+.IMPORTZP Zp_AvatarPosX_i16
 .IMPORTZP Zp_AvatarPosY_i16
 .IMPORTZP Zp_HudMachineIndex_u8
 .IMPORTZP Zp_Tmp1_byte
@@ -375,7 +376,11 @@ _CallInit:
     sta Zp_AvatarPosY_i16 + 1
     jmp @returnDestination
     @upDown:
-    ;; TODO: add PositionAdjust_i16 to Zp_AvatarPosX_i16
+    adc Zp_AvatarPosX_i16 + 0
+    sta Zp_AvatarPosX_i16 + 0
+    lda (Zp_Tmp_ptr), y  ; PositionAdjust_i16 + 1
+    adc Zp_AvatarPosX_i16 + 1
+    sta Zp_AvatarPosX_i16 + 1
     @returnDestination:
     .assert sPassage::Destination_eRoom = 3, error
     iny

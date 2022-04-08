@@ -215,6 +215,11 @@ _Passages_sPassage_arr:
     d_word PositionAdjust_i16, $ffff & -$10
     d_byte Destination_eRoom, eRoom::PrisonTunnel
     D_END
+    D_STRUCT sPassage
+    d_byte Exit_bPassage, ePassage::Bottom | 1
+    d_word PositionAdjust_i16, $ffff & -$110
+    d_byte Destination_eRoom, eRoom::GardenLanding
+    D_END
 _Barrier_Init:
     ;; Initialize the machine.
     lda #kBarrierInitRegY
