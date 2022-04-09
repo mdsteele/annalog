@@ -43,6 +43,11 @@ Zp_NmiReady_bool: .res 1
 .EXPORTZP Zp_TransferIrqTable_bool
 Zp_TransferIrqTable_bool: .res 1
 
+;;; The NMI handler will set this as the CHR0C bank number during VBlank when
+;;; Zp_NmiReady_bool is set.
+.EXPORTZP Zp_Chr0cBank_u8
+Zp_Chr0cBank_u8: .res 1
+
 ;;; The NMI handler will copy this to Hw_PpuMask_wo when Zp_NmiReady_bool is
 ;;; set.
 .EXPORTZP Zp_Render_bPpuMask
@@ -136,6 +141,7 @@ _UpdatePpuRegisters:
     sta Hw_PpuCtrl_wo
     lda Zp_Render_bPpuMask
     sta Hw_PpuMask_wo
+    chr0c_bank Zp_Chr0cBank_u8
 _TransferIrqTable:
     bit Zp_TransferIrqTable_bool
     bpl @done

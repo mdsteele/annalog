@@ -57,6 +57,7 @@
 .IMPORT Main_Pause
 .IMPORT Main_Title
 .IMPORT Main_Upgrade_OpenWindow
+.IMPORT Ppu_ChrAnim0
 .IMPORT Ram_DeviceBlockCol_u8_arr
 .IMPORT Ram_DeviceBlockRow_u8_arr
 .IMPORT Ram_DeviceTarget_u8_arr
@@ -66,6 +67,7 @@
 .IMPORTZP Zp_AvatarMode_eAvatar
 .IMPORTZP Zp_AvatarPosX_i16
 .IMPORTZP Zp_AvatarPosY_i16
+.IMPORTZP Zp_Chr0cBank_u8
 .IMPORTZP Zp_Current_sRoom
 .IMPORTZP Zp_Current_sTileset
 .IMPORTZP Zp_FrameCounter_u8
@@ -718,10 +720,18 @@ _UpdateNametable:
 ;;; always be visible: the player avatar, machines, enemies, and devices.
 .EXPORT FuncA_Objects_DrawObjectsForRoom
 .PROC FuncA_Objects_DrawObjectsForRoom
+    ;; Update CHR0C bank (for animated terrain).
+    lda Zp_FrameCounter_u8
+    div #8
+    and #$03
+    add #<.bank(Ppu_ChrAnim0)
+    sta Zp_Chr0cBank_u8
+    ;; Draw HUD.
     bit Zp_HudEnabled_bool
     bpl @skipHud
     jsr FuncA_Objects_DrawMachineHud
     @skipHud:
+    ;; Draw other objects.
     jsr FuncA_Objects_DrawPlayerAvatar
     jsr FuncA_Objects_DrawDevicePrompt
     jsr FuncA_Objects_DrawAllActors

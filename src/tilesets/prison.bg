@@ -1,14 +1,15 @@
 @BG 0 0 0 32x10
+>anim01
 >cave
 >device
 
-    BGBI    BCBE
-    BHBJBABBBDBF
-        AO
-  AL  AMAN    AJAK                                          AIAI
+    CGCI    CCCE
+    CHCJCACBCDCF
+        BO
+  BL  BMBN    BJBK                                          AAAA
 
 
 
-                                                            APAP
-AEAGAGAGAGAFAEAGAGAGAGAFAA      ACABAAABAAABAAABAA    ABAEAFAAAB
-ABAHAHAHAHAAABAC      AAABAHAHAHAHAAABAC      AAAB    AAABAAABAA
+                                                            BPBP
+BEBGBGBGBGBFBEBGBGBGBGBFBA      BCBBBABBBABBBABBBA    BBBEBFBABB
+BBBHBHBHBHBABBBC      BABBBHBHBHBHBABBBC      BABB    BABBBABBBA

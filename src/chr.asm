@@ -26,6 +26,50 @@
 
 ;;;=========================================================================;;;
 
+.SEGMENT "CHR_Anim0"
+
+.EXPORT Ppu_ChrAnim0
+.PROC Ppu_ChrAnim0
+:   .incbin "out/data/tiles/anim01.chr"
+    .res $3f * kSizeofChr
+    .assert * - :- = kSizeofChr * $40, error
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "CHR_Anim1"
+
+.EXPORT Ppu_ChrAnim1
+.PROC Ppu_ChrAnim1
+:   .incbin "out/data/tiles/anim11.chr"
+    .res $3f * kSizeofChr
+    .assert * - :- = kSizeofChr * $40, error
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "CHR_Anim2"
+
+.EXPORT Ppu_ChrAnim2
+.PROC Ppu_ChrAnim2
+:   .incbin "out/data/tiles/anim21.chr"
+    .res $3f * kSizeofChr
+    .assert * - :- = kSizeofChr * $40, error
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "CHR_Anim3"
+
+.EXPORT Ppu_ChrAnim3
+.PROC Ppu_ChrAnim3
+:   .incbin "out/data/tiles/anim31.chr"
+    .res $3f * kSizeofChr
+    .assert * - :- = kSizeofChr * $40, error
+.ENDPROC
+
+;;;=========================================================================;;;
+
 .SEGMENT "CHR_Cave"
 
 .EXPORT Ppu_ChrCave
