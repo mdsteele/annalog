@@ -59,9 +59,10 @@
     Eq  ; equal
     Ne  ; not equal
     Lt  ; less than
-    Gt  ; greater than
     Le  ; less than or equal
+    Gt  ; greater than
     Ge  ; greater than or equal
+    NUM_VALUES
 .ENDENUM
 
 ;;; Directions that can be used in MOVE instructions.

@@ -732,11 +732,11 @@ _OnRight:
 
 ;;; +--------+
 ;;; |        |
-;;; |  =  /  |
 ;;; |        |
-;;; |  <  >  |
+;;; | = < >  |
 ;;; |        |
-;;; |  {  }  |
+;;; | / { }  |
+;;; |        |
 ;;; |        |
 ;;; |        |
 ;;; +--------+
@@ -745,7 +745,7 @@ _OnRight:
     d_byte WidthsMinusOne_u8_arr
     .byte 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
     d_addr Labels_u8_arr_ptr_arr
-    .addr _LabelEq, _LabelNe, _LabelLt, _LabelGt, _LabelLe, _LabelGe
+    .addr _LabelEq, _LabelNe, _LabelLt, _LabelLe, _LabelGt, _LabelGe
     .addr 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
     d_addr OnUp_func_ptr,    _OnUp
     d_addr OnDown_func_ptr,  _OnDown
@@ -755,25 +755,25 @@ _OnRight:
 _LabelEq: .byte "="
 _LabelNe: .byte $0a
 _LabelLt: .byte "<"
+_LabelLe: .byte $0c
 _LabelGt: .byte ">"
-_LabelLe: .byte $0d
 _LabelGe: .byte $0e
-_OnUp:
+_OnLeft:
     lda Zp_MenuItem_u8
     sub #2
     bge _SetItem
     rts
-_OnDown:
+_OnRight:
     lda Zp_MenuItem_u8
     add #2
     cmp #6
     blt _SetItem
     rts
-_OnLeft:
+_OnUp:
     lda Zp_MenuItem_u8
     and #$06
     bpl _SetItem  ; unconditional
-_OnRight:
+_OnDown:
     lda Zp_MenuItem_u8
     ora #$01
 _SetItem:
@@ -788,24 +788,19 @@ _SetItem:
     stax Zp_Current_sMenu_ptr
     ;; Store the starting row in Zp_Tmp1_byte.
     lda Zp_ConsoleNumInstRows_u8
-    sub #5
+    sub #3
     lsr a
-    sta Zp_Tmp1_byte
+    sta Zp_Tmp1_byte  ; starting row
     ;; Set up rows and cols.
-    ldx #5
+    ldx #eCmp::NUM_VALUES - 1
     @loop:
     txa
-    and #$06
-    add Zp_Tmp1_byte
+    and #$01
+    asl a
+    add Zp_Tmp1_byte  ; starting row
     sta Ram_MenuRows_u8_arr, x
     txa
-    and #$01
-    bne @rightCol
-    lda #2
-    bne @setCol  ; unconditional
-    @rightCol:
-    lda #5
-    @setCol:
+    ora #$01
     sta Ram_MenuCols_u8_arr, x
     dex
     bpl @loop

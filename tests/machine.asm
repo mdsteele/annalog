@@ -76,7 +76,7 @@ Zp_TestCycleCount_u8: .res 1
     .res .sizeof(sProgram) * kTestProgramIndex
 TestProgram:
     .word $b300  ; MOVE >
-    .word $94e5  ; TIL 5<=X
+    .word $93e5  ; TIL 5<=X
     .word $b000  ; MOVE ^
     .word $1a0f  ; A <- Y
     .word $3aa2  ; A <- 2 + A
