@@ -40,9 +40,9 @@
 .IMPORT Func_MovePlatformVert
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrUpgrade
-.IMPORT Ram_MachineState
 .IMPORT Ram_MachineStatus_eMachine_arr
 .IMPORT Ram_Oam_sObj_arr64
+.IMPORT Ram_RoomState
 .IMPORTZP Zp_FrameCounter_u8
 
 ;;;=========================================================================;;;
@@ -70,7 +70,7 @@ kBarrierTileIdLightOn  = $71
 kBarrierTileIdCorner   = $73
 kBarrierTileIdSurface  = $72
 
-;;; Defines room-specific machine state data for this particular room.
+;;; Defines room-specific state data for this particular room.
 .STRUCT sState
     ;; The current value of the PrisonCellBarrier machine's Y register.
     BarrierRegY_u8      .byte
@@ -84,7 +84,7 @@ kBarrierTileIdSurface  = $72
     ;; currently moving.
     BarrierMove_eDir    .byte
 .ENDSTRUCT
-.ASSERT .sizeof(sState) <= kMachineStateSize, error
+.ASSERT .sizeof(sState) <= kRoomStateSize, error
 
 ;;;=========================================================================;;;
 
@@ -223,22 +223,22 @@ _Passages_sPassage_arr:
 _Barrier_Init:
     ;; Initialize the machine.
     lda #kBarrierInitRegY
-    sta Ram_MachineState + sState::BarrierRegY_u8
-    sta Ram_MachineState + sState::BarrierGoalY_u8
+    sta Ram_RoomState + sState::BarrierRegY_u8
+    sta Ram_RoomState + sState::BarrierGoalY_u8
     lda #0
-    sta Ram_MachineState + sState::BarrierCountdown_u8
-    sta Ram_MachineState + sState::BarrierMove_eDir
+    sta Ram_RoomState + sState::BarrierCountdown_u8
+    sta Ram_RoomState + sState::BarrierMove_eDir
     rts
 _Barrier_ReadReg:
-    lda Ram_MachineState + sState::BarrierRegY_u8
+    lda Ram_RoomState + sState::BarrierRegY_u8
     rts
 _Barrier_TryMove:
-    lda Ram_MachineState + sState::BarrierCountdown_u8
+    lda Ram_RoomState + sState::BarrierCountdown_u8
     beq @ready
     sec  ; set C to indicate not ready yet
     rts
     @ready:
-    lda Ram_MachineState + sState::BarrierRegY_u8
+    lda Ram_RoomState + sState::BarrierRegY_u8
     cpx #eDir::Up
     beq @moveUp
     @moveDown:
@@ -252,16 +252,16 @@ _Barrier_TryMove:
     beq @error
     dey
     @success:
-    sty Ram_MachineState + sState::BarrierGoalY_u8
+    sty Ram_RoomState + sState::BarrierGoalY_u8
     clc  ; clear C to indicate success
     rts
     @error:
     jmp Func_MachineError
 _Barrier_Tick:
-    lda Ram_MachineState + sState::BarrierCountdown_u8
+    lda Ram_RoomState + sState::BarrierCountdown_u8
     bne @continueMove
-    ldy Ram_MachineState + sState::BarrierRegY_u8
-    cpy Ram_MachineState + sState::BarrierGoalY_u8
+    ldy Ram_RoomState + sState::BarrierRegY_u8
+    cpy Ram_RoomState + sState::BarrierGoalY_u8
     beq @finishResetting
     bge @beginMoveUp
     @beginMoveDown:
@@ -272,13 +272,13 @@ _Barrier_Tick:
     ldx #eDir::Up
     dey
     @beginMove:
-    sty Ram_MachineState + sState::BarrierRegY_u8
-    stx Ram_MachineState + sState::BarrierMove_eDir
+    sty Ram_RoomState + sState::BarrierRegY_u8
+    stx Ram_RoomState + sState::BarrierMove_eDir
     lda #kBarrierCountdown
-    sta Ram_MachineState + sState::BarrierCountdown_u8
+    sta Ram_RoomState + sState::BarrierCountdown_u8
     @continueMove:
-    dec Ram_MachineState + sState::BarrierCountdown_u8
-    ldx Ram_MachineState + sState::BarrierMove_eDir
+    dec Ram_RoomState + sState::BarrierCountdown_u8
+    ldx Ram_RoomState + sState::BarrierMove_eDir
     cpx #eDir::Up
     beq @continueMoveUp
     @continueMoveDown:
@@ -299,7 +299,7 @@ _Barrier_Tick:
     rts
 _Barrier_Reset:
     lda #kBarrierInitRegY
-    sta Ram_MachineState + sState::BarrierGoalY_u8
+    sta Ram_RoomState + sState::BarrierGoalY_u8
     ;; TODO: Turn the machine around if it's currently moving up.
     rts
 _Blaster_Init:

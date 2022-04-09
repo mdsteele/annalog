@@ -94,11 +94,6 @@ Ram_MachinePc_u8_arr: .res kMaxMachines
 .EXPORT Ram_MachineRegA_u8_arr
 Ram_MachineRegA_u8_arr: .res kMaxMachines
 
-;;; RAM that each room's machines can divvy up however they want to store their
-;;; state.
-.EXPORT Ram_MachineState
-Ram_MachineState: .res kMachineStateSize
-
 ;;;=========================================================================;;;
 
 .SEGMENT "PRG8"

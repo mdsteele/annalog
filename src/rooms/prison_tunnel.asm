@@ -20,7 +20,6 @@
 .INCLUDE "../actor.inc"
 .INCLUDE "../device.inc"
 .INCLUDE "../flag.inc"
-.INCLUDE "../machine.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../platform.inc"
 .INCLUDE "../room.inc"
@@ -30,15 +29,15 @@
 .IMPORT DataC_Prison_AreaName_u8_arr
 .IMPORT Ppu_ChrUpgrade
 .IMPORT Ram_DeviceAnim_u8_arr
-.IMPORT Ram_MachineState
+.IMPORT Ram_RoomState
 
 ;;;=========================================================================;;;
 
-;;; Defines room-specific machine state data for this particular room.
+;;; Defines room-specific state data for this particular room.
 .STRUCT sState
     LeverState_u1 .byte
 .ENDSTRUCT
-.ASSERT .sizeof(sState) <= kMachineStateSize, error
+.ASSERT .sizeof(sState) <= kRoomStateSize, error
 
 ;;;=========================================================================;;;
 
@@ -117,7 +116,7 @@ _Passages_sPassage_arr:
     D_END
 _Init:
     lda #0
-    sta Ram_MachineState + sState::LeverState_u1
+    sta Ram_RoomState + sState::LeverState_u1
     ;; Animate the upgrade device.
     lda #kUpgradeDeviceAnimStart
     sta Ram_DeviceAnim_u8_arr + 1

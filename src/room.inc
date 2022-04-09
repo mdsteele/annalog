@@ -30,6 +30,9 @@ kTallRoomHeightTiles = kTallRoomHeightBlocks * 2
 kMaxRoomWidthTiles = $100
 kMaxRoomWidthBlocks = kMaxRoomWidthTiles / 2
 
+;;; How many bytes of RAM are reserved for room-specific state.
+kRoomStateSize = $100
+
 ;;;=========================================================================;;;
 
 ;;; The list of rooms in the game.

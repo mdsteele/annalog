@@ -27,9 +27,9 @@
 .IMPORT FuncA_Objects_Alloc2x2Shape
 .IMPORT FuncA_Objects_SetUpgradeTileIds
 .IMPORT Func_Noop
-.IMPORT Ram_MachineState
 .IMPORT Ram_MachineStatus_eMachine_arr
 .IMPORT Ram_Oam_sObj_arr64
+.IMPORT Ram_RoomState
 .IMPORTZP Zp_OamOffset_u8
 .IMPORTZP Zp_PpuScrollX_u8
 .IMPORTZP Zp_PpuScrollY_u8
@@ -111,9 +111,9 @@ Ram_DeviceAnim_u8_arr: .res kMaxDevices
     sta Ram_DeviceAnim_u8_arr, x
     lda Ram_DeviceTarget_u8_arr, x
     tay
-    lda Ram_MachineState, y
+    lda Ram_RoomState, y
     eor #$01
-    sta Ram_MachineState, y
+    sta Ram_RoomState, y
     rts
 .ENDPROC
 
@@ -264,7 +264,7 @@ _JumpTable_ptr_1_arr: .hibytes DeviceDrawFuncs
     sta Zp_Tmp4_byte  ; animation delta
     lda Ram_DeviceTarget_u8_arr, x
     tay
-    lda Ram_MachineState, y
+    lda Ram_RoomState, y
     bne @leverIsOn
     @leverIsOff:
     lda Zp_Tmp4_byte  ; animation delta

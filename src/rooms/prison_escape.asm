@@ -42,9 +42,9 @@
 .IMPORT Func_MovePlatformHorz
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrUpgrade
-.IMPORT Ram_MachineState
 .IMPORT Ram_MachineStatus_eMachine_arr
 .IMPORT Ram_Oam_sObj_arr64
+.IMPORT Ram_RoomState
 .IMPORTZP Zp_FrameCounter_u8
 .IMPORTZP Zp_ShapePosX_i16
 
@@ -81,7 +81,7 @@ kTrolleyTileIdGirder   = $79
 kTrolleyGirderPalette = 0
 kTrolleyRopePalette   = 0
 
-;;; Defines room-specific machine state data for this particular room.
+;;; Defines room-specific state data for this particular room.
 .STRUCT sState
     ;; The current value of the PrisonEscapeTrolley machine's X register.
     TrolleyRegX_u8      .byte
@@ -95,7 +95,7 @@ kTrolleyRopePalette   = 0
     ;; currently moving.
     TrolleyMove_eDir    .byte
 .ENDSTRUCT
-.ASSERT .sizeof(sState) <= kMachineStateSize, error
+.ASSERT .sizeof(sState) <= kRoomStateSize, error
 
 ;;;=========================================================================;;;
 
@@ -232,21 +232,21 @@ _Passages_sPassage_arr:
 _Trolley_Init:
     ;; Initialize the machine.
     lda #0
-    sta Ram_MachineState + sState::TrolleyRegX_u8
-    sta Ram_MachineState + sState::TrolleyGoalX_u8
-    sta Ram_MachineState + sState::TrolleyCountdown_u8
-    sta Ram_MachineState + sState::TrolleyMove_eDir
+    sta Ram_RoomState + sState::TrolleyRegX_u8
+    sta Ram_RoomState + sState::TrolleyGoalX_u8
+    sta Ram_RoomState + sState::TrolleyCountdown_u8
+    sta Ram_RoomState + sState::TrolleyMove_eDir
     rts
 _Trolley_ReadReg:
-    lda Ram_MachineState + sState::TrolleyRegX_u8
+    lda Ram_RoomState + sState::TrolleyRegX_u8
     rts
 _Trolley_TryMove:
-    lda Ram_MachineState + sState::TrolleyCountdown_u8
+    lda Ram_RoomState + sState::TrolleyCountdown_u8
     beq @ready
     sec  ; set C to indicate not ready yet
     rts
     @ready:
-    lda Ram_MachineState + sState::TrolleyRegX_u8
+    lda Ram_RoomState + sState::TrolleyRegX_u8
     cpx #eDir::Left
     beq @moveLeft
     @moveRight:
@@ -260,16 +260,16 @@ _Trolley_TryMove:
     beq @error
     dey
     @success:
-    sty Ram_MachineState + sState::TrolleyGoalX_u8
+    sty Ram_RoomState + sState::TrolleyGoalX_u8
     clc  ; clear C to indicate success
     rts
     @error:
     jmp Func_MachineError
 _Trolley_Tick:
-    lda Ram_MachineState + sState::TrolleyCountdown_u8
+    lda Ram_RoomState + sState::TrolleyCountdown_u8
     bne @continueMove
-    ldy Ram_MachineState + sState::TrolleyRegX_u8
-    cpy Ram_MachineState + sState::TrolleyGoalX_u8
+    ldy Ram_RoomState + sState::TrolleyRegX_u8
+    cpy Ram_RoomState + sState::TrolleyGoalX_u8
     beq @finishResetting
     bge @beginMoveLeft
     @beginMoveRight:
@@ -280,13 +280,13 @@ _Trolley_Tick:
     ldx #eDir::Left
     dey
     @beginMove:
-    sty Ram_MachineState + sState::TrolleyRegX_u8
-    stx Ram_MachineState + sState::TrolleyMove_eDir
+    sty Ram_RoomState + sState::TrolleyRegX_u8
+    stx Ram_RoomState + sState::TrolleyMove_eDir
     lda #kTrolleyCountdown
-    sta Ram_MachineState + sState::TrolleyCountdown_u8
+    sta Ram_RoomState + sState::TrolleyCountdown_u8
     @continueMove:
-    dec Ram_MachineState + sState::TrolleyCountdown_u8
-    ldx Ram_MachineState + sState::TrolleyMove_eDir
+    dec Ram_RoomState + sState::TrolleyCountdown_u8
+    ldx Ram_RoomState + sState::TrolleyMove_eDir
     cpx #eDir::Left
     beq @continueMoveLeft
     @continueMoveRight:
@@ -313,7 +313,7 @@ _Trolley_Tick:
     rts
 _Trolley_Reset:
     lda #0
-    sta Ram_MachineState + sState::TrolleyGoalX_u8
+    sta Ram_RoomState + sState::TrolleyGoalX_u8
     ;; TODO: Turn the machine around if it's currently moving right.
     rts
 .ENDPROC

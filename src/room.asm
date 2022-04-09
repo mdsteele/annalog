@@ -95,6 +95,18 @@ Zp_Current_sTileset: .tag sTileset
 
 ;;;=========================================================================;;;
 
+.SEGMENT "RAM_Room"
+
+;;; A chunk of RAM that each room can divvy up however it wants to store state
+;;; specific to that room, such as:
+;;;   * Position/register/etc. data for machines in that room
+;;;   * State variables for cutscenes or other room scripts
+;;;   * Mutable terrain data (for sufficiently small rooms)
+.EXPORT Ram_RoomState
+Ram_RoomState: .res kRoomStateSize
+
+;;;=========================================================================;;;
+
 .SEGMENT "PRGA_Room"
 
 ;;; Pointers to sRoom structs for all rooms in the game, indexed by eRoom

@@ -23,9 +23,6 @@ kMaxMachines = 8
 ;;; The number of padding bytes at the end of each sMachine struct.
 .DEFINE kMachinePadding 6
 
-;;; How many bytes of RAM are reserved for room-specific machine state.
-kMachineStateSize = $c0
-
 ;;; The OBJ palette number used for the blinking error light on machines.
 kMachineLightPalette = 1
 
