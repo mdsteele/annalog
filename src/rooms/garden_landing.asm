@@ -30,6 +30,7 @@
 .IMPORT DataA_Room_Prison_sTileset
 .IMPORT DataC_Garden_AreaCells_u8_arr2_arr
 .IMPORT DataC_Garden_AreaName_u8_arr
+.IMPORT Func_Noop
 .IMPORT Ppu_ChrUpgrade
 
 ;;;=========================================================================;;;
@@ -49,6 +50,7 @@
     d_byte NumMachines_u8, 0
     d_addr Machines_sMachine_arr_ptr, 0
     d_byte Chr18Bank_u8, <.bank(Ppu_ChrUpgrade)
+    d_addr Tick_func_ptr, Func_Noop
     d_addr Ext_sRoomExt_ptr, _Ext_sRoomExt
     D_END
 _Ext_sRoomExt:

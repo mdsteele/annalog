@@ -130,6 +130,8 @@ kRoomStateSize = $100
     ;; Init_func_ptr can modify this in Zp_Current_sRoom to override the
     ;; default.
     Chr18Bank_u8              .byte
+    ;; Function to call each frame.
+    Tick_func_ptr             .addr
     ;; Extended information about the room.
     Ext_sRoomExt_ptr          .addr
 .ENDSTRUCT

@@ -273,6 +273,7 @@ _Tick:
     jsr Func_TickAllActors
     jsr Func_TickAllDevices
     jsr Func_ExecuteAllMachines
+    jsr Func_TickCurrentRoom
     lda Zp_AvatarHarmTimer_u8
     cmp #kAvatarHarmDeath
     jeq Main_Explore_Death
@@ -443,6 +444,11 @@ _FadeIn:
     ;; TODO: Animate the avatar blinking red or collapasing or something.
     jsr_prga FuncA_Fade_Out
     jmp Main_Title
+.ENDPROC
+
+;;; Calls the current room's Tick_func_ptr function.
+.PROC Func_TickCurrentRoom
+    jmp (Zp_Current_sRoom + sRoom::Tick_func_ptr)
 .ENDPROC
 
 ;;; Sets Zp_NearbyDevice_u8 to the index of the device that the player avatar
