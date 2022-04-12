@@ -231,7 +231,6 @@ _Passages_sPassage_arr:
     d_byte Destination_eRoom, eRoom::PrisonCell
     D_END
 _Trolley_Init:
-    ;; Initialize the machine.
     lda #0
     sta Ram_RoomState + sState::TrolleyRegX_u8
     sta Ram_RoomState + sState::TrolleyGoalX_u8

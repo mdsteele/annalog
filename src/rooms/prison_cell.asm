@@ -222,7 +222,6 @@ _Passages_sPassage_arr:
     d_byte Destination_eRoom, eRoom::GardenLanding
     D_END
 _Barrier_Init:
-    ;; Initialize the machine.
     lda #kBarrierInitRegY
     sta Ram_RoomState + sState::BarrierRegY_u8
     sta Ram_RoomState + sState::BarrierGoalY_u8
