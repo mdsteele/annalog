@@ -18,6 +18,7 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "actor.inc"
+.INCLUDE "cpu.inc"
 .INCLUDE "device.inc"
 .INCLUDE "macros.inc"
 .INCLUDE "mmc3.inc"
@@ -379,7 +380,7 @@ _CallInit:
     lda (Zp_Tmp_ptr), y  ; PositionAdjust_i16 + 0
     iny
     clc
-    .assert bPassage::EastWest = $80, error
+    .assert bPassage::EastWest = bProc::Negative, error
     bit Zp_Tmp1_byte  ; bPassage value
     bpl @upDown
     @eastWest:

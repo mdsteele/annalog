@@ -17,6 +17,7 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
+.INCLUDE "cpu.inc"
 .INCLUDE "joypad.inc"
 .INCLUDE "machine.inc"
 .INCLUDE "macros.inc"
@@ -36,10 +37,6 @@
     _OpEmpty, _OpCopy, _OpSwap, _OpAdd, _OpSub, _OpMul, _OpGoto, _OpSkip, \
     _OpIf, _OpTil, _OpAct, _OpMove, _OpEnd, _OpEnd, _OpEnd, _OpNop
 .LINECONT -
-
-;;; Constants for 6502 processor flags.
-kPFlagC = $01  ; carry flag
-kPFlagZ = $02  ; zero flag
 
 ;;;=========================================================================;;;
 
@@ -368,35 +365,35 @@ _IncrementPcByX:
     beq _Le
 _Ge:
     ;; Set Z if C was set.
-    eor #kPFlagC
-    and #kPFlagC
+    eor #bProc::Carry
+    and #bProc::Carry
     rts
 _Eq:
     ;; Set Z if Z was set.
-    eor #kPFlagZ
-    and #kPFlagZ
+    eor #bProc::Zero
+    and #bProc::Zero
     rts
 _Ne:
     ;; Set Z if Z was cleared.
-    and #kPFlagZ
+    and #bProc::Zero
     rts
 _Lt:
     ;; Set Z if C was cleared.
-    and #kPFlagC
+    and #bProc::Carry
     rts
 _Gt:
     ;; Set Z if C was set and Z was cleared.
-    eor #kPFlagC
-    and #kPFlagC | kPFlagZ
+    eor #bProc::Carry
+    and #bProc::Carry | bProc::Zero
     rts
 _Le:
     ;; Set Z if C was cleared or Z was set.
     tax
-    and #kPFlagC
+    and #bProc::Carry
     beq @done
     txa
-    eor #kPFlagZ
-    and #kPFlagZ
+    eor #bProc::Zero
+    and #bProc::Zero
     @done:
     rts
 .ENDPROC

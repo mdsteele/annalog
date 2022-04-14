@@ -18,6 +18,7 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "avatar.inc"
+.INCLUDE "cpu.inc"
 .INCLUDE "device.inc"
 .INCLUDE "joypad.inc"
 .INCLUDE "macros.inc"
@@ -207,7 +208,7 @@ _Harm:
     lda #>kAvatarStunVelY
     sta Zp_AvatarVelY_i16 + 1
     ;; Set the avatar's X-velocity depending on which way its facing.
-    .assert bObj::FlipH = $40, error
+    .assert bObj::FlipH = bProc::Overflow, error
     bit Zp_AvatarFlags_bObj
     bvc @facingRight
     @facingLeft:

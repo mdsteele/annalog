@@ -17,20 +17,22 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
-.INCLUDE "cpu.inc"
-
-.IMPORT Int_Irq
-.IMPORT Int_Nmi
-.IMPORT Main_Reset
+;;; Constants for 6502 processor flags.
+.SCOPE bProc
+    Negative   = %10000000
+    Overflow   = %01000000
+    Break      = %00010000
+    Decimal    = %00001000
+    IntDisable = %00000100
+    Zero       = %00000010
+    Carry      = %00000001
+.ENDSCOPE
 
 ;;;=========================================================================;;;
 
-.SEGMENT "PRGE_Vector"
-    .assert * = Data_NmiVector_ptr, error
-    .addr Int_Nmi  ; See https://www.nesdev.org/wiki/NMI
-    .assert * = Data_ResetVector_ptr, error
-    .addr Main_Reset
-    .assert * = Data_IrqVector_ptr, error
-    .addr Int_Irq  ; See https://www.nesdev.org/wiki/IRQ
+;;; Fixed addresses for interrupt/reset vectors.
+Data_NmiVector_ptr   = $fffa  ; See https://www.nesdev.org/wiki/NMI
+Data_ResetVector_ptr = $fffc
+Data_IrqVector_ptr   = $fffe  ; See https://www.nesdev.org/wiki/IRQ
 
 ;;;=========================================================================;;;

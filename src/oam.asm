@@ -17,6 +17,7 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
+.INCLUDE "cpu.inc"
 .INCLUDE "macros.inc"
 .INCLUDE "oam.inc"
 .INCLUDE "ppu.inc"
@@ -220,7 +221,7 @@ _RightObjectXPosition:
     @hide:
     lda #$ff
     bit Zp_Tmp2_byte  ; Flags_bObj to set
-    .assert bObj::FlipH = $40, error
+    .assert bObj::FlipH = bProc::Overflow, error
     bvs @hideFlipped
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::YPos_u8, y
     bvc @doneRight  ; unconditional
@@ -230,7 +231,7 @@ _RightObjectXPosition:
     @show:
     lda Zp_ShapePosX_i16 + 0
     bit Zp_Tmp2_byte  ; Flags_bObj to set
-    .assert bObj::FlipH = $40, error
+    .assert bObj::FlipH = bProc::Overflow, error
     bvs @showFlipped
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::XPos_u8, y
     bvc @doneRight  ; unconditional
@@ -251,7 +252,7 @@ _LeftObjectXPosition:
     @hide:
     lda #$ff
     bit Zp_Tmp2_byte  ; Flags_bObj to set
-    .assert bObj::FlipH = $40, error
+    .assert bObj::FlipH = bProc::Overflow, error
     bvs @hideFlipped
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::YPos_u8, y
     bvc @doneLeft  ; unconditional
@@ -261,7 +262,7 @@ _LeftObjectXPosition:
     @show:
     lda Zp_Tmp1_byte  ; left X position on screen (lo)
     bit Zp_Tmp2_byte  ; Flags_bObj to set
-    .assert bObj::FlipH = $40, error
+    .assert bObj::FlipH = bProc::Overflow, error
     bvs @showFlipped
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::XPos_u8, y
     bvc @doneLeft  ; unconditional
@@ -345,7 +346,7 @@ _RightObjectXPositions:
     @hide:
     lda #$ff
     bit Zp_Tmp2_byte  ; Flags_bObj to set
-    .assert bObj::FlipH = $40, error
+    .assert bObj::FlipH = bProc::Overflow, error
     bvs @hideFlipped
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::YPos_u8, y
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::YPos_u8, y
@@ -357,7 +358,7 @@ _RightObjectXPositions:
     @show:
     lda Zp_ShapePosX_i16 + 0
     bit Zp_Tmp2_byte  ; Flags_bObj to set
-    .assert bObj::FlipH = $40, error
+    .assert bObj::FlipH = bProc::Overflow, error
     bvs @showFlipped
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::XPos_u8, y
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::XPos_u8, y
@@ -380,7 +381,7 @@ _LeftObjectXPositions:
     @hide:
     lda #$ff
     bit Zp_Tmp2_byte  ; Flags_bObj to set
-    .assert bObj::FlipH = $40, error
+    .assert bObj::FlipH = bProc::Overflow, error
     bvs @hideFlipped
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::YPos_u8, y
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::YPos_u8, y
@@ -392,7 +393,7 @@ _LeftObjectXPositions:
     @show:
     lda Zp_Tmp1_byte  ; left X position on screen (lo)
     bit Zp_Tmp2_byte  ; Flags_bObj to set
-    .assert bObj::FlipH = $40, error
+    .assert bObj::FlipH = bProc::Overflow, error
     bvs @showFlipped
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::XPos_u8, y
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::XPos_u8, y

@@ -18,6 +18,7 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "avatar.inc"
+.INCLUDE "cpu.inc"
 .INCLUDE "device.inc"
 .INCLUDE "joypad.inc"
 .INCLUDE "macros.inc"
@@ -344,7 +345,7 @@ _RepositionAvatar:
     ;; Extract ePassage value from bPassage value.
     and #bPassage::SideMask
     ;; Reposition avatar based on ePassage value and new room size.
-    .assert bPassage::EastWest = $80, error
+    .assert bPassage::EastWest = bProc::Negative, error
     bmi @eastWest
     @upDown:
     cmp #ePassage::Bottom
