@@ -37,6 +37,7 @@
 .IMPORT FuncA_Objects_MoveShapeRightOneTile
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
 .IMPORT Func_MachineError
+.IMPORT Func_MachineFinishResetting
 .IMPORT Func_MovePlatformVert
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrUpgrade
@@ -262,7 +263,7 @@ _Barrier_Tick:
     bne @continueMove
     ldy Ram_RoomState + sState::BarrierRegY_u8
     cpy Ram_RoomState + sState::BarrierGoalY_u8
-    beq @finishResetting
+    jeq Func_MachineFinishResetting
     bge @beginMoveUp
     @beginMoveDown:
     ldx #eDir::Down
@@ -289,14 +290,6 @@ _Barrier_Tick:
     lda #$ff & -kBarrierSpeed   ; param: move delta
     ldx #kBarrierPlatformIndex  ; param: platform index
     jmp Func_MovePlatformVert
-    @finishResetting:
-    lda Ram_MachineStatus_eMachine_arr + kBarrierMachineIndex
-    cmp #eMachine::Resetting
-    bne @notResetting
-    lda #eMachine::Running
-    sta Ram_MachineStatus_eMachine_arr + kBarrierMachineIndex
-    @notResetting:
-    rts
 _Barrier_Reset:
     lda #kBarrierInitRegY
     sta Ram_RoomState + sState::BarrierGoalY_u8

@@ -112,6 +112,21 @@ Ram_MachineRegA_u8_arr: .res kMaxMachines
     rts
 .ENDPROC
 
+;;; If the current machine's status is eMachine::Resetting, changes it back to
+;;; eMachine::Running.  Otherwise, does nothing.
+;;; @prereq Zp_MachineIndex_u8 is initialized.
+.EXPORT Func_MachineFinishResetting
+.PROC Func_MachineFinishResetting
+    ldx Zp_MachineIndex_u8
+    lda Ram_MachineStatus_eMachine_arr, x
+    cmp #eMachine::Resetting
+    bne @notResetting
+    lda #eMachine::Running
+    sta Ram_MachineStatus_eMachine_arr, x
+    @notResetting:
+    rts
+.ENDPROC
+
 ;;; Sets Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr, and makes
 ;;; Zp_Current_sProgram_ptr point to the machine's program in SRAM.
 ;;; @prereq Zp_Current_sRoom is initialized.

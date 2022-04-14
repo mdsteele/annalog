@@ -36,6 +36,7 @@
 .IMPORT FuncA_Objects_MoveShapeRightOneTile
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
 .IMPORT Func_MachineError
+.IMPORT Func_MachineFinishResetting
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrUpgrade
 .IMPORT Ram_MachineStatus_eMachine_arr
@@ -235,7 +236,7 @@ _Cannon_Tick:
     bne @continueMove
     ldy Ram_RoomState + sState::CannonRegY_u8
     cpy Ram_RoomState + sState::CannonGoalY_u8
-    beq @finishResetting
+    jeq Func_MachineFinishResetting
     bge @beginMoveUp
     @beginMoveDown:
     iny
@@ -248,14 +249,6 @@ _Cannon_Tick:
     sta Ram_RoomState + sState::CannonCountdown_u8
     @continueMove:
     dec Ram_RoomState + sState::CannonCountdown_u8
-    rts
-    @finishResetting:
-    lda Ram_MachineStatus_eMachine_arr + kCannonMachineIndex
-    cmp #eMachine::Resetting
-    bne @notResetting
-    lda #eMachine::Running
-    sta Ram_MachineStatus_eMachine_arr + kCannonMachineIndex
-    @notResetting:
     rts
 _Cannon_Reset:
     lda #0

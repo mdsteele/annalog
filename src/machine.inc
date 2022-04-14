@@ -17,7 +17,7 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
-;;; The maximum number of devices that can exist at once in an area.
+;;; The maximum number of machines that can exist at once in a room.
 kMaxMachines = 8
 
 ;;; The number of padding bytes at the end of each sMachine struct.

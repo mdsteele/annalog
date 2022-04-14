@@ -39,6 +39,7 @@
 .IMPORT FuncA_Objects_MoveShapeUpOneTile
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
 .IMPORT Func_MachineError
+.IMPORT Func_MachineFinishResetting
 .IMPORT Func_MovePlatformHorz
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrUpgrade
@@ -270,7 +271,7 @@ _Trolley_Tick:
     bne @continueMove
     ldy Ram_RoomState + sState::TrolleyRegX_u8
     cpy Ram_RoomState + sState::TrolleyGoalX_u8
-    beq @finishResetting
+    jeq Func_MachineFinishResetting
     bge @beginMoveLeft
     @beginMoveRight:
     ldx #eDir::Right
@@ -303,14 +304,6 @@ _Trolley_Tick:
     lda #$ff & -kTrolleySpeed   ; param: move delta
     ldx #kGirderPlatformIndex   ; param: platform index
     jmp Func_MovePlatformHorz
-    @finishResetting:
-    lda Ram_MachineStatus_eMachine_arr + kTrolleyMachineIndex
-    cmp #eMachine::Resetting
-    bne @notResetting
-    lda #eMachine::Running
-    sta Ram_MachineStatus_eMachine_arr + kTrolleyMachineIndex
-    @notResetting:
-    rts
 _Trolley_Reset:
     lda #0
     sta Ram_RoomState + sState::TrolleyGoalX_u8
