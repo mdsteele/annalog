@@ -26,7 +26,6 @@ BINDIR = $(OUTDIR)/bin
 DATADIR = $(OUTDIR)/data
 GENDIR = $(OUTDIR)/gen
 OBJDIR = $(OUTDIR)/obj
-SIM65DIR = $(OUTDIR)/sim65
 
 AHI2CHR = $(BINDIR)/ahi2chr
 BG2MAP = $(BINDIR)/bg2map
@@ -53,6 +52,10 @@ OBJFILES := \
 ROOMFILES := \
   $(patsubst $(SRCDIR)/rooms/%.bg,$(DATADIR)/%.room,$(ROOM_BG_FILES))
 
+SIM65_DIR = $(OUTDIR)/sim65
+SIM65_CFGS = $(shell find $(TESTDIR) -name '*.cfg')
+SIM65_BINS = $(patsubst $(TESTDIR)/%.cfg,$(SIM65_DIR)/%,$(SIM65_CFGS))
+
 #=============================================================================#
 # Phony targets:
 
@@ -64,11 +67,9 @@ run: $(ROMFILE) $(ROMFILE).ram.nl $(ROMFILE).3.nl
 	fceux $<
 
 .PHONY: test
-test: $(SIM65DIR)/machine $(SIM65DIR)/terrain $(SIM65DIR)/window
+test: $(SIM65_BINS)
 	python tests/lint.py
-	sim65 $(SIM65DIR)/machine
-	sim65 $(SIM65DIR)/terrain
-	sim65 $(SIM65DIR)/window
+	@for BIN in $^; do echo sim65 $$BIN; sim65 $$BIN; done
 	python tests/style.py
 
 .PHONY: clean
@@ -157,13 +158,13 @@ define link-test
 	@ld65 -o $@ -C $^
 endef
 
-$(SIM65DIR)/%.o: $(TESTDIR)/%.asm $(INCFILES)
+$(SIM65_DIR)/%.o: $(TESTDIR)/%.asm $(INCFILES)
 	@echo "Assembling $<"
 	@mkdir -p $(@D)
 	@ca65 --target sim6502 -o $@ $<
 
-$(SIM65DIR)/%: $(TESTDIR)/%.cfg $(SIM65DIR)/%.o $(OBJDIR)/%.o \
-               $(SIM65DIR)/sim65.o
+$(SIM65_DIR)/%: $(TESTDIR)/%.cfg $(SIM65_DIR)/%.o $(OBJDIR)/%.o \
+                $(SIM65_DIR)/sim65.o
 	$(link-test)
 
 #=============================================================================#

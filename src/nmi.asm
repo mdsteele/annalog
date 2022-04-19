@@ -22,6 +22,8 @@
 .INCLUDE "oam.inc"
 .INCLUDE "ppu.inc"
 
+.IMPORT Func_AudioSync
+.IMPORT Func_AudioUpdate
 .IMPORT Ram_Active_sIrq
 .IMPORT Ram_Buffered_sIrq
 .IMPORT Ram_Oam_sObj_arr64
@@ -32,8 +34,8 @@
 
 .ZEROPAGE
 
-;;; Set this to true ($ff) to signal that PPU transfer data is ready to be
-;;; consumed by the NMI handler.  The NMI handler will set it back to false
+;;; Set this to true ($ff) to signal that PPU and APU transfer data is ready to
+;;; be consumed by the NMI handler.  The NMI handler will set it back to false
 ;;; ($00) once the data is transferred.
 Zp_NmiReady_bool: .res 1
 
@@ -154,11 +156,9 @@ _TransferIrqTable:
     inc Zp_TransferIrqTable_bool  ; change from true ($ff) to false ($00)
     @done:
 _FinishUpdatingPpu:
-    ;; Mark the PPU transfer buffer as empty and indicate that we are done
-    ;; updating the PPU.
+    ;; Mark the PPU transfer buffer as empty.
     lda #0
     sta Zp_PpuTransferLen_u8
-    sta Zp_NmiReady_bool
 _DoneUpdatingPpu:
     ;; Set up the IRQ counter for this frame.
     lda Ram_Active_sIrq + sIrq::Latch_u8_arr + 0
@@ -168,7 +168,17 @@ _DoneUpdatingPpu:
     sta Zp_IrqNextRender_bPpuMask
     lda #0
     sta Zp_IrqIndex_u8
-    ;; TODO: Once we have an audio driver, this is where we'll call it.
+    ;; Everything up until this point *must* finish before VBlank ends, while
+    ;; everything after this point is safe to extend past the VBlank period.
+    ;; Call audio driver.
+    bit Zp_NmiReady_bool
+    bpl @doneAudioSync
+    jsr Func_AudioSync
+    @doneAudioSync:
+    jsr Func_AudioUpdate
+    ;; Indicate that we are done updating the PPU and APU.
+    lda #0
+    sta Zp_NmiReady_bool
     ;; Restore registers and return.  (Note that the rti instruction
     ;; automatically restores processor flags, so we don't need a plp
     ;; instruction here.)

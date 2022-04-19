@@ -17,11 +17,45 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
-;;; See https://wiki.nesdev.org/w/index.php/APU
+;;; See https://www.nesdev.org/wiki/APU
 
 ;;;=========================================================================;;;
 
-;;; DMC channel flags and rate (https://wiki.nesdev.org/w/index.php/APU_DMC)
+;;; The number of audio channels in the APU.
+kNumApuChannels = 5
+
+;;; Hardware registers for a given APU channel.  Each register means different
+;;; things for each channel, but the purposes are similar enough between
+;;; channels that some code can use this struct to treat channels generically.
+.STRUCT sChanRegs
+    ;; * For the pulse channels, this controls the volume envelope and also the
+    ;;   duty cycle.
+    ;; * For the triangle channel, this controls whether the channel is on.
+    ;; * For the noise channel, this controls the volume envelope.
+    ;; * For the DMC channel, this controls the sample rate.
+    Envelope_wo .byte
+    ;; * For the pulse channels, this controls frequency sweep.
+    ;; * For the triangle and noise channels, this is unused.
+    ;; * For the DMC channel, this is used to directly load PCM samples.
+    Sweep_wo    .byte
+    ;; * For the pulse and triangle channels, this controls the low bits of the
+    ;;   tone frequency.
+    ;; * For the noise channel, this controls the noise period.
+    ;; * For the DMC channel, this controls the sample address.
+    TimerLo_wo  .byte
+    ;; * For the pulse and triangle channels, this controls the high bits of
+    ;;   the tone frequency, as well as the length counter.
+    ;; * For the noise channel, this controls the length counter.
+    ;; * For the DMC channel, this controls the sample length.
+    TimerHi_wo  .byte
+.ENDSTRUCT
+
+;;; Hardware registers for each APU channel.
+Hw_Channels_sChanRegs_arr5 = $4000
+
+;;;=========================================================================;;;
+
+;;; DMC channel flags and rate (https://www.nesdev.org/wiki/APU_DMC)
 Hw_DmcFlags_wo = $4010
 
 .SCOPE bDmcFlags
@@ -52,7 +86,7 @@ Hw_ApuStatus_rw = $4015
     Pulse1         = %00000001
 .ENDSCOPE
 
-;;; APU Frame Counter (https://wiki.nesdev.org/w/index.php/APU_Frame_Counter)
+;;; APU Frame Counter (https://www.nesdev.org/wiki/APU_Frame_Counter)
 Hw_ApuCount_wo = $4017
 
 .SCOPE bApuCount

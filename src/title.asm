@@ -17,6 +17,7 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
+.INCLUDE "audio.inc"
 .INCLUDE "flag.inc"
 .INCLUDE "joypad.inc"
 .INCLUDE "macros.inc"
@@ -25,6 +26,7 @@
 .INCLUDE "program.inc"
 .INCLUDE "room.inc"
 
+.IMPORT Data_EmptyChain_u8_arr
 .IMPORT FuncA_Fade_In
 .IMPORT FuncA_Fade_Out
 .IMPORT FuncA_Upgrade_ComputeMaxInstructions
@@ -35,6 +37,7 @@
 .IMPORT Main_Explore_EnterFromDevice
 .IMPORT Ppu_ChrTitle
 .IMPORT Sram_MagicNumber_u8
+.IMPORTZP Zp_Next_sAudioCtrl
 .IMPORTZP Zp_OamOffset_u8
 .IMPORTZP Zp_P1ButtonsPressed_bJoypad
 .IMPORTZP Zp_PpuScrollX_u8
@@ -83,6 +86,39 @@ _StartGame:
     jmp Main_Explore_EnterFromDevice
 .ENDPROC
 
+;;; TODO: Remove this once music generation is implemented.
+.PROC Data_Title_Placeholder_sMusic
+    D_STRUCT sMusic
+    d_addr Opcodes_bMusic_arr_ptr, _Opcodes_bMusic_arr
+    d_addr Instruments_sInstrument_ptr_arr_ptr, 0
+    d_addr Parts_sPart_arr_ptr, _Parts_sPart_arr
+    d_addr Phrases_sPhrase_ptr_arr_ptr, _Phrases_sPhrase_ptr_arr
+    D_END
+_Opcodes_bMusic_arr:
+    .byte bMusic::IsPlay | 0     ; PLAY 0
+    .byte bMusic::JumpMask & -1  ; JUMP -1
+_Parts_sPart_arr:
+    D_STRUCT sPart
+    d_addr Chain1_u8_arr_ptr, _Chain1A_u8_arr
+    d_addr Chain2_u8_arr_ptr, Data_EmptyChain_u8_arr
+    d_addr ChainT_u8_arr_ptr, Data_EmptyChain_u8_arr
+    d_addr ChainN_u8_arr_ptr, Data_EmptyChain_u8_arr
+    d_addr ChainD_u8_arr_ptr, Data_EmptyChain_u8_arr
+    D_END
+_Chain1A_u8_arr:
+    .byte 0
+    .byte $ff  ; end-of-chain
+_Phrases_sPhrase_ptr_arr:
+    .addr _Phrase0_sPhrase
+_Phrase0_sPhrase:
+    .byte $c1, $00, 15  ; TONE
+    .byte 15  ; REST
+    .byte $c3, $00, 30  ; TONE
+    .byte $c2, $00, 30  ; TONE
+    .byte $c3, $00, 30  ; TONE
+    .byte $00  ; DONE
+.ENDPROC
+
 ;;;=========================================================================;;;
 
 .SEGMENT "PRGA_Title"
@@ -99,6 +135,13 @@ End:
 .PROC FuncA_Title_Init
     jsr Func_Window_Disable
     chr08_bank #<.bank(Ppu_ChrTitle)
+_StartMusic:
+    lda #$ff
+    sta <(Zp_Next_sAudioCtrl + sAudioCtrl::Enable_bool)
+    lda #$0f
+    sta <(Zp_Next_sAudioCtrl + sAudioCtrl::MasterVolume_u4)
+    ldax #Data_Title_Placeholder_sMusic
+    stax <(Zp_Next_sAudioCtrl + sAudioCtrl::Song_sMusic_ptr)
 _ClearOam:
     lda #0
     sta Zp_OamOffset_u8

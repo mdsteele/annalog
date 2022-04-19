@@ -18,11 +18,13 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "apu.inc"
+.INCLUDE "cpu.inc"
 .INCLUDE "irq.inc"
 .INCLUDE "macros.inc"
 .INCLUDE "mmc3.inc"
 .INCLUDE "ppu.inc"
 
+.IMPORT Func_AudioReset
 .IMPORT Func_ClearRestOfOam
 .IMPORT Main_Title
 .IMPORT Ppu_ChrFontLower01
@@ -72,20 +74,16 @@ _WaitForFirstVBlank:
     ;; we'll wait for first VBlank.
     bit Hw_PpuStatus_ro  ; Reading this implicitly clears the VBlank bit.
     @loop:
+    .assert bPpuStatus::VBlank = bProc::Negative, error
     bit Hw_PpuStatus_ro  ; Set N (negative) CPU flag to value of VBlank bit.
     bpl @loop            ; Continue looping until the VBlank bit is set again.
-_DisableRenderingAndIrqs:
+_DisableRendering:
     ;; Now that we're in VBlank, we can disable rendering.  On a true reset,
     ;; the PPU won't be warmed up yet and will ignore these writes, but that's
     ;; okay because on a true reset, rendering is initially disabled anyway.
     ;; On a soft reset, we want to disable rendering during VBlank.
     lda #0
     sta Hw_PpuMask_wo   ; disable rendering
-    ;; Disable all IRQ sources for now.
-    sta Hw_Mmc3IrqDisable_wo  ; disable MMC3 IRQ
-    sta Hw_DmcFlags_wo        ; disable DMC IRQ
-    ldx #bApuCount::DisableIrq
-    stx Hw_ApuCount_wo        ; disable APU counter IRQ
 _InitializeRam:
     ;; We've still got time to burn until the second VBlank, so this is a good
     ;; time to initialize RAM.
@@ -102,10 +100,13 @@ _InitializeRam:
     ;; Mark the active IRQ table as empty.
     lda #$ff
     sta Ram_Active_sIrq + sIrq::Latch_u8_arr + 0
+    ;; Initialize APU.
+    jsr Func_AudioReset
 _WaitForSecondVBlank:
     ;; Wait for the second VBlank.  After this, the PPU should be warmed up.
     bit Hw_PpuStatus_ro  ; Reading this implicitly clears the VBlank bit.
     @loop:
+    .assert bPpuStatus::VBlank = bProc::Negative, error
     bit Hw_PpuStatus_ro  ; Set N (negative) CPU flag to value of VBlank bit.
     bpl @loop            ; Continue looping until the VBlank bit is set again.
 _InitPpuMapping:
