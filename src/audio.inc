@@ -68,15 +68,6 @@
     ChainD_u8_arr_ptr .addr
 .ENDSTRUCT
 
-;;; An instrument than can be used by a song or sound effect.
-.STRUCT sInstrument
-    ;; The value to write to sChanRegs::Sweep_wo when tone starts.
-    Sweep_byte .byte
-    ;; TODO: vibrato?
-    ;; TODO: duty cycle mod (see https://www.youtube.com/watch?v=kl9v8gtYRZ4)
-    ;; TODO: volume envelope
-.ENDSTRUCT
-
 ;;; Bit flags for music opcodes.  A music opcode byte can take one of the
 ;;; following forms:
 ;;;   * STOP [%00000000].  Ends the song.  Func_AudioUpdate won't play any more
@@ -105,15 +96,21 @@
 .STRUCT sMusic
     ;; A pointer to an array of music opcodes for this song.  This controls
     ;; which parts are played, and in what order.
-    Opcodes_bMusic_arr_ptr              .addr
+    Opcodes_bMusic_arr_ptr       .addr
     ;; A pointer to an array of instruments that can be used by this song.
-    Instruments_sInstrument_ptr_arr_ptr .addr
+    ;; Each instrument function returns the envelope byte to set (not taking
+    ;; master volume into account), and can optionally update other APU
+    ;; registers for channel.
+    ;; @param X The channel number (0-4) times four (so, 0, 4, 8, 12, or 16).
+    ;; @return A The duty/envelope byte to use.
+    ;; @preserve X
+    Instruments_func_ptr_arr_ptr .addr
     ;; A pointer to an array of parts that can appear in this song.  Each song
     ;; plays some sequence of parts in some order, possibly looping, and/or
     ;; possibly dynamically affected by the global music flag.
-    Parts_sPart_arr_ptr                 .addr
+    Parts_sPart_arr_ptr          .addr
     ;; An array of note phrases that can be used by parts in this song.
-    Phrases_sPhrase_ptr_arr_ptr         .addr
+    Phrases_sPhrase_ptr_arr_ptr  .addr
 .ENDSTRUCT
 
 ;;;=========================================================================;;;
@@ -127,10 +124,11 @@
     ;; Note that since this game generally stores music data in PRGC, it is
     ;; only safe to switch PRGC banks when audio is disabled.
     Enable_bool      .byte
-    ;; Sets the master volume (0-15).  This should normally be left at 15 (full
-    ;; volume), but can be reduced over the course of several frames to fade
-    ;; out audio before disabling it.
-    MasterVolume_u4  .byte
+    ;; Sets the master volume (0-255).  This should normally be left at 255
+    ;; (full volume), but can be reduced over the course of several frames to
+    ;; fade out audio before disabling it.  Note that only the top four bits
+    ;; are actually used.
+    MasterVolume_u8  .byte
     ;; Controls the music flag.  If bMusic::UsesFlag is set, then the music
     ;; flag will be set to this & bMusic::FlagMask; otherwise, the music flag
     ;; will be unchanged.
@@ -144,6 +142,18 @@
     ;; SfxT_sPhrase_ptr .addr
     ;; SfxN_sPhrase_ptr .addr
     ;; SfxD_sPhrase_ptr .addr
+.ENDSTRUCT
+
+;;;=========================================================================;;;
+
+;;; Music state variables for a given APU channel.
+.STRUCT sChanState
+    ;; The length of the current tone/rest, in frames.
+    NoteDuration_u8     .byte
+    ;; How many frames of the current tone/rest have elapsed so far.
+    NoteFrames_u8       .byte
+    ;; The instrument function to call each frame to update the tone.
+    Instrument_func_ptr .addr
 .ENDSTRUCT
 
 ;;;=========================================================================;;;

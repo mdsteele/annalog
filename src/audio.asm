@@ -44,13 +44,12 @@
     PhraseNext_ptr   .addr
 .ENDSTRUCT
 
-;;; Music state variables for a given APU channel.
-.STRUCT sChanState
-    ;; How many more frames until the current note is finished.
-    NoteFrames_u8 .byte
-    ;; TODO: Add other state variables.
-    .res 3  ; padding to make .sizeof(sChanState) = .sizeof(sChanNext)
-.ENDSTRUCT
+;;; Assert that all the channel structs we use are exactly four bytes.  This
+;;; allows us to use four times the channel number as a byte index into any the
+;;; struct arrays.
+.ASSERT .sizeof(sChanRegs)  = 4, error
+.ASSERT .sizeof(sChanNext)  = 4, error
+.ASSERT .sizeof(sChanState) = 4, error
 
 ;;;=========================================================================;;;
 
@@ -78,9 +77,10 @@ Zp_Music_sChanNext_arr: .res .sizeof(sChanNext) * kNumApuChannels
 ;;; disabled when this is false.
 Zp_AudioEnabled_bool: .res 1
 
-;;; Master volume, from silent (0) to full (15) that is applied to all channels
-;;; in conjunction with their individual volume envelopes.
-Zp_MasterVolume_u4: .res 1
+;;; Master volume that is applied to all channels in conjunction with their
+;;; individual volume envelopes.  The bottom four bits of this variable are
+;;; always zero.
+Zp_MasterVolume_u8: .res 1
 
 ;;; This must be all zero bits except for bMusic::FlagMask; those bits indicate
 ;;; the current music flag value.
@@ -103,14 +103,16 @@ Zp_ActiveChannels_bApuStatus: .res 1
 ;;; currently updating.
 Zp_CurrentChannel_bApuStatus: .res 1
 
-;;; Temporary variable that any audio-thread function can use.
-Zp_AudioTmp_byte: .res 1
+;;; Temporary variables that any audio-thread function can use.
+Zp_AudioTmp1_byte: .res 1
+Zp_AudioTmp2_byte: .res 1
 
 ;;;=========================================================================;;;
 
 .SEGMENT "RAM_Audio"
 
 ;;; Music channel state for all the different APU channels.
+.EXPORT Ram_Music_sChanState_arr
 Ram_Music_sChanState_arr: .res .sizeof(sChanState) * kNumApuChannels
 
 ;;;=========================================================================;;;
@@ -122,7 +124,7 @@ Ram_Music_sChanState_arr: .res .sizeof(sChanState) * kNumApuChannels
 .PROC Data_Empty_sMusic
     D_STRUCT sMusic
     d_addr Opcodes_bMusic_arr_ptr, _Opcodes_bMusic_arr
-    d_addr Instruments_sInstrument_ptr_arr_ptr, 0
+    d_addr Instruments_func_ptr_arr_ptr, 0
     d_addr Parts_sPart_arr_ptr, 0
     d_addr Phrases_sPhrase_ptr_arr_ptr, 0
     D_END
@@ -139,6 +141,15 @@ _Opcodes_bMusic_arr:
 ;;; A sPhrase struct that contains no notes.
 .PROC Data_Empty_sPhrase
     .byte $00
+.ENDPROC
+
+;;; The default instrument for music channels that don't specify one.
+;;; @param X The channel number (0-4) times four (so, 0, 4, 8, 12, or 16).
+;;; @return A The duty/envelope byte to use.
+;;; @preserve X
+.PROC Func_DefaultInstrument
+    lda #$3f
+    rts
 .ENDPROC
 
 ;;; Mutes all APU channels, resets APU registers, disables APU IRQs, and
@@ -189,8 +200,9 @@ _Disable:
     rts
 _Enable:
     sta Zp_AudioEnabled_bool
-    lda <(Zp_Next_sAudioCtrl + sAudioCtrl::MasterVolume_u4)
-    sta Zp_MasterVolume_u4
+    lda <(Zp_Next_sAudioCtrl + sAudioCtrl::MasterVolume_u8)
+    and #$f0
+    sta Zp_MasterVolume_u8
 _SyncMusicFlag:
     lda <(Zp_Next_sAudioCtrl + sAudioCtrl::MusicFlag_bMusic)
     .assert bMusic::UsesFlag = bProc::Negative, error
@@ -228,24 +240,24 @@ _StartSfx:
     ldx #0
     stx Zp_MusicOpcodeIndex_u8
     @loop:
-    .assert sChanState::NoteFrames_u8 = 0, error
-    lda #0
-    sta Ram_Music_sChanState_arr, x
-    .assert sChanNext::ChainNext_u8_ptr = 0, error
     lda #<Data_EmptyChain_u8_arr
-    sta Zp_Music_sChanNext_arr, x
-    inx
+    sta Zp_Music_sChanNext_arr + sChanNext::ChainNext_u8_ptr + 0, x
     lda #>Data_EmptyChain_u8_arr
-    sta Zp_Music_sChanNext_arr, x
-    inx
-    .assert sChanNext::PhraseNext_ptr = 2, error
+    sta Zp_Music_sChanNext_arr + sChanNext::ChainNext_u8_ptr + 1, x
     lda #<Data_Empty_sPhrase
-    sta Zp_Music_sChanNext_arr, x
-    inx
+    sta Zp_Music_sChanNext_arr + sChanNext::PhraseNext_ptr + 0, x
     lda #>Data_Empty_sPhrase
-    sta Zp_Music_sChanNext_arr, x
+    sta Zp_Music_sChanNext_arr + sChanNext::PhraseNext_ptr + 1, x
+    lda #0
+    sta Ram_Music_sChanState_arr + sChanState::NoteDuration_u8, x
+    sta Ram_Music_sChanState_arr + sChanState::NoteFrames_u8, x
+    lda #<Func_DefaultInstrument
+    sta Ram_Music_sChanState_arr + sChanState::Instrument_func_ptr + 0, x
+    lda #>Func_DefaultInstrument
+    sta Ram_Music_sChanState_arr + sChanState::Instrument_func_ptr + 1, x
+    .repeat .sizeof(sChanNext)
     inx
-    .assert .sizeof(sChanNext) = 4, error
+    .endrepeat
     cpx #.sizeof(sChanNext) * kNumApuChannels
     blt @loop
     rts
@@ -289,7 +301,8 @@ _ExecNextOpcode:
 _OpcodeJumpOrStop:
     tya  ; opcode
     and #bMusic::JumpMask
-    jeq Func_AudioStopMusic
+    bne _PerformJump
+    rts
 _PerformJump:
     tax  ; nonzero 6-bit signed jump offset
     and #%00100000
@@ -330,9 +343,9 @@ _OpcodePlay:
     ;; the current song's Parts_sPart_arr_ptr.
     .assert .sizeof(sPart) = 10, error
     mul #2
-    sta Zp_AudioTmp_byte
+    sta Zp_AudioTmp1_byte
     mul #4
-    adc Zp_AudioTmp_byte
+    adc Zp_AudioTmp1_byte
     tay  ; byte offset for part in Parts_sPart_arr_ptr
     ;; Read in the sPart struct and populate Zp_Music_sChanNext_arr.
     ldx #0
@@ -357,15 +370,6 @@ _OpcodePlay:
     cpy #.sizeof(sPart)
     blt @loop
     jmp _ContinueCurrentPart
-.ENDPROC
-
-;;; Silences all APU channels that are currently playing music.
-.PROC Func_AudioStopMusic
-    ;; TODO: Don't disable channels that are playing SFX.
-    lda #0
-    sta Zp_ActiveChannels_bApuStatus
-    sta Hw_ApuStatus_rw
-    rts
 .ENDPROC
 
 ;;; Continues playing the current music part.  If any notes/rests were played
@@ -394,7 +398,7 @@ _OpcodePlay:
 ;;; notes/rests were played this frame, sets Zp_MusicMadeProgress_bool to true
 ;;; ($ff).  Otherwise, leaves Zp_MusicMadeProgress_bool unchanged, and the
 ;;; chain is now finished.
-;;; @param X The byte offset into Zp_Music_sChanNext_arr for the channel.
+;;; @param X The channel number (0-4) times four (so, 0, 4, 8, 12, or 16).
 ;;; @preserve X
 .PROC Func_AudioContinueChain
 _ContinuePhrase:
@@ -426,69 +430,63 @@ _ChainFinished:
 ;;; Continues playing the current music phrase for one APU channel.  If any
 ;;; notes/rests were played this frame, clears the C (carry) flag.  Otherwise,
 ;;; sets the C flag, and the phrase is now finished.
-;;; @param X The byte offset into Zp_Music_sChanNext_arr for the channel.
+;;; @param X The channel number (0-4) times four (so, 0, 4, 8, 12, or 16).
 ;;; @return C Set if no note/rest was played, and the phrase is now finished.
 ;;; @preserve X
 .PROC Func_AudioContinuePhrase
-    .assert .sizeof(sChanState) = .sizeof(sChanNext), error
     lda Ram_Music_sChanState_arr + sChanState::NoteFrames_u8, x
-    beq _StartNextNote
+    cmp Ram_Music_sChanState_arr + sChanState::NoteDuration_u8, x
+    bge _StartNextNote
 _ContinueNote:
-    ;; TODO: Use the current instrument and Zp_MasterVolume_u4 to update
-    ;;   envelope/duty cycle.
-    dec Ram_Music_sChanState_arr + sChanState::NoteFrames_u8, x
+    ;; TODO: Jump to _IncrementFramesAndReturn if this channel is playing SFX.
+    ;;
+    ;; If the channel is disabled, then we're playing a rest (rather than a
+    ;; tone).
+    lda Zp_CurrentChannel_bApuStatus
+    and Zp_ActiveChannels_bApuStatus
+    beq _IncrementFramesAndReturn
+_ContinueTone:
+    jsr Func_AudioCallInstrument  ; preserves X, returns A
+    ;; TODO: Apply master volume.
+    sta Hw_Channels_sChanRegs_arr5 + sChanRegs::Envelope_wo, x
+_IncrementFramesAndReturn:
+    inc Ram_Music_sChanState_arr + sChanState::NoteFrames_u8, x
     clc  ; clear C to indicate that the phrase is still going
     rts
 _StartNextNote:
     ;; Read the first byte of the next note.  If it's zero, we've reached the
     ;; end of the phrase.
     lda (Zp_Music_sChanNext_arr + sChanNext::PhraseNext_ptr, x)
-    bne @phraseNotFinished
-    sec  ; set C to indicate that the phrase has finished
-    rts
-    @phraseNotFinished:
-    sta Zp_AudioTmp_byte  ; first note byte
+    beq _NoteDone
+    sta Zp_AudioTmp1_byte  ; first note byte
     ;; Increment the channel's PhraseNext_ptr.
     inc Zp_Music_sChanNext_arr + sChanNext::PhraseNext_ptr + 0, x
     bne @incDone
     inc Zp_Music_sChanNext_arr + sChanNext::PhraseNext_ptr + 1, x
     @incDone:
     ;; Determine what kind of note this is.
-    bit Zp_AudioTmp_byte  ; first note byte
+    bit Zp_AudioTmp1_byte  ; first note byte
     .assert bNote::NotRest = bProc::Negative, error
     bpl _NoteRest
     .assert bNote::IsTone = bProc::Overflow, error
-    bvs _NoteTone
-_NoteInst:
-    and #bNote::InstMask
-    ;; TODO: Set current instrument.
-    jmp _StartNextNote
-_NoteRest:
-    ;; Record the rest duration.
-    .assert .sizeof(sChanState) = .sizeof(sChanNext), error
-    sta Ram_Music_sChanState_arr + sChanState::NoteFrames_u8, x
-    ;; Silence the channel.
-    lda Zp_CurrentChannel_bApuStatus
-    eor #$ff
-    and Zp_ActiveChannels_bApuStatus
-    sta Zp_ActiveChannels_bApuStatus
-    sta Hw_ApuStatus_rw
-    clc  ; clear C to indicate that the phrase is still going
-    rts
+    bvc _NoteInst
 _NoteTone:
     ;; Enable the channel.
     lda Zp_CurrentChannel_bApuStatus
     ora Zp_ActiveChannels_bApuStatus
     sta Zp_ActiveChannels_bApuStatus
     sta Hw_ApuStatus_rw
-    ;; Set envelope/duty cycle/sample rate.
-    lda #$bf  ; TODO: Use instrument and master volume to determine this value
-    .assert .sizeof(sChanRegs) = .sizeof(sChanNext), error
-    sta Hw_Channels_sChanRegs_arr5 + sChanRegs::Envelope_wo, x
+    ;; Reset sweep and note frames.
+    lda #0
+    sta Hw_Channels_sChanRegs_arr5 + sChanRegs::Sweep_wo, x
+    sta Ram_Music_sChanState_arr + sChanState::NoteFrames_u8, x
     ;; Read the second byte of the TONE note and use it as the TimerLo value.
     lda (Zp_Music_sChanNext_arr + sChanNext::PhraseNext_ptr, x)
-    .assert .sizeof(sChanRegs) = .sizeof(sChanNext), error
     sta Hw_Channels_sChanRegs_arr5 + sChanRegs::TimerLo_wo, x
+    ;; Mask the first byte of the TONE note and use it as the TimerHi value.
+    lda Zp_AudioTmp1_byte  ; first note byte
+    and #bNote::ToneMask
+    sta Hw_Channels_sChanRegs_arr5 + sChanRegs::TimerHi_wo, x
     ;; Increment the channel's PhraseNext_ptr a second time.
     inc Zp_Music_sChanNext_arr + sChanNext::PhraseNext_ptr + 0, x
     bne @incDone2
@@ -496,20 +494,53 @@ _NoteTone:
     @incDone2:
     ;; Read the third byte of the TONE note and use it as the note duration.
     lda (Zp_Music_sChanNext_arr + sChanNext::PhraseNext_ptr, x)
-    .assert .sizeof(sChanState) = .sizeof(sChanNext), error
-    sta Ram_Music_sChanState_arr + sChanState::NoteFrames_u8, x
-    ;; Mask the first byte of the TONE note and use it as the TimerHi value.
-    lda Zp_AudioTmp_byte  ; first note byte
-    and #bNote::ToneMask
-    .assert .sizeof(sChanRegs) = .sizeof(sChanNext), error
-    sta Hw_Channels_sChanRegs_arr5 + sChanRegs::TimerHi_wo, x
+    sta Ram_Music_sChanState_arr + sChanState::NoteDuration_u8, x
     ;; Increment the channel's PhraseNext_ptr a third time.
     inc Zp_Music_sChanNext_arr + sChanNext::PhraseNext_ptr + 0, x
-    bne @incDone3
+    bne _ContinueTone
     inc Zp_Music_sChanNext_arr + sChanNext::PhraseNext_ptr + 1, x
-    @incDone3:
+    bne _ContinueTone  ; unconditional
+_NoteInst:
+    and #bNote::InstMask
+    ;; Set this channel's current instrument to entry number A in the music's
+    ;; instrument array.
+    mul #2
+    tay
+    lda (Zp_Current_sMusic + sMusic::Instruments_func_ptr_arr_ptr), y
+    sta Ram_Music_sChanState_arr + sChanState::Instrument_func_ptr + 0, x
+    iny
+    lda (Zp_Current_sMusic + sMusic::Instruments_func_ptr_arr_ptr), y
+    sta Ram_Music_sChanState_arr + sChanState::Instrument_func_ptr + 1, x
+    jmp _StartNextNote
+_NoteDone:
+    sec  ; set C to indicate that the phrase has finished
+    bcs _DisableChannel  ; unconditional
+_NoteRest:
+    ;; Record the rest duration.
+    sta Ram_Music_sChanState_arr + sChanState::NoteDuration_u8, x
+    lda #1
+    sta Ram_Music_sChanState_arr + sChanState::NoteFrames_u8, x
     clc  ; clear C to indicate that the phrase is still going
+_DisableChannel:
+    lda Zp_CurrentChannel_bApuStatus
+    eor #$ff
+    and Zp_ActiveChannels_bApuStatus
+    sta Zp_ActiveChannels_bApuStatus
+    sta Hw_ApuStatus_rw
     rts
+.ENDPROC
+
+;;; Calls the current instrument function for the specified music channel.
+;;; @param X The channel number (0-4) times four (so, 0, 4, 8, 12, or 16).
+;;; @return A The duty/envelope byte to use.
+;;; @preserve X
+.PROC Func_AudioCallInstrument
+    lda Ram_Music_sChanState_arr + sChanState::Instrument_func_ptr + 0, x
+    sta Zp_AudioTmp1_byte
+    lda Ram_Music_sChanState_arr + sChanState::Instrument_func_ptr + 1, x
+    sta Zp_AudioTmp2_byte
+    .assert Zp_AudioTmp1_byte + 1 = Zp_AudioTmp2_byte, error
+    jmp (Zp_AudioTmp1_byte)
 .ENDPROC
 
 ;;; Continues playing any active sound effects.
