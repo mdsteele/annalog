@@ -73,7 +73,7 @@ _Actors_sActor_arr:
     d_byte Type_eActor, eActor::Adult
     d_byte TileRow_u8, 25
     d_byte TileCol_u8, 16
-    d_byte State_byte, kAdultWoman
+    d_byte Param_byte, kAdultWoman
     D_END
     .byte eActor::None
 _Devices_sDevice_arr:

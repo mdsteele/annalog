@@ -73,13 +73,13 @@ _Actors_sActor_arr:
     d_byte Type_eActor, eActor::Child
     d_byte TileRow_u8, 25
     d_byte TileCol_u8, 20
-    d_byte State_byte, kChildPonytail
+    d_byte Param_byte, kChildPonytail
     D_END
     D_STRUCT sActor
     d_byte Type_eActor, eActor::Toddler
     d_byte TileRow_u8, 25
     d_byte TileCol_u8, 16
-    d_byte State_byte, 55
+    d_byte Param_byte, 55
     D_END
     .byte eActor::None
 _Devices_sDevice_arr:

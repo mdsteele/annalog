@@ -52,6 +52,13 @@ kCrawlerFirstTileId1 = $94
 kCrawlerFirstTileId2 = $98
 kCrawlerFirstTileId3 = $9c
 
+;;; The first tile ID for the fireball actor animation.
+kFireballFirstTileId = $a4
+;;; The OBJ palette number used for fireball actors.
+kFireballPalette = 1
+;;; The radius of a fireball, in pixels.
+kFireballRadius = 2
+
 ;;; The first tile ID for the grenade actor animation.
 kGrenadeFirstTileId = $a0
 ;;; The radius of a grenade, in pixels.
@@ -71,8 +78,27 @@ kToddlerTime = 100
 
 ;;;=========================================================================;;;
 
+Func_InitNoneActor = Func_InitActorDefault
+Func_InitAdultActor = Func_InitActorWithState
+Func_InitChildActor = Func_InitActorWithState
+Func_InitCrawlerActor = Func_InitActorDefault
+Func_InitSmokeActor = Func_InitActorDefault
+Func_InitToddlerActor = Func_InitActorDefault
+
 FuncA_Actor_TickNone = Func_Noop
 FuncA_Objects_DrawNoneActor = Func_Noop
+
+.LINECONT +
+.DEFINE ActorInitFuncs \
+    Func_InitNoneActor, \
+    Func_InitAdultActor, \
+    Func_InitChildActor, \
+    Func_InitCrawlerActor, \
+    Func_InitFireballActor, \
+    Func_InitGrenadeActor, \
+    Func_InitSmokeActor, \
+    Func_InitToddlerActor
+.LINECONT -
 
 .LINECONT +
 .DEFINE ActorTickFuncs \
@@ -80,6 +106,7 @@ FuncA_Objects_DrawNoneActor = Func_Noop
     FuncA_Actor_TickAdult, \
     FuncA_Actor_TickChild, \
     FuncA_Actor_TickCrawler, \
+    FuncA_Actor_TickFireball, \
     FuncA_Actor_TickGrenade, \
     FuncA_Actor_TickSmoke, \
     FuncA_Actor_TickToddler
@@ -91,6 +118,7 @@ FuncA_Objects_DrawNoneActor = Func_Noop
     FuncA_Objects_DrawAdultActor, \
     FuncA_Objects_DrawChildActor, \
     FuncA_Objects_DrawCrawlerActor, \
+    FuncA_Objects_DrawFireballActor, \
     FuncA_Objects_DrawGrenadeActor, \
     FuncA_Objects_DrawSmokeActor, \
     FuncA_Objects_DrawToddlerActor
@@ -131,52 +159,160 @@ Ram_ActorFlags_bObj_arr: .res kMaxActors
 
 ;;;=========================================================================;;;
 
+.SEGMENT "PRG8"
+
+;;; Initializes velocity, state, and flags for an actor appropriately based on
+;;; the actor's type and pixel position.
+;;; @prereq The actor's type and pixel position have already been initialized.
+;;; @param A The actor-type-specific initialization parameter.
+;;; @param X The actor index.
+;;; @preserve X
+.EXPORT Func_InitActor
+.PROC Func_InitActor
+    sta Zp_Tmp1_byte  ; param
+    lda Ram_ActorType_eActor_arr, x
+    tay
+    lda _JumpTable_ptr_0_arr, y
+    sta Zp_Tmp_ptr + 0
+    lda _JumpTable_ptr_1_arr, y
+    sta Zp_Tmp_ptr + 1
+    lda Zp_Tmp1_byte  ; param
+    jmp (Zp_Tmp_ptr)
+_JumpTable_ptr_0_arr: .lobytes ActorInitFuncs
+_JumpTable_ptr_1_arr: .hibytes ActorInitFuncs
+.ENDPROC
+
+;;; The default actor init function that works for most actor types.  Zeroes
+;;; the velocity, flags, and state byte for the specified actor.
+;;; @param X The actor index.
+;;; @preserve X
+.PROC Func_InitActorDefault
+    lda #0  ; param: state byte
+    .assert * = Func_InitActorWithState, error, "fallthrough"
+.ENDPROC
+
+;;; Zeroes the velocity and flags for the specified actor, and sets the actor's
+;;; state byte to A.
+;;; @param A The state byte to set.
+;;; @param X The actor index.
+;;; @preserve X
+.PROC Func_InitActorWithState
+    sta Ram_ActorState_byte_arr, x
+    lda #0
+    sta Ram_ActorVelX_i16_0_arr, x
+    sta Ram_ActorVelX_i16_1_arr, x
+    sta Ram_ActorVelY_i16_0_arr, x
+    sta Ram_ActorVelY_i16_1_arr, x
+    sta Ram_ActorFlags_bObj_arr, x
+    rts
+.ENDPROC
+
+;;; Init function for fireball actors.
+;;; @param X The actor index.
+;;; @preserve X
+.EXPORT Func_InitFireballActor
+.PROC Func_InitFireballActor
+    ;; TODO: init velocity based on parameter
+    lda #0
+    sta Ram_ActorState_byte_arr, x
+    .assert kFireballPalette <> 0, error
+    lda #kFireballPalette
+    sta Ram_ActorFlags_bObj_arr, x
+    rts
+.ENDPROC
+
+;;; Init function for grenade actors.
+;;; @param A The aim angle (0-1).
+;;; @param X The actor index.
+;;; @preserve X
+.EXPORT Func_InitGrenadeActor
+.PROC Func_InitGrenadeActor
+    tay
+    ;; Initialize state:
+    lda #0
+    sta Ram_ActorState_byte_arr, x
+    sta Ram_ActorFlags_bObj_arr, x
+    ;; Initialize X-velocity:
+    sta Ram_ActorVelX_i16_0_arr, x
+    lda _InitVelX_i16_1_arr, y
+    sta Ram_ActorVelX_i16_1_arr, x
+    ;; Adjust X-position:
+    mul #2
+    add Ram_ActorPosX_i16_0_arr, x
+    sta Ram_ActorPosX_i16_0_arr, x
+    lda #0  ; initial X-velocity is always positive
+    adc Ram_ActorPosX_i16_1_arr, x
+    sta Ram_ActorPosX_i16_1_arr, x
+    ;; Initialize Y-velocity:
+    lda _InitVelY_i16_0_arr, y
+    sta Ram_ActorVelY_i16_0_arr, x
+    lda _InitVelY_i16_1_arr, y
+    sta Ram_ActorVelY_i16_1_arr, x
+    ;; Adjust initial Y-position:
+    mul #2
+    add Ram_ActorPosY_i16_0_arr, x
+    sta Ram_ActorPosY_i16_0_arr, x
+    lda #$ff  ; initial Y-velocity is always negative
+    adc Ram_ActorPosY_i16_1_arr, x
+    sta Ram_ActorPosY_i16_1_arr, x
+    rts
+_InitVelX_i16_1_arr: .byte 4, 3
+_InitVelY_i16_0_arr: .byte <($ffff & -400), <($ffff & -650)
+_InitVelY_i16_1_arr: .byte >($ffff & -400), >($ffff & -650)
+.ENDPROC
+
+;;;=========================================================================;;;
+
 .SEGMENT "PRGA_Actor"
 
 ;;; How far an actor's bounding box extends in each direction from the actor's
 ;;; position, indexed by eActor value.
 .PROC DataA_Actor_BoundingBoxUp_u8_arr
     D_ENUM eActor
-    d_byte None,    0
-    d_byte Adult,  13
-    d_byte Child,   7
-    d_byte Crawler, 0
-    d_byte Grenade, kGrenadeRadius
-    d_byte Smoke,   kSmokeRadius
-    d_byte Toddler, 4
+    d_byte None,     0
+    d_byte Adult,   13
+    d_byte Child,    7
+    d_byte Crawler,  0
+    d_byte Fireball, kFireballRadius
+    d_byte Grenade,  kGrenadeRadius
+    d_byte Smoke,    kSmokeRadius
+    d_byte Toddler,  4
     D_END
 .ENDPROC
 .PROC DataA_Actor_BoundingBoxDown_u8_arr
     D_ENUM eActor
-    d_byte None,    0
-    d_byte Adult,   8
-    d_byte Child,   8
-    d_byte Crawler, 8
-    d_byte Grenade, kGrenadeRadius
-    d_byte Smoke,   kSmokeRadius
-    d_byte Toddler, 8
+    d_byte None,     0
+    d_byte Adult,    8
+    d_byte Child,    8
+    d_byte Crawler,  8
+    d_byte Fireball, kFireballRadius
+    d_byte Grenade,  kGrenadeRadius
+    d_byte Smoke,    kSmokeRadius
+    d_byte Toddler,  8
     D_END
 .ENDPROC
 .PROC DataA_Actor_BoundingBoxLeft_u8_arr
     D_ENUM eActor
-    d_byte None,    0
-    d_byte Adult,   5
-    d_byte Child,   5
-    d_byte Crawler, 7
-    d_byte Grenade, kGrenadeRadius
-    d_byte Smoke,   kSmokeRadius
-    d_byte Toddler, 3
+    d_byte None,     0
+    d_byte Adult,    5
+    d_byte Child,    5
+    d_byte Crawler,  7
+    d_byte Fireball, kFireballRadius
+    d_byte Grenade,  kGrenadeRadius
+    d_byte Smoke,    kSmokeRadius
+    d_byte Toddler,  3
     D_END
 .ENDPROC
 .PROC DataA_Actor_BoundingBoxRight_u8_arr
     D_ENUM eActor
-    d_byte None,    0
-    d_byte Adult,   5
-    d_byte Child,   5
-    d_byte Crawler, 7
-    d_byte Grenade, kGrenadeRadius
-    d_byte Smoke,   kSmokeRadius
-    d_byte Toddler, 4
+    d_byte None,     0
+    d_byte Adult,    5
+    d_byte Child,    5
+    d_byte Crawler,  7
+    d_byte Fireball, kFireballRadius
+    d_byte Grenade,  kGrenadeRadius
+    d_byte Smoke,    kSmokeRadius
+    d_byte Toddler,  4
     D_END
 .ENDPROC
 
@@ -348,44 +484,32 @@ _StartMove:
     rts
 .ENDPROC
 
+;;; Performs per-frame updates for a fireball actor.
+;;; @param X The actor index.
+;;; @preserve X
+.PROC FuncA_Actor_TickFireball
+    inc Ram_ActorState_byte_arr, x
+    beq @expire
+    jsr FuncA_Actor_HarmAvatarIfCollision  ; preserves X
+    jsr FuncA_Actor_CenterHitsTerrain  ; preserves X, returns C
+    bcc @done
+    @expire:
+    lda #eActor::None
+    sta Ram_ActorType_eActor_arr, x
+    @done:
+    rts
+.ENDPROC
+
 ;;; Performs per-frame updates for a grenade actor.
 ;;; @param X The actor index.
 ;;; @preserve X
 .PROC FuncA_Actor_TickGrenade
     inc Ram_ActorState_byte_arr, x
     beq _Explode
-_CheckForAvatarImpact:
     jsr FuncA_Actor_HarmAvatarIfCollision  ; preserves X, returns C
     bcs _Explode
-_CheckForWallImpact:
-    ;; Compute the room tile column index for the center of the grenade,
-    ;; storing it in A.
-    lda Ram_ActorPosX_i16_1_arr, x
-    sta Zp_Tmp1_byte
-    lda Ram_ActorPosX_i16_0_arr, x
-    .repeat 3
-    lsr Zp_Tmp1_byte
-    ror a
-    .endrepeat
-    ;; Get the terrain for the tile column we're checking.
-    stx Zp_Tmp1_byte
-    jsr Func_Terrain_GetColumnPtrForTileIndex  ; preserves Zp_Tmp*
-    ldx Zp_Tmp1_byte
-    ;; Compute the room block row index for the center of the crawler, storing
-    ;; it in Y.
-    lda Ram_ActorPosY_i16_1_arr, x
-    sta Zp_Tmp1_byte
-    lda Ram_ActorPosY_i16_0_arr, x
-    .repeat 4
-    lsr Zp_Tmp1_byte
-    ror a
-    .endrepeat
-    tay
-    ;; Check the terrain block that the grenade is in.  If it's solid, explode
-    ;; the grenade.
-    lda (Zp_TerrainColumn_u8_arr_ptr), y
-    cmp #kFirstSolidTerrainType
-    bge _Explode
+    jsr FuncA_Actor_CenterHitsTerrain  ; preserves X, returns C
+    bcs _Explode
 _ApplyGravity:
     lda #kAvatarGravity
     add Ram_ActorVelY_i16_0_arr, x
@@ -397,12 +521,7 @@ _ApplyGravity:
 _Explode:
     lda #eActor::Smoke
     sta Ram_ActorType_eActor_arr, x
-    lda #0
-    sta Ram_ActorFlags_bObj_arr, x
-    sta Ram_ActorState_byte_arr, x
-    sta Ram_ActorVelX_i16_1_arr, x
-    sta Ram_ActorVelY_i16_1_arr, x
-    rts
+    jmp Func_InitSmokeActor
 .ENDPROC
 
 ;;; Performs per-frame updates for a smoke cloud actor.
@@ -529,6 +648,41 @@ _NoHit:
     rts
 .ENDPROC
 
+;;; Checks if the actor's center position is colliding with solid terrain.
+;;; @param X The actor index.
+;;; @return C Set if a collision occurred, cleared otherwise.
+;;; @preserve X
+.PROC FuncA_Actor_CenterHitsTerrain
+    ;; Compute the room tile column index for the actor position, storing it in
+    ;; A.
+    lda Ram_ActorPosX_i16_1_arr, x
+    sta Zp_Tmp1_byte
+    lda Ram_ActorPosX_i16_0_arr, x
+    .repeat 3
+    lsr Zp_Tmp1_byte
+    ror a
+    .endrepeat
+    ;; Get the terrain for the tile column we're checking.
+    stx Zp_Tmp1_byte
+    jsr Func_Terrain_GetColumnPtrForTileIndex  ; preserves Zp_Tmp*
+    ldx Zp_Tmp1_byte
+    ;; Compute the room block row index for the actor position, storing it in
+    ;; Y.
+    lda Ram_ActorPosY_i16_1_arr, x
+    sta Zp_Tmp1_byte
+    lda Ram_ActorPosY_i16_0_arr, x
+    .repeat 4
+    lsr Zp_Tmp1_byte
+    ror a
+    .endrepeat
+    tay
+    ;; Check the terrain block that the actor position is in, and set C if the
+    ;; terrain is solid.
+    lda (Zp_TerrainColumn_u8_arr_ptr), y
+    cmp #kFirstSolidTerrainType
+    rts
+.ENDPROC
+
 ;;;=========================================================================;;;
 
 .SEGMENT "PRGA_Objects"
@@ -595,6 +749,17 @@ _JumpTable_ptr_1_arr: .hibytes ActorDrawFuncs
     lda #kCrawlerFirstTileId3
     @draw:
     jmp FuncA_Objects_Draw2x2Actor  ; preserves X
+.ENDPROC
+
+;;; Allocates and populates OAM slots for a fireball actor.
+;;; @param X The actor index.
+;;; @preserve X
+.PROC FuncA_Objects_DrawFireballActor
+    lda Ram_ActorState_byte_arr, x
+    div #2
+    and #$01
+    add #kFireballFirstTileId
+    jmp FuncA_Objects_Draw1x1Actor
 .ENDPROC
 
 ;;; Allocates and populates OAM slots for a grenade actor.

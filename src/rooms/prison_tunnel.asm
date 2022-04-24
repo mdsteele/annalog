@@ -82,13 +82,13 @@ _Actors_sActor_arr:
     d_byte Type_eActor, eActor::Crawler
     d_byte TileRow_u8, 9
     d_byte TileCol_u8, 16
-    d_byte State_byte, 0
+    d_byte Param_byte, 0
     D_END
     D_STRUCT sActor
     d_byte Type_eActor, eActor::Crawler
     d_byte TileRow_u8, 25
     d_byte TileCol_u8, 16
-    d_byte State_byte, 0
+    d_byte Param_byte, 0
     D_END
     .byte eActor::None
 _Devices_sDevice_arr:

@@ -35,21 +35,16 @@
 .IMPORT FuncA_Objects_MoveShapeDownOneTile
 .IMPORT FuncA_Objects_MoveShapeRightOneTile
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
+.IMPORT Func_InitGrenadeActor
 .IMPORT Func_MachineError
 .IMPORT Func_MachineFinishResetting
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrUpgrade
-.IMPORT Ram_ActorFlags_bObj_arr
 .IMPORT Ram_ActorPosX_i16_0_arr
 .IMPORT Ram_ActorPosX_i16_1_arr
 .IMPORT Ram_ActorPosY_i16_0_arr
 .IMPORT Ram_ActorPosY_i16_1_arr
-.IMPORT Ram_ActorState_byte_arr
 .IMPORT Ram_ActorType_eActor_arr
-.IMPORT Ram_ActorVelX_i16_0_arr
-.IMPORT Ram_ActorVelX_i16_1_arr
-.IMPORT Ram_ActorVelY_i16_0_arr
-.IMPORT Ram_ActorVelY_i16_1_arr
 .IMPORT Ram_MachineStatus_eMachine_arr
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORT Ram_RoomState
@@ -83,16 +78,9 @@ kCannonTileIdBarrelHigh = $7c
 kCannonTileIdBarrelMid  = $7d
 kCannonTileIdBarrelLow  = $7e
 
-;;; Initial position/velocity for grenades shot from the cannon, for the
-;;; cannon's low and high aiming positions.
-kCannonGrenadeInitPosXLow  = $33
-kCannonGrenadeInitPosYLow  = $73
-kCannonGrenadeInitVelXLow  = 4  ; pixels/frame
-kCannonGrenadeInitVelYLow  = $ffff & -400  ; subpixels/frame
-kCannonGrenadeInitPosXHigh = $2f
-kCannonGrenadeInitPosYHigh = $70
-kCannonGrenadeInitVelXHigh = 3  ; pixels/frame
-kCannonGrenadeInitVelYHigh = $ffff & -650  ; subpixels/frame
+;;; Initial position for grenades shot from the cannon.
+kCannonGrenadeInitPosX = $28
+kCannonGrenadeInitPosY = $78
 
 ;;;=========================================================================;;;
 
@@ -198,6 +186,12 @@ _Devices_sDevice_arr:
     d_byte BlockCol_u8, 12
     d_byte Target_u8, kCannonMachineIndex
     D_END
+    D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::Upgrade
+    d_byte BlockRow_u8, 12
+    d_byte BlockCol_u8, 4
+    d_byte Target_u8, eFlag::UpgradeOpcodeIfGoto
+    D_END
     .byte eDevice::None
 _Cannon_Init:
     lda #0
@@ -253,36 +247,19 @@ _Cannon_TryAct:
     @ready:
     lda #kCannonActCountdown
     sta Ram_RoomState + sState::CannonCountdown_u8
+    ;; Fire a grenade:
     lda #eActor::Grenade
     sta Ram_ActorType_eActor_arr + kGrenadeActorIndex
+    lda #kCannonGrenadeInitPosX
+    sta Ram_ActorPosX_i16_0_arr + kGrenadeActorIndex
+    lda #kCannonGrenadeInitPosY
+    sta Ram_ActorPosY_i16_0_arr + kGrenadeActorIndex
     lda #0
     sta Ram_ActorPosX_i16_1_arr + kGrenadeActorIndex
     sta Ram_ActorPosY_i16_1_arr + kGrenadeActorIndex
-    sta Ram_ActorState_byte_arr + kGrenadeActorIndex
-    sta Ram_ActorFlags_bObj_arr + kGrenadeActorIndex
-    sta Ram_ActorVelX_i16_0_arr + kGrenadeActorIndex
-    lda Ram_RoomState + sState::CannonRegY_u8
-    bne @aimHigh
-    @aimLow:
-    lda #kCannonGrenadeInitPosXLow
-    sta Ram_ActorPosX_i16_0_arr + kGrenadeActorIndex
-    lda #kCannonGrenadeInitPosYLow
-    sta Ram_ActorPosY_i16_0_arr + kGrenadeActorIndex
-    lda #kCannonGrenadeInitVelXLow
-    sta Ram_ActorVelX_i16_1_arr + kGrenadeActorIndex
-    ldax #kCannonGrenadeInitVelYLow
-    jmp @finishAim
-    @aimHigh:
-    lda #kCannonGrenadeInitPosXHigh
-    sta Ram_ActorPosX_i16_0_arr + kGrenadeActorIndex
-    lda #kCannonGrenadeInitPosYHigh
-    sta Ram_ActorPosY_i16_0_arr + kGrenadeActorIndex
-    lda #kCannonGrenadeInitVelXHigh
-    sta Ram_ActorVelX_i16_1_arr + kGrenadeActorIndex
-    ldax #kCannonGrenadeInitVelYHigh
-    @finishAim:
-    stx Ram_ActorVelY_i16_0_arr + kGrenadeActorIndex
-    sta Ram_ActorVelY_i16_1_arr + kGrenadeActorIndex
+    ldx #kGrenadeActorIndex  ; param: actor index
+    lda Ram_RoomState + sState::CannonRegY_u8  ; param: aim angle
+    jsr Func_InitGrenadeActor
     clc  ; clear C to indicate success
     rts
 _Cannon_Tick:
