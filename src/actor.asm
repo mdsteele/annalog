@@ -27,6 +27,7 @@
 .IMPORT FuncA_Objects_Alloc1x1Shape
 .IMPORT FuncA_Objects_Alloc2x1Shape
 .IMPORT FuncA_Objects_Alloc2x2Shape
+.IMPORT FuncA_Objects_MoveShapeLeftOneTile
 .IMPORT FuncA_Objects_MoveShapeUpOneTile
 .IMPORT Func_HarmAvatar
 .IMPORT Func_Noop
@@ -51,6 +52,18 @@ kCrawlerFirstTileId1 = $94
 kCrawlerFirstTileId2 = $98
 kCrawlerFirstTileId3 = $9c
 
+;;; The first tile ID for the grenade actor animation.
+kGrenadeFirstTileId = $a0
+;;; The radius of a grenade, in pixels.
+kGrenadeRadius = 2
+
+;;; The first tile ID for the smoke particle animation.
+kSmokeFirstTileId = $1a
+;;; How long a smoke actor animates before disappearing, in frames.
+kSmokeNumFrames = 12
+;;; The radius of a smoke cloud, in pixels.
+kSmokeRadius = 6
+
 ;;; How fast a toddler walks, in pixels per frame.
 kToddlerSpeed = 1
 ;;; How long a toddler walks before turning around, in frames.
@@ -58,16 +71,18 @@ kToddlerTime = 100
 
 ;;;=========================================================================;;;
 
-Func_Actor_TickNone = Func_Noop
+FuncA_Actor_TickNone = Func_Noop
 FuncA_Objects_DrawNoneActor = Func_Noop
 
 .LINECONT +
 .DEFINE ActorTickFuncs \
-    Func_Actor_TickNone, \
-    Func_Actor_TickAdult, \
-    Func_Actor_TickChild, \
-    Func_Actor_TickCrawler, \
-    Func_Actor_TickToddler
+    FuncA_Actor_TickNone, \
+    FuncA_Actor_TickAdult, \
+    FuncA_Actor_TickChild, \
+    FuncA_Actor_TickCrawler, \
+    FuncA_Actor_TickGrenade, \
+    FuncA_Actor_TickSmoke, \
+    FuncA_Actor_TickToddler
 .LINECONT -
 
 .LINECONT +
@@ -76,6 +91,8 @@ FuncA_Objects_DrawNoneActor = Func_Noop
     FuncA_Objects_DrawAdultActor, \
     FuncA_Objects_DrawChildActor, \
     FuncA_Objects_DrawCrawlerActor, \
+    FuncA_Objects_DrawGrenadeActor, \
+    FuncA_Objects_DrawSmokeActor, \
     FuncA_Objects_DrawToddlerActor
 .LINECONT -
 
@@ -95,6 +112,14 @@ Ram_ActorPosX_i16_1_arr: .res kMaxActors
 Ram_ActorPosY_i16_0_arr: .res kMaxActors
 Ram_ActorPosY_i16_1_arr: .res kMaxActors
 
+;;; The current velocities of each actor in the room, in subpixels per frame.
+.EXPORT Ram_ActorVelX_i16_0_arr, Ram_ActorVelX_i16_1_arr
+Ram_ActorVelX_i16_0_arr: .res kMaxActors
+Ram_ActorVelX_i16_1_arr: .res kMaxActors
+.EXPORT Ram_ActorVelY_i16_0_arr, Ram_ActorVelY_i16_1_arr
+Ram_ActorVelY_i16_0_arr: .res kMaxActors
+Ram_ActorVelY_i16_1_arr: .res kMaxActors
+
 ;;; Type-specific state data for each actor in the room.
 .EXPORT Ram_ActorState_byte_arr
 Ram_ActorState_byte_arr: .res kMaxActors
@@ -106,53 +131,61 @@ Ram_ActorFlags_bObj_arr: .res kMaxActors
 
 ;;;=========================================================================;;;
 
-.SEGMENT "PRG8"
+.SEGMENT "PRGA_Actor"
 
 ;;; How far an actor's bounding box extends in each direction from the actor's
 ;;; position, indexed by eActor value.
-.PROC Data_ActorBoundingBoxUp_u8_arr
+.PROC DataA_Actor_BoundingBoxUp_u8_arr
     D_ENUM eActor
     d_byte None,    0
     d_byte Adult,  13
     d_byte Child,   7
     d_byte Crawler, 0
+    d_byte Grenade, kGrenadeRadius
+    d_byte Smoke,   kSmokeRadius
     d_byte Toddler, 4
     D_END
 .ENDPROC
-.PROC Data_ActorBoundingBoxDown_u8_arr
+.PROC DataA_Actor_BoundingBoxDown_u8_arr
     D_ENUM eActor
     d_byte None,    0
     d_byte Adult,   8
     d_byte Child,   8
     d_byte Crawler, 8
+    d_byte Grenade, kGrenadeRadius
+    d_byte Smoke,   kSmokeRadius
     d_byte Toddler, 8
     D_END
 .ENDPROC
-.PROC Data_ActorBoundingBoxLeft_u8_arr
+.PROC DataA_Actor_BoundingBoxLeft_u8_arr
     D_ENUM eActor
     d_byte None,    0
     d_byte Adult,   5
     d_byte Child,   5
     d_byte Crawler, 7
+    d_byte Grenade, kGrenadeRadius
+    d_byte Smoke,   kSmokeRadius
     d_byte Toddler, 3
     D_END
 .ENDPROC
-.PROC Data_ActorBoundingBoxRight_u8_arr
+.PROC DataA_Actor_BoundingBoxRight_u8_arr
     D_ENUM eActor
     d_byte None,    0
     d_byte Adult,   5
     d_byte Child,   5
     d_byte Crawler, 7
+    d_byte Grenade, kGrenadeRadius
+    d_byte Smoke,   kSmokeRadius
     d_byte Toddler, 4
     D_END
 .ENDPROC
 
 ;;; Performs per-frame updates for each actor in the room.
-.EXPORT Func_TickAllActors
-.PROC Func_TickAllActors
+.EXPORT FuncA_Actor_TickAllActors
+.PROC FuncA_Actor_TickAllActors
     ldx #kMaxActors - 1
     @loop:
-    jsr Func_TickOneActor  ; preserves X
+    jsr FuncA_Actor_TickOneActor  ; preserves X
     dex
     bpl @loop
     rts
@@ -161,7 +194,30 @@ Ram_ActorFlags_bObj_arr: .res kMaxActors
 ;;; Performs per-frame updates for one actor.
 ;;; @param X The actor index.
 ;;; @preserve X
-.PROC Func_TickOneActor
+.PROC FuncA_Actor_TickOneActor
+_ApplyVelX:
+    ldy #0
+    lda Ram_ActorVelX_i16_1_arr, x
+    bpl @nonnegative
+    dey  ; now y is $ff
+    @nonnegative:
+    add Ram_ActorPosX_i16_0_arr, x
+    sta Ram_ActorPosX_i16_0_arr, x
+    tya
+    adc Ram_ActorPosX_i16_1_arr, x
+    sta Ram_ActorPosX_i16_1_arr, x
+_ApplyVelY:
+    ldy #0
+    lda Ram_ActorVelY_i16_1_arr, x
+    bpl @nonnegative
+    dey  ; now y is $ff
+    @nonnegative:
+    add Ram_ActorPosY_i16_0_arr, x
+    sta Ram_ActorPosY_i16_0_arr, x
+    tya
+    adc Ram_ActorPosY_i16_1_arr, x
+    sta Ram_ActorPosY_i16_1_arr, x
+_TypeSpecificTick:
     lda Ram_ActorType_eActor_arr, x
     tay
     lda _JumpTable_ptr_0_arr, y
@@ -176,14 +232,14 @@ _JumpTable_ptr_1_arr: .hibytes ActorTickFuncs
 ;;; Performs per-frame updates for an adult townsfolk actor.
 ;;; @param X The actor index.
 ;;; @preserve X
-.PROC Func_Actor_TickAdult
-    .assert * = Func_Actor_TickChild, error, "fallthrough"
+.PROC FuncA_Actor_TickAdult
+    .assert * = FuncA_Actor_TickChild, error, "fallthrough"
 .ENDPROC
 
 ;;; Performs per-frame updates for a child townsfolk actor.
 ;;; @param X The actor index.
 ;;; @preserve X
-.PROC Func_Actor_TickChild
+.PROC FuncA_Actor_TickChild
     lda Ram_ActorPosX_i16_1_arr, x
     cmp Zp_AvatarPosX_i16 + 1
     blt @faceRight
@@ -204,7 +260,7 @@ _JumpTable_ptr_1_arr: .hibytes ActorTickFuncs
 ;;; Performs per-frame updates for a crawler enemy actor.
 ;;; @param X The actor index.
 ;;; @preserve X
-.PROC Func_Actor_TickCrawler
+.PROC FuncA_Actor_TickCrawler
     lda Ram_ActorState_byte_arr, x
     beq _StartMove
     dec Ram_ActorState_byte_arr, x
@@ -220,7 +276,7 @@ _MoveRight:
     lda Ram_ActorPosX_i16_1_arr, x
     adc #0
     sta Ram_ActorPosX_i16_1_arr, x
-    jmp Func_Actor_HarmAvatarIfCollision  ; preserves X
+    jmp FuncA_Actor_HarmAvatarIfCollision  ; preserves X
 _MoveLeft:
     lda Ram_ActorPosX_i16_0_arr, x
     sub #1
@@ -229,7 +285,7 @@ _MoveLeft:
     sbc #0
     sta Ram_ActorPosX_i16_1_arr, x
 _DetectCollision:
-    jmp Func_Actor_HarmAvatarIfCollision  ; preserves X
+    jmp FuncA_Actor_HarmAvatarIfCollision  ; preserves X
 _StartMove:
     ;; Compute the room tile column index for the center of the crawler,
     ;; storing it in Y.
@@ -292,10 +348,81 @@ _StartMove:
     rts
 .ENDPROC
 
+;;; Performs per-frame updates for a grenade actor.
+;;; @param X The actor index.
+;;; @preserve X
+.PROC FuncA_Actor_TickGrenade
+    inc Ram_ActorState_byte_arr, x
+    beq _Explode
+_CheckForAvatarImpact:
+    jsr FuncA_Actor_HarmAvatarIfCollision  ; preserves X, returns C
+    bcs _Explode
+_CheckForWallImpact:
+    ;; Compute the room tile column index for the center of the grenade,
+    ;; storing it in A.
+    lda Ram_ActorPosX_i16_1_arr, x
+    sta Zp_Tmp1_byte
+    lda Ram_ActorPosX_i16_0_arr, x
+    .repeat 3
+    lsr Zp_Tmp1_byte
+    ror a
+    .endrepeat
+    ;; Get the terrain for the tile column we're checking.
+    stx Zp_Tmp1_byte
+    jsr Func_Terrain_GetColumnPtrForTileIndex  ; preserves Zp_Tmp*
+    ldx Zp_Tmp1_byte
+    ;; Compute the room block row index for the center of the crawler, storing
+    ;; it in Y.
+    lda Ram_ActorPosY_i16_1_arr, x
+    sta Zp_Tmp1_byte
+    lda Ram_ActorPosY_i16_0_arr, x
+    .repeat 4
+    lsr Zp_Tmp1_byte
+    ror a
+    .endrepeat
+    tay
+    ;; Check the terrain block that the grenade is in.  If it's solid, explode
+    ;; the grenade.
+    lda (Zp_TerrainColumn_u8_arr_ptr), y
+    cmp #kFirstSolidTerrainType
+    bge _Explode
+_ApplyGravity:
+    lda #kAvatarGravity
+    add Ram_ActorVelY_i16_0_arr, x
+    sta Ram_ActorVelY_i16_0_arr, x
+    lda #0
+    adc Ram_ActorVelY_i16_1_arr, x
+    sta Ram_ActorVelY_i16_1_arr, x
+    rts
+_Explode:
+    lda #eActor::Smoke
+    sta Ram_ActorType_eActor_arr, x
+    lda #0
+    sta Ram_ActorFlags_bObj_arr, x
+    sta Ram_ActorState_byte_arr, x
+    sta Ram_ActorVelX_i16_1_arr, x
+    sta Ram_ActorVelY_i16_1_arr, x
+    rts
+.ENDPROC
+
+;;; Performs per-frame updates for a smoke cloud actor.
+;;; @param X The actor index.
+;;; @preserve X
+.PROC FuncA_Actor_TickSmoke
+    inc Ram_ActorState_byte_arr, x
+    lda Ram_ActorState_byte_arr, x
+    cmp #kSmokeNumFrames
+    blt @done
+    lda #eActor::None
+    sta Ram_ActorType_eActor_arr, x
+    @done:
+    rts
+.ENDPROC
+
 ;;; Performs per-frame updates for a toddler townsfolk actor.
 ;;; @param X The actor index.
 ;;; @preserve X
-.PROC Func_Actor_TickToddler
+.PROC FuncA_Actor_TickToddler
     dec Ram_ActorState_byte_arr, x
     bne @move
     @turnAround:
@@ -329,11 +456,12 @@ _StartMove:
 ;;; Checks if the actor is colliding with the player avatar; if so, harms the
 ;;; avatar.
 ;;; @param X The actor index.
+;;; @return C Set if a collision occurred, cleared otherwise.
 ;;; @preserve X
-.PROC Func_Actor_HarmAvatarIfCollision
+.PROC FuncA_Actor_HarmAvatarIfCollision
     ldy Ram_ActorType_eActor_arr, x
     ;; Check right side.
-    lda Data_ActorBoundingBoxRight_u8_arr, y
+    lda DataA_Actor_BoundingBoxRight_u8_arr, y
     add #kAvatarBoundingBoxLeft
     adc Ram_ActorPosX_i16_0_arr, x
     sta Zp_Tmp1_byte
@@ -347,7 +475,7 @@ _StartMove:
     ble _NoHit
     @hitRight:
     ;; Check left side.
-    lda Data_ActorBoundingBoxLeft_u8_arr, y
+    lda DataA_Actor_BoundingBoxLeft_u8_arr, y
     add #kAvatarBoundingBoxRight
     sta Zp_Tmp1_byte
     lda Ram_ActorPosX_i16_0_arr, x
@@ -363,7 +491,7 @@ _StartMove:
     bge _NoHit
     @hitLeft:
     ;; Check top side.
-    lda Data_ActorBoundingBoxUp_u8_arr, y
+    lda DataA_Actor_BoundingBoxUp_u8_arr, y
     add #kAvatarBoundingBoxDown
     sta Zp_Tmp1_byte
     lda Ram_ActorPosY_i16_0_arr, x
@@ -379,7 +507,7 @@ _StartMove:
     bge _NoHit
     @hitTop:
     ;; Check bottom side.
-    lda Data_ActorBoundingBoxDown_u8_arr, y
+    lda DataA_Actor_BoundingBoxDown_u8_arr, y
     add #kAvatarBoundingBoxUp
     adc Ram_ActorPosY_i16_0_arr, x
     sta Zp_Tmp1_byte
@@ -393,8 +521,11 @@ _StartMove:
     ble _NoHit
     @hitBottom:
 _Hit:
-    jmp Func_HarmAvatar  ; preserves X
+    jsr Func_HarmAvatar  ; preserves X
+    sec
+    rts
 _NoHit:
+    clc
     rts
 .ENDPROC
 
@@ -466,6 +597,73 @@ _JumpTable_ptr_1_arr: .hibytes ActorDrawFuncs
     jmp FuncA_Objects_Draw2x2Actor  ; preserves X
 .ENDPROC
 
+;;; Allocates and populates OAM slots for a grenade actor.
+;;; @param X The actor index.
+;;; @preserve X
+.PROC FuncA_Objects_DrawGrenadeActor
+    lda Ram_ActorState_byte_arr, x
+    div #4
+    and #$03
+    add #kGrenadeFirstTileId
+    jmp FuncA_Objects_Draw1x1Actor
+.ENDPROC
+
+;;; Allocates and populates OAM slots for a smoke cloud actor.
+;;; @param X The actor index.
+;;; @preserve X
+.PROC FuncA_Objects_DrawSmokeActor
+_BottomRight:
+    jsr FuncA_Objects_PositionActorShape  ; preserves X
+    lda Zp_ShapePosX_i16 + 0
+    add Ram_ActorState_byte_arr, x
+    sta Zp_ShapePosX_i16 + 0
+    lda Zp_ShapePosX_i16 + 1
+    adc #0
+    sta Zp_ShapePosX_i16 + 1
+    jsr _DrawSmokeParticle  ; preserves X
+_BottomLeft:
+    jsr FuncA_Objects_PositionActorShape  ; preserves X
+    jsr FuncA_Objects_MoveShapeLeftOneTile
+    lda Zp_ShapePosY_i16 + 0
+    add Ram_ActorState_byte_arr, x
+    sta Zp_ShapePosY_i16 + 0
+    lda Zp_ShapePosY_i16 + 1
+    adc #0
+    sta Zp_ShapePosY_i16 + 1
+    jsr _DrawSmokeParticle  ; preserves X
+_TopLeft:
+    jsr FuncA_Objects_PositionActorShape  ; preserves X
+    jsr FuncA_Objects_MoveShapeUpOneTile
+    jsr FuncA_Objects_MoveShapeLeftOneTile
+    lda Zp_ShapePosX_i16 + 0
+    sub Ram_ActorState_byte_arr, x
+    sta Zp_ShapePosX_i16 + 0
+    lda Zp_ShapePosX_i16 + 1
+    sbc #0
+    sta Zp_ShapePosX_i16 + 1
+    jsr _DrawSmokeParticle  ; preserves X
+_TopRight:
+    jsr FuncA_Objects_PositionActorShape  ; preserves X
+    jsr FuncA_Objects_MoveShapeUpOneTile
+    lda Zp_ShapePosY_i16 + 0
+    sub Ram_ActorState_byte_arr, x
+    sta Zp_ShapePosY_i16 + 0
+    lda Zp_ShapePosY_i16 + 1
+    sbc #0
+    sta Zp_ShapePosY_i16 + 1
+_DrawSmokeParticle:
+    jsr FuncA_Objects_Alloc1x1Shape  ; preserves X
+    bcs @done
+    lda Ram_ActorState_byte_arr, x
+    div #2
+    add #kSmokeFirstTileId
+    sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
+    lda Ram_ActorFlags_bObj_arr, x
+    sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
+    @done:
+    rts
+.ENDPROC
+
 ;;; Allocates and populates OAM slots for a toddler townsfolk actor.
 ;;; @param X The actor index.
 ;;; @preserve X
@@ -498,6 +696,39 @@ _JumpTable_ptr_1_arr: .hibytes ActorDrawFuncs
     lda Ram_ActorPosX_i16_1_arr, x
     sbc Zp_ScrollXHi_u8
     sta Zp_ShapePosX_i16 + 1
+    rts
+.ENDPROC
+
+;;; Allocates and populates OAM slots for the specified actor, using the given
+;;; tile ID.
+;;; @param A The tile ID.
+;;; @param X The actor index.
+;;; @preserve X
+.PROC FuncA_Objects_Draw1x1Actor
+    pha  ; tile ID
+    jsr FuncA_Objects_PositionActorShape  ; preserves X
+    ;; Adjust X-position.
+    lda Zp_ShapePosX_i16 + 0
+    sub #kTileWidthPx / 2
+    sta Zp_ShapePosX_i16 + 0
+    lda Zp_ShapePosX_i16 + 1
+    sbc #0
+    sta Zp_ShapePosX_i16 + 1
+    ;; Adjust Y-position.
+    lda Zp_ShapePosY_i16 + 0
+    sub #kTileWidthPx / 2
+    sta Zp_ShapePosY_i16 + 0
+    lda Zp_ShapePosY_i16 + 1
+    sbc #0
+    sta Zp_ShapePosY_i16 + 1
+    ;; Allocate object.
+    jsr FuncA_Objects_Alloc1x1Shape  ; preserves X
+    pla  ; tile ID
+    bcs @done
+    sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
+    lda Ram_ActorFlags_bObj_arr, x
+    sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
+    @done:
     rts
 .ENDPROC
 

@@ -39,6 +39,17 @@
 .IMPORT Func_MachineFinishResetting
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrUpgrade
+.IMPORT Ram_ActorFlags_bObj_arr
+.IMPORT Ram_ActorPosX_i16_0_arr
+.IMPORT Ram_ActorPosX_i16_1_arr
+.IMPORT Ram_ActorPosY_i16_0_arr
+.IMPORT Ram_ActorPosY_i16_1_arr
+.IMPORT Ram_ActorState_byte_arr
+.IMPORT Ram_ActorType_eActor_arr
+.IMPORT Ram_ActorVelX_i16_0_arr
+.IMPORT Ram_ActorVelX_i16_1_arr
+.IMPORT Ram_ActorVelY_i16_0_arr
+.IMPORT Ram_ActorVelY_i16_1_arr
 .IMPORT Ram_MachineStatus_eMachine_arr
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORT Ram_RoomState
@@ -46,7 +57,10 @@
 
 ;;;=========================================================================;;;
 
-;;; The machine index for the GardenBossCannon machine in this room.
+;;; The actor index for grenades launched by the GardenBossCannon machine.
+kGrenadeActorIndex = 0
+
+;;; The machine index for the GardenBossCannon machine.
 kCannonMachineIndex = 0
 
 ;;; The platform index for the GardenBossCannon machine.
@@ -68,6 +82,17 @@ kCannonTileIdCornerBase = $7b
 kCannonTileIdBarrelHigh = $7c
 kCannonTileIdBarrelMid  = $7d
 kCannonTileIdBarrelLow  = $7e
+
+;;; Initial position/velocity for grenades shot from the cannon, for the
+;;; cannon's low and high aiming positions.
+kCannonGrenadeInitPosXLow  = $33
+kCannonGrenadeInitPosYLow  = $73
+kCannonGrenadeInitVelXLow  = 4  ; pixels/frame
+kCannonGrenadeInitVelYLow  = $ffff & -400  ; subpixels/frame
+kCannonGrenadeInitPosXHigh = $2f
+kCannonGrenadeInitPosYHigh = $70
+kCannonGrenadeInitVelXHigh = 3  ; pixels/frame
+kCannonGrenadeInitVelYHigh = $ffff & -650  ; subpixels/frame
 
 ;;;=========================================================================;;;
 
@@ -228,7 +253,36 @@ _Cannon_TryAct:
     @ready:
     lda #kCannonActCountdown
     sta Ram_RoomState + sState::CannonCountdown_u8
-    ;; TODO spawn bullet
+    lda #eActor::Grenade
+    sta Ram_ActorType_eActor_arr + kGrenadeActorIndex
+    lda #0
+    sta Ram_ActorPosX_i16_1_arr + kGrenadeActorIndex
+    sta Ram_ActorPosY_i16_1_arr + kGrenadeActorIndex
+    sta Ram_ActorState_byte_arr + kGrenadeActorIndex
+    sta Ram_ActorFlags_bObj_arr + kGrenadeActorIndex
+    sta Ram_ActorVelX_i16_0_arr + kGrenadeActorIndex
+    lda Ram_RoomState + sState::CannonRegY_u8
+    bne @aimHigh
+    @aimLow:
+    lda #kCannonGrenadeInitPosXLow
+    sta Ram_ActorPosX_i16_0_arr + kGrenadeActorIndex
+    lda #kCannonGrenadeInitPosYLow
+    sta Ram_ActorPosY_i16_0_arr + kGrenadeActorIndex
+    lda #kCannonGrenadeInitVelXLow
+    sta Ram_ActorVelX_i16_1_arr + kGrenadeActorIndex
+    ldax #kCannonGrenadeInitVelYLow
+    jmp @finishAim
+    @aimHigh:
+    lda #kCannonGrenadeInitPosXHigh
+    sta Ram_ActorPosX_i16_0_arr + kGrenadeActorIndex
+    lda #kCannonGrenadeInitPosYHigh
+    sta Ram_ActorPosY_i16_0_arr + kGrenadeActorIndex
+    lda #kCannonGrenadeInitVelXHigh
+    sta Ram_ActorVelX_i16_1_arr + kGrenadeActorIndex
+    ldax #kCannonGrenadeInitVelYHigh
+    @finishAim:
+    stx Ram_ActorVelY_i16_0_arr + kGrenadeActorIndex
+    sta Ram_ActorVelY_i16_1_arr + kGrenadeActorIndex
     clc  ; clear C to indicate success
     rts
 _Cannon_Tick:

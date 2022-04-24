@@ -34,6 +34,8 @@ kChildPonytail = $84
     Adult
     Child
     Crawler
+    Grenade
+    Smoke
     Toddler
     NUM_VALUES
 .ENDENUM

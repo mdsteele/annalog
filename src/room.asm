@@ -42,6 +42,10 @@
 .IMPORT Ram_ActorPosY_i16_1_arr
 .IMPORT Ram_ActorState_byte_arr
 .IMPORT Ram_ActorType_eActor_arr
+.IMPORT Ram_ActorVelX_i16_0_arr
+.IMPORT Ram_ActorVelX_i16_1_arr
+.IMPORT Ram_ActorVelY_i16_0_arr
+.IMPORT Ram_ActorVelY_i16_1_arr
 .IMPORT Ram_DeviceAnim_u8_arr
 .IMPORT Ram_DeviceBlockCol_u8_arr
 .IMPORT Ram_DeviceBlockRow_u8_arr
@@ -275,6 +279,10 @@ _LoadActors:
     iny
     sta Ram_ActorState_byte_arr, x
     lda #0
+    sta Ram_ActorVelX_i16_0_arr, x
+    sta Ram_ActorVelX_i16_1_arr, x
+    sta Ram_ActorVelY_i16_0_arr, x
+    sta Ram_ActorVelY_i16_1_arr, x
     sta Ram_ActorFlags_bObj_arr, x
     ;; Continue to next sActor entry.
     .assert .sizeof(sActor) = 4, error

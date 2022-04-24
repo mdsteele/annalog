@@ -30,6 +30,7 @@
 .INCLUDE "tileset.inc"
 
 .IMPORT DataA_Room_Banks_u8_arr
+.IMPORT FuncA_Actor_TickAllActors
 .IMPORT FuncA_Avatar_ExploreMove
 .IMPORT FuncA_Fade_In
 .IMPORT FuncA_Fade_Out
@@ -46,7 +47,6 @@
 .IMPORT Func_ClearRestOfOam
 .IMPORT Func_ExecuteAllMachines
 .IMPORT Func_ProcessFrame
-.IMPORT Func_TickAllActors
 .IMPORT Func_TickAllDevices
 .IMPORT Func_ToggleLeverDevice
 .IMPORT Func_UpdateAndMarkMinimap
@@ -271,7 +271,7 @@ _UpdateScrolling:
     jsr Func_SetScrollGoalFromAvatar
     jsr_prga FuncA_Terrain_ScrollTowardsGoal
 _Tick:
-    jsr Func_TickAllActors
+    jsr_prga FuncA_Actor_TickAllActors
     jsr Func_TickAllDevices
     jsr Func_ExecuteAllMachines
     jsr Func_TickCurrentRoom

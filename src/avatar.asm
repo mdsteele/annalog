@@ -77,10 +77,6 @@ kAvatarJumpVelocity = $ffff & -810
 ;;; it takes damage and is temporarily stunned.
 kAvatarStunVelY = $ffff & -300
 
-;;; The vertical acceleration applied to the player avatar when in midair, in
-;;; subpixels per frame per frame.
-kAvatarGravity = 48
-
 ;;; The OBJ palette number to use for the player avatar.
 kAvatarPalette = 1
 
@@ -328,7 +324,6 @@ _MarkMinimap:
     bpl @nonnegative
     dey  ; now y is $ff
     @nonnegative:
-    lda Zp_AvatarVelX_i16 + 1
     add Zp_AvatarPosX_i16 + 0
     sta Zp_AvatarPosX_i16 + 0
     tya
@@ -513,7 +508,6 @@ _Done:
     bpl @nonnegative
     dey  ; now y is $ff
     @nonnegative:
-    lda Zp_AvatarVelY_i16 + 1
     add Zp_AvatarPosY_i16 + 0
     sta Zp_AvatarPosY_i16 + 0
     tya

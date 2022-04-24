@@ -224,7 +224,8 @@
 .PROC Ppu_ChrUpgrade
 :   .incbin "out/data/tiles/upgrade.chr"
     .incbin "out/data/tiles/crawler.chr"
-    .res $60 * kSizeofChr
+    .incbin "out/data/tiles/grenade.chr"
+    .res $5c * kSizeofChr
     .assert * - :- = kSizeofChr * $80, error
 .ENDPROC
 
