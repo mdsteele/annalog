@@ -25,6 +25,7 @@
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
 .INCLUDE "../platform.inc"
+.INCLUDE "../ppu.inc"
 .INCLUDE "../program.inc"
 .INCLUDE "../room.inc"
 
@@ -36,39 +37,46 @@
 .IMPORT FuncA_Objects_MoveShapeRightOneTile
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
 .IMPORT Func_InitGrenadeActor
+.IMPORT Func_InitSmokeActor
 .IMPORT Func_MachineError
 .IMPORT Func_MachineFinishResetting
-.IMPORT Func_Noop
 .IMPORT Ppu_ChrUpgrade
 .IMPORT Ram_ActorPosX_i16_0_arr
 .IMPORT Ram_ActorPosX_i16_1_arr
 .IMPORT Ram_ActorPosY_i16_0_arr
 .IMPORT Ram_ActorPosY_i16_1_arr
 .IMPORT Ram_ActorType_eActor_arr
+.IMPORT Ram_DeviceAnim_u8_arr
+.IMPORT Ram_DeviceType_eDevice_arr
 .IMPORT Ram_MachineStatus_eMachine_arr
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORT Ram_RoomState
+.IMPORT Sram_ProgressFlags_arr
 .IMPORTZP Zp_FrameCounter_u8
 
 ;;;=========================================================================;;;
 
 ;;; The actor index for grenades launched by the GardenBossCannon machine.
 kGrenadeActorIndex = 0
+;;; The actor index for the puff of smoke created when the upgrade appears.
+kSmokeActorIndex = 1
+
+;;; The device index for the upgrade that appears when the boss is defeated.
+kUpgradeDeviceIndex = 0
+;;; The room block row/col where the upgrade will appear.
+kUpgradeBlockRow = 6
+kUpgradeBlockCol = 10
 
 ;;; The machine index for the GardenBossCannon machine.
 kCannonMachineIndex = 0
-
 ;;; The platform index for the GardenBossCannon machine.
 kCannonPlatformIndex = 0
-
 ;;; The initial and max values for sState::CannonRegY_u8.
 kCannonInitRegY = 0
 kCannonMaxRegY = 1
-
 ;;; How many frames the GardenBossCannon machine spends per move/act operation.
 kCannonMoveCountdown = $20
 kCannonActCountdown = $40
-
 ;;; Various OBJ tile IDs used for drawing the GardenBossCannon machine.
 kCannonTileIdLightOff   = $70
 kCannonTileIdLightOn    = $71
@@ -77,7 +85,6 @@ kCannonTileIdCornerBase = $7b
 kCannonTileIdBarrelHigh = $7c
 kCannonTileIdBarrelMid  = $7d
 kCannonTileIdBarrelLow  = $7e
-
 ;;; Initial position for grenades shot from the cannon.
 kCannonGrenadeInitPosX = $28
 kCannonGrenadeInitPosY = $78
@@ -87,16 +94,18 @@ kCannonGrenadeInitPosY = $78
 ;;; Defines room-specific state data for this particular room.
 .STRUCT sState
     ;; The current states of the room's two levers.
-    LeverLeft_u1       .byte
-    LeverRight_u1      .byte
+    LeverLeft_u1         .byte
+    LeverRight_u1        .byte
+    ;; Counts down when nonzero; upon reaching zero, spawns the upgrade.
+    SpawnUpgradeTimer_u8 .byte
     ;; The current value of the GardenBossCannon machine's Y register.
-    CannonRegY_u8      .byte
+    CannonRegY_u8        .byte
     ;; The goal value of the GardenBossCannon machine's Y register; it will
     ;; keep moving until this is reached.
-    CannonGoalY_u8     .byte
+    CannonGoalY_u8       .byte
     ;; Nonzero if the GardenBossCannon machine is moving/firing; this is how
     ;; many more frames until it finishes the current move/act operation.
-    CannonCountdown_u8 .byte
+    CannonCountdown_u8   .byte
 .ENDSTRUCT
 .ASSERT .sizeof(sState) <= kRoomStateSize, error
 
@@ -117,7 +126,7 @@ kCannonGrenadeInitPosY = $78
     d_byte NumMachines_u8, 1
     d_addr Machines_sMachine_arr_ptr, _Machines_sMachine_arr
     d_byte Chr18Bank_u8, <.bank(Ppu_ChrUpgrade)
-    d_addr Tick_func_ptr, Func_Noop
+    d_addr Tick_func_ptr, FuncC_Garden_BossRoomTick
     d_addr Ext_sRoomExt_ptr, _Ext_sRoomExt
     D_END
 _Ext_sRoomExt:
@@ -130,7 +139,7 @@ _Ext_sRoomExt:
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
     d_addr Dialogs_sDialog_ptr_arr_ptr, 0
     d_addr Passages_sPassage_arr_ptr, 0
-    d_addr Init_func_ptr, Func_Noop
+    d_addr Init_func_ptr, FuncC_Garden_BossRoomInit
     D_END
 _TerrainData:
 :   .incbin "out/data/garden_boss.room"
@@ -168,6 +177,13 @@ _Platforms_sPlatform_arr:
 _Actors_sActor_arr:
     .byte eActor::None
 _Devices_sDevice_arr:
+    .assert kUpgradeDeviceIndex = 0, error
+    D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::Upgrade
+    d_byte BlockRow_u8, kUpgradeBlockRow
+    d_byte BlockCol_u8, kUpgradeBlockCol
+    d_byte Target_u8, eFlag::UpgradeMaxInstructions0
+    D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Lever
     d_byte BlockRow_u8, 10
@@ -186,6 +202,7 @@ _Devices_sDevice_arr:
     d_byte BlockCol_u8, 12
     d_byte Target_u8, kCannonMachineIndex
     D_END
+    ;; TODO: Remove this.
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Upgrade
     d_byte BlockRow_u8, 12
@@ -286,6 +303,75 @@ _Cannon_Reset:
     sta Ram_RoomState + sState::CannonGoalY_u8
     rts
 .ENDPROC
+
+;;; Room init function for the GardenBoss room.
+.PROC FuncC_Garden_BossRoomInit
+    ;; Init room state variables.
+    lda #0
+    sta Ram_RoomState + sState::LeverLeft_u1
+    sta Ram_RoomState + sState::LeverRight_u1
+    sta Ram_RoomState + sState::SpawnUpgradeTimer_u8
+    ;; Hide the upgrade device for now.
+    .assert eDevice::None = 0, error
+    sta Ram_DeviceType_eDevice_arr + kUpgradeDeviceIndex
+    ;; If the boss hasn't been defeated yet, then spawn the boss.
+    lda Sram_ProgressFlags_arr + (eFlag::BossGarden >> 3)
+    and #1 << (eFlag::BossGarden & $07)
+    beq _SpawnBoss
+    ;; If the boss has been defeated, but the upgrade hasn't been collected
+    ;; yet, then set a timer to spawn the upgrade.
+    lda Sram_ProgressFlags_arr + (eFlag::UpgradeMaxInstructions0 >> 3)
+    and #1 << (eFlag::UpgradeMaxInstructions0 & $07)
+    bne @playerHasUpgrade
+    lda #30  ; 0.5 seconds
+    sta Ram_RoomState + sState::SpawnUpgradeTimer_u8
+    rts
+    @playerHasUpgrade:
+    ;; If the boss has been defeated and the upgrade has been collected, but
+    ;; the conduit hasn't been activated yet, then spawn the conduit lever.
+    lda Sram_ProgressFlags_arr + (eFlag::ConduitGarden >> 3)
+    and #1 << (eFlag::ConduitGarden & $07)
+    bne @conduitIsActivated
+    ;; TODO: spawn conduit lever
+    @conduitIsActivated:
+    rts
+_SpawnBoss:
+    ;; TODO: implement boss behavior
+    rts
+.ENDPROC
+
+;;; Room tick function for the GardenBoss room.
+.PROC FuncC_Garden_BossRoomTick
+_SpawnUpgrade:
+    ;; If the timer is nonzero, count it down, and spawn the upgrade at zero.
+    lda Ram_RoomState + sState::SpawnUpgradeTimer_u8
+    beq @doneUpgrade
+    dec Ram_RoomState + sState::SpawnUpgradeTimer_u8
+    bne @doneUpgrade
+    ;; Show the upgrade device and animate it.
+    lda #eDevice::Upgrade
+    sta Ram_DeviceType_eDevice_arr + kUpgradeDeviceIndex
+    lda #kUpgradeDeviceAnimStart
+    sta Ram_DeviceAnim_u8_arr + kUpgradeDeviceIndex
+    ;; TODO: play a sound
+    ;; Create a puff of smoke over the upgrade device.
+    lda #eActor::Smoke
+    sta Ram_ActorType_eActor_arr + kSmokeActorIndex
+    lda #kUpgradeBlockCol * kBlockWidthPx + kBlockWidthPx / 2
+    sta Ram_ActorPosX_i16_0_arr + kSmokeActorIndex
+    lda #kUpgradeBlockRow * kBlockHeightPx + kBlockHeightPx / 2
+    sta Ram_ActorPosY_i16_0_arr + kSmokeActorIndex
+    lda #0
+    sta Ram_ActorPosX_i16_1_arr + kSmokeActorIndex
+    sta Ram_ActorPosY_i16_1_arr + kSmokeActorIndex
+    ldx #kSmokeActorIndex  ; param: actor index
+    jsr Func_InitSmokeActor
+    @doneUpgrade:
+_TickBoss:
+    ;; TODO: implement boss behavior
+    rts
+.ENDPROC
+
 ;;;=========================================================================;;;
 
 .SEGMENT "PRGA_Objects"

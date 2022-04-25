@@ -37,6 +37,7 @@ kSaveMagicNumber = $b2
 ;;; These represent things like "has this upgrade been acquired?" or "has this
 ;;; boss been defeated?" or "is this switch turned on?"
 .ENUM eFlag
+    ;; Each of these flags is set when that upgrade has been collected:
     UpgradeMaxInstructions0  ; Each of these four upgrades
     UpgradeMaxInstructions1  ; increases the maximum number
     UpgradeMaxInstructions2  ; of instructions in a program
@@ -49,6 +50,21 @@ kSaveMagicNumber = $b2
     UpgradeOpcodeSkip
     UpgradeOpcodeTil
     UpgradeOpcodeNop
+    ;; Each of these flags is set when that boss has been defeated:
+    BossGarden
+    BossCrypt
+    BossLava
+    BossMine
+    BossCity
+    BossLab
+    BossCore
+    ;; Each of these flags is set when that power conduit has been activated:
+    ConduitGarden
+    ConduitCrypt
+    ConduitLava
+    ConduitMine
+    ConduitCity
+    ConduitLab
 .ENDENUM
 
 ;;;=========================================================================;;;

@@ -82,7 +82,6 @@ Func_InitNoneActor = Func_InitActorDefault
 Func_InitAdultActor = Func_InitActorWithState
 Func_InitChildActor = Func_InitActorWithState
 Func_InitCrawlerActor = Func_InitActorDefault
-Func_InitSmokeActor = Func_InitActorDefault
 Func_InitToddlerActor = Func_InitActorDefault
 
 FuncA_Actor_TickNone = Func_Noop
@@ -182,8 +181,18 @@ _JumpTable_ptr_0_arr: .lobytes ActorInitFuncs
 _JumpTable_ptr_1_arr: .hibytes ActorInitFuncs
 .ENDPROC
 
+;;; Init function for grenade actors.
+;;; @prereq The actor's type and pixel position have already been initialized.
+;;; @param X The actor index.
+;;; @preserve X
+.EXPORT Func_InitSmokeActor
+.PROC Func_InitSmokeActor
+    .assert * = Func_InitActorDefault, error, "fallthrough"
+.ENDPROC
+
 ;;; The default actor init function that works for most actor types.  Zeroes
 ;;; the velocity, flags, and state byte for the specified actor.
+;;; @prereq The actor's type and pixel position have already been initialized.
 ;;; @param X The actor index.
 ;;; @preserve X
 .PROC Func_InitActorDefault
@@ -193,6 +202,7 @@ _JumpTable_ptr_1_arr: .hibytes ActorInitFuncs
 
 ;;; Zeroes the velocity and flags for the specified actor, and sets the actor's
 ;;; state byte to A.
+;;; @prereq The actor's type and pixel position have already been initialized.
 ;;; @param A The state byte to set.
 ;;; @param X The actor index.
 ;;; @preserve X
@@ -208,6 +218,7 @@ _JumpTable_ptr_1_arr: .hibytes ActorInitFuncs
 .ENDPROC
 
 ;;; Init function for fireball actors.
+;;; @prereq The actor's type and pixel position have already been initialized.
 ;;; @param X The actor index.
 ;;; @preserve X
 .EXPORT Func_InitFireballActor
@@ -222,6 +233,7 @@ _JumpTable_ptr_1_arr: .hibytes ActorInitFuncs
 .ENDPROC
 
 ;;; Init function for grenade actors.
+;;; @prereq The actor's type and pixel position have already been initialized.
 ;;; @param A The aim angle (0-1).
 ;;; @param X The actor index.
 ;;; @preserve X
