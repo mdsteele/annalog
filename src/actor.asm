@@ -48,19 +48,19 @@
 
 ;;; First-tile-ID values that can be passed to FuncA_Objects_Draw2x2Actor for
 ;;; various actor animation frames.
-kCrawlerFirstTileId1 = $94
-kCrawlerFirstTileId2 = $98
-kCrawlerFirstTileId3 = $9c
+kCrawlerFirstTileId1 = $9c
+kCrawlerFirstTileId2 = $a0
+kCrawlerFirstTileId3 = $a4
 
 ;;; The first tile ID for the fireball actor animation.
-kFireballFirstTileId = $a4
+kFireballFirstTileId = $96
 ;;; The OBJ palette number used for fireball actors.
 kFireballPalette = 1
 ;;; The radius of a fireball, in pixels.
 kFireballRadius = 2
 
 ;;; The first tile ID for the grenade actor animation.
-kGrenadeFirstTileId = $a0
+kGrenadeFirstTileId = $98
 ;;; The radius of a grenade, in pixels.
 kGrenadeRadius = 2
 

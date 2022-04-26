@@ -19,6 +19,7 @@
 
 .INCLUDE "charmap.inc"
 .INCLUDE "console.inc"
+.INCLUDE "flag.inc"
 .INCLUDE "joypad.inc"
 .INCLUDE "machine.inc"
 .INCLUDE "macros.inc"
@@ -51,6 +52,7 @@
 .IMPORT Main_Menu_EditSelectedField
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORT Ram_PpuTransfer_arr
+.IMPORT Sram_ProgressFlags_arr
 .IMPORTZP Zp_Current_sMachine_ptr
 .IMPORTZP Zp_Current_sProgram_ptr
 .IMPORTZP Zp_HudMachineIndex_u8
@@ -301,6 +303,22 @@ _SetScrollGoal:
     lda (Zp_Current_sMachine_ptr), y
     sta Zp_ScrollGoalY_u8
 _CopyRegNames:
+    ;; Set name of register $a, or #0 if that register isn't yet unlocked (by
+    ;; the COPY opcode).
+    lda Sram_ProgressFlags_arr + (eFlag::UpgradeOpcodeCopy >> 3)
+    and #1 << (eFlag::UpgradeOpcodeCopy & $07)
+    beq @noRegA
+    lda #kMachineRegNameA
+    @noRegA:
+    sta Ram_ConsoleRegNames_u8_arr6 + 0
+    ;; Set name of register $b, or #0 if that register isn't yet unlocked.
+    lda Sram_ProgressFlags_arr + (eFlag::UpgradeRegisterB >> 3)
+    and #1 << (eFlag::UpgradeRegisterB & $07)
+    beq @noRegB
+    lda #kMachineRegNameB
+    @noRegB:
+    sta Ram_ConsoleRegNames_u8_arr6 + 1
+    ;; Copy the machine's names for registers $c through $f.
     .assert sMachine::RegNames_u8_arr4 = 1 + sMachine::ScrollGoalY_u8, error
     iny  ; now Y is sMachine::RegNames_u8_arr4
     ldx #2
@@ -311,11 +329,6 @@ _CopyRegNames:
     inx
     cpx #6
     blt @loop
-    ;; TODO: Set A/B register name to #0 if that register isn't unlocked yet.
-    lda #kMachineRegNameA
-    sta Ram_ConsoleRegNames_u8_arr6 + 0
-    lda #kMachineRegNameB
-    sta Ram_ConsoleRegNames_u8_arr6 + 1
 _InitWindow:
     lda #kScreenHeightPx - kConsoleWindowScrollSpeed
     sta Zp_WindowTop_u8

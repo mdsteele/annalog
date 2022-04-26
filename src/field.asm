@@ -21,6 +21,7 @@
 .INCLUDE "macros.inc"
 .INCLUDE "program.inc"
 
+.IMPORT Ram_ConsoleRegNames_u8_arr6
 .IMPORT Ram_Console_sProgram
 .IMPORTZP Zp_ConsoleFieldNumber_u8
 .IMPORTZP Zp_ConsoleInstNumber_u8
@@ -410,14 +411,6 @@ _UpdateOpcodeOnly:
     ora Zp_Tmp2_byte
     sta Ram_Console_sProgram + sProgram::Code_sInst_arr + sInst::Op_byte, x
     rts
-_ZeroArgByteAndFieldNumber:
-    lda #0
-    sta Ram_Console_sProgram + sProgram::Code_sInst_arr + sInst::Arg_byte, x
-_SetFieldNumber:
-    sta Zp_ConsoleFieldNumber_u8
-    jsr FuncA_Console_GetCurrentFieldOffset  ; returns A
-    sta Zp_ConsoleNominalFieldOffset_u8
-    rts
 _OpAdd:
 _OpSub:
 _OpMul:
@@ -450,6 +443,14 @@ _OpMul:
     ora #$10
     sta Ram_Console_sProgram + sProgram::Code_sInst_arr + sInst::Arg_byte, x
     bne _UpdateOpcodeOnly  ; unconditional
+_ZeroArgByteAndFieldNumber:
+    lda #0
+    sta Ram_Console_sProgram + sProgram::Code_sInst_arr + sInst::Arg_byte, x
+_SetFieldNumber:
+    sta Zp_ConsoleFieldNumber_u8
+    jsr FuncA_Console_GetCurrentFieldOffset  ; returns A
+    sta Zp_ConsoleNominalFieldOffset_u8
+    rts
 _OpSkip:
     lda #eOpcode::Skip * $10 + $01
     sta Ram_Console_sProgram + sProgram::Code_sInst_arr + sInst::Op_byte, x
@@ -462,11 +463,22 @@ _OpTil:
     beq _UpdateOpcodeOnly
     cmp #eOpcode::Til
     beq _UpdateOpcodeOnly
-    ;; Otherwise, initialize args to A = 0.
-    tya  ; new opcode
+    ;; Otherwise, pick an available register.
+    sty Zp_Tmp2_byte  ; new opcode
+    ldy #0
+    @loop:
+    lda Ram_ConsoleRegNames_u8_arr6, y
+    bne @foundRegister
+    iny
+    cpy #5
+    blt @loop
+    @foundRegister:
+    ;; Initialize args to R = 0, where R is the register we picked.
+    lda Zp_Tmp2_byte  ; new opcode
     mul #$10
     sta Ram_Console_sProgram + sProgram::Code_sInst_arr + sInst::Op_byte, x
-    lda #$0a
+    tya  ; register name index (0-5)
+    add #$0a
     sta Ram_Console_sProgram + sProgram::Code_sInst_arr + sInst::Arg_byte, x
     lda #0
     beq _SetFieldNumber  ; unconditional

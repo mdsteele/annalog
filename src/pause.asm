@@ -64,15 +64,15 @@ kMinimapAreaObjTileId     = $02
 
 ;;; The BG tile ID for the bottom-left tile for all upgrade symbols.  Add 1 to
 ;;; this to get the the bottom-right tile ID for those symbols.
-kUpgradeTileIdBottomLeft  = $ac
+kUpgradeTileIdBottomLeft  = $aa
 ;;; The BG tile ID for the top-left tile of the symbol for max-instruction
 ;;; upgrades.  Add 1 to this to get the the top-right tile ID for that symbol.
-kMaxInstTileIdTopLeft     = $ae
+kMaxInstTileIdTopLeft     = $ac
 ;;; The BG tile ID for the top-left tile for the symbol of the first
 ;;; non-max-instruction upgrade.  Add 1 to this to get the the top-right tile
 ;;; ID for that symbol, then add another 1 to get the top-left tile ID for the
 ;;; next upgrade, and so on.
-kRemainingTileIdTopLeft   = $b0
+kRemainingTileIdTopLeft   = $ae
 
 ;;; The screen pixel positions for the top and left edges of the minimap rect.
 kMinimapTopPx  = $28
@@ -366,6 +366,7 @@ _DrawBlankLine:
     sty Hw_PpuData_rw
     sty Hw_PpuData_rw
 .ENDPROC
+    ;; TODO: draw B-remote upgrade
 .PROC _DrawUpgrades
     ;; Calculate the eFlag value for the first upgrade on this line, and store
     ;; it in Zp_Tmp1_byte.

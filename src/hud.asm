@@ -90,11 +90,15 @@ _RegisterA:
     jsr FuncA_Objects_DrawHudRegister
     @done:
 _RegisterB:
-    ;; TODO: Only show register B when unlocked.
+    ;; Only show register B if it is unlocked.
+    lda Sram_ProgressFlags_arr + (eFlag::UpgradeRegisterB >> 3)
+    and #1 << (eFlag::UpgradeRegisterB & $07)
+    beq @done
     lda #kMachineRegNameB
     sta Zp_HudRegisterName_u8
     lda #$b  ; param: register
     jsr FuncA_Objects_DrawHudRegister
+    @done:
 _OtherRegisters:
     .repeat 4, index
     .scope

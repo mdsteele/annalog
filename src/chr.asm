@@ -164,7 +164,7 @@
     .incbin "out/data/tiles/minimap2.chr"
     .res $07 * kSizeofChr
     .incbin "out/data/tiles/minimap3.chr"
-    .res $03 * kSizeofChr
+    .res $01 * kSizeofChr
     .incbin "out/data/tiles/upgrade.chr"
     .assert * - :- = kSizeofChr * $40, error
 .ENDPROC
@@ -223,10 +223,10 @@
 .EXPORT Ppu_ChrUpgrade
 .PROC Ppu_ChrUpgrade
 :   .incbin "out/data/tiles/upgrade.chr"
-    .incbin "out/data/tiles/crawler.chr"
-    .incbin "out/data/tiles/grenade.chr"
     .incbin "out/data/tiles/fireball.chr"
-    .res $5a * kSizeofChr
+    .incbin "out/data/tiles/grenade.chr"
+    .incbin "out/data/tiles/crawler.chr"
+    .res $58 * kSizeofChr
     .assert * - :- = kSizeofChr * $80, error
 .ENDPROC
 

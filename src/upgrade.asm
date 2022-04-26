@@ -293,7 +293,7 @@ OpcodeMul2_u8_arr:       .byte "Multiplies two values.", $ff
 OpcodeMul3_u8_arr:       .byte $ff
 OpcodeIfGoto1_u8_arr:    .byte "      IF OPCODE", $ff
 OpcodeIfGoto2_u8_arr:    .byte "Skips next instruction", $ff
-OpcodeIfGoto3_u8_arr:    .byte "if condition is false.", $ff
+OpcodeIfGoto3_u8_arr:    .byte "unless condition is met.", $ff
 OpcodeSkip1_u8_arr:      .byte "     SKIP OPCODE", $ff
 OpcodeSkip2_u8_arr:      .byte "Skips over a variable", $ff
 OpcodeSkip3_u8_arr:      .byte "number of instructions.", $ff
@@ -303,6 +303,9 @@ OpcodeTil3_u8_arr:       .byte "until condition is met.", $ff
 OpcodeNop1_u8_arr:       .byte "      NOP OPCODE", $ff
 OpcodeNop2_u8_arr:       .byte "Has no effect.", $ff
 OpcodeNop3_u8_arr:       .byte $ff
+RegisterB1_u8_arr:       .byte "       B-REMOTE", $ff
+RegisterB2_u8_arr:       .byte "Uses the B button to", $ff
+RegisterB3_u8_arr:       .byte "control the B register.", $ff
 .ENDPROC
 
 ;;; Transfers the next upgrade window row (if any) that still needs to be
@@ -414,6 +417,10 @@ _DescTable_ptr_arr:
     .addr DataA_Upgrade_Descriptions::OpcodeNop1_u8_arr
     .addr DataA_Upgrade_Descriptions::OpcodeNop2_u8_arr
     .addr DataA_Upgrade_Descriptions::OpcodeNop3_u8_arr
+    .assert * - _DescTable_ptr_arr = 6 * eFlag::UpgradeRegisterB, error
+    .addr DataA_Upgrade_Descriptions::RegisterB1_u8_arr
+    .addr DataA_Upgrade_Descriptions::RegisterB2_u8_arr
+    .addr DataA_Upgrade_Descriptions::RegisterB3_u8_arr
 .ENDPROC
 
 ;;;=========================================================================;;;
