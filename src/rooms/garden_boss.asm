@@ -265,8 +265,6 @@ _Cannon_TryAct:
     lda #kCannonActCountdown
     sta Ram_RoomState + sState::CannonCountdown_u8
     ;; Fire a grenade:
-    lda #eActor::Grenade
-    sta Ram_ActorType_eActor_arr + kGrenadeActorIndex
     lda #kCannonGrenadeInitPosX
     sta Ram_ActorPosX_i16_0_arr + kGrenadeActorIndex
     lda #kCannonGrenadeInitPosY
@@ -355,8 +353,6 @@ _SpawnUpgrade:
     sta Ram_DeviceAnim_u8_arr + kUpgradeDeviceIndex
     ;; TODO: play a sound
     ;; Create a puff of smoke over the upgrade device.
-    lda #eActor::Smoke
-    sta Ram_ActorType_eActor_arr + kSmokeActorIndex
     lda #kUpgradeBlockCol * kBlockWidthPx + kBlockWidthPx / 2
     sta Ram_ActorPosX_i16_0_arr + kSmokeActorIndex
     lda #kUpgradeBlockRow * kBlockHeightPx + kBlockHeightPx / 2

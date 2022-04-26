@@ -82,7 +82,7 @@ Func_InitNoneActor = Func_InitActorDefault
 Func_InitAdultActor = Func_InitActorWithState
 Func_InitChildActor = Func_InitActorWithState
 Func_InitCrawlerActor = Func_InitActorDefault
-Func_InitToddlerActor = Func_InitActorDefault
+Func_InitToddlerActor = Func_InitActorWithState
 
 FuncA_Actor_TickNone = Func_Noop
 FuncA_Objects_DrawNoneActor = Func_Noop
@@ -162,38 +162,41 @@ Ram_ActorFlags_bObj_arr: .res kMaxActors
 
 ;;; Initializes velocity, state, and flags for an actor appropriately based on
 ;;; the actor's type and pixel position.
-;;; @prereq The actor's type and pixel position have already been initialized.
+;;; @prereq The actor's type has already been initialized.
+;;; @prereq The actor's pixel position has already been initialized.
 ;;; @param A The actor-type-specific initialization parameter.
 ;;; @param X The actor index.
 ;;; @preserve X
 .EXPORT Func_InitActor
 .PROC Func_InitActor
-    sta Zp_Tmp1_byte  ; param
-    lda Ram_ActorType_eActor_arr, x
-    tay
+    sta Zp_Tmp1_byte  ; initialization parameter
+    ldy Ram_ActorType_eActor_arr, x
     lda _JumpTable_ptr_0_arr, y
     sta Zp_Tmp_ptr + 0
     lda _JumpTable_ptr_1_arr, y
     sta Zp_Tmp_ptr + 1
-    lda Zp_Tmp1_byte  ; param
+    lda Zp_Tmp1_byte  ; param: initialization parameter
     jmp (Zp_Tmp_ptr)
 _JumpTable_ptr_0_arr: .lobytes ActorInitFuncs
 _JumpTable_ptr_1_arr: .hibytes ActorInitFuncs
 .ENDPROC
 
-;;; Init function for grenade actors.
-;;; @prereq The actor's type and pixel position have already been initialized.
+;;; Initializes the specified actor as a grenade.
+;;; @prereq The actor's pixel position has already been initialized.
 ;;; @param X The actor index.
 ;;; @preserve X
 .EXPORT Func_InitSmokeActor
 .PROC Func_InitSmokeActor
+    ldy #eActor::Smoke  ; param: actor type
     .assert * = Func_InitActorDefault, error, "fallthrough"
 .ENDPROC
 
 ;;; The default actor init function that works for most actor types.  Zeroes
-;;; the velocity, flags, and state byte for the specified actor.
-;;; @prereq The actor's type and pixel position have already been initialized.
+;;; the velocity, flags, and state byte for the specified actor, and sets the
+;;; actors type as specified.
+;;; @prereq The actor's pixel position has already been initialized.
 ;;; @param X The actor index.
+;;; @param Y The actor type to set.
 ;;; @preserve X
 .PROC Func_InitActorDefault
     lda #0  ; param: state byte
@@ -201,13 +204,16 @@ _JumpTable_ptr_1_arr: .hibytes ActorInitFuncs
 .ENDPROC
 
 ;;; Zeroes the velocity and flags for the specified actor, and sets the actor's
-;;; state byte to A.
-;;; @prereq The actor's type and pixel position have already been initialized.
+;;; state byte and type as specified.
+;;; @prereq The actor's pixel position has already been initialized.
 ;;; @param A The state byte to set.
 ;;; @param X The actor index.
+;;; @param Y The actor type to set.
 ;;; @preserve X
 .PROC Func_InitActorWithState
     sta Ram_ActorState_byte_arr, x
+    tya  ; actor type
+    sta Ram_ActorType_eActor_arr, x
     lda #0
     sta Ram_ActorVelX_i16_0_arr, x
     sta Ram_ActorVelX_i16_1_arr, x
@@ -217,13 +223,16 @@ _JumpTable_ptr_1_arr: .hibytes ActorInitFuncs
     rts
 .ENDPROC
 
-;;; Init function for fireball actors.
-;;; @prereq The actor's type and pixel position have already been initialized.
+;;; Initializes the specified actor as a fireball.
+;;; @prereq The actor's pixel position has already been initialized.
+;;; @param A Velocity specification (TODO: how does this work?)
 ;;; @param X The actor index.
 ;;; @preserve X
 .EXPORT Func_InitFireballActor
 .PROC Func_InitFireballActor
     ;; TODO: init velocity based on parameter
+    lda #eActor::Fireball
+    sta Ram_ActorType_eActor_arr, x
     lda #0
     sta Ram_ActorState_byte_arr, x
     .assert kFireballPalette <> 0, error
@@ -232,15 +241,17 @@ _JumpTable_ptr_1_arr: .hibytes ActorInitFuncs
     rts
 .ENDPROC
 
-;;; Init function for grenade actors.
+;;; Initializes the specified actor as a grenade.
 ;;; @prereq The actor's type and pixel position have already been initialized.
 ;;; @param A The aim angle (0-1).
 ;;; @param X The actor index.
 ;;; @preserve X
 .EXPORT Func_InitGrenadeActor
 .PROC Func_InitGrenadeActor
-    tay
+    tay  ; aim angle index
     ;; Initialize state:
+    lda #eActor::Grenade
+    sta Ram_ActorType_eActor_arr, x
     lda #0
     sta Ram_ActorState_byte_arr, x
     sta Ram_ActorFlags_bObj_arr, x
@@ -531,9 +542,8 @@ _ApplyGravity:
     sta Ram_ActorVelY_i16_1_arr, x
     rts
 _Explode:
-    lda #eActor::Smoke
-    sta Ram_ActorType_eActor_arr, x
-    jmp Func_InitSmokeActor
+    ;; TODO: play a sound
+    jmp Func_InitSmokeActor  ; preserves X
 .ENDPROC
 
 ;;; Performs per-frame updates for a smoke cloud actor.
