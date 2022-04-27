@@ -35,7 +35,7 @@
 .LINECONT +
 .DEFINE OpcodeLabels \
     _OpEmpty, _OpCopy, _OpSwap, _OpAdd, _OpSub, _OpMul, _OpGoto, _OpSkip, \
-    _OpIf, _OpTil, _OpAct, _OpMove, _OpEnd, _OpEnd, _OpEnd, _OpNop
+    _OpIf, _OpTil, _OpAct, _OpMove, _OpWait, _OpEnd, _OpEnd, _OpNop
 .LINECONT -
 
 ;;;=========================================================================;;;
@@ -318,6 +318,10 @@ _MoveOrAct:
     lda #eMachine::Error
     ldx Zp_MachineIndex_u8
     sta Ram_MachineStatus_eMachine_arr, x
+    rts
+_OpWait:
+    lda #$20  ; 32 frames = about half a second
+    sta Ram_MachineWait_u8_arr, x
     rts
 _OpEnd:
     lda #eMachine::Ended

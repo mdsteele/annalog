@@ -36,6 +36,7 @@
     Til   = $9  ; oper, r/i, r/i   Jumps to prev instruction if false.
     Act   = $a  ; (no args)        Performs machine action (e.g. firing gun).
     Move  = $b  ; dir              Moves machine in the specified direction.
+    Wait  = $c  ; (no args)        Pauses for a short time.
     End   = $e  ; (no args)        Halts the program.
     Nop   = $f  ; (no args)        Does nothing (but still takes a cycle).
     NUM_VALUES

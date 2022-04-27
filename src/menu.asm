@@ -114,17 +114,17 @@ Ram_MenuCols_u8_arr: .res kMaxMenuItems
 ;;; |SKIP IF |
 ;;; |MOVE TIL|
 ;;; |ACT  NOP|
-;;; |     END|
+;;; |WAIT END|
 ;;; |delete  |
 ;;; +--------+
 .PROC DataA_Console_Opcode_sMenu
     D_STRUCT sMenu
     d_byte WidthsMinusOne_u8_arr
-    .byte 5, 3, 3, 2, 2, 2, 3, 3, 1, 2, 2, 3, 0, 0, 2, 2
+    .byte 5, 3, 3, 2, 2, 2, 3, 3, 1, 2, 2, 3, 3, 0, 2, 2
     d_addr Labels_u8_arr_ptr_arr
     .addr _LabelEmpty, _LabelCopy, _LabelSwap, _LabelAdd, _LabelSub, _LabelMul
     .addr _LabelGoto, _LabelSkip, _LabelIf, _LabelTil, _LabelAct, _LabelMove
-    .addr _LabelEnd, _LabelEnd, _LabelEnd, _LabelNop
+    .addr _LabelWait, _LabelEnd, _LabelEnd, _LabelNop
     d_addr OnUp_func_ptr,    _OnUp
     d_addr OnDown_func_ptr,  _OnDown
     d_addr OnLeft_func_ptr,  _OnLeft
@@ -142,6 +142,7 @@ _LabelIf:    .byte "IF"
 _LabelTil:   .byte "TIL"
 _LabelAct:   .byte "ACT"
 _LabelMove:  .byte "MOVE"
+_LabelWait:  .byte "WAIT"
 _LabelEnd:   .byte "END"
 _LabelNop:   .byte "NOP"
 _OnUp:
@@ -303,7 +304,10 @@ _SetRowsForMenuLeftColumn:
     and #bMachine::MoveH | bMachine::MoveV
     beq @noMoveOpcode
     stx Ram_MenuRows_u8_arr + eOpcode::Move
+    inx
     @noMoveOpcode:
+    ;; The WAIT opcode is always available.
+    stx Ram_MenuRows_u8_arr + eOpcode::Wait
     ;; Put an entry for the EMPTY opcode on the last row of the menu.
     ldx Zp_ConsoleNumInstRows_u8
     dex

@@ -36,7 +36,7 @@
 .LINECONT +
 .DEFINE OpcodeLabels \
     _OpEmpty, _OpCopy, _OpSwap, _OpAdd, _OpSub, _OpMul, _OpGoto, _OpSkip, \
-    _OpIf, _OpTil, _OpAct, _OpMove, _OpEnd, _OpEnd, _OpEnd, _OpNop
+    _OpIf, _OpTil, _OpAct, _OpMove, _OpWait, _OpEnd, _OpEnd, _OpNop
 .LINECONT -
 
 .MACRO OPCODE_TABLE arg
@@ -71,7 +71,7 @@ _NumFields_u8_arr:
     d_byte Til,   4
     d_byte Act,   1
     d_byte Move,  2
-    .byte 1  ; unused opcode
+    d_byte Wait,  1
     .byte 1  ; unused opcode
     d_byte End,   1
     d_byte Nop,   1
@@ -115,6 +115,8 @@ _OpAct:
 _OpEnd:
 _OpNop:
     .byte 2
+_OpWait:
+    .byte 3
 .ENDPROC
 
 ;;; Returns the horizontal offset of the currently-selected instruction field,
@@ -134,6 +136,7 @@ _OpcodeTable_u8_arr:
 _OffsetTable_u8_arr:
 _OpEmpty:
 _OpAct:
+_OpWait:
 _OpEnd:
 _OpNop:
     .byte 0
@@ -173,6 +176,7 @@ _OpcodeTable_u8_arr:
 _FieldTable_u8_arr:
 _OpEmpty:
 _OpAct:
+_OpWait:
 _OpEnd:
 _OpNop:
     .byte 0, 0, 0, 0, 0, 0, 0
@@ -210,6 +214,7 @@ _OpcodeTable_u8_arr:
 _TypeTable_u8_arr:
 _OpEmpty:
 _OpAct:
+_OpWait:
 _OpEnd:
 _OpNop:
     .byte eField::Opcode
@@ -250,6 +255,7 @@ _OpcodeTable_u8_arr:
 _SlotTable_u8_arr:
 _OpEmpty:
 _OpAct:
+_OpWait:
 _OpEnd:
 _OpNop:
     .byte 0
@@ -357,6 +363,7 @@ _JumpTable_ptr_1_arr: .hibytes OpcodeLabels
 _OpEmpty:
 _OpGoto:
 _OpAct:
+_OpWait:
 _OpEnd:
 _OpNop:
     tya  ; new opcode
