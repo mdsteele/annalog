@@ -84,10 +84,12 @@ kMachineRegNameB = $21  ; 'B'
     WriteReg_func_ptr .addr
     ;; Function to call when the machine tries to move.
     ;; @param X The eDir value for the direction to move in.
-    ;; @return C Cleared if the machine was able to move, set otherwise.
+    ;; @return C Set if there was an error, cleared otherwise.
+    ;; @return A How many frames to wait before advancing the PC.
     TryMove_func_ptr  .addr
     ;; Function to call when the machine tries to act.
-    ;; @return C Cleared if the machine was able to act, set otherwise.
+    ;; @return C Set if there was an error, cleared otherwise.
+    ;; @return A How many frames to wait before advancing the PC.
     TryAct_func_ptr   .addr
     ;; Function to call each frame to update the machine.
     Tick_func_ptr     .addr

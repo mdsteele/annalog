@@ -242,30 +242,26 @@ _Trolley_ReadReg:
     lda Ram_RoomState + sState::TrolleyRegX_u8
     rts
 _Trolley_TryMove:
-    lda Ram_RoomState + sState::TrolleyCountdown_u8
-    beq @ready
-    sec  ; set C to indicate not ready yet
-    rts
-    @ready:
-    lda Ram_RoomState + sState::TrolleyRegX_u8
+    ldy Ram_RoomState + sState::TrolleyRegX_u8
     cpx #eDir::Left
     beq @moveLeft
     @moveRight:
-    cmp #kTrolleyMaxRegX
+    cpy #kTrolleyMaxRegX
     bge @error
-    tay
     iny
     bne @success  ; unconditional
     @moveLeft:
-    tay
+    tya
     beq @error
     dey
     @success:
     sty Ram_RoomState + sState::TrolleyGoalX_u8
+    lda #kTrolleyCountdown
     clc  ; clear C to indicate success
     rts
     @error:
-    jmp Func_MachineError
+    sec  ; set C to indicate failure
+    rts
 _Trolley_Tick:
     lda Ram_RoomState + sState::TrolleyCountdown_u8
     bne @continueMove

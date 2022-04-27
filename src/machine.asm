@@ -91,6 +91,9 @@ Ram_MachinePc_u8_arr: .res kMaxMachines
 .EXPORT Ram_MachineRegA_u8_arr
 Ram_MachineRegA_u8_arr: .res kMaxMachines
 
+;;; How many more frames until each machine is done moving/acting.
+Ram_MachineWait_u8_arr: .res kMaxMachines
+
 ;;;=========================================================================;;;
 
 .SEGMENT "PRG8"
@@ -175,6 +178,16 @@ Ram_MachineRegA_u8_arr: .res kMaxMachines
     beq @running
     rts
     @running:
+    ;; Decrement the wait timer if necessary.
+    lda Ram_MachineWait_u8_arr, x
+    beq @doneTimer
+    dec Ram_MachineWait_u8_arr, x
+    beq @incrementPc
+    rts
+    @incrementPc:
+    jsr _IncrementPc
+    ldx Zp_MachineIndex_u8
+    @doneTimer:
     ;; Load next instruction into Zp_Current_sInst.
     lda Ram_MachinePc_u8_arr, x
     mul #.sizeof(sInst)
@@ -284,9 +297,8 @@ _DecrementPc:
     rts
 _OpAct:
     ldy #sMachine::TryAct_func_ptr  ; param: function pointer offset
-    jsr Func_MachineCall  ; clears C on success
-    bcc _IncrementPc
-    rts
+    .assert sMachine::TryAct_func_ptr > 0, error
+    bne _MoveOrAct  ; unconditional
 _OpMove:
     lda <(Zp_Current_sInst + sInst::Op_byte)
     and #$0f  ; param: immediate value or register
@@ -294,8 +306,18 @@ _OpMove:
     and #$03  ; turn 0-9 value into 2-bit eDir value
     tax  ; param: eDir value
     ldy #sMachine::TryMove_func_ptr  ; param: function pointer offset
-    jsr Func_MachineCall  ; clears C on success
-    bcc _IncrementPc
+_MoveOrAct:
+    jsr Func_MachineCall  ; sets C on error, returns A
+    bcs @error
+    tay  ; just to compare A to zero
+    beq _IncrementPc
+    ldx Zp_MachineIndex_u8
+    sta Ram_MachineWait_u8_arr, x
+    rts
+    @error:
+    lda #eMachine::Error
+    ldx Zp_MachineIndex_u8
+    sta Ram_MachineStatus_eMachine_arr, x
     rts
 _OpEnd:
     lda #eMachine::Ended
@@ -441,7 +463,7 @@ _Le:
     rts
 .ENDPROC
 
-;;; Resets the current machine's PC and $a register, and puts the machine into
+;;; Resets the current machine's execution variables, and puts the machine into
 ;;; resetting mode.  A resetting machine will move back to its original
 ;;; position and state (over some period of time) without executing
 ;;; instructions, and once fully reset, will start running again.
@@ -449,10 +471,11 @@ _Le:
 .EXPORT Func_MachineReset
 .PROC Func_MachineReset
     ldx Zp_MachineIndex_u8
-    ;; Reset the machine's PC and $a register to zero.
+    ;; Reset the machine's variables to zero.
     lda #0
     sta Ram_MachinePc_u8_arr, x
     sta Ram_MachineRegA_u8_arr, x
+    sta Ram_MachineWait_u8_arr, x
     ;; Set the machine's status to Resetting.
     lda #eMachine::Resetting
     sta Ram_MachineStatus_eMachine_arr, x
@@ -493,10 +516,11 @@ _Le:
     beq @while  ; unconditional
     @loop:
     jsr Func_SetMachineIndex  ; preserves X
-    ;; Init the machine's PC and $a register to zero, and status to Running.
+    ;; Zero the machine's variables, and set status to Running.
     lda #0
     sta Ram_MachinePc_u8_arr, x
     sta Ram_MachineRegA_u8_arr, x
+    sta Ram_MachineWait_u8_arr, x
     .assert eMachine::Running = 0, error
     sta Ram_MachineStatus_eMachine_arr, x
     ;; Initialize any machine-specific state.

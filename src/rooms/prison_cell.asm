@@ -234,30 +234,26 @@ _Barrier_ReadReg:
     lda Ram_RoomState + sState::BarrierRegY_u8
     rts
 _Barrier_TryMove:
-    lda Ram_RoomState + sState::BarrierCountdown_u8
-    beq @ready
-    sec  ; set C to indicate not ready yet
-    rts
-    @ready:
-    lda Ram_RoomState + sState::BarrierRegY_u8
+    ldy Ram_RoomState + sState::BarrierRegY_u8
     cpx #eDir::Up
     beq @moveUp
     @moveDown:
-    cmp #kBarrierMaxRegY
+    cpy #kBarrierMaxRegY
     bge @error
-    tay
     iny
     bne @success  ; unconditional
     @moveUp:
-    tay
+    tya
     beq @error
     dey
     @success:
     sty Ram_RoomState + sState::BarrierGoalY_u8
+    lda #kBarrierCountdown
     clc  ; clear C to indicate success
     rts
     @error:
-    jmp Func_MachineError
+    sec  ; set C to indicate failure
+    rts
 _Barrier_Tick:
     lda Ram_RoomState + sState::BarrierCountdown_u8
     bne @continueMove

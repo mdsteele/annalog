@@ -45,7 +45,6 @@
 .IMPORT Ram_ActorPosX_i16_1_arr
 .IMPORT Ram_ActorPosY_i16_0_arr
 .IMPORT Ram_ActorPosY_i16_1_arr
-.IMPORT Ram_ActorType_eActor_arr
 .IMPORT Ram_DeviceAnim_u8_arr
 .IMPORT Ram_DeviceType_eDevice_arr
 .IMPORT Ram_MachineStatus_eMachine_arr
@@ -232,39 +231,27 @@ _Cannon_ReadReg:
     lda Ram_RoomState + sState::LeverRight_u1
     rts
 _Cannon_TryMove:
-    lda Ram_RoomState + sState::CannonCountdown_u8
-    beq @ready
-    sec  ; set C to indicate not ready yet
-    rts
-    @ready:
-    lda Ram_RoomState + sState::CannonRegY_u8
+    ldy Ram_RoomState + sState::CannonRegY_u8
     cpx #eDir::Down
     beq @moveDown
     @moveUp:
-    cmp #kCannonMaxRegY
+    cpy #kCannonMaxRegY
     bge @error
-    tay
     iny
     bne @success  ; unconditional
     @moveDown:
-    tay
+    tya
     beq @error
     dey
     @success:
     sty Ram_RoomState + sState::CannonGoalY_u8
+    lda #kCannonMoveCountdown
     clc  ; clear C to indicate success
     rts
     @error:
-    jmp Func_MachineError
-_Cannon_TryAct:
-    lda Ram_RoomState + sState::CannonCountdown_u8
-    beq @ready
-    sec  ; set C to indicate not ready yet
+    sec  ; set C to indicate failure
     rts
-    @ready:
-    lda #kCannonActCountdown
-    sta Ram_RoomState + sState::CannonCountdown_u8
-    ;; Fire a grenade:
+_Cannon_TryAct:
     lda #kCannonGrenadeInitPosX
     sta Ram_ActorPosX_i16_0_arr + kGrenadeActorIndex
     lda #kCannonGrenadeInitPosY
@@ -275,6 +262,7 @@ _Cannon_TryAct:
     ldx #kGrenadeActorIndex  ; param: actor index
     lda Ram_RoomState + sState::CannonRegY_u8  ; param: aim angle
     jsr Func_InitGrenadeActor
+    lda #kCannonActCountdown
     clc  ; clear C to indicate success
     rts
 _Cannon_Tick:

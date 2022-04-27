@@ -143,39 +143,36 @@ _TryMove:
     cpx #eDir::Right
     beq @moveRight
     @error:
-    jmp Func_MachineError
+    sec  ; set C to indicate failure
+    rts
     @moveUp:
-    ldx Zp_TestMachinePosY_u8
-    cpx #kMaxTestMachinePosY
+    lda Zp_TestMachinePosY_u8
+    cmp #kMaxTestMachinePosY
     beq @error
-    inx
-    stx Zp_TestMachinePosY_u8
-    clc  ; clear C to indicate success
-    rts
+    inc Zp_TestMachinePosY_u8
+    jmp @success
     @moveDown:
-    ldx Zp_TestMachinePosY_u8
+    lda Zp_TestMachinePosY_u8
     beq @error
-    dex
-    stx Zp_TestMachinePosY_u8
-    clc  ; clear C to indicate success
-    rts
+    dec Zp_TestMachinePosY_u8
+    jmp @success
     @moveLeft:
-    ldx Zp_TestMachinePosX_u8
+    lda Zp_TestMachinePosX_u8
     beq @error
-    dex
-    stx Zp_TestMachinePosX_u8
-    clc  ; clear C to indicate success
-    rts
+    dec Zp_TestMachinePosX_u8
+    jmp @success
     @moveRight:
-    ldx Zp_TestMachinePosX_u8
-    cpx #kMaxTestMachinePosX
+    lda Zp_TestMachinePosX_u8
+    cmp #kMaxTestMachinePosX
     beq @error
-    inx
-    stx Zp_TestMachinePosX_u8
+    inc Zp_TestMachinePosX_u8
+    @success:
+    lda #0  ; wait for zero frames
     clc  ; clear C to indicate success
     rts
 _TryAct:
     inc Zp_TestMachineActCounter_u8
+    lda #0  ; wait for zero frames
     clc  ; clear C to indicate success
     rts
 _Tick:
