@@ -226,9 +226,6 @@ _Barrier_Init:
     lda #kBarrierInitRegY
     sta Ram_RoomState + sState::BarrierRegY_u8
     sta Ram_RoomState + sState::BarrierGoalY_u8
-    lda #0
-    sta Ram_RoomState + sState::BarrierCountdown_u8
-    sta Ram_RoomState + sState::BarrierMove_eDir
     rts
 _Barrier_ReadReg:
     lda Ram_RoomState + sState::BarrierRegY_u8

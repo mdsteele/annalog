@@ -210,9 +210,7 @@ _Devices_sDevice_arr:
     D_END
     .byte eDevice::None
 _Cannon_Init:
-    lda #0
-    sta Ram_RoomState + sState::CannonCountdown_u8
-    .assert kCannonInitRegY = 0, error
+    lda #kCannonInitRegY
     sta Ram_RoomState + sState::CannonRegY_u8
     sta Ram_RoomState + sState::CannonGoalY_u8
     rts
@@ -292,13 +290,8 @@ _Cannon_Reset:
 
 ;;; Room init function for the GardenBoss room.
 .PROC FuncC_Garden_BossRoomInit
-    ;; Init room state variables.
-    lda #0
-    sta Ram_RoomState + sState::LeverLeft_u1
-    sta Ram_RoomState + sState::LeverRight_u1
-    sta Ram_RoomState + sState::SpawnUpgradeTimer_u8
     ;; Hide the upgrade device for now.
-    .assert eDevice::None = 0, error
+    lda #eDevice::None
     sta Ram_DeviceType_eDevice_arr + kUpgradeDeviceIndex
     ;; If the boss hasn't been defeated yet, then spawn the boss.
     lda Sram_ProgressFlags_arr + (eFlag::BossGarden >> 3)

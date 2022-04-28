@@ -105,6 +105,8 @@ Zp_Current_sTileset: .tag sTileset
 ;;;   * Position/register/etc. data for machines in that room
 ;;;   * State variables for cutscenes or other room scripts
 ;;;   * Mutable terrain data (for sufficiently small rooms)
+;;; This RAM is automatically zeroed just before a room is loaded, but can be
+;;; further initialized by room/machine Init functions.
 .EXPORT Ram_RoomState
 Ram_RoomState: .res kRoomStateSize
 
@@ -169,6 +171,14 @@ _CopyTilesetStruct:
     sta Zp_Current_sTileset, y
     dey
     bpl @loop
+_ClearRoomState:
+    .assert kRoomStateSize = $100, error
+    lda #0
+    tax
+    @loop:
+    sta Ram_RoomState, x
+    inx
+    bne @loop
 _LoadPlatforms:
     ;; Copy the current room's Platforms_sPlatform_arr_ptr into Zp_Tmp_ptr.
     ldy #sRoomExt::Platforms_sPlatform_arr_ptr
