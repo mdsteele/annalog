@@ -743,7 +743,13 @@ _UpdateNametable:
     jsr FuncA_Objects_DrawDevicePrompt
     jsr FuncA_Objects_DrawAllActors
     jsr FuncA_Objects_DrawAllMachines
+    jsr FuncA_Objects_DrawRoomDecor
     jmp FuncA_Objects_DrawAllDevices
+.ENDPROC
+
+;;; Calls the current room's Draw_func_ptr function.
+.PROC FuncA_Objects_DrawRoomDecor
+    jmp (Zp_Current_sRoom + sRoom::Draw_func_ptr)
 .ENDPROC
 
 ;;; Allocates and populates OAM slots for the visual prompt that appears when

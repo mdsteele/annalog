@@ -131,8 +131,11 @@ kRoomStateSize = $100
     ;; Init_func_ptr can modify this in Zp_Current_sRoom to override the
     ;; default.
     Chr18Bank_u8              .byte
-    ;; Function to call each frame.
+    ;; Function to call each frame to update room state.
     Tick_func_ptr             .addr
+    ;; Function to call each frame to draw room decor (e.g. for bosses).  When
+    ;; this is called, the PRGA bank will be set to PRGA_Objects.
+    Draw_func_ptr             .addr
     ;; Extended information about the room.
     Ext_sRoomExt_ptr          .addr
 .ENDSTRUCT

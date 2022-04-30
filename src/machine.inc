@@ -93,9 +93,8 @@ kMachineRegNameB = $21  ; 'B'
     TryAct_func_ptr   .addr
     ;; Function to call each frame to update the machine.
     Tick_func_ptr     .addr
-    ;; Function to call each frame to draw the machine's objects.  The
-    ;; function's code may reside in PRG8, PRGE, PRGA_Objects, or in its room's
-    ;; PRGC bank.
+    ;; Function to call each frame to draw the machine's objects.  When this is
+    ;; called, the PRGA bank will be set to PRGA_Objects.
     Draw_func_ptr     .addr
     ;; Function to call to start resetting the machine.
     Reset_func_ptr    .addr

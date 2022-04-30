@@ -187,6 +187,7 @@ kBossEyePalette = 0
     d_addr Machines_sMachine_arr_ptr, _Machines_sMachine_arr
     d_byte Chr18Bank_u8, <.bank(Ppu_ChrUpgrade)
     d_addr Tick_func_ptr, FuncC_Garden_BossRoomTick
+    d_addr Draw_func_ptr, FuncA_Objects_GardenBoss_Draw
     d_addr Ext_sRoomExt_ptr, _Ext_sRoomExt
     D_END
 _Ext_sRoomExt:
@@ -539,6 +540,16 @@ _Close:
 
 .SEGMENT "PRGA_Objects"
 
+;;; Allocates and populates OAM slots for the boss.
+.PROC FuncA_Objects_GardenBoss_Draw
+    ;; Draw boss eyes.
+    ldx #eEye::Left
+    jsr FuncA_Objects_GardenBoss_DrawEye
+    ldx #eEye::Right
+    jsr FuncA_Objects_GardenBoss_DrawEye
+    rts
+.ENDPROC
+
 ;;; Allocates and populates OAM slots for one of the boss's eyes.
 ;;; @param X Which eEye to draw.
 ;;; @preserve X
@@ -629,12 +640,6 @@ _PosY_u8_arr:
     @setBarrel:
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Tile_u8, y
     @done:
-    ;; Draw boss eyes.
-    ;; TODO: Move this part into a room draw function.
-    ldx #eEye::Left
-    jsr FuncA_Objects_GardenBoss_DrawEye
-    ldx #eEye::Right
-    jsr FuncA_Objects_GardenBoss_DrawEye
     rts
 .ENDPROC
 
