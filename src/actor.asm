@@ -56,8 +56,8 @@ kCrawlerFirstTileId3 = $a4
 kFireballFirstTileId = $96
 ;;; The OBJ palette number used for fireball actors.
 kFireballPalette = 1
-;;; The radius of a fireball, in pixels.
-kFireballRadius = 2
+;;; The hit radius of a fireball, in pixels.
+kFireballRadius = 3
 
 ;;; The first tile ID for the grenade actor animation.
 kGrenadeFirstTileId = $98
@@ -70,6 +70,11 @@ kSmokeFirstTileId = $1a
 kSmokeNumFrames = 12
 ;;; The radius of a smoke cloud, in pixels.
 kSmokeRadius = 6
+
+;;; The tile ID for spike projectile actors.
+kSpikeTileId = $a8
+;;; The hit radius of a spike, in pixels.
+kSpikeRadius = 3
 
 ;;; How fast a toddler walks, in pixels per frame.
 kToddlerSpeed = 1
@@ -96,6 +101,7 @@ FuncA_Objects_DrawNoneActor = Func_Noop
     Func_InitFireballActor, \
     Func_InitGrenadeActor, \
     Func_InitSmokeActor, \
+    Func_InitSpikeActor, \
     Func_InitToddlerActor
 .LINECONT -
 
@@ -108,6 +114,7 @@ FuncA_Objects_DrawNoneActor = Func_Noop
     FuncA_Actor_TickFireball, \
     FuncA_Actor_TickGrenade, \
     FuncA_Actor_TickSmoke, \
+    FuncA_Actor_TickSpike, \
     FuncA_Actor_TickToddler
 .LINECONT -
 
@@ -120,6 +127,7 @@ FuncA_Objects_DrawNoneActor = Func_Noop
     FuncA_Objects_DrawFireballActor, \
     FuncA_Objects_DrawGrenadeActor, \
     FuncA_Objects_DrawSmokeActor, \
+    FuncA_Objects_DrawSpikeActor, \
     FuncA_Objects_DrawToddlerActor
 .LINECONT -
 
@@ -159,6 +167,26 @@ Ram_ActorFlags_bObj_arr: .res kMaxActors
 ;;;=========================================================================;;;
 
 .SEGMENT "PRG8"
+
+;;; Returns the index of the last empty actor slot (if any), or sets the C flag
+;;; if all actor slots are full.
+;;; @return C Set if all slots were full; cleared if an empty slot was found.
+;;; @return X The index of the empty slot (if any).
+.EXPORT Func_FindEmptyActorSlot
+.PROC Func_FindEmptyActorSlot
+    ldx #kMaxActors - 1
+    @loop:
+    lda Ram_ActorType_eActor_arr, x
+    .assert eActor::None = 0, error
+    beq @success
+    dex
+    bpl @loop
+    sec  ; set C to indicate failure
+    rts
+    @success:
+    clc  ; clear C to indicate success
+    rts
+.ENDPROC
 
 ;;; Initializes velocity, state, and flags for an actor appropriately based on
 ;;; the actor's type and pixel position.
@@ -284,6 +312,16 @@ _InitVelY_i16_0_arr: .byte <($ffff & -400), <($ffff & -650)
 _InitVelY_i16_1_arr: .byte >($ffff & -400), >($ffff & -650)
 .ENDPROC
 
+;;; Initializes the specified actor as a spike.
+;;; @prereq The actor's pixel position has already been initialized.
+;;; @param X The actor index.
+;;; @preserve X
+.EXPORT Func_InitSpikeActor
+.PROC Func_InitSpikeActor
+    ldy #eActor::Spike  ; param: actor type
+    jmp Func_InitActorDefault
+.ENDPROC
+
 ;;;=========================================================================;;;
 
 .SEGMENT "PRGA_Actor"
@@ -299,6 +337,7 @@ _InitVelY_i16_1_arr: .byte >($ffff & -400), >($ffff & -650)
     d_byte Fireball, kFireballRadius
     d_byte Grenade,  kGrenadeRadius
     d_byte Smoke,    kSmokeRadius
+    d_byte Spike,    kSpikeRadius
     d_byte Toddler,  4
     D_END
 .ENDPROC
@@ -311,6 +350,7 @@ _InitVelY_i16_1_arr: .byte >($ffff & -400), >($ffff & -650)
     d_byte Fireball, kFireballRadius
     d_byte Grenade,  kGrenadeRadius
     d_byte Smoke,    kSmokeRadius
+    d_byte Spike,    kSpikeRadius
     d_byte Toddler,  8
     D_END
 .ENDPROC
@@ -323,6 +363,7 @@ _InitVelY_i16_1_arr: .byte >($ffff & -400), >($ffff & -650)
     d_byte Fireball, kFireballRadius
     d_byte Grenade,  kGrenadeRadius
     d_byte Smoke,    kSmokeRadius
+    d_byte Spike,    kSpikeRadius
     d_byte Toddler,  3
     D_END
 .ENDPROC
@@ -335,6 +376,7 @@ _InitVelY_i16_1_arr: .byte >($ffff & -400), >($ffff & -650)
     d_byte Fireball, kFireballRadius
     d_byte Grenade,  kGrenadeRadius
     d_byte Smoke,    kSmokeRadius
+    d_byte Spike,    kSpikeRadius
     d_byte Toddler,  4
     D_END
 .ENDPROC
@@ -560,6 +602,30 @@ _Explode:
     rts
 .ENDPROC
 
+;;; Performs per-frame updates for a spike actor.
+;;; @param X The actor index.
+;;; @preserve X
+.PROC FuncA_Actor_TickSpike
+    inc Ram_ActorState_byte_arr, x
+    beq _Expire
+    jsr FuncA_Actor_HarmAvatarIfCollision  ; preserves X, returns C
+    bcs _Expire
+    jsr FuncA_Actor_CenterHitsTerrain  ; preserves X, returns C
+    bcs _Expire
+_ApplyGravity:
+    lda #kAvatarGravity
+    add Ram_ActorVelY_i16_0_arr, x
+    sta Ram_ActorVelY_i16_0_arr, x
+    lda #0
+    adc Ram_ActorVelY_i16_1_arr, x
+    sta Ram_ActorVelY_i16_1_arr, x
+    rts
+_Expire:
+    lda #eActor::None
+    sta Ram_ActorType_eActor_arr, x
+    rts
+.ENDPROC
+
 ;;; Performs per-frame updates for a toddler townsfolk actor.
 ;;; @param X The actor index.
 ;;; @preserve X
@@ -781,7 +847,7 @@ _JumpTable_ptr_1_arr: .hibytes ActorDrawFuncs
     div #2
     and #$01
     add #kFireballFirstTileId
-    jmp FuncA_Objects_Draw1x1Actor
+    jmp FuncA_Objects_Draw1x1Actor  ; preserves X
 .ENDPROC
 
 ;;; Allocates and populates OAM slots for a grenade actor.
@@ -792,7 +858,7 @@ _JumpTable_ptr_1_arr: .hibytes ActorDrawFuncs
     div #4
     and #$03
     add #kGrenadeFirstTileId
-    jmp FuncA_Objects_Draw1x1Actor
+    jmp FuncA_Objects_Draw1x1Actor  ; preserves X
 .ENDPROC
 
 ;;; Allocates and populates OAM slots for a smoke cloud actor.
@@ -849,6 +915,14 @@ _DrawSmokeParticle:
     sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
     @done:
     rts
+.ENDPROC
+
+;;; Allocates and populates OAM slots for a spike actor.
+;;; @param X The actor index.
+;;; @preserve X
+.PROC FuncA_Objects_DrawSpikeActor
+    lda #kSpikeTileId  ; param: tile ID
+    jmp FuncA_Objects_Draw1x1Actor  ; preserves X
 .ENDPROC
 
 ;;; Allocates and populates OAM slots for a toddler townsfolk actor.

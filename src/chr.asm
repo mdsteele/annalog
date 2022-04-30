@@ -226,7 +226,9 @@
     .incbin "out/data/tiles/fireball.chr"
     .incbin "out/data/tiles/grenade.chr"
     .incbin "out/data/tiles/crawler.chr"
-    .res $58 * kSizeofChr
+    .incbin "out/data/tiles/spike.chr"
+    .incbin "out/data/tiles/eye.chr"
+    .res $50 * kSizeofChr
     .assert * - :- = kSizeofChr * $80, error
 .ENDPROC
 

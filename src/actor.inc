@@ -37,6 +37,7 @@ kChildPonytail = $84
     Fireball
     Grenade
     Smoke
+    Spike
     Toddler
     NUM_VALUES
 .ENDENUM
