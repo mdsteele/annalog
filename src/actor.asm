@@ -147,6 +147,10 @@ Ram_ActorPosX_i16_1_arr: .res kMaxActors
 Ram_ActorPosY_i16_0_arr: .res kMaxActors
 Ram_ActorPosY_i16_1_arr: .res kMaxActors
 
+;;; The current X/Y subpixel positions of each actor in the room.
+Ram_ActorSubX_u8_arr: .res kMaxActors
+Ram_ActorSubY_u8_arr: .res kMaxActors
+
 ;;; The current velocities of each actor in the room, in subpixels per frame.
 .EXPORT Ram_ActorVelX_i16_0_arr, Ram_ActorVelX_i16_1_arr
 Ram_ActorVelX_i16_0_arr: .res kMaxActors
@@ -243,6 +247,8 @@ _JumpTable_ptr_1_arr: .hibytes ActorInitFuncs
     tya  ; actor type
     sta Ram_ActorType_eActor_arr, x
     lda #0
+    sta Ram_ActorSubX_u8_arr, x
+    sta Ram_ActorSubY_u8_arr, x
     sta Ram_ActorVelX_i16_0_arr, x
     sta Ram_ActorVelX_i16_1_arr, x
     sta Ram_ActorVelY_i16_0_arr, x
@@ -253,20 +259,67 @@ _JumpTable_ptr_1_arr: .hibytes ActorInitFuncs
 
 ;;; Initializes the specified actor as a fireball.
 ;;; @prereq The actor's pixel position has already been initialized.
-;;; @param A Velocity specification (TODO: how does this work?)
+;;; @param A The angle to fire at, measured in increments of tau/64.
 ;;; @param X The actor index.
 ;;; @preserve X
 .EXPORT Func_InitFireballActor
 .PROC Func_InitFireballActor
-    ;; TODO: init velocity based on parameter
+    and #$3f
+    tay
+    lda #0
+    sta Ram_ActorVelX_i16_1_arr, x
+    sta Ram_ActorVelY_i16_1_arr, x
+_InitVelX:
+    lda _VelX_u8_arr64, y
+    bpl @nonneg
+    dec Ram_ActorVelX_i16_1_arr, x  ; now $ff
+    @nonneg:
+    .repeat 3
+    asl a
+    rol Ram_ActorVelX_i16_1_arr, x
+    .endrepeat
+    sta Ram_ActorVelX_i16_0_arr, x
+_InitVelY:
+    lda _VelY_u8_arr64, y
+    bpl @nonneg
+    dec Ram_ActorVelY_i16_1_arr, x  ; now $ff
+    @nonneg:
+    .repeat 3
+    asl a
+    rol Ram_ActorVelY_i16_1_arr, x
+    .endrepeat
+    sta Ram_ActorVelY_i16_0_arr, x
+_InitOtherVariables:
     lda #eActor::Fireball
     sta Ram_ActorType_eActor_arr, x
     lda #0
+    sta Ram_ActorSubX_u8_arr, x
+    sta Ram_ActorSubY_u8_arr, x
     sta Ram_ActorState_byte_arr, x
     .assert kFireballPalette <> 0, error
     lda #kFireballPalette
     sta Ram_ActorFlags_bObj_arr, x
     rts
+_VelX_u8_arr64:
+    ;; [0xff & int(round(96 * cos(x * pi / 32))) for x in range(64)]
+    .byte $60, $60, $5e, $5c, $59, $55, $50, $4a
+    .byte $44, $3d, $35, $2d, $25, $1c, $13, $09
+    .byte $00, $f7, $ed, $e4, $db, $d3, $cb, $c3
+    .byte $bc, $b6, $b0, $ab, $a7, $a4, $a2, $a0
+    .byte $a0, $a0, $a2, $a4, $a7, $ab, $b0, $b6
+    .byte $bc, $c3, $cb, $d3, $db, $e4, $ed, $f7
+    .byte $00, $09, $13, $1c, $25, $2d, $35, $3d
+    .byte $44, $4a, $50, $55, $59, $5c, $5e, $60
+_VelY_u8_arr64:
+    ;; [0xff & int(round(96 * sin(x * pi / 32))) for x in range(64)]
+    .byte $00, $09, $13, $1c, $25, $2d, $35, $3d
+    .byte $44, $4a, $50, $55, $59, $5c, $5e, $60
+    .byte $60, $60, $5e, $5c, $59, $55, $50, $4a
+    .byte $44, $3d, $35, $2d, $25, $1c, $13, $09
+    .byte $00, $f7, $ed, $e4, $db, $d3, $cb, $c3
+    .byte $bc, $b6, $b0, $ab, $a7, $a4, $a2, $a0
+    .byte $a0, $a0, $a2, $a4, $a7, $ab, $b0, $b6
+    .byte $bc, $c3, $cb, $d3, $db, $e4, $ed, $f7
 .ENDPROC
 
 ;;; Initializes the specified actor as a grenade.
@@ -281,6 +334,8 @@ _JumpTable_ptr_1_arr: .hibytes ActorInitFuncs
     lda #eActor::Grenade
     sta Ram_ActorType_eActor_arr, x
     lda #0
+    sta Ram_ActorSubX_u8_arr, x
+    sta Ram_ActorSubY_u8_arr, x
     sta Ram_ActorState_byte_arr, x
     sta Ram_ActorFlags_bObj_arr, x
     ;; Initialize X-velocity:
@@ -308,8 +363,8 @@ _JumpTable_ptr_1_arr: .hibytes ActorInitFuncs
     sta Ram_ActorPosY_i16_1_arr, x
     rts
 _InitVelX_i16_1_arr: .byte 4, 3
-_InitVelY_i16_0_arr: .byte <($ffff & -400), <($ffff & -650)
-_InitVelY_i16_1_arr: .byte >($ffff & -400), >($ffff & -650)
+_InitVelY_i16_0_arr: .byte <($ffff & -520), <($ffff & -760)
+_InitVelY_i16_1_arr: .byte >($ffff & -520), >($ffff & -760)
 .ENDPROC
 
 ;;; Initializes the specified actor as a spike.
@@ -398,22 +453,28 @@ _InitVelY_i16_1_arr: .byte >($ffff & -400), >($ffff & -650)
 .PROC FuncA_Actor_TickOneActor
 _ApplyVelX:
     ldy #0
+    lda Ram_ActorVelX_i16_0_arr, x
+    add Ram_ActorSubX_u8_arr, x
+    sta Ram_ActorSubX_u8_arr, x
     lda Ram_ActorVelX_i16_1_arr, x
     bpl @nonnegative
     dey  ; now y is $ff
     @nonnegative:
-    add Ram_ActorPosX_i16_0_arr, x
+    adc Ram_ActorPosX_i16_0_arr, x
     sta Ram_ActorPosX_i16_0_arr, x
     tya
     adc Ram_ActorPosX_i16_1_arr, x
     sta Ram_ActorPosX_i16_1_arr, x
 _ApplyVelY:
     ldy #0
+    lda Ram_ActorVelY_i16_0_arr, x
+    add Ram_ActorSubY_u8_arr, x
+    sta Ram_ActorSubY_u8_arr, x
     lda Ram_ActorVelY_i16_1_arr, x
     bpl @nonnegative
     dey  ; now y is $ff
     @nonnegative:
-    add Ram_ActorPosY_i16_0_arr, x
+    adc Ram_ActorPosY_i16_0_arr, x
     sta Ram_ActorPosY_i16_0_arr, x
     tya
     adc Ram_ActorPosY_i16_1_arr, x

@@ -31,6 +31,7 @@
 .IMPORT FuncA_Fade_Out
 .IMPORT FuncA_Upgrade_ComputeMaxInstructions
 .IMPORT Func_ClearRestOfOam
+.IMPORT Func_GetRandomByte
 .IMPORT Func_ProcessFrame
 .IMPORT Func_UpdateButtons
 .IMPORT Func_Window_Disable
@@ -75,6 +76,7 @@ _GameLoop:
     and #bJoypad::Start
     bne _StartGame
     jsr Func_ProcessFrame
+    jsr Func_GetRandomByte  ; tick the RNG (and discard the result)
     jmp _GameLoop
 _StartGame:
     jsr_prga FuncA_Fade_Out

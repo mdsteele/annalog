@@ -38,6 +38,7 @@
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
 .IMPORT Func_FindEmptyActorSlot
 .IMPORT Func_GetRandomByte
+.IMPORT Func_InitFireballActor
 .IMPORT Func_InitGrenadeActor
 .IMPORT Func_InitSmokeActor
 .IMPORT Func_InitSpikeActor
@@ -54,10 +55,12 @@
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORT Ram_RoomState
 .IMPORT Sram_ProgressFlags_arr
+.IMPORTZP Zp_AvatarPosX_i16
 .IMPORTZP Zp_FrameCounter_u8
 .IMPORTZP Zp_OamOffset_u8
 .IMPORTZP Zp_PpuScrollX_u8
 .IMPORTZP Zp_PpuScrollY_u8
+.IMPORTZP Zp_Tmp1_byte
 
 ;;;=========================================================================;;;
 
@@ -104,6 +107,8 @@ kBossInitHealth = 8
 kBossInitCooldown = 120
 ;;; How many frames to wait between spikes when the boss is in Angry mode.
 kBossAngrySpikeCooldown = 15
+;;; How many frames to wait between fireballs when the boss is in Shoot mode.
+kBossShootFireballCooldown = 60
 
 ;;; How many frames it takes for an eye to fully open or close.
 kBossEyeOpenFrames = 24
@@ -123,6 +128,7 @@ kBossEyePalette = 0
     Angry    ; eyes closed, dropping spikes
     Shoot    ; active eye open, shooting fireballs one at a time
     Spray    ; active eye open, shooting a wave of fireballs
+    NUM_VALUES
 .ENDENUM
 
 ;;;=========================================================================;;;
@@ -429,16 +435,44 @@ _BossCheckMode:
     bne @alive
     rts
     @alive:
-    cmp #eBoss::Waiting
-    beq _BossWaiting
     cmp #eBoss::Angry
     beq _BossAngry
     cmp #eBoss::Shoot
     beq _BossShoot
+    cmp #eBoss::Waiting
+    beq _BossWaiting
 _BossSpray:
     ;; TODO: Shoot a spray of fireballs, then return to Waiting mode.
 _BossShoot:
-    ;; TODO: Shoot one fireball at a time, then return to Waiting mode.
+    ;; Shoot a fireball.
+    jsr Func_FindEmptyActorSlot  ; sets C on failure, returns X
+    bcs @doneFireball
+    ;; Initialize fireball position based on which eye we're shooting from.
+    lda #0
+    sta Ram_ActorPosX_i16_1_arr, x
+    sta Ram_ActorPosY_i16_1_arr, x
+    ldy Ram_RoomState + sState::BossActive_eEye
+    lda _FireballPosY_u8_arr2, y
+    sta Ram_ActorPosY_i16_0_arr, x
+    lda _FireballPosX_u8_arr2, y
+    sta Ram_ActorPosX_i16_0_arr, x
+    ;; Choose fireball angle based on the player avatar's X-position.
+    lda Zp_AvatarPosX_i16 + 0
+    div #kTileWidthPx
+    and #$fe  ; now A is 2 * avatar's room block column
+    ora Ram_RoomState + sState::BossActive_eEye
+    tay
+    lda _FireballAngle_u8_arr2_arr, y  ; param: aim angle
+    jsr Func_InitFireballActor
+    @doneFireball:
+    ;; Decrement the projectile counter; if it reaches zero, return to waiting
+    ;; mode.
+    dec Ram_RoomState + sState::BossProjCount_u8
+    beq _BossStartWaiting
+    ;; Otherwise, set the cooldown for the next fireball.
+    lda #kBossShootFireballCooldown
+    sta Ram_RoomState + sState::BossCooldown_u8
+    rts
 _BossAngry:
     ;; Drop a spike from a random location.
     jsr Func_FindEmptyActorSlot  ; sets C on failure, returns X
@@ -481,6 +515,12 @@ _BossStartWaiting:
     sta Ram_RoomState + sState::BossCooldown_u8
     rts
 _BossWaiting:
+    jsr Func_GetRandomByte  ; returns A
+    sta Zp_Tmp1_byte  ; 8 random bits
+    ;; Choose a random eye to open.
+    and #$01
+    sta Ram_RoomState + sState::BossActive_eEye
+    lsr Zp_Tmp1_byte  ; now 7 random bits
     ;; If the boss is at high health, switch to Shoot mode; if at low health,
     ;; randomly choose between Shoot and Spray mode.
     lda Ram_RoomState + sState::BossHealth_u8
@@ -491,22 +531,49 @@ _BossWaiting:
     .assert eBoss::Shoot > 0, error
     bne @setMode  ; unconditional
     @lowHealth:
-    jsr Func_GetRandomByte  ; returns A
+    lda Zp_Tmp1_byte  ; 7 random bits
     and #$01
     .assert eBoss::Shoot + 1 = eBoss::Spray, error
     add #eBoss::Shoot
+    lsr Zp_Tmp1_byte  ; now 6 random bits
     @setMode:
     sta Ram_RoomState + sState::BossMode_eBoss
-    ;; Choose a random number of fireballs to shoot, from 1-4.
-    jsr Func_GetRandomByte  ; returns A
+    ;; Choose a random number of fireballs to shoot, from 4-7.
+    lda Zp_Tmp1_byte  ; at least 6 random bits
     and #$03
-    tax
-    inx
-    stx Ram_RoomState + sState::BossProjCount_u8
+    add #4
+    sta Ram_RoomState + sState::BossProjCount_u8
     ;; Initialize the cooldown.
     lda #kBossEyeOpenFrames
     sta Ram_RoomState + sState::BossCooldown_u8
     rts
+_FireballPosX_u8_arr2:
+    D_ENUM eEye
+    d_byte Left, $68
+    d_byte Right, $98
+    D_END
+_FireballPosY_u8_arr2:
+    D_ENUM eEye
+    d_byte Left, $58
+    d_byte Right, $78
+    D_END
+_FireballAngle_u8_arr2_arr:
+    ;; Each pair has angles for left eye and right eye.
+    ;; There is one pair for each room block column.
+    .byte 16, 16
+    .byte 16, 16
+    .byte 23, 28  ; leftmost side of room
+    .byte 21, 27  ; left lever
+    .byte 19, 24  ; leftmost side of lowest floor
+    .byte 17, 23
+    .byte 16, 21  ; below left eye
+    .byte 15, 20
+    .byte 13, 18
+    .byte 11, 16  ; below right eye
+    .byte 10, 14  ; right lever
+    .byte  9, 11
+    .byte  7,  8  ; console
+    .byte  4,  3
 _SpikePosY_u8_arr:
     .byte $50, $50, $50, $50, $50, $50, $60, $70, $70, $80, $80, $80, $80, $80
 .ENDPROC
