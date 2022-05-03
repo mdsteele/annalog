@@ -49,6 +49,7 @@
 .IMPORT Ram_ActorPosX_i16_1_arr
 .IMPORT Ram_ActorPosY_i16_0_arr
 .IMPORT Ram_ActorPosY_i16_1_arr
+.IMPORT Ram_ActorType_eActor_arr
 .IMPORT Ram_DeviceAnim_u8_arr
 .IMPORT Ram_DeviceType_eDevice_arr
 .IMPORT Ram_MachineStatus_eMachine_arr
@@ -84,7 +85,7 @@ kCannonInitRegY = 0
 kCannonMaxRegY = 1
 ;;; How many frames the GardenBossCannon machine spends per move/act operation.
 kCannonMoveCountdown = $20
-kCannonActCountdown = $40
+kCannonActCountdown = $60
 ;;; Various OBJ tile IDs used for drawing the GardenBossCannon machine.
 kCannonTileIdLightOff   = $70
 kCannonTileIdLightOn    = $71
@@ -118,6 +119,12 @@ kBossEyeFirstTileId = $a9
 
 ;;; The OBJ palette number used for the eyes of the boss.
 kBossEyePalette = 0
+
+;;; The X/Y positions of the centers of the boss's two eyes.
+kBossLeftEyeCenterX  = $68
+kBossLeftEyeCenterY  = $58
+kBossRightEyeCenterX = $98
+kBossRightEyeCenterY = $78
 
 ;;;=========================================================================;;;
 
@@ -192,7 +199,7 @@ kBossEyePalette = 0
     d_byte NumMachines_u8, 1
     d_addr Machines_sMachine_arr_ptr, _Machines_sMachine_arr
     d_byte Chr18Bank_u8, <.bank(Ppu_ChrUpgrade)
-    d_addr Tick_func_ptr, FuncC_Garden_BossRoomTick
+    d_addr Tick_func_ptr, FuncC_Garden_Boss_TickRoom
     d_addr Draw_func_ptr, FuncA_Objects_GardenBoss_Draw
     d_addr Ext_sRoomExt_ptr, _Ext_sRoomExt
     D_END
@@ -206,7 +213,7 @@ _Ext_sRoomExt:
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
     d_addr Dialogs_sDialog_ptr_arr_ptr, 0
     d_addr Passages_sPassage_arr_ptr, 0
-    d_addr Init_func_ptr, FuncC_Garden_BossRoomInit
+    d_addr Init_func_ptr, FuncC_Garden_Boss_InitRoom
     D_END
 _TerrainData:
 :   .incbin "out/data/garden_boss.room"
@@ -353,11 +360,20 @@ _Cannon_Tick:
 _Cannon_Reset:
     lda #0
     sta Ram_RoomState + sState::CannonGoalY_u8
+    ;; If the boss is currently shooting/spraying, switch to waiting mode (to
+    ;; avoid the player cheesing by reprogramming the machine every time the
+    ;; boss opens an eye).
+    lda Ram_RoomState + sState::BossMode_eBoss
+    cmp #eBoss::Shoot
+    .assert eBoss::Spray > eBoss::Shoot, error
+    blt @done
+    jmp FuncC_Garden_Boss_StartWaiting
+    @done:
     rts
 .ENDPROC
 
 ;;; Room init function for the GardenBoss room.
-.PROC FuncC_Garden_BossRoomInit
+.PROC FuncC_Garden_Boss_InitRoom
     ;; Hide the upgrade device for now.
     lda #eDevice::None
     sta Ram_DeviceType_eDevice_arr + kUpgradeDeviceIndex
@@ -393,7 +409,7 @@ _SpawnBoss:
 .ENDPROC
 
 ;;; Room tick function for the GardenBoss room.
-.PROC FuncC_Garden_BossRoomTick
+.PROC FuncC_Garden_Boss_TickRoom
 _SpawnUpgrade:
     ;; If the timer is nonzero, count it down, and spawn the upgrade at zero.
     lda Ram_RoomState + sState::SpawnUpgradeTimer_u8
@@ -417,24 +433,77 @@ _SpawnUpgrade:
     ldx #kSmokeActorIndex  ; param: actor index
     jsr Func_InitSmokeActor
     @doneUpgrade:
-_CheckForHit:
-    ;; TODO: Check if a grenade hit an eye.  If the eye is open, deal damage
-    ;;   and go to Waiting mode; if the eye is closed, go to Angry mode.
+_CheckIfBossDead:
+    lda Ram_RoomState + sState::BossMode_eBoss
+    .assert eBoss::Dead = 0, error
+    bne @bossAlive
+    rts
+    @bossAlive:
+_CheckForGrenadeHit:
+    ;; Check if there's a grenade in flight.  If not, we're done.
+    lda Ram_ActorType_eActor_arr + kGrenadeActorIndex
+    cmp #eActor::Grenade
+    bne @done
+    ;; Check which eye the grenade is near vertically.
+    lda Ram_ActorPosY_i16_0_arr + kGrenadeActorIndex
+    cmp #kBossLeftEyeCenterY + 6
+    bge @grenadeIsLow
+    @grenadeIsHigh:
+    lda #kBossLeftEyeCenterX
+    ldx #eEye::Left
+    .assert eEye::Left = 0, error
+    beq @checkPosX  ; unconditional
+    @grenadeIsLow:
+    lda #kBossRightEyeCenterX
+    ldx #eEye::Right
+    @checkPosX:
+    ;; Check if the grenade has hit an eye yet.  If not, we're done.
+    cmp Ram_ActorPosX_i16_0_arr + kGrenadeActorIndex
+    bge @done
+    ;; Check if the hit eye is open or closed.
+    lda Ram_RoomState + sState::BossEyesOpen_u8_arr2, x
+    cmp #kBossEyeOpenFrames / 2
+    bge @eyeIsOpen
+    ;; If the hit eye is closed, switch the boss to Angry mode.
+    @eyeIsClosed:
+    lda #eBoss::Angry
+    sta Ram_RoomState + sState::BossMode_eBoss
+    .assert eBoss::Angry = 2, error
+    sta Ram_RoomState + sState::BossCooldown_u8
+    lda #3
+    sta Ram_RoomState + sState::BossProjCount_u8
+    bne @explode  ; unconditional
+    ;; If the hit eye is open, deal damage to the boss.
+    @eyeIsOpen:
+    dec Ram_RoomState + sState::BossHealth_u8
+    bne @bossIsStillAlive
+    ;; If the boss's health is now zero, kill the boss.
+    ;; TODO: make a death animation, then spawn upgrade
+    lda #eBoss::Dead
+    sta Ram_RoomState + sState::BossMode_eBoss
+    .assert eBoss::Dead = 0, error
+    beq @explode  ; unconditional
+    ;; Otherwise, put the boss into waiting mode.
+    @bossIsStillAlive:
+    ;; TODO: make a hurt animation
+    jsr FuncC_Garden_Boss_StartWaiting
+    ;; Explode the grenade.
+    @explode:
+    ;; TODO: play a sound
+    ldx #kGrenadeActorIndex
+    jsr Func_InitSmokeActor
+    @done:
 _BossEyes:
     ldx #eEye::Left
-    jsr FuncC_Garden_BossEyeTick
+    jsr FuncC_Garden_Boss_TickEye
     ldx #eEye::Right
-    jsr FuncC_Garden_BossEyeTick
+    jsr FuncC_Garden_Boss_TickEye
 _BossCooldown:
     dec Ram_RoomState + sState::BossCooldown_u8
     beq _BossCheckMode
     rts
 _BossCheckMode:
     lda Ram_RoomState + sState::BossMode_eBoss
-    .assert eBoss::Dead = 0, error
-    bne @alive
-    rts
-    @alive:
     cmp #eBoss::Angry
     beq _BossAngry
     cmp #eBoss::Shoot
@@ -468,7 +537,7 @@ _BossShoot:
     ;; Decrement the projectile counter; if it reaches zero, return to waiting
     ;; mode.
     dec Ram_RoomState + sState::BossProjCount_u8
-    beq _BossStartWaiting
+    jeq FuncC_Garden_Boss_StartWaiting
     ;; Otherwise, set the cooldown for the next fireball.
     lda #kBossShootFireballCooldown
     sta Ram_RoomState + sState::BossCooldown_u8
@@ -499,19 +568,9 @@ _BossAngry:
     ;; Decrement the projectile counter; if it reaches zero, return to waiting
     ;; mode.
     dec Ram_RoomState + sState::BossProjCount_u8
-    beq _BossStartWaiting
+    jeq FuncC_Garden_Boss_StartWaiting
     ;; Otherwise, set the cooldown for the next spike.
     lda #kBossAngrySpikeCooldown
-    sta Ram_RoomState + sState::BossCooldown_u8
-    rts
-_BossStartWaiting:
-    ;; Enter waiting mode for a random amount of time, between about 1-2
-    ;; seconds.
-    lda #eBoss::Waiting
-    sta Ram_RoomState + sState::BossMode_eBoss
-    jsr Func_GetRandomByte  ; returns A
-    and #$3f
-    ora #$40
     sta Ram_RoomState + sState::BossCooldown_u8
     rts
 _BossWaiting:
@@ -549,13 +608,13 @@ _BossWaiting:
     rts
 _FireballPosX_u8_arr2:
     D_ENUM eEye
-    d_byte Left, $68
-    d_byte Right, $98
+    d_byte Left,  kBossLeftEyeCenterX
+    d_byte Right, kBossRightEyeCenterX
     D_END
 _FireballPosY_u8_arr2:
     D_ENUM eEye
-    d_byte Left, $58
-    d_byte Right, $78
+    d_byte Left,  kBossLeftEyeCenterY
+    d_byte Right, kBossRightEyeCenterY
     D_END
 _FireballAngle_u8_arr2_arr:
     ;; Each pair has angles for left eye and right eye.
@@ -581,7 +640,7 @@ _SpikePosY_u8_arr:
 ;;; Opens or closes the specified boss eye, depending on the boss mode.
 ;;; @param X Which eEye to update.
 ;;; @preserve X
-.PROC FuncC_Garden_BossEyeTick
+.PROC FuncC_Garden_Boss_TickEye
     lda Ram_RoomState + sState::BossMode_eBoss
     cmp #eBoss::Shoot
     .assert eBoss::Spray > eBoss::Shoot, error
@@ -603,17 +662,33 @@ _Close:
     rts
 .ENDPROC
 
+;;; Makes the boss enter waiting mode for a random amount of time (between
+;;; about 1-2 seconds).
+.PROC FuncC_Garden_Boss_StartWaiting
+    lda #eBoss::Waiting
+    sta Ram_RoomState + sState::BossMode_eBoss
+    jsr Func_GetRandomByte  ; returns A
+    and #$3f
+    ora #$40
+    sta Ram_RoomState + sState::BossCooldown_u8
+    rts
+.ENDPROC
+
 ;;;=========================================================================;;;
 
 .SEGMENT "PRGA_Objects"
 
 ;;; Allocates and populates OAM slots for the boss.
 .PROC FuncA_Objects_GardenBoss_Draw
+    lda Ram_RoomState + sState::BossMode_eBoss
+    .assert eBoss::Dead = 0, error
+    beq @done
     ;; Draw boss eyes.
     ldx #eEye::Left
     jsr FuncA_Objects_GardenBoss_DrawEye
     ldx #eEye::Right
     jsr FuncA_Objects_GardenBoss_DrawEye
+    @done:
     rts
 .ENDPROC
 
@@ -650,13 +725,13 @@ _Close:
     rts
 _PosX_u8_arr:
     D_ENUM eEye
-    d_byte Left, $68
-    d_byte Right, $98
+    d_byte Left,  kBossLeftEyeCenterX
+    d_byte Right, kBossRightEyeCenterX
     D_END
 _PosY_u8_arr:
     D_ENUM eEye
-    d_byte Left, $53
-    d_byte Right, $73
+    d_byte Left,  kBossLeftEyeCenterY  - 5
+    d_byte Right, kBossRightEyeCenterY - 5
     D_END
 .ENDPROC
 
