@@ -84,7 +84,7 @@ _StartGame:
     jsr_prga FuncA_Title_FillUpperAttributeTable
     jsr_prga FuncA_Title_ResetSramForNewGame
     jsr_prga FuncA_Upgrade_ComputeMaxInstructions
-    ldx #eRoom::GardenBoss  ; param: room number
+    ldx #eRoom::CryptFlower  ; param: room number
     ldy #0  ; param: device index
     jmp Main_Explore_EnterFromDevice
 .ENDPROC

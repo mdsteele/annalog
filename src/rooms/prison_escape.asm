@@ -34,6 +34,7 @@
 .IMPORT DataC_Prison_AreaName_u8_arr
 .IMPORT FuncA_Objects_Alloc1x1Shape
 .IMPORT FuncA_Objects_Alloc2x2Shape
+.IMPORT FuncA_Objects_DrawGirderPlatform
 .IMPORT FuncA_Objects_MoveShapeDownOneTile
 .IMPORT FuncA_Objects_MoveShapeRightOneTile
 .IMPORT FuncA_Objects_MoveShapeUpOneTile
@@ -351,21 +352,7 @@ _Trolley:
     @done:
 _Girder:
     ldx #kGirderPlatformIndex  ; param: platform index
-    jsr FuncA_Objects_SetShapePosToPlatformTopLeft
-    ldx #4
-    bne @startLoop  ; unconditional
-    @loop:
-    jsr FuncA_Objects_MoveShapeRightOneTile
-    @startLoop:
-    jsr FuncA_Objects_Alloc1x1Shape  ; preserves X, returns C and Y
-    bcs @continue
-    lda #kTrolleyTileIdGirder
-    sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
-    lda #kTrolleyGirderPalette
-    sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
-    @continue:
-    dex
-    bne @loop
+    jsr FuncA_Objects_DrawGirderPlatform
 _RopeTriangle:
     ;; The rope triangle tiles are shaped like this:
     ;;

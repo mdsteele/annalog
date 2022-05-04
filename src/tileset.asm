@@ -20,6 +20,10 @@
 .INCLUDE "macros.inc"
 .INCLUDE "tileset.inc"
 
+.IMPORT DataA_Terrain_CryptLowerLeft_u8_arr
+.IMPORT DataA_Terrain_CryptLowerRight_u8_arr
+.IMPORT DataA_Terrain_CryptUpperLeft_u8_arr
+.IMPORT DataA_Terrain_CryptUpperRight_u8_arr
 .IMPORT DataA_Terrain_IndoorsLowerLeft_u8_arr
 .IMPORT DataA_Terrain_IndoorsLowerRight_u8_arr
 .IMPORT DataA_Terrain_IndoorsUpperLeft_u8_arr
@@ -33,12 +37,24 @@
 .IMPORT DataA_Terrain_PrisonUpperLeft_u8_arr
 .IMPORT DataA_Terrain_PrisonUpperRight_u8_arr
 .IMPORT Ppu_ChrCave
+.IMPORT Ppu_ChrCrypt
 .IMPORT Ppu_ChrIndoors
 .IMPORT Ppu_ChrOutdoors
 
 ;;;=========================================================================;;;
 
 .SEGMENT "PRGA_Room"
+
+.EXPORT DataA_Room_Crypt_sTileset
+.PROC DataA_Room_Crypt_sTileset
+    D_STRUCT sTileset
+    d_addr UpperLeft_u8_arr_ptr,  DataA_Terrain_CryptUpperLeft_u8_arr
+    d_addr LowerLeft_u8_arr_ptr,  DataA_Terrain_CryptLowerLeft_u8_arr
+    d_addr UpperRight_u8_arr_ptr, DataA_Terrain_CryptUpperRight_u8_arr
+    d_addr LowerRight_u8_arr_ptr, DataA_Terrain_CryptLowerRight_u8_arr
+    d_byte Chr08Bank_u8, <.bank(Ppu_ChrCrypt)
+    D_END
+.ENDPROC
 
 .EXPORT DataA_Room_Indoors_sTileset
 .PROC DataA_Room_Indoors_sTileset

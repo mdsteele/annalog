@@ -19,9 +19,13 @@
 
 .INCLUDE "avatar.inc"
 .INCLUDE "macros.inc"
+.INCLUDE "oam.inc"
 .INCLUDE "platform.inc"
 .INCLUDE "ppu.inc"
 
+.IMPORT FuncA_Objects_Alloc1x1Shape
+.IMPORT FuncA_Objects_MoveShapeRightOneTile
+.IMPORT Ram_Oam_sObj_arr64
 .IMPORTZP Zp_AvatarCollided_ePlatform
 .IMPORTZP Zp_AvatarPosX_i16
 .IMPORTZP Zp_AvatarPosY_i16
@@ -34,6 +38,13 @@
 .IMPORTZP Zp_ShapePosY_i16
 .IMPORTZP Zp_Tmp1_byte
 .IMPORTZP Zp_Tmp2_byte
+
+;;;=========================================================================;;;
+
+;;; The OBJ palette number used for FuncA_Objects_DrawGirderPlatform.
+kGirderPalette = 0
+;;; The OBJ tile ID used for FuncA_Objects_DrawGirderPlatform.
+kGirderTileId = $79
 
 ;;;=========================================================================;;;
 
@@ -445,6 +456,38 @@ _Return:
     lda Ram_PlatformLeft_i16_1_arr, x
     sbc Zp_ScrollXHi_u8
     sta Zp_ShapePosX_i16 + 1
+    rts
+.ENDPROC
+
+;;; Allocates and populates OAM slots to draw an Nx1 girder for the specified
+;;; platform.  The platform is assumed to be an integer number of tiles wide
+;;; (from 1 to at most 8) and one tile high.  When this function returns,
+;;; Zp_ShapePosX_i16 and Zp_ShapePosY_i16 will be positioned for the rightmost
+;;; tile of the girder (whether or not that tile was actually drawn).
+;;; @param X The platform index.
+.EXPORT FuncA_Objects_DrawGirderPlatform
+.PROC FuncA_Objects_DrawGirderPlatform
+    jsr FuncA_Objects_SetShapePosToPlatformTopLeft  ; preserves X
+    ;; Determine how many tiles wide the platform is.
+    lda Ram_PlatformRight_i16_0_arr, x
+    sub Ram_PlatformLeft_i16_0_arr, x
+    div #kTileWidthPx
+    tax  ; platform width, in tiles
+    ;; Allocate the objects.
+    bne @startLoop
+    rts
+    @loop:
+    jsr FuncA_Objects_MoveShapeRightOneTile
+    @startLoop:
+    jsr FuncA_Objects_Alloc1x1Shape  ; preserves X, returns C and Y
+    bcs @continue
+    lda #kGirderTileId
+    sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
+    lda #kGirderPalette
+    sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
+    @continue:
+    dex
+    bne @loop
     rts
 .ENDPROC
 

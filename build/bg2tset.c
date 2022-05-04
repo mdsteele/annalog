@@ -279,6 +279,8 @@ char get_tile_id(const char *tileset, int tile_index) {
     return 0xc0 + tile_index;
   } else if (0 == strcmp(tileset, "cave")) {
     return 0x80 + tile_index;
+  } else if (0 == strcmp(tileset, "crypt")) {
+    return 0x80 + tile_index;
   } else if (0 == strcmp(tileset, "device")) {
     return 0xb6 + tile_index;
   } else if (0 == strcmp(tileset, "furniture")) {
