@@ -34,10 +34,12 @@
 .IMPORT FuncA_Avatar_CollideWithAllPlatformsVert
 .IMPORT FuncA_Objects_Alloc2x2Shape
 .IMPORT Func_Terrain_GetColumnPtrForTileIndex
+.IMPORT Ppu_ChrPlayerNormal
 .IMPORT Ram_DeviceBlockCol_u8_arr
 .IMPORT Ram_DeviceBlockRow_u8_arr
 .IMPORT Ram_DeviceType_eDevice_arr
 .IMPORT Ram_Oam_sObj_arr64
+.IMPORT Sram_CarryingFlower_eFlag
 .IMPORT Sram_Minimap_u16_arr
 .IMPORTZP Zp_Current_sRoom
 .IMPORTZP Zp_FrameCounter_u8
@@ -174,6 +176,7 @@ _DeviceOffset_u8_arr:
     d_byte None,    $08
     d_byte Console, $06
     d_byte Door,    $08
+    d_byte Flower,  $08
     d_byte Lever,   $06
     d_byte Sign,    $06
     d_byte Upgrade, $08
@@ -193,6 +196,7 @@ _DeviceOffset_u8_arr:
     blt Func_KillAvatar
     rts
 _Harm:
+    jsr Func_DropFlower  ; preserves X
     ;; Mark the avatar as damaged.
     lda #kAvatarHarmHealFrames
     sta Zp_AvatarHarmTimer_u8
@@ -223,8 +227,29 @@ _Harm:
 ;;; @preserve X
 .EXPORT Func_KillAvatar
 .PROC Func_KillAvatar
+    jsr Func_DropFlower  ; preserves X
     lda #kAvatarHarmDeath
     sta Zp_AvatarHarmTimer_u8
+    rts
+.ENDPROC
+
+;;; If the player avatar is carrying a flower, drops the flower.  Otherwise,
+;;; does nothing.
+;;; @preserve X
+.PROC Func_DropFlower
+    lda Sram_CarryingFlower_eFlag
+    beq @done
+    chr10_bank #<.bank(Ppu_ChrPlayerNormal)
+    ;; Enable writes to SRAM.
+    lda #bMmc3PrgRam::Enable
+    sta Hw_Mmc3PrgRamProtect_wo
+    ;; Mark the player as no longer carrying a flower.
+    lda #0
+    sta Sram_CarryingFlower_eFlag
+    ;; Disable writes to SRAM.
+    lda #bMmc3PrgRam::Enable | bMmc3PrgRam::DenyWrites
+    sta Hw_Mmc3PrgRamProtect_wo
+    @done:
     rts
 .ENDPROC
 

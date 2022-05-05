@@ -66,6 +66,19 @@ kSaveMagicNumber = $b2
     ConduitMine
     ConduitCity
     ConduitLab
+    ;; Each of these flags is set when that flower is delivered to the florist:
+    FlowerPrison
+    FlowerGarden
+    FlowerTemple
+    FlowerCrypt
+    FlowerVale
+    FlowerFactory
+    FlowerLava
+    FlowerMine
+    FlowerSewer
+    FlowerCity
+    FlowerLab
+    FlowerCore
 .ENDENUM
 
 ;;;=========================================================================;;;

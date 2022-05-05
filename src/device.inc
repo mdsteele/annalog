@@ -23,8 +23,10 @@ kMaxDevices = 8
 ;;; The OBJ tile IDs used for various device objects.
 kConsoleScreenTileIdOk  = $0a
 kConsoleScreenTileIdErr = $0b
-kLeverHandleTileIdDown  = $0c
-kLeverHandleTileIdUp    = $0d
+kFlowerTileIdTop        = $0c
+kFlowerTileIdBottom     = $0d
+kLeverHandleTileIdDown  = $0e
+kLeverHandleTileIdUp    = $0f
 
 ;;; The initial value to set in Ram_DeviceAnim_u8_arr when animating an upgrade
 ;;; device.
@@ -38,6 +40,7 @@ kUpgradeDeviceAnimStart = 23
     None
     Console
     Door
+    Flower
     Lever
     Sign
     Upgrade

@@ -37,7 +37,12 @@ Sram_RespawnRoomNumber_u8: .res 1
 ;;; when continuing a saved game (e.g. a particular door or console).
 Sram_RespawnDeviceNumber_u8: .res 1
 
-.RES $0d
+;;; The eFlag for the flower that the player avatar is currently carrying, or
+;;; zero for none.
+.EXPORT Sram_CarryingFlower_eFlag
+Sram_CarryingFlower_eFlag: .res 1
+
+.RES $0c
 
 ;;; A bit array indicating which minimap cells have been explored.  The array
 ;;; contains one u16 for each minimap column; if the minimap cell at row R and

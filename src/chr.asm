@@ -183,20 +183,28 @@
 
 ;;;=========================================================================;;;
 
-.SEGMENT "CHR_Player"
+.SEGMENT "CHR_PlayerFlower"
 
-.EXPORT Ppu_ChrPlayer
-.PROC Ppu_ChrPlayer
-:   .incbin "out/data/tiles/cursor.chr"
-    .assert * - :- = kSizeofChr * kConsoleScreenTileIdOk, error
-    .incbin "out/data/tiles/screen.chr"
-    .assert * - :- = kSizeofChr * kLeverHandleTileIdDown, error
-    .incbin "out/data/tiles/lever.chr"
-    .res $02 * kSizeofChr
-    .incbin "out/data/tiles/font_hilight.chr"
-    .res $06 * kSizeofChr
+.EXPORT Ppu_ChrPlayerFlower
+.PROC Ppu_ChrPlayerFlower
+:   .incbin "out/data/tiles/font_hilight.chr"
     .assert * - :- = kSizeofChr * eAvatar::Standing, error
-    .incbin "out/data/tiles/player.chr"
+    .incbin "out/data/tiles/player_flower.chr"
+    .res $08 * kSizeofChr
+    .incbin "out/data/tiles/machine.chr"
+    .res $01 * kSizeofChr
+    .assert * - :- = kSizeofChr * $80, error
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "CHR_PlayerNormal"
+
+.EXPORT Ppu_ChrPlayerNormal
+.PROC Ppu_ChrPlayerNormal
+:   .incbin "out/data/tiles/font_hilight.chr"
+    .assert * - :- = kSizeofChr * eAvatar::Standing, error
+    .incbin "out/data/tiles/player_normal.chr"
     .res $08 * kSizeofChr
     .incbin "out/data/tiles/machine.chr"
     .res $01 * kSizeofChr

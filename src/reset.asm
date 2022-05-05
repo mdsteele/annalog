@@ -30,7 +30,7 @@
 .IMPORT Ppu_ChrFontLower01
 .IMPORT Ppu_ChrFontUpper
 .IMPORT Ppu_ChrPause
-.IMPORT Ppu_ChrPlayer
+.IMPORT Ppu_ChrPlayerNormal
 .IMPORT Ppu_ChrUpgrade
 .IMPORT Ram_Active_sIrq
 
@@ -119,7 +119,7 @@ _InitPpuMapping:
     chr04_bank #<.bank(Ppu_ChrFontLower01)
     chr08_bank #<.bank(Ppu_ChrPause)
     chr0c_bank #<.bank(Ppu_ChrPause)
-    chr10_bank #<.bank(Ppu_ChrPlayer)
+    chr10_bank #<.bank(Ppu_ChrPlayerNormal)
     chr18_bank #<.bank(Ppu_ChrUpgrade)
 _InitAttributeTable0:
     ;; Set all blocks in nametable 0 to use BG palette 0.

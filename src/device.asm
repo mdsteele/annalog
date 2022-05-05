@@ -20,28 +20,29 @@
 .INCLUDE "device.inc"
 .INCLUDE "machine.inc"
 .INCLUDE "macros.inc"
+.INCLUDE "mmc3.inc"
 .INCLUDE "oam.inc"
 .INCLUDE "ppu.inc"
 .INCLUDE "room.inc"
 
+.IMPORT FuncA_Objects_Alloc1x1Shape
 .IMPORT FuncA_Objects_Alloc2x2Shape
+.IMPORT FuncA_Objects_MoveShapeDownOneTile
+.IMPORT FuncA_Objects_MoveShapeRightOneTile
 .IMPORT FuncA_Objects_SetUpgradeTileIds
 .IMPORT Func_Noop
+.IMPORT Ppu_ChrPlayerFlower
 .IMPORT Ram_MachineStatus_eMachine_arr
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORT Ram_RoomState
-.IMPORTZP Zp_OamOffset_u8
+.IMPORT Sram_CarryingFlower_eFlag
 .IMPORTZP Zp_PpuScrollX_u8
 .IMPORTZP Zp_PpuScrollY_u8
 .IMPORTZP Zp_ScrollXHi_u8
 .IMPORTZP Zp_ShapePosX_i16
 .IMPORTZP Zp_ShapePosY_i16
 .IMPORTZP Zp_Tmp1_byte
-.IMPORTZP Zp_Tmp2_byte
-.IMPORTZP Zp_Tmp3_byte
-.IMPORTZP Zp_Tmp4_byte
 .IMPORTZP Zp_Tmp_ptr
-.IMPORTZP Zp_WindowTop_u8
 
 ;;;=========================================================================;;;
 
@@ -54,14 +55,18 @@ FuncA_Objects_DrawSignDevice = Func_Noop
     FuncA_Objects_DrawNoneDevice, \
     FuncA_Objects_DrawConsoleDevice, \
     FuncA_Objects_DrawDoorDevice, \
+    FuncA_Objects_DrawFlowerDevice, \
     FuncA_Objects_DrawLeverDevice, \
     FuncA_Objects_DrawSignDevice, \
     FuncA_Objects_DrawUpgradeDevice
 .LINECONT -
+.ASSERT .tcount({DeviceDrawFuncs}) = eDevice::NUM_VALUES * 2 - 1, error
 
 ;;; The OBJ palette numbers used for various device objects.
 kConsoleScreenPaletteOk  = 2
 kConsoleScreenPaletteErr = 1
+kFlowerPaletteTop        = 1
+kFlowerPaletteBottom     = 2
 kLeverHandlePalette      = 0
 kUpgradePalette          = 0
 
@@ -101,6 +106,27 @@ Ram_DeviceAnim_u8_arr: .res kMaxDevices
 ;;;=========================================================================;;;
 
 .SEGMENT "PRG8"
+
+;;; Removes a flower device, and marks the player avatar as carrying that
+;;; flower.
+;;; @param X The device index for the flower.
+.EXPORT Func_PickUpFlowerDevice
+.PROC Func_PickUpFlowerDevice
+    chr10_bank #<.bank(Ppu_ChrPlayerFlower)
+    lda Ram_DeviceTarget_u8_arr, x
+    ;; Enable writes to SRAM.
+    ldy #bMmc3PrgRam::Enable
+    sty Hw_Mmc3PrgRamProtect_wo
+    ;; Set the currently-carried flower.
+    sta Sram_CarryingFlower_eFlag
+    ;; Disable writes to SRAM.
+    ldy #bMmc3PrgRam::Enable | bMmc3PrgRam::DenyWrites
+    sty Hw_Mmc3PrgRamProtect_wo
+    ;; Remove flower device.
+    lda #eDevice::None
+    sta Ram_DeviceType_eDevice_arr, x
+    rts
+.ENDPROC
 
 ;;; Toggles a lever device to the other position, changing its state and
 ;;; initializing its animation.
@@ -166,91 +192,75 @@ _JumpTable_ptr_1_arr: .hibytes DeviceDrawFuncs
 ;;; @param X The device index.
 ;;; @preserve X
 .PROC FuncA_Objects_DrawConsoleDevice
-    ;; Compute the room pixel Y-position of the top of the console, storing the
-    ;; hi byte in Zp_Tmp2_byte and the lo byte in A.
-    lda #0
-    sta Zp_Tmp2_byte
-    lda Ram_DeviceBlockRow_u8_arr, x
-    .assert kTallRoomHeightBlocks <= $20, error
-    asl a  ; Since kTallRoomHeightBlocks <= $20, the device block row fits in
-    asl a  ; five bits, so the first three ASL's won't set the carry bit, so
-    asl a  ; we only need to ROL Zp_Tmp2_byte after the fourth ASL.
-    asl a
-    rol Zp_Tmp2_byte
-    ;; Compute the screen pixel Y-position of the top of the console, storing
-    ;; it in Zp_Tmp1_byte.
-    sub Zp_PpuScrollY_u8
-    sta Zp_Tmp1_byte  ; screen pixel Y-pos
-    lda Zp_Tmp2_byte
-    sbc #0
-    bne @notVisible
-    ;; Check if the object is below the screen/window.
-    lda Zp_Tmp1_byte  ; screen pixel Y-pos
-    cmp #kScreenHeightPx
-    bge @notVisible
-    cmp Zp_WindowTop_u8
-    bge @notVisible
-    ;; Compute the room pixel X-position of the left side of the console,
-    ;; storing the hi byte in Zp_Tmp3_byte and the lo byte in A.
-    lda #0
-    sta Zp_Tmp3_byte
-    lda Ram_DeviceBlockCol_u8_arr, x
-    .assert kMaxRoomWidthBlocks <= $80, error
-    asl a      ; Since kMaxRoomWidthBlocks <= $80, the device block col fits in
-    .repeat 3  ; seven bits, so the first ASL won't set the carry bit, so we
-    asl a      ; only need to ROL Zp_Tmp3_byte starting after the second ASL.
-    rol Zp_Tmp3_byte
-    .endrepeat
-    ;; Compute the room pixel X-position of the left side of the console
-    ;; screen, storing the hi byte in Zp_Tmp3_byte and the lo byte in
-    ;; Zp_Tmp2_byte.
+    jsr FuncA_Objects_SetShapePosToDeviceTopLeft  ; preserves X
+_AdjustPosition:
+    ;; Adjust X-position for the console screen.
+    lda Zp_ShapePosX_i16 + 0
     add #4
-    sta Zp_Tmp2_byte  ; room pixel X-pos (lo)
-    lda Zp_Tmp3_byte
+    sta Zp_ShapePosX_i16 + 0
+    lda Zp_ShapePosX_i16 + 1
     adc #0
-    sta Zp_Tmp3_byte  ; room pixel X-pos (hi)
-    ;; Compute the screen pixel X-position of the left side of the console
-    ;; screen, storing it in Zp_Tmp2_byte.
-    lda Zp_Tmp2_byte  ; room pixel X-pos (lo)
-    sub Zp_PpuScrollX_u8
-    sta Zp_Tmp2_byte  ; screen pixel X-pos
-    lda Zp_Tmp3_byte  ; room pixel X-pos (hi)
-    sbc Zp_ScrollXHi_u8
-    bne @notVisible
+    sta Zp_ShapePosX_i16 + 1
+    ;; Adjust Y-position for the console screen.
+    inc Zp_ShapePosY_i16 + 0
+    bne @noCarry
+    inc Zp_ShapePosY_i16 + 1
+    @noCarry:
+_AllocateObject:
+    jsr FuncA_Objects_Alloc1x1Shape  ; preserves X, returns C and Y
+    bcs @done
+    sty Zp_Tmp1_byte  ; OAM offset
     ;; Determine if the machine has an error.
-    lda Ram_DeviceTarget_u8_arr, x
-    tay  ; machine index
+    ldy Ram_DeviceTarget_u8_arr, x  ; machine index
     lda Ram_MachineStatus_eMachine_arr, y
+    ldy Zp_Tmp1_byte  ; OAM offset
     cmp #eMachine::Error
     beq @machineError
+    @machineOk:
     lda #kConsoleScreenPaletteOk
-    sta Zp_Tmp3_byte  ; object flags
+    sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
     lda #kConsoleScreenTileIdOk
-    sta Zp_Tmp4_byte  ; tile ID
-    .assert kConsoleScreenTileIdOk > 0, error
-    bne @setAttrs  ; unconditional
+    sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
+    rts
     @machineError:
     lda #kConsoleScreenPaletteErr
-    sta Zp_Tmp3_byte  ; object flags
-    lda #kConsoleScreenTileIdErr
-    sta Zp_Tmp4_byte  ; tile ID
-    ;; Set object attributes.
-    @setAttrs:
-    ldy Zp_OamOffset_u8
-    lda Zp_Tmp1_byte  ; screen pixel Y-pos
-    sta Ram_Oam_sObj_arr64 + sObj::YPos_u8, y
-    lda Zp_Tmp2_byte  ; screen pixel X-pos
-    sta Ram_Oam_sObj_arr64 + sObj::XPos_u8, y
-    lda Zp_Tmp3_byte  ; object flags
     sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
-    lda Zp_Tmp4_byte  ; tile ID
+    lda #kConsoleScreenTileIdErr
     sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
-    ;; Update the OAM offset.
-    .repeat .sizeof(sObj)
-    iny
-    .endrepeat
-    sty Zp_OamOffset_u8
-    @notVisible:
+    @done:
+    rts
+.ENDPROC
+
+;;; Allocates and populates OAM slots for a flower device.
+;;; @param X The device index.
+;;; @preserve X
+.PROC FuncA_Objects_DrawFlowerDevice
+    jsr FuncA_Objects_SetShapePosToDeviceTopLeft  ; preserves X
+_AdjustPosition:
+    ;; Adjust X-position for the flower.
+    lda Zp_ShapePosX_i16 + 0
+    add #4
+    sta Zp_ShapePosX_i16 + 0
+    lda Zp_ShapePosX_i16 + 1
+    adc #0
+    sta Zp_ShapePosX_i16 + 1
+_AllocateUpperObject:
+    jsr FuncA_Objects_Alloc1x1Shape  ; preserves X, returns C and Y
+    bcs @done
+    lda #kFlowerPaletteTop
+    sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
+    lda #kFlowerTileIdTop
+    sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
+    @done:
+_AllocateLowerObject:
+    jsr FuncA_Objects_MoveShapeDownOneTile  ; preserves X
+    jsr FuncA_Objects_Alloc1x1Shape  ; preserves X, returns C and Y
+    bcs @done
+    lda #kFlowerPaletteBottom
+    sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
+    lda #kFlowerTileIdBottom
+    sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
+    @done:
     rts
 .ENDPROC
 
@@ -258,111 +268,54 @@ _JumpTable_ptr_1_arr: .hibytes DeviceDrawFuncs
 ;;; @param X The device index.
 ;;; @preserve X
 .PROC FuncA_Objects_DrawLeverDevice
-    ;; Compute the animation frame number, storing it in Zp_Tmp4_byte.
+    jsr FuncA_Objects_SetShapePosToDeviceTopLeft  ; preserves X
+_Animation:
+    ;; Compute the animation frame number, storing it in Y.
     lda Ram_DeviceAnim_u8_arr, x
     div #kLeverAnimSlowdown
-    sta Zp_Tmp4_byte  ; animation delta
-    lda Ram_DeviceTarget_u8_arr, x
-    tay
+    sta Zp_Tmp1_byte  ; animation delta
+    ldy Ram_DeviceTarget_u8_arr, x
     lda Ram_RoomState, y
     bne @leverIsOn
     @leverIsOff:
-    lda Zp_Tmp4_byte  ; animation delta
+    lda Zp_Tmp1_byte  ; animation delta
     bpl @setAnimFrame  ; unconditional
     @leverIsOn:
     lda #kLeverNumAnimFrames - 1
-    sub Zp_Tmp4_byte  ; animation delta
+    sub Zp_Tmp1_byte  ; animation delta
     @setAnimFrame:
-    sta Zp_Tmp4_byte  ; animation frame
-    ;; Compute the room pixel Y-position of the top of the lever, storing the
-    ;; hi byte in Zp_Tmp2_byte and the lo byte in A.
-    lda #0
-    sta Zp_Tmp2_byte
-    lda Ram_DeviceBlockRow_u8_arr, x
-    .assert kTallRoomHeightBlocks <= $20, error
-    asl a  ; Since kTallRoomHeightBlocks <= $20, the device block row fits in
-    asl a  ; five bits, so the first three ASL's won't set the carry bit, so
-    asl a  ; we only need to ROL Zp_Tmp2_byte after the fourth ASL.
-    asl a
-    rol Zp_Tmp2_byte
-    ;; Compute the room pixel Y-position of the top of the lever handle,
-    ;; storing the hi byte in Zp_Tmp2_byte and the lo byte in Zp_Tmp1_byte.
-    add #2
-    sta Zp_Tmp1_byte
-    lda Zp_Tmp2_byte
-    adc #0
-    sta Zp_Tmp2_byte
-    ;; Compute the screen pixel Y-position of the top of the lever handle,
-    ;; storing it in Zp_Tmp1_byte.
-    lda Zp_Tmp1_byte
-    sub Zp_PpuScrollY_u8
-    sta Zp_Tmp1_byte  ; screen pixel Y-pos
-    lda Zp_Tmp2_byte
-    sbc #0
-    bne @notVisible
-    ;; Check if the object is below the screen/window.
-    lda Zp_Tmp1_byte  ; screen pixel Y-pos
-    cmp #kScreenHeightPx
-    bge @notVisible
-    cmp Zp_WindowTop_u8
-    bge @notVisible
-    ;; Compute the room pixel X-position of the left side of the lever,
-    ;; storing the hi byte in Zp_Tmp3_byte and the lo byte in A.
-    lda #0
-    sta Zp_Tmp3_byte
-    lda Ram_DeviceBlockCol_u8_arr, x
-    .assert kMaxRoomWidthBlocks <= $80, error
-    asl a      ; Since kMaxRoomWidthBlocks <= $80, the device block col fits in
-    .repeat 3  ; seven bits, so the first ASL won't set the carry bit, so we
-    asl a      ; only need to ROL Zp_Tmp3_byte starting after the second ASL.
-    rol Zp_Tmp3_byte
-    .endrepeat
-    ;; Compute the room pixel X-position of the left side of the lever handle,
-    ;; storing the hi byte in Zp_Tmp3_byte and the lo byte in Zp_Tmp2_byte.
-    ldy Zp_Tmp4_byte  ; animation frame
+    tay  ; animation frame
+_AdjustPosition:
+    ;; Adjust X-position for the lever handle.
     cpy #kLeverNumAnimFrames / 2
-    bge @rightSide
+    blt @leftSide
+    jsr FuncA_Objects_MoveShapeRightOneTile  ; preserves X and Y
     @leftSide:
-    sta Zp_Tmp2_byte  ; room pixel X-pos (lo)
-    jmp @sideDone
-    @rightSide:
-    add #kTileWidthPx
-    sta Zp_Tmp2_byte  ; room pixel X-pos (lo)
-    lda Zp_Tmp3_byte
+    ;; Adjust Y-position for the lever handle.
+    lda Zp_ShapePosY_i16 + 0
+    add #3
+    sta Zp_ShapePosY_i16 + 0
+    lda Zp_ShapePosY_i16 + 1
     adc #0
-    sta Zp_Tmp3_byte  ; room pixel X-pos (hi)
-    @sideDone:
-    ;; Compute the screen pixel X-position of the left side of the lever
-    ;; handle, storing it in Zp_Tmp2_byte.
-    lda Zp_Tmp2_byte  ; room pixel X-pos (lo)
-    sub Zp_PpuScrollX_u8
-    sta Zp_Tmp2_byte  ; screen pixel X-pos
-    lda Zp_Tmp3_byte  ; room pixel X-pos (hi)
-    sbc Zp_ScrollXHi_u8
-    bne @notVisible
-    ;; Set object attributes.
-    stx Zp_Tmp3_byte  ; device index
-    ldx Zp_Tmp4_byte  ; animation frame
-    ldy Zp_OamOffset_u8
-    lda Zp_Tmp1_byte  ; screen pixel Y-pos
-    sta Ram_Oam_sObj_arr64 + sObj::YPos_u8, y
-    lda Zp_Tmp2_byte  ; screen pixel X-pos
-    sta Ram_Oam_sObj_arr64 + sObj::XPos_u8, y
+    sta Zp_ShapePosY_i16 + 1
+_AllocateObject:
+    tya
+    pha  ; animation frame
+    jsr FuncA_Objects_Alloc1x1Shape  ; preserves X, returns C and Y
+    pla  ; animation frame
+    bcs @done
+    stx Zp_Tmp1_byte  ; device index
+    tax  ; animation frame
     lda #kLeverHandlePalette
-    cpx #2
+    cpx #kLeverNumAnimFrames / 2
     blt @noFlip
     ora #bObj::FlipH
     @noFlip:
     sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
     lda _LeverTileIds_u8_arr, x
     sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
-    ldx Zp_Tmp3_byte  ; device index
-    ;; Update the OAM offset.
-    .repeat .sizeof(sObj)
-    iny
-    .endrepeat
-    sty Zp_OamOffset_u8
-    @notVisible:
+    ldx Zp_Tmp1_byte  ; device index
+    @done:
     rts
 _LeverTileIds_u8_arr:
     .byte kLeverHandleTileIdDown
@@ -376,73 +329,73 @@ _LeverTileIds_u8_arr:
 ;;; @param X The device index.
 ;;; @preserve X
 .PROC FuncA_Objects_DrawUpgradeDevice
-    ;; Compute the room pixel Y-position of the top of the upgrade device,
-    ;; storing the hi byte in Zp_Tmp1_byte and the lo byte in A.
-    lda #0
-    sta Zp_Tmp1_byte
-    lda Ram_DeviceBlockRow_u8_arr, x
-    .assert kTallRoomHeightBlocks <= $20, error
-    asl a  ; Since kTallRoomHeightBlocks <= $20, the device block row fits in
-    asl a  ; five bits, so the first three ASL's won't set the carry bit, so
-    asl a  ; we only need to ROL Zp_Tmp1_byte after the fourth ASL.
-    asl a
-    rol Zp_Tmp1_byte
-    ;; Compute the room pixel Y-position of the center of the upgrade shape,
-    ;; storing the hi byte in Zp_Tmp1_byte and the lo byte in Zp_Tmp2_byte.
+    jsr FuncA_Objects_SetShapePosToDeviceTopLeft  ; preserves X
+_AdjustPosition:
+    jsr FuncA_Objects_MoveShapeRightOneTile
     ldy Ram_DeviceAnim_u8_arr, x
+    lda Zp_ShapePosY_i16 + 0
     add _YOffsets_u8_arr, y
-    sta Zp_Tmp2_byte  ; room pixel Y-pos (lo)
-    lda Zp_Tmp1_byte
-    adc #0
-    sta Zp_Tmp1_byte  ; room pixel Y-pos (hi)
-    ;; Compute the screen pixel Y-position of the center of the upgrade shape,
-    ;; storing it in Zp_ShapePosY_i16.
-    lda Zp_Tmp2_byte  ; room pixel Y-pos (lo)
-    sub Zp_PpuScrollY_u8
     sta Zp_ShapePosY_i16 + 0
-    lda Zp_Tmp1_byte  ; room pixel Y-pos (hi)
-    sbc #0
-    sta Zp_ShapePosY_i16 + 1
-    ;; Compute the room pixel X-position of the left side of the upgrade,
-    ;; storing the hi byte in Zp_Tmp1_byte and the lo byte in A.
-    lda #0
-    sta Zp_Tmp1_byte  ; room pixel X-pos (hi)
-    lda Ram_DeviceBlockCol_u8_arr, x
-    .assert kMaxRoomWidthBlocks <= $80, error
-    asl a      ; Since kMaxRoomWidthBlocks <= $80, the device block col fits in
-    .repeat 3  ; seven bits, so the first ASL won't set the carry bit, so we
-    asl a      ; only need to ROL Zp_Tmp1_byte starting after the second ASL.
-    rol Zp_Tmp1_byte
-    .endrepeat
-    ;; Compute the room pixel X-position of the center of the upgrade, storing
-    ;; the hi byte in Zp_Tmp1_byte and the lo byte in Zp_Tmp2_byte.
-    add #kTileWidthPx
-    sta Zp_Tmp2_byte  ; room pixel X-pos (lo)
-    lda Zp_Tmp1_byte
+    lda Zp_ShapePosY_i16 + 1
     adc #0
-    sta Zp_Tmp1_byte  ; room pixel X-pos (hi)
-    ;; Compute the screen pixel X-position of the center of the upgrade,
-    ;; storing it in Zp_ShapePosX_i16.
-    lda Zp_Tmp2_byte  ; room pixel X-pos (lo)
-    sub Zp_PpuScrollX_u8
-    sta Zp_ShapePosX_i16 + 0
-    lda Zp_Tmp1_byte  ; room pixel X-pos (hi)
-    sbc Zp_ScrollXHi_u8
-    sta Zp_ShapePosX_i16 + 1
-    ;; Allocate objects.
+    sta Zp_ShapePosY_i16 + 1
+_AllocateObjects:
     lda #kUpgradePalette  ; param: object flags
     jsr FuncA_Objects_Alloc2x2Shape  ; preserves X, returns C and Y
-    bcc @onscreen
-    rts
-    @onscreen:
-    ;; Set flags and tile IDs.
+    bcs @done
     lda Ram_DeviceTarget_u8_arr, x  ; param: eFlag value
     jmp FuncA_Objects_SetUpgradeTileIds  ; preserves X
+    @done:
+    rts
 _YOffsets_u8_arr:
     ;; [12 - int(round(40 * x * (1-x))) for x in (y/24. for y in range(24))]
     .byte 12, 10, 9, 8, 6, 5, 4, 4, 3, 3, 2, 2
     .byte 2, 2, 2, 3, 3, 4, 4, 5, 6, 8, 9, 10
     .assert * - _YOffsets_u8_arr = kUpgradeDeviceAnimStart + 1, error
+.ENDPROC
+
+;;; Populates Zp_ShapePosX_i16 and Zp_ShapePosY_i16 with the screen position of
+;;; the top-left corner of the specified device.
+;;; @param X The device index.
+;;; @preserve X, Y
+.PROC FuncA_Objects_SetShapePosToDeviceTopLeft
+    ;; Compute the room pixel Y-position of the top of the device, storing the
+    ;; hi byte in Zp_ShapePosY_i16 + 1 and the lo byte in A.
+    lda #0
+    sta Zp_ShapePosY_i16 + 1
+    lda Ram_DeviceBlockRow_u8_arr, x
+    .assert kTallRoomHeightBlocks <= $20, error
+    asl a  ; Since kTallRoomHeightBlocks <= $20, the device block row fits in
+    asl a  ; five bits, so the first three ASL's won't set the carry bit, so
+    asl a  ; we only need to ROL Zp_ShapePosY_i16 + 1 after the fourth ASL.
+    asl a
+    rol Zp_ShapePosY_i16 + 1
+    ;; Compute the screen pixel Y-position of the top of the device, storing
+    ;; it in Zp_ShapePosY_i16.
+    sub Zp_PpuScrollY_u8
+    sta Zp_ShapePosY_i16 + 0
+    lda Zp_ShapePosY_i16 + 1
+    sbc #0
+    sta Zp_ShapePosY_i16 + 1
+    ;; Compute the room pixel X-position of the left side of the device,
+    ;; storing the hi byte in Zp_ShapePosX_i16 + 1 and the lo byte in A.
+    lda #0
+    sta Zp_ShapePosX_i16 + 1
+    lda Ram_DeviceBlockCol_u8_arr, x
+    .assert kMaxRoomWidthBlocks <= $80, error
+    asl a      ; Since kMaxRoomWidthBlocks <= $80, the device block col fits in
+    .repeat 3  ; seven bits, so the first ASL won't set the carry bit, so we
+    asl a      ; only need to ROL Zp_ShapePosX_i16 + 1 after the second ASL.
+    rol Zp_ShapePosX_i16 + 1
+    .endrepeat
+    ;; Compute the screen pixel X-position of the left side of the device,
+    ;; storing it in Zp_ShapePosX_i16.
+    sub Zp_PpuScrollX_u8
+    sta Zp_ShapePosX_i16 + 0
+    lda Zp_ShapePosX_i16 + 1
+    sbc Zp_ScrollXHi_u8
+    sta Zp_ShapePosX_i16 + 1
+    rts
 .ENDPROC
 
 ;;;=========================================================================;;;

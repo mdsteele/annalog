@@ -46,6 +46,7 @@
 .IMPORT Func_Avatar_PositionAtNearbyDevice
 .IMPORT Func_ClearRestOfOam
 .IMPORT Func_ExecuteAllMachines
+.IMPORT Func_PickUpFlowerDevice
 .IMPORT Func_ProcessFrame
 .IMPORT Func_TickAllDevices
 .IMPORT Func_ToggleLeverDevice
@@ -238,6 +239,8 @@ _CheckForActivateDevice:
     beq @console
     cmp #eDevice::Door
     beq @door
+    cmp #eDevice::Flower
+    beq @flower
     cmp #eDevice::Lever
     beq @lever
     cmp #eDevice::Sign
@@ -258,6 +261,11 @@ _CheckForActivateDevice:
     jmp Main_Console_OpenWindow
     @door:
     jmp Main_Explore_GoThroughDoor
+    @flower:
+    lda #$ff
+    sta Zp_NearbyDevice_u8
+    jsr Func_PickUpFlowerDevice
+    jmp @done
     @sign:
     lda #eAvatar::Reading
     sta Zp_AvatarMode_eAvatar

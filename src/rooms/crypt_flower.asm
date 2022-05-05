@@ -21,6 +21,7 @@
 .INCLUDE "../charmap.inc"
 .INCLUDE "../device.inc"
 .INCLUDE "../dialog.inc"
+.INCLUDE "../flag.inc"
 .INCLUDE "../machine.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
@@ -181,7 +182,12 @@ _Devices_sDevice_arr:
     d_byte BlockCol_u8, 4
     d_byte Target_u8, kHoistMachineIndex
     D_END
-    ;; TODO: Flower device at row 10, col 4
+    D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::Flower
+    d_byte BlockRow_u8, 10
+    d_byte BlockCol_u8, 4
+    d_byte Target_u8, eFlag::FlowerCrypt
+    D_END
     .byte eDevice::None
 _Passages_sPassage_arr:
     D_STRUCT sPassage
