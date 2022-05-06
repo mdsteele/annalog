@@ -33,14 +33,25 @@
 .IMPORT DataA_Room_Crypt_sTileset
 .IMPORT DataC_Crypt_AreaCells_u8_arr2_arr
 .IMPORT DataC_Crypt_AreaName_u8_arr
+.IMPORT FuncA_Objects_Alloc1x1Shape
+.IMPORT FuncA_Objects_Alloc2x2Shape
 .IMPORT FuncA_Objects_DrawGirderPlatform
+.IMPORT FuncA_Objects_MoveShapeDownOneTile
+.IMPORT FuncA_Objects_MoveShapeLeftOneTile
+.IMPORT FuncA_Objects_MoveShapeRightOneTile
+.IMPORT FuncA_Objects_MoveShapeUpOneTile
+.IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
 .IMPORT Func_MachineError
 .IMPORT Func_MachineFinishResetting
 .IMPORT Func_MovePlatformVert
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrUpgrade
+.IMPORT Ram_MachineStatus_eMachine_arr
+.IMPORT Ram_Oam_sObj_arr64
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORT Ram_RoomState
+.IMPORTZP Zp_FrameCounter_u8
+.IMPORTZP Zp_ShapePosY_i16
 .IMPORTZP Zp_Tmp1_byte
 
 ;;;=========================================================================;;;
@@ -48,9 +59,10 @@
 ;;; The machine index for the CryptFlowerHoist machine in this room.
 kHoistMachineIndex = 0
 
-;;; The platform indices for the CryptFlowerHoist machine's girders.
-kUpperGirderPlatformIndex = 0
-kLowerGirderPlatformIndex = 1
+;;; The platform indices for the CryptFlowerHoist machine and its girders.
+kHoistPlatformIndex       = 0
+kUpperGirderPlatformIndex = 1
+kLowerGirderPlatformIndex = 2
 
 ;;; The maximum permitted room pixel Y-position for the top of the lower girder
 ;;; platform (i.e. when the platform is at its lowest point).
@@ -64,12 +76,16 @@ kHoistMaxRegY  = 9
 kHoistCountdown = 16
 
 ;;; Various OBJ tile IDs used for drawing the CryptFlowerHoist machine.
-kHoistTileIdGirder = $79
+kHoistChainTileId    = $7f
+kHoistTileIdLightOff = $70
+kHoistTileIdLightOn  = $71
+kHoistTileIdCorner   = $73
+kHoistTileIdWheel    = $75
 
 ;;; The OBJ palette number used for various parts of the CryptFlowerHoist
 ;;; machine.
 kHoistGirderPalette = 0
-kHoistRopePalette   = 0
+kHoistChainPalette  = 0
 
 ;;; Defines room-specific state data for this particular room.
 .STRUCT sState
@@ -135,7 +151,15 @@ _Machines_sMachine_arr:
     .res kMachinePadding
     D_END
 _Platforms_sPlatform_arr:
-    .assert kUpperGirderPlatformIndex = 0, error
+    .assert kHoistPlatformIndex = 0, error
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Solid
+    d_byte WidthPx_u8,  $10
+    d_byte HeightPx_u8, $0e
+    d_word Left_i16,  $0088
+    d_word Top_i16,   $0010
+    D_END
+    .assert kUpperGirderPlatformIndex = 1, error
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Solid
     d_byte WidthPx_u8,  $18
@@ -143,7 +167,7 @@ _Platforms_sPlatform_arr:
     d_word Left_i16,  $0084
     d_word Top_i16,   $0078
     D_END
-    .assert kLowerGirderPlatformIndex = 1, error
+    .assert kLowerGirderPlatformIndex = 2, error
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Solid
     d_byte WidthPx_u8,  $18
@@ -262,12 +286,62 @@ _Hoist_Tick:
 
 ;;; Allocates and populates OAM slots for the CryptFlowerHoist machine.
 .PROC FuncA_Objects_CryptFlowerHoist_Draw
+    ldx #kHoistPlatformIndex  ; param: platform index
+    jsr FuncA_Objects_SetShapePosToPlatformTopLeft
+    jsr FuncA_Objects_MoveShapeDownOneTile
+    jsr FuncA_Objects_MoveShapeRightOneTile
+    ;; Allocate objects.
+    lda #kHoistChainPalette  ; param: object flags
+    jsr FuncA_Objects_Alloc2x2Shape  ; sets C if offscreen; returns Y
+    bcs @done
+    ;; Set flags and tile IDs.
+    lda #kMachineLightPalette
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Flags_bObj, y
+    lda #kHoistChainPalette | bObj::FlipV
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Flags_bObj, y
+    lda #kHoistChainPalette | bObj::FlipH
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Flags_bObj, y
+    lda #kHoistTileIdCorner
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Tile_u8, y
+    lda #kHoistTileIdWheel
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Tile_u8, y
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Tile_u8, y
+    lda Ram_MachineStatus_eMachine_arr + kHoistMachineIndex
+    cmp #eMachine::Error
+    bne @lightOff
+    lda Zp_FrameCounter_u8
+    and #$08
+    beq @lightOff
+    lda #kHoistTileIdLightOn
+    bne @setLight  ; unconditional
+    @lightOff:
+    lda #kHoistTileIdLightOff
+    @setLight:
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Tile_u8, y
+    @done:
+_Girders:
     ldx #kUpperGirderPlatformIndex  ; param: platform index
     jsr FuncA_Objects_DrawGirderPlatform
     ldx #kLowerGirderPlatformIndex  ; param: platform index
     jsr FuncA_Objects_DrawGirderPlatform
-    ;; TODO: draw ropes
-    ;; TODO: draw hoist
+_Chain:
+    jsr FuncA_Objects_MoveShapeLeftOneTile
+    ldx #0
+    @loop:
+    jsr FuncA_Objects_MoveShapeUpOneTile  ; preserves X
+    cpx #4
+    beq @continue
+    jsr FuncA_Objects_Alloc1x1Shape  ; preserves X, returns C and Y
+    bcs @continue
+    lda #kHoistChainTileId
+    sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
+    lda #kHoistChainPalette
+    sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
+    @continue:
+    inx
+    lda #$20
+    cmp Zp_ShapePosY_i16 + 0
+    blt @loop
     rts
 .ENDPROC
 

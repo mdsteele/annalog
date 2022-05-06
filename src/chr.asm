@@ -18,7 +18,6 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "avatar.inc"
-.INCLUDE "device.inc"
 
 ;;;=========================================================================;;;
 
@@ -192,7 +191,6 @@
     .incbin "out/data/tiles/player_flower.chr"
     .res $08 * kSizeofChr
     .incbin "out/data/tiles/machine.chr"
-    .res $01 * kSizeofChr
     .assert * - :- = kSizeofChr * $80, error
 .ENDPROC
 
@@ -207,7 +205,6 @@
     .incbin "out/data/tiles/player_normal.chr"
     .res $08 * kSizeofChr
     .incbin "out/data/tiles/machine.chr"
-    .res $01 * kSizeofChr
     .assert * - :- = kSizeofChr * $80, error
 .ENDPROC
 
