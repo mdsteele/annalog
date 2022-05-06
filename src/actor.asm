@@ -24,12 +24,31 @@
 .INCLUDE "ppu.inc"
 .INCLUDE "terrain.inc"
 
+.IMPORT FuncA_Actor_TickAdult
+.IMPORT FuncA_Actor_TickChild
+.IMPORT FuncA_Actor_TickCrawler
+.IMPORT FuncA_Actor_TickFireball
+.IMPORT FuncA_Actor_TickGrenade
+.IMPORT FuncA_Actor_TickSmoke
+.IMPORT FuncA_Actor_TickSpike
+.IMPORT FuncA_Actor_TickToddler
 .IMPORT FuncA_Objects_Alloc1x1Shape
 .IMPORT FuncA_Objects_Alloc2x1Shape
 .IMPORT FuncA_Objects_Alloc2x2Shape
-.IMPORT FuncA_Objects_MoveShapeLeftOneTile
+.IMPORT FuncA_Objects_DrawAdultActor
+.IMPORT FuncA_Objects_DrawChildActor
+.IMPORT FuncA_Objects_DrawCrawlerActor
+.IMPORT FuncA_Objects_DrawFireballActor
+.IMPORT FuncA_Objects_DrawGrenadeActor
+.IMPORT FuncA_Objects_DrawSmokeActor
+.IMPORT FuncA_Objects_DrawSpikeActor
+.IMPORT FuncA_Objects_DrawToddlerActor
 .IMPORT FuncA_Objects_MoveShapeUpOneTile
 .IMPORT Func_HarmAvatar
+.IMPORT Func_InitFireballActor
+.IMPORT Func_InitGrenadeActor
+.IMPORT Func_InitSmokeActor
+.IMPORT Func_InitSpikeActor
 .IMPORT Func_Noop
 .IMPORT Func_Terrain_GetColumnPtrForTileIndex
 .IMPORT Ram_Oam_sObj_arr64
@@ -46,40 +65,14 @@
 
 ;;;=========================================================================;;;
 
-;;; First-tile-ID values that can be passed to FuncA_Objects_Draw2x2Actor for
-;;; various actor animation frames.
-kCrawlerFirstTileId1 = $9c
-kCrawlerFirstTileId2 = $a0
-kCrawlerFirstTileId3 = $a4
-
-;;; The first tile ID for the fireball actor animation.
-kFireballFirstTileId = $96
-;;; The OBJ palette number used for fireball actors.
-kFireballPalette = 1
 ;;; The hit radius of a fireball, in pixels.
 kFireballRadius = 3
-
-;;; The first tile ID for the grenade actor animation.
-kGrenadeFirstTileId = $98
 ;;; The radius of a grenade, in pixels.
 kGrenadeRadius = 2
-
-;;; The first tile ID for the smoke particle animation.
-kSmokeFirstTileId = $1a
-;;; How long a smoke actor animates before disappearing, in frames.
-kSmokeNumFrames = 12
 ;;; The radius of a smoke cloud, in pixels.
 kSmokeRadius = 6
-
-;;; The tile ID for spike projectile actors.
-kSpikeTileId = $a8
 ;;; The hit radius of a spike, in pixels.
 kSpikeRadius = 3
-
-;;; How fast a toddler walks, in pixels per frame.
-kToddlerSpeed = 1
-;;; How long a toddler walks before turning around, in frames.
-kToddlerTime = 100
 
 ;;;=========================================================================;;;
 
@@ -148,6 +141,7 @@ Ram_ActorPosY_i16_0_arr: .res kMaxActors
 Ram_ActorPosY_i16_1_arr: .res kMaxActors
 
 ;;; The current X/Y subpixel positions of each actor in the room.
+.EXPORT Ram_ActorSubX_u8_arr, Ram_ActorSubY_u8_arr
 Ram_ActorSubX_u8_arr: .res kMaxActors
 Ram_ActorSubY_u8_arr: .res kMaxActors
 
@@ -213,16 +207,6 @@ _JumpTable_ptr_0_arr: .lobytes ActorInitFuncs
 _JumpTable_ptr_1_arr: .hibytes ActorInitFuncs
 .ENDPROC
 
-;;; Initializes the specified actor as a grenade.
-;;; @prereq The actor's pixel position has already been initialized.
-;;; @param X The actor index.
-;;; @preserve X
-.EXPORT Func_InitSmokeActor
-.PROC Func_InitSmokeActor
-    ldy #eActor::Smoke  ; param: actor type
-    .assert * = Func_InitActorDefault, error, "fallthrough"
-.ENDPROC
-
 ;;; The default actor init function that works for most actor types.  Zeroes
 ;;; the velocity, flags, and state byte for the specified actor, and sets the
 ;;; actors type as specified.
@@ -230,6 +214,7 @@ _JumpTable_ptr_1_arr: .hibytes ActorInitFuncs
 ;;; @param X The actor index.
 ;;; @param Y The actor type to set.
 ;;; @preserve X
+.EXPORT Func_InitActorDefault
 .PROC Func_InitActorDefault
     lda #0  ; param: state byte
     .assert * = Func_InitActorWithState, error, "fallthrough"
@@ -255,126 +240,6 @@ _JumpTable_ptr_1_arr: .hibytes ActorInitFuncs
     sta Ram_ActorVelY_i16_1_arr, x
     sta Ram_ActorFlags_bObj_arr, x
     rts
-.ENDPROC
-
-;;; Initializes the specified actor as a fireball.
-;;; @prereq The actor's pixel position has already been initialized.
-;;; @param A The angle to fire at, measured in increments of tau/64.
-;;; @param X The actor index.
-;;; @preserve X
-.EXPORT Func_InitFireballActor
-.PROC Func_InitFireballActor
-    and #$3f
-    tay
-    lda #0
-    sta Ram_ActorVelX_i16_1_arr, x
-    sta Ram_ActorVelY_i16_1_arr, x
-_InitVelX:
-    lda _VelX_u8_arr64, y
-    bpl @nonneg
-    dec Ram_ActorVelX_i16_1_arr, x  ; now $ff
-    @nonneg:
-    .repeat 3
-    asl a
-    rol Ram_ActorVelX_i16_1_arr, x
-    .endrepeat
-    sta Ram_ActorVelX_i16_0_arr, x
-_InitVelY:
-    lda _VelY_u8_arr64, y
-    bpl @nonneg
-    dec Ram_ActorVelY_i16_1_arr, x  ; now $ff
-    @nonneg:
-    .repeat 3
-    asl a
-    rol Ram_ActorVelY_i16_1_arr, x
-    .endrepeat
-    sta Ram_ActorVelY_i16_0_arr, x
-_InitOtherVariables:
-    lda #eActor::Fireball
-    sta Ram_ActorType_eActor_arr, x
-    lda #0
-    sta Ram_ActorSubX_u8_arr, x
-    sta Ram_ActorSubY_u8_arr, x
-    sta Ram_ActorState_byte_arr, x
-    .assert kFireballPalette <> 0, error
-    lda #kFireballPalette
-    sta Ram_ActorFlags_bObj_arr, x
-    rts
-_VelX_u8_arr64:
-    ;; [0xff & int(round(96 * cos(x * pi / 32))) for x in range(64)]
-    .byte $60, $60, $5e, $5c, $59, $55, $50, $4a
-    .byte $44, $3d, $35, $2d, $25, $1c, $13, $09
-    .byte $00, $f7, $ed, $e4, $db, $d3, $cb, $c3
-    .byte $bc, $b6, $b0, $ab, $a7, $a4, $a2, $a0
-    .byte $a0, $a0, $a2, $a4, $a7, $ab, $b0, $b6
-    .byte $bc, $c3, $cb, $d3, $db, $e4, $ed, $f7
-    .byte $00, $09, $13, $1c, $25, $2d, $35, $3d
-    .byte $44, $4a, $50, $55, $59, $5c, $5e, $60
-_VelY_u8_arr64:
-    ;; [0xff & int(round(96 * sin(x * pi / 32))) for x in range(64)]
-    .byte $00, $09, $13, $1c, $25, $2d, $35, $3d
-    .byte $44, $4a, $50, $55, $59, $5c, $5e, $60
-    .byte $60, $60, $5e, $5c, $59, $55, $50, $4a
-    .byte $44, $3d, $35, $2d, $25, $1c, $13, $09
-    .byte $00, $f7, $ed, $e4, $db, $d3, $cb, $c3
-    .byte $bc, $b6, $b0, $ab, $a7, $a4, $a2, $a0
-    .byte $a0, $a0, $a2, $a4, $a7, $ab, $b0, $b6
-    .byte $bc, $c3, $cb, $d3, $db, $e4, $ed, $f7
-.ENDPROC
-
-;;; Initializes the specified actor as a grenade.
-;;; @prereq The actor's type and pixel position have already been initialized.
-;;; @param A The aim angle (0-1).
-;;; @param X The actor index.
-;;; @preserve X
-.EXPORT Func_InitGrenadeActor
-.PROC Func_InitGrenadeActor
-    tay  ; aim angle index
-    ;; Initialize state:
-    lda #eActor::Grenade
-    sta Ram_ActorType_eActor_arr, x
-    lda #0
-    sta Ram_ActorSubX_u8_arr, x
-    sta Ram_ActorSubY_u8_arr, x
-    sta Ram_ActorState_byte_arr, x
-    sta Ram_ActorFlags_bObj_arr, x
-    ;; Initialize X-velocity:
-    sta Ram_ActorVelX_i16_0_arr, x
-    lda _InitVelX_i16_1_arr, y
-    sta Ram_ActorVelX_i16_1_arr, x
-    ;; Adjust X-position:
-    mul #2
-    add Ram_ActorPosX_i16_0_arr, x
-    sta Ram_ActorPosX_i16_0_arr, x
-    lda #0  ; initial X-velocity is always positive
-    adc Ram_ActorPosX_i16_1_arr, x
-    sta Ram_ActorPosX_i16_1_arr, x
-    ;; Initialize Y-velocity:
-    lda _InitVelY_i16_0_arr, y
-    sta Ram_ActorVelY_i16_0_arr, x
-    lda _InitVelY_i16_1_arr, y
-    sta Ram_ActorVelY_i16_1_arr, x
-    ;; Adjust initial Y-position:
-    mul #2
-    add Ram_ActorPosY_i16_0_arr, x
-    sta Ram_ActorPosY_i16_0_arr, x
-    lda #$ff  ; initial Y-velocity is always negative
-    adc Ram_ActorPosY_i16_1_arr, x
-    sta Ram_ActorPosY_i16_1_arr, x
-    rts
-_InitVelX_i16_1_arr: .byte 4, 3
-_InitVelY_i16_0_arr: .byte <($ffff & -520), <($ffff & -760)
-_InitVelY_i16_1_arr: .byte >($ffff & -520), >($ffff & -760)
-.ENDPROC
-
-;;; Initializes the specified actor as a spike.
-;;; @prereq The actor's pixel position has already been initialized.
-;;; @param X The actor index.
-;;; @preserve X
-.EXPORT Func_InitSpikeActor
-.PROC Func_InitSpikeActor
-    ldy #eActor::Spike  ; param: actor type
-    jmp Func_InitActorDefault
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -491,241 +356,12 @@ _JumpTable_ptr_0_arr: .lobytes ActorTickFuncs
 _JumpTable_ptr_1_arr: .hibytes ActorTickFuncs
 .ENDPROC
 
-;;; Performs per-frame updates for an adult townsfolk actor.
-;;; @param X The actor index.
-;;; @preserve X
-.PROC FuncA_Actor_TickAdult
-    .assert * = FuncA_Actor_TickChild, error, "fallthrough"
-.ENDPROC
-
-;;; Performs per-frame updates for a child townsfolk actor.
-;;; @param X The actor index.
-;;; @preserve X
-.PROC FuncA_Actor_TickChild
-    lda Ram_ActorPosX_i16_1_arr, x
-    cmp Zp_AvatarPosX_i16 + 1
-    blt @faceRight
-    bne @faceLeft
-    lda Ram_ActorPosX_i16_0_arr, x
-    cmp Zp_AvatarPosX_i16 + 0
-    blt @faceRight
-    @faceLeft:
-    lda #bObj::FlipH
-    bne @setFlags  ; unconditional
-    @faceRight:
-    lda #0
-    @setFlags:
-    sta Ram_ActorFlags_bObj_arr, x
-    rts
-.ENDPROC
-
-;;; Performs per-frame updates for a crawler enemy actor.
-;;; @param X The actor index.
-;;; @preserve X
-.PROC FuncA_Actor_TickCrawler
-    lda Ram_ActorState_byte_arr, x
-    beq _StartMove
-    dec Ram_ActorState_byte_arr, x
-    cmp #$18
-    blt _DetectCollision
-    lda Ram_ActorFlags_bObj_arr, x
-    and #bObj::FlipH
-    bne _MoveLeft
-_MoveRight:
-    lda Ram_ActorPosX_i16_0_arr, x
-    add #1
-    sta Ram_ActorPosX_i16_0_arr, x
-    lda Ram_ActorPosX_i16_1_arr, x
-    adc #0
-    sta Ram_ActorPosX_i16_1_arr, x
-    jmp FuncA_Actor_HarmAvatarIfCollision  ; preserves X
-_MoveLeft:
-    lda Ram_ActorPosX_i16_0_arr, x
-    sub #1
-    sta Ram_ActorPosX_i16_0_arr, x
-    lda Ram_ActorPosX_i16_1_arr, x
-    sbc #0
-    sta Ram_ActorPosX_i16_1_arr, x
-_DetectCollision:
-    jmp FuncA_Actor_HarmAvatarIfCollision  ; preserves X
-_StartMove:
-    ;; Compute the room tile column index for the center of the crawler,
-    ;; storing it in Y.
-    lda Ram_ActorPosX_i16_1_arr, x
-    sta Zp_Tmp1_byte
-    lda Ram_ActorPosX_i16_0_arr, x
-    .repeat 3
-    lsr Zp_Tmp1_byte
-    ror a
-    .endrepeat
-    tay
-    ;; If the crawler is facing right, increment Y (so as to check the tile
-    ;; column to the right of the crawler); if the crawler is facing left,
-    ;; decrement Y (so as to check the tile column to the left of the crawler).
-    lda Ram_ActorFlags_bObj_arr, x
-    and #bObj::FlipH
-    bne @facingLeft
-    @facingRight:
-    iny
-    bne @doneFacing  ; unconditional
-    @facingLeft:
-    dey
-    dey
-    @doneFacing:
-    ;; Get the terrain for the tile column we're checking.
-    stx Zp_Tmp1_byte
-    tya  ; param: room tile column index
-    jsr Func_Terrain_GetColumnPtrForTileIndex  ; preserves Zp_Tmp*
-    ldx Zp_Tmp1_byte
-    ;; Compute the room block row index for the center of the crawler, storing
-    ;; it in Y.
-    lda Ram_ActorPosY_i16_1_arr, x
-    sta Zp_Tmp1_byte
-    lda Ram_ActorPosY_i16_0_arr, x
-    .repeat 4
-    lsr Zp_Tmp1_byte
-    ror a
-    .endrepeat
-    tay
-    ;; Check the terrain block just in front of the crawler.  If it's solid,
-    ;; the crawler has to turn around.
-    lda (Zp_TerrainColumn_u8_arr_ptr), y
-    cmp #kFirstSolidTerrainType
-    bge @turnAround
-    ;; Check the floor just in front of the crawler.  If it's not solid, the
-    ;; crawler has to turn around.
-    iny
-    lda (Zp_TerrainColumn_u8_arr_ptr), y
-    cmp #kFirstSolidTerrainType
-    bge @continueForward
-    ;; Make the crawler face the opposite direction.
-    @turnAround:
-    lda Ram_ActorFlags_bObj_arr, x
-    eor #bObj::FlipH
-    sta Ram_ActorFlags_bObj_arr, x
-    ;; Start a new movement cycle for the crawler.
-    @continueForward:
-    lda #$1f
-    sta Ram_ActorState_byte_arr, x
-    rts
-.ENDPROC
-
-;;; Performs per-frame updates for a fireball actor.
-;;; @param X The actor index.
-;;; @preserve X
-.PROC FuncA_Actor_TickFireball
-    inc Ram_ActorState_byte_arr, x
-    beq @expire
-    jsr FuncA_Actor_HarmAvatarIfCollision  ; preserves X
-    jsr FuncA_Actor_CenterHitsTerrain  ; preserves X, returns C
-    bcc @done
-    @expire:
-    lda #eActor::None
-    sta Ram_ActorType_eActor_arr, x
-    @done:
-    rts
-.ENDPROC
-
-;;; Performs per-frame updates for a grenade actor.
-;;; @param X The actor index.
-;;; @preserve X
-.PROC FuncA_Actor_TickGrenade
-    inc Ram_ActorState_byte_arr, x
-    beq _Explode
-    jsr FuncA_Actor_HarmAvatarIfCollision  ; preserves X, returns C
-    bcs _Explode
-    jsr FuncA_Actor_CenterHitsTerrain  ; preserves X, returns C
-    bcs _Explode
-_ApplyGravity:
-    lda #kAvatarGravity
-    add Ram_ActorVelY_i16_0_arr, x
-    sta Ram_ActorVelY_i16_0_arr, x
-    lda #0
-    adc Ram_ActorVelY_i16_1_arr, x
-    sta Ram_ActorVelY_i16_1_arr, x
-    rts
-_Explode:
-    ;; TODO: play a sound
-    jmp Func_InitSmokeActor  ; preserves X
-.ENDPROC
-
-;;; Performs per-frame updates for a smoke cloud actor.
-;;; @param X The actor index.
-;;; @preserve X
-.PROC FuncA_Actor_TickSmoke
-    inc Ram_ActorState_byte_arr, x
-    lda Ram_ActorState_byte_arr, x
-    cmp #kSmokeNumFrames
-    blt @done
-    lda #eActor::None
-    sta Ram_ActorType_eActor_arr, x
-    @done:
-    rts
-.ENDPROC
-
-;;; Performs per-frame updates for a spike actor.
-;;; @param X The actor index.
-;;; @preserve X
-.PROC FuncA_Actor_TickSpike
-    inc Ram_ActorState_byte_arr, x
-    beq _Expire
-    jsr FuncA_Actor_HarmAvatarIfCollision  ; preserves X, returns C
-    bcs _Expire
-    jsr FuncA_Actor_CenterHitsTerrain  ; preserves X, returns C
-    bcs _Expire
-_ApplyGravity:
-    lda #kAvatarGravity
-    add Ram_ActorVelY_i16_0_arr, x
-    sta Ram_ActorVelY_i16_0_arr, x
-    lda #0
-    adc Ram_ActorVelY_i16_1_arr, x
-    sta Ram_ActorVelY_i16_1_arr, x
-    rts
-_Expire:
-    lda #eActor::None
-    sta Ram_ActorType_eActor_arr, x
-    rts
-.ENDPROC
-
-;;; Performs per-frame updates for a toddler townsfolk actor.
-;;; @param X The actor index.
-;;; @preserve X
-.PROC FuncA_Actor_TickToddler
-    dec Ram_ActorState_byte_arr, x
-    bne @move
-    @turnAround:
-    lda Ram_ActorFlags_bObj_arr, x
-    eor #bObj::FlipH
-    sta Ram_ActorFlags_bObj_arr, x
-    lda #kToddlerTime
-    sta Ram_ActorState_byte_arr, x
-    @move:
-    lda Ram_ActorFlags_bObj_arr, x
-    and #bObj::FlipH
-    bne @moveLeft
-    @moveRight:
-    lda Ram_ActorPosX_i16_0_arr, x
-    add #kToddlerSpeed
-    sta Ram_ActorPosX_i16_0_arr, x
-    lda Ram_ActorPosX_i16_1_arr, x
-    adc #0
-    sta Ram_ActorPosX_i16_1_arr, x
-    rts
-    @moveLeft:
-    lda Ram_ActorPosX_i16_0_arr, x
-    sub #kToddlerSpeed
-    sta Ram_ActorPosX_i16_0_arr, x
-    lda Ram_ActorPosX_i16_1_arr, x
-    sbc #0
-    sta Ram_ActorPosX_i16_1_arr, x
-    rts
-.ENDPROC
-
 ;;; Checks if the actor is colliding with the player avatar; if so, harms the
 ;;; avatar.
 ;;; @param X The actor index.
 ;;; @return C Set if a collision occurred, cleared otherwise.
 ;;; @preserve X
+.EXPORT FuncA_Actor_HarmAvatarIfCollision
 .PROC FuncA_Actor_HarmAvatarIfCollision
     ldy Ram_ActorType_eActor_arr, x
     ;; Check right side.
@@ -801,6 +437,7 @@ _NoHit:
 ;;; @param X The actor index.
 ;;; @return C Set if a collision occurred, cleared otherwise.
 ;;; @preserve X
+.EXPORT FuncA_Actor_CenterHitsTerrain
 .PROC FuncA_Actor_CenterHitsTerrain
     ;; Compute the room tile column index for the actor position, storing it in
     ;; A.
@@ -862,147 +499,11 @@ _JumpTable_ptr_0_arr: .lobytes ActorDrawFuncs
 _JumpTable_ptr_1_arr: .hibytes ActorDrawFuncs
 .ENDPROC
 
-;;; Allocates and populates OAM slots for an adult townsfolk actor.
-;;; @param X The actor index.
-;;; @preserve X
-.PROC FuncA_Objects_DrawAdultActor
-    lda Ram_ActorState_byte_arr, x  ; param: first tile ID
-    jmp FuncA_Objects_Draw2x3Actor  ; preserves X
-.ENDPROC
-
-;;; Allocates and populates OAM slots for a child townsfolk actor.
-;;; @param X The actor index.
-;;; @preserve X
-.PROC FuncA_Objects_DrawChildActor
-    lda Ram_ActorState_byte_arr, x  ; param: first tile ID
-    jmp FuncA_Objects_Draw2x2Actor  ; preserves X
-.ENDPROC
-
-;;; Allocates and populates OAM slots for a crawler enemy actor.
-;;; @param X The actor index.
-;;; @preserve X
-.PROC FuncA_Objects_DrawCrawlerActor
-    lda Ram_ActorState_byte_arr, x
-    and #$08
-    bne @frame2
-    lda Ram_ActorState_byte_arr, x
-    and #$10
-    bne @frame3
-    @frame1:
-    lda #kCrawlerFirstTileId1
-    bne @draw  ; unconditional
-    @frame2:
-    lda #kCrawlerFirstTileId2
-    bne @draw  ; unconditional
-    @frame3:
-    lda #kCrawlerFirstTileId3
-    @draw:
-    jmp FuncA_Objects_Draw2x2Actor  ; preserves X
-.ENDPROC
-
-;;; Allocates and populates OAM slots for a fireball actor.
-;;; @param X The actor index.
-;;; @preserve X
-.PROC FuncA_Objects_DrawFireballActor
-    lda Ram_ActorState_byte_arr, x
-    div #2
-    and #$01
-    add #kFireballFirstTileId
-    jmp FuncA_Objects_Draw1x1Actor  ; preserves X
-.ENDPROC
-
-;;; Allocates and populates OAM slots for a grenade actor.
-;;; @param X The actor index.
-;;; @preserve X
-.PROC FuncA_Objects_DrawGrenadeActor
-    lda Ram_ActorState_byte_arr, x
-    div #4
-    and #$03
-    add #kGrenadeFirstTileId
-    jmp FuncA_Objects_Draw1x1Actor  ; preserves X
-.ENDPROC
-
-;;; Allocates and populates OAM slots for a smoke cloud actor.
-;;; @param X The actor index.
-;;; @preserve X
-.PROC FuncA_Objects_DrawSmokeActor
-_BottomRight:
-    jsr FuncA_Objects_PositionActorShape  ; preserves X
-    lda Zp_ShapePosX_i16 + 0
-    add Ram_ActorState_byte_arr, x
-    sta Zp_ShapePosX_i16 + 0
-    lda Zp_ShapePosX_i16 + 1
-    adc #0
-    sta Zp_ShapePosX_i16 + 1
-    jsr _DrawSmokeParticle  ; preserves X
-_BottomLeft:
-    jsr FuncA_Objects_PositionActorShape  ; preserves X
-    jsr FuncA_Objects_MoveShapeLeftOneTile
-    lda Zp_ShapePosY_i16 + 0
-    add Ram_ActorState_byte_arr, x
-    sta Zp_ShapePosY_i16 + 0
-    lda Zp_ShapePosY_i16 + 1
-    adc #0
-    sta Zp_ShapePosY_i16 + 1
-    jsr _DrawSmokeParticle  ; preserves X
-_TopLeft:
-    jsr FuncA_Objects_PositionActorShape  ; preserves X
-    jsr FuncA_Objects_MoveShapeUpOneTile
-    jsr FuncA_Objects_MoveShapeLeftOneTile
-    lda Zp_ShapePosX_i16 + 0
-    sub Ram_ActorState_byte_arr, x
-    sta Zp_ShapePosX_i16 + 0
-    lda Zp_ShapePosX_i16 + 1
-    sbc #0
-    sta Zp_ShapePosX_i16 + 1
-    jsr _DrawSmokeParticle  ; preserves X
-_TopRight:
-    jsr FuncA_Objects_PositionActorShape  ; preserves X
-    jsr FuncA_Objects_MoveShapeUpOneTile
-    lda Zp_ShapePosY_i16 + 0
-    sub Ram_ActorState_byte_arr, x
-    sta Zp_ShapePosY_i16 + 0
-    lda Zp_ShapePosY_i16 + 1
-    sbc #0
-    sta Zp_ShapePosY_i16 + 1
-_DrawSmokeParticle:
-    jsr FuncA_Objects_Alloc1x1Shape  ; preserves X
-    bcs @done
-    lda Ram_ActorState_byte_arr, x
-    div #2
-    add #kSmokeFirstTileId
-    sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
-    lda Ram_ActorFlags_bObj_arr, x
-    sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
-    @done:
-    rts
-.ENDPROC
-
-;;; Allocates and populates OAM slots for a spike actor.
-;;; @param X The actor index.
-;;; @preserve X
-.PROC FuncA_Objects_DrawSpikeActor
-    lda #kSpikeTileId  ; param: tile ID
-    jmp FuncA_Objects_Draw1x1Actor  ; preserves X
-.ENDPROC
-
-;;; Allocates and populates OAM slots for a toddler townsfolk actor.
-;;; @param X The actor index.
-;;; @preserve X
-.PROC FuncA_Objects_DrawToddlerActor
-    lda Ram_ActorState_byte_arr, x
-    and #$08
-    beq @draw
-    lda #$02
-    @draw:
-    ora #$80
-    jmp FuncA_Objects_Draw1x2Actor  ; preserves X
-.ENDPROC
-
 ;;; Sets Zp_ShapePosX_i16 and Zp_ShapePosY_i16 to the screen-space position of
 ;;; the specified actor.
 ;;; @param X The actor index.
 ;;; @preserve X
+.EXPORT FuncA_Objects_PositionActorShape
 .PROC FuncA_Objects_PositionActorShape
     ;; Calculate screen-space Y-position.
     lda Ram_ActorPosY_i16_0_arr, x
@@ -1026,6 +527,7 @@ _DrawSmokeParticle:
 ;;; @param A The tile ID.
 ;;; @param X The actor index.
 ;;; @preserve X
+.EXPORT FuncA_Objects_Draw1x1Actor
 .PROC FuncA_Objects_Draw1x1Actor
     pha  ; tile ID
     jsr FuncA_Objects_PositionActorShape  ; preserves X
@@ -1059,6 +561,7 @@ _DrawSmokeParticle:
 ;;; @param A The first tile ID.
 ;;; @param X The actor index.
 ;;; @preserve X
+.EXPORT FuncA_Objects_Draw1x2Actor
 .PROC FuncA_Objects_Draw1x2Actor
     pha  ; first tile ID
     jsr FuncA_Objects_PositionActorShape  ; preserves X
@@ -1096,6 +599,7 @@ _DrawSmokeParticle:
 ;;; @param A The first tile ID.
 ;;; @param X The actor index.
 ;;; @preserve X
+.EXPORT FuncA_Objects_Draw2x2Actor
 .PROC FuncA_Objects_Draw2x2Actor
     pha  ; first tile ID
     jsr FuncA_Objects_PositionActorShape  ; preserves X
@@ -1119,6 +623,7 @@ _DrawSmokeParticle:
 ;;; @param A The first tile ID.
 ;;; @param X The actor index.
 ;;; @preserve X
+.EXPORT FuncA_Objects_Draw2x3Actor
 .PROC FuncA_Objects_Draw2x3Actor
     pha  ; first tile ID
     jsr FuncA_Objects_PositionActorShape  ; preserves X

@@ -53,9 +53,10 @@ kChildPonytail = $84
     ;; The room tile column for this actor.
     TileCol_u8  .byte
     ;; Type-specific initialization parameter.
-    ;;   * For Adult actors, this is the first tile ID (of six).
-    ;;   * For Child actors, this is the first tile ID (of four).
-    ;;   * For Grenade actors, this is the aim angle (0-1).
+    ;;   * For Adult, this is the first tile ID (of six).
+    ;;   * For Child, this is the first tile ID (of four).
+    ;;   * For Fireball, this is the aim angle (mod 64).
+    ;;   * For Grenade, this is the aim angle (0-1).
     ;;   * For all other actor types, this is ignored.
     Param_byte  .byte
 .ENDSTRUCT
