@@ -22,7 +22,9 @@
 .INCLUDE "../terrain.inc"
 
 .IMPORT FuncA_Actor_HarmAvatarIfCollision
-.IMPORT FuncA_Objects_Draw2x2Actor
+.IMPORT FuncA_Objects_Alloc2x2Shape
+.IMPORT FuncA_Objects_PositionActorShape
+.IMPORT Func_GetRandomByte
 .IMPORT Func_Terrain_GetColumnPtrForTileIndex
 .IMPORT Ram_ActorFlags_bObj_arr
 .IMPORT Ram_ActorPosX_i16_0_arr
@@ -30,30 +32,30 @@
 .IMPORT Ram_ActorPosY_i16_0_arr
 .IMPORT Ram_ActorPosY_i16_1_arr
 .IMPORT Ram_ActorState_byte_arr
+.IMPORT Ram_Oam_sObj_arr64
 .IMPORTZP Zp_TerrainColumn_u8_arr_ptr
 .IMPORTZP Zp_Tmp1_byte
 
 ;;;=========================================================================;;;
 
-;;; First-tile-ID values that can be passed to FuncA_Objects_Draw2x2Actor for
-;;; various actor animation frames.
-kCrawlerFirstTileId1 = $9c
-kCrawlerFirstTileId2 = $a0
-kCrawlerFirstTileId3 = $a4
+kTileIdSpiderLegs1 = $b0
+kTileIdSpiderHead1 = $b1
+kTileIdSpiderLegs2 = $b2
+kTileIdSpiderHead2 = $b3
 
 ;;;=========================================================================;;;
 
 .SEGMENT "PRGA_Actor"
 
-;;; Performs per-frame updates for a crawler enemy actor.
+;;; Performs per-frame updates for a spider enemy actor.
 ;;; @param X The actor index.
 ;;; @preserve X
-.EXPORT FuncA_Actor_TickCrawler
-.PROC FuncA_Actor_TickCrawler
+.EXPORT FuncA_Actor_TickSpider
+.PROC FuncA_Actor_TickSpider
     lda Ram_ActorState_byte_arr, x
     beq _StartMove
     dec Ram_ActorState_byte_arr, x
-    cmp #$18
+    cmp #$08
     blt _DetectCollision
     lda Ram_ActorFlags_bObj_arr, x
     and #bObj::FlipH
@@ -73,8 +75,8 @@ _MoveLeft:
 _DetectCollision:
     jmp FuncA_Actor_HarmAvatarIfCollision  ; preserves X
 _StartMove:
-    ;; Compute the room tile column index for the center of the crawler,
-    ;; storing it in Y.
+    ;; Compute the room tile column index for the center of the spider, storing
+    ;; it in Y.
     lda Ram_ActorPosX_i16_1_arr, x
     sta Zp_Tmp1_byte
     lda Ram_ActorPosX_i16_0_arr, x
@@ -83,9 +85,9 @@ _StartMove:
     ror a
     .endrepeat
     tay
-    ;; If the crawler is facing right, increment Y (so as to check the tile
-    ;; column to the right of the crawler); if the crawler is facing left,
-    ;; decrement Y (so as to check the tile column to the left of the crawler).
+    ;; If the spider is facing right, increment Y (so as to check the tile
+    ;; column to the right of the spider); if the spider is facing left,
+    ;; decrement Y (so as to check the tile column to the left of the spider).
     lda Ram_ActorFlags_bObj_arr, x
     and #bObj::FlipH
     bne @facingLeft
@@ -101,7 +103,7 @@ _StartMove:
     tya  ; param: room tile column index
     jsr Func_Terrain_GetColumnPtrForTileIndex  ; preserves Zp_Tmp*
     ldx Zp_Tmp1_byte
-    ;; Compute the room block row index for the center of the crawler, storing
+    ;; Compute the room block row index for the center of the spider, storing
     ;; it in Y.
     lda Ram_ActorPosY_i16_1_arr, x
     sta Zp_Tmp1_byte
@@ -111,25 +113,30 @@ _StartMove:
     ror a
     .endrepeat
     tay
-    ;; Check the terrain block just in front of the crawler.  If it's solid,
-    ;; the crawler has to turn around.
+    ;; Check the terrain block just in front of the spider.  If it's solid,
+    ;; the spider has to turn around.
     lda (Zp_TerrainColumn_u8_arr_ptr), y
     cmp #kFirstSolidTerrainType
     bge @turnAround
-    ;; Check the floor just in front of the crawler.  If it's not solid, the
-    ;; crawler has to turn around.
-    iny
+    ;; Check the ceiling just in front of the spider.  If it's not solid, the
+    ;; spider has to turn around.
+    dey
     lda (Zp_TerrainColumn_u8_arr_ptr), y
     cmp #kFirstSolidTerrainType
-    bge @continueForward
-    ;; Make the crawler face the opposite direction.
+    blt @turnAround
+    ;; Otherwise, randomly turn around 25% of the time.
+    jsr Func_GetRandomByte  ; preserves X, returns A
+    and #$03
+    bne @continueForward
+    ;; TODO: Otherwise, sometimes drop down on a thread.
+    ;; Make the spider face the opposite direction.
     @turnAround:
     lda Ram_ActorFlags_bObj_arr, x
     eor #bObj::FlipH
     sta Ram_ActorFlags_bObj_arr, x
-    ;; Start a new movement cycle for the crawler.
+    ;; Start a new movement cycle for the spider.
     @continueForward:
-    lda #$1f
+    lda #$0f
     sta Ram_ActorState_byte_arr, x
     rts
 .ENDPROC
@@ -138,27 +145,41 @@ _StartMove:
 
 .SEGMENT "PRGA_Objects"
 
-;;; Allocates and populates OAM slots for a crawler enemy actor.
+;;; Allocates and populates OAM slots for a spider enemy actor.
 ;;; @param X The actor index.
 ;;; @preserve X
-.EXPORT FuncA_Objects_DrawCrawlerActor
-.PROC FuncA_Objects_DrawCrawlerActor
+.EXPORT FuncA_Objects_DrawSpiderActor
+.PROC FuncA_Objects_DrawSpiderActor
+    jsr FuncA_Objects_PositionActorShape  ; preserves X
+    lda Ram_ActorFlags_bObj_arr, x  ; param: object flags
+    jsr FuncA_Objects_Alloc2x2Shape  ; preserves X, returns C and Y
+    bcs @done
     lda Ram_ActorState_byte_arr, x
+    add #$04
     and #$08
     bne @frame2
-    lda Ram_ActorState_byte_arr, x
-    and #$10
-    bne @frame3
     @frame1:
-    lda #kCrawlerFirstTileId1
-    bne @draw  ; unconditional
+    lda #kTileIdSpiderLegs1
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Tile_u8, y
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Tile_u8, y
+    lda #kTileIdSpiderHead1
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Tile_u8, y
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Tile_u8, y
+    bne @setFlags  ; unconditional
     @frame2:
-    lda #kCrawlerFirstTileId2
-    bne @draw  ; unconditional
-    @frame3:
-    lda #kCrawlerFirstTileId3
-    @draw:
-    jmp FuncA_Objects_Draw2x2Actor  ; preserves X
+    lda #kTileIdSpiderLegs2
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Tile_u8, y
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Tile_u8, y
+    lda #kTileIdSpiderHead2
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Tile_u8, y
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Tile_u8, y
+    @setFlags:
+    lda Ram_ActorFlags_bObj_arr, x
+    eor #bObj::FlipH
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Flags_bObj, y
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Flags_bObj, y
+    @done:
+    rts
 .ENDPROC
 
 ;;;=========================================================================;;;

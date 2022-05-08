@@ -37,6 +37,7 @@ kChildPonytail = $84
     Fireball
     Grenade
     Smoke
+    Spider
     Spike
     Toddler
     NUM_VALUES

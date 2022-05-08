@@ -30,6 +30,7 @@
 .IMPORT FuncA_Actor_TickFireball
 .IMPORT FuncA_Actor_TickGrenade
 .IMPORT FuncA_Actor_TickSmoke
+.IMPORT FuncA_Actor_TickSpider
 .IMPORT FuncA_Actor_TickSpike
 .IMPORT FuncA_Actor_TickToddler
 .IMPORT FuncA_Objects_Alloc1x1Shape
@@ -41,6 +42,7 @@
 .IMPORT FuncA_Objects_DrawFireballActor
 .IMPORT FuncA_Objects_DrawGrenadeActor
 .IMPORT FuncA_Objects_DrawSmokeActor
+.IMPORT FuncA_Objects_DrawSpiderActor
 .IMPORT FuncA_Objects_DrawSpikeActor
 .IMPORT FuncA_Objects_DrawToddlerActor
 .IMPORT FuncA_Objects_MoveShapeUpOneTile
@@ -80,6 +82,7 @@ Func_InitNoneActor = Func_InitActorDefault
 Func_InitAdultActor = Func_InitActorWithState
 Func_InitChildActor = Func_InitActorWithState
 Func_InitCrawlerActor = Func_InitActorDefault
+Func_InitSpiderActor = Func_InitActorDefault
 Func_InitToddlerActor = Func_InitActorWithState
 
 FuncA_Actor_TickNone = Func_Noop
@@ -94,6 +97,7 @@ FuncA_Objects_DrawNoneActor = Func_Noop
     Func_InitFireballActor, \
     Func_InitGrenadeActor, \
     Func_InitSmokeActor, \
+    Func_InitSpiderActor, \
     Func_InitSpikeActor, \
     Func_InitToddlerActor
 .LINECONT -
@@ -107,6 +111,7 @@ FuncA_Objects_DrawNoneActor = Func_Noop
     FuncA_Actor_TickFireball, \
     FuncA_Actor_TickGrenade, \
     FuncA_Actor_TickSmoke, \
+    FuncA_Actor_TickSpider, \
     FuncA_Actor_TickSpike, \
     FuncA_Actor_TickToddler
 .LINECONT -
@@ -120,6 +125,7 @@ FuncA_Objects_DrawNoneActor = Func_Noop
     FuncA_Objects_DrawFireballActor, \
     FuncA_Objects_DrawGrenadeActor, \
     FuncA_Objects_DrawSmokeActor, \
+    FuncA_Objects_DrawSpiderActor, \
     FuncA_Objects_DrawSpikeActor, \
     FuncA_Objects_DrawToddlerActor
 .LINECONT -
@@ -257,6 +263,7 @@ _JumpTable_ptr_1_arr: .hibytes ActorInitFuncs
     d_byte Fireball, kFireballRadius
     d_byte Grenade,  kGrenadeRadius
     d_byte Smoke,    kSmokeRadius
+    d_byte Spider,   8
     d_byte Spike,    kSpikeRadius
     d_byte Toddler,  4
     D_END
@@ -270,6 +277,7 @@ _JumpTable_ptr_1_arr: .hibytes ActorInitFuncs
     d_byte Fireball, kFireballRadius
     d_byte Grenade,  kGrenadeRadius
     d_byte Smoke,    kSmokeRadius
+    d_byte Spider,   2
     d_byte Spike,    kSpikeRadius
     d_byte Toddler,  8
     D_END
@@ -283,6 +291,7 @@ _JumpTable_ptr_1_arr: .hibytes ActorInitFuncs
     d_byte Fireball, kFireballRadius
     d_byte Grenade,  kGrenadeRadius
     d_byte Smoke,    kSmokeRadius
+    d_byte Spider,   7
     d_byte Spike,    kSpikeRadius
     d_byte Toddler,  3
     D_END
@@ -296,6 +305,7 @@ _JumpTable_ptr_1_arr: .hibytes ActorInitFuncs
     d_byte Fireball, kFireballRadius
     d_byte Grenade,  kGrenadeRadius
     d_byte Smoke,    kSmokeRadius
+    d_byte Spider,   7
     d_byte Spike,    kSpikeRadius
     d_byte Toddler,  4
     D_END
