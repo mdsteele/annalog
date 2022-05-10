@@ -71,9 +71,9 @@ kSaveMagicNumber = $b2
     FlowerGarden
     FlowerTemple
     FlowerCrypt
-    FlowerVale
     FlowerFactory
     FlowerLava
+    FlowerMermaid
     FlowerMine
     FlowerSewer
     FlowerCity
