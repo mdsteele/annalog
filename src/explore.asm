@@ -32,6 +32,7 @@
 .IMPORT DataA_Room_Banks_u8_arr
 .IMPORT FuncA_Actor_TickAllActors
 .IMPORT FuncA_Avatar_ExploreMove
+.IMPORT FuncA_Avatar_UpdateAndMarkMinimap
 .IMPORT FuncA_Fade_In
 .IMPORT FuncA_Fade_Out
 .IMPORT FuncA_Objects_DrawAllActors
@@ -50,7 +51,6 @@
 .IMPORT Func_ProcessFrame
 .IMPORT Func_TickAllDevices
 .IMPORT Func_ToggleLeverDevice
-.IMPORT Func_UpdateAndMarkMinimap
 .IMPORT Func_UpdateButtons
 .IMPORT Func_Window_DirectDrawTopBorder
 .IMPORT Func_Window_Disable
@@ -168,7 +168,7 @@ Zp_HudEnabled_bool: .res 1
     jsr Func_Window_DirectDrawTopBorder
     chr08_bank <(Zp_Current_sTileset + sTileset::Chr08Bank_u8)
     chr18_bank <(Zp_Current_sRoom + sRoom::Chr18Bank_u8)
-    jsr Func_UpdateAndMarkMinimap
+    jsr_prga FuncA_Avatar_UpdateAndMarkMinimap
 _InitializeScrolling:
     jsr Func_SetScrollGoalFromAvatar
     lda Zp_ScrollGoalY_u8

@@ -26,7 +26,11 @@ kAvatarBoundingBoxRight = 5
 
 ;;;=========================================================================;;;
 
-;;; The vertical acceleration applied to the player avatar when in midair, in
+;;; The upward acceleration applied to the player avatar when in water, in
+;;; subpixels per frame per frame.
+kAvatarBouyancy = 20
+
+;;; The downward acceleration applied to the player avatar when in midair, in
 ;;; subpixels per frame per frame.
 kAvatarGravity = 48
 
@@ -50,16 +54,18 @@ kAvatarHarmDeath = $ff
 ;;; values is the starting tile ID to use for the avatar objects when the
 ;;; avatar is in that mode.
 .ENUM eAvatar
-    Standing = $40  ; (grounded) standing still on the ground
-    Looking  = $44  ; (grounded) standing still and looking upward
-    Ducking  = $48  ; (grounded) crouching still on the ground
-    Landing  = $4c  ; (grounded) just landed from a jump
-    Reading  = $50  ; (grounded) facing away from camera (e.g. to read a sign)
-    Running1 = $54  ; (grounded) running along the ground (1st frame)
-    Running2 = $58  ; (grounded) running along the ground (2nd frame)
-    Jumping  = $5c  ; (airborne) jumping up
-    Floating = $60  ; (airborne) mid-jump hang time
-    Falling  = $64  ; (airborne) falling down
+    Standing  = $40  ; (grounded) standing still on the ground
+    Looking   = $44  ; (grounded) standing still and looking upward
+    Ducking   = $48  ; (grounded) crouching still on the ground
+    Landing   = $4c  ; (grounded) just landed from a jump
+    Reading   = $50  ; (grounded) facing away from camera (e.g. to read a sign)
+    Running1  = $54  ; (grounded) running along the ground (1st frame)
+    Running2  = $58  ; (grounded) running along the ground (2nd frame)
+    Swimming1 = $5c  ; (swimming) swimming in water (1st frame)
+    Swimming2 = $60  ; (swimming) swimming in water (2nd frame)
+    Jumping   = $64  ; (airborne) jumping up
+    Floating  = $68  ; (airborne) mid-jump hang time
+    Falling   = $6c  ; (airborne) falling down
 .ENDENUM
 
 ;;; Any eAvatar modes greater than or equal to this are considered airborne.

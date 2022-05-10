@@ -189,7 +189,6 @@
 :   .incbin "out/data/tiles/font_hilight.chr"
     .assert * - :- = kSizeofChr * eAvatar::Standing, error
     .incbin "out/data/tiles/player_flower.chr"
-    .res $08 * kSizeofChr
     .incbin "out/data/tiles/machine.chr"
     .assert * - :- = kSizeofChr * $80, error
 .ENDPROC
@@ -203,7 +202,6 @@
 :   .incbin "out/data/tiles/font_hilight.chr"
     .assert * - :- = kSizeofChr * eAvatar::Standing, error
     .incbin "out/data/tiles/player_normal.chr"
-    .res $08 * kSizeofChr
     .incbin "out/data/tiles/machine.chr"
     .assert * - :- = kSizeofChr * $80, error
 .ENDPROC

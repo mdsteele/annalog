@@ -25,9 +25,13 @@ kMaxPlatforms = 8
 ;;; Types of platform in a room.
 .ENUM ePlatform
     None
+    Water  ; can swim in/on
     Solid  ; safe to stand on
     Harm   ; harms the player avatar on contact
 .ENDENUM
+
+;;; Platform types greater than or equal to this are solid.
+kFirstSolidPlatformType = ePlatform::Solid
 
 ;;;=========================================================================;;;
 

@@ -32,6 +32,7 @@
 .IMPORT Data_PowersOfTwo_u8_arr8
 .IMPORT FuncA_Avatar_CollideWithAllPlatformsHorz
 .IMPORT FuncA_Avatar_CollideWithAllPlatformsVert
+.IMPORT FuncA_Avatar_UpdateWaterDepth
 .IMPORT FuncA_Objects_Alloc2x2Shape
 .IMPORT Func_Terrain_GetColumnPtrForTileIndex
 .IMPORT Ppu_ChrPlayerNormal
@@ -60,8 +61,10 @@
 ;;;=========================================================================;;;
 
 ;;; How fast the player avatar is allowed to move, in pixels per frame.
-kAvatarMaxSpeedX = 2
-kAvatarMaxSpeedY = 5
+kAvatarMaxAirSpeedX = 2
+kAvatarMaxAirSpeedY = 5
+kAvatarMaxWaterSpeedX = 1
+kAvatarMaxWaterSpeedY = 2
 
 ;;; If the player stops holding the jump button while jumping, then the
 ;;; avatar's upward speed is immediately capped to this many pixels per frame.
@@ -94,6 +97,9 @@ kAvatarHealBlinkFrames = 14
 Zp_AvatarPosX_i16: .res 2
 Zp_AvatarPosY_i16: .res 2
 
+;;; The current X/Y subpixel positions of the player avatar.
+Zp_AvatarSubX_u8: .res 1
+
 ;;; The current minimap cell that the avatar is in.
 .EXPORTZP Zp_AvatarMinimapRow_u8, Zp_AvatarMinimapCol_u8
 Zp_AvatarMinimapRow_u8: .res 1
@@ -107,6 +113,12 @@ Zp_AvatarVelY_i16: .res 2
 ;;; The object flags to apply for the player avatar.  In particular, if
 ;;; bObj::FlipH is set, then the avatar will face left instead of right.
 Zp_AvatarFlags_bObj: .res 1
+
+;;; How far below the surface of the water the player avatar is, in pixels.  If
+;;; the avatar is not in water, this is zero.  If the avatar is more than $ff
+;;; pixels underwater, this is $ff.
+.EXPORTZP Zp_AvatarWaterDepth_u8
+Zp_AvatarWaterDepth_u8: .res 1
 
 ;;; What mode the avatar is currently in (e.g. standing, jumping, etc.).
 .EXPORTZP Zp_AvatarMode_eAvatar
@@ -164,6 +176,7 @@ Zp_AvatarHarmTimer_u8: .res 1
     lda #0
     sta Zp_AvatarHarmTimer_u8
     sta Zp_AvatarRecover_u8
+    sta Zp_AvatarSubX_u8
     sta Zp_AvatarVelX_i16 + 0
     sta Zp_AvatarVelX_i16 + 1
     sta Zp_AvatarVelY_i16 + 0
@@ -212,10 +225,10 @@ _Harm:
     bit Zp_AvatarFlags_bObj
     bvc @facingRight
     @facingLeft:
-    lda #kAvatarMaxSpeedX
+    lda #kAvatarMaxAirSpeedX
     bne @setVelX  ; unconditional
     @facingRight:
-    lda #$ff & -kAvatarMaxSpeedX
+    lda #$ff & -kAvatarMaxAirSpeedX
     @setVelX:
     sta Zp_AvatarVelX_i16 + 1
     lda #0
@@ -253,11 +266,15 @@ _Harm:
     rts
 .ENDPROC
 
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Avatar"
+
 ;;; Recomputes Zp_AvatarMinimapRow_u8 and Zp_AvatarMinimapCol_u8 from the
 ;;; avatar's current position and room, then (if necessary) updates SRAM to
 ;;; mark that minimap cell as explored.
-.EXPORT Func_UpdateAndMarkMinimap
-.PROC Func_UpdateAndMarkMinimap
+.EXPORT FuncA_Avatar_UpdateAndMarkMinimap
+.PROC FuncA_Avatar_UpdateAndMarkMinimap
 _UpdateMinimapRow:
     ldy <(Zp_Current_sRoom + sRoom::MinimapStartRow_u8)
     bit <(Zp_Current_sRoom + sRoom::IsTall_bool)
@@ -323,39 +340,88 @@ _MarkMinimap:
     rts
 .ENDPROC
 
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Avatar"
-
 ;;; Updates the player avatar state based on the current joypad state.
 ;;; @return Z Cleared if the player avatar hit a passage, set otherwise.
 ;;; @return A The ePassage that the player avatar hit, or ePassage::None.
 .EXPORT FuncA_Avatar_ExploreMove
 .PROC FuncA_Avatar_ExploreMove
+    ;; Apply healing.
     ldx Zp_AvatarHarmTimer_u8
     beq @doneHealing
     dex
     stx Zp_AvatarHarmTimer_u8
+    ;; If the avatar isn't stunned, apply joypad controls.
     cpx #kAvatarHarmHealFrames - kAvatarHarmStunFrames
     bge @doneJoypad
     @doneHealing:
     jsr FuncA_Avatar_ApplyJoypad
     @doneJoypad:
-.PROC _ApplyVelX
+    ;; Move horizontally first, then vertically.
+    jsr FuncA_Avatar_MoveHorz  ; if passage, clears Z and returns A
+    bne @return
+    jsr FuncA_Avatar_MoveVert  ; if passage, clears Z and returns A
+    bne @return
+    ;; Update state now that the avatar is repositioned.
+    jsr FuncA_Avatar_UpdateWaterDepth
+    jsr FuncA_Avatar_UpdateAndMarkMinimap
+    jsr FuncA_Avatar_ApplyGravity
+    ;; Indicate that no passage was hit.
+    lda #ePassage::None
+    @return:
+    rts
+.ENDPROC
+
+;;; Applies the avatar's horizontal velocity and handles horizontal collisions.
+;;; @return Z Cleared if the player avatar hit a passage, set otherwise.
+;;; @return A The ePassage that the player avatar hit, or ePassage::None.
+.PROC FuncA_Avatar_MoveHorz
     ldy #0
     .assert ePlatform::None = 0, error
     sty Zp_AvatarCollided_ePlatform
+_ApplyVelocity:
+    lda Zp_AvatarVelX_i16 + 0
+    add Zp_AvatarSubX_u8
+    sta Zp_AvatarSubX_u8
     lda Zp_AvatarVelX_i16 + 1
     bpl @nonnegative
     dey  ; now y is $ff
     @nonnegative:
-    add Zp_AvatarPosX_i16 + 0
+    adc Zp_AvatarPosX_i16 + 0
     sta Zp_AvatarPosX_i16 + 0
     tya
     adc Zp_AvatarPosX_i16 + 1
     sta Zp_AvatarPosX_i16 + 1
+_DetectPassage:
+    jsr FuncA_Avatar_DetectHorzPassage  ; if passage, clears Z and returns A
+    bne _Return
+_DetectCollision:
+    jsr FuncA_Avatar_CollideWithTerrainHorz
+    jsr FuncA_Avatar_CollideWithAllPlatformsHorz
+_HandleCollision:
+    ;; If there was a horizontal collision, set horizontal velocity and
+    ;; subpixel position to zero.
+    lda Zp_AvatarCollided_ePlatform
+    .assert ePlatform::None = 0, error
+    beq @doneCollision
+    ldx #0
+    stx Zp_AvatarVelX_i16 + 0
+    stx Zp_AvatarVelX_i16 + 1
+    stx Zp_AvatarSubX_u8
+    ;; Check for special platform effects.
+    cmp #ePlatform::Harm
+    bne @doneCollision
+    jsr Func_HarmAvatar
+    @doneCollision:
+    ;; Indicate that no passage was hit.
+    lda #ePassage::None
+_Return:
+    rts
 .ENDPROC
-.PROC _DetectHorzPassage
+
+;;; Detects if the player avatar has hit a horizontal passage.
+;;; @return Z Cleared if the player avatar hit a passage, set otherwise.
+;;; @return A The ePassage that the player avatar hit, or ePassage::None.
+.PROC FuncA_Avatar_DetectHorzPassage
     lda Zp_AvatarVelX_i16 + 1
     bmi _Western
 _Eastern:
@@ -399,8 +465,14 @@ _Western:
     lda #ePassage::Western
     rts
 _NoHitPassage:
+    lda #ePassage::None
+    rts
 .ENDPROC
-.PROC _DetectHorzCollisionWithTerrain
+
+;;; Checks for horizontal collisions between the player avatar and the room
+;;; terrain.  If any collision occurs, updates the avatar's X-position and
+;;; sets Zp_AvatarCollided_ePlatform to ePlatform::Solid.
+.PROC FuncA_Avatar_CollideWithTerrainHorz
     ;; Calculate the room block row index that the avatar's feet are in, and
     ;; store it in Zp_Tmp1_byte.
     lda Zp_AvatarPosY_i16 + 0
@@ -448,12 +520,10 @@ _MovingRight:
     ldy Zp_Tmp2_byte  ; room block row index (top of avatar)
     lda (Zp_TerrainColumn_u8_arr_ptr), y  ; terrain block type
     cmp #kFirstSolidTerrainType
-    blt _Done
+    blt @done
     ;; We've hit the right wall, so set horizontal position to just to the left
     ;; of the wall we hit.
     @solid:
-    lda #ePlatform::Solid
-    sta Zp_AvatarCollided_ePlatform
     lda #0
     .repeat 3
     asl Zp_Tmp3_byte
@@ -466,7 +536,11 @@ _MovingRight:
     txa
     sbc #0
     sta Zp_AvatarPosX_i16 + 1
-    jmp _Done
+    ;; Indicate that we hit solid terrain.
+    lda #ePlatform::Solid
+    sta Zp_AvatarCollided_ePlatform
+    @done:
+    rts
 _MovingLeft:
     ;; Calculate the room tile column index to the left of the avatar, and
     ;; store it in Zp_Tmp3_byte.
@@ -493,8 +567,6 @@ _MovingLeft:
     ;; We've hit the left wall, so set horizontal position to just to the right
     ;; of the wall we hit.
     @solid:
-    lda #ePlatform::Solid
-    sta Zp_AvatarCollided_ePlatform
     lda #0
     .repeat 3
     asl Zp_Tmp3_byte
@@ -507,28 +579,21 @@ _MovingLeft:
     txa
     adc #0
     sta Zp_AvatarPosX_i16 + 1
+    ;; Indicate that we hit solid terrain.
+    lda #ePlatform::Solid
+    sta Zp_AvatarCollided_ePlatform
     @done:
-_Done:
+    rts
 .ENDPROC
-    jsr FuncA_Avatar_CollideWithAllPlatformsHorz
-.PROC _HandleHorzCollision
-    ;; If there was a horizontal collision, set horizontal velocity to zero.
-    lda Zp_AvatarCollided_ePlatform
-    .assert ePlatform::None = 0, error
-    beq @doneCollision
-    ldx #0
-    stx Zp_AvatarVelX_i16 + 0
-    stx Zp_AvatarVelX_i16 + 1
-    ;; Check for special platform effects.
-    cmp #ePlatform::Harm
-    bne @doneCollision
-    jsr Func_HarmAvatar
-    @doneCollision:
-.ENDPROC
-.PROC _ApplyVelY
+
+;;; Applies the avatar's vertical velocity and handles vertical collisions.
+;;; @return Z Cleared if the player avatar hit a passage, set otherwise.
+;;; @return A The ePassage that the player avatar hit, or ePassage::None.
+.PROC FuncA_Avatar_MoveVert
     ldy #0
     .assert ePlatform::None = 0, error
     sty Zp_AvatarCollided_ePlatform
+_ApplyVelocity:
     lda Zp_AvatarVelY_i16 + 1
     bpl @nonnegative
     dey  ; now y is $ff
@@ -538,8 +603,137 @@ _Done:
     tya
     adc Zp_AvatarPosY_i16 + 1
     sta Zp_AvatarPosY_i16 + 1
+_DetectPassage:
+    jsr FuncA_Avatar_DetectVertPassage  ; if passage, clears Z and returns A
+    beq @noPassage
+    rts
+    @noPassage:
+_DetectCollision:
+    jsr FuncA_Avatar_CollideWithTerrainVert
+    jsr FuncA_Avatar_CollideWithAllPlatformsVert
+    ;; Check if the player avatar is in water.
+    lda Zp_AvatarWaterDepth_u8
+    bne _DetectCollisionInWater
+_DetectCollisionInAir:
+    ;; Check if a vertical collision occurred.
+    lda Zp_AvatarCollided_ePlatform
+    .assert ePlatform::None = 0, error
+    bne _HandleCollisionInAir
+    ;; The avatar is not in water, and there was no vertical collision, so the
+    ;; avatar is now airborne.  Set the avatar's mode based on its Y-velocity.
+    lda Zp_AvatarVelY_i16 + 1
+    bmi @jumping
+    cmp #2
+    blt @floating
+    lda #eAvatar::Falling
+    .assert eAvatar::Falling > 0, error
+    bne @setAvatarMode  ; unconditional
+    @jumping:
+    lda #eAvatar::Jumping
+    .assert eAvatar::Jumping > 0, error
+    bne @setAvatarMode  ; unconditional
+    @floating:
+    lda #eAvatar::Floating
+    @setAvatarMode:
+    sta Zp_AvatarMode_eAvatar
+    .assert eAvatar::Floating > 0, error
+    bne _DoneWithCollision  ; unconditional
+_DetectCollisionInWater:
+    ;; The player avatar is in water, so set its mode to Swimming.
+    lda Zp_FrameCounter_u8
+    and #$10
+    bne @swimming2
+    @swimming1:
+    lda #eAvatar::Swimming1
+    bne @setAvatarMode  ; unconditional
+    @swimming2:
+    lda #eAvatar::Swimming2
+    @setAvatarMode:
+    sta Zp_AvatarMode_eAvatar
+    ;; Check if a vertical collision occurred.
+    lda Zp_AvatarCollided_ePlatform
+    .assert ePlatform::None = 0, error
+    bne _FinishCollision
+    beq _DoneWithCollision  ; unconditional
+_HandleCollisionInAir:
+    ;; Check if the avatar is moving up or down.
+    lda Zp_AvatarVelY_i16 + 1
+    bpl _HandleDownwardCollisionInAir
+_HandleUpwardCollisionInAir:
+    lda #eAvatar::Floating
+    sta Zp_AvatarMode_eAvatar
+    .assert eAvatar::Floating > 0, error
+    bne _FinishCollision  ; unconditional
+_HandleDownwardCollisionInAir:
+    ;; We've hit a floor, so update the avatar mode.
+    lda Zp_AvatarMode_eAvatar
+    cmp #kFirstAirborneAvatarMode
+    bge @wasAirborne
+    lda Zp_AvatarRecover_u8
+    beq @standOrRun
+    dec Zp_AvatarRecover_u8
+    bne @landing
+    @standOrRun:
+    lda Zp_AvatarVelX_i16 + 1
+    beq @standing
+    lda Zp_FrameCounter_u8
+    and #$08
+    bne @running2
+    @running1:
+    lda #eAvatar::Running1
+    bne @setAvatarMode  ; unconditional
+    @running2:
+    lda #eAvatar::Running2
+    bne @setAvatarMode  ; unconditional
+    @standing:
+    lda Zp_AvatarHarmTimer_u8
+    bne @ducking
+    lda Zp_P1ButtonsHeld_bJoypad
+    and #bJoypad::Down
+    bne @ducking
+    lda Zp_P1ButtonsHeld_bJoypad
+    and #bJoypad::Up
+    bne @looking
+    lda #eAvatar::Standing
+    bne @setAvatarMode  ; unconditional
+    @ducking:
+    lda #eAvatar::Ducking
+    bne @setAvatarMode  ; unconditional
+    @looking:
+    lda #eAvatar::Looking
+    bne @setAvatarMode  ; unconditional
+    @wasAirborne:
+    ldx Zp_AvatarVelY_i16 + 1
+    lda DataA_Avatar_RecoverFrames_u8_arr, x
+    beq @standOrRun
+    sta Zp_AvatarRecover_u8
+    @landing:
+    lda Zp_P1ButtonsHeld_bJoypad
+    and #bJoypad::Down
+    bne @ducking
+    lda #eAvatar::Landing
+    @setAvatarMode:
+    sta Zp_AvatarMode_eAvatar
+_FinishCollision:
+    ;; Set vertical velocity to zero.
+    lda #0
+    sta Zp_AvatarVelY_i16 + 0
+    sta Zp_AvatarVelY_i16 + 1
+    ;; Check for special platform effects.
+    lda Zp_AvatarCollided_ePlatform
+    cmp #ePlatform::Harm
+    bne _DoneWithCollision
+    jsr Func_HarmAvatar
+_DoneWithCollision:
+    ;; Indicate that no passage was hit.
+    lda #ePlatform::None
+    rts
 .ENDPROC
-.PROC _DetectVertPassage
+
+;;; Detects if the player avatar has hit a horizontal passage.
+;;; @return Z Cleared if the player avatar hit a passage, set otherwise.
+;;; @return A The ePassage that the player avatar hit, or ePassage::None.
+.PROC FuncA_Avatar_DetectVertPassage
     lda Zp_AvatarVelY_i16 + 1
     bmi _Top
 _Bottom:
@@ -585,8 +779,14 @@ _Top:
     lda #ePassage::Top
     rts
 _NoHitPassage:
+    lda #ePassage::None
+    rts
 .ENDPROC
-.PROC _DetectVertCollisionWithTerrain
+
+;;; Checks for vertical collisions between the player avatar and the room
+;;; terrain.  If any collision occurs, updates the avatar's Y-position and
+;;; sets Zp_AvatarCollided_ePlatform to ePlatform::Solid.
+.PROC FuncA_Avatar_CollideWithTerrainVert
     ;; Calculate the room tile column index that the avatar's left side is in,
     ;; and store it in Zp_Tmp1_byte.
     lda Zp_AvatarPosX_i16 + 0
@@ -652,10 +852,11 @@ _MovingUp:
     txa
     adc #0
     sta Zp_AvatarPosY_i16 + 1
+    ;; Indicate that we hit solid terrain.
     lda #ePlatform::Solid
     sta Zp_AvatarCollided_ePlatform
     @done:
-    jmp _Done
+    rts
 _MovingDown:
     ;; Calculate the room block row index just below the avatar's feet, and
     ;; store it in Zp_Tmp3_byte.
@@ -680,19 +881,7 @@ _MovingDown:
     ldy Zp_Tmp3_byte  ; room block row index (bottom of avatar)
     lda (Zp_TerrainColumn_u8_arr_ptr), y  ; terrain block type
     cmp #kFirstSolidTerrainType
-    bge @solid
-    @empty:
-    ;; There's no floor beneath us, so start falling.
-    lda Zp_AvatarVelY_i16 + 1
-    cmp #2
-    blt @floating
-    lda #eAvatar::Falling
-    bne @setMode  ; unconditional
-    @floating:
-    lda #eAvatar::Floating
-    @setMode:
-    sta Zp_AvatarMode_eAvatar
-    jmp _Done
+    blt @done
     @solid:
     ;; Set vertical position to just above the floor we hit.
     lda #0
@@ -707,83 +896,10 @@ _MovingDown:
     txa
     sbc #0
     sta Zp_AvatarPosY_i16 + 1
+    ;; Indicate that we hit solid terrain.
     lda #ePlatform::Solid
     sta Zp_AvatarCollided_ePlatform
-_Done:
-.ENDPROC
-    jsr FuncA_Avatar_CollideWithAllPlatformsVert
-.PROC _HandleVertCollision
-    ;; Check if there was a vertical collision (with terrain or platforms).
-    lda Zp_AvatarCollided_ePlatform
-    .assert ePlatform::None = 0, error
-    beq @doneCollision
-    ;; If the avatar was moving down, it needs to land.
-    lda Zp_AvatarVelY_i16 + 1
-    bmi @doneLanding
-    ;; We've hit a floor, so update the avatar mode.
-    lda Zp_AvatarMode_eAvatar
-    cmp #kFirstAirborneAvatarMode
-    bge @wasAirborne
-    lda Zp_AvatarRecover_u8
-    beq @standOrRun
-    dec Zp_AvatarRecover_u8
-    bne @landing
-    @standOrRun:
-    lda Zp_AvatarVelX_i16 + 1
-    beq @standing
-    lda Zp_FrameCounter_u8
-    and #$08
-    bne @running2
-    @running1:
-    lda #eAvatar::Running1
-    bne @setAvatarMode  ; unconditional
-    @running2:
-    lda #eAvatar::Running2
-    bne @setAvatarMode  ; unconditional
-    @standing:
-    lda Zp_AvatarHarmTimer_u8
-    bne @ducking
-    lda Zp_P1ButtonsHeld_bJoypad
-    and #bJoypad::Down
-    bne @ducking
-    lda Zp_P1ButtonsHeld_bJoypad
-    and #bJoypad::Up
-    bne @looking
-    lda #eAvatar::Standing
-    bne @setAvatarMode  ; unconditional
-    @ducking:
-    lda #eAvatar::Ducking
-    bne @setAvatarMode  ; unconditional
-    @looking:
-    lda #eAvatar::Looking
-    bne @setAvatarMode  ; unconditional
-    @wasAirborne:
-    ldx Zp_AvatarVelY_i16 + 1
-    lda DataA_Avatar_RecoverFrames_u8_arr, x
-    beq @standOrRun
-    sta Zp_AvatarRecover_u8
-    @landing:
-    lda Zp_P1ButtonsHeld_bJoypad
-    and #bJoypad::Down
-    bne @ducking
-    lda #eAvatar::Landing
-    @setAvatarMode:
-    sta Zp_AvatarMode_eAvatar
-    @doneLanding:
-    ;; Set vertical velocity to zero.
-    lda #0
-    sta Zp_AvatarVelY_i16 + 0
-    sta Zp_AvatarVelY_i16 + 1
-    ;; Check for special platform effects.
-    lda Zp_AvatarCollided_ePlatform
-    cmp #ePlatform::Harm
-    bne @doneCollision
-    jsr Func_HarmAvatar
-    @doneCollision:
-.ENDPROC
-    jsr Func_UpdateAndMarkMinimap
-    jsr FuncA_Avatar_ApplyGravity
-    lda #ePassage::None  ; indicate that no passage was hit
+    @done:
     rts
 .ENDPROC
 
@@ -792,7 +908,7 @@ _Done:
 ;;; recovery time.
 .PROC DataA_Avatar_RecoverFrames_u8_arr
 :   .byte 0, 0, 8, 8, 12, 18
-    .assert * - :- = kAvatarMaxSpeedY + 1, error
+    .assert * - :- = kAvatarMaxAirSpeedY + 1, error
 .ENDPROC
 
 ;;; Updates the player avatar's velocity and flags based on controller input
@@ -807,6 +923,16 @@ _JoypadLeft:
     lda Zp_P1ButtonsHeld_bJoypad
     and #bJoypad::Right
     bne _NeitherLeftNorRight
+    ;; Determine velocity limit.
+    lda Zp_AvatarWaterDepth_u8
+    beq @inAir
+    @inWater:
+    lda #$ff & -kAvatarMaxWaterSpeedX
+    bne @setLimit  ; unconditional
+    @inAir:
+    lda #$ff & -kAvatarMaxAirSpeedX
+    @setLimit:
+    sta Zp_Tmp1_byte  ; min X-vel
     ;; Accelerate to the left.
     lda Zp_AvatarVelX_i16 + 0
     sub #kAvatarHorzAccel
@@ -814,11 +940,11 @@ _JoypadLeft:
     lda Zp_AvatarVelX_i16 + 1
     sbc #0
     bpl @noMax
-    cmp #$ff & (1 - kAvatarMaxSpeedX)
+    cmp Zp_Tmp1_byte  ; min X-vel
     bge @noMax
     lda #0
     sta Zp_AvatarVelX_i16 + 0
-    lda #$ff & -kAvatarMaxSpeedX
+    lda Zp_Tmp1_byte  ; min X-vel
     @noMax:
     sta Zp_AvatarVelX_i16 + 1
     lda #kAvatarPalette | bObj::FlipH
@@ -830,6 +956,16 @@ _JoypadRight:
     lda Zp_P1ButtonsHeld_bJoypad
     and #bJoypad::Right
     beq @noRight
+    ;; Determine velocity limit.
+    lda Zp_AvatarWaterDepth_u8
+    beq @inAir
+    @inWater:
+    lda #kAvatarMaxWaterSpeedX
+    bne @setLimit  ; unconditional
+    @inAir:
+    lda #kAvatarMaxAirSpeedX
+    @setLimit:
+    sta Zp_Tmp1_byte  ; max X-vel
     ;; Accelerate to the right.
     lda Zp_AvatarVelX_i16 + 0
     add #kAvatarHorzAccel
@@ -837,11 +973,11 @@ _JoypadRight:
     lda Zp_AvatarVelX_i16 + 1
     adc #0
     bmi @noMax
-    cmp #kAvatarMaxSpeedX
+    cmp Zp_Tmp1_byte  ; max X-vel
     blt @noMax
     lda #0
     sta Zp_AvatarVelX_i16 + 0
-    lda #kAvatarMaxSpeedX
+    lda Zp_Tmp1_byte  ; max X-vel
     @noMax:
     sta Zp_AvatarVelX_i16 + 1
     lda #kAvatarPalette
@@ -878,6 +1014,12 @@ _NeitherLeftNorRight:
     adc Zp_AvatarVelX_i16 + 1
     sta Zp_AvatarVelX_i16 + 1
 _DoneLeftRight:
+    lda Zp_AvatarWaterDepth_u8
+    beq _NotInWater
+    cmp #1
+    beq _Grounded
+    bne _DoneJump  ; unconditional
+_NotInWater:
     lda Zp_AvatarMode_eAvatar
     cmp #kFirstAirborneAvatarMode
     bge _Airborne
@@ -891,6 +1033,7 @@ _Grounded:
     stax Zp_AvatarVelY_i16
     lda #eAvatar::Jumping
     sta Zp_AvatarMode_eAvatar
+    .assert eAvatar::Jumping > 0, error
     bne _DoneJump  ; unconditional
 _Airborne:
     ;; If the player stops holding the jump button while airborne, cap the
@@ -913,6 +1056,47 @@ _DoneJump:
 
 ;;; Updates the player avatar's Y-velocity to apply gravity.
 .PROC FuncA_Avatar_ApplyGravity
+    ldy Zp_AvatarWaterDepth_u8
+    beq _InAir
+_InWater:
+    ;; Calculate the max upward speed: depth - 1 or kAvatarMaxWaterSpeedY,
+    ;; whichever is less.
+    dey
+    cpy #kAvatarMaxWaterSpeedY
+    blt @setMaxUpwardSpeed
+    ldy #kAvatarMaxWaterSpeedY
+    @setMaxUpwardSpeed:
+    sty Zp_Tmp1_byte  ; max upward speed
+    ;; Accelerate the player avatar upwards.
+    lda Zp_AvatarVelY_i16 + 0
+    sub #kAvatarBouyancy
+    sta Zp_AvatarVelY_i16 + 0
+    lda Zp_AvatarVelY_i16 + 1
+    sbc #0
+    ;; Check if the player avatar is now moving upwards or downwards.
+    bpl @movingDown
+    ;; If moving upward, cap velocity at 1 - depth.
+    @movingUp:
+    sta Zp_AvatarVelY_i16 + 1
+    add Zp_Tmp1_byte  ; max upward speed
+    bcs @done
+    lda #0
+    sta Zp_AvatarVelY_i16 + 0
+    sub Zp_Tmp1_byte  ; max upward speed
+    sta Zp_AvatarVelY_i16 + 1
+    rts
+    ;; If moving downward, check for terminal velocity:
+    @movingDown:
+    cmp #kAvatarMaxWaterSpeedY
+    blt @setVelYHi
+    lda #0
+    sta Zp_AvatarVelY_i16 + 0
+    lda #kAvatarMaxWaterSpeedY
+    @setVelYHi:
+    sta Zp_AvatarVelY_i16 + 1
+    @done:
+    rts
+_InAir:
     ;; Only apply gravity if the player avatar is airborne.
     lda Zp_AvatarMode_eAvatar
     cmp #kFirstAirborneAvatarMode
@@ -925,11 +1109,11 @@ _DoneJump:
     adc Zp_AvatarVelY_i16 + 1
     ;; If moving downward, check for terminal velocity:
     bmi @setVelYHi
-    cmp #kAvatarMaxSpeedY
+    cmp #kAvatarMaxAirSpeedY
     blt @setVelYHi
     lda #0
     sta Zp_AvatarVelY_i16 + 0
-    lda #kAvatarMaxSpeedY
+    lda #kAvatarMaxAirSpeedY
     @setVelYHi:
     sta Zp_AvatarVelY_i16 + 1
     @noGravity:

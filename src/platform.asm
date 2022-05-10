@@ -31,6 +31,7 @@
 .IMPORTZP Zp_AvatarPosY_i16
 .IMPORTZP Zp_AvatarVelX_i16
 .IMPORTZP Zp_AvatarVelY_i16
+.IMPORTZP Zp_AvatarWaterDepth_u8
 .IMPORTZP Zp_PpuScrollX_u8
 .IMPORTZP Zp_PpuScrollY_u8
 .IMPORTZP Zp_ScrollXHi_u8
@@ -185,8 +186,8 @@ Ram_PlatformRight_i16_1_arr: .res kMaxPlatforms
     ldx #kMaxPlatforms - 1
     @loop:
     lda Ram_PlatformType_ePlatform_arr, x
-    .assert ePlatform::None = 0, error
-    beq @continue
+    cmp #kFirstSolidPlatformType
+    blt @continue
     jsr FuncA_Avatar_CollideWithOnePlatformHorz  ; preserves X
     @continue:
     dex
@@ -313,8 +314,8 @@ _Return:
     ldx #kMaxPlatforms - 1
     @loop:
     lda Ram_PlatformType_ePlatform_arr, x
-    .assert ePlatform::None = 0, error
-    beq @continue
+    cmp #kFirstSolidPlatformType
+    blt @continue
     jsr FuncA_Avatar_CollideWithOnePlatformVert  ; preserves X
     @continue:
     dex
@@ -338,7 +339,7 @@ _Return:
     cmp Ram_PlatformLeft_i16_1_arr, x
     blt @return
     bne @leftEdgeHit
-    lda Zp_Tmp1_byte  ; avatar Y-pos + bbox (lo)
+    lda Zp_Tmp1_byte  ; avatar X-pos + bbox (lo)
     cmp Ram_PlatformLeft_i16_0_arr, x
     ble @return
     @leftEdgeHit:
@@ -429,6 +430,80 @@ _Collided:
     lda Ram_PlatformType_ePlatform_arr, x
     sta Zp_AvatarCollided_ePlatform
 _Return:
+    rts
+.ENDPROC
+
+;;; Checks whether the player avatar is currently in water, and updates
+;;; Zp_AvatarWaterDepth_u8 accordingly.
+.EXPORT FuncA_Avatar_UpdateWaterDepth
+.PROC FuncA_Avatar_UpdateWaterDepth
+    ldx #kMaxPlatforms - 1
+    @loop:
+    lda Ram_PlatformType_ePlatform_arr, x
+    cmp #ePlatform::Water
+    bne @continue
+    jsr FuncA_Avatar_IsInWaterPlatform  ; preserves X, returns A and Z
+    bne @done
+    @continue:
+    dex
+    .assert kMaxPlatforms <= $80, error
+    bpl @loop
+    lda #0  ; not in water
+    @done:
+    sta Zp_AvatarWaterDepth_u8
+    rts
+.ENDPROC
+
+;;; Checks whether the player avatar is currently in the specified Water
+;;; platform.  If not, sets Z; otherwise, clears Z and returns how far below
+;;; the surface the avatar is.
+;;; @param X The platform index.
+;;; @return A The avatar's depth below the surface.
+;;; @return Z Set if the avatar is not in this Water platform.
+;;; @preserve X
+.PROC FuncA_Avatar_IsInWaterPlatform
+    ;; Check left edge of platform.
+    lda Zp_AvatarPosX_i16 + 1
+    cmp Ram_PlatformLeft_i16_1_arr, x
+    blt _NotInWater
+    bne @leftEdgeHit
+    lda Zp_AvatarPosX_i16 + 0
+    cmp Ram_PlatformLeft_i16_0_arr, x
+    blt _NotInWater
+    @leftEdgeHit:
+    ;; Check right edge of platform.
+    lda Ram_PlatformRight_i16_1_arr, x
+    cmp Zp_AvatarPosX_i16 + 1
+    blt _NotInWater
+    bne @rightEdgeHit
+    lda Ram_PlatformRight_i16_0_arr, x
+    cmp Zp_AvatarPosX_i16 + 0
+    blt _NotInWater
+    @rightEdgeHit:
+    ;; Check bottom edge of platform.
+    lda Ram_PlatformBottom_i16_1_arr, x
+    cmp Zp_AvatarPosY_i16 + 1
+    blt _NotInWater
+    bne @bottomEdgeHit
+    lda Ram_PlatformBottom_i16_0_arr, x
+    cmp Zp_AvatarPosY_i16 + 0
+    blt _NotInWater
+    @bottomEdgeHit:
+    ;; Check top edge of platform.
+    lda Zp_AvatarPosY_i16 + 0
+    sub Ram_PlatformTop_i16_0_arr, x
+    sta Zp_Tmp1_byte  ; distance below water (lo)
+    lda Zp_AvatarPosY_i16 + 1
+    sbc Ram_PlatformTop_i16_1_arr, x
+    bmi _NotInWater
+    bne _MaxDepth
+    lda Zp_Tmp1_byte  ; distance below water (lo)
+    rts
+_MaxDepth:
+    lda #$ff
+    rts
+_NotInWater:
+    lda #0
     rts
 .ENDPROC
 
