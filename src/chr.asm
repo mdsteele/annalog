@@ -137,6 +137,20 @@
 
 ;;;=========================================================================;;;
 
+.SEGMENT "CHR_Garden"
+
+.EXPORT Ppu_ChrGarden
+.PROC Ppu_ChrGarden
+:   .incbin "out/data/tiles/jungle1.chr"
+    .incbin "out/data/tiles/jungle2.chr"
+    .incbin "out/data/tiles/jungle3.chr"
+    .res $08 * kSizeofChr
+    .incbin "out/data/tiles/device.chr"
+    .assert * - :- = kSizeofChr * $40, error
+.ENDPROC
+
+;;;=========================================================================;;;
+
 .SEGMENT "CHR_Indoors"
 
 .EXPORT Ppu_ChrIndoors

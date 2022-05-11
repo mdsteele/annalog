@@ -27,7 +27,7 @@
 .INCLUDE "../platform.inc"
 .INCLUDE "../room.inc"
 
-.IMPORT DataA_Room_Prison_sTileset
+.IMPORT DataA_Room_Garden_sTileset
 .IMPORT DataC_Garden_AreaCells_u8_arr2_arr
 .IMPORT DataC_Garden_AreaName_u8_arr
 .IMPORT Func_Noop
@@ -58,7 +58,7 @@ _Ext_sRoomExt:
     D_STRUCT sRoomExt
     d_addr AreaName_u8_arr_ptr, DataC_Garden_AreaName_u8_arr
     d_addr AreaCells_u8_arr2_arr_ptr, DataC_Garden_AreaCells_u8_arr2_arr
-    d_addr Terrain_sTileset_ptr, DataA_Room_Prison_sTileset
+    d_addr Terrain_sTileset_ptr, DataA_Room_Garden_sTileset
     d_addr Platforms_sPlatform_arr_ptr, _Platforms_sPlatform_arr
     d_addr Actors_sActor_arr_ptr, _Actors_sActor_arr
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
