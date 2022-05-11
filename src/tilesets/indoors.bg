@@ -1,15 +1,16 @@
 @BG 0 0 0 32x10
+>anim01
 >furniture
 >indoors
 >window
 
-            BCBDAA                                  CACBBS    BT
-    BABB    BEBFABACACAD                            CCCD
+            CCCDBA                                  DADBCS    CT
+    CACB    CECFBBBCBCBD  BI                        DCDD
+                                                            AAAA
 
 
 
 
 
-
-BG    BJBH    BLBH    BJBKBK      BOBP                      AEAF
-BH    BIBN    BJBH    BJ    BMBM          BQBR              AGAH
+CG    CJCH    CLCH    CJCKCK      COCP                      BEBF
+CH    CICN    CJCH    CJ    CMCM          CQCR              BGBH

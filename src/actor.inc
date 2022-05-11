@@ -21,7 +21,8 @@
 kMaxActors = 8
 
 ;;; State bytes to set for eActor::Adult for various adults.
-kAdultWoman = $88
+kAdultWoman          = $88
+kAdultMermaidSitting = $8e
 
 ;;; State bytes to set for eActor::Child for various children.
 kChildPonytail = $84

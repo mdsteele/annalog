@@ -145,7 +145,7 @@
     .res $08 * kSizeofChr
     .incbin "out/data/tiles/window.chr"
     .incbin "out/data/tiles/furniture.chr"
-    .res $18 * kSizeofChr
+    .res $17 * kSizeofChr
     .assert * - :- = kSizeofChr * $40, error
 .ENDPROC
 
@@ -227,7 +227,7 @@
 .PROC Ppu_ChrTownsfolk
 :   .incbin "out/data/tiles/townsfolk1.chr"
     .incbin "out/data/tiles/townsfolk2.chr"
-    .res $72 * kSizeofChr
+    .res $5a * kSizeofChr
     .assert * - :- = kSizeofChr * $80, error
 .ENDPROC
 
