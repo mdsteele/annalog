@@ -18,9 +18,11 @@
 ;;;=========================================================================;;;
 
 ;;; A sDialog struct is a variable-length sequence of one or more entries,
-;;; terminated by a zero byte.  Each entry consists of a 2-byte ePortrait value
-;;; followed by one window's worth of text, with the text terminated by a
-;;; kDialogTextEnd byte.
+;;; terminated by a zero byte.  Each entry consists of one of the following:
+;;;   * A 2-byte ePortrait value followed by one window's worth of text, with
+;;;     the text terminated by a kDialogTextEnd byte.
+;;;   * A pointer to a function (which must be within PRG ROM) that will return
+;;;     YA with a pointer to another sDialog struct.
 
 ;;;=========================================================================;;;
 

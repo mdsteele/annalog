@@ -293,15 +293,26 @@ _CloseWindow:
     sta Zp_DialogTextCol_u8
     lda #kDialogTextStartRow
     sta Zp_DialogTextRow_u8
+_ReadPortrait:
     ldy #0
     sty Zp_DialogPaused_bool
     lda (Zp_DialogText_ptr), y
-    sta Zp_PortraitRestBank_u8
+    tax
     iny
     lda (Zp_DialogText_ptr), y
-    sta Zp_PortraitAnimBank_u8
+    bpl _SetPortrait
+_DynamicDialog:
+    stax Zp_Tmp_ptr
+    jsr _CallTmpPtr
+    stya Zp_DialogText_ptr
+    jmp _ReadPortrait
+_CallTmpPtr:
+    jmp (Zp_Tmp_ptr)
+_SetPortrait:
     iny
-    chr04_bank Zp_PortraitRestBank_u8
+    sta Zp_PortraitAnimBank_u8
+    stx Zp_PortraitRestBank_u8
+    chr04_bank x
     .assert * = FuncA_Dialog_AdvanceTextPtr, error, "fallthrough"
 .ENDPROC
 

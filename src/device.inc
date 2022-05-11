@@ -28,6 +28,14 @@ kFlowerTileIdBottom     = $0d
 kLeverHandleTileIdDown  = $0e
 kLeverHandleTileIdUp    = $0f
 
+;;; The OBJ palette numbers used for various device objects.
+kConsoleScreenPaletteOk  = 2
+kConsoleScreenPaletteErr = 1
+kFlowerPaletteTop        = 1
+kFlowerPaletteBottom     = 2
+kLeverHandlePalette      = 0
+kUpgradePalette          = 0
+
 ;;; The initial value to set in Ram_DeviceAnim_u8_arr when animating an upgrade
 ;;; device.
 kUpgradeDeviceAnimStart = 23

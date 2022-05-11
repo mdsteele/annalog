@@ -62,14 +62,6 @@ FuncA_Objects_DrawSignDevice = Func_Noop
 .LINECONT -
 .ASSERT .tcount({DeviceDrawFuncs}) = eDevice::NUM_VALUES * 2 - 1, error
 
-;;; The OBJ palette numbers used for various device objects.
-kConsoleScreenPaletteOk  = 2
-kConsoleScreenPaletteErr = 1
-kFlowerPaletteTop        = 1
-kFlowerPaletteBottom     = 2
-kLeverHandlePalette      = 0
-kUpgradePalette          = 0
-
 ;;; The number of animation frames a lever device has (i.e. the number of
 ;;; distinct ways of drawing it).
 kLeverNumAnimFrames = 4

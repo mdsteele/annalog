@@ -82,3 +82,10 @@ kSaveMagicNumber = $b2
 .ENDENUM
 
 ;;;=========================================================================;;;
+
+kFirstFlowerFlag = eFlag::FlowerPrison
+kLastFlowerFlag = eFlag::FlowerCore
+kNumFlowerFlags = 12
+.ASSERT kNumFlowerFlags = kLastFlowerFlag + 1 - kFirstFlowerFlag, error
+
+;;;=========================================================================;;;
