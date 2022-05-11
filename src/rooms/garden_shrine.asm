@@ -18,9 +18,7 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "../actor.inc"
-.INCLUDE "../charmap.inc"
 .INCLUDE "../device.inc"
-.INCLUDE "../dialog.inc"
 .INCLUDE "../flag.inc"
 .INCLUDE "../machine.inc"
 .INCLUDE "../macros.inc"
@@ -32,20 +30,27 @@
 .IMPORT DataC_Garden_AreaName_u8_arr
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrUpgrade
+.IMPORT Ram_DeviceType_eDevice_arr
+.IMPORT Sram_ProgressFlags_arr
+
+;;;=========================================================================;;;
+
+;;; The device index for the upgrade in this room.
+kUpgradeDeviceIndex = 0
 
 ;;;=========================================================================;;;
 
 .SEGMENT "PRGC_Garden"
 
-.EXPORT DataC_Garden_Landing_sRoom
-.PROC DataC_Garden_Landing_sRoom
+.EXPORT DataC_Garden_Shrine_sRoom
+.PROC DataC_Garden_Shrine_sRoom
     D_STRUCT sRoom
-    d_byte MinScrollX_u8, $0
-    d_word MaxScrollX_u16, $100
-    d_byte IsTall_bool, $ff
-    d_byte MinimapStartRow_u8, 6
-    d_byte MinimapStartCol_u8, 6
-    d_byte MinimapWidth_u8, 2
+    d_byte MinScrollX_u8, $08
+    d_word MaxScrollX_u16, $08
+    d_byte IsTall_bool, $00
+    d_byte MinimapStartRow_u8, 7
+    d_byte MinimapStartCol_u8, 8
+    d_byte MinimapWidth_u8, 1
     d_addr TerrainData_ptr, _TerrainData
     d_byte NumMachines_u8, 0
     d_addr Machines_sMachine_arr_ptr, 0
@@ -62,56 +67,45 @@ _Ext_sRoomExt:
     d_addr Platforms_sPlatform_arr_ptr, _Platforms_sPlatform_arr
     d_addr Actors_sActor_arr_ptr, _Actors_sActor_arr
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
-    d_addr Dialogs_sDialog_ptr_arr_ptr, _Dialogs_sDialog_ptr_arr
+    d_addr Dialogs_sDialog_ptr_arr_ptr, 0
     d_addr Passages_sPassage_arr_ptr, _Passages_sPassage_arr
-    d_addr Init_func_ptr, Func_Noop
+    d_addr Init_func_ptr, _InitRoom
     D_END
 _TerrainData:
-:   .incbin "out/data/garden_landing.room"
-    .assert * - :- = 33 * 24, error
+:   .incbin "out/data/garden_shrine.room"
+    .assert * - :- = 18 * 16, error
 _Platforms_sPlatform_arr:
-    D_STRUCT sPlatform
-    d_byte Type_ePlatform, ePlatform::Water
-    d_byte WidthPx_u8,  $a0
-    d_byte HeightPx_u8, $30
-    d_word Left_i16,  $0030
-    d_word Top_i16,   $0144
-    D_END
-    D_STRUCT sPlatform
-    d_byte Type_ePlatform, ePlatform::Water
-    d_byte WidthPx_u8,  $b0
-    d_byte HeightPx_u8, $30
-    d_word Left_i16,  $0100
-    d_word Top_i16,   $0144
-    D_END
     .byte ePlatform::None
 _Actors_sActor_arr:
     .byte eActor::None
 _Devices_sDevice_arr:
+    .assert kUpgradeDeviceIndex = 0, error
     D_STRUCT sDevice
-    d_byte Type_eDevice, eDevice::Sign
-    d_byte BlockRow_u8, 17
-    d_byte BlockCol_u8, 23
-    d_byte Target_u8, 0
+    d_byte Type_eDevice, eDevice::Upgrade
+    d_byte BlockRow_u8, 8
+    d_byte BlockCol_u8, 8
+    d_byte Target_u8, eFlag::UpgradeOpcodeIfGoto
     D_END
     .byte eDevice::None
-_Dialogs_sDialog_ptr_arr:
-    .addr _Dialog0_sDialog
-_Dialog0_sDialog:
-    .word ePortrait::Sign
-    .byte "Lorem ipsum.#"
-    .byte 0
 _Passages_sPassage_arr:
     D_STRUCT sPassage
-    d_byte Exit_bPassage, ePassage::Eastern | 1
-    d_word PositionAdjust_i16, $ffff & -$70
-    d_byte Destination_eRoom, eRoom::GardenShrine
+    d_byte Exit_bPassage, ePassage::Western | 0
+    d_word PositionAdjust_i16, $70
+    d_byte Destination_eRoom, eRoom::GardenLanding
     D_END
     D_STRUCT sPassage
-    d_byte Exit_bPassage, ePassage::Top | 0
-    d_word PositionAdjust_i16, $110
-    d_byte Destination_eRoom, eRoom::PrisonCell
+    d_byte Exit_bPassage, ePassage::Eastern | 0
+    d_word PositionAdjust_i16, $20
+    d_byte Destination_eRoom, eRoom::PrisonCell  ; TODO
     D_END
+_InitRoom:
+    lda Sram_ProgressFlags_arr + (eFlag::UpgradeOpcodeIfGoto >> 3)
+    and #1 << (eFlag::UpgradeOpcodeIfGoto & $07)
+    beq @done
+    lda #eDevice::None
+    sta Ram_DeviceType_eDevice_arr + kUpgradeDeviceIndex
+    @done:
+    rts
 .ENDPROC
 
 ;;;=========================================================================;;;

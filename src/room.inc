@@ -40,6 +40,7 @@ kRoomStateSize = $100
     CryptFlower
     GardenBoss
     GardenLanding
+    GardenShrine
     MermaidFlower
     MermaidHouse1
     PrisonCell
@@ -51,7 +52,7 @@ kRoomStateSize = $100
     NUM_VALUES
 .ENDENUM
 
-.DEFINE kNumRooms 11
+.DEFINE kNumRooms 12
 .ASSERT kNumRooms = eRoom::NUM_VALUES, error
 
 ;;;=========================================================================;;;

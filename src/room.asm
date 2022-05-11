@@ -29,6 +29,7 @@
 .IMPORT DataC_Crypt_Flower_sRoom
 .IMPORT DataC_Garden_Boss_sRoom
 .IMPORT DataC_Garden_Landing_sRoom
+.IMPORT DataC_Garden_Shrine_sRoom
 .IMPORT DataC_Mermaid_Flower_sRoom
 .IMPORT DataC_Mermaid_House1_sRoom
 .IMPORT DataC_Prison_Cell_sRoom
@@ -73,6 +74,7 @@
     DataC_Crypt_Flower_sRoom, \
     DataC_Garden_Boss_sRoom, \
     DataC_Garden_Landing_sRoom, \
+    DataC_Garden_Shrine_sRoom, \
     DataC_Mermaid_Flower_sRoom, \
     DataC_Mermaid_House1_sRoom, \
     DataC_Prison_Cell_sRoom, \
