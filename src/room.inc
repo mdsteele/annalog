@@ -38,6 +38,7 @@ kRoomStateSize = $100
 ;;; The list of rooms in the game.
 .ENUM eRoom
     CryptFlower
+    CryptLanding
     GardenBoss
     GardenLanding
     GardenShrine
@@ -52,7 +53,7 @@ kRoomStateSize = $100
     NUM_VALUES
 .ENDENUM
 
-.DEFINE kNumRooms 12
+.DEFINE kNumRooms 13
 .ASSERT kNumRooms = eRoom::NUM_VALUES, error
 
 ;;;=========================================================================;;;
