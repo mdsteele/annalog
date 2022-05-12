@@ -42,11 +42,11 @@ kRoomStateSize = $100
     GardenBoss
     GardenLanding
     GardenShrine
+    GardenTunnel
     MermaidFlower
     MermaidHouse1
     PrisonCell
     PrisonEscape
-    PrisonTunnel
     TownHouse1
     TownHouse2
     TownOutdoors

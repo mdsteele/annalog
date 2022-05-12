@@ -31,11 +31,11 @@
 .IMPORT DataC_Garden_Boss_sRoom
 .IMPORT DataC_Garden_Landing_sRoom
 .IMPORT DataC_Garden_Shrine_sRoom
+.IMPORT DataC_Garden_Tunnel_sRoom
 .IMPORT DataC_Mermaid_Flower_sRoom
 .IMPORT DataC_Mermaid_House1_sRoom
 .IMPORT DataC_Prison_Cell_sRoom
 .IMPORT DataC_Prison_Escape_sRoom
-.IMPORT DataC_Prison_Tunnel_sRoom
 .IMPORT DataC_Town_House1_sRoom
 .IMPORT DataC_Town_House2_sRoom
 .IMPORT DataC_Town_Outdoors_sRoom
@@ -77,11 +77,11 @@
     DataC_Garden_Boss_sRoom, \
     DataC_Garden_Landing_sRoom, \
     DataC_Garden_Shrine_sRoom, \
+    DataC_Garden_Tunnel_sRoom, \
     DataC_Mermaid_Flower_sRoom, \
     DataC_Mermaid_House1_sRoom, \
     DataC_Prison_Cell_sRoom, \
     DataC_Prison_Escape_sRoom, \
-    DataC_Prison_Tunnel_sRoom, \
     DataC_Town_House1_sRoom, \
     DataC_Town_House2_sRoom, \
     DataC_Town_Outdoors_sRoom

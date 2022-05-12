@@ -19,39 +19,28 @@
 
 .INCLUDE "../actor.inc"
 .INCLUDE "../device.inc"
-.INCLUDE "../flag.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../platform.inc"
 .INCLUDE "../room.inc"
 
-.IMPORT DataA_Room_Prison_sTileset
-.IMPORT DataC_Prison_AreaCells_u8_arr2_arr
-.IMPORT DataC_Prison_AreaName_u8_arr
+.IMPORT DataA_Room_Garden_sTileset
+.IMPORT DataC_Garden_AreaCells_u8_arr2_arr
+.IMPORT DataC_Garden_AreaName_u8_arr
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrUpgrade
-.IMPORT Ram_DeviceAnim_u8_arr
-.IMPORT Ram_RoomState
 
 ;;;=========================================================================;;;
 
-;;; Defines room-specific state data for this particular room.
-.STRUCT sState
-    LeverState_u1 .byte
-.ENDSTRUCT
-.ASSERT .sizeof(sState) <= kRoomStateSize, error
+.SEGMENT "PRGC_Garden"
 
-;;;=========================================================================;;;
-
-.SEGMENT "PRGC_Prison"
-
-.EXPORT DataC_Prison_Tunnel_sRoom
-.PROC DataC_Prison_Tunnel_sRoom
+.EXPORT DataC_Garden_Tunnel_sRoom
+.PROC DataC_Garden_Tunnel_sRoom
     D_STRUCT sRoom
-    d_byte MinScrollX_u8, $10
-    d_word MaxScrollX_u16, $10
+    d_byte MinScrollX_u8, $08
+    d_word MaxScrollX_u16, $08
     d_byte IsTall_bool, $00
-    d_byte MinimapStartRow_u8, 2
-    d_byte MinimapStartCol_u8, 7
+    d_byte MinimapStartRow_u8, 9
+    d_byte MinimapStartCol_u8, 9
     d_byte MinimapWidth_u8, 1
     d_addr TerrainData_ptr, _TerrainData
     d_byte NumMachines_u8, 0
@@ -63,18 +52,18 @@
     D_END
 _Ext_sRoomExt:
     D_STRUCT sRoomExt
-    d_addr AreaName_u8_arr_ptr, DataC_Prison_AreaName_u8_arr
-    d_addr AreaCells_u8_arr2_arr_ptr, DataC_Prison_AreaCells_u8_arr2_arr
-    d_addr Terrain_sTileset_ptr, DataA_Room_Prison_sTileset
+    d_addr AreaName_u8_arr_ptr, DataC_Garden_AreaName_u8_arr
+    d_addr AreaCells_u8_arr2_arr_ptr, DataC_Garden_AreaCells_u8_arr2_arr
+    d_addr Terrain_sTileset_ptr, DataA_Room_Garden_sTileset
     d_addr Platforms_sPlatform_arr_ptr, _Platforms_sPlatform_arr
     d_addr Actors_sActor_arr_ptr, _Actors_sActor_arr
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
     d_addr Dialogs_sDialog_ptr_arr_ptr, 0
     d_addr Passages_sPassage_arr_ptr, _Passages_sPassage_arr
-    d_addr Init_func_ptr, _Init
+    d_addr Init_func_ptr, Func_Noop
     D_END
 _TerrainData:
-:   .incbin "out/data/prison_tunnel.room"
+:   .incbin "out/data/garden_tunnel.room"
     .assert * - :- = 18 * 16, error
 _Platforms_sPlatform_arr:
     .byte ePlatform::None
@@ -82,7 +71,7 @@ _Actors_sActor_arr:
     D_STRUCT sActor
     d_byte Type_eActor, eActor::Crawler
     d_byte TileRow_u8, 9
-    d_byte TileCol_u8, 16
+    d_byte TileCol_u8, 20
     d_byte Param_byte, 0
     D_END
     D_STRUCT sActor
@@ -93,37 +82,18 @@ _Actors_sActor_arr:
     D_END
     .byte eActor::None
 _Devices_sDevice_arr:
-    D_STRUCT sDevice
-    d_byte Type_eDevice, eDevice::Lever
-    d_byte BlockRow_u8, 8
-    d_byte BlockCol_u8, 9
-    d_byte Target_u8, sState::LeverState_u1
-    D_END
-    D_STRUCT sDevice
-    d_byte Type_eDevice, eDevice::Upgrade
-    d_byte BlockRow_u8, 10
-    d_byte BlockCol_u8, 3
-    d_byte Target_u8, eFlag::UpgradeOpcodeCopy
-    D_END
     .byte eDevice::None
 _Passages_sPassage_arr:
     D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Western | 0
     d_word PositionAdjust_i16, $10
-    d_byte Destination_eRoom, eRoom::PrisonCell
+    d_byte Destination_eRoom, eRoom::PrisonCell  ; TODO
     D_END
     D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Eastern | 0
     d_word PositionAdjust_i16, $50
-    d_byte Destination_eRoom, eRoom::PrisonCell
+    d_byte Destination_eRoom, eRoom::PrisonCell  ; TODO
     D_END
-_Init:
-    lda #0
-    sta Ram_RoomState + sState::LeverState_u1
-    ;; Animate the upgrade device.
-    lda #kUpgradeDeviceAnimStart
-    sta Ram_DeviceAnim_u8_arr + 1
-    rts
 .ENDPROC
 
 ;;;=========================================================================;;;

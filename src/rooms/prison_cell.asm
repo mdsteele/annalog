@@ -216,7 +216,7 @@ _Passages_sPassage_arr:
     D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Eastern | 0
     d_word PositionAdjust_i16, $ffff & -$10
-    d_byte Destination_eRoom, eRoom::PrisonTunnel
+    d_byte Destination_eRoom, eRoom::GardenTunnel  ; TODO
     D_END
     D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Bottom | 1

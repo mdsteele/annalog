@@ -144,7 +144,7 @@
 :   .incbin "out/data/tiles/jungle1.chr"
     .incbin "out/data/tiles/jungle2.chr"
     .incbin "out/data/tiles/jungle3.chr"
-    .res $08 * kSizeofChr
+    .res $06 * kSizeofChr
     .incbin "out/data/tiles/device.chr"
     .assert * - :- = kSizeofChr * $40, error
 .ENDPROC
