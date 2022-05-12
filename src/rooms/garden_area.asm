@@ -31,12 +31,10 @@
 .EXPORT DataC_Garden_AreaCells_u8_arr2_arr
 .PROC DataC_Garden_AreaCells_u8_arr2_arr
     .byte  6,  6
-    .byte  7,  5
     .byte  7,  6
     .byte  7,  7
     .byte  7,  8
     .byte  7,  9
-    .byte  8,  5
     .byte  8,  6
     .byte  8,  7
     .byte  8,  8

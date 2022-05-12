@@ -30,6 +30,7 @@
 
 .EXPORT DataC_Crypt_AreaCells_u8_arr2_arr
 .PROC DataC_Crypt_AreaCells_u8_arr2_arr
+    .byte  7,  0
     .byte  7,  2
     .byte  8,  0
     .byte  8,  1

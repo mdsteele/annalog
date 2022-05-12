@@ -30,6 +30,7 @@
 
 .EXPORT DataC_Mermaid_AreaCells_u8_arr2_arr
 .PROC DataC_Mermaid_AreaCells_u8_arr2_arr
+    .byte  8, 14
     .byte  9, 13
     .byte  9, 14
     .byte  9, 15

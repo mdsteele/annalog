@@ -39,6 +39,7 @@
 .IMPORT Ppu_ChrTitle
 .IMPORT Ram_Music_sChanState_arr
 .IMPORT Sram_MagicNumber_u8
+.IMPORT Sram_Minimap_u16_arr
 .IMPORTZP Zp_Next_sAudioCtrl
 .IMPORTZP Zp_OamOffset_u8
 .IMPORTZP Zp_P1ButtonsPressed_bJoypad
@@ -248,6 +249,14 @@ _SetRenderState:
     .endrepeat
     inx
     bne @loop
+    ;; TODO: For testing, reveal whole minimap (remove this later).
+    lda #$ff
+    ldx #0
+    @minimapLoop:
+    sta Sram_Minimap_u16_arr, x
+    inx
+    cpx #$30
+    blt @minimapLoop
     ;; Mark the save file as present.
     lda #kSaveMagicNumber
     sta Sram_MagicNumber_u8
