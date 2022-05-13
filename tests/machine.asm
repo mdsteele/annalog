@@ -47,6 +47,9 @@ kMaxTestMachinePosY = 9
 
 .ZEROPAGE
 
+.EXPORTZP Zp_FrameCounter_u8
+Zp_FrameCounter_u8: .res 1
+
 .EXPORTZP Zp_P1ButtonsHeld_bJoypad
 Zp_P1ButtonsHeld_bJoypad: .res 1
 

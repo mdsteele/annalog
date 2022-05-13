@@ -32,9 +32,7 @@
 .IMPORT DataA_Room_Prison_sTileset
 .IMPORT DataC_Garden_AreaCells_u8_arr2_arr
 .IMPORT DataC_Garden_AreaName_u8_arr
-.IMPORT FuncA_Objects_Alloc2x2Shape
-.IMPORT FuncA_Objects_MoveShapeDownOneTile
-.IMPORT FuncA_Objects_MoveShapeRightOneTile
+.IMPORT FuncA_Objects_DrawGrenadeLauncherMachine
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
 .IMPORT Func_FindEmptyActorSlot
 .IMPORT Func_GetRandomByte
@@ -44,6 +42,7 @@
 .IMPORT Func_InitSpikeActor
 .IMPORT Func_MachineError
 .IMPORT Func_MachineFinishResetting
+.IMPORT Func_Noop
 .IMPORT Ppu_ChrUpgrade
 .IMPORT Ram_ActorPosX_i16_0_arr
 .IMPORT Ram_ActorPosX_i16_1_arr
@@ -52,12 +51,10 @@
 .IMPORT Ram_ActorType_eActor_arr
 .IMPORT Ram_DeviceAnim_u8_arr
 .IMPORT Ram_DeviceType_eDevice_arr
-.IMPORT Ram_MachineStatus_eMachine_arr
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORT Ram_RoomState
 .IMPORT Sram_ProgressFlags_arr
 .IMPORTZP Zp_AvatarPosX_i16
-.IMPORTZP Zp_FrameCounter_u8
 .IMPORTZP Zp_OamOffset_u8
 .IMPORTZP Zp_PpuScrollX_u8
 .IMPORTZP Zp_PpuScrollY_u8
@@ -80,9 +77,6 @@ kUpgradeBlockCol = 10
 kCannonMachineIndex = 0
 ;;; The platform index for the GardenBossCannon machine.
 kCannonPlatformIndex = 0
-;;; The initial and max values for sState::CannonRegY_u8.
-kCannonInitRegY = 0
-kCannonMaxRegY = 1
 ;;; How many frames the GardenBossCannon machine spends per move/act operation.
 kCannonMoveCountdown = $20
 kCannonActCountdown = $60
@@ -156,8 +150,8 @@ kBossRightEyeCenterY = $78
     LeverRight_u1        .byte
     ;; Counts down when nonzero; upon reaching zero, spawns the upgrade.
     SpawnUpgradeTimer_u8 .byte
-    ;; The current value of the GardenBossCannon machine's Y register.
-    CannonRegY_u8        .byte
+    ;; The current aim angle of the GardenBossCannon machine (0-255).
+    CannonAngle_u8       .byte
     ;; The goal value of the GardenBossCannon machine's Y register; it will
     ;; keep moving until this is reached.
     CannonGoalY_u8       .byte
@@ -227,7 +221,7 @@ _Machines_sMachine_arr:
     d_word ScrollGoalX_u16, $0
     d_byte ScrollGoalY_u8, $0e
     d_byte RegNames_u8_arr4, "L", "R", 0, "Y"
-    d_addr Init_func_ptr, _Cannon_Init
+    d_addr Init_func_ptr, Func_Noop
     d_addr ReadReg_func_ptr, _Cannon_ReadReg
     d_addr WriteReg_func_ptr, Func_MachineError
     d_addr TryMove_func_ptr, _Cannon_TryMove
@@ -284,18 +278,17 @@ _Devices_sDevice_arr:
     d_byte Target_u8, eFlag::UpgradeOpcodeIfGoto
     D_END
     .byte eDevice::None
-_Cannon_Init:
-    lda #kCannonInitRegY
-    sta Ram_RoomState + sState::CannonRegY_u8
-    sta Ram_RoomState + sState::CannonGoalY_u8
-    rts
 _Cannon_ReadReg:
     cmp #$c
     beq @readL
     cmp #$d
     beq @readR
     @readY:
-    lda Ram_RoomState + sState::CannonRegY_u8
+    lda Ram_RoomState + sState::CannonAngle_u8
+    and #$80
+    beq @return
+    lda #1
+    @return:
     rts
     @readL:
     lda Ram_RoomState + sState::LeverLeft_u1
@@ -304,16 +297,15 @@ _Cannon_ReadReg:
     lda Ram_RoomState + sState::LeverRight_u1
     rts
 _Cannon_TryMove:
-    ldy Ram_RoomState + sState::CannonRegY_u8
     cpx #eDir::Down
     beq @moveDown
     @moveUp:
-    cpy #kCannonMaxRegY
-    bge @error
+    ldy Ram_RoomState + sState::CannonGoalY_u8
+    bne @error
     iny
     bne @success  ; unconditional
     @moveDown:
-    tya
+    ldy Ram_RoomState + sState::CannonGoalY_u8
     beq @error
     dey
     @success:
@@ -333,29 +325,29 @@ _Cannon_TryAct:
     sta Ram_ActorPosX_i16_1_arr + kGrenadeActorIndex
     sta Ram_ActorPosY_i16_1_arr + kGrenadeActorIndex
     ldx #kGrenadeActorIndex  ; param: actor index
-    lda Ram_RoomState + sState::CannonRegY_u8  ; param: aim angle
+    lda Ram_RoomState + sState::CannonGoalY_u8  ; param: aim angle (0-1)
     jsr Func_InitGrenadeActor
     lda #kCannonActCountdown
     clc  ; clear C to indicate success
     rts
 _Cannon_Tick:
-    lda Ram_RoomState + sState::CannonCountdown_u8
-    bne @continueMove
-    ldy Ram_RoomState + sState::CannonRegY_u8
-    cpy Ram_RoomState + sState::CannonGoalY_u8
-    jeq Func_MachineFinishResetting
-    bge @beginMoveUp
-    @beginMoveDown:
-    iny
-    bne @beginMove  ; unconditional
-    @beginMoveUp:
-    dey
-    @beginMove:
-    sty Ram_RoomState + sState::CannonRegY_u8
-    lda #kCannonMoveCountdown
-    sta Ram_RoomState + sState::CannonCountdown_u8
-    @continueMove:
-    dec Ram_RoomState + sState::CannonCountdown_u8
+    lda Ram_RoomState + sState::CannonGoalY_u8
+    beq @moveDown
+    @moveUp:
+    lda Ram_RoomState + sState::CannonAngle_u8
+    add #$100 / kCannonMoveCountdown
+    bcc @setAngle
+    jsr Func_MachineFinishResetting
+    lda #$ff
+    bne @setAngle  ; unconditional
+    @moveDown:
+    lda Ram_RoomState + sState::CannonAngle_u8
+    sub #$100 / kCannonMoveCountdown
+    bge @setAngle
+    jsr Func_MachineFinishResetting
+    lda #0
+    @setAngle:
+    sta Ram_RoomState + sState::CannonAngle_u8
     rts
 _Cannon_Reset:
     lda #0
@@ -736,53 +728,13 @@ _PosY_u8_arr:
 .ENDPROC
 
 ;;; Allocates and populates OAM slots for the GardenBossCannon machine.
+;;; @prereq Zp_MachineIndex_u8 is initialized.
 .PROC FuncA_Objects_GardenBossCannon_Draw
-    ;; Allocate objects.
     ldx #kCannonPlatformIndex  ; param: platform index
     jsr FuncA_Objects_SetShapePosToPlatformTopLeft
-    jsr FuncA_Objects_MoveShapeDownOneTile
-    jsr FuncA_Objects_MoveShapeRightOneTile
-    lda #0  ; param: object flags
-    jsr FuncA_Objects_Alloc2x2Shape  ; sets C if offscreen; returns Y
-    bcs @done
-    ;; Set flags.
-    lda #kMachineLightPalette
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Flags_bObj, y
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Flags_bObj, y
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Flags_bObj, y
-    lda #kMachineLightPalette | bObj::FlipV
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Flags_bObj, y
-    ;; Set corner tile IDs.
-    lda #kCannonTileIdCornerTop
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Tile_u8, y
-    lda #kCannonTileIdCornerBase
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Tile_u8, y
-    ;; Set light tile ID.
-    lda Ram_MachineStatus_eMachine_arr + kCannonMachineIndex
-    cmp #eMachine::Error
-    bne @lightOff
-    lda Zp_FrameCounter_u8
-    and #$08
-    beq @lightOff
-    lda #kCannonTileIdLightOn
-    bne @setLight  ; unconditional
-    @lightOff:
-    lda #kCannonTileIdLightOff
-    @setLight:
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Tile_u8, y
-    ;; Set barrel tile ID.
-    ;; TODO: Animate motion.
-    lda Ram_RoomState + sState::CannonRegY_u8
-    bne @barrelHigh
-    @barrelLow:
-    lda #kCannonTileIdBarrelLow
-    bne @setBarrel  ; unconditional
-    @barrelHigh:
-    lda #kCannonTileIdBarrelHigh
-    @setBarrel:
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Tile_u8, y
-    @done:
-    rts
+    ldx Ram_RoomState + sState::CannonAngle_u8  ; param: aim angle
+    ldy #0  ; param: horz flip
+    jmp FuncA_Objects_DrawGrenadeLauncherMachine
 .ENDPROC
 
 ;;;=========================================================================;;;

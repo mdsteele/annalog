@@ -33,6 +33,7 @@
 .IMPORT DataC_Prison_AreaCells_u8_arr2_arr
 .IMPORT DataC_Prison_AreaName_u8_arr
 .IMPORT FuncA_Objects_Alloc2x2Shape
+.IMPORT FuncA_Objects_GetMachineLightTileId
 .IMPORT FuncA_Objects_MoveShapeDownOneTile
 .IMPORT FuncA_Objects_MoveShapeRightOneTile
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
@@ -41,10 +42,8 @@
 .IMPORT Func_MovePlatformVert
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrUpgrade
-.IMPORT Ram_MachineStatus_eMachine_arr
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORT Ram_RoomState
-.IMPORTZP Zp_FrameCounter_u8
 
 ;;;=========================================================================;;;
 
@@ -66,8 +65,6 @@ kBarrierSpeed = 1
 kBarrierCountdown = $10
 
 ;;; Various OBJ tile IDs used for drawing the PrisonCellBarrier machine.
-kBarrierTileIdLightOff = $70
-kBarrierTileIdLightOn  = $71
 kBarrierTileIdCorner   = $73
 kBarrierTileIdSurface  = $72
 
@@ -313,6 +310,8 @@ _Blaster_Reset:
 
 .SEGMENT "PRGA_Objects"
 
+;;; Allocates and populates OAM slots for the PrisonCellBarrier machine.
+;;; @prereq Zp_MachineIndex_u8 is initialized.
 .PROC FuncA_Objects_PrisonCellBarrier_Draw
     ldx #kBarrierPlatformIndex  ; param: platform index
     jsr FuncA_Objects_SetShapePosToPlatformTopLeft
@@ -320,7 +319,7 @@ _TopHalf:
     ;; Allocate objects.
     jsr FuncA_Objects_MoveShapeDownOneTile
     jsr FuncA_Objects_MoveShapeRightOneTile
-    lda #0  ; param: object flags
+    lda #kMachineLightPalette  ; param: object flags
     jsr FuncA_Objects_Alloc2x2Shape  ; sets C if offscreen; returns Y
     bcs @done
     ;; Set flags and tile IDs.
@@ -330,8 +329,6 @@ _TopHalf:
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Flags_bObj, y
     lda #kMachineLightPalette | bObj::FlipV
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Flags_bObj, y
-    lda #kMachineLightPalette
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Flags_bObj, y
     lda #kBarrierTileIdCorner
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Tile_u8, y
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Tile_u8, y
@@ -343,12 +340,10 @@ _BottomHalf:
     ;; Allocate objects.
     jsr FuncA_Objects_MoveShapeDownOneTile
     jsr FuncA_Objects_MoveShapeDownOneTile
-    lda #0  ; param: object flags
+    lda #kMachineLightPalette  ; param: object flags
     jsr FuncA_Objects_Alloc2x2Shape  ; sets C if offscreen; returns Y
     bcs @done
     ;; Set flags and tile IDs.
-    lda #kMachineLightPalette
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Flags_bObj, y
     lda #kMachineLightPalette | bObj::FlipH
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Flags_bObj, y
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Flags_bObj, y
@@ -359,17 +354,7 @@ _BottomHalf:
     lda #kBarrierTileIdSurface
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Tile_u8, y
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Tile_u8, y
-    lda Ram_MachineStatus_eMachine_arr + kBarrierMachineIndex
-    cmp #eMachine::Error
-    bne @lightOff
-    lda Zp_FrameCounter_u8
-    and #$08
-    beq @lightOff
-    lda #kBarrierTileIdLightOn
-    bne @setLight  ; unconditional
-    @lightOff:
-    lda #kBarrierTileIdLightOff
-    @setLight:
+    jsr FuncA_Objects_GetMachineLightTileId  ; preserves Y, returns A
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Tile_u8, y
     @done:
     rts

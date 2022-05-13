@@ -26,6 +26,7 @@
 
 .IMPORT Sram_Programs_sProgram_arr
 .IMPORTZP Zp_Current_sRoom
+.IMPORTZP Zp_FrameCounter_u8
 .IMPORTZP Zp_P1ButtonsHeld_bJoypad
 .IMPORTZP Zp_Tmp1_byte
 .IMPORTZP Zp_Tmp_ptr
@@ -37,6 +38,10 @@
     _OpEmpty, _OpCopy, _OpSwap, _OpAdd, _OpSub, _OpMul, _OpGoto, _OpSkip, \
     _OpIf, _OpTil, _OpAct, _OpMove, _OpWait, _OpEnd, _OpEnd, _OpNop
 .LINECONT -
+
+;;; OBJ tile IDs used for drawing machine status lights.
+kMachineLightTileIdOff = $70
+kMachineLightTileIdOn  = $71
 
 ;;;=========================================================================;;;
 
@@ -584,6 +589,27 @@ _Le:
     @while:
     cpx <(Zp_Current_sRoom + sRoom::NumMachines_u8)
     blt @loop
+    rts
+.ENDPROC
+
+;;; Returns the tile ID to use for the status light on the current machine.
+;;; @prereq Zp_MachineIndex_u8 is initialized.
+;;; @return A The tile ID to use.
+;;; @preserve Y
+.EXPORT FuncA_Objects_GetMachineLightTileId
+.PROC FuncA_Objects_GetMachineLightTileId
+    ldx Zp_MachineIndex_u8
+    lda Ram_MachineStatus_eMachine_arr, x
+    cmp #eMachine::Error
+    bne @lightOff
+    lda Zp_FrameCounter_u8
+    and #$08
+    beq @lightOff
+    @lightOn:
+    lda #kMachineLightTileIdOn
+    rts
+    @lightOff:
+    lda #kMachineLightTileIdOff
     rts
 .ENDPROC
 
