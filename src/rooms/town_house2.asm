@@ -25,9 +25,9 @@
 .INCLUDE "../platform.inc"
 .INCLUDE "../room.inc"
 
+.IMPORT DataA_Pause_TownAreaCells_u8_arr2_arr
+.IMPORT DataA_Pause_TownAreaName_u8_arr
 .IMPORT DataA_Room_Indoors_sTileset
-.IMPORT DataC_Town_AreaCells_u8_arr2_arr
-.IMPORT DataC_Town_AreaName_u8_arr
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrTownsfolk
 
@@ -54,8 +54,8 @@
     D_END
 _Ext_sRoomExt:
     D_STRUCT sRoomExt
-    d_addr AreaName_u8_arr_ptr, DataC_Town_AreaName_u8_arr
-    d_addr AreaCells_u8_arr2_arr_ptr, DataC_Town_AreaCells_u8_arr2_arr
+    d_addr AreaName_u8_arr_ptr, DataA_Pause_TownAreaName_u8_arr
+    d_addr AreaCells_u8_arr2_arr_ptr, DataA_Pause_TownAreaCells_u8_arr2_arr
     d_addr Terrain_sTileset_ptr, DataA_Room_Indoors_sTileset
     d_addr Platforms_sPlatform_arr_ptr, _Platforms_sPlatform_arr
     d_addr Actors_sActor_arr_ptr, _Actors_sActor_arr

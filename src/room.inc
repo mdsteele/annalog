@@ -139,8 +139,8 @@ kRoomStateSize = $100
     Chr18Bank_u8              .byte
     ;; Function to call each frame to update room state.
     Tick_func_ptr             .addr
-    ;; Function to call each frame to draw room decor (e.g. for bosses).  When
-    ;; this is called, the PRGA bank will be set to PRGA_Objects.
+    ;; Function to call each frame to draw room decor (e.g. for bosses).
+    ;; @prereq PRGA_Objects is loaded.
     Draw_func_ptr             .addr
     ;; Extended information about the room.
     Ext_sRoomExt_ptr          .addr
@@ -151,9 +151,11 @@ kRoomStateSize = $100
 .STRUCT sRoomExt
     ;; A pointer to a $ff-terminated string with the name of the area that this
     ;; room belongs to.
+    ;; @prereq PRGA_Pause is loaded.
     AreaName_u8_arr_ptr         .addr
     ;; A pointer to a $ff-terminated array of row/col pairs listing the minimap
     ;; cells that constitute the area that this room belongs to.
+    ;; @prereq PRGA_Pause is loaded.
     AreaCells_u8_arr2_arr_ptr   .addr
     ;; A pointer to the tileset used for this room's terrain.
     Terrain_sTileset_ptr        .addr

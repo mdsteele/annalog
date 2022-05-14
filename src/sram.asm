@@ -17,7 +17,7 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
-.INCLUDE "pause.inc"
+.INCLUDE "minimap.inc"
 .INCLUDE "program.inc"
 
 ;;;=========================================================================;;;

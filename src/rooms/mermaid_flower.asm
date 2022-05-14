@@ -24,9 +24,9 @@
 .INCLUDE "../platform.inc"
 .INCLUDE "../room.inc"
 
+.IMPORT DataA_Pause_MermaidAreaCells_u8_arr2_arr
+.IMPORT DataA_Pause_MermaidAreaName_u8_arr
 .IMPORT DataA_Room_Prison_sTileset
-.IMPORT DataC_Mermaid_AreaCells_u8_arr2_arr
-.IMPORT DataC_Mermaid_AreaName_u8_arr
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrUpgrade
 
@@ -53,8 +53,8 @@
     D_END
 _Ext_sRoomExt:
     D_STRUCT sRoomExt
-    d_addr AreaName_u8_arr_ptr, DataC_Mermaid_AreaName_u8_arr
-    d_addr AreaCells_u8_arr2_arr_ptr, DataC_Mermaid_AreaCells_u8_arr2_arr
+    d_addr AreaName_u8_arr_ptr, DataA_Pause_MermaidAreaName_u8_arr
+    d_addr AreaCells_u8_arr2_arr_ptr, DataA_Pause_MermaidAreaCells_u8_arr2_arr
     d_addr Terrain_sTileset_ptr, DataA_Room_Prison_sTileset
     d_addr Platforms_sPlatform_arr_ptr, _Platforms_sPlatform_arr
     d_addr Actors_sActor_arr_ptr, _Actors_sActor_arr
