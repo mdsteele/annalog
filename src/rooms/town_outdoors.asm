@@ -60,7 +60,10 @@ _Ext_sRoomExt:
     d_addr Platforms_sPlatform_arr_ptr, _Platforms_sPlatform_arr
     d_addr Actors_sActor_arr_ptr, _Actors_sActor_arr
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
-    d_addr Dialogs_sDialog_ptr_arr_ptr, _Dialogs_sDialog_ptr_arr
+    .linecont +
+    d_addr Dialogs_sDialog_ptr_arr_ptr, \
+           DataA_Dialog_TownOutdoors_sDialog_ptr_arr
+    .linecont -
     d_addr Passages_sPassage_arr_ptr, 0
     d_addr Init_func_ptr, Func_Noop
     D_END
@@ -91,7 +94,14 @@ _Devices_sDevice_arr:
     d_byte Target_u8, eRoom::TownHouse2
     D_END
     .byte eDevice::None
-_Dialogs_sDialog_ptr_arr:
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Dialog"
+
+;;; Dialog data for the TownOutdoors room.
+.PROC DataA_Dialog_TownOutdoors_sDialog_ptr_arr
     .addr _Dialog0_sDialog
 _Dialog0_sDialog:
     .word ePortrait::Sign

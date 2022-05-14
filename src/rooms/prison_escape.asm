@@ -125,7 +125,10 @@ _Ext_sRoomExt:
     d_addr Platforms_sPlatform_arr_ptr, _Platforms_sPlatform_arr
     d_addr Actors_sActor_arr_ptr, _Actors_sActor_arr
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
-    d_addr Dialogs_sDialog_ptr_arr_ptr, _Dialogs_sDialog_ptr_arr
+    .linecont +
+    d_addr Dialogs_sDialog_ptr_arr_ptr, \
+           DataA_Dialog_PrisonEscape_sDialog_ptr_arr
+    .linecont -
     d_addr Passages_sPassage_arr_ptr, _Passages_sPassage_arr
     d_addr Init_func_ptr, Func_Noop
     D_END
@@ -206,19 +209,6 @@ _Devices_sDevice_arr:
     d_byte Target_u8, kTrolleyMachineIndex
     D_END
     .byte eDevice::None
-_Dialogs_sDialog_ptr_arr:
-    .addr _Dialog0_sDialog
-_Dialog0_sDialog:
-    .word ePortrait::Sign
-    .byte "Of course, it wasn't$"
-    .byte "the orcs that caused$"
-    .byte "our downfall.#"
-    .word ePortrait::Sign
-    .byte "Their arrival was$"
-    .byte "simply the inevitable$"
-    .byte "result of our own$"
-    .byte "failures.#"
-    .byte 0
 _Passages_sPassage_arr:
     D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Eastern | 0
@@ -304,6 +294,26 @@ _Trolley_Reset:
     sta Ram_RoomState + sState::TrolleyGoalX_u8
     ;; TODO: Turn the machine around if it's currently moving right.
     rts
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Dialog"
+
+;;; Dialog data for the PrisonEscape room.
+.PROC DataA_Dialog_PrisonEscape_sDialog_ptr_arr
+    .addr _Dialog0_sDialog
+_Dialog0_sDialog:
+    .word ePortrait::Sign
+    .byte "Of course, it wasn't$"
+    .byte "the orcs that caused$"
+    .byte "our downfall.#"
+    .word ePortrait::Sign
+    .byte "Their arrival was$"
+    .byte "simply the inevitable$"
+    .byte "result of our own$"
+    .byte "failures.#"
+    .byte 0
 .ENDPROC
 
 ;;;=========================================================================;;;

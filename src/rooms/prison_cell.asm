@@ -113,7 +113,7 @@ _Ext_sRoomExt:
     d_addr Platforms_sPlatform_arr_ptr, _Platforms_sPlatform_arr
     d_addr Actors_sActor_arr_ptr, _Actors_sActor_arr
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
-    d_addr Dialogs_sDialog_ptr_arr_ptr, _Dialogs_sDialog_ptr_arr
+    d_addr Dialogs_sDialog_ptr_arr_ptr, DataA_Dialog_PrisonCell_sDialog_ptr_arr
     d_addr Passages_sPassage_arr_ptr, _Passages_sPassage_arr
     d_addr Init_func_ptr, Func_Noop
     D_END
@@ -191,14 +191,6 @@ _Devices_sDevice_arr:
     d_byte Target_u8, kBlasterMachineIndex
     D_END
     .byte eDevice::None
-_Dialogs_sDialog_ptr_arr:
-    .addr _Dialog0_sDialog
-_Dialog0_sDialog:
-    .word ePortrait::Sign
-    .byte "We were once a great$"
-    .byte "civilization. Then one$"
-    .byte "day, the orcs came...#"
-    .byte 0
 _Passages_sPassage_arr:
     D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Western | 0
@@ -304,6 +296,21 @@ _Blaster_Tick:
 _Blaster_Reset:
     ;; TODO
     rts
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Dialog"
+
+;;; Dialog data for the PrisonCell room.
+.PROC DataA_Dialog_PrisonCell_sDialog_ptr_arr
+    .addr _Dialog0_sDialog
+_Dialog0_sDialog:
+    .word ePortrait::Sign
+    .byte "We were once a great$"
+    .byte "civilization. Then one$"
+    .byte "day, the orcs came...#"
+    .byte 0
 .ENDPROC
 
 ;;;=========================================================================;;;

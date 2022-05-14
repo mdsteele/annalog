@@ -175,6 +175,7 @@ kRoomStateSize = $100
     ;; room's Init_func_ptr.
     Devices_sDevice_arr_ptr     .addr
     ;; A pointer to an array of pointers to dialogs used in this room.
+    ;; @prereq PRGA_Dialog is loaded.
     Dialogs_sDialog_ptr_arr_ptr .addr
     ;; A pointer to the list of passage exits from this room.
     Passages_sPassage_arr_ptr   .addr
