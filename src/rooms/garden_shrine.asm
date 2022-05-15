@@ -90,13 +90,13 @@ _Devices_sDevice_arr:
 _Passages_sPassage_arr:
     D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Western | 0
-    d_word PositionAdjust_i16, $70
     d_byte Destination_eRoom, eRoom::GardenLanding
+    d_byte SpawnBlock_u8, 7
     D_END
     D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Eastern | 0
-    d_word PositionAdjust_i16, $20
-    d_byte Destination_eRoom, eRoom::PrisonCell  ; TODO
+    d_byte Destination_eRoom, eRoom::GardenShrine  ; TODO
+    d_byte SpawnBlock_u8, 7
     D_END
 _InitRoom:
     lda Sram_ProgressFlags_arr + (eFlag::UpgradeOpcodeIfGoto >> 3)

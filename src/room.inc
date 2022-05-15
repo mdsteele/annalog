@@ -88,13 +88,11 @@ kRoomStateSize = $100
 .STRUCT sPassage
     ;; Where in the room the exit is (which side and which screen number).
     Exit_bPassage      .byte
-    ;; The number (in pixels) to add to Zp_AvatarPosY_i16 (for east/west
-    ;; passages) or Zp_AvatarPosX_i16 (for up/down passages) when transitioning
-    ;; through this exit, in order to line up with the entrance in the other
-    ;; room.
-    PositionAdjust_i16 .word
     ;; The room number that this passage leads to.
     Destination_eRoom  .byte
+    ;; The room block row (for horizontal passages) or column (for vertical
+    ;; passages) where the player avatar should spawn after a game over.
+    SpawnBlock_u8      .byte
 .ENDSTRUCT
 
 ;;;=========================================================================;;;

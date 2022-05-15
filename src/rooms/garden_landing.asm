@@ -101,13 +101,13 @@ _Devices_sDevice_arr:
 _Passages_sPassage_arr:
     D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Eastern | 1
-    d_word PositionAdjust_i16, $ffff & -$70
     d_byte Destination_eRoom, eRoom::GardenShrine
+    d_byte SpawnBlock_u8, 14
     D_END
     D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Top | 0
-    d_word PositionAdjust_i16, $110
     d_byte Destination_eRoom, eRoom::PrisonCell
+    d_byte SpawnBlock_u8, 8
     D_END
 .ENDPROC
 

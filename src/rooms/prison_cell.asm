@@ -192,25 +192,26 @@ _Devices_sDevice_arr:
     D_END
     .byte eDevice::None
 _Passages_sPassage_arr:
+    ;; TODO: Currently, a room cannot have two passages lead to the same room.
     D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Western | 0
-    d_word PositionAdjust_i16, $ffff & -$20
     d_byte Destination_eRoom, eRoom::PrisonEscape
+    d_byte SpawnBlock_u8, 9
     D_END
     D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Western | 1
-    d_word PositionAdjust_i16, $ffff & -$20
     d_byte Destination_eRoom, eRoom::PrisonEscape
+    d_byte SpawnBlock_u8, 20
     D_END
     D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Eastern | 0
-    d_word PositionAdjust_i16, $ffff & -$10
-    d_byte Destination_eRoom, eRoom::GardenTunnel  ; TODO
+    d_byte Destination_eRoom, eRoom::PrisonCell  ; TODO
+    d_byte SpawnBlock_u8, 11
     D_END
     D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Bottom | 1
-    d_word PositionAdjust_i16, $ffff & -$110
     d_byte Destination_eRoom, eRoom::GardenLanding
+    d_byte SpawnBlock_u8, 25
     D_END
 _Barrier_Init:
     lda #kBarrierInitRegY

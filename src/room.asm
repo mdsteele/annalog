@@ -18,11 +18,13 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "actor.inc"
+.INCLUDE "avatar.inc"
 .INCLUDE "cpu.inc"
 .INCLUDE "device.inc"
 .INCLUDE "macros.inc"
 .INCLUDE "mmc3.inc"
 .INCLUDE "platform.inc"
+.INCLUDE "ppu.inc"
 .INCLUDE "room.inc"
 .INCLUDE "tileset.inc"
 
@@ -377,11 +379,11 @@ _CallInit:
     jmp (Zp_Tmp_ptr)
 .ENDPROC
 
-;;; Called when exiting the room via a passage.  Shifts the avatar position
-;;; perpendicular to the passage direction, and determines the destination room
-;;; number.
+;;; Called when exiting the room via a passage.  Determines the origin passage
+;;; spawn block and the destination room number.
 ;;; @param X The bPassage value for the passage the player went through.
-;;; @return A The eRoom value for the room that should be loaded next.
+;;; @return A The SpawnBlock_u8 value for the origin room.
+;;; @return X The eRoom value for the destination room.
 .EXPORT FuncA_Room_ExitViaPassage
 .PROC FuncA_Room_ExitViaPassage
     stx Zp_Tmp1_byte  ; bPassage value
@@ -393,7 +395,6 @@ _CallInit:
     lda (Zp_Current_sRoom + sRoom::Ext_sRoomExt_ptr), y
     sta Zp_Tmp_ptr + 1
     ;; Find the sPassage entry for the bPassage the player went through.
-    .assert sPassage::Exit_bPassage = 0, error
     ldy #0
     beq @find  ; unconditional
     @wrongSide:
@@ -401,34 +402,126 @@ _CallInit:
     iny
     .endrepeat
     @find:
-    lda (Zp_Tmp_ptr), y  ; ExitSide_ePassage
+    .assert sPassage::Exit_bPassage = 0, error
+    lda (Zp_Tmp_ptr), y  ; Exit_ePassage
     cmp Zp_Tmp1_byte  ; bPassage value
     bne @wrongSide
-    .assert sPassage::PositionAdjust_i16 = 1, error
     iny
-    lda (Zp_Tmp_ptr), y  ; PositionAdjust_i16 + 0
+    .assert sPassage::Destination_eRoom = 1, error
+    lda (Zp_Tmp_ptr), y  ; Destination_eRoom
+    tax
     iny
-    clc
+    .assert sPassage::SpawnBlock_u8 = 2, error
+    lda (Zp_Tmp_ptr), y  ; SpawnBlock_u8
+    rts
+.ENDPROC
+
+;;; Called when entering the room via a passage.  Repositions the avatar based
+;;; on the size of the new room and the difference between the origin and
+;;; destination passages' SpawnBlock_u8 values.
+;;; @prereq The current room is loaded, and Zp_Previous_eRoom is initialized.
+;;; @param A The SpawnBlock_u8 for the origin passage in the previous room.
+.EXPORT FuncA_Room_EnterViaPassage
+.PROC FuncA_Room_EnterViaPassage
+    sta Zp_Tmp1_byte  ; origin passage's SpawnBlock_u8
+_FindDestinationPassage:
+    ;; Copy the current room's Passages_sPassage_arr_ptr into Zp_Tmp_ptr.
+    ldy #sRoomExt::Passages_sPassage_arr_ptr
+    lda (Zp_Current_sRoom + sRoom::Ext_sRoomExt_ptr), y
+    sta Zp_Tmp_ptr + 0
+    iny
+    lda (Zp_Current_sRoom + sRoom::Ext_sRoomExt_ptr), y
+    sta Zp_Tmp_ptr + 1
+    ;; Find the sPassage entry in the new room whose Destination_eRoom is
+    ;; Zp_Previous_eRoom.
+    ldy #0
+    @loop:
+    .assert sPassage::Exit_bPassage = 0, error
+    lda (Zp_Tmp_ptr), y  ; destination passage's Exit_bPassage
+    and #bPassage::SideMask
+    sta Zp_Tmp2_byte  ; destination ePassage value
+    iny
+    .assert sPassage::Destination_eRoom = 1, error
+    lda (Zp_Tmp_ptr), y
+    iny
+    cmp Zp_Previous_eRoom
+    beq @found
+    iny
+    .assert .sizeof(sPassage) = 3, error
+    bne @loop  ; unconditional
+    @found:
+    .assert sPassage::SpawnBlock_u8 = 2, error
+    lda (Zp_Tmp_ptr), y  ; destination passage's SpawnBlock_u8
+_AdjustPosition:
+    ;; Compute the (signed, 16-bit) perpendicular pixel position adjustment,
+    ;; storing the lo byte in A and the hi byte in Zp_Tmp1_byte.
+    ldy #0
+    sub Zp_Tmp1_byte  ; origin passage's SpawnBlock_u8
+    bpl @nonnegative
+    dey  ; now Y is $ff
+    @nonnegative:
+    sty Zp_Tmp1_byte  ; perpendicular position adjust (hi)
+    .repeat 4
+    asl a
+    rol Zp_Tmp1_byte  ; perpendicular position adjust (hi)
+    .endrepeat
+    ;; Determine if the passage is east/west or up/down.
+    bit Zp_Tmp2_byte  ; destination ePassage value
     .assert bPassage::EastWest = bProc::Negative, error
-    bit Zp_Tmp1_byte  ; bPassage value
-    bpl @upDown
-    @eastWest:
-    adc Zp_AvatarPosY_i16 + 0
-    sta Zp_AvatarPosY_i16 + 0
-    lda (Zp_Tmp_ptr), y  ; PositionAdjust_i16 + 1
-    adc Zp_AvatarPosY_i16 + 1
-    sta Zp_AvatarPosY_i16 + 1
-    jmp @returnDestination
-    @upDown:
-    adc Zp_AvatarPosX_i16 + 0
+    bmi _EastWest
+_UpDown:
+    ;; Adjust the horizontal position.
+    add Zp_AvatarPosX_i16 + 0
     sta Zp_AvatarPosX_i16 + 0
-    lda (Zp_Tmp_ptr), y  ; PositionAdjust_i16 + 1
+    lda Zp_Tmp1_byte  ; perpendicular position adjust (hi)
     adc Zp_AvatarPosX_i16 + 1
     sta Zp_AvatarPosX_i16 + 1
-    @returnDestination:
-    .assert sPassage::Destination_eRoom = 3, error
-    iny
-    lda (Zp_Tmp_ptr), y  ; Destination_eRoom
+    ;; Set the vertical position.
+    lda Zp_Tmp2_byte  ; destination ePassage value
+    cmp #ePassage::Bottom
+    beq @bottomEdge
+    @topEdge:
+    lda #kTileHeightPx + 1
+    sta Zp_AvatarPosY_i16 + 0
+    lda #0
+    sta Zp_AvatarPosY_i16 + 1
+    rts
+    @bottomEdge:
+    lda <(Zp_Current_sRoom + sRoom::IsTall_bool)
+    bne @tall
+    @short:
+    ldx #kScreenHeightPx - (kAvatarBoundingBoxDown + 1)
+    bne @finishBottom  ; unconditional
+    @tall:
+    ldax #kTallRoomHeightBlocks * kBlockHeightPx - (kAvatarBoundingBoxDown + 1)
+    @finishBottom:
+    stax Zp_AvatarPosY_i16
+    rts
+_EastWest:
+    ;; Adjust the vertical position.
+    add Zp_AvatarPosY_i16 + 0
+    sta Zp_AvatarPosY_i16 + 0
+    lda Zp_Tmp1_byte  ; perpendicular position adjust (hi)
+    adc Zp_AvatarPosY_i16 + 1
+    sta Zp_AvatarPosY_i16 + 1
+    ;; Set the horizontal position.
+    lda Zp_Tmp2_byte  ; destination ePassage value
+    cmp #ePassage::Western
+    beq @westEdge
+    @eastEdge:
+    lda <(Zp_Current_sRoom + sRoom::MaxScrollX_u16 + 0)
+    add #kScreenWidthPx - 8
+    sta Zp_AvatarPosX_i16 + 0
+    lda <(Zp_Current_sRoom + sRoom::MaxScrollX_u16 + 1)
+    adc #0
+    sta Zp_AvatarPosX_i16 + 1
+    rts
+    @westEdge:
+    lda <(Zp_Current_sRoom + sRoom::MinScrollX_u8)
+    add #8
+    sta Zp_AvatarPosX_i16 + 0
+    lda #0
+    sta Zp_AvatarPosX_i16 + 1
     rts
 .ENDPROC
 

@@ -40,6 +40,7 @@
 .IMPORT FuncA_Objects_DrawAllMachines
 .IMPORT FuncA_Objects_DrawMachineHud
 .IMPORT FuncA_Objects_DrawPlayerAvatar
+.IMPORT FuncA_Room_EnterViaPassage
 .IMPORT FuncA_Room_ExitViaPassage
 .IMPORT FuncA_Room_Load
 .IMPORT FuncA_Terrain_FillNametables
@@ -342,67 +343,13 @@ _CalculatePassage:
     tya  ; ePassage value
     ora Zp_Tmp1_byte  ; screen number
 _LoadNextRoom:
-    pha  ; bPassage value
-    tax  ; param: bPassage value
-    jsr_prga FuncA_Room_ExitViaPassage  ; returns A
-    tax  ; param: eRoom value
+    tax  ; param: origin bPassage value
+    jsr_prga FuncA_Room_ExitViaPassage  ; returns X (eRoom) and A (spawn block)
+    pha  ; origin SpawnBlock_u8
     prgc_bank DataA_Room_Banks_u8_arr, x
     jsr FuncA_Room_Load
-    pla  ; bPassage value
-_RepositionAvatar:
-    ;; Extract ePassage value from bPassage value.
-    and #bPassage::SideMask
-    ;; Reposition avatar based on ePassage value and new room size.
-    .assert bPassage::EastWest = bProc::Negative, error
-    bmi @eastWest
-    @upDown:
-    cmp #ePassage::Bottom
-    beq @bottomPassage
-    bne @topPassage  ; unconditional
-    @eastWest:
-    cmp #ePassage::Western
-    beq @westernPassage
-    ;; If we went through an eastern passage, place the avatar on the west edge
-    ;; of the new room.
-    @easternPassage:
-    lda <(Zp_Current_sRoom + sRoom::MinScrollX_u8)
-    add #8
-    sta Zp_AvatarPosX_i16 + 0
-    lda #0
-    sta Zp_AvatarPosX_i16 + 1
-    beq @passageDone  ; unconditional
-    ;; If we went through a bottom passage, place the avatar on the top edge
-    ;; of the new room.
-    @bottomPassage:
-    lda #kTileHeightPx + 1
-    sta Zp_AvatarPosY_i16 + 0
-    lda #0
-    sta Zp_AvatarPosY_i16 + 1
-    beq @passageDone  ; unconditional
-    ;; If we went through a top passage, place the avatar on the bottom edge
-    ;; of the new room.
-    @topPassage:
-    lda <(Zp_Current_sRoom + sRoom::IsTall_bool)
-    bne @tall
-    @short:
-    ldx #kScreenHeightPx - (kAvatarBoundingBoxDown + 1)
-    bne @finishBottom  ; unconditional
-    @tall:
-    ldax #kTallRoomHeightBlocks * kBlockHeightPx - (kAvatarBoundingBoxDown + 1)
-    @finishBottom:
-    stax Zp_AvatarPosY_i16
-    bne @passageDone  ; unconditional
-    ;; If we went through a western passage, place the avatar on the east edge
-    ;; of the new room.
-    @westernPassage:
-    lda <(Zp_Current_sRoom + sRoom::MaxScrollX_u16 + 0)
-    add #kScreenWidthPx - 8
-    sta Zp_AvatarPosX_i16 + 0
-    lda <(Zp_Current_sRoom + sRoom::MaxScrollX_u16 + 1)
-    adc #0
-    sta Zp_AvatarPosX_i16 + 1
-    @passageDone:
-_EnterNextRoom:
+    pla  ; param: origin SpawnBlock_u8
+    jsr FuncA_Room_EnterViaPassage
     jmp Main_Explore_FadeIn
 .ENDPROC
 

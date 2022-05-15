@@ -175,8 +175,8 @@ _Devices_sDevice_arr:
 _Passages_sPassage_arr:
     D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Eastern | 1
-    d_word PositionAdjust_i16, $0
-    d_byte Destination_eRoom, eRoom::PrisonCell  ; TODO
+    d_byte Destination_eRoom, eRoom::GardenTower  ; TODO
+    d_byte SpawnBlock_u8, 21
     D_END
 _Cannon_ReadReg:
     cmp #$c

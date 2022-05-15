@@ -86,13 +86,13 @@ _Devices_sDevice_arr:
 _Passages_sPassage_arr:
     D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Western | 0
-    d_word PositionAdjust_i16, $10
-    d_byte Destination_eRoom, eRoom::PrisonCell  ; TODO
+    d_byte Destination_eRoom, eRoom::GardenTunnel  ; TODO
+    d_byte SpawnBlock_u8, 4
     D_END
     D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Eastern | 0
-    d_word PositionAdjust_i16, $50
-    d_byte Destination_eRoom, eRoom::PrisonCell  ; TODO
+    d_byte Destination_eRoom, eRoom::GardenTunnel  ; TODO
+    d_byte SpawnBlock_u8, 10
     D_END
 .ENDPROC
 
