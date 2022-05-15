@@ -32,6 +32,8 @@
 .IMPORT DataA_Room_Banks_u8_arr
 .IMPORT FuncA_Actor_TickAllActors
 .IMPORT FuncA_Avatar_ExploreMove
+.IMPORT FuncA_Avatar_SpawnAtDevice
+.IMPORT FuncA_Avatar_SpawnAtLastSafePoint
 .IMPORT FuncA_Avatar_UpdateAndMarkMinimap
 .IMPORT FuncA_Fade_In
 .IMPORT FuncA_Fade_Out
@@ -45,7 +47,6 @@
 .IMPORT FuncA_Room_Load
 .IMPORT FuncA_Terrain_FillNametables
 .IMPORT FuncA_Terrain_TransferTileColumn
-.IMPORT Func_Avatar_PositionAtNearbyDevice
 .IMPORT Func_ClearRestOfOam
 .IMPORT Func_ExecuteAllMachines
 .IMPORT Func_PickUpFlowerDevice
@@ -66,6 +67,7 @@
 .IMPORT Ram_DeviceTarget_u8_arr
 .IMPORT Ram_DeviceType_eDevice_arr
 .IMPORT Ram_Oam_sObj_arr64
+.IMPORT Sram_LastSafe_eRoom
 .IMPORTZP Zp_AvatarHarmTimer_u8
 .IMPORTZP Zp_AvatarMode_eAvatar
 .IMPORTZP Zp_AvatarPosX_i16
@@ -131,7 +133,6 @@ Zp_ScrollGoalY_u8: .res 1
 Zp_ScrollXHi_u8: .res 1
 
 ;;; The index of the device that the player avatar is near, or $ff if none.
-.EXPORTZP Zp_NearbyDevice_u8
 Zp_NearbyDevice_u8: .res 1
 
 ;;; If true ($ff), the register value HUD will be displayed (assuming that
@@ -143,18 +144,16 @@ Zp_HudEnabled_bool: .res 1
 
 .SEGMENT "PRG8"
 
-;;; Mode for exploring and platforming within a room, when entering the room
-;;; from a device (e.g. the console the game was last saved from).
+;;; Mode for exploring and platforming within a room, when spawning into the
+;;; room from the last safe spawn point (either a passage or a device).
 ;;; @prereq Rendering is disabled.
-;;; @param X The eRoom value for the room to enter.
-;;; @param Y The device index to enter from.
-.EXPORT Main_Explore_EnterFromDevice
-.PROC Main_Explore_EnterFromDevice
-    sty Zp_NearbyDevice_u8
+.EXPORT Main_Explore_SpawnInLastSafeRoom
+.PROC Main_Explore_SpawnInLastSafeRoom
+    ldx Sram_LastSafe_eRoom  ; param: room number
     prga_bank #<.bank(DataA_Room_Banks_u8_arr)
     prgc_bank DataA_Room_Banks_u8_arr, x
     jsr FuncA_Room_Load
-    jsr Func_Avatar_PositionAtNearbyDevice
+    jsr_prga FuncA_Avatar_SpawnAtLastSafePoint
     .assert * = Main_Explore_FadeIn, error, "fallthrough"
 .ENDPROC
 
@@ -193,6 +192,7 @@ _DrawTerrain:
     lda Zp_Tmp1_byte  ; param: left block column index
     jsr FuncA_Terrain_FillNametables
 _InitObjectsAndFadeIn:
+    jsr Func_FindNearbyDevice
     lda #0
     sta Zp_OamOffset_u8
     jsr_prga FuncA_Objects_DrawObjectsForRoom
@@ -387,8 +387,7 @@ _RepositionAvatar:
     bpl @loop
     inx
     @break:
-    stx Zp_NearbyDevice_u8
-    jsr Func_Avatar_PositionAtNearbyDevice
+    jsr_prga FuncA_Avatar_SpawnAtDevice
 _FadeIn:
     jmp Main_Explore_FadeIn
 .ENDPROC

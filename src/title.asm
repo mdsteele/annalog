@@ -25,6 +25,7 @@
 .INCLUDE "ppu.inc"
 .INCLUDE "program.inc"
 .INCLUDE "room.inc"
+.INCLUDE "spawn.inc"
 
 .IMPORT Data_EmptyChain_u8_arr
 .IMPORT FuncA_Fade_In
@@ -35,9 +36,11 @@
 .IMPORT Func_ProcessFrame
 .IMPORT Func_UpdateButtons
 .IMPORT Func_Window_Disable
-.IMPORT Main_Explore_EnterFromDevice
+.IMPORT Main_Explore_SpawnInLastSafeRoom
 .IMPORT Ppu_ChrTitle
 .IMPORT Ram_Music_sChanState_arr
+.IMPORT Sram_LastSafe_bSpawn
+.IMPORT Sram_LastSafe_eRoom
 .IMPORT Sram_MagicNumber_u8
 .IMPORT Sram_Minimap_u16_arr
 .IMPORTZP Zp_Next_sAudioCtrl
@@ -48,6 +51,10 @@
 .IMPORTZP Zp_Render_bPpuMask
 
 ;;;=========================================================================;;;
+
+;;; The starting location for a new game.
+kStartingRoom = eRoom::GardenLanding
+kStartingSpawn = bSpawn::IsPassage | 1
 
 ;;; The nametable tile row (of the upper nametable) that the game title starts
 ;;; on.
@@ -85,9 +92,7 @@ _StartGame:
     jsr_prga FuncA_Title_FillUpperAttributeTable
     jsr_prga FuncA_Title_ResetSramForNewGame
     jsr_prga FuncA_Upgrade_ComputeMaxInstructions
-    ldx #eRoom::GardenLanding  ; param: room number
-    ldy #0  ; param: device index
-    jmp Main_Explore_EnterFromDevice
+    jmp Main_Explore_SpawnInLastSafeRoom
 .ENDPROC
 
 ;;; TODO: Remove this once music generation is implemented.
@@ -257,6 +262,11 @@ _SetRenderState:
     inx
     cpx #$30
     blt @minimapLoop
+    ;; Set starting location.
+    lda #kStartingRoom
+    sta Sram_LastSafe_eRoom
+    lda #kStartingSpawn
+    sta Sram_LastSafe_bSpawn
     ;; Mark the save file as present.
     lda #kSaveMagicNumber
     sta Sram_MagicNumber_u8

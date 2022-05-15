@@ -44,7 +44,7 @@ kLauncherTileIdBarrelLow  = $7e
 ;;; @prereq Zp_MachineIndex_u8 is initialized.
 ;;; @prereq The shape position is set to the top-left corner of the machine.
 ;;; @param X The aim angle (0-255).
-;;; @param Y Either 0 or bObj::FlipH.
+;;; @param Y The facing direction (either 0 or bObj::FlipH).
 .EXPORT FuncA_Objects_DrawGrenadeLauncherMachine
 .PROC FuncA_Objects_DrawGrenadeLauncherMachine
     jsr FuncA_Objects_MoveShapeDownOneTile   ; preserves X and Y

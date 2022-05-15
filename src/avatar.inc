@@ -64,7 +64,7 @@ kAvatarHarmDeath = $ff
     Swimming1 = $5c  ; (swimming) swimming in water (1st frame)
     Swimming2 = $60  ; (swimming) swimming in water (2nd frame)
     Jumping   = $64  ; (airborne) jumping up
-    Floating  = $68  ; (airborne) mid-jump hang time
+    Hovering  = $68  ; (airborne) mid-jump hang time
     Falling   = $6c  ; (airborne) falling down
 .ENDENUM
 

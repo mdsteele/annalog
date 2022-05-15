@@ -31,11 +31,13 @@ Sram_MagicNumber_u8: .res 1
 
 ;;; The room number that the player should start in when continuing a saved
 ;;; game.
-Sram_RespawnRoomNumber_u8: .res 1
+.EXPORT Sram_LastSafe_eRoom
+Sram_LastSafe_eRoom: .res 1
 
-;;; The device number within the respawn room that the player should start at
+;;; The passage or device within the room that the player should start at
 ;;; when continuing a saved game (e.g. a particular door or console).
-Sram_RespawnDeviceNumber_u8: .res 1
+.EXPORT Sram_LastSafe_bSpawn
+Sram_LastSafe_bSpawn: .res 1
 
 ;;; The eFlag for the flower that the player avatar is currently carrying, or
 ;;; zero for none.

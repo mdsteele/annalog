@@ -36,14 +36,10 @@
 .IMPORT FuncA_Objects_Alloc2x2Shape
 .IMPORT Func_Terrain_GetColumnPtrForTileIndex
 .IMPORT Ppu_ChrPlayerNormal
-.IMPORT Ram_DeviceBlockCol_u8_arr
-.IMPORT Ram_DeviceBlockRow_u8_arr
-.IMPORT Ram_DeviceType_eDevice_arr
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORT Sram_CarryingFlower_eFlag
 .IMPORTZP Zp_Current_sRoom
 .IMPORTZP Zp_FrameCounter_u8
-.IMPORTZP Zp_NearbyDevice_u8
 .IMPORTZP Zp_P1ButtonsHeld_bJoypad
 .IMPORTZP Zp_P1ButtonsPressed_bJoypad
 .IMPORTZP Zp_PpuScrollX_u8
@@ -136,60 +132,6 @@ Zp_AvatarHarmTimer_u8: .res 1
 
 .SEGMENT "PRG8"
 
-;;; Positions the player avatar such that it is standing still, facing to the
-;;; right, in front of device number Zp_NearbyDevice_u8 in the current room.
-.EXPORT Func_Avatar_PositionAtNearbyDevice
-.PROC Func_Avatar_PositionAtNearbyDevice
-    ;; Position the avatar in front of device number Zp_NearbyDevice_u8.
-    ldx Zp_NearbyDevice_u8
-    lda #0
-    sta Zp_AvatarPosX_i16 + 1
-    sta Zp_AvatarPosY_i16 + 1
-    lda Ram_DeviceBlockCol_u8_arr, x
-    .assert kMaxRoomWidthBlocks <= $80, error
-    asl a      ; Since kMaxRoomWidthBlocks <= $80, the device block col fits in
-    .repeat 3  ; seven bits, so the first ASL won't set the carry bit, so we
-    asl a      ; only need to ROL (Zp_AvatarPosX_i16 + 1) after the second ASL.
-    rol Zp_AvatarPosX_i16 + 1
-    .endrepeat
-    ldy Ram_DeviceType_eDevice_arr, x
-    ora _DeviceOffset_u8_arr, y
-    sta Zp_AvatarPosX_i16 + 0
-    lda Ram_DeviceBlockRow_u8_arr, x
-    .assert kTallRoomHeightBlocks <= $20, error
-    asl a  ; Since kTallRoomHeightBlocks <= $20, the device block row fits in
-    asl a  ; five bits, so the first three ASL's won't set the carry bit, so
-    asl a  ; we only need to ROL (Zp_AvatarPosY_i16 + 1) after the fourth ASL.
-    asl a
-    rol Zp_AvatarPosY_i16 + 1
-    ora #kBlockHeightPx - kAvatarBoundingBoxDown
-    sta Zp_AvatarPosY_i16 + 0
-    ;; Make the avatar stand still, facing to the right.
-    lda #eAvatar::Standing
-    sta Zp_AvatarMode_eAvatar
-    lda #0
-    sta Zp_AvatarHarmTimer_u8
-    sta Zp_AvatarRecover_u8
-    sta Zp_AvatarSubX_u8
-    sta Zp_AvatarVelX_i16 + 0
-    sta Zp_AvatarVelX_i16 + 1
-    sta Zp_AvatarVelY_i16 + 0
-    sta Zp_AvatarVelY_i16 + 1
-    lda #kAvatarPalette
-    sta Zp_AvatarFlags_bObj
-    rts
-_DeviceOffset_u8_arr:
-    D_ENUM eDevice
-    d_byte None,    $08
-    d_byte Console, $06
-    d_byte Door,    $08
-    d_byte Flower,  $08
-    d_byte Lever,   $06
-    d_byte Sign,    $06
-    d_byte Upgrade, $08
-    D_END
-.ENDPROC
-
 ;;; Deals damage to the player avatar, stunning them.
 ;;; @preserve X
 .EXPORT Func_HarmAvatar
@@ -263,6 +205,46 @@ _Harm:
 ;;;=========================================================================;;;
 
 .SEGMENT "PRGA_Avatar"
+
+;;; Initializes most variables for the player avatar, except for position.  The
+;;; avatar's velocity will be set to zero.
+;;; @prereq The room is loaded.
+;;; @prereq The avatar position has been initialized.
+;;; @param A True ($ff) if airborne, false ($00) otherwise.
+;;; @param X The facing direction (either 0 or bObj::FlipH).
+.EXPORT FuncA_Avatar_InitMotionless
+.PROC FuncA_Avatar_InitMotionless
+    pha  ; is airborne
+    txa  ; facing direction
+    ora #kAvatarPalette
+    sta Zp_AvatarFlags_bObj
+    lda #0
+    sta Zp_AvatarHarmTimer_u8
+    sta Zp_AvatarRecover_u8
+    sta Zp_AvatarSubX_u8
+    sta Zp_AvatarVelX_i16 + 0
+    sta Zp_AvatarVelX_i16 + 1
+    sta Zp_AvatarVelY_i16 + 0
+    sta Zp_AvatarVelY_i16 + 1
+    jsr FuncA_Avatar_UpdateWaterDepth
+    ;; Determine whether the avatar is standing, hovering, or swimming.
+    pla  ; is airborne
+    ldx Zp_AvatarWaterDepth_u8
+    bne @swimming
+    tax  ; is airborne
+    bmi @hovering
+    @standing:
+    lda #eAvatar::Standing
+    bne @setMode  ; unconditional
+    @hovering:
+    lda #eAvatar::Hovering
+    bne @setMode  ; unconditional
+    @swimming:
+    lda #eAvatar::Swimming1
+    @setMode:
+    sta Zp_AvatarMode_eAvatar
+    rts
+.ENDPROC
 
 ;;; Updates the player avatar state based on the current joypad state.
 ;;; @return Z Cleared if the player avatar hit a passage, set otherwise.
@@ -548,7 +530,7 @@ _DetectCollisionInAir:
     lda Zp_AvatarVelY_i16 + 1
     bmi @jumping
     cmp #2
-    blt @floating
+    blt @hovering
     lda #eAvatar::Falling
     .assert eAvatar::Falling > 0, error
     bne @setAvatarMode  ; unconditional
@@ -556,11 +538,11 @@ _DetectCollisionInAir:
     lda #eAvatar::Jumping
     .assert eAvatar::Jumping > 0, error
     bne @setAvatarMode  ; unconditional
-    @floating:
-    lda #eAvatar::Floating
+    @hovering:
+    lda #eAvatar::Hovering
     @setAvatarMode:
     sta Zp_AvatarMode_eAvatar
-    .assert eAvatar::Floating > 0, error
+    .assert eAvatar::Hovering > 0, error
     bne _DoneWithCollision  ; unconditional
 _DetectCollisionInWater:
     ;; The player avatar is in water, so set its mode to Swimming.
@@ -584,9 +566,9 @@ _HandleCollisionInAir:
     lda Zp_AvatarVelY_i16 + 1
     bpl _HandleDownwardCollisionInAir
 _HandleUpwardCollisionInAir:
-    lda #eAvatar::Floating
+    lda #eAvatar::Hovering
     sta Zp_AvatarMode_eAvatar
-    .assert eAvatar::Floating > 0, error
+    .assert eAvatar::Hovering > 0, error
     bne _FinishCollision  ; unconditional
 _HandleDownwardCollisionInAir:
     ;; We've hit a floor, so update the avatar mode.
