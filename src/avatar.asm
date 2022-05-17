@@ -77,8 +77,9 @@ kAvatarJumpVelocity = $ffff & -810
 ;;; it takes damage and is temporarily stunned.
 kAvatarStunVelY = $ffff & -300
 
-;;; The OBJ palette number to use for the player avatar.
-kAvatarPalette = 1
+;;; The OBJ palette numbers to use for the player avatar.
+kAvatarPaletteNormal = 1
+kAvatarPaletteDeath  = 3
 
 ;;; How many frames to blink the screen when the avatar is almost healed.
 kAvatarHealBlinkFrames = 14
@@ -176,6 +177,10 @@ _Harm:
 ;;; @preserve X
 .EXPORT Func_KillAvatar
 .PROC Func_KillAvatar
+    lda Zp_AvatarFlags_bObj
+    and #<~bObj::PaletteMask
+    ora #kAvatarPaletteDeath
+    sta Zp_AvatarFlags_bObj
     jsr Func_DropFlower  ; preserves X
     lda #kAvatarHarmDeath
     sta Zp_AvatarHarmTimer_u8
@@ -216,7 +221,7 @@ _Harm:
 .PROC FuncA_Avatar_InitMotionless
     pha  ; is airborne
     txa  ; facing direction
-    ora #kAvatarPalette
+    ora #kAvatarPaletteNormal
     sta Zp_AvatarFlags_bObj
     lda #0
     sta Zp_AvatarHarmTimer_u8
@@ -853,7 +858,7 @@ _JoypadLeft:
     lda Zp_Tmp1_byte  ; min X-vel
     @noMax:
     sta Zp_AvatarVelX_i16 + 1
-    lda #kAvatarPalette | bObj::FlipH
+    lda #bObj::FlipH | kAvatarPaletteNormal
     sta Zp_AvatarFlags_bObj
     bne _DoneLeftRight  ; unconditional
     @noLeft:
@@ -886,9 +891,9 @@ _JoypadRight:
     lda Zp_Tmp1_byte  ; max X-vel
     @noMax:
     sta Zp_AvatarVelX_i16 + 1
-    lda #kAvatarPalette
+    lda #kAvatarPaletteNormal
     sta Zp_AvatarFlags_bObj
-    .assert kAvatarPalette > 0, error
+    .assert kAvatarPaletteNormal > 0, error
     bne _DoneLeftRight  ; unconditional
     @noRight:
 _NeitherLeftNorRight:
@@ -1050,6 +1055,8 @@ _InAir:
     sta Zp_Render_bPpuMask
     ;; If the avatar is temporarily invinvible, blink the objects.
     lda Zp_AvatarHarmTimer_u8
+    cmp #kAvatarHarmDeath
+    beq @notInvincible
     cmp #kAvatarHarmHealFrames - kAvatarHarmInvincibileFrames
     blt @notInvincible
     lda Zp_FrameCounter_u8

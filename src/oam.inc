@@ -45,9 +45,10 @@ Hw_OamDma_wo  = $4014
 ;;;=========================================================================;;;
 
 .SCOPE bObj
-    FlipV = %10000000  ; flip object vertically
-    FlipH = %01000000  ; flip object horizontally
-    Pri   = %00100000  ; draw object behind background
+    FlipV       = %10000000  ; flip object vertically
+    FlipH       = %01000000  ; flip object horizontally
+    Pri         = %00100000  ; draw object behind background
+    PaletteMask = %00000011  ; bits used for the OBJ palette number
 .ENDSCOPE
 
 ;;;=========================================================================;;;

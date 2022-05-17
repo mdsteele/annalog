@@ -59,7 +59,6 @@
 .IMPORT Main_Console_OpenWindow
 .IMPORT Main_Dialog_OpenWindow
 .IMPORT Main_Pause
-.IMPORT Main_Title
 .IMPORT Main_Upgrade_OpenWindow
 .IMPORT Ppu_ChrAnim0
 .IMPORT Ram_DeviceBlockCol_u8_arr
@@ -396,9 +395,21 @@ _FadeIn:
 ;;; @prereq Rendering is enabled.
 ;;; @prereq Explore mode is already initialized.
 .PROC Main_Explore_Death
-    ;; TODO: Animate the avatar blinking red or collapasing or something.
+    jsr_prga FuncA_Objects_DrawObjectsForRoom
+    jsr Func_ClearRestOfOam
+    ;; TODO: Fade out palettes, but don't disable rendering.
     jsr_prga FuncA_Fade_Out
-    jmp Main_Title
+    ;; TODO: Animate the avatar collapasing.
+_LoadLastSafeRoom:
+    ldx Sram_LastSafe_eRoom  ; param: room number
+    prga_bank #<.bank(DataA_Room_Banks_u8_arr)
+    prgc_bank DataA_Room_Banks_u8_arr, x
+    jsr FuncA_Room_Load
+_Respawn:
+    jsr_prga FuncA_Avatar_SpawnAtLastSafePoint
+    ;; TODO: Animate the avatar moving to its new location.
+    ;; TODO: Start explore mode *without* needing to disable rendering first.
+    jmp Main_Explore_FadeIn
 .ENDPROC
 
 ;;; Calls the current room's Tick_func_ptr function.

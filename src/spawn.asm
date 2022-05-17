@@ -27,7 +27,6 @@
 .INCLUDE "spawn.inc"
 
 .IMPORT FuncA_Avatar_InitMotionless
-.IMPORT FuncA_Avatar_UpdateAndMarkMinimap
 .IMPORT Ram_DeviceBlockCol_u8_arr
 .IMPORT Ram_DeviceBlockRow_u8_arr
 .IMPORT Ram_DeviceType_eDevice_arr
@@ -123,7 +122,7 @@ _TopEdge:
     sta Zp_AvatarPosY_i16 + 1
     lda #$ff  ; param: is airborne ($ff = true)
     ldx #0  ; param: facing direction (0 = right)
-    jmp FuncA_Avatar_FinishSpawn
+    jmp FuncA_Avatar_InitMotionless
 _BottomEdge:
     lda <(Zp_Current_sRoom + sRoom::IsTall_bool)
     bne @tall
@@ -136,7 +135,7 @@ _BottomEdge:
     stax Zp_AvatarPosY_i16
     lda #$ff  ; param: is airborne ($ff = true)
     ldx #0  ; param: facing direction (0 = right)
-    jmp FuncA_Avatar_FinishSpawn
+    jmp FuncA_Avatar_InitMotionless
 _EastWest:
     ora #kBlockHeightPx - kAvatarBoundingBoxDown
     stya Zp_AvatarPosY_i16
@@ -152,7 +151,7 @@ _EastEdge:
     sta Zp_AvatarPosX_i16 + 1
     lda #0  ; param: is airborne (0 = false)
     ldx #bObj::FlipH  ; param: facing direction (FlipH = left)
-    jmp FuncA_Avatar_FinishSpawn
+    jmp FuncA_Avatar_InitMotionless
 _WestEdge:
     lda <(Zp_Current_sRoom + sRoom::MinScrollX_u8)
     add #kPassageSpawnMargin
@@ -161,7 +160,7 @@ _WestEdge:
     sta Zp_AvatarPosX_i16 + 1
     lda #0  ; param: is airborne (0 = false)
     tax  ; param: facing direction (0 = right)
-    jmp FuncA_Avatar_FinishSpawn
+    jmp FuncA_Avatar_InitMotionless
 .ENDPROC
 
 ;;; Spawns the player avatar into the current room at the specified device.
@@ -195,7 +194,7 @@ _WestEdge:
     ;; Make the avatar stand still, facing to the right.
     lda #0  ; param: is airborne (0 = false)
     tax  ; param: facing direction (0 = right)
-    jmp FuncA_Avatar_FinishSpawn
+    jmp FuncA_Avatar_InitMotionless
 _DeviceOffset_u8_arr:
     D_ENUM eDevice
     d_byte None,    $08
@@ -206,16 +205,6 @@ _DeviceOffset_u8_arr:
     d_byte Sign,    $06
     d_byte Upgrade, $08
     D_END
-.ENDPROC
-
-;;; Initializes the player avatar.
-;;; @prereq The room is loaded.
-;;; @prereq The avatar position has been initialized.
-;;; @param A True ($ff) if airborne, false ($00) otherwise.
-;;; @param X The facing direction (either 0 or bObj::FlipH).
-.PROC FuncA_Avatar_FinishSpawn
-    jsr FuncA_Avatar_InitMotionless
-    jmp FuncA_Avatar_UpdateAndMarkMinimap
 .ENDPROC
 
 ;;;=========================================================================;;;
