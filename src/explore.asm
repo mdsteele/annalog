@@ -26,13 +26,14 @@
 .INCLUDE "oam.inc"
 .INCLUDE "ppu.inc"
 .INCLUDE "room.inc"
+.INCLUDE "spawn.inc"
 .INCLUDE "terrain.inc"
 .INCLUDE "tileset.inc"
 
 .IMPORT DataA_Room_Banks_u8_arr
 .IMPORT FuncA_Actor_TickAllActors
+.IMPORT FuncA_Avatar_EnterRoomViaDoor
 .IMPORT FuncA_Avatar_ExploreMove
-.IMPORT FuncA_Avatar_SpawnAtDevice
 .IMPORT FuncA_Avatar_SpawnAtLastSafePoint
 .IMPORT FuncA_Avatar_UpdateAndMarkMinimap
 .IMPORT FuncA_Fade_In
@@ -51,6 +52,7 @@
 .IMPORT Func_ExecuteAllMachines
 .IMPORT Func_PickUpFlowerDevice
 .IMPORT Func_ProcessFrame
+.IMPORT Func_SetLastSpawnPoint
 .IMPORT Func_TickAllDevices
 .IMPORT Func_ToggleLeverDevice
 .IMPORT Func_UpdateButtons
@@ -79,7 +81,6 @@
 .IMPORTZP Zp_P1ButtonsPressed_bJoypad
 .IMPORTZP Zp_PpuScrollX_u8
 .IMPORTZP Zp_PpuScrollY_u8
-.IMPORTZP Zp_Previous_eRoom
 .IMPORTZP Zp_Render_bPpuMask
 .IMPORTZP Zp_Tmp1_byte
 .IMPORTZP Zp_Tmp2_byte
@@ -236,9 +237,9 @@ _CheckForActivateDevice:
     bmi @done
     lda Ram_DeviceType_eDevice_arr, x
     cmp #eDevice::Console
-    beq @console
+    jeq Main_Explore_UseConsole
     cmp #eDevice::Door
-    beq @door
+    jeq Main_Explore_GoThroughDoor
     cmp #eDevice::Flower
     beq @flower
     cmp #eDevice::Lever
@@ -251,16 +252,6 @@ _CheckForActivateDevice:
     lda #$ff
     sta Zp_NearbyDevice_u8
     jmp Main_Upgrade_OpenWindow
-    @console:
-    lda #eAvatar::Reading
-    sta Zp_AvatarMode_eAvatar
-    lda #$ff
-    sta Zp_HudEnabled_bool
-    lda Ram_DeviceTarget_u8_arr, x
-    tax  ; param: machine index
-    jmp Main_Console_OpenWindow
-    @door:
-    jmp Main_Explore_GoThroughDoor
     @flower:
     lda #$ff
     sta Zp_NearbyDevice_u8
@@ -360,6 +351,13 @@ _LoadNextRoom:
 .PROC Main_Explore_GoThroughDoor
     lda #eAvatar::Reading
     sta Zp_AvatarMode_eAvatar
+_SetSpawnPoint:
+    ;; We'll soon be setting the entrance door in the destination room as the
+    ;; spawn point, but first we set the exit door in the current room as the
+    ;; spawn point, in case this room is safe and the destination room is not.
+    .assert bSpawn::IsPassage <> 0, error
+    lda Zp_NearbyDevice_u8  ; param: bSpawn value
+    jsr Func_SetLastSpawnPoint
 _FadeOut:
     jsr_prga FuncA_Objects_DrawObjectsForRoom
     jsr Func_ClearRestOfOam
@@ -370,25 +368,28 @@ _LoadNextRoom:
     ldx Ram_DeviceTarget_u8_arr, y  ; param: eRoom value
     prgc_bank DataA_Room_Banks_u8_arr, x
     jsr FuncA_Room_Load
-_RepositionAvatar:
-    ;; Find the corresponding door to enter from in the new room.
-    ldx #kMaxDevices - 1
-    @loop:
-    lda Ram_DeviceType_eDevice_arr, x
-    cmp #eDevice::Door
-    bne @continue
-    lda Ram_DeviceTarget_u8_arr, x
-    cmp Zp_Previous_eRoom
-    beq @break
-    @continue:
-    dex
-    .assert kMaxDevices <= $80, error
-    bpl @loop
-    inx
-    @break:
-    jsr_prga FuncA_Avatar_SpawnAtDevice
+    jsr_prga FuncA_Avatar_EnterRoomViaDoor
 _FadeIn:
     jmp Main_Explore_FadeIn
+.ENDPROC
+
+;;; Mode for using a console device.
+;;; @prereq Rendering is enabled.
+;;; @prereq Explore mode is already initialized.
+;;; @prereq Zp_NearbyDevice_u8 holds the index of a console device.
+.PROC Main_Explore_UseConsole
+    lda #eAvatar::Reading
+    sta Zp_AvatarMode_eAvatar
+_SetSpawnPoint:
+    lda Zp_NearbyDevice_u8
+    jsr Func_SetLastSpawnPoint
+_EnableHud:
+    lda #$ff
+    sta Zp_HudEnabled_bool
+_OpenConsoleWindow:
+    ldy Zp_NearbyDevice_u8
+    ldx Ram_DeviceTarget_u8_arr, y  ; param: machine index
+    jmp Main_Console_OpenWindow
 .ENDPROC
 
 ;;; Mode for when the avatar has just been killed while exploring.

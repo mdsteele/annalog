@@ -42,6 +42,7 @@
 .IMPORT Func_InitSpikeActor
 .IMPORT Func_MachineError
 .IMPORT Func_MachineFinishResetting
+.IMPORT Func_MarkRoomSafe
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrUpgrade
 .IMPORT Ram_ActorPosX_i16_0_arr
@@ -58,6 +59,7 @@
 .IMPORTZP Zp_OamOffset_u8
 .IMPORTZP Zp_PpuScrollX_u8
 .IMPORTZP Zp_PpuScrollY_u8
+.IMPORTZP Zp_RoomIsSafe_bool
 .IMPORTZP Zp_Tmp1_byte
 
 ;;;=========================================================================;;;
@@ -270,6 +272,12 @@ _Devices_sDevice_arr:
     d_byte BlockCol_u8, 12
     d_byte Target_u8, kCannonMachineIndex
     D_END
+    D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::Door
+    d_byte BlockRow_u8, 12
+    d_byte BlockCol_u8, 6
+    d_byte Target_u8, eRoom::GardenTower
+    D_END
     ;; TODO: Remove this.
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Upgrade
@@ -372,7 +380,17 @@ _Cannon_Reset:
     ;; If the boss hasn't been defeated yet, then spawn the boss.
     lda Sram_ProgressFlags_arr + (eFlag::BossGarden >> 3)
     and #1 << (eFlag::BossGarden & $07)
-    beq _SpawnBoss
+    bne _NoBoss
+_SpawnBoss:
+    sta Zp_RoomIsSafe_bool
+    lda #kBossInitHealth
+    sta Ram_RoomState + sState::BossHealth_u8
+    lda #kBossInitCooldown
+    sta Ram_RoomState + sState::BossCooldown_u8
+    lda #eBoss::Waiting
+    sta Ram_RoomState + sState::BossMode_eBoss
+    rts
+_NoBoss:
     ;; If the boss has been defeated, but the upgrade hasn't been collected
     ;; yet, then set a timer to spawn the upgrade.
     lda Sram_ProgressFlags_arr + (eFlag::UpgradeMaxInstructions0 >> 3)
@@ -389,14 +407,6 @@ _Cannon_Reset:
     bne @conduitIsActivated
     ;; TODO: spawn conduit lever
     @conduitIsActivated:
-    rts
-_SpawnBoss:
-    lda #kBossInitHealth
-    sta Ram_RoomState + sState::BossHealth_u8
-    lda #kBossInitCooldown
-    sta Ram_RoomState + sState::BossCooldown_u8
-    lda #eBoss::Waiting
-    sta Ram_RoomState + sState::BossMode_eBoss
     rts
 .ENDPROC
 
@@ -471,6 +481,7 @@ _CheckForGrenadeHit:
     bne @bossIsStillAlive
     ;; If the boss's health is now zero, kill the boss.
     ;; TODO: make a death animation, then spawn upgrade
+    jsr Func_MarkRoomSafe
     lda #eBoss::Dead
     sta Ram_RoomState + sState::BossMode_eBoss
     .assert eBoss::Dead = 0, error
