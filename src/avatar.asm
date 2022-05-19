@@ -936,9 +936,9 @@ _NotInWater:
     bge _Airborne
 _Grounded:
     ;; If the player presses the jump button while grounded, start a jump.
-    lda Zp_P1ButtonsPressed_bJoypad
-    and #bJoypad::AButton
-    beq _DoneJump
+    bit Zp_P1ButtonsPressed_bJoypad
+    .assert bJoypad::AButton = bProc::Negative, error
+    bpl _DoneJump
     ;; TODO: play a jumping sound
     ldax #kAvatarJumpVelocity
     stax Zp_AvatarVelY_i16
@@ -950,9 +950,9 @@ _Airborne:
     ;; If the player stops holding the jump button while airborne, cap the
     ;; upward speed to kAvatarStopJumpSpeed (that is, the Y velocity will be
     ;; greater than or equal to -kAvatarStopJumpSpeed).
-    lda Zp_P1ButtonsHeld_bJoypad
-    and #bJoypad::AButton
-    bne _DoneJump
+    bit Zp_P1ButtonsHeld_bJoypad
+    .assert bJoypad::AButton = bProc::Negative, error
+    bmi _DoneJump
     lda Zp_AvatarVelY_i16 + 1
     bpl _DoneJump
     cmp #$ff & -kAvatarStopJumpSpeed

@@ -230,9 +230,9 @@ _CheckForPause:
     @done:
 _CheckForActivateDevice:
     jsr Func_FindNearbyDevice
-    lda Zp_P1ButtonsPressed_bJoypad
-    and #bJoypad::BButton
-    beq @done
+    bit Zp_P1ButtonsPressed_bJoypad
+    .assert bJoypad::BButton = bProc::Overflow, error
+    bvc @done
     ldx Zp_NearbyDevice_u8
     bmi @done
     lda Ram_DeviceType_eDevice_arr, x

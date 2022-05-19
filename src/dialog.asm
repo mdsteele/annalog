@@ -18,6 +18,7 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "charmap.inc"
+.INCLUDE "cpu.inc"
 .INCLUDE "dialog.inc"
 .INCLUDE "joypad.inc"
 .INCLUDE "macros.inc"
@@ -238,14 +239,13 @@ _InitWindow:
 ;;; @return X The CHR04 bank number that should be set.
 ;;; @return C Set if dialog is finished and the window should be closed.
 .PROC FuncA_Dialog_Tick
-_CheckBButton:
-    lda Zp_P1ButtonsPressed_bJoypad
-    and #bJoypad::BButton
-    bne _CloseWindow
-_CheckAButton:
-    lda Zp_P1ButtonsPressed_bJoypad
-    and #bJoypad::AButton
-    beq @done
+    bit Zp_P1ButtonsPressed_bJoypad
+    ;; B button:
+    .assert bJoypad::BButton = bProc::Overflow, error
+    bvs _CloseWindow
+    ;; A button:
+    .assert bJoypad::AButton = bProc::Negative, error
+    bpl @noAButton
     bit Zp_DialogPaused_bool
     bpl @skip
     jsr FuncA_Dialog_TransferClearText
@@ -258,7 +258,7 @@ _CheckAButton:
     jsr FuncA_Dialog_TransferRestOfText
     ldx Zp_PortraitRestBank_u8
     bne _ContinueDialog  ; unconditional
-    @done:
+    @noAButton:
 _UpdateText:
     bit Zp_DialogPaused_bool
     bpl @notPaused

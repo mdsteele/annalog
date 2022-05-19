@@ -19,6 +19,7 @@
 
 .INCLUDE "charmap.inc"
 .INCLUDE "console.inc"
+.INCLUDE "cpu.inc"
 .INCLUDE "flag.inc"
 .INCLUDE "joypad.inc"
 .INCLUDE "machine.inc"
@@ -241,9 +242,9 @@ _GameLoop:
     jsr Func_UpdateButtons
 _CheckButtons:
     ;; B button:
-    lda Zp_P1ButtonsPressed_bJoypad
-    and #bJoypad::BButton
-    beq @noClose
+    bit Zp_P1ButtonsPressed_bJoypad
+    .assert bJoypad::BButton = bProc::Overflow, error
+    bvc @noClose
     jsr_prga FuncA_Console_SaveProgram
     jmp Main_Console_CloseWindow
     @noClose:
@@ -255,9 +256,9 @@ _CheckButtons:
     bcs @edit
     @noInsert:
     ;; A button:
-    lda Zp_P1ButtonsPressed_bJoypad
-    and #bJoypad::AButton
-    beq @noEdit
+    bit Zp_P1ButtonsPressed_bJoypad
+    .assert bJoypad::AButton = bProc::Negative, error
+    bpl @noEdit
     @edit:
     lda #$ff
     sta Zp_ConsoleCursorIsDiminished_bool

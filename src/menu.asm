@@ -19,6 +19,7 @@
 
 .INCLUDE "charmap.inc"
 .INCLUDE "console.inc"
+.INCLUDE "cpu.inc"
 .INCLUDE "flag.inc"
 .INCLUDE "joypad.inc"
 .INCLUDE "machine.inc"
@@ -1278,14 +1279,13 @@ _GameLoop:
     jsr Func_ProcessFrame
     jsr Func_UpdateButtons
 _CheckForCancel:
+    bit Zp_P1ButtonsPressed_bJoypad
     ;; B button:
-    lda Zp_P1ButtonsPressed_bJoypad
-    and #bJoypad::BButton
-    bne _ExitMenu
+    .assert bJoypad::BButton = bProc::Overflow, error
+    bvs _ExitMenu
     ;; A button:
-    lda Zp_P1ButtonsPressed_bJoypad
-    and #bJoypad::AButton
-    bne _SetValue
+    .assert bJoypad::AButton = bProc::Negative, error
+    bmi _SetValue
     ;; D-pad:
     jsr_prga FuncA_Console_MoveMenuCursor
 _UpdateScrolling:
