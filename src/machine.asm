@@ -437,22 +437,47 @@ _Le:
 .EXPORT Func_MachineRead
 .PROC Func_MachineRead
     cmp #$0a
-    blt @immediate
-    beq @readRegA
+    blt _Immediate
+    beq _ReadRegA
     cmp #$0b
-    beq @readRegB
+    beq _ReadRegB
     ldy #sMachine::ReadReg_func_ptr  ; param: function pointer offset
     jmp Func_MachineCall  ; sMachine::ReadReg_func_ptr returns A
-    @readRegA:
+_ReadRegA:
     ldx Zp_MachineIndex_u8
     lda Ram_MachineRegA_u8_arr, x
+_Immediate:
     rts
-    @readRegB:
+_ReadRegB:
     lda Zp_P1ButtonsHeld_bJoypad
     and #bJoypad::BButton
-    beq @immediate
-    lda #1
-    @immediate:
+    beq _Immediate
+    ldy #5
+    lda Zp_P1ButtonsHeld_bJoypad
+    and #bJoypad::Left
+    beq @noLeft
+    dey
+    @noLeft:
+    lda Zp_P1ButtonsHeld_bJoypad
+    and #bJoypad::Right
+    beq @noRight
+    iny
+    @noRight:
+    lda Zp_P1ButtonsHeld_bJoypad
+    and #bJoypad::Up
+    beq @noUp
+    dey
+    dey
+    dey
+    @noUp:
+    lda Zp_P1ButtonsHeld_bJoypad
+    and #bJoypad::Down
+    beq @noDown
+    iny
+    iny
+    iny
+    @noDown:
+    tya
     rts
 .ENDPROC
 
