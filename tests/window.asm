@@ -34,6 +34,10 @@ kExpectedPpuAddr = $2f80
 
 Zp_WindowRowPpuAddr_ptr: .res 2
 
+.EXPORTZP Zp_Buffered_sIrq
+Zp_Buffered_sIrq: .tag sIrq
+.EXPORTZP Zp_NextIrq_int_ptr
+Zp_NextIrq_int_ptr: .res 2
 .EXPORTZP Zp_PpuTransferLen_u8
 Zp_PpuTransferLen_u8: .res 1
 .EXPORTZP Zp_Tmp1_byte
@@ -45,8 +49,6 @@ Zp_TransferIrqTable_bool: .res 1
 
 .BSS
 
-.EXPORT Ram_Buffered_sIrq
-Ram_Buffered_sIrq: .tag sIrq
 .EXPORT Ram_PpuTransfer_arr
 Ram_PpuTransfer_arr: .res $80
 

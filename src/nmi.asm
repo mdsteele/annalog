@@ -18,17 +18,17 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "irq.inc"
+.INCLUDE "macros.inc"
 .INCLUDE "mmc3.inc"
 .INCLUDE "oam.inc"
 .INCLUDE "ppu.inc"
 
 .IMPORT Func_AudioSync
 .IMPORT Func_AudioUpdate
-.IMPORT Ram_Active_sIrq
-.IMPORT Ram_Buffered_sIrq
 .IMPORT Ram_Oam_sObj_arr64
-.IMPORTZP Zp_IrqIndex_u8
-.IMPORTZP Zp_IrqNextRender_bPpuMask
+.IMPORTZP Zp_Active_sIrq
+.IMPORTZP Zp_Buffered_sIrq
+.IMPORTZP Zp_NextIrq_int_ptr
 
 ;;;=========================================================================;;;
 
@@ -38,12 +38,6 @@
 ;;; be consumed by the NMI handler.  The NMI handler will set it back to false
 ;;; ($00) once the data is transferred.
 Zp_NmiReady_bool: .res 1
-
-;;; Set this to true ($ff) to signal that the NMI handler should copy
-;;; Ram_Buffered_sIrq to Ram_Active_sIrq for the next frame.  The NMI handler
-;;; will set it back to false ($00) once the table is copied.
-.EXPORTZP Zp_TransferIrqTable_bool
-Zp_TransferIrqTable_bool: .res 1
 
 ;;; The NMI handler will set this as the CHR0C bank number during VBlank when
 ;;; Zp_NmiReady_bool is set.
@@ -144,30 +138,22 @@ _UpdatePpuRegisters:
     lda Zp_Render_bPpuMask
     sta Hw_PpuMask_wo
     chr0c_bank Zp_Chr0cBank_u8
-_TransferIrqTable:
-    bit Zp_TransferIrqTable_bool
-    bpl @done
-    ldx #.sizeof(sIrq) - 1
-    @loop:
-    lda Ram_Buffered_sIrq, x
-    sta Ram_Active_sIrq, x
-    dex
-    bpl @loop
-    inc Zp_TransferIrqTable_bool  ; change from true ($ff) to false ($00)
-    @done:
+_TransferIrqStruct:
+    .repeat .sizeof(sIrq), index
+    lda <(Zp_Buffered_sIrq + index)
+    sta <(Zp_Active_sIrq + index)
+    .endrepeat
 _FinishUpdatingPpu:
     ;; Mark the PPU transfer buffer as empty.
     lda #0
     sta Zp_PpuTransferLen_u8
 _DoneUpdatingPpu:
-    ;; Set up the IRQ counter for this frame.
-    lda Ram_Active_sIrq + sIrq::Latch_u8_arr + 0
+    ;; Set up HBlank IRQs for this frame.
+    lda <(Zp_Active_sIrq + sIrq::Latch_u8)
     sta Hw_Mmc3IrqLatch_wo
     sta Hw_Mmc3IrqReload_wo
-    lda Ram_Active_sIrq + sIrq::Render_bPpuMask_arr + 0
-    sta Zp_IrqNextRender_bPpuMask
-    lda #0
-    sta Zp_IrqIndex_u8
+    ldax <(Zp_Active_sIrq + sIrq::FirstIrq_int_ptr)
+    stax Zp_NextIrq_int_ptr
     ;; Everything up until this point *must* finish before VBlank ends, while
     ;; everything after this point is safe to extend past the VBlank period.
     ;; Call audio driver.

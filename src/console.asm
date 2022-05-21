@@ -46,7 +46,6 @@
 .IMPORT Func_UpdateButtons
 .IMPORT Func_Window_GetRowPpuAddr
 .IMPORT Func_Window_PrepareRowTransfer
-.IMPORT Func_Window_SetUpIrq
 .IMPORT Func_Window_TransferBottomBorder
 .IMPORT Func_Window_TransferClearRow
 .IMPORT Main_Explore_Continue
@@ -173,7 +172,6 @@ _ScrollWindowUp:
     lda Zp_WindowTopGoal_u8
     @notDone:
     sta Zp_WindowTop_u8
-    jsr Func_Window_SetUpIrq
     jsr_prga FuncA_Console_TransferNextWindowRow
 _CheckIfDone:
     lda Zp_WindowTop_u8
@@ -202,7 +200,6 @@ _ScrollWindowDown:
     lda #$ff
     @notDone:
     sta Zp_WindowTop_u8
-    jsr Func_Window_SetUpIrq
 _CheckIfDone:
     lda Zp_WindowTop_u8
     cmp #$ff
@@ -235,8 +232,8 @@ _UpdateScrolling:
     lda #0
     sta Zp_ConsoleCursorIsDiminished_bool
 _GameLoop:
-    jsr_prga FuncA_Console_DrawFieldCursorObjects
     jsr_prga FuncA_Objects_DrawObjectsForRoom
+    jsr_prga FuncA_Console_DrawFieldCursorObjects
     jsr Func_ClearRestOfOam
     jsr Func_ProcessFrame
     jsr Func_UpdateButtons
@@ -333,7 +330,6 @@ _CopyRegNames:
 _InitWindow:
     lda #kScreenHeightPx - kConsoleWindowScrollSpeed
     sta Zp_WindowTop_u8
-    jsr Func_Window_SetUpIrq
     lda #1
     sta Zp_WindowNextRowToTransfer_u8
     ;; Calculate the window top goal from the number of instruction rows.

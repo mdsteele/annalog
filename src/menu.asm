@@ -1273,8 +1273,8 @@ _RedrawInstructions:
     cpx Zp_ConsoleNumInstRows_u8
     blt @loop
 _GameLoop:
-    jsr_prga FuncA_Console_DrawMenuCursorObjects
     jsr_prga FuncA_Objects_DrawObjectsForRoom
+    jsr_prga FuncA_Console_DrawMenuCursorObjects
     jsr Func_ClearRestOfOam
     jsr Func_ProcessFrame
     jsr Func_UpdateButtons

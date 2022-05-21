@@ -42,10 +42,9 @@
 .IMPORTZP Zp_FrameCounter_u8
 .IMPORTZP Zp_P1ButtonsHeld_bJoypad
 .IMPORTZP Zp_P1ButtonsPressed_bJoypad
-.IMPORTZP Zp_PpuScrollX_u8
-.IMPORTZP Zp_PpuScrollY_u8
 .IMPORTZP Zp_Render_bPpuMask
-.IMPORTZP Zp_ScrollXHi_u8
+.IMPORTZP Zp_RoomScrollX_u16
+.IMPORTZP Zp_RoomScrollY_u8
 .IMPORTZP Zp_ShapePosX_i16
 .IMPORTZP Zp_ShapePosY_i16
 .IMPORTZP Zp_TerrainColumn_u8_arr_ptr
@@ -1066,17 +1065,17 @@ _InAir:
 _GetPosition:
     ;; Calculate screen-space Y-position.
     lda Zp_AvatarPosY_i16 + 0
-    sub Zp_PpuScrollY_u8
+    sub Zp_RoomScrollY_u8
     sta Zp_ShapePosY_i16 + 0
     lda Zp_AvatarPosY_i16 + 1
     sbc #0
     sta Zp_ShapePosY_i16 + 1
     ;; Calculate screen-space X-position.
     lda Zp_AvatarPosX_i16 + 0
-    sub Zp_PpuScrollX_u8
+    sub Zp_RoomScrollX_u16 + 0
     sta Zp_ShapePosX_i16 + 0
     lda Zp_AvatarPosX_i16 + 1
-    sbc Zp_ScrollXHi_u8
+    sbc Zp_RoomScrollX_u16 + 1
     sta Zp_ShapePosX_i16 + 1
 _DrawObjects:
     lda Zp_AvatarFlags_bObj  ; param: object flags

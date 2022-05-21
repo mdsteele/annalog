@@ -17,23 +17,18 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
-;;; The number of entries in the sIrq table.  This should be set to the maximum
-;;; number of times we ever want to fire an HBlank IRQ during a single frame.
-.DEFINE kMaxIrqEntries 2
-
-;;; An HBlank IRQ table.  This describes when and how many HBlank IRQs should
-;;; happen during a frame, and what rendering changes to make during each one.
+;;; Describes the HBlank interrupt structure for a video frame.  During each
+;;; VBlank, the NMI handler will use the Latch_u8 value to set the MMC3's IRQ
+;;; counter and copy FirstIrq_int_ptr to Zp_NextIrq_int_ptr.
 .STRUCT sIrq
-    ;; How many scanlines to wait (from VBlank or the last IRQ) before each IRQ
-    ;; should fire.  This array must be terminated with a value of $ff.
-    Latch_u8_arr        .res kMaxIrqEntries + 1
-    ;; The values to write to Hw_PpuMask_wo during each IRQ.  This can be used
-    ;; to e.g. enable/disable OBJ rendering in the middle of a frame.
-    Render_bPpuMask_arr .res kMaxIrqEntries
-    ;; The PPU vertical scroll value to set during each IRQ.  The special value
-    ;; $ff means "no scrolling changes"; otherwise, the (X, Y) scroll is set to
-    ;; (0, this) relative to the lower nametable.
-    ScrollY_u8_arr      .res kMaxIrqEntries
+    ;; How many scanlines to wait from VBlank before the the first HBlank
+    ;; interrupt should fire.
+    Latch_u8         .byte
+    ;; The handler interrupt function to call for the first HBlank interrupt of
+    ;; the frame.  Note that this function must return with an RTI instruction.
+    ;; This function must ack the IRQ and update the HBlank latch, and may
+    ;; optionally update Zp_NextIrq_int_ptr.
+    FirstIrq_int_ptr .addr
 .ENDSTRUCT
 
 ;;;=========================================================================;;;

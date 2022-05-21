@@ -57,9 +57,9 @@
 .IMPORT Sram_ProgressFlags_arr
 .IMPORTZP Zp_AvatarPosX_i16
 .IMPORTZP Zp_OamOffset_u8
-.IMPORTZP Zp_PpuScrollX_u8
-.IMPORTZP Zp_PpuScrollY_u8
 .IMPORTZP Zp_RoomIsSafe_bool
+.IMPORTZP Zp_RoomScrollX_u16
+.IMPORTZP Zp_RoomScrollY_u8
 .IMPORTZP Zp_Tmp1_byte
 
 ;;;=========================================================================;;;
@@ -705,13 +705,13 @@ _Close:
     sta Zp_OamOffset_u8
     ;; Set X-positions:
     lda _PosX_u8_arr, x
-    sub Zp_PpuScrollX_u8
+    sub Zp_RoomScrollX_u16 + 0
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::XPos_u8, y
     sub #kTileWidthPx
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::XPos_u8, y
     ;; Set Y-positions:
     lda _PosY_u8_arr, x
-    sub Zp_PpuScrollY_u8
+    sub Zp_RoomScrollY_u8
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::YPos_u8, y
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::YPos_u8, y
     ;; Set tile IDs:

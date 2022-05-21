@@ -58,6 +58,7 @@
 .IMPORT Func_UpdateButtons
 .IMPORT Func_Window_DirectDrawTopBorder
 .IMPORT Func_Window_Disable
+.IMPORT Func_Window_SetUpIrq
 .IMPORT Main_Console_OpenWindow
 .IMPORT Main_Dialog_OpenWindow
 .IMPORT Main_Pause
@@ -124,13 +125,11 @@ Zp_ScrollGoalX_u16: .res 2
 .EXPORTZP Zp_ScrollGoalY_u8
 Zp_ScrollGoalY_u8: .res 1
 
-;;; The high byte of the current horizontal scroll position (the low byte is
-;;; stored in Zp_PpuScrollX_u8, and together they form a single u16).  This
-;;; high byte doesn't matter for PPU scrolling, but does matter for comparisons
-;;; of the current scroll position with Zp_ScrollGoalX_u16 or 16-bit object
-;;; positions.
-.EXPORTZP Zp_ScrollXHi_u8
-Zp_ScrollXHi_u8: .res 1
+;;; The current horizontal and vertical scroll position within the room.
+.EXPORTZP Zp_RoomScrollX_u16
+Zp_RoomScrollX_u16: .res 2
+.EXPORTZP Zp_RoomScrollY_u8
+Zp_RoomScrollY_u8: .res 1
 
 ;;; The index of the device that the player avatar is near, or $ff if none.
 Zp_NearbyDevice_u8: .res 1
@@ -172,18 +171,17 @@ Zp_HudEnabled_bool: .res 1
 _InitializeScrolling:
     jsr Func_SetScrollGoalFromAvatar
     lda Zp_ScrollGoalY_u8
-    sta Zp_PpuScrollY_u8
+    sta Zp_RoomScrollY_u8
     ldax Zp_ScrollGoalX_u16
-    stx Zp_PpuScrollX_u8
-    sta Zp_ScrollXHi_u8
+    stax Zp_RoomScrollX_u16
 _DrawTerrain:
     prga_bank #<.bank(FuncA_Terrain_FillNametables)
     ;; Calculate the index of the leftmost room tile column that should be in
     ;; the nametable.
-    lda Zp_PpuScrollX_u8
+    lda Zp_RoomScrollX_u16 + 0
     add #kTileWidthPx - 1
     sta Zp_Tmp1_byte
-    lda Zp_ScrollXHi_u8
+    lda Zp_RoomScrollX_u16 + 1
     adc #0
     .repeat 3
     lsr a
@@ -545,7 +543,7 @@ _TrackScrollYTowardsGoal:
     ;; Compute the delta from the current scroll-Y position to the goal
     ;; position, storing it in A.
     lda Zp_ScrollGoalY_u8
-    sub Zp_PpuScrollY_u8
+    sub Zp_RoomScrollY_u8
     blt @goalLessThanCurr
     ;; If the delta is positive, then we need to scroll down.  Divide the delta
     ;; by (1 << kScrollYSlowdown) to get the amount we'll scroll by this frame,
@@ -572,8 +570,8 @@ _TrackScrollYTowardsGoal:
     lda #$ff & -kMaxScrollYSpeed
     ;; Add YA to the current scroll-X position.
     @scrollByA:
-    add Zp_PpuScrollY_u8
-    sta Zp_PpuScrollY_u8
+    add Zp_RoomScrollY_u8
+    sta Zp_RoomScrollY_u8
     @doneScrollVert:
 _ClampScrollY:
     ;; Calculate the visible height of the screen (the part not covered by the
@@ -592,20 +590,20 @@ _ClampScrollY:
     @shortRoom:
     sub Zp_Tmp1_byte  ; visible screen height
     sta Zp_Tmp2_byte  ; max scroll-Y
-    ;; Clamp Zp_PpuScrollY_u8 to no more than the permitted value.
-    lda Zp_PpuScrollY_u8
+    ;; Clamp Zp_RoomScrollY_u8 to no more than the permitted value.
+    lda Zp_RoomScrollY_u8
     cmp Zp_Tmp2_byte  ; max scroll-Y
     blt @done
     lda Zp_Tmp2_byte  ; max scroll-Y
-    sta Zp_PpuScrollY_u8
+    sta Zp_RoomScrollY_u8
     @done:
 _PrepareToScrollHorz:
     ;; Calculate the index of the leftmost room tile column that is currently
     ;; in the nametable, and put that index in Zp_Tmp1_byte.
-    lda Zp_PpuScrollX_u8
+    lda Zp_RoomScrollX_u16 + 0
     add #kTileWidthPx - 1
     sta Zp_Tmp1_byte
-    lda Zp_ScrollXHi_u8
+    lda Zp_RoomScrollX_u16 + 1
     adc #0
     .repeat 3
     lsr a
@@ -616,10 +614,10 @@ _TrackScrollXTowardsGoal:
     ;; Compute the delta from the current scroll-X position to the goal
     ;; position, storing it in Zp_Tmp2_byte (lo) and A (hi).
     lda Zp_ScrollGoalX_u16 + 0
-    sub Zp_PpuScrollX_u8
+    sub Zp_RoomScrollX_u16 + 0
     sta Zp_Tmp2_byte  ; delta (lo)
     lda Zp_ScrollGoalX_u16 + 1
-    sbc Zp_ScrollXHi_u8
+    sbc Zp_RoomScrollX_u16 + 1
     bmi @goalLessThanCurr
     ;; If the delta is positive, then we need to scroll to the right.  Divide
     ;; the delta by (1 << kScrollXSlowdown) to get the amount we'll scroll by
@@ -655,18 +653,18 @@ _TrackScrollXTowardsGoal:
     lda #$ff & -kMaxScrollXSpeed
     ;; Add YA to the current scroll-X position.
     @scrollByYA:
-    add Zp_PpuScrollX_u8
-    sta Zp_PpuScrollX_u8
+    add Zp_RoomScrollX_u16 + 0
+    sta Zp_RoomScrollX_u16 + 0
     tya
-    adc Zp_ScrollXHi_u8
-    sta Zp_ScrollXHi_u8
+    adc Zp_RoomScrollX_u16 + 1
+    sta Zp_RoomScrollX_u16 + 1
 _UpdateNametable:
     ;; Calculate the index of the leftmost room tile column that should now be
     ;; in the nametable, and put that index in Zp_Tmp2_byte.
-    lda Zp_PpuScrollX_u8
+    lda Zp_RoomScrollX_u16 + 0
     add #kTileWidthPx - 1
     sta Zp_Tmp2_byte
-    lda Zp_ScrollXHi_u8
+    lda Zp_RoomScrollX_u16 + 1
     adc #0
     .repeat 3
     lsr a
@@ -693,6 +691,12 @@ _UpdateNametable:
 ;;; always be visible: the player avatar, machines, enemies, and devices.
 .EXPORT FuncA_Objects_DrawObjectsForRoom
 .PROC FuncA_Objects_DrawObjectsForRoom
+    ;; Set up PPU scrolling and IRQ.
+    lda Zp_RoomScrollX_u16 + 0
+    sta Zp_PpuScrollX_u8
+    lda Zp_RoomScrollY_u8
+    sta Zp_PpuScrollY_u8
+    jsr Func_Window_SetUpIrq
     ;; Update CHR0C bank (for animated terrain).
     lda Zp_FrameCounter_u8
     div #8
@@ -728,10 +732,10 @@ _UpdateNametable:
     beq _NotVisible
     ;; Calculate the screen X-position and store it in Zp_Tmp1_byte:
     lda Zp_AvatarPosX_i16 + 0
-    sub Zp_PpuScrollX_u8
+    sub Zp_RoomScrollX_u16 + 0
     sta Zp_Tmp1_byte
     lda Zp_AvatarPosX_i16 + 1
-    sbc Zp_ScrollXHi_u8
+    sbc Zp_RoomScrollX_u16 + 1
     sta Zp_Tmp2_byte
     lda Zp_Tmp1_byte
     sub #kTileWidthPx / 2
@@ -753,7 +757,7 @@ _UpdateNametable:
     sta Zp_Tmp4_byte  ; Y-offset
     ;; Calculate the screen Y-position and store it in Zp_Tmp2_byte:
     lda Zp_AvatarPosY_i16 + 0
-    sub Zp_PpuScrollY_u8
+    sub Zp_RoomScrollY_u8
     sta Zp_Tmp2_byte
     lda Zp_AvatarPosY_i16 + 1
     sbc #0

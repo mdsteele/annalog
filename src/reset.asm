@@ -26,13 +26,15 @@
 
 .IMPORT Func_AudioReset
 .IMPORT Func_ClearRestOfOam
+.IMPORT Int_NoopIrq
 .IMPORT Main_Title
 .IMPORT Ppu_ChrFontLower01
 .IMPORT Ppu_ChrFontUpper
 .IMPORT Ppu_ChrPause
 .IMPORT Ppu_ChrPlayerNormal
 .IMPORT Ppu_ChrUpgrade
-.IMPORT Ram_Active_sIrq
+.IMPORTZP Zp_Active_sIrq
+.IMPORTZP Zp_NextIrq_int_ptr
 
 ;;;=========================================================================;;;
 
@@ -97,9 +99,13 @@ _InitializeRam:
     ;; May as well also clear OAM (note that Zp_OamOffset_u8 is zero, since we
     ;; just zeroed all of RAM).
     jsr Func_ClearRestOfOam
-    ;; Mark the active IRQ table as empty.
+    ;; Initialize HBlank IRQs.
     lda #$ff
-    sta Ram_Active_sIrq + sIrq::Latch_u8_arr + 0
+    sta Hw_Mmc3IrqLatch_wo
+    sta <(Zp_Active_sIrq + sIrq::Latch_u8)
+    ldax #Int_NoopIrq
+    stax Zp_NextIrq_int_ptr
+    stax <(Zp_Active_sIrq + sIrq::FirstIrq_int_ptr)
     ;; Initialize APU.
     jsr Func_AudioReset
 _WaitForSecondVBlank:

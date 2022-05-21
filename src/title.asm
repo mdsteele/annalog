@@ -53,8 +53,8 @@
 ;;;=========================================================================;;;
 
 ;;; The starting location for a new game.
-kStartingRoom = eRoom::GardenLanding
-kStartingSpawn = bSpawn::IsPassage | 1
+kStartingRoom = eRoom::TownHouse2
+kStartingSpawn = 2
 
 ;;; The nametable tile row (of the upper nametable) that the game title starts
 ;;; on.

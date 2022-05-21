@@ -32,9 +32,8 @@
 .IMPORTZP Zp_AvatarVelX_i16
 .IMPORTZP Zp_AvatarVelY_i16
 .IMPORTZP Zp_AvatarWaterDepth_u8
-.IMPORTZP Zp_PpuScrollX_u8
-.IMPORTZP Zp_PpuScrollY_u8
-.IMPORTZP Zp_ScrollXHi_u8
+.IMPORTZP Zp_RoomScrollX_u16
+.IMPORTZP Zp_RoomScrollY_u8
 .IMPORTZP Zp_ShapePosX_i16
 .IMPORTZP Zp_ShapePosY_i16
 .IMPORTZP Zp_Tmp1_byte
@@ -519,17 +518,17 @@ _NotInWater:
 .PROC FuncA_Objects_SetShapePosToPlatformTopLeft
     ;; Calculate top edge in screen space.
     lda Ram_PlatformTop_i16_0_arr, x
-    sub Zp_PpuScrollY_u8
+    sub Zp_RoomScrollY_u8
     sta Zp_ShapePosY_i16 + 0
     lda Ram_PlatformTop_i16_1_arr, x
     sbc #0
     sta Zp_ShapePosY_i16 + 1
     ;; Calculate left edge in screen space.
     lda Ram_PlatformLeft_i16_0_arr, x
-    sub Zp_PpuScrollX_u8
+    sub Zp_RoomScrollX_u16 + 0
     sta Zp_ShapePosX_i16 + 0
     lda Ram_PlatformLeft_i16_1_arr, x
-    sbc Zp_ScrollXHi_u8
+    sbc Zp_RoomScrollX_u16 + 1
     sta Zp_ShapePosX_i16 + 1
     rts
 .ENDPROC

@@ -19,14 +19,15 @@
 
 .INCLUDE "irq.inc"
 .INCLUDE "macros.inc"
+.INCLUDE "mmc3.inc"
 .INCLUDE "ppu.inc"
 .INCLUDE "window.inc"
 
-.IMPORT Ram_Buffered_sIrq
 .IMPORT Ram_PpuTransfer_arr
+.IMPORTZP Zp_Buffered_sIrq
+.IMPORTZP Zp_NextIrq_int_ptr
 .IMPORTZP Zp_PpuTransferLen_u8
 .IMPORTZP Zp_Tmp1_byte
-.IMPORTZP Zp_TransferIrqTable_bool
 
 ;;;=========================================================================;;;
 
@@ -77,33 +78,20 @@ Zp_WindowNextRowToTransfer_u8: .res 1
 ;;; whenever the value of Zp_WindowTop_u8 is changed.
 .EXPORT Func_Window_SetUpIrq
 .PROC Func_Window_SetUpIrq
-    ldx #0
-_FirstEntry:
     ldy Zp_WindowTop_u8
     cpy #kScreenHeightPx
-    bge _Done
+    bge _Disable
+_Enable:
     dey
-    sty Ram_Buffered_sIrq + sIrq::Latch_u8_arr + 0
-    lda #bPpuMask::BgMain
-    sta Ram_Buffered_sIrq + sIrq::Render_bPpuMask_arr + 0
-    lda #kWindowStartRow * kTileHeightPx
-    sta Ram_Buffered_sIrq + sIrq::ScrollY_u8_arr + 0
-    inx
-_SecondEntry:
-    lda Zp_WindowTop_u8
-    cmp #kScreenHeightPx - kTileHeightPx
-    bge _Done
-    lda #kTileHeightPx
-    sta Ram_Buffered_sIrq + sIrq::Latch_u8_arr + 1
-    lda #bPpuMask::BgMain | bPpuMask::ObjMain
-    sta Ram_Buffered_sIrq + sIrq::Render_bPpuMask_arr + 1
-    lda #$ff  ; leave scroll unchanged
-    sta Ram_Buffered_sIrq + sIrq::ScrollY_u8_arr + 1
-    inx
-_Done:
+    sty <(Zp_Buffered_sIrq + sIrq::Latch_u8)
+    ldax #Int_WindowTopIrq
+    stax <(Zp_Buffered_sIrq + sIrq::FirstIrq_int_ptr)
+    rts
+_Disable:
     lda #$ff
-    sta Ram_Buffered_sIrq + sIrq::Latch_u8_arr, x
-    sta Zp_TransferIrqTable_bool
+    sta <(Zp_Buffered_sIrq + sIrq::Latch_u8)
+    ldax #Int_NoopIrq
+    stax <(Zp_Buffered_sIrq + sIrq::FirstIrq_int_ptr)
     rts
 .ENDPROC
 
@@ -237,6 +225,86 @@ _Done:
     adc #>Ppu_WindowTopLeft
     tax  ; return value (hi)
     rts
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGE_Irq"
+
+;;; HBlank IRQ handler function for the top edge of the window.  Sets the PPU
+;;; scroll so as to display the window, and disables drawing objects over the
+;;; window's top border, so that it looks like the window is in front of any
+;;; objects in the room.
+.PROC Int_WindowTopIrq
+    ;; Save A and X registers (we won't be using Y).
+    pha
+    txa
+    pha
+    ;; At this point, the first HBlank is already just about over.  Ack the
+    ;; current IRQ.
+    sta Hw_Mmc3IrqDisable_wo  ; ack
+    sta Hw_Mmc3IrqEnable_wo  ; re-enable
+    ;; Set up the latch value for next IRQ.
+    lda #7
+    sta Hw_Mmc3IrqLatch_wo
+    sta Hw_Mmc3IrqReload_wo
+    ;; Update Zp_NextIrq_int_ptr for the next IRQ.
+    ldax #Int_WindowInteriorIrq
+    stax Zp_NextIrq_int_ptr
+    ;; Busy-wait for a bit, that our final writes in this function will occur
+    ;; during the next HBlank.
+    ldx #8  ; This value is hand-tuned to help wait for second HBlank.
+    @busyLoop:
+    dex
+    bne @busyLoop
+    ;; Set the PPU's new scroll-Y and scroll-X values, and also set the upper
+    ;; nametable as the scrolling origin.  All of this takes four writes, and
+    ;; the last two must happen during HBlank (between dots 256 and 320).
+    ;; See https://www.nesdev.org/wiki/PPU_scrolling#Split_X.2FY_scroll
+    lda #$0c  ; nametable number << 2 (so $0c for nametable 3)
+    sta Hw_PpuAddr_w2
+    lda #kWindowStartRow * kTileHeightPx  ; new scroll-Y value
+    sta Hw_PpuScroll_w2
+    and #$38
+    asl a
+    asl a
+    ;; We should now be in the second HBlank (and X is zero).
+    stx Hw_PpuScroll_w2  ; new scroll-X value (zero)
+    sta Hw_PpuAddr_w2    ; ((Y & $38) << 2) | (X >> 3)
+    ;; Disable drawing objects for now.
+    lda #bPpuMask::BgMain
+    sta Hw_PpuMask_wo
+    ;; Restore registers and return.
+    pla
+    tax
+    pla
+    rti
+.ENDPROC
+
+;;; HBlank IRQ handler function for the bottom edge of the window's top border
+;;; (i.e. the top edge of the window interior).  Re-enables object rendering,
+;;; so that objects can be displayed inside the window.
+.PROC Int_WindowInteriorIrq
+    ;; Save the A register and update the PPU mask as quickly as possible.
+    pha
+    lda #bPpuMask::BgMain | bPpuMask::ObjMain
+    sta Hw_PpuMask_wo
+    ;; No more IRQs for the rest of this frame.
+    lda #$ff
+    sta Hw_Mmc3IrqLatch_wo
+    sta Hw_Mmc3IrqReload_wo
+    ;; Restore the A register and finish.
+    pla
+    .assert * = Int_NoopIrq, error, "fallthrough"
+.ENDPROC
+
+;;; HBlank IRQ handler function that does nothing other than ack the IRQ.
+.EXPORT Int_NoopIrq
+.PROC Int_NoopIrq
+    ;; Ack the current IRQ.
+    sta Hw_Mmc3IrqDisable_wo  ; ack
+    sta Hw_Mmc3IrqEnable_wo  ; re-enable
+    rti
 .ENDPROC
 
 ;;;=========================================================================;;;

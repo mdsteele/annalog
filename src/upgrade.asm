@@ -36,7 +36,6 @@
 .IMPORT Func_SetScrollGoalFromAvatar
 .IMPORT Func_UpdateButtons
 .IMPORT Func_Window_PrepareRowTransfer
-.IMPORT Func_Window_SetUpIrq
 .IMPORT Func_Window_TransferBottomBorder
 .IMPORT Func_Window_TransferClearRow
 .IMPORT Main_Explore_Continue
@@ -111,8 +110,8 @@ Zp_CurrentUpgrade_eFlag: .res 1
     jsr_prga FuncA_Upgrade_Init
 _GameLoop:
     prga_bank #<.bank(FuncA_Objects_DrawUpgradeSymbol)
-    jsr FuncA_Objects_DrawUpgradeSymbol
     jsr FuncA_Objects_DrawObjectsForRoom
+    jsr FuncA_Objects_DrawUpgradeSymbol
     jsr Func_ClearRestOfOam
     jsr Func_ProcessFrame
     jsr Func_UpdateButtons
@@ -124,7 +123,6 @@ _ScrollWindowUp:
     lda Zp_WindowTopGoal_u8
     @notDone:
     sta Zp_WindowTop_u8
-    jsr Func_Window_SetUpIrq
     jsr_prga FuncA_Upgrade_TransferNextWindowRow
 _CheckIfDone:
     lda Zp_WindowTop_u8
@@ -142,8 +140,8 @@ _UpdateScrolling:
 .PROC Main_Upgrade_CloseWindow
 _GameLoop:
     prga_bank #<.bank(FuncA_Objects_DrawUpgradeSymbol)
-    jsr FuncA_Objects_DrawUpgradeSymbol
     jsr FuncA_Objects_DrawObjectsForRoom
+    jsr FuncA_Objects_DrawUpgradeSymbol
     jsr Func_ClearRestOfOam
     jsr Func_ProcessFrame
     jsr Func_UpdateButtons
@@ -155,7 +153,6 @@ _ScrollWindowDown:
     lda #$ff
     @notDone:
     sta Zp_WindowTop_u8
-    jsr Func_Window_SetUpIrq
 _CheckIfDone:
     lda Zp_WindowTop_u8
     cmp #$ff
@@ -173,8 +170,8 @@ _UpdateScrolling:
 .PROC Main_Upgrade_RunWindow
 _GameLoop:
     prga_bank #<.bank(FuncA_Objects_DrawUpgradeSymbol)
-    jsr FuncA_Objects_DrawUpgradeSymbol
     jsr FuncA_Objects_DrawObjectsForRoom
+    jsr FuncA_Objects_DrawUpgradeSymbol
     jsr Func_ClearRestOfOam
     jsr Func_ProcessFrame
     jsr Func_UpdateButtons
@@ -205,7 +202,6 @@ _SetScrollGoal:
 _InitWindow:
     lda #kScreenHeightPx - kUpgradeWindowScrollSpeed
     sta Zp_WindowTop_u8
-    jsr Func_Window_SetUpIrq
     lda #1
     sta Zp_WindowNextRowToTransfer_u8
     lda #kUpgradeWindowTopGoal

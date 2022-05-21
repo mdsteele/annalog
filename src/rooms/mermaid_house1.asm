@@ -39,7 +39,7 @@
 .IMPORT Sram_CarryingFlower_eFlag
 .IMPORT Sram_ProgressFlags_arr
 .IMPORTZP Zp_OamOffset_u8
-.IMPORTZP Zp_PpuScrollY_u8
+.IMPORTZP Zp_RoomScrollY_u8
 .IMPORTZP Zp_Tmp1_byte
 .IMPORTZP Zp_Tmp2_byte
 
@@ -185,7 +185,7 @@ _Devices_sDevice_arr:
     lda _PosX_u8_arr, y
     sta Zp_Tmp1_byte  ; X-pos
     lda _PosY_u8_arr, y
-    sub Zp_PpuScrollY_u8
+    sub Zp_RoomScrollY_u8
     sta Zp_Tmp2_byte  ; Y-pos
     ;; Allocate the object.
     ldy Zp_OamOffset_u8
