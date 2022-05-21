@@ -55,6 +55,19 @@ Hw_Channels_sChanRegs_arr5 = $4000
 
 ;;;=========================================================================;;;
 
+.SCOPE bEnvelope
+    DutyMask = %11000000  ; bits used to specify pulse duty cycle
+    Duty18   = %00000000  ; 1/8 pulse duty cycle
+    Duty14   = %01000000  ; 1/4 pulse duty cycle
+    Duty12   = %10000000  ; 1/2 pulse duty cycle
+    Duty34   = %11000000  ; 3/4 pulse duty cycle
+    NoLength = %00100000  ; if set, length counter is halted
+    ConstVol = %00010000  ; if set, volume is constant
+    VolMask  = %00001111  ; bits used for volume
+.ENDSCOPE
+
+;;;=========================================================================;;;
+
 ;;; DMC channel flags and rate (https://www.nesdev.org/wiki/APU_DMC)
 Hw_DmcFlags_wo = $4010
 

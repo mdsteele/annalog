@@ -103,6 +103,14 @@ _Phrase1_sPhrase:
     cld
     ldx #$ff
     txs
+ZeroAudioCtrl:
+    lda #0
+    ldx #.sizeof(sAudioCtrl) - 1
+    @loop:
+    sta Zp_Next_sAudioCtrl, x
+    dex
+    .assert .sizeof(sAudioCtrl) <= $80, error
+    bpl @loop
 ResetAudio:
     jsr Func_AudioReset
     lda Hw_ApuCount_wo

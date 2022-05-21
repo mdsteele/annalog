@@ -115,6 +115,35 @@
 
 ;;;=========================================================================;;;
 
+;;; Music state variables for a given APU channel.
+.STRUCT sChanState
+    ;; The length of the current tone/rest, in frames.
+    NoteDuration_u8     .byte
+    ;; How many frames of the current tone/rest have elapsed so far.
+    NoteFrames_u8       .byte
+    ;; The instrument function to call each frame to update the tone.
+    ;; @param X The channel number (0-4) times four (so, 0, 4, 8, 12, or 16).
+    ;; @return A The duty/envelope byte to use.
+    ;; @preserve X
+    Instrument_func_ptr .addr
+.ENDSTRUCT
+
+;;; SFX state variables for a given APU channel.
+.STRUCT sChanSfx
+    ;; The SFX function to call each frame to update the channel's APU
+    ;; registers for the sound effect.  If the high byte is zero, then no sound
+    ;; effect is active.
+    ;; @param X The channel number (0-4) times four (so, 0, 4, 8, 12, or 16).
+    ;; @return C Set if the sound is finished, cleared otherwise.
+    ;; @preserve X
+    Sfx_func_ptr .addr
+    ;; Arbitrary parameter/state bytes that can be used by the Sfx_func_ptr.
+    Param1_byte  .byte
+    Param2_byte  .byte
+.ENDSTRUCT
+
+;;;=========================================================================;;;
+
 ;;; Instructions to be sent to the audio driver the next time Func_ProcessFrame
 ;;; is called.
 .STRUCT sAudioCtrl
@@ -136,24 +165,13 @@
     ;; If the high byte is nonzero, the audio driver will start playing the
     ;; specified music.
     Song_sMusic_ptr  .addr
-    ;; TODO: Add fields for starting SFX.
-    ;; Sfx1_sPhrase_ptr .addr
-    ;; Sfx2_sPhrase_ptr .addr
-    ;; SfxT_sPhrase_ptr .addr
-    ;; SfxN_sPhrase_ptr .addr
-    ;; SfxD_sPhrase_ptr .addr
-.ENDSTRUCT
-
-;;;=========================================================================;;;
-
-;;; Music state variables for a given APU channel.
-.STRUCT sChanState
-    ;; The length of the current tone/rest, in frames.
-    NoteDuration_u8     .byte
-    ;; How many frames of the current tone/rest have elapsed so far.
-    NoteFrames_u8       .byte
-    ;; The instrument function to call each frame to update the tone.
-    Instrument_func_ptr .addr
+    ;; For each of these sChanSfx structs, if the high byte of the Sfx_func_ptr
+    ;; is nonzero, then the audio driver will start playing that SFX.
+    Sfx1_sChanSfx    .tag sChanSfx
+    Sfx2_sChanSfx    .tag sChanSfx
+    SfxT_sChanSfx    .tag sChanSfx
+    SfxN_sChanSfx    .tag sChanSfx
+    SfxD_sChanSfx    .tag sChanSfx
 .ENDSTRUCT
 
 ;;;=========================================================================;;;
