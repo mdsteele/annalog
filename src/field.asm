@@ -36,7 +36,7 @@
 .LINECONT +
 .DEFINE OpcodeLabels \
     _OpEmpty, _OpCopy, _OpSwap, _OpAdd, _OpSub, _OpMul, _OpGoto, _OpSkip, \
-    _OpIf, _OpTil, _OpAct, _OpMove, _OpWait, _OpEnd, _OpEnd, _OpNop
+    _OpIf, _OpTil, _OpAct, _OpMove, _OpWait, _OpBeep, _OpEnd, _OpNop
 .LINECONT -
 
 .MACRO OPCODE_TABLE arg
@@ -72,7 +72,7 @@ _NumFields_u8_arr:
     d_byte Act,   1
     d_byte Move,  2
     d_byte Wait,  1
-    .byte 1  ; unused opcode
+    d_byte Beep,  2
     d_byte End,   1
     d_byte Nop,   1
     D_END
@@ -106,6 +106,7 @@ _OpMul:
 _OpGoto:
 _OpSkip:
 _OpMove:
+_OpBeep:
     .byte 3, 0
 _OpIf:
     .byte 1, 0, 0, 0
@@ -151,6 +152,7 @@ _OpMul:
 _OpGoto:
 _OpSkip:
 _OpMove:
+_OpBeep:
     .byte 0, 5
 _OpIf:
     .byte 0, 3, 4, 5
@@ -191,6 +193,7 @@ _OpMul:
 _OpGoto:
 _OpSkip:
 _OpMove:
+_OpBeep:
     .byte 0, 0, 0, 0, 1, 1, 1
 _OpIf:
     .byte 0, 0, 1, 1, 2, 3, 3
@@ -230,6 +233,7 @@ _OpMul:
 _OpGoto:
     .byte eField::Opcode, eField::Address
 _OpSkip:
+_OpBeep:
     .byte eField::Opcode, eField::RValue
 _OpIf:
 _OpTil:
@@ -269,6 +273,7 @@ _OpMul:
 _OpGoto:
 _OpSkip:
 _OpMove:
+_OpBeep:
     .byte 0, 1
 _OpIf:
 _OpTil:
@@ -503,6 +508,10 @@ _OpMove:
     @moveHorz:
     lda #eOpcode::Move * $10 + eDir::Right
     @setOp:
+    sta Ram_Console_sProgram + sProgram::Code_sInst_arr + sInst::Op_byte, x
+    bne _ZeroArgByteAndFieldNumber  ; unconditional
+_OpBeep:
+    lda #eOpcode::Beep * $10 + $02
     sta Ram_Console_sProgram + sProgram::Code_sInst_arr + sInst::Op_byte, x
     bne _ZeroArgByteAndFieldNumber  ; unconditional
 .ENDPROC

@@ -114,18 +114,18 @@ Ram_MenuCols_u8_arr: .res kMaxMenuItems
 ;;; |GOTO MUL|
 ;;; |SKIP IF |
 ;;; |MOVE TIL|
-;;; |ACT  NOP|
+;;; |BEEP ACT|
 ;;; |WAIT END|
 ;;; |delete  |
 ;;; +--------+
 .PROC DataA_Console_Opcode_sMenu
     D_STRUCT sMenu
     d_byte WidthsMinusOne_u8_arr
-    .byte 5, 3, 3, 2, 2, 2, 3, 3, 1, 2, 2, 3, 3, 0, 2, 2
+    .byte 5, 3, 3, 2, 2, 2, 3, 3, 1, 2, 2, 3, 3, 3, 2, 2
     d_addr Labels_u8_arr_ptr_arr
     .addr _LabelEmpty, _LabelCopy, _LabelSwap, _LabelAdd, _LabelSub, _LabelMul
     .addr _LabelGoto, _LabelSkip, _LabelIf, _LabelTil, _LabelAct, _LabelMove
-    .addr _LabelWait, _LabelEnd, _LabelEnd, _LabelNop
+    .addr _LabelWait, _LabelBeep, _LabelEnd, _LabelNop
     d_addr OnUp_func_ptr,    _OnUp
     d_addr OnDown_func_ptr,  _OnDown
     d_addr OnLeft_func_ptr,  _OnLeft
@@ -144,6 +144,7 @@ _LabelTil:   .byte "TIL"
 _LabelAct:   .byte "ACT"
 _LabelMove:  .byte "MOVE"
 _LabelWait:  .byte "WAIT"
+_LabelBeep:  .byte "BEEP"
 _LabelEnd:   .byte "END"
 _LabelNop:   .byte "NOP"
 _OnUp:
@@ -291,22 +292,21 @@ _SetRowsForMenuLeftColumn:
     stx Ram_MenuRows_u8_arr + eOpcode::Skip
     inx
     @noSkipOpcode:
-    ;; Check if this machine supports the ACT opcode.
+    ;; Check if this machine supports the MOVE opcode.
     ldy #sMachine::Flags_bMachine
     lda (Zp_Current_sMachine_ptr), y
-    tay
-    and #bMachine::Act
-    beq @noActOpcode
-    stx Ram_MenuRows_u8_arr + eOpcode::Act
-    inx
-    @noActOpcode:
-    ;; Check if this machine supports the MOVE opcode.
-    tya  ; machine flags
     and #bMachine::MoveH | bMachine::MoveV
     beq @noMoveOpcode
     stx Ram_MenuRows_u8_arr + eOpcode::Move
     inx
     @noMoveOpcode:
+    ;; Check if the BEEP opcode is unlocked.
+    lda Sram_ProgressFlags_arr + (eFlag::UpgradeOpcodeBeep >> 3)
+    and #1 << (eFlag::UpgradeOpcodeBeep & $07)
+    beq @noBeepOpcode
+    stx Ram_MenuRows_u8_arr + eOpcode::Beep
+    inx
+    @noBeepOpcode:
     ;; The WAIT opcode is always available.
     stx Ram_MenuRows_u8_arr + eOpcode::Wait
     ;; Put an entry for the EMPTY opcode on the last row of the menu.
@@ -345,19 +345,35 @@ _SetRowsForMenuRightColumn:
     stx Ram_MenuRows_u8_arr + eOpcode::Til
     inx
     @noTilOpcode:
-    ;; Check if the NOP opcode is unlocked.
-    lda Sram_ProgressFlags_arr + (eFlag::UpgradeOpcodeNop >> 3)
-    and #1 << (eFlag::UpgradeOpcodeNop & $07)
-    beq @noNopOpcode
-    stx Ram_MenuRows_u8_arr + eOpcode::Nop
+    ;; Check if this machine supports the ACT opcode.
+    ldy #sMachine::Flags_bMachine
+    lda (Zp_Current_sMachine_ptr), y
+    and #bMachine::Act
+    beq @noActOpcode
+    stx Ram_MenuRows_u8_arr + eOpcode::Act
     inx
-    @noNopOpcode:
+    @noActOpcode:
     ;; The END opcode is always available.
     stx Ram_MenuRows_u8_arr + eOpcode::End
     rts
 _Columns_u8_arr:
     D_ENUM eOpcode
-    .byte 0, 0, 0, 5, 5, 5, 0, 0, 5, 5, 0, 0, 0, 5, 5, 5
+    d_byte Empty, 0
+    d_byte Copy,  0
+    d_byte Swap,  0
+    d_byte Add,   5
+    d_byte Sub,   5
+    d_byte Mul,   5
+    d_byte Goto,  0
+    d_byte Skip,  0
+    d_byte If,    5
+    d_byte Til,   5
+    d_byte Act,   5
+    d_byte Move,  0
+    d_byte Wait,  0
+    d_byte Beep,  0
+    d_byte End,   5
+    d_byte Nop,   5
     D_END
 .ENDPROC
 

@@ -22,6 +22,7 @@
 .INCLUDE "macros.inc"
 
 .IMPORT Ram_Sound_sChanSfx_arr
+.IMPORTZP Zp_Next_sAudioCtrl
 
 ;;;=========================================================================;;;
 
@@ -34,13 +35,29 @@ kBeepInitVolume = 3
 
 .SEGMENT "PRG8"
 
+;;; Plays a sound for the BEEP opcode.
+;;; @param A The tone number (0-9).
+.EXPORT Func_PlayBeepSfx
+.PROC Func_PlayBeepSfx
+    .linecont +
+    sta <(Zp_Next_sAudioCtrl + sAudioCtrl::Sfx2_sChanSfx + \
+          sChanSfx::Param1_byte)
+    lda #0
+    sta <(Zp_Next_sAudioCtrl + sAudioCtrl::Sfx2_sChanSfx + \
+          sChanSfx::Param2_byte)
+    ldax #Func_SfxBeep
+    stax <(Zp_Next_sAudioCtrl + sAudioCtrl::Sfx2_sChanSfx + \
+           sChanSfx::Sfx_func_ptr)
+    .linecont -
+    rts
+.ENDPROC
+
 ;;; SFX function for the BEEP opcode.  When starting this sound, Param1_byte
 ;;; should hold the tone number (0-9), and Param2_byte should be initialized to
 ;;; zero.
 ;;; @param X The channel number (0-4) times four (so, 0, 4, 8, 12, or 16).
 ;;; @return C Set if the sound is finished, cleared otherwise.
 ;;; @preserve X
-.EXPORT Func_SfxBeep
 .PROC Func_SfxBeep
     lda Ram_Sound_sChanSfx_arr + sChanSfx::Param2_byte, x
     beq _Initialize

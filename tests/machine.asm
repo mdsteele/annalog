@@ -74,6 +74,13 @@ Zp_TestCycleCount_u8: .res 1
 
 .CODE
 
+;;; Mock implementation of Func_PlayBeepSfx.
+;;; @param A The tone number (0-9).
+.EXPORT Func_PlayBeepSfx
+.PROC Func_PlayBeepSfx
+    rts
+.ENDPROC
+
 .EXPORT Sram_Programs_sProgram_arr
 .PROC Sram_Programs_sProgram_arr
     .res .sizeof(sProgram) * kTestProgramIndex

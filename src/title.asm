@@ -18,7 +18,6 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "audio.inc"
-.INCLUDE "cpu.inc"
 .INCLUDE "flag.inc"
 .INCLUDE "joypad.inc"
 .INCLUDE "macros.inc"
@@ -35,7 +34,6 @@
 .IMPORT Func_ClearRestOfOam
 .IMPORT Func_GetRandomByte
 .IMPORT Func_ProcessFrame
-.IMPORT Func_SfxBeep
 .IMPORT Func_UpdateButtons
 .IMPORT Func_Window_Disable
 .IMPORT Main_Explore_SpawnInLastSafeRoom
@@ -81,22 +79,6 @@ Ppu_TitleTopLeft = Ppu_Nametable0_sName + sName::Tiles_u8_arr + \
     jsr_prga FuncA_Fade_In
 _GameLoop:
     jsr Func_UpdateButtons
-    ;; Check A button.  TODO: Remove this.
-    bit Zp_P1ButtonsPressed_bJoypad
-    .assert bJoypad::AButton = bProc::Negative, error
-    bpl @noAButton
-    .linecont +
-    ldax #Func_SfxBeep
-    stax <(Zp_Next_sAudioCtrl + sAudioCtrl::Sfx2_sChanSfx + \
-           sChanSfx::Sfx_func_ptr)
-    lda #2
-    sta <(Zp_Next_sAudioCtrl + sAudioCtrl::Sfx2_sChanSfx + \
-          sChanSfx::Param1_byte)
-    lda #0
-    sta <(Zp_Next_sAudioCtrl + sAudioCtrl::Sfx2_sChanSfx + \
-          sChanSfx::Param2_byte)
-    .linecont -
-    @noAButton:
     ;; Check START button.
     lda Zp_P1ButtonsPressed_bJoypad
     and #bJoypad::Start

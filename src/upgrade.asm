@@ -296,9 +296,9 @@ OpcodeSkip3_u8_arr:      .byte "number of instructions.", $ff
 OpcodeTil1_u8_arr:       .byte "      TIL OPCODE", $ff
 OpcodeTil2_u8_arr:       .byte "Repeats last instruction", $ff
 OpcodeTil3_u8_arr:       .byte "until condition is met.", $ff
-OpcodeNop1_u8_arr:       .byte "      NOP OPCODE", $ff
-OpcodeNop2_u8_arr:       .byte "Has no effect.", $ff
-OpcodeNop3_u8_arr:       .byte $ff
+OpcodeBeep1_u8_arr:      .byte "     BEEP OPCODE", $ff
+OpcodeBeep2_u8_arr:      .byte "Plays one of ten musical", $ff
+OpcodeBeep3_u8_arr:      .byte "tones.", $ff
 RegisterB1_u8_arr:       .byte "       B-REMOTE", $ff
 RegisterB2_u8_arr:       .byte "Uses the B button to", $ff
 RegisterB3_u8_arr:       .byte "control the B register.", $ff
@@ -409,10 +409,10 @@ _DescTable_ptr_arr:
     .addr DataA_Upgrade_Descriptions::OpcodeTil1_u8_arr
     .addr DataA_Upgrade_Descriptions::OpcodeTil2_u8_arr
     .addr DataA_Upgrade_Descriptions::OpcodeTil3_u8_arr
-    .assert * - _DescTable_ptr_arr = 6 * eFlag::UpgradeOpcodeNop, error
-    .addr DataA_Upgrade_Descriptions::OpcodeNop1_u8_arr
-    .addr DataA_Upgrade_Descriptions::OpcodeNop2_u8_arr
-    .addr DataA_Upgrade_Descriptions::OpcodeNop3_u8_arr
+    .assert * - _DescTable_ptr_arr = 6 * eFlag::UpgradeOpcodeBeep, error
+    .addr DataA_Upgrade_Descriptions::OpcodeBeep1_u8_arr
+    .addr DataA_Upgrade_Descriptions::OpcodeBeep2_u8_arr
+    .addr DataA_Upgrade_Descriptions::OpcodeBeep3_u8_arr
     .assert * - _DescTable_ptr_arr = 6 * eFlag::UpgradeRegisterB, error
     .addr DataA_Upgrade_Descriptions::RegisterB1_u8_arr
     .addr DataA_Upgrade_Descriptions::RegisterB2_u8_arr

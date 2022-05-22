@@ -24,6 +24,7 @@
 .INCLUDE "program.inc"
 .INCLUDE "room.inc"
 
+.IMPORT Func_PlayBeepSfx
 .IMPORT Sram_Programs_sProgram_arr
 .IMPORTZP Zp_Current_sRoom
 .IMPORTZP Zp_FrameCounter_u8
@@ -36,7 +37,7 @@
 .LINECONT +
 .DEFINE OpcodeLabels \
     _OpEmpty, _OpCopy, _OpSwap, _OpAdd, _OpSub, _OpMul, _OpGoto, _OpSkip, \
-    _OpIf, _OpTil, _OpAct, _OpMove, _OpWait, _OpEnd, _OpEnd, _OpNop
+    _OpIf, _OpTil, _OpAct, _OpMove, _OpWait, _OpBeep, _OpEnd, _OpNop
 .LINECONT -
 
 ;;; OBJ tile IDs used for drawing machine status lights.
@@ -324,6 +325,12 @@ _MoveOrAct:
     ldx Zp_MachineIndex_u8
     sta Ram_MachineStatus_eMachine_arr, x
     rts
+_OpBeep:
+    lda <(Zp_Current_sInst + sInst::Op_byte)
+    and #$0f  ; param: immediate value or register
+    jsr Func_MachineRead  ; returns A
+    jsr Func_PlayBeepSfx
+    ldx Zp_MachineIndex_u8
 _OpWait:
     lda #$20  ; 32 frames = about half a second
     sta Ram_MachineWait_u8_arr, x

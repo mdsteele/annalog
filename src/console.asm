@@ -75,7 +75,7 @@
 .LINECONT +
 .DEFINE OpcodeLabels \
     _OpEmpty, _OpCopy, _OpSwap, _OpAdd, _OpSub, _OpMul, _OpGoto, _OpSkip, \
-    _OpIf, _OpTil, _OpAct, _OpMove, _OpWait, _OpEnd, _OpEnd, _OpNop
+    _OpIf, _OpTil, _OpAct, _OpMove, _OpWait, _OpBeep, _OpEnd, _OpNop
 .LINECONT -
 
 ;;;=========================================================================;;;
@@ -922,6 +922,13 @@ _OpWait:
     jsr _WriteString5
     jmp _Write2Spaces
     @string: .byte "WAIT "
+_OpBeep:
+    ldya #@string
+    jsr _WriteString5
+    lda Zp_Tmp1_byte
+    jsr _WriteLowRegisterOrImmediate
+    jmp _Write1Space
+    @string: .byte "BEEP "
 _OpEnd:
     ldya #@string
     jsr _WriteString3
