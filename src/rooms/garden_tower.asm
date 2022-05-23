@@ -117,6 +117,7 @@ _Machines_sMachine_arr:
     .assert kCannonMachineIndex = 0, error
     D_STRUCT sMachine
     d_byte Code_eProgram, eProgram::GardenBossCannon
+    d_byte Conduit_eFlag, 0
     d_byte Flags_bMachine, bMachine::MoveV | bMachine::Act
     d_byte Status_eDiagram, eDiagram::Trolley  ; TODO
     d_word ScrollGoalX_u16, $0

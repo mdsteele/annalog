@@ -139,6 +139,7 @@ _Machines_sMachine_arr:
     .assert kTrolleyMachineIndex = 0, error
     D_STRUCT sMachine
     d_byte Code_eProgram, eProgram::PrisonEscapeTrolley
+    d_byte Conduit_eFlag, 0
     d_byte Flags_bMachine, bMachine::MoveH
     d_byte Status_eDiagram, eDiagram::Trolley
     d_word ScrollGoalX_u16, $c0

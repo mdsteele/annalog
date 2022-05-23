@@ -17,25 +17,36 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
-;;; The maximum number of selectable items in a menu.
-.DEFINE kMaxMenuItems 16
+.INCLUDE "macros.inc"
+
+.IMPORT Data_PowersOfTwo_u8_arr8
+.IMPORT Sram_ProgressFlags_arr
 
 ;;;=========================================================================;;;
 
-;;; Represents static data about a console instruction field editing menu.
-.STRUCT sMenu
-    ;; The (width - 1) of each menu item, in tiles.
-    WidthsMinusOne_u8_arr   .res kMaxMenuItems
-    ;; Pointers to the label string for each menu item.  Each string must have
-    ;; length equal to 1 plus the corresponding value in WidthsMinusOne_u8_arr.
-    Labels_u8_arr_ptr_arr   .res kMaxMenuItems * 2
-    ;; Pointers to the functions to be called when the player presses various
-    ;; directions on the D-pad; each function should update Zp_MenuItem_u8
-    ;; appropriately based on the menu layout.
-    OnUp_func_ptr           .res 2
-    OnDown_func_ptr         .res 2
-    OnLeft_func_ptr         .res 2
-    OnRight_func_ptr        .res 2
-.ENDSTRUCT
+.SEGMENT "PRG8"
+
+;;; Determines if the specified eFlag is set.
+;;; @param X The eFlag value to test.
+;;; @return Z Cleared if the flag is set, or set if the flag is cleared.
+;;; @preserve X, Zp_Tmp*
+.EXPORT Func_IsFlagSet
+.PROC Func_IsFlagSet
+    ;; Get the bitmask for this eFlag.
+    txa  ; eFlag value
+    and #$07
+    tay
+    lda Data_PowersOfTwo_u8_arr8, y
+    pha  ; flag bitmask
+    ;; Get the byte offset into Sram_ProgressFlags_arr for this eFlag, and
+    ;; store it in Y.
+    txa  ; eFlag value
+    div #8
+    tay
+    ;; Check if the flag is set.
+    pla  ; flag bitmask
+    and Sram_ProgressFlags_arr, y
+    rts
+.ENDPROC
 
 ;;;=========================================================================;;;

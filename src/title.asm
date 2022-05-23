@@ -43,6 +43,7 @@
 .IMPORT Sram_LastSafe_eRoom
 .IMPORT Sram_MagicNumber_u8
 .IMPORT Sram_Minimap_u16_arr
+.IMPORT Sram_ProgressFlags_arr
 .IMPORTZP Zp_Next_sAudioCtrl
 .IMPORTZP Zp_OamOffset_u8
 .IMPORTZP Zp_P1ButtonsPressed_bJoypad
@@ -262,6 +263,13 @@ _SetRenderState:
     inx
     cpx #$30
     blt @minimapLoop
+    ;; TODO: For testing, grant all upgrades (remove this later).
+    .assert kFirstUpgradeFlag = 0, error
+    lda #$ff
+    sta Sram_ProgressFlags_arr + 0
+    .assert kNumUpgradeFlags = 8 + 5, error
+    lda #$1f
+    sta Sram_ProgressFlags_arr + 1
     ;; Set starting location.
     lda #kStartingRoom
     sta Sram_LastSafe_eRoom

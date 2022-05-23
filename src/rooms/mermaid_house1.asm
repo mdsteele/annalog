@@ -32,6 +32,7 @@
 .IMPORT DataA_Pause_MermaidAreaName_u8_arr
 .IMPORT DataA_Room_Indoors_sTileset
 .IMPORT Data_PowersOfTwo_u8_arr8
+.IMPORT Func_IsFlagSet
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrPlayerNormal
 .IMPORT Ppu_ChrTownsfolk
@@ -117,28 +118,6 @@ _Devices_sDevice_arr:
 
 ;;;=========================================================================;;;
 
-;;; Determines if the specified flower has been delivered to the florist.
-;;; @param X The eFlag value for the flower.
-;;; @return Z Cleared if the flower has been delivered, set otherwise.
-;;; @preserve X, Zp_Tmp*
-.PROC FuncC_Mermaid_FlowerIsDelivered
-    ;; Get the bitmask for this eFlag.
-    txa  ; eFlag value
-    and #$07
-    tay
-    lda Data_PowersOfTwo_u8_arr8, y
-    pha  ; flag bitmask
-    ;; Get the byte offset into Sram_ProgressFlags_arr for this eFlag, and
-    ;; store it in Y.
-    txa  ; eFlag value
-    div #8
-    tay
-    ;; Check if this flower has been delivered.
-    pla  ; flag bitmask
-    and Sram_ProgressFlags_arr, y
-    rts
-.ENDPROC
-
 ;;; Returns the number of flowers that have been delivered.
 ;;; @return A The number of delivered flowers.
 ;;; @return Z Set if zero flowers have been delivered.
@@ -147,7 +126,7 @@ _Devices_sDevice_arr:
     sta Zp_Tmp1_byte  ; num flowers delivered
     ldx #kFirstFlowerFlag
     @loop:
-    jsr FuncC_Mermaid_FlowerIsDelivered  ; preserves X and Zp_Tmp*, returns Z
+    jsr Func_IsFlagSet  ; preserves X and Zp_Tmp*, sets Z if flag is not set
     beq @continue
     inc Zp_Tmp1_byte  ; num flowers delivered
     @continue:
@@ -163,7 +142,7 @@ _Devices_sDevice_arr:
 .PROC FuncC_Mermaid_House1_Draw
     ldx #kFirstFlowerFlag
     @loop:
-    jsr FuncC_Mermaid_FlowerIsDelivered  ; preserves X, returns Z
+    jsr Func_IsFlagSet  ; preserves X, sets Z if flag is not set
     beq @continue
     jsr FuncC_Mermaid_House1_DrawFlower  ; preserves X
     @continue:

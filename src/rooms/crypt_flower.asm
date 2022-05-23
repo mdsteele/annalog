@@ -134,6 +134,7 @@ _Machines_sMachine_arr:
     .assert kHoistMachineIndex = 0, error
     D_STRUCT sMachine
     d_byte Code_eProgram, eProgram::CryptFlowerHoist
+    d_byte Conduit_eFlag, 0
     d_byte Flags_bMachine, bMachine::MoveV
     d_byte Status_eDiagram, eDiagram::Trolley
     d_word ScrollGoalX_u16, $10

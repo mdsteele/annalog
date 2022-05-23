@@ -34,10 +34,12 @@
 .IMPORT FuncA_Console_GetCurrentFieldWidth
 .IMPORT FuncA_Console_GetCurrentInstNumFields
 .IMPORT FuncA_Console_SetFieldForNominalOffset
+.IMPORT FuncA_Console_WriteNeedsPowerTransferData
 .IMPORT FuncA_Console_WriteStatusTransferData
 .IMPORT FuncA_Objects_DrawObjectsForRoom
 .IMPORT FuncA_Terrain_ScrollTowardsGoal
 .IMPORT Func_ClearRestOfOam
+.IMPORT Func_IsFlagSet
 .IMPORT Func_MachineReset
 .IMPORT Func_MachineTick
 .IMPORT Func_ProcessFrame
@@ -56,6 +58,7 @@
 .IMPORTZP Zp_Current_sMachine_ptr
 .IMPORTZP Zp_Current_sProgram_ptr
 .IMPORTZP Zp_HudMachineIndex_u8
+.IMPORTZP Zp_MachineIndex_u8
 .IMPORTZP Zp_MachineMaxInstructions_u8
 .IMPORTZP Zp_OamOffset_u8
 .IMPORTZP Zp_P1ButtonsPressed_bJoypad
@@ -87,12 +90,6 @@ kConsoleWindowScrollSpeed = 6
 kConsoleTileIdArrowFirst = $5a
 kConsoleTileIdArrowLeft  = $5c
 kConsoleTileIdArrowRight = $5d
-kConsoleTileIdCmpFirst   = $09
-kConsoleTileIdColon      = $04
-kConsoleTileIdDigitZero  = $10
-kConsoleTileIdMinus      = $08
-kConsoleTileIdPlus       = $07
-kConsoleTileIdTimes      = $57
 
 ;;; The OBJ palette number used for the console cursor.
 kCursorObjPalette = 1
@@ -111,6 +108,11 @@ Zp_ConsoleSram_sProgram_ptr: .res 2
 ;;; the borders or the bottom margin).
 .EXPORTZP Zp_ConsoleNumInstRows_u8
 Zp_ConsoleNumInstRows_u8: .res 1
+
+;;; If nonzero, then the console is unpowered and cannot be used; in that case,
+;;; the value is the conduit circuit number (1-6) to display to the player in
+;;; the error message.
+Zp_ConsoleNeedsPower_u8: .res 1
 
 ;;; The "current" instruction number within Ram_Console_sProgram.  While
 ;;; editing or debug stepping, this is the instruction highlighted by the
@@ -176,10 +178,14 @@ _ScrollWindowUp:
 _CheckIfDone:
     lda Zp_WindowTop_u8
     cmp Zp_WindowTopGoal_u8
-    jeq Main_Console_StartEditing
+    beq _StartEditing
 _UpdateScrolling:
     jsr_prga FuncA_Terrain_ScrollTowardsGoal
     jmp _GameLoop
+_StartEditing:
+    lda Zp_ConsoleNeedsPower_u8
+    beq Main_Console_StartEditing
+    jmp Main_Console_NoPower
 .ENDPROC
 
 ;;; Mode for scrolling out the console window.  Switches to explore mode once
@@ -269,6 +275,27 @@ _UpdateScrolling:
     jmp _GameLoop
 .ENDPROC
 
+;;; Mode for using a console for a machine whose required conduit hasn't yet
+;;; been activated.
+;;; @prereq Rendering is enabled.
+;;; @prereq The console window is fully visible.
+;;; @prereq Explore mode is initialized.
+.EXPORT Main_Console_NoPower
+.PROC Main_Console_NoPower
+_GameLoop:
+    jsr_prga FuncA_Objects_DrawObjectsForRoom
+    jsr Func_ClearRestOfOam
+    jsr Func_ProcessFrame
+    jsr Func_UpdateButtons
+_CheckButtons:
+    lda Zp_P1ButtonsPressed_bJoypad
+    and #bJoypad::AButton | bJoypad::BButton
+    jne Main_Console_CloseWindow
+_UpdateScrolling:
+    jsr_prga FuncA_Terrain_ScrollTowardsGoal
+    jmp _GameLoop
+.ENDPROC
+
 ;;;=========================================================================;;;
 
 .SEGMENT "PRGA_Console"
@@ -278,13 +305,39 @@ _UpdateScrolling:
 ;;; @prereq Explore mode is initialized.
 ;;; @param X The machine index to open a console for.
 .PROC FuncA_Console_Init
-    stx Zp_HudMachineIndex_u8
     jsr Func_SetMachineIndex
     jsr Func_MachineReset
     jsr FuncA_Console_LoadProgram
     lda Zp_MachineMaxInstructions_u8
     div #2
     sta Zp_ConsoleNumInstRows_u8
+_CheckIfPowered:
+    ;; Get the conduit eFlag that this machine requires, or zero if the machine
+    ;; does not need any conduit to be powered.
+    ldy #sMachine::Conduit_eFlag
+    lda (Zp_Current_sMachine_ptr), y
+    .assert kFirstConduitFlag > 0, error
+    beq @setNeedsPower
+    tax  ; param: eFlag
+    jsr Func_IsFlagSet  ; preserves X, sets Z if flag is not set
+    beq @needsPower
+    lda #0
+    beq @setNeedsPower  ; unconditional
+    @needsPower:
+    txa  ; eFlag value
+    .assert kFirstConduitFlag > 1, error
+    sub #kFirstConduitFlag - 1
+    @setNeedsPower:
+    sta Zp_ConsoleNeedsPower_u8
+    ;; If the machine is powered, enable the HUD, otherwise disable the HUD.
+    beq @enableHud
+    @disableHud:
+    ldx #$ff
+    bne @setHud  ; unconditional
+    @enableHud:
+    ldx Zp_MachineIndex_u8
+    @setHud:
+    stx Zp_HudMachineIndex_u8
 _SetDiagram:
     ldy #sMachine::Status_eDiagram
     chr04_bank (Zp_Current_sMachine_ptr), y
@@ -692,9 +745,12 @@ _Interior:
     sta Ram_PpuTransfer_arr + kScreenWidthTiles - 1, x
     lda #kWindowTileIdVert
     sta Ram_PpuTransfer_arr + 1, x
-    sta Ram_PpuTransfer_arr + 11, x
     sta Ram_PpuTransfer_arr + 21, x
     sta Ram_PpuTransfer_arr + kScreenWidthTiles - 2, x
+    ldy Zp_ConsoleNeedsPower_u8
+    bne _NeedsPower
+_DrawInstructions:
+    sta Ram_PpuTransfer_arr + 11, x
     inx
     inx
     ;; Calculate the instruction number for the left column.
@@ -702,11 +758,11 @@ _Interior:
     sub #2
     sta Zp_ConsoleInstNumber_u8
     ;; Draw the instruction for the left column.
-    .assert kConsoleTileIdDigitZero & $0f = 0, error
-    ora #kConsoleTileIdDigitZero
+    .assert '0' & $0f = 0, error
+    ora #'0'
     sta Ram_PpuTransfer_arr, x
     inx
-    lda #kConsoleTileIdColon
+    lda #':'
     sta Ram_PpuTransfer_arr, x
     inx
     jsr FuncA_Console_WriteInstTransferData
@@ -716,21 +772,31 @@ _Interior:
     add Zp_ConsoleNumInstRows_u8
     sta Zp_ConsoleInstNumber_u8
     ;; Draw the instruction for the right column.
-    .assert kConsoleTileIdDigitZero & $0f = 0, error
-    ora #kConsoleTileIdDigitZero
+    .assert '0' & $0f = 0, error
+    ora #'0'
     sta Ram_PpuTransfer_arr, x
     inx
-    lda #kConsoleTileIdColon
+    lda #':'
     sta Ram_PpuTransfer_arr, x
     inx
     jsr FuncA_Console_WriteInstTransferData
     inx
+    bne _DrawStatus  ; unconditional
+_NeedsPower:
+    inx
+    inx
+    tya  ; param: conduit number (1-6)
+    ldy Zp_WindowNextRowToTransfer_u8
+    dey
+    dey  ; param: status box row
+    jsr FuncA_Console_WriteNeedsPowerTransferData
+    inx
+_DrawStatus:
     ;; Draw the status box.
     ldy Zp_WindowNextRowToTransfer_u8
     dey
     dey  ; param: status box row
-    jsr FuncA_Console_WriteStatusTransferData
-    rts
+    jmp FuncA_Console_WriteStatusTransferData
 .ENDPROC
 
 ;;; Redraws all instructions (over the course of two frames, since it's too
@@ -816,10 +882,10 @@ _Interior:
     mul #.sizeof(sInst)
     tay
     lda Ram_Console_sProgram + sProgram::Code_sInst_arr + sInst::Arg_byte, y
-    sta Zp_Tmp2_byte
+    sta Zp_Tmp2_byte  ; Arg_byte
     ;; Store the Op_byte in Zp_Tmp1_byte.
     lda Ram_Console_sProgram + sProgram::Code_sInst_arr + sInst::Op_byte, y
-    sta Zp_Tmp1_byte
+    sta Zp_Tmp1_byte  ; Op_byte
     ;; Extract the opcode and jump to the correct label below.
     div #$10
     tay
@@ -839,38 +905,38 @@ _OpEmpty:
     jmp _Write2Spaces
     @string: .byte " ----"
 _OpCopy:
-    lda Zp_Tmp1_byte
+    lda Zp_Tmp1_byte  ; Op_byte
     jsr _WriteLowRegisterOrImmediate
     jsr _WriteArrowLeft
-    lda Zp_Tmp2_byte
+    lda Zp_Tmp2_byte  ; Arg_byte
     jsr _WriteLowRegisterOrImmediate
     jmp _Write4Spaces
 _OpSwap:
-    lda Zp_Tmp1_byte
+    lda Zp_Tmp1_byte  ; Op_byte
     jsr _WriteLowRegisterOrImmediate
     jsr _WriteArrowLeft
     lda #kConsoleTileIdArrowRight
     sta Ram_PpuTransfer_arr, x
     inx
-    lda Zp_Tmp2_byte
+    lda Zp_Tmp2_byte  ; Arg_byte
     jsr _WriteLowRegisterOrImmediate
     jmp _Write3Spaces
 _OpAdd:
-    lda #kConsoleTileIdPlus
+    lda #'+'
     jmp _WriteBinop
 _OpSub:
-    lda #kConsoleTileIdMinus
+    lda #'-'
     jmp _WriteBinop
 _OpMul:
-    lda #kConsoleTileIdTimes
+    lda #'x'
     jmp _WriteBinop
 _OpGoto:
     ldya #@string
     jsr _WriteString5
-    lda Zp_Tmp1_byte
+    lda Zp_Tmp1_byte  ; Op_byte
     and #$0f
-    .assert kConsoleTileIdDigitZero & $0f = 0, error
-    ora #kConsoleTileIdDigitZero
+    .assert '0' & $0f = 0, error
+    ora #'0'
     sta Ram_PpuTransfer_arr, x
     inx
     jmp _Write1Space
@@ -878,17 +944,17 @@ _OpGoto:
 _OpSkip:
     ldya #@string
     jsr _WriteString5
-    lda Zp_Tmp1_byte
+    lda Zp_Tmp1_byte  ; Op_byte
     jsr _WriteLowRegisterOrImmediate
     jmp _Write1Space
     @string: .byte "SKIP "
 _OpIf:
     ldya #@string
     jsr _WriteString3
-    lda Zp_Tmp2_byte
+    lda Zp_Tmp2_byte  ; Arg_byte
     jsr _WriteLowRegisterOrImmediate
     jsr _WriteComparisonOperator
-    lda Zp_Tmp2_byte
+    lda Zp_Tmp2_byte  ; Arg_byte
     jsr _WriteHighRegisterOrImmediate
     jmp _Write1Space
     @string: .byte "IF "
@@ -896,10 +962,10 @@ _OpTil:
     ldya #@string
     jsr _WriteString3
     jsr _Write1Space
-    lda Zp_Tmp2_byte
+    lda Zp_Tmp2_byte  ; Arg_byte
     jsr _WriteLowRegisterOrImmediate
     jsr _WriteComparisonOperator
-    lda Zp_Tmp2_byte
+    lda Zp_Tmp2_byte  ; Arg_byte
     jmp _WriteHighRegisterOrImmediate
     @string: .byte "TIL"
 _OpAct:
@@ -910,9 +976,9 @@ _OpAct:
 _OpMove:
     ldya #@string
     jsr _WriteString5
-    lda Zp_Tmp1_byte
-    and #$0f
-    add #kConsoleTileIdArrowFirst
+    lda Zp_Tmp1_byte  ; Op_byte
+    and #$03
+    add #kConsoleTileIdArrowFirst  ; TODO: make this an ORA
     sta Ram_PpuTransfer_arr, x
     inx
     jmp _Write1Space
@@ -925,7 +991,7 @@ _OpWait:
 _OpBeep:
     ldya #@string
     jsr _WriteString5
-    lda Zp_Tmp1_byte
+    lda Zp_Tmp1_byte  ; Op_byte
     jsr _WriteLowRegisterOrImmediate
     jmp _Write1Space
     @string: .byte "BEEP "
@@ -963,15 +1029,15 @@ _WriteString5:
     rts
 _WriteBinop:
     pha
-    lda Zp_Tmp1_byte
+    lda Zp_Tmp1_byte  ; Op_byte
     jsr _WriteLowRegisterOrImmediate
     jsr _WriteArrowLeft
-    lda Zp_Tmp2_byte
+    lda Zp_Tmp2_byte  ; Arg_byte
     jsr _WriteLowRegisterOrImmediate
     pla
     sta Ram_PpuTransfer_arr, x
     inx
-    lda Zp_Tmp2_byte
+    lda Zp_Tmp2_byte  ; Arg_byte
     jsr _WriteHighRegisterOrImmediate
     jmp _Write2Spaces
 _Write4Spaces:
@@ -1002,8 +1068,8 @@ _WriteLowRegisterOrImmediate:
     and #$0f
     cmp #$0a  ; immediate values are 0-9; registers are $a-$f
     bge @register
-    .assert kConsoleTileIdDigitZero & $0f = 0, error
-    ora #kConsoleTileIdDigitZero  ; Get tile ID for immediate value (0-9).
+    .assert '0' & $0f = 0, error
+    ora #'0'  ; Get tile ID for immediate value (0-9).
     bne @write  ; unconditional
     @register:
     sub #$0a
@@ -1014,9 +1080,10 @@ _WriteLowRegisterOrImmediate:
     inx
     rts
 _WriteComparisonOperator:
-    lda Zp_Tmp1_byte
-    and #$0f
-    add #kConsoleTileIdCmpFirst
+    lda Zp_Tmp1_byte  ; Op_byte
+    and #$07
+    .assert eCmp::Eq = 0, error
+    add #'='  ; TODO: make this an ORA
     sta Ram_PpuTransfer_arr, x
     inx
     rts

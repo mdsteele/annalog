@@ -32,6 +32,7 @@
 .IMPORT FuncA_Fade_In
 .IMPORT FuncA_Fade_Out
 .IMPORT Func_ClearRestOfOam
+.IMPORT Func_IsFlagSet
 .IMPORT Func_ProcessFrame
 .IMPORT Func_UpdateButtons
 .IMPORT Func_Window_Disable
@@ -39,7 +40,6 @@
 .IMPORT Ppu_ChrPause
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORT Sram_Minimap_u16_arr
-.IMPORT Sram_ProgressFlags_arr
 .IMPORTZP Zp_AvatarMinimapCol_u8
 .IMPORTZP Zp_AvatarMinimapRow_u8
 .IMPORTZP Zp_Current_sRoom
@@ -352,6 +352,7 @@ _DrawBlankLine:
 ;;; @param X The item line number (0-5).
 ;;; @preserve X
 .PROC FuncA_Pause_DirectDrawItemsLine
+    stx Zp_Tmp1_byte  ; line number (0-5)
 .PROC _DrawConduits
     ;; TODO: actually draw conduits
     lda _ConduitTiles, x
@@ -369,27 +370,17 @@ _DrawBlankLine:
     ;; TODO: draw B-remote upgrade
 .PROC _DrawUpgrades
     ;; Calculate the eFlag value for the first upgrade on this line, and store
-    ;; it in Zp_Tmp1_byte.
-    txa  ; line number (0-5)
+    ;; it in X.
+    lda Zp_Tmp1_byte  ; line number (0-5)
     and #$fe
-    asl a
-    sta Zp_Tmp1_byte  ; upgrade eFlag
+    mul #2
+    tax  ; first upgrade eFlag
+    ;; Calculate the loop limit, and store it in Zp_Tmp2_byte.
+    add #4
+    sta Zp_Tmp2_byte  ; ending eFlag
     ;; Loop over each upgrade on this line.
-    lda #4
-    sta Zp_Tmp2_byte  ; loop counter
     @loop:
-    ;; Get the byte offset into Sram_ProgressFlags_arr for this eFlag, and
-    ;; store it in Zp_Tmp3_byte.
-    lda Zp_Tmp1_byte  ; upgrade eFlag
-    div #$08
-    sta Zp_Tmp3_byte  ; flags byte offset
-    ;; Check if the player has this upgrade.
-    lda Zp_Tmp1_byte  ; upgrade eFlag
-    and #$07
-    tay
-    lda Data_PowersOfTwo_u8_arr8, y
-    ldy Zp_Tmp3_byte  ; flags byte offset
-    and Sram_ProgressFlags_arr, y
+    jsr Func_IsFlagSet  ; preserves X and Zp_Tmp*, sets Z if flag X is not set
     bne @drawUpgrade
     ;; The player doesn't have this upgrade yet, so draw some blank space.
     lda #kWindowTileIdBlank
@@ -401,7 +392,7 @@ _DrawBlankLine:
     @drawUpgrade:
     ;; The player does have this upgrade.  Determine the first tile ID to draw
     ;; for this line of this upgrade.
-    txa  ; line number (0-5)
+    lda Zp_Tmp1_byte  ; line number (0-5)
     and #$01
     beq @top
     @bottom:
@@ -409,7 +400,7 @@ _DrawBlankLine:
     .assert kUpgradeTileIdBottomLeft > 0, error
     bne @draw  ; unconditional
     @top:
-    lda Zp_Tmp1_byte  ; upgrade eFlag
+    txa  ; upgrade eFlag
     .assert kNumMaxInstructionUpgrades = 4, error
     sub #eFlag::UpgradeMaxInstructions3 + 1
     blt @upgradeMaxInstructions
@@ -427,12 +418,14 @@ _DrawBlankLine:
     sta Hw_PpuData_rw
     @continue:
     ;; Continue to the next upgrade on this line.
-    inc Zp_Tmp1_byte  ; upgrade eFlag
-    dec Zp_Tmp2_byte  ; loop counter
-    bne @loop
+    inx  ; upgrade eFlag
+    cpx Zp_Tmp2_byte  ; ending eFlag
+    blt @loop
+    ;; At this point, A is still set to kWindowTileIdBlank.
     sta Hw_PpuData_rw
     sta Hw_PpuData_rw
 .ENDPROC
+    ldx Zp_Tmp1_byte  ; restore X register
     rts
 _ConduitTiles:
     .byte "-=- M "

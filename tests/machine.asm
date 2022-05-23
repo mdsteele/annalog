@@ -108,6 +108,7 @@ TestProgram:
 TestMachine:
     D_STRUCT sMachine
     d_byte Code_eProgram, kTestProgramIndex
+    d_byte Conduit_eFlag, 0
     d_byte Flags_bMachine, bMachine::MoveV | bMachine::MoveH
     d_byte Status_eDiagram, eDiagram::Barrier
     d_word ScrollGoalX_u16, 0

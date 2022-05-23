@@ -83,6 +83,16 @@ kSaveMagicNumber = $b2
 
 ;;;=========================================================================;;;
 
+kFirstUpgradeFlag = eFlag::UpgradeMaxInstructions0
+kLastUpgradeFlag = eFlag::UpgradeRegisterB
+kNumUpgradeFlags = 13
+.ASSERT kNumUpgradeFlags = kLastUpgradeFlag + 1 - kFirstUpgradeFlag, error
+
+kFirstConduitFlag = eFlag::ConduitGarden
+kLastConduitFlag = eFlag::ConduitLab
+kNumConduitFlags = 6
+.ASSERT kNumConduitFlags = kLastConduitFlag + 1 - kFirstConduitFlag, error
+
 kFirstFlowerFlag = eFlag::FlowerPrison
 kLastFlowerFlag = eFlag::FlowerCore
 kNumFlowerFlags = 12

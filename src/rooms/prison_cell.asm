@@ -124,6 +124,7 @@ _Machines_sMachine_arr:
     .assert kBarrierMachineIndex = 0, error
     D_STRUCT sMachine
     d_byte Code_eProgram, eProgram::PrisonCellBarrier
+    d_byte Conduit_eFlag, 0
     d_byte Flags_bMachine, bMachine::MoveV
     d_byte Status_eDiagram, eDiagram::Barrier
     d_word ScrollGoalX_u16, $10
@@ -143,6 +144,7 @@ _Machines_sMachine_arr:
     .assert kBlasterMachineIndex = 1, error
     D_STRUCT sMachine
     d_byte Code_eProgram, eProgram::PrisonCellBlaster
+    d_byte Conduit_eFlag, 0
     d_byte Flags_bMachine, bMachine::MoveH | bMachine::Act
     d_byte Status_eDiagram, eDiagram::Trolley  ; TODO
     d_word ScrollGoalX_u16, $110

@@ -21,7 +21,7 @@
 kMaxMachines = 8
 
 ;;; The number of padding bytes at the end of each sMachine struct.
-.DEFINE kMachinePadding 6
+.DEFINE kMachinePadding 5
 
 ;;; The OBJ palette number used for the blinking error light on machines.
 kMachineLightPalette = 1
@@ -63,6 +63,9 @@ kMachineRegNameB = $21  ; 'B'
 .STRUCT sMachine
     ;; Which program this machine executes.
     Code_eProgram     .byte
+    ;; Which conduit flag must be set in order to use this machine, or zero for
+    ;; none.
+    Conduit_eFlag     .byte
     ;; Which features this machine supports.
     Flags_bMachine    .byte
     ;; The diagram to display in the console status box.

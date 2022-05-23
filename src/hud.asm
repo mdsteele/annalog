@@ -17,6 +17,7 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
+.INCLUDE "charmap.inc"
 .INCLUDE "flag.inc"
 .INCLUDE "machine.inc"
 .INCLUDE "macros.inc"
@@ -43,9 +44,6 @@ kHudSpacingPx = kTileHeightPx
 
 ;;; The OBJ palette number to use for the HUD.
 kHudObjPalette = 1
-
-;;; The OBJ tile ID for a zero digit in the HUD.
-kHudTileIdDigitZero = $10
 
 ;;;=========================================================================;;;
 
@@ -128,8 +126,8 @@ _Done:
     jsr Func_MachineRead  ; returns A
     ldy Zp_OamOffset_u8
     ;; Set the tile ID for the register value.
-    .assert kHudTileIdDigitZero & $0f = 0, error
-    ora #kHudTileIdDigitZero
+    .assert '0' & $0f = 0, error
+    ora #'0'
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Tile_u8, y
     ;; Set the tile ID for the register name.
     lda Zp_HudRegisterName_u8
