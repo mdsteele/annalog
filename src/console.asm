@@ -86,11 +86,6 @@
 ;;; How fast the console window scrolls up/down, in pixels per frame.
 kConsoleWindowScrollSpeed = 6
 
-;;; BG tile IDs for drawing the contents of the console window.
-kConsoleTileIdArrowFirst = $5a
-kConsoleTileIdArrowLeft  = $5c
-kConsoleTileIdArrowRight = $5d
-
 ;;; The OBJ palette number used for the console cursor.
 kCursorObjPalette = 1
 
@@ -915,7 +910,7 @@ _OpSwap:
     lda Zp_Tmp1_byte  ; Op_byte
     jsr _WriteLowRegisterOrImmediate
     jsr _WriteArrowLeft
-    lda #kConsoleTileIdArrowRight
+    lda #kTileIdArrowRight
     sta Ram_PpuTransfer_arr, x
     inx
     lda Zp_Tmp2_byte  ; Arg_byte
@@ -978,7 +973,9 @@ _OpMove:
     jsr _WriteString5
     lda Zp_Tmp1_byte  ; Op_byte
     and #$03
-    add #kConsoleTileIdArrowFirst  ; TODO: make this an ORA
+    .assert eDir::Up = 0, error
+    .assert kTileIdArrowUp & $03 = 0, error
+    ora #kTileIdArrowUp
     sta Ram_PpuTransfer_arr, x
     inx
     jmp _Write1Space
@@ -1058,7 +1055,7 @@ _Write1Space:
     inx
     rts
 _WriteArrowLeft:
-    lda #kConsoleTileIdArrowLeft
+    lda #kTileIdArrowLeft
     sta Ram_PpuTransfer_arr, x
     inx
     rts
@@ -1083,7 +1080,8 @@ _WriteComparisonOperator:
     lda Zp_Tmp1_byte  ; Op_byte
     and #$07
     .assert eCmp::Eq = 0, error
-    add #'='  ; TODO: make this an ORA
+    .assert '=' & $07 = 0, error
+    ora #'='
     sta Ram_PpuTransfer_arr, x
     inx
     rts

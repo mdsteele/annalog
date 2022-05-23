@@ -24,11 +24,15 @@
 .CHARMAP $3a, $04  ; ':'
 .CHARMAP $2c, $05  ; ','
 .CHARMAP $27, $06  ; "'"
-.CHARMAP $2b, $07  ; '+'
-.CHARMAP $2d, $08  ; '-'
-.CHARMAP $3c, $0b  ; '<'
-.CHARMAP $3d, $09  ; '='
-.CHARMAP $3e, $0d  ; '>'
+.CHARMAP $2b, $0e  ; '+'
+.CHARMAP $2d, $0f  ; '-'
+.CHARMAP $3c, $0a  ; '<'
+.CHARMAP $3d, $08  ; '='
+.CHARMAP $3e, $0c  ; '>'
+
+kTileIdCmpNe = $09
+kTileIdCmpLe = $0b
+kTileIdCmpGe = $0d
 
 .CHARMAP $30, $10  ; '0'
 .CHARMAP $31, $11  ; '1'
@@ -94,5 +98,10 @@
 .CHARMAP $78, $57  ; 'x'
 .CHARMAP $79, $58  ; 'y'
 .CHARMAP $7a, $59  ; 'z'
+
+kTileIdArrowUp    = $5c
+kTileIdArrowDown  = $5d
+kTileIdArrowLeft  = $5e
+kTileIdArrowRight = $5f
 
 ;;;=========================================================================;;;

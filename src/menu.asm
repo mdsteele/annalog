@@ -774,11 +774,11 @@ _OnRight:
     d_addr OnRight_func_ptr, _OnRight
     D_END
 _LabelEq: .byte "="
-_LabelNe: .byte $0a
+_LabelNe: .byte kTileIdCmpNe
 _LabelLt: .byte "<"
-_LabelLe: .byte $0c
+_LabelLe: .byte kTileIdCmpLe
 _LabelGt: .byte ">"
-_LabelGe: .byte $0e
+_LabelGe: .byte kTileIdCmpGe
 _OnLeft:
     lda Zp_MenuItem_u8
     sub #2
@@ -850,10 +850,10 @@ _SetItem:
     d_addr OnLeft_func_ptr,  _OnLeft
     d_addr OnRight_func_ptr, _OnRight
     D_END
-_LabelUp:    .byte $5a
-_LabelDown:  .byte $5b
-_LabelLeft:  .byte $5c
-_LabelRight: .byte $5d
+_LabelUp:    .byte kTileIdArrowUp
+_LabelDown:  .byte kTileIdArrowDown
+_LabelLeft:  .byte kTileIdArrowLeft
+_LabelRight: .byte kTileIdArrowRight
 _OnUp:
     ldx #eDir::Up
     bpl _SetItem  ; unconditional
