@@ -51,9 +51,10 @@
 
 ;;; Returns the number of fields for the currently-selected instruction.
 ;;; @return X The number of fields.
+;;; @preserve Zp_Tmp*
 .EXPORT FuncA_Console_GetCurrentInstNumFields
 .PROC FuncA_Console_GetCurrentInstNumFields
-    jsr FuncA_Console_GetCurrentOpcode  ; returns A
+    jsr FuncA_Console_GetCurrentOpcode  ; preserves Zp_Tmp*, returns A
     tay
     ldx _NumFields_u8_arr, y
     rts
@@ -81,9 +82,10 @@ _NumFields_u8_arr:
 ;;; Returns the width of the currently-selected instruction field, in tiles,
 ;;; minus one.
 ;;; @return A The width minus one.
+;;; @preserve Zp_Tmp*
 .EXPORT FuncA_Console_GetCurrentFieldWidth
 .PROC FuncA_Console_GetCurrentFieldWidth
-    jsr FuncA_Console_GetCurrentOpcode  ; returns A
+    jsr FuncA_Console_GetCurrentOpcode  ; preserves Zp_Tmp*, returns A
     tay
     lda _OpcodeTable_u8_arr, y
     add Zp_ConsoleFieldNumber_u8
@@ -123,9 +125,10 @@ _OpWait:
 ;;; Returns the horizontal offset of the currently-selected instruction field,
 ;;; in tiles.  This can range from 0-6 inclusive.
 ;;; @return A The field offset.
+;;; @preserve Zp_Tmp*
 .EXPORT FuncA_Console_GetCurrentFieldOffset
 .PROC FuncA_Console_GetCurrentFieldOffset
-    jsr FuncA_Console_GetCurrentOpcode  ; returns A
+    jsr FuncA_Console_GetCurrentOpcode  ; preserves Zp_Tmp*, returns A
     tay
     lda _OpcodeTable_u8_arr, y
     add Zp_ConsoleFieldNumber_u8
@@ -163,9 +166,10 @@ _OpTil:
 ;;; Sets Zp_ConsoleFieldNumber_u8 to whichever field in the current instruction
 ;;; best overlaps with Zp_ConsoleNominalFieldOffset_u8 (which must be in the
 ;;; range 0-6 inclusive).
+;;; @preserve Zp_Tmp*
 .EXPORT FuncA_Console_SetFieldForNominalOffset
 .PROC FuncA_Console_SetFieldForNominalOffset
-    jsr FuncA_Console_GetCurrentOpcode  ; returns A
+    jsr FuncA_Console_GetCurrentOpcode  ; preserves Zp_Tmp*, returns A
     tay
     lda _OpcodeTable_u8_arr, y
     add Zp_ConsoleNominalFieldOffset_u8
@@ -203,9 +207,10 @@ _OpTil:
 
 ;;; Returns the eField for the currently-selected instruction field.
 ;;; @return A The eField value.
+;;; @preserve Zp_Tmp*
 .EXPORT FuncA_Console_GetCurrentFieldType
 .PROC FuncA_Console_GetCurrentFieldType
-    jsr FuncA_Console_GetCurrentOpcode  ; returns A
+    jsr FuncA_Console_GetCurrentOpcode  ; preserves Zp_Tmp*, returns A
     tay
     lda _OpcodeTable_u8_arr, y
     add Zp_ConsoleFieldNumber_u8
@@ -246,8 +251,9 @@ _OpMove:
 ;;; field.  The opcode nibble of the sInst is slot 0, the first argument nibble
 ;;; is slot 1, and so on.
 ;;; @return A Slot number for the field (0-3).
+;;; @preserve Zp_Tmp*
 .PROC FuncA_Console_GetCurrentFieldSlot
-    jsr FuncA_Console_GetCurrentOpcode  ; returns A
+    jsr FuncA_Console_GetCurrentOpcode  ; preserves Zp_Tmp*, returns A
     tay
     lda _OpcodeTable_u8_arr, y
     add Zp_ConsoleFieldNumber_u8
@@ -282,9 +288,10 @@ _OpTil:
 
 ;;; Returns the value of the currently selected instruction field.
 ;;; @return A The value of the field (0-15).
+;;; @preserve Zp_Tmp*
 .EXPORT FuncA_Console_GetCurrentFieldValue
 .PROC FuncA_Console_GetCurrentFieldValue
-    jsr FuncA_Console_GetCurrentFieldSlot  ; returns A
+    jsr FuncA_Console_GetCurrentFieldSlot  ; preserves Zp_Tmp*, returns A
     tay  ; field slot
     lda Zp_ConsoleInstNumber_u8
     mul #.sizeof(sInst)
@@ -518,6 +525,7 @@ _OpBeep:
 
 ;;; Returns the opcode for the currently-selected instruction.
 ;;; @return A The eOpcode value.
+;;; @preserve Zp_Tmp*
 .PROC FuncA_Console_GetCurrentOpcode
     lda Zp_ConsoleInstNumber_u8
     mul #.sizeof(sInst)

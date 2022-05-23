@@ -68,6 +68,7 @@
 .IMPORTZP Zp_Tmp1_byte
 .IMPORTZP Zp_Tmp2_byte
 .IMPORTZP Zp_Tmp3_byte
+.IMPORTZP Zp_Tmp4_byte
 .IMPORTZP Zp_Tmp_ptr
 .IMPORTZP Zp_WindowNextRowToTransfer_u8
 .IMPORTZP Zp_WindowTopGoal_u8
@@ -126,10 +127,6 @@ Zp_ConsoleFieldNumber_u8: .res 1
 ;;; choose whichever field in each instruction has roughly this offset.
 .EXPORTZP Zp_ConsoleNominalFieldOffset_u8
 Zp_ConsoleNominalFieldOffset_u8: .res 1
-
-;;; If set to true ($ff), the console instruction cursor will be drawn
-;;; "diminished", making it less visually prominent.
-Zp_ConsoleCursorIsDiminished_bool: .res 1
 
 ;;;=========================================================================;;;
 
@@ -230,10 +227,9 @@ _UpdateScrolling:
 ;;; @prereq Explore mode is initialized.
 .EXPORT Main_Console_ContinueEditing
 .PROC Main_Console_ContinueEditing
-    lda #0
-    sta Zp_ConsoleCursorIsDiminished_bool
 _GameLoop:
     jsr_prga FuncA_Objects_DrawObjectsForRoom
+    lda #$00  ; param: cursor diminished bool ($00 = undiminished)
     jsr_prga FuncA_Console_DrawFieldCursorObjects
     jsr Func_ClearRestOfOam
     jsr Func_ProcessFrame
@@ -258,8 +254,6 @@ _CheckButtons:
     .assert bJoypad::AButton = bProc::Negative, error
     bpl @noEdit
     @edit:
-    lda #$ff
-    sta Zp_ConsoleCursorIsDiminished_bool
     jmp Main_Menu_EditSelectedField
     @noEdit:
     ;; D-pad:
@@ -624,13 +618,10 @@ _Finish:
 .ENDPROC
 
 ;;; Allocates and populates OAM slots for the console instruction field cursor.
+;;; @param A True ($ff) to draw the cursor diminished, false ($00) otherwise.
 .EXPORT FuncA_Console_DrawFieldCursorObjects
 .PROC FuncA_Console_DrawFieldCursorObjects
-    jsr FuncA_Console_GetCurrentFieldWidth
-    sta Zp_Tmp3_byte
-    jsr FuncA_Console_GetCurrentFieldOffset
-    mul #kTileWidthPx
-    sta Zp_Tmp2_byte
+    sta Zp_Tmp4_byte  ; cursor diminished bool
 _YPosition:
     ;; Calculate the window row that the cursor is in.
     lda Zp_ConsoleInstNumber_u8
@@ -645,8 +636,9 @@ _YPosition:
     adc #$ff  ; subtract 1 (carry will still be clear)
     sta Zp_Tmp1_byte  ; Y-position
 _XPosition:
-    lda #kTileWidthPx * 4
-    add Zp_Tmp2_byte  ; current field offset
+    jsr FuncA_Console_GetCurrentFieldOffset  ; preserves Zp_Tmp*, returns A
+    mul #kTileWidthPx
+    add #kTileWidthPx * 4
     ldx Zp_ConsoleInstNumber_u8
     cpx Zp_ConsoleNumInstRows_u8
     blt @leftColumn
@@ -654,7 +646,9 @@ _XPosition:
     @leftColumn:
     sta Zp_Tmp2_byte  ; X-position
 _PrepareForLoop:
-    ldx Zp_Tmp3_byte  ; cursor width - 1
+    jsr FuncA_Console_GetCurrentFieldWidth  ; preserves Zp_Tmp*, returns A
+    sta Zp_Tmp3_byte  ; cursor width - 1
+    tax  ; loop variable (counts from cursor width - 1 down to zero)
     ldy Zp_OamOffset_u8
 _ObjectLoop:
     ;; Set Y-position.
@@ -669,11 +663,11 @@ _ObjectLoop:
     lda #bObj::Pri | kCursorObjPalette
     sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
     ;; Set tile ID.
-    lda Zp_ConsoleCursorIsDiminished_bool
+    lda Zp_Tmp4_byte  ; cursor diminished bool
     bpl @undiminished
-    lda Zp_Tmp3_byte
+    lda Zp_Tmp3_byte  ; cursor width - 1
     beq @dimSingle
-    cpx Zp_Tmp3_byte
+    cpx Zp_Tmp3_byte  ; cursor width - 1
     beq @dimLeft
     txa
     bne @continue
@@ -687,9 +681,9 @@ _ObjectLoop:
     lda #kConsoleObjTileIdCursorDimSingle
     bne @setTile  ; unconditional
     @undiminished:
-    lda Zp_Tmp3_byte
+    lda Zp_Tmp3_byte  ; cursor width - 1
     beq @tileSingle
-    cpx Zp_Tmp3_byte
+    cpx Zp_Tmp3_byte  ; cursor width - 1
     beq @tileLeft
     txa
     beq @tileRight

@@ -1105,6 +1105,7 @@ _ObjectLoop:
     bpl _ObjectLoop
     sty Zp_OamOffset_u8
 _DrawFieldCursor:
+    lda #$ff  ; param: cursor diminished bool ($ff = diminished)
     jmp FuncA_Console_DrawFieldCursorObjects
 .ENDPROC
 
