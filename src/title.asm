@@ -54,8 +54,8 @@
 ;;;=========================================================================;;;
 
 ;;; The starting location for a new game.
-kStartingRoom = eRoom::TownHouse2
-kStartingSpawn = 2
+kStartingRoom = eRoom::CryptSouth
+kStartingSpawn = bSpawn::IsPassage | 0
 
 ;;; The nametable tile row (of the upper nametable) that the game title starts
 ;;; on.
@@ -263,9 +263,9 @@ _SetRenderState:
     inx
     cpx #$30
     blt @minimapLoop
-    ;; TODO: For testing, grant all upgrades (remove this later).
+    ;; TODO: For testing, grant some upgrades (remove this later).
     .assert kFirstUpgradeFlag = 0, error
-    lda #$ff
+    lda #$01
     sta Sram_ProgressFlags_arr + 0
     .assert kNumUpgradeFlags = 8 + 5, error
     lda #$1f

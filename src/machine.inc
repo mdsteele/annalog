@@ -36,6 +36,7 @@ kMachineRegNameB = $21  ; 'B'
 .ENUM eDiagram
     Barrier = $01
     Trolley = $02
+    Winch   = $03
 .ENDENUM
 
 ;;;=========================================================================;;;

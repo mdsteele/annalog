@@ -101,7 +101,8 @@
 ;;; of these programs, although in a few cases, multiple machines may share the
 ;;; same program.
 .ENUM eProgram
-    CryptFlowerHoist
+    CryptFlowerWinch
+    CryptSouthWinch
     GardenBossCannon
     PrisonCellBarrier
     PrisonCellBlaster

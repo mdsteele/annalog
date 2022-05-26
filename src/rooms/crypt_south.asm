@@ -24,6 +24,7 @@
 .INCLUDE "../flag.inc"
 .INCLUDE "../machine.inc"
 .INCLUDE "../macros.inc"
+.INCLUDE "../oam.inc"
 .INCLUDE "../platform.inc"
 .INCLUDE "../ppu.inc"
 .INCLUDE "../program.inc"
@@ -32,63 +33,51 @@
 .IMPORT DataA_Pause_CryptAreaCells_u8_arr2_arr
 .IMPORT DataA_Pause_CryptAreaName_u8_arr
 .IMPORT DataA_Room_Crypt_sTileset
-.IMPORT FuncA_Objects_DrawChainWithLength
-.IMPORT FuncA_Objects_DrawGirderPlatform
+.IMPORT FuncA_Objects_Alloc2x2Shape
 .IMPORT FuncA_Objects_DrawWinchChain
 .IMPORT FuncA_Objects_DrawWinchMachine
-.IMPORT FuncA_Objects_MoveShapeLeftOneTile
 .IMPORT FuncA_Objects_MoveShapeUpOneTile
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
 .IMPORT Func_MachineError
-.IMPORT Func_MachineFinishResetting
-.IMPORT Func_MovePlatformVert
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrUpgrade
+.IMPORT Ram_Oam_sObj_arr64
 .IMPORT Ram_PlatformTop_i16_0_arr
-.IMPORT Ram_RoomState
-.IMPORTZP Zp_Tmp1_byte
+.IMPORTZP Zp_ShapePosX_i16
 
 ;;;=========================================================================;;;
 
-;;; The machine index for the CryptFlowerWinch machine in this room.
+;;; The machine index for the CryptSouthWinch machine in this room.
 kWinchMachineIndex = 0
 
-;;; The platform indices for the CryptFlowerWinch machine and its girders.
-kWinchPlatformIndex       = 0
-kUpperGirderPlatformIndex = 1
-kLowerGirderPlatformIndex = 2
+;;; The platform indices for the CryptSouthWinch machine, the crusher that
+;;; hangs from its chain, and the breakable floor.
+kWinchPlatformIndex        = 0
+kCrusherUpperPlatformIndex = 1
+kCrusherSpikePlatformIndex = 2
+kWeakFloorPlatformIndex    = 3
 
-;;; The maximum permitted room pixel Y-position for the top of the lower girder
-;;; platform (i.e. when the platform is at its lowest point).
-kLowerGirderMaxPlatformTop = $c0
+;;; Various OBJ tile IDs used for drawing the CryptSouthWinch machine.
+kTileIdCrusherUpperLeft  = $b4
+kTileIdCrusherUpperRight = $b6
+kTileIdCrusherSpikes     = $b5
 
-;;; The initial and maximum permitted values for sState::WinchGoalY_u8.
-kWinchInitRegY = 4
-kWinchMaxRegY  = 9
-
-;;; How many frames the CryptFlowerWinch machine spends per move operation.
-kWinchCountdownUp = 16
-kWinchCountdownDown = 8
-
-;;; Defines room-specific state data for this particular room.
-.STRUCT sState
-    ;; The goal value for the CryptFlowerWinch machine's Y register.
-    WinchGoalY_u8 .byte
-.ENDSTRUCT
-.ASSERT .sizeof(sState) <= kRoomStateSize, error
+;;; The OBJ palette number used for various parts of the CryptSouthWinch
+;;; machine.
+kWinchCrusherPalette = 0
 
 ;;;=========================================================================;;;
 
 .SEGMENT "PRGC_Crypt"
 
-.EXPORT DataC_Crypt_Flower_sRoom
-.PROC DataC_Crypt_Flower_sRoom
+.EXPORT DataC_Crypt_South_sRoom
+.PROC DataC_Crypt_South_sRoom
     D_STRUCT sRoom
     d_byte MinScrollX_u8, $10
     d_word MaxScrollX_u16, $0010
-    d_byte IsTall_bool, $00
-    d_byte MinimapStartRow_u8, 9
-    d_byte MinimapStartCol_u8, 3
+    d_byte IsTall_bool, $ff
+    d_byte MinimapStartRow_u8, 10
+    d_byte MinimapStartCol_u8, 1
     d_byte MinimapWidth_u8, 1
     d_addr TerrainData_ptr, _TerrainData
     d_byte NumMachines_u8, 1
@@ -111,25 +100,25 @@ _Ext_sRoomExt:
     d_addr Init_func_ptr, Func_Noop
     D_END
 _TerrainData:
-:   .incbin "out/data/crypt_flower.room"
-    .assert * - :- = 17 * 16, error
+:   .incbin "out/data/crypt_south.room"
+    .assert * - :- = 18 * 24, error
 _Machines_sMachine_arr:
     .assert kWinchMachineIndex = 0, error
     D_STRUCT sMachine
-    d_byte Code_eProgram, eProgram::CryptFlowerWinch
+    d_byte Code_eProgram, eProgram::CryptSouthWinch
     d_byte Conduit_eFlag, 0
-    d_byte Flags_bMachine, bMachine::MoveV
+    d_byte Flags_bMachine, bMachine::MoveH | bMachine::MoveV
     d_byte Status_eDiagram, eDiagram::Winch
     d_word ScrollGoalX_u16, $10
     d_byte ScrollGoalY_u8, $0
-    d_byte RegNames_u8_arr4, 0, 0, 0, "Y"
+    d_byte RegNames_u8_arr4, 0, 0, "X", "Y"
     d_addr Init_func_ptr, _Winch_Init
     d_addr ReadReg_func_ptr, _Winch_ReadReg
     d_addr WriteReg_func_ptr, Func_MachineError
     d_addr TryMove_func_ptr, _Winch_TryMove
     d_addr TryAct_func_ptr, Func_MachineError
     d_addr Tick_func_ptr, _Winch_Tick
-    d_addr Draw_func_ptr, FuncA_Objects_CryptFlowerWinch_Draw
+    d_addr Draw_func_ptr, FuncA_Objects_CryptSouthWinch_Draw
     d_addr Reset_func_ptr, _Winch_Reset
     d_byte Padding
     .res kMachinePadding
@@ -139,160 +128,146 @@ _Platforms_sPlatform_arr:
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Solid
     d_byte WidthPx_u8,  $10
-    d_byte HeightPx_u8, $10
-    d_word Left_i16,  $0088
+    d_byte HeightPx_u8, $0e
+    d_word Left_i16,  $0040
     d_word Top_i16,   $0010
     D_END
-    .assert kUpperGirderPlatformIndex = 1, error
+    .assert kCrusherUpperPlatformIndex = 1, error
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Solid
-    d_byte WidthPx_u8,  $18
+    d_byte WidthPx_u8,  $10
     d_byte HeightPx_u8, $08
-    d_word Left_i16,  $0084
-    d_word Top_i16,   $0078
+    d_word Left_i16,  $0040
+    d_word Top_i16,   $0090
     D_END
-    .assert kLowerGirderPlatformIndex = 2, error
+    .assert kCrusherSpikePlatformIndex = 2, error
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Harm
+    d_byte WidthPx_u8,  $0e
+    d_byte HeightPx_u8, $06
+    d_word Left_i16,  $0041
+    d_word Top_i16,   $0098
+    D_END
+    .assert kWeakFloorPlatformIndex = 3, error
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Solid
-    d_byte WidthPx_u8,  $18
+    d_byte WidthPx_u8,  $10
+    d_byte HeightPx_u8, $10
+    d_word Left_i16,  $00c0
+    d_word Top_i16,   $00b0
+    D_END
+    ;; Terrain spikes:
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Harm
+    d_byte WidthPx_u8,  $30
     d_byte HeightPx_u8, $08
-    d_word Left_i16,  $0084
-    d_word Top_i16,   $00a0
+    d_word Left_i16,  $0040
+    d_word Top_i16,   $00ae
     D_END
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Harm
-    d_byte WidthPx_u8,  $2f
+    d_byte WidthPx_u8,  $10
     d_byte HeightPx_u8, $08
-    d_word Left_i16,  $0050
-    d_word Top_i16,   $005e
+    d_word Left_i16,  $00e0
+    d_word Top_i16,   $009e
     D_END
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Harm
-    d_byte WidthPx_u8,  $1f
-    d_byte HeightPx_u8, $08
-    d_word Left_i16,  $00a1
-    d_word Top_i16,   $005e
-    D_END
-    D_STRUCT sPlatform
-    d_byte Type_ePlatform, ePlatform::Harm
-    d_byte WidthPx_u8,  $d0
+    d_byte WidthPx_u8,  $c0
     d_byte HeightPx_u8, $08
     d_word Left_i16,  $0030
-    d_word Top_i16,   $00ce
+    d_word Top_i16,   $015e
     D_END
     .byte ePlatform::None
 _Actors_sActor_arr:
-    D_STRUCT sActor
-    d_byte Type_eActor, eActor::Spider
-    d_byte TileRow_u8, 15
-    d_byte TileCol_u8, 24
-    d_byte Param_byte, 0
-    D_END
     .byte eActor::None
 _Devices_sDevice_arr:
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Console
-    d_byte BlockRow_u8, 4
-    d_byte BlockCol_u8, 4
+    d_byte BlockRow_u8, 10
+    d_byte BlockCol_u8, 9
     d_byte Target_u8, kWinchMachineIndex
     D_END
     D_STRUCT sDevice
-    d_byte Type_eDevice, eDevice::Flower
-    d_byte BlockRow_u8, 10
-    d_byte BlockCol_u8, 4
-    d_byte Target_u8, eFlag::FlowerCrypt
+    d_byte Type_eDevice, eDevice::Console
+    d_byte BlockRow_u8, 20
+    d_byte BlockCol_u8, 9
+    d_byte Target_u8, kWinchMachineIndex
     D_END
     .byte eDevice::None
 _Passages_sPassage_arr:
     D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Western | 0
-    d_byte Destination_eRoom, eRoom::CryptFlower  ; TODO
+    d_byte Destination_eRoom, eRoom::CryptSouth  ; TODO
+    d_byte SpawnBlock_u8, 5
+    D_END
+    D_STRUCT sPassage
+    d_byte Exit_bPassage, ePassage::Eastern | 0
+    d_byte Destination_eRoom, eRoom::CryptSouth  ; TODO
     d_byte SpawnBlock_u8, 3
     D_END
+    D_STRUCT sPassage
+    d_byte Exit_bPassage, ePassage::Western | 1
+    d_byte Destination_eRoom, eRoom::CryptSouth  ; TODO
+    d_byte SpawnBlock_u8, 19
+    D_END
 _Winch_Init:
+    ;; TODO
+    rts
 _Winch_Reset:
-    lda #kWinchInitRegY
-    sta Ram_RoomState + sState::WinchGoalY_u8
+    ;; TODO
     rts
 _Winch_ReadReg:
-    lda #kLowerGirderMaxPlatformTop + kTileHeightPx / 2
-    sub Ram_PlatformTop_i16_0_arr + kLowerGirderPlatformIndex
-    div #kTileHeightPx
+    lda #0  ; TODO
     rts
 _Winch_TryMove:
-    ldy Ram_RoomState + sState::WinchGoalY_u8
-    txa
-    .assert eDir::Up = 0, error
-    bne @moveDown
-    @moveUp:
-    cpy #kWinchMaxRegY
-    bge @error
-    iny
-    lda #kWinchCountdownUp
-    bne @success  ; unconditional
-    @moveDown:
-    tya
-    beq @error
-    dey
-    lda #kWinchCountdownDown
-    @success:
-    sty Ram_RoomState + sState::WinchGoalY_u8
-    clc  ; clear C to indicate success
-    rts
-    @error:
+    ;; TODO
     sec  ; set C to indicate failure
     rts
 _Winch_Tick:
-    ;; Calculate the desired Y-position for the top of the lower girder
-    ;; platform, in room-space pixels.
-    lda Ram_RoomState + sState::WinchGoalY_u8
-    mul #kTileHeightPx
-    sta Zp_Tmp1_byte  ; goal height above the lowest position, in pixels
-    lda #kLowerGirderMaxPlatformTop
-    sub Zp_Tmp1_byte
-    ;; If we're at the desired height, we're done.
-    cmp Ram_PlatformTop_i16_0_arr + kLowerGirderPlatformIndex
-    jeq Func_MachineFinishResetting
-    ;; Otherwise, move up or down as needed.
-    blt @moveDown
-    @moveUp:
-    lda #1                          ; param: move delta
-    ldx #kUpperGirderPlatformIndex  ; param: platform index
-    jsr Func_MovePlatformVert
-    lda #1                          ; param: move delta
-    ldx #kLowerGirderPlatformIndex  ; param: platform index
-    jmp Func_MovePlatformVert
-    @moveDown:
-    lda #$ff                        ; param: move delta
-    ldx #kUpperGirderPlatformIndex  ; param: platform index
-    jsr Func_MovePlatformVert
-    lda #$ff                        ; param: move delta
-    ldx #kLowerGirderPlatformIndex  ; param: platform index
-    jmp Func_MovePlatformVert
+    ;; TODO
+    rts
 .ENDPROC
 
 ;;;=========================================================================;;;
 
 .SEGMENT "PRGA_Objects"
 
-;;; Allocates and populates OAM slots for the CryptFlowerWinch machine.
-.PROC FuncA_Objects_CryptFlowerWinch_Draw
-    ;; Draw the winch machine.
+;;; Allocates and populates OAM slots for the CryptSouthWinch machine.
+.PROC FuncA_Objects_CryptSouthWinch_Draw
+_Winch:
     ldx #kWinchPlatformIndex  ; param: platform index
     jsr FuncA_Objects_SetShapePosToPlatformTopLeft
-    ldx Ram_PlatformTop_i16_0_arr + kUpperGirderPlatformIndex  ; param: chain
+    ldx Ram_PlatformTop_i16_0_arr + kCrusherUpperPlatformIndex  ; param: chain
     jsr FuncA_Objects_DrawWinchMachine
-    ;; Draw the two girders.
-    ldx #kUpperGirderPlatformIndex  ; param: platform index
-    jsr FuncA_Objects_DrawGirderPlatform
-    ldx #kLowerGirderPlatformIndex  ; param: platform index
-    jsr FuncA_Objects_DrawGirderPlatform
-    ;; Draw the chain between the two girders.
-    jsr FuncA_Objects_MoveShapeLeftOneTile
-    ldx #4  ; param: chain length in tiles
-    jsr FuncA_Objects_DrawChainWithLength
-    ;; Draw the chain between the top girder and the winch.
+_Crusher:
+    ldx #kCrusherSpikePlatformIndex  ; param: platform index
+    jsr FuncA_Objects_SetShapePosToPlatformTopLeft
+    lda Zp_ShapePosX_i16 + 0
+    add #7
+    sta Zp_ShapePosX_i16 + 0
+    lda Zp_ShapePosX_i16 + 1
+    adc #0
+    sta Zp_ShapePosX_i16 + 1
+    lda #kWinchCrusherPalette  ; param: object flags
+    jsr FuncA_Objects_Alloc2x2Shape  ; sets C if offscreen; returns Y
+    bcs @done
+    lda #kTileIdCrusherUpperLeft
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Tile_u8, y
+    lda #kTileIdCrusherUpperRight
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Tile_u8, y
+    lda #kTileIdCrusherSpikes
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Tile_u8, y
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Tile_u8, y
+    @done:
+_Chain:
     jsr FuncA_Objects_MoveShapeUpOneTile
+    lda Zp_ShapePosX_i16 + 0
+    sub #kTileWidthPx / 2
+    sta Zp_ShapePosX_i16 + 0
+    lda Zp_ShapePosX_i16 + 1
+    sbc #0
+    sta Zp_ShapePosX_i16 + 1
     ldx #kWinchPlatformIndex  ; param: platform index
     jmp FuncA_Objects_DrawWinchChain
 .ENDPROC
