@@ -103,6 +103,7 @@
 .ENUM eProgram
     CryptFlowerWinch
     CryptSouthWinch
+    CryptTombWinch
     GardenBossCannon
     PrisonCellBarrier
     PrisonCellBlaster

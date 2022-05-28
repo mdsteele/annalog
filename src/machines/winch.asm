@@ -44,10 +44,10 @@ kWinchChainOverlapPx = 4
 
 ;;; Various OBJ tile IDs used for drawing winch machines.
 kTileIdWinchChain         = $b7
-kTileIdWinchGear1         = $b8
-kTileIdWinchGear2         = $ba
-kTileIdWinchCornerBottom1 = $b9
-kTileIdWinchCornerBottom2 = $bb
+kTileIdWinchGear1         = $bc
+kTileIdWinchGear2         = $be
+kTileIdWinchCornerBottom1 = $bd
+kTileIdWinchCornerBottom2 = $bf
 kTileIdWinchCornerTop     = $73
 
 ;;; OBJ palette numbers used for various parts of winch machines.
