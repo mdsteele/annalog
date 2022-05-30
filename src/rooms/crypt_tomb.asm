@@ -39,9 +39,12 @@
 .IMPORT FuncA_Objects_MoveShapeUpOneTile
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
 .IMPORT Func_MachineError
+.IMPORT Func_MachineFinishResetting
+.IMPORT Func_MovePlatformHorz
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrUpgrade
 .IMPORT Ram_Oam_sObj_arr64
+.IMPORT Ram_PlatformLeft_i16_0_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORT Ram_RoomState
 .IMPORTZP Zp_ShapePosX_i16
@@ -59,6 +62,20 @@ kSpikeballPlatformIndex  = 1
 kWeakFloor1PlatformIndex = 2
 kWeakFloor2PlatformIndex = 3
 
+;;; How many frames the CryptTombWinch machine spends per move operation.
+kWinchMoveHorzCooldown = 16
+
+;;; The initial and maximum permitted values for sState::WinchGoalX_u8.
+kWinchInitGoalX = 4
+kWinchMaxGoalX  = 9
+
+;;; The minimum and initial room pixel position for the left edge of the winch.
+.LINECONT +
+kWinchMinPlatformLeft = $30
+kWinchInitPlatformLeft = \
+    kWinchMinPlatformLeft + kBlockWidthPx * kWinchInitGoalX
+.LINECONT +
+
 ;;; Various OBJ tile IDs used for drawing the CryptTombWinch machine.
 kTileIdSpikeballFirst = $b8
 
@@ -71,8 +88,10 @@ kSpikeballPalette = 0
 ;;; Defines room-specific state data for this particular room.
 .STRUCT sState
     ;; The current states of the room's two levers.
-    LeverLeft_u1         .byte
-    LeverRight_u1        .byte
+    LeverLeft_u1  .byte
+    LeverRight_u1 .byte
+    ;; The goal value for the CryptTombWinch machine's X register.
+    WinchGoalX_u8 .byte
 .ENDSTRUCT
 .ASSERT .sizeof(sState) <= kRoomStateSize, error
 
@@ -127,7 +146,7 @@ _Machines_sMachine_arr:
     d_addr WriteReg_func_ptr, Func_MachineError
     d_addr TryMove_func_ptr, _Winch_TryMove
     d_addr TryAct_func_ptr, Func_MachineError
-    d_addr Tick_func_ptr, _Winch_Tick
+    d_addr Tick_func_ptr, FuncC_Crypt_TombWinch_Tick
     d_addr Draw_func_ptr, FuncA_Objects_CryptTombWinch_Draw
     d_addr Reset_func_ptr, _Winch_Reset
     d_byte Padding
@@ -139,7 +158,7 @@ _Platforms_sPlatform_arr:
     d_byte Type_ePlatform, ePlatform::Solid
     d_byte WidthPx_u8,  $10
     d_byte HeightPx_u8, $10
-    d_word Left_i16,  $0070
+    d_word Left_i16, kWinchInitPlatformLeft
     d_word Top_i16,   $0010
     D_END
     .assert kSpikeballPlatformIndex = 1, error
@@ -231,10 +250,9 @@ _Passages_sPassage_arr:
     d_byte SpawnBlock_u8, 7
     D_END
 _Winch_Init:
-    ;; TODO
-    rts
 _Winch_Reset:
-    ;; TODO
+    lda #kWinchInitGoalX
+    sta Ram_RoomState + sState::WinchGoalX_u8
     rts
 _Winch_ReadReg:
     cmp #$c
@@ -247,7 +265,9 @@ _Winch_ReadReg:
     lda #0  ; TODO
     rts
     @readX:
-    lda #0  ; TODO
+    lda Ram_PlatformLeft_i16_0_arr + kWinchPlatformIndex
+    sub #kWinchMinPlatformLeft - kTileWidthPx
+    div #kBlockWidthPx
     rts
     @readL:
     lda Ram_RoomState + sState::LeverLeft_u1
@@ -256,12 +276,56 @@ _Winch_ReadReg:
     lda Ram_RoomState + sState::LeverRight_u1
     rts
 _Winch_TryMove:
-    ;; TODO
-    sec  ; set C to indicate failure
+    cpx #eDir::Left
+    beq @moveLeft
+    @moveRight:
+    lda Ram_RoomState + sState::WinchGoalX_u8
+    cmp #kWinchMaxGoalX
+    bge @error
+    inc Ram_RoomState + sState::WinchGoalX_u8
+    bne @success  ; unconditional
+    @moveLeft:
+    lda Ram_RoomState + sState::WinchGoalX_u8
+    beq @error
+    dec Ram_RoomState + sState::WinchGoalX_u8
+    @success:
+    lda #kWinchMoveHorzCooldown
+    clc  ; success
     rts
-_Winch_Tick:
-    ;; TODO
+    @error:
+    sec  ; failure
     rts
+.ENDPROC
+
+.PROC FuncC_Crypt_TombWinch_Tick
+_MoveHorz:
+    ;; Calculate the desired X-position for the left edge of the winch, in
+    ;; room-space pixels.
+    lda Ram_RoomState + sState::WinchGoalX_u8
+    mul #kBlockWidthPx
+    add #kWinchMinPlatformLeft
+    ;; If we're at the desired X-position, then we're done.
+    cmp Ram_PlatformLeft_i16_0_arr + kWinchPlatformIndex
+    beq @done
+    ;; Otherwise, move left or right as needed.
+    blt @moveLeft
+    @moveRight:
+    lda #1  ; param: move delta
+    bne @move  ; unconditional
+    @moveLeft:
+    lda #$ff  ; param: move delta
+    @move:
+    pha  ; move delta
+    ldx #kWinchPlatformIndex  ; param: platform index
+    jsr Func_MovePlatformHorz
+    pla  ; param: move delta
+    ldx #kSpikeballPlatformIndex  ; param: platform index
+    jmp Func_MovePlatformHorz
+    @done:
+_MoveVert:
+    ;; TODO
+_Finished:
+    jmp Func_MachineFinishResetting
 .ENDPROC
 
 ;;;=========================================================================;;;

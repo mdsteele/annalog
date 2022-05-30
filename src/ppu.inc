@@ -23,8 +23,8 @@
 
 .DEFINE kTileWidthPx 8
 .DEFINE kTileHeightPx 8
-kBlockWidthPx = kTileWidthPx * 2
-kBlockHeightPx = kTileHeightPx * 2
+.DEFINE kBlockWidthPx 16
+.DEFINE kBlockHeightPx 16
 kScreenWidthBlocks = 16
 kScreenHeightBlocks = 15
 kScreenWidthTiles = kScreenWidthBlocks * 2

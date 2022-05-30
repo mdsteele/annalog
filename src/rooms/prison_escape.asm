@@ -43,11 +43,17 @@
 .IMPORT Func_MachineError
 .IMPORT Func_MachineFinishResetting
 .IMPORT Func_MovePlatformHorz
+.IMPORT Func_MovePlatformLeftToward
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrUpgrade
+.IMPORT Ram_MachineStatus_eMachine_arr
 .IMPORT Ram_Oam_sObj_arr64
+.IMPORT Ram_PlatformLeft_i16_0_arr
+.IMPORT Ram_PlatformLeft_i16_1_arr
 .IMPORT Ram_RoomState
+.IMPORTZP Zp_PlatformGoal_i16
 .IMPORTZP Zp_ShapePosX_i16
+.IMPORTZP Zp_Tmp1_byte
 
 ;;;=========================================================================;;;
 
@@ -58,14 +64,14 @@ kTrolleyMachineIndex = 0
 kTrolleyPlatformIndex = 0
 kGirderPlatformIndex  = 1
 
-;;; The maximum permitted value for sState::TrolleyRegX_u8.
-kTrolleyMaxRegX = 7
-
-;;; How fast the PrisonEscapeTrolley platform moves, in pixels per frame.
-kTrolleySpeed = 1
+;;; The maximum permitted value for sState::TrolleyGoalX_u8.
+kTrolleyMaxGoalX = 7
 
 ;;; How many frames the PrisonEscapeTrolley machine spends per move operation.
-kTrolleyCountdown = kBlockWidthPx / kTrolleySpeed
+kTrolleyMoveCooldown = kBlockWidthPx
+
+;;; The minimum room pixel position for the left edge of the trolley.
+kTrolleyMinPlatformLeft = $100
 
 ;;; Various OBJ tile IDs used for drawing the PrisonEscapeTrolley machine.
 kTrolleyTileIdCorner   = $73
@@ -82,17 +88,8 @@ kTrolleyRopePalette   = 0
 
 ;;; Defines room-specific state data for this particular room.
 .STRUCT sState
-    ;; The current value of the PrisonEscapeTrolley machine's X register.
-    TrolleyRegX_u8      .byte
-    ;; The goal value of the PrisonEscapeTrolley machine's X register; it will
-    ;; keep moving until this is reached.
-    TrolleyGoalX_u8     .byte
-    ;; Nonzero if the PrisonEscapeTrolley machine is moving; this is how many
-    ;; more frames until it finishes the current move operation.
-    TrolleyCountdown_u8 .byte
-    ;; If TrolleyCountdown_u8 is nonzero, this is the direction the machine is
-    ;; currently moving.
-    TrolleyMove_eDir    .byte
+    ;; The goal value for the PrisonEscapeTrolley machine's X register.
+    TrolleyGoalX_u8 .byte
 .ENDSTRUCT
 .ASSERT .sizeof(sState) <= kRoomStateSize, error
 
@@ -162,7 +159,7 @@ _Platforms_sPlatform_arr:
     d_byte Type_ePlatform, ePlatform::Solid
     d_byte WidthPx_u8,  $10
     d_byte HeightPx_u8, $0e
-    d_word Left_i16,  $0100
+    d_word Left_i16, kTrolleyMinPlatformLeft
     d_word Top_i16,   $00c0
     D_END
     .assert kGirderPlatformIndex = 1, error
@@ -170,7 +167,7 @@ _Platforms_sPlatform_arr:
     d_byte Type_ePlatform, ePlatform::Solid
     d_byte WidthPx_u8,  $20
     d_byte HeightPx_u8, $08
-    d_word Left_i16,  $00f8
+    d_word Left_i16, kTrolleyMinPlatformLeft - $08
     d_word Top_i16,   $0120
     D_END
     D_STRUCT sPlatform
@@ -223,79 +220,70 @@ _Passages_sPassage_arr:
     d_byte SpawnBlock_u8, 18
     D_END
 _Trolley_Init:
-    lda #0
-    sta Ram_RoomState + sState::TrolleyRegX_u8
-    sta Ram_RoomState + sState::TrolleyGoalX_u8
-    sta Ram_RoomState + sState::TrolleyCountdown_u8
-    sta Ram_RoomState + sState::TrolleyMove_eDir
-    rts
-_Trolley_ReadReg:
-    lda Ram_RoomState + sState::TrolleyRegX_u8
-    rts
-_Trolley_TryMove:
-    ldy Ram_RoomState + sState::TrolleyRegX_u8
-    cpx #eDir::Left
-    beq @moveLeft
-    @moveRight:
-    cpy #kTrolleyMaxRegX
-    bge @error
-    iny
-    bne @success  ; unconditional
-    @moveLeft:
-    tya
-    beq @error
-    dey
-    @success:
-    sty Ram_RoomState + sState::TrolleyGoalX_u8
-    lda #kTrolleyCountdown
-    clc  ; clear C to indicate success
-    rts
-    @error:
-    sec  ; set C to indicate failure
-    rts
-_Trolley_Tick:
-    lda Ram_RoomState + sState::TrolleyCountdown_u8
-    bne @continueMove
-    ldy Ram_RoomState + sState::TrolleyRegX_u8
-    cpy Ram_RoomState + sState::TrolleyGoalX_u8
-    jeq Func_MachineFinishResetting
-    bge @beginMoveLeft
-    @beginMoveRight:
-    ldx #eDir::Right
-    iny
-    bne @beginMove  ; unconditional
-    @beginMoveLeft:
-    ldx #eDir::Left
-    dey
-    @beginMove:
-    sty Ram_RoomState + sState::TrolleyRegX_u8
-    stx Ram_RoomState + sState::TrolleyMove_eDir
-    lda #kTrolleyCountdown
-    sta Ram_RoomState + sState::TrolleyCountdown_u8
-    @continueMove:
-    dec Ram_RoomState + sState::TrolleyCountdown_u8
-    ldx Ram_RoomState + sState::TrolleyMove_eDir
-    cpx #eDir::Left
-    beq @continueMoveLeft
-    @continueMoveRight:
-    lda #kTrolleySpeed          ; param: move delta
-    ldx #kTrolleyPlatformIndex  ; param: platform index
-    jsr Func_MovePlatformHorz
-    lda #kTrolleySpeed          ; param: move delta
-    ldx #kGirderPlatformIndex   ; param: platform index
-    jmp Func_MovePlatformHorz
-    @continueMoveLeft:
-    lda #$ff & -kTrolleySpeed   ; param: move delta
-    ldx #kTrolleyPlatformIndex  ; param: platform index
-    jsr Func_MovePlatformHorz
-    lda #$ff & -kTrolleySpeed   ; param: move delta
-    ldx #kGirderPlatformIndex   ; param: platform index
-    jmp Func_MovePlatformHorz
 _Trolley_Reset:
     lda #0
     sta Ram_RoomState + sState::TrolleyGoalX_u8
-    ;; TODO: Turn the machine around if it's currently moving right.
     rts
+_Trolley_ReadReg:
+    lda Ram_PlatformLeft_i16_0_arr + kTrolleyPlatformIndex
+    sub #<(kTrolleyMinPlatformLeft - kTileWidthPx)
+    sta Zp_Tmp1_byte
+    lda Ram_PlatformLeft_i16_1_arr + kTrolleyPlatformIndex
+    sbc #>(kTrolleyMinPlatformLeft - kTileWidthPx)
+    .repeat 4
+    lsr a
+    ror Zp_Tmp1_byte
+    .endrepeat
+    lda Zp_Tmp1_byte
+    rts
+_Trolley_TryMove:
+    cpx #eDir::Left
+    beq @moveLeft
+    @moveRight:
+    lda Ram_RoomState + sState::TrolleyGoalX_u8
+    cmp #kTrolleyMaxGoalX
+    bge @error
+    inc Ram_RoomState + sState::TrolleyGoalX_u8
+    bne @success  ; unconditional
+    @moveLeft:
+    lda Ram_RoomState + sState::TrolleyGoalX_u8
+    beq @error
+    dec Ram_RoomState + sState::TrolleyGoalX_u8
+    @success:
+    lda #kTrolleyMoveCooldown
+    clc  ; success
+    rts
+    @error:
+    sec  ; failure
+    rts
+_Trolley_Tick:
+    ;; Calculate the desired X-position for the left edge of the trolley, in
+    ;; room-space pixels, storing it in Zp_PlatformGoal_i16.
+    lda Ram_RoomState + sState::TrolleyGoalX_u8
+    .assert kTrolleyMaxGoalX * kBlockWidthPx < $100, error
+    mul #kBlockWidthPx  ; fits in one byte
+    add #<kTrolleyMinPlatformLeft
+    sta Zp_PlatformGoal_i16 + 0
+    lda #0
+    adc #>kTrolleyMinPlatformLeft
+    sta Zp_PlatformGoal_i16 + 1
+    ;; Determine the horizontal speed of the trolley (faster if resetting).
+    lda #1
+    ldy Ram_MachineStatus_eMachine_arr + kTrolleyMachineIndex
+    cpy #eMachine::Resetting
+    bne @slow
+    mul #2
+    @slow:
+    ;; Move the trolley horizontally, as necessary.
+    ldx #kTrolleyPlatformIndex  ; param: platform index
+    jsr Func_MovePlatformLeftToward  ; returns Z and A
+    beq @done
+    ;; If the winch moved, move the girder platform too.
+    ldx #kGirderPlatformIndex  ; param: platform index
+    jmp Func_MovePlatformHorz
+    @done:
+_Finished:
+    jmp Func_MachineFinishResetting
 .ENDPROC
 
 ;;;=========================================================================;;;

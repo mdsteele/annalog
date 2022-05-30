@@ -39,11 +39,22 @@
 .IMPORT FuncA_Objects_MoveShapeUpOneTile
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
 .IMPORT Func_MachineError
+.IMPORT Func_MachineFinishResetting
+.IMPORT Func_MovePlatformHorz
+.IMPORT Func_MovePlatformLeftToward
+.IMPORT Func_MovePlatformVert
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrUpgrade
+.IMPORT Ram_MachineStatus_eMachine_arr
 .IMPORT Ram_Oam_sObj_arr64
+.IMPORT Ram_PlatformLeft_i16_0_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
+.IMPORT Ram_PlatformTop_i16_1_arr
+.IMPORT Ram_RoomState
+.IMPORTZP Zp_PlatformGoal_i16
 .IMPORTZP Zp_ShapePosX_i16
+.IMPORTZP Zp_Tmp1_byte
+.IMPORTZP Zp_Tmp2_byte
 
 ;;;=========================================================================;;;
 
@@ -57,6 +68,35 @@ kCrusherUpperPlatformIndex = 1
 kCrusherSpikePlatformIndex = 2
 kWeakFloorPlatformIndex    = 3
 
+;;; How many frames it takes the CryptSouthWinch to move up one pixel.
+kWinchMoveUpSlowdown = 3
+;;; How many frames the CryptSouthWinch machine spends per move operation.
+kWinchMoveUpCooldown = 16 * kWinchMoveUpSlowdown
+kWinchMoveDownCooldown = 16
+kWinchMoveHorzCooldown = 16
+
+;;; The initial and maximum permitted values for sState::WinchGoalX_u8.
+kWinchInitGoalX = 0
+kWinchMaxGoalX  = 9
+;;; The initial and maximum permitted values for sState::WinchGoalZ_u8.
+kWinchInitGoalZ = 5
+kWinchMaxGoalZ  = 16
+
+;;; The minimum and initial room pixel position for the left edge of the winch.
+.LINECONT +
+kWinchMinPlatformLeft = $40
+kWinchInitPlatformLeft = \
+    kWinchMinPlatformLeft + kBlockWidthPx * kWinchInitGoalX
+.LINECONT +
+
+;;; The minimum and initial room pixel position for the top edge of the
+;;; crusher.
+.LINECONT +
+kCrusherMinPlatformTop = $40
+kCrusherInitPlatformTop = \
+    kCrusherMinPlatformTop + kBlockHeightPx * kWinchInitGoalZ
+.LINECONT +
+
 ;;; Various OBJ tile IDs used for drawing the CryptSouthWinch machine.
 kTileIdCrusherUpperLeft  = $b4
 kTileIdCrusherUpperRight = $b6
@@ -65,6 +105,28 @@ kTileIdCrusherSpikes     = $b5
 ;;; The OBJ palette number used for various parts of the CryptSouthWinch
 ;;; machine.
 kWinchCrusherPalette = 0
+
+;;;=========================================================================;;;
+
+;;; Enum for the steps of the CryptSouthWinch machine's reset sequence (listed
+;;; in reverse order).
+.ENUM eResetSeq
+    Down = 0  ; last step: move down to initial position
+    UpLeft    ; move up (if necessary), then move left
+.ENDENUM
+
+;;; Defines room-specific state data for this particular room.
+.STRUCT sState
+    ;; The goal values for the CryptSouthWinch machine's X and Z registers.
+    WinchGoalX_u8 .byte
+    WinchGoalZ_u8 .byte
+    ;; How many frames the CryptSouthWinch machine should wait before moving by
+    ;; another pixel.  Used to implement motion slower than 1 pixel per frame.
+    WinchSlowdown_u8 .byte
+    ;; Which step of its reset sequence the CryptSouthWinch machine is on.
+    WinchReset_eResetSeq .byte
+.ENDSTRUCT
+.ASSERT .sizeof(sState) <= kRoomStateSize, error
 
 ;;;=========================================================================;;;
 
@@ -111,15 +173,15 @@ _Machines_sMachine_arr:
     d_byte Status_eDiagram, eDiagram::Winch
     d_word ScrollGoalX_u16, $10
     d_byte ScrollGoalY_u8, $0
-    d_byte RegNames_u8_arr4, 0, 0, "X", "Y"
-    d_addr Init_func_ptr, _Winch_Init
-    d_addr ReadReg_func_ptr, _Winch_ReadReg
+    d_byte RegNames_u8_arr4, 0, 0, "X", "Z"
+    d_addr Init_func_ptr, FuncC_Crypt_SouthWinch_Init
+    d_addr ReadReg_func_ptr, FuncC_Crypt_SouthWinch_ReadReg
     d_addr WriteReg_func_ptr, Func_MachineError
-    d_addr TryMove_func_ptr, _Winch_TryMove
+    d_addr TryMove_func_ptr, FuncC_Crypt_SouthWinch_TryMove
     d_addr TryAct_func_ptr, Func_MachineError
-    d_addr Tick_func_ptr, _Winch_Tick
+    d_addr Tick_func_ptr, FuncC_Crypt_SouthWinch_Tick
     d_addr Draw_func_ptr, FuncA_Objects_CryptSouthWinch_Draw
-    d_addr Reset_func_ptr, _Winch_Reset
+    d_addr Reset_func_ptr, FuncC_Crypt_SouthWinch_Reset
     d_byte Padding
     .res kMachinePadding
     D_END
@@ -129,7 +191,7 @@ _Platforms_sPlatform_arr:
     d_byte Type_ePlatform, ePlatform::Solid
     d_byte WidthPx_u8,  $10
     d_byte HeightPx_u8, $10
-    d_word Left_i16,  $0040
+    d_word Left_i16, kWinchInitPlatformLeft
     d_word Top_i16,   $0010
     D_END
     .assert kCrusherUpperPlatformIndex = 1, error
@@ -137,16 +199,16 @@ _Platforms_sPlatform_arr:
     d_byte Type_ePlatform, ePlatform::Solid
     d_byte WidthPx_u8,  $10
     d_byte HeightPx_u8, $08
-    d_word Left_i16,  $0040
-    d_word Top_i16,   $0090
+    d_word Left_i16, kWinchInitPlatformLeft
+    d_word Top_i16, kCrusherInitPlatformTop
     D_END
     .assert kCrusherSpikePlatformIndex = 2, error
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Harm
     d_byte WidthPx_u8,  $0e
     d_byte HeightPx_u8, $06
-    d_word Left_i16,  $0041
-    d_word Top_i16,   $0098
+    d_word Left_i16, kWinchInitPlatformLeft + 1
+    d_word Top_i16, kCrusherInitPlatformTop + kTileHeightPx
     D_END
     .assert kWeakFloorPlatformIndex = 3, error
     D_STRUCT sPlatform
@@ -154,7 +216,7 @@ _Platforms_sPlatform_arr:
     d_byte WidthPx_u8,  $10
     d_byte HeightPx_u8, $10
     d_word Left_i16,  $00c0
-    d_word Top_i16,   $00b0
+    d_word Top_i16,   $00a0
     D_END
     ;; Terrain spikes:
     D_STRUCT sPlatform
@@ -211,21 +273,198 @@ _Passages_sPassage_arr:
     d_byte Destination_eRoom, eRoom::CryptTomb
     d_byte SpawnBlock_u8, 19
     D_END
-_Winch_Init:
-    ;; TODO
+.ENDPROC
+
+.PROC FuncC_Crypt_SouthWinch_ReadReg
+    cmp #$f
+    beq _ReadZ
+_ReadX:
+    lda Ram_PlatformLeft_i16_0_arr + kWinchPlatformIndex
+    sub #kWinchMinPlatformLeft - kTileWidthPx
+    div #kBlockWidthPx
     rts
-_Winch_Reset:
-    ;; TODO
+_ReadZ:
+    lda Ram_PlatformTop_i16_0_arr + kCrusherUpperPlatformIndex
+    sub #kCrusherMinPlatformTop - kTileHeightPx
+    sta Zp_Tmp1_byte
+    lda Ram_PlatformTop_i16_1_arr + kCrusherUpperPlatformIndex
+    sbc #0
+    .assert kBlockHeightPx = 16, error
+    .repeat 4
+    lsr a
+    ror Zp_Tmp1_byte
+    .endrepeat
+    lda Zp_Tmp1_byte
+    cmp #9
+    blt @done
+    lda #9
+    @done:
     rts
-_Winch_ReadReg:
-    lda #0  ; TODO
+.ENDPROC
+
+.PROC FuncC_Crypt_SouthWinch_TryMove
+    .assert eDir::Up = 0, error
+    txa
+    beq _MoveUp
+    cpx #eDir::Down
+    beq _MoveDown
+_MoveHorz:
+    ;; TODO: check for terrain collisions
+    cpx #eDir::Left
+    beq @moveLeft
+    @moveRight:
+    lda Ram_RoomState + sState::WinchGoalX_u8
+    cmp #kWinchMaxGoalX
+    bge _Error
+    inc Ram_RoomState + sState::WinchGoalX_u8
+    bne @successHorz  ; unconditional
+    @moveLeft:
+    lda Ram_RoomState + sState::WinchGoalX_u8
+    beq _Error
+    dec Ram_RoomState + sState::WinchGoalX_u8
+    @successHorz:
+    lda #kWinchMoveHorzCooldown
+    clc  ; success
     rts
-_Winch_TryMove:
-    ;; TODO
-    sec  ; set C to indicate failure
+_MoveUp:
+    lda Ram_RoomState + sState::WinchGoalZ_u8
+    beq _Error
+    dec Ram_RoomState + sState::WinchGoalZ_u8
+    lda #kWinchMoveUpCooldown
+    clc  ; success
     rts
-_Winch_Tick:
-    ;; TODO
+_MoveDown:
+    ;; TODO: check for terrain collisions
+    lda Ram_RoomState + sState::WinchGoalZ_u8
+    cmp #kWinchMaxGoalZ
+    bge _Error
+    inc Ram_RoomState + sState::WinchGoalZ_u8
+    lda #kWinchMoveDownCooldown
+    clc  ; success
+    rts
+_Error:
+    sec  ; failure
+    rts
+.ENDPROC
+
+.PROC FuncC_Crypt_SouthWinch_Tick
+_MoveVert:
+    ;; Calculate the desired room-space pixel Y-position for the top edge of
+    ;; the crusher, storing the lo byte in Zp_Tmp1_byte and the hi byte in
+    ;; Zp_Tmp2_byte.
+    lda #0
+    sta Zp_Tmp2_byte
+    lda Ram_RoomState + sState::WinchGoalZ_u8
+    mul #16
+    .assert kWinchMaxGoalZ >= 16, error  ; The multiplication may carry.
+    .assert kWinchMaxGoalZ < 32, error  ; There can only be one carry bit.
+    rol Zp_Tmp2_byte  ; Handle carry bit from multiplication.
+    add #kCrusherMinPlatformTop
+    sta Zp_Tmp1_byte  ; desired Y-position (lo)
+    lda Zp_Tmp2_byte
+    adc #0
+    sta Zp_Tmp2_byte  ; desired Y-position (hi)
+    ;; Check if we need to move up or down.
+    lda Ram_PlatformTop_i16_1_arr + kCrusherUpperPlatformIndex
+    cmp Zp_Tmp2_byte  ; desired Y-position (hi)
+    blt @moveDown
+    bne @moveUp
+    lda Ram_PlatformTop_i16_0_arr + kCrusherUpperPlatformIndex
+    cmp Zp_Tmp1_byte  ; desired Y-position (lo)
+    beq @done
+    blt @moveDown
+    @moveUp:
+    lda Ram_MachineStatus_eMachine_arr + kWinchMachineIndex
+    cmp #eMachine::Resetting
+    beq @moveUpFast
+    lda Ram_RoomState + sState::WinchSlowdown_u8
+    beq @moveUpSlow
+    dec Ram_RoomState + sState::WinchSlowdown_u8
+    rts
+    @moveUpSlow:
+    lda #kWinchMoveUpSlowdown - 1
+    sta Ram_RoomState + sState::WinchSlowdown_u8
+    lda #$ff  ; param: move delta
+    bne @move  ; unconditional
+    @moveUpFast:
+    lda #$fe  ; param: move delta
+    bne @move  ; unconditional
+    @moveDown:
+    lda Ram_MachineStatus_eMachine_arr + kWinchMachineIndex
+    cmp #eMachine::Resetting
+    beq @moveDownFast
+    lda #1  ; param: move delta
+    bne @move  ; unconditional
+    @moveDownFast:
+    lda #2
+    @move:
+    pha  ; move delta
+    ldx #kCrusherUpperPlatformIndex  ; param: platform index
+    jsr Func_MovePlatformVert
+    pla  ; param: move delta
+    ldx #kCrusherSpikePlatformIndex  ; param: platform index
+    jmp Func_MovePlatformVert
+    @done:
+_MoveHorz:
+    ;; Calculate the desired X-position for the left edge of the winch, in
+    ;; room-space pixels, storing it in Zp_PlatformGoal_i16.
+    lda #0
+    sta Zp_PlatformGoal_i16 + 1
+    lda Ram_RoomState + sState::WinchGoalX_u8
+    mul #kBlockWidthPx
+    add #kWinchMinPlatformLeft
+    sta Zp_PlatformGoal_i16 + 0
+    ;; Determine the horizontal speed of the platform (faster if resetting).
+    lda #1
+    ldy Ram_MachineStatus_eMachine_arr + kWinchMachineIndex
+    cpy #eMachine::Resetting
+    bne @slow
+    mul #2
+    @slow:
+    ;; Move the winch horizontally, as necessary.
+    ldx #kWinchPlatformIndex  ; param: platform index
+    jsr Func_MovePlatformLeftToward  ; returns Z and A
+    beq @done
+    ;; If the winch moved, move the crusher platforms too.
+    pha  ; move delta
+    ldx #kCrusherUpperPlatformIndex  ; param: platform index
+    jsr Func_MovePlatformHorz
+    pla  ; param: move delta
+    ldx #kCrusherSpikePlatformIndex  ; param: platform index
+    jmp Func_MovePlatformHorz
+    @done:
+_Finished:
+    lda Ram_RoomState + sState::WinchReset_eResetSeq
+    jeq Func_MachineFinishResetting
+    .assert * = FuncC_Crypt_SouthWinch_Reset, error, "fallthrough"
+.ENDPROC
+
+.PROC FuncC_Crypt_SouthWinch_Reset
+    lda Ram_RoomState + sState::WinchGoalX_u8
+    .assert kWinchInitGoalX = 0, error
+    beq FuncC_Crypt_SouthWinch_Init
+    lda #kWinchInitGoalX
+    sta Ram_RoomState + sState::WinchGoalX_u8
+    lda Ram_RoomState + sState::WinchGoalZ_u8
+    cmp #3
+    blt @left
+    @up:
+    lda #2
+    sta Ram_RoomState + sState::WinchGoalZ_u8
+    @left:
+    lda #eResetSeq::UpLeft
+    sta Ram_RoomState + sState::WinchReset_eResetSeq
+    rts
+.ENDPROC
+
+.PROC FuncC_Crypt_SouthWinch_Init
+    lda #kWinchInitGoalX
+    sta Ram_RoomState + sState::WinchGoalX_u8
+    lda #kWinchInitGoalZ
+    sta Ram_RoomState + sState::WinchGoalZ_u8
+    lda #0
+    sta Ram_RoomState + sState::WinchReset_eResetSeq
+    sta Ram_RoomState + sState::WinchSlowdown_u8
     rts
 .ENDPROC
 
