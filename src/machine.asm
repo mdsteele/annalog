@@ -100,6 +100,12 @@ Ram_MachineRegA_u8_arr: .res kMaxMachines
 ;;; How many more frames until each machine is done moving/acting.
 Ram_MachineWait_u8_arr: .res kMaxMachines
 
+;;; A generic counter that decrements on every call to Func_MachineTick.  Each
+;;; machine can use this for any purpose it likes, but typically it is used to
+;;; help implement moving slower than one pixel per frame.
+.EXPORT Ram_MachineSlowdown_u8_arr
+Ram_MachineSlowdown_u8_arr: .res kMaxMachines
+
 ;;;=========================================================================;;;
 
 .SEGMENT "PRG8"
@@ -517,6 +523,7 @@ _ReadRegB:
     sta Ram_MachinePc_u8_arr, x
     sta Ram_MachineRegA_u8_arr, x
     sta Ram_MachineWait_u8_arr, x
+    sta Ram_MachineSlowdown_u8_arr, x
     ;; Set the machine's status to Resetting.
     lda #eMachine::Resetting
     sta Ram_MachineStatus_eMachine_arr, x
@@ -529,6 +536,13 @@ _ReadRegB:
 ;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
 .EXPORT Func_MachineTick
 .PROC Func_MachineTick
+    ;; Decrement the machine's slowdown value if it's not zero.
+    ldx Zp_MachineIndex_u8
+    lda Ram_MachineSlowdown_u8_arr, x
+    beq @doneWithSlowdown
+    dec Ram_MachineSlowdown_u8_arr, x
+    @doneWithSlowdown:
+    ;; Call the machine's tick function.
     ldy #sMachine::Tick_func_ptr  ; param: function pointer offset
     .assert * = Func_MachineCall, error, "fallthrough"
 .ENDPROC

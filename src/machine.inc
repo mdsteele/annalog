@@ -77,30 +77,38 @@ kMachineRegNameB = $21  ; 'B'
     ;; The names (i.e. BG tile IDs) for registers $c through $f.
     RegNames_u8_arr4  .res 4
     ;; Function to initialize machine-specific state (when entering the area).
+    ;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
     Init_func_ptr     .addr
     ;; Function to call when a register from $c to $f is read.
+    ;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
     ;; @param A The register to read ($c-$f).
     ;; @return A The value of the register (0-9).
     ReadReg_func_ptr  .addr
     ;; Function to call when a register from $c to $f is written.
+    ;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
     ;; @param A The register to write to ($c-$f).
     ;; @param X The value to write (0-9).
     WriteReg_func_ptr .addr
     ;; Function to call when the machine tries to move.
+    ;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
     ;; @param X The eDir value for the direction to move in.
     ;; @return C Set if there was an error, cleared otherwise.
     ;; @return A How many frames to wait before advancing the PC.
     TryMove_func_ptr  .addr
     ;; Function to call when the machine tries to act.
+    ;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
     ;; @return C Set if there was an error, cleared otherwise.
     ;; @return A How many frames to wait before advancing the PC.
     TryAct_func_ptr   .addr
     ;; Function to call each frame to update the machine.
+    ;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
     Tick_func_ptr     .addr
     ;; Function to call each frame to draw the machine's objects.
+    ;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
     ;; @prereq PRGA_Objects is loaded.
     Draw_func_ptr     .addr
     ;; Function to call to start resetting the machine.
+    ;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
     Reset_func_ptr    .addr
     ;; Unused space to pad .sizeof(sMachine) to a power of 2.
     Padding           .res kMachinePadding

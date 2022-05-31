@@ -23,6 +23,7 @@
 .INCLUDE "../dialog.inc"
 .INCLUDE "../flag.inc"
 .INCLUDE "../machine.inc"
+.INCLUDE "../machines/winch.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../platform.inc"
 .INCLUDE "../ppu.inc"
@@ -39,14 +40,16 @@
 .IMPORT FuncA_Objects_MoveShapeLeftOneTile
 .IMPORT FuncA_Objects_MoveShapeUpOneTile
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
+.IMPORT Func_GetWinchVertSpeed
 .IMPORT Func_MachineError
 .IMPORT Func_MachineFinishResetting
+.IMPORT Func_MovePlatformTopToward
 .IMPORT Func_MovePlatformVert
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrUpgrade
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORT Ram_RoomState
-.IMPORTZP Zp_Tmp1_byte
+.IMPORTZP Zp_PlatformGoal_i16
 
 ;;;=========================================================================;;;
 
@@ -58,22 +61,24 @@ kWinchPlatformIndex       = 0
 kUpperGirderPlatformIndex = 1
 kLowerGirderPlatformIndex = 2
 
-;;; The maximum permitted room pixel Y-position for the top of the lower girder
-;;; platform (i.e. when the platform is at its lowest point).
-kLowerGirderMaxPlatformTop = $c0
-
 ;;; The initial and maximum permitted values for sState::WinchGoalY_u8.
-kWinchInitRegY = 4
-kWinchMaxRegY  = 9
+kWinchInitGoalZ = 3
+kWinchMaxGoalZ  = 5
 
-;;; How many frames the CryptFlowerWinch machine spends per move operation.
-kWinchCountdownUp = 16
-kWinchCountdownDown = 8
+;;; The minimum and initial room pixel position for the top edge of the upper
+;;; girder.
+.LINECONT +
+kUpperGirderMinPlatformTop = $48
+kUpperGirderInitPlatformTop = \
+    kUpperGirderMinPlatformTop + kBlockHeightPx * kWinchInitGoalZ
+.LINECONT +
+
+;;;=========================================================================;;;
 
 ;;; Defines room-specific state data for this particular room.
 .STRUCT sState
-    ;; The goal value for the CryptFlowerWinch machine's Y register.
-    WinchGoalY_u8 .byte
+    ;; The goal value for the CryptFlowerWinch machine's Z register.
+    WinchGoalZ_u8 .byte
 .ENDSTRUCT
 .ASSERT .sizeof(sState) <= kRoomStateSize, error
 
@@ -122,7 +127,7 @@ _Machines_sMachine_arr:
     d_byte Status_eDiagram, eDiagram::Winch
     d_word ScrollGoalX_u16, $10
     d_byte ScrollGoalY_u8, $0
-    d_byte RegNames_u8_arr4, 0, 0, 0, "Y"
+    d_byte RegNames_u8_arr4, 0, 0, 0, "Z"
     d_addr Init_func_ptr, _Winch_Init
     d_addr ReadReg_func_ptr, _Winch_ReadReg
     d_addr WriteReg_func_ptr, Func_MachineError
@@ -149,7 +154,7 @@ _Platforms_sPlatform_arr:
     d_byte WidthPx_u8,  $18
     d_byte HeightPx_u8, $08
     d_word Left_i16,  $0084
-    d_word Top_i16,   $0078
+    d_word Top_i16, kUpperGirderInitPlatformTop
     D_END
     .assert kLowerGirderPlatformIndex = 2, error
     D_STRUCT sPlatform
@@ -157,7 +162,7 @@ _Platforms_sPlatform_arr:
     d_byte WidthPx_u8,  $18
     d_byte HeightPx_u8, $08
     d_word Left_i16,  $0084
-    d_word Top_i16,   $00a0
+    d_word Top_i16, kUpperGirderInitPlatformTop + $28
     D_END
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Harm
@@ -211,64 +216,64 @@ _Passages_sPassage_arr:
     D_END
 _Winch_Init:
 _Winch_Reset:
-    lda #kWinchInitRegY
-    sta Ram_RoomState + sState::WinchGoalY_u8
+    lda #kWinchInitGoalZ
+    sta Ram_RoomState + sState::WinchGoalZ_u8
     rts
 _Winch_ReadReg:
-    lda #kLowerGirderMaxPlatformTop + kTileHeightPx / 2
-    sub Ram_PlatformTop_i16_0_arr + kLowerGirderPlatformIndex
-    div #kTileHeightPx
+    lda Ram_PlatformTop_i16_0_arr + kUpperGirderPlatformIndex
+    sub #kUpperGirderMinPlatformTop - kTileHeightPx
+    div #kBlockWidthPx
     rts
 _Winch_TryMove:
-    ldy Ram_RoomState + sState::WinchGoalY_u8
+    ldy Ram_RoomState + sState::WinchGoalZ_u8
     txa
     .assert eDir::Up = 0, error
-    bne @moveDown
-    @moveUp:
-    cpy #kWinchMaxRegY
+    beq @moveUp
+    @moveDown:
+    cpy #kWinchMaxGoalZ
     bge @error
     iny
-    lda #kWinchCountdownUp
+    lda #kWinchMoveDownCooldown
     bne @success  ; unconditional
-    @moveDown:
+    @moveUp:
     tya
     beq @error
     dey
-    lda #kWinchCountdownDown
+    lda #kWinchMoveUpCooldown
     @success:
-    sty Ram_RoomState + sState::WinchGoalY_u8
+    sty Ram_RoomState + sState::WinchGoalZ_u8
     clc  ; clear C to indicate success
     rts
     @error:
     sec  ; set C to indicate failure
     rts
 _Winch_Tick:
-    ;; Calculate the desired Y-position for the top of the lower girder
-    ;; platform, in room-space pixels.
-    lda Ram_RoomState + sState::WinchGoalY_u8
-    mul #kTileHeightPx
-    sta Zp_Tmp1_byte  ; goal height above the lowest position, in pixels
-    lda #kLowerGirderMaxPlatformTop
-    sub Zp_Tmp1_byte
-    ;; If we're at the desired height, we're done.
-    cmp Ram_PlatformTop_i16_0_arr + kLowerGirderPlatformIndex
-    jeq Func_MachineFinishResetting
-    ;; Otherwise, move up or down as needed.
-    blt @moveDown
-    @moveUp:
-    lda #1                          ; param: move delta
+    ;; Calculate the desired room-space pixel Y-position for the top edge of
+    ;; the upper girder, storing it in Zp_PlatformGoal_i16.
+    lda Ram_RoomState + sState::WinchGoalZ_u8
+    mul #kBlockHeightPx
+    add #kUpperGirderMinPlatformTop
+    .linecont +
+    .assert kWinchMaxGoalZ * kBlockHeightPx + \
+            kUpperGirderMinPlatformTop < $100, error
+    .linecont -
+    sta Zp_PlatformGoal_i16 + 0
+    lda #0
+    sta Zp_PlatformGoal_i16 + 1
+    ;; Determine how fast we should move toward the goal.
     ldx #kUpperGirderPlatformIndex  ; param: platform index
-    jsr Func_MovePlatformVert
-    lda #1                          ; param: move delta
+    jsr Func_GetWinchVertSpeed  ; preserves X, returns Z and A
+    bne @move
+    rts
+    @move:
+    ;; Move the upper girder vertically, as necessary.
+    jsr Func_MovePlatformTopToward  ; returns Z and A
+    beq @done
+    ;; If the girder moved, move the other girder too.
     ldx #kLowerGirderPlatformIndex  ; param: platform index
     jmp Func_MovePlatformVert
-    @moveDown:
-    lda #$ff                        ; param: move delta
-    ldx #kUpperGirderPlatformIndex  ; param: platform index
-    jsr Func_MovePlatformVert
-    lda #$ff                        ; param: move delta
-    ldx #kLowerGirderPlatformIndex  ; param: platform index
-    jmp Func_MovePlatformVert
+    @done:
+    jmp Func_MachineFinishResetting
 .ENDPROC
 
 ;;;=========================================================================;;;

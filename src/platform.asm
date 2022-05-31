@@ -178,6 +178,49 @@ _MoveByA:
     rts
 .ENDPROC
 
+;;; Move the specified platform vertically such that its top edge moves toward
+;;; the goal position without overshooting it.
+;;; @prereq Zp_PlatformGoal_i16 is set to the goal room-space pixel Y-position.
+;;; @param A The max distance to move by, in pixels (0-127).
+;;; @param X The platform index.
+;;; @return A The pixel delta that the platform actually moved by (signed).
+;;; @return Z Cleared if the platform moved, set if it didn't.
+;;; @preserve X
+.EXPORT Func_MovePlatformTopToward
+.PROC Func_MovePlatformTopToward
+    sta Zp_Tmp1_byte  ; max distance
+    lda Zp_PlatformGoal_i16 + 0
+    sub Ram_PlatformTop_i16_0_arr, x
+    sta Zp_Tmp2_byte  ; delta (lo)
+    lda Zp_PlatformGoal_i16 + 1
+    sbc Ram_PlatformTop_i16_1_arr, x
+    bmi _MoveUp
+_MoveDown:
+    bne _MoveDownByMax
+    lda Zp_Tmp2_byte  ; delta (lo)
+    cmp Zp_Tmp1_byte  ; max distance
+    blt _MoveByA
+_MoveDownByMax:
+    lda Zp_Tmp1_byte  ; max distance
+    bpl _MoveByA  ; unconditional
+_MoveUp:
+    cmp #$ff
+    blt _MoveUpByMax
+    lda Zp_Tmp2_byte  ; delta (lo)
+    add Zp_Tmp1_byte  ; max distance
+    bcc _MoveUpByMax
+    lda Zp_Tmp2_byte  ; delta (lo)
+    bmi _MoveByA  ; unconditional
+_MoveUpByMax:
+    lda #0
+    sub Zp_Tmp1_byte  ; max distance
+_MoveByA:
+    pha  ; move delta
+    jsr Func_MovePlatformVert  ; preserves X
+    pla  ; move delta
+    rts
+.ENDPROC
+
 ;;; Moves the specified platform up or down by the specified delta.  If the
 ;;; player avatar is standing on the platform, it will be moved along with it.
 ;;; @param A How many pixels to move the platform by (signed).

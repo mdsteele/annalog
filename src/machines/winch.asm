@@ -21,6 +21,7 @@
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
 .INCLUDE "../ppu.inc"
+.INCLUDE "winch.inc"
 
 .IMPORT FuncA_Objects_Alloc1x1Shape
 .IMPORT FuncA_Objects_Alloc2x2Shape
@@ -28,9 +29,15 @@
 .IMPORT FuncA_Objects_MoveShapeDownOneTile
 .IMPORT FuncA_Objects_MoveShapeRightOneTile
 .IMPORT FuncA_Objects_MoveShapeUpOneTile
+.IMPORT Ram_MachineSlowdown_u8_arr
+.IMPORT Ram_MachineStatus_eMachine_arr
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORT Ram_PlatformBottom_i16_0_arr
 .IMPORT Ram_PlatformBottom_i16_1_arr
+.IMPORT Ram_PlatformTop_i16_0_arr
+.IMPORT Ram_PlatformTop_i16_1_arr
+.IMPORTZP Zp_MachineIndex_u8
+.IMPORTZP Zp_PlatformGoal_i16
 .IMPORTZP Zp_RoomScrollY_u8
 .IMPORTZP Zp_ShapePosY_i16
 .IMPORTZP Zp_Tmp1_byte
@@ -53,6 +60,61 @@ kTileIdWinchCornerTop     = $73
 ;;; OBJ palette numbers used for various parts of winch machines.
 kWinchChainPalette = 0
 kWinchGearPalette  = 0
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRG8"
+
+;;; Returns the speed that the current winch machine should use when moving
+;;; horizontally this frame.
+;;; @prereq Zp_MachineIndex_u8 is initialized.
+;;; @return A The max distance to move by, in pixels (0-127).
+.EXPORT Func_GetWinchHorzSpeed
+.PROC Func_GetWinchHorzSpeed
+    ldy Zp_MachineIndex_u8
+    lda #1
+    ldx Ram_MachineStatus_eMachine_arr, y
+    cpx #eMachine::Resetting
+    bne @notResetting
+    mul #2
+    @notResetting:
+    rts
+.ENDPROC
+
+;;; Returns the speed that the current winch machine should use when moving
+;;; vertically this frame.
+;;; @prereq Zp_MachineIndex_u8 is initialized.
+;;; @prereq Zp_PlatformGoal_i16 is set to the goal room-space pixel Y-position.
+;;; @param X The platform index for the winch load.
+;;; @return A The max distance to move by, in pixels (0-127).
+;;; @return Z Set if the machine's max speed is zero this frame.
+;;; @preserve X
+.EXPORT Func_GetWinchVertSpeed
+.PROC Func_GetWinchVertSpeed
+    ldy Zp_MachineIndex_u8
+    lda Ram_MachineStatus_eMachine_arr, y
+    cmp #eMachine::Resetting
+    bne _NotResetting
+    lda #2
+    rts
+_NotResetting:
+    lda Zp_PlatformGoal_i16 + 0
+    sub Ram_PlatformTop_i16_0_arr, x
+    lda Zp_PlatformGoal_i16 + 1
+    sbc Ram_PlatformTop_i16_1_arr, x
+    bpl _MovingDown
+_MovingUp:
+    lda Ram_MachineSlowdown_u8_arr, y
+    beq @canMove
+    lda #0
+    rts
+    @canMove:
+    lda #kWinchMoveUpSlowdown
+    sta Ram_MachineSlowdown_u8_arr, y
+_MovingDown:
+    lda #1
+    rts
+.ENDPROC
 
 ;;;=========================================================================;;;
 

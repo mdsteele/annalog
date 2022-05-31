@@ -23,6 +23,7 @@
 .INCLUDE "../dialog.inc"
 .INCLUDE "../flag.inc"
 .INCLUDE "../machine.inc"
+.INCLUDE "../machines/winch.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
 .INCLUDE "../platform.inc"
@@ -38,14 +39,16 @@
 .IMPORT FuncA_Objects_DrawWinchMachine
 .IMPORT FuncA_Objects_MoveShapeUpOneTile
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
+.IMPORT Func_GetWinchHorzSpeed
+.IMPORT Func_GetWinchVertSpeed
 .IMPORT Func_MachineError
 .IMPORT Func_MachineFinishResetting
 .IMPORT Func_MovePlatformHorz
 .IMPORT Func_MovePlatformLeftToward
+.IMPORT Func_MovePlatformTopToward
 .IMPORT Func_MovePlatformVert
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrUpgrade
-.IMPORT Ram_MachineStatus_eMachine_arr
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORT Ram_PlatformLeft_i16_0_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
@@ -54,7 +57,6 @@
 .IMPORTZP Zp_PlatformGoal_i16
 .IMPORTZP Zp_ShapePosX_i16
 .IMPORTZP Zp_Tmp1_byte
-.IMPORTZP Zp_Tmp2_byte
 
 ;;;=========================================================================;;;
 
@@ -67,13 +69,6 @@ kWinchPlatformIndex        = 0
 kCrusherUpperPlatformIndex = 1
 kCrusherSpikePlatformIndex = 2
 kWeakFloorPlatformIndex    = 3
-
-;;; How many frames it takes the CryptSouthWinch to move up one pixel.
-kWinchMoveUpSlowdown = 3
-;;; How many frames the CryptSouthWinch machine spends per move operation.
-kWinchMoveUpCooldown = 16 * kWinchMoveUpSlowdown
-kWinchMoveDownCooldown = 16
-kWinchMoveHorzCooldown = 16
 
 ;;; The initial and maximum permitted values for sState::WinchGoalX_u8.
 kWinchInitGoalX = 0
@@ -350,58 +345,29 @@ _Error:
 .PROC FuncC_Crypt_SouthWinch_Tick
 _MoveVert:
     ;; Calculate the desired room-space pixel Y-position for the top edge of
-    ;; the crusher, storing the lo byte in Zp_Tmp1_byte and the hi byte in
-    ;; Zp_Tmp2_byte.
+    ;; the crusher, storing it in Zp_PlatformGoal_i16.
     lda #0
-    sta Zp_Tmp2_byte
+    sta Zp_PlatformGoal_i16 + 1
     lda Ram_RoomState + sState::WinchGoalZ_u8
     mul #16
     .assert kWinchMaxGoalZ >= 16, error  ; The multiplication may carry.
     .assert kWinchMaxGoalZ < 32, error  ; There can only be one carry bit.
-    rol Zp_Tmp2_byte  ; Handle carry bit from multiplication.
+    rol Zp_PlatformGoal_i16 + 1  ; Handle carry bit from multiplication.
     add #kCrusherMinPlatformTop
-    sta Zp_Tmp1_byte  ; desired Y-position (lo)
-    lda Zp_Tmp2_byte
+    sta Zp_PlatformGoal_i16 + 0
+    lda Zp_PlatformGoal_i16 + 1
     adc #0
-    sta Zp_Tmp2_byte  ; desired Y-position (hi)
-    ;; Check if we need to move up or down.
-    lda Ram_PlatformTop_i16_1_arr + kCrusherUpperPlatformIndex
-    cmp Zp_Tmp2_byte  ; desired Y-position (hi)
-    blt @moveDown
-    bne @moveUp
-    lda Ram_PlatformTop_i16_0_arr + kCrusherUpperPlatformIndex
-    cmp Zp_Tmp1_byte  ; desired Y-position (lo)
-    beq @done
-    blt @moveDown
-    @moveUp:
-    lda Ram_MachineStatus_eMachine_arr + kWinchMachineIndex
-    cmp #eMachine::Resetting
-    beq @moveUpFast
-    lda Ram_RoomState + sState::WinchSlowdown_u8
-    beq @moveUpSlow
-    dec Ram_RoomState + sState::WinchSlowdown_u8
-    rts
-    @moveUpSlow:
-    lda #kWinchMoveUpSlowdown - 1
-    sta Ram_RoomState + sState::WinchSlowdown_u8
-    lda #$ff  ; param: move delta
-    bne @move  ; unconditional
-    @moveUpFast:
-    lda #$fe  ; param: move delta
-    bne @move  ; unconditional
-    @moveDown:
-    lda Ram_MachineStatus_eMachine_arr + kWinchMachineIndex
-    cmp #eMachine::Resetting
-    beq @moveDownFast
-    lda #1  ; param: move delta
-    bne @move  ; unconditional
-    @moveDownFast:
-    lda #2
-    @move:
-    pha  ; move delta
+    sta Zp_PlatformGoal_i16 + 1
+    ;; Determine how fast we should move toward the goal.
     ldx #kCrusherUpperPlatformIndex  ; param: platform index
-    jsr Func_MovePlatformVert
-    pla  ; param: move delta
+    jsr Func_GetWinchVertSpeed  ; preserves X, returns Z and A
+    bne @move
+    rts
+    @move:
+    ;; Move the crusher vertically, as necessary.
+    jsr Func_MovePlatformTopToward  ; returns Z and A
+    beq @done
+    ;; If the crusher moved, move the crusher's other platform too.
     ldx #kCrusherSpikePlatformIndex  ; param: platform index
     jmp Func_MovePlatformVert
     @done:
@@ -414,14 +380,8 @@ _MoveHorz:
     mul #kBlockWidthPx
     add #kWinchMinPlatformLeft
     sta Zp_PlatformGoal_i16 + 0
-    ;; Determine the horizontal speed of the platform (faster if resetting).
-    lda #1
-    ldy Ram_MachineStatus_eMachine_arr + kWinchMachineIndex
-    cpy #eMachine::Resetting
-    bne @slow
-    mul #2
-    @slow:
-    ;; Move the winch horizontally, as necessary.
+    ;; Move the winch horizontally, if necessary.
+    jsr Func_GetWinchHorzSpeed  ; returns A
     ldx #kWinchPlatformIndex  ; param: platform index
     jsr Func_MovePlatformLeftToward  ; returns Z and A
     beq @done
