@@ -97,6 +97,11 @@ kInstructionWidthTiles = 7
 
 .ZEROPAGE
 
+;;; The index of the machine being controlled by the open console, or $ff for
+;;; none.
+.EXPORTZP Zp_ConsoleMachineIndex_u8
+Zp_ConsoleMachineIndex_u8: .res 1
+
 ;;; A pointer to the program in SRAM that the console is currently editing.
 Zp_ConsoleSram_sProgram_ptr: .res 2
 
@@ -185,6 +190,8 @@ _StartEditing:
 ;;; @prereq Rendering is enabled.
 ;;; @prereq Explore mode is initialized.
 .PROC Main_Console_CloseWindow
+    lda #$ff
+    sta Zp_ConsoleMachineIndex_u8
 _GameLoop:
     jsr_prga FuncA_Objects_DrawObjectsForRoom
     jsr Func_ClearRestOfOam
@@ -258,8 +265,10 @@ _CheckButtons:
     @noEdit:
     ;; D-pad:
     jsr_prga FuncA_Console_MoveFieldCursor
-_UpdateScrolling:
+_Tick:
     jsr_prga FuncA_Terrain_ScrollTowardsGoal
+    ldx Zp_ConsoleMachineIndex_u8  ; param: machine index
+    jsr Func_SetMachineIndex
     jsr Func_MachineTick
     jmp _GameLoop
 .ENDPROC
@@ -294,6 +303,7 @@ _UpdateScrolling:
 ;;; @prereq Explore mode is initialized.
 ;;; @param X The machine index to open a console for.
 .PROC FuncA_Console_Init
+    stx Zp_ConsoleMachineIndex_u8
     jsr Func_SetMachineIndex
     jsr Func_MachineReset
     jsr FuncA_Console_LoadProgram

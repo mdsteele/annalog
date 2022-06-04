@@ -63,6 +63,7 @@
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORT Ram_PlatformTop_i16_1_arr
 .IMPORT Ram_PlatformType_ePlatform_arr
+.IMPORTZP Zp_ConsoleMachineIndex_u8
 .IMPORTZP Zp_HudMachineIndex_u8
 .IMPORTZP Zp_RoomIsSafe_bool
 .IMPORTZP Zp_Tmp1_byte
@@ -363,6 +364,7 @@ _LoadDevices:
     blt @clearLoop
 _ClearHud:
     lda #$ff
+    sta Zp_ConsoleMachineIndex_u8
     sta Zp_HudMachineIndex_u8
     sta Zp_RoomIsSafe_bool
 _CallInit:

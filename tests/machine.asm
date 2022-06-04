@@ -47,6 +47,12 @@ kMaxTestMachinePosY = 9
 
 .ZEROPAGE
 
+.EXPORTZP Zp_ConsoleMachineIndex_u8
+Zp_ConsoleMachineIndex_u8: .res 1
+
+.EXPORTZP Zp_Current_sRoom
+Zp_Current_sRoom: .tag sRoom
+
 .EXPORTZP Zp_FrameCounter_u8
 Zp_FrameCounter_u8: .res 1
 
@@ -56,9 +62,6 @@ Zp_P1ButtonsHeld_bJoypad: .res 1
 .EXPORTZP Zp_Tmp1_byte, Zp_Tmp_ptr
 Zp_Tmp1_byte: .res 1
 Zp_Tmp_ptr: .res 2
-
-.EXPORTZP Zp_Current_sRoom
-Zp_Current_sRoom: .tag sRoom
 
 ;;; The current X/Y position of the test machine.
 Zp_TestMachinePosX_u8: .res 1

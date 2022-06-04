@@ -23,6 +23,7 @@
 .INCLUDE "../dialog.inc"
 .INCLUDE "../flag.inc"
 .INCLUDE "../machine.inc"
+.INCLUDE "../machines/winch.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
 .INCLUDE "../platform.inc"
@@ -38,15 +39,20 @@
 .IMPORT FuncA_Objects_DrawWinchMachine
 .IMPORT FuncA_Objects_MoveShapeUpOneTile
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
+.IMPORT Func_GetWinchHorzSpeed
+.IMPORT Func_GetWinchVertSpeed
 .IMPORT Func_MachineError
 .IMPORT Func_MachineFinishResetting
 .IMPORT Func_MovePlatformHorz
+.IMPORT Func_MovePlatformLeftToward
+.IMPORT Func_MovePlatformTopToward
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrUpgrade
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORT Ram_PlatformLeft_i16_0_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORT Ram_RoomState
+.IMPORTZP Zp_PlatformGoal_i16
 .IMPORTZP Zp_ShapePosX_i16
 .IMPORTZP Zp_ShapePosY_i16
 
@@ -62,18 +68,27 @@ kSpikeballPlatformIndex  = 1
 kWeakFloor1PlatformIndex = 2
 kWeakFloor2PlatformIndex = 3
 
-;;; How many frames the CryptTombWinch machine spends per move operation.
-kWinchMoveHorzCooldown = 16
-
 ;;; The initial and maximum permitted values for sState::WinchGoalX_u8.
 kWinchInitGoalX = 4
 kWinchMaxGoalX  = 9
+
+;;; The initial and maximum values for sState::WinchGoalZ_u8.
+kWinchInitGoalZ = 2
+kWinchMaxGoalZ = 9
 
 ;;; The minimum and initial room pixel position for the left edge of the winch.
 .LINECONT +
 kWinchMinPlatformLeft = $30
 kWinchInitPlatformLeft = \
     kWinchMinPlatformLeft + kBlockWidthPx * kWinchInitGoalX
+.LINECONT +
+
+;;; The minimum and initial room pixel position for the top edge of the
+;;; crusher.
+.LINECONT +
+kSpikeballMinPlatformTop = $22
+kSpikeballInitPlatformTop = \
+    kSpikeballMinPlatformTop + kBlockHeightPx * kWinchInitGoalZ
 .LINECONT +
 
 ;;; Various OBJ tile IDs used for drawing the CryptTombWinch machine.
@@ -90,8 +105,9 @@ kSpikeballPalette = 0
     ;; The current states of the room's two levers.
     LeverLeft_u1  .byte
     LeverRight_u1 .byte
-    ;; The goal value for the CryptTombWinch machine's X register.
+    ;; The goal values for the CryptTombWinch machine's X and Z registers.
     WinchGoalX_u8 .byte
+    WinchGoalZ_u8 .byte
 .ENDSTRUCT
 .ASSERT .sizeof(sState) <= kRoomStateSize, error
 
@@ -140,15 +156,15 @@ _Machines_sMachine_arr:
     d_byte Status_eDiagram, eDiagram::Winch
     d_word ScrollGoalX_u16, $0
     d_byte ScrollGoalY_u8, $0
-    d_byte RegNames_u8_arr4, "L", "R", "X", "Y"
-    d_addr Init_func_ptr, _Winch_Init
-    d_addr ReadReg_func_ptr, _Winch_ReadReg
+    d_byte RegNames_u8_arr4, "L", "R", "X", "Z"
+    d_addr Init_func_ptr, FuncC_Crypt_TombWinch_Init
+    d_addr ReadReg_func_ptr, FuncC_Crypt_TombWinch_ReadReg
     d_addr WriteReg_func_ptr, Func_MachineError
-    d_addr TryMove_func_ptr, _Winch_TryMove
+    d_addr TryMove_func_ptr, FuncC_Crypt_TombWinch_TryMove
     d_addr TryAct_func_ptr, Func_MachineError
     d_addr Tick_func_ptr, FuncC_Crypt_TombWinch_Tick
     d_addr Draw_func_ptr, FuncA_Objects_CryptTombWinch_Draw
-    d_addr Reset_func_ptr, _Winch_Reset
+    d_addr Reset_func_ptr, FuncC_Crypt_TombWinch_Reset
     d_byte Padding
     .res kMachinePadding
     D_END
@@ -166,24 +182,24 @@ _Platforms_sPlatform_arr:
     d_byte Type_ePlatform, ePlatform::Harm
     d_byte WidthPx_u8,  $0d
     d_byte HeightPx_u8, $0e
-    d_word Left_i16,  $0072
-    d_word Top_i16,   $0052
+    d_word Left_i16, kWinchInitPlatformLeft + 2
+    d_word Top_i16, kSpikeballInitPlatformTop
     D_END
     .assert kWeakFloor1PlatformIndex = 2, error
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Solid
     d_byte WidthPx_u8,  $10
     d_byte HeightPx_u8, $10
-    d_word Left_i16,  $00c0
-    d_word Top_i16,   $0080
+    d_word Left_i16,  $0030
+    d_word Top_i16,   $00a0
     D_END
     .assert kWeakFloor2PlatformIndex = 3, error
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Solid
     d_byte WidthPx_u8,  $10
     d_byte HeightPx_u8, $10
-    d_word Left_i16,  $0030
-    d_word Top_i16,   $00a0
+    d_word Left_i16,  $00c0
+    d_word Top_i16,   $0080
     D_END
     ;; Terrain spikes:
     D_STRUCT sPlatform
@@ -195,16 +211,16 @@ _Platforms_sPlatform_arr:
     D_END
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Harm
-    d_byte WidthPx_u8,  $10
+    d_byte WidthPx_u8,  $0e
     d_byte HeightPx_u8, $08
-    d_word Left_i16,  $0010
-    d_word Top_i16,   $00ae
+    d_word Left_i16,  $0091
+    d_word Top_i16,   $003e
     D_END
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Harm
     d_byte WidthPx_u8,  $10
     d_byte HeightPx_u8, $08
-    d_word Left_i16,  $00d0
+    d_word Left_i16,  $0010
     d_word Top_i16,   $00ae
     D_END
     D_STRUCT sPlatform
@@ -221,19 +237,19 @@ _Devices_sDevice_arr:
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Console
     d_byte BlockRow_u8, 7
-    d_byte BlockCol_u8, 7
+    d_byte BlockCol_u8, 9
     d_byte Target_u8, kWinchMachineIndex
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Lever
-    d_byte BlockRow_u8, 7
+    d_byte BlockRow_u8, 6
     d_byte BlockCol_u8, 5
     d_byte Target_u8, sState::LeverLeft_u1
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Lever
     d_byte BlockRow_u8, 7
-    d_byte BlockCol_u8, 9
+    d_byte BlockCol_u8, 7
     d_byte Target_u8, sState::LeverRight_u1
     D_END
     D_STRUCT sDevice
@@ -249,81 +265,132 @@ _Passages_sPassage_arr:
     d_byte Destination_eRoom, eRoom::CryptSouth
     d_byte SpawnBlock_u8, 7
     D_END
-_Winch_Init:
-_Winch_Reset:
+.ENDPROC
+
+.PROC FuncC_Crypt_TombWinch_Reset
+    .assert * = FuncC_Crypt_TombWinch_Init, error, "fallthrough"
+.ENDPROC
+
+.PROC FuncC_Crypt_TombWinch_Init
     lda #kWinchInitGoalX
     sta Ram_RoomState + sState::WinchGoalX_u8
+    lda #kWinchInitGoalZ
+    sta Ram_RoomState + sState::WinchGoalZ_u8
     rts
-_Winch_ReadReg:
+.ENDPROC
+
+.PROC FuncC_Crypt_TombWinch_ReadReg
     cmp #$c
-    beq @readL
+    beq _ReadL
     cmp #$d
-    beq @readR
+    beq _ReadR
     cmp #$e
-    beq @readX
-    @readY:
-    lda #0  ; TODO
+    beq _ReadX
+_ReadZ:
+    lda Ram_PlatformTop_i16_0_arr + kSpikeballPlatformIndex
+    sub #kSpikeballMinPlatformTop - kTileHeightPx
+    div #kBlockHeightPx
     rts
-    @readX:
+_ReadX:
     lda Ram_PlatformLeft_i16_0_arr + kWinchPlatformIndex
     sub #kWinchMinPlatformLeft - kTileWidthPx
     div #kBlockWidthPx
     rts
-    @readL:
+_ReadL:
     lda Ram_RoomState + sState::LeverLeft_u1
     rts
-    @readR:
+_ReadR:
     lda Ram_RoomState + sState::LeverRight_u1
     rts
-_Winch_TryMove:
+.ENDPROC
+
+.PROC FuncC_Crypt_TombWinch_TryMove
+    ;; TODO: check for terrain collisions
+    .assert eDir::Up = 0, error
+    txa
+    beq _MoveUp
+    cpx #eDir::Down
+    beq _MoveDown
+_MoveHorz:
     cpx #eDir::Left
     beq @moveLeft
     @moveRight:
     lda Ram_RoomState + sState::WinchGoalX_u8
     cmp #kWinchMaxGoalX
-    bge @error
+    bge _Error
     inc Ram_RoomState + sState::WinchGoalX_u8
     bne @success  ; unconditional
     @moveLeft:
     lda Ram_RoomState + sState::WinchGoalX_u8
-    beq @error
+    beq _Error
     dec Ram_RoomState + sState::WinchGoalX_u8
     @success:
     lda #kWinchMoveHorzCooldown
     clc  ; success
     rts
-    @error:
+_MoveUp:
+    lda Ram_RoomState + sState::WinchGoalZ_u8
+    beq _Error
+    dec Ram_RoomState + sState::WinchGoalZ_u8
+    lda #kWinchMoveUpCooldown
+    clc  ; success
+    rts
+_MoveDown:
+    lda Ram_RoomState + sState::WinchGoalZ_u8
+    cmp #kWinchMaxGoalZ
+    bge _Error
+    inc Ram_RoomState + sState::WinchGoalZ_u8
+    lda #kWinchMoveDownCooldown
+    clc  ; success
+    rts
+_Error:
     sec  ; failure
     rts
 .ENDPROC
 
 .PROC FuncC_Crypt_TombWinch_Tick
+_MoveVert:
+    ;; Calculate the desired room-space pixel Y-position for the top edge of
+    ;; the spikeball, storing it in Zp_PlatformGoal_i16.
+    lda Ram_RoomState + sState::WinchGoalZ_u8
+    mul #kBlockHeightPx
+    add #kSpikeballMinPlatformTop
+    .linecont +
+    .assert kWinchMaxGoalZ * kBlockHeightPx + \
+            kSpikeballMinPlatformTop < $100, error
+    .linecont -
+    sta Zp_PlatformGoal_i16 + 0
+    lda #0
+    sta Zp_PlatformGoal_i16 + 1
+    ;; Determine how fast we should move toward the goal.
+    ldx #kSpikeballPlatformIndex  ; param: platform index
+    jsr Func_GetWinchVertSpeed  ; preserves X, returns Z and A
+    bne @move
+    rts
+    @move:
+    ;; Move the spikeball vertically, as necessary.
+    jsr Func_MovePlatformTopToward  ; returns Z
+    beq @done
+    rts
+    @done:
 _MoveHorz:
     ;; Calculate the desired X-position for the left edge of the winch, in
-    ;; room-space pixels.
+    ;; room-space pixels, storing it in Zp_PlatformGoal_i16.
     lda Ram_RoomState + sState::WinchGoalX_u8
     mul #kBlockWidthPx
     add #kWinchMinPlatformLeft
-    ;; If we're at the desired X-position, then we're done.
-    cmp Ram_PlatformLeft_i16_0_arr + kWinchPlatformIndex
-    beq @done
-    ;; Otherwise, move left or right as needed.
-    blt @moveLeft
-    @moveRight:
-    lda #1  ; param: move delta
-    bne @move  ; unconditional
-    @moveLeft:
-    lda #$ff  ; param: move delta
-    @move:
-    pha  ; move delta
+    sta Zp_PlatformGoal_i16 + 0
+    lda #0
+    sta Zp_PlatformGoal_i16 + 1
+    ;; Move the winch horizontally, if necessary.
+    jsr Func_GetWinchHorzSpeed  ; preserves X, returns A
     ldx #kWinchPlatformIndex  ; param: platform index
-    jsr Func_MovePlatformHorz
-    pla  ; param: move delta
+    jsr Func_MovePlatformLeftToward  ; preserves X, returns Z and A
+    beq @done
+    ;; If the winch moved, move the spikeball platform too.
     ldx #kSpikeballPlatformIndex  ; param: platform index
     jmp Func_MovePlatformHorz
     @done:
-_MoveVert:
-    ;; TODO
 _Finished:
     jmp Func_MachineFinishResetting
 .ENDPROC

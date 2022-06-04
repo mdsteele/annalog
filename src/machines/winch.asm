@@ -69,15 +69,19 @@ kWinchGearPalette  = 0
 ;;; horizontally this frame.
 ;;; @prereq Zp_MachineIndex_u8 is initialized.
 ;;; @return A The max distance to move by, in pixels (0-127).
+;;; @preserve X
 .EXPORT Func_GetWinchHorzSpeed
 .PROC Func_GetWinchHorzSpeed
     ldy Zp_MachineIndex_u8
-    lda #1
-    ldx Ram_MachineStatus_eMachine_arr, y
-    cpx #eMachine::Resetting
+    lda Ram_MachineStatus_eMachine_arr, y
+    cmp #eMachine::Resetting
     bne @notResetting
-    mul #2
+    @resetting:
+    .assert eMachine::Resetting <> 2, error
+    lda #2
+    rts
     @notResetting:
+    lda #1
     rts
 .ENDPROC
 

@@ -26,6 +26,7 @@
 
 .IMPORT Func_PlayBeepSfx
 .IMPORT Sram_Programs_sProgram_arr
+.IMPORTZP Zp_ConsoleMachineIndex_u8
 .IMPORTZP Zp_Current_sRoom
 .IMPORTZP Zp_FrameCounter_u8
 .IMPORTZP Zp_P1ButtonsHeld_bJoypad
@@ -647,7 +648,11 @@ _ReadRegB:
     ldx Zp_MachineIndex_u8
     lda Ram_MachineStatus_eMachine_arr, x
     cmp #eMachine::Error
-    bne @lightOff
+    beq @error
+    cpx Zp_ConsoleMachineIndex_u8
+    beq @lightOn
+    bne @lightOff  ; unconditional
+    @error:
     lda Zp_FrameCounter_u8
     and #$08
     beq @lightOff
