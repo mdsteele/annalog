@@ -47,7 +47,9 @@
 .IMPORT Func_MovePlatformLeftToward
 .IMPORT Func_MovePlatformTopToward
 .IMPORT Func_Noop
+.IMPORT Func_WinchStartFalling
 .IMPORT Ppu_ChrUpgrade
+.IMPORT Ram_MachineParam1_u8_arr
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORT Ram_PlatformLeft_i16_0_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
@@ -100,6 +102,13 @@ kSpikeballPalette = 0
 
 ;;;=========================================================================;;;
 
+;;; Enum for the steps of the CryptTombWinch machine's reset sequence (listed
+;;; in reverse order).
+.ENUM eResetSeq
+    Middle = 0  ; last step: move to mid-center position
+    TopCenter   ; move up to top, then move horizontally to center
+.ENDENUM
+
 ;;; Defines room-specific state data for this particular room.
 .STRUCT sState
     ;; The current states of the room's two levers.
@@ -108,6 +117,8 @@ kSpikeballPalette = 0
     ;; The goal values for the CryptTombWinch machine's X and Z registers.
     WinchGoalX_u8 .byte
     WinchGoalZ_u8 .byte
+    ;; Which step of its reset sequence the CryptTombWinch machine is on.
+    WinchReset_eResetSeq .byte
 .ENDSTRUCT
 .ASSERT .sizeof(sState) <= kRoomStateSize, error
 
@@ -152,7 +163,7 @@ _Machines_sMachine_arr:
     D_STRUCT sMachine
     d_byte Code_eProgram, eProgram::CryptTombWinch
     d_byte Conduit_eFlag, 0
-    d_byte Flags_bMachine, bMachine::MoveH | bMachine::MoveV
+    d_byte Flags_bMachine, bMachine::MoveH | bMachine::MoveV | bMachine::Act
     d_byte Status_eDiagram, eDiagram::Winch
     d_word ScrollGoalX_u16, $0
     d_byte ScrollGoalY_u8, $0
@@ -161,7 +172,7 @@ _Machines_sMachine_arr:
     d_addr ReadReg_func_ptr, FuncC_Crypt_TombWinch_ReadReg
     d_addr WriteReg_func_ptr, Func_MachineError
     d_addr TryMove_func_ptr, FuncC_Crypt_TombWinch_TryMove
-    d_addr TryAct_func_ptr, Func_MachineError
+    d_addr TryAct_func_ptr, FuncC_Crypt_TombWinch_TryAct
     d_addr Tick_func_ptr, FuncC_Crypt_TombWinch_Tick
     d_addr Draw_func_ptr, FuncA_Objects_CryptTombWinch_Draw
     d_addr Reset_func_ptr, FuncC_Crypt_TombWinch_Reset
@@ -204,23 +215,16 @@ _Platforms_sPlatform_arr:
     ;; Terrain spikes:
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Harm
-    d_byte WidthPx_u8,  $1e
+    d_byte WidthPx_u8,  $10
     d_byte HeightPx_u8, $08
-    d_word Left_i16,  $0041
-    d_word Top_i16,   $003e
-    D_END
-    D_STRUCT sPlatform
-    d_byte Type_ePlatform, ePlatform::Harm
-    d_byte WidthPx_u8,  $0e
-    d_byte HeightPx_u8, $08
-    d_word Left_i16,  $0091
-    d_word Top_i16,   $003e
+    d_word Left_i16,  $0010
+    d_word Top_i16,   $00ae
     D_END
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Harm
     d_byte WidthPx_u8,  $10
     d_byte HeightPx_u8, $08
-    d_word Left_i16,  $0010
+    d_word Left_i16,  $00d0
     d_word Top_i16,   $00ae
     D_END
     D_STRUCT sPlatform
@@ -267,18 +271,6 @@ _Passages_sPassage_arr:
     D_END
 .ENDPROC
 
-.PROC FuncC_Crypt_TombWinch_Reset
-    .assert * = FuncC_Crypt_TombWinch_Init, error, "fallthrough"
-.ENDPROC
-
-.PROC FuncC_Crypt_TombWinch_Init
-    lda #kWinchInitGoalX
-    sta Ram_RoomState + sState::WinchGoalX_u8
-    lda #kWinchInitGoalZ
-    sta Ram_RoomState + sState::WinchGoalZ_u8
-    rts
-.ENDPROC
-
 .PROC FuncC_Crypt_TombWinch_ReadReg
     cmp #$c
     beq _ReadL
@@ -305,7 +297,7 @@ _ReadR:
 .ENDPROC
 
 .PROC FuncC_Crypt_TombWinch_TryMove
-    ;; TODO: check for terrain collisions
+    ldy Ram_RoomState + sState::WinchGoalX_u8
     .assert eDir::Up = 0, error
     txa
     beq _MoveUp
@@ -315,16 +307,19 @@ _MoveHorz:
     cpx #eDir::Left
     beq @moveLeft
     @moveRight:
-    lda Ram_RoomState + sState::WinchGoalX_u8
-    cmp #kWinchMaxGoalX
+    cpy #kWinchMaxGoalX
     bge _Error
-    inc Ram_RoomState + sState::WinchGoalX_u8
-    bne @success  ; unconditional
+    iny
+    bne @checkFloor  ; unconditional
     @moveLeft:
-    lda Ram_RoomState + sState::WinchGoalX_u8
+    tya
     beq _Error
-    dec Ram_RoomState + sState::WinchGoalX_u8
-    @success:
+    dey
+    @checkFloor:
+    lda DataC_Crypt_TombFloor_u8_arr, y
+    cmp Ram_RoomState + sState::WinchGoalZ_u8
+    blt _Error
+    sty Ram_RoomState + sState::WinchGoalX_u8
     lda #kWinchMoveHorzCooldown
     clc  ; success
     rts
@@ -336,8 +331,9 @@ _MoveUp:
     clc  ; success
     rts
 _MoveDown:
+    ;; TODO: check for weak floor collision
     lda Ram_RoomState + sState::WinchGoalZ_u8
-    cmp #kWinchMaxGoalZ
+    cmp DataC_Crypt_TombFloor_u8_arr, y
     bge _Error
     inc Ram_RoomState + sState::WinchGoalZ_u8
     lda #kWinchMoveDownCooldown
@@ -346,6 +342,15 @@ _MoveDown:
 _Error:
     sec  ; failure
     rts
+.ENDPROC
+
+.PROC FuncC_Crypt_TombWinch_TryAct
+    ldy Ram_RoomState + sState::WinchGoalX_u8
+    lda DataC_Crypt_TombFloor_u8_arr, y
+    tax  ; new goal Z
+    sub Ram_RoomState + sState::WinchGoalZ_u8  ; param: fall distance
+    stx Ram_RoomState + sState::WinchGoalZ_u8
+    jmp Func_WinchStartFalling  ; returns C and A
 .ENDPROC
 
 .PROC FuncC_Crypt_TombWinch_Tick
@@ -373,6 +378,8 @@ _MoveVert:
     beq @done
     rts
     @done:
+    lda #0
+    sta Ram_MachineParam1_u8_arr + kWinchMachineIndex  ; stop falling
 _MoveHorz:
     ;; Calculate the desired X-position for the left edge of the winch, in
     ;; room-space pixels, storing it in Zp_PlatformGoal_i16.
@@ -392,7 +399,41 @@ _MoveHorz:
     jmp Func_MovePlatformHorz
     @done:
 _Finished:
-    jmp Func_MachineFinishResetting
+    lda Ram_RoomState + sState::WinchReset_eResetSeq
+    jeq Func_MachineFinishResetting
+    .assert * = FuncC_Crypt_TombWinch_Reset, error, "fallthrough"
+.ENDPROC
+
+.PROC FuncC_Crypt_TombWinch_Reset
+    lda Ram_RoomState + sState::WinchGoalX_u8
+    cmp #3
+    blt _Outer
+    cmp #6
+    blt _Inner
+_Outer:
+    lda #kWinchInitGoalX
+    sta Ram_RoomState + sState::WinchGoalX_u8
+    lda #0
+    sta Ram_RoomState + sState::WinchGoalZ_u8
+    lda #eResetSeq::TopCenter
+    sta Ram_RoomState + sState::WinchReset_eResetSeq
+    rts
+_Inner:
+    .assert * = FuncC_Crypt_TombWinch_Init, error, "fallthrough"
+.ENDPROC
+
+.PROC FuncC_Crypt_TombWinch_Init
+    lda #kWinchInitGoalX
+    sta Ram_RoomState + sState::WinchGoalX_u8
+    lda #kWinchInitGoalZ
+    sta Ram_RoomState + sState::WinchGoalZ_u8
+    lda #0
+    sta Ram_RoomState + sState::WinchReset_eResetSeq
+    rts
+.ENDPROC
+
+.PROC DataC_Crypt_TombFloor_u8_arr
+    .byte 9, 0, 0, 5, 5, 5, 0, 5, 5, 7
 .ENDPROC
 
 ;;;=========================================================================;;;

@@ -107,9 +107,35 @@ Ram_MachineWait_u8_arr: .res kMaxMachines
 .EXPORT Ram_MachineSlowdown_u8_arr
 Ram_MachineSlowdown_u8_arr: .res kMaxMachines
 
+;;; A one-byte variable that each machine can use however it wants.
+.EXPORT Ram_MachineParam1_u8_arr
+Ram_MachineParam1_u8_arr: .res kMaxMachines
+
+;;; A two-byte variable that each machine can use however it wants.
+.EXPORT Ram_MachineParam2_i16_0_arr, Ram_MachineParam2_i16_1_arr
+Ram_MachineParam2_i16_0_arr: .res kMaxMachines
+Ram_MachineParam2_i16_1_arr: .res kMaxMachines
+
 ;;;=========================================================================;;;
 
 .SEGMENT "PRG8"
+
+;;; Sets the specified machine's status to the specified eMachine value, and
+;;; zeroes all other variables for that machine.
+;;; @param A The eMachine value to set for the machine's status.
+;;; @param X The machine index.
+.PROC Func_ZeroVarsAndSetStatus
+    sta Ram_MachineStatus_eMachine_arr, x
+    lda #0
+    sta Ram_MachinePc_u8_arr, x
+    sta Ram_MachineRegA_u8_arr, x
+    sta Ram_MachineWait_u8_arr, x
+    sta Ram_MachineSlowdown_u8_arr, x
+    sta Ram_MachineParam1_u8_arr, x
+    sta Ram_MachineParam2_i16_0_arr, x
+    sta Ram_MachineParam2_i16_1_arr, x
+    rts
+.ENDPROC
 
 ;;; Marks the current machine as having an error, sets C, and returns zero.
 ;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
@@ -511,26 +537,23 @@ _ReadRegB:
     rts
 .ENDPROC
 
-;;; Resets the current machine's execution variables, and puts the machine into
-;;; resetting mode.  A resetting machine will move back to its original
-;;; position and state (over some period of time) without executing
+;;; If the current machine isn't already restting, zeroes its variables and
+;;; puts it into resetting mode.  A resetting machine will move back to its
+;;; original position and state (over some period of time) without executing
 ;;; instructions, and once fully reset, will start running again.
 ;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
 .EXPORT Func_MachineReset
 .PROC Func_MachineReset
-    ldx Zp_MachineIndex_u8
-    ;; Reset the machine's variables to zero.
-    lda #0
-    sta Ram_MachinePc_u8_arr, x
-    sta Ram_MachineRegA_u8_arr, x
-    sta Ram_MachineWait_u8_arr, x
-    sta Ram_MachineSlowdown_u8_arr, x
-    ;; Set the machine's status to Resetting.
-    lda #eMachine::Resetting
-    sta Ram_MachineStatus_eMachine_arr, x
+    ldx Zp_MachineIndex_u8  ; param: machine index
+    lda #eMachine::Resetting  ; param: machine status
+    cmp Ram_MachineStatus_eMachine_arr, x
+    beq @done
+    jsr Func_ZeroVarsAndSetStatus
     ;; Start resetting the machine.
     ldy #sMachine::Reset_func_ptr  ; param: function pointer offset
     jmp Func_MachineCall
+    @done:
+    rts
 .ENDPROC
 
 ;;; Calls the current machine's per-frame tick function.
@@ -572,21 +595,13 @@ _ReadRegB:
     beq @while  ; unconditional
     @loop:
     jsr Func_SetMachineIndex  ; preserves X
-    ;; Zero the machine's variables, and set status to Running.
-    lda #0
-    sta Ram_MachinePc_u8_arr, x
-    sta Ram_MachineRegA_u8_arr, x
-    sta Ram_MachineWait_u8_arr, x
-    .assert eMachine::Running = 0, error
-    sta Ram_MachineStatus_eMachine_arr, x
+    lda #eMachine::Running  ; param: machine status
+    jsr Func_ZeroVarsAndSetStatus
     ;; Initialize any machine-specific state.
-    txa
-    pha
     ldy #sMachine::Init_func_ptr  ; param: function pointer offset
     jsr Func_MachineCall
-    pla
-    tax
     ;; Continue to the next machine.
+    ldx Zp_MachineIndex_u8
     inx
     @while:
     cpx <(Zp_Current_sRoom + sRoom::NumMachines_u8)
@@ -601,13 +616,10 @@ _ReadRegB:
     ldx #0
     beq @while  ; unconditional
     @loop:
-    txa
-    pha
     jsr Func_SetMachineIndex
     jsr Func_MachineExecuteNext
     jsr Func_MachineTick
-    pla
-    tax
+    ldx Zp_MachineIndex_u8
     inx
     @while:
     cpx <(Zp_Current_sRoom + sRoom::NumMachines_u8)
@@ -625,13 +637,10 @@ _ReadRegB:
     ldx #0
     beq @while  ; unconditional
     @loop:
-    txa
-    pha
     jsr Func_SetMachineIndex
     ldy #sMachine::Draw_func_ptr  ; param: function pointer offset
     jsr Func_MachineCall
-    pla
-    tax
+    ldx Zp_MachineIndex_u8
     inx
     @while:
     cpx <(Zp_Current_sRoom + sRoom::NumMachines_u8)

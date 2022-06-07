@@ -32,7 +32,7 @@ kAvatarBouyancy = 20
 
 ;;; The downward acceleration applied to the player avatar when in midair, in
 ;;; subpixels per frame per frame.
-kAvatarGravity = 48
+.DEFINE kAvatarGravity 48
 
 ;;; How long it takes the player avatar to heal after taking damage, in frames.
 kAvatarHarmHealFrames = 240

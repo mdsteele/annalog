@@ -46,9 +46,12 @@
 .IMPORT Func_MovePlatformTopToward
 .IMPORT Func_MovePlatformVert
 .IMPORT Func_Noop
+.IMPORT Func_WinchStartFalling
 .IMPORT Ppu_ChrUpgrade
+.IMPORT Ram_MachineParam1_u8_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORT Ram_RoomState
+.IMPORTZP Zp_AvatarPlatformIndex_u8
 .IMPORTZP Zp_PlatformGoal_i16
 
 ;;;=========================================================================;;;
@@ -123,17 +126,17 @@ _Machines_sMachine_arr:
     D_STRUCT sMachine
     d_byte Code_eProgram, eProgram::CryptFlowerWinch
     d_byte Conduit_eFlag, 0
-    d_byte Flags_bMachine, bMachine::MoveV
+    d_byte Flags_bMachine, bMachine::MoveV | bMachine::Act
     d_byte Status_eDiagram, eDiagram::Winch
     d_word ScrollGoalX_u16, $10
     d_byte ScrollGoalY_u8, $0
-    d_byte RegNames_u8_arr4, 0, 0, 0, "Z"
+    d_byte RegNames_u8_arr4, 0, "W", 0, "Z"
     d_addr Init_func_ptr, _Winch_Init
-    d_addr ReadReg_func_ptr, _Winch_ReadReg
+    d_addr ReadReg_func_ptr, FuncC_Crypt_FlowerWinch_ReadReg
     d_addr WriteReg_func_ptr, Func_MachineError
-    d_addr TryMove_func_ptr, _Winch_TryMove
-    d_addr TryAct_func_ptr, Func_MachineError
-    d_addr Tick_func_ptr, _Winch_Tick
+    d_addr TryMove_func_ptr, FuncC_Crypt_FlowerWinch_TryMove
+    d_addr TryAct_func_ptr, FuncC_Crypt_FlowerWinch_TryAct
+    d_addr Tick_func_ptr, FuncC_Crypt_FlowerWinch_Tick
     d_addr Draw_func_ptr, FuncA_Objects_CryptFlowerWinch_Draw
     d_addr Reset_func_ptr, _Winch_Reset
     d_byte Padding
@@ -219,12 +222,29 @@ _Winch_Reset:
     lda #kWinchInitGoalZ
     sta Ram_RoomState + sState::WinchGoalZ_u8
     rts
-_Winch_ReadReg:
+.ENDPROC
+
+.PROC FuncC_Crypt_FlowerWinch_ReadReg
+    cmp #$f
+    beq _ReadZ
+_ReadW:
+    lda #1
+    ldx Zp_AvatarPlatformIndex_u8
+    cpx #kUpperGirderPlatformIndex
+    beq @done
+    cpx #kLowerGirderPlatformIndex
+    beq @done
+    lda #0
+    @done:
+    rts
+_ReadZ:
     lda Ram_PlatformTop_i16_0_arr + kUpperGirderPlatformIndex
     sub #kUpperGirderMinPlatformTop - kTileHeightPx
     div #kBlockWidthPx
     rts
-_Winch_TryMove:
+.ENDPROC
+
+.PROC FuncC_Crypt_FlowerWinch_TryMove
     ldy Ram_RoomState + sState::WinchGoalZ_u8
     txa
     .assert eDir::Up = 0, error
@@ -247,7 +267,17 @@ _Winch_TryMove:
     @error:
     sec  ; set C to indicate failure
     rts
-_Winch_Tick:
+.ENDPROC
+
+.PROC FuncC_Crypt_FlowerWinch_TryAct
+    lda #kWinchMaxGoalZ
+    tax  ; new goal Z
+    sub Ram_RoomState + sState::WinchGoalZ_u8  ; param: fall distance
+    stx Ram_RoomState + sState::WinchGoalZ_u8
+    jmp Func_WinchStartFalling  ; returns C and A
+.ENDPROC
+
+.PROC FuncC_Crypt_FlowerWinch_Tick
     ;; Calculate the desired room-space pixel Y-position for the top edge of
     ;; the upper girder, storing it in Zp_PlatformGoal_i16.
     lda Ram_RoomState + sState::WinchGoalZ_u8
@@ -273,6 +303,8 @@ _Winch_Tick:
     ldx #kLowerGirderPlatformIndex  ; param: platform index
     jmp Func_MovePlatformVert
     @done:
+    lda #0
+    sta Ram_MachineParam1_u8_arr + kWinchMachineIndex  ; stop falling
     jmp Func_MachineFinishResetting
 .ENDPROC
 

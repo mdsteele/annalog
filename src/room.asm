@@ -63,6 +63,7 @@
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORT Ram_PlatformTop_i16_1_arr
 .IMPORT Ram_PlatformType_ePlatform_arr
+.IMPORTZP Zp_AvatarPlatformIndex_u8
 .IMPORTZP Zp_ConsoleMachineIndex_u8
 .IMPORTZP Zp_HudMachineIndex_u8
 .IMPORTZP Zp_RoomIsSafe_bool
@@ -362,8 +363,9 @@ _LoadDevices:
     @copyDone:
     cpx #kMaxDevices
     blt @clearLoop
-_ClearHud:
+_SetVars:
     lda #$ff
+    sta Zp_AvatarPlatformIndex_u8
     sta Zp_ConsoleMachineIndex_u8
     sta Zp_HudMachineIndex_u8
     sta Zp_RoomIsSafe_bool

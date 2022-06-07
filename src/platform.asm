@@ -52,6 +52,7 @@ kGirderTileId = $79
 
 ;;; The index of the platform that the player avatar is currently riding, or
 ;;; $ff for none.
+.EXPORTZP Zp_AvatarPlatformIndex_u8
 Zp_AvatarPlatformIndex_u8: .res 1
 
 ;;; The room-space X or Y position to move a platform toward for certain

@@ -18,7 +18,7 @@
 ;;;=========================================================================;;;
 
 ;;; The maximum number of machines that can exist at once in a room.
-kMaxMachines = 8
+kMaxMachines = 4
 
 ;;; The number of padding bytes at the end of each sMachine struct.
 .DEFINE kMachinePadding 5

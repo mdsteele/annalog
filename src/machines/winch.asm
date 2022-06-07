@@ -17,6 +17,7 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
+.INCLUDE "../avatar.inc"
 .INCLUDE "../machine.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
@@ -29,6 +30,9 @@
 .IMPORT FuncA_Objects_MoveShapeDownOneTile
 .IMPORT FuncA_Objects_MoveShapeRightOneTile
 .IMPORT FuncA_Objects_MoveShapeUpOneTile
+.IMPORT Ram_MachineParam1_u8_arr
+.IMPORT Ram_MachineParam2_i16_0_arr
+.IMPORT Ram_MachineParam2_i16_1_arr
 .IMPORT Ram_MachineSlowdown_u8_arr
 .IMPORT Ram_MachineStatus_eMachine_arr
 .IMPORT Ram_Oam_sObj_arr64
@@ -44,6 +48,13 @@
 .IMPORTZP Zp_Tmp2_byte
 
 ;;;=========================================================================;;;
+
+;;; The terminal velocity for a falling winch load, in pixels per frame.
+.DEFINE kWinchMaxFallSpeed 5
+
+;;; How many frames a falling winch machine must wait after hitting the ground
+;;; before it can move again.
+kWinchFallRecoverFrames = 60
 
 ;;; How many pixels above the bottom of the winch machine the chain must extend
 ;;; in order to appear to feed into the machine.
@@ -102,6 +113,8 @@ kWinchGearPalette  = 0
     lda #2
     rts
 _NotResetting:
+    lda Ram_MachineParam1_u8_arr, y
+    bne _Falling
     lda Zp_PlatformGoal_i16 + 0
     sub Ram_PlatformTop_i16_0_arr, x
     lda Zp_PlatformGoal_i16 + 1
@@ -118,6 +131,65 @@ _MovingUp:
 _MovingDown:
     lda #1
     rts
+_Falling:
+    lda Ram_MachineParam2_i16_0_arr, y
+    add #kAvatarGravity
+    sta Ram_MachineParam2_i16_0_arr, y
+    lda Ram_MachineParam2_i16_1_arr, y
+    adc #0
+    cmp #kWinchMaxFallSpeed
+    blt @setVelHi
+    lda #0
+    sta Ram_MachineParam2_i16_0_arr, y
+    lda #kWinchMaxFallSpeed
+    @setVelHi:
+    sta Ram_MachineParam2_i16_1_arr, y
+    tay  ; to set/clear Z
+    rts
+.ENDPROC
+
+;;; Puts the current winch machine into falling mode.
+;;; @prereq Zp_MachineIndex_u8 is initialized.
+;;; @param A The fall distance, in blocks.
+;;; @return C Set if there was an error, cleared otherwise.
+;;; @return A How many frames to wait before advancing the PC.
+.EXPORT Func_WinchStartFalling
+.PROC Func_WinchStartFalling
+    tax  ; fall distance, in blocks
+    ;; Start falling.
+    ldy Zp_MachineIndex_u8
+    lda #$ff
+    sta Ram_MachineParam1_u8_arr, y
+    lda #0
+    sta Ram_MachineParam2_i16_0_arr, y
+    sta Ram_MachineParam2_i16_1_arr, y
+    ;; Determine how long it will take for the load to fall.
+    lda Data_WinchFallTime_u8_arr, x
+    clc  ; success
+    rts
+.ENDPROC
+
+;;; For a falling winch machine, this array maps from the initial fall
+;;; distance, in blocks, to the number of frames before the winch can move
+;;; again.
+.PROC Data_WinchFallTime_u8_arr
+    .byte kWinchFallRecoverFrames
+    vFallTime .set 0
+    vFallVel .set 0
+    vFallDist .set 0
+    .repeat 68
+    vFallTime .set vFallTime + 1
+    vFallVel .set vFallVel + kAvatarGravity
+    .if vFallVel > kWinchMaxFallSpeed * $100
+    vFallVel .set kWinchMaxFallSpeed * $100
+    .endif
+    vFallDist .set vFallDist + vFallVel
+    .if vFallDist >= $1000
+    vFallDist .set vFallDist - $1000
+    .byte vFallTime + kWinchFallRecoverFrames
+    .endif
+    .endrepeat
+    .assert * - Data_WinchFallTime_u8_arr = 18, error
 .ENDPROC
 
 ;;;=========================================================================;;;
