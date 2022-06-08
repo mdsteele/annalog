@@ -36,12 +36,12 @@
 .IMPORT FuncA_Console_SetFieldForNominalOffset
 .IMPORT FuncA_Console_WriteNeedsPowerTransferData
 .IMPORT FuncA_Console_WriteStatusTransferData
+.IMPORT FuncA_Machine_Tick
 .IMPORT FuncA_Objects_DrawObjectsForRoom
 .IMPORT FuncA_Terrain_ScrollTowardsGoal
 .IMPORT Func_ClearRestOfOam
 .IMPORT Func_IsFlagSet
 .IMPORT Func_MachineReset
-.IMPORT Func_MachineTick
 .IMPORT Func_ProcessFrame
 .IMPORT Func_SetMachineIndex
 .IMPORT Func_SetScrollGoalFromAvatar
@@ -269,7 +269,7 @@ _Tick:
     jsr_prga FuncA_Terrain_ScrollTowardsGoal
     ldx Zp_ConsoleMachineIndex_u8  ; param: machine index
     jsr Func_SetMachineIndex
-    jsr Func_MachineTick
+    jsr_prga FuncA_Machine_Tick
     jmp _GameLoop
 .ENDPROC
 

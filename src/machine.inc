@@ -18,10 +18,7 @@
 ;;;=========================================================================;;;
 
 ;;; The maximum number of machines that can exist at once in a room.
-kMaxMachines = 4
-
-;;; The number of padding bytes at the end of each sMachine struct.
-.DEFINE kMachinePadding 5
+.DEFINE kMaxMachines 4
 
 ;;; The OBJ palette number used for the blinking error light on machines.
 kMachineLightPalette = 1
@@ -91,17 +88,20 @@ kMachineRegNameB = $21  ; 'B'
     WriteReg_func_ptr .addr
     ;; Function to call when the machine tries to move.
     ;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
+    ;; @prereq PRGA_Machine is loaded.
     ;; @param X The eDir value for the direction to move in.
     ;; @return C Set if there was an error, cleared otherwise.
     ;; @return A How many frames to wait before advancing the PC.
     TryMove_func_ptr  .addr
     ;; Function to call when the machine tries to act.
     ;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
+    ;; @prereq PRGA_Machine is loaded.
     ;; @return C Set if there was an error, cleared otherwise.
     ;; @return A How many frames to wait before advancing the PC.
     TryAct_func_ptr   .addr
     ;; Function to call each frame to update the machine.
     ;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
+    ;; @prereq PRGA_Machine is loaded.
     Tick_func_ptr     .addr
     ;; Function to call each frame to draw the machine's objects.
     ;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
@@ -110,9 +110,6 @@ kMachineRegNameB = $21  ; 'B'
     ;; Function to call to start resetting the machine.
     ;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
     Reset_func_ptr    .addr
-    ;; Unused space to pad .sizeof(sMachine) to a power of 2.
-    Padding           .res kMachinePadding
 .ENDSTRUCT
-.ASSERT .sizeof(sMachine) = $20, error
 
 ;;;=========================================================================;;;

@@ -175,10 +175,8 @@ Ram_MachineParam2_i16_1_arr: .res kMaxMachines
 .PROC Func_SetMachineIndex
     stx Zp_MachineIndex_u8
     ;; Update Zp_Current_sMachine_ptr.
-    txa
-    .assert .sizeof(sMachine) * kMaxMachines <= $100, error
-    mul #.sizeof(sMachine)
-    add <(Zp_Current_sRoom + sRoom::Machines_sMachine_arr_ptr + 0)
+    lda <(Zp_Current_sRoom + sRoom::Machines_sMachine_arr_ptr + 0)
+    add _MachineOffsets_u8_arr, x
     sta Zp_Current_sMachine_ptr + 0
     lda <(Zp_Current_sRoom + sRoom::Machines_sMachine_arr_ptr + 1)
     adc #0
@@ -203,13 +201,146 @@ Ram_MachineParam2_i16_1_arr: .res kMaxMachines
     adc #>Sram_Programs_sProgram_arr
     sta Zp_Current_sProgram_ptr + 1
     rts
+_MachineOffsets_u8_arr:
+    .assert .sizeof(sMachine) * (kMaxMachines - 1) < $100, error
+    .repeat kMaxMachines, index
+    .byte .sizeof(sMachine) * index
+    .endrepeat
 .ENDPROC
+
+;;; Reads an immediate or register value for the current machine.
+;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
+;;; @param A The 4-bit immediate (0-9) or register ($a-$f) value.
+;;; @return A The value that was read (0-9).
+.EXPORT Func_MachineRead
+.PROC Func_MachineRead
+    cmp #$0a
+    blt _Immediate
+    beq _ReadRegA
+    cmp #$0b
+    beq _ReadRegB
+    ldy #sMachine::ReadReg_func_ptr  ; param: function pointer offset
+    jmp Func_MachineCall  ; sMachine::ReadReg_func_ptr returns A
+_ReadRegA:
+    ldx Zp_MachineIndex_u8
+    lda Ram_MachineRegA_u8_arr, x
+_Immediate:
+    rts
+_ReadRegB:
+    lda Zp_P1ButtonsHeld_bJoypad
+    and #bJoypad::BButton
+    beq _Immediate
+    ldy #5
+    lda Zp_P1ButtonsHeld_bJoypad
+    and #bJoypad::Left
+    beq @noLeft
+    dey
+    @noLeft:
+    lda Zp_P1ButtonsHeld_bJoypad
+    and #bJoypad::Right
+    beq @noRight
+    iny
+    @noRight:
+    lda Zp_P1ButtonsHeld_bJoypad
+    and #bJoypad::Up
+    beq @noUp
+    dey
+    dey
+    dey
+    @noUp:
+    lda Zp_P1ButtonsHeld_bJoypad
+    and #bJoypad::Down
+    beq @noDown
+    iny
+    iny
+    iny
+    @noDown:
+    tya
+    rts
+.ENDPROC
+
+;;; Writes a value to a register of the current machine.
+;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
+;;; @param A The register to write to ($a-$f).
+;;; @param X The value to write (0-9).
+.PROC Func_MachineWrite
+    cmp #$0a
+    beq @writeRegA
+    ldy #sMachine::WriteReg_func_ptr  ; param: function pointer offset
+    jmp Func_MachineCall
+    @writeRegA:
+    txa  ; the value to write
+    ldx Zp_MachineIndex_u8
+    sta Ram_MachineRegA_u8_arr, x
+    rts
+.ENDPROC
+
+;;; If the current machine isn't already restting, zeroes its variables and
+;;; puts it into resetting mode.  A resetting machine will move back to its
+;;; original position and state (over some period of time) without executing
+;;; instructions, and once fully reset, will start running again.
+;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
+.EXPORT Func_MachineReset
+.PROC Func_MachineReset
+    ldx Zp_MachineIndex_u8  ; param: machine index
+    lda #eMachine::Resetting  ; param: machine status
+    cmp Ram_MachineStatus_eMachine_arr, x
+    beq @done
+    jsr Func_ZeroVarsAndSetStatus
+    ;; Start resetting the machine.
+    ldy #sMachine::Reset_func_ptr  ; param: function pointer offset
+    jmp Func_MachineCall
+    @done:
+    rts
+.ENDPROC
+
+;;; Calls the specified function for the current machine.
+;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
+;;; @prereq The appropriate PRGA bank for the function (if any) is loaded.
+;;; @param Y The byte offset for a function pointer in sMachine.
+;;; @param A The A parameter for the function (if any).
+;;; @param X The X parameter for the function (if any).
+;;; @return Whatever the called function returns (if anything).
+.PROC Func_MachineCall
+    sta Zp_Tmp1_byte
+    lda (Zp_Current_sMachine_ptr), y
+    sta Zp_Tmp_ptr + 0
+    iny
+    lda (Zp_Current_sMachine_ptr), y
+    sta Zp_Tmp_ptr + 1
+    lda Zp_Tmp1_byte
+    jmp (Zp_Tmp_ptr)
+.ENDPROC
+
+;;; Initializes state for all machines in the room.
+.EXPORT Func_InitAllMachines
+.PROC Func_InitAllMachines
+    ldx #0
+    beq @while  ; unconditional
+    @loop:
+    jsr Func_SetMachineIndex  ; preserves X
+    lda #eMachine::Running  ; param: machine status
+    jsr Func_ZeroVarsAndSetStatus
+    ;; Initialize any machine-specific state.
+    ldy #sMachine::Init_func_ptr  ; param: function pointer offset
+    jsr Func_MachineCall
+    ;; Continue to the next machine.
+    ldx Zp_MachineIndex_u8
+    inx
+    @while:
+    cpx <(Zp_Current_sRoom + sRoom::NumMachines_u8)
+    blt @loop
+    rts
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Machine"
 
 ;;; Executes the next instruction on the current machine.
 ;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
 ;;; @prereq Zp_Current_sProgram_ptr is initialized.
-.EXPORT Func_MachineExecuteNext
-.PROC Func_MachineExecuteNext
+.PROC FuncA_Machine_ExecuteNext
     ldx Zp_MachineIndex_u8
     ;; Check if the machine is running; if not, do nothing.
     lda Ram_MachineStatus_eMachine_arr, x
@@ -470,96 +601,10 @@ _Le:
 .ENDPROC
 .ENDPROC
 
-;;; Reads an immediate or register value for the current machine.
-;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
-;;; @param A The 4-bit immediate (0-9) or register ($a-$f) value.
-;;; @return A The value that was read (0-9).
-.EXPORT Func_MachineRead
-.PROC Func_MachineRead
-    cmp #$0a
-    blt _Immediate
-    beq _ReadRegA
-    cmp #$0b
-    beq _ReadRegB
-    ldy #sMachine::ReadReg_func_ptr  ; param: function pointer offset
-    jmp Func_MachineCall  ; sMachine::ReadReg_func_ptr returns A
-_ReadRegA:
-    ldx Zp_MachineIndex_u8
-    lda Ram_MachineRegA_u8_arr, x
-_Immediate:
-    rts
-_ReadRegB:
-    lda Zp_P1ButtonsHeld_bJoypad
-    and #bJoypad::BButton
-    beq _Immediate
-    ldy #5
-    lda Zp_P1ButtonsHeld_bJoypad
-    and #bJoypad::Left
-    beq @noLeft
-    dey
-    @noLeft:
-    lda Zp_P1ButtonsHeld_bJoypad
-    and #bJoypad::Right
-    beq @noRight
-    iny
-    @noRight:
-    lda Zp_P1ButtonsHeld_bJoypad
-    and #bJoypad::Up
-    beq @noUp
-    dey
-    dey
-    dey
-    @noUp:
-    lda Zp_P1ButtonsHeld_bJoypad
-    and #bJoypad::Down
-    beq @noDown
-    iny
-    iny
-    iny
-    @noDown:
-    tya
-    rts
-.ENDPROC
-
-;;; Writes a value to a register of the current machine.
-;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
-;;; @param A The register to write to ($a-$f).
-;;; @param X The value to write (0-9).
-.PROC Func_MachineWrite
-    cmp #$0a
-    beq @writeRegA
-    ldy #sMachine::WriteReg_func_ptr  ; param: function pointer offset
-    jmp Func_MachineCall
-    @writeRegA:
-    txa  ; the value to write
-    ldx Zp_MachineIndex_u8
-    sta Ram_MachineRegA_u8_arr, x
-    rts
-.ENDPROC
-
-;;; If the current machine isn't already restting, zeroes its variables and
-;;; puts it into resetting mode.  A resetting machine will move back to its
-;;; original position and state (over some period of time) without executing
-;;; instructions, and once fully reset, will start running again.
-;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
-.EXPORT Func_MachineReset
-.PROC Func_MachineReset
-    ldx Zp_MachineIndex_u8  ; param: machine index
-    lda #eMachine::Resetting  ; param: machine status
-    cmp Ram_MachineStatus_eMachine_arr, x
-    beq @done
-    jsr Func_ZeroVarsAndSetStatus
-    ;; Start resetting the machine.
-    ldy #sMachine::Reset_func_ptr  ; param: function pointer offset
-    jmp Func_MachineCall
-    @done:
-    rts
-.ENDPROC
-
 ;;; Calls the current machine's per-frame tick function.
 ;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
-.EXPORT Func_MachineTick
-.PROC Func_MachineTick
+.EXPORT FuncA_Machine_Tick
+.PROC FuncA_Machine_Tick
     ;; Decrement the machine's slowdown value if it's not zero.
     ldx Zp_MachineIndex_u8
     lda Ram_MachineSlowdown_u8_arr, x
@@ -568,57 +613,19 @@ _ReadRegB:
     @doneWithSlowdown:
     ;; Call the machine's tick function.
     ldy #sMachine::Tick_func_ptr  ; param: function pointer offset
-    .assert * = Func_MachineCall, error, "fallthrough"
-.ENDPROC
-
-;;; Calls the specified function for the current machine.
-;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
-;;; @param Y The byte offset for a function pointer in sMachine.
-;;; @param A The A parameter for the function (if any).
-;;; @param X The X parameter for the function (if any).
-;;; @return Whatever the called function returns (if anything).
-.PROC Func_MachineCall
-    sta Zp_Tmp1_byte
-    lda (Zp_Current_sMachine_ptr), y
-    sta Zp_Tmp_ptr + 0
-    iny
-    lda (Zp_Current_sMachine_ptr), y
-    sta Zp_Tmp_ptr + 1
-    lda Zp_Tmp1_byte
-    jmp (Zp_Tmp_ptr)
-.ENDPROC
-
-;;; Initializes state for all machines in the room.
-.EXPORT Func_InitAllMachines
-.PROC Func_InitAllMachines
-    ldx #0
-    beq @while  ; unconditional
-    @loop:
-    jsr Func_SetMachineIndex  ; preserves X
-    lda #eMachine::Running  ; param: machine status
-    jsr Func_ZeroVarsAndSetStatus
-    ;; Initialize any machine-specific state.
-    ldy #sMachine::Init_func_ptr  ; param: function pointer offset
-    jsr Func_MachineCall
-    ;; Continue to the next machine.
-    ldx Zp_MachineIndex_u8
-    inx
-    @while:
-    cpx <(Zp_Current_sRoom + sRoom::NumMachines_u8)
-    blt @loop
-    rts
+    jmp Func_MachineCall
 .ENDPROC
 
 ;;; Executes instructions and performs per-frame state updates for all machines
 ;;; in the room.
-.EXPORT Func_ExecuteAllMachines
-.PROC Func_ExecuteAllMachines
+.EXPORT FuncA_Machine_ExecuteAll
+.PROC FuncA_Machine_ExecuteAll
     ldx #0
     beq @while  ; unconditional
     @loop:
     jsr Func_SetMachineIndex
-    jsr Func_MachineExecuteNext
-    jsr Func_MachineTick
+    jsr FuncA_Machine_ExecuteNext
+    jsr FuncA_Machine_Tick
     ldx Zp_MachineIndex_u8
     inx
     @while:

@@ -232,8 +232,6 @@ _Machines_sMachine_arr:
     d_addr Tick_func_ptr, _Cannon_Tick
     d_addr Draw_func_ptr, FuncA_Objects_GardenBossCannon_Draw
     d_addr Reset_func_ptr, _Cannon_Reset
-    d_byte Padding
-    .res kMachinePadding
     D_END
 _Platforms_sPlatform_arr:
     .assert kCannonPlatformIndex = 0, error

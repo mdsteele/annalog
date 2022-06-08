@@ -150,8 +150,6 @@ _Machines_sMachine_arr:
     d_addr Tick_func_ptr, _Trolley_Tick
     d_addr Draw_func_ptr, FuncA_Objects_PrisonEscapeTrolley_Draw
     d_addr Reset_func_ptr, _Trolley_Reset
-    d_byte Padding
-    .res kMachinePadding
     D_END
 _Platforms_sPlatform_arr:
     .assert kTrolleyPlatformIndex = 0, error

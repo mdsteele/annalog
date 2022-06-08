@@ -38,6 +38,7 @@
 .IMPORT FuncA_Avatar_UpdateAndMarkMinimap
 .IMPORT FuncA_Fade_In
 .IMPORT FuncA_Fade_Out
+.IMPORT FuncA_Machine_ExecuteAll
 .IMPORT FuncA_Objects_DrawAllActors
 .IMPORT FuncA_Objects_DrawAllDevices
 .IMPORT FuncA_Objects_DrawAllMachines
@@ -49,7 +50,6 @@
 .IMPORT FuncA_Terrain_FillNametables
 .IMPORT FuncA_Terrain_TransferTileColumn
 .IMPORT Func_ClearRestOfOam
-.IMPORT Func_ExecuteAllMachines
 .IMPORT Func_PickUpFlowerDevice
 .IMPORT Func_ProcessFrame
 .IMPORT Func_SetLastSpawnPoint
@@ -270,7 +270,7 @@ _UpdateScrolling:
 _Tick:
     jsr_prga FuncA_Actor_TickAllActors
     jsr Func_TickAllDevices
-    jsr Func_ExecuteAllMachines
+    jsr_prga FuncA_Machine_ExecuteAll
     jsr Func_TickCurrentRoom
     lda Zp_AvatarHarmTimer_u8
     cmp #kAvatarHarmDeath

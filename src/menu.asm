@@ -37,11 +37,12 @@
 .IMPORT FuncA_Console_TransferAllInstructions
 .IMPORT FuncA_Console_TransferAllStatusRows
 .IMPORT FuncA_Console_TransferInstruction
+.IMPORT FuncA_Machine_Tick
 .IMPORT FuncA_Objects_DrawObjectsForRoom
 .IMPORT FuncA_Terrain_ScrollTowardsGoal
 .IMPORT Func_ClearRestOfOam
-.IMPORT Func_MachineTick
 .IMPORT Func_ProcessFrame
+.IMPORT Func_SetMachineIndex
 .IMPORT Func_UpdateButtons
 .IMPORT Func_Window_GetRowPpuAddr
 .IMPORT Main_Console_ContinueEditing
@@ -51,6 +52,7 @@
 .IMPORT Ram_PpuTransfer_arr
 .IMPORT Sram_ProgressFlags_arr
 .IMPORTZP Zp_ConsoleInstNumber_u8
+.IMPORTZP Zp_ConsoleMachineIndex_u8
 .IMPORTZP Zp_ConsoleNumInstRows_u8
 .IMPORTZP Zp_Current_sMachine_ptr
 .IMPORTZP Zp_MachineMaxInstructions_u8
@@ -1305,9 +1307,11 @@ _CheckForCancel:
     bmi _SetValue
     ;; D-pad:
     jsr_prga FuncA_Console_MoveMenuCursor
-_UpdateScrolling:
+_Tick:
     jsr_prga FuncA_Terrain_ScrollTowardsGoal
-    jsr Func_MachineTick
+    ldx Zp_ConsoleMachineIndex_u8  ; param: machine index
+    jsr Func_SetMachineIndex
+    jsr_prga FuncA_Machine_Tick
     jmp _GameLoop
 _SetValue:
     jsr_prga FuncA_Console_MenuSetValue

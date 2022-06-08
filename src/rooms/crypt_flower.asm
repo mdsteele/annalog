@@ -33,6 +33,8 @@
 .IMPORT DataA_Pause_CryptAreaCells_u8_arr2_arr
 .IMPORT DataA_Pause_CryptAreaName_u8_arr
 .IMPORT DataA_Room_Crypt_sTileset
+.IMPORT FuncA_Machine_GetWinchVertSpeed
+.IMPORT FuncA_Machine_WinchStartFalling
 .IMPORT FuncA_Objects_DrawChainWithLength
 .IMPORT FuncA_Objects_DrawGirderPlatform
 .IMPORT FuncA_Objects_DrawWinchChain
@@ -40,13 +42,11 @@
 .IMPORT FuncA_Objects_MoveShapeLeftOneTile
 .IMPORT FuncA_Objects_MoveShapeUpOneTile
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
-.IMPORT Func_GetWinchVertSpeed
 .IMPORT Func_MachineError
 .IMPORT Func_MachineFinishResetting
 .IMPORT Func_MovePlatformTopToward
 .IMPORT Func_MovePlatformVert
 .IMPORT Func_Noop
-.IMPORT Func_WinchStartFalling
 .IMPORT Ppu_ChrUpgrade
 .IMPORT Ram_MachineParam1_u8_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
@@ -139,8 +139,6 @@ _Machines_sMachine_arr:
     d_addr Tick_func_ptr, FuncC_Crypt_FlowerWinch_Tick
     d_addr Draw_func_ptr, FuncA_Objects_CryptFlowerWinch_Draw
     d_addr Reset_func_ptr, _Winch_Reset
-    d_byte Padding
-    .res kMachinePadding
     D_END
 _Platforms_sPlatform_arr:
     .assert kWinchPlatformIndex = 0, error
@@ -274,7 +272,7 @@ _ReadZ:
     tax  ; new goal Z
     sub Ram_RoomState + sState::WinchGoalZ_u8  ; param: fall distance
     stx Ram_RoomState + sState::WinchGoalZ_u8
-    jmp Func_WinchStartFalling  ; returns C and A
+    jmp FuncA_Machine_WinchStartFalling  ; returns C and A
 .ENDPROC
 
 .PROC FuncC_Crypt_FlowerWinch_Tick
@@ -292,7 +290,7 @@ _ReadZ:
     sta Zp_PlatformGoal_i16 + 1
     ;; Determine how fast we should move toward the goal.
     ldx #kUpperGirderPlatformIndex  ; param: platform index
-    jsr Func_GetWinchVertSpeed  ; preserves X, returns Z and A
+    jsr FuncA_Machine_GetWinchVertSpeed  ; preserves X, returns Z and A
     bne @move
     rts
     @move:

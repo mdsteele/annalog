@@ -34,13 +34,14 @@
 .IMPORT DataA_Pause_CryptAreaCells_u8_arr2_arr
 .IMPORT DataA_Pause_CryptAreaName_u8_arr
 .IMPORT DataA_Room_Crypt_sTileset
+.IMPORT FuncA_Machine_GetWinchHorzSpeed
+.IMPORT FuncA_Machine_GetWinchVertSpeed
+.IMPORT FuncA_Machine_WinchStartFalling
 .IMPORT FuncA_Objects_Alloc2x2Shape
 .IMPORT FuncA_Objects_DrawWinchChain
 .IMPORT FuncA_Objects_DrawWinchMachine
 .IMPORT FuncA_Objects_MoveShapeUpOneTile
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
-.IMPORT Func_GetWinchHorzSpeed
-.IMPORT Func_GetWinchVertSpeed
 .IMPORT Func_MachineError
 .IMPORT Func_MachineFinishResetting
 .IMPORT Func_MovePlatformHorz
@@ -48,7 +49,6 @@
 .IMPORT Func_MovePlatformTopToward
 .IMPORT Func_MovePlatformVert
 .IMPORT Func_Noop
-.IMPORT Func_WinchStartFalling
 .IMPORT Ppu_ChrUpgrade
 .IMPORT Ram_MachineParam1_u8_arr
 .IMPORT Ram_Oam_sObj_arr64
@@ -177,8 +177,6 @@ _Machines_sMachine_arr:
     d_addr Tick_func_ptr, FuncC_Crypt_SouthWinch_Tick
     d_addr Draw_func_ptr, FuncA_Objects_CryptSouthWinch_Draw
     d_addr Reset_func_ptr, FuncC_Crypt_SouthWinch_Reset
-    d_byte Padding
-    .res kMachinePadding
     D_END
 _Platforms_sPlatform_arr:
     .assert kWinchPlatformIndex = 0, error
@@ -361,7 +359,7 @@ _Error:
     tax  ; new goal Z
     sub Ram_RoomState + sState::WinchGoalZ_u8  ; param: fall distance
     stx Ram_RoomState + sState::WinchGoalZ_u8
-    jmp Func_WinchStartFalling  ; returns C and A
+    jmp FuncA_Machine_WinchStartFalling  ; returns C and A
 .ENDPROC
 
 .PROC FuncC_Crypt_SouthWinch_Tick
@@ -382,7 +380,7 @@ _MoveVert:
     sta Zp_PlatformGoal_i16 + 1
     ;; Determine how fast we should move toward the goal.
     ldx #kCrusherUpperPlatformIndex  ; param: platform index
-    jsr Func_GetWinchVertSpeed  ; preserves X, returns Z and A
+    jsr FuncA_Machine_GetWinchVertSpeed  ; preserves X, returns Z and A
     bne @move
     rts
     @move:
@@ -405,7 +403,7 @@ _MoveHorz:
     add #kWinchMinPlatformLeft
     sta Zp_PlatformGoal_i16 + 0
     ;; Move the winch horizontally, if necessary.
-    jsr Func_GetWinchHorzSpeed  ; returns A
+    jsr FuncA_Machine_GetWinchHorzSpeed  ; returns A
     ldx #kWinchPlatformIndex  ; param: platform index
     jsr Func_MovePlatformLeftToward  ; returns Z and A
     beq @done

@@ -23,10 +23,10 @@
 .INCLUDE "../src/room.inc"
 
 .IMPORT Exit_Success
+.IMPORT FuncA_Machine_ExecuteAll
 .IMPORT Func_ExpectAEqualsY
 .IMPORT Func_InitAllMachines
 .IMPORT Func_MachineError
-.IMPORT Func_MachineExecuteNext
 .IMPORT Func_SetMachineIndex
 .IMPORT Ram_MachinePc_u8_arr
 .IMPORT Ram_MachineStatus_eMachine_arr
@@ -125,8 +125,6 @@ TestMachine:
     d_addr Tick_func_ptr, _Tick
     d_addr Draw_func_ptr, _Draw
     d_addr Reset_func_ptr, _Reset
-    d_byte Padding
-    .res kMachinePadding
     D_END
 _Init:
     lda #1
@@ -256,7 +254,7 @@ ExecuteInstructions:
     lda #30
     sta Zp_TestCycleCount_u8
     @loop:
-    jsr Func_MachineExecuteNext
+    jsr FuncA_Machine_ExecuteAll
     dec Zp_TestCycleCount_u8
     bne @loop
     ;; Verify that the machine is in the expected X/Y position.

@@ -138,8 +138,6 @@ _Machines_sMachine_arr:
     d_addr Tick_func_ptr, _Barrier_Tick
     d_addr Draw_func_ptr, FuncA_Objects_PrisonCellBarrier_Draw
     d_addr Reset_func_ptr, _Barrier_Reset
-    d_byte Padding
-    .res kMachinePadding
     D_END
     .assert kBlasterMachineIndex = 1, error
     D_STRUCT sMachine
@@ -158,8 +156,6 @@ _Machines_sMachine_arr:
     d_addr Tick_func_ptr, _Blaster_Tick
     d_addr Draw_func_ptr, FuncA_Objects_PrisonCellBlaster_Draw
     d_addr Reset_func_ptr, _Blaster_Reset
-    d_byte Padding
-    .res kMachinePadding
     D_END
 _Platforms_sPlatform_arr:
     .assert kBarrierPlatformIndex = 0, error

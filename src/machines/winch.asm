@@ -74,15 +74,15 @@ kWinchGearPalette  = 0
 
 ;;;=========================================================================;;;
 
-.SEGMENT "PRG8"
+.SEGMENT "PRGA_Machine"
 
 ;;; Returns the speed that the current winch machine should use when moving
 ;;; horizontally this frame.
 ;;; @prereq Zp_MachineIndex_u8 is initialized.
 ;;; @return A The max distance to move by, in pixels (0-127).
 ;;; @preserve X
-.EXPORT Func_GetWinchHorzSpeed
-.PROC Func_GetWinchHorzSpeed
+.EXPORT FuncA_Machine_GetWinchHorzSpeed
+.PROC FuncA_Machine_GetWinchHorzSpeed
     ldy Zp_MachineIndex_u8
     lda Ram_MachineStatus_eMachine_arr, y
     cmp #eMachine::Resetting
@@ -104,8 +104,8 @@ kWinchGearPalette  = 0
 ;;; @return A The max distance to move by, in pixels (0-127).
 ;;; @return Z Set if the machine's max speed is zero this frame.
 ;;; @preserve X
-.EXPORT Func_GetWinchVertSpeed
-.PROC Func_GetWinchVertSpeed
+.EXPORT FuncA_Machine_GetWinchVertSpeed
+.PROC FuncA_Machine_GetWinchVertSpeed
     ldy Zp_MachineIndex_u8
     lda Ram_MachineStatus_eMachine_arr, y
     cmp #eMachine::Resetting
@@ -153,8 +153,8 @@ _Falling:
 ;;; @param A The fall distance, in blocks.
 ;;; @return C Set if there was an error, cleared otherwise.
 ;;; @return A How many frames to wait before advancing the PC.
-.EXPORT Func_WinchStartFalling
-.PROC Func_WinchStartFalling
+.EXPORT FuncA_Machine_WinchStartFalling
+.PROC FuncA_Machine_WinchStartFalling
     tax  ; fall distance, in blocks
     ;; Start falling.
     ldy Zp_MachineIndex_u8
@@ -164,7 +164,7 @@ _Falling:
     sta Ram_MachineParam2_i16_0_arr, y
     sta Ram_MachineParam2_i16_1_arr, y
     ;; Determine how long it will take for the load to fall.
-    lda Data_WinchFallTime_u8_arr, x
+    lda DataA_Machine_WinchFallTime_u8_arr, x
     clc  ; success
     rts
 .ENDPROC
@@ -172,7 +172,7 @@ _Falling:
 ;;; For a falling winch machine, this array maps from the initial fall
 ;;; distance, in blocks, to the number of frames before the winch can move
 ;;; again.
-.PROC Data_WinchFallTime_u8_arr
+.PROC DataA_Machine_WinchFallTime_u8_arr
     .byte kWinchFallRecoverFrames
     vFallTime .set 0
     vFallVel .set 0
@@ -189,7 +189,7 @@ _Falling:
     .byte vFallTime + kWinchFallRecoverFrames
     .endif
     .endrepeat
-    .assert * - Data_WinchFallTime_u8_arr = 18, error
+    .assert * - DataA_Machine_WinchFallTime_u8_arr = 18, error
 .ENDPROC
 
 ;;;=========================================================================;;;
