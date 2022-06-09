@@ -29,6 +29,7 @@
 .IMPORT DataC_Crypt_Landing_sRoom
 .IMPORT DataC_Crypt_South_sRoom
 .IMPORT DataC_Crypt_Tomb_sRoom
+.IMPORT DataC_Crypt_West_sRoom
 .IMPORT DataC_Garden_Boss_sRoom
 .IMPORT DataC_Garden_Landing_sRoom
 .IMPORT DataC_Garden_Shrine_sRoom
@@ -79,6 +80,7 @@
     DataC_Crypt_Landing_sRoom, \
     DataC_Crypt_South_sRoom, \
     DataC_Crypt_Tomb_sRoom, \
+    DataC_Crypt_West_sRoom, \
     DataC_Garden_Boss_sRoom, \
     DataC_Garden_Landing_sRoom, \
     DataC_Garden_Shrine_sRoom, \

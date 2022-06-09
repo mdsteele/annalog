@@ -37,11 +37,12 @@
 .IMPORT FuncA_Machine_GetWinchHorzSpeed
 .IMPORT FuncA_Machine_GetWinchVertSpeed
 .IMPORT FuncA_Machine_WinchStartFalling
-.IMPORT FuncA_Objects_Alloc2x2Shape
 .IMPORT FuncA_Objects_DrawWinchChain
 .IMPORT FuncA_Objects_DrawWinchMachine
+.IMPORT FuncA_Objects_DrawWinchSpikeball
 .IMPORT FuncA_Objects_MoveShapeUpOneTile
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
+.IMPORT FuncA_Objects_SetShapePosToSpikeballCenter
 .IMPORT Func_MachineError
 .IMPORT Func_MachineFinishResetting
 .IMPORT Func_MovePlatformHorz
@@ -50,13 +51,11 @@
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrUpgrade
 .IMPORT Ram_MachineParam1_u8_arr
-.IMPORT Ram_Oam_sObj_arr64
 .IMPORT Ram_PlatformLeft_i16_0_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORT Ram_RoomState
 .IMPORTZP Zp_PlatformGoal_i16
 .IMPORTZP Zp_ShapePosX_i16
-.IMPORTZP Zp_ShapePosY_i16
 
 ;;;=========================================================================;;;
 
@@ -92,13 +91,6 @@ kSpikeballMinPlatformTop = $22
 kSpikeballInitPlatformTop = \
     kSpikeballMinPlatformTop + kBlockHeightPx * kWinchInitGoalZ
 .LINECONT +
-
-;;; Various OBJ tile IDs used for drawing the CryptTombWinch machine.
-kTileIdSpikeballFirst = $b8
-
-;;; The OBJ palette number used for various parts of the CryptTombWinch
-;;; machine.
-kSpikeballPalette = 0
 
 ;;;=========================================================================;;;
 
@@ -447,31 +439,8 @@ _Winch:
     jsr FuncA_Objects_DrawWinchMachine
 _Spikeball:
     ldx #kSpikeballPlatformIndex  ; param: platform index
-    jsr FuncA_Objects_SetShapePosToPlatformTopLeft
-    lda Zp_ShapePosX_i16 + 0
-    add #6
-    sta Zp_ShapePosX_i16 + 0
-    lda Zp_ShapePosX_i16 + 1
-    adc #0
-    sta Zp_ShapePosX_i16 + 1
-    lda Zp_ShapePosY_i16 + 0
-    add #6
-    sta Zp_ShapePosY_i16 + 0
-    lda Zp_ShapePosY_i16 + 1
-    adc #0
-    sta Zp_ShapePosY_i16 + 1
-    lda #kSpikeballPalette  ; param: object flags
-    jsr FuncA_Objects_Alloc2x2Shape  ; returns C and Y
-    bcs @done
-    lda #kTileIdSpikeballFirst + 0
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Tile_u8, y
-    lda #kTileIdSpikeballFirst + 1
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Tile_u8, y
-    lda #kTileIdSpikeballFirst + 2
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Tile_u8, y
-    lda #kTileIdSpikeballFirst + 3
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Tile_u8, y
-    @done:
+    jsr FuncA_Objects_SetShapePosToSpikeballCenter
+    jsr FuncA_Objects_DrawWinchSpikeball
 _Chain:
     jsr FuncA_Objects_MoveShapeUpOneTile
     lda Zp_ShapePosX_i16 + 0

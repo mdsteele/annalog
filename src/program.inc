@@ -104,6 +104,7 @@
     CryptFlowerWinch
     CryptSouthWinch
     CryptTombWinch
+    CryptWestWinch
     GardenBossCannon
     PrisonCellBarrier
     PrisonCellBlaster

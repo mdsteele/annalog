@@ -253,7 +253,7 @@ _Devices_sDevice_arr:
 _Passages_sPassage_arr:
     D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Western | 0
-    d_byte Destination_eRoom, eRoom::CryptSouth  ; TODO
+    d_byte Destination_eRoom, eRoom::CryptWest
     d_byte SpawnBlock_u8, 5
     D_END
     D_STRUCT sPassage

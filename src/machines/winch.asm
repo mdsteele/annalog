@@ -30,6 +30,7 @@
 .IMPORT FuncA_Objects_MoveShapeDownOneTile
 .IMPORT FuncA_Objects_MoveShapeRightOneTile
 .IMPORT FuncA_Objects_MoveShapeUpOneTile
+.IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
 .IMPORT Ram_MachineParam1_u8_arr
 .IMPORT Ram_MachineParam2_i16_0_arr
 .IMPORT Ram_MachineParam2_i16_1_arr
@@ -43,6 +44,7 @@
 .IMPORTZP Zp_MachineIndex_u8
 .IMPORTZP Zp_PlatformGoal_i16
 .IMPORTZP Zp_RoomScrollY_u8
+.IMPORTZP Zp_ShapePosX_i16
 .IMPORTZP Zp_ShapePosY_i16
 .IMPORTZP Zp_Tmp1_byte
 .IMPORTZP Zp_Tmp2_byte
@@ -67,10 +69,12 @@ kTileIdWinchGear2         = $be
 kTileIdWinchCornerBottom1 = $bd
 kTileIdWinchCornerBottom2 = $bf
 kTileIdWinchCornerTop     = $73
+kTileIdSpikeballFirst     = $b8
 
 ;;; OBJ palette numbers used for various parts of winch machines.
 kWinchChainPalette = 0
 kWinchGearPalette  = 0
+kSpikeballPalette  = 0
 
 ;;;=========================================================================;;;
 
@@ -299,6 +303,48 @@ _Done:
     @continue:
     dex
     bne @loop
+    rts
+.ENDPROC
+
+;;; Populates Zp_ShapePosX_i16 and Zp_ShapePosY_i16 with the screen position of
+;;; the center of the specified winch spikeball.
+;;; @param X The spikeball platform index.
+;;; @preserve X, Y
+.EXPORT FuncA_Objects_SetShapePosToSpikeballCenter
+.PROC FuncA_Objects_SetShapePosToSpikeballCenter
+    jsr FuncA_Objects_SetShapePosToPlatformTopLeft  ; preserves X and Y
+    lda Zp_ShapePosX_i16 + 0
+    add #6
+    sta Zp_ShapePosX_i16 + 0
+    lda Zp_ShapePosX_i16 + 1
+    adc #0
+    sta Zp_ShapePosX_i16 + 1
+    lda Zp_ShapePosY_i16 + 0
+    add #6
+    sta Zp_ShapePosY_i16 + 0
+    lda Zp_ShapePosY_i16 + 1
+    adc #0
+    sta Zp_ShapePosY_i16 + 1
+    rts
+.ENDPROC
+
+;;; Allocates and populates OAM slots for a winch spikeball.
+;;; @prereq The shape position is set to the center of the spikeball.
+;;; @preserve X
+.EXPORT FuncA_Objects_DrawWinchSpikeball
+.PROC FuncA_Objects_DrawWinchSpikeball
+    lda #kSpikeballPalette  ; param: object flags
+    jsr FuncA_Objects_Alloc2x2Shape  ; preserves X, returns C and Y
+    bcs @done
+    lda #kTileIdSpikeballFirst + 0
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Tile_u8, y
+    lda #kTileIdSpikeballFirst + 1
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Tile_u8, y
+    lda #kTileIdSpikeballFirst + 2
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Tile_u8, y
+    lda #kTileIdSpikeballFirst + 3
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Tile_u8, y
+    @done:
     rts
 .ENDPROC
 

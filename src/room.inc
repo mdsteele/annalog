@@ -41,6 +41,7 @@ kRoomStateSize = $100
     CryptLanding
     CryptSouth
     CryptTomb
+    CryptWest
     GardenBoss
     GardenLanding
     GardenShrine
@@ -56,7 +57,7 @@ kRoomStateSize = $100
     NUM_VALUES
 .ENDENUM
 
-.DEFINE kNumRooms 16
+.DEFINE kNumRooms 17
 .ASSERT kNumRooms = eRoom::NUM_VALUES, error
 
 ;;;=========================================================================;;;

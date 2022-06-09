@@ -86,7 +86,7 @@
 .EXPORT Ppu_ChrCrypt
 .PROC Ppu_ChrCrypt
 :   .incbin "out/data/tiles/crypt.chr"
-    .res $2c * kSizeofChr
+    .res $2a * kSizeofChr
     .incbin "out/data/tiles/device.chr"
     .assert * - :- = kSizeofChr * $40, error
 .ENDPROC
