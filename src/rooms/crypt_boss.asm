@@ -37,9 +37,11 @@
 .IMPORT FuncA_Machine_GetWinchHorzSpeed
 .IMPORT FuncA_Machine_GetWinchVertSpeed
 .IMPORT FuncA_Machine_WinchStartFalling
+.IMPORT FuncA_Objects_Alloc1x1Shape
 .IMPORT FuncA_Objects_DrawWinchChain
 .IMPORT FuncA_Objects_DrawWinchMachine
 .IMPORT FuncA_Objects_DrawWinchSpikeball
+.IMPORT FuncA_Objects_MoveShapeDownOneTile
 .IMPORT FuncA_Objects_MoveShapeUpOneTile
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
 .IMPORT FuncA_Objects_SetShapePosToSpikeballCenter
@@ -51,6 +53,7 @@
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrUpgrade
 .IMPORT Ram_MachineParam1_u8_arr
+.IMPORT Ram_Oam_sObj_arr64
 .IMPORT Ram_PlatformLeft_i16_0_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORT Ram_RoomState
@@ -62,12 +65,12 @@
 ;;; The machine index for the CryptTombWinch machine in this room.
 kWinchMachineIndex = 0
 
-;;; The platform indices for the CryptTombWinch machine, the crusher that
-;;; hangs from its chain, and the breakable floor.
+;;; The platform indices for the CryptTombWinch machine, the spikeball that
+;;; hangs from its chain, and the side walls.
 kWinchPlatformIndex      = 0
 kSpikeballPlatformIndex  = 1
-kWeakFloor1PlatformIndex = 2
-kWeakFloor2PlatformIndex = 3
+kLeftWallPlatformIndex   = 2
+kRightWallPlatformIndex  = 3
 
 ;;; The initial and maximum permitted values for sState::WinchGoalX_u8.
 kWinchInitGoalX = 4
@@ -87,10 +90,16 @@ kWinchInitPlatformLeft = \
 ;;; The minimum and initial room pixel position for the top edge of the
 ;;; crusher.
 .LINECONT +
-kSpikeballMinPlatformTop = $22
+kSpikeballMinPlatformTop = $32
 kSpikeballInitPlatformTop = \
     kSpikeballMinPlatformTop + kBlockHeightPx * kWinchInitGoalZ
 .LINECONT +
+
+;;; The OBJ tile ID for the first of the two side wall tiles.
+kTileIdFirstSideWall = $c0
+
+;;; The OBJ palette number to use for the side walls.
+kSideWallPalette = 0
 
 ;;;=========================================================================;;;
 
@@ -118,8 +127,8 @@ kSpikeballInitPlatformTop = \
 
 .SEGMENT "PRGC_Crypt"
 
-.EXPORT DataC_Crypt_Tomb_sRoom
-.PROC DataC_Crypt_Tomb_sRoom
+.EXPORT DataC_Crypt_Boss_sRoom
+.PROC DataC_Crypt_Boss_sRoom
     D_STRUCT sRoom
     d_byte MinScrollX_u8, $00
     d_word MaxScrollX_u16, $0000
@@ -132,7 +141,7 @@ kSpikeballInitPlatformTop = \
     d_addr Machines_sMachine_arr_ptr, _Machines_sMachine_arr
     d_byte Chr18Bank_u8, <.bank(Ppu_ChrUpgrade)
     d_addr Tick_func_ptr, Func_Noop
-    d_addr Draw_func_ptr, Func_Noop
+    d_addr Draw_func_ptr, FuncC_Crypt_Boss_DrawRoom
     d_addr Ext_sRoomExt_ptr, _Ext_sRoomExt
     D_END
 _Ext_sRoomExt:
@@ -144,12 +153,12 @@ _Ext_sRoomExt:
     d_addr Actors_sActor_arr_ptr, _Actors_sActor_arr
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
     d_addr Dialogs_sDialog_ptr_arr_ptr, 0
-    d_addr Passages_sPassage_arr_ptr, _Passages_sPassage_arr
+    d_addr Passages_sPassage_arr_ptr, 0
     d_addr Init_func_ptr, Func_Noop
     D_END
 _TerrainData:
-:   .incbin "out/data/crypt_tomb.room"
-    .assert * - :- = 17 * 16, error
+:   .incbin "out/data/crypt_boss.room"
+    .assert * - :- = 16 * 16, error
 _Machines_sMachine_arr:
     .assert kWinchMachineIndex = 0, error
     D_STRUCT sMachine
@@ -160,14 +169,14 @@ _Machines_sMachine_arr:
     d_word ScrollGoalX_u16, $0
     d_byte ScrollGoalY_u8, $0
     d_byte RegNames_u8_arr4, "L", "R", "X", "Z"
-    d_addr Init_func_ptr, FuncC_Crypt_TombWinch_Init
-    d_addr ReadReg_func_ptr, FuncC_Crypt_TombWinch_ReadReg
+    d_addr Init_func_ptr, FuncC_Crypt_BossWinch_Init
+    d_addr ReadReg_func_ptr, FuncC_Crypt_BossWinch_ReadReg
     d_addr WriteReg_func_ptr, Func_MachineError
-    d_addr TryMove_func_ptr, FuncC_Crypt_TombWinch_TryMove
-    d_addr TryAct_func_ptr, FuncC_Crypt_TombWinch_TryAct
-    d_addr Tick_func_ptr, FuncC_Crypt_TombWinch_Tick
-    d_addr Draw_func_ptr, FuncA_Objects_CryptTombWinch_Draw
-    d_addr Reset_func_ptr, FuncC_Crypt_TombWinch_Reset
+    d_addr TryMove_func_ptr, FuncC_Crypt_BossWinch_TryMove
+    d_addr TryAct_func_ptr, FuncC_Crypt_BossWinch_TryAct
+    d_addr Tick_func_ptr, FuncC_Crypt_BossWinch_Tick
+    d_addr Draw_func_ptr, FuncA_Objects_CryptBossWinch_Draw
+    d_addr Reset_func_ptr, FuncC_Crypt_BossWinch_Reset
     D_END
 _Platforms_sPlatform_arr:
     .assert kWinchPlatformIndex = 0, error
@@ -176,7 +185,7 @@ _Platforms_sPlatform_arr:
     d_byte WidthPx_u8,  $10
     d_byte HeightPx_u8, $10
     d_word Left_i16, kWinchInitPlatformLeft
-    d_word Top_i16,   $0010
+    d_word Top_i16,   $0020
     D_END
     .assert kSpikeballPlatformIndex = 1, error
     D_STRUCT sPlatform
@@ -186,40 +195,26 @@ _Platforms_sPlatform_arr:
     d_word Left_i16, kWinchInitPlatformLeft + 2
     d_word Top_i16, kSpikeballInitPlatformTop
     D_END
-    .assert kWeakFloor1PlatformIndex = 2, error
+    .assert kLeftWallPlatformIndex = 2, error
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Solid
-    d_byte WidthPx_u8,  $10
-    d_byte HeightPx_u8, $10
-    d_word Left_i16,  $0030
-    d_word Top_i16,   $00a0
+    d_byte WidthPx_u8,  $08
+    d_byte HeightPx_u8, $30
+    d_word Left_i16,  $0018
+    d_word Top_i16,   $0060
     D_END
-    .assert kWeakFloor2PlatformIndex = 3, error
+    .assert kRightWallPlatformIndex = 3, error
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Solid
-    d_byte WidthPx_u8,  $10
-    d_byte HeightPx_u8, $10
-    d_word Left_i16,  $00c0
-    d_word Top_i16,   $0080
+    d_byte WidthPx_u8,  $08
+    d_byte HeightPx_u8, $30
+    d_word Left_i16,  $00e0
+    d_word Top_i16,   $0060
     D_END
     ;; Terrain spikes:
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Harm
-    d_byte WidthPx_u8,  $10
-    d_byte HeightPx_u8, $08
-    d_word Left_i16,  $0010
-    d_word Top_i16,   $00ae
-    D_END
-    D_STRUCT sPlatform
-    d_byte Type_ePlatform, ePlatform::Harm
-    d_byte WidthPx_u8,  $10
-    d_byte HeightPx_u8, $08
-    d_word Left_i16,  $00d0
-    d_word Top_i16,   $00ae
-    D_END
-    D_STRUCT sPlatform
-    d_byte Type_ePlatform, ePlatform::Harm
-    d_byte WidthPx_u8,  $50
+    d_byte WidthPx_u8,  $60
     d_byte HeightPx_u8, $08
     d_word Left_i16,  $0050
     d_word Top_i16,   $00de
@@ -230,38 +225,32 @@ _Actors_sActor_arr:
 _Devices_sDevice_arr:
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Console
-    d_byte BlockRow_u8, 7
-    d_byte BlockCol_u8, 9
+    d_byte BlockRow_u8, 11
+    d_byte BlockCol_u8, 13
     d_byte Target_u8, kWinchMachineIndex
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Lever
-    d_byte BlockRow_u8, 6
-    d_byte BlockCol_u8, 5
+    d_byte BlockRow_u8, 11
+    d_byte BlockCol_u8, 4
     d_byte Target_u8, sState::LeverLeft_u1
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Lever
-    d_byte BlockRow_u8, 7
-    d_byte BlockCol_u8, 7
+    d_byte BlockRow_u8, 12
+    d_byte BlockCol_u8, 11
     d_byte Target_u8, sState::LeverRight_u1
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Door
     d_byte BlockRow_u8, 12
     d_byte BlockCol_u8, 7
-    d_byte Target_u8, eRoom::CryptBoss
+    d_byte Target_u8, eRoom::CryptTomb
     D_END
     .byte eDevice::None
-_Passages_sPassage_arr:
-    D_STRUCT sPassage
-    d_byte Exit_bPassage, ePassage::Eastern | 0
-    d_byte Destination_eRoom, eRoom::CryptSouth
-    d_byte SpawnBlock_u8, 7
-    D_END
 .ENDPROC
 
-.PROC FuncC_Crypt_TombWinch_ReadReg
+.PROC FuncC_Crypt_BossWinch_ReadReg
     cmp #$c
     beq _ReadL
     cmp #$d
@@ -286,7 +275,7 @@ _ReadR:
     rts
 .ENDPROC
 
-.PROC FuncC_Crypt_TombWinch_TryMove
+.PROC FuncC_Crypt_BossWinch_TryMove
     ldy Ram_RoomState + sState::WinchGoalX_u8
     .assert eDir::Up = 0, error
     txa
@@ -306,7 +295,7 @@ _MoveHorz:
     beq _Error
     dey
     @checkFloor:
-    lda DataC_Crypt_TombFloor_u8_arr, y
+    lda DataC_Crypt_BossFloor_u8_arr, y
     cmp Ram_RoomState + sState::WinchGoalZ_u8
     blt _Error
     sty Ram_RoomState + sState::WinchGoalX_u8
@@ -323,7 +312,7 @@ _MoveUp:
 _MoveDown:
     ;; TODO: check for weak floor collision
     lda Ram_RoomState + sState::WinchGoalZ_u8
-    cmp DataC_Crypt_TombFloor_u8_arr, y
+    cmp DataC_Crypt_BossFloor_u8_arr, y
     bge _Error
     inc Ram_RoomState + sState::WinchGoalZ_u8
     lda #kWinchMoveDownCooldown
@@ -334,16 +323,16 @@ _Error:
     rts
 .ENDPROC
 
-.PROC FuncC_Crypt_TombWinch_TryAct
+.PROC FuncC_Crypt_BossWinch_TryAct
     ldy Ram_RoomState + sState::WinchGoalX_u8
-    lda DataC_Crypt_TombFloor_u8_arr, y
+    lda DataC_Crypt_BossFloor_u8_arr, y
     tax  ; new goal Z
     sub Ram_RoomState + sState::WinchGoalZ_u8  ; param: fall distance
     stx Ram_RoomState + sState::WinchGoalZ_u8
     jmp FuncA_Machine_WinchStartFalling  ; returns C and A
 .ENDPROC
 
-.PROC FuncC_Crypt_TombWinch_Tick
+.PROC FuncC_Crypt_BossWinch_Tick
 _MoveVert:
     ;; Calculate the desired room-space pixel Y-position for the top edge of
     ;; the spikeball, storing it in Zp_PlatformGoal_i16.
@@ -391,28 +380,28 @@ _MoveHorz:
 _Finished:
     lda Ram_RoomState + sState::WinchReset_eResetSeq
     jeq Func_MachineFinishResetting
-    .assert * = FuncC_Crypt_TombWinch_Reset, error, "fallthrough"
+    .assert * = FuncC_Crypt_BossWinch_Reset, error, "fallthrough"
 .ENDPROC
 
-.PROC FuncC_Crypt_TombWinch_Reset
+.PROC FuncC_Crypt_BossWinch_Reset
     lda Ram_RoomState + sState::WinchGoalX_u8
     cmp #3
     blt _Outer
-    cmp #6
+    cmp #7
     blt _Inner
 _Outer:
     lda #kWinchInitGoalX
     sta Ram_RoomState + sState::WinchGoalX_u8
-    lda #0
+    lda #1
     sta Ram_RoomState + sState::WinchGoalZ_u8
     lda #eResetSeq::TopCenter
     sta Ram_RoomState + sState::WinchReset_eResetSeq
     rts
 _Inner:
-    .assert * = FuncC_Crypt_TombWinch_Init, error, "fallthrough"
+    .assert * = FuncC_Crypt_BossWinch_Init, error, "fallthrough"
 .ENDPROC
 
-.PROC FuncC_Crypt_TombWinch_Init
+.PROC FuncC_Crypt_BossWinch_Init
     lda #kWinchInitGoalX
     sta Ram_RoomState + sState::WinchGoalX_u8
     lda #kWinchInitGoalZ
@@ -422,16 +411,46 @@ _Inner:
     rts
 .ENDPROC
 
-.PROC DataC_Crypt_TombFloor_u8_arr
-    .byte 9, 0, 0, 5, 5, 5, 0, 5, 5, 7
+.PROC DataC_Crypt_BossFloor_u8_arr
+    .byte 8, 8, 1, 9, 9, 9, 5, 1, 9, 9
+.ENDPROC
+
+.PROC FuncC_Crypt_Boss_DrawRoom
+    ldx #kLeftWallPlatformIndex  ; param: platform index
+    jsr FuncA_Objects_CryptBoss_DrawSideWall
+    ldx #kRightWallPlatformIndex  ; param: platform index
+    jsr FuncA_Objects_CryptBoss_DrawSideWall
+    ;; TODO: draw the boss
+    rts
 .ENDPROC
 
 ;;;=========================================================================;;;
 
 .SEGMENT "PRGA_Objects"
 
-;;; Allocates and populates OAM slots for the CryptTombWinch machine.
-.PROC FuncA_Objects_CryptTombWinch_Draw
+;;; Allocates and populates OAM slots for one of the two side walls.
+;;; @param X The platform index for the side wall to draw.
+.PROC FuncA_Objects_CryptBoss_DrawSideWall
+    jsr FuncA_Objects_SetShapePosToPlatformTopLeft
+    ldx #6
+    @loop:
+    jsr FuncA_Objects_Alloc1x1Shape  ; preserves X, returns C and Y
+    bcs @continue
+    txa
+    and #$01
+    add #kTileIdFirstSideWall
+    sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
+    lda #kSideWallPalette
+    sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
+    @continue:
+    jsr FuncA_Objects_MoveShapeDownOneTile  ; preserves X
+    dex
+    bne @loop
+    rts
+.ENDPROC
+
+;;; Allocates and populates OAM slots for the winch machine in this room.
+.PROC FuncA_Objects_CryptBossWinch_Draw
 _Winch:
     ldx #kWinchPlatformIndex  ; param: platform index
     jsr FuncA_Objects_SetShapePosToPlatformTopLeft

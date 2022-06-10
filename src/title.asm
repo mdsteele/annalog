@@ -54,8 +54,8 @@
 ;;;=========================================================================;;;
 
 ;;; The starting location for a new game.
-kStartingRoom = eRoom::CryptTomb
-kStartingSpawn = bSpawn::IsPassage | 0
+kStartingRoom = eRoom::CryptBoss
+kStartingSpawn = 0
 
 ;;; The nametable tile row (of the upper nametable) that the game title starts
 ;;; on.
