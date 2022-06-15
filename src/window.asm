@@ -74,10 +74,14 @@ Zp_WindowNextRowToTransfer_u8: .res 1
 .ENDPROC
 
 ;;; Populates Ram_Buffered_sIrq appropriately for the current value of
-;;; Zp_WindowTop_u8, and schedules it for transfer.  This should be called
-;;; whenever the value of Zp_WindowTop_u8 is changed.
+;;; Zp_WindowTop_u8.  This should be called whenever Zp_WindowTop_u8 is
+;;; changed.
 .EXPORT Func_Window_SetUpIrq
 .PROC Func_Window_SetUpIrq
+    lda #0
+    sta <(Zp_Buffered_sIrq + sIrq::Param1_byte)
+    sta <(Zp_Buffered_sIrq + sIrq::Param2_byte)
+    sta <(Zp_Buffered_sIrq + sIrq::Param3_byte)
     ldy Zp_WindowTop_u8
     cpy #kScreenHeightPx
     bge _Disable
@@ -235,6 +239,7 @@ _Disable:
 ;;; scroll so as to display the window, and disables drawing objects over the
 ;;; window's top border, so that it looks like the window is in front of any
 ;;; objects in the room.
+.EXPORT Int_WindowTopIrq
 .PROC Int_WindowTopIrq
     ;; Save A and X registers (we won't be using Y).
     pha

@@ -27,8 +27,17 @@
     ;; The handler interrupt function to call for the first HBlank interrupt of
     ;; the frame.  Note that this function must return with an RTI instruction.
     ;; This function must ack the IRQ and update the HBlank latch, and may
-    ;; optionally update Zp_NextIrq_int_ptr.
+    ;; optionally update Zp_NextIrq_int_ptr.  This function should *NOT* read
+    ;; any main-thread variables, to avoid data races with the main thread;
+    ;; instead, it can use the parameter fields below.
     FirstIrq_int_ptr .addr
+    ;; Arbitrary parameter bytes for the IRQ handler function(s) in a given
+    ;; frame.  The main thread can set these up in Zp_Buffered_sIrq, and then
+    ;; the handler function (running on the IRQ thread) can safely read them
+    ;; from Zp_Active_sIrq without worrying about them changing mid-frame.
+    Param1_byte      .byte
+    Param2_byte      .byte
+    Param3_byte      .byte
 .ENDSTRUCT
 
 ;;;=========================================================================;;;

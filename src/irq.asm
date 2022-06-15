@@ -36,13 +36,13 @@
 Zp_Buffered_sIrq: .tag sIrq
 
 ;;; The active HBlank interrupt structure.  Each frame, the NMI handler will
-;;; use this to initialize HBlank interrupts for that frame.  Only the NMI
-;;; thread should access this.
+;;; use this to initialize HBlank interrupts for that frame.  The IRQ thread
+;;; may read this, but only the NMI thread should write this.
 .EXPORTZP Zp_Active_sIrq
 Zp_Active_sIrq: .tag sIrq
 
 ;;; The interrupt handler function to call the next time that an IRQ occurs.
-;;; Only the NMI and IRQ threads should access this.
+;;; Only the NMI and IRQ threads should read/write this.
 .EXPORTZP Zp_NextIrq_int_ptr
 Zp_NextIrq_int_ptr: .res 2
 

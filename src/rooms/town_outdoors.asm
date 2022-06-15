@@ -32,14 +32,15 @@
 .IMPORT DataA_Pause_TownAreaName_u8_arr
 .IMPORT DataA_Room_Outdoors_sTileset
 .IMPORT Func_Noop
+.IMPORT Int_WindowTopIrq
 .IMPORT Ppu_ChrTownsfolk
-.IMPORT Ram_RoomState
+.IMPORTZP Zp_Active_sIrq
 .IMPORTZP Zp_Buffered_sIrq
-.IMPORTZP Zp_IrqTmp_byte
 .IMPORTZP Zp_NextIrq_int_ptr
 .IMPORTZP Zp_PpuScrollX_u8
 .IMPORTZP Zp_RoomScrollX_u16
 .IMPORTZP Zp_RoomScrollY_u8
+.IMPORTZP Zp_Tmp1_byte
 
 ;;;=========================================================================;;;
 
@@ -47,17 +48,6 @@
 ;;; are the breaks between separate parallax scrolling bands.
 kTreelineTopY    = $2e
 kTreelineBottomY = $62
-
-;;;=========================================================================;;;
-
-;;; Defines room-specific state data for this particular room.
-.STRUCT sState
-    ;; The sIrq struct for drawing the window, updated each frame.  This will
-    ;; get loaded into Zp_NextIrq_int_ptr after the parallax scrolling for that
-    ;; frame is done.
-    Window_sIrq .tag sIrq
-.ENDSTRUCT
-.ASSERT .sizeof(sState) <= kRoomStateSize, error
 
 ;;;=========================================================================;;;
 
@@ -132,21 +122,30 @@ _Devices_sDevice_arr:
     ;; the stars and moon don't scroll.
     lda #0
     sta Zp_PpuScrollX_u8
-    ;; Copy the current Zp_Buffered_sIrq into sState::Window_sIrq, adjusting
-    ;; the Latch_u8 value to take this room's parallax scrolling IRQs into
-    ;; account.
-    ldax <(Zp_Buffered_sIrq + sIrq::FirstIrq_int_ptr)
-    stax Ram_RoomState + sState::Window_sIrq + sIrq::FirstIrq_int_ptr
+    ;; Compute the IRQ latch value to set between the bottom of the treeline
+    ;; and the top of the window (if any), and set that as Param3_byte.
     lda <(Zp_Buffered_sIrq + sIrq::Latch_u8)
     sub #kTreelineBottomY
     add Zp_RoomScrollY_u8
-    sta Ram_RoomState + sState::Window_sIrq + sIrq::Latch_u8
+    sta <(Zp_Buffered_sIrq + sIrq::Param3_byte)  ; window latch
     ;; Set up our own sIrq struct to handle parallax scrolling.
     lda #kTreelineTopY - 1
     sub Zp_RoomScrollY_u8
     sta <(Zp_Buffered_sIrq + sIrq::Latch_u8)
     ldax #Int_TownOutdoorsTreeTopIrq
     stax <(Zp_Buffered_sIrq + sIrq::FirstIrq_int_ptr)
+    ;; Compute the PPU scroll-X for the treeline (which scrolls horizontally at
+    ;; 1/4 speed) and houses (which scroll at full speed), and set those as
+    ;; Param1_byte and Param2_byte, respectively.
+    lda Zp_RoomScrollX_u16 + 1
+    lsr a
+    sta Zp_Tmp1_byte
+    lda Zp_RoomScrollX_u16 + 0
+    sta <(Zp_Buffered_sIrq + sIrq::Param2_byte)  ; houses scroll-X
+    ror a
+    lsr Zp_Tmp1_byte
+    ror a
+    sta <(Zp_Buffered_sIrq + sIrq::Param1_byte)  ; treeline scroll-X
     rts
 .ENDPROC
 
@@ -176,12 +175,10 @@ _Devices_sDevice_arr:
     stax Zp_NextIrq_int_ptr
     ;; Busy-wait for a bit, that our final writes in this function will occur
     ;; during the next HBlank.
-    ldx #4  ; This value is hand-tuned to help wait for second HBlank.
+    ldx #6  ; This value is hand-tuned to help wait for second HBlank.
     @busyLoop:
     dex
     bne @busyLoop
-    ;; Calculate 1/4 of the room scroll-X, storing it in X.  We'll use this as
-    ;; the scroll-X for the treeline portion of the room.
     ;; Set the PPU's new scroll-Y and scroll-X values, and also set the upper
     ;; nametable as the scrolling origin.  All of this takes four writes, and
     ;; the last two must happen during HBlank (between dots 256 and 320).
@@ -190,14 +187,8 @@ _Devices_sDevice_arr:
     sta Hw_PpuAddr_w2
     lda #kTreelineTopY  ; new scroll-Y value
     sta Hw_PpuScroll_w2
-    ;; Scroll the treeline horizontally at 1/4 speed.
-    lda Zp_RoomScrollX_u16 + 1
-    lsr a
-    sta Zp_IrqTmp_byte
-    lda Zp_RoomScrollX_u16 + 0
-    ror a
-    lsr Zp_IrqTmp_byte
-    ror a
+    ;; Scroll the treeline horizontally.
+    lda <(Zp_Active_sIrq + sIrq::Param1_byte)  ; treeline scroll-X
     tax  ; new scroll-X value
     div #8
     ora #(kTreelineTopY & $38) << 2
@@ -224,11 +215,11 @@ _Devices_sDevice_arr:
     sta Hw_Mmc3IrqDisable_wo  ; ack
     sta Hw_Mmc3IrqEnable_wo  ; re-enable
     ;; Set up the latch value for next IRQ.
-    lda Ram_RoomState + sState::Window_sIrq + sIrq::Latch_u8
+    lda <(Zp_Buffered_sIrq + sIrq::Param3_byte)  ; window latch
     sta Hw_Mmc3IrqLatch_wo
     sta Hw_Mmc3IrqReload_wo
     ;; Update Zp_NextIrq_int_ptr for the next IRQ.
-    ldax Ram_RoomState + sState::Window_sIrq + sIrq::FirstIrq_int_ptr
+    ldax #Int_WindowTopIrq
     stax Zp_NextIrq_int_ptr
     ;; Busy-wait for a bit, that our final writes in this function will occur
     ;; during the next HBlank.
@@ -244,7 +235,7 @@ _Devices_sDevice_arr:
     sta Hw_PpuAddr_w2
     lda #kTreelineBottomY  ; new scroll-Y value
     sta Hw_PpuScroll_w2
-    lda Zp_RoomScrollX_u16 + 0
+    lda <(Zp_Buffered_sIrq + sIrq::Param2_byte)  ; houses scroll-X
     tax  ; new scroll-X value
     div #8
     ora #(kTreelineBottomY & $38) << 2
