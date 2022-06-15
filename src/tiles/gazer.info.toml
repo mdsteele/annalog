@@ -1,0 +1,10 @@
+name = "1Bit Dungeon Tiles"
+artist = "Hyell"
+license = "Permissive"
+year = 2022
+url = "https://hyell.itch.io/1bit-dungeon"
+comments = """
+The license terms specifically say one may 'Edit and use the asset in any
+commercial or non commercial project,' and that 'Credit is not necessary, but
+appreciated.'  The assets used in Annalog have been modified from the original.
+"""

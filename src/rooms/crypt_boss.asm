@@ -56,9 +56,16 @@
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORT Ram_PlatformLeft_i16_0_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
+.IMPORT Ram_PpuTransfer_arr
 .IMPORT Ram_RoomState
+.IMPORTZP Zp_AvatarPosX_i16
+.IMPORTZP Zp_AvatarPosY_i16
 .IMPORTZP Zp_PlatformGoal_i16
+.IMPORTZP Zp_PpuTransferLen_u8
 .IMPORTZP Zp_ShapePosX_i16
+.IMPORTZP Zp_ShapePosY_i16
+.IMPORTZP Zp_Tmp1_byte
+.IMPORTZP Zp_Tmp2_byte
 
 ;;;=========================================================================;;;
 
@@ -95,11 +102,39 @@ kSpikeballInitPlatformTop = \
     kSpikeballMinPlatformTop + kBlockHeightPx * kWinchInitGoalZ
 .LINECONT +
 
+;;;=========================================================================;;;
+
+;;; The nametable tile row/col for the top-left corner of the boss's BG tiles.
+kBossStartRow = 13
+kBossStartCol = 18
+
+;;; The PPU addresses for the start (left) of each row of the boss's BG tiles.
+.LINECONT +
+Ppu_BossRow0Start = Ppu_Nametable0_sName + sName::Tiles_u8_arr + \
+    kScreenWidthTiles * (kBossStartRow + 0) + kBossStartCol
+Ppu_BossRow1Start = Ppu_Nametable0_sName + sName::Tiles_u8_arr + \
+    kScreenWidthTiles * (kBossStartRow + 1) + kBossStartCol
+Ppu_BossRow2Start = Ppu_Nametable0_sName + sName::Tiles_u8_arr + \
+    kScreenWidthTiles * (kBossStartRow + 2) + kBossStartCol
+Ppu_BossRow3Start = Ppu_Nametable0_sName + sName::Tiles_u8_arr + \
+    kScreenWidthTiles * (kBossStartRow + 3) + kBossStartCol
+.LINECONT -
+
+;;; The initial room pixel position for the center of the boss's eye.
+kBossInitPosX = $a8
+kBossInitPosY = $78
+
 ;;; The OBJ tile ID for the first of the two side wall tiles.
 kTileIdFirstSideWall = $c0
 
 ;;; The OBJ palette number to use for the side walls.
 kSideWallPalette = 0
+
+;;; The OBJ tile ID for the pupil of the boss's eye.
+kTileIdBossPupil = $c2
+
+;;; The OBJ palette number to use for the pupil of the boss's eye.
+kBossPupilPalette = 0
 
 ;;;=========================================================================;;;
 
@@ -120,6 +155,9 @@ kSideWallPalette = 0
     WinchGoalZ_u8 .byte
     ;; Which step of its reset sequence the CryptTombWinch machine is on.
     WinchReset_eResetSeq .byte
+    ;; The room pixel position of the center of the boss's eye.
+    BossPosX_u8   .byte
+    BossPosY_u8   .byte
 .ENDSTRUCT
 .ASSERT .sizeof(sState) <= kRoomStateSize, error
 
@@ -154,7 +192,7 @@ _Ext_sRoomExt:
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
     d_addr Dialogs_sDialog_ptr_arr_ptr, 0
     d_addr Passages_sPassage_arr_ptr, 0
-    d_addr Init_func_ptr, Func_Noop
+    d_addr Init_func_ptr, FuncC_Crypt_Boss_InitRoom
     D_END
 _TerrainData:
 :   .incbin "out/data/crypt_boss.room"
@@ -415,13 +453,126 @@ _Inner:
     .byte 8, 8, 1, 9, 9, 9, 5, 1, 9, 9
 .ENDPROC
 
+.PROC DataC_Crypt_BossInitTransfer_arr
+    ;; Row 0:
+    .byte kPpuCtrlFlagsHorz
+    .byte >Ppu_BossRow0Start  ; transfer destination (hi)
+    .byte <Ppu_BossRow0Start  ; transfer destination (lo)
+    .byte 6
+    .byte $ec, $ed, $ee, $ef, $f0, $f1
+    ;; Row 1:
+    .byte kPpuCtrlFlagsHorz
+    .byte >Ppu_BossRow1Start  ; transfer destination (hi)
+    .byte <Ppu_BossRow1Start  ; transfer destination (lo)
+    .byte 6
+    .byte $f2, $f3, $a4, $a6, $f4, $f5
+    ;; Row 2:
+    .byte kPpuCtrlFlagsHorz
+    .byte >Ppu_BossRow2Start  ; transfer destination (hi)
+    .byte <Ppu_BossRow2Start  ; transfer destination (lo)
+    .byte 6
+    .byte $fc, $fd, $a5, $a7, $fe, $ff
+    ;; Row 3:
+    .byte kPpuCtrlFlagsHorz
+    .byte >Ppu_BossRow3Start  ; transfer destination (hi)
+    .byte <Ppu_BossRow3Start  ; transfer destination (lo)
+    .byte 6
+    .byte $f6, $f7, $f8, $f9, $fa, $fb
+.ENDPROC
+
+.PROC FuncC_Crypt_Boss_InitRoom
+    lda #kBossInitPosX
+    sta Ram_RoomState + sState::BossPosX_u8
+    lda #kBossInitPosY
+    sta Ram_RoomState + sState::BossPosY_u8
+_TransferBossTiles:
+    ldy #0
+    ldx Zp_PpuTransferLen_u8
+    @loop:
+    lda DataC_Crypt_BossInitTransfer_arr, y
+    iny
+    sta Ram_PpuTransfer_arr, x
+    inx
+    cpy #.sizeof(DataC_Crypt_BossInitTransfer_arr)
+    blt @loop
+    stx Zp_PpuTransferLen_u8
+    rts
+.ENDPROC
+
 .PROC FuncC_Crypt_Boss_DrawRoom
     ldx #kLeftWallPlatformIndex  ; param: platform index
     jsr FuncA_Objects_CryptBoss_DrawSideWall
     ldx #kRightWallPlatformIndex  ; param: platform index
     jsr FuncA_Objects_CryptBoss_DrawSideWall
-    ;; TODO: draw the boss
+_BossEye:
+    ;; Compute the avatar's Y-position relative to the boss.
+    lda Zp_AvatarPosY_i16 + 0
+    sub Ram_RoomState + sState::BossPosY_u8
+    bge @setYOffset
+    lda #0
+    @setYOffset:
+    sta Zp_Tmp1_byte  ; avatar Y-offset
+    ;; Compute the avatar's X-position relative to the boss.
+    lda Zp_AvatarPosX_i16 + 0
+    sub Ram_RoomState + sState::BossPosX_u8
+    blt @avatarToTheLeft
+    @avatarToTheRight:
+    sta Zp_Tmp2_byte  ; avatar X-offset
+    div #2
+    cmp Zp_Tmp1_byte  ; avatar Y-offset
+    bge @lookRight
+    lda Zp_Tmp1_byte  ; avatar Y-offset
+    div #2
+    cmp Zp_Tmp2_byte  ; avatar X-offset
+    bge @lookDown
+    @lookDownRight:
+    ldx #3
+    bne @setShapePos  ; unconditional
+    @lookRight:
+    ldx #4
+    bne @setShapePos  ; unconditional
+    @lookDown:
+    ldx #2
+    bne @setShapePos  ; unconditional
+    @avatarToTheLeft:
+    eor #$ff  ; negate (off by one, but close enough)
+    sta Zp_Tmp2_byte  ; avatar X-offset
+    div #2
+    cmp Zp_Tmp1_byte  ; avatar Y-offset
+    bge @lookLeft
+    lda Zp_Tmp1_byte  ; avatar Y-offset
+    div #2
+    cmp Zp_Tmp2_byte  ; avatar X-offset
+    bge @lookDown
+    @lookDownLeft:
+    ldx #1
+    bne @setShapePos  ; unconditional
+    @lookLeft:
+    ldx #0
+    @setShapePos:
+    lda Ram_RoomState + sState::BossPosX_u8
+    sub _EyeOffsetX_u8_arr, x
+    sta Zp_ShapePosX_i16 + 0
+    lda #0
+    sta Zp_ShapePosX_i16 + 1
+    lda Ram_RoomState + sState::BossPosY_u8
+    sub _EyeOffsetY_u8_arr, x
+    sta Zp_ShapePosY_i16 + 0
+    lda #0
+    sta Zp_ShapePosY_i16 + 1
+    ;; Allocate the object for the pupil.
+    jsr FuncA_Objects_Alloc1x1Shape  ; preserves X, returns C and Y
+    bcs @done
+    lda #kTileIdBossPupil
+    sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
+    lda #kBossPupilPalette
+    sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
+    @done:
     rts
+_EyeOffsetX_u8_arr:
+    .byte 6, 5, 4, 3, 2
+_EyeOffsetY_u8_arr:
+    .byte 4, 3, 2, 3, 4
 .ENDPROC
 
 ;;;=========================================================================;;;

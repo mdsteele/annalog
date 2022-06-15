@@ -30,7 +30,8 @@
 .EXPORT Ppu_ChrAnim0
 .PROC Ppu_ChrAnim0
 :   .incbin "out/data/tiles/anim01.chr"
-    .res $3f * kSizeofChr
+    .res $2b * kSizeofChr
+    .incbin "out/data/tiles/gazer_anim0.chr"
     .assert * - :- = kSizeofChr * $40, error
 .ENDPROC
 
@@ -41,7 +42,8 @@
 .EXPORT Ppu_ChrAnim1
 .PROC Ppu_ChrAnim1
 :   .incbin "out/data/tiles/anim11.chr"
-    .res $3f * kSizeofChr
+    .res $2b * kSizeofChr
+    .incbin "out/data/tiles/gazer_anim1.chr"
     .assert * - :- = kSizeofChr * $40, error
 .ENDPROC
 
@@ -52,7 +54,8 @@
 .EXPORT Ppu_ChrAnim2
 .PROC Ppu_ChrAnim2
 :   .incbin "out/data/tiles/anim21.chr"
-    .res $3f * kSizeofChr
+    .res $2b * kSizeofChr
+    .incbin "out/data/tiles/gazer_anim2.chr"
     .assert * - :- = kSizeofChr * $40, error
 .ENDPROC
 
@@ -63,7 +66,8 @@
 .EXPORT Ppu_ChrAnim3
 .PROC Ppu_ChrAnim3
 :   .incbin "out/data/tiles/anim31.chr"
-    .res $3f * kSizeofChr
+    .res $2b * kSizeofChr
+    .incbin "out/data/tiles/gazer_anim3.chr"
     .assert * - :- = kSizeofChr * $40, error
 .ENDPROC
 
@@ -86,7 +90,9 @@
 .EXPORT Ppu_ChrCrypt
 .PROC Ppu_ChrCrypt
 :   .incbin "out/data/tiles/crypt.chr"
-    .res $2a * kSizeofChr
+    .res $14 * kSizeofChr
+    .incbin "out/data/tiles/gazer_eye.chr"
+    .res $0a * kSizeofChr
     .incbin "out/data/tiles/device.chr"
     .assert * - :- = kSizeofChr * $40, error
 .ENDPROC
@@ -257,8 +263,8 @@
     .incbin "out/data/tiles/spider.chr"
     .incbin "out/data/tiles/crusher.chr"
     .incbin "out/data/tiles/winch.chr"
-    .incbin "out/data/tiles/sidewall.chr"
-    .res $3e * kSizeofChr
+    .incbin "out/data/tiles/gazer_obj.chr"
+    .res $3d * kSizeofChr
     .assert * - :- = kSizeofChr * $80, error
 .ENDPROC
 
