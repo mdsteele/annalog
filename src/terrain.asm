@@ -121,8 +121,8 @@ _TileColumnLoop:
     lda Zp_Tmp1_byte  ; room tile column index
     and #$01
     bne _RightSide
-_LeftSide:
-.SCOPE
+.PROC _LeftSide
+    ;; Fill in the top screen's worth of tiles.
     ldx #>Ppu_Nametable0_sName
     .assert <Ppu_Nametable0_sName = 0, error
     lda Zp_Tmp1_byte  ; room tile column index
@@ -141,16 +141,17 @@ _LeftSide:
     iny
     cpy #kScreenHeightBlocks
     bne @tileLoop
-.ENDSCOPE
-.SCOPE
-    bit <(Zp_Current_sRoom + sRoom::IsTall_bool)
-    bpl @shortRoom
+    ;; Prepare to fill in the bottom screen's worth of tiles.
     ldx #>Ppu_Nametable3_sName
     .assert <Ppu_Nametable3_sName = 0, error
     lda Zp_Tmp1_byte  ; room tile column index
     and #$1f
     stx Hw_PpuAddr_w2
     sta Hw_PpuAddr_w2
+    ;; Check if this room is more than one screen tall.
+    bit <(Zp_Current_sRoom + sRoom::IsTall_bool)
+    bpl _ShortRoom
+_TallRoom:
     @tileLoop:
     lda (Zp_TerrainColumn_u8_arr_ptr), y
     sty Zp_Tmp3_byte  ; room block row index
@@ -163,11 +164,10 @@ _LeftSide:
     iny
     cpy #kTallRoomHeightBlocks
     bne @tileLoop
-    @shortRoom:
-.ENDSCOPE
-    jmp _Continue
-_RightSide:
-.SCOPE
+    beq _Continue  ; unconditional
+.ENDPROC
+.PROC _RightSide
+    ;; Fill in the top screen's worth of tiles.
     ldx #>Ppu_Nametable0_sName
     .assert <Ppu_Nametable0_sName = 0, error
     lda Zp_Tmp1_byte  ; room tile column index
@@ -186,16 +186,17 @@ _RightSide:
     iny
     cpy #kScreenHeightBlocks
     bne @tileLoop
-.ENDSCOPE
-.SCOPE
-    bit <(Zp_Current_sRoom + sRoom::IsTall_bool)
-    bpl @shortRoom
+    ;; Prepare to fill in the bottom screen's worth of tiles.
     ldx #>Ppu_Nametable3_sName
     .assert <Ppu_Nametable3_sName = 0, error
     lda Zp_Tmp1_byte  ; room tile column index
     and #$1f
     stx Hw_PpuAddr_w2
     sta Hw_PpuAddr_w2
+    ;; Check if this room is more than one screen tall.
+    bit <(Zp_Current_sRoom + sRoom::IsTall_bool)
+    bpl _ShortRoom
+_TallRoom:
     @tileLoop:
     lda (Zp_TerrainColumn_u8_arr_ptr), y
     sty Zp_Tmp3_byte  ; room block row index
@@ -208,8 +209,16 @@ _RightSide:
     iny
     cpy #kTallRoomHeightBlocks
     bne @tileLoop
-    @shortRoom:
-.ENDSCOPE
+    beq _Continue  ; unconditional
+.ENDPROC
+_ShortRoom:
+    lda #0
+    @tileLoop:
+    sta Hw_PpuData_rw
+    sta Hw_PpuData_rw
+    iny
+    cpy #kTallRoomHeightBlocks
+    bne @tileLoop
 _Continue:
     lda Zp_Tmp1_byte  ; current room tile column index
     cmp Zp_Tmp2_byte  ; final room tile column index

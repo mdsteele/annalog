@@ -691,13 +691,15 @@ _UpdateNametable:
 ;;; always be visible: the player avatar, machines, enemies, and devices.
 .EXPORT FuncA_Objects_DrawObjectsForRoom
 .PROC FuncA_Objects_DrawObjectsForRoom
-    ;; Set up PPU scrolling and IRQ.
+    ;; Set up PPU scrolling and IRQ.  A room's draw function can optionally
+    ;; override this if it needs its own IRQ behavior.
     lda Zp_RoomScrollX_u16 + 0
     sta Zp_PpuScrollX_u8
     lda Zp_RoomScrollY_u8
     sta Zp_PpuScrollY_u8
     jsr Func_Window_SetUpIrq
-    ;; Update CHR0C bank (for animated terrain).
+    ;; Update CHR0C bank (for animated terrain).  A room's draw function can
+    ;; optionally override this if it needs its own animation behavior.
     lda Zp_FrameCounter_u8
     div #8
     and #$03
