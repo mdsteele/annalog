@@ -40,6 +40,7 @@
 .IMPORT FuncA_Objects_DrawObjectsForRoom
 .IMPORT FuncA_Terrain_ScrollTowardsGoal
 .IMPORT Func_ClearRestOfOam
+.IMPORT Func_GetMachineProgram
 .IMPORT Func_IsFlagSet
 .IMPORT Func_MachineReset
 .IMPORT Func_ProcessFrame
@@ -389,11 +390,11 @@ _InitWindow:
     rts
 .ENDPROC
 
-;;; Copies Zp_Current_sProgram_ptr to Zp_ConsoleSram_sProgram_ptr, then loads
-;;; the program from SRAM into Ram_Console_sProgram, then makes
-;;; Zp_Current_sProgram_ptr point to Ram_Console_sProgram.
-;;; @prereq Zp_Current_sProgram_ptr has been initialized.
+;;; Makes Zp_ConsoleSram_sProgram_ptr point to the current machine's program in
+;;; SRAM, then loads the program from SRAM into Ram_Console_sProgram.
+;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
 .PROC FuncA_Console_LoadProgram
+    jsr Func_GetMachineProgram
     ldax Zp_Current_sProgram_ptr
     stax Zp_ConsoleSram_sProgram_ptr
     ;; Initialize Ram_Console_sProgram from SRAM.
@@ -403,9 +404,6 @@ _InitWindow:
     sta Ram_Console_sProgram, y
     dey
     bpl @loop
-    ;; Make Zp_Current_sProgram_ptr point to Ram_Console_sProgram.
-    ldax #Ram_Console_sProgram
-    stax Zp_Current_sProgram_ptr
     rts
 .ENDPROC
 

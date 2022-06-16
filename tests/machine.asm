@@ -25,6 +25,7 @@
 .IMPORT Exit_Success
 .IMPORT FuncA_Machine_ExecuteAll
 .IMPORT Func_ExpectAEqualsY
+.IMPORT Func_GetMachineProgram
 .IMPORT Func_InitAllMachines
 .IMPORT Func_MachineError
 .IMPORT Func_SetMachineIndex
@@ -221,6 +222,8 @@ SetMachineIndex:
     lda Zp_Current_sMachine_ptr + 0
     ldy #<Data_Machines_sMachine_arr::TestMachine
     jsr Func_ExpectAEqualsY
+    ;; Set the current program.
+    jsr Func_GetMachineProgram
     ;; Verify that Zp_Current_sProgram_ptr has been initialized.
     lda Zp_Current_sProgram_ptr + 1
     ldy #>Sram_Programs_sProgram_arr::TestProgram

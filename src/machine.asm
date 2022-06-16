@@ -166,8 +166,7 @@ Ram_MachineParam2_i16_1_arr: .res kMaxMachines
     rts
 .ENDPROC
 
-;;; Sets Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr, and makes
-;;; Zp_Current_sProgram_ptr point to the machine's program in SRAM.
+;;; Sets Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr.
 ;;; @prereq Zp_Current_sRoom is initialized.
 ;;; @param X The machine index to set.
 ;;; @preserve X
@@ -181,6 +180,19 @@ Ram_MachineParam2_i16_1_arr: .res kMaxMachines
     lda <(Zp_Current_sRoom + sRoom::Machines_sMachine_arr_ptr + 1)
     adc #0
     sta Zp_Current_sMachine_ptr + 1
+    rts
+_MachineOffsets_u8_arr:
+    .assert .sizeof(sMachine) * (kMaxMachines - 1) < $100, error
+    .repeat kMaxMachines, index
+    .byte .sizeof(sMachine) * index
+    .endrepeat
+.ENDPROC
+
+;;; Sets Zp_Current_sProgram_ptr to point to the current machine's program in
+;;; SRAM.
+;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
+.EXPORT Func_GetMachineProgram
+.PROC Func_GetMachineProgram
     ;; Store the machine's program number in A.
     ldy #sMachine::Code_eProgram
     lda (Zp_Current_sMachine_ptr), y
@@ -201,11 +213,6 @@ Ram_MachineParam2_i16_1_arr: .res kMaxMachines
     adc #>Sram_Programs_sProgram_arr
     sta Zp_Current_sProgram_ptr + 1
     rts
-_MachineOffsets_u8_arr:
-    .assert .sizeof(sMachine) * (kMaxMachines - 1) < $100, error
-    .repeat kMaxMachines, index
-    .byte .sizeof(sMachine) * index
-    .endrepeat
 .ENDPROC
 
 ;;; Reads an immediate or register value for the current machine.
@@ -624,6 +631,7 @@ _Le:
     beq @while  ; unconditional
     @loop:
     jsr Func_SetMachineIndex
+    jsr Func_GetMachineProgram
     jsr FuncA_Machine_ExecuteNext
     jsr FuncA_Machine_Tick
     ldx Zp_MachineIndex_u8
