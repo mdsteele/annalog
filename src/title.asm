@@ -34,7 +34,6 @@
 .IMPORT Func_ClearRestOfOam
 .IMPORT Func_GetRandomByte
 .IMPORT Func_ProcessFrame
-.IMPORT Func_UpdateButtons
 .IMPORT Func_Window_Disable
 .IMPORT Main_Explore_SpawnInLastSafeRoom
 .IMPORT Ppu_ChrTitle
@@ -79,7 +78,6 @@ Ppu_TitleTopLeft = Ppu_Nametable0_sName + sName::Tiles_u8_arr + \
     jsr_prga FuncA_Title_Init
     jsr_prga FuncA_Fade_In
 _GameLoop:
-    jsr Func_UpdateButtons
     ;; Check START button.
     lda Zp_P1ButtonsPressed_bJoypad
     and #bJoypad::Start

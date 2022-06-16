@@ -43,7 +43,6 @@
 .IMPORT Func_ClearRestOfOam
 .IMPORT Func_ProcessFrame
 .IMPORT Func_SetMachineIndex
-.IMPORT Func_UpdateButtons
 .IMPORT Func_Window_GetRowPpuAddr
 .IMPORT Main_Console_ContinueEditing
 .IMPORT Ram_ConsoleRegNames_u8_arr6
@@ -1296,7 +1295,6 @@ _GameLoop:
     jsr_prga FuncA_Console_DrawMenuCursorObjects
     jsr Func_ClearRestOfOam
     jsr Func_ProcessFrame
-    jsr Func_UpdateButtons
 _CheckForCancel:
     bit Zp_P1ButtonsPressed_bJoypad
     ;; B button:

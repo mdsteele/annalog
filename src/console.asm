@@ -45,7 +45,6 @@
 .IMPORT Func_ProcessFrame
 .IMPORT Func_SetMachineIndex
 .IMPORT Func_SetScrollGoalFromAvatar
-.IMPORT Func_UpdateButtons
 .IMPORT Func_Window_GetRowPpuAddr
 .IMPORT Func_Window_PrepareRowTransfer
 .IMPORT Func_Window_TransferBottomBorder
@@ -162,7 +161,6 @@ _GameLoop:
     jsr_prga FuncA_Objects_DrawObjectsForRoom
     jsr Func_ClearRestOfOam
     jsr Func_ProcessFrame
-    jsr Func_UpdateButtons
 _ScrollWindowUp:
     lda Zp_WindowTop_u8
     sub #kConsoleWindowScrollSpeed
@@ -196,7 +194,6 @@ _GameLoop:
     jsr_prga FuncA_Objects_DrawObjectsForRoom
     jsr Func_ClearRestOfOam
     jsr Func_ProcessFrame
-    jsr Func_UpdateButtons
 _ScrollWindowDown:
     lda Zp_WindowTop_u8
     add #kConsoleWindowScrollSpeed
@@ -240,7 +237,6 @@ _GameLoop:
     jsr_prga FuncA_Console_DrawFieldCursorObjects
     jsr Func_ClearRestOfOam
     jsr Func_ProcessFrame
-    jsr Func_UpdateButtons
 _CheckButtons:
     ;; B button:
     bit Zp_P1ButtonsPressed_bJoypad
@@ -284,7 +280,6 @@ _GameLoop:
     jsr_prga FuncA_Objects_DrawObjectsForRoom
     jsr Func_ClearRestOfOam
     jsr Func_ProcessFrame
-    jsr Func_UpdateButtons
 _CheckButtons:
     lda Zp_P1ButtonsPressed_bJoypad
     and #bJoypad::AButton | bJoypad::BButton

@@ -55,7 +55,6 @@
 .IMPORT Func_SetLastSpawnPoint
 .IMPORT Func_TickAllDevices
 .IMPORT Func_ToggleLeverDevice
-.IMPORT Func_UpdateButtons
 .IMPORT Func_Window_DirectDrawTopBorder
 .IMPORT Func_Window_Disable
 .IMPORT Func_Window_SetUpIrq
@@ -210,7 +209,6 @@ _GameLoop:
     jsr_prga FuncA_Objects_DrawObjectsForRoom
     jsr Func_ClearRestOfOam
     jsr Func_ProcessFrame
-    jsr Func_UpdateButtons
 _CheckForToggleHud:
     lda Zp_P1ButtonsPressed_bJoypad
     and #bJoypad::Select

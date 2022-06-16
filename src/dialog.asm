@@ -33,7 +33,6 @@
 .IMPORT Func_ClearRestOfOam
 .IMPORT Func_ProcessFrame
 .IMPORT Func_SetScrollGoalFromAvatar
-.IMPORT Func_UpdateButtons
 .IMPORT Func_Window_GetRowPpuAddr
 .IMPORT Func_Window_PrepareRowTransfer
 .IMPORT Func_Window_TransferBottomBorder
@@ -122,7 +121,6 @@ _GameLoop:
     jsr_prga FuncA_Objects_DrawObjectsForRoom
     jsr Func_ClearRestOfOam
     jsr Func_ProcessFrame
-    jsr Func_UpdateButtons
 _ScrollWindowUp:
     lda Zp_WindowTop_u8
     sub #kDialogWindowScrollSpeed
@@ -150,7 +148,6 @@ _GameLoop:
     jsr_prga FuncA_Objects_DrawObjectsForRoom
     jsr Func_ClearRestOfOam
     jsr Func_ProcessFrame
-    jsr Func_UpdateButtons
 _ScrollWindowDown:
     lda Zp_WindowTop_u8
     add #kDialogWindowScrollSpeed
@@ -179,7 +176,6 @@ _GameLoop:
     jsr_prga FuncA_Dialog_DrawObjectsForPrompt
     jsr Func_ClearRestOfOam
     jsr Func_ProcessFrame
-    jsr Func_UpdateButtons
 _Tick:
     jsr_prga FuncA_Dialog_Tick  ; sets C if window should be closed; returns X
     chr04_bank x

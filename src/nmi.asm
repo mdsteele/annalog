@@ -25,6 +25,7 @@
 
 .IMPORT Func_AudioSync
 .IMPORT Func_AudioUpdate
+.IMPORT Func_ReadJoypad
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORTZP Zp_Active_sIrq
 .IMPORTZP Zp_Buffered_sIrq
@@ -198,7 +199,8 @@ _DoneUpdatingPpu:
     @loop:
     bit Zp_NmiReady_bool  ; loop until high bit is 0 again
     bmi @loop
-    rts
+    ;; Read the joypad for this frame.
+    jmp Func_ReadJoypad
 .ENDPROC
 
 ;;;=========================================================================;;;

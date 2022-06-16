@@ -34,7 +34,6 @@
 .IMPORT Func_ClearRestOfOam
 .IMPORT Func_IsFlagSet
 .IMPORT Func_ProcessFrame
-.IMPORT Func_UpdateButtons
 .IMPORT Func_Window_Disable
 .IMPORT Main_Explore_FadeIn
 .IMPORT Ppu_ChrPause
@@ -98,7 +97,6 @@ _GameLoop:
     jsr_prga FuncA_Pause_DrawObjectsForMinimap
     jsr Func_ClearRestOfOam
     jsr Func_ProcessFrame
-    jsr Func_UpdateButtons
 _CheckForUnause:
     lda Zp_P1ButtonsPressed_bJoypad
     and #bJoypad::Start | bJoypad::BButton | bJoypad::AButton

@@ -77,7 +77,7 @@ _Initialize:
     sta Hw_Channels_sChanRegs_arr5 + sChanRegs::TimerHi_wo, x
 _Continue:
     inc Ram_Sound_sChanSfx_arr + sChanSfx::Param2_byte, x
-    clc  ; clear C to indicate that the sound is still goingw
+    clc  ; clear C to indicate that the sound is still going
     rts
 ;;; These values represent the ten natural notes from A3 through C5.
 _TimerLo: .byte $fb, $c4, $ab, $7c, $52, $3f, $1c, $fd, $e1, $d5
