@@ -1,15 +1,16 @@
 @BG 0 0 0 32x10
 >anim01
+>cobweb
 >crypt
 >device
 
-    CGCI    CCCE
-    CHCJCACBCDCF
-BCBDBCBDBCBHBCBH  BJBJ    BJBJ    BKBL                      AAAA
-BEBFBGBFBEBFBGBF  BJBJ
+    DGDI    DCDE                                  BGBF  BDBF  BA
+    DHDJDADBDDDF                            BH          BE  BBBC
+CCCDCCCDCCCHCCCH  CJCJ    CJCJ    CKCL                      AAAA
+CECFCGCFCECFCGCF  CJCJ                    CMCMCNCM
 
 
 
-                                                            BIBI
-BBBABBBABB    BABB    BABBBA              BABB  BBBA
-BA    BBBA    BBBABBBABB    BABB  BBBA          BABB
+                                                            CICI
+CBCACBCACB    CACB    CACBCA              CACB  CBCA
+CA    CBCA    CBCACBCACB    CACB  CBCA          CACB

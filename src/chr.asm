@@ -90,7 +90,9 @@
 .EXPORT Ppu_ChrCrypt
 .PROC Ppu_ChrCrypt
 :   .incbin "out/data/tiles/crypt.chr"
-    .res $14 * kSizeofChr
+    .res $02 * kSizeofChr
+    .incbin "out/data/tiles/cobweb.chr"
+    .res $08 * kSizeofChr
     .incbin "out/data/tiles/gazer_eye.chr"
     .res $0a * kSizeofChr
     .incbin "out/data/tiles/device.chr"
