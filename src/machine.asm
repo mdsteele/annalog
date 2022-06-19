@@ -344,6 +344,84 @@ _ReadRegB:
 
 .SEGMENT "PRGA_Machine"
 
+;;; Helper function for FuncA_Machine_ExecuteNext.  Extracts the two arguments
+;;; from a binop instruction (ADD, SUB, MUL, IF, or TIL).
+;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
+;;; @prereq Zp_Current_sInst holds a binop instruction.
+;;; @return A The left-hand value (0-9).
+;;; @return Y The right-hand value (0-9).
+.PROC FuncA_Machine_GetBinopArgs
+    lda <(Zp_Current_sInst + sInst::Arg_byte)
+    and #$0f  ; param: immediate value or register to read
+    jsr Func_MachineRead  ; returns A
+    pha  ; left-hand value
+    lda <(Zp_Current_sInst + sInst::Arg_byte)
+    div #$10  ; param: immediate value or register to read
+    jsr Func_MachineRead  ; returns A
+    tay  ; right-hand value
+    pla  ; left-hand value
+    rts
+.ENDPROC
+
+;;; Helper function for FuncA_Machine_ExecuteNext.  Evaluates the predicate for
+;;; a conditional instruction (IF or TIL).
+;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
+;;; @prereq Zp_Current_sInst holds a conditional instruction.
+;;; @return Z Set if the condition is true, cleared if false.
+.PROC FuncA_Machine_EvalConditional
+    jsr FuncA_Machine_GetBinopArgs  ; returns A and Y
+    sty Zp_Tmp1_byte  ; right-hand value
+    cmp Zp_Tmp1_byte
+    php  ; comparison flags
+    lda <(Zp_Current_sInst + sInst::Op_byte)
+    and #$0f
+    tax  ; eCmp value
+    pla  ; comparison flags
+    cpx #eCmp::Eq
+    beq _Eq
+    cpx #eCmp::Ne
+    beq _Ne
+    cpx #eCmp::Lt
+    beq _Lt
+    cpx #eCmp::Gt
+    beq _Gt
+    cpx #eCmp::Le
+    beq _Le
+_Ge:
+    ;; Set Z if C was set.
+    eor #bProc::Carry
+    and #bProc::Carry
+    rts
+_Eq:
+    ;; Set Z if Z was set.
+    eor #bProc::Zero
+    and #bProc::Zero
+    rts
+_Ne:
+    ;; Set Z if Z was cleared.
+    and #bProc::Zero
+    rts
+_Lt:
+    ;; Set Z if C was cleared.
+    and #bProc::Carry
+    rts
+_Gt:
+    ;; Set Z if C was set and Z was cleared.
+    eor #bProc::Carry
+    and #bProc::Carry | bProc::Zero
+    rts
+_Le:
+    ;; Set Z if C was cleared or Z was set.
+    tax
+    and #bProc::Carry
+    beq @done
+    txa
+    eor #bProc::Zero
+    and #bProc::Zero
+    @done:
+    rts
+.ENDPROC
+
 ;;; Executes the next instruction on the current machine.
 ;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
 ;;; @prereq Zp_Current_sProgram_ptr is initialized.
@@ -398,34 +476,49 @@ _SetLValueToA:
     jsr Func_MachineWrite
     jmp _IncrementPc
 _OpAdd:
-    lda <(Zp_Current_sInst + sInst::Arg_byte)
-    and #$0f  ; param: immediate value or register to read
-    jsr Func_MachineRead  ; returns A
-    pha
-    lda <(Zp_Current_sInst + sInst::Arg_byte)
-    div #$10  ; param: immediate value or register to read
-    jsr Func_MachineRead  ; returns A
-    sta Zp_Tmp1_byte
-    pla
+    jsr FuncA_Machine_GetBinopArgs  ; returns A and Y
+    sty Zp_Tmp1_byte  ; right-hand value
     add Zp_Tmp1_byte
     cmp #10
     blt _SetLValueToA
     lda #9
     bne _SetLValueToA  ; unconditional
 _OpSub:
-    lda <(Zp_Current_sInst + sInst::Arg_byte)
-    and #$0f  ; param: immediate value or register to read
-    jsr Func_MachineRead  ; returns A
-    pha
-    lda <(Zp_Current_sInst + sInst::Arg_byte)
-    div #$10  ; param: immediate value or register to read
-    jsr Func_MachineRead  ; returns A
-    sta Zp_Tmp1_byte
-    pla
+    jsr FuncA_Machine_GetBinopArgs  ; returns A and Y
+    sty Zp_Tmp1_byte  ; right-hand value
     sub Zp_Tmp1_byte
     bge _SetLValueToA
     lda #0
     beq _SetLValueToA  ; unconditional
+_OpMul:
+    ;; Get the two factors to multiply together.
+    jsr FuncA_Machine_GetBinopArgs  ; returns A and Y
+    sty Zp_Tmp1_byte  ; right-hand value
+    ;; If necessary, swap the two factors so that the smaller factor is in A,
+    ;; and the larger factor is in Zp_Tmp1_byte.
+    cmp Zp_Tmp1_byte
+    blt @doneSwap
+    sta Zp_Tmp1_byte  ; larger factor
+    tya               ; smaller factor
+    @doneSwap:
+    ;; If the smaller factor is >= 3, then the product will be >= 9, so just
+    ;; saturate at 9.
+    cmp #3
+    bge @productIs9
+    ;; If the smaller factor is zero, the product is zero.
+    cmp #1
+    blt _SetLValueToA  ; A is zero
+    ;; Otherwise, the smaller factor is 1 or 2, so the product is the other
+    ;; factor, possibly doubled.  We just have to check for saturation.
+    beq @doneShift
+    asl Zp_Tmp1_byte  ; larger factor
+    @doneShift:
+    lda Zp_Tmp1_byte  ; product (possibly > 9)
+    cmp #10
+    blt _SetLValueToA
+    @productIs9:
+    lda #9
+    bne _SetLValueToA  ; unconditional
 _OpGoto:
     lda <(Zp_Current_sInst + sInst::Op_byte)
     and #$0f
@@ -439,12 +532,12 @@ _OpSkip:
     inx
     bne _IncrementPcByX  ; unconditional
 _OpIf:
-    jsr _EvalConditional  ; sets Z if condition is true
+    jsr FuncA_Machine_EvalConditional  ; sets Z if condition is true
     beq _IncrementPc
     ldx #2
     bne _IncrementPcByX  ; unconditional
 _OpTil:
-    jsr _EvalConditional  ; sets Z if condition is true
+    jsr FuncA_Machine_EvalConditional  ; sets Z if condition is true
     beq _IncrementPc
 _DecrementPc:
     ldx Zp_MachineIndex_u8
@@ -512,8 +605,7 @@ _OpEnd:
 _OpEmpty:
     rts
 _OpSwap:
-_OpMul:
-    ;; TODO: Implement executing SWAP/MUL instructions.
+    ;; TODO: Implement executing SWAP instruction.
 _OpNop:
 _IncrementPc:
     ldx #1
@@ -546,66 +638,6 @@ _IncrementPcByX:
     ldx Zp_MachineIndex_u8
     sta Ram_MachinePc_u8_arr, x
     rts
-.PROC _EvalConditional
-    lda <(Zp_Current_sInst + sInst::Arg_byte)
-    and #$0f  ; param: immediate value or register to read
-    jsr Func_MachineRead  ; returns A
-    pha  ; left-hand value
-    lda <(Zp_Current_sInst + sInst::Arg_byte)
-    div #$10  ; param: immediate value or register to read
-    jsr Func_MachineRead  ; returns A
-    sta Zp_Tmp1_byte  ; right-hand value
-    pla  ; left-hand value
-    cmp Zp_Tmp1_byte
-    php
-    lda <(Zp_Current_sInst + sInst::Op_byte)
-    and #$0f
-    tax  ; eCmp value
-    pla  ; comparison flags
-    cpx #eCmp::Eq
-    beq _Eq
-    cpx #eCmp::Ne
-    beq _Ne
-    cpx #eCmp::Lt
-    beq _Lt
-    cpx #eCmp::Gt
-    beq _Gt
-    cpx #eCmp::Le
-    beq _Le
-_Ge:
-    ;; Set Z if C was set.
-    eor #bProc::Carry
-    and #bProc::Carry
-    rts
-_Eq:
-    ;; Set Z if Z was set.
-    eor #bProc::Zero
-    and #bProc::Zero
-    rts
-_Ne:
-    ;; Set Z if Z was cleared.
-    and #bProc::Zero
-    rts
-_Lt:
-    ;; Set Z if C was cleared.
-    and #bProc::Carry
-    rts
-_Gt:
-    ;; Set Z if C was set and Z was cleared.
-    eor #bProc::Carry
-    and #bProc::Carry | bProc::Zero
-    rts
-_Le:
-    ;; Set Z if C was cleared or Z was set.
-    tax
-    and #bProc::Carry
-    beq @done
-    txa
-    eor #bProc::Zero
-    and #bProc::Zero
-    @done:
-    rts
-.ENDPROC
 .ENDPROC
 
 ;;; Calls the current machine's per-frame tick function.
