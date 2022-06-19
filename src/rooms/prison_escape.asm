@@ -280,7 +280,6 @@ _Trolley_Tick:
     ldx #kGirderPlatformIndex  ; param: platform index
     jmp Func_MovePlatformHorz
     @done:
-_Finished:
     jmp Func_MachineFinishResetting
 .ENDPROC
 

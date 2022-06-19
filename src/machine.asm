@@ -503,7 +503,7 @@ _OpBeep:
     jsr Func_PlayBeepSfx
     ldx Zp_MachineIndex_u8
 _OpWait:
-    lda #$20  ; 32 frames = about half a second
+    lda #$10  ; 16 frames = about a quarter second
     sta Ram_MachineWait_u8_arr, x
     rts
 _OpEnd:

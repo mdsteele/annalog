@@ -31,7 +31,7 @@ kMachineRegNameB = $21  ; 'B'
 
 ;;; CHR04 bank numbers to set for various machine status diagrams.
 .ENUM eDiagram
-    Barrier = $01
+    Lift    = $01
     Trolley = $02
     Winch   = $03
 .ENDENUM

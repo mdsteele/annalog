@@ -106,6 +106,7 @@
     CryptTombWinch
     CryptWestWinch
     GardenBossCannon
+    GardenCrossroadLift
     PrisonCellBarrier
     PrisonCellBlaster
     PrisonEscapeTrolley
