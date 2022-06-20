@@ -94,7 +94,9 @@
     .incbin "out/data/tiles/cobweb.chr"
     .res $08 * kSizeofChr
     .incbin "out/data/tiles/gazer_eye.chr"
-    .res $0a * kSizeofChr
+    .res $04 * kSizeofChr
+    .incbin "out/data/tiles/arch.chr"
+    .res $02 * kSizeofChr
     .incbin "out/data/tiles/device.chr"
     .assert * - :- = kSizeofChr * $40, error
 .ENDPROC
@@ -152,7 +154,8 @@
 :   .incbin "out/data/tiles/jungle1.chr"
     .incbin "out/data/tiles/jungle2.chr"
     .incbin "out/data/tiles/jungle3.chr"
-    .res $06 * kSizeofChr
+    .incbin "out/data/tiles/arch.chr"
+    .res $02 * kSizeofChr
     .incbin "out/data/tiles/device.chr"
     .assert * - :- = kSizeofChr * $40, error
 .ENDPROC

@@ -130,7 +130,8 @@ Zp_RoomScrollX_u16: .res 2
 .EXPORTZP Zp_RoomScrollY_u8
 Zp_RoomScrollY_u8: .res 1
 
-;;; The index of the device that the player avatar is near, or $ff if none.
+;;; The index of the (interactive) device that the player avatar is near, or
+;;; $ff if none.
 Zp_NearbyDevice_u8: .res 1
 
 ;;; If true ($ff), the register value HUD will be displayed (assuming that
@@ -234,20 +235,24 @@ _CheckForActivateDevice:
     lda Ram_DeviceType_eDevice_arr, x
     cmp #eDevice::Console
     jeq Main_Explore_UseConsole
-    cmp #eDevice::Door
-    jeq Main_Explore_GoThroughDoor
     cmp #eDevice::Flower
     beq @flower
     cmp #eDevice::Lever
     beq @lever
+    cmp #eDevice::OpenDoorway
+    beq @door
     cmp #eDevice::Sign
     beq @sign
+    cmp #eDevice::UnlockedDoor
+    beq @door
     cmp #eDevice::Upgrade
     bne @done
     @upgrade:
     lda #$ff
     sta Zp_NearbyDevice_u8
     jmp Main_Upgrade_OpenWindow
+    @door:
+    jmp Main_Explore_GoThroughDoor
     @flower:
     lda #$ff
     sta Zp_NearbyDevice_u8
@@ -414,8 +419,9 @@ _Respawn:
     jmp (Zp_Current_sRoom + sRoom::Tick_func_ptr)
 .ENDPROC
 
-;;; Sets Zp_NearbyDevice_u8 to the index of the device that the player avatar
-;;; is near (if any), or to $ff if the avatar is not near a device.
+;;; Sets Zp_NearbyDevice_u8 to the index of the (interactive) device that the
+;;; player avatar is near (if any), or to $ff if the avatar is not near an
+;;; interactive device.
 .PROC Func_FindNearbyDevice
     ;; Check if the player avatar is airborne; if so, treat them as not near
     ;; any device.
@@ -443,12 +449,12 @@ _Respawn:
     lsr a
     ror Zp_Tmp2_byte
     .endrepeat
-    ;; Find a device with the same block row/col.
+    ;; Find an interactive device with the same block row/col.
     ldx #kMaxDevices - 1
     @loop:
     lda Ram_DeviceType_eDevice_arr, x
-    .assert eDevice::None = 0, error
-    beq @continue
+    cmp #kFirstInteractiveDeviceType
+    blt @continue
     lda Ram_DeviceBlockCol_u8_arr, x
     cmp Zp_Tmp2_byte  ; player block col
     bne @continue

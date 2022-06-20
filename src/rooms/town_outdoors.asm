@@ -102,13 +102,13 @@ _Devices_sDevice_arr:
     d_byte Target_u8, 0
     D_END
     D_STRUCT sDevice
-    d_byte Type_eDevice, eDevice::Door
+    d_byte Type_eDevice, eDevice::OpenDoorway
     d_byte BlockRow_u8, 12
     d_byte BlockCol_u8, 4
     d_byte Target_u8, eRoom::TownHouse1
     D_END
     D_STRUCT sDevice
-    d_byte Type_eDevice, eDevice::Door
+    d_byte Type_eDevice, eDevice::OpenDoorway
     d_byte BlockRow_u8, 12
     d_byte BlockCol_u8, 12
     d_byte Target_u8, eRoom::TownHouse2

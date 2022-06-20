@@ -1,16 +1,17 @@
 @BG 0 0 0 32x10
 >anim01
+>arch
 >cobweb
 >crypt
 >device
 
-    DGDI    DCDE                                  BGBF  BDBF  BA
-    DHDJDADBDDDF                            BH          BE  BBBC
-CCCDCCCDCCCHCCCH  CJCJ    CJCJ    CKCL                      AAAA
-CECFCGCFCECFCGCF  CJCJ                    CMCMCNCM
+    EGEI    ECEE    BCBD                          CGCF  CDCF  CA
+    EHEJEAEBEDEFBABBBCBD                    CH          CE  CBCC
+DCDDDCDDDCDHDCDH  DJDJ    DJDJ    DKDL                      AAAA
+DEDFDGDFDEDFDGDF  DJDJ                    DMDMDNDM
 
 
 
-                                                            CICI
-CBCACBCACB    CACB    CACBCA              CACB  CBCA
-CA    CBCA    CBCACBCACB    CACB  CBCA          CACB
+                                                            DIDI
+DBDADBDADB    DADB    DADBDA              DADB  DBDA
+DA    DBDA    DBDADBDADB    DADB  DBDA          DADB

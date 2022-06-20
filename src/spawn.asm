@@ -239,12 +239,17 @@ _WestEdge:
 ;;; @prereq The new room is loaded, and Zp_Previous_eRoom is initialized.
 .EXPORT FuncA_Avatar_EnterRoomViaDoor
 .PROC FuncA_Avatar_EnterRoomViaDoor
-    ;; Find the corresponding door to enter from in the new room.
+    ;; Find the corresponding door (of any type) to enter from in the new room.
     ldx #kMaxDevices - 1
     @loop:
     lda Ram_DeviceType_eDevice_arr, x
-    cmp #eDevice::Door
+    cmp #eDevice::LockedDoor
+    beq @door
+    cmp #eDevice::OpenDoorway
+    beq @door
+    cmp #eDevice::UnlockedDoor
     bne @continue
+    @door:
     lda Ram_DeviceTarget_u8_arr, x
     cmp Zp_Previous_eRoom
     beq @break
@@ -295,13 +300,15 @@ _WestEdge:
     jmp FuncA_Avatar_InitMotionless
 _DeviceOffset_u8_arr:
     D_ENUM eDevice
-    d_byte None,    $08
-    d_byte Console, $06
-    d_byte Door,    $08
-    d_byte Flower,  $08
-    d_byte Lever,   $06
-    d_byte Sign,    $06
-    d_byte Upgrade, $08
+    d_byte None,         $08
+    d_byte LockedDoor,   $08
+    d_byte Console,      $06
+    d_byte Flower,       $08
+    d_byte Lever,        $06
+    d_byte OpenDoorway,  $08
+    d_byte Sign,         $06
+    d_byte UnlockedDoor, $08
+    d_byte Upgrade,      $08
     D_END
 .ENDPROC
 

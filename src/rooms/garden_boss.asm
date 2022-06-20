@@ -31,7 +31,7 @@
 
 .IMPORT DataA_Pause_GardenAreaCells_u8_arr2_arr
 .IMPORT DataA_Pause_GardenAreaName_u8_arr
-.IMPORT DataA_Room_Prison_sTileset
+.IMPORT DataA_Room_Garden_sTileset
 .IMPORT FuncA_Objects_DrawGrenadeLauncherMachine
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
 .IMPORT Func_FindEmptyActorSlot
@@ -40,10 +40,12 @@
 .IMPORT Func_InitGrenadeActor
 .IMPORT Func_InitSmokeActor
 .IMPORT Func_InitSpikeActor
+.IMPORT Func_LockDoorDevice
 .IMPORT Func_MachineError
 .IMPORT Func_MachineFinishResetting
 .IMPORT Func_MarkRoomSafe
 .IMPORT Func_Noop
+.IMPORT Func_UnlockDoorDevice
 .IMPORT Ppu_ChrUpgrade
 .IMPORT Ram_ActorPosX_i16_0_arr
 .IMPORT Ram_ActorPosX_i16_1_arr
@@ -74,6 +76,9 @@ kUpgradeDeviceIndex = 0
 ;;; The room block row/col where the upgrade will appear.
 kUpgradeBlockRow = 6
 kUpgradeBlockCol = 10
+
+;;; The device index for the door.
+kDoorDeviceIndex = 1
 
 ;;; The machine index for the GardenBossCannon machine.
 kCannonMachineIndex = 0
@@ -203,7 +208,7 @@ _Ext_sRoomExt:
     D_STRUCT sRoomExt
     d_addr AreaName_u8_arr_ptr, DataA_Pause_GardenAreaName_u8_arr
     d_addr AreaCells_u8_arr2_arr_ptr, DataA_Pause_GardenAreaCells_u8_arr2_arr
-    d_addr Terrain_sTileset_ptr, DataA_Room_Prison_sTileset
+    d_addr Terrain_sTileset_ptr, DataA_Room_Garden_sTileset
     d_addr Platforms_sPlatform_arr_ptr, _Platforms_sPlatform_arr
     d_addr Actors_sActor_arr_ptr, _Actors_sActor_arr
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
@@ -253,6 +258,13 @@ _Devices_sDevice_arr:
     d_byte BlockCol_u8, kUpgradeBlockCol
     d_byte Target_u8, eFlag::UpgradeMaxInstructions0
     D_END
+    .assert kDoorDeviceIndex = 1, error
+    D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::UnlockedDoor
+    d_byte BlockRow_u8, 12
+    d_byte BlockCol_u8, 6
+    d_byte Target_u8, eRoom::GardenTower
+    D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Lever
     d_byte BlockRow_u8, 10
@@ -270,19 +282,6 @@ _Devices_sDevice_arr:
     d_byte BlockRow_u8, 10
     d_byte BlockCol_u8, 12
     d_byte Target_u8, kCannonMachineIndex
-    D_END
-    D_STRUCT sDevice
-    d_byte Type_eDevice, eDevice::Door
-    d_byte BlockRow_u8, 12
-    d_byte BlockCol_u8, 6
-    d_byte Target_u8, eRoom::GardenTower
-    D_END
-    ;; TODO: Remove this.
-    D_STRUCT sDevice
-    d_byte Type_eDevice, eDevice::Upgrade
-    d_byte BlockRow_u8, 12
-    d_byte BlockCol_u8, 4
-    d_byte Target_u8, eFlag::UpgradeOpcodeIfGoto
     D_END
     .byte eDevice::None
 _Cannon_ReadReg:
@@ -373,6 +372,9 @@ _Cannon_Reset:
 
 ;;; Room init function for the GardenBoss room.
 .PROC FuncC_Garden_Boss_InitRoom
+    ;; Lock the door for now.
+    ldx #kDoorDeviceIndex  ; param: device index
+    jsr Func_LockDoorDevice
     ;; Hide the upgrade device for now.
     lda #eDevice::None
     sta Ram_DeviceType_eDevice_arr + kUpgradeDeviceIndex
@@ -406,7 +408,9 @@ _NoBoss:
     bne @conduitIsActivated
     ;; TODO: spawn conduit lever
     @conduitIsActivated:
-    rts
+    ;; If the conduit has already been activated, unlock the door.
+    ldx #kDoorDeviceIndex  ; param: device index
+    jmp Func_UnlockDoorDevice
 .ENDPROC
 
 ;;; Room tick function for the GardenBoss room.

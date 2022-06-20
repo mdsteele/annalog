@@ -1,18 +1,20 @@
 @BG 0 0 0 16x15
->prison_0
->prison_4
+>garden_0
+>garden_1
+>garden_4
+>garden_5
 
 
-          BHBHBH
-      BHBI      BGBHBH
-    BI                BGBH
-  BN                      BM
-  BN                      BG
-  BN                        BM
-  BN                BABC    BM
-  BNBP                      BM
-  BN                      BJBM
-  BN  AC                ABBM
-  BNBKBL            AC  BJBM
-      BN            BJBKBM
-      BNBKBKBKBKBKBKBM
+        BLCMCMCM      BL
+  BL  CMCL      CKCMCM
+    CL                CKCMBL
+  CJ                      CI
+  CJ                      CK
+  CJ                        CI
+  CJ                DGDI    CI
+  BLDI                      CI
+  CJ                      DE
+  CJ  AC                ABCI
+  DADADF    AE      AC  DEDA
+      CJ    AF      DEDA
+      BLDADADADADADA    BL
