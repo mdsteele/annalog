@@ -37,9 +37,12 @@
 .IMPORT FuncA_Machine_GetWinchHorzSpeed
 .IMPORT FuncA_Machine_GetWinchVertSpeed
 .IMPORT FuncA_Machine_WinchStartFalling
+.IMPORT FuncA_Machine_WinchStopFalling
+.IMPORT FuncA_Objects_DrawWinchBreakableFloor
 .IMPORT FuncA_Objects_DrawWinchChain
 .IMPORT FuncA_Objects_DrawWinchMachine
 .IMPORT FuncA_Objects_DrawWinchSpikeball
+.IMPORT FuncA_Objects_MoveShapeLeftHalfTile
 .IMPORT FuncA_Objects_MoveShapeUpOneTile
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
 .IMPORT FuncA_Objects_SetShapePosToSpikeballCenter
@@ -50,12 +53,10 @@
 .IMPORT Func_MovePlatformTopToward
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrUpgrade
-.IMPORT Ram_MachineParam1_u8_arr
 .IMPORT Ram_PlatformLeft_i16_0_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORT Ram_RoomState
 .IMPORTZP Zp_PlatformGoal_i16
-.IMPORTZP Zp_ShapePosX_i16
 
 ;;;=========================================================================;;;
 
@@ -111,6 +112,9 @@ kSpikeballInitPlatformTop = \
     WinchGoalZ_u8 .byte
     ;; Which step of its reset sequence the CryptTombWinch machine is on.
     WinchReset_eResetSeq .byte
+    ;; How many more hits each weak floor can take before breaking.
+    WeakFloor1Hp_u8 .byte
+    WeakFloor2Hp_u8 .byte
 .ENDSTRUCT
 .ASSERT .sizeof(sState) <= kRoomStateSize, error
 
@@ -132,7 +136,7 @@ kSpikeballInitPlatformTop = \
     d_addr Machines_sMachine_arr_ptr, _Machines_sMachine_arr
     d_byte Chr18Bank_u8, <.bank(Ppu_ChrUpgrade)
     d_addr Tick_func_ptr, Func_Noop
-    d_addr Draw_func_ptr, Func_Noop
+    d_addr Draw_func_ptr, FuncC_Crypt_Tomb_DrawRoom
     d_addr Ext_sRoomExt_ptr, _Ext_sRoomExt
     D_END
 _Ext_sRoomExt:
@@ -145,7 +149,7 @@ _Ext_sRoomExt:
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
     d_addr Dialogs_sDialog_ptr_arr_ptr, 0
     d_addr Passages_sPassage_arr_ptr, _Passages_sPassage_arr
-    d_addr Init_func_ptr, Func_Noop
+    d_addr Init_func_ptr, FuncC_Crypt_Tomb_InitRoom
     D_END
 _TerrainData:
 :   .incbin "out/data/crypt_tomb.room"
@@ -261,6 +265,31 @@ _Passages_sPassage_arr:
     D_END
 .ENDPROC
 
+;;; Init function for the CryptTomb room.
+.PROC FuncC_Crypt_Tomb_InitRoom
+    ;; TODO: check flag first
+    lda #kNumWinchHitsToBreakFloor
+    sta Ram_RoomState + sState::WeakFloor1Hp_u8
+    sta Ram_RoomState + sState::WeakFloor2Hp_u8
+    rts
+.ENDPROC
+
+;;; Draw function for the CryptSouth room.
+;;; @prereq PRGA_Objects is loaded.
+.PROC FuncC_Crypt_Tomb_DrawRoom
+    lda Ram_RoomState + sState::WeakFloor1Hp_u8  ; param: floor HP
+    beq @done1
+    ldx #kWeakFloor1PlatformIndex  ; param: platform index
+    jsr FuncA_Objects_DrawWinchBreakableFloor
+    @done1:
+    lda Ram_RoomState + sState::WeakFloor2Hp_u8  ; param: floor HP
+    beq @done2
+    ldx #kWeakFloor2PlatformIndex  ; param: platform index
+    jmp FuncA_Objects_DrawWinchBreakableFloor
+    @done2:
+    rts
+.ENDPROC
+
 .PROC FuncC_Crypt_TombWinch_ReadReg
     cmp #$c
     beq _ReadL
@@ -365,11 +394,10 @@ _MoveVert:
     @move:
     ;; Move the spikeball vertically, as necessary.
     jsr Func_MovePlatformTopToward  ; returns Z
-    beq @done
+    beq @reachedGoal
     rts
-    @done:
-    lda #0
-    sta Ram_MachineParam1_u8_arr + kWinchMachineIndex  ; stop falling
+    @reachedGoal:
+    jsr FuncA_Machine_WinchStopFalling
 _MoveHorz:
     ;; Calculate the desired X-position for the left edge of the winch, in
     ;; room-space pixels, storing it in Zp_PlatformGoal_i16.
@@ -383,11 +411,11 @@ _MoveHorz:
     jsr FuncA_Machine_GetWinchHorzSpeed  ; preserves X, returns A
     ldx #kWinchPlatformIndex  ; param: platform index
     jsr Func_MovePlatformLeftToward  ; preserves X, returns Z and A
-    beq @done
+    beq @reachedGoal
     ;; If the winch moved, move the spikeball platform too.
     ldx #kSpikeballPlatformIndex  ; param: platform index
     jmp Func_MovePlatformHorz
-    @done:
+    @reachedGoal:
 _Finished:
     lda Ram_RoomState + sState::WinchReset_eResetSeq
     jeq Func_MachineFinishResetting
@@ -443,12 +471,7 @@ _Spikeball:
     jsr FuncA_Objects_DrawWinchSpikeball
 _Chain:
     jsr FuncA_Objects_MoveShapeUpOneTile
-    lda Zp_ShapePosX_i16 + 0
-    sub #kTileWidthPx / 2
-    sta Zp_ShapePosX_i16 + 0
-    lda Zp_ShapePosX_i16 + 1
-    sbc #0
-    sta Zp_ShapePosX_i16 + 1
+    jsr FuncA_Objects_MoveShapeLeftHalfTile
     ldx #kWinchPlatformIndex  ; param: platform index
     jmp FuncA_Objects_DrawWinchChain
 .ENDPROC

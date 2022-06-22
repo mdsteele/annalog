@@ -25,4 +25,11 @@ kWinchMoveUpCooldown = 16 * kWinchMoveUpSlowdown
 kWinchMoveDownCooldown = 16
 kWinchMoveHorzCooldown = 16
 
+;;; The terminal velocity for a falling winch load, in pixels per frame.
+.DEFINE kWinchMaxFallSpeed 5
+
+;;; How many times a winch load has to drop onto a breakable floor in order to
+;;; destroy it.
+kNumWinchHitsToBreakFloor = 3
+
 ;;;=========================================================================;;;

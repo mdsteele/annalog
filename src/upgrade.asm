@@ -28,11 +28,11 @@
 .INCLUDE "program.inc"
 .INCLUDE "window.inc"
 
-.IMPORT Data_PowersOfTwo_u8_arr8
 .IMPORT FuncA_Objects_DrawObjectsForRoom
 .IMPORT FuncA_Terrain_ScrollTowardsGoal
 .IMPORT Func_ClearRestOfOam
 .IMPORT Func_ProcessFrame
+.IMPORT Func_SetFlag
 .IMPORT Func_SetScrollGoalFromAvatar
 .IMPORT Func_Window_PrepareRowTransfer
 .IMPORT Func_Window_TransferBottomBorder
@@ -214,23 +214,9 @@ _InitWindow:
     lda #eDevice::None
     sta Ram_DeviceType_eDevice_arr, x
     ;; Set the upgrade's flag in SRAM.
-    lda Ram_DeviceTarget_u8_arr, x  ; eFlag value
-    sta Zp_CurrentUpgrade_eFlag
-    and #$07
-    tay
-    lda Ram_DeviceTarget_u8_arr, x  ; eFlag value
-    div #$08
-    tax
-    lda Data_PowersOfTwo_u8_arr8, y
-    ora Sram_ProgressFlags_arr, x
-    ;; Enable writes to SRAM.
-    ldy #bMmc3PrgRam::Enable
-    sty Hw_Mmc3PrgRamProtect_wo
-    ;; Write progress flag.
-    sta Sram_ProgressFlags_arr, x
-    ;; Disable writes to SRAM.
-    ldy #bMmc3PrgRam::Enable | bMmc3PrgRam::DenyWrites
-    sty Hw_Mmc3PrgRamProtect_wo
+    lda Ram_DeviceTarget_u8_arr, x
+    tax  ; param: eFlag value
+    jsr Func_SetFlag
     ;; Update Zp_MachineMaxInstructions_u8, in case we just got a
     ;; max-instructions upgrade.
     .assert * = FuncA_Upgrade_ComputeMaxInstructions, error, "fallthrough"

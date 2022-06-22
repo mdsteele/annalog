@@ -175,6 +175,7 @@ Ram_ActorFlags_bObj_arr: .res kMaxActors
 ;;; if all actor slots are full.
 ;;; @return C Set if all slots were full; cleared if an empty slot was found.
 ;;; @return X The index of the empty slot (if any).
+;;; @preserve Y, Zp_Tmp*
 .EXPORT Func_FindEmptyActorSlot
 .PROC Func_FindEmptyActorSlot
     ldx #kMaxActors - 1

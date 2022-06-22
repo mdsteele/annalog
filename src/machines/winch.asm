@@ -25,20 +25,30 @@
 .INCLUDE "winch.inc"
 
 .IMPORT FuncA_Objects_Alloc1x1Shape
+.IMPORT FuncA_Objects_Alloc2x1Shape
 .IMPORT FuncA_Objects_Alloc2x2Shape
 .IMPORT FuncA_Objects_GetMachineLightTileId
 .IMPORT FuncA_Objects_MoveShapeDownOneTile
 .IMPORT FuncA_Objects_MoveShapeRightOneTile
 .IMPORT FuncA_Objects_MoveShapeUpOneTile
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
+.IMPORT Func_FindEmptyActorSlot
+.IMPORT Func_InitSmokeActor
+.IMPORT Ram_ActorPosX_i16_0_arr
+.IMPORT Ram_ActorPosX_i16_1_arr
+.IMPORT Ram_ActorPosY_i16_0_arr
+.IMPORT Ram_ActorPosY_i16_1_arr
 .IMPORT Ram_MachineParam1_u8_arr
 .IMPORT Ram_MachineParam2_i16_0_arr
 .IMPORT Ram_MachineParam2_i16_1_arr
 .IMPORT Ram_MachineSlowdown_u8_arr
 .IMPORT Ram_MachineStatus_eMachine_arr
+.IMPORT Ram_MachineWait_u8_arr
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORT Ram_PlatformBottom_i16_0_arr
 .IMPORT Ram_PlatformBottom_i16_1_arr
+.IMPORT Ram_PlatformLeft_i16_0_arr
+.IMPORT Ram_PlatformLeft_i16_1_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORT Ram_PlatformTop_i16_1_arr
 .IMPORTZP Zp_MachineIndex_u8
@@ -51,9 +61,6 @@
 
 ;;;=========================================================================;;;
 
-;;; The terminal velocity for a falling winch load, in pixels per frame.
-.DEFINE kWinchMaxFallSpeed 5
-
 ;;; How many frames a falling winch machine must wait after hitting the ground
 ;;; before it can move again.
 kWinchFallRecoverFrames = 60
@@ -62,19 +69,28 @@ kWinchFallRecoverFrames = 60
 ;;; in order to appear to feed into the machine.
 kWinchChainOverlapPx = 4
 
+;;; The falling speed to set after a winch breaks through a breakable floor, in
+;;; pixels per frame.
+kWinchBreakthroughSpeed = 1
+
 ;;; Various OBJ tile IDs used for drawing winch machines.
+kTileIdWeakFloorFirst     = $c3
+kTileIdCrusherUpperLeft   = $b4
+kTileIdCrusherUpperRight  = $b6
+kTileIdCrusherSpikes      = $b5
+kTileIdSpikeballFirst     = $b8
 kTileIdWinchChain         = $b7
 kTileIdWinchGear1         = $bc
 kTileIdWinchGear2         = $be
 kTileIdWinchCornerBottom1 = $bd
 kTileIdWinchCornerBottom2 = $bf
 kTileIdWinchCornerTop     = $73
-kTileIdSpikeballFirst     = $b8
 
 ;;; OBJ palette numbers used for various parts of winch machines.
+kCrusherPalette    = 1
+kSpikeballPalette  = 0
 kWinchChainPalette = 0
 kWinchGearPalette  = 0
-kSpikeballPalette  = 0
 
 ;;;=========================================================================;;;
 
@@ -136,11 +152,16 @@ _MovingDown:
     lda #1
     rts
 _Falling:
+    ;; Keep extending machine wait time until it stops falling.
+    lda #kWinchFallRecoverFrames
+    sta Ram_MachineWait_u8_arr, y
+    ;; Apply gravity.
     lda Ram_MachineParam2_i16_0_arr, y
     add #kAvatarGravity
     sta Ram_MachineParam2_i16_0_arr, y
     lda Ram_MachineParam2_i16_1_arr, y
     adc #0
+    ;; Cap speed at kWinchMaxFallSpeed.
     cmp #kWinchMaxFallSpeed
     blt @setVelHi
     lda #0
@@ -160,40 +181,73 @@ _Falling:
 .EXPORT FuncA_Machine_WinchStartFalling
 .PROC FuncA_Machine_WinchStartFalling
     tax  ; fall distance, in blocks
-    ;; Start falling.
     ldy Zp_MachineIndex_u8
+    ;; Start "falling" to true.
     lda #$ff
     sta Ram_MachineParam1_u8_arr, y
+    ;; Set fall speed to zero.
     lda #0
     sta Ram_MachineParam2_i16_0_arr, y
     sta Ram_MachineParam2_i16_1_arr, y
-    ;; Determine how long it will take for the load to fall.
-    lda DataA_Machine_WinchFallTime_u8_arr, x
+    ;; Return initial wait frames.  (FuncA_Machine_GetWinchVertSpeed will keep
+    ;; extending the wait time as long as the winch is still falling.)
+    lda #kWinchFallRecoverFrames
     clc  ; success
     rts
 .ENDPROC
 
-;;; For a falling winch machine, this array maps from the initial fall
-;;; distance, in blocks, to the number of frames before the winch can move
-;;; again.
-.PROC DataA_Machine_WinchFallTime_u8_arr
-    .byte kWinchFallRecoverFrames
-    vFallTime .set 0
-    vFallVel .set 0
-    vFallDist .set 0
-    .repeat 68
-    vFallTime .set vFallTime + 1
-    vFallVel .set vFallVel + kAvatarGravity
-    .if vFallVel > kWinchMaxFallSpeed * $100
-    vFallVel .set kWinchMaxFallSpeed * $100
-    .endif
-    vFallDist .set vFallDist + vFallVel
-    .if vFallDist >= $1000
-    vFallDist .set vFallDist - $1000
-    .byte vFallTime + kWinchFallRecoverFrames
-    .endif
-    .endrepeat
-    .assert * - DataA_Machine_WinchFallTime_u8_arr = 18, error
+;;; If the current winch machine is falling, plays a sound for impact and then
+;;; takes it out of falling mode.
+;;; @prereq Zp_MachineIndex_u8 is initialized.
+.EXPORT FuncA_Machine_WinchStopFalling
+.PROC FuncA_Machine_WinchStopFalling
+    ;; TODO: If currently falling, play a sound for impact.
+    ldy Zp_MachineIndex_u8
+    ;; Start "falling" to false.
+    lda #0
+    sta Ram_MachineParam1_u8_arr, y
+    ;; Set fall speed to zero.
+    sta Ram_MachineParam2_i16_0_arr, y
+    sta Ram_MachineParam2_i16_1_arr, y
+    rts
+.ENDPROC
+
+;;; Call this when the current winch machine hits a breakable floor.  Adds
+;;; smoke and plays a sound for impact, and slows down the falling speed.
+;;; @prereq Zp_MachineIndex_u8 is initialized.
+;;; @param Y The platform index of the breakable floor.
+.EXPORT FuncA_Machine_WinchHitBreakableFloor
+.PROC FuncA_Machine_WinchHitBreakableFloor
+_AddSmokeActor:
+    jsr Func_FindEmptyActorSlot  ; preserves Y, returns C and X
+    bcs @done
+    ;; Set X-position:
+    lda Ram_PlatformLeft_i16_0_arr, y
+    add #kTileWidthPx
+    sta Ram_ActorPosX_i16_0_arr, x
+    lda Ram_PlatformLeft_i16_1_arr, y
+    adc #0
+    sta Ram_ActorPosX_i16_1_arr, x
+    ;; Set Y-position:
+    lda Ram_PlatformTop_i16_0_arr, y
+    add #kTileHeightPx / 2
+    sta Ram_ActorPosY_i16_0_arr, x
+    lda Ram_PlatformTop_i16_1_arr, y
+    adc #0
+    sta Ram_ActorPosY_i16_1_arr, x
+    ;; Init actor:
+    jsr Func_InitSmokeActor
+    @done:
+_SlowFallingSpeed:
+    ;; Slow down the falling winch load, in case we're breaking through the
+    ;; floor.  (If we're not breaking through the floor yet, the caller will
+    ;; separately stop the winch falling entirely.)
+    ldx Zp_MachineIndex_u8
+    lda #kWinchBreakthroughSpeed
+    sta Ram_MachineParam2_i16_1_arr, x
+_PlaySound:
+    ;; TODO: Play a sound.
+    rts
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -344,6 +398,50 @@ _Done:
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Tile_u8, y
     lda #kTileIdSpikeballFirst + 3
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Tile_u8, y
+    @done:
+    rts
+.ENDPROC
+
+;;; Allocates and populates OAM slots for a winch crusher.  When this returns,
+;;; the shape position will be set to the center of the crusher.
+;;; @param X The platform index for the upper (solid) part of the crusher.
+;;; @preserve X
+.EXPORT FuncA_Objects_DrawWinchCrusher
+.PROC FuncA_Objects_DrawWinchCrusher
+    jsr FuncA_Objects_SetShapePosToPlatformTopLeft  ; preserves X
+    jsr FuncA_Objects_MoveShapeRightOneTile  ; preserves X
+    jsr FuncA_Objects_MoveShapeDownOneTile  ; preserves X
+    lda #kCrusherPalette  ; param: object flags
+    jsr FuncA_Objects_Alloc2x2Shape  ; preserves X, returns C and Y
+    bcs @done
+    lda #kTileIdCrusherUpperLeft
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Tile_u8, y
+    lda #kTileIdCrusherUpperRight
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Tile_u8, y
+    lda #kTileIdCrusherSpikes
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Tile_u8, y
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Tile_u8, y
+    @done:
+    rts
+.ENDPROC
+
+;;; Allocates and populates OAM slots for a winch-breakable floor.
+;;; @param A How many more hits the floor can take (1-3).
+;;; @param X The platform index for the breakable floor.
+.EXPORT FuncA_Objects_DrawWinchBreakableFloor
+.PROC FuncA_Objects_DrawWinchBreakableFloor
+    pha  ; floor HP
+    jsr FuncA_Objects_SetShapePosToPlatformTopLeft
+    jsr FuncA_Objects_MoveShapeRightOneTile
+    lda #0  ; param: object flags
+    jsr FuncA_Objects_Alloc2x1Shape  ; returns C and Y
+    pla  ; floor HP
+    bcs @done
+    mul #2
+    adc #kTileIdWeakFloorFirst - 2  ; carry bit is already clear
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Tile_u8, y
+    adc #1  ; carry bit is already clear
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Tile_u8, y
     @done:
     rts
 .ENDPROC

@@ -39,11 +39,13 @@
 .IMPORT FuncA_Machine_GetWinchHorzSpeed
 .IMPORT FuncA_Machine_GetWinchVertSpeed
 .IMPORT FuncA_Machine_WinchStartFalling
+.IMPORT FuncA_Machine_WinchStopFalling
 .IMPORT FuncA_Objects_Alloc1x1Shape
 .IMPORT FuncA_Objects_DrawWinchChain
 .IMPORT FuncA_Objects_DrawWinchMachine
 .IMPORT FuncA_Objects_DrawWinchSpikeball
 .IMPORT FuncA_Objects_MoveShapeDownOneTile
+.IMPORT FuncA_Objects_MoveShapeLeftHalfTile
 .IMPORT FuncA_Objects_MoveShapeUpOneTile
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
 .IMPORT FuncA_Objects_SetShapePosToSpikeballCenter
@@ -54,7 +56,6 @@
 .IMPORT Func_MovePlatformTopToward
 .IMPORT Int_WindowTopIrq
 .IMPORT Ppu_ChrUpgrade
-.IMPORT Ram_MachineParam1_u8_arr
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORT Ram_PlatformLeft_i16_0_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
@@ -411,11 +412,10 @@ _MoveVert:
     @move:
     ;; Move the spikeball vertically, as necessary.
     jsr Func_MovePlatformTopToward  ; returns Z
-    beq @done
+    beq @reachedGoal
     rts
-    @done:
-    lda #0
-    sta Ram_MachineParam1_u8_arr + kWinchMachineIndex  ; stop falling
+    @reachedGoal:
+    jsr FuncA_Machine_WinchStopFalling
 _MoveHorz:
     ;; Calculate the desired X-position for the left edge of the winch, in
     ;; room-space pixels, storing it in Zp_PlatformGoal_i16.
@@ -429,11 +429,11 @@ _MoveHorz:
     jsr FuncA_Machine_GetWinchHorzSpeed  ; preserves X, returns A
     ldx #kWinchPlatformIndex  ; param: platform index
     jsr Func_MovePlatformLeftToward  ; preserves X, returns Z and A
-    beq @done
+    beq @reachedGoal
     ;; If the winch moved, move the spikeball platform too.
     ldx #kSpikeballPlatformIndex  ; param: platform index
     jmp Func_MovePlatformHorz
-    @done:
+    @reachedGoal:
 _Finished:
     lda Ram_RoomState + sState::WinchReset_eResetSeq
     jeq Func_MachineFinishResetting
@@ -761,12 +761,7 @@ _Spikeball:
     jsr FuncA_Objects_DrawWinchSpikeball
 _Chain:
     jsr FuncA_Objects_MoveShapeUpOneTile
-    lda Zp_ShapePosX_i16 + 0
-    sub #kTileWidthPx / 2
-    sta Zp_ShapePosX_i16 + 0
-    lda Zp_ShapePosX_i16 + 1
-    sbc #0
-    sta Zp_ShapePosX_i16 + 1
+    jsr FuncA_Objects_MoveShapeLeftHalfTile
     ldx #kWinchPlatformIndex  ; param: platform index
     jmp FuncA_Objects_DrawWinchChain
 .ENDPROC

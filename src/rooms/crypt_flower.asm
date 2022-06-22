@@ -35,6 +35,7 @@
 .IMPORT DataA_Room_Crypt_sTileset
 .IMPORT FuncA_Machine_GetWinchVertSpeed
 .IMPORT FuncA_Machine_WinchStartFalling
+.IMPORT FuncA_Machine_WinchStopFalling
 .IMPORT FuncA_Objects_DrawChainWithLength
 .IMPORT FuncA_Objects_DrawGirderPlatform
 .IMPORT FuncA_Objects_DrawWinchChain
@@ -48,7 +49,6 @@
 .IMPORT Func_MovePlatformVert
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrUpgrade
-.IMPORT Ram_MachineParam1_u8_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORT Ram_RoomState
 .IMPORTZP Zp_AvatarPlatformIndex_u8
@@ -297,13 +297,12 @@ _ReadZ:
     @move:
     ;; Move the upper girder vertically, as necessary.
     jsr Func_MovePlatformTopToward  ; returns Z and A
-    beq @done
+    beq @reachedGoal
     ;; If the girder moved, move the other girder too.
     ldx #kLowerGirderPlatformIndex  ; param: platform index
     jmp Func_MovePlatformVert
-    @done:
-    lda #0
-    sta Ram_MachineParam1_u8_arr + kWinchMachineIndex  ; stop falling
+    @reachedGoal:
+    jsr FuncA_Machine_WinchStopFalling
     jmp Func_MachineFinishResetting
 .ENDPROC
 

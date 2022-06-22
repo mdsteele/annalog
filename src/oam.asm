@@ -90,6 +90,19 @@ Ram_Oam_sObj_arr64: .res .sizeof(sObj) * kNumOamSlots
     rts
 .ENDPROC
 
+;;; Moves Zp_ShapePosX_i16 leftwards by half the width of a tile.
+;;; @preserve X, Y
+.EXPORT FuncA_Objects_MoveShapeLeftHalfTile
+.PROC FuncA_Objects_MoveShapeLeftHalfTile
+    lda Zp_ShapePosX_i16 + 0
+    sub #kTileWidthPx / 2
+    sta Zp_ShapePosX_i16 + 0
+    lda Zp_ShapePosX_i16 + 1
+    sbc #0
+    sta Zp_ShapePosX_i16 + 1
+    rts
+.ENDPROC
+
 ;;; Moves Zp_ShapePosX_i16 leftwards by the width of one tile.
 ;;; @preserve X, Y
 .EXPORT FuncA_Objects_MoveShapeLeftOneTile

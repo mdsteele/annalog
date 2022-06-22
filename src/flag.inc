@@ -79,6 +79,8 @@ kSaveMagicNumber = $b2
     FlowerCity
     FlowerLab
     FlowerCore
+    ;; Flags for persistent room state:
+    CryptSouthWeakFloor
 .ENDENUM
 
 ;;;=========================================================================;;;

@@ -36,10 +36,14 @@
 .IMPORT DataA_Room_Crypt_sTileset
 .IMPORT FuncA_Machine_GetWinchHorzSpeed
 .IMPORT FuncA_Machine_GetWinchVertSpeed
+.IMPORT FuncA_Machine_WinchHitBreakableFloor
 .IMPORT FuncA_Machine_WinchStartFalling
-.IMPORT FuncA_Objects_Alloc2x2Shape
+.IMPORT FuncA_Machine_WinchStopFalling
+.IMPORT FuncA_Objects_DrawWinchBreakableFloor
 .IMPORT FuncA_Objects_DrawWinchChain
+.IMPORT FuncA_Objects_DrawWinchCrusher
 .IMPORT FuncA_Objects_DrawWinchMachine
+.IMPORT FuncA_Objects_MoveShapeLeftHalfTile
 .IMPORT FuncA_Objects_MoveShapeUpOneTile
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
 .IMPORT Func_MachineError
@@ -49,16 +53,18 @@
 .IMPORT Func_MovePlatformTopToward
 .IMPORT Func_MovePlatformVert
 .IMPORT Func_Noop
+.IMPORT Func_SetFlag
 .IMPORT Ppu_ChrUpgrade
 .IMPORT Ram_MachineParam1_u8_arr
-.IMPORT Ram_Oam_sObj_arr64
+.IMPORT Ram_MachineParam2_i16_1_arr
 .IMPORT Ram_PlatformLeft_i16_0_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORT Ram_PlatformTop_i16_1_arr
+.IMPORT Ram_PlatformType_ePlatform_arr
 .IMPORT Ram_RoomState
+.IMPORT Sram_ProgressFlags_arr
 .IMPORTZP Zp_AvatarPlatformIndex_u8
 .IMPORTZP Zp_PlatformGoal_i16
-.IMPORTZP Zp_ShapePosX_i16
 .IMPORTZP Zp_Tmp1_byte
 
 ;;;=========================================================================;;;
@@ -80,6 +86,11 @@ kWinchMaxGoalX  = 9
 kWinchInitGoalZ = 5
 kWinchMaxGoalZ  = 17
 
+;;; The winch X and Z-register values at which the crusher is resting on the
+;;; breakable floor.
+kWeakFloorGoalX = 8
+kWeakFloorGoalZ = 5
+
 ;;; The minimum and initial room pixel position for the left edge of the winch.
 .LINECONT +
 kWinchMinPlatformLeft = $40
@@ -94,15 +105,6 @@ kCrusherMinPlatformTop = $40
 kCrusherInitPlatformTop = \
     kCrusherMinPlatformTop + kBlockHeightPx * kWinchInitGoalZ
 .LINECONT +
-
-;;; Various OBJ tile IDs used for drawing the CryptSouthWinch machine.
-kTileIdCrusherUpperLeft  = $b4
-kTileIdCrusherUpperRight = $b6
-kTileIdCrusherSpikes     = $b5
-
-;;; The OBJ palette number used for various parts of the CryptSouthWinch
-;;; machine.
-kWinchCrusherPalette = 0
 
 ;;;=========================================================================;;;
 
@@ -120,6 +122,8 @@ kWinchCrusherPalette = 0
     WinchGoalZ_u8 .byte
     ;; Which step of its reset sequence the CryptSouthWinch machine is on.
     WinchReset_eResetSeq .byte
+    ;; How many more hits the weak floor can take before breaking.
+    WeakFloorHp_u8 .byte
 .ENDSTRUCT
 .ASSERT .sizeof(sState) <= kRoomStateSize, error
 
@@ -141,7 +145,7 @@ kWinchCrusherPalette = 0
     d_addr Machines_sMachine_arr_ptr, _Machines_sMachine_arr
     d_byte Chr18Bank_u8, <.bank(Ppu_ChrUpgrade)
     d_addr Tick_func_ptr, Func_Noop
-    d_addr Draw_func_ptr, Func_Noop
+    d_addr Draw_func_ptr, FuncC_Crypt_South_DrawRoom
     d_addr Ext_sRoomExt_ptr, _Ext_sRoomExt
     D_END
 _Ext_sRoomExt:
@@ -154,7 +158,7 @@ _Ext_sRoomExt:
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
     d_addr Dialogs_sDialog_ptr_arr_ptr, 0
     d_addr Passages_sPassage_arr_ptr, _Passages_sPassage_arr
-    d_addr Init_func_ptr, Func_Noop
+    d_addr Init_func_ptr, FuncC_Crypt_South_InitRoom
     D_END
 _TerrainData:
 :   .incbin "out/data/crypt_south.room"
@@ -207,7 +211,7 @@ _Platforms_sPlatform_arr:
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Solid
     d_byte WidthPx_u8,  $10
-    d_byte HeightPx_u8, $10
+    d_byte HeightPx_u8, $08
     d_word Left_i16,  $00c0
     d_word Top_i16,   $00a0
     D_END
@@ -266,6 +270,34 @@ _Passages_sPassage_arr:
     d_byte Destination_eRoom, eRoom::CryptTomb
     d_byte SpawnBlock_u8, 19
     D_END
+.ENDPROC
+
+;;; Init function for the CryptSouth room.
+.PROC FuncC_Crypt_South_InitRoom
+    ;; If the weak floor hasn't been broken yet, initialize its HP.  Otherwise,
+    ;; remove its platform.
+    lda Sram_ProgressFlags_arr + (eFlag::CryptSouthWeakFloor >> 3)
+    and #1 << (eFlag::CryptSouthWeakFloor & $07)
+    bne @floorBroken
+    @floorSolid:
+    lda #kNumWinchHitsToBreakFloor
+    sta Ram_RoomState + sState::WeakFloorHp_u8
+    rts
+    @floorBroken:
+    lda #ePlatform::None
+    sta Ram_PlatformType_ePlatform_arr + kWeakFloorPlatformIndex
+    rts
+.ENDPROC
+
+;;; Draw function for the CryptSouth room.
+;;; @prereq PRGA_Objects is loaded.
+.PROC FuncC_Crypt_South_DrawRoom
+    lda Ram_RoomState + sState::WeakFloorHp_u8  ; param: floor HP
+    beq @done
+    ldx #kWeakFloorPlatformIndex  ; param: platform index
+    jmp FuncA_Objects_DrawWinchBreakableFloor
+    @done:
+    rts
 .ENDPROC
 
 .PROC FuncC_Crypt_SouthWinch_ReadReg
@@ -355,13 +387,23 @@ _Error:
 
 .PROC FuncC_Crypt_SouthWinch_TryAct
     ldy Ram_RoomState + sState::WinchGoalX_u8
+    cpy #kWeakFloorGoalX
+    bne @solidFloor
+    lda Ram_RoomState + sState::WeakFloorHp_u8
+    beq @solidFloor
+    lda #kWeakFloorGoalZ
+    .assert kWeakFloorGoalZ > 0, error
+    bne @setGoalZ  ; unconditional
+    @solidFloor:
     lda DataC_Crypt_SouthFloor_u8_arr, y
+    @setGoalZ:
     tax  ; new goal Z
     sub Ram_RoomState + sState::WinchGoalZ_u8  ; param: fall distance
     stx Ram_RoomState + sState::WinchGoalZ_u8
     jmp FuncA_Machine_WinchStartFalling  ; returns C and A
 .ENDPROC
 
+;;; @prereq PRGA_Machine is loaded.
 .PROC FuncC_Crypt_SouthWinch_Tick
 _MoveVert:
     ;; Calculate the desired room-space pixel Y-position for the top edge of
@@ -386,13 +428,39 @@ _MoveVert:
     @move:
     ;; Move the crusher vertically, as necessary.
     jsr Func_MovePlatformTopToward  ; returns Z and A
-    beq @done
+    beq @reachedGoal
     ;; If the crusher moved, move the crusher's other platform too.
     ldx #kCrusherSpikePlatformIndex  ; param: platform index
     jmp Func_MovePlatformVert
-    @done:
-    lda #0
-    sta Ram_MachineParam1_u8_arr + kWinchMachineIndex  ; stop falling
+    @reachedGoal:
+    ;; Check if we just hit the breakable floor.
+    lda Ram_MachineParam1_u8_arr + kWinchMachineIndex
+    beq @notFalling
+    lda Ram_MachineParam2_i16_1_arr + kWinchMachineIndex
+    cmp #kWinchMaxFallSpeed
+    blt @stopFalling  ; not falling fast enough to break the floor
+    lda Ram_RoomState + sState::WinchGoalX_u8
+    cmp #kWeakFloorGoalX
+    bne @stopFalling  ; not over the breakable floor
+    lda Ram_RoomState + sState::WeakFloorHp_u8
+    beq @stopFalling  ; floor was already broken
+    ;; We've hit the breakable floor.
+    ldy #kWeakFloorPlatformIndex  ; param: platform index
+    jsr FuncA_Machine_WinchHitBreakableFloor
+    dec Ram_RoomState + sState::WeakFloorHp_u8
+    bne @stopFalling  ; floor isn't completely broken yet
+    ;; The floor is now completely broken.
+    lda #ePlatform::None
+    sta Ram_PlatformType_ePlatform_arr + kWeakFloorPlatformIndex
+    ldx #eFlag::CryptSouthWeakFloor
+    jsr Func_SetFlag
+    ;; Keep falling past where the breakable floor was.
+    lda DataC_Crypt_SouthFloor_u8_arr + kWeakFloorGoalX
+    sta Ram_RoomState + sState::WinchGoalZ_u8
+    rts
+    @stopFalling:
+    jsr FuncA_Machine_WinchStopFalling
+    @notFalling:
 _MoveHorz:
     ;; Calculate the desired X-position for the left edge of the winch, in
     ;; room-space pixels, storing it in Zp_PlatformGoal_i16.
@@ -406,7 +474,7 @@ _MoveHorz:
     jsr FuncA_Machine_GetWinchHorzSpeed  ; returns A
     ldx #kWinchPlatformIndex  ; param: platform index
     jsr Func_MovePlatformLeftToward  ; returns Z and A
-    beq @done
+    beq @reachedGoal
     ;; If the winch moved, move the crusher platforms too.
     pha  ; move delta
     ldx #kCrusherUpperPlatformIndex  ; param: platform index
@@ -414,7 +482,7 @@ _MoveHorz:
     pla  ; param: move delta
     ldx #kCrusherSpikePlatformIndex  ; param: platform index
     jmp Func_MovePlatformHorz
-    @done:
+    @reachedGoal:
 _Finished:
     lda Ram_RoomState + sState::WinchReset_eResetSeq
     jeq Func_MachineFinishResetting
@@ -459,39 +527,17 @@ _Finished:
 
 ;;; Allocates and populates OAM slots for the CryptSouthWinch machine.
 .PROC FuncA_Objects_CryptSouthWinch_Draw
-_Winch:
+    ;; Draw winch:
     ldx #kWinchPlatformIndex  ; param: platform index
     jsr FuncA_Objects_SetShapePosToPlatformTopLeft
     ldx Ram_PlatformTop_i16_0_arr + kCrusherUpperPlatformIndex  ; param: chain
     jsr FuncA_Objects_DrawWinchMachine
-_Crusher:
-    ldx #kCrusherSpikePlatformIndex  ; param: platform index
-    jsr FuncA_Objects_SetShapePosToPlatformTopLeft
-    lda Zp_ShapePosX_i16 + 0
-    add #7
-    sta Zp_ShapePosX_i16 + 0
-    lda Zp_ShapePosX_i16 + 1
-    adc #0
-    sta Zp_ShapePosX_i16 + 1
-    lda #kWinchCrusherPalette  ; param: object flags
-    jsr FuncA_Objects_Alloc2x2Shape  ; sets C if offscreen; returns Y
-    bcs @done
-    lda #kTileIdCrusherUpperLeft
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Tile_u8, y
-    lda #kTileIdCrusherUpperRight
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Tile_u8, y
-    lda #kTileIdCrusherSpikes
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Tile_u8, y
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Tile_u8, y
-    @done:
-_Chain:
+    ;; Draw crusher:
+    ldx #kCrusherUpperPlatformIndex  ; param: platform index
+    jsr FuncA_Objects_DrawWinchCrusher
+    ;; Draw chain:
     jsr FuncA_Objects_MoveShapeUpOneTile
-    lda Zp_ShapePosX_i16 + 0
-    sub #kTileWidthPx / 2
-    sta Zp_ShapePosX_i16 + 0
-    lda Zp_ShapePosX_i16 + 1
-    sbc #0
-    sta Zp_ShapePosX_i16 + 1
+    jsr FuncA_Objects_MoveShapeLeftHalfTile
     ldx #kWinchPlatformIndex  ; param: platform index
     jmp FuncA_Objects_DrawWinchChain
 .ENDPROC

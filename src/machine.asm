@@ -99,6 +99,7 @@ Ram_MachinePc_u8_arr: .res kMaxMachines
 Ram_MachineRegA_u8_arr: .res kMaxMachines
 
 ;;; How many more frames until each machine is done moving/acting.
+.EXPORT Ram_MachineWait_u8_arr
 Ram_MachineWait_u8_arr: .res kMaxMachines
 
 ;;; A generic counter that decrements on every call to Func_MachineTick.  Each

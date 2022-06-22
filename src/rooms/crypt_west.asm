@@ -35,10 +35,12 @@
 .IMPORT DataA_Room_Crypt_sTileset
 .IMPORT FuncA_Machine_GetWinchVertSpeed
 .IMPORT FuncA_Machine_WinchStartFalling
+.IMPORT FuncA_Machine_WinchStopFalling
 .IMPORT FuncA_Objects_DrawChainWithLength
 .IMPORT FuncA_Objects_DrawWinchChain
 .IMPORT FuncA_Objects_DrawWinchMachine
 .IMPORT FuncA_Objects_DrawWinchSpikeball
+.IMPORT FuncA_Objects_MoveShapeLeftHalfTile
 .IMPORT FuncA_Objects_MoveShapeUpOneTile
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
 .IMPORT FuncA_Objects_SetShapePosToSpikeballCenter
@@ -48,11 +50,9 @@
 .IMPORT Func_MovePlatformVert
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrUpgrade
-.IMPORT Ram_MachineParam1_u8_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORT Ram_RoomState
 .IMPORTZP Zp_PlatformGoal_i16
-.IMPORTZP Zp_ShapePosX_i16
 
 ;;;=========================================================================;;;
 
@@ -290,7 +290,7 @@ _Winch_Reset:
     @move:
     ;; Move the uppermost spikeball vertically, as necessary.
     jsr Func_MovePlatformTopToward  ; preserves X, returns Z and A
-    beq @done
+    beq @reachedGoal
     ;; If the spikeball moved, move the other spikeballs too.
     inx
     @loop:
@@ -302,9 +302,8 @@ _Winch_Reset:
     blt @loop
     rts
     ;; Otherwise, we're done.
-    @done:
-    lda #0
-    sta Ram_MachineParam1_u8_arr + kWinchMachineIndex  ; stop falling
+    @reachedGoal:
+    jsr FuncA_Machine_WinchStopFalling
     jmp Func_MachineFinishResetting
 .ENDPROC
 
@@ -329,12 +328,7 @@ _Spikeballs:
     blt @loop
 _Chains:
     jsr FuncA_Objects_MoveShapeUpOneTile
-    lda Zp_ShapePosX_i16 + 0
-    sub #kTileWidthPx / 2
-    sta Zp_ShapePosX_i16 + 0
-    lda Zp_ShapePosX_i16 + 1
-    sbc #0
-    sta Zp_ShapePosX_i16 + 1
+    jsr FuncA_Objects_MoveShapeLeftHalfTile
     ldx #kChain34Tiles  ; param: chain length in tiles
     jsr FuncA_Objects_DrawChainWithLength
     jsr FuncA_Objects_MoveShapeUpOneTile
