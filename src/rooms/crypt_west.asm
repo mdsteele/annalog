@@ -263,9 +263,7 @@ _Winch_Reset:
 
 .PROC FuncC_Crypt_WestWinch_TryAct
     lda #kWinchMaxGoalZ
-    tax  ; new goal Z
-    sub Ram_RoomState + sState::WinchGoalZ_u8  ; param: fall distance
-    stx Ram_RoomState + sState::WinchGoalZ_u8
+    sta Ram_RoomState + sState::WinchGoalZ_u8
     jmp FuncA_Machine_WinchStartFalling  ; returns C and A
 .ENDPROC
 

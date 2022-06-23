@@ -36,6 +36,7 @@
 .IMPORT DataA_Room_Crypt_sTileset
 .IMPORT FuncA_Machine_GetWinchHorzSpeed
 .IMPORT FuncA_Machine_GetWinchVertSpeed
+.IMPORT FuncA_Machine_IsWinchFallingFast
 .IMPORT FuncA_Machine_WinchHitBreakableFloor
 .IMPORT FuncA_Machine_WinchStartFalling
 .IMPORT FuncA_Machine_WinchStopFalling
@@ -55,8 +56,6 @@
 .IMPORT Func_Noop
 .IMPORT Func_SetFlag
 .IMPORT Ppu_ChrUpgrade
-.IMPORT Ram_MachineParam1_u8_arr
-.IMPORT Ram_MachineParam2_i16_1_arr
 .IMPORT Ram_PlatformLeft_i16_0_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORT Ram_PlatformTop_i16_1_arr
@@ -357,7 +356,7 @@ _MoveHorz:
     beq _Error
     dey
     @checkFloor:
-    lda DataC_Crypt_SouthFloor_u8_arr, y
+    jsr FuncC_Crypt_GetSouthFloorZ  ; returns A
     cmp Ram_RoomState + sState::WinchGoalZ_u8
     blt _Error
     sty Ram_RoomState + sState::WinchGoalX_u8
@@ -372,10 +371,9 @@ _MoveUp:
     clc  ; success
     rts
 _MoveDown:
-    ;; TODO: check for weak floor collision
-    lda Ram_RoomState + sState::WinchGoalZ_u8
-    cmp DataC_Crypt_SouthFloor_u8_arr, y
-    bge _Error
+    jsr FuncC_Crypt_GetSouthFloorZ  ; returns A
+    cmp Ram_RoomState + sState::WinchGoalZ_u8
+    beq _Error
     inc Ram_RoomState + sState::WinchGoalZ_u8
     lda #kWinchMoveDownCooldown
     clc  ; success
@@ -385,21 +383,11 @@ _Error:
     rts
 .ENDPROC
 
+;;; @prereq PRGA_Machine is loaded.
 .PROC FuncC_Crypt_SouthWinch_TryAct
-    ldy Ram_RoomState + sState::WinchGoalX_u8
-    cpy #kWeakFloorGoalX
-    bne @solidFloor
-    lda Ram_RoomState + sState::WeakFloorHp_u8
-    beq @solidFloor
-    lda #kWeakFloorGoalZ
-    .assert kWeakFloorGoalZ > 0, error
-    bne @setGoalZ  ; unconditional
-    @solidFloor:
-    lda DataC_Crypt_SouthFloor_u8_arr, y
-    @setGoalZ:
-    tax  ; new goal Z
-    sub Ram_RoomState + sState::WinchGoalZ_u8  ; param: fall distance
-    stx Ram_RoomState + sState::WinchGoalZ_u8
+    ldy Ram_RoomState + sState::WinchGoalX_u8  ; param: goal X
+    jsr FuncC_Crypt_GetSouthFloorZ  ; returns A
+    sta Ram_RoomState + sState::WinchGoalZ_u8
     jmp FuncA_Machine_WinchStartFalling  ; returns C and A
 .ENDPROC
 
@@ -434,11 +422,8 @@ _MoveVert:
     jmp Func_MovePlatformVert
     @reachedGoal:
     ;; Check if we just hit the breakable floor.
-    lda Ram_MachineParam1_u8_arr + kWinchMachineIndex
-    beq @notFalling
-    lda Ram_MachineParam2_i16_1_arr + kWinchMachineIndex
-    cmp #kWinchMaxFallSpeed
-    blt @stopFalling  ; not falling fast enough to break the floor
+    jsr FuncA_Machine_IsWinchFallingFast  ; sets C if falling fast
+    bcc @stopFalling
     lda Ram_RoomState + sState::WinchGoalX_u8
     cmp #kWeakFloorGoalX
     bne @stopFalling  ; not over the breakable floor
@@ -455,12 +440,12 @@ _MoveVert:
     ldx #eFlag::CryptSouthWeakFloor
     jsr Func_SetFlag
     ;; Keep falling past where the breakable floor was.
-    lda DataC_Crypt_SouthFloor_u8_arr + kWeakFloorGoalX
+    ldy #kWeakFloorGoalX  ; param: goal X
+    jsr FuncC_Crypt_GetSouthFloorZ  ; returns A
     sta Ram_RoomState + sState::WinchGoalZ_u8
     rts
     @stopFalling:
     jsr FuncA_Machine_WinchStopFalling
-    @notFalling:
 _MoveHorz:
     ;; Calculate the desired X-position for the left edge of the winch, in
     ;; room-space pixels, storing it in Zp_PlatformGoal_i16.
@@ -490,6 +475,7 @@ _Finished:
 .ENDPROC
 
 .PROC FuncC_Crypt_SouthWinch_Reset
+    ;; TODO: heal breakable floor if not totally broken
     lda Ram_RoomState + sState::WinchGoalX_u8
     .assert kWinchInitGoalX = 0, error
     beq FuncC_Crypt_SouthWinch_Init
@@ -517,7 +503,21 @@ _Finished:
     rts
 .ENDPROC
 
-.PROC DataC_Crypt_SouthFloor_u8_arr
+;;; Returns the CryptSouthWinch machine's goal Z value for resting on the floor
+;;; for a given goal X, taking the breakable floor into account.
+;;; @param Y The goal X value.
+;;; @return A The goal Z for the floor.
+.PROC FuncC_Crypt_GetSouthFloorZ
+    cpy #kWeakFloorGoalX
+    bne @solidFloor
+    lda Ram_RoomState + sState::WeakFloorHp_u8
+    beq @solidFloor
+    lda #kWeakFloorGoalZ
+    rts
+    @solidFloor:
+    lda _SolidFloor_u8_arr, y
+    rts
+_SolidFloor_u8_arr:
     .byte 6, 2, 6, 4, 6, 3, 6, 5, 17, 3
 .ENDPROC
 

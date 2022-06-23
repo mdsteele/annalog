@@ -384,9 +384,7 @@ _Error:
 .PROC FuncC_Crypt_BossWinch_TryAct
     ldy Ram_RoomState + sState::WinchGoalX_u8
     lda DataC_Crypt_BossFloor_u8_arr, y
-    tax  ; new goal Z
-    sub Ram_RoomState + sState::WinchGoalZ_u8  ; param: fall distance
-    stx Ram_RoomState + sState::WinchGoalZ_u8
+    sta Ram_RoomState + sState::WinchGoalZ_u8
     jmp FuncA_Machine_WinchStartFalling  ; returns C and A
 .ENDPROC
 

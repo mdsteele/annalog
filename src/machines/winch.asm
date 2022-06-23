@@ -175,12 +175,10 @@ _Falling:
 
 ;;; Puts the current winch machine into falling mode.
 ;;; @prereq Zp_MachineIndex_u8 is initialized.
-;;; @param A The fall distance, in blocks.
 ;;; @return C Set if there was an error, cleared otherwise.
 ;;; @return A How many frames to wait before advancing the PC.
 .EXPORT FuncA_Machine_WinchStartFalling
 .PROC FuncA_Machine_WinchStartFalling
-    tax  ; fall distance, in blocks
     ldy Zp_MachineIndex_u8
     ;; Start "falling" to true.
     lda #$ff
@@ -209,6 +207,23 @@ _Falling:
     ;; Set fall speed to zero.
     sta Ram_MachineParam2_i16_0_arr, y
     sta Ram_MachineParam2_i16_1_arr, y
+    rts
+.ENDPROC
+
+;;; Determines whether the current winch machine is falling fast enough to
+;;; break a breakable floor.
+;;; @prereq Zp_MachineIndex_u8 is initialized.
+;;; @return C Set if the winch is falling at max speed, cleared otherwise.
+.EXPORT FuncA_Machine_IsWinchFallingFast
+.PROC FuncA_Machine_IsWinchFallingFast
+    ldy Zp_MachineIndex_u8
+    lda Ram_MachineParam1_u8_arr, y
+    beq @notFalling
+    lda Ram_MachineParam2_i16_1_arr, y
+    cmp #kWinchMaxFallSpeed  ; clears C if Param2 less than max speed
+    rts
+    @notFalling:
+    clc
     rts
 .ENDPROC
 
@@ -428,13 +443,14 @@ _Done:
 ;;; Allocates and populates OAM slots for a winch-breakable floor.
 ;;; @param A How many more hits the floor can take (1-3).
 ;;; @param X The platform index for the breakable floor.
+;;; @preserve X
 .EXPORT FuncA_Objects_DrawWinchBreakableFloor
 .PROC FuncA_Objects_DrawWinchBreakableFloor
     pha  ; floor HP
-    jsr FuncA_Objects_SetShapePosToPlatformTopLeft
-    jsr FuncA_Objects_MoveShapeRightOneTile
+    jsr FuncA_Objects_SetShapePosToPlatformTopLeft  ; preserves X
+    jsr FuncA_Objects_MoveShapeRightOneTile  ; preserves X
     lda #0  ; param: object flags
-    jsr FuncA_Objects_Alloc2x1Shape  ; returns C and Y
+    jsr FuncA_Objects_Alloc2x1Shape  ; preserves X, returns C and Y
     pla  ; floor HP
     bcs @done
     mul #2

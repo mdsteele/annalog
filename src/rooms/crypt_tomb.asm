@@ -36,6 +36,8 @@
 .IMPORT DataA_Room_Crypt_sTileset
 .IMPORT FuncA_Machine_GetWinchHorzSpeed
 .IMPORT FuncA_Machine_GetWinchVertSpeed
+.IMPORT FuncA_Machine_IsWinchFallingFast
+.IMPORT FuncA_Machine_WinchHitBreakableFloor
 .IMPORT FuncA_Machine_WinchStartFalling
 .IMPORT FuncA_Machine_WinchStopFalling
 .IMPORT FuncA_Objects_DrawWinchBreakableFloor
@@ -52,10 +54,13 @@
 .IMPORT Func_MovePlatformLeftToward
 .IMPORT Func_MovePlatformTopToward
 .IMPORT Func_Noop
+.IMPORT Func_SetFlag
 .IMPORT Ppu_ChrUpgrade
 .IMPORT Ram_PlatformLeft_i16_0_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
+.IMPORT Ram_PlatformType_ePlatform_arr
 .IMPORT Ram_RoomState
+.IMPORT Sram_ProgressFlags_arr
 .IMPORTZP Zp_PlatformGoal_i16
 
 ;;;=========================================================================;;;
@@ -65,18 +70,24 @@ kWinchMachineIndex = 0
 
 ;;; The platform indices for the CryptTombWinch machine, the crusher that
 ;;; hangs from its chain, and the breakable floor.
-kWinchPlatformIndex      = 0
-kSpikeballPlatformIndex  = 1
-kWeakFloor1PlatformIndex = 2
-kWeakFloor2PlatformIndex = 3
+kWeakFloor0PlatformIndex = 0
+kWeakFloor1PlatformIndex = 1
+kWinchPlatformIndex      = 2
+kSpikeballPlatformIndex  = 3
 
 ;;; The initial and maximum permitted values for sState::WinchGoalX_u8.
 kWinchInitGoalX = 4
 kWinchMaxGoalX  = 9
-
-;;; The initial and maximum values for sState::WinchGoalZ_u8.
+;;; The initial and maximum permitted values for sState::WinchGoalZ_u8.
 kWinchInitGoalZ = 2
 kWinchMaxGoalZ = 9
+
+;;; The winch X and Z-register values at which the spikeball is resting on each
+;;; of the breakable floors.
+kWeakFloor0GoalX = 0
+kWeakFloor0GoalZ = 7
+kWeakFloor1GoalX = 9
+kWeakFloor1GoalZ = 5
 
 ;;; The minimum and initial room pixel position for the left edge of the winch.
 .LINECONT +
@@ -86,7 +97,7 @@ kWinchInitPlatformLeft = \
 .LINECONT +
 
 ;;; The minimum and initial room pixel position for the top edge of the
-;;; crusher.
+;;; spikeball.
 .LINECONT +
 kSpikeballMinPlatformTop = $22
 kSpikeballInitPlatformTop = \
@@ -113,8 +124,7 @@ kSpikeballInitPlatformTop = \
     ;; Which step of its reset sequence the CryptTombWinch machine is on.
     WinchReset_eResetSeq .byte
     ;; How many more hits each weak floor can take before breaking.
-    WeakFloor1Hp_u8 .byte
-    WeakFloor2Hp_u8 .byte
+    WeakFloorHp_u8_arr2 .res 2
 .ENDSTRUCT
 .ASSERT .sizeof(sState) <= kRoomStateSize, error
 
@@ -174,7 +184,23 @@ _Machines_sMachine_arr:
     d_addr Reset_func_ptr, FuncC_Crypt_TombWinch_Reset
     D_END
 _Platforms_sPlatform_arr:
-    .assert kWinchPlatformIndex = 0, error
+    .assert kWeakFloor0PlatformIndex = 0, error
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Solid
+    d_byte WidthPx_u8,  $10
+    d_byte HeightPx_u8, $08
+    d_word Left_i16,  $0030
+    d_word Top_i16,   $00a0
+    D_END
+    .assert kWeakFloor1PlatformIndex = 1, error
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Solid
+    d_byte WidthPx_u8,  $10
+    d_byte HeightPx_u8, $08
+    d_word Left_i16,  $00c0
+    d_word Top_i16,   $0080
+    D_END
+    .assert kWinchPlatformIndex = 2, error
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Solid
     d_byte WidthPx_u8,  $10
@@ -182,29 +208,13 @@ _Platforms_sPlatform_arr:
     d_word Left_i16, kWinchInitPlatformLeft
     d_word Top_i16,   $0010
     D_END
-    .assert kSpikeballPlatformIndex = 1, error
+    .assert kSpikeballPlatformIndex = 3, error
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Harm
     d_byte WidthPx_u8,  $0d
     d_byte HeightPx_u8, $0e
     d_word Left_i16, kWinchInitPlatformLeft + 2
     d_word Top_i16, kSpikeballInitPlatformTop
-    D_END
-    .assert kWeakFloor1PlatformIndex = 2, error
-    D_STRUCT sPlatform
-    d_byte Type_ePlatform, ePlatform::Solid
-    d_byte WidthPx_u8,  $10
-    d_byte HeightPx_u8, $10
-    d_word Left_i16,  $0030
-    d_word Top_i16,   $00a0
-    D_END
-    .assert kWeakFloor2PlatformIndex = 3, error
-    D_STRUCT sPlatform
-    d_byte Type_ePlatform, ePlatform::Solid
-    d_byte WidthPx_u8,  $10
-    d_byte HeightPx_u8, $10
-    d_word Left_i16,  $00c0
-    d_word Top_i16,   $0080
     D_END
     ;; Terrain spikes:
     D_STRUCT sPlatform
@@ -267,26 +277,38 @@ _Passages_sPassage_arr:
 
 ;;; Init function for the CryptTomb room.
 .PROC FuncC_Crypt_Tomb_InitRoom
-    ;; TODO: check flag first
+    ;; If the weak floors haven't been broken yet, initialize their HP.
+    ;; Otherwise, remove their platforms.
+    lda Sram_ProgressFlags_arr + (eFlag::CryptTombWeakFloors >> 3)
+    and #1 << (eFlag::CryptTombWeakFloors & $07)
+    bne @floorsBroken
+    @floorsSolid:
     lda #kNumWinchHitsToBreakFloor
-    sta Ram_RoomState + sState::WeakFloor1Hp_u8
-    sta Ram_RoomState + sState::WeakFloor2Hp_u8
+    sta Ram_RoomState + sState::WeakFloorHp_u8_arr2 + 0
+    sta Ram_RoomState + sState::WeakFloorHp_u8_arr2 + 1
+    rts
+    @floorsBroken:
+    lda #ePlatform::None
+    sta Ram_PlatformType_ePlatform_arr + kWeakFloor0PlatformIndex
+    sta Ram_PlatformType_ePlatform_arr + kWeakFloor1PlatformIndex
     rts
 .ENDPROC
 
 ;;; Draw function for the CryptSouth room.
 ;;; @prereq PRGA_Objects is loaded.
 .PROC FuncC_Crypt_Tomb_DrawRoom
-    lda Ram_RoomState + sState::WeakFloor1Hp_u8  ; param: floor HP
-    beq @done1
-    ldx #kWeakFloor1PlatformIndex  ; param: platform index
-    jsr FuncA_Objects_DrawWinchBreakableFloor
-    @done1:
-    lda Ram_RoomState + sState::WeakFloor2Hp_u8  ; param: floor HP
-    beq @done2
-    ldx #kWeakFloor2PlatformIndex  ; param: platform index
-    jmp FuncA_Objects_DrawWinchBreakableFloor
-    @done2:
+    ;; Assert that the weak floor index (0-1) matches each floor's platform
+    ;; index.
+    .assert kWeakFloor0PlatformIndex = 0, error
+    .assert kWeakFloor1PlatformIndex = 1, error
+    ldx #1  ; param: platform index
+    @loop:
+    lda Ram_RoomState + sState::WeakFloorHp_u8_arr2, x  ; param: floor HP
+    beq @continue
+    jsr FuncA_Objects_DrawWinchBreakableFloor  ; preserves X
+    @continue:
+    dex
+    bpl @loop
     rts
 .ENDPROC
 
@@ -335,7 +357,7 @@ _MoveHorz:
     beq _Error
     dey
     @checkFloor:
-    lda DataC_Crypt_TombFloor_u8_arr, y
+    jsr FuncC_Crypt_GetTombFloorZ  ; returns A
     cmp Ram_RoomState + sState::WinchGoalZ_u8
     blt _Error
     sty Ram_RoomState + sState::WinchGoalX_u8
@@ -350,10 +372,9 @@ _MoveUp:
     clc  ; success
     rts
 _MoveDown:
-    ;; TODO: check for weak floor collision
-    lda Ram_RoomState + sState::WinchGoalZ_u8
-    cmp DataC_Crypt_TombFloor_u8_arr, y
-    bge _Error
+    jsr FuncC_Crypt_GetTombFloorZ  ; returns A
+    cmp Ram_RoomState + sState::WinchGoalZ_u8
+    beq _Error
     inc Ram_RoomState + sState::WinchGoalZ_u8
     lda #kWinchMoveDownCooldown
     clc  ; success
@@ -363,15 +384,15 @@ _Error:
     rts
 .ENDPROC
 
+;;; @prereq PRGA_Machine is loaded.
 .PROC FuncC_Crypt_TombWinch_TryAct
-    ldy Ram_RoomState + sState::WinchGoalX_u8
-    lda DataC_Crypt_TombFloor_u8_arr, y
-    tax  ; new goal Z
-    sub Ram_RoomState + sState::WinchGoalZ_u8  ; param: fall distance
-    stx Ram_RoomState + sState::WinchGoalZ_u8
+    ldy Ram_RoomState + sState::WinchGoalX_u8  ; param: goal X
+    jsr FuncC_Crypt_GetTombFloorZ  ; returns A
+    sta Ram_RoomState + sState::WinchGoalZ_u8
     jmp FuncA_Machine_WinchStartFalling  ; returns C and A
 .ENDPROC
 
+;;; @prereq PRGA_Machine is loaded.
 .PROC FuncC_Crypt_TombWinch_Tick
 _MoveVert:
     ;; Calculate the desired room-space pixel Y-position for the top edge of
@@ -397,6 +418,38 @@ _MoveVert:
     beq @reachedGoal
     rts
     @reachedGoal:
+    ;; Check if we just hit a breakable floor.
+    jsr FuncA_Machine_IsWinchFallingFast  ; sets C if falling fast
+    bcc @stopFalling  ; not falling fast enough
+    ldy Ram_RoomState + sState::WinchGoalX_u8  ; param: goal X
+    jsr FuncC_Crypt_GetTombWeakFloorIndex  ; returns C and X
+    bcs @stopFalling  ; not over a breakable floor
+    lda Ram_RoomState + sState::WeakFloorHp_u8_arr2, x
+    beq @stopFalling  ; floor was already broken
+    ;; We've hit the breakable floor.
+    txa
+    pha  ; weak floor/platform index
+    tay  ; param: platform index
+    jsr FuncA_Machine_WinchHitBreakableFloor
+    pla  ; weak floor/platform index
+    tax
+    dec Ram_RoomState + sState::WeakFloorHp_u8_arr2, x
+    bne @stopFalling  ; floor isn't completely broken yet
+    ;; The floor is now completely broken.
+    lda #ePlatform::None
+    sta Ram_PlatformType_ePlatform_arr, x
+    lda Ram_RoomState + sState::WeakFloorHp_u8_arr2 + 0
+    ora Ram_RoomState + sState::WeakFloorHp_u8_arr2 + 1
+    bne @notBothBroken
+    ldx #eFlag::CryptTombWeakFloors
+    jsr Func_SetFlag
+    @notBothBroken:
+    ;; Keep falling past where the breakable floor was.
+    ldy Ram_RoomState + sState::WinchGoalX_u8  ; param: goal X
+    jsr FuncC_Crypt_GetTombFloorZ  ; returns A
+    sta Ram_RoomState + sState::WinchGoalZ_u8
+    rts
+    @stopFalling:
     jsr FuncA_Machine_WinchStopFalling
 _MoveHorz:
     ;; Calculate the desired X-position for the left edge of the winch, in
@@ -423,6 +476,7 @@ _Finished:
 .ENDPROC
 
 .PROC FuncC_Crypt_TombWinch_Reset
+    ;; TODO: heal breakable floors if not both totally broken
     lda Ram_RoomState + sState::WinchGoalX_u8
     cmp #3
     blt _Outer
@@ -450,8 +504,48 @@ _Inner:
     rts
 .ENDPROC
 
-.PROC DataC_Crypt_TombFloor_u8_arr
+;;; Returns the CryptTombWinch machine's goal Z value for resting on the floor
+;;; for a given goal X, taking the breakable floors into account.
+;;; @param Y The goal X value.
+;;; @return A The goal Z for the floor.
+.PROC FuncC_Crypt_GetTombFloorZ
+    jsr FuncC_Crypt_GetTombWeakFloorIndex  ; preserves Y, returns C and X
+    bcs @solidFloor
+    lda Ram_RoomState + sState::WeakFloorHp_u8_arr2, x
+    beq @solidFloor
+    lda _WeakFloorZ_u8_arr2, x
+    rts
+    @solidFloor:
+    lda _SolidFloorZ_u8_arr, y
+    rts
+_WeakFloorZ_u8_arr2:
+    .byte kWeakFloor0GoalZ, kWeakFloor1GoalZ
+_SolidFloorZ_u8_arr:
     .byte 9, 0, 0, 5, 5, 5, 0, 5, 5, 7
+.ENDPROC
+
+;;; Returns the weak floor index that the CryptTombWinch machine is over, if
+;;; any.
+;;; @param Y The goal X value.
+;;; @return C Cleared if over a weak floor, set otherwise.
+;;; @return X The weak floor index (0-1), if over a weak floor.
+;;; @preserve Y
+.PROC FuncC_Crypt_GetTombWeakFloorIndex
+    cpy #kWeakFloor0GoalX
+    beq @weakFloor0
+    cpy #kWeakFloor1GoalX
+    beq @weakFloor1
+    @solidFloor:
+    sec
+    rts
+    @weakFloor0:
+    ldx #0
+    clc
+    rts
+    @weakFloor1:
+    ldx #1
+    clc
+    rts
 .ENDPROC
 
 ;;;=========================================================================;;;
