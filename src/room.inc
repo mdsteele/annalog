@@ -184,6 +184,11 @@ kRoomStateSize = $100
     Passages_sPassage_arr_ptr   .addr
     ;; Function to initialize room-specific state when entering the room.
     Init_func_ptr               .addr
+    ;; Function to update BG nametables before fading in the room, e.g. when
+    ;; first entering the room or when unpausing while in the room.
+    ;; @prereq PRGA_Terrain is loaded.
+    ;; @prereq Rendering is disabled.
+    FadeIn_func_ptr             .addr
 .ENDSTRUCT
 
 ;;;=========================================================================;;;

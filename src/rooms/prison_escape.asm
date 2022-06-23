@@ -128,6 +128,7 @@ _Ext_sRoomExt:
     .linecont -
     d_addr Passages_sPassage_arr_ptr, _Passages_sPassage_arr
     d_addr Init_func_ptr, Func_Noop
+    d_addr FadeIn_func_ptr, Func_Noop
     D_END
 _TerrainData:
 :   .incbin "out/data/prison_escape.room"

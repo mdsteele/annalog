@@ -29,6 +29,7 @@
 .IMPORTZP Zp_Tmp1_byte
 .IMPORTZP Zp_Tmp2_byte
 .IMPORTZP Zp_Tmp3_byte
+.IMPORTZP Zp_Tmp_ptr
 
 ;;;=========================================================================;;;
 
@@ -332,6 +333,18 @@ _Right:
     cpx Zp_PpuTransferLen_u8
     bne _Right
     rts
+.ENDPROC
+
+;;; Calls the current room's FadeIn_func_ptr function.
+.EXPORT FuncA_Terrain_CallRoomFadeIn
+.PROC FuncA_Terrain_CallRoomFadeIn
+    ldy #sRoomExt::FadeIn_func_ptr
+    lda (Zp_Current_sRoom + sRoom::Ext_sRoomExt_ptr), y
+    sta Zp_Tmp_ptr + 0
+    iny
+    lda (Zp_Current_sRoom + sRoom::Ext_sRoomExt_ptr), y
+    sta Zp_Tmp_ptr + 1
+    jmp (Zp_Tmp_ptr)
 .ENDPROC
 
 ;;;=========================================================================;;;

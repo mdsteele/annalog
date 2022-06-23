@@ -47,6 +47,7 @@
 .IMPORT FuncA_Room_EnterViaPassage
 .IMPORT FuncA_Room_ExitViaPassage
 .IMPORT FuncA_Room_Load
+.IMPORT FuncA_Terrain_CallRoomFadeIn
 .IMPORT FuncA_Terrain_FillNametables
 .IMPORT FuncA_Terrain_TransferTileColumn
 .IMPORT Func_ClearRestOfOam
@@ -189,6 +190,7 @@ _DrawTerrain:
     .endrepeat
     lda Zp_Tmp1_byte  ; param: left block column index
     jsr FuncA_Terrain_FillNametables
+    jsr FuncA_Terrain_CallRoomFadeIn
 _InitObjectsAndFadeIn:
     jsr Func_FindNearbyDevice
     lda #0

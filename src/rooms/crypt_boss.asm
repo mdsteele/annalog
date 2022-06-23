@@ -213,6 +213,7 @@ _Ext_sRoomExt:
     d_addr Dialogs_sDialog_ptr_arr_ptr, 0
     d_addr Passages_sPassage_arr_ptr, 0
     d_addr Init_func_ptr, FuncC_Crypt_Boss_InitRoom
+    d_addr FadeIn_func_ptr, FuncC_Crypt_Boss_FadeInRoom
     D_END
 _TerrainData:
 :   .incbin "out/data/crypt_boss.room"
@@ -504,7 +505,10 @@ _Inner:
     sta Ram_RoomState + sState::BossPosX_u8
     lda #kBossInitPosY
     sta Ram_RoomState + sState::BossPosY_u8
-_TransferBossTiles:
+    rts
+.ENDPROC
+
+.PROC FuncC_Crypt_Boss_FadeInRoom
     ldy #0
     ldx Zp_PpuTransferLen_u8
     @loop:

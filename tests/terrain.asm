@@ -47,10 +47,11 @@ Zp_Current_sRoom: .tag sRoom
 Zp_Current_sTileset: .tag sTileset
 .EXPORTZP Zp_PpuTransferLen_u8
 Zp_PpuTransferLen_u8: .res 1
-.EXPORTZP Zp_Tmp1_byte, Zp_Tmp2_byte, Zp_Tmp3_byte
+.EXPORTZP Zp_Tmp1_byte, Zp_Tmp2_byte, Zp_Tmp3_byte, Zp_Tmp_ptr
 Zp_Tmp1_byte: .res 1
 Zp_Tmp2_byte: .res 1
 Zp_Tmp3_byte: .res 1
+Zp_Tmp_ptr: .res 2
 
 ;;;=========================================================================;;;
 

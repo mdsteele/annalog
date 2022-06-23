@@ -215,6 +215,7 @@ _Ext_sRoomExt:
     d_addr Dialogs_sDialog_ptr_arr_ptr, 0
     d_addr Passages_sPassage_arr_ptr, 0
     d_addr Init_func_ptr, FuncC_Garden_Boss_InitRoom
+    d_addr FadeIn_func_ptr, Func_Noop
     D_END
 _TerrainData:
 :   .incbin "out/data/garden_boss.room"
