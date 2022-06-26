@@ -176,6 +176,20 @@
 
 ;;;=========================================================================;;;
 
+.SEGMENT "CHR_Mermaid"
+
+.EXPORT Ppu_ChrMermaid
+.PROC Ppu_ChrMermaid
+:   .incbin "out/data/tiles/cave.chr"
+    .res $10 * kSizeofChr
+    .incbin "out/data/tiles/beach.chr"
+    .res $0e * kSizeofChr
+    .incbin "out/data/tiles/device.chr"
+    .assert * - :- = kSizeofChr * $40, error
+.ENDPROC
+
+;;;=========================================================================;;;
+
 .SEGMENT "CHR_Outdoors"
 
 .EXPORT Ppu_ChrOutdoors

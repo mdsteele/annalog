@@ -1,7 +1,8 @@
 @BG 0 0 0 17x15
->prison_0
->prison_1
->prison_4
+>mermaid_0
+>mermaid_1
+>mermaid_4
+>mermaid_5
 
         CHCHCHCHCHCHCHCHCH
     CHCI                  CG
@@ -11,10 +12,10 @@ CN            BB    CACECC  CM
 CNBA          CO      CP    CM
   CBCC        CP            CM
 CN                          CM
-CN      CO                  CGCHCH
-CN  BA    BA
-CNCECECECECF
-          CNBPBPBPBPBPBPBPBPBPBPBP
-          CN
-          CNCL
-            CN
+CN        CO                CGCHCH
+CN
+DPBLCPBA
+DDDFDCDEDNBPBPBPBPBPBPBPBPBPBPBPBP
+DBDBDADCDDDN
+DADADEDDDADBDFDNBL
+DCDADDDADCDBDCDDDCDDDADCDDDADCDBDB
