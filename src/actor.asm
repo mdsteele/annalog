@@ -28,6 +28,7 @@
 .IMPORT FuncA_Actor_TickChild
 .IMPORT FuncA_Actor_TickCrawler
 .IMPORT FuncA_Actor_TickFireball
+.IMPORT FuncA_Actor_TickFish
 .IMPORT FuncA_Actor_TickGrenade
 .IMPORT FuncA_Actor_TickSmoke
 .IMPORT FuncA_Actor_TickSpider
@@ -40,6 +41,7 @@
 .IMPORT FuncA_Objects_DrawChildActor
 .IMPORT FuncA_Objects_DrawCrawlerActor
 .IMPORT FuncA_Objects_DrawFireballActor
+.IMPORT FuncA_Objects_DrawFishActor
 .IMPORT FuncA_Objects_DrawGrenadeActor
 .IMPORT FuncA_Objects_DrawSmokeActor
 .IMPORT FuncA_Objects_DrawSpiderActor
@@ -81,6 +83,7 @@ Func_InitNoneActor = Func_InitActorDefault
 Func_InitAdultActor = Func_InitActorWithState
 Func_InitChildActor = Func_InitActorWithState
 Func_InitCrawlerActor = Func_InitActorDefault
+Func_InitFishActor = Func_InitActorDefault
 Func_InitSpiderActor = Func_InitActorDefault
 Func_InitToddlerActor = Func_InitActorWithState
 
@@ -94,6 +97,7 @@ FuncA_Objects_DrawNoneActor = Func_Noop
     Func_InitChildActor, \
     Func_InitCrawlerActor, \
     Func_InitFireballActor, \
+    Func_InitFishActor, \
     Func_InitGrenadeActor, \
     Func_InitSmokeActor, \
     Func_InitSpiderActor, \
@@ -108,6 +112,7 @@ FuncA_Objects_DrawNoneActor = Func_Noop
     FuncA_Actor_TickChild, \
     FuncA_Actor_TickCrawler, \
     FuncA_Actor_TickFireball, \
+    FuncA_Actor_TickFish, \
     FuncA_Actor_TickGrenade, \
     FuncA_Actor_TickSmoke, \
     FuncA_Actor_TickSpider, \
@@ -122,6 +127,7 @@ FuncA_Objects_DrawNoneActor = Func_Noop
     FuncA_Objects_DrawChildActor, \
     FuncA_Objects_DrawCrawlerActor, \
     FuncA_Objects_DrawFireballActor, \
+    FuncA_Objects_DrawFishActor, \
     FuncA_Objects_DrawGrenadeActor, \
     FuncA_Objects_DrawSmokeActor, \
     FuncA_Objects_DrawSpiderActor, \
@@ -261,6 +267,7 @@ _JumpTable_ptr_1_arr: .hibytes ActorInitFuncs
     d_byte Child,    7
     d_byte Crawler,  0
     d_byte Fireball, kFireballRadius
+    d_byte Fish,     6
     d_byte Grenade,  kGrenadeRadius
     d_byte Smoke,    kSmokeRadius
     d_byte Spider,   8
@@ -275,6 +282,7 @@ _JumpTable_ptr_1_arr: .hibytes ActorInitFuncs
     d_byte Child,    8
     d_byte Crawler,  8
     d_byte Fireball, kFireballRadius
+    d_byte Fish,     4
     d_byte Grenade,  kGrenadeRadius
     d_byte Smoke,    kSmokeRadius
     d_byte Spider,   2
@@ -289,6 +297,7 @@ _JumpTable_ptr_1_arr: .hibytes ActorInitFuncs
     d_byte Child,    5
     d_byte Crawler,  7
     d_byte Fireball, kFireballRadius
+    d_byte Fish,     6
     d_byte Grenade,  kGrenadeRadius
     d_byte Smoke,    kSmokeRadius
     d_byte Spider,   7
@@ -303,6 +312,7 @@ _JumpTable_ptr_1_arr: .hibytes ActorInitFuncs
     d_byte Child,    5
     d_byte Crawler,  7
     d_byte Fireball, kFireballRadius
+    d_byte Fish,     6
     d_byte Grenade,  kGrenadeRadius
     d_byte Smoke,    kSmokeRadius
     d_byte Spider,   7
@@ -443,37 +453,55 @@ _NoHit:
     rts
 .ENDPROC
 
+;;; Returns the room tile column index for the actor position.
+;;; @param X The actor index.
+;;; @return A The room tile column index.
+;;; @preserve X
+.EXPORT FuncA_Actor_GetRoomTileColumn
+.PROC FuncA_Actor_GetRoomTileColumn
+    lda Ram_ActorPosX_i16_1_arr, x
+    sta Zp_Tmp1_byte
+    lda Ram_ActorPosX_i16_0_arr, x
+    .assert kTileWidthPx = (1 << 3), error
+    .repeat 3
+    lsr Zp_Tmp1_byte
+    ror a
+    .endrepeat
+    rts
+.ENDPROC
+
+;;; Returns the room block row index for the actor position.
+;;; @param X The actor index.
+;;; @return Y The room block row index.
+;;; @preserve X
+.EXPORT FuncA_Actor_GetRoomBlockRow
+.PROC FuncA_Actor_GetRoomBlockRow
+    lda Ram_ActorPosY_i16_1_arr, x
+    sta Zp_Tmp1_byte
+    lda Ram_ActorPosY_i16_0_arr, x
+    .assert kBlockHeightPx = (1 << 4), error
+    .repeat 4
+    lsr Zp_Tmp1_byte
+    ror a
+    .endrepeat
+    tay
+    rts
+.ENDPROC
+
 ;;; Checks if the actor's center position is colliding with solid terrain.
 ;;; @param X The actor index.
 ;;; @return C Set if a collision occurred, cleared otherwise.
 ;;; @preserve X
 .EXPORT FuncA_Actor_CenterHitsTerrain
 .PROC FuncA_Actor_CenterHitsTerrain
-    ;; Compute the room tile column index for the actor position, storing it in
-    ;; A.
-    lda Ram_ActorPosX_i16_1_arr, x
-    sta Zp_Tmp1_byte
-    lda Ram_ActorPosX_i16_0_arr, x
-    .repeat 3
-    lsr Zp_Tmp1_byte
-    ror a
-    .endrepeat
-    ;; Get the terrain for the tile column we're checking.
+    ;; Get the terrain for the actor's current tile column.
+    jsr FuncA_Actor_GetRoomTileColumn  ; preserves X, returns A
     stx Zp_Tmp1_byte
     jsr Func_Terrain_GetColumnPtrForTileIndex  ; preserves Zp_Tmp*
     ldx Zp_Tmp1_byte
-    ;; Compute the room block row index for the actor position, storing it in
-    ;; Y.
-    lda Ram_ActorPosY_i16_1_arr, x
-    sta Zp_Tmp1_byte
-    lda Ram_ActorPosY_i16_0_arr, x
-    .repeat 4
-    lsr Zp_Tmp1_byte
-    ror a
-    .endrepeat
-    tay
     ;; Check the terrain block that the actor position is in, and set C if the
     ;; terrain is solid.
+    jsr FuncA_Actor_GetRoomBlockRow  ; preserves X, returns Y
     lda (Zp_TerrainColumn_u8_arr_ptr), y
     cmp #kFirstSolidTerrainType
     rts

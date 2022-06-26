@@ -27,63 +27,44 @@
 .IMPORT FuncA_Objects_Draw2x2Actor
 .IMPORT Func_Terrain_GetColumnPtrForTileIndex
 .IMPORT Ram_ActorFlags_bObj_arr
-.IMPORT Ram_ActorPosX_i16_0_arr
-.IMPORT Ram_ActorPosX_i16_1_arr
 .IMPORT Ram_ActorState_byte_arr
+.IMPORT Ram_ActorVelX_i16_0_arr
+.IMPORT Ram_ActorVelX_i16_1_arr
 .IMPORTZP Zp_TerrainColumn_u8_arr_ptr
 .IMPORTZP Zp_Tmp1_byte
 
 ;;;=========================================================================;;;
 
+;;; How fast the fish swims, in subpixels per frame.
+kFishSpeed = $0130
+
 ;;; First-tile-ID values that can be passed to FuncA_Objects_Draw2x2Actor for
 ;;; various actor animation frames.
-kCrawlerFirstTileId1 = $9c
-kCrawlerFirstTileId2 = $a0
-kCrawlerFirstTileId3 = $a4
+kFishFirstTileId1 = $c9
+kFishFirstTileId2 = $cd
+kFishFirstTileId3 = $d1
 
 ;;;=========================================================================;;;
 
 .SEGMENT "PRGA_Actor"
 
-;;; Performs per-frame updates for a crawler enemy actor.
+;;; Performs per-frame updates for a fish enemy actor.
 ;;; @param X The actor index.
 ;;; @preserve X
-.EXPORT FuncA_Actor_TickCrawler
-.PROC FuncA_Actor_TickCrawler
-    lda Ram_ActorState_byte_arr, x
-    beq _StartMove
-    dec Ram_ActorState_byte_arr, x
-    cmp #$18
-    blt _DetectCollision
-    lda Ram_ActorFlags_bObj_arr, x
-    and #bObj::FlipH
-    bne _MoveLeft
-_MoveRight:
-    inc Ram_ActorPosX_i16_0_arr, x
-    bne @noCarry
-    inc Ram_ActorPosX_i16_1_arr, x
-    @noCarry:
-    jmp FuncA_Actor_HarmAvatarIfCollision  ; preserves X
-_MoveLeft:
-    lda Ram_ActorPosX_i16_0_arr, x
-    bne @noBorrow
-    dec Ram_ActorPosX_i16_1_arr, x
-    @noBorrow:
-    dec Ram_ActorPosX_i16_0_arr, x
-_DetectCollision:
-    jmp FuncA_Actor_HarmAvatarIfCollision  ; preserves X
-_StartMove:
-    ;; Compute the room tile column index for the center of the crawler,
-    ;; storing it in Y.
+.EXPORT FuncA_Actor_TickFish
+.PROC FuncA_Actor_TickFish
+    ;; Compute the room tile column index for the center of the fish, storing
+    ;; it in Y.
     jsr FuncA_Actor_GetRoomTileColumn  ; preserves X, returns A
     tay
-    ;; If the crawler is facing right, increment Y (so as to check the tile
-    ;; column to the right of the crawler); if the crawler is facing left,
-    ;; decrement Y (so as to check the tile column to the left of the crawler).
+    ;; If the fish is facing right, add 2 to the tile column (so as to check
+    ;; the block column to the right of the fish); if the fish is facing left,
+    ;; subtract 2 (so as to check the block column to the left of the fish).
     lda Ram_ActorFlags_bObj_arr, x
     and #bObj::FlipH
     bne @facingLeft
     @facingRight:
+    iny
     iny
     bne @doneFacing  ; unconditional
     @facingLeft:
@@ -91,43 +72,52 @@ _StartMove:
     dey
     @doneFacing:
     ;; Get the terrain for the tile column we're checking.
-    stx Zp_Tmp1_byte
+    stx Zp_Tmp1_byte  ; actor index
     tya  ; param: room tile column index
     jsr Func_Terrain_GetColumnPtrForTileIndex  ; preserves Zp_Tmp*
-    ldx Zp_Tmp1_byte
-    ;; Check the terrain block just in front of the crawler.  If it's solid,
-    ;; the crawler has to turn around.
+    ldx Zp_Tmp1_byte  ; actor index
+    ;; Check the terrain block just in front of the fish.  If it's solid,
+    ;; the fish has to turn around.
     jsr FuncA_Actor_GetRoomBlockRow  ; preserves X, returns Y
     lda (Zp_TerrainColumn_u8_arr_ptr), y
     cmp #kFirstSolidTerrainType
-    bge @turnAround
-    ;; Check the floor just in front of the crawler.  If it's not solid, the
-    ;; crawler has to turn around.
-    iny
-    lda (Zp_TerrainColumn_u8_arr_ptr), y
-    cmp #kFirstSolidTerrainType
-    bge @continueForward
-    ;; Make the crawler face the opposite direction.
+    blt @continueForward
+    ;; Make the fish face the opposite direction.
     @turnAround:
     lda Ram_ActorFlags_bObj_arr, x
     eor #bObj::FlipH
     sta Ram_ActorFlags_bObj_arr, x
-    ;; Start a new movement cycle for the crawler.
     @continueForward:
-    lda #$1f
-    sta Ram_ActorState_byte_arr, x
-    rts
+_SetVelocity:
+    ;; TODO: Move fast if player avatar is ahead, move slower otherwise.
+    lda Ram_ActorFlags_bObj_arr, x
+    and #bObj::FlipH
+    bne @facingLeft
+    @facingRight:
+    lda #<kFishSpeed
+    sta Ram_ActorVelX_i16_0_arr, x
+    lda #>kFishSpeed
+    sta Ram_ActorVelX_i16_1_arr, x
+    bpl @done  ; unconditional
+    @facingLeft:
+    lda #<($ffff & -kFishSpeed)
+    sta Ram_ActorVelX_i16_0_arr, x
+    lda #>($ffff & -kFishSpeed)
+    sta Ram_ActorVelX_i16_1_arr, x
+    @done:
+    inc Ram_ActorState_byte_arr, x
+    jmp FuncA_Actor_HarmAvatarIfCollision  ; preserves X
 .ENDPROC
 
 ;;;=========================================================================;;;
 
 .SEGMENT "PRGA_Objects"
 
-;;; Allocates and populates OAM slots for a crawler enemy actor.
+;;; Allocates and populates OAM slots for a fish enemy actor.
 ;;; @param X The actor index.
 ;;; @preserve X
-.EXPORT FuncA_Objects_DrawCrawlerActor
-.PROC FuncA_Objects_DrawCrawlerActor
+.EXPORT FuncA_Objects_DrawFishActor
+.PROC FuncA_Objects_DrawFishActor
     lda Ram_ActorState_byte_arr, x
     and #$08
     bne @frame2
@@ -135,13 +125,13 @@ _StartMove:
     and #$10
     bne @frame3
     @frame1:
-    lda #kCrawlerFirstTileId1
+    lda #kFishFirstTileId1
     bne @draw  ; unconditional
     @frame2:
-    lda #kCrawlerFirstTileId2
+    lda #kFishFirstTileId2
     bne @draw  ; unconditional
     @frame3:
-    lda #kCrawlerFirstTileId3
+    lda #kFishFirstTileId3
     @draw:
     jmp FuncA_Objects_Draw2x2Actor  ; preserves X
 .ENDPROC

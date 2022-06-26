@@ -117,7 +117,18 @@ _Platforms_sPlatform_arr:
     D_END
     .byte ePlatform::None
 _Actors_sActor_arr:
-    ;; TODO: Add some enemies.
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::Crawler  ; TODO: crab
+    d_byte TileRow_u8, 9
+    d_byte TileCol_u8, 18
+    d_byte Param_byte, 0
+    D_END
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::Fish
+    d_byte TileRow_u8, 24
+    d_byte TileCol_u8, 48
+    d_byte Param_byte, 0
+    D_END
     .byte eActor::None
 _Devices_sDevice_arr:
     D_STRUCT sDevice

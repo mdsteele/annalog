@@ -36,6 +36,7 @@ kChildPonytail = $84
     Child
     Crawler
     Fireball
+    Fish
     Grenade
     Smoke
     Spider
