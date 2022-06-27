@@ -25,46 +25,65 @@
 .IMPORT FuncA_Actor_GetRoomTileColumn
 .IMPORT FuncA_Actor_HarmAvatarIfCollision
 .IMPORT FuncA_Objects_Draw2x2Actor
+.IMPORT Func_GetRandomByte
 .IMPORT Func_Terrain_GetColumnPtrForTileIndex
 .IMPORT Ram_ActorFlags_bObj_arr
+.IMPORT Ram_ActorPosX_i16_0_arr
+.IMPORT Ram_ActorPosX_i16_1_arr
 .IMPORT Ram_ActorState_byte_arr
-.IMPORT Ram_ActorVelX_i16_0_arr
-.IMPORT Ram_ActorVelX_i16_1_arr
 .IMPORTZP Zp_TerrainColumn_u8_arr_ptr
 .IMPORTZP Zp_Tmp1_byte
 
 ;;;=========================================================================;;;
 
-;;; How fast the fish swims, in subpixels per frame.
-kFishSpeed = $0130
-
 ;;; First-tile-ID values that can be passed to FuncA_Objects_Draw2x2Actor for
 ;;; various actor animation frames.
-kFishFirstTileId1 = $c9
-kFishFirstTileId2 = $cd
-kFishFirstTileId3 = $d1
+kCrabFirstTileId1 = $d5
+kCrabFirstTileId2 = $d9
 
 ;;;=========================================================================;;;
 
 .SEGMENT "PRGA_Actor"
 
-;;; Performs per-frame updates for a fish enemy actor.
+;;; Performs per-frame updates for a crab enemy actor.
 ;;; @param X The actor index.
 ;;; @preserve X
-.EXPORT FuncA_Actor_TickFish
-.PROC FuncA_Actor_TickFish
-    ;; Compute the room tile column index for the center of the fish, storing
+.EXPORT FuncA_Actor_TickCrab
+.PROC FuncA_Actor_TickCrab
+    lda Ram_ActorState_byte_arr, x
+    beq _StartMove
+    dec Ram_ActorState_byte_arr, x
+    cmp #$18
+    blt _DetectCollision
+    lda Ram_ActorFlags_bObj_arr, x
+    and #bObj::FlipH
+    bne _MoveLeft
+_MoveRight:
+    inc Ram_ActorPosX_i16_0_arr, x
+    bne @noCarry
+    inc Ram_ActorPosX_i16_1_arr, x
+    @noCarry:
+    jmp FuncA_Actor_HarmAvatarIfCollision  ; preserves X
+_MoveLeft:
+    lda Ram_ActorPosX_i16_0_arr, x
+    bne @noBorrow
+    dec Ram_ActorPosX_i16_1_arr, x
+    @noBorrow:
+    dec Ram_ActorPosX_i16_0_arr, x
+_DetectCollision:
+    jmp FuncA_Actor_HarmAvatarIfCollision  ; preserves X
+_StartMove:
+    ;; Compute the room tile column index for the center of the crab, storing
     ;; it in Y.
     jsr FuncA_Actor_GetRoomTileColumn  ; preserves X, returns A
     tay
-    ;; If the fish is facing right, add 2 to the tile column (so as to check
-    ;; the block column to the right of the fish); if the fish is facing left,
-    ;; subtract 2 (so as to check the block column to the left of the fish).
+    ;; If the crab is facing right, increment Y (so as to check the tile column
+    ;; to the right of the crab); if the crab is facing left, decrement Y (so
+    ;; as to check the tile column to the left of the crab).
     lda Ram_ActorFlags_bObj_arr, x
     and #bObj::FlipH
     bne @facingLeft
     @facingRight:
-    iny
     iny
     bne @doneFacing  ; unconditional
     @facingLeft:
@@ -72,61 +91,55 @@ kFishFirstTileId3 = $d1
     dey
     @doneFacing:
     ;; Get the terrain for the tile column we're checking.
-    stx Zp_Tmp1_byte  ; actor index
+    stx Zp_Tmp1_byte
     tya  ; param: room tile column index
     jsr Func_Terrain_GetColumnPtrForTileIndex  ; preserves Zp_Tmp*
-    ldx Zp_Tmp1_byte  ; actor index
-    ;; Check the terrain block just in front of the fish.  If it's solid,
-    ;; the fish has to turn around.
+    ldx Zp_Tmp1_byte
+    ;; Check the terrain block just in front of the crab.  If it's solid, the
+    ;; crab has to turn around.
     jsr FuncA_Actor_GetRoomBlockRow  ; preserves X, returns Y
     lda (Zp_TerrainColumn_u8_arr_ptr), y
     cmp #kFirstSolidTerrainType
-    blt @continueForward
-    ;; Make the fish face the opposite direction.
+    bge @turnAround
+    ;; Check the floor just in front of the crab.  If it's not solid, the crab
+    ;; has to turn around.
+    iny
+    lda (Zp_TerrainColumn_u8_arr_ptr), y
+    cmp #kFirstSolidTerrainType
+    blt @turnAround
+    ;; Otherwise, randomly turn around 25% of the time.
+    jsr Func_GetRandomByte  ; preserves X, returns A
+    and #$03
+    bne @continueForward
+    ;; Make the crab face the opposite direction.
     @turnAround:
     lda Ram_ActorFlags_bObj_arr, x
     eor #bObj::FlipH
     sta Ram_ActorFlags_bObj_arr, x
+    ;; Start a new movement cycle for the crab.
     @continueForward:
-_SetVelocity:
-    ;; TODO: Move fast if player avatar is ahead, move slower otherwise.
-    lda Ram_ActorFlags_bObj_arr, x
-    and #bObj::FlipH
-    bne @facingLeft
-    @facingRight:
-    lda #<kFishSpeed
-    sta Ram_ActorVelX_i16_0_arr, x
-    lda #>kFishSpeed
-    sta Ram_ActorVelX_i16_1_arr, x
-    bpl @done  ; unconditional
-    @facingLeft:
-    lda #<($ffff & -kFishSpeed)
-    sta Ram_ActorVelX_i16_0_arr, x
-    lda #>($ffff & -kFishSpeed)
-    sta Ram_ActorVelX_i16_1_arr, x
-    @done:
-    inc Ram_ActorState_byte_arr, x
-    jmp FuncA_Actor_HarmAvatarIfCollision  ; preserves X
+    lda #$1f
+    sta Ram_ActorState_byte_arr, x
+    rts
 .ENDPROC
 
 ;;;=========================================================================;;;
 
 .SEGMENT "PRGA_Objects"
 
-;;; Allocates and populates OAM slots for a fish enemy actor.
+;;; Allocates and populates OAM slots for a crab enemy actor.
 ;;; @param X The actor index.
 ;;; @preserve X
-.EXPORT FuncA_Objects_DrawFishActor
-.PROC FuncA_Objects_DrawFishActor
+.EXPORT FuncA_Objects_DrawCrabActor
+.PROC FuncA_Objects_DrawCrabActor
     lda Ram_ActorState_byte_arr, x
-    div #8
-    and #$03
+    div #$10
+    and #$01
     tay
-    lda _TileIds_u8_arr4, y  ; param: first tile ID
+    lda _TileIds_u8_arr2, y  ; param: first tile ID
     jmp FuncA_Objects_Draw2x2Actor  ; preserves X
-_TileIds_u8_arr4:
-    .byte kFishFirstTileId1, kFishFirstTileId2
-    .byte kFishFirstTileId3, kFishFirstTileId2
+_TileIds_u8_arr2:
+    .byte kCrabFirstTileId1, kCrabFirstTileId2
 .ENDPROC
 
 ;;;=========================================================================;;;

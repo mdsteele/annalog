@@ -34,6 +34,7 @@ kChildPonytail = $84
     None
     Adult
     Child
+    Crab
     Crawler
     Fireball
     Fish

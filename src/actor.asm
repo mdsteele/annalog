@@ -26,6 +26,7 @@
 
 .IMPORT FuncA_Actor_TickAdult
 .IMPORT FuncA_Actor_TickChild
+.IMPORT FuncA_Actor_TickCrab
 .IMPORT FuncA_Actor_TickCrawler
 .IMPORT FuncA_Actor_TickFireball
 .IMPORT FuncA_Actor_TickFish
@@ -39,6 +40,7 @@
 .IMPORT FuncA_Objects_Alloc2x2Shape
 .IMPORT FuncA_Objects_DrawAdultActor
 .IMPORT FuncA_Objects_DrawChildActor
+.IMPORT FuncA_Objects_DrawCrabActor
 .IMPORT FuncA_Objects_DrawCrawlerActor
 .IMPORT FuncA_Objects_DrawFireballActor
 .IMPORT FuncA_Objects_DrawFishActor
@@ -79,12 +81,13 @@ kSpikeRadius = 3
 
 ;;;=========================================================================;;;
 
-Func_InitNoneActor = Func_InitActorDefault
-Func_InitAdultActor = Func_InitActorWithState
-Func_InitChildActor = Func_InitActorWithState
+Func_InitNoneActor    = Func_InitActorDefault
+Func_InitAdultActor   = Func_InitActorWithState
+Func_InitChildActor   = Func_InitActorWithState
+Func_InitCrabActor    = Func_InitActorDefault
 Func_InitCrawlerActor = Func_InitActorDefault
-Func_InitFishActor = Func_InitActorDefault
-Func_InitSpiderActor = Func_InitActorDefault
+Func_InitFishActor    = Func_InitActorDefault
+Func_InitSpiderActor  = Func_InitActorDefault
 Func_InitToddlerActor = Func_InitActorWithState
 
 FuncA_Actor_TickNone = Func_Noop
@@ -95,6 +98,7 @@ FuncA_Objects_DrawNoneActor = Func_Noop
     Func_InitNoneActor, \
     Func_InitAdultActor, \
     Func_InitChildActor, \
+    Func_InitCrabActor, \
     Func_InitCrawlerActor, \
     Func_InitFireballActor, \
     Func_InitFishActor, \
@@ -110,6 +114,7 @@ FuncA_Objects_DrawNoneActor = Func_Noop
     FuncA_Actor_TickNone, \
     FuncA_Actor_TickAdult, \
     FuncA_Actor_TickChild, \
+    FuncA_Actor_TickCrab, \
     FuncA_Actor_TickCrawler, \
     FuncA_Actor_TickFireball, \
     FuncA_Actor_TickFish, \
@@ -125,6 +130,7 @@ FuncA_Objects_DrawNoneActor = Func_Noop
     FuncA_Objects_DrawNoneActor, \
     FuncA_Objects_DrawAdultActor, \
     FuncA_Objects_DrawChildActor, \
+    FuncA_Objects_DrawCrabActor, \
     FuncA_Objects_DrawCrawlerActor, \
     FuncA_Objects_DrawFireballActor, \
     FuncA_Objects_DrawFishActor, \
@@ -265,6 +271,7 @@ _JumpTable_ptr_1_arr: .hibytes ActorInitFuncs
     d_byte None,     0
     d_byte Adult,   13
     d_byte Child,    7
+    d_byte Crab,     6
     d_byte Crawler,  0
     d_byte Fireball, kFireballRadius
     d_byte Fish,     6
@@ -280,6 +287,7 @@ _JumpTable_ptr_1_arr: .hibytes ActorInitFuncs
     d_byte None,     0
     d_byte Adult,    8
     d_byte Child,    8
+    d_byte Crab,     8
     d_byte Crawler,  8
     d_byte Fireball, kFireballRadius
     d_byte Fish,     4
@@ -295,6 +303,7 @@ _JumpTable_ptr_1_arr: .hibytes ActorInitFuncs
     d_byte None,     0
     d_byte Adult,    5
     d_byte Child,    5
+    d_byte Crab,     7
     d_byte Crawler,  7
     d_byte Fireball, kFireballRadius
     d_byte Fish,     6
@@ -310,6 +319,7 @@ _JumpTable_ptr_1_arr: .hibytes ActorInitFuncs
     d_byte None,     0
     d_byte Adult,    5
     d_byte Child,    5
+    d_byte Crab,     7
     d_byte Crawler,  7
     d_byte Fireball, kFireballRadius
     d_byte Fish,     6

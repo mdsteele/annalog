@@ -129,21 +129,14 @@ _StartMove:
 .EXPORT FuncA_Objects_DrawCrawlerActor
 .PROC FuncA_Objects_DrawCrawlerActor
     lda Ram_ActorState_byte_arr, x
-    and #$08
-    bne @frame2
-    lda Ram_ActorState_byte_arr, x
-    and #$10
-    bne @frame3
-    @frame1:
-    lda #kCrawlerFirstTileId1
-    bne @draw  ; unconditional
-    @frame2:
-    lda #kCrawlerFirstTileId2
-    bne @draw  ; unconditional
-    @frame3:
-    lda #kCrawlerFirstTileId3
-    @draw:
+    div #8
+    and #$03
+    tay
+    lda _TileIds_u8_arr4, y  ; param: first tile ID
     jmp FuncA_Objects_Draw2x2Actor  ; preserves X
+_TileIds_u8_arr4:
+    .byte kCrawlerFirstTileId1, kCrawlerFirstTileId2
+    .byte kCrawlerFirstTileId3, kCrawlerFirstTileId2
 .ENDPROC
 
 ;;;=========================================================================;;;

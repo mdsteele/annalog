@@ -285,7 +285,8 @@
     .incbin "out/data/tiles/gazer_obj.chr"
     .incbin "out/data/tiles/breakable.chr"
     .incbin "out/data/tiles/fish.chr"
-    .res $2b * kSizeofChr
+    .incbin "out/data/tiles/crab.chr"
+    .res $23 * kSizeofChr
     .assert * - :- = kSizeofChr * $80, error
 .ENDPROC
 

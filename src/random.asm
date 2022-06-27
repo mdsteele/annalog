@@ -33,6 +33,7 @@ Zp_RngT_u8: .res 1
 
 ;;; Generates a pseudorandom byte.
 ;;; @return A The random byte.
+;;; @return N Set if the uppermost bit of the random byte is set.
 ;;; @preserve X, Y, Zp_Tmp*
 .EXPORT Func_GetRandomByte
 .PROC Func_GetRandomByte
