@@ -107,6 +107,7 @@ _Buffer:
 ;;; Prints and exits with an error if A does not equal Y.
 ;;; @param A The actual value.
 ;;; @param Y The expected value.
+;;; @preserve X
 .EXPORT Func_ExpectAEqualsY
 .PROC Func_ExpectAEqualsY
     sty Zp_Expected_byte

@@ -107,6 +107,7 @@
     CryptWestWinch
     GardenBossCannon
     GardenCrossroadLift
+    MermaidUpperLift
     PrisonCellBarrier
     PrisonCellBlaster
     PrisonEscapeTrolley

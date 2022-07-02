@@ -17,59 +17,49 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
-.ZEROPAGE
+.INCLUDE "../src/macros.inc"
 
-;;; Temporary variables that any main-thread function can use.  In general, it
-;;; should be assumed that these are not preserved across function calls.
-.EXPORTZP Zp_Tmp1_byte, Zp_Tmp2_byte, Zp_Tmp3_byte, Zp_Tmp4_byte, Zp_Tmp_ptr
-Zp_Tmp1_byte: .res 1
-Zp_Tmp2_byte: .res 1
-Zp_Tmp3_byte: .res 1
-Zp_Tmp4_byte: .res 1
-Zp_Tmp_ptr: .res 2
+.IMPORT Exit_Success
+.IMPORT Func_DivMod
+.IMPORT Func_ExpectAEqualsY
 
 ;;;=========================================================================;;;
 
-.SEGMENT "PRG8"
+.CODE
 
-;;; Does nothing and returns immediately.  Can be used as a null function
-;;; pointer.
-.EXPORT Func_Noop
-.PROC Func_Noop
-    rts
-.ENDPROC
+Data_Dividends_u8_arr:
+    .byte 7, 237, 237, 255, 17, 99
+Data_Divisors_u8_arr:
+    .byte 3,   7, 255,  51, 17,  1
+Data_Quotients_u8_arr:
+    .byte 2,  33,   0,   5,  1, 99
+Data_Remainders_u8_arr:
+    .byte 1,   6, 237,   0,  0,  0
+kNumTests = * - Data_Remainders_u8_arr
 
-;;; Maps from N to 2^N for 0 <= N < 8.
-.EXPORT Data_PowersOfTwo_u8_arr8
-.PROC Data_PowersOfTwo_u8_arr8
-    .repeat 8, i
-    .byte 1 << i
-    .endrepeat
-.ENDPROC
+;;;=========================================================================;;;
 
-;;; Computes floor(A / Y) and (A mod Y) for unsigned inputs.
-;;; @param A The 8-bit unsigned dividend.
-;;; @param Y The 8-bit unsigned divisor (must be nonzero).
-;;; @return A The remainder.
-;;; @return Y The quotient (rounded down).
-;;; @preserve X
-.EXPORT Func_DivMod
-.PROC Func_DivMod
-    sta Zp_Tmp1_byte  ; dividend
-    sty Zp_Tmp2_byte  ; divisor
-    ;; The below comes from http://6502org.wikidot.com/software-math-intdiv
-    lda #0
-    ldy #8
-    asl Zp_Tmp1_byte  ; dividend/quotient
-L1: rol a
-    cmp Zp_Tmp2_byte  ; divisor
-    bcc L2
-    sbc Zp_Tmp2_byte  ; divisor
-L2: rol Zp_Tmp1_byte  ; dividend/quotient
-    dey
-    bne L1
-    ldy Zp_Tmp1_byte  ; quotient
-    rts
-.ENDPROC
+.SEGMENT "MAIN"
+    sei
+    cld
+    ldx #$ff
+    txs
+    inx  ; now X is zero
+TestLoop:
+    lda Data_Dividends_u8_arr, x
+    ldy Data_Divisors_u8_arr, x
+    jsr Func_DivMod  ; preserves X, returns Y=quotient and A=remainder
+    pha  ; actual remainder
+    tya  ; actual quotient
+    ldy Data_Quotients_u8_arr, x
+    jsr Func_ExpectAEqualsY  ; preserves X
+    pla  ; actual remainder
+    ldy Data_Remainders_u8_arr, x
+    jsr Func_ExpectAEqualsY  ; preserves X
+    inx
+    cpx #kNumTests
+    blt TestLoop
+Success:
+    jmp Exit_Success
 
 ;;;=========================================================================;;;
