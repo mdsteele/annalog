@@ -160,7 +160,7 @@ _Platforms_sPlatform_arr:
     .assert kWinchPlatformIndex = 0, error
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Solid
-    d_byte WidthPx_u8,  $10
+    d_word WidthPx_u16, $10
     d_byte HeightPx_u8, $10
     d_word Left_i16, kWinchPlatformLeft
     d_word Top_i16,   $0010
@@ -168,28 +168,28 @@ _Platforms_sPlatform_arr:
     .assert kSpikeball1PlatformIndex = 1, error
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Harm
-    d_byte WidthPx_u8,  $0d
+    d_word WidthPx_u16, $0d
     d_byte HeightPx_u8, $0e
     d_word Left_i16, kSpikeballPlatformLeft
     d_word Top_i16, kSpikeball1InitPlatformTop
     D_END
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Harm
-    d_byte WidthPx_u8,  $0d
+    d_word WidthPx_u16, $0d
     d_byte HeightPx_u8, $0e
     d_word Left_i16, kSpikeballPlatformLeft
     d_word Top_i16, kSpikeball2InitPlatformTop
     D_END
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Harm
-    d_byte WidthPx_u8,  $0d
+    d_word WidthPx_u16, $0d
     d_byte HeightPx_u8, $0e
     d_word Left_i16, kSpikeballPlatformLeft
     d_word Top_i16, kSpikeball3InitPlatformTop
     D_END
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Harm
-    d_byte WidthPx_u8,  $0d
+    d_word WidthPx_u16, $0d
     d_byte HeightPx_u8, $0e
     d_word Left_i16, kSpikeballPlatformLeft
     d_word Top_i16, kSpikeball4InitPlatformTop

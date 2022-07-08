@@ -186,7 +186,7 @@ _Platforms_sPlatform_arr:
     .assert kWinchPlatformIndex = 0, error
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Solid
-    d_byte WidthPx_u8,  $10
+    d_word WidthPx_u16, $10
     d_byte HeightPx_u8, $10
     d_word Left_i16, kWinchInitPlatformLeft
     d_word Top_i16,   $0010
@@ -194,7 +194,7 @@ _Platforms_sPlatform_arr:
     .assert kCrusherUpperPlatformIndex = 1, error
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Solid
-    d_byte WidthPx_u8,  $10
+    d_word WidthPx_u16, $10
     d_byte HeightPx_u8, $08
     d_word Left_i16, kWinchInitPlatformLeft
     d_word Top_i16, kCrusherInitPlatformTop
@@ -202,7 +202,7 @@ _Platforms_sPlatform_arr:
     .assert kCrusherSpikePlatformIndex = 2, error
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Harm
-    d_byte WidthPx_u8,  $0e
+    d_word WidthPx_u16, $0e
     d_byte HeightPx_u8, $06
     d_word Left_i16, kWinchInitPlatformLeft + 1
     d_word Top_i16, kCrusherInitPlatformTop + kTileHeightPx
@@ -210,7 +210,7 @@ _Platforms_sPlatform_arr:
     .assert kWeakFloorPlatformIndex = 3, error
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Solid
-    d_byte WidthPx_u8,  $10
+    d_word WidthPx_u16, $10
     d_byte HeightPx_u8, $08
     d_word Left_i16,  $00c0
     d_word Top_i16,   $00a0
@@ -218,21 +218,21 @@ _Platforms_sPlatform_arr:
     ;; Terrain spikes:
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Harm
-    d_byte WidthPx_u8,  $30
+    d_word WidthPx_u16, $30
     d_byte HeightPx_u8, $08
     d_word Left_i16,  $0040
     d_word Top_i16,   $00ae
     D_END
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Harm
-    d_byte WidthPx_u8,  $10
+    d_word WidthPx_u16, $10
     d_byte HeightPx_u8, $08
     d_word Left_i16,  $00e0
     d_word Top_i16,   $009e
     D_END
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Harm
-    d_byte WidthPx_u8,  $c0
+    d_word WidthPx_u16, $c0
     d_byte HeightPx_u8, $08
     d_word Left_i16,  $0030
     d_word Top_i16,   $015e

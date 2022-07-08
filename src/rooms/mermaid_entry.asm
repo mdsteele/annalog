@@ -75,42 +75,35 @@ _TerrainData:
 _Platforms_sPlatform_arr:
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Water
-    d_byte WidthPx_u8,  $40
+    d_word WidthPx_u16, $40
     d_byte HeightPx_u8, $20
     d_word Left_i16,  $00c0
     d_word Top_i16,   $0094
     D_END
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Water
-    d_byte WidthPx_u8,  $90
-    d_byte HeightPx_u8, $30
-    d_word Left_i16,  $0120
-    d_word Top_i16,   $00b4
-    D_END
-    D_STRUCT sPlatform
-    d_byte Type_ePlatform, ePlatform::Water
-    d_byte WidthPx_u8,  $60
-    d_byte HeightPx_u8, $30
-    d_word Left_i16,  $01c0
-    d_word Top_i16,   $00b4
+    d_word WidthPx_u16, $100
+    d_byte HeightPx_u8,  $30
+    d_word Left_i16,   $0120
+    d_word Top_i16,    $00b4
     D_END
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Solid
-    d_byte WidthPx_u8,  $20
+    d_word WidthPx_u16, $20
     d_byte HeightPx_u8, $08
     d_word Left_i16,  $0070
     d_word Top_i16,   $0088
     D_END
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Solid
-    d_byte WidthPx_u8,  $10
+    d_word WidthPx_u16, $10
     d_byte HeightPx_u8, $08
     d_word Left_i16,  $00d0
     d_word Top_i16,   $00a8
     D_END
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Solid
-    d_byte WidthPx_u8,  $20
+    d_word WidthPx_u16, $20
     d_byte HeightPx_u8, $08
     d_word Left_i16,  $0150
     d_word Top_i16,   $00d8

@@ -137,7 +137,7 @@ _Platforms_sPlatform_arr:
     .assert kCannonPlatformIndex = 0, error
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Solid
-    d_byte WidthPx_u8,  kBlockWidthPx
+    d_word WidthPx_u16, kBlockWidthPx
     d_byte HeightPx_u8, kBlockHeightPx
     d_word Left_i16, kCannonGrenadeInitPosX - kTileWidthPx
     d_word Top_i16,  kCannonGrenadeInitPosY - kTileHeightPx

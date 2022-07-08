@@ -87,7 +87,7 @@ _TerrainData:
 _Platforms_sPlatform_arr:
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Water
-    d_byte WidthPx_u8,  $50
+    d_word WidthPx_u16, $50
     d_byte HeightPx_u8, $10
     d_word Left_i16,  $0020
     d_word Top_i16,   $00c4

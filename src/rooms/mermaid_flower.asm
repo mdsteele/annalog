@@ -70,21 +70,21 @@ _TerrainData:
 _Platforms_sPlatform_arr:
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Water
-    d_byte WidthPx_u8,  $c0
+    d_word WidthPx_u16, $c0
     d_byte HeightPx_u8, $40
     d_word Left_i16,  $0050
     d_word Top_i16,   $00b4
     D_END
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Solid
-    d_byte WidthPx_u8,  $10
+    d_word WidthPx_u16, $10
     d_byte HeightPx_u8, $08
     d_word Left_i16,  $0010
     d_word Top_i16,   $00a8
     D_END
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Solid
-    d_byte WidthPx_u8,  $10
+    d_word WidthPx_u16, $10
     d_byte HeightPx_u8, $08
     d_word Left_i16,  $0080
     d_word Top_i16,   $00d8

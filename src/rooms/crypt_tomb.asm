@@ -188,7 +188,7 @@ _Platforms_sPlatform_arr:
     .assert kWeakFloor0PlatformIndex = 0, error
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Solid
-    d_byte WidthPx_u8,  $10
+    d_word WidthPx_u16, $10
     d_byte HeightPx_u8, $08
     d_word Left_i16,  $0030
     d_word Top_i16,   $00a0
@@ -196,7 +196,7 @@ _Platforms_sPlatform_arr:
     .assert kWeakFloor1PlatformIndex = 1, error
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Solid
-    d_byte WidthPx_u8,  $10
+    d_word WidthPx_u16, $10
     d_byte HeightPx_u8, $08
     d_word Left_i16,  $00c0
     d_word Top_i16,   $0080
@@ -204,7 +204,7 @@ _Platforms_sPlatform_arr:
     .assert kWinchPlatformIndex = 2, error
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Solid
-    d_byte WidthPx_u8,  $10
+    d_word WidthPx_u16, $10
     d_byte HeightPx_u8, $10
     d_word Left_i16, kWinchInitPlatformLeft
     d_word Top_i16,   $0010
@@ -212,7 +212,7 @@ _Platforms_sPlatform_arr:
     .assert kSpikeballPlatformIndex = 3, error
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Harm
-    d_byte WidthPx_u8,  $0d
+    d_word WidthPx_u16, $0d
     d_byte HeightPx_u8, $0e
     d_word Left_i16, kWinchInitPlatformLeft + 2
     d_word Top_i16, kSpikeballInitPlatformTop
@@ -220,21 +220,21 @@ _Platforms_sPlatform_arr:
     ;; Terrain spikes:
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Harm
-    d_byte WidthPx_u8,  $10
+    d_word WidthPx_u16, $10
     d_byte HeightPx_u8, $08
     d_word Left_i16,  $0010
     d_word Top_i16,   $00ae
     D_END
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Harm
-    d_byte WidthPx_u8,  $10
+    d_word WidthPx_u16, $10
     d_byte HeightPx_u8, $08
     d_word Left_i16,  $00d0
     d_word Top_i16,   $00ae
     D_END
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Harm
-    d_byte WidthPx_u8,  $50
+    d_word WidthPx_u16, $50
     d_byte HeightPx_u8, $08
     d_word Left_i16,  $0050
     d_word Top_i16,   $00de

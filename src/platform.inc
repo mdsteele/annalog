@@ -25,7 +25,7 @@ kMaxPlatforms = 8
 ;;; Types of platform in a room.
 .ENUM ePlatform
     None
-    Water  ; can swim in/on
+    Water  ; can swim in
     Solid  ; safe to stand on
     Harm   ; harms the player avatar on contact
 .ENDENUM
@@ -39,7 +39,7 @@ kFirstSolidPlatformType = ePlatform::Solid
 .STRUCT sPlatform
     Type_ePlatform .byte
     ;; The width of the platform, in pixels.  Must be nonzero.
-    WidthPx_u8     .byte
+    WidthPx_u16    .word
     ;; The height of the platform, in pixels.  Must be nonzero.
     HeightPx_u8    .byte
     ;; The room pixel X-position of the left edge of the platform.

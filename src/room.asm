@@ -75,6 +75,7 @@
 .IMPORTZP Zp_RoomIsSafe_bool
 .IMPORTZP Zp_Tmp1_byte
 .IMPORTZP Zp_Tmp2_byte
+.IMPORTZP Zp_Tmp3_byte
 .IMPORTZP Zp_Tmp_ptr
 
 ;;;=========================================================================;;;
@@ -226,30 +227,32 @@ _LoadPlatforms:
     beq @copyDone
     sta Ram_PlatformType_ePlatform_arr, x
     iny
-    .assert sPlatform::WidthPx_u8 = 1, error
+    .assert sPlatform::WidthPx_u16 = 1, error
     lda (Zp_Tmp_ptr), y
-    beq @copyDone
-    sta Zp_Tmp1_byte  ; platform width
+    sta Zp_Tmp1_byte  ; platform width (lo)
     iny
-    .assert sPlatform::HeightPx_u8 = 2, error
     lda (Zp_Tmp_ptr), y
-    sta Zp_Tmp2_byte  ; platform height
+    sta Zp_Tmp2_byte  ; platform width (hi)
     iny
-    .assert sPlatform::Left_i16 = 3, error
+    .assert sPlatform::HeightPx_u8 = 3, error
+    lda (Zp_Tmp_ptr), y
+    sta Zp_Tmp3_byte  ; platform height
+    iny
+    .assert sPlatform::Left_i16 = 4, error
     lda (Zp_Tmp_ptr), y
     sta Ram_PlatformLeft_i16_0_arr, x
-    add Zp_Tmp1_byte  ; platform width
+    add Zp_Tmp1_byte  ; platform width (lo)
     sta Ram_PlatformRight_i16_0_arr, x
     iny
     lda (Zp_Tmp_ptr), y
     sta Ram_PlatformLeft_i16_1_arr, x
-    adc #0
+    adc Zp_Tmp2_byte  ; platform width (hi)
     sta Ram_PlatformRight_i16_1_arr, x
     iny
-    .assert sPlatform::Top_i16 = 5, error
+    .assert sPlatform::Top_i16 = 6, error
     lda (Zp_Tmp_ptr), y
     sta Ram_PlatformTop_i16_0_arr, x
-    add Zp_Tmp2_byte  ; platform height
+    add Zp_Tmp3_byte  ; platform height
     sta Ram_PlatformBottom_i16_0_arr, x
     iny
     lda (Zp_Tmp_ptr), y
@@ -257,7 +260,7 @@ _LoadPlatforms:
     adc #0
     sta Ram_PlatformBottom_i16_1_arr, x
     iny
-    .assert .sizeof(sPlatform) = 7, error
+    .assert .sizeof(sPlatform) = 8, error
     inx
     bne @copyLoop  ; unconditional
     ;; Clear remaining slots in platform RAM.

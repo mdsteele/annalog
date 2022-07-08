@@ -131,7 +131,7 @@ _Platforms_sPlatform_arr:
     .assert kLiftPlatformIndex = 0, error
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Solid
-    d_byte WidthPx_u8,  $10
+    d_word WidthPx_u16, $10
     d_byte HeightPx_u8, $20
     d_word Left_i16,  $00a0
     d_word Top_i16, kLiftInitPlatformTop

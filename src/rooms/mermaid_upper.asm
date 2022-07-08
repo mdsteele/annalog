@@ -143,7 +143,7 @@ _Platforms_sPlatform_arr:
     .assert kLiftPlatformIndex = 0, error
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Solid
-    d_byte WidthPx_u8,  $20
+    d_word WidthPx_u16, $20
     d_byte HeightPx_u8, $10
     d_word Left_i16,  $0080
     d_word Top_i16, kLiftInitPlatformTop
@@ -151,36 +151,29 @@ _Platforms_sPlatform_arr:
     ;; Water:
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Water
-    d_byte WidthPx_u8,  $90
-    d_byte HeightPx_u8, $40
-    d_word Left_i16,  $0000
-    d_word Top_i16,   $0144
-    D_END
-    D_STRUCT sPlatform
-    d_byte Type_ePlatform, ePlatform::Water
-    d_byte WidthPx_u8,  $90
-    d_byte HeightPx_u8, $40
-    d_word Left_i16,  $0090
-    d_word Top_i16,   $0144
+    d_word WidthPx_u16, $120
+    d_byte HeightPx_u8,  $40
+    d_word Left_i16,   $0000
+    d_word Top_i16,    $0144
     D_END
     ;; Sand:
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Solid
-    d_byte WidthPx_u8,  $30
+    d_word WidthPx_u16, $30
     d_byte HeightPx_u8, $08
     d_word Left_i16,  $0030
     d_word Top_i16,   $0168
     D_END
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Solid
-    d_byte WidthPx_u8,  $20
+    d_word WidthPx_u16, $20
     d_byte HeightPx_u8, $08
     d_word Left_i16,  $0090
     d_word Top_i16,   $0168
     D_END
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Solid
-    d_byte WidthPx_u8,  $10
+    d_word WidthPx_u16, $10
     d_byte HeightPx_u8, $08
     d_word Left_i16,  $00e0
     d_word Top_i16,   $0158

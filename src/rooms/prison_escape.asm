@@ -156,7 +156,7 @@ _Platforms_sPlatform_arr:
     .assert kTrolleyPlatformIndex = 0, error
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Solid
-    d_byte WidthPx_u8,  $10
+    d_word WidthPx_u16, $10
     d_byte HeightPx_u8, $0e
     d_word Left_i16, kTrolleyMinPlatformLeft
     d_word Top_i16,   $00c0
@@ -164,21 +164,21 @@ _Platforms_sPlatform_arr:
     .assert kGirderPlatformIndex = 1, error
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Solid
-    d_byte WidthPx_u8,  $20
+    d_word WidthPx_u16, $20
     d_byte HeightPx_u8, $08
     d_word Left_i16, kTrolleyMinPlatformLeft - $08
     d_word Top_i16,   $0120
     D_END
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Harm
-    d_byte WidthPx_u8,  $40
+    d_word WidthPx_u16, $40
     d_byte HeightPx_u8, $08
     d_word Left_i16,  $0040
     d_word Top_i16,   $014e
     D_END
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Harm
-    d_byte WidthPx_u8,  $60
+    d_word WidthPx_u16, $60
     d_byte HeightPx_u8, $08
     d_word Left_i16,  $0130
     d_word Top_i16,   $015e

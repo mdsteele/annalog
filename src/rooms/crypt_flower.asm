@@ -145,7 +145,7 @@ _Platforms_sPlatform_arr:
     .assert kWinchPlatformIndex = 0, error
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Solid
-    d_byte WidthPx_u8,  $10
+    d_word WidthPx_u16, $10
     d_byte HeightPx_u8, $10
     d_word Left_i16,  $0088
     d_word Top_i16,   $0010
@@ -153,7 +153,7 @@ _Platforms_sPlatform_arr:
     .assert kUpperGirderPlatformIndex = 1, error
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Solid
-    d_byte WidthPx_u8,  $18
+    d_word WidthPx_u16, $18
     d_byte HeightPx_u8, $08
     d_word Left_i16,  $0084
     d_word Top_i16, kUpperGirderInitPlatformTop
@@ -161,7 +161,7 @@ _Platforms_sPlatform_arr:
     .assert kLowerGirderPlatformIndex = 2, error
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Solid
-    d_byte WidthPx_u8,  $18
+    d_word WidthPx_u16, $18
     d_byte HeightPx_u8, $08
     d_word Left_i16,  $0084
     d_word Top_i16, kUpperGirderInitPlatformTop + $28
@@ -169,21 +169,21 @@ _Platforms_sPlatform_arr:
     ;; Terrain spikes:
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Harm
-    d_byte WidthPx_u8,  $2f
+    d_word WidthPx_u16, $2f
     d_byte HeightPx_u8, $08
     d_word Left_i16,  $0050
     d_word Top_i16,   $005e
     D_END
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Harm
-    d_byte WidthPx_u8,  $1f
+    d_word WidthPx_u16, $1f
     d_byte HeightPx_u8, $08
     d_word Left_i16,  $00a1
     d_word Top_i16,   $005e
     D_END
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Harm
-    d_byte WidthPx_u8,  $d0
+    d_word WidthPx_u16, $d0
     d_byte HeightPx_u8, $08
     d_word Left_i16,  $0030
     d_word Top_i16,   $00ce

@@ -69,28 +69,28 @@ _TerrainData:
 _Platforms_sPlatform_arr:
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Harm
-    d_byte WidthPx_u8,  $0f
+    d_word WidthPx_u16, $0f
     d_byte HeightPx_u8, $08
     d_word Left_i16,  $0020
     d_word Top_i16,   $013e
     D_END
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Harm
-    d_byte WidthPx_u8,  $0f
+    d_word WidthPx_u16, $0f
     d_byte HeightPx_u8, $08
     d_word Left_i16,  $0030
     d_word Top_i16,   $014e
     D_END
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Harm
-    d_byte WidthPx_u8,  $80
+    d_word WidthPx_u16, $80
     d_byte HeightPx_u8, $08
     d_word Left_i16,  $0040
     d_word Top_i16,   $015e
     D_END
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Harm
-    d_byte WidthPx_u8,  $0f
+    d_word WidthPx_u16, $0f
     d_byte HeightPx_u8, $08
     d_word Left_i16,  $00c1
     d_word Top_i16,   $014e

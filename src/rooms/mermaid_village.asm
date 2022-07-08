@@ -70,31 +70,65 @@ _TerrainData:
     .incbin "out/data/mermaid_village2.room"
     .assert * - :- = 50 * 24, error
 _Platforms_sPlatform_arr:
+    ;; Water for upper-left passage:
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Water
-    d_byte WidthPx_u8,  $b0
+    d_word WidthPx_u16, $b0
     d_byte HeightPx_u8, $30
     d_word Left_i16,  $0000
     d_word Top_i16,   $0084
     D_END
+    ;; Water for little floating pond in left half of village:
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Water
-    d_byte WidthPx_u8,  $40
+    d_word WidthPx_u16, $40
     d_byte HeightPx_u8, $10
     d_word Left_i16,  $00d0
     d_word Top_i16,   $0104
     D_END
+    ;; Water for lower-left house:
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Water
-    d_byte WidthPx_u8,  $90
+    d_word WidthPx_u16, $110
+    d_byte HeightPx_u8,  $10
+    d_word Left_i16,   $0020
+    d_word Top_i16,    $0154
+    D_END
+    ;; Water for upper-mid house:
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Water
+    d_word WidthPx_u16, $100
+    d_byte HeightPx_u8,  $10
+    d_word Left_i16,   $0100
+    d_word Top_i16,    $0094
+    D_END
+    ;; Water for lower-mid and lower-right houses:
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Water
+    d_word WidthPx_u16, $1b0
+    d_byte HeightPx_u8,  $30
+    d_word Left_i16,   $0150
+    d_word Top_i16,    $0134
+    D_END
+    ;; Water for upper-right house:
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Water
+    d_word WidthPx_u16, $90
     d_byte HeightPx_u8, $20
     d_word Left_i16,  $0250
     d_word Top_i16,   $0084
     D_END
-    ;; TODO: more water
+    ;; Sand:
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Solid
-    d_byte WidthPx_u8,  $80
+    d_word WidthPx_u16, $10
+    d_byte HeightPx_u8, $08
+    d_word Left_i16,  $0150
+    d_word Top_i16,   $0148
+    D_END
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Solid
+    d_word WidthPx_u16, $80
     d_byte HeightPx_u8, $08
     d_word Left_i16,  $01a0
     d_word Top_i16,   $0148

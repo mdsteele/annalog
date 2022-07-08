@@ -76,17 +76,10 @@ _TerrainData:
 _Platforms_sPlatform_arr:
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Water
-    d_byte WidthPx_u8,  $a0
-    d_byte HeightPx_u8, $30
-    d_word Left_i16,  $0030
-    d_word Top_i16,   $0144
-    D_END
-    D_STRUCT sPlatform
-    d_byte Type_ePlatform, ePlatform::Water
-    d_byte WidthPx_u8,  $b0
-    d_byte HeightPx_u8, $30
-    d_word Left_i16,  $0100
-    d_word Top_i16,   $0144
+    d_word WidthPx_u16, $180
+    d_byte HeightPx_u8,  $30
+    d_word Left_i16,   $0030
+    d_word Top_i16,    $0144
     D_END
     .byte ePlatform::None
 _Actors_sActor_arr:
