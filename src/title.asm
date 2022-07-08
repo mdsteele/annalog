@@ -53,8 +53,8 @@
 ;;;=========================================================================;;;
 
 ;;; The starting location for a new game.
-kStartingRoom = eRoom::CryptBoss
-kStartingSpawn = 0
+kStartingRoom = eRoom::MermaidVillage
+kStartingSpawn = 1 | bSpawn::IsPassage
 
 ;;; The nametable tile row (of the upper nametable) that the game title starts
 ;;; on.
