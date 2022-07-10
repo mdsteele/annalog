@@ -145,14 +145,14 @@ _Actors_sActor_arr:
     d_byte TileCol_u8, 84
     d_byte Param_byte, kAdultMermaidGuard
     D_END
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::Adult
+    d_byte TileRow_u8, 43
+    d_byte TileCol_u8, 26
+    d_byte Param_byte, kAdultMermaidWorker
+    D_END
     .byte eActor::None
 _Devices_sDevice_arr:
-    D_STRUCT sDevice
-    d_byte Type_eDevice, eDevice::OpenDoorway
-    d_byte BlockRow_u8, 19
-    d_byte BlockCol_u8, 25
-    d_byte Target_u8, eRoom::MermaidHut4
-    D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::TalkRight
     d_byte BlockRow_u8, 8
@@ -164,6 +164,30 @@ _Devices_sDevice_arr:
     d_byte BlockRow_u8, 8
     d_byte BlockCol_u8, 42
     d_byte Target_u8, 0
+    D_END
+    D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::TalkRight
+    d_byte BlockRow_u8, 21
+    d_byte BlockCol_u8, 12
+    d_byte Target_u8, 1
+    D_END
+    D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::TalkLeft
+    d_byte BlockRow_u8, 21
+    d_byte BlockCol_u8, 13
+    d_byte Target_u8, 1
+    D_END
+    D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::OpenDoorway
+    d_byte BlockRow_u8, 21
+    d_byte BlockCol_u8, 5
+    d_byte Target_u8, eRoom::MermaidHut3
+    D_END
+    D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::OpenDoorway
+    d_byte BlockRow_u8, 19
+    d_byte BlockCol_u8, 25
+    d_byte Target_u8, eRoom::MermaidHut4
     D_END
     ;; TODO: more doors
     .byte eDevice::None
@@ -187,10 +211,15 @@ _Passages_sPassage_arr:
 ;;; Dialog data for the MermaidVillage room.
 .PROC DataA_Dialog_MermaidVillage_sDialog_ptr_arr
     .addr _Dialog0_sDialog
+    .addr _Dialog1_sDialog
 _Dialog0_sDialog:
     .word ePortrait::Woman
     .byte "I am guarding this$"
     .byte "village.#"
+    .byte 0
+_Dialog1_sDialog:
+    .word ePortrait::Woman
+    .byte "I am farming seaweed.#"
     .byte 0
 .ENDPROC
 
