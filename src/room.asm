@@ -39,7 +39,7 @@
 .IMPORT DataC_Garden_Tunnel_sRoom
 .IMPORT DataC_Mermaid_Entry_sRoom
 .IMPORT DataC_Mermaid_Flower_sRoom
-.IMPORT DataC_Mermaid_House1_sRoom
+.IMPORT DataC_Mermaid_Hut4_sRoom
 .IMPORT DataC_Mermaid_Upper_sRoom
 .IMPORT DataC_Mermaid_Village_sRoom
 .IMPORT DataC_Prison_Cell_sRoom
@@ -96,7 +96,7 @@
     DataC_Garden_Tunnel_sRoom, \
     DataC_Mermaid_Entry_sRoom, \
     DataC_Mermaid_Flower_sRoom, \
-    DataC_Mermaid_House1_sRoom, \
+    DataC_Mermaid_Hut4_sRoom, \
     DataC_Mermaid_Upper_sRoom, \
     DataC_Mermaid_Village_sRoom, \
     DataC_Prison_Cell_sRoom, \

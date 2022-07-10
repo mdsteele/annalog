@@ -162,6 +162,18 @@
 
 ;;;=========================================================================;;;
 
+.SEGMENT "CHR_Hut"
+
+.EXPORT Ppu_ChrHut
+.PROC Ppu_ChrHut
+:   .incbin "out/data/tiles/hut1.chr"
+    .incbin "out/data/tiles/hut2.chr"
+    .res $26 * kSizeofChr
+    .assert * - :- = kSizeofChr * $40, error
+.ENDPROC
+
+;;;=========================================================================;;;
+
 .SEGMENT "CHR_Indoors"
 
 .EXPORT Ppu_ChrIndoors

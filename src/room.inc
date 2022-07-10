@@ -51,7 +51,7 @@ kRoomStateSize = $100
     GardenTunnel
     MermaidEntry
     MermaidFlower
-    MermaidHouse1
+    MermaidHut4
     MermaidUpper
     MermaidVillage
     PrisonCell

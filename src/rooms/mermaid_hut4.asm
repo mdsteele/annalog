@@ -30,7 +30,7 @@
 
 .IMPORT DataA_Pause_MermaidAreaCells_u8_arr2_arr
 .IMPORT DataA_Pause_MermaidAreaName_u8_arr
-.IMPORT DataA_Room_Indoors_sTileset
+.IMPORT DataA_Room_Hut_sTileset
 .IMPORT Data_PowersOfTwo_u8_arr8
 .IMPORT Func_IsFlagSet
 .IMPORT Func_Noop
@@ -48,8 +48,8 @@
 
 .SEGMENT "PRGC_Mermaid"
 
-.EXPORT DataC_Mermaid_House1_sRoom
-.PROC DataC_Mermaid_House1_sRoom
+.EXPORT DataC_Mermaid_Hut4_sRoom
+.PROC DataC_Mermaid_Hut4_sRoom
     D_STRUCT sRoom
     d_byte MinScrollX_u8, $0
     d_word MaxScrollX_u16, $0
@@ -62,27 +62,27 @@
     d_addr Machines_sMachine_arr_ptr, 0
     d_byte Chr18Bank_u8, <.bank(Ppu_ChrTownsfolk)
     d_addr Tick_func_ptr, Func_Noop
-    d_addr Draw_func_ptr, FuncC_Mermaid_House1_Draw
+    d_addr Draw_func_ptr, FuncC_Mermaid_Hut4_Draw
     d_addr Ext_sRoomExt_ptr, _Ext_sRoomExt
     D_END
 _Ext_sRoomExt:
     D_STRUCT sRoomExt
     d_addr AreaName_u8_arr_ptr, DataA_Pause_MermaidAreaName_u8_arr
     d_addr AreaCells_u8_arr2_arr_ptr, DataA_Pause_MermaidAreaCells_u8_arr2_arr
-    d_addr Terrain_sTileset_ptr, DataA_Room_Indoors_sTileset
+    d_addr Terrain_sTileset_ptr, DataA_Room_Hut_sTileset
     d_addr Platforms_sPlatform_arr_ptr, _Platforms_sPlatform_arr
     d_addr Actors_sActor_arr_ptr, _Actors_sActor_arr
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
     .linecont +
     d_addr Dialogs_sDialog_ptr_arr_ptr, \
-           DataA_Dialog_MermaidHouse1_sDialog_ptr_arr
+           DataA_Dialog_MermaidHut4_sDialog_ptr_arr
     .linecont -
     d_addr Passages_sPassage_arr_ptr, 0
     d_addr Init_func_ptr, Func_Noop
     d_addr FadeIn_func_ptr, Func_Noop
     D_END
 _TerrainData:
-:   .incbin "out/data/mermaid_house1.room"
+:   .incbin "out/data/mermaid_hut4.room"
     .assert * - :- = 16 * 16, error
 _Platforms_sPlatform_arr:
     D_STRUCT sPlatform
@@ -97,7 +97,7 @@ _Actors_sActor_arr:
     D_STRUCT sActor
     d_byte Type_eActor, eActor::Adult
     d_byte TileRow_u8, 21
-    d_byte TileCol_u8, 22
+    d_byte TileCol_u8, 18
     d_byte Param_byte, kAdultMermaidSitting
     D_END
     .byte eActor::None
@@ -105,13 +105,13 @@ _Devices_sDevice_arr:
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::TalkRight
     d_byte BlockRow_u8, 10
-    d_byte BlockCol_u8, 10
+    d_byte BlockCol_u8, 8
     d_byte Target_u8, 0
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::TalkLeft
     d_byte BlockRow_u8, 10
-    d_byte BlockCol_u8, 11
+    d_byte BlockCol_u8, 9
     d_byte Target_u8, 0
     D_END
     D_STRUCT sDevice
@@ -120,7 +120,12 @@ _Devices_sDevice_arr:
     d_byte BlockCol_u8, 4
     d_byte Target_u8, eRoom::MermaidVillage
     D_END
-    ;; TODO: locked door leading to prize
+    D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::LockedDoor
+    d_byte BlockRow_u8, 10
+    d_byte BlockCol_u8, 11
+    d_byte Target_u8, eRoom::MermaidHut4  ; TODO
+    D_END
     .byte eDevice::None
 .ENDPROC
 
@@ -147,12 +152,12 @@ _Devices_sDevice_arr:
 .ENDPROC
 
 ;;; Allocates and populates OAM slots for this room.
-.PROC FuncC_Mermaid_House1_Draw
+.PROC FuncC_Mermaid_Hut4_Draw
     ldx #kFirstFlowerFlag
     @loop:
     jsr Func_IsFlagSet  ; preserves X, sets Z if flag is not set
     beq @continue
-    jsr FuncC_Mermaid_House1_DrawFlower  ; preserves X
+    jsr FuncC_Mermaid_Hut4_DrawFlower  ; preserves X
     @continue:
     inx
     .assert kLastFlowerFlag < $ff, error
@@ -164,7 +169,7 @@ _Devices_sDevice_arr:
 ;;; Allocates and populates OAM slots for one delivered flower.
 ;;; @param X The eFlag value for the flower.
 ;;; @preserve X
-.PROC FuncC_Mermaid_House1_DrawFlower
+.PROC FuncC_Mermaid_Hut4_DrawFlower
     ;; Determine the position for the object.
     txa
     sub #kFirstFlowerFlag
@@ -189,10 +194,10 @@ _Devices_sDevice_arr:
     sta Zp_OamOffset_u8
     rts
 _PosX_u8_arr:
-    .byte $28, $38, $48, $b8, $c8, $28, $38, $48, $b8, $c8, $78, $88
+    .byte $54, $64, $74, $84, $94, $a4, $54, $64, $74, $84, $94, $a4
     .assert * - _PosX_u8_arr = kNumFlowerFlags, error
 _PosY_u8_arr:
-    .byte $4f, $4f, $4f, $4f, $4f, $6f, $6f, $6f, $6f, $6f, $9f, $9f
+    .byte $4f, $4f, $4f, $4f, $4f, $4f, $6f, $6f, $6f, $6f, $6f, $6f
     .assert * - _PosY_u8_arr = kNumFlowerFlags, error
 .ENDPROC
 
@@ -200,8 +205,8 @@ _PosY_u8_arr:
 
 .SEGMENT "PRGA_Dialog"
 
-;;; Dialog data for the MermaidHouse1 room.
-.PROC DataA_Dialog_MermaidHouse1_sDialog_ptr_arr
+;;; Dialog data for the MermaidHut4 room.
+.PROC DataA_Dialog_MermaidHut4_sDialog_ptr_arr
     .addr _Initial_sDialog
 _Initial_sDialog:
     .addr _InitialDialogFunc

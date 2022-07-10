@@ -28,6 +28,10 @@
 .IMPORT DataA_Terrain_GardenLowerRight_u8_arr
 .IMPORT DataA_Terrain_GardenUpperLeft_u8_arr
 .IMPORT DataA_Terrain_GardenUpperRight_u8_arr
+.IMPORT DataA_Terrain_HutLowerLeft_u8_arr
+.IMPORT DataA_Terrain_HutLowerRight_u8_arr
+.IMPORT DataA_Terrain_HutUpperLeft_u8_arr
+.IMPORT DataA_Terrain_HutUpperRight_u8_arr
 .IMPORT DataA_Terrain_IndoorsLowerLeft_u8_arr
 .IMPORT DataA_Terrain_IndoorsLowerRight_u8_arr
 .IMPORT DataA_Terrain_IndoorsUpperLeft_u8_arr
@@ -47,6 +51,7 @@
 .IMPORT Ppu_ChrCave
 .IMPORT Ppu_ChrCrypt
 .IMPORT Ppu_ChrGarden
+.IMPORT Ppu_ChrHut
 .IMPORT Ppu_ChrIndoors
 .IMPORT Ppu_ChrMermaid
 .IMPORT Ppu_ChrOutdoors
@@ -74,6 +79,17 @@
     d_addr UpperRight_u8_arr_ptr, DataA_Terrain_GardenUpperRight_u8_arr
     d_addr LowerRight_u8_arr_ptr, DataA_Terrain_GardenLowerRight_u8_arr
     d_byte Chr08Bank_u8, <.bank(Ppu_ChrGarden)
+    D_END
+.ENDPROC
+
+.EXPORT DataA_Room_Hut_sTileset
+.PROC DataA_Room_Hut_sTileset
+    D_STRUCT sTileset
+    d_addr UpperLeft_u8_arr_ptr,  DataA_Terrain_HutUpperLeft_u8_arr
+    d_addr LowerLeft_u8_arr_ptr,  DataA_Terrain_HutLowerLeft_u8_arr
+    d_addr UpperRight_u8_arr_ptr, DataA_Terrain_HutUpperRight_u8_arr
+    d_addr LowerRight_u8_arr_ptr, DataA_Terrain_HutLowerRight_u8_arr
+    d_byte Chr08Bank_u8, <.bank(Ppu_ChrHut)
     D_END
 .ENDPROC
 

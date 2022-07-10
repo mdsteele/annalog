@@ -151,7 +151,7 @@ _Devices_sDevice_arr:
     d_byte Type_eDevice, eDevice::OpenDoorway
     d_byte BlockRow_u8, 19
     d_byte BlockCol_u8, 25
-    d_byte Target_u8, eRoom::MermaidHouse1
+    d_byte Target_u8, eRoom::MermaidHut4
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::TalkRight
