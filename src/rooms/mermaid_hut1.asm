@@ -35,14 +35,14 @@
 
 .SEGMENT "PRGC_Mermaid"
 
-.EXPORT DataC_Mermaid_Hut2_sRoom
-.PROC DataC_Mermaid_Hut2_sRoom
+.EXPORT DataC_Mermaid_Hut1_sRoom
+.PROC DataC_Mermaid_Hut1_sRoom
     D_STRUCT sRoom
     d_byte MinScrollX_u8, $0
     d_word MaxScrollX_u16, $0
     d_byte IsTall_bool, $00
     d_byte MinimapStartRow_u8, 10
-    d_byte MinimapStartCol_u8, 13
+    d_byte MinimapStartCol_u8, 12
     d_byte MinimapWidth_u8, 1
     d_addr TerrainData_ptr, _TerrainData
     d_byte NumMachines_u8, 0
@@ -62,49 +62,49 @@ _Ext_sRoomExt:
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
     .linecont +
     d_addr Dialogs_sDialog_ptr_arr_ptr, \
-           DataA_Dialog_MermaidHut2_sDialog_ptr_arr
+           DataA_Dialog_MermaidHut1_sDialog_ptr_arr
     .linecont -
     d_addr Passages_sPassage_arr_ptr, 0
     d_addr Init_func_ptr, Func_Noop
     d_addr FadeIn_func_ptr, Func_Noop
     D_END
 _TerrainData:
-:   .incbin "out/data/mermaid_hut2.room"
+:   .incbin "out/data/mermaid_hut1.room"
     .assert * - :- = 16 * 16, error
 _Platforms_sPlatform_arr:
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Water
-    d_word WidthPx_u16, $80
-    d_byte HeightPx_u8, $20
-    d_word Left_i16,  $0040
-    d_word Top_i16,   $00b4
+    d_word WidthPx_u16, $e0
+    d_byte HeightPx_u8, $10
+    d_word Left_i16,  $0010
+    d_word Top_i16,   $00c4
     D_END
     .byte ePlatform::None
 _Actors_sActor_arr:
     D_STRUCT sActor
     d_byte Type_eActor, eActor::Adult
-    d_byte TileRow_u8, 23
-    d_byte TileCol_u8, 18
+    d_byte TileRow_u8, 25
+    d_byte TileCol_u8, 24
     d_byte Param_byte, kAdultMermaidWorker
     D_END
     .byte eActor::None
 _Devices_sDevice_arr:
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::TalkRight
-    d_byte BlockRow_u8, 11
-    d_byte BlockCol_u8, 8
+    d_byte BlockRow_u8, 12
+    d_byte BlockCol_u8, 11
     d_byte Target_u8, 0
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::TalkLeft
-    d_byte BlockRow_u8, 11
-    d_byte BlockCol_u8, 9
+    d_byte BlockRow_u8, 12
+    d_byte BlockCol_u8, 12
     d_byte Target_u8, 0
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::OpenDoorway
-    d_byte BlockRow_u8, 11
-    d_byte BlockCol_u8, 6
+    d_byte BlockRow_u8, 12
+    d_byte BlockCol_u8, 7
     d_byte Target_u8, eRoom::MermaidVillage
     D_END
     .byte eDevice::None
@@ -114,8 +114,8 @@ _Devices_sDevice_arr:
 
 .SEGMENT "PRGA_Dialog"
 
-;;; Dialog data for the MermaidHut2 room.
-.PROC DataA_Dialog_MermaidHut2_sDialog_ptr_arr
+;;; Dialog data for the MermaidHut1 room.
+.PROC DataA_Dialog_MermaidHut1_sDialog_ptr_arr
     .addr _Dialog0_sDialog
 _Dialog0_sDialog:
     .word ePortrait::Woman
