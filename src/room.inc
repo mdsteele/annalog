@@ -51,6 +51,7 @@ kRoomStateSize = $100
     GardenTunnel
     MermaidEntry
     MermaidFlower
+    MermaidHut2
     MermaidHut3
     MermaidHut4
     MermaidUpper
@@ -63,7 +64,7 @@ kRoomStateSize = $100
     NUM_VALUES
 .ENDENUM
 
-.DEFINE kNumRooms 23
+.DEFINE kNumRooms 24
 .ASSERT kNumRooms = eRoom::NUM_VALUES, error
 
 ;;;=========================================================================;;;

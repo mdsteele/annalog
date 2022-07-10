@@ -179,6 +179,12 @@ _Devices_sDevice_arr:
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::OpenDoorway
+    d_byte BlockRow_u8, 8
+    d_byte BlockCol_u8, 39
+    d_byte Target_u8, eRoom::MermaidHut2
+    D_END
+    D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::OpenDoorway
     d_byte BlockRow_u8, 21
     d_byte BlockCol_u8, 5
     d_byte Target_u8, eRoom::MermaidHut3
