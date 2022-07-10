@@ -205,8 +205,14 @@
 ;;;         D_END
 ;;;     .ENDPROC
 .MACRO D_ENUM enum, mult
-    .define d_type enum
     .scope
+    .if .defined(d_nest)
+    d_nest .set 2
+    .define d_type2 enum
+    .else
+    d_nest .set 1
+    .define d_type enum
+    .endif
     .if .paramcount > 1
 d_mult = mult
     .else
@@ -229,24 +235,39 @@ d_begin:
 ;;;         D_END
 ;;;     .ENDPROC
 .MACRO D_STRUCT struct
-    .define d_type struct
     .scope
+    .if .defined(d_nest)
+    d_nest .set 2
+    .define d_type2 struct
+    .else
+    d_nest .set 1
+    .define d_type struct
+    .endif
 d_mult = 1
 d_total = .sizeof(struct)
 d_begin:
 .ENDMACRO
 
+;;; Private helper macro for d_addr/d_byte/d_word below.
+.MACRO _d_field field
+    .if d_nest = 2
+    .assert * - d_begin = d_type2::field * d_mult, error, "wrong offset"
+    .else
+    .assert * - d_begin = d_type::field * d_mult, error, "wrong offset"
+    .endif
+.ENDMACRO
+
 ;;; Defines one or more addrs within a D_ENUM or D_STRUCT block.
 .MACRO d_addr field, v1
-    .assert * - d_begin = d_type::field * d_mult, error, "wrong offset"
+    _d_field field
     .if .paramcount > 1
     .addr v1
     .endif
 .ENDMACRO
 
 ;;; Defines one or more bytes within a D_ENUM or D_STRUCT block.
-.MACRO d_byte field, v1, v2, v3, v4, v5, v6
-    .assert * - d_begin = d_type::field * d_mult, error, "wrong offset"
+.MACRO d_byte field, v1, v2, v3, v4
+    _d_field field
     .if .paramcount > 1
     .byte v1
     .endif
@@ -259,17 +280,11 @@ d_begin:
     .if .paramcount > 4
     .byte v4
     .endif
-    .if .paramcount > 5
-    .byte v5
-    .endif
-    .if .paramcount > 6
-    .byte v6
-    .endif
 .ENDMACRO
 
 ;;; Defines one or more words within a D_ENUM or D_STRUCT block.
 .MACRO d_word field, v1
-    .assert * - d_begin = d_type::field * d_mult, error, "wrong offset"
+    _d_field field
     .if .paramcount > 1
     .word v1
     .endif
@@ -278,8 +293,12 @@ d_begin:
 ;;; Ends a D_ENUM or D_STRUCT data definition.
 .MACRO D_END
     .assert * - d_begin = d_total, error, "wrong size"
-    .endscope
+    .if d_nest = 2
+    .undefine d_type2
+    .else
     .undefine d_type
+    .endif
+    .endscope
 .ENDMACRO
 
 ;;;=========================================================================;;;

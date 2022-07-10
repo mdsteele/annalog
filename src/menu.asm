@@ -124,9 +124,24 @@ Ram_MenuCols_u8_arr: .res kMaxMenuItems
     d_byte WidthsMinusOne_u8_arr
     .byte 5, 3, 3, 2, 2, 2, 3, 3, 1, 2, 2, 3, 3, 3, 2, 2
     d_addr Labels_u8_arr_ptr_arr
-    .addr _LabelEmpty, _LabelCopy, _LabelSwap, _LabelAdd, _LabelSub, _LabelMul
-    .addr _LabelGoto, _LabelSkip, _LabelIf, _LabelTil, _LabelAct, _LabelMove
-    .addr _LabelWait, _LabelBeep, _LabelEnd, _LabelNop
+    D_ENUM eOpcode, 2
+    d_addr Empty, _LabelEmpty
+    d_addr Copy,  _LabelCopy
+    d_addr Swap,  _LabelSwap
+    d_addr Add,   _LabelAdd
+    d_addr Sub,   _LabelSub
+    d_addr Mul,   _LabelMul
+    d_addr Goto,  _LabelGoto
+    d_addr Skip,  _LabelSkip
+    d_addr If,    _LabelIf
+    d_addr Til,   _LabelTil
+    d_addr Act,   _LabelAct
+    d_addr Move,  _LabelMove
+    d_addr Wait,  _LabelWait
+    d_addr Beep,  _LabelBeep
+    d_addr End,   _LabelEnd
+    d_addr Nop,   _LabelNop
+    D_END
     d_addr OnUp_func_ptr,    _OnUp
     d_addr OnDown_func_ptr,  _OnDown
     d_addr OnLeft_func_ptr,  _OnLeft
@@ -767,7 +782,14 @@ _OnRight:
     d_byte WidthsMinusOne_u8_arr
     .byte 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
     d_addr Labels_u8_arr_ptr_arr
-    .addr _LabelEq, _LabelNe, _LabelLt, _LabelLe, _LabelGt, _LabelGe
+    D_ENUM eCmp, 2
+    d_addr Eq, _LabelEq
+    d_addr Ne, _LabelNe
+    d_addr Lt, _LabelLt
+    d_addr Le, _LabelLe
+    d_addr Gt, _LabelGt
+    d_addr Ge, _LabelGe
+    D_END
     .addr 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
     d_addr OnUp_func_ptr,    _OnUp
     d_addr OnDown_func_ptr,  _OnDown
@@ -844,7 +866,12 @@ _SetItem:
     d_byte WidthsMinusOne_u8_arr
     .byte 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
     d_addr Labels_u8_arr_ptr_arr
-    .addr _LabelUp, _LabelDown, _LabelLeft, _LabelRight
+    D_ENUM eDir, 2
+    d_addr Up,    _LabelUp
+    d_addr Down,  _LabelDown
+    d_addr Left,  _LabelLeft
+    d_addr Right, _LabelRight
+    D_END
     .addr 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
     d_addr OnUp_func_ptr,    _OnUp
     d_addr OnDown_func_ptr,  _OnDown
