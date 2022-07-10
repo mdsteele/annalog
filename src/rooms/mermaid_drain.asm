@@ -18,9 +18,7 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "../actor.inc"
-.INCLUDE "../charmap.inc"
 .INCLUDE "../device.inc"
-.INCLUDE "../dialog.inc"
 .INCLUDE "../flag.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../platform.inc"
@@ -36,17 +34,17 @@
 
 .SEGMENT "PRGC_Mermaid"
 
-.EXPORT DataC_Mermaid_East_sRoom
-.PROC DataC_Mermaid_East_sRoom
+.EXPORT DataC_Mermaid_Drain_sRoom
+.PROC DataC_Mermaid_Drain_sRoom
     D_STRUCT sRoom
-    d_byte MinScrollX_u8, $10
-    d_word MaxScrollX_u16, $0110
+    d_byte MinScrollX_u8, $08
+    d_word MaxScrollX_u16, $0008
     d_byte IsTall_bool, $ff
-    d_byte MinimapStartRow_u8, 9
-    d_byte MinimapStartCol_u8, 15
-    d_byte MinimapWidth_u8, 2
+    d_byte MinimapStartRow_u8, 10
+    d_byte MinimapStartCol_u8, 14
+    d_byte MinimapWidth_u8, 1
     d_addr TerrainData_ptr, _TerrainData
-    d_byte NumMachines_u8, 0
+    d_byte NumMachines_u8, 0  ; TODO
     d_addr Machines_sMachine_arr_ptr, 0
     d_byte Chr18Bank_u8, <.bank(Ppu_ChrUpgrade)
     d_addr Tick_func_ptr, Func_Noop
@@ -67,95 +65,36 @@ _Ext_sRoomExt:
     d_addr FadeIn_func_ptr, Func_Noop
     D_END
 _TerrainData:
-:   .incbin "out/data/mermaid_east.room"
-    .assert * - :- = 33 * 24, error
+:   .incbin "out/data/mermaid_drain.room"
+    .assert * - :- = 18 * 24, error
 _Platforms_sPlatform_arr:
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Water
-    d_word WidthPx_u16, $50
-    d_byte HeightPx_u8, $20
-    d_word Left_i16,  $0000
-    d_word Top_i16,   $0064
-    D_END
-    D_STRUCT sPlatform
-    d_byte Type_ePlatform, ePlatform::Water
-    d_word WidthPx_u16, $50
-    d_byte HeightPx_u8, $30
-    d_word Left_i16,  $0090
-    d_word Top_i16,   $0084
-    D_END
-    D_STRUCT sPlatform
-    d_byte Type_ePlatform, ePlatform::Water
-    d_word WidthPx_u16, $70
-    d_byte HeightPx_u8, $2c
-    d_word Left_i16,  $0110
-    d_word Top_i16,   $0094
-    D_END
-    D_STRUCT sPlatform
-    d_byte Type_ePlatform, ePlatform::Water
-    d_word WidthPx_u16, $1c0
-    d_byte HeightPx_u8,  $40
-    d_word Left_i16,   $0030
-    d_word Top_i16,    $0134
-    D_END
-    D_STRUCT sPlatform
-    d_byte Type_ePlatform, ePlatform::Solid
-    d_word WidthPx_u16, $10
-    d_byte HeightPx_u8, $08
-    d_word Left_i16,  $0030
-    d_word Top_i16,   $0078
+    d_word WidthPx_u16, $40
+    d_byte HeightPx_u8, $ff
+    d_word Left_i16,  $0060
+    d_word Top_i16,   $0074
     D_END
     .byte ePlatform::None
 _Actors_sActor_arr:
-    D_STRUCT sActor
-    d_byte Type_eActor, eActor::Crab
-    d_byte TileRow_u8, 15
-    d_byte TileCol_u8, 16
-    d_byte Param_byte, 0
-    D_END
-    D_STRUCT sActor
-    d_byte Type_eActor, eActor::Fish
-    d_byte TileRow_u8, 20
-    d_byte TileCol_u8, 38
-    d_byte Param_byte, 0
-    D_END
-    D_STRUCT sActor
-    d_byte Type_eActor, eActor::Crab
-    d_byte TileRow_u8, 13
-    d_byte TileCol_u8, 52
-    d_byte Param_byte, 0
-    D_END
-    D_STRUCT sActor
-    d_byte Type_eActor, eActor::Fish
-    d_byte TileRow_u8, 40
-    d_byte TileCol_u8, 21
-    d_byte Param_byte, 0
-    D_END
-    D_STRUCT sActor
-    d_byte Type_eActor, eActor::Fish
-    d_byte TileRow_u8, 40
-    d_byte TileCol_u8, 30
-    d_byte Param_byte, 0
-    D_END
     .byte eActor::None
 _Devices_sDevice_arr:
-    D_STRUCT sDevice
-    d_byte Type_eDevice, eDevice::OpenDoorway
-    d_byte BlockRow_u8, 18
-    d_byte BlockCol_u8, 24
-    d_byte Target_u8, eRoom::MermaidEast  ; TODO
-    D_END
     .byte eDevice::None
 _Passages_sPassage_arr:
     D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Western | 0
-    d_byte Destination_eRoom, eRoom::MermaidUpper
-    d_byte SpawnBlock_u8, 6
+    d_byte Destination_eRoom, eRoom::MermaidVillage
+    d_byte SpawnBlock_u8, 4
     D_END
     D_STRUCT sPassage
-    d_byte Exit_bPassage, ePassage::Western | 1
-    d_byte Destination_eRoom, eRoom::MermaidDrain
-    d_byte SpawnBlock_u8, 18
+    d_byte Exit_bPassage, ePassage::Eastern | 0
+    d_byte Destination_eRoom, eRoom::MermaidEast
+    d_byte SpawnBlock_u8, 4
+    D_END
+    D_STRUCT sPassage
+    d_byte Exit_bPassage, ePassage::Bottom | 0
+    d_byte Destination_eRoom, eRoom::MermaidDrain  ; TODO
+    d_byte SpawnBlock_u8, 7
     D_END
 .ENDPROC
 
