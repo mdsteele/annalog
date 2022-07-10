@@ -203,7 +203,7 @@ _Passages_sPassage_arr:
     D_END
     D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Eastern | 1
-    d_byte Destination_eRoom, eRoom::MermaidUpper  ; TODO
+    d_byte Destination_eRoom, eRoom::MermaidEast
     d_byte SpawnBlock_u8, 20
     D_END
     D_STRUCT sPassage
