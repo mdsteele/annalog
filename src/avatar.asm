@@ -102,6 +102,7 @@ Zp_AvatarVelY_i16: .res 2
 
 ;;; The object flags to apply for the player avatar.  In particular, if
 ;;; bObj::FlipH is set, then the avatar will face left instead of right.
+.EXPORTZP Zp_AvatarFlags_bObj
 Zp_AvatarFlags_bObj: .res 1
 
 ;;; How far below the surface of the water the player avatar is, in pixels.  If

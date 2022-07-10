@@ -80,13 +80,13 @@ _Actors_sActor_arr:
     .byte eActor::None
 _Devices_sDevice_arr:
     D_STRUCT sDevice
-    d_byte Type_eDevice, eDevice::Sign
+    d_byte Type_eDevice, eDevice::TalkRight
     d_byte BlockRow_u8, 12
     d_byte BlockCol_u8, 7
     d_byte Target_u8, 0
     D_END
     D_STRUCT sDevice
-    d_byte Type_eDevice, eDevice::Sign
+    d_byte Type_eDevice, eDevice::TalkLeft
     d_byte BlockRow_u8, 12
     d_byte BlockCol_u8, 8
     d_byte Target_u8, 0

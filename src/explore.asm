@@ -70,6 +70,7 @@
 .IMPORT Ram_DeviceType_eDevice_arr
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORT Sram_LastSafe_eRoom
+.IMPORTZP Zp_AvatarFlags_bObj
 .IMPORTZP Zp_AvatarHarmTimer_u8
 .IMPORTZP Zp_AvatarMode_eAvatar
 .IMPORTZP Zp_AvatarPosX_i16
@@ -245,6 +246,10 @@ _CheckForActivateDevice:
     beq @door
     cmp #eDevice::Sign
     beq @sign
+    cmp #eDevice::TalkLeft
+    beq @talkLeft
+    cmp #eDevice::TalkRight
+    beq @talkRight
     cmp #eDevice::UnlockedDoor
     beq @door
     cmp #eDevice::Upgrade
@@ -263,6 +268,19 @@ _CheckForActivateDevice:
     @sign:
     lda #eAvatar::Reading
     sta Zp_AvatarMode_eAvatar
+    bne @dialog  ; unconditional
+    @talkLeft:
+    lda Zp_AvatarFlags_bObj
+    ora #bObj::FlipH
+    bne @talk  ; unconditional
+    @talkRight:
+    lda Zp_AvatarFlags_bObj
+    and #<~bObj::FlipH
+    @talk:
+    sta Zp_AvatarFlags_bObj
+    lda #$ff
+    sta Zp_NearbyDevice_u8
+    @dialog:
     lda Ram_DeviceTarget_u8_arr, x
     tax  ; param: dialog index
     jmp Main_Dialog_OpenWindow

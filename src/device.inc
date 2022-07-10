@@ -57,7 +57,9 @@ kUpgradeDeviceAnimStart = 23
     Flower
     Lever
     OpenDoorway
-    Sign
+    Sign       ; initiate dialogue with the avatar's back to the camera
+    TalkLeft   ; initiate dialogue with the avatar facing to the left
+    TalkRight  ; initiate dialogue with the avatar facing to the right
     UnlockedDoor
     Upgrade
     NUM_VALUES

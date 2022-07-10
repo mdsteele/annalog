@@ -18,6 +18,7 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "../actor.inc"
+.INCLUDE "../charmap.inc"
 .INCLUDE "../device.inc"
 .INCLUDE "../dialog.inc"
 .INCLUDE "../flag.inc"
@@ -60,7 +61,10 @@ _Ext_sRoomExt:
     d_addr Platforms_sPlatform_arr_ptr, _Platforms_sPlatform_arr
     d_addr Actors_sActor_arr_ptr, _Actors_sActor_arr
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
-    d_addr Dialogs_sDialog_ptr_arr_ptr, 0
+    .linecont +
+    d_addr Dialogs_sDialog_ptr_arr_ptr, \
+           DataA_Dialog_MermaidVillage_sDialog_ptr_arr
+    .linecont -
     d_addr Passages_sPassage_arr_ptr, _Passages_sPassage_arr
     d_addr Init_func_ptr, Func_Noop
     d_addr FadeIn_func_ptr, Func_Noop
@@ -149,6 +153,18 @@ _Devices_sDevice_arr:
     d_byte BlockCol_u8, 25
     d_byte Target_u8, eRoom::MermaidHouse1
     D_END
+    D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::TalkRight
+    d_byte BlockRow_u8, 8
+    d_byte BlockCol_u8, 41
+    d_byte Target_u8, 0
+    D_END
+    D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::TalkLeft
+    d_byte BlockRow_u8, 8
+    d_byte BlockCol_u8, 42
+    d_byte Target_u8, 0
+    D_END
     ;; TODO: more doors
     .byte eDevice::None
 _Passages_sPassage_arr:
@@ -162,6 +178,20 @@ _Passages_sPassage_arr:
     d_byte Destination_eRoom, eRoom::MermaidVillage  ; TODO
     d_byte SpawnBlock_u8, 5
     D_END
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Dialog"
+
+;;; Dialog data for the MermaidVillage room.
+.PROC DataA_Dialog_MermaidVillage_sDialog_ptr_arr
+    .addr _Dialog0_sDialog
+_Dialog0_sDialog:
+    .word ePortrait::Woman
+    .byte "I am guarding this$"
+    .byte "village.#"
+    .byte 0
 .ENDPROC
 
 ;;;=========================================================================;;;
