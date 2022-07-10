@@ -30,7 +30,7 @@
 .EXPORT Ppu_ChrAnim0
 .PROC Ppu_ChrAnim0
 :   .incbin "out/data/tiles/anim01.chr"
-    .res $29 * kSizeofChr
+    .res $26 * kSizeofChr
     .incbin "out/data/tiles/gazer_anim0.chr"
     .assert * - :- = kSizeofChr * $40, error
 .ENDPROC
@@ -42,7 +42,7 @@
 .EXPORT Ppu_ChrAnim1
 .PROC Ppu_ChrAnim1
 :   .incbin "out/data/tiles/anim11.chr"
-    .res $29 * kSizeofChr
+    .res $26 * kSizeofChr
     .incbin "out/data/tiles/gazer_anim1.chr"
     .assert * - :- = kSizeofChr * $40, error
 .ENDPROC
@@ -54,7 +54,7 @@
 .EXPORT Ppu_ChrAnim2
 .PROC Ppu_ChrAnim2
 :   .incbin "out/data/tiles/anim21.chr"
-    .res $29 * kSizeofChr
+    .res $26 * kSizeofChr
     .incbin "out/data/tiles/gazer_anim2.chr"
     .assert * - :- = kSizeofChr * $40, error
 .ENDPROC
@@ -66,7 +66,7 @@
 .EXPORT Ppu_ChrAnim3
 .PROC Ppu_ChrAnim3
 :   .incbin "out/data/tiles/anim31.chr"
-    .res $29 * kSizeofChr
+    .res $26 * kSizeofChr
     .incbin "out/data/tiles/gazer_anim3.chr"
     .assert * - :- = kSizeofChr * $40, error
 .ENDPROC
@@ -182,7 +182,7 @@
 .PROC Ppu_ChrMermaid
 :   .incbin "out/data/tiles/cave.chr"
     .incbin "out/data/tiles/hut.chr"
-    .res $05 * kSizeofChr
+    .res $03 * kSizeofChr
     .incbin "out/data/tiles/beach.chr"
     .res $0e * kSizeofChr
     .incbin "out/data/tiles/device.chr"

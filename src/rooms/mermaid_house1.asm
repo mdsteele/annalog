@@ -88,7 +88,7 @@ _Platforms_sPlatform_arr:
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Water
     d_word WidthPx_u16, $50
-    d_byte HeightPx_u8, $10
+    d_byte HeightPx_u8, $20
     d_word Left_i16,  $0020
     d_word Top_i16,   $00c4
     D_END
@@ -114,6 +114,13 @@ _Devices_sDevice_arr:
     d_byte BlockCol_u8, 11
     d_byte Target_u8, 0
     D_END
+    D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::OpenDoorway
+    d_byte BlockRow_u8, 12
+    d_byte BlockCol_u8, 4
+    d_byte Target_u8, eRoom::MermaidVillage
+    D_END
+    ;; TODO: locked door leading to prize
     .byte eDevice::None
 .ENDPROC
 
