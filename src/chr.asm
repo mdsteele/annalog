@@ -203,6 +203,19 @@
 
 ;;;=========================================================================;;;
 
+.SEGMENT "CHR_Minimap"
+
+.EXPORT Ppu_ChrMinimap
+.PROC Ppu_ChrMinimap
+:   .incbin "out/data/tiles/minimap1.chr"
+    .incbin "out/data/tiles/minimap2.chr"
+    .incbin "out/data/tiles/minimap3.chr"
+    .res $16 * kSizeofChr
+    .assert * - :- = kSizeofChr * $40, error
+.ENDPROC
+
+;;;=========================================================================;;;
+
 .SEGMENT "CHR_Outdoors"
 
 .EXPORT Ppu_ChrOutdoors
@@ -222,10 +235,12 @@
 
 .EXPORT Ppu_ChrPause
 .PROC Ppu_ChrPause
-:   .incbin "out/data/tiles/minimap1.chr"
-    .incbin "out/data/tiles/minimap2.chr"
-    .incbin "out/data/tiles/minimap3.chr"
-    .incbin "out/data/tiles/upgrade.chr"
+:   .incbin "out/data/tiles/upgrade.chr"
+    .res $0a * kSizeofChr
+    .incbin "out/data/tiles/minicore1.chr"
+    .res $07 * kSizeofChr
+    .incbin "out/data/tiles/minicore2.chr"
+    .res $04 * kSizeofChr
     .assert * - :- = kSizeofChr * $40, error
 .ENDPROC
 

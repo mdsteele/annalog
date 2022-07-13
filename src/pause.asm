@@ -36,11 +36,13 @@
 .IMPORT Func_ProcessFrame
 .IMPORT Func_Window_Disable
 .IMPORT Main_Explore_FadeIn
+.IMPORT Ppu_ChrMinimap
 .IMPORT Ppu_ChrPause
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORT Sram_Minimap_u16_arr
 .IMPORTZP Zp_AvatarMinimapCol_u8
 .IMPORTZP Zp_AvatarMinimapRow_u8
+.IMPORTZP Zp_Chr0cBank_u8
 .IMPORTZP Zp_Current_sRoom
 .IMPORTZP Zp_FrameCounter_u8
 .IMPORTZP Zp_OamOffset_u8
@@ -63,15 +65,15 @@ kMinimapAreaObjTileId     = $02
 
 ;;; The BG tile ID for the bottom-left tile for all upgrade symbols.  Add 1 to
 ;;; this to get the the bottom-right tile ID for those symbols.
-kUpgradeTileIdBottomLeft  = $aa
+kUpgradeTileIdBottomLeft  = $c0
 ;;; The BG tile ID for the top-left tile of the symbol for max-instruction
 ;;; upgrades.  Add 1 to this to get the the top-right tile ID for that symbol.
-kMaxInstTileIdTopLeft     = $ac
+kMaxInstTileIdTopLeft     = $c2
 ;;; The BG tile ID for the top-left tile for the symbol of the first
 ;;; non-max-instruction upgrade.  Add 1 to this to get the the top-right tile
 ;;; ID for that symbol, then add another 1 to get the top-left tile ID for the
 ;;; next upgrade, and so on.
-kRemainingTileIdTopLeft   = $ae
+kRemainingTileIdTopLeft   = $c4
 
 ;;; The screen pixel positions for the top and left edges of the minimap rect.
 kMinimapTopPx  = $28
@@ -90,7 +92,9 @@ kMinimapCurrentScreenPalette = 1
 ;;; @prereq Rendering is disabled.
 .EXPORT Main_Pause
 .PROC Main_Pause
-    chr08_bank #<.bank(Ppu_ChrPause)
+    chr08_bank #<.bank(Ppu_ChrMinimap)
+    lda #<.bank(Ppu_ChrPause)
+    sta Zp_Chr0cBank_u8
     jsr_prga FuncA_Pause_Init
     jsr_prga FuncA_Fade_In
 _GameLoop:
@@ -137,7 +141,7 @@ kAreaNameStartCol = DataA_Pause_CurrentAreaLabel_u8_arr::kAreaNameStartCol
 ;;; @prereq Rendering is disabled.
 .PROC FuncA_Pause_Init
     ;; Reset the frame counter before drawing any objects so that the
-    ;; current-position blink will be in aconsistent state as we fade in.
+    ;; current-position blink will be in a consistent state as we fade in.
     lda #0
     sta Zp_FrameCounter_u8
 _DrawScreen:
@@ -155,6 +159,7 @@ _SetRenderState:
 .ENDPROC
 
 ;;; Directly fills PPU nametable 0 with BG tile data for the pause screen.
+;;; @prereq Rendering is disabled.
 .PROC FuncA_Pause_DirectDrawBg
     lda #kPpuCtrlFlagsHorz
     sta Hw_PpuCtrl_wo
@@ -279,6 +284,7 @@ _DrawBlankLine:
 
 ;;; Writes BG tile data for one line of the pause screen minimap (not including
 ;;; the borders) directly to the PPU.
+;;; @prereq Rendering is disabled.
 ;;; @param Zp_Tmp_ptr The start of the minimap tile data row.
 ;;; @param X The minimap row (0-15).
 ;;; @return Zp_Tmp_ptr The start of the next minimap tile data row.
@@ -347,25 +353,14 @@ _DrawBlankLine:
 
 ;;; Writes BG tile data for one line of the items section of the pause screen
 ;;; (not including the borders) directly to the PPU.
+;;; @prereq Rendering is disabled.
 ;;; @param X The item line number (0-5).
 ;;; @preserve X
 .PROC FuncA_Pause_DirectDrawItemsLine
     stx Zp_Tmp1_byte  ; line number (0-5)
-.PROC _DrawConduits
-    ;; TODO: actually draw conduits
-    lda _ConduitTiles, x
-    ldy #kWindowTileIdBlank
-    sty Hw_PpuData_rw
-    sty Hw_PpuData_rw
-    sty Hw_PpuData_rw
-    .repeat 8
+    lda #kWindowTileIdBlank
     sta Hw_PpuData_rw
-    .endrepeat
-    sty Hw_PpuData_rw
-    sty Hw_PpuData_rw
-    sty Hw_PpuData_rw
-.ENDPROC
-    ;; TODO: draw B-remote upgrade
+    sta Hw_PpuData_rw
 .PROC _DrawUpgrades
     ;; Calculate the eFlag value for the first upgrade on this line, and store
     ;; it in X.
@@ -422,11 +417,35 @@ _DrawBlankLine:
     ;; At this point, A is still set to kWindowTileIdBlank.
     sta Hw_PpuData_rw
     sta Hw_PpuData_rw
+    sta Hw_PpuData_rw
+    sta Hw_PpuData_rw
+.ENDPROC
+    ;; TODO: draw B-remote upgrade
+.PROC _DrawConduits
+    ;; TODO: animate activated conduits
+    lda Zp_Tmp1_byte  ; line number (0-5)
+    mul #8
+    tax
+    ldy #8
+    @loop:
+    lda _ConduitTiles_u8_arr8_arr6, x
+    sta Hw_PpuData_rw
+    inx
+    dey
+    bne @loop
+    lda #kWindowTileIdBlank
+    sta Hw_PpuData_rw
+    sta Hw_PpuData_rw
 .ENDPROC
     ldx Zp_Tmp1_byte  ; restore X register
     rts
-_ConduitTiles:
-    .byte "-=- M "
+_ConduitTiles_u8_arr8_arr6:
+    .byte "3", $e0, $00, $f0, $f6, $00, $e1, "4"
+    .byte $00, $e2, $e8, $f1, $f7, $e8, $e3, $00
+    .byte $00, $e4, $e8, $f2, $f8, $e8, $e5, $00
+    .byte "2", $e6, $e4, $f3, $f9, $e5, $e7, "5"
+    .byte $00, "1", $e6, $f4, $fa, $e7, "6", $00
+    .byte $00, $00, $00, $f5, $fb, $00, $00, $00
 .ENDPROC
 
 ;;; Allocates and populates OAM slots for objects that should be drawn on the
