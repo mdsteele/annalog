@@ -42,15 +42,17 @@ kSaveMagicNumber = $b2
     UpgradeMaxInstructions1  ; increases the maximum number
     UpgradeMaxInstructions2  ; of instructions in a program
     UpgradeMaxInstructions3  ; by kNumExtraInstructionsPerUpgrade.
+    UpgradeRegisterB
+    UpgradeOpcodeIf
+    UpgradeOpcodeTil
     UpgradeOpcodeCopy
-    UpgradeOpcodeSwap
     UpgradeOpcodeAddSub
     UpgradeOpcodeMul
-    UpgradeOpcodeIfGoto
+    UpgradeOpcodeGoto
     UpgradeOpcodeSkip
-    UpgradeOpcodeTil
+    UpgradeOpcodeWait
+    UpgradeOpcodeSwap
     UpgradeOpcodeBeep
-    UpgradeRegisterB
     ;; Each of these flags is set when that boss has been defeated:
     BossGarden
     BossCrypt
@@ -87,8 +89,8 @@ kSaveMagicNumber = $b2
 ;;;=========================================================================;;;
 
 kFirstUpgradeFlag = eFlag::UpgradeMaxInstructions0
-kLastUpgradeFlag = eFlag::UpgradeRegisterB
-kNumUpgradeFlags = 13
+kLastUpgradeFlag = eFlag::UpgradeOpcodeBeep
+kNumUpgradeFlags = 15
 .ASSERT kNumUpgradeFlags = kLastUpgradeFlag + 1 - kFirstUpgradeFlag, error
 
 kFirstConduitFlag = eFlag::ConduitGarden

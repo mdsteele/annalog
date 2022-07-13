@@ -295,8 +295,8 @@ _SetRowsForMenuLeftColumn:
     inx
     @noSwapOpcode:
     ;; Check if the GOTO opcode is unlocked.
-    lda Sram_ProgressFlags_arr + (eFlag::UpgradeOpcodeIfGoto >> 3)
-    and #1 << (eFlag::UpgradeOpcodeIfGoto & $07)
+    lda Sram_ProgressFlags_arr + (eFlag::UpgradeOpcodeGoto >> 3)
+    and #1 << (eFlag::UpgradeOpcodeGoto & $07)
     beq @noGotoOpcode
     stx Ram_MenuRows_u8_arr + eOpcode::Goto
     inx
@@ -323,8 +323,12 @@ _SetRowsForMenuLeftColumn:
     stx Ram_MenuRows_u8_arr + eOpcode::Beep
     inx
     @noBeepOpcode:
-    ;; The WAIT opcode is always available.
+    ;; Check if the WAIT opcode is unlocked.
+    lda Sram_ProgressFlags_arr + (eFlag::UpgradeOpcodeWait >> 3)
+    and #1 << (eFlag::UpgradeOpcodeWait & $07)
+    beq @noWaitOpcode
     stx Ram_MenuRows_u8_arr + eOpcode::Wait
+    @noWaitOpcode:
     ;; Put an entry for the EMPTY opcode on the last row of the menu.
     ldx Zp_ConsoleNumInstRows_u8
     dex
@@ -348,8 +352,8 @@ _SetRowsForMenuRightColumn:
     inx
     @noMulOpcode:
     ;; Check if the IF opcode is unlocked.
-    lda Sram_ProgressFlags_arr + (eFlag::UpgradeOpcodeIfGoto >> 3)
-    and #1 << (eFlag::UpgradeOpcodeIfGoto & $07)
+    lda Sram_ProgressFlags_arr + (eFlag::UpgradeOpcodeIf >> 3)
+    and #1 << (eFlag::UpgradeOpcodeIf & $07)
     beq @noIfOpcode
     stx Ram_MenuRows_u8_arr + eOpcode::If
     inx

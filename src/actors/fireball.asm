@@ -36,7 +36,7 @@
 ;;;=========================================================================;;;
 
 ;;; The first tile ID for the fireball actor animation.
-kFireballFirstTileId = $96
+kFireballFirstTileId = $9a
 
 ;;; The OBJ palette number used for fireball actors.
 kFireballPalette = 1

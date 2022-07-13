@@ -215,6 +215,7 @@ _InitWindow:
     sta Ram_DeviceType_eDevice_arr, x
     ;; Set the upgrade's flag in SRAM.
     lda Ram_DeviceTarget_u8_arr, x
+    sta Zp_CurrentUpgrade_eFlag
     tax  ; param: eFlag value
     jsr Func_SetFlag
     ;; Update Zp_MachineMaxInstructions_u8, in case we just got a
@@ -257,33 +258,39 @@ _InitWindow:
 MaxInstructions1_u8_arr: .byte "     PROGRAM RAM", $ff
 MaxInstructions2_u8_arr: .byte "Increases max program", $ff
 MaxInstructions3_u8_arr: .byte "size by 2 instructions.", $ff
-OpcodeCopy1_u8_arr:      .byte "     COPY OPCODE", $ff
-OpcodeCopy2_u8_arr:      .byte "Copies a value into a", $ff
-OpcodeCopy3_u8_arr:      .byte "register.", $ff
-OpcodeSwap1_u8_arr:      .byte "     SWAP OPCODE", $ff
-OpcodeSwap2_u8_arr:      .byte "Exchanges the values of", $ff
-OpcodeSwap3_u8_arr:      .byte "two registers.", $ff
-OpcodeAddSub1_u8_arr:    .byte "   ADD SUB OPCODES", $ff
-OpcodeAddSub2_u8_arr:    .byte "Adds or subtracts two", $ff
-OpcodeAddSub3_u8_arr:    .byte "values.", $ff
-OpcodeMul1_u8_arr:       .byte "      MUL OPCODE", $ff
-OpcodeMul2_u8_arr:       .byte "Multiplies two values.", $ff
-OpcodeMul3_u8_arr:       .byte $ff
-OpcodeIfGoto1_u8_arr:    .byte "      IF OPCODE", $ff
-OpcodeIfGoto2_u8_arr:    .byte "Skips next instruction", $ff
-OpcodeIfGoto3_u8_arr:    .byte "unless condition is met.", $ff
-OpcodeSkip1_u8_arr:      .byte "     SKIP OPCODE", $ff
-OpcodeSkip2_u8_arr:      .byte "Skips over a variable", $ff
-OpcodeSkip3_u8_arr:      .byte "number of instructions.", $ff
-OpcodeTil1_u8_arr:       .byte "      TIL OPCODE", $ff
-OpcodeTil2_u8_arr:       .byte "Repeats last instruction", $ff
-OpcodeTil3_u8_arr:       .byte "until condition is met.", $ff
-OpcodeBeep1_u8_arr:      .byte "     BEEP OPCODE", $ff
-OpcodeBeep2_u8_arr:      .byte "Plays one of ten musical", $ff
-OpcodeBeep3_u8_arr:      .byte "tones.", $ff
 RegisterB1_u8_arr:       .byte "       B-REMOTE", $ff
 RegisterB2_u8_arr:       .byte "Uses the B button to", $ff
 RegisterB3_u8_arr:       .byte "control the B register.", $ff
+OpcodeIf1_u8_arr:        .byte "      IF OPCODE", $ff
+OpcodeIf2_u8_arr:        .byte "Skips next instruction", $ff
+OpcodeIf3_u8_arr:        .byte "unless condition is met.", $ff
+OpcodeTil1_u8_arr:       .byte "      TIL OPCODE", $ff
+OpcodeTil2_u8_arr:       .byte "Repeats last instruction", $ff
+OpcodeTil3_u8_arr:       .byte "until condition is met.", $ff
+OpcodeCopy1_u8_arr:      .byte "     COPY OPCODE", $ff
+OpcodeCopy2_u8_arr:      .byte "Copies a value into a", $ff
+OpcodeCopy3_u8_arr:      .byte "register.", $ff
+OpcodeAddSub1_u8_arr:    .byte "   ADD SUB OPCODES", $ff
+OpcodeAddSub2_u8_arr:    .byte "Adds or subtracts one", $ff
+OpcodeAddSub3_u8_arr:    .byte "value from another.", $ff
+OpcodeMul1_u8_arr:       .byte "      MUL OPCODE", $ff
+OpcodeMul2_u8_arr:       .byte "Multiplies one value by", $ff
+OpcodeMul3_u8_arr:       .byte "another.", $ff
+OpcodeGoto1_u8_arr:      .byte "     GOTO OPCODE", $ff
+OpcodeGoto2_u8_arr:      .byte "Jumps directly to a", $ff
+OpcodeGoto3_u8_arr:      .byte "specific instruction.", $ff
+OpcodeSkip1_u8_arr:      .byte "     SKIP OPCODE", $ff
+OpcodeSkip2_u8_arr:      .byte "Skips over a variable", $ff
+OpcodeSkip3_u8_arr:      .byte "number of instructions.", $ff
+OpcodeWait1_u8_arr:      .byte "     WAIT OPCODE", $ff
+OpcodeWait2_u8_arr:      .byte "Pauses execution for a", $ff
+OpcodeWait3_u8_arr:      .byte "short time.", $ff
+OpcodeSwap1_u8_arr:      .byte "     SWAP OPCODE", $ff
+OpcodeSwap2_u8_arr:      .byte "Exchanges the values of", $ff
+OpcodeSwap3_u8_arr:      .byte "two registers.", $ff
+OpcodeBeep1_u8_arr:      .byte "     BEEP OPCODE", $ff
+OpcodeBeep2_u8_arr:      .byte "Plays one of ten musical", $ff
+OpcodeBeep3_u8_arr:      .byte "tones.", $ff
 .ENDPROC
 
 ;;; Transfers the next upgrade window row (if any) that still needs to be
@@ -363,14 +370,22 @@ _DescTable_ptr_arr:
     .addr DataA_Upgrade_Descriptions::MaxInstructions2_u8_arr
     .addr DataA_Upgrade_Descriptions::MaxInstructions3_u8_arr
     .endrepeat
+    .assert * - _DescTable_ptr_arr = 6 * eFlag::UpgradeRegisterB, error
+    .addr DataA_Upgrade_Descriptions::RegisterB1_u8_arr
+    .addr DataA_Upgrade_Descriptions::RegisterB2_u8_arr
+    .addr DataA_Upgrade_Descriptions::RegisterB3_u8_arr
+    .assert * - _DescTable_ptr_arr = 6 * eFlag::UpgradeOpcodeIf, error
+    .addr DataA_Upgrade_Descriptions::OpcodeIf1_u8_arr
+    .addr DataA_Upgrade_Descriptions::OpcodeIf2_u8_arr
+    .addr DataA_Upgrade_Descriptions::OpcodeIf3_u8_arr
+    .assert * - _DescTable_ptr_arr = 6 * eFlag::UpgradeOpcodeTil, error
+    .addr DataA_Upgrade_Descriptions::OpcodeTil1_u8_arr
+    .addr DataA_Upgrade_Descriptions::OpcodeTil2_u8_arr
+    .addr DataA_Upgrade_Descriptions::OpcodeTil3_u8_arr
     .assert * - _DescTable_ptr_arr = 6 * eFlag::UpgradeOpcodeCopy, error
     .addr DataA_Upgrade_Descriptions::OpcodeCopy1_u8_arr
     .addr DataA_Upgrade_Descriptions::OpcodeCopy2_u8_arr
     .addr DataA_Upgrade_Descriptions::OpcodeCopy3_u8_arr
-    .assert * - _DescTable_ptr_arr = 6 * eFlag::UpgradeOpcodeSwap, error
-    .addr DataA_Upgrade_Descriptions::OpcodeSwap1_u8_arr
-    .addr DataA_Upgrade_Descriptions::OpcodeSwap2_u8_arr
-    .addr DataA_Upgrade_Descriptions::OpcodeSwap3_u8_arr
     .assert * - _DescTable_ptr_arr = 6 * eFlag::UpgradeOpcodeAddSub, error
     .addr DataA_Upgrade_Descriptions::OpcodeAddSub1_u8_arr
     .addr DataA_Upgrade_Descriptions::OpcodeAddSub2_u8_arr
@@ -379,26 +394,26 @@ _DescTable_ptr_arr:
     .addr DataA_Upgrade_Descriptions::OpcodeMul1_u8_arr
     .addr DataA_Upgrade_Descriptions::OpcodeMul2_u8_arr
     .addr DataA_Upgrade_Descriptions::OpcodeMul3_u8_arr
-    .assert * - _DescTable_ptr_arr = 6 * eFlag::UpgradeOpcodeIfGoto, error
-    .addr DataA_Upgrade_Descriptions::OpcodeIfGoto1_u8_arr
-    .addr DataA_Upgrade_Descriptions::OpcodeIfGoto2_u8_arr
-    .addr DataA_Upgrade_Descriptions::OpcodeIfGoto3_u8_arr
+    .assert * - _DescTable_ptr_arr = 6 * eFlag::UpgradeOpcodeGoto, error
+    .addr DataA_Upgrade_Descriptions::OpcodeGoto1_u8_arr
+    .addr DataA_Upgrade_Descriptions::OpcodeGoto2_u8_arr
+    .addr DataA_Upgrade_Descriptions::OpcodeGoto3_u8_arr
     .assert * - _DescTable_ptr_arr = 6 * eFlag::UpgradeOpcodeSkip, error
     .addr DataA_Upgrade_Descriptions::OpcodeSkip1_u8_arr
     .addr DataA_Upgrade_Descriptions::OpcodeSkip2_u8_arr
     .addr DataA_Upgrade_Descriptions::OpcodeSkip3_u8_arr
-    .assert * - _DescTable_ptr_arr = 6 * eFlag::UpgradeOpcodeTil, error
-    .addr DataA_Upgrade_Descriptions::OpcodeTil1_u8_arr
-    .addr DataA_Upgrade_Descriptions::OpcodeTil2_u8_arr
-    .addr DataA_Upgrade_Descriptions::OpcodeTil3_u8_arr
+    .assert * - _DescTable_ptr_arr = 6 * eFlag::UpgradeOpcodeWait, error
+    .addr DataA_Upgrade_Descriptions::OpcodeWait1_u8_arr
+    .addr DataA_Upgrade_Descriptions::OpcodeWait2_u8_arr
+    .addr DataA_Upgrade_Descriptions::OpcodeWait3_u8_arr
+    .assert * - _DescTable_ptr_arr = 6 * eFlag::UpgradeOpcodeSwap, error
+    .addr DataA_Upgrade_Descriptions::OpcodeSwap1_u8_arr
+    .addr DataA_Upgrade_Descriptions::OpcodeSwap2_u8_arr
+    .addr DataA_Upgrade_Descriptions::OpcodeSwap3_u8_arr
     .assert * - _DescTable_ptr_arr = 6 * eFlag::UpgradeOpcodeBeep, error
     .addr DataA_Upgrade_Descriptions::OpcodeBeep1_u8_arr
     .addr DataA_Upgrade_Descriptions::OpcodeBeep2_u8_arr
     .addr DataA_Upgrade_Descriptions::OpcodeBeep3_u8_arr
-    .assert * - _DescTable_ptr_arr = 6 * eFlag::UpgradeRegisterB, error
-    .addr DataA_Upgrade_Descriptions::RegisterB1_u8_arr
-    .addr DataA_Upgrade_Descriptions::RegisterB2_u8_arr
-    .addr DataA_Upgrade_Descriptions::RegisterB3_u8_arr
 .ENDPROC
 
 ;;;=========================================================================;;;

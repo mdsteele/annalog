@@ -38,6 +38,9 @@
 ;;; The device index for the upgrade in this room.
 kUpgradeDeviceIndex = 0
 
+;;; The eFlag value for the upgrade in this room.
+kUpgradeFlag = eFlag::UpgradeOpcodeIf
+
 ;;;=========================================================================;;;
 
 .SEGMENT "PRGC_Garden"
@@ -85,7 +88,7 @@ _Devices_sDevice_arr:
     d_byte Type_eDevice, eDevice::Upgrade
     d_byte BlockRow_u8, 8
     d_byte BlockCol_u8, 8
-    d_byte Target_u8, eFlag::UpgradeOpcodeIfGoto
+    d_byte Target_u8, kUpgradeFlag
     D_END
     .byte eDevice::None
 _Passages_sPassage_arr:
@@ -100,8 +103,8 @@ _Passages_sPassage_arr:
     d_byte SpawnBlock_u8, 7
     D_END
 _InitRoom:
-    lda Sram_ProgressFlags_arr + (eFlag::UpgradeOpcodeIfGoto >> 3)
-    and #1 << (eFlag::UpgradeOpcodeIfGoto & $07)
+    lda Sram_ProgressFlags_arr + (kUpgradeFlag >> 3)
+    and #1 << (kUpgradeFlag & $07)
     beq @done
     lda #eDevice::None
     sta Ram_DeviceType_eDevice_arr + kUpgradeDeviceIndex

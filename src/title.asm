@@ -263,10 +263,10 @@ _SetRenderState:
     blt @minimapLoop
     ;; TODO: For testing, grant some upgrades (remove this later).
     .assert kFirstUpgradeFlag = 0, error
-    lda #$03
+    lda #$63
     sta Sram_ProgressFlags_arr + 0
-    .assert kNumUpgradeFlags = 8 + 5, error
-    lda #$1f
+    .assert kNumUpgradeFlags = 8 + 7, error
+    lda #$44
     sta Sram_ProgressFlags_arr + 1
     ;; Set starting location.
     lda #kStartingRoom

@@ -236,7 +236,7 @@
 .EXPORT Ppu_ChrPause
 .PROC Ppu_ChrPause
 :   .incbin "out/data/tiles/upgrade.chr"
-    .res $0a * kSizeofChr
+    .res $06 * kSizeofChr
     .incbin "out/data/tiles/minicore1.chr"
     .res $07 * kSizeofChr
     .incbin "out/data/tiles/minicore2.chr"
@@ -303,7 +303,6 @@
 .PROC Ppu_ChrUpgrade
 :   .incbin "out/data/tiles/upgrade.chr"
     .incbin "out/data/tiles/fireball.chr"
-    .incbin "out/data/tiles/grenade.chr"
     .incbin "out/data/tiles/crawler.chr"
     .incbin "out/data/tiles/spike.chr"
     .incbin "out/data/tiles/eye.chr"
@@ -314,7 +313,8 @@
     .incbin "out/data/tiles/breakable.chr"
     .incbin "out/data/tiles/fish.chr"
     .incbin "out/data/tiles/crab.chr"
-    .res $23 * kSizeofChr
+    .incbin "out/data/tiles/grenade.chr"
+    .res $1f * kSizeofChr
     .assert * - :- = kSizeofChr * $80, error
 .ENDPROC
 

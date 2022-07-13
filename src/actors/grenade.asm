@@ -42,7 +42,7 @@
 ;;;=========================================================================;;;
 
 ;;; The first tile ID for the grenade actor animation.
-kGrenadeFirstTileId = $98
+kGrenadeFirstTileId = $dd
 
 ;;;=========================================================================;;;
 

@@ -365,11 +365,13 @@ _DrawBlankLine:
     ;; Calculate the eFlag value for the first upgrade on this line, and store
     ;; it in X.
     lda Zp_Tmp1_byte  ; line number (0-5)
-    and #$fe
-    mul #2
+    div #2
+    sta Zp_Tmp2_byte  ; upgrade row (0-2)
+    mul #4
+    adc Zp_Tmp2_byte  ; upgrade row (0-2), carry flag is already zero
     tax  ; first upgrade eFlag
     ;; Calculate the loop limit, and store it in Zp_Tmp2_byte.
-    add #4
+    add #5
     sta Zp_Tmp2_byte  ; ending eFlag
     ;; Loop over each upgrade on this line.
     @loop:
@@ -415,9 +417,6 @@ _DrawBlankLine:
     cpx Zp_Tmp2_byte  ; ending eFlag
     blt @loop
     ;; At this point, A is still set to kWindowTileIdBlank.
-    sta Hw_PpuData_rw
-    sta Hw_PpuData_rw
-    sta Hw_PpuData_rw
     sta Hw_PpuData_rw
 .ENDPROC
     ;; TODO: draw B-remote upgrade
