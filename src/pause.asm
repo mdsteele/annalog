@@ -28,6 +28,7 @@
 .INCLUDE "room.inc"
 .INCLUDE "window.inc"
 
+.IMPORT DataA_Pause_Minimap_sMarker_arr
 .IMPORT Data_PowersOfTwo_u8_arr8
 .IMPORT FuncA_Fade_In
 .IMPORT FuncA_Fade_Out
@@ -53,6 +54,8 @@
 .IMPORTZP Zp_Tmp1_byte
 .IMPORTZP Zp_Tmp2_byte
 .IMPORTZP Zp_Tmp3_byte
+.IMPORTZP Zp_Tmp4_byte
+.IMPORTZP Zp_Tmp5_byte
 .IMPORTZP Zp_Tmp_ptr
 
 ;;;=========================================================================;;;
@@ -83,6 +86,13 @@ kMinimapLeftPx = $20
 ;;; current screen on the minimap.
 kMinimapCurrentAreaPalette   = 0
 kMinimapCurrentScreenPalette = 1
+
+;;;=========================================================================;;;
+
+.ZEROPAGE
+
+;;; The current byte offset into DataA_Pause_Minimap_sMarker_arr.
+Zp_MinimapMarkerOffset_u8: .res 1
 
 ;;;=========================================================================;;;
 
@@ -224,6 +234,7 @@ _DrawMinimap:
     ldya #DataA_Pause_Minimap_u8_arr
     stya Zp_Tmp_ptr
     ldx #0
+    stx Zp_MinimapMarkerOffset_u8
     @rowLoop:
     jsr _DrawLineBreak  ; preserves X and Zp_Tmp_ptr
     jsr FuncA_Pause_DirectDrawMinimapLine  ; preserves X, advances Zp_Tmp_ptr
@@ -283,7 +294,8 @@ _DrawBlankLine:
 .ENDPROC
 
 ;;; Writes BG tile data for one line of the pause screen minimap (not including
-;;; the borders) directly to the PPU.
+;;; the borders, but including the margin on either side between the border and
+;;; the minimap) directly to the PPU.
 ;;; @prereq Rendering is disabled.
 ;;; @param Zp_Tmp_ptr The start of the minimap tile data row.
 ;;; @param X The minimap row (0-15).
@@ -296,7 +308,7 @@ _DrawBlankLine:
     sta Hw_PpuData_rw
     ;; Determine the bitmask we should use for this minimap row, and store it
     ;; in Zp_Tmp1_byte.
-    txa
+    txa  ; minimap row
     and #$07
     tay
     lda Data_PowersOfTwo_u8_arr8, y
@@ -304,43 +316,109 @@ _DrawBlankLine:
     ;; Save X in Zp_Tmp2_byte so we can use X for something else and later
     ;; restore it.
     stx Zp_Tmp2_byte  ; minimap row
-    ;; We'll use Y as the byte index into the minimap tile data (starting from
-    ;; Zp_Tmp_ptr).
-    ldy #0
     ;; We'll use X as the byte index into Sram_Minimap_u16_arr.  If we're in
     ;; the first eight rows, we'll be checking our bitmask against the low
     ;; eight bits of each u16; otherwise, we'll be checking against the high
     ;; eight bits.
-    txa
+    txa  ; minimap row
     ldx #0
+    stx Zp_Tmp3_byte  ; byte index into minimap tile data (from Zp_Tmp_ptr)
     cmp #8
-    blt @colLoop
-    inx
-    ;; For each tile in this minimap row, check if the player has explored
-    ;; that screen.  If so, draw that minimap tile; otherwise, draw a blank
-    ;; tile.
-    @colLoop:
+    blt @ready
+    inx  ; now X is 1
+    @ready:
+_ColLoop:
+    ;; Determine the "original" tile ID for this cell of the minimap (without
+    ;; yet taking map markers into account), and store it in Zp_Tmp4_byte.
     lda Sram_Minimap_u16_arr, x
     and Zp_Tmp1_byte  ; mask
     bne @explored
+    @unexplored:
     lda #kMinimapTileIdUnexplored
     .assert kMinimapTileIdUnexplored > 0, error
-    bne @draw  ; unconditional
+    bne @setOriginalTile  ; unconditional
     @explored:
+    ldy Zp_Tmp3_byte  ; byte index into minimap tile data (from Zp_Tmp_ptr)
     lda (Zp_Tmp_ptr), y
-    @draw:
+    @setOriginalTile:
+    sta Zp_Tmp4_byte  ; original minimap tile ID
+_MarkerLoop:
+    ;; Check the minimap row number for the next map marker.  If it is greater
+    ;; than the current row, then we haven't reached that marker yet, so just
+    ;; draw the original minimap tile.  If it's less than the current row, then
+    ;; skip this marker and check the next one.
+    ldy Zp_MinimapMarkerOffset_u8
+    lda Zp_Tmp2_byte  ; minimap row
+    cmp DataA_Pause_Minimap_sMarker_arr + sMarker::Row_u8, y
+    blt _DrawOriginalTile
+    bne @continue
+    ;; Now do the same thing again, for the minimap column number this time.
+    txa  ; byte index into Sram_Minimap_u16_arr
+    div #2  ; now A is the minimap column number
+    cmp DataA_Pause_Minimap_sMarker_arr + sMarker::Col_u8, y
+    blt _DrawOriginalTile
+    bne @continue
+    ;; At this point, we need to save X so we can use it for Func_IsFlagSet and
+    ;; then restore it later.
+    stx Zp_Tmp5_byte  ; byte index into Sram_Minimap_u16_arr
+    ;; If this map marker's "Not" flag is set, then skip this marker and check
+    ;; the next one.
+    ldx DataA_Pause_Minimap_sMarker_arr + sMarker::Not_eFlag, y  ; param: flag
+    jsr Func_IsFlagSet  ; preserves Zp_Tmp_*
+    bne @restoreXAndContinue
+    ;; Check this map marker's "If" flag; if it's zero, this is an item marker
+    ;; (small dot), otherwise it's a quest marker (large dot).
+    ldy Zp_MinimapMarkerOffset_u8
+    ldx DataA_Pause_Minimap_sMarker_arr + sMarker::If_eFlag, y  ; param: flag
+    beq @itemMarker
+    ;; For a quest marker, we need to check if the "If" flag is set, and skip
+    ;; the marker if not.  But if the flag is set, we can compute the new tile
+    ;; ID to use and draw it.
+    @questMarker:
+    jsr Func_IsFlagSet  ; preserves Zp_Tmp_*
+    beq @restoreXAndContinue
+    lda Zp_Tmp4_byte  ; original minimap tile ID
+    sub #$80
+    tay
+    lda DataA_Pause_MinimapQuestMarkerTiles_u8_arr, y
+    ldx Zp_Tmp5_byte  ; byte index into Sram_Minimap_u16_arr
+    bpl _DrawTileA  ; unconditional
+    ;; For item markers, we can just always draw the marker; if the original
+    ;; tile ID for this minimap cell is unexplored, then that will just map
+    ;; back to the unexplored tile.
+    @itemMarker:
+    lda Zp_Tmp4_byte  ; original minimap tile ID
+    sub #$80
+    tay
+    lda DataA_Pause_MinimapItemMarkerTiles_u8_arr, y
+    ldx Zp_Tmp5_byte  ; byte index into Sram_Minimap_u16_arr
+    bpl _DrawTileA  ; unconditional
+    ;; If we had to skip this marker, then increment the byte offset into the
+    ;; marker table and check the next marker.
+    @restoreXAndContinue:
+    ldx Zp_Tmp5_byte  ; byte index into Sram_Minimap_u16_arr
+    @continue:
+    lda Zp_MinimapMarkerOffset_u8
+    add #.sizeof(sMarker)
+    sta Zp_MinimapMarkerOffset_u8
+    bne _MarkerLoop  ; unconditional
+_DrawOriginalTile:
+    lda Zp_Tmp4_byte  ; original minimap tile ID
+_DrawTileA:
     sta Hw_PpuData_rw
+    inc Zp_Tmp3_byte  ; byte index into minimap tile data (from Zp_Tmp_ptr)
+    ;; Increment byte index into Sram_Minimap_u16_arr.
     inx
     inx
-    iny
-    cpy #kMinimapWidth
-    blt @colLoop
+    cpx #kMinimapWidth * 2
+    blt _ColLoop
+_Finish:
     ;; Advance Zp_Tmp_ptr.
-    tya
-    add Zp_Tmp_ptr + 0
+    lda Zp_Tmp_ptr + 0
+    add Zp_Tmp3_byte  ; byte index into minimap tile data (from Zp_Tmp_ptr)
     sta Zp_Tmp_ptr + 0
-    lda #0
-    adc Zp_Tmp_ptr + 1
+    lda Zp_Tmp_ptr + 1
+    adc #0
     sta Zp_Tmp_ptr + 1
     ;; Restore X (since this function needs to preserve it).
     ldx Zp_Tmp2_byte  ; minimap row
@@ -529,6 +607,15 @@ _ConduitTiles_u8_arr8_arr6:
     lda (Zp_Tmp_ptr), y
     bpl @loop
     rts
+.ENDPROC
+
+;;; These two arrays each maps from (original minimap tile ID - $80) to the
+;;; tile ID to use if there is an item/quest map marker on that tile.
+.PROC DataA_Pause_MinimapItemMarkerTiles_u8_arr
+    .byte $80, $b1, '?', $b3, $b2  ; TODO add more as necessary
+.ENDPROC
+.PROC DataA_Pause_MinimapQuestMarkerTiles_u8_arr
+    .byte $b0  ; TODO add more as necessary
 .ENDPROC
 
 ;;;=========================================================================;;;

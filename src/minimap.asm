@@ -18,7 +18,9 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "charmap.inc"
+.INCLUDE "flag.inc"
 .INCLUDE "macros.inc"
+.INCLUDE "minimap.inc"
 .INCLUDE "mmc3.inc"
 .INCLUDE "ppu.inc"
 .INCLUDE "room.inc"
@@ -240,5 +242,41 @@ _MarkMinimap:
     .byte 0, 16
     .byte $ff
 .ENDPROC
+
+;;; An array of all the markers that can appear on the minimap during the game.
+;;; This array is sorted, first by Row_u8 (ascending), then by Col_u8
+;;; (ascending), then by priority (descending).  It is terminated by an entry
+;;; with Row_u8 = $ff.
+.EXPORT DataA_Pause_Minimap_sMarker_arr
+.PROC DataA_Pause_Minimap_sMarker_arr
+    D_STRUCT sMarker
+    d_byte Row_u8, 7
+    d_byte Col_u8, 8
+    d_byte If_eFlag, 0
+    d_byte Not_eFlag, eFlag::UpgradeOpcodeIf
+    D_END
+    D_STRUCT sMarker
+    d_byte Row_u8, 9
+    d_byte Col_u8, 3
+    d_byte If_eFlag, 0
+    d_byte Not_eFlag, eFlag::FlowerCrypt
+    D_END
+    D_STRUCT sMarker
+    d_byte Row_u8, 9
+    d_byte Col_u8, 13
+    d_byte If_eFlag, 0
+    d_byte Not_eFlag, eFlag::FlowerMermaid
+    D_END
+    D_STRUCT sMarker
+    d_byte Row_u8, 11
+    d_byte Col_u8, 0
+    d_byte If_eFlag, 0
+    d_byte Not_eFlag, eFlag::ConduitCrypt
+    D_END
+    .assert sMarker::Row_u8 = 0, error
+    .byte $ff
+.ENDPROC
+;;; Ensure that we can access all bytes of the array with one index register.
+.ASSERT .sizeof(DataA_Pause_Minimap_sMarker_arr) <= $100, error
 
 ;;;=========================================================================;;;

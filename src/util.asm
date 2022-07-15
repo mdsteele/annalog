@@ -21,11 +21,13 @@
 
 ;;; Temporary variables that any main-thread function can use.  In general, it
 ;;; should be assumed that these are not preserved across function calls.
-.EXPORTZP Zp_Tmp1_byte, Zp_Tmp2_byte, Zp_Tmp3_byte, Zp_Tmp4_byte, Zp_Tmp_ptr
+.EXPORTZP Zp_Tmp1_byte, Zp_Tmp2_byte, Zp_Tmp3_byte, Zp_Tmp4_byte, Zp_Tmp5_byte
+.EXPORTZP Zp_Tmp_ptr
 Zp_Tmp1_byte: .res 1
 Zp_Tmp2_byte: .res 1
 Zp_Tmp3_byte: .res 1
 Zp_Tmp4_byte: .res 1
+Zp_Tmp5_byte: .res 1
 Zp_Tmp_ptr: .res 2
 
 ;;;=========================================================================;;;

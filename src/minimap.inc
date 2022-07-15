@@ -23,3 +23,19 @@ kMinimapWidth = 24
 kMinimapHeight = 15
 
 ;;;=========================================================================;;;
+
+;;; Describes a marker dot that can appear on the minimap.
+.STRUCT sMarker
+    ;; The minimap row where the marker appears.
+    Row_u8    .byte
+    ;; The minimap column where the marker appears.
+    Col_u8    .byte
+    ;; If zero, then this is an item marker, and will only appear if its
+    ;; minimap cell has been explored.  Otherwise, this is a quest marker, and
+    ;; will only appear if this flag is set (even if the cell is unexplored).
+    If_eFlag  .byte
+    ;; Only show the marker if this flag is NOT set.
+    Not_eFlag .byte
+.ENDSTRUCT
+
+;;;=========================================================================;;;
