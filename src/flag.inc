@@ -84,6 +84,8 @@ kSaveMagicNumber = $b2
     ;; Flags for persistent room state:
     CryptSouthWeakFloor
     CryptTombWeakFloors
+    GardenEastTalkedToMermaid
+    MermaidHut1MetQueen
 .ENDENUM
 
 ;;;=========================================================================;;;

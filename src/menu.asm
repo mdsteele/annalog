@@ -268,6 +268,7 @@ _OnRight:
 
 ;;; Initializes Zp_Current_sMenu_ptr, Ram_MenuRows_u8_arr, and
 ;;; Ram_MenuCols_u8_arr appropriately for an instruction opcode menu.
+;;; @prereq Zp_Current_sMachine_ptr is initialized.
 .PROC FuncA_Console_SetUpOpcodeMenu
     ldax #DataA_Console_Opcode_sMenu
     stax Zp_Current_sMenu_ptr
@@ -579,6 +580,7 @@ _OnRight:
 
 ;;; Initializes Zp_Current_sMenu_ptr, Ram_MenuRows_u8_arr, and
 ;;; Ram_MenuCols_u8_arr appropriately for an L-value menu.
+;;; @prereq Zp_Current_sMachine_ptr is initialized.
 .PROC FuncA_Console_SetUpLValueMenu
     jsr FuncA_Console_SetUpValueMenuCommon
 _SetColumnsForAllMenuItems:
@@ -960,6 +962,10 @@ _SetItem:
     ;; Set current menu item.
     jsr FuncA_Console_GetCurrentFieldValue  ; returns A
     sta Zp_MenuItem_u8
+    ;; Initialize Zp_Current_sMachine_ptr (since some of the
+    ;; field-type-specific setup functions require this).
+    ldx Zp_ConsoleMachineIndex_u8  ; param: machine index
+    jsr Func_SetMachineIndex
     ;; Jump to field-type-specific setup function.
     jsr FuncA_Console_GetCurrentFieldType  ; returns A
     asl a

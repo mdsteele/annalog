@@ -863,7 +863,6 @@ _DrawStatus:
 
 ;;; Writes seven bytes into a PPU transfer entry with the text of instruction
 ;;; number Zp_ConsoleInstNumber_u8 within Ram_Console_sProgram.
-;;; @prereq Zp_Current_sMachine_ptr is initialized.
 ;;; @param X PPU transfer array index within an entry's data.
 ;;; @return X Updated PPU transfer array index.
 .PROC FuncA_Console_WriteInstTransferData

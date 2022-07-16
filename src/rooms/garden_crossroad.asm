@@ -189,7 +189,7 @@ _Passages_sPassage_arr:
     D_END
     D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Eastern | 1
-    d_byte Destination_eRoom, eRoom::GardenCrossroad  ; TODO
+    d_byte Destination_eRoom, eRoom::GardenEast
     d_byte SpawnBlock_u8, 21
     D_END
 _Lift_Init:

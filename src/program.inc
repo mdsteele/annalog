@@ -108,6 +108,8 @@
     CryptWestWinch
     GardenBossCannon
     GardenCrossroadLift
+    GardenEastBridge
+    GardenEastCannon
     MermaidUpperLift
     PrisonCellBarrier
     PrisonCellBlaster

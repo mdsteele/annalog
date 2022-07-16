@@ -29,12 +29,12 @@
 
 ;;;=========================================================================;;;
 
-;;; Various OBJ tile IDs used for drawing grenade launcher machines.
-kLauncherTileIdCornerTop  = $7a
-kLauncherTileIdCornerBase = $7b
-kLauncherTileIdBarrelHigh = $7c
-kLauncherTileIdBarrelMid  = $7d
-kLauncherTileIdBarrelLow  = $7e
+;;; Various OBJ tile IDs used for drawing cannon machines.
+kCannonTileIdCornerTop  = $7a
+kCannonTileIdCornerBase = $7b
+kCannonTileIdBarrelHigh = $7c
+kCannonTileIdBarrelMid  = $7d
+kCannonTileIdBarrelLow  = $7e
 
 ;;;=========================================================================;;;
 
@@ -45,8 +45,8 @@ kLauncherTileIdBarrelLow  = $7e
 ;;; @prereq The shape position is set to the top-left corner of the machine.
 ;;; @param X The aim angle (0-255).
 ;;; @param Y The facing direction (either 0 or bObj::FlipH).
-.EXPORT FuncA_Objects_DrawGrenadeLauncherMachine
-.PROC FuncA_Objects_DrawGrenadeLauncherMachine
+.EXPORT FuncA_Objects_DrawCannonMachine
+.PROC FuncA_Objects_DrawCannonMachine
     jsr FuncA_Objects_MoveShapeDownOneTile   ; preserves X and Y
     jsr FuncA_Objects_MoveShapeRightOneTile  ; preserves X and Y
     ;; Allocate objects.
@@ -65,22 +65,22 @@ _SetBarrelTileId:
     cpx #$c0
     blt @barrelMid
     @barrelHigh:
-    lda #kLauncherTileIdBarrelHigh
+    lda #kCannonTileIdBarrelHigh
     bne @setBarrel  ; unconditional
     @barrelMid:
-    lda #kLauncherTileIdBarrelMid
+    lda #kCannonTileIdBarrelMid
     bne @setBarrel  ; unconditional
     @barrelLow:
-    lda #kLauncherTileIdBarrelLow
+    lda #kCannonTileIdBarrelLow
     @setBarrel:
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Tile_u8, y
 _SetLightTileId:
     jsr FuncA_Objects_GetMachineLightTileId  ; preserves Y, returns A
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Tile_u8, y
 _SetCornerTileIds:
-    lda #kLauncherTileIdCornerTop
+    lda #kCannonTileIdCornerTop
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Tile_u8, y
-    lda #kLauncherTileIdCornerBase
+    lda #kCannonTileIdCornerBase
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Tile_u8, y
 _Done:
     rts

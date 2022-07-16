@@ -612,10 +612,13 @@ _ConduitTiles_u8_arr8_arr6:
 ;;; These two arrays each maps from (original minimap tile ID - $80) to the
 ;;; tile ID to use if there is an item/quest map marker on that tile.
 .PROC DataA_Pause_MinimapItemMarkerTiles_u8_arr
-    .byte $80, $b1, '?', $b3, $b2  ; TODO add more as necessary
+    .byte $80, $b1, '?', $b3, $b2
 .ENDPROC
 .PROC DataA_Pause_MinimapQuestMarkerTiles_u8_arr
-    .byte $b0  ; TODO add more as necessary
+    .byte $b0, '?', '?', '?', '?', '?', '?', '?'
+    .byte '?', '?', '?', '?', '?', '?', '?', '?'
+    .byte '?', '?', '?', '?', '?', '?', '?', '?'
+    .byte $b4
 .ENDPROC
 
 ;;;=========================================================================;;;

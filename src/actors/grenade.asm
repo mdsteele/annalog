@@ -38,6 +38,7 @@
 .IMPORT Ram_ActorVelX_i16_1_arr
 .IMPORT Ram_ActorVelY_i16_0_arr
 .IMPORT Ram_ActorVelY_i16_1_arr
+.IMPORTZP Zp_Tmp1_byte
 
 ;;;=========================================================================;;;
 
@@ -48,9 +49,14 @@ kGrenadeFirstTileId = $dd
 
 .SEGMENT "PRG8"
 
-;;; Initializes the specified actor as a grenade.
-;;; @prereq The actor's type and pixel position have already been initialized.
-;;; @param A The aim angle (0-1).
+;;; Initializes the specified actor as a grenade.  The grenade can be aimed in
+;;; one of four initial angles:
+;;;   * 0: Low angle, to the right.
+;;;   * 1: High angle, to the right.
+;;;   * 2: Low angle, to the left.
+;;;   * 3: High angle, to the left.
+;;; @prereq The actor's pixel position have already been initialized.
+;;; @param A The aim angle (0-3).
 ;;; @param X The actor index.
 ;;; @preserve X
 .EXPORT Func_InitGrenadeActor
@@ -66,13 +72,17 @@ kGrenadeFirstTileId = $dd
     sta Ram_ActorFlags_bObj_arr, x
     ;; Initialize X-velocity:
     sta Ram_ActorVelX_i16_0_arr, x
+    sta Zp_Tmp1_byte
     lda _InitVelX_i16_1_arr, y
     sta Ram_ActorVelX_i16_1_arr, x
+    bpl @nonnegative
+    dec Zp_Tmp1_byte  ; now Zp_Tmp1_byte is $ff
+    @nonnegative:
     ;; Adjust X-position:
     mul #2
     add Ram_ActorPosX_i16_0_arr, x
     sta Ram_ActorPosX_i16_0_arr, x
-    lda #0  ; initial X-velocity is always positive
+    lda Zp_Tmp1_byte
     adc Ram_ActorPosX_i16_1_arr, x
     sta Ram_ActorPosX_i16_1_arr, x
     ;; Initialize Y-velocity:
@@ -88,9 +98,14 @@ kGrenadeFirstTileId = $dd
     adc Ram_ActorPosY_i16_1_arr, x
     sta Ram_ActorPosY_i16_1_arr, x
     rts
-_InitVelX_i16_1_arr: .byte 4, 3
-_InitVelY_i16_0_arr: .byte <($ffff & -520), <($ffff & -760)
-_InitVelY_i16_1_arr: .byte >($ffff & -520), >($ffff & -760)
+_InitVelX_i16_1_arr:
+    .byte 4, 3, ($ff & -4), ($ff & -3)
+_InitVelY_i16_0_arr:
+    .byte <($ffff & -520), <($ffff & -760)
+    .byte <($ffff & -520), <($ffff & -760)
+_InitVelY_i16_1_arr:
+    .byte >($ffff & -520), >($ffff & -760)
+    .byte >($ffff & -520), >($ffff & -760)
 .ENDPROC
 
 ;;;=========================================================================;;;

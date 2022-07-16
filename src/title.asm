@@ -53,8 +53,8 @@
 ;;;=========================================================================;;;
 
 ;;; The starting location for a new game.
-kStartingRoom = eRoom::MermaidVillage
-kStartingSpawn = 1 | bSpawn::IsPassage
+kStartingRoom = eRoom::GardenEast
+kStartingSpawn = 0 | bSpawn::IsPassage
 
 ;;; The nametable tile row (of the upper nametable) that the game title starts
 ;;; on.
@@ -263,10 +263,10 @@ _SetRenderState:
     blt @minimapLoop
     ;; TODO: For testing, grant some upgrades (remove this later).
     .assert kFirstUpgradeFlag = 0, error
-    lda #$63
+    lda #$20
     sta Sram_ProgressFlags_arr + 0
     .assert kNumUpgradeFlags = 8 + 7, error
-    lda #$44
+    lda #$00
     sta Sram_ProgressFlags_arr + 1
     ;; Set starting location.
     lda #kStartingRoom

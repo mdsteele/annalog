@@ -22,6 +22,7 @@
 .INCLUDE "../device.inc"
 .INCLUDE "../flag.inc"
 .INCLUDE "../machine.inc"
+.INCLUDE "../machines/cannon.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
 .INCLUDE "../platform.inc"
@@ -32,7 +33,7 @@
 .IMPORT DataA_Pause_GardenAreaCells_u8_arr2_arr
 .IMPORT DataA_Pause_GardenAreaName_u8_arr
 .IMPORT DataA_Room_Garden_sTileset
-.IMPORT FuncA_Objects_DrawGrenadeLauncherMachine
+.IMPORT FuncA_Objects_DrawCannonMachine
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
 .IMPORT Func_FindEmptyActorSlot
 .IMPORT Func_GetRandomByte
@@ -84,17 +85,6 @@ kDoorDeviceIndex = 1
 kCannonMachineIndex = 0
 ;;; The platform index for the GardenBossCannon machine.
 kCannonPlatformIndex = 0
-;;; How many frames the GardenBossCannon machine spends per move/act operation.
-kCannonMoveCountdown = $20
-kCannonActCountdown = $60
-;;; Various OBJ tile IDs used for drawing the GardenBossCannon machine.
-kCannonTileIdLightOff   = $70
-kCannonTileIdLightOn    = $71
-kCannonTileIdCornerTop  = $7a
-kCannonTileIdCornerBase = $7b
-kCannonTileIdBarrelHigh = $7c
-kCannonTileIdBarrelMid  = $7d
-kCannonTileIdBarrelLow  = $7e
 ;;; Initial position for grenades shot from the cannon.
 kCannonGrenadeInitPosX = $28
 kCannonGrenadeInitPosY = $78
@@ -162,9 +152,6 @@ kBossRightEyeCenterY = $78
     ;; The goal value of the GardenBossCannon machine's Y register; it will
     ;; keep moving until this is reached.
     CannonGoalY_u8       .byte
-    ;; Nonzero if the GardenBossCannon machine is moving/firing; this is how
-    ;; many more frames until it finishes the current move/act operation.
-    CannonCountdown_u8   .byte
     ;; How many more grenade hits are needed before the boss dies.
     BossHealth_u8        .byte
     ;; Timer that ticks down each frame when nonzero.  Used to time transitions
@@ -749,7 +736,7 @@ _PosY_u8_arr:
     jsr FuncA_Objects_SetShapePosToPlatformTopLeft
     ldx Ram_RoomState + sState::CannonAngle_u8  ; param: aim angle
     ldy #0  ; param: horz flip
-    jmp FuncA_Objects_DrawGrenadeLauncherMachine
+    jmp FuncA_Objects_DrawCannonMachine
 .ENDPROC
 
 ;;;=========================================================================;;;
