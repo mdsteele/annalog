@@ -37,8 +37,8 @@
 .IMPORT Func_ProcessFrame
 .IMPORT Func_Window_Disable
 .IMPORT Main_Explore_FadeIn
-.IMPORT Ppu_ChrMinimap
-.IMPORT Ppu_ChrPause
+.IMPORT Ppu_ChrBgMinimap
+.IMPORT Ppu_ChrBgPause
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORT Sram_Minimap_u16_arr
 .IMPORTZP Zp_AvatarMinimapCol_u8
@@ -102,8 +102,8 @@ Zp_MinimapMarkerOffset_u8: .res 1
 ;;; @prereq Rendering is disabled.
 .EXPORT Main_Pause
 .PROC Main_Pause
-    chr08_bank #<.bank(Ppu_ChrMinimap)
-    lda #<.bank(Ppu_ChrPause)
+    chr08_bank #<.bank(Ppu_ChrBgMinimap)
+    lda #<.bank(Ppu_ChrBgPause)
     sta Zp_Chr0cBank_u8
     jsr_prga FuncA_Pause_Init
     jsr_prga FuncA_Fade_In

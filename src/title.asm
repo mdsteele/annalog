@@ -36,7 +36,7 @@
 .IMPORT Func_ProcessFrame
 .IMPORT Func_Window_Disable
 .IMPORT Main_Explore_SpawnInLastSafeRoom
-.IMPORT Ppu_ChrTitle
+.IMPORT Ppu_ChrBgTitle
 .IMPORT Ram_Music_sChanState_arr
 .IMPORT Sram_LastSafe_bSpawn
 .IMPORT Sram_LastSafe_eRoom
@@ -171,7 +171,7 @@ End:
 ;;; @prereq Rendering is disabled.
 .PROC FuncA_Title_Init
     jsr Func_Window_Disable
-    chr08_bank #<.bank(Ppu_ChrTitle)
+    chr08_bank #<.bank(Ppu_ChrBgTitle)
 _StartMusic:
     lda #$ff
     sta <(Zp_Next_sAudioCtrl + sAudioCtrl::Enable_bool)

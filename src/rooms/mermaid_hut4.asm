@@ -34,8 +34,8 @@
 .IMPORT Data_PowersOfTwo_u8_arr8
 .IMPORT Func_IsFlagSet
 .IMPORT Func_Noop
-.IMPORT Ppu_ChrPlayerNormal
-.IMPORT Ppu_ChrTownsfolk
+.IMPORT Ppu_ChrObjAnnaNormal
+.IMPORT Ppu_ChrObjTownsfolk
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORT Sram_CarryingFlower_eFlag
 .IMPORT Sram_ProgressFlags_arr
@@ -60,7 +60,7 @@
     d_addr TerrainData_ptr, _TerrainData
     d_byte NumMachines_u8, 0
     d_addr Machines_sMachine_arr_ptr, 0
-    d_byte Chr18Bank_u8, <.bank(Ppu_ChrTownsfolk)
+    d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjTownsfolk)
     d_addr Tick_func_ptr, Func_Noop
     d_addr Draw_func_ptr, FuncC_Mermaid_Hut4_Draw
     d_addr Ext_sRoomExt_ptr, _Ext_sRoomExt
@@ -239,7 +239,7 @@ _BroughtFlower_sDialog:
     .byte "How kind of you.#"
     .addr _DeliverFlowerFunc
 _DeliverFlowerFunc:
-    chr10_bank #<.bank(Ppu_ChrPlayerNormal)
+    chr10_bank #<.bank(Ppu_ChrObjAnnaNormal)
     ;; Get the bitmask for this eFlag, and store it in Zp_Tmp1_byte.
     lda Sram_CarryingFlower_eFlag
     and #$07

@@ -49,7 +49,7 @@
 .IMPORT Func_MovePlatformTopToward
 .IMPORT Func_MovePlatformVert
 .IMPORT Func_Noop
-.IMPORT Ppu_ChrUpgrade
+.IMPORT Ppu_ChrObjUpgrade
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORT Ram_RoomState
 .IMPORTZP Zp_PlatformGoal_i16
@@ -116,7 +116,7 @@ kSpikeball4InitPlatformTop = \
     d_addr TerrainData_ptr, _TerrainData
     d_byte NumMachines_u8, 1
     d_addr Machines_sMachine_arr_ptr, _Machines_sMachine_arr
-    d_byte Chr18Bank_u8, <.bank(Ppu_ChrUpgrade)
+    d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjUpgrade)
     d_addr Tick_func_ptr, Func_Noop
     d_addr Draw_func_ptr, Func_Noop
     d_addr Ext_sRoomExt_ptr, _Ext_sRoomExt

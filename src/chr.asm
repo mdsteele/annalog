@@ -25,10 +25,10 @@
 
 ;;;=========================================================================;;;
 
-.SEGMENT "CHR_Anim0"
+.SEGMENT "CHR_BgAnim0"
 
-.EXPORT Ppu_ChrAnim0
-.PROC Ppu_ChrAnim0
+.EXPORT Ppu_ChrBgAnim0
+.PROC Ppu_ChrBgAnim0
 :   .incbin "out/data/tiles/anim01.chr"
     .res $26 * kSizeofChr
     .incbin "out/data/tiles/gazer_anim0.chr"
@@ -37,10 +37,10 @@
 
 ;;;=========================================================================;;;
 
-.SEGMENT "CHR_Anim1"
+.SEGMENT "CHR_BgAnim1"
 
-.EXPORT Ppu_ChrAnim1
-.PROC Ppu_ChrAnim1
+.EXPORT Ppu_ChrBgAnim1
+.PROC Ppu_ChrBgAnim1
 :   .incbin "out/data/tiles/anim11.chr"
     .res $26 * kSizeofChr
     .incbin "out/data/tiles/gazer_anim1.chr"
@@ -49,10 +49,10 @@
 
 ;;;=========================================================================;;;
 
-.SEGMENT "CHR_Anim2"
+.SEGMENT "CHR_BgAnim2"
 
-.EXPORT Ppu_ChrAnim2
-.PROC Ppu_ChrAnim2
+.EXPORT Ppu_ChrBgAnim2
+.PROC Ppu_ChrBgAnim2
 :   .incbin "out/data/tiles/anim21.chr"
     .res $26 * kSizeofChr
     .incbin "out/data/tiles/gazer_anim2.chr"
@@ -61,10 +61,10 @@
 
 ;;;=========================================================================;;;
 
-.SEGMENT "CHR_Anim3"
+.SEGMENT "CHR_BgAnim3"
 
-.EXPORT Ppu_ChrAnim3
-.PROC Ppu_ChrAnim3
+.EXPORT Ppu_ChrBgAnim3
+.PROC Ppu_ChrBgAnim3
 :   .incbin "out/data/tiles/anim31.chr"
     .res $26 * kSizeofChr
     .incbin "out/data/tiles/gazer_anim3.chr"
@@ -73,22 +73,10 @@
 
 ;;;=========================================================================;;;
 
-.SEGMENT "CHR_Cave"
+.SEGMENT "CHR_BgCrypt"
 
-.EXPORT Ppu_ChrCave
-.PROC Ppu_ChrCave
-:   .incbin "out/data/tiles/cave.chr"
-    .res $26 * kSizeofChr
-    .incbin "out/data/tiles/device.chr"
-    .assert * - :- = kSizeofChr * $40, error
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "CHR_Crypt"
-
-.EXPORT Ppu_ChrCrypt
-.PROC Ppu_ChrCrypt
+.EXPORT Ppu_ChrBgCrypt
+.PROC Ppu_ChrBgCrypt
 :   .incbin "out/data/tiles/crypt.chr"
     .res $02 * kSizeofChr
     .incbin "out/data/tiles/cobweb.chr"
@@ -103,20 +91,20 @@
 
 ;;;=========================================================================;;;
 
-.SEGMENT "CHR_FontUpper"
+.SEGMENT "CHR_BgFontUpper"
 
-.EXPORT Ppu_ChrFontUpper
-.PROC Ppu_ChrFontUpper
+.EXPORT Ppu_ChrBgFontUpper
+.PROC Ppu_ChrBgFontUpper
 :   .incbin "out/data/tiles/font_upper.chr"
     .assert * - :- = kSizeofChr * $40, error
 .ENDPROC
 
 ;;;=========================================================================;;;
 
-.SEGMENT "CHR_FontLower01"
+.SEGMENT "CHR_BgFontLower01"
 
-.EXPORT Ppu_ChrFontLower01
-.PROC Ppu_ChrFontLower01
+.EXPORT Ppu_ChrBgFontLower01
+.PROC Ppu_ChrBgFontLower01
 :   .incbin "out/data/tiles/font_lower.chr"
     .incbin "out/data/tiles/diagram01.chr"
     .incbin "out/data/tiles/portrait01.chr"
@@ -125,9 +113,9 @@
 
 ;;;=========================================================================;;;
 
-.SEGMENT "CHR_FontLower02"
+.SEGMENT "CHR_BgFontLower02"
 
-.PROC Ppu_ChrFontLower02
+.PROC Ppu_ChrBgFontLower02
 :   .incbin "out/data/tiles/font_lower.chr"
     .incbin "out/data/tiles/diagram02.chr"
     .incbin "out/data/tiles/portrait02.chr"
@@ -136,9 +124,9 @@
 
 ;;;=========================================================================;;;
 
-.SEGMENT "CHR_FontLower03"
+.SEGMENT "CHR_BgFontLower03"
 
-.PROC Ppu_ChrFontLower03
+.PROC Ppu_ChrBgFontLower03
 :   .incbin "out/data/tiles/font_lower.chr"
     .incbin "out/data/tiles/diagram03.chr"
     .incbin "out/data/tiles/portrait03.chr"
@@ -147,10 +135,10 @@
 
 ;;;=========================================================================;;;
 
-.SEGMENT "CHR_Garden"
+.SEGMENT "CHR_BgGarden"
 
-.EXPORT Ppu_ChrGarden
-.PROC Ppu_ChrGarden
+.EXPORT Ppu_ChrBgGarden
+.PROC Ppu_ChrBgGarden
 :   .incbin "out/data/tiles/jungle1.chr"
     .incbin "out/data/tiles/jungle2.chr"
     .incbin "out/data/tiles/jungle3.chr"
@@ -162,10 +150,10 @@
 
 ;;;=========================================================================;;;
 
-.SEGMENT "CHR_Hut"
+.SEGMENT "CHR_BgHut"
 
-.EXPORT Ppu_ChrHut
-.PROC Ppu_ChrHut
+.EXPORT Ppu_ChrBgHut
+.PROC Ppu_ChrBgHut
 :   .incbin "out/data/tiles/hut1.chr"
     .incbin "out/data/tiles/hut2.chr"
     .res $26 * kSizeofChr
@@ -174,10 +162,10 @@
 
 ;;;=========================================================================;;;
 
-.SEGMENT "CHR_Indoors"
+.SEGMENT "CHR_BgIndoors"
 
-.EXPORT Ppu_ChrIndoors
-.PROC Ppu_ChrIndoors
+.EXPORT Ppu_ChrBgIndoors
+.PROC Ppu_ChrBgIndoors
 :   .incbin "out/data/tiles/indoors.chr"
     .res $08 * kSizeofChr
     .incbin "out/data/tiles/window.chr"
@@ -188,10 +176,10 @@
 
 ;;;=========================================================================;;;
 
-.SEGMENT "CHR_Mermaid"
+.SEGMENT "CHR_BgMermaid"
 
-.EXPORT Ppu_ChrMermaid
-.PROC Ppu_ChrMermaid
+.EXPORT Ppu_ChrBgMermaid
+.PROC Ppu_ChrBgMermaid
 :   .incbin "out/data/tiles/cave.chr"
     .incbin "out/data/tiles/hut.chr"
     .res $03 * kSizeofChr
@@ -203,10 +191,10 @@
 
 ;;;=========================================================================;;;
 
-.SEGMENT "CHR_Minimap"
+.SEGMENT "CHR_BgMinimap"
 
-.EXPORT Ppu_ChrMinimap
-.PROC Ppu_ChrMinimap
+.EXPORT Ppu_ChrBgMinimap
+.PROC Ppu_ChrBgMinimap
 :   .incbin "out/data/tiles/minimap1.chr"
     .incbin "out/data/tiles/minimap2.chr"
     .incbin "out/data/tiles/minimap3.chr"
@@ -218,10 +206,10 @@
 
 ;;;=========================================================================;;;
 
-.SEGMENT "CHR_Outdoors"
+.SEGMENT "CHR_BgOutdoors"
 
-.EXPORT Ppu_ChrOutdoors
-.PROC Ppu_ChrOutdoors
+.EXPORT Ppu_ChrBgOutdoors
+.PROC Ppu_ChrBgOutdoors
 :   .incbin "out/data/tiles/outdoors.chr"
     .incbin "out/data/tiles/roof.chr"
     .incbin "out/data/tiles/window.chr"
@@ -233,10 +221,10 @@
 
 ;;;=========================================================================;;;
 
-.SEGMENT "CHR_Pause"
+.SEGMENT "CHR_BgPause"
 
-.EXPORT Ppu_ChrPause
-.PROC Ppu_ChrPause
+.EXPORT Ppu_ChrBgPause
+.PROC Ppu_ChrBgPause
 :   .incbin "out/data/tiles/upgrade.chr"
     .res $06 * kSizeofChr
     .incbin "out/data/tiles/minicore1.chr"
@@ -248,36 +236,22 @@
 
 ;;;=========================================================================;;;
 
-.SEGMENT "CHR_PlayerFlower"
+.SEGMENT "CHR_BgPrison"
 
-.EXPORT Ppu_ChrPlayerFlower
-.PROC Ppu_ChrPlayerFlower
-:   .incbin "out/data/tiles/font_hilight.chr"
-    .assert * - :- = kSizeofChr * eAvatar::Standing, error
-    .incbin "out/data/tiles/player_flower.chr"
-    .incbin "out/data/tiles/machine.chr"
-    .assert * - :- = kSizeofChr * $80, error
+.EXPORT Ppu_ChrBgPrison
+.PROC Ppu_ChrBgPrison
+:   .incbin "out/data/tiles/cave.chr"
+    .res $26 * kSizeofChr
+    .incbin "out/data/tiles/device.chr"
+    .assert * - :- = kSizeofChr * $40, error
 .ENDPROC
 
 ;;;=========================================================================;;;
 
-.SEGMENT "CHR_PlayerNormal"
+.SEGMENT "CHR_BgTitle"
 
-.EXPORT Ppu_ChrPlayerNormal
-.PROC Ppu_ChrPlayerNormal
-:   .incbin "out/data/tiles/font_hilight.chr"
-    .assert * - :- = kSizeofChr * eAvatar::Standing, error
-    .incbin "out/data/tiles/player_normal.chr"
-    .incbin "out/data/tiles/machine.chr"
-    .assert * - :- = kSizeofChr * $80, error
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "CHR_Title"
-
-.EXPORT Ppu_ChrTitle
-.PROC Ppu_ChrTitle
+.EXPORT Ppu_ChrBgTitle
+.PROC Ppu_ChrBgTitle
 :   .incbin "out/data/tiles/title1.chr"
     .incbin "out/data/tiles/title2.chr"
     .incbin "out/data/tiles/title3.chr"
@@ -287,10 +261,36 @@
 
 ;;;=========================================================================;;;
 
-.SEGMENT "CHR_Townsfolk"
+.SEGMENT "CHR_ObjAnnaFlower"
 
-.EXPORT Ppu_ChrTownsfolk
-.PROC Ppu_ChrTownsfolk
+.EXPORT Ppu_ChrObjAnnaFlower
+.PROC Ppu_ChrObjAnnaFlower
+:   .incbin "out/data/tiles/font_hilight.chr"
+    .assert * - :- = kSizeofChr * eAvatar::Standing, error
+    .incbin "out/data/tiles/player_flower.chr"
+    .incbin "out/data/tiles/machine.chr"
+    .assert * - :- = kSizeofChr * $80, error
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "CHR_ObjAnnaNormal"
+
+.EXPORT Ppu_ChrObjAnnaNormal
+.PROC Ppu_ChrObjAnnaNormal
+:   .incbin "out/data/tiles/font_hilight.chr"
+    .assert * - :- = kSizeofChr * eAvatar::Standing, error
+    .incbin "out/data/tiles/player_normal.chr"
+    .incbin "out/data/tiles/machine.chr"
+    .assert * - :- = kSizeofChr * $80, error
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "CHR_ObjTownsfolk"
+
+.EXPORT Ppu_ChrObjTownsfolk
+.PROC Ppu_ChrObjTownsfolk
 :   .incbin "out/data/tiles/townsfolk1.chr"
     .incbin "out/data/tiles/townsfolk2.chr"
     .res $5a * kSizeofChr
@@ -299,10 +299,10 @@
 
 ;;;=========================================================================;;;
 
-.SEGMENT "CHR_Upgrade"
+.SEGMENT "CHR_ObjUpgrade"
 
-.EXPORT Ppu_ChrUpgrade
-.PROC Ppu_ChrUpgrade
+.EXPORT Ppu_ChrObjUpgrade
+.PROC Ppu_ChrObjUpgrade
 :   .incbin "out/data/tiles/upgrade.chr"
     .incbin "out/data/tiles/fireball.chr"
     .incbin "out/data/tiles/crawler.chr"

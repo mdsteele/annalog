@@ -48,13 +48,13 @@
 .IMPORT DataA_Terrain_PrisonLowerRight_u8_arr
 .IMPORT DataA_Terrain_PrisonUpperLeft_u8_arr
 .IMPORT DataA_Terrain_PrisonUpperRight_u8_arr
-.IMPORT Ppu_ChrCave
-.IMPORT Ppu_ChrCrypt
-.IMPORT Ppu_ChrGarden
-.IMPORT Ppu_ChrHut
-.IMPORT Ppu_ChrIndoors
-.IMPORT Ppu_ChrMermaid
-.IMPORT Ppu_ChrOutdoors
+.IMPORT Ppu_ChrBgCrypt
+.IMPORT Ppu_ChrBgGarden
+.IMPORT Ppu_ChrBgHut
+.IMPORT Ppu_ChrBgIndoors
+.IMPORT Ppu_ChrBgMermaid
+.IMPORT Ppu_ChrBgOutdoors
+.IMPORT Ppu_ChrBgPrison
 
 ;;;=========================================================================;;;
 
@@ -67,7 +67,7 @@
     d_addr LowerLeft_u8_arr_ptr,  DataA_Terrain_CryptLowerLeft_u8_arr
     d_addr UpperRight_u8_arr_ptr, DataA_Terrain_CryptUpperRight_u8_arr
     d_addr LowerRight_u8_arr_ptr, DataA_Terrain_CryptLowerRight_u8_arr
-    d_byte Chr08Bank_u8, <.bank(Ppu_ChrCrypt)
+    d_byte Chr08Bank_u8, <.bank(Ppu_ChrBgCrypt)
     D_END
 .ENDPROC
 
@@ -78,7 +78,7 @@
     d_addr LowerLeft_u8_arr_ptr,  DataA_Terrain_GardenLowerLeft_u8_arr
     d_addr UpperRight_u8_arr_ptr, DataA_Terrain_GardenUpperRight_u8_arr
     d_addr LowerRight_u8_arr_ptr, DataA_Terrain_GardenLowerRight_u8_arr
-    d_byte Chr08Bank_u8, <.bank(Ppu_ChrGarden)
+    d_byte Chr08Bank_u8, <.bank(Ppu_ChrBgGarden)
     D_END
 .ENDPROC
 
@@ -89,7 +89,7 @@
     d_addr LowerLeft_u8_arr_ptr,  DataA_Terrain_HutLowerLeft_u8_arr
     d_addr UpperRight_u8_arr_ptr, DataA_Terrain_HutUpperRight_u8_arr
     d_addr LowerRight_u8_arr_ptr, DataA_Terrain_HutLowerRight_u8_arr
-    d_byte Chr08Bank_u8, <.bank(Ppu_ChrHut)
+    d_byte Chr08Bank_u8, <.bank(Ppu_ChrBgHut)
     D_END
 .ENDPROC
 
@@ -100,7 +100,7 @@
     d_addr LowerLeft_u8_arr_ptr,  DataA_Terrain_IndoorsLowerLeft_u8_arr
     d_addr UpperRight_u8_arr_ptr, DataA_Terrain_IndoorsUpperRight_u8_arr
     d_addr LowerRight_u8_arr_ptr, DataA_Terrain_IndoorsLowerRight_u8_arr
-    d_byte Chr08Bank_u8, <.bank(Ppu_ChrIndoors)
+    d_byte Chr08Bank_u8, <.bank(Ppu_ChrBgIndoors)
     D_END
 .ENDPROC
 
@@ -111,7 +111,7 @@
     d_addr LowerLeft_u8_arr_ptr,  DataA_Terrain_MermaidLowerLeft_u8_arr
     d_addr UpperRight_u8_arr_ptr, DataA_Terrain_MermaidUpperRight_u8_arr
     d_addr LowerRight_u8_arr_ptr, DataA_Terrain_MermaidLowerRight_u8_arr
-    d_byte Chr08Bank_u8, <.bank(Ppu_ChrMermaid)
+    d_byte Chr08Bank_u8, <.bank(Ppu_ChrBgMermaid)
     D_END
 .ENDPROC
 
@@ -122,7 +122,7 @@
     d_addr LowerLeft_u8_arr_ptr,  DataA_Terrain_OutdoorsLowerLeft_u8_arr
     d_addr UpperRight_u8_arr_ptr, DataA_Terrain_OutdoorsUpperRight_u8_arr
     d_addr LowerRight_u8_arr_ptr, DataA_Terrain_OutdoorsLowerRight_u8_arr
-    d_byte Chr08Bank_u8, <.bank(Ppu_ChrOutdoors)
+    d_byte Chr08Bank_u8, <.bank(Ppu_ChrBgOutdoors)
     D_END
 .ENDPROC
 
@@ -133,7 +133,7 @@
     d_addr LowerLeft_u8_arr_ptr,  DataA_Terrain_PrisonLowerLeft_u8_arr
     d_addr UpperRight_u8_arr_ptr, DataA_Terrain_PrisonUpperRight_u8_arr
     d_addr LowerRight_u8_arr_ptr, DataA_Terrain_PrisonLowerRight_u8_arr
-    d_byte Chr08Bank_u8, <.bank(Ppu_ChrCave)
+    d_byte Chr08Bank_u8, <.bank(Ppu_ChrBgPrison)
     D_END
 .ENDPROC
 

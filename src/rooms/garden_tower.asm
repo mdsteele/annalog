@@ -37,7 +37,7 @@
 .IMPORT Func_MachineError
 .IMPORT Func_MachineFinishResetting
 .IMPORT Func_Noop
-.IMPORT Ppu_ChrUpgrade
+.IMPORT Ppu_ChrObjUpgrade
 .IMPORT Ram_ActorPosX_i16_0_arr
 .IMPORT Ram_ActorPosX_i16_1_arr
 .IMPORT Ram_ActorPosY_i16_0_arr
@@ -88,7 +88,7 @@ kCannonGrenadeInitPosY = $68
     d_addr TerrainData_ptr, _TerrainData
     d_byte NumMachines_u8, 1
     d_addr Machines_sMachine_arr_ptr, _Machines_sMachine_arr
-    d_byte Chr18Bank_u8, <.bank(Ppu_ChrUpgrade)
+    d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjUpgrade)
     d_addr Tick_func_ptr, FuncC_Garden_Tower_TickRoom
     d_addr Draw_func_ptr, FuncA_Objects_GardenTower_Draw
     d_addr Ext_sRoomExt_ptr, _Ext_sRoomExt

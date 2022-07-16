@@ -33,7 +33,7 @@
 .IMPORT DataA_Room_Outdoors_sTileset
 .IMPORT Func_Noop
 .IMPORT Int_WindowTopIrq
-.IMPORT Ppu_ChrTownsfolk
+.IMPORT Ppu_ChrObjTownsfolk
 .IMPORTZP Zp_Active_sIrq
 .IMPORTZP Zp_Buffered_sIrq
 .IMPORTZP Zp_NextIrq_int_ptr
@@ -65,7 +65,7 @@ kTreelineBottomY = $62
     d_addr TerrainData_ptr, _TerrainData
     d_byte NumMachines_u8, 0
     d_addr Machines_sMachine_arr_ptr, 0
-    d_byte Chr18Bank_u8, <.bank(Ppu_ChrTownsfolk)
+    d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjTownsfolk)
     d_addr Tick_func_ptr, Func_Noop
     d_addr Draw_func_ptr, FuncC_Town_Outdoors_DrawRoom
     d_addr Ext_sRoomExt_ptr, _Ext_sRoomExt

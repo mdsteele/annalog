@@ -35,7 +35,7 @@
 .IMPORT FuncA_Avatar_UpdateWaterDepth
 .IMPORT FuncA_Objects_Alloc2x2Shape
 .IMPORT Func_Terrain_GetColumnPtrForTileIndex
-.IMPORT Ppu_ChrPlayerNormal
+.IMPORT Ppu_ChrObjAnnaNormal
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORT Sram_CarryingFlower_eFlag
 .IMPORTZP Zp_Current_sRoom
@@ -193,7 +193,7 @@ _Harm:
 .PROC Func_DropFlower
     lda Sram_CarryingFlower_eFlag
     beq @done
-    chr10_bank #<.bank(Ppu_ChrPlayerNormal)
+    chr10_bank #<.bank(Ppu_ChrObjAnnaNormal)
     ;; Enable writes to SRAM.
     lda #bMmc3PrgRam::Enable
     sta Hw_Mmc3PrgRamProtect_wo

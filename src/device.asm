@@ -32,7 +32,7 @@
 .IMPORT FuncA_Objects_MoveShapeUpOneTile
 .IMPORT FuncA_Objects_SetUpgradeTileIds
 .IMPORT Func_Noop
-.IMPORT Ppu_ChrPlayerFlower
+.IMPORT Ppu_ChrObjAnnaFlower
 .IMPORT Ram_MachineStatus_eMachine_arr
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORT Ram_RoomState
@@ -149,7 +149,7 @@ Ram_DeviceAnim_u8_arr: .res kMaxDevices
 ;;; @param X The device index for the flower.
 .EXPORT Func_PickUpFlowerDevice
 .PROC Func_PickUpFlowerDevice
-    chr10_bank #<.bank(Ppu_ChrPlayerFlower)
+    chr10_bank #<.bank(Ppu_ChrObjAnnaFlower)
     lda Ram_DeviceTarget_u8_arr, x
     ;; Enable writes to SRAM.
     ldy #bMmc3PrgRam::Enable
