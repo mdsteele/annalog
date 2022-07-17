@@ -19,6 +19,7 @@
 
 .INCLUDE "../actor.inc"
 .INCLUDE "../macros.inc"
+.INCLUDE "fireball.inc"
 
 .IMPORT FuncA_Actor_CenterHitsTerrain
 .IMPORT FuncA_Actor_HarmAvatarIfCollision
@@ -34,9 +35,6 @@
 .IMPORT Ram_ActorVelY_i16_1_arr
 
 ;;;=========================================================================;;;
-
-;;; The first tile ID for the fireball actor animation.
-kFireballFirstTileId = $9a
 
 ;;; The OBJ palette number used for fireball actors.
 kFireballPalette = 1

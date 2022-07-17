@@ -17,45 +17,7 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
-;;; The maximum number of actors that can exist at once in a room.
-kMaxActors = 8
-
-;;;=========================================================================;;;
-
-;;; Types of actors in a room (e.g. townsfolk, enemies, or projectiles).
-.ENUM eActor
-    None
-    Adult
-    Child
-    Crab
-    Crawler
-    Fireball
-    Fish
-    Grenade
-    Smoke
-    Spider
-    Spike
-    Toddler
-    NUM_VALUES
-.ENDENUM
-
-;;;=========================================================================;;;
-
-;;; Static information about an actor.
-.STRUCT sActor
-    ;; The type of this actor.
-    Type_eActor .byte
-    ;; The room tile row for this actor.
-    TileRow_u8  .byte
-    ;; The room tile column for this actor.
-    TileCol_u8  .byte
-    ;; Type-specific initialization parameter.
-    ;;   * For Adult, this is the first tile ID (of six).
-    ;;   * For Child, this is the first tile ID (of four).
-    ;;   * For Fireball, this is the aim angle (mod 64).
-    ;;   * For Grenade, this is the aim angle (0-1).
-    ;;   * For all other actor types, this is ignored.
-    Param_byte  .byte
-.ENDSTRUCT
+;;; The first tile ID for the grenade actor animation.
+kGrenadeFirstTileId = $dd
 
 ;;;=========================================================================;;;

@@ -18,6 +18,7 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "../actor.inc"
+.INCLUDE "../actors/townsfolk.inc"
 .INCLUDE "../charmap.inc"
 .INCLUDE "../device.inc"
 .INCLUDE "../dialog.inc"
@@ -75,7 +76,7 @@ _Actors_sActor_arr:
     d_byte Type_eActor, eActor::Child
     d_byte TileRow_u8, 25
     d_byte TileCol_u8, 20
-    d_byte Param_byte, kChildPonytail
+    d_byte Param_byte, kTileIdChildPonytailFirst
     D_END
     D_STRUCT sActor
     d_byte Type_eActor, eActor::Toddler

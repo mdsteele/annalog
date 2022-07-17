@@ -29,6 +29,9 @@
 
 ;;;=========================================================================;;;
 
+;;; The first tile ID for toddler actors.
+kToddlerFirstTileId = $80
+
 ;;; How fast a toddler walks, in pixels per frame.
 kToddlerSpeed = 1
 ;;; How long a toddler walks before turning around, in frames.
@@ -87,7 +90,9 @@ kToddlerTime = 100
     beq @draw
     lda #$02
     @draw:
-    ora #$80
+    ;; Assert that we can use ORA instead of ADD.
+    .assert kToddlerFirstTileId & $02 = 0, error
+    ora #kToddlerFirstTileId
     jmp FuncA_Objects_Draw1x2Actor  ; preserves X
 .ENDPROC
 

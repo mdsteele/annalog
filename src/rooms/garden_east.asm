@@ -18,6 +18,7 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "../actor.inc"
+.INCLUDE "../actors/townsfolk.inc"
 .INCLUDE "../charmap.inc"
 .INCLUDE "../device.inc"
 .INCLUDE "../dialog.inc"
@@ -43,7 +44,7 @@
 .IMPORT Func_MachineFinishResetting
 .IMPORT Func_Noop
 .IMPORT Func_SetFlag
-.IMPORT Ppu_ChrObjUpgrade
+.IMPORT Ppu_ChrObjGarden
 .IMPORT Ram_ActorPosX_i16_0_arr
 .IMPORT Ram_ActorPosX_i16_1_arr
 .IMPORT Ram_ActorPosY_i16_0_arr
@@ -106,7 +107,7 @@ kCannonGrenadeInitPosY = $0138
     d_addr TerrainData_ptr, _TerrainData
     d_byte NumMachines_u8, 2
     d_addr Machines_sMachine_arr_ptr, _Machines_sMachine_arr
-    d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjUpgrade)
+    d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjGarden)
     d_addr Tick_func_ptr, Func_Noop
     d_addr Draw_func_ptr, Func_Noop
     d_addr Ext_sRoomExt_ptr, _Ext_sRoomExt
@@ -194,7 +195,7 @@ _Actors_sActor_arr:
     d_byte Type_eActor, eActor::Adult
     d_byte TileRow_u8, 19
     d_byte TileCol_u8, 16
-    d_byte Param_byte, kAdultMermaidWorker
+    d_byte Param_byte, kTileIdMermaidAdultFirst
     D_END
     ;; TODO: vine bugs
     .byte eActor::None

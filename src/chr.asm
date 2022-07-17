@@ -17,6 +17,10 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
+.INCLUDE "actors/crawler.inc"
+.INCLUDE "actors/fireball.inc"
+.INCLUDE "actors/grenade.inc"
+.INCLUDE "actors/townsfolk.inc"
 .INCLUDE "avatar.inc"
 
 ;;;=========================================================================;;;
@@ -287,13 +291,43 @@
 
 ;;;=========================================================================;;;
 
+.SEGMENT "CHR_ObjGarden"
+
+.EXPORT Ppu_ChrObjGarden
+.PROC Ppu_ChrObjGarden
+:   .res $0e * kSizeofChr
+    .assert * - :- = (kTileIdMermaidAdultFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/mermaid_adult.chr"
+    .res $06 * kSizeofChr
+    .assert * - :- = (kFireballFirstTileId - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/fireball.chr"
+    .assert * - :- = (kCrawlerFirstTileId1 - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/crawler.chr"
+    .incbin "out/data/tiles/spike.chr"
+    .incbin "out/data/tiles/eye.chr"
+    .res $2d * kSizeofChr
+    .assert * - :- = (kGrenadeFirstTileId - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/grenade.chr"
+    .res $1f * kSizeofChr
+    .assert * - :- = kSizeofChr * $80, error
+.ENDPROC
+
+;;;=========================================================================;;;
+
 .SEGMENT "CHR_ObjTownsfolk"
 
 .EXPORT Ppu_ChrObjTownsfolk
 .PROC Ppu_ChrObjTownsfolk
-:   .incbin "out/data/tiles/townsfolk1.chr"
-    .incbin "out/data/tiles/townsfolk2.chr"
-    .res $5a * kSizeofChr
+:   .incbin "out/data/tiles/children.chr"
+    .assert * - :- = (kTileIdAdultWomanFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/adults.chr"
+    .assert * - :- = (kTileIdMermaidAdultFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/mermaid_adult.chr"
+    .assert * - :- = (kTileIdMermaidFloristFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/mermaids.chr"
+    ;; .assert * - :- = (kMermaidWorkerFirstTileId - $80) * kSizeofChr, error
+    ;; .incbin "out/data/tiles/mermaid_worker.chr"
+    .res $54 * kSizeofChr
     .assert * - :- = kSizeofChr * $80, error
 .ENDPROC
 
@@ -304,7 +338,9 @@
 .EXPORT Ppu_ChrObjUpgrade
 .PROC Ppu_ChrObjUpgrade
 :   .incbin "out/data/tiles/upgrade.chr"
+    .assert * - :- = (kFireballFirstTileId - $80) * kSizeofChr, error
     .incbin "out/data/tiles/fireball.chr"
+    .assert * - :- = (kCrawlerFirstTileId1 - $80) * kSizeofChr, error
     .incbin "out/data/tiles/crawler.chr"
     .incbin "out/data/tiles/spike.chr"
     .incbin "out/data/tiles/eye.chr"
@@ -315,6 +351,7 @@
     .incbin "out/data/tiles/breakable.chr"
     .incbin "out/data/tiles/fish.chr"
     .incbin "out/data/tiles/crab.chr"
+    .assert * - :- = (kGrenadeFirstTileId - $80) * kSizeofChr, error
     .incbin "out/data/tiles/grenade.chr"
     .res $1f * kSizeofChr
     .assert * - :- = kSizeofChr * $80, error

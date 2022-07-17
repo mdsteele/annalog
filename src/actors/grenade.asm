@@ -20,6 +20,7 @@
 .INCLUDE "../actor.inc"
 .INCLUDE "../avatar.inc"
 .INCLUDE "../macros.inc"
+.INCLUDE "grenade.inc"
 
 .IMPORT FuncA_Actor_CenterHitsTerrain
 .IMPORT FuncA_Actor_HarmAvatarIfCollision
@@ -39,11 +40,6 @@
 .IMPORT Ram_ActorVelY_i16_0_arr
 .IMPORT Ram_ActorVelY_i16_1_arr
 .IMPORTZP Zp_Tmp1_byte
-
-;;;=========================================================================;;;
-
-;;; The first tile ID for the grenade actor animation.
-kGrenadeFirstTileId = $dd
 
 ;;;=========================================================================;;;
 

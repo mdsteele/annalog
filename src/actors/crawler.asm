@@ -20,6 +20,7 @@
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
 .INCLUDE "../terrain.inc"
+.INCLUDE "crawler.inc"
 
 .IMPORT FuncA_Actor_GetRoomBlockRow
 .IMPORT FuncA_Actor_GetRoomTileColumn
@@ -32,14 +33,6 @@
 .IMPORT Ram_ActorState_byte_arr
 .IMPORTZP Zp_TerrainColumn_u8_arr_ptr
 .IMPORTZP Zp_Tmp1_byte
-
-;;;=========================================================================;;;
-
-;;; First-tile-ID values that can be passed to FuncA_Objects_Draw2x2Actor for
-;;; various actor animation frames.
-kCrawlerFirstTileId1 = $9c
-kCrawlerFirstTileId2 = $a0
-kCrawlerFirstTileId3 = $a4
 
 ;;;=========================================================================;;;
 
