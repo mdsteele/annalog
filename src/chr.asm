@@ -327,7 +327,7 @@
     .incbin "out/data/tiles/mermaids.chr"
     ;; .assert * - :- = (kMermaidWorkerFirstTileId - $80) * kSizeofChr, error
     ;; .incbin "out/data/tiles/mermaid_worker.chr"
-    .res $54 * kSizeofChr
+    .res $3c * kSizeofChr
     .assert * - :- = kSizeofChr * $80, error
 .ENDPROC
 

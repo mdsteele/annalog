@@ -27,7 +27,9 @@ kTileIdAdultWomanFirst      = $88
 kTileIdMermaidAdultFirst    = $8e
 kTileIdMermaidFloristFirst  = $94
 kTileIdMermaidYouthFirst    = $9a
-kTileIdMermaidGuardFirst    = $a0
+kTileIdMermaidGuardFFirst   = $a0
 kTileIdMermaidPonytailFirst = $a6
+kTileIdMermaidGuardMFirst   = $ac
+kTileIdMermaidFarmerFirst   = $be
 
 ;;;=========================================================================;;;

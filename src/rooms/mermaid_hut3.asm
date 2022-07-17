@@ -83,23 +83,41 @@ _Platforms_sPlatform_arr:
     .byte ePlatform::None
 _Actors_sActor_arr:
     D_STRUCT sActor
-    d_byte Type_eActor, eActor::Adult
+    d_byte Type_eActor, eActor::Mermaid
     d_byte TileRow_u8, 25
-    d_byte TileCol_u8, 18
-    d_byte Param_byte, kTileIdMermaidYouthFirst
+    d_byte TileCol_u8, 8
+    d_byte Param_byte, kTileIdMermaidAdultFirst
+    D_END
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::Mermaid
+    d_byte TileRow_u8, 25
+    d_byte TileCol_u8, 20
+    d_byte Param_byte, kTileIdMermaidPonytailFirst
     D_END
     .byte eActor::None
 _Devices_sDevice_arr:
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::TalkRight
     d_byte BlockRow_u8, 12
-    d_byte BlockCol_u8, 8
+    d_byte BlockCol_u8, 3
     d_byte Target_u8, 0
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::TalkLeft
     d_byte BlockRow_u8, 12
+    d_byte BlockCol_u8, 4
+    d_byte Target_u8, 0
+    D_END
+    D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::TalkRight
+    d_byte BlockRow_u8, 12
     d_byte BlockCol_u8, 9
+    d_byte Target_u8, 0
+    D_END
+    D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::TalkLeft
+    d_byte BlockRow_u8, 12
+    d_byte BlockCol_u8, 10
     d_byte Target_u8, 0
     D_END
     D_STRUCT sDevice

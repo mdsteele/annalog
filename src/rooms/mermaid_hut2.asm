@@ -83,10 +83,10 @@ _Platforms_sPlatform_arr:
     .byte ePlatform::None
 _Actors_sActor_arr:
     D_STRUCT sActor
-    d_byte Type_eActor, eActor::Adult
+    d_byte Type_eActor, eActor::Mermaid
     d_byte TileRow_u8, 23
     d_byte TileCol_u8, 18
-    d_byte Param_byte, kTileIdMermaidAdultFirst
+    d_byte Param_byte, kTileIdMermaidGuardMFirst
     D_END
     .byte eActor::None
 _Devices_sDevice_arr:

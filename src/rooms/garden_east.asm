@@ -192,7 +192,7 @@ _Platforms_sPlatform_arr:
 _Actors_sActor_arr:
     .assert kMermaidActorIndex = 0, error
     D_STRUCT sActor
-    d_byte Type_eActor, eActor::Adult
+    d_byte Type_eActor, eActor::Mermaid
     d_byte TileRow_u8, 19
     d_byte TileCol_u8, 16
     d_byte Param_byte, kTileIdMermaidAdultFirst

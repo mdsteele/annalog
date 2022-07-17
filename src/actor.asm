@@ -31,12 +31,12 @@
 .IMPORT FuncA_Actor_TickFireball
 .IMPORT FuncA_Actor_TickFish
 .IMPORT FuncA_Actor_TickGrenade
+.IMPORT FuncA_Actor_TickMermaid
 .IMPORT FuncA_Actor_TickSmoke
 .IMPORT FuncA_Actor_TickSpider
 .IMPORT FuncA_Actor_TickSpike
 .IMPORT FuncA_Actor_TickToddler
 .IMPORT FuncA_Objects_Alloc1x1Shape
-.IMPORT FuncA_Objects_Alloc2x1Shape
 .IMPORT FuncA_Objects_Alloc2x2Shape
 .IMPORT FuncA_Objects_DrawAdultActor
 .IMPORT FuncA_Objects_DrawChildActor
@@ -45,6 +45,7 @@
 .IMPORT FuncA_Objects_DrawFireballActor
 .IMPORT FuncA_Objects_DrawFishActor
 .IMPORT FuncA_Objects_DrawGrenadeActor
+.IMPORT FuncA_Objects_DrawMermaidActor
 .IMPORT FuncA_Objects_DrawSmokeActor
 .IMPORT FuncA_Objects_DrawSpiderActor
 .IMPORT FuncA_Objects_DrawSpikeActor
@@ -87,6 +88,7 @@ Func_InitChildActor   = Func_InitActorWithState
 Func_InitCrabActor    = Func_InitActorDefault
 Func_InitCrawlerActor = Func_InitActorDefault
 Func_InitFishActor    = Func_InitActorDefault
+Func_InitMermaidActor = Func_InitActorWithState
 Func_InitSpiderActor  = Func_InitActorDefault
 Func_InitToddlerActor = Func_InitActorWithState
 
@@ -103,6 +105,7 @@ FuncA_Objects_DrawNoneActor = Func_Noop
     Func_InitFireballActor, \
     Func_InitFishActor, \
     Func_InitGrenadeActor, \
+    Func_InitMermaidActor, \
     Func_InitSmokeActor, \
     Func_InitSpiderActor, \
     Func_InitSpikeActor, \
@@ -119,6 +122,7 @@ FuncA_Objects_DrawNoneActor = Func_Noop
     FuncA_Actor_TickFireball, \
     FuncA_Actor_TickFish, \
     FuncA_Actor_TickGrenade, \
+    FuncA_Actor_TickMermaid, \
     FuncA_Actor_TickSmoke, \
     FuncA_Actor_TickSpider, \
     FuncA_Actor_TickSpike, \
@@ -135,6 +139,7 @@ FuncA_Objects_DrawNoneActor = Func_Noop
     FuncA_Objects_DrawFireballActor, \
     FuncA_Objects_DrawFishActor, \
     FuncA_Objects_DrawGrenadeActor, \
+    FuncA_Objects_DrawMermaidActor, \
     FuncA_Objects_DrawSmokeActor, \
     FuncA_Objects_DrawSpiderActor, \
     FuncA_Objects_DrawSpikeActor, \
@@ -276,6 +281,7 @@ _JumpTable_ptr_1_arr: .hibytes ActorInitFuncs
     d_byte Fireball, kFireballRadius
     d_byte Fish,     6
     d_byte Grenade,  kGrenadeRadius
+    d_byte Mermaid, 13
     d_byte Smoke,    kSmokeRadius
     d_byte Spider,   8
     d_byte Spike,    kSpikeRadius
@@ -292,13 +298,14 @@ _JumpTable_ptr_1_arr: .hibytes ActorInitFuncs
     d_byte Fireball, kFireballRadius
     d_byte Fish,     4
     d_byte Grenade,  kGrenadeRadius
+    d_byte Mermaid,  8
     d_byte Smoke,    kSmokeRadius
     d_byte Spider,   2
     d_byte Spike,    kSpikeRadius
     d_byte Toddler,  8
     D_END
 .ENDPROC
-.PROC DataA_Actor_BoundingBoxLeft_u8_arr
+.PROC DataA_Actor_BoundingBoxSide_u8_arr
     D_ENUM eActor
     d_byte None,     0
     d_byte Adult,    5
@@ -308,26 +315,11 @@ _JumpTable_ptr_1_arr: .hibytes ActorInitFuncs
     d_byte Fireball, kFireballRadius
     d_byte Fish,     6
     d_byte Grenade,  kGrenadeRadius
+    d_byte Mermaid,  5
     d_byte Smoke,    kSmokeRadius
     d_byte Spider,   7
     d_byte Spike,    kSpikeRadius
     d_byte Toddler,  3
-    D_END
-.ENDPROC
-.PROC DataA_Actor_BoundingBoxRight_u8_arr
-    D_ENUM eActor
-    d_byte None,     0
-    d_byte Adult,    5
-    d_byte Child,    5
-    d_byte Crab,     7
-    d_byte Crawler,  7
-    d_byte Fireball, kFireballRadius
-    d_byte Fish,     6
-    d_byte Grenade,  kGrenadeRadius
-    d_byte Smoke,    kSmokeRadius
-    d_byte Spider,   7
-    d_byte Spike,    kSpikeRadius
-    d_byte Toddler,  4
     D_END
 .ENDPROC
 
@@ -395,7 +387,7 @@ _JumpTable_ptr_1_arr: .hibytes ActorTickFuncs
 .PROC FuncA_Actor_HarmAvatarIfCollision
     ldy Ram_ActorType_eActor_arr, x
     ;; Check right side.
-    lda DataA_Actor_BoundingBoxRight_u8_arr, y
+    lda DataA_Actor_BoundingBoxSide_u8_arr, y
     add #kAvatarBoundingBoxLeft
     adc Ram_ActorPosX_i16_0_arr, x
     sta Zp_Tmp1_byte
@@ -409,7 +401,7 @@ _JumpTable_ptr_1_arr: .hibytes ActorTickFuncs
     ble _NoHit
     @hitRight:
     ;; Check left side.
-    lda DataA_Actor_BoundingBoxLeft_u8_arr, y
+    lda DataA_Actor_BoundingBoxSide_u8_arr, y
     add #kAvatarBoundingBoxRight
     sta Zp_Tmp1_byte
     lda Ram_ActorPosX_i16_0_arr, x
@@ -663,43 +655,6 @@ _JumpTable_ptr_1_arr: .hibytes ActorDrawFuncs
     adc #1
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Tile_u8, y
     @done:
-    rts
-.ENDPROC
-
-;;; Allocates and populates OAM slots for the specified actor, using the given
-;;; first tile ID and the five subsequent tile IDs.
-;;; @param A The first tile ID.
-;;; @param X The actor index.
-;;; @preserve X
-.EXPORT FuncA_Objects_Draw2x3Actor
-.PROC FuncA_Objects_Draw2x3Actor
-    pha  ; first tile ID
-    jsr FuncA_Objects_PositionActorShape  ; preserves X
-_BottomThird:
-    lda Ram_ActorFlags_bObj_arr, x  ; param: object flags
-    jsr FuncA_Objects_Alloc2x1Shape  ; preserves X, returns C and Y
-    bcs @doneBottom
-    pla  ; first tile ID
-    pha  ; first tile ID
-    add #2
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Tile_u8, y
-    adc #3
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Tile_u8, y
-    @doneBottom:
-_TopTwoThirds:
-    jsr FuncA_Objects_MoveShapeUpOneTile
-    lda Ram_ActorFlags_bObj_arr, x  ; param: object flags
-    jsr FuncA_Objects_Alloc2x2Shape  ; preserves X, returns C and Y
-    pla  ; first tile ID
-    bcs @doneTop
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Tile_u8, y
-    add #1
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Tile_u8, y
-    adc #2
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Tile_u8, y
-    adc #1
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Tile_u8, y
-    @doneTop:
     rts
 .ENDPROC
 

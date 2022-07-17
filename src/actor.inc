@@ -32,6 +32,7 @@ kMaxActors = 8
     Fireball
     Fish
     Grenade
+    Mermaid
     Smoke
     Spider
     Spike
