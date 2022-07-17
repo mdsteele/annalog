@@ -35,6 +35,13 @@
 
 ;;;=========================================================================;;;
 
+;;; The dialog indices for the mermaids in this room.
+kMermaidGuardDialogIndex = 0
+kMermaidFarmerDialogIndex = 1
+kMermaidYouthDialogIndex = 2
+
+;;;=========================================================================;;;
+
 .SEGMENT "PRGC_Mermaid"
 
 .EXPORT DataC_Mermaid_Village_sRoom
@@ -164,25 +171,37 @@ _Devices_sDevice_arr:
     d_byte Type_eDevice, eDevice::TalkRight
     d_byte BlockRow_u8, 8
     d_byte BlockCol_u8, 41
-    d_byte Target_u8, 0
+    d_byte Target_u8, kMermaidGuardDialogIndex
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::TalkLeft
     d_byte BlockRow_u8, 8
     d_byte BlockCol_u8, 42
-    d_byte Target_u8, 0
+    d_byte Target_u8, kMermaidGuardDialogIndex
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::TalkRight
     d_byte BlockRow_u8, 21
     d_byte BlockCol_u8, 12
-    d_byte Target_u8, 1
+    d_byte Target_u8, kMermaidFarmerDialogIndex
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::TalkLeft
     d_byte BlockRow_u8, 21
     d_byte BlockCol_u8, 13
-    d_byte Target_u8, 1
+    d_byte Target_u8, kMermaidFarmerDialogIndex
+    D_END
+    D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::TalkRight
+    d_byte BlockRow_u8, 21
+    d_byte BlockCol_u8, 16
+    d_byte Target_u8, kMermaidYouthDialogIndex
+    D_END
+    D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::TalkLeft
+    d_byte BlockRow_u8, 21
+    d_byte BlockCol_u8, 17
+    d_byte Target_u8, kMermaidYouthDialogIndex
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::OpenDoorway
@@ -208,7 +227,13 @@ _Devices_sDevice_arr:
     d_byte BlockCol_u8, 25
     d_byte Target_u8, eRoom::MermaidHut4
     D_END
-    ;; TODO: more doors
+    D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::OpenDoorway
+    d_byte BlockRow_u8, 18
+    d_byte BlockCol_u8, 41
+    d_byte Target_u8, eRoom::MermaidHut5
+    D_END
+    .assert * - _Devices_sDevice_arr <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None
 _Passages_sPassage_arr:
     D_STRUCT sPassage
@@ -229,16 +254,24 @@ _Passages_sPassage_arr:
 
 ;;; Dialog data for the MermaidVillage room.
 .PROC DataA_Dialog_MermaidVillage_sDialog_ptr_arr
-    .addr _Dialog0_sDialog
-    .addr _Dialog1_sDialog
-_Dialog0_sDialog:
+    .assert kMermaidGuardDialogIndex = 0, error
+    .addr _MermaidGuard_sDialog
+    .assert kMermaidFarmerDialogIndex = 1, error
+    .addr _MermaidFarmer_sDialog
+    .assert kMermaidYouthDialogIndex = 2, error
+    .addr _MermaidYouth_sDialog
+_MermaidGuard_sDialog:
     .word ePortrait::Woman
     .byte "I am guarding this$"
     .byte "village.#"
     .byte 0
-_Dialog1_sDialog:
+_MermaidFarmer_sDialog:
     .word ePortrait::Woman
     .byte "I am farming seaweed.#"
+    .byte 0
+_MermaidYouth_sDialog:
+    .word ePortrait::Woman
+    .byte "Lorem ipsum.#"
     .byte 0
 .ENDPROC
 

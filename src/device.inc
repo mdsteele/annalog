@@ -18,7 +18,7 @@
 ;;;=========================================================================;;;
 
 ;;; The maximum number of devices that can exist at once in a room.
-kMaxDevices = 8
+kMaxDevices = 12
 
 ;;; The OBJ tile IDs used for various device objects.
 kConsoleScreenTileIdOk  = $0a
