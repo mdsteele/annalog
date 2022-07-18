@@ -354,12 +354,15 @@ _CalculatePassage:
     tya  ; ePassage value
     ora Zp_Tmp1_byte  ; screen number
 _LoadNextRoom:
-    tax  ; param: origin bPassage value
+    pha  ; origin bPassage value (calculated)
+    tax  ; param: origin bPassage value (calculated)
     jsr_prga FuncA_Room_ExitViaPassage  ; returns X (eRoom) and A (spawn block)
     pha  ; origin SpawnBlock_u8
     prgc_bank DataA_Room_Banks_u8_arr, x
     jsr FuncA_Room_Load
-    pla  ; param: origin SpawnBlock_u8
+    pla  ; origin SpawnBlock_u8
+    tay  ; param: origin SpawnBlock_u8
+    pla  ; param: origin bPassage value (calculated)
     jsr FuncA_Room_EnterViaPassage
     jmp Main_Explore_FadeIn
 .ENDPROC

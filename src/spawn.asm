@@ -42,6 +42,7 @@
 .IMPORTZP Zp_Tmp1_byte
 .IMPORTZP Zp_Tmp2_byte
 .IMPORTZP Zp_Tmp3_byte
+.IMPORTZP Zp_Tmp4_byte
 .IMPORTZP Zp_Tmp_ptr
 
 ;;;=========================================================================;;;
@@ -71,20 +72,20 @@ Zp_RoomIsSafe_bool: .res 1
 ;;; the current room is currently marked as safe, then the last safe point will
 ;;; also be set.
 ;;; @param A The bSpawn value to set for the current room.
-;;; @preserve X, Y
+;;; @preserve X, Y, Zp_Tmp_*
 .EXPORT Func_SetLastSpawnPoint
 .PROC Func_SetLastSpawnPoint
     sta Zp_LastPoint_bSpawn
     lda Zp_Current_eRoom
     sta Zp_LastPoint_eRoom
     bit Zp_RoomIsSafe_bool
-    bmi Func_UpdateLastSafePoint  ; preserves X
+    bmi Func_UpdateLastSafePoint  ; preserves X, Y, and Zp_Tmp_*
     rts
 .ENDPROC
 
 ;;; If Zp_RoomIsSafe_bool is false, sets it to true and copies the last visited
 ;;; spawn point to the last safe point.
-;;; @preserve X, Y
+;;; @preserve X, Y, Zp_Tmp_*
 .EXPORT Func_MarkRoomSafe
 .PROC Func_MarkRoomSafe
     bit Zp_RoomIsSafe_bool
@@ -97,7 +98,7 @@ Zp_RoomIsSafe_bool: .res 1
 .ENDPROC
 
 ;;; Copies Zp_LastPoint_* to Sram_LastSafe_*.
-;;; @preserve X, Y
+;;; @preserve X, Y, Zp_Tmp_*
 .PROC Func_UpdateLastSafePoint
     ;; Enable writes to SRAM.
     lda #bMmc3PrgRam::Enable
@@ -322,12 +323,13 @@ _DeviceOffset_u8_arr:
 ;;; last spawn point (in case this room is safe and the destination room turns
 ;;; out to be unsafe).  Returns the origin passage spawn block and the
 ;;; destination room number.
-;;; @param X The bPassage value for the passage the player went through.
+;;; @param X The calculated bPassage value for the passage the player went
+;;;     through (which includes SideMask and ScreenMask only).
 ;;; @return A The SpawnBlock_u8 value for the origin room.
 ;;; @return X The eRoom value for the destination room.
 .EXPORT FuncA_Room_ExitViaPassage
 .PROC FuncA_Room_ExitViaPassage
-    stx Zp_Tmp1_byte  ; bPassage value
+    stx Zp_Tmp1_byte  ; calculated bPassage value
     ;; Copy the current room's Passages_sPassage_arr_ptr into Zp_Tmp_ptr.
     ldy #sRoomExt::Passages_sPassage_arr_ptr
     lda (Zp_Current_sRoom + sRoom::Ext_sRoomExt_ptr), y
@@ -346,12 +348,13 @@ _DeviceOffset_u8_arr:
     inc Zp_Tmp2_byte  ; passage index
     @find:
     .assert sPassage::Exit_bPassage = 0, error
-    lda (Zp_Tmp_ptr), y  ; Exit_ePassage
-    cmp Zp_Tmp1_byte  ; bPassage value
+    lda (Zp_Tmp_ptr), y
+    and #bPassage::SideMask | bPassage::ScreenMask
+    cmp Zp_Tmp1_byte  ; calculated bPassage value
     bne @wrongSide
     lda Zp_Tmp2_byte  ; passage index
     ora #bSpawn::IsPassage  ; param: bSpawn value
-    jsr Func_SetLastSpawnPoint  ; preserves Y
+    jsr Func_SetLastSpawnPoint  ; preserves Y and Zp_Tmp_*
     iny
     .assert sPassage::Destination_eRoom = 1, error
     lda (Zp_Tmp_ptr), y  ; Destination_eRoom
@@ -367,10 +370,13 @@ _DeviceOffset_u8_arr:
 ;;; size of the new room and the difference between the origin and destination
 ;;; passages' SpawnBlock_u8 values.
 ;;; @prereq The new room is loaded, and Zp_Previous_eRoom is initialized.
-;;; @param A The SpawnBlock_u8 for the origin passage in the previous room.
+;;; @param A The origin bPassage value.
+;;; @param Y The SpawnBlock_u8 for the origin passage in the previous room.
 .EXPORT FuncA_Room_EnterViaPassage
 .PROC FuncA_Room_EnterViaPassage
-    sta Zp_Tmp1_byte  ; origin passage's SpawnBlock_u8
+    and #bPassage::ScreenMask
+    sta Zp_Tmp4_byte  ; origin passage's screen number
+    sty Zp_Tmp1_byte  ; origin passage's SpawnBlock_u8
 _FindDestinationPassage:
     ;; Copy the current room's Passages_sPassage_arr_ptr into Zp_Tmp_ptr.
     ldy #sRoomExt::Passages_sPassage_arr_ptr
@@ -379,30 +385,47 @@ _FindDestinationPassage:
     iny
     lda (Zp_Current_sRoom + sRoom::Ext_sRoomExt_ptr), y
     sta Zp_Tmp_ptr + 1
-    ;; Find the sPassage entry in the new room whose Destination_eRoom is
-    ;; Zp_Previous_eRoom.
+    ;; Loop through the sPassage entries in the new room until we find a match.
+    ;; (Note that we simply assume that we'll find one; there's no check for
+    ;; the end of the sPassage array.)
     ldy #0
     sty Zp_Tmp3_byte  ; passage index
     @loop:
+    ;; Store the destination passage's bPassage value for later.
     .assert sPassage::Exit_bPassage = 0, error
-    lda (Zp_Tmp_ptr), y  ; destination passage's Exit_bPassage
-    and #bPassage::SideMask
-    sta Zp_Tmp2_byte  ; destination ePassage value
-    iny
+    lda (Zp_Tmp_ptr), y
+    iny  ; now Y % .sizeof(sPassage) is 1
+    sta Zp_Tmp2_byte  ; destination bPassage value
+    ;; If this destination passage has the SameScreen bit set, then the two
+    ;; passages must have the same screen number in order to count as a match.
+    and #bPassage::SameScreen
+    beq @screenMatches  ; SameScreen bit not set, so any screen number is fine
+    lda Zp_Tmp2_byte  ; destination bPassage value
+    and #bPassage::ScreenMask
+    cmp Zp_Tmp4_byte  ; origin passage's screen number
+    beq @screenMatches
+    iny  ; now Y % .sizeof(sPassage) is 2
+    bne @doesNotMatch  ; unconditional
+    @screenMatches:
+    ;; In order for the passages to match, the destination passage's eRoom must
+    ;; be the room that the origin passage was in.
     .assert sPassage::Destination_eRoom = 1, error
     lda (Zp_Tmp_ptr), y
-    iny
+    iny  ; now Y % .sizeof(sPassage) is 2
     cmp Zp_Previous_eRoom
-    beq @found
-    iny
+    beq @foundMatch
+    ;; If the passages don't match, then move on to the next potential
+    ;; destination passage.
+    @doesNotMatch:
+    iny  ; now Y % .sizeof(sPassage) is 3
     .assert .sizeof(sPassage) = 3, error
     inc Zp_Tmp3_byte  ; passage index
     bne @loop  ; unconditional
-    @found:
+    @foundMatch:
     ;; Update the the last spawn point.
     lda Zp_Tmp3_byte  ; passage index
     ora #bSpawn::IsPassage  ; param: bSpawn value
-    jsr Func_SetLastSpawnPoint  ; preserves Y
+    jsr Func_SetLastSpawnPoint  ; preserves Y and Zp_Tmp_*
     ;; Prepare to adjust position.
     .assert sPassage::SpawnBlock_u8 = 2, error
     lda (Zp_Tmp_ptr), y  ; destination passage's SpawnBlock_u8
@@ -420,7 +443,7 @@ _AdjustPosition:
     rol Zp_Tmp1_byte  ; perpendicular position adjust (hi)
     .endrepeat
     ;; Determine if the passage is east/west or up/down.
-    bit Zp_Tmp2_byte  ; destination ePassage value
+    bit Zp_Tmp2_byte  ; destination bPassage value
     .assert bPassage::EastWest = bProc::Negative, error
     bmi _EastWest
 _UpDown:
@@ -431,7 +454,8 @@ _UpDown:
     adc Zp_AvatarPosX_i16 + 1
     sta Zp_AvatarPosX_i16 + 1
     ;; Set the vertical position.
-    lda Zp_Tmp2_byte  ; destination ePassage value
+    lda Zp_Tmp2_byte  ; destination bPassage value
+    and #bPassage::SideMask
     cmp #ePassage::Bottom
     beq @bottomEdge
     @topEdge:
@@ -459,7 +483,8 @@ _EastWest:
     adc Zp_AvatarPosY_i16 + 1
     sta Zp_AvatarPosY_i16 + 1
     ;; Set the horizontal position.
-    lda Zp_Tmp2_byte  ; destination ePassage value
+    lda Zp_Tmp2_byte  ; destination bPassage value
+    and #bPassage::SideMask
     cmp #ePassage::Western
     beq @westEdge
     @eastEdge:

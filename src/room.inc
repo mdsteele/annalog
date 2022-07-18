@@ -92,10 +92,18 @@ kRoomStateSize = $100
 ;;;     * For up/down passages, the screen number is 0 for the westernmost
 ;;;       screen of the room, and (N - 1) for the easternmost screen of a room
 ;;;       that's N screens wide.
+;;; When the player avatar exits a room via a passage, the game will look for a
+;;; matching passage in the destination room for the avatar to enter via.
+;;; Normally, the game will pick the first (presumably only) passage leading
+;;; back to the room the avatar came from.  However, if the SameScreen bit is
+;;; set, then the two passages must have the same screen number in order to
+;;; match.  This is to allow two adjacent and vertically-aligned tall rooms to
+;;; share two horizontal passages between each other.
 .SCOPE bPassage
     EastWest   = %10000000  ; if set, this is an east/west passage
     UpDown     = %01000000  ; if set, this is an up/down passage
     SideMask   = %11100000  ; bits used for the ePassage value
+    SameScreen = %00001000  ; if set, destination must have same screen number
     ScreenMask = %00000111  ; bits used for the screen number
 .ENDSCOPE
 

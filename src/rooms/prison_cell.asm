@@ -181,14 +181,13 @@ _Devices_sDevice_arr:
     D_END
     .byte eDevice::None
 _Passages_sPassage_arr:
-    ;; TODO: Currently, a room cannot have two passages lead to the same room.
     D_STRUCT sPassage
-    d_byte Exit_bPassage, ePassage::Western | 0
+    d_byte Exit_bPassage, ePassage::Western | bPassage::SameScreen | 0
     d_byte Destination_eRoom, eRoom::PrisonEscape
     d_byte SpawnBlock_u8, 9
     D_END
     D_STRUCT sPassage
-    d_byte Exit_bPassage, ePassage::Western | 1
+    d_byte Exit_bPassage, ePassage::Western | bPassage::SameScreen | 1
     d_byte Destination_eRoom, eRoom::PrisonEscape
     d_byte SpawnBlock_u8, 20
     D_END
