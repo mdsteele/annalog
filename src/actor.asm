@@ -36,6 +36,7 @@
 .IMPORT FuncA_Actor_TickSpider
 .IMPORT FuncA_Actor_TickSpike
 .IMPORT FuncA_Actor_TickToddler
+.IMPORT FuncA_Actor_TickVinebug
 .IMPORT FuncA_Objects_Alloc1x1Shape
 .IMPORT FuncA_Objects_Alloc2x2Shape
 .IMPORT FuncA_Objects_DrawAdultActor
@@ -50,12 +51,14 @@
 .IMPORT FuncA_Objects_DrawSpiderActor
 .IMPORT FuncA_Objects_DrawSpikeActor
 .IMPORT FuncA_Objects_DrawToddlerActor
+.IMPORT FuncA_Objects_DrawVinebugActor
 .IMPORT FuncA_Objects_MoveShapeUpOneTile
 .IMPORT Func_HarmAvatar
 .IMPORT Func_InitFireballActor
 .IMPORT Func_InitGrenadeActor
 .IMPORT Func_InitSmokeActor
 .IMPORT Func_InitSpikeActor
+.IMPORT Func_InitVinebugActor
 .IMPORT Func_Noop
 .IMPORT Func_Terrain_GetColumnPtrForTileIndex
 .IMPORT Ram_Oam_sObj_arr64
@@ -109,7 +112,8 @@ FuncA_Objects_DrawNoneActor = Func_Noop
     Func_InitSmokeActor, \
     Func_InitSpiderActor, \
     Func_InitSpikeActor, \
-    Func_InitToddlerActor
+    Func_InitToddlerActor, \
+    Func_InitVinebugActor
 .LINECONT -
 
 .LINECONT +
@@ -126,7 +130,8 @@ FuncA_Objects_DrawNoneActor = Func_Noop
     FuncA_Actor_TickSmoke, \
     FuncA_Actor_TickSpider, \
     FuncA_Actor_TickSpike, \
-    FuncA_Actor_TickToddler
+    FuncA_Actor_TickToddler, \
+    FuncA_Actor_TickVinebug
 .LINECONT -
 
 .LINECONT +
@@ -143,7 +148,8 @@ FuncA_Objects_DrawNoneActor = Func_Noop
     FuncA_Objects_DrawSmokeActor, \
     FuncA_Objects_DrawSpiderActor, \
     FuncA_Objects_DrawSpikeActor, \
-    FuncA_Objects_DrawToddlerActor
+    FuncA_Objects_DrawToddlerActor, \
+    FuncA_Objects_DrawVinebugActor
 .LINECONT -
 
 ;;;=========================================================================;;;
@@ -286,6 +292,7 @@ _JumpTable_ptr_1_arr: .hibytes ActorInitFuncs
     d_byte Spider,   8
     d_byte Spike,    kSpikeRadius
     d_byte Toddler,  4
+    d_byte Vinebug,  7
     D_END
 .ENDPROC
 .PROC DataA_Actor_BoundingBoxDown_u8_arr
@@ -303,6 +310,7 @@ _JumpTable_ptr_1_arr: .hibytes ActorInitFuncs
     d_byte Spider,   2
     d_byte Spike,    kSpikeRadius
     d_byte Toddler,  8
+    d_byte Vinebug,  7
     D_END
 .ENDPROC
 .PROC DataA_Actor_BoundingBoxSide_u8_arr
@@ -320,6 +328,7 @@ _JumpTable_ptr_1_arr: .hibytes ActorInitFuncs
     d_byte Spider,   7
     d_byte Spike,    kSpikeRadius
     d_byte Toddler,  3
+    d_byte Vinebug,  5
     D_END
 .ENDPROC
 

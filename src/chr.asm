@@ -21,6 +21,7 @@
 .INCLUDE "actors/fireball.inc"
 .INCLUDE "actors/grenade.inc"
 .INCLUDE "actors/townsfolk.inc"
+.INCLUDE "actors/vinebug.inc"
 .INCLUDE "avatar.inc"
 
 ;;;=========================================================================;;;
@@ -305,7 +306,9 @@
     .incbin "out/data/tiles/crawler.chr"
     .incbin "out/data/tiles/spike.chr"
     .incbin "out/data/tiles/eye.chr"
-    .res $2d * kSizeofChr
+    .assert * - :- = (kTileIdVinebugFirst1 - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/vinebug.chr"
+    .res $25 * kSizeofChr
     .assert * - :- = (kGrenadeFirstTileId - $80) * kSizeofChr, error
     .incbin "out/data/tiles/grenade.chr"
     .res $1f * kSizeofChr

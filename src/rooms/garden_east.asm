@@ -197,7 +197,36 @@ _Actors_sActor_arr:
     d_byte TileCol_u8, 16
     d_byte Param_byte, kTileIdMermaidAdultFirst
     D_END
-    ;; TODO: vine bugs
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::Vinebug
+    d_byte TileRow_u8, 8
+    d_byte TileCol_u8, 31
+    d_byte Param_byte, 0
+    D_END
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::Vinebug
+    d_byte TileRow_u8, 12
+    d_byte TileCol_u8, 43
+    d_byte Param_byte, 0
+    D_END
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::Vinebug
+    d_byte TileRow_u8, 37
+    d_byte TileCol_u8, 21
+    d_byte Param_byte, 0
+    D_END
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::Crawler
+    d_byte TileRow_u8, 33
+    d_byte TileCol_u8, 56
+    d_byte Param_byte, 0
+    D_END
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::Crawler
+    d_byte TileRow_u8, 43
+    d_byte TileCol_u8, 26
+    d_byte Param_byte, 0
+    D_END
     .byte eActor::None
 _Devices_sDevice_arr:
     .assert kMermaidDeviceIndexRight = 0, error
@@ -443,10 +472,10 @@ _MermaidFirst_sDialog:
     .byte "Are you...a human?$"
     .byte "A real human girl?#"
     .word ePortrait::Woman
-    .byte "Humans aren't supposed$"
-    .byte "to be down here! I've$"
-    .byte "never even met one$"
-    .byte "before.#"
+    .byte "But...humans aren't$"
+    .byte "supposed to be down$"
+    .byte "here! I've never even$"
+    .byte "met one before.#"
 _MermaidLater_sDialog:
     .word ePortrait::Woman
     .byte "You should meet with$"
