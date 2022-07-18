@@ -35,6 +35,7 @@
 .IMPORT DataC_Garden_Crossroad_sRoom
 .IMPORT DataC_Garden_East_sRoom
 .IMPORT DataC_Garden_Landing_sRoom
+.IMPORT DataC_Garden_Shaft_sRoom
 .IMPORT DataC_Garden_Shrine_sRoom
 .IMPORT DataC_Garden_Tower_sRoom
 .IMPORT DataC_Garden_Tunnel_sRoom
@@ -99,6 +100,7 @@
     DataC_Garden_Crossroad_sRoom, \
     DataC_Garden_East_sRoom, \
     DataC_Garden_Landing_sRoom, \
+    DataC_Garden_Shaft_sRoom, \
     DataC_Garden_Shrine_sRoom, \
     DataC_Garden_Tower_sRoom, \
     DataC_Garden_Tunnel_sRoom, \

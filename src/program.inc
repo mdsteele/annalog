@@ -110,6 +110,8 @@
     GardenCrossroadLift
     GardenEastBridge
     GardenEastCannon
+    GardenShaftLowerBridge
+    GardenShaftUpperBridge
     MermaidUpperLift
     PrisonCellBarrier
     PrisonCellBlaster

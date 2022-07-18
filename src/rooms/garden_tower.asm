@@ -47,15 +47,15 @@
 ;;;=========================================================================;;;
 
 ;;; The actor index for grenades launched by the GardenBossCannon machine.
-kGrenadeActorIndex = 1
+kGrenadeActorIndex = 4
 
 ;;; The machine index for the GardenBossCannon machine.
 kCannonMachineIndex = 0
 ;;; The platform index for the GardenBossCannon machine.
 kCannonPlatformIndex = 0
 ;;; Initial position for grenades shot from the cannon.
-kCannonGrenadeInitPosX = $9c
-kCannonGrenadeInitPosY = $68
+kCannonGrenadeInitPosX = $58
+kCannonGrenadeInitPosY = $a8
 
 ;;;=========================================================================;;;
 
@@ -79,12 +79,12 @@ kCannonGrenadeInitPosY = $68
 .EXPORT DataC_Garden_Tower_sRoom
 .PROC DataC_Garden_Tower_sRoom
     D_STRUCT sRoom
-    d_byte MinScrollX_u8, $0
-    d_word MaxScrollX_u16, $0
+    d_byte MinScrollX_u8, $10
+    d_word MaxScrollX_u16, $110
     d_byte IsTall_bool, $ff
     d_byte MinimapStartRow_u8, 9
-    d_byte MinimapStartCol_u8, 6
-    d_byte MinimapWidth_u8, 1
+    d_byte MinimapStartCol_u8, 7
+    d_byte MinimapWidth_u8, 2
     d_addr TerrainData_ptr, _TerrainData
     d_byte NumMachines_u8, 1
     d_addr Machines_sMachine_arr_ptr, _Machines_sMachine_arr
@@ -108,7 +108,7 @@ _Ext_sRoomExt:
     D_END
 _TerrainData:
 :   .incbin "out/data/garden_tower.room"
-    .assert * - :- = 17 * 24, error
+    .assert * - :- = 34 * 24, error
 _Machines_sMachine_arr:
     .assert kCannonMachineIndex = 0, error
     D_STRUCT sMachine
@@ -116,8 +116,8 @@ _Machines_sMachine_arr:
     d_byte Conduit_eFlag, 0
     d_byte Flags_bMachine, bMachine::MoveV | bMachine::Act
     d_byte Status_eDiagram, eDiagram::Trolley  ; TODO
-    d_word ScrollGoalX_u16, $0
-    d_byte ScrollGoalY_u8, $0
+    d_word ScrollGoalX_u16, $10
+    d_byte ScrollGoalY_u8, $50
     d_byte RegNames_u8_arr4, "L", "R", 0, "Y"
     d_addr Init_func_ptr, Func_Noop
     d_addr ReadReg_func_ptr, _Cannon_ReadReg
@@ -141,43 +141,76 @@ _Platforms_sPlatform_arr:
 _Actors_sActor_arr:
     D_STRUCT sActor
     d_byte Type_eActor, eActor::Crawler
-    d_byte TileRow_u8, 37
+    d_byte TileRow_u8, 35
+    d_byte TileCol_u8, 22
+    d_byte Param_byte, 0
+    D_END
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::Crawler
+    d_byte TileRow_u8, 31
+    d_byte TileCol_u8, 34
+    d_byte Param_byte, 0
+    D_END
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::Crawler
+    d_byte TileRow_u8, 43
+    d_byte TileCol_u8, 23
+    d_byte Param_byte, 0
+    D_END
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::Vinebug
+    d_byte TileRow_u8, 33
     d_byte TileCol_u8, 11
     d_byte Param_byte, 0
     D_END
-    .assert kGrenadeActorIndex = 1, error
+    .assert kGrenadeActorIndex = 4, error
     .byte eActor::None
 _Devices_sDevice_arr:
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Lever
-    d_byte BlockRow_u8, 6
-    d_byte BlockCol_u8, 4
+    d_byte BlockRow_u8, 14
+    d_byte BlockCol_u8, 3
     d_byte Target_u8, sState::LeverLeft_u1
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Lever
-    d_byte BlockRow_u8, 6
-    d_byte BlockCol_u8, 8
+    d_byte BlockRow_u8, 14
+    d_byte BlockCol_u8, 7
     d_byte Target_u8, sState::LeverRight_u1
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Console
-    d_byte BlockRow_u8, 6
-    d_byte BlockCol_u8, 6
+    d_byte BlockRow_u8, 12
+    d_byte BlockCol_u8, 2
     d_byte Target_u8, kCannonMachineIndex
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::UnlockedDoor
     d_byte BlockRow_u8, 10
-    d_byte BlockCol_u8, 6
+    d_byte BlockCol_u8, 14
     d_byte Target_u8, eRoom::GardenBoss
     D_END
     .byte eDevice::None
 _Passages_sPassage_arr:
     D_STRUCT sPassage
+    d_byte Exit_bPassage, ePassage::Western | bPassage::SameScreen | 0
+    d_byte Destination_eRoom, eRoom::GardenShaft
+    d_byte SpawnBlock_u8, 5
+    D_END
+    D_STRUCT sPassage
+    d_byte Exit_bPassage, ePassage::Western | bPassage::SameScreen | 1
+    d_byte Destination_eRoom, eRoom::GardenShaft
+    d_byte SpawnBlock_u8, 17
+    D_END
+    D_STRUCT sPassage
+    d_byte Exit_bPassage, ePassage::Eastern | 0
+    d_byte Destination_eRoom, eRoom::GardenTunnel
+    d_byte SpawnBlock_u8, 3
+    D_END
+    D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Eastern | 1
-    d_byte Destination_eRoom, eRoom::GardenTower  ; TODO
-    d_byte SpawnBlock_u8, 21
+    d_byte Destination_eRoom, eRoom::MermaidEntry
+    d_byte SpawnBlock_u8, 19
     D_END
 _Cannon_ReadReg:
     cmp #$c

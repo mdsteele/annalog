@@ -94,8 +94,8 @@ kCannonGrenadeInitPosY = $0138
 ;;; pivots around.
 kBridgePivotPlatformIndex = 1
 ;;; Room pixel position for the top-left corner of the fixed bridge segment.
-kBridgePivotPosY = $0080
 kBridgePivotPosX = $0168
+kBridgePivotPosY = $0080
 
 ;;;=========================================================================;;;
 

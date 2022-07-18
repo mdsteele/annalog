@@ -23,6 +23,7 @@
 .INCLUDE "cannon.inc"
 
 .IMPORT FuncA_Objects_Alloc1x1Shape
+.IMPORT FuncA_Objects_Alloc2x1Shape
 .IMPORT FuncA_Objects_Alloc2x2Shape
 .IMPORT FuncA_Objects_GetMachineLightTileId
 .IMPORT FuncA_Objects_MoveShapeDownOneTile
@@ -123,26 +124,24 @@ _MainMachine:
     tax  ; param: platform index
     jsr FuncA_Objects_SetShapePosToPlatformTopLeft
     jsr FuncA_Objects_MoveShapeDownOneTile
-    ;; Allocate objects.
     pla  ; horz flip
+    beq @noFlip
+    pha  ; horz flip
+    jsr FuncA_Objects_MoveShapeRightOneTile
+    pla  ; horz flip
+    @noFlip:
     .assert kMachineLightPalette <> 0, error
     ora #kMachineLightPalette
     pha  ; param: object flags
-    jsr FuncA_Objects_Alloc2x2Shape  ; returns C and Y
+    jsr FuncA_Objects_Alloc2x1Shape  ; returns C and Y
     pla  ; object flags
     bcs _Done
     ora #bObj::FlipV
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Flags_bObj, y
-_SetLightTileId:
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Flags_bObj, y
     jsr FuncA_Objects_GetMachineLightTileId  ; preserves Y, returns A
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Tile_u8, y
-_SetCornerTileIds:
-    lda #kCannonTileIdCornerTop
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Tile_u8, y
-    lda #kTileIdBridgeSegment
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Tile_u8, y
     lda #kCannonTileIdCornerBase
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Tile_u8, y
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Tile_u8, y
 _Done:
     rts
 .ENDPROC
