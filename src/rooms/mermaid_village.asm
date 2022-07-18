@@ -83,7 +83,7 @@ _TerrainData:
     .assert * - :- = 50 * 24, error
 _Platforms_sPlatform_arr:
     ;; Water for upper-left passage:
-    D_STRUCT sPlatform
+:   D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Water
     d_word WidthPx_u16, $b0
     d_byte HeightPx_u8, $30
@@ -145,6 +145,7 @@ _Platforms_sPlatform_arr:
     d_word Left_i16,  $01a0
     d_word Top_i16,   $0148
     D_END
+    .assert * - :- <= kMaxPlatforms * .sizeof(sPlatform), error
     .byte ePlatform::None
 _Actors_sActor_arr:
     D_STRUCT sActor
@@ -167,7 +168,7 @@ _Actors_sActor_arr:
     D_END
     .byte eActor::None
 _Devices_sDevice_arr:
-    D_STRUCT sDevice
+:   D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::TalkRight
     d_byte BlockRow_u8, 8
     d_byte BlockCol_u8, 41
@@ -233,7 +234,7 @@ _Devices_sDevice_arr:
     d_byte BlockCol_u8, 41
     d_byte Target_u8, eRoom::MermaidHut5
     D_END
-    .assert * - _Devices_sDevice_arr <= kMaxDevices * .sizeof(sDevice), error
+    .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None
 _Passages_sPassage_arr:
     D_STRUCT sPassage

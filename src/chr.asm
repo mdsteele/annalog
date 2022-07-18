@@ -23,6 +23,7 @@
 .INCLUDE "actors/townsfolk.inc"
 .INCLUDE "actors/vinebug.inc"
 .INCLUDE "avatar.inc"
+.INCLUDE "machines/cannon.inc"
 
 ;;;=========================================================================;;;
 
@@ -274,6 +275,7 @@
     .assert * - :- = kSizeofChr * eAvatar::Standing, error
     .incbin "out/data/tiles/player_flower.chr"
     .incbin "out/data/tiles/machine.chr"
+    .res $06 * kSizeofChr
     .assert * - :- = kSizeofChr * $80, error
 .ENDPROC
 
@@ -287,6 +289,7 @@
     .assert * - :- = kSizeofChr * eAvatar::Standing, error
     .incbin "out/data/tiles/player_normal.chr"
     .incbin "out/data/tiles/machine.chr"
+    .res $06 * kSizeofChr
     .assert * - :- = kSizeofChr * $80, error
 .ENDPROC
 
@@ -308,7 +311,9 @@
     .incbin "out/data/tiles/eye.chr"
     .assert * - :- = (kTileIdVinebugFirst1 - $80) * kSizeofChr, error
     .incbin "out/data/tiles/vinebug.chr"
-    .res $25 * kSizeofChr
+    .assert * - :- = (kTileIdCannonFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/cannon.chr"
+    .res $1f * kSizeofChr
     .assert * - :- = (kGrenadeFirstTileId - $80) * kSizeofChr, error
     .incbin "out/data/tiles/grenade.chr"
     .res $1f * kSizeofChr

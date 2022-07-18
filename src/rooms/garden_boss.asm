@@ -280,9 +280,8 @@ _Cannon_ReadReg:
     @readY:
     lda Ram_RoomState + sState::CannonAngle_u8
     and #$80
-    beq @return
-    lda #1
-    @return:
+    asl a
+    rol a
     rts
     @readL:
     lda Ram_RoomState + sState::LeverLeft_u1

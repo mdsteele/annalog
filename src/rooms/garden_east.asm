@@ -35,6 +35,7 @@
 .IMPORT DataA_Pause_GardenAreaCells_u8_arr2_arr
 .IMPORT DataA_Pause_GardenAreaName_u8_arr
 .IMPORT DataA_Room_Garden_sTileset
+.IMPORT FuncA_Objects_DrawBridgeMachine
 .IMPORT FuncA_Objects_DrawCannonMachine
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
 .IMPORT Func_FindEmptyActorSlot
@@ -42,6 +43,8 @@
 .IMPORT Func_IsFlagSet
 .IMPORT Func_MachineError
 .IMPORT Func_MachineFinishResetting
+.IMPORT Func_MovePlatformLeftToward
+.IMPORT Func_MovePlatformTopToward
 .IMPORT Func_Noop
 .IMPORT Func_SetFlag
 .IMPORT Ppu_ChrObjGarden
@@ -51,7 +54,12 @@
 .IMPORT Ram_ActorPosY_i16_1_arr
 .IMPORT Ram_ActorType_eActor_arr
 .IMPORT Ram_DeviceType_eDevice_arr
+.IMPORT Ram_PlatformLeft_i16_0_arr
+.IMPORT Ram_PlatformLeft_i16_1_arr
+.IMPORT Ram_PlatformTop_i16_0_arr
+.IMPORT Ram_PlatformTop_i16_1_arr
 .IMPORT Ram_RoomState
+.IMPORTZP Zp_PlatformGoal_i16
 
 ;;;=========================================================================;;;
 
@@ -65,16 +73,29 @@ kMermaidDeviceIndexRight = 0
 
 ;;; The machine index for the GardenEastBridge machine.
 kBridgeMachineIndex = 0
+;;; The maximum permitted value for sState::BridgeAngle_u8.
+kBridgeMaxAngle = $10
 ;;; How many frames the bridge machine spends per move operation.
-kBridgeMoveCountdown = 16
+kBridgeMoveUpCountdown = kBridgeMaxAngle + $10
+kBridgeMoveDownCountdown = kBridgeMaxAngle / 2
 
 ;;; The machine index for the GardenEastCannon machine.
 kCannonMachineIndex = 1
 ;;; The platform index for the GardenEastCannon machine.
 kCannonPlatformIndex = 0
-;;; Initial position for grenades shot from the cannon.
+;;; Initial room pixel position for grenades shot from the cannon.
 kCannonGrenadeInitPosX = $00e8
 kCannonGrenadeInitPosY = $0138
+
+;;; The number of movable segments in the drawbridge (i.e. NOT including the
+;;; fixed segment).
+.DEFINE kNumMovableBridgeSegments 6
+;;; The platform index for the fixed bridge segment that the rest of the bridge
+;;; pivots around.
+kBridgePivotPlatformIndex = 1
+;;; Room pixel position for the top-left corner of the fixed bridge segment.
+kBridgePivotPosY = $0080
+kBridgePivotPosX = $0168
 
 ;;;=========================================================================;;;
 
@@ -83,6 +104,8 @@ kCannonGrenadeInitPosY = $0138
     ;; The current states of the room's two levers.
     LeverBridge_u1 .byte
     LeverCannon_u1 .byte
+    ;; The current angle of the bridge (from 0 to kBridgeMaxAngle, inclusive).
+    BridgeAngle_u8 .byte
     ;; The goal value of the GardenEastBridge machine's Y register.
     BridgeGoalY_u8 .byte
     ;; The current aim angle of the GardenEastCannon machine (0-255).
@@ -166,7 +189,7 @@ _Machines_sMachine_arr:
     d_addr Reset_func_ptr, FuncC_Garden_EastCannon_Reset
     D_END
 _Platforms_sPlatform_arr:
-    .assert kCannonPlatformIndex = 0, error
+:   .assert kCannonPlatformIndex = 0, error
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Solid
     d_word WidthPx_u16, kBlockWidthPx
@@ -174,6 +197,16 @@ _Platforms_sPlatform_arr:
     d_word Left_i16, kCannonGrenadeInitPosX - kTileWidthPx
     d_word Top_i16,  kCannonGrenadeInitPosY - kTileHeightPx
     D_END
+    .assert kBridgePivotPlatformIndex = 1, error
+    .repeat kNumMovableBridgeSegments + 1, index
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Solid
+    d_word WidthPx_u16, kTileWidthPx
+    d_byte HeightPx_u8, kTileHeightPx
+    d_word Left_i16, kBridgePivotPosX + kTileWidthPx * index
+    d_word Top_i16, kBridgePivotPosY
+    D_END
+    .endrepeat
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Water
     d_word WidthPx_u16, $70
@@ -188,6 +221,7 @@ _Platforms_sPlatform_arr:
     d_word Left_i16,  $0160
     d_word Top_i16,   $00c4
     D_END
+    .assert * - :- <= kMaxPlatforms * .sizeof(sPlatform), error
     .byte ePlatform::None
 _Actors_sActor_arr:
     .assert kMermaidActorIndex = 0, error
@@ -301,7 +335,10 @@ _Passages_sPassage_arr:
     cmp #$c
     beq @readL
     @readY:
-    lda #0  ; TODO
+    lda Ram_RoomState + sState::BridgeAngle_u8
+    cmp #kBridgeMaxAngle / 2  ; now carry bit is 1 if angle >= this
+    lda #0
+    rol a  ; shift in carry bit, now A is 0 or 1
     rts
     @readL:
     lda Ram_RoomState + sState::LeverBridge_u1
@@ -312,17 +349,17 @@ _Passages_sPassage_arr:
     cpx #eDir::Down
     beq @moveDown
     @moveUp:
-    ldy Ram_RoomState + sState::BridgeGoalY_u8
+    lda Ram_RoomState + sState::BridgeGoalY_u8
     bne @error
-    iny
-    bne @success  ; unconditional
+    inc Ram_RoomState + sState::BridgeGoalY_u8
+    lda #kBridgeMoveUpCountdown
+    clc  ; clear C to indicate success
+    rts
     @moveDown:
-    ldy Ram_RoomState + sState::BridgeGoalY_u8
+    lda Ram_RoomState + sState::BridgeGoalY_u8
     beq @error
-    dey
-    @success:
-    sty Ram_RoomState + sState::BridgeGoalY_u8
-    lda #kBridgeMoveCountdown
+    dec Ram_RoomState + sState::BridgeGoalY_u8
+    lda #kBridgeMoveDownCountdown
     clc  ; clear C to indicate success
     rts
     @error:
@@ -331,8 +368,63 @@ _Passages_sPassage_arr:
 .ENDPROC
 
 .PROC FuncC_Garden_EastBridge_Tick
-    ;; TODO
+    lda Ram_RoomState + sState::BridgeGoalY_u8
+    beq _MoveDown
+_MoveUp:
+    ldy Ram_RoomState + sState::BridgeAngle_u8
+    cpy #kBridgeMaxAngle
+    beq _Finished
+    iny
+    bne _SetAngle  ; unconditional
+_MoveDown:
+    ldy Ram_RoomState + sState::BridgeAngle_u8
+    beq _Finished
+    dey
+    dey
+    bpl @noUnderflow
+    ldy #0
+    @noUnderflow:
+_SetAngle:
+    sty Ram_RoomState + sState::BridgeAngle_u8
+    ;; Loop through each consequtive pair of bridge segments, starting with the
+    ;; fixed pivot segment and the first movable segment.
+    ldx #kBridgePivotPlatformIndex
+    @loop:
+    ;; Position the next segment vertically relative to the previous segment.
+    ldy Ram_RoomState + sState::BridgeAngle_u8
+    lda Ram_PlatformTop_i16_0_arr, x
+    sub _Delta_u8_arr, y
+    sta Zp_PlatformGoal_i16 + 0
+    lda Ram_PlatformTop_i16_1_arr, x
+    sbc #0
+    sta Zp_PlatformGoal_i16 + 1
+    inx
+    lda #127  ; param: max distance to move by
+    jsr Func_MovePlatformTopToward  ; preserves X
+    dex
+    ;; Position the next segment horizontally relative to the previous segment.
+    lda #kBridgeMaxAngle
+    sub Ram_RoomState + sState::BridgeAngle_u8
+    tay
+    lda Ram_PlatformLeft_i16_0_arr, x
+    add _Delta_u8_arr, y
+    sta Zp_PlatformGoal_i16 + 0
+    lda Ram_PlatformLeft_i16_1_arr, x
+    adc #0
+    sta Zp_PlatformGoal_i16 + 1
+    inx
+    lda #127  ; param: max distance to move by
+    jsr Func_MovePlatformLeftToward  ; preserves X
+    ;; Continue to the next pair of segments.
+    cpx #kBridgePivotPlatformIndex + kNumMovableBridgeSegments
+    blt @loop
     rts
+_Finished:
+    jmp Func_MachineFinishResetting
+_Delta_u8_arr:
+    ;; [int(round(8 * sin(x * pi/32))) for x in range(0, 17)]
+:   .byte 0, 1, 2, 2, 3, 4, 4, 5, 6, 6, 7, 7, 7, 8, 8, 8, 8
+    .assert * - :- = kBridgeMaxAngle + 1, error
 .ENDPROC
 
 .PROC FuncC_Garden_EastBridge_Reset
@@ -347,9 +439,8 @@ _Passages_sPassage_arr:
     @readY:
     lda Ram_RoomState + sState::CannonAngle_u8
     and #$80
-    beq @return
-    lda #1
-    @return:
+    asl a
+    rol a
     rts
     @readL:
     lda Ram_RoomState + sState::LeverCannon_u1
@@ -434,8 +525,10 @@ _Passages_sPassage_arr:
 ;;; Allocates and populates OAM slots for the GardenEastBridge machine.
 ;;; @prereq Zp_MachineIndex_u8 is initialized.
 .PROC FuncA_Objects_GardenEastBridge_Draw
-    ;; TODO
-    rts
+    ldy #kBridgePivotPlatformIndex  ; param: fixed segment platform index
+    ldx #kBridgePivotPlatformIndex + kNumMovableBridgeSegments  ; param: last
+    lda #0  ; param: horz flip
+    jmp FuncA_Objects_DrawBridgeMachine
 .ENDPROC
 
 ;;; Allocates and populates OAM slots for the GardenEastCannon machine.

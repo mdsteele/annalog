@@ -20,21 +20,29 @@
 .INCLUDE "../machine.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
+.INCLUDE "cannon.inc"
 
+.IMPORT FuncA_Objects_Alloc1x1Shape
 .IMPORT FuncA_Objects_Alloc2x2Shape
 .IMPORT FuncA_Objects_GetMachineLightTileId
 .IMPORT FuncA_Objects_MoveShapeDownOneTile
 .IMPORT FuncA_Objects_MoveShapeRightOneTile
+.IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
 .IMPORT Ram_Oam_sObj_arr64
+.IMPORTZP Zp_Tmp1_byte
 
 ;;;=========================================================================;;;
 
 ;;; Various OBJ tile IDs used for drawing cannon machines.
-kCannonTileIdCornerTop  = $7a
-kCannonTileIdCornerBase = $7b
-kCannonTileIdBarrelHigh = $7c
-kCannonTileIdBarrelMid  = $7d
-kCannonTileIdBarrelLow  = $7e
+kCannonTileIdCornerTop  = kTileIdCannonFirst + $00
+kCannonTileIdCornerBase = kTileIdCannonFirst + $01
+kCannonTileIdBarrelHigh = kTileIdCannonFirst + $02
+kCannonTileIdBarrelMid  = kTileIdCannonFirst + $03
+kCannonTileIdBarrelLow  = kTileIdCannonFirst + $04
+kTileIdBridgeSegment    = kTileIdCannonFirst + $05
+
+;;; The OBJ palette number used for moveable drawbridge segments.
+kBridgeSegmentPalette = 0
 
 ;;;=========================================================================;;;
 
@@ -80,6 +88,59 @@ _SetLightTileId:
 _SetCornerTileIds:
     lda #kCannonTileIdCornerTop
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Tile_u8, y
+    lda #kCannonTileIdCornerBase
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Tile_u8, y
+_Done:
+    rts
+.ENDPROC
+
+
+;;; Allocates and populates OAM slots for a drawbridge machine.
+;;; @prereq Zp_MachineIndex_u8 is initialized.
+;;; @param A The facing direction (either 0 or bObj::FlipH).
+;;; @param Y The platform index for the fixed pivot segment.
+;;; @param X The platform index for the last movable segment.
+.EXPORT FuncA_Objects_DrawBridgeMachine
+.PROC FuncA_Objects_DrawBridgeMachine
+    pha  ; horz flip
+    tya  ; pivot platform index
+_SegmentLoop:
+    pha  ; pivot platform index
+    jsr FuncA_Objects_SetShapePosToPlatformTopLeft  ; preserves X
+    jsr FuncA_Objects_Alloc1x1Shape ; preserves X, returns Y and C
+    bcs @continue
+    lda #kTileIdBridgeSegment
+    sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
+    lda #kBridgeSegmentPalette
+    sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
+    @continue:
+    pla  ; pivot platform index
+    sta Zp_Tmp1_byte  ; pivot platform index
+    dex
+    cpx Zp_Tmp1_byte  ; pivot platform index
+    bne _SegmentLoop
+_MainMachine:
+    tax  ; param: platform index
+    jsr FuncA_Objects_SetShapePosToPlatformTopLeft
+    jsr FuncA_Objects_MoveShapeDownOneTile
+    ;; Allocate objects.
+    pla  ; horz flip
+    .assert kMachineLightPalette <> 0, error
+    ora #kMachineLightPalette
+    pha  ; param: object flags
+    jsr FuncA_Objects_Alloc2x2Shape  ; returns C and Y
+    pla  ; object flags
+    bcs _Done
+    ora #bObj::FlipV
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Flags_bObj, y
+_SetLightTileId:
+    jsr FuncA_Objects_GetMachineLightTileId  ; preserves Y, returns A
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Tile_u8, y
+_SetCornerTileIds:
+    lda #kCannonTileIdCornerTop
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Tile_u8, y
+    lda #kTileIdBridgeSegment
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Tile_u8, y
     lda #kCannonTileIdCornerBase
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Tile_u8, y
 _Done:

@@ -17,6 +17,9 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
+;;; The first tile ID use for drawing cannon machines.
+kTileIdCannonFirst = $b8
+
 ;;; How many frames a cannon machine spends per move/act operation.
 kCannonMoveCountdown = $20
 kCannonActCountdown = $60
