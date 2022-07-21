@@ -285,9 +285,9 @@ OpcodeSkip3_u8_arr:      .byte "number of instructions.", $ff
 OpcodeWait1_u8_arr:      .byte "     WAIT OPCODE", $ff
 OpcodeWait2_u8_arr:      .byte "Pauses execution for a", $ff
 OpcodeWait3_u8_arr:      .byte "short time.", $ff
-OpcodeSwap1_u8_arr:      .byte "     SWAP OPCODE", $ff
-OpcodeSwap2_u8_arr:      .byte "Exchanges the values of", $ff
-OpcodeSwap3_u8_arr:      .byte "two registers.", $ff
+OpcodeSync1_u8_arr:      .byte "     SYNC OPCODE", $ff
+OpcodeSync2_u8_arr:      .byte "Pauses execution until", $ff
+OpcodeSync3_u8_arr:      .byte "all machines sync.", $ff
 OpcodeBeep1_u8_arr:      .byte "     BEEP OPCODE", $ff
 OpcodeBeep2_u8_arr:      .byte "Plays one of ten musical", $ff
 OpcodeBeep3_u8_arr:      .byte "tones.", $ff
@@ -406,10 +406,10 @@ _DescTable_ptr_arr:
     .addr DataA_Upgrade_Descriptions::OpcodeWait1_u8_arr
     .addr DataA_Upgrade_Descriptions::OpcodeWait2_u8_arr
     .addr DataA_Upgrade_Descriptions::OpcodeWait3_u8_arr
-    .assert * - _DescTable_ptr_arr = 6 * eFlag::UpgradeOpcodeSwap, error
-    .addr DataA_Upgrade_Descriptions::OpcodeSwap1_u8_arr
-    .addr DataA_Upgrade_Descriptions::OpcodeSwap2_u8_arr
-    .addr DataA_Upgrade_Descriptions::OpcodeSwap3_u8_arr
+    .assert * - _DescTable_ptr_arr = 6 * eFlag::UpgradeOpcodeSync, error
+    .addr DataA_Upgrade_Descriptions::OpcodeSync1_u8_arr
+    .addr DataA_Upgrade_Descriptions::OpcodeSync2_u8_arr
+    .addr DataA_Upgrade_Descriptions::OpcodeSync3_u8_arr
     .assert * - _DescTable_ptr_arr = 6 * eFlag::UpgradeOpcodeBeep, error
     .addr DataA_Upgrade_Descriptions::OpcodeBeep1_u8_arr
     .addr DataA_Upgrade_Descriptions::OpcodeBeep2_u8_arr

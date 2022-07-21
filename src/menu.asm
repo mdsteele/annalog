@@ -111,7 +111,7 @@ Ram_MenuCols_u8_arr: .res kMaxMenuItems
 
 ;;; +--------+
 ;;; |COPY ADD|
-;;; |SWAP SUB|
+;;; |SYNC SUB|
 ;;; |GOTO MUL|
 ;;; |SKIP IF |
 ;;; |MOVE TIL|
@@ -127,7 +127,7 @@ Ram_MenuCols_u8_arr: .res kMaxMenuItems
     D_ENUM eOpcode, 2
     d_addr Empty, _LabelEmpty
     d_addr Copy,  _LabelCopy
-    d_addr Swap,  _LabelSwap
+    d_addr Sync,  _LabelSync
     d_addr Add,   _LabelAdd
     d_addr Sub,   _LabelSub
     d_addr Mul,   _LabelMul
@@ -149,7 +149,7 @@ Ram_MenuCols_u8_arr: .res kMaxMenuItems
     D_END
 _LabelEmpty: .byte "delete"
 _LabelCopy:  .byte "COPY"
-_LabelSwap:  .byte "SWAP"
+_LabelSync:  .byte "SYNC"
 _LabelAdd:   .byte "ADD"
 _LabelSub:   .byte "SUB"
 _LabelMul:   .byte "MUL"
@@ -288,13 +288,13 @@ _SetRowsForMenuLeftColumn:
     stx Ram_MenuRows_u8_arr + eOpcode::Copy
     inx
     @noCopyOpcode:
-    ;; Check if the SWAP opcode is unlocked.
-    lda Sram_ProgressFlags_arr + (eFlag::UpgradeOpcodeSwap >> 3)
-    and #1 << (eFlag::UpgradeOpcodeSwap & $07)
-    beq @noSwapOpcode
-    stx Ram_MenuRows_u8_arr + eOpcode::Swap
+    ;; Check if the SYNC opcode is unlocked.
+    lda Sram_ProgressFlags_arr + (eFlag::UpgradeOpcodeSync >> 3)
+    and #1 << (eFlag::UpgradeOpcodeSync & $07)
+    beq @noSyncOpcode
+    stx Ram_MenuRows_u8_arr + eOpcode::Sync
     inx
-    @noSwapOpcode:
+    @noSyncOpcode:
     ;; Check if the GOTO opcode is unlocked.
     lda Sram_ProgressFlags_arr + (eFlag::UpgradeOpcodeGoto >> 3)
     and #1 << (eFlag::UpgradeOpcodeGoto & $07)
@@ -381,7 +381,7 @@ _Columns_u8_arr:
     D_ENUM eOpcode
     d_byte Empty, 0
     d_byte Copy,  0
-    d_byte Swap,  0
+    d_byte Sync,  0
     d_byte Add,   5
     d_byte Sub,   5
     d_byte Mul,   5

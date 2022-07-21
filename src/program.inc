@@ -26,7 +26,7 @@
 .ENUM eOpcode
     Empty = $0  ; (no args)        Jumps to program start (in zero cycles).
     Copy  = $1  ; r, r/i           Sets register to value of second arg.
-    Swap  = $2  ; r, r             Swaps values of two registers.
+    Sync  = $2  ; (no args)        Pauses until all machines are at a SYNC
     Add   = $3  ; r, r/i, r/i      Sets register to sum of other args.
     Sub   = $4  ; r, r/i, r/i      Sets register to difference of other args.
     Mul   = $5  ; r, r/i, r/i      Sets register to product of other args.

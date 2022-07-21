@@ -51,7 +51,7 @@ kSaveMagicNumber = $b2
     UpgradeOpcodeGoto
     UpgradeOpcodeSkip
     UpgradeOpcodeWait
-    UpgradeOpcodeSwap
+    UpgradeOpcodeSync
     UpgradeOpcodeBeep
     ;; Each of these flags is set when that boss has been defeated:
     BossGarden

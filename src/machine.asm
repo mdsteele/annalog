@@ -37,9 +37,13 @@
 
 .LINECONT +
 .DEFINE OpcodeLabels \
-    _OpEmpty, _OpCopy, _OpSwap, _OpAdd, _OpSub, _OpMul, _OpGoto, _OpSkip, \
+    _OpEmpty, _OpCopy, _OpSync, _OpAdd, _OpSub, _OpMul, _OpGoto, _OpSkip, \
     _OpIf, _OpTil, _OpAct, _OpMove, _OpWait, _OpBeep, _OpEnd, _OpNop
 .LINECONT -
+
+;;; Special value for Ram_MachineWait_u8_arr that indicates that the machine is
+;;; blocked on a SYNC instruction.
+kMachineWaitForSync = $ff
 
 ;;; OBJ tile IDs used for drawing machine status lights.
 kMachineLightTileIdOff = $70
@@ -98,7 +102,8 @@ Ram_MachinePc_u8_arr: .res kMaxMachines
 .EXPORT Ram_MachineRegA_u8_arr
 Ram_MachineRegA_u8_arr: .res kMaxMachines
 
-;;; How many more frames until each machine is done moving/acting.
+;;; How many more frames until each machine is done moving/acting, or
+;;; kMachineWaitForSync if the machine is blocked on a SYNC instruction.
 .EXPORT Ram_MachineWait_u8_arr
 Ram_MachineWait_u8_arr: .res kMaxMachines
 
@@ -437,8 +442,11 @@ _Le:
     ;; Decrement the wait timer if necessary.
     lda Ram_MachineWait_u8_arr, x
     beq @doneTimer
+    cmp #kMachineWaitForSync
+    beq @stillWaiting
     dec Ram_MachineWait_u8_arr, x
     beq @incrementPc
+    @stillWaiting:
     rts
     @incrementPc:
     jsr _IncrementPc
@@ -605,8 +613,10 @@ _OpEnd:
     sta Ram_MachineStatus_eMachine_arr, x
 _OpEmpty:
     rts
-_OpSwap:
-    ;; TODO: Implement executing SWAP instruction.
+_OpSync:
+    lda #kMachineWaitForSync
+    sta Ram_MachineWait_u8_arr, x
+    rts
 _OpNop:
 _IncrementPc:
     ldx #1
@@ -660,8 +670,12 @@ _IncrementPcByX:
 ;;; in the room.
 .EXPORT FuncA_Machine_ExecuteAll
 .PROC FuncA_Machine_ExecuteAll
+    ;; If there are no machines in this room, then we're done.
+    lda <(Zp_Current_sRoom + sRoom::NumMachines_u8)
+    beq _Return
+_Execute:
+    ;; Give each machine in the room a chance to execute.
     ldx #0
-    beq @while  ; unconditional
     @loop:
     jsr Func_SetMachineIndex
     jsr Func_GetMachineProgram
@@ -669,9 +683,30 @@ _IncrementPcByX:
     jsr FuncA_Machine_Tick
     ldx Zp_MachineIndex_u8
     inx
-    @while:
     cpx <(Zp_Current_sRoom + sRoom::NumMachines_u8)
     blt @loop
+_CheckForSync:
+    ;; Check if all machines in the room are blocked on a SYNC instruction.  If
+    ;; at least one isn't, then we're done.
+    ldx #0
+    @loop:
+    lda Ram_MachineWait_u8_arr, x
+    cmp #kMachineWaitForSync
+    bne _Return
+    inx
+    cpx <(Zp_Current_sRoom + sRoom::NumMachines_u8)
+    blt @loop
+_UnblockSync:
+    ;; At this point, all machines in the room have reached a SYNC instruction,
+    ;; so allow them all to continue executing next frame.
+    lda #1
+    ldx #0
+    @loop:
+    sta Ram_MachineWait_u8_arr, x
+    inx
+    cpx <(Zp_Current_sRoom + sRoom::NumMachines_u8)
+    blt @loop
+_Return:
     rts
 .ENDPROC
 

@@ -35,7 +35,7 @@
 
 .LINECONT +
 .DEFINE OpcodeLabels \
-    _OpEmpty, _OpCopy, _OpSwap, _OpAdd, _OpSub, _OpMul, _OpGoto, _OpSkip, \
+    _OpEmpty, _OpCopy, _OpSync, _OpAdd, _OpSub, _OpMul, _OpGoto, _OpSkip, \
     _OpIf, _OpTil, _OpAct, _OpMove, _OpWait, _OpBeep, _OpEnd, _OpNop
 .LINECONT -
 
@@ -62,7 +62,7 @@ _NumFields_u8_arr:
     D_ENUM eOpcode
     d_byte Empty, 1
     d_byte Copy,  3
-    d_byte Swap,  3
+    d_byte Sync,  1
     d_byte Add,   5
     d_byte Sub,   5
     d_byte Mul,   5
@@ -99,8 +99,6 @@ _OpEmpty:
     .byte 5
 _OpCopy:
     .byte 0, 0, 0
-_OpSwap:
-    .byte 0, 1, 0
 _OpAdd:
 _OpSub:
 _OpMul:
@@ -118,6 +116,7 @@ _OpAct:
 _OpEnd:
 _OpNop:
     .byte 2
+_OpSync:
 _OpWait:
     .byte 3
 .ENDPROC
@@ -139,6 +138,7 @@ _OpcodeTable_u8_arr:
     OPCODE_TABLE _OffsetTable_u8_arr
 _OffsetTable_u8_arr:
 _OpEmpty:
+_OpSync:
 _OpAct:
 _OpWait:
 _OpEnd:
@@ -146,8 +146,6 @@ _OpNop:
     .byte 0
 _OpCopy:
     .byte 0, 1, 2
-_OpSwap:
-    .byte 0, 1, 3
 _OpAdd:
 _OpSub:
 _OpMul:
@@ -181,6 +179,7 @@ _OpcodeTable_u8_arr:
     OPCODE_TABLE _FieldTable_u8_arr
 _FieldTable_u8_arr:
 _OpEmpty:
+_OpSync:
 _OpAct:
 _OpWait:
 _OpEnd:
@@ -188,8 +187,6 @@ _OpNop:
     .byte 0, 0, 0, 0, 0, 0, 0
 _OpCopy:
     .byte 0, 1, 2, 2, 2, 2, 2
-_OpSwap:
-    .byte 0, 1, 1, 2, 2, 2, 2
 _OpAdd:
 _OpSub:
 _OpMul:
@@ -221,6 +218,7 @@ _OpcodeTable_u8_arr:
     OPCODE_TABLE _TypeTable_u8_arr
 _TypeTable_u8_arr:
 _OpEmpty:
+_OpSync:
 _OpAct:
 _OpWait:
 _OpEnd:
@@ -228,8 +226,6 @@ _OpNop:
     .byte eField::Opcode
 _OpCopy:
     .byte eField::LValue, eField::Opcode, eField::RValue
-_OpSwap:
-    .byte eField::LValue, eField::Opcode, eField::LValue
 _OpAdd:
 _OpSub:
 _OpMul:
@@ -264,13 +260,13 @@ _OpcodeTable_u8_arr:
     OPCODE_TABLE _SlotTable_u8_arr
 _SlotTable_u8_arr:
 _OpEmpty:
+_OpSync:
 _OpAct:
 _OpWait:
 _OpEnd:
 _OpNop:
     .byte 0
 _OpCopy:
-_OpSwap:
     .byte 1, 0, 2
 _OpAdd:
 _OpSub:
@@ -373,6 +369,7 @@ _SetOpcode:
 _JumpTable_ptr_0_arr: .lobytes OpcodeLabels
 _JumpTable_ptr_1_arr: .hibytes OpcodeLabels
 _OpEmpty:
+_OpSync:
 _OpGoto:
 _OpAct:
 _OpWait:
@@ -383,11 +380,8 @@ _OpNop:
     sta Ram_Console_sProgram + sProgram::Code_sInst_arr + sInst::Op_byte, x
     jmp _ZeroArgByteAndFieldNumber
 _OpCopy:
-    ;; If coming from SWAP, leave both args the same.
-    lda Zp_Tmp1_byte  ; old opcode
-    cmp #eOpcode::Swap
-    beq _UpdateOpcodeOnly
     ;; If coming from ADD/SUB/MUL, just remove third arg.
+    lda Zp_Tmp1_byte  ; old opcode
     cmp #eOpcode::Add
     beq @clearThirdArg
     cmp #eOpcode::Sub
@@ -407,18 +401,6 @@ _OpCopy:
     and #$0f
     sta Ram_Console_sProgram + sProgram::Code_sInst_arr + sInst::Arg_byte, x
     jsr _UpdateOpcodeOnly
-    lda #1
-    bne _SetFieldNumber  ; unconditional
-_OpSwap:
-    ;; TODO: If coming from COPY, keep args if possible, otherwise copy first
-    ;;   arg to second.
-    ;; TODO: If coming from ADD/SUB/MUL, do the same (but first remove third
-    ;;   arg).
-    ;; Otherwise, initialize args to A <-> A.
-    lda #eOpcode::Swap * $10 + $0a
-    sta Ram_Console_sProgram + sProgram::Code_sInst_arr + sInst::Op_byte, x
-    lda #$0a
-    sta Ram_Console_sProgram + sProgram::Code_sInst_arr + sInst::Arg_byte, x
     lda #1
     bne _SetFieldNumber  ; unconditional
 _UpdateOpcodeOnly:
@@ -441,10 +423,8 @@ _OpMul:
     beq _UpdateOpcodeOnly
     cmp #eOpcode::Mul
     beq _UpdateOpcodeOnly
-    ;; If coming from COPY/SWAP, keep first two args, and initialize third arg.
+    ;; If coming from COPY, keep first two args, and initialize third arg.
     cmp #eOpcode::Copy
-    beq @setThirdArg
-    cmp #eOpcode::Swap
     beq @setThirdArg
     ;; Otherwise, initialize args to A <- A op 1.
     tya  ; new opcode

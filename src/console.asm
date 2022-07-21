@@ -78,7 +78,7 @@
 
 .LINECONT +
 .DEFINE OpcodeLabels \
-    _OpEmpty, _OpCopy, _OpSwap, _OpAdd, _OpSub, _OpMul, _OpGoto, _OpSkip, \
+    _OpEmpty, _OpCopy, _OpSync, _OpAdd, _OpSub, _OpMul, _OpGoto, _OpSkip, \
     _OpIf, _OpTil, _OpAct, _OpMove, _OpWait, _OpBeep, _OpEnd, _OpNop
 .LINECONT -
 
@@ -902,16 +902,11 @@ _OpCopy:
     lda Zp_Tmp2_byte  ; Arg_byte
     jsr _WriteLowRegisterOrImmediate
     jmp _Write4Spaces
-_OpSwap:
-    lda Zp_Tmp1_byte  ; Op_byte
-    jsr _WriteLowRegisterOrImmediate
-    jsr _WriteArrowLeft
-    lda #kTileIdArrowRight
-    sta Ram_PpuTransfer_arr, x
-    inx
-    lda Zp_Tmp2_byte  ; Arg_byte
-    jsr _WriteLowRegisterOrImmediate
-    jmp _Write3Spaces
+_OpSync:
+    ldya #@string
+    jsr _WriteString5
+    jmp _Write2Spaces
+    @string: .byte "SYNC "
 _OpAdd:
     lda #'+'
     jmp _WriteBinop
