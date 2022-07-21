@@ -38,25 +38,23 @@
 .IMPORT DataA_Room_Garden_sTileset
 .IMPORT FuncA_Machine_BridgeTick
 .IMPORT FuncA_Machine_BridgeTryMove
+.IMPORT FuncA_Machine_CannonTick
+.IMPORT FuncA_Machine_CannonTryAct
+.IMPORT FuncA_Machine_CannonTryMove
 .IMPORT FuncA_Objects_DrawBridgeMachine
 .IMPORT FuncA_Objects_DrawCannonMachine
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
-.IMPORT Func_FindEmptyActorSlot
-.IMPORT Func_InitGrenadeActor
 .IMPORT Func_IsFlagSet
 .IMPORT Func_MachineBridgeReadRegY
+.IMPORT Func_MachineCannonReadRegY
 .IMPORT Func_MachineError
-.IMPORT Func_MachineFinishResetting
 .IMPORT Func_Noop
 .IMPORT Func_SetFlag
 .IMPORT Ppu_ChrObjGarden
-.IMPORT Ram_ActorPosX_i16_0_arr
-.IMPORT Ram_ActorPosX_i16_1_arr
-.IMPORT Ram_ActorPosY_i16_0_arr
-.IMPORT Ram_ActorPosY_i16_1_arr
 .IMPORT Ram_ActorType_eActor_arr
 .IMPORT Ram_DeviceType_eDevice_arr
 .IMPORT Ram_MachineGoalVert_u8_arr
+.IMPORT Ram_MachineParam1_u8_arr
 .IMPORT Ram_RoomState
 
 ;;;=========================================================================;;;
@@ -76,9 +74,6 @@ kBridgeMachineIndex = 0
 kCannonMachineIndex = 1
 ;;; The platform index for the GardenEastCannon machine.
 kCannonPlatformIndex = 0
-;;; Initial room pixel position for grenades shot from the cannon.
-kCannonGrenadeInitPosX = $00e8
-kCannonGrenadeInitPosY = $0138
 
 ;;; The number of movable segments in the drawbridge (i.e. NOT including the
 ;;; fixed segment).
@@ -97,10 +92,6 @@ kBridgePivotPosY = $0080
     ;; The current states of the room's two levers.
     LeverBridge_u1 .byte
     LeverCannon_u1 .byte
-    ;; The current aim angle of the GardenEastCannon machine (0-255).
-    CannonAngle_u8 .byte
-    ;; The goal value of the GardenEastCannon machine's Y register.
-    CannonGoalY_u8 .byte
 .ENDSTRUCT
 
 ;;;=========================================================================;;;
@@ -171,9 +162,9 @@ _Machines_sMachine_arr:
     d_addr Init_func_ptr, Func_Noop
     d_addr ReadReg_func_ptr, FuncC_Garden_EastCannon_ReadReg
     d_addr WriteReg_func_ptr, Func_MachineError
-    d_addr TryMove_func_ptr, FuncC_Garden_EastCannon_TryMove
+    d_addr TryMove_func_ptr, FuncA_Machine_CannonTryMove
     d_addr TryAct_func_ptr, FuncC_Garden_EastCannon_TryAct
-    d_addr Tick_func_ptr, FuncC_Garden_EastCannon_Tick
+    d_addr Tick_func_ptr, FuncA_Machine_CannonTick
     d_addr Draw_func_ptr, FuncA_Objects_GardenEastCannon_Draw
     d_addr Reset_func_ptr, FuncC_Garden_EastCannon_Reset
     D_END
@@ -183,8 +174,8 @@ _Platforms_sPlatform_arr:
     d_byte Type_ePlatform, ePlatform::Solid
     d_word WidthPx_u16, kBlockWidthPx
     d_byte HeightPx_u8, kBlockHeightPx
-    d_word Left_i16, kCannonGrenadeInitPosX - kTileWidthPx
-    d_word Top_i16,  kCannonGrenadeInitPosY - kTileHeightPx
+    d_word Left_i16, $00e0
+    d_word Top_i16,  $0130
     D_END
     .assert kBridgePivotPlatformIndex = 1, error
     .repeat kNumMovableBridgeSegments + 1, index
@@ -346,84 +337,20 @@ _Passages_sPassage_arr:
     cmp #$c
     beq @readL
     @readY:
-    lda Ram_RoomState + sState::CannonAngle_u8
-    and #$80
-    asl a
-    rol a
-    rts
+    jmp Func_MachineCannonReadRegY
     @readL:
     lda Ram_RoomState + sState::LeverCannon_u1
     rts
 .ENDPROC
 
-.PROC FuncC_Garden_EastCannon_TryMove
-    cpx #eDir::Down
-    beq @moveDown
-    @moveUp:
-    ldy Ram_RoomState + sState::CannonGoalY_u8
-    bne @error
-    iny
-    bne @success  ; unconditional
-    @moveDown:
-    ldy Ram_RoomState + sState::CannonGoalY_u8
-    beq @error
-    dey
-    @success:
-    sty Ram_RoomState + sState::CannonGoalY_u8
-    lda #kCannonMoveCountdown
-    clc  ; clear C to indicate success
-    rts
-    @error:
-    sec  ; set C to indicate failure
-    rts
-.ENDPROC
-
 .PROC FuncC_Garden_EastCannon_TryAct
-    jsr Func_FindEmptyActorSlot  ; sets C on failure, returns X
-    bcs @doneGrenade
-    lda #<kCannonGrenadeInitPosX
-    sta Ram_ActorPosX_i16_0_arr, x
-    .assert <kCannonGrenadeInitPosY <> <kCannonGrenadeInitPosX, error
-    lda #<kCannonGrenadeInitPosY
-    sta Ram_ActorPosY_i16_0_arr, x
-    lda #>kCannonGrenadeInitPosX
-    sta Ram_ActorPosX_i16_1_arr, x
-    .assert >kCannonGrenadeInitPosY <> >kCannonGrenadeInitPosX, error
-    lda #>kCannonGrenadeInitPosY
-    sta Ram_ActorPosY_i16_1_arr, x
-    lda Ram_RoomState + sState::CannonGoalY_u8
-    ora #$02  ; param: aim angle (2-3)
-    jsr Func_InitGrenadeActor
-    @doneGrenade:
-    lda #kCannonActCountdown
-    clc  ; clear C to indicate success
-    rts
-.ENDPROC
-
-.PROC FuncC_Garden_EastCannon_Tick
-    lda Ram_RoomState + sState::CannonGoalY_u8
-    beq @moveDown
-    @moveUp:
-    lda Ram_RoomState + sState::CannonAngle_u8
-    add #$100 / kCannonMoveCountdown
-    bcc @setAngle
-    jsr Func_MachineFinishResetting
-    lda #$ff
-    bne @setAngle  ; unconditional
-    @moveDown:
-    lda Ram_RoomState + sState::CannonAngle_u8
-    sub #$100 / kCannonMoveCountdown
-    bge @setAngle
-    jsr Func_MachineFinishResetting
-    lda #0
-    @setAngle:
-    sta Ram_RoomState + sState::CannonAngle_u8
-    rts
+    ldy #kCannonPlatformIndex  ; param: platform index
+    jmp FuncA_Machine_CannonTryAct
 .ENDPROC
 
 .PROC FuncC_Garden_EastCannon_Reset
     lda #0
-    sta Ram_RoomState + sState::CannonGoalY_u8
+    sta Ram_MachineGoalVert_u8_arr + kCannonMachineIndex
     rts
 .ENDPROC
 
@@ -444,7 +371,7 @@ _Passages_sPassage_arr:
 .PROC FuncA_Objects_GardenEastCannon_Draw
     ldx #kCannonPlatformIndex  ; param: platform index
     jsr FuncA_Objects_SetShapePosToPlatformTopLeft
-    ldx Ram_RoomState + sState::CannonAngle_u8  ; param: aim angle
+    ldx Ram_MachineParam1_u8_arr + kCannonMachineIndex  ; param: aim angle
     jmp FuncA_Objects_DrawCannonMachine
 .ENDPROC
 

@@ -31,23 +31,20 @@
 .IMPORT DataA_Pause_GardenAreaCells_u8_arr2_arr
 .IMPORT DataA_Pause_GardenAreaName_u8_arr
 .IMPORT DataA_Room_Garden_sTileset
+.IMPORT FuncA_Machine_CannonTick
+.IMPORT FuncA_Machine_CannonTryAct
+.IMPORT FuncA_Machine_CannonTryMove
 .IMPORT FuncA_Objects_DrawCannonMachine
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
-.IMPORT Func_InitGrenadeActor
+.IMPORT Func_MachineCannonReadRegY
 .IMPORT Func_MachineError
-.IMPORT Func_MachineFinishResetting
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrObjGarden
-.IMPORT Ram_ActorPosX_i16_0_arr
-.IMPORT Ram_ActorPosX_i16_1_arr
-.IMPORT Ram_ActorPosY_i16_0_arr
-.IMPORT Ram_ActorPosY_i16_1_arr
+.IMPORT Ram_MachineGoalVert_u8_arr
+.IMPORT Ram_MachineParam1_u8_arr
 .IMPORT Ram_RoomState
 
 ;;;=========================================================================;;;
-
-;;; The actor index for grenades launched by the GardenBossCannon machine.
-kGrenadeActorIndex = 4
 
 ;;; The machine index for the GardenBossCannon machine.
 kCannonMachineIndex = 0
@@ -120,13 +117,13 @@ _Machines_sMachine_arr:
     d_byte ScrollGoalY_u8, $50
     d_byte RegNames_u8_arr4, "L", "R", 0, "Y"
     d_addr Init_func_ptr, Func_Noop
-    d_addr ReadReg_func_ptr, _Cannon_ReadReg
+    d_addr ReadReg_func_ptr, FuncC_Garden_TowerCannon_ReadReg
     d_addr WriteReg_func_ptr, Func_MachineError
-    d_addr TryMove_func_ptr, _Cannon_TryMove
-    d_addr TryAct_func_ptr, _Cannon_TryAct
-    d_addr Tick_func_ptr, _Cannon_Tick
+    d_addr TryMove_func_ptr, FuncA_Machine_CannonTryMove
+    d_addr TryAct_func_ptr, FuncC_Garden_TowerCannon_TryAct
+    d_addr Tick_func_ptr, FuncA_Machine_CannonTick
     d_addr Draw_func_ptr, FuncA_Objects_GardenTowerCannon_Draw
-    d_addr Reset_func_ptr, _Cannon_Reset
+    d_addr Reset_func_ptr, FuncC_Garden_TowerCannon_Reset
     D_END
 _Platforms_sPlatform_arr:
     .assert kCannonPlatformIndex = 0, error
@@ -163,7 +160,6 @@ _Actors_sActor_arr:
     d_byte TileCol_u8, 11
     d_byte Param_byte, 0
     D_END
-    .assert kGrenadeActorIndex = 4, error
     .byte eActor::None
 _Devices_sDevice_arr:
     D_STRUCT sDevice
@@ -212,81 +208,6 @@ _Passages_sPassage_arr:
     d_byte Destination_eRoom, eRoom::MermaidEntry
     d_byte SpawnBlock_u8, 19
     D_END
-_Cannon_ReadReg:
-    cmp #$c
-    beq @readL
-    cmp #$d
-    beq @readR
-    @readY:
-    lda Ram_RoomState + sState::CannonAngle_u8
-    and #$80
-    asl a
-    rol a
-    rts
-    @readL:
-    lda Ram_RoomState + sState::LeverLeft_u1
-    rts
-    @readR:
-    lda Ram_RoomState + sState::LeverRight_u1
-    rts
-_Cannon_TryMove:
-    cpx #eDir::Down
-    beq @moveDown
-    @moveUp:
-    ldy Ram_RoomState + sState::CannonGoalY_u8
-    bne @error
-    iny
-    bne @success  ; unconditional
-    @moveDown:
-    ldy Ram_RoomState + sState::CannonGoalY_u8
-    beq @error
-    dey
-    @success:
-    sty Ram_RoomState + sState::CannonGoalY_u8
-    lda #kCannonMoveCountdown
-    clc  ; clear C to indicate success
-    rts
-    @error:
-    sec  ; set C to indicate failure
-    rts
-_Cannon_TryAct:
-    lda #kCannonGrenadeInitPosX
-    sta Ram_ActorPosX_i16_0_arr + kGrenadeActorIndex
-    lda #kCannonGrenadeInitPosY
-    sta Ram_ActorPosY_i16_0_arr + kGrenadeActorIndex
-    lda #0
-    sta Ram_ActorPosX_i16_1_arr + kGrenadeActorIndex
-    sta Ram_ActorPosY_i16_1_arr + kGrenadeActorIndex
-    ldx #kGrenadeActorIndex  ; param: actor index
-    lda Ram_RoomState + sState::CannonGoalY_u8  ; param: aim angle (0-1)
-    jsr Func_InitGrenadeActor
-    lda #kCannonActCountdown
-    clc  ; clear C to indicate success
-    rts
-_Cannon_Tick:
-    lda Ram_RoomState + sState::CannonGoalY_u8
-    beq @moveDown
-    @moveUp:
-    lda Ram_RoomState + sState::CannonAngle_u8
-    add #$100 / kCannonMoveCountdown
-    bcc @setAngle
-    jsr Func_MachineFinishResetting
-    lda #$ff
-    bne @setAngle  ; unconditional
-    @moveDown:
-    lda Ram_RoomState + sState::CannonAngle_u8
-    sub #$100 / kCannonMoveCountdown
-    bge @setAngle
-    jsr Func_MachineFinishResetting
-    lda #0
-    @setAngle:
-    sta Ram_RoomState + sState::CannonAngle_u8
-    rts
-_Cannon_Reset:
-    lda #0
-    sta Ram_RoomState + sState::CannonGoalY_u8
-    ;; TODO: reset target practice
-    rts
 .ENDPROC
 
 ;;; Room init function for the GardenTower room.
@@ -298,6 +219,33 @@ _Cannon_Reset:
 ;;; Room tick function for the GardenTower room.
 .PROC FuncC_Garden_Tower_TickRoom
     ;; TODO: Tick target practice.
+    rts
+.ENDPROC
+
+.PROC FuncC_Garden_TowerCannon_ReadReg
+    cmp #$c
+    beq @readL
+    cmp #$d
+    beq @readR
+    @readY:
+    jmp Func_MachineCannonReadRegY
+    @readL:
+    lda Ram_RoomState + sState::LeverLeft_u1
+    rts
+    @readR:
+    lda Ram_RoomState + sState::LeverRight_u1
+    rts
+.ENDPROC
+
+.PROC FuncC_Garden_TowerCannon_TryAct
+    ldy #kCannonPlatformIndex  ; param: platform index
+    jmp FuncA_Machine_CannonTryAct
+.ENDPROC
+
+.PROC FuncC_Garden_TowerCannon_Reset
+    lda #0
+    sta Ram_MachineGoalVert_u8_arr + kCannonMachineIndex
+    ;; TODO: reset target practice
     rts
 .ENDPROC
 
@@ -316,7 +264,7 @@ _Cannon_Reset:
 .PROC FuncA_Objects_GardenTowerCannon_Draw
     ldx #kCannonPlatformIndex  ; param: platform index
     jsr FuncA_Objects_SetShapePosToPlatformTopLeft
-    ldx Ram_RoomState + sState::CannonAngle_u8  ; param: aim angle
+    ldx Ram_MachineParam1_u8_arr + kCannonMachineIndex  ; param: aim angle
     jmp FuncA_Objects_DrawCannonMachine
 .ENDPROC
 

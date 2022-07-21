@@ -61,7 +61,7 @@ kBridgeSegmentPalette = 0
 
 ;;; Reads the "Y" register for a bridge machine.
 ;;; @prereq Zp_MachineIndex_u8 is initialized.
-;;; @return A The value of the "Y" register (0-1).
+;;; @return A The value of the machine's "Y" register (0-1).
 .EXPORT Func_MachineBridgeReadRegY
 .PROC Func_MachineBridgeReadRegY
     ldy Zp_MachineIndex_u8

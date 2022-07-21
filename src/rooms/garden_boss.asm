@@ -33,6 +33,8 @@
 .IMPORT DataA_Pause_GardenAreaCells_u8_arr2_arr
 .IMPORT DataA_Pause_GardenAreaName_u8_arr
 .IMPORT DataA_Room_Garden_sTileset
+.IMPORT FuncA_Machine_CannonTick
+.IMPORT FuncA_Machine_CannonTryMove
 .IMPORT FuncA_Objects_DrawCannonMachine
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
 .IMPORT Func_FindEmptyActorSlot
@@ -42,8 +44,8 @@
 .IMPORT Func_InitSmokeActor
 .IMPORT Func_InitSpikeActor
 .IMPORT Func_LockDoorDevice
+.IMPORT Func_MachineCannonReadRegY
 .IMPORT Func_MachineError
-.IMPORT Func_MachineFinishResetting
 .IMPORT Func_MarkRoomSafe
 .IMPORT Func_Noop
 .IMPORT Func_UnlockDoorDevice
@@ -55,6 +57,8 @@
 .IMPORT Ram_ActorType_eActor_arr
 .IMPORT Ram_DeviceAnim_u8_arr
 .IMPORT Ram_DeviceType_eDevice_arr
+.IMPORT Ram_MachineGoalVert_u8_arr
+.IMPORT Ram_MachineParam1_u8_arr
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORT Ram_RoomState
 .IMPORT Sram_ProgressFlags_arr
@@ -220,9 +224,9 @@ _Machines_sMachine_arr:
     d_addr Init_func_ptr, Func_Noop
     d_addr ReadReg_func_ptr, _Cannon_ReadReg
     d_addr WriteReg_func_ptr, Func_MachineError
-    d_addr TryMove_func_ptr, _Cannon_TryMove
+    d_addr TryMove_func_ptr, FuncA_Machine_CannonTryMove
     d_addr TryAct_func_ptr, _Cannon_TryAct
-    d_addr Tick_func_ptr, _Cannon_Tick
+    d_addr Tick_func_ptr, FuncA_Machine_CannonTick
     d_addr Draw_func_ptr, FuncA_Objects_GardenBossCannon_Draw
     d_addr Reset_func_ptr, _Cannon_Reset
     D_END
@@ -278,38 +282,16 @@ _Cannon_ReadReg:
     cmp #$d
     beq @readR
     @readY:
-    lda Ram_RoomState + sState::CannonAngle_u8
-    and #$80
-    asl a
-    rol a
-    rts
+    jmp Func_MachineCannonReadRegY
     @readL:
     lda Ram_RoomState + sState::LeverLeft_u1
     rts
     @readR:
     lda Ram_RoomState + sState::LeverRight_u1
     rts
-_Cannon_TryMove:
-    cpx #eDir::Down
-    beq @moveDown
-    @moveUp:
-    ldy Ram_RoomState + sState::CannonGoalY_u8
-    bne @error
-    iny
-    bne @success  ; unconditional
-    @moveDown:
-    ldy Ram_RoomState + sState::CannonGoalY_u8
-    beq @error
-    dey
-    @success:
-    sty Ram_RoomState + sState::CannonGoalY_u8
-    lda #kCannonMoveCountdown
-    clc  ; clear C to indicate success
-    rts
-    @error:
-    sec  ; set C to indicate failure
-    rts
 _Cannon_TryAct:
+    ;; TODO: Use FuncA_Machine_CannonTryAct (once we don't depend on using
+    ;;   kGrenadeActorIndex).
     lda #kCannonGrenadeInitPosX
     sta Ram_ActorPosX_i16_0_arr + kGrenadeActorIndex
     lda #kCannonGrenadeInitPosY
@@ -318,33 +300,14 @@ _Cannon_TryAct:
     sta Ram_ActorPosX_i16_1_arr + kGrenadeActorIndex
     sta Ram_ActorPosY_i16_1_arr + kGrenadeActorIndex
     ldx #kGrenadeActorIndex  ; param: actor index
-    lda Ram_RoomState + sState::CannonGoalY_u8  ; param: aim angle (0-1)
+    lda Ram_MachineGoalVert_u8_arr + kCannonMachineIndex  ; param: aim (0-1)
     jsr Func_InitGrenadeActor
     lda #kCannonActCountdown
     clc  ; clear C to indicate success
     rts
-_Cannon_Tick:
-    lda Ram_RoomState + sState::CannonGoalY_u8
-    beq @moveDown
-    @moveUp:
-    lda Ram_RoomState + sState::CannonAngle_u8
-    add #$100 / kCannonMoveCountdown
-    bcc @setAngle
-    jsr Func_MachineFinishResetting
-    lda #$ff
-    bne @setAngle  ; unconditional
-    @moveDown:
-    lda Ram_RoomState + sState::CannonAngle_u8
-    sub #$100 / kCannonMoveCountdown
-    bge @setAngle
-    jsr Func_MachineFinishResetting
-    lda #0
-    @setAngle:
-    sta Ram_RoomState + sState::CannonAngle_u8
-    rts
 _Cannon_Reset:
     lda #0
-    sta Ram_RoomState + sState::CannonGoalY_u8
+    sta Ram_MachineGoalVert_u8_arr + kCannonMachineIndex
     ;; If the boss is currently shooting/spraying, switch to waiting mode (to
     ;; avoid the player cheesing by reprogramming the machine every time the
     ;; boss opens an eye).
@@ -415,6 +378,7 @@ _SpawnUpgrade:
     sta Ram_DeviceAnim_u8_arr + kUpgradeDeviceIndex
     ;; TODO: play a sound
     ;; Create a puff of smoke over the upgrade device.
+    ;; TODO: Don't use kSmokeActorIndex; instead use Func_FindEmptyActorSlot.
     lda #kUpgradeBlockCol * kBlockWidthPx + kBlockWidthPx / 2
     sta Ram_ActorPosX_i16_0_arr + kSmokeActorIndex
     lda #kUpgradeBlockRow * kBlockHeightPx + kBlockHeightPx / 2
@@ -432,6 +396,7 @@ _CheckIfBossDead:
     rts
     @bossAlive:
 _CheckForGrenadeHit:
+    ;; TODO: Don't use kGrenadeActorIndex; instead scan for grenade actors.
     ;; Check if there's a grenade in flight.  If not, we're done.
     lda Ram_ActorType_eActor_arr + kGrenadeActorIndex
     cmp #eActor::Grenade
@@ -733,7 +698,7 @@ _PosY_u8_arr:
 .PROC FuncA_Objects_GardenBossCannon_Draw
     ldx #kCannonPlatformIndex  ; param: platform index
     jsr FuncA_Objects_SetShapePosToPlatformTopLeft
-    ldx Ram_RoomState + sState::CannonAngle_u8  ; param: aim angle
+    ldx Ram_MachineParam1_u8_arr + kCannonMachineIndex  ; param: aim angle
     jmp FuncA_Objects_DrawCannonMachine
 .ENDPROC
 
