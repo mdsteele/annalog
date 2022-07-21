@@ -109,15 +109,31 @@ Ram_MachineWait_u8_arr: .res kMaxMachines
 
 ;;; A generic counter that decrements on every call to Func_MachineTick.  Each
 ;;; machine can use this for any purpose it likes, but typically it is used to
-;;; help implement moving slower than one pixel per frame.
+;;; help implement moving slower than one pixel per frame.  This is
+;;; automatically set to zero on both init and reset.
 .EXPORT Ram_MachineSlowdown_u8_arr
 Ram_MachineSlowdown_u8_arr: .res kMaxMachines
 
-;;; A one-byte variable that each machine can use however it wants.
+;;; Horizontal and vertical goal positions, for machines that need them.  These
+;;; are automatically set to zero on init (though they can be set to something
+;;; else in the machine's Init function), but are *not* automatically modified
+;;; on reset (so that the machine's Reset function can check their current
+;;; values when deciding how to reset).
+.EXPORT Ram_MachineGoalHorz_u8_arr, Ram_MachineGoalVert_u8_arr
+Ram_MachineGoalHorz_u8_arr: .res kMaxMachines
+Ram_MachineGoalVert_u8_arr: .res kMaxMachines
+
+;;; A one-byte variable that each machine can use however it wants.  This is
+;;; automatically set to zero on init (though it can be set to something else
+;;; in the machine's Init function), but is *not* automatically modified on
+;;; reset.
 .EXPORT Ram_MachineParam1_u8_arr
 Ram_MachineParam1_u8_arr: .res kMaxMachines
 
-;;; A two-byte variable that each machine can use however it wants.
+;;; A two-byte variable that each machine can use however it wants.  This is
+;;; automatically set to zero on init (though it can be set to something else
+;;; in the machine's Init function), but is *not* automatically modified on
+;;; reset.
 .EXPORT Ram_MachineParam2_i16_0_arr, Ram_MachineParam2_i16_1_arr
 Ram_MachineParam2_i16_0_arr: .res kMaxMachines
 Ram_MachineParam2_i16_1_arr: .res kMaxMachines
@@ -127,9 +143,11 @@ Ram_MachineParam2_i16_1_arr: .res kMaxMachines
 .SEGMENT "PRG8"
 
 ;;; Sets the specified machine's status to the specified eMachine value, and
-;;; zeroes all other variables for that machine.
+;;; zeroes all other non-goal/param variables for that machine.
 ;;; @param A The eMachine value to set for the machine's status.
 ;;; @param X The machine index.
+;;; @return A Always zero.
+;;; @preserve X
 .PROC Func_ZeroVarsAndSetStatus
     sta Ram_MachineStatus_eMachine_arr, x
     lda #0
@@ -137,9 +155,6 @@ Ram_MachineParam2_i16_1_arr: .res kMaxMachines
     sta Ram_MachineRegA_u8_arr, x
     sta Ram_MachineWait_u8_arr, x
     sta Ram_MachineSlowdown_u8_arr, x
-    sta Ram_MachineParam1_u8_arr, x
-    sta Ram_MachineParam2_i16_0_arr, x
-    sta Ram_MachineParam2_i16_1_arr, x
     rts
 .ENDPROC
 
@@ -333,7 +348,12 @@ _ReadRegB:
     @loop:
     jsr Func_SetMachineIndex  ; preserves X
     lda #eMachine::Running  ; param: machine status
-    jsr Func_ZeroVarsAndSetStatus
+    jsr Func_ZeroVarsAndSetStatus  ; preserves X, returns zero in A
+    sta Ram_MachineGoalHorz_u8_arr, x
+    sta Ram_MachineGoalVert_u8_arr, x
+    sta Ram_MachineParam1_u8_arr, x
+    sta Ram_MachineParam2_i16_0_arr, x
+    sta Ram_MachineParam2_i16_1_arr, x
     ;; Initialize any machine-specific state.
     ldy #sMachine::Init_func_ptr  ; param: function pointer offset
     jsr Func_MachineCall

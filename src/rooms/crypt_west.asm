@@ -49,6 +49,7 @@
 .IMPORT Func_MovePlatformTopToward
 .IMPORT Func_MovePlatformVert
 .IMPORT Func_Noop
+.IMPORT Func_ResetWinchMachineParams
 .IMPORT Ppu_ChrObjUpgrade
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORT Ram_RoomState
@@ -227,7 +228,7 @@ _Winch_Init:
 _Winch_Reset:
     lda #kWinchInitGoalZ
     sta Ram_RoomState + sState::WinchGoalZ_u8
-    rts
+    jmp Func_ResetWinchMachineParams
 .ENDPROC
 
 .PROC FuncC_Crypt_WestWinch_ReadReg

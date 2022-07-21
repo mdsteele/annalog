@@ -24,7 +24,7 @@
 .INCLUDE "../dialog.inc"
 .INCLUDE "../flag.inc"
 .INCLUDE "../machine.inc"
-.INCLUDE "../machines/cannon.inc"
+.INCLUDE "../machines/bridge.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
 .INCLUDE "../platform.inc"
@@ -35,21 +35,19 @@
 .IMPORT DataA_Pause_GardenAreaCells_u8_arr2_arr
 .IMPORT DataA_Pause_GardenAreaName_u8_arr
 .IMPORT DataA_Room_Garden_sTileset
+.IMPORT FuncA_Machine_BridgeRepositionSegments
+.IMPORT FuncA_Machine_BridgeTryMove
+.IMPORT FuncA_Machine_BridgeUpdateAngle
 .IMPORT FuncA_Objects_DrawBridgeMachine
+.IMPORT Func_MachineBridgeReadRegY
 .IMPORT Func_MachineError
 .IMPORT Func_MachineFinishResetting
-.IMPORT Func_MovePlatformLeftToward
-.IMPORT Func_MovePlatformTopToward
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrObjGarden
-.IMPORT Ram_PlatformLeft_i16_0_arr
-.IMPORT Ram_PlatformLeft_i16_1_arr
-.IMPORT Ram_PlatformTop_i16_0_arr
-.IMPORT Ram_PlatformTop_i16_1_arr
+.IMPORT Ram_MachineGoalVert_u8_arr
+.IMPORT Ram_MachineParam1_u8_arr
 .IMPORT Ram_RoomState
 .IMPORTZP Zp_MachineIndex_u8
-.IMPORTZP Zp_PlatformGoal_i16
-.IMPORTZP Zp_Tmp1_byte
 
 ;;;=========================================================================;;;
 
@@ -57,11 +55,6 @@
 ;;; GardenShaftUpperBridge machines.
 kLowerBridgeMachineIndex = 0
 kUpperBridgeMachineIndex = 1
-;;; The maximum permitted value for sState::BridgeAngle_u8.
-kBridgeMaxAngle = $10
-;;; How many frames the bridge machine spends per move operation.
-kBridgeMoveUpCountdown = kBridgeMaxAngle + $20
-kBridgeMoveDownCountdown = kBridgeMaxAngle / 2
 
 ;;; The number of movable segments in each drawbridge (i.e. NOT including the
 ;;; fixed segment).
@@ -84,11 +77,6 @@ kUpperBridgePivotPosY = $0080
 .STRUCT sState
     ;; The current states of the room's two levers, indexed by machine index.
     Lever_u1_arr       .res 2
-    ;; The current angle of each bridge (from 0 to kBridgeMaxAngle, inclusive),
-    ;; indexed by machine index.
-    BridgeAngle_u8_arr .res 2
-    ;; The goal value of the GardenShaftLowerBridge machine's Y register.
-    BridgeGoalY_u8_arr .res 2
 .ENDSTRUCT
 
 ;;;=========================================================================;;;
@@ -141,9 +129,9 @@ _Machines_sMachine_arr:
     d_addr Init_func_ptr, FuncC_Garden_ShaftBridge_Init
     d_addr ReadReg_func_ptr, FuncC_Garden_ShaftBridge_ReadReg
     d_addr WriteReg_func_ptr, Func_MachineError
-    d_addr TryMove_func_ptr, FuncC_Garden_ShaftBridge_TryMove
+    d_addr TryMove_func_ptr, FuncA_Machine_BridgeTryMove
     d_addr TryAct_func_ptr, Func_MachineError
-    d_addr Tick_func_ptr, FuncC_Garden_ShaftBridge_Tick
+    d_addr Tick_func_ptr, FuncC_Garden_ShaftLowerBridge_Tick
     d_addr Draw_func_ptr, FuncA_Objects_GardenShaftLowerBridge_Draw
     d_addr Reset_func_ptr, FuncC_Garden_ShaftBridge_Reset
     D_END
@@ -159,9 +147,9 @@ _Machines_sMachine_arr:
     d_addr Init_func_ptr, FuncC_Garden_ShaftBridge_Init
     d_addr ReadReg_func_ptr, FuncC_Garden_ShaftBridge_ReadReg
     d_addr WriteReg_func_ptr, Func_MachineError
-    d_addr TryMove_func_ptr, FuncC_Garden_ShaftBridge_TryMove
+    d_addr TryMove_func_ptr, FuncA_Machine_BridgeTryMove
     d_addr TryAct_func_ptr, Func_MachineError
-    d_addr Tick_func_ptr, FuncC_Garden_ShaftBridge_Tick
+    d_addr Tick_func_ptr, FuncC_Garden_ShaftUpperBridge_Tick
     d_addr Draw_func_ptr, FuncA_Objects_GardenShaftUpperBridge_Draw
     d_addr Reset_func_ptr, FuncC_Garden_ShaftBridge_Reset
     D_END
@@ -235,147 +223,45 @@ _Passages_sPassage_arr:
 .ENDPROC
 
 .PROC FuncC_Garden_ShaftBridge_ReadReg
-    ldx Zp_MachineIndex_u8
     cmp #$c
     beq @readL
     @readY:
-    lda Ram_RoomState + sState::BridgeAngle_u8_arr, x
-    cmp #kBridgeMaxAngle / 2  ; now carry bit is 1 if angle >= this
-    lda #0
-    rol a  ; shift in carry bit, now A is 0 or 1
-    rts
+    jmp Func_MachineBridgeReadRegY
     @readL:
+    ldx Zp_MachineIndex_u8
     lda Ram_RoomState + sState::Lever_u1_arr, x
     rts
 .ENDPROC
 
-.PROC FuncC_Garden_ShaftBridge_TryMove
-    cpx #eDir::Down
-    beq @moveDown
-    @moveUp:
-    ldx Zp_MachineIndex_u8
-    lda Ram_RoomState + sState::BridgeGoalY_u8_arr, x
-    bne @error
-    inc Ram_RoomState + sState::BridgeGoalY_u8_arr, x
-    lda #kBridgeMoveUpCountdown
-    clc  ; clear C to indicate success
-    rts
-    @moveDown:
-    ldx Zp_MachineIndex_u8
-    lda Ram_RoomState + sState::BridgeGoalY_u8_arr, x
-    beq @error
-    dec Ram_RoomState + sState::BridgeGoalY_u8_arr, x
-    lda #kBridgeMoveDownCountdown
-    clc  ; clear C to indicate success
-    rts
-    @error:
-    sec  ; set C to indicate failure
-    rts
+.PROC FuncC_Garden_ShaftLowerBridge_Tick
+    jsr FuncA_Machine_BridgeUpdateAngle  ; sets C if goal has been reached
+    jcs Func_MachineFinishResetting
+    ldx #kLowerBridgePivotPlatformIndex  ; param: pivot platform index
+    lda #kLowerBridgePivotPlatformIndex + kNumMovableLowerBridgeSegments
+    ldy #bObj::FlipH  ; param: facing direction
+    jmp FuncA_Machine_BridgeRepositionSegments
 .ENDPROC
 
-.PROC FuncC_Garden_ShaftBridge_Tick
-    ldx Zp_MachineIndex_u8
-    lda Ram_RoomState + sState::BridgeGoalY_u8_arr, x
-    beq _MoveDown
-_MoveUp:
-    ldy Ram_RoomState + sState::BridgeAngle_u8_arr, x
-    cpy #kBridgeMaxAngle
-    beq _Finished
-    iny
-    bne _SetAngle  ; unconditional
-_MoveDown:
-    ldy Ram_RoomState + sState::BridgeAngle_u8_arr, x
-    beq _Finished
-    dey
-    dey
-    bpl @noUnderflow
-    ldy #0
-    @noUnderflow:
-_SetAngle:
-    tya
-    sta Ram_RoomState + sState::BridgeAngle_u8_arr, x
-    ;; Loop through each consequtive pair of bridge segments, starting with the
-    ;; fixed pivot segment and the first movable segment.
-    ldy Zp_MachineIndex_u8
-    ldx _PivotPlatformIndex_u8_arr, y
-    @loop:
-    ;; Position the next segment vertically relative to the previous segment.
-    ldy Zp_MachineIndex_u8
-    lda Ram_RoomState + sState::BridgeAngle_u8_arr, y
-    tay
-    lda Ram_PlatformTop_i16_0_arr, x
-    sub _Delta_u8_arr, y
-    sta Zp_PlatformGoal_i16 + 0
-    lda Ram_PlatformTop_i16_1_arr, x
-    sbc #0
-    sta Zp_PlatformGoal_i16 + 1
-    inx
-    lda #127  ; param: max distance to move by
-    jsr Func_MovePlatformTopToward  ; preserves X
-    dex
-    ;; Position the next segment horizontally relative to the previous segment.
-    ldy Zp_MachineIndex_u8
-    lda #kBridgeMaxAngle
-    sub Ram_RoomState + sState::BridgeAngle_u8_arr, y
-    tay
-    lda Zp_MachineIndex_u8
-    .assert kLowerBridgeMachineIndex = 0, error
-    bne @upperBridge
-    @lowerBridge:
-    lda Ram_PlatformLeft_i16_0_arr, x
-    sub _Delta_u8_arr, y
-    sta Zp_PlatformGoal_i16 + 0
-    lda Ram_PlatformLeft_i16_1_arr, x
-    sbc #0
-    sta Zp_PlatformGoal_i16 + 1
-    jmp @moveHorz
-    @upperBridge:
-    lda Ram_PlatformLeft_i16_0_arr, x
-    add _Delta_u8_arr, y
-    sta Zp_PlatformGoal_i16 + 0
-    lda Ram_PlatformLeft_i16_1_arr, x
-    adc #0
-    sta Zp_PlatformGoal_i16 + 1
-    @moveHorz:
-    inx
-    lda #127  ; param: max distance to move by
-    jsr Func_MovePlatformLeftToward  ; preserves X
-    ;; Continue to the next pair of segments.
-    ldy Zp_MachineIndex_u8
-    lda _LastSegmentPlatformIndex_u8_arr, y
-    sta Zp_Tmp1_byte
-    cpx Zp_Tmp1_byte
-    blt @loop
-    rts
-_Finished:
-    jmp Func_MachineFinishResetting
-_Delta_u8_arr:
-    ;; [int(round(8 * sin(x * pi/32))) for x in range(0, 17)]
-:   .byte 0, 1, 2, 2, 3, 4, 4, 5, 6, 6, 7, 7, 7, 8, 8, 8, 8
-    .assert * - :- = kBridgeMaxAngle + 1, error
-_PivotPlatformIndex_u8_arr:
-    .assert kLowerBridgeMachineIndex = 0, error
-    .byte kLowerBridgePivotPlatformIndex
-    .assert kUpperBridgeMachineIndex = 1, error
-    .byte kUpperBridgePivotPlatformIndex
-_LastSegmentPlatformIndex_u8_arr:
-    .assert kLowerBridgeMachineIndex = 0, error
-    .byte kLowerBridgePivotPlatformIndex + kNumMovableLowerBridgeSegments
-    .assert kUpperBridgeMachineIndex = 1, error
-    .byte kUpperBridgePivotPlatformIndex + kNumMovableUpperBridgeSegments
+.PROC FuncC_Garden_ShaftUpperBridge_Tick
+    jsr FuncA_Machine_BridgeUpdateAngle  ; sets C if goal has been reached
+    jcs Func_MachineFinishResetting
+    ldx #kUpperBridgePivotPlatformIndex  ; param: pivot platform index
+    lda #kUpperBridgePivotPlatformIndex + kNumMovableUpperBridgeSegments
+    ldy #0  ; param: facing direction
+    jmp FuncA_Machine_BridgeRepositionSegments
 .ENDPROC
 
 .PROC FuncC_Garden_ShaftBridge_Init
     ldx Zp_MachineIndex_u8
     lda #kBridgeMaxAngle
-    sta Ram_RoomState + sState::BridgeAngle_u8_arr, x
+    sta Ram_MachineParam1_u8_arr, x
     .assert * = FuncC_Garden_ShaftBridge_Reset, error, "fallthrough"
 .ENDPROC
 
 .PROC FuncC_Garden_ShaftBridge_Reset
     ldx Zp_MachineIndex_u8
     lda #1
-    sta Ram_RoomState + sState::BridgeGoalY_u8_arr, x
+    sta Ram_MachineGoalVert_u8_arr, x
     rts
 .ENDPROC
 

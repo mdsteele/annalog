@@ -94,6 +94,24 @@ kWinchGearPalette  = 0
 
 ;;;=========================================================================;;;
 
+.SEGMENT "PRG8"
+
+;;; Resets machine params for a winch machine.
+;;; @prereq Zp_MachineIndex_u8 is initialized.
+.EXPORT Func_ResetWinchMachineParams
+.PROC Func_ResetWinchMachineParams
+    ldy Zp_MachineIndex_u8
+    ;; Start "falling" to false.
+    lda #0
+    sta Ram_MachineParam1_u8_arr, y  ; falling bool
+    ;; Set fall speed to zero.
+    sta Ram_MachineParam2_i16_0_arr, y
+    sta Ram_MachineParam2_i16_1_arr, y
+    rts
+.ENDPROC
+
+;;;=========================================================================;;;
+
 .SEGMENT "PRGA_Machine"
 
 ;;; Returns the speed that the current winch machine should use when moving
@@ -133,7 +151,7 @@ kWinchGearPalette  = 0
     lda #2
     rts
 _NotResetting:
-    lda Ram_MachineParam1_u8_arr, y
+    lda Ram_MachineParam1_u8_arr, y  ; falling bool
     bne _Falling
     lda Zp_PlatformGoal_i16 + 0
     sub Ram_PlatformTop_i16_0_arr, x
@@ -182,7 +200,7 @@ _Falling:
     ldy Zp_MachineIndex_u8
     ;; Start "falling" to true.
     lda #$ff
-    sta Ram_MachineParam1_u8_arr, y
+    sta Ram_MachineParam1_u8_arr, y  ; falling bool
     ;; Set fall speed to zero.
     lda #0
     sta Ram_MachineParam2_i16_0_arr, y
@@ -200,14 +218,7 @@ _Falling:
 .EXPORT FuncA_Machine_WinchStopFalling
 .PROC FuncA_Machine_WinchStopFalling
     ;; TODO: If currently falling, play a sound for impact.
-    ldy Zp_MachineIndex_u8
-    ;; Start "falling" to false.
-    lda #0
-    sta Ram_MachineParam1_u8_arr, y
-    ;; Set fall speed to zero.
-    sta Ram_MachineParam2_i16_0_arr, y
-    sta Ram_MachineParam2_i16_1_arr, y
-    rts
+    jmp Func_ResetWinchMachineParams
 .ENDPROC
 
 ;;; Determines whether the current winch machine is falling fast enough to
@@ -217,7 +228,7 @@ _Falling:
 .EXPORT FuncA_Machine_IsWinchFallingFast
 .PROC FuncA_Machine_IsWinchFallingFast
     ldy Zp_MachineIndex_u8
-    lda Ram_MachineParam1_u8_arr, y
+    lda Ram_MachineParam1_u8_arr, y  ; falling bool
     beq @notFalling
     lda Ram_MachineParam2_i16_1_arr, y
     cmp #kWinchMaxFallSpeed  ; clears C if Param2 less than max speed

@@ -54,6 +54,7 @@
 .IMPORT Func_MovePlatformLeftToward
 .IMPORT Func_MovePlatformTopToward
 .IMPORT Func_Noop
+.IMPORT Func_ResetWinchMachineParams
 .IMPORT Func_SetFlag
 .IMPORT Ppu_ChrObjUpgrade
 .IMPORT Ram_PlatformLeft_i16_0_arr
@@ -477,6 +478,7 @@ _Finished:
 .ENDPROC
 
 .PROC FuncC_Crypt_TombWinch_Reset
+    jsr Func_ResetWinchMachineParams
     ;; TODO: heal breakable floors if not both totally broken
     lda Ram_RoomState + sState::WinchGoalX_u8
     cmp #3

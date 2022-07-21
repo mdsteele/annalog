@@ -54,6 +54,7 @@
 .IMPORT Func_MovePlatformTopToward
 .IMPORT Func_MovePlatformVert
 .IMPORT Func_Noop
+.IMPORT Func_ResetWinchMachineParams
 .IMPORT Func_SetFlag
 .IMPORT Ppu_ChrObjUpgrade
 .IMPORT Ram_PlatformLeft_i16_0_arr
@@ -491,7 +492,7 @@ _Finished:
     @left:
     lda #eResetSeq::UpLeft
     sta Ram_RoomState + sState::WinchReset_eResetSeq
-    rts
+    jmp Func_ResetWinchMachineParams
 .ENDPROC
 
 .PROC FuncC_Crypt_SouthWinch_Init

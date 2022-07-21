@@ -54,6 +54,7 @@
 .IMPORT Func_MovePlatformHorz
 .IMPORT Func_MovePlatformLeftToward
 .IMPORT Func_MovePlatformTopToward
+.IMPORT Func_ResetWinchMachineParams
 .IMPORT Int_WindowTopIrq
 .IMPORT Ppu_ChrObjUpgrade
 .IMPORT Ram_Oam_sObj_arr64
@@ -440,6 +441,7 @@ _Finished:
 .ENDPROC
 
 .PROC FuncC_Crypt_BossWinch_Reset
+    jsr Func_ResetWinchMachineParams
     lda Ram_RoomState + sState::WinchGoalX_u8
     cmp #3
     blt _Outer

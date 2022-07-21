@@ -24,6 +24,7 @@
 .INCLUDE "../dialog.inc"
 .INCLUDE "../flag.inc"
 .INCLUDE "../machine.inc"
+.INCLUDE "../machines/bridge.inc"
 .INCLUDE "../machines/cannon.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
@@ -35,16 +36,18 @@
 .IMPORT DataA_Pause_GardenAreaCells_u8_arr2_arr
 .IMPORT DataA_Pause_GardenAreaName_u8_arr
 .IMPORT DataA_Room_Garden_sTileset
+.IMPORT FuncA_Machine_BridgeRepositionSegments
+.IMPORT FuncA_Machine_BridgeTryMove
+.IMPORT FuncA_Machine_BridgeUpdateAngle
 .IMPORT FuncA_Objects_DrawBridgeMachine
 .IMPORT FuncA_Objects_DrawCannonMachine
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
 .IMPORT Func_FindEmptyActorSlot
 .IMPORT Func_InitGrenadeActor
 .IMPORT Func_IsFlagSet
+.IMPORT Func_MachineBridgeReadRegY
 .IMPORT Func_MachineError
 .IMPORT Func_MachineFinishResetting
-.IMPORT Func_MovePlatformLeftToward
-.IMPORT Func_MovePlatformTopToward
 .IMPORT Func_Noop
 .IMPORT Func_SetFlag
 .IMPORT Ppu_ChrObjGarden
@@ -54,12 +57,8 @@
 .IMPORT Ram_ActorPosY_i16_1_arr
 .IMPORT Ram_ActorType_eActor_arr
 .IMPORT Ram_DeviceType_eDevice_arr
-.IMPORT Ram_PlatformLeft_i16_0_arr
-.IMPORT Ram_PlatformLeft_i16_1_arr
-.IMPORT Ram_PlatformTop_i16_0_arr
-.IMPORT Ram_PlatformTop_i16_1_arr
+.IMPORT Ram_MachineGoalVert_u8_arr
 .IMPORT Ram_RoomState
-.IMPORTZP Zp_PlatformGoal_i16
 
 ;;;=========================================================================;;;
 
@@ -73,11 +72,6 @@ kMermaidDeviceIndexRight = 0
 
 ;;; The machine index for the GardenEastBridge machine.
 kBridgeMachineIndex = 0
-;;; The maximum permitted value for sState::BridgeAngle_u8.
-kBridgeMaxAngle = $10
-;;; How many frames the bridge machine spends per move operation.
-kBridgeMoveUpCountdown = kBridgeMaxAngle + $10
-kBridgeMoveDownCountdown = kBridgeMaxAngle / 2
 
 ;;; The machine index for the GardenEastCannon machine.
 kCannonMachineIndex = 1
@@ -104,10 +98,6 @@ kBridgePivotPosY = $0080
     ;; The current states of the room's two levers.
     LeverBridge_u1 .byte
     LeverCannon_u1 .byte
-    ;; The current angle of the bridge (from 0 to kBridgeMaxAngle, inclusive).
-    BridgeAngle_u8 .byte
-    ;; The goal value of the GardenEastBridge machine's Y register.
-    BridgeGoalY_u8 .byte
     ;; The current aim angle of the GardenEastCannon machine (0-255).
     CannonAngle_u8 .byte
     ;; The goal value of the GardenEastCannon machine's Y register.
@@ -164,7 +154,7 @@ _Machines_sMachine_arr:
     d_addr Init_func_ptr, Func_Noop
     d_addr ReadReg_func_ptr, FuncC_Garden_EastBridge_ReadReg
     d_addr WriteReg_func_ptr, Func_MachineError
-    d_addr TryMove_func_ptr, FuncC_Garden_EastBridge_TryMove
+    d_addr TryMove_func_ptr, FuncA_Machine_BridgeTryMove
     d_addr TryAct_func_ptr, Func_MachineError
     d_addr Tick_func_ptr, FuncC_Garden_EastBridge_Tick
     d_addr Draw_func_ptr, FuncA_Objects_GardenEastBridge_Draw
@@ -335,101 +325,24 @@ _Passages_sPassage_arr:
     cmp #$c
     beq @readL
     @readY:
-    lda Ram_RoomState + sState::BridgeAngle_u8
-    cmp #kBridgeMaxAngle / 2  ; now carry bit is 1 if angle >= this
-    lda #0
-    rol a  ; shift in carry bit, now A is 0 or 1
-    rts
+    jmp Func_MachineBridgeReadRegY
     @readL:
     lda Ram_RoomState + sState::LeverBridge_u1
     rts
 .ENDPROC
 
-.PROC FuncC_Garden_EastBridge_TryMove
-    cpx #eDir::Down
-    beq @moveDown
-    @moveUp:
-    lda Ram_RoomState + sState::BridgeGoalY_u8
-    bne @error
-    inc Ram_RoomState + sState::BridgeGoalY_u8
-    lda #kBridgeMoveUpCountdown
-    clc  ; clear C to indicate success
-    rts
-    @moveDown:
-    lda Ram_RoomState + sState::BridgeGoalY_u8
-    beq @error
-    dec Ram_RoomState + sState::BridgeGoalY_u8
-    lda #kBridgeMoveDownCountdown
-    clc  ; clear C to indicate success
-    rts
-    @error:
-    sec  ; set C to indicate failure
-    rts
-.ENDPROC
-
 .PROC FuncC_Garden_EastBridge_Tick
-    lda Ram_RoomState + sState::BridgeGoalY_u8
-    beq _MoveDown
-_MoveUp:
-    ldy Ram_RoomState + sState::BridgeAngle_u8
-    cpy #kBridgeMaxAngle
-    beq _Finished
-    iny
-    bne _SetAngle  ; unconditional
-_MoveDown:
-    ldy Ram_RoomState + sState::BridgeAngle_u8
-    beq _Finished
-    dey
-    dey
-    bpl @noUnderflow
-    ldy #0
-    @noUnderflow:
-_SetAngle:
-    sty Ram_RoomState + sState::BridgeAngle_u8
-    ;; Loop through each consequtive pair of bridge segments, starting with the
-    ;; fixed pivot segment and the first movable segment.
-    ldx #kBridgePivotPlatformIndex
-    @loop:
-    ;; Position the next segment vertically relative to the previous segment.
-    ldy Ram_RoomState + sState::BridgeAngle_u8
-    lda Ram_PlatformTop_i16_0_arr, x
-    sub _Delta_u8_arr, y
-    sta Zp_PlatformGoal_i16 + 0
-    lda Ram_PlatformTop_i16_1_arr, x
-    sbc #0
-    sta Zp_PlatformGoal_i16 + 1
-    inx
-    lda #127  ; param: max distance to move by
-    jsr Func_MovePlatformTopToward  ; preserves X
-    dex
-    ;; Position the next segment horizontally relative to the previous segment.
-    lda #kBridgeMaxAngle
-    sub Ram_RoomState + sState::BridgeAngle_u8
-    tay
-    lda Ram_PlatformLeft_i16_0_arr, x
-    add _Delta_u8_arr, y
-    sta Zp_PlatformGoal_i16 + 0
-    lda Ram_PlatformLeft_i16_1_arr, x
-    adc #0
-    sta Zp_PlatformGoal_i16 + 1
-    inx
-    lda #127  ; param: max distance to move by
-    jsr Func_MovePlatformLeftToward  ; preserves X
-    ;; Continue to the next pair of segments.
-    cpx #kBridgePivotPlatformIndex + kNumMovableBridgeSegments
-    blt @loop
-    rts
-_Finished:
-    jmp Func_MachineFinishResetting
-_Delta_u8_arr:
-    ;; [int(round(8 * sin(x * pi/32))) for x in range(0, 17)]
-:   .byte 0, 1, 2, 2, 3, 4, 4, 5, 6, 6, 7, 7, 7, 8, 8, 8, 8
-    .assert * - :- = kBridgeMaxAngle + 1, error
+    jsr FuncA_Machine_BridgeUpdateAngle  ; sets C if goal has been reached
+    jcs Func_MachineFinishResetting
+    ldx #kBridgePivotPlatformIndex  ; param: pivot platform index
+    lda #kBridgePivotPlatformIndex + kNumMovableBridgeSegments
+    ldy #0  ; param: facing direction
+    jmp FuncA_Machine_BridgeRepositionSegments
 .ENDPROC
 
 .PROC FuncC_Garden_EastBridge_Reset
     lda #0
-    sta Ram_RoomState + sState::BridgeGoalY_u8
+    sta Ram_MachineGoalVert_u8_arr + kBridgeMachineIndex
     rts
 .ENDPROC
 
