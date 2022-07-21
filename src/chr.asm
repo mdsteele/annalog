@@ -162,7 +162,8 @@
 .PROC Ppu_ChrBgHut
 :   .incbin "out/data/tiles/hut1.chr"
     .incbin "out/data/tiles/hut2.chr"
-    .res $26 * kSizeofChr
+    .res $1c * kSizeofChr
+    .incbin "out/data/tiles/device.chr"
     .assert * - :- = kSizeofChr * $40, error
 .ENDPROC
 

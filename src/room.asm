@@ -48,6 +48,7 @@
 .IMPORT DataC_Mermaid_Hut3_sRoom
 .IMPORT DataC_Mermaid_Hut4_sRoom
 .IMPORT DataC_Mermaid_Hut5_sRoom
+.IMPORT DataC_Mermaid_Hut6_sRoom
 .IMPORT DataC_Mermaid_Upper_sRoom
 .IMPORT DataC_Mermaid_Village_sRoom
 .IMPORT DataC_Prison_Cell_sRoom
@@ -113,6 +114,7 @@
     DataC_Mermaid_Hut3_sRoom, \
     DataC_Mermaid_Hut4_sRoom, \
     DataC_Mermaid_Hut5_sRoom, \
+    DataC_Mermaid_Hut6_sRoom, \
     DataC_Mermaid_Upper_sRoom, \
     DataC_Mermaid_Village_sRoom, \
     DataC_Prison_Cell_sRoom, \

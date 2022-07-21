@@ -1,15 +1,16 @@
 @BG 0 0 0 32x10
 >anim01
+>device
 >hut1
 >hut2
 
-                                    BIBJ        AEAFBCBDAEAFBEBF
-                                    BIBJBEBFBABBBIBJBCBDBGBHBGBH
-CICJCJCJ                                                    AAAA
-                                                        CCCD
+    BGBI                            CICJ        AEAFCCCDAEAFCECF
+    BHBJ                            CICJCECFCACBCICJCCCDCGCHCGCH
+DIDJDJDJ                                                    AAAA
+                                                        DCDD
 
 
 
 
-BM    BNBK    BLBK    BLCACACBCA        CECFCHCGCECGCHCF
-BK    BLBM    BN            BK          CGCHCGCHCGCHCGCH  CECF
+CM    CNCK    CLCK    CLDADADBDA        DEDFDHDGDEDGDHDF
+CK    CLCM    CN            CK          DGDHDGDHDGDHDGDH  DEDF
