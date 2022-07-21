@@ -28,6 +28,7 @@
 .IMPORT FuncA_Objects_MoveShapeDownOneTile
 .IMPORT FuncA_Objects_MoveShapeRightOneTile
 .IMPORT Ram_Oam_sObj_arr64
+.IMPORTZP Zp_Current_sMachine_ptr
 .IMPORTZP Zp_MachineIndex_u8
 
 ;;;=========================================================================;;;
@@ -44,16 +45,18 @@ kCannonTileIdBarrelLow  = kTileIdCannonFirst + $04
 .SEGMENT "PRGA_Objects"
 
 ;;; Allocates and populates OAM slots for a grenade launcher machine.
-;;; @prereq Zp_MachineIndex_u8 is initialized.
+;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
 ;;; @prereq The shape position is set to the top-left corner of the machine.
 ;;; @param X The aim angle (0-255).
-;;; @param Y The facing direction (either 0 or bObj::FlipH).
 .EXPORT FuncA_Objects_DrawCannonMachine
 .PROC FuncA_Objects_DrawCannonMachine
     jsr FuncA_Objects_MoveShapeDownOneTile   ; preserves X and Y
     jsr FuncA_Objects_MoveShapeRightOneTile  ; preserves X and Y
     ;; Allocate objects.
-    tya
+    ldy #sMachine::Flags_bMachine
+    lda (Zp_Current_sMachine_ptr), y
+    and #bMachine::FlipH
+    .assert bMachine::FlipH = bObj::FlipH, error
     .assert kMachineLightPalette <> 0, error
     ora #kMachineLightPalette
     pha  ; param: object flags

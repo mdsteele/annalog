@@ -317,7 +317,6 @@ _Cannon_Reset:
     ldx #kCannonPlatformIndex  ; param: platform index
     jsr FuncA_Objects_SetShapePosToPlatformTopLeft
     ldx Ram_RoomState + sState::CannonAngle_u8  ; param: aim angle
-    ldy #0  ; param: horz flip
     jmp FuncA_Objects_DrawCannonMachine
 .ENDPROC
 

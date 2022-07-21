@@ -41,8 +41,9 @@ kMachineRegNameB = $21  ; 'B'
 ;;; Flags indicating features of a given machine.
 .SCOPE bMachine
     MoveH  = %10000000  ; The machine supports MOVE left/right instructions.
-    MoveV  = %01000000  ; The machine supports MOVE up/down instructions.
-    Act    = %00100000  ; The machine supports ACT instructions.
+    FlipH  = %01000000  ; The machine is drawn horizontally flipped.
+    MoveV  = %00100000  ; The machine supports MOVE up/down instructions.
+    Act    = %00010000  ; The machine supports ACT instructions.
     WriteC = %00001000  ; The $c register is writable.
     WriteD = %00000100  ; The $d register is writable.
     WriteE = %00000010  ; The $e register is writable.

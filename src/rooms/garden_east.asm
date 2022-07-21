@@ -36,9 +36,8 @@
 .IMPORT DataA_Pause_GardenAreaCells_u8_arr2_arr
 .IMPORT DataA_Pause_GardenAreaName_u8_arr
 .IMPORT DataA_Room_Garden_sTileset
-.IMPORT FuncA_Machine_BridgeRepositionSegments
+.IMPORT FuncA_Machine_BridgeTick
 .IMPORT FuncA_Machine_BridgeTryMove
-.IMPORT FuncA_Machine_BridgeUpdateAngle
 .IMPORT FuncA_Objects_DrawBridgeMachine
 .IMPORT FuncA_Objects_DrawCannonMachine
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
@@ -164,7 +163,7 @@ _Machines_sMachine_arr:
     D_STRUCT sMachine
     d_byte Code_eProgram, eProgram::GardenEastCannon
     d_byte Conduit_eFlag, 0
-    d_byte Flags_bMachine, bMachine::MoveV | bMachine::Act
+    d_byte Flags_bMachine, bMachine::FlipH | bMachine::MoveV | bMachine::Act
     d_byte Status_eDiagram, eDiagram::Trolley  ; TODO
     d_word ScrollGoalX_u16, $b0
     d_byte ScrollGoalY_u8, $9f
@@ -332,12 +331,9 @@ _Passages_sPassage_arr:
 .ENDPROC
 
 .PROC FuncC_Garden_EastBridge_Tick
-    jsr FuncA_Machine_BridgeUpdateAngle  ; sets C if goal has been reached
-    jcs Func_MachineFinishResetting
-    ldx #kBridgePivotPlatformIndex  ; param: pivot platform index
-    lda #kBridgePivotPlatformIndex + kNumMovableBridgeSegments
-    ldy #0  ; param: facing direction
-    jmp FuncA_Machine_BridgeRepositionSegments
+    lda #kBridgePivotPlatformIndex  ; param: fixed segment platform index
+    ldx #kBridgePivotPlatformIndex + kNumMovableBridgeSegments  ; param: last
+    jmp FuncA_Machine_BridgeTick
 .ENDPROC
 
 .PROC FuncC_Garden_EastBridge_Reset
@@ -438,9 +434,8 @@ _Passages_sPassage_arr:
 ;;; Allocates and populates OAM slots for the GardenEastBridge machine.
 ;;; @prereq Zp_MachineIndex_u8 is initialized.
 .PROC FuncA_Objects_GardenEastBridge_Draw
-    ldy #kBridgePivotPlatformIndex  ; param: fixed segment platform index
+    lda #kBridgePivotPlatformIndex  ; param: fixed segment platform index
     ldx #kBridgePivotPlatformIndex + kNumMovableBridgeSegments  ; param: last
-    lda #0  ; param: horz flip
     jmp FuncA_Objects_DrawBridgeMachine
 .ENDPROC
 
@@ -450,7 +445,6 @@ _Passages_sPassage_arr:
     ldx #kCannonPlatformIndex  ; param: platform index
     jsr FuncA_Objects_SetShapePosToPlatformTopLeft
     ldx Ram_RoomState + sState::CannonAngle_u8  ; param: aim angle
-    ldy #bObj::FlipH  ; param: horz flip
     jmp FuncA_Objects_DrawCannonMachine
 .ENDPROC
 

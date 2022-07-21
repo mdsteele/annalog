@@ -30,6 +30,7 @@
 .IMPORT FuncA_Objects_MoveShapeDownOneTile
 .IMPORT FuncA_Objects_MoveShapeRightOneTile
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
+.IMPORT Func_MachineFinishResetting
 .IMPORT Func_MovePlatformLeftToward
 .IMPORT Func_MovePlatformTopToward
 .IMPORT Ram_MachineGoalVert_u8_arr
@@ -39,9 +40,11 @@
 .IMPORT Ram_PlatformLeft_i16_1_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORT Ram_PlatformTop_i16_1_arr
+.IMPORTZP Zp_Current_sMachine_ptr
 .IMPORTZP Zp_MachineIndex_u8
 .IMPORTZP Zp_PlatformGoal_i16
 .IMPORTZP Zp_Tmp1_byte
+.IMPORTZP Zp_Tmp2_byte
 
 ;;;=========================================================================;;;
 
@@ -103,14 +106,19 @@ kBridgeSegmentPalette = 0
     rts
 .ENDPROC
 
-;;; Moves the current bridge machine's angle towards its goal position.
-;;; @prereq Zp_MachineIndex_u8 is initialized.
-;;; @return C Set if the goal position was reached, cleared otherwise.
-.EXPORT FuncA_Machine_BridgeUpdateAngle
-.PROC FuncA_Machine_BridgeUpdateAngle
+;;; Ticks the current bridge machine for the current frame.
+;;; @param A The platform index for the fixed pivot segment.
+;;; @param X The platform index for the last movable segment.
+.EXPORT FuncA_Machine_BridgeTick
+.PROC FuncA_Machine_BridgeTick
+    sta Zp_Tmp1_byte  ; pivot platform index
+    stx Zp_Tmp2_byte  ; last platform index
     ldx Zp_MachineIndex_u8
     lda Ram_MachineGoalVert_u8_arr, x
     beq _MoveDown
+    bne _MoveUp  ; unconditional
+_Finished:
+    jmp Func_MachineFinishResetting
 _MoveUp:
     ldy Ram_MachineParam1_u8_arr, x
     cpy #kBridgeMaxAngle
@@ -128,24 +136,10 @@ _MoveDown:
 _SetAngle:
     tya
     sta Ram_MachineParam1_u8_arr, x
-    clc  ; clear C to indicate goal is not yet reached
-    rts
-_Finished:
-    sec  ; set C to indicate goal was reached
-    rts
-.ENDPROC
-
-;;; Updates the positions of the current bridge machine's movable segments,
-;;; based on the bridge's current angle.
-;;; @prereq Zp_MachineIndex_u8 is initialized.
-;;; @param A The platform index for the last movable segment.
-;;; @param X The platform index for the fixed pivot segment.
-;;; @param Y The facing direction (either 0 or bObj::FlipH).
-.EXPORT FuncA_Machine_BridgeRepositionSegments
-.PROC FuncA_Machine_BridgeRepositionSegments
+_RepositionSegments:
+    ldx Zp_Tmp1_byte  ; pivot platform index
+    lda Zp_Tmp2_byte  ; last platform index
     pha  ; last platform index
-    tya
-    pha  ; facing direction
     ;; Loop through each consequtive pair of bridge segments, starting with the
     ;; fixed pivot segment and the first movable segment.
     @loop:
@@ -167,9 +161,11 @@ _Finished:
     ldy Zp_MachineIndex_u8
     lda #kBridgeMaxAngle
     sub Ram_MachineParam1_u8_arr, y
-    tay
-    pla  ; facing direction
-    pha  ; facing direction
+    sta Zp_Tmp1_byte  ; angle index
+    ldy #sMachine::Flags_bMachine
+    lda (Zp_Current_sMachine_ptr), y
+    ldy Zp_Tmp1_byte  ; angle index
+    and #bMachine::FlipH
     beq @facingRight
     @facingLeft:
     lda Ram_PlatformLeft_i16_0_arr, x
@@ -191,16 +187,11 @@ _Finished:
     lda #127  ; param: max distance to move by
     jsr Func_MovePlatformLeftToward  ; preserves X
     ;; Continue to the next pair of segments.
-    pla  ; facing direction
-    tay
     pla  ; last platform index
     sta Zp_Tmp1_byte  ; last platform index
     pha  ; last platform index
-    tya
-    pha  ; facing direction
     cpx Zp_Tmp1_byte  ; last platform index
     blt @loop
-    pla  ; facing direction
     pla  ; last platform index
     rts
 _Delta_u8_arr:
@@ -214,14 +205,11 @@ _Delta_u8_arr:
 .SEGMENT "PRGA_Objects"
 
 ;;; Allocates and populates OAM slots for a drawbridge machine.
-;;; @prereq Zp_MachineIndex_u8 is initialized.
-;;; @param A The facing direction (either 0 or bObj::FlipH).
-;;; @param Y The platform index for the fixed pivot segment.
+;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
+;;; @param A The platform index for the fixed pivot segment.
 ;;; @param X The platform index for the last movable segment.
 .EXPORT FuncA_Objects_DrawBridgeMachine
 .PROC FuncA_Objects_DrawBridgeMachine
-    pha  ; horz flip
-    tya  ; pivot platform index
 _SegmentLoop:
     pha  ; pivot platform index
     jsr FuncA_Objects_SetShapePosToPlatformTopLeft  ; preserves X
@@ -241,7 +229,10 @@ _MainMachine:
     tax  ; param: platform index
     jsr FuncA_Objects_SetShapePosToPlatformTopLeft
     jsr FuncA_Objects_MoveShapeDownOneTile
-    pla  ; horz flip
+    ldy #sMachine::Flags_bMachine
+    lda (Zp_Current_sMachine_ptr), y
+    and #bMachine::FlipH
+    .assert bMachine::FlipH = bObj::FlipH, error
     beq @noFlip
     pha  ; horz flip
     jsr FuncA_Objects_MoveShapeRightOneTile

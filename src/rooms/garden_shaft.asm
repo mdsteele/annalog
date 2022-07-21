@@ -35,13 +35,11 @@
 .IMPORT DataA_Pause_GardenAreaCells_u8_arr2_arr
 .IMPORT DataA_Pause_GardenAreaName_u8_arr
 .IMPORT DataA_Room_Garden_sTileset
-.IMPORT FuncA_Machine_BridgeRepositionSegments
+.IMPORT FuncA_Machine_BridgeTick
 .IMPORT FuncA_Machine_BridgeTryMove
-.IMPORT FuncA_Machine_BridgeUpdateAngle
 .IMPORT FuncA_Objects_DrawBridgeMachine
 .IMPORT Func_MachineBridgeReadRegY
 .IMPORT Func_MachineError
-.IMPORT Func_MachineFinishResetting
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrObjGarden
 .IMPORT Ram_MachineGoalVert_u8_arr
@@ -121,7 +119,7 @@ _Machines_sMachine_arr:
     D_STRUCT sMachine
     d_byte Code_eProgram, eProgram::GardenShaftLowerBridge
     d_byte Conduit_eFlag, 0
-    d_byte Flags_bMachine, bMachine::MoveV
+    d_byte Flags_bMachine, bMachine::FlipH | bMachine::MoveV
     d_byte Status_eDiagram, eDiagram::Trolley  ; TODO
     d_word ScrollGoalX_u16, $00
     d_byte ScrollGoalY_u8, $90
@@ -234,21 +232,15 @@ _Passages_sPassage_arr:
 .ENDPROC
 
 .PROC FuncC_Garden_ShaftLowerBridge_Tick
-    jsr FuncA_Machine_BridgeUpdateAngle  ; sets C if goal has been reached
-    jcs Func_MachineFinishResetting
-    ldx #kLowerBridgePivotPlatformIndex  ; param: pivot platform index
-    lda #kLowerBridgePivotPlatformIndex + kNumMovableLowerBridgeSegments
-    ldy #bObj::FlipH  ; param: facing direction
-    jmp FuncA_Machine_BridgeRepositionSegments
+    lda #kLowerBridgePivotPlatformIndex  ; param: fixed segment platform index
+    ldx #kLowerBridgePivotPlatformIndex + kNumMovableLowerBridgeSegments
+    jmp FuncA_Machine_BridgeTick
 .ENDPROC
 
 .PROC FuncC_Garden_ShaftUpperBridge_Tick
-    jsr FuncA_Machine_BridgeUpdateAngle  ; sets C if goal has been reached
-    jcs Func_MachineFinishResetting
-    ldx #kUpperBridgePivotPlatformIndex  ; param: pivot platform index
-    lda #kUpperBridgePivotPlatformIndex + kNumMovableUpperBridgeSegments
-    ldy #0  ; param: facing direction
-    jmp FuncA_Machine_BridgeRepositionSegments
+    lda #kUpperBridgePivotPlatformIndex  ; param: fixed segment platform index
+    ldx #kUpperBridgePivotPlatformIndex + kNumMovableUpperBridgeSegments
+    jmp FuncA_Machine_BridgeTick
 .ENDPROC
 
 .PROC FuncC_Garden_ShaftBridge_Init
@@ -272,18 +264,16 @@ _Passages_sPassage_arr:
 ;;; Allocates and populates OAM slots for the GardenShaftLowerBridge machine.
 ;;; @prereq Zp_MachineIndex_u8 is initialized.
 .PROC FuncA_Objects_GardenShaftLowerBridge_Draw
-    ldy #kLowerBridgePivotPlatformIndex  ; param: fixed segment platform index
+    lda #kLowerBridgePivotPlatformIndex  ; param: fixed segment platform index
     ldx #kLowerBridgePivotPlatformIndex + kNumMovableLowerBridgeSegments
-    lda #bObj::FlipH  ; param: horz flip
     jmp FuncA_Objects_DrawBridgeMachine
 .ENDPROC
 
 ;;; Allocates and populates OAM slots for the GardenShaftLowerBridge machine.
 ;;; @prereq Zp_MachineIndex_u8 is initialized.
 .PROC FuncA_Objects_GardenShaftUpperBridge_Draw
-    ldy #kUpperBridgePivotPlatformIndex  ; param: fixed segment platform index
+    lda #kUpperBridgePivotPlatformIndex  ; param: fixed segment platform index
     ldx #kUpperBridgePivotPlatformIndex + kNumMovableUpperBridgeSegments
-    lda #0  ; param: horz flip
     jmp FuncA_Objects_DrawBridgeMachine
 .ENDPROC
 
