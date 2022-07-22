@@ -35,13 +35,11 @@
 .IMPORT FuncA_Machine_CannonTryAct
 .IMPORT FuncA_Machine_CannonTryMove
 .IMPORT FuncA_Objects_DrawCannonMachine
-.IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
 .IMPORT Func_MachineCannonReadRegY
 .IMPORT Func_MachineError
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrObjGarden
 .IMPORT Ram_MachineGoalVert_u8_arr
-.IMPORT Ram_MachineParam1_u8_arr
 .IMPORT Ram_RoomState
 
 ;;;=========================================================================;;;
@@ -50,9 +48,6 @@
 kCannonMachineIndex = 0
 ;;; The platform index for the GardenBossCannon machine.
 kCannonPlatformIndex = 0
-;;; Initial position for grenades shot from the cannon.
-kCannonGrenadeInitPosX = $58
-kCannonGrenadeInitPosY = $a8
 
 ;;;=========================================================================;;;
 
@@ -116,13 +111,14 @@ _Machines_sMachine_arr:
     d_word ScrollGoalX_u16, $10
     d_byte ScrollGoalY_u8, $50
     d_byte RegNames_u8_arr4, "L", "R", 0, "Y"
+    d_byte MainPlatform_u8, kCannonPlatformIndex
     d_addr Init_func_ptr, Func_Noop
     d_addr ReadReg_func_ptr, FuncC_Garden_TowerCannon_ReadReg
     d_addr WriteReg_func_ptr, Func_MachineError
     d_addr TryMove_func_ptr, FuncA_Machine_CannonTryMove
-    d_addr TryAct_func_ptr, FuncC_Garden_TowerCannon_TryAct
+    d_addr TryAct_func_ptr, FuncA_Machine_CannonTryAct
     d_addr Tick_func_ptr, FuncA_Machine_CannonTick
-    d_addr Draw_func_ptr, FuncA_Objects_GardenTowerCannon_Draw
+    d_addr Draw_func_ptr, FuncA_Objects_DrawCannonMachine
     d_addr Reset_func_ptr, FuncC_Garden_TowerCannon_Reset
     D_END
 _Platforms_sPlatform_arr:
@@ -131,8 +127,8 @@ _Platforms_sPlatform_arr:
     d_byte Type_ePlatform, ePlatform::Solid
     d_word WidthPx_u16, kBlockWidthPx
     d_byte HeightPx_u8, kBlockHeightPx
-    d_word Left_i16, kCannonGrenadeInitPosX - kTileWidthPx
-    d_word Top_i16,  kCannonGrenadeInitPosY - kTileHeightPx
+    d_word Left_i16, $0050
+    d_word Top_i16,  $00a0
     D_END
     .byte ePlatform::None
 _Actors_sActor_arr:
@@ -237,11 +233,6 @@ _Passages_sPassage_arr:
     rts
 .ENDPROC
 
-.PROC FuncC_Garden_TowerCannon_TryAct
-    ldy #kCannonPlatformIndex  ; param: platform index
-    jmp FuncA_Machine_CannonTryAct
-.ENDPROC
-
 .PROC FuncC_Garden_TowerCannon_Reset
     lda #0
     sta Ram_MachineGoalVert_u8_arr + kCannonMachineIndex
@@ -257,15 +248,6 @@ _Passages_sPassage_arr:
 .PROC FuncA_Objects_GardenTower_Draw
     ;; TODO: Draw target practice.
     rts
-.ENDPROC
-
-;;; Allocates and populates OAM slots for the GardenBossCannon machine.
-;;; @prereq Zp_MachineIndex_u8 is initialized.
-.PROC FuncA_Objects_GardenTowerCannon_Draw
-    ldx #kCannonPlatformIndex  ; param: platform index
-    jsr FuncA_Objects_SetShapePosToPlatformTopLeft
-    ldx Ram_MachineParam1_u8_arr + kCannonMachineIndex  ; param: aim angle
-    jmp FuncA_Objects_DrawCannonMachine
 .ENDPROC
 
 ;;;=========================================================================;;;

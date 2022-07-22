@@ -28,6 +28,7 @@
 .IMPORT FuncA_Objects_GetMachineLightTileId
 .IMPORT FuncA_Objects_MoveShapeDownOneTile
 .IMPORT FuncA_Objects_MoveShapeRightOneTile
+.IMPORT FuncA_Objects_SetShapePosToMachineTopLeft
 .IMPORT Func_FindEmptyActorSlot
 .IMPORT Func_InitGrenadeActor
 .IMPORT Func_MachineFinishResetting
@@ -106,15 +107,18 @@ kCannonTileIdBarrelLow  = kTileIdCannonFirst + $04
     rts
 .ENDPROC
 
-;;; Performs an action for the current cannon machine.
+;;; TryAct implemention for cannon machines.
 ;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
-;;; @param Y The platform index for the cannon machine.
 ;;; @return C Set if there was an error, cleared otherwise.
 ;;; @return A How many frames to wait before advancing the PC.
 .EXPORT FuncA_Machine_CannonTryAct
 .PROC FuncA_Machine_CannonTryAct
-    jsr Func_FindEmptyActorSlot  ; preserves Y, sets C on failure, returns X
+    jsr Func_FindEmptyActorSlot  ; sets C on failure, returns X
     bcs @doneGrenade
+    ;; Get the cannon's platform index, storing it in Y.
+    ldy #sMachine::MainPlatform_u8
+    lda (Zp_Current_sMachine_ptr), y
+    tay
     ;; Position the new grenade actor:
     lda Ram_PlatformLeft_i16_0_arr, y
     add #kTileWidthPx
@@ -176,14 +180,13 @@ kCannonTileIdBarrelLow  = kTileIdCannonFirst + $04
 
 .SEGMENT "PRGA_Objects"
 
-;;; Allocates and populates OAM slots for a grenade launcher machine.
+;;; Draw implemention for cannon machines.
 ;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
-;;; @prereq The shape position is set to the top-left corner of the machine.
-;;; @param X The aim angle (0-255).
 .EXPORT FuncA_Objects_DrawCannonMachine
 .PROC FuncA_Objects_DrawCannonMachine
-    jsr FuncA_Objects_MoveShapeDownOneTile   ; preserves X and Y
-    jsr FuncA_Objects_MoveShapeRightOneTile  ; preserves X and Y
+    jsr FuncA_Objects_SetShapePosToMachineTopLeft
+    jsr FuncA_Objects_MoveShapeDownOneTile
+    jsr FuncA_Objects_MoveShapeRightOneTile
     ;; Allocate objects.
     ldy #sMachine::Flags_bMachine
     lda (Zp_Current_sMachine_ptr), y
@@ -192,15 +195,17 @@ kCannonTileIdBarrelLow  = kTileIdCannonFirst + $04
     .assert kMachineLightPalette <> 0, error
     ora #kMachineLightPalette
     pha  ; param: object flags
-    jsr FuncA_Objects_Alloc2x2Shape  ; preserves X, returns C and Y
+    jsr FuncA_Objects_Alloc2x2Shape  ; returns C and Y
     pla  ; object flags
     bcs _Done
     ora #bObj::FlipV
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Flags_bObj, y
 _SetBarrelTileId:
-    cpx #$40
+    ldx Zp_MachineIndex_u8
+    lda Ram_MachineParam1_u8_arr, x  ; aim angle
+    cmp #$40
     blt @barrelLow
-    cpx #$c0
+    cmp #$c0
     blt @barrelMid
     @barrelHigh:
     lda #kCannonTileIdBarrelHigh

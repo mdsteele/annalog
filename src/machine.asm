@@ -26,9 +26,7 @@
 
 .IMPORT Func_PlayBeepSfx
 .IMPORT Sram_Programs_sProgram_arr
-.IMPORTZP Zp_ConsoleMachineIndex_u8
 .IMPORTZP Zp_Current_sRoom
-.IMPORTZP Zp_FrameCounter_u8
 .IMPORTZP Zp_P1ButtonsHeld_bJoypad
 .IMPORTZP Zp_Tmp1_byte
 .IMPORTZP Zp_Tmp_ptr
@@ -44,10 +42,6 @@
 ;;; Special value for Ram_MachineWait_u8_arr that indicates that the machine is
 ;;; blocked on a SYNC instruction.
 kMachineWaitForSync = $ff
-
-;;; OBJ tile IDs used for drawing machine status lights.
-kMachineLightTileIdOff = $70
-kMachineLightTileIdOn  = $71
 
 ;;;=========================================================================;;;
 
@@ -748,31 +742,6 @@ _Return:
     @while:
     cpx <(Zp_Current_sRoom + sRoom::NumMachines_u8)
     blt @loop
-    rts
-.ENDPROC
-
-;;; Returns the tile ID to use for the status light on the current machine.
-;;; @prereq Zp_MachineIndex_u8 is initialized.
-;;; @return A The tile ID to use.
-;;; @preserve Y
-.EXPORT FuncA_Objects_GetMachineLightTileId
-.PROC FuncA_Objects_GetMachineLightTileId
-    ldx Zp_MachineIndex_u8
-    lda Ram_MachineStatus_eMachine_arr, x
-    cmp #eMachine::Error
-    beq @error
-    cpx Zp_ConsoleMachineIndex_u8
-    beq @lightOn
-    bne @lightOff  ; unconditional
-    @error:
-    lda Zp_FrameCounter_u8
-    and #$08
-    beq @lightOff
-    @lightOn:
-    lda #kMachineLightTileIdOn
-    rts
-    @lightOff:
-    lda #kMachineLightTileIdOff
     rts
 .ENDPROC
 

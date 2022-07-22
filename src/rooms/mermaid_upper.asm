@@ -130,6 +130,7 @@ _Machines_sMachine_arr:
     d_word ScrollGoalX_u16, $10
     d_byte ScrollGoalY_u8, $90
     d_byte RegNames_u8_arr4, "U", 0, "L", "Y"
+    d_byte MainPlatform_u8, kLiftPlatformIndex
     d_addr Init_func_ptr, FuncC_Mermaid_UpperLift_Init
     d_addr ReadReg_func_ptr, FuncC_Mermaid_UpperLift_ReadReg
     d_addr WriteReg_func_ptr, Func_MachineError

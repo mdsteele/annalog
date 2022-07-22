@@ -121,13 +121,14 @@ _Machines_sMachine_arr:
     d_word ScrollGoalX_u16, $10
     d_byte ScrollGoalY_u8, $0
     d_byte RegNames_u8_arr4, 0, 0, 0, "Y"
+    d_byte MainPlatform_u8, kBarrierPlatformIndex
     d_addr Init_func_ptr, _Barrier_Init
     d_addr ReadReg_func_ptr, _Barrier_ReadReg
     d_addr WriteReg_func_ptr, Func_MachineError
     d_addr TryMove_func_ptr, _Barrier_TryMove
     d_addr TryAct_func_ptr, Func_MachineError
     d_addr Tick_func_ptr, _Barrier_Tick
-    d_addr Draw_func_ptr, FuncA_Objects_PrisonCellBarrier_Draw
+    d_addr Draw_func_ptr, FuncA_Objects_DrawLiftMachine
     d_addr Reset_func_ptr, _Barrier_Reset
     D_END
     .assert kBlasterMachineIndex = 1, error
@@ -139,6 +140,7 @@ _Machines_sMachine_arr:
     d_word ScrollGoalX_u16, $110
     d_byte ScrollGoalY_u8, $50
     d_byte RegNames_u8_arr4, 0, 0, "X", 0
+    d_byte MainPlatform_u8, 0  ; TODO
     d_addr Init_func_ptr, _Blaster_Init
     d_addr ReadReg_func_ptr, _Blaster_ReadReg
     d_addr WriteReg_func_ptr, Func_MachineError
@@ -305,13 +307,6 @@ _Dialog0_sDialog:
 ;;;=========================================================================;;;
 
 .SEGMENT "PRGA_Objects"
-
-;;; Allocates and populates OAM slots for the PrisonCellBarrier machine.
-;;; @prereq Zp_MachineIndex_u8 is initialized.
-.PROC FuncA_Objects_PrisonCellBarrier_Draw
-    ldx #kBarrierPlatformIndex  ; param: platform index
-    jmp FuncA_Objects_DrawLiftMachine
-.ENDPROC
 
 .PROC FuncA_Objects_PrisonCellBlaster_Draw
     ;; TODO

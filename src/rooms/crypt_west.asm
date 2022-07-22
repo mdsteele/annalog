@@ -148,6 +148,7 @@ _Machines_sMachine_arr:
     d_word ScrollGoalX_u16, $0000
     d_byte ScrollGoalY_u8, $00
     d_byte RegNames_u8_arr4, 0, 0, 0, "Z"
+    d_byte MainPlatform_u8, kWinchPlatformIndex
     d_addr Init_func_ptr, _Winch_Init
     d_addr ReadReg_func_ptr, FuncC_Crypt_WestWinch_ReadReg
     d_addr WriteReg_func_ptr, Func_MachineError

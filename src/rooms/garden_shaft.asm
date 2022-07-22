@@ -124,6 +124,7 @@ _Machines_sMachine_arr:
     d_word ScrollGoalX_u16, $00
     d_byte ScrollGoalY_u8, $90
     d_byte RegNames_u8_arr4, "L", 0, 0, "Y"
+    d_byte MainPlatform_u8, kLowerBridgePivotPlatformIndex
     d_addr Init_func_ptr, FuncC_Garden_ShaftBridge_Init
     d_addr ReadReg_func_ptr, FuncC_Garden_ShaftBridge_ReadReg
     d_addr WriteReg_func_ptr, Func_MachineError
@@ -142,6 +143,7 @@ _Machines_sMachine_arr:
     d_word ScrollGoalX_u16, $00
     d_byte ScrollGoalY_u8, $20
     d_byte RegNames_u8_arr4, "L", 0, 0, "Y"
+    d_byte MainPlatform_u8, kUpperBridgePivotPlatformIndex
     d_addr Init_func_ptr, FuncC_Garden_ShaftBridge_Init
     d_addr ReadReg_func_ptr, FuncC_Garden_ShaftBridge_ReadReg
     d_addr WriteReg_func_ptr, Func_MachineError
@@ -264,7 +266,6 @@ _Passages_sPassage_arr:
 ;;; Allocates and populates OAM slots for the GardenShaftLowerBridge machine.
 ;;; @prereq Zp_MachineIndex_u8 is initialized.
 .PROC FuncA_Objects_GardenShaftLowerBridge_Draw
-    lda #kLowerBridgePivotPlatformIndex  ; param: fixed segment platform index
     ldx #kLowerBridgePivotPlatformIndex + kNumMovableLowerBridgeSegments
     jmp FuncA_Objects_DrawBridgeMachine
 .ENDPROC
@@ -272,7 +273,6 @@ _Passages_sPassage_arr:
 ;;; Allocates and populates OAM slots for the GardenShaftLowerBridge machine.
 ;;; @prereq Zp_MachineIndex_u8 is initialized.
 .PROC FuncA_Objects_GardenShaftUpperBridge_Draw
-    lda #kUpperBridgePivotPlatformIndex  ; param: fixed segment platform index
     ldx #kUpperBridgePivotPlatformIndex + kNumMovableUpperBridgeSegments
     jmp FuncA_Objects_DrawBridgeMachine
 .ENDPROC

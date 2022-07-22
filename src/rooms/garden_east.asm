@@ -43,7 +43,6 @@
 .IMPORT FuncA_Machine_CannonTryMove
 .IMPORT FuncA_Objects_DrawBridgeMachine
 .IMPORT FuncA_Objects_DrawCannonMachine
-.IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
 .IMPORT Func_IsFlagSet
 .IMPORT Func_MachineBridgeReadRegY
 .IMPORT Func_MachineCannonReadRegY
@@ -54,7 +53,6 @@
 .IMPORT Ram_ActorType_eActor_arr
 .IMPORT Ram_DeviceType_eDevice_arr
 .IMPORT Ram_MachineGoalVert_u8_arr
-.IMPORT Ram_MachineParam1_u8_arr
 .IMPORT Ram_RoomState
 
 ;;;=========================================================================;;;
@@ -141,6 +139,7 @@ _Machines_sMachine_arr:
     d_word ScrollGoalX_u16, $d0
     d_byte ScrollGoalY_u8, $00
     d_byte RegNames_u8_arr4, "L", 0, 0, "Y"
+    d_byte MainPlatform_u8, kBridgePivotPlatformIndex
     d_addr Init_func_ptr, Func_Noop
     d_addr ReadReg_func_ptr, FuncC_Garden_EastBridge_ReadReg
     d_addr WriteReg_func_ptr, Func_MachineError
@@ -159,13 +158,14 @@ _Machines_sMachine_arr:
     d_word ScrollGoalX_u16, $b0
     d_byte ScrollGoalY_u8, $9f
     d_byte RegNames_u8_arr4, "L", 0, 0, "Y"
+    d_byte MainPlatform_u8, kCannonPlatformIndex
     d_addr Init_func_ptr, Func_Noop
     d_addr ReadReg_func_ptr, FuncC_Garden_EastCannon_ReadReg
     d_addr WriteReg_func_ptr, Func_MachineError
     d_addr TryMove_func_ptr, FuncA_Machine_CannonTryMove
-    d_addr TryAct_func_ptr, FuncC_Garden_EastCannon_TryAct
+    d_addr TryAct_func_ptr, FuncA_Machine_CannonTryAct
     d_addr Tick_func_ptr, FuncA_Machine_CannonTick
-    d_addr Draw_func_ptr, FuncA_Objects_GardenEastCannon_Draw
+    d_addr Draw_func_ptr, FuncA_Objects_DrawCannonMachine
     d_addr Reset_func_ptr, FuncC_Garden_EastCannon_Reset
     D_END
 _Platforms_sPlatform_arr:
@@ -343,11 +343,6 @@ _Passages_sPassage_arr:
     rts
 .ENDPROC
 
-.PROC FuncC_Garden_EastCannon_TryAct
-    ldy #kCannonPlatformIndex  ; param: platform index
-    jmp FuncA_Machine_CannonTryAct
-.ENDPROC
-
 .PROC FuncC_Garden_EastCannon_Reset
     lda #0
     sta Ram_MachineGoalVert_u8_arr + kCannonMachineIndex
@@ -361,18 +356,8 @@ _Passages_sPassage_arr:
 ;;; Allocates and populates OAM slots for the GardenEastBridge machine.
 ;;; @prereq Zp_MachineIndex_u8 is initialized.
 .PROC FuncA_Objects_GardenEastBridge_Draw
-    lda #kBridgePivotPlatformIndex  ; param: fixed segment platform index
     ldx #kBridgePivotPlatformIndex + kNumMovableBridgeSegments  ; param: last
     jmp FuncA_Objects_DrawBridgeMachine
-.ENDPROC
-
-;;; Allocates and populates OAM slots for the GardenEastCannon machine.
-;;; @prereq Zp_MachineIndex_u8 is initialized.
-.PROC FuncA_Objects_GardenEastCannon_Draw
-    ldx #kCannonPlatformIndex  ; param: platform index
-    jsr FuncA_Objects_SetShapePosToPlatformTopLeft
-    ldx Ram_MachineParam1_u8_arr + kCannonMachineIndex  ; param: aim angle
-    jmp FuncA_Objects_DrawCannonMachine
 .ENDPROC
 
 ;;;=========================================================================;;;

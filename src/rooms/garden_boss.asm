@@ -36,7 +36,6 @@
 .IMPORT FuncA_Machine_CannonTick
 .IMPORT FuncA_Machine_CannonTryMove
 .IMPORT FuncA_Objects_DrawCannonMachine
-.IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
 .IMPORT Func_FindEmptyActorSlot
 .IMPORT Func_GetRandomByte
 .IMPORT Func_InitFireballActor
@@ -58,7 +57,6 @@
 .IMPORT Ram_DeviceAnim_u8_arr
 .IMPORT Ram_DeviceType_eDevice_arr
 .IMPORT Ram_MachineGoalVert_u8_arr
-.IMPORT Ram_MachineParam1_u8_arr
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORT Ram_RoomState
 .IMPORT Sram_ProgressFlags_arr
@@ -221,13 +219,14 @@ _Machines_sMachine_arr:
     d_word ScrollGoalX_u16, $0
     d_byte ScrollGoalY_u8, $0e
     d_byte RegNames_u8_arr4, "L", "R", 0, "Y"
+    d_byte MainPlatform_u8, kCannonPlatformIndex
     d_addr Init_func_ptr, Func_Noop
     d_addr ReadReg_func_ptr, _Cannon_ReadReg
     d_addr WriteReg_func_ptr, Func_MachineError
     d_addr TryMove_func_ptr, FuncA_Machine_CannonTryMove
     d_addr TryAct_func_ptr, _Cannon_TryAct
     d_addr Tick_func_ptr, FuncA_Machine_CannonTick
-    d_addr Draw_func_ptr, FuncA_Objects_GardenBossCannon_Draw
+    d_addr Draw_func_ptr, FuncA_Objects_DrawCannonMachine
     d_addr Reset_func_ptr, _Cannon_Reset
     D_END
 _Platforms_sPlatform_arr:
@@ -691,15 +690,6 @@ _PosY_u8_arr:
     d_byte Left,  kBossLeftEyeCenterY  - 5
     d_byte Right, kBossRightEyeCenterY - 5
     D_END
-.ENDPROC
-
-;;; Allocates and populates OAM slots for the GardenBossCannon machine.
-;;; @prereq Zp_MachineIndex_u8 is initialized.
-.PROC FuncA_Objects_GardenBossCannon_Draw
-    ldx #kCannonPlatformIndex  ; param: platform index
-    jsr FuncA_Objects_SetShapePosToPlatformTopLeft
-    ldx Ram_MachineParam1_u8_arr + kCannonMachineIndex  ; param: aim angle
-    jmp FuncA_Objects_DrawCannonMachine
 .ENDPROC
 
 ;;;=========================================================================;;;

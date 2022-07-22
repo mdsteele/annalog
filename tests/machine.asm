@@ -48,14 +48,8 @@ kMaxTestMachinePosY = 9
 
 .ZEROPAGE
 
-.EXPORTZP Zp_ConsoleMachineIndex_u8
-Zp_ConsoleMachineIndex_u8: .res 1
-
 .EXPORTZP Zp_Current_sRoom
 Zp_Current_sRoom: .tag sRoom
-
-.EXPORTZP Zp_FrameCounter_u8
-Zp_FrameCounter_u8: .res 1
 
 .EXPORTZP Zp_P1ButtonsHeld_bJoypad
 Zp_P1ButtonsHeld_bJoypad: .res 1
@@ -118,6 +112,7 @@ TestMachine:
     d_word ScrollGoalX_u16, 0
     d_byte ScrollGoalY_u8, 0
     d_byte RegNames_u8_arr4, 0, 0, "X", "Y"
+    d_byte MainPlatform_u8, 0
     d_addr Init_func_ptr, _Init
     d_addr ReadReg_func_ptr, _ReadReg
     d_addr WriteReg_func_ptr, Func_MachineError

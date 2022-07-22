@@ -74,6 +74,8 @@ kMachineRegNameB = $21  ; 'B'
     ScrollGoalY_u8    .byte
     ;; The names (i.e. BG tile IDs) for registers $c through $f.
     RegNames_u8_arr4  .res 4
+    ;; The main platform index for this machine (not used for all machines).
+    MainPlatform_u8   .byte
     ;; Function to initialize machine-specific state (when entering the area).
     ;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
     Init_func_ptr     .addr

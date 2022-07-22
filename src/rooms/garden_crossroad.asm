@@ -118,13 +118,14 @@ _Machines_sMachine_arr:
     d_word ScrollGoalX_u16, $08
     d_byte ScrollGoalY_u8, $60
     d_byte RegNames_u8_arr4, "L", 0, 0, "Y"
+    d_byte MainPlatform_u8, kLiftPlatformIndex
     d_addr Init_func_ptr, _Lift_Init
     d_addr ReadReg_func_ptr, FuncC_Garden_CrossroadLift_ReadReg
     d_addr WriteReg_func_ptr, Func_MachineError
     d_addr TryMove_func_ptr, FuncC_Garden_CrossroadLift_TryMove
     d_addr TryAct_func_ptr, Func_MachineError
     d_addr Tick_func_ptr, FuncC_Garden_CrossroadLift_Tick
-    d_addr Draw_func_ptr, FuncA_Objects_GardenCrossroadLift_Draw
+    d_addr Draw_func_ptr, FuncA_Objects_DrawLiftMachine
     d_addr Reset_func_ptr, _Lift_Reset
     D_END
 _Platforms_sPlatform_arr:
@@ -264,17 +265,6 @@ _ReadL:
     rts
     @done:
     jmp Func_MachineFinishResetting
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Objects"
-
-;;; Allocates and populates OAM slots for the GardenCrossroadLift machine.
-;;; @prereq Zp_MachineIndex_u8 is initialized.
-.PROC FuncA_Objects_GardenCrossroadLift_Draw
-    ldx #kLiftPlatformIndex  ; param: platform index
-    jmp FuncA_Objects_DrawLiftMachine
 .ENDPROC
 
 ;;;=========================================================================;;;

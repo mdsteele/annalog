@@ -206,10 +206,11 @@ _Delta_u8_arr:
 
 ;;; Allocates and populates OAM slots for a drawbridge machine.
 ;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
-;;; @param A The platform index for the fixed pivot segment.
 ;;; @param X The platform index for the last movable segment.
 .EXPORT FuncA_Objects_DrawBridgeMachine
 .PROC FuncA_Objects_DrawBridgeMachine
+    ldy #sMachine::MainPlatform_u8
+    lda (Zp_Current_sMachine_ptr), y
 _SegmentLoop:
     pha  ; pivot platform index
     jsr FuncA_Objects_SetShapePosToPlatformTopLeft  ; preserves X

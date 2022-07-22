@@ -25,7 +25,7 @@
 .IMPORT FuncA_Objects_GetMachineLightTileId
 .IMPORT FuncA_Objects_MoveShapeDownOneTile
 .IMPORT FuncA_Objects_MoveShapeRightOneTile
-.IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
+.IMPORT FuncA_Objects_SetShapePosToMachineTopLeft
 .IMPORT Ram_Oam_sObj_arr64
 
 ;;;=========================================================================;;;
@@ -38,12 +38,11 @@ kTileIdLiftSurface  = $72
 
 .SEGMENT "PRGA_Objects"
 
-;;; Allocates and populates OAM slots for a lift machine.
+;;; Draw implemention for lift machines.
 ;;; @prereq Zp_MachineIndex_u8 is initialized.
-;;; @param X The platform index for the lift machine.
 .EXPORT FuncA_Objects_DrawLiftMachine
 .PROC FuncA_Objects_DrawLiftMachine
-    jsr FuncA_Objects_SetShapePosToPlatformTopLeft
+    jsr FuncA_Objects_SetShapePosToMachineTopLeft
 _TopHalf:
     ;; Allocate objects.
     jsr FuncA_Objects_MoveShapeDownOneTile

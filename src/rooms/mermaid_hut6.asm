@@ -101,6 +101,7 @@ _Machines_sMachine_arr:
     d_word ScrollGoalX_u16, $00
     d_byte ScrollGoalY_u8, $00
     d_byte RegNames_u8_arr4, 0, 0, 0, "Y"
+    d_byte MainPlatform_u8, 0
     d_addr Init_func_ptr, Func_Noop
     d_addr ReadReg_func_ptr, FuncC_Mermaid_Hut6Machine_ReadReg
     d_addr WriteReg_func_ptr, Func_MachineError
@@ -118,6 +119,7 @@ _Machines_sMachine_arr:
     d_word ScrollGoalX_u16, $00
     d_byte ScrollGoalY_u8, $00
     d_byte RegNames_u8_arr4, 0, 0, 0, "Y"
+    d_byte MainPlatform_u8, 1
     d_addr Init_func_ptr, Func_Noop
     d_addr ReadReg_func_ptr, FuncC_Mermaid_Hut6Machine_ReadReg
     d_addr WriteReg_func_ptr, Func_MachineError
