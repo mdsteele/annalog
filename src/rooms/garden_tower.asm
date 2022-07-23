@@ -56,11 +56,6 @@ kCannonPlatformIndex = 0
     ;; The current states of the room's two levers.
     LeverLeft_u1         .byte
     LeverRight_u1        .byte
-    ;; The current aim angle of the GardenBossCannon machine (0-255).
-    CannonAngle_u8       .byte
-    ;; The goal value of the GardenBossCannon machine's Y register; it will
-    ;; keep moving until this is reached.
-    CannonGoalY_u8       .byte
 .ENDSTRUCT
 .ASSERT .sizeof(sState) <= kRoomStateSize, error
 

@@ -99,6 +99,7 @@ Ram_PlatformRight_i16_1_arr: .res kMaxPlatforms
 ;;; @param A The max distance to move by, in pixels (0-127).
 ;;; @param X The platform index.
 ;;; @return A The pixel delta that the platform actually moved by (signed).
+;;; @return N Set if the platform moved left, cleared otherwise.
 ;;; @return Z Cleared if the platform moved, set if it didn't.
 ;;; @preserve X
 .EXPORT Func_MovePlatformLeftToward
@@ -185,6 +186,7 @@ _MoveByA:
 ;;; @param A The max distance to move by, in pixels (0-127).
 ;;; @param X The platform index.
 ;;; @return A The pixel delta that the platform actually moved by (signed).
+;;; @return N Set if the platform moved up, cleared otherwise.
 ;;; @return Z Cleared if the platform moved, set if it didn't.
 ;;; @preserve X
 .EXPORT Func_MovePlatformTopToward

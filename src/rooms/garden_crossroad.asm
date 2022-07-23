@@ -31,17 +31,21 @@
 .IMPORT DataA_Pause_GardenAreaCells_u8_arr2_arr
 .IMPORT DataA_Pause_GardenAreaName_u8_arr
 .IMPORT DataA_Room_Garden_sTileset
+.IMPORT FuncA_Machine_LiftMoveTowardGoal
+.IMPORT FuncA_Machine_LiftTryMove
 .IMPORT FuncA_Objects_DrawLiftMachine
+.IMPORT Func_InitSmokeActor
 .IMPORT Func_MachineError
 .IMPORT Func_MachineFinishResetting
-.IMPORT Func_MovePlatformTopToward
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrObjGarden
-.IMPORT Ram_MachineStatus_eMachine_arr
+.IMPORT Ram_ActorPosX_i16_0_arr
+.IMPORT Ram_ActorType_eActor_arr
+.IMPORT Ram_MachineGoalVert_u8_arr
+.IMPORT Ram_PlatformLeft_i16_0_arr
+.IMPORT Ram_PlatformRight_i16_0_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORT Ram_RoomState
-.IMPORTZP Zp_PlatformGoal_i16
-.IMPORTZP Zp_Tmp1_byte
 
 ;;;=========================================================================;;;
 
@@ -51,7 +55,7 @@ kLiftMachineIndex = 0
 ;;; The platform index for the GardenCrossroadLift machine.
 kLiftPlatformIndex = 0
 
-;;; The initial and maximum permitted values for sState::LiftGoalY_u8.
+;;; The initial and maximum permitted vertical goal values for the lift.
 kLiftInitGoalY = 1
 kLiftMaxGoalY = 9
 
@@ -59,15 +63,13 @@ kLiftMaxGoalY = 9
 kLiftMaxPlatformTop = $00e0
 kLiftInitPlatformTop = kLiftMaxPlatformTop - kLiftInitGoalY * kBlockHeightPx
 
-;;; How many frames the GardenCrossroadLift machine spends per move operation.
-kLiftMoveCooldown = kBlockHeightPx
+;;; The actor index for the enemy that can get squished by the lift machine.
+kSquishableActorIndex = 0
 
 ;;; Defines room-specific state data for this particular room.
 .STRUCT sState
     ;; The current state of the room's lever.
     Lever_u1     .byte
-    ;; The goal value for the GardenCrossroadLift machine's Y register.
-    LiftGoalY_u8 .byte
 .ENDSTRUCT
 .ASSERT .sizeof(sState) <= kRoomStateSize, error
 
@@ -139,16 +141,19 @@ _Platforms_sPlatform_arr:
     D_END
     .byte ePlatform::None
 _Actors_sActor_arr:
-    D_STRUCT sActor
-    d_byte Type_eActor, eActor::Crawler
-    d_byte TileRow_u8, 23
-    d_byte TileCol_u8, 7
-    d_byte Param_byte, 0
-    D_END
+    ;; The enemy that can get squished by the lift machine:
+    .assert kSquishableActorIndex = 0, error
     D_STRUCT sActor
     d_byte Type_eActor, eActor::Crawler
     d_byte TileRow_u8, 31
     d_byte TileCol_u8, 19
+    d_byte Param_byte, 0
+    D_END
+    ;; Other enemies:
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::Crawler
+    d_byte TileRow_u8, 23
+    d_byte TileCol_u8, 7
     d_byte Param_byte, 0
     D_END
     D_STRUCT sActor
@@ -196,7 +201,7 @@ _Passages_sPassage_arr:
 _Lift_Init:
 _Lift_Reset:
     lda #kLiftInitGoalY
-    sta Ram_RoomState + sState::LiftGoalY_u8
+    sta Ram_MachineGoalVert_u8_arr + kLiftMachineIndex
     rts
 .ENDPROC
 
@@ -215,56 +220,34 @@ _ReadL:
 .ENDPROC
 
 .PROC FuncC_Garden_CrossroadLift_TryMove
-    ldy Ram_RoomState + sState::LiftGoalY_u8
-    cpx #eDir::Up
-    bne @moveDown
-    @moveUp:
-    cpy #kLiftMaxGoalY
-    bge @error
-    iny
-    bne @success  ; unconditional
-    @moveDown:
-    tya
-    beq @error
-    dey
-    @success:
-    sty Ram_RoomState + sState::LiftGoalY_u8
-    lda #kLiftMoveCooldown
-    clc  ; success
-    rts
-    @error:
-    sec  ; failure
-    rts
+    lda #kLiftMaxGoalY  ; param: max goal vert
+    jmp FuncA_Machine_LiftTryMove
 .ENDPROC
 
 .PROC FuncC_Garden_CrossroadLift_Tick
-    ;; Calculate the desired Y-position for the top edge of the lift, in
-    ;; room-space pixels, storing it in Zp_PlatformGoal_i16.
-    lda Ram_RoomState + sState::LiftGoalY_u8
-    .assert kLiftMaxGoalY * kBlockHeightPx < $100, error
-    mul #kBlockHeightPx  ; fits in one byte
-    sta Zp_Tmp1_byte
+    ldax #kLiftMaxPlatformTop  ; param: max platform top
+    jsr FuncA_Machine_LiftMoveTowardGoal  ; returns Z, N, and A
+    jeq Func_MachineFinishResetting
+    ;; If the machine moved downwards, check if the enemy below got squished.
+    bmi @noSquish  ; the machine moved up, not down
+    lda Ram_ActorType_eActor_arr + kSquishableActorIndex
+    .assert eActor::None = 0, error
+    beq @noSquish  ; the actor is already gone
     .assert kLiftMaxPlatformTop < $100, error
-    lda #kLiftMaxPlatformTop
-    sub Zp_Tmp1_byte
-    sta Zp_PlatformGoal_i16 + 0
-    lda #0
-    sta Zp_PlatformGoal_i16 + 1
-    ;; Determine the vertical speed of the lift (faster if resetting).
-    lda #1
-    ldy Ram_MachineStatus_eMachine_arr + kLiftMachineIndex
-    cpy #eMachine::Resetting
-    bne @slow
-    mul #2
-    @slow:
-    ;; Move the lift vertically, as necessary.
-    ldx #kLiftPlatformIndex  ; param: platform index
-    jsr Func_MovePlatformTopToward  ; returns Z and A
-    beq @done
-    ;; TODO: If moving down, check if the actor got crushed.
+    lda Ram_PlatformTop_i16_0_arr + kLiftPlatformIndex
+    cmp #kLiftMaxPlatformTop - 7
+    blt @noSquish  ; the platform is not low enough to squish the enemy
+    ;; This room is only one screen wide, so we only need to check the lo byte
+    ;; of the actor and platform's horizontal positions.
+    lda Ram_ActorPosX_i16_0_arr + kSquishableActorIndex
+    cmp Ram_PlatformLeft_i16_0_arr + kLiftPlatformIndex
+    blt @noSquish  ; the actor is to the left of the platform
+    cmp Ram_PlatformRight_i16_0_arr + kLiftPlatformIndex
+    bge @noSquish  ; the actor is to the right of the platform
+    ldx #kSquishableActorIndex  ; param: actor index
+    jmp Func_InitSmokeActor
+    @noSquish:
     rts
-    @done:
-    jmp Func_MachineFinishResetting
 .ENDPROC
 
 ;;;=========================================================================;;;

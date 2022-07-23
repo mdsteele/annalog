@@ -113,8 +113,8 @@
     GardenShaftLowerBridge
     GardenShaftUpperBridge
     MermaidUpperLift
-    PrisonCellBarrier
     PrisonCellBlaster
+    PrisonCellLift
     PrisonEscapeTrolley
     NUM_VALUES
 .ENDENUM

@@ -31,48 +31,32 @@
 .IMPORT DataA_Pause_PrisonAreaCells_u8_arr2_arr
 .IMPORT DataA_Pause_PrisonAreaName_u8_arr
 .IMPORT DataA_Room_Prison_sTileset
+.IMPORT FuncA_Machine_LiftMoveTowardGoal
+.IMPORT FuncA_Machine_LiftTryMove
 .IMPORT FuncA_Objects_DrawLiftMachine
 .IMPORT Func_MachineError
 .IMPORT Func_MachineFinishResetting
-.IMPORT Func_MovePlatformVert
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrObjUpgrade
-.IMPORT Ram_RoomState
+.IMPORT Ram_MachineGoalVert_u8_arr
+.IMPORT Ram_PlatformTop_i16_0_arr
 
 ;;;=========================================================================;;;
 
 ;;; The machine indices for the machines in this room.
-kBarrierMachineIndex = 0
+kLiftMachineIndex = 0
 kBlasterMachineIndex = 1
 
-;;; The platform index for the PrisonCellBarrier machine in this room.
-kBarrierPlatformIndex = 0
+;;; The platform index for the PrisonCellLift machine in this room.
+kLiftPlatformIndex = 0
 
-;;; The initial and max values for sState::BarrierRegY_u8.
-kBarrierInitRegY = 1
-kBarrierMaxRegY = 1
+;;; The initial and maximum permitted vertical goal values for the lift.
+kLiftInitGoalY = 0
+kLiftMaxGoalY = 1
 
-;;; How fast the PrisonCellBarrier platform moves, in pixels per frame.
-kBarrierSpeed = 1
-
-;;; How many frames the PrisonCellBarrier machine spends per move operation.
-kBarrierCountdown = $10
-
-;;; Defines room-specific state data for this particular room.
-.STRUCT sState
-    ;; The current value of the PrisonCellBarrier machine's Y register.
-    BarrierRegY_u8      .byte
-    ;; The goal value of the PrisonCellBarrier machine's Y register; it will
-    ;; keep moving until this is reached.
-    BarrierGoalY_u8     .byte
-    ;; Nonzero if the PrisonCellBarrier machine is moving; this is how many
-    ;; more frames until it finishes the current move operation.
-    BarrierCountdown_u8 .byte
-    ;; If BarrierCountdown_u8 is nonzero, this is the direction the machine is
-    ;; currently moving.
-    BarrierMove_eDir    .byte
-.ENDSTRUCT
-.ASSERT .sizeof(sState) <= kRoomStateSize, error
+;;; The maximum and initial Y-positions for the top of the lift platform.
+kLiftMaxPlatformTop = $0080
+kLiftInitPlatformTop = kLiftMaxPlatformTop - kLiftInitGoalY * kBlockHeightPx
 
 ;;;=========================================================================;;;
 
@@ -112,24 +96,24 @@ _TerrainData:
 :   .incbin "out/data/prison_cell.room"
     .assert * - :- = 34 * 24, error
 _Machines_sMachine_arr:
-    .assert kBarrierMachineIndex = 0, error
+    .assert kLiftMachineIndex = 0, error
     D_STRUCT sMachine
-    d_byte Code_eProgram, eProgram::PrisonCellBarrier
+    d_byte Code_eProgram, eProgram::PrisonCellLift
     d_byte Conduit_eFlag, 0
     d_byte Flags_bMachine, bMachine::MoveV
     d_byte Status_eDiagram, eDiagram::Lift
     d_word ScrollGoalX_u16, $10
     d_byte ScrollGoalY_u8, $0
     d_byte RegNames_u8_arr4, 0, 0, 0, "Y"
-    d_byte MainPlatform_u8, kBarrierPlatformIndex
-    d_addr Init_func_ptr, _Barrier_Init
-    d_addr ReadReg_func_ptr, _Barrier_ReadReg
+    d_byte MainPlatform_u8, kLiftPlatformIndex
+    d_addr Init_func_ptr, _Lift_Init
+    d_addr ReadReg_func_ptr, _Lift_ReadReg
     d_addr WriteReg_func_ptr, Func_MachineError
-    d_addr TryMove_func_ptr, _Barrier_TryMove
+    d_addr TryMove_func_ptr, FuncC_Prison_CellLift_TryMove
     d_addr TryAct_func_ptr, Func_MachineError
-    d_addr Tick_func_ptr, _Barrier_Tick
+    d_addr Tick_func_ptr, FuncC_Prison_CellLift_Tick
     d_addr Draw_func_ptr, FuncA_Objects_DrawLiftMachine
-    d_addr Reset_func_ptr, _Barrier_Reset
+    d_addr Reset_func_ptr, _Lift_Reset
     D_END
     .assert kBlasterMachineIndex = 1, error
     D_STRUCT sMachine
@@ -151,13 +135,13 @@ _Machines_sMachine_arr:
     d_addr Reset_func_ptr, _Blaster_Reset
     D_END
 _Platforms_sPlatform_arr:
-    .assert kBarrierPlatformIndex = 0, error
+    .assert kLiftPlatformIndex = 0, error
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Solid
     d_word WidthPx_u16, $10
     d_byte HeightPx_u8, $20
     d_word Left_i16,  $0020
-    d_word Top_i16,   $0080
+    d_word Top_i16, kLiftInitPlatformTop
     D_END
     .byte ePlatform::None
 _Actors_sActor_arr:
@@ -173,7 +157,7 @@ _Devices_sDevice_arr:
     d_byte Type_eDevice, eDevice::Console
     d_byte BlockRow_u8, 4
     d_byte BlockCol_u8, 3
-    d_byte Target_u8, kBarrierMachineIndex
+    d_byte Target_u8, kLiftMachineIndex
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Console
@@ -203,71 +187,16 @@ _Passages_sPassage_arr:
     d_byte Destination_eRoom, eRoom::GardenLanding
     d_byte SpawnBlock_u8, 25
     D_END
-_Barrier_Init:
-    lda #kBarrierInitRegY
-    sta Ram_RoomState + sState::BarrierRegY_u8
-    sta Ram_RoomState + sState::BarrierGoalY_u8
+_Lift_Init:
+_Lift_Reset:
+    lda #kLiftInitGoalY
+    sta Ram_MachineGoalVert_u8_arr + kLiftMachineIndex
     rts
-_Barrier_ReadReg:
-    lda Ram_RoomState + sState::BarrierRegY_u8
-    rts
-_Barrier_TryMove:
-    ldy Ram_RoomState + sState::BarrierRegY_u8
-    cpx #eDir::Up
-    beq @moveUp
-    @moveDown:
-    cpy #kBarrierMaxRegY
-    bge @error
-    iny
-    bne @success  ; unconditional
-    @moveUp:
-    tya
-    beq @error
-    dey
-    @success:
-    sty Ram_RoomState + sState::BarrierGoalY_u8
-    lda #kBarrierCountdown
-    clc  ; clear C to indicate success
-    rts
-    @error:
-    sec  ; set C to indicate failure
-    rts
-_Barrier_Tick:
-    lda Ram_RoomState + sState::BarrierCountdown_u8
-    bne @continueMove
-    ldy Ram_RoomState + sState::BarrierRegY_u8
-    cpy Ram_RoomState + sState::BarrierGoalY_u8
-    jeq Func_MachineFinishResetting
-    bge @beginMoveUp
-    @beginMoveDown:
-    ldx #eDir::Down
-    iny
-    bne @beginMove  ; unconditional
-    @beginMoveUp:
-    ldx #eDir::Up
-    dey
-    @beginMove:
-    sty Ram_RoomState + sState::BarrierRegY_u8
-    stx Ram_RoomState + sState::BarrierMove_eDir
-    lda #kBarrierCountdown
-    sta Ram_RoomState + sState::BarrierCountdown_u8
-    @continueMove:
-    dec Ram_RoomState + sState::BarrierCountdown_u8
-    ldx Ram_RoomState + sState::BarrierMove_eDir
-    cpx #eDir::Up
-    beq @continueMoveUp
-    @continueMoveDown:
-    lda #kBarrierSpeed          ; param: move delta
-    ldx #kBarrierPlatformIndex  ; param: platform index
-    jmp Func_MovePlatformVert
-    @continueMoveUp:
-    lda #$ff & -kBarrierSpeed   ; param: move delta
-    ldx #kBarrierPlatformIndex  ; param: platform index
-    jmp Func_MovePlatformVert
-_Barrier_Reset:
-    lda #kBarrierInitRegY
-    sta Ram_RoomState + sState::BarrierGoalY_u8
-    ;; TODO: Turn the machine around if it's currently moving up.
+_Lift_ReadReg:
+    .assert kLiftMaxPlatformTop + kTileHeightPx < $100, error
+    lda #kLiftMaxPlatformTop + kTileHeightPx
+    sub Ram_PlatformTop_i16_0_arr + kLiftPlatformIndex
+    div #kBlockHeightPx
     rts
 _Blaster_Init:
     ;; TODO
@@ -286,6 +215,18 @@ _Blaster_Tick:
     rts
 _Blaster_Reset:
     ;; TODO
+    rts
+.ENDPROC
+
+.PROC FuncC_Prison_CellLift_TryMove
+    lda #kLiftMaxGoalY  ; param: max goal vert
+    jmp FuncA_Machine_LiftTryMove
+.ENDPROC
+
+.PROC FuncC_Prison_CellLift_Tick
+    ldax #kLiftMaxPlatformTop  ; param: max platform top
+    jsr FuncA_Machine_LiftMoveTowardGoal  ; returns Z
+    jeq Func_MachineFinishResetting
     rts
 .ENDPROC
 

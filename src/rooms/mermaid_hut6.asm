@@ -112,7 +112,7 @@ _Machines_sMachine_arr:
     d_addr Reset_func_ptr, FuncC_Mermaid_Hut6Machine_Reset
     D_END
     D_STRUCT sMachine
-    d_byte Code_eProgram, eProgram::PrisonCellBarrier
+    d_byte Code_eProgram, eProgram::PrisonCellLift
     d_byte Conduit_eFlag, 0
     d_byte Flags_bMachine, bMachine::MoveV
     d_byte Status_eDiagram, eDiagram::Lift

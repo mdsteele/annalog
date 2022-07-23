@@ -149,11 +149,6 @@ kBossRightEyeCenterY = $78
     LeverRight_u1        .byte
     ;; Counts down when nonzero; upon reaching zero, spawns the upgrade.
     SpawnUpgradeTimer_u8 .byte
-    ;; The current aim angle of the GardenBossCannon machine (0-255).
-    CannonAngle_u8       .byte
-    ;; The goal value of the GardenBossCannon machine's Y register; it will
-    ;; keep moving until this is reached.
-    CannonGoalY_u8       .byte
     ;; How many more grenade hits are needed before the boss dies.
     BossHealth_u8        .byte
     ;; Timer that ticks down each frame when nonzero.  Used to time transitions

@@ -46,11 +46,11 @@
 .IMPORT Func_MovePlatformLeftToward
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrObjUpgrade
+.IMPORT Ram_MachineGoalHorz_u8_arr
 .IMPORT Ram_MachineStatus_eMachine_arr
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORT Ram_PlatformLeft_i16_0_arr
 .IMPORT Ram_PlatformLeft_i16_1_arr
-.IMPORT Ram_RoomState
 .IMPORTZP Zp_PlatformGoal_i16
 .IMPORTZP Zp_ShapePosX_i16
 .IMPORTZP Zp_Tmp1_byte
@@ -85,13 +85,6 @@ kTrolleyTileIdGirder   = $79
 ;;; machine.
 kTrolleyGirderPalette = 0
 kTrolleyRopePalette   = 0
-
-;;; Defines room-specific state data for this particular room.
-.STRUCT sState
-    ;; The goal value for the PrisonEscapeTrolley machine's X register.
-    TrolleyGoalX_u8 .byte
-.ENDSTRUCT
-.ASSERT .sizeof(sState) <= kRoomStateSize, error
 
 ;;;=========================================================================;;;
 
@@ -221,7 +214,7 @@ _Passages_sPassage_arr:
 _Trolley_Init:
 _Trolley_Reset:
     lda #0
-    sta Ram_RoomState + sState::TrolleyGoalX_u8
+    sta Ram_MachineGoalHorz_u8_arr + kTrolleyMachineIndex
     rts
 _Trolley_ReadReg:
     lda Ram_PlatformLeft_i16_0_arr + kTrolleyPlatformIndex
@@ -239,15 +232,15 @@ _Trolley_TryMove:
     cpx #eDir::Left
     beq @moveLeft
     @moveRight:
-    lda Ram_RoomState + sState::TrolleyGoalX_u8
+    lda Ram_MachineGoalHorz_u8_arr + kTrolleyMachineIndex
     cmp #kTrolleyMaxGoalX
     bge @error
-    inc Ram_RoomState + sState::TrolleyGoalX_u8
+    inc Ram_MachineGoalHorz_u8_arr + kTrolleyMachineIndex
     bne @success  ; unconditional
     @moveLeft:
-    lda Ram_RoomState + sState::TrolleyGoalX_u8
+    lda Ram_MachineGoalHorz_u8_arr + kTrolleyMachineIndex
     beq @error
-    dec Ram_RoomState + sState::TrolleyGoalX_u8
+    dec Ram_MachineGoalHorz_u8_arr + kTrolleyMachineIndex
     @success:
     lda #kTrolleyMoveCooldown
     clc  ; success
@@ -258,7 +251,7 @@ _Trolley_TryMove:
 _Trolley_Tick:
     ;; Calculate the desired X-position for the left edge of the trolley, in
     ;; room-space pixels, storing it in Zp_PlatformGoal_i16.
-    lda Ram_RoomState + sState::TrolleyGoalX_u8
+    lda Ram_MachineGoalHorz_u8_arr + kTrolleyMachineIndex
     .assert kTrolleyMaxGoalX * kBlockWidthPx < $100, error
     mul #kBlockWidthPx  ; fits in one byte
     add #<kTrolleyMinPlatformLeft
