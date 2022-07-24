@@ -79,6 +79,7 @@
 .IMPORT Ram_PlatformTop_i16_1_arr
 .IMPORT Ram_PlatformType_ePlatform_arr
 .IMPORTZP Zp_AvatarPlatformIndex_u8
+.IMPORTZP Zp_CameraCanScroll_bool
 .IMPORTZP Zp_ConsoleMachineIndex_u8
 .IMPORTZP Zp_HudMachineIndex_u8
 .IMPORTZP Zp_RoomIsSafe_bool
@@ -399,16 +400,17 @@ _LoadDevices:
 _SetVars:
     lda #$ff
     sta Zp_AvatarPlatformIndex_u8
+    sta Zp_CameraCanScroll_bool
     sta Zp_ConsoleMachineIndex_u8
     sta Zp_HudMachineIndex_u8
     sta Zp_RoomIsSafe_bool
 _CallInit:
-    jsr FuncA_Room_InitCurrentRoom
+    jsr FuncA_Room_CallRoomInit
     jmp Func_InitAllMachines
 .ENDPROC
 
 ;;; Calls the current room's Init_func_ptr function.
-.PROC FuncA_Room_InitCurrentRoom
+.PROC FuncA_Room_CallRoomInit
     ldy #sRoomExt::Init_func_ptr
     lda (Zp_Current_sRoom + sRoom::Ext_sRoomExt_ptr), y
     sta Zp_Tmp_ptr + 0

@@ -54,6 +54,7 @@
 .IMPORT Func_MovePlatformHorz
 .IMPORT Func_MovePlatformLeftToward
 .IMPORT Func_MovePlatformTopToward
+.IMPORT Func_Noop
 .IMPORT Func_ResetWinchMachineParams
 .IMPORT Int_WindowTopIrq
 .IMPORT Ppu_ChrObjUpgrade
@@ -214,6 +215,7 @@ _Ext_sRoomExt:
     d_addr Dialogs_sDialog_ptr_arr_ptr, 0
     d_addr Passages_sPassage_arr_ptr, 0
     d_addr Init_func_ptr, FuncC_Crypt_Boss_InitRoom
+    d_addr Enter_func_ptr, Func_Noop
     d_addr FadeIn_func_ptr, FuncC_Crypt_Boss_FadeInRoom
     D_END
 _TerrainData:

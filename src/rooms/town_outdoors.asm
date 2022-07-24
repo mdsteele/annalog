@@ -84,6 +84,7 @@ _Ext_sRoomExt:
     .linecont -
     d_addr Passages_sPassage_arr_ptr, 0
     d_addr Init_func_ptr, Func_Noop
+    d_addr Enter_func_ptr, Func_Noop
     d_addr FadeIn_func_ptr, Func_Noop
     D_END
 _TerrainData:

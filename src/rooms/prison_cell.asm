@@ -21,12 +21,14 @@
 .INCLUDE "../charmap.inc"
 .INCLUDE "../device.inc"
 .INCLUDE "../dialog.inc"
+.INCLUDE "../flag.inc"
 .INCLUDE "../machine.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../platform.inc"
 .INCLUDE "../ppu.inc"
 .INCLUDE "../program.inc"
 .INCLUDE "../room.inc"
+.INCLUDE "../spawn.inc"
 
 .IMPORT DataA_Pause_PrisonAreaCells_u8_arr2_arr
 .IMPORT DataA_Pause_PrisonAreaName_u8_arr
@@ -34,14 +36,26 @@
 .IMPORT FuncA_Machine_LiftMoveTowardGoal
 .IMPORT FuncA_Machine_LiftTryMove
 .IMPORT FuncA_Objects_DrawLiftMachine
+.IMPORT Func_IsFlagSet
 .IMPORT Func_MachineError
 .IMPORT Func_MachineFinishResetting
 .IMPORT Func_Noop
+.IMPORT Func_SetFlag
 .IMPORT Ppu_ChrObjUpgrade
 .IMPORT Ram_MachineGoalVert_u8_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
+.IMPORTZP Zp_CameraCanScroll_bool
+.IMPORTZP Zp_RoomScrollX_u16
+.IMPORTZP Zp_RoomScrollY_u8
+.IMPORTZP Zp_Tmp1_byte
 
 ;;;=========================================================================;;;
+
+;;; The minimum scroll-X value for this room.
+kMinScrollX = $10
+
+;;; The index of the passage that leads into the tunnel under the prison cell.
+kTunnelPassageIndex = 1
 
 ;;; The machine indices for the machines in this room.
 kLiftMachineIndex = 0
@@ -65,8 +79,8 @@ kLiftInitPlatformTop = kLiftMaxPlatformTop - kLiftInitGoalY * kBlockHeightPx
 .EXPORT DataC_Prison_Cell_sRoom
 .PROC DataC_Prison_Cell_sRoom
     D_STRUCT sRoom
-    d_byte MinScrollX_u8, $10
-    d_word MaxScrollX_u16, $110
+    d_byte MinScrollX_u8, kMinScrollX
+    d_word MaxScrollX_u16, kMinScrollX + $100
     d_byte IsTall_bool, $ff
     d_byte MinimapStartRow_u8, 2
     d_byte MinimapStartCol_u8, 5
@@ -90,6 +104,7 @@ _Ext_sRoomExt:
     d_addr Dialogs_sDialog_ptr_arr_ptr, DataA_Dialog_PrisonCell_sDialog_ptr_arr
     d_addr Passages_sPassage_arr_ptr, _Passages_sPassage_arr
     d_addr Init_func_ptr, Func_Noop
+    d_addr Enter_func_ptr, FuncC_Prison_Cell_EnterRoom
     d_addr FadeIn_func_ptr, Func_Noop
     D_END
 _TerrainData:
@@ -172,6 +187,7 @@ _Passages_sPassage_arr:
     d_byte Destination_eRoom, eRoom::PrisonEscape
     d_byte SpawnBlock_u8, 9
     D_END
+    .assert kTunnelPassageIndex = 1, error
     D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Western | bPassage::SameScreen | 1
     d_byte Destination_eRoom, eRoom::PrisonEscape
@@ -215,6 +231,31 @@ _Blaster_Tick:
     rts
 _Blaster_Reset:
     ;; TODO
+    rts
+.ENDPROC
+
+;;; Called when the player avatar enters the PrisonCell room.
+;;; @param A The bSpawn value for where the avatar is entering the room.
+.PROC FuncC_Prison_Cell_EnterRoom
+    sta Zp_Tmp1_byte  ; bSpawn value
+    ldx #eFlag::PrisonCellReachedTunnel  ; param: flag
+    jsr Func_IsFlagSet  ; preserves X and Zp_Tmp*, returns Z
+    bne @done
+    lda Zp_Tmp1_byte  ; bSpawn value
+    cmp #bSpawn::IsPassage | kTunnelPassageIndex
+    bne @lockScrolling
+    jsr Func_SetFlag
+    @done:
+    rts
+    @lockScrolling:
+    lda #0
+    sta Zp_CameraCanScroll_bool
+    sta Zp_RoomScrollY_u8
+    .assert >kMinScrollX = 0, error
+    sta Zp_RoomScrollX_u16 + 1
+    .assert <kMinScrollX > 0, error
+    lda #kMinScrollX
+    sta Zp_RoomScrollX_u16 + 0
     rts
 .ENDPROC
 

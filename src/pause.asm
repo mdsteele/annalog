@@ -43,8 +43,8 @@
 .IMPORT Ppu_ChrBgPause
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORT Sram_Minimap_u16_arr
-.IMPORTZP Zp_AvatarMinimapCol_u8
-.IMPORTZP Zp_AvatarMinimapRow_u8
+.IMPORTZP Zp_CameraMinimapCol_u8
+.IMPORTZP Zp_CameraMinimapRow_u8
 .IMPORTZP Zp_Chr0cBank_u8
 .IMPORTZP Zp_Current_sRoom
 .IMPORTZP Zp_FrameCounter_u8
@@ -577,10 +577,10 @@ _Minimap:
     beq @continue
     ;; If this minimap cell is the avatar's current position, blink its color.
     lda Zp_Tmp1_byte  ; minimap row
-    cmp Zp_AvatarMinimapRow_u8
+    cmp Zp_CameraMinimapRow_u8
     bne @noBlink
     lda Zp_Tmp2_byte  ; minimap col
-    cmp Zp_AvatarMinimapCol_u8
+    cmp Zp_CameraMinimapCol_u8
     bne @noBlink
     lda Zp_FrameCounter_u8
     and #$10

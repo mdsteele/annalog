@@ -35,7 +35,6 @@
 .IMPORT FuncA_Avatar_EnterRoomViaDoor
 .IMPORT FuncA_Avatar_ExploreMove
 .IMPORT FuncA_Avatar_SpawnAtLastSafePoint
-.IMPORT FuncA_Avatar_UpdateAndMarkMinimap
 .IMPORT FuncA_Fade_In
 .IMPORT FuncA_Fade_Out
 .IMPORT FuncA_Machine_ExecuteAll
@@ -50,6 +49,7 @@
 .IMPORT FuncA_Terrain_CallRoomFadeIn
 .IMPORT FuncA_Terrain_FillNametables
 .IMPORT FuncA_Terrain_TransferTileColumn
+.IMPORT FuncA_Terrain_UpdateAndMarkMinimap
 .IMPORT Func_ClearRestOfOam
 .IMPORT Func_PickUpFlowerDevice
 .IMPORT Func_ProcessFrame
@@ -132,6 +132,13 @@ Zp_RoomScrollX_u16: .res 2
 .EXPORTZP Zp_RoomScrollY_u8
 Zp_RoomScrollY_u8: .res 1
 
+;;; If true ($ff), the camera position (that is, Zp_RoomScroll*) will track
+;;; towards the scroll goal (Zp_ScrollGoal*) each frame; if false ($00), then
+;;; the camera position will stay locked (though the scroll goal can continue
+;;; to update).
+.EXPORTZP Zp_CameraCanScroll_bool
+Zp_CameraCanScroll_bool: .res 1
+
 ;;; The index of the (interactive) device that the player avatar is near, or
 ;;; $ff if none.
 Zp_NearbyDevice_u8: .res 1
@@ -169,30 +176,7 @@ Zp_HudEnabled_bool: .res 1
     jsr Func_Window_DirectDrawTopBorder
     chr08_bank <(Zp_Current_sTileset + sTileset::Chr08Bank_u8)
     chr18_bank <(Zp_Current_sRoom + sRoom::Chr18Bank_u8)
-    jsr_prga FuncA_Avatar_UpdateAndMarkMinimap
-_InitializeScrolling:
-    jsr Func_SetScrollGoalFromAvatar
-    lda Zp_ScrollGoalY_u8
-    sta Zp_RoomScrollY_u8
-    ldax Zp_ScrollGoalX_u16
-    stax Zp_RoomScrollX_u16
-_DrawTerrain:
-    prga_bank #<.bank(FuncA_Terrain_FillNametables)
-    ;; Calculate the index of the leftmost room tile column that should be in
-    ;; the nametable.
-    lda Zp_RoomScrollX_u16 + 0
-    add #kTileWidthPx - 1
-    sta Zp_Tmp1_byte
-    lda Zp_RoomScrollX_u16 + 1
-    adc #0
-    .repeat 3
-    lsr a
-    ror Zp_Tmp1_byte
-    .endrepeat
-    lda Zp_Tmp1_byte  ; param: left block column index
-    jsr FuncA_Terrain_FillNametables
-    jsr FuncA_Terrain_CallRoomFadeIn
-_InitObjectsAndFadeIn:
+    jsr_prga FuncA_Terrain_InitRoomScrollAndNametables
     jsr Func_FindNearbyDevice
     lda #0
     sta Zp_OamOffset_u8
@@ -294,7 +278,7 @@ _Tick:
     jsr_prga FuncA_Actor_TickAllActors
     jsr Func_TickAllDevices
     jsr_prga FuncA_Machine_ExecuteAll
-    jsr Func_TickCurrentRoom
+    jsr Func_CallRoomTick
     lda Zp_AvatarHarmTimer_u8
     cmp #kAvatarHarmDeath
     jeq Main_Explore_Death
@@ -438,7 +422,7 @@ _Respawn:
 .ENDPROC
 
 ;;; Calls the current room's Tick_func_ptr function.
-.PROC Func_TickCurrentRoom
+.PROC Func_CallRoomTick
     jmp (Zp_Current_sRoom + sRoom::Tick_func_ptr)
 .ENDPROC
 
@@ -561,11 +545,46 @@ _SetGoalToAX:
 
 .SEGMENT "PRGA_Terrain"
 
+;;; Sets up room scrolling and populates nametables for explore mode.  Called
+;;; just before fading in the screen (e.g. when entering the room or
+;;; unpausing).
+.PROC FuncA_Terrain_InitRoomScrollAndNametables
+    ;; Initialize the scroll position.
+    jsr Func_SetScrollGoalFromAvatar
+    bit Zp_CameraCanScroll_bool
+    bpl @done
+    lda Zp_ScrollGoalY_u8
+    sta Zp_RoomScrollY_u8
+    ldax Zp_ScrollGoalX_u16
+    stax Zp_RoomScrollX_u16
+    @done:
+    jsr FuncA_Terrain_UpdateAndMarkMinimap
+    ;; Calculate the index of the leftmost room tile column that should be in
+    ;; the nametable.
+    lda Zp_RoomScrollX_u16 + 0
+    add #kTileWidthPx - 1
+    sta Zp_Tmp1_byte
+    lda Zp_RoomScrollX_u16 + 1
+    adc #0
+    .repeat 3
+    lsr a
+    ror Zp_Tmp1_byte
+    .endrepeat
+    lda Zp_Tmp1_byte  ; param: left block column index
+    ;; Populate the nametables.
+    jsr FuncA_Terrain_FillNametables
+    jmp FuncA_Terrain_CallRoomFadeIn
+.ENDPROC
+
 ;;; Updates the scroll position for next frame to move closer to
 ;;; Zp_ScrollGoalX_u16 and Zp_ScrollGoalY_u8, transferring nametable updates
 ;;; for the current room as necessary.
 .EXPORT FuncA_Terrain_ScrollTowardsGoal
 .PROC FuncA_Terrain_ScrollTowardsGoal
+    bit Zp_CameraCanScroll_bool
+    bmi @canScroll
+    rts
+    @canScroll:
 _TrackScrollYTowardsGoal:
     ;; Compute the delta from the current scroll-Y position to the goal
     ;; position, storing it in A.
@@ -707,7 +726,7 @@ _UpdateNametable:
     @doTransfer:
     jsr FuncA_Terrain_TransferTileColumn
     @doneTransfer:
-    rts
+    jmp FuncA_Terrain_UpdateAndMarkMinimap
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -742,12 +761,12 @@ _UpdateNametable:
     jsr FuncA_Objects_DrawDevicePrompt
     jsr FuncA_Objects_DrawAllActors
     jsr FuncA_Objects_DrawAllMachines
-    jsr FuncA_Objects_DrawRoomDecor
+    jsr FuncA_Objects_CallRoomDraw
     jmp FuncA_Objects_DrawAllDevices
 .ENDPROC
 
 ;;; Calls the current room's Draw_func_ptr function.
-.PROC FuncA_Objects_DrawRoomDecor
+.PROC FuncA_Objects_CallRoomDraw
     jmp (Zp_Current_sRoom + sRoom::Draw_func_ptr)
 .ENDPROC
 

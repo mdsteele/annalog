@@ -202,12 +202,23 @@ kRoomStateSize = $100
     Dialogs_sDialog_ptr_arr_ptr .addr
     ;; A pointer to the list of passage exits from this room.
     Passages_sPassage_arr_ptr   .addr
-    ;; Function to initialize room-specific state when entering the room.
+    ;; Function to initialize room-specific state before the avatar has been
+    ;; spawned into the room.  If the room is to be marked unsafe, that must be
+    ;; done in this function.
     Init_func_ptr               .addr
-    ;; Function to update BG nametables before fading in the room, e.g. when
-    ;; first entering the room or when unpausing while in the room.
+    ;; Function to further initialize room-specific state after the avatar has
+    ;; been spawned in the room, but before the nametables have been populated
+    ;; with the room's terrain.  Any room initialization that requires knowing
+    ;; where the avatar is spawning from, or that needs to lock the camera,
+    ;; must be done in this function.
+    ;; @prereq Room is loaded and avatar is positioned.
+    ;; @param A The bSpawn value for where the avatar is entering the room.
+    Enter_func_ptr              .addr
+    ;; Function to update BG nametables just before fading in the room,
+    ;; e.g. when first entering the room or when unpausing while in the room.
     ;; @prereq PRGA_Terrain is loaded.
     ;; @prereq Rendering is disabled.
+    ;; @prereq Room is loaded and avatar is positioned.
     FadeIn_func_ptr             .addr
 .ENDSTRUCT
 

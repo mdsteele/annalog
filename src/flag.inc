@@ -87,7 +87,10 @@ kSaveMagicNumber = $b2
     CryptTombWeakFloors
     GardenEastTalkedToMermaid
     MermaidHut1MetQueen
+    PrisonCellReachedTunnel
+    NUM_VALUES
 .ENDENUM
+.ASSERT eFlag::NUM_VALUES <= $100, error
 
 ;;;=========================================================================;;;
 

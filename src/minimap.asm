@@ -27,71 +27,68 @@
 
 .IMPORT Data_PowersOfTwo_u8_arr8
 .IMPORT Sram_Minimap_u16_arr
-.IMPORTZP Zp_AvatarPosX_i16
-.IMPORTZP Zp_AvatarPosY_i16
 .IMPORTZP Zp_Current_sRoom
+.IMPORTZP Zp_RoomScrollX_u16
+.IMPORTZP Zp_RoomScrollY_u8
 .IMPORTZP Zp_Tmp1_byte
 
 ;;;=========================================================================;;;
 
 .ZEROPAGE
 
-;;; The current minimap cell that the avatar is in.
-.EXPORTZP Zp_AvatarMinimapRow_u8, Zp_AvatarMinimapCol_u8
-Zp_AvatarMinimapRow_u8: .res 1
-Zp_AvatarMinimapCol_u8: .res 1
+;;; The minimap cell that the room camera is currently looking at.
+.EXPORTZP Zp_CameraMinimapRow_u8, Zp_CameraMinimapCol_u8
+Zp_CameraMinimapRow_u8: .res 1
+Zp_CameraMinimapCol_u8: .res 1
 
 ;;;=========================================================================;;;
 
-.SEGMENT "PRGA_Avatar"
+.SEGMENT "PRGA_Terrain"
 
-;;; Recomputes Zp_AvatarMinimapRow_u8 and Zp_AvatarMinimapCol_u8 from the
-;;; avatar's current position and room, then (if necessary) updates SRAM to
-;;; mark that minimap cell as explored.
-.EXPORT FuncA_Avatar_UpdateAndMarkMinimap
-.PROC FuncA_Avatar_UpdateAndMarkMinimap
+;;; Recomputes Zp_CameraMinimapRow_u8 and Zp_CameraMinimapCol_u8 from the
+;;; current room scroll position, then (if necessary) updates SRAM to mark that
+;;; minimap cell as explored.
+.EXPORT FuncA_Terrain_UpdateAndMarkMinimap
+.PROC FuncA_Terrain_UpdateAndMarkMinimap
 _UpdateMinimapRow:
     ldy <(Zp_Current_sRoom + sRoom::MinimapStartRow_u8)
     bit <(Zp_Current_sRoom + sRoom::IsTall_bool)
     bpl @upperHalf
     @tall:
-    lda Zp_AvatarPosY_i16 + 1
-    bmi @upperHalf
-    bne @lowerHalf
-    lda Zp_AvatarPosY_i16 + 0
-    cmp #(kTallRoomHeightBlocks / 2) * kBlockHeightPx
+    lda Zp_RoomScrollY_u8
+    cmp #(kTallRoomHeightBlocks * kBlockHeightPx - kScreenHeightPx) / 2
     blt @upperHalf
     @lowerHalf:
     iny
     @upperHalf:
-    sty Zp_AvatarMinimapRow_u8
+    sty Zp_CameraMinimapRow_u8
 _UpdateMinimapCol:
-    lda Zp_AvatarPosX_i16 + 1
-    bmi @leftSide
+    lda #kScreenWidthPx / 2
+    sub <(Zp_Current_sRoom + sRoom::MinScrollX_u8)
+    sta Zp_Tmp1_byte  ; offset
+    lda Zp_RoomScrollX_u16 + 0
+    add Zp_Tmp1_byte  ; offset
+    lda Zp_RoomScrollX_u16 + 1
+    adc #0
     cmp <(Zp_Current_sRoom + sRoom::MinimapWidth_u8)
-    blt @middle
-    @rightSide:
+    blt @setCol
     ldx <(Zp_Current_sRoom + sRoom::MinimapWidth_u8)
     dex
     txa
-    @middle:
-    add <(Zp_Current_sRoom + sRoom::MinimapStartCol_u8)
-    bcc @setCol  ; unconditional
-    @leftSide:
-    lda <(Zp_Current_sRoom + sRoom::MinimapStartCol_u8)
     @setCol:
-    sta Zp_AvatarMinimapCol_u8
+    add <(Zp_Current_sRoom + sRoom::MinimapStartCol_u8)
+    sta Zp_CameraMinimapCol_u8
 _MarkMinimap:
     ;; Determine the bitmask to use for Sram_Minimap_u16_arr, and store it in
     ;; Zp_Tmp1_byte.
-    lda Zp_AvatarMinimapRow_u8
+    lda Zp_CameraMinimapRow_u8
     tay
     and #$07
     tax
     lda Data_PowersOfTwo_u8_arr8, x
     sta Zp_Tmp1_byte  ; mask
     ;; Calculate the byte offset into Sram_Minimap_u16_arr and store it in X.
-    lda Zp_AvatarMinimapCol_u8
+    lda Zp_CameraMinimapCol_u8
     mul #2
     tax  ; byte index into Sram_Minimap_u16_arr
     cpy #$08

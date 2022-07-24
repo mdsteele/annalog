@@ -31,7 +31,6 @@
 
 .IMPORT FuncA_Avatar_CollideWithAllPlatformsHorz
 .IMPORT FuncA_Avatar_CollideWithAllPlatformsVert
-.IMPORT FuncA_Avatar_UpdateAndMarkMinimap
 .IMPORT FuncA_Avatar_UpdateWaterDepth
 .IMPORT FuncA_Objects_Alloc2x2Shape
 .IMPORT Func_Terrain_GetColumnPtrForTileIndex
@@ -274,7 +273,6 @@ _Harm:
     bne @return
     ;; Update state now that the avatar is repositioned.
     jsr FuncA_Avatar_UpdateWaterDepth
-    jsr FuncA_Avatar_UpdateAndMarkMinimap
     jsr FuncA_Avatar_ApplyGravity
     ;; Indicate that no passage was hit.
     lda #ePassage::None

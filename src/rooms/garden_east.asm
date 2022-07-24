@@ -124,6 +124,7 @@ _Ext_sRoomExt:
     d_addr Dialogs_sDialog_ptr_arr_ptr, DataA_Dialog_GardenEast_sDialog_ptr_arr
     d_addr Passages_sPassage_arr_ptr, _Passages_sPassage_arr
     d_addr Init_func_ptr, FuncC_Garden_EastBridge_InitRoom
+    d_addr Enter_func_ptr, Func_Noop
     d_addr FadeIn_func_ptr, Func_Noop
     D_END
 _TerrainData:
