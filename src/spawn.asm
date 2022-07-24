@@ -51,6 +51,9 @@
 ;;; a passage.
 kPassageSpawnMargin = 15
 
+;;; Ensure that bSpawn index mask is wide enough to include any device index.
+.ASSERT bSpawn::IndexMask + 1 >= kMaxDevices, error
+
 ;;;=========================================================================;;;
 
 .ZEROPAGE

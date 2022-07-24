@@ -21,7 +21,7 @@
 ;;; passage in that room, or a particular device (e.g. a door or console).
 .SCOPE bSpawn
     IsPassage = %10000000  ; spawn at passage if set, or at device if clear
-    IndexMask = %00000111  ; bits used for the device or passage index
+    IndexMask = %00001111  ; bits used for the device or passage index
 .ENDSCOPE
 
 ;;;=========================================================================;;;
