@@ -17,6 +17,7 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
+.INCLUDE "flag.inc"
 .INCLUDE "macros.inc"
 .INCLUDE "mmc3.inc"
 
@@ -77,6 +78,41 @@
     ;; Disable writes to SRAM.
     ldy #bMmc3PrgRam::Enable | bMmc3PrgRam::DenyWrites
     sty Hw_Mmc3PrgRamProtect_wo
+    rts
+.ENDPROC
+
+;;; Returns the number of flowers that have been delivered.
+;;; @return A The number of delivered flowers.
+;;; @return Z Set if zero flowers have been delivered.
+;;; @preserve Zp_Tmp*
+.EXPORT Func_CountDeliveredFlowers
+.PROC Func_CountDeliveredFlowers
+    ldy #0
+_FirstByte:
+    lda Sram_ProgressFlags_arr + (kFirstFlowerFlag >> 3)
+    .assert (kFirstFlowerFlag & $07) = 0, error
+    ldx #8
+    @loop:
+    asl a
+    bcc @continue
+    iny
+    @continue:
+    dex
+    bne @loop
+_SecondByte:
+    .assert kNumFlowerFlags - 8 <= 8, error
+    lda Sram_ProgressFlags_arr + (kLastFlowerFlag >> 3)
+    .assert kNumFlowerFlags - 8 > 1, error
+    ldx #kNumFlowerFlags - 8
+    @loop:
+    lsr a
+    bcc @continue
+    iny
+    @continue:
+    dex
+    bne @loop
+_Done:
+    tya
     rts
 .ENDPROC
 

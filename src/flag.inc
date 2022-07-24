@@ -37,6 +37,7 @@ kSaveMagicNumber = $b2
 ;;; These represent things like "has this upgrade been acquired?" or "has this
 ;;; boss been defeated?" or "is this switch turned on?"
 .ENUM eFlag
+    None  ; null flag, never set
     ;; Each of these flags is set when that upgrade has been collected:
     UpgradeMaxInstructions0  ; Each of these four upgrades
     UpgradeMaxInstructions1  ; increases the maximum number
@@ -48,11 +49,24 @@ kSaveMagicNumber = $b2
     UpgradeOpcodeCopy
     UpgradeOpcodeAddSub
     UpgradeOpcodeMul
+    UpgradeOpcodeBeep
     UpgradeOpcodeGoto
     UpgradeOpcodeSkip
     UpgradeOpcodeWait
     UpgradeOpcodeSync
-    UpgradeOpcodeBeep
+    ;; Each of these flags is set when that flower is delivered to the florist:
+    FlowerPrison
+    FlowerGarden
+    FlowerTemple
+    FlowerCrypt
+    FlowerFactory
+    FlowerLava
+    FlowerMermaid
+    FlowerMine
+    FlowerSewer
+    FlowerCity
+    FlowerLab
+    FlowerCore
     ;; Each of these flags is set when that boss has been defeated:
     BossGarden
     BossCrypt
@@ -68,19 +82,6 @@ kSaveMagicNumber = $b2
     ConduitMine
     ConduitCity
     ConduitLab
-    ;; Each of these flags is set when that flower is delivered to the florist:
-    FlowerPrison
-    FlowerGarden
-    FlowerTemple
-    FlowerCrypt
-    FlowerFactory
-    FlowerLava
-    FlowerMermaid
-    FlowerMine
-    FlowerSewer
-    FlowerCity
-    FlowerLab
-    FlowerCore
     ;; Flags for persistent room state:
     CryptSouthWeakFloor
     CryptTombWeakFloors
@@ -91,7 +92,7 @@ kSaveMagicNumber = $b2
 ;;;=========================================================================;;;
 
 kFirstUpgradeFlag = eFlag::UpgradeMaxInstructions0
-kLastUpgradeFlag = eFlag::UpgradeOpcodeBeep
+kLastUpgradeFlag = eFlag::UpgradeOpcodeSync
 kNumUpgradeFlags = 15
 .ASSERT kNumUpgradeFlags = kLastUpgradeFlag + 1 - kFirstUpgradeFlag, error
 

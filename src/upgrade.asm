@@ -228,12 +228,13 @@ _InitWindow:
 .PROC FuncA_Upgrade_ComputeMaxInstructions
     ;; Store the max-instruction upgrade flags in the bottom
     ;; kNumMaxInstructionUpgrades bits of A.
-    .assert eFlag::UpgradeMaxInstructions0 = 0, error
-    .assert eFlag::UpgradeMaxInstructions1 = 1, error
-    .assert eFlag::UpgradeMaxInstructions2 = 2, error
-    .assert eFlag::UpgradeMaxInstructions3 = 3, error
+    .assert eFlag::UpgradeMaxInstructions0 = 1, error
+    .assert eFlag::UpgradeMaxInstructions1 = 2, error
+    .assert eFlag::UpgradeMaxInstructions2 = 3, error
+    .assert eFlag::UpgradeMaxInstructions3 = 4, error
     .assert kNumMaxInstructionUpgrades = 4, error
     lda Sram_ProgressFlags_arr + 0
+    lsr a
     and #$0f
     ;; Loop over each of the kNumMaxInstructionUpgrades bottom bits of A.
     ;; Start with a max instructions count of kMaxProgramLength, and for each
@@ -365,6 +366,8 @@ _ClearRest:
     sta Ram_PpuTransfer_arr, x
     rts
 _DescTable_ptr_arr:
+    .res 6
+    .assert * - _DescTable_ptr_arr = 6 * eFlag::UpgradeMaxInstructions0, error
     .repeat kNumMaxInstructionUpgrades
     .addr DataA_Upgrade_Descriptions::MaxInstructions1_u8_arr
     .addr DataA_Upgrade_Descriptions::MaxInstructions2_u8_arr
@@ -394,6 +397,10 @@ _DescTable_ptr_arr:
     .addr DataA_Upgrade_Descriptions::OpcodeMul1_u8_arr
     .addr DataA_Upgrade_Descriptions::OpcodeMul2_u8_arr
     .addr DataA_Upgrade_Descriptions::OpcodeMul3_u8_arr
+    .assert * - _DescTable_ptr_arr = 6 * eFlag::UpgradeOpcodeBeep, error
+    .addr DataA_Upgrade_Descriptions::OpcodeBeep1_u8_arr
+    .addr DataA_Upgrade_Descriptions::OpcodeBeep2_u8_arr
+    .addr DataA_Upgrade_Descriptions::OpcodeBeep3_u8_arr
     .assert * - _DescTable_ptr_arr = 6 * eFlag::UpgradeOpcodeGoto, error
     .addr DataA_Upgrade_Descriptions::OpcodeGoto1_u8_arr
     .addr DataA_Upgrade_Descriptions::OpcodeGoto2_u8_arr
@@ -410,10 +417,6 @@ _DescTable_ptr_arr:
     .addr DataA_Upgrade_Descriptions::OpcodeSync1_u8_arr
     .addr DataA_Upgrade_Descriptions::OpcodeSync2_u8_arr
     .addr DataA_Upgrade_Descriptions::OpcodeSync3_u8_arr
-    .assert * - _DescTable_ptr_arr = 6 * eFlag::UpgradeOpcodeBeep, error
-    .addr DataA_Upgrade_Descriptions::OpcodeBeep1_u8_arr
-    .addr DataA_Upgrade_Descriptions::OpcodeBeep2_u8_arr
-    .addr DataA_Upgrade_Descriptions::OpcodeBeep3_u8_arr
 .ENDPROC
 
 ;;;=========================================================================;;;

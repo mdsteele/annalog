@@ -33,10 +33,12 @@
 .IMPORT FuncA_Fade_In
 .IMPORT FuncA_Fade_Out
 .IMPORT Func_ClearRestOfOam
+.IMPORT Func_CountDeliveredFlowers
 .IMPORT Func_IsFlagSet
 .IMPORT Func_ProcessFrame
 .IMPORT Func_Window_Disable
 .IMPORT Main_Explore_FadeIn
+.IMPORT Ppu_ChrBgFontUpper
 .IMPORT Ppu_ChrBgMinimap
 .IMPORT Ppu_ChrBgPause
 .IMPORT Ram_Oam_sObj_arr64
@@ -105,10 +107,11 @@ Zp_MinimapMarkerOffset_u8: .res 1
     chr08_bank #<.bank(Ppu_ChrBgMinimap)
     lda #<.bank(Ppu_ChrBgPause)
     sta Zp_Chr0cBank_u8
+    chr18_bank #<.bank(Ppu_ChrBgFontUpper)
     jsr_prga FuncA_Pause_Init
     jsr_prga FuncA_Fade_In
 _GameLoop:
-    jsr_prga FuncA_Pause_DrawObjectsForMinimap
+    jsr_prga FuncA_Pause_DrawObjects
     jsr Func_ClearRestOfOam
     jsr Func_ProcessFrame
 _CheckForUnause:
@@ -157,7 +160,7 @@ kAreaNameStartCol = DataA_Pause_CurrentAreaLabel_u8_arr::kAreaNameStartCol
 _DrawScreen:
     jsr Func_Window_Disable
     jsr FuncA_Pause_DirectDrawBg
-    jsr FuncA_Pause_DrawObjectsForMinimap
+    jsr FuncA_Pause_DrawObjects
     jsr Func_ClearRestOfOam
 _SetRenderState:
     lda #bPpuMask::BgMain | bPpuMask::ObjMain
@@ -447,6 +450,8 @@ _Finish:
     sta Zp_Tmp2_byte  ; upgrade row (0-2)
     mul #4
     adc Zp_Tmp2_byte  ; upgrade row (0-2), carry flag is already zero
+    .assert kFirstUpgradeFlag > 0, error
+    adc #kFirstUpgradeFlag
     tax  ; first upgrade eFlag
     ;; Calculate the loop limit, and store it in Zp_Tmp2_byte.
     add #5
@@ -526,8 +531,9 @@ _ConduitTiles_u8_arr8_arr6:
 .ENDPROC
 
 ;;; Allocates and populates OAM slots for objects that should be drawn on the
-;;; pause screen minimap.
-.PROC FuncA_Pause_DrawObjectsForMinimap
+;;; pause screen.
+.PROC FuncA_Pause_DrawObjects
+_Minimap:
     ;; Copy the current room's AreaCells_u8_arr2_arr_ptr into Zp_Tmp_ptr.
     ldy #sRoomExt::AreaCells_u8_arr2_arr_ptr
     lda (Zp_Current_sRoom + sRoom::Ext_sRoomExt_ptr), y
@@ -606,6 +612,40 @@ _ConduitTiles_u8_arr8_arr6:
     @continue:
     lda (Zp_Tmp_ptr), y
     bpl @loop
+_FlowerCount:
+    ;; Only display the flower count if at least one flower has been delivered,
+    ;; but the BEEP opcode has not been unlocked yet.
+    ldx #eFlag::UpgradeOpcodeBeep  ; param: flag
+    jsr Func_IsFlagSet  ; clears Z if flag is set
+    bne @noFlowerCount
+    jsr Func_CountDeliveredFlowers  ; returns Z and A
+    beq @noFlowerCount
+    sta Zp_Tmp1_byte  ; flower count
+    ;; Allocate objects to display the flower count.
+    ldy Zp_OamOffset_u8
+    tya
+    add #.sizeof(sObj) * 2
+    sta Zp_OamOffset_u8
+    ;; Set object positions.
+    lda #$20
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::XPos_u8, y
+    lda #$28
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::XPos_u8, y
+    lda #$c8
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::YPos_u8, y
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::YPos_u8, y
+    ;; Set object palettes.
+    lda #1
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Flags_bObj, y
+    lda #0
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Flags_bObj, y
+    ;; Set object tile IDs.
+    lda #$0c
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Tile_u8, y
+    lda Zp_Tmp1_byte  ; flower count
+    ora #$80 | '0'
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Tile_u8, y
+    @noFlowerCount:
     rts
 .ENDPROC
 

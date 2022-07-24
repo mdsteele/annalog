@@ -33,6 +33,7 @@
 .IMPORT DataA_Pause_MermaidAreaName_u8_arr
 .IMPORT DataA_Room_Hut_sTileset
 .IMPORT Data_PowersOfTwo_u8_arr8
+.IMPORT Func_CountDeliveredFlowers
 .IMPORT Func_IsFlagSet
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrObjAnnaNormal
@@ -132,26 +133,6 @@ _Devices_sDevice_arr:
 
 ;;;=========================================================================;;;
 
-;;; Returns the number of flowers that have been delivered.
-;;; @return A The number of delivered flowers.
-;;; @return Z Set if zero flowers have been delivered.
-.PROC FuncC_Mermaid_CountDeliveredFlowers
-    lda #0
-    sta Zp_Tmp1_byte  ; num flowers delivered
-    ldx #kFirstFlowerFlag
-    @loop:
-    jsr Func_IsFlagSet  ; preserves X and Zp_Tmp*, sets Z if flag is not set
-    beq @continue
-    inc Zp_Tmp1_byte  ; num flowers delivered
-    @continue:
-    inx
-    .assert kLastFlowerFlag < $ff, error
-    cpx #kLastFlowerFlag + 1
-    blt @loop
-    lda Zp_Tmp1_byte  ; num flowers delivered
-    rts
-.ENDPROC
-
 ;;; Allocates and populates OAM slots for this room.
 .PROC FuncC_Mermaid_Hut4_Draw
     ldx #kFirstFlowerFlag
@@ -217,7 +198,7 @@ _InitialDialogFunc:
     ldya #_BroughtFlower_sDialog
     rts
     @notCarryingFlower:
-    jsr FuncC_Mermaid_CountDeliveredFlowers  ; returns A and Z
+    jsr Func_CountDeliveredFlowers  ; returns A and Z
     bne @hasDeliveredSomeFlowers
     ldya #_NoFlowersYet_sDialog
     rts
@@ -266,7 +247,7 @@ _DeliverFlowerFunc:
     lda #bMmc3PrgRam::Enable | bMmc3PrgRam::DenyWrites
     sta Hw_Mmc3PrgRamProtect_wo
     ;; Check if we have all the flowers yet.
-    jsr FuncC_Mermaid_CountDeliveredFlowers  ; returns A
+    jsr Func_CountDeliveredFlowers  ; returns A and Z
     cmp #kNumFlowerFlags
     bge @allFlowersDelivered
     ldya #_WantMoreFlowers_sDialog

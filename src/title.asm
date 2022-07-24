@@ -262,10 +262,10 @@ _SetRenderState:
     cpx #$30
     blt @minimapLoop
     ;; TODO: For testing, grant some upgrades (remove this later).
-    .assert kFirstUpgradeFlag = 0, error
-    lda #$20
+    .assert kFirstUpgradeFlag = 1, error
+    lda #$40
     sta Sram_ProgressFlags_arr + 0
-    .assert kNumUpgradeFlags = 8 + 7, error
+    .assert kNumUpgradeFlags = 7 + 8, error
     lda #$00
     sta Sram_ProgressFlags_arr + 1
     ;; Set starting location.
