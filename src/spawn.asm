@@ -324,17 +324,21 @@ _Finish:
     jmp Func_CallRoomEnter
 _DeviceOffset_u8_arr:
     D_ENUM eDevice
-    d_byte None,         $08
-    d_byte LockedDoor,   $08
-    d_byte Console,      $06
-    d_byte Flower,       $08
-    d_byte Lever,        $06
-    d_byte OpenDoorway,  $08
-    d_byte Sign,         $06
-    d_byte TalkLeft,     $0a
-    d_byte TalkRight,    $06
-    d_byte UnlockedDoor, $08
-    d_byte Upgrade,      $08
+    d_byte None,          $08
+    d_byte BreakerDone,   $06
+    d_byte BreakerRising, $06
+    d_byte LockedDoor,    $08
+    d_byte Placeholder,   $08
+    d_byte BreakerReady,  $06
+    d_byte Console,       $06
+    d_byte Flower,        $08
+    d_byte Lever,         $06
+    d_byte OpenDoorway,   $08
+    d_byte Sign,          $06
+    d_byte TalkLeft,      $0a
+    d_byte TalkRight,     $06
+    d_byte UnlockedDoor,  $08
+    d_byte Upgrade,       $08
     D_END
 .ENDPROC
 

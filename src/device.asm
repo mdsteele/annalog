@@ -48,6 +48,7 @@
 
 FuncA_Objects_DrawNoneDevice        = Func_Noop
 FuncA_Objects_DrawOpenDoorwayDevice = Func_Noop
+FuncA_Objects_DrawPlaceholderDevice = Func_Noop
 FuncA_Objects_DrawSignDevice        = Func_Noop
 FuncA_Objects_DrawTalkLeftDevice    = Func_Noop
 FuncA_Objects_DrawTalkRightDevice   = Func_Noop
@@ -55,7 +56,11 @@ FuncA_Objects_DrawTalkRightDevice   = Func_Noop
 .LINECONT +
 .DEFINE DeviceDrawFuncs \
     FuncA_Objects_DrawNoneDevice, \
+    FuncA_Objects_DrawBreakerDoneDevice, \
+    FuncA_Objects_DrawBreakerRisingDevice, \
     FuncA_Objects_DrawLockedDoorDevice, \
+    FuncA_Objects_DrawPlaceholderDevice, \
+    FuncA_Objects_DrawBreakerReadyDevice, \
     FuncA_Objects_DrawConsoleDevice, \
     FuncA_Objects_DrawFlowerDevice, \
     FuncA_Objects_DrawLeverDevice, \
@@ -67,6 +72,9 @@ FuncA_Objects_DrawTalkRightDevice   = Func_Noop
     FuncA_Objects_DrawUpgradeDevice
 .LINECONT -
 .ASSERT .tcount({DeviceDrawFuncs}) = eDevice::NUM_VALUES * 2 - 1, error
+
+;;; The number of VBlank frames per pixel that a rising breaker device moves.
+.DEFINE kBreakerRisingSlowdown 4
 
 ;;; The number of animation frames a door device has (i.e. the number of
 ;;; distinct ways of drawing it).
@@ -172,8 +180,7 @@ Ram_DeviceAnim_u8_arr: .res kMaxDevices
 .PROC Func_ToggleLeverDevice
     lda #kLeverAnimCountdown
     sta Ram_DeviceAnim_u8_arr, x
-    lda Ram_DeviceTarget_u8_arr, x
-    tay
+    ldy Ram_DeviceTarget_u8_arr, x
     lda Ram_RoomState, y
     eor #$01
     sta Ram_RoomState, y
@@ -185,13 +192,22 @@ Ram_DeviceAnim_u8_arr: .res kMaxDevices
 .EXPORT Func_TickAllDevices
 .PROC Func_TickAllDevices
     ldx #kMaxDevices - 1
-    @loop:
+_Loop:
+    ;; If the animation counter is nonzero, decrement it.
     lda Ram_DeviceAnim_u8_arr, x
-    beq @continue
+    beq _Continue
     dec Ram_DeviceAnim_u8_arr, x
-    @continue:
+    bne _Continue
+    ;; When a BreakerRising device's animation counter reaches zero, it
+    ;; automatically turns into a BreakerReady device.
+    lda Ram_DeviceType_eDevice_arr, x
+    cmp #eDevice::BreakerRising
+    bne _Continue
+    lda #eDevice::BreakerReady
+    sta Ram_DeviceType_eDevice_arr, x
+_Continue:
     dex
-    bpl @loop
+    bpl _Loop
     rts
 .ENDPROC
 
@@ -214,8 +230,7 @@ Ram_DeviceAnim_u8_arr: .res kMaxDevices
 ;;; @param X The device index.
 ;;; @preserve X
 .PROC FuncA_Objects_DrawOneDevice
-    lda Ram_DeviceType_eDevice_arr, x
-    tay
+    ldy Ram_DeviceType_eDevice_arr, x
     lda _JumpTable_ptr_0_arr, y
     sta Zp_Tmp_ptr + 0
     lda _JumpTable_ptr_1_arr, y
@@ -223,6 +238,84 @@ Ram_DeviceAnim_u8_arr: .res kMaxDevices
     jmp (Zp_Tmp_ptr)
 _JumpTable_ptr_0_arr: .lobytes DeviceDrawFuncs
 _JumpTable_ptr_1_arr: .hibytes DeviceDrawFuncs
+.ENDPROC
+
+;;; Allocates and populates OAM slots for a rising (not yet ready to activate)
+;;; breaker device.
+;;; @param X The device index.
+;;; @preserve X
+.PROC FuncA_Objects_DrawBreakerRisingDevice
+    ldy #kTileIdBreakerFirst  ; param: first tile ID
+    lda Ram_DeviceAnim_u8_arr, x
+    div #kBreakerRisingSlowdown
+    add #kTileHeightPx  ; param: vertical offset
+    bne FuncA_Objects_DrawBreakerDevice  ; unconditional
+.ENDPROC
+
+;;; Allocates and populates OAM slots for a ready-to-activate breaker device.
+;;; @param X The device index.
+;;; @preserve X
+.PROC FuncA_Objects_DrawBreakerReadyDevice
+    ldy #kTileIdBreakerFirst  ; param: first tile ID
+    lda #kTileHeightPx  ; param: vertical offset
+    bne FuncA_Objects_DrawBreakerDevice  ; unconditional
+.ENDPROC
+
+;;; Allocates and populates OAM slots for an already-activated breaker device.
+;;; @param X The device index.
+;;; @preserve X
+.PROC FuncA_Objects_DrawBreakerDoneDevice
+    lda Ram_DeviceAnim_u8_arr, x
+    and #$0c
+    add #kTileIdBreakerFirst
+    tay  ; param: first tile ID
+    lda #kTileHeightPx  ; param: vertical offset
+    .assert * = FuncA_Objects_DrawBreakerDevice, error, "fallthrough"
+.ENDPROC
+
+;;; Allocates and populates OAM slots for a breaker device.
+;;; @param A The vertical offset from the top of the device to the center of
+;;;     the shape to draw.
+;;; @param X The device index.
+;;; @param Y The first tile ID for the breaker shape to draw.
+;;; @preserve X
+.PROC FuncA_Objects_DrawBreakerDevice
+    ;; Position the shape:
+    pha  ; vertical offset
+    jsr FuncA_Objects_SetShapePosToDeviceTopLeft  ; preserves X and Y
+    jsr FuncA_Objects_MoveShapeRightOneTile  ; preserves X and Y
+    jsr FuncA_Objects_MoveShapeRightOneTile  ; preserves X and Y
+    pla  ; vertical offset
+    pha  ; vertical offset
+    add Zp_ShapePosY_i16 + 0
+    sta Zp_ShapePosY_i16 + 0
+    lda #0
+    adc Zp_ShapePosY_i16 + 1
+    sta Zp_ShapePosY_i16 + 1
+    ;; Allocate objects:
+    tya  ; first tile ID
+    pha  ; first tile ID
+    lda #bObj::Pri | kBreakerPalette  ; param: object flags
+    jsr FuncA_Objects_Alloc2x2Shape  ; preserves X, returns C and Y
+    pla  ; first tile ID
+    bcs @done
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Tile_u8, y
+    adc #1  ; carry flag is already clear
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Tile_u8, y
+    adc #1
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Tile_u8, y
+    adc #1
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Tile_u8, y
+    pla  ; vertical offset
+    pha  ; vertical offset
+    cmp #kTileHeightPx * 2
+    blt @done
+    lda #$ff
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::YPos_u8, y
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::YPos_u8, y
+    @done:
+    pla  ; vertical offset
+    rts
 .ENDPROC
 
 ;;; Allocates and populates OAM slots for a console device.

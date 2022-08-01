@@ -23,6 +23,7 @@
 .INCLUDE "actors/townsfolk.inc"
 .INCLUDE "actors/vinebug.inc"
 .INCLUDE "avatar.inc"
+.INCLUDE "device.inc"
 .INCLUDE "machines/cannon.inc"
 
 ;;;=========================================================================;;;
@@ -362,7 +363,9 @@
     .incbin "out/data/tiles/crab.chr"
     .assert * - :- = (kGrenadeFirstTileId - $80) * kSizeofChr, error
     .incbin "out/data/tiles/grenade.chr"
-    .res $1f * kSizeofChr
+    .res $0f * kSizeofChr
+    .assert * - :- = (kTileIdBreakerFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/breaker.chr"
     .assert * - :- = kSizeofChr * $80, error
 .ENDPROC
 

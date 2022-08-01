@@ -220,6 +220,8 @@ _CheckForActivateDevice:
     ldx Zp_NearbyDevice_u8
     bmi @done
     lda Ram_DeviceType_eDevice_arr, x
+    cmp #eDevice::BreakerReady
+    ;; TODO: beq @breaker
     cmp #eDevice::Console
     jeq Main_Explore_UseConsole
     cmp #eDevice::Flower

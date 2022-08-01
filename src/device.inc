@@ -21,6 +21,7 @@
 kMaxDevices = 12
 
 ;;; The OBJ tile IDs used for various device objects.
+kTileIdBreakerFirst     = $f0
 kConsoleScreenTileIdOk  = $0a
 kConsoleScreenTileIdErr = $0b
 kTileIdDoorwayFull      = $3a
@@ -31,6 +32,7 @@ kLeverHandleTileIdDown  = $0e
 kLeverHandleTileIdUp    = $0f
 
 ;;; The OBJ palette numbers used for various device objects.
+kBreakerPalette          = 0
 kConsoleScreenPaletteOk  = 2
 kConsoleScreenPaletteErr = 1
 kDoorwayPalette          = 0
@@ -39,8 +41,9 @@ kFlowerPaletteBottom     = 2
 kLeverHandlePalette      = 0
 kUpgradePalette          = 0
 
-;;; The initial value to set in Ram_DeviceAnim_u8_arr when animating an upgrade
-;;; device.
+;;; The initial value to set in Ram_DeviceAnim_u8_arr when animating various
+;;; devices.
+kBreakerRisingDeviceAnimStart = 63
 kUpgradeDeviceAnimStart = 23
 
 ;;;=========================================================================;;;
@@ -49,17 +52,21 @@ kUpgradeDeviceAnimStart = 23
 .ENUM eDevice
     ;; Non-interactive device types; these generally act as temporary
     ;; placeholders for interactive devices.
-    None  ; empty slot
+    None           ; empty slot
+    BreakerDone    ; circuit breaker, after being activated
+    BreakerRising  ; circuit breaker, rising out of the ground
     LockedDoor
+    Placeholder    ; invisible and does nothing
     ;; Interactive device types.  The player can interact with these by
     ;; pressing the B button while standing in front of them.
+    BreakerReady   ; circuit breaker, ready to be activated
     Console
     Flower
     Lever
     OpenDoorway
-    Sign       ; initiate dialogue with the avatar's back to the camera
-    TalkLeft   ; initiate dialogue with the avatar facing to the left
-    TalkRight  ; initiate dialogue with the avatar facing to the right
+    Sign           ; initiate dialogue with the avatar's back to the camera
+    TalkLeft       ; initiate dialogue with the avatar facing to the left
+    TalkRight      ; initiate dialogue with the avatar facing to the right
     UnlockedDoor
     Upgrade
     NUM_VALUES
@@ -67,7 +74,7 @@ kUpgradeDeviceAnimStart = 23
 
 ;;; eDevice values less than this represent device types that can't be used
 ;;; with the B button.
-kFirstInteractiveDeviceType = eDevice::Console
+kFirstInteractiveDeviceType = eDevice::BreakerReady
 
 ;;;=========================================================================;;;
 
@@ -80,15 +87,16 @@ kFirstInteractiveDeviceType = eDevice::Console
     ;; The room block column for this device.
     BlockCol_u8  .byte
     ;; The "target" for this device, whose meaning depends on the device type:
+    ;;   * For breakers, this is the eFlag::Conduit* value.
     ;;   * For consoles, this is the machine index (i.e. the index into the
     ;;     current room's sRoom::Machines_sMachine_arr_ptr).
     ;;   * For doors, this is the eRoom value for the destination room.
-    ;;   * For flowers, this is the eFlag value.
+    ;;   * For flowers, this is the eFlag::Flower* value.
     ;;   * For levers, this is the byte offset into Ram_RoomState for the
     ;;     lever's state value (0 or 1).
     ;;   * For signs, this is the dialog index (i.e. the index into the current
     ;;     room's sRoomExt::Dialogs_sDialog_ptr_arr_ptr).
-    ;;   * For upgrades, this is the eFlag value.
+    ;;   * For upgrades, this is the eFlag::Upgrade* value.
     Target_u8    .byte
 .ENDSTRUCT
 
