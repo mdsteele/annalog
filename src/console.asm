@@ -111,9 +111,10 @@ Zp_ConsoleSram_sProgram_ptr: .res 2
 Zp_ConsoleNumInstRows_u8: .res 1
 
 ;;; If nonzero, then the console is unpowered and cannot be used; in that case,
-;;; the value is the conduit circuit number (1-6) to display to the player in
-;;; the error message.
+;;; the value is the circuit number (1-7) to display to the player in the error
+;;; message.
 Zp_ConsoleNeedsPower_u8: .res 1
+.ASSERT kNumBreakerFlags = 7, error
 
 ;;; The "current" instruction number within Ram_Console_sProgram.  While
 ;;; editing or debug stepping, this is the instruction highlighted by the
@@ -270,8 +271,8 @@ _Tick:
     jmp _GameLoop
 .ENDPROC
 
-;;; Mode for using a console for a machine whose required conduit hasn't yet
-;;; been activated.
+;;; Mode for using a console for a machine whose required circuit breaker
+;;; hasn't yet been activated.
 ;;; @prereq Rendering is enabled.
 ;;; @prereq The console window is fully visible.
 ;;; @prereq Explore mode is initialized.
@@ -307,11 +308,11 @@ _UpdateScrolling:
     div #2
     sta Zp_ConsoleNumInstRows_u8
 _CheckIfPowered:
-    ;; Get the conduit eFlag that this machine requires, or zero if the machine
-    ;; does not need any conduit to be powered.
-    ldy #sMachine::Conduit_eFlag
+    ;; Get the breaker eFlag that this machine requires, or zero if the machine
+    ;; does not need any circuit breaker to be powered.
+    ldy #sMachine::Breaker_eFlag
     lda (Zp_Current_sMachine_ptr), y
-    .assert kFirstConduitFlag > 0, error
+    .assert kFirstBreakerFlag > 0, error
     beq @setNeedsPower
     tax  ; param: eFlag
     jsr Func_IsFlagSet  ; preserves X, sets Z if flag is not set
@@ -320,8 +321,8 @@ _CheckIfPowered:
     beq @setNeedsPower  ; unconditional
     @needsPower:
     txa  ; eFlag value
-    .assert kFirstConduitFlag > 1, error
-    sub #kFirstConduitFlag - 1
+    .assert kFirstBreakerFlag > 1, error
+    sub #kFirstBreakerFlag - 1
     @setNeedsPower:
     sta Zp_ConsoleNeedsPower_u8
     ;; If the machine is powered, enable the HUD, otherwise disable the HUD.
@@ -777,7 +778,7 @@ _DrawInstructions:
 _NeedsPower:
     inx
     inx
-    tya  ; param: conduit number (1-6)
+    tya  ; param: circuit number (1-7)
     ldy Zp_WindowNextRowToTransfer_u8
     dey
     dey  ; param: status box row

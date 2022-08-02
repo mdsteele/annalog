@@ -69,19 +69,21 @@ kSaveMagicNumber = $b2
     FlowerCore
     ;; Each of these flags is set when that boss has been defeated:
     BossGarden
+    BossTemple
     BossCrypt
     BossLava
     BossMine
     BossCity
     BossLab
     BossCore
-    ;; Each of these flags is set when that power conduit has been activated:
-    ConduitGarden
-    ConduitCrypt
-    ConduitLava
-    ConduitMine
-    ConduitCity
-    ConduitLab
+    ;; Each of these flags is set when that circuit breaker has been activated:
+    BreakerGarden
+    BreakerTemple
+    BreakerCrypt
+    BreakerLava
+    BreakerMine
+    BreakerCity
+    BreakerLab
     ;; Flags for persistent room state:
     CryptSouthWeakFloor
     CryptTombWeakFloors
@@ -99,10 +101,10 @@ kLastUpgradeFlag = eFlag::UpgradeOpcodeSync
 kNumUpgradeFlags = 15
 .ASSERT kNumUpgradeFlags = kLastUpgradeFlag + 1 - kFirstUpgradeFlag, error
 
-kFirstConduitFlag = eFlag::ConduitGarden
-kLastConduitFlag = eFlag::ConduitLab
-kNumConduitFlags = 6
-.ASSERT kNumConduitFlags = kLastConduitFlag + 1 - kFirstConduitFlag, error
+kFirstBreakerFlag = eFlag::BreakerGarden
+kLastBreakerFlag = eFlag::BreakerLab
+kNumBreakerFlags = 7
+.ASSERT kNumBreakerFlags = kLastBreakerFlag + 1 - kFirstBreakerFlag, error
 
 kFirstFlowerFlag = eFlag::FlowerPrison
 kLastFlowerFlag = eFlag::FlowerCore

@@ -503,14 +503,14 @@ _Finish:
     sta Hw_PpuData_rw
 .ENDPROC
     ;; TODO: draw B-remote upgrade
-.PROC _DrawConduits
-    ;; TODO: animate activated conduits
+.PROC _DrawCircuits
+    ;; TODO: animate activated circuits
     lda Zp_Tmp1_byte  ; line number (0-5)
     mul #8
     tax
     ldy #8
     @loop:
-    lda _ConduitTiles_u8_arr8_arr6, x
+    lda _CircuitTiles_u8_arr8_arr6, x
     sta Hw_PpuData_rw
     inx
     dey
@@ -521,7 +521,7 @@ _Finish:
 .ENDPROC
     ldx Zp_Tmp1_byte  ; restore X register
     rts
-_ConduitTiles_u8_arr8_arr6:
+_CircuitTiles_u8_arr8_arr6:
     .byte "3", $e0, $00, $f0, $f6, $00, $e1, "4"
     .byte $00, $e2, $e8, $f1, $f7, $e8, $e3, $00
     .byte $00, $e4, $e8, $f2, $f8, $e8, $e5, $00

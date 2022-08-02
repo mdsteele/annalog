@@ -274,7 +274,7 @@ _MarkMinimap:
     d_byte Row_u8, 11
     d_byte Col_u8, 0
     d_byte If_eFlag, 0
-    d_byte Not_eFlag, eFlag::ConduitCrypt
+    d_byte Not_eFlag, eFlag::BreakerCrypt
     D_END
     .assert sMarker::Row_u8 = 0, error
     .byte $ff

@@ -228,7 +228,7 @@ _Machines_sMachine_arr:
     .assert kCannonMachineIndex = 0, error
     D_STRUCT sMachine
     d_byte Code_eProgram, eProgram::GardenBossCannon
-    d_byte Conduit_eFlag, 0
+    d_byte Breaker_eFlag, 0
     d_byte Flags_bMachine, bMachine::MoveV | bMachine::Act
     d_byte Status_eDiagram, eDiagram::Trolley  ; TODO
     d_word ScrollGoalX_u16, $0
@@ -269,7 +269,7 @@ _Devices_sDevice_arr:
     d_byte Type_eDevice, eDevice::Placeholder  ; will be a breaker
     d_byte BlockRow_u8, 12
     d_byte BlockCol_u8, 5
-    d_byte Target_u8, eFlag::ConduitGarden
+    d_byte Target_u8, eFlag::BreakerGarden
     D_END
     .assert * - :- = kDoorDeviceIndex * .sizeof(sDevice), error
     D_STRUCT sDevice
@@ -378,8 +378,8 @@ _BossAlreadyDefeated:
     rts
 _UpgradeAlreadyCollected:
     ;; Check if the breaker has been activated yet.
-    lda Sram_ProgressFlags_arr + (eFlag::ConduitGarden >> 3)
-    and #1 << (eFlag::ConduitGarden & $07)
+    lda Sram_ProgressFlags_arr + (eFlag::BreakerGarden >> 3)
+    and #1 << (eFlag::BreakerGarden & $07)
     bne _BreakerAlreadyDone
     ;; If not, the player must have saved after defeating the boss and
     ;; collecting the upgrade, but before activating the breaker.  So we'll set

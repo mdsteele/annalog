@@ -166,13 +166,13 @@ _WriteRegisters:
 
 ;;; Writes kNoPowerWidthTiles bytes into a PPU transfer entry with the tile IDs
 ;;; of the specified row of the "no power" message box.
-;;; @param A The needed conduit number (1-6).
+;;; @param A The needed circuit number (1-7).
 ;;; @param X PPU transfer array index within an entry's data.
 ;;; @param Y The console interior row to transfer (0-7).
 ;;; @return X Updated PPU transfer array index.
 .EXPORT FuncA_Console_WriteNeedsPowerTransferData
 .PROC FuncA_Console_WriteNeedsPowerTransferData
-    sta Zp_Tmp1_byte  ; conduit number (1-6)
+    sta Zp_Tmp1_byte  ; circuit number (1-7)
     ;; Compute the message row and store it in A.
     lda Zp_ConsoleNumInstRows_u8
     sub #kNumNoPowerRows
@@ -216,8 +216,8 @@ _WriteMessageRow1:
     iny
     cpy #15
     blt @loop
-    ;; Write the tile ID for the conduit number.
-    lda Zp_Tmp1_byte  ; conduit number (1-6)
+    ;; Write the tile ID for the circuit number.
+    lda Zp_Tmp1_byte  ; circuit number (1-7)
     .assert '0' & $0f = 0, error
     ora #'0'
     sta Ram_PpuTransfer_arr, x

@@ -125,7 +125,7 @@ _Machines_sMachine_arr:
     .assert kLiftMachineIndex = 0, error
     D_STRUCT sMachine
     d_byte Code_eProgram, eProgram::MermaidUpperLift
-    d_byte Conduit_eFlag, eFlag::ConduitMine
+    d_byte Breaker_eFlag, eFlag::BreakerMine
     d_byte Flags_bMachine, bMachine::MoveV
     d_byte Status_eDiagram, eDiagram::Lift  ; TODO
     d_word ScrollGoalX_u16, $10

@@ -87,7 +87,7 @@ kFirstInteractiveDeviceType = eDevice::BreakerReady
     ;; The room block column for this device.
     BlockCol_u8  .byte
     ;; The "target" for this device, whose meaning depends on the device type:
-    ;;   * For breakers, this is the eFlag::Conduit* value.
+    ;;   * For breakers, this is the eFlag::Breaker* value.
     ;;   * For consoles, this is the machine index (i.e. the index into the
     ;;     current room's sRoom::Machines_sMachine_arr_ptr).
     ;;   * For doors, this is the eRoom value for the destination room.

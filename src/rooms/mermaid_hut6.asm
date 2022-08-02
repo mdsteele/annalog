@@ -96,7 +96,7 @@ _Machines_sMachine_arr:
     ;; TODO: replace these with real machines for this room
     D_STRUCT sMachine
     d_byte Code_eProgram, eProgram::GardenCrossroadLift
-    d_byte Conduit_eFlag, 0
+    d_byte Breaker_eFlag, 0
     d_byte Flags_bMachine, bMachine::MoveV
     d_byte Status_eDiagram, eDiagram::Lift
     d_word ScrollGoalX_u16, $00
@@ -114,7 +114,7 @@ _Machines_sMachine_arr:
     D_END
     D_STRUCT sMachine
     d_byte Code_eProgram, eProgram::PrisonCellLift
-    d_byte Conduit_eFlag, 0
+    d_byte Breaker_eFlag, 0
     d_byte Flags_bMachine, bMachine::MoveV
     d_byte Status_eDiagram, eDiagram::Lift
     d_word ScrollGoalX_u16, $00

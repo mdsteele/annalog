@@ -134,7 +134,7 @@ _Machines_sMachine_arr:
     .assert kBridgeMachineIndex = 0, error
     D_STRUCT sMachine
     d_byte Code_eProgram, eProgram::GardenEastBridge
-    d_byte Conduit_eFlag, 0
+    d_byte Breaker_eFlag, 0
     d_byte Flags_bMachine, bMachine::MoveV
     d_byte Status_eDiagram, eDiagram::Trolley  ; TODO
     d_word ScrollGoalX_u16, $d0
@@ -153,7 +153,7 @@ _Machines_sMachine_arr:
     .assert kCannonMachineIndex = 1, error
     D_STRUCT sMachine
     d_byte Code_eProgram, eProgram::GardenEastCannon
-    d_byte Conduit_eFlag, 0
+    d_byte Breaker_eFlag, 0
     d_byte Flags_bMachine, bMachine::FlipH | bMachine::MoveV | bMachine::Act
     d_byte Status_eDiagram, eDiagram::Trolley  ; TODO
     d_word ScrollGoalX_u16, $b0
