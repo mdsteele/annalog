@@ -30,8 +30,8 @@
 ;;;=========================================================================;;;
 
 ;;; OBJ tile IDs used for drawing machine status lights.
-kMachineLightTileIdOff = $70
-kMachineLightTileIdOn  = $71
+kMachineLightTileIdOff = $3e
+kMachineLightTileIdOn  = $3f
 
 ;;;=========================================================================;;;
 

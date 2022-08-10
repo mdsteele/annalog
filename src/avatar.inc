@@ -56,16 +56,18 @@ kAvatarHarmDeath = $ff
 .ENUM eAvatar
     Standing  = $40  ; (grounded) standing still on the ground
     Looking   = $44  ; (grounded) standing still and looking upward
-    Ducking   = $48  ; (grounded) crouching still on the ground
-    Landing   = $4c  ; (grounded) just landed from a jump
-    Reading   = $50  ; (grounded) facing away from camera (e.g. to read a sign)
-    Running1  = $54  ; (grounded) running along the ground (1st frame)
-    Running2  = $58  ; (grounded) running along the ground (2nd frame)
-    Swimming1 = $5c  ; (swimming) swimming in water (1st frame)
-    Swimming2 = $60  ; (swimming) swimming in water (2nd frame)
-    Jumping   = $64  ; (airborne) jumping up
-    Hovering  = $68  ; (airborne) mid-jump hang time
-    Falling   = $6c  ; (airborne) falling down
+    Reaching  = $48  ; (grounded) standing still and reaching upward
+    Straining = $4c  ; (grounded) standing still and reaching way upward
+    Ducking   = $50  ; (grounded) crouching still on the ground
+    Landing   = $54  ; (grounded) just landed from a jump
+    Reading   = $58  ; (grounded) facing away from camera (e.g. to read a sign)
+    Running1  = $5c  ; (grounded) running along the ground (1st frame)
+    Running2  = $60  ; (grounded) running along the ground (2nd frame)
+    Swimming1 = $64  ; (swimming) swimming in water (1st frame)
+    Swimming2 = $68  ; (swimming) swimming in water (2nd frame)
+    Jumping   = $6c  ; (airborne) jumping up
+    Hovering  = $70  ; (airborne) mid-jump hang time
+    Falling   = $74  ; (airborne) falling down
 .ENDENUM
 
 ;;; Any eAvatar modes greater than or equal to this are considered airborne.

@@ -325,11 +325,11 @@ _Finish:
 _DeviceOffset_u8_arr:
     D_ENUM eDevice
     d_byte None,          $08
-    d_byte BreakerDone,   $06
-    d_byte BreakerRising, $06
+    d_byte BreakerDone,   kBreakerAvatarOffset
+    d_byte BreakerRising, kBreakerAvatarOffset
     d_byte LockedDoor,    $08
     d_byte Placeholder,   $08
-    d_byte BreakerReady,  $06
+    d_byte BreakerReady,  kBreakerAvatarOffset
     d_byte Console,       $06
     d_byte Flower,        $08
     d_byte Lever,         $06

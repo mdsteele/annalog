@@ -45,8 +45,8 @@
 kLiftMoveCooldown = kBlockHeightPx
 
 ;;; Various OBJ tile IDs used for drawing lift machines.
-kTileIdLiftCorner   = $73
-kTileIdLiftSurface  = $72
+kTileIdLiftCorner  = $79
+kTileIdLiftSurface = $78
 
 ;;;=========================================================================;;;
 

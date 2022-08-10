@@ -74,17 +74,15 @@ kTrolleyMoveCooldown = kBlockWidthPx
 kTrolleyMinPlatformLeft = $100
 
 ;;; Various OBJ tile IDs used for drawing the PrisonEscapeTrolley machine.
-kTrolleyTileIdCorner   = $73
-kTrolleyTileIdWheel    = $75
-kTrolleyTileIdRopeVert = $76
-kTrolleyTileIdPulley   = $77
-kTrolleyTileIdRopeDiag = $78
-kTrolleyTileIdGirder   = $79
+kTrolleyTileIdCorner   = $79
+kTrolleyTileIdWheel    = $7b
+kTrolleyTileIdRopeVert = $7c
+kTrolleyTileIdPulley   = $7d
+kTrolleyTileIdRopeDiag = $7e
 
 ;;; The OBJ palette number used for various parts of the PrisonEscapeTrolley
 ;;; machine.
-kTrolleyGirderPalette = 0
-kTrolleyRopePalette   = 0
+kTrolleyRopePalette = 0
 
 ;;;=========================================================================;;;
 

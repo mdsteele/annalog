@@ -266,8 +266,12 @@ _JumpTable_ptr_1_arr: .hibytes DeviceDrawFuncs
 ;;; @preserve X
 .PROC FuncA_Objects_DrawBreakerDoneDevice
     lda Ram_DeviceAnim_u8_arr, x
+    .assert kBreakerDoneDeviceAnimStart = $1f, error
+    lsr a
     and #$0c
-    add #kTileIdBreakerFirst
+    sta Zp_Tmp1_byte
+    lda #kTileIdBreakerFirst + $0c
+    sub Zp_Tmp1_byte
     tay  ; param: first tile ID
     lda #kTileHeightPx  ; param: vertical offset
     .assert * = FuncA_Objects_DrawBreakerDevice, error, "fallthrough"

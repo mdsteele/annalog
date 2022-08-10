@@ -59,6 +59,7 @@
 .IMPORT Func_Window_DirectDrawTopBorder
 .IMPORT Func_Window_Disable
 .IMPORT Func_Window_SetUpIrq
+.IMPORT Main_Breaker_Activate
 .IMPORT Main_Console_OpenWindow
 .IMPORT Main_Dialog_OpenWindow
 .IMPORT Main_Pause
@@ -221,7 +222,7 @@ _CheckForActivateDevice:
     bmi @done
     lda Ram_DeviceType_eDevice_arr, x
     cmp #eDevice::BreakerReady
-    ;; TODO: beq @breaker
+    jeq Main_Explore_UseBreaker
     cmp #eDevice::Console
     jeq Main_Explore_UseConsole
     cmp #eDevice::Flower
@@ -383,6 +384,19 @@ _FadeIn:
     jmp Main_Explore_FadeIn
 .ENDPROC
 
+;;; Mode for activating a breaker device.
+;;; @prereq Rendering is enabled.
+;;; @prereq Explore mode is already initialized.
+;;; @prereq Zp_NearbyDevice_u8 holds the index of a ready breaker device.
+.PROC Main_Explore_UseBreaker
+    ldy #0
+    sty Zp_HudEnabled_bool
+    dey  ; now Y is $ff
+    ldx Zp_NearbyDevice_u8  ; param: breaker device index
+    sty Zp_NearbyDevice_u8
+    jmp Main_Breaker_Activate
+.ENDPROC
+
 ;;; Mode for using a console device.
 ;;; @prereq Rendering is enabled.
 ;;; @prereq Explore mode is already initialized.
@@ -391,7 +405,7 @@ _FadeIn:
     lda #eAvatar::Reading
     sta Zp_AvatarMode_eAvatar
 _SetSpawnPoint:
-    lda Zp_NearbyDevice_u8
+    lda Zp_NearbyDevice_u8  ; param: bSpawn value
     jsr Func_SetLastSpawnPoint
 _EnableHud:
     lda #$ff

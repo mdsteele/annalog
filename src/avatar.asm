@@ -92,6 +92,7 @@ Zp_AvatarPosX_i16: .res 2
 Zp_AvatarPosY_i16: .res 2
 
 ;;; The current X/Y subpixel positions of the player avatar.
+.EXPORTZP Zp_AvatarSubX_u8
 Zp_AvatarSubX_u8: .res 1
 
 ;;; The current velocity of the player avatar, in subpixels per frame.
@@ -116,6 +117,7 @@ Zp_AvatarMode_eAvatar: .res 1
 
 ;;; How many more frames the player avatar should stay in eAvatar::Landing mode
 ;;; (after landing from a jump).
+.EXPORTZP Zp_AvatarRecover_u8
 Zp_AvatarRecover_u8: .res 1
 
 ;;; Temporary variable that records what kind of wall/platform the player

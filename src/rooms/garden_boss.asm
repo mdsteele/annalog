@@ -390,6 +390,8 @@ _UpgradeAlreadyCollected:
     sta Ram_RoomState + sState::Current_ePhase
     rts
 _BreakerAlreadyDone:
+    lda #ePhase::Done
+    sta Ram_RoomState + sState::Current_ePhase
     ;; Place the already-activated breaker.
     lda #eDevice::BreakerDone
     sta Ram_DeviceType_eDevice_arr + kBreakerDeviceIndex
