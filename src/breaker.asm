@@ -143,7 +143,7 @@ _GameLoop:
     sta Zp_Tmp_ptr + 1
     jmp (Zp_Tmp_ptr)
 _JumpTable_ptr_arr:
-    D_ENUM ePhase, 2
+    D_ENUM ePhase, kSizeofAddr
     d_addr Adjust, FuncA_Breaker_TickAdjust
     d_addr Reach, FuncA_Breaker_TickReach
     d_addr Strain, FuncA_Breaker_TickStrain

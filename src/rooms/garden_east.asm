@@ -20,6 +20,7 @@
 .INCLUDE "../actor.inc"
 .INCLUDE "../actors/townsfolk.inc"
 .INCLUDE "../charmap.inc"
+.INCLUDE "../cpu.inc"
 .INCLUDE "../device.inc"
 .INCLUDE "../dialog.inc"
 .INCLUDE "../flag.inc"
@@ -131,7 +132,7 @@ _TerrainData:
 :   .incbin "out/data/garden_east.room"
     .assert * - :- = 33 * 24, error
 _Machines_sMachine_arr:
-    .assert kBridgeMachineIndex = 0, error
+:   .assert * - :- = kBridgeMachineIndex * .sizeof(sMachine), error
     D_STRUCT sMachine
     d_byte Code_eProgram, eProgram::GardenEastBridge
     d_byte Breaker_eFlag, 0
@@ -150,7 +151,7 @@ _Machines_sMachine_arr:
     d_addr Draw_func_ptr, FuncA_Objects_GardenEastBridge_Draw
     d_addr Reset_func_ptr, FuncC_Garden_EastBridge_Reset
     D_END
-    .assert kCannonMachineIndex = 1, error
+    .assert * - :- = kCannonMachineIndex * .sizeof(sMachine), error
     D_STRUCT sMachine
     d_byte Code_eProgram, eProgram::GardenEastCannon
     d_byte Breaker_eFlag, 0
@@ -169,8 +170,9 @@ _Machines_sMachine_arr:
     d_addr Draw_func_ptr, FuncA_Objects_DrawCannonMachine
     d_addr Reset_func_ptr, FuncC_Garden_EastCannon_Reset
     D_END
+    .assert * - :- <= kMaxMachines * .sizeof(sMachine), error
 _Platforms_sPlatform_arr:
-:   .assert kCannonPlatformIndex = 0, error
+:   .assert * - :- = kCannonPlatformIndex * .sizeof(sPlatform), error
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Solid
     d_word WidthPx_u16, kBlockWidthPx
@@ -178,7 +180,7 @@ _Platforms_sPlatform_arr:
     d_word Left_i16, $00e0
     d_word Top_i16,  $0130
     D_END
-    .assert kBridgePivotPlatformIndex = 1, error
+    .assert * - :- = kBridgePivotPlatformIndex * .sizeof(sPlatform), error
     .repeat kNumMovableBridgeSegments + 1, index
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Solid
@@ -188,6 +190,7 @@ _Platforms_sPlatform_arr:
     d_word Top_i16, kBridgePivotPosY
     D_END
     .endrepeat
+    ;; Water:
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Water
     d_word WidthPx_u16, $70
@@ -205,7 +208,7 @@ _Platforms_sPlatform_arr:
     .assert * - :- <= kMaxPlatforms * .sizeof(sPlatform), error
     .byte ePlatform::None
 _Actors_sActor_arr:
-    .assert kMermaidActorIndex = 0, error
+:   .assert * - :- = kMermaidActorIndex * .sizeof(sActor), error
     D_STRUCT sActor
     d_byte Type_eActor, eActor::Mermaid
     d_byte TileRow_u8, 19
@@ -242,16 +245,17 @@ _Actors_sActor_arr:
     d_byte TileCol_u8, 26
     d_byte Param_byte, 0
     D_END
+    .assert * - :- <= kMaxActors * .sizeof(sActor), error
     .byte eActor::None
 _Devices_sDevice_arr:
-    .assert kMermaidDeviceIndexRight = 0, error
+:   .assert * - :- = kMermaidDeviceIndexRight * .sizeof(sDevice), error
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::TalkRight
     d_byte BlockRow_u8, 9
     d_byte BlockCol_u8, 7
     d_byte Target_u8, kMermaidDialogIndex
     D_END
-    .assert kMermaidDeviceIndexLeft = 1, error
+    .assert * - :- = kMermaidDeviceIndexLeft * .sizeof(sDevice), error
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::TalkLeft
     d_byte BlockRow_u8, 9
@@ -282,6 +286,7 @@ _Devices_sDevice_arr:
     d_byte BlockCol_u8, 16
     d_byte Target_u8, sState::LeverCannon_u1
     D_END
+    .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None
 _Passages_sPassage_arr:
     D_STRUCT sPassage
@@ -367,7 +372,7 @@ _Passages_sPassage_arr:
 
 ;;; Dialog data for the GardenEast room.
 .PROC DataA_Dialog_GardenEast_sDialog_ptr_arr
-    .assert kMermaidDialogIndex = 0, error
+:   .assert * - :- = kMermaidDialogIndex * kSizeofAddr, error
     .addr _Mermaid_sDialog
 _Mermaid_sDialog:
     .addr _MermaidInitialFunc

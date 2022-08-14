@@ -122,7 +122,7 @@ _TerrainData:
 :   .incbin "out/data/mermaid_upper.room"
     .assert * - :- = 18 * 24, error
 _Machines_sMachine_arr:
-    .assert kLiftMachineIndex = 0, error
+:   .assert * - :- = kLiftMachineIndex * .sizeof(sMachine), error
     D_STRUCT sMachine
     d_byte Code_eProgram, eProgram::MermaidUpperLift
     d_byte Breaker_eFlag, eFlag::BreakerMine
@@ -141,8 +141,9 @@ _Machines_sMachine_arr:
     d_addr Draw_func_ptr, FuncA_Objects_MermaidUpperLift_Draw
     d_addr Reset_func_ptr, FuncC_Mermaid_UpperLift_Reset
     D_END
+    .assert * - :- <= kMaxMachines * .sizeof(sMachine), error
 _Platforms_sPlatform_arr:
-    .assert kLiftPlatformIndex = 0, error
+:   .assert * - :- = kLiftPlatformIndex * .sizeof(sPlatform), error
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Solid
     d_word WidthPx_u16, $20
@@ -180,11 +181,12 @@ _Platforms_sPlatform_arr:
     d_word Left_i16,  $00e0
     d_word Top_i16,   $0158
     D_END
+    .assert * - :- <= kMaxPlatforms * .sizeof(sPlatform), error
     .byte ePlatform::None
 _Actors_sActor_arr:
     .byte eActor::None
 _Devices_sDevice_arr:
-    D_STRUCT sDevice
+:   D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Console
     d_byte BlockRow_u8, 16
     d_byte BlockCol_u8, 15
@@ -196,6 +198,7 @@ _Devices_sDevice_arr:
     d_byte BlockCol_u8, 7
     d_byte Target_u8, sState::LowerLever_u1
     D_END
+    .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None
 _Passages_sPassage_arr:
     D_STRUCT sPassage

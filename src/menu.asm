@@ -124,7 +124,7 @@ Ram_MenuCols_u8_arr: .res kMaxMenuItems
     d_byte WidthsMinusOne_u8_arr
     .byte 5, 3, 3, 2, 2, 2, 3, 3, 1, 2, 2, 3, 3, 3, 2, 2
     d_addr Labels_u8_arr_ptr_arr
-    D_ENUM eOpcode, 2
+    D_ENUM eOpcode, kSizeofAddr
     d_addr Empty, _LabelEmpty
     d_addr Copy,  _LabelCopy
     d_addr Sync,  _LabelSync
@@ -788,7 +788,7 @@ _OnRight:
     d_byte WidthsMinusOne_u8_arr
     .byte 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
     d_addr Labels_u8_arr_ptr_arr
-    D_ENUM eCmp, 2
+    D_ENUM eCmp, kSizeofAddr
     d_addr Eq, _LabelEq
     d_addr Ne, _LabelNe
     d_addr Lt, _LabelLt
@@ -872,7 +872,7 @@ _SetItem:
     d_byte WidthsMinusOne_u8_arr
     .byte 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
     d_addr Labels_u8_arr_ptr_arr
-    D_ENUM eDir, 2
+    D_ENUM eDir, kSizeofAddr
     d_addr Up,    _LabelUp
     d_addr Down,  _LabelDown
     d_addr Left,  _LabelLeft
@@ -976,7 +976,7 @@ _SetItem:
     sta Zp_Tmp_ptr + 1
     jmp (Zp_Tmp_ptr)
 _JumpTable_ptr_arr:
-    D_ENUM eField, 2
+    D_ENUM eField, kSizeofAddr
     d_addr Opcode,    FuncA_Console_SetUpOpcodeMenu
     d_addr LValue,    FuncA_Console_SetUpLValueMenu
     d_addr RValue,    FuncA_Console_SetUpRValueMenu

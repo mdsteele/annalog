@@ -84,13 +84,14 @@ _Platforms_sPlatform_arr:
 _Actors_sActor_arr:
     .byte eActor::None
 _Devices_sDevice_arr:
-    .assert kUpgradeDeviceIndex = 0, error
+:   .assert * - :- = kUpgradeDeviceIndex * .sizeof(sDevice), error
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Upgrade
     d_byte BlockRow_u8, 8
     d_byte BlockCol_u8, 8
     d_byte Target_u8, kUpgradeFlag
     D_END
+    .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None
 _Passages_sPassage_arr:
     D_STRUCT sPassage

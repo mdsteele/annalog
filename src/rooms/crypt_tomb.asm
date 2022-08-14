@@ -168,7 +168,7 @@ _TerrainData:
 :   .incbin "out/data/crypt_tomb.room"
     .assert * - :- = 17 * 16, error
 _Machines_sMachine_arr:
-    .assert kWinchMachineIndex = 0, error
+:   .assert * - :- = kWinchMachineIndex * .sizeof(sMachine), error
     D_STRUCT sMachine
     d_byte Code_eProgram, eProgram::CryptTombWinch
     d_byte Breaker_eFlag, 0
@@ -187,8 +187,9 @@ _Machines_sMachine_arr:
     d_addr Draw_func_ptr, FuncA_Objects_CryptTombWinch_Draw
     d_addr Reset_func_ptr, FuncC_Crypt_TombWinch_Reset
     D_END
+    .assert * - :- <= kMaxMachines * .sizeof(sMachine), error
 _Platforms_sPlatform_arr:
-    .assert kWeakFloor0PlatformIndex = 0, error
+:   .assert * - :- = kWeakFloor0PlatformIndex * .sizeof(sPlatform), error
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Solid
     d_word WidthPx_u16, $10
@@ -196,7 +197,7 @@ _Platforms_sPlatform_arr:
     d_word Left_i16,  $0030
     d_word Top_i16,   $00a0
     D_END
-    .assert kWeakFloor1PlatformIndex = 1, error
+    .assert * - :- = kWeakFloor1PlatformIndex * .sizeof(sPlatform), error
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Solid
     d_word WidthPx_u16, $10
@@ -204,7 +205,7 @@ _Platforms_sPlatform_arr:
     d_word Left_i16,  $00c0
     d_word Top_i16,   $0080
     D_END
-    .assert kWinchPlatformIndex = 2, error
+    .assert * - :- = kWinchPlatformIndex * .sizeof(sPlatform), error
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Solid
     d_word WidthPx_u16, $10
@@ -212,7 +213,7 @@ _Platforms_sPlatform_arr:
     d_word Left_i16, kWinchInitPlatformLeft
     d_word Top_i16,   $0010
     D_END
-    .assert kSpikeballPlatformIndex = 3, error
+    .assert * - :- = kSpikeballPlatformIndex * .sizeof(sPlatform), error
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Harm
     d_word WidthPx_u16, $0d
@@ -242,11 +243,12 @@ _Platforms_sPlatform_arr:
     d_word Left_i16,  $0050
     d_word Top_i16,   $00de
     D_END
+    .assert * - :- <= kMaxPlatforms * .sizeof(sPlatform), error
     .byte ePlatform::None
 _Actors_sActor_arr:
     .byte eActor::None
 _Devices_sDevice_arr:
-    D_STRUCT sDevice
+:   D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Console
     d_byte BlockRow_u8, 7
     d_byte BlockCol_u8, 9
@@ -270,6 +272,7 @@ _Devices_sDevice_arr:
     d_byte BlockCol_u8, 7
     d_byte Target_u8, eRoom::CryptBoss
     D_END
+    .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None
 _Passages_sPassage_arr:
     D_STRUCT sPassage

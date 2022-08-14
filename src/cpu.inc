@@ -17,6 +17,10 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
+kSizeofAddr = 2
+
+;;;=========================================================================;;;
+
 ;;; Constants for 6502 processor flags.
 .SCOPE bProc
     Negative   = %10000000

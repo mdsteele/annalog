@@ -112,7 +112,7 @@ _TerrainData:
 :   .incbin "out/data/garden_crossroad.room"
     .assert * - :- = 18 * 24, error
 _Machines_sMachine_arr:
-    .assert kLiftMachineIndex = 0, error
+:   .assert * - :- = kLiftMachineIndex * .sizeof(sMachine), error
     D_STRUCT sMachine
     d_byte Code_eProgram, eProgram::GardenCrossroadLift
     d_byte Breaker_eFlag, 0
@@ -131,8 +131,9 @@ _Machines_sMachine_arr:
     d_addr Draw_func_ptr, FuncA_Objects_DrawLiftMachine
     d_addr Reset_func_ptr, _Lift_Reset
     D_END
+    .assert * - :- <= kMaxMachines * .sizeof(sMachine), error
 _Platforms_sPlatform_arr:
-    .assert kLiftPlatformIndex = 0, error
+:   .assert * - :- = kLiftPlatformIndex * .sizeof(sPlatform), error
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Solid
     d_word WidthPx_u16, $10
@@ -140,10 +141,11 @@ _Platforms_sPlatform_arr:
     d_word Left_i16,  $00a0
     d_word Top_i16, kLiftInitPlatformTop
     D_END
+    .assert * - :- <= kMaxPlatforms * .sizeof(sPlatform), error
     .byte ePlatform::None
 _Actors_sActor_arr:
     ;; The enemy that can get squished by the lift machine:
-    .assert kSquishableActorIndex = 0, error
+:   .assert * - :- = kSquishableActorIndex * .sizeof(sPlatform), error
     D_STRUCT sActor
     d_byte Type_eActor, eActor::Crawler
     d_byte TileRow_u8, 31
@@ -163,9 +165,10 @@ _Actors_sActor_arr:
     d_byte TileCol_u8, 17
     d_byte Param_byte, 0
     D_END
+    .assert * - :- <= kMaxActors * .sizeof(sActor), error
     .byte eActor::None
 _Devices_sDevice_arr:
-    D_STRUCT sDevice
+:   D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Console
     d_byte BlockRow_u8, 15
     d_byte BlockCol_u8, 4
@@ -177,6 +180,7 @@ _Devices_sDevice_arr:
     d_byte BlockCol_u8, 7
     d_byte Target_u8, sState::Lever_u1
     D_END
+    .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None
 _Passages_sPassage_arr:
     D_STRUCT sPassage

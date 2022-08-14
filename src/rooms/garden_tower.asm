@@ -98,7 +98,7 @@ _TerrainData:
 :   .incbin "out/data/garden_tower.room"
     .assert * - :- = 34 * 24, error
 _Machines_sMachine_arr:
-    .assert kCannonMachineIndex = 0, error
+:   .assert * - :- = kCannonMachineIndex * .sizeof(sMachine), error
     D_STRUCT sMachine
     d_byte Code_eProgram, eProgram::GardenBossCannon
     d_byte Breaker_eFlag, 0
@@ -117,8 +117,9 @@ _Machines_sMachine_arr:
     d_addr Draw_func_ptr, FuncA_Objects_DrawCannonMachine
     d_addr Reset_func_ptr, FuncC_Garden_TowerCannon_Reset
     D_END
+    .assert * - :- <= kMaxMachines * .sizeof(sMachine), error
 _Platforms_sPlatform_arr:
-    .assert kCannonPlatformIndex = 0, error
+:   .assert * - :- = kCannonPlatformIndex * .sizeof(sPlatform), error
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Solid
     d_word WidthPx_u16, kBlockWidthPx
@@ -126,9 +127,10 @@ _Platforms_sPlatform_arr:
     d_word Left_i16, $0050
     d_word Top_i16,  $00a0
     D_END
+    .assert * - :- <= kMaxPlatforms * .sizeof(sPlatform), error
     .byte ePlatform::None
 _Actors_sActor_arr:
-    D_STRUCT sActor
+:   D_STRUCT sActor
     d_byte Type_eActor, eActor::Crawler
     d_byte TileRow_u8, 35
     d_byte TileCol_u8, 22
@@ -152,9 +154,10 @@ _Actors_sActor_arr:
     d_byte TileCol_u8, 11
     d_byte Param_byte, 0
     D_END
+    .assert * - :- <= kMaxActors * .sizeof(sActor), error
     .byte eActor::None
 _Devices_sDevice_arr:
-    D_STRUCT sDevice
+:   D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Lever
     d_byte BlockRow_u8, 14
     d_byte BlockCol_u8, 3
@@ -178,6 +181,7 @@ _Devices_sDevice_arr:
     d_byte BlockCol_u8, 14
     d_byte Target_u8, eRoom::GardenBoss
     D_END
+    .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None
 _Passages_sPassage_arr:
     D_STRUCT sPassage

@@ -19,6 +19,7 @@
 
 .INCLUDE "../actor.inc"
 .INCLUDE "../charmap.inc"
+.INCLUDE "../cpu.inc"
 .INCLUDE "../device.inc"
 .INCLUDE "../flag.inc"
 .INCLUDE "../machine.inc"
@@ -225,7 +226,7 @@ _TerrainData:
 :   .incbin "out/data/garden_boss.room"
     .assert * - :- = 16 * 16, error
 _Machines_sMachine_arr:
-    .assert kCannonMachineIndex = 0, error
+:   .assert * - :- = kCannonMachineIndex * .sizeof(sMachine), error
     D_STRUCT sMachine
     d_byte Code_eProgram, eProgram::GardenBossCannon
     d_byte Breaker_eFlag, 0
@@ -244,8 +245,9 @@ _Machines_sMachine_arr:
     d_addr Draw_func_ptr, FuncA_Objects_DrawCannonMachine
     d_addr Reset_func_ptr, _Cannon_Reset
     D_END
+    .assert * - :- <= kMaxMachines * .sizeof(sMachine), error
 _Platforms_sPlatform_arr:
-    .assert kCannonPlatformIndex = 0, error
+:   .assert * - :- = kCannonPlatformIndex * .sizeof(sPlatform), error
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Solid
     d_word WidthPx_u16, $10
@@ -253,6 +255,7 @@ _Platforms_sPlatform_arr:
     d_word Left_i16,  $0020
     d_word Top_i16,   $0070
     D_END
+    .assert * - :- <= kMaxPlatforms * .sizeof(sPlatform), error
     .byte ePlatform::None
 _Actors_sActor_arr:
     .byte eActor::None
@@ -412,7 +415,7 @@ _BreakerAlreadyDone:
     sta Zp_Tmp_ptr + 1
     jmp (Zp_Tmp_ptr)
 _JumpTable_ptr_arr:
-    D_ENUM ePhase, 2
+    D_ENUM ePhase, kSizeofAddr
     d_addr BossBattle, _BossBattle
     d_addr SpawnUpgrade, _SpawnUpgrade
     d_addr GetUpgrade, _GetUpgrade

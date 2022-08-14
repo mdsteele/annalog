@@ -20,6 +20,7 @@
 .INCLUDE "../actor.inc"
 .INCLUDE "../actors/townsfolk.inc"
 .INCLUDE "../charmap.inc"
+.INCLUDE "../cpu.inc"
 .INCLUDE "../device.inc"
 .INCLUDE "../dialog.inc"
 .INCLUDE "../flag.inc"
@@ -149,7 +150,7 @@ _Platforms_sPlatform_arr:
     .assert * - :- <= kMaxPlatforms * .sizeof(sPlatform), error
     .byte ePlatform::None
 _Actors_sActor_arr:
-    D_STRUCT sActor
+:   D_STRUCT sActor
     d_byte Type_eActor, eActor::Mermaid
     d_byte TileRow_u8, 17
     d_byte TileCol_u8, 84
@@ -167,6 +168,7 @@ _Actors_sActor_arr:
     d_byte TileCol_u8, 34
     d_byte Param_byte, kTileIdMermaidYouthFirst
     D_END
+    .assert * - :- <= kMaxActors * .sizeof(sActor), error
     .byte eActor::None
 _Devices_sDevice_arr:
 :   D_STRUCT sDevice
@@ -256,11 +258,11 @@ _Passages_sPassage_arr:
 
 ;;; Dialog data for the MermaidVillage room.
 .PROC DataA_Dialog_MermaidVillage_sDialog_ptr_arr
-    .assert kMermaidGuardDialogIndex = 0, error
+:   .assert * - :- = kMermaidGuardDialogIndex * kSizeofAddr, error
     .addr _MermaidGuard_sDialog
-    .assert kMermaidFarmerDialogIndex = 1, error
+    .assert * - :- = kMermaidFarmerDialogIndex * kSizeofAddr, error
     .addr _MermaidFarmer_sDialog
-    .assert kMermaidYouthDialogIndex = 2, error
+    .assert * - :- = kMermaidYouthDialogIndex * kSizeofAddr, error
     .addr _MermaidYouth_sDialog
 _MermaidGuard_sDialog:
     .word ePortrait::Woman

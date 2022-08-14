@@ -116,7 +116,7 @@ _TerrainData:
 :   .incbin "out/data/garden_shaft.room"
     .assert * - :- = 17 * 24, error
 _Machines_sMachine_arr:
-    .assert kLowerBridgeMachineIndex = 0, error
+:   .assert * - :- = kLowerBridgeMachineIndex * .sizeof(sMachine), error
     D_STRUCT sMachine
     d_byte Code_eProgram, eProgram::GardenShaftLowerBridge
     d_byte Breaker_eFlag, 0
@@ -135,7 +135,7 @@ _Machines_sMachine_arr:
     d_addr Draw_func_ptr, FuncA_Objects_GardenShaftLowerBridge_Draw
     d_addr Reset_func_ptr, FuncC_Garden_ShaftBridge_Reset
     D_END
-    .assert kUpperBridgeMachineIndex = 1, error
+    .assert * - :- = kUpperBridgeMachineIndex * .sizeof(sMachine), error
     D_STRUCT sMachine
     d_byte Code_eProgram, eProgram::GardenShaftUpperBridge
     d_byte Breaker_eFlag, 0
@@ -154,8 +154,9 @@ _Machines_sMachine_arr:
     d_addr Draw_func_ptr, FuncA_Objects_GardenShaftUpperBridge_Draw
     d_addr Reset_func_ptr, FuncC_Garden_ShaftBridge_Reset
     D_END
+    .assert * - :- <= kMaxMachines * .sizeof(sMachine), error
 _Platforms_sPlatform_arr:
-:   .assert kLowerBridgePivotPlatformIndex = 0, error
+:   .assert * - :- = kLowerBridgePivotPlatformIndex * .sizeof(sPlatform), error
     .repeat kNumMovableLowerBridgeSegments + 1, index
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Solid
@@ -165,6 +166,7 @@ _Platforms_sPlatform_arr:
     d_word Top_i16, kLowerBridgePivotPosY - kTileWidthPx * index
     D_END
     .endrepeat
+    .assert * - :- = kUpperBridgePivotPlatformIndex * .sizeof(sPlatform), error
     .repeat kNumMovableUpperBridgeSegments + 1, index
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Solid
@@ -177,15 +179,16 @@ _Platforms_sPlatform_arr:
     .assert * - :- <= kMaxPlatforms * .sizeof(sPlatform), error
     .byte ePlatform::None
 _Actors_sActor_arr:
-    D_STRUCT sActor
+:   D_STRUCT sActor
     d_byte Type_eActor, eActor::Vinebug
     d_byte TileRow_u8, 17
     d_byte TileCol_u8, 25
     d_byte Param_byte, 0
     D_END
+    .assert * - :- <= kMaxActors * .sizeof(sActor), error
     .byte eActor::None
 _Devices_sDevice_arr:
-    D_STRUCT sDevice
+:   D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Lever
     d_byte BlockRow_u8, 6
     d_byte BlockCol_u8, 2
@@ -209,6 +212,7 @@ _Devices_sDevice_arr:
     d_byte BlockCol_u8, 8
     d_byte Target_u8, kLowerBridgeMachineIndex
     D_END
+    .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None
 _Passages_sPassage_arr:
     D_STRUCT sPassage

@@ -140,7 +140,7 @@ _TerrainData:
 :   .incbin "out/data/crypt_west.room"
     .assert * - :- = 17 * 24, error
 _Machines_sMachine_arr:
-    .assert kWinchMachineIndex = 0, error
+:   .assert * - :- = kWinchMachineIndex * .sizeof(sMachine), error
     D_STRUCT sMachine
     d_byte Code_eProgram, eProgram::CryptWestWinch
     d_byte Breaker_eFlag, 0
@@ -159,8 +159,9 @@ _Machines_sMachine_arr:
     d_addr Draw_func_ptr, FuncA_Objects_CryptWestWinch_Draw
     d_addr Reset_func_ptr, _Winch_Reset
     D_END
+    .assert * - :- <= kMaxMachines * .sizeof(sMachine), error
 _Platforms_sPlatform_arr:
-    .assert kWinchPlatformIndex = 0, error
+:   .assert * - :- = kWinchPlatformIndex * .sizeof(sPlatform), error
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Solid
     d_word WidthPx_u16, $10
@@ -168,7 +169,7 @@ _Platforms_sPlatform_arr:
     d_word Left_i16, kWinchPlatformLeft
     d_word Top_i16,   $0010
     D_END
-    .assert kSpikeball1PlatformIndex = 1, error
+    .assert * - :- = kSpikeball1PlatformIndex * .sizeof(sPlatform), error
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Harm
     d_word WidthPx_u16, $0d
@@ -198,11 +199,12 @@ _Platforms_sPlatform_arr:
     d_word Top_i16, kSpikeball4InitPlatformTop
     D_END
     .assert kNumSpikeballPlatforms = 4, error
+    .assert * - :- <= kMaxPlatforms * .sizeof(sPlatform), error
     .byte ePlatform::None
 _Actors_sActor_arr:
     .byte eActor::None
 _Devices_sDevice_arr:
-    D_STRUCT sDevice
+:   D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Console
     d_byte BlockRow_u8, 3
     d_byte BlockCol_u8, 3
@@ -214,6 +216,7 @@ _Devices_sDevice_arr:
     d_byte BlockCol_u8, 5
     d_byte Target_u8, kWinchMachineIndex
     D_END
+    .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None
 _Passages_sPassage_arr:
     D_STRUCT sPassage

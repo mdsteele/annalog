@@ -165,8 +165,8 @@ _Machines_sMachine_arr:
     d_addr Tick_func_ptr, _Blaster_Tick
     d_addr Draw_func_ptr, FuncA_Objects_PrisonCellBlaster_Draw
     d_addr Reset_func_ptr, _Blaster_Reset
-    .assert * - :- <= kMaxMachines * .sizeof(sMachine), error
     D_END
+    .assert * - :- <= kMaxMachines * .sizeof(sMachine), error
 _Platforms_sPlatform_arr:
 :   .assert * - :- = kLiftPlatformIndex * .sizeof(sPlatform), error
     D_STRUCT sPlatform
@@ -210,12 +210,12 @@ _Devices_sDevice_arr:
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None
 _Passages_sPassage_arr:
-    D_STRUCT sPassage
+:   D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Western | bPassage::SameScreen | 0
     d_byte Destination_eRoom, eRoom::PrisonEscape
     d_byte SpawnBlock_u8, 9
     D_END
-    .assert kTunnelPassageIndex = 1, error
+    .assert * - :- = kTunnelPassageIndex * .sizeof(sPassage), error
     D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Western | bPassage::SameScreen | 1
     d_byte Destination_eRoom, eRoom::PrisonEscape

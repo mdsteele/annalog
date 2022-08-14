@@ -125,7 +125,7 @@ _TerrainData:
 :   .incbin "out/data/crypt_flower.room"
     .assert * - :- = 17 * 16, error
 _Machines_sMachine_arr:
-    .assert kWinchMachineIndex = 0, error
+:   .assert * - :- = kWinchMachineIndex * .sizeof(sMachine), error
     D_STRUCT sMachine
     d_byte Code_eProgram, eProgram::CryptFlowerWinch
     d_byte Breaker_eFlag, 0
@@ -144,8 +144,9 @@ _Machines_sMachine_arr:
     d_addr Draw_func_ptr, FuncA_Objects_CryptFlowerWinch_Draw
     d_addr Reset_func_ptr, _Winch_Reset
     D_END
+    .assert * - :- <= kMaxMachines * .sizeof(sMachine), error
 _Platforms_sPlatform_arr:
-    .assert kWinchPlatformIndex = 0, error
+:   .assert * - :- = kWinchPlatformIndex * .sizeof(sPlatform), error
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Solid
     d_word WidthPx_u16, $10
@@ -153,7 +154,7 @@ _Platforms_sPlatform_arr:
     d_word Left_i16,  $0088
     d_word Top_i16,   $0010
     D_END
-    .assert kUpperGirderPlatformIndex = 1, error
+    .assert * - :- = kUpperGirderPlatformIndex * .sizeof(sPlatform), error
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Solid
     d_word WidthPx_u16, $18
@@ -161,7 +162,7 @@ _Platforms_sPlatform_arr:
     d_word Left_i16,  $0084
     d_word Top_i16, kUpperGirderInitPlatformTop
     D_END
-    .assert kLowerGirderPlatformIndex = 2, error
+    .assert * - :- = kLowerGirderPlatformIndex * .sizeof(sPlatform), error
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Solid
     d_word WidthPx_u16, $18
@@ -191,17 +192,19 @@ _Platforms_sPlatform_arr:
     d_word Left_i16,  $0030
     d_word Top_i16,   $00ce
     D_END
+    .assert * - :- <= kMaxPlatforms * .sizeof(sPlatform), error
     .byte ePlatform::None
 _Actors_sActor_arr:
-    D_STRUCT sActor
+:   D_STRUCT sActor
     d_byte Type_eActor, eActor::Spider
     d_byte TileRow_u8, 15
     d_byte TileCol_u8, 24
     d_byte Param_byte, 0
     D_END
+    .assert * - :- <= kMaxActors * .sizeof(sActor), error
     .byte eActor::None
 _Devices_sDevice_arr:
-    D_STRUCT sDevice
+:   D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Console
     d_byte BlockRow_u8, 4
     d_byte BlockCol_u8, 4
@@ -213,6 +216,7 @@ _Devices_sDevice_arr:
     d_byte BlockCol_u8, 4
     d_byte Target_u8, eFlag::FlowerCrypt
     D_END
+    .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None
 _Passages_sPassage_arr:
     D_STRUCT sPassage

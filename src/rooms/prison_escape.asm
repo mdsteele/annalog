@@ -126,7 +126,7 @@ _TerrainData:
 :   .incbin "out/data/prison_escape.room"
     .assert * - :- = 33 * 24, error
 _Machines_sMachine_arr:
-    .assert kTrolleyMachineIndex = 0, error
+:   .assert * - :- = kTrolleyMachineIndex * .sizeof(sMachine), error
     D_STRUCT sMachine
     d_byte Code_eProgram, eProgram::PrisonEscapeTrolley
     d_byte Breaker_eFlag, 0
@@ -145,8 +145,9 @@ _Machines_sMachine_arr:
     d_addr Draw_func_ptr, FuncA_Objects_PrisonEscapeTrolley_Draw
     d_addr Reset_func_ptr, _Trolley_Reset
     D_END
+    .assert * - :- <= kMaxMachines * .sizeof(sMachine), error
 _Platforms_sPlatform_arr:
-    .assert kTrolleyPlatformIndex = 0, error
+:   .assert * - :- = kTrolleyPlatformIndex * .sizeof(sPlatform), error
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Solid
     d_word WidthPx_u16, $10
@@ -154,7 +155,7 @@ _Platforms_sPlatform_arr:
     d_word Left_i16, kTrolleyMinPlatformLeft
     d_word Top_i16,   $00c0
     D_END
-    .assert kGirderPlatformIndex = 1, error
+    .assert * - :- = kGirderPlatformIndex * .sizeof(sPlatform), error
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Solid
     d_word WidthPx_u16, $20
@@ -162,6 +163,7 @@ _Platforms_sPlatform_arr:
     d_word Left_i16, kTrolleyMinPlatformLeft - $08
     d_word Top_i16,   $0120
     D_END
+    ;; Terrain spikes:
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Harm
     d_word WidthPx_u16, $40
@@ -176,17 +178,19 @@ _Platforms_sPlatform_arr:
     d_word Left_i16,  $0130
     d_word Top_i16,   $015e
     D_END
+    .assert * - :- <= kMaxPlatforms * .sizeof(sPlatform), error
     .byte ePlatform::None
 _Actors_sActor_arr:
-    D_STRUCT sActor
+:   D_STRUCT sActor
     d_byte Type_eActor, eActor::Crawler
     d_byte TileRow_u8, 11
     d_byte TileCol_u8, 10
     d_byte Param_byte, 0
     D_END
+    .assert * - :- <= kMaxActors * .sizeof(sActor), error
     .byte eActor::None
 _Devices_sDevice_arr:
-    D_STRUCT sDevice
+:   D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Sign
     d_byte BlockRow_u8, 11
     d_byte BlockCol_u8, 11
@@ -198,6 +202,7 @@ _Devices_sDevice_arr:
     d_byte BlockCol_u8, 16
     d_byte Target_u8, kTrolleyMachineIndex
     D_END
+    .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None
 _Passages_sPassage_arr:
     D_STRUCT sPassage
