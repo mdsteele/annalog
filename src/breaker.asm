@@ -18,6 +18,7 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "avatar.inc"
+.INCLUDE "cpu.inc"
 .INCLUDE "device.inc"
 .INCLUDE "macros.inc"
 .INCLUDE "mmc3.inc"
@@ -196,9 +197,9 @@ _FinishedAdjusting:
     and #$30
     cmp #$20
     blt @looking
-    lda Zp_BreakerTimer_u8
-    and #$40
-    beq @straining
+    bit Zp_BreakerTimer_u8
+    .assert bProc::Overflow = $40, error
+    bvc @straining
     @reaching:
     lda #eAvatar::Reaching
     bne @setAvatar  ; unconditional

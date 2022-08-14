@@ -24,6 +24,7 @@
 .INCLUDE "../flag.inc"
 .INCLUDE "../machine.inc"
 .INCLUDE "../macros.inc"
+.INCLUDE "../oam.inc"
 .INCLUDE "../platform.inc"
 .INCLUDE "../ppu.inc"
 .INCLUDE "../program.inc"
@@ -35,7 +36,12 @@
 .IMPORT DataA_Room_Prison_sTileset
 .IMPORT FuncA_Machine_LiftMoveTowardGoal
 .IMPORT FuncA_Machine_LiftTryMove
+.IMPORT FuncA_Objects_Alloc1x1Shape
 .IMPORT FuncA_Objects_DrawLiftMachine
+.IMPORT FuncA_Objects_MoveShapeDownOneTile
+.IMPORT FuncA_Objects_MoveShapeRightOneTile
+.IMPORT FuncA_Objects_MoveShapeUpOneTile
+.IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
 .IMPORT Func_IsFlagSet
 .IMPORT Func_MachineError
 .IMPORT Func_MachineFinishResetting
@@ -43,6 +49,7 @@
 .IMPORT Func_SetFlag
 .IMPORT Ppu_ChrObjUpgrade
 .IMPORT Ram_MachineGoalVert_u8_arr
+.IMPORT Ram_Oam_sObj_arr64
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORTZP Zp_CameraCanScroll_bool
 .IMPORTZP Zp_RoomScrollX_u16
@@ -63,6 +70,8 @@ kBlasterMachineIndex = 1
 
 ;;; The platform index for the PrisonCellLift machine in this room.
 kLiftPlatformIndex = 0
+;;; The platform index for the prison cell gate.
+kGatePlatformIndex = 1
 
 ;;; The initial and maximum permitted vertical goal values for the lift.
 kLiftInitGoalY = 0
@@ -71,6 +80,14 @@ kLiftMaxGoalY = 1
 ;;; The maximum and initial Y-positions for the top of the lift platform.
 kLiftMaxPlatformTop = $0080
 kLiftInitPlatformTop = kLiftMaxPlatformTop - kLiftInitGoalY * kBlockHeightPx
+
+;;; The bObj value to use for objects for the prison cell gate.
+kGateObjFlags = bObj::Pri | 0
+
+;;; Tile IDs for drawing the prison cell gate.
+kTileIdGateLeft  = $e1
+kTileIdGateRight = $e2
+kTileIdGateLock  = $e3
 
 ;;;=========================================================================;;;
 
@@ -90,7 +107,7 @@ kLiftInitPlatformTop = kLiftMaxPlatformTop - kLiftInitGoalY * kBlockHeightPx
     d_addr Machines_sMachine_arr_ptr, _Machines_sMachine_arr
     d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjUpgrade)
     d_addr Tick_func_ptr, Func_Noop
-    d_addr Draw_func_ptr, Func_Noop
+    d_addr Draw_func_ptr, FuncC_Prison_Cell_DrawRoom
     d_addr Ext_sRoomExt_ptr, _Ext_sRoomExt
     D_END
 _Ext_sRoomExt:
@@ -111,7 +128,7 @@ _TerrainData:
 :   .incbin "out/data/prison_cell.room"
     .assert * - :- = 34 * 24, error
 _Machines_sMachine_arr:
-    .assert kLiftMachineIndex = 0, error
+:   .assert * - :- = kLiftMachineIndex * .sizeof(sMachine), error
     D_STRUCT sMachine
     d_byte Code_eProgram, eProgram::PrisonCellLift
     d_byte Breaker_eFlag, 0
@@ -130,7 +147,7 @@ _Machines_sMachine_arr:
     d_addr Draw_func_ptr, FuncA_Objects_DrawLiftMachine
     d_addr Reset_func_ptr, _Lift_Reset
     D_END
-    .assert kBlasterMachineIndex = 1, error
+    .assert * - :- = kBlasterMachineIndex * .sizeof(sMachine), error
     D_STRUCT sMachine
     d_byte Code_eProgram, eProgram::PrisonCellBlaster
     d_byte Breaker_eFlag, 0
@@ -148,9 +165,10 @@ _Machines_sMachine_arr:
     d_addr Tick_func_ptr, _Blaster_Tick
     d_addr Draw_func_ptr, FuncA_Objects_PrisonCellBlaster_Draw
     d_addr Reset_func_ptr, _Blaster_Reset
+    .assert * - :- <= kMaxMachines * .sizeof(sMachine), error
     D_END
 _Platforms_sPlatform_arr:
-    .assert kLiftPlatformIndex = 0, error
+:   .assert * - :- = kLiftPlatformIndex * .sizeof(sPlatform), error
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Solid
     d_word WidthPx_u16, $10
@@ -158,11 +176,20 @@ _Platforms_sPlatform_arr:
     d_word Left_i16,  $0020
     d_word Top_i16, kLiftInitPlatformTop
     D_END
+    .assert * - :- = kGatePlatformIndex * .sizeof(sPlatform), error
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Solid
+    d_word WidthPx_u16, $0d
+    d_byte HeightPx_u8, $20
+    d_word Left_i16,  $00f3
+    d_word Top_i16,   $00a0
+    D_END
+    .assert * - :- <= kMaxPlatforms * .sizeof(sPlatform), error
     .byte ePlatform::None
 _Actors_sActor_arr:
     .byte eActor::None
 _Devices_sDevice_arr:
-    D_STRUCT sDevice
+:   D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Sign
     d_byte BlockRow_u8, 12
     d_byte BlockCol_u8, 9
@@ -180,6 +207,7 @@ _Devices_sDevice_arr:
     d_byte BlockCol_u8, 31
     d_byte Target_u8, kBlasterMachineIndex
     D_END
+    .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None
 _Passages_sPassage_arr:
     D_STRUCT sPassage
@@ -257,6 +285,48 @@ _Blaster_Reset:
     lda #kMinScrollX
     sta Zp_RoomScrollX_u16 + 0
     rts
+.ENDPROC
+
+;;; Draw function for the PrisonCell room.
+;;; @prereq PRGA_Objects is loaded.
+.PROC FuncC_Prison_Cell_DrawRoom
+    ldx #kGatePlatformIndex  ; param: platform index
+    jsr FuncA_Objects_SetShapePosToPlatformTopLeft
+_LeftSide:
+    ldx #3
+    bne @begin  ; unconditional
+    @loop:
+    jsr FuncA_Objects_MoveShapeDownOneTile
+    @begin:
+    jsr FuncA_Objects_Alloc1x1Shape  ; preserves X, returns C and Y
+    bcs @continue
+    lda #kGateObjFlags
+    sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
+    lda #kTileIdGateLeft
+    sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
+    @continue:
+    dex
+    bpl @loop
+_RightSide:
+    jsr FuncA_Objects_MoveShapeRightOneTile
+    ldx #3
+    bne @begin  ; unconditional
+    @loop:
+    jsr FuncA_Objects_MoveShapeUpOneTile
+    @begin:
+    jsr FuncA_Objects_Alloc1x1Shape  ; preserves X, returns C and Y
+    bcs @continue
+    lda #kGateObjFlags
+    sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
+    lda _RightTileIds_u8_arr, x
+    sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
+    @continue:
+    dex
+    bpl @loop
+    rts
+_RightTileIds_u8_arr:
+    .byte kTileIdGateRight, kTileIdGateRight
+    .byte kTileIdGateLock, kTileIdGateRight
 .ENDPROC
 
 .PROC FuncC_Prison_CellLift_TryMove
