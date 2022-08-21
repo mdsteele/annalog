@@ -112,6 +112,7 @@
     GardenEastCannon
     GardenShaftLowerBridge
     GardenShaftUpperBridge
+    LavaTeleportTeleporter
     MermaidUpperLift
     PrisonCellBlaster
     PrisonCellLift

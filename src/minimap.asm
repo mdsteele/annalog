@@ -126,6 +126,11 @@ _MarkMinimap:
     .byte "Vine Garden", $ff
 .ENDPROC
 
+.EXPORT DataA_Pause_LavaAreaName_u8_arr
+.PROC DataA_Pause_LavaAreaName_u8_arr
+    .byte "Lava Pits", $ff
+.ENDPROC
+
 .EXPORT DataA_Pause_MermaidAreaName_u8_arr
 .PROC DataA_Pause_MermaidAreaName_u8_arr
     .byte "Mermaid Vale", $ff
@@ -184,6 +189,28 @@ _MarkMinimap:
     .byte 10,  6
     .byte 10,  7
     .byte 10,  8
+    .byte $ff
+.ENDPROC
+
+.EXPORT DataA_Pause_LavaAreaCells_u8_arr2_arr
+.PROC DataA_Pause_LavaAreaCells_u8_arr2_arr
+    .byte 12, 14
+    .byte 12, 16
+    .byte 12, 17
+    .byte 13, 13
+    .byte 13, 14
+    .byte 13, 15
+    .byte 13, 16
+    .byte 13, 17
+    .byte 13, 18
+    .byte 13, 19
+    .byte 14, 14
+    .byte 14, 15
+    .byte 14, 16
+    .byte 14, 17
+    .byte 14, 18
+    .byte 14, 19
+    .byte 14, 20
     .byte $ff
 .ENDPROC
 

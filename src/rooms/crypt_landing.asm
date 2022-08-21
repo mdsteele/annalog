@@ -68,7 +68,7 @@ _TerrainData:
 :   .incbin "out/data/crypt_landing.room"
     .assert * - :- = 17 * 24, error
 _Platforms_sPlatform_arr:
-    D_STRUCT sPlatform
+:   D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Harm
     d_word WidthPx_u16, $0f
     d_byte HeightPx_u8, $08
@@ -96,6 +96,7 @@ _Platforms_sPlatform_arr:
     d_word Left_i16,  $00c1
     d_word Top_i16,   $014e
     D_END
+    .assert * - :- <= kMaxPlatforms * .sizeof(sPlatform), error
     .byte ePlatform::None
 _Actors_sActor_arr:
     .byte eActor::None
