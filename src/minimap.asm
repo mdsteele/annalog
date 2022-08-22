@@ -141,6 +141,11 @@ _MarkMinimap:
     .byte "Prison Caves", $ff
 .ENDPROC
 
+.EXPORT DataA_Pause_ShadowAreaName_u8_arr
+.PROC DataA_Pause_ShadowAreaName_u8_arr
+    .byte "Shadow Labs", $ff
+.ENDPROC
+
 .EXPORT DataA_Pause_TownAreaName_u8_arr
 .PROC DataA_Pause_TownAreaName_u8_arr
     .byte "Bartik Town", $ff
@@ -253,6 +258,29 @@ _MarkMinimap:
     .byte 3, 5
     .byte 3, 6
     .byte 4, 6
+    .byte $ff
+.ENDPROC
+
+.EXPORT DataA_Pause_ShadowAreaCells_u8_arr2_arr
+.PROC DataA_Pause_ShadowAreaCells_u8_arr2_arr
+    .byte 12, 4
+    .byte 12, 5
+    .byte 12, 6
+    .byte 12, 7
+    .byte 13, 2
+    .byte 13, 3
+    .byte 13, 4
+    .byte 13, 5
+    .byte 13, 6
+    .byte 13, 7
+    .byte 13, 8
+    .byte 13, 9
+    .byte 14, 3
+    .byte 14, 4
+    .byte 14, 5
+    .byte 14, 6
+    .byte 14, 7
+    .byte 14, 8
     .byte $ff
 .ENDPROC
 

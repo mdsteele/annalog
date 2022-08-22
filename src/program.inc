@@ -112,11 +112,12 @@
     GardenEastCannon
     GardenShaftLowerBridge
     GardenShaftUpperBridge
-    LavaTeleportTeleporter
+    LavaTeleportField
     MermaidUpperLift
     PrisonCellBlaster
     PrisonCellLift
     PrisonEscapeTrolley
+    ShadowTeleportField
     NUM_VALUES
 .ENDENUM
 

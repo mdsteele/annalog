@@ -128,7 +128,7 @@ kTileIdLiftSurface = $78
 .SEGMENT "PRGA_Objects"
 
 ;;; Draw implemention for lift machines.
-;;; @prereq Zp_MachineIndex_u8 is initialized.
+;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
 .EXPORT FuncA_Objects_DrawLiftMachine
 .PROC FuncA_Objects_DrawLiftMachine
     jsr FuncA_Objects_SetShapePosToMachineTopLeft

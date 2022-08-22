@@ -66,13 +66,14 @@ kRoomStateSize = $100
     MermaidVillage
     PrisonCell
     PrisonEscape
+    ShadowTeleport
     TownHouse1
     TownHouse2
     TownOutdoors
     NUM_VALUES
 .ENDENUM
 
-.DEFINE kNumRooms 32
+.DEFINE kNumRooms 33
 .ASSERT kNumRooms = eRoom::NUM_VALUES, error
 
 ;;;=========================================================================;;;

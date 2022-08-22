@@ -30,8 +30,8 @@
 .INCLUDE "../program.inc"
 .INCLUDE "../room.inc"
 
-.IMPORT DataA_Pause_LavaAreaCells_u8_arr2_arr
-.IMPORT DataA_Pause_LavaAreaName_u8_arr
+.IMPORT DataA_Pause_ShadowAreaCells_u8_arr2_arr
+.IMPORT DataA_Pause_ShadowAreaName_u8_arr
 .IMPORT DataA_Room_Crypt_sTileset
 .IMPORT FuncA_Machine_FieldTick
 .IMPORT FuncA_Machine_FieldTryAct
@@ -43,10 +43,10 @@
 
 ;;;=========================================================================;;;
 
-;;; The machine index for the LavaTeleportField machine in this room.
+;;; The machine index for the ShadowTeleportField machine in this room.
 kFieldMachineIndex = 0
 
-;;; The primary platform index for the LavaTeleportField machine.
+;;; The primary platform index for the ShadowTeleportField machine.
 kFieldPlatformIndex = 0
 
 ;;; The device index for the device where the player avatar should spawn when
@@ -55,16 +55,16 @@ kTeleportSpawnDeviceIndex = 0
 
 ;;;=========================================================================;;;
 
-.SEGMENT "PRGC_Lava"
+.SEGMENT "PRGC_Shadow"
 
-.EXPORT DataC_Lava_Teleport_sRoom
-.PROC DataC_Lava_Teleport_sRoom
+.EXPORT DataC_Shadow_Teleport_sRoom
+.PROC DataC_Shadow_Teleport_sRoom
     D_STRUCT sRoom
-    d_byte MinScrollX_u8, $00
-    d_word MaxScrollX_u16, $0000
+    d_byte MinScrollX_u8, $10
+    d_word MaxScrollX_u16, $0010
     d_byte IsTall_bool, $00
     d_byte MinimapStartRow_u8, 13
-    d_byte MinimapStartCol_u8, 13
+    d_byte MinimapStartCol_u8, 9
     d_byte MinimapWidth_u8, 1
     d_addr TerrainData_ptr, _TerrainData
     d_byte NumMachines_u8, 1
@@ -76,8 +76,8 @@ kTeleportSpawnDeviceIndex = 0
     D_END
 _Ext_sRoomExt:
     D_STRUCT sRoomExt
-    d_addr AreaName_u8_arr_ptr, DataA_Pause_LavaAreaName_u8_arr
-    d_addr AreaCells_u8_arr2_arr_ptr, DataA_Pause_LavaAreaCells_u8_arr2_arr
+    d_addr AreaName_u8_arr_ptr, DataA_Pause_ShadowAreaName_u8_arr
+    d_addr AreaCells_u8_arr2_arr_ptr, DataA_Pause_ShadowAreaCells_u8_arr2_arr
     d_addr Terrain_sTileset_ptr, DataA_Room_Crypt_sTileset  ; TODO
     d_addr Platforms_sPlatform_arr_ptr, _Platforms_sPlatform_arr
     d_addr Actors_sActor_arr_ptr, _Actors_sActor_arr
@@ -89,16 +89,16 @@ _Ext_sRoomExt:
     d_addr FadeIn_func_ptr, Func_Noop
     D_END
 _TerrainData:
-:   .incbin "out/data/lava_teleport.room"
+:   .incbin "out/data/shadow_teleport.room"
     .assert * - :- = 17 * 16, error
 _Machines_sMachine_arr:
 :   .assert * - :- = kFieldMachineIndex * .sizeof(sMachine), error
     D_STRUCT sMachine
-    d_byte Code_eProgram, eProgram::LavaTeleportField
+    d_byte Code_eProgram, eProgram::ShadowTeleportField
     d_byte Breaker_eFlag, eFlag::BreakerCity
     d_byte Flags_bMachine, bMachine::Act
     d_byte Status_eDiagram, eDiagram::Winch  ; TODO
-    d_word ScrollGoalX_u16, $0
+    d_word ScrollGoalX_u16, $10
     d_byte ScrollGoalY_u8, $0
     d_byte RegNames_u8_arr4, "T", 0, 0, 0
     d_byte MainPlatform_u8, kFieldPlatformIndex
@@ -118,16 +118,8 @@ _Platforms_sPlatform_arr:
     d_byte Type_ePlatform, ePlatform::Solid
     d_word WidthPx_u16, $10
     d_byte HeightPx_u8, $10
-    d_word Left_i16,  $0050
+    d_word Left_i16,  $0070
     d_word Top_i16,   $0070
-    D_END
-    ;; Terrain spikes:
-    D_STRUCT sPlatform
-    d_byte Type_ePlatform, ePlatform::Harm
-    d_word WidthPx_u16, $50
-    d_byte HeightPx_u8, $08
-    d_word Left_i16,  $0050
-    d_word Top_i16,   $00ce
     D_END
     .assert * - :- <= kMaxPlatforms * .sizeof(sPlatform), error
     .byte ePlatform::None
@@ -138,21 +130,21 @@ _Devices_sDevice_arr:
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Placeholder
     d_byte BlockRow_u8, 7
-    d_byte BlockCol_u8, 7
+    d_byte BlockCol_u8, 9
     d_byte Target_u8, 0  ; unused
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Console
     d_byte BlockRow_u8, 10
-    d_byte BlockCol_u8, 11
+    d_byte BlockCol_u8, 5
     d_byte Target_u8, kFieldMachineIndex
     D_END
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None
 _Passages_sPassage_arr:
     D_STRUCT sPassage
-    d_byte Exit_bPassage, ePassage::Eastern | 0
-    d_byte Destination_eRoom, eRoom::LavaTeleport  ; TODO
+    d_byte Exit_bPassage, ePassage::Western | 0
+    d_byte Destination_eRoom, eRoom::ShadowTeleport  ; TODO
     d_byte SpawnBlock_u8, 9
     D_END
 .ENDPROC
