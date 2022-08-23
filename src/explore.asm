@@ -89,6 +89,7 @@
 .IMPORTZP Zp_Tmp2_byte
 .IMPORTZP Zp_Tmp3_byte
 .IMPORTZP Zp_Tmp4_byte
+.IMPORTZP Zp_Tmp_ptr
 .IMPORTZP Zp_WindowTop_u8
 
 ;;;=========================================================================;;;
@@ -149,6 +150,14 @@ Zp_NearbyDevice_u8: .res 1
 ;;; HUD will not be drawn.
 Zp_HudEnabled_bool: .res 1
 
+;;; If set to a PRG ROM address ($8000+) e.g. by a room or machine tick
+;;; function, then explore mode will jump to this mode (and zero this variable)
+;;; just before it would draw the next frame.
+;;; @prereq Rendering is enabled.
+;;; @prereq Explore mode is already initialized.
+.EXPORTZP Zp_NextCutscene_main_ptr
+Zp_NextCutscene_main_ptr: .res 2
+
 ;;;=========================================================================;;;
 
 .SEGMENT "PRG8"
@@ -195,6 +204,18 @@ Zp_HudEnabled_bool: .res 1
 .EXPORT Main_Explore_Continue
 .PROC Main_Explore_Continue
 _GameLoop:
+    ;; Check if we need to start a cutscene:
+    lda Zp_NextCutscene_main_ptr + 1
+    bpl @noCutscene
+    sta Zp_Tmp_ptr + 1
+    lda Zp_NextCutscene_main_ptr + 0
+    sta Zp_Tmp_ptr + 0
+    lda #0
+    sta Zp_NextCutscene_main_ptr + 0
+    sta Zp_NextCutscene_main_ptr + 1
+    jmp (Zp_Tmp_ptr)
+    @noCutscene:
+    ;; Draw this frame:
     jsr_prga FuncA_Objects_DrawObjectsForRoom
     jsr Func_ClearRestOfOam
     jsr Func_ProcessFrame
@@ -282,9 +303,11 @@ _Tick:
     jsr Func_TickAllDevices
     jsr_prga FuncA_Machine_ExecuteAll
     jsr Func_CallRoomTick
+    ;; Check if the player avatar is dead:
     lda Zp_AvatarHarmTimer_u8
     cmp #kAvatarHarmDeath
     jeq Main_Explore_Death
+    ;; Move the avatar and check if we've gone through a passage:
     jsr_prga FuncA_Avatar_ExploreMove  ; if passage, clears Z and returns A
     jeq _GameLoop
     .assert * = Main_Explore_GoThroughPassage, error, "fallthrough"
@@ -492,6 +515,7 @@ _Respawn:
     rts
 .ENDPROC
 
+;;; TODO: Move this into PRGA_Terrain
 ;;; Sets Zp_ScrollGoalX_u16 and Zp_ScrollGoalY_u8 such that the player avatar
 ;;; would be as close to the center of the screen as possible, while still
 ;;; keeping the scroll goal within the valid range for the current room.

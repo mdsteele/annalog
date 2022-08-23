@@ -293,6 +293,7 @@ _Finish:
 ;;; then calls the room's Enter_func_ptr.
 ;;; @prereq The room is loaded.
 ;;; @param X The device index in the current room.
+.EXPORT FuncA_Avatar_SpawnAtDevice
 .PROC FuncA_Avatar_SpawnAtDevice
     ;; Position the avatar in front of the device.
     lda #0
@@ -329,6 +330,7 @@ _DeviceOffset_u8_arr:
     d_byte BreakerRising, kBreakerAvatarOffset
     d_byte LockedDoor,    $08
     d_byte Placeholder,   $08
+    d_byte Teleporter,    $08
     d_byte BreakerReady,  kBreakerAvatarOffset
     d_byte Console,       $06
     d_byte Flower,        $08

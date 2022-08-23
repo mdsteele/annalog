@@ -23,6 +23,7 @@
 .INCLUDE "../dialog.inc"
 .INCLUDE "../flag.inc"
 .INCLUDE "../machine.inc"
+.INCLUDE "../machines/field.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
 .INCLUDE "../platform.inc"
@@ -38,6 +39,7 @@
 .IMPORT FuncA_Objects_DrawFieldMachine
 .IMPORT Func_MachineError
 .IMPORT Func_MachineFieldReadRegT
+.IMPORT Func_MachineFieldReset
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrObjUpgrade
 
@@ -109,15 +111,15 @@ _Machines_sMachine_arr:
     d_addr TryAct_func_ptr, FuncA_Machine_FieldTryAct
     d_addr Tick_func_ptr, FuncA_Machine_FieldTick
     d_addr Draw_func_ptr, FuncA_Objects_DrawFieldMachine
-    d_addr Reset_func_ptr, Func_Noop
+    d_addr Reset_func_ptr, Func_MachineFieldReset
     D_END
     .assert * - :- <= kMaxMachines * .sizeof(sMachine), error
 _Platforms_sPlatform_arr:
 :   .assert * - :- = kFieldPlatformIndex * .sizeof(sPlatform), error
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Solid
-    d_word WidthPx_u16, $10
-    d_byte HeightPx_u8, $10
+    d_word WidthPx_u16, kFieldMachineWidth
+    d_byte HeightPx_u8, kFieldMachineHeight
     d_word Left_i16,  $0050
     d_word Top_i16,   $0070
     D_END
@@ -136,10 +138,10 @@ _Actors_sActor_arr:
 _Devices_sDevice_arr:
 :   .assert * - :- = kTeleportSpawnDeviceIndex * .sizeof(sDevice), error
     D_STRUCT sDevice
-    d_byte Type_eDevice, eDevice::Placeholder
+    d_byte Type_eDevice, eDevice::Teleporter
     d_byte BlockRow_u8, 7
     d_byte BlockCol_u8, 7
-    d_byte Target_u8, 0  ; unused
+    d_byte Target_u8, eRoom::ShadowTeleport
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Console

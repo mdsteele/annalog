@@ -52,6 +52,7 @@ FuncA_Objects_DrawPlaceholderDevice = Func_Noop
 FuncA_Objects_DrawSignDevice        = Func_Noop
 FuncA_Objects_DrawTalkLeftDevice    = Func_Noop
 FuncA_Objects_DrawTalkRightDevice   = Func_Noop
+FuncA_Objects_DrawTeleporterDevice  = Func_Noop
 
 .LINECONT +
 .DEFINE DeviceDrawFuncs \
@@ -60,6 +61,7 @@ FuncA_Objects_DrawTalkRightDevice   = Func_Noop
     FuncA_Objects_DrawBreakerRisingDevice, \
     FuncA_Objects_DrawLockedDoorDevice, \
     FuncA_Objects_DrawPlaceholderDevice, \
+    FuncA_Objects_DrawTeleporterDevice, \
     FuncA_Objects_DrawBreakerReadyDevice, \
     FuncA_Objects_DrawConsoleDevice, \
     FuncA_Objects_DrawFlowerDevice, \

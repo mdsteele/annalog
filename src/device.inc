@@ -62,6 +62,7 @@ kBreakerAvatarOffset = $05
     BreakerRising  ; circuit breaker, rising out of the ground
     LockedDoor
     Placeholder    ; invisible and does nothing
+    Teleporter     ; spawn point for teleport field machines
     ;; Interactive device types.  The player can interact with these by
     ;; pressing the B button while standing in front of them.
     BreakerReady   ; circuit breaker, ready to be activated
@@ -101,6 +102,7 @@ kFirstInteractiveDeviceType = eDevice::BreakerReady
     ;;     lever's state value (0 or 1).
     ;;   * For signs, this is the dialog index (i.e. the index into the current
     ;;     room's sRoomExt::Dialogs_sDialog_ptr_arr_ptr).
+    ;;   * For teleporters, this is the eRoom value for the destination room.
     ;;   * For upgrades, this is the eFlag::Upgrade* value.
     Target_u8    .byte
 .ENDSTRUCT
