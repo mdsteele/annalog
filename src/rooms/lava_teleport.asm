@@ -33,7 +33,7 @@
 
 .IMPORT DataA_Pause_LavaAreaCells_u8_arr2_arr
 .IMPORT DataA_Pause_LavaAreaName_u8_arr
-.IMPORT DataA_Room_Crypt_sTileset
+.IMPORT DataA_Room_Lava_sTileset
 .IMPORT FuncA_Machine_FieldTick
 .IMPORT FuncA_Machine_FieldTryAct
 .IMPORT FuncA_Objects_DrawFieldMachine
@@ -80,7 +80,7 @@ _Ext_sRoomExt:
     D_STRUCT sRoomExt
     d_addr AreaName_u8_arr_ptr, DataA_Pause_LavaAreaName_u8_arr
     d_addr AreaCells_u8_arr2_arr_ptr, DataA_Pause_LavaAreaCells_u8_arr2_arr
-    d_addr Terrain_sTileset_ptr, DataA_Room_Crypt_sTileset  ; TODO
+    d_addr Terrain_sTileset_ptr, DataA_Room_Lava_sTileset
     d_addr Platforms_sPlatform_arr_ptr, _Platforms_sPlatform_arr
     d_addr Actors_sActor_arr_ptr, _Actors_sActor_arr
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr

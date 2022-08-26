@@ -184,6 +184,19 @@
 
 ;;;=========================================================================;;;
 
+.SEGMENT "CHR_BgLava"
+
+.EXPORT Ppu_ChrBgLava
+.PROC Ppu_ChrBgLava
+:   .incbin "out/data/tiles/steam_pipes.chr"
+    .incbin "out/data/tiles/volcanic.chr"
+    .res $16 * kSizeofChr
+    .incbin "out/data/tiles/device.chr"
+    .assert * - :- = kSizeofChr * $40, error
+.ENDPROC
+
+;;;=========================================================================;;;
+
 .SEGMENT "CHR_BgMermaid"
 
 .EXPORT Ppu_ChrBgMermaid

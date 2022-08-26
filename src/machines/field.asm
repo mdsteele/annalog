@@ -166,6 +166,8 @@ _Cooldown:
 ;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
 .EXPORT FuncA_Machine_FieldTick
 .PROC FuncA_Machine_FieldTick
+    ;; TODO: don't charge if console is open
+    ;; TODO: don't charge if machine's breaker isn't activated
     ldx Zp_MachineIndex_u8
     lda Ram_MachineParam1_u8_arr, x
     cmp #kFieldMaxChargePoints * kFieldFramesPerChargePoint

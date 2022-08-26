@@ -1,20 +1,21 @@
 @BG 0 0 0 17x15
->crypt_0
->crypt_1
->crypt_3
->crypt_4
+>lava_0
+>lava_1
+>lava_4
+>lava_5
 
-
-  DMDMDMDMDMDMDMDMDMDMDMDMDM
-DMDM                      DMDM
-DM                          DM
-DM                          DM
-DM                          DM
-DM    DMDM          DMDMDM  DM
-DM      DMDM      DMDM      DMDMDM
-DM  DMDMDM          DMDM
-DM
-DMDM                  AB    DMDMDM
-DMDM                DMDMDM  DM
-  DMDMDMDMCPCPDMCPCPDMDMDMDMDM
-        DMDMDMDMDMDMDM
+CCCCCCCCCJCMCICCCCCCCJCICCCCCCCCCC
+CJCICCCJCICCCCCJCICCCCCJCICJCICCCC
+CCCJ  BL  BLBG    BH    BLCICCCCCC
+CJBG                      BLCICCCC
+CJ                          CICCCC
+CC                          CJCICC
+CC    CKCA          CACBCL  CICCCC
+CJ      CCCG      CFCC  BK  CICCCC
+CJ  CKCBCJ          CICL      BL
+CCBE    BL          BL      BD
+CCCA                BEAB    CACBCA
+CJCI  BA            CACBCLBFCMCICC
+CCCJCKCBCLAOAOCNAOAPCICJCICACCCCCC
+DDDDDDDFCCCCCCCCCJCICCCCCJCICCCCCC
+CCCCCCDACCCCCCCCCCCCCCCCCCCCCCCCCC
