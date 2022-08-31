@@ -79,6 +79,11 @@ kMenuStartTileColumn = 22
 ;;; The OBJ palette number used for the menu cursor.
 kMenuCursorObjPalette = 1
 
+;;; The menu tile column numbers for the left and right columns of the opcode
+;;; menu.
+kOpcodeMenuLeftCol  = 0
+kOpcodeMenuRightCol = 5
+
 ;;;=========================================================================;;;
 
 .ZEROPAGE
@@ -163,12 +168,37 @@ _LabelWait:  .byte "WAIT"
 _LabelBeep:  .byte "BEEP"
 _LabelEnd:   .byte "END"
 _LabelNop:   .byte "NOP"
-_OnUp:
+_OnRight:
     ldx Zp_MenuItem_u8
     lda Ram_MenuRows_u8_arr, x
     sta Zp_Tmp1_byte  ; current menu row
+    ;; Check all menu items, and find the item that is in the same row as the
+    ;; current item, but in the right column.
+    ldx #kMaxMenuItems - 1
+    @loop:
     lda Ram_MenuCols_u8_arr, x
+    .assert kOpcodeMenuLeftCol = 0, error
+    beq @continue
+    lda Ram_MenuRows_u8_arr, x
+    cmp Zp_Tmp1_byte  ; current menu row
+    bne @continue
+    stx Zp_MenuItem_u8
+    rts
+    @continue:
+    dex
+    bpl @loop
+    ;; If no such item exists, then try moving to the lowest item in the
+    ;; right-hand column.
+    ldx Zp_MenuItem_u8
+    lda #kOpcodeMenuRightCol
+    bne _UpFromCol  ; unconditional
+_OnUp:
+    ldx Zp_MenuItem_u8
+    lda Ram_MenuCols_u8_arr, x
+_UpFromCol:
     sta Zp_Tmp2_byte  ; current menu col
+    lda Ram_MenuRows_u8_arr, x
+    sta Zp_Tmp1_byte  ; current menu row
     lda #0
     sta Zp_Tmp3_byte  ; best new row so far
     lda #$ff
@@ -234,35 +264,23 @@ _OnLeft:
     ldx Zp_MenuItem_u8
     lda Ram_MenuRows_u8_arr, x
     sta Zp_Tmp1_byte  ; current menu row
+    ;; Check all menu items, and find the item that is in the same row as the
+    ;; current item, but in the left column.
     ldx #kMaxMenuItems - 1
     @loop:
     lda Ram_MenuCols_u8_arr, x
+    .assert kOpcodeMenuLeftCol = 0, error
     bne @continue
     lda Ram_MenuRows_u8_arr, x
     cmp Zp_Tmp1_byte  ; current menu row
-    bne @continue
-    stx Zp_MenuItem_u8
-    rts
+    beq @setItem
     @continue:
     dex
     bpl @loop
-    rts
-_OnRight:
-    ldx Zp_MenuItem_u8
-    lda Ram_MenuRows_u8_arr, x
-    sta Zp_Tmp1_byte  ; current menu row
-    ldx #kMaxMenuItems - 1
-    @loop:
-    lda Ram_MenuCols_u8_arr, x
-    beq @continue
-    lda Ram_MenuRows_u8_arr, x
-    cmp Zp_Tmp1_byte  ; current menu row
-    bne @continue
+    ;; If no such item exists, then move to the "delete" menu item.
+    ldx #eOpcode::Empty
+    @setItem:
     stx Zp_MenuItem_u8
-    rts
-    @continue:
-    dex
-    bpl @loop
     rts
 .ENDPROC
 
@@ -379,22 +397,22 @@ _SetRowsForMenuRightColumn:
     rts
 _Columns_u8_arr:
     D_ENUM eOpcode
-    d_byte Empty, 0
-    d_byte Copy,  0
-    d_byte Sync,  0
-    d_byte Add,   5
-    d_byte Sub,   5
-    d_byte Mul,   5
-    d_byte Goto,  0
-    d_byte Skip,  0
-    d_byte If,    5
-    d_byte Til,   5
-    d_byte Act,   5
-    d_byte Move,  0
-    d_byte Wait,  0
-    d_byte Beep,  0
-    d_byte End,   5
-    d_byte Nop,   5
+    d_byte Empty, kOpcodeMenuLeftCol
+    d_byte Copy,  kOpcodeMenuLeftCol
+    d_byte Sync,  kOpcodeMenuLeftCol
+    d_byte Add,   kOpcodeMenuRightCol
+    d_byte Sub,   kOpcodeMenuRightCol
+    d_byte Mul,   kOpcodeMenuRightCol
+    d_byte Goto,  kOpcodeMenuLeftCol
+    d_byte Skip,  kOpcodeMenuLeftCol
+    d_byte If,    kOpcodeMenuRightCol
+    d_byte Til,   kOpcodeMenuRightCol
+    d_byte Act,   kOpcodeMenuRightCol
+    d_byte Move,  kOpcodeMenuLeftCol
+    d_byte Wait,  kOpcodeMenuLeftCol
+    d_byte Beep,  kOpcodeMenuLeftCol
+    d_byte End,   kOpcodeMenuRightCol
+    d_byte Nop,   kOpcodeMenuRightCol
     D_END
 .ENDPROC
 
