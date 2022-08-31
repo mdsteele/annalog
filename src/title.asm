@@ -53,7 +53,7 @@
 ;;;=========================================================================;;;
 
 ;;; The starting location for a new game.
-kStartingRoom = eRoom::GardenBoss
+kStartingRoom = eRoom::LavaFlower
 kStartingSpawn = 0
 
 ;;; The nametable tile row (of the upper nametable) that the game title starts
@@ -263,10 +263,10 @@ _SetRenderState:
     blt @minimapLoop
     ;; TODO: For testing, grant some upgrades (remove this later).
     .assert kFirstUpgradeFlag = 1, error
-    lda #$40
+    lda #$c6
     sta Sram_ProgressFlags_arr + 0
     .assert kNumUpgradeFlags = 7 + 8, error
-    lda #$00
+    lda #$51
     sta Sram_ProgressFlags_arr + 1
     ;; Set starting location.
     lda #kStartingRoom

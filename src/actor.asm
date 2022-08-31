@@ -35,6 +35,7 @@
 .IMPORT FuncA_Actor_TickSmoke
 .IMPORT FuncA_Actor_TickSpider
 .IMPORT FuncA_Actor_TickSpike
+.IMPORT FuncA_Actor_TickSteamUp
 .IMPORT FuncA_Actor_TickToddler
 .IMPORT FuncA_Actor_TickVinebug
 .IMPORT FuncA_Objects_Alloc1x1Shape
@@ -50,6 +51,7 @@
 .IMPORT FuncA_Objects_DrawSmokeActor
 .IMPORT FuncA_Objects_DrawSpiderActor
 .IMPORT FuncA_Objects_DrawSpikeActor
+.IMPORT FuncA_Objects_DrawSteamUpActor
 .IMPORT FuncA_Objects_DrawToddlerActor
 .IMPORT FuncA_Objects_DrawVinebugActor
 .IMPORT FuncA_Objects_MoveShapeUpOneTile
@@ -58,6 +60,7 @@
 .IMPORT Func_InitGrenadeActor
 .IMPORT Func_InitSmokeActor
 .IMPORT Func_InitSpikeActor
+.IMPORT Func_InitSteamUpActor
 .IMPORT Func_InitVinebugActor
 .IMPORT Func_Noop
 .IMPORT Func_Terrain_GetColumnPtrForTileIndex
@@ -112,6 +115,7 @@ FuncA_Objects_DrawNoneActor = Func_Noop
     Func_InitSmokeActor, \
     Func_InitSpiderActor, \
     Func_InitSpikeActor, \
+    Func_InitSteamUpActor, \
     Func_InitToddlerActor, \
     Func_InitVinebugActor
 .LINECONT -
@@ -130,6 +134,7 @@ FuncA_Objects_DrawNoneActor = Func_Noop
     FuncA_Actor_TickSmoke, \
     FuncA_Actor_TickSpider, \
     FuncA_Actor_TickSpike, \
+    FuncA_Actor_TickSteamUp, \
     FuncA_Actor_TickToddler, \
     FuncA_Actor_TickVinebug
 .LINECONT -
@@ -148,6 +153,7 @@ FuncA_Objects_DrawNoneActor = Func_Noop
     FuncA_Objects_DrawSmokeActor, \
     FuncA_Objects_DrawSpiderActor, \
     FuncA_Objects_DrawSpikeActor, \
+    FuncA_Objects_DrawSteamUpActor, \
     FuncA_Objects_DrawToddlerActor, \
     FuncA_Objects_DrawVinebugActor
 .LINECONT -
@@ -291,6 +297,7 @@ _JumpTable_ptr_1_arr: .hibytes ActorInitFuncs
     d_byte Smoke,    kSmokeRadius
     d_byte Spider,   8
     d_byte Spike,    kSpikeRadius
+    d_byte SteamUp,  8
     d_byte Toddler,  4
     d_byte Vinebug,  7
     D_END
@@ -309,6 +316,7 @@ _JumpTable_ptr_1_arr: .hibytes ActorInitFuncs
     d_byte Smoke,    kSmokeRadius
     d_byte Spider,   2
     d_byte Spike,    kSpikeRadius
+    d_byte SteamUp,  8
     d_byte Toddler,  8
     d_byte Vinebug,  7
     D_END
@@ -327,6 +335,7 @@ _JumpTable_ptr_1_arr: .hibytes ActorInitFuncs
     d_byte Smoke,    kSmokeRadius
     d_byte Spider,   7
     d_byte Spike,    kSpikeRadius
+    d_byte SteamUp,  6
     d_byte Toddler,  3
     d_byte Vinebug,  5
     D_END
@@ -387,13 +396,12 @@ _JumpTable_ptr_0_arr: .lobytes ActorTickFuncs
 _JumpTable_ptr_1_arr: .hibytes ActorTickFuncs
 .ENDPROC
 
-;;; Checks if the actor is colliding with the player avatar; if so, harms the
-;;; avatar.
+;;; Checks if the actor is colliding with the player avatar.
 ;;; @param X The actor index.
 ;;; @return C Set if a collision occurred, cleared otherwise.
 ;;; @preserve X
-.EXPORT FuncA_Actor_HarmAvatarIfCollision
-.PROC FuncA_Actor_HarmAvatarIfCollision
+.EXPORT FuncA_Actor_IsCollidingWithAvatar
+.PROC FuncA_Actor_IsCollidingWithAvatar
     ldy Ram_ActorType_eActor_arr, x
     ;; Check right side.
     lda DataA_Actor_BoundingBoxSide_u8_arr, y
@@ -456,11 +464,25 @@ _JumpTable_ptr_1_arr: .hibytes ActorTickFuncs
     ble _NoHit
     @hitBottom:
 _Hit:
-    jsr Func_HarmAvatar  ; preserves X
     sec
     rts
 _NoHit:
     clc
+    rts
+.ENDPROC
+
+;;; Checks if the actor is colliding with the player avatar; if so, harms the
+;;; avatar.
+;;; @param X The actor index.
+;;; @return C Set if a collision occurred, cleared otherwise.
+;;; @preserve X
+.EXPORT FuncA_Actor_HarmAvatarIfCollision
+.PROC FuncA_Actor_HarmAvatarIfCollision
+    jsr FuncA_Actor_IsCollidingWithAvatar  ; preserves X, returns C
+    bcc @done
+    jsr Func_HarmAvatar  ; preserves X
+    sec
+    @done:
     rts
 .ENDPROC
 

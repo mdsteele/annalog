@@ -86,8 +86,10 @@ kMachineRegNameB = $21  ; 'B'
     ReadReg_func_ptr  .addr
     ;; Function to call when a register from $c to $f is written.
     ;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
+    ;; @prereq PRGA_Machine is loaded.
     ;; @param A The register to write to ($c-$f).
     ;; @param X The value to write (0-9).
+    ;; @return A How many frames to wait before advancing the PC.
     WriteReg_func_ptr .addr
     ;; Function to call when the machine tries to move.
     ;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.

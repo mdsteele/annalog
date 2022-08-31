@@ -331,6 +331,18 @@ _MarkMinimap:
     d_byte If_eFlag, 0
     d_byte Not_eFlag, eFlag::BreakerCrypt
     D_END
+    D_STRUCT sMarker
+    d_byte Row_u8, 12
+    d_byte Col_u8, 17
+    d_byte If_eFlag, 0
+    d_byte Not_eFlag, eFlag::UpgradeOpcodeCopy
+    D_END
+    D_STRUCT sMarker
+    d_byte Row_u8, 14
+    d_byte Col_u8, 16
+    d_byte If_eFlag, 0
+    d_byte Not_eFlag, eFlag::FlowerLava
+    D_END
     .assert sMarker::Row_u8 = 0, error
     .byte $ff
 .ENDPROC

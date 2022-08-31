@@ -65,7 +65,7 @@ kSaveMagicNumber = $b2
     FlowerMine
     FlowerSewer
     FlowerCity
-    FlowerLab
+    FlowerShadow
     FlowerCore
     ;; Each of these flags is set when that boss has been defeated:
     BossGarden
@@ -74,7 +74,7 @@ kSaveMagicNumber = $b2
     BossLava
     BossMine
     BossCity
-    BossLab
+    BossShadow
     BossCore
     ;; Each of these flags is set when that circuit breaker has been activated:
     BreakerGarden
@@ -83,7 +83,7 @@ kSaveMagicNumber = $b2
     BreakerLava
     BreakerMine
     BreakerCity
-    BreakerLab
+    BreakerShadow
     ;; Flags for persistent room state:
     CryptSouthWeakFloor
     CryptTombWeakFloors
@@ -102,7 +102,7 @@ kNumUpgradeFlags = 15
 .ASSERT kNumUpgradeFlags = kLastUpgradeFlag + 1 - kFirstUpgradeFlag, error
 
 kFirstBreakerFlag = eFlag::BreakerGarden
-kLastBreakerFlag = eFlag::BreakerLab
+kLastBreakerFlag = eFlag::BreakerShadow
 kNumBreakerFlags = 7
 .ASSERT kNumBreakerFlags = kLastBreakerFlag + 1 - kFirstBreakerFlag, error
 

@@ -281,22 +281,6 @@ _ReadRegB:
     rts
 .ENDPROC
 
-;;; Writes a value to a register of the current machine.
-;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
-;;; @param A The register to write to ($a-$f).
-;;; @param X The value to write (0-9).
-.PROC Func_MachineWrite
-    cmp #$0a
-    beq @writeRegA
-    ldy #sMachine::WriteReg_func_ptr  ; param: function pointer offset
-    jmp Func_MachineCall
-    @writeRegA:
-    txa  ; the value to write
-    ldx Zp_MachineIndex_u8
-    sta Ram_MachineRegA_u8_arr, x
-    rts
-.ENDPROC
-
 ;;; If the current machine isn't already restting, zeroes its variables and
 ;;; puts it into resetting mode.  A resetting machine will move back to its
 ;;; original position and state (over some period of time) without executing
@@ -488,16 +472,6 @@ _Le:
     jmp (Zp_Tmp_ptr)
 _JumpTable_ptr_0_arr: .lobytes OpcodeLabels
 _JumpTable_ptr_1_arr: .hibytes OpcodeLabels
-_OpCopy:
-    lda <(Zp_Current_sInst + sInst::Arg_byte)
-    and #$0f  ; param: immediate value or register to read
-    jsr Func_MachineRead  ; returns A
-_SetLValueToA:
-    tax       ; param: value to write
-    lda <(Zp_Current_sInst + sInst::Op_byte)
-    and #$0f  ; param: register to write to
-    jsr Func_MachineWrite
-    jmp _IncrementPc
 _OpAdd:
     jsr FuncA_Machine_GetBinopArgs  ; returns A and Y
     sty Zp_Tmp1_byte  ; right-hand value
@@ -542,10 +516,19 @@ _OpMul:
     @productIs9:
     lda #9
     bne _SetLValueToA  ; unconditional
-_OpGoto:
+_OpCopy:
+    lda <(Zp_Current_sInst + sInst::Arg_byte)
+    and #$0f  ; param: immediate value or register to read
+    jsr Func_MachineRead  ; returns A
+_SetLValueToA:
+    tax       ; param: value to write
     lda <(Zp_Current_sInst + sInst::Op_byte)
-    and #$0f
-    sta Ram_MachinePc_u8_arr, x
+    and #$0f  ; param: register to write to
+    jsr FuncA_Machine_WriteReg  ; returns A
+    tay  ; just to compare A to zero
+    beq _IncrementPc
+    ldx Zp_MachineIndex_u8
+    sta Ram_MachineWait_u8_arr, x
     rts
 _OpSkip:
     lda <(Zp_Current_sInst + sInst::Op_byte)
@@ -612,25 +595,6 @@ _MoveOrAct:
     ldx Zp_MachineIndex_u8
     sta Ram_MachineStatus_eMachine_arr, x
     rts
-_OpBeep:
-    lda <(Zp_Current_sInst + sInst::Op_byte)
-    and #$0f  ; param: immediate value or register
-    jsr Func_MachineRead  ; returns A
-    jsr Func_PlayBeepSfx
-    ldx Zp_MachineIndex_u8
-_OpWait:
-    lda #$10  ; 16 frames = about a quarter second
-    sta Ram_MachineWait_u8_arr, x
-    rts
-_OpEnd:
-    lda #eMachine::Ended
-    sta Ram_MachineStatus_eMachine_arr, x
-_OpEmpty:
-    rts
-_OpSync:
-    lda #kMachineWaitForSync
-    sta Ram_MachineWait_u8_arr, x
-    rts
 _OpNop:
 _IncrementPc:
     ldx #1
@@ -662,6 +626,48 @@ _IncrementPcByX:
     div #.sizeof(sInst)
     ldx Zp_MachineIndex_u8
     sta Ram_MachinePc_u8_arr, x
+    rts
+_OpGoto:
+    lda <(Zp_Current_sInst + sInst::Op_byte)
+    and #$0f
+    sta Ram_MachinePc_u8_arr, x
+    rts
+_OpBeep:
+    lda <(Zp_Current_sInst + sInst::Op_byte)
+    and #$0f  ; param: immediate value or register
+    jsr Func_MachineRead  ; returns A
+    jsr Func_PlayBeepSfx
+    ldx Zp_MachineIndex_u8
+_OpWait:
+    lda #$10  ; 16 frames = about a quarter second
+    sta Ram_MachineWait_u8_arr, x
+    rts
+_OpEnd:
+    lda #eMachine::Ended
+    sta Ram_MachineStatus_eMachine_arr, x
+_OpEmpty:
+    rts
+_OpSync:
+    lda #kMachineWaitForSync
+    sta Ram_MachineWait_u8_arr, x
+    rts
+.ENDPROC
+
+;;; Writes a value to a register of the current machine.
+;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
+;;; @param A The register to write to ($a-$f).
+;;; @param X The value to write (0-9).
+;;; @return A How many frames to wait before advancing the PC.
+.PROC FuncA_Machine_WriteReg
+    cmp #$0a
+    beq @writeRegA
+    ldy #sMachine::WriteReg_func_ptr  ; param: function pointer offset
+    jmp Func_MachineCall
+    @writeRegA:
+    txa  ; the value to write
+    ldx Zp_MachineIndex_u8
+    sta Ram_MachineRegA_u8_arr, x
+    lda #0
     rts
 .ENDPROC
 

@@ -53,12 +53,6 @@
 
 ;;;=========================================================================;;;
 
-;;; How fast the player avatar is allowed to move, in pixels per frame.
-kAvatarMaxAirSpeedX = 2
-kAvatarMaxAirSpeedY = 5
-kAvatarMaxWaterSpeedX = 1
-kAvatarMaxWaterSpeedY = 2
-
 ;;; If the player stops holding the jump button while jumping, then the
 ;;; avatar's upward speed is immediately capped to this many pixels per frame.
 kAvatarStopJumpSpeed = 1
@@ -950,6 +944,7 @@ _Airborne:
     ;; If the player stops holding the jump button while airborne, cap the
     ;; upward speed to kAvatarStopJumpSpeed (that is, the Y velocity will be
     ;; greater than or equal to -kAvatarStopJumpSpeed).
+    ;; TODO: This interacts poorly with being pushed up by e.g. steam.
     bit Zp_P1ButtonsHeld_bJoypad
     .assert bJoypad::AButton = bProc::Negative, error
     bmi _DoneJump

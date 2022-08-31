@@ -25,6 +25,7 @@ kMaxPlatforms = 12
 ;;; Types of platform in a room.
 .ENUM ePlatform
     None
+    Zone   ; no physical interactions, just a region of the room
     Water  ; can swim in
     Solid  ; safe to stand on
     Harm   ; harms the player avatar on contact

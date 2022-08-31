@@ -36,6 +36,7 @@ kMaxActors = 8
     Smoke
     Spider
     Spike
+    SteamUp
     Toddler
     Vinebug
     NUM_VALUES

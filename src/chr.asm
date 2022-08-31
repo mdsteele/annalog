@@ -375,7 +375,8 @@
     .assert * - :- = (kGrenadeFirstTileId - $80) * kSizeofChr, error
     .incbin "out/data/tiles/grenade.chr"
     .incbin "out/data/tiles/prison_obj.chr"
-    .res $0c * kSizeofChr
+    .incbin "out/data/tiles/valve.chr"
+    .res $08 * kSizeofChr
     .assert * - :- = (kTileIdBreakerFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/breaker.chr"
     .assert * - :- = kSizeofChr * $80, error

@@ -26,6 +26,12 @@ kAvatarBoundingBoxRight = 5
 
 ;;;=========================================================================;;;
 
+;;; How fast the player avatar is allowed to move, in pixels per frame.
+kAvatarMaxAirSpeedX = 2
+kAvatarMaxAirSpeedY = 5
+kAvatarMaxWaterSpeedX = 1
+kAvatarMaxWaterSpeedY = 2
+
 ;;; The upward acceleration applied to the player avatar when in water, in
 ;;; subpixels per frame per frame.
 kAvatarBouyancy = 20
