@@ -196,7 +196,7 @@ _Platforms_sPlatform_arr:
     .byte ePlatform::None
 _Actors_sActor_arr:
 :   D_STRUCT sActor
-    d_byte Type_eActor, eActor::Spider
+    d_byte Type_eActor, eActor::BadSpider
     d_byte TileRow_u8, 15
     d_byte TileCol_u8, 24
     d_byte Param_byte, 0

@@ -151,19 +151,19 @@ _Platforms_sPlatform_arr:
     .byte ePlatform::None
 _Actors_sActor_arr:
 :   D_STRUCT sActor
-    d_byte Type_eActor, eActor::Mermaid
+    d_byte Type_eActor, eActor::NpcMermaid
     d_byte TileRow_u8, 17
     d_byte TileCol_u8, 84
     d_byte Param_byte, kTileIdMermaidGuardFFirst
     D_END
     D_STRUCT sActor
-    d_byte Type_eActor, eActor::Mermaid
+    d_byte Type_eActor, eActor::NpcMermaid
     d_byte TileRow_u8, 43
     d_byte TileCol_u8, 26
     d_byte Param_byte, kTileIdMermaidFarmerFirst
     D_END
     D_STRUCT sActor
-    d_byte Type_eActor, eActor::Mermaid
+    d_byte Type_eActor, eActor::NpcMermaid
     d_byte TileRow_u8, 43
     d_byte TileCol_u8, 34
     d_byte Param_byte, kTileIdMermaidYouthFirst

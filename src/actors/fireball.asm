@@ -43,13 +43,13 @@ kFireballPalette = 1
 
 .SEGMENT "PRG8"
 
-;;; Initializes the specified actor as a fireball.
+;;; Initializes the specified actor as a fireball projectile.
 ;;; @prereq The actor's pixel position has already been initialized.
 ;;; @param A The angle to fire at, measured in increments of tau/64.
 ;;; @param X The actor index.
 ;;; @preserve X
-.EXPORT Func_InitFireballActor
-.PROC Func_InitFireballActor
+.EXPORT Func_InitActorProjFireball
+.PROC Func_InitActorProjFireball
     and #$3f
     tay
     lda #0
@@ -76,7 +76,7 @@ _InitVelY:
     .endrepeat
     sta Ram_ActorVelY_i16_0_arr, x
 _InitOtherVariables:
-    lda #eActor::Fireball
+    lda #eActor::ProjFireball
     sta Ram_ActorType_eActor_arr, x
     lda #0
     sta Ram_ActorSubX_u8_arr, x
@@ -112,11 +112,11 @@ _VelY_u8_arr64:
 
 .SEGMENT "PRGA_Actor"
 
-;;; Performs per-frame updates for a fireball actor.
+;;; Performs per-frame updates for a fireball projectile actor.
 ;;; @param X The actor index.
 ;;; @preserve X
-.EXPORT FuncA_Actor_TickFireball
-.PROC FuncA_Actor_TickFireball
+.EXPORT FuncA_Actor_TickProjFireball
+.PROC FuncA_Actor_TickProjFireball
     inc Ram_ActorState_byte_arr, x
     beq @expire
     jsr FuncA_Actor_HarmAvatarIfCollision  ; preserves X
@@ -133,11 +133,11 @@ _VelY_u8_arr64:
 
 .SEGMENT "PRGA_Objects"
 
-;;; Allocates and populates OAM slots for a fireball actor.
+;;; Draws a fireball projectile actor.
 ;;; @param X The actor index.
 ;;; @preserve X
-.EXPORT FuncA_Objects_DrawFireballActor
-.PROC FuncA_Objects_DrawFireballActor
+.EXPORT FuncA_Objects_DrawActorProjFireball
+.PROC FuncA_Objects_DrawActorProjFireball
     lda Ram_ActorState_byte_arr, x
     div #2
     and #$01

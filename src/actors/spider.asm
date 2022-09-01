@@ -47,11 +47,11 @@ kTileIdSpiderHead2 = $b3
 
 .SEGMENT "PRGA_Actor"
 
-;;; Performs per-frame updates for a spider enemy actor.
+;;; Performs per-frame updates for a spider baddie actor.
 ;;; @param X The actor index.
 ;;; @preserve X
-.EXPORT FuncA_Actor_TickSpider
-.PROC FuncA_Actor_TickSpider
+.EXPORT FuncA_Actor_TickBadSpider
+.PROC FuncA_Actor_TickBadSpider
     lda Ram_ActorState_byte_arr, x
     beq _StartMove
     dec Ram_ActorState_byte_arr, x
@@ -145,11 +145,11 @@ _StartMove:
 
 .SEGMENT "PRGA_Objects"
 
-;;; Allocates and populates OAM slots for a spider enemy actor.
+;;; Draws a spider baddie actor.
 ;;; @param X The actor index.
 ;;; @preserve X
-.EXPORT FuncA_Objects_DrawSpiderActor
-.PROC FuncA_Objects_DrawSpiderActor
+.EXPORT FuncA_Objects_DrawActorBadSpider
+.PROC FuncA_Objects_DrawActorBadSpider
     jsr FuncA_Objects_PositionActorShape  ; preserves X
     lda Ram_ActorFlags_bObj_arr, x  ; param: object flags
     jsr FuncA_Objects_Alloc2x2Shape  ; preserves X, returns C and Y

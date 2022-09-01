@@ -38,7 +38,7 @@
 .IMPORT FuncA_Objects_GetMachineLightTileId
 .IMPORT FuncA_Objects_SetShapePosToMachineTopLeft
 .IMPORT Func_FindEmptyActorSlot
-.IMPORT Func_InitSteamUpActor
+.IMPORT Func_InitActorProjSteamUp
 .IMPORT Func_MachineError
 .IMPORT Func_MachineFinishResetting
 .IMPORT Func_Noop
@@ -257,7 +257,7 @@ _SpawnSteam:
     sbc #0
     sta Ram_ActorPosY_i16_1_arr, x
     ;; Spawn the steam.
-    jsr Func_InitSteamUpActor
+    jsr Func_InitActorProjSteamUp
     @done:
     lda #kBoilerActCountdown
     clc  ; success

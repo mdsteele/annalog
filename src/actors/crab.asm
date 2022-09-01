@@ -45,11 +45,11 @@ kCrabFirstTileId2 = $d9
 
 .SEGMENT "PRGA_Actor"
 
-;;; Performs per-frame updates for a crab enemy actor.
+;;; Performs per-frame updates for a crab baddie actor.
 ;;; @param X The actor index.
 ;;; @preserve X
-.EXPORT FuncA_Actor_TickCrab
-.PROC FuncA_Actor_TickCrab
+.EXPORT FuncA_Actor_TickBadCrab
+.PROC FuncA_Actor_TickBadCrab
     lda Ram_ActorState_byte_arr, x
     beq _StartMove
     dec Ram_ActorState_byte_arr, x
@@ -127,11 +127,11 @@ _StartMove:
 
 .SEGMENT "PRGA_Objects"
 
-;;; Allocates and populates OAM slots for a crab enemy actor.
+;;; Draws a crab baddie actor.
 ;;; @param X The actor index.
 ;;; @preserve X
-.EXPORT FuncA_Objects_DrawCrabActor
-.PROC FuncA_Objects_DrawCrabActor
+.EXPORT FuncA_Objects_DrawActorBadCrab
+.PROC FuncA_Objects_DrawActorBadCrab
     lda Ram_ActorState_byte_arr, x
     div #$10
     and #$01

@@ -43,13 +43,13 @@ kSteamNumFrames = 32
 
 .SEGMENT "PRG8"
 
-;;; Initializes the specified actor as upward steam.
+;;; Initializes the specified actor as an upward steam projectile.
 ;;; @prereq The actor's pixel position has already been initialized.
 ;;; @param X The actor index.
 ;;; @preserve X
-.EXPORT Func_InitSteamUpActor
-.PROC Func_InitSteamUpActor
-    ldy #eActor::SteamUp  ; param: actor type
+.EXPORT Func_InitActorProjSteamUp
+.PROC Func_InitActorProjSteamUp
+    ldy #eActor::ProjSteamUp  ; param: actor type
     jmp Func_InitActorDefault  ; preserves X
 .ENDPROC
 
@@ -57,11 +57,11 @@ kSteamNumFrames = 32
 
 .SEGMENT "PRGA_Actor"
 
-;;; Performs per-frame updates for an upward steam actor.
+;;; Performs per-frame updates for an upward steam projectile actor.
 ;;; @param X The actor index.
 ;;; @preserve X
-.EXPORT FuncA_Actor_TickSteamUp
-.PROC FuncA_Actor_TickSteamUp
+.EXPORT FuncA_Actor_TickProjSteamUp
+.PROC FuncA_Actor_TickProjSteamUp
     ;; If the player avatar is in the steam, push them upwards.
     jsr FuncA_Actor_IsCollidingWithAvatar  ; preserves X, returns C
     bcc @noPush
@@ -98,11 +98,11 @@ _IncrementAge:
 
 .SEGMENT "PRGA_Objects"
 
-;;; Draws an upward steam actor.
+;;; Draws an upward steam projectile actor.
 ;;; @param X The actor index.
 ;;; @preserve X
-.EXPORT FuncA_Objects_DrawSteamUpActor
-.PROC FuncA_Objects_DrawSteamUpActor
+.EXPORT FuncA_Objects_DrawActorProjSteamUp
+.PROC FuncA_Objects_DrawActorProjSteamUp
     ;; TODO: set the actual correct first tile ID
     lda #$40  ; param: first tile ID
     jmp FuncA_Objects_Draw2x2Actor  ; preserves X

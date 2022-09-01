@@ -131,25 +131,25 @@ _Platforms_sPlatform_arr:
     .byte ePlatform::None
 _Actors_sActor_arr:
 :   D_STRUCT sActor
-    d_byte Type_eActor, eActor::Crawler
+    d_byte Type_eActor, eActor::BadCrawler
     d_byte TileRow_u8, 35
     d_byte TileCol_u8, 22
     d_byte Param_byte, 0
     D_END
     D_STRUCT sActor
-    d_byte Type_eActor, eActor::Crawler
+    d_byte Type_eActor, eActor::BadCrawler
     d_byte TileRow_u8, 31
     d_byte TileCol_u8, 34
     d_byte Param_byte, 0
     D_END
     D_STRUCT sActor
-    d_byte Type_eActor, eActor::Crawler
+    d_byte Type_eActor, eActor::BadCrawler
     d_byte TileRow_u8, 43
     d_byte TileCol_u8, 23
     d_byte Param_byte, 0
     D_END
     D_STRUCT sActor
-    d_byte Type_eActor, eActor::Vinebug
+    d_byte Type_eActor, eActor::BadVinebug
     d_byte TileRow_u8, 33
     d_byte TileCol_u8, 11
     d_byte Param_byte, 0

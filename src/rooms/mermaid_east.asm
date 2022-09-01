@@ -109,31 +109,31 @@ _Platforms_sPlatform_arr:
     .byte ePlatform::None
 _Actors_sActor_arr:
     D_STRUCT sActor
-    d_byte Type_eActor, eActor::Crab
+    d_byte Type_eActor, eActor::BadCrab
     d_byte TileRow_u8, 15
     d_byte TileCol_u8, 16
     d_byte Param_byte, 0
     D_END
     D_STRUCT sActor
-    d_byte Type_eActor, eActor::Fish
+    d_byte Type_eActor, eActor::BadFish
     d_byte TileRow_u8, 20
     d_byte TileCol_u8, 38
     d_byte Param_byte, 0
     D_END
     D_STRUCT sActor
-    d_byte Type_eActor, eActor::Crab
+    d_byte Type_eActor, eActor::BadCrab
     d_byte TileRow_u8, 13
     d_byte TileCol_u8, 52
     d_byte Param_byte, 0
     D_END
     D_STRUCT sActor
-    d_byte Type_eActor, eActor::Fish
+    d_byte Type_eActor, eActor::BadFish
     d_byte TileRow_u8, 40
     d_byte TileCol_u8, 21
     d_byte Param_byte, 0
     D_END
     D_STRUCT sActor
-    d_byte Type_eActor, eActor::Fish
+    d_byte Type_eActor, eActor::BadFish
     d_byte TileRow_u8, 40
     d_byte TileCol_u8, 30
     d_byte Param_byte, 0

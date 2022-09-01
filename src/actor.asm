@@ -24,44 +24,44 @@
 .INCLUDE "ppu.inc"
 .INCLUDE "terrain.inc"
 
-.IMPORT FuncA_Actor_TickAdult
-.IMPORT FuncA_Actor_TickChild
-.IMPORT FuncA_Actor_TickCrab
-.IMPORT FuncA_Actor_TickCrawler
-.IMPORT FuncA_Actor_TickFireball
-.IMPORT FuncA_Actor_TickFish
-.IMPORT FuncA_Actor_TickGrenade
-.IMPORT FuncA_Actor_TickMermaid
-.IMPORT FuncA_Actor_TickSmoke
-.IMPORT FuncA_Actor_TickSpider
-.IMPORT FuncA_Actor_TickSpike
-.IMPORT FuncA_Actor_TickSteamUp
-.IMPORT FuncA_Actor_TickToddler
-.IMPORT FuncA_Actor_TickVinebug
+.IMPORT FuncA_Actor_TickBadCrab
+.IMPORT FuncA_Actor_TickBadCrawler
+.IMPORT FuncA_Actor_TickBadFish
+.IMPORT FuncA_Actor_TickBadSpider
+.IMPORT FuncA_Actor_TickBadVinebug
+.IMPORT FuncA_Actor_TickNpcAdult
+.IMPORT FuncA_Actor_TickNpcChild
+.IMPORT FuncA_Actor_TickNpcMermaid
+.IMPORT FuncA_Actor_TickNpcToddler
+.IMPORT FuncA_Actor_TickProjFireball
+.IMPORT FuncA_Actor_TickProjGrenade
+.IMPORT FuncA_Actor_TickProjSmoke
+.IMPORT FuncA_Actor_TickProjSpike
+.IMPORT FuncA_Actor_TickProjSteamUp
 .IMPORT FuncA_Objects_Alloc1x1Shape
 .IMPORT FuncA_Objects_Alloc2x2Shape
-.IMPORT FuncA_Objects_DrawAdultActor
-.IMPORT FuncA_Objects_DrawChildActor
-.IMPORT FuncA_Objects_DrawCrabActor
-.IMPORT FuncA_Objects_DrawCrawlerActor
-.IMPORT FuncA_Objects_DrawFireballActor
-.IMPORT FuncA_Objects_DrawFishActor
-.IMPORT FuncA_Objects_DrawGrenadeActor
-.IMPORT FuncA_Objects_DrawMermaidActor
-.IMPORT FuncA_Objects_DrawSmokeActor
-.IMPORT FuncA_Objects_DrawSpiderActor
-.IMPORT FuncA_Objects_DrawSpikeActor
-.IMPORT FuncA_Objects_DrawSteamUpActor
-.IMPORT FuncA_Objects_DrawToddlerActor
-.IMPORT FuncA_Objects_DrawVinebugActor
+.IMPORT FuncA_Objects_DrawActorBadCrab
+.IMPORT FuncA_Objects_DrawActorBadCrawler
+.IMPORT FuncA_Objects_DrawActorBadFish
+.IMPORT FuncA_Objects_DrawActorBadSpider
+.IMPORT FuncA_Objects_DrawActorBadVinebug
+.IMPORT FuncA_Objects_DrawActorNpcAdult
+.IMPORT FuncA_Objects_DrawActorNpcChild
+.IMPORT FuncA_Objects_DrawActorNpcMermaid
+.IMPORT FuncA_Objects_DrawActorNpcToddler
+.IMPORT FuncA_Objects_DrawActorProjFireball
+.IMPORT FuncA_Objects_DrawActorProjGrenade
+.IMPORT FuncA_Objects_DrawActorProjSmoke
+.IMPORT FuncA_Objects_DrawActorProjSpike
+.IMPORT FuncA_Objects_DrawActorProjSteamUp
 .IMPORT FuncA_Objects_MoveShapeUpOneTile
 .IMPORT Func_HarmAvatar
-.IMPORT Func_InitFireballActor
-.IMPORT Func_InitGrenadeActor
-.IMPORT Func_InitSmokeActor
-.IMPORT Func_InitSpikeActor
-.IMPORT Func_InitSteamUpActor
-.IMPORT Func_InitVinebugActor
+.IMPORT Func_InitActorBadVinebug
+.IMPORT Func_InitActorProjFireball
+.IMPORT Func_InitActorProjGrenade
+.IMPORT Func_InitActorProjSmoke
+.IMPORT Func_InitActorProjSpike
+.IMPORT Func_InitActorProjSteamUp
 .IMPORT Func_Noop
 .IMPORT Func_Terrain_GetColumnPtrForTileIndex
 .IMPORT Ram_Oam_sObj_arr64
@@ -88,74 +88,74 @@ kSpikeRadius = 3
 
 ;;;=========================================================================;;;
 
-Func_InitNoneActor    = Func_InitActorDefault
-Func_InitAdultActor   = Func_InitActorWithState
-Func_InitChildActor   = Func_InitActorWithState
-Func_InitCrabActor    = Func_InitActorDefault
-Func_InitCrawlerActor = Func_InitActorDefault
-Func_InitFishActor    = Func_InitActorDefault
-Func_InitMermaidActor = Func_InitActorWithState
-Func_InitSpiderActor  = Func_InitActorDefault
-Func_InitToddlerActor = Func_InitActorWithState
+Func_InitActorNone       = Func_InitActorDefault
+Func_InitActorBadCrab    = Func_InitActorDefault
+Func_InitActorBadCrawler = Func_InitActorDefault
+Func_InitActorBadFish    = Func_InitActorDefault
+Func_InitActorBadSpider  = Func_InitActorDefault
+Func_InitActorNpcAdult   = Func_InitActorWithState
+Func_InitActorNpcChild   = Func_InitActorWithState
+Func_InitActorNpcMermaid = Func_InitActorWithState
+Func_InitActorNpcToddler = Func_InitActorWithState
 
 FuncA_Actor_TickNone = Func_Noop
-FuncA_Objects_DrawNoneActor = Func_Noop
+FuncA_Objects_DrawActorNone = Func_Noop
 
 .LINECONT +
 .DEFINE ActorInitFuncs \
-    Func_InitNoneActor, \
-    Func_InitAdultActor, \
-    Func_InitChildActor, \
-    Func_InitCrabActor, \
-    Func_InitCrawlerActor, \
-    Func_InitFireballActor, \
-    Func_InitFishActor, \
-    Func_InitGrenadeActor, \
-    Func_InitMermaidActor, \
-    Func_InitSmokeActor, \
-    Func_InitSpiderActor, \
-    Func_InitSpikeActor, \
-    Func_InitSteamUpActor, \
-    Func_InitToddlerActor, \
-    Func_InitVinebugActor
+    Func_InitActorNone, \
+    Func_InitActorBadCrab, \
+    Func_InitActorBadCrawler, \
+    Func_InitActorBadFish, \
+    Func_InitActorBadSpider, \
+    Func_InitActorBadVinebug, \
+    Func_InitActorNpcAdult, \
+    Func_InitActorNpcChild, \
+    Func_InitActorNpcMermaid, \
+    Func_InitActorNpcToddler, \
+    Func_InitActorProjFireball, \
+    Func_InitActorProjGrenade, \
+    Func_InitActorProjSmoke, \
+    Func_InitActorProjSpike, \
+    Func_InitActorProjSteamUp
 .LINECONT -
 
 .LINECONT +
 .DEFINE ActorTickFuncs \
     FuncA_Actor_TickNone, \
-    FuncA_Actor_TickAdult, \
-    FuncA_Actor_TickChild, \
-    FuncA_Actor_TickCrab, \
-    FuncA_Actor_TickCrawler, \
-    FuncA_Actor_TickFireball, \
-    FuncA_Actor_TickFish, \
-    FuncA_Actor_TickGrenade, \
-    FuncA_Actor_TickMermaid, \
-    FuncA_Actor_TickSmoke, \
-    FuncA_Actor_TickSpider, \
-    FuncA_Actor_TickSpike, \
-    FuncA_Actor_TickSteamUp, \
-    FuncA_Actor_TickToddler, \
-    FuncA_Actor_TickVinebug
+    FuncA_Actor_TickBadCrab, \
+    FuncA_Actor_TickBadCrawler, \
+    FuncA_Actor_TickBadFish, \
+    FuncA_Actor_TickBadSpider, \
+    FuncA_Actor_TickBadVinebug, \
+    FuncA_Actor_TickNpcAdult, \
+    FuncA_Actor_TickNpcChild, \
+    FuncA_Actor_TickNpcMermaid, \
+    FuncA_Actor_TickNpcToddler, \
+    FuncA_Actor_TickProjFireball, \
+    FuncA_Actor_TickProjGrenade, \
+    FuncA_Actor_TickProjSmoke, \
+    FuncA_Actor_TickProjSpike, \
+    FuncA_Actor_TickProjSteamUp
 .LINECONT -
 
 .LINECONT +
 .DEFINE ActorDrawFuncs \
-    FuncA_Objects_DrawNoneActor, \
-    FuncA_Objects_DrawAdultActor, \
-    FuncA_Objects_DrawChildActor, \
-    FuncA_Objects_DrawCrabActor, \
-    FuncA_Objects_DrawCrawlerActor, \
-    FuncA_Objects_DrawFireballActor, \
-    FuncA_Objects_DrawFishActor, \
-    FuncA_Objects_DrawGrenadeActor, \
-    FuncA_Objects_DrawMermaidActor, \
-    FuncA_Objects_DrawSmokeActor, \
-    FuncA_Objects_DrawSpiderActor, \
-    FuncA_Objects_DrawSpikeActor, \
-    FuncA_Objects_DrawSteamUpActor, \
-    FuncA_Objects_DrawToddlerActor, \
-    FuncA_Objects_DrawVinebugActor
+    FuncA_Objects_DrawActorNone, \
+    FuncA_Objects_DrawActorBadCrab, \
+    FuncA_Objects_DrawActorBadCrawler, \
+    FuncA_Objects_DrawActorBadFish, \
+    FuncA_Objects_DrawActorBadSpider, \
+    FuncA_Objects_DrawActorBadVinebug, \
+    FuncA_Objects_DrawActorNpcAdult, \
+    FuncA_Objects_DrawActorNpcChild, \
+    FuncA_Objects_DrawActorNpcMermaid, \
+    FuncA_Objects_DrawActorNpcToddler, \
+    FuncA_Objects_DrawActorProjFireball, \
+    FuncA_Objects_DrawActorProjGrenade, \
+    FuncA_Objects_DrawActorProjSmoke, \
+    FuncA_Objects_DrawActorProjSpike, \
+    FuncA_Objects_DrawActorProjSteamUp
 .LINECONT -
 
 ;;;=========================================================================;;;
@@ -285,59 +285,59 @@ _JumpTable_ptr_1_arr: .hibytes ActorInitFuncs
 ;;; position, indexed by eActor value.
 .PROC DataA_Actor_BoundingBoxUp_u8_arr
     D_ENUM eActor
-    d_byte None,     0
-    d_byte Adult,   13
-    d_byte Child,    7
-    d_byte Crab,     6
-    d_byte Crawler,  0
-    d_byte Fireball, kFireballRadius
-    d_byte Fish,     6
-    d_byte Grenade,  kGrenadeRadius
-    d_byte Mermaid, 13
-    d_byte Smoke,    kSmokeRadius
-    d_byte Spider,   8
-    d_byte Spike,    kSpikeRadius
-    d_byte SteamUp,  8
-    d_byte Toddler,  4
-    d_byte Vinebug,  7
+    d_byte None,         0
+    d_byte BadCrab,      6
+    d_byte BadCrawler,   0
+    d_byte BadFish,      6
+    d_byte BadSpider,    8
+    d_byte BadVinebug,   7
+    d_byte NpcAdult,    13
+    d_byte NpcChild,     7
+    d_byte NpcMermaid,  13
+    d_byte NpcToddler,   4
+    d_byte ProjFireball, kFireballRadius
+    d_byte ProjGrenade,  kGrenadeRadius
+    d_byte ProjSmoke,    kSmokeRadius
+    d_byte ProjSpike,    kSpikeRadius
+    d_byte ProjSteamUp,  8
     D_END
 .ENDPROC
 .PROC DataA_Actor_BoundingBoxDown_u8_arr
     D_ENUM eActor
-    d_byte None,     0
-    d_byte Adult,    8
-    d_byte Child,    8
-    d_byte Crab,     8
-    d_byte Crawler,  8
-    d_byte Fireball, kFireballRadius
-    d_byte Fish,     4
-    d_byte Grenade,  kGrenadeRadius
-    d_byte Mermaid,  8
-    d_byte Smoke,    kSmokeRadius
-    d_byte Spider,   2
-    d_byte Spike,    kSpikeRadius
-    d_byte SteamUp,  8
-    d_byte Toddler,  8
-    d_byte Vinebug,  7
+    d_byte None,         0
+    d_byte BadCrab,      8
+    d_byte BadCrawler,   8
+    d_byte BadFish,      4
+    d_byte BadSpider,    2
+    d_byte BadVinebug,   7
+    d_byte NpcAdult,     8
+    d_byte NpcChild,     8
+    d_byte NpcMermaid,   8
+    d_byte NpcToddler,   8
+    d_byte ProjFireball, kFireballRadius
+    d_byte ProjGrenade,  kGrenadeRadius
+    d_byte ProjSmoke,    kSmokeRadius
+    d_byte ProjSpike,    kSpikeRadius
+    d_byte ProjSteamUp,  8
     D_END
 .ENDPROC
 .PROC DataA_Actor_BoundingBoxSide_u8_arr
     D_ENUM eActor
-    d_byte None,     0
-    d_byte Adult,    5
-    d_byte Child,    5
-    d_byte Crab,     7
-    d_byte Crawler,  7
-    d_byte Fireball, kFireballRadius
-    d_byte Fish,     6
-    d_byte Grenade,  kGrenadeRadius
-    d_byte Mermaid,  5
-    d_byte Smoke,    kSmokeRadius
-    d_byte Spider,   7
-    d_byte Spike,    kSpikeRadius
-    d_byte SteamUp,  6
-    d_byte Toddler,  3
-    d_byte Vinebug,  5
+    d_byte None,         0
+    d_byte BadCrab,      7
+    d_byte BadCrawler,   7
+    d_byte BadFish,      6
+    d_byte BadSpider,    7
+    d_byte BadVinebug,   5
+    d_byte NpcAdult,     5
+    d_byte NpcChild,     5
+    d_byte NpcMermaid,   5
+    d_byte NpcToddler,   3
+    d_byte ProjFireball, kFireballRadius
+    d_byte ProjGrenade,  kGrenadeRadius
+    d_byte ProjSmoke,    kSmokeRadius
+    d_byte ProjSpike,    kSpikeRadius
+    d_byte ProjSteamUp,  6
     D_END
 .ENDPROC
 

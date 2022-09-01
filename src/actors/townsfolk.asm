@@ -40,27 +40,27 @@
 
 .SEGMENT "PRGA_Actor"
 
-;;; Performs per-frame updates for a mermaid townsfolk actor.
+;;; Performs per-frame updates for a mermaid NPC actor.
 ;;; @param X The actor index.
 ;;; @preserve X
-.EXPORT FuncA_Actor_TickMermaid
-.PROC FuncA_Actor_TickMermaid
-    .assert * = FuncA_Actor_TickChild, error, "fallthrough"
+.EXPORT FuncA_Actor_TickNpcMermaid
+.PROC FuncA_Actor_TickNpcMermaid
+    .assert * = FuncA_Actor_TickNpcChild, error, "fallthrough"
 .ENDPROC
 
-;;; Performs per-frame updates for an adult townsfolk actor.
+;;; Performs per-frame updates for an adult NPC actor.
 ;;; @param X The actor index.
 ;;; @preserve X
-.EXPORT FuncA_Actor_TickAdult
-.PROC FuncA_Actor_TickAdult
-    .assert * = FuncA_Actor_TickChild, error, "fallthrough"
+.EXPORT FuncA_Actor_TickNpcAdult
+.PROC FuncA_Actor_TickNpcAdult
+    .assert * = FuncA_Actor_TickNpcChild, error, "fallthrough"
 .ENDPROC
 
-;;; Performs per-frame updates for a child townsfolk actor.
+;;; Performs per-frame updates for a child NPC actor.
 ;;; @param X The actor index.
 ;;; @preserve X
-.EXPORT FuncA_Actor_TickChild
-.PROC FuncA_Actor_TickChild
+.EXPORT FuncA_Actor_TickNpcChild
+.PROC FuncA_Actor_TickNpcChild
     lda Ram_ActorPosX_i16_1_arr, x
     cmp Zp_AvatarPosX_i16 + 1
     blt @faceRight
@@ -82,30 +82,30 @@
 
 .SEGMENT "PRGA_Objects"
 
-;;; Allocates and populates OAM slots for an adult townsfolk actor.
+;;; Draws an adult NPC actor.
 ;;; @param X The actor index.
 ;;; @preserve X
-.EXPORT FuncA_Objects_DrawAdultActor
-.PROC FuncA_Objects_DrawAdultActor
+.EXPORT FuncA_Objects_DrawActorNpcAdult
+.PROC FuncA_Objects_DrawActorNpcAdult
     jsr FuncA_Objects_PositionActorShape  ; preserves X
     lda Ram_ActorState_byte_arr, x  ; param: first tile ID
     jmp FuncA_Objects_Draw2x3ActorShape  ; preserves X
 .ENDPROC
 
-;;; Allocates and populates OAM slots for a child townsfolk actor.
+;;; Draws a child NPC actor.
 ;;; @param X The actor index.
 ;;; @preserve X
-.EXPORT FuncA_Objects_DrawChildActor
-.PROC FuncA_Objects_DrawChildActor
+.EXPORT FuncA_Objects_DrawActorNpcChild
+.PROC FuncA_Objects_DrawActorNpcChild
     lda Ram_ActorState_byte_arr, x  ; param: first tile ID
     jmp FuncA_Objects_Draw2x2Actor  ; preserves X
 .ENDPROC
 
-;;; Allocates and populates OAM slots for a mermaid townsfolk actor.
+;;; Draws a mermaid NPC actor.
 ;;; @param X The actor index.
 ;;; @preserve X
-.EXPORT FuncA_Objects_DrawMermaidActor
-.PROC FuncA_Objects_DrawMermaidActor
+.EXPORT FuncA_Objects_DrawActorNpcMermaid
+.PROC FuncA_Objects_DrawActorNpcMermaid
     jsr FuncA_Objects_PositionActorShape  ; preserves X
     ;; Adjust vertical position (to make the mermaid bob in the water).
     stx Zp_Tmp1_byte  ; actor index
@@ -127,8 +127,8 @@ _VertOffset_u8_arr8:
     .byte 0, 0, 0, 1, 2, 2, 2, 1
 .ENDPROC
 
-;;; Allocates and populates OAM slots for the specified actor, using the given
-;;; first tile ID and the five subsequent tile IDs.
+;;; Draws the specified actor, using the given first tile ID and the five
+;;; subsequent tile IDs.
 ;;; @prereq The shape position has been initialized.
 ;;; @param A The first tile ID.
 ;;; @param X The actor index.

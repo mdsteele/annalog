@@ -49,9 +49,9 @@ kSmokeFirstTileId = $1a
 ;;; @prereq The actor's pixel position has already been initialized.
 ;;; @param X The actor index.
 ;;; @preserve X
-.EXPORT Func_InitSmokeActor
-.PROC Func_InitSmokeActor
-    ldy #eActor::Smoke  ; param: actor type
+.EXPORT Func_InitActorProjSmoke
+.PROC Func_InitActorProjSmoke
+    ldy #eActor::ProjSmoke  ; param: actor type
     jmp Func_InitActorDefault  ; preserves X
 .ENDPROC
 
@@ -62,8 +62,8 @@ kSmokeFirstTileId = $1a
 ;;; Performs per-frame updates for a smoke cloud actor.
 ;;; @param X The actor index.
 ;;; @preserve X
-.EXPORT FuncA_Actor_TickSmoke
-.PROC FuncA_Actor_TickSmoke
+.EXPORT FuncA_Actor_TickProjSmoke
+.PROC FuncA_Actor_TickProjSmoke
     inc Ram_ActorState_byte_arr, x
     lda Ram_ActorState_byte_arr, x
     cmp #kSmokeNumFrames
@@ -78,11 +78,11 @@ kSmokeFirstTileId = $1a
 
 .SEGMENT "PRGA_Objects"
 
-;;; Allocates and populates OAM slots for a smoke cloud actor.
+;;; Draws a smoke cloud actor.
 ;;; @param X The actor index.
 ;;; @preserve X
-.EXPORT FuncA_Objects_DrawSmokeActor
-.PROC FuncA_Objects_DrawSmokeActor
+.EXPORT FuncA_Objects_DrawActorProjSmoke
+.PROC FuncA_Objects_DrawActorProjSmoke
 _BottomRight:
     jsr FuncA_Objects_PositionActorShape  ; preserves X
     lda Zp_ShapePosX_i16 + 0

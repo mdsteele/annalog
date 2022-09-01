@@ -33,7 +33,7 @@
 .IMPORT FuncA_Objects_MoveShapeUpOneTile
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
 .IMPORT Func_FindEmptyActorSlot
-.IMPORT Func_InitSmokeActor
+.IMPORT Func_InitActorProjSmoke
 .IMPORT Ram_ActorPosX_i16_0_arr
 .IMPORT Ram_ActorPosX_i16_1_arr
 .IMPORT Ram_ActorPosY_i16_0_arr
@@ -262,7 +262,7 @@ _AddSmokeActor:
     adc #0
     sta Ram_ActorPosY_i16_1_arr, x
     ;; Init actor:
-    jsr Func_InitSmokeActor
+    jsr Func_InitActorProjSmoke
     @done:
 _SlowFallingSpeed:
     ;; Slow down the falling winch load, in case we're breaking through the

@@ -112,13 +112,13 @@ _Platforms_sPlatform_arr:
     .byte ePlatform::None
 _Actors_sActor_arr:
     D_STRUCT sActor
-    d_byte Type_eActor, eActor::Crab
+    d_byte Type_eActor, eActor::BadCrab
     d_byte TileRow_u8, 9
     d_byte TileCol_u8, 18
     d_byte Param_byte, 0
     D_END
     D_STRUCT sActor
-    d_byte Type_eActor, eActor::Fish
+    d_byte Type_eActor, eActor::BadFish
     d_byte TileRow_u8, 24
     d_byte TileCol_u8, 48
     d_byte Param_byte, 0

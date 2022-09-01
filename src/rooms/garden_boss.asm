@@ -39,10 +39,10 @@
 .IMPORT FuncA_Objects_DrawCannonMachine
 .IMPORT Func_FindEmptyActorSlot
 .IMPORT Func_GetRandomByte
-.IMPORT Func_InitFireballActor
-.IMPORT Func_InitGrenadeActor
-.IMPORT Func_InitSmokeActor
-.IMPORT Func_InitSpikeActor
+.IMPORT Func_InitActorProjFireball
+.IMPORT Func_InitActorProjGrenade
+.IMPORT Func_InitActorProjSmoke
+.IMPORT Func_InitActorProjSpike
 .IMPORT Func_LockDoorDevice
 .IMPORT Func_MachineCannonReadRegY
 .IMPORT Func_MachineError
@@ -326,7 +326,7 @@ _Cannon_TryAct:
     sta Ram_ActorPosY_i16_1_arr + kGrenadeActorIndex
     ldx #kGrenadeActorIndex  ; param: actor index
     lda Ram_MachineGoalVert_u8_arr + kCannonMachineIndex  ; param: aim (0-1)
-    jsr Func_InitGrenadeActor
+    jsr Func_InitActorProjGrenade
     lda #kCannonActCountdown
     clc  ; clear C to indicate success
     rts
@@ -443,7 +443,7 @@ _SpawnUpgrade:
     sta Ram_ActorPosX_i16_1_arr + kSmokeActorIndex
     sta Ram_ActorPosY_i16_1_arr + kSmokeActorIndex
     ldx #kSmokeActorIndex  ; param: actor index
-    jsr Func_InitSmokeActor
+    jsr Func_InitActorProjSmoke
     ;; Proceed to the next phase.
     inc Ram_RoomState + sState::Current_ePhase
     @done:
@@ -504,7 +504,7 @@ _CheckForGrenadeHit:
     ;; TODO: Don't use kGrenadeActorIndex; instead scan for grenade actors.
     ;; Check if there's a grenade in flight.  If not, we're done.
     lda Ram_ActorType_eActor_arr + kGrenadeActorIndex
-    cmp #eActor::Grenade
+    cmp #eActor::ProjGrenade
     bne @done
     ;; Check which eye the grenade is near vertically.
     lda Ram_ActorPosY_i16_0_arr + kGrenadeActorIndex
@@ -553,7 +553,7 @@ _CheckForGrenadeHit:
     @explode:
     ;; TODO: play a sound
     ldx #kGrenadeActorIndex
-    jsr Func_InitSmokeActor
+    jsr Func_InitActorProjSmoke
     @done:
 _BossEyes:
     ldx #eEye::Left
@@ -594,7 +594,7 @@ _BossShoot:
     ora Ram_RoomState + sState::BossActive_eEye
     tay
     lda _FireballAngle_u8_arr2_arr, y  ; param: aim angle
-    jsr Func_InitFireballActor
+    jsr Func_InitActorProjFireball
     @doneFireball:
     ;; Decrement the projectile counter; if it reaches zero, return to waiting
     ;; mode.
@@ -625,7 +625,7 @@ _BossAngry:
     lda #0
     sta Ram_ActorPosX_i16_1_arr, x
     sta Ram_ActorPosY_i16_1_arr, x
-    jsr Func_InitSpikeActor
+    jsr Func_InitActorProjSpike
     @doneSpike:
     ;; Decrement the projectile counter; if it reaches zero, return to waiting
     ;; mode.

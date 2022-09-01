@@ -42,18 +42,18 @@
 
 .SEGMENT "PRG8"
 
-;;; Initializes a vinebug enemy actor.
+;;; Initializes a vinebug baddie actor.
 ;;; @prereq The actor's unadjusted pixel position has already been initialized.
 ;;; @param X The actor index.
 ;;; @preserve X
-.EXPORT Func_InitVinebugActor
-.PROC Func_InitVinebugActor
+.EXPORT Func_InitActorBadVinebug
+.PROC Func_InitActorBadVinebug
     lda Ram_ActorPosX_i16_0_arr, x
     bne @noBorrow
     dec Ram_ActorPosX_i16_1_arr, x
     @noBorrow:
     dec Ram_ActorPosX_i16_0_arr, x
-    ldy #eActor::Vinebug  ; param: actor type
+    ldy #eActor::BadVinebug  ; param: actor type
     lda #0  ; param: state byte
     jmp Func_InitActorDefault
 .ENDPROC
@@ -62,11 +62,11 @@
 
 .SEGMENT "PRGA_Actor"
 
-;;; Performs per-frame updates for a vinebug enemy actor.
+;;; Performs per-frame updates for a vinebug baddie actor.
 ;;; @param X The actor index.
 ;;; @preserve X
-.EXPORT FuncA_Actor_TickVinebug
-.PROC FuncA_Actor_TickVinebug
+.EXPORT FuncA_Actor_TickBadVinebug
+.PROC FuncA_Actor_TickBadVinebug
     inc Ram_ActorState_byte_arr, x
     ;; Get the terrain for the vinebug's tile column.
     jsr FuncA_Actor_GetRoomTileColumn  ; preserves X, returns A
@@ -134,11 +134,11 @@ _Finish:
 
 .SEGMENT "PRGA_Objects"
 
-;;; Allocates and populates OAM slots for a vinebug enemy actor.
+;;; Draws a vinebug baddie actor.
 ;;; @param X The actor index.
 ;;; @preserve X
-.EXPORT FuncA_Objects_DrawVinebugActor
-.PROC FuncA_Objects_DrawVinebugActor
+.EXPORT FuncA_Objects_DrawActorBadVinebug
+.PROC FuncA_Objects_DrawActorBadVinebug
     lda Ram_ActorState_byte_arr, x
     div #8
     and #$01

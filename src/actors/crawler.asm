@@ -38,11 +38,11 @@
 
 .SEGMENT "PRGA_Actor"
 
-;;; Performs per-frame updates for a crawler enemy actor.
+;;; Performs per-frame updates for a crawler baddie actor.
 ;;; @param X The actor index.
 ;;; @preserve X
-.EXPORT FuncA_Actor_TickCrawler
-.PROC FuncA_Actor_TickCrawler
+.EXPORT FuncA_Actor_TickBadCrawler
+.PROC FuncA_Actor_TickBadCrawler
     lda Ram_ActorState_byte_arr, x
     beq _StartMove
     dec Ram_ActorState_byte_arr, x
@@ -116,11 +116,11 @@ _StartMove:
 
 .SEGMENT "PRGA_Objects"
 
-;;; Allocates and populates OAM slots for a crawler enemy actor.
+;;; Draws a crawler baddie actor.
 ;;; @param X The actor index.
 ;;; @preserve X
-.EXPORT FuncA_Objects_DrawCrawlerActor
-.PROC FuncA_Objects_DrawCrawlerActor
+.EXPORT FuncA_Objects_DrawActorBadCrawler
+.PROC FuncA_Objects_DrawActorBadCrawler
     lda Ram_ActorState_byte_arr, x
     div #8
     and #$03

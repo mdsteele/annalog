@@ -74,7 +74,7 @@ _Platforms_sPlatform_arr:
     .byte ePlatform::None
 _Actors_sActor_arr:
     D_STRUCT sActor
-    d_byte Type_eActor, eActor::Adult
+    d_byte Type_eActor, eActor::NpcAdult
     d_byte TileRow_u8, 25
     d_byte TileCol_u8, 16
     d_byte Param_byte, kTileIdAdultWomanFirst

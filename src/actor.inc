@@ -22,29 +22,31 @@ kMaxActors = 8
 
 ;;;=========================================================================;;;
 
-;;; Types of actors in a room (e.g. townsfolk, enemies, or projectiles).
+;;; Types of actors in a room (e.g. baddies, NPCs, or projectiles).
 .ENUM eActor
     None
-    Adult
-    Child
-    Crab
-    Crawler
-    Fireball
-    Fish
-    Grenade
-    Mermaid
-    Smoke
-    Spider
-    Spike
-    SteamUp
-    Toddler
-    Vinebug
+    BadCrab
+    BadCrawler
+    BadFish
+    BadSpider
+    BadVinebug
+    NpcAdult
+    NpcChild
+    NpcMermaid
+    NpcToddler
+    ProjFireball
+    ProjGrenade
+    ProjSmoke
+    ProjSpike
+    ProjSteamUp
     NUM_VALUES
 .ENDENUM
 
 ;;;=========================================================================;;;
 
-;;; Static information about an actor.
+;;; Static information about a particular actor instance in a room.  This is
+;;; used for static baddies and NPCs, but not for projectiles (which are
+;;; generally spawned dynamically).
 .STRUCT sActor
     ;; The type of this actor.
     Type_eActor .byte
@@ -53,11 +55,11 @@ kMaxActors = 8
     ;; The room tile column for this actor.
     TileCol_u8  .byte
     ;; Type-specific initialization parameter.
-    ;;   * For Adult, this is the first tile ID (of six).
-    ;;   * For Child, this is the first tile ID (of four).
-    ;;   * For Fireball, this is the aim angle (mod 64).
-    ;;   * For Grenade, this is the aim angle (0-1).
-    ;;   * For all other actor types, this is ignored.
+    ;;   * For NpcAdult, this is the first tile ID (of six).
+    ;;   * For NpcChild, this is the first tile ID (of four).
+    ;;   * For NpcMermaid, this is the first tile ID (of six).
+    ;;   * For NpcToddler, this is how far to walk before turning around.
+    ;;   * For all other baddies and NPCs, this is ignored.
     Param_byte  .byte
 .ENDSTRUCT
 

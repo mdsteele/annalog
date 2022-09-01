@@ -25,7 +25,7 @@
 .IMPORT FuncA_Actor_CenterHitsTerrain
 .IMPORT FuncA_Actor_HarmAvatarIfCollision
 .IMPORT FuncA_Objects_Draw1x1Actor
-.IMPORT Func_InitSmokeActor
+.IMPORT Func_InitActorProjSmoke
 .IMPORT Ram_ActorFlags_bObj_arr
 .IMPORT Ram_ActorPosX_i16_0_arr
 .IMPORT Ram_ActorPosX_i16_1_arr
@@ -45,8 +45,8 @@
 
 .SEGMENT "PRG8"
 
-;;; Initializes the specified actor as a grenade.  The grenade can be aimed in
-;;; one of four initial angles:
+;;; Initializes the specified actor as a grenade projectile.  The grenade can
+;;; be aimed in one of four initial angles:
 ;;;   * 0: Low angle, to the right.
 ;;;   * 1: High angle, to the right.
 ;;;   * 2: Low angle, to the left.
@@ -55,11 +55,11 @@
 ;;; @param A The aim angle (0-3).
 ;;; @param X The actor index.
 ;;; @preserve X
-.EXPORT Func_InitGrenadeActor
-.PROC Func_InitGrenadeActor
+.EXPORT Func_InitActorProjGrenade
+.PROC Func_InitActorProjGrenade
     tay  ; aim angle index
     ;; Initialize state:
-    lda #eActor::Grenade
+    lda #eActor::ProjGrenade
     sta Ram_ActorType_eActor_arr, x
     lda #0
     sta Ram_ActorSubX_u8_arr, x
@@ -108,11 +108,11 @@ _InitVelY_i16_1_arr:
 
 .SEGMENT "PRGA_Actor"
 
-;;; Performs per-frame updates for a grenade actor.
+;;; Performs per-frame updates for a grenade projectile actor.
 ;;; @param X The actor index.
 ;;; @preserve X
-.EXPORT FuncA_Actor_TickGrenade
-.PROC FuncA_Actor_TickGrenade
+.EXPORT FuncA_Actor_TickProjGrenade
+.PROC FuncA_Actor_TickProjGrenade
     inc Ram_ActorState_byte_arr, x
     beq _Explode
     jsr FuncA_Actor_HarmAvatarIfCollision  ; preserves X, returns C
@@ -129,18 +129,18 @@ _ApplyGravity:
     rts
 _Explode:
     ;; TODO: play a sound
-    jmp Func_InitSmokeActor  ; preserves X
+    jmp Func_InitActorProjSmoke  ; preserves X
 .ENDPROC
 
 ;;;=========================================================================;;;
 
 .SEGMENT "PRGA_Objects"
 
-;;; Allocates and populates OAM slots for a grenade actor.
+;;; Draws a grenade projectile actor.
 ;;; @param X The actor index.
 ;;; @preserve X
-.EXPORT FuncA_Objects_DrawGrenadeActor
-.PROC FuncA_Objects_DrawGrenadeActor
+.EXPORT FuncA_Objects_DrawActorProjGrenade
+.PROC FuncA_Objects_DrawActorProjGrenade
     lda Ram_ActorState_byte_arr, x
     div #4
     and #$03

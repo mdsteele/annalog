@@ -39,13 +39,13 @@ kSpikeTileId = $a8
 
 .SEGMENT "PRG8"
 
-;;; Initializes the specified actor as a spike.
+;;; Initializes the specified actor as a spike projectile.
 ;;; @prereq The actor's pixel position has already been initialized.
 ;;; @param X The actor index.
 ;;; @preserve X
-.EXPORT Func_InitSpikeActor
-.PROC Func_InitSpikeActor
-    ldy #eActor::Spike  ; param: actor type
+.EXPORT Func_InitActorProjSpike
+.PROC Func_InitActorProjSpike
+    ldy #eActor::ProjSpike  ; param: actor type
     jmp Func_InitActorDefault
 .ENDPROC
 
@@ -53,11 +53,11 @@ kSpikeTileId = $a8
 
 .SEGMENT "PRGA_Actor"
 
-;;; Performs per-frame updates for a spike actor.
+;;; Performs per-frame updates for a spike projectile actor.
 ;;; @param X The actor index.
 ;;; @preserve X
-.EXPORT FuncA_Actor_TickSpike
-.PROC FuncA_Actor_TickSpike
+.EXPORT FuncA_Actor_TickProjSpike
+.PROC FuncA_Actor_TickProjSpike
     inc Ram_ActorState_byte_arr, x
     beq _Expire
     jsr FuncA_Actor_HarmAvatarIfCollision  ; preserves X, returns C
@@ -82,11 +82,11 @@ _Expire:
 
 .SEGMENT "PRGA_Objects"
 
-;;; Allocates and populates OAM slots for a spike actor.
+;;; Draws a spike projectile actor.
 ;;; @param X The actor index.
 ;;; @preserve X
-.EXPORT FuncA_Objects_DrawSpikeActor
-.PROC FuncA_Objects_DrawSpikeActor
+.EXPORT FuncA_Objects_DrawActorProjSpike
+.PROC FuncA_Objects_DrawActorProjSpike
     lda #kSpikeTileId  ; param: tile ID
     jmp FuncA_Objects_Draw1x1Actor  ; preserves X
 .ENDPROC

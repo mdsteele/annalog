@@ -41,11 +41,11 @@ kToddlerTime = 100
 
 .SEGMENT "PRGA_Actor"
 
-;;; Performs per-frame updates for a toddler townsfolk actor.
+;;; Performs per-frame updates for a toddler NPC actor.
 ;;; @param X The actor index.
 ;;; @preserve X
-.EXPORT FuncA_Actor_TickToddler
-.PROC FuncA_Actor_TickToddler
+.EXPORT FuncA_Actor_TickNpcToddler
+.PROC FuncA_Actor_TickNpcToddler
     dec Ram_ActorState_byte_arr, x
     bne @move
     @turnAround:
@@ -80,11 +80,11 @@ kToddlerTime = 100
 
 .SEGMENT "PRGA_Objects"
 
-;;; Allocates and populates OAM slots for a toddler townsfolk actor.
+;;; Draws a toddler NPC actor.
 ;;; @param X The actor index.
 ;;; @preserve X
-.EXPORT FuncA_Objects_DrawToddlerActor
-.PROC FuncA_Objects_DrawToddlerActor
+.EXPORT FuncA_Objects_DrawActorNpcToddler
+.PROC FuncA_Objects_DrawActorNpcToddler
     lda Ram_ActorState_byte_arr, x
     and #$08
     beq @draw

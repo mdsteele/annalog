@@ -30,7 +30,7 @@
 .IMPORT FuncA_Objects_MoveShapeRightOneTile
 .IMPORT FuncA_Objects_SetShapePosToMachineTopLeft
 .IMPORT Func_FindEmptyActorSlot
-.IMPORT Func_InitGrenadeActor
+.IMPORT Func_InitActorProjGrenade
 .IMPORT Func_MachineFinishResetting
 .IMPORT Ram_ActorPosX_i16_0_arr
 .IMPORT Ram_ActorPosX_i16_1_arr
@@ -142,7 +142,7 @@ kCannonTileIdBarrelLow  = kTileIdCannonFirst + $04
     ldy Zp_MachineIndex_u8
     ora Ram_MachineGoalVert_u8_arr, y  ; param: aim angle (0-3)
     ;; Initialize the grenade and finish.
-    jsr Func_InitGrenadeActor
+    jsr Func_InitActorProjGrenade
     @doneGrenade:
     lda #kCannonActCountdown
     clc  ; clear C to indicate success

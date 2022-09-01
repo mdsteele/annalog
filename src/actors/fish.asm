@@ -48,11 +48,11 @@ kFishFirstTileId3 = $d1
 
 .SEGMENT "PRGA_Actor"
 
-;;; Performs per-frame updates for a fish enemy actor.
+;;; Performs per-frame updates for a fish baddie actor.
 ;;; @param X The actor index.
 ;;; @preserve X
-.EXPORT FuncA_Actor_TickFish
-.PROC FuncA_Actor_TickFish
+.EXPORT FuncA_Actor_TickBadFish
+.PROC FuncA_Actor_TickBadFish
     ;; Compute the room tile column index for the center of the fish, storing
     ;; it in Y.
     jsr FuncA_Actor_GetRoomTileColumn  ; preserves X, returns A
@@ -113,11 +113,11 @@ _SetVelocity:
 
 .SEGMENT "PRGA_Objects"
 
-;;; Allocates and populates OAM slots for a fish enemy actor.
+;;; Draws a fish baddie actor.
 ;;; @param X The actor index.
 ;;; @preserve X
-.EXPORT FuncA_Objects_DrawFishActor
-.PROC FuncA_Objects_DrawFishActor
+.EXPORT FuncA_Objects_DrawActorBadFish
+.PROC FuncA_Objects_DrawActorBadFish
     lda Ram_ActorState_byte_arr, x
     div #8
     and #$03
