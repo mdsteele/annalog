@@ -34,6 +34,7 @@
 .IMPORT DataA_Pause_LavaAreaCells_u8_arr2_arr
 .IMPORT DataA_Pause_LavaAreaName_u8_arr
 .IMPORT DataA_Room_Lava_sTileset
+.IMPORT FuncA_Machine_EmitSteamRightFromPipe
 .IMPORT FuncA_Machine_EmitSteamUpFromPipe
 .IMPORT FuncA_Objects_Alloc1x1Shape
 .IMPORT FuncA_Objects_DrawBoilerValve
@@ -43,17 +44,25 @@
 .IMPORT Func_MachineFinishResetting
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrObjUpgrade
+.IMPORT Ram_DeviceType_eDevice_arr
 .IMPORT Ram_MachineGoalVert_u8_arr
 .IMPORT Ram_MachineParam1_u8_arr
 .IMPORT Ram_Oam_sObj_arr64
+.IMPORT Sram_ProgressFlags_arr
 .IMPORTZP Zp_MachineIndex_u8
 
 ;;;=========================================================================;;;
 
-;;; The machine index for the LavaFlowerBoiler machine in this room.
+;;; The device index for the upgrade in this room.
+kUpgradeDeviceIndex = 1
+
+;;; The eFlag value for the upgrade in this room.
+kUpgradeFlag = eFlag::UpgradeOpcodeCopy
+
+;;; The machine index for the LavaStationBoiler machine in this room.
 kBoilerMachineIndex = 0
 
-;;; Platform indices for various parts of the LavaFlowerBoiler machine.
+;;; Platform indices for various parts of the LavaStationBoiler machine.
 kBoilerPlatformIndex = 0
 kValvePlatformIndex  = 1
 kPipe1PlatformIndex  = 2
@@ -63,14 +72,14 @@ kPipe2PlatformIndex  = 3
 
 .SEGMENT "PRGC_Lava"
 
-.EXPORT DataC_Lava_Flower_sRoom
-.PROC DataC_Lava_Flower_sRoom
+.EXPORT DataC_Lava_Station_sRoom
+.PROC DataC_Lava_Station_sRoom
     D_STRUCT sRoom
-    d_byte MinScrollX_u8, $08
-    d_word MaxScrollX_u16, $08
+    d_byte MinScrollX_u8, $10
+    d_word MaxScrollX_u16, $10
     d_byte IsTall_bool, $00
-    d_byte MinimapStartRow_u8, 14
-    d_byte MinimapStartCol_u8, 16
+    d_byte MinimapStartRow_u8, 12
+    d_byte MinimapStartCol_u8, 17
     d_byte MinimapWidth_u8, 1
     d_addr TerrainData_ptr, _TerrainData
     d_byte NumMachines_u8, 1
@@ -90,32 +99,32 @@ _Ext_sRoomExt:
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
     d_addr Dialogs_sDialog_ptr_arr_ptr, 0
     d_addr Passages_sPassage_arr_ptr, _Passages_sPassage_arr
-    d_addr Init_func_ptr, Func_Noop
+    d_addr Init_func_ptr, FuncC_Lava_Station_InitRoom
     d_addr Enter_func_ptr, Func_Noop
     d_addr FadeIn_func_ptr, Func_Noop
     D_END
 _TerrainData:
-:   .incbin "out/data/lava_flower.room"
-    .assert * - :- = 18 * 16, error
+:   .incbin "out/data/lava_station.room"
+    .assert * - :- = 17 * 16, error
 _Machines_sMachine_arr:
 :   .assert * - :- = kBoilerMachineIndex * .sizeof(sMachine), error
     D_STRUCT sMachine
-    d_byte Code_eProgram, eProgram::LavaFlowerBoiler
+    d_byte Code_eProgram, eProgram::LavaStationBoiler
     d_byte Breaker_eFlag, 0
     d_byte Flags_bMachine, bMachine::Act | bMachine::WriteC
     d_byte Status_eDiagram, eDiagram::Winch  ; TODO
-    d_word ScrollGoalX_u16, $08
-    d_byte ScrollGoalY_u8, $00
+    d_word ScrollGoalX_u16, $10
+    d_byte ScrollGoalY_u8, $40
     d_byte RegNames_u8_arr4, "V", 0, 0, 0
     d_byte MainPlatform_u8, kBoilerPlatformIndex
     d_addr Init_func_ptr, Func_Noop
-    d_addr ReadReg_func_ptr, FuncC_Lava_FlowerBoiler_ReadReg
-    d_addr WriteReg_func_ptr, FuncC_Lava_FlowerBoiler_WriteReg
+    d_addr ReadReg_func_ptr, FuncC_Lava_StationBoiler_ReadReg
+    d_addr WriteReg_func_ptr, FuncC_Lava_StationBoiler_WriteReg
     d_addr TryMove_func_ptr, Func_MachineError
-    d_addr TryAct_func_ptr, FuncC_Lava_FlowerBoiler_TryAct
-    d_addr Tick_func_ptr, FuncC_Lava_FlowerBoiler_Tick
-    d_addr Draw_func_ptr, FuncA_Objects_LavaFlowerBoiler_Draw
-    d_addr Reset_func_ptr, FuncC_Lava_FlowerBoiler_Reset
+    d_addr TryAct_func_ptr, FuncC_Lava_StationBoiler_TryAct
+    d_addr Tick_func_ptr, FuncC_Lava_StationBoiler_Tick
+    d_addr Draw_func_ptr, FuncA_Objects_LavaStationBoiler_Draw
+    d_addr Reset_func_ptr, FuncC_Lava_StationBoiler_Reset
     D_END
     .assert * - :- <= kMaxMachines * .sizeof(sMachine), error
 _Platforms_sPlatform_arr:
@@ -124,40 +133,32 @@ _Platforms_sPlatform_arr:
     d_byte Type_ePlatform, ePlatform::Zone
     d_word WidthPx_u16, $10
     d_byte HeightPx_u8, $10
-    d_word Left_i16,  $00b0
-    d_word Top_i16,   $0060
+    d_word Left_i16,  $0070
+    d_word Top_i16,   $00d0
     D_END
     .assert * - :- = kValvePlatformIndex * .sizeof(sPlatform), error
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Zone
     d_word WidthPx_u16, $08
     d_byte HeightPx_u8, $08
-    d_word Left_i16,  $00e4
-    d_word Top_i16,   $0064
+    d_word Left_i16,  $0034
+    d_word Top_i16,   $00b4
     D_END
     .assert * - :- = kPipe1PlatformIndex * .sizeof(sPlatform), error
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Zone
     d_word WidthPx_u16, $08
     d_byte HeightPx_u8, $08
-    d_word Left_i16,  $00e0
-    d_word Top_i16,   $0050
+    d_word Left_i16,  $0038
+    d_word Top_i16,   $0058
     D_END
     .assert * - :- = kPipe2PlatformIndex * .sizeof(sPlatform), error
     D_STRUCT sPlatform
-    d_byte Type_ePlatform, ePlatform::Solid
+    d_byte Type_ePlatform, ePlatform::Zone
     d_word WidthPx_u16, $08
     d_byte HeightPx_u8, $08
-    d_word Left_i16,  $0070
-    d_word Top_i16,   $00c8
-    D_END
-    ;; Lava:
-    D_STRUCT sPlatform
-    d_byte Type_ePlatform, ePlatform::Harm
-    d_word WidthPx_u16, $180
-    d_byte HeightPx_u8,  $20
-    d_word Left_i16,   $0000
-    d_word Top_i16,    $00d3
+    d_word Left_i16,  $0050
+    d_word Top_i16,   $0080
     D_END
     .assert * - :- <= kMaxPlatforms * .sizeof(sPlatform), error
     .byte ePlatform::None
@@ -166,45 +167,51 @@ _Actors_sActor_arr:
 _Devices_sDevice_arr:
 :   D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Console
-    d_byte BlockRow_u8, 4
-    d_byte BlockCol_u8, 11
+    d_byte BlockRow_u8, 11
+    d_byte BlockCol_u8, 7
     d_byte Target_u8, kBoilerMachineIndex
     D_END
+    .assert * - :- = kUpgradeDeviceIndex * .sizeof(sDevice), error
     D_STRUCT sDevice
-    d_byte Type_eDevice, eDevice::Flower
-    d_byte BlockRow_u8, 9
+    d_byte Type_eDevice, eDevice::Upgrade
+    d_byte BlockRow_u8, 10
     d_byte BlockCol_u8, 13
-    d_byte Target_u8, eFlag::FlowerLava
+    d_byte Target_u8, kUpgradeFlag
     D_END
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None
 _Passages_sPassage_arr:
     D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Western | 0
-    d_byte Destination_eRoom, eRoom::LavaFlower  ; TODO
-    d_byte SpawnBlock_u8, 4
-    D_END
-    D_STRUCT sPassage
-    d_byte Exit_bPassage, ePassage::Eastern | 0
-    d_byte Destination_eRoom, eRoom::LavaFlower  ; TODO
-    d_byte SpawnBlock_u8, 4
+    d_byte Destination_eRoom, eRoom::LavaStation  ; TODO
+    d_byte SpawnBlock_u8, 3
     D_END
 .ENDPROC
 
-.PROC FuncC_Lava_FlowerBoiler_Reset
+.PROC FuncC_Lava_Station_InitRoom
+    lda Sram_ProgressFlags_arr + (kUpgradeFlag >> 3)
+    and #1 << (kUpgradeFlag & $07)
+    beq @done
+    lda #eDevice::None
+    sta Ram_DeviceType_eDevice_arr + kUpgradeDeviceIndex
+    @done:
+    rts
+.ENDPROC
+
+.PROC FuncC_Lava_StationBoiler_Reset
     ldx Zp_MachineIndex_u8
     lda #0
     sta Ram_MachineGoalVert_u8_arr, x
     rts
 .ENDPROC
 
-.PROC FuncC_Lava_FlowerBoiler_ReadReg
+.PROC FuncC_Lava_StationBoiler_ReadReg
     ldx Zp_MachineIndex_u8
     lda Ram_MachineGoalVert_u8_arr, x
     rts
 .ENDPROC
 
-.PROC FuncC_Lava_FlowerBoiler_WriteReg
+.PROC FuncC_Lava_StationBoiler_WriteReg
     txa  ; value to write
     ldx Zp_MachineIndex_u8
     sta Ram_MachineGoalVert_u8_arr, x
@@ -212,12 +219,12 @@ _Passages_sPassage_arr:
     rts
 .ENDPROC
 
-;;; TryAct implemention for the LavaFlowerBoiler machine.
+;;; TryAct implemention for the LavaStationBoiler machine.
 ;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
 ;;; @prereq PRGA_Machine is loaded.
 ;;; @return C Set if there was an error, cleared otherwise.
 ;;; @return A How many frames to wait before advancing the PC.
-.PROC FuncC_Lava_FlowerBoiler_TryAct
+.PROC FuncC_Lava_StationBoiler_TryAct
     ;; Determine which pipe the steam should exit out of (or fail if both pipes
     ;; are blocked).
     ldy Zp_MachineIndex_u8
@@ -225,8 +232,15 @@ _Passages_sPassage_arr:
     ldy _ValvePipePlatformIndex_u8_arr10, x  ; pipe platform index
     cpy #kMaxPlatforms
     bge _Failure
-    ;; Emit upward steam from the chosen pipe.
+    ;; Emit steam from the chosen pipe.
+    cpy #kPipe1PlatformIndex
+    beq @steamRight
+    @steamUp:
     jsr FuncA_Machine_EmitSteamUpFromPipe
+    jmp @success
+    @steamRight:
+    jsr FuncA_Machine_EmitSteamRightFromPipe
+    @success:
     lda #kBoilerActCountdown
     clc  ; success
     rts
@@ -235,7 +249,6 @@ _Failure:
     rts
 _ValvePipePlatformIndex_u8_arr10:
 :   .byte kPipe1PlatformIndex
-    .byte kPipe1PlatformIndex
     .byte $ff
     .byte kPipe2PlatformIndex
     .byte kPipe2PlatformIndex
@@ -243,11 +256,12 @@ _ValvePipePlatformIndex_u8_arr10:
     .byte kPipe1PlatformIndex
     .byte kPipe1PlatformIndex
     .byte $ff
+    .byte kPipe2PlatformIndex
     .byte kPipe2PlatformIndex
     .assert * - :- = 10, error
 .ENDPROC
 
-.PROC FuncC_Lava_FlowerBoiler_Tick
+.PROC FuncC_Lava_StationBoiler_Tick
     ldx Zp_MachineIndex_u8
     lda Ram_MachineGoalVert_u8_arr, x
     mul #kBoilerValveAnimSlowdown
@@ -267,7 +281,7 @@ _ValvePipePlatformIndex_u8_arr10:
 
 .SEGMENT "PRGA_Objects"
 
-.PROC FuncA_Objects_LavaFlowerBoiler_Draw
+.PROC FuncA_Objects_LavaStationBoiler_Draw
     jsr FuncA_Objects_SetShapePosToMachineTopLeft
 _Light:
     jsr FuncA_Objects_Alloc1x1Shape  ; returns C and Y

@@ -25,9 +25,11 @@
 .IMPORT FuncA_Actor_IsCollidingWithAvatar
 .IMPORT FuncA_Objects_Draw2x2Actor
 .IMPORT Func_InitActorDefault
+.IMPORT Ram_ActorFlags_bObj_arr
 .IMPORT Ram_ActorState_byte_arr
 .IMPORT Ram_ActorType_eActor_arr
 .IMPORTZP Zp_AvatarMode_eAvatar
+.IMPORTZP Zp_AvatarVelX_i16
 .IMPORTZP Zp_AvatarVelY_i16
 
 ;;;=========================================================================;;;
@@ -43,6 +45,21 @@ kSteamNumFrames = 32
 
 .SEGMENT "PRG8"
 
+;;; Initializes the specified actor as a horizontal steam projectile.
+;;; @prereq The actor's pixel position has already been initialized.
+;;; @param A The facing direction (either 0 or bObj::FlipH).
+;;; @param X The actor index.
+;;; @preserve X
+.EXPORT Func_InitActorProjSteamHorz
+.PROC Func_InitActorProjSteamHorz
+    pha  ; facing dir
+    ldy #eActor::ProjSteamHorz  ; param: actor type
+    jsr Func_InitActorDefault  ; preserves X
+    pla  ; facing dir
+    sta Ram_ActorFlags_bObj_arr, x
+    rts
+.ENDPROC
+
 ;;; Initializes the specified actor as an upward steam projectile.
 ;;; @prereq The actor's pixel position has already been initialized.
 ;;; @param X The actor index.
@@ -56,6 +73,36 @@ kSteamNumFrames = 32
 ;;;=========================================================================;;;
 
 .SEGMENT "PRGA_Actor"
+
+;;; Performs per-frame updates for a horizontal steam projectile actor.
+;;; @param X The actor index.
+;;; @preserve X
+.EXPORT FuncA_Actor_TickProjSteamHorz
+.PROC FuncA_Actor_TickProjSteamHorz
+    ;; If the player avatar is in the steam, push them sideways.
+    jsr FuncA_Actor_IsCollidingWithAvatar  ; preserves X, returns C
+    bcc @noPush
+    lda Ram_ActorFlags_bObj_arr, x
+    and #bObj::FlipH
+    beq @pushRight
+    @pushLeft:
+    lda Zp_AvatarVelX_i16 + 0
+    sub #<kSteamAccel
+    sta Zp_AvatarVelX_i16 + 0
+    lda Zp_AvatarVelX_i16 + 1
+    sbc #>kSteamAccel
+    sta Zp_AvatarVelX_i16 + 1
+    jmp FuncA_Actor_IncrementSteamAge  ; preserves X
+    @pushRight:
+    lda Zp_AvatarVelX_i16 + 0
+    add #<kSteamAccel
+    sta Zp_AvatarVelX_i16 + 0
+    lda Zp_AvatarVelX_i16 + 1
+    adc #>kSteamAccel
+    sta Zp_AvatarVelX_i16 + 1
+    @noPush:
+    jmp FuncA_Actor_IncrementSteamAge  ; preserves X
+.ENDPROC
 
 ;;; Performs per-frame updates for an upward steam projectile actor.
 ;;; @param X The actor index.
@@ -83,7 +130,14 @@ kSteamNumFrames = 32
     lda #eAvatar::Falling
     sta Zp_AvatarMode_eAvatar
     @noPush:
-_IncrementAge:
+    .assert * = FuncA_Actor_IncrementSteamAge, error, "fallthrough"
+.ENDPROC
+
+;;; Increments the state byte for the specified steam actor, and removes the
+;;; steam when the state byte reaches kSteamNumFrames.
+;;; @param X The actor index.
+;;; @preserve X
+.PROC FuncA_Actor_IncrementSteamAge
     inc Ram_ActorState_byte_arr, x
     lda Ram_ActorState_byte_arr, x
     cmp #kSteamNumFrames
@@ -97,6 +151,16 @@ _IncrementAge:
 ;;;=========================================================================;;;
 
 .SEGMENT "PRGA_Objects"
+
+;;; Draws a horizontal steam projectile actor.
+;;; @param X The actor index.
+;;; @preserve X
+.EXPORT FuncA_Objects_DrawActorProjSteamHorz
+.PROC FuncA_Objects_DrawActorProjSteamHorz
+    ;; TODO: set the actual correct first tile ID
+    lda #$50  ; param: first tile ID
+    jmp FuncA_Objects_Draw2x2Actor  ; preserves X
+.ENDPROC
 
 ;;; Draws an upward steam projectile actor.
 ;;; @param X The actor index.

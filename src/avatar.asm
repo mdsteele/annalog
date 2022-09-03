@@ -61,6 +61,14 @@ kAvatarStopJumpSpeed = 1
 ;;; left/right arrows, in subpixels per frame per frame.
 kAvatarHorzAccel = 70
 
+;;; The horizontal deceleration applied to the player avatar when holding
+;;; neither the left nor right arrow, in subpixels per frame per frame.
+kAvatarHorzDecelFast = 70
+
+;;; The horizontal deceleration applied to the player avatar when holding the
+;;; left/right arrows while moving too fast, in subpixels per frame per frame.
+kAvatarHorzDecelSlow = 25
+
 ;;; The (signed, 16-bit) initial Y-velocity of the player avatar when jumping,
 ;;; in subpixels per frame.
 kAvatarJumpVelocity = $ffff & -810
@@ -260,7 +268,8 @@ _Harm:
     cpx #kAvatarHarmHealFrames - kAvatarHarmStunFrames
     bge @doneJoypad
     @doneHealing:
-    jsr FuncA_Avatar_ApplyJoypad
+    jsr FuncA_Avatar_ApplyDpad
+    jsr FuncA_Avatar_ApplyJump
     @doneJoypad:
     ;; Move horizontally first, then vertically.
     jsr FuncA_Avatar_MoveHorz  ; if passage, clears Z and returns A
@@ -816,10 +825,9 @@ _MovingDown:
     .assert * - :- = kAvatarMaxAirSpeedY + 1, error
 .ENDPROC
 
-;;; Updates the player avatar's velocity and flags based on controller input
-;;; (left/right and jump).
-.PROC FuncA_Avatar_ApplyJoypad
-_JoypadLeft:
+;;; Updates the player avatar's X-velocity and flags based on the D-pad
+;;; left/right buttons.
+.PROC FuncA_Avatar_ApplyDpad
     ;; Check D-pad left.
     lda Zp_P1ButtonsHeld_bJoypad
     and #bJoypad::Left
@@ -828,40 +836,124 @@ _JoypadLeft:
     lda Zp_P1ButtonsHeld_bJoypad
     and #bJoypad::Right
     bne _NeitherLeftNorRight
-    ;; Determine velocity limit.
+    jmp FuncA_Avatar_ApplyDpadLeft
+    @noLeft:
+    ;; Check D-pad right.
+    lda Zp_P1ButtonsHeld_bJoypad
+    and #bJoypad::Right
+    beq @noRight
+    jmp FuncA_Avatar_ApplyDpadRight
+    @noRight:
+_NeitherLeftNorRight:
+    .assert * = FuncA_Avatar_DecelerateHorz, error, "fallthrough"
+.ENDPROC
+
+;;; Decelerates the player avatar's X-velocity toward zero.
+.PROC FuncA_Avatar_DecelerateHorz
+    lda Zp_AvatarVelX_i16 + 1
+    bmi _MovingLeft
+_MovingRight:
+    bne @decel
+    lda Zp_AvatarVelX_i16 + 0
+    cmp #kAvatarHorzDecelFast
+    blt _Stop
+    @decel:
+    lda Zp_AvatarVelX_i16 + 0
+    sub #kAvatarHorzDecelFast
+    sta Zp_AvatarVelX_i16 + 0
+    lda Zp_AvatarVelX_i16 + 1
+    sbc #0
+    sta Zp_AvatarVelX_i16 + 1
+    rts
+_MovingLeft:
+    cmp #$ff
+    bne @decel
+    lda Zp_AvatarVelX_i16 + 0
+    cmp #<-kAvatarHorzDecelFast
+    bge _Stop
+    @decel:
+    lda Zp_AvatarVelX_i16 + 0
+    add #kAvatarHorzDecelFast
+    sta Zp_AvatarVelX_i16 + 0
+    lda Zp_AvatarVelX_i16 + 1
+    adc #0
+    sta Zp_AvatarVelX_i16 + 1
+    rts
+_Stop:
+    lda #0
+    sta Zp_AvatarVelX_i16 + 0
+    sta Zp_AvatarVelX_i16 + 1
+    rts
+.ENDPROC
+
+;;; Updates the player avatar's X-velocity and flags given that the D-pad left
+;;; button is held.
+.PROC FuncA_Avatar_ApplyDpadLeft
+    ;; Face the player avatar to the left.
+    lda #bObj::FlipH | kAvatarPaletteNormal
+    sta Zp_AvatarFlags_bObj
+_DetermineLimit:
+    ;; Determine the (negative) X-velocity limit, storing it in Zp_Tmp1_byte.
     lda Zp_AvatarWaterDepth_u8
     beq @inAir
     @inWater:
-    lda #$ff & -kAvatarMaxWaterSpeedX
+    lda #<-kAvatarMaxWaterSpeedX
     bne @setLimit  ; unconditional
     @inAir:
-    lda #$ff & -kAvatarMaxAirSpeedX
+    lda #<-kAvatarMaxAirSpeedX
     @setLimit:
-    sta Zp_Tmp1_byte  ; min X-vel
-    ;; Accelerate to the left.
+    sta Zp_Tmp1_byte  ; negative X-vel limit
+_AccelOrDecel:
+    ;; If the avatar is moving to the right, or moving to the left slower than
+    ;; the limit, then accelerate.  Otherwise, decelerate.
+    lda Zp_AvatarVelX_i16 + 1
+    bpl _AccelerateTowardsLimit
+    cmp Zp_Tmp1_byte  ; negative X-vel limit
+    bge _AccelerateTowardsLimit
+_DecelerateTowardsLimit:
+    ;; Slowly decelerate, up to the (negative) velocity limit at maximum.
+    lda Zp_AvatarVelX_i16 + 0
+    add #kAvatarHorzDecelSlow
+    sta Zp_AvatarVelX_i16 + 0
+    lda Zp_AvatarVelX_i16 + 1
+    adc #0
+    cmp Zp_Tmp1_byte  ; negitive X-vel limit
+    blt @noClamp
+    @clamp:
+    lda #0
+    sta Zp_AvatarVelX_i16 + 0
+    lda Zp_Tmp1_byte  ; negitive X-vel limit
+    @noClamp:
+    sta Zp_AvatarVelX_i16 + 1
+    rts
+_AccelerateTowardsLimit:
+    ;; Accelerate to the left, down to the (negative) velocity limit at
+    ;; minimum.
     lda Zp_AvatarVelX_i16 + 0
     sub #kAvatarHorzAccel
     sta Zp_AvatarVelX_i16 + 0
     lda Zp_AvatarVelX_i16 + 1
     sbc #0
-    bpl @noMax
-    cmp Zp_Tmp1_byte  ; min X-vel
-    bge @noMax
+    bpl @noClamp
+    cmp Zp_Tmp1_byte  ; negative X-vel limit
+    bge @noClamp
+    @clamp:
     lda #0
     sta Zp_AvatarVelX_i16 + 0
-    lda Zp_Tmp1_byte  ; min X-vel
-    @noMax:
+    lda Zp_Tmp1_byte  ; negative X-vel limit
+    @noClamp:
     sta Zp_AvatarVelX_i16 + 1
-    lda #bObj::FlipH | kAvatarPaletteNormal
+    rts
+.ENDPROC
+
+;;; Updates the player avatar's X-velocity and flags given that the D-pad right
+;;; button is held.
+.PROC FuncA_Avatar_ApplyDpadRight
+    ;; Face the player avatar to the right.
+    lda #kAvatarPaletteNormal
     sta Zp_AvatarFlags_bObj
-    bne _DoneLeftRight  ; unconditional
-    @noLeft:
-_JoypadRight:
-    ;; Check D-pad right.
-    lda Zp_P1ButtonsHeld_bJoypad
-    and #bJoypad::Right
-    beq @noRight
-    ;; Determine velocity limit.
+_DetermineLimit:
+    ;; Determine the (positive) X-velocity limit, storing it in Zp_Tmp1_byte.
     lda Zp_AvatarWaterDepth_u8
     beq @inAir
     @inWater:
@@ -870,60 +962,57 @@ _JoypadRight:
     @inAir:
     lda #kAvatarMaxAirSpeedX
     @setLimit:
-    sta Zp_Tmp1_byte  ; max X-vel
-    ;; Accelerate to the right.
+    sta Zp_Tmp1_byte  ; positive X-vel limit
+_AccelOrDecel:
+    ;; If the avatar is moving to the left, or moving to the right slower than
+    ;; the limit, then accelerate.  Otherwise, decelerate.
+    lda Zp_AvatarVelX_i16 + 1
+    bmi _AccelerateTowardsLimit
+    cmp Zp_Tmp1_byte  ; positive X-vel limit
+    blt _AccelerateTowardsLimit
+_DecelerateTowardsLimit:
+    ;; Slowly decelerate, down to the (positive) velocity limit at minimum.
+    lda Zp_AvatarVelX_i16 + 0
+    sub #kAvatarHorzDecelSlow
+    sta Zp_AvatarVelX_i16 + 0
+    lda Zp_AvatarVelX_i16 + 1
+    sbc #0
+    cmp Zp_Tmp1_byte  ; positive X-vel limit
+    bge @noClamp
+    @clamp:
+    lda #0
+    sta Zp_AvatarVelX_i16 + 0
+    lda Zp_Tmp1_byte  ; positive X-vel limit
+    @noClamp:
+    sta Zp_AvatarVelX_i16 + 1
+    rts
+_AccelerateTowardsLimit:
+    ;; Accelerate to the right, up to the (positive) velocity limit at maximum.
     lda Zp_AvatarVelX_i16 + 0
     add #kAvatarHorzAccel
     sta Zp_AvatarVelX_i16 + 0
     lda Zp_AvatarVelX_i16 + 1
     adc #0
-    bmi @noMax
-    cmp Zp_Tmp1_byte  ; max X-vel
-    blt @noMax
+    bmi @noClamp
+    cmp Zp_Tmp1_byte  ; positive X-vel limit
+    blt @noClamp
+    @clamp:
     lda #0
     sta Zp_AvatarVelX_i16 + 0
-    lda Zp_Tmp1_byte  ; max X-vel
-    @noMax:
+    lda Zp_Tmp1_byte  ; positive X-vel limit
+    @noClamp:
     sta Zp_AvatarVelX_i16 + 1
-    lda #kAvatarPaletteNormal
-    sta Zp_AvatarFlags_bObj
-    .assert kAvatarPaletteNormal > 0, error
-    bne _DoneLeftRight  ; unconditional
-    @noRight:
-_NeitherLeftNorRight:
-    ;; Decelerate.
-    lda Zp_AvatarVelX_i16 + 1
-    bmi @negative
-    bne @positive
-    lda Zp_AvatarVelX_i16 + 0
-    cmp #kAvatarHorzAccel
-    blt @stop
-    @positive:
-    ldy #$ff & -kAvatarHorzAccel
-    ldx #$ff
-    bne @decel  ; unconditional
-    @negative:
-    ldy #kAvatarHorzAccel
-    ldx #0
-    beq @decel  ; unconditional
-    @stop:
-    lda #0
-    sta Zp_AvatarVelX_i16 + 0
-    sta Zp_AvatarVelX_i16 + 1
-    beq _DoneLeftRight  ; unconditional
-    @decel:
-    tya
-    add Zp_AvatarVelX_i16 + 0
-    sta Zp_AvatarVelX_i16 + 0
-    txa
-    adc Zp_AvatarVelX_i16 + 1
-    sta Zp_AvatarVelX_i16 + 1
-_DoneLeftRight:
+    rts
+.ENDPROC
+
+;;; Updates the player avatar's Y-velocity based on the jump button.
+.PROC FuncA_Avatar_ApplyJump
+    ;; Check whether the avatar can jump right now.
     lda Zp_AvatarWaterDepth_u8
     beq _NotInWater
     cmp #1
-    beq _Grounded
-    bne _DoneJump  ; unconditional
+    beq _Grounded  ; floating on surface of water; allow jumping as if grounded
+    rts  ; avatar is underwater and cannot jump
 _NotInWater:
     lda Zp_AvatarMode_eAvatar
     cmp #kFirstAirborneAvatarMode
@@ -932,14 +1021,14 @@ _Grounded:
     ;; If the player presses the jump button while grounded, start a jump.
     bit Zp_P1ButtonsPressed_bJoypad
     .assert bJoypad::AButton = bProc::Negative, error
-    bpl _DoneJump
+    bpl @noJump
     ;; TODO: play a jumping sound
     ldax #kAvatarJumpVelocity
     stax Zp_AvatarVelY_i16
     lda #eAvatar::Jumping
     sta Zp_AvatarMode_eAvatar
-    .assert eAvatar::Jumping > 0, error
-    bne _DoneJump  ; unconditional
+    @noJump:
+    rts
 _Airborne:
     ;; If the player stops holding the jump button while airborne, cap the
     ;; upward speed to kAvatarStopJumpSpeed (that is, the Y velocity will be

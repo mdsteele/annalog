@@ -37,6 +37,7 @@
 .IMPORT FuncA_Actor_TickProjGrenade
 .IMPORT FuncA_Actor_TickProjSmoke
 .IMPORT FuncA_Actor_TickProjSpike
+.IMPORT FuncA_Actor_TickProjSteamHorz
 .IMPORT FuncA_Actor_TickProjSteamUp
 .IMPORT FuncA_Objects_Alloc1x1Shape
 .IMPORT FuncA_Objects_Alloc2x2Shape
@@ -53,6 +54,7 @@
 .IMPORT FuncA_Objects_DrawActorProjGrenade
 .IMPORT FuncA_Objects_DrawActorProjSmoke
 .IMPORT FuncA_Objects_DrawActorProjSpike
+.IMPORT FuncA_Objects_DrawActorProjSteamHorz
 .IMPORT FuncA_Objects_DrawActorProjSteamUp
 .IMPORT FuncA_Objects_MoveShapeUpOneTile
 .IMPORT Func_HarmAvatar
@@ -61,6 +63,7 @@
 .IMPORT Func_InitActorProjGrenade
 .IMPORT Func_InitActorProjSmoke
 .IMPORT Func_InitActorProjSpike
+.IMPORT Func_InitActorProjSteamHorz
 .IMPORT Func_InitActorProjSteamUp
 .IMPORT Func_Noop
 .IMPORT Func_Terrain_GetColumnPtrForTileIndex
@@ -77,14 +80,13 @@
 
 ;;;=========================================================================;;;
 
-;;; The hit radius of a fireball, in pixels.
-kFireballRadius = 3
-;;; The radius of a grenade, in pixels.
-kGrenadeRadius = 2
-;;; The radius of a smoke cloud, in pixels.
-kSmokeRadius = 6
-;;; The hit radius of a spike, in pixels.
-kSpikeRadius = 3
+;;; The hit radius of various actors, in pixels.
+kProjFireballRadius = 3
+kProjGrenadeRadius = 2
+kProjSmokeRadius = 6
+kProjSpikeRadius = 3
+kProjSteamMajorRadius = 8
+kProjSteamMinorRadius = 5
 
 ;;;=========================================================================;;;
 
@@ -117,6 +119,7 @@ FuncA_Objects_DrawActorNone = Func_Noop
     Func_InitActorProjGrenade, \
     Func_InitActorProjSmoke, \
     Func_InitActorProjSpike, \
+    Func_InitActorProjSteamHorz, \
     Func_InitActorProjSteamUp
 .LINECONT -
 
@@ -136,6 +139,7 @@ FuncA_Objects_DrawActorNone = Func_Noop
     FuncA_Actor_TickProjGrenade, \
     FuncA_Actor_TickProjSmoke, \
     FuncA_Actor_TickProjSpike, \
+    FuncA_Actor_TickProjSteamHorz, \
     FuncA_Actor_TickProjSteamUp
 .LINECONT -
 
@@ -155,6 +159,7 @@ FuncA_Objects_DrawActorNone = Func_Noop
     FuncA_Objects_DrawActorProjGrenade, \
     FuncA_Objects_DrawActorProjSmoke, \
     FuncA_Objects_DrawActorProjSpike, \
+    FuncA_Objects_DrawActorProjSteamHorz, \
     FuncA_Objects_DrawActorProjSteamUp
 .LINECONT -
 
@@ -285,59 +290,62 @@ _JumpTable_ptr_1_arr: .hibytes ActorInitFuncs
 ;;; position, indexed by eActor value.
 .PROC DataA_Actor_BoundingBoxUp_u8_arr
     D_ENUM eActor
-    d_byte None,         0
-    d_byte BadCrab,      6
-    d_byte BadCrawler,   0
-    d_byte BadFish,      6
-    d_byte BadSpider,    8
-    d_byte BadVinebug,   7
-    d_byte NpcAdult,    13
-    d_byte NpcChild,     7
-    d_byte NpcMermaid,  13
-    d_byte NpcToddler,   4
-    d_byte ProjFireball, kFireballRadius
-    d_byte ProjGrenade,  kGrenadeRadius
-    d_byte ProjSmoke,    kSmokeRadius
-    d_byte ProjSpike,    kSpikeRadius
-    d_byte ProjSteamUp,  8
+    d_byte None,          0
+    d_byte BadCrab,       6
+    d_byte BadCrawler,    0
+    d_byte BadFish,       6
+    d_byte BadSpider,     8
+    d_byte BadVinebug,    7
+    d_byte NpcAdult,     13
+    d_byte NpcChild,      7
+    d_byte NpcMermaid,   13
+    d_byte NpcToddler,    4
+    d_byte ProjFireball,  kProjFireballRadius
+    d_byte ProjGrenade,   kProjGrenadeRadius
+    d_byte ProjSmoke,     kProjSmokeRadius
+    d_byte ProjSpike,     kProjSpikeRadius
+    d_byte ProjSteamHorz, kProjSteamMinorRadius
+    d_byte ProjSteamUp,   kProjSteamMajorRadius
     D_END
 .ENDPROC
 .PROC DataA_Actor_BoundingBoxDown_u8_arr
     D_ENUM eActor
-    d_byte None,         0
-    d_byte BadCrab,      8
-    d_byte BadCrawler,   8
-    d_byte BadFish,      4
-    d_byte BadSpider,    2
-    d_byte BadVinebug,   7
-    d_byte NpcAdult,     8
-    d_byte NpcChild,     8
-    d_byte NpcMermaid,   8
-    d_byte NpcToddler,   8
-    d_byte ProjFireball, kFireballRadius
-    d_byte ProjGrenade,  kGrenadeRadius
-    d_byte ProjSmoke,    kSmokeRadius
-    d_byte ProjSpike,    kSpikeRadius
-    d_byte ProjSteamUp,  8
+    d_byte None,          0
+    d_byte BadCrab,       8
+    d_byte BadCrawler,    8
+    d_byte BadFish,       4
+    d_byte BadSpider,     2
+    d_byte BadVinebug,    7
+    d_byte NpcAdult,      8
+    d_byte NpcChild,      8
+    d_byte NpcMermaid,    8
+    d_byte NpcToddler,    8
+    d_byte ProjFireball,  kProjFireballRadius
+    d_byte ProjGrenade,   kProjGrenadeRadius
+    d_byte ProjSmoke,     kProjSmokeRadius
+    d_byte ProjSpike,     kProjSpikeRadius
+    d_byte ProjSteamHorz, kProjSteamMinorRadius
+    d_byte ProjSteamUp,   kProjSteamMajorRadius
     D_END
 .ENDPROC
 .PROC DataA_Actor_BoundingBoxSide_u8_arr
     D_ENUM eActor
-    d_byte None,         0
-    d_byte BadCrab,      7
-    d_byte BadCrawler,   7
-    d_byte BadFish,      6
-    d_byte BadSpider,    7
-    d_byte BadVinebug,   5
-    d_byte NpcAdult,     5
-    d_byte NpcChild,     5
-    d_byte NpcMermaid,   5
-    d_byte NpcToddler,   3
-    d_byte ProjFireball, kFireballRadius
-    d_byte ProjGrenade,  kGrenadeRadius
-    d_byte ProjSmoke,    kSmokeRadius
-    d_byte ProjSpike,    kSpikeRadius
-    d_byte ProjSteamUp,  6
+    d_byte None,          0
+    d_byte BadCrab,       7
+    d_byte BadCrawler,    7
+    d_byte BadFish,       6
+    d_byte BadSpider,     7
+    d_byte BadVinebug,    5
+    d_byte NpcAdult,      5
+    d_byte NpcChild,      5
+    d_byte NpcMermaid,    5
+    d_byte NpcToddler,    3
+    d_byte ProjFireball,  kProjFireballRadius
+    d_byte ProjGrenade,   kProjGrenadeRadius
+    d_byte ProjSmoke,     kProjSmokeRadius
+    d_byte ProjSpike,     kProjSpikeRadius
+    d_byte ProjSteamHorz, kProjSteamMajorRadius
+    d_byte ProjSteamUp,   kProjSteamMinorRadius
     D_END
 .ENDPROC
 

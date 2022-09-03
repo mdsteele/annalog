@@ -113,6 +113,7 @@
     GardenShaftLowerBridge
     GardenShaftUpperBridge
     LavaFlowerBoiler
+    LavaStationBoiler
     LavaTeleportField
     MermaidUpperLift
     PrisonCellBlaster
