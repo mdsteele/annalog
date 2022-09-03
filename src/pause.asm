@@ -34,6 +34,7 @@
 .IMPORT FuncA_Fade_Out
 .IMPORT Func_ClearRestOfOam
 .IMPORT Func_CountDeliveredFlowers
+.IMPORT Func_FillUpperAttributeTable
 .IMPORT Func_IsFlagSet
 .IMPORT Func_ProcessFrame
 .IMPORT Func_Window_Disable
@@ -158,6 +159,8 @@ kAreaNameStartCol = DataA_Pause_CurrentAreaLabel_u8_arr::kAreaNameStartCol
     lda #0
     sta Zp_FrameCounter_u8
 _DrawScreen:
+    ldy #$00  ; param: fill byte
+    jsr Func_FillUpperAttributeTable
     jsr Func_Window_Disable
     jsr FuncA_Pause_DirectDrawBg
     jsr FuncA_Pause_DrawObjects

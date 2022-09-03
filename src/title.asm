@@ -32,6 +32,7 @@
 .IMPORT FuncA_Fade_Out
 .IMPORT FuncA_Upgrade_ComputeMaxInstructions
 .IMPORT Func_ClearRestOfOam
+.IMPORT Func_FillUpperAttributeTable
 .IMPORT Func_GetRandomByte
 .IMPORT Func_ProcessFrame
 .IMPORT Func_Window_Disable
@@ -87,8 +88,6 @@ _GameLoop:
     jmp _GameLoop
 _StartGame:
     jsr_prga FuncA_Fade_Out
-    ldy #$00  ; param: attribute byte
-    jsr_prga FuncA_Title_FillUpperAttributeTable
     jsr_prga FuncA_Title_ResetSramForNewGame
     jsr_prga FuncA_Upgrade_ComputeMaxInstructions
     jmp Main_Explore_SpawnInLastSafeRoom
@@ -214,28 +213,13 @@ _DrawTitle:
     bne @loop
 _InitAttributeTable:
     ldy #$55  ; param: attribute byte
-    jsr FuncA_Title_FillUpperAttributeTable
+    jsr Func_FillUpperAttributeTable
 _SetRenderState:
     lda #bPpuMask::BgMain | bPpuMask::ObjMain
     sta Zp_Render_bPpuMask
     lda #0
     sta Zp_PpuScrollX_u8
     sta Zp_PpuScrollY_u8
-    rts
-.ENDPROC
-
-;;; Fills the upper attribute table with the given byte.
-;;; @param Y The attribute byte to set.
-.PROC FuncA_Title_FillUpperAttributeTable
-    ldax #Ppu_Nametable0_sName + sName::Attrs_u8_arr64
-    bit Hw_PpuStatus_ro  ; reset the Hw_PpuAddr_w2 write-twice latch
-    sta Hw_PpuAddr_w2
-    stx Hw_PpuAddr_w2
-    ldx #64
-    @loop:
-    sty Hw_PpuData_rw
-    dex
-    bne @loop
     rts
 .ENDPROC
 

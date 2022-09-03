@@ -51,6 +51,8 @@
 .IMPORT FuncA_Terrain_TransferTileColumn
 .IMPORT FuncA_Terrain_UpdateAndMarkMinimap
 .IMPORT Func_ClearRestOfOam
+.IMPORT Func_FillLowerAttributeTable
+.IMPORT Func_FillUpperAttributeTable
 .IMPORT Func_PickUpFlowerDevice
 .IMPORT Func_ProcessFrame
 .IMPORT Func_SetLastSpawnPoint
@@ -589,6 +591,10 @@ _SetGoalToAX:
 ;;; just before fading in the screen (e.g. when entering the room or
 ;;; unpausing).
 .PROC FuncA_Terrain_InitRoomScrollAndNametables
+    ;; Fill the attribute tables.
+    ldy #$00  ; param: fill byte
+    jsr Func_FillUpperAttributeTable  ; preserves Y
+    jsr Func_FillLowerAttributeTable
     ;; Initialize the scroll position.
     jsr Func_SetScrollGoalFromAvatar
     bit Zp_CameraCanScroll_bool
