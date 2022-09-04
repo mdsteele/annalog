@@ -42,6 +42,8 @@
 .IMPORT Func_MachineError
 .IMPORT Func_MachineFinishResetting
 .IMPORT Func_Noop
+.IMPORT Func_RemoveFlowerDeviceIfCarriedOrDelivered
+.IMPORT Func_RespawnFlowerDeviceIfDropped
 .IMPORT Ppu_ChrObjUpgrade
 .IMPORT Ram_MachineGoalVert_u8_arr
 .IMPORT Ram_MachineParam1_u8_arr
@@ -49,6 +51,9 @@
 .IMPORTZP Zp_MachineIndex_u8
 
 ;;;=========================================================================;;;
+
+;;; The device index for the flower in this room.
+kFlowerDeviceIndex = 1
 
 ;;; The machine index for the LavaFlowerBoiler machine in this room.
 kBoilerMachineIndex = 0
@@ -76,7 +81,7 @@ kPipe2PlatformIndex  = 3
     d_byte NumMachines_u8, 1
     d_addr Machines_sMachine_arr_ptr, _Machines_sMachine_arr
     d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjUpgrade)
-    d_addr Tick_func_ptr, Func_Noop
+    d_addr Tick_func_ptr, FuncC_Lava_Flower_TickRoom
     d_addr Draw_func_ptr, Func_Noop
     d_addr Ext_sRoomExt_ptr, _Ext_sRoomExt
     D_END
@@ -90,7 +95,7 @@ _Ext_sRoomExt:
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
     d_addr Dialogs_sDialog_ptr_arr_ptr, 0
     d_addr Passages_sPassage_arr_ptr, _Passages_sPassage_arr
-    d_addr Init_func_ptr, Func_Noop
+    d_addr Init_func_ptr, FuncC_Lava_Flower_InitRoom
     d_addr Enter_func_ptr, Func_Noop
     d_addr FadeIn_func_ptr, FuncC_Lava_Flower_FadeInRoom
     D_END
@@ -170,6 +175,7 @@ _Devices_sDevice_arr:
     d_byte BlockCol_u8, 11
     d_byte Target_u8, kBoilerMachineIndex
     D_END
+    .assert * - :- = kFlowerDeviceIndex * .sizeof(sDevice), error
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Flower
     d_byte BlockRow_u8, 9
@@ -189,6 +195,11 @@ _Passages_sPassage_arr:
     d_byte Destination_eRoom, eRoom::LavaFlower  ; TODO
     d_byte SpawnBlock_u8, 4
     D_END
+.ENDPROC
+
+.PROC FuncC_Lava_Flower_InitRoom
+    ldx #kFlowerDeviceIndex  ; param: device index
+    jmp Func_RemoveFlowerDeviceIfCarriedOrDelivered
 .ENDPROC
 
 ;;; Sets the bottom two block rows of the upper nametable to use BG palette 1.
@@ -215,6 +226,11 @@ _Row14:
     dex
     bne @loop
     rts
+.ENDPROC
+
+.PROC FuncC_Lava_Flower_TickRoom
+    ldx #kFlowerDeviceIndex  ; param: device index
+    jmp Func_RespawnFlowerDeviceIfDropped
 .ENDPROC
 
 .PROC FuncC_Lava_FlowerBoiler_Reset

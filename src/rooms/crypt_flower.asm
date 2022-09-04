@@ -48,7 +48,9 @@
 .IMPORT Func_MovePlatformTopToward
 .IMPORT Func_MovePlatformVert
 .IMPORT Func_Noop
+.IMPORT Func_RemoveFlowerDeviceIfCarriedOrDelivered
 .IMPORT Func_ResetWinchMachineParams
+.IMPORT Func_RespawnFlowerDeviceIfDropped
 .IMPORT Ppu_ChrObjUpgrade
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORT Ram_RoomState
@@ -56,6 +58,9 @@
 .IMPORTZP Zp_PlatformGoal_i16
 
 ;;;=========================================================================;;;
+
+;;; The device index for the flower in this room.
+kFlowerDeviceIndex = 1
 
 ;;; The machine index for the CryptFlowerWinch machine in this room.
 kWinchMachineIndex = 0
@@ -103,7 +108,7 @@ kUpperGirderInitPlatformTop = \
     d_byte NumMachines_u8, 1
     d_addr Machines_sMachine_arr_ptr, _Machines_sMachine_arr
     d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjUpgrade)
-    d_addr Tick_func_ptr, Func_Noop
+    d_addr Tick_func_ptr, FuncC_Crypt_Flower_TickRoom
     d_addr Draw_func_ptr, Func_Noop
     d_addr Ext_sRoomExt_ptr, _Ext_sRoomExt
     D_END
@@ -117,7 +122,7 @@ _Ext_sRoomExt:
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
     d_addr Dialogs_sDialog_ptr_arr_ptr, 0
     d_addr Passages_sPassage_arr_ptr, _Passages_sPassage_arr
-    d_addr Init_func_ptr, Func_Noop
+    d_addr Init_func_ptr, FuncC_Crypt_Flower_InitRoom
     d_addr Enter_func_ptr, Func_Noop
     d_addr FadeIn_func_ptr, Func_Noop
     D_END
@@ -210,6 +215,7 @@ _Devices_sDevice_arr:
     d_byte BlockCol_u8, 4
     d_byte Target_u8, kWinchMachineIndex
     D_END
+    .assert * - :- = kFlowerDeviceIndex * .sizeof(sDevice), error
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Flower
     d_byte BlockRow_u8, 10
@@ -229,6 +235,16 @@ _Winch_Reset:
     lda #kWinchInitGoalZ
     sta Ram_RoomState + sState::WinchGoalZ_u8
     jmp Func_ResetWinchMachineParams
+.ENDPROC
+
+.PROC FuncC_Crypt_Flower_InitRoom
+    ldx #kFlowerDeviceIndex  ; param: device index
+    jmp Func_RemoveFlowerDeviceIfCarriedOrDelivered
+.ENDPROC
+
+.PROC FuncC_Crypt_Flower_TickRoom
+    ldx #kFlowerDeviceIndex  ; param: device index
+    jmp Func_RespawnFlowerDeviceIfDropped
 .ENDPROC
 
 .PROC FuncC_Crypt_FlowerWinch_ReadReg

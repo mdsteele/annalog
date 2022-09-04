@@ -20,23 +20,24 @@
 .INCLUDE "device.inc"
 .INCLUDE "machine.inc"
 .INCLUDE "macros.inc"
-.INCLUDE "mmc3.inc"
 .INCLUDE "oam.inc"
 .INCLUDE "ppu.inc"
 .INCLUDE "room.inc"
 
 .IMPORT FuncA_Objects_Alloc1x1Shape
 .IMPORT FuncA_Objects_Alloc2x2Shape
-.IMPORT FuncA_Objects_MoveShapeDownOneTile
+.IMPORT FuncA_Objects_DrawBreakerDoneDevice
+.IMPORT FuncA_Objects_DrawBreakerReadyDevice
+.IMPORT FuncA_Objects_DrawBreakerRisingDevice
+.IMPORT FuncA_Objects_DrawFlowerDevice
+.IMPORT FuncA_Objects_DrawLeverDevice
+.IMPORT FuncA_Objects_DrawLockedDoorDevice
+.IMPORT FuncA_Objects_DrawUnlockedDoorDevice
 .IMPORT FuncA_Objects_MoveShapeRightOneTile
-.IMPORT FuncA_Objects_MoveShapeUpOneTile
 .IMPORT FuncA_Objects_SetUpgradeTileIds
 .IMPORT Func_Noop
-.IMPORT Ppu_ChrObjAnnaFlower
 .IMPORT Ram_MachineStatus_eMachine_arr
 .IMPORT Ram_Oam_sObj_arr64
-.IMPORT Ram_RoomState
-.IMPORT Sram_CarryingFlower_eFlag
 .IMPORTZP Zp_RoomScrollX_u16
 .IMPORTZP Zp_RoomScrollY_u8
 .IMPORTZP Zp_ShapePosX_i16
@@ -75,27 +76,6 @@ FuncA_Objects_DrawTeleporterDevice  = Func_Noop
 .LINECONT -
 .ASSERT .tcount({DeviceDrawFuncs}) = eDevice::NUM_VALUES * 2 - 1, error
 
-;;; The number of VBlank frames per pixel that a rising breaker device moves.
-.DEFINE kBreakerRisingSlowdown 4
-
-;;; The number of animation frames a door device has (i.e. the number of
-;;; distinct ways of drawing it).
-kDoorNumAnimFrames = 6
-;;; The number of VBlank frames per door animation frame.
-.DEFINE kDoorAnimSlowdown 2
-;;; The number of VBlank frames for a complete door animation (i.e. the value
-;;; to store in Ram_DeviceAnim_u8_arr when animating the door).
-kDoorAnimCountdown = kDoorNumAnimFrames * kDoorAnimSlowdown - 1
-
-;;; The number of animation frames a lever device has (i.e. the number of
-;;; distinct ways of drawing it).
-kLeverNumAnimFrames = 4
-;;; The number of VBlank frames per lever animation frame.
-.DEFINE kLeverAnimSlowdown 4
-;;; The number of VBlank frames for a complete lever animation (i.e. the value
-;;; to store in Ram_DeviceAnim_u8_arr when the lever is flipped).
-kLeverAnimCountdown = kLeverNumAnimFrames * kLeverAnimSlowdown - 1
-
 ;;;=========================================================================;;;
 
 .SEGMENT "RAM_Device"
@@ -123,71 +103,6 @@ Ram_DeviceAnim_u8_arr: .res kMaxDevices
 ;;;=========================================================================;;;
 
 .SEGMENT "PRG8"
-
-;;; Locks a door device, if not locked already.
-;;; @param X The device index for the (locked or unlocked) door.
-.EXPORT Func_LockDoorDevice
-.PROC Func_LockDoorDevice
-    lda #eDevice::LockedDoor
-    cmp Ram_DeviceType_eDevice_arr, x
-    beq @done
-    sta Ram_DeviceType_eDevice_arr, x
-    lda #kDoorAnimCountdown
-    sub Ram_DeviceAnim_u8_arr, x
-    sta Ram_DeviceAnim_u8_arr, x
-    @done:
-    rts
-.ENDPROC
-
-;;; Unlocks a door device, if not unlocked already.
-;;; @param X The device index for the (locked or unlocked) door.
-.EXPORT Func_UnlockDoorDevice
-.PROC Func_UnlockDoorDevice
-    lda #eDevice::UnlockedDoor
-    cmp Ram_DeviceType_eDevice_arr, x
-    beq @done
-    sta Ram_DeviceType_eDevice_arr, x
-    lda #kDoorAnimCountdown
-    sub Ram_DeviceAnim_u8_arr, x
-    sta Ram_DeviceAnim_u8_arr, x
-    @done:
-    rts
-.ENDPROC
-
-;;; Removes a flower device, and marks the player avatar as carrying that
-;;; flower.
-;;; @param X The device index for the flower.
-.EXPORT Func_PickUpFlowerDevice
-.PROC Func_PickUpFlowerDevice
-    chr10_bank #<.bank(Ppu_ChrObjAnnaFlower)
-    lda Ram_DeviceTarget_u8_arr, x
-    ;; Enable writes to SRAM.
-    ldy #bMmc3PrgRam::Enable
-    sty Hw_Mmc3PrgRamProtect_wo
-    ;; Set the currently-carried flower.
-    sta Sram_CarryingFlower_eFlag
-    ;; Disable writes to SRAM.
-    ldy #bMmc3PrgRam::Enable | bMmc3PrgRam::DenyWrites
-    sty Hw_Mmc3PrgRamProtect_wo
-    ;; Remove flower device.
-    lda #eDevice::None
-    sta Ram_DeviceType_eDevice_arr, x
-    rts
-.ENDPROC
-
-;;; Toggles a lever device to the other position, changing its state and
-;;; initializing its animation.
-;;; @param X The device index for the lever.
-.EXPORT Func_ToggleLeverDevice
-.PROC Func_ToggleLeverDevice
-    lda #kLeverAnimCountdown
-    sta Ram_DeviceAnim_u8_arr, x
-    ldy Ram_DeviceTarget_u8_arr, x
-    lda Ram_RoomState, y
-    eor #$01
-    sta Ram_RoomState, y
-    rts
-.ENDPROC
 
 ;;; Decrements the animation counter for each device in the room (if that
 ;;; counter is nonzero; otherwise, leaves it at zero).
@@ -217,7 +132,7 @@ _Continue:
 
 .SEGMENT "PRGA_Objects"
 
-;;; Allocates and populates OAM slots for all devices in the room.
+;;; Draws all devices in the room.
 .EXPORT FuncA_Objects_DrawAllDevices
 .PROC FuncA_Objects_DrawAllDevices
     ldx #kMaxDevices - 1
@@ -228,7 +143,7 @@ _Continue:
     rts
 .ENDPROC
 
-;;; Allocates and populates OAM slots (if any) for one device.
+;;; Draws one device.
 ;;; @param X The device index.
 ;;; @preserve X
 .PROC FuncA_Objects_DrawOneDevice
@@ -240,88 +155,6 @@ _Continue:
     jmp (Zp_Tmp_ptr)
 _JumpTable_ptr_0_arr: .lobytes DeviceDrawFuncs
 _JumpTable_ptr_1_arr: .hibytes DeviceDrawFuncs
-.ENDPROC
-
-;;; Allocates and populates OAM slots for a rising (not yet ready to activate)
-;;; breaker device.
-;;; @param X The device index.
-;;; @preserve X
-.PROC FuncA_Objects_DrawBreakerRisingDevice
-    ldy #kTileIdBreakerFirst  ; param: first tile ID
-    lda Ram_DeviceAnim_u8_arr, x
-    div #kBreakerRisingSlowdown
-    add #kTileHeightPx  ; param: vertical offset
-    bne FuncA_Objects_DrawBreakerDevice  ; unconditional
-.ENDPROC
-
-;;; Allocates and populates OAM slots for a ready-to-activate breaker device.
-;;; @param X The device index.
-;;; @preserve X
-.PROC FuncA_Objects_DrawBreakerReadyDevice
-    ldy #kTileIdBreakerFirst  ; param: first tile ID
-    lda #kTileHeightPx  ; param: vertical offset
-    bne FuncA_Objects_DrawBreakerDevice  ; unconditional
-.ENDPROC
-
-;;; Allocates and populates OAM slots for an already-activated breaker device.
-;;; @param X The device index.
-;;; @preserve X
-.PROC FuncA_Objects_DrawBreakerDoneDevice
-    lda Ram_DeviceAnim_u8_arr, x
-    .assert kBreakerDoneDeviceAnimStart = $1f, error
-    lsr a
-    and #$0c
-    sta Zp_Tmp1_byte
-    lda #kTileIdBreakerFirst + $0c
-    sub Zp_Tmp1_byte
-    tay  ; param: first tile ID
-    lda #kTileHeightPx  ; param: vertical offset
-    .assert * = FuncA_Objects_DrawBreakerDevice, error, "fallthrough"
-.ENDPROC
-
-;;; Allocates and populates OAM slots for a breaker device.
-;;; @param A The vertical offset from the top of the device to the center of
-;;;     the shape to draw.
-;;; @param X The device index.
-;;; @param Y The first tile ID for the breaker shape to draw.
-;;; @preserve X
-.PROC FuncA_Objects_DrawBreakerDevice
-    ;; Position the shape:
-    pha  ; vertical offset
-    jsr FuncA_Objects_SetShapePosToDeviceTopLeft  ; preserves X and Y
-    jsr FuncA_Objects_MoveShapeRightOneTile  ; preserves X and Y
-    jsr FuncA_Objects_MoveShapeRightOneTile  ; preserves X and Y
-    pla  ; vertical offset
-    pha  ; vertical offset
-    add Zp_ShapePosY_i16 + 0
-    sta Zp_ShapePosY_i16 + 0
-    lda #0
-    adc Zp_ShapePosY_i16 + 1
-    sta Zp_ShapePosY_i16 + 1
-    ;; Allocate objects:
-    tya  ; first tile ID
-    pha  ; first tile ID
-    lda #bObj::Pri | kBreakerPalette  ; param: object flags
-    jsr FuncA_Objects_Alloc2x2Shape  ; preserves X, returns C and Y
-    pla  ; first tile ID
-    bcs @done
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Tile_u8, y
-    adc #1  ; carry flag is already clear
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Tile_u8, y
-    adc #1
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Tile_u8, y
-    adc #1
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Tile_u8, y
-    pla  ; vertical offset
-    pha  ; vertical offset
-    cmp #kTileHeightPx * 2
-    blt @done
-    lda #$ff
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::YPos_u8, y
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::YPos_u8, y
-    @done:
-    pla  ; vertical offset
-    rts
 .ENDPROC
 
 ;;; Allocates and populates OAM slots for a console device.
@@ -367,164 +200,6 @@ _AllocateObject:
     rts
 .ENDPROC
 
-;;; Allocates and populates OAM slots for a flower device.
-;;; @param X The device index.
-;;; @preserve X
-.PROC FuncA_Objects_DrawFlowerDevice
-    jsr FuncA_Objects_SetShapePosToDeviceTopLeft  ; preserves X
-_AdjustPosition:
-    ;; Adjust X-position for the flower.
-    lda Zp_ShapePosX_i16 + 0
-    add #4
-    sta Zp_ShapePosX_i16 + 0
-    lda Zp_ShapePosX_i16 + 1
-    adc #0
-    sta Zp_ShapePosX_i16 + 1
-_AllocateUpperObject:
-    jsr FuncA_Objects_Alloc1x1Shape  ; preserves X, returns C and Y
-    bcs @done
-    lda #kFlowerPaletteTop
-    sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
-    lda #kFlowerTileIdTop
-    sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
-    @done:
-_AllocateLowerObject:
-    jsr FuncA_Objects_MoveShapeDownOneTile  ; preserves X
-    jsr FuncA_Objects_Alloc1x1Shape  ; preserves X, returns C and Y
-    bcs @done
-    lda #kFlowerPaletteBottom
-    sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
-    lda #kFlowerTileIdBottom
-    sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
-    @done:
-    rts
-.ENDPROC
-
-;;; Allocates and populates OAM slots for a lever device.
-;;; @param X The device index.
-;;; @preserve X
-.PROC FuncA_Objects_DrawLeverDevice
-    jsr FuncA_Objects_SetShapePosToDeviceTopLeft  ; preserves X
-_Animation:
-    ;; Compute the animation frame number, storing it in Y.
-    lda Ram_DeviceAnim_u8_arr, x
-    div #kLeverAnimSlowdown
-    sta Zp_Tmp1_byte  ; animation delta
-    ldy Ram_DeviceTarget_u8_arr, x
-    lda Ram_RoomState, y
-    bne @leverIsOn
-    @leverIsOff:
-    lda Zp_Tmp1_byte  ; animation delta
-    bpl @setAnimFrame  ; unconditional
-    @leverIsOn:
-    lda #kLeverNumAnimFrames - 1
-    sub Zp_Tmp1_byte  ; animation delta
-    @setAnimFrame:
-    tay  ; animation frame
-_AdjustPosition:
-    ;; Adjust X-position for the lever handle.
-    cpy #kLeverNumAnimFrames / 2
-    blt @leftSide
-    jsr FuncA_Objects_MoveShapeRightOneTile  ; preserves X and Y
-    @leftSide:
-    ;; Adjust Y-position for the lever handle.
-    lda Zp_ShapePosY_i16 + 0
-    add #3
-    sta Zp_ShapePosY_i16 + 0
-    lda Zp_ShapePosY_i16 + 1
-    adc #0
-    sta Zp_ShapePosY_i16 + 1
-_AllocateObject:
-    tya
-    pha  ; animation frame
-    jsr FuncA_Objects_Alloc1x1Shape  ; preserves X, returns C and Y
-    pla  ; animation frame
-    bcs @done
-    stx Zp_Tmp1_byte  ; device index
-    tax  ; animation frame
-    lda #kLeverHandlePalette
-    cpx #kLeverNumAnimFrames / 2
-    blt @noFlip
-    ora #bObj::FlipH
-    @noFlip:
-    sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
-    lda _LeverTileIds_u8_arr, x
-    sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
-    ldx Zp_Tmp1_byte  ; device index
-    @done:
-    rts
-_LeverTileIds_u8_arr:
-    .byte kLeverHandleTileIdDown
-    .byte kLeverHandleTileIdUp
-    .byte kLeverHandleTileIdUp
-    .byte kLeverHandleTileIdDown
-    .assert * - _LeverTileIds_u8_arr = kLeverNumAnimFrames, error
-.ENDPROC
-
-;;; Allocates and populates OAM slots for a locked door device.
-;;; @param X The device index.
-;;; @preserve X
-.PROC FuncA_Objects_DrawLockedDoorDevice
-    lda Ram_DeviceAnim_u8_arr, x
-    bne FuncA_Objects_DrawDoorDevice  ; preserves X
-    rts
-.ENDPROC
-
-;;; Allocates and populates OAM slots for an unlocked door device.
-;;; @param X The device index.
-;;; @preserve X
-.PROC FuncA_Objects_DrawUnlockedDoorDevice
-    lda #kDoorAnimCountdown
-    sub Ram_DeviceAnim_u8_arr, x
-    .assert * = FuncA_Objects_DrawDoorDevice, error, "fallthrough"
-.ENDPROC
-
-;;; Allocates and populates OAM slots for a locked or unlocked door device.
-;;; @param A The animation value, from 0 (open) to kDoorAnimCountdown (closed).
-;;; @param X The device index.
-;;; @preserve X
-.PROC FuncA_Objects_DrawDoorDevice
-    ;; Calculate the door animation frame, from 0 to kDoorNumAnimFrames - 1.
-    div #kDoorAnimSlowdown
-    beq _Done
-    ;; Start drawing from the bottom of the doorway.
-    pha  ; half-tiles
-    jsr FuncA_Objects_SetShapePosToDeviceTopLeft  ; preserves X
-    jsr FuncA_Objects_MoveShapeDownOneTile  ; preserves X
-    lda Zp_ShapePosX_i16 + 0
-    add #kTileWidthPx / 2
-    sta Zp_ShapePosX_i16 + 0
-    lda Zp_ShapePosX_i16 + 1
-    adc #0
-    sta Zp_ShapePosX_i16 + 1
-    pla  ; half-tiles
-_Loop:
-    pha  ; half-tiles
-    jsr FuncA_Objects_Alloc1x1Shape  ; preserves X, returns C and Y
-    bcs @continue
-    pla  ; half-tiles
-    pha  ; half-tiles
-    cmp #2
-    blt @half
-    @full:
-    lda #kTileIdDoorwayFull
-    bne @setTileId  ; unconditional
-    @half:
-    lda #kTileIdDoorwayHalf
-    @setTileId:
-    sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
-    lda #kDoorwayPalette
-    sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
-    @continue:
-    jsr FuncA_Objects_MoveShapeUpOneTile
-    pla  ; half-tiles
-    sub #2
-    blt _Done
-    bne _Loop
-_Done:
-    rts
-.ENDPROC
-
 ;;; Allocates and populates OAM slots for an upgrade device.
 ;;; @param X The device index.
 ;;; @preserve X
@@ -558,6 +233,7 @@ _YOffsets_u8_arr:
 ;;; the top-left corner of the specified device.
 ;;; @param X The device index.
 ;;; @preserve X, Y
+.EXPORT FuncA_Objects_SetShapePosToDeviceTopLeft
 .PROC FuncA_Objects_SetShapePosToDeviceTopLeft
     ;; Compute the room pixel Y-position of the top of the device, storing the
     ;; hi byte in Zp_ShapePosY_i16 + 1 and the lo byte in A.

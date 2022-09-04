@@ -28,7 +28,14 @@
 .IMPORT DataA_Pause_MermaidAreaName_u8_arr
 .IMPORT DataA_Room_Mermaid_sTileset
 .IMPORT Func_Noop
+.IMPORT Func_RemoveFlowerDeviceIfCarriedOrDelivered
+.IMPORT Func_RespawnFlowerDeviceIfDropped
 .IMPORT Ppu_ChrObjUpgrade
+
+;;;=========================================================================;;;
+
+;;; The device index for the flower in this room.
+kFlowerDeviceIndex = 0
 
 ;;;=========================================================================;;;
 
@@ -47,7 +54,7 @@
     d_byte NumMachines_u8, 0
     d_addr Machines_sMachine_arr_ptr, 0
     d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjUpgrade)
-    d_addr Tick_func_ptr, Func_Noop
+    d_addr Tick_func_ptr, FuncC_Mermaid_Flower_TickRoom
     d_addr Draw_func_ptr, Func_Noop
     d_addr Ext_sRoomExt_ptr, _Ext_sRoomExt
     D_END
@@ -61,7 +68,7 @@ _Ext_sRoomExt:
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
     d_addr Dialogs_sDialog_ptr_arr_ptr, 0
     d_addr Passages_sPassage_arr_ptr, _Passages_sPassage_arr
-    d_addr Init_func_ptr, Func_Noop
+    d_addr Init_func_ptr, FuncC_Mermaid_Flower_InitRoom
     d_addr Enter_func_ptr, Func_Noop
     d_addr FadeIn_func_ptr, Func_Noop
     D_END
@@ -69,7 +76,7 @@ _TerrainData:
 :   .incbin "out/data/mermaid_flower.room"
     .assert * - :- = 17 * 16, error
 _Platforms_sPlatform_arr:
-    D_STRUCT sPlatform
+:   D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Water
     d_word WidthPx_u16, $c0
     d_byte HeightPx_u8, $40
@@ -90,16 +97,19 @@ _Platforms_sPlatform_arr:
     d_word Left_i16,  $0080
     d_word Top_i16,   $00d8
     D_END
+    .assert * - :- <= kMaxPlatforms * .sizeof(sPlatform), error
     .byte ePlatform::None
 _Actors_sActor_arr:
     .byte eActor::None
 _Devices_sDevice_arr:
+:   .assert * - :- = kFlowerDeviceIndex * .sizeof(sDevice), error
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Flower
     d_byte BlockRow_u8, 3
     d_byte BlockCol_u8, 11
     d_byte Target_u8, eFlag::FlowerMermaid
     D_END
+    .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None
 _Passages_sPassage_arr:
     D_STRUCT sPassage
@@ -107,6 +117,16 @@ _Passages_sPassage_arr:
     d_byte Destination_eRoom, eRoom::MermaidUpper
     d_byte SpawnBlock_u8, 11
     D_END
+.ENDPROC
+
+.PROC FuncC_Mermaid_Flower_InitRoom
+    ldx #kFlowerDeviceIndex  ; param: device index
+    jmp Func_RemoveFlowerDeviceIfCarriedOrDelivered
+.ENDPROC
+
+.PROC FuncC_Mermaid_Flower_TickRoom
+    ldx #kFlowerDeviceIndex  ; param: device index
+    jmp Func_RespawnFlowerDeviceIfDropped
 .ENDPROC
 
 ;;;=========================================================================;;;
