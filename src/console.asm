@@ -723,7 +723,7 @@ _ObjectLoop:
     cpy Zp_ConsoleNumInstRows_u8
     blt _Interior
     beq _BottomBorder
-    cpy #kWindowMaxNumRows
+    cpy #kWindowMaxNumRows - 1
     blt _BottomMargin
     rts
 _BottomMargin:

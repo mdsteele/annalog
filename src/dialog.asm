@@ -328,7 +328,7 @@ _SetPortrait:
     cpy #kDialogNumTextRows
     blt _Interior
     beq _BottomBorder
-    cpy #kWindowMaxNumRows
+    cpy #kWindowMaxNumRows - 1
     blt _BottomMargin
     rts
 _BottomMargin:

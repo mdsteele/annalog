@@ -54,6 +54,7 @@ kRoomStateSize = $100
     LavaFlower
     LavaStation
     LavaTeleport
+    LavaWest
     MermaidDrain
     MermaidEast
     MermaidEntry
@@ -75,7 +76,7 @@ kRoomStateSize = $100
     NUM_VALUES
 .ENDENUM
 
-.DEFINE kNumRooms 35
+.DEFINE kNumRooms 36
 .ASSERT kNumRooms = eRoom::NUM_VALUES, error
 
 ;;;=========================================================================;;;

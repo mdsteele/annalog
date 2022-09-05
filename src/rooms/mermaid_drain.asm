@@ -94,7 +94,7 @@ _Passages_sPassage_arr:
     D_END
     D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Bottom | 0
-    d_byte Destination_eRoom, eRoom::MermaidDrain  ; TODO
+    d_byte Destination_eRoom, eRoom::LavaWest
     d_byte SpawnBlock_u8, 7
     D_END
 .ENDPROC

@@ -302,7 +302,7 @@ OpcodeBeep3_u8_arr:      .byte "tones.", $ff
     cpy #kUpgradeNumInteriorRows
     blt _Interior
     beq _BottomBorder
-    cpy #kWindowMaxNumRows
+    cpy #kWindowMaxNumRows - 1
     blt _BottomMargin
     rts
 _BottomMargin:

@@ -154,7 +154,7 @@ _Devices_sDevice_arr:
 _Passages_sPassage_arr:
     D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Eastern | 0
-    d_byte Destination_eRoom, eRoom::LavaTeleport  ; TODO
+    d_byte Destination_eRoom, eRoom::LavaWest
     d_byte SpawnBlock_u8, 9
     D_END
 .ENDPROC

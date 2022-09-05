@@ -115,6 +115,7 @@
     LavaFlowerBoiler
     LavaStationBoiler
     LavaTeleportField
+    LavaWestBoiler
     MermaidUpperLift
     PrisonCellBlaster
     PrisonCellLift
