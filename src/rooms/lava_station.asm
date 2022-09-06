@@ -20,7 +20,6 @@
 .INCLUDE "../actor.inc"
 .INCLUDE "../charmap.inc"
 .INCLUDE "../device.inc"
-.INCLUDE "../dialog.inc"
 .INCLUDE "../flag.inc"
 .INCLUDE "../machine.inc"
 .INCLUDE "../machines/boiler.inc"
@@ -183,7 +182,7 @@ _Devices_sDevice_arr:
 _Passages_sPassage_arr:
     D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Western | 0
-    d_byte Destination_eRoom, eRoom::LavaStation  ; TODO
+    d_byte Destination_eRoom, eRoom::LavaShaft
     d_byte SpawnBlock_u8, 3
     D_END
 .ENDPROC

@@ -18,58 +18,33 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "../actor.inc"
-.INCLUDE "../charmap.inc"
 .INCLUDE "../device.inc"
-.INCLUDE "../flag.inc"
-.INCLUDE "../machine.inc"
-.INCLUDE "../machines/field.inc"
 .INCLUDE "../macros.inc"
-.INCLUDE "../oam.inc"
 .INCLUDE "../platform.inc"
-.INCLUDE "../ppu.inc"
-.INCLUDE "../program.inc"
 .INCLUDE "../room.inc"
 
 .IMPORT DataA_Pause_LavaAreaCells_u8_arr2_arr
 .IMPORT DataA_Pause_LavaAreaName_u8_arr
 .IMPORT DataA_Room_Lava_sTileset
-.IMPORT FuncA_Machine_FieldTick
-.IMPORT FuncA_Machine_FieldTryAct
-.IMPORT FuncA_Objects_DrawFieldMachine
-.IMPORT Func_MachineError
-.IMPORT Func_MachineFieldReadRegT
-.IMPORT Func_MachineFieldReset
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrObjUpgrade
 
 ;;;=========================================================================;;;
 
-;;; The machine index for the LavaTeleportField machine in this room.
-kFieldMachineIndex = 0
-
-;;; The primary platform index for the LavaTeleportField machine.
-kFieldPlatformIndex = 0
-
-;;; The device index for the device where the player avatar should spawn when
-;;; teleporting into this room.
-kTeleportSpawnDeviceIndex = 0
-
-;;;=========================================================================;;;
-
 .SEGMENT "PRGC_Lava"
 
-.EXPORT DataC_Lava_Teleport_sRoom
-.PROC DataC_Lava_Teleport_sRoom
+.EXPORT DataC_Lava_Shaft_sRoom
+.PROC DataC_Lava_Shaft_sRoom
     D_STRUCT sRoom
-    d_byte MinScrollX_u8, $00
-    d_word MaxScrollX_u16, $0000
-    d_byte IsTall_bool, $00
-    d_byte MinimapStartRow_u8, 13
-    d_byte MinimapStartCol_u8, 13
+    d_byte MinScrollX_u8, $10
+    d_word MaxScrollX_u16, $10
+    d_byte IsTall_bool, $ff
+    d_byte MinimapStartRow_u8, 12
+    d_byte MinimapStartCol_u8, 16
     d_byte MinimapWidth_u8, 1
     d_addr TerrainData_ptr, _TerrainData
-    d_byte NumMachines_u8, 1
-    d_addr Machines_sMachine_arr_ptr, _Machines_sMachine_arr
+    d_byte NumMachines_u8, 0
+    d_addr Machines_sMachine_arr_ptr, 0
     d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjUpgrade)
     d_addr Tick_func_ptr, Func_Noop
     d_addr Draw_func_ptr, Func_Noop
@@ -90,71 +65,38 @@ _Ext_sRoomExt:
     d_addr FadeIn_func_ptr, Func_Noop
     D_END
 _TerrainData:
-:   .incbin "out/data/lava_teleport.room"
-    .assert * - :- = 17 * 16, error
-_Machines_sMachine_arr:
-:   .assert * - :- = kFieldMachineIndex * .sizeof(sMachine), error
-    D_STRUCT sMachine
-    d_byte Code_eProgram, eProgram::LavaTeleportField
-    d_byte Breaker_eFlag, eFlag::BreakerCity
-    d_byte Flags_bMachine, bMachine::Act
-    d_byte Status_eDiagram, eDiagram::Winch  ; TODO
-    d_word ScrollGoalX_u16, $0
-    d_byte ScrollGoalY_u8, $0
-    d_byte RegNames_u8_arr4, "T", 0, 0, 0
-    d_byte MainPlatform_u8, kFieldPlatformIndex
-    d_addr Init_func_ptr, Func_Noop
-    d_addr ReadReg_func_ptr, Func_MachineFieldReadRegT
-    d_addr WriteReg_func_ptr, Func_MachineError
-    d_addr TryMove_func_ptr, Func_MachineError
-    d_addr TryAct_func_ptr, FuncA_Machine_FieldTryAct
-    d_addr Tick_func_ptr, FuncA_Machine_FieldTick
-    d_addr Draw_func_ptr, FuncA_Objects_DrawFieldMachine
-    d_addr Reset_func_ptr, Func_MachineFieldReset
-    D_END
-    .assert * - :- <= kMaxMachines * .sizeof(sMachine), error
+:   .incbin "out/data/lava_shaft.room"
+    .assert * - :- = 18 * 24, error
 _Platforms_sPlatform_arr:
-:   .assert * - :- = kFieldPlatformIndex * .sizeof(sPlatform), error
-    D_STRUCT sPlatform
-    d_byte Type_ePlatform, ePlatform::Solid
-    d_word WidthPx_u16, kFieldMachineWidth
-    d_byte HeightPx_u8, kFieldMachineHeight
-    d_word Left_i16,  $0050
-    d_word Top_i16,   $0070
-    D_END
-    ;; Terrain spikes:
-    D_STRUCT sPlatform
+:   D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Harm
-    d_word WidthPx_u16, $50
+    d_word WidthPx_u16, $a0
     d_byte HeightPx_u8, $08
-    d_word Left_i16,  $0050
-    d_word Top_i16,   $00ce
+    d_word Left_i16,  $0040
+    d_word Top_i16,   $015e
     D_END
     .assert * - :- <= kMaxPlatforms * .sizeof(sPlatform), error
     .byte ePlatform::None
 _Actors_sActor_arr:
+    ;; TODO: add hothead baddies
     .byte eActor::None
 _Devices_sDevice_arr:
-:   .assert * - :- = kTeleportSpawnDeviceIndex * .sizeof(sDevice), error
-    D_STRUCT sDevice
-    d_byte Type_eDevice, eDevice::Teleporter
-    d_byte BlockRow_u8, 7
-    d_byte BlockCol_u8, 7
-    d_byte Target_u8, eRoom::ShadowTeleport
-    D_END
-    D_STRUCT sDevice
-    d_byte Type_eDevice, eDevice::Console
-    d_byte BlockRow_u8, 10
-    d_byte BlockCol_u8, 11
-    d_byte Target_u8, kFieldMachineIndex
-    D_END
-    .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None
 _Passages_sPassage_arr:
     D_STRUCT sPassage
-    d_byte Exit_bPassage, ePassage::Eastern | 0
+    d_byte Exit_bPassage, ePassage::Western | 1
     d_byte Destination_eRoom, eRoom::LavaWest
-    d_byte SpawnBlock_u8, 9
+    d_byte SpawnBlock_u8, 19
+    D_END
+    D_STRUCT sPassage
+    d_byte Exit_bPassage, ePassage::Eastern | 0
+    d_byte Destination_eRoom, eRoom::LavaStation
+    d_byte SpawnBlock_u8, 3
+    D_END
+    D_STRUCT sPassage
+    d_byte Exit_bPassage, ePassage::Eastern | 1
+    d_byte Destination_eRoom, eRoom::LavaShaft  ; TODO
+    d_byte SpawnBlock_u8, 19
     D_END
 .ENDPROC
 

@@ -20,7 +20,6 @@
 .INCLUDE "../actor.inc"
 .INCLUDE "../charmap.inc"
 .INCLUDE "../device.inc"
-.INCLUDE "../dialog.inc"
 .INCLUDE "../flag.inc"
 .INCLUDE "../machine.inc"
 .INCLUDE "../machines/boiler.inc"

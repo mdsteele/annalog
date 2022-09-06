@@ -40,6 +40,7 @@
 .IMPORT DataC_Garden_Tower_sRoom
 .IMPORT DataC_Garden_Tunnel_sRoom
 .IMPORT DataC_Lava_Flower_sRoom
+.IMPORT DataC_Lava_Shaft_sRoom
 .IMPORT DataC_Lava_Station_sRoom
 .IMPORT DataC_Lava_Teleport_sRoom
 .IMPORT DataC_Lava_West_sRoom
@@ -112,6 +113,7 @@
     DataC_Garden_Tower_sRoom, \
     DataC_Garden_Tunnel_sRoom, \
     DataC_Lava_Flower_sRoom, \
+    DataC_Lava_Shaft_sRoom, \
     DataC_Lava_Station_sRoom, \
     DataC_Lava_Teleport_sRoom, \
     DataC_Lava_West_sRoom, \
