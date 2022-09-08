@@ -209,8 +209,8 @@ Ram_Oam_sObj_arr64: .res .sizeof(sObj) * kNumOamSlots
 .PROC FuncA_Objects_Alloc2x1Shape
     sta Zp_Tmp2_byte  ; Flags_bObj to set
 _ObjectYPositions:
-    ;; If the object is offscreen vertically or behind the window, return
-    ;; without allocating the object.
+    ;; If the shape is completely offscreen vertically or behind the window,
+    ;; return without allocating any objects.
     lda Zp_ShapePosY_i16 + 1
     bne _NotVisible
     lda Zp_ShapePosY_i16 + 0
@@ -256,6 +256,7 @@ _LeftObjectXPosition:
     ;; completely offscreen to the right, return without allocating any
     ;; objects.  If the left edge is offscreen to the left, hide the left-hand
     ;; object.
+    lda Zp_ShapePosX_i16 + 0
     sub #kTileWidthPx
     sta Zp_Tmp1_byte  ; left X position on screen (lo)
     lda Zp_ShapePosX_i16 + 1
@@ -328,10 +329,12 @@ _ObjectYPositions:
     bne _NotVisible
     lda Zp_ShapePosY_i16 + 0
     sub #kTileHeightPx
+    blt @visible
     cmp #kScreenHeightPx
     bge _NotVisible
     cmp Zp_WindowTop_u8
     bge _NotVisible
+    @visible:
     ;; Set the vertical positions of the four objects.
     sub #1
     ldy Zp_OamOffset_u8
@@ -385,6 +388,7 @@ _LeftObjectXPositions:
     ;; completely offscreen to the right, return without allocating any
     ;; objects.  If the left edge is offscreen to the left, hide the two
     ;; left-hand objects.
+    lda Zp_ShapePosX_i16 + 0
     sub #kTileWidthPx
     sta Zp_Tmp1_byte  ; left X position on screen (lo)
     lda Zp_ShapePosX_i16 + 1
