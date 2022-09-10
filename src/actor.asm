@@ -27,6 +27,8 @@
 .IMPORT FuncA_Actor_TickBadCrab
 .IMPORT FuncA_Actor_TickBadCrawler
 .IMPORT FuncA_Actor_TickBadFish
+.IMPORT FuncA_Actor_TickBadHotheadHorz
+.IMPORT FuncA_Actor_TickBadHotheadVert
 .IMPORT FuncA_Actor_TickBadSpider
 .IMPORT FuncA_Actor_TickBadVinebug
 .IMPORT FuncA_Actor_TickNpcAdult
@@ -44,6 +46,8 @@
 .IMPORT FuncA_Objects_DrawActorBadCrab
 .IMPORT FuncA_Objects_DrawActorBadCrawler
 .IMPORT FuncA_Objects_DrawActorBadFish
+.IMPORT FuncA_Objects_DrawActorBadHotheadHorz
+.IMPORT FuncA_Objects_DrawActorBadHotheadVert
 .IMPORT FuncA_Objects_DrawActorBadSpider
 .IMPORT FuncA_Objects_DrawActorBadVinebug
 .IMPORT FuncA_Objects_DrawActorNpcAdult
@@ -58,6 +62,8 @@
 .IMPORT FuncA_Objects_DrawActorProjSteamUp
 .IMPORT FuncA_Objects_MoveShapeUpOneTile
 .IMPORT Func_HarmAvatar
+.IMPORT Func_InitActorBadHotheadHorz
+.IMPORT Func_InitActorBadHotheadVert
 .IMPORT Func_InitActorBadVinebug
 .IMPORT Func_InitActorProjFireball
 .IMPORT Func_InitActorProjGrenade
@@ -109,6 +115,8 @@ FuncA_Objects_DrawActorNone = Func_Noop
     Func_InitActorBadCrab, \
     Func_InitActorBadCrawler, \
     Func_InitActorBadFish, \
+    Func_InitActorBadHotheadHorz, \
+    Func_InitActorBadHotheadVert, \
     Func_InitActorBadSpider, \
     Func_InitActorBadVinebug, \
     Func_InitActorNpcAdult, \
@@ -129,6 +137,8 @@ FuncA_Objects_DrawActorNone = Func_Noop
     FuncA_Actor_TickBadCrab, \
     FuncA_Actor_TickBadCrawler, \
     FuncA_Actor_TickBadFish, \
+    FuncA_Actor_TickBadHotheadHorz, \
+    FuncA_Actor_TickBadHotheadVert, \
     FuncA_Actor_TickBadSpider, \
     FuncA_Actor_TickBadVinebug, \
     FuncA_Actor_TickNpcAdult, \
@@ -149,6 +159,8 @@ FuncA_Objects_DrawActorNone = Func_Noop
     FuncA_Objects_DrawActorBadCrab, \
     FuncA_Objects_DrawActorBadCrawler, \
     FuncA_Objects_DrawActorBadFish, \
+    FuncA_Objects_DrawActorBadHotheadHorz, \
+    FuncA_Objects_DrawActorBadHotheadVert, \
     FuncA_Objects_DrawActorBadSpider, \
     FuncA_Objects_DrawActorBadVinebug, \
     FuncA_Objects_DrawActorNpcAdult, \
@@ -197,7 +209,8 @@ Ram_ActorVelY_i16_1_arr: .res kMaxActors
 Ram_ActorState_byte_arr: .res kMaxActors
 
 ;;; The object flags to apply for each actor in the room.  In particular, if
-;;; bObj::FlipH is set, then the actor will face left instead of right.
+;;; bObj::FlipH is set, then the actor will face left instead of right, and if
+;;; bObj::FlipV is set, then the actor will be upside-down.
 .EXPORT Ram_ActorFlags_bObj_arr
 Ram_ActorFlags_bObj_arr: .res kMaxActors
 
@@ -290,62 +303,68 @@ _JumpTable_ptr_1_arr: .hibytes ActorInitFuncs
 ;;; position, indexed by eActor value.
 .PROC DataA_Actor_BoundingBoxUp_u8_arr
     D_ENUM eActor
-    d_byte None,          0
-    d_byte BadCrab,       6
-    d_byte BadCrawler,    0
-    d_byte BadFish,       6
-    d_byte BadSpider,     8
-    d_byte BadVinebug,    7
-    d_byte NpcAdult,     13
-    d_byte NpcChild,      7
-    d_byte NpcMermaid,   13
-    d_byte NpcToddler,    4
-    d_byte ProjFireball,  kProjFireballRadius
-    d_byte ProjGrenade,   kProjGrenadeRadius
-    d_byte ProjSmoke,     kProjSmokeRadius
-    d_byte ProjSpike,     kProjSpikeRadius
-    d_byte ProjSteamHorz, kProjSteamMinorRadius
-    d_byte ProjSteamUp,   kProjSteamMajorRadius
+    d_byte None,           0
+    d_byte BadCrab,        6
+    d_byte BadCrawler,     0
+    d_byte BadFish,        6
+    d_byte BadHotheadHorz, 6
+    d_byte BadHotheadVert, 6
+    d_byte BadSpider,      8
+    d_byte BadVinebug,     7
+    d_byte NpcAdult,      13
+    d_byte NpcChild,       7
+    d_byte NpcMermaid,    13
+    d_byte NpcToddler,     4
+    d_byte ProjFireball,   kProjFireballRadius
+    d_byte ProjGrenade,    kProjGrenadeRadius
+    d_byte ProjSmoke,      kProjSmokeRadius
+    d_byte ProjSpike,      kProjSpikeRadius
+    d_byte ProjSteamHorz,  kProjSteamMinorRadius
+    d_byte ProjSteamUp,    kProjSteamMajorRadius
     D_END
 .ENDPROC
 .PROC DataA_Actor_BoundingBoxDown_u8_arr
     D_ENUM eActor
-    d_byte None,          0
-    d_byte BadCrab,       8
-    d_byte BadCrawler,    8
-    d_byte BadFish,       4
-    d_byte BadSpider,     2
-    d_byte BadVinebug,    7
-    d_byte NpcAdult,      8
-    d_byte NpcChild,      8
-    d_byte NpcMermaid,    8
-    d_byte NpcToddler,    8
-    d_byte ProjFireball,  kProjFireballRadius
-    d_byte ProjGrenade,   kProjGrenadeRadius
-    d_byte ProjSmoke,     kProjSmokeRadius
-    d_byte ProjSpike,     kProjSpikeRadius
-    d_byte ProjSteamHorz, kProjSteamMinorRadius
-    d_byte ProjSteamUp,   kProjSteamMajorRadius
+    d_byte None,           0
+    d_byte BadCrab,        8
+    d_byte BadCrawler,     8
+    d_byte BadFish,        4
+    d_byte BadHotheadHorz, 6
+    d_byte BadHotheadVert, 6
+    d_byte BadSpider,      2
+    d_byte BadVinebug,     7
+    d_byte NpcAdult,       8
+    d_byte NpcChild,       8
+    d_byte NpcMermaid,     8
+    d_byte NpcToddler,     8
+    d_byte ProjFireball,   kProjFireballRadius
+    d_byte ProjGrenade,    kProjGrenadeRadius
+    d_byte ProjSmoke,      kProjSmokeRadius
+    d_byte ProjSpike,      kProjSpikeRadius
+    d_byte ProjSteamHorz,  kProjSteamMinorRadius
+    d_byte ProjSteamUp,    kProjSteamMajorRadius
     D_END
 .ENDPROC
 .PROC DataA_Actor_BoundingBoxSide_u8_arr
     D_ENUM eActor
-    d_byte None,          0
-    d_byte BadCrab,       7
-    d_byte BadCrawler,    7
-    d_byte BadFish,       6
-    d_byte BadSpider,     7
-    d_byte BadVinebug,    5
-    d_byte NpcAdult,      5
-    d_byte NpcChild,      5
-    d_byte NpcMermaid,    5
-    d_byte NpcToddler,    3
-    d_byte ProjFireball,  kProjFireballRadius
-    d_byte ProjGrenade,   kProjGrenadeRadius
-    d_byte ProjSmoke,     kProjSmokeRadius
-    d_byte ProjSpike,     kProjSpikeRadius
-    d_byte ProjSteamHorz, kProjSteamMajorRadius
-    d_byte ProjSteamUp,   kProjSteamMinorRadius
+    d_byte None,           0
+    d_byte BadCrab,        7
+    d_byte BadCrawler,     7
+    d_byte BadFish,        6
+    d_byte BadHotheadHorz, 6
+    d_byte BadHotheadVert, 6
+    d_byte BadSpider,      7
+    d_byte BadVinebug,     5
+    d_byte NpcAdult,       5
+    d_byte NpcChild,       5
+    d_byte NpcMermaid,     5
+    d_byte NpcToddler,     3
+    d_byte ProjFireball,   kProjFireballRadius
+    d_byte ProjGrenade,    kProjGrenadeRadius
+    d_byte ProjSmoke,      kProjSmokeRadius
+    d_byte ProjSpike,      kProjSpikeRadius
+    d_byte ProjSteamHorz,  kProjSteamMajorRadius
+    d_byte ProjSteamUp,    kProjSteamMinorRadius
     D_END
 .ENDPROC
 
@@ -674,9 +693,12 @@ _JumpTable_ptr_1_arr: .hibytes ActorDrawFuncs
 .ENDPROC
 
 ;;; Allocates and populates OAM slots for the specified actor, using the given
-;;; first tile ID and the three subsequent tile IDs.
+;;; first tile ID and the three subsequent tile IDs.  The caller can then
+;;; further modify the objects if needed.
 ;;; @param A The first tile ID.
 ;;; @param X The actor index.
+;;; @return C Set if no OAM slots were allocated, cleared otherwise.
+;;; @return Y The OAM byte offset for the first of the four objects.
 ;;; @preserve X
 .EXPORT FuncA_Objects_Draw2x2Actor
 .PROC FuncA_Objects_Draw2x2Actor
@@ -687,12 +709,13 @@ _JumpTable_ptr_1_arr: .hibytes ActorDrawFuncs
     pla  ; first tile ID
     bcs @done
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Tile_u8, y
-    add #1
+    adc #1  ; carry bit is already clear
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Tile_u8, y
     adc #1
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Tile_u8, y
     adc #1
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Tile_u8, y
+    clc  ; success
     @done:
     rts
 .ENDPROC

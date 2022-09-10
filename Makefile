@@ -53,7 +53,9 @@ ROOMFILES := \
   $(patsubst $(SRCDIR)/rooms/%.bg,$(DATADIR)/%.room,$(ROOM_BG_FILES))
 
 SIM65_DIR = $(OUTDIR)/sim65
+SIM65_ASMS = $(shell find $(TESTDIR) -name '*.asm')
 SIM65_CFGS = $(shell find $(TESTDIR) -name '*.cfg')
+SIM65_OBJS = $(patsubst $(TESTDIR)/%.asm,$(SIM65_DIR)/%.o,$(SIM65_ASMS))
 SIM65_BINS = $(patsubst $(TESTDIR)/%.cfg,$(SIM65_DIR)/%,$(SIM65_CFGS))
 
 #=============================================================================#
@@ -162,6 +164,8 @@ $(SIM65_DIR)/%.o: $(TESTDIR)/%.asm $(INCFILES)
 	@echo "Assembling $<"
 	@mkdir -p $(@D)
 	@ca65 --target sim6502 -o $@ $<
+
+.SECONDARY: $(SIM65_OBJS)
 
 $(SIM65_DIR)/%: $(TESTDIR)/%.cfg $(SIM65_DIR)/%.o $(OBJDIR)/%.o \
                 $(SIM65_DIR)/sim65.o

@@ -20,6 +20,7 @@
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
 .INCLUDE "../ppu.inc"
+.INCLUDE "boiler.inc"
 
 .IMPORT FuncA_Objects_Alloc1x1Shape
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
@@ -39,9 +40,6 @@
 .IMPORT Ram_PlatformTop_i16_1_arr
 
 ;;;=========================================================================;;;
-
-;;; Various OBJ tile IDs used for drawing boiler machines.
-kTileIdValveFirst = $e4
 
 ;;; The OBJ palette number used for steam pipe valves.
 kValvePalette = 0

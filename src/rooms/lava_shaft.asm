@@ -20,6 +20,7 @@
 .INCLUDE "../actor.inc"
 .INCLUDE "../device.inc"
 .INCLUDE "../macros.inc"
+.INCLUDE "../oam.inc"
 .INCLUDE "../platform.inc"
 .INCLUDE "../room.inc"
 
@@ -27,7 +28,7 @@
 .IMPORT DataA_Pause_LavaAreaName_u8_arr
 .IMPORT DataA_Room_Lava_sTileset
 .IMPORT Func_Noop
-.IMPORT Ppu_ChrObjUpgrade
+.IMPORT Ppu_ChrObjLava
 
 ;;;=========================================================================;;;
 
@@ -45,7 +46,7 @@
     d_addr TerrainData_ptr, _TerrainData
     d_byte NumMachines_u8, 0
     d_addr Machines_sMachine_arr_ptr, 0
-    d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjUpgrade)
+    d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjLava)
     d_addr Tick_func_ptr, Func_Noop
     d_addr Draw_func_ptr, Func_Noop
     d_addr Ext_sRoomExt_ptr, _Ext_sRoomExt
@@ -78,7 +79,31 @@ _Platforms_sPlatform_arr:
     .assert * - :- <= kMaxPlatforms * .sizeof(sPlatform), error
     .byte ePlatform::None
 _Actors_sActor_arr:
-    ;; TODO: add hothead baddies
+:   D_STRUCT sActor
+    d_byte Type_eActor, eActor::BadHotheadHorz
+    d_byte TileRow_u8, 11
+    d_byte TileCol_u8, 22
+    d_byte Param_byte, bObj::FlipV | bObj::FlipH
+    D_END
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::BadHotheadVert
+    d_byte TileRow_u8, 15
+    d_byte TileCol_u8, 13
+    d_byte Param_byte, bObj::FlipV
+    D_END
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::BadHotheadHorz
+    d_byte TileRow_u8, 21
+    d_byte TileCol_u8, 18
+    d_byte Param_byte, bObj::FlipH
+    D_END
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::BadHotheadVert
+    d_byte TileRow_u8, 20
+    d_byte TileCol_u8, 29
+    d_byte Param_byte, 0
+    D_END
+    .assert * - :- <= kMaxActors * .sizeof(sActor), error
     .byte eActor::None
 _Devices_sDevice_arr:
     .byte eDevice::None

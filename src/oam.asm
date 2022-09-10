@@ -308,11 +308,11 @@ _NotVisible:
 ;;;
 ;;; If all of the objects would be offscreen, then none are allocated (and C
 ;;; is cleared).  Otherwise, the caller should use the returned OAM byte
-;;; offset in Y to set the objects' tile IDs.  If bObj::FlipH was cleared, then
-;;; the allocated objects will be in the order: top-left, bottom-left,
-;;; top-right, bottom-right.  If bObj::FlipH was set, then the allocated
-;;; objects will instead be in the order: top-right, bottom-right, top-left,
-;;; bottom-left.
+;;; offset in Y to set the objects' tile IDs.  If bObj::FlipH and bObj::FlipV
+;;; are cleared, then the allocated objects will be in the order: top-left,
+;;; bottom-left, top-right, bottom-right.  If one or both of the flip flags
+;;; are set, then the objects will be ordered appropriately such that the same
+;;; tile IDs can still be set in the same order.
 ;;;
 ;;; @param A The Flags_bObj value to set for each object.  If bObj::FlipH is
 ;;;     included, then the order of the two objects will be reversed.
@@ -338,16 +338,31 @@ _ObjectYPositions:
     ;; Set the vertical positions of the four objects.
     sub #1
     ldy Zp_OamOffset_u8
+    bit Zp_Tmp2_byte  ; Flags_bObj to set
+    .assert bObj::FlipV = bProc::Negative, error
+    bmi @topFlipped
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::YPos_u8, y
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::YPos_u8, y
+    bpl @doneTop  ; unconditional
+    @topFlipped:
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::YPos_u8, y
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::YPos_u8, y
+    @doneTop:
     add #kTileHeightPx
     cmp Zp_WindowTop_u8
     blt @bottom
     lda #$ff
     @bottom:
+    bit Zp_Tmp2_byte  ; Flags_bObj to set
+    .assert bObj::FlipV = bProc::Negative, error
+    bmi @bottomFlipped
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::YPos_u8, y
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::YPos_u8, y
-    jmp _RightObjectXPositions
+    bpl _RightObjectXPositions  ; unconditional
+    @bottomFlipped:
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::YPos_u8, y
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::YPos_u8, y
+    bmi _RightObjectXPositions  ; unconditional
 _NotVisible:
     sec  ; Set C to indicate that no objects were allocated.
     rts

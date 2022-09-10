@@ -40,7 +40,7 @@
 .IMPORT Func_MachineError
 .IMPORT Func_MachineFinishResetting
 .IMPORT Func_Noop
-.IMPORT Ppu_ChrObjUpgrade
+.IMPORT Ppu_ChrObjLava
 .IMPORT Ram_MachineGoalVert_u8_arr
 .IMPORT Ram_MachineParam1_u8_arr
 .IMPORT Ram_Oam_sObj_arr64
@@ -73,7 +73,7 @@ kPipe2PlatformIndex  = 3
     d_addr TerrainData_ptr, _TerrainData
     d_byte NumMachines_u8, 1
     d_addr Machines_sMachine_arr_ptr, _Machines_sMachine_arr
-    d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjUpgrade)
+    d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjLava)
     d_addr Tick_func_ptr, Func_Noop
     d_addr Draw_func_ptr, Func_Noop
     d_addr Ext_sRoomExt_ptr, _Ext_sRoomExt
@@ -161,28 +161,28 @@ _Platforms_sPlatform_arr:
     .byte ePlatform::None
 _Actors_sActor_arr:
 :   D_STRUCT sActor
-    d_byte Type_eActor, eActor::BadCrawler  ; TODO: BadHothead
+    d_byte Type_eActor, eActor::BadHotheadHorz
     d_byte TileRow_u8, 25
     d_byte TileCol_u8, 15
-    d_byte Param_byte, 0
+    d_byte Param_byte, bObj::FlipH
     D_END
     D_STRUCT sActor
-    d_byte Type_eActor, eActor::BadCrawler  ; TODO: BadHothead
+    d_byte Type_eActor, eActor::BadHotheadHorz
     d_byte TileRow_u8, 19
     d_byte TileCol_u8, 26
     d_byte Param_byte, 0
     D_END
     D_STRUCT sActor
-    d_byte Type_eActor, eActor::BadCrawler  ; TODO: BadHothead
-    d_byte TileRow_u8, 13
+    d_byte Type_eActor, eActor::BadHotheadHorz
+    d_byte TileRow_u8, 17
     d_byte TileCol_u8, 57
-    d_byte Param_byte, 0
+    d_byte Param_byte, bObj::FlipV
     D_END
     D_STRUCT sActor
-    d_byte Type_eActor, eActor::BadCrawler  ; TODO: BadHothead
+    d_byte Type_eActor, eActor::BadHotheadHorz
     d_byte TileRow_u8, 35
     d_byte TileCol_u8, 57
-    d_byte Param_byte, 0
+    d_byte Param_byte, bObj::FlipH
     D_END
     .assert * - :- <= kMaxActors * .sizeof(sActor), error
     .byte eActor::None

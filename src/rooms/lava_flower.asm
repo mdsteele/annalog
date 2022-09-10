@@ -43,7 +43,7 @@
 .IMPORT Func_Noop
 .IMPORT Func_RemoveFlowerDeviceIfCarriedOrDelivered
 .IMPORT Func_RespawnFlowerDeviceIfDropped
-.IMPORT Ppu_ChrObjUpgrade
+.IMPORT Ppu_ChrObjLava
 .IMPORT Ram_MachineGoalVert_u8_arr
 .IMPORT Ram_MachineParam1_u8_arr
 .IMPORT Ram_Oam_sObj_arr64
@@ -79,7 +79,7 @@ kPipe2PlatformIndex  = 3
     d_addr TerrainData_ptr, _TerrainData
     d_byte NumMachines_u8, 1
     d_addr Machines_sMachine_arr_ptr, _Machines_sMachine_arr
-    d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjUpgrade)
+    d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjLava)
     d_addr Tick_func_ptr, FuncC_Lava_Flower_TickRoom
     d_addr Draw_func_ptr, Func_Noop
     d_addr Ext_sRoomExt_ptr, _Ext_sRoomExt
