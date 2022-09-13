@@ -20,6 +20,7 @@
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
 .INCLUDE "../terrain.inc"
+.INCLUDE "spider.inc"
 
 .IMPORT FuncA_Actor_HarmAvatarIfCollision
 .IMPORT FuncA_Objects_Alloc2x2Shape
@@ -38,10 +39,10 @@
 
 ;;;=========================================================================;;;
 
-kTileIdSpiderLegs1 = $b0
-kTileIdSpiderHead1 = $b1
-kTileIdSpiderLegs2 = $b2
-kTileIdSpiderHead2 = $b3
+kTileIdSpiderLegs1 = kTileIdSpiderFirst + 0
+kTileIdSpiderHead1 = kTileIdSpiderFirst + 1
+kTileIdSpiderLegs2 = kTileIdSpiderFirst + 2
+kTileIdSpiderHead2 = kTileIdSpiderFirst + 3
 
 ;;;=========================================================================;;;
 

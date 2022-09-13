@@ -20,6 +20,7 @@
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
 .INCLUDE "../terrain.inc"
+.INCLUDE "fish.inc"
 
 .IMPORT FuncA_Actor_GetRoomBlockRow
 .IMPORT FuncA_Actor_GetRoomTileColumn
@@ -40,9 +41,9 @@ kFishSpeed = $0130
 
 ;;; First-tile-ID values that can be passed to FuncA_Objects_Draw2x2Actor for
 ;;; various actor animation frames.
-kFishFirstTileId1 = $c9
-kFishFirstTileId2 = $cd
-kFishFirstTileId3 = $d1
+kFishFirstTileId1 = kTileIdFishFirst + 0
+kFishFirstTileId2 = kTileIdFishFirst + 4
+kFishFirstTileId3 = kTileIdFishFirst + 8
 
 ;;;=========================================================================;;;
 

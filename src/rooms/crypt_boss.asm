@@ -57,7 +57,7 @@
 .IMPORT Func_Noop
 .IMPORT Func_ResetWinchMachineParams
 .IMPORT Int_WindowTopIrq
-.IMPORT Ppu_ChrObjUpgrade
+.IMPORT Ppu_ChrObjCrypt
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORT Ram_PlatformLeft_i16_0_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
@@ -199,7 +199,7 @@ kBossPupilPalette = 0
     d_addr TerrainData_ptr, _TerrainData
     d_byte NumMachines_u8, 1
     d_addr Machines_sMachine_arr_ptr, _Machines_sMachine_arr
-    d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjUpgrade)
+    d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjCrypt)
     d_addr Tick_func_ptr, FuncC_Crypt_Boss_TickRoom
     d_addr Draw_func_ptr, FuncC_Crypt_Boss_DrawRoom
     d_addr Ext_sRoomExt_ptr, _Ext_sRoomExt

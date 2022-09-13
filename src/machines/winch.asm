@@ -74,17 +74,16 @@ kWinchChainOverlapPx = 4
 kWinchBreakthroughSpeed = 1
 
 ;;; Various OBJ tile IDs used for drawing winch machines.
-kTileIdWeakFloorFirst     = $c3
-kTileIdCrusherUpperLeft   = $b4
-kTileIdCrusherUpperRight  = $b6
-kTileIdCrusherSpikes      = $b5
-kTileIdSpikeballFirst     = $b8
-kTileIdWinchChain         = $b7
-kTileIdWinchGear1         = $bc
-kTileIdWinchGear2         = $be
-kTileIdWinchCornerBottom1 = $bd
-kTileIdWinchCornerBottom2 = $bf
-kTileIdWinchCornerTop     = $73
+kTileIdCrusherUpperLeft   = kTileIdCrusherFirst + 0
+kTileIdCrusherUpperRight  = kTileIdCrusherFirst + 2
+kTileIdCrusherSpikes      = kTileIdCrusherFirst + 1
+kTileIdSpikeballFirst     = kTileIdCrusherFirst + 4
+kTileIdWinchChain         = kTileIdCrusherFirst + 3
+kTileIdWinchGear1         = kTileIdWinchFirst + 0
+kTileIdWinchGear2         = kTileIdWinchFirst + 2
+kTileIdWinchCornerBottom1 = kTileIdWinchFirst + 1
+kTileIdWinchCornerBottom2 = kTileIdWinchFirst + 3
+kTileIdWinchCornerTop     = $79
 
 ;;; OBJ palette numbers used for various parts of winch machines.
 kCrusherPalette    = 1

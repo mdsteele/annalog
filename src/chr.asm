@@ -19,14 +19,17 @@
 
 .INCLUDE "actors/crawler.inc"
 .INCLUDE "actors/fireball.inc"
+.INCLUDE "actors/fish.inc"
 .INCLUDE "actors/grenade.inc"
 .INCLUDE "actors/hothead.inc"
+.INCLUDE "actors/spider.inc"
 .INCLUDE "actors/townsfolk.inc"
 .INCLUDE "actors/vinebug.inc"
 .INCLUDE "avatar.inc"
 .INCLUDE "device.inc"
 .INCLUDE "machines/boiler.inc"
 .INCLUDE "machines/cannon.inc"
+.INCLUDE "machines/winch.inc"
 
 ;;;=========================================================================;;;
 
@@ -322,17 +325,24 @@
 
 ;;;=========================================================================;;;
 
-.SEGMENT "CHR_ObjLava"
+.SEGMENT "CHR_ObjCrypt"
 
-.EXPORT Ppu_ChrObjLava
-.PROC Ppu_ChrObjLava
+.EXPORT Ppu_ChrObjCrypt
+.PROC Ppu_ChrObjCrypt
 :   .incbin "out/data/tiles/upgrade.chr"
-    .res $02 * kSizeofChr
-    .assert * - :- = (kTileIdValveFirst - $80) * kSizeofChr, error
-    .incbin "out/data/tiles/valve.chr"
-    .assert * - :- = (kTileIdHotheadFirst - $80) * kSizeofChr, error
-    .incbin "out/data/tiles/hothead.chr"
-    .res $50 * kSizeofChr
+    .res $16 * kSizeofChr
+    .assert * - :- = (kTileIdSpiderFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/spider.chr"
+    .assert * - :- = (kTileIdCrusherFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/crusher.chr"
+    .assert * - :- = (kTileIdWinchFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/winch.chr"
+    .incbin "out/data/tiles/gazer_obj.chr"
+    .assert * - :- = (kTileIdWeakFloorFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/breakable.chr"
+    .res $27 * kSizeofChr
+    .assert * - :- = (kTileIdBreakerFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/breaker.chr"
     .assert * - :- = kSizeofChr * $80, error
 .ENDPROC
 
@@ -365,6 +375,22 @@
 
 ;;;=========================================================================;;;
 
+.SEGMENT "CHR_ObjLava"
+
+.EXPORT Ppu_ChrObjLava
+.PROC Ppu_ChrObjLava
+:   .incbin "out/data/tiles/upgrade.chr"
+    .res $02 * kSizeofChr
+    .assert * - :- = (kTileIdValveFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/valve.chr"
+    .assert * - :- = (kTileIdHotheadFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/hothead.chr"
+    .res $50 * kSizeofChr
+    .assert * - :- = kSizeofChr * $80, error
+.ENDPROC
+
+;;;=========================================================================;;;
+
 .SEGMENT "CHR_ObjTownsfolk"
 
 .EXPORT Ppu_ChrObjTownsfolk
@@ -376,8 +402,6 @@
     .incbin "out/data/tiles/mermaid_adult.chr"
     .assert * - :- = (kTileIdMermaidFloristFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/mermaids.chr"
-    ;; .assert * - :- = (kMermaidWorkerFirstTileId - $80) * kSizeofChr, error
-    ;; .incbin "out/data/tiles/mermaid_worker.chr"
     .res $3c * kSizeofChr
     .assert * - :- = kSizeofChr * $80, error
 .ENDPROC
@@ -395,11 +419,8 @@
     .incbin "out/data/tiles/crawler.chr"
     .incbin "out/data/tiles/spike.chr"
     .incbin "out/data/tiles/eye.chr"
-    .incbin "out/data/tiles/spider.chr"
-    .incbin "out/data/tiles/crusher.chr"
-    .incbin "out/data/tiles/winch.chr"
-    .incbin "out/data/tiles/gazer_obj.chr"
-    .incbin "out/data/tiles/breakable.chr"
+    .res $19 * kSizeofChr
+    .assert * - :- = (kTileIdFishFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/fish.chr"
     .incbin "out/data/tiles/crab.chr"
     .assert * - :- = (kGrenadeFirstTileId - $80) * kSizeofChr, error

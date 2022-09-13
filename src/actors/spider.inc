@@ -17,24 +17,7 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
-;;; How many frames it takes a winch machine to move up one pixel.
-kWinchMoveUpSlowdown = 3
-
-;;; How many frames the a machine spends per move operation when not resetting.
-kWinchMoveUpCooldown = 16 * kWinchMoveUpSlowdown
-kWinchMoveDownCooldown = 16
-kWinchMoveHorzCooldown = 16
-
-;;; The terminal velocity for a falling winch load, in pixels per frame.
-.DEFINE kWinchMaxFallSpeed 5
-
-;;; How many times a winch load has to drop onto a breakable floor in order to
-;;; destroy it.
-kNumWinchHitsToBreakFloor = 3
-
-;;; Tile IDs for drawing winch machines.
-kTileIdCrusherFirst   = $b4
-kTileIdWeakFloorFirst = $c3
-kTileIdWinchFirst     = $bc
+;;; Tile IDs for drawing spider baddie actors.
+kTileIdSpiderFirst = $b0
 
 ;;;=========================================================================;;;
