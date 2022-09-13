@@ -28,8 +28,8 @@
 .IMPORT FuncA_Actor_HarmAvatarIfCollision
 .IMPORT FuncA_Objects_Draw2x2Actor
 .IMPORT Func_GetRandomByte
+.IMPORT Func_GetTerrainColumnPtrForTileIndex
 .IMPORT Func_InitActorDefault
-.IMPORT Func_Terrain_GetColumnPtrForTileIndex
 .IMPORT Ram_ActorPosX_i16_0_arr
 .IMPORT Ram_ActorPosX_i16_1_arr
 .IMPORT Ram_ActorState_byte_arr
@@ -71,7 +71,7 @@
     ;; Get the terrain for the vinebug's tile column.
     jsr FuncA_Actor_GetRoomTileColumn  ; preserves X, returns A
     stx Zp_Tmp1_byte
-    jsr Func_Terrain_GetColumnPtrForTileIndex  ; preserves Zp_Tmp*
+    jsr Func_GetTerrainColumnPtrForTileIndex  ; preserves Zp_Tmp*
     ldx Zp_Tmp1_byte
     ;; Get the vinebug's room block row.
     jsr FuncA_Actor_GetRoomBlockRow  ; preserves X, returns Y

@@ -35,7 +35,7 @@
 
 .ZEROPAGE
 
-;;; Return value for Func_Terrain_GetColumnPtrForTileIndex.  This will point
+;;; Return value for Func_GetTerrainColumnPtrForTileIndex.  This will point
 ;;; to the beginning (top) of the requested terrain block column in the current
 ;;; room.
 .EXPORTZP Zp_TerrainColumn_u8_arr_ptr
@@ -56,8 +56,8 @@ Zp_NametableColumnIndex_u8: .res 1
 ;;; tile column.
 ;;; @param A The index of the room tile column.
 ;;; @preserve Zp_Tmp*
-.EXPORT Func_Terrain_GetColumnPtrForTileIndex
-.PROC Func_Terrain_GetColumnPtrForTileIndex
+.EXPORT Func_GetTerrainColumnPtrForTileIndex
+.PROC Func_GetTerrainColumnPtrForTileIndex
     and #$fe
     ;; Currently, a is (col * 2), where col is the room block column index.
     ;; Calculate (col * 8), with the lo byte in a, and the hi byte in
@@ -117,7 +117,7 @@ _SetPtr:
     stx Hw_PpuCtrl_wo
 _TileColumnLoop:
     lda Zp_Tmp1_byte  ; param: room tile column index
-    jsr Func_Terrain_GetColumnPtrForTileIndex  ; preserves Zp_Tmp*_byte
+    jsr Func_GetTerrainColumnPtrForTileIndex  ; preserves Zp_Tmp*_byte
     ldy #0  ; room block row index
     lda Zp_Tmp1_byte  ; room tile column index
     and #$01
@@ -239,7 +239,7 @@ _Done:
     and #$1f
     sta Zp_NametableColumnIndex_u8
     txa  ; param: room tile column index
-    jsr Func_Terrain_GetColumnPtrForTileIndex
+    jsr Func_GetTerrainColumnPtrForTileIndex
     ;; Buffer a PPU transfer for the upper nametable.
 .PROC _UpperTransfer
     ldx Zp_PpuTransferLen_u8

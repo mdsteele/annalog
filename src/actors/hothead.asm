@@ -29,8 +29,8 @@
 .IMPORT FuncA_Actor_GetRoomTileColumn
 .IMPORT FuncA_Actor_HarmAvatarIfCollision
 .IMPORT FuncA_Objects_Draw2x2Actor
+.IMPORT Func_GetTerrainColumnPtrForTileIndex
 .IMPORT Func_InitActorDefault
-.IMPORT Func_Terrain_GetColumnPtrForTileIndex
 .IMPORT Ram_ActorFlags_bObj_arr
 .IMPORT Ram_ActorPosX_i16_0_arr
 .IMPORT Ram_ActorPosX_i16_1_arr
@@ -147,7 +147,7 @@ _CheckForOuterCorner:
     ;; Get the terrain for the tile column we're checking.
     stx Zp_Tmp1_byte
     tya  ; param: room tile column index
-    jsr Func_Terrain_GetColumnPtrForTileIndex  ; preserves Zp_Tmp*
+    jsr Func_GetTerrainColumnPtrForTileIndex  ; preserves Zp_Tmp*
     ldx Zp_Tmp1_byte
     ;; Compute the room block row at the hothead's feet.
     jsr FuncA_Actor_GetRoomBlockRow  ; preserves X, returns Y
@@ -271,7 +271,7 @@ _CheckForOuterCorner:
     ;; Get the terrain for the tile column we're checking.
     stx Zp_Tmp1_byte
     tya  ; param: room tile column index
-    jsr Func_Terrain_GetColumnPtrForTileIndex  ; preserves Zp_Tmp*
+    jsr Func_GetTerrainColumnPtrForTileIndex  ; preserves Zp_Tmp*
     ldx Zp_Tmp1_byte
     ;; Compute the room block row just in front (above/below) of the hothead.
     ;; Note that at this point, the hothead's Y-position is zero mod

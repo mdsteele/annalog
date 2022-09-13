@@ -23,7 +23,7 @@
 
 .IMPORT Exit_Success
 .IMPORT Func_ExpectAEqualsY
-.IMPORT Func_Terrain_GetColumnPtrForTileIndex
+.IMPORT Func_GetTerrainColumnPtrForTileIndex
 .IMPORTZP Zp_TerrainColumn_u8_arr_ptr
 
 ;;;=========================================================================;;;
@@ -87,7 +87,7 @@ SetUp:
     sta Zp_Current_sRoom + sRoom::TerrainData_ptr + 1
 Test:
     lda #kBlockColumnIndex * 2
-    jsr Func_Terrain_GetColumnPtrForTileIndex
+    jsr Func_GetTerrainColumnPtrForTileIndex
 Verify:
     lda Zp_TerrainColumn_u8_arr_ptr + 0
     ldy #<kExpectedStripePtr

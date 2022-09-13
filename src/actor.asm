@@ -61,6 +61,7 @@
 .IMPORT FuncA_Objects_DrawActorProjSteamHorz
 .IMPORT FuncA_Objects_DrawActorProjSteamUp
 .IMPORT FuncA_Objects_MoveShapeUpOneTile
+.IMPORT Func_GetTerrainColumnPtrForTileIndex
 .IMPORT Func_HarmAvatar
 .IMPORT Func_InitActorBadHotheadHorz
 .IMPORT Func_InitActorBadHotheadVert
@@ -72,7 +73,6 @@
 .IMPORT Func_InitActorProjSteamHorz
 .IMPORT Func_InitActorProjSteamUp
 .IMPORT Func_Noop
-.IMPORT Func_Terrain_GetColumnPtrForTileIndex
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORTZP Zp_AvatarPosX_i16
 .IMPORTZP Zp_AvatarPosY_i16
@@ -557,7 +557,7 @@ _NoHit:
     ;; Get the terrain for the actor's current tile column.
     jsr FuncA_Actor_GetRoomTileColumn  ; preserves X, returns A
     stx Zp_Tmp1_byte
-    jsr Func_Terrain_GetColumnPtrForTileIndex  ; preserves Zp_Tmp*
+    jsr Func_GetTerrainColumnPtrForTileIndex  ; preserves Zp_Tmp*
     ldx Zp_Tmp1_byte
     ;; Check the terrain block that the actor position is in, and set C if the
     ;; terrain is solid.

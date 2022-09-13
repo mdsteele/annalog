@@ -26,7 +26,7 @@
 .IMPORT FuncA_Actor_HarmAvatarIfCollision
 .IMPORT FuncA_Objects_Draw2x2Actor
 .IMPORT Func_GetRandomByte
-.IMPORT Func_Terrain_GetColumnPtrForTileIndex
+.IMPORT Func_GetTerrainColumnPtrForTileIndex
 .IMPORT Ram_ActorFlags_bObj_arr
 .IMPORT Ram_ActorPosX_i16_0_arr
 .IMPORT Ram_ActorPosX_i16_1_arr
@@ -93,7 +93,7 @@ _StartMove:
     ;; Get the terrain for the tile column we're checking.
     stx Zp_Tmp1_byte
     tya  ; param: room tile column index
-    jsr Func_Terrain_GetColumnPtrForTileIndex  ; preserves Zp_Tmp*
+    jsr Func_GetTerrainColumnPtrForTileIndex  ; preserves Zp_Tmp*
     ldx Zp_Tmp1_byte
     ;; Check the terrain block just in front of the crab.  If it's solid, the
     ;; crab has to turn around.
