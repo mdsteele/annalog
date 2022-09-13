@@ -271,7 +271,7 @@ OpcodeTil3_u8_arr:       .byte "until condition is met.", $ff
 OpcodeCopy1_u8_arr:      .byte "     COPY OPCODE", $ff
 OpcodeCopy2_u8_arr:      .byte "Copies a value into a", $ff
 OpcodeCopy3_u8_arr:      .byte "register.", $ff
-OpcodeAddSub1_u8_arr:    .byte "   ADD SUB OPCODES", $ff
+OpcodeAddSub1_u8_arr:    .byte "   ADD/SUB OPCODES", $ff
 OpcodeAddSub2_u8_arr:    .byte "Adds or subtracts one", $ff
 OpcodeAddSub3_u8_arr:    .byte "value from another.", $ff
 OpcodeMul1_u8_arr:       .byte "      MUL OPCODE", $ff

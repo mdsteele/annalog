@@ -254,6 +254,8 @@ _CheckForActivateDevice:
     beq @lever
     cmp #eDevice::OpenDoorway
     beq @door
+    cmp #eDevice::Paper
+    beq @sign
     cmp #eDevice::Sign
     beq @sign
     cmp #eDevice::TalkLeft

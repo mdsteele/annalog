@@ -190,7 +190,7 @@ _Actors_sActor_arr:
     .byte eActor::None
 _Devices_sDevice_arr:
 :   D_STRUCT sDevice
-    d_byte Type_eDevice, eDevice::Sign
+    d_byte Type_eDevice, eDevice::Paper
     d_byte BlockRow_u8, 12
     d_byte BlockCol_u8, 9
     d_byte Target_u8, 0
@@ -349,10 +349,18 @@ _RightTileIds_u8_arr:
 .PROC DataA_Dialog_PrisonCell_sDialog_ptr_arr
     .addr _Dialog0_sDialog
 _Dialog0_sDialog:
-    .word ePortrait::Sign
-    .byte "We were once a great$"
-    .byte "civilization. Then one$"
-    .byte "day, the orcs came...#"
+    .word ePortrait::Paper
+    .byte "Day 87: By now there's$"
+    .byte "probably not much time$"
+    .byte "left to finish this.#"
+    .word ePortrait::Paper
+    .byte "I'm going to start$"
+    .byte "pinning up all these$"
+    .byte "pages. Maybe someday$"
+    .byte "someone'll find them.#"
+    .word ePortrait::Paper
+    .byte "By then, I'm sure I'll$"
+    .byte "be long gone.#"
     .byte 0
 .ENDPROC
 

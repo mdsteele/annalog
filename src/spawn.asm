@@ -336,6 +336,7 @@ _DeviceOffset_u8_arr:
     d_byte Flower,        $08
     d_byte Lever,         $06
     d_byte OpenDoorway,   $08
+    d_byte Paper,         $06
     d_byte Sign,          $06
     d_byte TalkLeft,      $0a
     d_byte TalkRight,     $06

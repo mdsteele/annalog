@@ -103,7 +103,7 @@ _Actors_sActor_arr:
     .byte eActor::None
 _Devices_sDevice_arr:
     D_STRUCT sDevice
-    d_byte Type_eDevice, eDevice::Sign
+    d_byte Type_eDevice, eDevice::Paper
     d_byte BlockRow_u8, 17
     d_byte BlockCol_u8, 23
     d_byte Target_u8, 0
@@ -160,8 +160,19 @@ _Passages_sPassage_arr:
 .PROC DataA_Dialog_GardenLanding_sDialog_ptr_arr
     .addr _Dialog0_sDialog
 _Dialog0_sDialog:
-    .word ePortrait::Sign
-    .byte "Lorem ipsum.#"
+    .word ePortrait::Paper
+    .byte "Day 13: And now, there$"
+    .byte "is nothing left of us$"
+    .byte "but our machines.#"
+    .word ePortrait::Paper
+    .byte "I wonder for how long$"
+    .byte "those will keep on$"
+    .byte "working. A long time.$"
+    .byte "Maybe forever.#"
+    .word ePortrait::Paper
+    .byte "So I should probably$"
+    .byte "teach you how to use$"
+    .byte "them.#"
     .byte 0
 .ENDPROC
 

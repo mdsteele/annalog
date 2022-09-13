@@ -191,7 +191,7 @@ _Actors_sActor_arr:
     .byte eActor::None
 _Devices_sDevice_arr:
 :   D_STRUCT sDevice
-    d_byte Type_eDevice, eDevice::Sign
+    d_byte Type_eDevice, eDevice::Paper
     d_byte BlockRow_u8, 11
     d_byte BlockCol_u8, 11
     d_byte Target_u8, 0
@@ -289,15 +289,15 @@ _Trolley_Tick:
 .PROC DataA_Dialog_PrisonEscape_sDialog_ptr_arr
     .addr _Dialog0_sDialog
 _Dialog0_sDialog:
-    .word ePortrait::Sign
-    .byte "Of course, it wasn't$"
-    .byte "the orcs that caused$"
-    .byte "our downfall.#"
-    .word ePortrait::Sign
-    .byte "Their arrival was$"
-    .byte "simply the inevitable$"
-    .byte "result of our own$"
-    .byte "failures.#"
+    .word ePortrait::Paper
+    .byte "Day 12: So where do I$"
+    .byte "even start? We were a$"
+    .byte "great civilization$"
+    .byte "once, before the orcs.#"
+    .word ePortrait::Paper
+    .byte "But we were already$"
+    .byte "crumbling long$"
+    .byte "before they invaded.#"
     .byte 0
 .ENDPROC
 

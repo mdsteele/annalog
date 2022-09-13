@@ -68,6 +68,7 @@ FuncA_Objects_DrawTeleporterDevice  = Func_Noop
     FuncA_Objects_DrawFlowerDevice, \
     FuncA_Objects_DrawLeverDevice, \
     FuncA_Objects_DrawOpenDoorwayDevice, \
+    FuncA_Objects_DrawPaperDevice, \
     FuncA_Objects_DrawSignDevice, \
     FuncA_Objects_DrawTalkLeftDevice, \
     FuncA_Objects_DrawTalkRightDevice, \
@@ -195,6 +196,29 @@ _AllocateObject:
     lda #kConsoleScreenPaletteErr
     sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
     lda #kConsoleScreenTileIdErr
+    sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
+    @done:
+    rts
+.ENDPROC
+
+;;; Allocates and populates OAM slots for a paper device.
+;;; @param X The device index.
+;;; @preserve X
+.PROC FuncA_Objects_DrawPaperDevice
+    jsr FuncA_Objects_SetShapePosToDeviceTopLeft  ; preserves X
+_AdjustPosition:
+    lda Zp_ShapePosX_i16 + 0
+    add #4
+    sta Zp_ShapePosX_i16 + 0
+    lda Zp_ShapePosX_i16 + 1
+    adc #0
+    sta Zp_ShapePosX_i16 + 1
+_AllocateObject:
+    jsr FuncA_Objects_Alloc1x1Shape  ; preserves X, returns C and Y
+    bcs @done
+    lda #kPaperPalette
+    sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
+    lda #kTileIdPaper
     sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
     @done:
     rts

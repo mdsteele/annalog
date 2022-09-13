@@ -30,6 +30,7 @@ kFlowerTileIdTop        = $0c
 kFlowerTileIdBottom     = $0d
 kLeverHandleTileIdDown  = $0e
 kLeverHandleTileIdUp    = $0f
+kTileIdPaper            = $06
 
 ;;; The OBJ palette numbers used for various device objects.
 kBreakerPalette          = 0
@@ -39,6 +40,7 @@ kDoorwayPalette          = 0
 kFlowerPaletteTop        = 1
 kFlowerPaletteBottom     = 2
 kLeverHandlePalette      = 0
+kPaperPalette            = 0
 kUpgradePalette          = 0
 
 ;;; The initial value to set in Ram_DeviceAnim_u8_arr when animating various
@@ -70,6 +72,7 @@ kBreakerAvatarOffset = $05
     Flower
     Lever
     OpenDoorway
+    Paper          ; initiate dialogue with the avatar's back to the camera
     Sign           ; initiate dialogue with the avatar's back to the camera
     TalkLeft       ; initiate dialogue with the avatar facing to the left
     TalkRight      ; initiate dialogue with the avatar facing to the right

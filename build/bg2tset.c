@@ -288,9 +288,11 @@ char get_tile_id(const char *tileset, int tile_index) {
   } else if (0 == strcmp(tileset, "crypt")) {
     return 0x80 + tile_index;
   } else if (0 == strcmp(tileset, "device")) {
-    return 0xb6 + tile_index;
+    return 0xb8 + tile_index;
   } else if (0 == strcmp(tileset, "drawbridge")) {
     return 0xb4 + tile_index;
+  } else if (0 == strcmp(tileset, "font_lower")) {
+    return 0x40 + tile_index;
   } else if (0 == strcmp(tileset, "furniture")) {
     return 0xa0 + tile_index;
   } else if (0 == strcmp(tileset, "house")) {

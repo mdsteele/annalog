@@ -24,6 +24,7 @@
 .CHARMAP $3a, $04  ; ':'
 .CHARMAP $2c, $05  ; ','
 .CHARMAP $27, $06  ; "'"
+.CHARMAP $2f, $07  ; '/'
 .CHARMAP $2b, $0e  ; '+'
 .CHARMAP $2d, $0f  ; '-'
 .CHARMAP $3c, $0a  ; '<'

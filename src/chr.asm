@@ -93,7 +93,7 @@
     .incbin "out/data/tiles/gazer_eye.chr"
     .res $04 * kSizeofChr
     .incbin "out/data/tiles/arch.chr"
-    .res $02 * kSizeofChr
+    .res $04 * kSizeofChr
     .incbin "out/data/tiles/device.chr"
     .assert * - :- = kSizeofChr * $40, error
 .ENDPROC
@@ -144,6 +144,17 @@
 
 ;;;=========================================================================;;;
 
+.SEGMENT "CHR_BgFontLower04"
+
+.PROC Ppu_ChrBgFontLower04
+:   .incbin "out/data/tiles/font_lower.chr"
+    .res $10 * kSizeofChr
+    .incbin "out/data/tiles/portrait04.chr"
+    .assert * - :- = kSizeofChr * $40, error
+.ENDPROC
+
+;;;=========================================================================;;;
+
 .SEGMENT "CHR_BgGarden"
 
 .EXPORT Ppu_ChrBgGarden
@@ -153,6 +164,7 @@
     .incbin "out/data/tiles/jungle3.chr"
     .incbin "out/data/tiles/arch.chr"
     .incbin "out/data/tiles/drawbridge.chr"
+    .res $02 * kSizeofChr
     .incbin "out/data/tiles/device.chr"
     .assert * - :- = kSizeofChr * $40, error
 .ENDPROC
@@ -165,7 +177,7 @@
 .PROC Ppu_ChrBgHut
 :   .incbin "out/data/tiles/hut1.chr"
     .incbin "out/data/tiles/hut2.chr"
-    .res $1c * kSizeofChr
+    .res $1e * kSizeofChr
     .incbin "out/data/tiles/device.chr"
     .assert * - :- = kSizeofChr * $40, error
 .ENDPROC
@@ -192,7 +204,7 @@
 .PROC Ppu_ChrBgLava
 :   .incbin "out/data/tiles/steam_pipes.chr"
     .incbin "out/data/tiles/volcanic.chr"
-    .res $16 * kSizeofChr
+    .res $18 * kSizeofChr
     .incbin "out/data/tiles/device.chr"
     .assert * - :- = kSizeofChr * $40, error
 .ENDPROC
@@ -207,7 +219,7 @@
     .incbin "out/data/tiles/hut.chr"
     .res $03 * kSizeofChr
     .incbin "out/data/tiles/beach.chr"
-    .res $0e * kSizeofChr
+    .res $10 * kSizeofChr
     .incbin "out/data/tiles/device.chr"
     .assert * - :- = kSizeofChr * $40, error
 .ENDPROC
@@ -237,7 +249,7 @@
     .incbin "out/data/tiles/roof.chr"
     .incbin "out/data/tiles/window.chr"
     .incbin "out/data/tiles/house.chr"
-    .res $0d * kSizeofChr
+    .res $0f * kSizeofChr
     .incbin "out/data/tiles/device.chr"
     .assert * - :- = kSizeofChr * $40, error
 .ENDPROC
@@ -264,7 +276,7 @@
 .EXPORT Ppu_ChrBgPrison
 .PROC Ppu_ChrBgPrison
 :   .incbin "out/data/tiles/cave.chr"
-    .res $26 * kSizeofChr
+    .res $28 * kSizeofChr
     .incbin "out/data/tiles/device.chr"
     .assert * - :- = kSizeofChr * $40, error
 .ENDPROC
