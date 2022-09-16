@@ -37,10 +37,8 @@
 .IMPORT FuncA_Machine_BoilerWriteReg
 .IMPORT FuncA_Machine_EmitSteamRightFromPipe
 .IMPORT FuncA_Machine_EmitSteamUpFromPipe
-.IMPORT FuncA_Objects_Alloc1x1Shape
+.IMPORT FuncA_Objects_DrawBoilerMachine
 .IMPORT FuncA_Objects_DrawBoilerValve1
-.IMPORT FuncA_Objects_GetMachineLightTileId
-.IMPORT FuncA_Objects_SetShapePosToMachineTopLeft
 .IMPORT Func_MachineBoilerReadReg
 .IMPORT Func_MachineBoilerReset
 .IMPORT Func_MachineError
@@ -48,7 +46,6 @@
 .IMPORT Ppu_ChrObjLava
 .IMPORT Ram_DeviceType_eDevice_arr
 .IMPORT Ram_MachineGoalVert_u8_arr
-.IMPORT Ram_Oam_sObj_arr64
 .IMPORT Sram_ProgressFlags_arr
 .IMPORTZP Zp_MachineIndex_u8
 
@@ -131,10 +128,10 @@ _Machines_sMachine_arr:
 _Platforms_sPlatform_arr:
 :   .assert * - :- = kBoilerPlatformIndex * .sizeof(sPlatform), error
     D_STRUCT sPlatform
-    d_byte Type_ePlatform, ePlatform::Zone
-    d_word WidthPx_u16, $10
+    d_byte Type_ePlatform, ePlatform::Solid
+    d_word WidthPx_u16, $18
     d_byte HeightPx_u8, $10
-    d_word Left_i16,  $0070
+    d_word Left_i16,  $0060
     d_word Top_i16,   $00d0
     D_END
     .assert * - :- = kValvePlatformIndex * .sizeof(sPlatform), error
@@ -245,17 +242,7 @@ _ValvePipePlatformIndex_u8_arr10:
 .SEGMENT "PRGA_Objects"
 
 .PROC FuncA_Objects_LavaStationBoiler_Draw
-    jsr FuncA_Objects_SetShapePosToMachineTopLeft
-_Light:
-    jsr FuncA_Objects_Alloc1x1Shape  ; returns C and Y
-    bcs @done
-    lda #kMachineLightPalette
-    sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
-    jsr FuncA_Objects_GetMachineLightTileId  ; preserves Y, returns A
-    sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
-    @done:
-    ;; TODO: draw rest of machine
-_Valve:
+    jsr FuncA_Objects_DrawBoilerMachine
     ldx #kValvePlatformIndex  ; param: platform index
     jmp FuncA_Objects_DrawBoilerValve1
 .ENDPROC

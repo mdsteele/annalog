@@ -17,12 +17,18 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
+.INCLUDE "../machine.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
 .INCLUDE "../ppu.inc"
 .INCLUDE "boiler.inc"
 
 .IMPORT FuncA_Objects_Alloc1x1Shape
+.IMPORT FuncA_Objects_Alloc2x2Shape
+.IMPORT FuncA_Objects_GetMachineLightTileId
+.IMPORT FuncA_Objects_MoveShapeDownOneTile
+.IMPORT FuncA_Objects_MoveShapeRightOneTile
+.IMPORT FuncA_Objects_SetShapePosToMachineTopLeft
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
 .IMPORT Func_FindEmptyActorSlot
 .IMPORT Func_InitActorProjSteamHorz
@@ -48,7 +54,12 @@
 
 ;;;=========================================================================;;;
 
-;;; The OBJ palette number used for steam pipe valves.
+kTileIdBoilerLeftCorner  = $79
+kTileIdBoilerCenter      = kTileIdBoilerFirst + 0
+kTileIdBoilerRightCorner = kTileIdBoilerFirst + 1
+
+;;; OBJ palette numbers used for boiler machines and valves.
+kBoilerPalette = 0
 kValvePalette = 0
 
 ;;;=========================================================================;;;
@@ -239,6 +250,47 @@ _Finish:
 ;;;=========================================================================;;;
 
 .SEGMENT "PRGA_Objects"
+
+;;; Draws a boiler machine.
+;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
+.EXPORT FuncA_Objects_DrawBoilerMachine
+.PROC FuncA_Objects_DrawBoilerMachine
+    jsr FuncA_Objects_SetShapePosToMachineTopLeft
+_Light:
+    jsr FuncA_Objects_Alloc1x1Shape  ; returns C and Y
+    bcs @done
+    jsr FuncA_Objects_GetMachineLightTileId  ; preserves Y, returns A
+    sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
+    lda #kMachineLightPalette
+    sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
+    @done:
+_Corner:
+    jsr FuncA_Objects_MoveShapeDownOneTile
+    jsr FuncA_Objects_Alloc1x1Shape  ; returns C and Y
+    bcs @done
+    lda #kTileIdBoilerLeftCorner
+    sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
+    lda #bObj::FlipH | kBoilerPalette
+    sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
+    @done:
+_Tank:
+    jsr FuncA_Objects_MoveShapeRightOneTile
+    jsr FuncA_Objects_MoveShapeRightOneTile
+    lda #kBoilerPalette  ; param: object flags
+    jsr FuncA_Objects_Alloc2x2Shape  ; returns C and Y
+    bcs @done
+    lda #kTileIdBoilerCenter
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Tile_u8, y
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Tile_u8, y
+    lda #kTileIdBoilerRightCorner
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Tile_u8, y
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Tile_u8, y
+    lda #bObj::FlipV | kBoilerPalette
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Flags_bObj, y
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Flags_bObj, y
+    @done:
+    rts
+.ENDPROC
 
 ;;; Draws the second valve for a boiler machine.  The valve platform should be
 ;;; 8x8 pixels and centered on the center of the valve.

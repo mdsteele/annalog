@@ -36,11 +36,9 @@
 .IMPORT FuncA_Machine_BoilerWriteReg
 .IMPORT FuncA_Machine_EmitSteamRightFromPipe
 .IMPORT FuncA_Machine_EmitSteamUpFromPipe
-.IMPORT FuncA_Objects_Alloc1x1Shape
+.IMPORT FuncA_Objects_DrawBoilerMachine
 .IMPORT FuncA_Objects_DrawBoilerValve1
 .IMPORT FuncA_Objects_DrawBoilerValve2
-.IMPORT FuncA_Objects_GetMachineLightTileId
-.IMPORT FuncA_Objects_SetShapePosToMachineTopLeft
 .IMPORT Func_MachineBoilerReadReg
 .IMPORT Func_MachineBoilerReset
 .IMPORT Func_MachineError
@@ -48,7 +46,6 @@
 .IMPORT Ppu_ChrObjLava
 .IMPORT Ram_MachineGoalHorz_u8_arr
 .IMPORT Ram_MachineGoalVert_u8_arr
-.IMPORT Ram_Oam_sObj_arr64
 .IMPORTZP Zp_MachineIndex_u8
 .IMPORTZP Zp_Tmp1_byte
 
@@ -156,7 +153,7 @@ _Platforms_sPlatform_arr:
 :   .assert * - :- = kUpperBoilerPlatformIndex * .sizeof(sPlatform), error
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Solid
-    d_word WidthPx_u16, $10
+    d_word WidthPx_u16, $18
     d_byte HeightPx_u8, $10
     d_word Left_i16,  $0120
     d_word Top_i16,   $00a0
@@ -204,9 +201,9 @@ _Platforms_sPlatform_arr:
     .assert * - :- = kLowerBoilerPlatformIndex * .sizeof(sPlatform), error
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Solid
-    d_word WidthPx_u16, $10
+    d_word WidthPx_u16, $18
     d_byte HeightPx_u8, $10
-    d_word Left_i16,  $0140
+    d_word Left_i16,  $0138
     d_word Top_i16,   $0120
     D_END
     .assert * - :- = kLowerValve1PlatformIndex * .sizeof(sPlatform), error
@@ -452,17 +449,7 @@ _Valve2ExitPlatformIndex_u8_arr10:
 .SEGMENT "PRGA_Objects"
 
 .PROC FuncA_Objects_LavaEastUpperBoiler_Draw
-    jsr FuncA_Objects_SetShapePosToMachineTopLeft
-_Light:
-    jsr FuncA_Objects_Alloc1x1Shape  ; returns C and Y
-    bcs @done
-    lda #kMachineLightPalette
-    sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
-    jsr FuncA_Objects_GetMachineLightTileId  ; preserves Y, returns A
-    sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
-    @done:
-    ;; TODO: draw rest of machine
-_Valves:
+    jsr FuncA_Objects_DrawBoilerMachine
     ldx #kUpperValve1PlatformIndex  ; param: platform index
     jsr FuncA_Objects_DrawBoilerValve1
     ldx #kUpperValve2PlatformIndex  ; param: platform index
@@ -470,17 +457,7 @@ _Valves:
 .ENDPROC
 
 .PROC FuncA_Objects_LavaEastLowerBoiler_Draw
-    jsr FuncA_Objects_SetShapePosToMachineTopLeft
-_Light:
-    jsr FuncA_Objects_Alloc1x1Shape  ; returns C and Y
-    bcs @done
-    lda #kMachineLightPalette
-    sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
-    jsr FuncA_Objects_GetMachineLightTileId  ; preserves Y, returns A
-    sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
-    @done:
-    ;; TODO: draw rest of machine
-_Valves:
+    jsr FuncA_Objects_DrawBoilerMachine
     ldx #kLowerValve1PlatformIndex  ; param: platform index
     jsr FuncA_Objects_DrawBoilerValve1
     ldx #kLowerValve2PlatformIndex  ; param: platform index

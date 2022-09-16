@@ -380,7 +380,8 @@
 .EXPORT Ppu_ChrObjLava
 .PROC Ppu_ChrObjLava
 :   .incbin "out/data/tiles/upgrade.chr"
-    .res $02 * kSizeofChr
+    .assert * - :- = (kTileIdBoilerFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/boiler.chr"
     .assert * - :- = (kTileIdValveFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/valve.chr"
     .assert * - :- = (kTileIdHotheadFirst - $80) * kSizeofChr, error
