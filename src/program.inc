@@ -112,6 +112,8 @@
     GardenEastCannon
     GardenShaftLowerBridge
     GardenShaftUpperBridge
+    LavaEastUpperBoiler
+    LavaEastLowerBoiler
     LavaFlowerBoiler
     LavaStationBoiler
     LavaTeleportField

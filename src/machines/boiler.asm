@@ -27,10 +27,15 @@
 .IMPORT Func_FindEmptyActorSlot
 .IMPORT Func_InitActorProjSteamHorz
 .IMPORT Func_InitActorProjSteamUp
+.IMPORT Func_MachineFinishResetting
 .IMPORT Ram_ActorPosX_i16_0_arr
 .IMPORT Ram_ActorPosX_i16_1_arr
 .IMPORT Ram_ActorPosY_i16_0_arr
 .IMPORT Ram_ActorPosY_i16_1_arr
+.IMPORT Ram_MachineGoalHorz_u8_arr
+.IMPORT Ram_MachineGoalVert_u8_arr
+.IMPORT Ram_MachineParam1_u8_arr
+.IMPORT Ram_MachineParam2_i16_0_arr
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORT Ram_PlatformLeft_i16_0_arr
 .IMPORT Ram_PlatformLeft_i16_1_arr
@@ -38,6 +43,8 @@
 .IMPORT Ram_PlatformRight_i16_1_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORT Ram_PlatformTop_i16_1_arr
+.IMPORTZP Zp_MachineIndex_u8
+.IMPORTZP Zp_Tmp1_byte
 
 ;;;=========================================================================;;;
 
@@ -46,7 +53,102 @@ kValvePalette = 0
 
 ;;;=========================================================================;;;
 
+.SEGMENT "PRG8"
+
+;;; Reset implemention for boiler machines.
+;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
+.EXPORT Func_MachineBoilerReset
+.PROC Func_MachineBoilerReset
+    ldx Zp_MachineIndex_u8
+    lda #0
+    sta Ram_MachineGoalVert_u8_arr, x
+    sta Ram_MachineGoalHorz_u8_arr, x
+    rts
+.ENDPROC
+
+;;; ReadReg implemention for boiler machines.
+;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
+;;; @param A The register to read ($c-$f).
+;;; @return A The value of the register (0-9).
+.EXPORT Func_MachineBoilerReadReg
+.PROC Func_MachineBoilerReadReg
+    ldx Zp_MachineIndex_u8
+    cmp #$0d
+    beq @valve2
+    @valve1:
+    lda Ram_MachineGoalVert_u8_arr, x
+    rts
+    @valve2:
+    lda Ram_MachineGoalHorz_u8_arr, x
+    rts
+.ENDPROC
+
+;;;=========================================================================;;;
+
 .SEGMENT "PRGA_Machine"
+
+;;; WriteReg implemention for boiler machines.
+;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
+;;; @param A The register to write to ($c-$f).
+;;; @param X The value to write (0-9).
+;;; @return A How many frames to wait before advancing the PC.
+.EXPORT FuncA_Machine_BoilerWriteReg
+.PROC FuncA_Machine_BoilerWriteReg
+    ldy Zp_MachineIndex_u8
+    cmp #$0d
+    beq @valve2
+    @valve1:
+    txa
+    sta Ram_MachineGoalVert_u8_arr, y
+    lda #kBoilerWriteCountdown
+    rts
+    @valve2:
+    txa
+    sta Ram_MachineGoalHorz_u8_arr, y
+    lda #kBoilerWriteCountdown
+    rts
+.ENDPROC
+
+;;; Tick implemention for boiler machines.
+;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
+.EXPORT FuncA_Machine_BoilerTick
+.PROC FuncA_Machine_BoilerTick
+    lda #0
+    sta Zp_Tmp1_byte  ; num valves moved
+    ldx Zp_MachineIndex_u8
+_Valve1:
+    lda Ram_MachineGoalVert_u8_arr, x
+    mul #kBoilerValveAnimSlowdown
+    cmp Ram_MachineParam1_u8_arr, x
+    beq @done
+    blt @decrement
+    @increment:
+    inc Ram_MachineParam1_u8_arr, x
+    bne @moved  ; unconditional
+    @decrement:
+    dec Ram_MachineParam1_u8_arr, x
+    @moved:
+    inc Zp_Tmp1_byte  ; num valves moved
+    @done:
+_Valve2:
+    lda Ram_MachineGoalHorz_u8_arr, x
+    mul #kBoilerValveAnimSlowdown
+    cmp Ram_MachineParam2_i16_0_arr, x
+    beq @done
+    blt @decrement
+    @increment:
+    inc Ram_MachineParam2_i16_0_arr, x
+    bne @moved  ; unconditional
+    @decrement:
+    dec Ram_MachineParam2_i16_0_arr, x
+    @moved:
+    inc Zp_Tmp1_byte  ; num valves moved
+    @done:
+_Finish:
+    lda Zp_Tmp1_byte  ; num valves moved
+    jeq Func_MachineFinishResetting
+    rts
+.ENDPROC
 
 ;;; Given an 8x8 pixel platform covering the end tile of a leftward-facing
 ;;; pipe, spawns a leftward steam actor emitting from that pipe.
@@ -138,11 +240,32 @@ kValvePalette = 0
 
 .SEGMENT "PRGA_Objects"
 
+;;; Draws the second valve for a boiler machine.  The valve platform should be
+;;; 8x8 pixels and centered on the center of the valve.
+;;; @param X The platform index for the valve.
+.EXPORT FuncA_Objects_DrawBoilerValve2
+.PROC FuncA_Objects_DrawBoilerValve2
+    ldy Zp_MachineIndex_u8
+    lda Ram_MachineParam2_i16_0_arr, y
+    div #kBoilerValveAnimSlowdown  ; param: valve angle
+    bpl FuncA_Objects_DrawBoilerValve  ; unconditional
+.ENDPROC
+
+;;; Draws the first valve for a boiler machine.  The valve platform should be
+;;; 8x8 pixels and centered on the center of the valve.
+;;; @param X The platform index for the valve.
+.EXPORT FuncA_Objects_DrawBoilerValve1
+.PROC FuncA_Objects_DrawBoilerValve1
+    ldy Zp_MachineIndex_u8
+    lda Ram_MachineParam1_u8_arr, y
+    div #kBoilerValveAnimSlowdown  ; param: valve angle
+    .assert * = FuncA_Objects_DrawBoilerValve, error, "fallthrough"
+.ENDPROC
+
 ;;; Draws a valve for a boiler machine.  The valve platform should be 8x8
 ;;; pixels and centered on the center of the valve.
 ;;; @param A The valve angle (0-9).
 ;;; @param X The platform index for the valve.
-.EXPORT FuncA_Objects_DrawBoilerValve
 .PROC FuncA_Objects_DrawBoilerValve
     pha  ; valve angle (0-9)
     jsr FuncA_Objects_SetShapePosToPlatformTopLeft

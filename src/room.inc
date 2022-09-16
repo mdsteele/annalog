@@ -51,6 +51,7 @@ kRoomStateSize = $100
     GardenShrine
     GardenTower
     GardenTunnel
+    LavaEast
     LavaFlower
     LavaShaft
     LavaStation
@@ -77,7 +78,7 @@ kRoomStateSize = $100
     NUM_VALUES
 .ENDENUM
 
-.DEFINE kNumRooms 37
+.DEFINE kNumRooms 38
 .ASSERT kNumRooms = eRoom::NUM_VALUES, error
 
 ;;;=========================================================================;;;

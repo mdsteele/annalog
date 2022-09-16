@@ -33,19 +33,21 @@
 .IMPORT DataA_Pause_LavaAreaCells_u8_arr2_arr
 .IMPORT DataA_Pause_LavaAreaName_u8_arr
 .IMPORT DataA_Room_Lava_sTileset
+.IMPORT FuncA_Machine_BoilerTick
+.IMPORT FuncA_Machine_BoilerWriteReg
 .IMPORT FuncA_Machine_EmitSteamRightFromPipe
 .IMPORT FuncA_Machine_EmitSteamUpFromPipe
 .IMPORT FuncA_Objects_Alloc1x1Shape
-.IMPORT FuncA_Objects_DrawBoilerValve
+.IMPORT FuncA_Objects_DrawBoilerValve1
 .IMPORT FuncA_Objects_GetMachineLightTileId
 .IMPORT FuncA_Objects_SetShapePosToMachineTopLeft
+.IMPORT Func_MachineBoilerReadReg
+.IMPORT Func_MachineBoilerReset
 .IMPORT Func_MachineError
-.IMPORT Func_MachineFinishResetting
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrObjLava
 .IMPORT Ram_DeviceType_eDevice_arr
 .IMPORT Ram_MachineGoalVert_u8_arr
-.IMPORT Ram_MachineParam1_u8_arr
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORT Sram_ProgressFlags_arr
 .IMPORTZP Zp_MachineIndex_u8
@@ -117,13 +119,13 @@ _Machines_sMachine_arr:
     d_byte RegNames_u8_arr4, "V", 0, 0, 0
     d_byte MainPlatform_u8, kBoilerPlatformIndex
     d_addr Init_func_ptr, Func_Noop
-    d_addr ReadReg_func_ptr, FuncC_Lava_StationBoiler_ReadReg
-    d_addr WriteReg_func_ptr, FuncC_Lava_StationBoiler_WriteReg
+    d_addr ReadReg_func_ptr, Func_MachineBoilerReadReg
+    d_addr WriteReg_func_ptr, FuncA_Machine_BoilerWriteReg
     d_addr TryMove_func_ptr, Func_MachineError
     d_addr TryAct_func_ptr, FuncC_Lava_StationBoiler_TryAct
-    d_addr Tick_func_ptr, FuncC_Lava_StationBoiler_Tick
+    d_addr Tick_func_ptr, FuncA_Machine_BoilerTick
     d_addr Draw_func_ptr, FuncA_Objects_LavaStationBoiler_Draw
-    d_addr Reset_func_ptr, FuncC_Lava_StationBoiler_Reset
+    d_addr Reset_func_ptr, Func_MachineBoilerReset
     D_END
     .assert * - :- <= kMaxMachines * .sizeof(sMachine), error
 _Platforms_sPlatform_arr:
@@ -197,27 +199,6 @@ _Passages_sPassage_arr:
     rts
 .ENDPROC
 
-.PROC FuncC_Lava_StationBoiler_Reset
-    ldx Zp_MachineIndex_u8
-    lda #0
-    sta Ram_MachineGoalVert_u8_arr, x
-    rts
-.ENDPROC
-
-.PROC FuncC_Lava_StationBoiler_ReadReg
-    ldx Zp_MachineIndex_u8
-    lda Ram_MachineGoalVert_u8_arr, x
-    rts
-.ENDPROC
-
-.PROC FuncC_Lava_StationBoiler_WriteReg
-    txa  ; value to write
-    ldx Zp_MachineIndex_u8
-    sta Ram_MachineGoalVert_u8_arr, x
-    lda #kBoilerWriteCountdown
-    rts
-.ENDPROC
-
 ;;; TryAct implemention for the LavaStationBoiler machine.
 ;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
 ;;; @prereq PRGA_Machine is loaded.
@@ -229,8 +210,7 @@ _Passages_sPassage_arr:
     ldy Zp_MachineIndex_u8
     ldx Ram_MachineGoalVert_u8_arr, y  ; valve angle (0-9)
     ldy _ValvePipePlatformIndex_u8_arr10, x  ; pipe platform index
-    cpy #kMaxPlatforms
-    bge _Failure
+    bmi _Failure
     ;; Emit steam from the chosen pipe.
     cpy #kPipe1PlatformIndex
     beq @steamRight
@@ -260,22 +240,6 @@ _ValvePipePlatformIndex_u8_arr10:
     .assert * - :- = 10, error
 .ENDPROC
 
-.PROC FuncC_Lava_StationBoiler_Tick
-    ldx Zp_MachineIndex_u8
-    lda Ram_MachineGoalVert_u8_arr, x
-    mul #kBoilerValveAnimSlowdown
-    cmp Ram_MachineParam1_u8_arr, x
-    blt @decrement
-    bne @increment
-    jmp Func_MachineFinishResetting
-    @increment:
-    inc Ram_MachineParam1_u8_arr, x
-    rts
-    @decrement:
-    dec Ram_MachineParam1_u8_arr, x
-    rts
-.ENDPROC
-
 ;;;=========================================================================;;;
 
 .SEGMENT "PRGA_Objects"
@@ -292,11 +256,8 @@ _Light:
     @done:
     ;; TODO: draw rest of machine
 _Valve:
-    ldx Zp_MachineIndex_u8
-    lda Ram_MachineParam1_u8_arr, x
-    div #kBoilerValveAnimSlowdown  ; param: valve angle
     ldx #kValvePlatformIndex  ; param: platform index
-    jmp FuncA_Objects_DrawBoilerValve
+    jmp FuncA_Objects_DrawBoilerValve1
 .ENDPROC
 
 ;;;=========================================================================;;;
