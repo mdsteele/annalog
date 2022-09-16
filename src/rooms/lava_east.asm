@@ -115,7 +115,7 @@ _Machines_sMachine_arr:
     d_byte Code_eProgram, eProgram::LavaEastUpperBoiler
     d_byte Breaker_eFlag, 0
     d_byte Flags_bMachine, bMachine::Act | bMachine::WriteC | bMachine::WriteD
-    d_byte Status_eDiagram, eDiagram::Winch  ; TODO
+    d_byte Status_eDiagram, eDiagram::Boiler
     d_word ScrollGoalX_u16, $090
     d_byte ScrollGoalY_u8, $20
     d_byte RegNames_u8_arr4, "V", "U", 0, 0
@@ -134,7 +134,7 @@ _Machines_sMachine_arr:
     d_byte Code_eProgram, eProgram::LavaEastLowerBoiler
     d_byte Breaker_eFlag, 0
     d_byte Flags_bMachine, bMachine::Act | bMachine::WriteC | bMachine::WriteD
-    d_byte Status_eDiagram, eDiagram::Winch  ; TODO
+    d_byte Status_eDiagram, eDiagram::Boiler
     d_word ScrollGoalX_u16, $110
     d_byte ScrollGoalY_u8, $b8
     d_byte RegNames_u8_arr4, "V", "U", 0, 0

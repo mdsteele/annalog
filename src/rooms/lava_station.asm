@@ -110,7 +110,7 @@ _Machines_sMachine_arr:
     d_byte Code_eProgram, eProgram::LavaStationBoiler
     d_byte Breaker_eFlag, 0
     d_byte Flags_bMachine, bMachine::Act | bMachine::WriteC
-    d_byte Status_eDiagram, eDiagram::Winch  ; TODO
+    d_byte Status_eDiagram, eDiagram::Boiler
     d_word ScrollGoalX_u16, $10
     d_byte ScrollGoalY_u8, $40
     d_byte RegNames_u8_arr4, "V", 0, 0, 0
