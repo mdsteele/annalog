@@ -31,6 +31,7 @@
 .IMPORT FuncA_Objects_MoveShapeDownOneTile
 .IMPORT FuncA_Objects_MoveShapeRightOneTile
 .IMPORT FuncA_Objects_MoveShapeUpOneTile
+.IMPORT FuncA_Objects_SetShapePosToMachineTopLeft
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
 .IMPORT Func_FindEmptyActorSlot
 .IMPORT Func_InitActorProjSmoke
@@ -38,6 +39,7 @@
 .IMPORT Ram_ActorPosX_i16_1_arr
 .IMPORT Ram_ActorPosY_i16_0_arr
 .IMPORT Ram_ActorPosY_i16_1_arr
+.IMPORT Ram_MachineGoalVert_u8_arr
 .IMPORT Ram_MachineParam1_u8_arr
 .IMPORT Ram_MachineParam2_i16_0_arr
 .IMPORT Ram_MachineParam2_i16_1_arr
@@ -192,11 +194,13 @@ _Falling:
 
 ;;; Puts the current winch machine into falling mode.
 ;;; @prereq Zp_MachineIndex_u8 is initialized.
+;;; @param A The new Z-goal to set.
 ;;; @return C Set if there was an error, cleared otherwise.
 ;;; @return A How many frames to wait before advancing the PC.
 .EXPORT FuncA_Machine_WinchStartFalling
 .PROC FuncA_Machine_WinchStartFalling
     ldy Zp_MachineIndex_u8
+    sta Ram_MachineGoalVert_u8_arr, y
     ;; Start "falling" to true.
     lda #$ff
     sta Ram_MachineParam1_u8_arr, y  ; falling bool
@@ -279,14 +283,17 @@ _PlaySound:
 
 .SEGMENT "PRGA_Objects"
 
-;;; Allocates and populates OAM slots for a winch machine.
-;;; @prereq Zp_MachineIndex_u8 is initialized.
-;;; @prereq The shape position is set to the top-left corner of the machine.
-;;; @param X The low byte of the Y-position of the end of the chain.
+;;; Draws a winch machine.
+;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
+;;; @param A The low byte of the Y-position of the end of the chain.
 .EXPORT FuncA_Objects_DrawWinchMachine
 .PROC FuncA_Objects_DrawWinchMachine
-    jsr FuncA_Objects_MoveShapeDownOneTile   ; preserves X
-    jsr FuncA_Objects_MoveShapeRightOneTile  ; preserves X
+    pha  ; chain position
+    jsr FuncA_Objects_SetShapePosToMachineTopLeft
+    jsr FuncA_Objects_MoveShapeDownOneTile
+    jsr FuncA_Objects_MoveShapeRightOneTile
+    pla  ; chain position
+    tax  ; chain position
     ;; Allocate objects.
     lda #kWinchGearPalette  ; param: object flags
     jsr FuncA_Objects_Alloc2x2Shape  ; preserves X, returns C and Y

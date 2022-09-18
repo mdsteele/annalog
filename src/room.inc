@@ -39,6 +39,7 @@ kRoomStateSize = $100
 .ENUM eRoom
     CryptBoss
     CryptFlower
+    CryptGallery
     CryptLanding
     CryptSouth
     CryptTomb
@@ -78,7 +79,7 @@ kRoomStateSize = $100
     NUM_VALUES
 .ENDENUM
 
-.DEFINE kNumRooms 38
+.DEFINE kNumRooms 39
 .ASSERT kNumRooms = eRoom::NUM_VALUES, error
 
 ;;;=========================================================================;;;

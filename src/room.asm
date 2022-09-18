@@ -27,6 +27,7 @@
 
 .IMPORT DataC_Crypt_Boss_sRoom
 .IMPORT DataC_Crypt_Flower_sRoom
+.IMPORT DataC_Crypt_Gallery_sRoom
 .IMPORT DataC_Crypt_Landing_sRoom
 .IMPORT DataC_Crypt_South_sRoom
 .IMPORT DataC_Crypt_Tomb_sRoom
@@ -101,6 +102,7 @@
 .DEFINE RoomPtrs \
     DataC_Crypt_Boss_sRoom, \
     DataC_Crypt_Flower_sRoom, \
+    DataC_Crypt_Gallery_sRoom, \
     DataC_Crypt_Landing_sRoom, \
     DataC_Crypt_South_sRoom, \
     DataC_Crypt_Tomb_sRoom, \

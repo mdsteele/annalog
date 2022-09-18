@@ -42,7 +42,6 @@
 .IMPORT FuncA_Objects_DrawWinchSpikeball
 .IMPORT FuncA_Objects_MoveShapeLeftHalfTile
 .IMPORT FuncA_Objects_MoveShapeUpOneTile
-.IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
 .IMPORT FuncA_Objects_SetShapePosToSpikeballCenter
 .IMPORT Func_MachineError
 .IMPORT Func_MachineFinishResetting
@@ -51,8 +50,8 @@
 .IMPORT Func_Noop
 .IMPORT Func_ResetWinchMachineParams
 .IMPORT Ppu_ChrObjCrypt
+.IMPORT Ram_MachineGoalVert_u8_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
-.IMPORT Ram_RoomState
 .IMPORTZP Zp_PlatformGoal_i16
 
 ;;;=========================================================================;;;
@@ -65,7 +64,7 @@ kWinchPlatformIndex = 0
 kSpikeball1PlatformIndex = 1
 kNumSpikeballPlatforms = 4
 
-;;; The initial and maximum permitted values for sState::WinchGoalY_u8.
+;;; The initial and maximum permitted values for the winch's Z-goal.
 kWinchInitGoalZ = 2
 kWinchMaxGoalZ  = 4
 
@@ -91,15 +90,6 @@ kSpikeball3InitPlatformTop = \
 kSpikeball4InitPlatformTop = \
     kSpikeball3InitPlatformTop + kBlockHeightPx + kChain34Tiles * kTileHeightPx
 .LINECONT +
-
-;;;=========================================================================;;;
-
-;;; Defines room-specific state data for this particular room.
-.STRUCT sState
-    ;; The goal value for the CryptWestWinch machine's Z register.
-    WinchGoalZ_u8 .byte
-.ENDSTRUCT
-.ASSERT .sizeof(sState) <= kRoomStateSize, error
 
 ;;;=========================================================================;;;
 
@@ -232,7 +222,7 @@ _Passages_sPassage_arr:
 _Winch_Init:
 _Winch_Reset:
     lda #kWinchInitGoalZ
-    sta Ram_RoomState + sState::WinchGoalZ_u8
+    sta Ram_MachineGoalVert_u8_arr + kWinchMachineIndex
     jmp Func_ResetWinchMachineParams
 .ENDPROC
 
@@ -244,7 +234,7 @@ _Winch_Reset:
 .ENDPROC
 
 .PROC FuncC_Crypt_WestWinch_TryMove
-    ldy Ram_RoomState + sState::WinchGoalZ_u8
+    ldy Ram_MachineGoalVert_u8_arr + kWinchMachineIndex
     txa
     .assert eDir::Up = 0, error
     beq @moveUp
@@ -260,7 +250,7 @@ _Winch_Reset:
     dey
     lda #kWinchMoveUpCooldown
     @success:
-    sty Ram_RoomState + sState::WinchGoalZ_u8
+    sty Ram_MachineGoalVert_u8_arr + kWinchMachineIndex
     clc  ; clear C to indicate success
     rts
     @error:
@@ -269,15 +259,14 @@ _Winch_Reset:
 .ENDPROC
 
 .PROC FuncC_Crypt_WestWinch_TryAct
-    lda #kWinchMaxGoalZ
-    sta Ram_RoomState + sState::WinchGoalZ_u8
+    lda #kWinchMaxGoalZ  ; param: new Z-goal
     jmp FuncA_Machine_WinchStartFalling  ; returns C and A
 .ENDPROC
 
 .PROC FuncC_Crypt_WestWinch_Tick
     ;; Calculate the desired room-space pixel Y-position for the top edge of
     ;; the uppermost spikeball, storing it in Zp_PlatformGoal_i16.
-    lda Ram_RoomState + sState::WinchGoalZ_u8
+    lda Ram_MachineGoalVert_u8_arr + kWinchMachineIndex
     mul #kBlockHeightPx
     add #kSpikeball1MinPlatformTop
     .linecont +
@@ -318,10 +307,7 @@ _Winch_Reset:
 
 ;;; Allocates and populates OAM slots for the CryptWestWinch machine.
 .PROC FuncA_Objects_CryptWestWinch_Draw
-_Winch:
-    ldx #kWinchPlatformIndex  ; param: platform index
-    jsr FuncA_Objects_SetShapePosToPlatformTopLeft
-    ldx Ram_PlatformTop_i16_0_arr + kSpikeball1PlatformIndex  ; param: chain
+    lda Ram_PlatformTop_i16_0_arr + kSpikeball1PlatformIndex  ; param: chain
     jsr FuncA_Objects_DrawWinchMachine
 _Spikeballs:
     ldx #kSpikeball1PlatformIndex  ; param: platform index

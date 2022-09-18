@@ -58,6 +58,8 @@
 .IMPORT Func_ResetWinchMachineParams
 .IMPORT Int_WindowTopIrq
 .IMPORT Ppu_ChrObjCrypt
+.IMPORT Ram_MachineGoalHorz_u8_arr
+.IMPORT Ram_MachineGoalVert_u8_arr
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORT Ram_PlatformLeft_i16_0_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
@@ -89,11 +91,11 @@ kSpikeballPlatformIndex  = 1
 kLeftWallPlatformIndex   = 2
 kRightWallPlatformIndex  = 3
 
-;;; The initial and maximum permitted values for sState::WinchGoalX_u8.
+;;; The initial and maximum permitted values for the winch's X-goal.
 kWinchInitGoalX = 4
 kWinchMaxGoalX  = 9
 
-;;; The initial and maximum values for sState::WinchGoalZ_u8.
+;;; The initial and maximum permitted values for the winch's Z-goal.
 kWinchInitGoalZ = 2
 kWinchMaxGoalZ = 9
 
@@ -172,9 +174,6 @@ kBossPupilPalette = 0
     ;; The current states of the room's two levers.
     LeverLeft_u1  .byte
     LeverRight_u1 .byte
-    ;; The goal values for the CryptTombWinch machine's X and Z registers.
-    WinchGoalX_u8 .byte
-    WinchGoalZ_u8 .byte
     ;; Which step of its reset sequence the CryptTombWinch machine is on.
     WinchReset_eResetSeq .byte
     ;; The room pixel position of the center of the boss's eye.
@@ -343,7 +342,7 @@ _ReadR:
 .ENDPROC
 
 .PROC FuncC_Crypt_BossWinch_TryMove
-    ldy Ram_RoomState + sState::WinchGoalX_u8
+    ldy Ram_MachineGoalHorz_u8_arr + kWinchMachineIndex
     .assert eDir::Up = 0, error
     txa
     beq _MoveUp
@@ -363,25 +362,25 @@ _MoveHorz:
     dey
     @checkFloor:
     lda DataC_Crypt_BossFloor_u8_arr, y
-    cmp Ram_RoomState + sState::WinchGoalZ_u8
+    cmp Ram_MachineGoalVert_u8_arr + kWinchMachineIndex
     blt _Error
-    sty Ram_RoomState + sState::WinchGoalX_u8
+    sty Ram_MachineGoalHorz_u8_arr + kWinchMachineIndex
     lda #kWinchMoveHorzCooldown
     clc  ; success
     rts
 _MoveUp:
-    lda Ram_RoomState + sState::WinchGoalZ_u8
+    lda Ram_MachineGoalVert_u8_arr + kWinchMachineIndex
     beq _Error
-    dec Ram_RoomState + sState::WinchGoalZ_u8
+    dec Ram_MachineGoalVert_u8_arr + kWinchMachineIndex
     lda #kWinchMoveUpCooldown
     clc  ; success
     rts
 _MoveDown:
     ;; TODO: check for weak floor collision
-    lda Ram_RoomState + sState::WinchGoalZ_u8
+    lda Ram_MachineGoalVert_u8_arr + kWinchMachineIndex
     cmp DataC_Crypt_BossFloor_u8_arr, y
     bge _Error
-    inc Ram_RoomState + sState::WinchGoalZ_u8
+    inc Ram_MachineGoalVert_u8_arr + kWinchMachineIndex
     lda #kWinchMoveDownCooldown
     clc  ; success
     rts
@@ -391,9 +390,8 @@ _Error:
 .ENDPROC
 
 .PROC FuncC_Crypt_BossWinch_TryAct
-    ldy Ram_RoomState + sState::WinchGoalX_u8
-    lda DataC_Crypt_BossFloor_u8_arr, y
-    sta Ram_RoomState + sState::WinchGoalZ_u8
+    ldy Ram_MachineGoalHorz_u8_arr + kWinchMachineIndex
+    lda DataC_Crypt_BossFloor_u8_arr, y  ; param: new Z-goal
     jmp FuncA_Machine_WinchStartFalling  ; returns C and A
 .ENDPROC
 
@@ -401,7 +399,7 @@ _Error:
 _MoveVert:
     ;; Calculate the desired room-space pixel Y-position for the top edge of
     ;; the spikeball, storing it in Zp_PlatformGoal_i16.
-    lda Ram_RoomState + sState::WinchGoalZ_u8
+    lda Ram_MachineGoalVert_u8_arr + kWinchMachineIndex
     mul #kBlockHeightPx
     add #kSpikeballMinPlatformTop
     .linecont +
@@ -426,7 +424,7 @@ _MoveVert:
 _MoveHorz:
     ;; Calculate the desired X-position for the left edge of the winch, in
     ;; room-space pixels, storing it in Zp_PlatformGoal_i16.
-    lda Ram_RoomState + sState::WinchGoalX_u8
+    lda Ram_MachineGoalHorz_u8_arr + kWinchMachineIndex
     mul #kBlockWidthPx
     add #kWinchMinPlatformLeft
     sta Zp_PlatformGoal_i16 + 0
@@ -449,16 +447,16 @@ _Finished:
 
 .PROC FuncC_Crypt_BossWinch_Reset
     jsr Func_ResetWinchMachineParams
-    lda Ram_RoomState + sState::WinchGoalX_u8
+    lda Ram_MachineGoalHorz_u8_arr + kWinchMachineIndex
     cmp #3
     blt _Outer
     cmp #7
     blt _Inner
 _Outer:
     lda #kWinchInitGoalX
-    sta Ram_RoomState + sState::WinchGoalX_u8
+    sta Ram_MachineGoalHorz_u8_arr + kWinchMachineIndex
     lda #1
-    sta Ram_RoomState + sState::WinchGoalZ_u8
+    sta Ram_MachineGoalVert_u8_arr + kWinchMachineIndex
     lda #eResetSeq::TopCenter
     sta Ram_RoomState + sState::WinchReset_eResetSeq
     rts
@@ -468,9 +466,9 @@ _Inner:
 
 .PROC FuncC_Crypt_BossWinch_Init
     lda #kWinchInitGoalX
-    sta Ram_RoomState + sState::WinchGoalX_u8
+    sta Ram_MachineGoalHorz_u8_arr + kWinchMachineIndex
     lda #kWinchInitGoalZ
-    sta Ram_RoomState + sState::WinchGoalZ_u8
+    sta Ram_MachineGoalVert_u8_arr + kWinchMachineIndex
     lda #0
     sta Ram_RoomState + sState::WinchReset_eResetSeq
     rts
@@ -759,12 +757,9 @@ _EyeOffsetY_u8_arr:
     rts
 .ENDPROC
 
-;;; Allocates and populates OAM slots for the winch machine in this room.
+;;; Draws the CryptBossWinch machine.
 .PROC FuncA_Objects_CryptBossWinch_Draw
-_Winch:
-    ldx #kWinchPlatformIndex  ; param: platform index
-    jsr FuncA_Objects_SetShapePosToPlatformTopLeft
-    ldx Ram_PlatformTop_i16_0_arr + kSpikeballPlatformIndex  ; param: chain
+    lda Ram_PlatformTop_i16_0_arr + kSpikeballPlatformIndex  ; param: chain
     jsr FuncA_Objects_DrawWinchMachine
 _Spikeball:
     ldx #kSpikeballPlatformIndex  ; param: platform index

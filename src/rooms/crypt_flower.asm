@@ -42,7 +42,6 @@
 .IMPORT FuncA_Objects_DrawWinchMachine
 .IMPORT FuncA_Objects_MoveShapeLeftOneTile
 .IMPORT FuncA_Objects_MoveShapeUpOneTile
-.IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
 .IMPORT Func_MachineError
 .IMPORT Func_MachineFinishResetting
 .IMPORT Func_MovePlatformTopToward
@@ -52,8 +51,8 @@
 .IMPORT Func_ResetWinchMachineParams
 .IMPORT Func_RespawnFlowerDeviceIfDropped
 .IMPORT Ppu_ChrObjCrypt
+.IMPORT Ram_MachineGoalVert_u8_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
-.IMPORT Ram_RoomState
 .IMPORTZP Zp_AvatarPlatformIndex_u8
 .IMPORTZP Zp_PlatformGoal_i16
 
@@ -81,15 +80,6 @@ kUpperGirderMinPlatformTop = $48
 kUpperGirderInitPlatformTop = \
     kUpperGirderMinPlatformTop + kBlockHeightPx * kWinchInitGoalZ
 .LINECONT +
-
-;;;=========================================================================;;;
-
-;;; Defines room-specific state data for this particular room.
-.STRUCT sState
-    ;; The goal value for the CryptFlowerWinch machine's Z register.
-    WinchGoalZ_u8 .byte
-.ENDSTRUCT
-.ASSERT .sizeof(sState) <= kRoomStateSize, error
 
 ;;;=========================================================================;;;
 
@@ -233,7 +223,7 @@ _Passages_sPassage_arr:
 _Winch_Init:
 _Winch_Reset:
     lda #kWinchInitGoalZ
-    sta Ram_RoomState + sState::WinchGoalZ_u8
+    sta Ram_MachineGoalVert_u8_arr + kWinchMachineIndex
     jmp Func_ResetWinchMachineParams
 .ENDPROC
 
@@ -268,7 +258,7 @@ _ReadZ:
 .ENDPROC
 
 .PROC FuncC_Crypt_FlowerWinch_TryMove
-    ldy Ram_RoomState + sState::WinchGoalZ_u8
+    ldy Ram_MachineGoalVert_u8_arr + kWinchMachineIndex
     txa
     .assert eDir::Up = 0, error
     beq @moveUp
@@ -284,7 +274,7 @@ _ReadZ:
     dey
     lda #kWinchMoveUpCooldown
     @success:
-    sty Ram_RoomState + sState::WinchGoalZ_u8
+    sty Ram_MachineGoalVert_u8_arr + kWinchMachineIndex
     clc  ; clear C to indicate success
     rts
     @error:
@@ -293,15 +283,14 @@ _ReadZ:
 .ENDPROC
 
 .PROC FuncC_Crypt_FlowerWinch_TryAct
-    lda #kWinchMaxGoalZ
-    sta Ram_RoomState + sState::WinchGoalZ_u8
+    lda #kWinchMaxGoalZ  ; param: new Z-goal
     jmp FuncA_Machine_WinchStartFalling  ; returns C and A
 .ENDPROC
 
 .PROC FuncC_Crypt_FlowerWinch_Tick
     ;; Calculate the desired room-space pixel Y-position for the top edge of
     ;; the upper girder, storing it in Zp_PlatformGoal_i16.
-    lda Ram_RoomState + sState::WinchGoalZ_u8
+    lda Ram_MachineGoalVert_u8_arr + kWinchMachineIndex
     mul #kBlockHeightPx
     add #kUpperGirderMinPlatformTop
     .linecont +
@@ -332,12 +321,10 @@ _ReadZ:
 
 .SEGMENT "PRGA_Objects"
 
-;;; Allocates and populates OAM slots for the CryptFlowerWinch machine.
+;;; Draws the CryptFlowerWinch machine.
 .PROC FuncA_Objects_CryptFlowerWinch_Draw
-    ;; Draw the winch machine.
-    ldx #kWinchPlatformIndex  ; param: platform index
-    jsr FuncA_Objects_SetShapePosToPlatformTopLeft
-    ldx Ram_PlatformTop_i16_0_arr + kUpperGirderPlatformIndex  ; param: chain
+    ;; Draw the winch itself.
+    lda Ram_PlatformTop_i16_0_arr + kUpperGirderPlatformIndex  ; param: chain
     jsr FuncA_Objects_DrawWinchMachine
     ;; Draw the two girders.
     ldx #kUpperGirderPlatformIndex  ; param: platform index

@@ -103,6 +103,7 @@
 ;;; same program.
 .ENUM eProgram
     CryptFlowerWinch
+    CryptGalleryWinch
     CryptSouthWinch
     CryptTombWinch
     CryptWestWinch
