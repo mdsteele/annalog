@@ -386,16 +386,16 @@ _MermaidInitialFunc:
     ldya #_MermaidLater_sDialog
     rts
 _MermaidFirst_sDialog:
-    .word ePortrait::Woman
+    .word ePortrait::Mermaid
     .byte "Are you...a human?$"
     .byte "A real human girl?#"
-    .word ePortrait::Woman
+    .word ePortrait::Mermaid
     .byte "But...humans aren't$"
     .byte "supposed to be down$"
     .byte "here! I've never even$"
     .byte "met one before.#"
 _MermaidLater_sDialog:
-    .word ePortrait::Woman
+    .word ePortrait::Mermaid
     .byte "You should meet with$"
     .byte "our queen. She will$"
     .byte "know what to do with$"
@@ -411,7 +411,7 @@ _MermaidSetFlagFunc:
     ldya #_MermaidMarkMap_sDialog
     rts
 _MermaidMarkMap_sDialog:
-    .word ePortrait::Woman
+    .word ePortrait::Mermaid
     .byte "I'll mark her hut on$"
     .byte "your map.#"
     .byte 0

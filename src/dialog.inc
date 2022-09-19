@@ -30,9 +30,10 @@
 ;;; dialog is paused, and the hi byte is the bank number to alternate with the
 ;;; first to animate the portrait while text is being written.
 .ENUM ePortrait
-    Woman = $0201
-    Sign  = $0303
-    Paper = $0404
+    Woman   = $0201
+    Sign    = $0303
+    Paper   = $0404
+    Mermaid = $0605
 .ENDENUM
 
 ;;;=========================================================================;;;

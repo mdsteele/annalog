@@ -265,16 +265,16 @@ _Passages_sPassage_arr:
     .assert * - :- = kMermaidYouthDialogIndex * kSizeofAddr, error
     .addr _MermaidYouth_sDialog
 _MermaidGuard_sDialog:
-    .word ePortrait::Woman
+    .word ePortrait::Mermaid
     .byte "I am guarding this$"
     .byte "village.#"
     .byte 0
 _MermaidFarmer_sDialog:
-    .word ePortrait::Woman
+    .word ePortrait::Mermaid
     .byte "I am farming seaweed.#"
     .byte 0
 _MermaidYouth_sDialog:
-    .word ePortrait::Woman
+    .word ePortrait::Mermaid
     .byte "Lorem ipsum.#"
     .byte 0
 .ENDPROC
