@@ -44,6 +44,10 @@
 .IMPORT DataA_Terrain_MermaidLowerRight_u8_arr
 .IMPORT DataA_Terrain_MermaidUpperLeft_u8_arr
 .IMPORT DataA_Terrain_MermaidUpperRight_u8_arr
+.IMPORT DataA_Terrain_MineLowerLeft_u8_arr
+.IMPORT DataA_Terrain_MineLowerRight_u8_arr
+.IMPORT DataA_Terrain_MineUpperLeft_u8_arr
+.IMPORT DataA_Terrain_MineUpperRight_u8_arr
 .IMPORT DataA_Terrain_OutdoorsLowerLeft_u8_arr
 .IMPORT DataA_Terrain_OutdoorsLowerRight_u8_arr
 .IMPORT DataA_Terrain_OutdoorsUpperLeft_u8_arr
@@ -58,6 +62,7 @@
 .IMPORT Ppu_ChrBgIndoors
 .IMPORT Ppu_ChrBgLava
 .IMPORT Ppu_ChrBgMermaid
+.IMPORT Ppu_ChrBgMine
 .IMPORT Ppu_ChrBgOutdoors
 .IMPORT Ppu_ChrBgPrison
 
@@ -128,6 +133,17 @@
     d_addr UpperRight_u8_arr_ptr, DataA_Terrain_MermaidUpperRight_u8_arr
     d_addr LowerRight_u8_arr_ptr, DataA_Terrain_MermaidLowerRight_u8_arr
     d_byte Chr08Bank_u8, <.bank(Ppu_ChrBgMermaid)
+    D_END
+.ENDPROC
+
+.EXPORT DataA_Room_Mine_sTileset
+.PROC DataA_Room_Mine_sTileset
+    D_STRUCT sTileset
+    d_addr UpperLeft_u8_arr_ptr,  DataA_Terrain_MineUpperLeft_u8_arr
+    d_addr LowerLeft_u8_arr_ptr,  DataA_Terrain_MineLowerLeft_u8_arr
+    d_addr UpperRight_u8_arr_ptr, DataA_Terrain_MineUpperRight_u8_arr
+    d_addr LowerRight_u8_arr_ptr, DataA_Terrain_MineLowerRight_u8_arr
+    d_byte Chr08Bank_u8, <.bank(Ppu_ChrBgMine)
     D_END
 .ENDPROC
 

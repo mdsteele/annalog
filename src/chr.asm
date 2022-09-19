@@ -229,6 +229,18 @@
 
 ;;;=========================================================================;;;
 
+.SEGMENT "CHR_BgMine"
+
+.EXPORT Ppu_ChrBgMine
+.PROC Ppu_ChrBgMine
+:   .incbin "out/data/tiles/crystal.chr"
+    .res $24 * kSizeofChr
+    .incbin "out/data/tiles/device.chr"
+    .assert * - :- = kSizeofChr * $40, error
+.ENDPROC
+
+;;;=========================================================================;;;
+
 .SEGMENT "CHR_BgMinimap"
 
 .EXPORT Ppu_ChrBgMinimap

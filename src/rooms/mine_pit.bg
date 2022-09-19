@@ -1,0 +1,20 @@
+@BG 0 0 0 16x15
+>mine_0
+>mine_1
+>mine_4
+
+CMCMCNCMCICFCD    CCCFCFCJCMCNCM
+CMCICFCFCD              CCCFCJCM
+CMCH                        CGCM
+CMCH                        CGCN
+CPCH                        CGCM
+CMCH                        CGCM
+CMCH    CACECECB            CGCM
+CMCH  CACLCICFCD            CGCM
+CMCH  CCCFCD        CACB    CGCO
+CMCH                CGCH    CGCM
+CMCKCB            CACLCH  CACGCM
+CPCMCH            CCCFCD  CGCMCN
+CMCPCH  CACECB            CGCPCM
+CMCMCKCECLCMCKCECECECECECECLCMCM
+CMCOCMCMCMCMCMCMCMCMCMCOCMCMCMCM

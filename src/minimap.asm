@@ -136,6 +136,11 @@ _MarkMinimap:
     .byte "Mermaid Vale", $ff
 .ENDPROC
 
+.EXPORT DataA_Pause_MineAreaName_u8_arr
+.PROC DataA_Pause_MineAreaName_u8_arr
+    .byte "Salt Mines", $ff
+.ENDPROC
+
 .EXPORT DataA_Pause_PrisonAreaName_u8_arr
 .PROC DataA_Pause_PrisonAreaName_u8_arr
     .byte "Prison Caves", $ff
@@ -238,6 +243,27 @@ _MarkMinimap:
     .byte 11, 12
     .byte 11, 13
     .byte 11, 14
+    .byte $ff
+.ENDPROC
+
+.EXPORT DataA_Pause_MineAreaCells_u8_arr2_arr
+.PROC DataA_Pause_MineAreaCells_u8_arr2_arr
+    .byte  9, 19
+    .byte  9, 20
+    .byte  9, 21
+    .byte  9, 22
+    .byte 10, 19
+    .byte 10, 20
+    .byte 10, 21
+    .byte 10, 22
+    .byte 11, 20
+    .byte 11, 21
+    .byte 11, 22
+    .byte 12, 20
+    .byte 12, 21
+    .byte 12, 22
+    .byte 13, 20
+    .byte 13, 22
     .byte $ff
 .ENDPROC
 
