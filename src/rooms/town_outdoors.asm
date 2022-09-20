@@ -268,7 +268,7 @@ _Dialog0_sDialog:
     .byte "Ut enim ad minim$"
     .byte "veniam, quis nostrud$"
     .byte "exercitation.#"
-    .byte 0
+    .word ePortrait::Done
 .ENDPROC
 
 ;;;=========================================================================;;;

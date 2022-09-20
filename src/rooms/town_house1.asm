@@ -119,7 +119,7 @@ _Dialog0_sDialog:
     .word ePortrait::Woman
     .byte "My sister keeps peeing$"
     .byte "her pants!#"
-    .byte 0
+    .word ePortrait::Done
 .ENDPROC
 
 ;;;=========================================================================;;;

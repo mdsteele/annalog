@@ -116,7 +116,8 @@ Zp_DialogText_ptr: .res 2
 ;;; @param X The dialog index.
 .EXPORT Main_Dialog_OpenWindow
 .PROC Main_Dialog_OpenWindow
-    jsr_prga FuncA_Dialog_Init
+    jsr_prga FuncA_Dialog_Init  ; sets C if dialog is empty
+    jcs Main_Explore_Continue
 _GameLoop:
     jsr_prga FuncA_Objects_DrawObjectsForRoom
     jsr Func_ClearRestOfOam
@@ -191,6 +192,7 @@ _UpdateScrolling:
 
 ;;; Initializes dialog mode.
 ;;; @param X The dialog index.
+;;; @return C Set if the dialog is empty, cleared otherwise.
 .PROC FuncA_Dialog_Init
     txa
     asl a
@@ -211,7 +213,8 @@ _UpdateScrolling:
     lda (Zp_Tmp_ptr), y
     sta Zp_DialogText_ptr + 1
     ;; Load the first portrait of the dialog.
-    jsr FuncA_Dialog_LoadNextPortrait
+    jsr FuncA_Dialog_LoadNextPortrait  ; sets C if dialog is already done
+    bcs _Done
 _SetScrollGoal:
     jsr Func_SetScrollGoalFromAvatar
     lda Zp_ScrollGoalY_u8
@@ -224,6 +227,8 @@ _InitWindow:
     sta Zp_WindowNextRowToTransfer_u8
     lda #kDialogWindowTopGoal
     sta Zp_WindowTopGoal_u8
+    clc  ; nonempty dialog
+_Done:
     rts
 .ENDPROC
 
@@ -240,11 +245,10 @@ _InitWindow:
     bpl @noAButton
     bit Zp_DialogPaused_bool
     bpl @skip
+    @nextPage:
     jsr FuncA_Dialog_TransferClearText
-    ldy #0
-    lda (Zp_DialogText_ptr), y
-    beq _CloseWindow
-    jsr FuncA_Dialog_LoadNextPortrait
+    jsr FuncA_Dialog_LoadNextPortrait  ; sets C if dialog is now done
+    bcs _CloseWindow
     jmp _AnimatePortrait
     @skip:
     jsr FuncA_Dialog_TransferRestOfText
@@ -276,10 +280,15 @@ _CloseWindow:
     rts
 .ENDPROC
 
-;;; Reads the 2-byte ePortrait value that Zp_DialogText_ptr points to,
-;;; initializes dialog variables appropriately, and then advances
-;;; Zp_DialogText_ptr to point to the start of the text.
-;;; @prereq Zp_DialogText_ptr is pointing to an ePortrait.
+;;; Reads the first two bytes of the next sDialog entry that Zp_DialogText_ptr
+;;; points to.
+;;;   * If it is a portrait, initializes dialog variables appropriately, and
+;;;     then advances Zp_DialogText_ptr to point to the start of the text.
+;;;   * If it is a dynamic dialog function pointer, calls the function and then
+;;;     tries again with the dialog entry returned by the function.
+;;;   * If it is ePortrait::Done, sets the C flag and returns.
+;;; @prereq Zp_DialogText_ptr is pointing to the next sDialog entry.
+;;; @return C Set if the dialog is now done, cleared otherwise.
 .PROC FuncA_Dialog_LoadNextPortrait
     lda #kDialogTextStartCol
     sta Zp_DialogTextCol_u8
@@ -292,6 +301,7 @@ _ReadPortrait:
     tax
     iny
     lda (Zp_DialogText_ptr), y
+    beq _DialogDone
     bpl _SetPortrait
 _DynamicDialog:
     stax Zp_Tmp_ptr
@@ -300,6 +310,9 @@ _DynamicDialog:
     jmp _ReadPortrait
 _CallTmpPtr:
     jmp (Zp_Tmp_ptr)
+_DialogDone:
+    sec  ; dialog done
+    rts
 _SetPortrait:
     iny
     sta Zp_PortraitAnimBank_u8
@@ -310,6 +323,7 @@ _SetPortrait:
 
 ;;; Adds Y to Zp_DialogText_ptr and stores the result in Zp_DialogText_ptr.
 ;;; @param Y The byte offset to add to Zp_DialogText_ptr.
+;;; @return C Always cleared.
 .PROC FuncA_Dialog_AdvanceTextPtr
     tya
     add Zp_DialogText_ptr + 0

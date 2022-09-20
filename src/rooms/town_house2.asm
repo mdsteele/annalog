@@ -119,7 +119,7 @@ _Dialog0_sDialog:
     .byte "I think he went$"
     .byte "outside somewhere. Why$"
     .byte "don't you go find him?#"
-    .byte 0
+    .word ePortrait::Done
 .ENDPROC
 
 ;;;=========================================================================;;;

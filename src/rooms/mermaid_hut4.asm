@@ -214,7 +214,7 @@ _InitialDialogFunc:
 _NoFlowersYet_sDialog:
     .word ePortrait::Woman
     .byte "Bring me flowers.#"
-    .byte 0
+    .word ePortrait::Done
 _BroughtFlower_sDialog:
     .word ePortrait::Woman
     .byte "Ah, I see you've$"
@@ -259,16 +259,16 @@ _DeliverFlowerFunc:
 _WantMoreFlowers_sDialog:
     .word ePortrait::Woman
     .byte "I want more flowers.#"
-    .byte 0
+    .word ePortrait::Done
 _DeliveredLastFlower_sDialog:
     .word ePortrait::Woman
     .byte "Now I have a dozen.#"
-    .byte 0
+    .word ePortrait::Done
 _ThankYou_sDialog:
     .word ePortrait::Woman
     .byte "Thank you for all the$"
     .byte "flowers.#"
-    .byte 0
+    .word ePortrait::Done
 .ENDPROC
 
 ;;;=========================================================================;;;

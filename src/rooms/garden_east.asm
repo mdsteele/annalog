@@ -414,7 +414,7 @@ _MermaidMarkMap_sDialog:
     .word ePortrait::Mermaid
     .byte "I'll mark her hut on$"
     .byte "your map.#"
-    .byte 0
+    .word ePortrait::Done
 .ENDPROC
 
 ;;;=========================================================================;;;

@@ -17,10 +17,11 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
-;;; A sDialog struct is a variable-length sequence of one or more entries,
-;;; terminated by a zero byte.  Each entry consists of one of the following:
-;;;   * A 2-byte ePortrait value followed by one window's worth of text, with
-;;;     the text terminated by a kDialogTextEnd byte.
+;;; A sDialog struct is a variable-length sequence of one or more entries, with
+;;; each entry consisting of one of the following:
+;;;   * The 2-byte ePortrait::Done constant, indicating the end of the dialog.
+;;;   * Any other 2-byte ePortrait value followed by one window's worth of
+;;;     text, with the text terminated by a kDialogTextEnd byte.
 ;;;   * A pointer to a function (which must be within PRG ROM) that will return
 ;;;     YA with a pointer to another sDialog struct.
 
@@ -30,6 +31,7 @@
 ;;; dialog is paused, and the hi byte is the bank number to alternate with the
 ;;; first to animate the portrait while text is being written.
 .ENUM ePortrait
+    Done    = $0000  ; indicates end of dialog
     Woman   = $0201
     Sign    = $0303
     Paper   = $0404

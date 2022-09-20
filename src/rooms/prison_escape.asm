@@ -298,7 +298,7 @@ _Dialog0_sDialog:
     .byte "But we were already$"
     .byte "crumbling long$"
     .byte "before they invaded.#"
-    .byte 0
+    .word ePortrait::Done
 .ENDPROC
 
 ;;;=========================================================================;;;

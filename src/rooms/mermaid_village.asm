@@ -268,15 +268,15 @@ _MermaidGuard_sDialog:
     .word ePortrait::Mermaid
     .byte "I am guarding this$"
     .byte "village.#"
-    .byte 0
+    .word ePortrait::Done
 _MermaidFarmer_sDialog:
     .word ePortrait::Mermaid
     .byte "I am farming seaweed.#"
-    .byte 0
+    .word ePortrait::Done
 _MermaidYouth_sDialog:
     .word ePortrait::Mermaid
     .byte "Lorem ipsum.#"
-    .byte 0
+    .word ePortrait::Done
 .ENDPROC
 
 ;;;=========================================================================;;;

@@ -173,7 +173,7 @@ _Dialog0_sDialog:
     .byte "So I should probably$"
     .byte "teach you how to use$"
     .byte "them.#"
-    .byte 0
+    .word ePortrait::Done
 .ENDPROC
 
 ;;;=========================================================================;;;

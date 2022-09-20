@@ -115,7 +115,7 @@ _Devices_sDevice_arr:
 _Dialog0_sDialog:
     .word ePortrait::Woman
     .byte "Lorem ipsum.#"
-    .byte 0
+    .word ePortrait::Done
 .ENDPROC
 
 ;;;=========================================================================;;;

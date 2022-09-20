@@ -361,7 +361,7 @@ _Dialog0_sDialog:
     .word ePortrait::Paper
     .byte "By then, I'm sure I'll$"
     .byte "be long gone.#"
-    .byte 0
+    .word ePortrait::Done
 .ENDPROC
 
 ;;;=========================================================================;;;

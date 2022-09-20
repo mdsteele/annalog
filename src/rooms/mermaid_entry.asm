@@ -157,7 +157,7 @@ _Dialog0_sDialog:
     .byte kTileIdArrowLeft, " Hanging Gardens$"
     .byte "$"
     .byte "Mermaid Village ", kTileIdArrowRight, "#"
-    .byte 0
+    .word ePortrait::Done
 .ENDPROC
 
 ;;;=========================================================================;;;
