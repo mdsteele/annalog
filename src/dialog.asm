@@ -237,9 +237,6 @@ _Done:
 ;;; @return C Set if dialog is finished and the window should be closed.
 .PROC FuncA_Dialog_Tick
     bit Zp_P1ButtonsPressed_bJoypad
-    ;; B button:
-    .assert bJoypad::BButton = bProc::Overflow, error
-    bvs _CloseWindow
     ;; A button:
     .assert bJoypad::AButton = bProc::Negative, error
     bpl @noAButton
