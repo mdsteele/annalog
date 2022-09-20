@@ -17,11 +17,10 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
-;;; The size, in pixels, of a teleport field machine's primary platform.
-kFieldMachineWidth = $10
-kFieldMachineHeight = $10
+;;; OBJ tile IDs used for drawing many different kinds of machines.
+kTileIdMachineCorner = $79
 
-;;; The width, in pixels, of a teleport field machine's teleportation field.
-kTeleportFieldWidth = $40
+;;; The OBJ palette number used for the blinking error light on machines.
+kMachineLightPalette = 1
 
 ;;;=========================================================================;;;

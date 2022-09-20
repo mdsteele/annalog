@@ -23,6 +23,7 @@
 .INCLUDE "../program.inc"
 .INCLUDE "bridge.inc"
 .INCLUDE "cannon.inc"
+.INCLUDE "shared.inc"
 
 .IMPORT FuncA_Objects_Alloc1x1Shape
 .IMPORT FuncA_Objects_Alloc2x1Shape

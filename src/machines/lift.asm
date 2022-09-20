@@ -22,6 +22,7 @@
 .INCLUDE "../oam.inc"
 .INCLUDE "../ppu.inc"
 .INCLUDE "../program.inc"
+.INCLUDE "shared.inc"
 
 .IMPORT FuncA_Objects_Alloc2x2Shape
 .IMPORT FuncA_Objects_GetMachineLightTileId
@@ -45,7 +46,7 @@
 kLiftMoveCooldown = kBlockHeightPx
 
 ;;; Various OBJ tile IDs used for drawing lift machines.
-kTileIdLiftCorner  = $79
+kTileIdLiftCorner  = kTileIdMachineCorner
 kTileIdLiftSurface = $78
 
 ;;;=========================================================================;;;

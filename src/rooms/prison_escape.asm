@@ -22,6 +22,7 @@
 .INCLUDE "../device.inc"
 .INCLUDE "../dialog.inc"
 .INCLUDE "../machine.inc"
+.INCLUDE "../machines/shared.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
 .INCLUDE "../platform.inc"
@@ -37,6 +38,7 @@
 .IMPORT FuncA_Objects_DrawGirderPlatform
 .IMPORT FuncA_Objects_GetMachineLightTileId
 .IMPORT FuncA_Objects_MoveShapeDownOneTile
+.IMPORT FuncA_Objects_MoveShapeLeftHalfTile
 .IMPORT FuncA_Objects_MoveShapeRightOneTile
 .IMPORT FuncA_Objects_MoveShapeUpOneTile
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
@@ -74,7 +76,7 @@ kTrolleyMoveCooldown = kBlockWidthPx
 kTrolleyMinPlatformLeft = $100
 
 ;;; Various OBJ tile IDs used for drawing the PrisonEscapeTrolley machine.
-kTrolleyTileIdCorner   = $79
+kTrolleyTileIdCorner   = kTileIdMachineCorner
 kTrolleyTileIdWheel    = $7b
 kTrolleyTileIdRopeVert = $7c
 kTrolleyTileIdPulley   = $7d
@@ -385,12 +387,7 @@ _RopeTriangle:
     @skip4:
 _RopeVertical:
     ;; Pulley:
-    lda Zp_ShapePosX_i16 + 0
-    sub #kTileWidthPx / 2
-    sta Zp_ShapePosX_i16 + 0
-    lda Zp_ShapePosX_i16 + 1
-    sbc #0
-    sta Zp_ShapePosX_i16 + 1
+    jsr FuncA_Objects_MoveShapeLeftHalfTile
     jsr FuncA_Objects_MoveShapeUpOneTile
     jsr FuncA_Objects_Alloc1x1Shape  ; returns C and Y
     bcs @skipPulley

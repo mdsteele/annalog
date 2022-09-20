@@ -60,6 +60,7 @@
 .IMPORT FuncA_Objects_DrawActorProjSpike
 .IMPORT FuncA_Objects_DrawActorProjSteamHorz
 .IMPORT FuncA_Objects_DrawActorProjSteamUp
+.IMPORT FuncA_Objects_MoveShapeLeftHalfTile
 .IMPORT FuncA_Objects_MoveShapeUpOneTile
 .IMPORT Func_GetTerrainColumnPtrForTileIndex
 .IMPORT Func_HarmAvatar
@@ -630,15 +631,10 @@ _JumpTable_ptr_1_arr: .hibytes ActorDrawFuncs
     pha  ; tile ID
     jsr FuncA_Objects_PositionActorShape  ; preserves X
     ;; Adjust X-position.
-    lda Zp_ShapePosX_i16 + 0
-    sub #kTileWidthPx / 2
-    sta Zp_ShapePosX_i16 + 0
-    lda Zp_ShapePosX_i16 + 1
-    sbc #0
-    sta Zp_ShapePosX_i16 + 1
+    jsr FuncA_Objects_MoveShapeLeftHalfTile  ; preserves X
     ;; Adjust Y-position.
     lda Zp_ShapePosY_i16 + 0
-    sub #kTileWidthPx / 2
+    sub #kTileHeightPx / 2
     sta Zp_ShapePosY_i16 + 0
     lda Zp_ShapePosY_i16 + 1
     sbc #0

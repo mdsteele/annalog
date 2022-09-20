@@ -22,6 +22,7 @@
 .INCLUDE "../oam.inc"
 .INCLUDE "../ppu.inc"
 .INCLUDE "boiler.inc"
+.INCLUDE "shared.inc"
 
 .IMPORT FuncA_Objects_Alloc1x1Shape
 .IMPORT FuncA_Objects_Alloc2x2Shape
@@ -54,7 +55,7 @@
 
 ;;;=========================================================================;;;
 
-kTileIdBoilerLeftCorner  = $79
+kTileIdBoilerLeftCorner  = kTileIdMachineCorner
 kTileIdBoilerCenter      = kTileIdBoilerFirst + 0
 kTileIdBoilerRightCorner = kTileIdBoilerFirst + 1
 

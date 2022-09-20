@@ -50,6 +50,14 @@ kFieldMachineIndex = 0
 ;;; The primary platform index for the LavaTeleportField machine.
 kFieldPlatformIndex = 0
 
+;;; The platform positions for the LavaTeleportField machine.
+.LINECONT +
+kFieldPlatformTop  = $70
+kFieldPlatformLeft1 = $48
+kFieldPlatformLeft2 = \
+    kFieldPlatformLeft1 + kFieldMachineWidth + kTeleportFieldWidth
+.LINECONT -
+
 ;;; The device index for the device where the player avatar should spawn when
 ;;; teleporting into this room.
 kTeleportSpawnDeviceIndex = 0
@@ -119,8 +127,15 @@ _Platforms_sPlatform_arr:
     d_byte Type_ePlatform, ePlatform::Solid
     d_word WidthPx_u16, kFieldMachineWidth
     d_byte HeightPx_u8, kFieldMachineHeight
-    d_word Left_i16,  $0050
-    d_word Top_i16,   $0070
+    d_word Left_i16, kFieldPlatformLeft1
+    d_word Top_i16,  kFieldPlatformTop
+    D_END
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Solid
+    d_word WidthPx_u16, kFieldMachineWidth
+    d_byte HeightPx_u8, kFieldMachineHeight
+    d_word Left_i16, kFieldPlatformLeft2
+    d_word Top_i16,  kFieldPlatformTop
     D_END
     ;; Terrain spikes:
     D_STRUCT sPlatform

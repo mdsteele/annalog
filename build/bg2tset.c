@@ -293,6 +293,8 @@ char get_tile_id(const char *tileset, int tile_index) {
     return 0xb8 + tile_index;
   } else if (0 == strcmp(tileset, "drawbridge")) {
     return 0xb4 + tile_index;
+  } else if (0 == strcmp(tileset, "field_bg")) {
+    return 0xb0 + tile_index;
   } else if (0 == strcmp(tileset, "font_lower")) {
     return 0x40 + tile_index;
   } else if (0 == strcmp(tileset, "furniture")) {

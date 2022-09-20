@@ -22,6 +22,7 @@
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
 .INCLUDE "../ppu.inc"
+.INCLUDE "shared.inc"
 .INCLUDE "winch.inc"
 
 .IMPORT FuncA_Objects_Alloc1x1Shape
@@ -85,7 +86,7 @@ kTileIdWinchGear1         = kTileIdWinchFirst + 0
 kTileIdWinchGear2         = kTileIdWinchFirst + 2
 kTileIdWinchCornerBottom1 = kTileIdWinchFirst + 1
 kTileIdWinchCornerBottom2 = kTileIdWinchFirst + 3
-kTileIdWinchCornerTop     = $79
+kTileIdWinchCornerTop     = kTileIdMachineCorner
 
 ;;; OBJ palette numbers used for various parts of winch machines.
 kCrusherPalette    = 1

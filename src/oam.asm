@@ -81,8 +81,16 @@ Ram_Oam_sObj_arr64: .res .sizeof(sObj) * kNumOamSlots
 ;;; @preserve X, Y
 .EXPORT FuncA_Objects_MoveShapeRightOneTile
 .PROC FuncA_Objects_MoveShapeRightOneTile
-    lda Zp_ShapePosX_i16 + 0
-    add #kTileWidthPx
+    lda #kTileWidthPx
+    .assert * = FuncA_Objects_MoveShapeRightByA, error, "fallthrough"
+.ENDPROC
+
+;;; Moves Zp_ShapePosX_i16 rightwards by the given number of pixels.
+;;; @param A The number of pixels to shift right by (unsigned).
+;;; @preserve X, Y
+.EXPORT FuncA_Objects_MoveShapeRightByA
+.PROC FuncA_Objects_MoveShapeRightByA
+    add Zp_ShapePosX_i16 + 0
     sta Zp_ShapePosX_i16 + 0
     lda Zp_ShapePosX_i16 + 1
     adc #0

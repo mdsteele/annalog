@@ -229,7 +229,9 @@
 .PROC Ppu_ChrBgLava
 :   .incbin "out/data/tiles/steam_pipes.chr"
     .incbin "out/data/tiles/volcanic.chr"
-    .res $18 * kSizeofChr
+    .res $10 * kSizeofChr
+    .incbin "out/data/tiles/field_bg.chr"
+    .res $04 * kSizeofChr
     .incbin "out/data/tiles/device.chr"
     .assert * - :- = kSizeofChr * $40, error
 .ENDPROC

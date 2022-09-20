@@ -20,10 +20,15 @@
 .INCLUDE "../machine.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
+.INCLUDE "../ppu.inc"
 .INCLUDE "field.inc"
+.INCLUDE "shared.inc"
 
 .IMPORT FuncA_Objects_Alloc1x1Shape
 .IMPORT FuncA_Objects_GetMachineLightTileId
+.IMPORT FuncA_Objects_MoveShapeDownOneTile
+.IMPORT FuncA_Objects_MoveShapeRightByA
+.IMPORT FuncA_Objects_MoveShapeUpOneTile
 .IMPORT FuncA_Objects_SetShapePosToMachineTopLeft
 .IMPORT Func_MachineFinishResetting
 .IMPORT Main_CutsceneTeleportOut
@@ -194,7 +199,35 @@ _Light:
     jsr FuncA_Objects_GetMachineLightTileId  ; preserves Y, returns A
     sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
     @done:
-    ;; TODO: draw rest of machine
+_BottomLeftCorner:
+    jsr FuncA_Objects_MoveShapeDownOneTile
+    jsr FuncA_Objects_Alloc1x1Shape  ; returns C and Y
+    bcs @done
+    lda #bObj::FlipH | kMachineLightPalette
+    sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
+    lda #kTileIdMachineCorner
+    sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
+    @done:
+_BottomRightCorner:
+    lda #kFieldMachineWidth + kTeleportFieldWidth + kTileWidthPx
+    jsr FuncA_Objects_MoveShapeRightByA
+    jsr FuncA_Objects_Alloc1x1Shape  ; returns C and Y
+    bcs @done
+    lda #kMachineLightPalette
+    sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
+    lda #kTileIdMachineCorner
+    sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
+    @done:
+_TopRightCorner:
+    jsr FuncA_Objects_MoveShapeUpOneTile
+    jsr FuncA_Objects_Alloc1x1Shape  ; returns C and Y
+    bcs @done
+    lda #bObj::FlipV | kMachineLightPalette
+    sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
+    lda #kTileIdMachineCorner
+    sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
+    @done:
+_Zap:
     ;; TODO: draw teleportation effect
     rts
 .ENDPROC
