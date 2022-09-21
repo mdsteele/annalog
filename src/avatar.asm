@@ -34,9 +34,8 @@
 .IMPORT FuncA_Avatar_UpdateWaterDepth
 .IMPORT FuncA_Objects_Alloc2x2Shape
 .IMPORT Func_GetTerrainColumnPtrForTileIndex
-.IMPORT Ppu_ChrObjAnnaNormal
+.IMPORT Func_HarmAvatar
 .IMPORT Ram_Oam_sObj_arr64
-.IMPORT Sram_CarryingFlower_eFlag
 .IMPORTZP Zp_Current_sRoom
 .IMPORTZP Zp_FrameCounter_u8
 .IMPORTZP Zp_P1ButtonsHeld_bJoypad
@@ -72,14 +71,6 @@ kAvatarHorzDecelSlow = 25
 ;;; The (signed, 16-bit) initial Y-velocity of the player avatar when jumping,
 ;;; in subpixels per frame.
 kAvatarJumpVelocity = $ffff & -810
-
-;;; The (signed, 16-bit) initial Y-velocity to set for the player avatar when
-;;; it takes damage and is temporarily stunned.
-kAvatarStunVelY = $ffff & -300
-
-;;; The OBJ palette numbers to use for the player avatar.
-kAvatarPaletteNormal = 1
-kAvatarPaletteDeath  = 3
 
 ;;; How many frames to blink the screen when the avatar is almost healed.
 kAvatarHealBlinkFrames = 14
@@ -123,7 +114,8 @@ Zp_AvatarMode_eAvatar: .res 1
 Zp_AvatarRecover_u8: .res 1
 
 ;;; Temporary variable that records what kind of wall/platform the player
-;;; avatar has just collided with (if any).
+;;; avatar has just collided with (if any).  For terrain walls, this uses
+;;; ePlatform::Solid.  For no collision, this uses ePlatform::None.
 .EXPORTZP Zp_AvatarCollided_ePlatform
 Zp_AvatarCollided_ePlatform: .res 1
 
@@ -131,84 +123,6 @@ Zp_AvatarCollided_ePlatform: .res 1
 ;;; been harmed, and will be back to full health in this many frames.
 .EXPORTZP Zp_AvatarHarmTimer_u8
 Zp_AvatarHarmTimer_u8: .res 1
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRG8"
-
-;;; Deals damage to the player avatar, stunning them.
-;;; @preserve X
-.EXPORT Func_HarmAvatar
-.PROC Func_HarmAvatar
-    lda Zp_AvatarHarmTimer_u8
-    ;; If the player avatar is at full health, stun and damage them.
-    beq _Harm
-    ;; Otherwise, if the player avatar is no longer still invincible from the
-    ;; last time they took damage, kill them.
-    cmp #kAvatarHarmHealFrames - kAvatarHarmInvincibileFrames
-    blt Func_KillAvatar
-    rts
-_Harm:
-    jsr Func_DropFlower  ; preserves X
-    ;; Mark the avatar as damaged.
-    lda #kAvatarHarmHealFrames
-    sta Zp_AvatarHarmTimer_u8
-    ;; Make the avatar go flying backwards.
-    lda #eAvatar::Jumping
-    sta Zp_AvatarMode_eAvatar
-    lda #<kAvatarStunVelY
-    sta Zp_AvatarVelY_i16 + 0
-    lda #>kAvatarStunVelY
-    sta Zp_AvatarVelY_i16 + 1
-    ;; Set the avatar's X-velocity depending on which way its facing.
-    .assert bObj::FlipH = bProc::Overflow, error
-    bit Zp_AvatarFlags_bObj
-    bvc @facingRight
-    @facingLeft:
-    lda #kAvatarMaxAirSpeedX
-    bne @setVelX  ; unconditional
-    @facingRight:
-    lda #$ff & -kAvatarMaxAirSpeedX
-    @setVelX:
-    sta Zp_AvatarVelX_i16 + 1
-    lda #0
-    sta Zp_AvatarVelX_i16 + 0
-    rts
-.ENDPROC
-
-;;; Kills the player avatar.
-;;; @preserve X
-.EXPORT Func_KillAvatar
-.PROC Func_KillAvatar
-    lda Zp_AvatarFlags_bObj
-    and #<~bObj::PaletteMask
-    ora #kAvatarPaletteDeath
-    sta Zp_AvatarFlags_bObj
-    jsr Func_DropFlower  ; preserves X
-    lda #kAvatarHarmDeath
-    sta Zp_AvatarHarmTimer_u8
-    rts
-.ENDPROC
-
-;;; If the player avatar is carrying a flower, drops the flower.  Otherwise,
-;;; does nothing.
-;;; @preserve X
-.PROC Func_DropFlower
-    lda Sram_CarryingFlower_eFlag
-    beq @done
-    chr10_bank #<.bank(Ppu_ChrObjAnnaNormal)
-    ;; Enable writes to SRAM.
-    lda #bMmc3PrgRam::Enable
-    sta Hw_Mmc3PrgRamProtect_wo
-    ;; Mark the player as no longer carrying a flower.
-    lda #0
-    sta Sram_CarryingFlower_eFlag
-    ;; Disable writes to SRAM.
-    lda #bMmc3PrgRam::Enable | bMmc3PrgRam::DenyWrites
-    sta Hw_Mmc3PrgRamProtect_wo
-    @done:
-    rts
-.ENDPROC
 
 ;;;=========================================================================;;;
 
@@ -1168,7 +1082,7 @@ _DrawObjects:
     bcs _Done
     lda Zp_AvatarMode_eAvatar
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Tile_u8, y
-    add #1
+    adc #1  ; carry bit is already clear
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Tile_u8, y
     adc #1
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Tile_u8, y

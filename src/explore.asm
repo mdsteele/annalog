@@ -519,7 +519,6 @@ _Respawn:
     rts
 .ENDPROC
 
-;;; TODO: Move this into PRGA_Terrain
 ;;; Sets Zp_ScrollGoalX_u16 and Zp_ScrollGoalY_u8 such that the player avatar
 ;;; would be as close to the center of the screen as possible, while still
 ;;; keeping the scroll goal within the valid range for the current room.

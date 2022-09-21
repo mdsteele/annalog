@@ -54,6 +54,10 @@ kAvatarHarmInvincibileFrames = 60
 kAvatarHarmDeath = $ff
 .ASSERT kAvatarHarmDeath > kAvatarHarmHealFrames, error
 
+;;; The OBJ palette numbers to use for the player avatar.
+kAvatarPaletteNormal = 1
+kAvatarPaletteDeath  = 3
+
 ;;;=========================================================================;;;
 
 ;;; Modes that the player avatar can be in.  The number for each of these enum
