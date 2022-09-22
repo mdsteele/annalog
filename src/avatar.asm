@@ -70,7 +70,7 @@ kAvatarHorzDecelSlow = 25
 
 ;;; The (signed, 16-bit) initial Y-velocity of the player avatar when jumping,
 ;;; in subpixels per frame.
-kAvatarJumpVelocity = $ffff & -810
+kAvatarJumpVelocity = $ffff & -850
 
 ;;; How many frames to blink the screen when the avatar is almost healed.
 kAvatarHealBlinkFrames = 14
@@ -85,8 +85,9 @@ Zp_AvatarPosX_i16: .res 2
 Zp_AvatarPosY_i16: .res 2
 
 ;;; The current X/Y subpixel positions of the player avatar.
-.EXPORTZP Zp_AvatarSubX_u8
+.EXPORTZP Zp_AvatarSubX_u8, Zp_AvatarSubY_u8
 Zp_AvatarSubX_u8: .res 1
+Zp_AvatarSubY_u8: .res 1
 
 ;;; The current velocity of the player avatar, in subpixels per frame.
 .EXPORTZP Zp_AvatarVelX_i16, Zp_AvatarVelY_i16
@@ -144,6 +145,7 @@ Zp_AvatarHarmTimer_u8: .res 1
     sta Zp_AvatarHarmTimer_u8
     sta Zp_AvatarRecover_u8
     sta Zp_AvatarSubX_u8
+    sta Zp_AvatarSubY_u8
     sta Zp_AvatarVelX_i16 + 0
     sta Zp_AvatarVelX_i16 + 1
     sta Zp_AvatarVelY_i16 + 0
@@ -232,9 +234,9 @@ _HandleCollision:
     .assert ePlatform::None = 0, error
     beq @doneCollision
     ldx #0
+    stx Zp_AvatarSubX_u8
     stx Zp_AvatarVelX_i16 + 0
     stx Zp_AvatarVelX_i16 + 1
-    stx Zp_AvatarSubX_u8
     ;; Check for special platform effects.
     cmp #ePlatform::Harm
     bne @doneCollision
@@ -422,11 +424,14 @@ _MovingLeft:
     .assert ePlatform::None = 0, error
     sty Zp_AvatarCollided_ePlatform
 _ApplyVelocity:
+    lda Zp_AvatarVelY_i16 + 0
+    add Zp_AvatarSubY_u8
+    sta Zp_AvatarSubY_u8
     lda Zp_AvatarVelY_i16 + 1
     bpl @nonnegative
     dey  ; now y is $ff
     @nonnegative:
-    add Zp_AvatarPosY_i16 + 0
+    adc Zp_AvatarPosY_i16 + 0
     sta Zp_AvatarPosY_i16 + 0
     tya
     adc Zp_AvatarPosY_i16 + 1
@@ -545,6 +550,7 @@ _HandleDownwardCollisionInAir:
 _FinishCollision:
     ;; Set vertical velocity to zero.
     lda #0
+    sta Zp_AvatarSubY_u8
     sta Zp_AvatarVelY_i16 + 0
     sta Zp_AvatarVelY_i16 + 1
     ;; Check for special platform effects.
@@ -736,7 +742,7 @@ _MovingDown:
 ;;; recovery time.
 .PROC DataA_Avatar_RecoverFrames_u8_arr
 :   .byte 0, 0, 8, 8, 12, 18
-    .assert * - :- = kAvatarMaxAirSpeedY + 1, error
+    .assert * - :- = 1 + >kAvatarMaxAirSpeedVert, error
 .ENDPROC
 
 ;;; Updates the player avatar's X-velocity and flags based on the D-pad
@@ -807,22 +813,25 @@ _Stop:
     lda #bObj::FlipH | kAvatarPaletteNormal
     sta Zp_AvatarFlags_bObj
 _DetermineLimit:
-    ;; Determine the (negative) X-velocity limit, storing it in Zp_Tmp1_byte.
+    ;; Determine the (negative) X-velocity limit in pixels/frame, storing it in
+    ;; Zp_Tmp1_byte.
     lda Zp_AvatarWaterDepth_u8
     beq @inAir
     @inWater:
-    lda #<-kAvatarMaxWaterSpeedX
+    .assert <kAvatarMaxWaterSpeedHorz = 0, error
+    lda #>-kAvatarMaxWaterSpeedHorz
     bne @setLimit  ; unconditional
     @inAir:
-    lda #<-kAvatarMaxAirSpeedX
+    .assert <kAvatarMaxAirSpeedHorz = 0, error
+    lda #>-kAvatarMaxAirSpeedHorz
     @setLimit:
-    sta Zp_Tmp1_byte  ; negative X-vel limit
+    sta Zp_Tmp1_byte  ; negative X-vel limit (pixels/frame)
 _AccelOrDecel:
     ;; If the avatar is moving to the right, or moving to the left slower than
     ;; the limit, then accelerate.  Otherwise, decelerate.
     lda Zp_AvatarVelX_i16 + 1
     bpl _AccelerateTowardsLimit
-    cmp Zp_Tmp1_byte  ; negative X-vel limit
+    cmp Zp_Tmp1_byte  ; negative X-vel limit (pixels/frame)
     bge _AccelerateTowardsLimit
 _DecelerateTowardsLimit:
     ;; Slowly decelerate, up to the (negative) velocity limit at maximum.
@@ -831,12 +840,12 @@ _DecelerateTowardsLimit:
     sta Zp_AvatarVelX_i16 + 0
     lda Zp_AvatarVelX_i16 + 1
     adc #0
-    cmp Zp_Tmp1_byte  ; negitive X-vel limit
+    cmp Zp_Tmp1_byte  ; negitive X-vel limit (pixels/frame)
     blt @noClamp
     @clamp:
     lda #0
     sta Zp_AvatarVelX_i16 + 0
-    lda Zp_Tmp1_byte  ; negitive X-vel limit
+    lda Zp_Tmp1_byte  ; negitive X-vel limit (pixels/frame)
     @noClamp:
     sta Zp_AvatarVelX_i16 + 1
     rts
@@ -849,12 +858,12 @@ _AccelerateTowardsLimit:
     lda Zp_AvatarVelX_i16 + 1
     sbc #0
     bpl @noClamp
-    cmp Zp_Tmp1_byte  ; negative X-vel limit
+    cmp Zp_Tmp1_byte  ; negative X-vel limit (pixels/frame)
     bge @noClamp
     @clamp:
     lda #0
     sta Zp_AvatarVelX_i16 + 0
-    lda Zp_Tmp1_byte  ; negative X-vel limit
+    lda Zp_Tmp1_byte  ; negative X-vel limit (pixels/frame)
     @noClamp:
     sta Zp_AvatarVelX_i16 + 1
     rts
@@ -867,22 +876,25 @@ _AccelerateTowardsLimit:
     lda #kAvatarPaletteNormal
     sta Zp_AvatarFlags_bObj
 _DetermineLimit:
-    ;; Determine the (positive) X-velocity limit, storing it in Zp_Tmp1_byte.
+    ;; Determine the (positive) X-velocity limit in pixels/frame, storing it in
+    ;; Zp_Tmp1_byte.
     lda Zp_AvatarWaterDepth_u8
     beq @inAir
     @inWater:
-    lda #kAvatarMaxWaterSpeedX
+    .assert <kAvatarMaxWaterSpeedHorz = 0, error
+    lda #>kAvatarMaxWaterSpeedHorz
     bne @setLimit  ; unconditional
     @inAir:
-    lda #kAvatarMaxAirSpeedX
+    .assert <kAvatarMaxAirSpeedHorz = 0, error
+    lda #>kAvatarMaxAirSpeedHorz
     @setLimit:
-    sta Zp_Tmp1_byte  ; positive X-vel limit
+    sta Zp_Tmp1_byte  ; positive X-vel limit (pixels/frame)
 _AccelOrDecel:
     ;; If the avatar is moving to the left, or moving to the right slower than
     ;; the limit, then accelerate.  Otherwise, decelerate.
     lda Zp_AvatarVelX_i16 + 1
     bmi _AccelerateTowardsLimit
-    cmp Zp_Tmp1_byte  ; positive X-vel limit
+    cmp Zp_Tmp1_byte  ; positive X-vel limit (pixels/frame)
     blt _AccelerateTowardsLimit
 _DecelerateTowardsLimit:
     ;; Slowly decelerate, down to the (positive) velocity limit at minimum.
@@ -891,12 +903,12 @@ _DecelerateTowardsLimit:
     sta Zp_AvatarVelX_i16 + 0
     lda Zp_AvatarVelX_i16 + 1
     sbc #0
-    cmp Zp_Tmp1_byte  ; positive X-vel limit
+    cmp Zp_Tmp1_byte  ; positive X-vel limit (pixels/frame)
     bge @noClamp
     @clamp:
     lda #0
     sta Zp_AvatarVelX_i16 + 0
-    lda Zp_Tmp1_byte  ; positive X-vel limit
+    lda Zp_Tmp1_byte  ; positive X-vel limit (pixels/frame)
     @noClamp:
     sta Zp_AvatarVelX_i16 + 1
     rts
@@ -908,12 +920,12 @@ _AccelerateTowardsLimit:
     lda Zp_AvatarVelX_i16 + 1
     adc #0
     bmi @noClamp
-    cmp Zp_Tmp1_byte  ; positive X-vel limit
+    cmp Zp_Tmp1_byte  ; positive X-vel limit (pixels/frame)
     blt @noClamp
     @clamp:
     lda #0
     sta Zp_AvatarVelX_i16 + 0
-    lda Zp_Tmp1_byte  ; positive X-vel limit
+    lda Zp_Tmp1_byte  ; positive X-vel limit (pixels/frame)
     @noClamp:
     sta Zp_AvatarVelX_i16 + 1
     rts
@@ -968,12 +980,13 @@ _DoneJump:
     ldy Zp_AvatarWaterDepth_u8
     beq _InAir
 _InWater:
-    ;; Calculate the max upward speed: depth - 1 or kAvatarMaxWaterSpeedY,
-    ;; whichever is less.
+    ;; Calculate the max upward speed in pixels/frame: either (depth - 1) or
+    ;; >kAvatarMaxWaterSpeedUp, whichever is less.
     dey
-    cpy #kAvatarMaxWaterSpeedY
+    .assert <kAvatarMaxWaterSpeedUp = 0, error
+    cpy #>kAvatarMaxWaterSpeedUp
     blt @setMaxUpwardSpeed
-    ldy #kAvatarMaxWaterSpeedY
+    ldy #>kAvatarMaxWaterSpeedUp
     @setMaxUpwardSpeed:
     sty Zp_Tmp1_byte  ; max upward speed
     ;; Accelerate the player avatar upwards.
@@ -984,7 +997,7 @@ _InWater:
     sbc #0
     ;; Check if the player avatar is now moving upwards or downwards.
     bpl @movingDown
-    ;; If moving upward, cap velocity at 1 - depth.
+    ;; If moving upward, cap upward velocity.
     @movingUp:
     sta Zp_AvatarVelY_i16 + 1
     add Zp_Tmp1_byte  ; max upward speed
@@ -996,12 +1009,18 @@ _InWater:
     rts
     ;; If moving downward, check for terminal velocity:
     @movingDown:
-    cmp #kAvatarMaxWaterSpeedY
-    blt @setVelYHi
-    lda #0
+    sta Zp_AvatarVelY_i16 + 1
+    sta $ff
+    cmp #>kAvatarMaxWaterSpeedDown
+    blt @done
+    bne @clampDown
+    lda Zp_AvatarVelY_i16 + 0
+    cmp #<kAvatarMaxWaterSpeedDown
+    blt @done
+    @clampDown:
+    lda #<kAvatarMaxWaterSpeedDown
     sta Zp_AvatarVelY_i16 + 0
-    lda #kAvatarMaxWaterSpeedY
-    @setVelYHi:
+    lda #>kAvatarMaxWaterSpeedDown
     sta Zp_AvatarVelY_i16 + 1
     @done:
     rts
@@ -1018,11 +1037,12 @@ _InAir:
     adc Zp_AvatarVelY_i16 + 1
     ;; If moving downward, check for terminal velocity:
     bmi @setVelYHi
-    cmp #kAvatarMaxAirSpeedY
+    .assert <kAvatarMaxAirSpeedVert = 0, error
+    cmp #>kAvatarMaxAirSpeedVert
     blt @setVelYHi
     lda #0
     sta Zp_AvatarVelY_i16 + 0
-    lda #kAvatarMaxAirSpeedY
+    lda #>kAvatarMaxAirSpeedVert
     @setVelYHi:
     sta Zp_AvatarVelY_i16 + 1
     @noGravity:

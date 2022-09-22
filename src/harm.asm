@@ -35,7 +35,7 @@
 
 ;;; The (signed, 16-bit) initial Y-velocity to set for the player avatar when
 ;;; it takes damage and is temporarily stunned.
-kAvatarStunVelY = $ffff & -300
+kAvatarStunVelY = $ffff & -350
 
 ;;;=========================================================================;;;
 
@@ -65,15 +65,17 @@ _Harm:
     sta Zp_AvatarVelY_i16 + 0
     lda #>kAvatarStunVelY
     sta Zp_AvatarVelY_i16 + 1
-    ;; Set the avatar's X-velocity depending on which way its facing.
+    ;; Set the avatar's X-velocity depending on which way it's facing.
     .assert bObj::FlipH = bProc::Overflow, error
     bit Zp_AvatarFlags_bObj
     bvc @facingRight
     @facingLeft:
-    lda #kAvatarMaxAirSpeedX
+    .assert <kAvatarMaxAirSpeedHorz = 0, error
+    lda #>kAvatarMaxAirSpeedHorz
     bne @setVelX  ; unconditional
     @facingRight:
-    lda #$ff & -kAvatarMaxAirSpeedX
+    .assert <kAvatarMaxAirSpeedHorz = 0, error
+    lda #>-kAvatarMaxAirSpeedHorz
     @setVelX:
     sta Zp_AvatarVelX_i16 + 1
     lda #0

@@ -41,6 +41,7 @@
 .IMPORTZP Zp_AvatarPosY_i16
 .IMPORTZP Zp_AvatarRecover_u8
 .IMPORTZP Zp_AvatarSubX_u8
+.IMPORTZP Zp_AvatarSubY_u8
 .IMPORTZP Zp_AvatarVelX_i16
 .IMPORTZP Zp_AvatarVelY_i16
 .IMPORTZP Zp_FrameCounter_u8
@@ -284,6 +285,8 @@ _Return:
     and #$f0
     ora _AvatarOffsetY_u8_arr, y
     sta Zp_AvatarPosY_i16 + 0
+    lda #0
+    sta Zp_AvatarSubY_u8
 _DecrementTimer:
     dec Zp_BreakerTimer_u8
     bne _Return

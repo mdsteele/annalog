@@ -26,11 +26,12 @@ kAvatarBoundingBoxRight = 5
 
 ;;;=========================================================================;;;
 
-;;; How fast the player avatar is allowed to move, in pixels per frame.
-kAvatarMaxAirSpeedX = 2
-kAvatarMaxAirSpeedY = 5
-kAvatarMaxWaterSpeedX = 1
-kAvatarMaxWaterSpeedY = 2
+;;; How fast the player avatar is allowed to move, in subpixels per frame.
+kAvatarMaxAirSpeedHorz   = $200
+kAvatarMaxAirSpeedVert   = $500
+kAvatarMaxWaterSpeedHorz = $100
+kAvatarMaxWaterSpeedUp   = $200
+kAvatarMaxWaterSpeedDown = $160
 
 ;;; The upward acceleration applied to the player avatar when in water, in
 ;;; subpixels per frame per frame.
@@ -38,7 +39,7 @@ kAvatarBouyancy = 20
 
 ;;; The downward acceleration applied to the player avatar when in midair, in
 ;;; subpixels per frame per frame.
-.DEFINE kAvatarGravity 48
+.DEFINE kAvatarGravity 38
 
 ;;; How long it takes the player avatar to heal after taking damage, in frames.
 kAvatarHarmHealFrames = 240

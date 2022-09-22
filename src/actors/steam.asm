@@ -119,11 +119,12 @@ kSteamNumFrames = 32
     sbc #>kSteamAccel
     ;; Clamp upward velocity.
     bpl @noClamp
-    cmp #<-kAvatarMaxAirSpeedY
+    .assert <kAvatarMaxAirSpeedVert = 0, error
+    cmp #>-kAvatarMaxAirSpeedVert
     bge @noClamp
     lda #0
     sta Zp_AvatarVelY_i16 + 0
-    lda #<-kAvatarMaxAirSpeedY
+    lda #>-kAvatarMaxAirSpeedVert
     @noClamp:
     sta Zp_AvatarVelY_i16 + 1
     ;; Mark the avatar as airborne.
