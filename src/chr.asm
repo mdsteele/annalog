@@ -29,6 +29,7 @@
 .INCLUDE "device.inc"
 .INCLUDE "machines/boiler.inc"
 .INCLUDE "machines/cannon.inc"
+.INCLUDE "machines/crane.inc"
 .INCLUDE "machines/winch.inc"
 
 ;;;=========================================================================;;;
@@ -42,7 +43,7 @@
 .EXPORT Ppu_ChrBgAnim0
 .PROC Ppu_ChrBgAnim0
 :   .incbin "out/data/tiles/anim01.chr"
-    .res $26 * kSizeofChr
+    .res $23 * kSizeofChr
     .incbin "out/data/tiles/gazer_anim0.chr"
     .assert * - :- = kSizeofChr * $40, error
 .ENDPROC
@@ -54,7 +55,7 @@
 .EXPORT Ppu_ChrBgAnim1
 .PROC Ppu_ChrBgAnim1
 :   .incbin "out/data/tiles/anim11.chr"
-    .res $26 * kSizeofChr
+    .res $23 * kSizeofChr
     .incbin "out/data/tiles/gazer_anim1.chr"
     .assert * - :- = kSizeofChr * $40, error
 .ENDPROC
@@ -66,7 +67,7 @@
 .EXPORT Ppu_ChrBgAnim2
 .PROC Ppu_ChrBgAnim2
 :   .incbin "out/data/tiles/anim21.chr"
-    .res $26 * kSizeofChr
+    .res $23 * kSizeofChr
     .incbin "out/data/tiles/gazer_anim2.chr"
     .assert * - :- = kSizeofChr * $40, error
 .ENDPROC
@@ -78,7 +79,7 @@
 .EXPORT Ppu_ChrBgAnim3
 .PROC Ppu_ChrBgAnim3
 :   .incbin "out/data/tiles/anim31.chr"
-    .res $26 * kSizeofChr
+    .res $23 * kSizeofChr
     .incbin "out/data/tiles/gazer_anim3.chr"
     .assert * - :- = kSizeofChr * $40, error
 .ENDPROC
@@ -423,6 +424,19 @@
     .assert * - :- = (kTileIdHotheadFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/hothead.chr"
     .res $50 * kSizeofChr
+    .assert * - :- = kSizeofChr * $80, error
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "CHR_ObjMine"
+
+.EXPORT Ppu_ChrObjMine
+.PROC Ppu_ChrObjMine
+:   .incbin "out/data/tiles/upgrade.chr"
+    .assert * - :- = (kTileIdCraneFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/crane.chr"
+    .res $61 * kSizeofChr
     .assert * - :- = kSizeofChr * $80, error
 .ENDPROC
 

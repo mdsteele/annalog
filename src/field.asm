@@ -310,6 +310,7 @@ _OpTil:
 
 ;;; Sets the value of the currently selected instruction field.  If that field
 ;;; is the opcode, then other fields may also be updated.
+;;; @prereq Zp_Current_sMachine_ptr is initialized.
 ;;; @param A The new field value.
 .EXPORT FuncA_Console_SetCurrentFieldValue
 .PROC FuncA_Console_SetCurrentFieldValue

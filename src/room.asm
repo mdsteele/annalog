@@ -58,6 +58,7 @@
 .IMPORT DataC_Mermaid_Hut6_sRoom
 .IMPORT DataC_Mermaid_Upper_sRoom
 .IMPORT DataC_Mermaid_Village_sRoom
+.IMPORT DataC_Mine_Collapse_sRoom
 .IMPORT DataC_Mine_Pit_sRoom
 .IMPORT DataC_Prison_Cell_sRoom
 .IMPORT DataC_Prison_Escape_sRoom
@@ -134,6 +135,7 @@
     DataC_Mermaid_Hut6_sRoom, \
     DataC_Mermaid_Upper_sRoom, \
     DataC_Mermaid_Village_sRoom, \
+    DataC_Mine_Collapse_sRoom, \
     DataC_Mine_Pit_sRoom, \
     DataC_Prison_Cell_sRoom, \
     DataC_Prison_Escape_sRoom, \
@@ -185,17 +187,17 @@ Ram_RoomState: .res kRoomStateSize
 ;;; values.
 .PROC DataA_Room_Table_sRoom_ptr_0_arr
 :   .lobytes RoomPtrs
-    .assert * - :- = kNumRooms, error
+    .assert * - :- = eRoom::NUM_VALUES, error
 .ENDPROC
 .PROC DataA_Room_Table_sRoom_ptr_1_arr
 :   .hibytes RoomPtrs
-    .assert * - :- = kNumRooms, error
+    .assert * - :- = eRoom::NUM_VALUES, error
 .ENDPROC
 
 ;;; PRGC bank numbers for all rooms in the game, indexed by eRoom values.
 .EXPORT DataA_Room_Banks_u8_arr
 .PROC DataA_Room_Banks_u8_arr
-    .repeat kNumRooms, index
+    .repeat eRoom::NUM_VALUES, index
     .byte <.bank(.mid(index * 2, 1, {RoomPtrs}))
     .endrepeat
 .ENDPROC

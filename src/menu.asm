@@ -1218,6 +1218,8 @@ _MenuFunc:
     and #$f0
     pha  ; zero if instruction was empty
     ;; Set the field value.
+    ldx Zp_ConsoleMachineIndex_u8  ; param: machine index
+    jsr Func_SetMachineIndex
     lda Zp_MenuItem_u8  ; param: new field value
     jsr FuncA_Console_SetCurrentFieldValue
     ;; Check if the instruction is empty now.

@@ -65,12 +65,13 @@ kMachineLightTileIdOn  = $3f
 ;;; Populates Zp_ShapePosX_i16 and Zp_ShapePosY_i16 with the screen position of
 ;;; the top-left corner of the current machine's primary platform.
 ;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
+;;; @preserve Zp_Tmp*
 .EXPORT FuncA_Objects_SetShapePosToMachineTopLeft
 .PROC FuncA_Objects_SetShapePosToMachineTopLeft
     ldy #sMachine::MainPlatform_u8
     lda (Zp_Current_sMachine_ptr), y
     tax  ; param: platform index
-    jmp FuncA_Objects_SetShapePosToPlatformTopLeft
+    jmp FuncA_Objects_SetShapePosToPlatformTopLeft  ; preserves Zp_Tmp*
 .ENDPROC
 
 ;;;=========================================================================;;;

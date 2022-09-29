@@ -34,14 +34,12 @@
 .IMPORT DataA_Pause_PrisonAreaName_u8_arr
 .IMPORT DataA_Room_Prison_sTileset
 .IMPORT FuncA_Objects_Alloc1x1Shape
-.IMPORT FuncA_Objects_Alloc2x2Shape
 .IMPORT FuncA_Objects_DrawGirderPlatform
-.IMPORT FuncA_Objects_GetMachineLightTileId
-.IMPORT FuncA_Objects_MoveShapeDownOneTile
+.IMPORT FuncA_Objects_DrawTrolleyMachine
+.IMPORT FuncA_Objects_DrawTrolleyRopeWithLength
 .IMPORT FuncA_Objects_MoveShapeLeftHalfTile
 .IMPORT FuncA_Objects_MoveShapeRightOneTile
 .IMPORT FuncA_Objects_MoveShapeUpOneTile
-.IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
 .IMPORT Func_MachineError
 .IMPORT Func_MachineFinishResetting
 .IMPORT Func_MovePlatformHorz
@@ -76,8 +74,6 @@ kTrolleyMoveCooldown = kBlockWidthPx
 kTrolleyMinPlatformLeft = $100
 
 ;;; Various OBJ tile IDs used for drawing the PrisonEscapeTrolley machine.
-kTrolleyTileIdCorner   = kTileIdMachineCorner
-kTrolleyTileIdWheel    = $7b
 kTrolleyTileIdRopeVert = $7c
 kTrolleyTileIdPulley   = $7d
 kTrolleyTileIdRopeDiag = $7e
@@ -276,7 +272,7 @@ _Trolley_Tick:
     ldx #kTrolleyPlatformIndex  ; param: platform index
     jsr Func_MovePlatformLeftToward  ; returns Z and A
     beq @done
-    ;; If the winch moved, move the girder platform too.
+    ;; If the trolley moved, move the girder platform too.
     ldx #kGirderPlatformIndex  ; param: platform index
     jmp Func_MovePlatformHorz
     @done:
@@ -310,30 +306,9 @@ _Dialog0_sDialog:
 ;;; Allocates and populates OAM slots for the PrisonEscapeTrolley machine.
 ;;; @prereq Zp_MachineIndex_u8 is initialized.
 .PROC FuncA_Objects_PrisonEscapeTrolley_Draw
-_Trolley:
-    ;; Allocate objects.
-    ldx #kTrolleyPlatformIndex  ; param: platform index
-    jsr FuncA_Objects_SetShapePosToPlatformTopLeft
-    jsr FuncA_Objects_MoveShapeDownOneTile
-    jsr FuncA_Objects_MoveShapeRightOneTile
-    lda #kMachineLightPalette  ; param: object flags
-    jsr FuncA_Objects_Alloc2x2Shape  ; sets C if offscreen; returns Y
-    bcs @done
-    ;; Set flags and tile IDs.
-    lda #kMachineLightPalette | bObj::FlipV
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Flags_bObj, y
-    lda #kTrolleyRopePalette
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Flags_bObj, y
-    lda #kTrolleyRopePalette | bObj::FlipH
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Flags_bObj, y
-    lda #kTrolleyTileIdCorner
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Tile_u8, y
-    lda #kTrolleyTileIdWheel
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Tile_u8, y
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Tile_u8, y
-    jsr FuncA_Objects_GetMachineLightTileId  ; preserves Y, returns A
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Tile_u8, y
-    @done:
+    jsr FuncA_Objects_DrawTrolleyMachine
+    ldx #7  ; param: num rope tiles
+    jsr FuncA_Objects_DrawTrolleyRopeWithLength
 _Girder:
     ldx #kGirderPlatformIndex  ; param: platform index
     jsr FuncA_Objects_DrawGirderPlatform
@@ -385,7 +360,7 @@ _RopeTriangle:
     lda #bObj::FlipH | kTrolleyRopePalette
     sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
     @skip4:
-_RopeVertical:
+_Pulley:
     ;; Pulley:
     jsr FuncA_Objects_MoveShapeLeftHalfTile
     jsr FuncA_Objects_MoveShapeUpOneTile
@@ -396,19 +371,6 @@ _RopeVertical:
     lda #kTrolleyRopePalette
     sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
     @skipPulley:
-    ;; Other rope segments:
-    ldx #7
-    @loop:
-    jsr FuncA_Objects_MoveShapeUpOneTile
-    jsr FuncA_Objects_Alloc1x1Shape  ; preserves X, returns C and Y
-    bcs @continue
-    lda #kTrolleyTileIdRopeVert
-    sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
-    lda #kTrolleyRopePalette
-    sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
-    @continue:
-    dex
-    bne @loop
     rts
 .ENDPROC
 

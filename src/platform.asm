@@ -607,7 +607,7 @@ _NotInWater:
 ;;; Populates Zp_ShapePosX_i16 and Zp_ShapePosY_i16 with the screen position of
 ;;; the top-left corner of the specified platform.
 ;;; @param X The platform index.
-;;; @preserve X, Y
+;;; @preserve X, Y, Zp_Tmp*
 .EXPORT FuncA_Objects_SetShapePosToPlatformTopLeft
 .PROC FuncA_Objects_SetShapePosToPlatformTopLeft
     ;; Calculate top edge in screen space.

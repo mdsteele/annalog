@@ -70,6 +70,7 @@ kRoomStateSize = $100
     MermaidHut6
     MermaidUpper
     MermaidVillage
+    MineCollapse
     MinePit
     PrisonCell
     PrisonEscape
@@ -79,9 +80,6 @@ kRoomStateSize = $100
     TownOutdoors
     NUM_VALUES
 .ENDENUM
-
-.DEFINE kNumRooms 40
-.ASSERT kNumRooms = eRoom::NUM_VALUES, error
 
 ;;;=========================================================================;;;
 

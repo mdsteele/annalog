@@ -120,13 +120,13 @@
     LavaTeleportField
     LavaWestBoiler
     MermaidUpperLift
+    MineCollapseCrane
+    MineCollapseTrolley
     PrisonCellBlaster
     PrisonCellLift
     PrisonEscapeTrolley
     ShadowTeleportField
     NUM_VALUES
 .ENDENUM
-
-kNumPrograms = eProgram::NUM_VALUES
 
 ;;;=========================================================================;;;

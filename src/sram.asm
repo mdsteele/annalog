@@ -70,6 +70,6 @@ Sram_ProgressFlags_arr:
 Sram_Programs_sProgram_arr:
     .assert * & $1f = 0, error, "32-byte alignment"
     .assert .sizeof(sProgram) = $20, error
-    .res .sizeof(sProgram) * kNumPrograms
+    .res .sizeof(sProgram) * eProgram::NUM_VALUES
 
 ;;;=========================================================================;;;
