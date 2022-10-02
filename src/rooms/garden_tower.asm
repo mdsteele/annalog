@@ -36,7 +36,6 @@
 .IMPORT FuncA_Machine_CannonTryMove
 .IMPORT FuncA_Objects_DrawCannonMachine
 .IMPORT Func_MachineCannonReadRegY
-.IMPORT Func_MachineError
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrObjGarden
 .IMPORT Ram_MachineGoalVert_u8_arr
@@ -110,7 +109,7 @@ _Machines_sMachine_arr:
     d_byte MainPlatform_u8, kCannonPlatformIndex
     d_addr Init_func_ptr, Func_Noop
     d_addr ReadReg_func_ptr, FuncC_Garden_TowerCannon_ReadReg
-    d_addr WriteReg_func_ptr, Func_MachineError
+    d_addr WriteReg_func_ptr, Func_Noop
     d_addr TryMove_func_ptr, FuncA_Machine_CannonTryMove
     d_addr TryAct_func_ptr, FuncA_Machine_CannonTryAct
     d_addr Tick_func_ptr, FuncA_Machine_CannonTick

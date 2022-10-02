@@ -33,6 +33,9 @@
 .IMPORT DataA_Pause_PrisonAreaCells_u8_arr2_arr
 .IMPORT DataA_Pause_PrisonAreaName_u8_arr
 .IMPORT DataA_Room_Prison_sTileset
+.IMPORT FuncA_Machine_Error
+.IMPORT FuncA_Machine_ReachedGoal
+.IMPORT FuncA_Machine_StartWorking
 .IMPORT FuncA_Objects_Alloc1x1Shape
 .IMPORT FuncA_Objects_DrawGirderPlatform
 .IMPORT FuncA_Objects_DrawTrolleyMachine
@@ -40,8 +43,6 @@
 .IMPORT FuncA_Objects_MoveShapeLeftHalfTile
 .IMPORT FuncA_Objects_MoveShapeRightOneTile
 .IMPORT FuncA_Objects_MoveShapeUpOneTile
-.IMPORT Func_MachineError
-.IMPORT Func_MachineFinishResetting
 .IMPORT Func_MovePlatformHorz
 .IMPORT Func_MovePlatformLeftToward
 .IMPORT Func_Noop
@@ -66,9 +67,6 @@ kGirderPlatformIndex  = 1
 
 ;;; The maximum permitted value for sState::TrolleyGoalX_u8.
 kTrolleyMaxGoalX = 7
-
-;;; How many frames the PrisonEscapeTrolley machine spends per move operation.
-kTrolleyMoveCooldown = kBlockWidthPx
 
 ;;; The minimum room pixel position for the left edge of the trolley.
 kTrolleyMinPlatformLeft = $100
@@ -136,9 +134,9 @@ _Machines_sMachine_arr:
     d_byte MainPlatform_u8, kTrolleyPlatformIndex
     d_addr Init_func_ptr, _Trolley_Init
     d_addr ReadReg_func_ptr, _Trolley_ReadReg
-    d_addr WriteReg_func_ptr, Func_MachineError
+    d_addr WriteReg_func_ptr, Func_Noop
     d_addr TryMove_func_ptr, _Trolley_TryMove
-    d_addr TryAct_func_ptr, Func_MachineError
+    d_addr TryAct_func_ptr, FuncA_Machine_Error
     d_addr Tick_func_ptr, _Trolley_Tick
     d_addr Draw_func_ptr, FuncA_Objects_PrisonEscapeTrolley_Draw
     d_addr Reset_func_ptr, _Trolley_Reset
@@ -244,12 +242,9 @@ _Trolley_TryMove:
     beq @error
     dec Ram_MachineGoalHorz_u8_arr + kTrolleyMachineIndex
     @success:
-    lda #kTrolleyMoveCooldown
-    clc  ; success
-    rts
+    jmp FuncA_Machine_StartWorking
     @error:
-    sec  ; failure
-    rts
+    jmp FuncA_Machine_Error
 _Trolley_Tick:
     ;; Calculate the desired X-position for the left edge of the trolley, in
     ;; room-space pixels, storing it in Zp_PlatformGoal_i16.
@@ -276,7 +271,7 @@ _Trolley_Tick:
     ldx #kGirderPlatformIndex  ; param: platform index
     jmp Func_MovePlatformHorz
     @done:
-    jmp Func_MachineFinishResetting
+    jmp FuncA_Machine_ReachedGoal
 .ENDPROC
 
 ;;;=========================================================================;;;

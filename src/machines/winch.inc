@@ -20,11 +20,6 @@
 ;;; How many frames it takes a winch machine to move up one pixel.
 kWinchMoveUpSlowdown = 3
 
-;;; How many frames the a machine spends per move operation when not resetting.
-kWinchMoveUpCooldown = 16 * kWinchMoveUpSlowdown
-kWinchMoveDownCooldown = 16
-kWinchMoveHorzCooldown = 16
-
 ;;; The terminal velocity for a falling winch load, in pixels per frame.
 .DEFINE kWinchMaxFallSpeed 5
 

@@ -23,11 +23,12 @@
 .INCLUDE "../src/room.inc"
 
 .IMPORT Exit_Success
+.IMPORT FuncA_Machine_Error
 .IMPORT FuncA_Machine_ExecuteAll
+.IMPORT FuncA_Machine_ReachedGoal
 .IMPORT Func_ExpectAEqualsY
 .IMPORT Func_GetMachineProgram
 .IMPORT Func_InitAllMachines
-.IMPORT Func_MachineError
 .IMPORT Func_SetMachineIndex
 .IMPORT Ram_MachinePc_u8_arr
 .IMPORT Ram_MachineStatus_eMachine_arr
@@ -115,7 +116,7 @@ TestMachine:
     d_byte MainPlatform_u8, 0
     d_addr Init_func_ptr, _Init
     d_addr ReadReg_func_ptr, _ReadReg
-    d_addr WriteReg_func_ptr, Func_MachineError
+    d_addr WriteReg_func_ptr, _WriteReg
     d_addr TryMove_func_ptr, _TryMove
     d_addr TryAct_func_ptr, _TryAct
     d_addr Tick_func_ptr, _Tick
@@ -123,6 +124,7 @@ TestMachine:
     d_addr Reset_func_ptr, _Reset
     D_END
 _Init:
+_Reset:
     lda #1
     sta Zp_TestMachinePosX_u8
     sta Zp_TestMachinePosY_u8
@@ -130,16 +132,15 @@ _Init:
     sta Zp_TestMachineActCounter_u8
     rts
 _ReadReg:
-    cmp #$e
-    beq @readRegX
     cmp #$f
     beq @readRegY
-    jmp Func_MachineError
     @readRegX:
     lda Zp_TestMachinePosX_u8
     rts
     @readRegY:
     lda Zp_TestMachinePosY_u8
+    rts
+_WriteReg:
     rts
 _TryMove:
     cpx #eDir::Up
@@ -151,8 +152,7 @@ _TryMove:
     cpx #eDir::Right
     beq @moveRight
     @error:
-    sec  ; set C to indicate failure
-    rts
+    jmp FuncA_Machine_Error
     @moveUp:
     lda Zp_TestMachinePosY_u8
     cmp #kMaxTestMachinePosY
@@ -175,17 +175,13 @@ _TryMove:
     beq @error
     inc Zp_TestMachinePosX_u8
     @success:
-    lda #0  ; wait for zero frames
-    clc  ; clear C to indicate success
     rts
 _TryAct:
     inc Zp_TestMachineActCounter_u8
-    lda #0  ; wait for zero frames
-    clc  ; clear C to indicate success
     rts
 _Tick:
+    jmp FuncA_Machine_ReachedGoal
 _Draw:
-_Reset:
     rts
 .ENDPROC
 

@@ -34,10 +34,10 @@
 .IMPORT DataA_Pause_ShadowAreaCells_u8_arr2_arr
 .IMPORT DataA_Pause_ShadowAreaName_u8_arr
 .IMPORT DataA_Room_Crypt_sTileset
+.IMPORT FuncA_Machine_Error
 .IMPORT FuncA_Machine_FieldTick
 .IMPORT FuncA_Machine_FieldTryAct
 .IMPORT FuncA_Objects_DrawFieldMachine
-.IMPORT Func_MachineError
 .IMPORT Func_MachineFieldReadRegT
 .IMPORT Func_MachineFieldReset
 .IMPORT Func_Noop
@@ -114,8 +114,8 @@ _Machines_sMachine_arr:
     d_byte MainPlatform_u8, kFieldPlatformIndex
     d_addr Init_func_ptr, Func_Noop
     d_addr ReadReg_func_ptr, Func_MachineFieldReadRegT
-    d_addr WriteReg_func_ptr, Func_MachineError
-    d_addr TryMove_func_ptr, Func_MachineError
+    d_addr WriteReg_func_ptr, Func_Noop
+    d_addr TryMove_func_ptr, FuncA_Machine_Error
     d_addr TryAct_func_ptr, FuncA_Machine_FieldTryAct
     d_addr Tick_func_ptr, FuncA_Machine_FieldTick
     d_addr Draw_func_ptr, FuncA_Objects_DrawFieldMachine

@@ -36,6 +36,7 @@
 .IMPORT DataA_Room_Garden_sTileset
 .IMPORT FuncA_Machine_CannonTick
 .IMPORT FuncA_Machine_CannonTryMove
+.IMPORT FuncA_Machine_StartWaiting
 .IMPORT FuncA_Objects_DrawCannonMachine
 .IMPORT Func_FindEmptyActorSlot
 .IMPORT Func_GetRandomByte
@@ -45,7 +46,6 @@
 .IMPORT Func_InitActorProjSpike
 .IMPORT Func_LockDoorDevice
 .IMPORT Func_MachineCannonReadRegY
-.IMPORT Func_MachineError
 .IMPORT Func_MarkRoomSafe
 .IMPORT Func_Noop
 .IMPORT Func_SetFlag
@@ -238,7 +238,7 @@ _Machines_sMachine_arr:
     d_byte MainPlatform_u8, kCannonPlatformIndex
     d_addr Init_func_ptr, Func_Noop
     d_addr ReadReg_func_ptr, _Cannon_ReadReg
-    d_addr WriteReg_func_ptr, Func_MachineError
+    d_addr WriteReg_func_ptr, Func_Noop
     d_addr TryMove_func_ptr, FuncA_Machine_CannonTryMove
     d_addr TryAct_func_ptr, _Cannon_TryAct
     d_addr Tick_func_ptr, FuncA_Machine_CannonTick
@@ -328,8 +328,7 @@ _Cannon_TryAct:
     lda Ram_MachineGoalVert_u8_arr + kCannonMachineIndex  ; param: aim (0-1)
     jsr Func_InitActorProjGrenade
     lda #kCannonActCountdown
-    clc  ; clear C to indicate success
-    rts
+    jmp FuncA_Machine_StartWaiting
 _Cannon_Reset:
     lda #0
     sta Ram_MachineGoalVert_u8_arr + kCannonMachineIndex

@@ -22,7 +22,6 @@
 
 ;;; How many frames a boiler machine spends for various operations.
 kBoilerActCountdown = 32
-kBoilerWriteCountdown = 24
 
 ;;; Various OBJ tile IDs used for drawing boiler machines.
 kTileIdBoilerFirst = $9a

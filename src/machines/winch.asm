@@ -25,6 +25,9 @@
 .INCLUDE "shared.inc"
 .INCLUDE "winch.inc"
 
+.IMPORT FuncA_Machine_ReachedGoal
+.IMPORT FuncA_Machine_StartWaiting
+.IMPORT FuncA_Machine_StartWorking
 .IMPORT FuncA_Objects_Alloc1x1Shape
 .IMPORT FuncA_Objects_Alloc2x1Shape
 .IMPORT FuncA_Objects_Alloc2x2Shape
@@ -46,7 +49,6 @@
 .IMPORT Ram_MachineParam2_i16_1_arr
 .IMPORT Ram_MachineSlowdown_u8_arr
 .IMPORT Ram_MachineStatus_eMachine_arr
-.IMPORT Ram_MachineWait_u8_arr
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORT Ram_PlatformBottom_i16_0_arr
 .IMPORT Ram_PlatformBottom_i16_1_arr
@@ -172,9 +174,6 @@ _MovingDown:
     lda #1
     rts
 _Falling:
-    ;; Keep extending machine wait time until it stops falling.
-    lda #kWinchFallRecoverFrames
-    sta Ram_MachineWait_u8_arr, y
     ;; Apply gravity.
     lda Ram_MachineParam2_i16_0_arr, y
     add #kAvatarGravity
@@ -193,11 +192,10 @@ _Falling:
     rts
 .ENDPROC
 
-;;; Puts the current winch machine into falling mode.
+;;; Called from a winch machine's TryAct function to make the winch start
+;;; falling.
 ;;; @prereq Zp_MachineIndex_u8 is initialized.
 ;;; @param A The new Z-goal to set.
-;;; @return C Set if there was an error, cleared otherwise.
-;;; @return A How many frames to wait before advancing the PC.
 .EXPORT FuncA_Machine_WinchStartFalling
 .PROC FuncA_Machine_WinchStartFalling
     ldy Zp_MachineIndex_u8
@@ -209,20 +207,29 @@ _Falling:
     lda #0
     sta Ram_MachineParam2_i16_0_arr, y
     sta Ram_MachineParam2_i16_1_arr, y
-    ;; Return initial wait frames.  (FuncA_Machine_GetWinchVertSpeed will keep
-    ;; extending the wait time as long as the winch is still falling.)
-    lda #kWinchFallRecoverFrames
-    clc  ; success
-    rts
+    jmp FuncA_Machine_StartWorking
 .ENDPROC
 
-;;; If the current winch machine is falling, plays a sound for impact and then
-;;; takes it out of falling mode.
+;;; Called from a winch machine's Tick function when the goal position is
+;;; reached.  If the winch was falling, this stops the fall, plays a sound for
+;;; impact, and makes the winch wait for a short time to recover before
+;;; continuing execution.  If the winch wasn't falling, then this resumes
+;;; execution right away.
 ;;; @prereq Zp_MachineIndex_u8 is initialized.
-.EXPORT FuncA_Machine_WinchStopFalling
-.PROC FuncA_Machine_WinchStopFalling
-    ;; TODO: If currently falling, play a sound for impact.
-    jmp Func_ResetWinchMachineParams
+.EXPORT FuncA_Machine_WinchReachedGoal
+.PROC FuncA_Machine_WinchReachedGoal
+    ldx Zp_MachineIndex_u8
+    lda Ram_MachineParam1_u8_arr, y  ; falling bool
+    bmi _Falling
+_NotFalling:
+    jmp FuncA_Machine_ReachedGoal
+_Falling:
+    ;; Stop falling.
+    jsr Func_ResetWinchMachineParams
+    ;; TODO: play a sound for impact
+    ;; Wait for a bit before resuming program execution.
+    lda #kWinchFallRecoverFrames
+    jmp FuncA_Machine_StartWaiting
 .ENDPROC
 
 ;;; Determines whether the current winch machine is falling fast enough to

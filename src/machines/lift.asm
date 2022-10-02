@@ -24,6 +24,8 @@
 .INCLUDE "../program.inc"
 .INCLUDE "shared.inc"
 
+.IMPORT FuncA_Machine_Error
+.IMPORT FuncA_Machine_StartWorking
 .IMPORT FuncA_Objects_Alloc2x2Shape
 .IMPORT FuncA_Objects_GetMachineLightTileId
 .IMPORT FuncA_Objects_MoveShapeDownOneTile
@@ -42,9 +44,6 @@
 
 ;;;=========================================================================;;;
 
-;;; How many frames a lift machine spends per move operation.
-kLiftMoveCooldown = kBlockHeightPx
-
 ;;; Various OBJ tile IDs used for drawing lift machines.
 kTileIdLiftCorner  = kTileIdMachineCorner
 kTileIdLiftSurface = $78
@@ -57,8 +56,6 @@ kTileIdLiftSurface = $78
 ;;; @prereq Zp_MachineIndex_u8 is initialized.
 ;;; @param A The maximum permitted vertical goal value.
 ;;; @param X The eDir value for the direction to move in (up or down).
-;;; @return C Set if there was an error, cleared otherwise.
-;;; @return A How many frames to wait before advancing the PC.
 .EXPORT FuncA_Machine_LiftTryMove
 .PROC FuncA_Machine_LiftTryMove
     sta Zp_Tmp1_byte  ; max goal vert
@@ -78,19 +75,16 @@ kTileIdLiftSurface = $78
     txa
     @success:
     sta Ram_MachineGoalVert_u8_arr, y
-    lda #kLiftMoveCooldown
-    clc  ; success
-    rts
+    jmp FuncA_Machine_StartWorking
     @error:
-    sec  ; failure
-    rts
+    jmp FuncA_Machine_Error
 .ENDPROC
 
 ;;; Moves the current lift machine's platform towards its goal position.
 ;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
 ;;; @param AX The maximum platform top position for the lift machine.
 ;;; @return A The pixel delta that the platform actually moved by (signed).
-;;; @return N Set if the platform moved left, cleared otherwise.
+;;; @return N Set if the platform moved up, cleared otherwise.
 ;;; @return Z Cleared if the platform moved, set if it didn't.
 .EXPORT FuncA_Machine_LiftMoveTowardGoal
 .PROC FuncA_Machine_LiftMoveTowardGoal

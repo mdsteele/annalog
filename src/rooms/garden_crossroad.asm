@@ -31,12 +31,12 @@
 .IMPORT DataA_Pause_GardenAreaCells_u8_arr2_arr
 .IMPORT DataA_Pause_GardenAreaName_u8_arr
 .IMPORT DataA_Room_Garden_sTileset
+.IMPORT FuncA_Machine_Error
 .IMPORT FuncA_Machine_LiftMoveTowardGoal
 .IMPORT FuncA_Machine_LiftTryMove
+.IMPORT FuncA_Machine_ReachedGoal
 .IMPORT FuncA_Objects_DrawLiftMachine
 .IMPORT Func_InitActorProjSmoke
-.IMPORT Func_MachineError
-.IMPORT Func_MachineFinishResetting
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrObjGarden
 .IMPORT Ram_ActorPosX_i16_0_arr
@@ -124,9 +124,9 @@ _Machines_sMachine_arr:
     d_byte MainPlatform_u8, kLiftPlatformIndex
     d_addr Init_func_ptr, _Lift_Init
     d_addr ReadReg_func_ptr, FuncC_Garden_CrossroadLift_ReadReg
-    d_addr WriteReg_func_ptr, Func_MachineError
+    d_addr WriteReg_func_ptr, Func_Noop
     d_addr TryMove_func_ptr, FuncC_Garden_CrossroadLift_TryMove
-    d_addr TryAct_func_ptr, Func_MachineError
+    d_addr TryAct_func_ptr, FuncA_Machine_Error
     d_addr Tick_func_ptr, FuncC_Garden_CrossroadLift_Tick
     d_addr Draw_func_ptr, FuncA_Objects_DrawLiftMachine
     d_addr Reset_func_ptr, _Lift_Reset
@@ -232,7 +232,7 @@ _ReadL:
 .PROC FuncC_Garden_CrossroadLift_Tick
     ldax #kLiftMaxPlatformTop  ; param: max platform top
     jsr FuncA_Machine_LiftMoveTowardGoal  ; returns Z, N, and A
-    jeq Func_MachineFinishResetting
+    jeq FuncA_Machine_ReachedGoal
     ;; If the machine moved downwards, check if the enemy below got squished.
     bmi @noSquish  ; the machine moved up, not down
     lda Ram_ActorType_eActor_arr + kSquishableActorIndex

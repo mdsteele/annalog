@@ -30,9 +30,10 @@
 .IMPORT DataA_Pause_MermaidAreaCells_u8_arr2_arr
 .IMPORT DataA_Pause_MermaidAreaName_u8_arr
 .IMPORT DataA_Room_Hut_sTileset
+.IMPORT FuncA_Machine_Error
+.IMPORT FuncA_Machine_ReachedGoal
+.IMPORT FuncA_Machine_StartWorking
 .IMPORT FuncA_Objects_DrawGirderPlatform
-.IMPORT Func_MachineError
-.IMPORT Func_MachineFinishResetting
 .IMPORT Func_MovePlatformTopToward
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrObjTownsfolk
@@ -105,9 +106,9 @@ _Machines_sMachine_arr:
     d_byte MainPlatform_u8, 0
     d_addr Init_func_ptr, Func_Noop
     d_addr ReadReg_func_ptr, FuncC_Mermaid_Hut6Machine_ReadReg
-    d_addr WriteReg_func_ptr, Func_MachineError
+    d_addr WriteReg_func_ptr, Func_Noop
     d_addr TryMove_func_ptr, FuncC_Mermaid_Hut6Machine_TryMove
-    d_addr TryAct_func_ptr, Func_MachineError
+    d_addr TryAct_func_ptr, FuncA_Machine_Error
     d_addr Tick_func_ptr, FuncC_Mermaid_Hut6Machine_Tick
     d_addr Draw_func_ptr, FuncA_Objects_MermaidHut6Machine_Draw
     d_addr Reset_func_ptr, FuncC_Mermaid_Hut6Machine_Reset
@@ -123,9 +124,9 @@ _Machines_sMachine_arr:
     d_byte MainPlatform_u8, 1
     d_addr Init_func_ptr, Func_Noop
     d_addr ReadReg_func_ptr, FuncC_Mermaid_Hut6Machine_ReadReg
-    d_addr WriteReg_func_ptr, Func_MachineError
+    d_addr WriteReg_func_ptr, Func_Noop
     d_addr TryMove_func_ptr, FuncC_Mermaid_Hut6Machine_TryMove
-    d_addr TryAct_func_ptr, Func_MachineError
+    d_addr TryAct_func_ptr, FuncA_Machine_Error
     d_addr Tick_func_ptr, FuncC_Mermaid_Hut6Machine_Tick
     d_addr Draw_func_ptr, FuncA_Objects_MermaidHut6Machine_Draw
     d_addr Reset_func_ptr, FuncC_Mermaid_Hut6Machine_Reset
@@ -193,20 +194,15 @@ _Devices_sDevice_arr:
     lda Ram_RoomState + sState::MachineGoalY_u8_arr, x
     bne @error
     inc Ram_RoomState + sState::MachineGoalY_u8_arr, x
-    lda #kMachineMoveCountdown
-    clc  ; clear C to indicate success
-    rts
+    jmp FuncA_Machine_StartWorking
     @moveDown:
     ldx Zp_MachineIndex_u8
     lda Ram_RoomState + sState::MachineGoalY_u8_arr, x
     beq @error
     dec Ram_RoomState + sState::MachineGoalY_u8_arr, x
-    lda #kMachineMoveCountdown
-    clc  ; clear C to indicate success
-    rts
+    jmp FuncA_Machine_StartWorking
     @error:
-    sec  ; set C to indicate failure
-    rts
+    jmp FuncA_Machine_Error
 .ENDPROC
 
 .PROC FuncC_Mermaid_Hut6Machine_Tick
@@ -233,7 +229,7 @@ _Devices_sDevice_arr:
     beq @done
     rts
     @done:
-    jmp Func_MachineFinishResetting
+    jmp FuncA_Machine_ReachedGoal
 .ENDPROC
 
 ;;;=========================================================================;;;

@@ -52,6 +52,9 @@ kMachineRegNameB = $21  ; 'B'
 .ENUM eMachine
     Running    ; The machine is executing its program.
     Resetting  ; The machine is resetting to its original position.
+    Working    ; Execution is blocked until the machine reaches its goal.
+    Syncing    ; Execution is blocked on a SYNC instruction.
+    Waiting    ; Execution is blocked for a set number of frames.
     Ended      ; An END instruction was reached.
     Error      ; The machine tried to do something it couldn't do.
 .ENDENUM
@@ -77,30 +80,33 @@ kMachineRegNameB = $21  ; 'B'
     ;; Function to initialize machine-specific state (when entering the area).
     ;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
     Init_func_ptr     .addr
-    ;; Function to call when a register from $c to $f is read.
+    ;; Function to get the value of a register $c to $f.  This should be
+    ;; side-effect-free, as it is also called when drawing the HUD.
     ;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
     ;; @param A The register to read ($c-$f).
     ;; @return A The value of the register (0-9).
     ReadReg_func_ptr  .addr
-    ;; Function to call when a register from $c to $f is written.
+    ;; Function to call when a register from $c to $f is written.  If the write
+    ;; causes the machine to take some action that takes time, this should call
+    ;; FuncA_Machine_StartWorking or FuncA_Machine_StartWaiting; if the write
+    ;; is instantaneous, this can just return without changing the mode.
     ;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
     ;; @prereq PRGA_Machine is loaded.
     ;; @param A The register to write to ($c-$f).
     ;; @param X The value to write (0-9).
-    ;; @return A How many frames to wait before advancing the PC.
     WriteReg_func_ptr .addr
-    ;; Function to call when the machine tries to move.
+    ;; Function to call when the machine tries to move.  If the machine can't
+    ;; move, this should call FuncA_Machine_Error; otherwise it should probably
+    ;; call FuncA_Machine_StartWorking or FuncA_Machine_StartWaiting.
     ;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
     ;; @prereq PRGA_Machine is loaded.
     ;; @param X The eDir value for the direction to move in.
-    ;; @return C Set if there was an error, cleared otherwise.
-    ;; @return A How many frames to wait before advancing the PC.
     TryMove_func_ptr  .addr
-    ;; Function to call when the machine tries to act.
+    ;; Function to call when the machine tries to act.  If the machine can't
+    ;; act, this should call FuncA_Machine_Error; otherwise it should probably
+    ;; call FuncA_Machine_StartWorking or FuncA_Machine_StartWaiting.
     ;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
     ;; @prereq PRGA_Machine is loaded.
-    ;; @return C Set if there was an error, cleared otherwise.
-    ;; @return A How many frames to wait before advancing the PC.
     TryAct_func_ptr   .addr
     ;; Function to call each frame to update the machine.
     ;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.

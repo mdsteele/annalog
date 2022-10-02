@@ -25,6 +25,9 @@
 .INCLUDE "cannon.inc"
 .INCLUDE "shared.inc"
 
+.IMPORT FuncA_Machine_Error
+.IMPORT FuncA_Machine_ReachedGoal
+.IMPORT FuncA_Machine_StartWaiting
 .IMPORT FuncA_Objects_Alloc2x2Shape
 .IMPORT FuncA_Objects_GetMachineLightTileId
 .IMPORT FuncA_Objects_MoveShapeDownOneTile
@@ -32,7 +35,6 @@
 .IMPORT FuncA_Objects_SetShapePosToMachineTopLeft
 .IMPORT Func_FindEmptyActorSlot
 .IMPORT Func_InitActorProjGrenade
-.IMPORT Func_MachineFinishResetting
 .IMPORT Ram_ActorPosX_i16_0_arr
 .IMPORT Ram_ActorPosX_i16_1_arr
 .IMPORT Ram_ActorPosY_i16_0_arr
@@ -101,17 +103,13 @@ kCannonTileIdBarrelLow  = kTileIdCannonFirst + $04
     tya
     sta Ram_MachineGoalVert_u8_arr, x
     lda #kCannonMoveCountdown
-    clc  ; clear C to indicate success
-    rts
+    jmp FuncA_Machine_StartWaiting
     @error:
-    sec  ; set C to indicate failure
-    rts
+    jmp FuncA_Machine_Error
 .ENDPROC
 
 ;;; TryAct implemention for cannon machines.
 ;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
-;;; @return C Set if there was an error, cleared otherwise.
-;;; @return A How many frames to wait before advancing the PC.
 .EXPORT FuncA_Machine_CannonTryAct
 .PROC FuncA_Machine_CannonTryAct
     jsr Func_FindEmptyActorSlot  ; sets C on failure, returns X
@@ -146,8 +144,7 @@ kCannonTileIdBarrelLow  = kTileIdCannonFirst + $04
     jsr Func_InitActorProjGrenade
     @doneGrenade:
     lda #kCannonActCountdown
-    clc  ; clear C to indicate success
-    rts
+    jmp FuncA_Machine_StartWaiting
 .ENDPROC
 
 ;;; Tick implemention for cannon machines.
@@ -164,14 +161,14 @@ kCannonTileIdBarrelLow  = kTileIdCannonFirst + $04
     bcc @setAngle
     lda #$ff
     sta Ram_MachineParam1_u8_arr, x
-    jmp Func_MachineFinishResetting
+    jmp FuncA_Machine_ReachedGoal
     @moveDown:
     lda Ram_MachineParam1_u8_arr, x
     sub #$100 / kCannonMoveCountdown
     bge @setAngle
     lda #0
     sta Ram_MachineParam1_u8_arr, x
-    jmp Func_MachineFinishResetting
+    jmp FuncA_Machine_ReachedGoal
     @setAngle:
     sta Ram_MachineParam1_u8_arr, x
     rts

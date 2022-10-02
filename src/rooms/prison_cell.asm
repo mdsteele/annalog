@@ -34,8 +34,10 @@
 .IMPORT DataA_Pause_PrisonAreaCells_u8_arr2_arr
 .IMPORT DataA_Pause_PrisonAreaName_u8_arr
 .IMPORT DataA_Room_Prison_sTileset
+.IMPORT FuncA_Machine_Error
 .IMPORT FuncA_Machine_LiftMoveTowardGoal
 .IMPORT FuncA_Machine_LiftTryMove
+.IMPORT FuncA_Machine_ReachedGoal
 .IMPORT FuncA_Objects_Alloc1x1Shape
 .IMPORT FuncA_Objects_DrawLiftMachine
 .IMPORT FuncA_Objects_MoveShapeDownOneTile
@@ -43,8 +45,6 @@
 .IMPORT FuncA_Objects_MoveShapeUpOneTile
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
 .IMPORT Func_IsFlagSet
-.IMPORT Func_MachineError
-.IMPORT Func_MachineFinishResetting
 .IMPORT Func_Noop
 .IMPORT Func_SetFlag
 .IMPORT Ppu_ChrObjUpgrade
@@ -140,9 +140,9 @@ _Machines_sMachine_arr:
     d_byte MainPlatform_u8, kLiftPlatformIndex
     d_addr Init_func_ptr, _Lift_Init
     d_addr ReadReg_func_ptr, _Lift_ReadReg
-    d_addr WriteReg_func_ptr, Func_MachineError
+    d_addr WriteReg_func_ptr, Func_Noop
     d_addr TryMove_func_ptr, FuncC_Prison_CellLift_TryMove
-    d_addr TryAct_func_ptr, Func_MachineError
+    d_addr TryAct_func_ptr, FuncA_Machine_Error
     d_addr Tick_func_ptr, FuncC_Prison_CellLift_Tick
     d_addr Draw_func_ptr, FuncA_Objects_DrawLiftMachine
     d_addr Reset_func_ptr, _Lift_Reset
@@ -159,9 +159,9 @@ _Machines_sMachine_arr:
     d_byte MainPlatform_u8, 0  ; TODO
     d_addr Init_func_ptr, _Blaster_Init
     d_addr ReadReg_func_ptr, _Blaster_ReadReg
-    d_addr WriteReg_func_ptr, Func_MachineError
-    d_addr TryMove_func_ptr, _Blaster_TryMove
-    d_addr TryAct_func_ptr, _Blaster_TryAct
+    d_addr WriteReg_func_ptr, Func_Noop
+    d_addr TryMove_func_ptr, FuncA_Machine_Error  ; TODO
+    d_addr TryAct_func_ptr, FuncA_Machine_Error  ; TODO
     d_addr Tick_func_ptr, _Blaster_Tick
     d_addr Draw_func_ptr, FuncA_Objects_PrisonCellBlaster_Draw
     d_addr Reset_func_ptr, _Blaster_Reset
@@ -248,12 +248,6 @@ _Blaster_Init:
 _Blaster_ReadReg:
     lda #0  ; TODO
     rts
-_Blaster_TryMove:
-    ;; TODO
-    jmp Func_MachineError
-_Blaster_TryAct:
-    ;; TODO
-    jmp Func_MachineError
 _Blaster_Tick:
     ;; TODO
     rts
@@ -337,7 +331,7 @@ _RightTileIds_u8_arr:
 .PROC FuncC_Prison_CellLift_Tick
     ldax #kLiftMaxPlatformTop  ; param: max platform top
     jsr FuncA_Machine_LiftMoveTowardGoal  ; returns Z
-    jeq Func_MachineFinishResetting
+    jeq FuncA_Machine_ReachedGoal
     rts
 .ENDPROC
 

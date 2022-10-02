@@ -37,9 +37,9 @@
 .IMPORT DataA_Room_Garden_sTileset
 .IMPORT FuncA_Machine_BridgeTick
 .IMPORT FuncA_Machine_BridgeTryMove
+.IMPORT FuncA_Machine_Error
 .IMPORT FuncA_Objects_DrawBridgeMachine
 .IMPORT Func_MachineBridgeReadRegY
-.IMPORT Func_MachineError
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrObjGarden
 .IMPORT Ram_MachineGoalVert_u8_arr
@@ -128,9 +128,9 @@ _Machines_sMachine_arr:
     d_byte MainPlatform_u8, kLowerBridgePivotPlatformIndex
     d_addr Init_func_ptr, FuncC_Garden_ShaftBridge_Init
     d_addr ReadReg_func_ptr, FuncC_Garden_ShaftBridge_ReadReg
-    d_addr WriteReg_func_ptr, Func_MachineError
+    d_addr WriteReg_func_ptr, Func_Noop
     d_addr TryMove_func_ptr, FuncA_Machine_BridgeTryMove
-    d_addr TryAct_func_ptr, Func_MachineError
+    d_addr TryAct_func_ptr, FuncA_Machine_Error
     d_addr Tick_func_ptr, FuncC_Garden_ShaftLowerBridge_Tick
     d_addr Draw_func_ptr, FuncA_Objects_GardenShaftLowerBridge_Draw
     d_addr Reset_func_ptr, FuncC_Garden_ShaftBridge_Reset
@@ -147,9 +147,9 @@ _Machines_sMachine_arr:
     d_byte MainPlatform_u8, kUpperBridgePivotPlatformIndex
     d_addr Init_func_ptr, FuncC_Garden_ShaftBridge_Init
     d_addr ReadReg_func_ptr, FuncC_Garden_ShaftBridge_ReadReg
-    d_addr WriteReg_func_ptr, Func_MachineError
+    d_addr WriteReg_func_ptr, Func_Noop
     d_addr TryMove_func_ptr, FuncA_Machine_BridgeTryMove
-    d_addr TryAct_func_ptr, Func_MachineError
+    d_addr TryAct_func_ptr, FuncA_Machine_Error
     d_addr Tick_func_ptr, FuncC_Garden_ShaftUpperBridge_Tick
     d_addr Draw_func_ptr, FuncA_Objects_GardenShaftUpperBridge_Draw
     d_addr Reset_func_ptr, FuncC_Garden_ShaftBridge_Reset

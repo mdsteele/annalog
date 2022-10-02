@@ -30,10 +30,11 @@
 .IMPORT DataA_Pause_MermaidAreaCells_u8_arr2_arr
 .IMPORT DataA_Pause_MermaidAreaName_u8_arr
 .IMPORT DataA_Room_Mermaid_sTileset
+.IMPORT FuncA_Machine_Error
+.IMPORT FuncA_Machine_ReachedGoal
+.IMPORT FuncA_Machine_StartWorking
 .IMPORT FuncA_Objects_DrawGirderPlatform
 .IMPORT Func_DivMod
-.IMPORT Func_MachineError
-.IMPORT Func_MachineFinishResetting
 .IMPORT Func_MovePlatformTopToward
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrObjUpgrade
@@ -134,9 +135,9 @@ _Machines_sMachine_arr:
     d_byte MainPlatform_u8, kLiftPlatformIndex
     d_addr Init_func_ptr, FuncC_Mermaid_UpperLift_Init
     d_addr ReadReg_func_ptr, FuncC_Mermaid_UpperLift_ReadReg
-    d_addr WriteReg_func_ptr, Func_MachineError
+    d_addr WriteReg_func_ptr, Func_Noop
     d_addr TryMove_func_ptr, FuncC_Mermaid_UpperLift_TryMove
-    d_addr TryAct_func_ptr, Func_MachineError
+    d_addr TryAct_func_ptr, FuncA_Machine_Error
     d_addr Tick_func_ptr, FuncC_Mermaid_UpperLift_Tick
     d_addr Draw_func_ptr, FuncA_Objects_MermaidUpperLift_Draw
     d_addr Reset_func_ptr, FuncC_Mermaid_UpperLift_Reset
@@ -276,12 +277,9 @@ _ReadL:
     dey
     @success:
     sty Ram_RoomState + sState::LiftGoalY_u8
-    lda #kLiftMoveCooldown
-    clc  ; success
-    rts
+    jmp FuncA_Machine_StartWorking
     @error:
-    sec  ; failure
-    rts
+    jmp FuncA_Machine_Error
 .ENDPROC
 
 .PROC FuncC_Mermaid_UpperLift_Tick
@@ -322,7 +320,7 @@ _ReadL:
     ;; TODO: If moving down, check if the actor got crushed.
     rts
     @done:
-    jmp Func_MachineFinishResetting
+    jmp FuncA_Machine_ReachedGoal
 .ENDPROC
 
 ;;;=========================================================================;;;

@@ -24,6 +24,9 @@
 .INCLUDE "boiler.inc"
 .INCLUDE "shared.inc"
 
+.IMPORT FuncA_Machine_ReachedGoal
+.IMPORT FuncA_Machine_StartWaiting
+.IMPORT FuncA_Machine_StartWorking
 .IMPORT FuncA_Objects_Alloc1x1Shape
 .IMPORT FuncA_Objects_Alloc2x2Shape
 .IMPORT FuncA_Objects_GetMachineLightTileId
@@ -34,7 +37,6 @@
 .IMPORT Func_FindEmptyActorSlot
 .IMPORT Func_InitActorProjSteamHorz
 .IMPORT Func_InitActorProjSteamUp
-.IMPORT Func_MachineFinishResetting
 .IMPORT Ram_ActorPosX_i16_0_arr
 .IMPORT Ram_ActorPosX_i16_1_arr
 .IMPORT Ram_ActorPosY_i16_0_arr
@@ -103,7 +105,6 @@ kValvePalette = 0
 ;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
 ;;; @param A The register to write to ($c-$f).
 ;;; @param X The value to write (0-9).
-;;; @return A How many frames to wait before advancing the PC.
 .EXPORT FuncA_Machine_BoilerWriteReg
 .PROC FuncA_Machine_BoilerWriteReg
     ldy Zp_MachineIndex_u8
@@ -111,13 +112,17 @@ kValvePalette = 0
     beq @valve2
     @valve1:
     txa
+    cmp Ram_MachineGoalVert_u8_arr, y
+    beq @done
     sta Ram_MachineGoalVert_u8_arr, y
-    lda #kBoilerWriteCountdown
-    rts
+    jmp FuncA_Machine_StartWorking
     @valve2:
     txa
+    cmp Ram_MachineGoalHorz_u8_arr, y
+    beq @done
     sta Ram_MachineGoalHorz_u8_arr, y
-    lda #kBoilerWriteCountdown
+    jmp FuncA_Machine_StartWorking
+    @done:
     rts
 .ENDPROC
 
@@ -127,7 +132,6 @@ kValvePalette = 0
 .PROC FuncA_Machine_BoilerTick
     lda #0
     sta Zp_Tmp1_byte  ; num valves moved
-    ldx Zp_MachineIndex_u8
 _Valve1:
     lda Ram_MachineGoalVert_u8_arr, x
     mul #kBoilerValveAnimSlowdown
@@ -158,7 +162,8 @@ _Valve2:
     @done:
 _Finish:
     lda Zp_Tmp1_byte  ; num valves moved
-    jeq Func_MachineFinishResetting
+    jeq FuncA_Machine_ReachedGoal
+_Return:
     rts
 .ENDPROC
 
@@ -246,6 +251,16 @@ _Finish:
     jmp Func_InitActorProjSteamUp
     @done:
     rts
+.ENDPROC
+
+;;; Called at the end of a boiler machine's TryAct function after it has
+;;; successfully emitted steam from one or more pipes.
+;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
+.EXPORT FuncA_Machine_BoilerFinishEmittingSteam
+.PROC FuncA_Machine_BoilerFinishEmittingSteam
+    ;; TODO play a sound
+    lda #kBoilerActCountdown  ; param: num frames
+    jmp FuncA_Machine_StartWaiting
 .ENDPROC
 
 ;;;=========================================================================;;;

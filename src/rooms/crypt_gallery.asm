@@ -33,17 +33,17 @@
 .IMPORT DataA_Pause_CryptAreaCells_u8_arr2_arr
 .IMPORT DataA_Pause_CryptAreaName_u8_arr
 .IMPORT DataA_Room_Crypt_sTileset
+.IMPORT FuncA_Machine_Error
 .IMPORT FuncA_Machine_GetWinchHorzSpeed
 .IMPORT FuncA_Machine_GetWinchVertSpeed
+.IMPORT FuncA_Machine_StartWorking
+.IMPORT FuncA_Machine_WinchReachedGoal
 .IMPORT FuncA_Machine_WinchStartFalling
-.IMPORT FuncA_Machine_WinchStopFalling
 .IMPORT FuncA_Objects_DrawWinchChain
 .IMPORT FuncA_Objects_DrawWinchCrusher
 .IMPORT FuncA_Objects_DrawWinchMachine
 .IMPORT FuncA_Objects_MoveShapeLeftHalfTile
 .IMPORT FuncA_Objects_MoveShapeUpOneTile
-.IMPORT Func_MachineError
-.IMPORT Func_MachineFinishResetting
 .IMPORT Func_MovePlatformHorz
 .IMPORT Func_MovePlatformLeftToward
 .IMPORT Func_MovePlatformTopToward
@@ -148,7 +148,7 @@ _Machines_sMachine_arr:
     d_byte MainPlatform_u8, kWinchPlatformIndex
     d_addr Init_func_ptr, FuncC_Crypt_GalleryWinch_Init
     d_addr ReadReg_func_ptr, FuncC_Crypt_GalleryWinch_ReadReg
-    d_addr WriteReg_func_ptr, Func_MachineError
+    d_addr WriteReg_func_ptr, Func_Noop
     d_addr TryMove_func_ptr, FuncC_Crypt_GalleryWinch_TryMove
     d_addr TryAct_func_ptr, FuncC_Crypt_GalleryWinch_TryAct
     d_addr Tick_func_ptr, FuncC_Crypt_GalleryWinch_Tick
@@ -322,34 +322,27 @@ _MoveHorz:
     cmp Ram_MachineGoalVert_u8_arr + kWinchMachineIndex
     blt _Error
     sty Ram_MachineGoalHorz_u8_arr + kWinchMachineIndex
-    lda #kWinchMoveHorzCooldown
-    clc  ; success
-    rts
+    jmp FuncA_Machine_StartWorking
 _MoveUp:
     lda Ram_MachineGoalVert_u8_arr + kWinchMachineIndex
     beq _Error
     dec Ram_MachineGoalVert_u8_arr + kWinchMachineIndex
-    lda #kWinchMoveUpCooldown
-    clc  ; success
-    rts
+    jmp FuncA_Machine_StartWorking
 _MoveDown:
     lda DataC_Crypt_GalleryFloor_u8_arr, y
     cmp Ram_MachineGoalVert_u8_arr + kWinchMachineIndex
     beq _Error
     inc Ram_MachineGoalVert_u8_arr + kWinchMachineIndex
-    lda #kWinchMoveDownCooldown
-    clc  ; success
-    rts
+    jmp FuncA_Machine_StartWorking
 _Error:
-    sec  ; failure
-    rts
+    jmp FuncA_Machine_Error
 .ENDPROC
 
 ;;; @prereq PRGA_Machine is loaded.
 .PROC FuncC_Crypt_GalleryWinch_TryAct
     ldy Ram_MachineGoalHorz_u8_arr + kWinchMachineIndex
     lda DataC_Crypt_GalleryFloor_u8_arr, y  ; param: new Z-goal
-    jmp FuncA_Machine_WinchStartFalling  ; returns C and A
+    jmp FuncA_Machine_WinchStartFalling
 .ENDPROC
 
 ;;; @prereq PRGA_Machine is loaded.
@@ -380,7 +373,6 @@ _MoveVert:
     ldx #kCrusherSpikePlatformIndex  ; param: platform index
     jmp Func_MovePlatformVert
     @reachedGoal:
-    jsr FuncA_Machine_WinchStopFalling
 _MoveHorz:
     ;; Calculate the desired X-position for the left edge of the winch, in
     ;; room-space pixels, storing it in Zp_PlatformGoal_i16.
@@ -405,7 +397,7 @@ _MoveHorz:
     jmp Func_MovePlatformHorz
     @reachedGoal:
 _Finished:
-    jmp Func_MachineFinishResetting
+    jmp FuncA_Machine_WinchReachedGoal
 .ENDPROC
 
 .PROC DataC_Crypt_GalleryFloor_u8_arr

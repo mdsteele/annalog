@@ -42,12 +42,12 @@
 .IMPORT FuncA_Machine_CannonTick
 .IMPORT FuncA_Machine_CannonTryAct
 .IMPORT FuncA_Machine_CannonTryMove
+.IMPORT FuncA_Machine_Error
 .IMPORT FuncA_Objects_DrawBridgeMachine
 .IMPORT FuncA_Objects_DrawCannonMachine
 .IMPORT Func_IsFlagSet
 .IMPORT Func_MachineBridgeReadRegY
 .IMPORT Func_MachineCannonReadRegY
-.IMPORT Func_MachineError
 .IMPORT Func_Noop
 .IMPORT Func_SetFlag
 .IMPORT Ppu_ChrObjGarden
@@ -144,9 +144,9 @@ _Machines_sMachine_arr:
     d_byte MainPlatform_u8, kBridgePivotPlatformIndex
     d_addr Init_func_ptr, Func_Noop
     d_addr ReadReg_func_ptr, FuncC_Garden_EastBridge_ReadReg
-    d_addr WriteReg_func_ptr, Func_MachineError
+    d_addr WriteReg_func_ptr, Func_Noop
     d_addr TryMove_func_ptr, FuncA_Machine_BridgeTryMove
-    d_addr TryAct_func_ptr, Func_MachineError
+    d_addr TryAct_func_ptr, FuncA_Machine_Error
     d_addr Tick_func_ptr, FuncC_Garden_EastBridge_Tick
     d_addr Draw_func_ptr, FuncA_Objects_GardenEastBridge_Draw
     d_addr Reset_func_ptr, FuncC_Garden_EastBridge_Reset
@@ -163,7 +163,7 @@ _Machines_sMachine_arr:
     d_byte MainPlatform_u8, kCannonPlatformIndex
     d_addr Init_func_ptr, Func_Noop
     d_addr ReadReg_func_ptr, FuncC_Garden_EastCannon_ReadReg
-    d_addr WriteReg_func_ptr, Func_MachineError
+    d_addr WriteReg_func_ptr, Func_Noop
     d_addr TryMove_func_ptr, FuncA_Machine_CannonTryMove
     d_addr TryAct_func_ptr, FuncA_Machine_CannonTryAct
     d_addr Tick_func_ptr, FuncA_Machine_CannonTick

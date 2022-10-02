@@ -33,9 +33,11 @@
 .IMPORT DataA_Pause_CryptAreaCells_u8_arr2_arr
 .IMPORT DataA_Pause_CryptAreaName_u8_arr
 .IMPORT DataA_Room_Crypt_sTileset
+.IMPORT FuncA_Machine_Error
 .IMPORT FuncA_Machine_GetWinchVertSpeed
+.IMPORT FuncA_Machine_StartWorking
+.IMPORT FuncA_Machine_WinchReachedGoal
 .IMPORT FuncA_Machine_WinchStartFalling
-.IMPORT FuncA_Machine_WinchStopFalling
 .IMPORT FuncA_Objects_DrawChainWithLength
 .IMPORT FuncA_Objects_DrawWinchChain
 .IMPORT FuncA_Objects_DrawWinchMachine
@@ -43,8 +45,6 @@
 .IMPORT FuncA_Objects_MoveShapeLeftHalfTile
 .IMPORT FuncA_Objects_MoveShapeUpOneTile
 .IMPORT FuncA_Objects_SetShapePosToSpikeballCenter
-.IMPORT Func_MachineError
-.IMPORT Func_MachineFinishResetting
 .IMPORT Func_MovePlatformTopToward
 .IMPORT Func_MovePlatformVert
 .IMPORT Func_Noop
@@ -142,7 +142,7 @@ _Machines_sMachine_arr:
     d_byte MainPlatform_u8, kWinchPlatformIndex
     d_addr Init_func_ptr, _Winch_Init
     d_addr ReadReg_func_ptr, FuncC_Crypt_WestWinch_ReadReg
-    d_addr WriteReg_func_ptr, Func_MachineError
+    d_addr WriteReg_func_ptr, Func_Noop
     d_addr TryMove_func_ptr, FuncC_Crypt_WestWinch_TryMove
     d_addr TryAct_func_ptr, FuncC_Crypt_WestWinch_TryAct
     d_addr Tick_func_ptr, FuncC_Crypt_WestWinch_Tick
@@ -189,6 +189,14 @@ _Platforms_sPlatform_arr:
     d_word Top_i16, kSpikeball4InitPlatformTop
     D_END
     .assert kNumSpikeballPlatforms = 4, error
+    ;; Little terrain stone blocks around the winch machine:
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Solid
+    d_word WidthPx_u16, $1d
+    d_byte HeightPx_u8, $08
+    d_word Left_i16,  $0071
+    d_word Top_i16,   $000c
+    D_END
     .assert * - :- <= kMaxPlatforms * .sizeof(sPlatform), error
     .byte ePlatform::None
 _Actors_sActor_arr:
@@ -242,25 +250,21 @@ _Winch_Reset:
     cpy #kWinchMaxGoalZ
     bge @error
     iny
-    lda #kWinchMoveDownCooldown
     bne @success  ; unconditional
     @moveUp:
     tya
     beq @error
     dey
-    lda #kWinchMoveUpCooldown
     @success:
     sty Ram_MachineGoalVert_u8_arr + kWinchMachineIndex
-    clc  ; clear C to indicate success
-    rts
+    jmp FuncA_Machine_StartWorking
     @error:
-    sec  ; set C to indicate failure
-    rts
+    jmp FuncA_Machine_Error
 .ENDPROC
 
 .PROC FuncC_Crypt_WestWinch_TryAct
     lda #kWinchMaxGoalZ  ; param: new Z-goal
-    jmp FuncA_Machine_WinchStartFalling  ; returns C and A
+    jmp FuncA_Machine_WinchStartFalling
 .ENDPROC
 
 .PROC FuncC_Crypt_WestWinch_Tick
@@ -297,8 +301,7 @@ _Winch_Reset:
     rts
     ;; Otherwise, we're done.
     @reachedGoal:
-    jsr FuncA_Machine_WinchStopFalling
-    jmp Func_MachineFinishResetting
+    jmp FuncA_Machine_WinchReachedGoal
 .ENDPROC
 
 ;;;=========================================================================;;;

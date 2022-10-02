@@ -24,13 +24,14 @@
 .INCLUDE "field.inc"
 .INCLUDE "shared.inc"
 
+.IMPORT FuncA_Machine_ReachedGoal
+.IMPORT FuncA_Machine_StartWaiting
 .IMPORT FuncA_Objects_Alloc1x1Shape
 .IMPORT FuncA_Objects_GetMachineLightTileId
 .IMPORT FuncA_Objects_MoveShapeDownOneTile
 .IMPORT FuncA_Objects_MoveShapeRightByA
 .IMPORT FuncA_Objects_MoveShapeUpOneTile
 .IMPORT FuncA_Objects_SetShapePosToMachineTopLeft
-.IMPORT Func_MachineFinishResetting
 .IMPORT Main_CutsceneTeleportOut
 .IMPORT Ram_MachineParam1_u8_arr
 .IMPORT Ram_Oam_sObj_arr64
@@ -163,8 +164,7 @@ _Cooldown:
     lda #0
     sta Ram_MachineParam1_u8_arr, x
     lda #kFieldActCooldown
-    clc  ; success
-    rts
+    jmp FuncA_Machine_StartWaiting
 .ENDPROC
 
 ;;; Tick implemention for teleport field machines.
@@ -179,7 +179,7 @@ _Cooldown:
     bge @done
     inc Ram_MachineParam1_u8_arr, x
     @done:
-    jmp Func_MachineFinishResetting
+    jmp FuncA_Machine_ReachedGoal
 .ENDPROC
 
 ;;;=========================================================================;;;

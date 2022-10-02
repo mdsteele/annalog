@@ -31,11 +31,13 @@
 .IMPORT DataA_Pause_MineAreaCells_u8_arr2_arr
 .IMPORT DataA_Pause_MineAreaName_u8_arr
 .IMPORT DataA_Room_Mine_sTileset
+.IMPORT FuncA_Machine_Error
+.IMPORT FuncA_Machine_ReachedGoal
+.IMPORT FuncA_Machine_StartWaiting
+.IMPORT FuncA_Machine_StartWorking
 .IMPORT FuncA_Objects_DrawCraneMachine
 .IMPORT FuncA_Objects_DrawTrolleyMachine
 .IMPORT FuncA_Objects_DrawTrolleyRopeToCrane
-.IMPORT Func_MachineError
-.IMPORT Func_MachineFinishResetting
 .IMPORT Func_MovePlatformHorz
 .IMPORT Func_MovePlatformLeftToward
 .IMPORT Func_MovePlatformTopToward
@@ -62,8 +64,6 @@ kTrolleyPlatformIndex = 1
 
 ;;; How many frames each machine spends per move/act operation.
 kCraneActCooldown = 8
-kCraneMoveCooldown = kBlockHeightPx
-kTrolleyMoveCooldown = kBlockWidthPx
 
 ;;; The initial and maximum permitted values for the crane's Z-goal.
 kCraneInitGoalZ = 0
@@ -140,7 +140,7 @@ _Machines_sMachine_arr:
     d_byte MainPlatform_u8, kCranePlatformIndex
     d_addr Init_func_ptr, FuncC_Mine_CollapseCrane_Init
     d_addr ReadReg_func_ptr, FuncC_Mine_CollapseCrane_ReadReg
-    d_addr WriteReg_func_ptr, Func_MachineError
+    d_addr WriteReg_func_ptr, FuncA_Machine_Error
     d_addr TryMove_func_ptr, FuncC_Mine_CollapseCrane_TryMove
     d_addr TryAct_func_ptr, FuncC_Mine_CollapseCrane_TryAct
     d_addr Tick_func_ptr, FuncC_Mine_CollapseCrane_Tick
@@ -159,9 +159,9 @@ _Machines_sMachine_arr:
     d_byte MainPlatform_u8, kTrolleyPlatformIndex
     d_addr Init_func_ptr, FuncC_Mine_CollapseTrolley_Init
     d_addr ReadReg_func_ptr, FuncC_Mine_CollapseTrolley_ReadReg
-    d_addr WriteReg_func_ptr, Func_MachineError
+    d_addr WriteReg_func_ptr, Func_Noop
     d_addr TryMove_func_ptr, FuncC_Mine_CollapseTrolley_TryMove
-    d_addr TryAct_func_ptr, Func_MachineError
+    d_addr TryAct_func_ptr, FuncA_Machine_Error
     d_addr Tick_func_ptr, FuncC_Mine_CollapseTrolley_Tick
     d_addr Draw_func_ptr, FuncA_Objects_MineCollapseTrolley_Draw
     d_addr Reset_func_ptr, FuncC_Mine_CollapseTrolley_Reset
@@ -284,12 +284,9 @@ _RegZ:
     beq @error
     dec Ram_MachineGoalHorz_u8_arr + kTrolleyMachineIndex
     @success:
-    lda #kTrolleyMoveCooldown
-    clc  ; success
-    rts
+    jmp FuncA_Machine_StartWorking
     @error:
-    sec  ; failure
-    rts
+    jmp FuncA_Machine_Error
 .ENDPROC
 
 .PROC FuncC_Mine_CollapseCrane_TryMove
@@ -307,21 +304,17 @@ _RegZ:
     beq @error
     dec Ram_MachineGoalVert_u8_arr + kCraneMachineIndex
     @success:
-    lda #kCraneMoveCooldown
-    clc  ; success
-    rts
+    jmp FuncA_Machine_StartWorking
     @error:
-    sec  ; failure
-    rts
+    jmp FuncA_Machine_Error
 .ENDPROC
 
 .PROC FuncC_Mine_CollapseCrane_TryAct
     lda Ram_MachineGoalHorz_u8_arr + kCraneMachineIndex
     eor #$ff
     sta Ram_MachineGoalHorz_u8_arr + kCraneMachineIndex
-    lda #kCraneActCooldown
-    clc  ; success
-    rts
+    lda #kCraneActCooldown  ; param: num frames
+    jmp FuncA_Machine_StartWaiting
 .ENDPROC
 
 .PROC FuncC_Mine_CollapseTrolley_Tick
@@ -350,7 +343,7 @@ _RegZ:
     ldx #kCranePlatformIndex  ; param: platform index
     jmp Func_MovePlatformHorz
     @done:
-    jmp Func_MachineFinishResetting
+    jmp FuncA_Machine_ReachedGoal
 .ENDPROC
 
 .PROC FuncC_Mine_CollapseCrane_Tick
@@ -376,7 +369,7 @@ _RegZ:
     beq @done
     rts
     @done:
-    jmp Func_MachineFinishResetting
+    jmp FuncA_Machine_ReachedGoal
 .ENDPROC
 
 ;;;=========================================================================;;;

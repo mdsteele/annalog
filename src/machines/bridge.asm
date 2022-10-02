@@ -25,13 +25,15 @@
 .INCLUDE "cannon.inc"
 .INCLUDE "shared.inc"
 
+.IMPORT FuncA_Machine_Error
+.IMPORT FuncA_Machine_ReachedGoal
+.IMPORT FuncA_Machine_StartWaiting
 .IMPORT FuncA_Objects_Alloc1x1Shape
 .IMPORT FuncA_Objects_Alloc2x1Shape
 .IMPORT FuncA_Objects_GetMachineLightTileId
 .IMPORT FuncA_Objects_MoveShapeDownOneTile
 .IMPORT FuncA_Objects_MoveShapeRightOneTile
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
-.IMPORT Func_MachineFinishResetting
 .IMPORT Func_MovePlatformLeftToward
 .IMPORT Func_MovePlatformTopToward
 .IMPORT Ram_MachineGoalVert_u8_arr
@@ -80,8 +82,6 @@ kBridgeSegmentPalette = 0
 ;;; TryMove implemention for bridge machines.
 ;;; @prereq Zp_MachineIndex_u8 is initialized.
 ;;; @param X The eDir value for the direction to move in.
-;;; @return C Set if there was an error, cleared otherwise.
-;;; @return A How many frames to wait before advancing the PC.
 .EXPORT FuncA_Machine_BridgeTryMove
 .PROC FuncA_Machine_BridgeTryMove
     cpx #eDir::Down
@@ -92,19 +92,16 @@ kBridgeSegmentPalette = 0
     bne @error
     inc Ram_MachineGoalVert_u8_arr, x
     lda #kBridgeMoveUpCountdown
-    clc  ; clear C to indicate success
-    rts
+    jmp FuncA_Machine_StartWaiting
     @moveDown:
     ldx Zp_MachineIndex_u8
     lda Ram_MachineGoalVert_u8_arr, x
     beq @error
     dec Ram_MachineGoalVert_u8_arr, x
     lda #kBridgeMoveDownCountdown
-    clc  ; clear C to indicate success
-    rts
+    jmp FuncA_Machine_StartWaiting
     @error:
-    sec  ; set C to indicate failure
-    rts
+    jmp FuncA_Machine_Error
 .ENDPROC
 
 ;;; Ticks the current bridge machine for the current frame.
@@ -119,7 +116,7 @@ kBridgeSegmentPalette = 0
     beq _MoveDown
     bne _MoveUp  ; unconditional
 _Finished:
-    jmp Func_MachineFinishResetting
+    jmp FuncA_Machine_ReachedGoal
 _MoveUp:
     ldy Ram_MachineParam1_u8_arr, x
     cpy #kBridgeMaxAngle

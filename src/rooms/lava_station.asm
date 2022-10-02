@@ -33,15 +33,16 @@
 .IMPORT DataA_Pause_LavaAreaCells_u8_arr2_arr
 .IMPORT DataA_Pause_LavaAreaName_u8_arr
 .IMPORT DataA_Room_Lava_sTileset
+.IMPORT FuncA_Machine_BoilerFinishEmittingSteam
 .IMPORT FuncA_Machine_BoilerTick
 .IMPORT FuncA_Machine_BoilerWriteReg
 .IMPORT FuncA_Machine_EmitSteamRightFromPipe
 .IMPORT FuncA_Machine_EmitSteamUpFromPipe
+.IMPORT FuncA_Machine_Error
 .IMPORT FuncA_Objects_DrawBoilerMachine
 .IMPORT FuncA_Objects_DrawBoilerValve1
 .IMPORT Func_MachineBoilerReadReg
 .IMPORT Func_MachineBoilerReset
-.IMPORT Func_MachineError
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrObjLava
 .IMPORT Ram_DeviceType_eDevice_arr
@@ -118,7 +119,7 @@ _Machines_sMachine_arr:
     d_addr Init_func_ptr, Func_Noop
     d_addr ReadReg_func_ptr, Func_MachineBoilerReadReg
     d_addr WriteReg_func_ptr, FuncA_Machine_BoilerWriteReg
-    d_addr TryMove_func_ptr, Func_MachineError
+    d_addr TryMove_func_ptr, FuncA_Machine_Error
     d_addr TryAct_func_ptr, FuncC_Lava_StationBoiler_TryAct
     d_addr Tick_func_ptr, FuncA_Machine_BoilerTick
     d_addr Draw_func_ptr, FuncA_Objects_LavaStationBoiler_Draw
@@ -199,8 +200,6 @@ _Passages_sPassage_arr:
 ;;; TryAct implemention for the LavaStationBoiler machine.
 ;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
 ;;; @prereq PRGA_Machine is loaded.
-;;; @return C Set if there was an error, cleared otherwise.
-;;; @return A How many frames to wait before advancing the PC.
 .PROC FuncC_Lava_StationBoiler_TryAct
     ;; Determine which pipe the steam should exit out of (or fail if both pipes
     ;; are blocked).
@@ -213,16 +212,12 @@ _Passages_sPassage_arr:
     beq @steamRight
     @steamUp:
     jsr FuncA_Machine_EmitSteamUpFromPipe
-    jmp @success
+    jmp FuncA_Machine_BoilerFinishEmittingSteam
     @steamRight:
     jsr FuncA_Machine_EmitSteamRightFromPipe
-    @success:
-    lda #kBoilerActCountdown
-    clc  ; success
-    rts
+    jmp FuncA_Machine_BoilerFinishEmittingSteam
 _Failure:
-    sec  ; failure
-    rts
+    jmp FuncA_Machine_Error
 _ValvePipePlatformIndex_u8_arr10:
 :   .byte kPipe1PlatformIndex
     .byte $ff

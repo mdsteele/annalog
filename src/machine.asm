@@ -39,10 +39,6 @@
     _OpIf, _OpTil, _OpAct, _OpMove, _OpWait, _OpBeep, _OpEnd, _OpNop
 .LINECONT -
 
-;;; Special value for Ram_MachineWait_u8_arr that indicates that the machine is
-;;; blocked on a SYNC instruction.
-kMachineWaitForSync = $ff
-
 ;;;=========================================================================;;;
 
 .ZEROPAGE
@@ -96,14 +92,12 @@ Ram_MachinePc_u8_arr: .res kMaxMachines
 .EXPORT Ram_MachineRegA_u8_arr
 Ram_MachineRegA_u8_arr: .res kMaxMachines
 
-;;; How many more frames until each machine is done moving/acting, or
-;;; kMachineWaitForSync if the machine is blocked on a SYNC instruction.
-.EXPORT Ram_MachineWait_u8_arr
+;;; How many more frames until each machine is done with Waiting mode.
 Ram_MachineWait_u8_arr: .res kMaxMachines
 
-;;; A generic counter that decrements on every call to Func_MachineTick.  Each
-;;; machine can use this for any purpose it likes, but typically it is used to
-;;; help implement moving slower than one pixel per frame.  This is
+;;; A generic counter that decrements on every call to FuncA_Machine_Tick.
+;;; Each machine can use this for any purpose it likes, but typically it is
+;;; used to help implement moving slower than one pixel per frame.  This is
 ;;; automatically set to zero on both init and reset.
 .EXPORT Ram_MachineSlowdown_u8_arr
 Ram_MachineSlowdown_u8_arr: .res kMaxMachines
@@ -149,35 +143,6 @@ Ram_MachineParam2_i16_1_arr: .res kMaxMachines
     sta Ram_MachineRegA_u8_arr, x
     sta Ram_MachineWait_u8_arr, x
     sta Ram_MachineSlowdown_u8_arr, x
-    rts
-.ENDPROC
-
-;;; Marks the current machine as having an error, sets C, and returns zero.
-;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
-;;; @return A Always zero.
-;;; @return C Always set.
-.EXPORT Func_MachineError
-.PROC Func_MachineError
-    ldx Zp_MachineIndex_u8
-    lda #eMachine::Error
-    sta Ram_MachineStatus_eMachine_arr, x
-    lda #0  ; return zero for ReadReg
-    sec  ; set C to indicate failure for TryAct/TryMove
-    rts
-.ENDPROC
-
-;;; If the current machine's status is eMachine::Resetting, changes it back to
-;;; eMachine::Running.  Otherwise, does nothing.
-;;; @prereq Zp_MachineIndex_u8 is initialized.
-.EXPORT Func_MachineFinishResetting
-.PROC Func_MachineFinishResetting
-    ldx Zp_MachineIndex_u8
-    lda Ram_MachineStatus_eMachine_arr, x
-    cmp #eMachine::Resetting
-    bne @notResetting
-    lda #eMachine::Running
-    sta Ram_MachineStatus_eMachine_arr, x
-    @notResetting:
     rts
 .ENDPROC
 
@@ -281,7 +246,7 @@ _ReadRegB:
     rts
 .ENDPROC
 
-;;; If the current machine isn't already restting, zeroes its variables and
+;;; If the current machine isn't already resetting, zeroes its variables and
 ;;; puts it into resetting mode.  A resetting machine will move back to its
 ;;; original position and state (over some period of time) without executing
 ;;; instructions, and once fully reset, will start running again.
@@ -347,6 +312,81 @@ _ReadRegB:
 ;;;=========================================================================;;;
 
 .SEGMENT "PRGA_Machine"
+
+;;; Marks the current machine as having an error.  This should be called
+;;; from a machine's TryMove or TryAct function when one of those operations
+;;; fails.  It can also be used as a default implemention for those functions
+;;; for machines that don't support moving/acting.
+;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
+.EXPORT FuncA_Machine_Error
+.PROC FuncA_Machine_Error
+    ldx Zp_MachineIndex_u8
+    lda #eMachine::Error
+    sta Ram_MachineStatus_eMachine_arr, x
+    rts
+.ENDPROC
+
+;;; Puts the current machine into Working mode (which blocks execution until
+;;; the machine's Tick function calls FuncA_Machine_ReachedGoal).  This should
+;;; be called from a machine's TryMove, TryAct, or WriteReg function for
+;;; operations that will require an indeterminate amount of time to complete
+;;; (e.g. if some part of the machine needs to move until it reaches some goal
+;;; position).
+;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
+.EXPORT FuncA_Machine_StartWorking
+.PROC FuncA_Machine_StartWorking
+    ldx Zp_MachineIndex_u8
+    lda #eMachine::Working
+    sta Ram_MachineStatus_eMachine_arr, x
+    rts
+.ENDPROC
+
+;;; Puts the current machine into Waiting mode for the specified number of
+;;; frames (which blocks execution until that many frames have elapsed).  This
+;;; should be called from a machine's TryMove, TryAct, or WriteReg function for
+;;; operations that are instantaneous, but that require a cooldown period
+;;; before execution continues.
+;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
+;;; @param A The number of frames to wait (must be nonzero).
+.EXPORT FuncA_Machine_StartWaiting
+.PROC FuncA_Machine_StartWaiting
+    ldx Zp_MachineIndex_u8
+    sta Ram_MachineWait_u8_arr, x
+    lda #eMachine::Waiting
+    sta Ram_MachineStatus_eMachine_arr, x
+    rts
+.ENDPROC
+
+;;; This should be called from a machine's Tick function when its goal position
+;;; has been reached.
+;;;   * If the machine is in Resetting mode, this will put it back into Running
+;;;     mode so it can start executing its program.
+;;;   * If the machine is in Working mode, this will make the machine resume
+;;;     execution on the next instruction next frame.
+;;;   * If the machine is in any other mode, this will do nothing.
+;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
+.EXPORT FuncA_Machine_ReachedGoal
+.PROC FuncA_Machine_ReachedGoal
+    ldx Zp_MachineIndex_u8
+    lda Ram_MachineStatus_eMachine_arr, x
+    cmp #eMachine::Resetting
+    beq _FinishResetting
+    cmp #eMachine::Working
+    beq _FinishWorking
+    rts
+_FinishResetting:
+    lda #eMachine::Running
+    .assert eMachine::Running = 0, error
+    beq _SetStatus  ; unconditional
+_FinishWorking:
+    lda #1
+    sta Ram_MachineWait_u8_arr, x
+    lda #eMachine::Waiting
+_SetStatus:
+    sta Ram_MachineStatus_eMachine_arr, x
+_Return:
+    rts
+.ENDPROC
 
 ;;; Helper function for FuncA_Machine_ExecuteNext.  Extracts the two arguments
 ;;; from a binop instruction (ADD, SUB, MUL, IF, or TIL).
@@ -431,25 +471,30 @@ _Le:
 ;;; @prereq Zp_Current_sProgram_ptr is initialized.
 .PROC FuncA_Machine_ExecuteNext
     ldx Zp_MachineIndex_u8
-    ;; Check if the machine is running; if not, do nothing.
+_CheckStatus:
+    ;; If the machine is in Running mode, then execute the next instruction.
     lda Ram_MachineStatus_eMachine_arr, x
-    cmp #eMachine::Running
-    beq @running
-    rts
-    @running:
-    ;; Decrement the wait timer if necessary.
-    lda Ram_MachineWait_u8_arr, x
-    beq @doneTimer
-    cmp #kMachineWaitForSync
-    beq @stillWaiting
+    .assert eMachine::Running = 0, error
+    beq _ExecInstruction
+    ;; If the machine is in any other mode than Waiting, then execution is
+    ;; blocked and we're done.
+    cmp #eMachine::Waiting
+    bne @blocked
+    ;; If the machine is in Waiting mode, then decrement the wait counter.  If
+    ;; it's still nonzero, then execution is still blocked and we're done.
     dec Ram_MachineWait_u8_arr, x
-    beq @incrementPc
-    @stillWaiting:
+    beq @doneWaiting
+    @blocked:
     rts
-    @incrementPc:
+    ;; If the machine has finished waiting, then put it back into Running mode,
+    ;; increment past the instruction that had been blocking execution, and
+    ;; execute the next instruction.
+    @doneWaiting:
+    lda #eMachine::Running
+    sta Ram_MachineStatus_eMachine_arr, x
     jsr _IncrementPc
     ldx Zp_MachineIndex_u8
-    @doneTimer:
+_ExecInstruction:
     ;; Load next instruction into Zp_Current_sInst.
     lda Ram_MachinePc_u8_arr, x
     mul #.sizeof(sInst)
@@ -524,12 +569,8 @@ _SetLValueToA:
     tax       ; param: value to write
     lda <(Zp_Current_sInst + sInst::Op_byte)
     and #$0f  ; param: register to write to
-    jsr FuncA_Machine_WriteReg  ; returns A
-    tay  ; just to compare A to zero
-    beq _IncrementPc
-    ldx Zp_MachineIndex_u8
-    sta Ram_MachineWait_u8_arr, x
-    rts
+    jsr FuncA_Machine_WriteReg
+    jmp _IncrementPcIfRunning
 _OpSkip:
     lda <(Zp_Current_sInst + sInst::Op_byte)
     and #$0f  ; param: immediate value or register
@@ -571,29 +612,11 @@ _DecrementPc:
     div #.sizeof(sInst)
     sta Ram_MachinePc_u8_arr, x
     rts
-_OpAct:
-    ldy #sMachine::TryAct_func_ptr  ; param: function pointer offset
-    .assert sMachine::TryAct_func_ptr > 0, error
-    bne _MoveOrAct  ; unconditional
-_OpMove:
-    lda <(Zp_Current_sInst + sInst::Op_byte)
-    and #$0f  ; param: immediate value or register
-    jsr Func_MachineRead  ; returns A
-    and #$03  ; turn 0-9 value into 2-bit eDir value
-    tax  ; param: eDir value
-    ldy #sMachine::TryMove_func_ptr  ; param: function pointer offset
-_MoveOrAct:
-    jsr Func_MachineCall  ; sets C on error, returns A
-    bcs @error
-    tay  ; just to compare A to zero
+_IncrementPcIfRunning:
+    ldx Zp_MachineIndex_u8
+    lda Ram_MachineStatus_eMachine_arr, x
+    .assert eMachine::Running = 0, error
     beq _IncrementPc
-    ldx Zp_MachineIndex_u8
-    sta Ram_MachineWait_u8_arr, x
-    rts
-    @error:
-    lda #eMachine::Error
-    ldx Zp_MachineIndex_u8
-    sta Ram_MachineStatus_eMachine_arr, x
     rts
 _OpNop:
 _IncrementPc:
@@ -627,6 +650,20 @@ _IncrementPcByX:
     ldx Zp_MachineIndex_u8
     sta Ram_MachinePc_u8_arr, x
     rts
+_OpAct:
+    ldy #sMachine::TryAct_func_ptr  ; param: function pointer offset
+    .assert sMachine::TryAct_func_ptr > 0, error
+    bne _MoveOrAct  ; unconditional
+_OpMove:
+    lda <(Zp_Current_sInst + sInst::Op_byte)
+    and #$0f  ; param: immediate value or register
+    jsr Func_MachineRead  ; returns A
+    and #$03  ; turn 0-9 value into 2-bit eDir value
+    tax  ; param: eDir value
+    ldy #sMachine::TryMove_func_ptr  ; param: function pointer offset
+_MoveOrAct:
+    jsr Func_MachineCall
+    jmp _IncrementPcIfRunning
 _OpGoto:
     lda <(Zp_Current_sInst + sInst::Op_byte)
     and #$0f
@@ -637,19 +674,17 @@ _OpBeep:
     and #$0f  ; param: immediate value or register
     jsr Func_MachineRead  ; returns A
     jsr Func_PlayBeepSfx
-    ldx Zp_MachineIndex_u8
 _OpWait:
     lda #$10  ; 16 frames = about a quarter second
-    sta Ram_MachineWait_u8_arr, x
-    rts
+    jmp FuncA_Machine_StartWaiting
 _OpEnd:
     lda #eMachine::Ended
     sta Ram_MachineStatus_eMachine_arr, x
 _OpEmpty:
     rts
 _OpSync:
-    lda #kMachineWaitForSync
-    sta Ram_MachineWait_u8_arr, x
+    lda #eMachine::Syncing
+    sta Ram_MachineStatus_eMachine_arr, x
     rts
 .ENDPROC
 
@@ -657,7 +692,6 @@ _OpSync:
 ;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
 ;;; @param A The register to write to ($a-$f).
 ;;; @param X The value to write (0-9).
-;;; @return A How many frames to wait before advancing the PC.
 .PROC FuncA_Machine_WriteReg
     cmp #$0a
     beq @writeRegA
@@ -667,7 +701,6 @@ _OpSync:
     txa  ; the value to write
     ldx Zp_MachineIndex_u8
     sta Ram_MachineRegA_u8_arr, x
-    lda #0
     rts
 .ENDPROC
 
@@ -710,8 +743,8 @@ _CheckForSync:
     ;; at least one isn't, then we're done.
     ldx #0
     @loop:
-    lda Ram_MachineWait_u8_arr, x
-    cmp #kMachineWaitForSync
+    lda Ram_MachineStatus_eMachine_arr, x
+    cmp #eMachine::Syncing
     bne _Return
     inx
     cpx <(Zp_Current_sRoom + sRoom::NumMachines_u8)
@@ -719,9 +752,11 @@ _CheckForSync:
 _UnblockSync:
     ;; At this point, all machines in the room have reached a SYNC instruction,
     ;; so allow them all to continue executing next frame.
-    lda #1
     ldx #0
     @loop:
+    lda #eMachine::Waiting
+    sta Ram_MachineStatus_eMachine_arr, x
+    lda #1
     sta Ram_MachineWait_u8_arr, x
     inx
     cpx <(Zp_Current_sRoom + sRoom::NumMachines_u8)
@@ -734,7 +769,7 @@ _Return:
 
 .SEGMENT "PRGA_Objects"
 
-;;; Allocates and populates OAM slots for all machines in the room.
+;;; Draws all machines in the room.
 .EXPORT FuncA_Objects_DrawAllMachines
 .PROC FuncA_Objects_DrawAllMachines
     ldx #0

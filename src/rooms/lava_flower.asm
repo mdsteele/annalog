@@ -33,14 +33,15 @@
 .IMPORT DataA_Pause_LavaAreaCells_u8_arr2_arr
 .IMPORT DataA_Pause_LavaAreaName_u8_arr
 .IMPORT DataA_Room_Lava_sTileset
+.IMPORT FuncA_Machine_BoilerFinishEmittingSteam
 .IMPORT FuncA_Machine_BoilerTick
 .IMPORT FuncA_Machine_BoilerWriteReg
 .IMPORT FuncA_Machine_EmitSteamUpFromPipe
+.IMPORT FuncA_Machine_Error
 .IMPORT FuncA_Objects_DrawBoilerMachine
 .IMPORT FuncA_Objects_DrawBoilerValve1
 .IMPORT Func_MachineBoilerReadReg
 .IMPORT Func_MachineBoilerReset
-.IMPORT Func_MachineError
 .IMPORT Func_Noop
 .IMPORT Func_RemoveFlowerDeviceIfCarriedOrDelivered
 .IMPORT Func_RespawnFlowerDeviceIfDropped
@@ -114,7 +115,7 @@ _Machines_sMachine_arr:
     d_addr Init_func_ptr, Func_Noop
     d_addr ReadReg_func_ptr, Func_MachineBoilerReadReg
     d_addr WriteReg_func_ptr, FuncA_Machine_BoilerWriteReg
-    d_addr TryMove_func_ptr, Func_MachineError
+    d_addr TryMove_func_ptr, FuncA_Machine_Error
     d_addr TryAct_func_ptr, FuncC_Lava_FlowerBoiler_TryAct
     d_addr Tick_func_ptr, FuncA_Machine_BoilerTick
     d_addr Draw_func_ptr, FuncA_Objects_LavaFlowerBoiler_Draw
@@ -234,23 +235,17 @@ _Row14:
 ;;; TryAct implemention for the LavaFlowerBoiler machine.
 ;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
 ;;; @prereq PRGA_Machine is loaded.
-;;; @return C Set if there was an error, cleared otherwise.
-;;; @return A How many frames to wait before advancing the PC.
 .PROC FuncC_Lava_FlowerBoiler_TryAct
     ;; Determine which pipe the steam should exit out of (or fail if both pipes
     ;; are blocked).
-    ldy Zp_MachineIndex_u8
-    ldx Ram_MachineGoalVert_u8_arr, y  ; valve angle (0-9)
-    ldy _ValvePipePlatformIndex_u8_arr10, x  ; pipe platform index
+    ldx Ram_MachineGoalVert_u8_arr + kBoilerMachineIndex  ; valve angle (0-9)
+    ldy _ValvePipePlatformIndex_u8_arr10, x  ; param: pipe platform index
     bmi _Failure
     ;; Emit upward steam from the chosen pipe.
     jsr FuncA_Machine_EmitSteamUpFromPipe
-    lda #kBoilerActCountdown
-    clc  ; success
-    rts
+    jmp FuncA_Machine_BoilerFinishEmittingSteam
 _Failure:
-    sec  ; failure
-    rts
+    jmp FuncA_Machine_Error
 _ValvePipePlatformIndex_u8_arr10:
 :   .byte kPipe1PlatformIndex
     .byte kPipe1PlatformIndex
