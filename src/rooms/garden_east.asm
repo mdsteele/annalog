@@ -55,6 +55,7 @@
 .IMPORT Ram_DeviceType_eDevice_arr
 .IMPORT Ram_MachineGoalVert_u8_arr
 .IMPORT Ram_RoomState
+.IMPORTZP Zp_DialogAnsweredYes_bool
 
 ;;;=========================================================================;;;
 
@@ -380,15 +381,29 @@ _MermaidInitialFunc:
     ldx #eFlag::GardenEastTalkedToMermaid  ; param: flag
     jsr Func_IsFlagSet  ; clears Z if flag is set
     bne @alreadyTalked
-    ldya #_MermaidFirst_sDialog
+    ldya #_MermaidQuestion_sDialog
     rts
     @alreadyTalked:
     ldya #_MermaidLater_sDialog
     rts
-_MermaidFirst_sDialog:
+_MermaidQuestion_sDialog:
     .word ePortrait::Mermaid
     .byte "Are you...a human?$"
-    .byte "A real human girl?#"
+    .byte "A real human girl?%"
+    .addr _MermaidQuestionFunc
+_MermaidQuestionFunc:
+    bit Zp_DialogAnsweredYes_bool
+    bmi @yes
+    @no:
+    ldya #_MermaidNoAnswer_sDialog
+    rts
+    @yes:
+    ldya #_MermaidYesAnswer_sDialog
+    rts
+_MermaidNoAnswer_sDialog:
+    .word ePortrait::Mermaid
+    .byte "Ha! You can't fool me.#"
+_MermaidYesAnswer_sDialog:
     .word ePortrait::Mermaid
     .byte "But...humans aren't$"
     .byte "supposed to be down$"

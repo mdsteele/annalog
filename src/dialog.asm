@@ -18,6 +18,7 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "charmap.inc"
+.INCLUDE "console.inc"
 .INCLUDE "cpu.inc"
 .INCLUDE "dialog.inc"
 .INCLUDE "joypad.inc"
@@ -47,6 +48,7 @@
 .IMPORTZP Zp_PpuTransferLen_u8
 .IMPORTZP Zp_ScrollGoalY_u8
 .IMPORTZP Zp_Tmp1_byte
+.IMPORTZP Zp_Tmp2_byte
 .IMPORTZP Zp_Tmp_ptr
 .IMPORTZP Zp_WindowNextRowToTransfer_u8
 .IMPORTZP Zp_WindowTopGoal_u8
@@ -79,6 +81,35 @@ kDialogWindowScrollSpeed = 4
 kDialogPromptObjPalette = 1
 kDialogPromptObjTileId = $08
 
+;;; The tile row/col within the window where the "yes"/"no" options start.
+kDialogYesNoWindowRow = 4
+kDialogYesWindowCol = 13
+kDialogNoWindowCol = 19
+
+;;; The object X/Y positions for the start of the "yes"/"no" options.
+.LINECONT +
+kDialogYesNoObjY = kDialogWindowTopGoal + \
+    kDialogYesNoWindowRow * kTileHeightPx - 1
+kDialogYesObjX = kDialogYesWindowCol * kTileWidthPx
+kDialogNoObjX = kDialogNoWindowCol * kTileWidthPx
+.LINECONT -
+
+;;; The PPU address (within the lower nametable) for the start of the
+;;; "yes"/"no" options' background tiles in the dialog window.
+.LINECONT +
+Ppu_DialogYesNoStart = Ppu_Nametable3_sName + sName::Tiles_u8_arr + \
+    kScreenWidthTiles * (kWindowStartRow + kDialogYesNoWindowRow) + \
+    kDialogYesWindowCol
+.LINECONT -
+
+;;;=========================================================================;;;
+
+;;; Bitfield for yes-or-no question state.
+.SCOPE bYesNo
+    Active = %10000000  ; if set, we're in a yes-or-no question
+    Yes    = %01000000  ; if set, the cursor is currently on "yes"
+.ENDSCOPE
+
 ;;;=========================================================================;;;
 
 .ZEROPAGE
@@ -100,6 +131,17 @@ Zp_DialogTextCol_u8: .res 1
 ;;; continue.  If set to false ($00), the dialog text is still being written to
 ;;; the screen character by character.
 Zp_DialogPaused_bool: .res 1
+
+;;; The current state of yes-or-no question mode: whether it's active, and
+;;; which option is currently selected.
+Zp_DialogYesNoCursor_bYesNo: .res 1
+
+;;; This is set to true ($ff) whenever the player chooses "yes" for a yes-or-no
+;;; dialog question, and is set to false ($00) whenever the player chooses
+;;; "no".  Dynamic dialog functions can read this variable to react to the
+;;; player's choice.
+.EXPORTZP Zp_DialogAnsweredYes_bool
+Zp_DialogAnsweredYes_bool: .res 1
 
 ;;; A pointer into the current dialog data.  If Zp_DialogPaused_bool is true,
 ;;; this points to the 2-byte ePortrait value for the next block of text;
@@ -174,7 +216,7 @@ _UpdateScrolling:
 .PROC Main_Dialog_Run
 _GameLoop:
     jsr_prga FuncA_Objects_DrawObjectsForRoom
-    jsr_prga FuncA_Dialog_DrawObjectsForPrompt
+    jsr_prga FuncA_Dialog_DrawCursorOrPrompt
     jsr Func_ClearRestOfOam
     jsr Func_ProcessFrame
 _Tick:
@@ -189,6 +231,18 @@ _UpdateScrolling:
 ;;;=========================================================================;;;
 
 .SEGMENT "PRGA_Dialog"
+
+;;; The PPU transfer entry for drawing the "yes"/"no" options for a yes-or-no
+;;; dialog question.
+.PROC DataA_Dialog_YesNoTransferEntry_u8_arr
+    .byte kPpuCtrlFlagsHorz      ; control flags
+    .byte >Ppu_DialogYesNoStart  ; destination address (hi)
+    .byte <Ppu_DialogYesNoStart  ; destination address (loi)
+    .byte @dataEnd - @dataStart  ; transfer length
+    @dataStart:
+    .byte "YES   NO"
+    @dataEnd:
+.ENDPROC
 
 ;;; Initializes dialog mode.
 ;;; @param X The dialog index.
@@ -236,21 +290,57 @@ _Done:
 ;;; @return X The CHR04 bank number that should be set.
 ;;; @return C Set if dialog is finished and the window should be closed.
 .PROC FuncA_Dialog_Tick
+_CheckDPad:
+    ;; Ignore the D-pad if yes-or-no question mode isn't currently active.
+    bit Zp_DialogYesNoCursor_bYesNo
+    .assert bYesNo::Active = bProc::Negative, error
+    bpl @done
+    ;; If the player presses left, select "YES".
+    lda Zp_P1ButtonsPressed_bJoypad
+    and #bJoypad::Left
+    beq @noLeft
+    lda #bYesNo::Active | bYesNo::Yes
+    sta Zp_DialogYesNoCursor_bYesNo
+    bne @done  ; unconditional
+    @noLeft:
+    ;; If the player presses right, select "NO".
+    lda Zp_P1ButtonsPressed_bJoypad
+    and #bJoypad::Right
+    beq @done
+    lda #bYesNo::Active
+    sta Zp_DialogYesNoCursor_bYesNo
+    @done:
+_CheckAButton:
+    ;; Check if the player pressed the A button.
     bit Zp_P1ButtonsPressed_bJoypad
-    ;; A button:
     .assert bJoypad::AButton = bProc::Negative, error
     bpl @noAButton
+    ;; If the player pressed the A button before we reached the end of the
+    ;; current text, then skip to the end of the current text.
     bit Zp_DialogPaused_bool
-    bpl @skip
-    @nextPage:
-    jsr FuncA_Dialog_TransferClearText
-    jsr FuncA_Dialog_LoadNextPortrait  ; sets C if dialog is now done
-    bcs _CloseWindow
-    jmp _AnimatePortrait
-    @skip:
+    bmi @atEndOfText
     jsr FuncA_Dialog_TransferRestOfText
     ldx Zp_PortraitRestBank_u8
     bne _ContinueDialog  ; unconditional
+    @atEndOfText:
+    ;; Otherwise, the player pressed the A button when we're already at
+    ;; end-of-text.  If a yes-or-no question is active, then set
+    ;; Zp_DialogAnsweredYes_bool according to the current choice.
+    bit Zp_DialogYesNoCursor_bYesNo
+    .assert bYesNo::Active = bProc::Negative, error
+    bpl @doneYesNo
+    ldx #0
+    .assert bYesNo::Yes = bProc::Overflow, error
+    bvc @no
+    dex  ; now X is $ff
+    @no:
+    stx Zp_DialogAnsweredYes_bool
+    @doneYesNo:
+    ;; Begin the next page of text.
+    jsr FuncA_Dialog_TransferClearText
+    jsr FuncA_Dialog_LoadNextPortrait  ; sets C if dialog is now done
+    bcs _CloseWindow
+    bcc _AnimatePortrait  ; unconditional
     @noAButton:
 _UpdateText:
     bit Zp_DialogPaused_bool
@@ -294,6 +384,7 @@ _CloseWindow:
 _ReadPortrait:
     ldy #0
     sty Zp_DialogPaused_bool
+    sty Zp_DialogYesNoCursor_bYesNo
     lda (Zp_DialogText_ptr), y
     tax
     iny
@@ -382,16 +473,29 @@ _Interior:
 ;;; end-of-line/text marker is reached, updates dialog variables accordingly.
 ;;; @prereq Zp_DialogPaused_bool is false and Zp_DialogText_ptr points to text.
 .PROC FuncA_Dialog_TransferNextCharacter
+    ;; Read the next character, then advance past it.
     ldy #0
     lda (Zp_DialogText_ptr), y
-    pha
+    pha  ; next character
     iny
     jsr FuncA_Dialog_AdvanceTextPtr
-    pla
+    pla  ; next character
+    ;; If the character is printable, then perform a PPU transfer to draw it to
+    ;; the screen.
+    bpl _TransferCharacter
+    ;; Or, if the character is an end-of-line marker, then get ready for the
+    ;; next line of text.
     cmp #kDialogTextNewline
     beq _Newline
-    cmp #kDialogTextEnd
-    beq _End
+    ;; Otherwise, the character is some kind of end-of-text marker (either with
+    ;; or without a yes-or-no question), so mark the dialog as paused.
+    ldx #$ff
+    stx Zp_DialogPaused_bool
+    ;; If the character is a regular end-of-text marker, then we're done; but
+    ;; if it's a yes-or-no-question marker, then we need to set that up.
+    cmp #kDialogTextYesNo
+    beq _YesNoQuestion
+    rts
 _TransferCharacter:
     pha  ; character to transfer
     lda Zp_DialogTextRow_u8  ; param: window row
@@ -421,15 +525,34 @@ _Newline:
     sta Zp_DialogTextCol_u8
     inc Zp_DialogTextRow_u8
     rts
-_End:
-    lda #$ff
-    sta Zp_DialogPaused_bool
+_YesNoQuestion:
+    .assert * = FuncA_Dialog_BeginYesNoQuestion, error, "fallthrough"
+.ENDPROC
+
+;;; Gets dialog ready for a yes-or-no question.
+;;; @prereq Zp_DialogPaused_bool is true.
+;;; @preserve Zp_Tmp*
+.PROC FuncA_Dialog_BeginYesNoQuestion
+    ;; Enable the yes-or-no cursor, putting it on "yes" by default.
+    lda #bYesNo::Active | bYesNo::Yes
+    sta Zp_DialogYesNoCursor_bYesNo
+    ;; Buffer a PPU transfer to draw the "yes"/"no" options.
+    ldx Zp_PpuTransferLen_u8
+    ldy #0
+    @loop:
+    lda DataA_Dialog_YesNoTransferEntry_u8_arr, y
+    sta Ram_PpuTransfer_arr, x
+    inx
+    iny
+    cpy #.sizeof(DataA_Dialog_YesNoTransferEntry_u8_arr)
+    blt @loop
+    stx Zp_PpuTransferLen_u8
     rts
 .ENDPROC
 
-;;; Transfers all remaining dialog text (if any) until the next end-of-text
-;;; marker to the PPU, then updates dialog variables accordingly (in
-;;; particular, Zp_DialogPaused_bool will be set to true when this returns).
+;;; Buffers a PPU transfer to draw all remaining dialog text (if any) until the
+;;; next end-of-text, then updates dialog variables accordingly (in particular,
+;;; Zp_DialogPaused_bool will be set to true when this returns).
 ;;; @prereq Zp_DialogPaused_bool is false and Zp_DialogText_ptr points to text.
 .PROC FuncA_Dialog_TransferRestOfText
     ;; If the next character is already an end-of-line/text marker, don't
@@ -477,13 +600,21 @@ _EndOfLine:
     ;; Update the dialog text position.
     cmp #kDialogTextEnd
     beq @endOfText
+    cmp #kDialogTextYesNo
+    beq @yesNo
+    @newline:
     lda #kDialogTextStartCol
     sta Zp_DialogTextCol_u8
     inc Zp_DialogTextRow_u8
     bne @advance  ; unconditional
+    @yesNo:
+    sty Zp_Tmp1_byte  ; dialog text byte offset
+    jsr FuncA_Dialog_BeginYesNoQuestion  ; preserves Zp_Tmp*
+    ldy Zp_Tmp1_byte  ; dialog text byte offset
     @endOfText:
     lda #$ff
     sta Zp_DialogPaused_bool
+    bne @advance  ; unconditional
     @advance:
     iny  ; Skip past the end-of-line/text marker.
     jsr FuncA_Dialog_AdvanceTextPtr
@@ -531,17 +662,25 @@ _EndOfLine:
     rts
 .ENDPROC
 
-;;; Allocates and populates OAM slots for the visual prompt that appears when
-;;; dialog is paused.
-.PROC FuncA_Dialog_DrawObjectsForPrompt
+;;; If a yes-or-no question is active, draws the yes/no cursor; or, if dialog
+;;; is paused, draws the button prompt; otherwise, does nothing.
+.PROC FuncA_Dialog_DrawCursorOrPrompt
     bit Zp_DialogPaused_bool
-    bpl _NotPaused
-_DrawPrompt:
+    bmi @paused
+    rts
+    @paused:
+    bit Zp_DialogYesNoCursor_bYesNo
+    .assert bYesNo::Active = bProc::Negative, error
+    bmi FuncA_Dialog_DrawYesNoCursor
+    .assert * = FuncA_Dialog_DrawButtonPrompt, error, "fallthrough"
+.ENDPROC
+
+;;; Draws the dialog-paused button prompt.
+;;; @prereq Zp_DialogPaused_bool is true.
+.PROC FuncA_Dialog_DrawButtonPrompt
     ;; Calculate the screen Y-position.
     lda Zp_FrameCounter_u8
-    lsr a
-    lsr a
-    lsr a
+    div #8
     and #$03
     cmp #$03
     bne @noZigZag
@@ -562,7 +701,54 @@ _DrawPrompt:
     iny
     .endrepeat
     sty Zp_OamOffset_u8
-_NotPaused:
+    rts
+.ENDPROC
+
+;;; Draws the yes/no cursor.
+;;; @prereq Yes-or-no question mode is active.
+.PROC FuncA_Dialog_DrawYesNoCursor
+    ;; Determine cursor position and width.
+    ldx #2
+    lda #kDialogYesObjX
+    bit Zp_DialogYesNoCursor_bYesNo
+    .assert bYesNo::Yes = bProc::Overflow, error
+    bvs @yes
+    dex
+    lda #kDialogNoObjX
+    @yes:
+    sta Zp_Tmp1_byte  ; obj left
+    stx Zp_Tmp2_byte  ; width - 1
+    ;; Draw cursor objects.
+    ldy Zp_OamOffset_u8
+    @loop:
+    txa
+    beq @right
+    cpx Zp_Tmp2_byte  ; width - 1
+    beq @left
+    lda #kConsoleObjTileIdCursorSolidMiddle
+    bpl @setTileId  ; unconditional
+    @left:
+    lda #kConsoleObjTileIdCursorSolidLeft
+    bpl @setTileId  ; unconditional
+    @right:
+    lda #kConsoleObjTileIdCursorSolidRight
+    @setTileId:
+    sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
+    lda #bObj::Pri | kDialogPromptObjPalette
+    sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
+    lda #kDialogYesNoObjY
+    sta Ram_Oam_sObj_arr64 + sObj::YPos_u8, y
+    lda Zp_Tmp1_byte  ; obj left
+    sta Ram_Oam_sObj_arr64 + sObj::XPos_u8, y
+    add #kTileWidthPx
+    sta Zp_Tmp1_byte  ; obj left
+    ;; Move OAM offset to the next object.
+    .repeat .sizeof(sObj)
+    iny
+    .endrepeat
+    dex
+    bpl @loop
+    sty Zp_OamOffset_u8
     rts
 .ENDPROC
 

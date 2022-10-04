@@ -40,10 +40,13 @@
 
 ;;;=========================================================================;;;
 
-;;; Special characters in dialog text indicating linebreaks and end-of-text.
-kDialogTextNewline = $fe
-kDialogTextEnd     = $ff
+;;; Special characters in dialog text indicating linebreaks, end-of-text, and
+;;; end-of-text-with-a-yes-or-no-question.
+kDialogTextNewline = $fd
+kDialogTextEnd     = $fe
+kDialogTextYesNo   = $ff
 .CHARMAP $24, kDialogTextNewline  ; '$'
 .CHARMAP $23, kDialogTextEnd      ; '#'
+.CHARMAP $25, kDialogTextYesNo    ; '%'
 
 ;;;=========================================================================;;;
