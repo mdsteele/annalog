@@ -102,6 +102,7 @@
 ;;; of these programs, although in a few cases, multiple machines may share the
 ;;; same program.
 .ENUM eProgram
+    CoreElevatorJet
     CryptFlowerWinch
     CryptGalleryWinch
     CryptSouthWinch
@@ -119,7 +120,7 @@
     LavaStationBoiler
     LavaTeleportField
     LavaWestBoiler
-    MermaidUpperLift
+    MermaidElevatorJet
     MineCollapseCrane
     MineCollapseTrolley
     PrisonCellBlaster

@@ -35,6 +35,7 @@
 .IMPORT Func_FillUpperAttributeTable
 .IMPORT Func_GetRandomByte
 .IMPORT Func_ProcessFrame
+.IMPORT Func_SetFlag
 .IMPORT Func_Window_Disable
 .IMPORT Main_Explore_SpawnInLastSafeRoom
 .IMPORT Ppu_ChrBgTitle
@@ -43,18 +44,18 @@
 .IMPORT Sram_LastSafe_eRoom
 .IMPORT Sram_MagicNumber_u8
 .IMPORT Sram_Minimap_u16_arr
-.IMPORT Sram_ProgressFlags_arr
 .IMPORTZP Zp_Next_sAudioCtrl
 .IMPORTZP Zp_OamOffset_u8
 .IMPORTZP Zp_P1ButtonsPressed_bJoypad
 .IMPORTZP Zp_PpuScrollX_u8
 .IMPORTZP Zp_PpuScrollY_u8
 .IMPORTZP Zp_Render_bPpuMask
+.IMPORTZP Zp_Tmp1_byte
 
 ;;;=========================================================================;;;
 
 ;;; The starting location for a new game.
-kStartingRoom = eRoom::MineCollapse
+kStartingRoom = eRoom::FactoryElevator
 kStartingSpawn = 0
 
 ;;; The nametable tile row (of the upper nametable) that the game title starts
@@ -245,13 +246,6 @@ _SetRenderState:
     inx
     cpx #$30
     blt @minimapLoop
-    ;; TODO: For testing, grant some upgrades (remove this later).
-    .assert kFirstUpgradeFlag = 1, error
-    lda #$ce
-    sta Sram_ProgressFlags_arr + 0
-    .assert kNumUpgradeFlags = 7 + 8, error
-    lda #$d1
-    sta Sram_ProgressFlags_arr + 1
     ;; Set starting location.
     lda #kStartingRoom
     sta Sram_LastSafe_eRoom
@@ -263,7 +257,32 @@ _SetRenderState:
     ;; Disable writes to SRAM.
     lda #bMmc3PrgRam::Enable | bMmc3PrgRam::DenyWrites
     sta Hw_Mmc3PrgRamProtect_wo
+    ;; TODO: For testing, set some flags (remove this later).
+    ldy #0
+    @flagLoop:
+    ldx _Flags_eFlag_arr, y  ; param: flag to set
+    .assert eFlag::None = 0, error
+    beq @doneFlags
+    sty Zp_Tmp1_byte
+    jsr Func_SetFlag  ; preserves Zp_Tmp*
+    ldy Zp_Tmp1_byte
+    iny
+    bne @flagLoop  ; unconditional
+    @doneFlags:
     rts
+_Flags_eFlag_arr:
+    .byte eFlag::UpgradeMaxInstructions0
+    .byte eFlag::UpgradeMaxInstructions1
+    .byte eFlag::UpgradeMaxInstructions2
+    .byte eFlag::UpgradeOpcodeIf
+    .byte eFlag::UpgradeOpcodeTil
+    .byte eFlag::UpgradeOpcodeCopy
+    .byte eFlag::UpgradeOpcodeGoto
+    .byte eFlag::UpgradeOpcodeWait
+    .byte eFlag::UpgradeOpcodeSync
+    .byte eFlag::BreakerMine
+    .byte eFlag::BreakerCity
+    .byte eFlag::None
 .ENDPROC
 
 ;;;=========================================================================;;;

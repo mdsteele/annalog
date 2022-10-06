@@ -121,6 +121,11 @@ _MarkMinimap:
     .byte "Deep Crypt", $ff
 .ENDPROC
 
+.EXPORT DataA_Pause_FactoryAreaName_u8_arr
+.PROC DataA_Pause_FactoryAreaName_u8_arr
+    .byte "Old Factory", $ff
+.ENDPROC
+
 .EXPORT DataA_Pause_GardenAreaName_u8_arr
 .PROC DataA_Pause_GardenAreaName_u8_arr
     .byte "Vine Garden", $ff
@@ -174,6 +179,28 @@ _MarkMinimap:
     .byte 10,  4
     .byte 11,  0
     .byte 11,  1
+    .byte $ff
+.ENDPROC
+
+.EXPORT DataA_Pause_FactoryAreaCells_u8_arr2_arr
+.PROC DataA_Pause_FactoryAreaCells_u8_arr2_arr
+    .byte  4, 12
+    .byte  5, 11
+    .byte  5, 12
+    .byte  5, 14
+    .byte  5, 15
+    .byte  6, 10
+    .byte  6, 11
+    .byte  6, 12
+    .byte  6, 14
+    .byte  6, 15
+    .byte  6, 16
+    .byte  7, 10
+    .byte  7, 12
+    .byte  7, 13
+    .byte  7, 14
+    .byte  7, 15
+    .byte  7, 16
     .byte $ff
 .ENDPROC
 

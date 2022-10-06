@@ -30,6 +30,7 @@
 .INCLUDE "machines/boiler.inc"
 .INCLUDE "machines/cannon.inc"
 .INCLUDE "machines/crane.inc"
+.INCLUDE "machines/jet.inc"
 .INCLUDE "machines/winch.inc"
 
 ;;;=========================================================================;;;
@@ -176,6 +177,19 @@
 :   .incbin "out/data/tiles/font_lower.chr"
     .res $10 * kSizeofChr
     .incbin "out/data/tiles/portrait06.chr"
+    .assert * - :- = kSizeofChr * $40, error
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "CHR_BgFactory"
+
+.EXPORT Ppu_ChrBgFactory
+.PROC Ppu_ChrBgFactory
+:   .incbin "out/data/tiles/cave.chr"
+    .incbin "out/data/tiles/metal.chr"
+    .res $10 * kSizeofChr
+    .incbin "out/data/tiles/device.chr"
     .assert * - :- = kSizeofChr * $40, error
 .ENDPROC
 
@@ -380,6 +394,19 @@
     .res $27 * kSizeofChr
     .assert * - :- = (kTileIdBreakerFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/breaker.chr"
+    .assert * - :- = kSizeofChr * $80, error
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "CHR_ObjFactory"
+
+.EXPORT Ppu_ChrObjFactory
+.PROC Ppu_ChrObjFactory
+:   .incbin "out/data/tiles/upgrade.chr"
+    .assert * - :- = (kTileIdJetFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/jet.chr"
+    .res $60 * kSizeofChr
     .assert * - :- = kSizeofChr * $80, error
 .ENDPROC
 

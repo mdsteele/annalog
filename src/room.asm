@@ -32,6 +32,7 @@
 .IMPORT DataC_Crypt_South_sRoom
 .IMPORT DataC_Crypt_Tomb_sRoom
 .IMPORT DataC_Crypt_West_sRoom
+.IMPORT DataC_Factory_Elevator_sRoom
 .IMPORT DataC_Garden_Boss_sRoom
 .IMPORT DataC_Garden_Crossroad_sRoom
 .IMPORT DataC_Garden_East_sRoom
@@ -48,6 +49,7 @@
 .IMPORT DataC_Lava_West_sRoom
 .IMPORT DataC_Mermaid_Drain_sRoom
 .IMPORT DataC_Mermaid_East_sRoom
+.IMPORT DataC_Mermaid_Elevator_sRoom
 .IMPORT DataC_Mermaid_Entry_sRoom
 .IMPORT DataC_Mermaid_Flower_sRoom
 .IMPORT DataC_Mermaid_Hut1_sRoom
@@ -56,7 +58,6 @@
 .IMPORT DataC_Mermaid_Hut4_sRoom
 .IMPORT DataC_Mermaid_Hut5_sRoom
 .IMPORT DataC_Mermaid_Hut6_sRoom
-.IMPORT DataC_Mermaid_Upper_sRoom
 .IMPORT DataC_Mermaid_Village_sRoom
 .IMPORT DataC_Mine_Collapse_sRoom
 .IMPORT DataC_Mine_Pit_sRoom
@@ -109,6 +110,7 @@
     DataC_Crypt_South_sRoom, \
     DataC_Crypt_Tomb_sRoom, \
     DataC_Crypt_West_sRoom, \
+    DataC_Factory_Elevator_sRoom, \
     DataC_Garden_Boss_sRoom, \
     DataC_Garden_Crossroad_sRoom, \
     DataC_Garden_East_sRoom, \
@@ -125,6 +127,7 @@
     DataC_Lava_West_sRoom, \
     DataC_Mermaid_Drain_sRoom, \
     DataC_Mermaid_East_sRoom, \
+    DataC_Mermaid_Elevator_sRoom, \
     DataC_Mermaid_Entry_sRoom, \
     DataC_Mermaid_Flower_sRoom, \
     DataC_Mermaid_Hut1_sRoom, \
@@ -133,7 +136,6 @@
     DataC_Mermaid_Hut4_sRoom, \
     DataC_Mermaid_Hut5_sRoom, \
     DataC_Mermaid_Hut6_sRoom, \
-    DataC_Mermaid_Upper_sRoom, \
     DataC_Mermaid_Village_sRoom, \
     DataC_Mine_Collapse_sRoom, \
     DataC_Mine_Pit_sRoom, \

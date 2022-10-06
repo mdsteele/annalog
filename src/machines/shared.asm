@@ -40,7 +40,7 @@ kMachineLightTileIdOn  = $3f
 ;;; Returns the tile ID to use for the status light on the current machine.
 ;;; @prereq Zp_MachineIndex_u8 is initialized.
 ;;; @return A The tile ID to use.
-;;; @preserve Y
+;;; @preserve Y, Zp_Tmp*
 .EXPORT FuncA_Objects_GetMachineLightTileId
 .PROC FuncA_Objects_GetMachineLightTileId
     ldx Zp_MachineIndex_u8

@@ -44,6 +44,7 @@ kRoomStateSize = $100
     CryptSouth
     CryptTomb
     CryptWest
+    FactoryElevator
     GardenBoss
     GardenCrossroad
     GardenEast
@@ -60,6 +61,7 @@ kRoomStateSize = $100
     LavaWest
     MermaidDrain
     MermaidEast
+    MermaidElevator
     MermaidEntry
     MermaidFlower
     MermaidHut1
@@ -68,7 +70,6 @@ kRoomStateSize = $100
     MermaidHut4
     MermaidHut5
     MermaidHut6
-    MermaidUpper
     MermaidVillage
     MineCollapse
     MinePit

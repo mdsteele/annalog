@@ -22,6 +22,7 @@
 .INCLUDE "../device.inc"
 .INCLUDE "../flag.inc"
 .INCLUDE "../machine.inc"
+.INCLUDE "../machines/jet.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../platform.inc"
 .INCLUDE "../program.inc"
@@ -31,47 +32,30 @@
 .IMPORT DataA_Pause_MermaidAreaName_u8_arr
 .IMPORT DataA_Room_Mermaid_sTileset
 .IMPORT FuncA_Machine_Error
-.IMPORT FuncA_Machine_ReachedGoal
-.IMPORT FuncA_Machine_StartWorking
-.IMPORT FuncA_Objects_DrawGirderPlatform
-.IMPORT Func_DivMod
-.IMPORT Func_MovePlatformTopToward
+.IMPORT FuncA_Machine_JetTick
+.IMPORT FuncA_Machine_LiftTryMove
+.IMPORT FuncA_Objects_DrawJetMachine
+.IMPORT Func_MachineJetReadRegY
 .IMPORT Func_Noop
-.IMPORT Ppu_ChrObjUpgrade
-.IMPORT Ram_MachineStatus_eMachine_arr
-.IMPORT Ram_PlatformTop_i16_0_arr
-.IMPORT Ram_PlatformTop_i16_1_arr
+.IMPORT Ppu_ChrObjFactory
+.IMPORT Ram_MachineGoalVert_u8_arr
 .IMPORT Ram_RoomState
-.IMPORTZP Zp_PlatformGoal_i16
-.IMPORTZP Zp_Tmp1_byte
-.IMPORTZP Zp_Tmp2_byte
 
 ;;;=========================================================================;;;
 
-;;; The machine index for the MermaidUpperLift machine in this room.
-kLiftMachineIndex = 0
+;;; The machine index for the MermaidElevatorJet machine in this room.
+kJetMachineIndex = 0
 
-;;; The platform index for the MermaidUpperLift machine.
-kLiftPlatformIndex = 0
+;;; The platform index for the MermaidElevatorJet machine.
+kJetPlatformIndex = 0
 
-;;; The initial and maximum permitted values for sState::LiftGoalY_u8.
-kLiftInitGoalY = 0
-kLiftMaxGoalY = 9
+;;; The initial and maximum permitted values for the jet's Y-goal.
+kJetInitGoalY = 0
+kJetMaxGoalY = 8
 
-;;; How many pixels the MermaidUpperLift platform moves per tick of its Y
-;;; register.
-.DEFINE kLiftMoveInterval $30
-
-;;; How many pixels the MermaidUpperLift platform moves per frame.
-kLiftMoveSpeed = 3
-
-;;; How many frames the MermaidUpperLift machine spends per move operation.
-.ASSERT kLiftMoveInterval .mod kLiftMoveSpeed = 0, error
-kLiftMoveCooldown = kLiftMoveInterval / kLiftMoveSpeed
-
-;;; The maximum and initial Y-positions for the top of the lift platform.
-kLiftMaxPlatformTop = $0130
-kLiftInitPlatformTop = kLiftMaxPlatformTop - kLiftInitGoalY * kLiftMoveInterval
+;;; The maximum and initial Y-positions for the top of the jet platform.
+kJetMaxPlatformTop = $0130
+kJetInitPlatformTop = kJetMaxPlatformTop - kJetInitGoalY * kJetMoveInterval
 
 ;;;=========================================================================;;;
 
@@ -79,8 +63,6 @@ kLiftInitPlatformTop = kLiftMaxPlatformTop - kLiftInitGoalY * kLiftMoveInterval
 .STRUCT sState
     ;; The current state of the (lower) lever.
     LowerLever_u1 .byte
-    ;; The goal value for the MermaidUpperLift machine's Y register.
-    LiftGoalY_u8  .byte
 .ENDSTRUCT
 .ASSERT .sizeof(sState) <= kRoomStateSize, error
 
@@ -88,8 +70,8 @@ kLiftInitPlatformTop = kLiftMaxPlatformTop - kLiftInitGoalY * kLiftMoveInterval
 
 .SEGMENT "PRGC_Mermaid"
 
-.EXPORT DataC_Mermaid_Upper_sRoom
-.PROC DataC_Mermaid_Upper_sRoom
+.EXPORT DataC_Mermaid_Elevator_sRoom
+.PROC DataC_Mermaid_Elevator_sRoom
     D_STRUCT sRoom
     d_byte MinScrollX_u8, $10
     d_word MaxScrollX_u16, $0010
@@ -100,7 +82,7 @@ kLiftInitPlatformTop = kLiftMaxPlatformTop - kLiftInitGoalY * kLiftMoveInterval
     d_addr TerrainData_ptr, _TerrainData
     d_byte NumMachines_u8, 1
     d_addr Machines_sMachine_arr_ptr, _Machines_sMachine_arr
-    d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjUpgrade)
+    d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjFactory)
     d_addr Tick_func_ptr, Func_Noop
     d_addr Draw_func_ptr, Func_Noop
     d_addr Ext_sRoomExt_ptr, _Ext_sRoomExt
@@ -123,34 +105,34 @@ _TerrainData:
 :   .incbin "out/data/mermaid_upper.room"
     .assert * - :- = 18 * 24, error
 _Machines_sMachine_arr:
-:   .assert * - :- = kLiftMachineIndex * .sizeof(sMachine), error
+:   .assert * - :- = kJetMachineIndex * .sizeof(sMachine), error
     D_STRUCT sMachine
-    d_byte Code_eProgram, eProgram::MermaidUpperLift
+    d_byte Code_eProgram, eProgram::MermaidElevatorJet
     d_byte Breaker_eFlag, eFlag::BreakerMine
     d_byte Flags_bMachine, bMachine::MoveV
     d_byte Status_eDiagram, eDiagram::Lift  ; TODO
     d_word ScrollGoalX_u16, $10
     d_byte ScrollGoalY_u8, $90
     d_byte RegNames_u8_arr4, "U", 0, "L", "Y"
-    d_byte MainPlatform_u8, kLiftPlatformIndex
-    d_addr Init_func_ptr, FuncC_Mermaid_UpperLift_Init
-    d_addr ReadReg_func_ptr, FuncC_Mermaid_UpperLift_ReadReg
+    d_byte MainPlatform_u8, kJetPlatformIndex
+    d_addr Init_func_ptr, FuncC_Mermaid_ElevatorJet_Init
+    d_addr ReadReg_func_ptr, FuncC_Mermaid_ElevatorJet_ReadReg
     d_addr WriteReg_func_ptr, Func_Noop
-    d_addr TryMove_func_ptr, FuncC_Mermaid_UpperLift_TryMove
+    d_addr TryMove_func_ptr, FuncC_Mermaid_ElevatorJet_TryMove
     d_addr TryAct_func_ptr, FuncA_Machine_Error
-    d_addr Tick_func_ptr, FuncC_Mermaid_UpperLift_Tick
-    d_addr Draw_func_ptr, FuncA_Objects_MermaidUpperLift_Draw
-    d_addr Reset_func_ptr, FuncC_Mermaid_UpperLift_Reset
+    d_addr Tick_func_ptr, FuncC_Mermaid_ElevatorJet_Tick
+    d_addr Draw_func_ptr, FuncA_Objects_DrawJetMachine
+    d_addr Reset_func_ptr, FuncC_Mermaid_ElevatorJet_Reset
     D_END
     .assert * - :- <= kMaxMachines * .sizeof(sMachine), error
 _Platforms_sPlatform_arr:
-:   .assert * - :- = kLiftPlatformIndex * .sizeof(sPlatform), error
+:   .assert * - :- = kJetPlatformIndex * .sizeof(sPlatform), error
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Solid
-    d_word WidthPx_u16, $20
-    d_byte HeightPx_u8, $10
+    d_word WidthPx_u16, kJetPlatformWidthPx
+    d_byte HeightPx_u8, kJetPlatformHeightPx
     d_word Left_i16,  $0080
-    d_word Top_i16, kLiftInitPlatformTop
+    d_word Top_i16, kJetInitPlatformTop
     D_END
     ;; Water:
     D_STRUCT sPlatform
@@ -191,7 +173,7 @@ _Devices_sDevice_arr:
     d_byte Type_eDevice, eDevice::Console
     d_byte BlockRow_u8, 16
     d_byte BlockCol_u8, 15
-    d_byte Target_u8, kLiftMachineIndex
+    d_byte Target_u8, kJetMachineIndex
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Lever
@@ -214,124 +196,45 @@ _Passages_sPassage_arr:
     D_END
     D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Top | 0
-    d_byte Destination_eRoom, eRoom::MermaidUpper  ; TODO
+    d_byte Destination_eRoom, eRoom::FactoryElevator
     d_byte SpawnBlock_u8, 9
     D_END
 .ENDPROC
 
-.PROC FuncC_Mermaid_UpperLift_Reset
-    .assert * = FuncC_Mermaid_UpperLift_Init, error, "fallthrough"
+.PROC FuncC_Mermaid_ElevatorJet_Reset
+    .assert * = FuncC_Mermaid_ElevatorJet_Init, error, "fallthrough"
 .ENDPROC
 
-.PROC FuncC_Mermaid_UpperLift_Init
-    lda #kLiftInitGoalY
-    sta Ram_RoomState + sState::LiftGoalY_u8
+.PROC FuncC_Mermaid_ElevatorJet_Init
+    lda #kJetInitGoalY
+    sta Ram_MachineGoalVert_u8_arr + kJetMachineIndex
     rts
 .ENDPROC
 
-.PROC FuncC_Mermaid_UpperLift_ReadReg
+.PROC FuncC_Mermaid_ElevatorJet_ReadReg
     cmp #$c
-    beq _ReadU
+    beq @readU
     cmp #$e
-    beq _ReadL
-_ReadY:
-    ;; Compute the platform's 16-bit relative position, storing the lo byte in
-    ;; Zp_Tmp1_byte and the hi byte in A.
-    lda #<(kLiftMaxPlatformTop + kLiftMoveInterval / 2)
-    sub Ram_PlatformTop_i16_0_arr + kLiftPlatformIndex
-    sta Zp_Tmp1_byte
-    lda #>(kLiftMaxPlatformTop + kLiftMoveInterval / 2)
-    sbc Ram_PlatformTop_i16_1_arr + kLiftPlatformIndex
-    ;; We need to divide the 16-bit relative position by kLiftMoveInterval, but
-    ;; it's not a power of two, so we need to use Func_DivMod.  Assert that
-    ;; dividing by two will make the relative position fit in 8 bits.
-    .assert kLiftMoveInterval * (kLiftMaxGoalY + 1) < $200, error
-    .assert kLiftMoveInterval .mod 2 = 0, error
-    lsr a
-    ror Zp_Tmp1_byte
-    lda Zp_Tmp1_byte  ; relative position / 2
-    ldy #kLiftMoveInterval / 2  ; param: divisor
-    jsr Func_DivMod  ; returns quotient in Y
-    tya
-    rts
-_ReadU:
+    beq @readL
+    @readY:
+    ldax #kJetMaxPlatformTop  ; param: max platform top
+    jmp Func_MachineJetReadRegY  ; returns A
+    @readU:
     lda #0  ; TODO read upper lever (in room above)
     rts
-_ReadL:
+    @readL:
     lda Ram_RoomState + sState::LowerLever_u1
     rts
 .ENDPROC
 
-.PROC FuncC_Mermaid_UpperLift_TryMove
-    ldy Ram_RoomState + sState::LiftGoalY_u8
-    cpx #eDir::Up
-    bne @moveDown
-    @moveUp:
-    cpy #kLiftMaxGoalY
-    bge @error
-    iny
-    bne @success  ; unconditional
-    @moveDown:
-    tya
-    beq @error
-    dey
-    @success:
-    sty Ram_RoomState + sState::LiftGoalY_u8
-    jmp FuncA_Machine_StartWorking
-    @error:
-    jmp FuncA_Machine_Error
+.PROC FuncC_Mermaid_ElevatorJet_TryMove
+    lda #kJetMaxGoalY  ; param: max goal vert
+    jmp FuncA_Machine_LiftTryMove
 .ENDPROC
 
-.PROC FuncC_Mermaid_UpperLift_Tick
-    ;; Calculate the desired Y-position for the top edge of the lift, in
-    ;; room-space pixels, storing it in Zp_PlatformGoal_i16.
-    .assert kLiftMoveInterval = %110000, error
-    lda #0
-    sta Zp_Tmp2_byte
-    lda Ram_RoomState + sState::LiftGoalY_u8
-    .assert kLiftMaxGoalY * %10000 < $100, error
-    mul #%10000  ; fits in one byte
-    sta Zp_Tmp1_byte
-    asl a
-    .assert kLiftMaxGoalY * %100000 >= $100, error
-    rol Zp_Tmp2_byte
-    adc Zp_Tmp1_byte  ; carry is already cleared
-    sta Zp_Tmp1_byte
-    lda Zp_Tmp2_byte
-    adc #0
-    sta Zp_Tmp2_byte
-    lda #<kLiftMaxPlatformTop
-    sub Zp_Tmp1_byte
-    sta Zp_PlatformGoal_i16 + 0
-    lda #>kLiftMaxPlatformTop
-    sbc Zp_Tmp2_byte
-    sta Zp_PlatformGoal_i16 + 1
-    ;; Determine the vertical speed of the lift (faster if resetting).
-    lda #kLiftMoveSpeed
-    ldy Ram_MachineStatus_eMachine_arr + kLiftMachineIndex
-    cpy #eMachine::Resetting
-    bne @slow
-    mul #2
-    @slow:
-    ;; Move the lift vertically, as necessary.
-    ldx #kLiftPlatformIndex  ; param: platform index
-    jsr Func_MovePlatformTopToward  ; returns Z and A
-    beq @done
-    ;; TODO: If moving down, check if the actor got crushed.
-    rts
-    @done:
-    jmp FuncA_Machine_ReachedGoal
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Objects"
-
-;;; Allocates and populates OAM slots for the MermaidUpperLift machine.
-;;; @prereq Zp_MachineIndex_u8 is initialized.
-.PROC FuncA_Objects_MermaidUpperLift_Draw
-    ldx #kLiftPlatformIndex  ; param: platform index
-    jmp FuncA_Objects_DrawGirderPlatform  ; TODO
+.PROC FuncC_Mermaid_ElevatorJet_Tick
+    ldax #kJetMaxPlatformTop  ; param: max platform top
+    jmp FuncA_Machine_JetTick
 .ENDPROC
 
 ;;;=========================================================================;;;
