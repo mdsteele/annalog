@@ -44,6 +44,7 @@ kRoomStateSize = $100
     CryptSouth
     CryptTomb
     CryptWest
+    FactoryCenter
     FactoryElevator
     GardenBoss
     GardenCrossroad

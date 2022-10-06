@@ -361,6 +361,12 @@ _MarkMinimap:
     d_byte Not_eFlag, eFlag::UpgradeOpcodeIf
     D_END
     D_STRUCT sMarker
+    d_byte Row_u8, 7
+    d_byte Col_u8, 13
+    d_byte If_eFlag, 0
+    d_byte Not_eFlag, eFlag::UpgradeOpcodeSkip
+    D_END
+    D_STRUCT sMarker
     d_byte Row_u8, 9
     d_byte Col_u8, 3
     d_byte If_eFlag, 0

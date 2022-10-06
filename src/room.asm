@@ -32,6 +32,7 @@
 .IMPORT DataC_Crypt_South_sRoom
 .IMPORT DataC_Crypt_Tomb_sRoom
 .IMPORT DataC_Crypt_West_sRoom
+.IMPORT DataC_Factory_Center_sRoom
 .IMPORT DataC_Factory_Elevator_sRoom
 .IMPORT DataC_Garden_Boss_sRoom
 .IMPORT DataC_Garden_Crossroad_sRoom
@@ -110,6 +111,7 @@
     DataC_Crypt_South_sRoom, \
     DataC_Crypt_Tomb_sRoom, \
     DataC_Crypt_West_sRoom, \
+    DataC_Factory_Center_sRoom, \
     DataC_Factory_Elevator_sRoom, \
     DataC_Garden_Boss_sRoom, \
     DataC_Garden_Crossroad_sRoom, \
