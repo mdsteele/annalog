@@ -39,9 +39,9 @@
 .IMPORT Func_ProcessFrame
 .IMPORT Func_Window_Disable
 .IMPORT Main_Explore_FadeIn
-.IMPORT Ppu_ChrBgFontUpper
 .IMPORT Ppu_ChrBgMinimap
 .IMPORT Ppu_ChrBgPause
+.IMPORT Ppu_ChrObjPause
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORT Sram_Minimap_u16_arr
 .IMPORTZP Zp_CameraMinimapCol_u8
@@ -97,6 +97,10 @@ kMinimapCurrentScreenPalette = 1
 ;;; The current byte offset into DataA_Pause_Minimap_sMarker_arr.
 Zp_MinimapMarkerOffset_u8: .res 1
 
+;;; Bit N of this is set if breaker number N (starting at 0) is activated.
+.ASSERT kNumBreakerFlags <= 8, error
+Zp_ActivatedBreakers_byte: .res 1
+
 ;;;=========================================================================;;;
 
 .SEGMENT "PRG8"
@@ -108,7 +112,7 @@ Zp_MinimapMarkerOffset_u8: .res 1
     chr08_bank #<.bank(Ppu_ChrBgMinimap)
     lda #<.bank(Ppu_ChrBgPause)
     sta Zp_Chr0cBank_u8
-    chr18_bank #<.bank(Ppu_ChrBgFontUpper)
+    chr18_bank #<.bank(Ppu_ChrObjPause)
     jsr_prga FuncA_Pause_Init
     jsr_prga FuncA_Fade_In
 _GameLoop:
@@ -158,6 +162,20 @@ kAreaNameStartCol = DataA_Pause_CurrentAreaLabel_u8_arr::kAreaNameStartCol
     ;; current-position blink will be in a consistent state as we fade in.
     lda #0
     sta Zp_FrameCounter_u8
+_InitActivatedBreakers:
+    lda #0
+    sta Zp_ActivatedBreakers_byte
+    ldx #kLastBreakerFlag
+    @loop:
+    jsr Func_IsFlagSet  ; preserves X, clears Z if flag is set
+    clc
+    beq @notActivated
+    sec
+    @notActivated:
+    rol Zp_ActivatedBreakers_byte
+    dex
+    cpx #kFirstBreakerFlag
+    bge @loop
 _DrawScreen:
     ldy #$00  ; param: fill byte
     jsr Func_FillUpperAttributeTable
@@ -505,15 +523,19 @@ _Finish:
     ;; At this point, A is still set to kWindowTileIdBlank.
     sta Hw_PpuData_rw
 .ENDPROC
-    ;; TODO: draw B-remote upgrade
 .PROC _DrawCircuits
-    ;; TODO: animate activated circuits
     lda Zp_Tmp1_byte  ; line number (0-5)
     mul #8
     tax
     ldy #8
     @loop:
+    lda _CircuitBreakers_byte_arr8_arr6, x
+    beq @drawTile
+    and Zp_ActivatedBreakers_byte
+    beq @drawA
+    @drawTile:
     lda _CircuitTiles_u8_arr8_arr6, x
+    @drawA:
     sta Hw_PpuData_rw
     inx
     dey
@@ -522,21 +544,33 @@ _Finish:
     sta Hw_PpuData_rw
     sta Hw_PpuData_rw
 .ENDPROC
-    ldx Zp_Tmp1_byte  ; restore X register
+    ldx Zp_Tmp1_byte  ; restore X register (line number)
     rts
 _CircuitTiles_u8_arr8_arr6:
-    .byte "3", $e0, $00, $f0, $f6, $00, $e1, "4"
+    .byte "1", $e0, $00, $f0, $f6, $00, $e1, "6"
     .byte $00, $e2, $e8, $f1, $f7, $e8, $e3, $00
     .byte $00, $e4, $e8, $f2, $f8, $e8, $e5, $00
     .byte "2", $e6, $e4, $f3, $f9, $e5, $e7, "5"
-    .byte $00, "1", $e6, $f4, $fa, $e7, "6", $00
+    .byte $00, "3", $e6, $f4, $fa, $e7, "4", $00
     .byte $00, $00, $00, $f5, $fb, $00, $00, $00
+_CircuitBreakers_byte_arr8_arr6:
+    .byte $01, $00, $00, $00, $00, $00, $00, $20
+    .byte $00, $00, $00, $00, $00, $00, $00, $00
+    .byte $00, $00, $00, $00, $00, $00, $00, $00
+    .byte $02, $00, $00, $00, $00, $00, $00, $10
+    .byte $00, $04, $00, $00, $00, $00, $08, $00
+    .byte $00, $00, $00, $40, $40, $00, $00, $00
 .ENDPROC
 
-;;; Allocates and populates OAM slots for objects that should be drawn on the
-;;; pause screen.
+;;; Draws objects that should be drawn on the pause screen.
 .PROC FuncA_Pause_DrawObjects
-_Minimap:
+    jsr FuncA_Pause_DrawMinimapObjects
+    jsr FuncA_Pause_DrawCircuitObjects
+    jmp FuncA_Pause_DrawFlowerCount
+.ENDPROC
+
+;;; Draws objects to mark the current area on the minimap.
+.PROC FuncA_Pause_DrawMinimapObjects
     ;; Copy the current room's AreaCells_u8_arr2_arr_ptr into Zp_Tmp_ptr.
     ldy #sRoomExt::AreaCells_u8_arr2_arr_ptr
     lda (Zp_Current_sRoom + sRoom::Ext_sRoomExt_ptr), y
@@ -615,7 +649,68 @@ _Minimap:
     @continue:
     lda (Zp_Tmp_ptr), y
     bpl @loop
-_FlowerCount:
+    rts
+.ENDPROC
+
+;;; Draws objects to animate circuits for any activated breakers.
+.PROC FuncA_Pause_DrawCircuitObjects
+    lda Zp_FrameCounter_u8
+    div #4
+    and #$03
+    sta Zp_Tmp1_byte  ; anim offset
+    ldy Zp_OamOffset_u8
+    ldx #14
+    @loop:
+    lda _CircuitBreakerMask_byte_arr, x
+    and Zp_ActivatedBreakers_byte
+    beq @continue
+    lda _CircuitPosX_u8_arr, x
+    sta Ram_Oam_sObj_arr64 + sObj::XPos_u8, y
+    lda _CircuitPosY_u8_arr, x
+    sta Ram_Oam_sObj_arr64 + sObj::YPos_u8, y
+    lda _CircuitFlags_bObj_arr, x
+    sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
+    lda _CircuitFirstTile_u8_arr, x
+    add Zp_Tmp1_byte  ; anim offset
+    sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
+    .repeat .sizeof(sObj)
+    iny
+    .endrepeat
+    @continue:
+    dex
+    bpl @loop
+    sty Zp_OamOffset_u8
+    rts
+_CircuitBreakerMask_byte_arr:
+    .byte $01, $01, $01, $20, $20, $20
+    .byte $02, $02,           $10, $10
+    .byte      $04, $04, $08, $08
+    .byte              $40
+_CircuitPosX_u8_arr:
+    .byte $a8, $b0, $b8, $c0, $c8, $d0
+    .byte $a8, $b0,           $c8, $d0
+    .byte      $b0, $b8, $c0, $c8
+    .byte              $bc
+_CircuitPosY_u8_arr:
+    .byte $ac, $ac, $ac, $ac, $ac, $ac
+    .byte $ba, $ba,           $ba, $ba
+    .byte      $c2, $c2, $c2, $c2
+    .byte              $c9
+_CircuitFirstTile_u8_arr:
+    .byte $80, $84, $84, $84, $84, $80
+    .byte $80, $84,           $84, $80
+    .byte      $80, $84, $84, $80
+    .byte              $88
+_CircuitFlags_bObj_arr:
+    .byte 0, 0, bObj::Pri, bObj::Pri | bObj::FlipH, bObj::FlipH, bObj::FlipH
+    .byte bObj::FlipV, bObj::FlipV, bObj::FlipHV, bObj::FlipHV
+    .byte bObj::FlipV, bObj::Pri | bObj::FlipV
+    .byte bObj::Pri | bObj::FlipHV, bObj::FlipHV
+    .byte 0
+.ENDPROC
+
+;;; Draws objects showing the number of collected flowers.
+.PROC FuncA_Pause_DrawFlowerCount
     ;; Only display the flower count if at least one flower has been delivered,
     ;; but the BEEP opcode has not been unlocked yet.
     ldx #eFlag::UpgradeOpcodeBeep  ; param: flag
@@ -652,8 +747,8 @@ _FlowerCount:
     rts
 .ENDPROC
 
-;;; These two arrays each maps from (original minimap tile ID - $80) to the
-;;; tile ID to use if there is an item/quest map marker on that tile.
+;;; These two arrays each map from (original minimap tile ID - $80) to the tile
+;;; ID to use if there is an item/quest map marker on that tile.
 .PROC DataA_Pause_MinimapItemMarkerTiles_u8_arr
     .byte $80, $b1, '?', $b3, $b2
 .ENDPROC

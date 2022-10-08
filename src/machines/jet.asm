@@ -139,7 +139,6 @@ kTileIdJetLowerMiddleFirst = kTileIdJetFirst + 1
     sbc Zp_Tmp4_byte  ; goal delta (hi)
     sta Zp_PlatformGoal_i16 + 1
     ;; Determine the vertical speed of the jet (faster if resetting).
-    sta $ff
     ldx Ram_MachineStatus_eMachine_arr, y
     lda #kJetMoveSpeed
     cpx #eMachine::Resetting

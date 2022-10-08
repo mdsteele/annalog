@@ -469,6 +469,17 @@
 
 ;;;=========================================================================;;;
 
+.SEGMENT "CHR_ObjPause"
+
+.EXPORT Ppu_ChrObjPause
+.PROC Ppu_ChrObjPause
+:   .incbin "out/data/tiles/miniflow.chr"
+    .res $74 * kSizeofChr
+    .assert * - :- = kSizeofChr * $80, error
+.ENDPROC
+
+;;;=========================================================================;;;
+
 .SEGMENT "CHR_ObjTownsfolk"
 
 .EXPORT Ppu_ChrObjTownsfolk

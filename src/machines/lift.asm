@@ -106,7 +106,6 @@ kTileIdLiftSurface = $78
     sbc #0
     sta Zp_PlatformGoal_i16 + 1
     ;; Determine the vertical speed of the lift (faster if resetting).
-    sta $ff
     ldx Ram_MachineStatus_eMachine_arr, y
     lda #1
     cpx #eMachine::Resetting
