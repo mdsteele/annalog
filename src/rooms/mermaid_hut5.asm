@@ -112,7 +112,7 @@ _Devices_sDevice_arr:
 .PROC DataA_Dialog_MermaidHut5_sDialog_ptr_arr
     .addr _Dialog0_sDialog
 _Dialog0_sDialog:
-    .word ePortrait::Woman
+    .word ePortrait::Girl
     .byte "Lorem ipsum.#"
     .word ePortrait::Done
 .ENDPROC

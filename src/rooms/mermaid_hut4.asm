@@ -211,11 +211,11 @@ _InitialDialogFunc:
     ldya #_ThankYou_sDialog
     rts
 _NoFlowersYet_sDialog:
-    .word ePortrait::Woman
+    .word ePortrait::Mermaid
     .byte "Bring me flowers.#"
     .word ePortrait::Done
 _BroughtFlower_sDialog:
-    .word ePortrait::Woman
+    .word ePortrait::Mermaid
     .byte "Ah, I see you've$"
     .byte "brought me a flower!$"
     .byte "How kind of you.#"
@@ -256,15 +256,15 @@ _DeliverFlowerFunc:
     ldya #_DeliveredLastFlower_sDialog
     rts
 _WantMoreFlowers_sDialog:
-    .word ePortrait::Woman
+    .word ePortrait::Mermaid
     .byte "I want more flowers.#"
     .word ePortrait::Done
 _DeliveredLastFlower_sDialog:
-    .word ePortrait::Woman
+    .word ePortrait::Mermaid
     .byte "Now I have a dozen.#"
     .word ePortrait::Done
 _ThankYou_sDialog:
-    .word ePortrait::Woman
+    .word ePortrait::Mermaid
     .byte "Thank you for all the$"
     .byte "flowers.#"
     .word ePortrait::Done

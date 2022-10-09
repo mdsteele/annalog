@@ -115,7 +115,7 @@ _Devices_sDevice_arr:
 .PROC DataA_Dialog_TownHouse1_sDialog_ptr_arr
     .addr _Dialog0_sDialog
 _Dialog0_sDialog:
-    .word ePortrait::Woman
+    .word ePortrait::Girl
     .byte "My sister keeps peeing$"
     .byte "her pants!#"
     .word ePortrait::Done

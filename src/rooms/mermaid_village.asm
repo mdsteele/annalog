@@ -269,8 +269,11 @@ _MermaidGuard_sDialog:
     .byte "village.#"
     .word ePortrait::Done
 _MermaidFarmer_sDialog:
-    .word ePortrait::Mermaid
-    .byte "I am farming seaweed.#"
+    .word ePortrait::Man
+    .byte "I am farming seaweed.$"
+    .byte "The harvest has not$"
+    .byte "been good this year,$"
+    .byte "though.#"
     .word ePortrait::Done
 _MermaidYouth_sDialog:
     .word ePortrait::Mermaid
