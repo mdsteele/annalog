@@ -332,8 +332,8 @@ _CalculatePassage:
     ;; position, storing it in A.
     tay  ; ePassage value
     and #bPassage::EastWest
-    beq @upDown
-    @eastWest:
+    beq _CalculateUpDownPassage
+_CalculateEastWestPassage:
     bit <(Zp_Current_sRoom + sRoom::IsTall_bool)
     bpl @upperHalf
     @tall:
@@ -350,23 +350,18 @@ _CalculatePassage:
     tya  ; ePassage value
     ora #1
     bne _LoadNextRoom  ; unconditional
-    @upDown:
+_CalculateUpDownPassage:
+    ;; Calculate which horizontal screen of the room the player avatar is in
+    ;; (in other words, the hi byte of (avatar position - min scroll X) in room
+    ;; pixel coordinates), storing the result in A.
+    lda Zp_AvatarPosX_i16 + 0
+    sub <(Zp_Current_sRoom + sRoom::MinScrollX_u8)
     lda Zp_AvatarPosX_i16 + 1
-    bmi @leftSide
-    cmp <(Zp_Current_sRoom + sRoom::MinimapWidth_u8)
-    blt @setScreenNumber
-    bge @rightSide  ; unconditional
-    @leftSide:
-    lda #0
-    beq @setScreenNumber  ; unconditional
-    @rightSide:
-    ldx <(Zp_Current_sRoom + sRoom::MinimapWidth_u8)
-    dex
-    txa
-    @setScreenNumber:
-    sta Zp_Tmp1_byte  ; screen number
-    tya  ; ePassage value
-    ora Zp_Tmp1_byte  ; screen number
+    sbc #0
+    ;; Construct the bPassage value from the screen number and ePassage value.
+    and #bPassage::ScreenMask
+    sty Zp_Tmp1_byte  ; ePassage value
+    ora Zp_Tmp1_byte
 _LoadNextRoom:
     pha  ; origin bPassage value (calculated)
     tax  ; param: origin bPassage value (calculated)

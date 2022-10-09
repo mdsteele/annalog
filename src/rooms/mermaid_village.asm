@@ -53,7 +53,6 @@ kMermaidYouthDialogIndex = 2
     d_byte IsTall_bool, $ff
     d_byte MinimapStartRow_u8, 10
     d_byte MinimapStartCol_u8, 11
-    d_byte MinimapWidth_u8, 3
     d_addr TerrainData_ptr, _TerrainData
     d_byte NumMachines_u8, 0
     d_addr Machines_sMachine_arr_ptr, 0

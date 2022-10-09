@@ -84,7 +84,6 @@ kLowerPipe2PlatformIndex  = 10
     d_byte IsTall_bool, $ff
     d_byte MinimapStartRow_u8, 13
     d_byte MinimapStartCol_u8, 17
-    d_byte MinimapWidth_u8, 2
     d_addr TerrainData_ptr, _TerrainData
     d_byte NumMachines_u8, 2
     d_addr Machines_sMachine_arr_ptr, _Machines_sMachine_arr

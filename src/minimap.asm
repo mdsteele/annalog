@@ -63,19 +63,16 @@ _UpdateMinimapRow:
     @upperHalf:
     sty Zp_CameraMinimapRow_u8
 _UpdateMinimapCol:
+    ;; Calculate which horizontal screen of the room the camera is looking at
+    ;; (in other words, the hi byte of (camera center position - min scroll X)
+    ;; in room pixel coordinates), storing the result in A.
     lda #kScreenWidthPx / 2
     sub <(Zp_Current_sRoom + sRoom::MinScrollX_u8)
-    sta Zp_Tmp1_byte  ; offset
-    lda Zp_RoomScrollX_u16 + 0
-    add Zp_Tmp1_byte  ; offset
-    lda Zp_RoomScrollX_u16 + 1
-    adc #0
-    cmp <(Zp_Current_sRoom + sRoom::MinimapWidth_u8)
-    blt @setCol
-    ldx <(Zp_Current_sRoom + sRoom::MinimapWidth_u8)
-    dex
-    txa
-    @setCol:
+    add Zp_RoomScrollX_u16 + 0
+    lda #0
+    adc Zp_RoomScrollX_u16 + 1
+    ;; Add that screen number to the room's starting minimap column to get the
+    ;; current absolute minimap column.
     add <(Zp_Current_sRoom + sRoom::MinimapStartCol_u8)
     sta Zp_CameraMinimapCol_u8
 _MarkMinimap:
