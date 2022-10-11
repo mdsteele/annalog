@@ -105,7 +105,7 @@ _Machines_sMachine_arr:
     d_byte Code_eProgram, eProgram::LavaTeleportField
     d_byte Breaker_eFlag, eFlag::BreakerCity
     d_byte Flags_bMachine, bMachine::Act
-    d_byte Status_eDiagram, eDiagram::Winch  ; TODO
+    d_byte Status_eDiagram, eDiagram::Field
     d_word ScrollGoalX_u16, $0
     d_byte ScrollGoalY_u8, $0
     d_byte RegNames_u8_arr4, "T", 0, 0, 0

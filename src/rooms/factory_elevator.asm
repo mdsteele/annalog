@@ -122,7 +122,7 @@ _Machines_sMachine_arr:
     d_byte Code_eProgram, eProgram::CoreElevatorJet
     d_byte Breaker_eFlag, eFlag::BreakerCity
     d_byte Flags_bMachine, bMachine::MoveV
-    d_byte Status_eDiagram, eDiagram::Lift  ; TODO
+    d_byte Status_eDiagram, eDiagram::Jet
     d_word ScrollGoalX_u16, $10
     d_byte ScrollGoalY_u8, $10
     d_byte RegNames_u8_arr4, "U", 0, "L", "Y"
@@ -141,7 +141,7 @@ _Machines_sMachine_arr:
     d_byte Code_eProgram, eProgram::MermaidElevatorJet
     d_byte Breaker_eFlag, eFlag::BreakerMine
     d_byte Flags_bMachine, bMachine::MoveV
-    d_byte Status_eDiagram, eDiagram::Lift  ; TODO
+    d_byte Status_eDiagram, eDiagram::Jet
     d_word ScrollGoalX_u16, $10
     d_byte ScrollGoalY_u8, $b0
     d_byte RegNames_u8_arr4, "U", 0, "L", "Y"
