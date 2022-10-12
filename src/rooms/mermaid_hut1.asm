@@ -20,6 +20,7 @@
 .INCLUDE "../actor.inc"
 .INCLUDE "../actors/townsfolk.inc"
 .INCLUDE "../charmap.inc"
+.INCLUDE "../cpu.inc"
 .INCLUDE "../device.inc"
 .INCLUDE "../dialog.inc"
 .INCLUDE "../macros.inc"
@@ -31,6 +32,12 @@
 .IMPORT DataA_Room_Hut_sTileset
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrObjTownsfolk
+
+;;;=========================================================================;;;
+
+;;; The dialog indices for the mermaids in this room.
+kMermaidGuardDialogIndex = 0
+kMermaidQueenDialogIndex = 1
 
 ;;;=========================================================================;;;
 
@@ -89,10 +96,10 @@ _Actors_sActor_arr:
     d_byte Param_byte, kTileIdMermaidGuardMFirst
     D_END
     D_STRUCT sActor
-    d_byte Type_eActor, eActor::NpcMermaid
-    d_byte TileRow_u8, 25
+    d_byte Type_eActor, eActor::NpcMermaidQueen
+    d_byte TileRow_u8, 21
     d_byte TileCol_u8, 24
-    d_byte Param_byte, kTileIdMermaidAdultFirst
+    d_byte Param_byte, 0
     D_END
     .byte eActor::None
 _Devices_sDevice_arr:
@@ -100,25 +107,25 @@ _Devices_sDevice_arr:
     d_byte Type_eDevice, eDevice::TalkRight
     d_byte BlockRow_u8, 12
     d_byte BlockCol_u8, 3
-    d_byte Target_u8, 0
+    d_byte Target_u8, kMermaidGuardDialogIndex
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::TalkLeft
     d_byte BlockRow_u8, 12
     d_byte BlockCol_u8, 4
-    d_byte Target_u8, 0
+    d_byte Target_u8, kMermaidGuardDialogIndex
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::TalkRight
-    d_byte BlockRow_u8, 12
+    d_byte BlockRow_u8, 11
     d_byte BlockCol_u8, 11
-    d_byte Target_u8, 0
+    d_byte Target_u8, kMermaidQueenDialogIndex
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::TalkLeft
-    d_byte BlockRow_u8, 12
+    d_byte BlockRow_u8, 11
     d_byte BlockCol_u8, 12
-    d_byte Target_u8, 0
+    d_byte Target_u8, kMermaidQueenDialogIndex
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::OpenDoorway
@@ -135,10 +142,17 @@ _Devices_sDevice_arr:
 
 ;;; Dialog data for the MermaidHut1 room.
 .PROC DataA_Dialog_MermaidHut1_sDialog_ptr_arr
-    .addr _Dialog0_sDialog
-_Dialog0_sDialog:
-    .word ePortrait::Woman
+:   .assert * - :- = kMermaidGuardDialogIndex * kSizeofAddr, error
+    .addr _MermaidGuard_sDialog
+    .assert * - :- = kMermaidQueenDialogIndex * kSizeofAddr, error
+    .addr _MermaidQueen_sDialog
+_MermaidGuard_sDialog:
+    .word ePortrait::Man
     .byte "Lorem ipsum.#"
+    .word ePortrait::Done
+_MermaidQueen_sDialog:
+    .word ePortrait::Mermaid
+    .byte "I am the queen.#"
     .word ePortrait::Done
 .ENDPROC
 

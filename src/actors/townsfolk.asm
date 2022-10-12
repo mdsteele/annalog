@@ -20,12 +20,16 @@
 .INCLUDE "../actor.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
+.INCLUDE "../ppu.inc"
+.INCLUDE "townsfolk.inc"
 
 .IMPORT FuncA_Objects_Alloc2x1Shape
 .IMPORT FuncA_Objects_Alloc2x2Shape
 .IMPORT FuncA_Objects_Draw2x2Actor
+.IMPORT FuncA_Objects_Draw2x2Shape
+.IMPORT FuncA_Objects_MoveShapeDownByA
 .IMPORT FuncA_Objects_MoveShapeUpOneTile
-.IMPORT FuncA_Objects_PositionActorShape
+.IMPORT FuncA_Objects_SetShapePosToActorCenter
 .IMPORT Ram_ActorFlags_bObj_arr
 .IMPORT Ram_ActorPosX_i16_0_arr
 .IMPORT Ram_ActorPosX_i16_1_arr
@@ -45,6 +49,14 @@
 ;;; @preserve X
 .EXPORT FuncA_Actor_TickNpcMermaid
 .PROC FuncA_Actor_TickNpcMermaid
+    .assert * = FuncA_Actor_TickNpcChild, error, "fallthrough"
+.ENDPROC
+
+;;; Performs per-frame updates for a mermaid queen NPC actor.
+;;; @param X The actor index.
+;;; @preserve X
+.EXPORT FuncA_Actor_TickNpcMermaidQueen
+.PROC FuncA_Actor_TickNpcMermaidQueen
     .assert * = FuncA_Actor_TickNpcChild, error, "fallthrough"
 .ENDPROC
 
@@ -87,7 +99,7 @@
 ;;; @preserve X
 .EXPORT FuncA_Objects_DrawActorNpcAdult
 .PROC FuncA_Objects_DrawActorNpcAdult
-    jsr FuncA_Objects_PositionActorShape  ; preserves X
+    jsr FuncA_Objects_SetShapePosToActorCenter  ; preserves X
     lda Ram_ActorState_byte_arr, x  ; param: first tile ID
     jmp FuncA_Objects_Draw2x3ActorShape  ; preserves X
 .ENDPROC
@@ -106,7 +118,7 @@
 ;;; @preserve X
 .EXPORT FuncA_Objects_DrawActorNpcMermaid
 .PROC FuncA_Objects_DrawActorNpcMermaid
-    jsr FuncA_Objects_PositionActorShape  ; preserves X
+    jsr FuncA_Objects_SetShapePosToActorCenter  ; preserves X
     ;; Adjust vertical position (to make the mermaid bob in the water).
     stx Zp_Tmp1_byte  ; actor index
     lda Zp_FrameCounter_u8
@@ -127,6 +139,26 @@ _VertOffset_u8_arr8:
     .byte 0, 0, 0, 1, 2, 2, 2, 1
 .ENDPROC
 
+;;; Draws a mermaid queen NPC actor.
+;;; @param X The actor index.
+;;; @preserve X
+.EXPORT FuncA_Objects_DrawActorNpcMermaidQueen
+.PROC FuncA_Objects_DrawActorNpcMermaidQueen
+    jsr FuncA_Objects_SetShapePosToActorCenter  ; preserves X
+_TopHalf:
+    lda Ram_ActorFlags_bObj_arr, x
+    ora #1
+    tay  ; param: object flags
+    lda #kTileIdMermaidQueenFirst  ; param: first tile ID
+    jsr FuncA_Objects_Draw2x2Shape  ; preserves X
+_BottomHalf:
+    lda #kTileHeightPx * 2  ; param: offset
+    jsr FuncA_Objects_MoveShapeDownByA
+    ldy #0  ; param: object flags
+    lda #kTileIdMermaidQueenFirst + 4  ; param: first tile ID
+    jmp FuncA_Objects_Draw2x2Shape  ; preserves X
+.ENDPROC
+
 ;;; Draws the specified actor, using the given first tile ID and the five
 ;;; subsequent tile IDs.
 ;;; @prereq The shape position has been initialized.
@@ -141,7 +173,7 @@ _BottomThird:
     bcs @doneBottom
     pla  ; first tile ID
     pha  ; first tile ID
-    add #2
+    adc #2  ; carry flag is already clear
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Tile_u8, y
     adc #3
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Tile_u8, y
@@ -153,7 +185,7 @@ _TopTwoThirds:
     pla  ; first tile ID
     bcs @doneTop
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Tile_u8, y
-    add #1
+    adc #1  ; carry flag is already clear
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Tile_u8, y
     adc #2
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Tile_u8, y

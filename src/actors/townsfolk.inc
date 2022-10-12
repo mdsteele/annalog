@@ -31,5 +31,6 @@ kTileIdMermaidGuardFFirst   = $a0
 kTileIdMermaidPonytailFirst = $a6
 kTileIdMermaidGuardMFirst   = $ac
 kTileIdMermaidFarmerFirst   = $be
+kTileIdMermaidQueenFirst    = $c4
 
 ;;;=========================================================================;;;

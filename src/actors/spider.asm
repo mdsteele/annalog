@@ -24,7 +24,7 @@
 
 .IMPORT FuncA_Actor_HarmAvatarIfCollision
 .IMPORT FuncA_Objects_Alloc2x2Shape
-.IMPORT FuncA_Objects_PositionActorShape
+.IMPORT FuncA_Objects_SetShapePosToActorCenter
 .IMPORT Func_GetRandomByte
 .IMPORT Func_GetTerrainColumnPtrForTileIndex
 .IMPORT Ram_ActorFlags_bObj_arr
@@ -151,7 +151,7 @@ _StartMove:
 ;;; @preserve X
 .EXPORT FuncA_Objects_DrawActorBadSpider
 .PROC FuncA_Objects_DrawActorBadSpider
-    jsr FuncA_Objects_PositionActorShape  ; preserves X
+    jsr FuncA_Objects_SetShapePosToActorCenter  ; preserves X
     lda Ram_ActorFlags_bObj_arr, x  ; param: object flags
     jsr FuncA_Objects_Alloc2x2Shape  ; preserves X, returns C and Y
     bcs @done

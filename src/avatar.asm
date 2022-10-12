@@ -32,10 +32,9 @@
 .IMPORT FuncA_Avatar_CollideWithAllPlatformsHorz
 .IMPORT FuncA_Avatar_CollideWithAllPlatformsVert
 .IMPORT FuncA_Avatar_UpdateWaterDepth
-.IMPORT FuncA_Objects_Alloc2x2Shape
+.IMPORT FuncA_Objects_Draw2x2Shape
 .IMPORT Func_GetTerrainColumnPtrForTileIndex
 .IMPORT Func_HarmAvatar
-.IMPORT Ram_Oam_sObj_arr64
 .IMPORTZP Zp_Current_sRoom
 .IMPORTZP Zp_FrameCounter_u8
 .IMPORTZP Zp_P1ButtonsHeld_bJoypad
@@ -1097,17 +1096,9 @@ _GetPosition:
     sbc Zp_RoomScrollX_u16 + 1
     sta Zp_ShapePosX_i16 + 1
 _DrawObjects:
-    lda Zp_AvatarFlags_bObj  ; param: object flags
-    jsr FuncA_Objects_Alloc2x2Shape  ; preserves X, returns C and Y
-    bcs _Done
-    lda Zp_AvatarMode_eAvatar
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Tile_u8, y
-    adc #1  ; carry bit is already clear
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Tile_u8, y
-    adc #1
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Tile_u8, y
-    adc #1
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Tile_u8, y
+    lda Zp_AvatarMode_eAvatar  ; param: first tile ID
+    ldy Zp_AvatarFlags_bObj  ; param: object flags
+    jmp FuncA_Objects_Draw2x2Shape
 _Done:
     rts
 .ENDPROC

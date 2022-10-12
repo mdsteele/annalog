@@ -186,7 +186,7 @@ _LeftHalf:
     @done:
 _RightHalf:
     ;; Allocate objects.
-    lda #kTileWidthPx * 2
+    lda #kTileWidthPx * 2  ; param: offset
     jsr FuncA_Objects_MoveShapeRightByA  ; preserves X
     lda #kMachineLightPalette | bObj::FlipH  ; param: object flags
     jsr FuncA_Objects_Alloc2x2Shape  ; preserves X; returns C and Y

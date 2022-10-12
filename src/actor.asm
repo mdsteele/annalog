@@ -34,6 +34,7 @@
 .IMPORT FuncA_Actor_TickNpcAdult
 .IMPORT FuncA_Actor_TickNpcChild
 .IMPORT FuncA_Actor_TickNpcMermaid
+.IMPORT FuncA_Actor_TickNpcMermaidQueen
 .IMPORT FuncA_Actor_TickNpcToddler
 .IMPORT FuncA_Actor_TickProjFireball
 .IMPORT FuncA_Actor_TickProjGrenade
@@ -42,7 +43,7 @@
 .IMPORT FuncA_Actor_TickProjSteamHorz
 .IMPORT FuncA_Actor_TickProjSteamUp
 .IMPORT FuncA_Objects_Alloc1x1Shape
-.IMPORT FuncA_Objects_Alloc2x2Shape
+.IMPORT FuncA_Objects_Draw2x2Shape
 .IMPORT FuncA_Objects_DrawActorBadCrab
 .IMPORT FuncA_Objects_DrawActorBadCrawler
 .IMPORT FuncA_Objects_DrawActorBadFish
@@ -53,6 +54,7 @@
 .IMPORT FuncA_Objects_DrawActorNpcAdult
 .IMPORT FuncA_Objects_DrawActorNpcChild
 .IMPORT FuncA_Objects_DrawActorNpcMermaid
+.IMPORT FuncA_Objects_DrawActorNpcMermaidQueen
 .IMPORT FuncA_Objects_DrawActorNpcToddler
 .IMPORT FuncA_Objects_DrawActorProjFireball
 .IMPORT FuncA_Objects_DrawActorProjGrenade
@@ -97,15 +99,16 @@ kProjSteamMinorRadius = 5
 
 ;;;=========================================================================;;;
 
-Func_InitActorNone       = Func_InitActorDefault
-Func_InitActorBadCrab    = Func_InitActorDefault
-Func_InitActorBadCrawler = Func_InitActorDefault
-Func_InitActorBadFish    = Func_InitActorDefault
-Func_InitActorBadSpider  = Func_InitActorDefault
-Func_InitActorNpcAdult   = Func_InitActorWithState
-Func_InitActorNpcChild   = Func_InitActorWithState
-Func_InitActorNpcMermaid = Func_InitActorWithState
-Func_InitActorNpcToddler = Func_InitActorWithState
+Func_InitActorNone            = Func_InitActorDefault
+Func_InitActorBadCrab         = Func_InitActorDefault
+Func_InitActorBadCrawler      = Func_InitActorDefault
+Func_InitActorBadFish         = Func_InitActorDefault
+Func_InitActorBadSpider       = Func_InitActorDefault
+Func_InitActorNpcAdult        = Func_InitActorWithState
+Func_InitActorNpcChild        = Func_InitActorWithState
+Func_InitActorNpcMermaid      = Func_InitActorWithState
+Func_InitActorNpcMermaidQueen = Func_InitActorDefault
+Func_InitActorNpcToddler      = Func_InitActorWithState
 
 FuncA_Actor_TickNone = Func_Noop
 FuncA_Objects_DrawActorNone = Func_Noop
@@ -123,6 +126,7 @@ FuncA_Objects_DrawActorNone = Func_Noop
     Func_InitActorNpcAdult, \
     Func_InitActorNpcChild, \
     Func_InitActorNpcMermaid, \
+    Func_InitActorNpcMermaidQueen, \
     Func_InitActorNpcToddler, \
     Func_InitActorProjFireball, \
     Func_InitActorProjGrenade, \
@@ -145,6 +149,7 @@ FuncA_Objects_DrawActorNone = Func_Noop
     FuncA_Actor_TickNpcAdult, \
     FuncA_Actor_TickNpcChild, \
     FuncA_Actor_TickNpcMermaid, \
+    FuncA_Actor_TickNpcMermaidQueen, \
     FuncA_Actor_TickNpcToddler, \
     FuncA_Actor_TickProjFireball, \
     FuncA_Actor_TickProjGrenade, \
@@ -167,6 +172,7 @@ FuncA_Objects_DrawActorNone = Func_Noop
     FuncA_Objects_DrawActorNpcAdult, \
     FuncA_Objects_DrawActorNpcChild, \
     FuncA_Objects_DrawActorNpcMermaid, \
+    FuncA_Objects_DrawActorNpcMermaidQueen, \
     FuncA_Objects_DrawActorNpcToddler, \
     FuncA_Objects_DrawActorProjFireball, \
     FuncA_Objects_DrawActorProjGrenade, \
@@ -304,68 +310,71 @@ _JumpTable_ptr_1_arr: .hibytes ActorInitFuncs
 ;;; position, indexed by eActor value.
 .PROC DataA_Actor_BoundingBoxUp_u8_arr
     D_ENUM eActor
-    d_byte None,           0
-    d_byte BadCrab,        6
-    d_byte BadCrawler,     0
-    d_byte BadFish,        6
-    d_byte BadHotheadHorz, 6
-    d_byte BadHotheadVert, 6
-    d_byte BadSpider,      8
-    d_byte BadVinebug,     7
-    d_byte NpcAdult,      13
-    d_byte NpcChild,       7
-    d_byte NpcMermaid,    13
-    d_byte NpcToddler,     4
-    d_byte ProjFireball,   kProjFireballRadius
-    d_byte ProjGrenade,    kProjGrenadeRadius
-    d_byte ProjSmoke,      kProjSmokeRadius
-    d_byte ProjSpike,      kProjSpikeRadius
-    d_byte ProjSteamHorz,  kProjSteamMinorRadius
-    d_byte ProjSteamUp,    kProjSteamMajorRadius
+    d_byte None,             0
+    d_byte BadCrab,          6
+    d_byte BadCrawler,       0
+    d_byte BadFish,          6
+    d_byte BadHotheadHorz,   6
+    d_byte BadHotheadVert,   6
+    d_byte BadSpider,        8
+    d_byte BadVinebug,       7
+    d_byte NpcAdult,        13
+    d_byte NpcChild,         7
+    d_byte NpcMermaid,      13
+    d_byte NpcMermaidQueen,  2
+    d_byte NpcToddler,       4
+    d_byte ProjFireball,    kProjFireballRadius
+    d_byte ProjGrenade,     kProjGrenadeRadius
+    d_byte ProjSmoke,       kProjSmokeRadius
+    d_byte ProjSpike,       kProjSpikeRadius
+    d_byte ProjSteamHorz,   kProjSteamMinorRadius
+    d_byte ProjSteamUp,     kProjSteamMajorRadius
     D_END
 .ENDPROC
 .PROC DataA_Actor_BoundingBoxDown_u8_arr
     D_ENUM eActor
-    d_byte None,           0
-    d_byte BadCrab,        8
-    d_byte BadCrawler,     8
-    d_byte BadFish,        4
-    d_byte BadHotheadHorz, 6
-    d_byte BadHotheadVert, 6
-    d_byte BadSpider,      2
-    d_byte BadVinebug,     7
-    d_byte NpcAdult,       8
-    d_byte NpcChild,       8
-    d_byte NpcMermaid,     8
-    d_byte NpcToddler,     8
-    d_byte ProjFireball,   kProjFireballRadius
-    d_byte ProjGrenade,    kProjGrenadeRadius
-    d_byte ProjSmoke,      kProjSmokeRadius
-    d_byte ProjSpike,      kProjSpikeRadius
-    d_byte ProjSteamHorz,  kProjSteamMinorRadius
-    d_byte ProjSteamUp,    kProjSteamMajorRadius
+    d_byte None,             0
+    d_byte BadCrab,          8
+    d_byte BadCrawler,       8
+    d_byte BadFish,          4
+    d_byte BadHotheadHorz,   6
+    d_byte BadHotheadVert,   6
+    d_byte BadSpider,        2
+    d_byte BadVinebug,       7
+    d_byte NpcAdult,         8
+    d_byte NpcChild,         8
+    d_byte NpcMermaid,       8
+    d_byte NpcMermaidQueen, 24
+    d_byte NpcToddler,       8
+    d_byte ProjFireball,    kProjFireballRadius
+    d_byte ProjGrenade,     kProjGrenadeRadius
+    d_byte ProjSmoke,       kProjSmokeRadius
+    d_byte ProjSpike,       kProjSpikeRadius
+    d_byte ProjSteamHorz,   kProjSteamMinorRadius
+    d_byte ProjSteamUp,     kProjSteamMajorRadius
     D_END
 .ENDPROC
 .PROC DataA_Actor_BoundingBoxSide_u8_arr
     D_ENUM eActor
-    d_byte None,           0
-    d_byte BadCrab,        7
-    d_byte BadCrawler,     7
-    d_byte BadFish,        6
-    d_byte BadHotheadHorz, 6
-    d_byte BadHotheadVert, 6
-    d_byte BadSpider,      7
-    d_byte BadVinebug,     5
-    d_byte NpcAdult,       5
-    d_byte NpcChild,       5
-    d_byte NpcMermaid,     5
-    d_byte NpcToddler,     3
-    d_byte ProjFireball,   kProjFireballRadius
-    d_byte ProjGrenade,    kProjGrenadeRadius
-    d_byte ProjSmoke,      kProjSmokeRadius
-    d_byte ProjSpike,      kProjSpikeRadius
-    d_byte ProjSteamHorz,  kProjSteamMajorRadius
-    d_byte ProjSteamUp,    kProjSteamMinorRadius
+    d_byte None,            0
+    d_byte BadCrab,         7
+    d_byte BadCrawler,      7
+    d_byte BadFish,         6
+    d_byte BadHotheadHorz,  6
+    d_byte BadHotheadVert,  6
+    d_byte BadSpider,       7
+    d_byte BadVinebug,      5
+    d_byte NpcAdult,        5
+    d_byte NpcChild,        5
+    d_byte NpcMermaid,      5
+    d_byte NpcMermaidQueen, 5
+    d_byte NpcToddler,      3
+    d_byte ProjFireball,    kProjFireballRadius
+    d_byte ProjGrenade,     kProjGrenadeRadius
+    d_byte ProjSmoke,       kProjSmokeRadius
+    d_byte ProjSpike,       kProjSpikeRadius
+    d_byte ProjSteamHorz,   kProjSteamMajorRadius
+    d_byte ProjSteamUp,     kProjSteamMinorRadius
     D_END
 .ENDPROC
 
@@ -601,9 +610,9 @@ _JumpTable_ptr_1_arr: .hibytes ActorDrawFuncs
 ;;; Sets Zp_ShapePosX_i16 and Zp_ShapePosY_i16 to the screen-space position of
 ;;; the specified actor.
 ;;; @param X The actor index.
-;;; @preserve X
-.EXPORT FuncA_Objects_PositionActorShape
-.PROC FuncA_Objects_PositionActorShape
+;;; @preserve X, Y, Zp_Tmp*
+.EXPORT FuncA_Objects_SetShapePosToActorCenter
+.PROC FuncA_Objects_SetShapePosToActorCenter
     ;; Calculate screen-space Y-position.
     lda Ram_ActorPosY_i16_0_arr, x
     sub Zp_RoomScrollY_u8
@@ -629,7 +638,7 @@ _JumpTable_ptr_1_arr: .hibytes ActorDrawFuncs
 .EXPORT FuncA_Objects_Draw1x1Actor
 .PROC FuncA_Objects_Draw1x1Actor
     pha  ; tile ID
-    jsr FuncA_Objects_PositionActorShape  ; preserves X
+    jsr FuncA_Objects_SetShapePosToActorCenter  ; preserves X
     ;; Adjust X-position.
     jsr FuncA_Objects_MoveShapeLeftHalfTile  ; preserves X
     ;; Adjust Y-position.
@@ -658,7 +667,7 @@ _JumpTable_ptr_1_arr: .hibytes ActorDrawFuncs
 .EXPORT FuncA_Objects_Draw1x2Actor
 .PROC FuncA_Objects_Draw1x2Actor
     pha  ; first tile ID
-    jsr FuncA_Objects_PositionActorShape  ; preserves X
+    jsr FuncA_Objects_SetShapePosToActorCenter  ; preserves X
     ;; Adjust X-position.
     lda Zp_ShapePosX_i16 + 0
     sub #kTileWidthPx / 2
@@ -698,22 +707,11 @@ _JumpTable_ptr_1_arr: .hibytes ActorDrawFuncs
 ;;; @preserve X
 .EXPORT FuncA_Objects_Draw2x2Actor
 .PROC FuncA_Objects_Draw2x2Actor
-    pha  ; first tile ID
-    jsr FuncA_Objects_PositionActorShape  ; preserves X
-    lda Ram_ActorFlags_bObj_arr, x  ; param: object flags
-    jsr FuncA_Objects_Alloc2x2Shape  ; preserves X, returns C and Y
-    pla  ; first tile ID
-    bcs @done
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Tile_u8, y
-    adc #1  ; carry bit is already clear
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Tile_u8, y
-    adc #1
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Tile_u8, y
-    adc #1
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Tile_u8, y
-    clc  ; success
-    @done:
-    rts
+    sta Zp_Tmp1_byte  ; first tile ID
+    jsr FuncA_Objects_SetShapePosToActorCenter  ; preserves X and Zp_Tmp*
+    ldy Ram_ActorFlags_bObj_arr, x  ; param: object flags
+    lda Zp_Tmp1_byte  ; param: first tile ID
+    jmp FuncA_Objects_Draw2x2Shape  ; preserves X, returns C and Y
 .ENDPROC
 
 ;;;=========================================================================;;;

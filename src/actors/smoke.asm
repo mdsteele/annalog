@@ -22,9 +22,11 @@
 .INCLUDE "../oam.inc"
 
 .IMPORT FuncA_Objects_Alloc1x1Shape
+.IMPORT FuncA_Objects_MoveShapeDownByA
 .IMPORT FuncA_Objects_MoveShapeLeftOneTile
+.IMPORT FuncA_Objects_MoveShapeRightByA
 .IMPORT FuncA_Objects_MoveShapeUpOneTile
-.IMPORT FuncA_Objects_PositionActorShape
+.IMPORT FuncA_Objects_SetShapePosToActorCenter
 .IMPORT Func_InitActorDefault
 .IMPORT Ram_ActorFlags_bObj_arr
 .IMPORT Ram_ActorState_byte_arr
@@ -84,26 +86,18 @@ kSmokeFirstTileId = $1a
 .EXPORT FuncA_Objects_DrawActorProjSmoke
 .PROC FuncA_Objects_DrawActorProjSmoke
 _BottomRight:
-    jsr FuncA_Objects_PositionActorShape  ; preserves X
-    lda Zp_ShapePosX_i16 + 0
-    add Ram_ActorState_byte_arr, x
-    sta Zp_ShapePosX_i16 + 0
-    lda Zp_ShapePosX_i16 + 1
-    adc #0
-    sta Zp_ShapePosX_i16 + 1
+    jsr FuncA_Objects_SetShapePosToActorCenter  ; preserves X
+    lda Ram_ActorState_byte_arr, x  ; param: offset
+    jsr FuncA_Objects_MoveShapeRightByA  ; preserves X
     jsr _DrawSmokeParticle  ; preserves X
 _BottomLeft:
-    jsr FuncA_Objects_PositionActorShape  ; preserves X
+    jsr FuncA_Objects_SetShapePosToActorCenter  ; preserves X
     jsr FuncA_Objects_MoveShapeLeftOneTile
-    lda Zp_ShapePosY_i16 + 0
-    add Ram_ActorState_byte_arr, x
-    sta Zp_ShapePosY_i16 + 0
-    lda Zp_ShapePosY_i16 + 1
-    adc #0
-    sta Zp_ShapePosY_i16 + 1
+    lda Ram_ActorState_byte_arr, x  ; param: offset
+    jsr FuncA_Objects_MoveShapeDownByA  ; preserves X
     jsr _DrawSmokeParticle  ; preserves X
 _TopLeft:
-    jsr FuncA_Objects_PositionActorShape  ; preserves X
+    jsr FuncA_Objects_SetShapePosToActorCenter  ; preserves X
     jsr FuncA_Objects_MoveShapeUpOneTile
     jsr FuncA_Objects_MoveShapeLeftOneTile
     lda Zp_ShapePosX_i16 + 0
@@ -114,7 +108,7 @@ _TopLeft:
     sta Zp_ShapePosX_i16 + 1
     jsr _DrawSmokeParticle  ; preserves X
 _TopRight:
-    jsr FuncA_Objects_PositionActorShape  ; preserves X
+    jsr FuncA_Objects_SetShapePosToActorCenter  ; preserves X
     jsr FuncA_Objects_MoveShapeUpOneTile
     lda Zp_ShapePosY_i16 + 0
     sub Ram_ActorState_byte_arr, x

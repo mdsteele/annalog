@@ -128,8 +128,16 @@ Ram_Oam_sObj_arr64: .res .sizeof(sObj) * kNumOamSlots
 ;;; @preserve X, Y
 .EXPORT FuncA_Objects_MoveShapeDownOneTile
 .PROC FuncA_Objects_MoveShapeDownOneTile
-    lda Zp_ShapePosY_i16 + 0
-    add #kTileHeightPx
+    lda #kTileHeightPx
+    .assert * = FuncA_Objects_MoveShapeDownByA, error, "fallthrough"
+.ENDPROC
+
+;;; Moves Zp_ShapePosX_i16 downwards by the given number of pixels.
+;;; @param A The number of pixels to shift down by (unsigned).
+;;; @preserve X, Y
+.EXPORT FuncA_Objects_MoveShapeDownByA
+.PROC FuncA_Objects_MoveShapeDownByA
+    add Zp_ShapePosY_i16 + 0
     sta Zp_ShapePosY_i16 + 0
     lda Zp_ShapePosY_i16 + 1
     adc #0
@@ -322,8 +330,8 @@ _NotVisible:
 ;;; are set, then the objects will be ordered appropriately such that the same
 ;;; tile IDs can still be set in the same order.
 ;;;
-;;; @param A The Flags_bObj value to set for each object.  If bObj::FlipH is
-;;;     included, then the order of the two objects will be reversed.
+;;; @param A The Flags_bObj value to set for each object.  If bObj::FlipH
+;;;     and/or FlipV is set, then the order of the objects will be flipped.
 ;;; @return C Set if no OAM slots were allocated, cleared otherwise.
 ;;; @return Y The OAM byte offset for the first of the four objects.
 ;;; @preserve X
@@ -454,6 +462,33 @@ _FinishAllocation:
     add #.sizeof(sObj) * 4
     sta Zp_OamOffset_u8
     clc  ; Clear C to indicate that objects were allocated.
+    rts
+.ENDPROC
+
+;;; Draws a 2x2 shape centered on the current shape position, using the given
+;;; first tile ID and the three subsequent tile IDs.  The caller can then
+;;; further modify the objects if needed.
+;;; @param A The first tile ID.
+;;; @param Y The Flags_bObj value to set for each object.  If bObj::FlipH
+;;;     and/or FlipV is set, then the order of the objects will be flipped.
+;;; @return C Set if no OAM slots were allocated, cleared otherwise.
+;;; @return Y The OAM byte offset for the first of the four objects.
+;;; @preserve X
+.EXPORT FuncA_Objects_Draw2x2Shape
+.PROC FuncA_Objects_Draw2x2Shape
+    pha  ; first tile ID
+    tya  ; param: object flags
+    jsr FuncA_Objects_Alloc2x2Shape  ; preserves X, returns C and Y
+    pla  ; first tile ID
+    bcs @done
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Tile_u8, y
+    adc #1  ; carry bit is already clear
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Tile_u8, y
+    adc #1
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Tile_u8, y
+    adc #1
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Tile_u8, y
+    @done:
     rts
 .ENDPROC
 
