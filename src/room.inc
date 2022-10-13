@@ -38,6 +38,7 @@ kRoomStateSize = $100
 ;;; The list of rooms in the game.
 .ENUM eRoom
     CryptBoss
+    CryptEast
     CryptFlower
     CryptGallery
     CryptLanding
