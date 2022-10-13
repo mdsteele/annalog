@@ -750,7 +750,8 @@ _CircuitFlags_bObj_arr:
 ;;; These two arrays each map from (original minimap tile ID - $80) to the tile
 ;;; ID to use if there is an item/quest map marker on that tile.
 .PROC DataA_Pause_MinimapItemMarkerTiles_u8_arr
-    .byte $80, $b1, '?', $b3, $b2
+    .byte $80, $b1, '?', $b3, $b2, '?', $b6, '?'
+    .byte '?', '?', '?', '?', '?', '?', '?', $b5
 .ENDPROC
 .PROC DataA_Pause_MinimapQuestMarkerTiles_u8_arr
     .byte $b0, '?', '?', '?', '?', '?', '?', '?'

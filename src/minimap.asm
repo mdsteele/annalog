@@ -377,6 +377,12 @@ _MarkMinimap:
     D_END
     D_STRUCT sMarker
     d_byte Row_u8, 10
+    d_byte Col_u8, 4
+    d_byte If_eFlag, 0
+    d_byte Not_eFlag, eFlag::UpgradeOpcodeGoto
+    D_END
+    D_STRUCT sMarker
+    d_byte Row_u8, 10
     d_byte Col_u8, 12
     d_byte If_eFlag, eFlag::GardenEastTalkedToMermaid
     d_byte Not_eFlag, eFlag::MermaidHut1MetQueen
@@ -392,6 +398,12 @@ _MarkMinimap:
     d_byte Col_u8, 17
     d_byte If_eFlag, 0
     d_byte Not_eFlag, eFlag::UpgradeOpcodeCopy
+    D_END
+    D_STRUCT sMarker
+    d_byte Row_u8, 13
+    d_byte Col_u8, 22
+    d_byte If_eFlag, 0
+    d_byte Not_eFlag, eFlag::UpgradeOpcodeSync
     D_END
     D_STRUCT sMarker
     d_byte Row_u8, 14

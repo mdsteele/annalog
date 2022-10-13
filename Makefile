@@ -35,6 +35,7 @@ LABEL2NL = $(BINDIR)/label2nl
 
 CFGFILE = $(SRCDIR)/linker.cfg
 LABELFILE = $(OUTDIR)/$(ROMNAME).labels.txt
+MAPFILE = $(OUTDIR)/$(ROMNAME).map.txt
 ROMFILE = $(OUTDIR)/$(ROMNAME).nes
 
 AHIFILES := $(shell find $(SRCDIR) -name '*.ahi')
@@ -211,7 +212,7 @@ $(ROMFILE) $(LABELFILE): $(CFGFILE) $(OBJFILES) tests/lint.py
 	python tests/lint.py
 	@echo "Linking $@"
 	@mkdir -p $(@D)
-	@ld65 -Ln $(LABELFILE) -o $@ -C $(CFGFILE) $(OBJFILES)
+	@ld65 -Ln $(LABELFILE) -m $(MAPFILE) -o $@ -C $(CFGFILE) $(OBJFILES)
 $(LABELFILE): $(ROMFILE)
 
 #=============================================================================#

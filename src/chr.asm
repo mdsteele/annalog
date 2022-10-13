@@ -333,7 +333,7 @@
     .incbin "out/data/tiles/minimap3.chr"
     .res $05 * kSizeofChr
     .incbin "out/data/tiles/minimap4.chr"
-    .res $0b * kSizeofChr
+    .res $09 * kSizeofChr
     .assert * - :- = kSizeofChr * $40, error
 .ENDPROC
 
