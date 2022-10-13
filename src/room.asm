@@ -25,6 +25,7 @@
 .INCLUDE "room.inc"
 .INCLUDE "tileset.inc"
 
+.IMPORT DataC_Core_Elevator_sRoom
 .IMPORT DataC_Crypt_Boss_sRoom
 .IMPORT DataC_Crypt_East_sRoom
 .IMPORT DataC_Crypt_Flower_sRoom
@@ -105,6 +106,7 @@
 
 .LINECONT +
 .DEFINE RoomPtrs \
+    DataC_Core_Elevator_sRoom, \
     DataC_Crypt_Boss_sRoom, \
     DataC_Crypt_East_sRoom, \
     DataC_Crypt_Flower_sRoom, \

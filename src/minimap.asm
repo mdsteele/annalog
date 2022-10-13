@@ -113,6 +113,11 @@ _MarkMinimap:
 
 .SEGMENT "PRGA_Pause"
 
+.EXPORT DataA_Pause_CoreAreaName_u8_arr
+.PROC DataA_Pause_CoreAreaName_u8_arr
+    .byte "Power Core", $ff
+.ENDPROC
+
 .EXPORT DataA_Pause_CryptAreaName_u8_arr
 .PROC DataA_Pause_CryptAreaName_u8_arr
     .byte "Deep Crypt", $ff
@@ -120,7 +125,7 @@ _MarkMinimap:
 
 .EXPORT DataA_Pause_FactoryAreaName_u8_arr
 .PROC DataA_Pause_FactoryAreaName_u8_arr
-    .byte "Old Factory", $ff
+    .byte "Rust Factory", $ff
 .ENDPROC
 
 .EXPORT DataA_Pause_GardenAreaName_u8_arr
@@ -156,6 +161,28 @@ _MarkMinimap:
 .EXPORT DataA_Pause_TownAreaName_u8_arr
 .PROC DataA_Pause_TownAreaName_u8_arr
     .byte "Bartik Town", $ff
+.ENDPROC
+
+.EXPORT DataA_Pause_CoreAreaCells_u8_arr2_arr
+.PROC DataA_Pause_CoreAreaCells_u8_arr2_arr
+    .byte  1, 13
+    .byte  1, 14
+    .byte  2, 10
+    .byte  2, 11
+    .byte  2, 12
+    .byte  2, 13
+    .byte  2, 14
+    .byte  2, 15
+    .byte  2, 16
+    .byte  2, 17
+    .byte  3, 11
+    .byte  3, 12
+    .byte  3, 13
+    .byte  3, 14
+    .byte  3, 15
+    .byte  4, 13
+    .byte  4, 14
+    .byte $ff
 .ENDPROC
 
 .EXPORT DataA_Pause_CryptAreaCells_u8_arr2_arr
