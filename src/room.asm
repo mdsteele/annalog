@@ -50,6 +50,7 @@
 .IMPORT DataC_Lava_Station_sRoom
 .IMPORT DataC_Lava_Teleport_sRoom
 .IMPORT DataC_Lava_West_sRoom
+.IMPORT DataC_Mermaid_Cellar_sRoom
 .IMPORT DataC_Mermaid_Drain_sRoom
 .IMPORT DataC_Mermaid_East_sRoom
 .IMPORT DataC_Mermaid_Elevator_sRoom
@@ -131,6 +132,7 @@
     DataC_Lava_Station_sRoom, \
     DataC_Lava_Teleport_sRoom, \
     DataC_Lava_West_sRoom, \
+    DataC_Mermaid_Cellar_sRoom, \
     DataC_Mermaid_Drain_sRoom, \
     DataC_Mermaid_East_sRoom, \
     DataC_Mermaid_Elevator_sRoom, \

@@ -62,6 +62,7 @@ kRoomStateSize = $100
     LavaStation
     LavaTeleport
     LavaWest
+    MermaidCellar
     MermaidDrain
     MermaidEast
     MermaidElevator

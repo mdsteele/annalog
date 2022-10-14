@@ -36,8 +36,11 @@
 .IMPORT Func_CountDeliveredFlowers
 .IMPORT Func_IsFlagSet
 .IMPORT Func_Noop
+.IMPORT Func_SetFlag
+.IMPORT Func_UnlockDoorDevice
 .IMPORT Ppu_ChrObjAnnaNormal
 .IMPORT Ppu_ChrObjTownsfolk
+.IMPORT Ram_DeviceType_eDevice_arr
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORT Sram_CarryingFlower_eFlag
 .IMPORT Sram_ProgressFlags_arr
@@ -45,6 +48,11 @@
 .IMPORTZP Zp_RoomScrollY_u8
 .IMPORTZP Zp_Tmp1_byte
 .IMPORTZP Zp_Tmp2_byte
+
+;;;=========================================================================;;;
+
+;;; The device index for the door leading to the cellar.
+kCellarDoorDeviceIndex = 3
 
 ;;;=========================================================================;;;
 
@@ -63,7 +71,7 @@
     d_addr Machines_sMachine_arr_ptr, 0
     d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjTownsfolk)
     d_addr Tick_func_ptr, Func_Noop
-    d_addr Draw_func_ptr, FuncC_Mermaid_Hut4_Draw
+    d_addr Draw_func_ptr, FuncC_Mermaid_Hut4_DrawRoom
     d_addr Ext_sRoomExt_ptr, _Ext_sRoomExt
     D_END
 _Ext_sRoomExt:
@@ -79,7 +87,7 @@ _Ext_sRoomExt:
            DataA_Dialog_MermaidHut4_sDialog_ptr_arr
     .linecont -
     d_addr Passages_sPassage_arr_ptr, 0
-    d_addr Init_func_ptr, Func_Noop
+    d_addr Init_func_ptr, FuncC_Mermaid_Hut4_InitRoom
     d_addr Enter_func_ptr, Func_Noop
     d_addr FadeIn_func_ptr, Func_Noop
     D_END
@@ -87,24 +95,26 @@ _TerrainData:
 :   .incbin "out/data/mermaid_hut4.room"
     .assert * - :- = 16 * 16, error
 _Platforms_sPlatform_arr:
-    D_STRUCT sPlatform
+:   D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Water
     d_word WidthPx_u16, $50
     d_byte HeightPx_u8, $20
     d_word Left_i16,  $0020
     d_word Top_i16,   $00c4
     D_END
+    .assert * - :- <= kMaxPlatforms * .sizeof(sPlatform), error
     .byte ePlatform::None
 _Actors_sActor_arr:
-    D_STRUCT sActor
+:   D_STRUCT sActor
     d_byte Type_eActor, eActor::NpcAdult
     d_byte TileRow_u8, 21
     d_byte TileCol_u8, 18
     d_byte Param_byte, kTileIdMermaidFloristFirst
     D_END
+    .assert * - :- <= kMaxActors * .sizeof(sActor), error
     .byte eActor::None
 _Devices_sDevice_arr:
-    D_STRUCT sDevice
+:   D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::TalkRight
     d_byte BlockRow_u8, 10
     d_byte BlockCol_u8, 8
@@ -122,19 +132,31 @@ _Devices_sDevice_arr:
     d_byte BlockCol_u8, 4
     d_byte Target_u8, eRoom::MermaidVillage
     D_END
+    .assert * - :- = kCellarDoorDeviceIndex * .sizeof(sDevice), error
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::LockedDoor
     d_byte BlockRow_u8, 10
     d_byte BlockCol_u8, 11
-    d_byte Target_u8, eRoom::MermaidHut4  ; TODO
+    d_byte Target_u8, eRoom::MermaidCellar
     D_END
+    .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None
 .ENDPROC
 
 ;;;=========================================================================;;;
 
+.PROC FuncC_Mermaid_Hut4_InitRoom
+    ldx #eFlag::MermaidHut4OpenedCellar
+    jsr Func_IsFlagSet  ; sets Z if flag is not set
+    beq @done
+    lda #eDevice::UnlockedDoor
+    sta Ram_DeviceType_eDevice_arr + kCellarDoorDeviceIndex
+    @done:
+    rts
+.ENDPROC
+
 ;;; Allocates and populates OAM slots for this room.
-.PROC FuncC_Mermaid_Hut4_Draw
+.PROC FuncC_Mermaid_Hut4_DrawRoom
     ldx #kFirstFlowerFlag
     @loop:
     jsr Func_IsFlagSet  ; preserves X, sets Z if flag is not set
@@ -208,8 +230,14 @@ _InitialDialogFunc:
     ldya #_WantMoreFlowers_sDialog
     rts
     @hasDeliveredAllFlowers:
+    jsr _OpenCellarDoor
     ldya #_ThankYou_sDialog
     rts
+_OpenCellarDoor:
+    ldx #kCellarDoorDeviceIndex  ; param: device index
+    jsr Func_UnlockDoorDevice
+    ldx #eFlag::MermaidHut4OpenedCellar  ; param: flag
+    jmp Func_SetFlag
 _NoFlowersYet_sDialog:
     .word ePortrait::Mermaid
     .byte "Bring me flowers.#"
@@ -253,6 +281,7 @@ _DeliverFlowerFunc:
     ldya #_WantMoreFlowers_sDialog
     rts
     @allFlowersDelivered:
+    jsr _OpenCellarDoor
     ldya #_DeliveredLastFlower_sDialog
     rts
 _WantMoreFlowers_sDialog:

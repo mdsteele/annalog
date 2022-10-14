@@ -89,6 +89,7 @@ kSaveMagicNumber = $b2
     CryptTombWeakFloors
     GardenEastTalkedToMermaid
     MermaidHut1MetQueen
+    MermaidHut4OpenedCellar
     PrisonCellReachedTunnel
     NUM_VALUES
 .ENDENUM
