@@ -80,6 +80,7 @@ kRoomStateSize = $100
     MinePit
     PrisonCell
     PrisonEscape
+    PrisonFlower
     ShadowTeleport
     TownHouse1
     TownHouse2

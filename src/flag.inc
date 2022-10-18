@@ -55,18 +55,18 @@ kSaveMagicNumber = $b2
     UpgradeOpcodeWait
     UpgradeOpcodeSync
     ;; Each of these flags is set when that flower is delivered to the florist:
-    FlowerPrison
-    FlowerGarden
     FlowerTemple
-    FlowerCrypt
+    FlowerPrison
+    FlowerCore
     FlowerFactory
-    FlowerLava
-    FlowerMermaid
-    FlowerMine
     FlowerSewer
     FlowerCity
+    FlowerCrypt
     FlowerShadow
-    FlowerCore
+    FlowerGarden
+    FlowerMermaid
+    FlowerLava
+    FlowerMine
     ;; Each of these flags is set when that boss has been defeated:
     BossGarden
     BossTemple
@@ -107,8 +107,8 @@ kLastBreakerFlag = eFlag::BreakerShadow
 kNumBreakerFlags = 7
 .ASSERT kNumBreakerFlags = kLastBreakerFlag + 1 - kFirstBreakerFlag, error
 
-kFirstFlowerFlag = eFlag::FlowerPrison
-kLastFlowerFlag = eFlag::FlowerCore
+kFirstFlowerFlag = eFlag::FlowerTemple
+kLastFlowerFlag = eFlag::FlowerMine
 kNumFlowerFlags = 12
 .ASSERT kNumFlowerFlags = kLastFlowerFlag + 1 - kFirstFlowerFlag, error
 

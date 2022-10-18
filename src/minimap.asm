@@ -258,6 +258,7 @@ _MarkMinimap:
     .byte 12, 14
     .byte 12, 16
     .byte 12, 17
+    .byte 12, 19
     .byte 13, 13
     .byte 13, 14
     .byte 13, 15
@@ -303,17 +304,18 @@ _MarkMinimap:
     .byte  9, 20
     .byte  9, 21
     .byte  9, 22
+    .byte  9, 23
     .byte 10, 19
     .byte 10, 20
     .byte 10, 21
     .byte 10, 22
+    .byte 10, 23
     .byte 11, 20
     .byte 11, 21
     .byte 11, 22
     .byte 12, 20
     .byte 12, 21
     .byte 12, 22
-    .byte 13, 20
     .byte 13, 22
     .byte $ff
 .ENDPROC
@@ -323,6 +325,7 @@ _MarkMinimap:
     .byte 1, 5
     .byte 1, 6
     .byte 1, 7
+    .byte 1, 8
     .byte 2, 3
     .byte 2, 4
     .byte 2, 5
@@ -378,6 +381,12 @@ _MarkMinimap:
 ;;; with Row_u8 = $ff.
 .EXPORT DataA_Pause_Minimap_sMarker_arr
 .PROC DataA_Pause_Minimap_sMarker_arr
+    D_STRUCT sMarker
+    d_byte Row_u8, 1
+    d_byte Col_u8, 8
+    d_byte If_eFlag, 0
+    d_byte Not_eFlag, eFlag::FlowerPrison
+    D_END
     D_STRUCT sMarker
     d_byte Row_u8, 7
     d_byte Col_u8, 8
