@@ -137,14 +137,14 @@ _Machines_sMachine_arr:
     d_byte ScrollGoalY_u8, $0
     d_byte RegNames_u8_arr4, 0, 0, 0, "Y"
     d_byte MainPlatform_u8, kLiftPlatformIndex
-    d_addr Init_func_ptr, _Lift_Init
-    d_addr ReadReg_func_ptr, _Lift_ReadReg
+    d_addr Init_func_ptr, FuncC_Prison_CellLift_Init
+    d_addr ReadReg_func_ptr, FuncC_Prison_CellLift_ReadReg
     d_addr WriteReg_func_ptr, Func_Noop
     d_addr TryMove_func_ptr, FuncC_Prison_CellLift_TryMove
     d_addr TryAct_func_ptr, FuncA_Machine_Error
     d_addr Tick_func_ptr, FuncC_Prison_CellLift_Tick
     d_addr Draw_func_ptr, FuncA_Objects_DrawLiftMachine
-    d_addr Reset_func_ptr, _Lift_Reset
+    d_addr Reset_func_ptr, FuncC_Prison_CellLift_Reset
     D_END
     .assert * - :- = kBlasterMachineIndex * .sizeof(sMachine), error
     D_STRUCT sMachine
@@ -230,17 +230,6 @@ _Passages_sPassage_arr:
     d_byte Destination_eRoom, eRoom::GardenLanding
     d_byte SpawnBlock_u8, 25
     D_END
-_Lift_Init:
-_Lift_Reset:
-    lda #kLiftInitGoalY
-    sta Ram_MachineGoalVert_u8_arr + kLiftMachineIndex
-    rts
-_Lift_ReadReg:
-    .assert kLiftMaxPlatformTop + kTileHeightPx < $100, error
-    lda #kLiftMaxPlatformTop + kTileHeightPx
-    sub Ram_PlatformTop_i16_0_arr + kLiftPlatformIndex
-    div #kBlockHeightPx
-    rts
 _Blaster_Init:
     ;; TODO
     rts
@@ -320,6 +309,23 @@ _RightSide:
 _RightTileIds_u8_arr:
     .byte kTileIdGateRight, kTileIdGateRight
     .byte kTileIdGateLock, kTileIdGateRight
+.ENDPROC
+
+.PROC FuncC_Prison_CellLift_Init
+    .assert * = FuncC_Prison_CellLift_Reset, error, "fallthrough"
+.ENDPROC
+
+.PROC FuncC_Prison_CellLift_Reset
+    lda #kLiftInitGoalY
+    sta Ram_MachineGoalVert_u8_arr + kLiftMachineIndex
+    rts
+.ENDPROC
+
+.PROC FuncC_Prison_CellLift_ReadReg
+    lda #kLiftMaxPlatformTop + kTileHeightPx
+    sub Ram_PlatformTop_i16_0_arr + kLiftPlatformIndex
+    div #kBlockHeightPx
+    rts
 .ENDPROC
 
 .PROC FuncC_Prison_CellLift_TryMove

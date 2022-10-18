@@ -112,6 +112,7 @@
     GardenCrossroadLift
     GardenEastBridge
     GardenEastCannon
+    GardenHallwayLift
     GardenShaftLowerBridge
     GardenShaftUpperBridge
     LavaEastUpperBoiler

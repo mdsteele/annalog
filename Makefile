@@ -190,6 +190,12 @@ $(OBJDIR)/pause.o: $(SRCDIR)/pause.asm $(INCFILES) $(DATADIR)/minimap.map
 $(OBJDIR)/title.o: $(SRCDIR)/title.asm $(INCFILES) $(DATADIR)/title.map
 	$(compile-asm)
 
+$(OBJDIR)/rooms/garden_hallway.o: $(SRCDIR)/rooms/garden_hallway.asm \
+                                  $(INCFILES) \
+                                  $(DATADIR)/garden_hallway1.room \
+                                  $(DATADIR)/garden_hallway2.room
+	$(compile-asm)
+
 $(OBJDIR)/rooms/mermaid_village.o: $(SRCDIR)/rooms/mermaid_village.asm \
                                    $(INCFILES) \
                                    $(DATADIR)/mermaid_village1.room \
