@@ -18,100 +18,108 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "../actor.inc"
+.INCLUDE "../charmap.inc"
+.INCLUDE "../cpu.inc"
 .INCLUDE "../device.inc"
+.INCLUDE "../dialog.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../platform.inc"
 .INCLUDE "../room.inc"
 
-.IMPORT DataA_Pause_CryptAreaCells_u8_arr2_arr
-.IMPORT DataA_Pause_CryptAreaName_u8_arr
-.IMPORT DataA_Room_Crypt_sTileset
+.IMPORT DataA_Pause_TempleAreaCells_u8_arr2_arr
+.IMPORT DataA_Pause_TempleAreaName_u8_arr
+.IMPORT DataA_Room_Temple_sTileset
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrObjCrypt
 
 ;;;=========================================================================;;;
 
-.SEGMENT "PRGC_Crypt"
+;;; The dialog index for the paper in this room.
+kPaperDialogIndex = 0
 
-.EXPORT DataC_Crypt_Landing_sRoom
-.PROC DataC_Crypt_Landing_sRoom
+;;;=========================================================================;;;
+
+.SEGMENT "PRGC_Temple"
+
+.EXPORT DataC_Temple_Pit_sRoom
+.PROC DataC_Temple_Pit_sRoom
     D_STRUCT sRoom
     d_byte MinScrollX_u8, $00
     d_word MaxScrollX_u16, $0000
-    d_byte IsTall_bool, $ff
-    d_byte MinimapStartRow_u8, 7
+    d_byte IsTall_bool, $00
+    d_byte MinimapStartRow_u8, 6
     d_byte MinimapStartCol_u8, 0
     d_addr TerrainData_ptr, _TerrainData
     d_byte NumMachines_u8, 0
     d_addr Machines_sMachine_arr_ptr, 0
-    d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjCrypt)
+    d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjCrypt)  ; TODO
     d_addr Tick_func_ptr, Func_Noop
     d_addr Draw_func_ptr, Func_Noop
     d_addr Ext_sRoomExt_ptr, _Ext_sRoomExt
     D_END
 _Ext_sRoomExt:
     D_STRUCT sRoomExt
-    d_addr AreaName_u8_arr_ptr, DataA_Pause_CryptAreaName_u8_arr
-    d_addr AreaCells_u8_arr2_arr_ptr, DataA_Pause_CryptAreaCells_u8_arr2_arr
-    d_addr Terrain_sTileset_ptr, DataA_Room_Crypt_sTileset
+    d_addr AreaName_u8_arr_ptr, DataA_Pause_TempleAreaName_u8_arr
+    d_addr AreaCells_u8_arr2_arr_ptr, DataA_Pause_TempleAreaCells_u8_arr2_arr
+    d_addr Terrain_sTileset_ptr, DataA_Room_Temple_sTileset
     d_addr Platforms_sPlatform_arr_ptr, _Platforms_sPlatform_arr
     d_addr Actors_sActor_arr_ptr, _Actors_sActor_arr
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
-    d_addr Dialogs_sDialog_ptr_arr_ptr, 0
+    d_addr Dialogs_sDialog_ptr_arr_ptr, DataA_Dialog_TemplePit_sDialog_ptr_arr
     d_addr Passages_sPassage_arr_ptr, _Passages_sPassage_arr
     d_addr Init_func_ptr, Func_Noop
     d_addr Enter_func_ptr, Func_Noop
     d_addr FadeIn_func_ptr, Func_Noop
     D_END
 _TerrainData:
-:   .incbin "out/data/crypt_landing.room"
-    .assert * - :- = 17 * 24, error
+:   .incbin "out/data/temple_pit.room"
+    .assert * - :- = 17 * 16, error
 _Platforms_sPlatform_arr:
-:   D_STRUCT sPlatform
-    d_byte Type_ePlatform, ePlatform::Harm
-    d_word WidthPx_u16, $0f
-    d_byte HeightPx_u8, $08
-    d_word Left_i16,  $0020
-    d_word Top_i16,   $013e
-    D_END
-    D_STRUCT sPlatform
-    d_byte Type_ePlatform, ePlatform::Harm
-    d_word WidthPx_u16, $0f
-    d_byte HeightPx_u8, $08
-    d_word Left_i16,  $0030
-    d_word Top_i16,   $014e
-    D_END
-    D_STRUCT sPlatform
-    d_byte Type_ePlatform, ePlatform::Harm
-    d_word WidthPx_u16, $80
-    d_byte HeightPx_u8, $08
-    d_word Left_i16,  $0040
-    d_word Top_i16,   $015e
-    D_END
-    D_STRUCT sPlatform
-    d_byte Type_ePlatform, ePlatform::Harm
-    d_word WidthPx_u16, $0f
-    d_byte HeightPx_u8, $08
-    d_word Left_i16,  $00c1
-    d_word Top_i16,   $014e
-    D_END
-    .assert * - :- <= kMaxPlatforms * .sizeof(sPlatform), error
     .byte ePlatform::None
 _Actors_sActor_arr:
     .byte eActor::None
 _Devices_sDevice_arr:
+:   D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::Paper
+    d_byte BlockRow_u8, 9
+    d_byte BlockCol_u8, 5
+    d_byte Target_u8, kPaperDialogIndex
+    D_END
+    .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None
 _Passages_sPassage_arr:
     D_STRUCT sPassage
-    d_byte Exit_bPassage, ePassage::Top | 0
-    d_byte Destination_eRoom, eRoom::TemplePit
-    d_byte SpawnBlock_u8, 8
+    d_byte Exit_bPassage, ePassage::Eastern | 0
+    d_byte Destination_eRoom, eRoom::TemplePit  ; TODO
+    d_byte SpawnBlock_u8, 10
     D_END
     D_STRUCT sPassage
-    d_byte Exit_bPassage, ePassage::Eastern | 1
-    d_byte Destination_eRoom, eRoom::CryptLanding  ; TODO
-    d_byte SpawnBlock_u8, 18
+    d_byte Exit_bPassage, ePassage::Bottom | 0
+    d_byte Destination_eRoom, eRoom::CryptLanding
+    d_byte SpawnBlock_u8, 8
     D_END
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Dialog"
+
+;;; Dialog data for the TemplePit room.
+.PROC DataA_Dialog_TemplePit_sDialog_ptr_arr
+:   .assert * - :- = kPaperDialogIndex * kSizeofAddr, error
+    .addr _Paper_sDialog
+_Paper_sDialog:
+    .word ePortrait::Paper
+    .byte "Day 34: Our technology$"
+    .byte "is amazing, but don't$"
+    .byte "forget, we're all$"
+    .byte "still just mortals.#"
+    .word ePortrait::Paper
+    .byte "No matter how high we$"
+    .byte "build, in the end the$"
+    .byte "grave still comes for$"
+    .byte "us all.#"
+    .word ePortrait::Done
 .ENDPROC
 
 ;;;=========================================================================;;;

@@ -381,6 +381,19 @@
 
 ;;;=========================================================================;;;
 
+.SEGMENT "CHR_BgTemple"
+
+.EXPORT Ppu_ChrBgTemple
+.PROC Ppu_ChrBgTemple
+:   .incbin "out/data/tiles/temple1.chr"
+    .res $03 * kSizeofChr
+    .incbin "out/data/tiles/temple2.chr"
+    .res $20 * kSizeofChr
+    .assert * - :- = kSizeofChr * $40, error
+.ENDPROC
+
+;;;=========================================================================;;;
+
 .SEGMENT "CHR_BgTitle"
 
 .EXPORT Ppu_ChrBgTitle

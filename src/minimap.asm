@@ -158,6 +158,11 @@ _MarkMinimap:
     .byte "Shadow Labs", $ff
 .ENDPROC
 
+.EXPORT DataA_Pause_TempleAreaName_u8_arr
+.PROC DataA_Pause_TempleAreaName_u8_arr
+    .byte "Lost Temple", $ff
+.ENDPROC
+
 .EXPORT DataA_Pause_TownAreaName_u8_arr
 .PROC DataA_Pause_TownAreaName_u8_arr
     .byte "Bartik Town", $ff
@@ -364,14 +369,37 @@ _MarkMinimap:
     .byte $ff
 .ENDPROC
 
+.EXPORT DataA_Pause_TempleAreaCells_u8_arr2_arr
+.PROC DataA_Pause_TempleAreaCells_u8_arr2_arr
+    .byte  3,  0
+    .byte  3,  1
+    .byte  4,  0
+    .byte  4,  1
+    .byte  5,  0
+    .byte  5,  1
+    .byte  5,  2
+    .byte  5,  3
+    .byte  5,  4
+    .byte  6,  0
+    .byte  6,  1
+    .byte  6,  2
+    .byte  6,  3
+    .byte  6,  4
+    .byte  7,  3
+    .byte  7,  4
+    .byte  7,  5
+    .byte  8,  5
+    .byte $ff
+.ENDPROC
+
 .EXPORT DataA_Pause_TownAreaCells_u8_arr2_arr
 .PROC DataA_Pause_TownAreaCells_u8_arr2_arr
-    .byte 0, 11
-    .byte 0, 12
-    .byte 0, 13
-    .byte 0, 14
-    .byte 0, 15
-    .byte 0, 16
+    .byte  0, 11
+    .byte  0, 12
+    .byte  0, 13
+    .byte  0, 14
+    .byte  0, 15
+    .byte  0, 16
     .byte $ff
 .ENDPROC
 

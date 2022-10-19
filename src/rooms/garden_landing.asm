@@ -22,7 +22,6 @@
 .INCLUDE "../device.inc"
 .INCLUDE "../dialog.inc"
 .INCLUDE "../flag.inc"
-.INCLUDE "../machine.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../mmc3.inc"
 .INCLUDE "../platform.inc"
