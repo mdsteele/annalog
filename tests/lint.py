@@ -25,7 +25,7 @@ import sys
 
 #=============================================================================#
 
-PATTERNS = [
+BAD_CODE_PATTERNS = [
     ('incorrect ZP export', re.compile(r'\.EXPORT +Zp')),
     ('incorrect ZP import', re.compile(r'\.IMPORT +Zp')),
     ('suspicious address', re.compile(
@@ -44,6 +44,15 @@ PRGC_PROC_NAME = re.compile(  # e.g. DataC_SegmentName_Foobar_sBaz_arr
     '^(?:DataC|FuncC|MainC)_([a-zA-Z0-9]+)_[a-zA-Z0-9_]+$')
 UNBANKED_PROC_NAME = re.compile(  # e.g. Main_Foobar
     '^(?:Data|Exit|Func|Int|Main|Ppu|Sram)_[a-zA-Z0-9_]+$')
+
+SORT_PATTERNS = [
+    ('src/actor.inc', '.ENUM eActor', 'NUM_VALUES', 1),
+    ('src/actor.asm', '.DEFINE ActorDrawFuncs', '.LINECONT -', 1),
+    ('src/actor.asm', '.DEFINE ActorInitFuncs', '.LINECONT -', 1),
+    ('src/actor.asm', '.DEFINE ActorTickFuncs', '.LINECONT -', 1),
+    ('src/room.asm', '.DEFINE RoomPtrs', '.LINECONT -', 0),
+    ('src/room.inc', '.ENUM eRoom', 'NUM_VALUES', 0),
+]
 
 #=============================================================================#
 
@@ -89,7 +98,7 @@ def run_tests():
                     filepath, line_number + 1, message))
                 print('    ' + line.strip())
                 failed[0] = True
-            for (message, pattern) in PATTERNS:
+            for (message, pattern) in BAD_CODE_PATTERNS:
                 if pattern.search(line):
                     fail(message)
             match = SEGMENT_DECL_PATTERN.match(line)
@@ -107,6 +116,31 @@ def run_tests():
                 if match:
                     if not top_proc.startswith('Main_'):
                         fail('bank switch not in a Main'.format(top_proc))
+    for (filepath, start_string, end_string, skip) in SORT_PATTERNS:
+        def fail(message):
+            print('LINT: {}: {}'.format(filepath, message))
+            failed[0] = True
+        started = False
+        ended = False
+        lines = []
+        for line in open(filepath):
+            if not started:
+                if start_string in line:
+                    started = True
+            elif end_string in line:
+                ended = True
+                break
+            else:
+                lines.append(line.strip())
+        if not started:
+            fail('never found {}'.format(start_string))
+            continue
+        if not ended:
+            fail('never found {} after {}'.format(end_string, start_string))
+            continue
+        lines = lines[skip:]
+        if lines != sorted(lines):
+            fail('{} is not sorted'.format(start_string))
     return failed[0]
 
 if __name__ == '__main__':

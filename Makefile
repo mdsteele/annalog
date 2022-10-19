@@ -71,9 +71,9 @@ run: $(ROMFILE) $(ROMFILE).ram.nl $(ROMFILE).3.nl
 
 .PHONY: test
 test: $(SIM65_BINS)
-	python tests/lint.py
+	python3 tests/lint.py
 	@for BIN in $^; do echo sim65 $$BIN; sim65 $$BIN; done
-	python tests/style.py
+	python3 tests/style.py
 
 .PHONY: clean
 clean:
@@ -215,7 +215,7 @@ $(GENDIR)/%.o: $(GENDIR)/%.asm $(INCFILES)
 # Game ROM:
 
 $(ROMFILE) $(LABELFILE): $(CFGFILE) $(OBJFILES) tests/lint.py
-	python tests/lint.py
+	python3 tests/lint.py
 	@echo "Linking $@"
 	@mkdir -p $(@D)
 	@ld65 -Ln $(LABELFILE) -m $(MAPFILE) -o $@ -C $(CFGFILE) $(OBJFILES)
