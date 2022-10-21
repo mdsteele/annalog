@@ -1,17 +1,20 @@
-@BG 0 0 0 32x10
+@BG 0 0 0 32x12
 >anim01
 >device
 >font_lower
 >temple1
 >temple2
+>temple3
 
     BEBG    BABC                        EAEB    ECEDEAEBEEEFEEEF
     BFBHCaCbBBBD                        EGEHECEDEEEFEEEFEEEFEGEH
-                                                            AAAA
-
+FAFBFAFBFCFDFGFHFAFBFAFBFEFFFIFJ    FCFD          DPDO  AJAKAAAA
+FCFDFGFDFEFFFIFJFCFDFGFH        FAFBFCFD                EEEF
 
 
 
 
 DADBDIDEDFDBDIDJDADJDIDBDIDE            EPEOEPEOEIEJEIEJEKELEKEL
 DCDDDKDGDHDDDKDLDCDLDKDDDKDM              EPEOEPEMENEKELEKELEMEN
+                                                DODPDODPDO  DODP
+                                                DP      DP  DPDO

@@ -30,7 +30,7 @@
 .IMPORT DataA_Pause_TempleAreaName_u8_arr
 .IMPORT DataA_Room_Temple_sTileset
 .IMPORT Func_Noop
-.IMPORT Ppu_ChrObjCrypt
+.IMPORT Ppu_ChrObjTemple
 
 ;;;=========================================================================;;;
 
@@ -52,7 +52,7 @@ kPaperDialogIndex = 0
     d_addr TerrainData_ptr, _TerrainData
     d_byte NumMachines_u8, 0
     d_addr Machines_sMachine_arr_ptr, 0
-    d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjCrypt)  ; TODO
+    d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjTemple)
     d_addr Tick_func_ptr, Func_Noop
     d_addr Draw_func_ptr, Func_Noop
     d_addr Ext_sRoomExt_ptr, _Ext_sRoomExt
@@ -90,7 +90,7 @@ _Devices_sDevice_arr:
 _Passages_sPassage_arr:
     D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Eastern | 0
-    d_byte Destination_eRoom, eRoom::TemplePit  ; TODO
+    d_byte Destination_eRoom, eRoom::TempleEntry  ; TODO
     d_byte SpawnBlock_u8, 10
     D_END
     D_STRUCT sPassage

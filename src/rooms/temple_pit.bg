@@ -1,19 +1,20 @@
 @BG 0 0 0 17x15
 >temple_0
+>temple_1
 >temple_4
 
 
 
-  BABBBCBGBCBBBCBBBCBGBCBGBCBD
-  BN                        BN
-  BO                        BO
-  BO                        BO
-  BO                        BO
-  BO                        BP
-  BO  AM                AL  BABGBC
-  BO  AO                AO  AN
-  BP  AP  BABD    BABD  AP  AP
-  BABGBCBBBCBD    BABBBCBGBCBBBCBB
-            BL    BK
-            BK    BL
-            BL    BL
+  CACBCCCGCCCBCCCBCCCGCCCGCCCD
+  CN                        CN
+  CO                        CO
+  CO      BB        BB      CO
+  CO      BC        BD      CO
+  CO                        CP
+  CO  AM                AL  CACGCC
+  CO  AO                AO  AN
+  CP  AP  CACD    CACD  AP  AP
+  CACGCCCBCCCD    CACBCCCGCCCBCCCB
+            CL    CK
+            CK    CL
+            CL    CL

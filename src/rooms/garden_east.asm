@@ -93,6 +93,7 @@ kBridgePivotPosY = $0080
     LeverBridge_u1 .byte
     LeverCannon_u1 .byte
 .ENDSTRUCT
+.ASSERT .sizeof(sState) <= kRoomStateSize, error
 
 ;;;=========================================================================;;;
 

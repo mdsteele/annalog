@@ -44,7 +44,7 @@
 .EXPORT Ppu_ChrBgAnim0
 .PROC Ppu_ChrBgAnim0
 :   .incbin "out/data/tiles/anim01.chr"
-    .res $23 * kSizeofChr
+    .res $21 * kSizeofChr
     .incbin "out/data/tiles/gazer_anim0.chr"
     .assert * - :- = kSizeofChr * $40, error
 .ENDPROC
@@ -56,7 +56,7 @@
 .EXPORT Ppu_ChrBgAnim1
 .PROC Ppu_ChrBgAnim1
 :   .incbin "out/data/tiles/anim11.chr"
-    .res $23 * kSizeofChr
+    .res $21 * kSizeofChr
     .incbin "out/data/tiles/gazer_anim1.chr"
     .assert * - :- = kSizeofChr * $40, error
 .ENDPROC
@@ -68,7 +68,7 @@
 .EXPORT Ppu_ChrBgAnim2
 .PROC Ppu_ChrBgAnim2
 :   .incbin "out/data/tiles/anim21.chr"
-    .res $23 * kSizeofChr
+    .res $21 * kSizeofChr
     .incbin "out/data/tiles/gazer_anim2.chr"
     .assert * - :- = kSizeofChr * $40, error
 .ENDPROC
@@ -80,7 +80,7 @@
 .EXPORT Ppu_ChrBgAnim3
 .PROC Ppu_ChrBgAnim3
 :   .incbin "out/data/tiles/anim31.chr"
-    .res $23 * kSizeofChr
+    .res $21 * kSizeofChr
     .incbin "out/data/tiles/gazer_anim3.chr"
     .assert * - :- = kSizeofChr * $40, error
 .ENDPROC
@@ -386,9 +386,10 @@
 .EXPORT Ppu_ChrBgTemple
 .PROC Ppu_ChrBgTemple
 :   .incbin "out/data/tiles/temple1.chr"
-    .res $03 * kSizeofChr
     .incbin "out/data/tiles/temple2.chr"
-    .res $20 * kSizeofChr
+    .incbin "out/data/tiles/temple3.chr"
+    .res $0e * kSizeofChr
+    .incbin "out/data/tiles/device.chr"
     .assert * - :- = kSizeofChr * $40, error
 .ENDPROC
 
@@ -537,6 +538,21 @@
 
 ;;;=========================================================================;;;
 
+.SEGMENT "CHR_ObjTemple"
+
+.EXPORT Ppu_ChrObjTemple
+.PROC Ppu_ChrObjTemple
+:   .incbin "out/data/tiles/upgrade.chr"
+    .incbin "out/data/tiles/column.chr"
+    .res $04 * kSizeofChr
+    .assert * - :- = (kTileIdMermaidGuardFFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/mermaid_guardf.chr"
+    .res $5a * kSizeofChr
+    .assert * - :- = kSizeofChr * $80, error
+.ENDPROC
+
+;;;=========================================================================;;;
+
 .SEGMENT "CHR_ObjTownsfolk"
 
 .EXPORT Ppu_ChrObjTownsfolk
@@ -547,6 +563,12 @@
     .assert * - :- = (kTileIdMermaidAdultFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/mermaid_adult.chr"
     .assert * - :- = (kTileIdMermaidFloristFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/mermaid_florist.chr"
+    .assert * - :- = (kTileIdMermaidYouthFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/mermaid_youth.chr"
+    .assert * - :- = (kTileIdMermaidGuardFFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/mermaid_guardf.chr"
+    .assert * - :- = (kTileIdMermaidPonytailFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/mermaids.chr"
     .assert * - :- = (kTileIdMermaidQueenFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/mermaid_queen.chr"
