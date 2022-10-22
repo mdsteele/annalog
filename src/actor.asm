@@ -27,8 +27,8 @@
 .IMPORT FuncA_Actor_TickBadBeetleHorz
 .IMPORT FuncA_Actor_TickBadBeetleVert
 .IMPORT FuncA_Actor_TickBadCrab
-.IMPORT FuncA_Actor_TickBadCrawler
 .IMPORT FuncA_Actor_TickBadFish
+.IMPORT FuncA_Actor_TickBadGrub
 .IMPORT FuncA_Actor_TickBadHotheadHorz
 .IMPORT FuncA_Actor_TickBadHotheadVert
 .IMPORT FuncA_Actor_TickBadSpider
@@ -49,8 +49,8 @@
 .IMPORT FuncA_Objects_DrawActorBadBeetleHorz
 .IMPORT FuncA_Objects_DrawActorBadBeetleVert
 .IMPORT FuncA_Objects_DrawActorBadCrab
-.IMPORT FuncA_Objects_DrawActorBadCrawler
 .IMPORT FuncA_Objects_DrawActorBadFish
+.IMPORT FuncA_Objects_DrawActorBadGrub
 .IMPORT FuncA_Objects_DrawActorBadHotheadHorz
 .IMPORT FuncA_Objects_DrawActorBadHotheadVert
 .IMPORT FuncA_Objects_DrawActorBadSpider
@@ -105,8 +105,8 @@ Func_InitActorNone            = Func_InitActorDefault
 Func_InitActorBadBeetleHorz   = Func_InitActorWithFlags
 Func_InitActorBadBeetleVert   = Func_InitActorWithFlags
 Func_InitActorBadCrab         = Func_InitActorDefault
-Func_InitActorBadCrawler      = Func_InitActorDefault
 Func_InitActorBadFish         = Func_InitActorDefault
+Func_InitActorBadGrub         = Func_InitActorDefault
 Func_InitActorBadHotheadHorz  = Func_InitActorWithFlags
 Func_InitActorBadHotheadVert  = Func_InitActorWithFlags
 Func_InitActorBadSpider       = Func_InitActorDefault
@@ -125,8 +125,8 @@ FuncA_Objects_DrawActorNone = Func_Noop
     Func_InitActorBadBeetleHorz, \
     Func_InitActorBadBeetleVert, \
     Func_InitActorBadCrab, \
-    Func_InitActorBadCrawler, \
     Func_InitActorBadFish, \
+    Func_InitActorBadGrub, \
     Func_InitActorBadHotheadHorz, \
     Func_InitActorBadHotheadVert, \
     Func_InitActorBadSpider, \
@@ -150,8 +150,8 @@ FuncA_Objects_DrawActorNone = Func_Noop
     FuncA_Actor_TickBadBeetleHorz, \
     FuncA_Actor_TickBadBeetleVert, \
     FuncA_Actor_TickBadCrab, \
-    FuncA_Actor_TickBadCrawler, \
     FuncA_Actor_TickBadFish, \
+    FuncA_Actor_TickBadGrub, \
     FuncA_Actor_TickBadHotheadHorz, \
     FuncA_Actor_TickBadHotheadVert, \
     FuncA_Actor_TickBadSpider, \
@@ -175,8 +175,8 @@ FuncA_Objects_DrawActorNone = Func_Noop
     FuncA_Objects_DrawActorBadBeetleHorz, \
     FuncA_Objects_DrawActorBadBeetleVert, \
     FuncA_Objects_DrawActorBadCrab, \
-    FuncA_Objects_DrawActorBadCrawler, \
     FuncA_Objects_DrawActorBadFish, \
+    FuncA_Objects_DrawActorBadGrub, \
     FuncA_Objects_DrawActorBadHotheadHorz, \
     FuncA_Objects_DrawActorBadHotheadVert, \
     FuncA_Objects_DrawActorBadSpider, \
@@ -342,8 +342,8 @@ _JumpTable_ptr_1_arr: .hibytes ActorInitFuncs
     d_byte BadBeetleHorz,    4
     d_byte BadBeetleVert,    6
     d_byte BadCrab,          6
-    d_byte BadCrawler,       0
     d_byte BadFish,          6
+    d_byte BadGrub,          0
     d_byte BadHotheadHorz,   6
     d_byte BadHotheadVert,   6
     d_byte BadSpider,        8
@@ -367,8 +367,8 @@ _JumpTable_ptr_1_arr: .hibytes ActorInitFuncs
     d_byte BadBeetleHorz,    4
     d_byte BadBeetleVert,    6
     d_byte BadCrab,          8
-    d_byte BadCrawler,       8
     d_byte BadFish,          4
+    d_byte BadGrub,          8
     d_byte BadHotheadHorz,   6
     d_byte BadHotheadVert,   6
     d_byte BadSpider,        2
@@ -392,8 +392,8 @@ _JumpTable_ptr_1_arr: .hibytes ActorInitFuncs
     d_byte BadBeetleHorz,   6
     d_byte BadBeetleVert,   4
     d_byte BadCrab,         7
-    d_byte BadCrawler,      7
     d_byte BadFish,         6
+    d_byte BadGrub,         7
     d_byte BadHotheadHorz,  6
     d_byte BadHotheadVert,  6
     d_byte BadSpider,       7

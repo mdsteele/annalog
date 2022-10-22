@@ -28,8 +28,8 @@ kMaxActors = 8
     BadBeetleHorz
     BadBeetleVert
     BadCrab
-    BadCrawler
     BadFish
+    BadGrub
     BadHotheadHorz
     BadHotheadVert
     BadSpider

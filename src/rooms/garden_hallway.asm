@@ -178,7 +178,7 @@ _Actors_sActor_arr:
     d_byte Param_byte, 0
     D_END
     D_STRUCT sActor
-    d_byte Type_eActor, eActor::BadCrawler
+    d_byte Type_eActor, eActor::BadGrub
     d_byte TileRow_u8, 25
     d_byte TileCol_u8, 21
     d_byte Param_byte, 0

@@ -20,7 +20,7 @@
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
 .INCLUDE "../terrain.inc"
-.INCLUDE "crawler.inc"
+.INCLUDE "grub.inc"
 
 .IMPORT FuncA_Actor_GetRoomBlockRow
 .IMPORT FuncA_Actor_GetRoomTileColumn
@@ -38,11 +38,11 @@
 
 .SEGMENT "PRGA_Actor"
 
-;;; Performs per-frame updates for a crawler baddie actor.
+;;; Performs per-frame updates for a grub baddie actor.
 ;;; @param X The actor index.
 ;;; @preserve X
-.EXPORT FuncA_Actor_TickBadCrawler
-.PROC FuncA_Actor_TickBadCrawler
+.EXPORT FuncA_Actor_TickBadGrub
+.PROC FuncA_Actor_TickBadGrub
     lda Ram_ActorState_byte_arr, x
     beq _StartMove
     dec Ram_ActorState_byte_arr, x
@@ -66,13 +66,13 @@ _MoveLeft:
 _DetectCollision:
     jmp FuncA_Actor_HarmAvatarIfCollision  ; preserves X
 _StartMove:
-    ;; Compute the room tile column index for the center of the crawler,
-    ;; storing it in Y.
+    ;; Compute the room tile column index for the center of the grub, storing
+    ;; it in Y.
     jsr FuncA_Actor_GetRoomTileColumn  ; preserves X, returns A
     tay
-    ;; If the crawler is facing right, increment Y (so as to check the tile
-    ;; column to the right of the crawler); if the crawler is facing left,
-    ;; decrement Y (so as to check the tile column to the left of the crawler).
+    ;; If the grub is facing right, increment Y (so as to check the tile column
+    ;; to the right of the grub); if the grub is facing left, decrement Y (so
+    ;; as to check the tile column to the left of the grub).
     lda Ram_ActorFlags_bObj_arr, x
     and #bObj::FlipH
     bne @facingLeft
@@ -88,24 +88,24 @@ _StartMove:
     tya  ; param: room tile column index
     jsr Func_GetTerrainColumnPtrForTileIndex  ; preserves Zp_Tmp*
     ldx Zp_Tmp1_byte
-    ;; Check the terrain block just in front of the crawler.  If it's solid,
-    ;; the crawler has to turn around.
+    ;; Check the terrain block just in front of the grub.  If it's solid, the
+    ;; grub has to turn around.
     jsr FuncA_Actor_GetRoomBlockRow  ; preserves X, returns Y
     lda (Zp_TerrainColumn_u8_arr_ptr), y
     cmp #kFirstSolidTerrainType
     bge @turnAround
-    ;; Check the floor just in front of the crawler.  If it's not solid, the
-    ;; crawler has to turn around.
+    ;; Check the floor just in front of the grub.  If it's not solid, the grub
+    ;; has to turn around.
     iny
     lda (Zp_TerrainColumn_u8_arr_ptr), y
     cmp #kFirstSolidTerrainType
     bge @continueForward
-    ;; Make the crawler face the opposite direction.
+    ;; Make the grub face the opposite direction.
     @turnAround:
     lda Ram_ActorFlags_bObj_arr, x
     eor #bObj::FlipH
     sta Ram_ActorFlags_bObj_arr, x
-    ;; Start a new movement cycle for the crawler.
+    ;; Start a new movement cycle for the grub.
     @continueForward:
     lda #$1f
     sta Ram_ActorState_byte_arr, x
@@ -116,11 +116,11 @@ _StartMove:
 
 .SEGMENT "PRGA_Objects"
 
-;;; Draws a crawler baddie actor.
+;;; Draws a grub baddie actor.
 ;;; @param X The actor index.
 ;;; @preserve X
-.EXPORT FuncA_Objects_DrawActorBadCrawler
-.PROC FuncA_Objects_DrawActorBadCrawler
+.EXPORT FuncA_Objects_DrawActorBadGrub
+.PROC FuncA_Objects_DrawActorBadGrub
     lda Ram_ActorState_byte_arr, x
     div #8
     and #$03
@@ -128,8 +128,10 @@ _StartMove:
     lda _TileIds_u8_arr4, y  ; param: first tile ID
     jmp FuncA_Objects_Draw2x2Actor  ; preserves X
 _TileIds_u8_arr4:
-    .byte kCrawlerFirstTileId1, kCrawlerFirstTileId2
-    .byte kCrawlerFirstTileId3, kCrawlerFirstTileId2
+    .byte kTileIdObjGrubFirst + $00
+    .byte kTileIdObjGrubFirst + $04
+    .byte kTileIdObjGrubFirst + $08
+    .byte kTileIdObjGrubFirst + $04
 .ENDPROC
 
 ;;;=========================================================================;;;

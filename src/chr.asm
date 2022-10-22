@@ -17,10 +17,10 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
-.INCLUDE "actors/crawler.inc"
 .INCLUDE "actors/fireball.inc"
 .INCLUDE "actors/fish.inc"
 .INCLUDE "actors/grenade.inc"
+.INCLUDE "actors/grub.inc"
 .INCLUDE "actors/hothead.inc"
 .INCLUDE "actors/spider.inc"
 .INCLUDE "actors/townsfolk.inc"
@@ -480,8 +480,8 @@
     .res $06 * kSizeofChr
     .assert * - :- = (kFireballFirstTileId - $80) * kSizeofChr, error
     .incbin "out/data/tiles/fireball.chr"
-    .assert * - :- = (kCrawlerFirstTileId1 - $80) * kSizeofChr, error
-    .incbin "out/data/tiles/crawler.chr"
+    .assert * - :- = (kTileIdObjGrubFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/grub.chr"
     .incbin "out/data/tiles/spike.chr"
     .incbin "out/data/tiles/eye.chr"
     .assert * - :- = (kTileIdVinebugFirst1 - $80) * kSizeofChr, error
@@ -588,8 +588,8 @@
 :   .incbin "out/data/tiles/upgrade.chr"
     .assert * - :- = (kFireballFirstTileId - $80) * kSizeofChr, error
     .incbin "out/data/tiles/fireball.chr"
-    .assert * - :- = (kCrawlerFirstTileId1 - $80) * kSizeofChr, error
-    .incbin "out/data/tiles/crawler.chr"
+    .assert * - :- = (kTileIdObjGrubFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/grub.chr"
     .incbin "out/data/tiles/spike.chr"
     .incbin "out/data/tiles/eye.chr"
     .res $19 * kSizeofChr

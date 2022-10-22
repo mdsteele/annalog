@@ -146,20 +146,20 @@ _Actors_sActor_arr:
     ;; The enemy that can get squished by the lift machine:
 :   .assert * - :- = kSquishableActorIndex * .sizeof(sPlatform), error
     D_STRUCT sActor
-    d_byte Type_eActor, eActor::BadCrawler
+    d_byte Type_eActor, eActor::BadGrub
     d_byte TileRow_u8, 31
     d_byte TileCol_u8, 19
     d_byte Param_byte, 0
     D_END
     ;; Other enemies:
     D_STRUCT sActor
-    d_byte Type_eActor, eActor::BadCrawler
+    d_byte Type_eActor, eActor::BadGrub
     d_byte TileRow_u8, 23
     d_byte TileCol_u8, 7
     d_byte Param_byte, 0
     D_END
     D_STRUCT sActor
-    d_byte Type_eActor, eActor::BadCrawler
+    d_byte Type_eActor, eActor::BadGrub
     d_byte TileRow_u8, 39
     d_byte TileCol_u8, 17
     d_byte Param_byte, 0

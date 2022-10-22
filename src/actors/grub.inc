@@ -17,9 +17,7 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
-;;; First-tile-ID values for crawler actors.
-kCrawlerFirstTileId1 = $9c
-kCrawlerFirstTileId2 = kCrawlerFirstTileId1 + $04
-kCrawlerFirstTileId3 = kCrawlerFirstTileId1 + $08
+;;; Tile IDs for drawing grub baddie actors.
+kTileIdObjGrubFirst = $9c
 
 ;;;=========================================================================;;;
