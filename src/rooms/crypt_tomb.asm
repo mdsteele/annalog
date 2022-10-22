@@ -30,6 +30,7 @@
 .INCLUDE "../ppu.inc"
 .INCLUDE "../program.inc"
 .INCLUDE "../room.inc"
+.INCLUDE "../spawn.inc"
 
 .IMPORT DataA_Pause_CryptAreaCells_u8_arr2_arr
 .IMPORT DataA_Pause_CryptAreaName_u8_arr
@@ -66,6 +67,9 @@
 .IMPORTZP Zp_PlatformGoal_i16
 
 ;;;=========================================================================;;;
+
+;;; The device index for the door that leads to the boss room.
+kDoorDeviceIndex = 3
 
 ;;; The machine index for the CryptTombWinch machine in this room.
 kWinchMachineIndex = 0
@@ -158,7 +162,7 @@ _Ext_sRoomExt:
     d_addr Dialogs_sDialog_ptr_arr_ptr, 0
     d_addr Passages_sPassage_arr_ptr, _Passages_sPassage_arr
     d_addr Init_func_ptr, FuncC_Crypt_Tomb_InitRoom
-    d_addr Enter_func_ptr, Func_Noop
+    d_addr Enter_func_ptr, FuncC_Crypt_Tomb_EnterRoom
     d_addr FadeIn_func_ptr, Func_Noop
     D_END
 _TerrainData:
@@ -263,6 +267,7 @@ _Devices_sDevice_arr:
     d_byte BlockCol_u8, 7
     d_byte Target_u8, sState::LeverRight_u1
     D_END
+    .assert * - :- = kDoorDeviceIndex * .sizeof(sDevice), error
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::UnlockedDoor
     d_byte BlockRow_u8, 12
@@ -285,20 +290,35 @@ _Passages_sPassage_arr:
     ;; Otherwise, remove their platforms.
     lda Sram_ProgressFlags_arr + (eFlag::CryptTombWeakFloors >> 3)
     and #1 << (eFlag::CryptTombWeakFloors & $07)
-    bne @floorsBroken
-    @floorsSolid:
+    bne FuncC_Crypt_Tomb_RemoveBreakableFloors
     lda #kNumWinchHitsToBreakFloor
     sta Ram_RoomState + sState::WeakFloorHp_u8_arr2 + 0
     sta Ram_RoomState + sState::WeakFloorHp_u8_arr2 + 1
     rts
-    @floorsBroken:
-    lda #ePlatform::None
+.ENDPROC
+
+;;; Enter function for the CryptTomb room.
+;;; @param A The bSpawn value for where the avatar is entering the room.
+.PROC FuncC_Crypt_Tomb_EnterRoom
+    ;; If the player avatar enters the room from the doorway, remove the
+    ;; breakable floors (to ensure they aren't stuck down there).
+    .assert bSpawn::IsPassage <> 0, error
+    cmp #kDoorDeviceIndex
+    beq FuncC_Crypt_Tomb_RemoveBreakableFloors
+    rts
+.ENDPROC
+
+.PROC FuncC_Crypt_Tomb_RemoveBreakableFloors
+    lda #0
+    sta Ram_RoomState + sState::WeakFloorHp_u8_arr2 + 0
+    sta Ram_RoomState + sState::WeakFloorHp_u8_arr2 + 1
+    .assert ePlatform::None = 0, error
     sta Ram_PlatformType_ePlatform_arr + kWeakFloor0PlatformIndex
     sta Ram_PlatformType_ePlatform_arr + kWeakFloor1PlatformIndex
     rts
 .ENDPROC
 
-;;; Draw function for the CryptSouth room.
+;;; Draw function for the CryptTomb room.
 ;;; @prereq PRGA_Objects is loaded.
 .PROC FuncC_Crypt_Tomb_DrawRoom
     ;; Assert that the weak floor index (0-1) matches each floor's platform
