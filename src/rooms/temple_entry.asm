@@ -155,7 +155,24 @@ _Actors_sActor_arr:
     d_byte TileCol_u8, 14
     d_byte Param_byte, kTileIdMermaidGuardFFirst
     D_END
-    ;; TODO: add a couple enemies on the upper platforms
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::BadBeetleVert
+    d_byte TileRow_u8, 19
+    d_byte TileCol_u8, 21
+    d_byte Param_byte, bObj::FlipV
+    D_END
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::BadBeetleHorz
+    d_byte TileRow_u8, 25
+    d_byte TileCol_u8, 26
+    d_byte Param_byte, bObj::FlipHV
+    D_END
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::BadBeetleHorz
+    d_byte TileRow_u8, 31
+    d_byte TileCol_u8, 16
+    d_byte Param_byte, bObj::FlipH
+    D_END
     .assert * - :- <= kMaxActors * .sizeof(sActor), error
     .byte eActor::None
 _Devices_sDevice_arr:

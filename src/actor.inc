@@ -25,6 +25,8 @@ kMaxActors = 8
 ;;; Types of actors in a room (e.g. baddies, NPCs, or projectiles).
 .ENUM eActor
     None
+    BadBeetleHorz
+    BadBeetleVert
     BadCrab
     BadCrawler
     BadFish

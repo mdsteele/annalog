@@ -28,9 +28,9 @@
 .IMPORT FuncA_Actor_GetRoomBlockRow
 .IMPORT FuncA_Actor_GetRoomTileColumn
 .IMPORT FuncA_Actor_HarmAvatarIfCollision
-.IMPORT FuncA_Objects_Draw2x2Actor
+.IMPORT FuncA_Objects_Draw2x2Shape
+.IMPORT FuncA_Objects_SetShapePosToActorCenter
 .IMPORT Func_GetTerrainColumnPtrForTileIndex
-.IMPORT Func_InitActorDefault
 .IMPORT Ram_ActorFlags_bObj_arr
 .IMPORT Ram_ActorPosX_i16_0_arr
 .IMPORT Ram_ActorPosX_i16_1_arr
@@ -50,49 +50,33 @@ kHotheadPalette = 1
 
 ;;;=========================================================================;;;
 
-.SEGMENT "PRG8"
-
-;;; Initializes the specified actor as a vertically-crawling hothead baddie.
-;;; @prereq The actor's pixel position has already been initialized.
-;;; @param A The flip flags to set.
-;;; @param X The actor index.
-;;; @preserve X
-.EXPORT Func_InitActorBadHotheadVert
-.PROC Func_InitActorBadHotheadVert
-    ldy #eActor::BadHotheadVert  ; param: actor type
-    bne Func_InitActorBadHothead  ; unconditional
-.ENDPROC
-
-;;; Initializes the specified actor as a horizontally-crawling hothead baddie.
-;;; @prereq The actor's pixel position has already been initialized.
-;;; @param A The flip flags to set.
-;;; @param X The actor index.
-;;; @preserve X
-.EXPORT Func_InitActorBadHotheadHorz
-.PROC Func_InitActorBadHotheadHorz
-    ldy #eActor::BadHotheadHorz  ; param: actor type
-    .assert * = Func_InitActorBadHothead, error, "fallthrough"
-.ENDPROC
-
-;;; Initializes the specified actor as a hothead baddie.
-;;; @prereq The actor's pixel position has already been initialized.
-;;; @param A The flip flags to set (horz and/or vert).
-;;; @param X The actor index.
-;;; @param Y The actor type to set (BadHotheadHorz or BadHotheadVert).
-;;; @preserve X
-.PROC Func_InitActorBadHothead
-    pha  ; flip flags
-    jsr Func_InitActorDefault  ; preserves X
-    pla  ; flip flags
-    .assert kHotheadPalette <> 0, error
-    ora #kHotheadPalette
-    sta Ram_ActorFlags_bObj_arr, x
-    rts
-.ENDPROC
-
-;;;=========================================================================;;;
-
 .SEGMENT "PRGA_Actor"
+
+;;; Performs per-frame updates for a horizontally-crawling beetle baddie actor.
+;;; @param X The actor index.
+;;; @preserve X
+.EXPORT FuncA_Actor_TickBadBeetleHorz
+.PROC FuncA_Actor_TickBadBeetleHorz
+    jsr FuncA_Actor_CrawlHorz  ; preserves X, sets C if baddie must turn
+    bcc @noTurn
+    lda #eActor::BadBeetleVert
+    sta Ram_ActorType_eActor_arr, x
+    @noTurn:
+    jmp FuncA_Actor_HarmAvatarIfCollision
+.ENDPROC
+
+;;; Performs per-frame updates for a vertically-crawling beetle baddie actor.
+;;; @param X The actor index.
+;;; @preserve X
+.EXPORT FuncA_Actor_TickBadBeetleVert
+.PROC FuncA_Actor_TickBadBeetleVert
+    jsr FuncA_Actor_CrawlVert  ; preserves X, sets C if baddie must turn
+    bcc @noTurn
+    lda #eActor::BadBeetleHorz
+    sta Ram_ActorType_eActor_arr, x
+    @noTurn:
+    jmp FuncA_Actor_HarmAvatarIfCollision
+.ENDPROC
 
 ;;; Performs per-frame updates for a horizontally-crawling hothead baddie
 ;;; actor.
@@ -100,12 +84,40 @@ kHotheadPalette = 1
 ;;; @preserve X
 .EXPORT FuncA_Actor_TickBadHotheadHorz
 .PROC FuncA_Actor_TickBadHotheadHorz
+    jsr FuncA_Actor_CrawlHorz  ; preserves X, sets C if baddie must turn
+    bcc @noTurn
+    lda #eActor::BadHotheadVert
+    sta Ram_ActorType_eActor_arr, x
+    @noTurn:
+    ;; TODO: if upside-down, sometimes drop fireballs
+    jmp FuncA_Actor_HarmAvatarIfCollision
+.ENDPROC
+
+;;; Performs per-frame updates for a vertically-crawling hothead baddie actor.
+;;; @param X The actor index.
+;;; @preserve X
+.EXPORT FuncA_Actor_TickBadHotheadVert
+.PROC FuncA_Actor_TickBadHotheadVert
+    jsr FuncA_Actor_CrawlVert  ; preserves X, sets C if baddie must turn
+    bcc @noTurn
+    lda #eActor::BadHotheadHorz
+    sta Ram_ActorType_eActor_arr, x
+    @noTurn:
+    jmp FuncA_Actor_HarmAvatarIfCollision
+.ENDPROC
+
+;;; Performs per-frame crawling updates for a horizontally-crawling beetle or
+;;; hothead baddie.
+;;; @param X The actor index.
+;;; @return C Set if the baddie type should switch from horz to vert.
+;;; @preserve X
+.PROC FuncA_Actor_CrawlHorz
     ;; Only move every other frame.
     lda Ram_ActorState_byte_arr, x
     eor #$80
     sta Ram_ActorState_byte_arr, x
-    jmi _DoneTurning
-    ;; Check if the hothead is moving right or left.
+    bmi _NoTurn
+    ;; Check if the baddie is moving right or left.
     lda Ram_ActorFlags_bObj_arr, x
     and #bObj::FlipH
     bne _MoveLeft
@@ -126,18 +138,17 @@ _CheckForTurn:
     beq _CheckForOuterCorner
     cmp #$08
     beq _CheckForInnerCorner
-    ;; TODO: if upside-down, sometimes drop fireballs
-    jmp _DoneTurning
+    bne _NoTurn  ; unconditional
 _CheckForInnerCorner:
     ;; TODO: check if we need to turn
-    jmp _DoneTurning
+    jmp _NoTurn
 _CheckForOuterCorner:
-    ;; Compute the room tile column index for the center of the hothead,
-    ;; storing it in Y.
+    ;; Compute the room tile column index for the center of the baddie, storing
+    ;; it in Y.
     jsr FuncA_Actor_GetRoomTileColumn  ; preserves X, returns A
     tay
-    ;; Compute the room tile column just in front the hothead.   Note that at
-    ;; this point, the hothead's Y-position is zero mod kBlockHeightPx.
+    ;; Compute the room tile column just in front the baddie.   Note that at
+    ;; this point, the baddie's Y-position is zero mod kBlockHeightPx.
     lda Ram_ActorFlags_bObj_arr, x
     and #bObj::FlipH
     beq @facingRight
@@ -149,7 +160,7 @@ _CheckForOuterCorner:
     tya  ; param: room tile column index
     jsr Func_GetTerrainColumnPtrForTileIndex  ; preserves Zp_Tmp*
     ldx Zp_Tmp1_byte
-    ;; Compute the room block row at the hothead's feet.
+    ;; Compute the room block row at the baddie's feet.
     jsr FuncA_Actor_GetRoomBlockRow  ; preserves X, returns Y
     lda Ram_ActorFlags_bObj_arr, x
     .assert bObj::FlipV = bProc::Negative, error
@@ -160,13 +171,16 @@ _CheckForOuterCorner:
     @upsideDown:
     dey
     @doneAdjustBlockRow:
-    ;; If there's still a solid floor/ceiling for the hothead to continue on,
+    ;; If there's still a solid floor/ceiling for the baddie to continue on,
     ;; then no need to turn.
     lda (Zp_TerrainColumn_u8_arr_ptr), y
     cmp #kFirstSolidTerrainType
-    bge _DoneTurning
+    blt _TurnAtOuterCorner
+_NoTurn:
+    clc
+    rts
 _TurnAtOuterCorner:
-    ;; Adjust the hothead's vertical position.
+    ;; Adjust the baddie's vertical position.
     lda Ram_ActorFlags_bObj_arr, x
     sta Zp_Tmp1_byte  ; actor flags
     .assert bObj::FlipV = bProc::Negative, error
@@ -187,7 +201,7 @@ _TurnAtOuterCorner:
     sbc #0
     sta Ram_ActorPosY_i16_1_arr, x
     @doneAdjustVert:
-    ;; Adjust the hothead's horizontal position.
+    ;; Adjust the baddie's horizontal position.
     bit Zp_Tmp1_byte  ; actor flags
     .assert bObj::FlipH = bProc::Overflow, error
     bvc @facingRight
@@ -207,24 +221,23 @@ _TurnAtOuterCorner:
     adc #0
     sta Ram_ActorPosX_i16_1_arr, x
     @doneAdjustHorz:
-    ;; Switch the hothead to crawling on a vertical wall.
-    lda #eActor::BadHotheadVert
-    sta Ram_ActorType_eActor_arr, x
-_DoneTurning:
-    jmp FuncA_Actor_HarmAvatarIfCollision
+    ;; Indicate that the baddie should switch to vertical mode.
+    sec
+    rts
 .ENDPROC
 
-;;; Performs per-frame updates for a vertically-crawling hothead baddie actor.
+;;; Performs per-frame crawling updates for a vertically-crawling beetle or
+;;; hothead baddie.
 ;;; @param X The actor index.
+;;; @return C Set if the baddie type should switch from horz to vert.
 ;;; @preserve X
-.EXPORT FuncA_Actor_TickBadHotheadVert
-.PROC FuncA_Actor_TickBadHotheadVert
+.PROC FuncA_Actor_CrawlVert
     ;; Only move every other frame.
     lda Ram_ActorState_byte_arr, x
     eor #$01
     sta Ram_ActorState_byte_arr, x
-    jeq _DoneTurning
-    ;; Check if the hothead is moving down or up.
+    beq _NoTurn
+    ;; Check if the baddie is moving down or up.
     lda Ram_ActorFlags_bObj_arr, x
     .assert bObj::FlipV = bProc::Negative, error
     bmi _MoveUp
@@ -245,18 +258,18 @@ _CheckForTurn:
     beq _CheckForOuterCorner
     cmp #$08
     beq _CheckForInnerCorner
-    jmp _DoneTurning
+    bne _NoTurn  ; unconditional
 _CheckForInnerCorner:
     ;; TODO: check if we need to turn
-    jmp _DoneTurning
+    jmp _NoTurn
 _CheckForOuterCorner:
-    ;; Compute the room tile column index for the center of the hothead,
-    ;; storing it in Y.
+    ;; Compute the room tile column index for the center of the baddie, storing
+    ;; it in Y.
     jsr FuncA_Actor_GetRoomTileColumn  ; preserves X, returns A
     tay
-    ;; If the hothead is to the right of the vertical wall, decrement Y twice
-    ;; to get a tile column for the wall it's on.  If instead the hothead is to
-    ;; the left of the wall, increment Y twice.
+    ;; If the baddie is to the right of the vertical wall, decrement Y twice to
+    ;; get a tile column for the wall it's on.  If instead the baddie is to the
+    ;; left of the wall, increment Y twice.
     lda Ram_ActorFlags_bObj_arr, x
     and #bObj::FlipH
     beq @facingRight
@@ -273,8 +286,8 @@ _CheckForOuterCorner:
     tya  ; param: room tile column index
     jsr Func_GetTerrainColumnPtrForTileIndex  ; preserves Zp_Tmp*
     ldx Zp_Tmp1_byte
-    ;; Compute the room block row just in front (above/below) of the hothead.
-    ;; Note that at this point, the hothead's Y-position is zero mod
+    ;; Compute the room block row just in front (above/below) of the baddie.
+    ;; Note that at this point, the baddie's Y-position is zero mod
     ;; kBlockHeightPx.
     jsr FuncA_Actor_GetRoomBlockRow  ; preserves X, returns Y
     lda Ram_ActorFlags_bObj_arr, x
@@ -283,13 +296,16 @@ _CheckForOuterCorner:
     @movingUp:
     dey
     @movingDown:
-    ;; If there's still a solid vertical wall for the hothead to continue on,
+    ;; If there's still a solid vertical wall for the baddie to continue on,
     ;; then no need to turn.
     lda (Zp_TerrainColumn_u8_arr_ptr), y
     cmp #kFirstSolidTerrainType
-    bge _DoneTurning
+    blt _TurnAtOuterCorner
+_NoTurn:
+    clc
+    rts
 _TurnAtOuterCorner:
-    ;; Adjust the hothead's vertical position.
+    ;; Adjust the baddie's vertical position.
     lda Ram_ActorFlags_bObj_arr, x
     sta Zp_Tmp1_byte  ; actor flags
     .assert bObj::FlipV = bProc::Negative, error
@@ -310,7 +326,7 @@ _TurnAtOuterCorner:
     adc #0
     sta Ram_ActorPosY_i16_1_arr, x
     @doneAdjustVert:
-    ;; Adjust the hothead's horizontal position.
+    ;; Adjust the baddie's horizontal position.
     bit Zp_Tmp1_byte  ; actor flags
     .assert bObj::FlipH = bProc::Overflow, error
     bvc @facingRight
@@ -330,31 +346,43 @@ _TurnAtOuterCorner:
     sbc #0
     sta Ram_ActorPosX_i16_1_arr, x
     @doneAdjustHorz:
-    ;; Switch the hothead to crawling on a horizontal wall.
+    ;; Switch the baddie to crawling on a horizontal wall.
     lda Zp_Tmp1_byte  ; actor flags
-    eor #bObj::FlipV | bObj::FlipH
+    eor #bObj::FlipHV
     sta Ram_ActorFlags_bObj_arr, x
-    lda #eActor::BadHotheadHorz
-    sta Ram_ActorType_eActor_arr, x
-_DoneTurning:
-    jmp FuncA_Actor_HarmAvatarIfCollision
+    sec
+    rts
 .ENDPROC
 
 ;;;=========================================================================;;;
 
 .SEGMENT "PRGA_Objects"
 
+;;; Draws a horizontally-crawling beetle baddie actor.
+;;; @param X The actor index.
+;;; @preserve X
+.EXPORT FuncA_Objects_DrawActorBadBeetleHorz
+.PROC FuncA_Objects_DrawActorBadBeetleHorz
+    lda #kTileIdBeetleHorzFirst  ; param: first tile ID
+    jmp FuncA_Objects_DrawActorBadHotheadShape  ; preserves X
+.ENDPROC
+
+;;; Draws a vertically-crawling beetle baddie actor.
+;;; @param X The actor index.
+;;; @preserve X
+.EXPORT FuncA_Objects_DrawActorBadBeetleVert
+.PROC FuncA_Objects_DrawActorBadBeetleVert
+    lda #kTileIdBeetleVertFirst  ; param: first tile ID
+    jmp FuncA_Objects_DrawActorBadHotheadShape  ; preserves X
+.ENDPROC
+
 ;;; Draws a horizontally-crawling hothead baddie actor.
 ;;; @param X The actor index.
 ;;; @preserve X
 .EXPORT FuncA_Objects_DrawActorBadHotheadHorz
 .PROC FuncA_Objects_DrawActorBadHotheadHorz
-    lda Zp_FrameCounter_u8
-    and #$08
-    lsr a
-    .assert kTileIdHotheadHorzFirst .mod $08 = 0, error
-    ora #kTileIdHotheadHorzFirst  ; param: first tile ID
-    jsr FuncA_Objects_Draw2x2Actor  ; preserves X, returns C and Y
+    lda #kTileIdHotheadHorzFirst  ; param: first tile ID
+    jsr FuncA_Objects_DrawActorBadHotheadShape  ; preserves X, returns C and Y
     bcs @done
     ;; As part of the animation cycle, sometimes flip the flames horizontally.
     lda Zp_FrameCounter_u8
@@ -366,7 +394,7 @@ _DoneTurning:
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Tile_u8, y
     pla
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Tile_u8, y
-    lda Ram_ActorFlags_bObj_arr, x
+    lda Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Flags_bObj, y
     eor #bObj::FlipH
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Flags_bObj, y
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Flags_bObj, y
@@ -379,12 +407,8 @@ _DoneTurning:
 ;;; @preserve X
 .EXPORT FuncA_Objects_DrawActorBadHotheadVert
 .PROC FuncA_Objects_DrawActorBadHotheadVert
-    lda Zp_FrameCounter_u8
-    and #$08
-    lsr a
-    .assert kTileIdHotheadVertFirst .mod $08 = 0, error
-    ora #kTileIdHotheadVertFirst  ; param: first tile ID
-    jsr FuncA_Objects_Draw2x2Actor  ; preserves X, returns C and Y
+    lda #kTileIdHotheadVertFirst  ; param: first tile ID
+    jsr FuncA_Objects_DrawActorBadHotheadShape  ; preserves X, returns C and Y
     bcs @done
     ;; As part of the animation cycle, sometimes flip the flames vertically.
     lda Zp_FrameCounter_u8
@@ -396,11 +420,36 @@ _DoneTurning:
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Tile_u8, y
     pla
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Tile_u8, y
-    lda Ram_ActorFlags_bObj_arr, x
+    lda Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Flags_bObj, y
     eor #bObj::FlipV
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Flags_bObj, y
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Flags_bObj, y
     @done:
+    rts
+.ENDPROC
+
+;;; Helper function for drawing hothead baddie actors.
+;;; @param A The first tile ID to use.
+;;; @param X The actor index.
+;;; @return C Set if no OAM slots were allocated, cleared otherwise.
+;;; @return Y The OAM byte offset for the first of the four objects.
+;;; @preserve X
+.PROC FuncA_Objects_DrawActorBadHotheadShape
+    sta Zp_Tmp1_byte  ; first tile ID
+    jsr FuncA_Objects_SetShapePosToActorCenter  ; preserves X and Zp_Tmp*
+    lda Ram_ActorFlags_bObj_arr, x  ; param: object flags
+    .assert kHotheadPalette <> 0, error
+    ora #kHotheadPalette
+    tay  ; param: object flags
+    lda Zp_FrameCounter_u8
+    and #$08
+    lsr a
+    .assert kTileIdBeetleHorzFirst .mod $08 = 0, error
+    .assert kTileIdBeetleVertFirst .mod $08 = 0, error
+    .assert kTileIdHotheadHorzFirst .mod $08 = 0, error
+    .assert kTileIdHotheadVertFirst .mod $08 = 0, error
+    ora Zp_Tmp1_byte  ; first tile ID
+    jsr FuncA_Objects_Draw2x2Shape  ; preserves X, returns C and Y
     rts
 .ENDPROC
 

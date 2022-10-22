@@ -547,7 +547,10 @@
     .res $04 * kSizeofChr
     .assert * - :- = (kTileIdMermaidGuardFFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/mermaid_guardf.chr"
-    .res $5a * kSizeofChr
+    .res $02 * kSizeofChr
+    .assert * - :- = (kTileIdBeetleFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/beetle.chr"
+    .res $48 * kSizeofChr
     .assert * - :- = kSizeofChr * $80, error
 .ENDPROC
 

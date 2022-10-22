@@ -17,6 +17,11 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
+;;; Tile IDs for drawing beetle actors.
+kTileIdBeetleFirst = $a8
+kTileIdBeetleHorzFirst = kTileIdBeetleFirst + $00
+kTileIdBeetleVertFirst = kTileIdBeetleFirst + $08
+
 ;;; Tile IDs for drawing hothead actors.
 kTileIdHotheadFirst = $a0
 kTileIdHotheadHorzFirst = kTileIdHotheadFirst + $00

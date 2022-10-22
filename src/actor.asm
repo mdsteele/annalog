@@ -24,6 +24,8 @@
 .INCLUDE "ppu.inc"
 .INCLUDE "terrain.inc"
 
+.IMPORT FuncA_Actor_TickBadBeetleHorz
+.IMPORT FuncA_Actor_TickBadBeetleVert
 .IMPORT FuncA_Actor_TickBadCrab
 .IMPORT FuncA_Actor_TickBadCrawler
 .IMPORT FuncA_Actor_TickBadFish
@@ -44,6 +46,8 @@
 .IMPORT FuncA_Actor_TickProjSteamUp
 .IMPORT FuncA_Objects_Alloc1x1Shape
 .IMPORT FuncA_Objects_Draw2x2Shape
+.IMPORT FuncA_Objects_DrawActorBadBeetleHorz
+.IMPORT FuncA_Objects_DrawActorBadBeetleVert
 .IMPORT FuncA_Objects_DrawActorBadCrab
 .IMPORT FuncA_Objects_DrawActorBadCrawler
 .IMPORT FuncA_Objects_DrawActorBadFish
@@ -66,8 +70,6 @@
 .IMPORT FuncA_Objects_MoveShapeUpOneTile
 .IMPORT Func_GetTerrainColumnPtrForTileIndex
 .IMPORT Func_HarmAvatar
-.IMPORT Func_InitActorBadHotheadHorz
-.IMPORT Func_InitActorBadHotheadVert
 .IMPORT Func_InitActorBadVinebug
 .IMPORT Func_InitActorProjFireball
 .IMPORT Func_InitActorProjGrenade
@@ -100,9 +102,13 @@ kProjSteamMinorRadius = 5
 ;;;=========================================================================;;;
 
 Func_InitActorNone            = Func_InitActorDefault
+Func_InitActorBadBeetleHorz   = Func_InitActorWithFlags
+Func_InitActorBadBeetleVert   = Func_InitActorWithFlags
 Func_InitActorBadCrab         = Func_InitActorDefault
 Func_InitActorBadCrawler      = Func_InitActorDefault
 Func_InitActorBadFish         = Func_InitActorDefault
+Func_InitActorBadHotheadHorz  = Func_InitActorWithFlags
+Func_InitActorBadHotheadVert  = Func_InitActorWithFlags
 Func_InitActorBadSpider       = Func_InitActorDefault
 Func_InitActorNpcAdult        = Func_InitActorWithState
 Func_InitActorNpcChild        = Func_InitActorWithState
@@ -116,6 +122,8 @@ FuncA_Objects_DrawActorNone = Func_Noop
 .LINECONT +
 .DEFINE ActorInitFuncs \
     Func_InitActorNone, \
+    Func_InitActorBadBeetleHorz, \
+    Func_InitActorBadBeetleVert, \
     Func_InitActorBadCrab, \
     Func_InitActorBadCrawler, \
     Func_InitActorBadFish, \
@@ -139,6 +147,8 @@ FuncA_Objects_DrawActorNone = Func_Noop
 .LINECONT +
 .DEFINE ActorTickFuncs \
     FuncA_Actor_TickNone, \
+    FuncA_Actor_TickBadBeetleHorz, \
+    FuncA_Actor_TickBadBeetleVert, \
     FuncA_Actor_TickBadCrab, \
     FuncA_Actor_TickBadCrawler, \
     FuncA_Actor_TickBadFish, \
@@ -162,6 +172,8 @@ FuncA_Objects_DrawActorNone = Func_Noop
 .LINECONT +
 .DEFINE ActorDrawFuncs \
     FuncA_Objects_DrawActorNone, \
+    FuncA_Objects_DrawActorBadBeetleHorz, \
+    FuncA_Objects_DrawActorBadBeetleVert, \
     FuncA_Objects_DrawActorBadCrab, \
     FuncA_Objects_DrawActorBadCrawler, \
     FuncA_Objects_DrawActorBadFish, \
@@ -267,6 +279,22 @@ _JumpTable_ptr_0_arr: .lobytes ActorInitFuncs
 _JumpTable_ptr_1_arr: .hibytes ActorInitFuncs
 .ENDPROC
 
+;;; Zeroes the velocity and state byte for the specified actor, and sets the
+;;; actor's flags and type as specified.
+;;; @prereq The actor's pixel position has already been initialized.
+;;; @param A The flags to set.
+;;; @param X The actor index.
+;;; @param Y The actor type to set.
+;;; @preserve X
+.EXPORT Func_InitActorWithFlags
+.PROC Func_InitActorWithFlags
+    pha  ; flags
+    jsr Func_InitActorDefault  ; preserves X
+    pla  ; flags
+    sta Ram_ActorFlags_bObj_arr, x
+    rts
+.ENDPROC
+
 ;;; The default actor init function that works for most actor types.  Zeroes
 ;;; the velocity, flags, and state byte for the specified actor, and sets the
 ;;; actors type as specified.
@@ -311,6 +339,8 @@ _JumpTable_ptr_1_arr: .hibytes ActorInitFuncs
 .PROC DataA_Actor_BoundingBoxUp_u8_arr
     D_ENUM eActor
     d_byte None,             0
+    d_byte BadBeetleHorz,    4
+    d_byte BadBeetleVert,    6
     d_byte BadCrab,          6
     d_byte BadCrawler,       0
     d_byte BadFish,          6
@@ -334,6 +364,8 @@ _JumpTable_ptr_1_arr: .hibytes ActorInitFuncs
 .PROC DataA_Actor_BoundingBoxDown_u8_arr
     D_ENUM eActor
     d_byte None,             0
+    d_byte BadBeetleHorz,    4
+    d_byte BadBeetleVert,    6
     d_byte BadCrab,          8
     d_byte BadCrawler,       8
     d_byte BadFish,          4
@@ -357,6 +389,8 @@ _JumpTable_ptr_1_arr: .hibytes ActorInitFuncs
 .PROC DataA_Actor_BoundingBoxSide_u8_arr
     D_ENUM eActor
     d_byte None,            0
+    d_byte BadBeetleHorz,   6
+    d_byte BadBeetleVert,   4
     d_byte BadCrab,         7
     d_byte BadCrawler,      7
     d_byte BadFish,         6
