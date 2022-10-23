@@ -35,76 +35,74 @@
 .IMPORT DataA_Room_Crypt_sTileset
 .IMPORT FuncA_Machine_Error
 .IMPORT FuncA_Machine_GetWinchVertSpeed
+.IMPORT FuncA_Machine_LiftMoveTowardGoal
+.IMPORT FuncA_Machine_LiftTryMove
+.IMPORT FuncA_Machine_ReachedGoal
 .IMPORT FuncA_Machine_StartWorking
 .IMPORT FuncA_Machine_WinchReachedGoal
 .IMPORT FuncA_Machine_WinchStartFalling
-.IMPORT FuncA_Objects_DrawChainWithLength
+.IMPORT FuncA_Objects_DrawGirderPlatform
+.IMPORT FuncA_Objects_DrawLiftMachine
 .IMPORT FuncA_Objects_DrawWinchChain
 .IMPORT FuncA_Objects_DrawWinchMachine
-.IMPORT FuncA_Objects_DrawWinchSpikeball
-.IMPORT FuncA_Objects_MoveShapeLeftHalfTile
-.IMPORT FuncA_Objects_MoveShapeUpOneTile
-.IMPORT FuncA_Objects_SetShapePosToSpikeballCenter
+.IMPORT FuncA_Objects_MoveShapeLeftOneTile
 .IMPORT Func_MovePlatformTopToward
-.IMPORT Func_MovePlatformVert
 .IMPORT Func_Noop
 .IMPORT Func_ResetWinchMachineParams
 .IMPORT Ppu_ChrObjCrypt
 .IMPORT Ram_MachineGoalVert_u8_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
+.IMPORT Ram_PlatformTop_i16_1_arr
+.IMPORTZP Zp_AvatarPlatformIndex_u8
 .IMPORTZP Zp_PlatformGoal_i16
+.IMPORTZP Zp_Tmp1_byte
 
 ;;;=========================================================================;;;
 
-;;; The machine index for the CryptWestWinch machine in this room.
+;;; The machine indices for the CryptNorthWinch and CryptNorthLift machines in
+;;; this room.
 kWinchMachineIndex = 0
+kLiftMachineIndex = 1
 
-;;; The platform indices for the CryptWestWinch machine and its spikeballs.
+;;; The platform indices for the CryptNorthWinch machine, its girder, and the
+;;; CryptNorthLift machine.
 kWinchPlatformIndex = 0
-kSpikeball1PlatformIndex = 1
-kNumSpikeballPlatforms = 4
+kGirderPlatformIndex = 1
+kLiftPlatformIndex = 2
 
 ;;; The initial and maximum permitted values for the winch's Z-goal.
-kWinchInitGoalZ = 2
-kWinchMaxGoalZ  = 4
+kWinchInitGoalZ = 0
+kWinchMaxGoalZ  = 9
 
-;;; The room pixel position for the left edge of the winch platform.
-kWinchPlatformLeft = $78
-kSpikeballPlatformLeft = kWinchPlatformLeft + 2
+;;; The initial and maximum permitted vertical goal values for the lift.
+kLiftInitGoalY = 0
+kLiftMaxGoalY = 9
 
-;;; The lengths of the chains between spikeballs, in tiles.
-kChain12Tiles = 7
-kChain23Tiles = 10
-kChain34Tiles = 5
-
-;;; The minimum and initial room pixel positions for the top edges of the
-;;; various spikeballs.
+;;; The minimum and initial room pixel position for the top edge of the girder.
 .LINECONT +
-kSpikeball1MinPlatformTop = $32
-kSpikeball1InitPlatformTop = \
-    kSpikeball1MinPlatformTop + kBlockHeightPx * kWinchInitGoalZ
-kSpikeball2InitPlatformTop = \
-    kSpikeball1InitPlatformTop + kBlockHeightPx + kChain12Tiles * kTileHeightPx
-kSpikeball3InitPlatformTop = \
-    kSpikeball2InitPlatformTop + kBlockHeightPx + kChain23Tiles * kTileHeightPx
-kSpikeball4InitPlatformTop = \
-    kSpikeball3InitPlatformTop + kBlockHeightPx + kChain34Tiles * kTileHeightPx
+kGirderMinPlatformTop = $0070
+kGirderInitPlatformTop = \
+    kGirderMinPlatformTop + kBlockHeightPx * kWinchInitGoalZ
 .LINECONT +
+
+;;; The maximum and initial Y-positions for the top of the lift platform.
+kLiftMaxPlatformTop = $0110
+kLiftInitPlatformTop = kLiftMaxPlatformTop - kLiftInitGoalY * kBlockHeightPx
 
 ;;;=========================================================================;;;
 
 .SEGMENT "PRGC_Crypt"
 
-.EXPORT DataC_Crypt_West_sRoom
-.PROC DataC_Crypt_West_sRoom
+.EXPORT DataC_Crypt_North_sRoom
+.PROC DataC_Crypt_North_sRoom
     D_STRUCT sRoom
-    d_byte MinScrollX_u8, $00
-    d_word MaxScrollX_u16, $0000
+    d_byte MinScrollX_u8, $10
+    d_word MaxScrollX_u16, $0010
     d_byte IsTall_bool, $ff
-    d_byte MinimapStartRow_u8, 9
-    d_byte MinimapStartCol_u8, 0
+    d_byte MinimapStartRow_u8, 8
+    d_byte MinimapStartCol_u8, 1
     d_addr TerrainData_ptr, _TerrainData
-    d_byte NumMachines_u8, 1
+    d_byte NumMachines_u8, 2
     d_addr Machines_sMachine_arr_ptr, _Machines_sMachine_arr
     d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjCrypt)
     d_addr Tick_func_ptr, Func_Noop
@@ -126,27 +124,46 @@ _Ext_sRoomExt:
     d_addr FadeIn_func_ptr, Func_Noop
     D_END
 _TerrainData:
-:   .incbin "out/data/crypt_west.room"
-    .assert * - :- = 17 * 24, error
+:   .incbin "out/data/crypt_north.room"
+    .assert * - :- = 18 * 24, error
 _Machines_sMachine_arr:
 :   .assert * - :- = kWinchMachineIndex * .sizeof(sMachine), error
     D_STRUCT sMachine
-    d_byte Code_eProgram, eProgram::CryptWestWinch
+    d_byte Code_eProgram, eProgram::CryptNorthWinch
     d_byte Breaker_eFlag, 0
     d_byte Flags_bMachine, bMachine::MoveV | bMachine::Act
     d_byte Status_eDiagram, eDiagram::Winch
-    d_word ScrollGoalX_u16, $0000
+    d_word ScrollGoalX_u16, $0010
     d_byte ScrollGoalY_u8, $00
-    d_byte RegNames_u8_arr4, 0, 0, 0, "Z"
+    d_byte RegNames_u8_arr4, 0, "W", 0, "Z"
     d_byte MainPlatform_u8, kWinchPlatformIndex
-    d_addr Init_func_ptr, _Winch_Init
-    d_addr ReadReg_func_ptr, FuncC_Crypt_WestWinch_ReadReg
+    d_addr Init_func_ptr, FuncC_Crypt_NorthWinch_Init
+    d_addr ReadReg_func_ptr, FuncC_Crypt_NorthWinch_ReadReg
     d_addr WriteReg_func_ptr, Func_Noop
-    d_addr TryMove_func_ptr, FuncC_Crypt_WestWinch_TryMove
-    d_addr TryAct_func_ptr, FuncC_Crypt_WestWinch_TryAct
-    d_addr Tick_func_ptr, FuncC_Crypt_WestWinch_Tick
-    d_addr Draw_func_ptr, FuncA_Objects_CryptWestWinch_Draw
-    d_addr Reset_func_ptr, _Winch_Reset
+    d_addr TryMove_func_ptr, FuncC_Crypt_NorthWinch_TryMove
+    d_addr TryAct_func_ptr, FuncC_Crypt_NorthWinch_TryAct
+    d_addr Tick_func_ptr, FuncC_Crypt_NorthWinch_Tick
+    d_addr Draw_func_ptr, FuncA_Objects_CryptNorthWinch_Draw
+    d_addr Reset_func_ptr, FuncC_Crypt_NorthWinch_Reset
+    D_END
+    .assert * - :- = kLiftMachineIndex * .sizeof(sMachine), error
+    D_STRUCT sMachine
+    d_byte Code_eProgram, eProgram::CryptNorthLift
+    d_byte Breaker_eFlag, eFlag::BreakerCrypt
+    d_byte Flags_bMachine, bMachine::MoveV
+    d_byte Status_eDiagram, eDiagram::Lift
+    d_word ScrollGoalX_u16, $0010
+    d_byte ScrollGoalY_u8, $c0
+    d_byte RegNames_u8_arr4, 0, 0, 0, "Y"
+    d_byte MainPlatform_u8, kLiftPlatformIndex
+    d_addr Init_func_ptr, FuncC_Crypt_NorthLift_Init
+    d_addr ReadReg_func_ptr, FuncC_Crypt_NorthLift_ReadReg
+    d_addr WriteReg_func_ptr, Func_Noop
+    d_addr TryMove_func_ptr, FuncC_Crypt_NorthLift_TryMove
+    d_addr TryAct_func_ptr, FuncA_Machine_Error
+    d_addr Tick_func_ptr, FuncC_Crypt_NorthLift_Tick
+    d_addr Draw_func_ptr, FuncA_Objects_DrawLiftMachine
+    d_addr Reset_func_ptr, FuncC_Crypt_NorthLift_Reset
     D_END
     .assert * - :- <= kMaxMachines * .sizeof(sMachine), error
 _Platforms_sPlatform_arr:
@@ -155,46 +172,39 @@ _Platforms_sPlatform_arr:
     d_byte Type_ePlatform, ePlatform::Solid
     d_word WidthPx_u16, $10
     d_byte HeightPx_u8, $10
-    d_word Left_i16, kWinchPlatformLeft
+    d_word Left_i16,  $0068
     d_word Top_i16,   $0010
     D_END
-    .assert * - :- = kSpikeball1PlatformIndex * .sizeof(sPlatform), error
-    D_STRUCT sPlatform
-    d_byte Type_ePlatform, ePlatform::Harm
-    d_word WidthPx_u16, $0d
-    d_byte HeightPx_u8, $0e
-    d_word Left_i16, kSpikeballPlatformLeft
-    d_word Top_i16, kSpikeball1InitPlatformTop
-    D_END
-    D_STRUCT sPlatform
-    d_byte Type_ePlatform, ePlatform::Harm
-    d_word WidthPx_u16, $0d
-    d_byte HeightPx_u8, $0e
-    d_word Left_i16, kSpikeballPlatformLeft
-    d_word Top_i16, kSpikeball2InitPlatformTop
-    D_END
-    D_STRUCT sPlatform
-    d_byte Type_ePlatform, ePlatform::Harm
-    d_word WidthPx_u16, $0d
-    d_byte HeightPx_u8, $0e
-    d_word Left_i16, kSpikeballPlatformLeft
-    d_word Top_i16, kSpikeball3InitPlatformTop
-    D_END
-    D_STRUCT sPlatform
-    d_byte Type_ePlatform, ePlatform::Harm
-    d_word WidthPx_u16, $0d
-    d_byte HeightPx_u8, $0e
-    d_word Left_i16, kSpikeballPlatformLeft
-    d_word Top_i16, kSpikeball4InitPlatformTop
-    D_END
-    .assert kNumSpikeballPlatforms = 4, error
-    ;; Little terrain stone blocks around the winch machine:
+    .assert * - :- = kGirderPlatformIndex * .sizeof(sPlatform), error
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Solid
-    d_word WidthPx_u16, $1d
+    d_word WidthPx_u16, $18
     d_byte HeightPx_u8, $08
-    d_word Left_i16,  $0071
-    d_word Top_i16,   $000c
+    d_word Left_i16,  $0064
+    d_word Top_i16, kGirderInitPlatformTop
+    D_END
+    .assert * - :- = kLiftPlatformIndex * .sizeof(sPlatform), error
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Solid
+    d_word WidthPx_u16, $10
+    d_byte HeightPx_u8, $20
+    d_word Left_i16,  $00e0
+    d_word Top_i16, kLiftInitPlatformTop
+    D_END
+    ;; Terrain spikes:
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Harm
+    d_word WidthPx_u16, $60
+    d_byte HeightPx_u8, $08
+    d_word Left_i16,  $0030
+    d_word Top_i16,   $010e
+    D_END
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Harm
+    d_word WidthPx_u16, $90
+    d_byte HeightPx_u8, $08
+    d_word Left_i16,  $0040
+    d_word Top_i16,   $015e
     D_END
     .assert * - :- <= kMaxPlatforms * .sizeof(sPlatform), error
     .byte ePlatform::None
@@ -203,44 +213,65 @@ _Actors_sActor_arr:
 _Devices_sDevice_arr:
 :   D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Console
-    d_byte BlockRow_u8, 3
-    d_byte BlockCol_u8, 3
+    d_byte BlockRow_u8, 6
+    d_byte BlockCol_u8, 4
     d_byte Target_u8, kWinchMachineIndex
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Console
-    d_byte BlockRow_u8, 21
-    d_byte BlockCol_u8, 5
-    d_byte Target_u8, kWinchMachineIndex
+    d_byte BlockRow_u8, 20
+    d_byte BlockCol_u8, 8
+    d_byte Target_u8, kLiftMachineIndex
     D_END
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None
 _Passages_sPassage_arr:
     D_STRUCT sPassage
-    d_byte Exit_bPassage, ePassage::Eastern | 0
-    d_byte Destination_eRoom, eRoom::CryptNorth
-    d_byte SpawnBlock_u8, 3
+    d_byte Exit_bPassage, ePassage::Western | 0
+    d_byte Destination_eRoom, eRoom::CryptLanding
+    d_byte SpawnBlock_u8, 6
     D_END
     D_STRUCT sPassage
-    d_byte Exit_bPassage, ePassage::Eastern | 1
-    d_byte Destination_eRoom, eRoom::CryptSouth
-    d_byte SpawnBlock_u8, 20
+    d_byte Exit_bPassage, ePassage::Eastern | 0
+    d_byte Destination_eRoom, eRoom::CryptNorth  ; TODO
+    d_byte SpawnBlock_u8, 5
     D_END
-_Winch_Init:
-_Winch_Reset:
+    D_STRUCT sPassage
+    d_byte Exit_bPassage, ePassage::Western | 1
+    d_byte Destination_eRoom, eRoom::CryptWest
+    d_byte SpawnBlock_u8, 19
+    D_END
+.ENDPROC
+
+.PROC FuncC_Crypt_NorthWinch_Reset
+    .assert * = FuncC_Crypt_NorthWinch_Init, error, "fallthrough"
+.ENDPROC
+
+.PROC FuncC_Crypt_NorthWinch_Init
     lda #kWinchInitGoalZ
     sta Ram_MachineGoalVert_u8_arr + kWinchMachineIndex
     jmp Func_ResetWinchMachineParams
 .ENDPROC
 
-.PROC FuncC_Crypt_WestWinch_ReadReg
-    lda Ram_PlatformTop_i16_0_arr + kSpikeball1PlatformIndex
-    sub #kSpikeball1MinPlatformTop - kTileHeightPx
+.PROC FuncC_Crypt_NorthWinch_ReadReg
+    cmp #$f
+    beq _ReadZ
+_ReadW:
+    lda #1
+    ldx Zp_AvatarPlatformIndex_u8
+    cpx #kGirderPlatformIndex
+    beq @done
+    lda #0
+    @done:
+    rts
+_ReadZ:
+    lda Ram_PlatformTop_i16_0_arr + kGirderPlatformIndex
+    sub #kGirderMinPlatformTop - kTileHeightPx
     div #kBlockWidthPx
     rts
 .ENDPROC
 
-.PROC FuncC_Crypt_WestWinch_TryMove
+.PROC FuncC_Crypt_NorthWinch_TryMove
     ldy Ram_MachineGoalVert_u8_arr + kWinchMachineIndex
     txa
     .assert eDir::Up = 0, error
@@ -261,79 +292,84 @@ _Winch_Reset:
     jmp FuncA_Machine_Error
 .ENDPROC
 
-.PROC FuncC_Crypt_WestWinch_TryAct
+.PROC FuncC_Crypt_NorthWinch_TryAct
     lda #kWinchMaxGoalZ  ; param: new Z-goal
     jmp FuncA_Machine_WinchStartFalling
 .ENDPROC
 
-.PROC FuncC_Crypt_WestWinch_Tick
+.PROC FuncC_Crypt_NorthWinch_Tick
     ;; Calculate the desired room-space pixel Y-position for the top edge of
-    ;; the uppermost spikeball, storing it in Zp_PlatformGoal_i16.
+    ;; the upper girder, storing it in Zp_PlatformGoal_i16.
     lda Ram_MachineGoalVert_u8_arr + kWinchMachineIndex
     mul #kBlockHeightPx
-    add #kSpikeball1MinPlatformTop
-    .linecont +
-    .assert kWinchMaxGoalZ * kBlockHeightPx + \
-            kSpikeball1MinPlatformTop < $100, error
-    .linecont -
+    add #<kGirderMinPlatformTop
     sta Zp_PlatformGoal_i16 + 0
     lda #0
+    adc #>kGirderMinPlatformTop
     sta Zp_PlatformGoal_i16 + 1
     ;; Determine how fast we should move toward the goal.
-    ldx #kSpikeball1PlatformIndex  ; param: platform index
+    ldx #kGirderPlatformIndex  ; param: platform index
     jsr FuncA_Machine_GetWinchVertSpeed  ; preserves X, returns Z and A
     bne @move
     rts
     @move:
-    ;; Move the uppermost spikeball vertically, as necessary.
-    jsr Func_MovePlatformTopToward  ; preserves X, returns Z and A
-    beq @reachedGoal
-    ;; If the spikeball moved, move the other spikeballs too.
-    inx
-    @loop:
-    pha  ; param: move delta
-    jsr Func_MovePlatformVert  ; preserves X
-    pla  ; move delta
-    inx
-    cpx #kSpikeball1PlatformIndex + kNumSpikeballPlatforms
-    blt @loop
+    ;; Move the girder vertically, as necessary.
+    jsr Func_MovePlatformTopToward  ; returns Z and A
+    jeq FuncA_Machine_WinchReachedGoal
     rts
-    ;; Otherwise, we're done.
-    @reachedGoal:
-    jmp FuncA_Machine_WinchReachedGoal
+.ENDPROC
+
+.PROC FuncC_Crypt_NorthLift_Reset
+    .assert * = FuncC_Crypt_NorthLift_Init, error, "fallthrough"
+.ENDPROC
+
+.PROC FuncC_Crypt_NorthLift_Init
+    lda #kLiftInitGoalY
+    sta Ram_MachineGoalVert_u8_arr + kLiftMachineIndex
+    rts
+.ENDPROC
+
+.PROC FuncC_Crypt_NorthLift_ReadReg
+    .assert kLiftMaxPlatformTop + kTileHeightPx >= $100, error
+    lda #<(kLiftMaxPlatformTop + kTileHeightPx)
+    sub Ram_PlatformTop_i16_0_arr + kLiftPlatformIndex
+    sta Zp_Tmp1_byte
+    lda #>(kLiftMaxPlatformTop + kTileHeightPx)
+    sbc Ram_PlatformTop_i16_1_arr + kLiftPlatformIndex
+    .assert kLiftMaxPlatformTop + kTileHeightPx < $200, error
+    lsr a
+    lda Zp_Tmp1_byte
+    ror a
+    div #kBlockHeightPx / 2
+    rts
+.ENDPROC
+
+.PROC FuncC_Crypt_NorthLift_TryMove
+    lda #kLiftMaxGoalY  ; param: max goal vert
+    jmp FuncA_Machine_LiftTryMove
+.ENDPROC
+
+.PROC FuncC_Crypt_NorthLift_Tick
+    ldax #kLiftMaxPlatformTop  ; param: max platform top
+    jsr FuncA_Machine_LiftMoveTowardGoal  ; returns Z
+    jeq FuncA_Machine_ReachedGoal
+    rts
 .ENDPROC
 
 ;;;=========================================================================;;;
 
 .SEGMENT "PRGA_Objects"
 
-;;; Allocates and populates OAM slots for the CryptWestWinch machine.
-.PROC FuncA_Objects_CryptWestWinch_Draw
-    lda Ram_PlatformTop_i16_0_arr + kSpikeball1PlatformIndex  ; param: chain
+;;; Draws the CryptNorthWinch machine.
+.PROC FuncA_Objects_CryptNorthWinch_Draw
+    ;; Draw the winch itself.
+    lda Ram_PlatformTop_i16_0_arr + kGirderPlatformIndex  ; param: chain
     jsr FuncA_Objects_DrawWinchMachine
-_Spikeballs:
-    ldx #kSpikeball1PlatformIndex  ; param: platform index
-    @loop:
-    jsr FuncA_Objects_SetShapePosToSpikeballCenter  ; preserves X
-    jsr FuncA_Objects_DrawWinchSpikeball  ; preserves X
-    inx
-    cpx #kSpikeball1PlatformIndex + kNumSpikeballPlatforms
-    blt @loop
-_Chains:
-    jsr FuncA_Objects_MoveShapeUpOneTile
-    jsr FuncA_Objects_MoveShapeLeftHalfTile
-    ldx #kChain34Tiles  ; param: chain length in tiles
-    jsr FuncA_Objects_DrawChainWithLength
-    jsr FuncA_Objects_MoveShapeUpOneTile
-    jsr FuncA_Objects_MoveShapeUpOneTile
-    ldx #kChain23Tiles  ; param: chain length in tiles
-    jsr FuncA_Objects_DrawChainWithLength
-    jsr FuncA_Objects_MoveShapeUpOneTile
-    jsr FuncA_Objects_MoveShapeUpOneTile
-    ldx #kChain12Tiles  ; param: chain length in tiles
-    jsr FuncA_Objects_DrawChainWithLength
-    jsr FuncA_Objects_MoveShapeUpOneTile
-    jsr FuncA_Objects_MoveShapeUpOneTile
+    ;; Draw the girder.
+    ldx #kGirderPlatformIndex  ; param: platform index
+    jsr FuncA_Objects_DrawGirderPlatform
+    ;; Draw the chain between the girder and the winch.
+    jsr FuncA_Objects_MoveShapeLeftOneTile
     ldx #kWinchPlatformIndex  ; param: platform index
     jmp FuncA_Objects_DrawWinchChain
 .ENDPROC

@@ -31,6 +31,7 @@
 .IMPORT DataC_Crypt_Flower_sRoom
 .IMPORT DataC_Crypt_Gallery_sRoom
 .IMPORT DataC_Crypt_Landing_sRoom
+.IMPORT DataC_Crypt_North_sRoom
 .IMPORT DataC_Crypt_South_sRoom
 .IMPORT DataC_Crypt_Tomb_sRoom
 .IMPORT DataC_Crypt_West_sRoom
@@ -118,6 +119,7 @@
     DataC_Crypt_Flower_sRoom, \
     DataC_Crypt_Gallery_sRoom, \
     DataC_Crypt_Landing_sRoom, \
+    DataC_Crypt_North_sRoom, \
     DataC_Crypt_South_sRoom, \
     DataC_Crypt_Tomb_sRoom, \
     DataC_Crypt_West_sRoom, \

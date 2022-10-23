@@ -105,6 +105,8 @@
     CoreElevatorJet
     CryptFlowerWinch
     CryptGalleryWinch
+    CryptNorthLift
+    CryptNorthWinch
     CryptSouthWinch
     CryptTombWinch
     CryptWestWinch

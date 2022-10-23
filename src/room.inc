@@ -43,6 +43,7 @@ kRoomStateSize = $100
     CryptFlower
     CryptGallery
     CryptLanding
+    CryptNorth
     CryptSouth
     CryptTomb
     CryptWest
