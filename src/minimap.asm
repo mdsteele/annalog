@@ -240,6 +240,7 @@ _MarkMinimap:
     .byte  7,  7
     .byte  7,  8
     .byte  7,  9
+    .byte  7,  11
     .byte  8,  6
     .byte  8,  7
     .byte  8,  8
@@ -420,6 +421,12 @@ _MarkMinimap:
     d_byte Col_u8, 8
     d_byte If_eFlag, 0
     d_byte Not_eFlag, eFlag::UpgradeOpcodeIf
+    D_END
+    D_STRUCT sMarker
+    d_byte Row_u8, 7
+    d_byte Col_u8, 11
+    d_byte If_eFlag, 0
+    d_byte Not_eFlag, eFlag::FlowerGarden
     D_END
     D_STRUCT sMarker
     d_byte Row_u8, 7

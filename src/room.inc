@@ -51,6 +51,7 @@ kRoomStateSize = $100
     GardenBoss
     GardenCrossroad
     GardenEast
+    GardenFlower
     GardenHallway
     GardenLanding
     GardenShaft
