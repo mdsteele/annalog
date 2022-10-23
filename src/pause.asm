@@ -697,10 +697,10 @@ _CircuitPosY_u8_arr:
     .byte      $c2, $c2, $c2, $c2
     .byte              $c9
 _CircuitFirstTile_u8_arr:
-    .byte $80, $84, $84, $84, $84, $80
-    .byte $80, $84,           $84, $80
-    .byte      $80, $84, $84, $80
-    .byte              $88
+    .byte $c0, $c4, $c4, $c4, $c4, $c0
+    .byte $c0, $c4,           $c4, $c0
+    .byte      $c0, $c4, $c4, $c0
+    .byte              $c8
 _CircuitFlags_bObj_arr:
     .byte 0, 0, bObj::Pri, bObj::Pri | bObj::FlipH, bObj::FlipH, bObj::FlipH
     .byte bObj::FlipV, bObj::FlipV, bObj::FlipHV, bObj::FlipHV
@@ -725,12 +725,13 @@ _CircuitFlags_bObj_arr:
     add #.sizeof(sObj) * 2
     sta Zp_OamOffset_u8
     ;; Set object positions.
-    lda #$20
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::XPos_u8, y
     lda #$28
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::XPos_u8, y
+    lda #$1f
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::XPos_u8, y
     lda #$c8
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::YPos_u8, y
+    lda #$c9
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::YPos_u8, y
     ;; Set object palettes.
     lda #1
