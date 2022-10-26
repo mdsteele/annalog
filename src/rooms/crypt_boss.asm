@@ -192,7 +192,7 @@ kBossPupilPalette = 0
     d_byte MinScrollX_u8, $00
     d_word MaxScrollX_u16, $0000
     d_byte IsTall_bool, $00
-    d_byte MinimapStartRow_u8, 11
+    d_byte MinimapStartRow_u8, 12
     d_byte MinimapStartCol_u8, 0
     d_addr TerrainData_ptr, _TerrainData
     d_byte NumMachines_u8, 1

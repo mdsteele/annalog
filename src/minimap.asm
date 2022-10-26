@@ -239,6 +239,7 @@ _MarkMinimap:
     .byte 10,  4
     .byte 11,  0
     .byte 11,  1
+    .byte 12,  0
     .byte $ff
 .ENDPROC
 
@@ -517,12 +518,6 @@ _MarkMinimap:
     d_byte Col_u8, 12
     d_byte If_eFlag, eFlag::GardenEastTalkedToMermaid
     d_byte Not_eFlag, eFlag::MermaidHut1MetQueen
-    D_END
-    D_STRUCT sMarker
-    d_byte Row_u8, 11
-    d_byte Col_u8, 0
-    d_byte If_eFlag, 0
-    d_byte Not_eFlag, eFlag::BreakerCrypt
     D_END
     D_STRUCT sMarker
     d_byte Row_u8, 12

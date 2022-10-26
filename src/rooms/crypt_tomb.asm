@@ -140,7 +140,7 @@ kSpikeballInitPlatformTop = \
     D_STRUCT sRoom
     d_byte MinScrollX_u8, $00
     d_word MaxScrollX_u16, $0000
-    d_byte IsTall_bool, $00
+    d_byte IsTall_bool, $ff
     d_byte MinimapStartRow_u8, 11
     d_byte MinimapStartCol_u8, 0
     d_addr TerrainData_ptr, _TerrainData
@@ -167,7 +167,7 @@ _Ext_sRoomExt:
     D_END
 _TerrainData:
 :   .incbin "out/data/crypt_tomb.room"
-    .assert * - :- = 17 * 16, error
+    .assert * - :- = 17 * 24, error
 _Machines_sMachine_arr:
 :   .assert * - :- = kWinchMachineIndex * .sizeof(sMachine), error
     D_STRUCT sMachine
@@ -242,7 +242,7 @@ _Platforms_sPlatform_arr:
     d_word WidthPx_u16, $50
     d_byte HeightPx_u8, $08
     d_word Left_i16,  $0050
-    d_word Top_i16,   $00de
+    d_word Top_i16,   $016e
     D_END
     .assert * - :- <= kMaxPlatforms * .sizeof(sPlatform), error
     .byte ePlatform::None
@@ -270,7 +270,7 @@ _Devices_sDevice_arr:
     .assert * - :- = kDoorDeviceIndex * .sizeof(sDevice), error
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::UnlockedDoor
-    d_byte BlockRow_u8, 12
+    d_byte BlockRow_u8, 21
     d_byte BlockCol_u8, 7
     d_byte Target_u8, eRoom::CryptBoss
     D_END
