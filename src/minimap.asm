@@ -113,6 +113,11 @@ _MarkMinimap:
 
 .SEGMENT "PRGA_Pause"
 
+.EXPORT DataA_Pause_CityAreaName_u8_arr
+.PROC DataA_Pause_CityAreaName_u8_arr
+    .byte "Ancient City", $ff
+.ENDPROC
+
 .EXPORT DataA_Pause_CoreAreaName_u8_arr
 .PROC DataA_Pause_CoreAreaName_u8_arr
     .byte "Power Core", $ff
@@ -153,6 +158,11 @@ _MarkMinimap:
     .byte "Prison Caves", $ff
 .ENDPROC
 
+.EXPORT DataA_Pause_SewerAreaName_u8_arr
+.PROC DataA_Pause_SewerAreaName_u8_arr
+    .byte "Old Waterway", $ff
+.ENDPROC
+
 .EXPORT DataA_Pause_ShadowAreaName_u8_arr
 .PROC DataA_Pause_ShadowAreaName_u8_arr
     .byte "Shadow Labs", $ff
@@ -166,6 +176,27 @@ _MarkMinimap:
 .EXPORT DataA_Pause_TownAreaName_u8_arr
 .PROC DataA_Pause_TownAreaName_u8_arr
     .byte "Bartik Town", $ff
+.ENDPROC
+
+.EXPORT DataA_Pause_CityAreaCells_u8_arr2_arr
+.PROC DataA_Pause_CityAreaCells_u8_arr2_arr
+    .byte  1, 19
+    .byte  1, 20
+    .byte  1, 21
+    .byte  1, 22
+    .byte  2, 18
+    .byte  2, 19
+    .byte  2, 20
+    .byte  2, 21
+    .byte  2, 22
+    .byte  2, 23
+    .byte  3, 18
+    .byte  3, 19
+    .byte  3, 21
+    .byte  3, 22
+    .byte  3, 23
+    .byte  4, 22
+    .byte $ff
 .ENDPROC
 
 .EXPORT DataA_Pause_CoreAreaCells_u8_arr2_arr
@@ -344,6 +375,29 @@ _MarkMinimap:
     .byte 3, 5
     .byte 3, 6
     .byte 4, 6
+    .byte 5, 6
+    .byte $ff
+.ENDPROC
+
+.EXPORT DataA_Pause_SewerAreaCells_u8_arr2_arr
+.PROC DataA_Pause_SewerAreaCells_u8_arr2_arr
+    .byte  3, 20
+    .byte  4, 20
+    .byte  5, 18
+    .byte  5, 19
+    .byte  5, 20
+    .byte  5, 21
+    .byte  5, 22
+    .byte  6, 19
+    .byte  6, 22
+    .byte  7, 17
+    .byte  7, 18
+    .byte  7, 19
+    .byte  7, 20
+    .byte  7, 21
+    .byte  7, 22
+    .byte  7, 23
+    .byte  8, 21
     .byte $ff
 .ENDPROC
 

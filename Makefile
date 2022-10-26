@@ -73,6 +73,7 @@ run: $(ROMFILE) $(ROMFILE).ram.nl $(ROMFILE).3.nl
 test: $(SIM65_BINS)
 	python3 tests/lint.py
 	@for BIN in $^; do echo sim65 $$BIN; sim65 $$BIN; done
+	python3 tests/scenario.py
 	python3 tests/style.py
 
 .PHONY: clean
