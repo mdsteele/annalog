@@ -85,6 +85,7 @@ kRoomStateSize = $100
     PrisonFlower
     ShadowTeleport
     TempleEntry
+    TempleFlower
     TemplePit
     TownHouse1
     TownHouse2

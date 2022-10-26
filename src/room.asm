@@ -73,6 +73,7 @@
 .IMPORT DataC_Prison_Flower_sRoom
 .IMPORT DataC_Shadow_Teleport_sRoom
 .IMPORT DataC_Temple_Entry_sRoom
+.IMPORT DataC_Temple_Flower_sRoom
 .IMPORT DataC_Temple_Pit_sRoom
 .IMPORT DataC_Town_House1_sRoom
 .IMPORT DataC_Town_House2_sRoom
@@ -161,6 +162,7 @@
     DataC_Prison_Flower_sRoom, \
     DataC_Shadow_Teleport_sRoom, \
     DataC_Temple_Entry_sRoom, \
+    DataC_Temple_Flower_sRoom, \
     DataC_Temple_Pit_sRoom, \
     DataC_Town_House1_sRoom, \
     DataC_Town_House2_sRoom, \

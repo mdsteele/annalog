@@ -145,6 +145,13 @@ _Platforms_sPlatform_arr:
     d_word Left_i16,  $0040
     d_word Top_i16, kColumnPlatformMaxTop
     D_END
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Solid
+    d_word WidthPx_u16, $10
+    d_byte HeightPx_u8, $08
+    d_word Left_i16,  $00b0
+    d_word Top_i16,   $0168
+    D_END
     .assert * - :- <= kMaxPlatforms * .sizeof(sPlatform), error
     .byte ePlatform::None
 _Actors_sActor_arr:

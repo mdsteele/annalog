@@ -471,6 +471,12 @@ _MarkMinimap:
     d_byte Not_eFlag, eFlag::FlowerPrison
     D_END
     D_STRUCT sMarker
+    d_byte Row_u8, 5
+    d_byte Col_u8, 4
+    d_byte If_eFlag, 0
+    d_byte Not_eFlag, eFlag::FlowerTemple
+    D_END
+    D_STRUCT sMarker
     d_byte Row_u8, 7
     d_byte Col_u8, 8
     d_byte If_eFlag, 0
