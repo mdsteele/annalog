@@ -52,10 +52,8 @@
 .IMPORT Ppu_ChrObjCrypt
 .IMPORT Ram_MachineGoalVert_u8_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
-.IMPORT Ram_PlatformTop_i16_1_arr
 .IMPORTZP Zp_AvatarPlatformIndex_u8
 .IMPORTZP Zp_PlatformGoal_i16
-.IMPORTZP Zp_Tmp1_byte
 
 ;;;=========================================================================;;;
 
@@ -85,9 +83,11 @@ kGirderInitPlatformTop = \
     kGirderMinPlatformTop + kBlockHeightPx * kWinchInitGoalZ
 .LINECONT +
 
-;;; The maximum and initial Y-positions for the top of the lift platform.
+;;; The maximum, initial, and minimum Y-positions for the top of the lift
+;;; platform.
 kLiftMaxPlatformTop = $0110
 kLiftInitPlatformTop = kLiftMaxPlatformTop - kLiftInitGoalY * kBlockHeightPx
+kLiftMinPlatformTop = kLiftMaxPlatformTop - kLiftMaxGoalY * kBlockHeightPx
 
 ;;;=========================================================================;;;
 
@@ -333,14 +333,8 @@ _ReadZ:
     .assert kLiftMaxPlatformTop + kTileHeightPx >= $100, error
     lda #<(kLiftMaxPlatformTop + kTileHeightPx)
     sub Ram_PlatformTop_i16_0_arr + kLiftPlatformIndex
-    sta Zp_Tmp1_byte
-    lda #>(kLiftMaxPlatformTop + kTileHeightPx)
-    sbc Ram_PlatformTop_i16_1_arr + kLiftPlatformIndex
-    .assert kLiftMaxPlatformTop + kTileHeightPx < $200, error
-    lsr a
-    lda Zp_Tmp1_byte
-    ror a
-    div #kBlockHeightPx / 2
+    .assert kLiftMaxPlatformTop - kLiftMinPlatformTop < $100, error
+    div #kBlockWidthPx
     rts
 .ENDPROC
 

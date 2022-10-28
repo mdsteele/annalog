@@ -30,7 +30,7 @@ BAD_CODE_PATTERNS = [
     ('incorrect ZP import', re.compile(r'\.IMPORT +Zp')),
     ('suspicious address', re.compile(
         r'^ *(ad[cd]|and|cmp|cp[xy]|eor|ora|sub|sbc|ld[a-z]+) +'
-        r'([a-z0-9$%.]|Func|Main)')),
+        r'[<>(]*([a-z0-9$%.]|Func|Main)')),
 ]
 
 SEGMENT_DECL_PATTERN = re.compile(r'^\.SEGMENT +"([a-zA-Z0-9_]*)"')

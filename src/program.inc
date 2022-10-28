@@ -130,6 +130,7 @@
     PrisonCellLift
     PrisonEscapeTrolley
     ShadowTeleportField
+    TempleLobbyLift
     NUM_VALUES
 .ENDENUM
 
