@@ -202,7 +202,7 @@ _Devices_sDevice_arr:
     D_END
     .assert * - :- = kLeverDeviceIndex * .sizeof(sDevice), error
     D_STRUCT sDevice
-    d_byte Type_eDevice, eDevice::Lever  ; TODO: ceiling lever
+    d_byte Type_eDevice, eDevice::LeverCeiling
     d_byte BlockRow_u8, 15
     d_byte BlockCol_u8, 7
     d_byte Target_u8, sState::Lever_u1
@@ -233,13 +233,13 @@ _Passages_sPassage_arr:
     jsr Func_IsFlagSet  ; clears Z if flag is set
     bne _Drained
 _NotDrained:
-    lda #1
-    sta Ram_RoomState + sState::Lever_u1
     rts
 _Drained:
     lda #ePlatform::Zone
     sta Ram_PlatformType_ePlatform_arr + kWaterPlatformIndex
     sta Ram_PlatformType_ePlatform_arr + kSandPlatformIndex
+    .assert ePlatform::Zone = 1, error
+    sta Ram_RoomState + sState::Lever_u1
     lda #eDevice::Placeholder
     sta Ram_DeviceType_eDevice_arr + kConsoleDeviceIndex
     rts
@@ -247,7 +247,7 @@ _Drained:
 
 .PROC DataC_Mermaid_Drain_TickRoom
     lda Ram_RoomState + sState::Lever_u1
-    bne @done
+    beq @done
     lda #ePlatform::Zone
     sta Ram_PlatformType_ePlatform_arr + kWaterPlatformIndex
     sta Ram_PlatformType_ePlatform_arr + kSandPlatformIndex

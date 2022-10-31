@@ -250,7 +250,9 @@ _CheckForActivateDevice:
     jeq Main_Explore_UseConsole
     cmp #eDevice::Flower
     beq @flower
-    cmp #eDevice::Lever
+    cmp #eDevice::LeverCeiling
+    beq @lever
+    cmp #eDevice::LeverFloor
     beq @lever
     cmp #eDevice::OpenDoorway
     beq @door

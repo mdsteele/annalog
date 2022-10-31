@@ -146,7 +146,7 @@ _Devices_sDevice_arr:
     d_byte Target_u8, kJetMachineIndex
     D_END
     D_STRUCT sDevice
-    d_byte Type_eDevice, eDevice::Lever
+    d_byte Type_eDevice, eDevice::LeverFloor
     d_byte BlockRow_u8, 5
     d_byte BlockCol_u8, 7
     d_byte Target_u8, sState::JetUpperLever_u1

@@ -156,13 +156,13 @@ _Actors_sActor_arr:
     .byte eActor::None
 _Devices_sDevice_arr:
 :   D_STRUCT sDevice
-    d_byte Type_eDevice, eDevice::Lever
+    d_byte Type_eDevice, eDevice::LeverFloor
     d_byte BlockRow_u8, 14
     d_byte BlockCol_u8, 3
     d_byte Target_u8, sState::LeverLeft_u1
     D_END
     D_STRUCT sDevice
-    d_byte Type_eDevice, eDevice::Lever
+    d_byte Type_eDevice, eDevice::LeverFloor
     d_byte BlockRow_u8, 14
     d_byte BlockCol_u8, 7
     d_byte Target_u8, sState::LeverRight_u1

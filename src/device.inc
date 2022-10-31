@@ -28,8 +28,6 @@ kTileIdDoorwayFull      = $3a
 kTileIdDoorwayHalf      = $3b
 kFlowerTileIdTop        = $0c
 kFlowerTileIdBottom     = $0d
-kLeverHandleTileIdDown  = $0e
-kLeverHandleTileIdUp    = $0f
 kTileIdPaper            = $06
 
 ;;; The OBJ palette numbers used for various device objects.
@@ -39,7 +37,6 @@ kConsoleScreenPaletteErr = 1
 kDoorwayPalette          = 0
 kFlowerPaletteTop        = 1
 kFlowerPaletteBottom     = 2
-kLeverHandlePalette      = 0
 kPaperPalette            = 0
 kUpgradePalette          = 0
 
@@ -70,7 +67,8 @@ kBreakerAvatarOffset = $05
     BreakerReady   ; circuit breaker, ready to be activated
     Console
     Flower
-    Lever
+    LeverCeiling
+    LeverFloor
     OpenDoorway
     Paper          ; initiate dialogue with the avatar's back to the camera
     Sign           ; initiate dialogue with the avatar's back to the camera

@@ -315,6 +315,8 @@ char get_tile_id(const char *tileset, int tile_index) {
     return 0x90 + tile_index;
   } else if (0 == strcmp(tileset, "jungle3")) {
     return 0xa0 + tile_index;
+  } else if (0 == strcmp(tileset, "lever_ceil")) {
+    return 0xb6 + tile_index;
   } else if (0 == strcmp(tileset, "metal")) {
     return 0x90 + tile_index;
   } else if (0 == strcmp(tileset, "outdoors")) {

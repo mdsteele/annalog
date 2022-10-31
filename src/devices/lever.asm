@@ -17,21 +17,31 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
+.INCLUDE "../cpu.inc"
 .INCLUDE "../device.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
 
 .IMPORT FuncA_Objects_Alloc1x1Shape
+.IMPORT FuncA_Objects_MoveShapeDownByA
 .IMPORT FuncA_Objects_MoveShapeRightOneTile
 .IMPORT FuncA_Objects_SetShapePosToDeviceTopLeft
 .IMPORT Ram_DeviceAnim_u8_arr
 .IMPORT Ram_DeviceTarget_u8_arr
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORT Ram_RoomState
-.IMPORTZP Zp_ShapePosY_i16
 .IMPORTZP Zp_Tmp1_byte
+.IMPORTZP Zp_Tmp2_byte
+.IMPORTZP Zp_Tmp3_byte
 
 ;;;=========================================================================;;;
+
+;;; OBJ tile IDs used for drawing lever handles.
+kLeverHandleTileIdDown = $0e
+kLeverHandleTileIdUp   = $0f
+
+;;; The OBJ palette number used for drawing lever handles.
+kLeverHandlePalette = 0
 
 ;;; The number of animation frames a lever device has (i.e. the number of
 ;;; distinct ways of drawing it).
@@ -64,12 +74,31 @@ kLeverAnimCountdown = kLeverNumAnimFrames * kLeverAnimSlowdown - 1
 
 .SEGMENT "PRGA_Objects"
 
-;;; Allocates and populates OAM slots for a lever device.
+;;; Draws a ceiling-mounted lever device.
 ;;; @param X The device index.
 ;;; @preserve X
-.EXPORT FuncA_Objects_DrawLeverDevice
+.EXPORT FuncA_Objects_DrawLeverCeilingDevice
+.PROC FuncA_Objects_DrawLeverCeilingDevice
+    ldy #kLeverHandlePalette | bObj::FlipV  ; param: flags
+    bne FuncA_Objects_DrawLeverDevice  ; unconditional
+.ENDPROC
+
+;;; Draws a floor-mounted lever device.
+;;; @param X The device index.
+;;; @preserve X
+.EXPORT FuncA_Objects_DrawLeverFloorDevice
+.PROC FuncA_Objects_DrawLeverFloorDevice
+    ldy #kLeverHandlePalette  ; param: flags
+    .assert * = FuncA_Objects_DrawLeverDevice, error, "fallthrough"
+.ENDPROC
+
+;;; Draws a lever device.
+;;; @param X The device index.
+;;; @param Y The base object flags to use (modulo bObj::FlipH).
+;;; @preserve X
 .PROC FuncA_Objects_DrawLeverDevice
-    jsr FuncA_Objects_SetShapePosToDeviceTopLeft  ; preserves X
+    jsr FuncA_Objects_SetShapePosToDeviceTopLeft  ; preserves X and Y
+    sty Zp_Tmp2_byte  ; object flags
 _Animation:
     ;; Compute the animation frame number, storing it in Y.
     lda Ram_DeviceAnim_u8_arr, x
@@ -85,37 +114,38 @@ _Animation:
     lda #kLeverNumAnimFrames - 1
     sub Zp_Tmp1_byte  ; animation delta
     @setAnimFrame:
-    tay  ; animation frame
+    sta Zp_Tmp1_byte  ; animation frame
 _AdjustPosition:
     ;; Adjust X-position for the lever handle.
-    cpy #kLeverNumAnimFrames / 2
+    cmp #kLeverNumAnimFrames / 2
     blt @leftSide
-    jsr FuncA_Objects_MoveShapeRightOneTile  ; preserves X and Y
+    jsr FuncA_Objects_MoveShapeRightOneTile  ; preserves X and Zp_Tmp*
     @leftSide:
     ;; Adjust Y-position for the lever handle.
-    lda Zp_ShapePosY_i16 + 0
-    add #3
-    sta Zp_ShapePosY_i16 + 0
-    lda Zp_ShapePosY_i16 + 1
-    adc #0
-    sta Zp_ShapePosY_i16 + 1
+    bit Zp_Tmp2_byte  ; object flags
+    .assert bObj::FlipV = bProc::Negative, error
+    bpl @floor
+    @ceiling:
+    lda #5
+    bne @moveDown  ; unconditional
+    @floor:
+    lda #3
+    @moveDown:
+    jsr FuncA_Objects_MoveShapeDownByA  ; preserves X and Zp_Tmp*
 _AllocateObject:
-    tya
-    pha  ; animation frame
-    jsr FuncA_Objects_Alloc1x1Shape  ; preserves X, returns C and Y
-    pla  ; animation frame
+    jsr FuncA_Objects_Alloc1x1Shape  ; preserves X and Zp_Tmp*, returns C and Y
     bcs @done
-    stx Zp_Tmp1_byte  ; device index
-    tax  ; animation frame
-    lda #kLeverHandlePalette
+    stx Zp_Tmp3_byte  ; device index
+    ldx Zp_Tmp1_byte  ; animation frame
+    lda Zp_Tmp2_byte  ; object flags
     cpx #kLeverNumAnimFrames / 2
     blt @noFlip
-    ora #bObj::FlipH
+    eor #bObj::FlipH
     @noFlip:
     sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
     lda _LeverTileIds_u8_arr, x
     sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
-    ldx Zp_Tmp1_byte  ; device index
+    ldx Zp_Tmp3_byte  ; device index
     @done:
     rts
 _LeverTileIds_u8_arr:

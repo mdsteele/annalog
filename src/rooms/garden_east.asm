@@ -270,7 +270,7 @@ _Devices_sDevice_arr:
     d_byte Target_u8, kBridgeMachineIndex
     D_END
     D_STRUCT sDevice
-    d_byte Type_eDevice, eDevice::Lever
+    d_byte Type_eDevice, eDevice::LeverFloor
     d_byte BlockRow_u8, 7
     d_byte BlockCol_u8, 27
     d_byte Target_u8, sState::LeverBridge_u1
@@ -282,7 +282,7 @@ _Devices_sDevice_arr:
     d_byte Target_u8, kCannonMachineIndex
     D_END
     D_STRUCT sDevice
-    d_byte Type_eDevice, eDevice::Lever
+    d_byte Type_eDevice, eDevice::LeverFloor
     d_byte BlockRow_u8, 19
     d_byte BlockCol_u8, 16
     d_byte Target_u8, sState::LeverCannon_u1

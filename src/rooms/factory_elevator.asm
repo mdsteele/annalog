@@ -185,7 +185,7 @@ _Devices_sDevice_arr:
     d_byte Target_u8, kUpperJetMachineIndex
     D_END
     D_STRUCT sDevice
-    d_byte Type_eDevice, eDevice::Lever
+    d_byte Type_eDevice, eDevice::LeverFloor
     d_byte BlockRow_u8, 8
     d_byte BlockCol_u8, 7
     d_byte Target_u8, sState::UpperJetLowerLever_u1
@@ -197,7 +197,7 @@ _Devices_sDevice_arr:
     d_byte Target_u8, kLowerJetMachineIndex
     D_END
     D_STRUCT sDevice
-    d_byte Type_eDevice, eDevice::Lever
+    d_byte Type_eDevice, eDevice::LeverFloor
     d_byte BlockRow_u8, 18
     d_byte BlockCol_u8, 7
     d_byte Target_u8, sState::LowerJetUpperLever_u1

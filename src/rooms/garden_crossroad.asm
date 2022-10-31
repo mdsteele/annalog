@@ -174,7 +174,7 @@ _Devices_sDevice_arr:
     d_byte Target_u8, kLiftMachineIndex
     D_END
     D_STRUCT sDevice
-    d_byte Type_eDevice, eDevice::Lever
+    d_byte Type_eDevice, eDevice::LeverFloor
     d_byte BlockRow_u8, 13
     d_byte BlockCol_u8, 7
     d_byte Target_u8, sState::Lever_u1

@@ -78,7 +78,7 @@ Ram_Oam_sObj_arr64: .res .sizeof(sObj) * kNumOamSlots
 .SEGMENT "PRGA_Objects"
 
 ;;; Moves Zp_ShapePosX_i16 rightwards by the width of one tile.
-;;; @preserve X, Y
+;;; @preserve X, Y, Zp_Tmp*
 .EXPORT FuncA_Objects_MoveShapeRightOneTile
 .PROC FuncA_Objects_MoveShapeRightOneTile
     lda #kTileWidthPx
@@ -87,7 +87,7 @@ Ram_Oam_sObj_arr64: .res .sizeof(sObj) * kNumOamSlots
 
 ;;; Moves Zp_ShapePosX_i16 rightwards by the given number of pixels.
 ;;; @param A The number of pixels to shift right by (unsigned).
-;;; @preserve X, Y
+;;; @preserve X, Y, Zp_Tmp*
 .EXPORT FuncA_Objects_MoveShapeRightByA
 .PROC FuncA_Objects_MoveShapeRightByA
     add Zp_ShapePosX_i16 + 0
@@ -99,7 +99,7 @@ Ram_Oam_sObj_arr64: .res .sizeof(sObj) * kNumOamSlots
 .ENDPROC
 
 ;;; Moves Zp_ShapePosX_i16 leftwards by half the width of a tile.
-;;; @preserve X, Y
+;;; @preserve X, Y, Zp_Tmp*
 .EXPORT FuncA_Objects_MoveShapeLeftHalfTile
 .PROC FuncA_Objects_MoveShapeLeftHalfTile
     lda Zp_ShapePosX_i16 + 0
@@ -112,7 +112,7 @@ Ram_Oam_sObj_arr64: .res .sizeof(sObj) * kNumOamSlots
 .ENDPROC
 
 ;;; Moves Zp_ShapePosX_i16 leftwards by the width of one tile.
-;;; @preserve X, Y
+;;; @preserve X, Y, Zp_Tmp*
 .EXPORT FuncA_Objects_MoveShapeLeftOneTile
 .PROC FuncA_Objects_MoveShapeLeftOneTile
     lda Zp_ShapePosX_i16 + 0
@@ -125,7 +125,7 @@ Ram_Oam_sObj_arr64: .res .sizeof(sObj) * kNumOamSlots
 .ENDPROC
 
 ;;; Moves Zp_ShapePosY_i16 downwards by the height of one tile.
-;;; @preserve X, Y
+;;; @preserve X, Y, Zp_Tmp*
 .EXPORT FuncA_Objects_MoveShapeDownOneTile
 .PROC FuncA_Objects_MoveShapeDownOneTile
     lda #kTileHeightPx
@@ -134,7 +134,7 @@ Ram_Oam_sObj_arr64: .res .sizeof(sObj) * kNumOamSlots
 
 ;;; Moves Zp_ShapePosX_i16 downwards by the given number of pixels.
 ;;; @param A The number of pixels to shift down by (unsigned).
-;;; @preserve X, Y
+;;; @preserve X, Y, Zp_Tmp*
 .EXPORT FuncA_Objects_MoveShapeDownByA
 .PROC FuncA_Objects_MoveShapeDownByA
     add Zp_ShapePosY_i16 + 0
@@ -146,7 +146,7 @@ Ram_Oam_sObj_arr64: .res .sizeof(sObj) * kNumOamSlots
 .ENDPROC
 
 ;;; Moves Zp_ShapePosY_i16 upwards by the height of one tile.
-;;; @preserve X, Y
+;;; @preserve X, Y, Zp_Tmp*
 .EXPORT FuncA_Objects_MoveShapeUpOneTile
 .PROC FuncA_Objects_MoveShapeUpOneTile
     lda Zp_ShapePosY_i16 + 0
@@ -168,7 +168,7 @@ Ram_Oam_sObj_arr64: .res .sizeof(sObj) * kNumOamSlots
 ;;;
 ;;; @return C Set if no OAM slot was allocated, cleared otherwise.
 ;;; @return Y The OAM byte offset for the allocated object.
-;;; @preserve X
+;;; @preserve X, Zp_Tmp*
 .EXPORT FuncA_Objects_Alloc1x1Shape
 .PROC FuncA_Objects_Alloc1x1Shape
     ;; If the shape is offscreen horizontally, return without allocating any

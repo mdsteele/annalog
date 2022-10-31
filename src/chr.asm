@@ -305,7 +305,8 @@
     .incbin "out/data/tiles/hut.chr"
     .res $03 * kSizeofChr
     .incbin "out/data/tiles/beach.chr"
-    .res $10 * kSizeofChr
+    .res $0e * kSizeofChr
+    .incbin "out/data/tiles/lever_ceil.chr"
     .incbin "out/data/tiles/device.chr"
     .assert * - :- = kSizeofChr * $40, error
 .ENDPROC

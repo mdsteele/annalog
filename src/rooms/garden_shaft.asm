@@ -188,7 +188,7 @@ _Actors_sActor_arr:
     .byte eActor::None
 _Devices_sDevice_arr:
 :   D_STRUCT sDevice
-    d_byte Type_eDevice, eDevice::Lever
+    d_byte Type_eDevice, eDevice::LeverFloor
     d_byte BlockRow_u8, 6
     d_byte BlockCol_u8, 2
     d_byte Target_u8, sState::Lever_u1_arr + kUpperBridgeMachineIndex
@@ -200,7 +200,7 @@ _Devices_sDevice_arr:
     d_byte Target_u8, kUpperBridgeMachineIndex
     D_END
     D_STRUCT sDevice
-    d_byte Type_eDevice, eDevice::Lever
+    d_byte Type_eDevice, eDevice::LeverFloor
     d_byte BlockRow_u8, 17
     d_byte BlockCol_u8, 2
     d_byte Target_u8, sState::Lever_u1_arr + kLowerBridgeMachineIndex

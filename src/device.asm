@@ -30,7 +30,8 @@
 .IMPORT FuncA_Objects_DrawBreakerReadyDevice
 .IMPORT FuncA_Objects_DrawBreakerRisingDevice
 .IMPORT FuncA_Objects_DrawFlowerDevice
-.IMPORT FuncA_Objects_DrawLeverDevice
+.IMPORT FuncA_Objects_DrawLeverCeilingDevice
+.IMPORT FuncA_Objects_DrawLeverFloorDevice
 .IMPORT FuncA_Objects_DrawLockedDoorDevice
 .IMPORT FuncA_Objects_DrawUnlockedDoorDevice
 .IMPORT FuncA_Objects_MoveShapeRightOneTile
@@ -66,7 +67,8 @@ FuncA_Objects_DrawTeleporterDevice  = Func_Noop
     FuncA_Objects_DrawBreakerReadyDevice, \
     FuncA_Objects_DrawConsoleDevice, \
     FuncA_Objects_DrawFlowerDevice, \
-    FuncA_Objects_DrawLeverDevice, \
+    FuncA_Objects_DrawLeverCeilingDevice, \
+    FuncA_Objects_DrawLeverFloorDevice, \
     FuncA_Objects_DrawOpenDoorwayDevice, \
     FuncA_Objects_DrawPaperDevice, \
     FuncA_Objects_DrawSignDevice, \
@@ -256,7 +258,7 @@ _YOffsets_u8_arr:
 ;;; Populates Zp_ShapePosX_i16 and Zp_ShapePosY_i16 with the screen position of
 ;;; the top-left corner of the specified device.
 ;;; @param X The device index.
-;;; @preserve X, Y
+;;; @preserve X, Y, Zp_Tmp*
 .EXPORT FuncA_Objects_SetShapePosToDeviceTopLeft
 .PROC FuncA_Objects_SetShapePosToDeviceTopLeft
     ;; Compute the room pixel Y-position of the top of the device, storing the
