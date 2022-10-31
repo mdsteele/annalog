@@ -123,6 +123,7 @@
     LavaStationBoiler
     LavaTeleportField
     LavaWestBoiler
+    MermaidDrainPump
     MermaidElevatorJet
     MineCollapseCrane
     MineCollapseTrolley
