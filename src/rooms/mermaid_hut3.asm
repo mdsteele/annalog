@@ -20,8 +20,10 @@
 .INCLUDE "../actor.inc"
 .INCLUDE "../actors/townsfolk.inc"
 .INCLUDE "../charmap.inc"
+.INCLUDE "../cpu.inc"
 .INCLUDE "../device.inc"
 .INCLUDE "../dialog.inc"
+.INCLUDE "../flag.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../platform.inc"
 .INCLUDE "../room.inc"
@@ -31,6 +33,13 @@
 .IMPORT DataA_Room_Hut_sTileset
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrObjTownsfolk
+.IMPORT Sram_ProgressFlags_arr
+
+;;;=========================================================================;;;
+
+;;; The dialog indices for the mermaids in this room.
+kMermaidAdultDialogIndex = 0
+kMermaidGirlDialogIndex = 1
 
 ;;;=========================================================================;;;
 
@@ -100,25 +109,25 @@ _Devices_sDevice_arr:
     d_byte Type_eDevice, eDevice::TalkRight
     d_byte BlockRow_u8, 12
     d_byte BlockCol_u8, 3
-    d_byte Target_u8, 0
+    d_byte Target_u8, kMermaidAdultDialogIndex
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::TalkLeft
     d_byte BlockRow_u8, 12
     d_byte BlockCol_u8, 4
-    d_byte Target_u8, 0
+    d_byte Target_u8, kMermaidAdultDialogIndex
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::TalkRight
     d_byte BlockRow_u8, 12
     d_byte BlockCol_u8, 9
-    d_byte Target_u8, 1
+    d_byte Target_u8, kMermaidGirlDialogIndex
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::TalkLeft
     d_byte BlockRow_u8, 12
     d_byte BlockCol_u8, 10
-    d_byte Target_u8, 1
+    d_byte Target_u8, kMermaidGirlDialogIndex
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::OpenDoorway
@@ -135,15 +144,45 @@ _Devices_sDevice_arr:
 
 ;;; Dialog data for the MermaidHut3 room.
 .PROC DataA_Dialog_MermaidHut3_sDialog_ptr_arr
-    .addr _Dialog0_sDialog
-    .addr _Dialog1_sDialog
-_Dialog0_sDialog:
+:   .assert * - :- = kMermaidAdultDialogIndex * kSizeofAddr, error
+    .addr _MermaidAdult_sDialog
+    .assert * - :- = kMermaidGirlDialogIndex * kSizeofAddr, error
+    .addr _MermaidGirl_sDialog
+_MermaidAdult_sDialog:
     .word ePortrait::Mermaid
-    .byte "Lorem ipsum.#"
+    .byte "There's a natural hot$"
+    .byte "spring just east of$"
+    .byte "this village.#"
+    .addr _MermaidAdult_HotSpringFunc
+_MermaidAdult_HotSpringFunc:
+    lda Sram_ProgressFlags_arr + (eFlag::MermaidDrainUnplugged >> 3)
+    and #1 << (eFlag::MermaidDrainUnplugged & $07)
+    bne @unplugged
+    ldya #_MermaidAdult_HotSpringOpen_sDialog
+    rts
+    @unplugged:
+    ldya #_MermaidAdult_HotSpringClosed_sDialog
+    rts
+_MermaidAdult_HotSpringOpen_sDialog:
+    .word ePortrait::Mermaid
+    .byte "The water is heated by$"
+    .byte "magma flows far below.$"
+    .byte "It's a great place to$"
+    .byte "relax.#"
     .word ePortrait::Done
-_Dialog1_sDialog:
+_MermaidAdult_HotSpringClosed_sDialog:
+    .word ePortrait::Mermaid
+    .byte "Unfortunately, all the$"
+    .byte "water got drained out$"
+    .byte "somehow. So now we$"
+    .byte "can't use it.#"
+    .word ePortrait::Done
+_MermaidGirl_sDialog:
     .word ePortrait::Girl
-    .byte "Lorem ipsum.#"
+    .byte "You're so lucky that$"
+    .byte "you get to go on an$"
+    .byte "adventure. I'm stuck$"
+    .byte "here at home.#"
     .word ePortrait::Done
 .ENDPROC
 
