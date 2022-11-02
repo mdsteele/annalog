@@ -113,66 +113,6 @@
 
 ;;;=========================================================================;;;
 
-.LINECONT +
-.DEFINE RoomPtrs \
-    DataC_Core_Elevator_sRoom, \
-    DataC_Crypt_Boss_sRoom, \
-    DataC_Crypt_East_sRoom, \
-    DataC_Crypt_Flower_sRoom, \
-    DataC_Crypt_Gallery_sRoom, \
-    DataC_Crypt_Landing_sRoom, \
-    DataC_Crypt_North_sRoom, \
-    DataC_Crypt_South_sRoom, \
-    DataC_Crypt_Tomb_sRoom, \
-    DataC_Crypt_West_sRoom, \
-    DataC_Factory_Center_sRoom, \
-    DataC_Factory_Elevator_sRoom, \
-    DataC_Garden_Boss_sRoom, \
-    DataC_Garden_Crossroad_sRoom, \
-    DataC_Garden_East_sRoom, \
-    DataC_Garden_Flower_sRoom, \
-    DataC_Garden_Hallway_sRoom, \
-    DataC_Garden_Landing_sRoom, \
-    DataC_Garden_Shaft_sRoom, \
-    DataC_Garden_Shrine_sRoom, \
-    DataC_Garden_Tower_sRoom, \
-    DataC_Garden_Tunnel_sRoom, \
-    DataC_Lava_East_sRoom, \
-    DataC_Lava_Flower_sRoom, \
-    DataC_Lava_Shaft_sRoom, \
-    DataC_Lava_Station_sRoom, \
-    DataC_Lava_Teleport_sRoom, \
-    DataC_Lava_West_sRoom, \
-    DataC_Mermaid_Cellar_sRoom, \
-    DataC_Mermaid_Drain_sRoom, \
-    DataC_Mermaid_East_sRoom, \
-    DataC_Mermaid_Elevator_sRoom, \
-    DataC_Mermaid_Entry_sRoom, \
-    DataC_Mermaid_Flower_sRoom, \
-    DataC_Mermaid_Hut1_sRoom, \
-    DataC_Mermaid_Hut2_sRoom, \
-    DataC_Mermaid_Hut3_sRoom, \
-    DataC_Mermaid_Hut4_sRoom, \
-    DataC_Mermaid_Hut5_sRoom, \
-    DataC_Mermaid_Hut6_sRoom, \
-    DataC_Mermaid_Village_sRoom, \
-    DataC_Mine_Collapse_sRoom, \
-    DataC_Mine_Pit_sRoom, \
-    DataC_Prison_Cell_sRoom, \
-    DataC_Prison_Escape_sRoom, \
-    DataC_Prison_Flower_sRoom, \
-    DataC_Shadow_Teleport_sRoom, \
-    DataC_Temple_Entry_sRoom, \
-    DataC_Temple_Flower_sRoom, \
-    DataC_Temple_Lobby_sRoom, \
-    DataC_Temple_Pit_sRoom, \
-    DataC_Town_House1_sRoom, \
-    DataC_Town_House2_sRoom, \
-    DataC_Town_Outdoors_sRoom
-.LINECONT -
-
-;;;=========================================================================;;;
-
 .ZEROPAGE
 
 ;;; The room number for the previously-loaded room.
@@ -209,24 +149,70 @@ Ram_RoomState: .res kRoomStateSize
 
 .SEGMENT "PRGA_Room"
 
-;;; Pointers to sRoom structs for all rooms in the game, indexed by eRoom
-;;; values.
-.PROC DataA_Room_Table_sRoom_ptr_0_arr
-:   .lobytes RoomPtrs
-    .assert * - :- = eRoom::NUM_VALUES, error
-.ENDPROC
-.PROC DataA_Room_Table_sRoom_ptr_1_arr
-:   .hibytes RoomPtrs
-    .assert * - :- = eRoom::NUM_VALUES, error
-.ENDPROC
-
-;;; PRGC bank numbers for all rooms in the game, indexed by eRoom values.
+;;; Pointers and PRGC bank numbers for sRoom structs for all rooms in the game,
+;;; indexed by eRoom values.
 .EXPORT DataA_Room_Banks_u8_arr
-.PROC DataA_Room_Banks_u8_arr
-    .repeat eRoom::NUM_VALUES, index
-    .byte <.bank(.mid(index * 2, 1, {RoomPtrs}))
-    .endrepeat
-.ENDPROC
+.REPEAT 3, table
+    D_TABLE_LO table, DataA_Room_Table_sRoom_ptr_0_arr
+    D_TABLE_HI table, DataA_Room_Table_sRoom_ptr_1_arr
+    D_TABLE_BANK table, DataA_Room_Banks_u8_arr
+    D_TABLE eRoom
+    d_entry table, CoreElevator,    DataC_Core_Elevator_sRoom
+    d_entry table, CryptBoss,       DataC_Crypt_Boss_sRoom
+    d_entry table, CryptEast,       DataC_Crypt_East_sRoom
+    d_entry table, CryptFlower,     DataC_Crypt_Flower_sRoom
+    d_entry table, CryptGallery,    DataC_Crypt_Gallery_sRoom
+    d_entry table, CryptLanding,    DataC_Crypt_Landing_sRoom
+    d_entry table, CryptNorth,      DataC_Crypt_North_sRoom
+    d_entry table, CryptSouth,      DataC_Crypt_South_sRoom
+    d_entry table, CryptTomb,       DataC_Crypt_Tomb_sRoom
+    d_entry table, CryptWest,       DataC_Crypt_West_sRoom
+    d_entry table, FactoryCenter,   DataC_Factory_Center_sRoom
+    d_entry table, FactoryElevator, DataC_Factory_Elevator_sRoom
+    d_entry table, GardenBoss,      DataC_Garden_Boss_sRoom
+    d_entry table, GardenCrossroad, DataC_Garden_Crossroad_sRoom
+    d_entry table, GardenEast,      DataC_Garden_East_sRoom
+    d_entry table, GardenFlower,    DataC_Garden_Flower_sRoom
+    d_entry table, GardenHallway,   DataC_Garden_Hallway_sRoom
+    d_entry table, GardenLanding,   DataC_Garden_Landing_sRoom
+    d_entry table, GardenShaft,     DataC_Garden_Shaft_sRoom
+    d_entry table, GardenShrine,    DataC_Garden_Shrine_sRoom
+    d_entry table, GardenTower,     DataC_Garden_Tower_sRoom
+    d_entry table, GardenTunnel,    DataC_Garden_Tunnel_sRoom
+    d_entry table, LavaEast,        DataC_Lava_East_sRoom
+    d_entry table, LavaFlower,      DataC_Lava_Flower_sRoom
+    d_entry table, LavaShaft,       DataC_Lava_Shaft_sRoom
+    d_entry table, LavaStation,     DataC_Lava_Station_sRoom
+    d_entry table, LavaTeleport,    DataC_Lava_Teleport_sRoom
+    d_entry table, LavaWest,        DataC_Lava_West_sRoom
+    d_entry table, MermaidCellar,   DataC_Mermaid_Cellar_sRoom
+    d_entry table, MermaidDrain,    DataC_Mermaid_Drain_sRoom
+    d_entry table, MermaidEast,     DataC_Mermaid_East_sRoom
+    d_entry table, MermaidElevator, DataC_Mermaid_Elevator_sRoom
+    d_entry table, MermaidEntry,    DataC_Mermaid_Entry_sRoom
+    d_entry table, MermaidFlower,   DataC_Mermaid_Flower_sRoom
+    d_entry table, MermaidHut1,     DataC_Mermaid_Hut1_sRoom
+    d_entry table, MermaidHut2,     DataC_Mermaid_Hut2_sRoom
+    d_entry table, MermaidHut3,     DataC_Mermaid_Hut3_sRoom
+    d_entry table, MermaidHut4,     DataC_Mermaid_Hut4_sRoom
+    d_entry table, MermaidHut5,     DataC_Mermaid_Hut5_sRoom
+    d_entry table, MermaidHut6,     DataC_Mermaid_Hut6_sRoom
+    d_entry table, MermaidVillage,  DataC_Mermaid_Village_sRoom
+    d_entry table, MineCollapse,    DataC_Mine_Collapse_sRoom
+    d_entry table, MinePit,         DataC_Mine_Pit_sRoom
+    d_entry table, PrisonCell,      DataC_Prison_Cell_sRoom
+    d_entry table, PrisonEscape,    DataC_Prison_Escape_sRoom
+    d_entry table, PrisonFlower,    DataC_Prison_Flower_sRoom
+    d_entry table, ShadowTeleport,  DataC_Shadow_Teleport_sRoom
+    d_entry table, TempleEntry,     DataC_Temple_Entry_sRoom
+    d_entry table, TempleFlower,    DataC_Temple_Flower_sRoom
+    d_entry table, TempleLobby,     DataC_Temple_Lobby_sRoom
+    d_entry table, TemplePit,       DataC_Temple_Pit_sRoom
+    d_entry table, TownHouse1,      DataC_Town_House1_sRoom
+    d_entry table, TownHouse2,      DataC_Town_House2_sRoom
+    d_entry table, TownOutdoors,    DataC_Town_Outdoors_sRoom
+    D_END
+.ENDREPEAT
 
 ;;; Loads and initializes data for the specified room.
 ;;; @prereq The correct PRGC bank has been set for the room to be loaded.

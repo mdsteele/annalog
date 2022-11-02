@@ -101,101 +101,6 @@ kProjSteamMinorRadius = 5
 
 ;;;=========================================================================;;;
 
-Func_InitActorNone            = Func_InitActorDefault
-Func_InitActorBadBeetleHorz   = Func_InitActorWithFlags
-Func_InitActorBadBeetleVert   = Func_InitActorWithFlags
-Func_InitActorBadCrab         = Func_InitActorDefault
-Func_InitActorBadFish         = Func_InitActorDefault
-Func_InitActorBadGrub         = Func_InitActorDefault
-Func_InitActorBadHotheadHorz  = Func_InitActorWithFlags
-Func_InitActorBadHotheadVert  = Func_InitActorWithFlags
-Func_InitActorBadSpider       = Func_InitActorDefault
-Func_InitActorNpcAdult        = Func_InitActorWithState
-Func_InitActorNpcChild        = Func_InitActorWithState
-Func_InitActorNpcMermaid      = Func_InitActorWithState
-Func_InitActorNpcMermaidQueen = Func_InitActorDefault
-Func_InitActorNpcToddler      = Func_InitActorWithState
-
-FuncA_Actor_TickNone = Func_Noop
-FuncA_Objects_DrawActorNone = Func_Noop
-
-.LINECONT +
-.DEFINE ActorInitFuncs \
-    Func_InitActorNone, \
-    Func_InitActorBadBeetleHorz, \
-    Func_InitActorBadBeetleVert, \
-    Func_InitActorBadCrab, \
-    Func_InitActorBadFish, \
-    Func_InitActorBadGrub, \
-    Func_InitActorBadHotheadHorz, \
-    Func_InitActorBadHotheadVert, \
-    Func_InitActorBadSpider, \
-    Func_InitActorBadVinebug, \
-    Func_InitActorNpcAdult, \
-    Func_InitActorNpcChild, \
-    Func_InitActorNpcMermaid, \
-    Func_InitActorNpcMermaidQueen, \
-    Func_InitActorNpcToddler, \
-    Func_InitActorProjFireball, \
-    Func_InitActorProjGrenade, \
-    Func_InitActorProjSmoke, \
-    Func_InitActorProjSpike, \
-    Func_InitActorProjSteamHorz, \
-    Func_InitActorProjSteamUp
-.LINECONT -
-
-.LINECONT +
-.DEFINE ActorTickFuncs \
-    FuncA_Actor_TickNone, \
-    FuncA_Actor_TickBadBeetleHorz, \
-    FuncA_Actor_TickBadBeetleVert, \
-    FuncA_Actor_TickBadCrab, \
-    FuncA_Actor_TickBadFish, \
-    FuncA_Actor_TickBadGrub, \
-    FuncA_Actor_TickBadHotheadHorz, \
-    FuncA_Actor_TickBadHotheadVert, \
-    FuncA_Actor_TickBadSpider, \
-    FuncA_Actor_TickBadVinebug, \
-    FuncA_Actor_TickNpcAdult, \
-    FuncA_Actor_TickNpcChild, \
-    FuncA_Actor_TickNpcMermaid, \
-    FuncA_Actor_TickNpcMermaidQueen, \
-    FuncA_Actor_TickNpcToddler, \
-    FuncA_Actor_TickProjFireball, \
-    FuncA_Actor_TickProjGrenade, \
-    FuncA_Actor_TickProjSmoke, \
-    FuncA_Actor_TickProjSpike, \
-    FuncA_Actor_TickProjSteamHorz, \
-    FuncA_Actor_TickProjSteamUp
-.LINECONT -
-
-.LINECONT +
-.DEFINE ActorDrawFuncs \
-    FuncA_Objects_DrawActorNone, \
-    FuncA_Objects_DrawActorBadBeetleHorz, \
-    FuncA_Objects_DrawActorBadBeetleVert, \
-    FuncA_Objects_DrawActorBadCrab, \
-    FuncA_Objects_DrawActorBadFish, \
-    FuncA_Objects_DrawActorBadGrub, \
-    FuncA_Objects_DrawActorBadHotheadHorz, \
-    FuncA_Objects_DrawActorBadHotheadVert, \
-    FuncA_Objects_DrawActorBadSpider, \
-    FuncA_Objects_DrawActorBadVinebug, \
-    FuncA_Objects_DrawActorNpcAdult, \
-    FuncA_Objects_DrawActorNpcChild, \
-    FuncA_Objects_DrawActorNpcMermaid, \
-    FuncA_Objects_DrawActorNpcMermaidQueen, \
-    FuncA_Objects_DrawActorNpcToddler, \
-    FuncA_Objects_DrawActorProjFireball, \
-    FuncA_Objects_DrawActorProjGrenade, \
-    FuncA_Objects_DrawActorProjSmoke, \
-    FuncA_Objects_DrawActorProjSpike, \
-    FuncA_Objects_DrawActorProjSteamHorz, \
-    FuncA_Objects_DrawActorProjSteamUp
-.LINECONT -
-
-;;;=========================================================================;;;
-
 .SEGMENT "RAM_Actor"
 
 ;;; The type for each actor in the room (or eActor::None for an empty slot).
@@ -275,8 +180,33 @@ Ram_ActorFlags_bObj_arr: .res kMaxActors
     sta Zp_Tmp_ptr + 1
     lda Zp_Tmp1_byte  ; param: initialization parameter
     jmp (Zp_Tmp_ptr)
-_JumpTable_ptr_0_arr: .lobytes ActorInitFuncs
-_JumpTable_ptr_1_arr: .hibytes ActorInitFuncs
+.REPEAT 2, table
+    D_TABLE_LO table, _JumpTable_ptr_0_arr
+    D_TABLE_HI table, _JumpTable_ptr_1_arr
+    D_TABLE eActor
+    d_entry table, None,            Func_InitActorDefault
+    d_entry table, BadBeetleHorz,   Func_InitActorWithFlags
+    d_entry table, BadBeetleVert,   Func_InitActorWithFlags
+    d_entry table, BadCrab,         Func_InitActorDefault
+    d_entry table, BadFish,         Func_InitActorDefault
+    d_entry table, BadGrub,         Func_InitActorDefault
+    d_entry table, BadHotheadHorz,  Func_InitActorWithFlags
+    d_entry table, BadHotheadVert,  Func_InitActorWithFlags
+    d_entry table, BadSpider,       Func_InitActorDefault
+    d_entry table, BadVinebug,      Func_InitActorBadVinebug
+    d_entry table, NpcAdult,        Func_InitActorWithState
+    d_entry table, NpcChild,        Func_InitActorWithState
+    d_entry table, NpcMermaid,      Func_InitActorWithState
+    d_entry table, NpcMermaidQueen, Func_InitActorDefault
+    d_entry table, NpcToddler,      Func_InitActorWithState
+    d_entry table, ProjFireball,    Func_InitActorProjFireball
+    d_entry table, ProjGrenade,     Func_InitActorProjGrenade
+    d_entry table, ProjSmoke,       Func_InitActorProjSmoke
+    d_entry table, ProjSpike,       Func_InitActorProjSpike
+    d_entry table, ProjSteamHorz,   Func_InitActorProjSteamHorz
+    d_entry table, ProjSteamUp,     Func_InitActorProjSteamUp
+    D_END
+.ENDREPEAT
 .ENDPROC
 
 ;;; Zeroes the velocity and state byte for the specified actor, and sets the
@@ -463,8 +393,33 @@ _TypeSpecificTick:
     lda _JumpTable_ptr_1_arr, y
     sta Zp_Tmp_ptr + 1
     jmp (Zp_Tmp_ptr)
-_JumpTable_ptr_0_arr: .lobytes ActorTickFuncs
-_JumpTable_ptr_1_arr: .hibytes ActorTickFuncs
+.REPEAT 2, table
+    D_TABLE_LO table, _JumpTable_ptr_0_arr
+    D_TABLE_HI table, _JumpTable_ptr_1_arr
+    D_TABLE eActor
+    d_entry table, None,            Func_Noop
+    d_entry table, BadBeetleHorz,   FuncA_Actor_TickBadBeetleHorz
+    d_entry table, BadBeetleVert,   FuncA_Actor_TickBadBeetleVert
+    d_entry table, BadCrab,         FuncA_Actor_TickBadCrab
+    d_entry table, BadFish,         FuncA_Actor_TickBadFish
+    d_entry table, BadGrub,         FuncA_Actor_TickBadGrub
+    d_entry table, BadHotheadHorz,  FuncA_Actor_TickBadHotheadHorz
+    d_entry table, BadHotheadVert,  FuncA_Actor_TickBadHotheadVert
+    d_entry table, BadSpider,       FuncA_Actor_TickBadSpider
+    d_entry table, BadVinebug,      FuncA_Actor_TickBadVinebug
+    d_entry table, NpcAdult,        FuncA_Actor_TickNpcAdult
+    d_entry table, NpcChild,        FuncA_Actor_TickNpcChild
+    d_entry table, NpcMermaid,      FuncA_Actor_TickNpcMermaid
+    d_entry table, NpcMermaidQueen, FuncA_Actor_TickNpcMermaidQueen
+    d_entry table, NpcToddler,      FuncA_Actor_TickNpcToddler
+    d_entry table, ProjFireball,    FuncA_Actor_TickProjFireball
+    d_entry table, ProjGrenade,     FuncA_Actor_TickProjGrenade
+    d_entry table, ProjSmoke,       FuncA_Actor_TickProjSmoke
+    d_entry table, ProjSpike,       FuncA_Actor_TickProjSpike
+    d_entry table, ProjSteamHorz,   FuncA_Actor_TickProjSteamHorz
+    d_entry table, ProjSteamUp,     FuncA_Actor_TickProjSteamUp
+    D_END
+.ENDREPEAT
 .ENDPROC
 
 ;;; Checks if the actor is colliding with the player avatar.
@@ -637,8 +592,33 @@ _NoHit:
     lda _JumpTable_ptr_1_arr, y
     sta Zp_Tmp_ptr + 1
     jmp (Zp_Tmp_ptr)
-_JumpTable_ptr_0_arr: .lobytes ActorDrawFuncs
-_JumpTable_ptr_1_arr: .hibytes ActorDrawFuncs
+.REPEAT 2, table
+    D_TABLE_LO table, _JumpTable_ptr_0_arr
+    D_TABLE_HI table, _JumpTable_ptr_1_arr
+    D_TABLE eActor
+    d_entry table, None,            Func_Noop
+    d_entry table, BadBeetleHorz,   FuncA_Objects_DrawActorBadBeetleHorz
+    d_entry table, BadBeetleVert,   FuncA_Objects_DrawActorBadBeetleVert
+    d_entry table, BadCrab,         FuncA_Objects_DrawActorBadCrab
+    d_entry table, BadFish,         FuncA_Objects_DrawActorBadFish
+    d_entry table, BadGrub,         FuncA_Objects_DrawActorBadGrub
+    d_entry table, BadHotheadHorz,  FuncA_Objects_DrawActorBadHotheadHorz
+    d_entry table, BadHotheadVert,  FuncA_Objects_DrawActorBadHotheadVert
+    d_entry table, BadSpider,       FuncA_Objects_DrawActorBadSpider
+    d_entry table, BadVinebug,      FuncA_Objects_DrawActorBadVinebug
+    d_entry table, NpcAdult,        FuncA_Objects_DrawActorNpcAdult
+    d_entry table, NpcChild,        FuncA_Objects_DrawActorNpcChild
+    d_entry table, NpcMermaid,      FuncA_Objects_DrawActorNpcMermaid
+    d_entry table, NpcMermaidQueen, FuncA_Objects_DrawActorNpcMermaidQueen
+    d_entry table, NpcToddler,      FuncA_Objects_DrawActorNpcToddler
+    d_entry table, ProjFireball,    FuncA_Objects_DrawActorProjFireball
+    d_entry table, ProjGrenade,     FuncA_Objects_DrawActorProjGrenade
+    d_entry table, ProjSmoke,       FuncA_Objects_DrawActorProjSmoke
+    d_entry table, ProjSpike,       FuncA_Objects_DrawActorProjSpike
+    d_entry table, ProjSteamHorz,   FuncA_Objects_DrawActorProjSteamHorz
+    d_entry table, ProjSteamUp,     FuncA_Objects_DrawActorProjSteamUp
+    D_END
+.ENDREPEAT
 .ENDPROC
 
 ;;; Sets Zp_ShapePosX_i16 and Zp_ShapePosY_i16 to the screen-space position of

@@ -55,7 +55,7 @@
 ;;;=========================================================================;;;
 
 ;;; The starting location for a new game.
-kStartingRoom = eRoom::CoreElevator
+kStartingRoom = eRoom::PrisonCell
 kStartingSpawn = 0
 
 ;;; The nametable tile row (of the upper nametable) that the game title starts
@@ -239,6 +239,7 @@ _SetRenderState:
     inx
     bne @loop
     ;; TODO: For testing, reveal whole minimap (remove this later).
+.IF 0
     lda #$ff
     ldx #0
     @minimapLoop:
@@ -246,6 +247,7 @@ _SetRenderState:
     inx
     cpx #$30
     blt @minimapLoop
+.ENDIF
     ;; Set starting location.
     lda #kStartingRoom
     sta Sram_LastSafe_eRoom
@@ -271,17 +273,6 @@ _SetRenderState:
     @doneFlags:
     rts
 _Flags_eFlag_arr:
-    .byte eFlag::UpgradeMaxInstructions0
-    .byte eFlag::UpgradeMaxInstructions1
-    .byte eFlag::UpgradeMaxInstructions2
-    .byte eFlag::UpgradeOpcodeIf
-    .byte eFlag::UpgradeOpcodeTil
-    .byte eFlag::UpgradeOpcodeCopy
-    .byte eFlag::UpgradeOpcodeGoto
-    .byte eFlag::UpgradeOpcodeWait
-    .byte eFlag::UpgradeOpcodeSync
-    .byte eFlag::BreakerMine
-    .byte eFlag::BreakerCity
     .byte eFlag::None
 .ENDPROC
 

@@ -302,3 +302,60 @@ d_begin:
 .ENDMACRO
 
 ;;;=========================================================================;;;
+
+;;; Declares a pointer table.
+;;;
+;;; Example:
+;;;     .REPEAT 2, table
+;;;         D_TABLE_LO table, Data_FoodTable_sFood_ptr_0_arr
+;;;         D_TABLE_HI table, Data_FoodTable_sFood_ptr_1_arr
+;;;         D_TABLE eFood
+;;;         d_entry table, Spam,  Data_Spam_sFood
+;;;         d_entry table, Eggs,  Data_Eggs_sFood
+;;;         d_entry table, Bacon, Data_Bacon_sFood
+;;;         D_END
+;;;     .ENDREPEAT
+.MACRO D_TABLE enum
+    .scope
+    .define d_type enum
+d_nest = 1
+d_total = enum::NUM_VALUES
+d_begin:
+.ENDMACRO
+
+;;; Declares the lo-byte array in a pointer table.
+.MACRO D_TABLE_LO table, label
+    .if table = 0
+label:
+    .endif
+.ENDMACRO
+
+;;; Declares the hi-byte array in a pointer table.
+.MACRO D_TABLE_HI table, label
+    .if table = 1
+label:
+    .endif
+.ENDMACRO
+
+;;; Declares the bank number array in a pointer table.
+.MACRO D_TABLE_BANK table, label
+    .if table = 2
+label:
+    .endif
+.ENDMACRO
+
+;;; Declares an entry in a pointer table.
+.MACRO d_entry table, field, label
+    .assert * - d_begin = d_type::field, error, "wrong offset"
+    .if table = 0
+    .byte <label
+    .elseif table = 1
+    .byte >label
+    .elseif table = 2
+    .byte <.bank(label)
+    .else
+    .error "invalid table number"
+    .endif
+.ENDMACRO
+
+;;;=========================================================================;;;

@@ -48,39 +48,6 @@
 
 ;;;=========================================================================;;;
 
-FuncA_Objects_DrawNoneDevice        = Func_Noop
-FuncA_Objects_DrawOpenDoorwayDevice = Func_Noop
-FuncA_Objects_DrawPlaceholderDevice = Func_Noop
-FuncA_Objects_DrawSignDevice        = Func_Noop
-FuncA_Objects_DrawTalkLeftDevice    = Func_Noop
-FuncA_Objects_DrawTalkRightDevice   = Func_Noop
-FuncA_Objects_DrawTeleporterDevice  = Func_Noop
-
-.LINECONT +
-.DEFINE DeviceDrawFuncs \
-    FuncA_Objects_DrawNoneDevice, \
-    FuncA_Objects_DrawBreakerDoneDevice, \
-    FuncA_Objects_DrawBreakerRisingDevice, \
-    FuncA_Objects_DrawLockedDoorDevice, \
-    FuncA_Objects_DrawPlaceholderDevice, \
-    FuncA_Objects_DrawTeleporterDevice, \
-    FuncA_Objects_DrawBreakerReadyDevice, \
-    FuncA_Objects_DrawConsoleDevice, \
-    FuncA_Objects_DrawFlowerDevice, \
-    FuncA_Objects_DrawLeverCeilingDevice, \
-    FuncA_Objects_DrawLeverFloorDevice, \
-    FuncA_Objects_DrawOpenDoorwayDevice, \
-    FuncA_Objects_DrawPaperDevice, \
-    FuncA_Objects_DrawSignDevice, \
-    FuncA_Objects_DrawTalkLeftDevice, \
-    FuncA_Objects_DrawTalkRightDevice, \
-    FuncA_Objects_DrawUnlockedDoorDevice, \
-    FuncA_Objects_DrawUpgradeDevice
-.LINECONT -
-.ASSERT .tcount({DeviceDrawFuncs}) = eDevice::NUM_VALUES * 2 - 1, error
-
-;;;=========================================================================;;;
-
 .SEGMENT "RAM_Device"
 
 ;;; The type for each device in the room (or eDevice::None for an empty slot).
@@ -156,8 +123,30 @@ _Continue:
     lda _JumpTable_ptr_1_arr, y
     sta Zp_Tmp_ptr + 1
     jmp (Zp_Tmp_ptr)
-_JumpTable_ptr_0_arr: .lobytes DeviceDrawFuncs
-_JumpTable_ptr_1_arr: .hibytes DeviceDrawFuncs
+.REPEAT 2, table
+    D_TABLE_LO table, _JumpTable_ptr_0_arr
+    D_TABLE_HI table, _JumpTable_ptr_1_arr
+    D_TABLE eDevice
+    d_entry table, None,          Func_Noop
+    d_entry table, BreakerDone,   FuncA_Objects_DrawBreakerDoneDevice
+    d_entry table, BreakerRising, FuncA_Objects_DrawBreakerRisingDevice
+    d_entry table, LockedDoor,    FuncA_Objects_DrawLockedDoorDevice
+    d_entry table, Placeholder,   Func_Noop
+    d_entry table, Teleporter,    Func_Noop
+    d_entry table, BreakerReady,  FuncA_Objects_DrawBreakerReadyDevice
+    d_entry table, Console,       FuncA_Objects_DrawConsoleDevice
+    d_entry table, Flower,        FuncA_Objects_DrawFlowerDevice
+    d_entry table, LeverCeiling,  FuncA_Objects_DrawLeverCeilingDevice
+    d_entry table, LeverFloor,    FuncA_Objects_DrawLeverFloorDevice
+    d_entry table, OpenDoorway,   Func_Noop
+    d_entry table, Paper,         FuncA_Objects_DrawPaperDevice
+    d_entry table, Sign,          Func_Noop
+    d_entry table, TalkLeft,      Func_Noop
+    d_entry table, TalkRight,     Func_Noop
+    d_entry table, UnlockedDoor,  FuncA_Objects_DrawUnlockedDoorDevice
+    d_entry table, Upgrade,       FuncA_Objects_DrawUpgradeDevice
+    D_END
+.ENDREPEAT
 .ENDPROC
 
 ;;; Allocates and populates OAM slots for a console device.

@@ -236,71 +236,71 @@ _CheckForPause:
     jsr_prga FuncA_Fade_Out
     jmp Main_Pause
     @done:
-_CheckForActivateDevice:
+.PROC _CheckForActivateDevice
     jsr Func_FindNearbyDevice
     bit Zp_P1ButtonsPressed_bJoypad
     .assert bJoypad::BButton = bProc::Overflow, error
-    bvc @done
-    ldx Zp_NearbyDevice_u8
-    bmi @done
-    lda Ram_DeviceType_eDevice_arr, x
-    cmp #eDevice::BreakerReady
-    jeq Main_Explore_UseBreaker
-    cmp #eDevice::Console
-    jeq Main_Explore_UseConsole
-    cmp #eDevice::Flower
-    beq @flower
-    cmp #eDevice::LeverCeiling
-    beq @lever
-    cmp #eDevice::LeverFloor
-    beq @lever
-    cmp #eDevice::OpenDoorway
-    beq @door
-    cmp #eDevice::Paper
-    beq @sign
-    cmp #eDevice::Sign
-    beq @sign
-    cmp #eDevice::TalkLeft
-    beq @talkLeft
-    cmp #eDevice::TalkRight
-    beq @talkRight
-    cmp #eDevice::UnlockedDoor
-    beq @door
-    cmp #eDevice::Upgrade
-    bne @done
-    @upgrade:
-    lda #$ff
-    sta Zp_NearbyDevice_u8
-    jmp Main_Upgrade_OpenWindow
-    @door:
-    jmp Main_Explore_GoThroughDoor
-    @flower:
+    bvc _DoneWithDevice
+    ldx Zp_NearbyDevice_u8  ; param: device index
+    bmi _DoneWithDevice
+    ldy Ram_DeviceType_eDevice_arr, x
+    lda _JumpTable_ptr_0_arr, y
+    sta Zp_Tmp_ptr + 0
+    lda _JumpTable_ptr_1_arr, y
+    sta Zp_Tmp_ptr + 1
+    jmp (Zp_Tmp_ptr)
+.REPEAT 2, table
+    D_TABLE_LO table, _JumpTable_ptr_0_arr
+    D_TABLE_HI table, _JumpTable_ptr_1_arr
+    D_TABLE eDevice
+    d_entry table, None,          _DoneWithDevice
+    d_entry table, BreakerDone,   _DoneWithDevice
+    d_entry table, BreakerRising, _DoneWithDevice
+    d_entry table, LockedDoor,    _DoneWithDevice
+    d_entry table, Placeholder,   _DoneWithDevice
+    d_entry table, Teleporter,    _DoneWithDevice
+    d_entry table, BreakerReady,  Main_Explore_UseBreaker
+    d_entry table, Console,       Main_Explore_UseConsole
+    d_entry table, Flower,        _DeviceFlower
+    d_entry table, LeverCeiling,  _DeviceLever
+    d_entry table, LeverFloor,    _DeviceLever
+    d_entry table, OpenDoorway,   Main_Explore_GoThroughDoor
+    d_entry table, Paper,         _DeviceSign
+    d_entry table, Sign,          _DeviceSign
+    d_entry table, TalkLeft,      _DeviceTalkLeft
+    d_entry table, TalkRight,     _DeviceTalkRight
+    d_entry table, UnlockedDoor,  Main_Explore_GoThroughDoor
+    d_entry table, Upgrade,       Main_Explore_PickUpUpgrade
+    D_END
+.ENDREPEAT
+_DeviceFlower:
     lda #$ff
     sta Zp_NearbyDevice_u8
     jsr Func_PickUpFlowerDevice
-    jmp @done
-    @sign:
+    jmp _DoneWithDevice
+_DeviceSign:
     lda #eAvatar::Reading
     sta Zp_AvatarMode_eAvatar
-    bne @dialog  ; unconditional
-    @talkLeft:
+    bne _Dialog  ; unconditional
+_DeviceTalkLeft:
     lda Zp_AvatarFlags_bObj
     ora #bObj::FlipH
-    bne @talk  ; unconditional
-    @talkRight:
+    bne _Talk  ; unconditional
+_DeviceTalkRight:
     lda Zp_AvatarFlags_bObj
     and #<~bObj::FlipH
-    @talk:
+_Talk:
     sta Zp_AvatarFlags_bObj
     lda #$ff
     sta Zp_NearbyDevice_u8
-    @dialog:
+_Dialog:
     lda Ram_DeviceTarget_u8_arr, x
     tax  ; param: dialog index
     jmp Main_Dialog_OpenWindow
-    @lever:
+_DeviceLever:
     jsr Func_ToggleLeverDevice
-    @done:
+_DoneWithDevice:
+.ENDPROC
 _UpdateScrolling:
     jsr Func_SetScrollGoalFromAvatar
     jsr_prga FuncA_Terrain_ScrollTowardsGoal
@@ -408,15 +408,26 @@ _FadeIn:
     jmp Main_Explore_FadeIn
 .ENDPROC
 
+;;; Mode for pickup up an upgrade device.
+;;; @prereq Rendering is enabled.
+;;; @prereq Explore mode is already initialized.
+;;; @param X The upgrade device index.
+.PROC Main_Explore_PickUpUpgrade
+    ldy #0
+    sty Zp_HudEnabled_bool
+    dey  ; now Y is $ff
+    sty Zp_NearbyDevice_u8
+    jmp Main_Upgrade_OpenWindow
+.ENDPROC
+
 ;;; Mode for activating a breaker device.
 ;;; @prereq Rendering is enabled.
 ;;; @prereq Explore mode is already initialized.
-;;; @prereq Zp_NearbyDevice_u8 holds the index of a ready breaker device.
+;;; @param X The breaker device index.
 .PROC Main_Explore_UseBreaker
     ldy #0
     sty Zp_HudEnabled_bool
     dey  ; now Y is $ff
-    ldx Zp_NearbyDevice_u8  ; param: breaker device index
     sty Zp_NearbyDevice_u8
     jmp Main_Breaker_Activate
 .ENDPROC
@@ -429,6 +440,7 @@ _FadeIn:
     lda #eAvatar::Reading
     sta Zp_AvatarMode_eAvatar
 _SetSpawnPoint:
+    .assert bSpawn::IsPassage <> 0, error
     lda Zp_NearbyDevice_u8  ; param: bSpawn value
     jsr Func_SetLastSpawnPoint
 _EnableHud:

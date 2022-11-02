@@ -47,10 +47,6 @@ UNBANKED_PROC_NAME = re.compile(  # e.g. Main_Foobar
 
 SORT_PATTERNS = [
     ('src/actor.inc', '.ENUM eActor', 'NUM_VALUES', 1),
-    ('src/actor.asm', '.DEFINE ActorDrawFuncs', '.LINECONT -', 1),
-    ('src/actor.asm', '.DEFINE ActorInitFuncs', '.LINECONT -', 1),
-    ('src/actor.asm', '.DEFINE ActorTickFuncs', '.LINECONT -', 1),
-    ('src/room.asm', '.DEFINE RoomPtrs', '.LINECONT -', 0),
     ('src/room.inc', '.ENUM eRoom', 'NUM_VALUES', 0),
 ]
 
