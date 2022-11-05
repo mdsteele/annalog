@@ -275,9 +275,7 @@ char *read_tileset_name(FILE *file) {
 }
 
 char get_tile_id(const char *tileset, int tile_index) {
-  if (0 == strcmp(tileset, "anim01")) {
-    return 0xc0 + tile_index;
-  } else if (0 == strcmp(tileset, "arch")) {
+  if (0 == strcmp(tileset, "arch")) {
     return 0xb0 + tile_index;
   } else if (0 == strcmp(tileset, "beach")) {
     return 0xa0 + tile_index;
@@ -285,6 +283,8 @@ char get_tile_id(const char *tileset, int tile_index) {
     return 0x80 + tile_index;
   } else if (0 == strcmp(tileset, "cobweb")) {
     return 0x90 + tile_index;
+  } else if (0 == strcmp(tileset, "conveyor_anim0")) {
+    return 0xc8 + tile_index;
   } else if (0 == strcmp(tileset, "crypt")) {
     return 0x80 + tile_index;
   } else if (0 == strcmp(tileset, "crystal")) {
@@ -331,8 +331,14 @@ char get_tile_id(const char *tileset, int tile_index) {
     return 0x90 + tile_index;
   } else if (0 == strcmp(tileset, "temple3")) {
     return 0xa0 + tile_index;
+  } else if (0 == strcmp(tileset, "thorns_anim0")) {
+    return 0xd0 + tile_index;
   } else if (0 == strcmp(tileset, "volcanic")) {
     return 0x90 + tile_index;
+  } else if (0 == strcmp(tileset, "water_anim0")) {
+    return 0xc0 + tile_index;
+  } else if (0 == strcmp(tileset, "waterfall_anim0")) {
+    return 0xce + tile_index;
   } else if (0 == strcmp(tileset, "window")) {
     return 0x9c + tile_index;
   } else {

@@ -43,6 +43,13 @@ void skip_line(void) {
   }
 }
 
+void expect_eof(void) {
+  int ch = fgetc(stdin);
+  if (ch != EOF) {
+    ERROR("Expected EOF, got 0x%x\n", ch);
+  }
+}
+
 /*===========================================================================*/
 
 void parse_images(int width, int height, int count) {
@@ -94,6 +101,7 @@ void parse_images(int width, int height, int count) {
       }
     }
   }
+  expect_eof();
   free(buffer);
 }
 

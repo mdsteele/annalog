@@ -803,8 +803,8 @@ _UpdateNametable:
     ;; Update CHR0C bank (for animated terrain).  A room's draw function can
     ;; optionally override this if it needs its own animation behavior.
     lda Zp_FrameCounter_u8
-    div #8
-    and #$03
+    div #4
+    and #$07
     add #<.bank(Ppu_ChrBgAnim0)
     sta Zp_Chr0cBank_u8
     ;; Draw HUD.

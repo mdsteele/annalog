@@ -1,29 +1,30 @@
 @BG 0 0 0 34x24
 >garden_0
 >garden_1
+>garden_3
 >garden_4
 >garden_5
 
-              DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD
-    DDDDDDDDCL  BC  BABOAL                BNBACKDDDDDDDDDDDD
-  CJAMBNBA      BD  BC                    BMBC  AL  BC    ANCKCMCMCM
-CMCLAKBMBC                                BCBC      BD
-  AL  BABD        DBBKDBBKDBBKDBBKDBBKDB  BDBA                CCCECE
-      BD          CIDA  DACMDHCMDA  DACJ    BC                CI
-DADFAM            CI  CMCL    BLCKCM  CJ                    CAAL
-  CJ              CKCL              CICJ                    CK
-  ANDI            AG      BL    AH  CICJ              CA    ANCI
-  CJAK            BL  AH    AE      CICJ              BE      CI
-  CJ              DEDADF    AF    DE  CJ            CACACA    CI
-  CJ    CACACA    CI    DADADADADA    CJ            BBBEBD    CI
-  CJAB  BBBFBA    CICMCMCMCMCMCMCMCMCMCL    CACACA    BF    ANCI
-    DI  BDBGBC    DC    BL    AH  BL  AH    BABEBD    BG      CI
-  CJ  AC  BE  AC  AG  BL  AH          AH    BDBE      CA      CI
-  CJ  CACACACACA  BL          BL  AH  DB      BE      BG      CI
-CMCLAK    BF      AGBL    BL    DEDADACJ  CACACACACA  BE  ANCBCC
-  AL      BG      BLAH      AH  CKCMCMCJ  BCBOBEBN    BF    ANCKDDDD
-DADFAM    BE      DGDHDI      AH      DB      BEBM  CACACA
-  CJ      BF      BL      BLDB    BL  DC      BEBC  BABEBB
-  CJ      BG      AGAH    DECJ        BL      CA    BCBGBD    DPDKDK
-  CJ      BF      DB  BLAHCICJBL    BKAH      BE      BF      DMAL
-    CECECBCECECECDDEDADADA    DADADADADFCCCDCECECECECCCECECECECB
+              EDEDEDEDEDEDEDEDEDEDEDEDEDEDEDED
+    EDEDEDEDDL  BC  BABOAL                BNBADKEDEDEDEDEDED
+  DJAMBNBA      BD  BC                    BMBC  AL  BC    ANDKDMDMDM
+DMDLAKBMBC                      CACC      BCBC      BD
+  AL  BABD        EBBKEBBKEBBKEBBKEBBKEB  BDBA                DCDEDE
+      BD          DIEA  EADMEHDMEA  EADJCC  BC                DI
+EAEFAM            DI  DMDL    BLDKDM  DJCBCD                DAAL
+  DJ              DKDL              DIDJCACE                DK
+  ANEI            AG      BL    AH  DIDJ              DA    ANDI
+  DJAK            BL  AH    AE      DIDJ              BE      DI
+  DJ              EEEAEF    AF    EE  DJ            DADADA    DI
+  DJ    DADADA    DI    EAEAEAEAEA    DJ            BBBEBD    DI
+  DJAB  BBBFBA    DIDMDMDMDMDMDMDMDMDMDL    DADADA    BF    ANDI
+    EI  BDBGBC    EC    BL    AH  BL  AH    BABEBD    BG      DI
+  DJ  AC  BE  AC  AG  BL  AH          AH    BDBE      DA      DI
+  DJ  DADADADADA  BL          BL  AH  EB      BE      BG      DI
+DMDLAK    BF      AGBL    BL    EEEAEADJ  DADADADADA  BE  ANDBDC
+  AL      BG      BLAH      AH  DKDMDMDJ  BCBOBEBN    BF    ANDKEDED
+EAEFAM    BE      EGEHEI      AH      EB      BEBM  DADADA
+  DJ      BF      BL      BLEB    BL  EC      BEBC  BABEBB
+  DJ      BG      AGAH    EEDJ        BL      DA    BCBGBD    EPEKEK
+  DJ      BF      EB  BLAHDIDJBL    BKAH      BE      BF      EMAL
+    DEDEDBDEDEDEDDEEEAEAEA    EAEAEAEAEFDCDDDEDEDEDEDCDEDEDEDEDB

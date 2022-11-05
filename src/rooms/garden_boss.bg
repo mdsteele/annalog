@@ -1,20 +1,23 @@
 @BG 0 0 0 16x15
 >garden_0
 >garden_1
+>garden_2
+>garden_3
 >garden_4
 >garden_5
+>garden_6
 
 
-        BLCMCMCM      BL
-  BL  CMCL      CKCMCM
-    CL                CKCMBL
-  CJ                      CI
-  CJ                      CK
-  CJ                        CI
-  CJ                        CI
-  BLDI                      CI
-  CJ                      DE
-  CJ  AC                ABCI
-  DADADF      AE    AC  DEDA
-      CJ      AF    DEDA
-      BLDADADADADADA    BL
+        BLEMEMEM      BL
+  BL  EMELGFGGGHEKEMEM
+    ELGIGJGKGLGMGNGOGPEKEMBL
+  EJ      GICJCKCLCMCNCOCPEI
+  EJ          DADBDCDDDEDFEK
+  EJ            DGDHDIDJDKDLEI
+  EJ                DMDNDODPEI
+  BLFI                      EI
+  EJ                      FE
+  EJ  AC                ABEI
+  FAFAFF      AE    AC  FEFA
+      EJ      AF    FEFA
+      BLFAFAFAFAFAFA    BL
