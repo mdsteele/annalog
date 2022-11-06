@@ -32,7 +32,9 @@
 .IMPORT FuncA_Objects_DrawObjectsForRoom
 .IMPORT FuncA_Terrain_ScrollTowardsGoal
 .IMPORT Func_ClearRestOfOam
+.IMPORT Func_IsFlagSet
 .IMPORT Func_ProcessFrame
+.IMPORT Func_SetFlag
 .IMPORT Func_SetScrollGoalFromAvatar
 .IMPORT Func_Window_GetRowPpuAddr
 .IMPORT Func_Window_PrepareRowTransfer
@@ -231,6 +233,20 @@ _UpdateScrolling:
 ;;;=========================================================================;;;
 
 .SEGMENT "PRGA_Dialog"
+
+;;; Sets a flag to show a quest marker on the minimap; if the specified flag
+;;; isn't already set, this sets it and plays a sound effect for the
+;;; newly-added quest marker.
+;;; @param X The eFlag value to set.
+.EXPORT FuncA_Dialog_AddQuestMarker
+.PROC FuncA_Dialog_AddQuestMarker
+    jsr Func_IsFlagSet  ; preserves X, clears Z if flag is set
+    bne @flagIsSet
+    jsr Func_SetFlag
+    ;; TODO: Play sound effect for new quest marker
+    @flagIsSet:
+    rts
+.ENDPROC
 
 ;;; The PPU transfer entry for drawing the "yes"/"no" options for a yes-or-no
 ;;; dialog question.

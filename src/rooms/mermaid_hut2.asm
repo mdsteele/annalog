@@ -20,6 +20,7 @@
 .INCLUDE "../actor.inc"
 .INCLUDE "../actors/townsfolk.inc"
 .INCLUDE "../charmap.inc"
+.INCLUDE "../cpu.inc"
 .INCLUDE "../device.inc"
 .INCLUDE "../dialog.inc"
 .INCLUDE "../macros.inc"
@@ -31,6 +32,11 @@
 .IMPORT DataA_Room_Hut_sTileset
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrObjTownsfolk
+
+;;;=========================================================================;;;
+
+;;; The dialog index for the mermaid guard in this room.
+kMermaidGuardDialogIndex = 0
 
 ;;;=========================================================================;;;
 
@@ -94,13 +100,13 @@ _Devices_sDevice_arr:
     d_byte Type_eDevice, eDevice::TalkRight
     d_byte BlockRow_u8, 11
     d_byte BlockCol_u8, 8
-    d_byte Target_u8, 0
+    d_byte Target_u8, kMermaidGuardDialogIndex
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::TalkLeft
     d_byte BlockRow_u8, 11
     d_byte BlockCol_u8, 9
-    d_byte Target_u8, 0
+    d_byte Target_u8, kMermaidGuardDialogIndex
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::OpenDoorway
@@ -117,8 +123,11 @@ _Devices_sDevice_arr:
 
 ;;; Dialog data for the MermaidHut2 room.
 .PROC DataA_Dialog_MermaidHut2_sDialog_ptr_arr
-    .addr _Dialog0_sDialog
-_Dialog0_sDialog:
+:   .assert * - :- = kMermaidGuardDialogIndex * kSizeofAddr, error
+    .addr DataA_Dialog_MermaidHut2_MermaidGuard_sDialog
+.ENDPROC
+
+.PROC DataA_Dialog_MermaidHut2_MermaidGuard_sDialog
     .word ePortrait::Man
     .byte "Lorem ipsum.#"
     .word ePortrait::Done

@@ -19,6 +19,7 @@
 
 .INCLUDE "../actor.inc"
 .INCLUDE "../charmap.inc"
+.INCLUDE "../cpu.inc"
 .INCLUDE "../device.inc"
 .INCLUDE "../dialog.inc"
 .INCLUDE "../machine.inc"
@@ -57,6 +58,9 @@
 .IMPORTZP Zp_Tmp1_byte
 
 ;;;=========================================================================;;;
+
+;;; The dialog index for the paper in this room.
+kPaperDialogIndex = 0
 
 ;;; The machine index for the PrisonEscapeTrolley machine in this room.
 kTrolleyMachineIndex = 0
@@ -189,7 +193,7 @@ _Devices_sDevice_arr:
     d_byte Type_eDevice, eDevice::Paper
     d_byte BlockRow_u8, 11
     d_byte BlockCol_u8, 11
-    d_byte Target_u8, 0
+    d_byte Target_u8, kPaperDialogIndex
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Console
@@ -279,8 +283,11 @@ _Trolley_Tick:
 
 ;;; Dialog data for the PrisonEscape room.
 .PROC DataA_Dialog_PrisonEscape_sDialog_ptr_arr
-    .addr _Dialog0_sDialog
-_Dialog0_sDialog:
+:   .assert * - :- = kPaperDialogIndex * kSizeofAddr, error
+    .addr DataA_Dialog_PrisonEscape_Paper_sDialog
+.ENDPROC
+
+.PROC DataA_Dialog_PrisonEscape_Paper_sDialog
     .word ePortrait::Paper
     .byte "Day 12: So where do I$"
     .byte "even start? We were a$"

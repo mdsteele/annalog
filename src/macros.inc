@@ -194,6 +194,19 @@
 
 ;;;=========================================================================;;;
 
+;;; Tests the flag-th bit of the array.  Sets Z if the bit is clear; clears Z
+;;; if the bit is set.  Destroys A and N in the process, but preserves X, Y,
+;;; and other processor flags (such as C and V).
+;;;
+;;; Example:
+;;;     flag_bit Sram_ProgressFlags_arr, eFlag::UpgradeOpcodeTil
+.MACRO flag_bit ARRAY, FLAG
+    lda ARRAY + ((FLAG) >> 3)
+    and #1 << ((FLAG) & $07)
+.ENDMACRO
+
+;;;=========================================================================;;;
+
 ;;; Begins a list data definition, indexed by enum values.
 ;;;
 ;;; Example:

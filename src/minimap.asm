@@ -467,79 +467,91 @@ _MarkMinimap:
 .PROC DataA_Pause_Minimap_sMarker_arr
     D_STRUCT sMarker
     d_byte Row_u8, 1
-    d_byte Col_u8, 8
+    d_byte Col_u8, 8  ; room: PrisonFlower
     d_byte If_eFlag, 0
     d_byte Not_eFlag, eFlag::FlowerPrison
     D_END
     D_STRUCT sMarker
     d_byte Row_u8, 5
-    d_byte Col_u8, 4
+    d_byte Col_u8, 4  ; room: TempleFlower
     d_byte If_eFlag, 0
     d_byte Not_eFlag, eFlag::FlowerTemple
     D_END
     D_STRUCT sMarker
     d_byte Row_u8, 6
-    d_byte Col_u8, 4
+    d_byte Col_u8, 4  ; room: TempleLobby
     d_byte If_eFlag, 0
     d_byte Not_eFlag, eFlag::UpgradeOpcodeTil
     D_END
     D_STRUCT sMarker
     d_byte Row_u8, 7
-    d_byte Col_u8, 8
+    d_byte Col_u8, 8  ; room: GardenShrine
     d_byte If_eFlag, 0
     d_byte Not_eFlag, eFlag::UpgradeOpcodeIf
     D_END
     D_STRUCT sMarker
     d_byte Row_u8, 7
-    d_byte Col_u8, 11
+    d_byte Col_u8, 11  ; room: GardenFlower
     d_byte If_eFlag, 0
     d_byte Not_eFlag, eFlag::FlowerGarden
     D_END
     D_STRUCT sMarker
     d_byte Row_u8, 7
-    d_byte Col_u8, 13
+    d_byte Col_u8, 13  ; room: FactoryCenter
     d_byte If_eFlag, 0
     d_byte Not_eFlag, eFlag::UpgradeOpcodeSkip
     D_END
     D_STRUCT sMarker
     d_byte Row_u8, 9
-    d_byte Col_u8, 3
+    d_byte Col_u8, 3  ; room: CryptFlower
     d_byte If_eFlag, 0
     d_byte Not_eFlag, eFlag::FlowerCrypt
     D_END
     D_STRUCT sMarker
     d_byte Row_u8, 9
-    d_byte Col_u8, 13
+    d_byte Col_u8, 7  ; room: GardenTower
+    d_byte If_eFlag, eFlag::GardenTowerBoxesPlaced
+    d_byte Not_eFlag, eFlag::BreakerGarden
+    D_END
+    D_STRUCT sMarker
+    d_byte Row_u8, 9
+    d_byte Col_u8, 13  ; room: MermaidFlower
     d_byte If_eFlag, 0
     d_byte Not_eFlag, eFlag::FlowerMermaid
     D_END
     D_STRUCT sMarker
     d_byte Row_u8, 10
-    d_byte Col_u8, 4
+    d_byte Col_u8, 4  ; room: CryptGallery
     d_byte If_eFlag, 0
     d_byte Not_eFlag, eFlag::UpgradeOpcodeGoto
     D_END
     D_STRUCT sMarker
     d_byte Row_u8, 10
-    d_byte Col_u8, 12
+    d_byte Col_u8, 12  ; room: MermaidHut1
     d_byte If_eFlag, eFlag::GardenEastTalkedToMermaid
     d_byte Not_eFlag, eFlag::MermaidHut1MetQueen
     D_END
     D_STRUCT sMarker
+    d_byte Row_u8, 11
+    d_byte Col_u8, 11  ; room: MermaidVillage
+    d_byte If_eFlag, eFlag::MermaidHut1MetQueen
+    d_byte Not_eFlag, eFlag::GardenTowerBoxesPlaced
+    D_END
+    D_STRUCT sMarker
     d_byte Row_u8, 12
-    d_byte Col_u8, 17
+    d_byte Col_u8, 17  ; room: LavaStation
     d_byte If_eFlag, 0
     d_byte Not_eFlag, eFlag::UpgradeOpcodeCopy
     D_END
     D_STRUCT sMarker
     d_byte Row_u8, 13
-    d_byte Col_u8, 22
+    d_byte Col_u8, 22  ; room: MinePit
     d_byte If_eFlag, 0
     d_byte Not_eFlag, eFlag::UpgradeOpcodeSync
     D_END
     D_STRUCT sMarker
     d_byte Row_u8, 14
-    d_byte Col_u8, 16
+    d_byte Col_u8, 16  ; room: LavaFlower
     d_byte If_eFlag, 0
     d_byte Not_eFlag, eFlag::FlowerLava
     D_END

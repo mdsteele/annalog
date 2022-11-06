@@ -31,8 +31,10 @@
 .IMPORT DataA_Pause_MermaidAreaCells_u8_arr2_arr
 .IMPORT DataA_Pause_MermaidAreaName_u8_arr
 .IMPORT DataA_Room_Mermaid_sTileset
+.IMPORT FuncA_Dialog_AddQuestMarker
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrObjTownsfolk
+.IMPORT Sram_ProgressFlags_arr
 
 ;;;=========================================================================;;;
 
@@ -258,24 +260,72 @@ _Passages_sPassage_arr:
 ;;; Dialog data for the MermaidVillage room.
 .PROC DataA_Dialog_MermaidVillage_sDialog_ptr_arr
 :   .assert * - :- = kMermaidGuardDialogIndex * kSizeofAddr, error
-    .addr _MermaidGuard_sDialog
+    .addr DataA_Dialog_MermaidVillage_MermaidGuard_sDialog
     .assert * - :- = kMermaidFarmerDialogIndex * kSizeofAddr, error
-    .addr _MermaidFarmer_sDialog
+    .addr DataA_Dialog_MermaidVillage_MermaidFarmer_sDialog
     .assert * - :- = kMermaidYouthDialogIndex * kSizeofAddr, error
-    .addr _MermaidYouth_sDialog
-_MermaidGuard_sDialog:
+    .addr DataA_Dialog_MermaidVillage_MermaidYouth_sDialog
+.ENDPROC
+
+.PROC DataA_Dialog_MermaidVillage_MermaidGuard_sDialog
     .word ePortrait::Mermaid
     .byte "I am guarding this$"
     .byte "village.#"
     .word ePortrait::Done
-_MermaidFarmer_sDialog:
+.ENDPROC
+
+.PROC DataA_Dialog_MermaidVillage_MermaidFarmer_sDialog
+    .addr _InitialFunc
+_InitialFunc:
+    flag_bit Sram_ProgressFlags_arr, eFlag::BreakerGarden
+    bne @farming  ; TODO different message
+    flag_bit Sram_ProgressFlags_arr, eFlag::GardenTowerBoxesPlaced
+    bne @monster
+    flag_bit Sram_ProgressFlags_arr, eFlag::MermaidHut1MetQueen
+    bne @needHelp
+    @farming:
+    ldya #_Farming_sDialog
+    rts
+    @needHelp:
+    ldya #_NeedHelp_sDialog
+    rts
+    @monster:
+    ldya #_Monster_sDialog
+    rts
+_Farming_sDialog:
     .word ePortrait::Man
     .byte "I am farming seaweed.$"
     .byte "The harvest has not$"
     .byte "been good this year,$"
     .byte "though.#"
     .word ePortrait::Done
-_MermaidYouth_sDialog:
+_NeedHelp_sDialog:
+    .word ePortrait::Man
+    .byte "The queen sent you?$"
+    .byte "Thank goodness. We$"
+    .byte "could use your help.#"
+_Monster_sDialog:
+    .word ePortrait::Man
+    .byte "West of our village,$"
+    .byte "there is a tower in$"
+    .byte "the gardens. A monster$"
+    .byte "has taken it over.#"
+    .addr _OpenTheWayFunc
+_OpenTheWayFunc:
+    ldx #eFlag::GardenTowerBoxesPlaced  ; param: flag
+    jsr FuncA_Dialog_AddQuestMarker
+    ldya #_OpenTheWay_sDialog
+    rts
+_OpenTheWay_sDialog:
+    .word ePortrait::Man
+    .byte "Perhaps, one of your$"
+    .byte "ingenuity could get$"
+    .byte "rid of it. We'll open$"
+    .byte "the way up for you.#"
+    .word ePortrait::Done
+.ENDPROC
+
+.PROC DataA_Dialog_MermaidVillage_MermaidYouth_sDialog
     .word ePortrait::Mermaid
     .byte "Lorem ipsum.#"
     .word ePortrait::Done

@@ -19,6 +19,7 @@
 
 .INCLUDE "../actor.inc"
 .INCLUDE "../charmap.inc"
+.INCLUDE "../cpu.inc"
 .INCLUDE "../device.inc"
 .INCLUDE "../dialog.inc"
 .INCLUDE "../flag.inc"
@@ -57,6 +58,9 @@
 .IMPORTZP Zp_Tmp1_byte
 
 ;;;=========================================================================;;;
+
+;;; The dialog index for the paper in this room.
+kPaperDialogIndex = 0
 
 ;;; The minimum scroll-X value for this room.
 kMinScrollX = $10
@@ -192,7 +196,7 @@ _Devices_sDevice_arr:
     d_byte Type_eDevice, eDevice::Paper
     d_byte BlockRow_u8, 12
     d_byte BlockCol_u8, 9
-    d_byte Target_u8, 0
+    d_byte Target_u8, kPaperDialogIndex
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Console
@@ -346,8 +350,11 @@ _RightTileIds_u8_arr:
 
 ;;; Dialog data for the PrisonCell room.
 .PROC DataA_Dialog_PrisonCell_sDialog_ptr_arr
-    .addr _Dialog0_sDialog
-_Dialog0_sDialog:
+:   .assert * - :- = kPaperDialogIndex * kSizeofAddr, error
+    .addr DataA_Dialog_PrisonCell_Paper_sDialog
+.ENDPROC
+
+.PROC DataA_Dialog_PrisonCell_Paper_sDialog
     .word ePortrait::Paper
     .byte "Day 87: By now there's$"
     .byte "probably not much time$"

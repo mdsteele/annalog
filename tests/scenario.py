@@ -50,7 +50,15 @@ PASSAGE_SIDE_OPPOSITES = {
     'Western': 'Eastern',
 }
 
+ROOM_NAME_RE = re.compile(r'^([A-Z][a-z]*)([A-Z][a-z0-9]*)$')
+
 D_STRUCT_RE = re.compile(r'^:? *D_STRUCT +(s[A-Za-z0-9]+)')
+
+MARKER_ROW_RE = re.compile(r'^ *d_byte +Row_u8, *([0-9]+)')
+MARKER_COL_RE = re.compile(
+    r'^ *d_byte +Col_u8, *([0-9]+) *; *room: *([A-Za-z0-9]+)')
+MARKER_IF_RE = re.compile(r'^ *d_byte +If_eFlag, *(?:0|eFlag::([A-Za-z0-9]+))')
+MARKER_NOT_RE = re.compile(r'^ *d_byte +Not_eFlag, *eFlag::([A-Za-z0-9]+)')
 
 MAX_SCROLL_X_RE = re.compile(r'^ *d_word +MaxScrollX_u16,.*\$([0-9a-fA-F]+)')
 IS_TALL_RE = re.compile(r'^ *d_byte +IsTall_bool, *\$([0-9a-fA-F]+)')
@@ -69,6 +77,23 @@ PASSAGE_DEST_RE = re.compile(
     r'^ *d_byte Destination_eRoom, *eRoom::(([A-Z][a-z]+)[A-Za-z0-9]+)')
 
 #=============================================================================#
+
+def area_name_from_room_name(room_name):
+    match = ROOM_NAME_RE.match(room_name)
+    assert match
+    return match.group(1)
+
+#=============================================================================#
+
+def read_match_line(file, pattern):
+    line = file.readline()
+    match = pattern.match(line)
+    assert match, '{} doesn\'t match {} in {}'.format(
+        repr(line), repr(pattern), file.name)
+    return match
+
+def read_int_line(file, pattern, radix=10):
+    return int(read_match_line(file, pattern).group(1), radix)
 
 def try_scan_for_match(file, pattern):
     while True:
@@ -121,11 +146,11 @@ def load_room(filepath, area_name):
         if not match: break
         struct_type = match.group(1)
         if struct_type == 'sDevice':
-            device_type = scan_for_match(file, DEVICE_TYPE_RE).group(1)
+            device_type = read_match_line(file, DEVICE_TYPE_RE).group(1)
             if 'Door' not in device_type: continue
-            block_row = scan_for_int(file, DEVICE_ROW_RE)
-            block_col = scan_for_int(file, DEVICE_COL_RE)
-            door_dest = scan_for_match(file, DOOR_TARGET_RE).group(1)
+            block_row = read_int_line(file, DEVICE_ROW_RE)
+            block_col = read_int_line(file, DEVICE_COL_RE)
+            door_dest = read_match_line(file, DOOR_TARGET_RE).group(1)
             cell_row = start_row + (1 if is_tall and block_row >= 12 else 0)
             cell_col = start_col + block_col // 16
             doors.append({
@@ -133,8 +158,8 @@ def load_room(filepath, area_name):
                 'dest_room': door_dest,
             })
         elif struct_type == 'sPassage':
-            exit_match = scan_for_match(file, PASSAGE_EXIT_RE)
-            dest_match = scan_for_match(file, PASSAGE_DEST_RE)
+            exit_match = read_match_line(file, PASSAGE_EXIT_RE)
+            dest_match = read_match_line(file, PASSAGE_DEST_RE)
             side = exit_match.group(1)
             same_screen = bool(exit_match.group(2))
             screen = int(exit_match.group(3))
@@ -175,29 +200,48 @@ def load_rooms(areas):
             room = load_room(filepath, area_name)
             areas[area_name]['rooms'][full_name] = room
 
-def load_areas():
-    cells_re = re.compile(r'^\.PROC DataA_Pause_([A-Z][a-z]+)AreaCells')
+def load_areas_and_markers():
+    data_re = re.compile(
+        r'^\.PROC DataA_Pause_(Minimap_sMarker|([A-Z][a-z]+)AreaCells)')
     cell_entry_re = re.compile(r'^ *\.byte +([0-9]+), *([0-9]+)$')
     areas = {}
-    with open('src/minimap.asm') as file:
-        while True:
-            line = file.readline()
-            if not line: break
-            match = cells_re.match(line)
-            if match:
-                area_name = match.group(1)
-                area_cells = []
-                while True:
-                    line = file.readline()
-                    if '.byte $ff' in line: break
-                    match = cell_entry_re.match(line)
-                    assert match, line
-                    row = int(match.group(1))
-                    col = int(match.group(2))
-                    area_cells.append((row, col))
-                areas[area_name] = {'cells': area_cells, 'rooms': {}}
+    file = open('src/minimap.asm')
+    while True:
+        match = try_scan_for_match(file, data_re)
+        assert match
+        if match.group(1).endswith('AreaCells'):
+            area_name = match.group(2)
+            area_cells = []
+            while True:
+                line = file.readline()
+                if '.byte $ff' in line: break
+                match = cell_entry_re.match(line)
+                assert match, line
+                row = int(match.group(1))
+                col = int(match.group(2))
+                area_cells.append((row, col))
+            areas[area_name] = {'cells': area_cells, 'rooms': {}}
+        else:
+            assert match.group(1) == 'Minimap_sMarker'
+            break
+    markers = []
+    while True:
+        match = try_scan_for_match(file, D_STRUCT_RE)
+        if not match: break
+        assert match.group(1) == 'sMarker'
+        row = read_int_line(file, MARKER_ROW_RE)
+        match = read_match_line(file, MARKER_COL_RE)
+        col = int(match.group(1))
+        room = match.group(2)
+        if_flag = read_match_line(file, MARKER_IF_RE).group(1) or ''
+        not_flag = read_match_line(file, MARKER_NOT_RE).group(1)
+        markers.append({
+            'cell': (row, col),
+            'name': '{}/{}'.format(if_flag, not_flag),
+            'room': room,
+        })
     load_rooms(areas)
-    return areas
+    return areas, markers
 
 #=============================================================================#
 
@@ -208,6 +252,17 @@ def test_area_cells_sorted(areas):
         if area_cells != sorted(area_cells):
             print('SCENARIO: {}AreaCells is not sorted'.format(area_name))
             failed = True
+    return failed
+
+def test_markers_sorted(markers):
+    failed = False
+    prev = (0, 0)
+    for marker in markers:
+        cell = marker['cell']
+        if cell < prev:
+            print('SCENARIO: marker {} is not in order'.format(marker['name']))
+            failed = True
+        else: prev = cell
     return failed
 
 def test_minimap_coverage(areas, minimap):
@@ -312,17 +367,33 @@ def test_room_passages(areas):
                     failed = True
     return failed
 
+def test_marker_rooms(areas, markers):
+    failed = False
+    for marker in markers:
+        room_name = marker['room']
+        area_name = area_name_from_room_name(room_name)
+        area = areas[area_name]
+        room = area['rooms'][room_name]
+        cell = marker['cell']
+        if cell not in room['cells']:
+            print('SCENARIO: marker {} cell {} is not in room {}'.format(
+                marker['name'], cell, room_name))
+            failed = True
+    return failed
+
 #=============================================================================#
 
 def run_tests():
     failed = False
-    areas = load_areas()
+    areas, markers = load_areas_and_markers()
     failed |= test_area_cells_sorted(areas)
+    failed |= test_markers_sorted(markers)
     minimap = load_minimap()
     failed |= test_minimap_coverage(areas, minimap)
     failed |= test_room_cells(areas)
     failed |= test_room_doors(areas)
     failed |= test_room_passages(areas)
+    failed |= test_marker_rooms(areas, markers)
     return failed
 
 #=============================================================================#

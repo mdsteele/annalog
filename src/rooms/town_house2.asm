@@ -20,6 +20,7 @@
 .INCLUDE "../actor.inc"
 .INCLUDE "../actors/townsfolk.inc"
 .INCLUDE "../charmap.inc"
+.INCLUDE "../cpu.inc"
 .INCLUDE "../device.inc"
 .INCLUDE "../dialog.inc"
 .INCLUDE "../macros.inc"
@@ -31,6 +32,11 @@
 .IMPORT DataA_Room_Indoors_sTileset
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrObjTownsfolk
+
+;;;=========================================================================;;;
+
+;;; The dialog index for Anna's mom in this room.
+kMomDialogIndex = 0
 
 ;;;=========================================================================;;;
 
@@ -84,13 +90,13 @@ _Devices_sDevice_arr:
     d_byte Type_eDevice, eDevice::TalkRight
     d_byte BlockRow_u8, 12
     d_byte BlockCol_u8, 7
-    d_byte Target_u8, 0
+    d_byte Target_u8, kMomDialogIndex
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::TalkLeft
     d_byte BlockRow_u8, 12
     d_byte BlockCol_u8, 8
-    d_byte Target_u8, 0
+    d_byte Target_u8, kMomDialogIndex
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::UnlockedDoor
@@ -107,8 +113,11 @@ _Devices_sDevice_arr:
 
 ;;; Dialog data for the TownHouse2 room.
 .PROC DataA_Dialog_TownHouse2_sDialog_ptr_arr
-    .addr _Dialog0_sDialog
-_Dialog0_sDialog:
+:   .assert * - :- = kMomDialogIndex * kSizeofAddr, error
+    .addr DataA_Dialog_TownHouse2_Mom_sDialog
+.ENDPROC
+
+.PROC DataA_Dialog_TownHouse2_Mom_sDialog
     .word ePortrait::Woman
     .byte "Can't sleep, Anna?#"
     .word ePortrait::Woman

@@ -143,8 +143,10 @@ _Passages_sPassage_arr:
 ;;; Dialog data for the PrisonFlower room.
 .PROC DataA_Dialog_PrisonFlower_sDialog_ptr_arr
 :   .assert * - :- = kSignDialogIndex * kSizeofAddr, error
-    .addr _Sign_sDialog
-_Sign_sDialog:
+    .addr DataA_Dialog_PrisonFlower_Sign_sDialog
+.ENDPROC
+
+.PROC DataA_Dialog_PrisonFlower_Sign_sDialog
     .word ePortrait::Sign
     .byte "Surface Access ", kTileIdArrowRight, "$"
     .byte "$"

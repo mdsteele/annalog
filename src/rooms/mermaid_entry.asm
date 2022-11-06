@@ -19,6 +19,7 @@
 
 .INCLUDE "../actor.inc"
 .INCLUDE "../charmap.inc"
+.INCLUDE "../cpu.inc"
 .INCLUDE "../device.inc"
 .INCLUDE "../dialog.inc"
 .INCLUDE "../flag.inc"
@@ -31,6 +32,11 @@
 .IMPORT DataA_Room_Mermaid_sTileset
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrObjUpgrade
+
+;;;=========================================================================;;;
+
+;;; The dialog index for the sign in this room.
+kSignDialogIndex = 0
 
 ;;;=========================================================================;;;
 
@@ -128,7 +134,7 @@ _Devices_sDevice_arr:
     d_byte Type_eDevice, eDevice::Sign
     d_byte BlockRow_u8, 8
     d_byte BlockCol_u8, 10
-    d_byte Target_u8, 0
+    d_byte Target_u8, kSignDialogIndex
     D_END
     .byte eDevice::None
 _Passages_sPassage_arr:
@@ -150,8 +156,11 @@ _Passages_sPassage_arr:
 
 ;;; Dialog data for the MermaidEntry room.
 .PROC DataA_Dialog_MermaidEntry_sDialog_ptr_arr
-    .addr _Dialog0_sDialog
-_Dialog0_sDialog:
+:   .assert * - :- = kSignDialogIndex * kSizeofAddr, error
+    .addr DataA_Dialog_MermaidEntry_Sign_sDialog
+.ENDPROC
+
+.PROC DataA_Dialog_MermaidEntry_Sign_sDialog
     .word ePortrait::Sign
     .byte kTileIdArrowLeft, " Hanging Gardens$"
     .byte "$"

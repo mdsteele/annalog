@@ -19,6 +19,7 @@
 
 .INCLUDE "../actor.inc"
 .INCLUDE "../charmap.inc"
+.INCLUDE "../cpu.inc"
 .INCLUDE "../device.inc"
 .INCLUDE "../dialog.inc"
 .INCLUDE "../irq.inc"
@@ -43,6 +44,9 @@
 .IMPORTZP Zp_Tmp1_byte
 
 ;;;=========================================================================;;;
+
+;;; The dialog index for the sign in this room.
+kSignDialogIndex = 0
 
 ;;; The room pixel Y-positions for the top and bottom of the treeline.  These
 ;;; are the breaks between separate parallax scrolling bands.
@@ -100,7 +104,7 @@ _Devices_sDevice_arr:
     d_byte Type_eDevice, eDevice::Sign
     d_byte BlockRow_u8, 12
     d_byte BlockCol_u8, 19
-    d_byte Target_u8, 0
+    d_byte Target_u8, kSignDialogIndex
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::OpenDoorway
@@ -256,8 +260,11 @@ _Devices_sDevice_arr:
 
 ;;; Dialog data for the TownOutdoors room.
 .PROC DataA_Dialog_TownOutdoors_sDialog_ptr_arr
-    .addr _Dialog0_sDialog
-_Dialog0_sDialog:
+:   .assert * - :- = kSignDialogIndex * kSizeofAddr, error
+    .addr DataA_Dialog_TownOutdoors_Sign_sDialog
+.ENDPROC
+
+.PROC DataA_Dialog_TownOutdoors_Sign_sDialog
     .word ePortrait::Sign
     .byte "Lorem ipsum dolor sit$"
     .byte "amet, consectetur$"

@@ -55,6 +55,7 @@
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORT Ram_PlatformType_ePlatform_arr
 .IMPORT Ram_RoomState
+.IMPORT Sram_ProgressFlags_arr
 .IMPORTZP Zp_FrameCounter_u8
 .IMPORTZP Zp_PlatformGoal_i16
 .IMPORTZP Zp_Tmp1_byte
@@ -229,8 +230,7 @@ _Passages_sPassage_arr:
 
 .PROC DataC_Mermaid_Drain_InitRoom
     ;; TODO: remove console device if Alex hasn't repaired it yet
-    ldx #eFlag::MermaidDrainUnplugged
-    jsr Func_IsFlagSet  ; clears Z if flag is set
+    flag_bit Sram_ProgressFlags_arr, eFlag::MermaidDrainUnplugged
     bne _Drained
 _NotDrained:
     rts
@@ -378,25 +378,26 @@ _WaterWidth_u8_arr:
 ;;; Dialog data for the MermaidDrain room.
 .PROC DataA_Dialog_MermaidDrain_sDialog_ptr_arr
 :   .assert * - :- = kSignDialogIndex * kSizeofAddr, error
-    .addr _Sign_sDialog
-_Sign_sDialog:
-    .addr _SignInitialFunc
-_SignInitialFunc:
-    ldx #eFlag::MermaidDrainUnplugged  ; param: flag
-    jsr Func_IsFlagSet  ; clears Z if flag is set
+    .addr DataA_Dialog_MermaidDrain_Sign_sDialog
+.ENDPROC
+
+.PROC DataA_Dialog_MermaidDrain_Sign_sDialog
+    .addr _InitialFunc
+_InitialFunc:
+    flag_bit Sram_ProgressFlags_arr, eFlag::MermaidDrainUnplugged
     bne @unplugged
-    ldya #_SignOpen_sDialog
+    ldya #_Open_sDialog
     rts
     @unplugged:
-    ldya #_SignClosed_sDialog
+    ldya #_Closed_sDialog
     rts
-_SignOpen_sDialog:
+_Open_sDialog:
     .word ePortrait::Sign
     .byte "   - Hot Spring -$"
     .byte "Please enjoy a restful$"
     .byte "and relaxing soak.#"
     .word ePortrait::Done
-_SignClosed_sDialog:
+_Closed_sDialog:
     .word ePortrait::Sign
     .byte "   - Hot Spring -$"
     .byte "Currently closed for$"

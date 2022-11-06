@@ -20,6 +20,7 @@
 .INCLUDE "../actor.inc"
 .INCLUDE "../actors/townsfolk.inc"
 .INCLUDE "../charmap.inc"
+.INCLUDE "../cpu.inc"
 .INCLUDE "../device.inc"
 .INCLUDE "../dialog.inc"
 .INCLUDE "../flag.inc"
@@ -50,6 +51,9 @@
 .IMPORTZP Zp_Tmp2_byte
 
 ;;;=========================================================================;;;
+
+;;; The dialog index for the mermaid florist in this room.
+kMermaidFloristDialogIndex = 0
 
 ;;; The device index for the door leading to the cellar.
 kCellarDoorDeviceIndex = 3
@@ -118,13 +122,13 @@ _Devices_sDevice_arr:
     d_byte Type_eDevice, eDevice::TalkRight
     d_byte BlockRow_u8, 10
     d_byte BlockCol_u8, 8
-    d_byte Target_u8, 0
+    d_byte Target_u8, kMermaidFloristDialogIndex
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::TalkLeft
     d_byte BlockRow_u8, 10
     d_byte BlockCol_u8, 9
-    d_byte Target_u8, 0
+    d_byte Target_u8, kMermaidFloristDialogIndex
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::OpenDoorway
@@ -146,8 +150,7 @@ _Devices_sDevice_arr:
 ;;;=========================================================================;;;
 
 .PROC FuncC_Mermaid_Hut4_InitRoom
-    ldx #eFlag::MermaidHut4OpenedCellar
-    jsr Func_IsFlagSet  ; sets Z if flag is not set
+    flag_bit Sram_ProgressFlags_arr, eFlag::MermaidHut4OpenedCellar
     beq @done
     lda #eDevice::UnlockedDoor
     sta Ram_DeviceType_eDevice_arr + kCellarDoorDeviceIndex
@@ -211,8 +214,11 @@ _PosY_u8_arr:
 
 ;;; Dialog data for the MermaidHut4 room.
 .PROC DataA_Dialog_MermaidHut4_sDialog_ptr_arr
-    .addr _Initial_sDialog
-_Initial_sDialog:
+:   .assert * - :- = kMermaidFloristDialogIndex * kSizeofAddr, error
+    .addr DataA_Dialog_MermaidHut4_MermaidFlorist_sDialog
+.ENDPROC
+
+.PROC DataA_Dialog_MermaidHut4_MermaidFlorist_sDialog
     .addr _InitialDialogFunc
 _InitialDialogFunc:
     lda Sram_CarryingFlower_eFlag
@@ -230,14 +236,9 @@ _InitialDialogFunc:
     ldya #_WantMoreFlowers_sDialog
     rts
     @hasDeliveredAllFlowers:
-    jsr _OpenCellarDoor
+    jsr FuncA_Dialog_MermaidHut4_OpenCellarDoor
     ldya #_ThankYou_sDialog
     rts
-_OpenCellarDoor:
-    ldx #kCellarDoorDeviceIndex  ; param: device index
-    jsr Func_UnlockDoorDevice
-    ldx #eFlag::MermaidHut4OpenedCellar  ; param: flag
-    jmp Func_SetFlag
 _NoFlowersYet_sDialog:
     .word ePortrait::Mermaid
     .byte "Bring me flowers.#"
@@ -281,7 +282,7 @@ _DeliverFlowerFunc:
     ldya #_WantMoreFlowers_sDialog
     rts
     @allFlowersDelivered:
-    jsr _OpenCellarDoor
+    jsr FuncA_Dialog_MermaidHut4_OpenCellarDoor
     ldya #_DeliveredLastFlower_sDialog
     rts
 _WantMoreFlowers_sDialog:
@@ -297,6 +298,15 @@ _ThankYou_sDialog:
     .byte "Thank you for all the$"
     .byte "flowers.#"
     .word ePortrait::Done
+.ENDPROC
+
+;;; Unlocks the cellar door in this room, and sets the flag indicating that the
+;;; door is open.
+.PROC FuncA_Dialog_MermaidHut4_OpenCellarDoor
+    ldx #kCellarDoorDeviceIndex  ; param: device index
+    jsr Func_UnlockDoorDevice
+    ldx #eFlag::MermaidHut4OpenedCellar  ; param: flag
+    jmp Func_SetFlag
 .ENDPROC
 
 ;;;=========================================================================;;;

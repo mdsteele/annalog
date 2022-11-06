@@ -51,7 +51,7 @@
     rts
 .ENDPROC
 
-;;; Set the specified eFlag to true.
+;;; Sets the specified eFlag to true.
 ;;; @param X The eFlag value to set.
 ;;; @preserve Zp_Tmp*
 .EXPORT Func_SetFlag

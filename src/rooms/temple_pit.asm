@@ -107,8 +107,10 @@ _Passages_sPassage_arr:
 ;;; Dialog data for the TemplePit room.
 .PROC DataA_Dialog_TemplePit_sDialog_ptr_arr
 :   .assert * - :- = kPaperDialogIndex * kSizeofAddr, error
-    .addr _Paper_sDialog
-_Paper_sDialog:
+    .addr DataA_Dialog_TemplePit_Paper_sDialog
+.ENDPROC
+
+.PROC DataA_Dialog_TemplePit_Paper_sDialog
     .word ePortrait::Paper
     .byte "Day 34: Our technology$"
     .byte "is amazing, but don't$"

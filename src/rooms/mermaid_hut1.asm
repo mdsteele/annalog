@@ -23,6 +23,7 @@
 .INCLUDE "../cpu.inc"
 .INCLUDE "../device.inc"
 .INCLUDE "../dialog.inc"
+.INCLUDE "../flag.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../platform.inc"
 .INCLUDE "../room.inc"
@@ -30,8 +31,10 @@
 .IMPORT DataA_Pause_MermaidAreaCells_u8_arr2_arr
 .IMPORT DataA_Pause_MermaidAreaName_u8_arr
 .IMPORT DataA_Room_Hut_sTileset
+.IMPORT FuncA_Dialog_AddQuestMarker
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrObjTownsfolk
+.IMPORT Sram_ProgressFlags_arr
 
 ;;;=========================================================================;;;
 
@@ -143,16 +146,67 @@ _Devices_sDevice_arr:
 ;;; Dialog data for the MermaidHut1 room.
 .PROC DataA_Dialog_MermaidHut1_sDialog_ptr_arr
 :   .assert * - :- = kMermaidGuardDialogIndex * kSizeofAddr, error
-    .addr _MermaidGuard_sDialog
+    .addr DataA_Dialog_MermaidHut1_MermaidGuard_sDialog
     .assert * - :- = kMermaidQueenDialogIndex * kSizeofAddr, error
-    .addr _MermaidQueen_sDialog
-_MermaidGuard_sDialog:
+    .addr DataA_Dialog_MermaidHut1_MermaidQueen_sDialog
+.ENDPROC
+
+.PROC DataA_Dialog_MermaidHut1_MermaidGuard_sDialog
     .word ePortrait::Man
-    .byte "Lorem ipsum.#"
+    .byte "All hail Queen Eirene!#"
     .word ePortrait::Done
-_MermaidQueen_sDialog:
+.ENDPROC
+
+.PROC DataA_Dialog_MermaidHut1_MermaidQueen_sDialog
+    .addr _InitialFunc
+_InitialFunc:
+    flag_bit Sram_ProgressFlags_arr, eFlag::MermaidHut1MetQueen
+    bne @grantAsylum
+    @firstMeeting:
+    ldya #_FirstMeeting_sDialog
+    rts
+    @grantAsylum:
+    ldya #_GrantAsylum_sDialog
+    rts
+_FirstMeeting_sDialog:
     .word ePortrait::Mermaid
-    .byte "I am the queen.#"
+    .byte "So, you must be the$"
+    .byte "human I've heard is$"
+    .byte "running around.#"
+    .word ePortrait::Mermaid
+    .byte "Humans belong on the$"
+    .byte "surface, not here. So$"
+    .byte "what are you doing$"
+    .byte "down here among us?#"
+    ;; TODO: use a dialog function to fade to black and back
+    .word ePortrait::Mermaid
+    .byte "...I see. So the orcs$"
+    .byte "attacked, and now you$"
+    .byte "are a refugee. This$"
+    .byte "complicates things.#"
+    .word ePortrait::Mermaid
+    .byte "I will be honest. I do$"
+    .byte "not trust humans.$"
+    .byte "However, I don't care$"
+    .byte "for the orcs either.#"
+_GrantAsylum_sDialog:
+    .word ePortrait::Mermaid
+    .byte "I will grant you safe$"
+    .byte "asylum in our village,$"
+    .byte "on one condition: that$"
+    .byte "you help us in return.#"
+    .addr _HelpFramersFunc
+_HelpFramersFunc:
+    ldx #eFlag::MermaidHut1MetQueen  ; param: flag
+    jsr FuncA_Dialog_AddQuestMarker
+    ldya #_HelpFarmers_sDialog
+    rts
+_HelpFarmers_sDialog:
+    .word ePortrait::Mermaid
+    .byte "Speak with our farmers$"
+    .byte "in this village. They$"
+    .byte "have a problem a human$"
+    .byte "could perhaps solve.#"
     .word ePortrait::Done
 .ENDPROC
 

@@ -315,30 +315,32 @@ _ColumnBody:
 ;;; Dialog data for the TempleEntry room.
 .PROC DataA_Dialog_TempleEntry_sDialog_ptr_arr
 :   .assert * - :- = kMermaidDialogIndex * kSizeofAddr, error
-    .addr _Mermaid_sDialog
-_Mermaid_sDialog:
+    .addr DataA_Dialog_TempleEntry_Mermaid_sDialog
+.ENDPROC
+
+.PROC DataA_Dialog_TempleEntry_Mermaid_sDialog
     .word ePortrait::Mermaid
     .byte "I am guarding the$"
     .byte "entrance to the temple$"
     .byte "you see above us.#"
-    .addr _MermaidCheckPermissionFunc
-_MermaidCheckPermissionFunc:
+    .addr _CheckPermissionFunc
+_CheckPermissionFunc:
     ;; TODO: check flag to see if the queen has given you permission.
-    jmp _MermaidRaiseColumnFunc
-    ldya #_MermaidNoPermission_sDialog
+    jmp _RaiseColumnFunc
+    ldya #_NoPermission_sDialog
     rts
-_MermaidNoPermission_sDialog:
+_NoPermission_sDialog:
     .word ePortrait::Mermaid
     .byte "I cannot help you to$"
     .byte "enter it without the$"
     .byte "queen's permission.#"
     .word ePortrait::Done
-_MermaidRaiseColumnFunc:
+_RaiseColumnFunc:
     ldx #eFlag::TempleEntryColumnRaised  ; param: flag
     jsr Func_SetFlag
-    ldya #_MermaidEnter_sDialog
+    ldya #_Enter_sDialog
     rts
-_MermaidEnter_sDialog:
+_Enter_sDialog:
     .word ePortrait::Mermaid
     .byte "Our queen has sent$"
     .byte "word: I am to allow$"

@@ -145,39 +145,42 @@ _Devices_sDevice_arr:
 ;;; Dialog data for the MermaidHut3 room.
 .PROC DataA_Dialog_MermaidHut3_sDialog_ptr_arr
 :   .assert * - :- = kMermaidAdultDialogIndex * kSizeofAddr, error
-    .addr _MermaidAdult_sDialog
+    .addr DataA_Dialog_MermaidHut3_MermaidAdult_sDialog
     .assert * - :- = kMermaidGirlDialogIndex * kSizeofAddr, error
-    .addr _MermaidGirl_sDialog
-_MermaidAdult_sDialog:
+    .addr DataA_Dialog_MermaidHut3_MermaidGirl_sDialog
+.ENDPROC
+
+.PROC DataA_Dialog_MermaidHut3_MermaidAdult_sDialog
     .word ePortrait::Mermaid
     .byte "There's a natural hot$"
     .byte "spring just east of$"
     .byte "this village.#"
-    .addr _MermaidAdult_HotSpringFunc
-_MermaidAdult_HotSpringFunc:
-    lda Sram_ProgressFlags_arr + (eFlag::MermaidDrainUnplugged >> 3)
-    and #1 << (eFlag::MermaidDrainUnplugged & $07)
+    .addr _HotSpringFunc
+_HotSpringFunc:
+    flag_bit Sram_ProgressFlags_arr, eFlag::MermaidDrainUnplugged
     bne @unplugged
-    ldya #_MermaidAdult_HotSpringOpen_sDialog
+    ldya #_HotSpringOpen_sDialog
     rts
     @unplugged:
-    ldya #_MermaidAdult_HotSpringClosed_sDialog
+    ldya #_HotSpringClosed_sDialog
     rts
-_MermaidAdult_HotSpringOpen_sDialog:
+_HotSpringOpen_sDialog:
     .word ePortrait::Mermaid
     .byte "The water is heated by$"
     .byte "magma flows far below.$"
     .byte "It's a great place to$"
     .byte "relax.#"
     .word ePortrait::Done
-_MermaidAdult_HotSpringClosed_sDialog:
+_HotSpringClosed_sDialog:
     .word ePortrait::Mermaid
     .byte "Unfortunately, all the$"
     .byte "water got drained out$"
     .byte "somehow. So now we$"
     .byte "can't use it.#"
     .word ePortrait::Done
-_MermaidGirl_sDialog:
+.ENDPROC
+
+.PROC DataA_Dialog_MermaidHut3_MermaidGirl_sDialog
     .word ePortrait::Girl
     .byte "You're so lucky that$"
     .byte "you get to go on an$"

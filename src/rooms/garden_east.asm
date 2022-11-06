@@ -37,6 +37,7 @@
 .IMPORT DataA_Pause_GardenAreaCells_u8_arr2_arr
 .IMPORT DataA_Pause_GardenAreaName_u8_arr
 .IMPORT DataA_Room_Garden_sTileset
+.IMPORT FuncA_Dialog_AddQuestMarker
 .IMPORT FuncA_Machine_BridgeTick
 .IMPORT FuncA_Machine_BridgeTryMove
 .IMPORT FuncA_Machine_CannonTick
@@ -45,16 +46,15 @@
 .IMPORT FuncA_Machine_Error
 .IMPORT FuncA_Objects_DrawBridgeMachine
 .IMPORT FuncA_Objects_DrawCannonMachine
-.IMPORT Func_IsFlagSet
 .IMPORT Func_MachineBridgeReadRegY
 .IMPORT Func_MachineCannonReadRegY
 .IMPORT Func_Noop
-.IMPORT Func_SetFlag
 .IMPORT Ppu_ChrObjGarden
 .IMPORT Ram_ActorType_eActor_arr
 .IMPORT Ram_DeviceType_eDevice_arr
 .IMPORT Ram_MachineGoalVert_u8_arr
 .IMPORT Ram_RoomState
+.IMPORT Sram_ProgressFlags_arr
 .IMPORTZP Zp_DialogAnsweredYes_bool
 
 ;;;=========================================================================;;;
@@ -310,8 +310,7 @@ _Passages_sPassage_arr:
 .PROC FuncC_Garden_EastBridge_InitRoom
     ;; Remove the mermaid from this room if the player has already met with the
     ;; mermaid queen.
-    ldx #eFlag::MermaidHut1MetQueen
-    jsr Func_IsFlagSet  ; clears Z if flag is set
+    flag_bit Sram_ProgressFlags_arr, eFlag::MermaidHut1MetQueen
     beq @done
     lda #0
     .assert eActor::None = 0, error
@@ -379,58 +378,55 @@ _Passages_sPassage_arr:
 ;;; Dialog data for the GardenEast room.
 .PROC DataA_Dialog_GardenEast_sDialog_ptr_arr
 :   .assert * - :- = kMermaidDialogIndex * kSizeofAddr, error
-    .addr _Mermaid_sDialog
-_Mermaid_sDialog:
-    .addr _MermaidInitialFunc
-_MermaidInitialFunc:
-    ldx #eFlag::GardenEastTalkedToMermaid  ; param: flag
-    jsr Func_IsFlagSet  ; clears Z if flag is set
+    .addr DataA_Dialog_GardenEast_Mermaid_sDialog
+.ENDPROC
+
+.PROC DataA_Dialog_GardenEast_Mermaid_sDialog
+    .addr _InitialFunc
+_InitialFunc:
+    flag_bit Sram_ProgressFlags_arr, eFlag::GardenEastTalkedToMermaid
     bne @alreadyTalked
-    ldya #_MermaidQuestion_sDialog
+    ldya #_Question_sDialog
     rts
     @alreadyTalked:
-    ldya #_MermaidLater_sDialog
+    ldya #_Later_sDialog
     rts
-_MermaidQuestion_sDialog:
+_Question_sDialog:
     .word ePortrait::Mermaid
     .byte "Are you...a human?$"
     .byte "A real human girl?%"
-    .addr _MermaidQuestionFunc
-_MermaidQuestionFunc:
+    .addr _QuestionFunc
+_QuestionFunc:
     bit Zp_DialogAnsweredYes_bool
     bmi @yes
     @no:
-    ldya #_MermaidNoAnswer_sDialog
+    ldya #_NoAnswer_sDialog
     rts
     @yes:
-    ldya #_MermaidYesAnswer_sDialog
+    ldya #_YesAnswer_sDialog
     rts
-_MermaidNoAnswer_sDialog:
+_NoAnswer_sDialog:
     .word ePortrait::Mermaid
     .byte "Ha! You can't fool me.#"
-_MermaidYesAnswer_sDialog:
+_YesAnswer_sDialog:
     .word ePortrait::Mermaid
     .byte "But...humans aren't$"
     .byte "supposed to be down$"
     .byte "here! I've never even$"
     .byte "met one before.#"
-_MermaidLater_sDialog:
+_Later_sDialog:
     .word ePortrait::Mermaid
     .byte "You should meet with$"
     .byte "our queen. She will$"
     .byte "know what to do with$"
     .byte "you.#"
-    .addr _MermaidSetFlagFunc
-_MermaidSetFlagFunc:
+    .addr _SetFlagFunc
+_SetFlagFunc:
     ldx #eFlag::GardenEastTalkedToMermaid  ; param: flag
-    jsr Func_IsFlagSet  ; preserves X, clears Z if flag is set
-    bne @alreadyTalked
-    jsr Func_SetFlag
-    ;; TODO: Play sound effect for new quest marker
-    @alreadyTalked:
-    ldya #_MermaidMarkMap_sDialog
+    jsr FuncA_Dialog_AddQuestMarker
+    ldya #_MarkMap_sDialog
     rts
-_MermaidMarkMap_sDialog:
+_MarkMap_sDialog:
     .word ePortrait::Mermaid
     .byte "I'll mark her hut on$"
     .byte "your map.#"

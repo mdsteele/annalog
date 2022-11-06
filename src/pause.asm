@@ -44,6 +44,7 @@
 .IMPORT Ppu_ChrObjPause
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORT Sram_Minimap_u16_arr
+.IMPORT Sram_ProgressFlags_arr
 .IMPORTZP Zp_CameraMinimapCol_u8
 .IMPORTZP Zp_CameraMinimapRow_u8
 .IMPORTZP Zp_Chr0cBank_u8
@@ -713,8 +714,7 @@ _CircuitFlags_bObj_arr:
 .PROC FuncA_Pause_DrawFlowerCount
     ;; Only display the flower count if at least one flower has been delivered,
     ;; but the BEEP opcode has not been unlocked yet.
-    ldx #eFlag::UpgradeOpcodeBeep  ; param: flag
-    jsr Func_IsFlagSet  ; clears Z if flag is set
+    flag_bit Sram_ProgressFlags_arr, eFlag::UpgradeOpcodeBeep
     bne @noFlowerCount
     jsr Func_CountDeliveredFlowers  ; returns Z and A
     beq @noFlowerCount

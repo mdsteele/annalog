@@ -19,6 +19,7 @@
 
 .INCLUDE "../actor.inc"
 .INCLUDE "../charmap.inc"
+.INCLUDE "../cpu.inc"
 .INCLUDE "../device.inc"
 .INCLUDE "../dialog.inc"
 .INCLUDE "../flag.inc"
@@ -36,6 +37,9 @@
 .IMPORT Sram_Minimap_u16_arr
 
 ;;;=========================================================================;;;
+
+;;; The dialog index for the paper in this room.
+kPaperDialogIndex = 0
 
 ;;; The index of the vertical passage at the top of the room.
 kShaftPassageIndex = 1
@@ -104,7 +108,7 @@ _Devices_sDevice_arr:
     d_byte Type_eDevice, eDevice::Paper
     d_byte BlockRow_u8, 17
     d_byte BlockCol_u8, 23
-    d_byte Target_u8, 0
+    d_byte Target_u8, kPaperDialogIndex
     D_END
     .byte eDevice::None
 _Passages_sPassage_arr:
@@ -156,8 +160,11 @@ _Passages_sPassage_arr:
 
 ;;; Dialog data for the GardenLanding room.
 .PROC DataA_Dialog_GardenLanding_sDialog_ptr_arr
-    .addr _Dialog0_sDialog
-_Dialog0_sDialog:
+:   .assert * - :- = kPaperDialogIndex * kSizeofAddr, error
+    .addr DataA_Dialog_GardenLanding_Paper_sDialog
+.ENDPROC
+
+.PROC DataA_Dialog_GardenLanding_Paper_sDialog
     .word ePortrait::Paper
     .byte "Day 13: And now, there$"
     .byte "is nothing left of us$"
