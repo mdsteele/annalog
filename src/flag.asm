@@ -51,8 +51,9 @@
     rts
 .ENDPROC
 
-;;; Sets the specified eFlag to true.
+;;; Sets the specified eFlag to true if it isn't already.
 ;;; @param X The eFlag value to set.
+;;; @return C Set if the flag was already set to true, cleared otherwise.
 ;;; @preserve Zp_Tmp*
 .EXPORT Func_SetFlag
 .PROC Func_SetFlag
@@ -61,14 +62,18 @@
     and #$07
     tay
     lda Data_PowersOfTwo_u8_arr8, y
-    pha  ; flag bitmask
+    tay  ; flag bitmask
     ;; Get the byte offset into Sram_ProgressFlags_arr for this eFlag, and
     ;; store it in X.
     txa  ; eFlag value
     div #8
     tax  ; byte offset
+    ;; Check if the flag is already set.
+    tya  ; flag bitmask
+    and Sram_ProgressFlags_arr, x
+    bne _AlreadySet
     ;; Compute the new value for the byte in Sram_ProgressFlags_arr.
-    pla  ; flag bitmask
+    tya  ; flag bitmask
     ora Sram_ProgressFlags_arr, x
     ;; Enable writes to SRAM.
     ldy #bMmc3PrgRam::Enable
@@ -78,6 +83,10 @@
     ;; Disable writes to SRAM.
     ldy #bMmc3PrgRam::Enable | bMmc3PrgRam::DenyWrites
     sty Hw_Mmc3PrgRamProtect_wo
+    clc
+    rts
+_AlreadySet:
+    sec
     rts
 .ENDPROC
 

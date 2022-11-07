@@ -42,7 +42,6 @@
 .IMPORT FuncA_Objects_MoveShapeRightByA
 .IMPORT FuncA_Objects_MoveShapeRightOneTile
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
-.IMPORT Func_IsFlagSet
 .IMPORT Func_MovePlatformTopToward
 .IMPORT Func_Noop
 .IMPORT Func_SetFlag
@@ -252,9 +251,8 @@ _Drained:
     sta Ram_PlatformType_ePlatform_arr + kWaterPlatformIndex
     sta Ram_PlatformType_ePlatform_arr + kSandPlatformIndex
     ldx #eFlag::MermaidDrainUnplugged
-    jsr Func_IsFlagSet  ; preserves X, clears Z if flag is set
-    bne @done
-    jsr Func_SetFlag
+    jsr Func_SetFlag  ; sets C if flag was already set
+    bcs @done
     ;; TODO: start animating disappearing sand and falling water
     @done:
     rts
