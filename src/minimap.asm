@@ -510,7 +510,7 @@ _MarkMinimap:
     D_STRUCT sMarker
     d_byte Row_u8, 9
     d_byte Col_u8, 7  ; room: GardenTower
-    d_byte If_eFlag, eFlag::GardenTowerBoxesPlaced
+    d_byte If_eFlag, eFlag::GardenTowerCratesPlaced
     d_byte Not_eFlag, eFlag::BreakerGarden
     D_END
     D_STRUCT sMarker
@@ -535,7 +535,7 @@ _MarkMinimap:
     d_byte Row_u8, 11
     d_byte Col_u8, 11  ; room: MermaidVillage
     d_byte If_eFlag, eFlag::MermaidHut1MetQueen
-    d_byte Not_eFlag, eFlag::GardenTowerBoxesPlaced
+    d_byte Not_eFlag, eFlag::GardenTowerCratesPlaced
     D_END
     D_STRUCT sMarker
     d_byte Row_u8, 12

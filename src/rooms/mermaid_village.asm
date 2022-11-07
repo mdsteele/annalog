@@ -279,7 +279,7 @@ _Passages_sPassage_arr:
 _InitialFunc:
     flag_bit Sram_ProgressFlags_arr, eFlag::BreakerGarden
     bne @farming  ; TODO different message
-    flag_bit Sram_ProgressFlags_arr, eFlag::GardenTowerBoxesPlaced
+    flag_bit Sram_ProgressFlags_arr, eFlag::GardenTowerCratesPlaced
     bne @monster
     flag_bit Sram_ProgressFlags_arr, eFlag::MermaidHut1MetQueen
     bne @needHelp
@@ -312,7 +312,7 @@ _Monster_sDialog:
     .byte "has taken it over.#"
     .addr _OpenTheWayFunc
 _OpenTheWayFunc:
-    ldx #eFlag::GardenTowerBoxesPlaced  ; param: flag
+    ldx #eFlag::GardenTowerCratesPlaced  ; param: flag
     jsr FuncA_Dialog_AddQuestMarker
     ldya #_OpenTheWay_sDialog
     rts

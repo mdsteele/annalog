@@ -562,7 +562,8 @@
     .incbin "out/data/tiles/vinebug.chr"
     .assert * - :- = (kTileIdCannonFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/cannon.chr"
-    .res $1f * kSizeofChr
+    .res $1b * kSizeofChr
+    .incbin "out/data/tiles/crate.chr"
     .assert * - :- = (kGrenadeFirstTileId - $80) * kSizeofChr, error
     .incbin "out/data/tiles/grenade.chr"
     .res $1f * kSizeofChr

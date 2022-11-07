@@ -20,6 +20,7 @@
 .INCLUDE "../actor.inc"
 .INCLUDE "../charmap.inc"
 .INCLUDE "../device.inc"
+.INCLUDE "../flag.inc"
 .INCLUDE "../machine.inc"
 .INCLUDE "../machines/cannon.inc"
 .INCLUDE "../macros.inc"
@@ -34,12 +35,19 @@
 .IMPORT FuncA_Machine_CannonTick
 .IMPORT FuncA_Machine_CannonTryAct
 .IMPORT FuncA_Machine_CannonTryMove
+.IMPORT FuncA_Objects_Draw2x2Shape
 .IMPORT FuncA_Objects_DrawCannonMachine
+.IMPORT FuncA_Objects_MoveShapeDownByA
+.IMPORT FuncA_Objects_MoveShapeDownOneTile
+.IMPORT FuncA_Objects_MoveShapeRightOneTile
+.IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
 .IMPORT Func_MachineCannonReadRegY
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrObjGarden
 .IMPORT Ram_MachineGoalVert_u8_arr
+.IMPORT Ram_PlatformType_ePlatform_arr
 .IMPORT Ram_RoomState
+.IMPORT Sram_ProgressFlags_arr
 
 ;;;=========================================================================;;;
 
@@ -48,13 +56,23 @@ kCannonMachineIndex = 0
 ;;; The platform index for the GardenBossCannon machine.
 kCannonPlatformIndex = 0
 
+;;; The platform indices for the positions the crates can be in.
+kWallCratePlatformIndex = 1
+kFloorCratePlatformIndex = 2
+
+;;; The first OBJ tile ID for drawing the crate platforms in this room.
+kTileIdObjCrateFirst = $d9
+
+;;; The OBJ palette number used for drawing the crate platforms in this room.
+kCratePalette = 0
+
 ;;;=========================================================================;;;
 
 ;;; Defines room-specific state data for this particular room.
 .STRUCT sState
     ;; The current states of the room's two levers.
-    LeverLeft_u1         .byte
-    LeverRight_u1        .byte
+    LeverLeft_u1  .byte
+    LeverRight_u1 .byte
 .ENDSTRUCT
 .ASSERT .sizeof(sState) <= kRoomStateSize, error
 
@@ -122,8 +140,24 @@ _Platforms_sPlatform_arr:
     d_byte Type_ePlatform, ePlatform::Solid
     d_word WidthPx_u16, kBlockWidthPx
     d_byte HeightPx_u8, kBlockHeightPx
-    d_word Left_i16, $0050
-    d_word Top_i16,  $00a0
+    d_word Left_i16,  $0050
+    d_word Top_i16,   $00a0
+    D_END
+    .assert * - :- = kWallCratePlatformIndex * .sizeof(sPlatform), error
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Solid
+    d_word WidthPx_u16, $10
+    d_byte HeightPx_u8, $10
+    d_word Left_i16,  $0010
+    d_word Top_i16,   $0110
+    D_END
+    .assert * - :- = kFloorCratePlatformIndex * .sizeof(sPlatform), error
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Solid
+    d_word WidthPx_u16, $0f
+    d_byte HeightPx_u8, $20
+    d_word Left_i16,  $0021
+    d_word Top_i16,   $0140
     D_END
     .assert * - :- <= kMaxPlatforms * .sizeof(sPlatform), error
     .byte ePlatform::None
@@ -207,6 +241,16 @@ _Passages_sPassage_arr:
 ;;; Room init function for the GardenTower room.
 .PROC FuncC_Garden_Tower_InitRoom
     ;; TODO: Init target practice.
+_Crates:
+    ldx #ePlatform::Zone
+    flag_bit Sram_ProgressFlags_arr, eFlag::GardenTowerCratesPlaced
+    bne @cratesAreOnFloor
+    @cratesAreInWall:
+    stx Ram_PlatformType_ePlatform_arr + kFloorCratePlatformIndex
+    beq @done  ; unconditional
+    @cratesAreOnFloor:
+    stx Ram_PlatformType_ePlatform_arr + kWallCratePlatformIndex
+    @done:
     rts
 .ENDPROC
 
@@ -245,7 +289,32 @@ _Passages_sPassage_arr:
 ;;; Allocates and populates OAM slots for this room.
 .PROC FuncA_Objects_GardenTower_Draw
     ;; TODO: Draw target practice.
+_WallCrate:
+    lda Ram_PlatformType_ePlatform_arr + kWallCratePlatformIndex
+    cmp #ePlatform::Solid
+    bne @done
+    ldx #kWallCratePlatformIndex  ; param: platform index
+    jsr _DrawCratePlatform
+    @done:
+_FloorCrates:
+    lda Ram_PlatformType_ePlatform_arr + kFloorCratePlatformIndex
+    cmp #ePlatform::Solid
+    bne @done
+    ldx #kFloorCratePlatformIndex  ; param: platform index
+    jsr _DrawCratePlatform
+    lda #kBlockHeightPx  ; param: offset
+    jsr FuncA_Objects_MoveShapeDownByA
+    jsr _DrawCrate
+    @done:
     rts
+_DrawCratePlatform:
+    jsr FuncA_Objects_SetShapePosToPlatformTopLeft
+    jsr FuncA_Objects_MoveShapeRightOneTile
+    jsr FuncA_Objects_MoveShapeDownOneTile
+_DrawCrate:
+    lda #kTileIdObjCrateFirst  ; param: first tile ID
+    ldy #kCratePalette  ; param: flags
+    jmp FuncA_Objects_Draw2x2Shape
 .ENDPROC
 
 ;;;=========================================================================;;;
