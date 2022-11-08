@@ -986,22 +986,24 @@ _SetItem:
     jsr Func_SetMachineIndex
     ;; Jump to field-type-specific setup function.
     jsr FuncA_Console_GetCurrentFieldType  ; returns A
-    asl a
     tay
-    lda _JumpTable_ptr_arr + 0, y
+    lda _JumpTable_ptr_0_arr, y
     sta Zp_Tmp_ptr + 0
-    lda _JumpTable_ptr_arr + 1, y
+    lda _JumpTable_ptr_1_arr, y
     sta Zp_Tmp_ptr + 1
     jmp (Zp_Tmp_ptr)
-_JumpTable_ptr_arr:
-    D_ENUM eField, kSizeofAddr
-    d_addr Opcode,    FuncA_Console_SetUpOpcodeMenu
-    d_addr LValue,    FuncA_Console_SetUpLValueMenu
-    d_addr RValue,    FuncA_Console_SetUpRValueMenu
-    d_addr Address,   FuncA_Console_SetUpAddressMenu
-    d_addr Compare,   FuncA_Console_SetUpCompareMenu
-    d_addr Direction, FuncA_Console_SetUpDirectionMenu
+.REPEAT 2, table
+    D_TABLE_LO table, _JumpTable_ptr_0_arr
+    D_TABLE_HI table, _JumpTable_ptr_1_arr
+    D_TABLE eField
+    d_entry table, Opcode,    FuncA_Console_SetUpOpcodeMenu
+    d_entry table, LValue,    FuncA_Console_SetUpLValueMenu
+    d_entry table, RValue,    FuncA_Console_SetUpRValueMenu
+    d_entry table, Address,   FuncA_Console_SetUpAddressMenu
+    d_entry table, Compare,   FuncA_Console_SetUpCompareMenu
+    d_entry table, Direction, FuncA_Console_SetUpDirectionMenu
     D_END
+.ENDREPEAT
 .ENDPROC
 
 ;;; Transfers the specified menu row (0-7) to the PPU.

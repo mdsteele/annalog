@@ -135,21 +135,22 @@ _GameLoop:
 
 ;;; Performs per-frame updates for breaker activation mode.
 .PROC FuncA_Breaker_Tick
-    lda Zp_Breaker_ePhase
-    mul #2
-    tay
-    lda _JumpTable_ptr_arr + 0, y
+    ldy Zp_Breaker_ePhase
+    lda _JumpTable_ptr_0_arr, y
     sta Zp_Tmp_ptr + 0
-    lda _JumpTable_ptr_arr + 1, y
+    lda _JumpTable_ptr_1_arr, y
     sta Zp_Tmp_ptr + 1
     jmp (Zp_Tmp_ptr)
-_JumpTable_ptr_arr:
-    D_ENUM ePhase, kSizeofAddr
-    d_addr Adjust, FuncA_Breaker_TickAdjust
-    d_addr Reach, FuncA_Breaker_TickReach
-    d_addr Strain, FuncA_Breaker_TickStrain
-    d_addr Flip, FuncA_Breaker_TickFlip
+.REPEAT 2, table
+    D_TABLE_LO table, _JumpTable_ptr_0_arr
+    D_TABLE_HI table, _JumpTable_ptr_1_arr
+    D_TABLE ePhase
+    d_entry table, Adjust, FuncA_Breaker_TickAdjust
+    d_entry table, Reach,  FuncA_Breaker_TickReach
+    d_entry table, Strain, FuncA_Breaker_TickStrain
+    d_entry table, Flip,   FuncA_Breaker_TickFlip
     D_END
+.ENDREPEAT
 .ENDPROC
 
 ;;; Performs per-frame updates for the "adjust" phase of breaker activation.

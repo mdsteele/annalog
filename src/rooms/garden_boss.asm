@@ -35,13 +35,12 @@
 .IMPORT DataA_Pause_GardenAreaName_u8_arr
 .IMPORT DataA_Room_Garden_sTileset
 .IMPORT FuncA_Machine_CannonTick
+.IMPORT FuncA_Machine_CannonTryAct
 .IMPORT FuncA_Machine_CannonTryMove
-.IMPORT FuncA_Machine_StartWaiting
 .IMPORT FuncA_Objects_DrawCannonMachine
 .IMPORT Func_FindEmptyActorSlot
 .IMPORT Func_GetRandomByte
 .IMPORT Func_InitActorProjFireball
-.IMPORT Func_InitActorProjGrenade
 .IMPORT Func_InitActorProjSmoke
 .IMPORT Func_InitActorProjSpike
 .IMPORT Func_LockDoorDevice
@@ -49,6 +48,7 @@
 .IMPORT Func_MarkRoomSafe
 .IMPORT Func_Noop
 .IMPORT Func_SetFlag
+.IMPORT Func_SpawnUpgradeDevice
 .IMPORT Func_UnlockDoorDevice
 .IMPORT Ppu_ChrObjUpgrade
 .IMPORT Ram_ActorPosX_i16_0_arr
@@ -71,11 +71,6 @@
 .IMPORTZP Zp_Tmp_ptr
 
 ;;;=========================================================================;;;
-
-;;; The actor index for grenades launched by the GardenBossCannon machine.
-kGrenadeActorIndex = 0
-;;; The actor index for the puff of smoke created when the upgrade appears.
-kSmokeActorIndex = 1
 
 ;;; The device index for the upgrade that appears when the boss is defeated.
 kUpgradeDeviceIndex = 0
@@ -236,13 +231,13 @@ _Machines_sMachine_arr:
     d_byte RegNames_u8_arr4, "L", "R", 0, "Y"
     d_byte MainPlatform_u8, kCannonPlatformIndex
     d_addr Init_func_ptr, Func_Noop
-    d_addr ReadReg_func_ptr, _Cannon_ReadReg
+    d_addr ReadReg_func_ptr, FuncC_Garden_BossCannon_ReadReg
     d_addr WriteReg_func_ptr, Func_Noop
     d_addr TryMove_func_ptr, FuncA_Machine_CannonTryMove
-    d_addr TryAct_func_ptr, _Cannon_TryAct
+    d_addr TryAct_func_ptr, FuncA_Machine_CannonTryAct
     d_addr Tick_func_ptr, FuncA_Machine_CannonTick
     d_addr Draw_func_ptr, FuncA_Objects_DrawCannonMachine
-    d_addr Reset_func_ptr, _Cannon_Reset
+    d_addr Reset_func_ptr, FuncC_Garden_BossCannon_Reset
     D_END
     .assert * - :- <= kMaxMachines * .sizeof(sMachine), error
 _Platforms_sPlatform_arr:
@@ -300,47 +295,6 @@ _Devices_sDevice_arr:
     D_END
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None
-_Cannon_ReadReg:
-    cmp #$c
-    beq @readL
-    cmp #$d
-    beq @readR
-    @readY:
-    jmp Func_MachineCannonReadRegY
-    @readL:
-    lda Ram_RoomState + sState::LeverLeft_u1
-    rts
-    @readR:
-    lda Ram_RoomState + sState::LeverRight_u1
-    rts
-_Cannon_TryAct:
-    ;; TODO: Use FuncA_Machine_CannonTryAct (once we don't depend on using
-    ;;   kGrenadeActorIndex).
-    lda #kCannonGrenadeInitPosX
-    sta Ram_ActorPosX_i16_0_arr + kGrenadeActorIndex
-    lda #kCannonGrenadeInitPosY
-    sta Ram_ActorPosY_i16_0_arr + kGrenadeActorIndex
-    lda #0
-    sta Ram_ActorPosX_i16_1_arr + kGrenadeActorIndex
-    sta Ram_ActorPosY_i16_1_arr + kGrenadeActorIndex
-    ldx #kGrenadeActorIndex  ; param: actor index
-    lda Ram_MachineGoalVert_u8_arr + kCannonMachineIndex  ; param: aim (0-1)
-    jsr Func_InitActorProjGrenade
-    lda #kCannonActCountdown
-    jmp FuncA_Machine_StartWaiting
-_Cannon_Reset:
-    lda #0
-    sta Ram_MachineGoalVert_u8_arr + kCannonMachineIndex
-    ;; If the boss is currently shooting/spraying, switch to waiting mode (to
-    ;; avoid the player cheesing by reprogramming the machine every time the
-    ;; boss opens an eye).
-    lda Ram_RoomState + sState::BossMode_eBoss
-    cmp #eBoss::Shoot
-    .assert eBoss::Spray > eBoss::Shoot, error
-    blt @done
-    jmp FuncC_Garden_Boss_StartWaiting
-    @done:
-    rts
 .ENDPROC
 
 ;;; Room init function for the GardenBoss room.
@@ -403,45 +357,31 @@ _BreakerAlreadyDone:
 
 ;;; Room tick function for the GardenBoss room.
 .PROC FuncC_Garden_Boss_TickRoom
-    lda Ram_RoomState + sState::Current_ePhase
-    mul #2
-    tay
-    lda _JumpTable_ptr_arr, y
+    ldy Ram_RoomState + sState::Current_ePhase
+    lda _JumpTable_ptr_0_arr, y
     sta Zp_Tmp_ptr + 0
-    iny
-    lda _JumpTable_ptr_arr, y
+    lda _JumpTable_ptr_1_arr, y
     sta Zp_Tmp_ptr + 1
     jmp (Zp_Tmp_ptr)
-_JumpTable_ptr_arr:
-    D_ENUM ePhase, kSizeofAddr
-    d_addr BossBattle, _BossBattle
-    d_addr SpawnUpgrade, _SpawnUpgrade
-    d_addr GetUpgrade, _GetUpgrade
-    d_addr SpawnBreaker, _SpawnBreaker
-    d_addr FlipBreaker, _FlipBreaker
-    d_addr Done, Func_Noop
+.REPEAT 2, table
+    D_TABLE_LO table, _JumpTable_ptr_0_arr
+    D_TABLE_HI table, _JumpTable_ptr_1_arr
+    D_TABLE ePhase
+    d_entry table, BossBattle,   _BossBattle
+    d_entry table, SpawnUpgrade, _SpawnUpgrade
+    d_entry table, GetUpgrade,   _GetUpgrade
+    d_entry table, SpawnBreaker, _SpawnBreaker
+    d_entry table, FlipBreaker,  _FlipBreaker
+    d_entry table, Done,         Func_Noop
     D_END
+.ENDREPEAT
 _SpawnUpgrade:
     ;; Wait for the spawn timer to reach zero.
     dec Ram_RoomState + sState::SpawnTimer_u8
     bne @done
-    ;; Show the upgrade device and animate it.
-    lda #eDevice::Upgrade
-    sta Ram_DeviceType_eDevice_arr + kUpgradeDeviceIndex
-    lda #kUpgradeDeviceAnimStart
-    sta Ram_DeviceAnim_u8_arr + kUpgradeDeviceIndex
-    ;; TODO: play a sound
-    ;; Create a puff of smoke over the upgrade device.
-    ;; TODO: Don't use kSmokeActorIndex; instead use Func_FindEmptyActorSlot.
-    lda #kUpgradeBlockCol * kBlockWidthPx + kBlockWidthPx / 2
-    sta Ram_ActorPosX_i16_0_arr + kSmokeActorIndex
-    lda #kUpgradeBlockRow * kBlockHeightPx + kBlockHeightPx / 2
-    sta Ram_ActorPosY_i16_0_arr + kSmokeActorIndex
-    lda #0
-    sta Ram_ActorPosX_i16_1_arr + kSmokeActorIndex
-    sta Ram_ActorPosY_i16_1_arr + kSmokeActorIndex
-    ldx #kSmokeActorIndex  ; param: actor index
-    jsr Func_InitActorProjSmoke
+    ;; Spawn the upgrade.
+    ldy #kUpgradeDeviceIndex  ; param: device index
+    jsr Func_SpawnUpgradeDevice
     ;; Proceed to the next phase.
     inc Ram_RoomState + sState::Current_ePhase
     @done:
@@ -498,102 +438,45 @@ _BossBattle:
     inc Ram_RoomState + sState::Current_ePhase
     rts
     @bossIsStillAlive:
-_CheckForGrenadeHit:
-    ;; TODO: Don't use kGrenadeActorIndex; instead scan for grenade actors.
-    ;; Check if there's a grenade in flight.  If not, we're done.
-    lda Ram_ActorType_eActor_arr + kGrenadeActorIndex
-    cmp #eActor::ProjGrenade
-    bne @done
-    ;; Check which eye the grenade is near vertically.
-    lda Ram_ActorPosY_i16_0_arr + kGrenadeActorIndex
-    cmp #kBossLeftEyeCenterY + 6
-    bge @grenadeIsLow
-    @grenadeIsHigh:
-    lda #kBossLeftEyeCenterX
-    ldx #eEye::Left
-    .assert eEye::Left = 0, error
-    beq @checkPosX  ; unconditional
-    @grenadeIsLow:
-    lda #kBossRightEyeCenterX
-    ldx #eEye::Right
-    @checkPosX:
-    ;; Check if the grenade has hit an eye yet.  If not, we're done.
-    cmp Ram_ActorPosX_i16_0_arr + kGrenadeActorIndex
-    bge @done
-    ;; Check if the hit eye is open or closed.
-    lda Ram_RoomState + sState::BossEyesOpen_u8_arr2, x
-    cmp #kBossEyeOpenFrames / 2
-    bge @eyeIsOpen
-    ;; If the hit eye is closed, switch the boss to Angry mode.
-    @eyeIsClosed:
-    lda #eBoss::Angry
-    sta Ram_RoomState + sState::BossMode_eBoss
-    .assert eBoss::Angry = 2, error
-    sta Ram_RoomState + sState::BossCooldown_u8
-    lda #3
-    sta Ram_RoomState + sState::BossProjCount_u8
-    bne @explode  ; unconditional
-    ;; If the hit eye is open, deal damage to the boss.
-    @eyeIsOpen:
-    dec Ram_RoomState + sState::BossHealth_u8
-    bne @bossIsStillAlive
-    ;; If the boss's health is now zero, mark the boss as dead.
-    ;; TODO: make a death animation, then spawn upgrade
-    lda #eBoss::Dead
-    sta Ram_RoomState + sState::BossMode_eBoss
-    .assert eBoss::Dead = 0, error
-    beq @explode  ; unconditional
-    ;; Otherwise, put the boss into waiting mode.
-    @bossIsStillAlive:
-    ;; TODO: make a hurt animation
-    jsr FuncC_Garden_Boss_StartWaiting
-    ;; Explode the grenade.
-    @explode:
-    ;; TODO: play a sound
-    ldx #kGrenadeActorIndex
-    jsr Func_InitActorProjSmoke
-    @done:
-_BossEyes:
-    ldx #eEye::Left
+    jsr FuncC_Garden_Boss_CheckForGrenadeHit
+    .assert * = FuncC_Garden_Boss_TickBoss, error, "fallthrough"
+.ENDPROC
+
+;;; Performs per-frame upates for the boss in this room (if it's still alive).
+.PROC FuncC_Garden_Boss_TickBoss
+    ;; Tick eyes.
+    ldx #eEye::Left  ; param: eye to tick
     jsr FuncC_Garden_Boss_TickEye
-    ldx #eEye::Right
+    ldx #eEye::Right  ; param: eye to tick
     jsr FuncC_Garden_Boss_TickEye
-_BossCooldown:
+    ;; Wait for cooldown to expire.
     dec Ram_RoomState + sState::BossCooldown_u8
-    beq _BossCheckMode
+    beq _CheckMode
     rts
-_BossCheckMode:
-    lda Ram_RoomState + sState::BossMode_eBoss
-    cmp #eBoss::Angry
-    beq _BossAngry
-    cmp #eBoss::Shoot
-    beq _BossShoot
-    cmp #eBoss::Waiting
-    beq _BossWaiting
+_CheckMode:
+    ;; Branch based on the current boss mode.
+    ldy Ram_RoomState + sState::BossMode_eBoss
+    lda _JumpTable_ptr_0_arr, y
+    sta Zp_Tmp_ptr + 0
+    lda _JumpTable_ptr_1_arr, y
+    sta Zp_Tmp_ptr + 1
+    jmp (Zp_Tmp_ptr)
+.REPEAT 2, table
+    D_TABLE_LO table, _JumpTable_ptr_0_arr
+    D_TABLE_HI table, _JumpTable_ptr_1_arr
+    D_TABLE eBoss
+    d_entry table, Dead,    Func_Noop
+    d_entry table, Waiting, _BossWaiting
+    d_entry table, Angry,   _BossAngry
+    d_entry table, Shoot,   _BossShoot
+    d_entry table, Spray,   _BossSpray
+    D_END
+.ENDREPEAT
 _BossSpray:
     ;; TODO: Shoot a spray of fireballs, then return to Waiting mode.
 _BossShoot:
-    ;; Shoot a fireball.
-    jsr Func_FindEmptyActorSlot  ; sets C on failure, returns X
-    bcs @doneFireball
-    ;; Initialize fireball position based on which eye we're shooting from.
-    lda #0
-    sta Ram_ActorPosX_i16_1_arr, x
-    sta Ram_ActorPosY_i16_1_arr, x
-    ldy Ram_RoomState + sState::BossActive_eEye
-    lda _FireballPosY_u8_arr2, y
-    sta Ram_ActorPosY_i16_0_arr, x
-    lda _FireballPosX_u8_arr2, y
-    sta Ram_ActorPosX_i16_0_arr, x
-    ;; Choose fireball angle based on the player avatar's X-position.
-    lda Zp_AvatarPosX_i16 + 0
-    div #kTileWidthPx
-    and #$fe  ; now A is 2 * avatar's room block column
-    ora Ram_RoomState + sState::BossActive_eEye
-    tay
-    lda _FireballAngle_u8_arr2_arr, y  ; param: aim angle
-    jsr Func_InitActorProjFireball
-    @doneFireball:
+    ldy Ram_RoomState + sState::BossActive_eEye  ; param: eye to shoot from
+    jsr FuncC_Garden_Boss_ShootFireball
     ;; Decrement the projectile counter; if it reaches zero, return to waiting
     ;; mode.
     dec Ram_RoomState + sState::BossProjCount_u8
@@ -603,28 +486,7 @@ _BossShoot:
     sta Ram_RoomState + sState::BossCooldown_u8
     rts
 _BossAngry:
-    ;; Drop a spike from a random location.
-    jsr Func_FindEmptyActorSlot  ; sets C on failure, returns X
-    bcs @doneSpike
-    ;; Set random X-position within room:
-    jsr Func_GetRandomByte  ; returns A, preserves X
-    cmp #$a0
-    blt @noWrap
-    sbc #$80
-    @noWrap:
-    adc #$30
-    sta Ram_ActorPosX_i16_0_arr, x
-    ;; Set Y-position based on the room block column of the X-position:
-    div #kTileWidthPx * 2
-    tay
-    lda _SpikePosY_u8_arr, y
-    sta Ram_ActorPosY_i16_0_arr, x
-    ;; Initialize the spike:
-    lda #0
-    sta Ram_ActorPosX_i16_1_arr, x
-    sta Ram_ActorPosY_i16_1_arr, x
-    jsr Func_InitActorProjSpike
-    @doneSpike:
+    jsr FuncC_Garden_Boss_DropSpike
     ;; Decrement the projectile counter; if it reaches zero, return to waiting
     ;; mode.
     dec Ram_RoomState + sState::BossProjCount_u8
@@ -666,6 +528,56 @@ _BossWaiting:
     lda #kBossEyeOpenFrames
     sta Ram_RoomState + sState::BossCooldown_u8
     rts
+.ENDPROC
+
+;;; Opens or closes the specified boss eye, depending on the boss mode.
+;;; @param X Which eEye to update.
+.PROC FuncC_Garden_Boss_TickEye
+    lda Ram_RoomState + sState::BossMode_eBoss
+    cmp #eBoss::Shoot
+    .assert eBoss::Spray > eBoss::Shoot, error
+    blt _Close
+    cpx Ram_RoomState + sState::BossActive_eEye
+    bne _Close
+_Open:
+    lda Ram_RoomState + sState::BossEyesOpen_u8_arr2, x
+    cmp #kBossEyeOpenFrames
+    bge @done
+    inc Ram_RoomState + sState::BossEyesOpen_u8_arr2, x
+    @done:
+    rts
+_Close:
+    lda Ram_RoomState + sState::BossEyesOpen_u8_arr2, x
+    beq @done
+    dec Ram_RoomState + sState::BossEyesOpen_u8_arr2, x
+    @done:
+    rts
+.ENDPROC
+
+;;; Shoots a fireball from the specified eye.
+;;; @param Y Which eEye to shoot from.
+.PROC FuncC_Garden_Boss_ShootFireball
+    ;; Shoot a fireball.
+    jsr Func_FindEmptyActorSlot  ; preserves Y, sets C on failure, returns X
+    bcs @done
+    ;; Initialize fireball position based on which eye we're shooting from.
+    lda #0
+    sta Ram_ActorPosX_i16_1_arr, x
+    sta Ram_ActorPosY_i16_1_arr, x
+    lda _FireballPosY_u8_arr2, y
+    sta Ram_ActorPosY_i16_0_arr, x
+    lda _FireballPosX_u8_arr2, y
+    sta Ram_ActorPosX_i16_0_arr, x
+    ;; Choose fireball angle based on the player avatar's X-position.
+    lda Zp_AvatarPosX_i16 + 0
+    div #kTileWidthPx
+    and #$fe  ; now A is 2 * avatar's room block column
+    ora Ram_RoomState + sState::BossActive_eEye
+    tay
+    lda _FireballAngle_u8_arr2_arr, y  ; param: aim angle
+    jsr Func_InitActorProjFireball
+    @done:
+    rts
 _FireballPosX_u8_arr2:
     D_ENUM eEye
     d_byte Left,  kBossLeftEyeCenterX
@@ -693,44 +605,144 @@ _FireballAngle_u8_arr2_arr:
     .byte  9, 11
     .byte  7,  8  ; console
     .byte  4,  3
-_SpikePosY_u8_arr:
-    .byte $50, $50, $50, $50, $50, $50, $60, $70, $70, $80, $80, $80, $80, $80
 .ENDPROC
 
-;;; Opens or closes the specified boss eye, depending on the boss mode.
-;;; @param X Which eEye to update.
-;;; @preserve X
-.PROC FuncC_Garden_Boss_TickEye
-    lda Ram_RoomState + sState::BossMode_eBoss
-    cmp #eBoss::Shoot
-    .assert eBoss::Spray > eBoss::Shoot, error
-    blt _Close
-    cpx Ram_RoomState + sState::BossActive_eEye
-    bne _Close
-_Open:
-    lda Ram_RoomState + sState::BossEyesOpen_u8_arr2, x
-    cmp #kBossEyeOpenFrames
-    bge @done
-    inc Ram_RoomState + sState::BossEyesOpen_u8_arr2, x
+;;; Drops a spike from a random horizontal position.
+.PROC FuncC_Garden_Boss_DropSpike
+    ;; Drop a spike from a random location.
+    jsr Func_FindEmptyActorSlot  ; sets C on failure, returns X
+    bcs @done
+    ;; Set random X-position within room:
+    jsr Func_GetRandomByte  ; returns A, preserves X
+    cmp #$a0
+    blt @noWrap
+    sbc #$80
+    @noWrap:
+    adc #$30
+    sta Ram_ActorPosX_i16_0_arr, x
+    ;; Set Y-position based on the room block column of the X-position:
+    div #kTileWidthPx * 2
+    tay
+    lda _SpikePosY_u8_arr, y
+    sta Ram_ActorPosY_i16_0_arr, x
+    ;; Initialize the spike:
+    lda #0
+    sta Ram_ActorPosX_i16_1_arr, x
+    sta Ram_ActorPosY_i16_1_arr, x
+    jsr Func_InitActorProjSpike
     @done:
     rts
-_Close:
-    lda Ram_RoomState + sState::BossEyesOpen_u8_arr2, x
-    beq @done
-    dec Ram_RoomState + sState::BossEyesOpen_u8_arr2, x
-    @done:
-    rts
+_SpikePosY_u8_arr:
+    .byte $00, $00, $41, $39, $41, $49, $61, $61, $71, $81, $81, $81, $81, $81
 .ENDPROC
 
 ;;; Makes the boss enter waiting mode for a random amount of time (between
 ;;; about 1-2 seconds).
+;;; @preserve X
 .PROC FuncC_Garden_Boss_StartWaiting
     lda #eBoss::Waiting
     sta Ram_RoomState + sState::BossMode_eBoss
-    jsr Func_GetRandomByte  ; returns A
+    jsr Func_GetRandomByte  ; preserves X, returns A
     and #$3f
     ora #$40
     sta Ram_RoomState + sState::BossCooldown_u8
+    rts
+.ENDPROC
+
+;;; Checks if a grenade has hit a boss eye; if so, explodes the grenade and
+;;; makes the boss react accordingly.
+.PROC FuncC_Garden_Boss_CheckForGrenadeHit
+    ;; Find the actor index for the grenade in flight (if any).  If we don't
+    ;; find one, then we're done.
+    ldx #kMaxActors - 1
+    @loop:
+    lda Ram_ActorType_eActor_arr, x
+    cmp #eActor::ProjGrenade
+    beq @foundGrenade
+    dex
+    .assert kMaxActors <= $80, error
+    bpl @loop
+    rts
+    @foundGrenade:
+_CheckEyes:
+    ;; Check which eye the grenade is near vertically.
+    lda Ram_ActorPosY_i16_0_arr, x
+    cmp #kBossLeftEyeCenterY + 6
+    bge @grenadeIsLow
+    @grenadeIsHigh:
+    lda #kBossLeftEyeCenterX
+    ldy #eEye::Left
+    .assert eEye::Left = 0, error
+    beq @checkPosX  ; unconditional
+    @grenadeIsLow:
+    lda #kBossRightEyeCenterX
+    ldy #eEye::Right
+    @checkPosX:
+    ;; Check if the grenade has hit an eye yet.  If not, we're done.
+    cmp Ram_ActorPosX_i16_0_arr, x
+    bge _Done
+    ;; Check if the hit eye is open or closed.
+    lda Ram_RoomState + sState::BossEyesOpen_u8_arr2, y
+    cmp #kBossEyeOpenFrames / 2
+    bge @eyeIsOpen
+    ;; If the hit eye is closed, switch the boss to Angry mode.
+    @eyeIsClosed:
+    lda #eBoss::Angry
+    sta Ram_RoomState + sState::BossMode_eBoss
+    .assert eBoss::Angry = 2, error
+    sta Ram_RoomState + sState::BossCooldown_u8
+    lda #3
+    sta Ram_RoomState + sState::BossProjCount_u8
+    bne @explode  ; unconditional
+    ;; If the hit eye is open, deal damage to the boss.
+    @eyeIsOpen:
+    dec Ram_RoomState + sState::BossHealth_u8
+    bne @bossIsStillAlive
+    ;; If the boss's health is now zero, mark the boss as dead.
+    ;; TODO: make a death animation, then spawn upgrade
+    lda #eBoss::Dead
+    sta Ram_RoomState + sState::BossMode_eBoss
+    .assert eBoss::Dead = 0, error
+    beq @explode  ; unconditional
+    ;; Otherwise, put the boss into waiting mode.
+    @bossIsStillAlive:
+    ;; TODO: make a hurt animation
+    jsr FuncC_Garden_Boss_StartWaiting  ; preserves X
+    ;; Explode the grenade.
+    @explode:
+    jsr Func_InitActorProjSmoke
+    ;; TODO: play a sound for hitting the eye
+_Done:
+    rts
+.ENDPROC
+
+.PROC FuncC_Garden_BossCannon_ReadReg
+    cmp #$c
+    beq @readL
+    cmp #$d
+    beq @readR
+    @readY:
+    jmp Func_MachineCannonReadRegY
+    @readL:
+    lda Ram_RoomState + sState::LeverLeft_u1
+    rts
+    @readR:
+    lda Ram_RoomState + sState::LeverRight_u1
+    rts
+.ENDPROC
+
+.PROC FuncC_Garden_BossCannon_Reset
+    lda #0
+    sta Ram_MachineGoalVert_u8_arr + kCannonMachineIndex
+    ;; If the boss is currently shooting/spraying, switch to waiting mode (to
+    ;; avoid the player cheesing by reprogramming the machine every time the
+    ;; boss opens an eye).
+    lda Ram_RoomState + sState::BossMode_eBoss
+    cmp #eBoss::Shoot
+    .assert eBoss::Spray > eBoss::Shoot, error
+    blt @done
+    jmp FuncC_Garden_Boss_StartWaiting
+    @done:
     rts
 .ENDPROC
 

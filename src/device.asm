@@ -25,7 +25,6 @@
 .INCLUDE "room.inc"
 
 .IMPORT FuncA_Objects_Alloc1x1Shape
-.IMPORT FuncA_Objects_Alloc2x2Shape
 .IMPORT FuncA_Objects_DrawBreakerDoneDevice
 .IMPORT FuncA_Objects_DrawBreakerReadyDevice
 .IMPORT FuncA_Objects_DrawBreakerRisingDevice
@@ -34,8 +33,7 @@
 .IMPORT FuncA_Objects_DrawLeverFloorDevice
 .IMPORT FuncA_Objects_DrawLockedDoorDevice
 .IMPORT FuncA_Objects_DrawUnlockedDoorDevice
-.IMPORT FuncA_Objects_MoveShapeRightOneTile
-.IMPORT FuncA_Objects_SetUpgradeTileIds
+.IMPORT FuncA_Objects_DrawUpgradeDevice
 .IMPORT Func_Noop
 .IMPORT Ram_MachineStatus_eMachine_arr
 .IMPORT Ram_Oam_sObj_arr64
@@ -215,45 +213,17 @@ _AllocateObject:
     rts
 .ENDPROC
 
-;;; Allocates and populates OAM slots for an upgrade device.
-;;; @param X The device index.
-;;; @preserve X
-.PROC FuncA_Objects_DrawUpgradeDevice
-    jsr FuncA_Objects_SetShapePosToDeviceTopLeft  ; preserves X
-_AdjustPosition:
-    jsr FuncA_Objects_MoveShapeRightOneTile  ; preserves X
-    ldy Ram_DeviceAnim_u8_arr, x
-    lda Zp_ShapePosY_i16 + 0
-    add _YOffsets_u8_arr, y
-    sta Zp_ShapePosY_i16 + 0
-    lda Zp_ShapePosY_i16 + 1
-    adc #0
-    sta Zp_ShapePosY_i16 + 1
-_AllocateObjects:
-    lda #kUpgradePalette  ; param: object flags
-    jsr FuncA_Objects_Alloc2x2Shape  ; preserves X, returns C and Y
-    bcs @done
-    lda Ram_DeviceTarget_u8_arr, x  ; param: eFlag value
-    jmp FuncA_Objects_SetUpgradeTileIds  ; preserves X
-    @done:
-    rts
-_YOffsets_u8_arr:
-    ;; [12 - int(round(40 * x * (1-x))) for x in (y/24. for y in range(24))]
-    .byte 12, 10, 9, 8, 6, 5, 4, 4, 3, 3, 2, 2
-    .byte 2, 2, 2, 3, 3, 4, 4, 5, 6, 8, 9, 10
-    .assert * - _YOffsets_u8_arr = kUpgradeDeviceAnimStart + 1, error
-.ENDPROC
-
 ;;; Populates Zp_ShapePosX_i16 and Zp_ShapePosY_i16 with the screen position of
 ;;; the top-left corner of the specified device.
 ;;; @param X The device index.
 ;;; @preserve X, Y, Zp_Tmp*
 .EXPORT FuncA_Objects_SetShapePosToDeviceTopLeft
 .PROC FuncA_Objects_SetShapePosToDeviceTopLeft
+    lda #0
+    sta Zp_ShapePosX_i16 + 1
+    sta Zp_ShapePosY_i16 + 1
     ;; Compute the room pixel Y-position of the top of the device, storing the
     ;; hi byte in Zp_ShapePosY_i16 + 1 and the lo byte in A.
-    lda #0
-    sta Zp_ShapePosY_i16 + 1
     lda Ram_DeviceBlockRow_u8_arr, x
     .assert kTallRoomHeightBlocks <= $20, error
     asl a  ; Since kTallRoomHeightBlocks <= $20, the device block row fits in
@@ -270,8 +240,6 @@ _YOffsets_u8_arr:
     sta Zp_ShapePosY_i16 + 1
     ;; Compute the room pixel X-position of the left side of the device,
     ;; storing the hi byte in Zp_ShapePosX_i16 + 1 and the lo byte in A.
-    lda #0
-    sta Zp_ShapePosX_i16 + 1
     lda Ram_DeviceBlockCol_u8_arr, x
     .assert kMaxRoomWidthBlocks <= $80, error
     asl a      ; Since kMaxRoomWidthBlocks <= $80, the device block col fits in
