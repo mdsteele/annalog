@@ -27,9 +27,9 @@
 .IMPORT DataA_Pause_MermaidAreaCells_u8_arr2_arr
 .IMPORT DataA_Pause_MermaidAreaName_u8_arr
 .IMPORT DataA_Room_Mermaid_sTileset
+.IMPORT FuncA_Room_RemoveFlowerDeviceIfCarriedOrDelivered
+.IMPORT FuncA_Room_RespawnFlowerDeviceIfDropped
 .IMPORT Func_Noop
-.IMPORT Func_RemoveFlowerDeviceIfCarriedOrDelivered
-.IMPORT Func_RespawnFlowerDeviceIfDropped
 .IMPORT Ppu_ChrObjUpgrade
 
 ;;;=========================================================================;;;
@@ -118,14 +118,16 @@ _Passages_sPassage_arr:
     D_END
 .ENDPROC
 
+;;; @prereq PRGA_Room is loaded.
 .PROC FuncC_Mermaid_Flower_InitRoom
     ldx #kFlowerDeviceIndex  ; param: device index
-    jmp Func_RemoveFlowerDeviceIfCarriedOrDelivered
+    jmp FuncA_Room_RemoveFlowerDeviceIfCarriedOrDelivered
 .ENDPROC
 
+;;; @prereq PRGA_Room is loaded.
 .PROC FuncC_Mermaid_Flower_TickRoom
     ldx #kFlowerDeviceIndex  ; param: device index
-    jmp Func_RespawnFlowerDeviceIfDropped
+    jmp FuncA_Room_RespawnFlowerDeviceIfDropped
 .ENDPROC
 
 ;;;=========================================================================;;;

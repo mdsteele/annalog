@@ -40,11 +40,11 @@
 .IMPORT FuncA_Machine_Error
 .IMPORT FuncA_Objects_DrawBoilerMachine
 .IMPORT FuncA_Objects_DrawBoilerValve1
+.IMPORT FuncA_Room_RemoveFlowerDeviceIfCarriedOrDelivered
+.IMPORT FuncA_Room_RespawnFlowerDeviceIfDropped
 .IMPORT Func_MachineBoilerReadReg
 .IMPORT Func_MachineBoilerReset
 .IMPORT Func_Noop
-.IMPORT Func_RemoveFlowerDeviceIfCarriedOrDelivered
-.IMPORT Func_RespawnFlowerDeviceIfDropped
 .IMPORT Ppu_ChrObjLava
 .IMPORT Ram_MachineGoalVert_u8_arr
 .IMPORTZP Zp_MachineIndex_u8
@@ -195,9 +195,10 @@ _Passages_sPassage_arr:
     D_END
 .ENDPROC
 
+;;; @prereq PRGA_Room is loaded.
 .PROC FuncC_Lava_Flower_InitRoom
     ldx #kFlowerDeviceIndex  ; param: device index
-    jmp Func_RemoveFlowerDeviceIfCarriedOrDelivered
+    jmp FuncA_Room_RemoveFlowerDeviceIfCarriedOrDelivered
 .ENDPROC
 
 ;;; Sets the bottom two block rows of the upper nametable to use BG palette 1.
@@ -226,9 +227,10 @@ _Row14:
     rts
 .ENDPROC
 
+;;; @prereq PRGA_Room is loaded.
 .PROC FuncC_Lava_Flower_TickRoom
     ldx #kFlowerDeviceIndex  ; param: device index
-    jmp Func_RespawnFlowerDeviceIfDropped
+    jmp FuncA_Room_RespawnFlowerDeviceIfDropped
 .ENDPROC
 
 ;;; TryAct implemention for the LavaFlowerBoiler machine.

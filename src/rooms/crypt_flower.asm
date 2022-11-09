@@ -44,12 +44,12 @@
 .IMPORT FuncA_Objects_DrawWinchMachine
 .IMPORT FuncA_Objects_MoveShapeLeftOneTile
 .IMPORT FuncA_Objects_MoveShapeUpOneTile
+.IMPORT FuncA_Room_RemoveFlowerDeviceIfCarriedOrDelivered
+.IMPORT FuncA_Room_RespawnFlowerDeviceIfDropped
 .IMPORT Func_MovePlatformTopToward
 .IMPORT Func_MovePlatformVert
 .IMPORT Func_Noop
-.IMPORT Func_RemoveFlowerDeviceIfCarriedOrDelivered
 .IMPORT Func_ResetWinchMachineParams
-.IMPORT Func_RespawnFlowerDeviceIfDropped
 .IMPORT Ppu_ChrObjCrypt
 .IMPORT Ram_MachineGoalVert_u8_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
@@ -234,14 +234,16 @@ _Winch_Reset:
     jmp Func_ResetWinchMachineParams
 .ENDPROC
 
+;;; @prereq PRGA_Room is loaded.
 .PROC FuncC_Crypt_Flower_InitRoom
     ldx #kFlowerDeviceIndex  ; param: device index
-    jmp Func_RemoveFlowerDeviceIfCarriedOrDelivered
+    jmp FuncA_Room_RemoveFlowerDeviceIfCarriedOrDelivered
 .ENDPROC
 
+;;; @prereq PRGA_Room is loaded.
 .PROC FuncC_Crypt_Flower_TickRoom
     ldx #kFlowerDeviceIndex  ; param: device index
-    jmp Func_RespawnFlowerDeviceIfDropped
+    jmp FuncA_Room_RespawnFlowerDeviceIfDropped
 .ENDPROC
 
 .PROC FuncC_Crypt_FlowerWinch_ReadReg

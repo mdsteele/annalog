@@ -23,11 +23,11 @@
 .INCLUDE "../ppu.inc"
 
 .IMPORT FuncA_Objects_Alloc2x2Shape
+.IMPORT FuncA_Objects_MoveShapeDownByA
 .IMPORT FuncA_Objects_MoveShapeRightOneTile
 .IMPORT FuncA_Objects_SetShapePosToDeviceTopLeft
 .IMPORT Ram_DeviceAnim_u8_arr
 .IMPORT Ram_Oam_sObj_arr64
-.IMPORTZP Zp_ShapePosY_i16
 .IMPORTZP Zp_Tmp1_byte
 
 ;;;=========================================================================;;;
@@ -91,13 +91,9 @@
     jsr FuncA_Objects_SetShapePosToDeviceTopLeft  ; preserves X and Y
     jsr FuncA_Objects_MoveShapeRightOneTile  ; preserves X and Y
     jsr FuncA_Objects_MoveShapeRightOneTile  ; preserves X and Y
-    pla  ; vertical offset
+    pla  ; param: vertical offset
     pha  ; vertical offset
-    add Zp_ShapePosY_i16 + 0
-    sta Zp_ShapePosY_i16 + 0
-    lda #0
-    adc Zp_ShapePosY_i16 + 1
-    sta Zp_ShapePosY_i16 + 1
+    jsr FuncA_Objects_MoveShapeDownByA  ; preserves X and Y
     ;; Allocate objects:
     tya  ; first tile ID
     pha  ; first tile ID

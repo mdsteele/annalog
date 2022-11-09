@@ -50,14 +50,14 @@ kUpgradePalette = 0
 
 ;;;=========================================================================;;;
 
-.SEGMENT "PRG8"
+.SEGMENT "PRGA_Room"
 
 ;;; Spawns an upgrade device at the given device index (which should be a
 ;;; Placeholder device with the upgrade's eFlag as its target).  Also spawns a
 ;;; puff-of-smoke actor and plays a sound effect for the upgrade.
 ;;; @param Y The device index.
-.EXPORT Func_SpawnUpgradeDevice
-.PROC Func_SpawnUpgradeDevice
+.EXPORT FuncA_Room_SpawnUpgradeDevice
+.PROC FuncA_Room_SpawnUpgradeDevice
     lda #eDevice::Upgrade
     sta Ram_DeviceType_eDevice_arr, y
     lda #kUpgradeDeviceAnimStart

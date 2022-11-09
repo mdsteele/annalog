@@ -452,4 +452,10 @@ _CallInit:
     jmp (Zp_Tmp_ptr)
 .ENDPROC
 
+;;; Calls the current room's Tick_func_ptr function.
+.EXPORT FuncA_Room_CallRoomTick
+.PROC FuncA_Room_CallRoomTick
+    jmp (Zp_Current_sRoom + sRoom::Tick_func_ptr)
+.ENDPROC
+
 ;;;=========================================================================;;;

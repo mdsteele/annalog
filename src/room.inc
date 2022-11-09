@@ -179,6 +179,7 @@ kRoomStateSize = $100
     ;; default.
     Chr18Bank_u8              .byte
     ;; Function to call each frame to update room state.
+    ;; @prereq PRGA_Room is loaded.
     Tick_func_ptr             .addr
     ;; Function to call each frame to draw room decor (e.g. for bosses).
     ;; @prereq PRGA_Objects is loaded.
@@ -223,6 +224,7 @@ kRoomStateSize = $100
     ;; Function to initialize room-specific state before the avatar has been
     ;; spawned into the room.  If the room is to be marked unsafe, that must be
     ;; done in this function.
+    ;; @prereq PRGA_Room is loaded.
     Init_func_ptr               .addr
     ;; Function to further initialize room-specific state after the avatar has
     ;; been spawned in the room, but before the nametables have been populated

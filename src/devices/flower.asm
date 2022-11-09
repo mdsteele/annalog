@@ -24,6 +24,7 @@
 
 .IMPORT FuncA_Objects_Alloc1x1Shape
 .IMPORT FuncA_Objects_MoveShapeDownOneTile
+.IMPORT FuncA_Objects_MoveShapeRightByA
 .IMPORT FuncA_Objects_SetShapePosToDeviceTopLeft
 .IMPORT Func_IsFlagSet
 .IMPORT Ppu_ChrObjAnnaFlower
@@ -32,7 +33,6 @@
 .IMPORT Ram_DeviceType_eDevice_arr
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORT Sram_CarryingFlower_eFlag
-.IMPORTZP Zp_ShapePosX_i16
 .IMPORTZP Zp_Tmp1_byte
 
 ;;;=========================================================================;;;
@@ -42,13 +42,13 @@ kFlowerAnimCountdown = 48
 
 ;;;=========================================================================;;;
 
-.SEGMENT "PRG8"
+.SEGMENT "PRGA_Room"
 
 ;;; Removes a flower device, and marks the player avatar as carrying that
 ;;; flower.
 ;;; @param X The device index for the flower.
-.EXPORT Func_PickUpFlowerDevice
-.PROC Func_PickUpFlowerDevice
+.EXPORT FuncA_Room_PickUpFlowerDevice
+.PROC FuncA_Room_PickUpFlowerDevice
     chr10_bank #<.bank(Ppu_ChrObjAnnaFlower)
     lda Ram_DeviceTarget_u8_arr, x
     ;; Enable writes to SRAM.
@@ -69,8 +69,8 @@ kFlowerAnimCountdown = 48
 ;;; already been delivered, then changes the device into a placeholder.  This
 ;;; should be called from room init functions.
 ;;; @param X The device index for the flower.
-.EXPORT Func_RemoveFlowerDeviceIfCarriedOrDelivered
-.PROC Func_RemoveFlowerDeviceIfCarriedOrDelivered
+.EXPORT FuncA_Room_RemoveFlowerDeviceIfCarriedOrDelivered
+.PROC FuncA_Room_RemoveFlowerDeviceIfCarriedOrDelivered
     ;; If the player avatar is carrying the flower, remove the device.
     lda Ram_DeviceTarget_u8_arr, x  ; flower eFlag value
     cmp Sram_CarryingFlower_eFlag
@@ -94,8 +94,8 @@ kFlowerAnimCountdown = 48
 ;;; animates the flower reappearing.  Does nothing if the device is already a
 ;;; flower.  This should be called from room tick functions.
 ;;; @param X The device index for the flower.
-.EXPORT Func_RespawnFlowerDeviceIfDropped
-.PROC Func_RespawnFlowerDeviceIfDropped
+.EXPORT FuncA_Room_RespawnFlowerDeviceIfDropped
+.PROC FuncA_Room_RespawnFlowerDeviceIfDropped
     ;; If the device is already a flower, there's nothing to do.
     lda Ram_DeviceType_eDevice_arr, x
     cmp #eDevice::Flower
@@ -132,14 +132,8 @@ kFlowerAnimCountdown = 48
     and #$02
     bne _Return
     jsr FuncA_Objects_SetShapePosToDeviceTopLeft  ; preserves X
-_AdjustPosition:
-    ;; Adjust X-position for the flower.
-    lda Zp_ShapePosX_i16 + 0
-    add #4
-    sta Zp_ShapePosX_i16 + 0
-    lda Zp_ShapePosX_i16 + 1
-    adc #0
-    sta Zp_ShapePosX_i16 + 1
+    lda #4  ; param: offset
+    jsr FuncA_Objects_MoveShapeRightByA  ; preserves X
 _AllocateUpperObject:
     jsr FuncA_Objects_Alloc1x1Shape  ; preserves X, returns C and Y
     bcs @done

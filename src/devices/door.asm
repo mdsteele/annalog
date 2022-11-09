@@ -24,12 +24,12 @@
 
 .IMPORT FuncA_Objects_Alloc1x1Shape
 .IMPORT FuncA_Objects_MoveShapeDownOneTile
+.IMPORT FuncA_Objects_MoveShapeRightByA
 .IMPORT FuncA_Objects_MoveShapeUpOneTile
 .IMPORT FuncA_Objects_SetShapePosToDeviceTopLeft
 .IMPORT Ram_DeviceAnim_u8_arr
 .IMPORT Ram_DeviceType_eDevice_arr
 .IMPORT Ram_Oam_sObj_arr64
-.IMPORTZP Zp_ShapePosX_i16
 
 ;;;=========================================================================;;;
 
@@ -112,12 +112,8 @@ kDoorAnimCountdown = kDoorNumAnimFrames * kDoorAnimSlowdown - 1
     pha  ; half-tiles
     jsr FuncA_Objects_SetShapePosToDeviceTopLeft  ; preserves X
     jsr FuncA_Objects_MoveShapeDownOneTile  ; preserves X
-    lda Zp_ShapePosX_i16 + 0
-    add #kTileWidthPx / 2
-    sta Zp_ShapePosX_i16 + 0
-    lda Zp_ShapePosX_i16 + 1
-    adc #0
-    sta Zp_ShapePosX_i16 + 1
+    lda #kTileWidthPx / 2  ; param: offset
+    jsr FuncA_Objects_MoveShapeRightByA  ; preserves X
     pla  ; half-tiles
 _Loop:
     pha  ; half-tiles

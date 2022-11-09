@@ -34,6 +34,7 @@
 .IMPORT FuncA_Objects_DrawLockedDoorDevice
 .IMPORT FuncA_Objects_DrawUnlockedDoorDevice
 .IMPORT FuncA_Objects_DrawUpgradeDevice
+.IMPORT FuncA_Objects_MoveShapeRightByA
 .IMPORT Func_Noop
 .IMPORT Ram_MachineStatus_eMachine_arr
 .IMPORT Ram_Oam_sObj_arr64
@@ -154,12 +155,8 @@ _Continue:
     jsr FuncA_Objects_SetShapePosToDeviceTopLeft  ; preserves X
 _AdjustPosition:
     ;; Adjust X-position for the console screen.
-    lda Zp_ShapePosX_i16 + 0
-    add #4
-    sta Zp_ShapePosX_i16 + 0
-    lda Zp_ShapePosX_i16 + 1
-    adc #0
-    sta Zp_ShapePosX_i16 + 1
+    lda #4  ; param: offset
+    jsr FuncA_Objects_MoveShapeRightByA  ; preserves X
     ;; Adjust Y-position for the console screen.
     inc Zp_ShapePosY_i16 + 0
     bne @noCarry
@@ -195,13 +192,8 @@ _AllocateObject:
 ;;; @preserve X
 .PROC FuncA_Objects_DrawPaperDevice
     jsr FuncA_Objects_SetShapePosToDeviceTopLeft  ; preserves X
-_AdjustPosition:
-    lda Zp_ShapePosX_i16 + 0
-    add #4
-    sta Zp_ShapePosX_i16 + 0
-    lda Zp_ShapePosX_i16 + 1
-    adc #0
-    sta Zp_ShapePosX_i16 + 1
+    lda #4  ; param: offset
+    jsr FuncA_Objects_MoveShapeRightByA  ; preserves X
 _AllocateObject:
     jsr FuncA_Objects_Alloc1x1Shape  ; preserves X, returns C and Y
     bcs @done

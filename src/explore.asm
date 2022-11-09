@@ -43,9 +43,11 @@
 .IMPORT FuncA_Objects_DrawAllMachines
 .IMPORT FuncA_Objects_DrawMachineHud
 .IMPORT FuncA_Objects_DrawPlayerAvatar
+.IMPORT FuncA_Room_CallRoomTick
 .IMPORT FuncA_Room_EnterViaPassage
 .IMPORT FuncA_Room_ExitViaPassage
 .IMPORT FuncA_Room_Load
+.IMPORT FuncA_Room_PickUpFlowerDevice
 .IMPORT FuncA_Terrain_CallRoomFadeIn
 .IMPORT FuncA_Terrain_FillNametables
 .IMPORT FuncA_Terrain_TransferTileColumn
@@ -53,7 +55,6 @@
 .IMPORT Func_ClearRestOfOam
 .IMPORT Func_FillLowerAttributeTable
 .IMPORT Func_FillUpperAttributeTable
-.IMPORT Func_PickUpFlowerDevice
 .IMPORT Func_ProcessFrame
 .IMPORT Func_SetLastSpawnPoint
 .IMPORT Func_TickAllDevices
@@ -276,7 +277,7 @@ _CheckForPause:
 _DeviceFlower:
     lda #$ff
     sta Zp_NearbyDevice_u8
-    jsr Func_PickUpFlowerDevice
+    jsr_prga FuncA_Room_PickUpFlowerDevice
     jmp _DoneWithDevice
 _DeviceSign:
     lda #eAvatar::Reading
@@ -308,7 +309,7 @@ _Tick:
     jsr_prga FuncA_Actor_TickAllActors
     jsr Func_TickAllDevices
     jsr_prga FuncA_Machine_ExecuteAll
-    jsr Func_CallRoomTick
+    jsr_prga FuncA_Room_CallRoomTick
     ;; Check if the player avatar is dead:
     lda Zp_AvatarHarmTimer_u8
     cmp #kAvatarHarmDeath
@@ -471,11 +472,6 @@ _Respawn:
     ;; TODO: Animate the avatar moving to its new location.
     ;; TODO: Start explore mode *without* needing to disable rendering first.
     jmp Main_Explore_FadeIn
-.ENDPROC
-
-;;; Calls the current room's Tick_func_ptr function.
-.PROC Func_CallRoomTick
-    jmp (Zp_Current_sRoom + sRoom::Tick_func_ptr)
 .ENDPROC
 
 ;;; Sets Zp_NearbyDevice_u8 to the index of the (interactive) device that the

@@ -38,6 +38,7 @@
 .IMPORT FuncA_Machine_CannonTryAct
 .IMPORT FuncA_Machine_CannonTryMove
 .IMPORT FuncA_Objects_DrawCannonMachine
+.IMPORT FuncA_Room_SpawnUpgradeDevice
 .IMPORT Func_FindEmptyActorSlot
 .IMPORT Func_GetRandomByte
 .IMPORT Func_InitActorProjFireball
@@ -48,7 +49,6 @@
 .IMPORT Func_MarkRoomSafe
 .IMPORT Func_Noop
 .IMPORT Func_SetFlag
-.IMPORT Func_SpawnUpgradeDevice
 .IMPORT Func_UnlockDoorDevice
 .IMPORT Ppu_ChrObjUpgrade
 .IMPORT Ram_ActorPosX_i16_0_arr
@@ -356,6 +356,7 @@ _BreakerAlreadyDone:
 .ENDPROC
 
 ;;; Room tick function for the GardenBoss room.
+;;; @prereq PRGA_Room is loaded.
 .PROC FuncC_Garden_Boss_TickRoom
     ldy Ram_RoomState + sState::Current_ePhase
     lda _JumpTable_ptr_0_arr, y
@@ -381,7 +382,7 @@ _SpawnUpgrade:
     bne @done
     ;; Spawn the upgrade.
     ldy #kUpgradeDeviceIndex  ; param: device index
-    jsr Func_SpawnUpgradeDevice
+    jsr FuncA_Room_SpawnUpgradeDevice
     ;; Proceed to the next phase.
     inc Ram_RoomState + sState::Current_ePhase
     @done:
