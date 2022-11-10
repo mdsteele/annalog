@@ -60,6 +60,7 @@
 .IMPORT Ram_DeviceType_eDevice_arr
 .IMPORT Ram_MachineGoalVert_u8_arr
 .IMPORT Ram_Oam_sObj_arr64
+.IMPORT Ram_PlatformType_ePlatform_arr
 .IMPORT Ram_RoomState
 .IMPORT Sram_ProgressFlags_arr
 .IMPORTZP Zp_AvatarPosX_i16
@@ -94,6 +95,9 @@ kCannonPlatformIndex = 0
 ;;; Initial position for grenades shot from the cannon.
 kCannonGrenadeInitPosX = $28
 kCannonGrenadeInitPosY = $78
+
+;;; The platform index for the boss's thorny vines.
+kThornsPlatformIndex = 1
 
 ;;;=========================================================================;;;
 
@@ -249,6 +253,14 @@ _Platforms_sPlatform_arr:
     d_word Left_i16,  $0020
     d_word Top_i16,   $0070
     D_END
+    .assert * - :- = kThornsPlatformIndex * .sizeof(sPlatform), error
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Harm
+    d_word WidthPx_u16, $50
+    d_byte HeightPx_u8, $4e
+    d_word Left_i16,  $0090
+    d_word Top_i16,   $0030
+    D_END
     .assert * - :- <= kMaxPlatforms * .sizeof(sPlatform), error
     .byte ePlatform::None
 _Actors_sActor_arr:
@@ -320,6 +332,9 @@ _Devices_sDevice_arr:
     sta Ram_RoomState + sState::BossMode_eBoss
     rts
 _BossAlreadyDefeated:
+    ;; Remove the boss's thorns.
+    lda #ePlatform::Zone
+    sta Ram_PlatformType_ePlatform_arr + kThornsPlatformIndex
     ;; Check if the upgrade has been collected yet.
     lda Sram_ProgressFlags_arr + (kUpgradeFlag >> 3)
     and #1 << (kUpgradeFlag & $07)
@@ -698,7 +713,9 @@ _CheckEyes:
     dec Ram_RoomState + sState::BossHealth_u8
     bne @bossIsStillAlive
     ;; If the boss's health is now zero, mark the boss as dead.
-    ;; TODO: make a death animation, then spawn upgrade
+    ;; TODO: make a death animation
+    lda #ePlatform::Zone
+    sta Ram_PlatformType_ePlatform_arr + kThornsPlatformIndex
     lda #eBoss::Dead
     sta Ram_RoomState + sState::BossMode_eBoss
     .assert eBoss::Dead = 0, error
