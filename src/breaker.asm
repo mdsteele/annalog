@@ -20,6 +20,7 @@
 .INCLUDE "avatar.inc"
 .INCLUDE "cpu.inc"
 .INCLUDE "device.inc"
+.INCLUDE "devices/breaker.inc"
 .INCLUDE "macros.inc"
 .INCLUDE "mmc3.inc"
 .INCLUDE "oam.inc"

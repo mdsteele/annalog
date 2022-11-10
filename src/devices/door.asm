@@ -42,6 +42,13 @@ kDoorNumAnimFrames = 6
 ;;; to store in Ram_DeviceAnim_u8_arr when animating the door).
 kDoorAnimCountdown = kDoorNumAnimFrames * kDoorAnimSlowdown - 1
 
+;;; OBJ tile IDs used for drawing door devices.
+kTileIdObjDoorwayFull = $3a
+kTileIdObjDoorwayHalf = $3b
+
+;;; The OBJ palette number used for drawing door devices.
+kPaletteObjDoorway = 0
+
 ;;;=========================================================================;;;
 
 .SEGMENT "PRG8"
@@ -124,13 +131,13 @@ _Loop:
     cmp #2
     blt @half
     @full:
-    lda #kTileIdDoorwayFull
+    lda #kTileIdObjDoorwayFull
     bne @setTileId  ; unconditional
     @half:
-    lda #kTileIdDoorwayHalf
+    lda #kTileIdObjDoorwayHalf
     @setTileId:
     sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
-    lda #kDoorwayPalette
+    lda #kPaletteObjDoorway
     sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
     @continue:
     jsr FuncA_Objects_MoveShapeUpOneTile

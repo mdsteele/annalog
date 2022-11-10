@@ -38,6 +38,7 @@
 .IMPORT FuncA_Machine_CannonTryAct
 .IMPORT FuncA_Machine_CannonTryMove
 .IMPORT FuncA_Objects_DrawCannonMachine
+.IMPORT FuncA_Room_SpawnBreakerDevice
 .IMPORT FuncA_Room_SpawnUpgradeDevice
 .IMPORT Func_FindEmptyActorSlot
 .IMPORT Func_GetRandomByte
@@ -56,7 +57,6 @@
 .IMPORT Ram_ActorPosY_i16_0_arr
 .IMPORT Ram_ActorPosY_i16_1_arr
 .IMPORT Ram_ActorType_eActor_arr
-.IMPORT Ram_DeviceAnim_u8_arr
 .IMPORT Ram_DeviceType_eDevice_arr
 .IMPORT Ram_MachineGoalVert_u8_arr
 .IMPORT Ram_Oam_sObj_arr64
@@ -403,11 +403,9 @@ _SpawnBreaker:
     ;; Wait for the spawn timer to reach zero.
     dec Ram_RoomState + sState::SpawnTimer_u8
     bne @done
-    ;; Show the breaker device and animate it.
-    lda #eDevice::BreakerRising
-    sta Ram_DeviceType_eDevice_arr + kBreakerDeviceIndex
-    lda #kBreakerRisingDeviceAnimStart
-    sta Ram_DeviceAnim_u8_arr + kBreakerDeviceIndex
+    ;; Show the breaker.
+    ldx #kBreakerDeviceIndex
+    jsr FuncA_Room_SpawnBreakerDevice
     ;; Proceed to the next phase.
     inc Ram_RoomState + sState::Current_ePhase
     @done:

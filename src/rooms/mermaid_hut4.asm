@@ -22,6 +22,7 @@
 .INCLUDE "../charmap.inc"
 .INCLUDE "../cpu.inc"
 .INCLUDE "../device.inc"
+.INCLUDE "../devices/flower.inc"
 .INCLUDE "../dialog.inc"
 .INCLUDE "../flag.inc"
 .INCLUDE "../macros.inc"
@@ -192,9 +193,9 @@ _Devices_sDevice_arr:
     sta Ram_Oam_sObj_arr64 + sObj::XPos_u8, y
     lda Zp_Tmp2_byte  ; Y-pos
     sta Ram_Oam_sObj_arr64 + sObj::YPos_u8, y
-    lda #kFlowerTileIdTop
+    lda #kTileIdObjFlowerTop
     sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
-    lda #kFlowerPaletteTop
+    lda #kPaletteObjFlowerTop
     sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
     tya
     add #.sizeof(sObj)

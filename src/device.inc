@@ -20,34 +20,6 @@
 ;;; The maximum number of devices that can exist at once in a room.
 kMaxDevices = 12
 
-;;; The OBJ tile IDs used for various device objects.
-kTileIdBreakerFirst     = $f0
-kConsoleScreenTileIdOk  = $0a
-kConsoleScreenTileIdErr = $0b
-kTileIdDoorwayFull      = $3a
-kTileIdDoorwayHalf      = $3b
-kFlowerTileIdTop        = $0c
-kFlowerTileIdBottom     = $0d
-kTileIdPaper            = $06
-
-;;; The OBJ palette numbers used for various device objects.
-kBreakerPalette          = 0
-kConsoleScreenPaletteOk  = 2
-kConsoleScreenPaletteErr = 1
-kDoorwayPalette          = 0
-kFlowerPaletteTop        = 1
-kFlowerPaletteBottom     = 2
-kPaperPalette            = 0
-
-;;; The initial value to set in Ram_DeviceAnim_u8_arr when animating various
-;;; devices.
-kBreakerRisingDeviceAnimStart = 63
-kBreakerDoneDeviceAnimStart = 31
-
-;;; The horizontal mod-16 offset within a breaker device's block that the
-;;; player avatar should be positioned at when activing a breaker.
-kBreakerAvatarOffset = $05
-
 ;;;=========================================================================;;;
 
 ;;; Types of devices in a room.

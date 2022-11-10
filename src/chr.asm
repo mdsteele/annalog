@@ -26,7 +26,7 @@
 .INCLUDE "actors/townsfolk.inc"
 .INCLUDE "actors/vinebug.inc"
 .INCLUDE "avatar.inc"
-.INCLUDE "device.inc"
+.INCLUDE "devices/breaker.inc"
 .INCLUDE "machines/boiler.inc"
 .INCLUDE "machines/cannon.inc"
 .INCLUDE "machines/crane.inc"
@@ -523,7 +523,7 @@
     .assert * - :- = (kTileIdWeakFloorFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/breakable.chr"
     .res $27 * kSizeofChr
-    .assert * - :- = (kTileIdBreakerFirst - $80) * kSizeofChr, error
+    .assert * - :- = (kTileIdObjBreakerFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/breaker.chr"
     .assert * - :- = kSizeofChr * $80, error
 .ENDPROC
@@ -677,7 +677,7 @@
     .incbin "out/data/tiles/prison_obj.chr"
     .incbin "out/data/tiles/hotspring.chr"
     .res $08 * kSizeofChr
-    .assert * - :- = (kTileIdBreakerFirst - $80) * kSizeofChr, error
+    .assert * - :- = (kTileIdObjBreakerFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/breaker.chr"
     .assert * - :- = kSizeofChr * $80, error
 .ENDPROC

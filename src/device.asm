@@ -18,31 +18,27 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "device.inc"
-.INCLUDE "machine.inc"
 .INCLUDE "macros.inc"
 .INCLUDE "oam.inc"
 .INCLUDE "ppu.inc"
 .INCLUDE "room.inc"
 
-.IMPORT FuncA_Objects_Alloc1x1Shape
 .IMPORT FuncA_Objects_DrawBreakerDoneDevice
 .IMPORT FuncA_Objects_DrawBreakerReadyDevice
 .IMPORT FuncA_Objects_DrawBreakerRisingDevice
+.IMPORT FuncA_Objects_DrawConsoleDevice
 .IMPORT FuncA_Objects_DrawFlowerDevice
 .IMPORT FuncA_Objects_DrawLeverCeilingDevice
 .IMPORT FuncA_Objects_DrawLeverFloorDevice
 .IMPORT FuncA_Objects_DrawLockedDoorDevice
+.IMPORT FuncA_Objects_DrawPaperDevice
 .IMPORT FuncA_Objects_DrawUnlockedDoorDevice
 .IMPORT FuncA_Objects_DrawUpgradeDevice
-.IMPORT FuncA_Objects_MoveShapeRightByA
 .IMPORT Func_Noop
-.IMPORT Ram_MachineStatus_eMachine_arr
-.IMPORT Ram_Oam_sObj_arr64
 .IMPORTZP Zp_RoomScrollX_u16
 .IMPORTZP Zp_RoomScrollY_u8
 .IMPORTZP Zp_ShapePosX_i16
 .IMPORTZP Zp_ShapePosY_i16
-.IMPORTZP Zp_Tmp1_byte
 .IMPORTZP Zp_Tmp_ptr
 
 ;;;=========================================================================;;;
@@ -146,63 +142,6 @@ _Continue:
     d_entry table, Upgrade,       FuncA_Objects_DrawUpgradeDevice
     D_END
 .ENDREPEAT
-.ENDPROC
-
-;;; Allocates and populates OAM slots for a console device.
-;;; @param X The device index.
-;;; @preserve X
-.PROC FuncA_Objects_DrawConsoleDevice
-    jsr FuncA_Objects_SetShapePosToDeviceTopLeft  ; preserves X
-_AdjustPosition:
-    ;; Adjust X-position for the console screen.
-    lda #4  ; param: offset
-    jsr FuncA_Objects_MoveShapeRightByA  ; preserves X
-    ;; Adjust Y-position for the console screen.
-    inc Zp_ShapePosY_i16 + 0
-    bne @noCarry
-    inc Zp_ShapePosY_i16 + 1
-    @noCarry:
-_AllocateObject:
-    jsr FuncA_Objects_Alloc1x1Shape  ; preserves X, returns C and Y
-    bcs @done
-    sty Zp_Tmp1_byte  ; OAM offset
-    ;; Determine if the machine has an error.
-    ldy Ram_DeviceTarget_u8_arr, x  ; machine index
-    lda Ram_MachineStatus_eMachine_arr, y
-    ldy Zp_Tmp1_byte  ; OAM offset
-    cmp #eMachine::Error
-    beq @machineError
-    @machineOk:
-    lda #kConsoleScreenPaletteOk
-    sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
-    lda #kConsoleScreenTileIdOk
-    sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
-    rts
-    @machineError:
-    lda #kConsoleScreenPaletteErr
-    sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
-    lda #kConsoleScreenTileIdErr
-    sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
-    @done:
-    rts
-.ENDPROC
-
-;;; Allocates and populates OAM slots for a paper device.
-;;; @param X The device index.
-;;; @preserve X
-.PROC FuncA_Objects_DrawPaperDevice
-    jsr FuncA_Objects_SetShapePosToDeviceTopLeft  ; preserves X
-    lda #4  ; param: offset
-    jsr FuncA_Objects_MoveShapeRightByA  ; preserves X
-_AllocateObject:
-    jsr FuncA_Objects_Alloc1x1Shape  ; preserves X, returns C and Y
-    bcs @done
-    lda #kPaperPalette
-    sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
-    lda #kTileIdPaper
-    sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
-    @done:
-    rts
 .ENDPROC
 
 ;;; Populates Zp_ShapePosX_i16 and Zp_ShapePosY_i16 with the screen position of

@@ -21,12 +21,14 @@
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
 .INCLUDE "../ppu.inc"
+.INCLUDE "breaker.inc"
 
 .IMPORT FuncA_Objects_Alloc2x2Shape
 .IMPORT FuncA_Objects_MoveShapeDownByA
 .IMPORT FuncA_Objects_MoveShapeRightOneTile
 .IMPORT FuncA_Objects_SetShapePosToDeviceTopLeft
 .IMPORT Ram_DeviceAnim_u8_arr
+.IMPORT Ram_DeviceType_eDevice_arr
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORTZP Zp_Tmp1_byte
 
@@ -34,6 +36,28 @@
 
 ;;; The number of VBlank frames per pixel that a rising breaker device moves.
 .DEFINE kBreakerRisingSlowdown 4
+
+;;; The OBJ palette number used for drawing breaker devices.
+kPaletteObjBreaker = 0
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Room"
+
+;;; Spawns a rising breaker device at the given device index (which should be a
+;;; Placeholder device with the breaker's eFlag as its target).  Also plays a
+;;; sound effect for the rising breaker.
+;;; @param X The device index.
+.EXPORT FuncA_Room_SpawnBreakerDevice
+.PROC FuncA_Room_SpawnBreakerDevice
+    lda #eDevice::BreakerRising
+    sta Ram_DeviceType_eDevice_arr, x
+    lda #kBreakerRisingDeviceAnimStart
+    sta Ram_DeviceAnim_u8_arr, x
+_PlaySound:
+    ;; TODO: play a sound
+    rts
+.ENDPROC
 
 ;;;=========================================================================;;;
 
@@ -45,7 +69,7 @@
 ;;; @preserve X
 .EXPORT FuncA_Objects_DrawBreakerRisingDevice
 .PROC FuncA_Objects_DrawBreakerRisingDevice
-    ldy #kTileIdBreakerFirst  ; param: first tile ID
+    ldy #kTileIdObjBreakerFirst  ; param: first tile ID
     lda Ram_DeviceAnim_u8_arr, x
     div #kBreakerRisingSlowdown
     add #kTileHeightPx  ; param: vertical offset
@@ -57,7 +81,7 @@
 ;;; @preserve X
 .EXPORT FuncA_Objects_DrawBreakerReadyDevice
 .PROC FuncA_Objects_DrawBreakerReadyDevice
-    ldy #kTileIdBreakerFirst  ; param: first tile ID
+    ldy #kTileIdObjBreakerFirst  ; param: first tile ID
     lda #kTileHeightPx  ; param: vertical offset
     bne FuncA_Objects_DrawBreakerDevice  ; unconditional
 .ENDPROC
@@ -72,7 +96,7 @@
     lsr a
     and #$0c
     sta Zp_Tmp1_byte
-    lda #kTileIdBreakerFirst + $0c
+    lda #kTileIdObjBreakerFirst + $0c
     sub Zp_Tmp1_byte
     tay  ; param: first tile ID
     lda #kTileHeightPx  ; param: vertical offset
@@ -97,7 +121,7 @@
     ;; Allocate objects:
     tya  ; first tile ID
     pha  ; first tile ID
-    lda #bObj::Pri | kBreakerPalette  ; param: object flags
+    lda #bObj::Pri | kPaletteObjBreaker  ; param: object flags
     jsr FuncA_Objects_Alloc2x2Shape  ; preserves X, returns C and Y
     pla  ; first tile ID
     bcs @done

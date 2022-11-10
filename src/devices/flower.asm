@@ -21,6 +21,7 @@
 .INCLUDE "../macros.inc"
 .INCLUDE "../mmc3.inc"
 .INCLUDE "../oam.inc"
+.INCLUDE "flower.inc"
 
 .IMPORT FuncA_Objects_Alloc1x1Shape
 .IMPORT FuncA_Objects_MoveShapeDownOneTile
@@ -137,18 +138,18 @@ kFlowerAnimCountdown = 48
 _AllocateUpperObject:
     jsr FuncA_Objects_Alloc1x1Shape  ; preserves X, returns C and Y
     bcs @done
-    lda #kFlowerPaletteTop
+    lda #kPaletteObjFlowerTop
     sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
-    lda #kFlowerTileIdTop
+    lda #kTileIdObjFlowerTop
     sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
     @done:
 _AllocateLowerObject:
     jsr FuncA_Objects_MoveShapeDownOneTile  ; preserves X
     jsr FuncA_Objects_Alloc1x1Shape  ; preserves X, returns C and Y
     bcs @done
-    lda #kFlowerPaletteBottom
+    lda #kPaletteObjFlowerBottom
     sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
-    lda #kFlowerTileIdBottom
+    lda #kTileIdObjFlowerBottom
     sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
     @done:
 _Return:

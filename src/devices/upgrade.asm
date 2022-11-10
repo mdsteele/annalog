@@ -46,7 +46,7 @@
 kUpgradeDeviceAnimStart = 23
 
 ;;; The OBJ palette number to use for drawing upgrade devices.
-kUpgradePalette = 0
+kPaletteObjUpgrade = 0
 
 ;;;=========================================================================;;;
 
@@ -113,7 +113,7 @@ _AdjustPosition:
     lda _YOffsets_u8_arr, y
     jsr FuncA_Objects_MoveShapeDownByA  ; preserves X
 _AllocateObjects:
-    lda #kUpgradePalette  ; param: object flags
+    lda #kPaletteObjUpgrade  ; param: object flags
     jsr FuncA_Objects_Alloc2x2Shape  ; preserves X, returns C and Y
     bcs @done
     lda Ram_DeviceTarget_u8_arr, x  ; param: eFlag value

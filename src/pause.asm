@@ -18,6 +18,7 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "charmap.inc"
+.INCLUDE "devices/flower.inc"
 .INCLUDE "flag.inc"
 .INCLUDE "joypad.inc"
 .INCLUDE "macros.inc"
@@ -734,12 +735,12 @@ _CircuitFlags_bObj_arr:
     lda #$c9
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::YPos_u8, y
     ;; Set object palettes.
-    lda #1
+    lda #kPaletteObjFlowerTop
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Flags_bObj, y
     lda #0
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Flags_bObj, y
     ;; Set object tile IDs.
-    lda #$0c
+    lda #kTileIdObjFlowerTop
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Tile_u8, y
     lda Zp_Tmp1_byte  ; flower count
     ora #$80 | '0'

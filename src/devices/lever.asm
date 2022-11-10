@@ -37,11 +37,11 @@
 ;;;=========================================================================;;;
 
 ;;; OBJ tile IDs used for drawing lever handles.
-kLeverHandleTileIdDown = $0e
-kLeverHandleTileIdUp   = $0f
+kTileIdObjLeverHandleDown = $0e
+kTileIdObjLeverHandleUp   = $0f
 
 ;;; The OBJ palette number used for drawing lever handles.
-kLeverHandlePalette = 0
+kPaletteObjLeverHandle = 0
 
 ;;; The number of animation frames a lever device has (i.e. the number of
 ;;; distinct ways of drawing it).
@@ -79,7 +79,7 @@ kLeverAnimCountdown = kLeverNumAnimFrames * kLeverAnimSlowdown - 1
 ;;; @preserve X
 .EXPORT FuncA_Objects_DrawLeverCeilingDevice
 .PROC FuncA_Objects_DrawLeverCeilingDevice
-    ldy #kLeverHandlePalette | bObj::FlipV  ; param: flags
+    ldy #kPaletteObjLeverHandle | bObj::FlipV  ; param: flags
     bne FuncA_Objects_DrawLeverDevice  ; unconditional
 .ENDPROC
 
@@ -88,7 +88,7 @@ kLeverAnimCountdown = kLeverNumAnimFrames * kLeverAnimSlowdown - 1
 ;;; @preserve X
 .EXPORT FuncA_Objects_DrawLeverFloorDevice
 .PROC FuncA_Objects_DrawLeverFloorDevice
-    ldy #kLeverHandlePalette  ; param: flags
+    ldy #kPaletteObjLeverHandle  ; param: flags
     .assert * = FuncA_Objects_DrawLeverDevice, error, "fallthrough"
 .ENDPROC
 
@@ -149,10 +149,10 @@ _AllocateObject:
     @done:
     rts
 _LeverTileIds_u8_arr:
-    .byte kLeverHandleTileIdDown
-    .byte kLeverHandleTileIdUp
-    .byte kLeverHandleTileIdUp
-    .byte kLeverHandleTileIdDown
+    .byte kTileIdObjLeverHandleDown
+    .byte kTileIdObjLeverHandleUp
+    .byte kTileIdObjLeverHandleUp
+    .byte kTileIdObjLeverHandleDown
     .assert * - _LeverTileIds_u8_arr = kLeverNumAnimFrames, error
 .ENDPROC
 
