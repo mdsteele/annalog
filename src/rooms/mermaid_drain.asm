@@ -348,10 +348,10 @@ _Water:
     lda Zp_FrameCounter_u8
     div #8
     and #$03
-    .assert kTileIdHotSpringFirst & $03 = 0, error
-    ora #kTileIdHotSpringFirst
+    .assert kTileIdObjHotSpringFirst & $03 = 0, error
+    ora #kTileIdObjHotSpringFirst
     sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
-    lda #kHotSpringPalette | bObj::Pri
+    lda #kPaletteObjHotSpring | bObj::Pri
     sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
     @continue:
     jsr FuncA_Objects_MoveShapeRightOneTile  ; preserves X

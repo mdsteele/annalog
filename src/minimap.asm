@@ -478,6 +478,12 @@ _MarkMinimap:
     d_byte Not_eFlag, eFlag::FlowerTemple
     D_END
     D_STRUCT sMarker
+    d_byte Row_u8, 5
+    d_byte Col_u8, 18  ; room: SewerFlower
+    d_byte If_eFlag, 0
+    d_byte Not_eFlag, eFlag::FlowerSewer
+    D_END
+    D_STRUCT sMarker
     d_byte Row_u8, 6
     d_byte Col_u8, 4  ; room: TempleLobby
     d_byte If_eFlag, 0

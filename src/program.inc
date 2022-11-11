@@ -130,6 +130,7 @@
     PrisonCellBlaster
     PrisonCellLift
     PrisonEscapeTrolley
+    SewerFlowerPump
     ShadowTeleportField
     TempleLobbyLift
     NUM_VALUES

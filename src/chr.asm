@@ -31,6 +31,7 @@
 .INCLUDE "machines/cannon.inc"
 .INCLUDE "machines/crane.inc"
 .INCLUDE "machines/jet.inc"
+.INCLUDE "machines/pump.inc"
 .INCLUDE "machines/winch.inc"
 
 ;;;=========================================================================;;;
@@ -614,6 +615,19 @@
 
 ;;;=========================================================================;;;
 
+.SEGMENT "CHR_ObjSewer"
+
+.EXPORT Ppu_ChrObjSewer
+.PROC Ppu_ChrObjSewer
+:   .incbin "out/data/tiles/upgrade.chr"
+    .assert * - :- = (kTileIdObjWaterFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/water.chr"
+    .res $63 * kSizeofChr
+    .assert * - :- = kSizeofChr * $80, error
+.ENDPROC
+
+;;;=========================================================================;;;
+
 .SEGMENT "CHR_ObjTemple"
 
 .EXPORT Ppu_ChrObjTemple
@@ -675,6 +689,7 @@
     .assert * - :- = (kGrenadeFirstTileId - $80) * kSizeofChr, error
     .incbin "out/data/tiles/grenade.chr"
     .incbin "out/data/tiles/prison_obj.chr"
+    .assert * - :- = (kTileIdObjHotSpringFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/hotspring.chr"
     .res $08 * kSizeofChr
     .assert * - :- = (kTileIdObjBreakerFirst - $80) * kSizeofChr, error
