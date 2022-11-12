@@ -45,7 +45,7 @@
 .IMPORT Func_MovePlatformTopToward
 .IMPORT Func_Noop
 .IMPORT Func_SetFlag
-.IMPORT Ppu_ChrObjUpgrade
+.IMPORT Ppu_ChrObjMermaid
 .IMPORT Ram_DeviceType_eDevice_arr
 .IMPORT Ram_MachineGoalVert_u8_arr
 .IMPORT Ram_MachineSlowdown_u8_arr
@@ -112,7 +112,7 @@ kWaterMinPlatformTop = kWaterMaxPlatformTop - kPumpMaxGoalY * kBlockHeightPx
     d_addr TerrainData_ptr, _TerrainData
     d_byte NumMachines_u8, 1
     d_addr Machines_sMachine_arr_ptr, _Machines_sMachine_arr
-    d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjUpgrade)
+    d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjMermaid)
     d_addr Tick_func_ptr, DataC_Mermaid_Drain_TickRoom
     d_addr Draw_func_ptr, DataC_Mermaid_Drain_DrawRoom
     d_addr Ext_sRoomExt_ptr, _Ext_sRoomExt

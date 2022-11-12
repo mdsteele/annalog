@@ -17,19 +17,19 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
-;;; State bytes for beetle and hothead baddies:
-;;;   * State1: Toggles between 1 and 0 each frame; used to make baddie move
-;;;     by one pixel every other frame.
-;;;   * State2: Unused.
-
-;;; Tile IDs for drawing beetle actors.
-kTileIdObjBeetleFirst = $e0
-kTileIdObjBeetleHorzFirst = kTileIdObjBeetleFirst + $00
-kTileIdObjBeetleVertFirst = kTileIdObjBeetleFirst + $08
-
-;;; Tile IDs for drawing hothead actors.
-kTileIdObjHotheadFirst = $a0
-kTileIdObjHotheadHorzFirst = kTileIdObjHotheadFirst + $00
-kTileIdObjHotheadVertFirst = kTileIdObjHotheadFirst + $08
+;;; Various OBJ tile IDs used for drawing upgrades.
+kTileIdObjUpgradeBottomFirst   = $80
+kTileIdObjUpgradeMaxInstFirst  = $82
+kTileIdObjUpgradeBRemoteFirst  = $84
+kTileIdObjUpgradeOpIfFirst     = $86
+kTileIdObjUpgradeOpTilFirst    = $88
+kTileIdObjUpgradeOpCopyFirst   = $8a
+kTileIdObjUpgradeOpAddSubFirst = $8c
+kTileIdObjUpgradeOpMulFirst    = $8e
+kTileIdObjUpgradeOpBeepFirst   = $90
+kTileIdObjUpgradeOpGotoFirst   = $92
+kTileIdObjUpgradeOpSkipFirst   = $94
+kTileIdObjUpgradeOpWaitFirst   = $96
+kTileIdObjUpgradeOpSyncFirst   = $98
 
 ;;;=========================================================================;;;

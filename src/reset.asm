@@ -32,7 +32,7 @@
 .IMPORT Ppu_ChrBgFontUpper
 .IMPORT Ppu_ChrBgPause
 .IMPORT Ppu_ChrObjAnnaNormal
-.IMPORT Ppu_ChrObjUpgrade
+.IMPORT Ppu_ChrObjPause
 .IMPORTZP Zp_Active_sIrq
 .IMPORTZP Zp_NextIrq_int_ptr
 
@@ -126,7 +126,7 @@ _InitPpuMapping:
     chr08_bank #<.bank(Ppu_ChrBgPause)
     chr0c_bank #<.bank(Ppu_ChrBgPause)
     chr10_bank #<.bank(Ppu_ChrObjAnnaNormal)
-    chr18_bank #<.bank(Ppu_ChrObjUpgrade)
+    chr18_bank #<.bank(Ppu_ChrObjPause)
 _InitAttributeTable0:
     ;; Set all blocks in nametable 0 to use BG palette 0.
     ldax #Ppu_Nametable0_sName + sName::Attrs_u8_arr64

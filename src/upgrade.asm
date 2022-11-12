@@ -26,6 +26,7 @@
 .INCLUDE "oam.inc"
 .INCLUDE "ppu.inc"
 .INCLUDE "program.inc"
+.INCLUDE "upgrade.inc"
 .INCLUDE "window.inc"
 
 .IMPORT FuncA_Objects_DrawObjectsForRoom
@@ -78,16 +79,16 @@ kUpgradeSymbolLeft = $14
 kUpgradeSymbolPalette = 0
 
 ;;; The OBJ tile IDs for the bottom two tiles of all upgrade symbols.
-kUpgradeTileIdBottomLeft  = $80
-kUpgradeTileIdBottomRight = $81
+kUpgradeTileIdBottomLeft  = kTileIdObjUpgradeBottomFirst + 0
+kUpgradeTileIdBottomRight = kTileIdObjUpgradeBottomFirst + 1
 ;;; The OBJ tile ID for the top-left tile of the symbol for max-instruction
 ;;; upgrades.  Add 1 to this to get the the top-right tile ID for that symbol.
-kMaxInstTileIdTopLeft     = $82
+kMaxInstTileIdTopLeft     = kTileIdObjUpgradeMaxInstFirst + 0
 ;;; The OBJ tile ID for the top-left tile for the symbol of the first
 ;;; non-max-instruction upgrade.  Add 1 to this to get the the top-right tile
 ;;; ID for that symbol, then add another 1 to get the top-left tile ID for the
 ;;; next upgrade, and so on.
-kRemainingTileIdTopLeft   = $84
+kRemainingTileIdTopLeft   = kTileIdObjUpgradeBRemoteFirst + 0
 
 ;;;=========================================================================;;;
 

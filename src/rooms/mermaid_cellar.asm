@@ -28,7 +28,7 @@
 .IMPORT DataA_Pause_MermaidAreaName_u8_arr
 .IMPORT DataA_Room_Hut_sTileset
 .IMPORT Func_Noop
-.IMPORT Ppu_ChrObjUpgrade
+.IMPORT Ppu_ChrObjMermaid
 .IMPORT Ram_DeviceType_eDevice_arr
 .IMPORT Sram_ProgressFlags_arr
 
@@ -55,7 +55,7 @@ kUpgradeFlag = eFlag::UpgradeOpcodeBeep
     d_addr TerrainData_ptr, _TerrainData
     d_byte NumMachines_u8, 0
     d_addr Machines_sMachine_arr_ptr, 0
-    d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjUpgrade)
+    d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjMermaid)
     d_addr Tick_func_ptr, Func_Noop
     d_addr Draw_func_ptr, Func_Noop
     d_addr Ext_sRoomExt_ptr, _Ext_sRoomExt

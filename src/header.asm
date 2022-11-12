@@ -39,7 +39,7 @@ kRegion      =  0  ; 0 = NTSC, 1 = PAL, 2 = multiple, 3 = Dendy
 kMapper      =  4  ; iNES mapper #4 is MMC3
 kSubmapper   =  0  ; for MMC3, submapper #0 is MMC3C ("new style" IRQ)
 kPrgRomSize  = 16  ; number of 16k PRG ROM chunks (should be a power of 2)
-kChrRomSize  =  8  ; number of 8k CHR ROM chunks (should be a power of 2)
+kChrRomSize  = 16  ; number of 8k CHR ROM chunks (should be a power of 2)
 kPrgRamShift =  0  ; if nonzero, there are (64 << this) bytes of PRG RAM
 kSramShift   =  7  ; if nonzero, there are (64 << this) bytes of SRAM
 kChrRamShift =  0  ; if nonzero, there are (64 << this) bytes of CHR RAM

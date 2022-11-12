@@ -24,6 +24,6 @@
 ;;;   * State2: Unused.
 
 ;;; The first tile ID for the grenade actor animation.
-kTileIdObjGrenadeFirst = $dd
+kTileIdObjGrenadeFirst = $dc
 
 ;;;=========================================================================;;;

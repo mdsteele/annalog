@@ -61,7 +61,7 @@ kWallCratePlatformIndex = 1
 kFloorCratePlatformIndex = 2
 
 ;;; The first OBJ tile ID for drawing the crate platforms in this room.
-kTileIdObjCrateFirst = $d9
+kTileIdObjCrateFirst = $d8
 
 ;;; The OBJ palette number used for drawing the crate platforms in this room.
 kCratePalette = 0

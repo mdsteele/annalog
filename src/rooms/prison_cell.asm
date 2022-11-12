@@ -48,7 +48,7 @@
 .IMPORT Func_IsFlagSet
 .IMPORT Func_Noop
 .IMPORT Func_SetFlag
-.IMPORT Ppu_ChrObjUpgrade
+.IMPORT Ppu_ChrObjPrison
 .IMPORT Ram_MachineGoalVert_u8_arr
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORT Ram_PlatformTop_i16_0_arr
@@ -108,7 +108,7 @@ kTileIdGateLock  = $e3
     d_addr TerrainData_ptr, _TerrainData
     d_byte NumMachines_u8, 1
     d_addr Machines_sMachine_arr_ptr, _Machines_sMachine_arr
-    d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjUpgrade)
+    d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjPrison)
     d_addr Tick_func_ptr, Func_Noop
     d_addr Draw_func_ptr, FuncC_Prison_Cell_DrawRoom
     d_addr Ext_sRoomExt_ptr, _Ext_sRoomExt
