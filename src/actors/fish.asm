@@ -28,7 +28,7 @@
 .IMPORT FuncA_Objects_Draw2x2Actor
 .IMPORT Func_GetTerrainColumnPtrForTileIndex
 .IMPORT Ram_ActorFlags_bObj_arr
-.IMPORT Ram_ActorState_byte_arr
+.IMPORT Ram_ActorState1_byte_arr
 .IMPORT Ram_ActorVelX_i16_0_arr
 .IMPORT Ram_ActorVelX_i16_1_arr
 .IMPORTZP Zp_TerrainColumn_u8_arr_ptr
@@ -38,12 +38,6 @@
 
 ;;; How fast the fish swims, in subpixels per frame.
 kFishSpeed = $0130
-
-;;; First-tile-ID values that can be passed to FuncA_Objects_Draw2x2Actor for
-;;; various actor animation frames.
-kFishFirstTileId1 = kTileIdFishFirst + 0
-kFishFirstTileId2 = kTileIdFishFirst + 4
-kFishFirstTileId3 = kTileIdFishFirst + 8
 
 ;;;=========================================================================;;;
 
@@ -106,7 +100,7 @@ _SetVelocity:
     lda #>($ffff & -kFishSpeed)
     sta Ram_ActorVelX_i16_1_arr, x
     @done:
-    inc Ram_ActorState_byte_arr, x
+    inc Ram_ActorState1_byte_arr, x
     jmp FuncA_Actor_HarmAvatarIfCollision  ; preserves X
 .ENDPROC
 
@@ -119,15 +113,17 @@ _SetVelocity:
 ;;; @preserve X
 .EXPORT FuncA_Objects_DrawActorBadFish
 .PROC FuncA_Objects_DrawActorBadFish
-    lda Ram_ActorState_byte_arr, x
+    lda Ram_ActorState1_byte_arr, x
     div #8
     and #$03
     tay
     lda _TileIds_u8_arr4, y  ; param: first tile ID
     jmp FuncA_Objects_Draw2x2Actor  ; preserves X
 _TileIds_u8_arr4:
-    .byte kFishFirstTileId1, kFishFirstTileId2
-    .byte kFishFirstTileId3, kFishFirstTileId2
+    .byte kTileIdObjFishFirst + 0
+    .byte kTileIdObjFishFirst + 4
+    .byte kTileIdObjFishFirst + 8
+    .byte kTileIdObjFishFirst + 4
 .ENDPROC
 
 ;;;=========================================================================;;;

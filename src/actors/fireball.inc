@@ -17,7 +17,13 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
+;;; State bytes for fireball projectiles:
+;;;   * State1: Counter that starts at zero and increments every frame; if it
+;;;     wraps back around to zero before the fireball hits anything, then the
+;;;     fireball is removed.
+;;;   * State2: Unused.
+
 ;;; The first tile ID for the fireball actor animation.
-kFireballFirstTileId = $9a
+kTileIdObjFireballFirst = $9a
 
 ;;;=========================================================================;;;

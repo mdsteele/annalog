@@ -17,7 +17,13 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
+;;; State bytes for grenade projectiles:
+;;;   * State1: Counter that starts at zero and increments every frame; if it
+;;;     wraps back around to zero before the grenade hits anything, then the
+;;;     grenade explodes.
+;;;   * State2: Unused.
+
 ;;; The first tile ID for the grenade actor animation.
-kGrenadeFirstTileId = $dd
+kTileIdObjGrenadeFirst = $dd
 
 ;;;=========================================================================;;;

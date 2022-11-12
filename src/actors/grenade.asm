@@ -25,17 +25,13 @@
 .IMPORT FuncA_Actor_CenterHitsTerrain
 .IMPORT FuncA_Actor_HarmAvatarIfCollision
 .IMPORT FuncA_Objects_Draw1x1Actor
+.IMPORT Func_InitActorDefault
 .IMPORT Func_InitActorProjSmoke
-.IMPORT Ram_ActorFlags_bObj_arr
 .IMPORT Ram_ActorPosX_i16_0_arr
 .IMPORT Ram_ActorPosX_i16_1_arr
 .IMPORT Ram_ActorPosY_i16_0_arr
 .IMPORT Ram_ActorPosY_i16_1_arr
-.IMPORT Ram_ActorState_byte_arr
-.IMPORT Ram_ActorSubX_u8_arr
-.IMPORT Ram_ActorSubY_u8_arr
-.IMPORT Ram_ActorType_eActor_arr
-.IMPORT Ram_ActorVelX_i16_0_arr
+.IMPORT Ram_ActorState1_byte_arr
 .IMPORT Ram_ActorVelX_i16_1_arr
 .IMPORT Ram_ActorVelY_i16_0_arr
 .IMPORT Ram_ActorVelY_i16_1_arr
@@ -57,17 +53,25 @@
 ;;; @preserve X
 .EXPORT Func_InitActorProjGrenade
 .PROC Func_InitActorProjGrenade
+    pha  ; aim angle index
+    ldy #eActor::ProjGrenade  ; param: actor type
+    jsr Func_InitActorDefault  ; preserves X
+    pla  ; aim angle index
     tay  ; aim angle index
-    ;; Initialize state:
-    lda #eActor::ProjGrenade
-    sta Ram_ActorType_eActor_arr, x
-    lda #0
-    sta Ram_ActorSubX_u8_arr, x
-    sta Ram_ActorSubY_u8_arr, x
-    sta Ram_ActorState_byte_arr, x
-    sta Ram_ActorFlags_bObj_arr, x
+    ;; Initialize Y-velocity:
+    lda _InitVelY_i16_0_arr, y
+    sta Ram_ActorVelY_i16_0_arr, x
+    lda _InitVelY_i16_1_arr, y
+    sta Ram_ActorVelY_i16_1_arr, x
+    ;; Adjust initial Y-position:
+    mul #2
+    add Ram_ActorPosY_i16_0_arr, x
+    sta Ram_ActorPosY_i16_0_arr, x
+    lda #$ff  ; initial Y-velocity is always negative
+    adc Ram_ActorPosY_i16_1_arr, x
+    sta Ram_ActorPosY_i16_1_arr, x
     ;; Initialize X-velocity:
-    sta Ram_ActorVelX_i16_0_arr, x
+    lda #0
     sta Zp_Tmp1_byte
     lda _InitVelX_i16_1_arr, y
     sta Ram_ActorVelX_i16_1_arr, x
@@ -81,18 +85,6 @@
     lda Zp_Tmp1_byte
     adc Ram_ActorPosX_i16_1_arr, x
     sta Ram_ActorPosX_i16_1_arr, x
-    ;; Initialize Y-velocity:
-    lda _InitVelY_i16_0_arr, y
-    sta Ram_ActorVelY_i16_0_arr, x
-    lda _InitVelY_i16_1_arr, y
-    sta Ram_ActorVelY_i16_1_arr, x
-    ;; Adjust initial Y-position:
-    mul #2
-    add Ram_ActorPosY_i16_0_arr, x
-    sta Ram_ActorPosY_i16_0_arr, x
-    lda #$ff  ; initial Y-velocity is always negative
-    adc Ram_ActorPosY_i16_1_arr, x
-    sta Ram_ActorPosY_i16_1_arr, x
     rts
 _InitVelX_i16_1_arr:
     .byte 4, 3, ($ff & -4), ($ff & -3)
@@ -113,7 +105,7 @@ _InitVelY_i16_1_arr:
 ;;; @preserve X
 .EXPORT FuncA_Actor_TickProjGrenade
 .PROC FuncA_Actor_TickProjGrenade
-    inc Ram_ActorState_byte_arr, x
+    inc Ram_ActorState1_byte_arr, x
     beq _Explode
     jsr FuncA_Actor_HarmAvatarIfCollision  ; preserves X, returns C
     bcs _Explode
@@ -141,10 +133,10 @@ _Explode:
 ;;; @preserve X
 .EXPORT FuncA_Objects_DrawActorProjGrenade
 .PROC FuncA_Objects_DrawActorProjGrenade
-    lda Ram_ActorState_byte_arr, x
+    lda Ram_ActorState1_byte_arr, x
     div #4
     and #$03
-    add #kGrenadeFirstTileId
+    add #kTileIdObjGrenadeFirst
     jmp FuncA_Objects_Draw1x1Actor  ; preserves X
 .ENDPROC
 

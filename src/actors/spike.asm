@@ -20,20 +20,16 @@
 .INCLUDE "../actor.inc"
 .INCLUDE "../avatar.inc"
 .INCLUDE "../macros.inc"
+.INCLUDE "spike.inc"
 
 .IMPORT FuncA_Actor_CenterHitsTerrain
 .IMPORT FuncA_Actor_HarmAvatarIfCollision
 .IMPORT FuncA_Objects_Draw1x1Actor
 .IMPORT Func_InitActorDefault
-.IMPORT Ram_ActorState_byte_arr
+.IMPORT Ram_ActorState1_byte_arr
 .IMPORT Ram_ActorType_eActor_arr
 .IMPORT Ram_ActorVelY_i16_0_arr
 .IMPORT Ram_ActorVelY_i16_1_arr
-
-;;;=========================================================================;;;
-
-;;; The tile ID for spike projectile actors.
-kSpikeTileId = $a8
 
 ;;;=========================================================================;;;
 
@@ -58,7 +54,7 @@ kSpikeTileId = $a8
 ;;; @preserve X
 .EXPORT FuncA_Actor_TickProjSpike
 .PROC FuncA_Actor_TickProjSpike
-    inc Ram_ActorState_byte_arr, x
+    inc Ram_ActorState1_byte_arr, x
     beq _Expire
     jsr FuncA_Actor_HarmAvatarIfCollision  ; preserves X, returns C
     bcs _Expire
@@ -87,7 +83,7 @@ _Expire:
 ;;; @preserve X
 .EXPORT FuncA_Objects_DrawActorProjSpike
 .PROC FuncA_Objects_DrawActorProjSpike
-    lda #kSpikeTileId  ; param: tile ID
+    lda #kTileIdObjSpike  ; param: tile ID
     jmp FuncA_Objects_Draw1x1Actor  ; preserves X
 .ENDPROC
 

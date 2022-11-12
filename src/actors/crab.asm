@@ -20,6 +20,7 @@
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
 .INCLUDE "../terrain.inc"
+.INCLUDE "crab.inc"
 
 .IMPORT FuncA_Actor_GetRoomBlockRow
 .IMPORT FuncA_Actor_GetRoomTileColumn
@@ -30,16 +31,9 @@
 .IMPORT Ram_ActorFlags_bObj_arr
 .IMPORT Ram_ActorPosX_i16_0_arr
 .IMPORT Ram_ActorPosX_i16_1_arr
-.IMPORT Ram_ActorState_byte_arr
+.IMPORT Ram_ActorState1_byte_arr
 .IMPORTZP Zp_TerrainColumn_u8_arr_ptr
 .IMPORTZP Zp_Tmp1_byte
-
-;;;=========================================================================;;;
-
-;;; First-tile-ID values that can be passed to FuncA_Objects_Draw2x2Actor for
-;;; various actor animation frames.
-kCrabFirstTileId1 = $d5
-kCrabFirstTileId2 = $d9
 
 ;;;=========================================================================;;;
 
@@ -50,9 +44,9 @@ kCrabFirstTileId2 = $d9
 ;;; @preserve X
 .EXPORT FuncA_Actor_TickBadCrab
 .PROC FuncA_Actor_TickBadCrab
-    lda Ram_ActorState_byte_arr, x
+    lda Ram_ActorState1_byte_arr, x
     beq _StartMove
-    dec Ram_ActorState_byte_arr, x
+    dec Ram_ActorState1_byte_arr, x
     cmp #$18
     blt _DetectCollision
     lda Ram_ActorFlags_bObj_arr, x
@@ -119,7 +113,7 @@ _StartMove:
     ;; Start a new movement cycle for the crab.
     @continueForward:
     lda #$1f
-    sta Ram_ActorState_byte_arr, x
+    sta Ram_ActorState1_byte_arr, x
     rts
 .ENDPROC
 
@@ -132,14 +126,15 @@ _StartMove:
 ;;; @preserve X
 .EXPORT FuncA_Objects_DrawActorBadCrab
 .PROC FuncA_Objects_DrawActorBadCrab
-    lda Ram_ActorState_byte_arr, x
+    lda Ram_ActorState1_byte_arr, x
     div #$10
     and #$01
     tay
     lda _TileIds_u8_arr2, y  ; param: first tile ID
     jmp FuncA_Objects_Draw2x2Actor  ; preserves X
 _TileIds_u8_arr2:
-    .byte kCrabFirstTileId1, kCrabFirstTileId2
+    .byte kTileIdObjCrabFirst + 0
+    .byte kTileIdObjCrabFirst + 4
 .ENDPROC
 
 ;;;=========================================================================;;;

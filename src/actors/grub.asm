@@ -30,7 +30,7 @@
 .IMPORT Ram_ActorFlags_bObj_arr
 .IMPORT Ram_ActorPosX_i16_0_arr
 .IMPORT Ram_ActorPosX_i16_1_arr
-.IMPORT Ram_ActorState_byte_arr
+.IMPORT Ram_ActorState1_byte_arr
 .IMPORTZP Zp_TerrainColumn_u8_arr_ptr
 .IMPORTZP Zp_Tmp1_byte
 
@@ -43,9 +43,9 @@
 ;;; @preserve X
 .EXPORT FuncA_Actor_TickBadGrub
 .PROC FuncA_Actor_TickBadGrub
-    lda Ram_ActorState_byte_arr, x
+    lda Ram_ActorState1_byte_arr, x
     beq _StartMove
-    dec Ram_ActorState_byte_arr, x
+    dec Ram_ActorState1_byte_arr, x
     cmp #$18
     blt _DetectCollision
     lda Ram_ActorFlags_bObj_arr, x
@@ -108,7 +108,7 @@ _StartMove:
     ;; Start a new movement cycle for the grub.
     @continueForward:
     lda #$1f
-    sta Ram_ActorState_byte_arr, x
+    sta Ram_ActorState1_byte_arr, x
     rts
 .ENDPROC
 
@@ -121,7 +121,7 @@ _StartMove:
 ;;; @preserve X
 .EXPORT FuncA_Objects_DrawActorBadGrub
 .PROC FuncA_Objects_DrawActorBadGrub
-    lda Ram_ActorState_byte_arr, x
+    lda Ram_ActorState1_byte_arr, x
     div #8
     and #$03
     tay

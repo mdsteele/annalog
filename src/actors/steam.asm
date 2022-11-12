@@ -26,7 +26,7 @@
 .IMPORT FuncA_Objects_Draw2x2Actor
 .IMPORT Func_InitActorDefault
 .IMPORT Ram_ActorFlags_bObj_arr
-.IMPORT Ram_ActorState_byte_arr
+.IMPORT Ram_ActorState1_byte_arr
 .IMPORT Ram_ActorType_eActor_arr
 .IMPORTZP Zp_AvatarMode_eAvatar
 .IMPORTZP Zp_AvatarVelX_i16
@@ -139,8 +139,8 @@ kSteamNumFrames = 32
 ;;; @param X The actor index.
 ;;; @preserve X
 .PROC FuncA_Actor_IncrementSteamAge
-    inc Ram_ActorState_byte_arr, x
-    lda Ram_ActorState_byte_arr, x
+    inc Ram_ActorState1_byte_arr, x
+    lda Ram_ActorState1_byte_arr, x
     cmp #kSteamNumFrames
     blt @done
     lda #eActor::None

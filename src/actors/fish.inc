@@ -17,7 +17,12 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
+;;; State bytes for fish baddies:
+;;;   * State1: Counter that increments each frame and drives the fish's
+;;;     animation (but doesn't affect behavior).
+;;;   * State2: Unused.
+
 ;;; Tile IDs for drawing fish baddie actors.
-kTileIdFishFirst = $c9
+kTileIdObjFishFirst = $c9
 
 ;;;=========================================================================;;;

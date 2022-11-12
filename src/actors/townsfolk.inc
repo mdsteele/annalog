@@ -17,6 +17,10 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
+;;; State bytes for adult/child/mermaid NPCs:
+;;;   * State1: The first tile ID for the actor.
+;;;   * State2: Unused.
+
 ;;; The first tile IDs for various children.
 kTileIdChildPonytailFirst   = $84
 

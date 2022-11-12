@@ -17,14 +17,19 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
+;;; State bytes for beetle and hothead baddies:
+;;;   * State1: Toggles between 1 and 0 each frame; used to make baddie move
+;;;     by one pixel every other frame.
+;;;   * State2: Unused.
+
 ;;; Tile IDs for drawing beetle actors.
-kTileIdBeetleFirst = $a8
-kTileIdBeetleHorzFirst = kTileIdBeetleFirst + $00
-kTileIdBeetleVertFirst = kTileIdBeetleFirst + $08
+kTileIdObjBeetleFirst = $a8
+kTileIdObjBeetleHorzFirst = kTileIdObjBeetleFirst + $00
+kTileIdObjBeetleVertFirst = kTileIdObjBeetleFirst + $08
 
 ;;; Tile IDs for drawing hothead actors.
-kTileIdHotheadFirst = $a0
-kTileIdHotheadHorzFirst = kTileIdHotheadFirst + $00
-kTileIdHotheadVertFirst = kTileIdHotheadFirst + $08
+kTileIdObjHotheadFirst = $a0
+kTileIdObjHotheadHorzFirst = kTileIdObjHotheadFirst + $00
+kTileIdObjHotheadVertFirst = kTileIdObjHotheadFirst + $08
 
 ;;;=========================================================================;;;

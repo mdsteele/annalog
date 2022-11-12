@@ -36,7 +36,7 @@
 .IMPORT Ram_ActorPosX_i16_1_arr
 .IMPORT Ram_ActorPosY_i16_0_arr
 .IMPORT Ram_ActorPosY_i16_1_arr
-.IMPORT Ram_ActorState_byte_arr
+.IMPORT Ram_ActorState1_byte_arr
 .IMPORT Ram_ActorType_eActor_arr
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORTZP Zp_FrameCounter_u8
@@ -46,7 +46,7 @@
 ;;;=========================================================================;;;
 
 ;;; The OBJ palette number used for hothead baddie actors.
-kHotheadPalette = 1
+kPaletteObjHothead = 1
 
 ;;;=========================================================================;;;
 
@@ -113,9 +113,9 @@ kHotheadPalette = 1
 ;;; @preserve X
 .PROC FuncA_Actor_CrawlHorz
     ;; Only move every other frame.
-    lda Ram_ActorState_byte_arr, x
+    lda Ram_ActorState1_byte_arr, x
     eor #$80
-    sta Ram_ActorState_byte_arr, x
+    sta Ram_ActorState1_byte_arr, x
     bmi _NoTurn
     ;; Check if the baddie is moving right or left.
     lda Ram_ActorFlags_bObj_arr, x
@@ -233,9 +233,9 @@ _TurnAtOuterCorner:
 ;;; @preserve X
 .PROC FuncA_Actor_CrawlVert
     ;; Only move every other frame.
-    lda Ram_ActorState_byte_arr, x
+    lda Ram_ActorState1_byte_arr, x
     eor #$01
-    sta Ram_ActorState_byte_arr, x
+    sta Ram_ActorState1_byte_arr, x
     beq _NoTurn
     ;; Check if the baddie is moving down or up.
     lda Ram_ActorFlags_bObj_arr, x
@@ -363,7 +363,7 @@ _TurnAtOuterCorner:
 ;;; @preserve X
 .EXPORT FuncA_Objects_DrawActorBadBeetleHorz
 .PROC FuncA_Objects_DrawActorBadBeetleHorz
-    lda #kTileIdBeetleHorzFirst  ; param: first tile ID
+    lda #kTileIdObjBeetleHorzFirst  ; param: first tile ID
     jmp FuncA_Objects_DrawActorBadHotheadShape  ; preserves X
 .ENDPROC
 
@@ -372,7 +372,7 @@ _TurnAtOuterCorner:
 ;;; @preserve X
 .EXPORT FuncA_Objects_DrawActorBadBeetleVert
 .PROC FuncA_Objects_DrawActorBadBeetleVert
-    lda #kTileIdBeetleVertFirst  ; param: first tile ID
+    lda #kTileIdObjBeetleVertFirst  ; param: first tile ID
     jmp FuncA_Objects_DrawActorBadHotheadShape  ; preserves X
 .ENDPROC
 
@@ -381,7 +381,7 @@ _TurnAtOuterCorner:
 ;;; @preserve X
 .EXPORT FuncA_Objects_DrawActorBadHotheadHorz
 .PROC FuncA_Objects_DrawActorBadHotheadHorz
-    lda #kTileIdHotheadHorzFirst  ; param: first tile ID
+    lda #kTileIdObjHotheadHorzFirst  ; param: first tile ID
     jsr FuncA_Objects_DrawActorBadHotheadShape  ; preserves X, returns C and Y
     bcs @done
     ;; As part of the animation cycle, sometimes flip the flames horizontally.
@@ -407,7 +407,7 @@ _TurnAtOuterCorner:
 ;;; @preserve X
 .EXPORT FuncA_Objects_DrawActorBadHotheadVert
 .PROC FuncA_Objects_DrawActorBadHotheadVert
-    lda #kTileIdHotheadVertFirst  ; param: first tile ID
+    lda #kTileIdObjHotheadVertFirst  ; param: first tile ID
     jsr FuncA_Objects_DrawActorBadHotheadShape  ; preserves X, returns C and Y
     bcs @done
     ;; As part of the animation cycle, sometimes flip the flames vertically.
@@ -438,16 +438,16 @@ _TurnAtOuterCorner:
     sta Zp_Tmp1_byte  ; first tile ID
     jsr FuncA_Objects_SetShapePosToActorCenter  ; preserves X and Zp_Tmp*
     lda Ram_ActorFlags_bObj_arr, x  ; param: object flags
-    .assert kHotheadPalette <> 0, error
-    ora #kHotheadPalette
+    .assert kPaletteObjHothead <> 0, error
+    ora #kPaletteObjHothead
     tay  ; param: object flags
     lda Zp_FrameCounter_u8
     and #$08
     lsr a
-    .assert kTileIdBeetleHorzFirst .mod $08 = 0, error
-    .assert kTileIdBeetleVertFirst .mod $08 = 0, error
-    .assert kTileIdHotheadHorzFirst .mod $08 = 0, error
-    .assert kTileIdHotheadVertFirst .mod $08 = 0, error
+    .assert kTileIdObjBeetleHorzFirst .mod $08 = 0, error
+    .assert kTileIdObjBeetleVertFirst .mod $08 = 0, error
+    .assert kTileIdObjHotheadHorzFirst .mod $08 = 0, error
+    .assert kTileIdObjHotheadVertFirst .mod $08 = 0, error
     ora Zp_Tmp1_byte  ; first tile ID
     jsr FuncA_Objects_Draw2x2Shape  ; preserves X, returns C and Y
     rts

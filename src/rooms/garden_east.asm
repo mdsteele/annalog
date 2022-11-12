@@ -46,11 +46,16 @@
 .IMPORT FuncA_Machine_Error
 .IMPORT FuncA_Objects_DrawBridgeMachine
 .IMPORT FuncA_Objects_DrawCannonMachine
+.IMPORT FuncA_Room_AreActorsWithinDistance
+.IMPORT Func_InitActorProjSmoke
 .IMPORT Func_MachineBridgeReadRegY
 .IMPORT Func_MachineCannonReadRegY
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrObjGarden
+.IMPORT Ram_ActorState1_byte_arr
 .IMPORT Ram_ActorType_eActor_arr
+.IMPORT Ram_ActorVelY_i16_0_arr
+.IMPORT Ram_ActorVelY_i16_1_arr
 .IMPORT Ram_DeviceType_eDevice_arr
 .IMPORT Ram_MachineGoalVert_u8_arr
 .IMPORT Ram_RoomState
@@ -66,6 +71,9 @@ kMermaidDialogIndex = 0
 ;;; The talk devices indices for the mermaid in this room.
 kMermaidDeviceIndexLeft = 1
 kMermaidDeviceIndexRight = 0
+
+;;; The actor index for the vinebug that can be killed with the cannon.
+kKillableVinebugActorIndex = 3
 
 ;;; The machine index for the GardenEastBridge machine.
 kBridgeMachineIndex = 0
@@ -111,7 +119,7 @@ kBridgePivotPosY = $0080
     d_byte NumMachines_u8, 2
     d_addr Machines_sMachine_arr_ptr, _Machines_sMachine_arr
     d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjGarden)
-    d_addr Tick_func_ptr, Func_Noop
+    d_addr Tick_func_ptr, FuncC_Garden_East_TickRoom
     d_addr Draw_func_ptr, Func_Noop
     d_addr Ext_sRoomExt_ptr, _Ext_sRoomExt
     D_END
@@ -125,7 +133,7 @@ _Ext_sRoomExt:
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
     d_addr Dialogs_sDialog_ptr_arr_ptr, DataA_Dialog_GardenEast_sDialog_ptr_arr
     d_addr Passages_sPassage_arr_ptr, _Passages_sPassage_arr
-    d_addr Init_func_ptr, FuncC_Garden_EastBridge_InitRoom
+    d_addr Init_func_ptr, FuncC_Garden_East_InitRoom
     d_addr Enter_func_ptr, Func_Noop
     d_addr FadeIn_func_ptr, Func_Noop
     D_END
@@ -166,7 +174,7 @@ _Machines_sMachine_arr:
     d_addr ReadReg_func_ptr, FuncC_Garden_EastCannon_ReadReg
     d_addr WriteReg_func_ptr, Func_Noop
     d_addr TryMove_func_ptr, FuncA_Machine_CannonTryMove
-    d_addr TryAct_func_ptr, FuncA_Machine_CannonTryAct
+    d_addr TryAct_func_ptr, FuncC_Garden_EastCannon_TryAct
     d_addr Tick_func_ptr, FuncA_Machine_CannonTick
     d_addr Draw_func_ptr, FuncA_Objects_DrawCannonMachine
     d_addr Reset_func_ptr, FuncC_Garden_EastCannon_Reset
@@ -228,9 +236,10 @@ _Actors_sActor_arr:
     d_byte TileCol_u8, 43
     d_byte Param_byte, 0
     D_END
+    .assert * - :- = kKillableVinebugActorIndex * .sizeof(sActor), error
     D_STRUCT sActor
     d_byte Type_eActor, eActor::BadVinebug
-    d_byte TileRow_u8, 37
+    d_byte TileRow_u8, 35
     d_byte TileCol_u8, 21
     d_byte Param_byte, 0
     D_END
@@ -307,7 +316,7 @@ _Passages_sPassage_arr:
     D_END
 .ENDPROC
 
-.PROC FuncC_Garden_EastBridge_InitRoom
+.PROC FuncC_Garden_East_InitRoom
     ;; Remove the mermaid from this room if the player has already met with the
     ;; mermaid queen.
     flag_bit Sram_ProgressFlags_arr, eFlag::MermaidHut1MetQueen
@@ -319,6 +328,40 @@ _Passages_sPassage_arr:
     sta Ram_DeviceType_eDevice_arr + kMermaidDeviceIndexLeft
     sta Ram_DeviceType_eDevice_arr + kMermaidDeviceIndexRight
     @done:
+    rts
+.ENDPROC
+
+;;; @prereq PRGA_Room is loaded.
+.PROC FuncC_Garden_East_TickRoom
+    ;; If the vinebug is already gone, then we're done.
+    lda Ram_ActorType_eActor_arr + kKillableVinebugActorIndex
+    cmp #eActor::BadVinebug
+    bne _Done
+_FindGrenade:
+    ;; Find the actor index for the grenade in flight (if any).  If we don't
+    ;; find one, then we're done.
+    ldx #kMaxActors - 1
+    @loop:
+    lda Ram_ActorType_eActor_arr, x
+    cmp #eActor::ProjGrenade
+    beq @foundGrenade
+    dex
+    .assert kMaxActors <= $80, error
+    bpl @loop
+    rts
+    @foundGrenade:
+_CheckForCollision:
+    ldy #kKillableVinebugActorIndex  ; param: other actor index
+    lda #6  ; param: distance
+    jsr FuncA_Room_AreActorsWithinDistance  ; preserves X, returns C
+    bcc _Done
+    ;; Explode the grenade.
+    jsr Func_InitActorProjSmoke
+    ;; Explode the vinebug.
+    ldx #kKillableVinebugActorIndex  ; param: actor index
+    jsr Func_InitActorProjSmoke
+    ;; TODO: play a sound
+_Done:
     rts
 .ENDPROC
 
@@ -352,6 +395,27 @@ _Passages_sPassage_arr:
     @readL:
     lda Ram_RoomState + sState::LeverCannon_u1
     rts
+.ENDPROC
+
+;;; @prereq PRGA_Machine is loaded.
+.PROC FuncC_Garden_EastCannon_TryAct
+    ;; Make the vinebug try to dodge the grenade.
+    lda #1
+    sta Ram_ActorState1_byte_arr + kKillableVinebugActorIndex
+    lda Ram_MachineGoalVert_u8_arr + kCannonMachineIndex
+    bne @dodgeDown
+    @dodgeUp:
+    lda #$d0
+    ldy #$ff
+    bne @dodge  ; unconditional
+    @dodgeDown:
+    lda #$60
+    ldy #$00
+    @dodge:
+    sta Ram_ActorVelY_i16_0_arr + kKillableVinebugActorIndex
+    sty Ram_ActorVelY_i16_1_arr + kKillableVinebugActorIndex
+    ;; Fire a grenade.
+    jmp FuncA_Machine_CannonTryAct
 .ENDPROC
 
 .PROC FuncC_Garden_EastCannon_Reset

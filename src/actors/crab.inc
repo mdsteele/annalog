@@ -17,12 +17,12 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
-;;; State bytes for spider baddies:
-;;;   * State1: Counter that decrements each frame; when it's zero, the spider
+;;; State bytes for crab baddies:
+;;;   * State1: Counter that decrements each frame; when it's zero, the crab
 ;;;     starts another movement cycle and resets the counter.
 ;;;   * State2: Unused.
 
-;;; Tile IDs for drawing spider baddie actors.
-kTileIdObjSpiderFirst = $b0
+;;; Tile IDs for drawing crab baddie actors.
+kTileIdObjCrabFirst = $d5
 
 ;;;=========================================================================;;;

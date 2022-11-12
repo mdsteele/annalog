@@ -26,15 +26,20 @@
 .IMPORT FuncA_Actor_GetRoomBlockRow
 .IMPORT FuncA_Actor_GetRoomTileColumn
 .IMPORT FuncA_Actor_HarmAvatarIfCollision
+.IMPORT FuncA_Actor_IsAvatarWithinHorzDistance
 .IMPORT FuncA_Objects_Draw2x2Actor
 .IMPORT Func_GetRandomByte
 .IMPORT Func_GetTerrainColumnPtrForTileIndex
 .IMPORT Func_InitActorDefault
 .IMPORT Ram_ActorPosX_i16_0_arr
 .IMPORT Ram_ActorPosX_i16_1_arr
-.IMPORT Ram_ActorState_byte_arr
+.IMPORT Ram_ActorPosY_i16_0_arr
+.IMPORT Ram_ActorPosY_i16_1_arr
+.IMPORT Ram_ActorState1_byte_arr
+.IMPORT Ram_ActorState2_byte_arr
 .IMPORT Ram_ActorVelY_i16_0_arr
 .IMPORT Ram_ActorVelY_i16_1_arr
+.IMPORTZP Zp_AvatarPosY_i16
 .IMPORTZP Zp_TerrainColumn_u8_arr_ptr
 .IMPORTZP Zp_Tmp1_byte
 
@@ -67,15 +72,33 @@
 ;;; @preserve X
 .EXPORT FuncA_Actor_TickBadVinebug
 .PROC FuncA_Actor_TickBadVinebug
-    inc Ram_ActorState_byte_arr, x
+    inc Ram_ActorState2_byte_arr, x
+_DropIfAvatarIsBelow:
+    ;; Don't drop if the player avatar isn't horizontally nearby.
+    lda #30  ; param: distance
+    jsr FuncA_Actor_IsAvatarWithinHorzDistance  ; preserves X, Y; returns C
+    bcc @notNear
+    ;; Don't drop if the player avatar is above the vinebug.
+    lda Ram_ActorPosY_i16_0_arr, x
+    sub Zp_AvatarPosY_i16 + 0
+    lda Ram_ActorPosY_i16_1_arr, x
+    sbc Zp_AvatarPosY_i16 + 1
+    bge @notNear
+    ;; Drop quickly.
+    lda #1
+    sta Ram_ActorState1_byte_arr, x
+    sta Ram_ActorVelY_i16_1_arr, x
+    lda #0
+    sta Ram_ActorVelY_i16_0_arr, x
+    @notNear:
+_CrawlUpOrDown:
     ;; Get the terrain for the vinebug's tile column.
     jsr FuncA_Actor_GetRoomTileColumn  ; preserves X, returns A
-    stx Zp_Tmp1_byte
+    stx Zp_Tmp1_byte  ; actor index
     jsr Func_GetTerrainColumnPtrForTileIndex  ; preserves Zp_Tmp*
-    ldx Zp_Tmp1_byte
+    ldx Zp_Tmp1_byte  ; actor index
     ;; Get the vinebug's room block row.
     jsr FuncA_Actor_GetRoomBlockRow  ; preserves X, returns Y
-    ;; TODO: If the player avatar is below the vinebug, then drop quickly.
     ;; Determine if we're currently crawling up or down.
     lda Ram_ActorVelY_i16_1_arr, x
     bpl _CurrentlyCrawlingDown
@@ -85,8 +108,12 @@ _CurrentlyCrawlingUp:
     dey
     lda (Zp_TerrainColumn_u8_arr_ptr), y
     cmp #kFirstSolidTerrainType
-    bge _StartCrawlingDown
-    blt _StartCrawlingUp  ; unconditional
+    blt _ContinueCrawlingUp
+_StartCrawlingDown:
+    ;; Resume random velocity changes.
+    lda #0
+    sta Ram_ActorState1_byte_arr, x
+    beq _RandomVelocityDown  ; unconditional
 _CurrentlyCrawlingDown:
     ;; Check the terrain block just below the vinebug.  If it's empty (no vine)
     ;; or solid, the vinebug has to turn around.
@@ -95,34 +122,45 @@ _CurrentlyCrawlingDown:
     beq _StartCrawlingUp
     cmp #kFirstSolidTerrainType
     bge _StartCrawlingUp
-_StartCrawlingDown:
-    ;; If the vinebug is currently moving up, then immediately set velocity to
-    ;; down.  Otherwise, only change velocity once every 16 frames.
-    lda Ram_ActorVelY_i16_1_arr, x
-    bmi @setVelocity
-    lda Ram_ActorState_byte_arr, x
-    and #$0f
+_ContinueCrawlingDown:
+    ;; If the vinebug is currently crawling down fast, then set velocity.
+    lda Ram_ActorState1_byte_arr, x
     bne _Finish
-    ;; Set velocity randomly between 0-127 subpixels downward per frame.
-    @setVelocity:
+    ;; Otherwise, only change velocity once every 16 frames.
+    lda Ram_ActorState2_byte_arr, x
+    and #$0f
+    beq _Finish
+_RandomVelocityDown:
+    ;; Set velocity randomly between 0-63 subpixels downward per frame.
     jsr Func_GetRandomByte  ; preserves X, returns A
-    and #$7f
+    and #$3f
+    bpl _SetVelocityDown  ; unconditional
+_FastVelocityDown:
+    lda #$80
+_SetVelocityDown:
     sta Ram_ActorVelY_i16_0_arr, x
-    lda #0
+    lda #$00
     sta Ram_ActorVelY_i16_1_arr, x
     beq _Finish  ; unconditional
 _StartCrawlingUp:
-    ;; If the vinebug is currently moving down, then immediately set velocity
-    ;; to up.  Otherwise, only change velocity once every 16 frames.
-    lda Ram_ActorVelY_i16_1_arr, x
-    bpl @setVelocity
-    lda Ram_ActorState_byte_arr, x
-    and #$0f
+    ;; Resume random velocity changes.
+    lda #0
+    sta Ram_ActorState1_byte_arr, x
+    beq _RandomVelocityUp  ; unconditional
+_ContinueCrawlingUp:
+    ;; If the vinebug is currently crawling up fast, then set velocity.
+    lda Ram_ActorState1_byte_arr, x
     bne _Finish
-    ;; Set velocity randomly between 1-128 subpixels upward per frame.
-    @setVelocity:
+    ;; Otherwise, only change velocity once every 16 frames.
+    lda Ram_ActorState2_byte_arr, x
+    and #$0f
+    beq _Finish
+_RandomVelocityUp:
+    ;; Set velocity randomly between 1-64 subpixels upward per frame.
     jsr Func_GetRandomByte  ; preserves X, returns A
-    ora #$80
+    ora #$c0
+    bmi _SetVelocityUp  ; unconditional
+_SetVelocityUp:
     sta Ram_ActorVelY_i16_0_arr, x
     lda #$ff
     sta Ram_ActorVelY_i16_1_arr, x
@@ -139,7 +177,7 @@ _Finish:
 ;;; @preserve X
 .EXPORT FuncA_Objects_DrawActorBadVinebug
 .PROC FuncA_Objects_DrawActorBadVinebug
-    lda Ram_ActorState_byte_arr, x
+    lda Ram_ActorState2_byte_arr, x
     div #8
     and #$01
     tay

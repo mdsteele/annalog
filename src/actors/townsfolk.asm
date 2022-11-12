@@ -33,7 +33,7 @@
 .IMPORT Ram_ActorFlags_bObj_arr
 .IMPORT Ram_ActorPosX_i16_0_arr
 .IMPORT Ram_ActorPosX_i16_1_arr
-.IMPORT Ram_ActorState_byte_arr
+.IMPORT Ram_ActorState1_byte_arr
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORTZP Zp_AvatarPosX_i16
 .IMPORTZP Zp_FrameCounter_u8
@@ -100,7 +100,7 @@
 .EXPORT FuncA_Objects_DrawActorNpcAdult
 .PROC FuncA_Objects_DrawActorNpcAdult
     jsr FuncA_Objects_SetShapePosToActorCenter  ; preserves X
-    lda Ram_ActorState_byte_arr, x  ; param: first tile ID
+    lda Ram_ActorState1_byte_arr, x  ; param: first tile ID
     jmp FuncA_Objects_Draw2x3ActorShape  ; preserves X
 .ENDPROC
 
@@ -109,7 +109,7 @@
 ;;; @preserve X
 .EXPORT FuncA_Objects_DrawActorNpcChild
 .PROC FuncA_Objects_DrawActorNpcChild
-    lda Ram_ActorState_byte_arr, x  ; param: first tile ID
+    lda Ram_ActorState1_byte_arr, x  ; param: first tile ID
     jmp FuncA_Objects_Draw2x2Actor  ; preserves X
 .ENDPROC
 
@@ -133,7 +133,7 @@
     sbc #0
     sta Zp_ShapePosY_i16 + 1
     ;; Draw the actor.
-    lda Ram_ActorState_byte_arr, x  ; param: first tile ID
+    lda Ram_ActorState1_byte_arr, x  ; param: first tile ID
     jmp FuncA_Objects_Draw2x3ActorShape  ; preserves X
 _VertOffset_u8_arr8:
     .byte 0, 0, 0, 1, 2, 2, 2, 1

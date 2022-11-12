@@ -25,7 +25,7 @@
 .IMPORT Ram_ActorFlags_bObj_arr
 .IMPORT Ram_ActorPosX_i16_0_arr
 .IMPORT Ram_ActorPosX_i16_1_arr
-.IMPORT Ram_ActorState_byte_arr
+.IMPORT Ram_ActorState1_byte_arr
 
 ;;;=========================================================================;;;
 
@@ -46,14 +46,14 @@ kToddlerTime = 100
 ;;; @preserve X
 .EXPORT FuncA_Actor_TickNpcToddler
 .PROC FuncA_Actor_TickNpcToddler
-    dec Ram_ActorState_byte_arr, x
+    dec Ram_ActorState1_byte_arr, x
     bne @move
     @turnAround:
     lda Ram_ActorFlags_bObj_arr, x
     eor #bObj::FlipH
     sta Ram_ActorFlags_bObj_arr, x
     lda #kToddlerTime
-    sta Ram_ActorState_byte_arr, x
+    sta Ram_ActorState1_byte_arr, x
     @move:
     lda Ram_ActorFlags_bObj_arr, x
     and #bObj::FlipH
@@ -85,7 +85,7 @@ kToddlerTime = 100
 ;;; @preserve X
 .EXPORT FuncA_Objects_DrawActorNpcToddler
 .PROC FuncA_Objects_DrawActorNpcToddler
-    lda Ram_ActorState_byte_arr, x
+    lda Ram_ActorState1_byte_arr, x
     and #$08
     beq @draw
     lda #$02

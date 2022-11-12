@@ -86,7 +86,7 @@
 .IMPORT Ram_ActorPosX_i16_1_arr
 .IMPORT Ram_ActorPosY_i16_0_arr
 .IMPORT Ram_ActorPosY_i16_1_arr
-.IMPORT Ram_ActorState_byte_arr
+.IMPORT Ram_ActorState1_byte_arr
 .IMPORT Ram_ActorType_eActor_arr
 .IMPORT Ram_DeviceAnim_u8_arr
 .IMPORT Ram_DeviceBlockCol_u8_arr
@@ -364,11 +364,11 @@ _LoadActors:
     rol Ram_ActorPosX_i16_1_arr, x
     .endrepeat
     sta Ram_ActorPosX_i16_0_arr, x
-    ;; Temporarily store param byte as actor state byte:
+    ;; Temporarily store param byte in Ram_ActorState1_byte_arr:
     .assert sActor::Param_byte = 3, error
     lda (Zp_Tmp_ptr), y
     iny
-    sta Ram_ActorState_byte_arr, x
+    sta Ram_ActorState1_byte_arr, x
     ;; Continue to next sActor entry.
     .assert .sizeof(sActor) = 4, error
     inx
@@ -381,10 +381,10 @@ _LoadActors:
     cpx #kMaxActors
     blt @clearLoop
     ;; Call all actor init functions, using the param bytes we stored in
-    ;; Ram_ActorState_byte_arr.
+    ;; Ram_ActorState1_byte_arr.
     dex
     @initLoop:
-    lda Ram_ActorState_byte_arr, x
+    lda Ram_ActorState1_byte_arr, x
     jsr Func_InitActor  ; preserves X
     dex
     .assert kMaxActors < $80, error

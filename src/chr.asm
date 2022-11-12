@@ -17,12 +17,14 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
+.INCLUDE "actors/crab.inc"
 .INCLUDE "actors/fireball.inc"
 .INCLUDE "actors/fish.inc"
 .INCLUDE "actors/grenade.inc"
 .INCLUDE "actors/grub.inc"
 .INCLUDE "actors/hothead.inc"
 .INCLUDE "actors/spider.inc"
+.INCLUDE "actors/spike.inc"
 .INCLUDE "actors/townsfolk.inc"
 .INCLUDE "actors/vinebug.inc"
 .INCLUDE "avatar.inc"
@@ -514,7 +516,7 @@
 .PROC Ppu_ChrObjCrypt
 :   .incbin "out/data/tiles/upgrade.chr"
     .res $16 * kSizeofChr
-    .assert * - :- = (kTileIdSpiderFirst - $80) * kSizeofChr, error
+    .assert * - :- = (kTileIdObjSpiderFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/spider.chr"
     .assert * - :- = (kTileIdCrusherFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/crusher.chr"
@@ -553,10 +555,11 @@
     .assert * - :- = (kTileIdMermaidAdultFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/mermaid_adult.chr"
     .res $06 * kSizeofChr
-    .assert * - :- = (kFireballFirstTileId - $80) * kSizeofChr, error
+    .assert * - :- = (kTileIdObjFireballFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/fireball.chr"
     .assert * - :- = (kTileIdObjGrubFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/grub.chr"
+    .assert * - :- = (kTileIdObjSpike - $80) * kSizeofChr, error
     .incbin "out/data/tiles/spike.chr"
     .incbin "out/data/tiles/eye.chr"
     .assert * - :- = (kTileIdVinebugFirst1 - $80) * kSizeofChr, error
@@ -565,7 +568,7 @@
     .incbin "out/data/tiles/cannon.chr"
     .res $1b * kSizeofChr
     .incbin "out/data/tiles/crate.chr"
-    .assert * - :- = (kGrenadeFirstTileId - $80) * kSizeofChr, error
+    .assert * - :- = (kTileIdObjGrenadeFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/grenade.chr"
     .res $1f * kSizeofChr
     .assert * - :- = kSizeofChr * $80, error
@@ -582,7 +585,7 @@
     .incbin "out/data/tiles/boiler.chr"
     .assert * - :- = (kTileIdValveFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/valve.chr"
-    .assert * - :- = (kTileIdHotheadFirst - $80) * kSizeofChr, error
+    .assert * - :- = (kTileIdObjHotheadFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/hothead.chr"
     .res $50 * kSizeofChr
     .assert * - :- = kSizeofChr * $80, error
@@ -638,7 +641,7 @@
     .assert * - :- = (kTileIdMermaidGuardFFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/mermaid_guardf.chr"
     .res $02 * kSizeofChr
-    .assert * - :- = (kTileIdBeetleFirst - $80) * kSizeofChr, error
+    .assert * - :- = (kTileIdObjBeetleFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/beetle.chr"
     .res $48 * kSizeofChr
     .assert * - :- = kSizeofChr * $80, error
@@ -676,17 +679,18 @@
 .EXPORT Ppu_ChrObjUpgrade
 .PROC Ppu_ChrObjUpgrade
 :   .incbin "out/data/tiles/upgrade.chr"
-    .assert * - :- = (kFireballFirstTileId - $80) * kSizeofChr, error
+    .assert * - :- = (kTileIdObjFireballFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/fireball.chr"
     .assert * - :- = (kTileIdObjGrubFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/grub.chr"
     .incbin "out/data/tiles/spike.chr"
     .incbin "out/data/tiles/eye.chr"
     .res $19 * kSizeofChr
-    .assert * - :- = (kTileIdFishFirst - $80) * kSizeofChr, error
+    .assert * - :- = (kTileIdObjFishFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/fish.chr"
+    .assert * - :- = (kTileIdObjCrabFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/crab.chr"
-    .assert * - :- = (kGrenadeFirstTileId - $80) * kSizeofChr, error
+    .assert * - :- = (kTileIdObjGrenadeFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/grenade.chr"
     .incbin "out/data/tiles/prison_obj.chr"
     .assert * - :- = (kTileIdObjHotSpringFirst - $80) * kSizeofChr, error

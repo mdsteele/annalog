@@ -32,17 +32,17 @@
 .IMPORT Ram_ActorPosX_i16_1_arr
 .IMPORT Ram_ActorPosY_i16_0_arr
 .IMPORT Ram_ActorPosY_i16_1_arr
-.IMPORT Ram_ActorState_byte_arr
+.IMPORT Ram_ActorState1_byte_arr
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORTZP Zp_TerrainColumn_u8_arr_ptr
 .IMPORTZP Zp_Tmp1_byte
 
 ;;;=========================================================================;;;
 
-kTileIdSpiderLegs1 = kTileIdSpiderFirst + 0
-kTileIdSpiderHead1 = kTileIdSpiderFirst + 1
-kTileIdSpiderLegs2 = kTileIdSpiderFirst + 2
-kTileIdSpiderHead2 = kTileIdSpiderFirst + 3
+kTileIdObjSpiderLegs1 = kTileIdObjSpiderFirst + 0
+kTileIdObjSpiderHead1 = kTileIdObjSpiderFirst + 1
+kTileIdObjSpiderLegs2 = kTileIdObjSpiderFirst + 2
+kTileIdObjSpiderHead2 = kTileIdObjSpiderFirst + 3
 
 ;;;=========================================================================;;;
 
@@ -53,9 +53,9 @@ kTileIdSpiderHead2 = kTileIdSpiderFirst + 3
 ;;; @preserve X
 .EXPORT FuncA_Actor_TickBadSpider
 .PROC FuncA_Actor_TickBadSpider
-    lda Ram_ActorState_byte_arr, x
+    lda Ram_ActorState1_byte_arr, x
     beq _StartMove
-    dec Ram_ActorState_byte_arr, x
+    dec Ram_ActorState1_byte_arr, x
     cmp #$08
     blt _DetectCollision
     lda Ram_ActorFlags_bObj_arr, x
@@ -138,7 +138,7 @@ _StartMove:
     ;; Start a new movement cycle for the spider.
     @continueForward:
     lda #$0f
-    sta Ram_ActorState_byte_arr, x
+    sta Ram_ActorState1_byte_arr, x
     rts
 .ENDPROC
 
@@ -155,23 +155,23 @@ _StartMove:
     lda Ram_ActorFlags_bObj_arr, x  ; param: object flags
     jsr FuncA_Objects_Alloc2x2Shape  ; preserves X, returns C and Y
     bcs @done
-    lda Ram_ActorState_byte_arr, x
+    lda Ram_ActorState1_byte_arr, x
     add #$04
     and #$08
     bne @frame2
     @frame1:
-    lda #kTileIdSpiderLegs1
+    lda #kTileIdObjSpiderLegs1
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Tile_u8, y
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Tile_u8, y
-    lda #kTileIdSpiderHead1
+    lda #kTileIdObjSpiderHead1
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Tile_u8, y
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Tile_u8, y
     bne @setFlags  ; unconditional
     @frame2:
-    lda #kTileIdSpiderLegs2
+    lda #kTileIdObjSpiderLegs2
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Tile_u8, y
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Tile_u8, y
-    lda #kTileIdSpiderHead2
+    lda #kTileIdObjSpiderHead2
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Tile_u8, y
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Tile_u8, y
     @setFlags:

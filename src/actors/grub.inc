@@ -17,6 +17,11 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
+;;; State bytes for grub baddies:
+;;;   * State1: Counter that decrements each frame; when it's zero, the grub
+;;;     starts another movement cycle and resets the counter.
+;;;   * State2: Unused.
+
 ;;; Tile IDs for drawing grub baddie actors.
 kTileIdObjGrubFirst = $9c
 

@@ -17,12 +17,13 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
-;;; State bytes for spider baddies:
-;;;   * State1: Counter that decrements each frame; when it's zero, the spider
-;;;     starts another movement cycle and resets the counter.
+;;; State bytes for spike projectiles:
+;;;   * State1: Counter that starts at zero and increments every frame; if it
+;;;     wraps back around to zero before the spike hits anything, then the
+;;;     spike is removed.
 ;;;   * State2: Unused.
 
-;;; Tile IDs for drawing spider baddie actors.
-kTileIdObjSpiderFirst = $b0
+;;; The OBJ tile ID for spike projectile actors.
+kTileIdObjSpike = $a8
 
 ;;;=========================================================================;;;

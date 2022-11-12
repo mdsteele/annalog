@@ -24,10 +24,8 @@
 .IMPORT FuncA_Actor_CenterHitsTerrain
 .IMPORT FuncA_Actor_HarmAvatarIfCollision
 .IMPORT FuncA_Objects_Draw1x1Actor
-.IMPORT Ram_ActorFlags_bObj_arr
-.IMPORT Ram_ActorState_byte_arr
-.IMPORT Ram_ActorSubX_u8_arr
-.IMPORT Ram_ActorSubY_u8_arr
+.IMPORT Func_InitActorWithFlags
+.IMPORT Ram_ActorState1_byte_arr
 .IMPORT Ram_ActorType_eActor_arr
 .IMPORT Ram_ActorVelX_i16_0_arr
 .IMPORT Ram_ActorVelX_i16_1_arr
@@ -37,7 +35,7 @@
 ;;;=========================================================================;;;
 
 ;;; The OBJ palette number used for fireball actors.
-kFireballPalette = 1
+kPaletteObjFireball = 1
 
 ;;;=========================================================================;;;
 
@@ -50,11 +48,13 @@ kFireballPalette = 1
 ;;; @preserve X
 .EXPORT Func_InitActorProjFireball
 .PROC Func_InitActorProjFireball
+    pha  ; angle
+    ldy #eActor::ProjFireball  ; param: actor type
+    lda #kPaletteObjFireball  ; param: flags
+    jsr Func_InitActorWithFlags  ; preserves X
+    pla  ; angle
     and #$3f
-    tay
-    lda #0
-    sta Ram_ActorVelX_i16_1_arr, x
-    sta Ram_ActorVelY_i16_1_arr, x
+    tay  ; angle mod 64
 _InitVelX:
     lda _VelX_u8_arr64, y
     bpl @nonneg
@@ -75,16 +75,6 @@ _InitVelY:
     rol Ram_ActorVelY_i16_1_arr, x
     .endrepeat
     sta Ram_ActorVelY_i16_0_arr, x
-_InitOtherVariables:
-    lda #eActor::ProjFireball
-    sta Ram_ActorType_eActor_arr, x
-    lda #0
-    sta Ram_ActorSubX_u8_arr, x
-    sta Ram_ActorSubY_u8_arr, x
-    sta Ram_ActorState_byte_arr, x
-    .assert kFireballPalette <> 0, error
-    lda #kFireballPalette
-    sta Ram_ActorFlags_bObj_arr, x
     rts
 _VelX_u8_arr64:
     ;; [0xff & int(round(96 * cos(x * pi / 32))) for x in range(64)]
@@ -117,7 +107,7 @@ _VelY_u8_arr64:
 ;;; @preserve X
 .EXPORT FuncA_Actor_TickProjFireball
 .PROC FuncA_Actor_TickProjFireball
-    inc Ram_ActorState_byte_arr, x
+    inc Ram_ActorState1_byte_arr, x
     beq @expire
     jsr FuncA_Actor_HarmAvatarIfCollision  ; preserves X
     jsr FuncA_Actor_CenterHitsTerrain  ; preserves X, returns C
@@ -138,10 +128,10 @@ _VelY_u8_arr64:
 ;;; @preserve X
 .EXPORT FuncA_Objects_DrawActorProjFireball
 .PROC FuncA_Objects_DrawActorProjFireball
-    lda Ram_ActorState_byte_arr, x
+    lda Ram_ActorState1_byte_arr, x
     div #2
     and #$01
-    add #kFireballFirstTileId
+    add #kTileIdObjFireballFirst
     jmp FuncA_Objects_Draw1x1Actor  ; preserves X
 .ENDPROC
 

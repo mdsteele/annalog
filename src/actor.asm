@@ -87,6 +87,8 @@
 .IMPORTZP Zp_ShapePosY_i16
 .IMPORTZP Zp_TerrainColumn_u8_arr_ptr
 .IMPORTZP Zp_Tmp1_byte
+.IMPORTZP Zp_Tmp2_byte
+.IMPORTZP Zp_Tmp3_byte
 .IMPORTZP Zp_Tmp_ptr
 
 ;;;=========================================================================;;;
@@ -129,8 +131,9 @@ Ram_ActorVelY_i16_0_arr: .res kMaxActors
 Ram_ActorVelY_i16_1_arr: .res kMaxActors
 
 ;;; Type-specific state data for each actor in the room.
-.EXPORT Ram_ActorState_byte_arr
-Ram_ActorState_byte_arr: .res kMaxActors
+.EXPORT Ram_ActorState1_byte_arr, Ram_ActorState2_byte_arr
+Ram_ActorState1_byte_arr: .res kMaxActors
+Ram_ActorState2_byte_arr: .res kMaxActors
 
 ;;; The object flags to apply for each actor in the room.  In particular, if
 ;;; bObj::FlipH is set, then the actor will face left instead of right, and if
@@ -194,11 +197,11 @@ Ram_ActorFlags_bObj_arr: .res kMaxActors
     d_entry table, BadHotheadVert,  Func_InitActorWithFlags
     d_entry table, BadSpider,       Func_InitActorDefault
     d_entry table, BadVinebug,      Func_InitActorBadVinebug
-    d_entry table, NpcAdult,        Func_InitActorWithState
-    d_entry table, NpcChild,        Func_InitActorWithState
-    d_entry table, NpcMermaid,      Func_InitActorWithState
+    d_entry table, NpcAdult,        Func_InitActorWithState1
+    d_entry table, NpcChild,        Func_InitActorWithState1
+    d_entry table, NpcMermaid,      Func_InitActorWithState1
     d_entry table, NpcMermaidQueen, Func_InitActorDefault
-    d_entry table, NpcToddler,      Func_InitActorWithState
+    d_entry table, NpcToddler,      Func_InitActorWithState1
     d_entry table, ProjFireball,    Func_InitActorProjFireball
     d_entry table, ProjGrenade,     Func_InitActorProjGrenade
     d_entry table, ProjSmoke,       Func_InitActorProjSmoke
@@ -209,7 +212,7 @@ Ram_ActorFlags_bObj_arr: .res kMaxActors
 .ENDREPEAT
 .ENDPROC
 
-;;; Zeroes the velocity and state byte for the specified actor, and sets the
+;;; Zeroes the velocity and state bytes for the specified actor, and sets the
 ;;; actor's flags and type as specified.
 ;;; @prereq The actor's pixel position has already been initialized.
 ;;; @param A The flags to set.
@@ -226,8 +229,8 @@ Ram_ActorFlags_bObj_arr: .res kMaxActors
 .ENDPROC
 
 ;;; The default actor init function that works for most actor types.  Zeroes
-;;; the velocity, flags, and state byte for the specified actor, and sets the
-;;; actors type as specified.
+;;; the velocity, flags, and state bytes for the specified actor, and sets the
+;;; actor's type as specified.
 ;;; @prereq The actor's pixel position has already been initialized.
 ;;; @param X The actor index.
 ;;; @param Y The actor type to set.
@@ -235,18 +238,18 @@ Ram_ActorFlags_bObj_arr: .res kMaxActors
 .EXPORT Func_InitActorDefault
 .PROC Func_InitActorDefault
     lda #0  ; param: state byte
-    .assert * = Func_InitActorWithState, error, "fallthrough"
+    .assert * = Func_InitActorWithState1, error, "fallthrough"
 .ENDPROC
 
 ;;; Zeroes the velocity and flags for the specified actor, and sets the actor's
-;;; state byte and type as specified.
+;;; first state byte and type as specified.
 ;;; @prereq The actor's pixel position has already been initialized.
 ;;; @param A The state byte to set.
 ;;; @param X The actor index.
 ;;; @param Y The actor type to set.
 ;;; @preserve X
-.PROC Func_InitActorWithState
-    sta Ram_ActorState_byte_arr, x
+.PROC Func_InitActorWithState1
+    sta Ram_ActorState1_byte_arr, x
     tya  ; actor type
     sta Ram_ActorType_eActor_arr, x
     lda #0
@@ -256,6 +259,7 @@ Ram_ActorFlags_bObj_arr: .res kMaxActors
     sta Ram_ActorVelX_i16_1_arr, x
     sta Ram_ActorVelY_i16_0_arr, x
     sta Ram_ActorVelY_i16_1_arr, x
+    sta Ram_ActorState2_byte_arr, x
     sta Ram_ActorFlags_bObj_arr, x
     rts
 .ENDPROC
@@ -429,36 +433,11 @@ _TypeSpecificTick:
 .EXPORT FuncA_Actor_IsCollidingWithAvatar
 .PROC FuncA_Actor_IsCollidingWithAvatar
     ldy Ram_ActorType_eActor_arr, x
-    ;; Check right side.
     lda DataA_Actor_BoundingBoxSide_u8_arr, y
-    add #kAvatarBoundingBoxLeft
-    adc Ram_ActorPosX_i16_0_arr, x
-    sta Zp_Tmp1_byte
-    lda Ram_ActorPosX_i16_1_arr, x
-    adc #0
-    cmp Zp_AvatarPosX_i16 + 1
-    blt _NoHit
-    bne @hitRight
-    lda Zp_Tmp1_byte
-    cmp Zp_AvatarPosX_i16 + 0
-    ble _NoHit
-    @hitRight:
-    ;; Check left side.
-    lda DataA_Actor_BoundingBoxSide_u8_arr, y
-    add #kAvatarBoundingBoxRight
-    sta Zp_Tmp1_byte
-    lda Ram_ActorPosX_i16_0_arr, x
-    sub Zp_Tmp1_byte
-    sta Zp_Tmp1_byte
-    lda Ram_ActorPosX_i16_1_arr, x
-    sbc #0
-    cmp Zp_AvatarPosX_i16 + 1
-    blt @hitLeft
-    bne _NoHit
-    lda Zp_Tmp1_byte
-    cmp Zp_AvatarPosX_i16 + 0
-    bge _NoHit
-    @hitLeft:
+    add #kAvatarBoundingBoxLeft  ; param: distance
+    .assert kAvatarBoundingBoxLeft = kAvatarBoundingBoxRight, error
+    jsr FuncA_Actor_IsAvatarWithinHorzDistance  ; preserves X, Y; returns C
+    bcc _Return
     ;; Check top side.
     lda DataA_Actor_BoundingBoxUp_u8_arr, y
     add #kAvatarBoundingBoxDown
@@ -489,6 +468,48 @@ _TypeSpecificTick:
     cmp Zp_AvatarPosY_i16 + 0
     ble _NoHit
     @hitBottom:
+_Hit:
+    sec
+    rts
+_NoHit:
+    clc
+_Return:
+    rts
+.ENDPROC
+
+;;; Checks if the horizontal distance between the centers of the actor and the
+;;; player avatar is within the given distance.
+;;; @param A The distance to check for.
+;;; @param X The actor index.
+;;; @return C Set if a collision occurred, cleared otherwise.
+;;; @preserve X, Y
+.EXPORT FuncA_Actor_IsAvatarWithinHorzDistance
+.PROC FuncA_Actor_IsAvatarWithinHorzDistance
+    sta Zp_Tmp1_byte  ; distance
+    ;; Check actor-left-of-avatar.
+    lda Ram_ActorPosX_i16_0_arr, x
+    add Zp_Tmp1_byte  ; distance
+    sta Zp_Tmp2_byte  ; x-pos (lo)
+    lda Ram_ActorPosX_i16_1_arr, x
+    adc #0
+    sta Zp_Tmp3_byte  ; x-pos (hi)
+    lda Zp_Tmp2_byte  ; x-pos (lo)
+    sub Zp_AvatarPosX_i16 + 0
+    lda Zp_Tmp3_byte  ; x-pos (hi)
+    sbc Zp_AvatarPosX_i16 + 1
+    blt _NoHit
+    ;; Check avatar-left-of-actor.
+    lda Zp_AvatarPosX_i16 + 0
+    add Zp_Tmp1_byte  ; distance
+    sta Zp_Tmp2_byte  ; x-pos (lo)
+    lda Zp_AvatarPosX_i16 + 1
+    adc #0
+    sta Zp_Tmp3_byte  ; x-pos (hi)
+    lda Zp_Tmp2_byte  ; x-pos (lo)
+    sub Ram_ActorPosX_i16_0_arr, x
+    lda Zp_Tmp3_byte  ; x-pos (hi)
+    sbc Ram_ActorPosX_i16_1_arr, x
+    blt _NoHit
 _Hit:
     sec
     rts
@@ -563,6 +584,76 @@ _NoHit:
     jsr FuncA_Actor_GetRoomBlockRow  ; preserves X, returns Y
     lda (Zp_TerrainColumn_u8_arr_ptr), y
     cmp #kFirstSolidTerrainType
+    rts
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Room"
+
+;;; Checks if the horizontal and vertical distances between the centers of the
+;;; two actors are both less than or equal to the given distance.
+;;; @param A The distance to check for.
+;;; @param X The first actor index.
+;;; @param Y The second actor index.
+;;; @return C Set if a collision occurred, cleared otherwise.
+;;; @preserve X, Y
+.EXPORT FuncA_Room_AreActorsWithinDistance
+.PROC FuncA_Room_AreActorsWithinDistance
+    sta Zp_Tmp1_byte  ; distance
+    ;; Check first-left-of-second.
+    lda Ram_ActorPosX_i16_0_arr, x
+    add Zp_Tmp1_byte  ; distance
+    sta Zp_Tmp2_byte  ; x-pos (lo)
+    lda Ram_ActorPosX_i16_1_arr, x
+    adc #0
+    sta Zp_Tmp3_byte  ; x-pos (hi)
+    lda Zp_Tmp2_byte  ; x-pos (lo)
+    sub Ram_ActorPosX_i16_0_arr, y
+    lda Zp_Tmp3_byte  ; x-pos (hi)
+    sbc Ram_ActorPosX_i16_1_arr, y
+    blt _NoHit
+    ;; Check second-left-of-first.
+    lda Ram_ActorPosX_i16_0_arr, y
+    add Zp_Tmp1_byte  ; distance
+    sta Zp_Tmp2_byte  ; x-pos (lo)
+    lda Ram_ActorPosX_i16_1_arr, y
+    adc #0
+    sta Zp_Tmp3_byte  ; x-pos (hi)
+    lda Zp_Tmp2_byte  ; x-pos (lo)
+    sub Ram_ActorPosX_i16_0_arr, x
+    lda Zp_Tmp3_byte  ; x-pos (hi)
+    sbc Ram_ActorPosX_i16_1_arr, x
+    blt _NoHit
+    ;; Check first-above-of-second.
+    lda Ram_ActorPosY_i16_0_arr, x
+    add Zp_Tmp1_byte  ; distance
+    sta Zp_Tmp2_byte  ; y-pos (lo)
+    lda Ram_ActorPosY_i16_1_arr, x
+    adc #0
+    sta Zp_Tmp3_byte  ; y-pos (hi)
+    lda Zp_Tmp2_byte  ; y-pos (lo)
+    sub Ram_ActorPosY_i16_0_arr, y
+    lda Zp_Tmp3_byte  ; y-pos (hi)
+    sbc Ram_ActorPosY_i16_1_arr, y
+    blt _NoHit
+    ;; Check second-above-of-first.
+    lda Ram_ActorPosY_i16_0_arr, y
+    add Zp_Tmp1_byte  ; distance
+    sta Zp_Tmp2_byte  ; y-pos (lo)
+    lda Ram_ActorPosY_i16_1_arr, y
+    adc #0
+    sta Zp_Tmp3_byte  ; y-pos (hi)
+    lda Zp_Tmp2_byte  ; y-pos (lo)
+    sub Ram_ActorPosY_i16_0_arr, x
+    lda Zp_Tmp3_byte  ; y-pos (hi)
+    sbc Ram_ActorPosY_i16_1_arr, x
+    blt _NoHit
+_Hit:
+    sec
+    rts
+_NoHit:
+    clc
     rts
 .ENDPROC
 

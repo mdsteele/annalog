@@ -17,6 +17,12 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
+;;; State bytes for vinebug baddies:
+;;;   * State1: If nonzero, the vinebug's velocity is locked until the next
+;;;     time it turns around.
+;;;   * State2: Counter that increments every frame; used to periodically
+;;;     randomly change the vinebug's velocity (when State1 is zero).
+
 ;;; The first tile ID for the vinebug actor animation.
 kTileIdVinebugFirst1 = $b0
 kTileIdVinebugFirst2 = kTileIdVinebugFirst1 + $04

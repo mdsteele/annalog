@@ -29,7 +29,7 @@
 .IMPORT FuncA_Objects_SetShapePosToActorCenter
 .IMPORT Func_InitActorDefault
 .IMPORT Ram_ActorFlags_bObj_arr
-.IMPORT Ram_ActorState_byte_arr
+.IMPORT Ram_ActorState1_byte_arr
 .IMPORT Ram_ActorType_eActor_arr
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORTZP Zp_ShapePosX_i16
@@ -66,8 +66,8 @@ kSmokeFirstTileId = $1a
 ;;; @preserve X
 .EXPORT FuncA_Actor_TickProjSmoke
 .PROC FuncA_Actor_TickProjSmoke
-    inc Ram_ActorState_byte_arr, x
-    lda Ram_ActorState_byte_arr, x
+    inc Ram_ActorState1_byte_arr, x
+    lda Ram_ActorState1_byte_arr, x
     cmp #kSmokeNumFrames
     blt @done
     lda #eActor::None
@@ -87,13 +87,13 @@ kSmokeFirstTileId = $1a
 .PROC FuncA_Objects_DrawActorProjSmoke
 _BottomRight:
     jsr FuncA_Objects_SetShapePosToActorCenter  ; preserves X
-    lda Ram_ActorState_byte_arr, x  ; param: offset
+    lda Ram_ActorState1_byte_arr, x  ; param: offset
     jsr FuncA_Objects_MoveShapeRightByA  ; preserves X
     jsr _DrawSmokeParticle  ; preserves X
 _BottomLeft:
     jsr FuncA_Objects_SetShapePosToActorCenter  ; preserves X
     jsr FuncA_Objects_MoveShapeLeftOneTile
-    lda Ram_ActorState_byte_arr, x  ; param: offset
+    lda Ram_ActorState1_byte_arr, x  ; param: offset
     jsr FuncA_Objects_MoveShapeDownByA  ; preserves X
     jsr _DrawSmokeParticle  ; preserves X
 _TopLeft:
@@ -101,7 +101,7 @@ _TopLeft:
     jsr FuncA_Objects_MoveShapeUpOneTile
     jsr FuncA_Objects_MoveShapeLeftOneTile
     lda Zp_ShapePosX_i16 + 0
-    sub Ram_ActorState_byte_arr, x
+    sub Ram_ActorState1_byte_arr, x
     sta Zp_ShapePosX_i16 + 0
     lda Zp_ShapePosX_i16 + 1
     sbc #0
@@ -111,7 +111,7 @@ _TopRight:
     jsr FuncA_Objects_SetShapePosToActorCenter  ; preserves X
     jsr FuncA_Objects_MoveShapeUpOneTile
     lda Zp_ShapePosY_i16 + 0
-    sub Ram_ActorState_byte_arr, x
+    sub Ram_ActorState1_byte_arr, x
     sta Zp_ShapePosY_i16 + 0
     lda Zp_ShapePosY_i16 + 1
     sbc #0
@@ -119,7 +119,7 @@ _TopRight:
 _DrawSmokeParticle:
     jsr FuncA_Objects_Alloc1x1Shape  ; preserves X
     bcs @done
-    lda Ram_ActorState_byte_arr, x
+    lda Ram_ActorState1_byte_arr, x
     div #2
     add #kSmokeFirstTileId
     sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
