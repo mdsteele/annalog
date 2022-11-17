@@ -30,6 +30,7 @@
 .INCLUDE "../ppu.inc"
 .INCLUDE "../program.inc"
 .INCLUDE "../room.inc"
+.INCLUDE "garden_boss.inc"
 
 .IMPORT DataA_Pause_GardenAreaCells_u8_arr2_arr
 .IMPORT DataA_Pause_GardenAreaName_u8_arr
@@ -37,7 +38,9 @@
 .IMPORT FuncA_Machine_CannonTick
 .IMPORT FuncA_Machine_CannonTryAct
 .IMPORT FuncA_Machine_CannonTryMove
+.IMPORT FuncA_Objects_Alloc2x2Shape
 .IMPORT FuncA_Objects_DrawCannonMachine
+.IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
 .IMPORT FuncA_Room_SpawnBreakerDevice
 .IMPORT FuncA_Room_SpawnUpgradeDevice
 .IMPORT Func_FindEmptyActorSlot
@@ -64,10 +67,8 @@
 .IMPORT Ram_RoomState
 .IMPORT Sram_ProgressFlags_arr
 .IMPORTZP Zp_AvatarPosX_i16
-.IMPORTZP Zp_OamOffset_u8
+.IMPORTZP Zp_FrameCounter_u8
 .IMPORTZP Zp_RoomIsSafe_bool
-.IMPORTZP Zp_RoomScrollX_u16
-.IMPORTZP Zp_RoomScrollY_u8
 .IMPORTZP Zp_Tmp1_byte
 .IMPORTZP Zp_Tmp_ptr
 
@@ -113,19 +114,20 @@ kBossAngrySpikeCooldown = 15
 kBossShootFireballCooldown = 60
 
 ;;; How many frames it takes for an eye to fully open or close.
-kBossEyeOpenFrames = 24
+kBossEyeOpenFrames = 20
 
-;;; The first tile ID for the eye animation.
-kBossEyeFirstTileId = $a9
-
-;;; The OBJ palette number used for the eyes of the boss.
-kBossEyePalette = 0
+;;; The platform indices for the boss's two eyes.
+kLeftEyePlatformIndex = 2
+kRightEyePlatformIndex = 3
 
 ;;; The X/Y positions of the centers of the boss's two eyes.
 kBossLeftEyeCenterX  = $68
 kBossLeftEyeCenterY  = $58
 kBossRightEyeCenterX = $98
 kBossRightEyeCenterY = $78
+
+;;; The OBJ palette number used for the eyes of the boss.
+kPaletteObjBossEye = 1
 
 ;;;=========================================================================;;;
 
@@ -182,7 +184,9 @@ kBossRightEyeCenterY = $78
     BossActive_eEye      .byte
     ;; How open each of the eyes are, from 0 (closed) to kBossEyeOpenFrames
     ;; (open), indexed by eEye.
-    BossEyesOpen_u8_arr2 .res 2
+    BossEyeOpen_u8_arr2  .res 2
+    ;; If nonzero, this is how many more frames to flash each eye.
+    BossEyeFlash_u8_arr2 .res 2
 .ENDSTRUCT
 .ASSERT .sizeof(sState) <= kRoomStateSize, error
 
@@ -260,6 +264,22 @@ _Platforms_sPlatform_arr:
     d_byte HeightPx_u8, $4e
     d_word Left_i16,  $0090
     d_word Top_i16,   $0030
+    D_END
+    .assert * - :- = kLeftEyePlatformIndex * .sizeof(sPlatform), error
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Zone
+    d_word WidthPx_u16, 0
+    d_byte HeightPx_u8, 0
+    d_word Left_i16, kBossLeftEyeCenterX
+    d_word Top_i16,  kBossLeftEyeCenterY
+    D_END
+    .assert * - :- = kRightEyePlatformIndex * .sizeof(sPlatform), error
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Zone
+    d_word WidthPx_u16, 0
+    d_byte HeightPx_u8, 0
+    d_word Left_i16, kBossRightEyeCenterX
+    d_word Top_i16,  kBossRightEyeCenterY
     D_END
     .assert * - :- <= kMaxPlatforms * .sizeof(sPlatform), error
     .byte ePlatform::None
@@ -547,6 +567,11 @@ _BossWaiting:
 ;;; Opens or closes the specified boss eye, depending on the boss mode.
 ;;; @param X Which eEye to update.
 .PROC FuncC_Garden_Boss_TickEye
+    lda Ram_RoomState + sState::BossEyeFlash_u8_arr2, x
+    beq @noFlash
+    dec Ram_RoomState + sState::BossEyeFlash_u8_arr2, x
+    @noFlash:
+_CheckIfOpenOrClosed:
     lda Ram_RoomState + sState::BossMode_eBoss
     cmp #eBoss::Shoot
     .assert eBoss::Spray > eBoss::Shoot, error
@@ -554,16 +579,16 @@ _BossWaiting:
     cpx Ram_RoomState + sState::BossActive_eEye
     bne _Close
 _Open:
-    lda Ram_RoomState + sState::BossEyesOpen_u8_arr2, x
+    lda Ram_RoomState + sState::BossEyeOpen_u8_arr2, x
     cmp #kBossEyeOpenFrames
     bge @done
-    inc Ram_RoomState + sState::BossEyesOpen_u8_arr2, x
+    inc Ram_RoomState + sState::BossEyeOpen_u8_arr2, x
     @done:
     rts
 _Close:
-    lda Ram_RoomState + sState::BossEyesOpen_u8_arr2, x
+    lda Ram_RoomState + sState::BossEyeOpen_u8_arr2, x
     beq @done
-    dec Ram_RoomState + sState::BossEyesOpen_u8_arr2, x
+    dec Ram_RoomState + sState::BossEyeOpen_u8_arr2, x
     @done:
     rts
 .ENDPROC
@@ -696,7 +721,7 @@ _CheckEyes:
     cmp Ram_ActorPosX_i16_0_arr, x
     bge _Done
     ;; Check if the hit eye is open or closed.
-    lda Ram_RoomState + sState::BossEyesOpen_u8_arr2, y
+    lda Ram_RoomState + sState::BossEyeOpen_u8_arr2, y
     cmp #kBossEyeOpenFrames / 2
     bge @eyeIsOpen
     ;; If the hit eye is closed, switch the boss to Angry mode.
@@ -722,7 +747,8 @@ _CheckEyes:
     beq @explode  ; unconditional
     ;; Otherwise, put the boss into waiting mode.
     @bossIsStillAlive:
-    ;; TODO: make a hurt animation
+    lda #kBossEyeOpenFrames
+    sta Ram_RoomState + sState::BossEyeFlash_u8_arr2, y
     jsr FuncC_Garden_Boss_StartWaiting  ; preserves X
     ;; Explode the grenade.
     @explode:
@@ -772,54 +798,55 @@ _Done:
     .assert eBoss::Dead = 0, error
     beq @done
     ;; Draw boss eyes.
-    ldx #eEye::Left
+    ldy #eEye::Left  ; param: eye
     jsr FuncA_Objects_GardenBoss_DrawEye
-    ldx #eEye::Right
+    ldy #eEye::Right  ; param: eye
     jsr FuncA_Objects_GardenBoss_DrawEye
     @done:
     rts
 .ENDPROC
 
 ;;; Allocates and populates OAM slots for one of the boss's eyes.
-;;; @param X Which eEye to draw.
-;;; @preserve X
+;;; @param Y Which eEye to draw.
 .PROC FuncA_Objects_GardenBoss_DrawEye
-    ldy Zp_OamOffset_u8
-    tya
-    add #.sizeof(sObj) * 2
-    sta Zp_OamOffset_u8
-    ;; Set X-positions:
-    lda _PosX_u8_arr, x
-    sub Zp_RoomScrollX_u16 + 0
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::XPos_u8, y
-    sub #kTileWidthPx
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::XPos_u8, y
-    ;; Set Y-positions:
-    lda _PosY_u8_arr, x
-    sub Zp_RoomScrollY_u8
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::YPos_u8, y
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::YPos_u8, y
+    ldx _PlatformIndex_u8_arr, y  ; param: platform index
+    jsr FuncA_Objects_SetShapePosToPlatformTopLeft  ; preserves Y
+    tya  ; eEye value
+    tax  ; eEye value
+    lda #kPaletteObjBossEye  ; param: flags
+    jsr FuncA_Objects_Alloc2x2Shape  ; preserves X, returns C and Y
+    bcs @done
+    ;; Determine if the eye should be flashing red this frame.
+    lda Ram_RoomState + sState::BossEyeFlash_u8_arr2, x
+    beq @noFlash
+    lda Zp_FrameCounter_u8
+    and #$02
+    beq @noFlash
+    lda #$10
+    @noFlash:
+    sta Zp_Tmp1_byte  ; flash bit
+    ;; Compute the first tile ID based on the current eye openness.
+    lda Ram_RoomState + sState::BossEyeOpen_u8_arr2, x
+    div #2
+    and #$fe
+    ora Zp_Tmp1_byte  ; flash bit
+    add #kTileIdObjPlantEyeFirst
     ;; Set tile IDs:
-    lda Ram_RoomState + sState::BossEyesOpen_u8_arr2, x
-    div #4
-    add #kBossEyeFirstTileId
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Tile_u8, y
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Tile_u8, y
+    adc #1  ; carry bit will already be clear
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Tile_u8, y
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Tile_u8, y
     ;; Set flags:
-    lda #kBossEyePalette
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Flags_bObj, y
-    ora #bObj::FlipH
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Flags_bObj, y
+    lda #kPaletteObjBossEye | bObj::FlipH
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Flags_bObj, y
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Flags_bObj, y
+    @done:
     rts
-_PosX_u8_arr:
+_PlatformIndex_u8_arr:
     D_ENUM eEye
-    d_byte Left,  kBossLeftEyeCenterX
-    d_byte Right, kBossRightEyeCenterX
-    D_END
-_PosY_u8_arr:
-    D_ENUM eEye
-    d_byte Left,  kBossLeftEyeCenterY  - 5
-    d_byte Right, kBossRightEyeCenterY - 5
+    d_byte Left,  kLeftEyePlatformIndex
+    d_byte Right, kRightEyePlatformIndex
     D_END
 .ENDPROC
 

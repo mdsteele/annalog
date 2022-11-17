@@ -35,6 +35,7 @@
 .INCLUDE "machines/jet.inc"
 .INCLUDE "machines/pump.inc"
 .INCLUDE "machines/winch.inc"
+.INCLUDE "rooms/garden_boss.inc"
 .INCLUDE "upgrade.inc"
 
 ;;;=========================================================================;;;
@@ -579,11 +580,11 @@
     .incbin "out/data/tiles/upgrade_bottom.chr"
     .assert * - :- = (kTileIdObjUpgradeMaxInstFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/upgrade_maxinst.chr"
-    .assert * - :- = (kTileIdObjUpgradeBRemoteFirst - $80) * kSizeofChr, error
     .res $02 * kSizeofChr
+    .assert * - :- = (kTileIdObjUpgradeOpIfFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/upgrade_opif.chr"
-    .assert * - :- = (kTileIdObjUpgradeOpTilFirst - $80) * kSizeofChr, error
-    .res $06 * kSizeofChr
+    .assert * - :- = (kTileIdCannonFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/cannon.chr"
     .assert * - :- = (kTileIdMermaidAdultFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/mermaid_adult.chr"
     .res $06 * kSizeofChr
@@ -593,12 +594,11 @@
     .incbin "out/data/tiles/grub.chr"
     .assert * - :- = (kTileIdObjSpike - $80) * kSizeofChr, error
     .incbin "out/data/tiles/spike.chr"
-    .incbin "out/data/tiles/eye.chr"
+    .res $07 * kSizeofChr
     .assert * - :- = (kTileIdVinebugFirst1 - $80) * kSizeofChr, error
     .incbin "out/data/tiles/vinebug.chr"
-    .assert * - :- = (kTileIdCannonFirst - $80) * kSizeofChr, error
-    .incbin "out/data/tiles/cannon.chr"
-    .res $1a * kSizeofChr
+    .assert * - :- = (kTileIdObjPlantEyeFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/plant_eye.chr"
     .incbin "out/data/tiles/crate.chr"
     .assert * - :- = (kTileIdObjGrenadeFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/grenade.chr"
