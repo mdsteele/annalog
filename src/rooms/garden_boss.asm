@@ -43,6 +43,7 @@
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
 .IMPORT FuncA_Room_SpawnBreakerDevice
 .IMPORT FuncA_Room_SpawnUpgradeDevice
+.IMPORT Func_DivMod
 .IMPORT Func_FindEmptyActorSlot
 .IMPORT Func_GetRandomByte
 .IMPORT Func_InitActorProjFireball
@@ -114,6 +115,8 @@ kBossInitCooldown = 120
 kBossAngrySpikeCooldown = 15
 ;;; How many frames to wait between fireballs when the boss is in Shoot mode.
 kBossShootFireballCooldown = 60
+;;; How many frames to wait between fireballs when the boss is in Spray mode.
+kBossSprayFireballCooldown = 15
 
 ;;; How many frames it takes for an eye to fully open or close.
 kBossEyeOpenFrames = 20
@@ -541,10 +544,23 @@ _CheckMode:
     D_END
 .ENDREPEAT
 _BossSpray:
-    ;; TODO: Shoot a spray of fireballs, then return to Waiting mode.
+    jsr Func_GetRandomByte  ; returns A
+    ldy #11  ; param: divisor
+    jsr Func_DivMod  ; returns remainder in A
+    add #2  ; param: column to shoot at
+    ldy Ram_RoomState + sState::BossActive_eEye  ; param: eye to shoot from
+    jsr FuncC_Garden_Boss_ShootFireballAtColumn
+    ;; Decrement the projectile counter; if it reaches zero, return to waiting
+    ;; mode.
+    dec Ram_RoomState + sState::BossProjCount_u8
+    jeq FuncC_Garden_Boss_StartWaiting
+    ;; Otherwise, set the cooldown for the next fireball.
+    lda #kBossSprayFireballCooldown
+    sta Ram_RoomState + sState::BossCooldown_u8
+    rts
 _BossShoot:
     ldy Ram_RoomState + sState::BossActive_eEye  ; param: eye to shoot from
-    jsr FuncC_Garden_Boss_ShootFireball
+    jsr FuncC_Garden_Boss_ShootFireballAtAvatar
     ;; Decrement the projectile counter; if it reaches zero, return to waiting
     ;; mode.
     dec Ram_RoomState + sState::BossProjCount_u8
@@ -573,7 +589,7 @@ _BossWaiting:
     ;; If the boss is at high health, switch to Shoot mode; if at low health,
     ;; randomly choose between Shoot and Spray mode.
     lda Ram_RoomState + sState::BossHealth_u8
-    cmp #kBossInitHealth / 2
+    cmp #(kBossInitHealth / 2) + 1
     blt @lowHealth
     @highHealth:
     lda #eBoss::Shoot
@@ -627,11 +643,22 @@ _Close:
     rts
 .ENDPROC
 
-;;; Shoots a fireball from the specified eye.
+;;; Shoots a fireball from the specified eye, towards the player avatar.
 ;;; @param Y Which eEye to shoot from.
-.PROC FuncC_Garden_Boss_ShootFireball
+.PROC FuncC_Garden_Boss_ShootFireballAtAvatar
+    lda Zp_AvatarPosX_i16 + 0
+    div #kBlockWidthPx
+    .assert * = FuncC_Garden_Boss_ShootFireballAtColumn, error, "fallthrough"
+.ENDPROC
+
+;;; Shoots a fireball from the specified eye, towards the specified room block
+;;; column.
+;;; @param A Which room block column to shoot at.
+;;; @param Y Which eEye to shoot from.
+.PROC FuncC_Garden_Boss_ShootFireballAtColumn
+    sta Zp_Tmp1_byte  ; room block column
     ;; Shoot a fireball.
-    jsr Func_FindEmptyActorSlot  ; preserves Y, sets C on failure, returns X
+    jsr Func_FindEmptyActorSlot  ; preserves Y and Zp_Tmp*, returns C and X
     bcs @done
     ;; Initialize fireball position based on which eye we're shooting from.
     lda #0
@@ -641,14 +668,14 @@ _Close:
     sta Ram_ActorPosY_i16_0_arr, x
     lda _FireballPosX_u8_arr2, y
     sta Ram_ActorPosX_i16_0_arr, x
-    ;; Choose fireball angle based on the player avatar's X-position.
-    lda Zp_AvatarPosX_i16 + 0
-    div #kTileWidthPx
-    and #$fe  ; now A is 2 * avatar's room block column
+    ;; Choose fireball angle based on target column.
+    lda Zp_Tmp1_byte  ; room block column
+    mul #2
     ora Ram_RoomState + sState::BossActive_eEye
     tay
     lda _FireballAngle_u8_arr2_arr, y  ; param: aim angle
     jsr Func_InitActorProjFireball
+    ;; TODO: play a sound
     @done:
     rts
 _FireballPosX_u8_arr2:
