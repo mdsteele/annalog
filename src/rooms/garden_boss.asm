@@ -54,6 +54,7 @@
 .IMPORT Func_Noop
 .IMPORT Func_SetFlag
 .IMPORT Func_UnlockDoorDevice
+.IMPORT Ppu_ChrBgAnim0
 .IMPORT Ppu_ChrObjGarden
 .IMPORT Ram_ActorPosX_i16_0_arr
 .IMPORT Ram_ActorPosX_i16_1_arr
@@ -67,6 +68,7 @@
 .IMPORT Ram_RoomState
 .IMPORT Sram_ProgressFlags_arr
 .IMPORTZP Zp_AvatarPosX_i16
+.IMPORTZP Zp_Chr0cBank_u8
 .IMPORTZP Zp_FrameCounter_u8
 .IMPORTZP Zp_RoomIsSafe_bool
 .IMPORTZP Zp_Tmp1_byte
@@ -185,8 +187,19 @@ kPaletteObjBossEye = 1
     ;; How open each of the eyes are, from 0 (closed) to kBossEyeOpenFrames
     ;; (open), indexed by eEye.
     BossEyeOpen_u8_arr2  .res 2
-    ;; If nonzero, this is how many more frames to flash each eye.
+    ;; If nonzero, this is how many more frames to flash each eye.  This gets
+    ;; set when the boss gets hurt in that eye.
     BossEyeFlash_u8_arr2 .res 2
+    ;; Counter used for setting BG animation bank (instead of
+    ;; Zp_FrameCounter_u8).  This gets incremented/decremented in the TickRoom
+    ;; function.
+    BossThornCounter_u8  .byte
+    ;; Timer that counts down in the TickRoom function to make the thorns
+    ;; periodically move.
+    BossThornTimer_u8    .byte
+    ;; When nonzero, this is how many more frames the thorns should spend
+    ;; moving quickly.  This gets set when the boss gets hurt.
+    BossThornHurt_u8     .byte
 .ENDSTRUCT
 .ASSERT .sizeof(sState) <= kRoomStateSize, error
 
@@ -207,7 +220,7 @@ kPaletteObjBossEye = 1
     d_addr Machines_sMachine_arr_ptr, _Machines_sMachine_arr
     d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjGarden)
     d_addr Tick_func_ptr, FuncC_Garden_Boss_TickRoom
-    d_addr Draw_func_ptr, FuncA_Objects_GardenBoss_Draw
+    d_addr Draw_func_ptr, FuncA_Objects_GardenBoss_DrawRoom
     d_addr Ext_sRoomExt_ptr, _Ext_sRoomExt
     D_END
 _Ext_sRoomExt:
@@ -483,6 +496,27 @@ _BossBattle:
     jsr FuncC_Garden_Boss_TickEye
     ldx #eEye::Right  ; param: eye to tick
     jsr FuncC_Garden_Boss_TickEye
+_TickThorns:
+    ;; Move thorns quickly when hurt.
+    lda Ram_RoomState + sState::BossThornHurt_u8
+    beq @noHurt
+    dec Ram_RoomState + sState::BossThornHurt_u8
+    dec Ram_RoomState + sState::BossThornCounter_u8
+    dec Ram_RoomState + sState::BossThornCounter_u8
+    jmp @done
+    @noHurt:
+    ;; Periodically move thorns:
+    dec Ram_RoomState + sState::BossThornTimer_u8
+    bpl @noWrap
+    lda #$40
+    sta Ram_RoomState + sState::BossThornTimer_u8
+    @noWrap:
+    lda Ram_RoomState + sState::BossThornTimer_u8
+    cmp #$18
+    bge @done
+    inc Ram_RoomState + sState::BossThornCounter_u8
+    @done:
+_CoolDown:
     ;; Wait for cooldown to expire.
     dec Ram_RoomState + sState::BossCooldown_u8
     beq _CheckMode
@@ -749,6 +783,8 @@ _CheckEyes:
     @bossIsStillAlive:
     lda #kBossEyeOpenFrames
     sta Ram_RoomState + sState::BossEyeFlash_u8_arr2, y
+    lda #$10
+    sta Ram_RoomState + sState::BossThornHurt_u8
     jsr FuncC_Garden_Boss_StartWaiting  ; preserves X
     ;; Explode the grenade.
     @explode:
@@ -793,7 +829,7 @@ _Done:
 .SEGMENT "PRGA_Objects"
 
 ;;; Allocates and populates OAM slots for the boss.
-.PROC FuncA_Objects_GardenBoss_Draw
+.PROC FuncA_Objects_GardenBoss_DrawRoom
     lda Ram_RoomState + sState::BossMode_eBoss
     .assert eBoss::Dead = 0, error
     beq @done
@@ -802,6 +838,12 @@ _Done:
     jsr FuncA_Objects_GardenBoss_DrawEye
     ldy #eEye::Right  ; param: eye
     jsr FuncA_Objects_GardenBoss_DrawEye
+    ;; Animate thorns.
+    lda Ram_RoomState + sState::BossThornCounter_u8
+    div #4
+    and #$07
+    add #<.bank(Ppu_ChrBgAnim0)
+    sta Zp_Chr0cBank_u8
     @done:
     rts
 .ENDPROC
