@@ -28,6 +28,7 @@
 .INCLUDE "../ppu.inc"
 .INCLUDE "../program.inc"
 .INCLUDE "../room.inc"
+.INCLUDE "../spawn.inc"
 
 .IMPORT DataA_Pause_GardenAreaCells_u8_arr2_arr
 .IMPORT DataA_Pause_GardenAreaName_u8_arr
@@ -50,6 +51,9 @@
 .IMPORT Sram_ProgressFlags_arr
 
 ;;;=========================================================================;;;
+
+;;; The index of the passage that is sometimes blocked by crates.
+kCratePassageIndex = 1
 
 ;;; The machine index for the GardenBossCannon machine.
 kCannonMachineIndex = 0
@@ -107,7 +111,7 @@ _Ext_sRoomExt:
     d_addr Dialogs_sDialog_ptr_arr_ptr, 0
     d_addr Passages_sPassage_arr_ptr, _Passages_sPassage_arr
     d_addr Init_func_ptr, FuncC_Garden_Tower_InitRoom
-    d_addr Enter_func_ptr, Func_Noop
+    d_addr Enter_func_ptr, FuncC_Garden_Tower_EnterRoom
     d_addr FadeIn_func_ptr, Func_Noop
     D_END
 _TerrainData:
@@ -216,11 +220,12 @@ _Devices_sDevice_arr:
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None
 _Passages_sPassage_arr:
-    D_STRUCT sPassage
+:   D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Western | bPassage::SameScreen | 0
     d_byte Destination_eRoom, eRoom::GardenShaft
     d_byte SpawnBlock_u8, 5
     D_END
+    .assert * - :- = kCratePassageIndex * .sizeof(sPassage), error
     D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Western | bPassage::SameScreen | 1
     d_byte Destination_eRoom, eRoom::GardenShaft
@@ -250,6 +255,21 @@ _Crates:
     beq @done  ; unconditional
     @cratesAreOnFloor:
     stx Ram_PlatformType_ePlatform_arr + kWallCratePlatformIndex
+    @done:
+    rts
+.ENDPROC
+
+;;; Room init function for the GardenTower room.
+;;; @param A The bSpawn value for where the avatar is entering the room.
+.PROC FuncC_Garden_Tower_EnterRoom
+    ;; If entering from the passage that is sometimes blocked by crates, remove
+    ;; the blocking crate.  (In normal gameplay, it should be impossible to
+    ;; enter from that passage if the crates are still there; this is just a
+    ;; safety measure.)
+    cmp #bSpawn::IsPassage | kCratePassageIndex
+    bne @done
+    lda #ePlatform::Zone
+    sta Ram_PlatformType_ePlatform_arr + kWallCratePlatformIndex
     @done:
     rts
 .ENDPROC
