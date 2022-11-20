@@ -89,6 +89,7 @@ kSaveMagicNumber = $b2
     CryptTombWeakFloors
     GardenEastTalkedToMermaid
     GardenTowerCratesPlaced
+    GardenTowerWallBroken
     MermaidDrainUnplugged
     MermaidHut1MetQueen
     MermaidHut4OpenedCellar

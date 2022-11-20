@@ -24,11 +24,13 @@
 .INCLUDE "../machine.inc"
 .INCLUDE "../machines/cannon.inc"
 .INCLUDE "../macros.inc"
+.INCLUDE "../oam.inc"
 .INCLUDE "../platform.inc"
 .INCLUDE "../ppu.inc"
 .INCLUDE "../program.inc"
 .INCLUDE "../room.inc"
 .INCLUDE "../spawn.inc"
+.INCLUDE "garden_tower.inc"
 
 .IMPORT DataA_Pause_GardenAreaCells_u8_arr2_arr
 .IMPORT DataA_Pause_GardenAreaName_u8_arr
@@ -36,21 +38,34 @@
 .IMPORT FuncA_Machine_CannonTick
 .IMPORT FuncA_Machine_CannonTryAct
 .IMPORT FuncA_Machine_CannonTryMove
+.IMPORT FuncA_Objects_Alloc1x1Shape
 .IMPORT FuncA_Objects_Draw2x2Shape
 .IMPORT FuncA_Objects_DrawCannonMachine
 .IMPORT FuncA_Objects_MoveShapeDownByA
 .IMPORT FuncA_Objects_MoveShapeDownOneTile
 .IMPORT FuncA_Objects_MoveShapeRightOneTile
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
+.IMPORT FuncA_Room_FindGrenadeActor
+.IMPORT Func_InitActorProjSmoke
 .IMPORT Func_MachineCannonReadRegY
 .IMPORT Func_Noop
+.IMPORT Func_SetFlag
 .IMPORT Ppu_ChrObjGarden
+.IMPORT Ram_ActorPosX_i16_0_arr
+.IMPORT Ram_ActorPosX_i16_1_arr
+.IMPORT Ram_ActorPosY_i16_0_arr
+.IMPORT Ram_ActorPosY_i16_1_arr
 .IMPORT Ram_MachineGoalVert_u8_arr
+.IMPORT Ram_Oam_sObj_arr64
 .IMPORT Ram_PlatformType_ePlatform_arr
 .IMPORT Ram_RoomState
 .IMPORT Sram_ProgressFlags_arr
+.IMPORTZP Zp_Tmp1_byte
 
 ;;;=========================================================================;;;
+
+;;; The device index for the door that leads to the boss room.
+kDoorDeviceIndex = 3
 
 ;;; The index of the passage that is sometimes blocked by crates.
 kCratePassageIndex = 1
@@ -60,15 +75,31 @@ kCannonMachineIndex = 0
 ;;; The platform index for the GardenBossCannon machine.
 kCannonPlatformIndex = 0
 
+;;; The platform index for the breakable tower wall.
+kBreakableWallPlatformIndex = 3
+
+;;; The room pixel position/size of the breakable tower wall.
+kBreakableWallPlatformLeft = $0090
+kBreakableWallPlatformTop  = $0080
+kBreakableWallPlatformWidth  = $08
+kBreakableWallPlatformHeight = $20
+.LINECONT +
+kBreakableWallPlatformRight = \
+    kBreakableWallPlatformLeft + kBreakableWallPlatformWidth
+kBreakableWallPlatformYCenter = \
+    kBreakableWallPlatformTop + kBreakableWallPlatformHeight / 2
+.LINECONT -
+
+;;; How many grenades need to hit the upper/lower breakable wall to destroy it.
+kBreakableWallHitsToDestroy = 2
+
 ;;; The platform indices for the positions the crates can be in.
 kWallCratePlatformIndex = 1
 kFloorCratePlatformIndex = 2
 
-;;; The first OBJ tile ID for drawing the crate platforms in this room.
-kTileIdObjCrateFirst = $d8
-
-;;; The OBJ palette number used for drawing the crate platforms in this room.
-kCratePalette = 0
+;;; OBJ palette numbers used for drawing certain platforms in this room.
+kPaletteObjCrate       = 0
+kPaletteObjGardenBrick = 0
 
 ;;;=========================================================================;;;
 
@@ -77,6 +108,9 @@ kCratePalette = 0
     ;; The current states of the room's two levers.
     LeverLeft_u1  .byte
     LeverRight_u1 .byte
+    ;; How many times each section of the breakable wall has been hit.
+    BreakableWallUpperHits_u8 .byte
+    BreakableWallLowerHits_u8 .byte
 .ENDSTRUCT
 .ASSERT .sizeof(sState) <= kRoomStateSize, error
 
@@ -97,7 +131,7 @@ kCratePalette = 0
     d_addr Machines_sMachine_arr_ptr, _Machines_sMachine_arr
     d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjGarden)
     d_addr Tick_func_ptr, FuncC_Garden_Tower_TickRoom
-    d_addr Draw_func_ptr, FuncA_Objects_GardenTower_Draw
+    d_addr Draw_func_ptr, FuncA_Objects_GardenTower_DrawRoom
     d_addr Ext_sRoomExt_ptr, _Ext_sRoomExt
     D_END
 _Ext_sRoomExt:
@@ -145,7 +179,7 @@ _Platforms_sPlatform_arr:
     d_word WidthPx_u16, kBlockWidthPx
     d_byte HeightPx_u8, kBlockHeightPx
     d_word Left_i16,  $0050
-    d_word Top_i16,   $00a0
+    d_word Top_i16,   $00a4
     D_END
     .assert * - :- = kWallCratePlatformIndex * .sizeof(sPlatform), error
     D_STRUCT sPlatform
@@ -162,6 +196,14 @@ _Platforms_sPlatform_arr:
     d_byte HeightPx_u8, $20
     d_word Left_i16,  $0021
     d_word Top_i16,   $0140
+    D_END
+    .assert * - :- = kBreakableWallPlatformIndex * .sizeof(sPlatform), error
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Solid
+    d_word WidthPx_u16, kBreakableWallPlatformWidth
+    d_byte HeightPx_u8, kBreakableWallPlatformHeight
+    d_word Left_i16,    kBreakableWallPlatformLeft
+    d_word Top_i16,     kBreakableWallPlatformTop
     D_END
     .assert * - :- <= kMaxPlatforms * .sizeof(sPlatform), error
     .byte ePlatform::None
@@ -211,6 +253,7 @@ _Devices_sDevice_arr:
     d_byte BlockCol_u8, 2
     d_byte Target_u8, kCannonMachineIndex
     D_END
+    .assert * - :- = kDoorDeviceIndex * .sizeof(sDevice), error
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::UnlockedDoor
     d_byte BlockRow_u8, 10
@@ -245,9 +288,16 @@ _Passages_sPassage_arr:
 
 ;;; Room init function for the GardenTower room.
 .PROC FuncC_Garden_Tower_InitRoom
-    ;; TODO: Init target practice.
-_Crates:
     ldx #ePlatform::Zone
+    ;; Check if the breakable wall has been broken already; if so, remove it.
+    flag_bit Sram_ProgressFlags_arr, eFlag::GardenTowerWallBroken
+    beq @done
+    stx Ram_PlatformType_ePlatform_arr + kBreakableWallPlatformIndex
+    @done:
+_Crates:
+    ;; Check whether the crates should be in the wall or on the floor, and
+    ;; remove them from whichever of those two places they shouldn't be.
+    ;; (Note that at this point, X is still set to ePlatform::Zone.)
     flag_bit Sram_ProgressFlags_arr, eFlag::GardenTowerCratesPlaced
     bne @cratesAreOnFloor
     @cratesAreInWall:
@@ -262,6 +312,17 @@ _Crates:
 ;;; Room init function for the GardenTower room.
 ;;; @param A The bSpawn value for where the avatar is entering the room.
 .PROC FuncC_Garden_Tower_EnterRoom
+    ;; If entering from the boss room door, remove the breakable wall, so the
+    ;; player won't be trapped.  (In normal gameplay, it should be impossible
+    ;; to enter from that door if the wall is still there; this is just a
+    ;; safety measure.)
+    .assert bSpawn::IsPassage <> 0, error
+    cmp #kDoorDeviceIndex
+    bne @done
+    ldx #ePlatform::Zone
+    stx Ram_PlatformType_ePlatform_arr + kBreakableWallPlatformIndex
+    @done:
+_Crates:
     ;; If entering from the passage that is sometimes blocked by crates, remove
     ;; the blocking crate.  (In normal gameplay, it should be impossible to
     ;; enter from that passage if the crates are still there; this is just a
@@ -275,8 +336,67 @@ _Crates:
 .ENDPROC
 
 ;;; Room tick function for the GardenTower room.
+;;; @prereq PRGA_Room is loaded.
 .PROC FuncC_Garden_Tower_TickRoom
-    ;; TODO: Tick target practice.
+    ;; If the breakable wall is already destroyed, then we're done.
+    lda Ram_PlatformType_ePlatform_arr + kBreakableWallPlatformIndex
+    cmp #ePlatform::Solid
+    bne _Done
+    ;; Find the grenade (if any).  If there isn't one, we're done.
+    jsr FuncA_Room_FindGrenadeActor  ; returns C and X
+    bcs _Done
+    ;; Check if the grenade is horizontally within the breakable wall.  If not,
+    ;; we're done.
+    lda #<kBreakableWallPlatformLeft
+    cmp Ram_ActorPosX_i16_0_arr, x
+    lda #>kBreakableWallPlatformLeft
+    sbc Ram_ActorPosX_i16_1_arr, x
+    bge _Done
+    lda #<kBreakableWallPlatformRight
+    cmp Ram_ActorPosX_i16_0_arr, x
+    lda #>kBreakableWallPlatformRight
+    sbc Ram_ActorPosX_i16_1_arr, x
+    blt _Done
+    ;; Check whether this is a high grenade or a low grenade.
+    lda #<kBreakableWallPlatformYCenter
+    cmp Ram_ActorPosY_i16_0_arr, x
+    lda #>kBreakableWallPlatformYCenter
+    sbc Ram_ActorPosY_i16_1_arr, x
+    bge _GrenadeIsHigh
+_GrenadeIsLow:
+    ;; If the lower portion of the wall is already destroyed, we're done.
+    lda Ram_RoomState + sState::BreakableWallLowerHits_u8
+    cmp #kBreakableWallHitsToDestroy
+    bge _Done
+    ;; Hit the wall.
+    inc Ram_RoomState + sState::BreakableWallLowerHits_u8
+    bne _CheckIfWallDestroyed  ; unconditional
+_GrenadeIsHigh:
+    ;; If the lower portion of the wall is already destroyed, we're done.
+    lda Ram_RoomState + sState::BreakableWallUpperHits_u8
+    cmp #kBreakableWallHitsToDestroy
+    bge _Done
+    ;; Hit the wall.
+    inc Ram_RoomState + sState::BreakableWallUpperHits_u8
+_CheckIfWallDestroyed:
+    lda Ram_RoomState + sState::BreakableWallUpperHits_u8
+    cmp #kBreakableWallHitsToDestroy
+    blt _ExplodeGrenade
+    lda Ram_RoomState + sState::BreakableWallLowerHits_u8
+    cmp #kBreakableWallHitsToDestroy
+    blt _ExplodeGrenade
+    ;; Remove the wall.
+    lda #ePlatform::Zone
+    sta Ram_PlatformType_ePlatform_arr + kBreakableWallPlatformIndex
+    stx Zp_Tmp1_byte  ; grenade actor index
+    ldx #eFlag::GardenTowerWallBroken  ; param: flag
+    jsr Func_SetFlag  ; preserves Zp_Tmp*
+    ldx Zp_Tmp1_byte  ; grenade actor index
+_ExplodeGrenade:
+    ;; We've hit the wall, so explode the grenade.
+    jsr Func_InitActorProjSmoke  ; preserves X
+    ;; TODO: play a sound for hitting the wall
+_Done:
     rts
 .ENDPROC
 
@@ -298,7 +418,8 @@ _Crates:
 .PROC FuncC_Garden_TowerCannon_Reset
     lda #0
     sta Ram_MachineGoalVert_u8_arr + kCannonMachineIndex
-    ;; TODO: reset target practice
+    sta Ram_RoomState + sState::BreakableWallUpperHits_u8
+    sta Ram_RoomState + sState::BreakableWallLowerHits_u8
     rts
 .ENDPROC
 
@@ -307,33 +428,91 @@ _Crates:
 .SEGMENT "PRGA_Objects"
 
 ;;; Allocates and populates OAM slots for this room.
-.PROC FuncA_Objects_GardenTower_Draw
-    ;; TODO: Draw target practice.
+.PROC FuncA_Objects_GardenTower_DrawRoom
+_BreakableWall:
+    lda Ram_PlatformType_ePlatform_arr + kBreakableWallPlatformIndex
+    cmp #ePlatform::Solid
+    bne @done
+    ldx #kBreakableWallPlatformIndex  ; param: platform index
+    jsr FuncA_Objects_SetShapePosToPlatformTopLeft
+    ldx Ram_RoomState + sState::BreakableWallUpperHits_u8
+    lda _Brick0TileId_u8, x  ; param: tile ID
+    jsr FuncA_Objects_DrawGardenBrick  ; preserves X
+    lda _Brick1TileId_u8, x  ; param: tile ID
+    jsr FuncA_Objects_DrawGardenBrick  ; preserves X
+    ldx Ram_RoomState + sState::BreakableWallLowerHits_u8
+    lda _Brick2TileId_u8, x  ; param: tile ID
+    jsr FuncA_Objects_DrawGardenBrick  ; preserves X
+    lda _Brick3TileId_u8, x  ; param: tile ID
+    jsr FuncA_Objects_DrawGardenBrick  ; preserves X
+    @done:
 _WallCrate:
     lda Ram_PlatformType_ePlatform_arr + kWallCratePlatformIndex
     cmp #ePlatform::Solid
     bne @done
     ldx #kWallCratePlatformIndex  ; param: platform index
-    jsr _DrawCratePlatform
+    jsr FuncA_Objects_DrawCratePlatform
     @done:
 _FloorCrates:
     lda Ram_PlatformType_ePlatform_arr + kFloorCratePlatformIndex
     cmp #ePlatform::Solid
     bne @done
     ldx #kFloorCratePlatformIndex  ; param: platform index
-    jsr _DrawCratePlatform
+    jsr FuncA_Objects_DrawCratePlatform
     lda #kBlockHeightPx  ; param: offset
     jsr FuncA_Objects_MoveShapeDownByA
-    jsr _DrawCrate
+    jsr FuncA_Objects_DrawCrateShape
     @done:
     rts
-_DrawCratePlatform:
+_Brick0TileId_u8:
+    .byte kTileIdObjGardenBricksFirst + 0
+    .byte kTileIdObjGardenBricksFirst + 2
+    .byte kTileIdObjGardenBricksFirst + 1
+_Brick1TileId_u8:
+    .byte kTileIdObjGardenBricksFirst + 0
+    .byte kTileIdObjGardenBricksFirst + 3
+    .byte kTileIdObjGardenBricksFirst + 5
+_Brick2TileId_u8:
+    .byte kTileIdObjGardenBricksFirst + 0
+    .byte kTileIdObjGardenBricksFirst + 2
+    .byte kTileIdObjGardenBricksFirst + 4
+_Brick3TileId_u8:
+    .byte kTileIdObjGardenBricksFirst + 0
+    .byte kTileIdObjGardenBricksFirst + 3
+    .byte kTileIdObjGardenBricksFirst + 1
+.ENDPROC
+
+;;; Draws one brick in the breakable tower wall, at the current shape position,
+;;; then moves the shape position down by one tile.
+;;; @param A The tile ID.
+;;; @preserve X
+.PROC FuncA_Objects_DrawGardenBrick
+    pha  ; tile ID
+    jsr FuncA_Objects_Alloc1x1Shape  ; preserves X, returns C and Y
+    pla  ; tile ID
+    bcs @done
+    sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
+    lda #kPaletteObjGardenBrick
+    sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
+    @done:
+    jmp FuncA_Objects_MoveShapeDownOneTile  ; preserves X
+.ENDPROC
+
+;;; Draws a 2x2-tile crate with its top-left corner at the top-left corner of
+;;; the specified platform.  After this is called, the current shape position
+;;; will be set to the center of the crate.
+;;; @param X The platform index.
+.PROC FuncA_Objects_DrawCratePlatform
     jsr FuncA_Objects_SetShapePosToPlatformTopLeft
     jsr FuncA_Objects_MoveShapeRightOneTile
     jsr FuncA_Objects_MoveShapeDownOneTile
-_DrawCrate:
+    .assert * = FuncA_Objects_DrawCrateShape, error, "fallthrough"
+.ENDPROC
+
+;;; Draws a 2x2-tile crate centered on the current shape position.
+.PROC FuncA_Objects_DrawCrateShape
     lda #kTileIdObjCrateFirst  ; param: first tile ID
-    ldy #kCratePalette  ; param: flags
+    ldy #kPaletteObjCrate  ; param: flags
     jmp FuncA_Objects_Draw2x2Shape
 .ENDPROC
 

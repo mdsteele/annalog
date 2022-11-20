@@ -32,6 +32,7 @@
 .IMPORT Ram_ActorPosY_i16_0_arr
 .IMPORT Ram_ActorPosY_i16_1_arr
 .IMPORT Ram_ActorState1_byte_arr
+.IMPORT Ram_ActorType_eActor_arr
 .IMPORT Ram_ActorVelX_i16_1_arr
 .IMPORT Ram_ActorVelY_i16_0_arr
 .IMPORT Ram_ActorVelY_i16_1_arr
@@ -94,6 +95,31 @@ _InitVelY_i16_0_arr:
 _InitVelY_i16_1_arr:
     .byte >($ffff & -520), >($ffff & -760)
     .byte >($ffff & -520), >($ffff & -760)
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Room"
+
+;;; Finds a grenade actor in the room (if any) and returns its index, or sets
+;;; the C flag if there isn't any grenade actor right now.
+;;; @return C Set if no grenade was found.
+;;; @return X The index of the grenade actor (if any).
+;;; @preserve Y, Zp_Tmp*
+.EXPORT FuncA_Room_FindGrenadeActor
+.PROC FuncA_Room_FindGrenadeActor
+    ldx #kMaxActors - 1
+    @loop:
+    lda Ram_ActorType_eActor_arr, x
+    cmp #eActor::ProjGrenade
+    beq @success
+    dex
+    bpl @loop
+    sec  ; set C to indicate failure
+    rts
+    @success:
+    clc  ; clear C to indicate success
+    rts
 .ENDPROC
 
 ;;;=========================================================================;;;

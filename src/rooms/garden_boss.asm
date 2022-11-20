@@ -41,6 +41,7 @@
 .IMPORT FuncA_Objects_Alloc2x2Shape
 .IMPORT FuncA_Objects_DrawCannonMachine
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
+.IMPORT FuncA_Room_FindGrenadeActor
 .IMPORT FuncA_Room_SpawnBreakerDevice
 .IMPORT FuncA_Room_SpawnUpgradeDevice
 .IMPORT Func_DivMod
@@ -61,7 +62,6 @@
 .IMPORT Ram_ActorPosX_i16_1_arr
 .IMPORT Ram_ActorPosY_i16_0_arr
 .IMPORT Ram_ActorPosY_i16_1_arr
-.IMPORT Ram_ActorType_eActor_arr
 .IMPORT Ram_DeviceType_eDevice_arr
 .IMPORT Ram_MachineGoalVert_u8_arr
 .IMPORT Ram_Oam_sObj_arr64
@@ -751,19 +751,12 @@ _SpikePosY_u8_arr:
 
 ;;; Checks if a grenade has hit a boss eye; if so, explodes the grenade and
 ;;; makes the boss react accordingly.
+;;; @prereq PRGA_Room is loaded.
 .PROC FuncC_Garden_Boss_CheckForGrenadeHit
     ;; Find the actor index for the grenade in flight (if any).  If we don't
     ;; find one, then we're done.
-    ldx #kMaxActors - 1
-    @loop:
-    lda Ram_ActorType_eActor_arr, x
-    cmp #eActor::ProjGrenade
-    beq @foundGrenade
-    dex
-    .assert kMaxActors <= $80, error
-    bpl @loop
-    rts
-    @foundGrenade:
+    jsr FuncA_Room_FindGrenadeActor  ; returns C and X
+    bcs _Done
 _CheckEyes:
     ;; Check which eye the grenade is near vertically.
     lda Ram_ActorPosY_i16_0_arr, x

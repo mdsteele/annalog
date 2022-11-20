@@ -47,6 +47,7 @@
 .IMPORT FuncA_Objects_DrawBridgeMachine
 .IMPORT FuncA_Objects_DrawCannonMachine
 .IMPORT FuncA_Room_AreActorsWithinDistance
+.IMPORT FuncA_Room_FindGrenadeActor
 .IMPORT Func_InitActorProjSmoke
 .IMPORT Func_MachineBridgeReadRegY
 .IMPORT Func_MachineCannonReadRegY
@@ -340,16 +341,8 @@ _Passages_sPassage_arr:
 _FindGrenade:
     ;; Find the actor index for the grenade in flight (if any).  If we don't
     ;; find one, then we're done.
-    ldx #kMaxActors - 1
-    @loop:
-    lda Ram_ActorType_eActor_arr, x
-    cmp #eActor::ProjGrenade
-    beq @foundGrenade
-    dex
-    .assert kMaxActors <= $80, error
-    bpl @loop
-    rts
-    @foundGrenade:
+    jsr FuncA_Room_FindGrenadeActor  ; returns C and X
+    bcs _Done
 _CheckForCollision:
     ldy #kKillableVinebugActorIndex  ; param: other actor index
     lda #6  ; param: distance

@@ -36,6 +36,7 @@
 .INCLUDE "machines/pump.inc"
 .INCLUDE "machines/winch.inc"
 .INCLUDE "rooms/garden_boss.inc"
+.INCLUDE "rooms/garden_tower.inc"
 .INCLUDE "upgrade.inc"
 
 ;;;=========================================================================;;;
@@ -594,11 +595,14 @@
     .incbin "out/data/tiles/grub.chr"
     .assert * - :- = (kTileIdObjSpike - $80) * kSizeofChr, error
     .incbin "out/data/tiles/spike.chr"
-    .res $07 * kSizeofChr
+    .res $01 * kSizeofChr
+    .assert * - :- = (kTileIdObjGardenBricksFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/garden_bricks.chr"
     .assert * - :- = (kTileIdVinebugFirst1 - $80) * kSizeofChr, error
     .incbin "out/data/tiles/vinebug.chr"
     .assert * - :- = (kTileIdObjPlantEyeFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/plant_eye.chr"
+    .assert * - :- = (kTileIdObjCrateFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/crate.chr"
     .assert * - :- = (kTileIdObjGrenadeFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/grenade.chr"
