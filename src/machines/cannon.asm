@@ -17,6 +17,7 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
+.INCLUDE "../actor.inc"
 .INCLUDE "../machine.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
@@ -33,12 +34,14 @@
 .IMPORT FuncA_Objects_MoveShapeDownOneTile
 .IMPORT FuncA_Objects_MoveShapeRightOneTile
 .IMPORT FuncA_Objects_SetShapePosToMachineTopLeft
+.IMPORT FuncA_Room_FindGrenadeActor
 .IMPORT Func_FindEmptyActorSlot
 .IMPORT Func_InitActorProjGrenade
 .IMPORT Ram_ActorPosX_i16_0_arr
 .IMPORT Ram_ActorPosX_i16_1_arr
 .IMPORT Ram_ActorPosY_i16_0_arr
 .IMPORT Ram_ActorPosY_i16_1_arr
+.IMPORT Ram_ActorType_eActor_arr
 .IMPORT Ram_MachineGoalVert_u8_arr
 .IMPORT Ram_MachineParam1_u8_arr
 .IMPORT Ram_Oam_sObj_arr64
@@ -72,6 +75,26 @@ kCannonTileIdBarrelLow  = kTileIdCannonFirst + $04
     and #$80
     asl a
     rol a
+    rts
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Room"
+
+;;; Reset implemention for cannon machines.
+;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
+.EXPORT FuncA_Room_MachineCannonReset
+.PROC FuncA_Room_MachineCannonReset
+    ldx Zp_MachineIndex_u8
+    lda #0
+    sta Ram_MachineGoalVert_u8_arr, x
+    ;; If there's a grenade in flight, remove it.
+    jsr FuncA_Room_FindGrenadeActor  ; returns C and X
+    bcs @done
+    lda #eActor::None
+    sta Ram_ActorType_eActor_arr, x
+    @done:
     rts
 .ENDPROC
 

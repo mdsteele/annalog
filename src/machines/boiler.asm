@@ -69,17 +69,6 @@ kValvePalette = 0
 
 .SEGMENT "PRG8"
 
-;;; Reset implemention for boiler machines.
-;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
-.EXPORT Func_MachineBoilerReset
-.PROC Func_MachineBoilerReset
-    ldx Zp_MachineIndex_u8
-    lda #0
-    sta Ram_MachineGoalVert_u8_arr, x
-    sta Ram_MachineGoalHorz_u8_arr, x
-    rts
-.ENDPROC
-
 ;;; ReadReg implemention for boiler machines.
 ;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
 ;;; @param A The register to read ($c-$f).
@@ -94,6 +83,21 @@ kValvePalette = 0
     rts
     @valve2:
     lda Ram_MachineGoalHorz_u8_arr, x
+    rts
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Room"
+
+;;; Reset implemention for boiler machines.
+;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
+.EXPORT FuncA_Room_MachineBoilerReset
+.PROC FuncA_Room_MachineBoilerReset
+    ldx Zp_MachineIndex_u8
+    lda #0
+    sta Ram_MachineGoalVert_u8_arr, x
+    sta Ram_MachineGoalHorz_u8_arr, x
     rts
 .ENDPROC
 

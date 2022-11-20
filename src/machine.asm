@@ -238,25 +238,6 @@ _ReadRegB:
     rts
 .ENDPROC
 
-;;; If the current machine isn't already resetting, zeroes its variables and
-;;; puts it into resetting mode.  A resetting machine will move back to its
-;;; original position and state (over some period of time) without executing
-;;; instructions, and once fully reset, will start running again.
-;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
-.EXPORT Func_MachineReset
-.PROC Func_MachineReset
-    ldx Zp_MachineIndex_u8  ; param: machine index
-    lda #eMachine::Resetting  ; param: machine status
-    cmp Ram_MachineStatus_eMachine_arr, x
-    beq @done
-    jsr Func_ZeroVarsAndSetStatus
-    ;; Start resetting the machine.
-    ldy #sMachine::Reset_func_ptr  ; param: function pointer offset
-    jmp Func_MachineCall
-    @done:
-    rts
-.ENDPROC
-
 ;;; Calls the specified function for the current machine.
 ;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
 ;;; @prereq The appropriate PRGA bank for the function (if any) is loaded.
@@ -275,9 +256,32 @@ _ReadRegB:
     jmp (Zp_Tmp_ptr)
 .ENDPROC
 
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Room"
+
+;;; If the current machine isn't already resetting, zeroes its variables and
+;;; puts it into resetting mode.  A resetting machine will move back to its
+;;; original position and state (over some period of time) without executing
+;;; instructions, and once fully reset, will start running again.
+;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
+.EXPORT FuncA_Room_MachineReset
+.PROC FuncA_Room_MachineReset
+    ldx Zp_MachineIndex_u8  ; param: machine index
+    lda #eMachine::Resetting  ; param: machine status
+    cmp Ram_MachineStatus_eMachine_arr, x
+    beq @done
+    jsr Func_ZeroVarsAndSetStatus
+    ;; Start resetting the machine.
+    ldy #sMachine::Reset_func_ptr  ; param: function pointer offset
+    jmp Func_MachineCall
+    @done:
+    rts
+.ENDPROC
+
 ;;; Initializes state for all machines in the room.
-.EXPORT Func_InitAllMachines
-.PROC Func_InitAllMachines
+.EXPORT FuncA_Room_InitAllMachines
+.PROC FuncA_Room_InitAllMachines
     ldx #0
     beq @while  ; unconditional
     @loop:

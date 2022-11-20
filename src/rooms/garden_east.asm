@@ -48,6 +48,7 @@
 .IMPORT FuncA_Objects_DrawCannonMachine
 .IMPORT FuncA_Room_AreActorsWithinDistance
 .IMPORT FuncA_Room_FindGrenadeActor
+.IMPORT FuncA_Room_MachineCannonReset
 .IMPORT Func_InitActorProjSmoke
 .IMPORT Func_MachineBridgeReadRegY
 .IMPORT Func_MachineCannonReadRegY
@@ -178,7 +179,7 @@ _Machines_sMachine_arr:
     d_addr TryAct_func_ptr, FuncC_Garden_EastCannon_TryAct
     d_addr Tick_func_ptr, FuncA_Machine_CannonTick
     d_addr Draw_func_ptr, FuncA_Objects_DrawCannonMachine
-    d_addr Reset_func_ptr, FuncC_Garden_EastCannon_Reset
+    d_addr Reset_func_ptr, FuncA_Room_MachineCannonReset
     D_END
     .assert * - :- <= kMaxMachines * .sizeof(sMachine), error
 _Platforms_sPlatform_arr:
@@ -409,12 +410,6 @@ _Done:
     sty Ram_ActorVelY_i16_1_arr + kKillableVinebugActorIndex
     ;; Fire a grenade.
     jmp FuncA_Machine_CannonTryAct
-.ENDPROC
-
-.PROC FuncC_Garden_EastCannon_Reset
-    lda #0
-    sta Ram_MachineGoalVert_u8_arr + kCannonMachineIndex
-    rts
 .ENDPROC
 
 ;;;=========================================================================;;;

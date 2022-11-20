@@ -26,9 +26,9 @@
 .IMPORT FuncA_Machine_Error
 .IMPORT FuncA_Machine_ExecuteAll
 .IMPORT FuncA_Machine_ReachedGoal
+.IMPORT FuncA_Room_InitAllMachines
 .IMPORT Func_ExpectAEqualsY
 .IMPORT Func_GetMachineProgram
-.IMPORT Func_InitAllMachines
 .IMPORT Func_SetMachineIndex
 .IMPORT Ram_MachinePc_u8_arr
 .IMPORT Ram_MachineStatus_eMachine_arr
@@ -224,7 +224,7 @@ SetMachineIndex:
     jsr Func_ExpectAEqualsY
 InitMachine:
     ;; Initialize the machine.
-    jsr Func_InitAllMachines
+    jsr FuncA_Room_InitAllMachines
     ;; Verify that the PC starts at zero.
     lda Ram_MachinePc_u8_arr + kTestMachineIndex
     ldy #0

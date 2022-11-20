@@ -80,8 +80,8 @@
 .IMPORT DataC_Town_House1_sRoom
 .IMPORT DataC_Town_House2_sRoom
 .IMPORT DataC_Town_Outdoors_sRoom
+.IMPORT FuncA_Room_InitAllMachines
 .IMPORT Func_InitActor
-.IMPORT Func_InitAllMachines
 .IMPORT Ram_ActorPosX_i16_0_arr
 .IMPORT Ram_ActorPosX_i16_1_arr
 .IMPORT Ram_ActorPosY_i16_0_arr
@@ -440,7 +440,7 @@ _SetVars:
     sta Zp_RoomIsSafe_bool
 _CallInit:
     jsr FuncA_Room_CallRoomInit
-    jmp Func_InitAllMachines
+    jmp FuncA_Room_InitAllMachines
 .ENDPROC
 
 ;;; Calls the current room's Init_func_ptr function.

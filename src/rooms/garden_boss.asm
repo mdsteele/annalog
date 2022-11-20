@@ -42,6 +42,7 @@
 .IMPORT FuncA_Objects_DrawCannonMachine
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
 .IMPORT FuncA_Room_FindGrenadeActor
+.IMPORT FuncA_Room_MachineCannonReset
 .IMPORT FuncA_Room_SpawnBreakerDevice
 .IMPORT FuncA_Room_SpawnUpgradeDevice
 .IMPORT Func_DivMod
@@ -63,7 +64,6 @@
 .IMPORT Ram_ActorPosY_i16_0_arr
 .IMPORT Ram_ActorPosY_i16_1_arr
 .IMPORT Ram_DeviceType_eDevice_arr
-.IMPORT Ram_MachineGoalVert_u8_arr
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORT Ram_PlatformType_ePlatform_arr
 .IMPORT Ram_RoomState
@@ -829,9 +829,9 @@ _Done:
     rts
 .ENDPROC
 
+;;; @prereq PRGA_Room is loaded.
 .PROC FuncC_Garden_BossCannon_Reset
-    lda #0
-    sta Ram_MachineGoalVert_u8_arr + kCannonMachineIndex
+    jsr FuncA_Room_MachineCannonReset
     ;; If the boss is currently shooting/spraying, switch to waiting mode (to
     ;; avoid the player cheesing by reprogramming the machine every time the
     ;; boss opens an eye).

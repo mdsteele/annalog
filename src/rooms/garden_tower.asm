@@ -46,6 +46,7 @@
 .IMPORT FuncA_Objects_MoveShapeRightOneTile
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
 .IMPORT FuncA_Room_FindGrenadeActor
+.IMPORT FuncA_Room_MachineCannonReset
 .IMPORT Func_InitActorProjSmoke
 .IMPORT Func_MachineCannonReadRegY
 .IMPORT Func_Noop
@@ -55,7 +56,6 @@
 .IMPORT Ram_ActorPosX_i16_1_arr
 .IMPORT Ram_ActorPosY_i16_0_arr
 .IMPORT Ram_ActorPosY_i16_1_arr
-.IMPORT Ram_MachineGoalVert_u8_arr
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORT Ram_PlatformType_ePlatform_arr
 .IMPORT Ram_RoomState
@@ -415,9 +415,10 @@ _Done:
     rts
 .ENDPROC
 
+;;; @prereq PRGA_Room is loaded.
 .PROC FuncC_Garden_TowerCannon_Reset
+    jsr FuncA_Room_MachineCannonReset
     lda #0
-    sta Ram_MachineGoalVert_u8_arr + kCannonMachineIndex
     sta Ram_RoomState + sState::BreakableWallUpperHits_u8
     sta Ram_RoomState + sState::BreakableWallLowerHits_u8
     rts

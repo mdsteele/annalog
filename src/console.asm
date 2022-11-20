@@ -38,11 +38,11 @@
 .IMPORT FuncA_Console_WriteStatusTransferData
 .IMPORT FuncA_Machine_Tick
 .IMPORT FuncA_Objects_DrawObjectsForRoom
+.IMPORT FuncA_Room_MachineReset
 .IMPORT FuncA_Terrain_ScrollTowardsGoal
 .IMPORT Func_ClearRestOfOam
 .IMPORT Func_GetMachineProgram
 .IMPORT Func_IsFlagSet
-.IMPORT Func_MachineReset
 .IMPORT Func_ProcessFrame
 .IMPORT Func_SetMachineIndex
 .IMPORT Func_SetScrollGoalFromAvatar
@@ -158,6 +158,9 @@ Ram_ConsoleRegNames_u8_arr6: .res 6
 ;;; @param X The machine index to open a console for.
 .EXPORT Main_Console_OpenWindow
 .PROC Main_Console_OpenWindow
+    stx Zp_ConsoleMachineIndex_u8
+    jsr Func_SetMachineIndex
+    jsr_prga FuncA_Room_MachineReset
     jsr_prga FuncA_Console_Init
 _GameLoop:
     jsr_prga FuncA_Objects_DrawObjectsForRoom
@@ -298,11 +301,9 @@ _UpdateScrolling:
 ;;; Initializes console mode.
 ;;; @prereq Rendering is enabled.
 ;;; @prereq Explore mode is initialized.
+;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
 ;;; @param X The machine index to open a console for.
 .PROC FuncA_Console_Init
-    stx Zp_ConsoleMachineIndex_u8
-    jsr Func_SetMachineIndex
-    jsr Func_MachineReset
     jsr FuncA_Console_LoadProgram
     lda Zp_MachineMaxInstructions_u8
     div #2

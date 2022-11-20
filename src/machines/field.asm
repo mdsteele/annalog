@@ -75,10 +75,14 @@ kFieldActCooldown = $20
     rts
 .ENDPROC
 
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Room"
+
 ;;; Reset implemention for teleport field machines.
 ;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
-.EXPORT Func_MachineFieldReset
-.PROC Func_MachineFieldReset
+.EXPORT FuncA_Room_MachineFieldReset
+.PROC FuncA_Room_MachineFieldReset
     ldx Zp_MachineIndex_u8
     lda #0
     sta Ram_MachineParam1_u8_arr, x

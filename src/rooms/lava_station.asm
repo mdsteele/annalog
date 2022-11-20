@@ -41,8 +41,8 @@
 .IMPORT FuncA_Machine_Error
 .IMPORT FuncA_Objects_DrawBoilerMachine
 .IMPORT FuncA_Objects_DrawBoilerValve1
+.IMPORT FuncA_Room_MachineBoilerReset
 .IMPORT Func_MachineBoilerReadReg
-.IMPORT Func_MachineBoilerReset
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrObjLava
 .IMPORT Ram_DeviceType_eDevice_arr
@@ -122,7 +122,7 @@ _Machines_sMachine_arr:
     d_addr TryAct_func_ptr, FuncC_Lava_StationBoiler_TryAct
     d_addr Tick_func_ptr, FuncA_Machine_BoilerTick
     d_addr Draw_func_ptr, FuncA_Objects_LavaStationBoiler_Draw
-    d_addr Reset_func_ptr, Func_MachineBoilerReset
+    d_addr Reset_func_ptr, FuncA_Room_MachineBoilerReset
     D_END
     .assert * - :- <= kMaxMachines * .sizeof(sMachine), error
 _Platforms_sPlatform_arr:

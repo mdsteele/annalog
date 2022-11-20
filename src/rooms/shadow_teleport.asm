@@ -38,8 +38,8 @@
 .IMPORT FuncA_Machine_FieldTick
 .IMPORT FuncA_Machine_FieldTryAct
 .IMPORT FuncA_Objects_DrawFieldMachine
+.IMPORT FuncA_Room_MachineFieldReset
 .IMPORT Func_MachineFieldReadRegT
-.IMPORT Func_MachineFieldReset
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrObjLava
 
@@ -118,7 +118,7 @@ _Machines_sMachine_arr:
     d_addr TryAct_func_ptr, FuncA_Machine_FieldTryAct
     d_addr Tick_func_ptr, FuncA_Machine_FieldTick
     d_addr Draw_func_ptr, FuncA_Objects_DrawFieldMachine
-    d_addr Reset_func_ptr, Func_MachineFieldReset
+    d_addr Reset_func_ptr, FuncA_Room_MachineFieldReset
     D_END
     .assert * - :- <= kMaxMachines * .sizeof(sMachine), error
 _Platforms_sPlatform_arr:

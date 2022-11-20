@@ -81,6 +81,7 @@ kMachineRegNameB = $21  ; 'B'
     MainPlatform_u8   .byte
     ;; Function to initialize machine-specific state (when entering the area).
     ;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
+    ;; @prereq PRGA_Room is loaded.
     Init_func_ptr     .addr
     ;; Function to get the value of a register $c to $f.  This should be
     ;; side-effect-free, as it is also called when drawing the HUD.
@@ -120,6 +121,7 @@ kMachineRegNameB = $21  ; 'B'
     Draw_func_ptr     .addr
     ;; Function to call to start resetting the machine.
     ;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
+    ;; @prereq PRGA_Room is loaded.
     Reset_func_ptr    .addr
 .ENDSTRUCT
 
