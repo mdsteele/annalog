@@ -28,9 +28,8 @@
 .IMPORT FuncA_Machine_StartWorking
 .IMPORT FuncA_Objects_Alloc2x2Shape
 .IMPORT FuncA_Objects_GetMachineLightTileId
+.IMPORT FuncA_Objects_MoveShapeDownAndRightOneTile
 .IMPORT FuncA_Objects_MoveShapeDownByA
-.IMPORT FuncA_Objects_MoveShapeDownOneTile
-.IMPORT FuncA_Objects_MoveShapeRightOneTile
 .IMPORT FuncA_Objects_SetShapePosToMachineTopLeft
 .IMPORT Func_MovePlatformTopToward
 .IMPORT Ram_MachineGoalVert_u8_arr
@@ -129,8 +128,7 @@ kTileIdLiftSurface = $78
     jsr FuncA_Objects_SetShapePosToMachineTopLeft
 _TopHalf:
     ;; Allocate objects.
-    jsr FuncA_Objects_MoveShapeDownOneTile
-    jsr FuncA_Objects_MoveShapeRightOneTile
+    jsr FuncA_Objects_MoveShapeDownAndRightOneTile
     lda #kMachineLightPalette  ; param: object flags
     jsr FuncA_Objects_Alloc2x2Shape  ; sets C if offscreen; returns Y
     bcs @done
@@ -150,7 +148,7 @@ _TopHalf:
     @done:
 _BottomHalf:
     ;; Allocate objects.
-    lda #kTileWidthPx * 2  ; param: offset
+    lda #kTileHeightPx * 2  ; param: offset
     jsr FuncA_Objects_MoveShapeDownByA
     lda #kMachineLightPalette  ; param: object flags
     jsr FuncA_Objects_Alloc2x2Shape  ; sets C if offscreen; returns Y

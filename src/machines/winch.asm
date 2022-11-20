@@ -32,7 +32,7 @@
 .IMPORT FuncA_Objects_Alloc2x1Shape
 .IMPORT FuncA_Objects_Alloc2x2Shape
 .IMPORT FuncA_Objects_GetMachineLightTileId
-.IMPORT FuncA_Objects_MoveShapeDownOneTile
+.IMPORT FuncA_Objects_MoveShapeDownAndRightOneTile
 .IMPORT FuncA_Objects_MoveShapeRightOneTile
 .IMPORT FuncA_Objects_MoveShapeUpOneTile
 .IMPORT FuncA_Objects_SetShapePosToMachineTopLeft
@@ -298,8 +298,7 @@ _PlaySound:
 .PROC FuncA_Objects_DrawWinchMachine
     pha  ; chain position
     jsr FuncA_Objects_SetShapePosToMachineTopLeft
-    jsr FuncA_Objects_MoveShapeDownOneTile
-    jsr FuncA_Objects_MoveShapeRightOneTile
+    jsr FuncA_Objects_MoveShapeDownAndRightOneTile
     pla  ; chain position
     tax  ; chain position
     ;; Allocate objects.
@@ -449,8 +448,7 @@ _Done:
 .EXPORT FuncA_Objects_DrawWinchCrusher
 .PROC FuncA_Objects_DrawWinchCrusher
     jsr FuncA_Objects_SetShapePosToPlatformTopLeft  ; preserves X
-    jsr FuncA_Objects_MoveShapeRightOneTile  ; preserves X
-    jsr FuncA_Objects_MoveShapeDownOneTile  ; preserves X
+    jsr FuncA_Objects_MoveShapeDownAndRightOneTile  ; preserves X
     lda #kCrusherPalette  ; param: object flags
     jsr FuncA_Objects_Alloc2x2Shape  ; preserves X, returns C and Y
     bcs @done

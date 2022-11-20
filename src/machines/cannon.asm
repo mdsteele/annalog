@@ -31,8 +31,7 @@
 .IMPORT FuncA_Machine_StartWaiting
 .IMPORT FuncA_Objects_Alloc2x2Shape
 .IMPORT FuncA_Objects_GetMachineLightTileId
-.IMPORT FuncA_Objects_MoveShapeDownOneTile
-.IMPORT FuncA_Objects_MoveShapeRightOneTile
+.IMPORT FuncA_Objects_MoveShapeDownAndRightOneTile
 .IMPORT FuncA_Objects_SetShapePosToMachineTopLeft
 .IMPORT FuncA_Room_FindGrenadeActor
 .IMPORT Func_FindEmptyActorSlot
@@ -206,8 +205,7 @@ kCannonTileIdBarrelLow  = kTileIdCannonFirst + $04
 .EXPORT FuncA_Objects_DrawCannonMachine
 .PROC FuncA_Objects_DrawCannonMachine
     jsr FuncA_Objects_SetShapePosToMachineTopLeft
-    jsr FuncA_Objects_MoveShapeDownOneTile
-    jsr FuncA_Objects_MoveShapeRightOneTile
+    jsr FuncA_Objects_MoveShapeDownAndRightOneTile
     ;; Allocate objects.
     ldy #sMachine::Flags_bMachine
     lda (Zp_Current_sMachine_ptr), y

@@ -26,10 +26,10 @@
 .IMPORT FuncA_Objects_Alloc1x1Shape
 .IMPORT FuncA_Objects_Alloc2x2Shape
 .IMPORT FuncA_Objects_GetMachineLightTileId
+.IMPORT FuncA_Objects_MoveShapeDownAndRightOneTile
 .IMPORT FuncA_Objects_MoveShapeDownOneTile
 .IMPORT FuncA_Objects_MoveShapeLeftOneTile
 .IMPORT FuncA_Objects_MoveShapeRightByA
-.IMPORT FuncA_Objects_MoveShapeRightOneTile
 .IMPORT FuncA_Objects_SetShapePosToMachineTopLeft
 .IMPORT Ram_MachineGoalHorz_u8_arr
 .IMPORT Ram_Oam_sObj_arr64
@@ -67,8 +67,7 @@ kRopePalette = 0
 .PROC FuncA_Objects_DrawCraneMachine
     jsr FuncA_Objects_SetShapePosToMachineTopLeft
 _MainPlatform:
-    jsr FuncA_Objects_MoveShapeDownOneTile
-    jsr FuncA_Objects_MoveShapeRightOneTile
+    jsr FuncA_Objects_MoveShapeDownAndRightOneTile
     lda #kMachineLightPalette  ; param: object flags
     jsr FuncA_Objects_Alloc2x2Shape  ; sets C if offscreen; returns Y
     bcs @done
@@ -123,8 +122,7 @@ _LeftClaw:
 .EXPORT FuncA_Objects_DrawTrolleyMachine
 .PROC FuncA_Objects_DrawTrolleyMachine
     jsr FuncA_Objects_SetShapePosToMachineTopLeft
-    jsr FuncA_Objects_MoveShapeDownOneTile
-    jsr FuncA_Objects_MoveShapeRightOneTile
+    jsr FuncA_Objects_MoveShapeDownAndRightOneTile
     lda #kMachineLightPalette  ; param: object flags
     jsr FuncA_Objects_Alloc2x2Shape  ; sets C if offscreen; returns Y
     bcs @done

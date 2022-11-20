@@ -31,7 +31,7 @@
 .IMPORT FuncA_Objects_Alloc2x2Shape
 .IMPORT FuncA_Objects_GetMachineLightTileId
 .IMPORT FuncA_Objects_MoveShapeDownOneTile
-.IMPORT FuncA_Objects_MoveShapeRightOneTile
+.IMPORT FuncA_Objects_MoveShapeRightByA
 .IMPORT FuncA_Objects_SetShapePosToMachineTopLeft
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
 .IMPORT Func_FindEmptyActorSlot
@@ -294,8 +294,8 @@ _Corner:
     sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
     @done:
 _Tank:
-    jsr FuncA_Objects_MoveShapeRightOneTile
-    jsr FuncA_Objects_MoveShapeRightOneTile
+    lda #kTileWidthPx * 2  ; param: offset
+    jsr FuncA_Objects_MoveShapeRightByA
     lda #kBoilerPalette  ; param: object flags
     jsr FuncA_Objects_Alloc2x2Shape  ; returns C and Y
     bcs @done

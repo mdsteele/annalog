@@ -27,9 +27,8 @@
 .IMPORT FuncA_Machine_ReachedGoal
 .IMPORT FuncA_Objects_Alloc2x2Shape
 .IMPORT FuncA_Objects_GetMachineLightTileId
-.IMPORT FuncA_Objects_MoveShapeDownOneTile
+.IMPORT FuncA_Objects_MoveShapeDownAndRightOneTile
 .IMPORT FuncA_Objects_MoveShapeRightByA
-.IMPORT FuncA_Objects_MoveShapeRightOneTile
 .IMPORT FuncA_Objects_SetShapePosToMachineTopLeft
 .IMPORT Func_DivMod
 .IMPORT Func_MovePlatformTopToward
@@ -173,8 +172,7 @@ kTileIdJetLowerMiddleFirst = kTileIdJetFirst + 1
     tax  ; tile ID offset
 _LeftHalf:
     ;; Allocate objects.
-    jsr FuncA_Objects_MoveShapeDownOneTile  ; preserves X
-    jsr FuncA_Objects_MoveShapeRightOneTile  ; preserves X
+    jsr FuncA_Objects_MoveShapeDownAndRightOneTile  ; preserves X
     lda #kMachineLightPalette  ; param: object flags
     jsr FuncA_Objects_Alloc2x2Shape  ; preserves X, returns C and Y
     bcs @done

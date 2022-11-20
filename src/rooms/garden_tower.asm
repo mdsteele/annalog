@@ -41,9 +41,9 @@
 .IMPORT FuncA_Objects_Alloc1x1Shape
 .IMPORT FuncA_Objects_Draw2x2Shape
 .IMPORT FuncA_Objects_DrawCannonMachine
+.IMPORT FuncA_Objects_MoveShapeDownAndRightOneTile
 .IMPORT FuncA_Objects_MoveShapeDownByA
 .IMPORT FuncA_Objects_MoveShapeDownOneTile
-.IMPORT FuncA_Objects_MoveShapeRightOneTile
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
 .IMPORT FuncA_Room_FindGrenadeActor
 .IMPORT FuncA_Room_MachineCannonReset
@@ -505,8 +505,7 @@ _Brick3TileId_u8:
 ;;; @param X The platform index.
 .PROC FuncA_Objects_DrawCratePlatform
     jsr FuncA_Objects_SetShapePosToPlatformTopLeft
-    jsr FuncA_Objects_MoveShapeRightOneTile
-    jsr FuncA_Objects_MoveShapeDownOneTile
+    jsr FuncA_Objects_MoveShapeDownAndRightOneTile
     .assert * = FuncA_Objects_DrawCrateShape, error, "fallthrough"
 .ENDPROC
 

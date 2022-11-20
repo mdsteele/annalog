@@ -77,6 +77,14 @@ Ram_Oam_sObj_arr64: .res .sizeof(sObj) * kNumOamSlots
 
 .SEGMENT "PRGA_Objects"
 
+;;; Moves the shape position down and right by the size of one tile.
+;;; @preserve X, Y, Zp_Tmp*
+.EXPORT FuncA_Objects_MoveShapeDownAndRightOneTile
+.PROC FuncA_Objects_MoveShapeDownAndRightOneTile
+    jsr FuncA_Objects_MoveShapeDownOneTile  ; preserves X, Y, and Zp_Tmp*
+    .assert * = FuncA_Objects_MoveShapeRightOneTile, error, "fallthrough"
+.ENDPROC
+
 ;;; Moves Zp_ShapePosX_i16 rightwards by the width of one tile.
 ;;; @preserve X, Y, Zp_Tmp*
 .EXPORT FuncA_Objects_MoveShapeRightOneTile

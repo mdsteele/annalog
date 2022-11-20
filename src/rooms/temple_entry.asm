@@ -34,9 +34,8 @@
 .IMPORT DataA_Pause_TempleAreaName_u8_arr
 .IMPORT DataA_Room_Temple_sTileset
 .IMPORT FuncA_Objects_Alloc2x2Shape
+.IMPORT FuncA_Objects_MoveShapeDownAndRightOneTile
 .IMPORT FuncA_Objects_MoveShapeDownByA
-.IMPORT FuncA_Objects_MoveShapeDownOneTile
-.IMPORT FuncA_Objects_MoveShapeRightOneTile
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
 .IMPORT Func_MovePlatformTopToward
 .IMPORT Func_Noop
@@ -271,8 +270,7 @@ _Return:
     ldx #kColumnPlatformIndex  ; param: platform index
     jsr FuncA_Objects_SetShapePosToPlatformTopLeft
 _ColumnTop:
-    jsr FuncA_Objects_MoveShapeRightOneTile
-    jsr FuncA_Objects_MoveShapeDownOneTile
+    jsr FuncA_Objects_MoveShapeDownAndRightOneTile
     lda #kColumnPalette | bObj::Pri  ; param: obj flags
     jsr FuncA_Objects_Alloc2x2Shape  ; returns C and Y
     bcs @done
