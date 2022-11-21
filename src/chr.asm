@@ -472,6 +472,18 @@
 
 ;;;=========================================================================;;;
 
+.SEGMENT "CHR_BgSewer"
+
+.EXPORT Ppu_ChrBgSewer
+.PROC Ppu_ChrBgSewer
+:   .incbin "out/data/tiles/sewer1.chr"
+    .res $28 * kSizeofChr
+    .incbin "out/data/tiles/device.chr"
+    .assert * - :- = kSizeofChr * $40, error
+.ENDPROC
+
+;;;=========================================================================;;;
+
 .SEGMENT "CHR_BgTemple"
 
 .EXPORT Ppu_ChrBgTemple

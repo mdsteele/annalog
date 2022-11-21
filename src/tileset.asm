@@ -60,6 +60,10 @@
 .IMPORT DataA_Terrain_PrisonLowerRight_u8_arr
 .IMPORT DataA_Terrain_PrisonUpperLeft_u8_arr
 .IMPORT DataA_Terrain_PrisonUpperRight_u8_arr
+.IMPORT DataA_Terrain_SewerLowerLeft_u8_arr
+.IMPORT DataA_Terrain_SewerLowerRight_u8_arr
+.IMPORT DataA_Terrain_SewerUpperLeft_u8_arr
+.IMPORT DataA_Terrain_SewerUpperRight_u8_arr
 .IMPORT DataA_Terrain_TempleLowerLeft_u8_arr
 .IMPORT DataA_Terrain_TempleLowerRight_u8_arr
 .IMPORT DataA_Terrain_TempleUpperLeft_u8_arr
@@ -74,6 +78,7 @@
 .IMPORT Ppu_ChrBgMine
 .IMPORT Ppu_ChrBgOutdoors
 .IMPORT Ppu_ChrBgPrison
+.IMPORT Ppu_ChrBgSewer
 .IMPORT Ppu_ChrBgTemple
 
 ;;;=========================================================================;;;
@@ -187,6 +192,17 @@
     d_addr UpperRight_u8_arr_ptr, DataA_Terrain_PrisonUpperRight_u8_arr
     d_addr LowerRight_u8_arr_ptr, DataA_Terrain_PrisonLowerRight_u8_arr
     d_byte Chr08Bank_u8, <.bank(Ppu_ChrBgPrison)
+    D_END
+.ENDPROC
+
+.EXPORT DataA_Room_Sewer_sTileset
+.PROC DataA_Room_Sewer_sTileset
+    D_STRUCT sTileset
+    d_addr UpperLeft_u8_arr_ptr,  DataA_Terrain_SewerUpperLeft_u8_arr
+    d_addr LowerLeft_u8_arr_ptr,  DataA_Terrain_SewerLowerLeft_u8_arr
+    d_addr UpperRight_u8_arr_ptr, DataA_Terrain_SewerUpperRight_u8_arr
+    d_addr LowerRight_u8_arr_ptr, DataA_Terrain_SewerLowerRight_u8_arr
+    d_byte Chr08Bank_u8, <.bank(Ppu_ChrBgSewer)
     D_END
 .ENDPROC
 

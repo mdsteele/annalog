@@ -32,7 +32,7 @@
 
 .IMPORT DataA_Pause_SewerAreaCells_u8_arr2_arr
 .IMPORT DataA_Pause_SewerAreaName_u8_arr
-.IMPORT DataA_Room_Prison_sTileset
+.IMPORT DataA_Room_Sewer_sTileset
 .IMPORT FuncA_Machine_Error
 .IMPORT FuncA_Machine_LiftTryMove
 .IMPORT FuncA_Machine_ReachedGoal
@@ -101,7 +101,7 @@ _Ext_sRoomExt:
     D_STRUCT sRoomExt
     d_addr AreaName_u8_arr_ptr, DataA_Pause_SewerAreaName_u8_arr
     d_addr AreaCells_u8_arr2_arr_ptr, DataA_Pause_SewerAreaCells_u8_arr2_arr
-    d_addr Terrain_sTileset_ptr, DataA_Room_Prison_sTileset  ; TODO
+    d_addr Terrain_sTileset_ptr, DataA_Room_Sewer_sTileset
     d_addr Platforms_sPlatform_arr_ptr, _Platforms_sPlatform_arr
     d_addr Actors_sActor_arr_ptr, _Actors_sActor_arr
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
