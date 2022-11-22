@@ -90,7 +90,7 @@ _Devices_sDevice_arr:
 _Passages_sPassage_arr:
     D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Eastern | 0
-    d_byte Destination_eRoom, eRoom::TemplePit  ; TODO
+    d_byte Destination_eRoom, eRoom::TempleNave
     d_byte SpawnBlock_u8, 10
     D_END
     D_STRUCT sPassage

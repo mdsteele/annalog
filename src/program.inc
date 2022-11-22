@@ -76,6 +76,9 @@
     NUM_VALUES
 .ENDENUM
 
+;;; eDir values less than this are vertical.
+kFirstHorzDir = eDir::Left
+
 ;;;=========================================================================;;;
 
 ;;; One instruction in a program for an in-game machine.
@@ -132,7 +135,9 @@
     PrisonEscapeTrolley
     SewerFlowerPump
     ShadowTeleportField
-    TempleLobbyLift
+    TempleLobbyCarriage
+    TempleNaveLowerCarriage
+    TempleNaveUpperCarriage
     NUM_VALUES
 .ENDENUM
 

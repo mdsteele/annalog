@@ -75,7 +75,7 @@ Zp_NametableColumnIndex_u8: .res 1
 _ShortRoom:
     asl a                                ; lo byte of (col * 16)
     rol Zp_TerrainColumn_u8_arr_ptr + 1  ; hi byte of (col * 16)
-    jmp _SetPtr
+    bcc _SetPtr  ; unconditional
 _TallRoom:
     sta Zp_TerrainColumn_u8_arr_ptr + 0  ; lo byte of (col * 8)
     ldx Zp_TerrainColumn_u8_arr_ptr + 1  ; hi byte of (col * 8)

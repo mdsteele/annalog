@@ -76,6 +76,7 @@
 .IMPORT DataC_Temple_Entry_sRoom
 .IMPORT DataC_Temple_Flower_sRoom
 .IMPORT DataC_Temple_Lobby_sRoom
+.IMPORT DataC_Temple_Nave_sRoom
 .IMPORT DataC_Temple_Pit_sRoom
 .IMPORT DataC_Town_House1_sRoom
 .IMPORT DataC_Town_House2_sRoom
@@ -209,6 +210,7 @@ Ram_RoomState: .res kRoomStateSize
     d_entry table, TempleEntry,     DataC_Temple_Entry_sRoom
     d_entry table, TempleFlower,    DataC_Temple_Flower_sRoom
     d_entry table, TempleLobby,     DataC_Temple_Lobby_sRoom
+    d_entry table, TempleNave,      DataC_Temple_Nave_sRoom
     d_entry table, TemplePit,       DataC_Temple_Pit_sRoom
     d_entry table, TownHouse1,      DataC_Town_House1_sRoom
     d_entry table, TownHouse2,      DataC_Town_House2_sRoom

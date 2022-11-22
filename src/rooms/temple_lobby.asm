@@ -33,29 +33,21 @@
 .IMPORT DataA_Pause_TempleAreaCells_u8_arr2_arr
 .IMPORT DataA_Pause_TempleAreaName_u8_arr
 .IMPORT DataA_Room_Temple_sTileset
+.IMPORT FuncA_Machine_CarriageMoveTowardGoalHorz
+.IMPORT FuncA_Machine_CarriageMoveTowardGoalVert
+.IMPORT FuncA_Machine_CarriageTryMove
 .IMPORT FuncA_Machine_Error
 .IMPORT FuncA_Machine_ReachedGoal
-.IMPORT FuncA_Machine_StartWorking
-.IMPORT FuncA_Objects_Alloc2x2Shape
-.IMPORT FuncA_Objects_GetMachineLightTileId
-.IMPORT FuncA_Objects_MoveShapeDownAndRightOneTile
-.IMPORT FuncA_Objects_MoveShapeRightByA
-.IMPORT FuncA_Objects_SetShapePosToMachineTopLeft
-.IMPORT Func_MovePlatformLeftToward
-.IMPORT Func_MovePlatformTopToward
+.IMPORT FuncA_Objects_DrawCarriageMachine
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrObjTemple
 .IMPORT Ram_DeviceType_eDevice_arr
 .IMPORT Ram_MachineGoalHorz_u8_arr
 .IMPORT Ram_MachineGoalVert_u8_arr
-.IMPORT Ram_MachineStatus_eMachine_arr
-.IMPORT Ram_Oam_sObj_arr64
 .IMPORT Ram_PlatformLeft_i16_0_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORT Ram_RoomState
 .IMPORT Sram_ProgressFlags_arr
-.IMPORTZP Zp_PlatformGoal_i16
-.IMPORTZP Zp_Tmp1_byte
 
 ;;;=========================================================================;;;
 
@@ -65,39 +57,43 @@ kUpgradeDeviceIndex = 0
 ;;; The eFlag value for the upgrade in this room.
 kUpgradeFlag = eFlag::UpgradeOpcodeTil
 
-;;; The machine index for the TempleLobbyLift machine in this room.
-kLiftMachineIndex = 0
+;;; The machine index for the TempleLobbyCarriage machine in this room.
+kCarriageMachineIndex = 0
 
-;;; The platform index for the TempleLobbyLift machine in this room.
-kLiftPlatformIndex = 0
+;;; The platform index for the TempleLobbyCarriage machine in this room.
+kCarriagePlatformIndex = 0
 
 ;;; The initial and maximum permitted horizontal and vertical goal values for
-;;; the TempleLobbyLift machine.
-kLiftInitGoalX = 9
-kLiftMaxGoalX = 9
-kLiftInitGoalY = 0
-kLiftMaxGoalY = 9
+;;; the TempleLobbyCarriage machine.
+kCarriageInitGoalX = 9
+kCarriageMaxGoalX = 9
+kCarriageInitGoalY = 0
+kCarriageMaxGoalY = 9
 
-;;; The minimum, initial, and maximum X-positions for the left side of the lift
+;;; The minimum, initial, and maximum X-positions for the left side of the
+;;; carriage platform.
+.LINECONT+
+kCarriageMinPlatformLeft = $00d0
+kCarriageInitPlatformLeft = \
+    kCarriageMinPlatformLeft + kCarriageInitGoalX * kBlockWidthPx
+kCarriageMaxPlatformLeft = \
+    kCarriageMinPlatformLeft + kCarriageMaxGoalX * kBlockWidthPx
+.LINECONT-
+
+;;; The maximum, initial, and minumum Y-positions for the top of the carriage
 ;;; platform.
-kLiftMinPlatformLeft = $00d0
-kLiftInitPlatformLeft = kLiftMinPlatformLeft + kLiftInitGoalX * kBlockWidthPx
-kLiftMaxPlatformLeft = kLiftMinPlatformLeft + kLiftMaxGoalX * kBlockWidthPx
-
-;;; The maximum, initial, and minumum Y-positions for the top of the lift
-;;; platform.
-kLiftMaxPlatformTop = $0120
-kLiftInitPlatformTop = kLiftMaxPlatformTop - kLiftInitGoalY * kBlockHeightPx
-kLiftMinPlatformTop = kLiftMaxPlatformTop - kLiftMaxGoalY * kBlockHeightPx
-
-;;; Tile IDs for drawing the TempleLobbyLift machine.
-kTileIdLiftCorner  = kTileIdMachineCorner
-kTileIdLiftSurface = $7a
+.LINECONT+
+kCarriageMaxPlatformTop = $0120
+kCarriageInitPlatformTop = \
+    kCarriageMaxPlatformTop - kCarriageInitGoalY * kBlockHeightPx
+kCarriageMinPlatformTop = \
+    kCarriageMaxPlatformTop - kCarriageMaxGoalY * kBlockHeightPx
+.LINECONT-
 
 ;;;=========================================================================;;;
 
-;;; Enum for the steps of the CryptTombWinch machine's reset sequence (listed
-;;; in reverse order).
+;;; Enum for the steps of the TempleLobbyCarriage machine's reset sequence
+;;; (listed in reverse order).
 .ENUM eResetSeq
     BottomRight = 0  ; last step: move to bottom-right position
     Middle           ; move up/down (if necessary), then move right to X=5
@@ -105,8 +101,8 @@ kTileIdLiftSurface = $7a
 
 ;;; Defines room-specific state data for this particular room.
 .STRUCT sState
-    ;; Which step of its reset sequence the TempleLobbyLift machine is on.
-    LiftReset_eResetSeq .byte
+    ;; Which step of its reset sequence the TempleLobbyCarriage machine is on.
+    CarriageReset_eResetSeq .byte
 .ENDSTRUCT
 .ASSERT .sizeof(sState) <= kRoomStateSize, error
 
@@ -148,34 +144,34 @@ _TerrainData:
 :   .incbin "out/data/temple_lobby.room"
     .assert * - :- = 34 * 24, error
 _Machines_sMachine_arr:
-:   .assert * - :- = kLiftMachineIndex * .sizeof(sMachine), error
+:   .assert * - :- = kCarriageMachineIndex * .sizeof(sMachine), error
     D_STRUCT sMachine
-    d_byte Code_eProgram, eProgram::TempleLobbyLift
+    d_byte Code_eProgram, eProgram::TempleLobbyCarriage
     d_byte Breaker_eFlag, 0
     d_byte Flags_bMachine, bMachine::MoveH | bMachine::MoveV
-    d_byte Status_eDiagram, eDiagram::Lift  ; TODO
+    d_byte Status_eDiagram, eDiagram::Carriage
     d_word ScrollGoalX_u16, $0108
     d_byte ScrollGoalY_u8, $a0
     d_byte RegNames_u8_arr4, 0, 0, "X", "Y"
-    d_byte MainPlatform_u8, kLiftPlatformIndex
-    d_addr Init_func_ptr, FuncC_Temple_LobbyLift_Init
-    d_addr ReadReg_func_ptr, FuncC_Temple_LobbyLift_ReadReg
+    d_byte MainPlatform_u8, kCarriagePlatformIndex
+    d_addr Init_func_ptr, FuncC_Temple_LobbyCarriage_Init
+    d_addr ReadReg_func_ptr, FuncC_Temple_LobbyCarriage_ReadReg
     d_addr WriteReg_func_ptr, Func_Noop
-    d_addr TryMove_func_ptr, FuncC_Temple_LobbyLift_TryMove
+    d_addr TryMove_func_ptr, FuncC_Temple_LobbyCarriage_TryMove
     d_addr TryAct_func_ptr, FuncA_Machine_Error
-    d_addr Tick_func_ptr, FuncC_Temple_LobbyLift_Tick
-    d_addr Draw_func_ptr, FuncA_Objects_DrawTempleLobbyLift
-    d_addr Reset_func_ptr, FuncC_Temple_LobbyLift_Reset
+    d_addr Tick_func_ptr, FuncC_Temple_LobbyCarriage_Tick
+    d_addr Draw_func_ptr, FuncA_Objects_DrawCarriageMachine
+    d_addr Reset_func_ptr, FuncC_Temple_LobbyCarriage_Reset
     D_END
     .assert * - :- <= kMaxMachines * .sizeof(sMachine), error
 _Platforms_sPlatform_arr:
-:   .assert * - :- = kLiftPlatformIndex * .sizeof(sPlatform), error
+:   .assert * - :- = kCarriagePlatformIndex * .sizeof(sPlatform), error
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Solid
     d_word WidthPx_u16, $20
     d_byte HeightPx_u8, $10
-    d_word Left_i16, kLiftInitPlatformLeft
-    d_word Top_i16, kLiftInitPlatformTop
+    d_word Left_i16, kCarriageInitPlatformLeft
+    d_word Top_i16, kCarriageInitPlatformTop
     D_END
     .byte ePlatform::None
 _Actors_sActor_arr:
@@ -205,14 +201,14 @@ _Devices_sDevice_arr:
     d_byte Type_eDevice, eDevice::Console
     d_byte BlockRow_u8, 16
     d_byte BlockCol_u8, 26
-    d_byte Target_u8, kLiftMachineIndex
+    d_byte Target_u8, kCarriageMachineIndex
     D_END
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None
 _Passages_sPassage_arr:
     D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Western | 0
-    d_byte Destination_eRoom, eRoom::TempleLobby  ; TODO
+    d_byte Destination_eRoom, eRoom::TempleNave
     d_byte SpawnBlock_u8, 5
     D_END
     D_STRUCT sPassage
@@ -239,213 +235,79 @@ _Passages_sPassage_arr:
 
 ;;; @param A The register to read ($c-$f).
 ;;; @return A The value of the register (0-9).
-.PROC FuncC_Temple_LobbyLift_ReadReg
+.PROC FuncC_Temple_LobbyCarriage_ReadReg
     cmp #$f
     beq _ReadY
 _ReadX:
-    .assert kLiftMinPlatformLeft - kTileWidthPx < $100, error
-    lda Ram_PlatformLeft_i16_0_arr + kLiftPlatformIndex
-    sub #kLiftMinPlatformLeft - kTileWidthPx
-    .assert kLiftMaxPlatformLeft - kLiftMinPlatformLeft < $100, error
+    .assert kCarriageMinPlatformLeft - kTileWidthPx < $100, error
+    lda Ram_PlatformLeft_i16_0_arr + kCarriagePlatformIndex
+    sub #kCarriageMinPlatformLeft - kTileWidthPx
+    .assert kCarriageMaxPlatformLeft - kCarriageMinPlatformLeft < $100, error
     div #kBlockWidthPx
     rts
 _ReadY:
-    .assert kLiftMaxPlatformTop + kTileHeightPx >= $100, error
-    lda #<(kLiftMaxPlatformTop + kTileHeightPx)
-    sub Ram_PlatformTop_i16_0_arr + kLiftPlatformIndex
-    .assert kLiftMaxPlatformTop - kLiftMinPlatformTop < $100, error
+    .assert kCarriageMaxPlatformTop + kTileHeightPx >= $100, error
+    lda #<(kCarriageMaxPlatformTop + kTileHeightPx)
+    sub Ram_PlatformTop_i16_0_arr + kCarriagePlatformIndex
+    .assert kCarriageMaxPlatformTop - kCarriageMinPlatformTop < $100, error
     div #kBlockWidthPx
     rts
 .ENDPROC
 
-.PROC FuncC_Temple_LobbyLift_TryMove
-    ldy Ram_MachineGoalHorz_u8_arr + kLiftMachineIndex
-    .assert eDir::Up = 0, error
-    txa
-    beq _MoveUp
-    cmp #eDir::Down
-    beq _MoveDown
-_MoveHorz:
-    ldx Ram_MachineGoalVert_u8_arr + kLiftMachineIndex
-    cmp #eDir::Left
-    beq _MoveLeft
-_MoveRight:
-    cpy #kLiftMaxGoalX
-    bge _Error
-    iny
-    bne _ValidateHorz  ; unconditional
-_MoveLeft:
-    tya  ; current horz position
-    beq _Error
-    dey
-_ValidateHorz:
-    txa  ; current vert position
-    cmp _MinY_u8_arr, y
-    blt _Error
-    cmp _MaxY_u8_arr, y
-    bgt _Error
-    sty Ram_MachineGoalHorz_u8_arr + kLiftMachineIndex
-    jmp FuncA_Machine_StartWorking
-_MoveUp:
-    lda Ram_MachineGoalVert_u8_arr + kLiftMachineIndex
-    cmp _MaxY_u8_arr, y
-    bge _Error
-    inc Ram_MachineGoalVert_u8_arr + kLiftMachineIndex
-    jmp FuncA_Machine_StartWorking
-_MoveDown:
-    lda Ram_MachineGoalVert_u8_arr + kLiftMachineIndex
-    cmp _MinY_u8_arr, y
-    beq _Error
-    dec Ram_MachineGoalVert_u8_arr + kLiftMachineIndex
-    jmp FuncA_Machine_StartWorking
-_Error:
-    jmp FuncA_Machine_Error
-_MaxY_u8_arr:
-    .byte 9, 9, 9, 9, 9, 8, 2, 2, 8, 9
-_MinY_u8_arr:
-    .byte 0, 1, 8, 8, 1, 0, 0, 0, 0, 0
+.PROC FuncC_Temple_LobbyCarriage_TryMove
+    lda #kCarriageMaxGoalX  ; param: max goal horz
+    ldy #kCarriageMaxGoalY  ; param: max goal vert
+    jmp FuncA_Machine_CarriageTryMove
 .ENDPROC
 
-.PROC FuncC_Temple_LobbyLift_Tick
+.PROC FuncC_Temple_LobbyCarriage_Tick
 _MoveVert:
-    ;; Calculate the desired room-space pixel Y-position for the top edge of
-    ;; the platform, storing it in Zp_PlatformGoal_i16.
-    lda Ram_MachineGoalVert_u8_arr + kLiftMachineIndex
-    .assert kLiftMaxGoalY * kBlockHeightPx < $100, error
-    mul #kBlockHeightPx
-    sta Zp_Tmp1_byte  ; vert goal offset
-    .assert kLiftMaxPlatformTop >= $100, error
-    lda #<kLiftMaxPlatformTop
-    sub Zp_Tmp1_byte  ; vert goal offset
-    sta Zp_PlatformGoal_i16 + 0
-    lda #>kLiftMaxPlatformTop
-    sbc #0
-    sta Zp_PlatformGoal_i16 + 1
-    ;; Determine how fast we should move toward the goal.
-    ldx Ram_MachineStatus_eMachine_arr + kLiftMachineIndex
-    lda #1
-    cpx #eMachine::Resetting
-    bne @slow
-    mul #2
-    @slow:
-    ;; Move the platform vertically, as necessary.
-    ldx #kLiftPlatformIndex  ; param: platform index
-    jsr Func_MovePlatformTopToward  ; returns Z
+    ldax #kCarriageMaxPlatformTop
+    jsr FuncA_Machine_CarriageMoveTowardGoalVert  ; returns Z
     beq @reachedGoal
     rts
     @reachedGoal:
 _MoveHorz:
-    ;; Calculate the desired room-space pixel X-position for the left edge of
-    ;; the platform, storing it in Zp_PlatformGoal_i16.
-    lda Ram_MachineGoalHorz_u8_arr + kLiftMachineIndex
-    .assert kLiftMaxGoalX * kBlockWidthPx < $100, error
-    mul #kBlockWidthPx
-    sta Zp_Tmp1_byte  ; horz goal offset
-    .assert kLiftMaxPlatformLeft >= $100, error
-    lda #<kLiftMinPlatformLeft
-    add Zp_Tmp1_byte  ; horz goal offset
-    sta Zp_PlatformGoal_i16 + 0
-    lda #>kLiftMinPlatformLeft
-    adc #0
-    sta Zp_PlatformGoal_i16 + 1
-    ;; Determine how fast we should move toward the goal.
-    ldx Ram_MachineStatus_eMachine_arr + kLiftMachineIndex
-    lda #1
-    cpx #eMachine::Resetting
-    bne @slow
-    mul #2
-    @slow:
-    ;; Move the platform horizontally, as necessary.
-    ldx #kLiftPlatformIndex  ; param: platform index
-    jsr Func_MovePlatformLeftToward  ; returns Z
+    ldax #kCarriageMinPlatformLeft
+    jsr FuncA_Machine_CarriageMoveTowardGoalHorz  ; returns Z
     beq @reachedGoal
     rts
     @reachedGoal:
 _ReachedGoal:
-    lda Ram_RoomState + sState::LiftReset_eResetSeq
+    lda Ram_RoomState + sState::CarriageReset_eResetSeq
     jeq FuncA_Machine_ReachedGoal
-    .assert * = FuncC_Temple_LobbyLift_Reset, error, "fallthrough"
+    .assert * = FuncC_Temple_LobbyCarriage_Reset, error, "fallthrough"
 .ENDPROC
 
-.PROC FuncC_Temple_LobbyLift_Reset
-    lda Ram_MachineGoalHorz_u8_arr + kLiftMachineIndex
+.PROC FuncC_Temple_LobbyCarriage_Reset
+    lda Ram_MachineGoalHorz_u8_arr + kCarriageMachineIndex
     cmp #5
     bge _MoveToBottomRight
     cmp #4
     blt _MoveVertBeforeMiddle
-    lda Ram_MachineGoalVert_u8_arr + kLiftMachineIndex
+    lda Ram_MachineGoalVert_u8_arr + kCarriageMachineIndex
     cmp #9
     blt _MoveStraightToMiddle
 _MoveVertBeforeMiddle:
     lda #8
-    sta Ram_MachineGoalVert_u8_arr + kLiftMachineIndex
+    sta Ram_MachineGoalVert_u8_arr + kCarriageMachineIndex
 _MoveStraightToMiddle:
     lda #5
-    sta Ram_MachineGoalHorz_u8_arr + kLiftMachineIndex
+    sta Ram_MachineGoalHorz_u8_arr + kCarriageMachineIndex
     lda #eResetSeq::Middle
-    sta Ram_RoomState + sState::LiftReset_eResetSeq
+    sta Ram_RoomState + sState::CarriageReset_eResetSeq
     rts
 _MoveToBottomRight:
     lda #eResetSeq::BottomRight
-    sta Ram_RoomState + sState::LiftReset_eResetSeq
-    .assert * = FuncC_Temple_LobbyLift_Init, error, "fallthrough"
+    sta Ram_RoomState + sState::CarriageReset_eResetSeq
+    .assert * = FuncC_Temple_LobbyCarriage_Init, error, "fallthrough"
 .ENDPROC
 
-.PROC FuncC_Temple_LobbyLift_Init
-    lda #kLiftInitGoalX
-    sta Ram_MachineGoalHorz_u8_arr + kLiftMachineIndex
-    lda #kLiftInitGoalY
-    sta Ram_MachineGoalVert_u8_arr + kLiftMachineIndex
-    rts
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Objects"
-
-.PROC FuncA_Objects_DrawTempleLobbyLift
-    jsr FuncA_Objects_SetShapePosToMachineTopLeft
-_LeftHalf:
-    ;; Allocate objects.
-    jsr FuncA_Objects_MoveShapeDownAndRightOneTile
-    lda #kMachineLightPalette  ; param: object flags
-    jsr FuncA_Objects_Alloc2x2Shape  ; sets C if offscreen; returns Y
-    bcs @done
-    ;; Set flags and tile IDs.
-    lda #kMachineLightPalette | bObj::FlipHV
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Flags_bObj, y
-    lda #kMachineLightPalette | bObj::FlipH
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Flags_bObj, y
-    lda #kMachineLightPalette | bObj::FlipV
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Flags_bObj, y
-    lda #kTileIdLiftCorner
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Tile_u8, y
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Tile_u8, y
-    lda #kTileIdLiftSurface
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Tile_u8, y
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Tile_u8, y
-    @done:
-_RightHalf:
-    ;; Allocate objects.
-    lda #kTileWidthPx * 2  ; param: offset
-    jsr FuncA_Objects_MoveShapeRightByA
-    lda #kMachineLightPalette  ; param: object flags
-    jsr FuncA_Objects_Alloc2x2Shape  ; sets C if offscreen; returns Y
-    bcs @done
-    ;; Set flags and tile IDs.
-    lda #kMachineLightPalette | bObj::FlipV
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Flags_bObj, y
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Flags_bObj, y
-    lda #kMachineLightPalette | bObj::FlipHV
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Flags_bObj, y
-    lda #kTileIdLiftSurface
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Tile_u8, y
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Tile_u8, y
-    lda #kTileIdLiftCorner
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Tile_u8, y
-    jsr FuncA_Objects_GetMachineLightTileId  ; preserves Y, returns A
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Tile_u8, y
-    @done:
+.PROC FuncC_Temple_LobbyCarriage_Init
+    lda #kCarriageInitGoalX
+    sta Ram_MachineGoalHorz_u8_arr + kCarriageMachineIndex
+    lda #kCarriageInitGoalY
+    sta Ram_MachineGoalVert_u8_arr + kCarriageMachineIndex
     rts
 .ENDPROC
 

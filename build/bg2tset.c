@@ -333,6 +333,8 @@ char get_tile_id(const char *tileset, int tile_index) {
     return 0x90 + tile_index;
   } else if (0 == strcmp(tileset, "temple3")) {
     return 0xa0 + tile_index;
+  } else if (0 == strcmp(tileset, "temple4")) {
+    return 0xb0 + tile_index;
   } else if (0 == strcmp(tileset, "thorns_anim0")) {
     return 0xd0 + tile_index;
   } else if (0 == strcmp(tileset, "volcanic")) {
