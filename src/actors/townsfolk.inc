@@ -22,7 +22,14 @@
 ;;;   * State2: Unused.
 
 ;;; The first tile IDs for various children.
-kTileIdChildPonytailFirst   = $84
+kTileIdChildPonytailFirst     = $84
+kTileIdChildAlexFirst         = $c8
+kTileIdChildAlexStandingFirst = kTileIdChildAlexFirst + 0
+kTileIdChildAlexLookingFirst  = kTileIdChildAlexFirst + 4
+kTileIdChildAlexDuckingFirst  = kTileIdChildAlexFirst + 8
+kTileIdChildAlexBoostingFirst = kTileIdChildAlexFirst + 12
+kTileIdChildAlexWalking1First = kTileIdChildAlexFirst + 16
+kTileIdChildAlexWalking2First = kTileIdChildAlexFirst + 20
 
 ;;; The first tile IDs for various adults.
 kTileIdAdultWomanFirst      = $88

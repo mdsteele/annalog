@@ -18,12 +18,18 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "../actor.inc"
+.INCLUDE "../actors/townsfolk.inc"
+.INCLUDE "../avatar.inc"
 .INCLUDE "../charmap.inc"
+.INCLUDE "../cpu.inc"
 .INCLUDE "../device.inc"
+.INCLUDE "../dialog.inc"
 .INCLUDE "../flag.inc"
 .INCLUDE "../machine.inc"
 .INCLUDE "../machines/shared.inc"
 .INCLUDE "../macros.inc"
+.INCLUDE "../mmc3.inc"
+.INCLUDE "../oam.inc"
 .INCLUDE "../platform.inc"
 .INCLUDE "../ppu.inc"
 .INCLUDE "../program.inc"
@@ -38,13 +44,57 @@
 .IMPORT FuncA_Machine_Error
 .IMPORT FuncA_Machine_ReachedGoal
 .IMPORT FuncA_Objects_DrawCarriageMachine
+.IMPORT FuncA_Objects_DrawCratePlatform
+.IMPORT FuncA_Objects_DrawObjectsForRoom
+.IMPORT Func_ClearRestOfOam
 .IMPORT Func_Noop
+.IMPORT Func_ProcessFrame
+.IMPORT Func_SetFlag
+.IMPORT Main_Dialog_OpenWindow
 .IMPORT Ppu_ChrObjTemple
+.IMPORT Ram_ActorFlags_bObj_arr
+.IMPORT Ram_ActorPosX_i16_0_arr
+.IMPORT Ram_ActorPosX_i16_1_arr
+.IMPORT Ram_ActorState1_byte_arr
+.IMPORT Ram_ActorType_eActor_arr
+.IMPORT Ram_DeviceType_eDevice_arr
 .IMPORT Ram_MachineGoalHorz_u8_arr
 .IMPORT Ram_MachineGoalVert_u8_arr
 .IMPORT Ram_PlatformLeft_i16_0_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
+.IMPORT Ram_PlatformType_ePlatform_arr
 .IMPORT Ram_RoomState
+.IMPORT Sram_ProgressFlags_arr
+.IMPORTZP Zp_AvatarFlags_bObj
+.IMPORTZP Zp_AvatarPosX_i16
+.IMPORTZP Zp_FrameCounter_u8
+.IMPORTZP Zp_NextCutscene_main_ptr
+
+;;;=========================================================================;;;
+
+;;; The actor index for Alex in this room.
+kAlexActorIndex = 0
+;;; The dialog indices for Alex in this room.
+kAlexStandingDialogIndex = 0
+kAlexBoostingDialogIndex = 1
+;;; The talk device indices for Alex in this room.
+kAlexStandingDeviceIndexRight = 0
+kAlexStandingDeviceIndexLeft  = 1
+kAlexBoostingDeviceIndex      = 2
+;;; The platform index for Alex when he's giving Anna a boost.
+kAlexBoostingPlatformIndex = 2
+;;; The platform index for the crate that Alex leaves behind after you enter
+;;; the crypt.
+kCratePlatformIndex = 3
+
+;;; The room pixel X-position that the Alex actor should be at when giving Anna
+;;; a boost.
+kAlexBoostingPositionX = $0068
+
+;;; CutsceneAlexBoostTimer_u8 values for various phases of the cutscene.
+kCutsceneTimerStanding = 50
+kCutsceneTimerDucking  = 30 + kCutsceneTimerStanding
+kCutsceneTimerBoosting = 30 + kCutsceneTimerDucking
 
 ;;;=========================================================================;;;
 
@@ -136,6 +186,9 @@ kUpperCarriageMinPlatformTop = \
     LowerCarriageReset_eLowerResetSeq .byte
     ;; Which step of its reset sequence the TempleNaveUpperCarriage is on.
     UpperCarriageReset_eUpperResetSeq .byte
+    ;; A timer used for animating Alex crouching down into his boosting
+    ;; position.  Counts up each frame during that portion of the cutscene.
+    CutsceneAlexBoostTimer_u8 .byte
 .ENDSTRUCT
 .ASSERT .sizeof(sState) <= kRoomStateSize, error
 
@@ -156,7 +209,7 @@ kUpperCarriageMinPlatformTop = \
     d_addr Machines_sMachine_arr_ptr, _Machines_sMachine_arr
     d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjTemple)
     d_addr Tick_func_ptr, Func_Noop
-    d_addr Draw_func_ptr, Func_Noop
+    d_addr Draw_func_ptr, FuncA_Objects_TempleNave_DrawRoom
     d_addr Ext_sRoomExt_ptr, _Ext_sRoomExt
     D_END
 _Ext_sRoomExt:
@@ -167,9 +220,9 @@ _Ext_sRoomExt:
     d_addr Platforms_sPlatform_arr_ptr, _Platforms_sPlatform_arr
     d_addr Actors_sActor_arr_ptr, _Actors_sActor_arr
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
-    d_addr Dialogs_sDialog_ptr_arr_ptr, 0
+    d_addr Dialogs_sDialog_ptr_arr_ptr, DataA_Dialog_TempleNave_sDialog_ptr_arr
     d_addr Passages_sPassage_arr_ptr, _Passages_sPassage_arr
-    d_addr Init_func_ptr, Func_Noop
+    d_addr Init_func_ptr, FuncC_Temple_Nave_InitRoom
     d_addr Enter_func_ptr, Func_Noop
     d_addr FadeIn_func_ptr, Func_Noop
     D_END
@@ -233,6 +286,22 @@ _Platforms_sPlatform_arr:
     d_word Left_i16, kUpperCarriageInitPlatformLeft
     d_word Top_i16, kUpperCarriageInitPlatformTop
     D_END
+    .assert * - :- = kAlexBoostingPlatformIndex * .sizeof(sPlatform), error
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Zone
+    d_word WidthPx_u16, $09
+    d_byte HeightPx_u8, $0d
+    d_word Left_i16,  $0064
+    d_word Top_i16,   $0153
+    D_END
+    .assert * - :- = kCratePlatformIndex * .sizeof(sPlatform), error
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Zone
+    d_word WidthPx_u16, $10
+    d_byte HeightPx_u8, $10
+    d_word Left_i16,  $0067
+    d_word Top_i16,   $0151
+    D_END
     ;; Upward spikes near upper carriage area:
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Harm
@@ -289,7 +358,14 @@ _Platforms_sPlatform_arr:
     .assert * - :- <= kMaxPlatforms * .sizeof(sPlatform), error
     .byte ePlatform::None
 _Actors_sActor_arr:
-:   D_STRUCT sActor
+:   .assert * - :- = kAlexActorIndex * .sizeof(sActor), error
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::NpcChild
+    d_byte TileRow_u8, 43
+    d_byte TileCol_u8, 18
+    d_byte Param_byte, kTileIdChildAlexStandingFirst
+    D_END
+    D_STRUCT sActor
     d_byte Type_eActor, eActor::BadBeetleHorz
     d_byte TileRow_u8, 15
     d_byte TileCol_u8, 12
@@ -298,7 +374,28 @@ _Actors_sActor_arr:
     .assert * - :- <= kMaxActors * .sizeof(sActor), error
     .byte eActor::None
 _Devices_sDevice_arr:
-:   D_STRUCT sDevice
+:   .assert * - :- = kAlexStandingDeviceIndexRight * .sizeof(sDevice), error
+    D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::Placeholder  ; becomes TalkRight
+    d_byte BlockRow_u8, 21
+    d_byte BlockCol_u8, 8
+    d_byte Target_u8, kAlexStandingDialogIndex
+    D_END
+    .assert * - :- = kAlexStandingDeviceIndexLeft * .sizeof(sDevice), error
+    D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::Placeholder  ; becomes TalkLeft
+    d_byte BlockRow_u8, 21
+    d_byte BlockCol_u8, 9
+    d_byte Target_u8, kAlexStandingDialogIndex
+    D_END
+    .assert * - :- = kAlexBoostingDeviceIndex * .sizeof(sDevice), error
+    D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::Placeholder  ; becomes TalkLeft
+    d_byte BlockRow_u8, 21
+    d_byte BlockCol_u8, 7
+    d_byte Target_u8, kAlexBoostingDialogIndex
+    D_END
+    D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Console
     d_byte BlockRow_u8, 21
     d_byte BlockCol_u8, 14
@@ -333,6 +430,47 @@ _Passages_sPassage_arr:
     d_byte Destination_eRoom, eRoom::TempleLobby
     d_byte SpawnBlock_u8, 21
     D_END
+.ENDPROC
+
+.PROC FuncC_Temple_Nave_InitRoom
+_Crate:
+    ;; Once Anna visits the crypt, remove Alex and leave a crate behind.
+    flag_bit Sram_ProgressFlags_arr, eFlag::CryptLandingDroppedIn
+    beq @noCrate
+    lda #ePlatform::Solid
+    sta Ram_PlatformType_ePlatform_arr + kCratePlatformIndex
+    .assert ePlatform::Solid <> 0, error
+    bne _RemoveAlex  ; unconditional
+    @noCrate:
+_AlexBoosting:
+    ;; If Anna has already talked to Alex, put him in the boosting position.
+    flag_bit Sram_ProgressFlags_arr, eFlag::TempleNaveTalkedToAlex
+    beq @notBoosting
+    ldya #kAlexBoostingPositionX
+    sty Ram_ActorPosX_i16_1_arr + kAlexActorIndex
+    sta Ram_ActorPosX_i16_0_arr + kAlexActorIndex
+    lda #kTileIdChildAlexBoostingFirst
+    sta Ram_ActorState1_byte_arr + kAlexActorIndex
+    lda #eDevice::TalkLeft
+    sta Ram_DeviceType_eDevice_arr + kAlexBoostingDeviceIndex
+    lda #ePlatform::Solid
+    sta Ram_PlatformType_ePlatform_arr + kAlexBoostingPlatformIndex
+    rts
+    @notBoosting:
+_AlexStanding:
+    ;; If Alex is waiting for Anna, leave him in his standing position.
+    flag_bit Sram_ProgressFlags_arr, eFlag::TempleNaveAlexWaiting
+    beq @notWaiting
+    lda #eDevice::TalkLeft
+    sta Ram_DeviceType_eDevice_arr + kAlexStandingDeviceIndexLeft
+    lda #eDevice::TalkRight
+    sta Ram_DeviceType_eDevice_arr + kAlexStandingDeviceIndexRight
+    rts
+    @notWaiting:
+_RemoveAlex:
+    lda #eActor::None
+    sta Ram_ActorType_eActor_arr + kAlexActorIndex
+    rts
 .ENDPROC
 
 ;;; @param A The register to read ($c-$f).
@@ -514,6 +652,125 @@ _MoveToBottomRight:
     lda #kUpperCarriageInitGoalY
     sta Ram_MachineGoalVert_u8_arr + kUpperCarriageMachineIndex
     rts
+.ENDPROC
+
+.PROC MainC_Temple_NaveCutscene
+    lda #eDevice::Placeholder
+    sta Ram_DeviceType_eDevice_arr + kAlexStandingDeviceIndexLeft
+    sta Ram_DeviceType_eDevice_arr + kAlexStandingDeviceIndexRight
+_GameLoop:
+    ;; Draw the frame:
+    jsr_prga FuncA_Objects_DrawObjectsForRoom
+    jsr Func_ClearRestOfOam
+    jsr Func_ProcessFrame
+    ;; Check if Alex is at his boosting position yet.
+    lda Ram_ActorPosX_i16_0_arr + kAlexActorIndex
+    cmp #<kAlexBoostingPositionX
+    beq _InBoostingPosition
+_WalkToBoostingPosition:
+    ;; Face the player avatar towards Alex.
+    lda Ram_ActorPosX_i16_0_arr + kAlexActorIndex
+    cmp Zp_AvatarPosX_i16 + 0
+    bge @noTurnAvatar
+    lda #bObj::FlipH | kAvatarPaletteNormal
+    sta Zp_AvatarFlags_bObj
+    @noTurnAvatar:
+    ;; Animate Alex walking towards his boosting position.
+    dec Ram_ActorPosX_i16_0_arr + kAlexActorIndex
+    lda Zp_FrameCounter_u8
+    and #$08
+    beq @walk2
+    lda #kTileIdChildAlexWalking1First
+    bne @setState  ; unconditional
+    @walk2:
+    lda #kTileIdChildAlexWalking2First
+    @setState:
+    sta Ram_ActorState1_byte_arr + kAlexActorIndex
+    lda #bObj::FlipH
+    sta Ram_ActorFlags_bObj_arr + kAlexActorIndex
+    bne _GameLoop  ; unconditional
+_InBoostingPosition:
+    ;; Animate Alex turning around, crouching down, and raising his arms to
+    ;; give Anna a boost.
+    lda #0
+    sta Ram_ActorFlags_bObj_arr + kAlexActorIndex
+    inc Ram_RoomState + sState::CutsceneAlexBoostTimer_u8
+    lda Ram_RoomState + sState::CutsceneAlexBoostTimer_u8
+    cmp #kCutsceneTimerStanding
+    blt @standing
+    cmp #kCutsceneTimerDucking
+    blt @ducking
+    cmp #kCutsceneTimerBoosting
+    bge _ResumeDialog
+    @boosting:
+    lda #kTileIdChildAlexBoostingFirst
+    bne @setState  ; unconditional
+    @standing:
+    lda #kTileIdChildAlexStandingFirst
+    bne @setState  ; unconditional
+    @ducking:
+    lda #kTileIdChildAlexDuckingFirst
+    @setState:
+    sta Ram_ActorState1_byte_arr + kAlexActorIndex
+    bne _GameLoop  ; unconditional
+_ResumeDialog:
+    ;; Set up the device/platform for Alex giving Anna a boost.
+    lda #eDevice::TalkLeft
+    sta Ram_DeviceType_eDevice_arr + kAlexBoostingDeviceIndex
+    lda #ePlatform::Solid
+    sta Ram_PlatformType_ePlatform_arr + kAlexBoostingPlatformIndex
+    ;; Set the flag indicating that Alex is now in the boosting position.
+    ldx #eFlag::TempleNaveTalkedToAlex  ; param: flag
+    jsr Func_SetFlag
+    ;; Resume dialog.
+    ldx #kAlexBoostingDialogIndex  ; param: dialog index
+    jmp Main_Dialog_OpenWindow
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Objects"
+
+.PROC FuncA_Objects_TempleNave_DrawRoom
+    ldx #kCratePlatformIndex
+    jmp FuncA_Objects_DrawCratePlatform
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Dialog"
+
+;;; Dialog data for the TempleNave room.
+.PROC DataA_Dialog_TempleNave_sDialog_ptr_arr
+:   .assert * - :- = kAlexStandingDialogIndex * kSizeofAddr, error
+    .addr DataA_Dialog_TempleNave_AlexStanding_sDialog
+    .assert * - :- = kAlexBoostingDialogIndex * kSizeofAddr, error
+    .addr DataA_Dialog_TempleNave_AlexBoosting_sDialog
+.ENDPROC
+
+.PROC DataA_Dialog_TempleNave_AlexStanding_sDialog
+    .word ePortrait::Mermaid  ; TODO
+    .byte "There's something$"
+    .byte "hidden underneath this$"
+    .byte "temple, and we should$"
+    .byte "find out what it is.#"
+    .addr _CutsceneFunc
+_CutsceneFunc:
+    ldya #MainC_Temple_NaveCutscene
+    stya Zp_NextCutscene_main_ptr
+    ldya #DataA_Dialog_TempleNave_Empty_sDialog
+    rts
+.ENDPROC
+
+.PROC DataA_Dialog_TempleNave_AlexBoosting_sDialog
+    .word ePortrait::Mermaid  ; TODO
+    .byte "Hop on up. I'll give$"
+    .byte "you a boost.#"
+    .assert * = DataA_Dialog_TempleNave_Empty_sDialog, error, "fallthrough"
+.ENDPROC
+
+.PROC DataA_Dialog_TempleNave_Empty_sDialog
+    .word ePortrait::Done
 .ENDPROC
 
 ;;;=========================================================================;;;

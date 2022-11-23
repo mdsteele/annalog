@@ -35,7 +35,7 @@ BAD_CODE_PATTERNS = [
 
 SEGMENT_DECL_PATTERN = re.compile(r'^\.SEGMENT +"([a-zA-Z0-9_]*)"')
 PROC_DECL_PATTERN = re.compile(r'^\.PROC +([a-zA-Z0-9_]+)')
-BANK_SWITCH_PATTERN = re.compile(r'^ *(?:(?:prga|prgc)_bank|jsr_prga) ')
+BANK_SWITCH_PATTERN = re.compile(r'^ *((?:prga|prgc)_bank|jsr_prga) ')
 
 LOCAL_PROC_NAME = re.compile(r'^_[a-zA-Z0-9_]+$')  # e.g. _Foobar
 PRGA_PROC_NAME = re.compile(  # e.g. FuncA_SegmentName_Foobar
@@ -110,8 +110,10 @@ def run_tests():
             if top_proc:
                 match = BANK_SWITCH_PATTERN.match(line)
                 if match:
-                    if not top_proc.startswith('Main_'):
-                        fail('bank switch not in a Main'.format(top_proc))
+                    kind = match.group(1)
+                    if not (top_proc.startswith('Main_') or
+                            top_proc.startswith('MainC_') and 'prga' in kind):
+                        fail('{} in {}'.format(kind, top_proc))
     for (filepath, start_string, end_string, skip) in SORT_PATTERNS:
         def fail(message):
             print('LINT: {}: {}'.format(filepath, message))

@@ -153,9 +153,9 @@ Zp_NearbyDevice_u8: .res 1
 ;;; HUD will not be drawn.
 Zp_HudEnabled_bool: .res 1
 
-;;; If set to a PRG ROM address ($8000+) e.g. by a room or machine tick
-;;; function, then explore mode will jump to this mode (and zero this variable)
-;;; just before it would draw the next frame.
+;;; If set to a PRG ROM address ($8000+), e.g. by a dialog function or a room
+;;; or machine tick function, then explore mode will jump to this mode (and
+;;; zero this variable) just before it would draw the next frame.
 ;;; @prereq Rendering is enabled.
 ;;; @prereq Explore mode is already initialized.
 .EXPORTZP Zp_NextCutscene_main_ptr

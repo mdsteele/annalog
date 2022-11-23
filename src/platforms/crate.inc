@@ -17,7 +17,7 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
-;;; OBJ tile IDs for drawing the the garden tower room.
-kTileIdObjGardenBricksFirst = $aa
+;;; OBJ tile IDs for drawing crate platforms.
+kTileIdObjCrateFirst = $94
 
 ;;;=========================================================================;;;

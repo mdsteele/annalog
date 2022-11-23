@@ -485,6 +485,12 @@ _MarkMinimap:
     D_END
     D_STRUCT sMarker
     d_byte Row_u8, 6
+    d_byte Col_u8, 1  ; room: TempleNave
+    d_byte If_eFlag, eFlag::TempleNaveAlexWaiting
+    d_byte Not_eFlag, eFlag::CryptLandingDroppedIn
+    D_END
+    D_STRUCT sMarker
+    d_byte Row_u8, 6
     d_byte Col_u8, 4  ; room: TempleLobby
     d_byte If_eFlag, 0
     d_byte Not_eFlag, eFlag::UpgradeOpcodeTil

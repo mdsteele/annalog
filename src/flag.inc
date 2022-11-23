@@ -85,6 +85,7 @@ kSaveMagicNumber = $b2
     BreakerCity
     BreakerShadow
     ;; Flags for persistent room state:
+    CryptLandingDroppedIn
     CryptSouthWeakFloor
     CryptTombWeakFloors
     GardenEastTalkedToMermaid
@@ -95,6 +96,8 @@ kSaveMagicNumber = $b2
     MermaidHut4OpenedCellar
     PrisonCellReachedTunnel
     TempleEntryColumnRaised
+    TempleNaveAlexWaiting
+    TempleNaveTalkedToAlex
     NUM_VALUES
 .ENDENUM
 .ASSERT eFlag::NUM_VALUES <= $100, error

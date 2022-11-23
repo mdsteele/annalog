@@ -35,6 +35,7 @@
 .INCLUDE "machines/jet.inc"
 .INCLUDE "machines/pump.inc"
 .INCLUDE "machines/winch.inc"
+.INCLUDE "platforms/crate.inc"
 .INCLUDE "rooms/garden_boss.inc"
 .INCLUDE "rooms/garden_tower.inc"
 .INCLUDE "upgrade.inc"
@@ -412,7 +413,7 @@
     .incbin "out/data/tiles/minimap3.chr"
     .res $04 * kSizeofChr
     .incbin "out/data/tiles/minimap4.chr"
-    .res $05 * kSizeofChr
+    .res $04 * kSizeofChr
     .assert * - :- = kSizeofChr * $40, error
 .ENDPROC
 
@@ -600,7 +601,9 @@
     .incbin "out/data/tiles/cannon.chr"
     .assert * - :- = (kTileIdMermaidAdultFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/mermaid_adult.chr"
-    .res $06 * kSizeofChr
+    .assert * - :- = (kTileIdObjCrateFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/crate.chr"
+    .res $02 * kSizeofChr
     .assert * - :- = (kTileIdObjFireballFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/fireball.chr"
     .assert * - :- = (kTileIdObjGrubFirst - $80) * kSizeofChr, error
@@ -614,8 +617,7 @@
     .incbin "out/data/tiles/vinebug.chr"
     .assert * - :- = (kTileIdObjPlantEyeFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/plant_eye.chr"
-    .assert * - :- = (kTileIdObjCrateFirst - $80) * kSizeofChr, error
-    .incbin "out/data/tiles/crate.chr"
+    .res $04 * kSizeofChr
     .assert * - :- = (kTileIdObjGrenadeFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/grenade.chr"
     .assert * - :- = (kTileIdObjBeetleFirst - $80) * kSizeofChr, error
@@ -753,12 +755,17 @@
     .res $04 * kSizeofChr
     .incbin "out/data/tiles/upgrade_optil.chr"
     .assert * - :- = (kTileIdObjUpgradeOpCopyFirst - $80) * kSizeofChr, error
-    .res $10 * kSizeofChr
+    .res $0a * kSizeofChr
+    .assert * - :- = (kTileIdObjCrateFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/crate.chr"
+    .res $02 * kSizeofChr
     .incbin "out/data/tiles/column.chr"
     .res $04 * kSizeofChr
     .assert * - :- = (kTileIdMermaidGuardFFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/mermaid_guardf.chr"
-    .res $3a * kSizeofChr
+    .res $22 * kSizeofChr
+    .assert * - :- = (kTileIdChildAlexFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/alex.chr"
     .assert * - :- = (kTileIdObjBeetleFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/beetle.chr"
     .assert * - :- = (kTileIdObjBreakerFirst - $80) * kSizeofChr, error

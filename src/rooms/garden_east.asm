@@ -70,7 +70,7 @@
 kMermaidActorIndex = 0
 ;;; The dialog index for the mermaid in this room.
 kMermaidDialogIndex = 0
-;;; The talk devices indices for the mermaid in this room.
+;;; The talk device indices for the mermaid in this room.
 kMermaidDeviceIndexLeft = 1
 kMermaidDeviceIndexRight = 0
 

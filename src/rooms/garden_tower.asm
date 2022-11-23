@@ -39,10 +39,8 @@
 .IMPORT FuncA_Machine_CannonTryAct
 .IMPORT FuncA_Machine_CannonTryMove
 .IMPORT FuncA_Objects_Alloc1x1Shape
-.IMPORT FuncA_Objects_Draw2x2Shape
 .IMPORT FuncA_Objects_DrawCannonMachine
-.IMPORT FuncA_Objects_MoveShapeDownAndRightOneTile
-.IMPORT FuncA_Objects_MoveShapeDownByA
+.IMPORT FuncA_Objects_DrawCratePlatform
 .IMPORT FuncA_Objects_MoveShapeDownOneTile
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
 .IMPORT FuncA_Room_FindGrenadeActor
@@ -447,24 +445,11 @@ _BreakableWall:
     lda _Brick3TileId_u8, x  ; param: tile ID
     jsr FuncA_Objects_DrawGardenBrick  ; preserves X
     @done:
-_WallCrate:
-    lda Ram_PlatformType_ePlatform_arr + kWallCratePlatformIndex
-    cmp #ePlatform::Solid
-    bne @done
-    ldx #kWallCratePlatformIndex  ; param: platform index
+_Crates:
+    ldx #kWallCratePlatformIndex
     jsr FuncA_Objects_DrawCratePlatform
-    @done:
-_FloorCrates:
-    lda Ram_PlatformType_ePlatform_arr + kFloorCratePlatformIndex
-    cmp #ePlatform::Solid
-    bne @done
-    ldx #kFloorCratePlatformIndex  ; param: platform index
-    jsr FuncA_Objects_DrawCratePlatform
-    lda #kBlockHeightPx  ; param: offset
-    jsr FuncA_Objects_MoveShapeDownByA
-    jsr FuncA_Objects_DrawCrateShape
-    @done:
-    rts
+    ldx #kFloorCratePlatformIndex
+    jmp FuncA_Objects_DrawCratePlatform
 _Brick0TileId_u8:
     .byte kTileIdObjGardenBricksFirst + 0
     .byte kTileIdObjGardenBricksFirst + 2
@@ -497,23 +482,6 @@ _Brick3TileId_u8:
     sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
     @done:
     jmp FuncA_Objects_MoveShapeDownOneTile  ; preserves X
-.ENDPROC
-
-;;; Draws a 2x2-tile crate with its top-left corner at the top-left corner of
-;;; the specified platform.  After this is called, the current shape position
-;;; will be set to the center of the crate.
-;;; @param X The platform index.
-.PROC FuncA_Objects_DrawCratePlatform
-    jsr FuncA_Objects_SetShapePosToPlatformTopLeft
-    jsr FuncA_Objects_MoveShapeDownAndRightOneTile
-    .assert * = FuncA_Objects_DrawCrateShape, error, "fallthrough"
-.ENDPROC
-
-;;; Draws a 2x2-tile crate centered on the current shape position.
-.PROC FuncA_Objects_DrawCrateShape
-    lda #kTileIdObjCrateFirst  ; param: first tile ID
-    ldy #kPaletteObjCrate  ; param: flags
-    jmp FuncA_Objects_Draw2x2Shape
 .ENDPROC
 
 ;;;=========================================================================;;;

@@ -19,15 +19,23 @@
 
 .INCLUDE "../actor.inc"
 .INCLUDE "../device.inc"
+.INCLUDE "../flag.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../platform.inc"
 .INCLUDE "../room.inc"
+.INCLUDE "../spawn.inc"
 
 .IMPORT DataA_Pause_CryptAreaCells_u8_arr2_arr
 .IMPORT DataA_Pause_CryptAreaName_u8_arr
 .IMPORT DataA_Room_Crypt_sTileset
 .IMPORT Func_Noop
+.IMPORT Func_SetFlag
 .IMPORT Ppu_ChrObjCrypt
+
+;;;=========================================================================;;;
+
+;;; The index of the vertical passage at the top of the room.
+kShaftPassageIndex = 0
 
 ;;;=========================================================================;;;
 
@@ -60,7 +68,7 @@ _Ext_sRoomExt:
     d_addr Dialogs_sDialog_ptr_arr_ptr, 0
     d_addr Passages_sPassage_arr_ptr, _Passages_sPassage_arr
     d_addr Init_func_ptr, Func_Noop
-    d_addr Enter_func_ptr, Func_Noop
+    d_addr Enter_func_ptr, FuncC_Crypt_Landing_EnterRoom
     d_addr FadeIn_func_ptr, Func_Noop
     D_END
 _TerrainData:
@@ -102,6 +110,7 @@ _Actors_sActor_arr:
 _Devices_sDevice_arr:
     .byte eDevice::None
 _Passages_sPassage_arr:
+:   .assert * - :- = kShaftPassageIndex * .sizeof(sPassage), error
     D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Top | 0
     d_byte Destination_eRoom, eRoom::TemplePit
@@ -112,6 +121,18 @@ _Passages_sPassage_arr:
     d_byte Destination_eRoom, eRoom::CryptNorth
     d_byte SpawnBlock_u8, 18
     D_END
+.ENDPROC
+
+.PROC FuncC_Crypt_Landing_EnterRoom
+    ;; If the player avatar didn't enter from the vertical shaft at the top, do
+    ;; nothing.
+    cmp #bSpawn::IsPassage | kShaftPassageIndex
+    bne @done
+    ;; Otherwise, set the flag indicating that the player entered the crypt.
+    ldx #eFlag::CryptLandingDroppedIn  ; param: flag
+    jsr Func_SetFlag
+    @done:
+    rts
 .ENDPROC
 
 ;;;=========================================================================;;;

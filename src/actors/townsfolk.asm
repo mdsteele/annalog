@@ -73,6 +73,7 @@
 ;;; @preserve X
 .EXPORT FuncA_Actor_TickNpcChild
 .PROC FuncA_Actor_TickNpcChild
+    ;; TODO: instead of using tick, just always draw the NPC facing the avatar
     lda Ram_ActorPosX_i16_1_arr, x
     cmp Zp_AvatarPosX_i16 + 1
     blt @faceRight
@@ -109,6 +110,7 @@
 ;;; @preserve X
 .EXPORT FuncA_Objects_DrawActorNpcChild
 .PROC FuncA_Objects_DrawActorNpcChild
+    ;; TODO: always use palette 1
     lda Ram_ActorState1_byte_arr, x  ; param: first tile ID
     jmp FuncA_Objects_Draw2x2Actor  ; preserves X
 .ENDPROC
