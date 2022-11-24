@@ -56,6 +56,7 @@
 .IMPORT Ram_ActorPosX_i16_0_arr
 .IMPORT Ram_ActorPosX_i16_1_arr
 .IMPORT Ram_ActorState1_byte_arr
+.IMPORT Ram_ActorState2_byte_arr
 .IMPORT Ram_ActorType_eActor_arr
 .IMPORT Ram_DeviceType_eDevice_arr
 .IMPORT Ram_MachineGoalHorz_u8_arr
@@ -93,7 +94,7 @@ kAlexBoostingPositionX = $0068
 
 ;;; CutsceneAlexBoostTimer_u8 values for various phases of the cutscene.
 kCutsceneTimerStanding = 50
-kCutsceneTimerDucking  = 30 + kCutsceneTimerStanding
+kCutsceneTimerDucking  = 20 + kCutsceneTimerStanding
 kCutsceneTimerBoosting = 30 + kCutsceneTimerDucking
 
 ;;;=========================================================================;;;
@@ -451,6 +452,8 @@ _AlexBoosting:
     sta Ram_ActorPosX_i16_0_arr + kAlexActorIndex
     lda #kTileIdChildAlexBoostingFirst
     sta Ram_ActorState1_byte_arr + kAlexActorIndex
+    lda #$ff
+    sta Ram_ActorState2_byte_arr + kAlexActorIndex
     lda #eDevice::TalkLeft
     sta Ram_DeviceType_eDevice_arr + kAlexBoostingDeviceIndex
     lda #ePlatform::Solid
@@ -686,6 +689,8 @@ _WalkToBoostingPosition:
     lda #kTileIdChildAlexWalking2First
     @setState:
     sta Ram_ActorState1_byte_arr + kAlexActorIndex
+    lda #$ff
+    sta Ram_ActorState2_byte_arr + kAlexActorIndex
     lda #bObj::FlipH
     sta Ram_ActorFlags_bObj_arr + kAlexActorIndex
     bne _GameLoop  ; unconditional

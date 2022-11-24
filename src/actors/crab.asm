@@ -37,6 +37,11 @@
 
 ;;;=========================================================================;;;
 
+;;; The OBJ palette number to use for drawing crab baddie actors.
+kPaletteObjCrab = 0
+
+;;;=========================================================================;;;
+
 .SEGMENT "PRGA_Actor"
 
 ;;; Performs per-frame updates for a crab baddie actor.
@@ -131,6 +136,7 @@ _StartMove:
     and #$01
     tay
     lda _TileIds_u8_arr2, y  ; param: first tile ID
+    ldy #kPaletteObjCrab  ; param: palette
     jmp FuncA_Objects_Draw2x2Actor  ; preserves X
 _TileIds_u8_arr2:
     .byte kTileIdObjCrabFirst + 0

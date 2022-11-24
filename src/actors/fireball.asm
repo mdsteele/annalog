@@ -24,7 +24,7 @@
 .IMPORT FuncA_Actor_CenterHitsTerrain
 .IMPORT FuncA_Actor_HarmAvatarIfCollision
 .IMPORT FuncA_Objects_Draw1x1Actor
-.IMPORT Func_InitActorWithFlags
+.IMPORT Func_InitActorDefault
 .IMPORT Ram_ActorState1_byte_arr
 .IMPORT Ram_ActorType_eActor_arr
 .IMPORT Ram_ActorVelX_i16_0_arr
@@ -50,8 +50,7 @@ kPaletteObjFireball = 1
 .PROC Func_InitActorProjFireball
     pha  ; angle
     ldy #eActor::ProjFireball  ; param: actor type
-    lda #kPaletteObjFireball  ; param: flags
-    jsr Func_InitActorWithFlags  ; preserves X
+    jsr Func_InitActorDefault  ; preserves X
     pla  ; angle
     and #$3f
     tay  ; angle mod 64
@@ -132,6 +131,7 @@ _VelY_u8_arr64:
     div #2
     and #$01
     add #kTileIdObjFireballFirst
+    ldy #kPaletteObjFireball  ; param: palette
     jmp FuncA_Objects_Draw1x1Actor  ; preserves X
 .ENDPROC
 

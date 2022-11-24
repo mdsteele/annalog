@@ -45,6 +45,11 @@
 
 ;;;=========================================================================;;;
 
+;;; The OBJ palette number to use for drawing grub baddie actors.
+kPaletteObjVinebug = 0
+
+;;;=========================================================================;;;
+
 .SEGMENT "PRG8"
 
 ;;; Initializes a vinebug baddie actor.
@@ -182,6 +187,7 @@ _Finish:
     and #$01
     tay
     lda _TileIds_u8_arr2, y  ; param: first tile ID
+    ldy #kPaletteObjVinebug  ; param: palette
     jmp FuncA_Objects_Draw2x2Actor  ; preserves X
 _TileIds_u8_arr2:
     .byte kTileIdVinebugFirst1, kTileIdVinebugFirst2

@@ -19,7 +19,8 @@
 
 ;;; State bytes for adult/child/mermaid NPCs:
 ;;;   * State1: The first tile ID for the actor.
-;;;   * State2: Unused.
+;;;   * State2: If nonzero, the NPC uses Ram_ActorFlags_bObj_arr for drawing;
+;;;     otherwise, the NPC is automatically drawn facing the player avatar.
 
 ;;; The first tile IDs for various children.
 kTileIdChildPonytailFirst     = $84

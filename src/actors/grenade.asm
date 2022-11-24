@@ -40,6 +40,11 @@
 
 ;;;=========================================================================;;;
 
+;;; The OBJ palette number used for grenade projectile actors.
+kPaletteObjGrenade = 0
+
+;;;=========================================================================;;;
+
 .SEGMENT "PRG8"
 
 ;;; Initializes the specified actor as a grenade projectile.  The grenade can
@@ -163,6 +168,7 @@ _Explode:
     div #4
     and #$03
     add #kTileIdObjGrenadeFirst
+    ldy #kPaletteObjGrenade  ; param: palette
     jmp FuncA_Objects_Draw1x1Actor  ; preserves X
 .ENDPROC
 

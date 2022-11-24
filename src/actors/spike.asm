@@ -33,6 +33,11 @@
 
 ;;;=========================================================================;;;
 
+;;; The OBJ palette number used for spike projectile actors.
+kPaletteObjSpike = 0
+
+;;;=========================================================================;;;
+
 .SEGMENT "PRG8"
 
 ;;; Initializes the specified actor as a spike projectile.
@@ -84,6 +89,7 @@ _Expire:
 .EXPORT FuncA_Objects_DrawActorProjSpike
 .PROC FuncA_Objects_DrawActorProjSpike
     lda #kTileIdObjSpike  ; param: tile ID
+    ldy #kPaletteObjSpike  ; param: palette
     jmp FuncA_Objects_Draw1x1Actor  ; preserves X
 .ENDPROC
 

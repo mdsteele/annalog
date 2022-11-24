@@ -41,6 +41,9 @@ kSteamAccel = 220
 ;;; How long a steam actor animates before disappearing, in frames.
 kSteamNumFrames = 32
 
+;;; The OBJ palette number to use for drawing steam projectile actors.
+kPaletteObjSteam = 0
+
 ;;;=========================================================================;;;
 
 .SEGMENT "PRG8"
@@ -160,6 +163,7 @@ kSteamNumFrames = 32
 .PROC FuncA_Objects_DrawActorProjSteamHorz
     ;; TODO: set the actual correct first tile ID
     lda #$50  ; param: first tile ID
+    ldy #kPaletteObjSteam  ; param: palette
     jmp FuncA_Objects_Draw2x2Actor  ; preserves X
 .ENDPROC
 
@@ -170,6 +174,7 @@ kSteamNumFrames = 32
 .PROC FuncA_Objects_DrawActorProjSteamUp
     ;; TODO: set the actual correct first tile ID
     lda #$40  ; param: first tile ID
+    ldy #kPaletteObjSteam  ; param: palette
     jmp FuncA_Objects_Draw2x2Actor  ; preserves X
 .ENDPROC
 

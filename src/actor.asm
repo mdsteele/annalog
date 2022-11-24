@@ -33,10 +33,6 @@
 .IMPORT FuncA_Actor_TickBadHotheadVert
 .IMPORT FuncA_Actor_TickBadSpider
 .IMPORT FuncA_Actor_TickBadVinebug
-.IMPORT FuncA_Actor_TickNpcAdult
-.IMPORT FuncA_Actor_TickNpcChild
-.IMPORT FuncA_Actor_TickNpcMermaid
-.IMPORT FuncA_Actor_TickNpcMermaidQueen
 .IMPORT FuncA_Actor_TickNpcToddler
 .IMPORT FuncA_Actor_TickProjFireball
 .IMPORT FuncA_Actor_TickProjGrenade
@@ -67,7 +63,6 @@
 .IMPORT FuncA_Objects_DrawActorProjSteamHorz
 .IMPORT FuncA_Objects_DrawActorProjSteamUp
 .IMPORT FuncA_Objects_MoveShapeLeftHalfTile
-.IMPORT FuncA_Objects_MoveShapeUpOneTile
 .IMPORT Func_GetTerrainColumnPtrForTileIndex
 .IMPORT Func_HarmAvatar
 .IMPORT Func_InitActorBadVinebug
@@ -411,10 +406,10 @@ _TypeSpecificTick:
     d_entry table, BadHotheadVert,  FuncA_Actor_TickBadHotheadVert
     d_entry table, BadSpider,       FuncA_Actor_TickBadSpider
     d_entry table, BadVinebug,      FuncA_Actor_TickBadVinebug
-    d_entry table, NpcAdult,        FuncA_Actor_TickNpcAdult
-    d_entry table, NpcChild,        FuncA_Actor_TickNpcChild
-    d_entry table, NpcMermaid,      FuncA_Actor_TickNpcMermaid
-    d_entry table, NpcMermaidQueen, FuncA_Actor_TickNpcMermaidQueen
+    d_entry table, NpcAdult,        Func_Noop
+    d_entry table, NpcChild,        Func_Noop
+    d_entry table, NpcMermaid,      Func_Noop
+    d_entry table, NpcMermaidQueen, Func_Noop
     d_entry table, NpcToddler,      FuncA_Actor_TickNpcToddler
     d_entry table, ProjFireball,    FuncA_Actor_TickProjFireball
     d_entry table, ProjGrenade,     FuncA_Actor_TickProjGrenade
@@ -735,17 +730,17 @@ _NoHit:
     rts
 .ENDPROC
 
-;;; Allocates and populates OAM slots for the specified actor, using the given
-;;; tile ID.
+;;; Draws a 1x1-tile actor, with the tile centered on the actor position.
 ;;; @param A The tile ID.
 ;;; @param X The actor index.
+;;; @param Y The OBJ palette to use when drawing the actor.
 ;;; @preserve X
 .EXPORT FuncA_Objects_Draw1x1Actor
 .PROC FuncA_Objects_Draw1x1Actor
     pha  ; tile ID
-    jsr FuncA_Objects_SetShapePosToActorCenter  ; preserves X
+    jsr FuncA_Objects_SetShapePosToActorCenter  ; preserves X and Y
     ;; Adjust X-position.
-    jsr FuncA_Objects_MoveShapeLeftHalfTile  ; preserves X
+    jsr FuncA_Objects_MoveShapeLeftHalfTile  ; preserves X and Y
     ;; Adjust Y-position.
     lda Zp_ShapePosY_i16 + 0
     sub #kTileHeightPx / 2
@@ -754,51 +749,15 @@ _NoHit:
     sbc #0
     sta Zp_ShapePosY_i16 + 1
     ;; Allocate object.
-    jsr FuncA_Objects_Alloc1x1Shape  ; preserves X
+    sty Zp_Tmp1_byte  ; palette
+    jsr FuncA_Objects_Alloc1x1Shape  ; preserves X and Zp_Tmp*, returns C and Y
     pla  ; tile ID
     bcs @done
     sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
     lda Ram_ActorFlags_bObj_arr, x
+    ora Zp_Tmp1_byte  ; palette
     sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
     @done:
-    rts
-.ENDPROC
-
-;;; Allocates and populates OAM slots for the specified actor, using the given
-;;; first tile ID and the subsequent tile ID.
-;;; @param A The first tile ID.
-;;; @param X The actor index.
-;;; @preserve X
-.EXPORT FuncA_Objects_Draw1x2Actor
-.PROC FuncA_Objects_Draw1x2Actor
-    pha  ; first tile ID
-    jsr FuncA_Objects_SetShapePosToActorCenter  ; preserves X
-    ;; Adjust X-position.
-    lda Zp_ShapePosX_i16 + 0
-    sub #kTileWidthPx / 2
-    sta Zp_ShapePosX_i16 + 0
-    lda Zp_ShapePosX_i16 + 1
-    sbc #0
-    sta Zp_ShapePosX_i16 + 1
-    ;; Allocate lower object.
-    jsr FuncA_Objects_Alloc1x1Shape  ; preserves X
-    bcs @doneLower
-    pla  ; first tile ID
-    pha  ; first tile ID
-    adc #1  ; carry bit is already clear
-    sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
-    lda Ram_ActorFlags_bObj_arr, x
-    sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
-    @doneLower:
-    ;; Allocate upper object.
-    jsr FuncA_Objects_MoveShapeUpOneTile  ; preserves X
-    jsr FuncA_Objects_Alloc1x1Shape  ; preserves X
-    pla  ; first tile ID
-    bcs @doneUpper
-    sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
-    lda Ram_ActorFlags_bObj_arr, x
-    sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
-    @doneUpper:
     rts
 .ENDPROC
 
@@ -807,14 +766,17 @@ _NoHit:
 ;;; further modify the objects if needed.
 ;;; @param A The first tile ID.
 ;;; @param X The actor index.
+;;; @param Y The OBJ palette to use when drawing the actor.
 ;;; @return C Set if no OAM slots were allocated, cleared otherwise.
 ;;; @return Y The OAM byte offset for the first of the four objects.
 ;;; @preserve X
 .EXPORT FuncA_Objects_Draw2x2Actor
 .PROC FuncA_Objects_Draw2x2Actor
     sta Zp_Tmp1_byte  ; first tile ID
-    jsr FuncA_Objects_SetShapePosToActorCenter  ; preserves X and Zp_Tmp*
-    ldy Ram_ActorFlags_bObj_arr, x  ; param: object flags
+    jsr FuncA_Objects_SetShapePosToActorCenter  ; preserves X, Y, and Zp_Tmp*
+    tya
+    ora Ram_ActorFlags_bObj_arr, x
+    tay  ; param: object flags
     lda Zp_Tmp1_byte  ; param: first tile ID
     jmp FuncA_Objects_Draw2x2Shape  ; preserves X, returns C and Y
 .ENDPROC

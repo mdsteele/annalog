@@ -28,8 +28,7 @@
 .IMPORT FuncA_Actor_GetRoomBlockRow
 .IMPORT FuncA_Actor_GetRoomTileColumn
 .IMPORT FuncA_Actor_HarmAvatarIfCollision
-.IMPORT FuncA_Objects_Draw2x2Shape
-.IMPORT FuncA_Objects_SetShapePosToActorCenter
+.IMPORT FuncA_Objects_Draw2x2Actor
 .IMPORT Func_GetTerrainColumnPtrForTileIndex
 .IMPORT Ram_ActorFlags_bObj_arr
 .IMPORT Ram_ActorPosX_i16_0_arr
@@ -436,11 +435,6 @@ _TurnAtOuterCorner:
 ;;; @preserve X
 .PROC FuncA_Objects_DrawActorBadHotheadShape
     sta Zp_Tmp1_byte  ; first tile ID
-    jsr FuncA_Objects_SetShapePosToActorCenter  ; preserves X and Zp_Tmp*
-    lda Ram_ActorFlags_bObj_arr, x  ; param: object flags
-    .assert kPaletteObjHothead <> 0, error
-    ora #kPaletteObjHothead
-    tay  ; param: object flags
     lda Zp_FrameCounter_u8
     and #$08
     lsr a
@@ -449,8 +443,8 @@ _TurnAtOuterCorner:
     .assert kTileIdObjHotheadHorzFirst .mod $08 = 0, error
     .assert kTileIdObjHotheadVertFirst .mod $08 = 0, error
     ora Zp_Tmp1_byte  ; first tile ID
-    jsr FuncA_Objects_Draw2x2Shape  ; preserves X, returns C and Y
-    rts
+    ldy #kPaletteObjHothead  ; param: palette
+    jmp FuncA_Objects_Draw2x2Actor  ; preserves X, returns C and Y
 .ENDPROC
 
 ;;;=========================================================================;;;

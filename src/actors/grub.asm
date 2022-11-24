@@ -36,6 +36,11 @@
 
 ;;;=========================================================================;;;
 
+;;; The OBJ palette number to use for drawing grub baddie actors.
+kPaletteObjGrub = 0
+
+;;;=========================================================================;;;
+
 .SEGMENT "PRGA_Actor"
 
 ;;; Performs per-frame updates for a grub baddie actor.
@@ -126,6 +131,7 @@ _StartMove:
     and #$03
     tay
     lda _TileIds_u8_arr4, y  ; param: first tile ID
+    ldy #kPaletteObjGrub  ; param: palette
     jmp FuncA_Objects_Draw2x2Actor  ; preserves X
 _TileIds_u8_arr4:
     .byte kTileIdObjGrubFirst + $00

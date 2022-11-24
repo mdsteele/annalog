@@ -39,6 +39,9 @@
 ;;; How fast the fish swims, in subpixels per frame.
 kFishSpeed = $0130
 
+;;; The OBJ palette number to use for drawing fish baddie actors.
+kPaletteObjFish = 0
+
 ;;;=========================================================================;;;
 
 .SEGMENT "PRGA_Actor"
@@ -118,6 +121,7 @@ _SetVelocity:
     and #$03
     tay
     lda _TileIds_u8_arr4, y  ; param: first tile ID
+    ldy #kPaletteObjFish  ; param: palette
     jmp FuncA_Objects_Draw2x2Actor  ; preserves X
 _TileIds_u8_arr4:
     .byte kTileIdObjFishFirst + 0
