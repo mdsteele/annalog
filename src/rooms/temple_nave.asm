@@ -754,7 +754,7 @@ _ResumeDialog:
 .ENDPROC
 
 .PROC DataA_Dialog_TempleNave_AlexStanding_sDialog
-    .word ePortrait::Mermaid  ; TODO
+    .word ePortrait::Alex
     .byte "There's something$"
     .byte "hidden underneath this$"
     .byte "temple, and we should$"
@@ -768,7 +768,7 @@ _CutsceneFunc:
 .ENDPROC
 
 .PROC DataA_Dialog_TempleNave_AlexBoosting_sDialog
-    .word ePortrait::Mermaid  ; TODO
+    .word ePortrait::Alex
     .byte "Hop on up. I'll give$"
     .byte "you a boost.#"
     .assert * = DataA_Dialog_TempleNave_Empty_sDialog, error, "fallthrough"
