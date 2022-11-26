@@ -60,7 +60,7 @@ Ram_PpuTransfer_arr: .res $80
     ldx #$ff
     txs
 Test:
-    lda #10
+    lda #9
     jsr Func_Window_GetRowPpuAddr
     stxy Zp_WindowRowPpuAddr_ptr
 Verify:

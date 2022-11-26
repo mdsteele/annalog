@@ -72,23 +72,23 @@ kCarriageMaxGoalY = 9
 
 ;;; The minimum, initial, and maximum X-positions for the left side of the
 ;;; carriage platform.
-.LINECONT+
+.LINECONT +
 kCarriageMinPlatformLeft = $00d0
 kCarriageInitPlatformLeft = \
     kCarriageMinPlatformLeft + kCarriageInitGoalX * kBlockWidthPx
 kCarriageMaxPlatformLeft = \
     kCarriageMinPlatformLeft + kCarriageMaxGoalX * kBlockWidthPx
-.LINECONT-
+.LINECONT -
 
 ;;; The maximum, initial, and minumum Y-positions for the top of the carriage
 ;;; platform.
-.LINECONT+
+.LINECONT +
 kCarriageMaxPlatformTop = $0120
 kCarriageInitPlatformTop = \
     kCarriageMaxPlatformTop - kCarriageInitGoalY * kBlockHeightPx
 kCarriageMinPlatformTop = \
     kCarriageMaxPlatformTop - kCarriageMaxGoalY * kBlockHeightPx
-.LINECONT-
+.LINECONT -
 
 ;;;=========================================================================;;;
 

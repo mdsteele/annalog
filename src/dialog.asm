@@ -103,6 +103,14 @@ Ppu_DialogYesNoStart = Ppu_Nametable3_sName + sName::Tiles_u8_arr + \
     kDialogYesWindowCol
 .LINECONT -
 
+;;; The PPU address (within the lower nametable) for the start of the attribute
+;;; bytes that cover the dialog portrait.
+.LINECONT +
+.ASSERT (kWindowStartRow + 1) .mod 4 = 0, error
+Ppu_PortraitAttrStart = Ppu_Nametable3_sName + sName::Attrs_u8_arr64 + \
+    ((kWindowStartRow + 1) / 4) * 8
+.LINECONT -
+
 ;;;=========================================================================;;;
 
 ;;; Bitfield for yes-or-no question state.
@@ -165,19 +173,8 @@ _GameLoop:
     jsr_prga FuncA_Objects_DrawObjectsForRoom
     jsr Func_ClearRestOfOam
     jsr Func_ProcessFrame
-_ScrollWindowUp:
-    lda Zp_WindowTop_u8
-    sub #kDialogWindowScrollSpeed
-    cmp Zp_WindowTopGoal_u8
-    bge @notDone
-    lda Zp_WindowTopGoal_u8
-    @notDone:
-    sta Zp_WindowTop_u8
-    jsr_prga FuncA_Dialog_TransferNextWindowRow
-_CheckIfDone:
-    lda Zp_WindowTop_u8
-    cmp Zp_WindowTopGoal_u8
-    jeq Main_Dialog_Run
+    jsr_prga FuncA_Dialog_ScrollWindowUp  ; sets C if window is now fully open
+    jcs Main_Dialog_Run
 _UpdateScrolling:
     jsr_prga FuncA_Terrain_ScrollTowardsGoal
     jmp _GameLoop
@@ -192,18 +189,8 @@ _GameLoop:
     jsr_prga FuncA_Objects_DrawObjectsForRoom
     jsr Func_ClearRestOfOam
     jsr Func_ProcessFrame
-_ScrollWindowDown:
-    lda Zp_WindowTop_u8
-    add #kDialogWindowScrollSpeed
-    cmp #kScreenHeightPx
-    blt @notDone
-    lda #$ff
-    @notDone:
-    sta Zp_WindowTop_u8
-_CheckIfDone:
-    lda Zp_WindowTop_u8
-    cmp #$ff
-    jeq Main_Explore_Continue
+    jsr_prga FuncA_Dialog_ScrollWindowDown  ; sets C if window is now closed
+    jcs Main_Explore_Continue
 _UpdateScrolling:
     jsr Func_SetScrollGoalFromAvatar
     jsr_prga FuncA_Terrain_ScrollTowardsGoal
@@ -245,12 +232,36 @@ _UpdateScrolling:
     rts
 .ENDPROC
 
+;;; The PPU transfer entry for setting nametable attributes for the dialog
+;;; portrait.
+.PROC DataA_Dialog_PortraitAttrTransfer_arr
+    .byte kPpuCtrlFlagsHorz       ; control flags
+    .byte >Ppu_PortraitAttrStart  ; destination address (hi)
+    .byte <Ppu_PortraitAttrStart  ; destination address (lo)
+    .byte @dataEnd - @dataStart   ; transfer length
+    @dataStart:
+    .byte $44, $11
+    @dataEnd:
+.ENDPROC
+
+;;; The PPU transfer entry for undoing the nametable attributes changes made by
+;;; DataA_Dialog_PortraitAttrTransfer_arr above.
+.PROC DataA_Dialog_UndoPortraitAttrTransfer_arr
+    .byte kPpuCtrlFlagsHorz       ; control flags
+    .byte >Ppu_PortraitAttrStart  ; destination address (hi)
+    .byte <Ppu_PortraitAttrStart  ; destination address (lo)
+    .byte @dataEnd - @dataStart   ; transfer length
+    @dataStart:
+    .byte $00, $00
+    @dataEnd:
+.ENDPROC
+
 ;;; The PPU transfer entry for drawing the "yes"/"no" options for a yes-or-no
 ;;; dialog question.
-.PROC DataA_Dialog_YesNoTransferEntry_u8_arr
+.PROC DataA_Dialog_YesNoTransfer_arr
     .byte kPpuCtrlFlagsHorz      ; control flags
     .byte >Ppu_DialogYesNoStart  ; destination address (hi)
-    .byte <Ppu_DialogYesNoStart  ; destination address (loi)
+    .byte <Ppu_DialogYesNoStart  ; destination address (lo)
     .byte @dataEnd - @dataStart  ; transfer length
     @dataStart:
     .byte "YES   NO"
@@ -290,7 +301,7 @@ _SetScrollGoal:
 _InitWindow:
     lda #kScreenHeightPx - kDialogWindowScrollSpeed
     sta Zp_WindowTop_u8
-    lda #1
+    lda #0
     sta Zp_WindowNextRowToTransfer_u8
     lda #kDialogWindowTopGoal
     sta Zp_WindowTopGoal_u8
@@ -435,10 +446,61 @@ _SetPortrait:
     rts
 .ENDPROC
 
+;;; Scrolls the dialog window down a bit; call this each frame when the window
+;;; is closing.
+;;; @return C Set if the window is now fully scrolled out.
+.PROC FuncA_Dialog_ScrollWindowDown
+    lda Zp_WindowTop_u8
+    add #kDialogWindowScrollSpeed
+    cmp #kScreenHeightPx
+    bge _FullyClosed
+    sta Zp_WindowTop_u8
+    cmp #kScreenHeightPx - kDialogWindowScrollSpeed
+    blt _StillClosing
+_ResetBgAttributes:
+    ;; Buffer PPU transfer to reset nametable attributes for the portrait.
+    ldx Zp_PpuTransferLen_u8
+    ldy #0
+    @loop:
+    lda DataA_Dialog_UndoPortraitAttrTransfer_arr, y
+    sta Ram_PpuTransfer_arr, x
+    inx
+    iny
+    cpy #.sizeof(DataA_Dialog_UndoPortraitAttrTransfer_arr)
+    blt @loop
+    stx Zp_PpuTransferLen_u8
+_StillClosing:
+    clc
+    rts
+_FullyClosed:
+    lda #$ff
+    sta Zp_WindowTop_u8
+    sec
+    rts
+.ENDPROC
+
+;;; Scrolls the dialog window in a bit, and transfers PPU data as needed; call
+;;; this each frame when the window is opening.
+;;; @return C Set if the window is now fully scrolled in.
+.PROC FuncA_Dialog_ScrollWindowUp
+    lda Zp_WindowTop_u8
+    sub #kDialogWindowScrollSpeed
+    cmp Zp_WindowTopGoal_u8
+    bge @notDone
+    lda Zp_WindowTopGoal_u8
+    @notDone:
+    sta Zp_WindowTop_u8
+    jsr FuncA_Dialog_TransferNextWindowRow
+    lda Zp_WindowTopGoal_u8
+    cmp Zp_WindowTop_u8  ; clears C if Zp_WindowTopGoal_u8 < Zp_WindowTop_u8
+    rts
+.ENDPROC
+
 ;;; Transfers the next dialog window row (if any) that still needs to be
 ;;; transferred to the PPU.
 .PROC FuncA_Dialog_TransferNextWindowRow
     ldy Zp_WindowNextRowToTransfer_u8
+    beq _BgAttributes
     dey
     cpy #kDialogNumTextRows
     blt _Interior
@@ -479,6 +541,20 @@ _Interior:
     inx
     dey
     bne @clearLoop
+    rts
+_BgAttributes:
+    inc Zp_WindowNextRowToTransfer_u8
+    ;; Buffer PPU transfer to set nametable attributes for the portrait.
+    ldx Zp_PpuTransferLen_u8
+    ldy #0
+    @loop:
+    lda DataA_Dialog_PortraitAttrTransfer_arr, y
+    sta Ram_PpuTransfer_arr, x
+    inx
+    iny
+    cpy #.sizeof(DataA_Dialog_PortraitAttrTransfer_arr)
+    blt @loop
+    stx Zp_PpuTransferLen_u8
     rts
 .ENDPROC
 
@@ -553,11 +629,11 @@ _YesNoQuestion:
     ldx Zp_PpuTransferLen_u8
     ldy #0
     @loop:
-    lda DataA_Dialog_YesNoTransferEntry_u8_arr, y
+    lda DataA_Dialog_YesNoTransfer_arr, y
     sta Ram_PpuTransfer_arr, x
     inx
     iny
-    cpy #.sizeof(DataA_Dialog_YesNoTransferEntry_u8_arr)
+    cpy #.sizeof(DataA_Dialog_YesNoTransfer_arr)
     blt @loop
     stx Zp_PpuTransferLen_u8
     rts

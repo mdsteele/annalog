@@ -294,6 +294,31 @@ _Disable:
     pha
     lda #bPpuMask::BgMain | bPpuMask::ObjMain
     sta Hw_PpuMask_wo
+    ;; Set up the latch value for next IRQ.
+    lda #kTileHeightPx * (kWindowMaxNumRows - 2)
+    sta Hw_Mmc3IrqLatch_wo
+    sta Hw_Mmc3IrqReload_wo
+    ;; Update Zp_NextIrq_int_ptr for the next IRQ.
+    lda #<Int_WindowBottomIrq
+    sta Zp_NextIrq_int_ptr + 0
+    lda #>Int_WindowBottomIrq
+    sta Zp_NextIrq_int_ptr + 1
+    ;; Ack the current IRQ.
+    sta Hw_Mmc3IrqDisable_wo  ; ack
+    sta Hw_Mmc3IrqEnable_wo  ; re-enable
+    ;; Restore the A register and return.
+    pla
+    rti
+.ENDPROC
+
+;;; HBlank IRQ handler function for the bottom edge of the window's top border
+;;; (i.e. the top edge of the window interior).  Re-enables object rendering,
+;;; so that objects can be displayed inside the window.
+.PROC Int_WindowBottomIrq
+    ;; Save the A register and update the PPU mask as quickly as possible.
+    pha
+    lda #bPpuMask::ObjMain
+    sta Hw_PpuMask_wo
     ;; No more IRQs for the rest of this frame.
     lda #$ff
     sta Hw_Mmc3IrqLatch_wo

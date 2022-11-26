@@ -24,10 +24,10 @@
 ;;;=========================================================================;;;
 
 ;;; The nametable tile row (of the lower nametable) that the window starts on.
-kWindowStartRow = 18
+kWindowStartRow = 19
 
 ;;; The largest number of tile rows that we ever draw to the window.
-kWindowMaxNumRows = 12
+kWindowMaxNumRows = 11
 
 ;;; How many pixels of blank space we keep between the bottom of the window's
 ;;; bottom border and the bottom of the screen.  This margin should be at least

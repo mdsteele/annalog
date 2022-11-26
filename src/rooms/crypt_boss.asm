@@ -123,7 +123,7 @@ kBossZoneBottomY = $90
 
 ;;; The tile row/col in the lower nametable for the top-left corner of the
 ;;; boss's BG tiles.
-kBossStartRow = 6
+kBossStartRow = 7
 kBossStartCol = 0
 
 ;;; The width and height of the boss's BG tile grid.
@@ -142,6 +142,10 @@ Ppu_BossRow2Start = Ppu_Nametable3_sName + sName::Tiles_u8_arr + \
     kScreenWidthTiles * (kBossStartRow + 2) + kBossStartCol
 Ppu_BossRow3Start = Ppu_Nametable3_sName + sName::Tiles_u8_arr + \
     kScreenWidthTiles * (kBossStartRow + 3) + kBossStartCol
+.ASSERT (kBossStartRow + 1) .mod 4 = 0, error
+.ASSERT (kBossStartCol + 2) .mod 4 = 2, error
+Ppu_BossEyeAttrs = Ppu_Nametable3_sName + sName::Attrs_u8_arr64 + \
+    ((kBossStartRow + 1) / 4) * 8 + (kBossStartCol / 4)
 .LINECONT -
 
 ;;; The initial room pixel position for the center of the boss's eye.
@@ -496,6 +500,12 @@ _Inner:
     .byte <Ppu_BossRow3Start  ; transfer destination (lo)
     .byte 6
     .byte $f6, $f7, $f8, $f9, $fa, $fb
+    ;; Nametable attributes to color eyeball red:
+    .byte kPpuCtrlFlagsHorz
+    .byte >Ppu_BossEyeAttrs  ; transfer destination (hi)
+    .byte <Ppu_BossEyeAttrs  ; transfer destination (lo)
+    .byte 1
+    .byte $04
 .ENDPROC
 
 .PROC FuncC_Crypt_Boss_InitRoom
@@ -692,7 +702,7 @@ _EyeOffsetY_u8_arr:
     sta Hw_Mmc3IrqDisable_wo  ; ack
     sta Hw_Mmc3IrqEnable_wo  ; re-enable
     ;; Set up the latch value for next IRQ.
-    lda <(Zp_Buffered_sIrq + sIrq::Param3_byte)  ; window latch
+    lda <(Zp_Active_sIrq + sIrq::Param3_byte)  ; window latch
     sta Hw_Mmc3IrqLatch_wo
     sta Hw_Mmc3IrqReload_wo
     ;; Update Zp_NextIrq_int_ptr for the next IRQ.

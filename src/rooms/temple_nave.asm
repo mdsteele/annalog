@@ -118,23 +118,23 @@ kLowerCarriageMaxGoalY = 6
 
 ;;; The minimum, initial, and maximum X-positions for the left side of the
 ;;; TempleNaveLowerCarriage platform.
-.LINECONT+
+.LINECONT +
 kLowerCarriageMinPlatformLeft = $00c0
 kLowerCarriageInitPlatformLeft = \
     kLowerCarriageMinPlatformLeft + kLowerCarriageInitGoalX * kBlockWidthPx
 kLowerCarriageMaxPlatformLeft = \
     kLowerCarriageMinPlatformLeft + kLowerCarriageMaxGoalX * kBlockWidthPx
-.LINECONT-
+.LINECONT -
 
 ;;; The maximum, initial, and minumum Y-positions for the top of the
 ;;; TempleNaveLowerCarriage platform.
-.LINECONT+
+.LINECONT +
 kLowerCarriageMaxPlatformTop = $0120
 kLowerCarriageInitPlatformTop = \
     kLowerCarriageMaxPlatformTop - kLowerCarriageInitGoalY * kBlockHeightPx
 kLowerCarriageMinPlatformTop = \
     kLowerCarriageMaxPlatformTop - kLowerCarriageMaxGoalY * kBlockHeightPx
-.LINECONT-
+.LINECONT -
 
 ;;; The initial and maximum permitted horizontal and vertical goal values for
 ;;; the TempleNaveUpperCarriage machine.
@@ -145,23 +145,23 @@ kUpperCarriageMaxGoalY = 7
 
 ;;; The minimum, initial, and maximum X-positions for the left side of the
 ;;; TempleNaveUpperCarriage platform.
-.LINECONT+
+.LINECONT +
 kUpperCarriageMinPlatformLeft = $00c0
 kUpperCarriageInitPlatformLeft = \
     kUpperCarriageMinPlatformLeft + kUpperCarriageInitGoalX * kBlockWidthPx
 kUpperCarriageMaxPlatformLeft = \
     kUpperCarriageMinPlatformLeft + kUpperCarriageMaxGoalX * kBlockWidthPx
-.LINECONT-
+.LINECONT -
 
 ;;; The maximum, initial, and minumum Y-positions for the top of the
 ;;; TempleNaveUpperCarriage platform.
-.LINECONT+
+.LINECONT +
 kUpperCarriageMaxPlatformTop = $00a0
 kUpperCarriageInitPlatformTop = \
     kUpperCarriageMaxPlatformTop - kUpperCarriageInitGoalY * kBlockHeightPx
 kUpperCarriageMinPlatformTop = \
     kUpperCarriageMaxPlatformTop - kUpperCarriageMaxGoalY * kBlockHeightPx
-.LINECONT-
+.LINECONT -
 
 ;;;=========================================================================;;;
 
@@ -485,20 +485,20 @@ _ReadX:
     .assert kLowerCarriageMinPlatformLeft - kTileWidthPx < $100, error
     lda Ram_PlatformLeft_i16_0_arr + kLowerCarriagePlatformIndex
     sub #kLowerCarriageMinPlatformLeft - kTileWidthPx
-    .linecont+
+    .linecont +
     .assert kLowerCarriageMaxPlatformLeft - \
             kLowerCarriageMinPlatformLeft < $100, error
-    .linecont-
+    .linecont -
     div #kBlockWidthPx
     rts
 _ReadY:
     .assert kLowerCarriageMaxPlatformTop + kTileHeightPx >= $100, error
     lda #<(kLowerCarriageMaxPlatformTop + kTileHeightPx)
     sub Ram_PlatformTop_i16_0_arr + kLowerCarriagePlatformIndex
-    .linecont+
+    .linecont +
     .assert kLowerCarriageMaxPlatformTop - \
             kLowerCarriageMinPlatformTop < $100, error
-    .linecont-
+    .linecont -
     div #kBlockWidthPx
     rts
 .ENDPROC
@@ -578,20 +578,20 @@ _ReadX:
     .assert kUpperCarriageMinPlatformLeft - kTileWidthPx < $100, error
     lda Ram_PlatformLeft_i16_0_arr + kUpperCarriagePlatformIndex
     sub #kUpperCarriageMinPlatformLeft - kTileWidthPx
-    .linecont+
+    .linecont +
     .assert kUpperCarriageMaxPlatformLeft - \
             kUpperCarriageMinPlatformLeft < $100, error
-    .linecont-
+    .linecont -
     div #kBlockWidthPx
     rts
 _ReadY:
     .assert kUpperCarriageMaxPlatformTop + kTileHeightPx < $100, error
     lda #kUpperCarriageMaxPlatformTop + kTileHeightPx
     sub Ram_PlatformTop_i16_0_arr + kUpperCarriagePlatformIndex
-    .linecont+
+    .linecont +
     .assert kUpperCarriageMaxPlatformTop - \
             kUpperCarriageMinPlatformTop < $100, error
-    .linecont-
+    .linecont -
     div #kBlockWidthPx
     rts
 .ENDPROC

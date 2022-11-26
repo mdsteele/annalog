@@ -108,7 +108,7 @@ _TransferPpuData:
     ldx #0
     @entryLoop:
     lda Ram_PpuTransfer_arr, x  ; control byte
-    bpl @done
+    beq @done
     sta Hw_PpuCtrl_wo
     inx
     .repeat 2
@@ -126,6 +126,8 @@ _TransferPpuData:
     bne @dataLoop
     beq @entryLoop  ; unconditional
     @done:
+    ;; Mark the PPU transfer buffer as empty.
+    sta Zp_PpuTransferLen_u8  ; A is zero at this point
 _UpdatePpuRegisters:
     ;; Update other PPU registers.  Note that writing to Hw_PpuAddr_w2 (as
     ;; above) can corrupt the scroll position, so we must write Hw_PpuScroll_w2
@@ -144,10 +146,6 @@ _TransferIrqStruct:
     lda <(Zp_Buffered_sIrq + index)
     sta <(Zp_Active_sIrq + index)
     .endrepeat
-_FinishUpdatingPpu:
-    ;; Mark the PPU transfer buffer as empty.
-    lda #0
-    sta Zp_PpuTransferLen_u8
 _DoneUpdatingPpu:
     ;; Set up HBlank IRQs for this frame.
     lda <(Zp_Active_sIrq + sIrq::Latch_u8)

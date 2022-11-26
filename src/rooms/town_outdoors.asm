@@ -220,7 +220,7 @@ _Devices_sDevice_arr:
     sta Hw_Mmc3IrqDisable_wo  ; ack
     sta Hw_Mmc3IrqEnable_wo  ; re-enable
     ;; Set up the latch value for next IRQ.
-    lda <(Zp_Buffered_sIrq + sIrq::Param3_byte)  ; window latch
+    lda <(Zp_Active_sIrq + sIrq::Param3_byte)  ; window latch
     sta Hw_Mmc3IrqLatch_wo
     sta Hw_Mmc3IrqReload_wo
     ;; Update Zp_NextIrq_int_ptr for the next IRQ.
@@ -240,7 +240,7 @@ _Devices_sDevice_arr:
     sta Hw_PpuAddr_w2
     lda #kTreelineBottomY  ; new scroll-Y value
     sta Hw_PpuScroll_w2
-    lda <(Zp_Buffered_sIrq + sIrq::Param2_byte)  ; houses scroll-X
+    lda <(Zp_Active_sIrq + sIrq::Param2_byte)  ; houses scroll-X
     tax  ; new scroll-X value
     div #8
     ora #(kTreelineBottomY & $38) << 2
