@@ -20,10 +20,9 @@
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
 
-.IMPORT FuncA_Objects_Alloc1x1Shape
+.IMPORT FuncA_Objects_Draw1x1Shape
 .IMPORT FuncA_Objects_MoveShapeRightByA
 .IMPORT FuncA_Objects_SetShapePosToDeviceTopLeft
-.IMPORT Ram_Oam_sObj_arr64
 
 ;;;=========================================================================;;;
 
@@ -45,15 +44,9 @@ kPaletteObjPaper = 0
     jsr FuncA_Objects_SetShapePosToDeviceTopLeft  ; preserves X
     lda #4  ; param: offset
     jsr FuncA_Objects_MoveShapeRightByA  ; preserves X
-_AllocateObject:
-    jsr FuncA_Objects_Alloc1x1Shape  ; preserves X, returns C and Y
-    bcs @done
-    lda #kPaletteObjPaper
-    sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
-    lda #kTileIdObjPaper
-    sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
-    @done:
-    rts
+    ldy #kPaletteObjPaper  ; param: object flags
+    lda #kTileIdObjPaper  ; param: tile ID
+    jmp FuncA_Objects_Draw1x1Shape
 .ENDPROC
 
 ;;;=========================================================================;;;

@@ -40,7 +40,7 @@
 .IMPORT FuncA_Actor_TickProjSpike
 .IMPORT FuncA_Actor_TickProjSteamHorz
 .IMPORT FuncA_Actor_TickProjSteamUp
-.IMPORT FuncA_Objects_Alloc1x1Shape
+.IMPORT FuncA_Objects_Draw1x1Shape
 .IMPORT FuncA_Objects_Draw2x2Shape
 .IMPORT FuncA_Objects_DrawActorBadBeetleHorz
 .IMPORT FuncA_Objects_DrawActorBadBeetleVert
@@ -73,7 +73,6 @@
 .IMPORT Func_InitActorProjSteamHorz
 .IMPORT Func_InitActorProjSteamUp
 .IMPORT Func_Noop
-.IMPORT Ram_Oam_sObj_arr64
 .IMPORTZP Zp_AvatarPosX_i16
 .IMPORTZP Zp_AvatarPosY_i16
 .IMPORTZP Zp_RoomScrollX_u16
@@ -748,17 +747,12 @@ _NoHit:
     lda Zp_ShapePosY_i16 + 1
     sbc #0
     sta Zp_ShapePosY_i16 + 1
-    ;; Allocate object.
-    sty Zp_Tmp1_byte  ; palette
-    jsr FuncA_Objects_Alloc1x1Shape  ; preserves X and Zp_Tmp*, returns C and Y
-    pla  ; tile ID
-    bcs @done
-    sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
-    lda Ram_ActorFlags_bObj_arr, x
-    ora Zp_Tmp1_byte  ; palette
-    sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
-    @done:
-    rts
+    ;; Draw object.
+    tya
+    ora Ram_ActorFlags_bObj_arr, x
+    tay  ; param: object flags
+    pla  ; param: tile ID
+    jmp FuncA_Objects_Draw1x1Shape  ; preserves X
 .ENDPROC
 
 ;;; Allocates and populates OAM slots for the specified actor, using the given
@@ -772,12 +766,12 @@ _NoHit:
 ;;; @preserve X
 .EXPORT FuncA_Objects_Draw2x2Actor
 .PROC FuncA_Objects_Draw2x2Actor
-    sta Zp_Tmp1_byte  ; first tile ID
-    jsr FuncA_Objects_SetShapePosToActorCenter  ; preserves X, Y, and Zp_Tmp*
+    pha  ; first tile ID
+    jsr FuncA_Objects_SetShapePosToActorCenter  ; preserves X and Y
     tya
     ora Ram_ActorFlags_bObj_arr, x
     tay  ; param: object flags
-    lda Zp_Tmp1_byte  ; param: first tile ID
+    pla  ; param: first tile ID
     jmp FuncA_Objects_Draw2x2Shape  ; preserves X, returns C and Y
 .ENDPROC
 

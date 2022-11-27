@@ -29,6 +29,7 @@
 .IMPORT FuncA_Machine_StartWorking
 .IMPORT FuncA_Objects_Alloc1x1Shape
 .IMPORT FuncA_Objects_Alloc2x2Shape
+.IMPORT FuncA_Objects_Draw1x1Shape
 .IMPORT FuncA_Objects_GetMachineLightTileId
 .IMPORT FuncA_Objects_MoveShapeDownOneTile
 .IMPORT FuncA_Objects_MoveShapeRightByA
@@ -339,18 +340,12 @@ _Tank:
 ;;; @param A The valve angle (0-9).
 ;;; @param X The platform index for the valve.
 .PROC FuncA_Objects_DrawBoilerValve
-    pha  ; valve angle (0-9)
-    jsr FuncA_Objects_SetShapePosToPlatformTopLeft
-    jsr FuncA_Objects_Alloc1x1Shape  ; returns C and Y
-    pla  ; valve angle (0-9)
-    bcs @done
-    tax  ; valve angle (0-9)
-    lda _Tile_u8_arr10, x
-    sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
-    lda _Flags_bObj_arr10, x
-    sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
-    @done:
-    rts
+    sta Zp_Tmp1_byte  ; valve angle
+    jsr FuncA_Objects_SetShapePosToPlatformTopLeft  ; preserves Zp_Tmp*
+    ldx Zp_Tmp1_byte  ; valve angle
+    ldy _Flags_bObj_arr10, x  ; param: object flags
+    lda _Tile_u8_arr10, x  ; param: tile ID
+    jmp FuncA_Objects_Draw1x1Shape
 _Tile_u8_arr10:
 :   .byte kTileIdValveFirst + 0
     .byte kTileIdValveFirst + 1

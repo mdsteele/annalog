@@ -23,7 +23,7 @@
 .INCLUDE "../oam.inc"
 .INCLUDE "flower.inc"
 
-.IMPORT FuncA_Objects_Alloc1x1Shape
+.IMPORT FuncA_Objects_Draw1x1Shape
 .IMPORT FuncA_Objects_MoveShapeDownOneTile
 .IMPORT FuncA_Objects_MoveShapeRightByA
 .IMPORT FuncA_Objects_SetShapePosToDeviceTopLeft
@@ -32,7 +32,6 @@
 .IMPORT Ram_DeviceAnim_u8_arr
 .IMPORT Ram_DeviceTarget_u8_arr
 .IMPORT Ram_DeviceType_eDevice_arr
-.IMPORT Ram_Oam_sObj_arr64
 .IMPORT Sram_CarryingFlower_eFlag
 .IMPORTZP Zp_Tmp1_byte
 
@@ -136,22 +135,14 @@ kFlowerAnimCountdown = 48
     lda #4  ; param: offset
     jsr FuncA_Objects_MoveShapeRightByA  ; preserves X
 _AllocateUpperObject:
-    jsr FuncA_Objects_Alloc1x1Shape  ; preserves X, returns C and Y
-    bcs @done
-    lda #kPaletteObjFlowerTop
-    sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
-    lda #kTileIdObjFlowerTop
-    sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
-    @done:
+    ldy #kPaletteObjFlowerTop  ; param: object flags
+    lda #kTileIdObjFlowerTop  ; param: tile ID
+    jsr FuncA_Objects_Draw1x1Shape  ; preserves X
 _AllocateLowerObject:
     jsr FuncA_Objects_MoveShapeDownOneTile  ; preserves X
-    jsr FuncA_Objects_Alloc1x1Shape  ; preserves X, returns C and Y
-    bcs @done
-    lda #kPaletteObjFlowerBottom
-    sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
-    lda #kTileIdObjFlowerBottom
-    sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
-    @done:
+    ldy #kPaletteObjFlowerBottom  ; param: object flags
+    lda #kTileIdObjFlowerBottom  ; param: tile ID
+    jmp FuncA_Objects_Draw1x1Shape  ; preserves X
 _Return:
     rts
 .ENDPROC

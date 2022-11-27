@@ -473,6 +473,28 @@ _FinishAllocation:
     rts
 .ENDPROC
 
+;;; Draws a 1x1 shape with its top-left corner at the current shape position,
+;;; using the given tile ID and object flags.  The caller can then further
+;;; modify the object if needed.
+;;; @param A The tile ID to set for the object.
+;;; @param Y The Flags_bObj value to set for the object.
+;;; @return C Set if no OAM slot was allocated, cleared otherwise.
+;;; @return Y The OAM byte offset for the allocated object.
+;;; @preserve X
+.EXPORT FuncA_Objects_Draw1x1Shape
+.PROC FuncA_Objects_Draw1x1Shape
+    sta Zp_Tmp1_byte  ; tile ID
+    sty Zp_Tmp2_byte  ; object flags
+    jsr FuncA_Objects_Alloc1x1Shape  ; preserves X and Zp_Tmp*, returns C and Y
+    bcs @done
+    lda Zp_Tmp1_byte  ; tile ID
+    sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
+    lda Zp_Tmp2_byte  ; object flags
+    sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
+    @done:
+    rts
+.ENDPROC
+
 ;;; Draws a 2x2 shape centered on the current shape position, using the given
 ;;; first tile ID and the three subsequent tile IDs.  The caller can then
 ;;; further modify the objects if needed.

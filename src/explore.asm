@@ -38,7 +38,7 @@
 .IMPORT FuncA_Fade_In
 .IMPORT FuncA_Fade_Out
 .IMPORT FuncA_Machine_ExecuteAll
-.IMPORT FuncA_Objects_Alloc1x1Shape
+.IMPORT FuncA_Objects_Draw1x1Shape
 .IMPORT FuncA_Objects_DrawAllActors
 .IMPORT FuncA_Objects_DrawAllDevices
 .IMPORT FuncA_Objects_DrawAllMachines
@@ -75,7 +75,6 @@
 .IMPORT Ram_DeviceBlockRow_u8_arr
 .IMPORT Ram_DeviceTarget_u8_arr
 .IMPORT Ram_DeviceType_eDevice_arr
-.IMPORT Ram_Oam_sObj_arr64
 .IMPORT Sram_LastSafe_eRoom
 .IMPORTZP Zp_AvatarFlags_bObj
 .IMPORTZP Zp_AvatarHarmTimer_u8
@@ -881,12 +880,9 @@ _DrawObject:
     sbc #0
     sta Zp_ShapePosY_i16 + 1
     ;; Draw the object:
-    jsr FuncA_Objects_Alloc1x1Shape  ; returns C and Y
-    bcs _NotVisible
-    lda #kDevicePromptObjPalette
-    sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
-    lda #kDevicePromptObjTileId
-    sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
+    ldy #kDevicePromptObjPalette  ; param: object flags
+    lda #kDevicePromptObjTileId  ; param: tile ID
+    jmp FuncA_Objects_Draw1x1Shape
 _NotVisible:
     rts
 .ENDPROC

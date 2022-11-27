@@ -37,7 +37,7 @@
 .IMPORT FuncA_Machine_Error
 .IMPORT FuncA_Machine_ReachedGoal
 .IMPORT FuncA_Machine_StartWorking
-.IMPORT FuncA_Objects_Alloc1x1Shape
+.IMPORT FuncA_Objects_Draw1x1Shape
 .IMPORT FuncA_Objects_DrawGirderPlatform
 .IMPORT FuncA_Objects_DrawTrolleyMachine
 .IMPORT FuncA_Objects_DrawTrolleyRopeWithLength
@@ -50,7 +50,6 @@
 .IMPORT Ppu_ChrObjPrison
 .IMPORT Ram_MachineGoalHorz_u8_arr
 .IMPORT Ram_MachineStatus_eMachine_arr
-.IMPORT Ram_Oam_sObj_arr64
 .IMPORT Ram_PlatformLeft_i16_0_arr
 .IMPORT Ram_PlatformLeft_i16_1_arr
 .IMPORTZP Zp_PlatformGoal_i16
@@ -321,13 +320,9 @@ _RopeTriangle:
     ;;
     ;; Tile 1:
     jsr FuncA_Objects_MoveShapeUpOneTile
-    jsr FuncA_Objects_Alloc1x1Shape  ; returns C and Y
-    bcs @skip1
-    lda #kTrolleyTileIdRopeDiag
-    sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
-    lda #bObj::FlipH | kTrolleyRopePalette
-    sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
-    @skip1:
+    ldy #bObj::FlipH | kTrolleyRopePalette  ; param: object flags
+    lda #kTrolleyTileIdRopeDiag  ; param: tile ID
+    jsr FuncA_Objects_Draw1x1Shape
     ;; Tile 2:
     lda Zp_ShapePosX_i16 + 0
     sub #kTileWidthPx * 3
@@ -335,44 +330,27 @@ _RopeTriangle:
     lda Zp_ShapePosX_i16 + 1
     sbc #0
     sta Zp_ShapePosX_i16 + 1
-    jsr FuncA_Objects_Alloc1x1Shape  ; returns C and Y
-    bcs @skip2
-    lda #kTrolleyTileIdRopeDiag
-    sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
-    lda #kTrolleyRopePalette
-    sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
-    @skip2:
+    ldy #kTrolleyRopePalette  ; param: object flags
+    lda #kTrolleyTileIdRopeDiag  ; param: tile ID
+    jsr FuncA_Objects_Draw1x1Shape
     ;; Tile 3:
     jsr FuncA_Objects_MoveShapeRightOneTile
     jsr FuncA_Objects_MoveShapeUpOneTile
-    jsr FuncA_Objects_Alloc1x1Shape  ; returns C and Y
-    bcs @skip3
-    lda #kTrolleyTileIdRopeDiag
-    sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
-    lda #kTrolleyRopePalette
-    sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
-    @skip3:
+    ldy #kTrolleyRopePalette  ; param: object flags
+    lda #kTrolleyTileIdRopeDiag  ; param: tile ID
+    jsr FuncA_Objects_Draw1x1Shape
     ;; Tile 4:
     jsr FuncA_Objects_MoveShapeRightOneTile
-    jsr FuncA_Objects_Alloc1x1Shape  ; returns C and Y
-    bcs @skip4
-    lda #kTrolleyTileIdRopeDiag
-    sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
-    lda #bObj::FlipH | kTrolleyRopePalette
-    sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
-    @skip4:
+    ldy #bObj::FlipH | kTrolleyRopePalette  ; param: object flags
+    lda #kTrolleyTileIdRopeDiag  ; param: tile ID
+    jsr FuncA_Objects_Draw1x1Shape
 _Pulley:
     ;; Pulley:
     jsr FuncA_Objects_MoveShapeLeftHalfTile
     jsr FuncA_Objects_MoveShapeUpOneTile
-    jsr FuncA_Objects_Alloc1x1Shape  ; returns C and Y
-    bcs @skipPulley
-    lda #kTrolleyTileIdPulley
-    sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
-    lda #kTrolleyRopePalette
-    sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
-    @skipPulley:
-    rts
+    ldy #kTrolleyRopePalette  ; param: object flags
+    lda #kTrolleyTileIdPulley  ; param: tile ID
+    jmp FuncA_Objects_Draw1x1Shape
 .ENDPROC
 
 ;;;=========================================================================;;;

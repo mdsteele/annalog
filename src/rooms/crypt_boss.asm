@@ -43,6 +43,7 @@
 .IMPORT FuncA_Machine_WinchReachedGoal
 .IMPORT FuncA_Machine_WinchStartFalling
 .IMPORT FuncA_Objects_Alloc1x1Shape
+.IMPORT FuncA_Objects_Draw1x1Shape
 .IMPORT FuncA_Objects_DrawWinchChain
 .IMPORT FuncA_Objects_DrawWinchMachine
 .IMPORT FuncA_Objects_DrawWinchSpikeball
@@ -620,15 +621,10 @@ _DrawBossPupil:
     sta Zp_ShapePosY_i16 + 0
     lda #0
     sta Zp_ShapePosY_i16 + 1
-    ;; Allocate the object for the pupil.
-    jsr FuncA_Objects_Alloc1x1Shape  ; preserves X, returns C and Y
-    bcs @done
-    lda #kTileIdBossPupil
-    sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
-    lda #kBossPupilPalette
-    sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
-    @done:
-    rts
+    ;; Draw the pupil.
+    ldy #kBossPupilPalette  ; param: object flags
+    lda #kTileIdBossPupil  ; param: tile ID
+    jmp FuncA_Objects_Draw1x1Shape
 _EyeOffsetX_u8_arr:
     .byte 6, 5, 4, 3, 2
 _EyeOffsetY_u8_arr:
