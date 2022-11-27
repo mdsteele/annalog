@@ -38,11 +38,14 @@
 .IMPORT FuncA_Fade_In
 .IMPORT FuncA_Fade_Out
 .IMPORT FuncA_Machine_ExecuteAll
+.IMPORT FuncA_Objects_Alloc1x1Shape
 .IMPORT FuncA_Objects_DrawAllActors
 .IMPORT FuncA_Objects_DrawAllDevices
 .IMPORT FuncA_Objects_DrawAllMachines
 .IMPORT FuncA_Objects_DrawMachineHud
 .IMPORT FuncA_Objects_DrawPlayerAvatar
+.IMPORT FuncA_Objects_MoveShapeLeftHalfTile
+.IMPORT FuncA_Objects_SetShapePosToAvatarCenter
 .IMPORT FuncA_Room_CallRoomTick
 .IMPORT FuncA_Room_EnterViaPassage
 .IMPORT FuncA_Room_ExitViaPassage
@@ -88,10 +91,9 @@
 .IMPORTZP Zp_PpuScrollX_u8
 .IMPORTZP Zp_PpuScrollY_u8
 .IMPORTZP Zp_Render_bPpuMask
+.IMPORTZP Zp_ShapePosY_i16
 .IMPORTZP Zp_Tmp1_byte
 .IMPORTZP Zp_Tmp2_byte
-.IMPORTZP Zp_Tmp3_byte
-.IMPORTZP Zp_Tmp4_byte
 .IMPORTZP Zp_Tmp_ptr
 .IMPORTZP Zp_WindowTop_u8
 
@@ -858,59 +860,33 @@ _UpdateNametable:
     lda Zp_AvatarMode_eAvatar
     cmp #eAvatar::Reading
     beq _NotVisible
-    ;; Calculate the screen X-position and store it in Zp_Tmp1_byte:
-    lda Zp_AvatarPosX_i16 + 0
-    sub Zp_RoomScrollX_u16 + 0
-    sta Zp_Tmp1_byte
-    lda Zp_AvatarPosX_i16 + 1
-    sbc Zp_RoomScrollX_u16 + 1
-    sta Zp_Tmp2_byte
-    lda Zp_Tmp1_byte
-    sub #kTileWidthPx / 2
-    sta Zp_Tmp1_byte  ; screen pixel X-pos
-    lda Zp_Tmp2_byte
-    sbc #0
-    bne _NotVisible
-    ;; Calculate the Y-offset and store it in Zp_Tmp4_byte:
+_DrawObject:
+    jsr FuncA_Objects_SetShapePosToAvatarCenter
+    jsr FuncA_Objects_MoveShapeLeftHalfTile
+    ;; Calculate the Y-offset and store it in Zp_Tmp1_byte:
     lda Zp_FrameCounter_u8
-    lsr a
-    lsr a
-    lsr a
+    div #8
     and #$03
     cmp #$03
     bne @noZigZag
     lda #$01
     @noZigZag:
     add #3 + kTileWidthPx * 2
-    sta Zp_Tmp4_byte  ; Y-offset
-    ;; Calculate the screen Y-position and store it in Zp_Tmp2_byte:
-    lda Zp_AvatarPosY_i16 + 0
-    sub Zp_RoomScrollY_u8
-    sta Zp_Tmp2_byte
-    lda Zp_AvatarPosY_i16 + 1
+    sta Zp_Tmp1_byte  ; Y-offset
+    ;; Adjust Y-position:
+    lda Zp_ShapePosY_i16 + 0
+    sub Zp_Tmp1_byte
+    sta Zp_ShapePosY_i16 + 0
+    lda Zp_ShapePosY_i16 + 1
     sbc #0
-    sta Zp_Tmp3_byte
-    lda Zp_Tmp2_byte
-    sub Zp_Tmp4_byte  ; Y-offset
-    sta Zp_Tmp2_byte  ; screen pixel Y-pos
-    lda Zp_Tmp3_byte
-    sbc #0
-    bne _NotVisible
-    ;; Set object attributes.
-    ldy Zp_OamOffset_u8
-    lda Zp_Tmp2_byte  ; screen pixel Y-pos
-    sta Ram_Oam_sObj_arr64 + sObj::YPos_u8, y
-    lda Zp_Tmp1_byte  ; screen pixel X-pos
-    sta Ram_Oam_sObj_arr64 + sObj::XPos_u8, y
+    sta Zp_ShapePosY_i16 + 1
+    ;; Draw the object:
+    jsr FuncA_Objects_Alloc1x1Shape  ; returns C and Y
+    bcs _NotVisible
     lda #kDevicePromptObjPalette
     sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
     lda #kDevicePromptObjTileId
     sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
-    ;; Update the OAM offset.
-    .repeat .sizeof(sObj)
-    iny
-    .endrepeat
-    sty Zp_OamOffset_u8
 _NotVisible:
     rts
 .ENDPROC

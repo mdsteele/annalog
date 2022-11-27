@@ -1080,7 +1080,20 @@ _InAir:
     and #$02
     bne _Done
     @notInvincible:
-_GetPosition:
+_DrawObjects:
+    jsr FuncA_Objects_SetShapePosToAvatarCenter
+    lda Zp_AvatarMode_eAvatar  ; param: first tile ID
+    ldy Zp_AvatarFlags_bObj  ; param: object flags
+    jmp FuncA_Objects_Draw2x2Shape
+_Done:
+    rts
+.ENDPROC
+
+;;; Sets Zp_ShapePosX_i16 and Zp_ShapePosY_i16 to the screen-space position of
+;;; the player avatar.
+;;; @preserve X, Y, Zp_Tmp*
+.EXPORT FuncA_Objects_SetShapePosToAvatarCenter
+.PROC FuncA_Objects_SetShapePosToAvatarCenter
     ;; Calculate screen-space Y-position.
     lda Zp_AvatarPosY_i16 + 0
     sub Zp_RoomScrollY_u8
@@ -1095,11 +1108,6 @@ _GetPosition:
     lda Zp_AvatarPosX_i16 + 1
     sbc Zp_RoomScrollX_u16 + 1
     sta Zp_ShapePosX_i16 + 1
-_DrawObjects:
-    lda Zp_AvatarMode_eAvatar  ; param: first tile ID
-    ldy Zp_AvatarFlags_bObj  ; param: object flags
-    jmp FuncA_Objects_Draw2x2Shape
-_Done:
     rts
 .ENDPROC
 
