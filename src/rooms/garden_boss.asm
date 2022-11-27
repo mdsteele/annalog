@@ -56,6 +56,7 @@
 .IMPORT Func_MarkRoomSafe
 .IMPORT Func_Noop
 .IMPORT Func_SetFlag
+.IMPORT Func_ShakeRoom
 .IMPORT Func_UnlockDoorDevice
 .IMPORT Ppu_ChrBgAnim0
 .IMPORT Ppu_ChrObjGarden
@@ -117,6 +118,9 @@ kBossAngrySpikeCooldown = 15
 kBossShootFireballCooldown = 60
 ;;; How many frames to wait between fireballs when the boss is in Spray mode.
 kBossSprayFireballCooldown = 15
+
+;;; How many spikes to drop when the boss is in Angry mode.
+kBossAngryNumSpikes = 3
 
 ;;; How many frames it takes for an eye to fully open or close.
 kBossEyeOpenFrames = 20
@@ -778,13 +782,16 @@ _CheckEyes:
     lda Ram_RoomState + sState::BossEyeOpen_u8_arr2, y
     cmp #kBossEyeOpenFrames / 2
     bge @eyeIsOpen
-    ;; If the hit eye is closed, switch the boss to Angry mode.
+    ;; If the hit eye is closed, shake the room and switch the boss to Angry
+    ;; mode.
     @eyeIsClosed:
+    lda #kBossAngrySpikeCooldown * kBossAngryNumSpikes  ; param: num frames
+    jsr Func_ShakeRoom
     lda #eBoss::Angry
     sta Ram_RoomState + sState::BossMode_eBoss
     .assert eBoss::Angry = 2, error
     sta Ram_RoomState + sState::BossCooldown_u8
-    lda #3
+    lda #kBossAngryNumSpikes
     sta Ram_RoomState + sState::BossProjCount_u8
     bne @explode  ; unconditional
     ;; If the hit eye is open, deal damage to the boss.

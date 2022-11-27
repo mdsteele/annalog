@@ -144,6 +144,9 @@ Zp_RoomScrollY_u8: .res 1
 .EXPORTZP Zp_CameraCanScroll_bool
 Zp_CameraCanScroll_bool: .res 1
 
+;;; If nonzero, the room will shake for this many more frames.
+Zp_RoomShake_u8: .res 1
+
 ;;; The index of the (interactive) device that the player avatar is near, or
 ;;; $ff if none.
 Zp_NearbyDevice_u8: .res 1
@@ -589,6 +592,18 @@ _SetGoalToAX:
     rts
 .ENDPROC
 
+;;; Shakes the room for the given number of frames.
+;;; @param A How many frames to shake the room for.
+;;; @preserve X, Y, Zp_Tmp*
+.EXPORT Func_ShakeRoom
+.PROC Func_ShakeRoom
+    cmp Zp_RoomShake_u8
+    blt @done
+    sta Zp_RoomShake_u8
+    @done:
+    rts
+.ENDPROC
+
 ;;;=========================================================================;;;
 
 .SEGMENT "PRGA_Terrain"
@@ -666,7 +681,7 @@ _TrackScrollYTowardsGoal:
     cmp #$ff & -kMaxScrollYSpeed
     bge @scrollByA
     lda #$ff & -kMaxScrollYSpeed
-    ;; Add YA to the current scroll-X position.
+    ;; Add A to the current scroll-Y position.
     @scrollByA:
     add Zp_RoomScrollY_u8
     sta Zp_RoomScrollY_u8
@@ -694,6 +709,19 @@ _ClampScrollY:
     blt @done
     lda Zp_Tmp2_byte  ; max scroll-Y
     sta Zp_RoomScrollY_u8
+    @done:
+_ShakeScrollY:
+    ;; Check if the room is currently shaking.
+    lda Zp_RoomShake_u8
+    beq @done
+    dec Zp_RoomShake_u8
+    ;; If the room is shaking, replace bit 0 of Zp_RoomScrollY_u8 with bit 1 of
+    ;; Zp_FrameCounter_u8.
+    lsr Zp_RoomScrollY_u8
+    lda Zp_FrameCounter_u8
+    lsr a
+    lsr a
+    rol Zp_RoomScrollY_u8
     @done:
 _PrepareToScrollHorz:
     ;; Calculate the index of the leftmost room tile column that is currently

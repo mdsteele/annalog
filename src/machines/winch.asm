@@ -39,6 +39,7 @@
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
 .IMPORT Func_FindEmptyActorSlot
 .IMPORT Func_InitActorProjSmoke
+.IMPORT Func_ShakeRoom
 .IMPORT Ram_ActorPosX_i16_0_arr
 .IMPORT Ram_ActorPosX_i16_1_arr
 .IMPORT Ram_ActorPosY_i16_0_arr
@@ -218,12 +219,13 @@ _Falling:
 ;;; @prereq Zp_MachineIndex_u8 is initialized.
 .EXPORT FuncA_Machine_WinchReachedGoal
 .PROC FuncA_Machine_WinchReachedGoal
-    ldx Zp_MachineIndex_u8
+    ldy Zp_MachineIndex_u8
     lda Ram_MachineParam1_u8_arr, y  ; falling bool
     bmi _Falling
 _NotFalling:
     jmp FuncA_Machine_ReachedGoal
 _Falling:
+    jsr FuncA_Machine_WinchShakeOnImpact
     ;; Stop falling.
     jsr Func_ResetWinchMachineParams
     ;; TODO: play a sound for impact
@@ -276,6 +278,7 @@ _AddSmokeActor:
     jsr Func_InitActorProjSmoke
     @done:
 _SlowFallingSpeed:
+    jsr FuncA_Machine_WinchShakeOnImpact
     ;; Slow down the falling winch load, in case we're breaking through the
     ;; floor.  (If we're not breaking through the floor yet, the caller will
     ;; separately stop the winch falling entirely.)
@@ -285,6 +288,19 @@ _SlowFallingSpeed:
 _PlaySound:
     ;; TODO: Play a sound.
     rts
+.ENDPROC
+
+;;; Called when a falling winch load hits the ground; shakes the room based on
+;;; the winch's falling speed.
+;;; @prereq Zp_MachineIndex_u8 is initialized.
+.PROC FuncA_Machine_WinchShakeOnImpact
+    ldy Zp_MachineIndex_u8
+    ldx Ram_MachineParam2_i16_1_arr, y
+    lda _ShakeFrames_u8_arr, x  ; param: num frames
+    jmp Func_ShakeRoom
+_ShakeFrames_u8_arr:
+:   .byte 0, 0, 4, 8, 12, 16
+    .assert * - :- = kWinchMaxFallSpeed + 1, error
 .ENDPROC
 
 ;;;=========================================================================;;;

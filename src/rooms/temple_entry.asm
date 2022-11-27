@@ -40,6 +40,7 @@
 .IMPORT Func_MovePlatformTopToward
 .IMPORT Func_Noop
 .IMPORT Func_SetFlag
+.IMPORT Func_ShakeRoom
 .IMPORT Ppu_ChrObjTemple
 .IMPORT Ram_ActorType_eActor_arr
 .IMPORT Ram_DeviceType_eDevice_arr
@@ -257,7 +258,10 @@ _Return:
     stax Zp_PlatformGoal_i16
     lda #1  ; param: move speed
     ldx #kColumnPlatformIndex  ; param: platform index
-    jmp Func_MovePlatformTopToward
+    jsr Func_MovePlatformTopToward  ; returns Z
+    beq @done
+    lda #10  ; param: num frames
+    jmp Func_ShakeRoom
     @slowdown:
     dec Ram_RoomState + sState::ColumnSlowdown_u8
     @done:

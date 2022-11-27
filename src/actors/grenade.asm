@@ -27,6 +27,7 @@
 .IMPORT FuncA_Objects_Draw1x1Actor
 .IMPORT Func_InitActorDefault
 .IMPORT Func_InitActorProjSmoke
+.IMPORT Func_ShakeRoom
 .IMPORT Ram_ActorPosX_i16_0_arr
 .IMPORT Ram_ActorPosX_i16_1_arr
 .IMPORT Ram_ActorPosY_i16_0_arr
@@ -39,6 +40,9 @@
 .IMPORTZP Zp_Tmp1_byte
 
 ;;;=========================================================================;;;
+
+;;; How many frames the room shakes for when a grenade hits the ground.
+kGrenadeShakeFrames = 4
 
 ;;; The OBJ palette number used for grenade projectile actors.
 kPaletteObjGrenade = 0
@@ -141,7 +145,7 @@ _InitVelY_i16_1_arr:
     jsr FuncA_Actor_HarmAvatarIfCollision  ; preserves X, returns C
     bcs _Explode
     jsr FuncA_Actor_CenterHitsTerrain  ; preserves X, returns C
-    bcs _Explode
+    bcs _ShakeAndExplode
 _ApplyGravity:
     lda #kAvatarGravity
     add Ram_ActorVelY_i16_0_arr, x
@@ -150,6 +154,9 @@ _ApplyGravity:
     adc Ram_ActorVelY_i16_1_arr, x
     sta Ram_ActorVelY_i16_1_arr, x
     rts
+_ShakeAndExplode:
+    lda #kGrenadeShakeFrames  ; param: num frames
+    jsr Func_ShakeRoom  ; preserves X
 _Explode:
     ;; TODO: play a sound
     jmp Func_InitActorProjSmoke  ; preserves X

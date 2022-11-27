@@ -49,6 +49,7 @@
 .IMPORT Func_MachineCannonReadRegY
 .IMPORT Func_Noop
 .IMPORT Func_SetFlag
+.IMPORT Func_ShakeRoom
 .IMPORT Ppu_ChrObjGarden
 .IMPORT Ram_ActorPosX_i16_0_arr
 .IMPORT Ram_ActorPosX_i16_1_arr
@@ -393,6 +394,9 @@ _CheckIfWallDestroyed:
 _ExplodeGrenade:
     ;; We've hit the wall, so explode the grenade.
     jsr Func_InitActorProjSmoke  ; preserves X
+    ;; Shake the room.
+    lda #8  ; param: num frames
+    jsr Func_ShakeRoom
     ;; TODO: play a sound for hitting the wall
 _Done:
     rts
