@@ -28,14 +28,24 @@ import sys
 BAD_CODE_PATTERNS = [
     ('incorrect ZP export', re.compile(r'\.EXPORT +Zp')),
     ('incorrect ZP import', re.compile(r'\.IMPORT +Zp')),
+    # This pattern matches instructions that were probably intended to use
+    # immediate addressing.
     ('suspicious address', re.compile(
         r'^ *(ad[cd]|and|cmp|cp[xy]|eor|ora|sub|sbc|ld[a-z]+) +'
         r'[<>(]*([a-z0-9$%.]|Func|Main)')),
+    # This pattern matches instructions that were probably intended to use
+    # zero page indirect Y-indexed addressing.
+    ('suspicious direct Y-index', re.compile(
+        r'^ *(ad[cd]|and|cmp|eor|lda|ora|sub|sbc|sta) +'
+        r'Zp_[A-Za-z0-9_]+_ptr, *[yY]'))
 ]
 
 SEGMENT_DECL_PATTERN = re.compile(r'^\.SEGMENT +"([a-zA-Z0-9_]*)"')
 PROC_DECL_PATTERN = re.compile(r'^\.PROC +([a-zA-Z0-9_]+)')
 BANK_SWITCH_PATTERN = re.compile(r'^ *((?:prga|prgc)_bank|jsr_prga) ')
+JUMP_PATTERN = re.compile(
+    r'^ *([jb](?:mp|sr|cc|cs|eq|ne|mi|pl|vc|vs|le|lt|ge|gt)) +'
+    r'([A-Za-z0-9_]+)')
 
 LOCAL_PROC_NAME = re.compile(r'^_[a-zA-Z0-9_]+$')  # e.g. _Foobar
 PRGA_PROC_NAME = re.compile(  # e.g. FuncA_SegmentName_Foobar
@@ -83,6 +93,27 @@ def is_valid_proc_name_for_segment(proc, segment):
         return False
     return True
 
+def is_valid_jump_dest(dest, top_proc, segment):
+    if LOCAL_PROC_NAME.match(dest):
+        return True
+    match = PRGA_PROC_NAME.match(dest)
+    if match:
+        if top_proc.startswith('Func_'):
+            return False
+        if segment.startswith('PRGA_') and match.group(1) != segment[5:]:
+            return False
+    match = PRGC_PROC_NAME.match(dest)
+    if match:
+        if top_proc.startswith('Func_'):
+            return False
+        if segment.startswith('PRGA_'):
+            return False
+        if segment.startswith('PRGC_') and match.group(1) != segment[5:]:
+            return False
+    return True
+
+#=============================================================================#
+
 def run_tests():
     failed = [False]
     for filepath in src_and_test_filepaths('.asm', '.inc'):
@@ -94,26 +125,45 @@ def run_tests():
                     filepath, line_number + 1, message))
                 print('    ' + line.strip())
                 failed[0] = True
+            # Check for code that is probably a mistake.
             for (message, pattern) in BAD_CODE_PATTERNS:
                 if pattern.search(line):
                     fail(message)
+            # Keep track of which segment we're in.
             match = SEGMENT_DECL_PATTERN.match(line)
             if match:
                 segment = match.group(1)
+            # Check proc definitions.
             match = PROC_DECL_PATTERN.match(line)
             if match:
                 proc = match.group(1)
+                # Check that procs are named correctly for their segment.
                 if not is_valid_proc_name_for_segment(proc, segment):
                     fail('misnamed proc for segment {}'.format(segment))
+                # Keep track of which top-level proc we're in.
                 if not proc.startswith('_'):
                     top_proc = proc
             if top_proc:
+                # Check that bank-switches only happen in Main procs.
                 match = BANK_SWITCH_PATTERN.match(line)
                 if match:
                     kind = match.group(1)
                     if not (top_proc.startswith('Main_') or
                             top_proc.startswith('MainC_') and 'prga' in kind):
                         fail('{} in {}'.format(kind, top_proc))
+                # Check that procs don't jump incorrectly to other procs.
+                match = JUMP_PATTERN.match(line)
+                if match:
+                    opcode = match.group(1)
+                    dest = match.group(2)
+                    if dest.startswith('Main'):
+                        if opcode == 'jsr':
+                            fail('call to a Main')
+                        if not top_proc.startswith('Main'):
+                            fail('jump to a Main outside of a Main')
+                    if not is_valid_jump_dest(dest, top_proc, segment):
+                        fail('invalid {} from {}'.format(
+                            opcode, top_proc))
     for (filepath, start_string, end_string, skip) in SORT_PATTERNS:
         def fail(message):
             print('LINT: {}: {}'.format(filepath, message))
