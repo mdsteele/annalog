@@ -26,7 +26,6 @@
 .INCLUDE "../dialog.inc"
 .INCLUDE "../flag.inc"
 .INCLUDE "../macros.inc"
-.INCLUDE "../mmc3.inc"
 .INCLUDE "../oam.inc"
 .INCLUDE "../platform.inc"
 .INCLUDE "../room.inc"
@@ -34,13 +33,12 @@
 .IMPORT DataA_Pause_MermaidAreaCells_u8_arr2_arr
 .IMPORT DataA_Pause_MermaidAreaName_u8_arr
 .IMPORT DataA_Room_Hut_sTileset
-.IMPORT Data_PowersOfTwo_u8_arr8
 .IMPORT Func_CountDeliveredFlowers
+.IMPORT Func_DropFlower
 .IMPORT Func_IsFlagSet
 .IMPORT Func_Noop
 .IMPORT Func_SetFlag
 .IMPORT Func_UnlockDoorDevice
-.IMPORT Ppu_ChrObjAnnaNormal
 .IMPORT Ppu_ChrObjTownsfolk
 .IMPORT Ram_DeviceType_eDevice_arr
 .IMPORT Ram_Oam_sObj_arr64
@@ -251,31 +249,11 @@ _BroughtFlower_sDialog:
     .byte "How kind of you.#"
     .addr _DeliverFlowerFunc
 _DeliverFlowerFunc:
-    chr10_bank #<.bank(Ppu_ChrObjAnnaNormal)
-    ;; Get the bitmask for this eFlag, and store it in Zp_Tmp1_byte.
-    lda Sram_CarryingFlower_eFlag
-    and #$07
-    tax
-    lda Data_PowersOfTwo_u8_arr8, x
-    sta Zp_Tmp1_byte  ; flag bitmask
-    ;; Get the byte offset into Sram_ProgressFlags_arr for this eFlag, and
-    ;; store it in X.
-    lda Sram_CarryingFlower_eFlag
-    div #8
-    tax
-    ;; Enable writes to SRAM.
-    lda #bMmc3PrgRam::Enable
-    sta Hw_Mmc3PrgRamProtect_wo
     ;; Mark the carried flower as delivered.
-    lda Sram_ProgressFlags_arr, x
-    ora Zp_Tmp1_byte  ; flag bitmask
-    sta Sram_ProgressFlags_arr, x
+    ldx Sram_CarryingFlower_eFlag  ; param: flag
+    jsr Func_SetFlag
     ;; Mark the player as no longer carrying a flower.
-    lda #0
-    sta Sram_CarryingFlower_eFlag
-    ;; Disable writes to SRAM.
-    lda #bMmc3PrgRam::Enable | bMmc3PrgRam::DenyWrites
-    sta Hw_Mmc3PrgRamProtect_wo
+    jsr Func_DropFlower
     ;; Check if we have all the flowers yet.
     jsr Func_CountDeliveredFlowers  ; returns A and Z
     cmp #kNumFlowerFlags

@@ -300,43 +300,37 @@ _SetColumnsForAllMenuItems:
 _SetRowsForMenuLeftColumn:
     ldx #0
     ;; Check if the BEEP opcode is unlocked.
-    lda Sram_ProgressFlags_arr + (eFlag::UpgradeOpcodeBeep >> 3)
-    and #1 << (eFlag::UpgradeOpcodeBeep & $07)
+    flag_bit Sram_ProgressFlags_arr, eFlag::UpgradeOpcodeBeep
     beq @noBeepOpcode
     stx Ram_MenuRows_u8_arr + eOpcode::Beep
     inx
     @noBeepOpcode:
     ;; Check if the WAIT opcode is unlocked.
-    lda Sram_ProgressFlags_arr + (eFlag::UpgradeOpcodeWait >> 3)
-    and #1 << (eFlag::UpgradeOpcodeWait & $07)
+    flag_bit Sram_ProgressFlags_arr, eFlag::UpgradeOpcodeWait
     beq @noWaitOpcode
     stx Ram_MenuRows_u8_arr + eOpcode::Wait
     inx
     @noWaitOpcode:
     ;; Check if the SYNC opcode is unlocked.
-    lda Sram_ProgressFlags_arr + (eFlag::UpgradeOpcodeSync >> 3)
-    and #1 << (eFlag::UpgradeOpcodeSync & $07)
+    flag_bit Sram_ProgressFlags_arr, eFlag::UpgradeOpcodeSync
     beq @noSyncOpcode
     stx Ram_MenuRows_u8_arr + eOpcode::Sync
     inx
     @noSyncOpcode:
     ;; Check if the COPY opcode is unlocked.
-    lda Sram_ProgressFlags_arr + (eFlag::UpgradeOpcodeCopy >> 3)
-    and #1 << (eFlag::UpgradeOpcodeCopy & $07)
+    flag_bit Sram_ProgressFlags_arr, eFlag::UpgradeOpcodeCopy
     beq @noCopyOpcode
     stx Ram_MenuRows_u8_arr + eOpcode::Copy
     inx
     @noCopyOpcode:
     ;; Check if the SKIP opcode is unlocked.
-    lda Sram_ProgressFlags_arr + (eFlag::UpgradeOpcodeSkip >> 3)
-    and #1 << (eFlag::UpgradeOpcodeSkip & $07)
+    flag_bit Sram_ProgressFlags_arr, eFlag::UpgradeOpcodeSkip
     beq @noSkipOpcode
     stx Ram_MenuRows_u8_arr + eOpcode::Skip
     inx
     @noSkipOpcode:
     ;; Check if the GOTO opcode is unlocked.
-    lda Sram_ProgressFlags_arr + (eFlag::UpgradeOpcodeGoto >> 3)
-    and #1 << (eFlag::UpgradeOpcodeGoto & $07)
+    flag_bit Sram_ProgressFlags_arr, eFlag::UpgradeOpcodeGoto
     beq @noGotoOpcode
     stx Ram_MenuRows_u8_arr + eOpcode::Goto
     inx
@@ -358,15 +352,13 @@ _SetRowsForMenuRightColumn:
     stx Ram_MenuRows_u8_arr + eOpcode::End
     inx
     ;; Check if the MUL opcode is unlocked.
-    lda Sram_ProgressFlags_arr + (eFlag::UpgradeOpcodeMul >> 3)
-    and #1 << (eFlag::UpgradeOpcodeMul & $07)
+    flag_bit Sram_ProgressFlags_arr, eFlag::UpgradeOpcodeMul
     beq @noMulOpcode
     stx Ram_MenuRows_u8_arr + eOpcode::Mul
     inx
     @noMulOpcode:
     ;; Check if the ADD/SUB opcodes are unlocked.
-    lda Sram_ProgressFlags_arr + (eFlag::UpgradeOpcodeAddSub >> 3)
-    and #1 << (eFlag::UpgradeOpcodeAddSub & $07)
+    flag_bit Sram_ProgressFlags_arr, eFlag::UpgradeOpcodeAddSub
     beq @noAddSubOpcodes
     stx Ram_MenuRows_u8_arr + eOpcode::Sub
     inx
@@ -374,15 +366,13 @@ _SetRowsForMenuRightColumn:
     inx
     @noAddSubOpcodes:
     ;; Check if the TIL opcode is unlocked.
-    lda Sram_ProgressFlags_arr + (eFlag::UpgradeOpcodeTil >> 3)
-    and #1 << (eFlag::UpgradeOpcodeTil & $07)
+    flag_bit Sram_ProgressFlags_arr, eFlag::UpgradeOpcodeTil
     beq @noTilOpcode
     stx Ram_MenuRows_u8_arr + eOpcode::Til
     inx
     @noTilOpcode:
     ;; Check if the IF opcode is unlocked.
-    lda Sram_ProgressFlags_arr + (eFlag::UpgradeOpcodeIf >> 3)
-    and #1 << (eFlag::UpgradeOpcodeIf & $07)
+    flag_bit Sram_ProgressFlags_arr, eFlag::UpgradeOpcodeIf
     beq @noIfOpcode
     stx Ram_MenuRows_u8_arr + eOpcode::If
     inx

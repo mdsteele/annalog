@@ -100,6 +100,7 @@ _Harm:
 ;;; If the player avatar is carrying a flower, drops the flower.  Otherwise,
 ;;; does nothing.
 ;;; @preserve X
+.EXPORT Func_DropFlower
 .PROC Func_DropFlower
     lda Sram_CarryingFlower_eFlag
     beq @done

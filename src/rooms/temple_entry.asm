@@ -215,8 +215,7 @@ _Passages_sPassage_arr:
 .PROC FuncC_Temple_Entry_InitRoom
     ;; Remove the mermaid from this room if the temple breaker has been
     ;; activated.
-    lda Sram_ProgressFlags_arr + (eFlag::BreakerTemple >> 3)
-    and #1 << (eFlag::BreakerTemple & $07)
+    flag_bit Sram_ProgressFlags_arr, eFlag::BreakerTemple
     beq @done
     lda #0
     .assert eActor::None = 0, error
@@ -231,8 +230,7 @@ _Passages_sPassage_arr:
     @done:
 _MaybeRaiseColumn:
     ;; If the column has been raised before, raise it.
-    lda Sram_ProgressFlags_arr + (eFlag::TempleEntryColumnRaised >> 3)
-    and #1 << (eFlag::TempleEntryColumnRaised & $07)
+    flag_bit Sram_ProgressFlags_arr, eFlag::TempleEntryColumnRaised
     beq _Return
 _DoRaiseColumn:
     lda #<kColumnPlatformMinTop
@@ -246,8 +244,7 @@ _Return:
 .PROC FuncC_Temple_Entry_TickRoom
     ;; If the column-raised flag is set, move the column upward towards its
     ;; highest position.
-    lda Sram_ProgressFlags_arr + (eFlag::TempleEntryColumnRaised >> 3)
-    and #1 << (eFlag::TempleEntryColumnRaised & $07)
+    flag_bit Sram_ProgressFlags_arr, eFlag::TempleEntryColumnRaised
     beq @done
     ;; Move the column by one pixel every kColumnPlatformSlowdown frames.
     lda Ram_RoomState + sState::ColumnSlowdown_u8

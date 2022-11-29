@@ -355,8 +355,7 @@ _Devices_sDevice_arr:
     ldx #kDoorDeviceIndex  ; param: device index
     jsr Func_LockDoorDevice
     ;; Check if the boss has been defeated yet.
-    lda Sram_ProgressFlags_arr + (eFlag::BossGarden >> 3)
-    and #1 << (eFlag::BossGarden & $07)
+    flag_bit Sram_ProgressFlags_arr, eFlag::BossGarden
     bne _BossAlreadyDefeated
     ;; The boss is still alive, so mark the room as unsafe.
     sta Zp_RoomIsSafe_bool  ; A is already zero
@@ -376,8 +375,7 @@ _BossAlreadyDefeated:
     lda #ePlatform::Zone
     sta Ram_PlatformType_ePlatform_arr + kThornsPlatformIndex
     ;; Check if the upgrade has been collected yet.
-    lda Sram_ProgressFlags_arr + (kUpgradeFlag >> 3)
-    and #1 << (kUpgradeFlag & $07)
+    flag_bit Sram_ProgressFlags_arr, kUpgradeFlag
     bne _UpgradeAlreadyCollected
     ;; If not, the player must have saved after defeating the boss, but before
     ;; collecting the upgrade.  So we'll set the phase to spawn the upgrade.
@@ -388,8 +386,7 @@ _BossAlreadyDefeated:
     rts
 _UpgradeAlreadyCollected:
     ;; Check if the breaker has been activated yet.
-    lda Sram_ProgressFlags_arr + (eFlag::BreakerGarden >> 3)
-    and #1 << (eFlag::BreakerGarden & $07)
+    flag_bit Sram_ProgressFlags_arr, eFlag::BreakerGarden
     bne _BreakerAlreadyDone
     ;; If not, the player must have saved after defeating the boss and
     ;; collecting the upgrade, but before activating the breaker.  So we'll set

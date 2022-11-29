@@ -288,8 +288,7 @@ _Passages_sPassage_arr:
 .PROC FuncC_Crypt_Tomb_InitRoom
     ;; If the weak floors haven't been broken yet, initialize their HP.
     ;; Otherwise, remove their platforms.
-    lda Sram_ProgressFlags_arr + (eFlag::CryptTombWeakFloors >> 3)
-    and #1 << (eFlag::CryptTombWeakFloors & $07)
+    flag_bit Sram_ProgressFlags_arr, eFlag::CryptTombWeakFloors
     bne FuncC_Crypt_Tomb_RemoveBreakableFloors
     lda #kNumWinchHitsToBreakFloor
     sta Ram_RoomState + sState::WeakFloorHp_u8_arr2 + 0
@@ -308,6 +307,8 @@ _Passages_sPassage_arr:
     rts
 .ENDPROC
 
+;;; Helper function for this room's Init and Enter functions; removes the two
+;;; breakable floors from this room.
 .PROC FuncC_Crypt_Tomb_RemoveBreakableFloors
     lda #0
     sta Ram_RoomState + sState::WeakFloorHp_u8_arr2 + 0

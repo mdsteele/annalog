@@ -79,8 +79,7 @@ Zp_HudRegisterName_u8: .res 1
     sta Zp_HudBottom_u8
 _RegisterA:
     ;; Only show register A if it is unlocked (by the COPY upgrade).
-    lda Sram_ProgressFlags_arr + (eFlag::UpgradeOpcodeCopy >> 3)
-    and #1 << (eFlag::UpgradeOpcodeCopy & $07)
+    flag_bit Sram_ProgressFlags_arr, eFlag::UpgradeOpcodeCopy
     beq @done
     lda #kMachineRegNameA
     sta Zp_HudRegisterName_u8
@@ -89,8 +88,7 @@ _RegisterA:
     @done:
 _RegisterB:
     ;; Only show register B if it is unlocked.
-    lda Sram_ProgressFlags_arr + (eFlag::UpgradeRegisterB >> 3)
-    and #1 << (eFlag::UpgradeRegisterB & $07)
+    flag_bit Sram_ProgressFlags_arr, eFlag::UpgradeRegisterB
     beq @done
     lda #kMachineRegNameB
     sta Zp_HudRegisterName_u8

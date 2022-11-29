@@ -187,8 +187,7 @@ _Passages_sPassage_arr:
 .ENDPROC
 
 .PROC FuncC_Lava_Station_InitRoom
-    lda Sram_ProgressFlags_arr + (kUpgradeFlag >> 3)
-    and #1 << (kUpgradeFlag & $07)
+    flag_bit Sram_ProgressFlags_arr, kUpgradeFlag
     beq @done
     lda #eDevice::None
     sta Ram_DeviceType_eDevice_arr + kUpgradeDeviceIndex

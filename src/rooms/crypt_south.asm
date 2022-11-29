@@ -279,8 +279,7 @@ _Passages_sPassage_arr:
 .PROC FuncC_Crypt_South_InitRoom
     ;; If the weak floor hasn't been broken yet, initialize its HP.  Otherwise,
     ;; remove its platform.
-    lda Sram_ProgressFlags_arr + (eFlag::CryptSouthWeakFloor >> 3)
-    and #1 << (eFlag::CryptSouthWeakFloor & $07)
+    flag_bit Sram_ProgressFlags_arr, eFlag::CryptSouthWeakFloor
     bne @floorBroken
     @floorSolid:
     lda #kNumWinchHitsToBreakFloor
