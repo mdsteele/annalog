@@ -250,7 +250,7 @@ _Disable:
     sta Hw_Mmc3IrqDisable_wo  ; ack
     sta Hw_Mmc3IrqEnable_wo  ; re-enable
     ;; Set up the latch value for next IRQ.
-    lda #7
+    lda #kTileHeightPx - 1
     sta Hw_Mmc3IrqLatch_wo
     sta Hw_Mmc3IrqReload_wo
     ;; Update Zp_NextIrq_int_ptr for the next IRQ.
@@ -290,10 +290,12 @@ _Disable:
 ;;; (i.e. the top edge of the window interior).  Re-enables object rendering,
 ;;; so that objects can be displayed inside the window.
 .PROC Int_WindowInteriorIrq
-    ;; Save the A register and update the PPU mask as quickly as possible.
+    ;; Save the A register (we won't be using X or Y).
     pha
-    lda #bPpuMask::BgMain | bPpuMask::ObjMain
-    sta Hw_PpuMask_wo
+    ;; At this point, the first HBlank is already just about over.  Ack the
+    ;; current IRQ.
+    sta Hw_Mmc3IrqDisable_wo  ; ack
+    sta Hw_Mmc3IrqEnable_wo  ; re-enable
     ;; Set up the latch value for next IRQ.
     lda #kTileHeightPx * (kWindowMaxNumRows - 2)
     sta Hw_Mmc3IrqLatch_wo
@@ -303,17 +305,24 @@ _Disable:
     sta Zp_NextIrq_int_ptr + 0
     lda #>Int_WindowBottomIrq
     sta Zp_NextIrq_int_ptr + 1
-    ;; Ack the current IRQ.
-    sta Hw_Mmc3IrqDisable_wo  ; ack
-    sta Hw_Mmc3IrqEnable_wo  ; re-enable
+    ;; Busy-wait for a bit, that our final writes in this function will occur
+    ;; during the next HBlank (between dots 256 and 320).
+    lda #10
+    @busyLoop:
+    sub #1
+    bne @busyLoop
+    ;; Re-enable drawing of objects.
+    lda #bPpuMask::BgMain | bPpuMask::ObjMain
+    sta Hw_PpuMask_wo
     ;; Restore the A register and return.
     pla
     rti
 .ENDPROC
 
-;;; HBlank IRQ handler function for the bottom edge of the window's top border
-;;; (i.e. the top edge of the window interior).  Re-enables object rendering,
-;;; so that objects can be displayed inside the window.
+;;; HBlank IRQ handler function for the bottom of the window's maximum size
+;;; (not counting the blank rows below the window border).  Disables BG
+;;; rendering, so that the top row of the upper nametable will not be visible
+;;; at the bottom of the screen when a max-sized window is fully scrolled in.
 .PROC Int_WindowBottomIrq
     ;; Save the A register and update the PPU mask as quickly as possible.
     pha
