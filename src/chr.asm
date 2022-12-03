@@ -25,6 +25,7 @@
 .INCLUDE "actors/hothead.inc"
 .INCLUDE "actors/spider.inc"
 .INCLUDE "actors/spike.inc"
+.INCLUDE "actors/toddler.inc"
 .INCLUDE "actors/townsfolk.inc"
 .INCLUDE "actors/vinebug.inc"
 .INCLUDE "avatar.inc"
@@ -36,6 +37,8 @@
 .INCLUDE "machines/pump.inc"
 .INCLUDE "machines/winch.inc"
 .INCLUDE "platforms/crate.inc"
+.INCLUDE "platforms/gate.inc"
+.INCLUDE "platforms/stepstone.inc"
 .INCLUDE "rooms/garden_boss.inc"
 .INCLUDE "rooms/garden_tower.inc"
 .INCLUDE "upgrade.inc"
@@ -488,7 +491,8 @@
 .EXPORT Ppu_ChrBgPrison
 .PROC Ppu_ChrBgPrison
 :   .incbin "out/data/tiles/cave.chr"
-    .res $28 * kSizeofChr
+    .incbin "out/data/tiles/prison.chr"
+    .res $18 * kSizeofChr
     .incbin "out/data/tiles/device.chr"
     .assert * - :- = kSizeofChr * $40, error
 .ENDPROC
@@ -736,12 +740,25 @@
 
 .EXPORT Ppu_ChrObjPrison
 .PROC Ppu_ChrObjPrison
-:   .res $1c * kSizeofChr
+:   .assert * - :- = (kTileIdObjToddlerFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/toddler.chr"
+    .assert * - :- = (kTileIdChildPonytailFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/child_ponytail.chr"
+    .res $14 * kSizeofChr
     .assert * - :- = (kTileIdObjGrubFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/grub.chr"
-    .res $39 * kSizeofChr
-    .incbin "out/data/tiles/prison_obj.chr"
-    .res $1c * kSizeofChr
+    .res $20 * kSizeofChr
+    .assert * - :- = (kTileIdChildAlexFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/alex.chr"
+    .assert * - :- = (kTileIdObjStepstone - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/stepstone.chr"
+    .assert * - :- = (kTileIdObjGateFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/gate.chr"
+    .assert * - :- = (kTileIdChildCrewcutFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/child_crewcut.chr"
+    .assert * - :- = (kTileIdChildBobcutFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/child_bobcut.chr"
+    .res $04 * kSizeofChr
     .assert * - :- = kSizeofChr * $80, error
 .ENDPROC
 
@@ -801,7 +818,10 @@
 
 .EXPORT Ppu_ChrObjTownsfolk
 .PROC Ppu_ChrObjTownsfolk
-:   .incbin "out/data/tiles/children.chr"
+:   .assert * - :- = (kTileIdObjToddlerFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/toddler.chr"
+    .assert * - :- = (kTileIdChildPonytailFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/child_ponytail.chr"
     .assert * - :- = (kTileIdAdultWomanFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/adults.chr"
     .assert * - :- = (kTileIdMermaidAdultFirst - $80) * kSizeofChr, error

@@ -1,16 +1,17 @@
 @BG 0 0 0 32x10
->water_anim0
 >cave
 >device
 >font_lower
+>prison
+>water_anim0
 
-    CECG    CACC
-    CFCHDaDbCBCD
-        BO                                                  AAAA
-  BL  BMBN    BJBK
-
-
-          BGBG  BC                      BA    BB
-  BHBH                BC                        BBBABB    BABPBP
-BEBGBGBGBGBFBEBGBGBGBGBFBA      BCBBBABBBABBBABBBA    BBBEBFBABB
-BBBHBHBHBHBABBBC      BABBBHBHBHBHBABBBC      BABB    BABBBABBBA
+    BEBG    BABC                            DP  DODLDPDL  DL  DL
+    BFBHCaCbBBBD                        DLDPDP    DPDLDODODLABAA
+        AO                                                  EAEA
+  AL  AMAN    AJAK
+  DLDL    DLDL                  DADEDEDBDCDFDFDDDEDEDGDHDFDFDKDJ
+  DLDL    DODP    DODP  DLDLDPDODCDFDFDDDCDFDFDDDFDFDIDJDFDFDMDN
+          AGAG  AC      AG    AG        AA    AB
+  AHAH                ACAHAHAHAH                ABAAAB    AAAPAP
+AEAGAGAGAGAFAEAGAGAGAGAFAA      ACABAAABAAABAAABAA    ABAEAFAAAB
+ABAHAHAHAHAAABAC      AAABAHAHAHAHAAABAC      AAAB    AAABAAABAA

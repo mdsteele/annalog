@@ -23,14 +23,22 @@
 ;;;     otherwise, the NPC is automatically drawn facing the player avatar.
 
 ;;; The first tile IDs for various children.
-kTileIdChildPonytailFirst     = $84
-kTileIdChildAlexFirst         = $c8
-kTileIdChildAlexStandingFirst = kTileIdChildAlexFirst + 0
-kTileIdChildAlexLookingFirst  = kTileIdChildAlexFirst + 4
-kTileIdChildAlexDuckingFirst  = kTileIdChildAlexFirst + 8
-kTileIdChildAlexBoostingFirst = kTileIdChildAlexFirst + 12
-kTileIdChildAlexWalking1First = kTileIdChildAlexFirst + 16
-kTileIdChildAlexWalking2First = kTileIdChildAlexFirst + 20
+kTileIdChildPonytailFirst        = $84
+kTileIdChildAlexFirst            = $c8
+kTileIdChildAlexStandingFirst    = kTileIdChildAlexFirst + 0
+kTileIdChildAlexLookingFirst     = kTileIdChildAlexFirst + 4
+kTileIdChildAlexDuckingFirst     = kTileIdChildAlexFirst + 8
+kTileIdChildAlexBoostingFirst    = kTileIdChildAlexFirst + 12
+kTileIdChildAlexWalking1First    = kTileIdChildAlexFirst + 16
+kTileIdChildAlexWalking2First    = kTileIdChildAlexFirst + 20
+kTileIdChildCrewcutFirst         = $e4
+kTileIdChildCrewcutStandingFirst = kTileIdChildCrewcutFirst + 0
+kTileIdChildCrewcutWalking1First = kTileIdChildCrewcutFirst + 4
+kTileIdChildCrewcutWalking2First = kTileIdChildCrewcutFirst + 8
+kTileIdChildBobcutFirst          = $f0
+kTileIdChildBobcutStandingFirst  = kTileIdChildBobcutFirst + 0
+kTileIdChildBobcutWalking1First  = kTileIdChildBobcutFirst + 4
+kTileIdChildBobcutWalking2First  = kTileIdChildBobcutFirst + 8
 
 ;;; The first tile IDs for various adults.
 kTileIdAdultWomanFirst      = $88

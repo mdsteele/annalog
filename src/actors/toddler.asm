@@ -20,6 +20,7 @@
 .INCLUDE "../actor.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
+.INCLUDE "toddler.inc"
 
 .IMPORT FuncA_Objects_Alloc1x1Shape
 .IMPORT FuncA_Objects_MoveShapeLeftHalfTile
@@ -33,13 +34,10 @@
 
 ;;;=========================================================================;;;
 
-;;; The first tile ID for toddler actors.
-kToddlerFirstTileId = $80
-
 ;;; How fast a toddler walks, in pixels per frame.
 kToddlerSpeed = 1
 ;;; How long a toddler walks before turning around, in frames.
-kToddlerTime = 100
+kToddlerTime = 64
 
 ;;;=========================================================================;;;
 
@@ -95,8 +93,8 @@ kToddlerTime = 100
     lda #$02
     @draw:
     ;; Assert that we can use ORA instead of ADD.
-    .assert kToddlerFirstTileId & $02 = 0, error
-    ora #kToddlerFirstTileId
+    .assert kTileIdObjToddlerFirst & $02 = 0, error
+    ora #kTileIdObjToddlerFirst
     jmp FuncA_Objects_Draw1x2Actor  ; preserves X
 .ENDPROC
 

@@ -95,6 +95,9 @@ kSaveMagicNumber = $b2
     MermaidHut1MetQueen
     MermaidHut4OpenedCellar
     PrisonCellReachedTunnel
+    PrisonUpperFreedKids
+    PrisonUpperGateOpened
+    PrisonUpperTalkedToAlex
     TempleEntryColumnRaised
     TempleNaveAlexWaiting
     TempleNaveTalkedToAlex

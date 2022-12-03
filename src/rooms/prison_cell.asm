@@ -39,18 +39,13 @@
 .IMPORT FuncA_Machine_LiftMoveTowardGoal
 .IMPORT FuncA_Machine_LiftTryMove
 .IMPORT FuncA_Machine_ReachedGoal
-.IMPORT FuncA_Objects_Alloc1x1Shape
 .IMPORT FuncA_Objects_DrawLiftMachine
-.IMPORT FuncA_Objects_MoveShapeDownOneTile
-.IMPORT FuncA_Objects_MoveShapeRightOneTile
-.IMPORT FuncA_Objects_MoveShapeUpOneTile
-.IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
+.IMPORT FuncC_Prison_DrawGatePlatform
 .IMPORT Func_IsFlagSet
 .IMPORT Func_Noop
 .IMPORT Func_SetFlag
 .IMPORT Ppu_ChrObjPrison
 .IMPORT Ram_MachineGoalVert_u8_arr
-.IMPORT Ram_Oam_sObj_arr64
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORTZP Zp_CameraCanScroll_bool
 .IMPORTZP Zp_RoomScrollX_u16
@@ -84,14 +79,6 @@ kLiftMaxGoalY = 1
 ;;; The maximum and initial Y-positions for the top of the lift platform.
 kLiftMaxPlatformTop = $0080
 kLiftInitPlatformTop = kLiftMaxPlatformTop - kLiftInitGoalY * kBlockHeightPx
-
-;;; The bObj value to use for objects for the prison cell gate.
-kGateObjFlags = bObj::Pri | 0
-
-;;; Tile IDs for drawing the prison cell gate.
-kTileIdGateLeft  = $e1
-kTileIdGateRight = $e2
-kTileIdGateLock  = $e3
 
 ;;;=========================================================================;;;
 
@@ -277,42 +264,7 @@ _Blaster_Reset:
 ;;; @prereq PRGA_Objects is loaded.
 .PROC FuncC_Prison_Cell_DrawRoom
     ldx #kGatePlatformIndex  ; param: platform index
-    jsr FuncA_Objects_SetShapePosToPlatformTopLeft
-_LeftSide:
-    ldx #3
-    bne @begin  ; unconditional
-    @loop:
-    jsr FuncA_Objects_MoveShapeDownOneTile
-    @begin:
-    jsr FuncA_Objects_Alloc1x1Shape  ; preserves X, returns C and Y
-    bcs @continue
-    lda #kGateObjFlags
-    sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
-    lda #kTileIdGateLeft
-    sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
-    @continue:
-    dex
-    bpl @loop
-_RightSide:
-    jsr FuncA_Objects_MoveShapeRightOneTile
-    ldx #3
-    bne @begin  ; unconditional
-    @loop:
-    jsr FuncA_Objects_MoveShapeUpOneTile
-    @begin:
-    jsr FuncA_Objects_Alloc1x1Shape  ; preserves X, returns C and Y
-    bcs @continue
-    lda #kGateObjFlags
-    sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
-    lda _RightTileIds_u8_arr, x
-    sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
-    @continue:
-    dex
-    bpl @loop
-    rts
-_RightTileIds_u8_arr:
-    .byte kTileIdGateRight, kTileIdGateRight
-    .byte kTileIdGateLock, kTileIdGateRight
+    jmp FuncC_Prison_DrawGatePlatform
 .ENDPROC
 
 .PROC FuncC_Prison_CellLift_Init
