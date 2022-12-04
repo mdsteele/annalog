@@ -85,7 +85,7 @@ _Actors_sActor_arr:
     d_byte Type_eActor, eActor::NpcChild
     d_byte TileRow_u8, 23
     d_byte TileCol_u8, 18
-    d_byte Param_byte, kTileIdChildPonytailFirst
+    d_byte Param_byte, eNpcChild::PonytailStanding
     D_END
     .byte eActor::None
 _Devices_sDevice_arr:

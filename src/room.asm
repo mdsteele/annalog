@@ -82,8 +82,8 @@
 .IMPORT DataC_Town_House1_sRoom
 .IMPORT DataC_Town_House2_sRoom
 .IMPORT DataC_Town_Outdoors_sRoom
+.IMPORT FuncA_Room_InitActor
 .IMPORT FuncA_Room_InitAllMachines
-.IMPORT Func_InitActor
 .IMPORT Ram_ActorPosX_i16_0_arr
 .IMPORT Ram_ActorPosX_i16_1_arr
 .IMPORT Ram_ActorPosY_i16_0_arr
@@ -389,7 +389,7 @@ _LoadActors:
     dex
     @initLoop:
     lda Ram_ActorState1_byte_arr, x
-    jsr Func_InitActor  ; preserves X
+    jsr FuncA_Room_InitActor  ; preserves X
     dex
     .assert kMaxActors < $80, error
     bpl @initLoop

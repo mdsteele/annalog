@@ -18,6 +18,7 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "../actor.inc"
+.INCLUDE "../cpu.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
 .INCLUDE "toddler.inc"
@@ -26,6 +27,7 @@
 .IMPORT FuncA_Objects_MoveShapeLeftHalfTile
 .IMPORT FuncA_Objects_MoveShapeUpOneTile
 .IMPORT FuncA_Objects_SetShapePosToActorCenter
+.IMPORT Func_InitActorWithState1
 .IMPORT Ram_ActorFlags_bObj_arr
 .IMPORT Ram_ActorPosX_i16_0_arr
 .IMPORT Ram_ActorPosX_i16_1_arr
@@ -38,6 +40,30 @@
 kToddlerSpeed = 1
 ;;; How long a toddler walks before turning around, in frames.
 kToddlerTime = 64
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Room"
+
+;;; Initializes a toddler NPC actor.
+;;; @prereq The actor's pixel position has already been initialized.
+;;; @param A The bNpcToddler param.
+;;; @param X The actor index.
+;;; @preserve X
+.EXPORT FuncA_Room_InitActorNpcToddler
+.PROC FuncA_Room_InitActorNpcToddler
+    pha  ; bNpcToddler bits
+    and #bNpcToddler::DistMask  ; param: state byte
+    ldy #eActor::NpcToddler  ; param: actor type
+    jsr Func_InitActorWithState1  ; preserves X
+    pla  ; bNpcToddler bits
+    .assert bNpcToddler::Pri = bProc::Negative, error
+    bpl @done
+    lda #bObj::Pri
+    sta Ram_ActorFlags_bObj_arr, x
+    @done:
+    rts
+.ENDPROC
 
 ;;;=========================================================================;;;
 

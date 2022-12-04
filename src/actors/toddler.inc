@@ -25,3 +25,11 @@
 kTileIdObjToddlerFirst = $80
 
 ;;;=========================================================================;;;
+
+;;; Flags for the param byte for toddler NPC actors.
+.SCOPE bNpcToddler
+    Pri      = %10000000  ; if set, draw this actor behind the background
+    DistMask = %00111111  ; bits used for how far to walk
+.ENDSCOPE
+
+;;;=========================================================================;;;

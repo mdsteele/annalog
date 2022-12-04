@@ -742,21 +742,21 @@
 .PROC Ppu_ChrObjPrison
 :   .assert * - :- = (kTileIdObjToddlerFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/toddler.chr"
-    .assert * - :- = (kTileIdChildPonytailFirst - $80) * kSizeofChr, error
+    .assert * - :- = (kTileIdObjChildPonytailFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/child_ponytail.chr"
     .res $14 * kSizeofChr
     .assert * - :- = (kTileIdObjGrubFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/grub.chr"
     .res $20 * kSizeofChr
-    .assert * - :- = (kTileIdChildAlexFirst - $80) * kSizeofChr, error
+    .assert * - :- = (kTileIdObjChildAlexFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/alex.chr"
     .assert * - :- = (kTileIdObjStepstone - $80) * kSizeofChr, error
     .incbin "out/data/tiles/stepstone.chr"
     .assert * - :- = (kTileIdObjGateFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/gate.chr"
-    .assert * - :- = (kTileIdChildCrewcutFirst - $80) * kSizeofChr, error
+    .assert * - :- = (kTileIdObjChildCrewcutFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/child_crewcut.chr"
-    .assert * - :- = (kTileIdChildBobcutFirst - $80) * kSizeofChr, error
+    .assert * - :- = (kTileIdObjChildBobcutFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/child_bobcut.chr"
     .res $04 * kSizeofChr
     .assert * - :- = kSizeofChr * $80, error
@@ -803,7 +803,7 @@
     .assert * - :- = (kTileIdMermaidGuardFFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/mermaid_guardf.chr"
     .res $22 * kSizeofChr
-    .assert * - :- = (kTileIdChildAlexFirst - $80) * kSizeofChr, error
+    .assert * - :- = (kTileIdObjChildAlexFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/alex.chr"
     .assert * - :- = (kTileIdObjBeetleFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/beetle.chr"
@@ -820,7 +820,7 @@
 .PROC Ppu_ChrObjTownsfolk
 :   .assert * - :- = (kTileIdObjToddlerFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/toddler.chr"
-    .assert * - :- = (kTileIdChildPonytailFirst - $80) * kSizeofChr, error
+    .assert * - :- = (kTileIdObjChildPonytailFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/child_ponytail.chr"
     .assert * - :- = (kTileIdAdultWomanFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/adults.chr"

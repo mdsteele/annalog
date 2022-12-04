@@ -50,14 +50,14 @@ kPaletteObjVinebug = 0
 
 ;;;=========================================================================;;;
 
-.SEGMENT "PRG8"
+.SEGMENT "PRGA_Room"
 
 ;;; Initializes a vinebug baddie actor.
 ;;; @prereq The actor's unadjusted pixel position has already been initialized.
 ;;; @param X The actor index.
 ;;; @preserve X
-.EXPORT Func_InitActorBadVinebug
-.PROC Func_InitActorBadVinebug
+.EXPORT FuncA_Room_InitActorBadVinebug
+.PROC FuncA_Room_InitActorBadVinebug
     lda Ram_ActorPosX_i16_0_arr, x
     bne @noBorrow
     dec Ram_ActorPosX_i16_1_arr, x

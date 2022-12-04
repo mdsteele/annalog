@@ -18,6 +18,7 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "../actor.inc"
+.INCLUDE "../actors/toddler.inc"
 .INCLUDE "../actors/townsfolk.inc"
 .INCLUDE "../charmap.inc"
 .INCLUDE "../cpu.inc"
@@ -188,32 +189,31 @@ _Actors_sActor_arr:
     d_byte Type_eActor, eActor::NpcChild
     d_byte TileRow_u8, 23
     d_byte TileCol_u8, 10
-    d_byte Param_byte, kTileIdChildAlexStandingFirst
+    d_byte Param_byte, eNpcChild::AlexStanding
     D_END
-    ;; TODO: set bObj::Pri on the actors in the prison cells
     D_STRUCT sActor
     d_byte Type_eActor, eActor::NpcChild
     d_byte TileRow_u8, 15
     d_byte TileCol_u8, 34
-    d_byte Param_byte, kTileIdChildPonytailFirst
+    d_byte Param_byte, bNpcChild::Pri | eNpcChild::PonytailStanding
     D_END
     D_STRUCT sActor
     d_byte Type_eActor, eActor::NpcToddler
     d_byte TileRow_u8, 15
     d_byte TileCol_u8, 37
-    d_byte Param_byte, 17
+    d_byte Param_byte, bNpcToddler::Pri | 17
     D_END
     D_STRUCT sActor
     d_byte Type_eActor, eActor::NpcChild
     d_byte TileRow_u8, 23
     d_byte TileCol_u8, 44
-    d_byte Param_byte, kTileIdChildCrewcutFirst
+    d_byte Param_byte, bNpcChild::Pri | eNpcChild::CrewcutStanding
     D_END
     D_STRUCT sActor
     d_byte Type_eActor, eActor::NpcChild
     d_byte TileRow_u8, 23
     d_byte TileCol_u8, 50
-    d_byte Param_byte, kTileIdChildBobcutFirst
+    d_byte Param_byte, bNpcChild::Pri | eNpcChild::BobcutStanding
     D_END
     .byte eActor::None
 _Devices_sDevice_arr:

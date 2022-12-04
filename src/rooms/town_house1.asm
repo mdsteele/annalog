@@ -82,7 +82,7 @@ _Actors_sActor_arr:
     d_byte Type_eActor, eActor::NpcChild
     d_byte TileRow_u8, 25
     d_byte TileCol_u8, 20
-    d_byte Param_byte, kTileIdChildPonytailFirst
+    d_byte Param_byte, eNpcChild::PonytailStanding
     D_END
     D_STRUCT sActor
     d_byte Type_eActor, eActor::NpcToddler

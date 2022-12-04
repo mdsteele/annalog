@@ -18,6 +18,7 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "../actor.inc"
+.INCLUDE "../cpu.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
 .INCLUDE "../ppu.inc"
@@ -29,6 +30,7 @@
 .IMPORT FuncA_Objects_MoveShapeDownByA
 .IMPORT FuncA_Objects_MoveShapeUpOneTile
 .IMPORT FuncA_Objects_SetShapePosToActorCenter
+.IMPORT Func_InitActorWithState1
 .IMPORT Ram_ActorFlags_bObj_arr
 .IMPORT Ram_ActorPosX_i16_0_arr
 .IMPORT Ram_ActorPosX_i16_1_arr
@@ -48,6 +50,30 @@ kPaletteObjChild            = 1
 kPaletteObjMermaid          = 0
 kPaletteObjMermaidQueenBody = 0
 kPaletteObjMermaidQueenHead = 1
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Room"
+
+;;; Initializes a child NPC actor.
+;;; @prereq The actor's pixel position has already been initialized.
+;;; @param A The bNpcChild param.
+;;; @param X The actor index.
+;;; @preserve X
+.EXPORT FuncA_Room_InitActorNpcChild
+.PROC FuncA_Room_InitActorNpcChild
+    pha  ; bNpcChild bits
+    and #bNpcChild::EnumMask  ; param: state byte
+    ldy #eActor::NpcChild  ; param: actor type
+    jsr Func_InitActorWithState1  ; preserves X
+    pla  ; bNpcChild bits
+    .assert bNpcChild::Pri = bProc::Negative, error
+    bpl @done
+    lda #bObj::Pri
+    sta Ram_ActorFlags_bObj_arr, x
+    @done:
+    rts
+.ENDPROC
 
 ;;;=========================================================================;;;
 
@@ -76,7 +102,9 @@ kPaletteObjMermaidQueenHead = 1
     .assert kPaletteObjChild <> 0, error
     ora #kPaletteObjChild
     tay  ; param: object flags
-    lda Ram_ActorState1_byte_arr, x  ; param: first tile ID
+    lda Ram_ActorState1_byte_arr, x  ; eNpcChild value
+    mul #4
+    ora #$80  ; param: first tile ID
     jmp FuncA_Objects_Draw2x2Shape  ; preserves X
 .ENDPROC
 
@@ -135,9 +163,14 @@ _BottomHalf:
 ;;; @return A The bObj flags (excluding palette) to use for drawing the NPC.
 ;;; @preserve X
 .PROC FuncA_Objects_GetTownsfolkFlags
-    lda Ram_ActorState2_byte_arr, x
-    bne _UseActorFlags
-_FaceTowardAvatar:
+    lda Ram_ActorFlags_bObj_arr, x
+    ;; If State2 is true ($ff), use ActorFlags unchanged.
+    ldy Ram_ActorState2_byte_arr, x  ; "use flags" boolean
+    bmi @return
+    ;; Otherwise, only use the bObj::Pri bit from ActorFlags; ignore the flip
+    ;; flags and make the actor face towards the avatar.
+    and #bObj::Pri
+    sta Zp_Tmp1_byte  ; bObj::Pri bit
     lda Zp_AvatarPosX_i16 + 0
     cmp Ram_ActorPosX_i16_0_arr, x
     lda Zp_AvatarPosX_i16 + 1
@@ -148,13 +181,11 @@ _FaceTowardAvatar:
     bpl @faceRight
     @faceLeft:
     lda #bObj::FlipH
+    ora Zp_Tmp1_byte  ; bObj::Pri bit
     rts
     @faceRight:
-    lda #0
+    lda Zp_Tmp1_byte  ; bObj::Pri bit
     @return:
-    rts
-_UseActorFlags:
-    lda Ram_ActorFlags_bObj_arr, x
     rts
 .ENDPROC
 

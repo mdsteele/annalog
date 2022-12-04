@@ -63,9 +63,11 @@
 .IMPORT FuncA_Objects_DrawActorProjSteamHorz
 .IMPORT FuncA_Objects_DrawActorProjSteamUp
 .IMPORT FuncA_Objects_MoveShapeLeftHalfTile
+.IMPORT FuncA_Room_InitActorBadVinebug
+.IMPORT FuncA_Room_InitActorNpcChild
+.IMPORT FuncA_Room_InitActorNpcToddler
 .IMPORT Func_GetTerrainColumnPtrForTileIndex
 .IMPORT Func_HarmAvatar
-.IMPORT Func_InitActorBadVinebug
 .IMPORT Func_InitActorProjFireball
 .IMPORT Func_InitActorProjGrenade
 .IMPORT Func_InitActorProjSmoke
@@ -160,52 +162,6 @@ Ram_ActorFlags_bObj_arr: .res kMaxActors
     rts
 .ENDPROC
 
-;;; Initializes velocity, state, and flags for an actor appropriately based on
-;;; the actor's type and pixel position.
-;;; @prereq The actor's type has already been initialized.
-;;; @prereq The actor's pixel position has already been initialized.
-;;; @param A The actor-type-specific initialization parameter.
-;;; @param X The actor index.
-;;; @preserve X
-.EXPORT Func_InitActor
-.PROC Func_InitActor
-    sta Zp_Tmp1_byte  ; initialization parameter
-    ldy Ram_ActorType_eActor_arr, x
-    lda _JumpTable_ptr_0_arr, y
-    sta Zp_Tmp_ptr + 0
-    lda _JumpTable_ptr_1_arr, y
-    sta Zp_Tmp_ptr + 1
-    lda Zp_Tmp1_byte  ; param: initialization parameter
-    jmp (Zp_Tmp_ptr)
-.REPEAT 2, table
-    D_TABLE_LO table, _JumpTable_ptr_0_arr
-    D_TABLE_HI table, _JumpTable_ptr_1_arr
-    D_TABLE eActor
-    d_entry table, None,            Func_InitActorDefault
-    d_entry table, BadBeetleHorz,   Func_InitActorWithFlags
-    d_entry table, BadBeetleVert,   Func_InitActorWithFlags
-    d_entry table, BadCrab,         Func_InitActorDefault
-    d_entry table, BadFish,         Func_InitActorDefault
-    d_entry table, BadGrub,         Func_InitActorDefault
-    d_entry table, BadHotheadHorz,  Func_InitActorWithFlags
-    d_entry table, BadHotheadVert,  Func_InitActorWithFlags
-    d_entry table, BadSpider,       Func_InitActorDefault
-    d_entry table, BadVinebug,      Func_InitActorBadVinebug
-    d_entry table, NpcAdult,        Func_InitActorWithState1
-    d_entry table, NpcChild,        Func_InitActorWithState1
-    d_entry table, NpcMermaid,      Func_InitActorWithState1
-    d_entry table, NpcMermaidQueen, Func_InitActorDefault
-    d_entry table, NpcToddler,      Func_InitActorWithState1
-    d_entry table, ProjFireball,    Func_InitActorProjFireball
-    d_entry table, ProjGrenade,     Func_InitActorProjGrenade
-    d_entry table, ProjSmoke,       Func_InitActorProjSmoke
-    d_entry table, ProjSpike,       Func_InitActorProjSpike
-    d_entry table, ProjSteamHorz,   Func_InitActorProjSteamHorz
-    d_entry table, ProjSteamUp,     Func_InitActorProjSteamUp
-    D_END
-.ENDREPEAT
-.ENDPROC
-
 ;;; Zeroes the velocity and state bytes for the specified actor, and sets the
 ;;; actor's flags and type as specified.
 ;;; @prereq The actor's pixel position has already been initialized.
@@ -242,6 +198,7 @@ Ram_ActorFlags_bObj_arr: .res kMaxActors
 ;;; @param X The actor index.
 ;;; @param Y The actor type to set.
 ;;; @preserve X
+.EXPORT Func_InitActorWithState1
 .PROC Func_InitActorWithState1
     sta Ram_ActorState1_byte_arr, x
     tya  ; actor type
@@ -584,6 +541,52 @@ _NoHit:
 ;;;=========================================================================;;;
 
 .SEGMENT "PRGA_Room"
+
+;;; Initializes velocity, state, and flags for an actor appropriately based on
+;;; the actor's type and pixel position.
+;;; @prereq The actor's type has already been initialized.
+;;; @prereq The actor's pixel position has already been initialized.
+;;; @param A The actor-type-specific initialization parameter.
+;;; @param X The actor index.
+;;; @preserve X
+.EXPORT FuncA_Room_InitActor
+.PROC FuncA_Room_InitActor
+    sta Zp_Tmp1_byte  ; initialization parameter
+    ldy Ram_ActorType_eActor_arr, x
+    lda _JumpTable_ptr_0_arr, y
+    sta Zp_Tmp_ptr + 0
+    lda _JumpTable_ptr_1_arr, y
+    sta Zp_Tmp_ptr + 1
+    lda Zp_Tmp1_byte  ; param: initialization parameter
+    jmp (Zp_Tmp_ptr)
+.REPEAT 2, table
+    D_TABLE_LO table, _JumpTable_ptr_0_arr
+    D_TABLE_HI table, _JumpTable_ptr_1_arr
+    D_TABLE eActor
+    d_entry table, None,            Func_InitActorDefault
+    d_entry table, BadBeetleHorz,   Func_InitActorWithFlags
+    d_entry table, BadBeetleVert,   Func_InitActorWithFlags
+    d_entry table, BadCrab,         Func_InitActorDefault
+    d_entry table, BadFish,         Func_InitActorDefault
+    d_entry table, BadGrub,         Func_InitActorDefault
+    d_entry table, BadHotheadHorz,  Func_InitActorWithFlags
+    d_entry table, BadHotheadVert,  Func_InitActorWithFlags
+    d_entry table, BadSpider,       Func_InitActorDefault
+    d_entry table, BadVinebug,      FuncA_Room_InitActorBadVinebug
+    d_entry table, NpcAdult,        Func_InitActorWithState1
+    d_entry table, NpcChild,        FuncA_Room_InitActorNpcChild
+    d_entry table, NpcMermaid,      Func_InitActorWithState1
+    d_entry table, NpcMermaidQueen, Func_InitActorDefault
+    d_entry table, NpcToddler,      FuncA_Room_InitActorNpcToddler
+    d_entry table, ProjFireball,    Func_InitActorProjFireball
+    d_entry table, ProjGrenade,     Func_InitActorProjGrenade
+    d_entry table, ProjSmoke,       Func_InitActorProjSmoke
+    d_entry table, ProjSpike,       Func_InitActorProjSpike
+    d_entry table, ProjSteamHorz,   Func_InitActorProjSteamHorz
+    d_entry table, ProjSteamUp,     Func_InitActorProjSteamUp
+    D_END
+.ENDREPEAT
+.ENDPROC
 
 ;;; Checks if the horizontal and vertical distances between the centers of the
 ;;; two actors are both less than or equal to the given distance.

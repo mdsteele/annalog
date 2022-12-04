@@ -61,11 +61,12 @@ kMaxActors = 8
     ;; The room tile column for this actor.
     TileCol_u8  .byte
     ;; Type-specific initialization parameter.
+    ;;   * For BadBeetle*, this is the actor flip flags to set.
     ;;   * For BadHothead*, this is the actor flip flags to set.
     ;;   * For NpcAdult, this is the first tile ID (of six).
     ;;   * For NpcChild, this is the first tile ID (of four).
     ;;   * For NpcMermaid, this is the first tile ID (of six).
-    ;;   * For NpcToddler, this is how far to walk before turning around.
+    ;;   * For NpcToddler, this is a bNpcToddler value.
     ;;   * For all other baddies and NPCs, this is ignored.
     Param_byte  .byte
 .ENDSTRUCT

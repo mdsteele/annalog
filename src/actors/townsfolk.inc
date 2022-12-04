@@ -17,31 +17,52 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
-;;; State bytes for adult/child/mermaid NPCs:
+;;; State bytes for child NPCs:
+;;;   * State1: The eNpcChild value.
+;;;   * State2: Boolean; If true ($ff), the NPC uses Ram_ActorFlags_bObj_arr
+;;;     unchanged; if false ($00), the NPC is automatically drawn facing the
+;;;     player avatar.
+
+;;; State bytes for adult/mermaid NPCs:
 ;;;   * State1: The first tile ID for the actor.
-;;;   * State2: If nonzero, the NPC uses Ram_ActorFlags_bObj_arr for drawing;
-;;;     otherwise, the NPC is automatically drawn facing the player avatar.
+;;;   * State2: Boolean; If true ($ff), the NPC uses Ram_ActorFlags_bObj_arr
+;;;     unchanged; if false ($00), the NPC is automatically drawn facing the
+;;;     player avatar.
+
+;;;=========================================================================;;;
+
+.ENUM eNpcChild
+    PonytailStanding = $01
+    AlexStanding     = $12
+    AlexLooking      = $13
+    AlexDucking      = $14
+    AlexBoosting     = $15
+    AlexWalking1     = $16
+    AlexWalking2     = $17
+    CrewcutStanding  = $19
+    CrewcutWalking1  = $1a
+    CrewcutWalking2  = $1b
+    BobcutStanding   = $1c
+    BobcutWalking1   = $1d
+    BobcutWalking2   = $1e
+.ENDENUM
+
+;;; Flags for the param byte for child NPC actors.
+.SCOPE bNpcChild
+    Pri      = %10000000  ; if set, draw this actor behind the background
+    EnumMask = %00011111  ; bits used for the eNpcChild value
+.ENDSCOPE
+
+;;;=========================================================================;;;
 
 ;;; The first tile IDs for various children.
-kTileIdChildPonytailFirst        = $84
-kTileIdChildAlexFirst            = $c8
-kTileIdChildAlexStandingFirst    = kTileIdChildAlexFirst + 0
-kTileIdChildAlexLookingFirst     = kTileIdChildAlexFirst + 4
-kTileIdChildAlexDuckingFirst     = kTileIdChildAlexFirst + 8
-kTileIdChildAlexBoostingFirst    = kTileIdChildAlexFirst + 12
-kTileIdChildAlexWalking1First    = kTileIdChildAlexFirst + 16
-kTileIdChildAlexWalking2First    = kTileIdChildAlexFirst + 20
-kTileIdChildCrewcutFirst         = $e4
-kTileIdChildCrewcutStandingFirst = kTileIdChildCrewcutFirst + 0
-kTileIdChildCrewcutWalking1First = kTileIdChildCrewcutFirst + 4
-kTileIdChildCrewcutWalking2First = kTileIdChildCrewcutFirst + 8
-kTileIdChildBobcutFirst          = $f0
-kTileIdChildBobcutStandingFirst  = kTileIdChildBobcutFirst + 0
-kTileIdChildBobcutWalking1First  = kTileIdChildBobcutFirst + 4
-kTileIdChildBobcutWalking2First  = kTileIdChildBobcutFirst + 8
+kTileIdObjChildPonytailFirst = $80 | (eNpcChild::PonytailStanding << 2)
+kTileIdObjChildAlexFirst     = $80 | (eNpcChild::AlexStanding     << 2)
+kTileIdObjChildCrewcutFirst  = $80 | (eNpcChild::CrewcutStanding  << 2)
+kTileIdObjChildBobcutFirst   = $80 | (eNpcChild::BobcutStanding   << 2)
 
 ;;; The first tile IDs for various adults.
-kTileIdAdultWomanFirst      = $88
+kTileIdAdultWomanFirst = $88
 
 ;;; The first tile IDs for various mermaids.
 kTileIdMermaidAdultFirst    = $8e

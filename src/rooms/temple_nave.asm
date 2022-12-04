@@ -364,7 +364,7 @@ _Actors_sActor_arr:
     d_byte Type_eActor, eActor::NpcChild
     d_byte TileRow_u8, 43
     d_byte TileCol_u8, 18
-    d_byte Param_byte, kTileIdChildAlexStandingFirst
+    d_byte Param_byte, eNpcChild::AlexStanding
     D_END
     D_STRUCT sActor
     d_byte Type_eActor, eActor::BadBeetleHorz
@@ -450,7 +450,7 @@ _AlexBoosting:
     ldya #kAlexBoostingPositionX
     sty Ram_ActorPosX_i16_1_arr + kAlexActorIndex
     sta Ram_ActorPosX_i16_0_arr + kAlexActorIndex
-    lda #kTileIdChildAlexBoostingFirst
+    lda #eNpcChild::AlexBoosting
     sta Ram_ActorState1_byte_arr + kAlexActorIndex
     lda #$ff
     sta Ram_ActorState2_byte_arr + kAlexActorIndex
@@ -683,10 +683,10 @@ _WalkToBoostingPosition:
     lda Zp_FrameCounter_u8
     and #$08
     beq @walk2
-    lda #kTileIdChildAlexWalking1First
+    lda #eNpcChild::AlexWalking1
     bne @setState  ; unconditional
     @walk2:
-    lda #kTileIdChildAlexWalking2First
+    lda #eNpcChild::AlexWalking2
     @setState:
     sta Ram_ActorState1_byte_arr + kAlexActorIndex
     lda #$ff
@@ -708,13 +708,13 @@ _InBoostingPosition:
     cmp #kCutsceneTimerBoosting
     bge _ResumeDialog
     @boosting:
-    lda #kTileIdChildAlexBoostingFirst
+    lda #eNpcChild::AlexBoosting
     bne @setState  ; unconditional
     @standing:
-    lda #kTileIdChildAlexStandingFirst
+    lda #eNpcChild::AlexStanding
     bne @setState  ; unconditional
     @ducking:
-    lda #kTileIdChildAlexDuckingFirst
+    lda #eNpcChild::AlexDucking
     @setState:
     sta Ram_ActorState1_byte_arr + kAlexActorIndex
     bne _GameLoop  ; unconditional
