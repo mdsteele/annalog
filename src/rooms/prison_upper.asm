@@ -215,6 +215,7 @@ _Actors_sActor_arr:
     d_byte TileCol_u8, 50
     d_byte Param_byte, bNpcChild::Pri | eNpcChild::BobcutStanding
     D_END
+    .assert * - :- <= kMaxActors * .sizeof(sActor), error
     .byte eActor::None
 _Devices_sDevice_arr:
 :   .assert * - :- = kAlexCellDeviceIndex * .sizeof(sDevice), error
@@ -286,7 +287,7 @@ _Devices_sDevice_arr:
 _Passages_sPassage_arr:
     D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Eastern | 0
-    d_byte Destination_eRoom, eRoom::PrisonUpper  ; TODO
+    d_byte Destination_eRoom, eRoom::PrisonCrossroad
     d_byte SpawnBlock_u8, 10
     D_END
 .ENDPROC

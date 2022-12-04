@@ -689,7 +689,10 @@
     .res $0e * kSizeofChr
     .assert * - :- = (kTileIdObjUpgradeOpBeepFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/upgrade_opbeep.chr"
-    .res $37 * kSizeofChr
+    .res $0a * kSizeofChr
+    .assert * - :- = (kTileIdObjGrubFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/grub.chr"
+    .res $21 * kSizeofChr
     .assert * - :- = (kTileIdObjFishFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/fish.chr"
     .assert * - :- = (kTileIdObjCrabFirst - $80) * kSizeofChr, error

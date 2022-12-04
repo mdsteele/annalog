@@ -62,6 +62,8 @@ kMinScrollX = $10
 
 ;;; The index of the passage that leads into the tunnel under the prison cell.
 kTunnelPassageIndex = 1
+;;; The index of the passage on the eastern side of the room.
+kEasternPassageIndex = 2
 
 ;;; The machine indices for the machines in this room.
 kLiftMachineIndex = 0
@@ -211,9 +213,10 @@ _Passages_sPassage_arr:
     d_byte Destination_eRoom, eRoom::PrisonEscape
     d_byte SpawnBlock_u8, 20
     D_END
+    .assert * - :- = kEasternPassageIndex * .sizeof(sPassage), error
     D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Eastern | 0
-    d_byte Destination_eRoom, eRoom::PrisonCell  ; TODO
+    d_byte Destination_eRoom, eRoom::PrisonCrossroad
     d_byte SpawnBlock_u8, 11
     D_END
     D_STRUCT sPassage
@@ -243,12 +246,15 @@ _Blaster_Reset:
     jsr Func_IsFlagSet  ; preserves X and Zp_Tmp*, returns Z
     bne @done
     lda Zp_Tmp1_byte  ; bSpawn value
+    cmp #bSpawn::IsPassage | kEasternPassageIndex
+    beq @setFlag
     cmp #bSpawn::IsPassage | kTunnelPassageIndex
-    bne @lockScrolling
+    bne _LockScrolling
+    @setFlag:
     jsr Func_SetFlag
     @done:
     rts
-    @lockScrolling:
+_LockScrolling:
     lda #0
     sta Zp_CameraCanScroll_bool
     sta Zp_RoomScrollY_u8

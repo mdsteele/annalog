@@ -81,6 +81,7 @@ kRoomStateSize = $100
     MineCollapse
     MinePit
     PrisonCell
+    PrisonCrossroad
     PrisonEscape
     PrisonFlower
     PrisonUpper
