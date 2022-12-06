@@ -33,6 +33,7 @@ kMaxActors = 8
     BadHotheadHorz
     BadHotheadVert
     BadSpider
+    BadToad
     BadVinebug
     NpcAdult
     NpcChild

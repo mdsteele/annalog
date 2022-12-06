@@ -101,6 +101,13 @@ _Platforms_sPlatform_arr:
     .assert * - :- <= kMaxPlatforms * .sizeof(sPlatform), error
     .byte ePlatform::None
 _Actors_sActor_arr:
+:   D_STRUCT sActor
+    d_byte Type_eActor, eActor::BadToad
+    d_byte TileRow_u8, 22
+    d_byte TileCol_u8, 13
+    d_byte Param_byte, 0
+    D_END
+    .assert * - :- <= kMaxActors * .sizeof(sActor), error
     .byte eActor::None
 _Devices_sDevice_arr:
 :   D_STRUCT sDevice

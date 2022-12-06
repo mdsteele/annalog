@@ -32,6 +32,7 @@
 .IMPORT FuncA_Actor_TickBadHotheadHorz
 .IMPORT FuncA_Actor_TickBadHotheadVert
 .IMPORT FuncA_Actor_TickBadSpider
+.IMPORT FuncA_Actor_TickBadToad
 .IMPORT FuncA_Actor_TickBadVinebug
 .IMPORT FuncA_Actor_TickNpcToddler
 .IMPORT FuncA_Actor_TickProjFireball
@@ -50,6 +51,7 @@
 .IMPORT FuncA_Objects_DrawActorBadHotheadHorz
 .IMPORT FuncA_Objects_DrawActorBadHotheadVert
 .IMPORT FuncA_Objects_DrawActorBadSpider
+.IMPORT FuncA_Objects_DrawActorBadToad
 .IMPORT FuncA_Objects_DrawActorBadVinebug
 .IMPORT FuncA_Objects_DrawActorNpcAdult
 .IMPORT FuncA_Objects_DrawActorNpcChild
@@ -232,6 +234,7 @@ Ram_ActorFlags_bObj_arr: .res kMaxActors
     d_byte BadHotheadHorz,   6
     d_byte BadHotheadVert,   6
     d_byte BadSpider,        8
+    d_byte BadToad,          9
     d_byte BadVinebug,       7
     d_byte NpcAdult,        13
     d_byte NpcChild,         7
@@ -257,6 +260,7 @@ Ram_ActorFlags_bObj_arr: .res kMaxActors
     d_byte BadHotheadHorz,   6
     d_byte BadHotheadVert,   6
     d_byte BadSpider,        2
+    d_byte BadToad,          0
     d_byte BadVinebug,       7
     d_byte NpcAdult,         8
     d_byte NpcChild,         8
@@ -282,6 +286,7 @@ Ram_ActorFlags_bObj_arr: .res kMaxActors
     d_byte BadHotheadHorz,  6
     d_byte BadHotheadVert,  6
     d_byte BadSpider,       7
+    d_byte BadToad,         7
     d_byte BadVinebug,      5
     d_byte NpcAdult,        5
     d_byte NpcChild,        5
@@ -361,6 +366,7 @@ _TypeSpecificTick:
     d_entry table, BadHotheadHorz,  FuncA_Actor_TickBadHotheadHorz
     d_entry table, BadHotheadVert,  FuncA_Actor_TickBadHotheadVert
     d_entry table, BadSpider,       FuncA_Actor_TickBadSpider
+    d_entry table, BadToad,         FuncA_Actor_TickBadToad
     d_entry table, BadVinebug,      FuncA_Actor_TickBadVinebug
     d_entry table, NpcAdult,        Func_Noop
     d_entry table, NpcChild,        Func_Noop
@@ -484,6 +490,32 @@ _NoHit:
     rts
 .ENDPROC
 
+;;; Sets or clears bObj::FlipH in the actor's flags so as to face the actor
+;;; horizontally towards the player avatar.
+;;; @param X The actor index.
+;;; @preserve X
+.EXPORT FuncA_Actor_FaceTowardsAvatar
+.PROC FuncA_Actor_FaceTowardsAvatar
+    lda Zp_AvatarPosX_i16 + 0
+    cmp Ram_ActorPosX_i16_0_arr, x
+    lda Zp_AvatarPosX_i16 + 1
+    sbc Ram_ActorPosX_i16_1_arr, x
+    bvc @noOverflow  ; N eor V
+    eor #$80
+    @noOverflow:
+    bpl @faceRight
+    @faceLeft:
+    lda Ram_ActorFlags_bObj_arr, x
+    ora #bObj::FlipH
+    bne @setFlags  ; unconditional
+    @faceRight:
+    lda Ram_ActorFlags_bObj_arr, x
+    and #<~bObj::FlipH
+    @setFlags:
+    sta Ram_ActorFlags_bObj_arr, x
+    rts
+.ENDPROC
+
 ;;; Returns the room tile column index for the actor position.
 ;;; @param X The actor index.
 ;;; @return A The room tile column index.
@@ -572,6 +604,7 @@ _NoHit:
     d_entry table, BadHotheadHorz,  Func_InitActorWithFlags
     d_entry table, BadHotheadVert,  Func_InitActorWithFlags
     d_entry table, BadSpider,       Func_InitActorDefault
+    d_entry table, BadToad,         Func_InitActorDefault
     d_entry table, BadVinebug,      FuncA_Room_InitActorBadVinebug
     d_entry table, NpcAdult,        Func_InitActorWithState1
     d_entry table, NpcChild,        FuncA_Room_InitActorNpcChild
@@ -693,6 +726,7 @@ _NoHit:
     d_entry table, BadHotheadHorz,  FuncA_Objects_DrawActorBadHotheadHorz
     d_entry table, BadHotheadVert,  FuncA_Objects_DrawActorBadHotheadVert
     d_entry table, BadSpider,       FuncA_Objects_DrawActorBadSpider
+    d_entry table, BadToad,         FuncA_Objects_DrawActorBadToad
     d_entry table, BadVinebug,      FuncA_Objects_DrawActorBadVinebug
     d_entry table, NpcAdult,        FuncA_Objects_DrawActorNpcAdult
     d_entry table, NpcChild,        FuncA_Objects_DrawActorNpcChild

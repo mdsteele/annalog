@@ -25,6 +25,7 @@
 .INCLUDE "actors/hothead.inc"
 .INCLUDE "actors/spider.inc"
 .INCLUDE "actors/spike.inc"
+.INCLUDE "actors/toad.inc"
 .INCLUDE "actors/toddler.inc"
 .INCLUDE "actors/townsfolk.inc"
 .INCLUDE "actors/vinebug.inc"
@@ -750,7 +751,9 @@
     .res $14 * kSizeofChr
     .assert * - :- = (kTileIdObjGrubFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/grub.chr"
-    .res $20 * kSizeofChr
+    .assert * - :- = (kTileIdObjToadFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/toad.chr"
+    .res $18 * kSizeofChr
     .assert * - :- = (kTileIdObjChildAlexFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/alex.chr"
     .assert * - :- = (kTileIdObjStepstone - $80) * kSizeofChr, error
