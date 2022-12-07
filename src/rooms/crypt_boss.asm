@@ -614,12 +614,11 @@ _DrawBossPupil:
     lda Ram_RoomState + sState::BossPosX_u8
     sub _EyeOffsetX_u8_arr, x
     sta Zp_ShapePosX_i16 + 0
-    lda #0
-    sta Zp_ShapePosX_i16 + 1
     lda Ram_RoomState + sState::BossPosY_u8
     sub _EyeOffsetY_u8_arr, x
     sta Zp_ShapePosY_i16 + 0
     lda #0
+    sta Zp_ShapePosX_i16 + 1
     sta Zp_ShapePosY_i16 + 1
     ;; Draw the pupil.
     ldy #kBossPupilPalette  ; param: object flags

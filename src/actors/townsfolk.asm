@@ -28,6 +28,7 @@
 .IMPORT FuncA_Objects_Alloc2x2Shape
 .IMPORT FuncA_Objects_Draw2x2Shape
 .IMPORT FuncA_Objects_MoveShapeDownByA
+.IMPORT FuncA_Objects_MoveShapeUpByA
 .IMPORT FuncA_Objects_MoveShapeUpOneTile
 .IMPORT FuncA_Objects_SetShapePosToActorCenter
 .IMPORT Func_InitActorWithState1
@@ -39,7 +40,6 @@
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORTZP Zp_AvatarPosX_i16
 .IMPORTZP Zp_FrameCounter_u8
-.IMPORTZP Zp_ShapePosY_i16
 .IMPORTZP Zp_Tmp1_byte
 
 ;;;=========================================================================;;;
@@ -121,12 +121,8 @@ kPaletteObjMermaidQueenHead = 1
     add Zp_Tmp1_byte  ; actor index
     and #$07
     tay
-    lda Zp_ShapePosY_i16 + 0
-    sub _VertOffset_u8_arr8, y
-    sta Zp_ShapePosY_i16 + 0
-    lda Zp_ShapePosY_i16 + 1
-    sbc #0
-    sta Zp_ShapePosY_i16 + 1
+    lda _VertOffset_u8_arr8, y  ; param: offset
+    jsr FuncA_Objects_MoveShapeUpByA
     ;; Draw the actor.
     jsr FuncA_Objects_GetTownsfolkFlags  ; preserves X, returns A
     .assert kPaletteObjMermaid = 0, error

@@ -65,6 +65,7 @@
 .IMPORT FuncA_Objects_DrawActorProjSteamHorz
 .IMPORT FuncA_Objects_DrawActorProjSteamUp
 .IMPORT FuncA_Objects_MoveShapeLeftHalfTile
+.IMPORT FuncA_Objects_MoveShapeUpByA
 .IMPORT FuncA_Room_InitActorBadVinebug
 .IMPORT FuncA_Room_InitActorNpcChild
 .IMPORT FuncA_Room_InitActorNpcToddler
@@ -775,15 +776,10 @@ _NoHit:
 .PROC FuncA_Objects_Draw1x1Actor
     pha  ; tile ID
     jsr FuncA_Objects_SetShapePosToActorCenter  ; preserves X and Y
-    ;; Adjust X-position.
+    ;; Adjust position.
     jsr FuncA_Objects_MoveShapeLeftHalfTile  ; preserves X and Y
-    ;; Adjust Y-position.
-    lda Zp_ShapePosY_i16 + 0
-    sub #kTileHeightPx / 2
-    sta Zp_ShapePosY_i16 + 0
-    lda Zp_ShapePosY_i16 + 1
-    sbc #0
-    sta Zp_ShapePosY_i16 + 1
+    lda #kTileHeightPx / 2
+    jsr FuncA_Objects_MoveShapeUpByA  ; preserves X and Y
     ;; Draw object.
     tya
     ora Ram_ActorFlags_bObj_arr, x

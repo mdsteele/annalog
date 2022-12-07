@@ -28,6 +28,7 @@
 .IMPORT FuncA_Actor_FaceTowardsAvatar
 .IMPORT FuncA_Actor_HarmAvatarIfCollision
 .IMPORT FuncA_Objects_Draw2x2Shape
+.IMPORT FuncA_Objects_MoveShapeUpByA
 .IMPORT FuncA_Objects_SetShapePosToActorCenter
 .IMPORT Func_GetRandomByte
 .IMPORT Ram_ActorFlags_bObj_arr
@@ -37,7 +38,6 @@
 .IMPORT Ram_ActorSubY_u8_arr
 .IMPORT Ram_ActorVelY_i16_0_arr
 .IMPORT Ram_ActorVelY_i16_1_arr
-.IMPORTZP Zp_ShapePosY_i16
 
 ;;;=========================================================================;;;
 
@@ -120,15 +120,9 @@ _StartJump:
 ;;; @preserve X
 .EXPORT FuncA_Objects_DrawActorBadToad
 .PROC FuncA_Objects_DrawActorBadToad
-    jsr FuncA_Objects_SetShapePosToActorCenter  ; preserves X and Y
-    ;; Adjust Y-position:
-    lda Zp_ShapePosY_i16 + 0
-    sub #5
-    sta Zp_ShapePosY_i16 + 0
-    lda Zp_ShapePosY_i16 + 1
-    sbc #0
-    sta Zp_ShapePosY_i16 + 1
-    ;; Draw shape:
+    jsr FuncA_Objects_SetShapePosToActorCenter  ; preserves X
+    lda #5  ; param: offset
+    jsr FuncA_Objects_MoveShapeUpByA  ; preserves X
     ldy Ram_ActorState2_byte_arr, x  ; 0 if grounded, 1 if airborne
     lda _FirstTileId_u8_arr2, y  ; param: first tile ID
     .assert kPaletteObjToad = 0, error

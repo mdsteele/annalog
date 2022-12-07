@@ -41,6 +41,7 @@
 .IMPORT FuncA_Objects_DrawGirderPlatform
 .IMPORT FuncA_Objects_DrawTrolleyMachine
 .IMPORT FuncA_Objects_DrawTrolleyRopeWithLength
+.IMPORT FuncA_Objects_MoveShapeLeftByA
 .IMPORT FuncA_Objects_MoveShapeLeftHalfTile
 .IMPORT FuncA_Objects_MoveShapeRightOneTile
 .IMPORT FuncA_Objects_MoveShapeUpOneTile
@@ -53,7 +54,6 @@
 .IMPORT Ram_PlatformLeft_i16_0_arr
 .IMPORT Ram_PlatformLeft_i16_1_arr
 .IMPORTZP Zp_PlatformGoal_i16
-.IMPORTZP Zp_ShapePosX_i16
 .IMPORTZP Zp_Tmp1_byte
 
 ;;;=========================================================================;;;
@@ -324,12 +324,8 @@ _RopeTriangle:
     lda #kTrolleyTileIdRopeDiag  ; param: tile ID
     jsr FuncA_Objects_Draw1x1Shape
     ;; Tile 2:
-    lda Zp_ShapePosX_i16 + 0
-    sub #kTileWidthPx * 3
-    sta Zp_ShapePosX_i16 + 0
-    lda Zp_ShapePosX_i16 + 1
-    sbc #0
-    sta Zp_ShapePosX_i16 + 1
+    lda #kTileWidthPx * 3  ; param: offset
+    jsr FuncA_Objects_MoveShapeLeftByA
     ldy #kTrolleyRopePalette  ; param: object flags
     lda #kTrolleyTileIdRopeDiag  ; param: tile ID
     jsr FuncA_Objects_Draw1x1Shape

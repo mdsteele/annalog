@@ -33,6 +33,8 @@
 .IMPORT FuncA_Objects_Alloc2x2Shape
 .IMPORT FuncA_Objects_GetMachineLightTileId
 .IMPORT FuncA_Objects_MoveShapeDownAndRightOneTile
+.IMPORT FuncA_Objects_MoveShapeDownByA
+.IMPORT FuncA_Objects_MoveShapeRightByA
 .IMPORT FuncA_Objects_MoveShapeRightOneTile
 .IMPORT FuncA_Objects_MoveShapeUpOneTile
 .IMPORT FuncA_Objects_SetShapePosToMachineTopLeft
@@ -60,7 +62,6 @@
 .IMPORTZP Zp_MachineIndex_u8
 .IMPORTZP Zp_PlatformGoal_i16
 .IMPORTZP Zp_RoomScrollY_u8
-.IMPORTZP Zp_ShapePosX_i16
 .IMPORTZP Zp_ShapePosY_i16
 .IMPORTZP Zp_Tmp1_byte
 .IMPORTZP Zp_Tmp2_byte
@@ -422,19 +423,10 @@ _Done:
 .EXPORT FuncA_Objects_SetShapePosToSpikeballCenter
 .PROC FuncA_Objects_SetShapePosToSpikeballCenter
     jsr FuncA_Objects_SetShapePosToPlatformTopLeft  ; preserves X and Y
-    lda Zp_ShapePosX_i16 + 0
-    add #6
-    sta Zp_ShapePosX_i16 + 0
-    lda Zp_ShapePosX_i16 + 1
-    adc #0
-    sta Zp_ShapePosX_i16 + 1
-    lda Zp_ShapePosY_i16 + 0
-    add #6
-    sta Zp_ShapePosY_i16 + 0
-    lda Zp_ShapePosY_i16 + 1
-    adc #0
-    sta Zp_ShapePosY_i16 + 1
-    rts
+    lda #6  ; param: offset
+    jsr FuncA_Objects_MoveShapeRightByA
+    lda #6  ; param: offset
+    jmp FuncA_Objects_MoveShapeDownByA
 .ENDPROC
 
 ;;; Allocates and populates OAM slots for a winch spikeball.

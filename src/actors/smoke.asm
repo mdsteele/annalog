@@ -20,11 +20,14 @@
 .INCLUDE "../actor.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
+.INCLUDE "../ppu.inc"
 
 .IMPORT FuncA_Objects_Alloc1x1Shape
 .IMPORT FuncA_Objects_MoveShapeDownByA
+.IMPORT FuncA_Objects_MoveShapeLeftByA
 .IMPORT FuncA_Objects_MoveShapeLeftOneTile
 .IMPORT FuncA_Objects_MoveShapeRightByA
+.IMPORT FuncA_Objects_MoveShapeUpByA
 .IMPORT FuncA_Objects_MoveShapeUpOneTile
 .IMPORT FuncA_Objects_SetShapePosToActorCenter
 .IMPORT Func_InitActorDefault
@@ -32,8 +35,6 @@
 .IMPORT Ram_ActorState1_byte_arr
 .IMPORT Ram_ActorType_eActor_arr
 .IMPORT Ram_Oam_sObj_arr64
-.IMPORTZP Zp_ShapePosX_i16
-.IMPORTZP Zp_ShapePosY_i16
 
 ;;;=========================================================================;;;
 
@@ -99,23 +100,15 @@ _BottomLeft:
 _TopLeft:
     jsr FuncA_Objects_SetShapePosToActorCenter  ; preserves X
     jsr FuncA_Objects_MoveShapeUpOneTile
-    jsr FuncA_Objects_MoveShapeLeftOneTile
-    lda Zp_ShapePosX_i16 + 0
-    sub Ram_ActorState1_byte_arr, x
-    sta Zp_ShapePosX_i16 + 0
-    lda Zp_ShapePosX_i16 + 1
-    sbc #0
-    sta Zp_ShapePosX_i16 + 1
+    lda Ram_ActorState1_byte_arr, x
+    add #kTileWidthPx  ; param: offset
+    jsr FuncA_Objects_MoveShapeLeftByA  ; preserves X
     jsr _DrawSmokeParticle  ; preserves X
 _TopRight:
     jsr FuncA_Objects_SetShapePosToActorCenter  ; preserves X
-    jsr FuncA_Objects_MoveShapeUpOneTile
-    lda Zp_ShapePosY_i16 + 0
-    sub Ram_ActorState1_byte_arr, x
-    sta Zp_ShapePosY_i16 + 0
-    lda Zp_ShapePosY_i16 + 1
-    sbc #0
-    sta Zp_ShapePosY_i16 + 1
+    lda Ram_ActorState1_byte_arr, x
+    add #kTileHeightPx  ; param: offset
+    jsr FuncA_Objects_MoveShapeUpByA  ; preserves X
 _DrawSmokeParticle:
     jsr FuncA_Objects_Alloc1x1Shape  ; preserves X
     bcs @done

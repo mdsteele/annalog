@@ -45,6 +45,7 @@
 .IMPORT FuncA_Objects_DrawMachineHud
 .IMPORT FuncA_Objects_DrawPlayerAvatar
 .IMPORT FuncA_Objects_MoveShapeLeftHalfTile
+.IMPORT FuncA_Objects_MoveShapeUpByA
 .IMPORT FuncA_Objects_SetShapePosToAvatarCenter
 .IMPORT FuncA_Room_CallRoomTick
 .IMPORT FuncA_Room_EnterViaPassage
@@ -89,7 +90,6 @@
 .IMPORTZP Zp_P1ButtonsPressed_bJoypad
 .IMPORTZP Zp_PpuScrollX_u8
 .IMPORTZP Zp_PpuScrollY_u8
-.IMPORTZP Zp_ShapePosY_i16
 .IMPORTZP Zp_Tmp1_byte
 .IMPORTZP Zp_Tmp2_byte
 .IMPORTZP Zp_Tmp_ptr
@@ -861,7 +861,7 @@ _UpdateNametable:
 _DrawObject:
     jsr FuncA_Objects_SetShapePosToAvatarCenter
     jsr FuncA_Objects_MoveShapeLeftHalfTile
-    ;; Calculate the Y-offset and store it in Zp_Tmp1_byte:
+    ;; Calculate the Y-offset and adjust Y-position:
     lda Zp_FrameCounter_u8
     div #8
     and #$03
@@ -869,15 +869,8 @@ _DrawObject:
     bne @noZigZag
     lda #$01
     @noZigZag:
-    add #3 + kTileWidthPx * 2
-    sta Zp_Tmp1_byte  ; Y-offset
-    ;; Adjust Y-position:
-    lda Zp_ShapePosY_i16 + 0
-    sub Zp_Tmp1_byte
-    sta Zp_ShapePosY_i16 + 0
-    lda Zp_ShapePosY_i16 + 1
-    sbc #0
-    sta Zp_ShapePosY_i16 + 1
+    add #3 + kTileWidthPx * 2  ; param: offset
+    jsr FuncA_Objects_MoveShapeUpByA
     ;; Draw the object:
     ldy #kDevicePromptObjPalette  ; param: object flags
     lda #kDevicePromptObjTileId  ; param: tile ID
