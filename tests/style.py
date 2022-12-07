@@ -96,8 +96,8 @@ def run_tests():
         unused_imports = []
         for identifier in imports:
             for line in open(filepath):
-                if not IMPORT_PATTERN.match(line) and identifier in line:
-                    break
+                if IMPORT_PATTERN.match(line): continue
+                if identifier in line.split(';', 1)[0]: break
             else:
                 unused_imports.append(identifier)
         if unused_imports:

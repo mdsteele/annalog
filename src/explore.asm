@@ -89,7 +89,6 @@
 .IMPORTZP Zp_P1ButtonsPressed_bJoypad
 .IMPORTZP Zp_PpuScrollX_u8
 .IMPORTZP Zp_PpuScrollY_u8
-.IMPORTZP Zp_Render_bPpuMask
 .IMPORTZP Zp_ShapePosY_i16
 .IMPORTZP Zp_Tmp1_byte
 .IMPORTZP Zp_Tmp2_byte

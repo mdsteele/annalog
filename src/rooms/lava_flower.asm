@@ -47,7 +47,6 @@
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrObjLava
 .IMPORT Ram_MachineGoalVert_u8_arr
-.IMPORTZP Zp_MachineIndex_u8
 
 ;;;=========================================================================;;;
 

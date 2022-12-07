@@ -27,8 +27,6 @@
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORT Ram_PlatformLeft_i16_0_arr
 .IMPORT Ram_PlatformRight_i16_0_arr
-.IMPORTZP Zp_ShapePosX_i16
-.IMPORTZP Zp_ShapePosY_i16
 
 ;;;=========================================================================;;;
 
