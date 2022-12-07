@@ -68,6 +68,7 @@
 .IMPORT DataC_Mermaid_Village_sRoom
 .IMPORT DataC_Mine_Collapse_sRoom
 .IMPORT DataC_Mine_Pit_sRoom
+.IMPORT DataC_Mine_South_sRoom
 .IMPORT DataC_Prison_Cell_sRoom
 .IMPORT DataC_Prison_Crossroad_sRoom
 .IMPORT DataC_Prison_Escape_sRoom
@@ -204,6 +205,7 @@ Ram_RoomState: .res kRoomStateSize
     d_entry table, MermaidVillage,  DataC_Mermaid_Village_sRoom
     d_entry table, MineCollapse,    DataC_Mine_Collapse_sRoom
     d_entry table, MinePit,         DataC_Mine_Pit_sRoom
+    d_entry table, MineSouth,       DataC_Mine_South_sRoom
     d_entry table, PrisonCell,      DataC_Prison_Cell_sRoom
     d_entry table, PrisonCrossroad, DataC_Prison_Crossroad_sRoom
     d_entry table, PrisonEscape,    DataC_Prison_Escape_sRoom

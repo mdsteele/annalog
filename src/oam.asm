@@ -110,24 +110,29 @@ Ram_Oam_sObj_arr64: .res .sizeof(sObj) * kNumOamSlots
 ;;; @preserve X, Y, Zp_Tmp*
 .EXPORT FuncA_Objects_MoveShapeLeftHalfTile
 .PROC FuncA_Objects_MoveShapeLeftHalfTile
-    lda Zp_ShapePosX_i16 + 0
-    sub #kTileWidthPx / 2
-    sta Zp_ShapePosX_i16 + 0
-    lda Zp_ShapePosX_i16 + 1
-    sbc #0
-    sta Zp_ShapePosX_i16 + 1
-    rts
+    lda #kTileWidthPx / 2
+    bne FuncA_Objects_MoveShapeLeftByA  ; unconditional
 .ENDPROC
 
 ;;; Moves Zp_ShapePosX_i16 leftwards by the width of one tile.
 ;;; @preserve X, Y, Zp_Tmp*
 .EXPORT FuncA_Objects_MoveShapeLeftOneTile
 .PROC FuncA_Objects_MoveShapeLeftOneTile
-    lda Zp_ShapePosX_i16 + 0
-    sub #kTileWidthPx
+    lda #kTileWidthPx
+    .assert * = FuncA_Objects_MoveShapeLeftByA, error, "fallthrough"
+.ENDPROC
+
+;;; Moves Zp_ShapePosX_i16 leftwards by the given number of pixels.
+;;; @param A The number of pixels to shift left by (unsigned).
+;;; @preserve X, Y, Zp_Tmp*
+.EXPORT FuncA_Objects_MoveShapeLeftByA
+.PROC FuncA_Objects_MoveShapeLeftByA
+    eor #$ff
+    sec
+    adc Zp_ShapePosX_i16 + 0
     sta Zp_ShapePosX_i16 + 0
     lda Zp_ShapePosX_i16 + 1
-    sbc #0
+    adc #$ff
     sta Zp_ShapePosX_i16 + 1
     rts
 .ENDPROC
@@ -157,11 +162,21 @@ Ram_Oam_sObj_arr64: .res .sizeof(sObj) * kNumOamSlots
 ;;; @preserve X, Y, Zp_Tmp*
 .EXPORT FuncA_Objects_MoveShapeUpOneTile
 .PROC FuncA_Objects_MoveShapeUpOneTile
-    lda Zp_ShapePosY_i16 + 0
-    sub #kTileHeightPx
+    lda #kTileHeightPx
+    .assert * = FuncA_Objects_MoveShapeUpByA, error, "fallthrough"
+.ENDPROC
+
+;;; Moves Zp_ShapePosY_i16 upwards by the given number of pixels.
+;;; @param A The number of pixels to shift up by (unsigned).
+;;; @preserve X, Y, Zp_Tmp*
+.EXPORT FuncA_Objects_MoveShapeUpByA
+.PROC FuncA_Objects_MoveShapeUpByA
+    eor #$ff
+    sec
+    adc Zp_ShapePosY_i16 + 0
     sta Zp_ShapePosY_i16 + 0
     lda Zp_ShapePosY_i16 + 1
-    sbc #0
+    adc #$ff
     sta Zp_ShapePosY_i16 + 1
     rts
 .ENDPROC

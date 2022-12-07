@@ -80,6 +80,7 @@ kRoomStateSize = $100
     MermaidVillage
     MineCollapse
     MinePit
+    MineSouth
     PrisonCell
     PrisonCrossroad
     PrisonEscape

@@ -34,6 +34,7 @@
 .INCLUDE "machines/boiler.inc"
 .INCLUDE "machines/cannon.inc"
 .INCLUDE "machines/crane.inc"
+.INCLUDE "machines/hoist.inc"
 .INCLUDE "machines/jet.inc"
 .INCLUDE "machines/pump.inc"
 .INCLUDE "machines/winch.inc"
@@ -423,7 +424,8 @@
 .EXPORT Ppu_ChrBgMine
 .PROC Ppu_ChrBgMine
 :   .incbin "out/data/tiles/crystal.chr"
-    .res $24 * kSizeofChr
+    .incbin "out/data/tiles/ropediag.chr"
+    .res $20 * kSizeofChr
     .incbin "out/data/tiles/device.chr"
     .assert * - :- = kSizeofChr * $40, error
 .ENDPROC
@@ -715,7 +717,9 @@
     .incbin "out/data/tiles/upgrade_bottom.chr"
     .assert * - :- = (kTileIdObjUpgradeMaxInstFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/upgrade_maxinst.chr"
-    .res $14 * kSizeofChr
+    .assert * - :- = (kTileIdObjHoistFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/hoist.chr"
+    .res $0e * kSizeofChr
     .assert * - :- = (kTileIdObjUpgradeOpSyncFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/upgrade_opsync.chr"
     .assert * - :- = (kTileIdCraneFirst - $80) * kSizeofChr, error

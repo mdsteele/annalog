@@ -2,19 +2,20 @@
 >mine_0
 >mine_1
 >mine_4
+>mine_5
 
 CMCMCNCMCICFCD    CCCFCFCJCMCNCM
-CMCICFCFCD              CCCFCJCM
-CMCH                        CGCM
-CMCH                        CGCN
-CPCH                        CGCM
-CMCH                        CGCM
-CMCH    CACECECB            CGCM
-CMCH  CACLCICFCD            CGCM
-CMCH  CCCFCD        CACB    CGCO
-CMCH                CGCH    CGCM
-CMCKCB            CACLCH  CACGCM
-CPCMCH            CCCFCD  CGCMCN
-CMCPCH  CACECB            CGCPCM
-CMCMCKCECLCMCKCECECECECECECLCMCM
+CMCICFCFCDBABB    BCBD  CGCMCMCM
+CMCH    BABB        BCBDCGCPCMCM
+CMCH  BABB            BCCCCFCJCN
+CPCHBABB                    CGCM
+CMCHBB                      CGCM
+CMCKCB                      CGCM
+CMCICD                      CGCM
+CMCH                        CGCO
+CMCHAB                      CGCM
+CMCKCB                    ABCGCM
+CPCMCH                    CACGCN
+CMCPCH  CACECB            CGCMCM
+CMCMCKCECLCMCKCECECECECECECLCPCM
 CMCOCMCMCMCMCMCMCMCMCMCOCMCMCMCM
