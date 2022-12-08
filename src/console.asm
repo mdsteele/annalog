@@ -279,7 +279,6 @@ _Tick:
 ;;; @prereq Rendering is enabled.
 ;;; @prereq The console window is fully visible.
 ;;; @prereq Explore mode is initialized.
-.EXPORT Main_Console_NoPower
 .PROC Main_Console_NoPower
 _GameLoop:
     jsr_prga FuncA_Objects_DrawObjectsForRoom

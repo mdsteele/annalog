@@ -42,8 +42,6 @@ Zp_NextIrq_int_ptr: .res 2
 Zp_PpuTransferLen_u8: .res 1
 .EXPORTZP Zp_Tmp1_byte
 Zp_Tmp1_byte: .res 1
-.EXPORTZP Zp_TransferIrqTable_bool
-Zp_TransferIrqTable_bool: .res 1
 
 ;;;=========================================================================;;;
 

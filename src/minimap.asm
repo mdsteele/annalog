@@ -113,7 +113,7 @@ _MarkMinimap:
 
 .SEGMENT "PRGA_Pause"
 
-.EXPORT DataA_Pause_CityAreaName_u8_arr
+;;; TODO: .EXPORT DataA_Pause_CityAreaName_u8_arr
 .PROC DataA_Pause_CityAreaName_u8_arr
     .byte "Ancient City", $ff
 .ENDPROC
@@ -178,7 +178,7 @@ _MarkMinimap:
     .byte "Bartik Town", $ff
 .ENDPROC
 
-.EXPORT DataA_Pause_CityAreaCells_u8_arr2_arr
+;;; TODO: .EXPORT DataA_Pause_CityAreaCells_u8_arr2_arr
 .PROC DataA_Pause_CityAreaCells_u8_arr2_arr
     .byte  1, 19
     .byte  1, 20

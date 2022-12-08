@@ -172,7 +172,6 @@ Ram_ActorFlags_bObj_arr: .res kMaxActors
 ;;; @param X The actor index.
 ;;; @param Y The actor type to set.
 ;;; @preserve X
-.EXPORT Func_InitActorWithFlags
 .PROC Func_InitActorWithFlags
     pha  ; flags
     jsr Func_InitActorDefault  ; preserves X

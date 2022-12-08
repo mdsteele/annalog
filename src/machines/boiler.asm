@@ -172,10 +172,10 @@ _Return:
     rts
 .ENDPROC
 
+;;; TODO: Nothing uses this yet; should we get rid of it?
 ;;; Given an 8x8 pixel platform covering the end tile of a leftward-facing
 ;;; pipe, spawns a leftward steam actor emitting from that pipe.
 ;;; @param Y The platform index for the pipe.
-.EXPORT FuncA_Machine_EmitSteamLeftFromPipe
 .PROC FuncA_Machine_EmitSteamLeftFromPipe
     ;; Set X to the actor index for the steam.
     jsr Func_FindEmptyActorSlot  ; preserves Y, returns C and X

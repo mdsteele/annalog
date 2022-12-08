@@ -131,7 +131,7 @@ Ram_Sound_sChanSfx_arr: .res .sizeof(sChanSfx) * kNumApuChannels
 .SEGMENT "PRG8"
 
 ;;; A sMusic struct that just plays silence.
-.EXPORT Data_Empty_sMusic
+;;; TODO: .EXPORT Data_Empty_sMusic
 .PROC Data_Empty_sMusic
     D_STRUCT sMusic
     d_addr Opcodes_bMusic_arr_ptr, _Opcodes_bMusic_arr

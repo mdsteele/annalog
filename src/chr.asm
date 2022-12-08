@@ -68,7 +68,6 @@
 
 .SEGMENT "CHR_BgAnim1"
 
-.EXPORT Ppu_ChrBgAnim1
 .PROC Ppu_ChrBgAnim1
 :   .incbin "out/data/tiles/water_anim0.chr"
     .incbin "out/data/tiles/conveyor_anim0.chr"
@@ -83,7 +82,6 @@
 
 .SEGMENT "CHR_BgAnim2"
 
-.EXPORT Ppu_ChrBgAnim2
 .PROC Ppu_ChrBgAnim2
 :   .incbin "out/data/tiles/water_anim1.chr"
     .incbin "out/data/tiles/conveyor_anim1.chr"
@@ -98,7 +96,6 @@
 
 .SEGMENT "CHR_BgAnim3"
 
-.EXPORT Ppu_ChrBgAnim3
 .PROC Ppu_ChrBgAnim3
 :   .incbin "out/data/tiles/water_anim1.chr"
     .incbin "out/data/tiles/conveyor_anim1.chr"
@@ -113,7 +110,6 @@
 
 .SEGMENT "CHR_BgAnim4"
 
-.EXPORT Ppu_ChrBgAnim4
 .PROC Ppu_ChrBgAnim4
 :   .incbin "out/data/tiles/water_anim2.chr"
     .incbin "out/data/tiles/conveyor_anim2.chr"
@@ -128,7 +124,6 @@
 
 .SEGMENT "CHR_BgAnim5"
 
-.EXPORT Ppu_ChrBgAnim5
 .PROC Ppu_ChrBgAnim5
 :   .incbin "out/data/tiles/water_anim2.chr"
     .incbin "out/data/tiles/conveyor_anim2.chr"
@@ -143,7 +138,6 @@
 
 .SEGMENT "CHR_BgAnim6"
 
-.EXPORT Ppu_ChrBgAnim6
 .PROC Ppu_ChrBgAnim6
 :   .incbin "out/data/tiles/water_anim1.chr"
     .incbin "out/data/tiles/conveyor_anim3.chr"
@@ -158,7 +152,6 @@
 
 .SEGMENT "CHR_BgAnim7"
 
-.EXPORT Ppu_ChrBgAnim7
 .PROC Ppu_ChrBgAnim7
 :   .incbin "out/data/tiles/water_anim1.chr"
     .incbin "out/data/tiles/conveyor_anim3.chr"
