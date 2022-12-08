@@ -33,6 +33,7 @@
 .IMPORT DataA_Room_Hut_sTileset
 .IMPORT FuncA_Dialog_AddQuestMarker
 .IMPORT Func_Noop
+.IMPORT Func_SetFlag
 .IMPORT Ppu_ChrObjTownsfolk
 .IMPORT Sram_ProgressFlags_arr
 
@@ -160,6 +161,21 @@ _Devices_sDevice_arr:
 .PROC DataA_Dialog_MermaidHut1_MermaidQueen_sDialog
     .addr _InitialFunc
 _InitialFunc:
+    flag_bit Sram_ProgressFlags_arr, eFlag::BreakerGarden
+    beq _FirstMeetingFunc
+    ;; To be safe, set the "met queen" flag (although normally, you can't reach
+    ;; the garden breaker without first having met the queen).
+    ldx #eFlag::MermaidHut1MetQueen  ; param: flag
+    jsr Func_SetFlag
+    flag_bit Sram_ProgressFlags_arr, eFlag::TempleEntryPermission
+    bne @templeProblem
+    @gardenBossDefeated:
+    ldya #_GardenBossDefeated_sDialog
+    rts
+    @templeProblem:
+    ldya #_TempleProblem_sDialog
+    rts
+_FirstMeetingFunc:
     flag_bit Sram_ProgressFlags_arr, eFlag::MermaidHut1MetQueen
     bne @grantAsylum
     @firstMeeting:
@@ -207,6 +223,34 @@ _HelpFarmers_sDialog:
     .byte "in this village. They$"
     .byte "have a problem a human$"
     .byte "could perhaps solve.#"
+    .word ePortrait::Done
+_GardenBossDefeated_sDialog:
+    .word ePortrait::Mermaid
+    .byte "I heard you helped our$"
+    .byte "farmers. And you even$"
+    .byte "survived. I thank you.#"
+    .word ePortrait::Mermaid
+    .byte "Perhaps...perhaps you$"
+    .byte "could help us with one$"
+    .byte "more problem.#"
+_TempleProblem_sDialog:
+    .word ePortrait::Mermaid
+    .byte "There's a temple west$"
+    .byte "of the gardens. It's$"
+    .byte "very important to us.$"
+    .byte "At least, it once was.#"
+    .addr _TemplePermissionFunc
+_TemplePermissionFunc:
+    ldx #eFlag::TempleEntryPermission  ; param: flag
+    jsr FuncA_Dialog_AddQuestMarker
+    ldya #_TemplePermission_sDialog
+    rts
+_TemplePermission_sDialog:
+    .word ePortrait::Mermaid
+    .byte "I'd like you to visit$"
+    .byte "the temple. The guards$"
+    .byte "east of my hut can$"
+    .byte "tell you more.#"
     .word ePortrait::Done
 .ENDPROC
 

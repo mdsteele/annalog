@@ -33,6 +33,7 @@
 .IMPORT DataA_Room_Mermaid_sTileset
 .IMPORT FuncA_Dialog_AddQuestMarker
 .IMPORT Func_Noop
+.IMPORT Func_SetFlag
 .IMPORT Ppu_ChrObjTownsfolk
 .IMPORT Sram_ProgressFlags_arr
 
@@ -268,6 +269,7 @@ _Passages_sPassage_arr:
 .ENDPROC
 
 .PROC DataA_Dialog_MermaidVillage_MermaidGuard_sDialog
+    ;; TODO: Different dialog once temple permission has been given.
     .word ePortrait::Mermaid
     .byte "I am guarding this$"
     .byte "village.#"
@@ -278,7 +280,7 @@ _Passages_sPassage_arr:
     .addr _InitialFunc
 _InitialFunc:
     flag_bit Sram_ProgressFlags_arr, eFlag::BreakerGarden
-    bne @farming  ; TODO different message
+    bne @thankYou
     flag_bit Sram_ProgressFlags_arr, eFlag::GardenTowerCratesPlaced
     bne @monster
     flag_bit Sram_ProgressFlags_arr, eFlag::MermaidHut1MetQueen
@@ -291,6 +293,13 @@ _InitialFunc:
     rts
     @monster:
     ldya #_Monster_sDialog
+    rts
+    @thankYou:
+    ;; To be safe, place crates (although normally, you can't reach the garden
+    ;; breaker without first having the crates placed).
+    ldx #eFlag::GardenTowerCratesPlaced  ; param: flag
+    jsr Func_SetFlag
+    ldya #_ThankYou_sDialog
     rts
 _Farming_sDialog:
     .word ePortrait::Man
@@ -318,16 +327,23 @@ _OpenTheWayFunc:
     rts
 _OpenTheWay_sDialog:
     .word ePortrait::Man
-    .byte "Perhaps, one of your$"
+    .byte "Perhaps one with your$"
     .byte "ingenuity could get$"
-    .byte "rid of it. We'll open$"
+    .byte "rid of it? We'll open$"
     .byte "the way up for you.#"
+    .word ePortrait::Done
+_ThankYou_sDialog:
+    .word ePortrait::Man
+    .byte "You did it! Thank you$"
+    .byte "for your help. You$"
+    .byte "should go see the$"
+    .byte "queen.#"
     .word ePortrait::Done
 .ENDPROC
 
 .PROC DataA_Dialog_MermaidVillage_MermaidYouth_sDialog
     .word ePortrait::Mermaid
-    .byte "Lorem ipsum.#"
+    .byte "TODO.#"
     .word ePortrait::Done
 .ENDPROC
 

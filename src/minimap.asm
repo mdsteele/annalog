@@ -514,6 +514,12 @@ _MarkMinimap:
     d_byte Not_eFlag, eFlag::UpgradeOpcodeSkip
     D_END
     D_STRUCT sMarker
+    d_byte Row_u8, 8
+    d_byte Col_u8, 5  ; room: TempleEntry
+    d_byte If_eFlag, eFlag::TempleEntryPermission
+    d_byte Not_eFlag, eFlag::TempleEntryColumnRaised
+    D_END
+    D_STRUCT sMarker
     d_byte Row_u8, 9
     d_byte Col_u8, 3  ; room: CryptFlower
     d_byte If_eFlag, 0

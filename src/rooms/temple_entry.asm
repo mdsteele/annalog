@@ -213,31 +213,29 @@ _Passages_sPassage_arr:
 .ENDPROC
 
 .PROC FuncC_Temple_Entry_InitRoom
-    ;; Remove the mermaid from this room if the temple breaker has been
-    ;; activated.
+_MaybeRemoveMermaid:
+    ;; If the temple breaker has been activated, then remove the mermaid from
+    ;; this room, and mark the column as raised (although normally, you can't
+    ;; reach the breaker without first raising the column).
     flag_bit Sram_ProgressFlags_arr, eFlag::BreakerTemple
     beq @done
-    lda #0
-    .assert eActor::None = 0, error
+    lda #eActor::None
     sta Ram_ActorType_eActor_arr + kMermaidActorIndex
-    .assert eDevice::None = 0, error
+    .assert eDevice::None = eActor::None, error
     sta Ram_DeviceType_eDevice_arr + kMermaidDeviceIndexLeft
     sta Ram_DeviceType_eDevice_arr + kMermaidDeviceIndexRight
-    ;; Also raise the column in this case (for safety, since the mermaid is no
-    ;; longer there to raise it for you; although normally, you can't get to
-    ;; the breaker without first raising the column).
-    beq _DoRaiseColumn  ; unconditional
+    ldx #eFlag::TempleEntryColumnRaised  ; param: flag
+    jsr Func_SetFlag
     @done:
 _MaybeRaiseColumn:
     ;; If the column has been raised before, raise it.
     flag_bit Sram_ProgressFlags_arr, eFlag::TempleEntryColumnRaised
-    beq _Return
-_DoRaiseColumn:
+    beq @done
     lda #<kColumnPlatformMinTop
     sta Ram_PlatformTop_i16_0_arr + kColumnPlatformIndex
     lda #>kColumnPlatformMinTop
     sta Ram_PlatformTop_i16_1_arr + kColumnPlatformIndex
-_Return:
+    @done:
     rts
 .ENDPROC
 
@@ -324,8 +322,8 @@ _ColumnBody:
     .byte "you see above us.#"
     .addr _CheckPermissionFunc
 _CheckPermissionFunc:
-    ;; TODO: check flag to see if the queen has given you permission.
-    jmp _RaiseColumnFunc
+    flag_bit Sram_ProgressFlags_arr, eFlag::TempleEntryPermission
+    bne _RaiseColumnFunc
     ldya #_NoPermission_sDialog
     rts
 _NoPermission_sDialog:

@@ -99,6 +99,7 @@ kSaveMagicNumber = $b2
     PrisonUpperGateOpened
     PrisonUpperTalkedToAlex
     TempleEntryColumnRaised
+    TempleEntryPermission
     TempleNaveAlexWaiting
     TempleNaveTalkedToAlex
     NUM_VALUES
