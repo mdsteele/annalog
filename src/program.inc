@@ -137,6 +137,7 @@ kFirstHorzDir = eDir::Left
     PrisonEscapeTrolley
     SewerFlowerPump
     ShadowTeleportField
+    TempleBossBlaster
     TempleLobbyCarriage
     TempleNaveLowerCarriage
     TempleNaveUpperCarriage

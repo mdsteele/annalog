@@ -88,6 +88,7 @@ kRoomStateSize = $100
     PrisonUpper
     SewerFlower
     ShadowTeleport
+    TempleBoss
     TempleEntry
     TempleFlower
     TempleLobby

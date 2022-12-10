@@ -55,6 +55,7 @@ kPaletteObjDoorway = 0
 
 ;;; Locks a door device, if not locked already.
 ;;; @param X The device index for the (locked or unlocked) door.
+;;; @preserve Zp_Tmp*
 .EXPORT Func_LockDoorDevice
 .PROC Func_LockDoorDevice
     lda #eDevice::LockedDoor
@@ -70,6 +71,7 @@ kPaletteObjDoorway = 0
 
 ;;; Unlocks a door device, if not unlocked already.
 ;;; @param X The device index for the (locked or unlocked) door.
+;;; @preserve Zp_Tmp*
 .EXPORT Func_UnlockDoorDevice
 .PROC Func_UnlockDoorDevice
     lda #eDevice::UnlockedDoor

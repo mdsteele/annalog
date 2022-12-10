@@ -194,9 +194,10 @@
 
 ;;;=========================================================================;;;
 
-;;; Tests the flag-th bit of the array.  Sets Z if the bit is clear; clears Z
-;;; if the bit is set.  Destroys A and N in the process, but preserves X, Y,
-;;; and other processor flags (such as C and V).
+;;; Tests the flag-th bit of the array.  If the bit is clear, then stores zero
+;;; in A and sets Z; if the bit is set, then stores some nonzero value in A and
+;;; clears Z.  Destroys N in the process, but preserves X, Y, and other
+;;; processor flags (such as C and V).
 ;;;
 ;;; Example:
 ;;;     flag_bit Sram_ProgressFlags_arr, eFlag::UpgradeOpcodeTil

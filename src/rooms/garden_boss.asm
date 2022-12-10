@@ -18,6 +18,7 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "../actor.inc"
+.INCLUDE "../boss.inc"
 .INCLUDE "../charmap.inc"
 .INCLUDE "../cpu.inc"
 .INCLUDE "../device.inc"
@@ -42,56 +43,40 @@
 .IMPORT FuncA_Objects_DrawCannonMachine
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
 .IMPORT FuncA_Room_FindGrenadeActor
+.IMPORT FuncA_Room_InitBossPhase
 .IMPORT FuncA_Room_MachineCannonReset
-.IMPORT FuncA_Room_SpawnBreakerDevice
-.IMPORT FuncA_Room_SpawnUpgradeDevice
+.IMPORT FuncA_Room_TickBossPhase
 .IMPORT Func_DivMod
 .IMPORT Func_FindEmptyActorSlot
 .IMPORT Func_GetRandomByte
 .IMPORT Func_InitActorProjFireball
 .IMPORT Func_InitActorProjSmoke
 .IMPORT Func_InitActorProjSpike
-.IMPORT Func_LockDoorDevice
 .IMPORT Func_MachineCannonReadRegY
-.IMPORT Func_MarkRoomSafe
 .IMPORT Func_Noop
-.IMPORT Func_SetFlag
 .IMPORT Func_ShakeRoom
-.IMPORT Func_UnlockDoorDevice
 .IMPORT Ppu_ChrBgAnim0
 .IMPORT Ppu_ChrObjGarden
 .IMPORT Ram_ActorPosX_i16_0_arr
 .IMPORT Ram_ActorPosX_i16_1_arr
 .IMPORT Ram_ActorPosY_i16_0_arr
 .IMPORT Ram_ActorPosY_i16_1_arr
-.IMPORT Ram_DeviceType_eDevice_arr
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORT Ram_PlatformType_ePlatform_arr
 .IMPORT Ram_RoomState
-.IMPORT Sram_ProgressFlags_arr
 .IMPORTZP Zp_AvatarPosX_i16
 .IMPORTZP Zp_Chr0cBank_u8
 .IMPORTZP Zp_FrameCounter_u8
-.IMPORTZP Zp_RoomIsSafe_bool
 .IMPORTZP Zp_Tmp1_byte
 .IMPORTZP Zp_Tmp_ptr
 
 ;;;=========================================================================;;;
 
-;;; The device index for the upgrade that appears when the boss is defeated.
-kUpgradeDeviceIndex = 0
 ;;; The room block row/col where the upgrade will appear.
 kUpgradeBlockRow = 12
 kUpgradeBlockCol = 8
 ;;; The eFlag value for the upgrade in this room.
 kUpgradeFlag = eFlag::UpgradeMaxInstructions0
-
-;;; The device index for the breaker that appears once the boss is defeated and
-;;; the upgrade is collected.
-kBreakerDeviceIndex = 1
-
-;;; The device index for the door.
-kDoorDeviceIndex = 2
 
 ;;; The machine index for the GardenBossCannon machine.
 kCannonMachineIndex = 0
@@ -140,17 +125,6 @@ kPaletteObjBossEye = 1
 
 ;;;=========================================================================;;;
 
-;;; Phases that the boss fight can be in.
-.ENUM ePhase
-    BossBattle    ; waiting for the player to defeat the boss
-    SpawnUpgrade  ; waiting for upgrade to spawn
-    GetUpgrade    ; waiting for the player to collect the upgrade
-    SpawnBreaker  ; waiting for breaker to spawn
-    FlipBreaker   ; waiting for the player to activate the breaker
-    Done          ; nothing else to do
-    NUM_VALUES
-.ENDENUM
-
 ;;; Modes that the boss in this room can be in.
 .ENUM eBoss
     Dead
@@ -175,10 +149,6 @@ kPaletteObjBossEye = 1
     ;; The current states of the room's two levers.
     LeverLeft_u1         .byte
     LeverRight_u1        .byte
-    ;; Which phase of the boss fight we're in.
-    Current_ePhase       .byte
-    ;; Counts down during spawn phases.
-    SpawnTimer_u8        .byte
     ;; How many more grenade hits are needed before the boss dies.
     BossHealth_u8        .byte
     ;; Timer that ticks down each frame when nonzero.  Used to time transitions
@@ -306,26 +276,26 @@ _Platforms_sPlatform_arr:
 _Actors_sActor_arr:
     .byte eActor::None
 _Devices_sDevice_arr:
-:   .assert * - :- = kUpgradeDeviceIndex * .sizeof(sDevice), error
+:   .assert * - :- = kBossDoorDeviceIndex * .sizeof(sDevice), error
+    D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::UnlockedDoor
+    d_byte BlockRow_u8, 12
+    d_byte BlockCol_u8, 7
+    d_byte Target_u8, eRoom::GardenTower
+    D_END
+    .assert * - :- = kBossUpgradeDeviceIndex * .sizeof(sDevice), error
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Placeholder  ; will be an upgrade
     d_byte BlockRow_u8, kUpgradeBlockRow
     d_byte BlockCol_u8, kUpgradeBlockCol
     d_byte Target_u8, kUpgradeFlag
     D_END
-    .assert * - :- = kBreakerDeviceIndex * .sizeof(sDevice), error
+    .assert * - :- = kBossBreakerDeviceIndex * .sizeof(sDevice), error
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Placeholder  ; will be a breaker
     d_byte BlockRow_u8, 12
     d_byte BlockCol_u8, 5
     d_byte Target_u8, eFlag::BreakerGarden
-    D_END
-    .assert * - :- = kDoorDeviceIndex * .sizeof(sDevice), error
-    D_STRUCT sDevice
-    d_byte Type_eDevice, eDevice::UnlockedDoor
-    d_byte BlockRow_u8, 12
-    d_byte BlockCol_u8, 7
-    d_byte Target_u8, eRoom::GardenTower
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::LeverFloor
@@ -351,18 +321,15 @@ _Devices_sDevice_arr:
 
 ;;; Room init function for the GardenBoss room.
 .PROC FuncC_Garden_Boss_InitRoom
-    ;; Lock the door for now.
-    ldx #kDoorDeviceIndex  ; param: device index
-    jsr Func_LockDoorDevice
-    ;; Check if the boss has been defeated yet.
-    flag_bit Sram_ProgressFlags_arr, eFlag::BossGarden
-    bne _BossAlreadyDefeated
-    ;; The boss is still alive, so mark the room as unsafe.
-    sta Zp_RoomIsSafe_bool  ; A is already zero
-    ;; Set the current phase.
-    .assert ePhase::BossBattle = 0, error
-    sta Ram_RoomState + sState::Current_ePhase
-    ;; Initialize the boss.
+    ldx #eFlag::BossGarden  ; param: boss flag
+    jsr FuncA_Room_InitBossPhase  ; sets Z if boss is alive
+    beq _InitializeBoss
+_BossIsAlreadyDead:
+    ;; Remove the boss's thorns.
+    lda #ePlatform::Zone
+    sta Ram_PlatformType_ePlatform_arr + kThornsPlatformIndex
+    rts
+_InitializeBoss:
     lda #kBossInitHealth
     sta Ram_RoomState + sState::BossHealth_u8
     lda #kBossInitCooldown
@@ -370,125 +337,22 @@ _Devices_sDevice_arr:
     lda #eBoss::Waiting
     sta Ram_RoomState + sState::BossMode_eBoss
     rts
-_BossAlreadyDefeated:
-    ;; Remove the boss's thorns.
-    lda #ePlatform::Zone
-    sta Ram_PlatformType_ePlatform_arr + kThornsPlatformIndex
-    ;; Check if the upgrade has been collected yet.
-    flag_bit Sram_ProgressFlags_arr, kUpgradeFlag
-    bne _UpgradeAlreadyCollected
-    ;; If not, the player must have saved after defeating the boss, but before
-    ;; collecting the upgrade.  So we'll set the phase to spawn the upgrade.
-    lda #30  ; 0.5 seconds
-    sta Ram_RoomState + sState::SpawnTimer_u8
-    lda #ePhase::SpawnUpgrade
-    sta Ram_RoomState + sState::Current_ePhase
-    rts
-_UpgradeAlreadyCollected:
-    ;; Check if the breaker has been activated yet.
-    flag_bit Sram_ProgressFlags_arr, eFlag::BreakerGarden
-    bne _BreakerAlreadyDone
-    ;; If not, the player must have saved after defeating the boss and
-    ;; collecting the upgrade, but before activating the breaker.  So we'll set
-    ;; the phase to spawn the breaker.
-    lda #30  ; 0.5 seconds
-    sta Ram_RoomState + sState::SpawnTimer_u8
-    lda #ePhase::SpawnBreaker
-    sta Ram_RoomState + sState::Current_ePhase
-    rts
-_BreakerAlreadyDone:
-    lda #ePhase::Done
-    sta Ram_RoomState + sState::Current_ePhase
-    ;; Place the already-activated breaker.
-    lda #eDevice::BreakerDone
-    sta Ram_DeviceType_eDevice_arr + kBreakerDeviceIndex
-    ;; Unlock the door.
-    ldx #kDoorDeviceIndex  ; param: device index
-    jmp Func_UnlockDoorDevice
 .ENDPROC
 
 ;;; Room tick function for the GardenBoss room.
 ;;; @prereq PRGA_Room is loaded.
 .PROC FuncC_Garden_Boss_TickRoom
-    ldy Ram_RoomState + sState::Current_ePhase
-    lda _JumpTable_ptr_0_arr, y
-    sta Zp_Tmp_ptr + 0
-    lda _JumpTable_ptr_1_arr, y
-    sta Zp_Tmp_ptr + 1
-    jmp (Zp_Tmp_ptr)
-.REPEAT 2, table
-    D_TABLE_LO table, _JumpTable_ptr_0_arr
-    D_TABLE_HI table, _JumpTable_ptr_1_arr
-    D_TABLE ePhase
-    d_entry table, BossBattle,   _BossBattle
-    d_entry table, SpawnUpgrade, _SpawnUpgrade
-    d_entry table, GetUpgrade,   _GetUpgrade
-    d_entry table, SpawnBreaker, _SpawnBreaker
-    d_entry table, FlipBreaker,  _FlipBreaker
-    d_entry table, Done,         Func_Noop
-    D_END
-.ENDREPEAT
-_SpawnUpgrade:
-    ;; Wait for the spawn timer to reach zero.
-    dec Ram_RoomState + sState::SpawnTimer_u8
-    bne @done
-    ;; Spawn the upgrade.
-    ldy #kUpgradeDeviceIndex  ; param: device index
-    jsr FuncA_Room_SpawnUpgradeDevice
-    ;; Proceed to the next phase.
-    inc Ram_RoomState + sState::Current_ePhase
-    @done:
-    rts
-_GetUpgrade:
-    ;; Wait until the player has collected the upgrade.
-    lda Ram_DeviceType_eDevice_arr + kUpgradeDeviceIndex
-    .assert eDevice::None = 0, error
-    bne @done
-    ;; Start the spawn timer.
-    lda #45  ; 0.75 seconds
-    sta Ram_RoomState + sState::SpawnTimer_u8
-    ;; Proceed to the next phase.
-    inc Ram_RoomState + sState::Current_ePhase
-    @done:
-    rts
-_SpawnBreaker:
-    ;; Wait for the spawn timer to reach zero.
-    dec Ram_RoomState + sState::SpawnTimer_u8
-    bne @done
-    ;; Show the breaker.
-    ldx #kBreakerDeviceIndex
-    jsr FuncA_Room_SpawnBreakerDevice
-    ;; Proceed to the next phase.
-    inc Ram_RoomState + sState::Current_ePhase
-    @done:
-    rts
-_FlipBreaker:
-    ;; Wait until the player has activated the breaker.
-    lda Ram_DeviceType_eDevice_arr + kBreakerDeviceIndex
-    cmp #eDevice::BreakerDone
-    bne @done
-    ;; Unlock the door.
-    ldx #kDoorDeviceIndex  ; param: device index
-    jsr Func_UnlockDoorDevice
-    ;; Proceed to the next phase.
-    inc Ram_RoomState + sState::Current_ePhase
-    @done:
-    rts
-_BossBattle:
-    ;; Check if the boss is dead yet.
+    ;; Tick the current boss phase.
+    .assert eBoss::Dead = 0, error
+    lda Ram_RoomState + sState::BossMode_eBoss  ; param: zero if boss is dead
+    ldx #eFlag::BossGarden  ; param: boss flag
+    jsr FuncA_Room_TickBossPhase
+    ;; If the boss is alive, perform its per-frame behavior.
     lda Ram_RoomState + sState::BossMode_eBoss
     .assert eBoss::Dead = 0, error
-    bne @bossIsStillAlive
-    ;; If the boss is dead, then set its flag and mark the room as safe.
-    ldx #eFlag::BossGarden  ; param: eFlag value
-    jsr Func_SetFlag
-    jsr Func_MarkRoomSafe
-    ;; Start the spawn timer and proceed to the next phase.
-    lda #90  ; 1.5 seconds
-    sta Ram_RoomState + sState::SpawnTimer_u8
-    inc Ram_RoomState + sState::Current_ePhase
+    bne @bossIsAlive
     rts
-    @bossIsStillAlive:
+    @bossIsAlive:
     jsr FuncC_Garden_Boss_CheckForGrenadeHit
     .assert * = FuncC_Garden_Boss_TickBoss, error, "fallthrough"
 .ENDPROC

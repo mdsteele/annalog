@@ -18,6 +18,7 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "actor.inc"
+.INCLUDE "boss.inc"
 .INCLUDE "cpu.inc"
 .INCLUDE "device.inc"
 .INCLUDE "macros.inc"
@@ -76,6 +77,7 @@
 .IMPORT DataC_Prison_Upper_sRoom
 .IMPORT DataC_Sewer_Flower_sRoom
 .IMPORT DataC_Shadow_Teleport_sRoom
+.IMPORT DataC_Temple_Boss_sRoom
 .IMPORT DataC_Temple_Entry_sRoom
 .IMPORT DataC_Temple_Flower_sRoom
 .IMPORT DataC_Temple_Lobby_sRoom
@@ -213,6 +215,7 @@ Ram_RoomState: .res kRoomStateSize
     d_entry table, PrisonUpper,     DataC_Prison_Upper_sRoom
     d_entry table, SewerFlower,     DataC_Sewer_Flower_sRoom
     d_entry table, ShadowTeleport,  DataC_Shadow_Teleport_sRoom
+    d_entry table, TempleBoss,      DataC_Temple_Boss_sRoom
     d_entry table, TempleEntry,     DataC_Temple_Entry_sRoom
     d_entry table, TempleFlower,    DataC_Temple_Flower_sRoom
     d_entry table, TempleLobby,     DataC_Temple_Lobby_sRoom
