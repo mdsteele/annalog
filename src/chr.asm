@@ -17,9 +17,11 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
+.INCLUDE "actors/breakball.inc"
 .INCLUDE "actors/crab.inc"
 .INCLUDE "actors/fireball.inc"
 .INCLUDE "actors/fish.inc"
+.INCLUDE "actors/flamewave.inc"
 .INCLUDE "actors/grenade.inc"
 .INCLUDE "actors/grub.inc"
 .INCLUDE "actors/hothead.inc"
@@ -793,11 +795,13 @@
     .incbin "out/data/tiles/upgrade_bottom.chr"
     .assert * - :- = (kTileIdObjUpgradeMaxInstFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/upgrade_maxinst.chr"
-    .assert * - :- = (kTileIdObjUpgradeBRemoteFirst - $80) * kSizeofChr, error
-    .res $04 * kSizeofChr
+    .assert * - :- = (kTileIdObjBreakballFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/breakball.chr"
+    .res $02 * kSizeofChr
     .incbin "out/data/tiles/upgrade_optil.chr"
-    .assert * - :- = (kTileIdObjUpgradeOpCopyFirst - $80) * kSizeofChr, error
-    .res $0a * kSizeofChr
+    .assert * - :- = (kTileIdObjFlamewaveFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/flamewave.chr"
+    .res $05 * kSizeofChr
     .assert * - :- = (kTileIdObjCrateFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/crate.chr"
     .res $02 * kSizeofChr

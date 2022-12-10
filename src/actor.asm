@@ -18,6 +18,7 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "actor.inc"
+.INCLUDE "actors/breakball.inc"
 .INCLUDE "avatar.inc"
 .INCLUDE "macros.inc"
 .INCLUDE "oam.inc"
@@ -35,7 +36,9 @@
 .IMPORT FuncA_Actor_TickBadToad
 .IMPORT FuncA_Actor_TickBadVinebug
 .IMPORT FuncA_Actor_TickNpcToddler
+.IMPORT FuncA_Actor_TickProjBreakball
 .IMPORT FuncA_Actor_TickProjFireball
+.IMPORT FuncA_Actor_TickProjFlamewave
 .IMPORT FuncA_Actor_TickProjGrenade
 .IMPORT FuncA_Actor_TickProjSmoke
 .IMPORT FuncA_Actor_TickProjSpike
@@ -58,7 +61,9 @@
 .IMPORT FuncA_Objects_DrawActorNpcMermaid
 .IMPORT FuncA_Objects_DrawActorNpcMermaidQueen
 .IMPORT FuncA_Objects_DrawActorNpcToddler
+.IMPORT FuncA_Objects_DrawActorProjBreakball
 .IMPORT FuncA_Objects_DrawActorProjFireball
+.IMPORT FuncA_Objects_DrawActorProjFlamewave
 .IMPORT FuncA_Objects_DrawActorProjGrenade
 .IMPORT FuncA_Objects_DrawActorProjSmoke
 .IMPORT FuncA_Objects_DrawActorProjSpike
@@ -69,9 +74,11 @@
 .IMPORT FuncA_Room_InitActorBadVinebug
 .IMPORT FuncA_Room_InitActorNpcChild
 .IMPORT FuncA_Room_InitActorNpcToddler
+.IMPORT FuncA_Room_InitActorProjBreakball
 .IMPORT Func_GetTerrainColumnPtrForTileIndex
 .IMPORT Func_HarmAvatar
 .IMPORT Func_InitActorProjFireball
+.IMPORT Func_InitActorProjFlamewave
 .IMPORT Func_InitActorProjGrenade
 .IMPORT Func_InitActorProjSmoke
 .IMPORT Func_InitActorProjSpike
@@ -171,10 +178,10 @@ Ram_ActorFlags_bObj_arr: .res kMaxActors
 ;;; @param A The flags to set.
 ;;; @param X The actor index.
 ;;; @param Y The actor type to set.
-;;; @preserve X
+;;; @preserve X, Zp_Tmp*
 .PROC Func_InitActorWithFlags
     pha  ; flags
-    jsr Func_InitActorDefault  ; preserves X
+    jsr Func_InitActorDefault  ; preserves X and Zp_Tmp*
     pla  ; flags
     sta Ram_ActorFlags_bObj_arr, x
     rts
@@ -186,7 +193,7 @@ Ram_ActorFlags_bObj_arr: .res kMaxActors
 ;;; @prereq The actor's pixel position has already been initialized.
 ;;; @param X The actor index.
 ;;; @param Y The actor type to set.
-;;; @preserve X
+;;; @preserve X, Zp_Tmp*
 .EXPORT Func_InitActorDefault
 .PROC Func_InitActorDefault
     lda #0  ; param: state byte
@@ -199,7 +206,7 @@ Ram_ActorFlags_bObj_arr: .res kMaxActors
 ;;; @param A The state byte to set.
 ;;; @param X The actor index.
 ;;; @param Y The actor type to set.
-;;; @preserve X
+;;; @preserve X, Zp_Tmp*
 .EXPORT Func_InitActorWithState1
 .PROC Func_InitActorWithState1
     sta Ram_ActorState1_byte_arr, x
@@ -241,7 +248,9 @@ Ram_ActorFlags_bObj_arr: .res kMaxActors
     d_byte NpcMermaid,      13
     d_byte NpcMermaidQueen,  2
     d_byte NpcToddler,       4
+    d_byte ProjBreakball,   kProjBreakballRadius
     d_byte ProjFireball,    kProjFireballRadius
+    d_byte ProjFlamewave,   12
     d_byte ProjGrenade,     kProjGrenadeRadius
     d_byte ProjSmoke,       kProjSmokeRadius
     d_byte ProjSpike,       kProjSpikeRadius
@@ -267,7 +276,9 @@ Ram_ActorFlags_bObj_arr: .res kMaxActors
     d_byte NpcMermaid,       8
     d_byte NpcMermaidQueen, 24
     d_byte NpcToddler,       8
+    d_byte ProjBreakball,   kProjBreakballRadius
     d_byte ProjFireball,    kProjFireballRadius
+    d_byte ProjFlamewave,    8
     d_byte ProjGrenade,     kProjGrenadeRadius
     d_byte ProjSmoke,       kProjSmokeRadius
     d_byte ProjSpike,       kProjSpikeRadius
@@ -293,7 +304,9 @@ Ram_ActorFlags_bObj_arr: .res kMaxActors
     d_byte NpcMermaid,      5
     d_byte NpcMermaidQueen, 5
     d_byte NpcToddler,      3
+    d_byte ProjBreakball,   kProjBreakballRadius
     d_byte ProjFireball,    kProjFireballRadius
+    d_byte ProjFlamewave,   3
     d_byte ProjGrenade,     kProjGrenadeRadius
     d_byte ProjSmoke,       kProjSmokeRadius
     d_byte ProjSpike,       kProjSpikeRadius
@@ -373,7 +386,9 @@ _TypeSpecificTick:
     d_entry table, NpcMermaid,      Func_Noop
     d_entry table, NpcMermaidQueen, Func_Noop
     d_entry table, NpcToddler,      FuncA_Actor_TickNpcToddler
+    d_entry table, ProjBreakball,   FuncA_Actor_TickProjBreakball
     d_entry table, ProjFireball,    FuncA_Actor_TickProjFireball
+    d_entry table, ProjFlamewave,   FuncA_Actor_TickProjFlamewave
     d_entry table, ProjGrenade,     FuncA_Actor_TickProjGrenade
     d_entry table, ProjSmoke,       FuncA_Actor_TickProjSmoke
     d_entry table, ProjSpike,       FuncA_Actor_TickProjSpike
@@ -559,9 +574,9 @@ _NoHit:
 .PROC FuncA_Actor_CenterHitsTerrain
     ;; Get the terrain for the actor's current tile column.
     jsr FuncA_Actor_GetRoomTileColumn  ; preserves X, returns A
-    stx Zp_Tmp1_byte
+    stx Zp_Tmp1_byte  ; actor index
     jsr Func_GetTerrainColumnPtrForTileIndex  ; preserves Zp_Tmp*
-    ldx Zp_Tmp1_byte
+    ldx Zp_Tmp1_byte  ; actor index
     ;; Check the terrain block that the actor position is in, and set C if the
     ;; terrain is solid.
     jsr FuncA_Actor_GetRoomBlockRow  ; preserves X, returns Y
@@ -611,7 +626,9 @@ _NoHit:
     d_entry table, NpcMermaid,      Func_InitActorWithState1
     d_entry table, NpcMermaidQueen, Func_InitActorDefault
     d_entry table, NpcToddler,      FuncA_Room_InitActorNpcToddler
+    d_entry table, ProjBreakball,   FuncA_Room_InitActorProjBreakball
     d_entry table, ProjFireball,    Func_InitActorProjFireball
+    d_entry table, ProjFlamewave,   Func_InitActorProjFlamewave
     d_entry table, ProjGrenade,     Func_InitActorProjGrenade
     d_entry table, ProjSmoke,       Func_InitActorProjSmoke
     d_entry table, ProjSpike,       Func_InitActorProjSpike
@@ -733,7 +750,9 @@ _NoHit:
     d_entry table, NpcMermaid,      FuncA_Objects_DrawActorNpcMermaid
     d_entry table, NpcMermaidQueen, FuncA_Objects_DrawActorNpcMermaidQueen
     d_entry table, NpcToddler,      FuncA_Objects_DrawActorNpcToddler
+    d_entry table, ProjBreakball,   FuncA_Objects_DrawActorProjBreakball
     d_entry table, ProjFireball,    FuncA_Objects_DrawActorProjFireball
+    d_entry table, ProjFlamewave,   FuncA_Objects_DrawActorProjFlamewave
     d_entry table, ProjGrenade,     FuncA_Objects_DrawActorProjGrenade
     d_entry table, ProjSmoke,       FuncA_Objects_DrawActorProjSmoke
     d_entry table, ProjSpike,       FuncA_Objects_DrawActorProjSpike

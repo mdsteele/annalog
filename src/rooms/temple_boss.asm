@@ -37,11 +37,17 @@
 .IMPORT FuncA_Machine_StartWaiting
 .IMPORT FuncA_Machine_StartWorking
 .IMPORT FuncA_Objects_DrawCarriageMachine
+.IMPORT FuncA_Room_InitActorProjBreakball
 .IMPORT FuncA_Room_InitBossPhase
 .IMPORT FuncA_Room_TickBossPhase
+.IMPORT Func_FindEmptyActorSlot
 .IMPORT Func_MovePlatformLeftToward
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrObjTemple
+.IMPORT Ram_ActorPosX_i16_0_arr
+.IMPORT Ram_ActorPosX_i16_1_arr
+.IMPORT Ram_ActorPosY_i16_0_arr
+.IMPORT Ram_ActorPosY_i16_1_arr
 .IMPORT Ram_MachineGoalHorz_u8_arr
 .IMPORT Ram_MachineStatus_eMachine_arr
 .IMPORT Ram_PlatformLeft_i16_0_arr
@@ -201,6 +207,7 @@ _Devices_sDevice_arr:
 .ENDPROC
 
 ;;; Room init function for the GardenBoss room.
+;;; @prereq PRGA_Room is loaded.
 .PROC FuncC_Temple_Boss_InitRoom
     ldx #eFlag::BossTemple  ; param: boss flag
     jsr FuncA_Room_InitBossPhase  ; sets Z if boss is alive
@@ -208,7 +215,18 @@ _Devices_sDevice_arr:
 _BossIsAlreadyDead:
     rts
 _InitializeBoss:
-    ;; TODO
+    ;; TODO: remove this; initialize the boss instead
+    jsr Func_FindEmptyActorSlot  ; sets C on failure, returns X
+    bcs @done
+    lda #$c0
+    sta Ram_ActorPosX_i16_0_arr, x
+    lda #$30
+    sta Ram_ActorPosY_i16_0_arr, x
+    lda #0
+    sta Ram_ActorPosX_i16_1_arr, x
+    sta Ram_ActorPosY_i16_1_arr, x
+    jsr FuncA_Room_InitActorProjBreakball
+    @done:
     rts
 .ENDPROC
 
