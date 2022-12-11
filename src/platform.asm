@@ -47,11 +47,6 @@
 .EXPORTZP Zp_AvatarPlatformIndex_u8
 Zp_AvatarPlatformIndex_u8: .res 1
 
-;;; The room-space X or Y position to move a platform toward for certain
-;;; platform-moving functions below.
-.EXPORTZP Zp_PlatformGoal_i16
-Zp_PlatformGoal_i16: .res 2
-
 ;;;=========================================================================;;;
 
 .SEGMENT "RAM_Platform"
@@ -158,20 +153,20 @@ _Outside:
 
 ;;; Move the specified platform horizontally such that its left edge moves
 ;;; toward the goal position without overshooting it.
-;;; @prereq Zp_PlatformGoal_i16 is set to the goal room-space pixel X-position.
+;;; @prereq Zp_PointX_i16 is set to the goal room-space pixel X-position.
 ;;; @param A The max distance to move by, in pixels (0-127).
 ;;; @param X The platform index.
 ;;; @return A The pixel delta that the platform actually moved by (signed).
 ;;; @return N Set if the platform moved left, cleared otherwise.
 ;;; @return Z Cleared if the platform moved, set if it didn't.
 ;;; @preserve X
-.EXPORT Func_MovePlatformLeftToward
-.PROC Func_MovePlatformLeftToward
+.EXPORT Func_MovePlatformLeftTowardPointX
+.PROC Func_MovePlatformLeftTowardPointX
     sta Zp_Tmp1_byte  ; max distance
-    lda Zp_PlatformGoal_i16 + 0
+    lda Zp_PointX_i16 + 0
     sub Ram_PlatformLeft_i16_0_arr, x
     sta Zp_Tmp2_byte  ; delta (lo)
-    lda Zp_PlatformGoal_i16 + 1
+    lda Zp_PointX_i16 + 1
     sbc Ram_PlatformLeft_i16_1_arr, x
     bmi _MoveLeft
 _MoveRight:
@@ -245,20 +240,20 @@ _MoveByA:
 
 ;;; Move the specified platform vertically such that its top edge moves toward
 ;;; the goal position without overshooting it.
-;;; @prereq Zp_PlatformGoal_i16 is set to the goal room-space pixel Y-position.
+;;; @prereq Zp_PointY_i16 is set to the goal room-space pixel Y-position.
 ;;; @param A The max distance to move by, in pixels (0-127).
 ;;; @param X The platform index.
 ;;; @return A The pixel delta that the platform actually moved by (signed).
 ;;; @return N Set if the platform moved up, cleared otherwise.
 ;;; @return Z Cleared if the platform moved, set if it didn't.
 ;;; @preserve X
-.EXPORT Func_MovePlatformTopToward
-.PROC Func_MovePlatformTopToward
+.EXPORT Func_MovePlatformTopTowardPointY
+.PROC Func_MovePlatformTopTowardPointY
     sta Zp_Tmp1_byte  ; max distance
-    lda Zp_PlatformGoal_i16 + 0
+    lda Zp_PointY_i16 + 0
     sub Ram_PlatformTop_i16_0_arr, x
     sta Zp_Tmp2_byte  ; delta (lo)
-    lda Zp_PlatformGoal_i16 + 1
+    lda Zp_PointY_i16 + 1
     sbc Ram_PlatformTop_i16_1_arr, x
     bmi _MoveUp
 _MoveDown:

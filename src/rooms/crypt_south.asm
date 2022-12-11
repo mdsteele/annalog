@@ -49,8 +49,8 @@
 .IMPORT FuncA_Objects_MoveShapeLeftHalfTile
 .IMPORT FuncA_Objects_MoveShapeUpOneTile
 .IMPORT Func_MovePlatformHorz
-.IMPORT Func_MovePlatformLeftToward
-.IMPORT Func_MovePlatformTopToward
+.IMPORT Func_MovePlatformLeftTowardPointX
+.IMPORT Func_MovePlatformTopTowardPointY
 .IMPORT Func_MovePlatformVert
 .IMPORT Func_Noop
 .IMPORT Func_ResetWinchMachineParams
@@ -65,7 +65,8 @@
 .IMPORT Ram_RoomState
 .IMPORT Sram_ProgressFlags_arr
 .IMPORTZP Zp_AvatarPlatformIndex_u8
-.IMPORTZP Zp_PlatformGoal_i16
+.IMPORTZP Zp_PointX_i16
+.IMPORTZP Zp_PointY_i16
 .IMPORTZP Zp_Tmp1_byte
 
 ;;;=========================================================================;;;
@@ -390,19 +391,19 @@ _Error:
 .PROC FuncC_Crypt_SouthWinch_Tick
 _MoveVert:
     ;; Calculate the desired room-space pixel Y-position for the top edge of
-    ;; the crusher, storing it in Zp_PlatformGoal_i16.
+    ;; the crusher, storing it in Zp_PointY_i16.
     lda #0
-    sta Zp_PlatformGoal_i16 + 1
+    sta Zp_PointY_i16 + 1
     lda Ram_MachineGoalVert_u8_arr + kWinchMachineIndex
     mul #16
     .assert kWinchMaxGoalZ >= 16, error  ; The multiplication may carry.
     .assert kWinchMaxGoalZ < 32, error  ; There can only be one carry bit.
-    rol Zp_PlatformGoal_i16 + 1  ; Handle carry bit from multiplication.
+    rol Zp_PointY_i16 + 1  ; Handle carry bit from multiplication.
     add #kCrusherMinPlatformTop
-    sta Zp_PlatformGoal_i16 + 0
-    lda Zp_PlatformGoal_i16 + 1
+    sta Zp_PointY_i16 + 0
+    lda Zp_PointY_i16 + 1
     adc #0
-    sta Zp_PlatformGoal_i16 + 1
+    sta Zp_PointY_i16 + 1
     ;; Determine how fast we should move toward the goal.
     ldx #kCrusherUpperPlatformIndex  ; param: platform index
     jsr FuncA_Machine_GetWinchVertSpeed  ; preserves X, returns Z and A
@@ -410,7 +411,7 @@ _MoveVert:
     rts
     @move:
     ;; Move the crusher vertically, as necessary.
-    jsr Func_MovePlatformTopToward  ; returns Z and A
+    jsr Func_MovePlatformTopTowardPointY  ; returns Z and A
     beq @reachedGoal
     ;; If the crusher moved, move the crusher's other platform too.
     ldx #kCrusherSpikePlatformIndex  ; param: platform index
@@ -442,17 +443,17 @@ _MoveVert:
     @stopFalling:
 _MoveHorz:
     ;; Calculate the desired X-position for the left edge of the winch, in
-    ;; room-space pixels, storing it in Zp_PlatformGoal_i16.
+    ;; room-space pixels, storing it in Zp_PointX_i16.
     lda #0
-    sta Zp_PlatformGoal_i16 + 1
+    sta Zp_PointX_i16 + 1
     lda Ram_MachineGoalHorz_u8_arr + kWinchMachineIndex
     mul #kBlockWidthPx
     add #kWinchMinPlatformLeft
-    sta Zp_PlatformGoal_i16 + 0
+    sta Zp_PointX_i16 + 0
     ;; Move the winch horizontally, if necessary.
     jsr FuncA_Machine_GetWinchHorzSpeed  ; returns A
     ldx #kWinchPlatformIndex  ; param: platform index
-    jsr Func_MovePlatformLeftToward  ; returns Z and A
+    jsr Func_MovePlatformLeftTowardPointX  ; returns Z and A
     beq @reachedGoal
     ;; If the winch moved, move the crusher platforms too.
     pha  ; move delta

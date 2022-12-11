@@ -33,8 +33,8 @@
 .IMPORT FuncA_Objects_MoveShapeRightByA
 .IMPORT FuncA_Objects_SetShapePosToMachineTopLeft
 .IMPORT Func_GetTerrainColumnPtrForTileIndex
-.IMPORT Func_MovePlatformLeftToward
-.IMPORT Func_MovePlatformTopToward
+.IMPORT Func_MovePlatformLeftTowardPointX
+.IMPORT Func_MovePlatformTopTowardPointY
 .IMPORT Ram_MachineGoalHorz_u8_arr
 .IMPORT Ram_MachineGoalVert_u8_arr
 .IMPORT Ram_MachineStatus_eMachine_arr
@@ -49,7 +49,8 @@
 .IMPORT Ram_PlatformTop_i16_1_arr
 .IMPORTZP Zp_Current_sMachine_ptr
 .IMPORTZP Zp_MachineIndex_u8
-.IMPORTZP Zp_PlatformGoal_i16
+.IMPORTZP Zp_PointX_i16
+.IMPORTZP Zp_PointY_i16
 .IMPORTZP Zp_TerrainColumn_u8_arr_ptr
 .IMPORTZP Zp_Tmp1_byte
 .IMPORTZP Zp_Tmp2_byte
@@ -255,17 +256,17 @@ _CheckIfSolidVert:
     lda (Zp_Current_sMachine_ptr), y
     sta Zp_Tmp2_byte  ; platform index
     ;; Calculate the desired X-position for the left edge of the carriage, in
-    ;; room-space pixels, storing it in Zp_PlatformGoal_i16.
+    ;; room-space pixels, storing it in Zp_PointX_i16.
     ldy Zp_MachineIndex_u8
     lda Ram_MachineGoalHorz_u8_arr, y
     mul #kBlockHeightPx
     sta Zp_Tmp3_byte  ; goal delta
     txa               ; max platform top (lo)
     add Zp_Tmp3_byte  ; goal delta
-    sta Zp_PlatformGoal_i16 + 0
+    sta Zp_PointX_i16 + 0
     lda Zp_Tmp1_byte  ; max platform top (hi)
     adc #0
-    sta Zp_PlatformGoal_i16 + 1
+    sta Zp_PointX_i16 + 1
     ;; Determine the horizontal speed of the carriage (faster if resetting).
     ldx Ram_MachineStatus_eMachine_arr, y
     lda #1
@@ -275,7 +276,7 @@ _CheckIfSolidVert:
     @slow:
     ;; Move the carriage horizontally, as necessary.
     ldx Zp_Tmp2_byte  ; param: platform index
-    jmp Func_MovePlatformLeftToward  ; returns Z, N, and A
+    jmp Func_MovePlatformLeftTowardPointX  ; returns Z, N, and A
 .ENDPROC
 
 ;;; Moves the current carriage machine's platform towards its vertical goal
@@ -293,17 +294,17 @@ _CheckIfSolidVert:
     lda (Zp_Current_sMachine_ptr), y
     sta Zp_Tmp2_byte  ; platform index
     ;; Calculate the desired Y-position for the top edge of the carriage, in
-    ;; room-space pixels, storing it in Zp_PlatformGoal_i16.
+    ;; room-space pixels, storing it in Zp_PointY_i16.
     ldy Zp_MachineIndex_u8
     lda Ram_MachineGoalVert_u8_arr, y
     mul #kBlockHeightPx
     sta Zp_Tmp3_byte  ; goal delta
     txa               ; max platform top (lo)
     sub Zp_Tmp3_byte  ; goal delta
-    sta Zp_PlatformGoal_i16 + 0
+    sta Zp_PointY_i16 + 0
     lda Zp_Tmp1_byte  ; max platform top (hi)
     sbc #0
-    sta Zp_PlatformGoal_i16 + 1
+    sta Zp_PointY_i16 + 1
     ;; Determine the vertical speed of the carriage (faster if resetting).
     ldx Ram_MachineStatus_eMachine_arr, y
     lda #1
@@ -313,7 +314,7 @@ _CheckIfSolidVert:
     @slow:
     ;; Move the carriage vertically, as necessary.
     ldx Zp_Tmp2_byte  ; param: platform index
-    jmp Func_MovePlatformTopToward  ; returns Z, N, and A
+    jmp Func_MovePlatformTopTowardPointY  ; returns Z, N, and A
 .ENDPROC
 
 ;;;=========================================================================;;;

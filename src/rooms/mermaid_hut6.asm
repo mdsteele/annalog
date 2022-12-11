@@ -34,14 +34,14 @@
 .IMPORT FuncA_Machine_ReachedGoal
 .IMPORT FuncA_Machine_StartWorking
 .IMPORT FuncA_Objects_DrawGirderPlatform
-.IMPORT Func_MovePlatformTopToward
+.IMPORT Func_MovePlatformTopTowardPointY
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrObjTownsfolk
 .IMPORT Ram_MachineStatus_eMachine_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORT Ram_RoomState
 .IMPORTZP Zp_MachineIndex_u8
-.IMPORTZP Zp_PlatformGoal_i16
+.IMPORTZP Zp_PointY_i16
 .IMPORTZP Zp_Tmp1_byte
 
 ;;;=========================================================================;;;
@@ -207,15 +207,15 @@ _Devices_sDevice_arr:
 .PROC FuncC_Mermaid_Hut6Machine_Tick
     ldx Zp_MachineIndex_u8
     ;; Calculate the desired Y-position for the top edge of the lift, in
-    ;; room-space pixels, storing it in Zp_PlatformGoal_i16.
+    ;; room-space pixels, storing it in Zp_PointY_i16.
     lda Ram_RoomState + sState::MachineGoalY_u8_arr, x
     mul #kBlockHeightPx  ; fits in one byte
     sta Zp_Tmp1_byte
     lda #kMachineInitPlatformTop
     sub Zp_Tmp1_byte
-    sta Zp_PlatformGoal_i16 + 0
+    sta Zp_PointY_i16 + 0
     lda #0
-    sta Zp_PlatformGoal_i16 + 1
+    sta Zp_PointY_i16 + 1
     ;; Determine the vertical speed of the lift (faster if resetting).
     lda #1
     ldy Ram_MachineStatus_eMachine_arr, x
@@ -224,7 +224,7 @@ _Devices_sDevice_arr:
     mul #2
     @slow:
     ;; Move the lift vertically, as necessary.
-    jsr Func_MovePlatformTopToward  ; returns Z and A
+    jsr Func_MovePlatformTopTowardPointY  ; returns Z and A
     beq @done
     rts
     @done:

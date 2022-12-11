@@ -35,7 +35,7 @@
 .IMPORT DataA_Room_Prison_sTileset
 .IMPORT FuncA_Objects_DrawStepstonePlatform
 .IMPORT FuncC_Prison_DrawGatePlatform
-.IMPORT Func_MovePlatformTopToward
+.IMPORT Func_MovePlatformTopTowardPointY
 .IMPORT Func_MovePlatformVert
 .IMPORT Func_Noop
 .IMPORT Func_SetFlag
@@ -47,7 +47,7 @@
 .IMPORT Ram_PlatformType_ePlatform_arr
 .IMPORT Ram_RoomState
 .IMPORT Sram_ProgressFlags_arr
-.IMPORTZP Zp_PlatformGoal_i16
+.IMPORTZP Zp_PointY_i16
 
 ;;;=========================================================================;;;
 
@@ -364,10 +364,10 @@ _OpenGate:
     flag_bit Sram_ProgressFlags_arr, eFlag::PrisonUpperGateOpened
     beq @done
     ldax #kGatePlatformMinTop
-    stax Zp_PlatformGoal_i16
+    stax Zp_PointY_i16
     lda #1  ; param: move speed
     ldx #kGatePlatformIndex  ; param: platform index
-    jmp Func_MovePlatformTopToward
+    jmp Func_MovePlatformTopTowardPointY
     @done:
     rts
 .ENDPROC

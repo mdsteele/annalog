@@ -36,7 +36,7 @@
 .IMPORT FuncA_Objects_MoveShapeUpOneTile
 .IMPORT FuncA_Objects_SetShapePosToMachineTopLeft
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
-.IMPORT Func_MovePlatformTopToward
+.IMPORT Func_MovePlatformTopTowardPointY
 .IMPORT Ram_MachineGoalVert_u8_arr
 .IMPORT Ram_MachineStatus_eMachine_arr
 .IMPORT Ram_Oam_sObj_arr64
@@ -44,7 +44,7 @@
 .IMPORT Ram_PlatformBottom_i16_1_arr
 .IMPORTZP Zp_Current_sMachine_ptr
 .IMPORTZP Zp_MachineIndex_u8
-.IMPORTZP Zp_PlatformGoal_i16
+.IMPORTZP Zp_PointY_i16
 .IMPORTZP Zp_RoomScrollY_u8
 .IMPORTZP Zp_ShapePosY_i16
 .IMPORTZP Zp_Tmp1_byte
@@ -108,15 +108,15 @@ kPaletteObjRope = 0
     sta Zp_Tmp1_byte  ; min platform top (lo)
     sty Zp_Tmp2_byte  ; min platform top (hi)
     ;; Calculate the desired Y-position for the top edge of the load, in
-    ;; room-space pixels, storing it in Zp_PlatformGoal_i16.
+    ;; room-space pixels, storing it in Zp_PointY_i16.
     ldy Zp_MachineIndex_u8
     lda Ram_MachineGoalVert_u8_arr, y
     mul #kBlockHeightPx
     adc Zp_Tmp1_byte  ; min platform top (lo) (carry is alredy clear from mul)
-    sta Zp_PlatformGoal_i16 + 0
+    sta Zp_PointY_i16 + 0
     lda #0
     adc Zp_Tmp2_byte  ; min platform top (hi)
-    sta Zp_PlatformGoal_i16 + 1
+    sta Zp_PointY_i16 + 1
     ;; Determine the vertical speed of the hoist (faster if resetting).
     lda Ram_MachineStatus_eMachine_arr, y
     cmp #eMachine::Resetting
@@ -128,7 +128,7 @@ kPaletteObjRope = 0
     lda #2
     @move:
     ;; Move the load platform vertically, as necessary.
-    jmp Func_MovePlatformTopToward  ; returns Z, N, and A
+    jmp Func_MovePlatformTopTowardPointY  ; returns Z, N, and A
 .ENDPROC
 
 ;;;=========================================================================;;;

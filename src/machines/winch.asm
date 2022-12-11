@@ -60,7 +60,7 @@
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORT Ram_PlatformTop_i16_1_arr
 .IMPORTZP Zp_MachineIndex_u8
-.IMPORTZP Zp_PlatformGoal_i16
+.IMPORTZP Zp_PointY_i16
 .IMPORTZP Zp_RoomScrollY_u8
 .IMPORTZP Zp_ShapePosY_i16
 .IMPORTZP Zp_Tmp1_byte
@@ -143,7 +143,7 @@ kWinchGearPalette  = 0
 ;;; Returns the speed that the current winch machine should use when moving
 ;;; vertically this frame.
 ;;; @prereq Zp_MachineIndex_u8 is initialized.
-;;; @prereq Zp_PlatformGoal_i16 is set to the goal room-space pixel Y-position.
+;;; @prereq Zp_PointY_i16 is set to the goal room-space pixel Y-position.
 ;;; @param X The platform index for the winch load.
 ;;; @return A The max distance to move by, in pixels (0-127).
 ;;; @return Z Set if the machine's max speed is zero this frame.
@@ -159,9 +159,9 @@ kWinchGearPalette  = 0
 _NotResetting:
     lda Ram_MachineParam1_u8_arr, y  ; falling bool
     bne _Falling
-    lda Zp_PlatformGoal_i16 + 0
+    lda Zp_PointY_i16 + 0
     sub Ram_PlatformTop_i16_0_arr, x
-    lda Zp_PlatformGoal_i16 + 1
+    lda Zp_PointY_i16 + 1
     sbc Ram_PlatformTop_i16_1_arr, x
     bpl _MovingDown
 _MovingUp:

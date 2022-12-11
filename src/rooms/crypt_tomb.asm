@@ -51,8 +51,8 @@
 .IMPORT FuncA_Objects_MoveShapeUpOneTile
 .IMPORT FuncA_Objects_SetShapePosToSpikeballCenter
 .IMPORT Func_MovePlatformHorz
-.IMPORT Func_MovePlatformLeftToward
-.IMPORT Func_MovePlatformTopToward
+.IMPORT Func_MovePlatformLeftTowardPointX
+.IMPORT Func_MovePlatformTopTowardPointY
 .IMPORT Func_Noop
 .IMPORT Func_ResetWinchMachineParams
 .IMPORT Func_SetFlag
@@ -64,7 +64,8 @@
 .IMPORT Ram_PlatformType_ePlatform_arr
 .IMPORT Ram_RoomState
 .IMPORT Sram_ProgressFlags_arr
-.IMPORTZP Zp_PlatformGoal_i16
+.IMPORTZP Zp_PointX_i16
+.IMPORTZP Zp_PointY_i16
 
 ;;;=========================================================================;;;
 
@@ -413,7 +414,7 @@ _Error:
 .PROC FuncC_Crypt_TombWinch_Tick
 _MoveVert:
     ;; Calculate the desired room-space pixel Y-position for the top edge of
-    ;; the spikeball, storing it in Zp_PlatformGoal_i16.
+    ;; the spikeball, storing it in Zp_PointY_i16.
     lda Ram_MachineGoalVert_u8_arr + kWinchMachineIndex
     mul #kBlockHeightPx
     add #kSpikeballMinPlatformTop
@@ -421,9 +422,9 @@ _MoveVert:
     .assert kWinchMaxGoalZ * kBlockHeightPx + \
             kSpikeballMinPlatformTop < $100, error
     .linecont -
-    sta Zp_PlatformGoal_i16 + 0
+    sta Zp_PointY_i16 + 0
     lda #0
-    sta Zp_PlatformGoal_i16 + 1
+    sta Zp_PointY_i16 + 1
     ;; Determine how fast we should move toward the goal.
     ldx #kSpikeballPlatformIndex  ; param: platform index
     jsr FuncA_Machine_GetWinchVertSpeed  ; preserves X, returns Z and A
@@ -431,7 +432,7 @@ _MoveVert:
     rts
     @move:
     ;; Move the spikeball vertically, as necessary.
-    jsr Func_MovePlatformTopToward  ; returns Z
+    jsr Func_MovePlatformTopTowardPointY  ; returns Z
     beq @reachedGoal
     rts
     @reachedGoal:
@@ -469,17 +470,17 @@ _MoveVert:
     @stopFalling:
 _MoveHorz:
     ;; Calculate the desired X-position for the left edge of the winch, in
-    ;; room-space pixels, storing it in Zp_PlatformGoal_i16.
+    ;; room-space pixels, storing it in Zp_PointX_i16.
     lda Ram_MachineGoalHorz_u8_arr + kWinchMachineIndex
     mul #kBlockWidthPx
     add #kWinchMinPlatformLeft
-    sta Zp_PlatformGoal_i16 + 0
+    sta Zp_PointX_i16 + 0
     lda #0
-    sta Zp_PlatformGoal_i16 + 1
+    sta Zp_PointX_i16 + 1
     ;; Move the winch horizontally, if necessary.
     jsr FuncA_Machine_GetWinchHorzSpeed  ; preserves X, returns A
     ldx #kWinchPlatformIndex  ; param: platform index
-    jsr Func_MovePlatformLeftToward  ; preserves X, returns Z and A
+    jsr Func_MovePlatformLeftTowardPointX  ; preserves X, returns Z and A
     beq @reachedGoal
     ;; If the winch moved, move the spikeball platform too.
     ldx #kSpikeballPlatformIndex  ; param: platform index

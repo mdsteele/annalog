@@ -46,7 +46,7 @@
 .IMPORT FuncA_Objects_MoveShapeUpOneTile
 .IMPORT FuncA_Room_RemoveFlowerDeviceIfCarriedOrDelivered
 .IMPORT FuncA_Room_RespawnFlowerDeviceIfDropped
-.IMPORT Func_MovePlatformTopToward
+.IMPORT Func_MovePlatformTopTowardPointY
 .IMPORT Func_MovePlatformVert
 .IMPORT Func_Noop
 .IMPORT Func_ResetWinchMachineParams
@@ -54,7 +54,7 @@
 .IMPORT Ram_MachineGoalVert_u8_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORTZP Zp_AvatarPlatformIndex_u8
-.IMPORTZP Zp_PlatformGoal_i16
+.IMPORTZP Zp_PointY_i16
 
 ;;;=========================================================================;;;
 
@@ -294,7 +294,7 @@ _ReadZ:
 
 .PROC FuncC_Crypt_FlowerWinch_Tick
     ;; Calculate the desired room-space pixel Y-position for the top edge of
-    ;; the upper girder, storing it in Zp_PlatformGoal_i16.
+    ;; the upper girder, storing it in Zp_PointY_i16.
     lda Ram_MachineGoalVert_u8_arr + kWinchMachineIndex
     mul #kBlockHeightPx
     add #kUpperGirderMinPlatformTop
@@ -302,9 +302,9 @@ _ReadZ:
     .assert kWinchMaxGoalZ * kBlockHeightPx + \
             kUpperGirderMinPlatformTop < $100, error
     .linecont -
-    sta Zp_PlatformGoal_i16 + 0
+    sta Zp_PointY_i16 + 0
     lda #0
-    sta Zp_PlatformGoal_i16 + 1
+    sta Zp_PointY_i16 + 1
     ;; Determine how fast we should move toward the goal.
     ldx #kUpperGirderPlatformIndex  ; param: platform index
     jsr FuncA_Machine_GetWinchVertSpeed  ; preserves X, returns Z and A
@@ -312,7 +312,7 @@ _ReadZ:
     rts
     @move:
     ;; Move the upper girder vertically, as necessary.
-    jsr Func_MovePlatformTopToward  ; returns Z and A
+    jsr Func_MovePlatformTopTowardPointY  ; returns Z and A
     beq @reachedGoal
     ;; If the girder moved, move the other girder too.
     ldx #kLowerGirderPlatformIndex  ; param: platform index

@@ -46,14 +46,14 @@
 .IMPORT FuncA_Objects_MoveShapeRightOneTile
 .IMPORT FuncA_Objects_MoveShapeUpOneTile
 .IMPORT Func_MovePlatformHorz
-.IMPORT Func_MovePlatformLeftToward
+.IMPORT Func_MovePlatformLeftTowardPointX
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrObjPrison
 .IMPORT Ram_MachineGoalHorz_u8_arr
 .IMPORT Ram_MachineStatus_eMachine_arr
 .IMPORT Ram_PlatformLeft_i16_0_arr
 .IMPORT Ram_PlatformLeft_i16_1_arr
-.IMPORTZP Zp_PlatformGoal_i16
+.IMPORTZP Zp_PointX_i16
 .IMPORTZP Zp_Tmp1_byte
 
 ;;;=========================================================================;;;
@@ -249,15 +249,15 @@ _Trolley_TryMove:
     jmp FuncA_Machine_Error
 _Trolley_Tick:
     ;; Calculate the desired X-position for the left edge of the trolley, in
-    ;; room-space pixels, storing it in Zp_PlatformGoal_i16.
+    ;; room-space pixels, storing it in Zp_PointX_i16.
     lda Ram_MachineGoalHorz_u8_arr + kTrolleyMachineIndex
     .assert kTrolleyMaxGoalX * kBlockWidthPx < $100, error
     mul #kBlockWidthPx  ; fits in one byte
     add #<kTrolleyMinPlatformLeft
-    sta Zp_PlatformGoal_i16 + 0
+    sta Zp_PointX_i16 + 0
     lda #0
     adc #>kTrolleyMinPlatformLeft
-    sta Zp_PlatformGoal_i16 + 1
+    sta Zp_PointX_i16 + 1
     ;; Determine the horizontal speed of the trolley (faster if resetting).
     lda #1
     ldy Ram_MachineStatus_eMachine_arr + kTrolleyMachineIndex
@@ -267,7 +267,7 @@ _Trolley_Tick:
     @slow:
     ;; Move the trolley horizontally, as necessary.
     ldx #kTrolleyPlatformIndex  ; param: platform index
-    jsr Func_MovePlatformLeftToward  ; returns Z and A
+    jsr Func_MovePlatformLeftTowardPointX  ; returns Z and A
     beq @done
     ;; If the trolley moved, move the girder platform too.
     ldx #kGirderPlatformIndex  ; param: platform index

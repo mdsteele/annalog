@@ -45,14 +45,14 @@
 .IMPORT FuncA_Objects_MoveShapeLeftHalfTile
 .IMPORT FuncA_Objects_MoveShapeUpOneTile
 .IMPORT FuncA_Objects_SetShapePosToSpikeballCenter
-.IMPORT Func_MovePlatformTopToward
+.IMPORT Func_MovePlatformTopTowardPointY
 .IMPORT Func_MovePlatformVert
 .IMPORT Func_Noop
 .IMPORT Func_ResetWinchMachineParams
 .IMPORT Ppu_ChrObjCrypt
 .IMPORT Ram_MachineGoalVert_u8_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
-.IMPORTZP Zp_PlatformGoal_i16
+.IMPORTZP Zp_PointY_i16
 
 ;;;=========================================================================;;;
 
@@ -268,7 +268,7 @@ _Winch_Reset:
 
 .PROC FuncC_Crypt_WestWinch_Tick
     ;; Calculate the desired room-space pixel Y-position for the top edge of
-    ;; the uppermost spikeball, storing it in Zp_PlatformGoal_i16.
+    ;; the uppermost spikeball, storing it in Zp_PointY_i16.
     lda Ram_MachineGoalVert_u8_arr + kWinchMachineIndex
     mul #kBlockHeightPx
     add #kSpikeball1MinPlatformTop
@@ -276,9 +276,9 @@ _Winch_Reset:
     .assert kWinchMaxGoalZ * kBlockHeightPx + \
             kSpikeball1MinPlatformTop < $100, error
     .linecont -
-    sta Zp_PlatformGoal_i16 + 0
+    sta Zp_PointY_i16 + 0
     lda #0
-    sta Zp_PlatformGoal_i16 + 1
+    sta Zp_PointY_i16 + 1
     ;; Determine how fast we should move toward the goal.
     ldx #kSpikeball1PlatformIndex  ; param: platform index
     jsr FuncA_Machine_GetWinchVertSpeed  ; preserves X, returns Z and A
@@ -286,7 +286,7 @@ _Winch_Reset:
     rts
     @move:
     ;; Move the uppermost spikeball vertically, as necessary.
-    jsr Func_MovePlatformTopToward  ; preserves X, returns Z and A
+    jsr Func_MovePlatformTopTowardPointY  ; preserves X, returns Z and A
     beq @reachedGoal
     ;; If the spikeball moved, move the other spikeballs too.
     inx

@@ -42,7 +42,7 @@
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
 .IMPORT FuncA_Room_RemoveFlowerDeviceIfCarriedOrDelivered
 .IMPORT FuncA_Room_RespawnFlowerDeviceIfDropped
-.IMPORT Func_MovePlatformTopToward
+.IMPORT Func_MovePlatformTopTowardPointY
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrObjSewer
 .IMPORT Ram_MachineGoalVert_u8_arr
@@ -51,7 +51,7 @@
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORTZP Zp_FrameCounter_u8
-.IMPORTZP Zp_PlatformGoal_i16
+.IMPORTZP Zp_PointY_i16
 .IMPORTZP Zp_Tmp1_byte
 .IMPORTZP Zp_Tmp2_byte
 
@@ -232,7 +232,7 @@ _Passages_sPassage_arr:
 
 .PROC FuncC_Sewer_FlowerPump_Tick
     ;; Calculate the desired Y-position for the top edge of the water, in
-    ;; room-space pixels, storing it in Zp_PlatformGoal_i16.
+    ;; room-space pixels, storing it in Zp_PointY_i16.
     lda Ram_MachineGoalVert_u8_arr + kPumpMachineIndex
     .assert kPumpMaxGoalY * kBlockHeightPx < $100, error
     mul #kBlockHeightPx
@@ -240,9 +240,9 @@ _Passages_sPassage_arr:
     .assert kWaterMaxPlatformTop < $100, error
     lda #kWaterMaxPlatformTop
     sub Zp_Tmp1_byte  ; goal delta
-    sta Zp_PlatformGoal_i16 + 0
+    sta Zp_PointY_i16 + 0
     lda #0
-    sta Zp_PlatformGoal_i16 + 1
+    sta Zp_PointY_i16 + 1
     ;; Determine the vertical speed of the water (faster if resetting).
     lda Ram_MachineStatus_eMachine_arr + kPumpMachineIndex
     cmp #eMachine::Resetting
@@ -257,7 +257,7 @@ _Passages_sPassage_arr:
     lda #1
     ;; Move the water vertically, as necessary.
     ldx #kWaterPlatformIndex  ; param: platform index
-    jsr Func_MovePlatformTopToward  ; returns Z
+    jsr Func_MovePlatformTopTowardPointY  ; returns Z
     jeq FuncA_Machine_ReachedGoal
     rts
 .ENDPROC

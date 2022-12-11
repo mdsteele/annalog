@@ -34,8 +34,8 @@
 .IMPORT FuncA_Objects_MoveShapeDownOneTile
 .IMPORT FuncA_Objects_MoveShapeRightOneTile
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
-.IMPORT Func_MovePlatformLeftToward
-.IMPORT Func_MovePlatformTopToward
+.IMPORT Func_MovePlatformLeftTowardPointX
+.IMPORT Func_MovePlatformTopTowardPointY
 .IMPORT Ram_MachineGoalVert_u8_arr
 .IMPORT Ram_MachineParam1_u8_arr
 .IMPORT Ram_Oam_sObj_arr64
@@ -45,7 +45,8 @@
 .IMPORT Ram_PlatformTop_i16_1_arr
 .IMPORTZP Zp_Current_sMachine_ptr
 .IMPORTZP Zp_MachineIndex_u8
-.IMPORTZP Zp_PlatformGoal_i16
+.IMPORTZP Zp_PointX_i16
+.IMPORTZP Zp_PointY_i16
 .IMPORTZP Zp_Tmp1_byte
 .IMPORTZP Zp_Tmp2_byte
 
@@ -147,13 +148,13 @@ _RepositionSegments:
     tay
     lda Ram_PlatformTop_i16_0_arr, x
     sub _Delta_u8_arr, y
-    sta Zp_PlatformGoal_i16 + 0
+    sta Zp_PointY_i16 + 0
     lda Ram_PlatformTop_i16_1_arr, x
     sbc #0
-    sta Zp_PlatformGoal_i16 + 1
+    sta Zp_PointY_i16 + 1
     inx
     lda #127  ; param: max distance to move by
-    jsr Func_MovePlatformTopToward  ; preserves X
+    jsr Func_MovePlatformTopTowardPointY  ; preserves X
     dex
     ;; Position the next segment horizontally relative to the previous segment.
     ldy Zp_MachineIndex_u8
@@ -168,22 +169,22 @@ _RepositionSegments:
     @facingLeft:
     lda Ram_PlatformLeft_i16_0_arr, x
     sub _Delta_u8_arr, y
-    sta Zp_PlatformGoal_i16 + 0
+    sta Zp_PointX_i16 + 0
     lda Ram_PlatformLeft_i16_1_arr, x
     sbc #0
-    sta Zp_PlatformGoal_i16 + 1
+    sta Zp_PointX_i16 + 1
     jmp @moveHorz
     @facingRight:
     lda Ram_PlatformLeft_i16_0_arr, x
     add _Delta_u8_arr, y
-    sta Zp_PlatformGoal_i16 + 0
+    sta Zp_PointX_i16 + 0
     lda Ram_PlatformLeft_i16_1_arr, x
     adc #0
-    sta Zp_PlatformGoal_i16 + 1
+    sta Zp_PointX_i16 + 1
     @moveHorz:
     inx
     lda #127  ; param: max distance to move by
-    jsr Func_MovePlatformLeftToward  ; preserves X
+    jsr Func_MovePlatformLeftTowardPointX  ; preserves X
     ;; Continue to the next pair of segments.
     pla  ; last platform index
     sta Zp_Tmp1_byte  ; last platform index

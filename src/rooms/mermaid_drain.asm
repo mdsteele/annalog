@@ -42,7 +42,7 @@
 .IMPORT FuncA_Objects_MoveShapeRightByA
 .IMPORT FuncA_Objects_MoveShapeRightOneTile
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
-.IMPORT Func_MovePlatformTopToward
+.IMPORT Func_MovePlatformTopTowardPointY
 .IMPORT Func_Noop
 .IMPORT Func_SetFlag
 .IMPORT Ppu_ChrObjMermaid
@@ -56,7 +56,7 @@
 .IMPORT Ram_RoomState
 .IMPORT Sram_ProgressFlags_arr
 .IMPORTZP Zp_FrameCounter_u8
-.IMPORTZP Zp_PlatformGoal_i16
+.IMPORTZP Zp_PointY_i16
 .IMPORTZP Zp_Tmp1_byte
 
 ;;;=========================================================================;;;
@@ -289,7 +289,7 @@ _Drained:
 
 .PROC FuncC_Mermaid_DrainPump_Tick
     ;; Calculate the desired Y-position for the top edge of the water, in
-    ;; room-space pixels, storing it in Zp_PlatformGoal_i16.
+    ;; room-space pixels, storing it in Zp_PointY_i16.
     lda Ram_MachineGoalVert_u8_arr + kPumpMachineIndex
     .assert kPumpMaxGoalY * kBlockHeightPx < $100, error
     mul #kBlockHeightPx
@@ -297,10 +297,10 @@ _Drained:
     .assert kWaterMaxPlatformTop >= $100, error
     lda #<kWaterMaxPlatformTop
     sub Zp_Tmp1_byte  ; goal delta
-    sta Zp_PlatformGoal_i16 + 0
+    sta Zp_PointY_i16 + 0
     lda #>kWaterMaxPlatformTop
     sbc #0
-    sta Zp_PlatformGoal_i16 + 1
+    sta Zp_PointY_i16 + 1
     ;; Determine the vertical speed of the water (faster if resetting).
     lda Ram_MachineStatus_eMachine_arr + kPumpMachineIndex
     cmp #eMachine::Resetting
@@ -315,7 +315,7 @@ _Drained:
     lda #1
     ;; Move the water vertically, as necessary.
     ldx #kWaterPlatformIndex  ; param: platform index
-    jsr Func_MovePlatformTopToward  ; returns Z
+    jsr Func_MovePlatformTopTowardPointY  ; returns Z
     jeq FuncA_Machine_ReachedGoal
     rts
 .ENDPROC

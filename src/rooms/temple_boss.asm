@@ -41,7 +41,7 @@
 .IMPORT FuncA_Room_InitBossPhase
 .IMPORT FuncA_Room_TickBossPhase
 .IMPORT Func_FindEmptyActorSlot
-.IMPORT Func_MovePlatformLeftToward
+.IMPORT Func_MovePlatformLeftTowardPointX
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrObjTemple
 .IMPORT Ram_ActorPosX_i16_0_arr
@@ -52,7 +52,7 @@
 .IMPORT Ram_MachineStatus_eMachine_arr
 .IMPORT Ram_PlatformLeft_i16_0_arr
 .IMPORT Ram_RoomState
-.IMPORTZP Zp_PlatformGoal_i16
+.IMPORTZP Zp_PointX_i16
 
 ;;;=========================================================================;;;
 
@@ -296,14 +296,14 @@ _InitializeBoss:
 
 .PROC FuncC_Temple_BossBlaster_Tick
     ;; Calculate the desired X-position for the left edge of the blaster, in
-    ;; room-space pixels, storing it in Zp_PlatformGoal_i16.
+    ;; room-space pixels, storing it in Zp_PointX_i16.
     lda Ram_MachineGoalHorz_u8_arr + kBlasterMachineIndex
     mul #kBlockWidthPx
     add #<kBlasterMinPlatformLeft
-    sta Zp_PlatformGoal_i16 + 0
+    sta Zp_PointX_i16 + 0
     lda #0
     adc #>kBlasterMinPlatformLeft
-    sta Zp_PlatformGoal_i16 + 1
+    sta Zp_PointX_i16 + 1
     ;; Determine the horizontal speed of the blaster (faster if resetting).
     ldx Ram_MachineStatus_eMachine_arr + kBlasterMachineIndex
     lda #1
@@ -313,7 +313,7 @@ _InitializeBoss:
     @slow:
     ;; Move the blaster horizontally, as necessary.
     ldx #kBlasterPlatformIndex  ; param: platform index
-    jsr Func_MovePlatformLeftToward  ; returns Z
+    jsr Func_MovePlatformLeftTowardPointX  ; returns Z
     jeq FuncA_Machine_ReachedGoal
     rts
 .ENDPROC

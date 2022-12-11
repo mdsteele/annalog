@@ -37,7 +37,7 @@
 .IMPORT FuncA_Objects_MoveShapeDownAndRightOneTile
 .IMPORT FuncA_Objects_MoveShapeDownByA
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
-.IMPORT Func_MovePlatformTopToward
+.IMPORT Func_MovePlatformTopTowardPointY
 .IMPORT Func_Noop
 .IMPORT Func_SetFlag
 .IMPORT Func_ShakeRoom
@@ -49,7 +49,7 @@
 .IMPORT Ram_PlatformTop_i16_1_arr
 .IMPORT Ram_RoomState
 .IMPORT Sram_ProgressFlags_arr
-.IMPORTZP Zp_PlatformGoal_i16
+.IMPORTZP Zp_PointY_i16
 
 ;;;=========================================================================;;;
 
@@ -250,10 +250,10 @@ _MaybeRaiseColumn:
     lda #kColumnPlatformSlowdown
     sta Ram_RoomState + sState::ColumnSlowdown_u8
     ldax #kColumnPlatformMinTop
-    stax Zp_PlatformGoal_i16
+    stax Zp_PointY_i16
     lda #1  ; param: move speed
     ldx #kColumnPlatformIndex  ; param: platform index
-    jsr Func_MovePlatformTopToward  ; returns Z
+    jsr Func_MovePlatformTopTowardPointY  ; returns Z
     beq @done
     lda #10  ; param: num frames
     jmp Func_ShakeRoom

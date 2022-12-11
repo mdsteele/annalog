@@ -45,8 +45,8 @@
 .IMPORT FuncA_Objects_MoveShapeLeftHalfTile
 .IMPORT FuncA_Objects_MoveShapeUpOneTile
 .IMPORT Func_MovePlatformHorz
-.IMPORT Func_MovePlatformLeftToward
-.IMPORT Func_MovePlatformTopToward
+.IMPORT Func_MovePlatformLeftTowardPointX
+.IMPORT Func_MovePlatformTopTowardPointY
 .IMPORT Func_MovePlatformVert
 .IMPORT Func_Noop
 .IMPORT Func_ResetWinchMachineParams
@@ -58,7 +58,8 @@
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORT Sram_ProgressFlags_arr
 .IMPORTZP Zp_AvatarPlatformIndex_u8
-.IMPORTZP Zp_PlatformGoal_i16
+.IMPORTZP Zp_PointX_i16
+.IMPORTZP Zp_PointY_i16
 
 ;;;=========================================================================;;;
 
@@ -347,7 +348,7 @@ _Error:
 .PROC FuncC_Crypt_GalleryWinch_Tick
 _MoveVert:
     ;; Calculate the desired room-space pixel Y-position for the top edge of
-    ;; the crusher, storing it in Zp_PlatformGoal_i16.
+    ;; the crusher, storing it in Zp_PointY_i16.
     lda Ram_MachineGoalVert_u8_arr + kWinchMachineIndex
     mul #kBlockHeightPx
     add #kCrusherMinPlatformTop
@@ -355,9 +356,9 @@ _MoveVert:
     .assert kWinchMaxGoalZ * kBlockHeightPx + \
             kCrusherMinPlatformTop < $100, error
     .linecont -
-    sta Zp_PlatformGoal_i16 + 0
+    sta Zp_PointY_i16 + 0
     lda #0
-    sta Zp_PlatformGoal_i16 + 1
+    sta Zp_PointY_i16 + 1
     ;; Determine how fast we should move toward the goal.
     ldx #kCrusherUpperPlatformIndex  ; param: platform index
     jsr FuncA_Machine_GetWinchVertSpeed  ; preserves X, returns Z and A
@@ -365,7 +366,7 @@ _MoveVert:
     rts
     @move:
     ;; Move the crusher vertically, as necessary.
-    jsr Func_MovePlatformTopToward  ; returns Z and A
+    jsr Func_MovePlatformTopTowardPointY  ; returns Z and A
     beq @reachedGoal
     ;; If the crusher moved, move the crusher's other platform too.
     ldx #kCrusherSpikePlatformIndex  ; param: platform index
@@ -373,18 +374,18 @@ _MoveVert:
     @reachedGoal:
 _MoveHorz:
     ;; Calculate the desired X-position for the left edge of the winch, in
-    ;; room-space pixels, storing it in Zp_PlatformGoal_i16.
+    ;; room-space pixels, storing it in Zp_PointX_i16.
     lda Ram_MachineGoalHorz_u8_arr + kWinchMachineIndex
     mul #kBlockWidthPx
     add #<kWinchMinPlatformLeft
-    sta Zp_PlatformGoal_i16 + 0
+    sta Zp_PointX_i16 + 0
     lda #0
     adc #>kWinchMinPlatformLeft
-    sta Zp_PlatformGoal_i16 + 1
+    sta Zp_PointX_i16 + 1
     ;; Move the winch horizontally, if necessary.
     jsr FuncA_Machine_GetWinchHorzSpeed  ; returns A
     ldx #kWinchPlatformIndex  ; param: platform index
-    jsr Func_MovePlatformLeftToward  ; returns Z and A
+    jsr Func_MovePlatformLeftTowardPointX  ; returns Z and A
     beq @reachedGoal
     ;; If the winch moved, move the crusher platforms too.
     pha  ; move delta

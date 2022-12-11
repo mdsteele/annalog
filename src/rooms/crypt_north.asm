@@ -46,14 +46,14 @@
 .IMPORT FuncA_Objects_DrawWinchChain
 .IMPORT FuncA_Objects_DrawWinchMachine
 .IMPORT FuncA_Objects_MoveShapeLeftOneTile
-.IMPORT Func_MovePlatformTopToward
+.IMPORT Func_MovePlatformTopTowardPointY
 .IMPORT Func_Noop
 .IMPORT Func_ResetWinchMachineParams
 .IMPORT Ppu_ChrObjCrypt
 .IMPORT Ram_MachineGoalVert_u8_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORTZP Zp_AvatarPlatformIndex_u8
-.IMPORTZP Zp_PlatformGoal_i16
+.IMPORTZP Zp_PointY_i16
 
 ;;;=========================================================================;;;
 
@@ -299,14 +299,14 @@ _ReadZ:
 
 .PROC FuncC_Crypt_NorthWinch_Tick
     ;; Calculate the desired room-space pixel Y-position for the top edge of
-    ;; the upper girder, storing it in Zp_PlatformGoal_i16.
+    ;; the upper girder, storing it in Zp_PointY_i16.
     lda Ram_MachineGoalVert_u8_arr + kWinchMachineIndex
     mul #kBlockHeightPx
     add #<kGirderMinPlatformTop
-    sta Zp_PlatformGoal_i16 + 0
+    sta Zp_PointY_i16 + 0
     lda #0
     adc #>kGirderMinPlatformTop
-    sta Zp_PlatformGoal_i16 + 1
+    sta Zp_PointY_i16 + 1
     ;; Determine how fast we should move toward the goal.
     ldx #kGirderPlatformIndex  ; param: platform index
     jsr FuncA_Machine_GetWinchVertSpeed  ; preserves X, returns Z and A
@@ -314,7 +314,7 @@ _ReadZ:
     rts
     @move:
     ;; Move the girder vertically, as necessary.
-    jsr Func_MovePlatformTopToward  ; returns Z and A
+    jsr Func_MovePlatformTopTowardPointY  ; returns Z and A
     jeq FuncA_Machine_WinchReachedGoal
     rts
 .ENDPROC

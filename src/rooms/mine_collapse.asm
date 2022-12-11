@@ -39,8 +39,8 @@
 .IMPORT FuncA_Objects_DrawTrolleyMachine
 .IMPORT FuncA_Objects_DrawTrolleyRopeToCrane
 .IMPORT Func_MovePlatformHorz
-.IMPORT Func_MovePlatformLeftToward
-.IMPORT Func_MovePlatformTopToward
+.IMPORT Func_MovePlatformLeftTowardPointX
+.IMPORT Func_MovePlatformTopTowardPointY
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrObjMine
 .IMPORT Ram_MachineGoalHorz_u8_arr
@@ -48,7 +48,8 @@
 .IMPORT Ram_MachineStatus_eMachine_arr
 .IMPORT Ram_PlatformLeft_i16_0_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
-.IMPORTZP Zp_PlatformGoal_i16
+.IMPORTZP Zp_PointX_i16
+.IMPORTZP Zp_PointY_i16
 
 ;;;=========================================================================;;;
 
@@ -318,15 +319,15 @@ _RegZ:
 
 .PROC FuncC_Mine_CollapseTrolley_Tick
     ;; Calculate the desired X-position for the left edge of the trolley, in
-    ;; room-space pixels, storing it in Zp_PlatformGoal_i16.
+    ;; room-space pixels, storing it in Zp_PointX_i16.
     lda Ram_MachineGoalHorz_u8_arr + kTrolleyMachineIndex
     .assert kTrolleyMaxGoalX * kBlockWidthPx < $100, error
     mul #kBlockWidthPx  ; fits in one byte
     add #<kTrolleyMinPlatformLeft
-    sta Zp_PlatformGoal_i16 + 0
+    sta Zp_PointX_i16 + 0
     lda #0
     adc #>kTrolleyMinPlatformLeft
-    sta Zp_PlatformGoal_i16 + 1
+    sta Zp_PointX_i16 + 1
     ;; Determine the horizontal speed of the trolley (faster if resetting).
     lda #1
     ldy Ram_MachineStatus_eMachine_arr + kTrolleyMachineIndex
@@ -336,7 +337,7 @@ _RegZ:
     @slow:
     ;; Move the trolley horizontally, as necessary.
     ldx #kTrolleyPlatformIndex  ; param: platform index
-    jsr Func_MovePlatformLeftToward  ; returns Z and A
+    jsr Func_MovePlatformLeftTowardPointX  ; returns Z and A
     beq @done
     ;; If the trolley moved, move the crane too.
     ldx #kCranePlatformIndex  ; param: platform index
@@ -347,14 +348,14 @@ _RegZ:
 
 .PROC FuncC_Mine_CollapseCrane_Tick
     ;; Calculate the desired Y-position for the top edge of the crane, in
-    ;; room-space pixels, storing it in Zp_PlatformGoal_i16.
+    ;; room-space pixels, storing it in Zp_PointY_i16.
     lda Ram_MachineGoalVert_u8_arr + kCraneMachineIndex
     .assert kCraneMaxGoalZ * kBlockHeightPx < $100, error
     mul #kBlockHeightPx  ; fits in one byte
     add #kCraneMinPlatformTop
-    sta Zp_PlatformGoal_i16 + 0
+    sta Zp_PointY_i16 + 0
     lda #0
-    sta Zp_PlatformGoal_i16 + 1
+    sta Zp_PointY_i16 + 1
     ;; Determine the vertical speed of the crane (faster if resetting).
     lda #1
     ldy Ram_MachineStatus_eMachine_arr + kCraneMachineIndex
@@ -364,7 +365,7 @@ _RegZ:
     @slow:
     ;; Move the crane vertically, as necessary.
     ldx #kCranePlatformIndex  ; param: platform index
-    jsr Func_MovePlatformTopToward  ; returns Z and A
+    jsr Func_MovePlatformTopTowardPointY  ; returns Z and A
     beq @done
     rts
     @done:

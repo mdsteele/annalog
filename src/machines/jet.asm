@@ -31,7 +31,7 @@
 .IMPORT FuncA_Objects_MoveShapeRightByA
 .IMPORT FuncA_Objects_SetShapePosToMachineTopLeft
 .IMPORT Func_DivMod
-.IMPORT Func_MovePlatformTopToward
+.IMPORT Func_MovePlatformTopTowardPointY
 .IMPORT Ram_MachineGoalVert_u8_arr
 .IMPORT Ram_MachineStatus_eMachine_arr
 .IMPORT Ram_Oam_sObj_arr64
@@ -40,7 +40,7 @@
 .IMPORTZP Zp_Current_sMachine_ptr
 .IMPORTZP Zp_FrameCounter_u8
 .IMPORTZP Zp_MachineIndex_u8
-.IMPORTZP Zp_PlatformGoal_i16
+.IMPORTZP Zp_PointY_i16
 .IMPORTZP Zp_Tmp1_byte
 .IMPORTZP Zp_Tmp2_byte
 .IMPORTZP Zp_Tmp3_byte
@@ -130,13 +130,13 @@ kTileIdJetLowerMiddleFirst = kTileIdJetFirst + 1
     adc #0
     sta Zp_Tmp4_byte  ; goal delta (hi)
     ;; Calculate the desired Y-position for the top edge of the jet, in
-    ;; room-space pixels, storing it in Zp_PlatformGoal_i16.
+    ;; room-space pixels, storing it in Zp_PointY_i16.
     txa               ; max platform top (lo)
     sub Zp_Tmp3_byte  ; goal delta (lo)
-    sta Zp_PlatformGoal_i16 + 0
+    sta Zp_PointY_i16 + 0
     lda Zp_Tmp1_byte  ; max platform top (hi)
     sbc Zp_Tmp4_byte  ; goal delta (hi)
-    sta Zp_PlatformGoal_i16 + 1
+    sta Zp_PointY_i16 + 1
     ;; Determine the vertical speed of the jet (faster if resetting).
     ldx Ram_MachineStatus_eMachine_arr, y
     lda #kJetMoveSpeed
@@ -146,7 +146,7 @@ kTileIdJetLowerMiddleFirst = kTileIdJetFirst + 1
     @slow:
     ;; Move the jet vertically, as necessary.
     ldx Zp_Tmp2_byte  ; param: platform index
-    jsr Func_MovePlatformTopToward  ; returns Z
+    jsr Func_MovePlatformTopTowardPointY  ; returns Z
     jeq FuncA_Machine_ReachedGoal
     rts
 .ENDPROC
