@@ -22,7 +22,7 @@
 ;;;   * State2: Unused.
 
 ;;; The hit radius of a breakball projectile actor, in pixels.
-kProjBreakballRadius = 4
+kProjBreakballRadius = 3
 
 ;;; The first tile ID for drawing breakball projectile actors.
 kTileIdObjBreakballFirst = $84

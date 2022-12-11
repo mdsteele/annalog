@@ -29,6 +29,8 @@
 .IMPORTZP Zp_AvatarVelX_i16
 .IMPORTZP Zp_AvatarVelY_i16
 .IMPORTZP Zp_AvatarWaterDepth_u8
+.IMPORTZP Zp_PointX_i16
+.IMPORTZP Zp_PointY_i16
 .IMPORTZP Zp_RoomScrollX_u16
 .IMPORTZP Zp_RoomScrollY_u8
 .IMPORTZP Zp_ShapePosX_i16
@@ -82,6 +84,77 @@ Ram_PlatformRight_i16_1_arr: .res kMaxPlatforms
 ;;;=========================================================================;;;
 
 .SEGMENT "PRG8"
+
+;;; Checks if the point stored in Zp_PointX_i16 and Zp_PointY_i16 is inside the
+;;; platform.
+;;; @param Y The platform index.
+;;; @return C Set if the point is in the platform, cleared otherwise.
+;;; @preserve X, Y, Zp_Tmp*
+.PROC Func_IsPointInPlatform
+_CheckPlatformLeft:
+    lda Zp_PointX_i16 + 0
+    cmp Ram_PlatformLeft_i16_0_arr, y
+    lda Zp_PointX_i16 + 1
+    sbc Ram_PlatformLeft_i16_1_arr, y
+    bvc @noOverflow  ; N eor V
+    eor #$80
+    @noOverflow:
+    bmi _Outside
+_CheckPlatformRight:
+    lda Zp_PointX_i16 + 0
+    cmp Ram_PlatformRight_i16_0_arr, y
+    lda Zp_PointX_i16 + 1
+    sbc Ram_PlatformRight_i16_1_arr, y
+    bvc @noOverflow  ; N eor V
+    eor #$80
+    @noOverflow:
+    bpl _Outside
+_CheckPlatformTop:
+    lda Zp_PointY_i16 + 0
+    cmp Ram_PlatformTop_i16_0_arr, y
+    lda Zp_PointY_i16 + 1
+    sbc Ram_PlatformTop_i16_1_arr, y
+    bvc @noOverflow  ; N eor V
+    eor #$80
+    @noOverflow:
+    bmi _Outside
+_CheckPlatformBottom:
+    lda Zp_PointY_i16 + 0
+    cmp Ram_PlatformBottom_i16_0_arr, y
+    lda Zp_PointY_i16 + 1
+    sbc Ram_PlatformBottom_i16_1_arr, y
+    bvc @noOverflow  ; N eor V
+    eor #$80
+    @noOverflow:
+    bpl _Outside
+_Inside:
+    sec
+    rts
+_Outside:
+    clc
+    rts
+.ENDPROC
+
+;;; Checks if the point stored in Zp_PointX_i16 and Zp_PointY_i16 is inside any
+;;; solid platform in the room.
+;;; @return C Set if the point is in the platform, cleared otherwise.
+;;; @preserve X, Zp_Tmp*
+.EXPORT Func_IsPointInAnySolidPlatform
+.PROC Func_IsPointInAnySolidPlatform
+    ldy #kMaxPlatforms - 1
+    @loop:
+    lda Ram_PlatformType_ePlatform_arr, y
+    cmp #kFirstSolidPlatformType
+    blt @continue
+    jsr Func_IsPointInPlatform  ; preserves X, Y, and Zp_Tmp*; returns C
+    bcs @return
+    @continue:
+    dey
+    .assert kMaxPlatforms <= $80, error
+    bpl @loop
+    @return:
+    rts
+.ENDPROC
 
 ;;; Move the specified platform horizontally such that its left edge moves
 ;;; toward the goal position without overshooting it.

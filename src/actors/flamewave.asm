@@ -27,6 +27,7 @@
 
 .IMPORT FuncA_Actor_CenterHitsTerrain
 .IMPORT FuncA_Actor_HarmAvatarIfCollision
+.IMPORT FuncA_Actor_NegateVelX
 .IMPORT FuncA_Objects_Alloc1x1Shape
 .IMPORT FuncA_Objects_MoveShapeLeftHalfTile
 .IMPORT FuncA_Objects_MoveShapeUpOneTile
@@ -114,11 +115,7 @@ _CheckIfHitsWall:
     inc Ram_ActorState2_byte_arr, x  ; num bounces so far
     lda #0
     sta Ram_ActorState1_byte_arr, x  ; expiration timer
-    sub Ram_ActorVelX_i16_0_arr, x
-    sta Ram_ActorVelX_i16_0_arr, x
-    lda #0
-    sbc Ram_ActorVelX_i16_1_arr, x
-    sta Ram_ActorVelX_i16_1_arr, x
+    jsr FuncA_Actor_NegateVelX  ; preserves X
 _Finish:
     jmp FuncA_Actor_HarmAvatarIfCollision  ; preserves X
 _Expire:

@@ -51,7 +51,7 @@ Ram_PrintBuffer_arr: .res $80
 
 .CODE
 
-Data_StrExpected: .asciiz "failed: expected $"
+Data_StrExpected: .asciiz "FAILED: expected $"
 Data_StrActual: .asciiz " but got $"
 
 ;;; Terminates the print buffer with a newline, then writes the contents of the

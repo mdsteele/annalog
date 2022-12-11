@@ -75,7 +75,6 @@
 .IMPORT FuncA_Room_InitActorNpcChild
 .IMPORT FuncA_Room_InitActorNpcToddler
 .IMPORT FuncA_Room_InitActorProjBreakball
-.IMPORT Func_GetTerrainColumnPtrForTileIndex
 .IMPORT Func_HarmAvatar
 .IMPORT Func_InitActorProjFireball
 .IMPORT Func_InitActorProjFlamewave
@@ -85,13 +84,15 @@
 .IMPORT Func_InitActorProjSteamHorz
 .IMPORT Func_InitActorProjSteamUp
 .IMPORT Func_Noop
+.IMPORT Func_PointHitsTerrain
 .IMPORTZP Zp_AvatarPosX_i16
 .IMPORTZP Zp_AvatarPosY_i16
+.IMPORTZP Zp_PointX_i16
+.IMPORTZP Zp_PointY_i16
 .IMPORTZP Zp_RoomScrollX_u16
 .IMPORTZP Zp_RoomScrollY_u8
 .IMPORTZP Zp_ShapePosX_i16
 .IMPORTZP Zp_ShapePosY_i16
-.IMPORTZP Zp_TerrainColumn_u8_arr_ptr
 .IMPORTZP Zp_Tmp1_byte
 .IMPORTZP Zp_Tmp2_byte
 .IMPORTZP Zp_Tmp3_byte
@@ -566,22 +567,71 @@ _NoHit:
     rts
 .ENDPROC
 
+;;; Stores the actor's room pixel position in Zp_Point*_i16.
+;;; @preserve X, Y, Zp_Tmp*
+.EXPORT FuncA_Actor_SetPointToActorCenter
+.PROC FuncA_Actor_SetPointToActorCenter
+    lda Ram_ActorPosX_i16_0_arr, x
+    sta Zp_PointX_i16 + 0
+    lda Ram_ActorPosX_i16_1_arr, x
+    sta Zp_PointX_i16 + 1
+    lda Ram_ActorPosY_i16_0_arr, x
+    sta Zp_PointY_i16 + 0
+    lda Ram_ActorPosY_i16_1_arr, x
+    sta Zp_PointY_i16 + 1
+    rts
+.ENDPROC
+
+;;; Sets the actor's room pixel position to Zp_Point*_i16.
+;;; @preserve X, Y, Zp_Tmp*
+.EXPORT FuncA_Actor_SetActorCenterToPoint
+.PROC FuncA_Actor_SetActorCenterToPoint
+    lda Zp_PointX_i16 + 0
+    sta Ram_ActorPosX_i16_0_arr, x
+    lda Zp_PointX_i16 + 1
+    sta Ram_ActorPosX_i16_1_arr, x
+    lda Zp_PointY_i16 + 0
+    sta Ram_ActorPosY_i16_0_arr, x
+    lda Zp_PointY_i16 + 1
+    sta Ram_ActorPosY_i16_1_arr, x
+    rts
+.ENDPROC
+
 ;;; Checks if the actor's center position is colliding with solid terrain.
 ;;; @param X The actor index.
 ;;; @return C Set if a collision occurred, cleared otherwise.
-;;; @preserve X
+;;; @preserve X, Zp_Tmp*
 .EXPORT FuncA_Actor_CenterHitsTerrain
 .PROC FuncA_Actor_CenterHitsTerrain
-    ;; Get the terrain for the actor's current tile column.
-    jsr FuncA_Actor_GetRoomTileColumn  ; preserves X, returns A
-    stx Zp_Tmp1_byte  ; actor index
-    jsr Func_GetTerrainColumnPtrForTileIndex  ; preserves Zp_Tmp*
-    ldx Zp_Tmp1_byte  ; actor index
-    ;; Check the terrain block that the actor position is in, and set C if the
-    ;; terrain is solid.
-    jsr FuncA_Actor_GetRoomBlockRow  ; preserves X, returns Y
-    lda (Zp_TerrainColumn_u8_arr_ptr), y
-    cmp #kFirstSolidTerrainType
+    jsr FuncA_Actor_SetPointToActorCenter
+    jmp Func_PointHitsTerrain  ; preserves X and Zp_Tmp*, returns C
+.ENDPROC
+
+;;; Negates the actor's X-velocity.
+;;; @param X The actor index.
+;;; @preserve X, Y, Zp_Tmp*
+.EXPORT FuncA_Actor_NegateVelX
+.PROC FuncA_Actor_NegateVelX
+    lda #0
+    sub Ram_ActorVelX_i16_0_arr, x
+    sta Ram_ActorVelX_i16_0_arr, x
+    lda #0
+    sbc Ram_ActorVelX_i16_1_arr, x
+    sta Ram_ActorVelX_i16_1_arr, x
+    rts
+.ENDPROC
+
+;;; Negates the actor's Y-velocity.
+;;; @param X The actor index.
+;;; @preserve X, Y, Zp_Tmp*
+.EXPORT FuncA_Actor_NegateVelY
+.PROC FuncA_Actor_NegateVelY
+    lda #0
+    sub Ram_ActorVelY_i16_0_arr, x
+    sta Ram_ActorVelY_i16_0_arr, x
+    lda #0
+    sbc Ram_ActorVelY_i16_1_arr, x
+    sta Ram_ActorVelY_i16_1_arr, x
     rts
 .ENDPROC
 

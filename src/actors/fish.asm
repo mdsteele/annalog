@@ -22,22 +22,25 @@
 .INCLUDE "../terrain.inc"
 .INCLUDE "fish.inc"
 
-.IMPORT FuncA_Actor_GetRoomBlockRow
-.IMPORT FuncA_Actor_GetRoomTileColumn
 .IMPORT FuncA_Actor_HarmAvatarIfCollision
+.IMPORT FuncA_Actor_SetPointToActorCenter
 .IMPORT FuncA_Objects_Draw2x2Actor
-.IMPORT Func_GetTerrainColumnPtrForTileIndex
+.IMPORT Func_MovePointLeftByA
+.IMPORT Func_MovePointRightByA
+.IMPORT Func_PointHitsTerrain
 .IMPORT Ram_ActorFlags_bObj_arr
 .IMPORT Ram_ActorState1_byte_arr
 .IMPORT Ram_ActorVelX_i16_0_arr
 .IMPORT Ram_ActorVelX_i16_1_arr
-.IMPORTZP Zp_TerrainColumn_u8_arr_ptr
-.IMPORTZP Zp_Tmp1_byte
 
 ;;;=========================================================================;;;
 
 ;;; How fast the fish swims, in subpixels per frame.
 kFishSpeed = $0130
+
+;;; How many pixels in front of its center a fish actor checks for solid
+;;; terrain to see if it needs to turn around.
+kFishTurnDistance = 12
 
 ;;; The OBJ palette number to use for drawing fish baddie actors.
 kPaletteObjFish = 0
@@ -51,35 +54,22 @@ kPaletteObjFish = 0
 ;;; @preserve X
 .EXPORT FuncA_Actor_TickBadFish
 .PROC FuncA_Actor_TickBadFish
-    ;; Compute the room tile column index for the center of the fish, storing
-    ;; it in Y.
-    jsr FuncA_Actor_GetRoomTileColumn  ; preserves X, returns A
-    tay
-    ;; If the fish is facing right, add 2 to the tile column (so as to check
-    ;; the block column to the right of the fish); if the fish is facing left,
-    ;; subtract 2 (so as to check the block column to the left of the fish).
+    ;; Set the point to a position in front of the fish.
+    jsr FuncA_Actor_SetPointToActorCenter  ; preserves X
     lda Ram_ActorFlags_bObj_arr, x
     and #bObj::FlipH
     bne @facingLeft
     @facingRight:
-    iny
-    iny
-    bne @doneFacing  ; unconditional
+    lda #kFishTurnDistance  ; param: offset
+    jsr Func_MovePointRightByA  ; preserves X
+    jmp @checkTerrain
     @facingLeft:
-    dey
-    dey
-    @doneFacing:
-    ;; Get the terrain for the tile column we're checking.
-    stx Zp_Tmp1_byte  ; actor index
-    tya  ; param: room tile column index
-    jsr Func_GetTerrainColumnPtrForTileIndex  ; preserves Zp_Tmp*
-    ldx Zp_Tmp1_byte  ; actor index
-    ;; Check the terrain block just in front of the fish.  If it's solid,
-    ;; the fish has to turn around.
-    jsr FuncA_Actor_GetRoomBlockRow  ; preserves X, returns Y
-    lda (Zp_TerrainColumn_u8_arr_ptr), y
-    cmp #kFirstSolidTerrainType
-    blt @continueForward
+    lda #kFishTurnDistance  ; param: offset
+    jsr Func_MovePointLeftByA  ; preserves X
+    @checkTerrain:
+    ;; Check the terrain in front of the fish.  If it's solid, turn around.
+    jsr Func_PointHitsTerrain  ; preserves X, returns C
+    bcc @continueForward
     ;; Make the fish face the opposite direction.
     @turnAround:
     lda Ram_ActorFlags_bObj_arr, x

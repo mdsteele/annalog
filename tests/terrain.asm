@@ -23,6 +23,7 @@
 
 .IMPORT Exit_Success
 .IMPORT Func_ExpectAEqualsY
+.IMPORT Func_GetTerrainColumnPtrForPoint
 .IMPORT Func_GetTerrainColumnPtrForTileIndex
 .IMPORTZP Zp_TerrainColumn_u8_arr_ptr
 
@@ -30,11 +31,14 @@
 
 kTerrainDataPtr = $80ff
 kBlockColumnIndex = 11
-kExpectedStripePtr = $8207
+kExpectedStripePtrShortRoom = $81af
+kExpectedStripePtrTallRoom = $8207
 
 .LINECONT +
+.ASSERT kTerrainDataPtr + kBlockColumnIndex * 16 = \
+        kExpectedStripePtrShortRoom, error
 .ASSERT kTerrainDataPtr + kBlockColumnIndex * kTallRoomHeightBlocks = \
-        kExpectedStripePtr, error
+        kExpectedStripePtrTallRoom, error
 .LINECONT -
 
 ;;;=========================================================================;;;
@@ -45,6 +49,9 @@ kExpectedStripePtr = $8207
 Zp_Current_sRoom: .tag sRoom
 .EXPORTZP Zp_Current_sTileset
 Zp_Current_sTileset: .tag sTileset
+.EXPORTZP Zp_PointX_i16, Zp_PointY_i16
+Zp_PointX_i16: .res 2
+Zp_PointY_i16: .res 2
 .EXPORTZP Zp_PpuTransferLen_u8
 Zp_PpuTransferLen_u8: .res 1
 .EXPORTZP Zp_Tmp1_byte, Zp_Tmp2_byte, Zp_Tmp3_byte, Zp_Tmp_ptr
@@ -72,6 +79,72 @@ DataA_Terrain_UpperRight_u8_arr:
 DataA_Terrain_LowerRight_u8_arr:
     .res $100
 
+.PROC Func_TestColumnForTileIndexInShortRoom
+    ;; Setup:
+    lda #$00
+    sta Zp_Current_sRoom + sRoom::IsTall_bool
+    ;; Test:
+    lda #kBlockColumnIndex * 2  ; param: tile column index
+    jsr Func_GetTerrainColumnPtrForTileIndex
+    ;; Verify:
+    lda Zp_TerrainColumn_u8_arr_ptr + 0
+    ldy #<kExpectedStripePtrShortRoom
+    jsr Func_ExpectAEqualsY
+    lda Zp_TerrainColumn_u8_arr_ptr + 1
+    ldy #>kExpectedStripePtrShortRoom
+    jmp Func_ExpectAEqualsY
+.ENDPROC
+
+.PROC Func_TestColumnForTileIndexInTallRoom
+    ;; Setup:
+    lda #$ff
+    sta Zp_Current_sRoom + sRoom::IsTall_bool
+    ;; Test:
+    lda #kBlockColumnIndex * 2  ; param: tile column index
+    jsr Func_GetTerrainColumnPtrForTileIndex
+    ;; Verify:
+    lda Zp_TerrainColumn_u8_arr_ptr + 0
+    ldy #<kExpectedStripePtrTallRoom
+    jsr Func_ExpectAEqualsY
+    lda Zp_TerrainColumn_u8_arr_ptr + 1
+    ldy #>kExpectedStripePtrTallRoom
+    jmp Func_ExpectAEqualsY
+.ENDPROC
+
+.PROC Func_TestColumnForPointInShortRoom
+    ;; Setup:
+    lda #$00
+    sta Zp_Current_sRoom + sRoom::IsTall_bool
+    ldax #kBlockColumnIndex * 16 + 5
+    stax Zp_PointX_i16
+    ;; Test:
+    jsr Func_GetTerrainColumnPtrForPoint
+    ;; Verify:
+    lda Zp_TerrainColumn_u8_arr_ptr + 0
+    ldy #<kExpectedStripePtrShortRoom
+    jsr Func_ExpectAEqualsY
+    lda Zp_TerrainColumn_u8_arr_ptr + 1
+    ldy #>kExpectedStripePtrShortRoom
+    jmp Func_ExpectAEqualsY
+.ENDPROC
+
+.PROC Func_TestColumnForPointInTallRoom
+    ;; Setup:
+    lda #$ff
+    sta Zp_Current_sRoom + sRoom::IsTall_bool
+    ldax #kBlockColumnIndex * 16 + 5
+    stax Zp_PointX_i16
+    ;; Test:
+    jsr Func_GetTerrainColumnPtrForPoint
+    ;; Verify:
+    lda Zp_TerrainColumn_u8_arr_ptr + 0
+    ldy #<kExpectedStripePtrTallRoom
+    jsr Func_ExpectAEqualsY
+    lda Zp_TerrainColumn_u8_arr_ptr + 1
+    ldy #>kExpectedStripePtrTallRoom
+    jmp Func_ExpectAEqualsY
+.ENDPROC
+
 ;;;=========================================================================;;;
 
 .SEGMENT "MAIN"
@@ -80,21 +153,13 @@ DataA_Terrain_LowerRight_u8_arr:
     ldx #$ff
     txs
 SetUp:
-    lda #$ff
-    sta Zp_Current_sRoom + sRoom::IsTall_bool
     ldax #kTerrainDataPtr
-    stx Zp_Current_sRoom + sRoom::TerrainData_ptr + 0
-    sta Zp_Current_sRoom + sRoom::TerrainData_ptr + 1
-Test:
-    lda #kBlockColumnIndex * 2
-    jsr Func_GetTerrainColumnPtrForTileIndex
-Verify:
-    lda Zp_TerrainColumn_u8_arr_ptr + 0
-    ldy #<kExpectedStripePtr
-    jsr Func_ExpectAEqualsY
-    lda Zp_TerrainColumn_u8_arr_ptr + 1
-    ldy #>kExpectedStripePtr
-    jsr Func_ExpectAEqualsY
+    stax Zp_Current_sRoom + sRoom::TerrainData_ptr
+Tests:
+    jsr Func_TestColumnForTileIndexInShortRoom
+    jsr Func_TestColumnForTileIndexInTallRoom
+    jsr Func_TestColumnForPointInShortRoom
+    jsr Func_TestColumnForPointInTallRoom
 Success:
     jmp Exit_Success
 

@@ -24,12 +24,12 @@
 .INCLUDE "vinebug.inc"
 
 .IMPORT FuncA_Actor_GetRoomBlockRow
-.IMPORT FuncA_Actor_GetRoomTileColumn
 .IMPORT FuncA_Actor_HarmAvatarIfCollision
 .IMPORT FuncA_Actor_IsAvatarWithinHorzDistance
+.IMPORT FuncA_Actor_SetPointToActorCenter
 .IMPORT FuncA_Objects_Draw2x2Actor
 .IMPORT Func_GetRandomByte
-.IMPORT Func_GetTerrainColumnPtrForTileIndex
+.IMPORT Func_GetTerrainColumnPtrForPoint
 .IMPORT Func_InitActorDefault
 .IMPORT Ram_ActorPosX_i16_0_arr
 .IMPORT Ram_ActorPosX_i16_1_arr
@@ -41,7 +41,6 @@
 .IMPORT Ram_ActorVelY_i16_1_arr
 .IMPORTZP Zp_AvatarPosY_i16
 .IMPORTZP Zp_TerrainColumn_u8_arr_ptr
-.IMPORTZP Zp_Tmp1_byte
 
 ;;;=========================================================================;;;
 
@@ -97,11 +96,8 @@ _DropIfAvatarIsBelow:
     sta Ram_ActorVelY_i16_0_arr, x
     @notNear:
 _CrawlUpOrDown:
-    ;; Get the terrain for the vinebug's tile column.
-    jsr FuncA_Actor_GetRoomTileColumn  ; preserves X, returns A
-    stx Zp_Tmp1_byte  ; actor index
-    jsr Func_GetTerrainColumnPtrForTileIndex  ; preserves Zp_Tmp*
-    ldx Zp_Tmp1_byte  ; actor index
+    jsr FuncA_Actor_SetPointToActorCenter  ; preserves X
+    jsr Func_GetTerrainColumnPtrForPoint  ; preserves X
     ;; Get the vinebug's room block row.
     jsr FuncA_Actor_GetRoomBlockRow  ; preserves X, returns Y
     ;; Determine if we're currently crawling up or down.

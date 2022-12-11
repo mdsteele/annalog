@@ -20,11 +20,14 @@
 .INCLUDE "macros.inc"
 .INCLUDE "ppu.inc"
 .INCLUDE "room.inc"
+.INCLUDE "terrain.inc"
 .INCLUDE "tileset.inc"
 
 .IMPORT Ram_PpuTransfer_arr
 .IMPORTZP Zp_Current_sRoom
 .IMPORTZP Zp_Current_sTileset
+.IMPORTZP Zp_PointX_i16
+.IMPORTZP Zp_PointY_i16
 .IMPORTZP Zp_PpuTransferLen_u8
 .IMPORTZP Zp_Tmp1_byte
 .IMPORTZP Zp_Tmp2_byte
@@ -50,6 +53,90 @@ Zp_NametableColumnIndex_u8: .res 1
 ;;;=========================================================================;;;
 
 .SEGMENT "PRG8"
+
+;;; Checks if the point stored in Zp_PointX_i16 and Zp_PointY_i16 is colliding
+;;; with solid terrain.  It is assumed that both coordinates are nonnegative
+;;; and within the bounds of the room terrain.
+;;; @return C Set if a collision occurred, cleared otherwise.
+;;; @preserve X, Zp_Tmp*
+.EXPORT Func_PointHitsTerrain
+.PROC Func_PointHitsTerrain
+    lda Zp_PointY_i16 + 1
+    sta Zp_TerrainColumn_u8_arr_ptr + 0
+    lda Zp_PointY_i16 + 0
+    .assert kBlockHeightPx = (1 << 4), error
+    .repeat 4
+    lsr Zp_TerrainColumn_u8_arr_ptr + 0
+    ror a
+    .endrepeat
+    tay  ; room block row index
+    jsr Func_GetTerrainColumnPtrForPoint  ; preserves X, Y, and Zp_Tmp*
+    lda (Zp_TerrainColumn_u8_arr_ptr), y
+    cmp #kFirstSolidTerrainType
+    rts
+.ENDPROC
+
+;;; Populates Zp_TerrainColumn_u8_arr_ptr with a pointer to the start of the
+;;; terrain block column in the current room that contains the room pixel
+;;; X-position stored in Zp_PointX_i16.  It is assumed that Zp_PointX_i16 is
+;;; nonnegative and within the bounds of the room terrain.
+;;; @preserve X, Y, Zp_Tmp*
+.EXPORT Func_GetTerrainColumnPtrForPoint
+.PROC Func_GetTerrainColumnPtrForPoint
+    bit <(Zp_Current_sRoom + sRoom::IsTall_bool)
+    bmi _TallRoom
+_ShortRoom:
+    ;; The width of a block in pixels is 16, so by clearing the bottom four
+    ;; bits of Zp_PointX_i16, we end up with block column index * 16 (with the
+    ;; lo byte in A, and the hi byte still in Zp_PointX_i16 + 1).
+    .assert kBlockWidthPx = $10, error
+    lda Zp_PointX_i16 + 0
+    and #$f0
+    ;; However, the short room terrain data stride is also 16, so this number
+    ;; is also the byte offset into the terrain data that we need.
+    add <(Zp_Current_sRoom + sRoom::TerrainData_ptr + 0)
+    sta Zp_TerrainColumn_u8_arr_ptr + 0
+    lda Zp_PointX_i16 + 1
+    adc <(Zp_Current_sRoom + sRoom::TerrainData_ptr + 1)
+    sta Zp_TerrainColumn_u8_arr_ptr + 1
+    rts
+_TallRoom:
+    ;; For tall rooms, we'll still clear the bottom four bits of Zp_PointX_i16
+    ;; to get (block row * 16), but then we need to add that number to half of
+    ;; itself to get (block row * 24).
+    .assert kTallRoomHeightBlocks = 24, error
+    ;; We start by dividing the hi byte of Zp_PointX_i16 in half, and using
+    ;; Zp_TerrainColumn_u8_arr_ptr + 1 as a temporary variable to store it (so
+    ;; we can preserve Zp_Tmp*).
+    lda Zp_PointX_i16 + 1   ; effectively block row * 16 (hi)
+    lsr a  ; sets up C
+    sta Zp_TerrainColumn_u8_arr_ptr + 1  ; block row * 8 (hi)
+    ;; Next, we clear out the bottom four bits of the lo byte of Zp_PointX_i16,
+    ;; using Zp_TerrainColumn_u8_arr_ptr + 0 as another temporary variable.
+    .assert kBlockWidthPx = $10, error
+    lda Zp_PointX_i16 + 0
+    and #$f0
+    sta Zp_TerrainColumn_u8_arr_ptr + 0  ; block row * 16 (lo)
+    ;; At this point, A holds the lo byte of (block row * 16), and C still has
+    ;; the carry bit from halving the hi byte of (block row * 16).  So we can
+    ;; halve A with carry and add to it to get the lo byte of (block row * 24).
+    ror a  ; uses C (and then clears C, since bottom bit of A is zero)
+    adc Zp_TerrainColumn_u8_arr_ptr + 0  ; block row * 16 (lo)
+    sta Zp_TerrainColumn_u8_arr_ptr + 0  ; block row * 24 (lo)
+    ;; Now we can perform the high byte of the addition.
+    lda Zp_PointX_i16 + 1    ; effectively block row * 16 (hi)
+    adc Zp_TerrainColumn_u8_arr_ptr + 1  ; block row * 8 (hi)
+    sta Zp_TerrainColumn_u8_arr_ptr + 1  ; block row * 24 (hi)
+    ;; At this point, Zp_TerrainColumn_u8_arr_ptr holds the byte offset into
+    ;; the terrain data, so add the base terrain data pointer to it.
+    lda Zp_TerrainColumn_u8_arr_ptr + 0
+    adc <(Zp_Current_sRoom + sRoom::TerrainData_ptr + 0)  ; C is already clear
+    sta Zp_TerrainColumn_u8_arr_ptr + 0
+    lda Zp_TerrainColumn_u8_arr_ptr + 1
+    adc <(Zp_Current_sRoom + sRoom::TerrainData_ptr + 1)
+    sta Zp_TerrainColumn_u8_arr_ptr + 1
+    rts
+.ENDPROC
 
 ;;; Populates Zp_TerrainColumn_u8_arr_ptr with a pointer to the start of the
 ;;; terrain block column in the current room that contains the specified room

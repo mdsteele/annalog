@@ -21,30 +21,35 @@
 .INCLUDE "../cpu.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
+.INCLUDE "../platform.inc"
 .INCLUDE "../ppu.inc"
 .INCLUDE "../terrain.inc"
 .INCLUDE "breakball.inc"
 
-.IMPORT FuncA_Actor_GetRoomBlockRow
-.IMPORT FuncA_Actor_GetRoomTileColumn
 .IMPORT FuncA_Actor_HarmAvatarIfCollision
+.IMPORT FuncA_Actor_NegateVelX
+.IMPORT FuncA_Actor_NegateVelY
+.IMPORT FuncA_Actor_SetActorCenterToPoint
+.IMPORT FuncA_Actor_SetPointToActorCenter
 .IMPORT FuncA_Objects_Alloc2x2Shape
 .IMPORT FuncA_Objects_SetShapePosToActorCenter
 .IMPORT Func_FindEmptyActorSlot
-.IMPORT Func_GetTerrainColumnPtrForTileIndex
 .IMPORT Func_InitActorDefault
 .IMPORT Func_InitActorProjFlamewave
-.IMPORT Ram_ActorPosX_i16_0_arr
-.IMPORT Ram_ActorPosX_i16_1_arr
+.IMPORT Func_IsPointInAnySolidPlatform
+.IMPORT Func_MovePointDownByA
+.IMPORT Func_MovePointLeftByA
+.IMPORT Func_MovePointRightByA
+.IMPORT Func_MovePointUpByA
+.IMPORT Func_PointHitsTerrain
 .IMPORT Ram_ActorPosY_i16_0_arr
-.IMPORT Ram_ActorPosY_i16_1_arr
+.IMPORT Ram_ActorType_eActor_arr
 .IMPORT Ram_ActorVelX_i16_0_arr
 .IMPORT Ram_ActorVelX_i16_1_arr
 .IMPORT Ram_ActorVelY_i16_0_arr
 .IMPORT Ram_ActorVelY_i16_1_arr
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORTZP Zp_FrameCounter_u8
-.IMPORTZP Zp_TerrainColumn_u8_arr_ptr
 .IMPORTZP Zp_Tmp1_byte
 
 ;;;=========================================================================;;;
@@ -105,10 +110,9 @@ _InitVelX:
 .EXPORT FuncA_Actor_TickProjBreakball
 .PROC FuncA_Actor_TickProjBreakball
     jsr FuncA_Actor_HarmAvatarIfCollision  ; preserves X
-    jsr FuncA_Actor_ProjBreakball_HorzBounce  ; preserves X
-    jsr FuncA_Actor_ProjBreakball_HitFloor  ; preserves X
+    jsr FuncA_Actor_ProjBreakball_CheckForCollisionHorz  ; preserves X
     ;; TODO: bounce off platform sides?
-    ;; TODO: bounce off platform floor
+    jsr FuncA_Actor_ProjBreakball_CheckForCollisionVert  ; preserves X
     rts
 .ENDPROC
 
@@ -116,103 +120,77 @@ _InitVelX:
 ;;; horizontally.
 ;;; @param X The actor index.
 ;;; @preserve X
-.PROC FuncA_Actor_ProjBreakball_HorzBounce
+.PROC FuncA_Actor_ProjBreakball_CheckForCollisionHorz
+    jsr FuncA_Actor_SetPointToActorCenter  ; preserves X
     lda Ram_ActorVelX_i16_1_arr, x
-    bpl _CheckRightSide
-_CheckLeftSide:
-    lda Ram_ActorPosX_i16_0_arr, x
-    sub #kProjBreakballRadius
-    tay
-    lda Ram_ActorPosX_i16_1_arr, x
-    sbc #0
-    jmp _BounceHorzIfTerrainCollision
-_CheckRightSide:
-    lda Ram_ActorPosX_i16_0_arr, x
-    add #kProjBreakballRadius
-    tay
-    lda Ram_ActorPosX_i16_1_arr, x
-    adc #0
-_BounceHorzIfTerrainCollision:
-    ;; Get the room tile column for the side of the breakball that we're
-    ;; checking, storing it in A.
-    sta Zp_Tmp1_byte
-    tya
-    .assert kTileWidthPx = (1 << 3), error
-    .repeat 3
-    lsr Zp_Tmp1_byte
-    ror a
-    .endrepeat
-    ;; Get the terrain for that tile column.
-    stx Zp_Tmp1_byte  ; actor index
-    jsr Func_GetTerrainColumnPtrForTileIndex  ; preserves Zp_Tmp*
-    ldx Zp_Tmp1_byte  ; actor index
-    ;; Check the terrain block, and set C if the terrain is solid.
-    jsr FuncA_Actor_GetRoomBlockRow  ; preserves X, returns Y
-    lda (Zp_TerrainColumn_u8_arr_ptr), y
-    cmp #kFirstSolidTerrainType
-    ;; If the terrain is solid, bounce the breakball horizontally.
-    bcc @noBounce
-    lda #0
-    sub Ram_ActorVelX_i16_0_arr, x
-    sta Ram_ActorVelX_i16_0_arr, x
-    lda #0
-    sbc Ram_ActorVelX_i16_1_arr, x
-    sta Ram_ActorVelX_i16_1_arr, x
-    @noBounce:
+    bpl @movingRight
+    @movingLeft:
+    lda #kProjBreakballRadius  ; param: offset
+    jsr Func_MovePointLeftByA  ; preserves X
+    jmp _CheckForCollision
+    @movingRight:
+    lda #kProjBreakballRadius  ; param: offset
+    jsr Func_MovePointRightByA  ; preserves X
+_CheckForCollision:
+    ;; If the bottom of the breakball hits terrain, bounce off of it.
+    jsr Func_PointHitsTerrain  ; preserves X, returns C
+    bcs _Bounce
+    ;; If the bottom of the breakball hits a platform, bounce off of it.
+    jsr Func_IsPointInAnySolidPlatform  ; preserves X, returns C
+    bcs _Bounce
     rts
+_Bounce:
+    jmp FuncA_Actor_NegateVelX  ; preserves X
 .ENDPROC
 
 ;;; If the breakball is hitting the top of a terrain floor, explode it into
 ;;; flame waves.
 ;;; @param X The actor index.
 ;;; @preserve X
-.PROC FuncA_Actor_ProjBreakball_HitFloor
+.PROC FuncA_Actor_ProjBreakball_CheckForCollisionVert
+    jsr FuncA_Actor_SetPointToActorCenter  ; preserves X
+    ;; The breakball can only hit the floor if it's moving downwards.
     lda Ram_ActorVelY_i16_1_arr, x
-    bmi _Return
-    ;; Get the terrain for the actor's tile column.
-    jsr FuncA_Actor_GetRoomTileColumn  ; preserves X, returns A
-    stx Zp_Tmp1_byte  ; actor index
-    jsr Func_GetTerrainColumnPtrForTileIndex  ; preserves Zp_Tmp*
-    ldx Zp_Tmp1_byte  ; actor index
-    ;; Get the room pixel Y-position of the bottom of the breakball, storing
-    ;; the low byte in Y and the high byte in A.
-    lda Ram_ActorPosY_i16_0_arr, x
-    add #kProjBreakballRadius
-    tay
-    lda Ram_ActorPosY_i16_1_arr, x
-    adc #0
-    ;; Get the room block row for the bottom of the breakball, storing it in Y.
-    sta Zp_Tmp1_byte
-    tya
-    .assert kBlockHeightPx = (1 << 4), error
-    .repeat 4
-    lsr Zp_Tmp1_byte
-    ror a
-    .endrepeat
-    tay
-    ;; Check the terrain block, and set C if the terrain is solid.
-    lda (Zp_TerrainColumn_u8_arr_ptr), y
-    cmp #kFirstSolidTerrainType
-    ;; If the terrain is solid, explode the breakball.
-    bcc _Return
+    bpl _MovingDown
+_MovingUp:
+    ;; Set the point to the top of the breakball.
+    lda #kProjBreakballRadius  ; param: offset
+    jsr Func_MovePointUpByA  ; preserves X
+    ;; If the terrain is solid, expire the breakball.
+    jsr Func_PointHitsTerrain  ; preserves X, returns C
+    bcc @done
+    lda #eActor::None
+    sta Ram_ActorType_eActor_arr, x
+    @done:
+    rts
+_MovingDown:
+    ;; Set the point to the bottom of the breakball.
+    lda #kProjBreakballRadius  ; param: offset
+    jsr Func_MovePointDownByA  ; preserves X
+    ;; If the bottom of the breakball hits terrain, explode the breakball.
+    jsr Func_PointHitsTerrain  ; preserves X, returns C
+    bcs _Explode
+    ;; If the bottom of the breakball hits a platform, bounce off of it.
+    jsr Func_IsPointInAnySolidPlatform  ; preserves X, returns C
+    bcc @noBounce
+    jmp FuncA_Actor_NegateVelY  ; preserves X
+    @noBounce:
+    rts
 _Explode:
+    ;; Adjust the breakball's position to 8 pixels above the floor.
     lda Ram_ActorPosY_i16_0_arr, x
+    .assert kBlockHeightPx = $10, error
     and #$f0
     ora #$08
     sta Ram_ActorPosY_i16_0_arr, x
+    ;; Turn the breakball into two flamewave projetiles moving in opposite
+    ;; directions.
     txa  ; breakball actor index
     pha  ; breakball actor index
-    tay  ; breakball actor index
-    jsr Func_FindEmptyActorSlot  ; preserves Y, returns C and X
+    jsr FuncA_Actor_SetPointToActorCenter  ; preserves X
+    jsr Func_FindEmptyActorSlot  ; returns C and X
     bcs @doneFirstFlamewave
-    lda Ram_ActorPosX_i16_0_arr, y
-    sta Ram_ActorPosX_i16_0_arr, x
-    lda Ram_ActorPosX_i16_1_arr, y
-    sta Ram_ActorPosX_i16_1_arr, x
-    lda Ram_ActorPosY_i16_0_arr, y
-    sta Ram_ActorPosY_i16_0_arr, x
-    lda Ram_ActorPosY_i16_1_arr, y
-    sta Ram_ActorPosY_i16_1_arr, x
+    jsr FuncA_Actor_SetActorCenterToPoint  ; preserves X
     lda #0  ; param: direction (0 = right)
     jsr Func_InitActorProjFlamewave
     @doneFirstFlamewave:
@@ -220,8 +198,6 @@ _Explode:
     tax  ; param: actor index
     lda #bObj::FlipH  ; param: direction (FlipH = left)
     jmp Func_InitActorProjFlamewave  ; preserves X
-_Return:
-    rts
 .ENDPROC
 
 ;;;=========================================================================;;;
