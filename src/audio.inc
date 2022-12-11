@@ -23,10 +23,9 @@
 ;;;     frames (0-127).  Multiple REST notes in a row can be used to silence
 ;;;     the channel for longer durations.
 ;;;   * INST (1 byte) [%10xxxxxx].  Sets this channel to use instrument number
-;;;     %00xxxxxx from the instrument table (0-63).  The chosen instrument will
-;;;     persist across phrases and parts, until the next INST note is executed.
-;;;     For music, this uses the song's instrument table; for sound effects,
-;;;     this uses Data_Sfx_sInstrument_arr.
+;;;     %00xxxxxx from the song's instrument table (0-63).  The chosen
+;;;     instrument will persist across phrases and parts, until the next INST
+;;;     note is executed.
 ;;;   * TONE (3 bytes) [%11qqqwww %xxxxyyyy %zzzzzzzz].  Plays a sound for
 ;;;     %zzzzzzzz frames (1-255), with attributes depending on the channel:
 ;;;       * On the pulse and triangle channels, the tone will have a frequency
@@ -45,10 +44,9 @@
     ToneMask = %00111111  ; mask for data for first byte of a TONE note
 .ENDSCOPE
 
-;;; A variable-length sequence of notes, terminated by a $00 byte.  Each note
-;;; is one or bytes, the first of which uses bNote constants to specify the
-;;; kind of note.  A single phrase can represent a sound effect, or else be
-;;; one component of a song.
+;;; A variable-length sequence of notes, terminated by a $00 byte (i.e. a DONE
+;;; note).  Each note is one or more bytes, the first of which uses bNote
+;;; constants to specify the kind of note.
 .STRUCT sPhrase
     ;; variable-length
 .ENDSTRUCT
