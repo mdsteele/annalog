@@ -23,14 +23,15 @@
 .INCLUDE "../terrain.inc"
 .INCLUDE "vinebug.inc"
 
-.IMPORT FuncA_Actor_GetRoomBlockRow
 .IMPORT FuncA_Actor_HarmAvatarIfCollision
 .IMPORT FuncA_Actor_IsAvatarWithinHorzDistance
-.IMPORT FuncA_Actor_SetPointToActorCenter
 .IMPORT FuncA_Objects_Draw2x2Actor
 .IMPORT Func_GetRandomByte
-.IMPORT Func_GetTerrainColumnPtrForPoint
 .IMPORT Func_InitActorDefault
+.IMPORT Func_MovePointDownByA
+.IMPORT Func_MovePointUpByA
+.IMPORT Func_PointHitsTerrain
+.IMPORT Func_SetPointToActorCenter
 .IMPORT Ram_ActorPosX_i16_0_arr
 .IMPORT Ram_ActorPosX_i16_1_arr
 .IMPORT Ram_ActorPosY_i16_0_arr
@@ -40,9 +41,13 @@
 .IMPORT Ram_ActorVelY_i16_0_arr
 .IMPORT Ram_ActorVelY_i16_1_arr
 .IMPORTZP Zp_AvatarPosY_i16
-.IMPORTZP Zp_TerrainColumn_u8_arr_ptr
 
 ;;;=========================================================================;;;
+
+;;; How many pixels above/below of its center a vinebug actor checks for
+;;; terrain to see if it needs to turn around.
+kVinebugLookUpDist = 10
+kVinebugLookDownDist = 10
 
 ;;; The OBJ palette number to use for drawing grub baddie actors.
 kPaletteObjVinebug = 0
@@ -96,33 +101,31 @@ _DropIfAvatarIsBelow:
     sta Ram_ActorVelY_i16_0_arr, x
     @notNear:
 _CrawlUpOrDown:
-    jsr FuncA_Actor_SetPointToActorCenter  ; preserves X
-    jsr Func_GetTerrainColumnPtrForPoint  ; preserves X
-    ;; Get the vinebug's room block row.
-    jsr FuncA_Actor_GetRoomBlockRow  ; preserves X, returns Y
+    jsr Func_SetPointToActorCenter  ; preserves X
     ;; Determine if we're currently crawling up or down.
     lda Ram_ActorVelY_i16_1_arr, x
     bpl _CurrentlyCrawlingDown
 _CurrentlyCrawlingUp:
-    ;; Check the terrain block just above the vinebug.  If it's solid, the
-    ;; vinebug has to turn around.
-    dey
-    lda (Zp_TerrainColumn_u8_arr_ptr), y
-    cmp #kFirstSolidTerrainType
-    blt _ContinueCrawlingUp
+    ;; Check the terrain just above the vinebug.  If it's solid, the vinebug
+    ;; has to turn around.
+    lda #kVinebugLookUpDist  ; param: offset
+    jsr Func_MovePointUpByA  ; preserves X
+    jsr Func_PointHitsTerrain  ; preserves X, returns C
+    bcc _ContinueCrawlingUp
 _StartCrawlingDown:
     ;; Resume random velocity changes.
     lda #0
     sta Ram_ActorState1_byte_arr, x
     beq _RandomVelocityDown  ; unconditional
 _CurrentlyCrawlingDown:
-    ;; Check the terrain block just below the vinebug.  If it's empty (no vine)
-    ;; or solid, the vinebug has to turn around.
-    iny
-    lda (Zp_TerrainColumn_u8_arr_ptr), y
-    beq _StartCrawlingUp
-    cmp #kFirstSolidTerrainType
-    bge _StartCrawlingUp
+    ;; Check the terrain just below the vinebug.  If it's empty (no vine) or
+    ;; solid, the vinebug has to turn around.
+    lda #kVinebugLookDownDist  ; param: offset
+    jsr Func_MovePointDownByA  ; preserves X
+    jsr Func_PointHitsTerrain  ; preserves X, returns C and A
+    bcs _StartCrawlingUp  ; terrain is solid
+    tay  ; terrain type
+    beq _StartCrawlingUp  ; terrain is empty (no vine)
 _ContinueCrawlingDown:
     ;; If the vinebug is currently crawling down fast, then set velocity.
     lda Ram_ActorState1_byte_arr, x

@@ -41,6 +41,7 @@
 .IMPORT FuncA_Machine_CannonTryMove
 .IMPORT FuncA_Objects_Alloc2x2Shape
 .IMPORT FuncA_Objects_DrawCannonMachine
+.IMPORT FuncA_Objects_MoveShapeDownAndRightOneTile
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
 .IMPORT FuncA_Room_FindGrenadeActor
 .IMPORT FuncA_Room_InitBossPhase
@@ -52,8 +53,10 @@
 .IMPORT Func_InitActorProjFireball
 .IMPORT Func_InitActorProjSmoke
 .IMPORT Func_InitActorProjSpike
+.IMPORT Func_IsPointInPlatform
 .IMPORT Func_MachineCannonReadRegY
 .IMPORT Func_Noop
+.IMPORT Func_SetPointToActorCenter
 .IMPORT Func_ShakeRoom
 .IMPORT Ppu_ChrBgAnim0
 .IMPORT Ppu_ChrObjGarden
@@ -81,13 +84,13 @@ kUpgradeFlag = eFlag::UpgradeMaxInstructions0
 ;;; The machine index for the GardenBossCannon machine.
 kCannonMachineIndex = 0
 ;;; The platform index for the GardenBossCannon machine.
-kCannonPlatformIndex = 0
+kCannonPlatformIndex = 2
 ;;; Initial position for grenades shot from the cannon.
 kCannonGrenadeInitPosX = $28
 kCannonGrenadeInitPosY = $78
 
 ;;; The platform index for the boss's thorny vines.
-kThornsPlatformIndex = 1
+kThornsPlatformIndex = 3
 
 ;;;=========================================================================;;;
 
@@ -111,8 +114,8 @@ kBossAngryNumSpikes = 3
 kBossEyeOpenFrames = 20
 
 ;;; The platform indices for the boss's two eyes.
-kLeftEyePlatformIndex = 2
-kRightEyePlatformIndex = 3
+kLeftEyePlatformIndex = 0
+kRightEyePlatformIndex = 1
 
 ;;; The X/Y positions of the centers of the boss's two eyes.
 kBossLeftEyeCenterX  = $68
@@ -239,7 +242,23 @@ _Machines_sMachine_arr:
     D_END
     .assert * - :- <= kMaxMachines * .sizeof(sMachine), error
 _Platforms_sPlatform_arr:
-:   .assert * - :- = kCannonPlatformIndex * .sizeof(sPlatform), error
+:   .assert * - :- = kLeftEyePlatformIndex * .sizeof(sPlatform), error
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Zone
+    d_word WidthPx_u16, kBlockWidthPx
+    d_byte HeightPx_u8, kBlockHeightPx
+    d_word Left_i16, kBossLeftEyeCenterX - kTileWidthPx
+    d_word Top_i16,  kBossLeftEyeCenterY - kTileHeightPx
+    D_END
+    .assert * - :- = kRightEyePlatformIndex * .sizeof(sPlatform), error
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Zone
+    d_word WidthPx_u16, kBlockWidthPx
+    d_byte HeightPx_u8, kBlockHeightPx
+    d_word Left_i16, kBossRightEyeCenterX - kTileWidthPx
+    d_word Top_i16,  kBossRightEyeCenterY - kTileHeightPx
+    D_END
+    .assert * - :- = kCannonPlatformIndex * .sizeof(sPlatform), error
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Solid
     d_word WidthPx_u16, $10
@@ -254,22 +273,6 @@ _Platforms_sPlatform_arr:
     d_byte HeightPx_u8, $4e
     d_word Left_i16,  $0090
     d_word Top_i16,   $0030
-    D_END
-    .assert * - :- = kLeftEyePlatformIndex * .sizeof(sPlatform), error
-    D_STRUCT sPlatform
-    d_byte Type_ePlatform, ePlatform::Zone
-    d_word WidthPx_u16, 0
-    d_byte HeightPx_u8, 0
-    d_word Left_i16, kBossLeftEyeCenterX
-    d_word Top_i16,  kBossLeftEyeCenterY
-    D_END
-    .assert * - :- = kRightEyePlatformIndex * .sizeof(sPlatform), error
-    D_STRUCT sPlatform
-    d_byte Type_ePlatform, ePlatform::Zone
-    d_word WidthPx_u16, 0
-    d_byte HeightPx_u8, 0
-    d_word Left_i16, kBossRightEyeCenterX
-    d_word Top_i16,  kBossRightEyeCenterY
     D_END
     .assert * - :- <= kMaxPlatforms * .sizeof(sPlatform), error
     .byte ePlatform::None
@@ -623,22 +626,19 @@ _SpikePosY_u8_arr:
     jsr FuncA_Room_FindGrenadeActor  ; returns C and X
     bcs _Done
 _CheckEyes:
-    ;; Check which eye the grenade is near vertically.
-    lda Ram_ActorPosY_i16_0_arr, x
-    cmp #kBossLeftEyeCenterY + 6
-    bge @grenadeIsLow
-    @grenadeIsHigh:
-    lda #kBossLeftEyeCenterX
-    ldy #eEye::Left
-    .assert eEye::Left = 0, error
-    beq @checkPosX  ; unconditional
-    @grenadeIsLow:
-    lda #kBossRightEyeCenterX
-    ldy #eEye::Right
-    @checkPosX:
-    ;; Check if the grenade has hit an eye yet.  If not, we're done.
-    cmp Ram_ActorPosX_i16_0_arr, x
-    bge _Done
+    ;; Check if the grenade hit either eye.
+    jsr Func_SetPointToActorCenter  ; preserves X
+    ldy #kLeftEyePlatformIndex
+    jsr Func_IsPointInPlatform  ; preserves X and Y, returns C
+    bcs @hitEye
+    ldy #kRightEyePlatformIndex
+    jsr Func_IsPointInPlatform  ; preserves X and Y, returns C
+    bcs @hitEye
+    rts
+    @hitEye:
+    ;; Assert that we can use the platform index as an eEye value.
+    .assert kLeftEyePlatformIndex = eEye::Left, error
+    .assert kRightEyePlatformIndex = eEye::Right, error
     ;; Check if the hit eye is open or closed.
     lda Ram_RoomState + sState::BossEyeOpen_u8_arr2, y
     cmp #kBossEyeOpenFrames / 2
@@ -647,7 +647,7 @@ _CheckEyes:
     ;; mode.
     @eyeIsClosed:
     lda #kBossAngrySpikeCooldown * kBossAngryNumSpikes  ; param: num frames
-    jsr Func_ShakeRoom
+    jsr Func_ShakeRoom  ; preserves X
     lda #eBoss::Angry
     sta Ram_RoomState + sState::BossMode_eBoss
     .assert eBoss::Angry = 2, error
@@ -722,9 +722,10 @@ _Done:
     .assert eBoss::Dead = 0, error
     beq @done
     ;; Draw boss eyes.
-    ldy #eEye::Left  ; param: eye
-    jsr FuncA_Objects_GardenBoss_DrawEye
-    ldy #eEye::Right  ; param: eye
+    ldx #eEye::Left  ; param: eye
+    jsr FuncA_Objects_GardenBoss_DrawEye  ; preserves X
+    .assert eEye::Right = 1 + eEye::Left, error
+    inx  ; param: eye
     jsr FuncA_Objects_GardenBoss_DrawEye
     ;; Animate thorns.
     lda Ram_RoomState + sState::BossThornCounter_u8
@@ -737,12 +738,14 @@ _Done:
 .ENDPROC
 
 ;;; Allocates and populates OAM slots for one of the boss's eyes.
-;;; @param Y Which eEye to draw.
+;;; @param X Which eEye to draw.
+;;; @preserves X
 .PROC FuncA_Objects_GardenBoss_DrawEye
-    ldx _PlatformIndex_u8_arr, y  ; param: platform index
-    jsr FuncA_Objects_SetShapePosToPlatformTopLeft  ; preserves Y
-    tya  ; eEye value
-    tax  ; eEye value
+    ;; Assert that we can use the eEye value as a platform index.
+    .assert kLeftEyePlatformIndex = eEye::Left, error
+    .assert kRightEyePlatformIndex = eEye::Right, error
+    jsr FuncA_Objects_SetShapePosToPlatformTopLeft  ; preserves X
+    jsr FuncA_Objects_MoveShapeDownAndRightOneTile  ; preserves X
     lda #kPaletteObjBossEye  ; param: flags
     jsr FuncA_Objects_Alloc2x2Shape  ; preserves X, returns C and Y
     bcs @done
@@ -773,11 +776,6 @@ _Done:
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Flags_bObj, y
     @done:
     rts
-_PlatformIndex_u8_arr:
-    D_ENUM eEye
-    d_byte Left,  kLeftEyePlatformIndex
-    d_byte Right, kRightEyePlatformIndex
-    D_END
 .ENDPROC
 
 ;;;=========================================================================;;;

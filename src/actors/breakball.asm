@@ -30,7 +30,6 @@
 .IMPORT FuncA_Actor_NegateVelX
 .IMPORT FuncA_Actor_NegateVelY
 .IMPORT FuncA_Actor_SetActorCenterToPoint
-.IMPORT FuncA_Actor_SetPointToActorCenter
 .IMPORT FuncA_Objects_Alloc2x2Shape
 .IMPORT FuncA_Objects_SetShapePosToActorCenter
 .IMPORT Func_FindEmptyActorSlot
@@ -42,6 +41,7 @@
 .IMPORT Func_MovePointRightByA
 .IMPORT Func_MovePointUpByA
 .IMPORT Func_PointHitsTerrain
+.IMPORT Func_SetPointToActorCenter
 .IMPORT Ram_ActorPosY_i16_0_arr
 .IMPORT Ram_ActorType_eActor_arr
 .IMPORT Ram_ActorVelX_i16_0_arr
@@ -121,7 +121,7 @@ _InitVelX:
 ;;; @param X The actor index.
 ;;; @preserve X
 .PROC FuncA_Actor_ProjBreakball_CheckForCollisionHorz
-    jsr FuncA_Actor_SetPointToActorCenter  ; preserves X
+    jsr Func_SetPointToActorCenter  ; preserves X
     lda Ram_ActorVelX_i16_1_arr, x
     bpl @movingRight
     @movingLeft:
@@ -148,7 +148,7 @@ _Bounce:
 ;;; @param X The actor index.
 ;;; @preserve X
 .PROC FuncA_Actor_ProjBreakball_CheckForCollisionVert
-    jsr FuncA_Actor_SetPointToActorCenter  ; preserves X
+    jsr Func_SetPointToActorCenter  ; preserves X
     ;; The breakball can only hit the floor if it's moving downwards.
     lda Ram_ActorVelY_i16_1_arr, x
     bpl _MovingDown
@@ -187,7 +187,7 @@ _Explode:
     ;; directions.
     txa  ; breakball actor index
     pha  ; breakball actor index
-    jsr FuncA_Actor_SetPointToActorCenter  ; preserves X
+    jsr Func_SetPointToActorCenter  ; preserves X
     jsr Func_FindEmptyActorSlot  ; returns C and X
     bcs @doneFirstFlamewave
     jsr FuncA_Actor_SetActorCenterToPoint  ; preserves X

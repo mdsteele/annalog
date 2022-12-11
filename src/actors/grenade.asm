@@ -99,11 +99,11 @@ kPaletteObjGrenade = 0
 _InitVelX_i16_1_arr:
     .byte 4, 3, ($ff & -4), ($ff & -3)
 _InitVelY_i16_0_arr:
-    .byte <($ffff & -520), <($ffff & -760)
-    .byte <($ffff & -520), <($ffff & -760)
+    .byte <($ffff & -480), <($ffff & -760)
+    .byte <($ffff & -480), <($ffff & -760)
 _InitVelY_i16_1_arr:
-    .byte >($ffff & -520), >($ffff & -760)
-    .byte >($ffff & -520), >($ffff & -760)
+    .byte >($ffff & -480), >($ffff & -760)
+    .byte >($ffff & -480), >($ffff & -760)
 .ENDPROC
 
 ;;;=========================================================================;;;

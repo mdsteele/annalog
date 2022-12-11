@@ -23,11 +23,11 @@
 .INCLUDE "fish.inc"
 
 .IMPORT FuncA_Actor_HarmAvatarIfCollision
-.IMPORT FuncA_Actor_SetPointToActorCenter
 .IMPORT FuncA_Objects_Draw2x2Actor
 .IMPORT Func_MovePointLeftByA
 .IMPORT Func_MovePointRightByA
 .IMPORT Func_PointHitsTerrain
+.IMPORT Func_SetPointToActorCenter
 .IMPORT Ram_ActorFlags_bObj_arr
 .IMPORT Ram_ActorState1_byte_arr
 .IMPORT Ram_ActorVelX_i16_0_arr
@@ -55,7 +55,7 @@ kPaletteObjFish = 0
 .EXPORT FuncA_Actor_TickBadFish
 .PROC FuncA_Actor_TickBadFish
     ;; Set the point to a position in front of the fish.
-    jsr FuncA_Actor_SetPointToActorCenter  ; preserves X
+    jsr Func_SetPointToActorCenter  ; preserves X
     lda Ram_ActorFlags_bObj_arr, x
     and #bObj::FlipH
     bne @facingLeft

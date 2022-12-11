@@ -37,13 +37,12 @@
 .IMPORT FuncA_Machine_ReachedGoal
 .IMPORT FuncA_Objects_DrawLiftMachine
 .IMPORT Func_InitActorProjSmoke
+.IMPORT Func_IsPointInPlatform
 .IMPORT Func_Noop
+.IMPORT Func_SetPointToActorCenter
 .IMPORT Ppu_ChrObjGarden
-.IMPORT Ram_ActorPosX_i16_0_arr
 .IMPORT Ram_ActorType_eActor_arr
 .IMPORT Ram_MachineGoalVert_u8_arr
-.IMPORT Ram_PlatformLeft_i16_0_arr
-.IMPORT Ram_PlatformRight_i16_0_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORT Ram_RoomState
 
@@ -232,23 +231,16 @@ _ReadL:
     ldax #kLiftMaxPlatformTop  ; param: max platform top
     jsr FuncA_Machine_LiftMoveTowardGoal  ; returns Z, N, and A
     jeq FuncA_Machine_ReachedGoal
-    ;; If the machine moved downwards, check if the enemy below got squished.
+    ;; If the machine moved downwards, check if the baddie below got squished.
     bmi @noSquish  ; the machine moved up, not down
     lda Ram_ActorType_eActor_arr + kSquishableActorIndex
     .assert eActor::None = 0, error
     beq @noSquish  ; the actor is already gone
-    .assert kLiftMaxPlatformTop < $100, error
-    lda Ram_PlatformTop_i16_0_arr + kLiftPlatformIndex
-    cmp #kLiftMaxPlatformTop - 7
-    blt @noSquish  ; the platform is not low enough to squish the enemy
-    ;; This room is only one screen wide, so we only need to check the lo byte
-    ;; of the actor and platform's horizontal positions.
-    lda Ram_ActorPosX_i16_0_arr + kSquishableActorIndex
-    cmp Ram_PlatformLeft_i16_0_arr + kLiftPlatformIndex
-    blt @noSquish  ; the actor is to the left of the platform
-    cmp Ram_PlatformRight_i16_0_arr + kLiftPlatformIndex
-    bge @noSquish  ; the actor is to the right of the platform
     ldx #kSquishableActorIndex  ; param: actor index
+    jsr Func_SetPointToActorCenter  ; preserves X
+    ldy #kLiftPlatformIndex  ; param: platform index
+    jsr Func_IsPointInPlatform  ; preserves X, returns C
+    bcc @noSquish
     jmp Func_InitActorProjSmoke
     @noSquish:
     rts

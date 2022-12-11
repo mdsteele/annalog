@@ -57,7 +57,8 @@ Zp_NametableColumnIndex_u8: .res 1
 ;;; Checks if the point stored in Zp_PointX_i16 and Zp_PointY_i16 is colliding
 ;;; with solid terrain.  It is assumed that both coordinates are nonnegative
 ;;; and within the bounds of the room terrain.
-;;; @return C Set if a collision occurred, cleared otherwise.
+;;; @return A The terrain type at the point.
+;;; @return C Set if the terrain is solid, cleared otherwise.
 ;;; @preserve X, Zp_Tmp*
 .EXPORT Func_PointHitsTerrain
 .PROC Func_PointHitsTerrain

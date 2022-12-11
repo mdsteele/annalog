@@ -85,6 +85,7 @@ Ram_PlatformRight_i16_1_arr: .res kMaxPlatforms
 ;;; @param Y The platform index.
 ;;; @return C Set if the point is in the platform, cleared otherwise.
 ;;; @preserve X, Y, Zp_Tmp*
+.EXPORT Func_IsPointInPlatform
 .PROC Func_IsPointInPlatform
 _CheckPlatformLeft:
     lda Zp_PointX_i16 + 0
@@ -132,7 +133,8 @@ _Outside:
 
 ;;; Checks if the point stored in Zp_PointX_i16 and Zp_PointY_i16 is inside any
 ;;; solid platform in the room.
-;;; @return C Set if the point is in the platform, cleared otherwise.
+;;; @return C Set if the point is in a solid platform, cleared otherwise.
+;;; @return Y The platform index that was hit (if C is set).
 ;;; @preserve X, Zp_Tmp*
 .EXPORT Func_IsPointInAnySolidPlatform
 .PROC Func_IsPointInAnySolidPlatform
