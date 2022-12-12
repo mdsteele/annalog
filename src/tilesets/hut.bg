@@ -1,16 +1,16 @@
 @BG 0 0 0 32x10
->water_anim0
->device
+>console
 >hut1
 >hut2
+>water_anim0
 
-    BEBG                            CICJ        AEAFCCCDAEAFCECF
-    BFBH                            CICJCECFCACBCICJCCCDCGCHCGCH
-DIDJDJDJ                                            DADA    AAAA
-                                                        DCDD
+    AAAC                            BIBJ        DEDFBCBDDEDFBEBF
+    ABAD                            BIBJBEBFBABBBIBJBCBDBGBHBGBH
+CICJCJCJ                                            CACA    DADA
+                                                        CCCD
 
 
 
 
-CM    CNCK    CLCK    CLDADADBDADA      DEDFDHDGDEDGDHDF
-CK    CLCM    CN            CK          DGDHDGDHDGDHDGDH  DEDF
+BM    BNBK    BLBK    BLCACACBCACA      CECFCHCGCECGCHCF
+BK    BLBM    BN            BK          CGCHCGCHCGCHCGCH  CECF

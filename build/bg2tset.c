@@ -44,6 +44,54 @@
 
 /*===========================================================================*/
 
+static const struct {
+  char start;
+  const char* name;
+} tile_files[] = {
+  {0xb0, "arch"},
+  {0xa0, "beach"},
+  {0x80, "cave"},
+  {0x90, "cobweb"},
+  {0xbc, "console"},
+  {0xc8, "conveyor_anim0"},
+  {0x80, "crypt"},
+  {0x80, "crystal"},
+  {0xb4, "drawbridge"},
+  {0xb0, "field_bg"},
+  {0x40, "font_lower"},
+  {0xa0, "furniture"},
+  {0xa0, "house"},
+  {0x90, "hut"},
+  {0x80, "hut1"},
+  {0x90, "hut2"},
+  {0x80, "indoors"},
+  {0x80, "jungle1"},
+  {0x90, "jungle2"},
+  {0xa0, "jungle3"},
+  {0xb6, "lever_ceil"},
+  {0x90, "metal"},
+  {0x80, "outdoors"},
+  {0xba, "plaque"},
+  {0x90, "prison"},
+  {0x90, "roof"},
+  {0x94, "ropediag"},
+  {0x80, "sewer1"},
+  {0xb8, "sign"},
+  {0x80, "steam_pipes"},
+  {0x80, "temple1"},
+  {0x90, "temple2"},
+  {0xa0, "temple3"},
+  {0xb0, "temple4"},
+  {0xd0, "thorns_anim0"},
+  {0x90, "volcanic"},
+  {0xc0, "water_anim0"},
+  {0xce, "waterfall_anim0"},
+  {0x9c, "window"},
+  {0, NULL},
+};
+
+/*===========================================================================*/
+
 typedef struct {
   unsigned char pixels[BLOCK_WIDTH * BLOCK_HEIGHT];
 } block_t;
@@ -275,83 +323,12 @@ char *read_tileset_name(FILE *file) {
 }
 
 char get_tile_id(const char *tileset, int tile_index) {
-  if (0 == strcmp(tileset, "arch")) {
-    return 0xb0 + tile_index;
-  } else if (0 == strcmp(tileset, "beach")) {
-    return 0xa0 + tile_index;
-  } else if (0 == strcmp(tileset, "cave")) {
-    return 0x80 + tile_index;
-  } else if (0 == strcmp(tileset, "cobweb")) {
-    return 0x90 + tile_index;
-  } else if (0 == strcmp(tileset, "conveyor_anim0")) {
-    return 0xc8 + tile_index;
-  } else if (0 == strcmp(tileset, "crypt")) {
-    return 0x80 + tile_index;
-  } else if (0 == strcmp(tileset, "crystal")) {
-    return 0x80 + tile_index;
-  } else if (0 == strcmp(tileset, "device")) {
-    return 0xb8 + tile_index;
-  } else if (0 == strcmp(tileset, "drawbridge")) {
-    return 0xb4 + tile_index;
-  } else if (0 == strcmp(tileset, "field_bg")) {
-    return 0xb0 + tile_index;
-  } else if (0 == strcmp(tileset, "font_lower")) {
-    return 0x40 + tile_index;
-  } else if (0 == strcmp(tileset, "furniture")) {
-    return 0xa0 + tile_index;
-  } else if (0 == strcmp(tileset, "house")) {
-    return 0xa0 + tile_index;
-  } else if (0 == strcmp(tileset, "hut")) {
-    return 0x90 + tile_index;
-  } else if (0 == strcmp(tileset, "hut1")) {
-    return 0x80 + tile_index;
-  } else if (0 == strcmp(tileset, "hut2")) {
-    return 0x90 + tile_index;
-  } else if (0 == strcmp(tileset, "indoors")) {
-    return 0x80 + tile_index;
-  } else if (0 == strcmp(tileset, "jungle1")) {
-    return 0x80 + tile_index;
-  } else if (0 == strcmp(tileset, "jungle2")) {
-    return 0x90 + tile_index;
-  } else if (0 == strcmp(tileset, "jungle3")) {
-    return 0xa0 + tile_index;
-  } else if (0 == strcmp(tileset, "lever_ceil")) {
-    return 0xb6 + tile_index;
-  } else if (0 == strcmp(tileset, "metal")) {
-    return 0x90 + tile_index;
-  } else if (0 == strcmp(tileset, "outdoors")) {
-    return 0x80 + tile_index;
-  } else if (0 == strcmp(tileset, "prison")) {
-    return 0x90 + tile_index;
-  } else if (0 == strcmp(tileset, "roof")) {
-    return 0x90 + tile_index;
-  } else if (0 == strcmp(tileset, "ropediag")) {
-    return 0x94 + tile_index;
-  } else if (0 == strcmp(tileset, "sewer1")) {
-    return 0x80 + tile_index;
-  } else if (0 == strcmp(tileset, "steam_pipes")) {
-    return 0x80 + tile_index;
-  } else if (0 == strcmp(tileset, "temple1")) {
-    return 0x80 + tile_index;
-  } else if (0 == strcmp(tileset, "temple2")) {
-    return 0x90 + tile_index;
-  } else if (0 == strcmp(tileset, "temple3")) {
-    return 0xa0 + tile_index;
-  } else if (0 == strcmp(tileset, "temple4")) {
-    return 0xb0 + tile_index;
-  } else if (0 == strcmp(tileset, "thorns_anim0")) {
-    return 0xd0 + tile_index;
-  } else if (0 == strcmp(tileset, "volcanic")) {
-    return 0x90 + tile_index;
-  } else if (0 == strcmp(tileset, "water_anim0")) {
-    return 0xc0 + tile_index;
-  } else if (0 == strcmp(tileset, "waterfall_anim0")) {
-    return 0xce + tile_index;
-  } else if (0 == strcmp(tileset, "window")) {
-    return 0x9c + tile_index;
-  } else {
-    ERROR("unknown tileset: %s\n", tileset);
+  for (int i = 0; tile_files[i].name != NULL; ++i) {
+    if (0 == strcmp(tileset, tile_files[i].name)) {
+      return tile_files[i].start + tile_index;
+    }
   }
+  ERROR("unknown tileset: %s\n", tileset);
 }
 
 /*===========================================================================*/

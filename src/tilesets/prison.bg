@@ -1,13 +1,14 @@
 @BG 0 0 0 32x10
 >cave
->device
+>console
 >font_lower
 >prison
+>sign
 >water_anim0
 
-    BEBG    BABC                            DP  DODLDPDL  DL  DL
-    BFBHCaCbBBBD                        DLDPDP    DPDLDODODLABAA
-        AO                                                  EAEA
+    BABC    EAEC                            DP  DODLDPDL  DL  DL
+    BBBDCaCbEBED                        DLDPDP    DPDLDODODLABAA
+        AO                                                  FAFA
   AL  AMAN    AJAK
   DLDL    DLDL                  DADEDEDBDCDFDFDDDEDEDGDHDFDFDKDJ
   DLDL    DODP    DODP  DLDLDPDODCDFDFDDDCDFDFDDDFDFDIDJDFDFDMDN

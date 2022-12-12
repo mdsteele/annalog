@@ -1,16 +1,17 @@
 @BG 0 0 0 32x10
->water_anim0
->device
+>console
 >font_lower
 >sewer1
+>sign
+>water_anim0
 
-    BEBG    BABC
-    BFBHCaCbBBBD                                            DPDP
-DMDM  DNDMDO        DODMDMDODM    DM                        AAAA
-DMDMDNDMDO  DNDMDMDN        DM    DM                    AAAA
+    AAAC    DADC
+    ABADBaBbDBDD                                            CPCP
+CMCM  CNCMCO        COCMCMCOCM    CM                        EAEA
+CMCMCNCMCO  CNCMCMCN        CM    CM                    EAEA
 
 
 
 
-DADBDIDJDEDFDADJ
-DCDDDKDLDGDHDCDL
+CACBCICJCECFCACJ
+CCCDCKCLCGCHCCCL

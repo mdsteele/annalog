@@ -1,19 +1,20 @@
 @BG 0 0 0 32x12
->water_anim0
 >cave
->device
+>console
 >font_lower
 >metal
+>sign
+>water_anim0
 
-    CECG    CACC                                    EXEXEXEVEVEX
-    CFCHDaDbCBCD                        EXEXEXEVEVEX
-                    EP    EQEUER  EP    EQEUER    EPEP      AAAA
-EMEOEN    EMEOEN  ESEWET    EP  ESEWET    EP      EPEP
+    BABC    EAEC                                    DXDXDXDVDVDX
+    BBBDCaCbEBED                        DXDXDXDVDVDX
+                    DP    DQDUDR  DP    DQDUDR    DPDP      FAFA
+DMDODN    DMDODN  DSDWDT    DP  DSDWDT    DP      DPDP
 
 
 
 
-EAEKEKEBEI    EJEI    EJEAEKEKEBEKEKEKEK    EAEB          EGEH
-EI    EJEI    EJECELELEDECELELED    ELELELELECED  EEEF
-EAEBEIEJEIEJBABB        BA      BCBBBABBBABBBABBBA    BB  EGEH
-EIEJEIEJECEDBBBABB    BABBBABBBABBBABBBC      BABB    BA  EEEF
+DADKDKDBDI    DJDI    DJDADKDKDBDKDKDKDK    DADB          DGDH
+DI    DJDI    DJDCDLDLDDDCDLDLDD    DLDLDLDLDCDD  DEDF
+DADBDIDJDIDJAAAB        AA      ACABAAABAAABAAABAA    AB  DGDH
+DIDJDIDJDCDDABAAAB    AAABAAABAAABAAABAC      AAAB    AA  DEDF

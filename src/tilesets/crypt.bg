@@ -1,14 +1,15 @@
 @BG 0 0 0 32x10
->water_anim0
 >arch
 >cobweb
+>console
 >crypt
->device
 >font_lower
+>sign
+>water_anim0
 
-    EEEG    EAEC    BCBD                          CGCF  CDCF  CA
-    EFEHFaFbEBEDBABBBCBD                    CH          CE  CBCC
-DCDDDCDDDCDHDCDH  DJDJ    DJDJ    DKDL                      AAAA
+    CACC    FAFC    ACAD                          BGBF  BDBF  BA
+    CBCDEaEbFBFDAAABACAD                    BH          BE  BBBC
+DCDDDCDDDCDHDCDH  DJDJ    DJDJ    DKDL                      GAGA
 DEDFDGDFDEDFDGDF  DJDJ                    DMDMDNDM
 
 

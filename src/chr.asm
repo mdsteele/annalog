@@ -178,7 +178,8 @@
     .res $04 * kSizeofChr
     .incbin "out/data/tiles/arch.chr"
     .res $04 * kSizeofChr
-    .incbin "out/data/tiles/device.chr"
+    .incbin "out/data/tiles/sign.chr"
+    .incbin "out/data/tiles/console.chr"
     .assert * - :- = kSizeofChr * $40, error
 .ENDPROC
 
@@ -334,7 +335,8 @@
 :   .incbin "out/data/tiles/cave.chr"
     .incbin "out/data/tiles/metal.chr"
     .res $10 * kSizeofChr
-    .incbin "out/data/tiles/device.chr"
+    .incbin "out/data/tiles/sign.chr"
+    .incbin "out/data/tiles/console.chr"
     .assert * - :- = kSizeofChr * $40, error
 .ENDPROC
 
@@ -350,7 +352,8 @@
     .incbin "out/data/tiles/arch.chr"
     .incbin "out/data/tiles/drawbridge.chr"
     .res $02 * kSizeofChr
-    .incbin "out/data/tiles/device.chr"
+    .incbin "out/data/tiles/sign.chr"
+    .incbin "out/data/tiles/console.chr"
     .assert * - :- = kSizeofChr * $40, error
 .ENDPROC
 
@@ -363,7 +366,8 @@
 :   .incbin "out/data/tiles/hut1.chr"
     .incbin "out/data/tiles/hut2.chr"
     .res $1e * kSizeofChr
-    .incbin "out/data/tiles/device.chr"
+    .incbin "out/data/tiles/sign.chr"
+    .incbin "out/data/tiles/console.chr"
     .assert * - :- = kSizeofChr * $40, error
 .ENDPROC
 
@@ -392,7 +396,8 @@
     .res $10 * kSizeofChr
     .incbin "out/data/tiles/field_bg.chr"
     .res $04 * kSizeofChr
-    .incbin "out/data/tiles/device.chr"
+    .incbin "out/data/tiles/sign.chr"
+    .incbin "out/data/tiles/console.chr"
     .assert * - :- = kSizeofChr * $40, error
 .ENDPROC
 
@@ -408,7 +413,8 @@
     .incbin "out/data/tiles/beach.chr"
     .res $0e * kSizeofChr
     .incbin "out/data/tiles/lever_ceil.chr"
-    .incbin "out/data/tiles/device.chr"
+    .incbin "out/data/tiles/sign.chr"
+    .incbin "out/data/tiles/console.chr"
     .assert * - :- = kSizeofChr * $40, error
 .ENDPROC
 
@@ -421,7 +427,8 @@
 :   .incbin "out/data/tiles/crystal.chr"
     .incbin "out/data/tiles/ropediag.chr"
     .res $20 * kSizeofChr
-    .incbin "out/data/tiles/device.chr"
+    .incbin "out/data/tiles/sign.chr"
+    .incbin "out/data/tiles/console.chr"
     .assert * - :- = kSizeofChr * $40, error
 .ENDPROC
 
@@ -451,7 +458,8 @@
     .incbin "out/data/tiles/window.chr"
     .incbin "out/data/tiles/house.chr"
     .res $0f * kSizeofChr
-    .incbin "out/data/tiles/device.chr"
+    .incbin "out/data/tiles/sign.chr"
+    .res $04 * kSizeofChr
     .assert * - :- = kSizeofChr * $40, error
 .ENDPROC
 
@@ -491,7 +499,8 @@
 :   .incbin "out/data/tiles/cave.chr"
     .incbin "out/data/tiles/prison.chr"
     .res $18 * kSizeofChr
-    .incbin "out/data/tiles/device.chr"
+    .incbin "out/data/tiles/sign.chr"
+    .incbin "out/data/tiles/console.chr"
     .assert * - :- = kSizeofChr * $40, error
 .ENDPROC
 
@@ -503,7 +512,8 @@
 .PROC Ppu_ChrBgSewer
 :   .incbin "out/data/tiles/sewer1.chr"
     .res $28 * kSizeofChr
-    .incbin "out/data/tiles/device.chr"
+    .incbin "out/data/tiles/sign.chr"
+    .incbin "out/data/tiles/console.chr"
     .assert * - :- = kSizeofChr * $40, error
 .ENDPROC
 
@@ -517,7 +527,8 @@
     .incbin "out/data/tiles/temple2.chr"
     .incbin "out/data/tiles/temple3.chr"
     .incbin "out/data/tiles/temple4.chr"
-    .incbin "out/data/tiles/device.chr"
+    .incbin "out/data/tiles/plaque.chr"
+    .incbin "out/data/tiles/console.chr"
     .assert * - :- = kSizeofChr * $40, error
 .ENDPROC
 
