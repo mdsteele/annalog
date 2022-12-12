@@ -23,8 +23,6 @@
 .INCLUDE "../platform.inc"
 .INCLUDE "../room.inc"
 
-.IMPORT DataA_Pause_MineAreaCells_u8_arr2_arr
-.IMPORT DataA_Pause_MineAreaName_u8_arr
 .IMPORT DataA_Room_Mine_sTileset
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrObjMine
@@ -38,7 +36,7 @@
     D_STRUCT sRoom
     d_byte MinScrollX_u8, $10
     d_word MaxScrollX_u16, $110
-    d_byte IsTall_bool, $ff
+    d_byte Flags_bRoom, bRoom::Tall | eArea::Mine
     d_byte MinimapStartRow_u8, 11
     d_byte MinimapStartCol_u8, 21
     d_addr TerrainData_ptr, _TerrainData
@@ -51,8 +49,6 @@
     D_END
 _Ext_sRoomExt:
     D_STRUCT sRoomExt
-    d_addr AreaName_u8_arr_ptr, DataA_Pause_MineAreaName_u8_arr
-    d_addr AreaCells_u8_arr2_arr_ptr, DataA_Pause_MineAreaCells_u8_arr2_arr
     d_addr Terrain_sTileset_ptr, DataA_Room_Mine_sTileset
     d_addr Platforms_sPlatform_arr_ptr, _Platforms_sPlatform_arr
     d_addr Actors_sActor_arr_ptr, _Actors_sActor_arr

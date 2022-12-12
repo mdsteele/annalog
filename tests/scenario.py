@@ -61,7 +61,7 @@ MARKER_IF_RE = re.compile(r'^ *d_byte +If_eFlag, *(?:0|eFlag::([A-Za-z0-9]+))')
 MARKER_NOT_RE = re.compile(r'^ *d_byte +Not_eFlag, *eFlag::([A-Za-z0-9]+)')
 
 MAX_SCROLL_X_RE = re.compile(r'^ *d_word +MaxScrollX_u16,.*\$([0-9a-fA-F]+)')
-IS_TALL_RE = re.compile(r'^ *d_byte +IsTall_bool, *\$([0-9a-fA-F]+)')
+ROOM_FLAGS_RE = re.compile(r'^ *d_byte +Flags_bRoom, *(.*)eArea::([A-Za-z]+)$')
 START_ROW_RE = re.compile(r'^ *d_byte +MinimapStartRow_u8, *([0-9]+)')
 START_COL_RE = re.compile(r'^ *d_byte +MinimapStartCol_u8, *([0-9]+)')
 
@@ -130,7 +130,9 @@ def load_room(filepath, area_name):
     file = open(filepath)
     # Determine the set of minimap cells that this room occupies.
     max_scroll_x = scan_for_int(file, MAX_SCROLL_X_RE, 16)
-    is_tall = scan_for_int(file, IS_TALL_RE, 16)
+    room_flags_match = scan_for_match(file, ROOM_FLAGS_RE)
+    is_tall = 'bRoom::Tall' in room_flags_match.group(1)
+    assert area_name == room_flags_match.group(2)
     start_row = scan_for_int(file, START_ROW_RE)
     start_col = scan_for_int(file, START_COL_RE)
     height = 2 if is_tall else 1

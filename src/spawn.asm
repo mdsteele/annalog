@@ -215,11 +215,13 @@ _TopEdge:
     ldx #0  ; param: facing direction (0 = right)
     beq _Finish  ; unconditional
 _BottomEdge:
-    lda <(Zp_Current_sRoom + sRoom::IsTall_bool)
-    bne @tall
+    bit <(Zp_Current_sRoom + sRoom::Flags_bRoom)
+    .assert bRoom::Tall = bProc::Negative, error
+    bmi @tall
     @short:
     ldx #kScreenHeightPx - kPassageSpawnMargin
-    bne @finishBottom  ; unconditional
+    lda #0
+    beq @finishBottom  ; unconditional
     @tall:
     ldax #kTallRoomHeightBlocks * kBlockHeightPx - kPassageSpawnMargin
     @finishBottom:
@@ -497,11 +499,13 @@ _UpDown:
     sta Zp_AvatarPosY_i16 + 1
     jmp Func_CallRoomEnter
     @bottomEdge:
-    lda <(Zp_Current_sRoom + sRoom::IsTall_bool)
-    bne @tall
+    bit <(Zp_Current_sRoom + sRoom::Flags_bRoom)
+    .assert bRoom::Tall = bProc::Negative, error
+    bmi @tall
     @short:
     ldx #kScreenHeightPx - (kAvatarBoundingBoxDown + 1)
-    bne @finishBottom  ; unconditional
+    lda #0
+    beq @finishBottom  ; unconditional
     @tall:
     ldax #kTallRoomHeightBlocks * kBlockHeightPx - (kAvatarBoundingBoxDown + 1)
     @finishBottom:

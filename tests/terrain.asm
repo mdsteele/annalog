@@ -81,8 +81,8 @@ DataA_Terrain_LowerRight_u8_arr:
 
 .PROC Func_TestColumnForTileIndexInShortRoom
     ;; Setup:
-    lda #$00
-    sta Zp_Current_sRoom + sRoom::IsTall_bool
+    lda #0
+    sta Zp_Current_sRoom + sRoom::Flags_bRoom
     ;; Test:
     lda #kBlockColumnIndex * 2  ; param: tile column index
     jsr Func_GetTerrainColumnPtrForTileIndex
@@ -97,8 +97,8 @@ DataA_Terrain_LowerRight_u8_arr:
 
 .PROC Func_TestColumnForTileIndexInTallRoom
     ;; Setup:
-    lda #$ff
-    sta Zp_Current_sRoom + sRoom::IsTall_bool
+    lda #bRoom::Tall
+    sta Zp_Current_sRoom + sRoom::Flags_bRoom
     ;; Test:
     lda #kBlockColumnIndex * 2  ; param: tile column index
     jsr Func_GetTerrainColumnPtrForTileIndex
@@ -113,8 +113,8 @@ DataA_Terrain_LowerRight_u8_arr:
 
 .PROC Func_TestColumnForPointInShortRoom
     ;; Setup:
-    lda #$00
-    sta Zp_Current_sRoom + sRoom::IsTall_bool
+    lda #0
+    sta Zp_Current_sRoom + sRoom::Flags_bRoom
     ldax #kBlockColumnIndex * 16 + 5
     stax Zp_PointX_i16
     ;; Test:
@@ -130,8 +130,8 @@ DataA_Terrain_LowerRight_u8_arr:
 
 .PROC Func_TestColumnForPointInTallRoom
     ;; Setup:
-    lda #$ff
-    sta Zp_Current_sRoom + sRoom::IsTall_bool
+    lda #bRoom::Tall
+    sta Zp_Current_sRoom + sRoom::Flags_bRoom
     ldax #kBlockColumnIndex * 16 + 5
     stax Zp_PointX_i16
     ;; Test:

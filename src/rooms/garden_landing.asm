@@ -29,8 +29,6 @@
 .INCLUDE "../room.inc"
 .INCLUDE "../spawn.inc"
 
-.IMPORT DataA_Pause_GardenAreaCells_u8_arr2_arr
-.IMPORT DataA_Pause_GardenAreaName_u8_arr
 .IMPORT DataA_Room_Garden_sTileset
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrObjGarden
@@ -61,7 +59,7 @@ kShaftMinimapByteOffset = 2 * kShaftMinimapCol + kShaftMinimapTopRow / 8
     D_STRUCT sRoom
     d_byte MinScrollX_u8, $0
     d_word MaxScrollX_u16, $100
-    d_byte IsTall_bool, $ff
+    d_byte Flags_bRoom, bRoom::Tall | eArea::Garden
     d_byte MinimapStartRow_u8, 6
     d_byte MinimapStartCol_u8, 6
     d_addr TerrainData_ptr, _TerrainData
@@ -74,8 +72,6 @@ kShaftMinimapByteOffset = 2 * kShaftMinimapCol + kShaftMinimapTopRow / 8
     D_END
 _Ext_sRoomExt:
     D_STRUCT sRoomExt
-    d_addr AreaName_u8_arr_ptr, DataA_Pause_GardenAreaName_u8_arr
-    d_addr AreaCells_u8_arr2_arr_ptr, DataA_Pause_GardenAreaCells_u8_arr2_arr
     d_addr Terrain_sTileset_ptr, DataA_Room_Garden_sTileset
     d_addr Platforms_sPlatform_arr_ptr, _Platforms_sPlatform_arr
     d_addr Actors_sActor_arr_ptr, _Actors_sActor_arr

@@ -102,6 +102,37 @@ kRoomStateSize = $100
 
 ;;;=========================================================================;;;
 
+;;; The list of areas in the game.
+.ENUM eArea
+    City
+    Core
+    Crypt
+    Factory
+    Garden
+    Lava
+    Mermaid
+    Mine
+    Prison
+    Sewer
+    Shadow
+    Temple
+    Town
+    NUM_VALUES
+.ENDENUM
+
+;;;=========================================================================;;;
+
+;;; Flag bits for a room.
+.SCOPE bRoom
+    Tall     = %10000000  ; if set, room is kTallRoomHeightBlocks blocks tall
+    AreaMask = %00001111  ; mask for this room's eArea value
+.ENDSCOPE
+
+;;; Assert that an eArea value will fit into the AreaMask.
+.ASSERT eArea::NUM_VALUES <= bRoom::AreaMask + 1, error
+
+;;;=========================================================================;;;
+
 ;;; Specifies which side of the room a given passage is on.
 .ENUM ePassage
     None       = 0
@@ -163,9 +194,10 @@ kRoomStateSize = $100
     ;;       (N - kScreenWidthBlocks - 1) * kBlockWidthPx, so that the last
     ;;       terrain column will be hidden offscreen.
     MaxScrollX_u16            .word
-    ;; True ($ff) if the room is "tall" (kTallRoomHeightBlocks blocks tall), or
-    ;; false ($00) if it is short (kScreenHeightBlocks blocks tall).
-    IsTall_bool               .byte
+    ;; Flag bits for this room.  If bRoom::Tall is set, the room is "tall"
+    ;; (kTallRoomHeightBlocks blocks tall); if cleared the room is short
+    ;; (kScreenHeightBlocks blocks tall).
+    Flags_bRoom               .byte
     ;; The minimap row number for the room (if it's a short room) or for the
     ;; top half of the room (if it's a tall room).
     MinimapStartRow_u8        .byte
@@ -197,14 +229,6 @@ kRoomStateSize = $100
 ;;; Extended information about a room that (compared to the information in
 ;;; sRoom) doesn't need to be as directly accessible from Zp_Current_sRoom.
 .STRUCT sRoomExt
-    ;; A pointer to a $ff-terminated string with the name of the area that this
-    ;; room belongs to.
-    ;; @prereq PRGA_Pause is loaded.
-    AreaName_u8_arr_ptr         .addr
-    ;; A pointer to a $ff-terminated array of row/col pairs listing the minimap
-    ;; cells that constitute the area that this room belongs to.
-    ;; @prereq PRGA_Pause is loaded.
-    AreaCells_u8_arr2_arr_ptr   .addr
     ;; A pointer to the tileset used for this room's terrain.
     Terrain_sTileset_ptr        .addr
     ;; A pointer to a static array of platforms that should always be loaded

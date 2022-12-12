@@ -27,8 +27,6 @@
 .INCLUDE "../platform.inc"
 .INCLUDE "../room.inc"
 
-.IMPORT DataA_Pause_MermaidAreaCells_u8_arr2_arr
-.IMPORT DataA_Pause_MermaidAreaName_u8_arr
 .IMPORT DataA_Room_Hut_sTileset
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrObjTownsfolk
@@ -47,7 +45,7 @@ kMermaidGuardDialogIndex = 0
     D_STRUCT sRoom
     d_byte MinScrollX_u8, $0
     d_word MaxScrollX_u16, $0
-    d_byte IsTall_bool, $00
+    d_byte Flags_bRoom, eArea::Mermaid
     d_byte MinimapStartRow_u8, 10
     d_byte MinimapStartCol_u8, 13
     d_addr TerrainData_ptr, _TerrainData
@@ -60,8 +58,6 @@ kMermaidGuardDialogIndex = 0
     D_END
 _Ext_sRoomExt:
     D_STRUCT sRoomExt
-    d_addr AreaName_u8_arr_ptr, DataA_Pause_MermaidAreaName_u8_arr
-    d_addr AreaCells_u8_arr2_arr_ptr, DataA_Pause_MermaidAreaCells_u8_arr2_arr
     d_addr Terrain_sTileset_ptr, DataA_Room_Hut_sTileset
     d_addr Platforms_sPlatform_arr_ptr, _Platforms_sPlatform_arr
     d_addr Actors_sActor_arr_ptr, _Actors_sActor_arr

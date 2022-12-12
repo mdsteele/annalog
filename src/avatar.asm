@@ -567,17 +567,19 @@ _DoneWithCollision:
 ;;; @return Z Cleared if the player avatar hit a passage, set otherwise.
 ;;; @return A The ePassage that the player avatar hit, or ePassage::None.
 .PROC FuncA_Avatar_DetectVertPassage
-    lda Zp_AvatarVelY_i16 + 1
+    bit Zp_AvatarVelY_i16 + 1
     bmi _Top
 _Bottom:
     ;; Calculate the room pixel Y-position where the avatar will be touching
     ;; the bottom edge of the room, storing the result in Zp_Tmp1_byte (lo) and
     ;; A (hi).
-    lda <(Zp_Current_sRoom + sRoom::IsTall_bool)
-    bne @tall
+    bit <(Zp_Current_sRoom + sRoom::Flags_bRoom)
+    .assert bRoom::Tall = bProc::Negative, error
+    bmi @tall
     @short:
     ldx #kScreenHeightPx - kAvatarBoundingBoxDown
-    bne @finishHeight  ; unconditional
+    lda #0
+    beq @finishHeight  ; unconditional
     @tall:
     ldax #kTallRoomHeightBlocks * kBlockHeightPx - kAvatarBoundingBoxDown
     @finishHeight:

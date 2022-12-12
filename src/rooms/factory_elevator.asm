@@ -28,8 +28,6 @@
 .INCLUDE "../program.inc"
 .INCLUDE "../room.inc"
 
-.IMPORT DataA_Pause_FactoryAreaCells_u8_arr2_arr
-.IMPORT DataA_Pause_FactoryAreaName_u8_arr
 .IMPORT DataA_Room_Factory_sTileset
 .IMPORT FuncA_Machine_Error
 .IMPORT FuncA_Machine_JetTick
@@ -88,7 +86,7 @@ kLowerJetInitPlatformTop = \
     D_STRUCT sRoom
     d_byte MinScrollX_u8, $10
     d_word MaxScrollX_u16, $0010
-    d_byte IsTall_bool, $ff
+    d_byte Flags_bRoom, bRoom::Tall | eArea::Factory
     d_byte MinimapStartRow_u8, 6
     d_byte MinimapStartCol_u8, 14
     d_addr TerrainData_ptr, _TerrainData
@@ -101,8 +99,6 @@ kLowerJetInitPlatformTop = \
     D_END
 _Ext_sRoomExt:
     D_STRUCT sRoomExt
-    d_addr AreaName_u8_arr_ptr, DataA_Pause_FactoryAreaName_u8_arr
-    d_addr AreaCells_u8_arr2_arr_ptr, DataA_Pause_FactoryAreaCells_u8_arr2_arr
     d_addr Terrain_sTileset_ptr, DataA_Room_Factory_sTileset
     d_addr Platforms_sPlatform_arr_ptr, _Platforms_sPlatform_arr
     d_addr Actors_sActor_arr_ptr, _Actors_sActor_arr

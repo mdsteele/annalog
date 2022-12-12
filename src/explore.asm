@@ -340,7 +340,8 @@ _CalculatePassage:
     and #bPassage::EastWest
     beq _CalculateUpDownPassage
 _CalculateEastWestPassage:
-    bit <(Zp_Current_sRoom + sRoom::IsTall_bool)
+    bit <(Zp_Current_sRoom + sRoom::Flags_bRoom)
+    .assert bRoom::Tall = bProc::Negative, error
     bpl @upperHalf
     @tall:
     lda Zp_AvatarPosY_i16 + 1
@@ -535,7 +536,8 @@ _Respawn:
 .PROC _SetScrollGoalY
     ;; Calculate the maximum permitted scroll-Y and store it in Zp_Tmp1_byte.
     lda #0
-    bit <(Zp_Current_sRoom + sRoom::IsTall_bool)
+    bit <(Zp_Current_sRoom + sRoom::Flags_bRoom)
+    .assert bRoom::Tall = bProc::Negative, error
     bpl @shortRoom
     lda #kTallRoomHeightBlocks * kBlockHeightPx - kScreenHeightPx
     @shortRoom:
@@ -697,7 +699,8 @@ _ClampScrollY:
     sta Zp_Tmp1_byte  ; visible screen height
     ;; Calculate the maximum permitted scroll-Y and store it in Zp_Tmp2_byte.
     lda #kScreenHeightPx
-    bit <(Zp_Current_sRoom + sRoom::IsTall_bool)
+    bit <(Zp_Current_sRoom + sRoom::Flags_bRoom)
+    .assert bRoom::Tall = bProc::Negative, error
     bpl @shortRoom
     lda #<(kTallRoomHeightBlocks * kBlockHeightPx)
     @shortRoom:

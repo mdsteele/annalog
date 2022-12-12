@@ -29,6 +29,10 @@
 .INCLUDE "room.inc"
 .INCLUDE "window.inc"
 
+.IMPORT DataA_Pause_AreaCells_u8_arr2_arr_ptr_0_arr
+.IMPORT DataA_Pause_AreaCells_u8_arr2_arr_ptr_1_arr
+.IMPORT DataA_Pause_AreaNames_u8_arr_ptr_0_arr
+.IMPORT DataA_Pause_AreaNames_u8_arr_ptr_1_arr
 .IMPORT DataA_Pause_Minimap_sMarker_arr
 .IMPORT Data_PowersOfTwo_u8_arr8
 .IMPORT FuncA_Fade_In
@@ -229,11 +233,12 @@ _DrawCurrentAreaLabel:
     blt @loop
 _DrawCurrentAreaName:
     ;; Copy the current room's AreaName_u8_arr_ptr into Zp_Tmp_ptr.
-    ldy #sRoomExt::AreaName_u8_arr_ptr
-    lda (Zp_Current_sRoom + sRoom::Ext_sRoomExt_ptr), y
+    lda <(Zp_Current_sRoom + sRoom::Flags_bRoom)
+    and #bRoom::AreaMask
+    tay  ; eArea value
+    lda DataA_Pause_AreaNames_u8_arr_ptr_0_arr, y
     sta Zp_Tmp_ptr + 0
-    iny
-    lda (Zp_Current_sRoom + sRoom::Ext_sRoomExt_ptr), y
+    lda DataA_Pause_AreaNames_u8_arr_ptr_1_arr, y
     sta Zp_Tmp_ptr + 1
     ;; Draw the room's area name.
     ldy #0
@@ -574,11 +579,12 @@ _CircuitBreakers_byte_arr8_arr6:
 ;;; Draws objects to mark the current area on the minimap.
 .PROC FuncA_Pause_DrawMinimapObjects
     ;; Copy the current room's AreaCells_u8_arr2_arr_ptr into Zp_Tmp_ptr.
-    ldy #sRoomExt::AreaCells_u8_arr2_arr_ptr
-    lda (Zp_Current_sRoom + sRoom::Ext_sRoomExt_ptr), y
+    lda <(Zp_Current_sRoom + sRoom::Flags_bRoom)
+    and #bRoom::AreaMask
+    tay  ; eArea value
+    lda DataA_Pause_AreaCells_u8_arr2_arr_ptr_0_arr, y
     sta Zp_Tmp_ptr + 0
-    iny
-    lda (Zp_Current_sRoom + sRoom::Ext_sRoomExt_ptr), y
+    lda DataA_Pause_AreaCells_u8_arr2_arr_ptr_1_arr, y
     sta Zp_Tmp_ptr + 1
     ;; Draw an object for each explored minimap cell in the array.
     ldy #0

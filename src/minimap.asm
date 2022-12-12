@@ -18,6 +18,7 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "charmap.inc"
+.INCLUDE "cpu.inc"
 .INCLUDE "flag.inc"
 .INCLUDE "macros.inc"
 .INCLUDE "minimap.inc"
@@ -52,7 +53,8 @@ Zp_CameraMinimapCol_u8: .res 1
 .PROC FuncA_Terrain_UpdateAndMarkMinimap
 _UpdateMinimapRow:
     ldy <(Zp_Current_sRoom + sRoom::MinimapStartRow_u8)
-    bit <(Zp_Current_sRoom + sRoom::IsTall_bool)
+    bit <(Zp_Current_sRoom + sRoom::Flags_bRoom)
+    .assert bRoom::Tall = bProc::Negative, error
     bpl @upperHalf
     @tall:
     lda Zp_RoomScrollY_u8
@@ -113,72 +115,102 @@ _MarkMinimap:
 
 .SEGMENT "PRGA_Pause"
 
-;;; TODO: .EXPORT DataA_Pause_CityAreaName_u8_arr
+.EXPORT DataA_Pause_AreaNames_u8_arr_ptr_0_arr
+.EXPORT DataA_Pause_AreaNames_u8_arr_ptr_1_arr
+.REPEAT 2, table
+    D_TABLE_LO table, DataA_Pause_AreaNames_u8_arr_ptr_0_arr
+    D_TABLE_HI table, DataA_Pause_AreaNames_u8_arr_ptr_1_arr
+    D_TABLE eArea
+    d_entry table, City,    DataA_Pause_CityAreaName_u8_arr
+    d_entry table, Core,    DataA_Pause_CoreAreaName_u8_arr
+    d_entry table, Crypt,   DataA_Pause_CryptAreaName_u8_arr
+    d_entry table, Factory, DataA_Pause_FactoryAreaName_u8_arr
+    d_entry table, Garden,  DataA_Pause_GardenAreaName_u8_arr
+    d_entry table, Lava,    DataA_Pause_LavaAreaName_u8_arr
+    d_entry table, Mermaid, DataA_Pause_MermaidAreaName_u8_arr
+    d_entry table, Mine,    DataA_Pause_MineAreaName_u8_arr
+    d_entry table, Prison,  DataA_Pause_PrisonAreaName_u8_arr
+    d_entry table, Sewer,   DataA_Pause_SewerAreaName_u8_arr
+    d_entry table, Shadow,  DataA_Pause_ShadowAreaName_u8_arr
+    d_entry table, Temple,  DataA_Pause_TempleAreaName_u8_arr
+    d_entry table, Town,    DataA_Pause_TownAreaName_u8_arr
+    D_END
+.ENDREPEAT
+
 .PROC DataA_Pause_CityAreaName_u8_arr
     .byte "Ancient City", $ff
 .ENDPROC
 
-.EXPORT DataA_Pause_CoreAreaName_u8_arr
 .PROC DataA_Pause_CoreAreaName_u8_arr
     .byte "Power Core", $ff
 .ENDPROC
 
-.EXPORT DataA_Pause_CryptAreaName_u8_arr
 .PROC DataA_Pause_CryptAreaName_u8_arr
     .byte "Deep Crypt", $ff
 .ENDPROC
 
-.EXPORT DataA_Pause_FactoryAreaName_u8_arr
 .PROC DataA_Pause_FactoryAreaName_u8_arr
     .byte "Rust Factory", $ff
 .ENDPROC
 
-.EXPORT DataA_Pause_GardenAreaName_u8_arr
 .PROC DataA_Pause_GardenAreaName_u8_arr
     .byte "Vine Garden", $ff
 .ENDPROC
 
-.EXPORT DataA_Pause_LavaAreaName_u8_arr
 .PROC DataA_Pause_LavaAreaName_u8_arr
     .byte "Lava Pits", $ff
 .ENDPROC
 
-.EXPORT DataA_Pause_MermaidAreaName_u8_arr
 .PROC DataA_Pause_MermaidAreaName_u8_arr
     .byte "Mermaid Vale", $ff
 .ENDPROC
 
-.EXPORT DataA_Pause_MineAreaName_u8_arr
 .PROC DataA_Pause_MineAreaName_u8_arr
     .byte "Salt Mines", $ff
 .ENDPROC
 
-.EXPORT DataA_Pause_PrisonAreaName_u8_arr
 .PROC DataA_Pause_PrisonAreaName_u8_arr
     .byte "Prison Caves", $ff
 .ENDPROC
 
-.EXPORT DataA_Pause_SewerAreaName_u8_arr
 .PROC DataA_Pause_SewerAreaName_u8_arr
     .byte "Old Waterway", $ff
 .ENDPROC
 
-.EXPORT DataA_Pause_ShadowAreaName_u8_arr
 .PROC DataA_Pause_ShadowAreaName_u8_arr
     .byte "Shadow Labs", $ff
 .ENDPROC
 
-.EXPORT DataA_Pause_TempleAreaName_u8_arr
 .PROC DataA_Pause_TempleAreaName_u8_arr
     .byte "Lost Temple", $ff
 .ENDPROC
 
-.EXPORT DataA_Pause_TownAreaName_u8_arr
 .PROC DataA_Pause_TownAreaName_u8_arr
     .byte "Bartik Town", $ff
 .ENDPROC
 
-;;; TODO: .EXPORT DataA_Pause_CityAreaCells_u8_arr2_arr
+.EXPORT DataA_Pause_AreaCells_u8_arr2_arr_ptr_0_arr
+.EXPORT DataA_Pause_AreaCells_u8_arr2_arr_ptr_1_arr
+.REPEAT 2, table
+    D_TABLE_LO table, DataA_Pause_AreaCells_u8_arr2_arr_ptr_0_arr
+    D_TABLE_HI table, DataA_Pause_AreaCells_u8_arr2_arr_ptr_1_arr
+    D_TABLE eArea
+    d_entry table, City,    DataA_Pause_CityAreaCells_u8_arr2_arr
+    d_entry table, Core,    DataA_Pause_CoreAreaCells_u8_arr2_arr
+    d_entry table, Crypt,   DataA_Pause_CryptAreaCells_u8_arr2_arr
+    d_entry table, Factory, DataA_Pause_FactoryAreaCells_u8_arr2_arr
+    d_entry table, Garden,  DataA_Pause_GardenAreaCells_u8_arr2_arr
+    d_entry table, Lava,    DataA_Pause_LavaAreaCells_u8_arr2_arr
+    d_entry table, Mermaid, DataA_Pause_MermaidAreaCells_u8_arr2_arr
+    d_entry table, Mine,    DataA_Pause_MineAreaCells_u8_arr2_arr
+    d_entry table, Prison,  DataA_Pause_PrisonAreaCells_u8_arr2_arr
+    d_entry table, Sewer,   DataA_Pause_SewerAreaCells_u8_arr2_arr
+    d_entry table, Shadow,  DataA_Pause_ShadowAreaCells_u8_arr2_arr
+    d_entry table, Temple,  DataA_Pause_TempleAreaCells_u8_arr2_arr
+    d_entry table, Town,    DataA_Pause_TownAreaCells_u8_arr2_arr
+    D_END
+.ENDREPEAT
+
 .PROC DataA_Pause_CityAreaCells_u8_arr2_arr
     .byte  1, 19
     .byte  1, 20
@@ -199,7 +231,6 @@ _MarkMinimap:
     .byte $ff
 .ENDPROC
 
-.EXPORT DataA_Pause_CoreAreaCells_u8_arr2_arr
 .PROC DataA_Pause_CoreAreaCells_u8_arr2_arr
     .byte  1, 13
     .byte  1, 14
@@ -221,7 +252,6 @@ _MarkMinimap:
     .byte $ff
 .ENDPROC
 
-.EXPORT DataA_Pause_CryptAreaCells_u8_arr2_arr
 .PROC DataA_Pause_CryptAreaCells_u8_arr2_arr
     .byte  7,  0
     .byte  7,  2
@@ -243,7 +273,6 @@ _MarkMinimap:
     .byte $ff
 .ENDPROC
 
-.EXPORT DataA_Pause_FactoryAreaCells_u8_arr2_arr
 .PROC DataA_Pause_FactoryAreaCells_u8_arr2_arr
     .byte  4, 12
     .byte  5, 11
@@ -265,7 +294,6 @@ _MarkMinimap:
     .byte $ff
 .ENDPROC
 
-.EXPORT DataA_Pause_GardenAreaCells_u8_arr2_arr
 .PROC DataA_Pause_GardenAreaCells_u8_arr2_arr
     .byte  6,  6
     .byte  7,  6
@@ -291,7 +319,6 @@ _MarkMinimap:
     .byte $ff
 .ENDPROC
 
-.EXPORT DataA_Pause_LavaAreaCells_u8_arr2_arr
 .PROC DataA_Pause_LavaAreaCells_u8_arr2_arr
     .byte 12, 14
     .byte 12, 16
@@ -314,7 +341,6 @@ _MarkMinimap:
     .byte $ff
 .ENDPROC
 
-.EXPORT DataA_Pause_MermaidAreaCells_u8_arr2_arr
 .PROC DataA_Pause_MermaidAreaCells_u8_arr2_arr
     .byte  8, 14
     .byte  9, 13
@@ -336,7 +362,6 @@ _MarkMinimap:
     .byte $ff
 .ENDPROC
 
-.EXPORT DataA_Pause_MineAreaCells_u8_arr2_arr
 .PROC DataA_Pause_MineAreaCells_u8_arr2_arr
     .byte  9, 19
     .byte  9, 20
@@ -358,7 +383,6 @@ _MarkMinimap:
     .byte $ff
 .ENDPROC
 
-.EXPORT DataA_Pause_PrisonAreaCells_u8_arr2_arr
 .PROC DataA_Pause_PrisonAreaCells_u8_arr2_arr
     .byte 1, 5
     .byte 1, 6
@@ -380,7 +404,6 @@ _MarkMinimap:
     .byte $ff
 .ENDPROC
 
-.EXPORT DataA_Pause_SewerAreaCells_u8_arr2_arr
 .PROC DataA_Pause_SewerAreaCells_u8_arr2_arr
     .byte  3, 20
     .byte  4, 20
@@ -402,7 +425,6 @@ _MarkMinimap:
     .byte $ff
 .ENDPROC
 
-.EXPORT DataA_Pause_ShadowAreaCells_u8_arr2_arr
 .PROC DataA_Pause_ShadowAreaCells_u8_arr2_arr
     .byte 12, 4
     .byte 12, 5
@@ -425,7 +447,6 @@ _MarkMinimap:
     .byte $ff
 .ENDPROC
 
-.EXPORT DataA_Pause_TempleAreaCells_u8_arr2_arr
 .PROC DataA_Pause_TempleAreaCells_u8_arr2_arr
     .byte  3,  0
     .byte  3,  1
@@ -448,7 +469,6 @@ _MarkMinimap:
     .byte $ff
 .ENDPROC
 
-.EXPORT DataA_Pause_TownAreaCells_u8_arr2_arr
 .PROC DataA_Pause_TownAreaCells_u8_arr2_arr
     .byte  0, 11
     .byte  0, 12

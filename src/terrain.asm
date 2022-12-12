@@ -17,6 +17,7 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
+.INCLUDE "cpu.inc"
 .INCLUDE "macros.inc"
 .INCLUDE "ppu.inc"
 .INCLUDE "room.inc"
@@ -84,7 +85,8 @@ Zp_NametableColumnIndex_u8: .res 1
 ;;; @preserve X, Y, Zp_Tmp*
 .EXPORT Func_GetTerrainColumnPtrForPoint
 .PROC Func_GetTerrainColumnPtrForPoint
-    bit <(Zp_Current_sRoom + sRoom::IsTall_bool)
+    bit <(Zp_Current_sRoom + sRoom::Flags_bRoom)
+    .assert bRoom::Tall = bProc::Negative, error
     bmi _TallRoom
 _ShortRoom:
     ;; The width of a block in pixels is 16, so by clearing the bottom four
@@ -158,7 +160,8 @@ _TallRoom:
     .endrepeat
     ;; We now have (col * 8).  If the room is short, we want (col * 16), and if
     ;; it's tall we want (col * 24).
-    bit <(Zp_Current_sRoom + sRoom::IsTall_bool)
+    bit <(Zp_Current_sRoom + sRoom::Flags_bRoom)
+    .assert bRoom::Tall = bProc::Negative, error
     bmi _TallRoom
 _ShortRoom:
     asl a                                ; lo byte of (col * 16)
@@ -238,7 +241,8 @@ _TileColumnLoop:
     stx Hw_PpuAddr_w2
     sta Hw_PpuAddr_w2
     ;; Check if this room is more than one screen tall.
-    bit <(Zp_Current_sRoom + sRoom::IsTall_bool)
+    bit <(Zp_Current_sRoom + sRoom::Flags_bRoom)
+    .assert bRoom::Tall = bProc::Negative, error
     bpl _ShortRoom
 _TallRoom:
     @tileLoop:
@@ -283,7 +287,8 @@ _TallRoom:
     stx Hw_PpuAddr_w2
     sta Hw_PpuAddr_w2
     ;; Check if this room is more than one screen tall.
-    bit <(Zp_Current_sRoom + sRoom::IsTall_bool)
+    bit <(Zp_Current_sRoom + sRoom::Flags_bRoom)
+    .assert bRoom::Tall = bProc::Negative, error
     bpl _ShortRoom
 _TallRoom:
     @tileLoop:
@@ -352,7 +357,8 @@ _Done:
 .ENDPROC
     ;; If this is a tall room, then we need to also buffer a PPU transfer for
     ;; the lower nametable.
-    bit <(Zp_Current_sRoom + sRoom::IsTall_bool)
+    bit <(Zp_Current_sRoom + sRoom::Flags_bRoom)
+    .assert bRoom::Tall = bProc::Negative, error
     bpl _Return
 .PROC _LowerTransfer
     ldx Zp_PpuTransferLen_u8
