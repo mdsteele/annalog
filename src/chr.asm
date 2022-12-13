@@ -449,6 +449,17 @@
 
 ;;;=========================================================================;;;
 
+.SEGMENT "CHR_BgOutbreak"
+
+.EXPORT Ppu_ChrBgOutbreak
+.PROC Ppu_ChrBgOutbreak
+:   .incbin "out/data/tiles/outbreak_bg.chr"
+    .res $18 * kSizeofChr
+    .assert * - :- = kSizeofChr * $40, error
+.ENDPROC
+
+;;;=========================================================================;;;
+
 .SEGMENT "CHR_BgOutdoors"
 
 .EXPORT Ppu_ChrBgOutdoors
@@ -817,7 +828,7 @@
     .incbin "out/data/tiles/crate.chr"
     .res $02 * kSizeofChr
     .incbin "out/data/tiles/column.chr"
-    .res $04 * kSizeofChr
+    .incbin "out/data/tiles/outbreak_obj.chr"
     .assert * - :- = (kTileIdMermaidGuardFFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/mermaid_guardf.chr"
     .res $22 * kSizeofChr

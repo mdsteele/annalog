@@ -26,6 +26,7 @@
 .INCLUDE "../machine.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../mmc3.inc"
+.INCLUDE "../oam.inc"
 .INCLUDE "../platform.inc"
 .INCLUDE "../ppu.inc"
 .INCLUDE "../program.inc"
@@ -37,7 +38,14 @@
 .IMPORT FuncA_Machine_ReachedGoal
 .IMPORT FuncA_Machine_StartWaiting
 .IMPORT FuncA_Machine_StartWorking
+.IMPORT FuncA_Objects_Alloc2x1Shape
+.IMPORT FuncA_Objects_Draw1x1Shape
 .IMPORT FuncA_Objects_DrawCarriageMachine
+.IMPORT FuncA_Objects_MoveShapeDownByA
+.IMPORT FuncA_Objects_MoveShapeLeftByA
+.IMPORT FuncA_Objects_MoveShapeLeftHalfTile
+.IMPORT FuncA_Objects_MoveShapeRightByA
+.IMPORT FuncA_Objects_MoveShapeUpOneTile
 .IMPORT FuncA_Room_InitActorProjBreakball
 .IMPORT FuncA_Room_InitBossPhase
 .IMPORT FuncA_Room_TickBossPhase
@@ -45,6 +53,7 @@
 .IMPORT Func_MovePlatformLeftTowardPointX
 .IMPORT Func_Noop
 .IMPORT Int_WindowTopIrq
+.IMPORT Ppu_ChrBgOutbreak
 .IMPORT Ppu_ChrObjTemple
 .IMPORT Ram_ActorPosX_i16_0_arr
 .IMPORT Ram_ActorPosX_i16_1_arr
@@ -52,13 +61,17 @@
 .IMPORT Ram_ActorPosY_i16_1_arr
 .IMPORT Ram_MachineGoalHorz_u8_arr
 .IMPORT Ram_MachineStatus_eMachine_arr
+.IMPORT Ram_Oam_sObj_arr64
 .IMPORT Ram_PlatformLeft_i16_0_arr
 .IMPORT Ram_RoomState
 .IMPORTZP Zp_Active_sIrq
 .IMPORTZP Zp_Buffered_sIrq
+.IMPORTZP Zp_Chr0cBank_u8
 .IMPORTZP Zp_NextIrq_int_ptr
 .IMPORTZP Zp_PointX_i16
 .IMPORTZP Zp_RoomScrollY_u8
+.IMPORTZP Zp_ShapePosX_i16
+.IMPORTZP Zp_ShapePosY_i16
 
 ;;;=========================================================================;;;
 
@@ -88,7 +101,7 @@ kBlasterInitPlatformLeft = \
 .LINECONT -
 
 ;;; The cooldown time between blaster shots, in frames.
-kBlasterCooldownFrames = 10
+kBlasterCooldownFrames = 30
 
 ;;;=========================================================================;;;
 
@@ -103,9 +116,12 @@ kBossZoneHeightPx = kBossZoneBottomY - kBossZoneTopY
 kBossZoneHeightTiles = (kBossZoneHeightPx + kTileHeightPx - 1) / kTileHeightPx
 
 ;;; The height of the boss's body in the BG tile grid.
-kBossBodyHeightTiles = 4
+.DEFINE kBossBodyHeightTiles 4
 kBossBodyHeightPx = kBossBodyHeightTiles * kTileHeightPx
 .ASSERT kBossBodyHeightPx < kBossZoneHeightPx, error
+
+;;; The width of the boss's body in the BG tile grid.
+kBossBodyWidthTiles = 10
 
 ;;; The tile row in the lower nametable for the top edge of the boss's BG
 ;;; tiles.
@@ -135,11 +151,24 @@ kBossInitTopY = kBossZoneBottomY - kBossBodyHeightPx
 ;;; first row of the margin above the boss's body.
 Ppu_BossMarginStart = Ppu_Nametable3_sName + sName::Tiles_u8_arr + \
     kBossMarginStartRow * kScreenWidthTiles
-;;; The PPU address in the lower nametable for the leftmost tile column of the
-;;; first row that contains the boss's body.
+;;; The PPU address in the lower nametable for the tile at the top-left corner
+;;; of the boss's body.
 Ppu_BossBodyStart = Ppu_Nametable3_sName + sName::Tiles_u8_arr + \
-    kBossBodyStartRow * kScreenWidthTiles
+    kBossBodyStartRow * kScreenWidthTiles + 11
 .LINECONT -
+
+;;;=========================================================================;;;
+
+;;; OBJ tile IDs used for drawing the boss.
+kTileIdObjOutbreakFirst = $9c
+kTileIdObjOutbreakBrain = kTileIdObjOutbreakFirst + 0
+kTileIdObjOutbreakClaw  = kTileIdObjOutbreakFirst + 1
+kTileIdObjOutbreakEye   = kTileIdObjOutbreakFirst + 2
+
+;;; OBJ palette numbers used for drawing the boss.
+kPaletteObjOutbreakBrain = 1
+kPaletteObjOutbreakClaw  = 0
+kPaletteObjOutbreakEye   = 1
 
 ;;;=========================================================================;;;
 
@@ -281,9 +310,9 @@ _InitializeBoss:
     ;; TODO: remove this next part
     jsr Func_FindEmptyActorSlot  ; sets C on failure, returns X
     bcs @done
-    lda #$80
+    lda #$88
     sta Ram_ActorPosX_i16_0_arr, x
-    lda #kBossZoneBottomY
+    lda #kBossZoneBottomY + 4
     sta Ram_ActorPosY_i16_0_arr, x
     lda #0
     sta Ram_ActorPosX_i16_1_arr, x
@@ -297,45 +326,39 @@ _InitializeBoss:
 ;;; @prereq Rendering is disabled.
 .PROC FuncC_Temple_Boss_FadeInRoom
 _DrawBoss:
-    ;; TODO: real implementation for drawing boss
     lda #kPpuCtrlFlagsHorz
     sta Hw_PpuCtrl_wo
-    ldax #Ppu_BossBodyStart + 11
+    ldy #kBossBodyHeightTiles - 1
+    @rowLoop:
+    ldx _BossRowStart_ptr_0_arr, y
+    lda _BossRowStart_ptr_1_arr, y
+    bit Hw_PpuStatus_ro  ; reset the Hw_PpuAddr_w2 write-twice latch
     sta Hw_PpuAddr_w2
     stx Hw_PpuAddr_w2
-    ldx #10
-    lda #'X'
-    @loop1:
+    lda _BossRowFirstTileId_u8_arr, y
+    ldx #kBossBodyWidthTiles
+    clc
+    @colLoop:
     sta Hw_PpuData_rw
+    adc #1  ; carry is already clear
     dex
-    bne @loop1
-    ldax #Ppu_BossBodyStart + (kScreenWidthTiles * 3) + 11
-    sta Hw_PpuAddr_w2
-    stx Hw_PpuAddr_w2
-    ldx #10
-    lda #'Z'
-    @loop2:
-    sta Hw_PpuData_rw
-    dex
-    bne @loop2
+    bne @colLoop
+    dey
+    bpl @rowLoop
 _DrawColumns:
     lda #kPpuCtrlFlagsVert
     sta Hw_PpuCtrl_wo
     ldy #8 - 1
     @loop:
-    lda _TileIds_u8_arr, y  ; param: BG tile ID
-    ldx _Columns_u8_arr, y  ; param: nametable tile column
+    lda _ColumnTileId_u8_arr, y  ; param: BG tile ID
+    ldx _ColumnTileCol_u8_arr, y  ; param: nametable tile column index
     jsr _DrawStripe  ; preserves Y
     dey
     bpl @loop
     rts
-_TileIds_u8_arr:
-    .byte $9a, $9b, $94, $95, $94, $95, $9a, $9b
-_Columns_u8_arr:
-    .byte   3,   4,   9,  10,  21,  22,  27,  28
 _DrawStripe:
     pha  ; BG tile ID
-    txa  ; nametable tile column
+    txa  ; nametable tile column index
     add #<Ppu_BossMarginStart
     tax  ; PPU address (lo)
     lda #0
@@ -350,6 +373,22 @@ _DrawStripe:
     dex
     bne @loop
     rts
+_BossRowStart_ptr_0_arr:
+    .repeat kBossBodyHeightTiles, i
+    .byte <(Ppu_BossBodyStart + kScreenWidthTiles * i)
+    .endrepeat
+_BossRowStart_ptr_1_arr:
+    .repeat kBossBodyHeightTiles, i
+    .byte >(Ppu_BossBodyStart + kScreenWidthTiles * i)
+    .endrepeat
+_BossRowFirstTileId_u8_arr:
+    .repeat kBossBodyHeightTiles, i
+    .byte $c0 + kBossBodyWidthTiles * i
+    .endrepeat
+_ColumnTileId_u8_arr:
+    .byte $9a, $9b, $94, $95, $94, $95, $9a, $9b
+_ColumnTileCol_u8_arr:
+    .byte   3,   4,   9,  10,  21,  22,  27,  28
 .ENDPROC
 
 ;;; Room tick function for the TempleBoss room.
@@ -365,7 +404,44 @@ _DrawStripe:
 ;;; Draw function for the TempleBoss room.
 ;;; @prereq PRGA_Objects is loaded.
 .PROC FuncC_Temple_Boss_DrawRoom
-    ;; TODO: draw boss objects
+    lda #<.bank(Ppu_ChrBgOutbreak)
+    sta Zp_Chr0cBank_u8
+_DrawBossClaws:
+    jsr FuncC_Temple_SetShapePosToBossMidTop
+    lda #$24  ; param: offset
+    jsr FuncA_Objects_MoveShapeRightByA
+    lda #0  ; param: horz flip
+    jsr FuncC_Temple_DrawBossClawPair
+    jsr FuncC_Temple_SetShapePosToBossMidTop
+    lda #$2c  ; param: offset
+    jsr FuncA_Objects_MoveShapeLeftByA
+    lda #bObj::FlipH  ; param: horz flip
+    jsr FuncC_Temple_DrawBossClawPair
+_DrawBossEyes:
+    jsr FuncC_Temple_SetShapePosToBossMidTop
+    jsr FuncA_Objects_MoveShapeLeftHalfTile
+    lda #kBossBodyHeightPx  ; param: offset
+    jsr FuncA_Objects_MoveShapeDownByA
+    jsr FuncC_Temple_DrawBossEyeShape
+    jsr FuncA_Objects_MoveShapeUpOneTile
+    lda #kTileWidthPx * 2  ; param: offset
+    jsr FuncA_Objects_MoveShapeLeftByA
+    jsr FuncC_Temple_DrawBossEyeShape
+    lda #kTileWidthPx * 4  ; param: offset
+    jsr FuncA_Objects_MoveShapeRightByA
+    jsr FuncC_Temple_DrawBossEyeShape
+_DrawBossBrain:
+    jsr FuncC_Temple_SetShapePosToBossMidTop
+    jsr FuncA_Objects_MoveShapeUpOneTile
+    lda #kPaletteObjOutbreakBrain  ; param: object flags
+    jsr FuncA_Objects_Alloc2x1Shape  ; returns C and Y
+    bcs @done
+    lda #kPaletteObjOutbreakBrain | bObj::FlipH
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Flags_bObj, y
+    lda #kTileIdObjOutbreakBrain
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Tile_u8, y
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Tile_u8, y
+    @done:
 _SetUpIrq:
     ;; Compute the IRQ latch value to set between the bottom of the boss's zone
     ;; and the top of the window (if any), and set that as Param3_byte.
@@ -383,6 +459,59 @@ _SetUpIrq:
     lda #kBossBodyStartRow * kTileHeightPx + kBossZoneTopY
     sub Ram_RoomState + sState::BossTopY_u8
     sta <(Zp_Buffered_sIrq + sIrq::Param2_byte)  ; boss scroll-Y
+    rts
+.ENDPROC
+
+;;; Draws two claws on one side of the temple boss.
+;;; @prereq The shape position is set to the top left of the claw pair.
+;;; @param A Either 0 for eastern claws, or bObj::FlipH for western claws.
+.PROC FuncC_Temple_DrawBossClawPair
+    pha  ; horz flip
+    .assert kPaletteObjOutbreakClaw = 0, error
+    tay  ; param: object flags
+    lda Ram_RoomState + sState::BossTopY_u8
+    and #$01
+    cpy #0
+    beq @noEor
+    eor #$01
+    @noEor:
+    tax  ; 1 if claws are close together, 0 otherwise
+    jsr FuncA_Objects_MoveShapeDownByA  ; preserves X and Y
+    lda #kTileIdObjOutbreakClaw  ; param: tile ID
+    jsr FuncA_Objects_Draw1x1Shape  ; preserves X
+    lda _Offset_u8_arr2, x  ; param: offset
+    jsr FuncA_Objects_MoveShapeDownByA
+    pla  ; horz flip
+    eor #bObj::FlipV
+    tay  ; param: object flags
+    lda #kTileIdObjOutbreakClaw  ; param: tile ID
+    jmp FuncA_Objects_Draw1x1Shape
+_Offset_u8_arr2:
+    .byte kTileHeightPx * 3
+    .byte kTileHeightPx * 3 - 2
+.ENDPROC
+
+;;; Draws one eye for the temple boss.
+;;; @prereq The shape position is set to the top left of the eye.
+;;; @preserve X
+.PROC FuncC_Temple_DrawBossEyeShape
+    ldy #kPaletteObjOutbreakEye  ; param: object flags
+    lda #kTileIdObjOutbreakEye  ; param: tile ID
+    jmp FuncA_Objects_Draw1x1Shape  ; preserves X
+.ENDPROC
+
+;;; Sets Zp_ShapePosX_i16 and Zp_ShapePosY_i16 to the screen-space position of
+;;; the top-center of the boss's body.
+;;; @preserve X, Y, Zp_Tmp*
+.PROC FuncC_Temple_SetShapePosToBossMidTop
+    lda #kScreenWidthPx / 2
+    sta Zp_ShapePosX_i16 + 0
+    lda Ram_RoomState + sState::BossTopY_u8
+    sub Zp_RoomScrollY_u8
+    sta Zp_ShapePosY_i16 + 0
+    lda #0
+    sta Zp_ShapePosX_i16 + 1
+    sta Zp_ShapePosY_i16 + 1
     rts
 .ENDPROC
 
@@ -436,7 +565,8 @@ _SetUpIrq:
 
 .PROC FuncC_Temple_BossBlaster_TryAct
     ;; TODO: shoot a projectile upward
-    lda #kBlasterCooldownFrames
+    dec Ram_RoomState + sState::BossTopY_u8  ; TODO: only when proj hits
+    lda #kBlasterCooldownFrames  ; param: number of frames
     jmp FuncA_Machine_StartWaiting
 .ENDPROC
 
