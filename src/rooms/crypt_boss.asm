@@ -739,7 +739,7 @@ _EyeOffsetY_u8_arr:
     bcs @continue
     txa
     and #$01
-    add #kTileIdFirstSideWall
+    adc #kTileIdFirstSideWall  ; carry is already clear
     sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
     lda #kSideWallPalette
     sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y

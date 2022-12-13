@@ -22,12 +22,15 @@
 .INCLUDE "../charmap.inc"
 .INCLUDE "../device.inc"
 .INCLUDE "../flag.inc"
+.INCLUDE "../irq.inc"
 .INCLUDE "../machine.inc"
 .INCLUDE "../macros.inc"
+.INCLUDE "../mmc3.inc"
 .INCLUDE "../platform.inc"
 .INCLUDE "../ppu.inc"
 .INCLUDE "../program.inc"
 .INCLUDE "../room.inc"
+.INCLUDE "../window.inc"
 
 .IMPORT DataA_Room_Temple_sTileset
 .IMPORT FuncA_Machine_Error
@@ -41,6 +44,7 @@
 .IMPORT Func_FindEmptyActorSlot
 .IMPORT Func_MovePlatformLeftTowardPointX
 .IMPORT Func_Noop
+.IMPORT Int_WindowTopIrq
 .IMPORT Ppu_ChrObjTemple
 .IMPORT Ram_ActorPosX_i16_0_arr
 .IMPORT Ram_ActorPosX_i16_1_arr
@@ -50,9 +54,16 @@
 .IMPORT Ram_MachineStatus_eMachine_arr
 .IMPORT Ram_PlatformLeft_i16_0_arr
 .IMPORT Ram_RoomState
+.IMPORTZP Zp_Active_sIrq
+.IMPORTZP Zp_Buffered_sIrq
+.IMPORTZP Zp_NextIrq_int_ptr
 .IMPORTZP Zp_PointX_i16
+.IMPORTZP Zp_RoomScrollY_u8
 
 ;;;=========================================================================;;;
+
+;;; The fixed scroll-X position for this room.
+kRoomScrollX = $08
 
 ;;; The room block row/col where the upgrade will appear.
 kUpgradeBlockRow = 12
@@ -81,11 +92,64 @@ kBlasterCooldownFrames = 10
 
 ;;;=========================================================================;;;
 
+;;; The room pixel Y-positions for the top and bottom of the zone that the boss
+;;; can move within.
+kBossZoneTopY    = $26
+kBossZoneBottomY = $63
+
+;;; The height of the boss zone, in pixels.
+kBossZoneHeightPx = kBossZoneBottomY - kBossZoneTopY
+;;; How many BG tile rows are visible in the boss zone (rounded up).
+kBossZoneHeightTiles = (kBossZoneHeightPx + kTileHeightPx - 1) / kTileHeightPx
+
+;;; The height of the boss's body in the BG tile grid.
+kBossBodyHeightTiles = 4
+kBossBodyHeightPx = kBossBodyHeightTiles * kTileHeightPx
+.ASSERT kBossBodyHeightPx < kBossZoneHeightPx, error
+
+;;; The tile row in the lower nametable for the top edge of the boss's BG
+;;; tiles.
+kBossBodyStartRow = 8
+
+;;; How many BG tile rows above/below the boss must be reserved because they'll
+;;; be visible in the boss zone.
+kBossMarginHeightTiles = kBossZoneHeightTiles - kBossBodyHeightTiles
+
+;;; How many BG tile rows are needed for the boss and the margins above/below.
+kBossTotalHeightTiles = kBossBodyHeightTiles + kBossMarginHeightTiles * 2
+
+;;; The tile row in the lower nametable for the top of the margin space above
+;;; the boss's BG tiles.
+kBossMarginStartRow = kBossBodyStartRow - kBossMarginHeightTiles
+;;; Assert that the upper BG margin doesn't go above the top of the lower
+;;; nametable.
+.ASSERT kBossMarginStartRow >= 0, error
+;;; Assert that the lower BG margin doesn't run into the top of the window.
+.ASSERT kBossMarginStartRow + kBossTotalHeightTiles <= kWindowStartRow, error
+
+;;; The initial value for sState::BossTopY_u8.
+kBossInitTopY = kBossZoneBottomY - kBossBodyHeightPx
+
+.LINECONT +
+;;; The PPU address in the lower nametable for the leftmost tile column of the
+;;; first row of the margin above the boss's body.
+Ppu_BossMarginStart = Ppu_Nametable3_sName + sName::Tiles_u8_arr + \
+    kBossMarginStartRow * kScreenWidthTiles
+;;; The PPU address in the lower nametable for the leftmost tile column of the
+;;; first row that contains the boss's body.
+Ppu_BossBodyStart = Ppu_Nametable3_sName + sName::Tiles_u8_arr + \
+    kBossBodyStartRow * kScreenWidthTiles
+.LINECONT -
+
+;;;=========================================================================;;;
+
 ;;; Defines room-specific state data for this particular room.
 .STRUCT sState
     ;; The current states of the room's two levers.
-    LeverLeft_u1         .byte
-    LeverRight_u1        .byte
+    LeverLeft_u1  .byte
+    LeverRight_u1 .byte
+    ;; The room pixel position of the top of the boss's body.
+    BossTopY_u8   .byte
 .ENDSTRUCT
 .ASSERT .sizeof(sState) <= kRoomStateSize, error
 
@@ -96,8 +160,8 @@ kBlasterCooldownFrames = 10
 .EXPORT DataC_Temple_Boss_sRoom
 .PROC DataC_Temple_Boss_sRoom
     D_STRUCT sRoom
-    d_byte MinScrollX_u8, $08
-    d_word MaxScrollX_u16, $0008
+    d_byte MinScrollX_u8,  kRoomScrollX
+    d_word MaxScrollX_u16, kRoomScrollX + $0
     d_byte Flags_bRoom, eArea::Temple
     d_byte MinimapStartRow_u8, 3
     d_byte MinimapStartCol_u8, 0
@@ -106,7 +170,7 @@ kBlasterCooldownFrames = 10
     d_addr Machines_sMachine_arr_ptr, _Machines_sMachine_arr
     d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjTemple)
     d_addr Tick_func_ptr, FuncC_Temple_Boss_TickRoom
-    d_addr Draw_func_ptr, Func_Noop
+    d_addr Draw_func_ptr, FuncC_Temple_Boss_DrawRoom
     d_addr Ext_sRoomExt_ptr, _Ext_sRoomExt
     D_END
 _Ext_sRoomExt:
@@ -119,7 +183,7 @@ _Ext_sRoomExt:
     d_addr Passages_sPassage_arr_ptr, 0
     d_addr Init_func_ptr, FuncC_Temple_Boss_InitRoom
     d_addr Enter_func_ptr, Func_Noop
-    d_addr FadeIn_func_ptr, Func_Noop
+    d_addr FadeIn_func_ptr, FuncC_Temple_Boss_FadeInRoom
     D_END
 _TerrainData:
 :   .incbin "out/data/temple_boss.room"
@@ -132,7 +196,7 @@ _Machines_sMachine_arr:
     d_byte Flags_bMachine, bMachine::MoveH | bMachine::Act
     d_byte Status_eDiagram, eDiagram::Carriage  ; TODO
     d_word ScrollGoalX_u16, $0008
-    d_byte ScrollGoalY_u8, $00
+    d_byte ScrollGoalY_u8, $16
     d_byte RegNames_u8_arr4, "L", "R", "X", 0
     d_byte MainPlatform_u8, kBlasterPlatformIndex
     d_addr Init_func_ptr, FuncC_Temple_BossBlaster_Init
@@ -211,12 +275,15 @@ _Devices_sDevice_arr:
 _BossIsAlreadyDead:
     rts
 _InitializeBoss:
-    ;; TODO: remove this; initialize the boss instead
+    ;; Initialize boss:
+    lda #kBossInitTopY
+    sta Ram_RoomState + sState::BossTopY_u8
+    ;; TODO: remove this next part
     jsr Func_FindEmptyActorSlot  ; sets C on failure, returns X
     bcs @done
-    lda #$c0
+    lda #$80
     sta Ram_ActorPosX_i16_0_arr, x
-    lda #$30
+    lda #kBossZoneBottomY
     sta Ram_ActorPosY_i16_0_arr, x
     lda #0
     sta Ram_ActorPosX_i16_1_arr, x
@@ -226,13 +293,96 @@ _InitializeBoss:
     rts
 .ENDPROC
 
+;;; Room fade in function for the TempleBoss room.
+;;; @prereq Rendering is disabled.
+.PROC FuncC_Temple_Boss_FadeInRoom
+_DrawBoss:
+    ;; TODO: real implementation for drawing boss
+    lda #kPpuCtrlFlagsHorz
+    sta Hw_PpuCtrl_wo
+    ldax #Ppu_BossBodyStart + 11
+    sta Hw_PpuAddr_w2
+    stx Hw_PpuAddr_w2
+    ldx #10
+    lda #'X'
+    @loop1:
+    sta Hw_PpuData_rw
+    dex
+    bne @loop1
+    ldax #Ppu_BossBodyStart + (kScreenWidthTiles * 3) + 11
+    sta Hw_PpuAddr_w2
+    stx Hw_PpuAddr_w2
+    ldx #10
+    lda #'Z'
+    @loop2:
+    sta Hw_PpuData_rw
+    dex
+    bne @loop2
+_DrawColumns:
+    lda #kPpuCtrlFlagsVert
+    sta Hw_PpuCtrl_wo
+    ldy #8 - 1
+    @loop:
+    lda _TileIds_u8_arr, y  ; param: BG tile ID
+    ldx _Columns_u8_arr, y  ; param: nametable tile column
+    jsr _DrawStripe  ; preserves Y
+    dey
+    bpl @loop
+    rts
+_TileIds_u8_arr:
+    .byte $9a, $9b, $94, $95, $94, $95, $9a, $9b
+_Columns_u8_arr:
+    .byte   3,   4,   9,  10,  21,  22,  27,  28
+_DrawStripe:
+    pha  ; BG tile ID
+    txa  ; nametable tile column
+    add #<Ppu_BossMarginStart
+    tax  ; PPU address (lo)
+    lda #0
+    adc #>Ppu_BossMarginStart
+    bit Hw_PpuStatus_ro  ; reset the Hw_PpuAddr_w2 write-twice latch
+    sta Hw_PpuAddr_w2  ; PPU address (hi)
+    stx Hw_PpuAddr_w2  ; PPU address (lo)
+    pla  ; BG tile ID
+    ldx #kBossTotalHeightTiles
+    @loop:
+    sta Hw_PpuData_rw
+    dex
+    bne @loop
+    rts
+.ENDPROC
+
 ;;; Room tick function for the TempleBoss room.
 ;;; @prereq PRGA_Room is loaded.
 .PROC FuncC_Temple_Boss_TickRoom
-    lda #0  ; param: zero if boss is dead (TODO)
+    lda #1  ; param: zero if boss is dead (TODO)
     ldx #eFlag::BossTemple  ; param: boss flag
     jsr FuncA_Room_TickBossPhase
     ;; TODO: tick boss behavior if still alive
+    rts
+.ENDPROC
+
+;;; Draw function for the TempleBoss room.
+;;; @prereq PRGA_Objects is loaded.
+.PROC FuncC_Temple_Boss_DrawRoom
+    ;; TODO: draw boss objects
+_SetUpIrq:
+    ;; Compute the IRQ latch value to set between the bottom of the boss's zone
+    ;; and the top of the window (if any), and set that as Param3_byte.
+    lda <(Zp_Buffered_sIrq + sIrq::Latch_u8)
+    sub #kBossZoneBottomY
+    add Zp_RoomScrollY_u8
+    sta <(Zp_Buffered_sIrq + sIrq::Param3_byte)  ; window latch
+    ;; Set up our own sIrq struct to handle boss movement.
+    lda #kBossZoneTopY - 1
+    sub Zp_RoomScrollY_u8
+    sta <(Zp_Buffered_sIrq + sIrq::Latch_u8)
+    ldax #Int_TempleBossZoneTopIrq
+    stax <(Zp_Buffered_sIrq + sIrq::FirstIrq_int_ptr)
+    ;; Compute PPU scroll values for the boss zone.
+    lda #kBossBodyStartRow * kTileHeightPx + kBossZoneTopY
+    sub Ram_RoomState + sState::BossTopY_u8
+    sta <(Zp_Buffered_sIrq + sIrq::Param2_byte)  ; boss scroll-Y
     rts
 .ENDPROC
 
@@ -312,6 +462,100 @@ _InitializeBoss:
     jsr Func_MovePlatformLeftTowardPointX  ; returns Z
     jeq FuncA_Machine_ReachedGoal
     rts
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGE_Irq"
+
+;;; HBlank IRQ handler function for the top of the boss's zone in the
+;;; TempleBoss room.  Sets the vertical scroll so as to make the boss's BG
+;;; tiles appear to move.
+.PROC Int_TempleBossZoneTopIrq
+    ;; Save A and X registers (we won't be using Y).
+    pha
+    txa
+    pha
+    ;; At this point, the first HBlank is already just about over.  Ack the
+    ;; current IRQ.
+    sta Hw_Mmc3IrqDisable_wo  ; ack
+    sta Hw_Mmc3IrqEnable_wo  ; re-enable
+    ;; Set up the latch value for next IRQ.
+    lda #kBossZoneBottomY - kBossZoneTopY - 1
+    sta Hw_Mmc3IrqLatch_wo
+    sta Hw_Mmc3IrqReload_wo
+    ;; Update Zp_NextIrq_int_ptr for the next IRQ.
+    ldax #Int_TempleBossZoneBottomIrq
+    stax Zp_NextIrq_int_ptr
+    ;; Busy-wait for a bit, that our final writes in this function will occur
+    ;; during the next HBlank.
+    ldx #8  ; This value is hand-tuned to help wait for second HBlank.
+    @busyLoop:
+    dex
+    bne @busyLoop
+    ;; Set the PPU's new scroll-Y and scroll-X values, and also set the lower
+    ;; nametable as the scrolling origin.  All of this takes four writes, and
+    ;; the last two must happen during HBlank (between dots 256 and 320).
+    ;; See https://www.nesdev.org/wiki/PPU_scrolling#Split_X.2FY_scroll
+    lda #$0c  ; nametable number << 2 (so $0c for nametable 3)
+    sta Hw_PpuAddr_w2
+    lda <(Zp_Active_sIrq + sIrq::Param2_byte)  ; boss scroll-Y
+    sta Hw_PpuScroll_w2
+    and #$38
+    mul #4
+    ;; We should now be in the second HBlank.
+    stx Hw_PpuScroll_w2  ; new scroll-X value (zero)
+    sta Hw_PpuAddr_w2  ; ((Y & $38) << 2) | (X >> 3)
+    ;; Restore registers and return.
+    pla
+    tax
+    pla
+    rti
+.ENDPROC
+
+;;; HBlank IRQ handler function for the bottom of the boss's zone in the
+;;; TempleBoss room.  Sets the scroll so as to make the bottom of the room look
+;;; normal.
+.PROC Int_TempleBossZoneBottomIrq
+    ;; Save A and X registers (we won't be using Y).
+    pha
+    txa
+    pha
+    ;; At this point, the first HBlank is already just about over.  Ack the
+    ;; current IRQ.
+    sta Hw_Mmc3IrqDisable_wo  ; ack
+    sta Hw_Mmc3IrqEnable_wo  ; re-enable
+    ;; Set up the latch value for next IRQ.
+    lda <(Zp_Active_sIrq + sIrq::Param3_byte)  ; window latch
+    sta Hw_Mmc3IrqLatch_wo
+    sta Hw_Mmc3IrqReload_wo
+    ;; Update Zp_NextIrq_int_ptr for the next IRQ.
+    ldax #Int_WindowTopIrq
+    stax Zp_NextIrq_int_ptr
+    ;; Busy-wait for a bit, that our final writes in this function will occur
+    ;; during the next HBlank.
+    ldx #8  ; This value is hand-tuned to help wait for second HBlank.
+    @busyLoop:
+    dex
+    bne @busyLoop
+    ;; Set the PPU's new scroll-Y and scroll-X values, and also set the upper
+    ;; nametable as the scrolling origin.  All of this takes four writes, and
+    ;; the last two must happen during HBlank (between dots 256 and 320).
+    ;; See https://www.nesdev.org/wiki/PPU_scrolling#Split_X.2FY_scroll
+    lda #$00  ; nametable number << 2 (so $00 for nametable 0)
+    sta Hw_PpuAddr_w2
+    lda #kBossZoneBottomY  ; new scroll-Y value
+    sta Hw_PpuScroll_w2
+    lda #((kBossZoneBottomY & $38) << 2) | (kRoomScrollX >> 3)
+    ldx #kRoomScrollX
+    ;; We should now be in the second HBlank (and X is zero).
+    stx Hw_PpuScroll_w2  ; new scroll-X value
+    sta Hw_PpuAddr_w2    ; ((Y & $38) << 2) | (X >> 3)
+    ;; Restore registers and return.
+    pla
+    tax
+    pla
+    rti
 .ENDPROC
 
 ;;;=========================================================================;;;
