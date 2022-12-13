@@ -104,8 +104,6 @@ kCannonTileIdBarrelLow  = kTileIdCannonFirst + $04
 ;;; TryMove implemention for cannon machines.
 ;;; @prereq Zp_MachineIndex_u8 is initialized.
 ;;; @param X The eDir value for the direction to move in.
-;;; @return C Set if there was an error, cleared otherwise.
-;;; @return A How many frames to wait before advancing the PC.
 .EXPORT FuncA_Machine_CannonTryMove
 .PROC FuncA_Machine_CannonTryMove
     txa

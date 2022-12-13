@@ -34,10 +34,9 @@
 .INCLUDE "../window.inc"
 
 .IMPORT DataA_Room_Temple_sTileset
-.IMPORT FuncA_Machine_Error
+.IMPORT FuncA_Machine_GenericTryMoveX
 .IMPORT FuncA_Machine_ReachedGoal
 .IMPORT FuncA_Machine_StartWaiting
-.IMPORT FuncA_Machine_StartWorking
 .IMPORT FuncA_Objects_Alloc2x1Shape
 .IMPORT FuncA_Objects_Draw1x1Shape
 .IMPORT FuncA_Objects_DrawCarriageMachine
@@ -544,23 +543,8 @@ _Offset_u8_arr2:
 .ENDPROC
 
 .PROC FuncC_Temple_BossBlaster_TryMove
-    ldy Ram_MachineGoalHorz_u8_arr + kBlasterMachineIndex
-    cpx #eDir::Right
-    bne @moveLeft
-    @moveRight:
-    cpy #kBlasterMaxGoalX
-    bge @error
-    iny
-    bne @success  ; unconditional
-    @moveLeft:
-    tya
-    beq @error
-    dey
-    @success:
-    sty Ram_MachineGoalHorz_u8_arr + kBlasterMachineIndex
-    jmp FuncA_Machine_StartWorking
-    @error:
-    jmp FuncA_Machine_Error
+    lda #kBlasterMaxGoalX  ; param: max goal
+    jmp FuncA_Machine_GenericTryMoveX
 .ENDPROC
 
 .PROC FuncC_Temple_BossBlaster_TryAct

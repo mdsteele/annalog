@@ -30,8 +30,8 @@
 
 .IMPORT DataA_Room_Mine_sTileset
 .IMPORT FuncA_Machine_Error
+.IMPORT FuncA_Machine_GenericTryMoveZ
 .IMPORT FuncA_Machine_HoistMoveTowardGoal
-.IMPORT FuncA_Machine_HoistTryMove
 .IMPORT FuncA_Machine_ReachedGoal
 .IMPORT FuncA_Objects_DrawHoistGirder
 .IMPORT FuncA_Objects_DrawHoistMachine
@@ -271,7 +271,7 @@ _Passages_sPassage_arr:
 
 .PROC FuncC_Mine_PitHoistWest_TryMove
     lda #kHoistWestMaxGoalZ  ; param: max goal vert
-    jmp FuncA_Machine_HoistTryMove
+    jmp FuncA_Machine_GenericTryMoveZ
 .ENDPROC
 
 .PROC FuncC_Mine_PitHoistWest_Tick
@@ -301,7 +301,7 @@ _Passages_sPassage_arr:
 
 .PROC FuncC_Mine_PitHoistEast_TryMove
     lda #kHoistEastMaxGoalZ  ; param: max goal vert
-    jmp FuncA_Machine_HoistTryMove
+    jmp FuncA_Machine_GenericTryMoveZ
 .ENDPROC
 
 .PROC FuncC_Mine_PitHoistEast_Tick

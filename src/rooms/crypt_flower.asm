@@ -31,9 +31,8 @@
 .INCLUDE "../room.inc"
 
 .IMPORT DataA_Room_Crypt_sTileset
-.IMPORT FuncA_Machine_Error
+.IMPORT FuncA_Machine_GenericTryMoveZ
 .IMPORT FuncA_Machine_GetWinchVertSpeed
-.IMPORT FuncA_Machine_StartWorking
 .IMPORT FuncA_Machine_WinchReachedGoal
 .IMPORT FuncA_Machine_WinchStartFalling
 .IMPORT FuncA_Objects_DrawChainWithLength
@@ -263,24 +262,8 @@ _ReadZ:
 .ENDPROC
 
 .PROC FuncC_Crypt_FlowerWinch_TryMove
-    ldy Ram_MachineGoalVert_u8_arr + kWinchMachineIndex
-    txa
-    .assert eDir::Up = 0, error
-    beq @moveUp
-    @moveDown:
-    cpy #kWinchMaxGoalZ
-    bge @error
-    iny
-    bne @success  ; unconditional
-    @moveUp:
-    tya
-    beq @error
-    dey
-    @success:
-    sty Ram_MachineGoalVert_u8_arr + kWinchMachineIndex
-    jmp FuncA_Machine_StartWorking
-    @error:
-    jmp FuncA_Machine_Error
+    lda #kWinchMaxGoalZ  ; param: max goal
+    jmp FuncA_Machine_GenericTryMoveZ
 .ENDPROC
 
 .PROC FuncC_Crypt_FlowerWinch_TryAct

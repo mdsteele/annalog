@@ -19,19 +19,120 @@
 
 .INCLUDE "../machine.inc"
 .INCLUDE "../macros.inc"
+.INCLUDE "../program.inc"
 
+.IMPORT FuncA_Machine_Error
+.IMPORT FuncA_Machine_StartWorking
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
+.IMPORT Ram_MachineGoalHorz_u8_arr
+.IMPORT Ram_MachineGoalVert_u8_arr
 .IMPORT Ram_MachineStatus_eMachine_arr
 .IMPORTZP Zp_ConsoleMachineIndex_u8
 .IMPORTZP Zp_Current_sMachine_ptr
 .IMPORTZP Zp_FrameCounter_u8
 .IMPORTZP Zp_MachineIndex_u8
+.IMPORTZP Zp_Tmp1_byte
 
 ;;;=========================================================================;;;
 
 ;;; OBJ tile IDs used for drawing machine status lights.
 kMachineLightTileIdOff = $3e
 kMachineLightTileIdOn  = $3f
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Machine"
+
+;;; Tries to move the current machine's horizontal goal value, where goal
+;;; position zero is the leftmost position, and the only constraint is that the
+;;; horizontal goal value must be between zero and the given max, inclusive.
+;;; @prereq Zp_MachineIndex_u8 is initialized.
+;;; @param A The maximum permitted vertical goal value.
+;;; @param X The eDir value for the direction to move in (up or down).
+.EXPORT FuncA_Machine_GenericTryMoveX
+.PROC FuncA_Machine_GenericTryMoveX
+    sta Zp_Tmp1_byte  ; max goal horz
+    ldy Zp_MachineIndex_u8
+    lda Ram_MachineGoalHorz_u8_arr, y
+    cpx #eDir::Right
+    bne @moveLeft
+    @moveRight:
+    cmp Zp_Tmp1_byte  ; max goal horz
+    bge @error
+    tax
+    inx
+    bne @success  ; unconditional
+    @moveLeft:
+    tax
+    beq @error
+    dex
+    @success:
+    txa
+    sta Ram_MachineGoalHorz_u8_arr, y
+    jmp FuncA_Machine_StartWorking
+    @error:
+    jmp FuncA_Machine_Error
+.ENDPROC
+
+;;; Tries to move the current machine's vertical goal value, where goal
+;;; position zero is the lowest position, and the only constraint is that the
+;;; vertical goal value must be between zero and the given max, inclusive.
+;;; @prereq Zp_MachineIndex_u8 is initialized.
+;;; @param A The maximum permitted vertical goal value.
+;;; @param X The eDir value for the direction to move in (up or down).
+.EXPORT FuncA_Machine_GenericTryMoveY
+.PROC FuncA_Machine_GenericTryMoveY
+    sta Zp_Tmp1_byte  ; max goal vert
+    ldy Zp_MachineIndex_u8
+    lda Ram_MachineGoalVert_u8_arr, y
+    cpx #eDir::Up
+    bne @moveDown
+    @moveUp:
+    cmp Zp_Tmp1_byte  ; max goal vert
+    bge @error
+    add #1
+    bne @success  ; unconditional
+    @moveDown:
+    tax
+    beq @error
+    dex
+    txa
+    @success:
+    sta Ram_MachineGoalVert_u8_arr, y
+    jmp FuncA_Machine_StartWorking
+    @error:
+    jmp FuncA_Machine_Error
+.ENDPROC
+
+;;; Tries to move the current machine's vertical goal value, where goal
+;;; position zero is the highest position, and the only constraint is that the
+;;; vertical goal value must be between zero and the given max, inclusive.
+;;; @prereq Zp_MachineIndex_u8 is initialized.
+;;; @param A The maximum permitted vertical goal value.
+;;; @param X The eDir value for the direction to move in (up or down).
+.EXPORT FuncA_Machine_GenericTryMoveZ
+.PROC FuncA_Machine_GenericTryMoveZ
+    sta Zp_Tmp1_byte  ; max goal vert
+    ldy Zp_MachineIndex_u8
+    lda Ram_MachineGoalVert_u8_arr, y
+    cpx #eDir::Up
+    beq @moveUp
+    @moveDown:
+    cmp Zp_Tmp1_byte  ; max goal vert
+    bge @error
+    add #1
+    bne @success  ; unconditional
+    @moveUp:
+    tax
+    beq @error
+    dex
+    txa
+    @success:
+    sta Ram_MachineGoalVert_u8_arr, y
+    jmp FuncA_Machine_StartWorking
+    @error:
+    jmp FuncA_Machine_Error
+.ENDPROC
 
 ;;;=========================================================================;;;
 

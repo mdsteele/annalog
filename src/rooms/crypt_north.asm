@@ -32,11 +32,11 @@
 
 .IMPORT DataA_Room_Crypt_sTileset
 .IMPORT FuncA_Machine_Error
+.IMPORT FuncA_Machine_GenericTryMoveY
+.IMPORT FuncA_Machine_GenericTryMoveZ
 .IMPORT FuncA_Machine_GetWinchVertSpeed
 .IMPORT FuncA_Machine_LiftMoveTowardGoal
-.IMPORT FuncA_Machine_LiftTryMove
 .IMPORT FuncA_Machine_ReachedGoal
-.IMPORT FuncA_Machine_StartWorking
 .IMPORT FuncA_Machine_WinchReachedGoal
 .IMPORT FuncA_Machine_WinchStartFalling
 .IMPORT FuncA_Objects_DrawGirderPlatform
@@ -268,24 +268,8 @@ _ReadZ:
 .ENDPROC
 
 .PROC FuncC_Crypt_NorthWinch_TryMove
-    ldy Ram_MachineGoalVert_u8_arr + kWinchMachineIndex
-    txa
-    .assert eDir::Up = 0, error
-    beq @moveUp
-    @moveDown:
-    cpy #kWinchMaxGoalZ
-    bge @error
-    iny
-    bne @success  ; unconditional
-    @moveUp:
-    tya
-    beq @error
-    dey
-    @success:
-    sty Ram_MachineGoalVert_u8_arr + kWinchMachineIndex
-    jmp FuncA_Machine_StartWorking
-    @error:
-    jmp FuncA_Machine_Error
+    lda #kWinchMaxGoalZ  ; param: max goal
+    jmp FuncA_Machine_GenericTryMoveZ
 .ENDPROC
 
 .PROC FuncC_Crypt_NorthWinch_TryAct
@@ -330,13 +314,13 @@ _ReadZ:
     lda #<(kLiftMaxPlatformTop + kTileHeightPx)
     sub Ram_PlatformTop_i16_0_arr + kLiftPlatformIndex
     .assert kLiftMaxPlatformTop - kLiftMinPlatformTop < $100, error
-    div #kBlockWidthPx
+    div #kBlockHeightPx
     rts
 .ENDPROC
 
 .PROC FuncC_Crypt_NorthLift_TryMove
     lda #kLiftMaxGoalY  ; param: max goal vert
-    jmp FuncA_Machine_LiftTryMove
+    jmp FuncA_Machine_GenericTryMoveY
 .ENDPROC
 
 .PROC FuncC_Crypt_NorthLift_Tick

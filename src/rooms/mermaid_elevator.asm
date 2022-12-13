@@ -30,8 +30,8 @@
 
 .IMPORT DataA_Room_Mermaid_sTileset
 .IMPORT FuncA_Machine_Error
+.IMPORT FuncA_Machine_GenericTryMoveY
 .IMPORT FuncA_Machine_JetTick
-.IMPORT FuncA_Machine_LiftTryMove
 .IMPORT FuncA_Objects_DrawJetMachine
 .IMPORT Func_MachineJetReadRegY
 .IMPORT Func_Noop
@@ -224,7 +224,7 @@ _Passages_sPassage_arr:
 
 .PROC FuncC_Mermaid_ElevatorJet_TryMove
     lda #kJetMaxGoalY  ; param: max goal vert
-    jmp FuncA_Machine_LiftTryMove
+    jmp FuncA_Machine_GenericTryMoveY
 .ENDPROC
 
 .PROC FuncC_Mermaid_ElevatorJet_Tick

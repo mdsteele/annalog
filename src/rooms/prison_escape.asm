@@ -33,8 +33,8 @@
 
 .IMPORT DataA_Room_Prison_sTileset
 .IMPORT FuncA_Machine_Error
+.IMPORT FuncA_Machine_GenericTryMoveX
 .IMPORT FuncA_Machine_ReachedGoal
-.IMPORT FuncA_Machine_StartWorking
 .IMPORT FuncA_Objects_Draw1x1Shape
 .IMPORT FuncA_Objects_DrawGirderPlatform
 .IMPORT FuncA_Objects_DrawTrolleyMachine
@@ -50,9 +50,7 @@
 .IMPORT Ram_MachineGoalHorz_u8_arr
 .IMPORT Ram_MachineStatus_eMachine_arr
 .IMPORT Ram_PlatformLeft_i16_0_arr
-.IMPORT Ram_PlatformLeft_i16_1_arr
 .IMPORTZP Zp_PointX_i16
-.IMPORTZP Zp_Tmp1_byte
 
 ;;;=========================================================================;;;
 
@@ -130,14 +128,14 @@ _Machines_sMachine_arr:
     d_byte ScrollGoalY_u8, $b0
     d_byte RegNames_u8_arr4, 0, 0, "X", 0
     d_byte MainPlatform_u8, kTrolleyPlatformIndex
-    d_addr Init_func_ptr, _Trolley_Init
-    d_addr ReadReg_func_ptr, _Trolley_ReadReg
+    d_addr Init_func_ptr, FuncC_Prison_EscapeTrolley_Init
+    d_addr ReadReg_func_ptr, FuncC_Prison_EscapeTrolley_ReadReg
     d_addr WriteReg_func_ptr, Func_Noop
-    d_addr TryMove_func_ptr, _Trolley_TryMove
+    d_addr TryMove_func_ptr, FuncC_Prison_EscapeTrolley_TryMove
     d_addr TryAct_func_ptr, FuncA_Machine_Error
-    d_addr Tick_func_ptr, _Trolley_Tick
+    d_addr Tick_func_ptr, FuncC_Prison_EscapeTrolley_Tick
     d_addr Draw_func_ptr, FuncA_Objects_PrisonEscapeTrolley_Draw
-    d_addr Reset_func_ptr, _Trolley_Reset
+    d_addr Reset_func_ptr, FuncC_Prison_EscapeTrolley_Reset
     D_END
     .assert * - :- <= kMaxMachines * .sizeof(sMachine), error
 _Platforms_sPlatform_arr:
@@ -209,41 +207,31 @@ _Passages_sPassage_arr:
     d_byte Destination_eRoom, eRoom::PrisonCell
     d_byte SpawnBlock_u8, 18
     D_END
-_Trolley_Init:
-_Trolley_Reset:
+.ENDPROC
+
+.PROC FuncC_Prison_EscapeTrolley_Reset
+    .assert * = FuncC_Prison_EscapeTrolley_Init, error, "fallthrough"
+.ENDPROC
+
+.PROC FuncC_Prison_EscapeTrolley_Init
     lda #0
     sta Ram_MachineGoalHorz_u8_arr + kTrolleyMachineIndex
     rts
-_Trolley_ReadReg:
+.ENDPROC
+
+.PROC FuncC_Prison_EscapeTrolley_ReadReg
     lda Ram_PlatformLeft_i16_0_arr + kTrolleyPlatformIndex
     sub #<(kTrolleyMinPlatformLeft - kTileWidthPx)
-    sta Zp_Tmp1_byte
-    lda Ram_PlatformLeft_i16_1_arr + kTrolleyPlatformIndex
-    sbc #>(kTrolleyMinPlatformLeft - kTileWidthPx)
-    .repeat 4
-    lsr a
-    ror Zp_Tmp1_byte
-    .endrepeat
-    lda Zp_Tmp1_byte
+    div #kBlockWidthPx
     rts
-_Trolley_TryMove:
-    cpx #eDir::Left
-    beq @moveLeft
-    @moveRight:
-    lda Ram_MachineGoalHorz_u8_arr + kTrolleyMachineIndex
-    cmp #kTrolleyMaxGoalX
-    bge @error
-    inc Ram_MachineGoalHorz_u8_arr + kTrolleyMachineIndex
-    bne @success  ; unconditional
-    @moveLeft:
-    lda Ram_MachineGoalHorz_u8_arr + kTrolleyMachineIndex
-    beq @error
-    dec Ram_MachineGoalHorz_u8_arr + kTrolleyMachineIndex
-    @success:
-    jmp FuncA_Machine_StartWorking
-    @error:
-    jmp FuncA_Machine_Error
-_Trolley_Tick:
+.ENDPROC
+
+.PROC FuncC_Prison_EscapeTrolley_TryMove
+    lda #kTrolleyMaxGoalX  ; param: max goal
+    jmp FuncA_Machine_GenericTryMoveX
+.ENDPROC
+
+.PROC FuncC_Prison_EscapeTrolley_Tick
     ;; Calculate the desired X-position for the left edge of the trolley, in
     ;; room-space pixels, storing it in Zp_PointX_i16.
     lda Ram_MachineGoalHorz_u8_arr + kTrolleyMachineIndex

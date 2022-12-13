@@ -25,8 +25,6 @@
 .INCLUDE "hoist.inc"
 .INCLUDE "shared.inc"
 
-.IMPORT FuncA_Machine_Error
-.IMPORT FuncA_Machine_StartWorking
 .IMPORT FuncA_Objects_Draw1x1Shape
 .IMPORT FuncA_Objects_Draw2x2Shape
 .IMPORT FuncA_Objects_DrawGirderPlatform
@@ -67,34 +65,6 @@ kPaletteObjRope = 0
 ;;;=========================================================================;;;
 
 .SEGMENT "PRGA_Machine"
-
-;;; Tries to move the current hoist machine's vertical goal value.
-;;; @prereq Zp_MachineIndex_u8 is initialized.
-;;; @param A The maximum permitted vertical goal value.
-;;; @param X The eDir value for the direction to move in (up or down).
-.EXPORT FuncA_Machine_HoistTryMove
-.PROC FuncA_Machine_HoistTryMove
-    sta Zp_Tmp1_byte  ; max goal vert
-    ldy Zp_MachineIndex_u8
-    lda Ram_MachineGoalVert_u8_arr, y
-    cpx #eDir::Up
-    beq @moveUp
-    @moveDown:
-    cmp Zp_Tmp1_byte  ; max goal vert
-    bge @error
-    add #1
-    bne @success  ; unconditional
-    @moveUp:
-    tax
-    beq @error
-    dex
-    txa
-    @success:
-    sta Ram_MachineGoalVert_u8_arr, y
-    jmp FuncA_Machine_StartWorking
-    @error:
-    jmp FuncA_Machine_Error
-.ENDPROC
 
 ;;; Moves the current hoist machine's platform towards its goal position.
 ;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.

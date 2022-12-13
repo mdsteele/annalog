@@ -24,8 +24,6 @@
 .INCLUDE "../program.inc"
 .INCLUDE "shared.inc"
 
-.IMPORT FuncA_Machine_Error
-.IMPORT FuncA_Machine_StartWorking
 .IMPORT FuncA_Objects_Alloc2x2Shape
 .IMPORT FuncA_Objects_GetMachineLightTileId
 .IMPORT FuncA_Objects_MoveShapeDownAndRightOneTile
@@ -51,34 +49,6 @@ kTileIdLiftSurface = $78
 ;;;=========================================================================;;;
 
 .SEGMENT "PRGA_Machine"
-
-;;; Tries to move the current lift machine's vertical goal value.
-;;; @prereq Zp_MachineIndex_u8 is initialized.
-;;; @param A The maximum permitted vertical goal value.
-;;; @param X The eDir value for the direction to move in (up or down).
-.EXPORT FuncA_Machine_LiftTryMove
-.PROC FuncA_Machine_LiftTryMove
-    sta Zp_Tmp1_byte  ; max goal vert
-    ldy Zp_MachineIndex_u8
-    lda Ram_MachineGoalVert_u8_arr, y
-    cpx #eDir::Up
-    bne @moveDown
-    @moveUp:
-    cmp Zp_Tmp1_byte  ; max goal vert
-    bge @error
-    add #1
-    bne @success  ; unconditional
-    @moveDown:
-    tax
-    beq @error
-    dex
-    txa
-    @success:
-    sta Ram_MachineGoalVert_u8_arr, y
-    jmp FuncA_Machine_StartWorking
-    @error:
-    jmp FuncA_Machine_Error
-.ENDPROC
 
 ;;; Moves the current lift machine's platform towards its goal position.
 ;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.

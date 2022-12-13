@@ -34,8 +34,8 @@
 
 .IMPORT DataA_Room_Prison_sTileset
 .IMPORT FuncA_Machine_Error
+.IMPORT FuncA_Machine_GenericTryMoveY
 .IMPORT FuncA_Machine_LiftMoveTowardGoal
-.IMPORT FuncA_Machine_LiftTryMove
 .IMPORT FuncA_Machine_ReachedGoal
 .IMPORT FuncA_Objects_DrawLiftMachine
 .IMPORT FuncC_Prison_DrawGatePlatform
@@ -288,7 +288,7 @@ _LockScrolling:
 
 .PROC FuncC_Prison_CellLift_TryMove
     lda #kLiftMaxGoalY  ; param: max goal vert
-    jmp FuncA_Machine_LiftTryMove
+    jmp FuncA_Machine_GenericTryMoveY
 .ENDPROC
 
 .PROC FuncC_Prison_CellLift_Tick
