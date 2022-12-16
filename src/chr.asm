@@ -18,6 +18,7 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "actors/breakball.inc"
+.INCLUDE "actors/bullet.inc"
 .INCLUDE "actors/crab.inc"
 .INCLUDE "actors/fireball.inc"
 .INCLUDE "actors/fish.inc"
@@ -38,8 +39,10 @@
 .INCLUDE "machines/crane.inc"
 .INCLUDE "machines/hoist.inc"
 .INCLUDE "machines/jet.inc"
+.INCLUDE "machines/minigun.inc"
 .INCLUDE "machines/pump.inc"
 .INCLUDE "machines/winch.inc"
+.INCLUDE "platforms/column.inc"
 .INCLUDE "platforms/crate.inc"
 .INCLUDE "platforms/gate.inc"
 .INCLUDE "platforms/stepstone.inc"
@@ -819,19 +822,24 @@
     .incbin "out/data/tiles/upgrade_maxinst.chr"
     .assert * - :- = (kTileIdObjBreakballFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/breakball.chr"
-    .res $02 * kSizeofChr
+    .assert * - :- = (kTileIdObjColumnFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/column.chr"
+    .assert * - :- = (kTileIdObjUpgradeOpTilFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/upgrade_optil.chr"
     .assert * - :- = (kTileIdObjFlamewaveFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/flamewave.chr"
-    .res $05 * kSizeofChr
+    .res $03 * kSizeofChr
+    .assert * - :- = (kTileIdObjBulletFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/bullet.chr"
     .assert * - :- = (kTileIdObjCrateFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/crate.chr"
-    .res $02 * kSizeofChr
-    .incbin "out/data/tiles/column.chr"
+    .res $04 * kSizeofChr
     .incbin "out/data/tiles/outbreak_obj.chr"
     .assert * - :- = (kTileIdMermaidGuardFFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/mermaid_guardf.chr"
-    .res $22 * kSizeofChr
+    .res $1a * kSizeofChr
+    .assert * - :- = (kTileIdObjMinigunVertFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/minigun_vert.chr"
     .assert * - :- = (kTileIdObjChildAlexFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/alex.chr"
     .assert * - :- = (kTileIdObjBeetleFirst - $80) * kSizeofChr, error

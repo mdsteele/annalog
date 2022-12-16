@@ -60,7 +60,7 @@
 
 ;;;=========================================================================;;;
 
-;;; Tile IDs for drawing the TempleLobbyCarriage machine.
+;;; Tile IDs for drawing carriage machines.
 kTileIdObjCarriageCorner  = kTileIdMachineCorner
 kTileIdObjCarriageSurface = $7a
 

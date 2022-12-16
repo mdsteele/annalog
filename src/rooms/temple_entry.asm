@@ -31,10 +31,7 @@
 .INCLUDE "../room.inc"
 
 .IMPORT DataA_Room_Temple_sTileset
-.IMPORT FuncA_Objects_Alloc2x2Shape
-.IMPORT FuncA_Objects_MoveShapeDownAndRightOneTile
-.IMPORT FuncA_Objects_MoveShapeDownByA
-.IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
+.IMPORT FuncC_Temple_DrawColumnPlatform
 .IMPORT Func_MovePlatformTopTowardPointY
 .IMPORT Func_Noop
 .IMPORT Func_SetFlag
@@ -42,7 +39,6 @@
 .IMPORT Ppu_ChrObjTemple
 .IMPORT Ram_ActorType_eActor_arr
 .IMPORT Ram_DeviceType_eDevice_arr
-.IMPORT Ram_Oam_sObj_arr64
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORT Ram_PlatformTop_i16_1_arr
 .IMPORT Ram_RoomState
@@ -263,42 +259,7 @@ _MaybeRaiseColumn:
 ;;; @prereq PRGA_Objects is loaded.
 .PROC FuncC_Temple_Entry_DrawRoom
     ldx #kColumnPlatformIndex  ; param: platform index
-    jsr FuncA_Objects_SetShapePosToPlatformTopLeft
-_ColumnTop:
-    jsr FuncA_Objects_MoveShapeDownAndRightOneTile
-    lda #kColumnPalette | bObj::Pri  ; param: obj flags
-    jsr FuncA_Objects_Alloc2x2Shape  ; returns C and Y
-    bcs @done
-    lda #kTileIdObjColumnCorner
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Tile_u8, y
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Tile_u8, y
-    lda #kTileIdObjColumnSide
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Tile_u8, y
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Tile_u8, y
-    lda #kColumnPalette | bObj::Pri | bObj::FlipH
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Flags_bObj, y
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Flags_bObj, y
-    @done:
-_ColumnBody:
-    ldx #2
-    @loop:
-    lda #kBlockHeightPx  ; param: move delta
-    jsr FuncA_Objects_MoveShapeDownByA  ; preserves X
-    lda #kColumnPalette | bObj::Pri  ; param: obj flags
-    jsr FuncA_Objects_Alloc2x2Shape  ; preserves X, returns C and Y
-    bcs @continue
-    lda #kTileIdObjColumnSide
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Tile_u8, y
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Tile_u8, y
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Tile_u8, y
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Tile_u8, y
-    lda #kColumnPalette | bObj::Pri | bObj::FlipH
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Flags_bObj, y
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Flags_bObj, y
-    @continue:
-    dex
-    bne @loop
-    rts
+    jmp FuncC_Temple_DrawColumnPlatform
 .ENDPROC
 
 ;;;=========================================================================;;;

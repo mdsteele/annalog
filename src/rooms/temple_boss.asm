@@ -35,11 +35,12 @@
 
 .IMPORT DataA_Room_Temple_sTileset
 .IMPORT FuncA_Machine_GenericTryMoveX
+.IMPORT FuncA_Machine_MinigunRotateBarrel
+.IMPORT FuncA_Machine_MinigunTryAct
 .IMPORT FuncA_Machine_ReachedGoal
-.IMPORT FuncA_Machine_StartWaiting
 .IMPORT FuncA_Objects_Alloc2x1Shape
 .IMPORT FuncA_Objects_Draw1x1Shape
-.IMPORT FuncA_Objects_DrawCarriageMachine
+.IMPORT FuncA_Objects_DrawMinigunMachine
 .IMPORT FuncA_Objects_MoveShapeDownByA
 .IMPORT FuncA_Objects_MoveShapeLeftByA
 .IMPORT FuncA_Objects_MoveShapeLeftHalfTile
@@ -83,24 +84,21 @@ kUpgradeBlockCol = 4
 ;;; The eFlag value for the upgrade in this room.
 kUpgradeFlag = eFlag::UpgradeMaxInstructions1
 
-;;; The machine index for the TempleBossBlaster machine.
-kBlasterMachineIndex = 0
-;;; The platform index for the TempleBossBlaster machine.
-kBlasterPlatformIndex = 0
+;;; The machine index for the TempleBossMinigun machine.
+kMinigunMachineIndex = 0
+;;; The platform index for the TempleBossMinigun machine.
+kMinigunPlatformIndex = 0
 
-;;; The initial and maximum permitted horizontal goal values for the blaster.
-kBlasterInitGoalX = 4
-kBlasterMaxGoalX = 8
+;;; The initial and maximum permitted horizontal goal values for the minigun.
+kMinigunInitGoalX = 4
+kMinigunMaxGoalX = 8
 
-;;; The maximum and initial X-positions for the left of the blaster platform.
+;;; The maximum and initial X-positions for the left of the minigun platform.
 .LINECONT +
-kBlasterMinPlatformLeft = $0038
-kBlasterInitPlatformLeft = \
-    kBlasterMinPlatformLeft + kBlasterInitGoalX * kBlockWidthPx
+kMinigunMinPlatformLeft = $0038
+kMinigunInitPlatformLeft = \
+    kMinigunMinPlatformLeft + kMinigunInitGoalX * kBlockWidthPx
 .LINECONT -
-
-;;; The cooldown time between blaster shots, in frames.
-kBlasterCooldownFrames = 30
 
 ;;;=========================================================================;;;
 
@@ -217,33 +215,33 @@ _TerrainData:
 :   .incbin "out/data/temple_boss.room"
     .assert * - :- = 17 * 16, error
 _Machines_sMachine_arr:
-:   .assert * - :- = kBlasterMachineIndex * .sizeof(sMachine), error
+:   .assert * - :- = kMinigunMachineIndex * .sizeof(sMachine), error
     D_STRUCT sMachine
-    d_byte Code_eProgram, eProgram::TempleBossBlaster
+    d_byte Code_eProgram, eProgram::TempleBossMinigun
     d_byte Breaker_eFlag, 0
     d_byte Flags_bMachine, bMachine::MoveH | bMachine::Act
     d_byte Status_eDiagram, eDiagram::Carriage  ; TODO
     d_word ScrollGoalX_u16, $0008
     d_byte ScrollGoalY_u8, $16
     d_byte RegNames_u8_arr4, "L", "R", "X", 0
-    d_byte MainPlatform_u8, kBlasterPlatformIndex
-    d_addr Init_func_ptr, FuncC_Temple_BossBlaster_Init
-    d_addr ReadReg_func_ptr, FuncC_Temple_BossBlaster_ReadReg
+    d_byte MainPlatform_u8, kMinigunPlatformIndex
+    d_addr Init_func_ptr, FuncC_Temple_BossMinigun_Init
+    d_addr ReadReg_func_ptr, FuncC_Temple_BossMinigun_ReadReg
     d_addr WriteReg_func_ptr, Func_Noop
-    d_addr TryMove_func_ptr, FuncC_Temple_BossBlaster_TryMove
-    d_addr TryAct_func_ptr, FuncC_Temple_BossBlaster_TryAct
-    d_addr Tick_func_ptr, FuncC_Temple_BossBlaster_Tick
-    d_addr Draw_func_ptr, FuncA_Objects_TempleBossBlaster_Draw
-    d_addr Reset_func_ptr, FuncC_Temple_BossBlaster_Reset
+    d_addr TryMove_func_ptr, FuncC_Temple_BossMinigun_TryMove
+    d_addr TryAct_func_ptr, FuncC_Temple_BossMinigun_TryAct
+    d_addr Tick_func_ptr, FuncC_Temple_BossMinigun_Tick
+    d_addr Draw_func_ptr, FuncA_Objects_DrawMinigunMachine
+    d_addr Reset_func_ptr, FuncC_Temple_BossMinigun_Reset
     D_END
     .assert * - :- <= kMaxMachines * .sizeof(sMachine), error
 _Platforms_sPlatform_arr:
-:   .assert * - :- = kBlasterPlatformIndex * .sizeof(sPlatform), error
+:   .assert * - :- = kMinigunPlatformIndex * .sizeof(sPlatform), error
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Solid
     d_word WidthPx_u16, $20
     d_byte HeightPx_u8, $10
-    d_word Left_i16, kBlasterInitPlatformLeft
+    d_word Left_i16, kMinigunInitPlatformLeft
     d_word Top_i16,   $00a0
     D_END
     .assert * - :- <= kMaxPlatforms * .sizeof(sPlatform), error
@@ -276,7 +274,7 @@ _Devices_sDevice_arr:
     d_byte Type_eDevice, eDevice::Console
     d_byte BlockRow_u8, 12
     d_byte BlockCol_u8, 3
-    d_byte Target_u8, kBlasterMachineIndex
+    d_byte Target_u8, kMinigunMachineIndex
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::LeverFloor
@@ -514,24 +512,24 @@ _Offset_u8_arr2:
     rts
 .ENDPROC
 
-.PROC FuncC_Temple_BossBlaster_Init
-    .assert * = FuncC_Temple_BossBlaster_Reset, error, "fallthrough"
+.PROC FuncC_Temple_BossMinigun_Init
+    .assert * = FuncC_Temple_BossMinigun_Reset, error, "fallthrough"
 .ENDPROC
 
-.PROC FuncC_Temple_BossBlaster_Reset
-    lda #kBlasterInitGoalX
-    sta Ram_MachineGoalHorz_u8_arr + kBlasterMachineIndex
+.PROC FuncC_Temple_BossMinigun_Reset
+    lda #kMinigunInitGoalX
+    sta Ram_MachineGoalHorz_u8_arr + kMinigunMachineIndex
     rts
 .ENDPROC
 
-.PROC FuncC_Temple_BossBlaster_ReadReg
+.PROC FuncC_Temple_BossMinigun_ReadReg
     cmp #$c
     beq @readL
     cmp #$d
     beq @readR
     @readX:
-    lda Ram_PlatformLeft_i16_0_arr + kBlasterPlatformIndex
-    sub #kBlasterMinPlatformLeft - kTileWidthPx
+    lda Ram_PlatformLeft_i16_0_arr + kMinigunPlatformIndex
+    sub #kMinigunMinPlatformLeft - kTileWidthPx
     div #kBlockWidthPx
     rts
     @readL:
@@ -542,37 +540,36 @@ _Offset_u8_arr2:
     rts
 .ENDPROC
 
-.PROC FuncC_Temple_BossBlaster_TryMove
-    lda #kBlasterMaxGoalX  ; param: max goal
+.PROC FuncC_Temple_BossMinigun_TryMove
+    lda #kMinigunMaxGoalX  ; param: max goal
     jmp FuncA_Machine_GenericTryMoveX
 .ENDPROC
 
-.PROC FuncC_Temple_BossBlaster_TryAct
-    ;; TODO: shoot a projectile upward
-    dec Ram_RoomState + sState::BossTopY_u8  ; TODO: only when proj hits
-    lda #kBlasterCooldownFrames  ; param: number of frames
-    jmp FuncA_Machine_StartWaiting
+.PROC FuncC_Temple_BossMinigun_TryAct
+    ldy #eDir::Up  ; param: bullet direction
+    jmp FuncA_Machine_MinigunTryAct
 .ENDPROC
 
-.PROC FuncC_Temple_BossBlaster_Tick
-    ;; Calculate the desired X-position for the left edge of the blaster, in
+.PROC FuncC_Temple_BossMinigun_Tick
+    jsr FuncA_Machine_MinigunRotateBarrel
+    ;; Calculate the desired X-position for the left edge of the minigun, in
     ;; room-space pixels, storing it in Zp_PointX_i16.
-    lda Ram_MachineGoalHorz_u8_arr + kBlasterMachineIndex
+    lda Ram_MachineGoalHorz_u8_arr + kMinigunMachineIndex
     mul #kBlockWidthPx
-    add #<kBlasterMinPlatformLeft
+    add #<kMinigunMinPlatformLeft
     sta Zp_PointX_i16 + 0
     lda #0
-    adc #>kBlasterMinPlatformLeft
+    adc #>kMinigunMinPlatformLeft
     sta Zp_PointX_i16 + 1
-    ;; Determine the horizontal speed of the blaster (faster if resetting).
-    ldx Ram_MachineStatus_eMachine_arr + kBlasterMachineIndex
+    ;; Determine the horizontal speed of the minigun (faster if resetting).
+    ldx Ram_MachineStatus_eMachine_arr + kMinigunMachineIndex
     lda #1
     cpx #eMachine::Resetting
     bne @slow
     mul #2
     @slow:
-    ;; Move the blaster horizontally, as necessary.
-    ldx #kBlasterPlatformIndex  ; param: platform index
+    ;; Move the minigun horizontally, as necessary.
+    ldx #kMinigunPlatformIndex  ; param: platform index
     jsr Func_MovePlatformLeftTowardPointX  ; returns Z
     jeq FuncA_Machine_ReachedGoal
     rts
@@ -670,14 +667,6 @@ _Offset_u8_arr2:
     tax
     pla
     rti
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Objects"
-
-.PROC FuncA_Objects_TempleBossBlaster_Draw
-    jmp FuncA_Objects_DrawCarriageMachine  ; TODO
 .ENDPROC
 
 ;;;=========================================================================;;;

@@ -41,6 +41,7 @@ kMaxActors = 8
     NpcMermaidQueen
     NpcToddler
     ProjBreakball
+    ProjBullet
     ProjFireball
     ProjFlamewave
     ProjGrenade
