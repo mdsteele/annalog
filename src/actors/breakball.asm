@@ -29,7 +29,6 @@
 .IMPORT FuncA_Actor_HarmAvatarIfCollision
 .IMPORT FuncA_Actor_NegateVelX
 .IMPORT FuncA_Actor_NegateVelY
-.IMPORT FuncA_Actor_SetActorCenterToPoint
 .IMPORT FuncA_Objects_Alloc2x2Shape
 .IMPORT FuncA_Objects_SetShapePosToActorCenter
 .IMPORT Func_FindEmptyActorSlot
@@ -41,6 +40,7 @@
 .IMPORT Func_MovePointRightByA
 .IMPORT Func_MovePointUpByA
 .IMPORT Func_PointHitsTerrain
+.IMPORT Func_SetActorCenterToPoint
 .IMPORT Func_SetPointToActorCenter
 .IMPORT Ram_ActorPosY_i16_0_arr
 .IMPORT Ram_ActorType_eActor_arr
@@ -60,8 +60,9 @@ kPaletteObjBreakball = 1
 ;;; How many VBlank frames between breakball animation frames.
 .DEFINE kProjBreakballAnimSlowdown 4
 
-;;; How fast the breakball moves horizontally/vertically, in subpixels/frame.
-kProjBreakballSpeed = $c0
+;;; How fast a breakball moves horizontally/vertically, in subpixels/frame.
+kProjBreakballSpeedHorz = $e0
+kProjBreakballSpeedVert = $60
 
 ;;;=========================================================================;;;
 
@@ -78,7 +79,7 @@ kProjBreakballSpeed = $c0
     ldy #eActor::ProjBreakball  ; param: actor type
     jsr Func_InitActorDefault  ; preserves X and Zp_Tmp*
 _InitVelY:
-    lda #kProjBreakballSpeed
+    lda #kProjBreakballSpeedVert
     ldy #0
     sta Ram_ActorVelY_i16_0_arr, x
     tya
@@ -88,11 +89,11 @@ _InitVelX:
     .assert bObj::FlipH = bProc::Overflow, error
     bvs @left
     @right:
-    lda #kProjBreakballSpeed
+    lda #kProjBreakballSpeedHorz
     bne @setXVel  ; unconditional
     @left:
     dey  ; now Y is $ff
-    lda #<-kProjBreakballSpeed
+    lda #<-kProjBreakballSpeedHorz
     @setXVel:
     sta Ram_ActorVelX_i16_0_arr, x
     tya
@@ -190,7 +191,7 @@ _Explode:
     jsr Func_SetPointToActorCenter  ; preserves X
     jsr Func_FindEmptyActorSlot  ; returns C and X
     bcs @doneFirstFlamewave
-    jsr FuncA_Actor_SetActorCenterToPoint  ; preserves X
+    jsr Func_SetActorCenterToPoint  ; preserves X
     lda #0  ; param: direction (0 = right)
     jsr Func_InitActorProjFlamewave
     @doneFirstFlamewave:

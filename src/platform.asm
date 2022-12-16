@@ -80,6 +80,33 @@ Ram_PlatformRight_i16_1_arr: .res kMaxPlatforms
 
 .SEGMENT "PRG8"
 
+;;; Stores the room pixel position of the center of the platform in
+;;; Zp_Point*_i16.  The platform's width and height must fit in one byte.
+;;; @param Y The platform index.
+;;; @preserve X, Y, Zp_Tmp*
+.EXPORT Func_SetPointToPlatformCenter
+.PROC Func_SetPointToPlatformCenter
+    ;; Set X-position.
+    lda Ram_PlatformRight_i16_0_arr, y
+    sub Ram_PlatformLeft_i16_0_arr, y
+    div #2
+    adc Ram_PlatformLeft_i16_0_arr, y  ; use carry from div
+    sta Zp_PointX_i16 + 0
+    lda Ram_PlatformLeft_i16_1_arr, y
+    adc #0
+    sta Zp_PointX_i16 + 1
+    ;; Set Y-position.
+    lda Ram_PlatformBottom_i16_0_arr, y
+    sub Ram_PlatformTop_i16_0_arr, y
+    div #2
+    adc Ram_PlatformTop_i16_0_arr, y  ; use carry from div
+    sta Zp_PointY_i16 + 0
+    lda Ram_PlatformTop_i16_1_arr, y
+    adc #0
+    sta Zp_PointY_i16 + 1
+    rts
+.ENDPROC
+
 ;;; Checks if the point stored in Zp_PointX_i16 and Zp_PointY_i16 is inside the
 ;;; platform.
 ;;; @param Y The platform index.

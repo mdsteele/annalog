@@ -51,11 +51,11 @@ kPaletteObjFlamewave = 1
 ;;; How many VBlank frames between flamewave animation frames.
 .DEFINE kProjFlamewaveAnimSlowdown 2
 
-;;; How fast the flamewave moves horizontally/vertically, in subpixels/frame.
-kProjFlamewaveSpeed = $0150
+;;; How fast a flamewave moves horizontally, in subpixels/frame.
+kProjFlamewaveSpeed = $01c0
 
 ;;; How many times a flamewave can bounce off a wall without expiring.
-kProjFlamewaveMaxBounces = 2
+kProjFlamewaveMaxBounces = 1
 
 ;;;=========================================================================;;;
 

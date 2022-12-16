@@ -193,6 +193,22 @@ Ram_ActorFlags_bObj_arr: .res kMaxActors
     rts
 .ENDPROC
 
+;;; Sets the actor's room pixel position to Zp_Point*_i16.
+;;; @param X The actor index.
+;;; @preserve X, Y, Zp_Tmp*
+.EXPORT Func_SetActorCenterToPoint
+.PROC Func_SetActorCenterToPoint
+    lda Zp_PointX_i16 + 0
+    sta Ram_ActorPosX_i16_0_arr, x
+    lda Zp_PointX_i16 + 1
+    sta Ram_ActorPosX_i16_1_arr, x
+    lda Zp_PointY_i16 + 0
+    sta Ram_ActorPosY_i16_0_arr, x
+    lda Zp_PointY_i16 + 1
+    sta Ram_ActorPosY_i16_1_arr, x
+    rts
+.ENDPROC
+
 ;;; Zeroes the velocity and state bytes for the specified actor, and sets the
 ;;; actor's flags and type as specified.
 ;;; @prereq The actor's pixel position has already been initialized.
@@ -588,22 +604,6 @@ _NoHit:
     ror a
     .endrepeat
     tay
-    rts
-.ENDPROC
-
-;;; Sets the actor's room pixel position to Zp_Point*_i16.
-;;; @param X The actor index.
-;;; @preserve X, Y, Zp_Tmp*
-.EXPORT FuncA_Actor_SetActorCenterToPoint
-.PROC FuncA_Actor_SetActorCenterToPoint
-    lda Zp_PointX_i16 + 0
-    sta Ram_ActorPosX_i16_0_arr, x
-    lda Zp_PointX_i16 + 1
-    sta Ram_ActorPosX_i16_1_arr, x
-    lda Zp_PointY_i16 + 0
-    sta Ram_ActorPosY_i16_0_arr, x
-    lda Zp_PointY_i16 + 1
-    sta Ram_ActorPosY_i16_1_arr, x
     rts
 .ENDPROC
 
