@@ -837,7 +837,10 @@
     .incbin "out/data/tiles/outbreak_obj.chr"
     .assert * - :- = (kTileIdMermaidGuardFFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/mermaid_guardf.chr"
-    .res $1a * kSizeofChr
+    .res $02 * kSizeofChr
+    .assert * - :- = (kTileIdObjToadFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/toad.chr"
+    .res $10 * kSizeofChr
     .assert * - :- = (kTileIdObjMinigunVertFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/minigun_vert.chr"
     .assert * - :- = (kTileIdObjChildAlexFirst - $80) * kSizeofChr, error

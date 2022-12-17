@@ -94,6 +94,7 @@ kRoomStateSize = $100
     TempleLobby
     TempleNave
     TemplePit
+    TempleWest
     TownHouse1
     TownHouse2
     TownOutdoors
