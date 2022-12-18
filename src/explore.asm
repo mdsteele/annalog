@@ -418,8 +418,14 @@ _FadeIn:
 ;;; @prereq Explore mode is already initialized.
 ;;; @param X The upgrade device index.
 .PROC Main_Explore_PickUpUpgrade
+_SetSpawnPoint:
+    .assert bSpawn::IsPassage <> 0, error
+    txa  ; param: bSpawn value
+    jsr Func_SetLastSpawnPoint  ; preserves X
+_DisableHud:
     ldy #0
     sty Zp_HudEnabled_bool
+_CollectUpgrade:
     dey  ; now Y is $ff
     sty Zp_NearbyDevice_u8
     jmp Main_Upgrade_OpenWindow
@@ -440,20 +446,20 @@ _FadeIn:
 ;;; Mode for using a console device.
 ;;; @prereq Rendering is enabled.
 ;;; @prereq Explore mode is already initialized.
-;;; @prereq Zp_NearbyDevice_u8 holds the index of a console device.
+;;; @param X The console device index.
 .PROC Main_Explore_UseConsole
     lda #eAvatar::Reading
     sta Zp_AvatarMode_eAvatar
 _SetSpawnPoint:
     .assert bSpawn::IsPassage <> 0, error
-    lda Zp_NearbyDevice_u8  ; param: bSpawn value
-    jsr Func_SetLastSpawnPoint
+    txa  ; param: bSpawn value
+    jsr Func_SetLastSpawnPoint  ; preserves X
 _EnableHud:
     lda #$ff
     sta Zp_HudEnabled_bool
 _OpenConsoleWindow:
-    ldy Zp_NearbyDevice_u8
-    ldx Ram_DeviceTarget_u8_arr, y  ; param: machine index
+    lda Ram_DeviceTarget_u8_arr, x
+    tax  ; param: machine index
     jmp Main_Console_OpenWindow
 .ENDPROC
 
