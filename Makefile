@@ -203,6 +203,13 @@ $(OBJDIR)/rooms/mermaid_village.o: $(SRCDIR)/rooms/mermaid_village.asm \
                                    $(DATADIR)/mermaid_village2.room
 	$(compile-asm)
 
+$(OBJDIR)/rooms/town_outdoors.o: $(SRCDIR)/rooms/town_outdoors.asm \
+                                 $(INCFILES) \
+                                 $(DATADIR)/town_outdoors1.room \
+                                 $(DATADIR)/town_outdoors2.room \
+                                 $(DATADIR)/town_outdoors3.room
+	$(compile-asm)
+
 $(OBJDIR)/rooms/%.o: $(SRCDIR)/rooms/%.asm $(INCFILES) $(DATADIR)/%.room
 	$(compile-asm)
 

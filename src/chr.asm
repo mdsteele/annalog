@@ -471,7 +471,8 @@
     .incbin "out/data/tiles/roof.chr"
     .incbin "out/data/tiles/window.chr"
     .incbin "out/data/tiles/house.chr"
-    .res $0f * kSizeofChr
+    .res $04 * kSizeofChr
+    .incbin "out/data/tiles/tree.chr"
     .incbin "out/data/tiles/sign.chr"
     .res $04 * kSizeofChr
     .assert * - :- = kSizeofChr * $40, error
@@ -858,10 +859,7 @@
 
 .EXPORT Ppu_ChrObjTownsfolk
 .PROC Ppu_ChrObjTownsfolk
-:   .assert * - :- = (kTileIdObjToddlerFirst - $80) * kSizeofChr, error
-    .incbin "out/data/tiles/toddler.chr"
-    .assert * - :- = (kTileIdObjChildPonytailFirst - $80) * kSizeofChr, error
-    .incbin "out/data/tiles/child_ponytail.chr"
+:   .res $08 * kSizeofChr
     .assert * - :- = (kTileIdAdultWomanFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/adults.chr"
     .assert * - :- = (kTileIdMermaidAdultFirst - $80) * kSizeofChr, error

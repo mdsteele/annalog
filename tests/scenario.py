@@ -41,6 +41,8 @@ ROOM_PARENTS = {
     'MermaidHut6': 'MermaidEast',
     'TownHouse1': 'TownOutdoors',
     'TownHouse2': 'TownOutdoors',
+    'TownHouse5': 'TownOutdoors',
+    'TownHouse6': 'TownOutdoors',
 }
 
 PASSAGE_SIDE_OPPOSITES = {
@@ -310,7 +312,7 @@ def test_room_cells(areas):
                         failed = True
                 elif cell in covered_area_cells:
                     print('SCENARIO: {} cell {} overlaps with {}'.format(
-                        room_name, cell, covered_cells[cell]))
+                        room_name, cell, covered_area_cells[cell]))
                     failed = True
                 else:
                     covered_area_cells[cell] = room_name

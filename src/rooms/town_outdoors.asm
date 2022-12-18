@@ -87,9 +87,9 @@ _Ext_sRoomExt:
     d_addr FadeIn_func_ptr, Func_Noop
     D_END
 _TerrainData:
-:   .incbin "out/data/town_outdoors.room"
-    .incbin "out/data/town_outdoors.room"  ; TODO
-    .incbin "out/data/town_outdoors.room"  ; TODO
+:   .incbin "out/data/town_outdoors1.room"
+    .incbin "out/data/town_outdoors2.room"
+    .incbin "out/data/town_outdoors3.room"
     .assert * - :- = 96 * 16, error
 _Platforms_sPlatform_arr:
     .byte ePlatform::None
@@ -97,22 +97,48 @@ _Actors_sActor_arr:
     .byte eActor::None
 _Devices_sDevice_arr:
     D_STRUCT sDevice
-    d_byte Type_eDevice, eDevice::Sign
-    d_byte BlockRow_u8, 12
-    d_byte BlockCol_u8, 19
-    d_byte Target_u8, kSignDialogIndex
-    D_END
-    D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::OpenDoorway
     d_byte BlockRow_u8, 12
-    d_byte BlockCol_u8, 4
+    d_byte BlockCol_u8, 6
     d_byte Target_u8, eRoom::TownHouse1
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::OpenDoorway
     d_byte BlockRow_u8, 12
-    d_byte BlockCol_u8, 12
+    d_byte BlockCol_u8, 13
     d_byte Target_u8, eRoom::TownHouse2
+    D_END
+    ;; TODO:
+    ;; D_STRUCT sDevice
+    ;; d_byte Type_eDevice, eDevice::OpenDoorway
+    ;; d_byte BlockRow_u8, 12
+    ;; d_byte BlockCol_u8, 24
+    ;; d_byte Target_u8, eRoom::TownHouse3
+    ;; D_END
+    D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::Sign
+    d_byte BlockRow_u8, 12
+    d_byte BlockCol_u8, 32
+    d_byte Target_u8, kSignDialogIndex
+    D_END
+    ;; TODO:
+    ;; D_STRUCT sDevice
+    ;; d_byte Type_eDevice, eDevice::OpenDoorway
+    ;; d_byte BlockRow_u8, 12
+    ;; d_byte BlockCol_u8, 37
+    ;; d_byte Target_u8, eRoom::TownHouse4
+    ;; D_END
+    D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::OpenDoorway
+    d_byte BlockRow_u8, 12
+    d_byte BlockCol_u8, 59
+    d_byte Target_u8, eRoom::TownHouse5
+    D_END
+    D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::OpenDoorway
+    d_byte BlockRow_u8, 12
+    d_byte BlockCol_u8, 71
+    d_byte Target_u8, eRoom::TownHouse6
     D_END
     .byte eDevice::None
 .ENDPROC
@@ -262,14 +288,8 @@ _Devices_sDevice_arr:
 
 .PROC DataA_Dialog_TownOutdoors_Sign_sDialog
     .word ePortrait::Sign
-    .byte "Lorem ipsum dolor sit$"
-    .byte "amet, consectetur$"
-    .byte "adipiscing elit, sed$"
-    .byte "do eiusmod tempor.#"
-    .word ePortrait::Sign
-    .byte "Ut enim ad minim$"
-    .byte "veniam, quis nostrud$"
-    .byte "exercitation.#"
+    .byte "$"
+    .byte " Bartik Town Hall#"
     .word ePortrait::Done
 .ENDPROC
 

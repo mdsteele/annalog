@@ -29,29 +29,29 @@
 
 .IMPORT DataA_Room_Indoors_sTileset
 .IMPORT Func_Noop
-.IMPORT Ppu_ChrObjPrison
+.IMPORT Ppu_ChrObjTownsfolk
 
 ;;;=========================================================================;;;
 
-;;; The dialog index for the girl in this room.
-kGirlDialogIndex = 0
+;;; The dialog index for the elder in this room.
+kElderDialogIndex = 0
 
 ;;;=========================================================================;;;
 
 .SEGMENT "PRGC_Town"
 
-.EXPORT DataC_Town_House1_sRoom
-.PROC DataC_Town_House1_sRoom
+.EXPORT DataC_Town_House6_sRoom
+.PROC DataC_Town_House6_sRoom
     D_STRUCT sRoom
     d_byte MinScrollX_u8, $0
     d_word MaxScrollX_u16, $0
     d_byte Flags_bRoom, eArea::Town
     d_byte MinimapStartRow_u8, 0
-    d_byte MinimapStartCol_u8, 11
+    d_byte MinimapStartCol_u8, 15
     d_addr TerrainData_ptr, _TerrainData
     d_byte NumMachines_u8, 0
     d_addr Machines_sMachine_arr_ptr, 0
-    d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjPrison)
+    d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjTownsfolk)
     d_addr Tick_func_ptr, Func_Noop
     d_addr Draw_func_ptr, Func_Noop
     d_addr Ext_sRoomExt_ptr, _Ext_sRoomExt
@@ -62,48 +62,42 @@ _Ext_sRoomExt:
     d_addr Platforms_sPlatform_arr_ptr, _Platforms_sPlatform_arr
     d_addr Actors_sActor_arr_ptr, _Actors_sActor_arr
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
-    d_addr Dialogs_sDialog_ptr_arr_ptr, DataA_Dialog_TownHouse1_sDialog_ptr_arr
+    d_addr Dialogs_sDialog_ptr_arr_ptr, DataA_Dialog_TownHouse6_sDialog_ptr_arr
     d_addr Passages_sPassage_arr_ptr, 0
     d_addr Init_func_ptr, Func_Noop
     d_addr Enter_func_ptr, Func_Noop
     d_addr FadeIn_func_ptr, Func_Noop
     D_END
 _TerrainData:
-:   .incbin "out/data/town_house1.room"
+:   .incbin "out/data/town_house6.room"
     .assert * - :- = 16 * 16, error
 _Platforms_sPlatform_arr:
     .byte ePlatform::None
 _Actors_sActor_arr:
     D_STRUCT sActor
-    d_byte Type_eActor, eActor::NpcChild
+    d_byte Type_eActor, eActor::NpcAdult
     d_byte TileRow_u8, 25
-    d_byte TileCol_u8, 20
-    d_byte Param_byte, eNpcChild::PonytailStanding
-    D_END
-    D_STRUCT sActor
-    d_byte Type_eActor, eActor::NpcToddler
-    d_byte TileRow_u8, 25
-    d_byte TileCol_u8, 16
-    d_byte Param_byte, 55
+    d_byte TileCol_u8, 12
+    d_byte Param_byte, kTileIdAdultWomanFirst  ; TODO
     D_END
     .byte eActor::None
 _Devices_sDevice_arr:
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::TalkRight
     d_byte BlockRow_u8, 12
-    d_byte BlockCol_u8, 9
-    d_byte Target_u8, kGirlDialogIndex
+    d_byte BlockCol_u8, 5
+    d_byte Target_u8, kElderDialogIndex
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::TalkLeft
     d_byte BlockRow_u8, 12
-    d_byte BlockCol_u8, 10
-    d_byte Target_u8, kGirlDialogIndex
+    d_byte BlockCol_u8, 6
+    d_byte Target_u8, kElderDialogIndex
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::UnlockedDoor
     d_byte BlockRow_u8, 12
-    d_byte BlockCol_u8, 6
+    d_byte BlockCol_u8, 9
     d_byte Target_u8, eRoom::TownOutdoors
     D_END
     .byte eDevice::None
@@ -113,16 +107,15 @@ _Devices_sDevice_arr:
 
 .SEGMENT "PRGA_Dialog"
 
-;;; Dialog data for the TownHouse1 room.
-.PROC DataA_Dialog_TownHouse1_sDialog_ptr_arr
-:   .assert * - :- = kGirlDialogIndex * kSizeofAddr, error
-    .addr DataA_Dialog_TownHouse1_Girl_sDialog
+;;; Dialog data for the TownHouse6 room.
+.PROC DataA_Dialog_TownHouse6_sDialog_ptr_arr
+:   .assert * - :- = kElderDialogIndex * kSizeofAddr, error
+    .addr DataA_Dialog_TownHouse6_Elder_sDialog
 .ENDPROC
 
-.PROC DataA_Dialog_TownHouse1_Girl_sDialog
-    .word ePortrait::Girl
-    .byte "My baby sister keeps$"
-    .byte "peeing her pants!#"
+.PROC DataA_Dialog_TownHouse6_Elder_sDialog
+    .word ePortrait::Woman  ; TODO
+    .byte "I am Elder Roman.#"
     .word ePortrait::Done
 .ENDPROC
 

@@ -83,6 +83,7 @@ static const struct {
   {0xa0, "temple3"},
   {0xb0, "temple4"},
   {0xd0, "thorns_anim0"},
+  {0xae, "tree"},
   {0x90, "volcanic"},
   {0xc0, "water_anim0"},
   {0xce, "waterfall_anim0"},
