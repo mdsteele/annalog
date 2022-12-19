@@ -97,6 +97,7 @@ kRoomStateSize = $100
     TempleWest
     TownHouse1
     TownHouse2
+    TownHouse3
     TownHouse4
     TownHouse5
     TownHouse6
