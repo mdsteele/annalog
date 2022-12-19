@@ -32,14 +32,14 @@
 .IMPORT DataA_Terrain_GardenLowerRight_u8_arr
 .IMPORT DataA_Terrain_GardenUpperLeft_u8_arr
 .IMPORT DataA_Terrain_GardenUpperRight_u8_arr
+.IMPORT DataA_Terrain_HouseLowerLeft_u8_arr
+.IMPORT DataA_Terrain_HouseLowerRight_u8_arr
+.IMPORT DataA_Terrain_HouseUpperLeft_u8_arr
+.IMPORT DataA_Terrain_HouseUpperRight_u8_arr
 .IMPORT DataA_Terrain_HutLowerLeft_u8_arr
 .IMPORT DataA_Terrain_HutLowerRight_u8_arr
 .IMPORT DataA_Terrain_HutUpperLeft_u8_arr
 .IMPORT DataA_Terrain_HutUpperRight_u8_arr
-.IMPORT DataA_Terrain_IndoorsLowerLeft_u8_arr
-.IMPORT DataA_Terrain_IndoorsLowerRight_u8_arr
-.IMPORT DataA_Terrain_IndoorsUpperLeft_u8_arr
-.IMPORT DataA_Terrain_IndoorsUpperRight_u8_arr
 .IMPORT DataA_Terrain_LavaLowerLeft_u8_arr
 .IMPORT DataA_Terrain_LavaLowerRight_u8_arr
 .IMPORT DataA_Terrain_LavaUpperLeft_u8_arr
@@ -71,8 +71,8 @@
 .IMPORT Ppu_ChrBgCrypt
 .IMPORT Ppu_ChrBgFactory
 .IMPORT Ppu_ChrBgGarden
+.IMPORT Ppu_ChrBgHouse
 .IMPORT Ppu_ChrBgHut
-.IMPORT Ppu_ChrBgIndoors
 .IMPORT Ppu_ChrBgLava
 .IMPORT Ppu_ChrBgMermaid
 .IMPORT Ppu_ChrBgMine
@@ -118,6 +118,17 @@
     D_END
 .ENDPROC
 
+.EXPORT DataA_Room_House_sTileset
+.PROC DataA_Room_House_sTileset
+    D_STRUCT sTileset
+    d_addr UpperLeft_u8_arr_ptr,  DataA_Terrain_HouseUpperLeft_u8_arr
+    d_addr LowerLeft_u8_arr_ptr,  DataA_Terrain_HouseLowerLeft_u8_arr
+    d_addr UpperRight_u8_arr_ptr, DataA_Terrain_HouseUpperRight_u8_arr
+    d_addr LowerRight_u8_arr_ptr, DataA_Terrain_HouseLowerRight_u8_arr
+    d_byte Chr08Bank_u8, <.bank(Ppu_ChrBgHouse)
+    D_END
+.ENDPROC
+
 .EXPORT DataA_Room_Hut_sTileset
 .PROC DataA_Room_Hut_sTileset
     D_STRUCT sTileset
@@ -126,17 +137,6 @@
     d_addr UpperRight_u8_arr_ptr, DataA_Terrain_HutUpperRight_u8_arr
     d_addr LowerRight_u8_arr_ptr, DataA_Terrain_HutLowerRight_u8_arr
     d_byte Chr08Bank_u8, <.bank(Ppu_ChrBgHut)
-    D_END
-.ENDPROC
-
-.EXPORT DataA_Room_Indoors_sTileset
-.PROC DataA_Room_Indoors_sTileset
-    D_STRUCT sTileset
-    d_addr UpperLeft_u8_arr_ptr,  DataA_Terrain_IndoorsUpperLeft_u8_arr
-    d_addr LowerLeft_u8_arr_ptr,  DataA_Terrain_IndoorsLowerLeft_u8_arr
-    d_addr UpperRight_u8_arr_ptr, DataA_Terrain_IndoorsUpperRight_u8_arr
-    d_addr LowerRight_u8_arr_ptr, DataA_Terrain_IndoorsLowerRight_u8_arr
-    d_byte Chr08Bank_u8, <.bank(Ppu_ChrBgIndoors)
     D_END
 .ENDPROC
 

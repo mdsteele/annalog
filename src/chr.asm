@@ -362,6 +362,20 @@
 
 ;;;=========================================================================;;;
 
+.SEGMENT "CHR_BgHouse"
+
+.EXPORT Ppu_ChrBgHouse
+.PROC Ppu_ChrBgHouse
+:   .incbin "out/data/tiles/indoors.chr"
+    .res $07 * kSizeofChr
+    .incbin "out/data/tiles/window.chr"
+    .incbin "out/data/tiles/furniture.chr"
+    .res $14 * kSizeofChr
+    .assert * - :- = kSizeofChr * $40, error
+.ENDPROC
+
+;;;=========================================================================;;;
+
 .SEGMENT "CHR_BgHut"
 
 .EXPORT Ppu_ChrBgHut
@@ -371,20 +385,6 @@
     .res $1e * kSizeofChr
     .incbin "out/data/tiles/sign.chr"
     .incbin "out/data/tiles/console.chr"
-    .assert * - :- = kSizeofChr * $40, error
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "CHR_BgIndoors"
-
-.EXPORT Ppu_ChrBgIndoors
-.PROC Ppu_ChrBgIndoors
-:   .incbin "out/data/tiles/indoors.chr"
-    .res $07 * kSizeofChr
-    .incbin "out/data/tiles/window.chr"
-    .incbin "out/data/tiles/furniture.chr"
-    .res $14 * kSizeofChr
     .assert * - :- = kSizeofChr * $40, error
 .ENDPROC
 
