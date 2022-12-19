@@ -138,7 +138,7 @@ Zp_AvatarHarmTimer_u8: .res 1
 .PROC FuncA_Avatar_InitMotionless
     pha  ; is airborne
     txa  ; facing direction
-    ora #kAvatarPaletteNormal
+    ora #kPaletteObjAvatarNormal
     sta Zp_AvatarFlags_bObj
     lda #0
     sta Zp_AvatarHarmTimer_u8
@@ -811,7 +811,7 @@ _Stop:
 ;;; button is held.
 .PROC FuncA_Avatar_ApplyDpadLeft
     ;; Face the player avatar to the left.
-    lda #bObj::FlipH | kAvatarPaletteNormal
+    lda #bObj::FlipH | kPaletteObjAvatarNormal
     sta Zp_AvatarFlags_bObj
 _DetermineLimit:
     ;; Determine the (negative) X-velocity limit in pixels/frame, storing it in
@@ -874,7 +874,7 @@ _AccelerateTowardsLimit:
 ;;; button is held.
 .PROC FuncA_Avatar_ApplyDpadRight
     ;; Face the player avatar to the right.
-    lda #kAvatarPaletteNormal
+    lda #kPaletteObjAvatarNormal
     sta Zp_AvatarFlags_bObj
 _DetermineLimit:
     ;; Determine the (positive) X-velocity limit in pixels/frame, storing it in

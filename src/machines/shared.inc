@@ -21,6 +21,6 @@
 kTileIdMachineCorner = $79
 
 ;;; The OBJ palette number used for the blinking error light on machines.
-kMachineLightPalette = 1
+kPaletteObjMachineLight = 1
 
 ;;;=========================================================================;;;

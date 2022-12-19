@@ -99,8 +99,8 @@
 
 ;;; The OBJ palette number and tile ID used for the visual prompt that appears
 ;;; when the player avatar is near a device.
-kDevicePromptObjPalette = 1
-kDevicePromptObjTileId = $09
+kPaletteObjDevicePrompt = 1
+kTileIdObjDevicePrompt = $09
 
 ;;; The higher the number, the more slowly the camera tracks towards the scroll
 ;;; goal.
@@ -881,8 +881,8 @@ _DrawObject:
     add #3 + kTileWidthPx * 2  ; param: offset
     jsr FuncA_Objects_MoveShapeUpByA
     ;; Draw the object:
-    ldy #kDevicePromptObjPalette  ; param: object flags
-    lda #kDevicePromptObjTileId  ; param: tile ID
+    ldy #kPaletteObjDevicePrompt  ; param: object flags
+    lda #kTileIdObjDevicePrompt  ; param: tile ID
     jmp FuncA_Objects_Draw1x1Shape
 _NotVisible:
     rts

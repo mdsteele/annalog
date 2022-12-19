@@ -79,8 +79,8 @@ kDialogWindowScrollSpeed = 4
 
 ;;; The OBJ palette number and tile ID used for the visual prompt that appears
 ;;; when dialog is paused.
-kDialogPromptObjPalette = 1
-kDialogPromptObjTileId = $08
+kPaletteObjDialogPrompt = 1
+kTileIdObjDialogPrompt = $08
 
 ;;; The tile row/col within the window where the "yes"/"no" options start.
 kDialogYesNoWindowRow = 4
@@ -781,9 +781,9 @@ _EndOfLine:
     sta Ram_Oam_sObj_arr64 + sObj::YPos_u8, y
     lda #$e8
     sta Ram_Oam_sObj_arr64 + sObj::XPos_u8, y
-    lda #kDialogPromptObjPalette
+    lda #kPaletteObjDialogPrompt
     sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
-    lda #kDialogPromptObjTileId
+    lda #kTileIdObjDialogPrompt
     sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
     ;; Update the OAM offset.
     .repeat .sizeof(sObj)
@@ -823,7 +823,7 @@ _EndOfLine:
     lda #kConsoleObjTileIdCursorSolidRight
     @setTileId:
     sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
-    lda #bObj::Pri | kDialogPromptObjPalette
+    lda #bObj::Pri | kPaletteObjDialogPrompt
     sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
     lda #kDialogYesNoObjY
     sta Ram_Oam_sObj_arr64 + sObj::YPos_u8, y

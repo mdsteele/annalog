@@ -70,31 +70,31 @@
 ;;;=========================================================================;;;
 
 ;;; The BG tile ID for an unexplored tile on the minimap.
-kMinimapTileIdUnexplored  = $80
-
-;;; The OBJ tile ID for marking the current area on the minimap.
-kMinimapAreaObjTileId     = $02
+kTileIdBgMinimapUnexplored = $80
 
 ;;; The BG tile ID for the bottom-left tile for all upgrade symbols.  Add 1 to
 ;;; this to get the the bottom-right tile ID for those symbols.
-kUpgradeTileIdBottomLeft  = $c0
+kTileIdBgUpgradeBottomLeft = $c0
 ;;; The BG tile ID for the top-left tile of the symbol for max-instruction
 ;;; upgrades.  Add 1 to this to get the the top-right tile ID for that symbol.
-kMaxInstTileIdTopLeft     = $c2
+kTileIdBgMaxInstTopLeft    = $c2
 ;;; The BG tile ID for the top-left tile for the symbol of the first
 ;;; non-max-instruction upgrade.  Add 1 to this to get the the top-right tile
 ;;; ID for that symbol, then add another 1 to get the top-left tile ID for the
 ;;; next upgrade, and so on.
-kRemainingTileIdTopLeft   = $c4
+kTileidBgRemainingTopLeft  = $c4
 
 ;;; The screen pixel positions for the top and left edges of the minimap rect.
 kMinimapTopPx  = $28
 kMinimapLeftPx = $20
 
+;;; The OBJ tile ID for marking the current area on the minimap.
+kTileIdObjMinimapCurrentArea = $02
+
 ;;; The OBJ palette numbers for marking the current area and blinking the
 ;;; current screen on the minimap.
-kMinimapCurrentAreaPalette   = 0
-kMinimapCurrentScreenPalette = 1
+kPaletteObjMinimapCurrentArea   = 0
+kPaletteObjMinimapCurrentScreen = 1
 
 ;;;=========================================================================;;;
 
@@ -365,8 +365,8 @@ _ColLoop:
     and Zp_Tmp1_byte  ; mask
     bne @explored
     @unexplored:
-    lda #kMinimapTileIdUnexplored
-    .assert kMinimapTileIdUnexplored > 0, error
+    lda #kTileIdBgMinimapUnexplored
+    .assert kTileIdBgMinimapUnexplored > 0, error
     bne @setOriginalTile  ; unconditional
     @explored:
     ldy Zp_Tmp3_byte  ; byte index into minimap tile data (from Zp_Tmp_ptr)
@@ -502,8 +502,8 @@ _Finish:
     and #$01
     beq @top
     @bottom:
-    lda #kUpgradeTileIdBottomLeft
-    .assert kUpgradeTileIdBottomLeft > 0, error
+    lda #kTileIdBgUpgradeBottomLeft
+    .assert kTileIdBgUpgradeBottomLeft > 0, error
     bne @draw  ; unconditional
     @top:
     txa  ; upgrade eFlag
@@ -511,10 +511,10 @@ _Finish:
     sub #eFlag::UpgradeMaxInstructions3 + 1
     blt @upgradeMaxInstructions
     mul #2
-    add #kRemainingTileIdTopLeft
+    add #kTileidBgRemainingTopLeft
     bcc @draw  ; unconditional
     @upgradeMaxInstructions:
-    lda #kMaxInstTileIdTopLeft
+    lda #kTileIdBgMaxInstTopLeft
     @draw:
     ;; Draw the upgrade.
     sta Hw_PpuData_rw
@@ -631,10 +631,10 @@ _CircuitBreakers_byte_arr8_arr6:
     and #$10
     beq @noBlink
     @blink:
-    lda #bObj::Pri | kMinimapCurrentScreenPalette
+    lda #bObj::Pri | kPaletteObjMinimapCurrentScreen
     bne @setFlags  ; unconditional
     @noBlink:
-    lda #bObj::Pri | kMinimapCurrentAreaPalette
+    lda #bObj::Pri | kPaletteObjMinimapCurrentArea
     @setFlags:
     ;; Draw an object for this minimap cell.
     ldx Zp_OamOffset_u8
@@ -647,7 +647,7 @@ _CircuitBreakers_byte_arr8_arr6:
     mul #kTileWidthPx
     adc #kMinimapLeftPx
     sta Ram_Oam_sObj_arr64 + sObj::XPos_u8, x
-    lda #kMinimapAreaObjTileId
+    lda #kTileIdObjMinimapCurrentArea
     sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, x
     .repeat .sizeof(sObj)
     inx

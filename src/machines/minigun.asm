@@ -172,7 +172,7 @@ _RightHalf:
     lda #kPaletteObjMinigun | bObj::FlipV
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Flags_bObj, y
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Flags_bObj, y
-    lda #kMachineLightPalette | bObj::FlipHV
+    lda #kPaletteObjMachineLight | bObj::FlipHV
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Flags_bObj, y
     txa  ; barrel tile ID offset
     adc #kTileIdObjMinigunVertFirst + 1  ; carry is already clear

@@ -198,7 +198,7 @@ _Cooldown:
 _Light:
     jsr FuncA_Objects_Alloc1x1Shape  ; returns C and Y
     bcs @done
-    lda #kMachineLightPalette
+    lda #kPaletteObjMachineLight
     sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
     jsr FuncA_Objects_GetMachineLightTileId  ; preserves Y, returns A
     sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
@@ -207,7 +207,7 @@ _BottomLeftCorner:
     jsr FuncA_Objects_MoveShapeDownOneTile
     jsr FuncA_Objects_Alloc1x1Shape  ; returns C and Y
     bcs @done
-    lda #bObj::FlipH | kMachineLightPalette
+    lda #bObj::FlipH | kPaletteObjMachineLight
     sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
     lda #kTileIdMachineCorner
     sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
@@ -217,7 +217,7 @@ _BottomRightCorner:
     jsr FuncA_Objects_MoveShapeRightByA
     jsr FuncA_Objects_Alloc1x1Shape  ; returns C and Y
     bcs @done
-    lda #kMachineLightPalette
+    lda #kPaletteObjMachineLight
     sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
     lda #kTileIdMachineCorner
     sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
@@ -226,7 +226,7 @@ _TopRightCorner:
     jsr FuncA_Objects_MoveShapeUpOneTile
     jsr FuncA_Objects_Alloc1x1Shape  ; returns C and Y
     bcs @done
-    lda #bObj::FlipV | kMachineLightPalette
+    lda #bObj::FlipV | kPaletteObjMachineLight
     sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
     lda #kTileIdMachineCorner
     sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y

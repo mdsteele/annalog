@@ -76,7 +76,7 @@ kUpgradeWindowScrollSpeed = 4
 kUpgradeSymbolLeft = $14
 
 ;;; The OBJ palette number for upgrade symbols.
-kUpgradeSymbolPalette = 0
+kPaletteObjUpgradeSymbol = 0
 
 ;;; The OBJ tile IDs for the bottom two tiles of all upgrade symbols.
 kUpgradeTileIdBottomLeft  = kTileIdObjUpgradeBottomFirst + 0
@@ -451,7 +451,7 @@ _DescTable_ptr_arr:
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::XPos_u8, y
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::XPos_u8, y
     ;; Set flags.
-    lda #kUpgradeSymbolPalette
+    lda #kPaletteObjUpgradeSymbol
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Flags_bObj, y
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Flags_bObj, y
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Flags_bObj, y

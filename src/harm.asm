@@ -88,7 +88,7 @@ _Harm:
 .PROC Func_KillAvatar
     lda Zp_AvatarFlags_bObj
     and #<~bObj::PaletteMask
-    ora #kAvatarPaletteDeath
+    ora #kPaletteObjAvatarDeath
     sta Zp_AvatarFlags_bObj
     jsr Func_DropFlower  ; preserves X
     lda #kAvatarHarmDeath

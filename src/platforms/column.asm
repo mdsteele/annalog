@@ -37,7 +37,7 @@ kTileIdObjColumnCorner = kTileIdObjColumnFirst + 0
 kTileIdObjColumnSide   = kTileIdObjColumnFirst + 1
 
 ;;; The OBJ palette number to use for drawing the movable column.
-kColumnPalette = 0
+kPaletteObjColumn = 0
 
 ;;;=========================================================================;;;
 
@@ -52,7 +52,7 @@ kColumnPalette = 0
     jsr FuncA_Objects_SetShapePosToPlatformTopLeft  ; preserves X
 _ColumnTop:
     jsr FuncA_Objects_MoveShapeDownAndRightOneTile  ; preserves X
-    lda #kColumnPalette | bObj::Pri  ; param: obj flags
+    lda #kPaletteObjColumn | bObj::Pri  ; param: obj flags
     jsr FuncA_Objects_Alloc2x2Shape  ; preserves X, returns C and Y
     bcs @done
     lda #kTileIdObjColumnCorner
@@ -61,7 +61,7 @@ _ColumnTop:
     lda #kTileIdObjColumnSide
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Tile_u8, y
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Tile_u8, y
-    lda #kColumnPalette | bObj::Pri | bObj::FlipH
+    lda #kPaletteObjColumn | bObj::Pri | bObj::FlipH
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Flags_bObj, y
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Flags_bObj, y
     @done:
@@ -76,7 +76,7 @@ _ColumnBody:
     @loop:
     lda #kBlockHeightPx  ; param: move delta
     jsr FuncA_Objects_MoveShapeDownByA  ; preserves X
-    lda #kColumnPalette | bObj::Pri  ; param: obj flags
+    lda #kPaletteObjColumn | bObj::Pri  ; param: obj flags
     jsr FuncA_Objects_Alloc2x2Shape  ; preserves X, returns C and Y
     bcs @continue
     lda #kTileIdObjColumnSide
@@ -84,7 +84,7 @@ _ColumnBody:
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Tile_u8, y
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Tile_u8, y
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Tile_u8, y
-    lda #kColumnPalette | bObj::Pri | bObj::FlipH
+    lda #kPaletteObjColumn | bObj::Pri | bObj::FlipH
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Flags_bObj, y
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Flags_bObj, y
     @continue:

@@ -56,8 +56,8 @@ kAvatarHarmDeath = $ff
 .ASSERT kAvatarHarmDeath > kAvatarHarmHealFrames, error
 
 ;;; The OBJ palette numbers to use for the player avatar.
-kAvatarPaletteNormal = 1
-kAvatarPaletteDeath  = 3
+kPaletteObjAvatarNormal = 1
+kPaletteObjAvatarDeath  = 3
 
 ;;;=========================================================================;;;
 

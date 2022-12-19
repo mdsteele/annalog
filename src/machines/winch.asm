@@ -81,22 +81,22 @@ kWinchChainOverlapPx = 4
 kWinchBreakthroughSpeed = 1
 
 ;;; Various OBJ tile IDs used for drawing winch machines.
-kTileIdCrusherUpperLeft   = kTileIdCrusherFirst + 0
-kTileIdCrusherUpperRight  = kTileIdCrusherFirst + 2
-kTileIdCrusherSpikes      = kTileIdCrusherFirst + 1
-kTileIdSpikeballFirst     = kTileIdCrusherFirst + 4
-kTileIdWinchChain         = kTileIdCrusherFirst + 3
-kTileIdWinchGear1         = kTileIdWinchFirst + 0
-kTileIdWinchGear2         = kTileIdWinchFirst + 2
-kTileIdWinchCornerBottom1 = kTileIdWinchFirst + 1
-kTileIdWinchCornerBottom2 = kTileIdWinchFirst + 3
-kTileIdWinchCornerTop     = kTileIdMachineCorner
+kTileIdObjCrusherUpperLeft   = kTileIdCrusherFirst + 0
+kTileIdObjCrusherUpperRight  = kTileIdCrusherFirst + 2
+kTileIdObjCrusherSpikes      = kTileIdCrusherFirst + 1
+kTileIdObjSpikeballFirst     = kTileIdCrusherFirst + 4
+kTileIdObjWinchChain         = kTileIdCrusherFirst + 3
+kTileIdObjWinchGear1         = kTileIdWinchFirst + 0
+kTileIdObjWinchGear2         = kTileIdWinchFirst + 2
+kTileIdObjWinchCornerBottom1 = kTileIdWinchFirst + 1
+kTileIdObjWinchCornerBottom2 = kTileIdWinchFirst + 3
+kTileIdObjWinchCornerTop     = kTileIdMachineCorner
 
 ;;; OBJ palette numbers used for various parts of winch machines.
-kCrusherPalette    = 1
-kSpikeballPalette  = 0
-kWinchChainPalette = 0
-kWinchGearPalette  = 0
+kPaletteObjCrusher    = 1
+kPaletteObjSpikeball  = 0
+kPaletteObjWinchChain = 0
+kPaletteObjWinchGear  = 0
 
 ;;;=========================================================================;;;
 
@@ -319,24 +319,24 @@ _ShakeFrames_u8_arr:
     pla  ; chain position
     tax  ; chain position
     ;; Allocate objects.
-    lda #kWinchGearPalette  ; param: object flags
+    lda #kPaletteObjWinchGear  ; param: object flags
     jsr FuncA_Objects_Alloc2x2Shape  ; preserves X, returns C and Y
     bcs _Done
-    lda #bObj::FlipH | bObj::FlipV | kMachineLightPalette
+    lda #bObj::FlipH | bObj::FlipV | kPaletteObjMachineLight
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Flags_bObj, y
-    lda #bObj::FlipH | kMachineLightPalette
+    lda #bObj::FlipH | kPaletteObjMachineLight
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Flags_bObj, y
 _SetGearTileIds:
     txa  ; chain position
     and #$02
     bne @position2
     @position1:
-    lda #kTileIdWinchGear1
-    ldx #kTileIdWinchCornerBottom1
+    lda #kTileIdObjWinchGear1
+    ldx #kTileIdObjWinchCornerBottom1
     bne @setTiles  ; unconditional
     @position2:
-    lda #kTileIdWinchGear2
-    ldx #kTileIdWinchCornerBottom2
+    lda #kTileIdObjWinchGear2
+    ldx #kTileIdObjWinchCornerBottom2
     @setTiles:
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Tile_u8, y
     txa
@@ -345,7 +345,7 @@ _SetLightTileId:
     jsr FuncA_Objects_GetMachineLightTileId  ; preserves Y, returns A
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Tile_u8, y
 _SetCornerTileId:
-    lda #kTileIdWinchCornerTop
+    lda #kTileIdObjWinchCornerTop
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Tile_u8, y
 _Done:
     rts
@@ -406,9 +406,9 @@ _Done:
     jsr FuncA_Objects_MoveShapeUpOneTile  ; preserves X
     jsr FuncA_Objects_Alloc1x1Shape  ; preserves X, returns C and Y
     bcs @continue
-    lda #kTileIdWinchChain
+    lda #kTileIdObjWinchChain
     sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
-    lda #kWinchChainPalette
+    lda #kPaletteObjWinchChain
     sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
     @continue:
     dex
@@ -434,16 +434,16 @@ _Done:
 ;;; @preserve X
 .EXPORT FuncA_Objects_DrawWinchSpikeball
 .PROC FuncA_Objects_DrawWinchSpikeball
-    lda #kSpikeballPalette  ; param: object flags
+    lda #kPaletteObjSpikeball  ; param: object flags
     jsr FuncA_Objects_Alloc2x2Shape  ; preserves X, returns C and Y
     bcs @done
-    lda #kTileIdSpikeballFirst + 0
+    lda #kTileIdObjSpikeballFirst + 0
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Tile_u8, y
-    lda #kTileIdSpikeballFirst + 1
+    lda #kTileIdObjSpikeballFirst + 1
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Tile_u8, y
-    lda #kTileIdSpikeballFirst + 2
+    lda #kTileIdObjSpikeballFirst + 2
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Tile_u8, y
-    lda #kTileIdSpikeballFirst + 3
+    lda #kTileIdObjSpikeballFirst + 3
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Tile_u8, y
     @done:
     rts
@@ -457,14 +457,14 @@ _Done:
 .PROC FuncA_Objects_DrawWinchCrusher
     jsr FuncA_Objects_SetShapePosToPlatformTopLeft  ; preserves X
     jsr FuncA_Objects_MoveShapeDownAndRightOneTile  ; preserves X
-    lda #kCrusherPalette  ; param: object flags
+    lda #kPaletteObjCrusher  ; param: object flags
     jsr FuncA_Objects_Alloc2x2Shape  ; preserves X, returns C and Y
     bcs @done
-    lda #kTileIdCrusherUpperLeft
+    lda #kTileIdObjCrusherUpperLeft
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Tile_u8, y
-    lda #kTileIdCrusherUpperRight
+    lda #kTileIdObjCrusherUpperRight
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Tile_u8, y
-    lda #kTileIdCrusherSpikes
+    lda #kTileIdObjCrusherSpikes
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Tile_u8, y
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Tile_u8, y
     @done:

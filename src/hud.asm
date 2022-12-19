@@ -43,7 +43,7 @@ kHudLeft = kScreenWidthPx - kTileWidthPx * 4
 kHudSpacingPx = kTileHeightPx
 
 ;;; The OBJ palette number to use for the HUD.
-kHudObjPalette = 1
+kPaletteObjHud = 1
 
 ;;;=========================================================================;;;
 
@@ -142,7 +142,7 @@ _Done:
     add #kTileWidthPx
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::XPos_u8, y
     ;; Set flags for the objects.
-    lda #kHudObjPalette
+    lda #kPaletteObjHud
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Flags_bObj, y
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Flags_bObj, y
     ;; Finish the allocation.

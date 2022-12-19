@@ -329,15 +329,15 @@ _CheckIfSolidVert:
 _LeftHalf:
     ;; Allocate objects.
     jsr FuncA_Objects_MoveShapeDownAndRightOneTile
-    lda #kMachineLightPalette  ; param: object flags
+    lda #kPaletteObjMachineLight  ; param: object flags
     jsr FuncA_Objects_Alloc2x2Shape  ; sets C if offscreen; returns Y
     bcs @done
     ;; Set flags and tile IDs.
-    lda #kMachineLightPalette | bObj::FlipHV
+    lda #kPaletteObjMachineLight | bObj::FlipHV
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Flags_bObj, y
-    lda #kMachineLightPalette | bObj::FlipH
+    lda #kPaletteObjMachineLight | bObj::FlipH
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Flags_bObj, y
-    lda #kMachineLightPalette | bObj::FlipV
+    lda #kPaletteObjMachineLight | bObj::FlipV
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Flags_bObj, y
     lda #kTileIdObjCarriageCorner
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Tile_u8, y
@@ -350,14 +350,14 @@ _RightHalf:
     ;; Allocate objects.
     lda #kTileWidthPx * 2  ; param: offset
     jsr FuncA_Objects_MoveShapeRightByA
-    lda #kMachineLightPalette  ; param: object flags
+    lda #kPaletteObjMachineLight  ; param: object flags
     jsr FuncA_Objects_Alloc2x2Shape  ; sets C if offscreen; returns Y
     bcs @done
     ;; Set flags and tile IDs.
-    lda #kMachineLightPalette | bObj::FlipV
+    lda #kPaletteObjMachineLight | bObj::FlipV
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Flags_bObj, y
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Flags_bObj, y
-    lda #kMachineLightPalette | bObj::FlipHV
+    lda #kPaletteObjMachineLight | bObj::FlipHV
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Flags_bObj, y
     lda #kTileIdObjCarriageSurface
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Tile_u8, y

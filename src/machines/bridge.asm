@@ -53,11 +53,11 @@
 ;;;=========================================================================;;;
 
 ;;; Various OBJ tile IDs used for drawing bridge machines.
-kTileIdBridgeCornerBase = kTileIdCannonFirst + $01
-kTileIdBridgeSegment    = kTileIdCannonFirst + $05
+kTileIdObjBridgeCornerBase = kTileIdCannonFirst + $01
+kTileIdObjBridgeSegment    = kTileIdCannonFirst + $05
 
 ;;; The OBJ palette number used for moveable bridge segments.
-kBridgeSegmentPalette = 0
+kPaletteObjBridgeSegment = 0
 
 ;;;=========================================================================;;;
 
@@ -215,9 +215,9 @@ _SegmentLoop:
     jsr FuncA_Objects_SetShapePosToPlatformTopLeft  ; preserves X
     jsr FuncA_Objects_Alloc1x1Shape ; preserves X, returns Y and C
     bcs @continue
-    lda #kTileIdBridgeSegment
+    lda #kTileIdObjBridgeSegment
     sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
-    lda #kBridgeSegmentPalette
+    lda #kPaletteObjBridgeSegment
     sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
     @continue:
     pla  ; pivot platform index
@@ -238,8 +238,8 @@ _MainMachine:
     jsr FuncA_Objects_MoveShapeRightOneTile
     pla  ; horz flip
     @noFlip:
-    .assert kMachineLightPalette <> 0, error
-    ora #kMachineLightPalette
+    .assert kPaletteObjMachineLight <> 0, error
+    ora #kPaletteObjMachineLight
     pha  ; param: object flags
     jsr FuncA_Objects_Alloc2x1Shape  ; returns C and Y
     pla  ; object flags
@@ -248,7 +248,7 @@ _MainMachine:
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Flags_bObj, y
     jsr FuncA_Objects_GetMachineLightTileId  ; preserves Y, returns A
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Tile_u8, y
-    lda #kTileIdBridgeCornerBase
+    lda #kTileIdObjBridgeCornerBase
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Tile_u8, y
 _Done:
     rts

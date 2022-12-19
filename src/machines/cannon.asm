@@ -209,8 +209,8 @@ kCannonTileIdBarrelLow  = kTileIdCannonFirst + $04
     lda (Zp_Current_sMachine_ptr), y
     and #bMachine::FlipH
     .assert bMachine::FlipH = bObj::FlipH, error
-    .assert kMachineLightPalette <> 0, error
-    ora #kMachineLightPalette
+    .assert kPaletteObjMachineLight <> 0, error
+    ora #kPaletteObjMachineLight
     pha  ; param: object flags
     jsr FuncA_Objects_Alloc2x2Shape  ; returns C and Y
     pla  ; object flags

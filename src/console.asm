@@ -88,7 +88,7 @@
 kConsoleWindowScrollSpeed = 6
 
 ;;; The OBJ palette number used for the console cursor.
-kCursorObjPalette = 1
+kPaletteObjCursor = 1
 
 ;;; The width of an instruction in the console, in tiles.
 kInstructionWidthTiles = 7
@@ -664,7 +664,7 @@ _ObjectLoop:
     add #kTileWidthPx
     sta Zp_Tmp2_byte  ; X-position
     ;; Set flags.
-    lda #bObj::Pri | kCursorObjPalette
+    lda #bObj::Pri | kPaletteObjCursor
     sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
     ;; Set tile ID.
     lda Zp_Tmp4_byte  ; cursor diminished bool

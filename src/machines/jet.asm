@@ -173,7 +173,7 @@ kTileIdJetLowerMiddleFirst = kTileIdJetFirst + 1
 _LeftHalf:
     ;; Allocate objects.
     jsr FuncA_Objects_MoveShapeDownAndRightOneTile  ; preserves X
-    lda #kMachineLightPalette  ; param: object flags
+    lda #kPaletteObjMachineLight  ; param: object flags
     jsr FuncA_Objects_Alloc2x2Shape  ; preserves X, returns C and Y
     bcs @done
     ;; Set tile IDs.
@@ -186,12 +186,12 @@ _RightHalf:
     ;; Allocate objects.
     lda #kTileWidthPx * 2  ; param: offset
     jsr FuncA_Objects_MoveShapeRightByA  ; preserves X
-    lda #kMachineLightPalette | bObj::FlipH  ; param: object flags
+    lda #kPaletteObjMachineLight | bObj::FlipH  ; param: object flags
     jsr FuncA_Objects_Alloc2x2Shape  ; preserves X; returns C and Y
     bcc @notDone
     rts
     @notDone:
-    lda #kMachineLightPalette | bObj::FlipV
+    lda #kPaletteObjMachineLight | bObj::FlipV
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Flags_bObj, y
     lda #kTileIdJetUpperCorner
     .assert * = FuncA_Objects_SetJetMachineTiles, error, "fallthrough"

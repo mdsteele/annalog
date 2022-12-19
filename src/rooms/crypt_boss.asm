@@ -153,16 +153,16 @@ kBossInitPosX = $a8
 kBossInitPosY = $78
 
 ;;; The OBJ tile ID for the first of the two side wall tiles.
-kTileIdFirstSideWall = $c0
+kTileIdObjSideWallFirst = $c0
 
 ;;; The OBJ palette number to use for the side walls.
-kSideWallPalette = 0
+kPaletteObjSideWall = 0
 
 ;;; The OBJ tile ID for the pupil of the boss's eye.
-kTileIdBossPupil = $c2
+kTileIdObjBossPupil = $c2
 
 ;;; The OBJ palette number to use for the pupil of the boss's eye.
-kBossPupilPalette = 0
+kPaletteObjBossPupil = 0
 
 ;;;=========================================================================;;;
 
@@ -618,8 +618,8 @@ _DrawBossPupil:
     sta Zp_ShapePosX_i16 + 1
     sta Zp_ShapePosY_i16 + 1
     ;; Draw the pupil.
-    ldy #kBossPupilPalette  ; param: object flags
-    lda #kTileIdBossPupil  ; param: tile ID
+    ldy #kPaletteObjBossPupil  ; param: object flags
+    lda #kTileIdObjBossPupil  ; param: tile ID
     jmp FuncA_Objects_Draw1x1Shape
 _EyeOffsetX_u8_arr:
     .byte 6, 5, 4, 3, 2
@@ -739,9 +739,9 @@ _EyeOffsetY_u8_arr:
     bcs @continue
     txa
     and #$01
-    adc #kTileIdFirstSideWall  ; carry is already clear
+    adc #kTileIdObjSideWallFirst  ; carry is already clear
     sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
-    lda #kSideWallPalette
+    lda #kPaletteObjSideWall
     sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
     @continue:
     jsr FuncA_Objects_MoveShapeDownOneTile  ; preserves X

@@ -58,13 +58,13 @@
 
 ;;;=========================================================================;;;
 
-kTileIdBoilerLeftCorner  = kTileIdMachineCorner
-kTileIdBoilerCenter      = kTileIdBoilerFirst + 0
-kTileIdBoilerRightCorner = kTileIdBoilerFirst + 1
+kTileIdObjBoilerLeftCorner  = kTileIdMachineCorner
+kTileIdObjBoilerCenter      = kTileIdBoilerFirst + 0
+kTileIdObjBoilerRightCorner = kTileIdBoilerFirst + 1
 
 ;;; OBJ palette numbers used for boiler machines and valves.
-kBoilerPalette = 0
-kValvePalette = 0
+kPaletteObjBoiler = 0
+kPaletteObjValve = 0
 
 ;;;=========================================================================;;;
 
@@ -282,31 +282,31 @@ _Light:
     bcs @done
     jsr FuncA_Objects_GetMachineLightTileId  ; preserves Y, returns A
     sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
-    lda #kMachineLightPalette
+    lda #kPaletteObjMachineLight
     sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
     @done:
 _Corner:
     jsr FuncA_Objects_MoveShapeDownOneTile
     jsr FuncA_Objects_Alloc1x1Shape  ; returns C and Y
     bcs @done
-    lda #kTileIdBoilerLeftCorner
+    lda #kTileIdObjBoilerLeftCorner
     sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
-    lda #bObj::FlipH | kBoilerPalette
+    lda #bObj::FlipH | kPaletteObjBoiler
     sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
     @done:
 _Tank:
     lda #kTileWidthPx * 2  ; param: offset
     jsr FuncA_Objects_MoveShapeRightByA
-    lda #kBoilerPalette  ; param: object flags
+    lda #kPaletteObjBoiler  ; param: object flags
     jsr FuncA_Objects_Alloc2x2Shape  ; returns C and Y
     bcs @done
-    lda #kTileIdBoilerCenter
+    lda #kTileIdObjBoilerCenter
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Tile_u8, y
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Tile_u8, y
-    lda #kTileIdBoilerRightCorner
+    lda #kTileIdObjBoilerRightCorner
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Tile_u8, y
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Tile_u8, y
-    lda #bObj::FlipV | kBoilerPalette
+    lda #bObj::FlipV | kPaletteObjBoiler
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Flags_bObj, y
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Flags_bObj, y
     @done:
@@ -359,16 +359,16 @@ _Tile_u8_arr10:
     .byte kTileIdValveFirst + 3
     .assert * - :- = 10, error
 _Flags_bObj_arr10:
-:   .byte kValvePalette
-    .byte kValvePalette
-    .byte kValvePalette
-    .byte kValvePalette
-    .byte kValvePalette | bObj::FlipV
-    .byte kValvePalette | bObj::FlipV
-    .byte kValvePalette
-    .byte kValvePalette
-    .byte kValvePalette
-    .byte kValvePalette
+:   .byte kPaletteObjValve
+    .byte kPaletteObjValve
+    .byte kPaletteObjValve
+    .byte kPaletteObjValve
+    .byte kPaletteObjValve | bObj::FlipV
+    .byte kPaletteObjValve | bObj::FlipV
+    .byte kPaletteObjValve
+    .byte kPaletteObjValve
+    .byte kPaletteObjValve
+    .byte kPaletteObjValve
     .assert * - :- = 10, error
 .ENDPROC
 

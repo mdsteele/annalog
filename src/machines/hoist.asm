@@ -126,7 +126,7 @@ kPaletteObjRope = 0
     pla  ; object flags
     bcs @done
     ;; Set machine light flags:
-    ora #bObj::FlipV | kMachineLightPalette
+    ora #bObj::FlipV | kPaletteObjMachineLight
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Flags_bObj, y
     ;; Set spindle flags:
     txa  ; rope position

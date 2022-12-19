@@ -671,7 +671,7 @@ _WalkToBoostingPosition:
     lda Ram_ActorPosX_i16_0_arr + kAlexActorIndex
     cmp Zp_AvatarPosX_i16 + 0
     bge @noTurnAvatar
-    lda #bObj::FlipH | kAvatarPaletteNormal
+    lda #bObj::FlipH | kPaletteObjAvatarNormal
     sta Zp_AvatarFlags_bObj
     @noTurnAvatar:
     ;; Animate Alex walking towards his boosting position.

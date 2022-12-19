@@ -77,7 +77,7 @@ kMenuStartWindowRow = 1
 kMenuStartTileColumn = 22
 
 ;;; The OBJ palette number used for the menu cursor.
-kMenuCursorObjPalette = 1
+kPaletteObjMenuCursor = 1
 
 ;;; The menu tile column numbers for the left and right columns of the opcode
 ;;; menu.
@@ -1123,7 +1123,7 @@ _ObjectLoop:
     add #kTileWidthPx
     sta Zp_Tmp2_byte  ; X-position
     ;; Set flags.
-    lda #bObj::Pri | kMenuCursorObjPalette
+    lda #bObj::Pri | kPaletteObjMenuCursor
     sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
     ;; Set tile ID.
     lda Zp_Tmp3_byte  ; cursor (width - 1), in tiles

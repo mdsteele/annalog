@@ -45,17 +45,17 @@
 
 ;;; TODO: combine crane/trolley tile IDs
 ;;; Various OBJ tile IDs used for drawing crane/trolley machine.
-kTileIdCraneWheel      = kTileIdCraneFirst + 0
-kTileIdCraneRope       = kTileIdCraneFirst + 1
-kTileIdCraneClawOpen   = kTileIdCraneFirst + 2
-kTileIdCraneClawClosed = kTileIdCraneFirst + 3
-kTileIdCraneCorner     = kTileIdCraneFirst + 4
-kTileIdTrolleyCorner   = kTileIdMachineCorner
-kTileIdTrolleyRope     = $7c
-kTileIdTrolleyWheel    = $7b
+kTileIdObjCraneWheel      = kTileIdCraneFirst + 0
+kTileIdObjCraneRope       = kTileIdCraneFirst + 1
+kTileIdObjCraneClawOpen   = kTileIdCraneFirst + 2
+kTileIdObjCraneClawClosed = kTileIdCraneFirst + 3
+kTileIdObjCraneCorner     = kTileIdCraneFirst + 4
+kTileIdObjTrolleyCorner   = kTileIdMachineCorner
+kTileIdObjTrolleyRope     = $7c
+kTileIdObjTrolleyWheel    = $7b
 
 ;;; OBJ palette numbers used for various parts of crane/trolley machines.
-kRopePalette = 0
+kPaletteObjRope = 0
 
 ;;;=========================================================================;;;
 
@@ -68,19 +68,19 @@ kRopePalette = 0
     jsr FuncA_Objects_SetShapePosToMachineTopLeft
 _MainPlatform:
     jsr FuncA_Objects_MoveShapeDownAndRightOneTile
-    lda #kMachineLightPalette  ; param: object flags
+    lda #kPaletteObjMachineLight  ; param: object flags
     jsr FuncA_Objects_Alloc2x2Shape  ; sets C if offscreen; returns Y
     bcs @done
-    lda #kRopePalette | bObj::FlipV
+    lda #kPaletteObjRope | bObj::FlipV
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Flags_bObj, y
-    lda #kRopePalette | bObj::FlipV | bObj::FlipH
+    lda #kPaletteObjRope | bObj::FlipV | bObj::FlipH
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Flags_bObj, y
-    lda #kMachineLightPalette | bObj::FlipV | bObj::FlipH
+    lda #kPaletteObjMachineLight | bObj::FlipV | bObj::FlipH
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Flags_bObj, y
-    lda #kTileIdCraneWheel
+    lda #kTileIdObjCraneWheel
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Tile_u8, y
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Tile_u8, y
-    lda #kTileIdCraneCorner
+    lda #kTileIdObjCraneCorner
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Tile_u8, y
     jsr FuncA_Objects_GetMachineLightTileId  ; preserves Y, returns A
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Tile_u8, y
@@ -90,11 +90,11 @@ _Claw:
     lda Ram_MachineGoalHorz_u8_arr, x
     beq @open
     @closed:
-    ldx #kTileIdCraneClawClosed
-    .assert kTileIdCraneClawClosed <> 0, error
+    ldx #kTileIdObjCraneClawClosed
+    .assert kTileIdObjCraneClawClosed <> 0, error
     bne @done
     @open:
-    ldx #kTileIdCraneClawOpen
+    ldx #kTileIdObjCraneClawOpen
     @done:
 _RightClaw:
     jsr FuncA_Objects_MoveShapeDownOneTile  ; preserves X
@@ -102,7 +102,7 @@ _RightClaw:
     bcs @done
     txa  ; tile ID
     sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
-    lda #kMachineLightPalette | bObj::FlipH
+    lda #kPaletteObjMachineLight | bObj::FlipH
     sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
     @done:
 _LeftClaw:
@@ -111,7 +111,7 @@ _LeftClaw:
     bcs @done
     txa  ; tile ID
     sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
-    lda #kMachineLightPalette
+    lda #kPaletteObjMachineLight
     sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
     @done:
     rts
@@ -123,18 +123,18 @@ _LeftClaw:
 .PROC FuncA_Objects_DrawTrolleyMachine
     jsr FuncA_Objects_SetShapePosToMachineTopLeft
     jsr FuncA_Objects_MoveShapeDownAndRightOneTile
-    lda #kMachineLightPalette  ; param: object flags
+    lda #kPaletteObjMachineLight  ; param: object flags
     jsr FuncA_Objects_Alloc2x2Shape  ; sets C if offscreen; returns Y
     bcs @done
-    lda #kMachineLightPalette | bObj::FlipV
+    lda #kPaletteObjMachineLight | bObj::FlipV
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Flags_bObj, y
-    lda #kRopePalette
+    lda #kPaletteObjRope
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Flags_bObj, y
-    lda #kRopePalette | bObj::FlipH
+    lda #kPaletteObjRope | bObj::FlipH
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Flags_bObj, y
-    lda #kTileIdTrolleyCorner
+    lda #kTileIdObjTrolleyCorner
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Tile_u8, y
-    lda #kTileIdTrolleyWheel
+    lda #kTileIdObjTrolleyWheel
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Tile_u8, y
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Tile_u8, y
     jsr FuncA_Objects_GetMachineLightTileId  ; preserves Y, returns A
@@ -204,9 +204,9 @@ _LeftClaw:
     jsr FuncA_Objects_MoveShapeDownOneTile  ; preserves X
     jsr FuncA_Objects_Alloc1x1Shape  ; preserves X, returns C and Y
     bcs @continue
-    lda #kTileIdTrolleyRope
+    lda #kTileIdObjTrolleyRope
     sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
-    lda #kRopePalette
+    lda #kPaletteObjRope
     sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
     @continue:
     dex

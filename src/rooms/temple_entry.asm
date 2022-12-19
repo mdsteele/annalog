@@ -71,9 +71,6 @@ kTileIdObjColumnFirst  = $9a
 kTileIdObjColumnCorner = kTileIdObjColumnFirst + 0
 kTileIdObjColumnSide   = kTileIdObjColumnFirst + 1
 
-;;; The OBJ palette number to use for drawing the movable column.
-kColumnPalette = 0
-
 ;;;=========================================================================;;;
 
 ;;; Defines room-specific state data for this particular room.

@@ -77,7 +77,7 @@ kTrolleyTileIdRopeDiag = $7e
 
 ;;; The OBJ palette number used for various parts of the PrisonEscapeTrolley
 ;;; machine.
-kTrolleyRopePalette = 0
+kPaletteObjTrolleyRope = 0
 
 ;;;=========================================================================;;;
 
@@ -304,31 +304,31 @@ _RopeTriangle:
     ;;
     ;; Tile 1:
     jsr FuncA_Objects_MoveShapeUpOneTile
-    ldy #bObj::FlipH | kTrolleyRopePalette  ; param: object flags
+    ldy #bObj::FlipH | kPaletteObjTrolleyRope  ; param: object flags
     lda #kTrolleyTileIdRopeDiag  ; param: tile ID
     jsr FuncA_Objects_Draw1x1Shape
     ;; Tile 2:
     lda #kTileWidthPx * 3  ; param: offset
     jsr FuncA_Objects_MoveShapeLeftByA
-    ldy #kTrolleyRopePalette  ; param: object flags
+    ldy #kPaletteObjTrolleyRope  ; param: object flags
     lda #kTrolleyTileIdRopeDiag  ; param: tile ID
     jsr FuncA_Objects_Draw1x1Shape
     ;; Tile 3:
     jsr FuncA_Objects_MoveShapeRightOneTile
     jsr FuncA_Objects_MoveShapeUpOneTile
-    ldy #kTrolleyRopePalette  ; param: object flags
+    ldy #kPaletteObjTrolleyRope  ; param: object flags
     lda #kTrolleyTileIdRopeDiag  ; param: tile ID
     jsr FuncA_Objects_Draw1x1Shape
     ;; Tile 4:
     jsr FuncA_Objects_MoveShapeRightOneTile
-    ldy #bObj::FlipH | kTrolleyRopePalette  ; param: object flags
+    ldy #bObj::FlipH | kPaletteObjTrolleyRope  ; param: object flags
     lda #kTrolleyTileIdRopeDiag  ; param: tile ID
     jsr FuncA_Objects_Draw1x1Shape
 _Pulley:
     ;; Pulley:
     jsr FuncA_Objects_MoveShapeLeftHalfTile
     jsr FuncA_Objects_MoveShapeUpOneTile
-    ldy #kTrolleyRopePalette  ; param: object flags
+    ldy #kPaletteObjTrolleyRope  ; param: object flags
     lda #kTrolleyTileIdPulley  ; param: tile ID
     jmp FuncA_Objects_Draw1x1Shape
 .ENDPROC
