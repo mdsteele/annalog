@@ -63,6 +63,7 @@ kTileIdObjChildBobcutFirst   = $80 | (eNpcChild::BobcutStanding   << 2)
 
 ;;; The first tile IDs for various adults.
 kTileIdAdultWomanFirst = $88
+kTileIdAdultManFirst   = $8e
 
 ;;; The first tile IDs for various mermaids.
 kTileIdMermaidAdultFirst    = $8e

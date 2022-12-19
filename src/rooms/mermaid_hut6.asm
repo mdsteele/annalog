@@ -34,7 +34,7 @@
 .IMPORT FuncA_Objects_DrawGirderPlatform
 .IMPORT Func_MovePlatformTopTowardPointY
 .IMPORT Func_Noop
-.IMPORT Ppu_ChrObjTownsfolk
+.IMPORT Ppu_ChrObjVillage
 .IMPORT Ram_MachineStatus_eMachine_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORT Ram_RoomState
@@ -68,7 +68,7 @@ kMachineMoveCountdown = $10
     d_addr TerrainData_ptr, _TerrainData
     d_byte NumMachines_u8, 2
     d_addr Machines_sMachine_arr_ptr, _Machines_sMachine_arr
-    d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjTownsfolk)
+    d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjVillage)
     d_addr Tick_func_ptr, Func_Noop
     d_addr Draw_func_ptr, Func_Noop
     d_addr Ext_sRoomExt_ptr, _Ext_sRoomExt

@@ -32,7 +32,7 @@
 .IMPORT FuncA_Dialog_AddQuestMarker
 .IMPORT Func_Noop
 .IMPORT Func_SetFlag
-.IMPORT Ppu_ChrObjTownsfolk
+.IMPORT Ppu_ChrObjVillage
 .IMPORT Sram_ProgressFlags_arr
 
 ;;;=========================================================================;;;
@@ -57,7 +57,7 @@ kMermaidYouthDialogIndex = 2
     d_addr TerrainData_ptr, _TerrainData
     d_byte NumMachines_u8, 0
     d_addr Machines_sMachine_arr_ptr, 0
-    d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjTownsfolk)
+    d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjVillage)
     d_addr Tick_func_ptr, Func_Noop
     d_addr Draw_func_ptr, Func_Noop
     d_addr Ext_sRoomExt_ptr, _Ext_sRoomExt

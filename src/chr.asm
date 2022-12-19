@@ -855,13 +855,29 @@
 
 ;;;=========================================================================;;;
 
-.SEGMENT "CHR_ObjTownsfolk"
+.SEGMENT "CHR_ObjTown"
 
-.EXPORT Ppu_ChrObjTownsfolk
-.PROC Ppu_ChrObjTownsfolk
+.EXPORT Ppu_ChrObjTown
+.PROC Ppu_ChrObjTown
 :   .res $08 * kSizeofChr
     .assert * - :- = (kTileIdAdultWomanFirst - $80) * kSizeofChr, error
-    .incbin "out/data/tiles/adults.chr"
+    .incbin "out/data/tiles/adult_woman.chr"
+    .assert * - :- = (kTileIdAdultManFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/adult_man.chr"
+    .res $34 * kSizeofChr
+    .assert * - :- = (kTileIdObjChildAlexFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/alex.chr"
+    .res $20 * kSizeofChr
+    .assert * - :- = kSizeofChr * $80, error
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "CHR_ObjVillage"
+
+.EXPORT Ppu_ChrObjVillage
+.PROC Ppu_ChrObjVillage
+:   .res $0e * kSizeofChr
     .assert * - :- = (kTileIdMermaidAdultFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/mermaid_adult.chr"
     .assert * - :- = (kTileIdMermaidFloristFirst - $80) * kSizeofChr, error
