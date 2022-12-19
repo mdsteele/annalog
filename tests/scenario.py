@@ -41,6 +41,7 @@ ROOM_PARENTS = {
     'MermaidHut6': 'MermaidEast',
     'TownHouse1': 'TownOutdoors',
     'TownHouse2': 'TownOutdoors',
+    'TownHouse4': 'TownOutdoors',
     'TownHouse5': 'TownOutdoors',
     'TownHouse6': 'TownOutdoors',
 }

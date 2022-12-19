@@ -381,10 +381,10 @@
 .EXPORT Ppu_ChrBgIndoors
 .PROC Ppu_ChrBgIndoors
 :   .incbin "out/data/tiles/indoors.chr"
-    .res $08 * kSizeofChr
+    .res $07 * kSizeofChr
     .incbin "out/data/tiles/window.chr"
     .incbin "out/data/tiles/furniture.chr"
-    .res $17 * kSizeofChr
+    .res $14 * kSizeofChr
     .assert * - :- = kSizeofChr * $40, error
 .ENDPROC
 

@@ -121,13 +121,12 @@ _Devices_sDevice_arr:
     d_byte BlockCol_u8, 32
     d_byte Target_u8, kSignDialogIndex
     D_END
-    ;; TODO:
-    ;; D_STRUCT sDevice
-    ;; d_byte Type_eDevice, eDevice::OpenDoorway
-    ;; d_byte BlockRow_u8, 12
-    ;; d_byte BlockCol_u8, 37
-    ;; d_byte Target_u8, eRoom::TownHouse4
-    ;; D_END
+    D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::OpenDoorway
+    d_byte BlockRow_u8, 12
+    d_byte BlockCol_u8, 37
+    d_byte Target_u8, eRoom::TownHouse4
+    D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::OpenDoorway
     d_byte BlockRow_u8, 12
