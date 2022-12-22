@@ -444,7 +444,7 @@
 :   .incbin "out/data/tiles/minimap1.chr"
     .incbin "out/data/tiles/minimap2.chr"
     .incbin "out/data/tiles/minimap3.chr"
-    .res $04 * kSizeofChr
+    .res $03 * kSizeofChr
     .incbin "out/data/tiles/minimap4.chr"
     .res $03 * kSizeofChr
     .assert * - :- = kSizeofChr * $40, error
