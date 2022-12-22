@@ -34,6 +34,7 @@
 .INCLUDE "../window.inc"
 
 .IMPORT DataA_Room_Temple_sTileset
+.IMPORT FuncA_Machine_GenericMoveTowardGoalHorz
 .IMPORT FuncA_Machine_GenericTryMoveX
 .IMPORT FuncA_Machine_MinigunRotateBarrel
 .IMPORT FuncA_Machine_MinigunTryAct
@@ -53,7 +54,6 @@
 .IMPORT Func_FindEmptyActorSlot
 .IMPORT Func_GetRandomByte
 .IMPORT Func_IsPointInPlatform
-.IMPORT Func_MovePlatformLeftTowardPointX
 .IMPORT Func_MovePlatformVert
 .IMPORT Func_Noop
 .IMPORT Func_SetActorCenterToPoint
@@ -65,7 +65,6 @@
 .IMPORT Ram_ActorType_eActor_arr
 .IMPORT Ram_ActorVelY_i16_1_arr
 .IMPORT Ram_MachineGoalHorz_u8_arr
-.IMPORT Ram_MachineStatus_eMachine_arr
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORT Ram_PlatformLeft_i16_0_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
@@ -74,7 +73,6 @@
 .IMPORTZP Zp_Buffered_sIrq
 .IMPORTZP Zp_Chr0cBank_u8
 .IMPORTZP Zp_NextIrq_int_ptr
-.IMPORTZP Zp_PointX_i16
 .IMPORTZP Zp_RoomScrollY_u8
 .IMPORTZP Zp_ShapePosX_i16
 .IMPORTZP Zp_ShapePosY_i16
@@ -871,25 +869,8 @@ _Offset_u8_arr2:
 
 .PROC FuncC_Temple_BossMinigun_Tick
     jsr FuncA_Machine_MinigunRotateBarrel
-    ;; Calculate the desired X-position for the left edge of the minigun, in
-    ;; room-space pixels, storing it in Zp_PointX_i16.
-    lda Ram_MachineGoalHorz_u8_arr + kMinigunMachineIndex
-    mul #kBlockWidthPx
-    add #<kMinigunMinPlatformLeft
-    sta Zp_PointX_i16 + 0
-    lda #0
-    adc #>kMinigunMinPlatformLeft
-    sta Zp_PointX_i16 + 1
-    ;; Determine the horizontal speed of the minigun (faster if resetting).
-    ldx Ram_MachineStatus_eMachine_arr + kMinigunMachineIndex
-    lda #1
-    cpx #eMachine::Resetting
-    bne @slow
-    mul #2
-    @slow:
-    ;; Move the minigun horizontally, as necessary.
-    ldx #kMinigunPlatformIndex  ; param: platform index
-    jsr Func_MovePlatformLeftTowardPointX  ; returns Z
+    ldax #kMinigunMinPlatformLeft  ; param: min platform left
+    jsr FuncA_Machine_GenericMoveTowardGoalHorz  ; returns Z
     jeq FuncA_Machine_ReachedGoal
     rts
 .ENDPROC

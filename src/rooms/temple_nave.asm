@@ -36,10 +36,10 @@
 .INCLUDE "../room.inc"
 
 .IMPORT DataA_Room_Temple_sTileset
-.IMPORT FuncA_Machine_CarriageMoveTowardGoalHorz
-.IMPORT FuncA_Machine_CarriageMoveTowardGoalVert
 .IMPORT FuncA_Machine_CarriageTryMove
 .IMPORT FuncA_Machine_Error
+.IMPORT FuncA_Machine_GenericMoveTowardGoalHorz
+.IMPORT FuncA_Machine_GenericMoveTowardGoalVert
 .IMPORT FuncA_Machine_ReachedGoal
 .IMPORT FuncA_Objects_DrawCarriageMachine
 .IMPORT FuncA_Objects_DrawCratePlatform
@@ -507,14 +507,14 @@ _ReadY:
 
 .PROC FuncC_Temple_NaveLowerCarriage_Tick
 _MoveVert:
-    ldax #kLowerCarriageMaxPlatformTop
-    jsr FuncA_Machine_CarriageMoveTowardGoalVert  ; returns Z
+    ldax #kLowerCarriageMaxPlatformTop  ; param: max platform top
+    jsr FuncA_Machine_GenericMoveTowardGoalVert  ; returns Z
     beq @reachedGoal
     rts
     @reachedGoal:
 _MoveHorz:
-    ldax #kLowerCarriageMinPlatformLeft
-    jsr FuncA_Machine_CarriageMoveTowardGoalHorz  ; returns Z
+    ldax #kLowerCarriageMinPlatformLeft  ; param: min platform left
+    jsr FuncA_Machine_GenericMoveTowardGoalHorz  ; returns Z
     beq @reachedGoal
     rts
     @reachedGoal:
@@ -600,14 +600,14 @@ _ReadY:
 
 .PROC FuncC_Temple_NaveUpperCarriage_Tick
 _MoveVert:
-    ldax #kUpperCarriageMaxPlatformTop
-    jsr FuncA_Machine_CarriageMoveTowardGoalVert  ; returns Z
+    ldax #kUpperCarriageMaxPlatformTop  ; param: max platform top
+    jsr FuncA_Machine_GenericMoveTowardGoalVert  ; returns Z
     beq @reachedGoal
     rts
     @reachedGoal:
 _MoveHorz:
-    ldax #kUpperCarriageMinPlatformLeft
-    jsr FuncA_Machine_CarriageMoveTowardGoalHorz  ; returns Z
+    ldax #kUpperCarriageMinPlatformLeft  ; param: min platform left
+    jsr FuncA_Machine_GenericMoveTowardGoalHorz  ; returns Z
     beq @reachedGoal
     rts
     @reachedGoal:

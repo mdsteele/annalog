@@ -33,11 +33,8 @@
 .IMPORT FuncA_Objects_MoveShapeRightByA
 .IMPORT FuncA_Objects_SetShapePosToMachineTopLeft
 .IMPORT Func_GetTerrainColumnPtrForTileIndex
-.IMPORT Func_MovePlatformLeftTowardPointX
-.IMPORT Func_MovePlatformTopTowardPointY
 .IMPORT Ram_MachineGoalHorz_u8_arr
 .IMPORT Ram_MachineGoalVert_u8_arr
-.IMPORT Ram_MachineStatus_eMachine_arr
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORT Ram_PlatformBottom_i16_0_arr
 .IMPORT Ram_PlatformBottom_i16_1_arr
@@ -49,8 +46,6 @@
 .IMPORT Ram_PlatformTop_i16_1_arr
 .IMPORTZP Zp_Current_sMachine_ptr
 .IMPORTZP Zp_MachineIndex_u8
-.IMPORTZP Zp_PointX_i16
-.IMPORTZP Zp_PointY_i16
 .IMPORTZP Zp_TerrainColumn_u8_arr_ptr
 .IMPORTZP Zp_Tmp1_byte
 .IMPORTZP Zp_Tmp2_byte
@@ -239,82 +234,6 @@ _CheckIfSolidVert:
     cmp #kFirstSolidTerrainType  ; sets C if the terrain is solid
     @return:
     rts
-.ENDPROC
-
-;;; Moves the current carriage machine's platform towards its horizontal goal
-;;; position.
-;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
-;;; @param AX The minimum platform left position for the carriage machine.
-;;; @return A The pixel delta that the platform actually moved by (signed).
-;;; @return N Set if the platform moved left, cleared otherwise.
-;;; @return Z Cleared if the platform moved, set if it didn't.
-.EXPORT FuncA_Machine_CarriageMoveTowardGoalHorz
-.PROC FuncA_Machine_CarriageMoveTowardGoalHorz
-    sta Zp_Tmp1_byte  ; min platform left (hi)
-    ;; Get the machine's platform index.
-    ldy #sMachine::MainPlatform_u8
-    lda (Zp_Current_sMachine_ptr), y
-    sta Zp_Tmp2_byte  ; platform index
-    ;; Calculate the desired X-position for the left edge of the carriage, in
-    ;; room-space pixels, storing it in Zp_PointX_i16.
-    ldy Zp_MachineIndex_u8
-    lda Ram_MachineGoalHorz_u8_arr, y
-    mul #kBlockHeightPx
-    sta Zp_Tmp3_byte  ; goal delta
-    txa               ; max platform top (lo)
-    add Zp_Tmp3_byte  ; goal delta
-    sta Zp_PointX_i16 + 0
-    lda Zp_Tmp1_byte  ; max platform top (hi)
-    adc #0
-    sta Zp_PointX_i16 + 1
-    ;; Determine the horizontal speed of the carriage (faster if resetting).
-    ldx Ram_MachineStatus_eMachine_arr, y
-    lda #1
-    cpx #eMachine::Resetting
-    bne @slow
-    mul #2
-    @slow:
-    ;; Move the carriage horizontally, as necessary.
-    ldx Zp_Tmp2_byte  ; param: platform index
-    jmp Func_MovePlatformLeftTowardPointX  ; returns Z, N, and A
-.ENDPROC
-
-;;; Moves the current carriage machine's platform towards its vertical goal
-;;; position.
-;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
-;;; @param AX The maximum platform top position for the carriage machine.
-;;; @return A The pixel delta that the platform actually moved by (signed).
-;;; @return N Set if the platform moved up, cleared otherwise.
-;;; @return Z Cleared if the platform moved, set if it didn't.
-.EXPORT FuncA_Machine_CarriageMoveTowardGoalVert
-.PROC FuncA_Machine_CarriageMoveTowardGoalVert
-    sta Zp_Tmp1_byte  ; max platform top (hi)
-    ;; Get the machine's platform index.
-    ldy #sMachine::MainPlatform_u8
-    lda (Zp_Current_sMachine_ptr), y
-    sta Zp_Tmp2_byte  ; platform index
-    ;; Calculate the desired Y-position for the top edge of the carriage, in
-    ;; room-space pixels, storing it in Zp_PointY_i16.
-    ldy Zp_MachineIndex_u8
-    lda Ram_MachineGoalVert_u8_arr, y
-    mul #kBlockHeightPx
-    sta Zp_Tmp3_byte  ; goal delta
-    txa               ; max platform top (lo)
-    sub Zp_Tmp3_byte  ; goal delta
-    sta Zp_PointY_i16 + 0
-    lda Zp_Tmp1_byte  ; max platform top (hi)
-    sbc #0
-    sta Zp_PointY_i16 + 1
-    ;; Determine the vertical speed of the carriage (faster if resetting).
-    ldx Ram_MachineStatus_eMachine_arr, y
-    lda #1
-    cpx #eMachine::Resetting
-    bne @slow
-    mul #2
-    @slow:
-    ;; Move the carriage vertically, as necessary.
-    ldx Zp_Tmp2_byte  ; param: platform index
-    jmp Func_MovePlatformTopTowardPointY  ; returns Z, N, and A
 .ENDPROC
 
 ;;;=========================================================================;;;

@@ -30,8 +30,8 @@
 
 .IMPORT DataA_Room_Garden_sTileset
 .IMPORT FuncA_Machine_Error
+.IMPORT FuncA_Machine_GenericMoveTowardGoalVert
 .IMPORT FuncA_Machine_GenericTryMoveY
-.IMPORT FuncA_Machine_LiftMoveTowardGoal
 .IMPORT FuncA_Machine_ReachedGoal
 .IMPORT FuncA_Objects_DrawLiftMachine
 .IMPORT Func_Noop
@@ -233,7 +233,7 @@ _Passages_sPassage_arr:
 
 .PROC FuncC_Garden_HallwayLift_Tick
     ldax #kLiftMaxPlatformTop  ; param: max platform top
-    jsr FuncA_Machine_LiftMoveTowardGoal  ; returns Z
+    jsr FuncA_Machine_GenericMoveTowardGoalVert  ; returns Z
     jeq FuncA_Machine_ReachedGoal
     rts
 .ENDPROC

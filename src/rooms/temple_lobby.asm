@@ -31,10 +31,10 @@
 .INCLUDE "../room.inc"
 
 .IMPORT DataA_Room_Temple_sTileset
-.IMPORT FuncA_Machine_CarriageMoveTowardGoalHorz
-.IMPORT FuncA_Machine_CarriageMoveTowardGoalVert
 .IMPORT FuncA_Machine_CarriageTryMove
 .IMPORT FuncA_Machine_Error
+.IMPORT FuncA_Machine_GenericMoveTowardGoalHorz
+.IMPORT FuncA_Machine_GenericMoveTowardGoalVert
 .IMPORT FuncA_Machine_ReachedGoal
 .IMPORT FuncA_Objects_DrawCarriageMachine
 .IMPORT Func_Noop
@@ -180,7 +180,7 @@ _Actors_sActor_arr:
     D_STRUCT sActor
     d_byte Type_eActor, eActor::BadBeetleHorz
     d_byte TileRow_u8, 13
-    d_byte TileCol_u8, 44
+    d_byte TileCol_u8, 43
     d_byte Param_byte, bObj::FlipV
     D_END
     .assert * - :- <= kMaxActors * .sizeof(sActor), error
@@ -257,14 +257,14 @@ _ReadY:
 
 .PROC FuncC_Temple_LobbyCarriage_Tick
 _MoveVert:
-    ldax #kCarriageMaxPlatformTop
-    jsr FuncA_Machine_CarriageMoveTowardGoalVert  ; returns Z
+    ldax #kCarriageMaxPlatformTop  ; param: max platform top
+    jsr FuncA_Machine_GenericMoveTowardGoalVert  ; returns Z
     beq @reachedGoal
     rts
     @reachedGoal:
 _MoveHorz:
-    ldax #kCarriageMinPlatformLeft
-    jsr FuncA_Machine_CarriageMoveTowardGoalHorz  ; returns Z
+    ldax #kCarriageMinPlatformLeft  ; param: min platform left
+    jsr FuncA_Machine_GenericMoveTowardGoalHorz  ; returns Z
     beq @reachedGoal
     rts
     @reachedGoal:

@@ -30,8 +30,8 @@
 
 .IMPORT DataA_Room_Garden_sTileset
 .IMPORT FuncA_Machine_Error
+.IMPORT FuncA_Machine_GenericMoveTowardGoalVert
 .IMPORT FuncA_Machine_GenericTryMoveY
-.IMPORT FuncA_Machine_LiftMoveTowardGoal
 .IMPORT FuncA_Machine_ReachedGoal
 .IMPORT FuncA_Objects_DrawLiftMachine
 .IMPORT Func_InitActorProjSmoke
@@ -225,7 +225,7 @@ _ReadL:
 
 .PROC FuncC_Garden_CrossroadLift_Tick
     ldax #kLiftMaxPlatformTop  ; param: max platform top
-    jsr FuncA_Machine_LiftMoveTowardGoal  ; returns Z, N, and A
+    jsr FuncA_Machine_GenericMoveTowardGoalVert  ; returns Z, N, and A
     jeq FuncA_Machine_ReachedGoal
     ;; If the machine moved downwards, check if the baddie below got squished.
     bmi @noSquish  ; the machine moved up, not down

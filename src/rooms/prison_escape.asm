@@ -33,6 +33,7 @@
 
 .IMPORT DataA_Room_Prison_sTileset
 .IMPORT FuncA_Machine_Error
+.IMPORT FuncA_Machine_GenericMoveTowardGoalHorz
 .IMPORT FuncA_Machine_GenericTryMoveX
 .IMPORT FuncA_Machine_ReachedGoal
 .IMPORT FuncA_Objects_Draw1x1Shape
@@ -44,13 +45,10 @@
 .IMPORT FuncA_Objects_MoveShapeRightOneTile
 .IMPORT FuncA_Objects_MoveShapeUpOneTile
 .IMPORT Func_MovePlatformHorz
-.IMPORT Func_MovePlatformLeftTowardPointX
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrObjPrison
 .IMPORT Ram_MachineGoalHorz_u8_arr
-.IMPORT Ram_MachineStatus_eMachine_arr
 .IMPORT Ram_PlatformLeft_i16_0_arr
-.IMPORTZP Zp_PointX_i16
 
 ;;;=========================================================================;;;
 
@@ -232,26 +230,9 @@ _Passages_sPassage_arr:
 .ENDPROC
 
 .PROC FuncC_Prison_EscapeTrolley_Tick
-    ;; Calculate the desired X-position for the left edge of the trolley, in
-    ;; room-space pixels, storing it in Zp_PointX_i16.
-    lda Ram_MachineGoalHorz_u8_arr + kTrolleyMachineIndex
-    .assert kTrolleyMaxGoalX * kBlockWidthPx < $100, error
-    mul #kBlockWidthPx  ; fits in one byte
-    add #<kTrolleyMinPlatformLeft
-    sta Zp_PointX_i16 + 0
-    lda #0
-    adc #>kTrolleyMinPlatformLeft
-    sta Zp_PointX_i16 + 1
-    ;; Determine the horizontal speed of the trolley (faster if resetting).
-    lda #1
-    ldy Ram_MachineStatus_eMachine_arr + kTrolleyMachineIndex
-    cpy #eMachine::Resetting
-    bne @slow
-    mul #2
-    @slow:
     ;; Move the trolley horizontally, as necessary.
-    ldx #kTrolleyPlatformIndex  ; param: platform index
-    jsr Func_MovePlatformLeftTowardPointX  ; returns Z and A
+    ldax #kTrolleyMinPlatformLeft  ; param: min platform left
+    jsr FuncA_Machine_GenericMoveTowardGoalHorz  ; returns Z and A
     beq @done
     ;; If the trolley moved, move the girder platform too.
     ldx #kGirderPlatformIndex  ; param: platform index

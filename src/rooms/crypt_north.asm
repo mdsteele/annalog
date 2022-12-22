@@ -32,10 +32,10 @@
 
 .IMPORT DataA_Room_Crypt_sTileset
 .IMPORT FuncA_Machine_Error
+.IMPORT FuncA_Machine_GenericMoveTowardGoalVert
 .IMPORT FuncA_Machine_GenericTryMoveY
 .IMPORT FuncA_Machine_GenericTryMoveZ
 .IMPORT FuncA_Machine_GetWinchVertSpeed
-.IMPORT FuncA_Machine_LiftMoveTowardGoal
 .IMPORT FuncA_Machine_ReachedGoal
 .IMPORT FuncA_Machine_WinchReachedGoal
 .IMPORT FuncA_Machine_WinchStartFalling
@@ -325,7 +325,7 @@ _ReadZ:
 
 .PROC FuncC_Crypt_NorthLift_Tick
     ldax #kLiftMaxPlatformTop  ; param: max platform top
-    jsr FuncA_Machine_LiftMoveTowardGoal  ; returns Z
+    jsr FuncA_Machine_GenericMoveTowardGoalVert  ; returns Z
     jeq FuncA_Machine_ReachedGoal
     rts
 .ENDPROC

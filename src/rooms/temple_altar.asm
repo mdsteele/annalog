@@ -33,9 +33,9 @@
 .INCLUDE "../spawn.inc"
 
 .IMPORT DataA_Room_Temple_sTileset
-.IMPORT FuncA_Machine_CarriageMoveTowardGoalHorz
-.IMPORT FuncA_Machine_CarriageMoveTowardGoalVert
 .IMPORT FuncA_Machine_CarriageTryMove
+.IMPORT FuncA_Machine_GenericMoveTowardGoalHorz
+.IMPORT FuncA_Machine_GenericMoveTowardGoalVert
 .IMPORT FuncA_Machine_GenericTryMoveX
 .IMPORT FuncA_Machine_MinigunRotateBarrel
 .IMPORT FuncA_Machine_MinigunTryAct
@@ -46,7 +46,6 @@
 .IMPORT FuncC_Temple_DrawColumnCrackedPlatform
 .IMPORT Func_InitActorProjSmoke
 .IMPORT Func_IsPointInPlatform
-.IMPORT Func_MovePlatformLeftTowardPointX
 .IMPORT Func_Noop
 .IMPORT Func_SetFlag
 .IMPORT Func_SetPointToActorCenter
@@ -54,13 +53,11 @@
 .IMPORT Ram_ActorType_eActor_arr
 .IMPORT Ram_MachineGoalHorz_u8_arr
 .IMPORT Ram_MachineGoalVert_u8_arr
-.IMPORT Ram_MachineStatus_eMachine_arr
 .IMPORT Ram_PlatformLeft_i16_0_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORT Ram_PlatformType_ePlatform_arr
 .IMPORT Ram_RoomState
 .IMPORT Sram_ProgressFlags_arr
-.IMPORTZP Zp_PointX_i16
 
 ;;;=========================================================================;;;
 
@@ -467,25 +464,8 @@ _ReadX:
 
 .PROC FuncC_Temple_AltarUpperMinigun_Tick
     jsr FuncA_Machine_MinigunRotateBarrel
-    ;; Calculate the desired X-position for the left edge of the minigun, in
-    ;; room-space pixels, storing it in Zp_PointX_i16.
-    lda Ram_MachineGoalHorz_u8_arr + kUpperMinigunMachineIndex
-    mul #kBlockWidthPx
-    add #<kUpperMinigunMinPlatformLeft
-    sta Zp_PointX_i16 + 0
-    lda #0
-    adc #>kUpperMinigunMinPlatformLeft
-    sta Zp_PointX_i16 + 1
-    ;; Determine the horizontal speed of the minigun (faster if resetting).
-    ldx Ram_MachineStatus_eMachine_arr + kUpperMinigunMachineIndex
-    lda #1
-    cpx #eMachine::Resetting
-    bne @slow
-    mul #2
-    @slow:
-    ;; Move the minigun horizontally, as necessary.
-    ldx #kUpperMinigunPlatformIndex  ; param: platform index
-    jsr Func_MovePlatformLeftTowardPointX  ; returns Z
+    ldax #kUpperMinigunMinPlatformLeft  ; param: min platform left
+    jsr FuncA_Machine_GenericMoveTowardGoalHorz  ; returns Z
     jeq FuncA_Machine_ReachedGoal
     rts
 .ENDPROC
@@ -519,14 +499,14 @@ _ReadY:
 .PROC FuncC_Temple_AltarLowerMinigun_Tick
     jsr FuncA_Machine_MinigunRotateBarrel
 _MoveVert:
-    ldax #kLowerMinigunMaxPlatformTop
-    jsr FuncA_Machine_CarriageMoveTowardGoalVert  ; returns Z
+    ldax #kLowerMinigunMaxPlatformTop  ; param: max platform top
+    jsr FuncA_Machine_GenericMoveTowardGoalVert  ; returns Z
     beq @reachedGoal
     rts
     @reachedGoal:
 _MoveHorz:
-    ldax #kLowerMinigunMinPlatformLeft
-    jsr FuncA_Machine_CarriageMoveTowardGoalHorz  ; returns Z
+    ldax #kLowerMinigunMinPlatformLeft  ; param: min platform left
+    jsr FuncA_Machine_GenericMoveTowardGoalHorz  ; returns Z
     beq @reachedGoal
     rts
     @reachedGoal:
