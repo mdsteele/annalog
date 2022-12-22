@@ -33,6 +33,9 @@ kMaxRoomWidthBlocks = kMaxRoomWidthTiles / 2
 ;;; How many bytes of RAM are reserved for room-specific state.
 kRoomStateSize = $100
 
+;;; The maximum number of passages a room can have.
+kMaxPassages = 8
+
 ;;;=========================================================================;;;
 
 ;;; The list of rooms in the game.

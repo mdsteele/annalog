@@ -262,7 +262,7 @@ _Devices_sDevice_arr:
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None
 _Passages_sPassage_arr:
-    D_STRUCT sPassage
+:   D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Western | 0
     d_byte Destination_eRoom, eRoom::LavaShaft
     d_byte SpawnBlock_u8, 4
@@ -282,6 +282,7 @@ _Passages_sPassage_arr:
     d_byte Destination_eRoom, eRoom::LavaEast  ; TODO
     d_byte SpawnBlock_u8, 15
     D_END
+    .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
 .ENDPROC
 
 ;;; Sets two block rows of the lower nametable to use BG palette 1.

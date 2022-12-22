@@ -281,11 +281,12 @@ _Devices_sDevice_arr:
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None
 _Passages_sPassage_arr:
-    D_STRUCT sPassage
+:   D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Eastern | 0
     d_byte Destination_eRoom, eRoom::PrisonCrossroad
     d_byte SpawnBlock_u8, 10
     D_END
+    .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
 .ENDPROC
 
 .PROC FuncC_Prison_Upper_InitRoom

@@ -116,14 +116,14 @@ _Machines_sMachine_arr:
     d_byte ScrollGoalY_u8, $60
     d_byte RegNames_u8_arr4, "L", 0, 0, "Y"
     d_byte MainPlatform_u8, kLiftPlatformIndex
-    d_addr Init_func_ptr, _Lift_Init
+    d_addr Init_func_ptr, FuncC_Garden_CrossroadLift_Init
     d_addr ReadReg_func_ptr, FuncC_Garden_CrossroadLift_ReadReg
     d_addr WriteReg_func_ptr, Func_Noop
     d_addr TryMove_func_ptr, FuncC_Garden_CrossroadLift_TryMove
     d_addr TryAct_func_ptr, FuncA_Machine_Error
     d_addr Tick_func_ptr, FuncC_Garden_CrossroadLift_Tick
     d_addr Draw_func_ptr, FuncA_Objects_DrawLiftMachine
-    d_addr Reset_func_ptr, _Lift_Reset
+    d_addr Reset_func_ptr, FuncC_Garden_CrossroadLift_Reset
     D_END
     .assert * - :- <= kMaxMachines * .sizeof(sMachine), error
 _Platforms_sPlatform_arr:
@@ -177,7 +177,7 @@ _Devices_sDevice_arr:
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None
 _Passages_sPassage_arr:
-    D_STRUCT sPassage
+:   D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Western | 0
     d_byte Destination_eRoom, eRoom::GardenShrine
     d_byte SpawnBlock_u8, 5
@@ -197,8 +197,14 @@ _Passages_sPassage_arr:
     d_byte Destination_eRoom, eRoom::GardenEast
     d_byte SpawnBlock_u8, 21
     D_END
-_Lift_Init:
-_Lift_Reset:
+    .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
+.ENDPROC
+
+.PROC FuncC_Garden_CrossroadLift_Reset
+    .assert * = FuncC_Garden_CrossroadLift_Init, error, "fallthrough"
+.ENDPROC
+
+.PROC FuncC_Garden_CrossroadLift_Init
     lda #kLiftInitGoalY
     sta Ram_MachineGoalVert_u8_arr + kLiftMachineIndex
     rts

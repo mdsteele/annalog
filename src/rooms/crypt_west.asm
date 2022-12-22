@@ -134,14 +134,14 @@ _Machines_sMachine_arr:
     d_byte ScrollGoalY_u8, $00
     d_byte RegNames_u8_arr4, 0, 0, 0, "Z"
     d_byte MainPlatform_u8, kWinchPlatformIndex
-    d_addr Init_func_ptr, _Winch_Init
+    d_addr Init_func_ptr, FuncC_Crypt_WestWinch_Init
     d_addr ReadReg_func_ptr, FuncC_Crypt_WestWinch_ReadReg
     d_addr WriteReg_func_ptr, Func_Noop
     d_addr TryMove_func_ptr, FuncC_Crypt_WestWinch_TryMove
     d_addr TryAct_func_ptr, FuncC_Crypt_WestWinch_TryAct
     d_addr Tick_func_ptr, FuncC_Crypt_WestWinch_Tick
     d_addr Draw_func_ptr, FuncA_Objects_CryptWestWinch_Draw
-    d_addr Reset_func_ptr, _Winch_Reset
+    d_addr Reset_func_ptr, FuncC_Crypt_WestWinch_Reset
     D_END
     .assert * - :- <= kMaxMachines * .sizeof(sMachine), error
 _Platforms_sPlatform_arr:
@@ -211,7 +211,7 @@ _Devices_sDevice_arr:
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None
 _Passages_sPassage_arr:
-    D_STRUCT sPassage
+:   D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Eastern | 0
     d_byte Destination_eRoom, eRoom::CryptNorth
     d_byte SpawnBlock_u8, 3
@@ -221,8 +221,14 @@ _Passages_sPassage_arr:
     d_byte Destination_eRoom, eRoom::CryptSouth
     d_byte SpawnBlock_u8, 20
     D_END
-_Winch_Init:
-_Winch_Reset:
+    .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
+.ENDPROC
+
+.PROC FuncC_Crypt_WestWinch_Reset
+    .assert * = FuncC_Crypt_WestWinch_Init, error, "fallthrough"
+.ENDPROC
+
+.PROC FuncC_Crypt_WestWinch_Init
     lda #kWinchInitGoalZ
     sta Ram_MachineGoalVert_u8_arr + kWinchMachineIndex
     jmp Func_ResetWinchMachineParams

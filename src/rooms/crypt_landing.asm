@@ -117,6 +117,7 @@ _Passages_sPassage_arr:
     d_byte Destination_eRoom, eRoom::CryptNorth
     d_byte SpawnBlock_u8, 18
     D_END
+    .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
 .ENDPROC
 
 .PROC FuncC_Crypt_Landing_EnterRoom

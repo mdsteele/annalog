@@ -84,7 +84,7 @@ _Devices_sDevice_arr:
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None
 _Passages_sPassage_arr:
-    D_STRUCT sPassage
+:   D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Eastern | 0
     d_byte Destination_eRoom, eRoom::TempleNave
     d_byte SpawnBlock_u8, 10
@@ -94,6 +94,7 @@ _Passages_sPassage_arr:
     d_byte Destination_eRoom, eRoom::CryptLanding
     d_byte SpawnBlock_u8, 8
     D_END
+    .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
 .ENDPROC
 
 ;;;=========================================================================;;;

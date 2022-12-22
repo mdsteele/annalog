@@ -69,7 +69,7 @@ _Actors_sActor_arr:
 _Devices_sDevice_arr:
     .byte eDevice::None
 _Passages_sPassage_arr:
-    D_STRUCT sPassage
+:   D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Western | 0
     d_byte Destination_eRoom, eRoom::MineSouth  ; TODO
     d_byte SpawnBlock_u8, 4
@@ -84,6 +84,7 @@ _Passages_sPassage_arr:
     d_byte Destination_eRoom, eRoom::MinePit
     d_byte SpawnBlock_u8, 25
     D_END
+    .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
 .ENDPROC
 
 ;;;=========================================================================;;;

@@ -201,7 +201,7 @@ _Devices_sDevice_arr:
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None
 _Passages_sPassage_arr:
-    D_STRUCT sPassage
+:   D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Eastern | 0
     d_byte Destination_eRoom, eRoom::FactoryElevator  ; TODO
     d_byte SpawnBlock_u8, 8
@@ -226,6 +226,7 @@ _Passages_sPassage_arr:
     d_byte Destination_eRoom, eRoom::MermaidElevator
     d_byte SpawnBlock_u8, 9
     D_END
+    .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
 .ENDPROC
 
 .PROC FuncC_Factory_ElevatorUpperJet_Reset

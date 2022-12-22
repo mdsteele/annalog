@@ -64,9 +64,6 @@
 ;;; The dialog index for the plaque sign in this room.
 kPlaqueDialogIndex = 0
 
-;;; The index of the passage at the top of the room.
-kUpperPassageIndex = 0
-
 ;;; The highest actor index among the beetles in this room.
 kLastBeetleActorIndex = 2
 
@@ -310,8 +307,7 @@ _Devices_sDevice_arr:
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None
 _Passages_sPassage_arr:
-:   .assert * - :- = kUpperPassageIndex * .sizeof(sPassage), error
-    D_STRUCT sPassage
+:   D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Top | 0
     d_byte Destination_eRoom, eRoom::TempleAltar  ; TODO
     d_byte SpawnBlock_u8, 8
@@ -321,6 +317,7 @@ _Passages_sPassage_arr:
     d_byte Destination_eRoom, eRoom::TempleWest
     d_byte SpawnBlock_u8, 20
     D_END
+    .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
 .ENDPROC
 
 .PROC FuncC_Temple_Altar_InitRoom

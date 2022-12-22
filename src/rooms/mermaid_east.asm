@@ -143,7 +143,7 @@ _Devices_sDevice_arr:
     D_END
     .byte eDevice::None
 _Passages_sPassage_arr:
-    D_STRUCT sPassage
+:   D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Western | 0
     d_byte Destination_eRoom, eRoom::MermaidElevator
     d_byte SpawnBlock_u8, 6
@@ -153,6 +153,7 @@ _Passages_sPassage_arr:
     d_byte Destination_eRoom, eRoom::MermaidDrain
     d_byte SpawnBlock_u8, 18
     D_END
+    .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
 .ENDPROC
 
 ;;;=========================================================================;;;

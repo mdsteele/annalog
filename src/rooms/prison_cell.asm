@@ -220,6 +220,7 @@ _Passages_sPassage_arr:
     d_byte Destination_eRoom, eRoom::GardenLanding
     d_byte SpawnBlock_u8, 25
     D_END
+    .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
 _Blaster_Init:
     ;; TODO
     rts
