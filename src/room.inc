@@ -98,6 +98,7 @@ kMaxPassages = 8
     TempleLobby
     TempleNave
     TemplePit
+    TempleSpire
     TempleWest
     TownHouse1
     TownHouse2

@@ -1,0 +1,30 @@
+@BG 0 0 0 17x24
+>temple_0
+>temple_1
+>temple_2
+>temple_4
+
+            DADFDFDFDD
+            DN      DN
+            DP      DP
+        DADFDD  BB  DADFDD
+        DN      BD      DN
+        DP              DP
+    DADFDD  BA      BB  DADFDD
+    DN  AN  BD      BC  AN  DN
+    DO  AO              AO  DO
+    DP  AO              AO  DP
+  DADD  AO  DN  AE  DN  AO  DADD
+  DN    AP  DP  AF  DP  AP    DN
+  DO    DADFDFDFDFDFDFDFDD    DO
+  DO      AN          AN      DO
+  DOCIDE  CP          CO    CJDO
+  DP                          DP
+  DADD                      DADD
+  DN                          DN
+  DO    DECGCGCIDECJCG        DO
+  DO    AN              AM    DO
+  DO    AO              AODE  DO
+  DP  CMAP              APAK  DP
+DCDGDCDBDCDD          DADGDCDBDCDB
+DBDCDBDCDGDCDD      DADBDCDBDCDBDC

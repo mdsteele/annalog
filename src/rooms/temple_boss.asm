@@ -340,7 +340,7 @@ _Devices_sDevice_arr:
     d_byte Type_eDevice, eDevice::UnlockedDoor
     d_byte BlockRow_u8, 12
     d_byte BlockCol_u8, 8
-    d_byte Target_u8, eRoom::TempleBoss  ; TODO
+    d_byte Target_u8, eRoom::TempleSpire
     D_END
     .assert * - :- = kBossUpgradeDeviceIndex * .sizeof(sDevice), error
     D_STRUCT sDevice
