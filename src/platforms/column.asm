@@ -23,8 +23,10 @@
 .INCLUDE "column.inc"
 
 .IMPORT FuncA_Objects_Alloc2x2Shape
+.IMPORT FuncA_Objects_Draw1x1Shape
 .IMPORT FuncA_Objects_MoveShapeDownAndRightOneTile
 .IMPORT FuncA_Objects_MoveShapeDownByA
+.IMPORT FuncA_Objects_MoveShapeDownOneTile
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORT Ram_PlatformBottom_i16_0_arr
@@ -32,11 +34,15 @@
 
 ;;;=========================================================================;;;
 
-;;; Various OBJ tile IDs used for drawing the movable column.
+;;; Various OBJ tile IDs used for drawing cracked columns.
+kTileIdObjColumnCrackedTop    = kTileIdObjColumnCrackedFirst + 6
+kTileIdObjColumnCrackedBottom = kTileIdObjColumnCrackedFirst + 7
+
+;;; Various OBJ tile IDs used for drawing movable columns.
 kTileIdObjColumnCorner = kTileIdObjColumnFirst + 0
 kTileIdObjColumnSide   = kTileIdObjColumnFirst + 1
 
-;;; The OBJ palette number to use for drawing the movable column.
+;;; The OBJ palette number to use for drawing columns.
 kPaletteObjColumn = 0
 
 ;;;=========================================================================;;;
@@ -92,6 +98,36 @@ _ColumnBody:
     bne @loop
 _Done:
     rts
+.ENDPROC
+
+;;; Draws a cracked column platform.
+;;; @param A How many bullets have hit the column (0-5).
+;;; @param X The platform index.
+.EXPORT FuncC_Temple_DrawColumnCrackedPlatform
+.PROC FuncC_Temple_DrawColumnCrackedPlatform
+    add #kTileIdObjColumnCrackedFirst
+    pha  ; cracked tile ID
+    ;; Top:
+    jsr FuncA_Objects_SetShapePosToPlatformTopLeft  ; preserves Y
+    ldy #kPaletteObjColumn  ; param: object flags
+    lda #kTileIdObjColumnCrackedTop  ; param: tile ID
+    jsr FuncA_Objects_Draw1x1Shape
+    ;; Upper-middle:
+    jsr FuncA_Objects_MoveShapeDownOneTile
+    ldy #kPaletteObjColumn  ; param: object flags
+    pla  ; param: tile ID
+    pha  ; cracked tile ID
+    jsr FuncA_Objects_Draw1x1Shape  ; preserves X
+    ;; Lower-middle:
+    jsr FuncA_Objects_MoveShapeDownOneTile  ; preserves X
+    ldy #kPaletteObjColumn | bObj::FlipV  ; param: object flags
+    pla  ; param: tile ID
+    jsr FuncA_Objects_Draw1x1Shape  ; preserves X
+    ;; Bottom:
+    jsr FuncA_Objects_MoveShapeDownOneTile
+    ldy #kPaletteObjColumn  ; param: object flags
+    lda #kTileIdObjColumnCrackedBottom  ; param: tile ID
+    jmp FuncA_Objects_Draw1x1Shape
 .ENDPROC
 
 ;;;=========================================================================;;;

@@ -17,7 +17,8 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
-;;; OBJ tile IDs for drawing movable column platforms.
-kTileIdObjColumnFirst = $86
+;;; OBJ tile IDs for drawing column platforms.
+kTileIdObjColumnFirst        = $86
+kTileIdObjColumnCrackedFirst = $b0
 
 ;;;=========================================================================;;;

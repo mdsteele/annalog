@@ -841,7 +841,10 @@
     .res $02 * kSizeofChr
     .assert * - :- = (kTileIdObjToadFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/toad.chr"
-    .res $10 * kSizeofChr
+    .assert * - :- = (kTileIdObjColumnCrackedFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/column_cracked.chr"
+    .assert * - :- = (kTileIdObjMinigunHorzFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/minigun_horz.chr"
     .assert * - :- = (kTileIdObjMinigunVertFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/minigun_vert.chr"
     .assert * - :- = (kTileIdObjChildAlexFirst - $80) * kSizeofChr, error

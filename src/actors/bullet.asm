@@ -34,7 +34,7 @@
 ;;;=========================================================================;;;
 
 ;;; The speed of a bullet projectile, in pixels per frame:
-kProjBulletSpeed = 4
+kProjBulletSpeed = 6
 
 ;;; OBJ tile IDs for bullet projectile actors.
 kTileIdObjBulletVert = kTileIdObjBulletFirst + 0

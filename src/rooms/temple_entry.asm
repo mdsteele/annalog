@@ -164,10 +164,10 @@ _Actors_sActor_arr:
     d_byte Param_byte, bObj::FlipHV
     D_END
     D_STRUCT sActor
-    d_byte Type_eActor, eActor::BadBeetleHorz
+    d_byte Type_eActor, eActor::BadToad
     d_byte TileRow_u8, 31
     d_byte TileCol_u8, 16
-    d_byte Param_byte, bObj::FlipH
+    d_byte Param_byte, 0
     D_END
     .assert * - :- <= kMaxActors * .sizeof(sActor), error
     .byte eActor::None

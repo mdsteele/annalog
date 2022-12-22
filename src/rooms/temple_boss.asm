@@ -40,7 +40,7 @@
 .IMPORT FuncA_Machine_ReachedGoal
 .IMPORT FuncA_Objects_Alloc2x1Shape
 .IMPORT FuncA_Objects_Draw1x1Shape
-.IMPORT FuncA_Objects_DrawMinigunMachine
+.IMPORT FuncA_Objects_DrawMinigunUpMachine
 .IMPORT FuncA_Objects_MoveShapeDownByA
 .IMPORT FuncA_Objects_MoveShapeLeftByA
 .IMPORT FuncA_Objects_MoveShapeRightByA
@@ -287,7 +287,7 @@ _Machines_sMachine_arr:
     d_addr TryMove_func_ptr, FuncC_Temple_BossMinigun_TryMove
     d_addr TryAct_func_ptr, FuncC_Temple_BossMinigun_TryAct
     d_addr Tick_func_ptr, FuncC_Temple_BossMinigun_Tick
-    d_addr Draw_func_ptr, FuncA_Objects_DrawMinigunMachine
+    d_addr Draw_func_ptr, FuncA_Objects_DrawMinigunUpMachine
     d_addr Reset_func_ptr, FuncC_Temple_BossMinigun_Reset
     D_END
     .assert * - :- <= kMaxMachines * .sizeof(sMachine), error
