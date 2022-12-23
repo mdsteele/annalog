@@ -29,6 +29,7 @@
 .IMPORT DataC_Core_Elevator_sRoom
 .IMPORT DataC_Crypt_Boss_sRoom
 .IMPORT DataC_Crypt_East_sRoom
+.IMPORT DataC_Crypt_Escape_sRoom
 .IMPORT DataC_Crypt_Flower_sRoom
 .IMPORT DataC_Crypt_Gallery_sRoom
 .IMPORT DataC_Crypt_Landing_sRoom
@@ -174,6 +175,7 @@ Ram_RoomState: .res kRoomStateSize
     d_entry table, CoreElevator,    DataC_Core_Elevator_sRoom
     d_entry table, CryptBoss,       DataC_Crypt_Boss_sRoom
     d_entry table, CryptEast,       DataC_Crypt_East_sRoom
+    d_entry table, CryptEscape,     DataC_Crypt_Escape_sRoom
     d_entry table, CryptFlower,     DataC_Crypt_Flower_sRoom
     d_entry table, CryptGallery,    DataC_Crypt_Gallery_sRoom
     d_entry table, CryptLanding,    DataC_Crypt_Landing_sRoom

@@ -209,7 +209,7 @@ _Passages_sPassage_arr:
     D_END
     D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Western | 1
-    d_byte Destination_eRoom, eRoom::TempleLobby  ; TODO
+    d_byte Destination_eRoom, eRoom::CryptEscape
     d_byte SpawnBlock_u8, 21
     D_END
     D_STRUCT sPassage

@@ -2,6 +2,7 @@
 >temple_0
 >temple_1
 >temple_4
+>temple_5
 
 
 
@@ -15,6 +16,6 @@
   CO  AO                AO  AN
   CP  AP  CACD    CACD  AP  AP
   CACGCCCBCCCD    CACBCCCGCCCBCCCB
-            CL    CK
-            CK    CL
+            CL    DB
+            DB    CL
             CL    CL

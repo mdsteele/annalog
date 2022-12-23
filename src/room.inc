@@ -43,6 +43,7 @@ kMaxPassages = 8
     CoreElevator
     CryptBoss
     CryptEast
+    CryptEscape
     CryptFlower
     CryptGallery
     CryptLanding
