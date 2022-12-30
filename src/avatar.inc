@@ -81,7 +81,4 @@ kPaletteObjAvatarDeath  = 3
     Falling   = $74  ; (airborne) falling down
 .ENDENUM
 
-;;; Any eAvatar modes greater than or equal to this are considered airborne.
-kFirstAirborneAvatarMode = eAvatar::Jumping
-
 ;;;=========================================================================;;;

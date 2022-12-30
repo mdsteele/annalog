@@ -116,6 +116,7 @@
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORT Ram_PlatformTop_i16_1_arr
 .IMPORT Ram_PlatformType_ePlatform_arr
+.IMPORTZP Zp_AvatarExit_ePassage
 .IMPORTZP Zp_AvatarPlatformIndex_u8
 .IMPORTZP Zp_CameraCanScroll_bool
 .IMPORTZP Zp_ConsoleMachineIndex_u8
@@ -459,12 +460,15 @@ _LoadDevices:
     cpx #kMaxDevices
     blt @clearLoop
 _SetVars:
-    lda #$ff
-    sta Zp_AvatarPlatformIndex_u8
-    sta Zp_CameraCanScroll_bool
-    sta Zp_ConsoleMachineIndex_u8
-    sta Zp_HudMachineIndex_u8
-    sta Zp_RoomIsSafe_bool
+    ldx #0
+    .assert ePassage::None = 0, error
+    stx Zp_AvatarExit_ePassage
+    dex  ; now X is $ff
+    stx Zp_AvatarPlatformIndex_u8
+    stx Zp_CameraCanScroll_bool
+    stx Zp_ConsoleMachineIndex_u8
+    stx Zp_HudMachineIndex_u8
+    stx Zp_RoomIsSafe_bool
 _CallInit:
     jsr FuncA_Room_CallRoomInit
     jmp FuncA_Room_InitAllMachines

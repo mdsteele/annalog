@@ -25,9 +25,9 @@
 
 .IMPORT Ppu_ChrObjAnnaNormal
 .IMPORT Sram_CarryingFlower_eFlag
+.IMPORTZP Zp_AvatarAirborne_bool
 .IMPORTZP Zp_AvatarFlags_bObj
 .IMPORTZP Zp_AvatarHarmTimer_u8
-.IMPORTZP Zp_AvatarMode_eAvatar
 .IMPORTZP Zp_AvatarVelX_i16
 .IMPORTZP Zp_AvatarVelY_i16
 
@@ -59,8 +59,8 @@ _Harm:
     lda #kAvatarHarmHealFrames
     sta Zp_AvatarHarmTimer_u8
     ;; Make the avatar go flying backwards.
-    lda #eAvatar::Jumping
-    sta Zp_AvatarMode_eAvatar
+    lda #$ff
+    sta Zp_AvatarAirborne_bool
     lda #<kAvatarStunVelY
     sta Zp_AvatarVelY_i16 + 0
     lda #>kAvatarStunVelY

@@ -77,6 +77,8 @@
 .IMPORT Ram_DeviceTarget_u8_arr
 .IMPORT Ram_DeviceType_eDevice_arr
 .IMPORT Sram_LastSafe_eRoom
+.IMPORTZP Zp_AvatarAirborne_bool
+.IMPORTZP Zp_AvatarExit_ePassage
 .IMPORTZP Zp_AvatarFlags_bObj
 .IMPORTZP Zp_AvatarHarmTimer_u8
 .IMPORTZP Zp_AvatarMode_eAvatar
@@ -318,7 +320,9 @@ _Tick:
     cmp #kAvatarHarmDeath
     jeq Main_Explore_Death
     ;; Move the avatar and check if we've gone through a passage:
-    jsr_prga FuncA_Avatar_ExploreMove  ; if passage, clears Z and returns A
+    jsr_prga FuncA_Avatar_ExploreMove
+    lda Zp_AvatarExit_ePassage
+    .assert ePassage::None = 0, error
     jeq _GameLoop
     .assert * = Main_Explore_GoThroughPassage, error, "fallthrough"
 .ENDPROC
@@ -490,9 +494,8 @@ _Respawn:
 .PROC Func_FindNearbyDevice
     ;; Check if the player avatar is airborne; if so, treat them as not near
     ;; any device.
-    lda Zp_AvatarMode_eAvatar
-    cmp #kFirstAirborneAvatarMode
-    blt @notAirborne
+    bit Zp_AvatarAirborne_bool
+    bpl @notAirborne
     ldx #$ff
     bne @done  ; unconditional
     @notAirborne:

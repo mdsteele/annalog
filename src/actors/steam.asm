@@ -28,7 +28,6 @@
 .IMPORT Ram_ActorFlags_bObj_arr
 .IMPORT Ram_ActorState1_byte_arr
 .IMPORT Ram_ActorType_eActor_arr
-.IMPORTZP Zp_AvatarMode_eAvatar
 .IMPORTZP Zp_AvatarVelX_i16
 .IMPORTZP Zp_AvatarVelY_i16
 
@@ -130,9 +129,6 @@ kPaletteObjSteam = 0
     lda #>-kAvatarMaxAirSpeedVert
     @noClamp:
     sta Zp_AvatarVelY_i16 + 1
-    ;; Mark the avatar as airborne.
-    lda #eAvatar::Falling
-    sta Zp_AvatarMode_eAvatar
     @noPush:
     .assert * = FuncA_Actor_IncrementSteamAge, error, "fallthrough"
 .ENDPROC

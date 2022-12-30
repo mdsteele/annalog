@@ -26,8 +26,7 @@
 .IMPORTZP Zp_AvatarCollided_ePlatform
 .IMPORTZP Zp_AvatarPosX_i16
 .IMPORTZP Zp_AvatarPosY_i16
-.IMPORTZP Zp_AvatarVelX_i16
-.IMPORTZP Zp_AvatarVelY_i16
+.IMPORTZP Zp_AvatarPushDelta_i8
 .IMPORTZP Zp_AvatarWaterDepth_u8
 .IMPORTZP Zp_PointX_i16
 .IMPORTZP Zp_PointY_i16
@@ -361,6 +360,7 @@ _MoveByA:
 ;;; Checks for horizontal collisions between the player avatar and all
 ;;; platforms.  If any collision occurs, updates the avatar's X-position and
 ;;; sets Zp_AvatarCollided_ePlatform to the hit platform's type.
+;;; @prereq Zp_AvatarPushDelta_i8 holds a nonzero horz delta for the avatar.
 .EXPORT FuncA_Avatar_CollideWithAllPlatformsHorz
 .PROC FuncA_Avatar_CollideWithAllPlatformsHorz
     ldx #kMaxPlatforms - 1
@@ -379,6 +379,7 @@ _MoveByA:
 ;;; Checks for horizontal collisions between the player avatar and the
 ;;; specified platform.  If a collision occurs, updates the avatar's X-position
 ;;; and sets Zp_AvatarCollided_ePlatform to the platform's type.
+;;; @prereq Zp_AvatarPushDelta_i8 holds a nonzero horz delta for the avatar.
 ;;; @param X The platform index.
 ;;; @preserve X
 .PROC FuncA_Avatar_CollideWithOnePlatformHorz
@@ -408,8 +409,8 @@ _MoveByA:
     cmp Zp_AvatarPosY_i16 + 0
     ble @return
     @bottomEdgeHit:
-    ;; Check if the player is moving to the left or to the right.
-    lda Zp_AvatarVelX_i16 + 1
+    ;; Check if the player avatar is moving to the left or to the right.
+    bit Zp_AvatarPushDelta_i8
     bmi _MovingLeft
     bpl _MovingRight  ; unconditional
     @return:
@@ -487,6 +488,7 @@ _Return:
 ;;; If any collision occurs, updates the avatar's Y-position and sets
 ;;; Zp_AvatarCollided_ePlatform to the hit platform's type.  Also updates
 ;;; Zp_AvatarPlatformIndex_u8.
+;;; @prereq Zp_AvatarPushDelta_i8 holds a nonzero vert delta for the avatar.
 .EXPORT FuncA_Avatar_CollideWithAllPlatformsVert
 .PROC FuncA_Avatar_CollideWithAllPlatformsVert
     lda #$ff
@@ -507,6 +509,7 @@ _Return:
 ;;; Checks for vertical collisions between the player avatar and the specified
 ;;; platform.  If a collision occurs, updates the avatar's Y-position and sets
 ;;; Zp_AvatarCollided_ePlatform to the platform's type.
+;;; @prereq Zp_AvatarPushDelta_i8 holds a nonzero vert delta for the avatar.
 ;;; @param X The platform index.
 ;;; @preserve X
 .PROC FuncA_Avatar_CollideWithOnePlatformVert
@@ -537,7 +540,7 @@ _Return:
     ble @return
     @rightEdgeHit:
     ;; Check if the player is moving up or down.
-    lda Zp_AvatarVelY_i16 + 1
+    bit Zp_AvatarPushDelta_i8
     bmi _MovingUp
     bpl _MovingDown  ; unconditional
     @return:
