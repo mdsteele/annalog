@@ -72,7 +72,7 @@ Zp_NametableColumnIndex_u8: .res 1
     ror a
     .endrepeat
     tay  ; room block row index
-    jsr Func_GetTerrainColumnPtrForPoint  ; preserves X, Y, and Zp_Tmp*
+    jsr Func_GetTerrainColumnPtrForPointX  ; preserves X, Y, and Zp_Tmp*
     lda (Zp_TerrainColumn_u8_arr_ptr), y
     cmp #kFirstSolidTerrainType
     rts
@@ -83,8 +83,8 @@ Zp_NametableColumnIndex_u8: .res 1
 ;;; X-position stored in Zp_PointX_i16.  It is assumed that Zp_PointX_i16 is
 ;;; nonnegative and within the bounds of the room terrain.
 ;;; @preserve X, Y, Zp_Tmp*
-.EXPORT Func_GetTerrainColumnPtrForPoint
-.PROC Func_GetTerrainColumnPtrForPoint
+.EXPORT Func_GetTerrainColumnPtrForPointX
+.PROC Func_GetTerrainColumnPtrForPointX
     bit <(Zp_Current_sRoom + sRoom::Flags_bRoom)
     .assert bRoom::Tall = bProc::Negative, error
     bmi _TallRoom

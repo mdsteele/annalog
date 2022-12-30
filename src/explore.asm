@@ -84,6 +84,7 @@
 .IMPORTZP Zp_AvatarMode_eAvatar
 .IMPORTZP Zp_AvatarPosX_i16
 .IMPORTZP Zp_AvatarPosY_i16
+.IMPORTZP Zp_AvatarWaterDepth_u8
 .IMPORTZP Zp_Chr0cBank_u8
 .IMPORTZP Zp_Current_sRoom
 .IMPORTZP Zp_Current_sTileset
@@ -492,8 +493,10 @@ _Respawn:
 ;;; player avatar is near (if any), or to $ff if the avatar is not near an
 ;;; interactive device.
 .PROC Func_FindNearbyDevice
-    ;; Check if the player avatar is airborne; if so, treat them as not near
-    ;; any device.
+    ;; Check if the player avatar is airborne (and not in water); if so, treat
+    ;; them as not near any device.
+    lda Zp_AvatarWaterDepth_u8
+    bne @notAirborne
     bit Zp_AvatarAirborne_bool
     bpl @notAirborne
     ldx #$ff

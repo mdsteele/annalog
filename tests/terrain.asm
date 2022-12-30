@@ -23,7 +23,7 @@
 
 .IMPORT Exit_Success
 .IMPORT Func_ExpectAEqualsY
-.IMPORT Func_GetTerrainColumnPtrForPoint
+.IMPORT Func_GetTerrainColumnPtrForPointX
 .IMPORT Func_GetTerrainColumnPtrForTileIndex
 .IMPORTZP Zp_TerrainColumn_u8_arr_ptr
 
@@ -118,7 +118,7 @@ DataA_Terrain_LowerRight_u8_arr:
     ldax #kBlockColumnIndex * 16 + 5
     stax Zp_PointX_i16
     ;; Test:
-    jsr Func_GetTerrainColumnPtrForPoint
+    jsr Func_GetTerrainColumnPtrForPointX
     ;; Verify:
     lda Zp_TerrainColumn_u8_arr_ptr + 0
     ldy #<kExpectedStripePtrShortRoom
@@ -135,7 +135,7 @@ DataA_Terrain_LowerRight_u8_arr:
     ldax #kBlockColumnIndex * 16 + 5
     stax Zp_PointX_i16
     ;; Test:
-    jsr Func_GetTerrainColumnPtrForPoint
+    jsr Func_GetTerrainColumnPtrForPointX
     ;; Verify:
     lda Zp_TerrainColumn_u8_arr_ptr + 0
     ldy #<kExpectedStripePtrTallRoom
