@@ -196,7 +196,7 @@ Zp_NextCutscene_main_ptr: .res 2
     chr08_bank <(Zp_Current_sTileset + sTileset::Chr08Bank_u8)
     chr18_bank <(Zp_Current_sRoom + sRoom::Chr18Bank_u8)
     jsr_prga FuncA_Terrain_InitRoomScrollAndNametables
-    jsr Func_FindNearbyDevice
+    jsr_prga FuncA_Avatar_FindNearbyDevice
     lda #0
     sta Zp_OamOffset_u8
     jsr_prga FuncA_Objects_DrawObjectsForRoom
@@ -244,7 +244,7 @@ _CheckForPause:
     jmp Main_Pause
     @done:
 .PROC _CheckForActivateDevice
-    jsr Func_FindNearbyDevice
+    jsr_prga FuncA_Avatar_FindNearbyDevice
     bit Zp_P1ButtonsPressed_bJoypad
     .assert bJoypad::BButton = bProc::Overflow, error
     bvc _DoneWithDevice
@@ -332,48 +332,15 @@ _Tick:
 ;;; room.
 ;;; @param A The ePassage value for the side of the room the player hit.
 .PROC Main_Explore_GoThroughPassage
-    ;; Fade out the current room.
+_FadeOut:
     pha  ; ePassage value
     jsr_prga FuncA_Objects_DrawObjectsForRoom
     jsr Func_ClearRestOfOam
     jsr_prga FuncA_Fade_Out
     pla  ; ePassage value
 _CalculatePassage:
-    ;; Calculate the bPassage value from the ePassage and the avatar's
-    ;; position, storing it in A.
-    tay  ; ePassage value
-    and #bPassage::EastWest
-    beq _CalculateUpDownPassage
-_CalculateEastWestPassage:
-    bit <(Zp_Current_sRoom + sRoom::Flags_bRoom)
-    .assert bRoom::Tall = bProc::Negative, error
-    bpl @upperHalf
-    @tall:
-    lda Zp_AvatarPosY_i16 + 1
-    bmi @upperHalf
-    bne @lowerHalf
-    lda Zp_AvatarPosY_i16 + 0
-    cmp #(kTallRoomHeightBlocks / 2) * kBlockHeightPx
-    bge @lowerHalf
-    @upperHalf:
-    tya  ; ePassage value
-    bne _LoadNextRoom  ; unconditional
-    @lowerHalf:
-    tya  ; ePassage value
-    ora #1
-    bne _LoadNextRoom  ; unconditional
-_CalculateUpDownPassage:
-    ;; Calculate which horizontal screen of the room the player avatar is in
-    ;; (in other words, the hi byte of (avatar position - min scroll X) in room
-    ;; pixel coordinates), storing the result in A.
-    lda Zp_AvatarPosX_i16 + 0
-    sub <(Zp_Current_sRoom + sRoom::MinScrollX_u8)
-    lda Zp_AvatarPosX_i16 + 1
-    sbc #0
-    ;; Construct the bPassage value from the screen number and ePassage value.
-    and #bPassage::ScreenMask
-    sty Zp_Tmp1_byte  ; ePassage value
-    ora Zp_Tmp1_byte
+    tay  ; param: ePassage value
+    jsr_prga FuncA_Avatar_CalculatePassage  ; returns A
 _LoadNextRoom:
     pha  ; origin bPassage value (calculated)
     tax  ; param: origin bPassage value (calculated)
@@ -489,57 +456,6 @@ _Respawn:
     jmp Main_Explore_FadeIn
 .ENDPROC
 
-;;; Sets Zp_NearbyDevice_u8 to the index of the (interactive) device that the
-;;; player avatar is near (if any), or to $ff if the avatar is not near an
-;;; interactive device.
-.PROC Func_FindNearbyDevice
-    ;; Check if the player avatar is airborne (and not in water); if so, treat
-    ;; them as not near any device.
-    lda Zp_AvatarWaterDepth_u8
-    bne @notAirborne
-    bit Zp_AvatarAirborne_bool
-    bpl @notAirborne
-    ldx #$ff
-    bne @done  ; unconditional
-    @notAirborne:
-    ;; Calculate the player avatar's room block row and store it in
-    ;; Zp_Tmp1_byte.
-    lda Zp_AvatarPosY_i16 + 0
-    sta Zp_Tmp1_byte
-    lda Zp_AvatarPosY_i16 + 1
-    .repeat 4
-    lsr a
-    ror Zp_Tmp1_byte
-    .endrepeat
-    ;; Calculate the player avatar's room block column and store it in
-    ;; Zp_Tmp2_byte.
-    lda Zp_AvatarPosX_i16 + 0
-    sta Zp_Tmp2_byte
-    lda Zp_AvatarPosX_i16 + 1
-    .repeat 4
-    lsr a
-    ror Zp_Tmp2_byte
-    .endrepeat
-    ;; Find an interactive device with the same block row/col.
-    ldx #kMaxDevices - 1
-    @loop:
-    lda Ram_DeviceType_eDevice_arr, x
-    cmp #kFirstInteractiveDeviceType
-    blt @continue
-    lda Ram_DeviceBlockCol_u8_arr, x
-    cmp Zp_Tmp2_byte  ; player block col
-    bne @continue
-    lda Ram_DeviceBlockRow_u8_arr, x
-    cmp Zp_Tmp1_byte  ; player block row
-    beq @done
-    @continue:
-    dex
-    bpl @loop
-    @done:
-    stx Zp_NearbyDevice_u8
-    rts
-.ENDPROC
-
 ;;; Sets Zp_ScrollGoalX_u16 and Zp_ScrollGoalY_u8 such that the player avatar
 ;;; would be as close to the center of the screen as possible, while still
 ;;; keeping the scroll goal within the valid range for the current room.
@@ -615,6 +531,102 @@ _SetGoalToAX:
     blt @done
     sta Zp_RoomShake_u8
     @done:
+    rts
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Avatar"
+
+;;; Calculates a bPassage value from an ePassage and the avatar's position.
+;;; @param Y The ePassage value for the side of the room the player hit.
+;;; @return A The calculated bPassage value.
+.PROC FuncA_Avatar_CalculatePassage
+    tya  ; ePassage value
+    .assert bPassage::EastWest = bProc::Negative, error
+    bpl _UpDownPassage
+_EastWestPassage:
+    bit <(Zp_Current_sRoom + sRoom::Flags_bRoom)
+    .assert bRoom::Tall = bProc::Negative, error
+    bpl @upperHalf
+    @tall:
+    lda Zp_AvatarPosY_i16 + 1
+    bmi @upperHalf
+    bne @lowerHalf
+    lda Zp_AvatarPosY_i16 + 0
+    cmp #(kTallRoomHeightBlocks / 2) * kBlockHeightPx
+    bge @lowerHalf
+    @upperHalf:
+    tya  ; ePassage value
+    bne @done  ; unconditional
+    @lowerHalf:
+    tya  ; ePassage value
+    ora #1
+    @done:
+    rts
+_UpDownPassage:
+    ;; Calculate which horizontal screen of the room the player avatar is in
+    ;; (in other words, the hi byte of (avatar position - min scroll X) in room
+    ;; pixel coordinates), storing the result in A.
+    lda Zp_AvatarPosX_i16 + 0
+    cmp <(Zp_Current_sRoom + sRoom::MinScrollX_u8)
+    lda Zp_AvatarPosX_i16 + 1
+    sbc #0
+    ;; Construct the bPassage value from the screen number and ePassage value.
+    and #bPassage::ScreenMask
+    sty Zp_Tmp1_byte  ; ePassage value
+    ora Zp_Tmp1_byte
+    rts
+.ENDPROC
+
+;;; Sets Zp_NearbyDevice_u8 to the index of the (interactive) device that the
+;;; player avatar is near (if any), or to $ff if the avatar is not near an
+;;; interactive device.
+.PROC FuncA_Avatar_FindNearbyDevice
+    ;; Check if the player avatar is airborne (and not in water); if so, treat
+    ;; them as not near any device.
+    lda Zp_AvatarWaterDepth_u8
+    bne @notAirborne
+    bit Zp_AvatarAirborne_bool
+    bpl @notAirborne
+    ldx #$ff
+    bne @done  ; unconditional
+    @notAirborne:
+    ;; Calculate the player avatar's room block row and store it in
+    ;; Zp_Tmp1_byte.
+    lda Zp_AvatarPosY_i16 + 0
+    sta Zp_Tmp1_byte
+    lda Zp_AvatarPosY_i16 + 1
+    .repeat 4
+    lsr a
+    ror Zp_Tmp1_byte
+    .endrepeat
+    ;; Calculate the player avatar's room block column and store it in
+    ;; Zp_Tmp2_byte.
+    lda Zp_AvatarPosX_i16 + 0
+    sta Zp_Tmp2_byte
+    lda Zp_AvatarPosX_i16 + 1
+    .repeat 4
+    lsr a
+    ror Zp_Tmp2_byte
+    .endrepeat
+    ;; Find an interactive device with the same block row/col.
+    ldx #kMaxDevices - 1
+    @loop:
+    lda Ram_DeviceType_eDevice_arr, x
+    cmp #kFirstInteractiveDeviceType
+    blt @continue
+    lda Ram_DeviceBlockCol_u8_arr, x
+    cmp Zp_Tmp2_byte  ; player block col
+    bne @continue
+    lda Ram_DeviceBlockRow_u8_arr, x
+    cmp Zp_Tmp1_byte  ; player block row
+    beq @done
+    @continue:
+    dex
+    bpl @loop
+    @done:
+    stx Zp_NearbyDevice_u8
     rts
 .ENDPROC
 

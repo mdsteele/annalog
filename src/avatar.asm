@@ -29,10 +29,11 @@
 .INCLUDE "room.inc"
 .INCLUDE "terrain.inc"
 
-.IMPORT FuncA_Avatar_TryPushHorz
-.IMPORT FuncA_Avatar_TryPushVert
 .IMPORT FuncA_Avatar_UpdateWaterDepth
 .IMPORT FuncA_Objects_Draw2x2Shape
+.IMPORT Func_TryPushAvatarHorz
+.IMPORT Func_TryPushAvatarVert
+.IMPORTZP Zp_AvatarExit_ePassage
 .IMPORTZP Zp_AvatarPushDelta_i8
 .IMPORTZP Zp_FrameCounter_u8
 .IMPORTZP Zp_P1ButtonsHeld_bJoypad
@@ -113,21 +114,6 @@ Zp_AvatarMode_eAvatar: .res 1
 ;;; (after landing from a jump).
 .EXPORTZP Zp_AvatarLanding_u8
 Zp_AvatarLanding_u8: .res 1
-
-;;; Indicates whether the player avatar has hit a passage.  This is initialized
-;;; to ePassage::None upon entering a room, and is set to another ePassage
-;;; value when the avatar moves (or is pushed) into a passage.  Once that
-;;; happens (whether during e.g. avatar movement or machine platform
-;;; movement), no further avatar movement will happen this frame, and the
-;;; avatar will exit the room at the end of the frame.
-.EXPORTZP Zp_AvatarExit_ePassage
-Zp_AvatarExit_ePassage: .res 1
-
-;;; Temporary variable that records what kind of wall/platform the player
-;;; avatar has just collided with (if any).  For terrain walls, this uses
-;;; ePlatform::Solid.  For no collision, this uses ePlatform::None.
-.EXPORTZP Zp_AvatarCollided_ePlatform
-Zp_AvatarCollided_ePlatform: .res 1
 
 ;;; If zero, the player avatar is at full health; otherwise, the avatar has
 ;;; been harmed, and will be back to full health in this many frames.
@@ -298,7 +284,7 @@ _SetModeOnGround:
     lda Zp_AvatarVelX_i16 + 1
     adc #0
     sta Zp_AvatarPushDelta_i8
-    jmp FuncA_Avatar_TryPushHorz
+    jmp Func_TryPushAvatarHorz
 .ENDPROC
 
 ;;; Applies the player avatar's vertical velocity and handles vertical
@@ -311,7 +297,7 @@ _SetModeOnGround:
     lda Zp_AvatarVelY_i16 + 1
     adc #0
     sta Zp_AvatarPushDelta_i8
-    jmp FuncA_Avatar_TryPushVert
+    jmp Func_TryPushAvatarVert
 .ENDPROC
 
 ;;; Updates the player avatar's X-velocity and flags based on the D-pad

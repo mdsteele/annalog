@@ -353,22 +353,18 @@ _MoveByA:
     rts
 .ENDPROC
 
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Avatar"
-
 ;;; Checks for horizontal collisions between the player avatar and all
 ;;; platforms.  If any collision occurs, updates the avatar's X-position and
 ;;; sets Zp_AvatarCollided_ePlatform to the hit platform's type.
 ;;; @prereq Zp_AvatarPushDelta_i8 holds a nonzero horz delta for the avatar.
-.EXPORT FuncA_Avatar_CollideWithAllPlatformsHorz
-.PROC FuncA_Avatar_CollideWithAllPlatformsHorz
+.EXPORT Func_AvatarCollideWithAllPlatformsHorz
+.PROC Func_AvatarCollideWithAllPlatformsHorz
     ldx #kMaxPlatforms - 1
     @loop:
     lda Ram_PlatformType_ePlatform_arr, x
     cmp #kFirstSolidPlatformType
     blt @continue
-    jsr FuncA_Avatar_CollideWithOnePlatformHorz  ; preserves X
+    jsr Func_AvatarCollideWithOnePlatformHorz  ; preserves X
     @continue:
     dex
     .assert kMaxPlatforms <= $80, error
@@ -382,7 +378,7 @@ _MoveByA:
 ;;; @prereq Zp_AvatarPushDelta_i8 holds a nonzero horz delta for the avatar.
 ;;; @param X The platform index.
 ;;; @preserve X
-.PROC FuncA_Avatar_CollideWithOnePlatformHorz
+.PROC Func_AvatarCollideWithOnePlatformHorz
     ;; Check top edge of platform.
     lda Zp_AvatarPosY_i16 + 0
     add #kAvatarBoundingBoxDown
@@ -489,8 +485,8 @@ _Return:
 ;;; Zp_AvatarCollided_ePlatform to the hit platform's type.  Also updates
 ;;; Zp_AvatarPlatformIndex_u8.
 ;;; @prereq Zp_AvatarPushDelta_i8 holds a nonzero vert delta for the avatar.
-.EXPORT FuncA_Avatar_CollideWithAllPlatformsVert
-.PROC FuncA_Avatar_CollideWithAllPlatformsVert
+.EXPORT Func_AvatarCollideWithAllPlatformsVert
+.PROC Func_AvatarCollideWithAllPlatformsVert
     lda #$ff
     sta Zp_AvatarPlatformIndex_u8
     ldx #kMaxPlatforms - 1
@@ -498,7 +494,7 @@ _Return:
     lda Ram_PlatformType_ePlatform_arr, x
     cmp #kFirstSolidPlatformType
     blt @continue
-    jsr FuncA_Avatar_CollideWithOnePlatformVert  ; preserves X
+    jsr Func_AvatarCollideWithOnePlatformVert  ; preserves X
     @continue:
     dex
     .assert kMaxPlatforms <= $80, error
@@ -512,7 +508,7 @@ _Return:
 ;;; @prereq Zp_AvatarPushDelta_i8 holds a nonzero vert delta for the avatar.
 ;;; @param X The platform index.
 ;;; @preserve X
-.PROC FuncA_Avatar_CollideWithOnePlatformVert
+.PROC Func_AvatarCollideWithOnePlatformVert
     ;; Check left edge of platform.
     lda Zp_AvatarPosX_i16 + 0
     add #kAvatarBoundingBoxRight
@@ -615,6 +611,10 @@ _Collided:
 _Return:
     rts
 .ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Avatar"
 
 ;;; Checks whether the player avatar is currently in water, and updates
 ;;; Zp_AvatarWaterDepth_u8 accordingly.

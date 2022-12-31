@@ -29,13 +29,11 @@
 .INCLUDE "room.inc"
 .INCLUDE "terrain.inc"
 
-.IMPORT FuncA_Avatar_CollideWithAllPlatformsHorz
-.IMPORT FuncA_Avatar_CollideWithAllPlatformsVert
+.IMPORT Func_AvatarCollideWithAllPlatformsHorz
+.IMPORT Func_AvatarCollideWithAllPlatformsVert
 .IMPORT Func_GetTerrainColumnPtrForPointX
 .IMPORT Func_HarmAvatar
 .IMPORTZP Zp_AvatarAirborne_bool
-.IMPORTZP Zp_AvatarCollided_ePlatform
-.IMPORTZP Zp_AvatarExit_ePassage
 .IMPORTZP Zp_AvatarLanding_u8
 .IMPORTZP Zp_AvatarPosX_i16
 .IMPORTZP Zp_AvatarPosY_i16
@@ -59,18 +57,38 @@
 .EXPORTZP Zp_AvatarPushDelta_i8
 Zp_AvatarPushDelta_i8: .res 1
 
+;;; Indicates whether the player avatar has hit a passage.  This is initialized
+;;; to ePassage::None upon entering a room, and is set to another ePassage
+;;; value when the avatar moves (or is pushed) into a passage.  Once that
+;;; happens (whether during e.g. avatar movement or machine platform
+;;; movement), no further avatar movement will happen this frame, and the
+;;; avatar will exit the room at the end of the frame.
+.EXPORTZP Zp_AvatarExit_ePassage
+Zp_AvatarExit_ePassage: .res 1
+
+;;; Indicates whether the player avatar has hit a wall/platform, and if so what
+;;; type.  For terrain walls, this uses ePlatform::Solid.  For no collision,
+;;; this uses ePlatform::None.
+.EXPORTZP Zp_AvatarCollided_ePlatform
+Zp_AvatarCollided_ePlatform: .res 1
+
 ;;;=========================================================================;;;
 
-.SEGMENT "PRGA_Avatar"
+.SEGMENT "PRG8"
 
 ;;; Attempts to move the player avatar horizontally by Zp_AvatarPushDelta_i8.
-;;; Sets Zp_AvatarExit_ePassage if this causes the avatar to hit a horizontal
-;;; passage.
-.EXPORT FuncA_Avatar_TryPushHorz
-.PROC FuncA_Avatar_TryPushHorz
+;;; Populates Zp_AvatarCollided_ePlatform with what kind of wall/platform was
+;;; hit, if any; sets Zp_AvatarExit_ePassage if the avatar hits a passage.
+.EXPORT Func_TryPushAvatarHorz
+.PROC Func_TryPushAvatarHorz
     ldy #0
     .assert ePlatform::None = 0, error
     sty Zp_AvatarCollided_ePlatform
+    ;; If the avatar has already hit a passage this frame, then skip any
+    ;; further movement.
+    lda Zp_AvatarExit_ePassage
+    .assert ePassage::None = 0, error
+    bne _Done
 _Push:
     lda Zp_AvatarPushDelta_i8
     beq _Done
@@ -83,12 +101,12 @@ _Push:
     adc Zp_AvatarPosX_i16 + 1
     sta Zp_AvatarPosX_i16 + 1
 _DetectPassage:
-    jsr FuncA_Avatar_DetectHorzPassage  ; if passage, clears Z and returns A
+    jsr Func_AvatarDetectHorzPassage  ; if passage, clears Z and returns A
     sta Zp_AvatarExit_ePassage
     bne _Done
 _DetectCollision:
-    jsr FuncA_Avatar_CollideWithTerrainHorz
-    jsr FuncA_Avatar_CollideWithAllPlatformsHorz
+    jsr Func_AvatarCollideWithTerrainHorz
+    jsr Func_AvatarCollideWithAllPlatformsHorz
     lda Zp_AvatarCollided_ePlatform
     .assert ePlatform::None = 0, error
     beq _Done  ; no collision
@@ -110,7 +128,7 @@ _Done:
 ;;; Detects if the player avatar has hit a horizontal passage.
 ;;; @return Z Cleared if the player avatar hit a passage, set otherwise.
 ;;; @return A The ePassage that the player avatar hit, or ePassage::None.
-.PROC FuncA_Avatar_DetectHorzPassage
+.PROC Func_AvatarDetectHorzPassage
     ;; Check if the player avatar is moving to the left or to the right.
     bit Zp_AvatarPushDelta_i8
     bmi _Western
@@ -163,7 +181,7 @@ _NoHitPassage:
 ;;; terrain.  If any collision occurs, updates the avatar's X-position and sets
 ;;; Zp_AvatarCollided_ePlatform to ePlatform::Solid.
 ;;; @prereq Zp_AvatarPushDelta_i8 holds a nonzero horz delta for the avatar.
-.PROC FuncA_Avatar_CollideWithTerrainHorz
+.PROC Func_AvatarCollideWithTerrainHorz
     ;; Calculate the room block row index that the avatar's feet are in, and
     ;; store it in Zp_Tmp1_byte.
     lda Zp_AvatarPosY_i16 + 0
@@ -191,7 +209,7 @@ _NoHitPassage:
     bmi _MovingLeft
 _MovingRight:
     ;; Check for tile collisions.
-    jsr FuncA_Avatar_GetRightXAndTerrain  ; preserves Zp_Tmp*
+    jsr Func_GetAvatarRightXAndTerrain  ; preserves Zp_Tmp*
     ldy Zp_Tmp1_byte  ; room block row index (bottom of avatar)
     lda (Zp_TerrainColumn_u8_arr_ptr), y  ; terrain block type
     cmp #kFirstSolidTerrainType
@@ -218,7 +236,7 @@ _MovingRight:
     rts
 _MovingLeft:
     ;; Check for tile collisions.
-    jsr FuncA_Avatar_GetLeftXAndTerrain  ; preserves Zp_Tmp*
+    jsr Func_GetAvatarLeftXAndTerrain  ; preserves Zp_Tmp*
     ldy Zp_Tmp1_byte  ; room block row index (bottom of avatar)
     lda (Zp_TerrainColumn_u8_arr_ptr), y  ; terrain block type
     cmp #kFirstSolidTerrainType
@@ -246,13 +264,18 @@ _MovingLeft:
 .ENDPROC
 
 ;;; Attempts to move the player avatar vertically by Zp_AvatarPushDelta_i8.
-;;; Sets Zp_AvatarExit_ePassage if this causes the avatar to hit a vertical
-;;; passage.
-.EXPORT FuncA_Avatar_TryPushVert
-.PROC FuncA_Avatar_TryPushVert
+;;; Populates Zp_AvatarCollided_ePlatform with what kind of wall/platform was
+;;; hit, if any; sets Zp_AvatarExit_ePassage if the avatar hits a passage.
+.EXPORT Func_TryPushAvatarVert
+.PROC Func_TryPushAvatarVert
     ldy #0
     .assert ePlatform::None = 0, error
     sty Zp_AvatarCollided_ePlatform
+    ;; If the avatar has already hit a passage this frame, then skip any
+    ;; further movement.
+    lda Zp_AvatarExit_ePassage
+    .assert ePassage::None = 0, error
+    bne _Done
 _ApplyVelocity:
     lda Zp_AvatarPushDelta_i8
     bpl @nonnegative
@@ -264,12 +287,12 @@ _ApplyVelocity:
     adc Zp_AvatarPosY_i16 + 1
     sta Zp_AvatarPosY_i16 + 1
 _DetectPassage:
-    jsr FuncA_Avatar_DetectVertPassage  ; if passage, clears Z and returns A
+    jsr Func_AvatarDetectVertPassage  ; if passage, clears Z and returns A
     sta Zp_AvatarExit_ePassage
     bne _NowAirborne
 _DetectCollision:
-    jsr FuncA_Avatar_CollideWithTerrainVert
-    jsr FuncA_Avatar_CollideWithAllPlatformsVert
+    jsr Func_AvatarCollideWithTerrainVert
+    jsr Func_AvatarCollideWithAllPlatformsVert
     ;; If no vertical collision occurred, then the avatar is now airborne
     ;; (unless it's in water, but that will be detected later).
     lda Zp_AvatarCollided_ePlatform
@@ -295,6 +318,7 @@ _HandleCollision:
 _NowAirborne:
     lda #$ff
     sta Zp_AvatarAirborne_bool
+_Done:
     rts
 _NowGrounded:
     bit Zp_AvatarAirborne_bool
@@ -302,7 +326,7 @@ _NowGrounded:
     @wasAirborne:
     ldx Zp_Tmp1_byte  ; old Y-velocity (hi)
     bmi @nowGrounded
-    lda DataA_Avatar_LandingFrames_u8_arr, x
+    lda Data_AvatarLandingFrames_u8_arr, x
     sta Zp_AvatarLanding_u8
     @nowGrounded:
     lda #0
@@ -314,7 +338,7 @@ _NowGrounded:
 ;;; Detects if the player avatar has hit a horizontal passage.
 ;;; @return Z Cleared if the player avatar hit a passage, set otherwise.
 ;;; @return A The ePassage that the player avatar hit, or ePassage::None.
-.PROC FuncA_Avatar_DetectVertPassage
+.PROC Func_AvatarDetectVertPassage
     ;; Check if the player avatar is moving up or down.
     bit Zp_AvatarPushDelta_i8
     bmi _Top
@@ -370,15 +394,15 @@ _NoHitPassage:
 ;;; Checks for vertical collisions between the player avatar and the room
 ;;; terrain.  If any collision occurs, updates the avatar's Y-position and
 ;;; sets Zp_AvatarCollided_ePlatform to ePlatform::Solid.
-.PROC FuncA_Avatar_CollideWithTerrainVert
+.PROC Func_AvatarCollideWithTerrainVert
     ;; Get the terrain pointer for the left side of the avatar, storing it in
     ;; Zp_Tmp_ptr.
-    jsr FuncA_Avatar_GetLeftXAndTerrain
+    jsr Func_GetAvatarLeftXAndTerrain
     ldax Zp_TerrainColumn_u8_arr_ptr
     stax Zp_Tmp_ptr
     ;; Get the terrain pointer for the right side of the avatar, storing it in
     ;; Zp_TerrainColumn_u8_arr_ptr.
-    jsr FuncA_Avatar_GetRightXAndTerrain  ; preserves Zp_Tmp*
+    jsr Func_GetAvatarRightXAndTerrain  ; preserves Zp_Tmp*
     ;; Check if the player is moving up or down.
     lda Zp_AvatarPushDelta_i8
     bpl _MovingDown
@@ -467,7 +491,7 @@ _MovingDown:
 ;;; Zp_PointX_i16, then calls Func_GetTerrainColumnPtrForPointX to populate
 ;;; Zp_TerrainColumn_u8_arr_ptr.
 ;;; @preserve Zp_Tmp*
-.PROC FuncA_Avatar_GetLeftXAndTerrain
+.PROC Func_GetAvatarLeftXAndTerrain
     lda Zp_AvatarPosX_i16 + 0
     sub #kAvatarBoundingBoxLeft
     sta Zp_PointX_i16 + 0
@@ -481,7 +505,7 @@ _MovingDown:
 ;;; Zp_PointX_i16, then calls Func_GetTerrainColumnPtrForPointX to populate
 ;;; Zp_TerrainColumn_u8_arr_ptr.
 ;;; @preserve Zp_Tmp*
-.PROC FuncA_Avatar_GetRightXAndTerrain
+.PROC Func_GetAvatarRightXAndTerrain
     lda Zp_AvatarPosX_i16 + 0
     add #kAvatarBoundingBoxRight - 1
     sta Zp_PointX_i16 + 0
@@ -494,7 +518,7 @@ _MovingDown:
 ;;; Maps from non-negative (Zp_AvatarVelY_i16 + 1) values to the value to set
 ;;; for Zp_AvatarLanding_u8.  The higher the downward speed, the longer the
 ;;; recovery time.
-.PROC DataA_Avatar_LandingFrames_u8_arr
+.PROC Data_AvatarLandingFrames_u8_arr
 :   .byte 0, 0, 8, 8, 12, 18
     .assert * - :- = 1 + >kAvatarMaxAirSpeedVert, error
 .ENDPROC
