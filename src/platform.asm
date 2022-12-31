@@ -23,6 +23,9 @@
 .INCLUDE "platform.inc"
 .INCLUDE "ppu.inc"
 
+.IMPORT Func_KillAvatar
+.IMPORT Func_TryPushAvatarHorz
+.IMPORT Func_TryPushAvatarVert
 .IMPORTZP Zp_AvatarCollided_ePlatform
 .IMPORTZP Zp_AvatarPosX_i16
 .IMPORTZP Zp_AvatarPosY_i16
@@ -232,37 +235,72 @@ _MoveByA:
 .PROC Func_MovePlatformHorz
     ;; Sign-extend the move delta to 16 bits.
     ldy #0
-    and #$ff
+    ora #0
+    beq _Return  ; delta is zero, so there's nothing to do
     bpl @nonnegative
     dey  ; now Y is $ff
     @nonnegative:
-    sta Zp_Tmp1_byte  ; move delta (lo)
-    sty Zp_Tmp2_byte  ; move delta (hi)
+    sta Zp_AvatarPushDelta_i8  ; move delta (lo)
+    sty Zp_Tmp1_byte           ; move delta (hi)
+_MovePlatform:
     ;; Move the platform's left edge.
     lda Ram_PlatformLeft_i16_0_arr, x
-    add Zp_Tmp1_byte  ; move delta (lo)
+    add Zp_AvatarPushDelta_i8  ; move delta (lo)
     sta Ram_PlatformLeft_i16_0_arr, x
     lda Ram_PlatformLeft_i16_1_arr, x
-    adc Zp_Tmp2_byte  ; move delta (hi)
+    adc Zp_Tmp1_byte           ; move delta (hi)
     sta Ram_PlatformLeft_i16_1_arr, x
     ;; Move the platform's right edge.
     lda Ram_PlatformRight_i16_0_arr, x
-    add Zp_Tmp1_byte  ; move delta (lo)
+    add Zp_AvatarPushDelta_i8  ; move delta (lo)
     sta Ram_PlatformRight_i16_0_arr, x
     lda Ram_PlatformRight_i16_1_arr, x
-    adc Zp_Tmp2_byte  ; move delta (hi)
+    adc Zp_Tmp1_byte           ; move delta (hi)
     sta Ram_PlatformRight_i16_1_arr, x
+_CarryAvatarIfRiding:
     ;; If the player avatar is riding the platform, move the avatar as well.
     cpx Zp_AvatarPlatformIndex_u8
     bne @notRiding
-    lda Zp_AvatarPosX_i16 + 0
-    add Zp_Tmp1_byte  ; move delta (lo)
-    sta Zp_AvatarPosX_i16 + 0
-    lda Zp_AvatarPosX_i16 + 1
-    adc Zp_Tmp2_byte  ; move delta (hi)
-    sta Zp_AvatarPosX_i16 + 1
+    jmp Func_TryPushAvatarHorz  ; preserves X
     @notRiding:
-    ;; TODO: Check if the avatar has been crushed.
+_PushAvatarIfCollision:
+    ;; If the avatar is fully above or below the platform, then the platform
+    ;; isn't pushing it, so we're done.
+    jsr Func_IsAvatarInPlatformVert  ; preserves X, returns Z
+    beq _Return
+    ;; Check if the platform is moving left or right.
+    bit Zp_AvatarPushDelta_i8
+    bpl _PushAvatarRightIfCollision
+_PushAvatarLeftIfCollision:
+    ;; If the avatar is fully to the right of the platform, then the platform
+    ;; isn't pushing it, so we're done.
+    jsr Func_AvatarDepthIntoPlatformRight  ; preserves X, returns Z
+    beq _Return
+    ;; If the avatar is fully to the left of the platform, then the platform
+    ;; isn't pushing it, so we're done.
+    jsr Func_AvatarDepthIntoPlatformLeft  ; preserves X, returns Z and A
+    bne _PushAvatar
+    rts
+_PushAvatarRightIfCollision:
+    ;; If the avatar is fully to the left of the platform, then the platform
+    ;; isn't pushing it, so we're done.
+    jsr Func_AvatarDepthIntoPlatformLeft  ; preserves X, returns Z
+    beq _Return
+    ;; If the avatar is fully to the right of the platform, then the platform
+    ;; isn't pushing it, so we're done.
+    jsr Func_AvatarDepthIntoPlatformRight  ; preserves X, returns Z and A
+    beq _Return
+_PushAvatar:
+    ;; Otherwise, try to push the avatar out of the platform.
+    sta Zp_AvatarPushDelta_i8
+    jsr Func_TryPushAvatarHorz  ; preserves X
+    ;; If the platform squashed the avatar into something else solid, kill the
+    ;; avatar.
+    lda Zp_AvatarCollided_ePlatform
+    .assert ePlatform::None = 0, error
+    beq _Return
+    jmp Func_KillAvatar  ; preserves X
+_Return:
     rts
 .ENDPROC
 
@@ -319,37 +357,77 @@ _MoveByA:
 .PROC Func_MovePlatformVert
     ;; Sign-extend the move delta to 16 bits.
     ldy #0
-    and #$ff
+    ora #0
+    beq _Return  ; delta is zero, so there's nothing to do
     bpl @nonnegative
     dey  ; now Y is $ff
     @nonnegative:
-    sta Zp_Tmp1_byte  ; move delta (lo)
-    sty Zp_Tmp2_byte  ; move delta (hi)
+    sta Zp_AvatarPushDelta_i8  ; move delta (lo)
+    sty Zp_Tmp1_byte           ; move delta (hi)
+_MovePlatform:
     ;; Move the platform's top edge.
     lda Ram_PlatformTop_i16_0_arr, x
-    add Zp_Tmp1_byte  ; move delta (lo)
+    add Zp_AvatarPushDelta_i8  ; move delta (lo)
     sta Ram_PlatformTop_i16_0_arr, x
     lda Ram_PlatformTop_i16_1_arr, x
-    adc Zp_Tmp2_byte  ; move delta (hi)
+    adc Zp_Tmp1_byte           ; move delta (hi)
     sta Ram_PlatformTop_i16_1_arr, x
     ;; Move the platform's bottom edge.
     lda Ram_PlatformBottom_i16_0_arr, x
-    add Zp_Tmp1_byte  ; move delta (lo)
+    add Zp_AvatarPushDelta_i8  ; move delta (lo)
     sta Ram_PlatformBottom_i16_0_arr, x
     lda Ram_PlatformBottom_i16_1_arr, x
-    adc Zp_Tmp2_byte  ; move delta (hi)
+    adc Zp_Tmp1_byte           ; move delta (hi)
     sta Ram_PlatformBottom_i16_1_arr, x
-    ;; If the player avatar is riding the platform, move the avatar as well.
+_CarryAvatarIfRiding:
+    ;; If the player avatar is riding the platform downwards, move the avatar
+    ;; as well.  (If the avatar is riding the platform upwards, that will
+    ;; instead be handled as a collision in the next section, in case the
+    ;; avatar gets crushed against the ceiling.)
     cpx Zp_AvatarPlatformIndex_u8
-    bne @notRiding
-    lda Zp_AvatarPosY_i16 + 0
-    add Zp_Tmp1_byte  ; move delta (lo)
-    sta Zp_AvatarPosY_i16 + 0
-    lda Zp_AvatarPosY_i16 + 1
-    adc Zp_Tmp2_byte  ; move delta (hi)
-    sta Zp_AvatarPosY_i16 + 1
-    @notRiding:
-    ;; TODO: Check if the avatar has been crushed.
+    bne @notRidingDown
+    bit Zp_AvatarPushDelta_i8
+    bmi @notRidingDown
+    jmp Func_TryPushAvatarVert  ; preserves X
+    @notRidingDown:
+_PushAvatarIfCollision:
+    ;; If the avatar is fully to the left or to the right of the platform, then
+    ;; the platform isn't pushing it, so we're done.
+    jsr Func_IsAvatarInPlatformHorz  ; preserves X, returns Z
+    beq _Return
+    ;; Check if the platform is moving up or down.
+    bit Zp_AvatarPushDelta_i8
+    bpl _PushAvatarDownIfCollision
+_PushAvatarUpIfCollision:
+    ;; If the avatar is fully below the platform, then the platform isn't
+    ;; pushing it, so we're done.
+    jsr Func_AvatarDepthIntoPlatformBottom  ; preserves X, returns Z and A
+    beq _Return
+    ;; If the avatar is fully above the platform, then the platform isn't
+    ;; pushing it, so we're done.
+    jsr Func_AvatarDepthIntoPlatformTop  ; preserves X, returns Z
+    bne _PushAvatar
+    rts
+_PushAvatarDownIfCollision:
+    ;; If the avatar is fully above the platform, then the platform isn't
+    ;; pushing it, so we're done.
+    jsr Func_AvatarDepthIntoPlatformTop  ; preserves X, returns Z
+    beq _Return
+    ;; If the avatar is fully below the platform, then the platform isn't
+    ;; pushing it, so we're done.
+    jsr Func_AvatarDepthIntoPlatformBottom  ; preserves X, returns Z and A
+    beq _Return
+_PushAvatar:
+    ;; Otherwise, try to push the avatar out of the platform.
+    sta Zp_AvatarPushDelta_i8
+    jsr Func_TryPushAvatarVert  ; preserves X
+    ;; If the platform squashed the avatar into something else solid, kill the
+    ;; avatar.
+    lda Zp_AvatarCollided_ePlatform
+    .assert ePlatform::None = 0, error
+    beq _Return
+    jmp Func_KillAvatar  ; preserves X
+_Return:
     rts
 .ENDPROC
 
@@ -379,38 +457,11 @@ _MoveByA:
 ;;; @param X The platform index.
 ;;; @preserve X
 .PROC Func_AvatarCollideWithOnePlatformHorz
-    ;; Check top edge of platform.
-    lda Zp_AvatarPosY_i16 + 0
-    add #kAvatarBoundingBoxDown
-    sta Zp_Tmp1_byte  ; avatar Y-pos + bbox (lo)
-    lda Zp_AvatarPosY_i16 + 1
-    adc #0            ; avatar Y-pos + bbox (hi)
-    cmp Ram_PlatformTop_i16_1_arr, x
-    blt @return
-    bne @topEdgeHit
-    lda Zp_Tmp1_byte  ; avatar Y-pos + bbox (lo)
-    cmp Ram_PlatformTop_i16_0_arr, x
-    ble @return
-    @topEdgeHit:
-    ;; Check bottom edge of platform.
-    lda Ram_PlatformBottom_i16_0_arr, x
-    add #kAvatarBoundingBoxUp
-    sta Zp_Tmp1_byte  ; platform bottom edge + bbox (lo)
-    lda Ram_PlatformBottom_i16_1_arr, x
-    adc #0            ; platform bottom edge + bbox (hi)
-    cmp Zp_AvatarPosY_i16 + 1
-    blt @return
-    bne @bottomEdgeHit
-    lda Zp_Tmp1_byte  ; platform bottom edge + bbox (lo)
-    cmp Zp_AvatarPosY_i16 + 0
-    ble @return
-    @bottomEdgeHit:
+    jsr Func_IsAvatarInPlatformVert  ; preserves X, returns Z
+    beq _Return
     ;; Check if the player avatar is moving to the left or to the right.
     bit Zp_AvatarPushDelta_i8
     bmi _MovingLeft
-    bpl _MovingRight  ; unconditional
-    @return:
-    rts
 _MovingRight:
     ;; Check right edge of platform.
     lda Ram_PlatformRight_i16_1_arr, x
@@ -509,38 +560,11 @@ _Return:
 ;;; @param X The platform index.
 ;;; @preserve X
 .PROC Func_AvatarCollideWithOnePlatformVert
-    ;; Check left edge of platform.
-    lda Zp_AvatarPosX_i16 + 0
-    add #kAvatarBoundingBoxRight
-    sta Zp_Tmp1_byte  ; avatar X-pos + bbox (lo)
-    lda Zp_AvatarPosX_i16 + 1
-    adc #0            ; avatar X-pos + bbox (hi)
-    cmp Ram_PlatformLeft_i16_1_arr, x
-    blt @return
-    bne @leftEdgeHit
-    lda Zp_Tmp1_byte  ; avatar X-pos + bbox (lo)
-    cmp Ram_PlatformLeft_i16_0_arr, x
-    ble @return
-    @leftEdgeHit:
-    ;; Check right edge of platform.
-    lda Ram_PlatformRight_i16_0_arr, x
-    add #kAvatarBoundingBoxLeft
-    sta Zp_Tmp1_byte  ; platform right edge + bbox (lo)
-    lda Ram_PlatformRight_i16_1_arr, x
-    adc #0            ; platform right edge + bbox (hi)
-    cmp Zp_AvatarPosX_i16 + 1
-    blt @return
-    bne @rightEdgeHit
-    lda Zp_Tmp1_byte  ; platform right edge + bbox (lo)
-    cmp Zp_AvatarPosX_i16 + 0
-    ble @return
-    @rightEdgeHit:
+    jsr Func_IsAvatarInPlatformHorz  ; preserves X, returns Z
+    beq _Return
     ;; Check if the player is moving up or down.
     bit Zp_AvatarPushDelta_i8
-    bmi _MovingUp
-    bpl _MovingDown  ; unconditional
-    @return:
-    rts
+    bpl _MovingDown
 _MovingUp:
     ;; Check top edge of platform.
     lda Zp_AvatarPosY_i16 + 1
@@ -609,6 +633,176 @@ _Collided:
     lda Ram_PlatformType_ePlatform_arr, x
     sta Zp_AvatarCollided_ePlatform
 _Return:
+    rts
+.ENDPROC
+
+;;; Determines whether both (1) the bottom of the avatar is below the top of
+;;; the platform, and (2) the top of the avatar is above the bottom of the
+;;; platform.
+;;; @param X The platform index.
+;;; @return Z Cleared if the avatar is within the platform horizontally.
+;;; @preserve X
+.PROC Func_IsAvatarInPlatformVert
+    jsr Func_AvatarDepthIntoPlatformBottom  ; preserves X, returns Z
+    bne @checkTop
+    rts
+    @checkTop:
+    .assert * = Func_AvatarDepthIntoPlatformTop, error, "fallthrough"
+.ENDPROC
+
+;;; Determines if the bottom of the avatar is below the top of the platform,
+;;; and if so, by how much.
+;;; @param X The platform index.
+;;; @return A How far to push the avatar vertically to get it out (-127-0).
+;;; @return Z Set if the avatar is fully above the platform.
+;;; @preserve X
+.PROC Func_AvatarDepthIntoPlatformTop
+    ;; Calculate the room pixel Y-position of the bottom of the avatar.
+    lda Zp_AvatarPosY_i16 + 0
+    add #kAvatarBoundingBoxDown
+    sta Zp_Tmp1_byte  ; bottom of avatar (lo)
+    lda Zp_AvatarPosY_i16 + 1
+    adc #0
+    sta Zp_Tmp2_byte  ; bottom of avatar (hi)
+    ;; Compare the bottom of the avatar to the top of the platform.
+    lda Zp_Tmp1_byte  ; bottom of avatar (lo)
+    sub Ram_PlatformTop_i16_0_arr, x
+    tay  ; depth (lo)
+    lda Zp_Tmp2_byte  ; bottom of avatar (hi)
+    sbc Ram_PlatformTop_i16_1_arr, x
+    bmi _NotInPlatform
+    bne _MaxDepth
+    cpy #127
+    bge _MaxDepth
+    ;; Set A equal to -Y.
+    dey
+    tya
+    eor #$ff
+    rts
+_MaxDepth:
+    lda #<-127
+    rts
+_NotInPlatform:
+    lda #0
+    rts
+.ENDPROC
+
+;;; Determines if the top of the avatar is above the bottom of the platform,
+;;; and if so, by how much.
+;;; @param X The platform index.
+;;; @return A How far to push the avatar vertically to get it out (0-127).
+;;; @return Z Set if the avatar is fully below the platform.
+;;; @preserve X
+.PROC Func_AvatarDepthIntoPlatformBottom
+    ;; Calculate the room pixel Y-position of top of the avatar.
+    lda Zp_AvatarPosY_i16 + 0
+    sub #kAvatarBoundingBoxUp
+    sta Zp_Tmp1_byte  ; top of avatar (lo)
+    lda Zp_AvatarPosY_i16 + 1
+    sbc #0
+    sta Zp_Tmp2_byte  ; top of avatar (hi)
+    ;; Compare the top of avatar to the bottom of the platform.
+    lda Ram_PlatformBottom_i16_0_arr, x
+    sub Zp_Tmp1_byte  ; top of avatar (lo)
+    tay  ; depth (lo)
+    lda Ram_PlatformBottom_i16_1_arr, x
+    sbc Zp_Tmp2_byte  ; top of avatar (hi)
+    bmi _NotInPlatform
+    bne _MaxDepth
+    cpy #127
+    bge _MaxDepth
+    tya  ; depth (lo)
+    rts
+_MaxDepth:
+    lda #127
+    rts
+_NotInPlatform:
+    lda #0
+    rts
+.ENDPROC
+
+;;; Determines whether both (1) the right side of the avatar is to the right of
+;;; the left side of the platform, and (2) the left side of the avatar is to
+;;; the left of the right side of the platform.
+;;; @param X The platform index.
+;;; @return Z Cleared if the avatar is within the platform horizontally.
+;;; @preserve X
+.PROC Func_IsAvatarInPlatformHorz
+    jsr Func_AvatarDepthIntoPlatformRight  ; preserves X, returns Z
+    bne @checkLeft
+    rts
+    @checkLeft:
+    .assert * = Func_AvatarDepthIntoPlatformLeft, error, "fallthrough"
+.ENDPROC
+
+;;; Determines if the avatar's right side is to the right of the platform's
+;;; left side, and if so, by how much.
+;;; @param X The platform index.
+;;; @return A How far to push the avatar horizontally to get it out (-127-0).
+;;; @return Z Set if the avatar is fully to the left of the platform.
+;;; @preserve X
+.PROC Func_AvatarDepthIntoPlatformLeft
+    ;; Calculate the room pixel X-position of the avatar's right side.
+    lda Zp_AvatarPosX_i16 + 0
+    add #kAvatarBoundingBoxRight
+    sta Zp_Tmp1_byte  ; avatar's right side (lo)
+    lda Zp_AvatarPosX_i16 + 1
+    adc #0
+    sta Zp_Tmp2_byte  ; avatar's right side (hi)
+    ;; Compare the avatar's right side to the platform's left side.
+    lda Zp_Tmp1_byte  ; avatar's right side (lo)
+    sub Ram_PlatformLeft_i16_0_arr, x
+    tay  ; depth (lo)
+    lda Zp_Tmp2_byte  ; avatar's right side (hi)
+    sbc Ram_PlatformLeft_i16_1_arr, x
+    bmi _NotInPlatform
+    bne _MaxDepth
+    cpy #127
+    bge _MaxDepth
+    ;; Set A equal to -Y.
+    dey
+    tya
+    eor #$ff
+    rts
+_MaxDepth:
+    lda #<-127
+    rts
+_NotInPlatform:
+    lda #0
+    rts
+.ENDPROC
+
+;;; Determines if the avatar's left side is to the left of the platform's right
+;;; side, and if so, by how much.
+;;; @param X The platform index.
+;;; @return A How far to push the avatar horizontally to get it out (0-127).
+;;; @return Z Set if the avatar is fully to the right of the platform.
+;;; @preserve X
+.PROC Func_AvatarDepthIntoPlatformRight
+    ;; Calculate the room pixel X-position of the avatar's left side.
+    lda Zp_AvatarPosX_i16 + 0
+    sub #kAvatarBoundingBoxLeft
+    sta Zp_Tmp1_byte  ; avatar's left side (lo)
+    lda Zp_AvatarPosX_i16 + 1
+    sbc #0
+    sta Zp_Tmp2_byte  ; avatar's left side (hi)
+    ;; Compare the avatar's left side to the platform's right side.
+    lda Ram_PlatformRight_i16_0_arr, x
+    sub Zp_Tmp1_byte  ; avatar's left side (lo)
+    tay  ; depth (lo)
+    lda Ram_PlatformRight_i16_1_arr, x
+    sbc Zp_Tmp2_byte  ; avatar's left side (hi)
+    bmi _NotInPlatform
+    bne _MaxDepth
+    cpy #127
+    bge _MaxDepth
+    tya  ; depth (lo)
+    rts
+_MaxDepth:
+    lda #127
+    rts
+_NotInPlatform:
+    lda #0
     rts
 .ENDPROC
 

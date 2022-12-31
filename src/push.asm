@@ -77,8 +77,9 @@ Zp_AvatarCollided_ePlatform: .res 1
 .SEGMENT "PRG8"
 
 ;;; Attempts to move the player avatar horizontally by Zp_AvatarPushDelta_i8.
-;;; Populates Zp_AvatarCollided_ePlatform with what kind of wall/platform was
-;;; hit, if any; sets Zp_AvatarExit_ePassage if the avatar hits a passage.
+;;; Sets Zp_AvatarCollided_ePlatform to what kind of wall/platform was hit, if
+;;; any; sets Zp_AvatarExit_ePassage if the avatar hits a passage.
+;;; @preserve X
 .EXPORT Func_TryPushAvatarHorz
 .PROC Func_TryPushAvatarHorz
     ldy #0
@@ -101,25 +102,30 @@ _Push:
     adc Zp_AvatarPosX_i16 + 1
     sta Zp_AvatarPosX_i16 + 1
 _DetectPassage:
-    jsr Func_AvatarDetectHorzPassage  ; if passage, clears Z and returns A
+    jsr Func_AvatarDetectHorzPassage  ; preserves X, returns Z and A
     sta Zp_AvatarExit_ePassage
     bne _Done
 _DetectCollision:
+    ;; Preserve X across these function calls that don't preserve it.
+    txa
+    pha
     jsr Func_AvatarCollideWithTerrainHorz
     jsr Func_AvatarCollideWithAllPlatformsHorz
+    pla
+    tax
     lda Zp_AvatarCollided_ePlatform
     .assert ePlatform::None = 0, error
     beq _Done  ; no collision
 _HandleCollision:
     ;; Set horizontal velocity and subpixel position to zero.
-    ldx #0
-    stx Zp_AvatarSubX_u8
-    stx Zp_AvatarVelX_i16 + 0
-    stx Zp_AvatarVelX_i16 + 1
+    ldy #0
+    sty Zp_AvatarSubX_u8
+    sty Zp_AvatarVelX_i16 + 0
+    sty Zp_AvatarVelX_i16 + 1
     ;; Check for special platform effects.
     cmp #ePlatform::Harm
     bne @noHarm
-    jsr Func_HarmAvatar
+    jsr Func_HarmAvatar  ; preserves X
     @noHarm:
 _Done:
     rts
@@ -128,6 +134,7 @@ _Done:
 ;;; Detects if the player avatar has hit a horizontal passage.
 ;;; @return Z Cleared if the player avatar hit a passage, set otherwise.
 ;;; @return A The ePassage that the player avatar hit, or ePassage::None.
+;;; @preserve X
 .PROC Func_AvatarDetectHorzPassage
     ;; Check if the player avatar is moving to the left or to the right.
     bit Zp_AvatarPushDelta_i8
@@ -264,8 +271,9 @@ _MovingLeft:
 .ENDPROC
 
 ;;; Attempts to move the player avatar vertically by Zp_AvatarPushDelta_i8.
-;;; Populates Zp_AvatarCollided_ePlatform with what kind of wall/platform was
-;;; hit, if any; sets Zp_AvatarExit_ePassage if the avatar hits a passage.
+;;; Sets Zp_AvatarCollided_ePlatform to what kind of wall/platform was hit, if
+;;; any; sets Zp_AvatarExit_ePassage if the avatar hits a passage.
+;;; @preserve X
 .EXPORT Func_TryPushAvatarVert
 .PROC Func_TryPushAvatarVert
     ldy #0
@@ -287,29 +295,34 @@ _ApplyVelocity:
     adc Zp_AvatarPosY_i16 + 1
     sta Zp_AvatarPosY_i16 + 1
 _DetectPassage:
-    jsr Func_AvatarDetectVertPassage  ; if passage, clears Z and returns A
+    jsr Func_AvatarDetectVertPassage  ; preserves X, returns Z and A
     sta Zp_AvatarExit_ePassage
     bne _NowAirborne
 _DetectCollision:
+    ;; Preserve X across these function calls that don't preserve it.
+    txa
+    pha
     jsr Func_AvatarCollideWithTerrainVert
     jsr Func_AvatarCollideWithAllPlatformsVert
+    pla
+    tax
     ;; If no vertical collision occurred, then the avatar is now airborne
     ;; (unless it's in water, but that will be detected later).
     lda Zp_AvatarCollided_ePlatform
     .assert ePlatform::None = 0, error
     beq _NowAirborne
 _HandleCollision:
-    ldx Zp_AvatarVelY_i16 + 1
-    stx Zp_Tmp1_byte  ; old Y-velocity (hi)
+    ldy Zp_AvatarVelY_i16 + 1
+    sty Zp_Tmp1_byte  ; old Y-velocity (hi)
     ;; Set vertical velocity and subpixel position to zero.
-    ldx #0
-    stx Zp_AvatarSubY_u8
-    stx Zp_AvatarVelY_i16 + 0
-    stx Zp_AvatarVelY_i16 + 1
+    ldy #0
+    sty Zp_AvatarSubY_u8
+    sty Zp_AvatarVelY_i16 + 0
+    sty Zp_AvatarVelY_i16 + 1
     ;; Check for special platform effects.
     cmp #ePlatform::Harm
     bne @noHarm
-    jsr Func_HarmAvatar
+    jsr Func_HarmAvatar  ; preserves X
     @noHarm:
     ;; If this was a downward collision, the avatar is now grounded.  If it was
     ;; an upward collision, the avatar must be airborne.
@@ -324,9 +337,9 @@ _NowGrounded:
     bit Zp_AvatarAirborne_bool
     bpl @done
     @wasAirborne:
-    ldx Zp_Tmp1_byte  ; old Y-velocity (hi)
+    ldy Zp_Tmp1_byte  ; old Y-velocity (hi)
     bmi @nowGrounded
-    lda Data_AvatarLandingFrames_u8_arr, x
+    lda Data_AvatarLandingFrames_u8_arr, y
     sta Zp_AvatarLanding_u8
     @nowGrounded:
     lda #0
@@ -338,6 +351,7 @@ _NowGrounded:
 ;;; Detects if the player avatar has hit a horizontal passage.
 ;;; @return Z Cleared if the player avatar hit a passage, set otherwise.
 ;;; @return A The ePassage that the player avatar hit, or ePassage::None.
+;;; @preserve X
 .PROC Func_AvatarDetectVertPassage
     ;; Check if the player avatar is moving up or down.
     bit Zp_AvatarPushDelta_i8
@@ -350,15 +364,15 @@ _Bottom:
     .assert bRoom::Tall = bProc::Negative, error
     bmi @tall
     @short:
-    ldx #kScreenHeightPx - kAvatarBoundingBoxDown
-    lda #0
+    lda #kScreenHeightPx - kAvatarBoundingBoxDown
+    ldy #0
     beq @finishHeight  ; unconditional
     @tall:
-    ldax #kTallRoomHeightBlocks * kBlockHeightPx - kAvatarBoundingBoxDown
+    ldya #kTallRoomHeightBlocks * kBlockHeightPx - kAvatarBoundingBoxDown
     @finishHeight:
-    stx Zp_Tmp1_byte  ; passage Y-position (lo)
+    sta Zp_Tmp1_byte  ; passage Y-position (lo)
     ;; Compare the avatar's position to the passage position.
-    cmp Zp_AvatarPosY_i16 + 1
+    cpy Zp_AvatarPosY_i16 + 1
     beq @checkLoByte
     bge _NoHitPassage
     @hitPassage:

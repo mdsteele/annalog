@@ -475,9 +475,9 @@ _MoveHorz:
     lda #0
     sta Zp_PointX_i16 + 1
     ;; Move the winch horizontally, if necessary.
-    jsr FuncA_Machine_GetWinchHorzSpeed  ; preserves X, returns A
+    jsr FuncA_Machine_GetWinchHorzSpeed  ; returns A
     ldx #kWinchPlatformIndex  ; param: platform index
-    jsr Func_MovePlatformLeftTowardPointX  ; preserves X, returns Z and A
+    jsr Func_MovePlatformLeftTowardPointX  ; returns Z and A
     beq @reachedGoal
     ;; If the winch moved, move the spikeball platform too.
     ldx #kSpikeballPlatformIndex  ; param: platform index

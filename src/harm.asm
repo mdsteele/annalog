@@ -85,6 +85,7 @@ _Harm:
 
 ;;; Kills the player avatar.
 ;;; @preserve X
+.EXPORT Func_KillAvatar
 .PROC Func_KillAvatar
     lda Zp_AvatarFlags_bObj
     and #<~bObj::PaletteMask
