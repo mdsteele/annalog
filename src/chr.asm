@@ -280,7 +280,7 @@
 
 .PROC Ppu_ChrBgFontLower08
 :   .incbin "out/data/tiles/font_lower.chr"
-    .res $10 * kSizeofChr
+    .incbin "out/data/tiles/diagram08.chr"
     .incbin "out/data/tiles/portrait08.chr"
     .assert * - :- = kSizeofChr * $40, error
 .ENDPROC
@@ -291,7 +291,7 @@
 
 .PROC Ppu_ChrBgFontLower09
 :   .incbin "out/data/tiles/font_lower.chr"
-    .res $10 * kSizeofChr
+    .incbin "out/data/tiles/diagram09.chr"
     .incbin "out/data/tiles/portrait09.chr"
     .assert * - :- = kSizeofChr * $40, error
 .ENDPROC
@@ -302,7 +302,7 @@
 
 .PROC Ppu_ChrBgFontLower0A
 :   .incbin "out/data/tiles/font_lower.chr"
-    .res $10 * kSizeofChr
+    .incbin "out/data/tiles/diagram0a.chr"
     .incbin "out/data/tiles/portrait0a.chr"
     .assert * - :- = kSizeofChr * $40, error
 .ENDPROC
@@ -313,7 +313,7 @@
 
 .PROC Ppu_ChrBgFontLower0B
 :   .incbin "out/data/tiles/font_lower.chr"
-    .res $10 * kSizeofChr
+    .incbin "out/data/tiles/diagram0b.chr"
     .incbin "out/data/tiles/portrait0b.chr"
     .assert * - :- = kSizeofChr * $40, error
 .ENDPROC
