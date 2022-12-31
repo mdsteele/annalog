@@ -39,13 +39,13 @@
 .IMPORT FuncA_Machine_Tick
 .IMPORT FuncA_Objects_DrawObjectsForRoom
 .IMPORT FuncA_Room_MachineReset
+.IMPORT FuncA_Terrain_ScrollTowardsAvatar
 .IMPORT FuncA_Terrain_ScrollTowardsGoal
 .IMPORT Func_ClearRestOfOam
 .IMPORT Func_GetMachineProgram
 .IMPORT Func_IsFlagSet
 .IMPORT Func_ProcessFrame
 .IMPORT Func_SetMachineIndex
-.IMPORT Func_SetScrollGoalFromAvatar
 .IMPORT Func_Window_GetRowPpuAddr
 .IMPORT Func_Window_PrepareRowTransfer
 .IMPORT Func_Window_TransferBottomBorder
@@ -212,8 +212,7 @@ _CheckIfDone:
     cmp #$ff
     jeq Main_Explore_Continue
 _UpdateScrolling:
-    jsr Func_SetScrollGoalFromAvatar
-    jsr_prga FuncA_Terrain_ScrollTowardsGoal
+    jsr_prga FuncA_Terrain_ScrollTowardsAvatar
     jmp _GameLoop
 .ENDPROC
 

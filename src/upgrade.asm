@@ -30,11 +30,11 @@
 .INCLUDE "window.inc"
 
 .IMPORT FuncA_Objects_DrawObjectsForRoom
+.IMPORT FuncA_Terrain_ScrollTowardsAvatar
 .IMPORT FuncA_Terrain_ScrollTowardsGoal
 .IMPORT Func_ClearRestOfOam
 .IMPORT Func_ProcessFrame
 .IMPORT Func_SetFlag
-.IMPORT Func_SetScrollGoalFromAvatar
 .IMPORT Func_Window_PrepareRowTransfer
 .IMPORT Func_Window_TransferBottomBorder
 .IMPORT Func_Window_TransferClearRow
@@ -114,19 +114,9 @@ _GameLoop:
     jsr FuncA_Objects_DrawUpgradeSymbol
     jsr Func_ClearRestOfOam
     jsr Func_ProcessFrame
-_ScrollWindowUp:
-    lda Zp_WindowTop_u8
-    sub #kUpgradeWindowScrollSpeed
-    cmp Zp_WindowTopGoal_u8
-    bge @notDone
-    lda Zp_WindowTopGoal_u8
-    @notDone:
-    sta Zp_WindowTop_u8
-    jsr_prga FuncA_Upgrade_TransferNextWindowRow
-_CheckIfDone:
-    lda Zp_WindowTop_u8
-    cmp Zp_WindowTopGoal_u8
-    jeq Main_Upgrade_RunWindow
+_UpdateWindow:
+    jsr_prga FuncA_Upgrade_ScrollWindowUp  ; returns C
+    jcs Main_Upgrade_RunWindow
 _UpdateScrolling:
     jsr_prga FuncA_Terrain_ScrollTowardsGoal
     jmp _GameLoop
@@ -143,21 +133,11 @@ _GameLoop:
     jsr FuncA_Objects_DrawUpgradeSymbol
     jsr Func_ClearRestOfOam
     jsr Func_ProcessFrame
-_ScrollWindowDown:
-    lda Zp_WindowTop_u8
-    add #kUpgradeWindowScrollSpeed
-    cmp #kScreenHeightPx
-    blt @notDone
-    lda #$ff
-    @notDone:
-    sta Zp_WindowTop_u8
-_CheckIfDone:
-    lda Zp_WindowTop_u8
-    cmp #$ff
-    jeq Main_Explore_Continue
+_UpdateWindow:
+    jsr_prga FuncA_Upgrade_ScrollWindowDown  ; returns C
+    jcs Main_Explore_Continue
 _UpdateScrolling:
-    jsr Func_SetScrollGoalFromAvatar
-    jsr_prga FuncA_Terrain_ScrollTowardsGoal
+    jsr_prga FuncA_Terrain_ScrollTowardsAvatar
     jmp _GameLoop
 .ENDPROC
 
@@ -191,8 +171,7 @@ _UpdateScrolling:
 ;;; @param X The upgrade device index.
 .PROC FuncA_Upgrade_Init
     jsr FuncA_Upgrade_Collect
-_SetScrollGoal:
-    jsr Func_SetScrollGoalFromAvatar
+_AdjustScrollGoal:
     lda Zp_ScrollGoalY_u8
     add #(kScreenHeightPx - kUpgradeWindowTopGoal) / 2
     sta Zp_ScrollGoalY_u8
@@ -293,6 +272,40 @@ OpcodeSync3_u8_arr:      .byte "all machines sync.", $ff
 OpcodeBeep1_u8_arr:      .byte "     BEEP OPCODE", $ff
 OpcodeBeep2_u8_arr:      .byte "Plays one of ten musical", $ff
 OpcodeBeep3_u8_arr:      .byte "tones.", $ff
+.ENDPROC
+
+;;; Scrolls the upgrade window in a bit, and transfers PPU data as needed; call
+;;; this each frame when the window is opening.
+;;; @return C Set if the window is now fully scrolled in.
+.PROC FuncA_Upgrade_ScrollWindowUp
+    lda Zp_WindowTop_u8
+    sub #kUpgradeWindowScrollSpeed
+    cmp Zp_WindowTopGoal_u8
+    bge @notDone
+    lda Zp_WindowTopGoal_u8
+    @notDone:
+    sta Zp_WindowTop_u8
+    jsr FuncA_Upgrade_TransferNextWindowRow
+    lda Zp_WindowTopGoal_u8
+    cmp Zp_WindowTop_u8  ; clears C if Zp_WindowTopGoal_u8 < Zp_WindowTop_u8
+    rts
+.ENDPROC
+
+;;; Scrolls the dialog window down a bit; call this each frame when the window
+;;; is closing.
+;;; @return C Set if the window is now fully scrolled out.
+.PROC FuncA_Upgrade_ScrollWindowDown
+    lda Zp_WindowTop_u8
+    add #kUpgradeWindowScrollSpeed
+    cmp #kScreenHeightPx
+    blt @notDone
+    lda #$ff
+    @notDone:
+    sta Zp_WindowTop_u8
+_CheckIfDone:
+    lda Zp_WindowTop_u8
+    cmp #$ff  ; clears C if Zp_WindowTop_u8 < $ff
+    rts
 .ENDPROC
 
 ;;; Transfers the next upgrade window row (if any) that still needs to be

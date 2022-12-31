@@ -122,6 +122,7 @@
 .IMPORTZP Zp_ConsoleMachineIndex_u8
 .IMPORTZP Zp_HudMachineIndex_u8
 .IMPORTZP Zp_RoomIsSafe_bool
+.IMPORTZP Zp_RoomShake_u8
 .IMPORTZP Zp_Tmp1_byte
 .IMPORTZP Zp_Tmp2_byte
 .IMPORTZP Zp_Tmp3_byte
@@ -463,6 +464,7 @@ _SetVars:
     ldx #0
     .assert ePassage::None = 0, error
     stx Zp_AvatarExit_ePassage
+    stx Zp_RoomShake_u8
     dex  ; now X is $ff
     stx Zp_AvatarPlatformIndex_u8
     stx Zp_CameraCanScroll_bool

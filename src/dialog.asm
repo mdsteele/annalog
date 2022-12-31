@@ -30,11 +30,11 @@
 .INCLUDE "window.inc"
 
 .IMPORT FuncA_Objects_DrawObjectsForRoom
+.IMPORT FuncA_Terrain_ScrollTowardsAvatar
 .IMPORT FuncA_Terrain_ScrollTowardsGoal
 .IMPORT Func_ClearRestOfOam
 .IMPORT Func_ProcessFrame
 .IMPORT Func_SetFlag
-.IMPORT Func_SetScrollGoalFromAvatar
 .IMPORT Func_Window_GetRowPpuAddr
 .IMPORT Func_Window_PrepareRowTransfer
 .IMPORT Func_Window_TransferBottomBorder
@@ -192,8 +192,7 @@ _GameLoop:
     jsr_prga FuncA_Dialog_ScrollWindowDown  ; sets C if window is now closed
     jcs Main_Explore_Continue
 _UpdateScrolling:
-    jsr Func_SetScrollGoalFromAvatar
-    jsr_prga FuncA_Terrain_ScrollTowardsGoal
+    jsr_prga FuncA_Terrain_ScrollTowardsAvatar
     jmp _GameLoop
 .ENDPROC
 
@@ -293,8 +292,7 @@ _UpdateScrolling:
     ;; Load the first portrait of the dialog.
     jsr FuncA_Dialog_LoadNextPortrait  ; sets C if dialog is already done
     bcs _Done
-_SetScrollGoal:
-    jsr Func_SetScrollGoalFromAvatar
+_AdjustScrollGoal:
     lda Zp_ScrollGoalY_u8
     add #(kScreenHeightPx - kDialogWindowTopGoal) / 2
     sta Zp_ScrollGoalY_u8
