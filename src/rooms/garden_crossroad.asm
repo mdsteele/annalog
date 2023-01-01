@@ -165,13 +165,13 @@ _Devices_sDevice_arr:
 :   D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Console
     d_byte BlockRow_u8, 15
-    d_byte BlockCol_u8, 4
+    d_byte BlockCol_u8, 2
     d_byte Target_u8, kLiftMachineIndex
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::LeverFloor
-    d_byte BlockRow_u8, 13
-    d_byte BlockCol_u8, 7
+    d_byte BlockRow_u8, 15
+    d_byte BlockCol_u8, 4
     d_byte Target_u8, sState::Lever_u1
     D_END
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
