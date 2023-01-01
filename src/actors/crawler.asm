@@ -23,7 +23,7 @@
 .INCLUDE "../oam.inc"
 .INCLUDE "../ppu.inc"
 .INCLUDE "../terrain.inc"
-.INCLUDE "hothead.inc"
+.INCLUDE "crawler.inc"
 
 .IMPORT FuncA_Actor_GetRoomBlockRow
 .IMPORT FuncA_Actor_GetRoomTileColumn
@@ -44,8 +44,8 @@
 
 ;;;=========================================================================;;;
 
-;;; The OBJ palette number used for hothead baddie actors.
-kPaletteObjHothead = 1
+;;; The OBJ palette number used for beetle/hothead baddie actors.
+kPaletteObjCrawler = 1
 
 ;;;=========================================================================;;;
 
@@ -363,7 +363,7 @@ _TurnAtOuterCorner:
 .EXPORT FuncA_Objects_DrawActorBadBeetleHorz
 .PROC FuncA_Objects_DrawActorBadBeetleHorz
     lda #kTileIdObjBeetleHorzFirst  ; param: first tile ID
-    jmp FuncA_Objects_DrawActorBadHotheadShape  ; preserves X
+    jmp FuncA_Objects_DrawActorBadCrawlerShape  ; preserves X
 .ENDPROC
 
 ;;; Draws a vertically-crawling beetle baddie actor.
@@ -372,7 +372,7 @@ _TurnAtOuterCorner:
 .EXPORT FuncA_Objects_DrawActorBadBeetleVert
 .PROC FuncA_Objects_DrawActorBadBeetleVert
     lda #kTileIdObjBeetleVertFirst  ; param: first tile ID
-    jmp FuncA_Objects_DrawActorBadHotheadShape  ; preserves X
+    jmp FuncA_Objects_DrawActorBadCrawlerShape  ; preserves X
 .ENDPROC
 
 ;;; Draws a horizontally-crawling hothead baddie actor.
@@ -381,7 +381,7 @@ _TurnAtOuterCorner:
 .EXPORT FuncA_Objects_DrawActorBadHotheadHorz
 .PROC FuncA_Objects_DrawActorBadHotheadHorz
     lda #kTileIdObjHotheadHorzFirst  ; param: first tile ID
-    jsr FuncA_Objects_DrawActorBadHotheadShape  ; preserves X, returns C and Y
+    jsr FuncA_Objects_DrawActorBadCrawlerShape  ; preserves X, returns C and Y
     bcs @done
     ;; As part of the animation cycle, sometimes flip the flames horizontally.
     lda Zp_FrameCounter_u8
@@ -407,7 +407,7 @@ _TurnAtOuterCorner:
 .EXPORT FuncA_Objects_DrawActorBadHotheadVert
 .PROC FuncA_Objects_DrawActorBadHotheadVert
     lda #kTileIdObjHotheadVertFirst  ; param: first tile ID
-    jsr FuncA_Objects_DrawActorBadHotheadShape  ; preserves X, returns C and Y
+    jsr FuncA_Objects_DrawActorBadCrawlerShape  ; preserves X, returns C and Y
     bcs @done
     ;; As part of the animation cycle, sometimes flip the flames vertically.
     lda Zp_FrameCounter_u8
@@ -427,13 +427,13 @@ _TurnAtOuterCorner:
     rts
 .ENDPROC
 
-;;; Helper function for drawing hothead baddie actors.
+;;; Helper function for drawing beetle/hothead baddie actors.
 ;;; @param A The first tile ID to use.
 ;;; @param X The actor index.
 ;;; @return C Set if no OAM slots were allocated, cleared otherwise.
 ;;; @return Y The OAM byte offset for the first of the four objects.
 ;;; @preserve X
-.PROC FuncA_Objects_DrawActorBadHotheadShape
+.PROC FuncA_Objects_DrawActorBadCrawlerShape
     sta Zp_Tmp1_byte  ; first tile ID
     lda Zp_FrameCounter_u8
     and #$08
@@ -443,7 +443,7 @@ _TurnAtOuterCorner:
     .assert kTileIdObjHotheadHorzFirst .mod $08 = 0, error
     .assert kTileIdObjHotheadVertFirst .mod $08 = 0, error
     ora Zp_Tmp1_byte  ; first tile ID
-    ldy #kPaletteObjHothead  ; param: palette
+    ldy #kPaletteObjCrawler  ; param: palette
     jmp FuncA_Objects_Draw2x2Actor  ; preserves X, returns C and Y
 .ENDPROC
 
