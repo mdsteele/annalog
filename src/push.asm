@@ -33,6 +33,7 @@
 .IMPORT Func_AvatarCollideWithAllPlatformsVert
 .IMPORT Func_GetTerrainColumnPtrForPointX
 .IMPORT Func_HarmAvatar
+.IMPORT Func_KillAvatar
 .IMPORTZP Zp_AvatarAirborne_bool
 .IMPORTZP Zp_AvatarLanding_u8
 .IMPORTZP Zp_AvatarPosX_i16
@@ -123,10 +124,10 @@ _HandleCollision:
     sty Zp_AvatarVelX_i16 + 0
     sty Zp_AvatarVelX_i16 + 1
     ;; Check for special platform effects.
+    cmp #ePlatform::Kill
+    jeq Func_KillAvatar  ; preserves X
     cmp #ePlatform::Harm
-    bne @noHarm
-    jsr Func_HarmAvatar  ; preserves X
-    @noHarm:
+    jeq Func_HarmAvatar  ; preserves X
 _Done:
     rts
 .ENDPROC
@@ -320,6 +321,8 @@ _HandleCollision:
     sty Zp_AvatarVelY_i16 + 0
     sty Zp_AvatarVelY_i16 + 1
     ;; Check for special platform effects.
+    cmp #ePlatform::Kill
+    jeq Func_KillAvatar  ; preserves X
     cmp #ePlatform::Harm
     bne @noHarm
     jsr Func_HarmAvatar  ; preserves X

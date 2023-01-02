@@ -29,6 +29,7 @@ kMaxPlatforms = 12
     Water  ; can swim in
     Solid  ; safe to stand on
     Harm   ; harms the player avatar on contact
+    Kill   ; kills the player avatar on contact
 .ENDENUM
 
 ;;; Platform types greater than or equal to this are solid.
