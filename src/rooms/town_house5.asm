@@ -77,14 +77,14 @@ _Platforms_sPlatform_arr:
 _Actors_sActor_arr:
     D_STRUCT sActor
     d_byte Type_eActor, eActor::NpcChild
-    d_byte TileRow_u8, 25
-    d_byte TileCol_u8, 12
+    d_word PosX_i16, $0060
+    d_word PosY_i16, $00c8
     d_byte Param_byte, eNpcChild::CrewcutStanding
     D_END
     D_STRUCT sActor
     d_byte Type_eActor, eActor::NpcChild
-    d_byte TileRow_u8, 25
-    d_byte TileCol_u8, 24
+    d_word PosX_i16, $00c0
+    d_word PosY_i16, $00c8
     d_byte Param_byte, eNpcChild::BobcutStanding
     D_END
     .byte eActor::None

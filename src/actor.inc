@@ -61,10 +61,10 @@ kMaxActors = 8
 .STRUCT sActor
     ;; The type of this actor.
     Type_eActor .byte
-    ;; The room tile row for this actor.
-    TileRow_u8  .byte
-    ;; The room tile column for this actor.
-    TileCol_u8  .byte
+    ;; The room pixel X-position for the center of the actor.
+    PosX_i16    .word
+    ;; The room pixel Y-position for the center of the actor.
+    PosY_i16    .word
     ;; Type-specific initialization parameter.
     ;;   * For BadBeetle*, this is the actor flip flags to set.
     ;;   * For BadHothead*, this is the actor flip flags to set.

@@ -106,8 +106,8 @@ _Platforms_sPlatform_arr:
 _Actors_sActor_arr:
 :   D_STRUCT sActor
     d_byte Type_eActor, eActor::NpcAdult
-    d_byte TileRow_u8, 21
-    d_byte TileCol_u8, 18
+    d_word PosX_i16, $0090
+    d_word PosY_i16, $00a8
     d_byte Param_byte, kTileIdMermaidFloristFirst
     D_END
     .assert * - :- <= kMaxActors * .sizeof(sActor), error

@@ -358,14 +358,14 @@ _Actors_sActor_arr:
 :   .assert * - :- = kAlexActorIndex * .sizeof(sActor), error
     D_STRUCT sActor
     d_byte Type_eActor, eActor::NpcChild
-    d_byte TileRow_u8, 43
-    d_byte TileCol_u8, 18
+    d_word PosX_i16, $0090
+    d_word PosY_i16, $0158
     d_byte Param_byte, eNpcChild::AlexStanding
     D_END
     D_STRUCT sActor
     d_byte Type_eActor, eActor::BadBeetleHorz
-    d_byte TileRow_u8, 15
-    d_byte TileCol_u8, 12
+    d_word PosX_i16, $0060
+    d_word PosY_i16, $0078
     d_byte Param_byte, 0
     D_END
     .assert * - :- <= kMaxActors * .sizeof(sActor), error

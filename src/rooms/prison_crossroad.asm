@@ -75,20 +75,20 @@ _Platforms_sPlatform_arr:
 _Actors_sActor_arr:
 :   D_STRUCT sActor
     d_byte Type_eActor, eActor::BadGrub
-    d_byte TileRow_u8, 17
-    d_byte TileCol_u8, 17
+    d_word PosX_i16, $0088
+    d_word PosY_i16, $0088
     d_byte Param_byte, 0
     D_END
     D_STRUCT sActor
     d_byte Type_eActor, eActor::BadGrub
-    d_byte TileRow_u8, 29
-    d_byte TileCol_u8, 20
+    d_word PosX_i16, $00a0
+    d_word PosY_i16, $00e8
     d_byte Param_byte, 0
     D_END
     D_STRUCT sActor
     d_byte Type_eActor, eActor::BadFish
-    d_byte TileRow_u8, 44
-    d_byte TileCol_u8, 16
+    d_word PosX_i16, $0080
+    d_word PosY_i16, $0160
     d_byte Param_byte, 0
     D_END
     .assert * - :- <= kMaxActors * .sizeof(sActor), error

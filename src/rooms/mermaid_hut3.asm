@@ -89,14 +89,14 @@ _Platforms_sPlatform_arr:
 _Actors_sActor_arr:
     D_STRUCT sActor
     d_byte Type_eActor, eActor::NpcMermaid
-    d_byte TileRow_u8, 25
-    d_byte TileCol_u8, 8
+    d_word PosX_i16, $0040
+    d_word PosY_i16, $00c8
     d_byte Param_byte, kTileIdMermaidAdultFirst
     D_END
     D_STRUCT sActor
     d_byte Type_eActor, eActor::NpcMermaid
-    d_byte TileRow_u8, 25
-    d_byte TileCol_u8, 20
+    d_word PosX_i16, $00a0
+    d_word PosY_i16, $00c8
     d_byte Param_byte, kTileIdMermaidPonytailFirst
     D_END
     .byte eActor::None

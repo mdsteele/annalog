@@ -77,14 +77,14 @@ _Platforms_sPlatform_arr:
 _Actors_sActor_arr:
     D_STRUCT sActor
     d_byte Type_eActor, eActor::NpcAdult
-    d_byte TileRow_u8, 25
-    d_byte TileCol_u8, 10
+    d_word PosX_i16, $0050
+    d_word PosY_i16, $00c8
     d_byte Param_byte, kTileIdAdultWomanFirst
     D_END
     D_STRUCT sActor
     d_byte Type_eActor, eActor::NpcAdult
-    d_byte TileRow_u8, 25
-    d_byte TileCol_u8, 22
+    d_word PosX_i16, $00b0
+    d_word PosY_i16, $00c8
     d_byte Param_byte, kTileIdAdultManFirst
     D_END
     .byte eActor::None

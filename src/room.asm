@@ -301,6 +301,7 @@ _LoadPlatforms:
     sta Zp_Tmp_ptr + 1
     ;; Copy room platform structs into platform RAM.
     ldx #0  ; platform index
+    .assert kMaxPlatforms * .sizeof(sPlatform) < $100, error
     ldy #0  ; byte offset into Platforms_sPlatform_arr_ptr
     @copyLoop:
     .assert sPlatform::Type_ePlatform = 0, error
@@ -362,6 +363,7 @@ _LoadActors:
     sta Zp_Tmp_ptr + 1
     ;; Copy room actor structs into actor RAM.
     ldx #0  ; actor index
+    .assert kMaxActors * .sizeof(sActor) < $100, error
     ldy #0  ; byte offset into Actors_sActor_arr_ptr
     @copyLoop:
     ;; Actor type:
@@ -371,35 +373,29 @@ _LoadActors:
     beq @copyDone
     sta Ram_ActorType_eActor_arr, x
     iny
-    ;; Y-position:
-    lda #0
-    sta Ram_ActorPosY_i16_1_arr, x
-    .assert sActor::TileRow_u8 = 1, error
-    lda (Zp_Tmp_ptr), y
-    iny
-    .repeat 3
-    asl a
-    rol Ram_ActorPosY_i16_1_arr, x
-    .endrepeat
-    sta Ram_ActorPosY_i16_0_arr, x
     ;; X-position:
-    lda #0
-    sta Ram_ActorPosX_i16_1_arr, x
-    .assert sActor::TileCol_u8 = 2, error
+    .assert sActor::PosX_i16 = 1, error
     lda (Zp_Tmp_ptr), y
     iny
-    .repeat 3
-    asl a
-    rol Ram_ActorPosX_i16_1_arr, x
-    .endrepeat
     sta Ram_ActorPosX_i16_0_arr, x
+    lda (Zp_Tmp_ptr), y
+    iny
+    sta Ram_ActorPosX_i16_1_arr, x
+    ;; Y-position:
+    .assert sActor::PosY_i16 = 3, error
+    lda (Zp_Tmp_ptr), y
+    iny
+    sta Ram_ActorPosY_i16_0_arr, x
+    lda (Zp_Tmp_ptr), y
+    iny
+    sta Ram_ActorPosY_i16_1_arr, x
     ;; Temporarily store param byte in Ram_ActorState1_byte_arr:
-    .assert sActor::Param_byte = 3, error
+    .assert sActor::Param_byte = 5, error
     lda (Zp_Tmp_ptr), y
     iny
     sta Ram_ActorState1_byte_arr, x
     ;; Continue to next sActor entry.
-    .assert .sizeof(sActor) = 4, error
+    .assert .sizeof(sActor) = 6, error
     inx
     bne @copyLoop  ; unconditional
     ;; Clear remaining slots in actor RAM.
@@ -428,6 +424,7 @@ _LoadDevices:
     sta Zp_Tmp_ptr + 1
     ;; Copy room device structs into device RAM.
     ldx #0  ; device index
+    .assert kMaxDevices * .sizeof(sDevice) < $100, error
     ldy #0  ; byte offset into Devices_sDevice_arr_ptr
     @copyLoop:
     .assert sDevice::Type_eDevice = 0, error

@@ -183,32 +183,32 @@ _Actors_sActor_arr:
 :   .assert * - :- = kAlexActorIndex * .sizeof(sActor), error
     D_STRUCT sActor
     d_byte Type_eActor, eActor::NpcChild
-    d_byte TileRow_u8, 23
-    d_byte TileCol_u8, 10
+    d_word PosX_i16, $0050
+    d_word PosY_i16, $00b8
     d_byte Param_byte, eNpcChild::AlexStanding
     D_END
     D_STRUCT sActor
     d_byte Type_eActor, eActor::NpcChild
-    d_byte TileRow_u8, 15
-    d_byte TileCol_u8, 34
+    d_word PosX_i16, $0110
+    d_word PosY_i16, $0078
     d_byte Param_byte, bNpcChild::Pri | eNpcChild::PonytailStanding
     D_END
     D_STRUCT sActor
     d_byte Type_eActor, eActor::NpcToddler
-    d_byte TileRow_u8, 15
-    d_byte TileCol_u8, 37
+    d_word PosX_i16, $0128
+    d_word PosY_i16, $0078
     d_byte Param_byte, bNpcToddler::Pri | 17
     D_END
     D_STRUCT sActor
     d_byte Type_eActor, eActor::NpcChild
-    d_byte TileRow_u8, 23
-    d_byte TileCol_u8, 44
+    d_word PosX_i16, $0160
+    d_word PosY_i16, $00b8
     d_byte Param_byte, bNpcChild::Pri | eNpcChild::CrewcutStanding
     D_END
     D_STRUCT sActor
     d_byte Type_eActor, eActor::NpcChild
-    d_byte TileRow_u8, 23
-    d_byte TileCol_u8, 50
+    d_word PosX_i16, $0190
+    d_word PosY_i16, $00b8
     d_byte Param_byte, bNpcChild::Pri | eNpcChild::BobcutStanding
     D_END
     .assert * - :- <= kMaxActors * .sizeof(sActor), error

@@ -142,21 +142,21 @@ _Actors_sActor_arr:
 :   .assert * - :- = kSquishableActorIndex * .sizeof(sPlatform), error
     D_STRUCT sActor
     d_byte Type_eActor, eActor::BadGrub
-    d_byte TileRow_u8, 31
-    d_byte TileCol_u8, 19
+    d_word PosX_i16, $0098
+    d_word PosY_i16, $00f8
     d_byte Param_byte, 0
     D_END
     ;; Other enemies:
     D_STRUCT sActor
     d_byte Type_eActor, eActor::BadGrub
-    d_byte TileRow_u8, 23
-    d_byte TileCol_u8, 7
+    d_word PosX_i16, $0038
+    d_word PosY_i16, $00b8
     d_byte Param_byte, 0
     D_END
     D_STRUCT sActor
     d_byte Type_eActor, eActor::BadGrub
-    d_byte TileRow_u8, 39
-    d_byte TileCol_u8, 17
+    d_word PosX_i16, $0088
+    d_word PosY_i16, $0138
     d_byte Param_byte, 0
     D_END
     .assert * - :- <= kMaxActors * .sizeof(sActor), error

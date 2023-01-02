@@ -114,14 +114,14 @@ _Platforms_sPlatform_arr:
 _Actors_sActor_arr:
     D_STRUCT sActor
     d_byte Type_eActor, eActor::BadCrab
-    d_byte TileRow_u8, 9
-    d_byte TileCol_u8, 18
+    d_word PosX_i16, $0090
+    d_word PosY_i16, $0048
     d_byte Param_byte, 0
     D_END
     D_STRUCT sActor
     d_byte Type_eActor, eActor::BadFish
-    d_byte TileRow_u8, 24
-    d_byte TileCol_u8, 48
+    d_word PosX_i16, $0180
+    d_word PosY_i16, $00c0
     d_byte Param_byte, 0
     D_END
     .byte eActor::None

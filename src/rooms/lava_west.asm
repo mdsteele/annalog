@@ -157,26 +157,26 @@ _Platforms_sPlatform_arr:
 _Actors_sActor_arr:
 :   D_STRUCT sActor
     d_byte Type_eActor, eActor::BadHotheadHorz
-    d_byte TileRow_u8, 25
-    d_byte TileCol_u8, 15
+    d_word PosX_i16, $0078
+    d_word PosY_i16, $00c8
     d_byte Param_byte, bObj::FlipH
     D_END
     D_STRUCT sActor
     d_byte Type_eActor, eActor::BadHotheadHorz
-    d_byte TileRow_u8, 19
-    d_byte TileCol_u8, 26
+    d_word PosX_i16, $00d0
+    d_word PosY_i16, $0098
     d_byte Param_byte, 0
     D_END
     D_STRUCT sActor
     d_byte Type_eActor, eActor::BadHotheadHorz
-    d_byte TileRow_u8, 17
-    d_byte TileCol_u8, 57
+    d_word PosX_i16, $01c8
+    d_word PosY_i16, $0088
     d_byte Param_byte, bObj::FlipV
     D_END
     D_STRUCT sActor
     d_byte Type_eActor, eActor::BadHotheadHorz
-    d_byte TileRow_u8, 35
-    d_byte TileCol_u8, 57
+    d_word PosX_i16, $01c8
+    d_word PosY_i16, $0118
     d_byte Param_byte, bObj::FlipH
     D_END
     .assert * - :- <= kMaxActors * .sizeof(sActor), error

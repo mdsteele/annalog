@@ -218,39 +218,39 @@ _Actors_sActor_arr:
 :   .assert * - :- = kMermaidActorIndex * .sizeof(sActor), error
     D_STRUCT sActor
     d_byte Type_eActor, eActor::NpcMermaid
-    d_byte TileRow_u8, 19
-    d_byte TileCol_u8, 16
+    d_word PosX_i16, $0080
+    d_word PosY_i16, $0098
     d_byte Param_byte, kTileIdMermaidAdultFirst
     D_END
     D_STRUCT sActor
     d_byte Type_eActor, eActor::BadVinebug
-    d_byte TileRow_u8, 8
-    d_byte TileCol_u8, 31
+    d_word PosX_i16, $00f8
+    d_word PosY_i16, $0040
     d_byte Param_byte, 0
     D_END
     D_STRUCT sActor
     d_byte Type_eActor, eActor::BadVinebug
-    d_byte TileRow_u8, 12
-    d_byte TileCol_u8, 43
+    d_word PosX_i16, $0158
+    d_word PosY_i16, $0060
     d_byte Param_byte, 0
     D_END
     .assert * - :- = kKillableVinebugActorIndex * .sizeof(sActor), error
     D_STRUCT sActor
     d_byte Type_eActor, eActor::BadVinebug
-    d_byte TileRow_u8, 35
-    d_byte TileCol_u8, 21
+    d_word PosX_i16, $00a8
+    d_word PosY_i16, $0118
     d_byte Param_byte, 0
     D_END
     D_STRUCT sActor
     d_byte Type_eActor, eActor::BadGrub
-    d_byte TileRow_u8, 33
-    d_byte TileCol_u8, 56
+    d_word PosX_i16, $01c0
+    d_word PosY_i16, $0108
     d_byte Param_byte, 0
     D_END
     D_STRUCT sActor
     d_byte Type_eActor, eActor::BadGrub
-    d_byte TileRow_u8, 43
-    d_byte TileCol_u8, 26
+    d_word PosX_i16, $00d0
+    d_word PosY_i16, $0158
     d_byte Param_byte, 0
     D_END
     .assert * - :- <= kMaxActors * .sizeof(sActor), error

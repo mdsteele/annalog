@@ -150,20 +150,20 @@ _Platforms_sPlatform_arr:
 _Actors_sActor_arr:
 :   D_STRUCT sActor
     d_byte Type_eActor, eActor::NpcMermaid
-    d_byte TileRow_u8, 17
-    d_byte TileCol_u8, 84
+    d_word PosX_i16, $02a0
+    d_word PosY_i16, $0088
     d_byte Param_byte, kTileIdMermaidGuardFFirst
     D_END
     D_STRUCT sActor
     d_byte Type_eActor, eActor::NpcMermaid
-    d_byte TileRow_u8, 43
-    d_byte TileCol_u8, 26
+    d_word PosX_i16, $00d0
+    d_word PosY_i16, $0158
     d_byte Param_byte, kTileIdMermaidFarmerFirst
     D_END
     D_STRUCT sActor
     d_byte Type_eActor, eActor::NpcMermaid
-    d_byte TileRow_u8, 43
-    d_byte TileCol_u8, 34
+    d_word PosX_i16, $0110
+    d_word PosY_i16, $0158
     d_byte Param_byte, kTileIdMermaidYouthFirst
     D_END
     .assert * - :- <= kMaxActors * .sizeof(sActor), error

@@ -99,8 +99,8 @@ _Platforms_sPlatform_arr:
 _Actors_sActor_arr:
 :   D_STRUCT sActor
     d_byte Type_eActor, eActor::BadToad
-    d_byte TileRow_u8, 22
-    d_byte TileCol_u8, 13
+    d_word PosX_i16, $0068
+    d_word PosY_i16, $00b0
     d_byte Param_byte, 0
     D_END
     .assert * - :- <= kMaxActors * .sizeof(sActor), error
