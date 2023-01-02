@@ -75,7 +75,6 @@
 .IMPORT FuncA_Objects_DrawActorProjSteamUp
 .IMPORT FuncA_Objects_MoveShapeLeftHalfTile
 .IMPORT FuncA_Objects_MoveShapeUpByA
-.IMPORT FuncA_Room_InitActorBadVinebug
 .IMPORT FuncA_Room_InitActorNpcChild
 .IMPORT FuncA_Room_InitActorNpcToddler
 .IMPORT FuncA_Room_InitActorProjBreakball
@@ -687,7 +686,7 @@ _NoHit:
     d_entry table, BadHotheadVert,  Func_InitActorWithFlags
     d_entry table, BadSpider,       Func_InitActorDefault
     d_entry table, BadToad,         Func_InitActorDefault
-    d_entry table, BadVinebug,      FuncA_Room_InitActorBadVinebug
+    d_entry table, BadVinebug,      Func_InitActorDefault
     d_entry table, NpcAdult,        Func_InitActorWithState1
     d_entry table, NpcChild,        FuncA_Room_InitActorNpcChild
     d_entry table, NpcMermaid,      Func_InitActorWithState1

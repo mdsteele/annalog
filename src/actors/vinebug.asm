@@ -27,13 +27,10 @@
 .IMPORT FuncA_Actor_IsAvatarWithinHorzDistance
 .IMPORT FuncA_Objects_Draw2x2Actor
 .IMPORT Func_GetRandomByte
-.IMPORT Func_InitActorDefault
 .IMPORT Func_MovePointDownByA
 .IMPORT Func_MovePointUpByA
 .IMPORT Func_PointHitsTerrain
 .IMPORT Func_SetPointToActorCenter
-.IMPORT Ram_ActorPosX_i16_0_arr
-.IMPORT Ram_ActorPosX_i16_1_arr
 .IMPORT Ram_ActorPosY_i16_0_arr
 .IMPORT Ram_ActorPosY_i16_1_arr
 .IMPORT Ram_ActorState1_byte_arr
@@ -51,26 +48,6 @@ kVinebugLookDownDist = 10
 
 ;;; The OBJ palette number to use for drawing grub baddie actors.
 kPaletteObjVinebug = 0
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Room"
-
-;;; Initializes a vinebug baddie actor.
-;;; @prereq The actor's unadjusted pixel position has already been initialized.
-;;; @param X The actor index.
-;;; @preserve X
-.EXPORT FuncA_Room_InitActorBadVinebug
-.PROC FuncA_Room_InitActorBadVinebug
-    lda Ram_ActorPosX_i16_0_arr, x
-    bne @noBorrow
-    dec Ram_ActorPosX_i16_1_arr, x
-    @noBorrow:
-    dec Ram_ActorPosX_i16_0_arr, x
-    ldy #eActor::BadVinebug  ; param: actor type
-    lda #0  ; param: state byte
-    jmp Func_InitActorDefault
-.ENDPROC
 
 ;;;=========================================================================;;;
 

@@ -224,20 +224,20 @@ _Actors_sActor_arr:
     D_END
     D_STRUCT sActor
     d_byte Type_eActor, eActor::BadVinebug
-    d_word PosX_i16, $00f8
+    d_word PosX_i16, $00f7
     d_word PosY_i16, $0040
     d_byte Param_byte, 0
     D_END
     D_STRUCT sActor
     d_byte Type_eActor, eActor::BadVinebug
-    d_word PosX_i16, $0158
+    d_word PosX_i16, $0157
     d_word PosY_i16, $0060
     d_byte Param_byte, 0
     D_END
     .assert * - :- = kKillableVinebugActorIndex * .sizeof(sActor), error
     D_STRUCT sActor
     d_byte Type_eActor, eActor::BadVinebug
-    d_word PosX_i16, $00a8
+    d_word PosX_i16, $00a7
     d_word PosY_i16, $0118
     d_byte Param_byte, 0
     D_END
