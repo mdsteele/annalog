@@ -348,7 +348,7 @@ _Passages_sPassage_arr:
 ;;; in this room; if so, handles the collision.
 ;;; @prereq PRGA_Room is loaded.
 ;;; @param X The bullet actor index.
-;;; @preserves X
+;;; @preserve X
 .PROC FuncC_Temple_Altar_CheckForBulletHit
     jsr Func_SetPointToActorCenter  ; preserves X
 _CheckIfHitColumn:

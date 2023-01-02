@@ -28,6 +28,8 @@ import sys
 PATTERNS = [
     ('indented .DIRECTIVE', re.compile(r'^ +\.[A-Z]')),
     ('over-long line', re.compile(r'^.{80,}\n$')),
+    ('@preserves instead of @preserve', re.compile(r'@preserves')),
+    ('@returns instead of @return', re.compile(r'@returns')),
     ('tab character', re.compile(r'\t')),
     ('trailing whitespace', re.compile(r' $')),
     ('unindented .directive', re.compile(r'^\.[a-z]')),

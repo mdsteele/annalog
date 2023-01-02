@@ -735,7 +735,7 @@ _Done:
 
 ;;; Allocates and populates OAM slots for one of the boss's eyes.
 ;;; @param X Which eEye to draw.
-;;; @preserves X
+;;; @preserve X
 .PROC FuncA_Objects_GardenBoss_DrawEye
     ;; Assert that we can use the eEye value as a platform index.
     .assert kLeftEyePlatformIndex = eEye::Left, error
