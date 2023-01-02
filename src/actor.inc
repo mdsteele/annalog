@@ -40,15 +40,16 @@ kMaxActors = 8
     NpcMermaid
     NpcMermaidQueen
     NpcToddler
-    ProjBreakball
-    ProjBullet
-    ProjFireball
-    ProjFlamewave
-    ProjGrenade
-    ProjSmoke
-    ProjSpike
-    ProjSteamHorz
-    ProjSteamUp
+    ProjBreakball    ; a bouncing ball shot by the temple boss
+    ProjBullet       ; shot by minigun machines
+    ProjEmber        ; fire dropped by a hothead baddie
+    ProjFireball     ; shot from the garden boss's eyes
+    ProjFlamewave    ; sweeps out horizontally from an exploding breakball
+    ProjGrenade      ; shot by cannon machines
+    ProjSmoke        ; a puff of smoke for when something explodes
+    ProjSpike        ; a falling spike dropped by the garden boss
+    ProjSteamHorz    ; emitted horizontally from boiler machine pipes
+    ProjSteamUp      ; emitted vertically from boiler machine pipes
     NUM_VALUES
 .ENDENUM
 

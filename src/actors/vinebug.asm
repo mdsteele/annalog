@@ -85,11 +85,11 @@ kPaletteObjVinebug = 0
 _DropIfAvatarIsBelow:
     ;; Don't drop if the player avatar isn't horizontally nearby.
     lda #30  ; param: distance
-    jsr FuncA_Actor_IsAvatarWithinHorzDistance  ; preserves X, Y; returns C
+    jsr FuncA_Actor_IsAvatarWithinHorzDistance  ; preserves X, returns C
     bcc @notNear
     ;; Don't drop if the player avatar is above the vinebug.
     lda Ram_ActorPosY_i16_0_arr, x
-    sub Zp_AvatarPosY_i16 + 0
+    cmp Zp_AvatarPosY_i16 + 0
     lda Ram_ActorPosY_i16_1_arr, x
     sbc Zp_AvatarPosY_i16 + 1
     bge @notNear

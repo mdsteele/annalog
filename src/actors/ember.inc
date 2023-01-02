@@ -17,20 +17,13 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
-;;; State bytes for beetle and hothead baddies:
-;;;   * State1: Toggles between 1 and 0 each frame; used to make baddie move
-;;;     by one pixel every other frame.
-;;;   * State2: Unused for beetles; for hotheads, this is the number of
-;;;     cooldown frames before it can drop another ember.
+;;; State bytes for ember projectiles:
+;;;   * State1: Counter that starts at zero and increments every frame; if it
+;;;     wraps back around to zero before the spike hits anything, then the
+;;;     spike is removed.
+;;;   * State2: Unused.
 
-;;; Tile IDs for drawing beetle actors.
-kTileIdObjBeetleFirst = $e0
-kTileIdObjBeetleHorzFirst = kTileIdObjBeetleFirst + $00
-kTileIdObjBeetleVertFirst = kTileIdObjBeetleFirst + $08
-
-;;; Tile IDs for drawing hothead actors.
-kTileIdObjHotheadFirst = $a0
-kTileIdObjHotheadHorzFirst = kTileIdObjHotheadFirst + $00
-kTileIdObjHotheadVertFirst = kTileIdObjHotheadFirst + $08
+;;; The OBJ tile ID for spike projectile actors.
+kTileIdObjEmber = $84
 
 ;;;=========================================================================;;;

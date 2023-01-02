@@ -28,21 +28,34 @@
 .IMPORT FuncA_Actor_GetRoomBlockRow
 .IMPORT FuncA_Actor_GetRoomTileColumn
 .IMPORT FuncA_Actor_HarmAvatarIfCollision
+.IMPORT FuncA_Actor_IsAvatarWithinHorzDistance
 .IMPORT FuncA_Objects_Draw2x2Actor
+.IMPORT Func_FindEmptyActorSlot
 .IMPORT Func_GetTerrainColumnPtrForTileIndex
+.IMPORT Func_InitActorProjEmber
+.IMPORT Func_MovePointDownByA
+.IMPORT Func_MovePointLeftByA
+.IMPORT Func_MovePointRightByA
+.IMPORT Func_SetActorCenterToPoint
+.IMPORT Func_SetPointToActorCenter
 .IMPORT Ram_ActorFlags_bObj_arr
 .IMPORT Ram_ActorPosX_i16_0_arr
 .IMPORT Ram_ActorPosX_i16_1_arr
 .IMPORT Ram_ActorPosY_i16_0_arr
 .IMPORT Ram_ActorPosY_i16_1_arr
 .IMPORT Ram_ActorState1_byte_arr
+.IMPORT Ram_ActorState2_byte_arr
 .IMPORT Ram_ActorType_eActor_arr
 .IMPORT Ram_Oam_sObj_arr64
+.IMPORTZP Zp_AvatarPosY_i16
 .IMPORTZP Zp_FrameCounter_u8
 .IMPORTZP Zp_TerrainColumn_u8_arr_ptr
 .IMPORTZP Zp_Tmp1_byte
 
 ;;;=========================================================================;;;
+
+;;; The minimum time between embers for hothead baddie actors.
+kHotheadEmberCooldownFrames = 32
 
 ;;; The OBJ palette number used for beetle/hothead baddie actors.
 kPaletteObjCrawler = 1
@@ -61,7 +74,7 @@ kPaletteObjCrawler = 1
     lda #eActor::BadBeetleVert
     sta Ram_ActorType_eActor_arr, x
     @noTurn:
-    jmp FuncA_Actor_HarmAvatarIfCollision
+    jmp FuncA_Actor_HarmAvatarIfCollision  ; preserves X
 .ENDPROC
 
 ;;; Performs per-frame updates for a vertically-crawling beetle baddie actor.
@@ -74,7 +87,7 @@ kPaletteObjCrawler = 1
     lda #eActor::BadBeetleHorz
     sta Ram_ActorType_eActor_arr, x
     @noTurn:
-    jmp FuncA_Actor_HarmAvatarIfCollision
+    jmp FuncA_Actor_HarmAvatarIfCollision  ; preserves X
 .ENDPROC
 
 ;;; Performs per-frame updates for a horizontally-crawling hothead baddie
@@ -83,13 +96,20 @@ kPaletteObjCrawler = 1
 ;;; @preserve X
 .EXPORT FuncA_Actor_TickBadHotheadHorz
 .PROC FuncA_Actor_TickBadHotheadHorz
+    jsr FuncA_Actor_HotheadCooldown  ; preserves X
+    ;; Don't drop embers when right-side up.
+    lda Ram_ActorFlags_bObj_arr, x
+    .assert bObj::FlipV = bProc::Negative, error
+    bpl @done
+    jsr FuncA_Actor_MaybeDropEmber  ; preserves X
+    @done:
+_Crawl:
     jsr FuncA_Actor_CrawlHorz  ; preserves X, sets C if baddie must turn
     bcc @noTurn
     lda #eActor::BadHotheadVert
     sta Ram_ActorType_eActor_arr, x
     @noTurn:
-    ;; TODO: if upside-down, sometimes drop fireballs
-    jmp FuncA_Actor_HarmAvatarIfCollision
+    jmp FuncA_Actor_HarmAvatarIfCollision  ; preserves X
 .ENDPROC
 
 ;;; Performs per-frame updates for a vertically-crawling hothead baddie actor.
@@ -97,12 +117,77 @@ kPaletteObjCrawler = 1
 ;;; @preserve X
 .EXPORT FuncA_Actor_TickBadHotheadVert
 .PROC FuncA_Actor_TickBadHotheadVert
+    jsr FuncA_Actor_HotheadCooldown  ; preserves X
+    jsr FuncA_Actor_MaybeDropEmber  ; preserves X
     jsr FuncA_Actor_CrawlVert  ; preserves X, sets C if baddie must turn
     bcc @noTurn
     lda #eActor::BadHotheadHorz
     sta Ram_ActorType_eActor_arr, x
     @noTurn:
-    jmp FuncA_Actor_HarmAvatarIfCollision
+    jmp FuncA_Actor_HarmAvatarIfCollision  ; preserves X
+.ENDPROC
+
+;;; Decrements a hothead baddie's ember cooldown, if it is nonzero.
+;;; @param X The actor index.
+;;; @preserve X
+.PROC FuncA_Actor_HotheadCooldown
+    lda Ram_ActorState2_byte_arr, x  ; ember cooldown
+    beq @done
+    dec Ram_ActorState2_byte_arr, x  ; ember cooldown
+    @done:
+    rts
+.ENDPROC
+
+;;; Checks if the hothead baddie should drop an ember projectile, and does so
+;;; if it should.
+;;; @param X The actor index.
+;;; @preserve X
+.PROC FuncA_Actor_MaybeDropEmber
+    ;; Don't drop an ember unless the cooldown is zero.
+    lda Ram_ActorState2_byte_arr, x  ; ember cooldown
+    bne @done
+    ;; Don't drop an ember if the player avatar isn't horizontally nearby.
+    lda #15  ; param: distance
+    jsr FuncA_Actor_IsAvatarWithinHorzDistance  ; preserves X, returns C
+    bcc @done
+    ;; Don't drop an ember if the player avatar is above the hothead.
+    lda Ram_ActorPosY_i16_0_arr, x
+    cmp Zp_AvatarPosY_i16 + 0
+    lda Ram_ActorPosY_i16_1_arr, x
+    sbc Zp_AvatarPosY_i16 + 1
+    bge @done
+    ;; Set the starting position for the ember.
+    jsr Func_SetPointToActorCenter  ; preserves X
+    jsr _AdjustPoint
+    ;; Drop an ember.
+    stx Zp_Tmp1_byte  ; hothead actor index
+    jsr Func_FindEmptyActorSlot  ; preserves Zp_Tmp*, returns C and X
+    bcs @done
+    jsr Func_SetActorCenterToPoint  ; preserves X and Zp_Tmp*
+    jsr Func_InitActorProjEmber  ; preserves X and Zp_Tmp*
+    ldx Zp_Tmp1_byte  ; hothead actor index
+    lda #kHotheadEmberCooldownFrames
+    sta Ram_ActorState2_byte_arr, x  ; ember cooldown
+    @done:
+    rts
+_AdjustPoint:
+    lda Ram_ActorType_eActor_arr, x
+    cmp #eActor::BadHotheadVert
+    bne @adjustSlightlyDown
+    lda #8  ; param: offset
+    jsr Func_MovePointDownByA  ; preserves X
+    lda Ram_ActorFlags_bObj_arr, x
+    and #bObj::FlipH
+    bne @adjustRight
+    @adjustLeft:
+    lda #4
+    jmp Func_MovePointLeftByA  ; preserves X
+    @adjustRight:
+    lda #4
+    jmp Func_MovePointRightByA  ; preserves X
+    @adjustSlightlyDown:
+    lda #1  ; param: offset
+    jmp Func_MovePointDownByA  ; preserves X
 .ENDPROC
 
 ;;; Performs per-frame crawling updates for a horizontally-crawling beetle or

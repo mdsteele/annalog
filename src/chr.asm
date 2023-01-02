@@ -21,6 +21,7 @@
 .INCLUDE "actors/bullet.inc"
 .INCLUDE "actors/crab.inc"
 .INCLUDE "actors/crawler.inc"
+.INCLUDE "actors/ember.inc"
 .INCLUDE "actors/fireball.inc"
 .INCLUDE "actors/fish.inc"
 .INCLUDE "actors/flamewave.inc"
@@ -687,10 +688,13 @@
     .incbin "out/data/tiles/upgrade_bottom.chr"
     .assert * - :- = (kTileIdObjUpgradeMaxInstFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/upgrade_maxinst.chr"
-    .res $06 * kSizeofChr
+    .assert * - :- = (kTileIdObjEmber - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/ember.chr"
+    .res $05 * kSizeofChr
+    .assert * - :- = (kTileIdObjUpgradeOpCopyFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/upgrade_opcopy.chr"
-    .assert * - :- = (kTileIdObjUpgradeOpAddSubFirst - $80) * kSizeofChr, error
     .res $0e * kSizeofChr
+    .assert * - :- = (kTileIdBoilerFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/boiler.chr"
     .assert * - :- = (kTileIdValveFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/valve.chr"
