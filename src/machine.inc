@@ -39,6 +39,7 @@ kMachineRegNameB = $21  ; 'B'
     CannonLeft  = $09
     BridgeRight = $0a
     BridgeLeft  = $0b
+    Crane       = $0c
 .ENDENUM
 
 ;;;=========================================================================;;;
