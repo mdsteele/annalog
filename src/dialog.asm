@@ -642,12 +642,12 @@ _YesNoQuestion:
 ;;; Zp_DialogPaused_bool will be set to true when this returns).
 ;;; @prereq Zp_DialogPaused_bool is false and Zp_DialogText_ptr points to text.
 .PROC FuncA_Dialog_TransferRestOfText
+_TransferLine:
     ;; If the next character is already an end-of-line/text marker, don't
     ;; create a transfer entry for this line.
     ldy #0
     lda (Zp_DialogText_ptr), y
     bmi _EndOfLine
-_TransferLine:
     ;; Write the transfer entry header (except for transfer len) for the rest
     ;; of the current line of text.
     lda Zp_DialogTextRow_u8  ; param: window row
