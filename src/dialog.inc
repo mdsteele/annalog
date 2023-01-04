@@ -31,14 +31,15 @@
 ;;; dialog is paused, and the hi byte is the bank number to alternate with the
 ;;; first to animate the portrait while text is being written.
 .ENUM ePortrait
-    Done    = $0000  ; indicates end of dialog
-    Woman   = $0201
-    Sign    = $0303
-    Paper   = $0404
-    Mermaid = $0605
-    Man     = $0807
-    Girl    = $0a09
-    Alex    = $0c0b
+    Done         = $0000  ; indicates end of dialog
+    Woman        = $0201
+    Sign         = $0303
+    Paper        = $0404
+    Mermaid      = $0605
+    Man          = $0807
+    Girl         = $0a09
+    Alex         = $0c0b
+    MermaidYouth = $0e0d
 .ENDENUM
 
 ;;;=========================================================================;;;

@@ -339,8 +339,9 @@ _ThankYou_sDialog:
 .ENDPROC
 
 .PROC DataA_Dialog_MermaidVillage_MermaidYouth_sDialog
-    .word ePortrait::Mermaid
-    .byte "TODO.#"
+    .word ePortrait::MermaidYouth
+    .byte "TODO: put some actual$"
+    .byte "dialogue text here.#"
     .word ePortrait::Done
 .ENDPROC
 
