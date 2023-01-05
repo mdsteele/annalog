@@ -93,6 +93,7 @@ kSaveMagicNumber = $b2
     GardenTowerWallBroken
     MermaidDrainUnplugged
     MermaidHut1MetQueen
+    MermaidHut4MetFlorist
     MermaidHut4OpenedCellar
     PrisonCellReachedTunnel
     PrisonUpperFreedKids

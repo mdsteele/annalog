@@ -42,6 +42,7 @@
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORT Sram_CarryingFlower_eFlag
 .IMPORT Sram_ProgressFlags_arr
+.IMPORTZP Zp_DialogAnsweredYes_bool
 .IMPORTZP Zp_OamOffset_u8
 .IMPORTZP Zp_RoomScrollY_u8
 .IMPORTZP Zp_Tmp1_byte
@@ -223,6 +224,11 @@ _InitialDialogFunc:
     @notCarryingFlower:
     jsr Func_CountDeliveredFlowers  ; returns A and Z
     bne @hasDeliveredSomeFlowers
+    flag_bit Sram_ProgressFlags_arr, eFlag::MermaidHut4MetFlorist
+    bne @hasMetFlorist
+    ldya #_MeetFlorist_sDialog
+    rts
+    @hasMetFlorist:
     ldya #_NoFlowersYet_sDialog
     rts
     @hasDeliveredSomeFlowers:
@@ -232,11 +238,54 @@ _InitialDialogFunc:
     rts
     @hasDeliveredAllFlowers:
     jsr FuncA_Dialog_MermaidHut4_OpenCellarDoor
-    ldya #_ThankYou_sDialog
+    ldya #_AllDone_sDialog
     rts
+_MeetFlorist_sDialog:
+    .word ePortrait::Florist
+    .byte "Ah...you must be that$"
+    .byte "human that I've been$"
+    .byte "hearing about.#"
+    .word ePortrait::Florist
+    .byte "I don't suppose you'd$"
+    .byte "like to do me a favor?%"
+    .addr _QuestionFunc
+_QuestionFunc:
+    bit Zp_DialogAnsweredYes_bool
+    bmi @yes
+    @no:
+    ldya #_NeverMind_sDialog
+    rts
+    @yes:
+    ldx #eFlag::MermaidHut4MetFlorist  ; param: flag
+    jsr Func_SetFlag
+    ldya #_NoFlowersYet_sDialog
+    rts
+_NeverMind_sDialog:
+    .word ePortrait::Florist
+    .byte "Yes, well, I suppose$"
+    .byte "you must be very busy,$"
+    .byte "running around and$"
+    .byte "causing trouble.#"
+    .word ePortrait::Florist
+    .byte "Come back if you ever$"
+    .byte "change your mind.#"
+    .word ePortrait::Done
 _NoFlowersYet_sDialog:
     .word ePortrait::Florist
-    .byte "Bring me flowers.#"
+    .byte "As you can see, my$"
+    .byte "home is looking rather$"
+    .byte "drab. Could you bring$"
+    .byte "me a flower?#"
+    .word ePortrait::Florist
+    .byte "If you go east from$"
+    .byte "this village and then$"
+    .byte "up a bit, you'll find$"
+    .byte "the one I want.#"
+    .word ePortrait::Florist
+    .byte "It's very delicate.$"
+    .byte "Don't get hurt and$"
+    .byte "break it, or you'll$"
+    .byte "have to get another.#"
     .word ePortrait::Done
 _BroughtFlower_sDialog:
     .word ePortrait::Florist
@@ -262,16 +311,41 @@ _DeliverFlowerFunc:
     rts
 _WantMoreFlowers_sDialog:
     .word ePortrait::Florist
-    .byte "I want more flowers.#"
+    .byte "It does look nice up$"
+    .byte "there, don't you$"
+    .byte "think?#"
+    .word ePortrait::Florist
+    .byte "Only...it seems lonely$"
+    .byte "by itself. I suppose$"
+    .byte "you'll need to find$"
+    .byte "some more.#"
+    .word ePortrait::Florist
+    .byte "Not from where you got$"
+    .byte "this one, of course.$"
+    .byte "You'll have to look$"
+    .byte "elsewhere.#"
     .word ePortrait::Done
 _DeliveredLastFlower_sDialog:
     .word ePortrait::Florist
-    .byte "Now I have a dozen.#"
-    .word ePortrait::Done
-_ThankYou_sDialog:
+    .byte "And that makes an even$"
+    .byte "dozen! How lovely. I$"
+    .byte "do appreciate all your$"
+    .byte "help, young one.#"
     .word ePortrait::Florist
-    .byte "Thank you for all the$"
-    .byte "flowers.#"
+    .byte "In exchange for this$"
+    .byte "gift of beauty...I'd$"
+    .byte "like to give you the$"
+    .byte "gift of music.#"
+    .word ePortrait::Florist
+    .byte "I'll unlock my cellar.$"
+    .byte "You may take what you$"
+    .byte "find there.#"
+_AllDone_sDialog:
+    .word ePortrait::Florist
+    .byte "Perhaps this gift will$"
+    .byte "give you a better use$"
+    .byte "for all those terrible$"
+    .byte "machines.#"
     .word ePortrait::Done
 .ENDPROC
 
