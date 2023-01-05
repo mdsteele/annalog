@@ -354,6 +354,28 @@
 
 ;;;=========================================================================;;;
 
+.SEGMENT "CHR_BgFontLower0F"
+
+.PROC Ppu_ChrBgFontLower0F
+:   .incbin "out/data/tiles/font_lower.chr"
+    .res $10 * kSizeofChr
+    .incbin "out/data/tiles/portrait0f.chr"
+    .assert * - :- = kSizeofChr * $40, error
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "CHR_BgFontLower10"
+
+.PROC Ppu_ChrBgFontLower10
+:   .incbin "out/data/tiles/font_lower.chr"
+    .res $10 * kSizeofChr
+    .incbin "out/data/tiles/portrait10.chr"
+    .assert * - :- = kSizeofChr * $40, error
+.ENDPROC
+
+;;;=========================================================================;;;
+
 .SEGMENT "CHR_BgFactory"
 
 .EXPORT Ppu_ChrBgFactory
