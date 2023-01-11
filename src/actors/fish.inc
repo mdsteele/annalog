@@ -23,6 +23,6 @@
 ;;;   * State2: Unused.
 
 ;;; Tile IDs for drawing fish baddie actors.
-kTileIdObjFishFirst = $c9
+kTileIdObjFishFirst = $d0
 
 ;;;=========================================================================;;;

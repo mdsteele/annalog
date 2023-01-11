@@ -18,6 +18,7 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "../actor.inc"
+.INCLUDE "../actors/bird.inc"
 .INCLUDE "../device.inc"
 .INCLUDE "../flag.inc"
 .INCLUDE "../macros.inc"
@@ -95,6 +96,13 @@ _Platforms_sPlatform_arr:
     .assert * - :- <= kMaxPlatforms * .sizeof(sPlatform), error
     .byte ePlatform::None
 _Actors_sActor_arr:
+:   D_STRUCT sActor
+    d_byte Type_eActor, eActor::BadBird
+    d_word PosX_i16, $00e8
+    d_word PosY_i16, $0078
+    d_byte Param_byte, bBadBird::FlipH | $70
+    D_END
+    .assert * - :- <= kMaxActors * .sizeof(sActor), error
     .byte eActor::None
 _Devices_sDevice_arr:
 :   .assert * - :- = kFlowerDeviceIndex * .sizeof(sDevice), error

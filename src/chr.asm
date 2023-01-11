@@ -17,6 +17,7 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
+.INCLUDE "actors/bird.inc"
 .INCLUDE "actors/breakball.inc"
 .INCLUDE "actors/bullet.inc"
 .INCLUDE "actors/crab.inc"
@@ -764,12 +765,14 @@
     .res $0a * kSizeofChr
     .assert * - :- = (kTileIdObjGrubFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/grub.chr"
-    .res $21 * kSizeofChr
-    .assert * - :- = (kTileIdObjFishFirst - $80) * kSizeofChr, error
-    .incbin "out/data/tiles/fish.chr"
+    .res $18 * kSizeofChr
+    .assert * - :- = (kTileIdObjBirdFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/bird.chr"
     .assert * - :- = (kTileIdObjCrabFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/crab.chr"
-    .res $07 * kSizeofChr
+    .assert * - :- = (kTileIdObjFishFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/fish.chr"
+    .res $08 * kSizeofChr
     .assert * - :- = (kTileIdObjHotSpringFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/hotspring.chr"
     .res $18 * kSizeofChr

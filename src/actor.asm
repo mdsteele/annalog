@@ -27,6 +27,7 @@
 
 .IMPORT FuncA_Actor_TickBadBeetleHorz
 .IMPORT FuncA_Actor_TickBadBeetleVert
+.IMPORT FuncA_Actor_TickBadBird
 .IMPORT FuncA_Actor_TickBadCrab
 .IMPORT FuncA_Actor_TickBadFish
 .IMPORT FuncA_Actor_TickBadGrub
@@ -50,6 +51,7 @@
 .IMPORT FuncA_Objects_Draw2x2Shape
 .IMPORT FuncA_Objects_DrawActorBadBeetleHorz
 .IMPORT FuncA_Objects_DrawActorBadBeetleVert
+.IMPORT FuncA_Objects_DrawActorBadBird
 .IMPORT FuncA_Objects_DrawActorBadCrab
 .IMPORT FuncA_Objects_DrawActorBadFish
 .IMPORT FuncA_Objects_DrawActorBadGrub
@@ -75,6 +77,7 @@
 .IMPORT FuncA_Objects_DrawActorProjSteamUp
 .IMPORT FuncA_Objects_MoveShapeLeftHalfTile
 .IMPORT FuncA_Objects_MoveShapeUpByA
+.IMPORT FuncA_Room_InitActorBadBird
 .IMPORT FuncA_Room_InitActorNpcChild
 .IMPORT FuncA_Room_InitActorNpcToddler
 .IMPORT FuncA_Room_InitActorProjBreakball
@@ -274,6 +277,7 @@ Ram_ActorFlags_bObj_arr: .res kMaxActors
     d_byte None,             0
     d_byte BadBeetleHorz,    4
     d_byte BadBeetleVert,    6
+    d_byte BadBird,          4
     d_byte BadCrab,          6
     d_byte BadFish,          6
     d_byte BadGrub,          0
@@ -304,6 +308,7 @@ Ram_ActorFlags_bObj_arr: .res kMaxActors
     d_byte None,             0
     d_byte BadBeetleHorz,    4
     d_byte BadBeetleVert,    6
+    d_byte BadBird,          4
     d_byte BadCrab,          8
     d_byte BadFish,          4
     d_byte BadGrub,          8
@@ -334,6 +339,7 @@ Ram_ActorFlags_bObj_arr: .res kMaxActors
     d_byte None,            0
     d_byte BadBeetleHorz,   6
     d_byte BadBeetleVert,   4
+    d_byte BadBird,         7
     d_byte BadCrab,         7
     d_byte BadFish,         6
     d_byte BadGrub,         7
@@ -418,6 +424,7 @@ _TypeSpecificTick:
     d_entry table, None,            Func_Noop
     d_entry table, BadBeetleHorz,   FuncA_Actor_TickBadBeetleHorz
     d_entry table, BadBeetleVert,   FuncA_Actor_TickBadBeetleVert
+    d_entry table, BadBird,         FuncA_Actor_TickBadBird
     d_entry table, BadCrab,         FuncA_Actor_TickBadCrab
     d_entry table, BadFish,         FuncA_Actor_TickBadFish
     d_entry table, BadGrub,         FuncA_Actor_TickBadGrub
@@ -679,6 +686,7 @@ _NoHit:
     d_entry table, None,            Func_InitActorDefault
     d_entry table, BadBeetleHorz,   Func_InitActorWithFlags
     d_entry table, BadBeetleVert,   Func_InitActorWithFlags
+    d_entry table, BadBird,         FuncA_Room_InitActorBadBird
     d_entry table, BadCrab,         Func_InitActorDefault
     d_entry table, BadFish,         Func_InitActorDefault
     d_entry table, BadGrub,         Func_InitActorDefault
@@ -805,6 +813,7 @@ _NoHit:
     d_entry table, None,            Func_Noop
     d_entry table, BadBeetleHorz,   FuncA_Objects_DrawActorBadBeetleHorz
     d_entry table, BadBeetleVert,   FuncA_Objects_DrawActorBadBeetleVert
+    d_entry table, BadBird,         FuncA_Objects_DrawActorBadBird
     d_entry table, BadCrab,         FuncA_Objects_DrawActorBadCrab
     d_entry table, BadFish,         FuncA_Objects_DrawActorBadFish
     d_entry table, BadGrub,         FuncA_Objects_DrawActorBadGrub

@@ -17,12 +17,22 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
-;;; State bytes for crab baddies:
-;;;   * State1: Counter that decrements each frame; when it's zero, the crab
-;;;     starts another movement cycle and resets the counter.
-;;;   * State2: Unused.
+;;; State bytes for bird baddies:
+;;;   * State1: The maximum number of pixels to look ahead horizontally for the
+;;;     player avatar.
+;;;   * State2: If the bird is standing still, this is the cooldown
+;;;     (decremented each frame) until it can fly again.  If the bird is
+;;;     flying, this is an animation counter (incremented each from).
 
-;;; Tile IDs for drawing crab baddie actors.
-kTileIdObjCrabFirst = $c8
+;;; Tile IDs for drawing bird baddie actors.
+kTileIdObjBirdFirst = $c0
+
+;;;=========================================================================;;;
+
+;;; Flags for the param byte for bird baddie actors.
+.SCOPE bBadBird
+    FlipH    = %10000000  ; if set, the actor is initially facing left
+    DistMask = %01111111  ; bits used for max look-ahead distance
+.ENDSCOPE
 
 ;;;=========================================================================;;;
