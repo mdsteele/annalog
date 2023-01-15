@@ -90,7 +90,7 @@ kTileIdObjWinchGear1         = kTileIdWinchFirst + 0
 kTileIdObjWinchGear2         = kTileIdWinchFirst + 2
 kTileIdObjWinchCornerBottom1 = kTileIdWinchFirst + 1
 kTileIdObjWinchCornerBottom2 = kTileIdWinchFirst + 3
-kTileIdObjWinchCornerTop     = kTileIdMachineCorner
+kTileIdObjWinchCornerTop     = kTileIdObjMachineCorner
 
 ;;; OBJ palette numbers used for various parts of winch machines.
 kPaletteObjCrusher    = 1

@@ -43,6 +43,7 @@
 .INCLUDE "machines/jet.inc"
 .INCLUDE "machines/minigun.inc"
 .INCLUDE "machines/pump.inc"
+.INCLUDE "machines/shared.inc"
 .INCLUDE "machines/winch.inc"
 .INCLUDE "platforms/column.inc"
 .INCLUDE "platforms/crate.inc"
@@ -615,6 +616,7 @@
 :   .incbin "out/data/tiles/font_hilight.chr"
     .assert * - :- = kSizeofChr * eAvatar::Standing, error
     .incbin "out/data/tiles/player_flower.chr"
+    .assert * - :- = kSizeofChr * kTileIdObjMachineFirst, error
     .incbin "out/data/tiles/machine.chr"
     .assert * - :- = kSizeofChr * $80, error
 .ENDPROC
@@ -628,6 +630,7 @@
 :   .incbin "out/data/tiles/font_hilight.chr"
     .assert * - :- = kSizeofChr * eAvatar::Standing, error
     .incbin "out/data/tiles/player_normal.chr"
+    .assert * - :- = kSizeofChr * kTileIdObjMachineFirst, error
     .incbin "out/data/tiles/machine.chr"
     .assert * - :- = kSizeofChr * $80, error
 .ENDPROC
@@ -794,9 +797,10 @@
     .res $0e * kSizeofChr
     .assert * - :- = (kTileIdObjUpgradeOpSyncFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/upgrade_opsync.chr"
+    .res $16 * kSizeofChr
     .assert * - :- = (kTileIdCraneFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/crane.chr"
-    .res $51 * kSizeofChr
+    .res $38 * kSizeofChr
     .assert * - :- = (kTileIdObjBreakerFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/breaker.chr"
     .assert * - :- = kSizeofChr * $80, error
@@ -829,7 +833,9 @@
     .incbin "out/data/tiles/grub.chr"
     .assert * - :- = (kTileIdObjToadFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/toad.chr"
-    .res $18 * kSizeofChr
+    .assert * - :- = (kTileIdCraneFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/crane.chr"
+    .res $10 * kSizeofChr
     .assert * - :- = (kTileIdObjChildAlexFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/alex.chr"
     .assert * - :- = (kTileIdObjStepstone - $80) * kSizeofChr, error

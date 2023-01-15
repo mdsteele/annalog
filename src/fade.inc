@@ -17,13 +17,13 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
-;;; OBJ tile IDs used for drawing many different kinds of machines.
-kTileIdObjMachineFirst       = $7c
-kTileIdObjMachineCorner      = kTileIdObjMachineFirst + 0
-kTileIdObjMachineSurfaceHorz = kTileIdObjMachineFirst + 1
-kTileIdObjMachineSurfaceVert = kTileIdObjMachineFirst + 2
-
-;;; The OBJ palette number used for the blinking error light on machines.
-kPaletteObjMachineLight = 1
+;;; Enum for palette fade settings.
+.ENUM eFade
+    Black
+    Dark
+    Dim
+    Normal
+    NUM_VALUES
+.ENDENUM
 
 ;;;=========================================================================;;;

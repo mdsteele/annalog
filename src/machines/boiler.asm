@@ -58,7 +58,7 @@
 
 ;;;=========================================================================;;;
 
-kTileIdObjBoilerLeftCorner  = kTileIdMachineCorner
+kTileIdObjBoilerLeftCorner  = kTileIdObjMachineCorner
 kTileIdObjBoilerCenter      = kTileIdBoilerFirst + 0
 kTileIdObjBoilerRightCorner = kTileIdBoilerFirst + 1
 

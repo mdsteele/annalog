@@ -34,8 +34,8 @@
 ;;;=========================================================================;;;
 
 ;;; Various OBJ tile IDs used for drawing lift machines.
-kTileIdLiftCorner  = kTileIdMachineCorner
-kTileIdLiftSurface = $78
+kTileIdLiftCorner  = kTileIdObjMachineCorner
+kTileIdLiftSurface = kTileIdObjMachineSurfaceVert
 
 ;;;=========================================================================;;;
 

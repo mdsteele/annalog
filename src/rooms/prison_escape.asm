@@ -23,6 +23,7 @@
 .INCLUDE "../device.inc"
 .INCLUDE "../dialog.inc"
 .INCLUDE "../machine.inc"
+.INCLUDE "../machines/crane.inc"
 .INCLUDE "../machines/shared.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
@@ -69,9 +70,8 @@ kTrolleyMaxGoalX = 7
 kTrolleyMinPlatformLeft = $100
 
 ;;; Various OBJ tile IDs used for drawing the PrisonEscapeTrolley machine.
-kTrolleyTileIdRopeVert = $7c
-kTrolleyTileIdPulley   = $7d
-kTrolleyTileIdRopeDiag = $7e
+kTrolleyTileIdPulley   = kTileIdCraneFirst + 5
+kTrolleyTileIdRopeDiag = kTileIdCraneFirst + 6
 
 ;;; The OBJ palette number used for various parts of the PrisonEscapeTrolley
 ;;; machine.

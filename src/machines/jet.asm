@@ -49,8 +49,8 @@
 ;;;=========================================================================;;;
 
 ;;; Various OBJ tile IDs used for drawing jet elevator machines.
-kTileIdJetUpperCorner      = kTileIdMachineCorner
-kTileIdJetTopSurface       = $7a
+kTileIdJetUpperCorner      = kTileIdObjMachineCorner
+kTileIdJetTopSurface       = kTileIdObjMachineSurfaceHorz
 kTileIdJetLowerCornerFirst = kTileIdJetFirst + 0
 kTileIdJetLowerMiddleFirst = kTileIdJetFirst + 1
 

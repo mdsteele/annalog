@@ -56,8 +56,8 @@
 ;;;=========================================================================;;;
 
 ;;; Tile IDs for drawing carriage machines.
-kTileIdObjCarriageCorner  = kTileIdMachineCorner
-kTileIdObjCarriageSurface = $7a
+kTileIdObjCarriageCorner  = kTileIdObjMachineCorner
+kTileIdObjCarriageSurface = kTileIdObjMachineSurfaceHorz
 
 ;;;=========================================================================;;;
 

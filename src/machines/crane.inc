@@ -18,6 +18,6 @@
 ;;;=========================================================================;;;
 
 ;;; Various OBJ tile IDs used for drawing crane machines.
-kTileIdCraneFirst = $9a
+kTileIdCraneFirst = $b0
 
 ;;;=========================================================================;;;

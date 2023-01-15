@@ -64,6 +64,7 @@
 .IMPORT Func_Window_SetUpIrq
 .IMPORT Main_Breaker_Activate
 .IMPORT Main_Console_OpenWindow
+.IMPORT Main_Death
 .IMPORT Main_Dialog_OpenWindow
 .IMPORT Main_Pause
 .IMPORT Main_Upgrade_OpenWindow
@@ -274,7 +275,7 @@ _Tick:
     ;; Check if the player avatar is dead:
     lda Zp_AvatarHarmTimer_u8
     cmp #kAvatarHarmDeath
-    jeq Main_Explore_Death
+    jeq Main_Death
     ;; Move the avatar and check if we've gone through a passage:
     jsr_prga FuncA_Avatar_ExploreMove
     lda Zp_AvatarExit_ePassage
@@ -388,27 +389,6 @@ _OpenConsoleWindow:
     lda Ram_DeviceTarget_u8_arr, x
     tax  ; param: machine index
     jmp Main_Console_OpenWindow
-.ENDPROC
-
-;;; Mode for when the avatar has just been killed while exploring.
-;;; @prereq Rendering is enabled.
-;;; @prereq Explore mode is already initialized.
-.PROC Main_Explore_Death
-    jsr_prga FuncA_Objects_DrawObjectsForRoom
-    jsr Func_ClearRestOfOam
-    ;; TODO: Fade out palettes, but don't disable rendering.
-    jsr_prga FuncA_Fade_Out
-    ;; TODO: Animate the avatar collapasing.
-_LoadLastSafeRoom:
-    ldx Sram_LastSafe_eRoom  ; param: room number
-    prga_bank #<.bank(DataA_Room_Banks_u8_arr)
-    prgc_bank DataA_Room_Banks_u8_arr, x
-    jsr FuncA_Room_Load
-_Respawn:
-    jsr_prga FuncA_Avatar_SpawnAtLastSafePoint
-    ;; TODO: Animate the avatar moving to its new location.
-    ;; TODO: Start explore mode *without* needing to disable rendering first.
-    jmp Main_Explore_FadeIn
 .ENDPROC
 
 ;;;=========================================================================;;;

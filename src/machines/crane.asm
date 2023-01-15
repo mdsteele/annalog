@@ -43,16 +43,15 @@
 
 ;;;=========================================================================;;;
 
-;;; TODO: combine crane/trolley tile IDs
 ;;; Various OBJ tile IDs used for drawing crane/trolley machine.
 kTileIdObjCraneWheel      = kTileIdCraneFirst + 0
 kTileIdObjCraneRope       = kTileIdCraneFirst + 1
 kTileIdObjCraneClawOpen   = kTileIdCraneFirst + 2
 kTileIdObjCraneClawClosed = kTileIdCraneFirst + 3
 kTileIdObjCraneCorner     = kTileIdCraneFirst + 4
-kTileIdObjTrolleyCorner   = kTileIdMachineCorner
-kTileIdObjTrolleyRope     = $7c
-kTileIdObjTrolleyWheel    = $7b
+kTileIdObjTrolleyCorner   = kTileIdObjMachineCorner
+kTileIdObjTrolleyRope     = kTileIdObjCraneRope
+kTileIdObjTrolleyWheel    = kTileIdObjCraneWheel
 
 ;;; OBJ palette numbers used for various parts of crane/trolley machines.
 kPaletteObjRope = 0

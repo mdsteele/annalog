@@ -57,8 +57,8 @@
 kMinigunCooldownFrames = 16
 
 ;;; Tile IDs for drawing minigun machines.
-kTileIdObjMinigunCorner  = kTileIdMachineCorner
-kTileIdObjMinigunSurface = $7a
+kTileIdObjMinigunCorner  = kTileIdObjMachineCorner
+kTileIdObjMinigunSurface = kTileIdObjMachineSurfaceHorz
 
 ;;; The OBJ palette number used for drawing minigun barrels.
 kPaletteObjMinigun = 0

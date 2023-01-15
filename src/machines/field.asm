@@ -209,7 +209,7 @@ _BottomLeftCorner:
     bcs @done
     lda #bObj::FlipH | kPaletteObjMachineLight
     sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
-    lda #kTileIdMachineCorner
+    lda #kTileIdObjMachineCorner
     sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
     @done:
 _BottomRightCorner:
@@ -219,7 +219,7 @@ _BottomRightCorner:
     bcs @done
     lda #kPaletteObjMachineLight
     sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
-    lda #kTileIdMachineCorner
+    lda #kTileIdObjMachineCorner
     sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
     @done:
 _TopRightCorner:
@@ -228,7 +228,7 @@ _TopRightCorner:
     bcs @done
     lda #bObj::FlipV | kPaletteObjMachineLight
     sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
-    lda #kTileIdMachineCorner
+    lda #kTileIdObjMachineCorner
     sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
     @done:
 _Zap:
