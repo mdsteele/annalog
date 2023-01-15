@@ -35,7 +35,7 @@
     PonytailStanding = $01
     AlexStanding     = $12
     AlexLooking      = $13
-    AlexDucking      = $14
+    AlexKneeling     = $14
     AlexBoosting     = $15
     AlexWalking1     = $16
     AlexWalking2     = $17

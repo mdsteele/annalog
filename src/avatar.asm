@@ -238,7 +238,7 @@ _SetModeOnGround:
     @landing:
     lda Zp_P1ButtonsHeld_bJoypad
     and #bJoypad::Down
-    bne @ducking
+    bne @kneeling
     lda #eAvatar::Landing
     bne @setAvatarMode  ; unconditional
     @standOrRun:
@@ -255,17 +255,17 @@ _SetModeOnGround:
     bne @setAvatarMode  ; unconditional
     @standing:
     lda Zp_AvatarHarmTimer_u8
-    bne @ducking
+    bne @kneeling
     lda Zp_P1ButtonsHeld_bJoypad
     and #bJoypad::Down
-    bne @ducking
+    bne @kneeling
     lda Zp_P1ButtonsHeld_bJoypad
     and #bJoypad::Up
     bne @looking
     lda #eAvatar::Standing
     bne @setAvatarMode  ; unconditional
-    @ducking:
-    lda #eAvatar::Ducking
+    @kneeling:
+    lda #eAvatar::Kneeling
     bne @setAvatarMode  ; unconditional
     @looking:
     lda #eAvatar::Looking

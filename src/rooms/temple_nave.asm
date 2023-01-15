@@ -92,8 +92,8 @@ kAlexBoostingPositionX = $0068
 
 ;;; CutsceneAlexBoostTimer_u8 values for various phases of the cutscene.
 kCutsceneTimerStanding = 50
-kCutsceneTimerDucking  = 20 + kCutsceneTimerStanding
-kCutsceneTimerBoosting = 30 + kCutsceneTimerDucking
+kCutsceneTimerKneeling = 20 + kCutsceneTimerStanding
+kCutsceneTimerBoosting = 30 + kCutsceneTimerKneeling
 
 ;;;=========================================================================;;;
 
@@ -700,8 +700,8 @@ _InBoostingPosition:
     lda Ram_RoomState + sState::CutsceneAlexBoostTimer_u8
     cmp #kCutsceneTimerStanding
     blt @standing
-    cmp #kCutsceneTimerDucking
-    blt @ducking
+    cmp #kCutsceneTimerKneeling
+    blt @kneeling
     cmp #kCutsceneTimerBoosting
     bge _ResumeDialog
     @boosting:
@@ -710,8 +710,8 @@ _InBoostingPosition:
     @standing:
     lda #eNpcChild::AlexStanding
     bne @setState  ; unconditional
-    @ducking:
-    lda #eNpcChild::AlexDucking
+    @kneeling:
+    lda #eNpcChild::AlexKneeling
     @setState:
     sta Ram_ActorState1_byte_arr + kAlexActorIndex
     bne _GameLoop  ; unconditional

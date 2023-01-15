@@ -299,7 +299,7 @@ _FinishedFlipping:
 _Return:
     rts
 _AvatarMode_eAvatar_arr:
-    .byte eAvatar::Ducking
+    .byte eAvatar::Kneeling
     .byte eAvatar::Standing
     .byte eAvatar::Reaching
     .byte eAvatar::Straining

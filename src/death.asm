@@ -59,7 +59,7 @@ kDeathTotalAvatarAnimationFrames = \
 .LINECONT -
 
 ;;; How many pixels to adjust the player avatar's horizontal position by when
-;;; transitioning between ducking and sleeping modes.
+;;; transitioning between kneeling and sleeping modes.
 kLieDownOffset = 2
 
 ;;;=========================================================================;;;
@@ -144,11 +144,11 @@ _SetAvatarMode:
     beq @lieDown
     blt @sleeping
     sbc #kDeathSlumpingFrames
-    blt @ducking
+    blt @kneeling
     sbc #kDeathReachingFrames
     blt @reaching
     sbc #kDeathStrainingFrames
-    bge @ducking
+    bge @kneeling
     ;; If the player avatar is straining, make it vibrate horizontally.
     @straining:
     div #4
@@ -160,12 +160,12 @@ _SetAvatarMode:
     sta Zp_AvatarPosX_i16 + 0
     lda #eAvatar::Straining
     bne @setAvatarMode  ; unconditional
-    ;; If the player avatar is reaching or ducking, just set the avatar mode.
+    ;; If the player avatar is reaching or kneeling, just set the avatar mode.
     @reaching:
     lda #eAvatar::Reaching
     bne @setAvatarMode  ; unconditional
-    @ducking:
-    lda #eAvatar::Ducking
+    @kneeling:
+    lda #eAvatar::Kneeling
     bne @setAvatarMode  ; unconditional
     ;; If the player avatar needs to lie down, adjust its horizontal position
     ;; (to make the animation from the kneeling position more natural).
