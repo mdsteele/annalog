@@ -24,8 +24,8 @@
 
 .IMPORT DataA_Room_Banks_u8_arr
 .IMPORT FuncA_Avatar_SpawnAtDevice
-.IMPORT FuncA_Fade_Out
 .IMPORT FuncA_Room_Load
+.IMPORT Func_FadeOutToBlack
 .IMPORT Func_SetLastSpawnPoint
 .IMPORT Main_Explore_Continue
 .IMPORT Main_Explore_FadeIn
@@ -44,8 +44,7 @@
 .EXPORT Main_CutsceneTeleportOut
 .PROC Main_CutsceneTeleportOut
     ;; TODO: animate avatar disappearing
-_FadeOut:
-    jsr_prga FuncA_Fade_Out
+    jsr Func_FadeOutToBlack
 _LoadDestinationRoom:
     jsr_prga FuncA_Avatar_GetTeleportDestinationRoom  ; returns X
     prga_bank #<.bank(DataA_Room_Banks_u8_arr)

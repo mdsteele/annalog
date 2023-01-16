@@ -27,11 +27,11 @@
 .INCLUDE "ppu.inc"
 .INCLUDE "room.inc"
 
-.IMPORT FuncA_Fade_OutSlowly
-.IMPORT FuncA_Fade_ToBlack
 .IMPORT FuncA_Objects_DrawObjectsForRoom
 .IMPORT FuncA_Objects_DrawPlayerAvatar
 .IMPORT Func_ClearRestOfOam
+.IMPORT Func_FadeOutToBlackSlowly
+.IMPORT Func_FadeToBlack
 .IMPORT Func_ProcessFrame
 .IMPORT Func_TransferPalettes
 .IMPORT Main_Explore_SpawnInLastSafeRoom
@@ -80,7 +80,7 @@ Zp_DeathTimer_u8: .res 1
 .PROC Main_Death
     jsr_prga FuncA_Objects_DrawObjectsForRoom
     jsr Func_ClearRestOfOam
-    jsr_prga FuncA_Fade_ToBlack
+    jsr Func_FadeToBlack
 _AnimateAvatar:
     lda #kDeathTotalAvatarAnimationFrames
     sta Zp_DeathTimer_u8
@@ -95,22 +95,13 @@ _AnimateAvatar:
     jsr Func_ClearRestOfOam
     lda Zp_DeathTimer_u8
     bne @loop
-    jsr_prga FuncA_Fade_OutForAvatarDeath
+_FadeOut:
+    ldy #eFade::Normal  ; param: eFade value
+    jsr Func_TransferPalettes
+    jsr Func_FadeOutToBlackSlowly
 _Respawn:
     ;; TODO: Show a retry/quit menu, to let player quit to the title screen.
     jmp Main_Explore_SpawnInLastSafeRoom
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Fade"
-
-;;; Switches the fade level instantly from Black to Normal, then fades out the
-;;; screen (slowly) and disables rendering.
-.PROC FuncA_Fade_OutForAvatarDeath
-    ldy #eFade::Normal  ; param: eFade value
-    jsr Func_TransferPalettes
-    jmp FuncA_Fade_OutSlowly
 .ENDPROC
 
 ;;;=========================================================================;;;

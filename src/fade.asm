@@ -338,14 +338,10 @@ _WritePaletteData:
     rts
 .ENDPROC
 
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Fade"
-
 ;;; Calls Func_ProcessFrame the specified number of times.
 ;;; @param X The number of frames to wait (must be nonzero).
 ;;; @preserve X, Y
-.PROC FuncA_Fade_Wait
+.PROC Func_WaitXFrames
     tya
     pha
     txa
@@ -367,8 +363,8 @@ _WritePaletteData:
 ;;; Zp_Render_bPpuMask, scrolling, and shadow OAM must be set up before calling
 ;;; this.
 ;;; @prereq Rendering is disabled.
-.EXPORT FuncA_Fade_In
-.PROC FuncA_Fade_In
+.EXPORT Func_FadeInFromBlack
+.PROC Func_FadeInFromBlack
     ldx #kFramesPerFadeStepNormal  ; param: num frames to wait
     ;; Note that even with rendering disabled (as it is now), palette data
     ;; should only be updated during VBlank, since otherwise we may glitch the
@@ -380,7 +376,7 @@ _WritePaletteData:
     .assert eFade::Normal > eFade::Black, error
     iny
     jsr Func_TransferPalettes  ; preserves X and Y
-    jsr FuncA_Fade_Wait  ; preserves X and Y
+    jsr Func_WaitXFrames  ; preserves X and Y
     cpy #eFade::Normal
     bne @stepLoop
     rts
@@ -388,46 +384,46 @@ _WritePaletteData:
 
 ;;; Fades out the screen over a number of frames (using the normal fade speed),
 ;;; then disables rendering.
-.EXPORT FuncA_Fade_Out
-.PROC FuncA_Fade_Out
+.EXPORT Func_FadeOutToBlack
+.PROC Func_FadeOutToBlack
     ldx #kFramesPerFadeStepNormal  ; param: num frames between fade steps
-    bne FuncA_Fade_OutWithSlowdown  ; unconditional
+    bne Func_FadeOutToBlackWithSlowdown  ; unconditional
 .ENDPROC
 
 ;;; Fades out the screen over a number of frames (using a slower fade speed),
 ;;; then disables rendering.
-.EXPORT FuncA_Fade_OutSlowly
-.PROC FuncA_Fade_OutSlowly
+.EXPORT Func_FadeOutToBlackSlowly
+.PROC Func_FadeOutToBlackSlowly
     ldx #kFramesPerFadeStepSlow  ; param: num frames between fade steps
-    .assert * = FuncA_Fade_OutWithSlowdown, error, "fallthrough"
+    .assert * = Func_FadeOutToBlackWithSlowdown, error, "fallthrough"
 .ENDPROC
 
 ;;; Fades out the screen over a number of frames (as specified by the given
 ;;; delay), then disables rendering.
 ;;; @param X The number of frames to wait between fade steps.
-.PROC FuncA_Fade_OutWithSlowdown
-    jsr FuncA_Fade_ToBlackWithSlowdown  ; preserves X
+.PROC Func_FadeOutToBlackWithSlowdown
+    jsr Func_FadeToBlackWithSlowdown  ; preserves X
     lda #0
     sta Zp_Render_bPpuMask
-    jmp FuncA_Fade_Wait
+    jmp Func_WaitXFrames
 .ENDPROC
 
 ;;; Fades out the screen over a number of frames (using the normal fade speed),
 ;;; but leaves rendering enabled.
-.EXPORT FuncA_Fade_ToBlack
-.PROC FuncA_Fade_ToBlack
+.EXPORT Func_FadeToBlack
+.PROC Func_FadeToBlack
     ldx #kFramesPerFadeStepNormal  ; param: num frames between fade steps
-    .assert * = FuncA_Fade_ToBlackWithSlowdown, error, "fallthrough"
+    .assert * = Func_FadeToBlackWithSlowdown, error, "fallthrough"
 .ENDPROC
 
 ;;; Fades out the screen over a number of frames (as specified by the given
 ;;; delay), but leaves rendering enabled.
 ;;; @param X The number of frames to wait between fade steps.
 ;;; @preserve X
-.PROC FuncA_Fade_ToBlackWithSlowdown
+.PROC Func_FadeToBlackWithSlowdown
     ldy #eFade::Normal
     @stepLoop:
-    jsr FuncA_Fade_Wait  ; preserves X and Y
+    jsr Func_WaitXFrames  ; preserves X and Y
     .assert eFade::Black < eFade::Normal, error
     dey
     jsr Func_TransferPalettes  ; preserves X and Y

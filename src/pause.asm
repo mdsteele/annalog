@@ -35,10 +35,10 @@
 .IMPORT DataA_Pause_AreaNames_u8_arr_ptr_1_arr
 .IMPORT DataA_Pause_Minimap_sMarker_arr
 .IMPORT Data_PowersOfTwo_u8_arr8
-.IMPORT FuncA_Fade_In
-.IMPORT FuncA_Fade_Out
 .IMPORT Func_ClearRestOfOam
 .IMPORT Func_CountDeliveredFlowers
+.IMPORT Func_FadeInFromBlack
+.IMPORT Func_FadeOutToBlack
 .IMPORT Func_FillUpperAttributeTable
 .IMPORT Func_IsFlagSet
 .IMPORT Func_ProcessFrame
@@ -120,7 +120,6 @@ Zp_ActivatedBreakers_byte: .res 1
     sta Zp_Chr0cBank_u8
     chr18_bank #<.bank(Ppu_ChrObjPause)
     jsr_prga FuncA_Pause_Init
-    jsr_prga FuncA_Fade_In
 _GameLoop:
     jsr_prga FuncA_Pause_DrawObjects
     jsr Func_ClearRestOfOam
@@ -128,12 +127,9 @@ _GameLoop:
 _CheckForUnause:
     lda Zp_P1ButtonsPressed_bJoypad
     and #bJoypad::Start | bJoypad::BButton | bJoypad::AButton
-    beq @done
-    jsr_prga FuncA_Fade_Out
+    beq _GameLoop
+    jsr Func_FadeOutToBlack
     jmp Main_Explore_FadeIn
-    @done:
-_Tick:
-    jmp _GameLoop
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -161,7 +157,7 @@ kSize = * - Start
 ;;; The screen tile column that the area name begins on.
 kAreaNameStartCol = DataA_Pause_CurrentAreaLabel_u8_arr::kAreaNameStartCol
 
-;;; Initializes pause mode.
+;;; Initializes pause mode, then fades in the screen.
 ;;; @prereq Rendering is disabled.
 .PROC FuncA_Pause_Init
     ;; Reset the frame counter before drawing any objects so that the
@@ -189,13 +185,13 @@ _DrawScreen:
     jsr FuncA_Pause_DirectDrawBg
     jsr FuncA_Pause_DrawObjects
     jsr Func_ClearRestOfOam
-_SetRenderState:
+_FadeIn:
     lda #bPpuMask::BgMain | bPpuMask::ObjMain
     sta Zp_Render_bPpuMask
     lda #0
     sta Zp_PpuScrollX_u8
     sta Zp_PpuScrollY_u8
-    rts
+    jmp Func_FadeInFromBlack
 .ENDPROC
 
 ;;; Directly fills PPU nametable 0 with BG tile data for the pause screen.

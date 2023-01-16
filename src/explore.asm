@@ -35,8 +35,6 @@
 .IMPORT FuncA_Avatar_EnterRoomViaDoor
 .IMPORT FuncA_Avatar_ExploreMove
 .IMPORT FuncA_Avatar_SpawnAtLastSafePoint
-.IMPORT FuncA_Fade_In
-.IMPORT FuncA_Fade_Out
 .IMPORT FuncA_Machine_ExecuteAll
 .IMPORT FuncA_Objects_Draw1x1Shape
 .IMPORT FuncA_Objects_DrawAllActors
@@ -55,6 +53,8 @@
 .IMPORT FuncA_Terrain_InitRoomScrollAndNametables
 .IMPORT FuncA_Terrain_ScrollTowardsAvatar
 .IMPORT Func_ClearRestOfOam
+.IMPORT Func_FadeInFromBlack
+.IMPORT Func_FadeOutToBlack
 .IMPORT Func_ProcessFrame
 .IMPORT Func_SetLastSpawnPoint
 .IMPORT Func_TickAllDevices
@@ -159,7 +159,7 @@ Zp_NextCutscene_main_ptr: .res 2
     jsr_prga FuncA_Objects_DrawObjectsForRoom
     jsr Func_ClearRestOfOam
     ;; Zp_Render_bPpuMask will be set by FuncA_Objects_DrawObjectsForRoom.
-    jsr_prga FuncA_Fade_In
+    jsr Func_FadeInFromBlack
     .assert * = Main_Explore_Continue, error, "fallthrough"
 .ENDPROC
 
@@ -197,7 +197,7 @@ _CheckForPause:
     lda Zp_P1ButtonsPressed_bJoypad
     and #bJoypad::Start
     beq @done
-    jsr_prga FuncA_Fade_Out
+    jsr Func_FadeOutToBlack
     jmp Main_Pause
     @done:
 .PROC _CheckForActivateDevice
@@ -292,7 +292,7 @@ _FadeOut:
     pha  ; ePassage value
     jsr_prga FuncA_Objects_DrawObjectsForRoom
     jsr Func_ClearRestOfOam
-    jsr_prga FuncA_Fade_Out
+    jsr Func_FadeOutToBlack
     pla  ; ePassage value
 _CalculatePassage:
     tay  ; param: ePassage value
@@ -329,7 +329,7 @@ _SetSpawnPoint:
 _FadeOut:
     jsr_prga FuncA_Objects_DrawObjectsForRoom
     jsr Func_ClearRestOfOam
-    jsr_prga FuncA_Fade_Out
+    jsr Func_FadeOutToBlack
 _LoadNextRoom:
     prga_bank #<.bank(DataA_Room_Banks_u8_arr)
     ldy Zp_NearbyDevice_u8

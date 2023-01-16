@@ -28,10 +28,10 @@
 .INCLUDE "spawn.inc"
 
 .IMPORT Data_EmptyChain_u8_arr
-.IMPORT FuncA_Fade_In
-.IMPORT FuncA_Fade_Out
 .IMPORT FuncA_Upgrade_ComputeMaxInstructions
 .IMPORT Func_ClearRestOfOam
+.IMPORT Func_FadeInFromBlack
+.IMPORT Func_FadeOutToBlack
 .IMPORT Func_FillUpperAttributeTable
 .IMPORT Func_GetRandomByte
 .IMPORT Func_ProcessFrame
@@ -78,7 +78,6 @@ Ppu_TitleTopLeft = Ppu_Nametable0_sName + sName::Tiles_u8_arr + \
 .EXPORT Main_Title
 .PROC Main_Title
     jsr_prga FuncA_Title_Init
-    jsr_prga FuncA_Fade_In
 _GameLoop:
     ;; Check START button.
     lda Zp_P1ButtonsPressed_bJoypad
@@ -88,7 +87,7 @@ _GameLoop:
     jsr Func_GetRandomByte  ; tick the RNG (and discard the result)
     jmp _GameLoop
 _StartGame:
-    jsr_prga FuncA_Fade_Out
+    jsr Func_FadeOutToBlack
     jsr_prga FuncA_Title_ResetSramForNewGame
     jsr_prga FuncA_Upgrade_ComputeMaxInstructions
     jmp Main_Explore_SpawnInLastSafeRoom
@@ -167,7 +166,7 @@ _Phrase1_sPhrase:
 End:
 .ENDPROC
 
-;;; Initializes title mode.
+;;; Initializes title mode, then fades in the screen.
 ;;; @prereq Rendering is disabled.
 .PROC FuncA_Title_Init
     jsr Func_Window_Disable
@@ -215,13 +214,13 @@ _DrawTitle:
 _InitAttributeTable:
     ldy #$55  ; param: attribute byte
     jsr Func_FillUpperAttributeTable
-_SetRenderState:
+_FadeIn:
     lda #bPpuMask::BgMain | bPpuMask::ObjMain
     sta Zp_Render_bPpuMask
     lda #0
     sta Zp_PpuScrollX_u8
     sta Zp_PpuScrollY_u8
-    rts
+    jmp Func_FadeInFromBlack
 .ENDPROC
 
 ;;; Erases all of SRAM and creates a save file for a new game.
