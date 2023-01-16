@@ -26,20 +26,38 @@
 .IMPORT FuncA_Room_SpawnBreakerDevice
 .IMPORT FuncA_Room_SpawnUpgradeDevice
 .IMPORT Func_DivMod
+.IMPORT Func_FindEmptyActorSlot
+.IMPORT Func_GetRandomByte
+.IMPORT Func_InitActorProjSmoke
 .IMPORT Func_IsFlagSet
 .IMPORT Func_LockDoorDevice
 .IMPORT Func_MarkRoomSafe
 .IMPORT Func_Noop
+.IMPORT Func_SetActorCenterToPoint
 .IMPORT Func_SetFlag
 .IMPORT Func_TransferPalettes
 .IMPORT Func_UnlockDoorDevice
 .IMPORT Ram_DeviceTarget_u8_arr
 .IMPORT Ram_DeviceType_eDevice_arr
+.IMPORT Ram_PlatformBottom_i16_0_arr
+.IMPORT Ram_PlatformLeft_i16_0_arr
+.IMPORT Ram_PlatformLeft_i16_1_arr
+.IMPORT Ram_PlatformRight_i16_0_arr
+.IMPORT Ram_PlatformTop_i16_0_arr
+.IMPORT Ram_PlatformTop_i16_1_arr
+.IMPORTZP Zp_PointX_i16
+.IMPORTZP Zp_PointY_i16
 .IMPORTZP Zp_RoomIsSafe_bool
 .IMPORTZP Zp_Tmp1_byte
 .IMPORTZP Zp_Tmp_ptr
 
 ;;;=========================================================================;;;
+
+;;; How many frames to wait between explosions during the BossExploding phase.
+kFramesPerExplosion = 12
+
+;;; How many explosions to make during the BossExploding phase.
+kBossNumExplosions = 12
 
 ;;; How many frames to wait between fade steps during the FlashWhite phase.
 kFlashWhiteFramesPerStep = 7
@@ -150,14 +168,15 @@ _BreakerAlreadyDone:
     D_TABLE_LO table, _JumpTable_ptr_0_arr
     D_TABLE_HI table, _JumpTable_ptr_1_arr
     D_TABLE eBossPhase
-    d_entry table, BossBattle,   _BossBattle
-    d_entry table, BossBlinking, _BossBlinking
-    d_entry table, FlashWhite,   _FlashWhite
-    d_entry table, SpawnUpgrade, _SpawnUpgrade
-    d_entry table, GetUpgrade,   _GetUpgrade
-    d_entry table, SpawnBreaker, _SpawnBreaker
-    d_entry table, FlipBreaker,  _FlipBreaker
-    d_entry table, Done,         Func_Noop
+    d_entry table, BossBattle,    _BossBattle
+    d_entry table, BossBlinking,  _BossBlinking
+    d_entry table, BossExploding, _BossExploding
+    d_entry table, FlashWhite,    _FlashWhite
+    d_entry table, SpawnUpgrade,  _SpawnUpgrade
+    d_entry table, GetUpgrade,    _GetUpgrade
+    d_entry table, SpawnBreaker,  _SpawnBreaker
+    d_entry table, FlipBreaker,   _FlipBreaker
+    d_entry table, Done,          Func_Noop
     D_END
 .ENDREPEAT
 _BossBattle:
@@ -182,7 +201,7 @@ _BossBattle:
     jsr Func_MarkRoomSafe
     jsr FuncA_Room_HaltAllMachines
     ;; Reinitialize the timer and proceed to the next phase.
-    lda #90  ; 1.5 seconds
+    lda #45  ; 0.75 seconds
     sta Zp_BossPhaseTimer_u8
     lda #eBossPhase::BossBlinking
     sta Zp_Boss_eBossPhase
@@ -191,9 +210,39 @@ _BossBlinking:
     ;; Wait for the phase timer to reach zero.
     dec Zp_BossPhaseTimer_u8
     bne @done
+    ;; Reinitialize the timer and proceed to the next phase.
+    lda #kFramesPerExplosion * kBossNumExplosions
+    sta Zp_BossPhaseTimer_u8
+    lda #eBossPhase::BossExploding
+    sta Zp_Boss_eBossPhase
+    @done:
+    rts
+_BossExploding:
+    ;; Check if it's time to start another explosion.
+    lda Zp_BossPhaseTimer_u8  ; param: dividend
+    ldy #kFramesPerExplosion  ; param: divisor
+    jsr Func_DivMod  ; returns quotient in Y and remainder in A
+    cmp #kFramesPerExplosion - 1
+    bne @noExplosion
+    ;; Choose a random position within the boss's body.
+    ldy #sBoss::BodyPlatform_u8
+    lda (Zp_Current_sBoss_ptr), y
+    tax  ; param: platform index
+    jsr FuncA_Room_SetPointRandomlyWithinPlatform
+    ;; Allocate an actor for the explosion.
+    jsr Func_FindEmptyActorSlot  ; sets C on failure, returns X
+    bcs @noExplosion
+    jsr Func_SetActorCenterToPoint  ; preserves X
+    jsr Func_InitActorProjSmoke
+    ;; TODO: play a sound
+    @noExplosion:
+    ;; Wait for the phase timer to reach zero.
+    dec Zp_BossPhaseTimer_u8
+    bne @done
     ;; Flash the screen to white.
     ldy #eFade::White  ; param: eFade value
     jsr Func_TransferPalettes
+    ;; TODO: play a sound
     ;; Reinitialize the timer and proceed to the next phase.
     lda #kFlashWhiteFramesPerStep * kFlashWhiteNumFadeSteps
     sta Zp_BossPhaseTimer_u8
@@ -217,7 +266,7 @@ _FlashWhite:
     dec Zp_BossPhaseTimer_u8
     bne @done
     ;; Reinitialize the timer and proceed to the next phase.
-    lda #90  ; 1.5 seconds
+    lda #105  ; 1.75 seconds
     sta Zp_BossPhaseTimer_u8
     lda #eBossPhase::SpawnUpgrade
     sta Zp_Boss_eBossPhase
@@ -274,6 +323,35 @@ _FlipBreaker:
     rts
 .ENDPROC
 
+;;; Sets Zp_Point*_i16 to a random room pixel position within the platform
+;;; rectangle.  The platform's width and height must each fit in one byte.
+;;; @param X The platform index.
+.PROC FuncA_Room_SetPointRandomlyWithinPlatform
+_PointX:
+    lda Ram_PlatformRight_i16_0_arr, x
+    sub Ram_PlatformLeft_i16_0_arr, x
+    tay  ; param: divisor
+    jsr Func_GetRandomByte  ; preserves X and Y; returns A (param: dividend)
+    jsr Func_DivMod  ; preserves X, returns remainder in A
+    add Ram_PlatformLeft_i16_0_arr, x
+    sta Zp_PointX_i16 + 0
+    lda #0
+    adc Ram_PlatformLeft_i16_1_arr, x
+    sta Zp_PointX_i16 + 1
+_PointY:
+    lda Ram_PlatformBottom_i16_0_arr, x
+    sub Ram_PlatformTop_i16_0_arr, x
+    tay  ; param: divisor
+    jsr Func_GetRandomByte  ; preserves X and Y; returns A (param: dividend)
+    jsr Func_DivMod  ; preserves X, returns remainder in A
+    add Ram_PlatformTop_i16_0_arr, x
+    sta Zp_PointY_i16 + 0
+    lda #0
+    adc Ram_PlatformTop_i16_1_arr, x
+    sta Zp_PointY_i16 + 1
+    rts
+.ENDPROC
+
 ;;;=========================================================================;;;
 
 .SEGMENT "PRGA_Objects"
@@ -283,15 +361,20 @@ _FlipBreaker:
 ;;; @prereq FuncA_Room_InitBoss has already been called for this room.
 .EXPORT FuncA_Objects_DrawBoss
 .PROC FuncA_Objects_DrawBoss
+    ;; If the boss battle is ongoing, draw the boss.
     lda Zp_Boss_eBossPhase
     .assert eBossPhase::BossBattle = 0, error
     beq _Draw
-    cmp #eBossPhase::BossBlinking
-    bne @done
+    ;; If the boss is dead and the screen has flashed white (the point at which
+    ;; the boss disappears), don't draw the boss.
+    cmp #eBossPhase::FlashWhite
+    bge @doNotDraw
+    ;; Otherwise, the boss has just died and is blinking, so draw the boss only
+    ;; on some frames.
     lda Zp_BossPhaseTimer_u8
     and #$04
     beq _Draw
-    @done:
+    @doNotDraw:
     rts
 _Draw:
     ldy #sBoss::Draw_func_ptr

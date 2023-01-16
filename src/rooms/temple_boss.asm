@@ -212,6 +212,7 @@ kBossEyeLeftPlatformIndex = 0
 kBossEyeCenterPlatformIndex = 1
 kBossEyeRightPlatformIndex = 2
 
+;;; The platform index for the boss's body.
 kBossBodyPlatformIndex = 3
 
 ;;;=========================================================================;;;
@@ -382,6 +383,7 @@ _Devices_sDevice_arr:
 .PROC FuncC_Temple_Boss_sBoss
     D_STRUCT sBoss
     d_byte Boss_eFlag, eFlag::BossTemple
+    d_byte BodyPlatform_u8, kBossBodyPlatformIndex
     d_addr Tick_func_ptr, FuncC_Temple_Boss_TickBoss
     d_addr Draw_func_ptr, FuncC_Temple_Boss_DrawBoss
     D_END

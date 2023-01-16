@@ -88,9 +88,6 @@ kCannonPlatformIndex = 2
 kCannonGrenadeInitPosX = $28
 kCannonGrenadeInitPosY = $78
 
-;;; The platform index for the boss's thorny vines.
-kThornsPlatformIndex = 3
-
 ;;;=========================================================================;;;
 
 ;;; How many grenade hits are needed to defeat the boss.
@@ -115,6 +112,10 @@ kBossEyeOpenFrames = 20
 ;;; The platform indices for the boss's two eyes.
 kLeftEyePlatformIndex = 0
 kRightEyePlatformIndex = 1
+;;; The platform index for the boss's thorny vines.
+kThornsPlatformIndex = 3
+;;; The platform index for the boss's body.
+kBossBodyPlatformIndex = 4
 
 ;;; The X/Y positions of the centers of the boss's two eyes.
 kBossLeftEyeCenterX  = $68
@@ -271,6 +272,14 @@ _Platforms_sPlatform_arr:
     d_word Left_i16,  $0090
     d_word Top_i16,   $0030
     D_END
+    .assert * - :- = kBossBodyPlatformIndex * .sizeof(sPlatform), error
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Zone
+    d_word WidthPx_u16, $70
+    d_byte HeightPx_u8, $38
+    d_word Left_i16,  $0068
+    d_word Top_i16,   $0030
+    D_END
     .assert * - :- <= kMaxPlatforms * .sizeof(sPlatform), error
     .byte ePlatform::None
 _Actors_sActor_arr:
@@ -322,6 +331,7 @@ _Devices_sDevice_arr:
 .PROC FuncC_Garden_Boss_sBoss
     D_STRUCT sBoss
     d_byte Boss_eFlag, eFlag::BossGarden
+    d_byte BodyPlatform_u8, kBossBodyPlatformIndex
     d_addr Tick_func_ptr, FuncC_Garden_Boss_TickBoss
     d_addr Draw_func_ptr, FuncA_Objects_GardenBoss_DrawBoss
     D_END

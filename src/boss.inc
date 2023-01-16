@@ -31,14 +31,15 @@ kBossBreakerDeviceIndex = 2
 
 ;;; Phases that a boss fight can be in.
 .ENUM eBossPhase
-    BossBattle    ; waiting for the player to defeat the boss
-    BossBlinking  ; boss is dead, and is blinking
-    FlashWhite    ; flashing to white, then fading back to normal
-    SpawnUpgrade  ; waiting for upgrade to spawn
-    GetUpgrade    ; waiting for the player to collect the upgrade
-    SpawnBreaker  ; waiting for breaker to spawn
-    FlipBreaker   ; waiting for the player to activate the breaker
-    Done          ; nothing else to do
+    BossBattle     ; waiting for the player to defeat the boss
+    BossBlinking   ; boss is dead, and is blinking
+    BossExploding  ; boss is dead, and is blinking and exploding
+    FlashWhite     ; flashing to white, then fading back to normal
+    SpawnUpgrade   ; waiting for upgrade to spawn
+    GetUpgrade     ; waiting for the player to collect the upgrade
+    SpawnBreaker   ; waiting for breaker to spawn
+    FlipBreaker    ; waiting for the player to activate the breaker
+    Done           ; nothing else to do
     NUM_VALUES
 .ENDENUM
 
@@ -47,14 +48,17 @@ kBossBreakerDeviceIndex = 2
 ;;; Describes static information about a boss.
 .STRUCT sBoss
     ;; The eFlag::Boss* flag for this boss.
-    Boss_eFlag    .byte
+    Boss_eFlag      .byte
+    ;; The platform index for the body of this boss; this defines the region
+    ;; that will have explosions during the boss death animation.
+    BodyPlatform_u8 .byte
     ;; Function to call each frame when the boss is alive.
     ;; @prereq PRGA_Room is loaded.
-    Tick_func_ptr .addr
+    Tick_func_ptr   .addr
     ;; Function to call each frame (if the boss is alive) to draw the boss.
     ;; This can also set up IRQs for the boss.
     ;; @prereq PRGA_Objects is loaded.
-    Draw_func_ptr .addr
+    Draw_func_ptr   .addr
 .ENDSTRUCT
 
 ;;;=========================================================================;;;
