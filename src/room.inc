@@ -230,7 +230,9 @@ kMaxPassages = 8
     ;; Function to call each frame to update room state.
     ;; @prereq PRGA_Room is loaded.
     Tick_func_ptr             .addr
-    ;; Function to call each frame to draw room decor (e.g. for bosses).
+    ;; Function to call each frame to draw room-specific objects that aren't
+    ;; covered by machines/actors (e.g. bosses or special platforms).  This can
+    ;; also set up IRQs for the room.
     ;; @prereq PRGA_Objects is loaded.
     Draw_func_ptr             .addr
     ;; Extended information about the room.

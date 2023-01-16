@@ -29,11 +29,11 @@
 
 .IMPORT FuncA_Fade_OutSlowly
 .IMPORT FuncA_Fade_ToBlack
-.IMPORT FuncA_Fade_TransferPalettes
 .IMPORT FuncA_Objects_DrawObjectsForRoom
 .IMPORT FuncA_Objects_DrawPlayerAvatar
 .IMPORT Func_ClearRestOfOam
 .IMPORT Func_ProcessFrame
+.IMPORT Func_TransferPalettes
 .IMPORT Main_Explore_SpawnInLastSafeRoom
 .IMPORT Ram_PpuTransfer_arr
 .IMPORTZP Zp_AvatarFlags_bObj
@@ -109,7 +109,7 @@ _Respawn:
 ;;; screen (slowly) and disables rendering.
 .PROC FuncA_Fade_OutForAvatarDeath
     ldy #eFade::Normal  ; param: eFade value
-    jsr FuncA_Fade_TransferPalettes
+    jsr Func_TransferPalettes
     jmp FuncA_Fade_OutSlowly
 .ENDPROC
 

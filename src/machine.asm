@@ -121,22 +121,6 @@ Ram_MachineParam2_i16_1_arr: .res kMaxMachines
 
 .SEGMENT "PRG8"
 
-;;; Sets the specified machine's status to the specified eMachine value, and
-;;; zeroes all other non-goal/param variables for that machine.
-;;; @param A The eMachine value to set for the machine's status.
-;;; @param X The machine index.
-;;; @return A Always zero.
-;;; @preserve X
-.PROC Func_ZeroVarsAndSetStatus
-    sta Ram_MachineStatus_eMachine_arr, x
-    lda #0
-    sta Ram_MachinePc_u8_arr, x
-    sta Ram_MachineRegA_u8_arr, x
-    sta Ram_MachineWait_u8_arr, x
-    sta Ram_MachineSlowdown_u8_arr, x
-    rts
-.ENDPROC
-
 ;;; Sets Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr.
 ;;; @prereq Zp_Current_sRoom is initialized.
 ;;; @param X The machine index to set.
@@ -259,6 +243,22 @@ _ReadRegB:
 
 .SEGMENT "PRGA_Room"
 
+;;; Sets the specified machine's status to the specified eMachine value, and
+;;; zeroes all other non-goal/param variables for that machine.
+;;; @param A The eMachine value to set for the machine's status.
+;;; @param X The machine index.
+;;; @return A Always zero.
+;;; @preserve X
+.PROC FuncA_Room_ZeroMachineVarsAndSetStatus
+    sta Ram_MachineStatus_eMachine_arr, x
+    lda #0
+    sta Ram_MachinePc_u8_arr, x
+    sta Ram_MachineRegA_u8_arr, x
+    sta Ram_MachineWait_u8_arr, x
+    sta Ram_MachineSlowdown_u8_arr, x
+    rts
+.ENDPROC
+
 ;;; If the current machine isn't already resetting, zeroes its variables and
 ;;; puts it into resetting mode.  A resetting machine will move back to its
 ;;; original position and state (over some period of time) without executing
@@ -270,7 +270,7 @@ _ReadRegB:
     lda #eMachine::Resetting  ; param: machine status
     cmp Ram_MachineStatus_eMachine_arr, x
     beq @done
-    jsr Func_ZeroVarsAndSetStatus
+    jsr FuncA_Room_ZeroMachineVarsAndSetStatus
     ;; Start resetting the machine.
     ldy #sMachine::Reset_func_ptr  ; param: function pointer offset
     jmp Func_MachineCall
@@ -286,7 +286,7 @@ _ReadRegB:
     @loop:
     jsr Func_SetMachineIndex  ; preserves X
     lda #eMachine::Running  ; param: machine status
-    jsr Func_ZeroVarsAndSetStatus  ; preserves X, returns zero in A
+    jsr FuncA_Room_ZeroMachineVarsAndSetStatus  ; preserves X, returns 0 in A
     sta Ram_MachineGoalHorz_u8_arr, x
     sta Ram_MachineGoalVert_u8_arr, x
     sta Ram_MachineParam1_u8_arr, x
@@ -297,6 +297,23 @@ _ReadRegB:
     jsr Func_MachineCall
     ;; Continue to the next machine.
     ldx Zp_MachineIndex_u8
+    inx
+    @while:
+    cpx <(Zp_Current_sRoom + sRoom::NumMachines_u8)
+    blt @loop
+    rts
+.ENDPROC
+
+;;; Halts execution for all machines in the room (as though each one had
+;;; executed an END opcode).  Machines that are in the middle of moving or
+;;; resetting will continue doing so until they finish their current operation.
+.EXPORT FuncA_Room_HaltAllMachines
+.PROC FuncA_Room_HaltAllMachines
+    lda #eMachine::Ended
+    ldx #0
+    beq @while  ; unconditional
+    @loop:
+    sta Ram_MachineStatus_eMachine_arr, x
     inx
     @while:
     cpx <(Zp_Current_sRoom + sRoom::NumMachines_u8)

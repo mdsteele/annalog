@@ -38,13 +38,14 @@
 .IMPORT FuncA_Machine_CannonTryAct
 .IMPORT FuncA_Machine_CannonTryMove
 .IMPORT FuncA_Objects_Alloc2x2Shape
+.IMPORT FuncA_Objects_DrawBoss
 .IMPORT FuncA_Objects_DrawCannonMachine
 .IMPORT FuncA_Objects_MoveShapeDownAndRightOneTile
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
 .IMPORT FuncA_Room_FindGrenadeActor
-.IMPORT FuncA_Room_InitBossPhase
+.IMPORT FuncA_Room_InitBoss
 .IMPORT FuncA_Room_MachineCannonReset
-.IMPORT FuncA_Room_TickBossPhase
+.IMPORT FuncA_Room_TickBoss
 .IMPORT Func_DivMod
 .IMPORT Func_FindEmptyActorSlot
 .IMPORT Func_GetRandomByte
@@ -198,7 +199,7 @@ kPaletteObjBossEye = 1
     d_addr Machines_sMachine_arr_ptr, _Machines_sMachine_arr
     d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjGarden)
     d_addr Tick_func_ptr, FuncC_Garden_Boss_TickRoom
-    d_addr Draw_func_ptr, FuncA_Objects_GardenBoss_DrawRoom
+    d_addr Draw_func_ptr, FuncA_Objects_DrawBoss
     d_addr Ext_sRoomExt_ptr, _Ext_sRoomExt
     D_END
 _Ext_sRoomExt:
@@ -318,10 +319,18 @@ _Devices_sDevice_arr:
     .byte eDevice::None
 .ENDPROC
 
+.PROC FuncC_Garden_Boss_sBoss
+    D_STRUCT sBoss
+    d_byte Boss_eFlag, eFlag::BossGarden
+    d_addr Tick_func_ptr, FuncC_Garden_Boss_TickBoss
+    d_addr Draw_func_ptr, FuncA_Objects_GardenBoss_DrawBoss
+    D_END
+.ENDPROC
+
 ;;; Room init function for the GardenBoss room.
 .PROC FuncC_Garden_Boss_InitRoom
-    ldx #eFlag::BossGarden  ; param: boss flag
-    jsr FuncA_Room_InitBossPhase  ; sets Z if boss is alive
+    ldax #FuncC_Garden_Boss_sBoss  ; param: sBoss ptr
+    jsr FuncA_Room_InitBoss  ; sets Z if boss is alive
     beq _InitializeBoss
 _BossIsAlreadyDead:
     ;; Remove the boss's thorns.
@@ -341,23 +350,14 @@ _InitializeBoss:
 ;;; Room tick function for the GardenBoss room.
 ;;; @prereq PRGA_Room is loaded.
 .PROC FuncC_Garden_Boss_TickRoom
-    ;; Tick the current boss phase.
     .assert eBoss::Dead = 0, error
     lda Ram_RoomState + sState::BossMode_eBoss  ; param: zero if boss is dead
-    ldx #eFlag::BossGarden  ; param: boss flag
-    jsr FuncA_Room_TickBossPhase
-    ;; If the boss is alive, perform its per-frame behavior.
-    lda Ram_RoomState + sState::BossMode_eBoss
-    .assert eBoss::Dead = 0, error
-    bne @bossIsAlive
-    rts
-    @bossIsAlive:
-    jsr FuncC_Garden_Boss_CheckForGrenadeHit
-    .assert * = FuncC_Garden_Boss_TickBoss, error, "fallthrough"
+    jmp FuncA_Room_TickBoss
 .ENDPROC
 
 ;;; Performs per-frame upates for the boss in this room (if it's still alive).
 .PROC FuncC_Garden_Boss_TickBoss
+    jsr FuncC_Garden_Boss_CheckForGrenadeHit
     ;; Tick eyes.
     ldx #eEye::Left  ; param: eye to tick
     jsr FuncC_Garden_Boss_TickEye
@@ -712,11 +712,8 @@ _Done:
 
 .SEGMENT "PRGA_Objects"
 
-;;; Allocates and populates OAM slots for the boss.
-.PROC FuncA_Objects_GardenBoss_DrawRoom
-    lda Ram_RoomState + sState::BossMode_eBoss
-    .assert eBoss::Dead = 0, error
-    beq @done
+;;; Draws the boss.
+.PROC FuncA_Objects_GardenBoss_DrawBoss
     ;; Draw boss eyes.
     ldx #eEye::Left  ; param: eye
     jsr FuncA_Objects_GardenBoss_DrawEye  ; preserves X
@@ -729,7 +726,6 @@ _Done:
     and #$07
     add #<.bank(Ppu_ChrBgAnim0)
     sta Zp_Chr0cBank_u8
-    @done:
     rts
 .ENDPROC
 

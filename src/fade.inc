@@ -23,6 +23,9 @@
     Dark
     Dim
     Normal
+    Light
+    Bright
+    White
     NUM_VALUES
 .ENDENUM
 

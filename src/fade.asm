@@ -31,19 +31,45 @@
 
 ;;;=========================================================================;;;
 
-kColorBlack    = $0f  ; black
-kColorGray3    = $00  ; dark gray
-kColorGray2    = $2d  ; darker gray
-kColorGray1    = $2d  ; darker gray
-kColorGreen3   = $1a  ; medium green
-kColorGreen2   = $0a  ; dark green
-kColorGreen1   = $09  ; dark chartreuse
-kColorRed3     = $16  ; medium red
-kColorRed2     = $06  ; dark red
-kColorRed1     = $06  ; dark red
-kColorWhite3   = $30  ; white
-kColorWhite2   = $3d  ; light gray
-kColorWhite1   = $2d  ; dark gray
+kColorBlack6 = $30  ; white
+kColorBlack5 = $3d  ; light gray
+kColorBlack4 = $2d  ; dark gray
+kColorBlack3 = $0f  ; black
+kColorBlack2 = $0f  ; black
+kColorBlack1 = $0f  ; black
+kColorBlack0 = $0f  ; black
+
+kColorGray6  = $30  ; white
+kColorGray5  = $3d  ; light gray
+kColorGray4  = $3d  ; light gray
+kColorGray3  = $00  ; dark gray
+kColorGray2  = $2d  ; darker gray
+kColorGray1  = $2d  ; darker gray
+kColorGray0  = $0f  ; black
+
+kColorGreen6 = $30  ; white
+kColorGreen5 = $3a  ; pale green
+kColorGreen4 = $2a  ; light green
+kColorGreen3 = $1a  ; medium green
+kColorGreen2 = $0a  ; dark green
+kColorGreen1 = $09  ; dark chartreuse
+kColorGreen0 = $0f  ; black
+
+kColorRed6   = $30  ; white
+kColorRed5   = $36  ; pale red
+kColorRed4   = $26  ; light red
+kColorRed3   = $16  ; medium red
+kColorRed2   = $06  ; dark red
+kColorRed1   = $06  ; dark red
+kColorRed0   = $0f  ; black
+
+kColorWhite6 = $30  ; white
+kColorWhite5 = $30  ; white
+kColorWhite4 = $30  ; white
+kColorWhite3 = $30  ; white
+kColorWhite2 = $3d  ; light gray
+kColorWhite1 = $2d  ; dark gray
+kColorWhite0 = $0f  ; black
 
 ;;; How many frames to wait between fade steps for normal/slow fade functions.
 kFramesPerFadeStepNormal = 5
@@ -53,151 +79,230 @@ kPalettesTransferLen = .sizeof(sPal) * 8
 
 ;;;=========================================================================;;;
 
-.SEGMENT "PRGA_Fade"
+.SEGMENT "PRG8"
 
 .REPEAT 2, table
-    D_TABLE_LO table, DataA_Fade_Palettes_sPal_arr8_ptr_0_arr
-    D_TABLE_HI table, DataA_Fade_Palettes_sPal_arr8_ptr_1_arr
+    D_TABLE_LO table, Data_FadePalettes_sPal_arr4_ptr_0_arr
+    D_TABLE_HI table, Data_FadePalettes_sPal_arr4_ptr_1_arr
     D_TABLE eFade
-    d_entry table, Black,  DataA_Fade_Palettes0_sPal_arr8
-    d_entry table, Dark,   DataA_Fade_Palettes1_sPal_arr8
-    d_entry table, Dim,    DataA_Fade_Palettes2_sPal_arr8
-    d_entry table, Normal, DataA_Fade_Palettes3_sPal_arr8
+    d_entry table, Black,  Data_FadePalettes0_sPal_arr4
+    d_entry table, Dark,   Data_FadePalettes1_sPal_arr4
+    d_entry table, Dim,    Data_FadePalettes2_sPal_arr4
+    d_entry table, Normal, Data_FadePalettes3_sPal_arr4
+    d_entry table, Light,  Data_FadePalettes4_sPal_arr4
+    d_entry table, Bright, Data_FadePalettes5_sPal_arr4
+    d_entry table, White,  Data_FadePalettes6_sPal_arr4
     D_END
 .ENDREPEAT
 
-;;; The palette set for fade step 3 (normal).
-.PROC DataA_Fade_Palettes3_sPal_arr8
-    .repeat 2
+;;; The palette set for fade step 6 (white).
+.PROC Data_FadePalettes6_sPal_arr4
     D_STRUCT sPal
-    d_byte C0_u6, kColorBlack
-    d_byte C1_u6, kColorBlack
+    d_byte C0_u6, kColorBlack6
+    d_byte C1_u6, kColorBlack6
+    d_byte C2_u6, kColorGray6
+    d_byte C3_u6, kColorWhite6
+    D_END
+    D_STRUCT sPal
+    d_byte C0_u6, kColorBlack6
+    d_byte C1_u6, kColorBlack6
+    d_byte C2_u6, kColorRed6
+    d_byte C3_u6, kColorWhite6
+    D_END
+    D_STRUCT sPal
+    d_byte C0_u6, kColorBlack6
+    d_byte C1_u6, kColorBlack6
+    d_byte C2_u6, kColorGreen6
+    d_byte C3_u6, kColorWhite6
+    D_END
+    D_STRUCT sPal
+    d_byte C0_u6, kColorBlack3
+    d_byte C1_u6, kColorBlack3
+    d_byte C2_u6, kColorRed3
+    d_byte C3_u6, kColorWhite3
+    D_END
+.ENDPROC
+
+;;; The palette set for fade step 5 (bright).
+.PROC Data_FadePalettes5_sPal_arr4
+    D_STRUCT sPal
+    d_byte C0_u6, kColorBlack5
+    d_byte C1_u6, kColorBlack5
+    d_byte C2_u6, kColorGray5
+    d_byte C3_u6, kColorWhite5
+    D_END
+    D_STRUCT sPal
+    d_byte C0_u6, kColorBlack5
+    d_byte C1_u6, kColorBlack5
+    d_byte C2_u6, kColorRed5
+    d_byte C3_u6, kColorWhite5
+    D_END
+    D_STRUCT sPal
+    d_byte C0_u6, kColorBlack5
+    d_byte C1_u6, kColorBlack5
+    d_byte C2_u6, kColorGreen5
+    d_byte C3_u6, kColorWhite5
+    D_END
+    D_STRUCT sPal
+    d_byte C0_u6, kColorBlack3
+    d_byte C1_u6, kColorBlack3
+    d_byte C2_u6, kColorRed3
+    d_byte C3_u6, kColorWhite3
+    D_END
+.ENDPROC
+
+;;; The palette set for fade step 4 (light).
+.PROC Data_FadePalettes4_sPal_arr4
+    D_STRUCT sPal
+    d_byte C0_u6, kColorBlack4
+    d_byte C1_u6, kColorBlack4
+    d_byte C2_u6, kColorGray4
+    d_byte C3_u6, kColorWhite4
+    D_END
+    D_STRUCT sPal
+    d_byte C0_u6, kColorBlack4
+    d_byte C1_u6, kColorBlack4
+    d_byte C2_u6, kColorRed4
+    d_byte C3_u6, kColorWhite4
+    D_END
+    D_STRUCT sPal
+    d_byte C0_u6, kColorBlack4
+    d_byte C1_u6, kColorBlack4
+    d_byte C2_u6, kColorGreen4
+    d_byte C3_u6, kColorWhite4
+    D_END
+    D_STRUCT sPal
+    d_byte C0_u6, kColorBlack3
+    d_byte C1_u6, kColorBlack3
+    d_byte C2_u6, kColorRed3
+    d_byte C3_u6, kColorWhite3
+    D_END
+.ENDPROC
+
+;;; The palette set for fade step 3 (normal).
+.PROC Data_FadePalettes3_sPal_arr4
+    D_STRUCT sPal
+    d_byte C0_u6, kColorBlack3
+    d_byte C1_u6, kColorBlack3
     d_byte C2_u6, kColorGray3
     d_byte C3_u6, kColorWhite3
     D_END
     D_STRUCT sPal
-    d_byte C0_u6, kColorBlack
-    d_byte C1_u6, kColorBlack
+    d_byte C0_u6, kColorBlack3
+    d_byte C1_u6, kColorBlack3
     d_byte C2_u6, kColorRed3
     d_byte C3_u6, kColorWhite3
     D_END
     D_STRUCT sPal
-    d_byte C0_u6, kColorBlack
-    d_byte C1_u6, kColorBlack
+    d_byte C0_u6, kColorBlack3
+    d_byte C1_u6, kColorBlack3
     d_byte C2_u6, kColorGreen3
     d_byte C3_u6, kColorWhite3
     D_END
     D_STRUCT sPal
-    d_byte C0_u6, kColorBlack
-    d_byte C1_u6, kColorBlack
+    d_byte C0_u6, kColorBlack3
+    d_byte C1_u6, kColorBlack3
     d_byte C2_u6, kColorRed3
     d_byte C3_u6, kColorWhite3
     D_END
-    .endrepeat
 .ENDPROC
 
 ;;; The palette set for fade step 2 (dim).
-.PROC DataA_Fade_Palettes2_sPal_arr8
-    .repeat 2
+.PROC Data_FadePalettes2_sPal_arr4
     D_STRUCT sPal
-    d_byte C0_u6, kColorBlack
-    d_byte C1_u6, kColorBlack
+    d_byte C0_u6, kColorBlack2
+    d_byte C1_u6, kColorBlack2
     d_byte C2_u6, kColorGray2
     d_byte C3_u6, kColorWhite2
     D_END
     D_STRUCT sPal
-    d_byte C0_u6, kColorBlack
-    d_byte C1_u6, kColorBlack
+    d_byte C0_u6, kColorBlack2
+    d_byte C1_u6, kColorBlack2
     d_byte C2_u6, kColorRed2
     d_byte C3_u6, kColorWhite2
     D_END
     D_STRUCT sPal
-    d_byte C0_u6, kColorBlack
-    d_byte C1_u6, kColorBlack
+    d_byte C0_u6, kColorBlack2
+    d_byte C1_u6, kColorBlack2
     d_byte C2_u6, kColorGreen2
     d_byte C3_u6, kColorWhite2
     D_END
     D_STRUCT sPal
-    d_byte C0_u6, kColorBlack
-    d_byte C1_u6, kColorBlack
+    d_byte C0_u6, kColorBlack3
+    d_byte C1_u6, kColorBlack3
     d_byte C2_u6, kColorRed3
     d_byte C3_u6, kColorWhite3
     D_END
-    .endrepeat
 .ENDPROC
 
 ;;; The palette set for fade step 1 (dark).
-.PROC DataA_Fade_Palettes1_sPal_arr8
-    .repeat 2
+.PROC Data_FadePalettes1_sPal_arr4
     D_STRUCT sPal
-    d_byte C0_u6, kColorBlack
-    d_byte C1_u6, kColorBlack
+    d_byte C0_u6, kColorBlack1
+    d_byte C1_u6, kColorBlack1
     d_byte C2_u6, kColorGray1
     d_byte C3_u6, kColorWhite1
     D_END
     D_STRUCT sPal
-    d_byte C0_u6, kColorBlack
-    d_byte C1_u6, kColorBlack
+    d_byte C0_u6, kColorBlack1
+    d_byte C1_u6, kColorBlack1
     d_byte C2_u6, kColorRed1
     d_byte C3_u6, kColorWhite1
     D_END
     D_STRUCT sPal
-    d_byte C0_u6, kColorBlack
-    d_byte C1_u6, kColorBlack
+    d_byte C0_u6, kColorBlack1
+    d_byte C1_u6, kColorBlack1
     d_byte C2_u6, kColorGreen1
     d_byte C3_u6, kColorWhite1
     D_END
     D_STRUCT sPal
-    d_byte C0_u6, kColorBlack
-    d_byte C1_u6, kColorBlack
+    d_byte C0_u6, kColorBlack3
+    d_byte C1_u6, kColorBlack3
     d_byte C2_u6, kColorRed3
     d_byte C3_u6, kColorWhite3
     D_END
-    .endrepeat
 .ENDPROC
 
 ;;; The palette set for fade step 0 (black).
-.PROC DataA_Fade_Palettes0_sPal_arr8
-    .repeat 2
+.PROC Data_FadePalettes0_sPal_arr4
     D_STRUCT sPal
-    d_byte C0_u6, kColorBlack
-    d_byte C1_u6, kColorBlack
-    d_byte C2_u6, kColorBlack
-    d_byte C3_u6, kColorBlack
+    d_byte C0_u6, kColorBlack0
+    d_byte C1_u6, kColorBlack0
+    d_byte C2_u6, kColorGray0
+    d_byte C3_u6, kColorWhite0
     D_END
     D_STRUCT sPal
-    d_byte C0_u6, kColorBlack
-    d_byte C1_u6, kColorBlack
-    d_byte C2_u6, kColorBlack
-    d_byte C3_u6, kColorBlack
+    d_byte C0_u6, kColorBlack0
+    d_byte C1_u6, kColorBlack0
+    d_byte C2_u6, kColorRed0
+    d_byte C3_u6, kColorWhite0
     D_END
     D_STRUCT sPal
-    d_byte C0_u6, kColorBlack
-    d_byte C1_u6, kColorBlack
-    d_byte C2_u6, kColorBlack
-    d_byte C3_u6, kColorBlack
+    d_byte C0_u6, kColorBlack0
+    d_byte C1_u6, kColorBlack0
+    d_byte C2_u6, kColorGreen0
+    d_byte C3_u6, kColorWhite0
     D_END
     D_STRUCT sPal
-    d_byte C0_u6, kColorBlack
-    d_byte C1_u6, kColorBlack
+    d_byte C0_u6, kColorBlack3
+    d_byte C1_u6, kColorBlack3
     d_byte C2_u6, kColorRed3
     d_byte C3_u6, kColorWhite3
     D_END
-    .endrepeat
 .ENDPROC
 
 ;;; Buffers a PPU transfer to write palette colors for the specified fade
 ;;; level.
 ;;; @param Y The eFade value for the palettes to transfer.
 ;;; @preserve X, Y
-.EXPORT FuncA_Fade_TransferPalettes
-.PROC FuncA_Fade_TransferPalettes
+.EXPORT Func_TransferPalettes
+.PROC Func_TransferPalettes
     sty Zp_Tmp1_byte  ; fade step
     stx Zp_Tmp2_byte  ; old X register (just to preserve it)
     ;; Make Zp_Tmp_ptr point to the palettes array for this fade step.
-    lda DataA_Fade_Palettes_sPal_arr8_ptr_0_arr, y
+    lda Data_FadePalettes_sPal_arr4_ptr_0_arr, y
     sta Zp_Tmp_ptr + 0
-    lda DataA_Fade_Palettes_sPal_arr8_ptr_1_arr, y
+    lda Data_FadePalettes_sPal_arr4_ptr_1_arr, y
     sta Zp_Tmp_ptr + 1
     ;; Write the transfer entry header.
     ldx Zp_PpuTransferLen_u8
@@ -210,24 +315,32 @@ kPalettesTransferLen = .sizeof(sPal) * 8
     lda #<Ppu_Palettes_sPal_arr8
     sta Ram_PpuTransfer_arr, x
     inx
-    lda #kPalettesTransferLen
+    lda #.sizeof(sPal) * 8
     sta Ram_PpuTransfer_arr, x
     inx
     ;; Write the transfer entry data.
+    jsr _WritePaletteData
+    jsr _WritePaletteData
+    ;; Update the PPU transfer array length and restore X and Y.
+    stx Zp_PpuTransferLen_u8
+    ldy Zp_Tmp1_byte  ; fade step (just to preserve Y)
+    ldx Zp_Tmp2_byte  ; old X register (just to preserve X)
+    rts
+_WritePaletteData:
     ldy #0
     @loop:
     lda (Zp_Tmp_ptr), y
     sta Ram_PpuTransfer_arr, x
     inx
     iny
-    cpy #kPalettesTransferLen
+    cpy #.sizeof(sPal) * 4
     blt @loop
-    ;; Update the PPU transfer array length and restore Y.
-    stx Zp_PpuTransferLen_u8
-    ldy Zp_Tmp1_byte  ; fade step (just to preserve Y)
-    ldx Zp_Tmp2_byte  ; old X register (just to preserve X)
     rts
 .ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Fade"
 
 ;;; Calls Func_ProcessFrame the specified number of times.
 ;;; @param X The number of frames to wait (must be nonzero).
@@ -266,7 +379,7 @@ kPalettesTransferLen = .sizeof(sPal) * 8
     @stepLoop:
     .assert eFade::Normal > eFade::Black, error
     iny
-    jsr FuncA_Fade_TransferPalettes  ; preserves X and Y
+    jsr Func_TransferPalettes  ; preserves X and Y
     jsr FuncA_Fade_Wait  ; preserves X and Y
     cpy #eFade::Normal
     bne @stepLoop
@@ -317,7 +430,7 @@ kPalettesTransferLen = .sizeof(sPal) * 8
     jsr FuncA_Fade_Wait  ; preserves X and Y
     .assert eFade::Black < eFade::Normal, error
     dey
-    jsr FuncA_Fade_TransferPalettes  ; preserves X and Y
+    jsr Func_TransferPalettes  ; preserves X and Y
     tya
     .assert eFade::Black = 0, error
     bne @stepLoop

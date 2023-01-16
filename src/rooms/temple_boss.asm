@@ -41,6 +41,7 @@
 .IMPORT FuncA_Machine_ReachedGoal
 .IMPORT FuncA_Objects_Alloc2x1Shape
 .IMPORT FuncA_Objects_Draw1x1Shape
+.IMPORT FuncA_Objects_DrawBoss
 .IMPORT FuncA_Objects_DrawMinigunUpMachine
 .IMPORT FuncA_Objects_MoveShapeDownByA
 .IMPORT FuncA_Objects_MoveShapeLeftByA
@@ -48,8 +49,8 @@
 .IMPORT FuncA_Objects_MoveShapeUpOneTile
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
 .IMPORT FuncA_Room_InitActorProjBreakball
-.IMPORT FuncA_Room_InitBossPhase
-.IMPORT FuncA_Room_TickBossPhase
+.IMPORT FuncA_Room_InitBoss
+.IMPORT FuncA_Room_TickBoss
 .IMPORT Func_DivMod
 .IMPORT Func_FindEmptyActorSlot
 .IMPORT Func_GetRandomByte
@@ -165,8 +166,8 @@ kBossCenterX = $88
 ;;; The minimum, maximum, and initial values for the top of the boss's body.
 kBossMinTopY = kBossZoneTopY + 1
 kBossMaxTopY = kBossZoneBottomY - kBossBodyHeightPx
-kBossInitBottomY = kBossZoneBottomY
-kBossInitTopY = kBossInitBottomY - kBossBodyHeightPx
+kBossInitTopY = kBossMaxTopY
+kBossInitBottomY = kBossInitTopY + kBossBodyHeightPx
 
 ;;; How many frames it takes for an eye to fully open or close.
 kBossEyeOpenFrames = 12
@@ -378,11 +379,19 @@ _Devices_sDevice_arr:
     .byte eDevice::None
 .ENDPROC
 
+.PROC FuncC_Temple_Boss_sBoss
+    D_STRUCT sBoss
+    d_byte Boss_eFlag, eFlag::BossTemple
+    d_addr Tick_func_ptr, FuncC_Temple_Boss_TickBoss
+    d_addr Draw_func_ptr, FuncC_Temple_Boss_DrawBoss
+    D_END
+.ENDPROC
+
 ;;; Room init function for the GardenBoss room.
 ;;; @prereq PRGA_Room is loaded.
 .PROC FuncC_Temple_Boss_InitRoom
-    ldx #eFlag::BossTemple  ; param: boss flag
-    jsr FuncA_Room_InitBossPhase  ; sets Z if boss is alive
+    ldax #FuncC_Temple_Boss_sBoss  ; param: sBoss ptr
+    jsr FuncA_Room_InitBoss  ; sets Z if boss is alive
     beq _InitializeBoss
 _BossIsAlreadyDead:
     rts
@@ -465,24 +474,15 @@ _ColumnTileCol_u8_arr:
 ;;; Room tick function for the TempleBoss room.
 ;;; @prereq PRGA_Room is loaded.
 .PROC FuncC_Temple_Boss_TickRoom
-    ;; Tick the current boss phase.
     .assert eBossMode::Dead = 0, error
     lda Ram_RoomState + sState::Current_eBossMode  ; param: zero if boss dead
-    ldx #eFlag::BossTemple  ; param: boss flag
-    jsr FuncA_Room_TickBossPhase
-    ;; If the boss is alive, perform its per-frame behavior.
-    lda Ram_RoomState + sState::Current_eBossMode
-    .assert eBossMode::Dead = 0, error
-    bne @bossIsAlive
-    rts
-    @bossIsAlive:
-    jsr FuncC_Temple_Boss_CheckForBulletHit
-    jsr FuncC_Temple_Boss_CheckForBreakballHit
-    .assert * = FuncC_Temple_Boss_TickBoss, error, "fallthrough"
+    jmp FuncA_Room_TickBoss
 .ENDPROC
 
 ;;; Performs per-frame upates for the boss in this room.
 .PROC FuncC_Temple_Boss_TickBoss
+    jsr FuncC_Temple_Boss_CheckForBulletHit
+    jsr FuncC_Temple_Boss_CheckForBreakballHit
     ;; Tick eyes.
     ldx #eBossEye::NUM_VALUES - 1
     @loop:
@@ -708,10 +708,12 @@ _Done:
 .PROC FuncC_Temple_Boss_DrawRoom
     lda #<.bank(Ppu_ChrBgOutbreak)
     sta Zp_Chr0cBank_u8
-    ;; If the boss is dead, don't draw the boss.
-    lda Ram_RoomState + sState::Current_eBossMode
-    .assert eBossMode::Dead = 0, error
-    beq _Return
+    jmp FuncA_Objects_DrawBoss
+.ENDPROC
+
+;;; Draw function for the TempleBoss room.
+;;; @prereq PRGA_Objects is loaded.
+.PROC FuncC_Temple_Boss_DrawBoss
 _DrawBossClaws:
     jsr FuncC_Temple_SetShapePosToBossMidTop
     lda #$24  ; param: offset
@@ -758,7 +760,6 @@ _SetUpIrq:
     lda #kBossBodyStartRow * kTileHeightPx + kBossZoneTopY
     sub Ram_PlatformTop_i16_0_arr + kBossBodyPlatformIndex
     sta <(Zp_Buffered_sIrq + sIrq::Param2_byte)  ; boss scroll-Y
-_Return:
     rts
 .ENDPROC
 
