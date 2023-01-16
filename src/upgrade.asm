@@ -32,8 +32,7 @@
 .IMPORT FuncA_Objects_DrawObjectsForRoom
 .IMPORT FuncA_Terrain_ScrollTowardsAvatar
 .IMPORT FuncA_Terrain_ScrollTowardsGoal
-.IMPORT Func_ClearRestOfOam
-.IMPORT Func_ProcessFrame
+.IMPORT Func_ClearRestOfOamAndProcessFrame
 .IMPORT Func_SetFlag
 .IMPORT Func_Window_PrepareRowTransfer
 .IMPORT Func_Window_TransferBottomBorder
@@ -112,8 +111,7 @@ _GameLoop:
     prga_bank #<.bank(FuncA_Objects_DrawUpgradeSymbol)
     jsr FuncA_Objects_DrawObjectsForRoom
     jsr FuncA_Objects_DrawUpgradeSymbol
-    jsr Func_ClearRestOfOam
-    jsr Func_ProcessFrame
+    jsr Func_ClearRestOfOamAndProcessFrame
 _UpdateWindow:
     jsr_prga FuncA_Upgrade_ScrollWindowUp  ; returns C
     jcs Main_Upgrade_RunWindow
@@ -131,8 +129,7 @@ _GameLoop:
     prga_bank #<.bank(FuncA_Objects_DrawUpgradeSymbol)
     jsr FuncA_Objects_DrawObjectsForRoom
     jsr FuncA_Objects_DrawUpgradeSymbol
-    jsr Func_ClearRestOfOam
-    jsr Func_ProcessFrame
+    jsr Func_ClearRestOfOamAndProcessFrame
 _UpdateWindow:
     jsr_prga FuncA_Upgrade_ScrollWindowDown  ; returns C
     jcs Main_Explore_Continue
@@ -150,8 +147,7 @@ _GameLoop:
     prga_bank #<.bank(FuncA_Objects_DrawUpgradeSymbol)
     jsr FuncA_Objects_DrawObjectsForRoom
     jsr FuncA_Objects_DrawUpgradeSymbol
-    jsr Func_ClearRestOfOam
-    jsr Func_ProcessFrame
+    jsr Func_ClearRestOfOamAndProcessFrame
 _CheckButtons:
     lda Zp_P1ButtonsPressed_bJoypad
     and #bJoypad::AButton | bJoypad::BButton

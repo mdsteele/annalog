@@ -44,9 +44,8 @@
 .IMPORT FuncA_Objects_DrawCarriageMachine
 .IMPORT FuncA_Objects_DrawCratePlatform
 .IMPORT FuncA_Objects_DrawObjectsForRoom
-.IMPORT Func_ClearRestOfOam
+.IMPORT Func_ClearRestOfOamAndProcessFrame
 .IMPORT Func_Noop
-.IMPORT Func_ProcessFrame
 .IMPORT Func_SetFlag
 .IMPORT Main_Dialog_OpenWindow
 .IMPORT Ppu_ChrObjTemple
@@ -661,8 +660,7 @@ _MoveToBottomRight:
 _GameLoop:
     ;; Draw the frame:
     jsr_prga FuncA_Objects_DrawObjectsForRoom
-    jsr Func_ClearRestOfOam
-    jsr Func_ProcessFrame
+    jsr Func_ClearRestOfOamAndProcessFrame
     ;; Check if Alex is at his boosting position yet.
     lda Ram_ActorPosX_i16_0_arr + kAlexActorIndex
     cmp #<kAlexBoostingPositionX

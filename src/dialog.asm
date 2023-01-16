@@ -32,8 +32,7 @@
 .IMPORT FuncA_Objects_DrawObjectsForRoom
 .IMPORT FuncA_Terrain_ScrollTowardsAvatar
 .IMPORT FuncA_Terrain_ScrollTowardsGoal
-.IMPORT Func_ClearRestOfOam
-.IMPORT Func_ProcessFrame
+.IMPORT Func_ClearRestOfOamAndProcessFrame
 .IMPORT Func_SetFlag
 .IMPORT Func_Window_GetRowPpuAddr
 .IMPORT Func_Window_PrepareRowTransfer
@@ -171,8 +170,7 @@ Zp_DialogText_ptr: .res 2
     jcs Main_Explore_Continue
 _GameLoop:
     jsr_prga FuncA_Objects_DrawObjectsForRoom
-    jsr Func_ClearRestOfOam
-    jsr Func_ProcessFrame
+    jsr Func_ClearRestOfOamAndProcessFrame
     jsr_prga FuncA_Dialog_ScrollWindowUp  ; sets C if window is now fully open
     jcs Main_Dialog_Run
 _UpdateScrolling:
@@ -187,8 +185,7 @@ _UpdateScrolling:
 .PROC Main_Dialog_CloseWindow
 _GameLoop:
     jsr_prga FuncA_Objects_DrawObjectsForRoom
-    jsr Func_ClearRestOfOam
-    jsr Func_ProcessFrame
+    jsr Func_ClearRestOfOamAndProcessFrame
     jsr_prga FuncA_Dialog_ScrollWindowDown  ; sets C if window is now closed
     jcs Main_Explore_Continue
 _UpdateScrolling:
@@ -204,8 +201,7 @@ _UpdateScrolling:
 _GameLoop:
     jsr_prga FuncA_Objects_DrawObjectsForRoom
     jsr_prga FuncA_Dialog_DrawCursorOrPrompt
-    jsr Func_ClearRestOfOam
-    jsr Func_ProcessFrame
+    jsr Func_ClearRestOfOamAndProcessFrame
 _Tick:
     jsr_prga FuncA_Dialog_Tick  ; sets C if window should be closed; returns X
     chr04_bank x

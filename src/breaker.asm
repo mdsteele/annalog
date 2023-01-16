@@ -26,8 +26,7 @@
 .INCLUDE "oam.inc"
 
 .IMPORT FuncA_Objects_DrawObjectsForRoom
-.IMPORT Func_ClearRestOfOam
-.IMPORT Func_ProcessFrame
+.IMPORT Func_ClearRestOfOamAndProcessFrame
 .IMPORT Func_SetFlag
 .IMPORT Func_SetLastSpawnPoint
 .IMPORT Func_TickAllDevices
@@ -93,8 +92,7 @@ Zp_BreakerTimer_u8: .res 1
     jsr_prga FuncA_Breaker_Init
 _GameLoop:
     jsr_prga FuncA_Objects_DrawObjectsForRoom
-    jsr Func_ClearRestOfOam
-    jsr Func_ProcessFrame
+    jsr Func_ClearRestOfOamAndProcessFrame
     jsr Func_TickAllDevices
     jsr_prga FuncA_Breaker_Tick
     ;; Once we've finished the last phase, breaker mode is done.

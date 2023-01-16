@@ -36,12 +36,12 @@
 .IMPORT DataA_Pause_Minimap_sMarker_arr
 .IMPORT Data_PowersOfTwo_u8_arr8
 .IMPORT Func_ClearRestOfOam
+.IMPORT Func_ClearRestOfOamAndProcessFrame
 .IMPORT Func_CountDeliveredFlowers
 .IMPORT Func_FadeInFromBlack
 .IMPORT Func_FadeOutToBlack
 .IMPORT Func_FillUpperAttributeTable
 .IMPORT Func_IsFlagSet
-.IMPORT Func_ProcessFrame
 .IMPORT Func_Window_Disable
 .IMPORT Main_Explore_FadeIn
 .IMPORT Ppu_ChrBgMinimap
@@ -122,8 +122,7 @@ Zp_ActivatedBreakers_byte: .res 1
     jsr_prga FuncA_Pause_Init
 _GameLoop:
     jsr_prga FuncA_Pause_DrawObjects
-    jsr Func_ClearRestOfOam
-    jsr Func_ProcessFrame
+    jsr Func_ClearRestOfOamAndProcessFrame
 _CheckForUnause:
     lda Zp_P1ButtonsPressed_bJoypad
     and #bJoypad::Start | bJoypad::BButton | bJoypad::AButton

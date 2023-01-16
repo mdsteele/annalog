@@ -41,7 +41,7 @@
 .IMPORT FuncA_Room_MachineReset
 .IMPORT FuncA_Terrain_ScrollTowardsAvatar
 .IMPORT FuncA_Terrain_ScrollTowardsGoal
-.IMPORT Func_ClearRestOfOam
+.IMPORT Func_ClearRestOfOamAndProcessFrame
 .IMPORT Func_GetMachineProgram
 .IMPORT Func_IsFlagSet
 .IMPORT Func_ProcessFrame
@@ -164,8 +164,7 @@ Ram_ConsoleRegNames_u8_arr6: .res 6
     jsr_prga FuncA_Console_Init
 _GameLoop:
     jsr_prga FuncA_Objects_DrawObjectsForRoom
-    jsr Func_ClearRestOfOam
-    jsr Func_ProcessFrame
+    jsr Func_ClearRestOfOamAndProcessFrame
 _ScrollWindowUp:
     lda Zp_WindowTop_u8
     sub #kConsoleWindowScrollSpeed
@@ -197,8 +196,7 @@ _StartEditing:
     sta Zp_ConsoleMachineIndex_u8
 _GameLoop:
     jsr_prga FuncA_Objects_DrawObjectsForRoom
-    jsr Func_ClearRestOfOam
-    jsr Func_ProcessFrame
+    jsr Func_ClearRestOfOamAndProcessFrame
 _ScrollWindowDown:
     lda Zp_WindowTop_u8
     add #kConsoleWindowScrollSpeed
@@ -239,8 +237,7 @@ _GameLoop:
     jsr_prga FuncA_Objects_DrawObjectsForRoom
     lda #$00  ; param: cursor diminished bool ($00 = undiminished)
     jsr_prga FuncA_Console_DrawFieldCursorObjects
-    jsr Func_ClearRestOfOam
-    jsr Func_ProcessFrame
+    jsr Func_ClearRestOfOamAndProcessFrame
 _CheckButtons:
     ;; B button:
     bit Zp_P1ButtonsPressed_bJoypad
@@ -281,8 +278,7 @@ _Tick:
 .PROC Main_Console_NoPower
 _GameLoop:
     jsr_prga FuncA_Objects_DrawObjectsForRoom
-    jsr Func_ClearRestOfOam
-    jsr Func_ProcessFrame
+    jsr Func_ClearRestOfOamAndProcessFrame
 _CheckButtons:
     lda Zp_P1ButtonsPressed_bJoypad
     and #bJoypad::AButton | bJoypad::BButton

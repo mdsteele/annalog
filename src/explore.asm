@@ -53,9 +53,9 @@
 .IMPORT FuncA_Terrain_InitRoomScrollAndNametables
 .IMPORT FuncA_Terrain_ScrollTowardsAvatar
 .IMPORT Func_ClearRestOfOam
+.IMPORT Func_ClearRestOfOamAndProcessFrame
 .IMPORT Func_FadeInFromBlack
 .IMPORT Func_FadeOutToBlack
-.IMPORT Func_ProcessFrame
 .IMPORT Func_SetLastSpawnPoint
 .IMPORT Func_TickAllDevices
 .IMPORT Func_ToggleLeverDevice
@@ -183,8 +183,7 @@ _GameLoop:
     @noCutscene:
     ;; Draw this frame:
     jsr_prga FuncA_Objects_DrawObjectsForRoom
-    jsr Func_ClearRestOfOam
-    jsr Func_ProcessFrame
+    jsr Func_ClearRestOfOamAndProcessFrame
 _CheckForToggleHud:
     lda Zp_P1ButtonsPressed_bJoypad
     and #bJoypad::Select

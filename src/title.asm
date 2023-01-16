@@ -30,11 +30,11 @@
 .IMPORT Data_EmptyChain_u8_arr
 .IMPORT FuncA_Upgrade_ComputeMaxInstructions
 .IMPORT Func_ClearRestOfOam
+.IMPORT Func_ClearRestOfOamAndProcessFrame
 .IMPORT Func_FadeInFromBlack
 .IMPORT Func_FadeOutToBlack
 .IMPORT Func_FillUpperAttributeTable
 .IMPORT Func_GetRandomByte
-.IMPORT Func_ProcessFrame
 .IMPORT Func_SetFlag
 .IMPORT Func_Window_Disable
 .IMPORT Main_Explore_SpawnInLastSafeRoom
@@ -83,7 +83,7 @@ _GameLoop:
     lda Zp_P1ButtonsPressed_bJoypad
     and #bJoypad::Start
     bne _StartGame
-    jsr Func_ProcessFrame
+    jsr Func_ClearRestOfOamAndProcessFrame
     jsr Func_GetRandomByte  ; tick the RNG (and discard the result)
     jmp _GameLoop
 _StartGame:

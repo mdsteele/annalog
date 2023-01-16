@@ -40,8 +40,7 @@
 .IMPORT FuncA_Machine_Tick
 .IMPORT FuncA_Objects_DrawObjectsForRoom
 .IMPORT FuncA_Terrain_ScrollTowardsGoal
-.IMPORT Func_ClearRestOfOam
-.IMPORT Func_ProcessFrame
+.IMPORT Func_ClearRestOfOamAndProcessFrame
 .IMPORT Func_SetMachineIndex
 .IMPORT Func_Window_GetRowPpuAddr
 .IMPORT Main_Console_ContinueEditing
@@ -1342,8 +1341,7 @@ _RedrawInstructions:
 _GameLoop:
     jsr_prga FuncA_Objects_DrawObjectsForRoom
     jsr_prga FuncA_Console_DrawMenuCursorObjects
-    jsr Func_ClearRestOfOam
-    jsr Func_ProcessFrame
+    jsr Func_ClearRestOfOamAndProcessFrame
 _CheckForCancel:
     bit Zp_P1ButtonsPressed_bJoypad
     ;; B button:
