@@ -23,9 +23,11 @@
 .INCLUDE "../cpu.inc"
 .INCLUDE "../device.inc"
 .INCLUDE "../flag.inc"
+.INCLUDE "../irq.inc"
 .INCLUDE "../machine.inc"
 .INCLUDE "../machines/cannon.inc"
 .INCLUDE "../macros.inc"
+.INCLUDE "../mmc3.inc"
 .INCLUDE "../oam.inc"
 .INCLUDE "../platform.inc"
 .INCLUDE "../ppu.inc"
@@ -46,6 +48,7 @@
 .IMPORT FuncA_Room_InitBoss
 .IMPORT FuncA_Room_MachineCannonReset
 .IMPORT FuncA_Room_TickBoss
+.IMPORT Func_AckIrqAndLatchWindowFromParam3
 .IMPORT Func_DivMod
 .IMPORT Func_FindEmptyActorSlot
 .IMPORT Func_GetRandomByte
@@ -67,8 +70,13 @@
 .IMPORT Ram_PlatformType_ePlatform_arr
 .IMPORT Ram_RoomState
 .IMPORTZP Zp_AvatarPosX_i16
+.IMPORTZP Zp_Buffered_sIrq
+.IMPORTZP Zp_CameraCanScroll_bool
 .IMPORTZP Zp_Chr0cBank_u8
 .IMPORTZP Zp_FrameCounter_u8
+.IMPORTZP Zp_NextIrq_int_ptr
+.IMPORTZP Zp_RoomScrollX_u16
+.IMPORTZP Zp_RoomScrollY_u8
 .IMPORTZP Zp_Tmp1_byte
 .IMPORTZP Zp_Tmp_ptr
 
@@ -125,6 +133,11 @@ kBossRightEyeCenterY = $78
 
 ;;; The OBJ palette number used for the eyes of the boss.
 kPaletteObjBossEye = 1
+
+;;; The room pixel Y-positions for the top and bottom of the zone that the boss
+;;; appears within.
+kBossZoneTopY    = $18
+kBossZoneBottomY = $88
 
 ;;;=========================================================================;;;
 
@@ -192,7 +205,7 @@ kPaletteObjBossEye = 1
     D_STRUCT sRoom
     d_byte MinScrollX_u8, $0
     d_word MaxScrollX_u16, $0
-    d_byte Flags_bRoom, eArea::Garden
+    d_byte Flags_bRoom, bRoom::Tall | eArea::Garden
     d_byte MinimapStartRow_u8, 9
     d_byte MinimapStartCol_u8, 7
     d_addr TerrainData_ptr, _TerrainData
@@ -212,12 +225,12 @@ _Ext_sRoomExt:
     d_addr Dialogs_sDialog_ptr_arr_ptr, 0
     d_addr Passages_sPassage_arr_ptr, 0
     d_addr Init_func_ptr, FuncC_Garden_Boss_InitRoom
-    d_addr Enter_func_ptr, Func_Noop
+    d_addr Enter_func_ptr, FuncC_Garden_Boss_EnterRoom
     d_addr FadeIn_func_ptr, Func_Noop
     D_END
 _TerrainData:
 :   .incbin "out/data/garden_boss.room"
-    .assert * - :- = 16 * 16, error
+    .assert * - :- = 16 * 24, error
 _Machines_sMachine_arr:
 :   .assert * - :- = kCannonMachineIndex * .sizeof(sMachine), error
     D_STRUCT sMachine
@@ -354,6 +367,17 @@ _InitializeBoss:
     sta Ram_RoomState + sState::BossCooldown_u8
     lda #eBoss::Waiting
     sta Ram_RoomState + sState::BossMode_eBoss
+    rts
+.ENDPROC
+
+;;; Room enter function for the GardenBoss room.
+.PROC FuncC_Garden_Boss_EnterRoom
+    ;; Lock scrolling.
+    lda #0
+    sta Zp_CameraCanScroll_bool
+    sta Zp_RoomScrollX_u16 + 0
+    sta Zp_RoomScrollX_u16 + 1
+    sta Zp_RoomScrollY_u8
     rts
 .ENDPROC
 
@@ -724,18 +748,31 @@ _Done:
 
 ;;; Draws the boss.
 .PROC FuncA_Objects_GardenBoss_DrawBoss
-    ;; Draw boss eyes.
+_DrawBossEyes:
     ldx #eEye::Left  ; param: eye
     jsr FuncA_Objects_GardenBoss_DrawEye  ; preserves X
     .assert eEye::Right = 1 + eEye::Left, error
     inx  ; param: eye
     jsr FuncA_Objects_GardenBoss_DrawEye
-    ;; Animate thorns.
+_AnimateThorns:
     lda Ram_RoomState + sState::BossThornCounter_u8
     div #4
     and #$07
     add #<.bank(Ppu_ChrBgAnim0)
     sta Zp_Chr0cBank_u8
+_SetUpIrq:
+    ;; Compute the IRQ latch value to set between the bottom of the boss's zone
+    ;; and the top of the window (if any), and set that as Param3_byte.
+    lda <(Zp_Buffered_sIrq + sIrq::Latch_u8)
+    sub #kBossZoneBottomY
+    add Zp_RoomScrollY_u8
+    sta <(Zp_Buffered_sIrq + sIrq::Param3_byte)  ; window latch
+    ;; Set up our own sIrq struct to handle boss movement.
+    lda #kBossZoneTopY - 1
+    sub Zp_RoomScrollY_u8
+    sta <(Zp_Buffered_sIrq + sIrq::Latch_u8)
+    ldax #Int_GardenBossZoneTopIrq
+    stax <(Zp_Buffered_sIrq + sIrq::FirstIrq_int_ptr)
     rts
 .ENDPROC
 
@@ -778,6 +815,91 @@ _Done:
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Flags_bObj, y
     @done:
     rts
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGE_Irq"
+
+;;; HBlank IRQ handler function for the top of the boss's zone in the
+;;; GardenBoss room.  Sets the vertical scroll so as to make the thorn terrain
+;;; visible.
+.PROC Int_GardenBossZoneTopIrq
+    ;; Save A and X registers (we won't be using Y).
+    pha
+    txa
+    pha
+    ;; At this point, the first HBlank is already just about over.  Ack the
+    ;; current IRQ.
+    sta Hw_Mmc3IrqDisable_wo  ; ack
+    sta Hw_Mmc3IrqEnable_wo  ; re-enable
+    ;; Set up the latch value for next IRQ.
+    lda #kBossZoneBottomY - kBossZoneTopY - 1
+    sta Hw_Mmc3IrqLatch_wo
+    sta Hw_Mmc3IrqReload_wo
+    ;; Update Zp_NextIrq_int_ptr for the next IRQ.
+    ldax #Int_GardenBossZoneBottomIrq
+    stax Zp_NextIrq_int_ptr
+    ;; Busy-wait for a bit, that our final writes in this function will occur
+    ;; during the next HBlank.
+    ldx #8  ; This value is hand-tuned to help wait for second HBlank.
+    @busyLoop:
+    dex
+    bne @busyLoop
+    ;; Set the PPU's new scroll-Y and scroll-X values, and also set the lower
+    ;; nametable as the scrolling origin.  All of this takes four writes, and
+    ;; the last two must happen during HBlank (between dots 256 and 320).
+    ;; See https://www.nesdev.org/wiki/PPU_scrolling#Split_X.2FY_scroll
+    lda #3 << 2  ; nametable number << 2
+    sta Hw_PpuAddr_w2
+    lda #kBossZoneTopY
+    sta Hw_PpuScroll_w2
+    and #$38
+    mul #4
+    ;; We should now be in the second HBlank.
+    stx Hw_PpuScroll_w2  ; new scroll-X value (zero)
+    sta Hw_PpuAddr_w2  ; ((Y & $38) << 2) | (X >> 3)
+    ;; Restore registers and return.
+    pla
+    tax
+    pla
+    rti
+.ENDPROC
+
+;;; HBlank IRQ handler function for the bottom of the boss's zone in the
+;;; GardenBoss room.  Sets the scroll so as to make the bottom of the room look
+;;; normal.
+.PROC Int_GardenBossZoneBottomIrq
+    ;; Save A and X registers (we won't be using Y).
+    pha
+    txa
+    pha
+    ;; At this point, the first HBlank is already just about over.  Ack the
+    ;; current IRQ and prepare for the next one.
+    jsr Func_AckIrqAndLatchWindowFromParam3  ; preserves Y
+    ;; Busy-wait for a bit, that our final writes in this function will occur
+    ;; during the next HBlank.
+    ldx #7  ; This value is hand-tuned to help wait for second HBlank.
+    @busyLoop:
+    dex
+    bne @busyLoop
+    ;; Set the PPU's new scroll-Y and scroll-X values, and also set the upper
+    ;; nametable as the scrolling origin.  All of this takes four writes, and
+    ;; the last two must happen during HBlank (between dots 256 and 320).
+    ;; See https://www.nesdev.org/wiki/PPU_scrolling#Split_X.2FY_scroll
+    lda #0 << 2  ; nametable number << 2
+    sta Hw_PpuAddr_w2
+    lda #kBossZoneBottomY  ; new scroll-Y value
+    sta Hw_PpuScroll_w2
+    lda #(kBossZoneBottomY & $38) << 2
+    ;; We should now be in the second HBlank (and X is zero).
+    stx Hw_PpuScroll_w2  ; new scroll-X value (zero)
+    sta Hw_PpuAddr_w2    ; ((Y & $38) << 2) | (X >> 3)
+    ;; Restore registers and return.
+    pla
+    tax
+    pla
+    rti
 .ENDPROC
 
 ;;;=========================================================================;;;

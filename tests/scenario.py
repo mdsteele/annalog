@@ -25,6 +25,11 @@ import sys
 
 #=============================================================================#
 
+PERMITTED_DOOR_MISMATCHES = {
+    'GardenBoss': (10, 7),
+    'GardenTower': (9, 7),
+}
+
 PERMITTED_OOB_CELLS = set([
     ('GardenLanding', (6, 7)),
 ])
@@ -327,6 +332,8 @@ def test_room_doors(areas):
     for area_name, area in areas.items():
         for room_name, room in area['rooms'].items():
             for door in room['doors']:
+                if PERMITTED_DOOR_MISMATCHES.get(room_name) == door['cell']:
+                    continue
                 dest_room_name = door['dest_room']
                 dest_room = area['rooms'][dest_room_name]
                 for dest_door in dest_room['doors']:

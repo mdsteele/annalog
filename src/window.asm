@@ -24,6 +24,7 @@
 .INCLUDE "window.inc"
 
 .IMPORT Ram_PpuTransfer_arr
+.IMPORTZP Zp_Active_sIrq
 .IMPORTZP Zp_Buffered_sIrq
 .IMPORTZP Zp_NextIrq_int_ptr
 .IMPORTZP Zp_PpuTransferLen_u8
@@ -235,11 +236,31 @@ _Disable:
 
 .SEGMENT "PRGE_Irq"
 
+;;; Acks the current HBlank IRQ, and sets up the next IRQ for the top of the
+;;; window, using Param3_byte from Zp_Active_sIrq as the latch value.  This
+;;; should only be called from within an IRQ handler.
+;;; @preserve X, Y
+.EXPORT Func_AckIrqAndLatchWindowFromParam3
+.PROC Func_AckIrqAndLatchWindowFromParam3
+    ;; Ack the current IRQ.
+    sta Hw_Mmc3IrqDisable_wo  ; ack
+    sta Hw_Mmc3IrqEnable_wo  ; re-enable
+    ;; Update Zp_NextIrq_int_ptr for the next IRQ.
+    lda #<Int_WindowTopIrq
+    sta Zp_NextIrq_int_ptr + 0
+    lda #>Int_WindowTopIrq
+    sta Zp_NextIrq_int_ptr + 1
+    ;; Set up the latch value for next IRQ.
+    lda <(Zp_Active_sIrq + sIrq::Param3_byte)  ; window latch
+    sta Hw_Mmc3IrqLatch_wo
+    sta Hw_Mmc3IrqReload_wo
+    rts
+.ENDPROC
+
 ;;; HBlank IRQ handler function for the top edge of the window.  Sets the PPU
 ;;; scroll so as to display the window, and disables drawing objects over the
 ;;; window's top border, so that it looks like the window is in front of any
 ;;; objects in the room.
-.EXPORT Int_WindowTopIrq
 .PROC Int_WindowTopIrq
     ;; Save A and X registers (we won't be using Y).
     pha

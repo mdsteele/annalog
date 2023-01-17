@@ -34,6 +34,8 @@ kExpectedPpuAddr = $2f80
 
 Zp_WindowRowPpuAddr_ptr: .res 2
 
+.EXPORTZP Zp_Active_sIrq
+Zp_Active_sIrq: .tag sIrq
 .EXPORTZP Zp_Buffered_sIrq
 Zp_Buffered_sIrq: .tag sIrq
 .EXPORTZP Zp_NextIrq_int_ptr

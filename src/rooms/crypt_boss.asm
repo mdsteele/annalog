@@ -50,12 +50,12 @@
 .IMPORT FuncA_Objects_MoveShapeUpOneTile
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
 .IMPORT FuncA_Objects_SetShapePosToSpikeballCenter
+.IMPORT Func_AckIrqAndLatchWindowFromParam3
 .IMPORT Func_MovePlatformHorz
 .IMPORT Func_MovePlatformLeftTowardPointX
 .IMPORT Func_MovePlatformTopTowardPointY
 .IMPORT Func_Noop
 .IMPORT Func_ResetWinchMachineParams
-.IMPORT Int_WindowTopIrq
 .IMPORT Ppu_ChrObjCrypt
 .IMPORT Ram_MachineGoalHorz_u8_arr
 .IMPORT Ram_MachineGoalVert_u8_arr
@@ -690,19 +690,11 @@ _EyeOffsetY_u8_arr:
     txa
     pha
     ;; At this point, the first HBlank is already just about over.  Ack the
-    ;; current IRQ.
-    sta Hw_Mmc3IrqDisable_wo  ; ack
-    sta Hw_Mmc3IrqEnable_wo  ; re-enable
-    ;; Set up the latch value for next IRQ.
-    lda <(Zp_Active_sIrq + sIrq::Param3_byte)  ; window latch
-    sta Hw_Mmc3IrqLatch_wo
-    sta Hw_Mmc3IrqReload_wo
-    ;; Update Zp_NextIrq_int_ptr for the next IRQ.
-    ldax #Int_WindowTopIrq
-    stax Zp_NextIrq_int_ptr
+    ;; current IRQ and prepare for the next one.
+    jsr Func_AckIrqAndLatchWindowFromParam3  ; preserves Y
     ;; Busy-wait for a bit, that our final writes in this function will occur
     ;; during the next HBlank.
-    ldx #9  ; This value is hand-tuned to help wait for second HBlank.
+    ldx #7  ; This value is hand-tuned to help wait for second HBlank.
     @busyLoop:
     dex
     bne @busyLoop

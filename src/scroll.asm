@@ -31,7 +31,6 @@
 .IMPORTZP Zp_AvatarPosX_i16
 .IMPORTZP Zp_AvatarPosY_i16
 .IMPORTZP Zp_Current_sRoom
-.IMPORTZP Zp_FrameCounter_u8
 .IMPORTZP Zp_Tmp1_byte
 .IMPORTZP Zp_Tmp2_byte
 .IMPORTZP Zp_WindowTop_u8
@@ -217,10 +216,10 @@ _SetScrollGoalX:
 ;;; for the current room as necessary.
 .EXPORT FuncA_Terrain_ScrollTowardsGoal
 .PROC FuncA_Terrain_ScrollTowardsGoal
+    ;; If scrolling is locked, don't scroll vertically (but still allow camera
+    ;; shake to work).
     bit Zp_CameraCanScroll_bool
-    bmi @canScroll
-    rts
-    @canScroll:
+    bpl _ShakeScrollY
 _TrackScrollYTowardsGoal:
     ;; Compute the delta from the current scroll-Y position to the goal
     ;; position, storing it in A.
@@ -286,14 +285,18 @@ _ShakeScrollY:
     beq @done
     dec Zp_RoomShake_u8
     ;; If the room is shaking, replace bit 0 of Zp_RoomScrollY_u8 with bit 1 of
-    ;; Zp_FrameCounter_u8.
+    ;; Zp_RoomShake_u8.
     lsr Zp_RoomScrollY_u8
-    lda Zp_FrameCounter_u8
     lsr a
     lsr a
     rol Zp_RoomScrollY_u8
     @done:
 _PrepareToScrollHorz:
+    ;; If scrolling is locked, don't scroll horizontally.
+    bit Zp_CameraCanScroll_bool
+    bmi @canScroll
+    rts
+    @canScroll:
     ;; Calculate the index of the leftmost room tile column that is currently
     ;; in the nametable, and put that index in Zp_Tmp1_byte.
     lda Zp_RoomScrollX_u16 + 0
