@@ -49,7 +49,7 @@
 .INCLUDE "platforms/crate.inc"
 .INCLUDE "platforms/gate.inc"
 .INCLUDE "platforms/stepstone.inc"
-.INCLUDE "rooms/garden_boss.inc"
+.INCLUDE "rooms/boss_garden.inc"
 .INCLUDE "rooms/garden_tower.inc"
 .INCLUDE "upgrade.inc"
 

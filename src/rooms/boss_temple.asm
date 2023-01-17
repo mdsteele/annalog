@@ -90,9 +90,9 @@ kUpgradeBlockCol = 4
 ;;; The eFlag value for the upgrade in this room.
 kUpgradeFlag = eFlag::UpgradeMaxInstructions1
 
-;;; The machine index for the TempleBossMinigun machine.
+;;; The machine index for the BossTempleMinigun machine.
 kMinigunMachineIndex = 0
-;;; The platform index for the TempleBossMinigun machine.
+;;; The platform index for the BossTempleMinigun machine.
 kMinigunPlatformIndex = 4
 
 ;;; The initial and maximum permitted horizontal goal values for the minigun.
@@ -237,10 +237,10 @@ kBossBodyPlatformIndex = 3
 
 ;;;=========================================================================;;;
 
-.SEGMENT "PRGC_Temple"
+.SEGMENT "PRGC_Boss"
 
-.EXPORT DataC_Temple_Boss_sRoom
-.PROC DataC_Temple_Boss_sRoom
+.EXPORT DataC_Boss_Temple_sRoom
+.PROC DataC_Boss_Temple_sRoom
     D_STRUCT sRoom
     d_byte MinScrollX_u8,  kRoomScrollX
     d_word MaxScrollX_u16, kRoomScrollX + $0
@@ -251,8 +251,8 @@ kBossBodyPlatformIndex = 3
     d_byte NumMachines_u8, 1
     d_addr Machines_sMachine_arr_ptr, _Machines_sMachine_arr
     d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjTemple)
-    d_addr Tick_func_ptr, FuncC_Temple_Boss_TickRoom
-    d_addr Draw_func_ptr, FuncC_Temple_Boss_DrawRoom
+    d_addr Tick_func_ptr, FuncC_Boss_Temple_TickRoom
+    d_addr Draw_func_ptr, FuncC_Boss_Temple_DrawRoom
     d_addr Ext_sRoomExt_ptr, _Ext_sRoomExt
     D_END
 _Ext_sRoomExt:
@@ -263,17 +263,17 @@ _Ext_sRoomExt:
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
     d_addr Dialogs_sDialog_ptr_arr_ptr, 0
     d_addr Passages_sPassage_arr_ptr, 0
-    d_addr Init_func_ptr, FuncC_Temple_Boss_InitRoom
+    d_addr Init_func_ptr, FuncC_Boss_Temple_InitRoom
     d_addr Enter_func_ptr, Func_Noop
-    d_addr FadeIn_func_ptr, FuncC_Temple_Boss_FadeInRoom
+    d_addr FadeIn_func_ptr, FuncC_Boss_Temple_FadeInRoom
     D_END
 _TerrainData:
-:   .incbin "out/data/temple_boss.room"
+:   .incbin "out/data/boss_temple.room"
     .assert * - :- = 17 * 16, error
 _Machines_sMachine_arr:
 :   .assert * - :- = kMinigunMachineIndex * .sizeof(sMachine), error
     D_STRUCT sMachine
-    d_byte Code_eProgram, eProgram::TempleBossMinigun
+    d_byte Code_eProgram, eProgram::BossTempleMinigun
     d_byte Breaker_eFlag, 0
     d_byte Flags_bMachine, bMachine::MoveH | bMachine::Act
     d_byte Status_eDiagram, eDiagram::Carriage  ; TODO
@@ -281,14 +281,14 @@ _Machines_sMachine_arr:
     d_byte ScrollGoalY_u8, $16
     d_byte RegNames_u8_arr4, "L", "R", "X", 0
     d_byte MainPlatform_u8, kMinigunPlatformIndex
-    d_addr Init_func_ptr, FuncC_Temple_BossMinigun_Init
-    d_addr ReadReg_func_ptr, FuncC_Temple_BossMinigun_ReadReg
+    d_addr Init_func_ptr, FuncC_Boss_TempleMinigun_Init
+    d_addr ReadReg_func_ptr, FuncC_Boss_TempleMinigun_ReadReg
     d_addr WriteReg_func_ptr, Func_Noop
-    d_addr TryMove_func_ptr, FuncC_Temple_BossMinigun_TryMove
-    d_addr TryAct_func_ptr, FuncC_Temple_BossMinigun_TryAct
-    d_addr Tick_func_ptr, FuncC_Temple_BossMinigun_Tick
+    d_addr TryMove_func_ptr, FuncC_Boss_TempleMinigun_TryMove
+    d_addr TryAct_func_ptr, FuncC_Boss_TempleMinigun_TryAct
+    d_addr Tick_func_ptr, FuncC_Boss_TempleMinigun_Tick
     d_addr Draw_func_ptr, FuncA_Objects_DrawMinigunUpMachine
-    d_addr Reset_func_ptr, FuncC_Temple_BossMinigun_Reset
+    d_addr Reset_func_ptr, FuncC_Boss_TempleMinigun_Reset
     D_END
     .assert * - :- <= kMaxMachines * .sizeof(sMachine), error
 _Platforms_sPlatform_arr:
@@ -380,19 +380,19 @@ _Devices_sDevice_arr:
     .byte eDevice::None
 .ENDPROC
 
-.PROC FuncC_Temple_Boss_sBoss
+.PROC FuncC_Boss_Temple_sBoss
     D_STRUCT sBoss
     d_byte Boss_eFlag, eFlag::BossTemple
     d_byte BodyPlatform_u8, kBossBodyPlatformIndex
-    d_addr Tick_func_ptr, FuncC_Temple_Boss_TickBoss
-    d_addr Draw_func_ptr, FuncC_Temple_Boss_DrawBoss
+    d_addr Tick_func_ptr, FuncC_Boss_Temple_TickBoss
+    d_addr Draw_func_ptr, FuncC_Boss_Temple_DrawBoss
     D_END
 .ENDPROC
 
-;;; Room init function for the GardenBoss room.
+;;; Room init function for the BossTemple room.
 ;;; @prereq PRGA_Room is loaded.
-.PROC FuncC_Temple_Boss_InitRoom
-    ldax #FuncC_Temple_Boss_sBoss  ; param: sBoss ptr
+.PROC FuncC_Boss_Temple_InitRoom
+    ldax #FuncC_Boss_Temple_sBoss  ; param: sBoss ptr
     jsr FuncA_Room_InitBoss  ; sets Z if boss is alive
     beq _InitializeBoss
 _BossIsAlreadyDead:
@@ -404,9 +404,9 @@ _InitializeBoss:
     rts
 .ENDPROC
 
-;;; Room fade in function for the TempleBoss room.
+;;; Room fade in function for the BossTemple room.
 ;;; @prereq Rendering is disabled.
-.PROC FuncC_Temple_Boss_FadeInRoom
+.PROC FuncC_Boss_Temple_FadeInRoom
 _DrawBoss:
     lda #kPpuCtrlFlagsHorz
     sta Hw_PpuCtrl_wo
@@ -473,22 +473,22 @@ _ColumnTileCol_u8_arr:
     .byte   3,   4,   9,  10,  21,  22,  27,  28
 .ENDPROC
 
-;;; Room tick function for the TempleBoss room.
+;;; Room tick function for the BossTemple room.
 ;;; @prereq PRGA_Room is loaded.
-.PROC FuncC_Temple_Boss_TickRoom
+.PROC FuncC_Boss_Temple_TickRoom
     .assert eBossMode::Dead = 0, error
     lda Ram_RoomState + sState::Current_eBossMode  ; param: zero if boss dead
     jmp FuncA_Room_TickBoss
 .ENDPROC
 
 ;;; Performs per-frame upates for the boss in this room.
-.PROC FuncC_Temple_Boss_TickBoss
-    jsr FuncC_Temple_Boss_CheckForBulletHit
-    jsr FuncC_Temple_Boss_CheckForBreakballHit
+.PROC FuncC_Boss_Temple_TickBoss
+    jsr FuncC_Boss_Temple_CheckForBulletHit
+    jsr FuncC_Boss_Temple_CheckForBreakballHit
     ;; Tick eyes.
     ldx #eBossEye::NUM_VALUES - 1
     @loop:
-    jsr FuncC_Temple_Boss_TickBossEye  ; preserves X
+    jsr FuncC_Boss_Temple_TickBossEye  ; preserves X
     dex
     bpl @loop
 _CheckMode:
@@ -525,7 +525,7 @@ _BossWaiting:
     ;; Switch modes to fire a breakball.
     lda #eBossMode::ShootBreak
     sta Ram_RoomState + sState::Current_eBossMode
-    jmp FuncC_Temple_Boss_ChooseActiveEye
+    jmp FuncC_Boss_Temple_ChooseActiveEye
     @done:
     rts
 _BossStunned:
@@ -557,7 +557,7 @@ _BossShootBreak:
 .ENDPROC
 
 ;;; Sets Active_eBossEye to a random eBossEye value.
-.PROC FuncC_Temple_Boss_ChooseActiveEye
+.PROC FuncC_Boss_Temple_ChooseActiveEye
     jsr Func_GetRandomByte  ; returns A (param: dividend)
     ldy #eBossEye::NUM_VALUES  ; param: divisor
     jsr Func_DivMod  ; returns remainder in A
@@ -567,7 +567,7 @@ _BossShootBreak:
 
 ;;; Performs per-frame upates for one of the boss's eyes.
 ;;; @param X The eBossEye value for the eye.
-.PROC FuncC_Temple_Boss_TickBossEye
+.PROC FuncC_Boss_Temple_TickBossEye
 _CheckIfOpenOrClosed:
     lda Ram_RoomState + sState::Current_eBossMode
     cmp #eBossMode::Waiting
@@ -592,7 +592,7 @@ _Close:
 ;;; Checks if a breakball has hit the boss's body; if so, expires the breakball
 ;;; and stuns the boss.
 ;;; @prereq PRGA_Room is loaded.
-.PROC FuncC_Temple_Boss_CheckForBreakballHit
+.PROC FuncC_Boss_Temple_CheckForBreakballHit
     ;; Find the breakball actor (if any).
     ldx #kMaxActors - 1
     @loop:
@@ -628,7 +628,7 @@ _StunBoss:
 ;;; Checks if a bullet has hit a boss eye; if so, expires the bullet and makes
 ;;; the boss react accordingly.
 ;;; @prereq PRGA_Room is loaded.
-.PROC FuncC_Temple_Boss_CheckForBulletHit
+.PROC FuncC_Boss_Temple_CheckForBulletHit
     ;; Loop over all actors, skipping over non-bullets.
     ldx #kMaxActors - 1
     @actorLoop:
@@ -646,7 +646,7 @@ _StunBoss:
     ;; In practice, only one bullet/eye impact should be able to happen in a
     ;; given frame, so if an impact happens, we can just break out of both
     ;; loops (which saves us the trouble of preserving the loop variables).
-    bcs FuncC_Temple_Boss_BulletHitsEye
+    bcs FuncC_Boss_Temple_BulletHitsEye
     dey
     bpl @eyeLoop
     @actorContinue:
@@ -659,7 +659,7 @@ _StunBoss:
 ;;; @prereq PRGA_Room is loaded.
 ;;; @param X The actor index for the bullet.
 ;;; @param Y The eBossEye value for the eye that was hit.
-.PROC FuncC_Temple_Boss_BulletHitsEye
+.PROC FuncC_Boss_Temple_BulletHitsEye
     ;; Expire the bullet.
     lda #eActor::None
     sta Ram_ActorType_eActor_arr, x
@@ -672,13 +672,13 @@ _EyeIsClosed:
     rts
 _EyeIsOpen:
     ;; TODO: play a sound
-    .assert * = FuncC_Temple_Boss_CrawlUp, error, "fallthrough"
+    .assert * = FuncC_Boss_Temple_CrawlUp, error, "fallthrough"
 .ENDPROC
 
 ;;; Moves the boss upwards by one pixel, and checks if it has hit the spikes at
 ;;; the top of the room.
 ;;; @prereq PRGA_Room is loaded.
-.PROC FuncC_Temple_Boss_CrawlUp
+.PROC FuncC_Boss_Temple_CrawlUp
     ;; Move the boss's body.
     ldx #kBossBodyPlatformIndex  ; param: platform index
     lda #<-1  ; param: move delta
@@ -705,36 +705,36 @@ _Done:
     rts
 .ENDPROC
 
-;;; Draw function for the TempleBoss room.
+;;; Draw function for the BossTemple room.
 ;;; @prereq PRGA_Objects is loaded.
-.PROC FuncC_Temple_Boss_DrawRoom
+.PROC FuncC_Boss_Temple_DrawRoom
     lda #<.bank(Ppu_ChrBgOutbreak)
     sta Zp_Chr0cBank_u8
     jmp FuncA_Objects_DrawBoss
 .ENDPROC
 
-;;; Draw function for the TempleBoss room.
+;;; Draw function for the BossTemple room.
 ;;; @prereq PRGA_Objects is loaded.
-.PROC FuncC_Temple_Boss_DrawBoss
+.PROC FuncC_Boss_Temple_DrawBoss
 _DrawBossClaws:
-    jsr FuncC_Temple_SetShapePosToBossMidTop
+    jsr FuncC_Boss_Temple_SetShapePosToBossMidTop
     lda #$24  ; param: offset
     jsr FuncA_Objects_MoveShapeRightByA
     lda #0  ; param: horz flip
-    jsr FuncC_Temple_DrawBossClawPair
-    jsr FuncC_Temple_SetShapePosToBossMidTop
+    jsr FuncC_Boss_Temple_DrawClawPair
+    jsr FuncC_Boss_Temple_SetShapePosToBossMidTop
     lda #$2c  ; param: offset
     jsr FuncA_Objects_MoveShapeLeftByA
     lda #bObj::FlipH  ; param: horz flip
-    jsr FuncC_Temple_DrawBossClawPair
+    jsr FuncC_Boss_Temple_DrawClawPair
 _DrawBossEyes:
     ldx #eBossEye::NUM_VALUES - 1
     @loop:
-    jsr FuncC_Temple_DrawBossEye
+    jsr FuncC_Boss_Temple_DrawEye
     dex
     bpl @loop
 _DrawBossBrain:
-    jsr FuncC_Temple_SetShapePosToBossMidTop
+    jsr FuncC_Boss_Temple_SetShapePosToBossMidTop
     jsr FuncA_Objects_MoveShapeUpOneTile
     lda #kPaletteObjOutbreakBrain  ; param: object flags
     jsr FuncA_Objects_Alloc2x1Shape  ; returns C and Y
@@ -756,7 +756,7 @@ _SetUpIrq:
     lda #kBossZoneTopY - 1
     sub Zp_RoomScrollY_u8
     sta <(Zp_Buffered_sIrq + sIrq::Latch_u8)
-    ldax #Int_TempleBossZoneTopIrq
+    ldax #Int_BossTempleZoneTopIrq
     stax <(Zp_Buffered_sIrq + sIrq::FirstIrq_int_ptr)
     ;; Compute PPU scroll values for the boss zone.
     lda #kBossBodyStartRow * kTileHeightPx + kBossZoneTopY
@@ -768,7 +768,7 @@ _SetUpIrq:
 ;;; Draws two claws on one side of the temple boss.
 ;;; @prereq The shape position is set to the top left of the claw pair.
 ;;; @param A Either 0 for eastern claws, or bObj::FlipH for western claws.
-.PROC FuncC_Temple_DrawBossClawPair
+.PROC FuncC_Boss_Temple_DrawClawPair
     pha  ; horz flip
     .assert kPaletteObjOutbreakClaw = 0, error
     tay  ; param: object flags
@@ -797,7 +797,7 @@ _Offset_u8_arr2:
 ;;; Draws one eye for the temple boss.
 ;;; @param X The eBossEye value for the eye to draw.
 ;;; @preserve X
-.PROC FuncC_Temple_DrawBossEye
+.PROC FuncC_Boss_Temple_DrawEye
     .assert eBossEye::Left = kBossEyeLeftPlatformIndex, error
     .assert eBossEye::Center = kBossEyeCenterPlatformIndex, error
     .assert eBossEye::Right = kBossEyeRightPlatformIndex, error
@@ -820,7 +820,7 @@ _Offset_u8_arr2:
 ;;; Sets Zp_ShapePosX_i16 and Zp_ShapePosY_i16 to the screen-space position of
 ;;; the top-center of the boss's body.
 ;;; @preserve X, Y, Zp_Tmp*
-.PROC FuncC_Temple_SetShapePosToBossMidTop
+.PROC FuncC_Boss_Temple_SetShapePosToBossMidTop
     lda #kScreenWidthPx / 2
     sta Zp_ShapePosX_i16 + 0
     lda Ram_PlatformTop_i16_0_arr + kBossBodyPlatformIndex
@@ -832,17 +832,17 @@ _Offset_u8_arr2:
     rts
 .ENDPROC
 
-.PROC FuncC_Temple_BossMinigun_Init
-    .assert * = FuncC_Temple_BossMinigun_Reset, error, "fallthrough"
+.PROC FuncC_Boss_TempleMinigun_Init
+    .assert * = FuncC_Boss_TempleMinigun_Reset, error, "fallthrough"
 .ENDPROC
 
-.PROC FuncC_Temple_BossMinigun_Reset
+.PROC FuncC_Boss_TempleMinigun_Reset
     lda #kMinigunInitGoalX
     sta Ram_MachineGoalHorz_u8_arr + kMinigunMachineIndex
     rts
 .ENDPROC
 
-.PROC FuncC_Temple_BossMinigun_ReadReg
+.PROC FuncC_Boss_TempleMinigun_ReadReg
     cmp #$c
     beq @readL
     cmp #$d
@@ -860,17 +860,17 @@ _Offset_u8_arr2:
     rts
 .ENDPROC
 
-.PROC FuncC_Temple_BossMinigun_TryMove
+.PROC FuncC_Boss_TempleMinigun_TryMove
     lda #kMinigunMaxGoalX  ; param: max goal
     jmp FuncA_Machine_GenericTryMoveX
 .ENDPROC
 
-.PROC FuncC_Temple_BossMinigun_TryAct
+.PROC FuncC_Boss_TempleMinigun_TryAct
     ldy #eDir::Up  ; param: bullet direction
     jmp FuncA_Machine_MinigunTryAct
 .ENDPROC
 
-.PROC FuncC_Temple_BossMinigun_Tick
+.PROC FuncC_Boss_TempleMinigun_Tick
     jsr FuncA_Machine_MinigunRotateBarrel
     ldax #kMinigunMinPlatformLeft  ; param: min platform left
     jsr FuncA_Machine_GenericMoveTowardGoalHorz  ; returns Z
@@ -883,9 +883,9 @@ _Offset_u8_arr2:
 .SEGMENT "PRGE_Irq"
 
 ;;; HBlank IRQ handler function for the top of the boss's zone in the
-;;; TempleBoss room.  Sets the vertical scroll so as to make the boss's BG
+;;; BossTemple room.  Sets the vertical scroll so as to make the boss's BG
 ;;; tiles appear to move.
-.PROC Int_TempleBossZoneTopIrq
+.PROC Int_BossTempleZoneTopIrq
     ;; Save A and X registers (we won't be using Y).
     pha
     txa
@@ -899,7 +899,7 @@ _Offset_u8_arr2:
     sta Hw_Mmc3IrqLatch_wo
     sta Hw_Mmc3IrqReload_wo
     ;; Update Zp_NextIrq_int_ptr for the next IRQ.
-    ldax #Int_TempleBossZoneBottomIrq
+    ldax #Int_BossTempleZoneBottomIrq
     stax Zp_NextIrq_int_ptr
     ;; Busy-wait for a bit, that our final writes in this function will occur
     ;; during the next HBlank.
@@ -928,9 +928,9 @@ _Offset_u8_arr2:
 .ENDPROC
 
 ;;; HBlank IRQ handler function for the bottom of the boss's zone in the
-;;; TempleBoss room.  Sets the scroll so as to make the bottom of the room look
+;;; BossTemple room.  Sets the scroll so as to make the bottom of the room look
 ;;; normal.
-.PROC Int_TempleBossZoneBottomIrq
+.PROC Int_BossTempleZoneBottomIrq
     ;; Save A and X registers (we won't be using Y).
     pha
     txa

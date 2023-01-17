@@ -40,8 +40,10 @@ kMaxPassages = 8
 
 ;;; The list of rooms in the game.
 .ENUM eRoom
+    BossCrypt
+    BossGarden
+    BossTemple
     CoreElevator
-    CryptBoss
     CryptEast
     CryptEscape
     CryptFlower
@@ -53,7 +55,6 @@ kMaxPassages = 8
     CryptWest
     FactoryCenter
     FactoryElevator
-    GardenBoss
     GardenCrossroad
     GardenEast
     GardenFlower
@@ -93,7 +94,6 @@ kMaxPassages = 8
     SewerFlower
     ShadowTeleport
     TempleAltar
-    TempleBoss
     TempleEntry
     TempleFlower
     TempleLobby

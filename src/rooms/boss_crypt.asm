@@ -188,10 +188,10 @@ kPaletteObjBossPupil = 0
 
 ;;;=========================================================================;;;
 
-.SEGMENT "PRGC_Crypt"
+.SEGMENT "PRGC_Boss"
 
-.EXPORT DataC_Crypt_Boss_sRoom
-.PROC DataC_Crypt_Boss_sRoom
+.EXPORT DataC_Boss_Crypt_sRoom
+.PROC DataC_Boss_Crypt_sRoom
     D_STRUCT sRoom
     d_byte MinScrollX_u8, $00
     d_word MaxScrollX_u16, $0000
@@ -202,8 +202,8 @@ kPaletteObjBossPupil = 0
     d_byte NumMachines_u8, 1
     d_addr Machines_sMachine_arr_ptr, _Machines_sMachine_arr
     d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjCrypt)
-    d_addr Tick_func_ptr, FuncC_Crypt_Boss_TickRoom
-    d_addr Draw_func_ptr, FuncC_Crypt_Boss_DrawRoom
+    d_addr Tick_func_ptr, FuncC_Boss_Crypt_TickRoom
+    d_addr Draw_func_ptr, FuncC_Boss_Crypt_DrawRoom
     d_addr Ext_sRoomExt_ptr, _Ext_sRoomExt
     D_END
 _Ext_sRoomExt:
@@ -214,17 +214,17 @@ _Ext_sRoomExt:
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
     d_addr Dialogs_sDialog_ptr_arr_ptr, 0
     d_addr Passages_sPassage_arr_ptr, 0
-    d_addr Init_func_ptr, FuncC_Crypt_Boss_InitRoom
+    d_addr Init_func_ptr, FuncC_Boss_Crypt_InitRoom
     d_addr Enter_func_ptr, Func_Noop
-    d_addr FadeIn_func_ptr, FuncC_Crypt_Boss_FadeInRoom
+    d_addr FadeIn_func_ptr, FuncC_Boss_Crypt_FadeInRoom
     D_END
 _TerrainData:
-:   .incbin "out/data/crypt_boss.room"
+:   .incbin "out/data/boss_crypt.room"
     .assert * - :- = 16 * 16, error
 _Machines_sMachine_arr:
 :   .assert * - :- = kWinchMachineIndex * .sizeof(sMachine), error
     D_STRUCT sMachine
-    d_byte Code_eProgram, eProgram::CryptTombWinch
+    d_byte Code_eProgram, eProgram::BossCryptWinch
     d_byte Breaker_eFlag, 0
     d_byte Flags_bMachine, bMachine::MoveH | bMachine::MoveV | bMachine::Act
     d_byte Status_eDiagram, eDiagram::Winch
@@ -232,14 +232,14 @@ _Machines_sMachine_arr:
     d_byte ScrollGoalY_u8, $0
     d_byte RegNames_u8_arr4, "L", "R", "X", "Z"
     d_byte MainPlatform_u8, kWinchPlatformIndex
-    d_addr Init_func_ptr, FuncC_Crypt_BossWinch_Init
-    d_addr ReadReg_func_ptr, FuncC_Crypt_BossWinch_ReadReg
+    d_addr Init_func_ptr, FuncC_Boss_CryptWinch_Init
+    d_addr ReadReg_func_ptr, FuncC_Boss_CryptWinch_ReadReg
     d_addr WriteReg_func_ptr, Func_Noop
-    d_addr TryMove_func_ptr, FuncC_Crypt_BossWinch_TryMove
-    d_addr TryAct_func_ptr, FuncC_Crypt_BossWinch_TryAct
-    d_addr Tick_func_ptr, FuncC_Crypt_BossWinch_Tick
-    d_addr Draw_func_ptr, FuncA_Objects_CryptBossWinch_Draw
-    d_addr Reset_func_ptr, FuncC_Crypt_BossWinch_Reset
+    d_addr TryMove_func_ptr, FuncC_Boss_CryptWinch_TryMove
+    d_addr TryAct_func_ptr, FuncC_Boss_CryptWinch_TryAct
+    d_addr Tick_func_ptr, FuncC_Boss_CryptWinch_Tick
+    d_addr Draw_func_ptr, FuncA_Objects_BossCryptWinch_Draw
+    d_addr Reset_func_ptr, FuncC_Boss_CryptWinch_Reset
     D_END
     .assert * - :- <= kMaxMachines * .sizeof(sMachine), error
 _Platforms_sPlatform_arr:
@@ -317,7 +317,7 @@ _Devices_sDevice_arr:
     .byte eDevice::None
 .ENDPROC
 
-.PROC FuncC_Crypt_BossWinch_ReadReg
+.PROC FuncC_Boss_CryptWinch_ReadReg
     cmp #$c
     beq _ReadL
     cmp #$d
@@ -342,7 +342,7 @@ _ReadR:
     rts
 .ENDPROC
 
-.PROC FuncC_Crypt_BossWinch_TryMove
+.PROC FuncC_Boss_CryptWinch_TryMove
     ldy Ram_MachineGoalHorz_u8_arr + kWinchMachineIndex
     .assert eDir::Up = 0, error
     txa
@@ -362,7 +362,7 @@ _MoveHorz:
     beq _Error
     dey
     @checkFloor:
-    lda DataC_Crypt_BossFloor_u8_arr, y
+    lda DataC_Boss_CryptFloor_u8_arr, y
     cmp Ram_MachineGoalVert_u8_arr + kWinchMachineIndex
     blt _Error
     sty Ram_MachineGoalHorz_u8_arr + kWinchMachineIndex
@@ -375,7 +375,7 @@ _MoveUp:
 _MoveDown:
     ;; TODO: check for weak floor collision
     lda Ram_MachineGoalVert_u8_arr + kWinchMachineIndex
-    cmp DataC_Crypt_BossFloor_u8_arr, y
+    cmp DataC_Boss_CryptFloor_u8_arr, y
     bge _Error
     inc Ram_MachineGoalVert_u8_arr + kWinchMachineIndex
     jmp FuncA_Machine_StartWorking
@@ -383,13 +383,13 @@ _Error:
     jmp FuncA_Machine_Error
 .ENDPROC
 
-.PROC FuncC_Crypt_BossWinch_TryAct
+.PROC FuncC_Boss_CryptWinch_TryAct
     ldy Ram_MachineGoalHorz_u8_arr + kWinchMachineIndex
-    lda DataC_Crypt_BossFloor_u8_arr, y  ; param: new Z-goal
+    lda DataC_Boss_CryptFloor_u8_arr, y  ; param: new Z-goal
     jmp FuncA_Machine_WinchStartFalling
 .ENDPROC
 
-.PROC FuncC_Crypt_BossWinch_Tick
+.PROC FuncC_Boss_CryptWinch_Tick
 _MoveVert:
     ;; Calculate the desired room-space pixel Y-position for the top edge of
     ;; the spikeball, storing it in Zp_PointY_i16.
@@ -435,10 +435,10 @@ _MoveHorz:
 _Finished:
     lda Ram_RoomState + sState::WinchReset_eResetSeq
     jeq FuncA_Machine_WinchReachedGoal
-    .assert * = FuncC_Crypt_BossWinch_Reset, error, "fallthrough"
+    .assert * = FuncC_Boss_CryptWinch_Reset, error, "fallthrough"
 .ENDPROC
 
-.PROC FuncC_Crypt_BossWinch_Reset
+.PROC FuncC_Boss_CryptWinch_Reset
     jsr Func_ResetWinchMachineParams
     lda Ram_MachineGoalHorz_u8_arr + kWinchMachineIndex
     cmp #3
@@ -454,10 +454,10 @@ _Outer:
     sta Ram_RoomState + sState::WinchReset_eResetSeq
     rts
 _Inner:
-    .assert * = FuncC_Crypt_BossWinch_Init, error, "fallthrough"
+    .assert * = FuncC_Boss_CryptWinch_Init, error, "fallthrough"
 .ENDPROC
 
-.PROC FuncC_Crypt_BossWinch_Init
+.PROC FuncC_Boss_CryptWinch_Init
     lda #kWinchInitGoalX
     sta Ram_MachineGoalHorz_u8_arr + kWinchMachineIndex
     lda #kWinchInitGoalZ
@@ -467,11 +467,11 @@ _Inner:
     rts
 .ENDPROC
 
-.PROC DataC_Crypt_BossFloor_u8_arr
+.PROC DataC_Boss_CryptFloor_u8_arr
     .byte 8, 8, 1, 9, 9, 9, 5, 1, 9, 9
 .ENDPROC
 
-.PROC DataC_Crypt_BossInitTransfer_arr
+.PROC DataC_Boss_CryptInitTransfer_arr
     .assert kBossWidthTiles = 6, error
     .assert kBossHeightTiles = 4, error
     ;; Row 0:
@@ -506,7 +506,7 @@ _Inner:
     .byte $04
 .ENDPROC
 
-.PROC FuncC_Crypt_Boss_InitRoom
+.PROC FuncC_Boss_Crypt_InitRoom
     lda #kBossInitPosX
     sta Ram_RoomState + sState::BossPosX_u8
     lda #kBossInitPosY
@@ -514,34 +514,34 @@ _Inner:
     rts
 .ENDPROC
 
-.PROC FuncC_Crypt_Boss_FadeInRoom
+.PROC FuncC_Boss_Crypt_FadeInRoom
     ldy #0
     ldx Zp_PpuTransferLen_u8
     @loop:
-    lda DataC_Crypt_BossInitTransfer_arr, y
+    lda DataC_Boss_CryptInitTransfer_arr, y
     iny
     sta Ram_PpuTransfer_arr, x
     inx
-    cpy #.sizeof(DataC_Crypt_BossInitTransfer_arr)
+    cpy #.sizeof(DataC_Boss_CryptInitTransfer_arr)
     blt @loop
     stx Zp_PpuTransferLen_u8
     rts
 .ENDPROC
 
-;;; Tick function for the CryptBoss room.
-.PROC FuncC_Crypt_Boss_TickRoom
+;;; Tick function for the BossCrypt room.
+.PROC FuncC_Boss_Crypt_TickRoom
     ;; TODO: Implement motion and fireballs for boss.
     inc Ram_RoomState + sState::BossPosX_u8
     rts
 .ENDPROC
 
-;;; Draw function for the CryptBoss room.
+;;; Draw function for the BossCrypt room.
 ;;; @prereq PRGA_Objects is loaded.
-.PROC FuncC_Crypt_Boss_DrawRoom
+.PROC FuncC_Boss_Crypt_DrawRoom
     ldx #kLeftWallPlatformIndex  ; param: platform index
-    jsr FuncA_Objects_CryptBoss_DrawSideWall
+    jsr FuncA_Objects_BossCrypt_DrawSideWall
     ldx #kRightWallPlatformIndex  ; param: platform index
-    jsr FuncA_Objects_CryptBoss_DrawSideWall
+    jsr FuncA_Objects_BossCrypt_DrawSideWall
 _SetUpIrq:
     ;; Compute the IRQ latch value to set between the bottom of the boss's zone
     ;; and the top of the window (if any), and set that as Param3_byte.
@@ -553,7 +553,7 @@ _SetUpIrq:
     lda #kBossZoneTopY - 1
     sub Zp_RoomScrollY_u8
     sta <(Zp_Buffered_sIrq + sIrq::Latch_u8)
-    ldax #Int_CryptBossZoneTopIrq
+    ldax #Int_BossCryptZoneTopIrq
     stax <(Zp_Buffered_sIrq + sIrq::FirstIrq_int_ptr)
     ;; Compute PPU scroll values for the boss zone.
     lda #kBossStartCol * kTileWidthPx + kBossWidthPx / 2
@@ -631,10 +631,10 @@ _EyeOffsetY_u8_arr:
 
 .SEGMENT "PRGE_Irq"
 
-;;; HBlank IRQ handler function for the top of the boss's zone in the CryptBoss
+;;; HBlank IRQ handler function for the top of the boss's zone in the BossCrypt
 ;;; room.  Sets the horizontal and vertical scroll so as to make the boss's BG
 ;;; tiles appear to move.
-.PROC Int_CryptBossZoneTopIrq
+.PROC Int_BossCryptZoneTopIrq
     ;; Save A and X registers (we won't be using Y).
     pha
     txa
@@ -648,7 +648,7 @@ _EyeOffsetY_u8_arr:
     sta Hw_Mmc3IrqLatch_wo
     sta Hw_Mmc3IrqReload_wo
     ;; Update Zp_NextIrq_int_ptr for the next IRQ.
-    ldax #Int_CryptBossZoneBottomIrq
+    ldax #Int_BossCryptZoneBottomIrq
     stax Zp_NextIrq_int_ptr
     ;; Busy-wait for a bit, that our final writes in this function will occur
     ;; during the next HBlank.
@@ -682,9 +682,9 @@ _EyeOffsetY_u8_arr:
 .ENDPROC
 
 ;;; HBlank IRQ handler function for the bottom of the boss's zone in the
-;;; CryptBoss room.  Sets the horizontal and vertical scroll so as to make the
+;;; BossCrypt room.  Sets the horizontal and vertical scroll so as to make the
 ;;; bottom of the room look normal.
-.PROC Int_CryptBossZoneBottomIrq
+.PROC Int_BossCryptZoneBottomIrq
     ;; Save A and X registers (we won't be using Y).
     pha
     txa
@@ -723,7 +723,7 @@ _EyeOffsetY_u8_arr:
 
 ;;; Allocates and populates OAM slots for one of the two side walls.
 ;;; @param X The platform index for the side wall to draw.
-.PROC FuncA_Objects_CryptBoss_DrawSideWall
+.PROC FuncA_Objects_BossCrypt_DrawSideWall
     jsr FuncA_Objects_SetShapePosToPlatformTopLeft
     ldx #6
     @loop:
@@ -742,8 +742,8 @@ _EyeOffsetY_u8_arr:
     rts
 .ENDPROC
 
-;;; Draws the CryptBossWinch machine.
-.PROC FuncA_Objects_CryptBossWinch_Draw
+;;; Draws the BossCryptWinch machine.
+.PROC FuncA_Objects_BossCryptWinch_Draw
     lda Ram_PlatformTop_i16_0_arr + kSpikeballPlatformIndex  ; param: chain
     jsr FuncA_Objects_DrawWinchMachine
 _Spikeball:

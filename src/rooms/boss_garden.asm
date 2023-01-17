@@ -33,7 +33,7 @@
 .INCLUDE "../ppu.inc"
 .INCLUDE "../program.inc"
 .INCLUDE "../room.inc"
-.INCLUDE "garden_boss.inc"
+.INCLUDE "boss_garden.inc"
 
 .IMPORT DataA_Room_Garden_sTileset
 .IMPORT FuncA_Machine_CannonTick
@@ -88,9 +88,9 @@ kUpgradeBlockCol = 8
 ;;; The eFlag value for the upgrade in this room.
 kUpgradeFlag = eFlag::UpgradeMaxInstructions0
 
-;;; The machine index for the GardenBossCannon machine.
+;;; The machine index for the BossGardenCannon machine.
 kCannonMachineIndex = 0
-;;; The platform index for the GardenBossCannon machine.
+;;; The platform index for the BossGardenCannon machine.
 kCannonPlatformIndex = 2
 ;;; Initial position for grenades shot from the cannon.
 kCannonGrenadeInitPosX = $28
@@ -198,10 +198,10 @@ kBossZoneBottomY = $88
 
 ;;;=========================================================================;;;
 
-.SEGMENT "PRGC_Garden"
+.SEGMENT "PRGC_Boss"
 
-.EXPORT DataC_Garden_Boss_sRoom
-.PROC DataC_Garden_Boss_sRoom
+.EXPORT DataC_Boss_Garden_sRoom
+.PROC DataC_Boss_Garden_sRoom
     D_STRUCT sRoom
     d_byte MinScrollX_u8, $0
     d_word MaxScrollX_u16, $0
@@ -212,7 +212,7 @@ kBossZoneBottomY = $88
     d_byte NumMachines_u8, 1
     d_addr Machines_sMachine_arr_ptr, _Machines_sMachine_arr
     d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjGarden)
-    d_addr Tick_func_ptr, FuncC_Garden_Boss_TickRoom
+    d_addr Tick_func_ptr, FuncC_Boss_Garden_TickRoom
     d_addr Draw_func_ptr, FuncA_Objects_DrawBoss
     d_addr Ext_sRoomExt_ptr, _Ext_sRoomExt
     D_END
@@ -224,17 +224,17 @@ _Ext_sRoomExt:
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
     d_addr Dialogs_sDialog_ptr_arr_ptr, 0
     d_addr Passages_sPassage_arr_ptr, 0
-    d_addr Init_func_ptr, FuncC_Garden_Boss_InitRoom
-    d_addr Enter_func_ptr, FuncC_Garden_Boss_EnterRoom
+    d_addr Init_func_ptr, FuncC_Boss_Garden_InitRoom
+    d_addr Enter_func_ptr, FuncC_Boss_Garden_EnterRoom
     d_addr FadeIn_func_ptr, Func_Noop
     D_END
 _TerrainData:
-:   .incbin "out/data/garden_boss.room"
+:   .incbin "out/data/boss_garden.room"
     .assert * - :- = 16 * 24, error
 _Machines_sMachine_arr:
 :   .assert * - :- = kCannonMachineIndex * .sizeof(sMachine), error
     D_STRUCT sMachine
-    d_byte Code_eProgram, eProgram::GardenBossCannon
+    d_byte Code_eProgram, eProgram::BossGardenCannon
     d_byte Breaker_eFlag, 0
     d_byte Flags_bMachine, bMachine::MoveV | bMachine::Act
     d_byte Status_eDiagram, eDiagram::CannonRight
@@ -243,13 +243,13 @@ _Machines_sMachine_arr:
     d_byte RegNames_u8_arr4, "L", "R", 0, "Y"
     d_byte MainPlatform_u8, kCannonPlatformIndex
     d_addr Init_func_ptr, Func_Noop
-    d_addr ReadReg_func_ptr, FuncC_Garden_BossCannon_ReadReg
+    d_addr ReadReg_func_ptr, FuncC_Boss_GardenCannon_ReadReg
     d_addr WriteReg_func_ptr, Func_Noop
     d_addr TryMove_func_ptr, FuncA_Machine_CannonTryMove
     d_addr TryAct_func_ptr, FuncA_Machine_CannonTryAct
     d_addr Tick_func_ptr, FuncA_Machine_CannonTick
     d_addr Draw_func_ptr, FuncA_Objects_DrawCannonMachine
-    d_addr Reset_func_ptr, FuncC_Garden_BossCannon_Reset
+    d_addr Reset_func_ptr, FuncC_Boss_GardenCannon_Reset
     D_END
     .assert * - :- <= kMaxMachines * .sizeof(sMachine), error
 _Platforms_sPlatform_arr:
@@ -341,18 +341,18 @@ _Devices_sDevice_arr:
     .byte eDevice::None
 .ENDPROC
 
-.PROC FuncC_Garden_Boss_sBoss
+.PROC FuncC_Boss_Garden_sBoss
     D_STRUCT sBoss
     d_byte Boss_eFlag, eFlag::BossGarden
     d_byte BodyPlatform_u8, kBossBodyPlatformIndex
-    d_addr Tick_func_ptr, FuncC_Garden_Boss_TickBoss
-    d_addr Draw_func_ptr, FuncA_Objects_GardenBoss_DrawBoss
+    d_addr Tick_func_ptr, FuncC_Boss_Garden_TickBoss
+    d_addr Draw_func_ptr, FuncA_Objects_BossGarden_DrawBoss
     D_END
 .ENDPROC
 
-;;; Room init function for the GardenBoss room.
-.PROC FuncC_Garden_Boss_InitRoom
-    ldax #FuncC_Garden_Boss_sBoss  ; param: sBoss ptr
+;;; Room init function for the BossGarden room.
+.PROC FuncC_Boss_Garden_InitRoom
+    ldax #FuncC_Boss_Garden_sBoss  ; param: sBoss ptr
     jsr FuncA_Room_InitBoss  ; sets Z if boss is alive
     beq _InitializeBoss
 _BossIsAlreadyDead:
@@ -370,8 +370,8 @@ _InitializeBoss:
     rts
 .ENDPROC
 
-;;; Room enter function for the GardenBoss room.
-.PROC FuncC_Garden_Boss_EnterRoom
+;;; Room enter function for the BossGarden room.
+.PROC FuncC_Boss_Garden_EnterRoom
     ;; Lock scrolling.
     lda #0
     sta Zp_CameraCanScroll_bool
@@ -381,22 +381,22 @@ _InitializeBoss:
     rts
 .ENDPROC
 
-;;; Room tick function for the GardenBoss room.
+;;; Room tick function for the BossGarden room.
 ;;; @prereq PRGA_Room is loaded.
-.PROC FuncC_Garden_Boss_TickRoom
+.PROC FuncC_Boss_Garden_TickRoom
     .assert eBoss::Dead = 0, error
     lda Ram_RoomState + sState::BossMode_eBoss  ; param: zero if boss is dead
     jmp FuncA_Room_TickBoss
 .ENDPROC
 
 ;;; Performs per-frame upates for the boss in this room (if it's still alive).
-.PROC FuncC_Garden_Boss_TickBoss
-    jsr FuncC_Garden_Boss_CheckForGrenadeHit
+.PROC FuncC_Boss_Garden_TickBoss
+    jsr FuncC_Boss_Garden_CheckForGrenadeHit
     ;; Tick eyes.
     ldx #eEye::Left  ; param: eye to tick
-    jsr FuncC_Garden_Boss_TickEye
+    jsr FuncC_Boss_Garden_TickEye
     ldx #eEye::Right  ; param: eye to tick
-    jsr FuncC_Garden_Boss_TickEye
+    jsr FuncC_Boss_Garden_TickEye
 _TickThorns:
     ;; Move thorns quickly when hurt.
     lda Ram_RoomState + sState::BossThornHurt_u8
@@ -447,32 +447,32 @@ _BossSpray:
     jsr Func_DivMod  ; returns remainder in A
     add #2  ; param: column to shoot at
     ldy Ram_RoomState + sState::BossActive_eEye  ; param: eye to shoot from
-    jsr FuncC_Garden_Boss_ShootFireballAtColumn
+    jsr FuncC_Boss_Garden_ShootFireballAtColumn
     ;; Decrement the projectile counter; if it reaches zero, return to waiting
     ;; mode.
     dec Ram_RoomState + sState::BossProjCount_u8
-    jeq FuncC_Garden_Boss_StartWaiting
+    jeq FuncC_Boss_Garden_StartWaiting
     ;; Otherwise, set the cooldown for the next fireball.
     lda #kBossSprayFireballCooldown
     sta Ram_RoomState + sState::BossCooldown_u8
     rts
 _BossShoot:
     ldy Ram_RoomState + sState::BossActive_eEye  ; param: eye to shoot from
-    jsr FuncC_Garden_Boss_ShootFireballAtAvatar
+    jsr FuncC_Boss_Garden_ShootFireballAtAvatar
     ;; Decrement the projectile counter; if it reaches zero, return to waiting
     ;; mode.
     dec Ram_RoomState + sState::BossProjCount_u8
-    jeq FuncC_Garden_Boss_StartWaiting
+    jeq FuncC_Boss_Garden_StartWaiting
     ;; Otherwise, set the cooldown for the next fireball.
     lda #kBossShootFireballCooldown
     sta Ram_RoomState + sState::BossCooldown_u8
     rts
 _BossAngry:
-    jsr FuncC_Garden_Boss_DropSpike
+    jsr FuncC_Boss_Garden_DropSpike
     ;; Decrement the projectile counter; if it reaches zero, return to waiting
     ;; mode.
     dec Ram_RoomState + sState::BossProjCount_u8
-    jeq FuncC_Garden_Boss_StartWaiting
+    jeq FuncC_Boss_Garden_StartWaiting
     ;; Otherwise, set the cooldown for the next spike.
     lda #kBossAngrySpikeCooldown
     sta Ram_RoomState + sState::BossCooldown_u8
@@ -514,7 +514,7 @@ _BossWaiting:
 
 ;;; Opens or closes the specified boss eye, depending on the boss mode.
 ;;; @param X Which eEye to update.
-.PROC FuncC_Garden_Boss_TickEye
+.PROC FuncC_Boss_Garden_TickEye
     lda Ram_RoomState + sState::BossEyeFlash_u8_arr2, x
     beq @noFlash
     dec Ram_RoomState + sState::BossEyeFlash_u8_arr2, x
@@ -543,17 +543,17 @@ _Close:
 
 ;;; Shoots a fireball from the specified eye, towards the player avatar.
 ;;; @param Y Which eEye to shoot from.
-.PROC FuncC_Garden_Boss_ShootFireballAtAvatar
+.PROC FuncC_Boss_Garden_ShootFireballAtAvatar
     lda Zp_AvatarPosX_i16 + 0
     div #kBlockWidthPx
-    .assert * = FuncC_Garden_Boss_ShootFireballAtColumn, error, "fallthrough"
+    .assert * = FuncC_Boss_Garden_ShootFireballAtColumn, error, "fallthrough"
 .ENDPROC
 
 ;;; Shoots a fireball from the specified eye, towards the specified room block
 ;;; column.
 ;;; @param A Which room block column to shoot at.
 ;;; @param Y Which eEye to shoot from.
-.PROC FuncC_Garden_Boss_ShootFireballAtColumn
+.PROC FuncC_Boss_Garden_ShootFireballAtColumn
     sta Zp_Tmp1_byte  ; room block column
     ;; Shoot a fireball.
     jsr Func_FindEmptyActorSlot  ; preserves Y and Zp_Tmp*, returns C and X
@@ -606,7 +606,7 @@ _FireballAngle_u8_arr2_arr:
 .ENDPROC
 
 ;;; Drops a spike from a random horizontal position.
-.PROC FuncC_Garden_Boss_DropSpike
+.PROC FuncC_Boss_Garden_DropSpike
     ;; Drop a spike from a random location.
     jsr Func_FindEmptyActorSlot  ; sets C on failure, returns X
     bcs @done
@@ -637,7 +637,7 @@ _SpikePosY_u8_arr:
 ;;; Makes the boss enter waiting mode for a random amount of time (between
 ;;; about 1-2 seconds).
 ;;; @preserve X
-.PROC FuncC_Garden_Boss_StartWaiting
+.PROC FuncC_Boss_Garden_StartWaiting
     lda #eBoss::Waiting
     sta Ram_RoomState + sState::BossMode_eBoss
     jsr Func_GetRandomByte  ; preserves X, returns A
@@ -650,7 +650,7 @@ _SpikePosY_u8_arr:
 ;;; Checks if a grenade has hit a boss eye; if so, explodes the grenade and
 ;;; makes the boss react accordingly.
 ;;; @prereq PRGA_Room is loaded.
-.PROC FuncC_Garden_Boss_CheckForGrenadeHit
+.PROC FuncC_Boss_Garden_CheckForGrenadeHit
     ;; Find the actor index for the grenade in flight (if any).  If we don't
     ;; find one, then we're done.
     jsr FuncA_Room_FindGrenadeActor  ; returns C and X
@@ -703,7 +703,7 @@ _CheckEyes:
     sta Ram_RoomState + sState::BossEyeFlash_u8_arr2, y
     lda #$10
     sta Ram_RoomState + sState::BossThornHurt_u8
-    jsr FuncC_Garden_Boss_StartWaiting  ; preserves X
+    jsr FuncC_Boss_Garden_StartWaiting  ; preserves X
     ;; Explode the grenade.
     @explode:
     jsr Func_InitActorProjSmoke
@@ -712,7 +712,7 @@ _Done:
     rts
 .ENDPROC
 
-.PROC FuncC_Garden_BossCannon_ReadReg
+.PROC FuncC_Boss_GardenCannon_ReadReg
     cmp #$c
     beq @readL
     cmp #$d
@@ -728,7 +728,7 @@ _Done:
 .ENDPROC
 
 ;;; @prereq PRGA_Room is loaded.
-.PROC FuncC_Garden_BossCannon_Reset
+.PROC FuncC_Boss_GardenCannon_Reset
     jsr FuncA_Room_MachineCannonReset
     ;; If the boss is currently shooting/spraying, switch to waiting mode (to
     ;; avoid the player cheesing by reprogramming the machine every time the
@@ -737,7 +737,7 @@ _Done:
     cmp #eBoss::Shoot
     .assert eBoss::Spray > eBoss::Shoot, error
     blt @done
-    jmp FuncC_Garden_Boss_StartWaiting
+    jmp FuncC_Boss_Garden_StartWaiting
     @done:
     rts
 .ENDPROC
@@ -747,13 +747,13 @@ _Done:
 .SEGMENT "PRGA_Objects"
 
 ;;; Draws the boss.
-.PROC FuncA_Objects_GardenBoss_DrawBoss
+.PROC FuncA_Objects_BossGarden_DrawBoss
 _DrawBossEyes:
     ldx #eEye::Left  ; param: eye
-    jsr FuncA_Objects_GardenBoss_DrawEye  ; preserves X
+    jsr FuncA_Objects_BossGarden_DrawEye  ; preserves X
     .assert eEye::Right = 1 + eEye::Left, error
     inx  ; param: eye
-    jsr FuncA_Objects_GardenBoss_DrawEye
+    jsr FuncA_Objects_BossGarden_DrawEye
 _AnimateThorns:
     lda Ram_RoomState + sState::BossThornCounter_u8
     div #4
@@ -771,7 +771,7 @@ _SetUpIrq:
     lda #kBossZoneTopY - 1
     sub Zp_RoomScrollY_u8
     sta <(Zp_Buffered_sIrq + sIrq::Latch_u8)
-    ldax #Int_GardenBossZoneTopIrq
+    ldax #Int_BossGardenZoneTopIrq
     stax <(Zp_Buffered_sIrq + sIrq::FirstIrq_int_ptr)
     rts
 .ENDPROC
@@ -779,7 +779,7 @@ _SetUpIrq:
 ;;; Allocates and populates OAM slots for one of the boss's eyes.
 ;;; @param X Which eEye to draw.
 ;;; @preserve X
-.PROC FuncA_Objects_GardenBoss_DrawEye
+.PROC FuncA_Objects_BossGarden_DrawEye
     ;; Assert that we can use the eEye value as a platform index.
     .assert kLeftEyePlatformIndex = eEye::Left, error
     .assert kRightEyePlatformIndex = eEye::Right, error
@@ -822,9 +822,9 @@ _SetUpIrq:
 .SEGMENT "PRGE_Irq"
 
 ;;; HBlank IRQ handler function for the top of the boss's zone in the
-;;; GardenBoss room.  Sets the vertical scroll so as to make the thorn terrain
+;;; BossGarden room.  Sets the vertical scroll so as to make the thorn terrain
 ;;; visible.
-.PROC Int_GardenBossZoneTopIrq
+.PROC Int_BossGardenZoneTopIrq
     ;; Save A and X registers (we won't be using Y).
     pha
     txa
@@ -838,7 +838,7 @@ _SetUpIrq:
     sta Hw_Mmc3IrqLatch_wo
     sta Hw_Mmc3IrqReload_wo
     ;; Update Zp_NextIrq_int_ptr for the next IRQ.
-    ldax #Int_GardenBossZoneBottomIrq
+    ldax #Int_BossGardenZoneBottomIrq
     stax Zp_NextIrq_int_ptr
     ;; Busy-wait for a bit, that our final writes in this function will occur
     ;; during the next HBlank.
@@ -867,9 +867,9 @@ _SetUpIrq:
 .ENDPROC
 
 ;;; HBlank IRQ handler function for the bottom of the boss's zone in the
-;;; GardenBoss room.  Sets the scroll so as to make the bottom of the room look
+;;; BossGarden room.  Sets the scroll so as to make the bottom of the room look
 ;;; normal.
-.PROC Int_GardenBossZoneBottomIrq
+.PROC Int_BossGardenZoneBottomIrq
     ;; Save A and X registers (we won't be using Y).
     pha
     txa

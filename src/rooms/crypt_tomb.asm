@@ -269,7 +269,7 @@ _Devices_sDevice_arr:
     d_byte Type_eDevice, eDevice::UnlockedDoor
     d_byte BlockRow_u8, 21
     d_byte BlockCol_u8, 7
-    d_byte Target_u8, eRoom::CryptBoss
+    d_byte Target_u8, eRoom::BossCrypt
     D_END
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None

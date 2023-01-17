@@ -67,9 +67,9 @@ kDoorDeviceIndex = 3
 ;;; The index of the passage that is sometimes blocked by crates.
 kCratePassageIndex = 1
 
-;;; The machine index for the GardenBossCannon machine.
+;;; The machine index for the GardenTowerCannon machine.
 kCannonMachineIndex = 0
-;;; The platform index for the GardenBossCannon machine.
+;;; The platform index for the GardenTowerCannon machine.
 kCannonPlatformIndex = 0
 
 ;;; The platform index for the breakable tower wall.
@@ -149,7 +149,7 @@ _TerrainData:
 _Machines_sMachine_arr:
 :   .assert * - :- = kCannonMachineIndex * .sizeof(sMachine), error
     D_STRUCT sMachine
-    d_byte Code_eProgram, eProgram::GardenBossCannon
+    d_byte Code_eProgram, eProgram::GardenTowerCannon
     d_byte Breaker_eFlag, 0
     d_byte Flags_bMachine, bMachine::MoveV | bMachine::Act
     d_byte Status_eDiagram, eDiagram::CannonRight
@@ -253,7 +253,7 @@ _Devices_sDevice_arr:
     d_byte Type_eDevice, eDevice::UnlockedDoor
     d_byte BlockRow_u8, 10
     d_byte BlockCol_u8, 14
-    d_byte Target_u8, eRoom::GardenBoss
+    d_byte Target_u8, eRoom::BossGarden
     D_END
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None

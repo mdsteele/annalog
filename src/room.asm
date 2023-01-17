@@ -26,8 +26,10 @@
 .INCLUDE "room.inc"
 .INCLUDE "tileset.inc"
 
+.IMPORT DataC_Boss_Crypt_sRoom
+.IMPORT DataC_Boss_Garden_sRoom
+.IMPORT DataC_Boss_Temple_sRoom
 .IMPORT DataC_Core_Elevator_sRoom
-.IMPORT DataC_Crypt_Boss_sRoom
 .IMPORT DataC_Crypt_East_sRoom
 .IMPORT DataC_Crypt_Escape_sRoom
 .IMPORT DataC_Crypt_Flower_sRoom
@@ -39,7 +41,6 @@
 .IMPORT DataC_Crypt_West_sRoom
 .IMPORT DataC_Factory_Center_sRoom
 .IMPORT DataC_Factory_Elevator_sRoom
-.IMPORT DataC_Garden_Boss_sRoom
 .IMPORT DataC_Garden_Crossroad_sRoom
 .IMPORT DataC_Garden_East_sRoom
 .IMPORT DataC_Garden_Flower_sRoom
@@ -79,7 +80,6 @@
 .IMPORT DataC_Sewer_Flower_sRoom
 .IMPORT DataC_Shadow_Teleport_sRoom
 .IMPORT DataC_Temple_Altar_sRoom
-.IMPORT DataC_Temple_Boss_sRoom
 .IMPORT DataC_Temple_Entry_sRoom
 .IMPORT DataC_Temple_Flower_sRoom
 .IMPORT DataC_Temple_Lobby_sRoom
@@ -174,8 +174,10 @@ Ram_RoomState: .res kRoomStateSize
     D_TABLE_HI table, DataA_Room_Table_sRoom_ptr_1_arr
     D_TABLE_BANK table, DataA_Room_Banks_u8_arr
     D_TABLE eRoom
+    d_entry table, BossCrypt,       DataC_Boss_Crypt_sRoom
+    d_entry table, BossGarden,      DataC_Boss_Garden_sRoom
+    d_entry table, BossTemple,      DataC_Boss_Temple_sRoom
     d_entry table, CoreElevator,    DataC_Core_Elevator_sRoom
-    d_entry table, CryptBoss,       DataC_Crypt_Boss_sRoom
     d_entry table, CryptEast,       DataC_Crypt_East_sRoom
     d_entry table, CryptEscape,     DataC_Crypt_Escape_sRoom
     d_entry table, CryptFlower,     DataC_Crypt_Flower_sRoom
@@ -187,7 +189,6 @@ Ram_RoomState: .res kRoomStateSize
     d_entry table, CryptWest,       DataC_Crypt_West_sRoom
     d_entry table, FactoryCenter,   DataC_Factory_Center_sRoom
     d_entry table, FactoryElevator, DataC_Factory_Elevator_sRoom
-    d_entry table, GardenBoss,      DataC_Garden_Boss_sRoom
     d_entry table, GardenCrossroad, DataC_Garden_Crossroad_sRoom
     d_entry table, GardenEast,      DataC_Garden_East_sRoom
     d_entry table, GardenFlower,    DataC_Garden_Flower_sRoom
@@ -227,7 +228,6 @@ Ram_RoomState: .res kRoomStateSize
     d_entry table, SewerFlower,     DataC_Sewer_Flower_sRoom
     d_entry table, ShadowTeleport,  DataC_Shadow_Teleport_sRoom
     d_entry table, TempleAltar,     DataC_Temple_Altar_sRoom
-    d_entry table, TempleBoss,      DataC_Temple_Boss_sRoom
     d_entry table, TempleEntry,     DataC_Temple_Entry_sRoom
     d_entry table, TempleFlower,    DataC_Temple_Flower_sRoom
     d_entry table, TempleLobby,     DataC_Temple_Lobby_sRoom

@@ -105,6 +105,9 @@ kFirstHorzDir = eDir::Left
 ;;; of these programs, although in a few cases, multiple machines may share the
 ;;; same program.
 .ENUM eProgram
+    BossCryptWinch
+    BossGardenCannon
+    BossTempleMinigun
     CoreElevatorJet
     CryptFlowerWinch
     CryptGalleryWinch
@@ -113,13 +116,13 @@ kFirstHorzDir = eDir::Left
     CryptSouthWinch
     CryptTombWinch
     CryptWestWinch
-    GardenBossCannon
     GardenCrossroadLift
     GardenEastBridge
     GardenEastCannon
     GardenHallwayLift
     GardenShaftLowerBridge
     GardenShaftUpperBridge
+    GardenTowerCannon
     LavaEastUpperBoiler
     LavaEastLowerBoiler
     LavaFlowerBoiler
@@ -139,7 +142,6 @@ kFirstHorzDir = eDir::Left
     ShadowTeleportField
     TempleAltarLowerMinigun
     TempleAltarUpperMinigun
-    TempleBossMinigun
     TempleLobbyCarriage
     TempleNaveLowerCarriage
     TempleNaveUpperCarriage

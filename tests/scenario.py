@@ -26,7 +26,7 @@ import sys
 #=============================================================================#
 
 PERMITTED_DOOR_MISMATCHES = {
-    'GardenBoss': (10, 7),
+    'BossGarden': (10, 7),
     'GardenTower': (9, 7),
 }
 
@@ -35,8 +35,9 @@ PERMITTED_OOB_CELLS = set([
 ])
 
 ROOM_PARENTS = {
-    'CryptBoss': 'CryptTomb',
-    'GardenBoss': 'GardenTower',
+    'BossCrypt': 'CryptTomb',
+    'BossGarden': 'GardenTower',
+    'BossTemple': 'TempleSpire',
     'MermaidCellar': 'MermaidHut4',
     'MermaidHut1': 'MermaidVillage',
     'MermaidHut2': 'MermaidVillage',
@@ -44,7 +45,6 @@ ROOM_PARENTS = {
     'MermaidHut4': 'MermaidVillage',
     'MermaidHut5': 'MermaidVillage',
     'MermaidHut6': 'MermaidEast',
-    'TempleBoss': 'TempleSpire',
     'TownHouse1': 'TownOutdoors',
     'TownHouse2': 'TownOutdoors',
     'TownHouse3': 'TownOutdoors',
@@ -91,7 +91,9 @@ PASSAGE_DEST_RE = re.compile(
 def area_name_from_room_name(room_name):
     match = ROOM_NAME_RE.match(room_name)
     assert match
-    return match.group(1)
+    prgc_name = match.group(1)
+    room_name = match.group(2)
+    return prgc_name if prgc_name != 'Boss' else room_name
 
 #=============================================================================#
 
@@ -136,13 +138,14 @@ def load_minimap():
                     minimap.add((row, col))
     return minimap
 
-def load_room(filepath, area_name):
+def load_room(filepath, prgc_name):
     file = open(filepath)
     # Determine the set of minimap cells that this room occupies.
     max_scroll_x = scan_for_int(file, MAX_SCROLL_X_RE, 16)
     room_flags_match = scan_for_match(file, ROOM_FLAGS_RE)
     is_tall = 'bRoom::Tall' in room_flags_match.group(1)
-    assert area_name == room_flags_match.group(2)
+    area_name = room_flags_match.group(2)
+    assert prgc_name == 'Boss' or prgc_name == area_name
     start_row = scan_for_int(file, START_ROW_RE)
     start_col = scan_for_int(file, START_COL_RE)
     height = 2 if is_tall else 1
@@ -205,12 +208,12 @@ def load_rooms(areas):
         for filename in filenames:
             match = filename_re.match(filename)
             if not match: continue
-            area_name = match.group(1).capitalize()
+            prgc_name = match.group(1).capitalize()
             room_name = match.group(2).capitalize()
-            full_name = area_name + room_name
+            full_name = prgc_name + room_name
             filepath = os.path.join(dirpath, filename)
-            room = load_room(filepath, area_name)
-            areas[area_name]['rooms'][full_name] = room
+            room = load_room(filepath, prgc_name)
+            areas[room['area']]['rooms'][full_name] = room
 
 def load_areas_and_markers():
     data_re = re.compile(
