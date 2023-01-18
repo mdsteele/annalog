@@ -42,6 +42,7 @@
 .INCLUDE "machines/hoist.inc"
 .INCLUDE "machines/jet.inc"
 .INCLUDE "machines/minigun.inc"
+.INCLUDE "machines/multiplexer.inc"
 .INCLUDE "machines/pump.inc"
 .INCLUDE "machines/shared.inc"
 .INCLUDE "machines/winch.inc"
@@ -858,7 +859,9 @@
 .PROC Ppu_ChrObjSewer
 :   .assert * - :- = (kTileIdObjUpgradeBottomFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/upgrade_bottom.chr"
-    .res $0a * kSizeofChr
+    .assert * - :- = (kTileIdObjMultiplexerFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/multiplexer.chr"
+    .res $09 * kSizeofChr
     .assert * - :- = (kTileIdObjUpgradeOpAddSubFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/upgrade_opaddsub.chr"
     .res $0c * kSizeofChr
