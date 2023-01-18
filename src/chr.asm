@@ -68,7 +68,8 @@
     .incbin "out/data/tiles/conveyor_anim0.chr"
     .incbin "out/data/tiles/waterfall_anim0.chr"
     .incbin "out/data/tiles/thorns_anim0.chr"
-    .res $0c * kSizeofChr
+    .incbin "out/data/tiles/sewage_anim0.chr"
+    .res $02 * kSizeofChr
     .incbin "out/data/tiles/gazer_anim0.chr"
     .assert * - :- = kSizeofChr * $40, error
 .ENDPROC
@@ -82,7 +83,8 @@
     .incbin "out/data/tiles/conveyor_anim0.chr"
     .incbin "out/data/tiles/waterfall_anim1.chr"
     .incbin "out/data/tiles/thorns_anim1.chr"
-    .res $0c * kSizeofChr
+    .incbin "out/data/tiles/sewage_anim1.chr"
+    .res $02 * kSizeofChr
     .incbin "out/data/tiles/gazer_anim0.chr"
     .assert * - :- = kSizeofChr * $40, error
 .ENDPROC
@@ -96,7 +98,8 @@
     .incbin "out/data/tiles/conveyor_anim1.chr"
     .incbin "out/data/tiles/waterfall_anim2.chr"
     .incbin "out/data/tiles/thorns_anim2.chr"
-    .res $0c * kSizeofChr
+    .incbin "out/data/tiles/sewage_anim2.chr"
+    .res $02 * kSizeofChr
     .incbin "out/data/tiles/gazer_anim1.chr"
     .assert * - :- = kSizeofChr * $40, error
 .ENDPROC
@@ -110,7 +113,8 @@
     .incbin "out/data/tiles/conveyor_anim1.chr"
     .incbin "out/data/tiles/waterfall_anim3.chr"
     .incbin "out/data/tiles/thorns_anim3.chr"
-    .res $0c * kSizeofChr
+    .incbin "out/data/tiles/sewage_anim3.chr"
+    .res $02 * kSizeofChr
     .incbin "out/data/tiles/gazer_anim1.chr"
     .assert * - :- = kSizeofChr * $40, error
 .ENDPROC
@@ -124,7 +128,8 @@
     .incbin "out/data/tiles/conveyor_anim2.chr"
     .incbin "out/data/tiles/waterfall_anim0.chr"
     .incbin "out/data/tiles/thorns_anim4.chr"
-    .res $0c * kSizeofChr
+    .incbin "out/data/tiles/sewage_anim0.chr"
+    .res $02 * kSizeofChr
     .incbin "out/data/tiles/gazer_anim2.chr"
     .assert * - :- = kSizeofChr * $40, error
 .ENDPROC
@@ -138,7 +143,8 @@
     .incbin "out/data/tiles/conveyor_anim2.chr"
     .incbin "out/data/tiles/waterfall_anim1.chr"
     .incbin "out/data/tiles/thorns_anim5.chr"
-    .res $0c * kSizeofChr
+    .incbin "out/data/tiles/sewage_anim1.chr"
+    .res $02 * kSizeofChr
     .incbin "out/data/tiles/gazer_anim2.chr"
     .assert * - :- = kSizeofChr * $40, error
 .ENDPROC
@@ -152,7 +158,8 @@
     .incbin "out/data/tiles/conveyor_anim3.chr"
     .incbin "out/data/tiles/waterfall_anim2.chr"
     .incbin "out/data/tiles/thorns_anim6.chr"
-    .res $0c * kSizeofChr
+    .incbin "out/data/tiles/sewage_anim2.chr"
+    .res $02 * kSizeofChr
     .incbin "out/data/tiles/gazer_anim3.chr"
     .assert * - :- = kSizeofChr * $40, error
 .ENDPROC
@@ -166,7 +173,8 @@
     .incbin "out/data/tiles/conveyor_anim3.chr"
     .incbin "out/data/tiles/waterfall_anim3.chr"
     .incbin "out/data/tiles/thorns_anim7.chr"
-    .res $0c * kSizeofChr
+    .incbin "out/data/tiles/sewage_anim3.chr"
+    .res $02 * kSizeofChr
     .incbin "out/data/tiles/gazer_anim3.chr"
     .assert * - :- = kSizeofChr * $40, error
 .ENDPROC
@@ -574,7 +582,8 @@
 .EXPORT Ppu_ChrBgSewer
 .PROC Ppu_ChrBgSewer
 :   .incbin "out/data/tiles/sewer1.chr"
-    .res $28 * kSizeofChr
+    .incbin "out/data/tiles/sewer2.chr"
+    .res $26 * kSizeofChr
     .incbin "out/data/tiles/sign.chr"
     .incbin "out/data/tiles/console.chr"
     .assert * - :- = kSizeofChr * $40, error

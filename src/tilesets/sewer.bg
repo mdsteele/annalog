@@ -1,17 +1,19 @@
 @BG 0 0 0 32x10
 >console
 >font_lower
+>sewage_anim0
 >sewer1
+>sewer2
 >sign
 >water_anim0
 
-    AAAC    DADC
-    ABADBaBbDBDD                                            CPCP
-CMCM  CNCMCO        COCMCMCOCM    CM                        EAEA
-CMCMCNCMCO  CNCMCMCN        CM    CM                    EAEA
+    AAAC    FAFC
+    ABADBaBbFBFD                                            DPDP
+DMDM  DNDMDO        DODMDMDODM    DM                        GAGA
+DMDMDNDMDO  DNDMDMDN        DM    DM                    GAGA
+    EAEBCCCDCCCD                  CCCD    CCCD    CCCD
+EAEBCACBCCCDCECFCGCGCHCH  CICJ    CCCD  CICECFCJCGCECFCH
 
 
-
-
-CACBCICJCECFCACJ
-CCCDCKCLCGCHCCCL
+DADBDIDJDEDFDADJ
+DCDDDKDLDGDHDCDL
