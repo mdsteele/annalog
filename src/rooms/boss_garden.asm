@@ -589,20 +589,20 @@ _FireballPosY_u8_arr2:
 _FireballAngle_u8_arr2_arr:
     ;; Each pair has angles for left eye and right eye.
     ;; There is one pair for each room block column.
-    .byte 16, 16
-    .byte 16, 16
-    .byte 23, 28  ; leftmost side of room
-    .byte 21, 27  ; left lever
-    .byte 19, 24  ; leftmost side of lowest floor
-    .byte 17, 23
-    .byte 16, 21  ; below left eye
-    .byte 15, 20
-    .byte 13, 18
-    .byte 11, 16  ; below right eye
-    .byte 10, 14  ; right lever
-    .byte  9, 11
-    .byte  7,  8  ; console
-    .byte  4,  3
+    .byte 64,  64
+    .byte 64,  64
+    .byte 91, 112  ; leftmost side of room
+    .byte 84, 108  ; left lever
+    .byte 76,  96  ; leftmost side of lowest floor
+    .byte 69,  92
+    .byte 64,  84  ; below left eye
+    .byte 59,  80  ; door
+    .byte 52,  72
+    .byte 47,  64  ; below right eye
+    .byte 40,  56  ; right lever
+    .byte 36,  44
+    .byte 28,  32  ; console
+    .byte 16,  12
 .ENDPROC
 
 ;;; Drops a spike from a random horizontal position.

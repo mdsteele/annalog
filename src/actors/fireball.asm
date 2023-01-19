@@ -24,13 +24,17 @@
 .IMPORT FuncA_Actor_CenterHitsTerrain
 .IMPORT FuncA_Actor_HarmAvatarIfCollision
 .IMPORT FuncA_Objects_Draw1x1Actor
+.IMPORT Func_Cosine
 .IMPORT Func_InitActorDefault
+.IMPORT Func_Sine
 .IMPORT Ram_ActorState1_byte_arr
 .IMPORT Ram_ActorType_eActor_arr
 .IMPORT Ram_ActorVelX_i16_0_arr
 .IMPORT Ram_ActorVelX_i16_1_arr
 .IMPORT Ram_ActorVelY_i16_0_arr
 .IMPORT Ram_ActorVelY_i16_1_arr
+.IMPORTZP Zp_Tmp1_byte
+.IMPORTZP Zp_Tmp2_byte
 
 ;;;=========================================================================;;;
 
@@ -43,7 +47,7 @@ kPaletteObjFireball = 1
 
 ;;; Initializes the specified actor as a fireball projectile.
 ;;; @prereq The actor's pixel position has already been initialized.
-;;; @param A The angle to fire at, measured in increments of tau/64.
+;;; @param A The angle to fire at, measured in increments of tau/256.
 ;;; @param X The actor index.
 ;;; @preserve X
 .EXPORT Func_InitActorProjFireball
@@ -52,49 +56,38 @@ kPaletteObjFireball = 1
     ldy #eActor::ProjFireball  ; param: actor type
     jsr Func_InitActorDefault  ; preserves X
     pla  ; angle
-    and #$3f
-    tay  ; angle mod 64
 _InitVelX:
-    lda _VelX_u8_arr64, y
-    bpl @nonneg
-    dec Ram_ActorVelX_i16_1_arr, x  ; now $ff
-    @nonneg:
-    .repeat 3
-    asl a
-    rol Ram_ActorVelX_i16_1_arr, x
-    .endrepeat
+    pha  ; angle
+    jsr Func_Cosine  ; preserves X, returns A
+    jsr _Times6  ; preserves X, returns YA
     sta Ram_ActorVelX_i16_0_arr, x
+    tya
+    sta Ram_ActorVelX_i16_1_arr, x
+    pla  ; angle
 _InitVelY:
-    lda _VelY_u8_arr64, y
-    bpl @nonneg
-    dec Ram_ActorVelY_i16_1_arr, x  ; now $ff
-    @nonneg:
-    .repeat 3
-    asl a
-    rol Ram_ActorVelY_i16_1_arr, x
-    .endrepeat
+    jsr Func_Sine  ; preserves X, returns A
+    jsr _Times6  ; preserves X, returns YA
     sta Ram_ActorVelY_i16_0_arr, x
+    tya
+    sta Ram_ActorVelY_i16_1_arr, x
     rts
-_VelX_u8_arr64:
-    ;; [0xff & int(round(96 * cos(x * pi / 32))) for x in range(64)]
-    .byte $60, $60, $5e, $5c, $59, $55, $50, $4a
-    .byte $44, $3d, $35, $2d, $25, $1c, $13, $09
-    .byte $00, $f7, $ed, $e4, $db, $d3, $cb, $c3
-    .byte $bc, $b6, $b0, $ab, $a7, $a4, $a2, $a0
-    .byte $a0, $a0, $a2, $a4, $a7, $ab, $b0, $b6
-    .byte $bc, $c3, $cb, $d3, $db, $e4, $ed, $f7
-    .byte $00, $09, $13, $1c, $25, $2d, $35, $3d
-    .byte $44, $4a, $50, $55, $59, $5c, $5e, $60
-_VelY_u8_arr64:
-    ;; [0xff & int(round(96 * sin(x * pi / 32))) for x in range(64)]
-    .byte $00, $09, $13, $1c, $25, $2d, $35, $3d
-    .byte $44, $4a, $50, $55, $59, $5c, $5e, $60
-    .byte $60, $60, $5e, $5c, $59, $55, $50, $4a
-    .byte $44, $3d, $35, $2d, $25, $1c, $13, $09
-    .byte $00, $f7, $ed, $e4, $db, $d3, $cb, $c3
-    .byte $bc, $b6, $b0, $ab, $a7, $a4, $a2, $a0
-    .byte $a0, $a0, $a2, $a4, $a7, $ab, $b0, $b6
-    .byte $bc, $c3, $cb, $d3, $db, $e4, $ed, $f7
+_Times6:
+    ldy #0
+    asl a
+    bcc @nonneg
+    dey  ; now Y is $ff
+    @nonneg:
+    sta Zp_Tmp1_byte  ; value * 2 (lo)
+    sty Zp_Tmp2_byte  ; value * 2 (hi)
+    asl a             ; value * 4 (lo)
+    rol Zp_Tmp2_byte  ; value * 4 (hi)
+    add Zp_Tmp1_byte
+    sta Zp_Tmp1_byte  ; value * 6 (lo)
+    tya               ; value * 2 (hi)
+    adc Zp_Tmp2_byte
+    tay               ; value * 6 (hi)
+    lda Zp_Tmp1_byte  ; value * 6 (lo)
+    rts
 .ENDPROC
 
 ;;;=========================================================================;;;
