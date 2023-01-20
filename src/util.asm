@@ -17,6 +17,10 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
+.INCLUDE "macros.inc"
+
+;;;=========================================================================;;;
+
 .ZEROPAGE
 
 ;;; Temporary variables that any main-thread function can use.  In general, it
@@ -47,6 +51,55 @@ Zp_Tmp_ptr: .res 2
     .repeat 8, i
     .byte 1 << i
     .endrepeat
+.ENDPROC
+
+;;; Computes A * Y for unsigned A and Y.
+;;; @param A The 8-bit unsigned multiplicand.
+;;; @param Y The 8-bit unsigned multiplier.
+;;; @return YA The 16-bit unsigned product.
+;;; @preserve X
+.EXPORT Func_UnsignedMult
+.PROC Func_UnsignedMult
+    sty Zp_Tmp1_byte
+    sta Zp_Tmp2_byte
+    ;; This comes from https://www.lysator.liu.se/~nisse/misc/6502-mul.html
+    lda #0
+    ldy #8
+    lsr Zp_Tmp1_byte
+    @loop:
+    bcc @noAdd
+    add Zp_Tmp2_byte
+    @noAdd:
+    ror a
+    ror Zp_Tmp1_byte
+    dey
+    bne @loop
+    tay               ; unsigned product (hi)
+    lda Zp_Tmp1_byte  ; unsigned product (lo)
+    rts
+.ENDPROC
+
+;;; Computes A * Y for signed A and unsigned Y.
+;;; @param A The 8-bit signed multiplicand.
+;;; @param Y The 8-bit unsigned multiplier.
+;;; @return YA The 16-bit signed product.
+;;; @preserve X
+.EXPORT Func_SignedMult
+.PROC Func_SignedMult
+    ora #0
+    bpl Func_UnsignedMult  ; preserves X, returns YA
+    eor #$ff
+    add #1
+    jsr Func_UnsignedMult  ; preserves X, returns YA
+    eor #$ff
+    add #1
+    pha  ; signed product (lo)
+    tya
+    eor #$ff
+    adc #0
+    tay  ; signed product (hi)
+    pla  ; signed product (lo)
+    rts
 .ENDPROC
 
 ;;; Computes floor(A / Y) and (A mod Y) for unsigned inputs.

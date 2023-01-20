@@ -26,6 +26,7 @@
 .IMPORT FuncA_Objects_Draw1x1Actor
 .IMPORT Func_Cosine
 .IMPORT Func_InitActorDefault
+.IMPORT Func_SignedMult
 .IMPORT Func_Sine
 .IMPORT Ram_ActorState1_byte_arr
 .IMPORT Ram_ActorType_eActor_arr
@@ -33,10 +34,11 @@
 .IMPORT Ram_ActorVelX_i16_1_arr
 .IMPORT Ram_ActorVelY_i16_0_arr
 .IMPORT Ram_ActorVelY_i16_1_arr
-.IMPORTZP Zp_Tmp1_byte
-.IMPORTZP Zp_Tmp2_byte
 
 ;;;=========================================================================;;;
+
+;;; The speed of a fireball, in half-pixels per frame.
+kFireballSpeed = 5
 
 ;;; The OBJ palette number used for fireball actors.
 kPaletteObjFireball = 1
@@ -59,34 +61,19 @@ kPaletteObjFireball = 1
 _InitVelX:
     pha  ; angle
     jsr Func_Cosine  ; preserves X, returns A
-    jsr _Times6  ; preserves X, returns YA
+    ldy #kFireballSpeed  ; param: multiplier
+    jsr Func_SignedMult  ; preserves X, returns YA
     sta Ram_ActorVelX_i16_0_arr, x
     tya
     sta Ram_ActorVelX_i16_1_arr, x
     pla  ; angle
 _InitVelY:
     jsr Func_Sine  ; preserves X, returns A
-    jsr _Times6  ; preserves X, returns YA
+    ldy #kFireballSpeed  ; param: multiplier
+    jsr Func_SignedMult  ; preserves X, returns YA
     sta Ram_ActorVelY_i16_0_arr, x
     tya
     sta Ram_ActorVelY_i16_1_arr, x
-    rts
-_Times6:
-    ldy #0
-    asl a
-    bcc @nonneg
-    dey  ; now Y is $ff
-    @nonneg:
-    sta Zp_Tmp1_byte  ; value * 2 (lo)
-    sty Zp_Tmp2_byte  ; value * 2 (hi)
-    asl a             ; value * 4 (lo)
-    rol Zp_Tmp2_byte  ; value * 4 (hi)
-    add Zp_Tmp1_byte
-    sta Zp_Tmp1_byte  ; value * 6 (lo)
-    tya               ; value * 2 (hi)
-    adc Zp_Tmp2_byte
-    tay               ; value * 6 (hi)
-    lda Zp_Tmp1_byte  ; value * 6 (lo)
     rts
 .ENDPROC
 
