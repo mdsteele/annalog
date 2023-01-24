@@ -177,7 +177,7 @@ _HotSpringClosed_sDialog:
 .ENDPROC
 
 .PROC DataA_Dialog_MermaidHut3_MermaidGirl_sDialog
-    .word ePortrait::Girl
+    .word ePortrait::MermaidGirl
     .byte "You're so lucky that$"
     .byte "you get to go on an$"
     .byte "adventure. I'm stuck$"

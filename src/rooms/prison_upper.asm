@@ -445,7 +445,7 @@ _Finish_sDialog:
 .ENDPROC
 
 .PROC DataA_Dialog_PrisonUpper_Bruno_sDialog
-    .word ePortrait::Man  ; TODO
+    .word ePortrait::ChildBruno
     .byte "Are the adults OK?#"
     .word ePortrait::Done
 .ENDPROC
@@ -461,17 +461,17 @@ _InitialFunc:
     ldya #_Stepstone_sDialog
     rts
 _GoTalkToAlex_sDialog:
-    .word ePortrait::Marie
+    .word ePortrait::ChildMarie
     .byte "It's Anna! Quick, go$"
     .byte "talk to Alex! He's in$"
     .byte "the cell up ahead.#"
     .word ePortrait::Done
 _Stepstone_sDialog:
-    .word ePortrait::Marie
+    .word ePortrait::ChildMarie
     .byte "Do you see that one$"
     .byte "brick sticking out up$"
     .byte "there?#"
-    .word ePortrait::Marie
+    .word ePortrait::ChildMarie
     .byte "I think you could$"
     .byte "stand on it if you're$"
     .byte "careful.#"
@@ -479,7 +479,7 @@ _Stepstone_sDialog:
 .ENDPROC
 
 .PROC DataA_Dialog_PrisonUpper_Nora_sDialog
-    .word ePortrait::Girl
+    .word ePortrait::ChildNora
     .byte "My sister STILL keeps$"
     .byte "peeing her pants!#"
     .word ePortrait::Done

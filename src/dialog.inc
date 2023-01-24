@@ -37,11 +37,13 @@
     Paper        = $0404
     Mermaid      = $0605
     Man          = $0807
-    Girl         = $0a09
+    ChildNora    = $0a09  ; same portrait as MermaidGirl
+    MermaidGirl  = $0a09  ; same portrait as ChildNora
     Alex         = $0c0b
     MermaidYouth = $0e0d
     Florist      = $100f
-    Marie        = $1211
+    ChildMarie   = $1211
+    ChildBruno   = $1413
 .ENDENUM
 
 ;;;=========================================================================;;;

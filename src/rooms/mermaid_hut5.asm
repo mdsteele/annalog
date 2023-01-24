@@ -33,8 +33,8 @@
 
 ;;;=========================================================================;;;
 
-;;; The dialog index for the girl in this room.
-kGirlDialogIndex = 0
+;;; The dialog index for Nora in this room.
+kNoraDialogIndex = 0
 
 ;;;=========================================================================;;;
 
@@ -89,13 +89,13 @@ _Devices_sDevice_arr:
     d_byte Type_eDevice, eDevice::TalkRight
     d_byte BlockRow_u8, 11
     d_byte BlockCol_u8, 8
-    d_byte Target_u8, kGirlDialogIndex
+    d_byte Target_u8, kNoraDialogIndex
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::TalkLeft
     d_byte BlockRow_u8, 11
     d_byte BlockCol_u8, 9
-    d_byte Target_u8, kGirlDialogIndex
+    d_byte Target_u8, kNoraDialogIndex
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::OpenDoorway
@@ -112,12 +112,12 @@ _Devices_sDevice_arr:
 
 ;;; Dialog data for the MermaidHut5 room.
 .PROC DataA_Dialog_MermaidHut5_sDialog_ptr_arr
-:   .assert * - :- = kGirlDialogIndex * kSizeofAddr, error
-    .addr DataA_Dialog_MermaidHut5_Girl_sDialog
+:   .assert * - :- = kNoraDialogIndex * kSizeofAddr, error
+    .addr DataA_Dialog_MermaidHut5_Nora_sDialog
 .ENDPROC
 
-.PROC DataA_Dialog_MermaidHut5_Girl_sDialog
-    .word ePortrait::Girl
+.PROC DataA_Dialog_MermaidHut5_Nora_sDialog
+    .word ePortrait::ChildNora
     .byte "Lorem ipsum.#"
     .word ePortrait::Done
 .ENDPROC

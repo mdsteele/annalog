@@ -120,7 +120,7 @@ _Devices_sDevice_arr:
 .ENDPROC
 
 .PROC DataA_Dialog_TownHouse1_Girl_sDialog
-    .word ePortrait::Girl
+    .word ePortrait::ChildNora
     .byte "My baby sister keeps$"
     .byte "peeing her pants!#"
     .word ePortrait::Done

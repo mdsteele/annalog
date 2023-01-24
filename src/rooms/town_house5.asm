@@ -135,13 +135,13 @@ _Devices_sDevice_arr:
 .ENDPROC
 
 .PROC DataA_Dialog_TownHouse5_Bruno_sDialog
-    .word ePortrait::Man  ; TODO
+    .word ePortrait::ChildBruno
     .byte "Lorem ipsum?#"
     .word ePortrait::Done
 .ENDPROC
 
 .PROC DataA_Dialog_TownHouse5_Marie_sDialog
-    .word ePortrait::Marie
+    .word ePortrait::ChildMarie
     .byte "Lorem ipsum!#"
     .word ePortrait::Done
 .ENDPROC
