@@ -461,17 +461,17 @@ _InitialFunc:
     ldya #_Stepstone_sDialog
     rts
 _GoTalkToAlex_sDialog:
-    .word ePortrait::Girl  ; TODO
+    .word ePortrait::Marie
     .byte "It's Anna! Quick, go$"
     .byte "talk to Alex! He's in$"
     .byte "the cell up ahead.#"
     .word ePortrait::Done
 _Stepstone_sDialog:
-    .word ePortrait::Girl  ; TODO
+    .word ePortrait::Marie
     .byte "Do you see that one$"
     .byte "brick sticking out up$"
     .byte "there?#"
-    .word ePortrait::Girl  ; TODO
+    .word ePortrait::Marie
     .byte "I think you could$"
     .byte "stand on it if you're$"
     .byte "careful.#"

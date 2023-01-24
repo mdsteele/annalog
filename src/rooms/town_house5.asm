@@ -141,7 +141,7 @@ _Devices_sDevice_arr:
 .ENDPROC
 
 .PROC DataA_Dialog_TownHouse5_Marie_sDialog
-    .word ePortrait::Girl  ; TODO
+    .word ePortrait::Marie
     .byte "Lorem ipsum!#"
     .word ePortrait::Done
 .ENDPROC
