@@ -242,16 +242,26 @@ _Disable:
 ;;; @preserve X, Y
 .EXPORT Func_AckIrqAndLatchWindowFromParam3
 .PROC Func_AckIrqAndLatchWindowFromParam3
-    ;; Ack the current IRQ.
-    sta Hw_Mmc3IrqDisable_wo  ; ack
-    sta Hw_Mmc3IrqEnable_wo  ; re-enable
     ;; Update Zp_NextIrq_int_ptr for the next IRQ.
     lda #<Int_WindowTopIrq
     sta Zp_NextIrq_int_ptr + 0
     lda #>Int_WindowTopIrq
     sta Zp_NextIrq_int_ptr + 1
-    ;; Set up the latch value for next IRQ.
+    ;; Ack and set latch for the window.
     lda <(Zp_Active_sIrq + sIrq::Param3_byte)  ; window latch
+    .assert * = Func_AckIrqAndSetLatch, error, "fallthrough"
+.ENDPROC
+
+;;; Acks the current HBlank IRQ, writes a new latch value, and then immediately
+;;; reloads the latch.
+;;; @param A The value to write to Hw_Mmc3IrqLatch_wo.
+;;; @preserve X, Y
+.EXPORT Func_AckIrqAndSetLatch
+.PROC Func_AckIrqAndSetLatch
+    ;; Ack the current IRQ.
+    sta Hw_Mmc3IrqDisable_wo  ; ack
+    sta Hw_Mmc3IrqEnable_wo  ; re-enable
+    ;; Set up the latch value for next IRQ.
     sta Hw_Mmc3IrqLatch_wo
     sta Hw_Mmc3IrqReload_wo
     rts
@@ -266,20 +276,15 @@ _Disable:
     pha
     txa
     pha
-    ;; At this point, the first HBlank is already just about over.  Ack the
-    ;; current IRQ.
-    sta Hw_Mmc3IrqDisable_wo  ; ack
-    sta Hw_Mmc3IrqEnable_wo  ; re-enable
-    ;; Set up the latch value for next IRQ.
-    lda #kTileHeightPx - 1
-    sta Hw_Mmc3IrqLatch_wo
-    sta Hw_Mmc3IrqReload_wo
-    ;; Update Zp_NextIrq_int_ptr for the next IRQ.
+    ;; At this point, the first HBlank is already just about over.  Set up the
+    ;; next IRQ.
+    lda #kTileHeightPx - 1  ; param: latch value
+    jsr Func_AckIrqAndSetLatch  ; preserves Y
     ldax #Int_WindowInteriorIrq
     stax Zp_NextIrq_int_ptr
     ;; Busy-wait for a bit, that our final writes in this function will occur
     ;; during the next HBlank.
-    ldx #8  ; This value is hand-tuned to help wait for second HBlank.
+    ldx #7  ; This value is hand-tuned to help wait for second HBlank.
     @busyLoop:
     dex
     bne @busyLoop
@@ -313,22 +318,17 @@ _Disable:
 .PROC Int_WindowInteriorIrq
     ;; Save the A register (we won't be using X or Y).
     pha
-    ;; At this point, the first HBlank is already just about over.  Ack the
-    ;; current IRQ.
-    sta Hw_Mmc3IrqDisable_wo  ; ack
-    sta Hw_Mmc3IrqEnable_wo  ; re-enable
-    ;; Set up the latch value for next IRQ.
-    lda #kTileHeightPx * (kWindowMaxNumRows - 2)
-    sta Hw_Mmc3IrqLatch_wo
-    sta Hw_Mmc3IrqReload_wo
-    ;; Update Zp_NextIrq_int_ptr for the next IRQ.
+    ;; At this point, the first HBlank is already just about over.  Set up the
+    ;; next IRQ.
+    lda #kTileHeightPx * (kWindowMaxNumRows - 2)  ; param: latch value
+    jsr Func_AckIrqAndSetLatch  ; preserves X and Y
     lda #<Int_WindowBottomIrq
     sta Zp_NextIrq_int_ptr + 0
     lda #>Int_WindowBottomIrq
     sta Zp_NextIrq_int_ptr + 1
-    ;; Busy-wait for a bit, that our final writes in this function will occur
+    ;; Busy-wait for a bit, so that our final write in this function will occur
     ;; during the next HBlank (between dots 256 and 320).
-    lda #10
+    lda #7  ; This value is hand-tuned to help wait for second HBlank.
     @busyLoop:
     sub #1
     bne @busyLoop

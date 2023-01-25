@@ -51,6 +51,7 @@
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
 .IMPORT FuncA_Objects_SetShapePosToSpikeballCenter
 .IMPORT Func_AckIrqAndLatchWindowFromParam3
+.IMPORT Func_AckIrqAndSetLatch
 .IMPORT Func_MovePlatformHorz
 .IMPORT Func_MovePlatformLeftTowardPointX
 .IMPORT Func_MovePlatformTopTowardPointY
@@ -639,20 +640,15 @@ _EyeOffsetY_u8_arr:
     pha
     txa
     pha
-    ;; At this point, the first HBlank is already just about over.  Ack the
-    ;; current IRQ.
-    sta Hw_Mmc3IrqDisable_wo  ; ack
-    sta Hw_Mmc3IrqEnable_wo  ; re-enable
-    ;; Set up the latch value for next IRQ.
-    lda #kBossZoneBottomY - kBossZoneTopY - 1
-    sta Hw_Mmc3IrqLatch_wo
-    sta Hw_Mmc3IrqReload_wo
-    ;; Update Zp_NextIrq_int_ptr for the next IRQ.
+    ;; At this point, the first HBlank is already just about over.  Set up the
+    ;; next IRQ.
+    lda #kBossZoneBottomY - kBossZoneTopY - 1  ; param: latch value
+    jsr Func_AckIrqAndSetLatch  ; preserves Y
     ldax #Int_BossCryptZoneBottomIrq
     stax Zp_NextIrq_int_ptr
     ;; Busy-wait for a bit, that our final writes in this function will occur
     ;; during the next HBlank.
-    ldx #5  ; This value is hand-tuned to help wait for second HBlank.
+    ldx #2  ; This value is hand-tuned to help wait for second HBlank.
     @busyLoop:
     dex
     bne @busyLoop
@@ -660,7 +656,7 @@ _EyeOffsetY_u8_arr:
     ;; nametable as the scrolling origin.  All of this takes four writes, and
     ;; the last two must happen during HBlank (between dots 256 and 320).
     ;; See https://www.nesdev.org/wiki/PPU_scrolling#Split_X.2FY_scroll
-    lda #$0c  ; nametable number << 2 (so $0c for nametable 3)
+    lda #3 << 2  ; nametable number << 2
     sta Hw_PpuAddr_w2
     lda <(Zp_Active_sIrq + sIrq::Param2_byte)  ; boss scroll-Y
     sta Hw_PpuScroll_w2
@@ -702,7 +698,7 @@ _EyeOffsetY_u8_arr:
     ;; nametable as the scrolling origin.  All of this takes four writes, and
     ;; the last two must happen during HBlank (between dots 256 and 320).
     ;; See https://www.nesdev.org/wiki/PPU_scrolling#Split_X.2FY_scroll
-    lda #$00  ; nametable number << 2 (so $00 for nametable 0)
+    lda #0 << 2  ; nametable number << 2
     sta Hw_PpuAddr_w2
     lda #kBossZoneBottomY  ; new scroll-Y value
     sta Hw_PpuScroll_w2

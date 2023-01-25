@@ -52,6 +52,7 @@
 .IMPORT FuncA_Room_InitBoss
 .IMPORT FuncA_Room_TickBoss
 .IMPORT Func_AckIrqAndLatchWindowFromParam3
+.IMPORT Func_AckIrqAndSetLatch
 .IMPORT Func_DivMod
 .IMPORT Func_FindEmptyActorSlot
 .IMPORT Func_GetRandomByte
@@ -890,20 +891,15 @@ _Offset_u8_arr2:
     pha
     txa
     pha
-    ;; At this point, the first HBlank is already just about over.  Ack the
-    ;; current IRQ.
-    sta Hw_Mmc3IrqDisable_wo  ; ack
-    sta Hw_Mmc3IrqEnable_wo  ; re-enable
-    ;; Set up the latch value for next IRQ.
-    lda #kBossZoneBottomY - kBossZoneTopY - 1
-    sta Hw_Mmc3IrqLatch_wo
-    sta Hw_Mmc3IrqReload_wo
-    ;; Update Zp_NextIrq_int_ptr for the next IRQ.
+    ;; At this point, the first HBlank is already just about over.  Set up the
+    ;; next IRQ.
+    lda #kBossZoneBottomY - kBossZoneTopY - 1  ; param: latch value
+    jsr Func_AckIrqAndSetLatch  ; preserves Y
     ldax #Int_BossTempleZoneBottomIrq
     stax Zp_NextIrq_int_ptr
     ;; Busy-wait for a bit, that our final writes in this function will occur
     ;; during the next HBlank.
-    ldx #8  ; This value is hand-tuned to help wait for second HBlank.
+    ldx #6  ; This value is hand-tuned to help wait for second HBlank.
     @busyLoop:
     dex
     bne @busyLoop
