@@ -697,13 +697,19 @@
 .PROC Ppu_ChrObjCrypt
 :   .assert * - :- = (kTileIdObjUpgradeBottomFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/upgrade_bottom.chr"
-    .res $10 * kSizeofChr
+    .res $02 * kSizeofChr
+    .assert * - :- = (kTileIdObjEmber - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/ember.chr"
+    .res $0d * kSizeofChr
     .assert * - :- = (kTileIdObjUpgradeOpGotoFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/upgrade_opgoto.chr"
     .res $02 * kSizeofChr
     .assert * - :- = (kTileIdObjUpgradeOpWaitFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/upgrade_opwait.chr"
-    .res $18 * kSizeofChr
+    .res $02 * kSizeofChr
+    .assert * - :- = (kTileIdObjFireballFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/fireball.chr"
+    .res $14 * kSizeofChr
     .assert * - :- = (kTileIdObjSpiderFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/spider.chr"
     .assert * - :- = (kTileIdCrusherFirst - $80) * kSizeofChr, error

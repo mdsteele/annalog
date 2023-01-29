@@ -85,12 +85,6 @@
 ;;; The fixed scroll-X position for this room.
 kRoomScrollX = $08
 
-;;; The room block row/col where the upgrade will appear.
-kUpgradeBlockRow = 12
-kUpgradeBlockCol = 4
-;;; The eFlag value for the upgrade in this room.
-kUpgradeFlag = eFlag::UpgradeMaxInstructions1
-
 ;;; The machine index for the BossTempleMinigun machine.
 kMinigunMachineIndex = 0
 ;;; The platform index for the BossTempleMinigun machine.
@@ -348,9 +342,9 @@ _Devices_sDevice_arr:
     .assert * - :- = kBossUpgradeDeviceIndex * .sizeof(sDevice), error
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Placeholder  ; will be an upgrade
-    d_byte BlockRow_u8, kUpgradeBlockRow
-    d_byte BlockCol_u8, kUpgradeBlockCol
-    d_byte Target_u8, kUpgradeFlag
+    d_byte BlockRow_u8, 12
+    d_byte BlockCol_u8, 4
+    d_byte Target_u8, eFlag::UpgradeMaxInstructions1
     D_END
     .assert * - :- = kBossBreakerDeviceIndex * .sizeof(sDevice), error
     D_STRUCT sDevice
@@ -399,7 +393,6 @@ _Devices_sDevice_arr:
 _BossIsAlreadyDead:
     rts
 _InitializeBoss:
-    ;; Initialize boss:
     lda #eBossMode::Waiting
     sta Ram_RoomState + sState::Current_eBossMode
     rts
@@ -714,7 +707,7 @@ _Done:
     jmp FuncA_Objects_DrawBoss
 .ENDPROC
 
-;;; Draw function for the BossTemple room.
+;;; Draw function for the temple boss.
 ;;; @prereq PRGA_Objects is loaded.
 .PROC FuncC_Boss_Temple_DrawBoss
 _DrawBossClaws:

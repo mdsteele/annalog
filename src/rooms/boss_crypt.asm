@@ -18,6 +18,7 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "../actor.inc"
+.INCLUDE "../boss.inc"
 .INCLUDE "../charmap.inc"
 .INCLUDE "../device.inc"
 .INCLUDE "../dialog.inc"
@@ -42,21 +43,35 @@
 .IMPORT FuncA_Machine_WinchStartFalling
 .IMPORT FuncA_Objects_Alloc1x1Shape
 .IMPORT FuncA_Objects_Draw1x1Shape
+.IMPORT FuncA_Objects_DrawBoss
 .IMPORT FuncA_Objects_DrawWinchChain
 .IMPORT FuncA_Objects_DrawWinchMachine
 .IMPORT FuncA_Objects_DrawWinchSpikeball
+.IMPORT FuncA_Objects_MoveShapeDownByA
 .IMPORT FuncA_Objects_MoveShapeDownOneTile
+.IMPORT FuncA_Objects_MoveShapeLeftByA
 .IMPORT FuncA_Objects_MoveShapeLeftHalfTile
+.IMPORT FuncA_Objects_MoveShapeRightByA
+.IMPORT FuncA_Objects_MoveShapeUpByA
 .IMPORT FuncA_Objects_MoveShapeUpOneTile
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
 .IMPORT FuncA_Objects_SetShapePosToSpikeballCenter
+.IMPORT FuncA_Room_InitBoss
+.IMPORT FuncA_Room_TickBoss
 .IMPORT Func_AckIrqAndLatchWindowFromParam3
 .IMPORT Func_AckIrqAndSetLatch
+.IMPORT Func_FindEmptyActorSlot
+.IMPORT Func_GetRandomByte
+.IMPORT Func_InitActorProjEmber
+.IMPORT Func_InitActorProjFireball
+.IMPORT Func_IsPointInPlatform
 .IMPORT Func_MovePlatformHorz
 .IMPORT Func_MovePlatformLeftTowardPointX
 .IMPORT Func_MovePlatformTopTowardPointY
 .IMPORT Func_Noop
 .IMPORT Func_ResetWinchMachineParams
+.IMPORT Func_SetActorCenterToPoint
+.IMPORT Func_SetPointToPlatformCenter
 .IMPORT Ppu_ChrObjCrypt
 .IMPORT Ram_MachineGoalHorz_u8_arr
 .IMPORT Ram_MachineGoalVert_u8_arr
@@ -79,6 +94,7 @@
 .IMPORTZP Zp_ShapePosY_i16
 .IMPORTZP Zp_Tmp1_byte
 .IMPORTZP Zp_Tmp2_byte
+.IMPORTZP Zp_Tmp_ptr
 
 ;;;=========================================================================;;;
 
@@ -153,17 +169,54 @@ Ppu_BossEyeAttrs = Ppu_Nametable3_sName + sName::Attrs_u8_arr64 + \
 kBossInitPosX = $a8
 kBossInitPosY = $78
 
+;;;=========================================================================;;;
+
+;;; The higher the number, the more slowly the boss tracks towards its goal
+;;; position.
+.DEFINE kBossMoveXSlowdown 2
+.DEFINE kBossMoveYSlowdown 2
+
+;;; The maximum speed that the boss is allowed to move, in pixels per frame.
+kBossMaxXSpeed = 1
+kBossMaxYSpeed = 1
+
+;;; How far the boss should move horizontally when hurt, in pixels.
+kBossHurtMoveDistPx = 60
+
+;;;=========================================================================;;;
+
 ;;; The OBJ tile ID for the first of the two side wall tiles.
 kTileIdObjSideWallFirst = $c0
-
 ;;; The OBJ palette number to use for the side walls.
 kPaletteObjSideWall = 0
-
 ;;; The OBJ tile ID for the pupil of the boss's eye.
 kTileIdObjBossPupil = $c2
-
 ;;; The OBJ palette number to use for the pupil of the boss's eye.
 kPaletteObjBossPupil = 0
+
+;;;=========================================================================;;;
+
+;;; Modes that the boss in this room can be in.
+.ENUM eBossMode
+    Dead
+    Firing    ; moving to goal position, shooting fireballs
+    Strafing  ; moving from one side of the room to the other, dropping embers
+    Hurt      ; just got hit, moving away and eye blinking
+    NUM_VALUES
+.ENDENUM
+
+;;; Directions that the boss's eye can be looking towards.
+.ENUM eEyeDir
+    Left
+    DownLeft
+    Down
+    DownRight
+    Right
+    NUM_VALUES
+.ENDENUM
+
+;;; The platform index for the boss's body.
+kBossBodyPlatformIndex = 4
 
 ;;;=========================================================================;;;
 
@@ -177,13 +230,23 @@ kPaletteObjBossPupil = 0
 ;;; Defines room-specific state data for this particular room.
 .STRUCT sState
     ;; The current states of the room's two levers.
-    LeverLeft_u1  .byte
-    LeverRight_u1 .byte
+    LeverLeft_u1      .byte
+    LeverRight_u1     .byte
     ;; Which step of its reset sequence the CryptTombWinch machine is on.
-    WinchReset_eResetSeq .byte
-    ;; The room pixel position of the center of the boss's eye.
-    BossPosX_u8   .byte
-    BossPosY_u8   .byte
+    Winch_eResetSeq   .byte
+    ;; What mode the boss is in.
+    Current_eBossMode .byte
+    ;; Which direction the boss's eye is currently looking in.
+    Boss_eEyeDir      .byte
+    ;; How many more hits until the boss is dead.
+    BossHealth_u8     .byte
+    ;; How many more frames until the boss can fire again.
+    BossCooldown_u8   .byte
+    ;; How many more times the boss should shoot before changing modes.
+    BossFireCount_u8  .byte
+    ;; The room pixel position where the boss wants to move its center.
+    BossGoalPosX_u8   .byte
+    BossGoalPosY_u8   .byte
 .ENDSTRUCT
 .ASSERT .sizeof(sState) <= kRoomStateSize, error
 
@@ -216,7 +279,7 @@ _Ext_sRoomExt:
     d_addr Dialogs_sDialog_ptr_arr_ptr, 0
     d_addr Passages_sPassage_arr_ptr, 0
     d_addr Init_func_ptr, FuncC_Boss_Crypt_InitRoom
-    d_addr Enter_func_ptr, Func_Noop
+    d_addr Enter_func_ptr, FuncC_Boss_Crypt_SetBossEyeDir
     d_addr FadeIn_func_ptr, FuncC_Boss_Crypt_FadeInRoom
     D_END
 _TerrainData:
@@ -276,6 +339,14 @@ _Platforms_sPlatform_arr:
     d_word Left_i16,  $00e0
     d_word Top_i16,   $0060
     D_END
+    .assert * - :- = kBossBodyPlatformIndex * .sizeof(sPlatform), error
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Zone
+    d_word WidthPx_u16, kBossWidthPx
+    d_byte HeightPx_u8, kBossHeightPx
+    d_word Left_i16, kBossInitPosX - kBossWidthPx / 2
+    d_word Top_i16, kBossInitPosY - kBossHeightPx / 2
+    D_END
     ;; Terrain spikes:
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Harm
@@ -289,7 +360,28 @@ _Platforms_sPlatform_arr:
 _Actors_sActor_arr:
     .byte eActor::None
 _Devices_sDevice_arr:
-:   D_STRUCT sDevice
+:   .assert * - :- = kBossDoorDeviceIndex * .sizeof(sDevice), error
+    D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::UnlockedDoor
+    d_byte BlockRow_u8, 12
+    d_byte BlockCol_u8, 7
+    d_byte Target_u8, eRoom::CryptTomb
+    D_END
+    .assert * - :- = kBossUpgradeDeviceIndex * .sizeof(sDevice), error
+    D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::Placeholder  ; will be an upgrade
+    d_byte BlockRow_u8, 11
+    d_byte BlockCol_u8, 2
+    d_byte Target_u8, eFlag::UpgradeOpcodeWait
+    D_END
+    .assert * - :- = kBossBreakerDeviceIndex * .sizeof(sDevice), error
+    D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::Placeholder  ; will be a breaker
+    d_byte BlockRow_u8, 11
+    d_byte BlockCol_u8, 2
+    d_byte Target_u8, eFlag::BreakerCrypt
+    D_END
+    D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Console
     d_byte BlockRow_u8, 11
     d_byte BlockCol_u8, 13
@@ -307,15 +399,17 @@ _Devices_sDevice_arr:
     d_byte BlockCol_u8, 11
     d_byte Target_u8, sState::LeverRight_u1
     D_END
-    D_STRUCT sDevice
-    d_byte Type_eDevice, eDevice::UnlockedDoor
-    d_byte BlockRow_u8, 12
-    d_byte BlockCol_u8, 7
-    d_byte Target_u8, eRoom::CryptTomb
-    D_END
-    ;; TODO: breaker and upgrade
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None
+.ENDPROC
+
+.PROC FuncC_Boss_Crypt_sBoss
+    D_STRUCT sBoss
+    d_byte Boss_eFlag, eFlag::BossCrypt
+    d_byte BodyPlatform_u8, kBossBodyPlatformIndex
+    d_addr Tick_func_ptr, FuncC_Boss_Crypt_TickBoss
+    d_addr Draw_func_ptr, FuncC_Boss_Crypt_DrawBoss
+    D_END
 .ENDPROC
 
 .PROC FuncC_Boss_CryptWinch_ReadReg
@@ -374,7 +468,6 @@ _MoveUp:
     dec Ram_MachineGoalVert_u8_arr + kWinchMachineIndex
     jmp FuncA_Machine_StartWorking
 _MoveDown:
-    ;; TODO: check for weak floor collision
     lda Ram_MachineGoalVert_u8_arr + kWinchMachineIndex
     cmp DataC_Boss_CryptFloor_u8_arr, y
     bge _Error
@@ -434,7 +527,7 @@ _MoveHorz:
     jmp Func_MovePlatformHorz
     @reachedGoal:
 _Finished:
-    lda Ram_RoomState + sState::WinchReset_eResetSeq
+    lda Ram_RoomState + sState::Winch_eResetSeq
     jeq FuncA_Machine_WinchReachedGoal
     .assert * = FuncC_Boss_CryptWinch_Reset, error, "fallthrough"
 .ENDPROC
@@ -452,7 +545,7 @@ _Outer:
     lda #1
     sta Ram_MachineGoalVert_u8_arr + kWinchMachineIndex
     lda #eResetSeq::TopCenter
-    sta Ram_RoomState + sState::WinchReset_eResetSeq
+    sta Ram_RoomState + sState::Winch_eResetSeq
     rts
 _Inner:
     .assert * = FuncC_Boss_CryptWinch_Init, error, "fallthrough"
@@ -464,7 +557,7 @@ _Inner:
     lda #kWinchInitGoalZ
     sta Ram_MachineGoalVert_u8_arr + kWinchMachineIndex
     lda #0
-    sta Ram_RoomState + sState::WinchReset_eResetSeq
+    sta Ram_RoomState + sState::Winch_eResetSeq
     rts
 .ENDPROC
 
@@ -507,11 +600,24 @@ _Inner:
     .byte $04
 .ENDPROC
 
+;;; Room init function for the BossCrypt room.
+;;; @prereq PRGA_Room is loaded.
 .PROC FuncC_Boss_Crypt_InitRoom
+    ldax #FuncC_Boss_Crypt_sBoss  ; param: sBoss ptr
+    jsr FuncA_Room_InitBoss  ; sets Z if boss is alive
+    bne _BossIsAlreadyDead
+_InitializeBoss:
+    lda #eBossMode::Firing
+    sta Ram_RoomState + sState::Current_eBossMode
+    lda #3
+    sta Ram_RoomState + sState::BossHealth_u8
+    lda #120  ; 2 seconds
+    sta Ram_RoomState + sState::BossCooldown_u8
     lda #kBossInitPosX
-    sta Ram_RoomState + sState::BossPosX_u8
+    sta Ram_RoomState + sState::BossGoalPosX_u8
     lda #kBossInitPosY
-    sta Ram_RoomState + sState::BossPosY_u8
+    sta Ram_RoomState + sState::BossGoalPosY_u8
+_BossIsAlreadyDead:
     rts
 .ENDPROC
 
@@ -529,20 +635,258 @@ _Inner:
     rts
 .ENDPROC
 
-;;; Tick function for the BossCrypt room.
+;;; Room tick function for the BossCrypt room.
+;;; @prereq PRGA_Room is loaded.
 .PROC FuncC_Boss_Crypt_TickRoom
-    ;; TODO: Implement motion and fireballs for boss.
-    inc Ram_RoomState + sState::BossPosX_u8
+    .assert eBossMode::Dead = 0, error
+    lda Ram_RoomState + sState::Current_eBossMode  ; param: zero if boss dead
+    jmp FuncA_Room_TickBoss
+.ENDPROC
+
+;;; Performs per-frame upates for the boss in this room.
+;;; @prereq PRGA_Room is loaded.
+.PROC FuncC_Boss_Crypt_TickBoss
+    jsr FuncC_Boss_Crypt_CheckForSpikeballHit
+    jsr FuncC_Boss_Crypt_MoveBossTowardGoal
+    ;; TODO: redraw eye tiles as needed
+    jsr FuncC_Boss_Crypt_SetBossEyeDir
+_CoolDown:
+    lda Ram_RoomState + sState::BossCooldown_u8
+    beq _CheckMode
+    dec Ram_RoomState + sState::BossCooldown_u8
+_CheckMode:
+    ;; Branch based on the current boss mode.
+    ldy Ram_RoomState + sState::Current_eBossMode
+    lda _JumpTable_ptr_0_arr, y
+    sta Zp_Tmp_ptr + 0
+    lda _JumpTable_ptr_1_arr, y
+    sta Zp_Tmp_ptr + 1
+    jmp (Zp_Tmp_ptr)
+.REPEAT 2, table
+    D_TABLE_LO table, _JumpTable_ptr_0_arr
+    D_TABLE_HI table, _JumpTable_ptr_1_arr
+    D_TABLE eBossMode
+    d_entry table, Dead,     Func_Noop
+    d_entry table, Firing, _BossFiring
+    d_entry table, Strafing, _BossStrafing
+    d_entry table, Hurt,     _BossHurt
+    D_END
+.ENDREPEAT
+_BossFiring:
+    ;; If the boss is still cooling down, we're done.
+    lda Ram_RoomState + sState::BossCooldown_u8
+    bne @done
+    ;; If the boss has already fired all its fireballs for now, then pick a new
+    ;; goal position.
+    lda Ram_RoomState + sState::BossFireCount_u8
+    beq _PickNewGoal
+    ;; Otherwise, shoot some fireballs.
+    ;; TODO: shoot a spray of three fireballs, not just one
+    jsr Func_FindEmptyActorSlot  ; returns C and X
+    bcs @done
+    ldy #kBossBodyPlatformIndex  ; param: platform index
+    jsr Func_SetPointToPlatformCenter  ; preserves X
+    jsr Func_SetActorCenterToPoint  ; preserves X
+    ;; TODO: Aim fireball at player avatar.
+    lda #64  ; param: aim angle
+    jsr Func_InitActorProjFireball
+    lda #60  ; 1.0 seconds
+    sta Ram_RoomState + sState::BossCooldown_u8
+    dec Ram_RoomState + sState::BossFireCount_u8
+    @done:
+    rts
+_BossStrafing:
+    ;; If the boss is still cooling down, we're done.
+    lda Ram_RoomState + sState::BossCooldown_u8
+    bne @done
+    ;; If the boss has already dropped all its embers for this strafing run,
+    ;; then pick a new goal position.
+    lda Ram_RoomState + sState::BossFireCount_u8
+    beq _PickNewGoal
+    ;; Otherwise, drop an ember.
+    jsr Func_FindEmptyActorSlot  ; returns C and X
+    bcs @done
+    ldy #kBossBodyPlatformIndex  ; param: platform index
+    jsr Func_SetPointToPlatformCenter  ; preserves X
+    jsr Func_SetActorCenterToPoint  ; preserves X
+    jsr Func_InitActorProjEmber
+    lda #15  ; 0.25 seconds
+    sta Ram_RoomState + sState::BossCooldown_u8
+    dec Ram_RoomState + sState::BossFireCount_u8
+    @done:
+    rts
+_BossHurt:
+    ;; If the boss is still cooling down, we're done.
+    lda Ram_RoomState + sState::BossCooldown_u8
+    bne @done
+    ;; If the boss is at zero health, it dies.  Otherwise, pick a new goal
+    ;; position.
+    lda Ram_RoomState + sState::BossHealth_u8
+    bne _PickNewGoal
+    .assert eBossMode::Dead = 0, error
+    sta Ram_RoomState + sState::Current_eBossMode
+    @done:
+    rts
+_PickNewGoal:
+    ;; TODO: if at edge of room, 50% chance to start strafing
+    ;; Pick a new random horizontal goal position.
+    jsr Func_GetRandomByte  ; returns A
+    and #$07
+    tax
+    ;; TODO: Avoid picking a goal that would run the boss into the spikeball.
+    lda _GoalPosX_u8_arr8, x
+    sta Ram_RoomState + sState::BossGoalPosX_u8
+    ;; Pick a new random vertical goal position.
+    jsr Func_GetRandomByte  ; returns A
+    and #$0f
+    add #kBossZoneTopY + kBossHeightPx / 2
+    sta Ram_RoomState + sState::BossGoalPosY_u8
+    ;; Commence firing.
+    lda #eBossMode::Firing
+    sta Ram_RoomState + sState::Current_eBossMode
+    lda #60  ; 1.0 seconds
+    sta Ram_RoomState + sState::BossCooldown_u8
+    lda #3
+    sta Ram_RoomState + sState::BossFireCount_u8
+    rts
+_GoalPosX_u8_arr8:
+    .byte $38, $48, $68, $78, $88, $98, $b8, $c8
+.ENDPROC
+
+;;; Checks if the winch spikeball is falling and has hit the boss's eye; if so,
+;;; damages the boss.
+;;; @prereq PRGA_Room is loaded.
+.PROC FuncC_Boss_Crypt_CheckForSpikeballHit
+    ;; If the boss got hit recently, don't check for another hit yet.
+    lda Ram_RoomState + sState::Current_eBossMode
+    cmp #eBossMode::Hurt
+    beq @done
+    ;; Check if the spikeball has hit the center of the boss's eye.
+    ldy #kBossBodyPlatformIndex  ; param: platform index
+    jsr Func_SetPointToPlatformCenter
+    ldy #kSpikeballPlatformIndex  ; param: platform index
+    jsr Func_IsPointInPlatform  ; returns C
+    bcc @done
+    ;; Damage the boss.
+    lda #eBossMode::Hurt
+    sta Ram_RoomState + sState::Current_eBossMode
+    dec Ram_RoomState + sState::BossHealth_u8
+    lda #45  ; 0.75 seconds
+    sta Ram_RoomState + sState::BossCooldown_u8
+    ;; Move horizontally away from the spikeball.
+    lda Zp_PointX_i16 + 0
+    cmp #kScreenWidthPx / 2
+    bge @onRightSide
+    @onLeftSide:
+    adc #kBossHurtMoveDistPx  ; carry is already clear
+    bcc @setGoal  ; unconditional
+    @onRightSide:
+    sbc #kBossHurtMoveDistPx  ; carry is already set
+    @setGoal:
+    sta Ram_RoomState + sState::BossGoalPosX_u8
+    ;; TODO: play a sound
+    @done:
     rts
 .ENDPROC
 
-;;; Draw function for the BossCrypt room.
+;;; Moves the center of the boss closer to the boss's goal position by one
+;;; frame tick.
+.PROC FuncC_Boss_Crypt_MoveBossTowardGoal
+    lda Ram_RoomState + sState::BossGoalPosX_u8
+    sub #kBossWidthPx / 2
+    sta Zp_PointX_i16 + 0
+    lda Ram_RoomState + sState::BossGoalPosY_u8
+    sub #kBossHeightPx / 2
+    sta Zp_PointY_i16 + 0
+    lda #0
+    sta Zp_PointX_i16 + 1
+    sta Zp_PointY_i16 + 1
+    ldx #kBossBodyPlatformIndex  ; param: platform index
+    lda #kBossMaxXSpeed  ; param: max move by
+    jsr Func_MovePlatformLeftTowardPointX  ; preserves X
+    lda #kBossMaxYSpeed  ; param: max move by
+    jmp Func_MovePlatformTopTowardPointY
+.ENDPROC
+
+;;; Sets Boss_eEyeDir so that the boss's eye is looking at the player avatar.
+;;; Note that this is called from the room's Enter_func_ptr, so no PRGA bank
+;;; can be assumed.
+.PROC FuncC_Boss_Crypt_SetBossEyeDir
+    ldy #kBossBodyPlatformIndex  ; param: platform index
+    jsr Func_SetPointToPlatformCenter
+    ;; Compute the avatar's Y-position relative to the boss.
+    lda Zp_AvatarPosY_i16 + 0
+    sub Zp_PointY_i16 + 0
+    bge @setYOffset
+    lda #0
+    @setYOffset:
+    sta Zp_Tmp1_byte  ; avatar Y-offset
+    ;; Compute the avatar's X-position relative to the boss.
+    lda Zp_AvatarPosX_i16 + 0
+    sub Zp_PointX_i16 + 0
+    blt @avatarToTheLeft
+    @avatarToTheRight:
+    sta Zp_Tmp2_byte  ; avatar X-offset
+    div #2
+    cmp Zp_Tmp1_byte  ; avatar Y-offset
+    bge @lookRight
+    lda Zp_Tmp1_byte  ; avatar Y-offset
+    div #2
+    cmp Zp_Tmp2_byte  ; avatar X-offset
+    bge @lookDown
+    @lookDownRight:
+    ldx #eEyeDir::DownRight
+    .assert eEyeDir::DownRight <> 0, error
+    bne @setEyeDir  ; unconditional
+    @lookRight:
+    ldx #eEyeDir::Right
+    .assert eEyeDir::Right <> 0, error
+    bne @setEyeDir  ; unconditional
+    @lookDown:
+    ldx #eEyeDir::Down
+    .assert eEyeDir::Down <> 0, error
+    bne @setEyeDir  ; unconditional
+    @avatarToTheLeft:
+    eor #$ff  ; negate (off by one, but close enough)
+    sta Zp_Tmp2_byte  ; avatar X-offset
+    div #2
+    cmp Zp_Tmp1_byte  ; avatar Y-offset
+    bge @lookLeft
+    lda Zp_Tmp1_byte  ; avatar Y-offset
+    div #2
+    cmp Zp_Tmp2_byte  ; avatar X-offset
+    bge @lookDown
+    @lookDownLeft:
+    ldx #eEyeDir::DownLeft
+    .assert eEyeDir::DownLeft <> 0, error
+    bne @setEyeDir  ; unconditional
+    @lookLeft:
+    ldx #eEyeDir::Left
+    @setEyeDir:
+    stx Ram_RoomState + sState::Boss_eEyeDir
+    rts
+.ENDPROC
+
+;;; Draw function for the BossTemple room.
 ;;; @prereq PRGA_Objects is loaded.
 .PROC FuncC_Boss_Crypt_DrawRoom
     ldx #kLeftWallPlatformIndex  ; param: platform index
     jsr FuncA_Objects_BossCrypt_DrawSideWall
     ldx #kRightWallPlatformIndex  ; param: platform index
     jsr FuncA_Objects_BossCrypt_DrawSideWall
+    jmp FuncA_Objects_DrawBoss
+.ENDPROC
+
+;;; Draw function for the crypt boss.
+;;; @prereq PRGA_Objects is loaded.
+.PROC FuncC_Boss_Crypt_DrawBoss
+    ;; Set the shape position to the center of the boss's eye.
+    ldx #kBossBodyPlatformIndex  ; param: platform index
+    jsr FuncA_Objects_SetShapePosToPlatformTopLeft
+    lda #kBossWidthPx / 2  ; param: offset
+    jsr FuncA_Objects_MoveShapeRightByA
+    lda #kBossHeightPx / 2  ; param: offset
+    jsr FuncA_Objects_MoveShapeDownByA
 _SetUpIrq:
     ;; Compute the IRQ latch value to set between the bottom of the boss's zone
     ;; and the top of the window (if any), and set that as Param3_byte.
@@ -558,74 +902,36 @@ _SetUpIrq:
     stax <(Zp_Buffered_sIrq + sIrq::FirstIrq_int_ptr)
     ;; Compute PPU scroll values for the boss zone.
     lda #kBossStartCol * kTileWidthPx + kBossWidthPx / 2
-    sub Ram_RoomState + sState::BossPosX_u8
+    sub Zp_ShapePosX_i16 + 0
     sta <(Zp_Buffered_sIrq + sIrq::Param1_byte)  ; boss scroll-X
     lda #kBossStartRow * kTileHeightPx + kBossHeightPx / 2 + kBossZoneTopY
-    sub Ram_RoomState + sState::BossPosY_u8
+    sub Zp_ShapePosY_i16 + 0
     sta <(Zp_Buffered_sIrq + sIrq::Param2_byte)  ; boss scroll-Y
 _DrawBossPupil:
-    ;; Compute the avatar's Y-position relative to the boss.
-    lda Zp_AvatarPosY_i16 + 0
-    sub Ram_RoomState + sState::BossPosY_u8
-    bge @setYOffset
-    lda #0
-    @setYOffset:
-    sta Zp_Tmp1_byte  ; avatar Y-offset
-    ;; Compute the avatar's X-position relative to the boss.
-    lda Zp_AvatarPosX_i16 + 0
-    sub Ram_RoomState + sState::BossPosX_u8
-    blt @avatarToTheLeft
-    @avatarToTheRight:
-    sta Zp_Tmp2_byte  ; avatar X-offset
-    div #2
-    cmp Zp_Tmp1_byte  ; avatar Y-offset
-    bge @lookRight
-    lda Zp_Tmp1_byte  ; avatar Y-offset
-    div #2
-    cmp Zp_Tmp2_byte  ; avatar X-offset
-    bge @lookDown
-    @lookDownRight:
-    ldx #3
-    bne @setShapePos  ; unconditional
-    @lookRight:
-    ldx #4
-    bne @setShapePos  ; unconditional
-    @lookDown:
-    ldx #2
-    bne @setShapePos  ; unconditional
-    @avatarToTheLeft:
-    eor #$ff  ; negate (off by one, but close enough)
-    sta Zp_Tmp2_byte  ; avatar X-offset
-    div #2
-    cmp Zp_Tmp1_byte  ; avatar Y-offset
-    bge @lookLeft
-    lda Zp_Tmp1_byte  ; avatar Y-offset
-    div #2
-    cmp Zp_Tmp2_byte  ; avatar X-offset
-    bge @lookDown
-    @lookDownLeft:
-    ldx #1
-    bne @setShapePos  ; unconditional
-    @lookLeft:
-    ldx #0
-    @setShapePos:
-    lda Ram_RoomState + sState::BossPosX_u8
-    sub _EyeOffsetX_u8_arr, x
-    sta Zp_ShapePosX_i16 + 0
-    lda Ram_RoomState + sState::BossPosY_u8
-    sub _EyeOffsetY_u8_arr, x
-    sta Zp_ShapePosY_i16 + 0
-    lda #0
-    sta Zp_ShapePosX_i16 + 1
-    sta Zp_ShapePosY_i16 + 1
-    ;; Draw the pupil.
+    ldx Ram_RoomState + sState::Boss_eEyeDir
+    lda _EyeOffsetX_u8_arr, x  ; param: offset
+    jsr FuncA_Objects_MoveShapeLeftByA  ; preserves X
+    lda _EyeOffsetY_u8_arr, x  ; param: offset
+    jsr FuncA_Objects_MoveShapeUpByA
     ldy #kPaletteObjBossPupil  ; param: object flags
     lda #kTileIdObjBossPupil  ; param: tile ID
     jmp FuncA_Objects_Draw1x1Shape
 _EyeOffsetX_u8_arr:
-    .byte 6, 5, 4, 3, 2
+    D_ENUM eEyeDir
+    d_byte Left,      6
+    d_byte DownLeft,  5
+    d_byte Down,      4
+    d_byte DownRight, 3
+    d_byte Right,     2
+    D_END
 _EyeOffsetY_u8_arr:
-    .byte 4, 3, 2, 3, 4
+    D_ENUM eEyeDir
+    d_byte Left,      4
+    d_byte DownLeft,  3
+    d_byte Down,      2
+    d_byte DownRight, 3
+    d_byte Right,     4
+    D_END
 .ENDPROC
 
 ;;;=========================================================================;;;

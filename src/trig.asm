@@ -26,6 +26,8 @@
 ;;; Computes the cosine of an angle.
 ;;; @param A The input angle, measured in increments of tau/256.
 ;;; @return A 127 times the cosine of the angle (signed).
+;;; @return N Set if the cosine is negative.
+;;; @return Z Set if the cosine is zero.
 ;;; @preserve X, Zp_Tmp*
 .EXPORT Func_Cosine
 .PROC Func_Cosine
@@ -36,6 +38,8 @@
 ;;; Computes the sine of an angle.
 ;;; @param A The input angle, measured in increments of tau/256.
 ;;; @return A 127 times the sine of the angle (signed).
+;;; @return N Set if the sine is negative.
+;;; @return Z Set if the sine is zero.
 ;;; @preserve X, Zp_Tmp*
 .EXPORT Func_Sine
 .PROC Func_Sine

@@ -83,12 +83,6 @@
 
 ;;;=========================================================================;;;
 
-;;; The room block row/col where the upgrade will appear.
-kUpgradeBlockRow = 12
-kUpgradeBlockCol = 8
-;;; The eFlag value for the upgrade in this room.
-kUpgradeFlag = eFlag::UpgradeMaxInstructions0
-
 ;;; The machine index for the BossGardenCannon machine.
 kCannonMachineIndex = 0
 ;;; The platform index for the BossGardenCannon machine.
@@ -309,9 +303,9 @@ _Devices_sDevice_arr:
     .assert * - :- = kBossUpgradeDeviceIndex * .sizeof(sDevice), error
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Placeholder  ; will be an upgrade
-    d_byte BlockRow_u8, kUpgradeBlockRow
-    d_byte BlockCol_u8, kUpgradeBlockCol
-    d_byte Target_u8, kUpgradeFlag
+    d_byte BlockRow_u8, 12
+    d_byte BlockCol_u8, 8
+    d_byte Target_u8, eFlag::UpgradeMaxInstructions0
     D_END
     .assert * - :- = kBossBreakerDeviceIndex * .sizeof(sDevice), error
     D_STRUCT sDevice
