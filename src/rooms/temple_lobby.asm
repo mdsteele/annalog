@@ -44,8 +44,8 @@
 .IMPORT Ram_MachineGoalVert_u8_arr
 .IMPORT Ram_PlatformLeft_i16_0_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
-.IMPORT Ram_RoomState
 .IMPORT Sram_ProgressFlags_arr
+.IMPORTZP Zp_RoomState
 
 ;;;=========================================================================;;;
 
@@ -270,7 +270,7 @@ _MoveHorz:
     rts
     @reachedGoal:
 _ReachedGoal:
-    lda Ram_RoomState + sState::CarriageReset_eResetSeq
+    lda Zp_RoomState + sState::CarriageReset_eResetSeq
     jeq FuncA_Machine_ReachedGoal
     .assert * = FuncC_Temple_LobbyCarriage_Reset, error, "fallthrough"
 .ENDPROC
@@ -291,11 +291,11 @@ _MoveStraightToMiddle:
     lda #5
     sta Ram_MachineGoalHorz_u8_arr + kCarriageMachineIndex
     lda #eResetSeq::Middle
-    sta Ram_RoomState + sState::CarriageReset_eResetSeq
+    sta Zp_RoomState + sState::CarriageReset_eResetSeq
     rts
 _MoveToBottomRight:
     lda #eResetSeq::BottomRight
-    sta Ram_RoomState + sState::CarriageReset_eResetSeq
+    sta Zp_RoomState + sState::CarriageReset_eResetSeq
     .assert * = FuncC_Temple_LobbyCarriage_Init, error, "fallthrough"
 .ENDPROC
 

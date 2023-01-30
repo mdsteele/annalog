@@ -79,7 +79,6 @@
 .IMPORT Ram_PlatformLeft_i16_0_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORT Ram_PpuTransfer_arr
-.IMPORT Ram_RoomState
 .IMPORTZP Zp_Active_sIrq
 .IMPORTZP Zp_AvatarPosX_i16
 .IMPORTZP Zp_AvatarPosY_i16
@@ -90,6 +89,7 @@
 .IMPORTZP Zp_PointY_i16
 .IMPORTZP Zp_PpuTransferLen_u8
 .IMPORTZP Zp_RoomScrollY_u8
+.IMPORTZP Zp_RoomState
 .IMPORTZP Zp_ShapePosX_i16
 .IMPORTZP Zp_ShapePosY_i16
 .IMPORTZP Zp_Tmp1_byte
@@ -430,10 +430,10 @@ _ReadX:
     div #kBlockWidthPx
     rts
 _ReadL:
-    lda Ram_RoomState + sState::LeverLeft_u1
+    lda Zp_RoomState + sState::LeverLeft_u1
     rts
 _ReadR:
-    lda Ram_RoomState + sState::LeverRight_u1
+    lda Zp_RoomState + sState::LeverRight_u1
     rts
 .ENDPROC
 
@@ -527,7 +527,7 @@ _MoveHorz:
     jmp Func_MovePlatformHorz
     @reachedGoal:
 _Finished:
-    lda Ram_RoomState + sState::Winch_eResetSeq
+    lda Zp_RoomState + sState::Winch_eResetSeq
     jeq FuncA_Machine_WinchReachedGoal
     .assert * = FuncC_Boss_CryptWinch_Reset, error, "fallthrough"
 .ENDPROC
@@ -545,7 +545,7 @@ _Outer:
     lda #1
     sta Ram_MachineGoalVert_u8_arr + kWinchMachineIndex
     lda #eResetSeq::TopCenter
-    sta Ram_RoomState + sState::Winch_eResetSeq
+    sta Zp_RoomState + sState::Winch_eResetSeq
     rts
 _Inner:
     .assert * = FuncC_Boss_CryptWinch_Init, error, "fallthrough"
@@ -557,7 +557,7 @@ _Inner:
     lda #kWinchInitGoalZ
     sta Ram_MachineGoalVert_u8_arr + kWinchMachineIndex
     lda #0
-    sta Ram_RoomState + sState::Winch_eResetSeq
+    sta Zp_RoomState + sState::Winch_eResetSeq
     rts
 .ENDPROC
 
@@ -608,15 +608,15 @@ _Inner:
     bne _BossIsAlreadyDead
 _InitializeBoss:
     lda #eBossMode::Firing
-    sta Ram_RoomState + sState::Current_eBossMode
+    sta Zp_RoomState + sState::Current_eBossMode
     lda #3
-    sta Ram_RoomState + sState::BossHealth_u8
+    sta Zp_RoomState + sState::BossHealth_u8
     lda #120  ; 2 seconds
-    sta Ram_RoomState + sState::BossCooldown_u8
+    sta Zp_RoomState + sState::BossCooldown_u8
     lda #kBossInitPosX
-    sta Ram_RoomState + sState::BossGoalPosX_u8
+    sta Zp_RoomState + sState::BossGoalPosX_u8
     lda #kBossInitPosY
-    sta Ram_RoomState + sState::BossGoalPosY_u8
+    sta Zp_RoomState + sState::BossGoalPosY_u8
 _BossIsAlreadyDead:
     rts
 .ENDPROC
@@ -639,7 +639,7 @@ _BossIsAlreadyDead:
 ;;; @prereq PRGA_Room is loaded.
 .PROC FuncC_Boss_Crypt_TickRoom
     .assert eBossMode::Dead = 0, error
-    lda Ram_RoomState + sState::Current_eBossMode  ; param: zero if boss dead
+    lda Zp_RoomState + sState::Current_eBossMode  ; param: zero if boss dead
     jmp FuncA_Room_TickBoss
 .ENDPROC
 
@@ -651,12 +651,12 @@ _BossIsAlreadyDead:
     ;; TODO: redraw eye tiles as needed
     jsr FuncC_Boss_Crypt_SetBossEyeDir
 _CoolDown:
-    lda Ram_RoomState + sState::BossCooldown_u8
+    lda Zp_RoomState + sState::BossCooldown_u8
     beq _CheckMode
-    dec Ram_RoomState + sState::BossCooldown_u8
+    dec Zp_RoomState + sState::BossCooldown_u8
 _CheckMode:
     ;; Branch based on the current boss mode.
-    ldy Ram_RoomState + sState::Current_eBossMode
+    ldy Zp_RoomState + sState::Current_eBossMode
     lda _JumpTable_ptr_0_arr, y
     sta Zp_Tmp_ptr + 0
     lda _JumpTable_ptr_1_arr, y
@@ -674,11 +674,11 @@ _CheckMode:
 .ENDREPEAT
 _BossFiring:
     ;; If the boss is still cooling down, we're done.
-    lda Ram_RoomState + sState::BossCooldown_u8
+    lda Zp_RoomState + sState::BossCooldown_u8
     bne @done
     ;; If the boss has already fired all its fireballs for now, then pick a new
     ;; goal position.
-    lda Ram_RoomState + sState::BossFireCount_u8
+    lda Zp_RoomState + sState::BossFireCount_u8
     beq _PickNewGoal
     ;; Otherwise, shoot some fireballs.
     ;; TODO: shoot a spray of three fireballs, not just one
@@ -691,17 +691,17 @@ _BossFiring:
     lda #64  ; param: aim angle
     jsr Func_InitActorProjFireball
     lda #60  ; 1.0 seconds
-    sta Ram_RoomState + sState::BossCooldown_u8
-    dec Ram_RoomState + sState::BossFireCount_u8
+    sta Zp_RoomState + sState::BossCooldown_u8
+    dec Zp_RoomState + sState::BossFireCount_u8
     @done:
     rts
 _BossStrafing:
     ;; If the boss is still cooling down, we're done.
-    lda Ram_RoomState + sState::BossCooldown_u8
+    lda Zp_RoomState + sState::BossCooldown_u8
     bne @done
     ;; If the boss has already dropped all its embers for this strafing run,
     ;; then pick a new goal position.
-    lda Ram_RoomState + sState::BossFireCount_u8
+    lda Zp_RoomState + sState::BossFireCount_u8
     beq _PickNewGoal
     ;; Otherwise, drop an ember.
     jsr Func_FindEmptyActorSlot  ; returns C and X
@@ -711,20 +711,20 @@ _BossStrafing:
     jsr Func_SetActorCenterToPoint  ; preserves X
     jsr Func_InitActorProjEmber
     lda #15  ; 0.25 seconds
-    sta Ram_RoomState + sState::BossCooldown_u8
-    dec Ram_RoomState + sState::BossFireCount_u8
+    sta Zp_RoomState + sState::BossCooldown_u8
+    dec Zp_RoomState + sState::BossFireCount_u8
     @done:
     rts
 _BossHurt:
     ;; If the boss is still cooling down, we're done.
-    lda Ram_RoomState + sState::BossCooldown_u8
+    lda Zp_RoomState + sState::BossCooldown_u8
     bne @done
     ;; If the boss is at zero health, it dies.  Otherwise, pick a new goal
     ;; position.
-    lda Ram_RoomState + sState::BossHealth_u8
+    lda Zp_RoomState + sState::BossHealth_u8
     bne _PickNewGoal
     .assert eBossMode::Dead = 0, error
-    sta Ram_RoomState + sState::Current_eBossMode
+    sta Zp_RoomState + sState::Current_eBossMode
     @done:
     rts
 _PickNewGoal:
@@ -735,19 +735,19 @@ _PickNewGoal:
     tax
     ;; TODO: Avoid picking a goal that would run the boss into the spikeball.
     lda _GoalPosX_u8_arr8, x
-    sta Ram_RoomState + sState::BossGoalPosX_u8
+    sta Zp_RoomState + sState::BossGoalPosX_u8
     ;; Pick a new random vertical goal position.
     jsr Func_GetRandomByte  ; returns A
     and #$0f
     add #kBossZoneTopY + kBossHeightPx / 2
-    sta Ram_RoomState + sState::BossGoalPosY_u8
+    sta Zp_RoomState + sState::BossGoalPosY_u8
     ;; Commence firing.
     lda #eBossMode::Firing
-    sta Ram_RoomState + sState::Current_eBossMode
+    sta Zp_RoomState + sState::Current_eBossMode
     lda #60  ; 1.0 seconds
-    sta Ram_RoomState + sState::BossCooldown_u8
+    sta Zp_RoomState + sState::BossCooldown_u8
     lda #3
-    sta Ram_RoomState + sState::BossFireCount_u8
+    sta Zp_RoomState + sState::BossFireCount_u8
     rts
 _GoalPosX_u8_arr8:
     .byte $38, $48, $68, $78, $88, $98, $b8, $c8
@@ -758,7 +758,7 @@ _GoalPosX_u8_arr8:
 ;;; @prereq PRGA_Room is loaded.
 .PROC FuncC_Boss_Crypt_CheckForSpikeballHit
     ;; If the boss got hit recently, don't check for another hit yet.
-    lda Ram_RoomState + sState::Current_eBossMode
+    lda Zp_RoomState + sState::Current_eBossMode
     cmp #eBossMode::Hurt
     beq @done
     ;; Check if the spikeball has hit the center of the boss's eye.
@@ -769,10 +769,10 @@ _GoalPosX_u8_arr8:
     bcc @done
     ;; Damage the boss.
     lda #eBossMode::Hurt
-    sta Ram_RoomState + sState::Current_eBossMode
-    dec Ram_RoomState + sState::BossHealth_u8
+    sta Zp_RoomState + sState::Current_eBossMode
+    dec Zp_RoomState + sState::BossHealth_u8
     lda #45  ; 0.75 seconds
-    sta Ram_RoomState + sState::BossCooldown_u8
+    sta Zp_RoomState + sState::BossCooldown_u8
     ;; Move horizontally away from the spikeball.
     lda Zp_PointX_i16 + 0
     cmp #kScreenWidthPx / 2
@@ -783,7 +783,7 @@ _GoalPosX_u8_arr8:
     @onRightSide:
     sbc #kBossHurtMoveDistPx  ; carry is already set
     @setGoal:
-    sta Ram_RoomState + sState::BossGoalPosX_u8
+    sta Zp_RoomState + sState::BossGoalPosX_u8
     ;; TODO: play a sound
     @done:
     rts
@@ -792,10 +792,10 @@ _GoalPosX_u8_arr8:
 ;;; Moves the center of the boss closer to the boss's goal position by one
 ;;; frame tick.
 .PROC FuncC_Boss_Crypt_MoveBossTowardGoal
-    lda Ram_RoomState + sState::BossGoalPosX_u8
+    lda Zp_RoomState + sState::BossGoalPosX_u8
     sub #kBossWidthPx / 2
     sta Zp_PointX_i16 + 0
-    lda Ram_RoomState + sState::BossGoalPosY_u8
+    lda Zp_RoomState + sState::BossGoalPosY_u8
     sub #kBossHeightPx / 2
     sta Zp_PointY_i16 + 0
     lda #0
@@ -863,7 +863,7 @@ _GoalPosX_u8_arr8:
     @lookLeft:
     ldx #eEyeDir::Left
     @setEyeDir:
-    stx Ram_RoomState + sState::Boss_eEyeDir
+    stx Zp_RoomState + sState::Boss_eEyeDir
     rts
 .ENDPROC
 
@@ -908,7 +908,7 @@ _SetUpIrq:
     sub Zp_ShapePosY_i16 + 0
     sta <(Zp_Buffered_sIrq + sIrq::Param2_byte)  ; boss scroll-Y
 _DrawBossPupil:
-    ldx Ram_RoomState + sState::Boss_eEyeDir
+    ldx Zp_RoomState + sState::Boss_eEyeDir
     lda _EyeOffsetX_u8_arr, x  ; param: offset
     jsr FuncA_Objects_MoveShapeLeftByA  ; preserves X
     lda _EyeOffsetY_u8_arr, x  ; param: offset

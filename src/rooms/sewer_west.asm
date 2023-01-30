@@ -49,8 +49,8 @@
 .IMPORT Ram_MachineStatus_eMachine_arr
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORT Ram_PlatformLeft_i16_0_arr
-.IMPORT Ram_RoomState
 .IMPORTZP Zp_PointX_i16
+.IMPORTZP Zp_RoomState
 
 ;;;=========================================================================;;;
 
@@ -198,7 +198,7 @@ _Passages_sPassage_arr:
     sta Ram_MachineGoalVert_u8_arr + kMultiplexerMachineIndex  ; J register
     ldx #kMultiplexerNumPlatforms - 1
     @loop:
-    sta Ram_RoomState + sState::MultiplexerGoalHorz_u8_arr, x
+    sta Zp_RoomState + sState::MultiplexerGoalHorz_u8_arr, x
     dex
     bpl @loop
     rts
@@ -225,7 +225,7 @@ _ReadX:
 
 .PROC FuncC_Sewer_WestMultiplexer_TryMove
     ldy Ram_MachineGoalVert_u8_arr + kMultiplexerMachineIndex  ; J register
-    lda Ram_RoomState + sState::MultiplexerGoalHorz_u8_arr, y
+    lda Zp_RoomState + sState::MultiplexerGoalHorz_u8_arr, y
     cpx #eDir::Right
     bne @moveLeft
     @moveRight:
@@ -240,7 +240,7 @@ _ReadX:
     dex
     @success:
     txa
-    sta Ram_RoomState + sState::MultiplexerGoalHorz_u8_arr, y
+    sta Zp_RoomState + sState::MultiplexerGoalHorz_u8_arr, y
     jmp FuncA_Machine_StartWorking
     @error:
     jmp FuncA_Machine_Error
@@ -256,7 +256,7 @@ _MaxGoalX_u8_arr:
 _Loop:
     ;; Calculate the desired X-position for the left edge of the platform, in
     ;; room-space pixels, storing it in Zp_PointX_i16.
-    lda Ram_RoomState + sState::MultiplexerGoalHorz_u8_arr, x
+    lda Zp_RoomState + sState::MultiplexerGoalHorz_u8_arr, x
     mul #kBlockWidthPx
     add #<kMultiplexerMinPlatformLeft
     sta Zp_PointX_i16 + 0

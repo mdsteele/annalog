@@ -43,9 +43,9 @@
 .IMPORT Ram_ActorType_eActor_arr
 .IMPORT Ram_DeviceType_eDevice_arr
 .IMPORT Ram_PlatformType_ePlatform_arr
-.IMPORT Ram_RoomState
 .IMPORT Sram_ProgressFlags_arr
 .IMPORTZP Zp_PointY_i16
+.IMPORTZP Zp_RoomState
 
 ;;;=========================================================================;;;
 
@@ -332,7 +332,7 @@ _MoveAlex:
     sta Ram_DeviceType_eDevice_arr + kAlexFreeLeftDeviceIndex
 _OpenGate:
     lda #1
-    sta Ram_RoomState + sState::GateLever_u1
+    sta Zp_RoomState + sState::GateLever_u1
     ldx #kGatePlatformIndex  ; param: platform index
     lda #<(kGatePlatformMinTop - kGatePlatformInitTop)  ; param: delta
     jsr Func_MovePlatformVert
@@ -347,7 +347,7 @@ _PlaceStepstone:
     ;; TODO: once Alex is done walking, place his new talk devices
 _CheckLever:
     ;; Check if the lever is flipped.
-    lda Ram_RoomState + sState::GateLever_u1
+    lda Zp_RoomState + sState::GateLever_u1
     beq @done
     ;; If so, mark the gate as open...
     ldx #eFlag::PrisonUpperGateOpened

@@ -60,11 +60,11 @@
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORT Ram_PlatformTop_i16_1_arr
 .IMPORT Ram_PlatformType_ePlatform_arr
-.IMPORT Ram_RoomState
 .IMPORT Sram_ProgressFlags_arr
 .IMPORTZP Zp_AvatarPlatformIndex_u8
 .IMPORTZP Zp_PointX_i16
 .IMPORTZP Zp_PointY_i16
+.IMPORTZP Zp_RoomState
 .IMPORTZP Zp_Tmp1_byte
 
 ;;;=========================================================================;;;
@@ -281,7 +281,7 @@ _Passages_sPassage_arr:
     bne @floorBroken
     @floorSolid:
     lda #kNumWinchHitsToBreakFloor
-    sta Ram_RoomState + sState::WeakFloorHp_u8
+    sta Zp_RoomState + sState::WeakFloorHp_u8
     rts
     @floorBroken:
     lda #ePlatform::None
@@ -292,7 +292,7 @@ _Passages_sPassage_arr:
 ;;; Draw function for the CryptSouth room.
 ;;; @prereq PRGA_Objects is loaded.
 .PROC FuncC_Crypt_South_DrawRoom
-    lda Ram_RoomState + sState::WeakFloorHp_u8  ; param: floor HP
+    lda Zp_RoomState + sState::WeakFloorHp_u8  ; param: floor HP
     beq @done
     ldx #kWeakFloorPlatformIndex  ; param: platform index
     jmp FuncA_Objects_DrawWinchBreakableFloor
@@ -420,12 +420,12 @@ _MoveVert:
     lda Ram_MachineGoalHorz_u8_arr + kWinchMachineIndex
     cmp #kWeakFloorGoalX
     bne @stopFalling  ; not over the breakable floor
-    lda Ram_RoomState + sState::WeakFloorHp_u8
+    lda Zp_RoomState + sState::WeakFloorHp_u8
     beq @stopFalling  ; floor was already broken
     ;; We've hit the breakable floor.
     ldy #kWeakFloorPlatformIndex  ; param: platform index
     jsr FuncA_Machine_WinchHitBreakableFloor
-    dec Ram_RoomState + sState::WeakFloorHp_u8
+    dec Zp_RoomState + sState::WeakFloorHp_u8
     bne @stopFalling  ; floor isn't completely broken yet
     ;; The floor is now completely broken.
     lda #ePlatform::None
@@ -461,7 +461,7 @@ _MoveHorz:
     jmp Func_MovePlatformHorz
     @reachedGoal:
 _Finished:
-    lda Ram_RoomState + sState::WinchReset_eResetSeq
+    lda Zp_RoomState + sState::WinchReset_eResetSeq
     jeq FuncA_Machine_WinchReachedGoal
     .assert * = FuncC_Crypt_SouthWinch_Reset, error, "fallthrough"
 .ENDPROC
@@ -481,7 +481,7 @@ _Finished:
     sta Ram_MachineGoalVert_u8_arr + kWinchMachineIndex
     @left:
     lda #eResetSeq::UpLeft
-    sta Ram_RoomState + sState::WinchReset_eResetSeq
+    sta Zp_RoomState + sState::WinchReset_eResetSeq
     jmp Func_ResetWinchMachineParams
 .ENDPROC
 
@@ -491,7 +491,7 @@ _Finished:
     lda #kWinchInitGoalZ
     sta Ram_MachineGoalVert_u8_arr + kWinchMachineIndex
     lda #0
-    sta Ram_RoomState + sState::WinchReset_eResetSeq
+    sta Zp_RoomState + sState::WinchReset_eResetSeq
     rts
 .ENDPROC
 
@@ -502,7 +502,7 @@ _Finished:
 .PROC FuncC_Crypt_GetSouthFloorZ
     cpy #kWeakFloorGoalX
     bne @solidFloor
-    lda Ram_RoomState + sState::WeakFloorHp_u8
+    lda Zp_RoomState + sState::WeakFloorHp_u8
     beq @solidFloor
     lda #kWeakFloorGoalZ
     rts

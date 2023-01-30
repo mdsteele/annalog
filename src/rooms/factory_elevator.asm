@@ -37,7 +37,7 @@
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrObjFactory
 .IMPORT Ram_MachineGoalVert_u8_arr
-.IMPORT Ram_RoomState
+.IMPORTZP Zp_RoomState
 
 ;;;=========================================================================;;;
 
@@ -251,7 +251,7 @@ _Passages_sPassage_arr:
     lda #0  ; TODO read upper lever (in room above)
     rts
     @readL:
-    lda Ram_RoomState + sState::UpperJetLowerLever_u1
+    lda Zp_RoomState + sState::UpperJetLowerLever_u1
     rts
 .ENDPROC
 
@@ -284,7 +284,7 @@ _Passages_sPassage_arr:
     ldax #kLowerJetMaxPlatformTop  ; param: max platform top
     jmp Func_MachineJetReadRegY  ; returns A
     @readU:
-    lda Ram_RoomState + sState::LowerJetUpperLever_u1
+    lda Zp_RoomState + sState::LowerJetUpperLever_u1
     rts
     @readL:
     lda #0  ; TODO read lower lever (in room below)

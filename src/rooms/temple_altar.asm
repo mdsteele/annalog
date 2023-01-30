@@ -56,8 +56,8 @@
 .IMPORT Ram_PlatformLeft_i16_0_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORT Ram_PlatformType_ePlatform_arr
-.IMPORT Ram_RoomState
 .IMPORT Sram_ProgressFlags_arr
+.IMPORTZP Zp_RoomState
 
 ;;;=========================================================================;;;
 
@@ -380,10 +380,10 @@ _HitColumn:
     lda #eActor::None
     sta Ram_ActorType_eActor_arr, x
     ;; Hit the breakable column.
-    inc Ram_RoomState + sState::BreakableColumnHits_u8
+    inc Zp_RoomState + sState::BreakableColumnHits_u8
     ;; TODO: play a sound
     ;; If the column is now broken, remove it.
-    lda Ram_RoomState + sState::BreakableColumnHits_u8
+    lda Zp_RoomState + sState::BreakableColumnHits_u8
     cmp #kNumHitsToBreakColumn
     blt @done
     lda #ePlatform::None
@@ -415,7 +415,7 @@ _HitBeetle:
     .assert ePlatform::None = 0, error
     beq @columnBroken
     ldx #kColumnPlatformIndex  ; param: platform index
-    lda Ram_RoomState + sState::BreakableColumnHits_u8  ; param: num hits
+    lda Zp_RoomState + sState::BreakableColumnHits_u8  ; param: num hits
     jmp FuncC_Temple_DrawColumnCrackedPlatform
     @columnBroken:
     rts
@@ -437,10 +437,10 @@ _HitBeetle:
     cmp #$d
     beq _ReadR
 _ReadL:
-    lda Ram_RoomState + sState::LeverLeft_u1
+    lda Zp_RoomState + sState::LeverLeft_u1
     rts
 _ReadR:
-    lda Ram_RoomState + sState::LeverRight_u1
+    lda Zp_RoomState + sState::LeverRight_u1
     rts
 _ReadX:
     lda Ram_PlatformLeft_i16_0_arr + kUpperMinigunPlatformIndex
@@ -508,7 +508,7 @@ _MoveHorz:
     rts
     @reachedGoal:
 _ReachedGoal:
-    lda Ram_RoomState + sState::LowerMinigun_eResetSeq
+    lda Zp_RoomState + sState::LowerMinigun_eResetSeq
     bne FuncC_Temple_AltarLowerMinigun_Reset
     jmp FuncA_Machine_ReachedGoal
 .ENDPROC
@@ -527,7 +527,7 @@ _ReachedGoal:
     blt _MoveToLowerRight
 _MoveToMiddleLeft:
     lda #eResetSeq::MiddleLeft
-    sta Ram_RoomState + sState::LowerMinigun_eResetSeq
+    sta Zp_RoomState + sState::LowerMinigun_eResetSeq
     lda #0
     sta Ram_MachineGoalHorz_u8_arr + kLowerMinigunMachineIndex
     lda #3
@@ -535,13 +535,13 @@ _MoveToMiddleLeft:
     rts
 _MoveToUpperRight:
     lda #eResetSeq::UpperRight
-    sta Ram_RoomState + sState::LowerMinigun_eResetSeq
+    sta Zp_RoomState + sState::LowerMinigun_eResetSeq
     lda #1
     sta Ram_MachineGoalHorz_u8_arr + kLowerMinigunMachineIndex
     rts
 _MoveToLowerRight:
     lda #eResetSeq::LowerRight
-    sta Ram_RoomState + sState::LowerMinigun_eResetSeq
+    sta Zp_RoomState + sState::LowerMinigun_eResetSeq
     .assert * = FuncC_Temple_AltarLowerMinigun_Init, error, "fallthrough"
 .ENDPROC
 

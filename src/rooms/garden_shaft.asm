@@ -42,8 +42,8 @@
 .IMPORT Ppu_ChrObjGarden
 .IMPORT Ram_MachineGoalVert_u8_arr
 .IMPORT Ram_MachineParam1_u8_arr
-.IMPORT Ram_RoomState
 .IMPORTZP Zp_MachineIndex_u8
+.IMPORTZP Zp_RoomState
 
 ;;;=========================================================================;;;
 
@@ -230,7 +230,7 @@ _Passages_sPassage_arr:
     jmp Func_MachineBridgeReadRegY
     @readL:
     ldx Zp_MachineIndex_u8
-    lda Ram_RoomState + sState::Lever_u1_arr, x
+    lda Zp_RoomState + sState::Lever_u1_arr, x
     rts
 .ENDPROC
 

@@ -69,7 +69,6 @@
 .IMPORT Ram_ActorPosY_i16_1_arr
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORT Ram_PlatformType_ePlatform_arr
-.IMPORT Ram_RoomState
 .IMPORTZP Zp_AvatarPosX_i16
 .IMPORTZP Zp_Buffered_sIrq
 .IMPORTZP Zp_CameraCanScroll_bool
@@ -78,6 +77,7 @@
 .IMPORTZP Zp_NextIrq_int_ptr
 .IMPORTZP Zp_RoomScrollX_u16
 .IMPORTZP Zp_RoomScrollY_u8
+.IMPORTZP Zp_RoomState
 .IMPORTZP Zp_Tmp1_byte
 .IMPORTZP Zp_Tmp_ptr
 
@@ -357,11 +357,11 @@ _BossIsAlreadyDead:
     rts
 _InitializeBoss:
     lda #kBossInitHealth
-    sta Ram_RoomState + sState::BossHealth_u8
+    sta Zp_RoomState + sState::BossHealth_u8
     lda #kBossInitCooldown
-    sta Ram_RoomState + sState::BossCooldown_u8
+    sta Zp_RoomState + sState::BossCooldown_u8
     lda #eBoss::Waiting
-    sta Ram_RoomState + sState::BossMode_eBoss
+    sta Zp_RoomState + sState::BossMode_eBoss
     rts
 .ENDPROC
 
@@ -380,7 +380,7 @@ _InitializeBoss:
 ;;; @prereq PRGA_Room is loaded.
 .PROC FuncC_Boss_Garden_TickRoom
     .assert eBoss::Dead = 0, error
-    lda Ram_RoomState + sState::BossMode_eBoss  ; param: zero if boss is dead
+    lda Zp_RoomState + sState::BossMode_eBoss  ; param: zero if boss is dead
     jmp FuncA_Room_TickBoss
 .ENDPROC
 
@@ -394,32 +394,32 @@ _InitializeBoss:
     jsr FuncC_Boss_Garden_TickEye
 _TickThorns:
     ;; Move thorns quickly when hurt.
-    lda Ram_RoomState + sState::BossThornHurt_u8
+    lda Zp_RoomState + sState::BossThornHurt_u8
     beq @noHurt
-    dec Ram_RoomState + sState::BossThornHurt_u8
-    dec Ram_RoomState + sState::BossThornCounter_u8
-    dec Ram_RoomState + sState::BossThornCounter_u8
+    dec Zp_RoomState + sState::BossThornHurt_u8
+    dec Zp_RoomState + sState::BossThornCounter_u8
+    dec Zp_RoomState + sState::BossThornCounter_u8
     jmp @done
     @noHurt:
     ;; Periodically move thorns:
-    dec Ram_RoomState + sState::BossThornTimer_u8
+    dec Zp_RoomState + sState::BossThornTimer_u8
     bpl @noWrap
     lda #$40
-    sta Ram_RoomState + sState::BossThornTimer_u8
+    sta Zp_RoomState + sState::BossThornTimer_u8
     @noWrap:
-    lda Ram_RoomState + sState::BossThornTimer_u8
+    lda Zp_RoomState + sState::BossThornTimer_u8
     cmp #$18
     bge @done
-    inc Ram_RoomState + sState::BossThornCounter_u8
+    inc Zp_RoomState + sState::BossThornCounter_u8
     @done:
 _CoolDown:
     ;; Wait for cooldown to expire.
-    dec Ram_RoomState + sState::BossCooldown_u8
+    dec Zp_RoomState + sState::BossCooldown_u8
     beq _CheckMode
     rts
 _CheckMode:
     ;; Branch based on the current boss mode.
-    ldy Ram_RoomState + sState::BossMode_eBoss
+    ldy Zp_RoomState + sState::BossMode_eBoss
     lda _JumpTable_ptr_0_arr, y
     sta Zp_Tmp_ptr + 0
     lda _JumpTable_ptr_1_arr, y
@@ -441,47 +441,47 @@ _BossSpray:
     ldy #11  ; param: divisor
     jsr Func_DivMod  ; returns remainder in A
     add #2  ; param: column to shoot at
-    ldy Ram_RoomState + sState::BossActive_eEye  ; param: eye to shoot from
+    ldy Zp_RoomState + sState::BossActive_eEye  ; param: eye to shoot from
     jsr FuncC_Boss_Garden_ShootFireballAtColumn
     ;; Decrement the projectile counter; if it reaches zero, return to waiting
     ;; mode.
-    dec Ram_RoomState + sState::BossProjCount_u8
+    dec Zp_RoomState + sState::BossProjCount_u8
     jeq FuncC_Boss_Garden_StartWaiting
     ;; Otherwise, set the cooldown for the next fireball.
     lda #kBossSprayFireballCooldown
-    sta Ram_RoomState + sState::BossCooldown_u8
+    sta Zp_RoomState + sState::BossCooldown_u8
     rts
 _BossShoot:
-    ldy Ram_RoomState + sState::BossActive_eEye  ; param: eye to shoot from
+    ldy Zp_RoomState + sState::BossActive_eEye  ; param: eye to shoot from
     jsr FuncC_Boss_Garden_ShootFireballAtAvatar
     ;; Decrement the projectile counter; if it reaches zero, return to waiting
     ;; mode.
-    dec Ram_RoomState + sState::BossProjCount_u8
+    dec Zp_RoomState + sState::BossProjCount_u8
     jeq FuncC_Boss_Garden_StartWaiting
     ;; Otherwise, set the cooldown for the next fireball.
     lda #kBossShootFireballCooldown
-    sta Ram_RoomState + sState::BossCooldown_u8
+    sta Zp_RoomState + sState::BossCooldown_u8
     rts
 _BossAngry:
     jsr FuncC_Boss_Garden_DropSpike
     ;; Decrement the projectile counter; if it reaches zero, return to waiting
     ;; mode.
-    dec Ram_RoomState + sState::BossProjCount_u8
+    dec Zp_RoomState + sState::BossProjCount_u8
     jeq FuncC_Boss_Garden_StartWaiting
     ;; Otherwise, set the cooldown for the next spike.
     lda #kBossAngrySpikeCooldown
-    sta Ram_RoomState + sState::BossCooldown_u8
+    sta Zp_RoomState + sState::BossCooldown_u8
     rts
 _BossWaiting:
     jsr Func_GetRandomByte  ; returns A
     sta Zp_Tmp1_byte  ; 8 random bits
     ;; Choose a random eye to open.
     and #$01
-    sta Ram_RoomState + sState::BossActive_eEye
+    sta Zp_RoomState + sState::BossActive_eEye
     lsr Zp_Tmp1_byte  ; now 7 random bits
     ;; If the boss is at high health, switch to Shoot mode; if at low health,
     ;; randomly choose between Shoot and Spray mode.
-    lda Ram_RoomState + sState::BossHealth_u8
+    lda Zp_RoomState + sState::BossHealth_u8
     cmp #(kBossInitHealth / 2) + 1
     blt @lowHealth
     @highHealth:
@@ -495,43 +495,43 @@ _BossWaiting:
     add #eBoss::Shoot
     lsr Zp_Tmp1_byte  ; now 6 random bits
     @setMode:
-    sta Ram_RoomState + sState::BossMode_eBoss
+    sta Zp_RoomState + sState::BossMode_eBoss
     ;; Choose a random number of fireballs to shoot, from 4-7.
     lda Zp_Tmp1_byte  ; at least 6 random bits
     and #$03
     add #4
-    sta Ram_RoomState + sState::BossProjCount_u8
+    sta Zp_RoomState + sState::BossProjCount_u8
     ;; Initialize the cooldown.
     lda #kBossEyeOpenFrames
-    sta Ram_RoomState + sState::BossCooldown_u8
+    sta Zp_RoomState + sState::BossCooldown_u8
     rts
 .ENDPROC
 
 ;;; Opens or closes the specified boss eye, depending on the boss mode.
 ;;; @param X Which eEye to update.
 .PROC FuncC_Boss_Garden_TickEye
-    lda Ram_RoomState + sState::BossEyeFlash_u8_arr2, x
+    lda Zp_RoomState + sState::BossEyeFlash_u8_arr2, x
     beq @noFlash
-    dec Ram_RoomState + sState::BossEyeFlash_u8_arr2, x
+    dec Zp_RoomState + sState::BossEyeFlash_u8_arr2, x
     @noFlash:
 _CheckIfOpenOrClosed:
-    lda Ram_RoomState + sState::BossMode_eBoss
+    lda Zp_RoomState + sState::BossMode_eBoss
     cmp #eBoss::Shoot
     .assert eBoss::Spray > eBoss::Shoot, error
     blt _Close
-    cpx Ram_RoomState + sState::BossActive_eEye
+    cpx Zp_RoomState + sState::BossActive_eEye
     bne _Close
 _Open:
-    lda Ram_RoomState + sState::BossEyeOpen_u8_arr2, x
+    lda Zp_RoomState + sState::BossEyeOpen_u8_arr2, x
     cmp #kBossEyeOpenFrames
     bge @done
-    inc Ram_RoomState + sState::BossEyeOpen_u8_arr2, x
+    inc Zp_RoomState + sState::BossEyeOpen_u8_arr2, x
     @done:
     rts
 _Close:
-    lda Ram_RoomState + sState::BossEyeOpen_u8_arr2, x
+    lda Zp_RoomState + sState::BossEyeOpen_u8_arr2, x
     beq @done
-    dec Ram_RoomState + sState::BossEyeOpen_u8_arr2, x
+    dec Zp_RoomState + sState::BossEyeOpen_u8_arr2, x
     @done:
     rts
 .ENDPROC
@@ -564,7 +564,7 @@ _Close:
     ;; Choose fireball angle based on target column.
     lda Zp_Tmp1_byte  ; room block column
     mul #2
-    ora Ram_RoomState + sState::BossActive_eEye
+    ora Zp_RoomState + sState::BossActive_eEye
     tay
     lda _FireballAngle_u8_arr2_arr, y  ; param: aim angle
     jsr Func_InitActorProjFireball
@@ -634,11 +634,11 @@ _SpikePosY_u8_arr:
 ;;; @preserve X
 .PROC FuncC_Boss_Garden_StartWaiting
     lda #eBoss::Waiting
-    sta Ram_RoomState + sState::BossMode_eBoss
+    sta Zp_RoomState + sState::BossMode_eBoss
     jsr Func_GetRandomByte  ; preserves X, returns A
     and #$3f
     ora #$40
-    sta Ram_RoomState + sState::BossCooldown_u8
+    sta Zp_RoomState + sState::BossCooldown_u8
     rts
 .ENDPROC
 
@@ -665,7 +665,7 @@ _CheckEyes:
     .assert kLeftEyePlatformIndex = eEye::Left, error
     .assert kRightEyePlatformIndex = eEye::Right, error
     ;; Check if the hit eye is open or closed.
-    lda Ram_RoomState + sState::BossEyeOpen_u8_arr2, y
+    lda Zp_RoomState + sState::BossEyeOpen_u8_arr2, y
     cmp #kBossEyeOpenFrames / 2
     bge @eyeIsOpen
     ;; If the hit eye is closed, shake the room and switch the boss to Angry
@@ -674,30 +674,30 @@ _CheckEyes:
     lda #kBossAngrySpikeCooldown * kBossAngryNumSpikes  ; param: num frames
     jsr Func_ShakeRoom  ; preserves X
     lda #eBoss::Angry
-    sta Ram_RoomState + sState::BossMode_eBoss
+    sta Zp_RoomState + sState::BossMode_eBoss
     .assert eBoss::Angry = 2, error
-    sta Ram_RoomState + sState::BossCooldown_u8
+    sta Zp_RoomState + sState::BossCooldown_u8
     lda #kBossAngryNumSpikes
-    sta Ram_RoomState + sState::BossProjCount_u8
+    sta Zp_RoomState + sState::BossProjCount_u8
     bne @explode  ; unconditional
     ;; If the hit eye is open, deal damage to the boss.
     @eyeIsOpen:
-    dec Ram_RoomState + sState::BossHealth_u8
+    dec Zp_RoomState + sState::BossHealth_u8
     bne @bossIsStillAlive
     ;; If the boss's health is now zero, mark the boss as dead.
     ;; TODO: make a death animation
     lda #ePlatform::Zone
     sta Ram_PlatformType_ePlatform_arr + kThornsPlatformIndex
     lda #eBoss::Dead
-    sta Ram_RoomState + sState::BossMode_eBoss
+    sta Zp_RoomState + sState::BossMode_eBoss
     .assert eBoss::Dead = 0, error
     beq @explode  ; unconditional
     ;; Otherwise, put the boss into waiting mode.
     @bossIsStillAlive:
     lda #kBossEyeOpenFrames
-    sta Ram_RoomState + sState::BossEyeFlash_u8_arr2, y
+    sta Zp_RoomState + sState::BossEyeFlash_u8_arr2, y
     lda #$10
-    sta Ram_RoomState + sState::BossThornHurt_u8
+    sta Zp_RoomState + sState::BossThornHurt_u8
     jsr FuncC_Boss_Garden_StartWaiting  ; preserves X
     ;; Explode the grenade.
     @explode:
@@ -715,10 +715,10 @@ _Done:
     @readY:
     jmp Func_MachineCannonReadRegY
     @readL:
-    lda Ram_RoomState + sState::LeverLeft_u1
+    lda Zp_RoomState + sState::LeverLeft_u1
     rts
     @readR:
-    lda Ram_RoomState + sState::LeverRight_u1
+    lda Zp_RoomState + sState::LeverRight_u1
     rts
 .ENDPROC
 
@@ -728,7 +728,7 @@ _Done:
     ;; If the boss is currently shooting/spraying, switch to waiting mode (to
     ;; avoid the player cheesing by reprogramming the machine every time the
     ;; boss opens an eye).
-    lda Ram_RoomState + sState::BossMode_eBoss
+    lda Zp_RoomState + sState::BossMode_eBoss
     cmp #eBoss::Shoot
     .assert eBoss::Spray > eBoss::Shoot, error
     blt @done
@@ -750,7 +750,7 @@ _DrawBossEyes:
     inx  ; param: eye
     jsr FuncA_Objects_BossGarden_DrawEye
 _AnimateThorns:
-    lda Ram_RoomState + sState::BossThornCounter_u8
+    lda Zp_RoomState + sState::BossThornCounter_u8
     div #4
     and #$07
     add #<.bank(Ppu_ChrBgAnim0)
@@ -784,7 +784,7 @@ _SetUpIrq:
     jsr FuncA_Objects_Alloc2x2Shape  ; preserves X, returns C and Y
     bcs @done
     ;; Determine if the eye should be flashing red this frame.
-    lda Ram_RoomState + sState::BossEyeFlash_u8_arr2, x
+    lda Zp_RoomState + sState::BossEyeFlash_u8_arr2, x
     beq @noFlash
     lda Zp_FrameCounter_u8
     and #$02
@@ -793,7 +793,7 @@ _SetUpIrq:
     @noFlash:
     sta Zp_Tmp1_byte  ; flash bit
     ;; Compute the first tile ID based on the current eye openness.
-    lda Ram_RoomState + sState::BossEyeOpen_u8_arr2, x
+    lda Zp_RoomState + sState::BossEyeOpen_u8_arr2, x
     div #2
     and #$fe
     ora Zp_Tmp1_byte  ; flash bit

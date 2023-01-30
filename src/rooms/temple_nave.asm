@@ -61,12 +61,12 @@
 .IMPORT Ram_PlatformLeft_i16_0_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORT Ram_PlatformType_ePlatform_arr
-.IMPORT Ram_RoomState
 .IMPORT Sram_ProgressFlags_arr
 .IMPORTZP Zp_AvatarFlags_bObj
 .IMPORTZP Zp_AvatarPosX_i16
 .IMPORTZP Zp_FrameCounter_u8
 .IMPORTZP Zp_NextCutscene_main_ptr
+.IMPORTZP Zp_RoomState
 
 ;;;=========================================================================;;;
 
@@ -519,7 +519,7 @@ _MoveHorz:
     rts
     @reachedGoal:
 _ReachedGoal:
-    lda Ram_RoomState + sState::LowerCarriageReset_eLowerResetSeq
+    lda Zp_RoomState + sState::LowerCarriageReset_eLowerResetSeq
     bne FuncC_Temple_NaveLowerCarriage_Reset
     jmp FuncA_Machine_ReachedGoal
 .ENDPROC
@@ -543,17 +543,17 @@ _MoveToMiddleRight:
     lda #3
     sta Ram_MachineGoalVert_u8_arr + kLowerCarriageMachineIndex
     lda #eLowerResetSeq::MiddleRight
-    sta Ram_RoomState + sState::LowerCarriageReset_eLowerResetSeq
+    sta Zp_RoomState + sState::LowerCarriageReset_eLowerResetSeq
     rts
 _MoveToTopLeftish:
     lda #2
     sta Ram_MachineGoalHorz_u8_arr + kLowerCarriageMachineIndex
     lda #eLowerResetSeq::TopLeftish
-    sta Ram_RoomState + sState::LowerCarriageReset_eLowerResetSeq
+    sta Zp_RoomState + sState::LowerCarriageReset_eLowerResetSeq
     rts
 _MoveToBottomLeft:
     lda #eLowerResetSeq::BottomLeft
-    sta Ram_RoomState + sState::LowerCarriageReset_eLowerResetSeq
+    sta Zp_RoomState + sState::LowerCarriageReset_eLowerResetSeq
     .assert * = FuncC_Temple_NaveLowerCarriage_Init, error, "fallthrough"
 .ENDPROC
 
@@ -612,7 +612,7 @@ _MoveHorz:
     rts
     @reachedGoal:
 _ReachedGoal:
-    lda Ram_RoomState + sState::UpperCarriageReset_eUpperResetSeq
+    lda Zp_RoomState + sState::UpperCarriageReset_eUpperResetSeq
     bne FuncC_Temple_NaveUpperCarriage_Reset
     jmp FuncA_Machine_ReachedGoal
 .ENDPROC
@@ -629,7 +629,7 @@ _MoveToLeftEdge:
     lda #0
     sta Ram_MachineGoalHorz_u8_arr + kUpperCarriageMachineIndex
     lda #eUpperResetSeq::LeftEdge
-    sta Ram_RoomState + sState::UpperCarriageReset_eUpperResetSeq
+    sta Zp_RoomState + sState::UpperCarriageReset_eUpperResetSeq
     rts
 _MoveToUpperLeft:
     lda #6
@@ -637,11 +637,11 @@ _MoveToUpperLeft:
     lda #0
     sta Ram_MachineGoalHorz_u8_arr + kUpperCarriageMachineIndex
     lda #eUpperResetSeq::UpperLeft
-    sta Ram_RoomState + sState::UpperCarriageReset_eUpperResetSeq
+    sta Zp_RoomState + sState::UpperCarriageReset_eUpperResetSeq
     rts
 _MoveToBottomRight:
     lda #eUpperResetSeq::BottomRight
-    sta Ram_RoomState + sState::UpperCarriageReset_eUpperResetSeq
+    sta Zp_RoomState + sState::UpperCarriageReset_eUpperResetSeq
     .assert * = FuncC_Temple_NaveUpperCarriage_Init, error, "fallthrough"
 .ENDPROC
 
@@ -694,8 +694,8 @@ _InBoostingPosition:
     ;; give Anna a boost.
     lda #0
     sta Ram_ActorFlags_bObj_arr + kAlexActorIndex
-    inc Ram_RoomState + sState::CutsceneAlexBoostTimer_u8
-    lda Ram_RoomState + sState::CutsceneAlexBoostTimer_u8
+    inc Zp_RoomState + sState::CutsceneAlexBoostTimer_u8
+    lda Zp_RoomState + sState::CutsceneAlexBoostTimer_u8
     cmp #kCutsceneTimerStanding
     blt @standing
     cmp #kCutsceneTimerKneeling

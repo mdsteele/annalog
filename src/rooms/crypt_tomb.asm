@@ -60,10 +60,10 @@
 .IMPORT Ram_PlatformLeft_i16_0_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORT Ram_PlatformType_ePlatform_arr
-.IMPORT Ram_RoomState
 .IMPORT Sram_ProgressFlags_arr
 .IMPORTZP Zp_PointX_i16
 .IMPORTZP Zp_PointY_i16
+.IMPORTZP Zp_RoomState
 
 ;;;=========================================================================;;;
 
@@ -289,8 +289,8 @@ _Passages_sPassage_arr:
     flag_bit Sram_ProgressFlags_arr, eFlag::CryptTombWeakFloors
     bne FuncC_Crypt_Tomb_RemoveBreakableFloors
     lda #kNumWinchHitsToBreakFloor
-    sta Ram_RoomState + sState::WeakFloorHp_u8_arr2 + 0
-    sta Ram_RoomState + sState::WeakFloorHp_u8_arr2 + 1
+    sta Zp_RoomState + sState::WeakFloorHp_u8_arr2 + 0
+    sta Zp_RoomState + sState::WeakFloorHp_u8_arr2 + 1
     rts
 .ENDPROC
 
@@ -309,8 +309,8 @@ _Passages_sPassage_arr:
 ;;; breakable floors from this room.
 .PROC FuncC_Crypt_Tomb_RemoveBreakableFloors
     lda #0
-    sta Ram_RoomState + sState::WeakFloorHp_u8_arr2 + 0
-    sta Ram_RoomState + sState::WeakFloorHp_u8_arr2 + 1
+    sta Zp_RoomState + sState::WeakFloorHp_u8_arr2 + 0
+    sta Zp_RoomState + sState::WeakFloorHp_u8_arr2 + 1
     .assert ePlatform::None = 0, error
     sta Ram_PlatformType_ePlatform_arr + kWeakFloor0PlatformIndex
     sta Ram_PlatformType_ePlatform_arr + kWeakFloor1PlatformIndex
@@ -326,7 +326,7 @@ _Passages_sPassage_arr:
     .assert kWeakFloor1PlatformIndex = 1, error
     ldx #1  ; param: platform index
     @loop:
-    lda Ram_RoomState + sState::WeakFloorHp_u8_arr2, x  ; param: floor HP
+    lda Zp_RoomState + sState::WeakFloorHp_u8_arr2, x  ; param: floor HP
     beq @continue
     jsr FuncA_Objects_DrawWinchBreakableFloor  ; preserves X
     @continue:
@@ -353,10 +353,10 @@ _ReadX:
     div #kBlockWidthPx
     rts
 _ReadL:
-    lda Ram_RoomState + sState::LeverLeft_u1
+    lda Zp_RoomState + sState::LeverLeft_u1
     rts
 _ReadR:
-    lda Ram_RoomState + sState::LeverRight_u1
+    lda Zp_RoomState + sState::LeverRight_u1
     rts
 .ENDPROC
 
@@ -439,7 +439,7 @@ _MoveVert:
     ldy Ram_MachineGoalHorz_u8_arr + kWinchMachineIndex  ; param: goal X
     jsr FuncC_Crypt_GetTombWeakFloorIndex  ; returns C and X
     bcs @stopFalling  ; not over a breakable floor
-    lda Ram_RoomState + sState::WeakFloorHp_u8_arr2, x
+    lda Zp_RoomState + sState::WeakFloorHp_u8_arr2, x
     beq @stopFalling  ; floor was already broken
     ;; We've hit the breakable floor.
     txa
@@ -448,13 +448,13 @@ _MoveVert:
     jsr FuncA_Machine_WinchHitBreakableFloor
     pla  ; weak floor/platform index
     tax
-    dec Ram_RoomState + sState::WeakFloorHp_u8_arr2, x
+    dec Zp_RoomState + sState::WeakFloorHp_u8_arr2, x
     bne @stopFalling  ; floor isn't completely broken yet
     ;; The floor is now completely broken.
     lda #ePlatform::None
     sta Ram_PlatformType_ePlatform_arr, x
-    lda Ram_RoomState + sState::WeakFloorHp_u8_arr2 + 0
-    ora Ram_RoomState + sState::WeakFloorHp_u8_arr2 + 1
+    lda Zp_RoomState + sState::WeakFloorHp_u8_arr2 + 0
+    ora Zp_RoomState + sState::WeakFloorHp_u8_arr2 + 1
     bne @notBothBroken
     ldx #eFlag::CryptTombWeakFloors
     jsr Func_SetFlag
@@ -484,7 +484,7 @@ _MoveHorz:
     jmp Func_MovePlatformHorz
     @reachedGoal:
 _Finished:
-    lda Ram_RoomState + sState::WinchReset_eResetSeq
+    lda Zp_RoomState + sState::WinchReset_eResetSeq
     jeq FuncA_Machine_WinchReachedGoal
     .assert * = FuncC_Crypt_TombWinch_Reset, error, "fallthrough"
 .ENDPROC
@@ -503,7 +503,7 @@ _Outer:
     lda #0
     sta Ram_MachineGoalVert_u8_arr + kWinchMachineIndex
     lda #eResetSeq::TopCenter
-    sta Ram_RoomState + sState::WinchReset_eResetSeq
+    sta Zp_RoomState + sState::WinchReset_eResetSeq
     rts
 _Inner:
     .assert * = FuncC_Crypt_TombWinch_Init, error, "fallthrough"
@@ -515,7 +515,7 @@ _Inner:
     lda #kWinchInitGoalZ
     sta Ram_MachineGoalVert_u8_arr + kWinchMachineIndex
     lda #0
-    sta Ram_RoomState + sState::WinchReset_eResetSeq
+    sta Zp_RoomState + sState::WinchReset_eResetSeq
     rts
 .ENDPROC
 
@@ -526,7 +526,7 @@ _Inner:
 .PROC FuncC_Crypt_GetTombFloorZ
     jsr FuncC_Crypt_GetTombWeakFloorIndex  ; preserves Y, returns C and X
     bcs @solidFloor
-    lda Ram_RoomState + sState::WeakFloorHp_u8_arr2, x
+    lda Zp_RoomState + sState::WeakFloorHp_u8_arr2, x
     beq @solidFloor
     lda _WeakFloorZ_u8_arr2, x
     rts

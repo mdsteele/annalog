@@ -37,9 +37,9 @@
 .IMPORT Ppu_ChrObjVillage
 .IMPORT Ram_MachineStatus_eMachine_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
-.IMPORT Ram_RoomState
 .IMPORTZP Zp_MachineIndex_u8
 .IMPORTZP Zp_PointY_i16
+.IMPORTZP Zp_RoomState
 .IMPORTZP Zp_Tmp1_byte
 
 ;;;=========================================================================;;;
@@ -169,7 +169,7 @@ _Devices_sDevice_arr:
 .PROC FuncC_Mermaid_Hut6Machine_Reset
     ldx Zp_MachineIndex_u8
     lda #0
-    sta Ram_RoomState + sState::MachineGoalY_u8_arr, x
+    sta Zp_RoomState + sState::MachineGoalY_u8_arr, x
     rts
 .ENDPROC
 
@@ -186,15 +186,15 @@ _Devices_sDevice_arr:
     beq @moveDown
     @moveUp:
     ldx Zp_MachineIndex_u8
-    lda Ram_RoomState + sState::MachineGoalY_u8_arr, x
+    lda Zp_RoomState + sState::MachineGoalY_u8_arr, x
     bne @error
-    inc Ram_RoomState + sState::MachineGoalY_u8_arr, x
+    inc Zp_RoomState + sState::MachineGoalY_u8_arr, x
     jmp FuncA_Machine_StartWorking
     @moveDown:
     ldx Zp_MachineIndex_u8
-    lda Ram_RoomState + sState::MachineGoalY_u8_arr, x
+    lda Zp_RoomState + sState::MachineGoalY_u8_arr, x
     beq @error
-    dec Ram_RoomState + sState::MachineGoalY_u8_arr, x
+    dec Zp_RoomState + sState::MachineGoalY_u8_arr, x
     jmp FuncA_Machine_StartWorking
     @error:
     jmp FuncA_Machine_Error
@@ -204,7 +204,7 @@ _Devices_sDevice_arr:
     ldx Zp_MachineIndex_u8
     ;; Calculate the desired Y-position for the top edge of the lift, in
     ;; room-space pixels, storing it in Zp_PointY_i16.
-    lda Ram_RoomState + sState::MachineGoalY_u8_arr, x
+    lda Zp_RoomState + sState::MachineGoalY_u8_arr, x
     mul #kBlockHeightPx  ; fits in one byte
     sta Zp_Tmp1_byte
     lda #kMachineInitPlatformTop

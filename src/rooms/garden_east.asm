@@ -58,9 +58,9 @@
 .IMPORT Ram_ActorVelY_i16_1_arr
 .IMPORT Ram_DeviceType_eDevice_arr
 .IMPORT Ram_MachineGoalVert_u8_arr
-.IMPORT Ram_RoomState
 .IMPORT Sram_ProgressFlags_arr
 .IMPORTZP Zp_DialogAnsweredYes_bool
+.IMPORTZP Zp_RoomState
 
 ;;;=========================================================================;;;
 
@@ -362,7 +362,7 @@ _Done:
     @readY:
     jmp Func_MachineBridgeReadRegY
     @readL:
-    lda Ram_RoomState + sState::LeverBridge_u1
+    lda Zp_RoomState + sState::LeverBridge_u1
     rts
 .ENDPROC
 
@@ -384,7 +384,7 @@ _Done:
     @readY:
     jmp Func_MachineCannonReadRegY
     @readL:
-    lda Ram_RoomState + sState::LeverCannon_u1
+    lda Zp_RoomState + sState::LeverCannon_u1
     rts
 .ENDPROC
 

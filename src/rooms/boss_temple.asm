@@ -70,12 +70,12 @@
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORT Ram_PlatformLeft_i16_0_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
-.IMPORT Ram_RoomState
 .IMPORTZP Zp_Active_sIrq
 .IMPORTZP Zp_Buffered_sIrq
 .IMPORTZP Zp_Chr0cBank_u8
 .IMPORTZP Zp_NextIrq_int_ptr
 .IMPORTZP Zp_RoomScrollY_u8
+.IMPORTZP Zp_RoomState
 .IMPORTZP Zp_ShapePosX_i16
 .IMPORTZP Zp_ShapePosY_i16
 .IMPORTZP Zp_Tmp_ptr
@@ -394,7 +394,7 @@ _BossIsAlreadyDead:
     rts
 _InitializeBoss:
     lda #eBossMode::Waiting
-    sta Ram_RoomState + sState::Current_eBossMode
+    sta Zp_RoomState + sState::Current_eBossMode
     rts
 .ENDPROC
 
@@ -471,7 +471,7 @@ _ColumnTileCol_u8_arr:
 ;;; @prereq PRGA_Room is loaded.
 .PROC FuncC_Boss_Temple_TickRoom
     .assert eBossMode::Dead = 0, error
-    lda Ram_RoomState + sState::Current_eBossMode  ; param: zero if boss dead
+    lda Zp_RoomState + sState::Current_eBossMode  ; param: zero if boss dead
     jmp FuncA_Room_TickBoss
 .ENDPROC
 
@@ -487,7 +487,7 @@ _ColumnTileCol_u8_arr:
     bpl @loop
 _CheckMode:
     ;; Branch based on the current boss mode.
-    ldy Ram_RoomState + sState::Current_eBossMode
+    ldy Zp_RoomState + sState::Current_eBossMode
     lda _JumpTable_ptr_0_arr, y
     sta Zp_Tmp_ptr + 0
     lda _JumpTable_ptr_1_arr, y
@@ -518,21 +518,21 @@ _BossWaiting:
     bpl @loop
     ;; Switch modes to fire a breakball.
     lda #eBossMode::ShootBreak
-    sta Ram_RoomState + sState::Current_eBossMode
+    sta Zp_RoomState + sState::Current_eBossMode
     jmp FuncC_Boss_Temple_ChooseActiveEye
     @done:
     rts
 _BossStunned:
-    dec Ram_RoomState + sState::BossCooldown_u8
+    dec Zp_RoomState + sState::BossCooldown_u8
     bne @done
     lda #eBossMode::Waiting
-    sta Ram_RoomState + sState::Current_eBossMode
+    sta Zp_RoomState + sState::Current_eBossMode
     @done:
     rts
 _BossShootBreak:
     ;; Wait for the active eye to be fully open.
-    ldy Ram_RoomState + sState::Active_eBossEye  ; param: platform index
-    lda Ram_RoomState + sState::BossEyeOpen_u8_arr3, y
+    ldy Zp_RoomState + sState::Active_eBossEye  ; param: platform index
+    lda Zp_RoomState + sState::BossEyeOpen_u8_arr3, y
     cmp #kBossEyeOpenFrames
     blt @done
     ;; Spawn a breakball projetile.
@@ -545,7 +545,7 @@ _BossShootBreak:
     jsr FuncA_Room_InitActorProjBreakball
     ;; Switch to waiting mode.
     lda #eBossMode::Waiting
-    sta Ram_RoomState + sState::Current_eBossMode
+    sta Zp_RoomState + sState::Current_eBossMode
     @done:
     rts
 .ENDPROC
@@ -555,7 +555,7 @@ _BossShootBreak:
     jsr Func_GetRandomByte  ; returns A (param: dividend)
     ldy #eBossEye::NUM_VALUES  ; param: divisor
     jsr Func_DivMod  ; returns remainder in A
-    sta Ram_RoomState + sState::Active_eBossEye
+    sta Zp_RoomState + sState::Active_eBossEye
     rts
 .ENDPROC
 
@@ -563,22 +563,22 @@ _BossShootBreak:
 ;;; @param X The eBossEye value for the eye.
 .PROC FuncC_Boss_Temple_TickBossEye
 _CheckIfOpenOrClosed:
-    lda Ram_RoomState + sState::Current_eBossMode
+    lda Zp_RoomState + sState::Current_eBossMode
     cmp #eBossMode::Waiting
     beq _Close
-    cpx Ram_RoomState + sState::Active_eBossEye
+    cpx Zp_RoomState + sState::Active_eBossEye
     bne _Close
 _Open:
-    lda Ram_RoomState + sState::BossEyeOpen_u8_arr3, x
+    lda Zp_RoomState + sState::BossEyeOpen_u8_arr3, x
     cmp #kBossEyeOpenFrames
     bge @done
-    inc Ram_RoomState + sState::BossEyeOpen_u8_arr3, x
+    inc Zp_RoomState + sState::BossEyeOpen_u8_arr3, x
     @done:
     rts
 _Close:
-    lda Ram_RoomState + sState::BossEyeOpen_u8_arr3, x
+    lda Zp_RoomState + sState::BossEyeOpen_u8_arr3, x
     beq @done
-    dec Ram_RoomState + sState::BossEyeOpen_u8_arr3, x
+    dec Zp_RoomState + sState::BossEyeOpen_u8_arr3, x
     @done:
     rts
 .ENDPROC
@@ -613,9 +613,9 @@ _StunBoss:
     ;; TODO: play sound
     ;; Stun the boss.
     lda #eBossMode::Stunned
-    sta Ram_RoomState + sState::Current_eBossMode
+    sta Zp_RoomState + sState::Current_eBossMode
     lda #kBossStunFrames
-    sta Ram_RoomState + sState::BossCooldown_u8
+    sta Zp_RoomState + sState::BossCooldown_u8
     rts
 .ENDPROC
 
@@ -658,7 +658,7 @@ _StunBoss:
     lda #eActor::None
     sta Ram_ActorType_eActor_arr, x
     ;; Check if the eye is open.
-    lda Ram_RoomState + sState::BossEyeOpen_u8_arr3, y
+    lda Zp_RoomState + sState::BossEyeOpen_u8_arr3, y
     cmp #kBossEyeOpenFrames / 2
     bge _EyeIsOpen
 _EyeIsClosed:
@@ -694,7 +694,7 @@ _CheckForSpikes:
     blt _Done
     ;; Kill the boss.
     lda #eBossMode::Dead
-    sta Ram_RoomState + sState::Current_eBossMode
+    sta Zp_RoomState + sState::Current_eBossMode
 _Done:
     rts
 .ENDPROC
@@ -797,7 +797,7 @@ _Offset_u8_arr2:
     .assert eBossEye::Right = kBossEyeRightPlatformIndex, error
     jsr FuncA_Objects_SetShapePosToPlatformTopLeft  ; preserves X
     ;; Determine tile ID.
-    lda Ram_RoomState + sState::BossEyeOpen_u8_arr3, x
+    lda Zp_RoomState + sState::BossEyeOpen_u8_arr3, x
     cmp #kBossEyeOpenFrames / 2
     blt @closed
     @open:
@@ -847,10 +847,10 @@ _Offset_u8_arr2:
     div #kBlockWidthPx
     rts
     @readL:
-    lda Ram_RoomState + sState::LeverLeft_u1
+    lda Zp_RoomState + sState::LeverLeft_u1
     rts
     @readR:
-    lda Ram_RoomState + sState::LeverRight_u1
+    lda Zp_RoomState + sState::LeverRight_u1
     rts
 .ENDPROC
 

@@ -29,7 +29,7 @@
 .IMPORT Ram_DeviceAnim_u8_arr
 .IMPORT Ram_DeviceTarget_u8_arr
 .IMPORT Ram_Oam_sObj_arr64
-.IMPORT Ram_RoomState
+.IMPORTZP Zp_RoomState
 .IMPORTZP Zp_Tmp1_byte
 .IMPORTZP Zp_Tmp2_byte
 .IMPORTZP Zp_Tmp3_byte
@@ -64,9 +64,9 @@ kLeverAnimCountdown = kLeverNumAnimFrames * kLeverAnimSlowdown - 1
     lda #kLeverAnimCountdown
     sta Ram_DeviceAnim_u8_arr, x
     ldy Ram_DeviceTarget_u8_arr, x
-    lda Ram_RoomState, y
+    lda Zp_RoomState, y
     eor #$01
-    sta Ram_RoomState, y
+    sta Zp_RoomState, y
     rts
 .ENDPROC
 
@@ -105,7 +105,7 @@ _Animation:
     div #kLeverAnimSlowdown
     sta Zp_Tmp1_byte  ; animation delta
     ldy Ram_DeviceTarget_u8_arr, x
-    lda Ram_RoomState, y
+    lda Zp_RoomState, y
     bne @leverIsOn
     @leverIsOff:
     lda Zp_Tmp1_byte  ; animation delta

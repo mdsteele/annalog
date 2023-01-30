@@ -55,8 +55,8 @@
 .IMPORT Ram_ActorPosY_i16_1_arr
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORT Ram_PlatformType_ePlatform_arr
-.IMPORT Ram_RoomState
 .IMPORT Sram_ProgressFlags_arr
+.IMPORTZP Zp_RoomState
 .IMPORTZP Zp_Tmp1_byte
 
 ;;;=========================================================================;;;
@@ -361,24 +361,24 @@ _Crates:
     bge _GrenadeIsHigh
 _GrenadeIsLow:
     ;; If the lower portion of the wall is already destroyed, we're done.
-    lda Ram_RoomState + sState::BreakableWallLowerHits_u8
+    lda Zp_RoomState + sState::BreakableWallLowerHits_u8
     cmp #kBreakableWallHitsToDestroy
     bge _Done
     ;; Hit the wall.
-    inc Ram_RoomState + sState::BreakableWallLowerHits_u8
+    inc Zp_RoomState + sState::BreakableWallLowerHits_u8
     bne _CheckIfWallDestroyed  ; unconditional
 _GrenadeIsHigh:
     ;; If the lower portion of the wall is already destroyed, we're done.
-    lda Ram_RoomState + sState::BreakableWallUpperHits_u8
+    lda Zp_RoomState + sState::BreakableWallUpperHits_u8
     cmp #kBreakableWallHitsToDestroy
     bge _Done
     ;; Hit the wall.
-    inc Ram_RoomState + sState::BreakableWallUpperHits_u8
+    inc Zp_RoomState + sState::BreakableWallUpperHits_u8
 _CheckIfWallDestroyed:
-    lda Ram_RoomState + sState::BreakableWallUpperHits_u8
+    lda Zp_RoomState + sState::BreakableWallUpperHits_u8
     cmp #kBreakableWallHitsToDestroy
     blt _ExplodeGrenade
-    lda Ram_RoomState + sState::BreakableWallLowerHits_u8
+    lda Zp_RoomState + sState::BreakableWallLowerHits_u8
     cmp #kBreakableWallHitsToDestroy
     blt _ExplodeGrenade
     ;; Remove the wall.
@@ -407,10 +407,10 @@ _Done:
     @readY:
     jmp Func_MachineCannonReadRegY
     @readL:
-    lda Ram_RoomState + sState::LeverLeft_u1
+    lda Zp_RoomState + sState::LeverLeft_u1
     rts
     @readR:
-    lda Ram_RoomState + sState::LeverRight_u1
+    lda Zp_RoomState + sState::LeverRight_u1
     rts
 .ENDPROC
 
@@ -418,8 +418,8 @@ _Done:
 .PROC FuncC_Garden_TowerCannon_Reset
     jsr FuncA_Room_MachineCannonReset
     lda #0
-    sta Ram_RoomState + sState::BreakableWallUpperHits_u8
-    sta Ram_RoomState + sState::BreakableWallLowerHits_u8
+    sta Zp_RoomState + sState::BreakableWallUpperHits_u8
+    sta Zp_RoomState + sState::BreakableWallLowerHits_u8
     rts
 .ENDPROC
 
@@ -435,12 +435,12 @@ _BreakableWall:
     bne @done
     ldx #kBreakableWallPlatformIndex  ; param: platform index
     jsr FuncA_Objects_SetShapePosToPlatformTopLeft
-    ldx Ram_RoomState + sState::BreakableWallUpperHits_u8
+    ldx Zp_RoomState + sState::BreakableWallUpperHits_u8
     lda _Brick0TileId_u8, x  ; param: tile ID
     jsr FuncA_Objects_DrawGardenBrick  ; preserves X
     lda _Brick1TileId_u8, x  ; param: tile ID
     jsr FuncA_Objects_DrawGardenBrick  ; preserves X
-    ldx Ram_RoomState + sState::BreakableWallLowerHits_u8
+    ldx Zp_RoomState + sState::BreakableWallLowerHits_u8
     lda _Brick2TileId_u8, x  ; param: tile ID
     jsr FuncA_Objects_DrawGardenBrick  ; preserves X
     lda _Brick3TileId_u8, x  ; param: tile ID

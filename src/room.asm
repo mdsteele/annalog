@@ -149,19 +149,12 @@ Zp_Current_sRoom: .tag sRoom
 .EXPORTZP Zp_Current_sTileset
 Zp_Current_sTileset: .tag sTileset
 
-;;;=========================================================================;;;
-
-.SEGMENT "RAM_Room"
-
-;;; A chunk of RAM that each room can divvy up however it wants to store state
-;;; specific to that room, such as:
-;;;   * Position/register/etc. data for machines in that room
-;;;   * State variables for cutscenes or other room scripts
-;;;   * Mutable terrain data (for sufficiently small rooms)
-;;; This RAM is automatically zeroed just before a room is loaded, but can be
-;;; further initialized by room/machine Init functions.
-.EXPORT Ram_RoomState
-Ram_RoomState: .res kRoomStateSize
+;;; A chunk of memory that each room can divvy up however it wants to store
+;;; state specific to that room.  These bytes are automatically zeroed just
+;;; before a room is loaded, but can be further initialized by room/machine
+;;; Init functions.
+.EXPORTZP Zp_RoomState
+Zp_RoomState: .res kRoomStateSize
 
 ;;;=========================================================================;;;
 
@@ -286,12 +279,11 @@ _CopyTilesetStruct:
     dey
     bpl @loop
 _ClearRoomState:
-    .assert kRoomStateSize = $100, error
     lda #0
-    tax
+    ldx #kRoomStateSize
     @loop:
-    sta Ram_RoomState, x
-    inx
+    dex
+    sta Zp_RoomState, x
     bne @loop
 _LoadPlatforms:
     ;; Copy the current room's Platforms_sPlatform_arr_ptr into Zp_Tmp_ptr.

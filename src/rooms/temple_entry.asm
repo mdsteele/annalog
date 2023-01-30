@@ -41,9 +41,9 @@
 .IMPORT Ram_DeviceType_eDevice_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORT Ram_PlatformTop_i16_1_arr
-.IMPORT Ram_RoomState
 .IMPORT Sram_ProgressFlags_arr
 .IMPORTZP Zp_PointY_i16
+.IMPORTZP Zp_RoomState
 
 ;;;=========================================================================;;;
 
@@ -235,10 +235,10 @@ _MaybeRaiseColumn:
     flag_bit Sram_ProgressFlags_arr, eFlag::TempleEntryColumnRaised
     beq @done
     ;; Move the column by one pixel every kColumnPlatformSlowdown frames.
-    lda Ram_RoomState + sState::ColumnSlowdown_u8
+    lda Zp_RoomState + sState::ColumnSlowdown_u8
     bne @slowdown
     lda #kColumnPlatformSlowdown
-    sta Ram_RoomState + sState::ColumnSlowdown_u8
+    sta Zp_RoomState + sState::ColumnSlowdown_u8
     ldax #kColumnPlatformMinTop
     stax Zp_PointY_i16
     lda #1  ; param: move speed
@@ -248,7 +248,7 @@ _MaybeRaiseColumn:
     lda #10  ; param: num frames
     jmp Func_ShakeRoom
     @slowdown:
-    dec Ram_RoomState + sState::ColumnSlowdown_u8
+    dec Zp_RoomState + sState::ColumnSlowdown_u8
     @done:
     rts
 .ENDPROC

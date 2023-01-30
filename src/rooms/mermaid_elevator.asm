@@ -37,7 +37,7 @@
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrObjFactory
 .IMPORT Ram_MachineGoalVert_u8_arr
-.IMPORT Ram_RoomState
+.IMPORTZP Zp_RoomState
 
 ;;;=========================================================================;;;
 
@@ -219,7 +219,7 @@ _Passages_sPassage_arr:
     lda #0  ; TODO read upper lever (in room above)
     rts
     @readL:
-    lda Ram_RoomState + sState::LowerLever_u1
+    lda Zp_RoomState + sState::LowerLever_u1
     rts
 .ENDPROC
 

@@ -42,7 +42,7 @@
 .IMPORT Ram_ActorType_eActor_arr
 .IMPORT Ram_MachineGoalVert_u8_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
-.IMPORT Ram_RoomState
+.IMPORTZP Zp_RoomState
 
 ;;;=========================================================================;;;
 
@@ -220,7 +220,7 @@ _ReadY:
     div #kBlockHeightPx
     rts
 _ReadL:
-    lda Ram_RoomState + sState::Lever_u1
+    lda Zp_RoomState + sState::Lever_u1
     rts
 .ENDPROC
 

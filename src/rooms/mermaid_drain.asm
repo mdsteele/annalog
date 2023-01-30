@@ -51,10 +51,10 @@
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORT Ram_PlatformType_ePlatform_arr
-.IMPORT Ram_RoomState
 .IMPORT Sram_ProgressFlags_arr
 .IMPORTZP Zp_FrameCounter_u8
 .IMPORTZP Zp_PointY_i16
+.IMPORTZP Zp_RoomState
 .IMPORTZP Zp_Tmp1_byte
 
 ;;;=========================================================================;;;
@@ -235,14 +235,14 @@ _Drained:
     sta Ram_PlatformType_ePlatform_arr + kWaterPlatformIndex
     sta Ram_PlatformType_ePlatform_arr + kSandPlatformIndex
     .assert ePlatform::Zone = 1, error
-    sta Ram_RoomState + sState::Lever_u1
+    sta Zp_RoomState + sState::Lever_u1
     lda #eDevice::Placeholder
     sta Ram_DeviceType_eDevice_arr + kConsoleDeviceIndex
     rts
 .ENDPROC
 
 .PROC DataC_Mermaid_Drain_TickRoom
-    lda Ram_RoomState + sState::Lever_u1
+    lda Zp_RoomState + sState::Lever_u1
     beq @done
     lda #ePlatform::Zone
     sta Ram_PlatformType_ePlatform_arr + kWaterPlatformIndex
