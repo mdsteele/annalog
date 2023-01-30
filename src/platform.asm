@@ -257,6 +257,12 @@ _MovePlatform:
     lda Ram_PlatformRight_i16_1_arr, x
     adc Zp_Tmp1_byte           ; move delta (hi)
     sta Ram_PlatformRight_i16_1_arr, x
+_CheckIfSolid:
+    ;; If the platform type is non-solid, then we're done (no need to push or
+    ;; carry the avatar).
+    lda Ram_PlatformType_ePlatform_arr, x
+    cmp #kFirstSolidPlatformType
+    blt _Return
 _CarryAvatarIfRiding:
     ;; If the player avatar is riding the platform, move the avatar as well.
     cpx Zp_AvatarPlatformIndex_u8
@@ -379,6 +385,12 @@ _MovePlatform:
     lda Ram_PlatformBottom_i16_1_arr, x
     adc Zp_Tmp1_byte           ; move delta (hi)
     sta Ram_PlatformBottom_i16_1_arr, x
+_CheckIfSolid:
+    ;; If the platform type is non-solid, then we're done (no need to push or
+    ;; carry the avatar).
+    lda Ram_PlatformType_ePlatform_arr, x
+    cmp #kFirstSolidPlatformType
+    blt _Return
 _CarryAvatarIfRiding:
     ;; If the player avatar is riding the platform downwards, move the avatar
     ;; as well.  (If the avatar is riding the platform upwards, that will
