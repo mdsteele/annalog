@@ -55,6 +55,7 @@ kMaxPassages = 8
     CryptWest
     FactoryCenter
     FactoryElevator
+    FactoryWest
     GardenCrossroad
     GardenEast
     GardenFlower

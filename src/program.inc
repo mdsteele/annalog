@@ -116,6 +116,7 @@ kFirstHorzDir = eDir::Left
     CryptSouthWinch
     CryptTombWinch
     CryptWestWinch
+    FactoryWestCrane
     GardenCrossroadLift
     GardenEastBridge
     GardenEastCannon

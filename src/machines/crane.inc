@@ -17,6 +17,9 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
+;;; How many frames the crane machine spends per act operation.
+kCraneActCooldown = 8
+
 ;;; Various OBJ tile IDs used for drawing crane machines.
 kTileIdCraneFirst = $b0
 

@@ -739,7 +739,10 @@
     .res $04 * kSizeofChr
     .assert * - :- = (kTileIdJetFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/jet.chr"
-    .res $60 * kSizeofChr
+    .res $10 * kSizeofChr
+    .assert * - :- = (kTileIdCraneFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/crane.chr"
+    .res $48 * kSizeofChr
     .assert * - :- = kSizeofChr * $80, error
 .ENDPROC
 

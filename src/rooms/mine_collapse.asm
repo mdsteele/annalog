@@ -22,6 +22,7 @@
 .INCLUDE "../device.inc"
 .INCLUDE "../flag.inc"
 .INCLUDE "../machine.inc"
+.INCLUDE "../machines/crane.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../platform.inc"
 .INCLUDE "../ppu.inc"
@@ -60,9 +61,6 @@ kTrolleyMachineIndex = 1
 ;;; machines in this room.
 kCranePlatformIndex   = 0
 kTrolleyPlatformIndex = 1
-
-;;; How many frames each machine spends per move/act operation.
-kCraneActCooldown = 8
 
 ;;; The initial and maximum permitted values for the crane's Z-goal.
 kCraneInitGoalZ = 0

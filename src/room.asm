@@ -41,6 +41,7 @@
 .IMPORT DataC_Crypt_West_sRoom
 .IMPORT DataC_Factory_Center_sRoom
 .IMPORT DataC_Factory_Elevator_sRoom
+.IMPORT DataC_Factory_West_sRoom
 .IMPORT DataC_Garden_Crossroad_sRoom
 .IMPORT DataC_Garden_East_sRoom
 .IMPORT DataC_Garden_Flower_sRoom
@@ -183,6 +184,7 @@ Zp_RoomState: .res kRoomStateSize
     d_entry table, CryptWest,       DataC_Crypt_West_sRoom
     d_entry table, FactoryCenter,   DataC_Factory_Center_sRoom
     d_entry table, FactoryElevator, DataC_Factory_Elevator_sRoom
+    d_entry table, FactoryWest,     DataC_Factory_West_sRoom
     d_entry table, GardenCrossroad, DataC_Garden_Crossroad_sRoom
     d_entry table, GardenEast,      DataC_Garden_East_sRoom
     d_entry table, GardenFlower,    DataC_Garden_Flower_sRoom
