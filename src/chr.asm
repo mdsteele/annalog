@@ -435,7 +435,7 @@
 
 .EXPORT Ppu_ChrBgFactory
 .PROC Ppu_ChrBgFactory
-:   .incbin "out/data/tiles/cave.chr"
+:   .incbin "out/data/tiles/factory1.chr"
     .incbin "out/data/tiles/metal.chr"
     .res $10 * kSizeofChr
     .incbin "out/data/tiles/sign.chr"

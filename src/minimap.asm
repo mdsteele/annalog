@@ -282,6 +282,7 @@ _MarkMinimap:
     .byte  6, 10
     .byte  6, 11
     .byte  6, 12
+    .byte  6, 13
     .byte  6, 14
     .byte  6, 15
     .byte  6, 16

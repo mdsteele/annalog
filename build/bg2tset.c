@@ -57,6 +57,7 @@ static const struct {
   {0x80, "crypt"},
   {0x80, "crystal"},
   {0xb4, "drawbridge"},
+  {0x80, "factory1"},
   {0xb0, "field_bg"},
   {0x40, "font_lower"},
   {0xa0, "furniture"},
