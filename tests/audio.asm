@@ -48,6 +48,8 @@ Hw_Pulse1TimerLo_wo = Hw_Channels_sChanRegs_arr5 + \
 
 ;;;=========================================================================;;;
 
+.CODE
+
 .PROC Data_Test_sMusic
     D_STRUCT sMusic
     d_addr Opcodes_bMusic_arr_ptr, _Opcodes_bMusic_arr

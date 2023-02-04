@@ -90,6 +90,7 @@ kMaxPassages = 8
     MineSouth
     PrisonCell
     PrisonCrossroad
+    PrisonEast
     PrisonEscape
     PrisonFlower
     PrisonUpper

@@ -400,6 +400,8 @@ _MarkMinimap:
     .byte 3, 4
     .byte 3, 5
     .byte 3, 6
+    .byte 3, 8
+    .byte 3, 9
     .byte 4, 6
     .byte 5, 6
     .byte $ff

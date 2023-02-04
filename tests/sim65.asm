@@ -17,6 +17,7 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
+.INCLUDE "../src/cpu.inc"
 .INCLUDE "../src/macros.inc"
 
 ;;;=========================================================================;;;
@@ -102,6 +103,41 @@ _Buffer:
     txa
     and #$0f
     jmp Func_BufferHexDigit
+.ENDPROC
+
+;;; Prints and exits with an error if the Z flag is not set.
+;;; @param Z The actual Z flag.
+;;; @preserve X
+.EXPORT Func_ExpectZIsSet
+.PROC Func_ExpectZIsSet
+    php
+    ldy #1
+    plp
+    jmp Func_ExpectZEqualsY  ; preserves X
+.ENDPROC
+
+;;; Prints and exits with an error if the Z flag is set.
+;;; @param Z The actual Z flag.
+;;; @preserve X
+.EXPORT Func_ExpectZIsClear
+.PROC Func_ExpectZIsClear
+    php
+    ldy #0
+    plp
+    .assert * = Func_ExpectZEqualsY, error, "fallthrough"
+.ENDPROC
+
+;;; Prints and exits with an error if the Z flag (treated as 0 or 1) is not
+;;; equal to Y.
+;;; @param Z The actual Z flag.
+;;; @param Y The expected Z flag value (0 or 1).
+;;; @preserve X
+.PROC Func_ExpectZEqualsY
+    php
+    pla
+    and #bProc::Zero
+    div #bProc::Zero
+    .assert * = Func_ExpectAEqualsY, error, "fallthrough"
 .ENDPROC
 
 ;;; Prints and exits with an error if A does not equal Y.

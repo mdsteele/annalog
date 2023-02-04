@@ -76,6 +76,7 @@
 .IMPORT DataC_Mine_South_sRoom
 .IMPORT DataC_Prison_Cell_sRoom
 .IMPORT DataC_Prison_Crossroad_sRoom
+.IMPORT DataC_Prison_East_sRoom
 .IMPORT DataC_Prison_Escape_sRoom
 .IMPORT DataC_Prison_Flower_sRoom
 .IMPORT DataC_Prison_Upper_sRoom
@@ -220,6 +221,7 @@ Zp_RoomState: .res kRoomStateSize
     d_entry table, MineSouth,       DataC_Mine_South_sRoom
     d_entry table, PrisonCell,      DataC_Prison_Cell_sRoom
     d_entry table, PrisonCrossroad, DataC_Prison_Crossroad_sRoom
+    d_entry table, PrisonEast,      DataC_Prison_East_sRoom
     d_entry table, PrisonEscape,    DataC_Prison_Escape_sRoom
     d_entry table, PrisonFlower,    DataC_Prison_Flower_sRoom
     d_entry table, PrisonUpper,     DataC_Prison_Upper_sRoom

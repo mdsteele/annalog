@@ -51,6 +51,17 @@
     rts
 .ENDPROC
 
+;;; Sets or clears the specified eFlag.
+;;; @param A Zero if the flag should be cleared; nonzero if it should be set.
+;;; @param X The eFlag value to set/clear.
+;;; @preserve Zp_Tmp*
+.EXPORT Func_SetOrClearFlag
+.PROC Func_SetOrClearFlag
+    tay
+    beq Func_ClearFlag
+    .assert * = Func_SetFlag, error, "fallthrough"
+.ENDPROC
+
 ;;; Sets the specified eFlag to true if it isn't already.
 ;;; @param X The eFlag value to set.
 ;;; @return C Set if the flag was already set to true, cleared otherwise.
@@ -75,6 +86,45 @@
     ;; Compute the new value for the byte in Sram_ProgressFlags_arr.
     tya  ; flag bitmask
     ora Sram_ProgressFlags_arr, x
+    bne Func_WriteFlag  ; unconditional; preserves Zp_Tmp*, clears C
+_AlreadySet:
+    sec
+    rts
+.ENDPROC
+
+;;; Clears the specified eFlag to false if it isn't already.
+;;; @param X The eFlag value to clear.
+;;; @preserve Zp_Tmp*
+.EXPORT Func_ClearFlag
+.PROC Func_ClearFlag
+    ;; Get the bitmask for this eFlag.
+    txa  ; eFlag value
+    and #$07
+    tay
+    lda Data_PowersOfTwo_u8_arr8, y
+    tay  ; flag bitmask
+    ;; Get the byte offset into Sram_ProgressFlags_arr for this eFlag, and
+    ;; store it in X.
+    txa  ; eFlag value
+    div #8
+    tax  ; byte offset
+    ;; Check if the flag is already set.
+    tya  ; flag bitmask
+    and Sram_ProgressFlags_arr, x
+    bne _ClearFlag
+    rts
+_ClearFlag:
+    ;; Compute the new value for the byte in Sram_ProgressFlags_arr.
+    eor Sram_ProgressFlags_arr, x
+    .assert * = Func_WriteFlag, error, "fallthrough"
+.ENDPROC
+
+;;; Writes a byte to Sram_ProgressFlags_arr.
+;;; @param A The byte to write.
+;;; @param X The byte index into Sram_ProgressFlags_arr.
+;;; @return C Always cleared.
+;;; @preserve Zp_Tmp*
+.PROC Func_WriteFlag
     ;; Enable writes to SRAM.
     ldy #bMmc3PrgRam::Enable
     sty Hw_Mmc3PrgRamProtect_wo
@@ -84,9 +134,6 @@
     ldy #bMmc3PrgRam::Enable | bMmc3PrgRam::DenyWrites
     sty Hw_Mmc3PrgRamProtect_wo
     clc
-    rts
-_AlreadySet:
-    sec
     rts
 .ENDPROC
 

@@ -28,13 +28,16 @@
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
 .INCLUDE "../platform.inc"
+.INCLUDE "../platforms/gate.inc"
+.INCLUDE "../platforms/stepstone.inc"
+.INCLUDE "../ppu.inc"
 .INCLUDE "../room.inc"
 
 .IMPORT DataA_Room_Prison_sTileset
 .IMPORT FuncA_Objects_DrawStepstonePlatform
 .IMPORT FuncC_Prison_DrawGatePlatform
-.IMPORT Func_MovePlatformTopTowardPointY
-.IMPORT Func_MovePlatformVert
+.IMPORT FuncC_Prison_OpenGateAndFlipLever
+.IMPORT FuncC_Prison_TickGatePlatform
 .IMPORT Func_Noop
 .IMPORT Func_SetFlag
 .IMPORT Ppu_ChrObjPrison
@@ -44,7 +47,6 @@
 .IMPORT Ram_DeviceType_eDevice_arr
 .IMPORT Ram_PlatformType_ePlatform_arr
 .IMPORT Sram_ProgressFlags_arr
-.IMPORTZP Zp_PointY_i16
 .IMPORTZP Zp_RoomState
 
 ;;;=========================================================================;;;
@@ -71,10 +73,8 @@ kStepstonePlatformIndex = 1
 ;;; The platform index for the prison gate in this room.
 kGatePlatformIndex = 0
 
-;;; The initial and minimum room pixel Y-positions for the top of the prison
-;;; gate platform.
-kGatePlatformInitTop = $00a0
-kGatePlatformMinTop  = kGatePlatformInitTop - $1d
+;;; The room block row for the top of the gate when it's shut.
+kGateBlockRow = 10
 
 ;;; The room pixel X-position that the Alex actor should walk to after the
 ;;; prison gate is opened.
@@ -131,19 +131,19 @@ _Platforms_sPlatform_arr:
 :   .assert * - :- = kGatePlatformIndex * .sizeof(sPlatform), error
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Solid
-    d_word WidthPx_u16, $0d
-    d_byte HeightPx_u8, $20
-    d_word Left_i16,  $0063
-    d_word Top_i16, kGatePlatformInitTop
+    d_word WidthPx_u16, kGatePlatformWidthPx
+    d_byte HeightPx_u8, kGatePlatformHeightPx
+    d_word Left_i16, $0063
+    d_word Top_i16, kGateBlockRow * kBlockHeightPx
     D_END
     ;; Stepping stone on right side of eastern cell:
     .assert * - :- = kStepstonePlatformIndex * .sizeof(sPlatform), error
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Zone
-    d_word WidthPx_u16, $08
-    d_byte HeightPx_u8, $06
-    d_word Left_i16,  $0199
-    d_word Top_i16,   $008c
+    d_word WidthPx_u16, kStepstonePlatformWidthPx
+    d_byte HeightPx_u8, kStepstonePlatformHeightPx
+    d_word Left_i16, $0199
+    d_word Top_i16,  $008c
     D_END
     ;; Ledge above Alex's cell:
     D_STRUCT sPlatform
@@ -331,11 +331,9 @@ _MoveAlex:
     lda #eDevice::TalkLeft
     sta Ram_DeviceType_eDevice_arr + kAlexFreeLeftDeviceIndex
 _OpenGate:
-    lda #1
-    sta Zp_RoomState + sState::GateLever_u1
     ldx #kGatePlatformIndex  ; param: platform index
-    lda #<(kGatePlatformMinTop - kGatePlatformInitTop)  ; param: delta
-    jsr Func_MovePlatformVert
+    ldy #sState::GateLever_u1  ; param: lever target
+    jsr FuncC_Prison_OpenGateAndFlipLever
 _PlaceStepstone:
     lda #ePlatform::Solid
     sta Ram_PlatformType_ePlatform_arr + kStepstonePlatformIndex
@@ -359,14 +357,10 @@ _CheckLever:
 _OpenGate:
     ;; If the gate has been opened, move it up into its open position.
     flag_bit Sram_ProgressFlags_arr, eFlag::PrisonUpperGateOpened
-    beq @done
-    ldax #kGatePlatformMinTop
-    stax Zp_PointY_i16
-    lda #1  ; param: move speed
+    tay  ; param: zero for shut
     ldx #kGatePlatformIndex  ; param: platform index
-    jmp Func_MovePlatformTopTowardPointY
-    @done:
-    rts
+    lda #kGateBlockRow  ; param: block row
+    jmp FuncC_Prison_TickGatePlatform
 .ENDPROC
 
 ;;; Draw function for the PrisonUpper room.

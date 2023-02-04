@@ -24,9 +24,11 @@
 .INCLUDE "../dialog.inc"
 .INCLUDE "../flag.inc"
 .INCLUDE "../machine.inc"
+.INCLUDE "../machines/lift.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
 .INCLUDE "../platform.inc"
+.INCLUDE "../platforms/gate.inc"
 .INCLUDE "../ppu.inc"
 .INCLUDE "../program.inc"
 .INCLUDE "../room.inc"
@@ -159,18 +161,18 @@ _Platforms_sPlatform_arr:
 :   .assert * - :- = kLiftPlatformIndex * .sizeof(sPlatform), error
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Solid
-    d_word WidthPx_u16, $10
-    d_byte HeightPx_u8, $20
-    d_word Left_i16,  $0020
+    d_word WidthPx_u16, kLiftMachineWidthPx
+    d_byte HeightPx_u8, kLiftMachineHeightPx
+    d_word Left_i16, $0020
     d_word Top_i16, kLiftInitPlatformTop
     D_END
     .assert * - :- = kGatePlatformIndex * .sizeof(sPlatform), error
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Solid
-    d_word WidthPx_u16, $0d
-    d_byte HeightPx_u8, $20
-    d_word Left_i16,  $00f3
-    d_word Top_i16,   $00a0
+    d_word WidthPx_u16, kGatePlatformWidthPx
+    d_byte HeightPx_u8, kGatePlatformHeightPx
+    d_word Left_i16, $00f3
+    d_word Top_i16,  $00a0
     D_END
     .assert * - :- <= kMaxPlatforms * .sizeof(sPlatform), error
     .byte ePlatform::None

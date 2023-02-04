@@ -17,11 +17,8 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
-;;; The size of a stepstone platform, in pixels.
-kStepstonePlatformWidthPx  = $08
-kStepstonePlatformHeightPx = $06
-
-;;; The OBJ tile ID for drawing stepping stone platforms.
-kTileIdObjStepstone = $e0
+;;; The size of a lift machine's main platform, in pixels.
+kLiftMachineWidthPx  = $10
+kLiftMachineHeightPx = $20
 
 ;;;=========================================================================;;;
