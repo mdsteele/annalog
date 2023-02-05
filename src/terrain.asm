@@ -86,8 +86,8 @@ Zp_NametableColumnIndex_u8: .res 1
 .EXPORT Func_GetTerrainColumnPtrForPointX
 .PROC Func_GetTerrainColumnPtrForPointX
     bit <(Zp_Current_sRoom + sRoom::Flags_bRoom)
-    .assert bRoom::Tall = bProc::Negative, error
-    bmi _TallRoom
+    .assert bRoom::Tall = bProc::Overflow, error
+    bvs _TallRoom
 _ShortRoom:
     ;; The width of a block in pixels is 16, so by clearing the bottom four
     ;; bits of Zp_PointX_i16, we end up with block column index * 16 (with the
@@ -161,8 +161,8 @@ _TallRoom:
     ;; We now have (col * 8).  If the room is short, we want (col * 16), and if
     ;; it's tall we want (col * 24).
     bit <(Zp_Current_sRoom + sRoom::Flags_bRoom)
-    .assert bRoom::Tall = bProc::Negative, error
-    bmi _TallRoom
+    .assert bRoom::Tall = bProc::Overflow, error
+    bvs _TallRoom
 _ShortRoom:
     asl a                                ; lo byte of (col * 16)
     rol Zp_TerrainColumn_u8_arr_ptr + 1  ; hi byte of (col * 16)
@@ -242,8 +242,8 @@ _TileColumnLoop:
     sta Hw_PpuAddr_w2
     ;; Check if this room is more than one screen tall.
     bit <(Zp_Current_sRoom + sRoom::Flags_bRoom)
-    .assert bRoom::Tall = bProc::Negative, error
-    bpl _ShortRoom
+    .assert bRoom::Tall = bProc::Overflow, error
+    bvc _ShortRoom
 _TallRoom:
     @tileLoop:
     lda (Zp_TerrainColumn_u8_arr_ptr), y
@@ -288,8 +288,8 @@ _TallRoom:
     sta Hw_PpuAddr_w2
     ;; Check if this room is more than one screen tall.
     bit <(Zp_Current_sRoom + sRoom::Flags_bRoom)
-    .assert bRoom::Tall = bProc::Negative, error
-    bpl _ShortRoom
+    .assert bRoom::Tall = bProc::Overflow, error
+    bvc _ShortRoom
 _TallRoom:
     @tileLoop:
     lda (Zp_TerrainColumn_u8_arr_ptr), y
@@ -358,8 +358,8 @@ _Done:
     ;; If this is a tall room, then we need to also buffer a PPU transfer for
     ;; the lower nametable.
     bit <(Zp_Current_sRoom + sRoom::Flags_bRoom)
-    .assert bRoom::Tall = bProc::Negative, error
-    bpl _Return
+    .assert bRoom::Tall = bProc::Overflow, error
+    bvc _Return
 .PROC _LowerTransfer
     ldx Zp_PpuTransferLen_u8
     txa

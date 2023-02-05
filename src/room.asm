@@ -125,7 +125,6 @@
 .IMPORTZP Zp_CameraCanScroll_bool
 .IMPORTZP Zp_ConsoleMachineIndex_u8
 .IMPORTZP Zp_HudMachineIndex_u8
-.IMPORTZP Zp_RoomIsSafe_bool
 .IMPORTZP Zp_RoomShake_u8
 .IMPORTZP Zp_Tmp1_byte
 .IMPORTZP Zp_Tmp2_byte
@@ -467,7 +466,6 @@ _SetVars:
     stx Zp_CameraCanScroll_bool
     stx Zp_ConsoleMachineIndex_u8
     stx Zp_HudMachineIndex_u8
-    stx Zp_RoomIsSafe_bool
 _CallInit:
     jsr FuncA_Room_CallRoomInit
     jmp FuncA_Room_InitAllMachines

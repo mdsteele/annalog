@@ -111,8 +111,8 @@ _SetScrollGoalY:
     ;; Calculate the maximum permitted scroll-Y and store it in Zp_Tmp1_byte.
     lda #0
     bit <(Zp_Current_sRoom + sRoom::Flags_bRoom)
-    .assert bRoom::Tall = bProc::Negative, error
-    bpl @shortRoom
+    .assert bRoom::Tall = bProc::Overflow, error
+    bvc @shortRoom
     lda #kTallRoomHeightBlocks * kBlockHeightPx - kScreenHeightPx
     @shortRoom:
     sta Zp_Tmp1_byte  ; max scroll-Y
@@ -266,8 +266,8 @@ _ClampScrollY:
     ;; Calculate the maximum permitted scroll-Y and store it in Zp_Tmp2_byte.
     lda #kScreenHeightPx
     bit <(Zp_Current_sRoom + sRoom::Flags_bRoom)
-    .assert bRoom::Tall = bProc::Negative, error
-    bpl @shortRoom
+    .assert bRoom::Tall = bProc::Overflow, error
+    bvc @shortRoom
     lda #<(kTallRoomHeightBlocks * kBlockHeightPx)
     @shortRoom:
     sub Zp_Tmp1_byte  ; visible screen height

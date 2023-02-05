@@ -403,8 +403,8 @@ _OpenConsoleWindow:
     bpl _UpDownPassage
 _EastWestPassage:
     bit <(Zp_Current_sRoom + sRoom::Flags_bRoom)
-    .assert bRoom::Tall = bProc::Negative, error
-    bpl @upperHalf
+    .assert bRoom::Tall = bProc::Overflow, error
+    bvc @upperHalf
     @tall:
     lda Zp_AvatarPosY_i16 + 1
     bmi @upperHalf

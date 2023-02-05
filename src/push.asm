@@ -364,8 +364,8 @@ _Bottom:
     ;; the bottom edge of the room, storing the result in Zp_Tmp1_byte (lo) and
     ;; A (hi).
     bit <(Zp_Current_sRoom + sRoom::Flags_bRoom)
-    .assert bRoom::Tall = bProc::Negative, error
-    bmi @tall
+    .assert bRoom::Tall = bProc::Overflow, error
+    bvs @tall
     @short:
     lda #kScreenHeightPx - kAvatarBoundingBoxDown
     ldy #0

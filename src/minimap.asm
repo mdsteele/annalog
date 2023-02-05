@@ -54,8 +54,8 @@ Zp_CameraMinimapCol_u8: .res 1
 _UpdateMinimapRow:
     ldy <(Zp_Current_sRoom + sRoom::MinimapStartRow_u8)
     bit <(Zp_Current_sRoom + sRoom::Flags_bRoom)
-    .assert bRoom::Tall = bProc::Negative, error
-    bpl @upperHalf
+    .assert bRoom::Tall = bProc::Overflow, error
+    bvc @upperHalf
     @tall:
     lda Zp_RoomScrollY_u8
     cmp #(kTallRoomHeightBlocks * kBlockHeightPx - kScreenHeightPx) / 2

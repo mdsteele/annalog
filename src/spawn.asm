@@ -65,11 +65,6 @@ kPassageSpawnMargin = 15
 Zp_LastPoint_bSpawn: .res 1
 Zp_LastPoint_eRoom: .res 1
 
-;;; If false ($00), the current room is "unsafe" and Zp_LastPoint_* should not
-;;; be copied to Sram_LastSafe_*.  If true ($ff), the room is "safe".
-.EXPORTZP Zp_RoomIsSafe_bool
-Zp_RoomIsSafe_bool: .res 1
-
 ;;;=========================================================================;;;
 
 .SEGMENT "PRG8"
@@ -84,22 +79,24 @@ Zp_RoomIsSafe_bool: .res 1
     sta Zp_LastPoint_bSpawn
     lda Zp_Current_eRoom
     sta Zp_LastPoint_eRoom
-    bit Zp_RoomIsSafe_bool
-    bmi Func_UpdateLastSafePoint  ; preserves X, Y, and Zp_Tmp_*
+    bit Zp_Current_sRoom + sRoom::Flags_bRoom
+    .assert bRoom::Unsafe = bProc::Negative, error
+    bpl Func_UpdateLastSafePoint  ; preserves X, Y, and Zp_Tmp_*
     rts
 .ENDPROC
 
-;;; If Zp_RoomIsSafe_bool is false, sets it to true and copies the last visited
-;;; spawn point to the last safe point.
+;;; If bRoom::Unsafe is set on (Zp_Current_sRoom + sRoom::Flags_bRoom), clears
+;;; that flag and copies the last visited spawn point to the last safe point.
 ;;; @preserve X, Y, Zp_Tmp_*
 .EXPORT Func_MarkRoomSafe
 .PROC Func_MarkRoomSafe
-    bit Zp_RoomIsSafe_bool
-    bpl @markSafe
+    lda Zp_Current_sRoom + sRoom::Flags_bRoom
+    .assert bRoom::Unsafe = bProc::Negative, error
+    bmi @markSafe
     rts
     @markSafe:
-    lda #$ff
-    sta Zp_RoomIsSafe_bool
+    and #<~bRoom::Unsafe
+    sta Zp_Current_sRoom + sRoom::Flags_bRoom
     .assert * = Func_UpdateLastSafePoint, error, "fallthrough"
 .ENDPROC
 
@@ -218,8 +215,8 @@ _TopEdge:
     beq _Finish  ; unconditional
 _BottomEdge:
     bit <(Zp_Current_sRoom + sRoom::Flags_bRoom)
-    .assert bRoom::Tall = bProc::Negative, error
-    bmi @tall
+    .assert bRoom::Tall = bProc::Overflow, error
+    bvs @tall
     @short:
     ldx #kScreenHeightPx - kPassageSpawnMargin
     lda #0
@@ -502,8 +499,8 @@ _UpDown:
     jmp Func_CallRoomEnter
     @bottomEdge:
     bit <(Zp_Current_sRoom + sRoom::Flags_bRoom)
-    .assert bRoom::Tall = bProc::Negative, error
-    bmi @tall
+    .assert bRoom::Tall = bProc::Overflow, error
+    bvs @tall
     @short:
     ldx #kScreenHeightPx - (kAvatarBoundingBoxDown + 1)
     lda #0
