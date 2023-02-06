@@ -28,7 +28,7 @@
 .IMPORT Func_FadeOutToBlack
 .IMPORT Func_SetLastSpawnPoint
 .IMPORT Main_Explore_Continue
-.IMPORT Main_Explore_FadeIn
+.IMPORT Main_Explore_EnterRoom
 .IMPORT Ram_DeviceTarget_u8_arr
 .IMPORT Ram_DeviceType_eDevice_arr
 .IMPORTZP Zp_NextCutscene_main_ptr
@@ -54,7 +54,7 @@ _LoadDestinationRoom:
 _FadeIn:
     ldya #Main_CutsceneTeleportIn
     stya Zp_NextCutscene_main_ptr
-    jmp Main_Explore_FadeIn
+    jmp Main_Explore_EnterRoom
 .ENDPROC
 
 ;;; Cutscene mode for teleporting the player avatar into the current room.
@@ -70,8 +70,8 @@ _FadeIn:
 .SEGMENT "PRGA_Avatar"
 
 ;;; Called when entering a new room via a teleporter.  Marks the entrance
-;;; teleporter as the last spawn point, positions the player avatar at that
-;;; teleporter, and finally calls the room's Enter_func_ptr.
+;;; teleporter as the last spawn point and positions the player avatar at that
+;;; teleporter.
 ;;; @prereq The new room is loaded.
 ;;; @prereq There is a Teleport device in the new room.
 .PROC FuncA_Avatar_EnterRoomViaTeleporter

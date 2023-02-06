@@ -279,6 +279,7 @@ kMaxPassages = 8
     ;; with the room's terrain.  Any room initialization that requires knowing
     ;; where the avatar is spawning from, or that needs to lock the camera,
     ;; must be done in this function.
+    ;; @prereq PRGA_Room is loaded.
     ;; @prereq Room is loaded and avatar is positioned.
     ;; @param A The bSpawn value for where the avatar is entering the room.
     Enter_func_ptr              .addr

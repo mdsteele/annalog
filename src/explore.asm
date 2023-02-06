@@ -33,6 +33,8 @@
 .IMPORT DataA_Room_Banks_u8_arr
 .IMPORT FuncA_Actor_TickAllActors
 .IMPORT FuncA_Avatar_EnterRoomViaDoor
+.IMPORT FuncA_Avatar_EnterRoomViaPassage
+.IMPORT FuncA_Avatar_ExitRoomViaPassage
 .IMPORT FuncA_Avatar_ExploreMove
 .IMPORT FuncA_Avatar_SpawnAtLastSafePoint
 .IMPORT FuncA_Machine_ExecuteAll
@@ -45,9 +47,8 @@
 .IMPORT FuncA_Objects_MoveShapeLeftHalfTile
 .IMPORT FuncA_Objects_MoveShapeUpByA
 .IMPORT FuncA_Objects_SetShapePosToAvatarCenter
+.IMPORT FuncA_Room_CallRoomEnter
 .IMPORT FuncA_Room_CallRoomTick
-.IMPORT FuncA_Room_EnterViaPassage
-.IMPORT FuncA_Room_ExitViaPassage
 .IMPORT FuncA_Room_Load
 .IMPORT FuncA_Room_PickUpFlowerDevice
 .IMPORT FuncA_Terrain_InitRoomScrollAndNametables
@@ -138,6 +139,16 @@ Zp_NextCutscene_main_ptr: .res 2
     prgc_bank DataA_Room_Banks_u8_arr, x
     jsr FuncA_Room_Load
     jsr_prga FuncA_Avatar_SpawnAtLastSafePoint
+    .assert * = Main_Explore_EnterRoom, error, "fallthrough"
+.ENDPROC
+
+;;; Mode for exploring and platforming within a room, for when the room has
+;;; been loaded and the player avatar positioned within the room, but the
+;;; room's Enter_func_ptr has not yet been called.
+;;; @prereq Rendering is disabled.
+.EXPORT Main_Explore_EnterRoom
+.PROC Main_Explore_EnterRoom
+    jsr_prga FuncA_Room_CallRoomEnter
     .assert * = Main_Explore_FadeIn, error, "fallthrough"
 .ENDPROC
 
@@ -293,21 +304,23 @@ _FadeOut:
     jsr Func_ClearRestOfOam
     jsr Func_FadeOutToBlack
     pla  ; ePassage value
-_CalculatePassage:
+_LoadNextRoom:
     tay  ; param: ePassage value
     jsr_prga FuncA_Avatar_CalculatePassage  ; returns A
-_LoadNextRoom:
     pha  ; origin bPassage value (calculated)
     tax  ; param: origin bPassage value (calculated)
-    jsr_prga FuncA_Room_ExitViaPassage  ; returns X (eRoom) and A (spawn block)
+    jsr FuncA_Avatar_ExitRoomViaPassage  ; returns X (eRoom) and A (block)
     pha  ; origin SpawnBlock_u8
+    prga_bank #<.bank(DataA_Room_Banks_u8_arr)
     prgc_bank DataA_Room_Banks_u8_arr, x
     jsr FuncA_Room_Load
     pla  ; origin SpawnBlock_u8
     tay  ; param: origin SpawnBlock_u8
-    pla  ; param: origin bPassage value (calculated)
-    jsr FuncA_Room_EnterViaPassage
-    jmp Main_Explore_FadeIn
+    pla  ; origin bPassage value (calculated)
+    tax  ; param: origin bPassage value (calculated)
+    jsr_prga FuncA_Avatar_EnterRoomViaPassage
+_FadeIn:
+    jmp Main_Explore_EnterRoom
 .ENDPROC
 
 ;;; Mode for leaving the current room through a door device and entering the
@@ -337,7 +350,7 @@ _LoadNextRoom:
     jsr FuncA_Room_Load
     jsr_prga FuncA_Avatar_EnterRoomViaDoor
 _FadeIn:
-    jmp Main_Explore_FadeIn
+    jmp Main_Explore_EnterRoom
 .ENDPROC
 
 ;;; Mode for pickup up an upgrade device.

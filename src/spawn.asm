@@ -117,25 +117,11 @@ Zp_LastPoint_eRoom: .res 1
     rts
 .ENDPROC
 
-;;; Calls the current room's Enter_func_ptr with the last spawn point as an
-;;; argument.
-.PROC Func_CallRoomEnter
-    ldy #sRoomExt::Enter_func_ptr
-    lda (Zp_Current_sRoom + sRoom::Ext_sRoomExt_ptr), y
-    sta Zp_Tmp_ptr + 0
-    iny
-    lda (Zp_Current_sRoom + sRoom::Ext_sRoomExt_ptr), y
-    sta Zp_Tmp_ptr + 1
-    lda Zp_LastPoint_bSpawn  ; param: spawn point
-    jmp (Zp_Tmp_ptr)
-.ENDPROC
-
 ;;;=========================================================================;;;
 
 .SEGMENT "PRGA_Avatar"
 
-;;; Spawns the player avatar into the last safe point, then calls the room's
-;;; Enter_func_ptr.
+;;; Spawns the player avatar into the last safe point.
 ;;; @prereq The last safe room is loaded.
 .EXPORT FuncA_Avatar_SpawnAtLastSafePoint
 .PROC FuncA_Avatar_SpawnAtLastSafePoint
@@ -155,8 +141,7 @@ _SpawnAtPassage:
     .assert * = FuncA_Avatar_SpawnAtPassage, error, "fallthrough"
 .ENDPROC
 
-;;; Spawns the player avatar into the current room at the specified passage,
-;;; then calls the room's Enter_func_ptr.
+;;; Spawns the player avatar into the current room at the specified passage.
 ;;; @prereq The room is loaded.
 ;;; @param A The passage index in the current room.
 .PROC FuncA_Avatar_SpawnAtPassage
@@ -253,13 +238,11 @@ _WestEdge:
     lda #0  ; param: is airborne (0 = false)
     tax  ; param: facing direction (0 = right)
 _Finish:
-    jsr FuncA_Avatar_InitMotionless
-    jmp Func_CallRoomEnter
+    jmp FuncA_Avatar_InitMotionless
 .ENDPROC
 
 ;;; Called when entering a new room via a door device.  Marks the entrance door
-;;; as the last spawn point, positions the player avatar at that door, and
-;;; finally calls the room's Enter_func_ptr.
+;;; as the last spawn point and positions the player avatar at that door.
 ;;; @prereq The new room is loaded, and Zp_Previous_eRoom is initialized.
 .EXPORT FuncA_Avatar_EnterRoomViaDoor
 .PROC FuncA_Avatar_EnterRoomViaDoor
@@ -291,8 +274,7 @@ _Finish:
     .assert * = FuncA_Avatar_SpawnAtDevice, error, "fallthrough"
 .ENDPROC
 
-;;; Spawns the player avatar into the current room at the specified device,
-;;; then calls the room's Enter_func_ptr.
+;;; Spawns the player avatar into the current room at the specified device.
 ;;; @prereq The room is loaded.
 ;;; @param X The device index in the current room.
 .EXPORT FuncA_Avatar_SpawnAtDevice
@@ -323,8 +305,7 @@ _Finish:
     ;; Make the avatar stand still, facing to the right.
     lda #0  ; param: is airborne (0 = false)
     tax  ; param: facing direction (0 = right)
-    jsr FuncA_Avatar_InitMotionless
-    jmp Func_CallRoomEnter
+    jmp FuncA_Avatar_InitMotionless
 _DeviceOffset_u8_arr:
     D_ENUM eDevice
     d_byte None,          $08
@@ -348,10 +329,6 @@ _DeviceOffset_u8_arr:
     D_END
 .ENDPROC
 
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Room"
-
 ;;; Called when exiting the room via a passage.  Marks the exit passage as the
 ;;; last spawn point (in case this room is safe and the destination room turns
 ;;; out to be unsafe).  Returns the origin passage spawn block and the
@@ -360,8 +337,8 @@ _DeviceOffset_u8_arr:
 ;;;     through (which includes SideMask and ScreenMask only).
 ;;; @return A The SpawnBlock_u8 value for the origin room.
 ;;; @return X The eRoom value for the destination room.
-.EXPORT FuncA_Room_ExitViaPassage
-.PROC FuncA_Room_ExitViaPassage
+.EXPORT FuncA_Avatar_ExitRoomViaPassage
+.PROC FuncA_Avatar_ExitRoomViaPassage
     stx Zp_Tmp1_byte  ; calculated bPassage value
     ;; Copy the current room's Passages_sPassage_arr_ptr into Zp_Tmp_ptr.
     ldy #sRoomExt::Passages_sPassage_arr_ptr
@@ -399,14 +376,15 @@ _DeviceOffset_u8_arr:
 .ENDPROC
 
 ;;; Called when entering a new room via a passage.  Marks the entrance passage
-;;; as the last spawn point, repositions the player avatar based on the size of
-;;; the new room and the difference between the origin/destination passages'
-;;; SpawnBlock_u8 values, and finally calls the room's Enter_func_ptr.
+;;; as the last spawn point, and repositions the player avatar based on the
+;;; size of the new room and the difference between the origin/destination
+;;; passages' SpawnBlock_u8 values.
 ;;; @prereq The new room is loaded, and Zp_Previous_eRoom is initialized.
-;;; @param A The origin bPassage value.
+;;; @param X The (calculated) origin bPassage value.
 ;;; @param Y The SpawnBlock_u8 for the origin passage in the previous room.
-.EXPORT FuncA_Room_EnterViaPassage
-.PROC FuncA_Room_EnterViaPassage
+.EXPORT FuncA_Avatar_EnterRoomViaPassage
+.PROC FuncA_Avatar_EnterRoomViaPassage
+    txa  ; origin bPassage value (calculated)
     and #bPassage::ScreenMask
     sta Zp_Tmp4_byte  ; origin passage's screen number
     sty Zp_Tmp1_byte  ; origin passage's SpawnBlock_u8
@@ -496,7 +474,7 @@ _UpDown:
     sta Zp_AvatarPosY_i16 + 0
     lda #0
     sta Zp_AvatarPosY_i16 + 1
-    jmp Func_CallRoomEnter
+    rts
     @bottomEdge:
     bit <(Zp_Current_sRoom + sRoom::Flags_bRoom)
     .assert bRoom::Tall = bProc::Overflow, error
@@ -509,7 +487,7 @@ _UpDown:
     ldax #kTallRoomHeightBlocks * kBlockHeightPx - (kAvatarBoundingBoxDown + 1)
     @finishBottom:
     stax Zp_AvatarPosY_i16
-    jmp Func_CallRoomEnter
+    rts
 _EastWest:
     ;; Adjust the vertical position.
     add Zp_AvatarPosY_i16 + 0
@@ -529,14 +507,32 @@ _EastWest:
     lda <(Zp_Current_sRoom + sRoom::MaxScrollX_u16 + 1)
     adc #0
     sta Zp_AvatarPosX_i16 + 1
-    jmp Func_CallRoomEnter
+    rts
     @westEdge:
     lda <(Zp_Current_sRoom + sRoom::MinScrollX_u8)
     add #8
     sta Zp_AvatarPosX_i16 + 0
     lda #0
     sta Zp_AvatarPosX_i16 + 1
-    jmp Func_CallRoomEnter
+    rts
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Room"
+
+;;; Calls the current room's Enter_func_ptr with the last spawn point as an
+;;; argument.
+.EXPORT FuncA_Room_CallRoomEnter
+.PROC FuncA_Room_CallRoomEnter
+    ldy #sRoomExt::Enter_func_ptr
+    lda (Zp_Current_sRoom + sRoom::Ext_sRoomExt_ptr), y
+    sta Zp_Tmp_ptr + 0
+    iny
+    lda (Zp_Current_sRoom + sRoom::Ext_sRoomExt_ptr), y
+    sta Zp_Tmp_ptr + 1
+    lda Zp_LastPoint_bSpawn  ; param: spawn point
+    jmp (Zp_Tmp_ptr)
 .ENDPROC
 
 ;;;=========================================================================;;;

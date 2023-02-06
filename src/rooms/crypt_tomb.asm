@@ -158,7 +158,7 @@ _Ext_sRoomExt:
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
     d_addr Dialogs_sDialog_ptr_arr_ptr, 0
     d_addr Passages_sPassage_arr_ptr, _Passages_sPassage_arr
-    d_addr Init_func_ptr, FuncC_Crypt_Tomb_InitRoom
+    d_addr Init_func_ptr, Func_Noop
     d_addr Enter_func_ptr, FuncC_Crypt_Tomb_EnterRoom
     d_addr FadeIn_func_ptr, Func_Noop
     D_END
@@ -282,18 +282,6 @@ _Passages_sPassage_arr:
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
 .ENDPROC
 
-;;; Init function for the CryptTomb room.
-.PROC FuncC_Crypt_Tomb_InitRoom
-    ;; If the weak floors haven't been broken yet, initialize their HP.
-    ;; Otherwise, remove their platforms.
-    flag_bit Sram_ProgressFlags_arr, eFlag::CryptTombWeakFloors
-    bne FuncC_Crypt_Tomb_RemoveBreakableFloors
-    lda #kNumWinchHitsToBreakFloor
-    sta Zp_RoomState + sState::WeakFloorHp_u8_arr2 + 0
-    sta Zp_RoomState + sState::WeakFloorHp_u8_arr2 + 1
-    rts
-.ENDPROC
-
 ;;; Enter function for the CryptTomb room.
 ;;; @param A The bSpawn value for where the avatar is entering the room.
 .PROC FuncC_Crypt_Tomb_EnterRoom
@@ -302,6 +290,13 @@ _Passages_sPassage_arr:
     .assert bSpawn::IsPassage <> 0, error
     cmp #kDoorDeviceIndex
     beq FuncC_Crypt_Tomb_RemoveBreakableFloors
+    ;; If the weak floors have already been broken, remove them platforms.
+    flag_bit Sram_ProgressFlags_arr, eFlag::CryptTombWeakFloors
+    bne FuncC_Crypt_Tomb_RemoveBreakableFloors
+    ;; Otherwise, initialize the floors' HP.
+    lda #kNumWinchHitsToBreakFloor
+    sta Zp_RoomState + sState::WeakFloorHp_u8_arr2 + 0
+    sta Zp_RoomState + sState::WeakFloorHp_u8_arr2 + 1
     rts
 .ENDPROC
 

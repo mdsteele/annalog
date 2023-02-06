@@ -139,7 +139,7 @@ _Ext_sRoomExt:
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
     d_addr Dialogs_sDialog_ptr_arr_ptr, 0
     d_addr Passages_sPassage_arr_ptr, _Passages_sPassage_arr
-    d_addr Init_func_ptr, FuncC_Garden_Tower_InitRoom
+    d_addr Init_func_ptr, Func_Noop
     d_addr Enter_func_ptr, FuncC_Garden_Tower_EnterRoom
     d_addr FadeIn_func_ptr, Func_Noop
     D_END
@@ -283,51 +283,43 @@ _Passages_sPassage_arr:
 .ENDPROC
 
 ;;; Room init function for the GardenTower room.
-.PROC FuncC_Garden_Tower_InitRoom
-    ldx #ePlatform::Zone
-    ;; Check if the breakable wall has been broken already; if so, remove it.
-    flag_bit Sram_ProgressFlags_arr, eFlag::GardenTowerWallBroken
-    beq @done
-    stx Ram_PlatformType_ePlatform_arr + kBreakableWallPlatformIndex
-    @done:
-_Crates:
-    ;; Check whether the crates should be in the wall or on the floor, and
-    ;; remove them from whichever of those two places they shouldn't be.
-    ;; (Note that at this point, X is still set to ePlatform::Zone.)
-    flag_bit Sram_ProgressFlags_arr, eFlag::GardenTowerCratesPlaced
-    bne @cratesAreOnFloor
-    @cratesAreInWall:
-    stx Ram_PlatformType_ePlatform_arr + kFloorCratePlatformIndex
-    beq @done  ; unconditional
-    @cratesAreOnFloor:
-    stx Ram_PlatformType_ePlatform_arr + kWallCratePlatformIndex
-    @done:
-    rts
-.ENDPROC
-
-;;; Room init function for the GardenTower room.
 ;;; @param A The bSpawn value for where the avatar is entering the room.
 .PROC FuncC_Garden_Tower_EnterRoom
+    sta Zp_Tmp1_byte  ; bSpawn value
+_BreakableWall:
     ;; If entering from the boss room door, remove the breakable wall, so the
     ;; player won't be trapped.  (In normal gameplay, it should be impossible
     ;; to enter from that door if the wall is still there; this is just a
     ;; safety measure.)
     .assert bSpawn::IsPassage <> 0, error
     cmp #kDoorDeviceIndex
-    bne @done
+    beq @removeWall
+    ;; Check if the breakable wall has been broken already; if so, remove it.
+    flag_bit Sram_ProgressFlags_arr, eFlag::GardenTowerWallBroken
+    beq @done
+    @removeWall:
     ldx #ePlatform::Zone
     stx Ram_PlatformType_ePlatform_arr + kBreakableWallPlatformIndex
     @done:
 _Crates:
-    ;; If entering from the passage that is sometimes blocked by crates, remove
-    ;; the blocking crate.  (In normal gameplay, it should be impossible to
-    ;; enter from that passage if the crates are still there; this is just a
-    ;; safety measure.)
+    ldx #ePlatform::Zone
+    ;; If entering from the passage that the wall crate blocks, always remove
+    ;; the wall crate, even if the flag isn't set.  (In normal gameplay, it
+    ;; should be impossible to enter from that passage before the flag is set;
+    ;; this is just a safety measure.)
+    lda Zp_Tmp1_byte  ; bSpawn value
     cmp #bSpawn::IsPassage | kCratePassageIndex
-    bne @done
-    lda #ePlatform::Zone
-    sta Ram_PlatformType_ePlatform_arr + kWallCratePlatformIndex
-    @done:
+    beq @removeWallCrates
+    ;; Check whether the crates should be in the wall or on the floor, and
+    ;; remove them from whichever of those two places they shouldn't be.
+    ;; (Note that at this point, X is still set to ePlatform::Zone.)
+    flag_bit Sram_ProgressFlags_arr, eFlag::GardenTowerCratesPlaced
+    bne @removeWallCrates
+    @removeFloorCrates:
+    stx Ram_PlatformType_ePlatform_arr + kFloorCratePlatformIndex
+    rts
+    @removeWallCrates:
+    stx Ram_PlatformType_ePlatform_arr + kWallCratePlatformIndex
     rts
 .ENDPROC
 
