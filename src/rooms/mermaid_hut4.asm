@@ -87,8 +87,8 @@ _Ext_sRoomExt:
            DataA_Dialog_MermaidHut4_sDialog_ptr_arr
     .linecont -
     d_addr Passages_sPassage_arr_ptr, 0
-    d_addr Init_func_ptr, FuncC_Mermaid_Hut4_InitRoom
-    d_addr Enter_func_ptr, Func_Noop
+    d_addr Init_func_ptr, Func_Noop
+    d_addr Enter_func_ptr, FuncC_Mermaid_Hut4_EnterRoom
     d_addr FadeIn_func_ptr, Func_Noop
     D_END
 _TerrainData:
@@ -145,7 +145,7 @@ _Devices_sDevice_arr:
 
 ;;;=========================================================================;;;
 
-.PROC FuncC_Mermaid_Hut4_InitRoom
+.PROC FuncC_Mermaid_Hut4_EnterRoom
     flag_bit Sram_ProgressFlags_arr, eFlag::MermaidHut4OpenedCellar
     beq @done
     lda #eDevice::UnlockedDoor

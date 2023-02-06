@@ -111,8 +111,8 @@ _Ext_sRoomExt:
            DataA_Dialog_TempleEntry_sDialog_ptr_arr
     .linecont -
     d_addr Passages_sPassage_arr_ptr, _Passages_sPassage_arr
-    d_addr Init_func_ptr, FuncC_Temple_Entry_InitRoom
-    d_addr Enter_func_ptr, Func_Noop
+    d_addr Init_func_ptr, Func_Noop
+    d_addr Enter_func_ptr, FuncC_Temple_Entry_EnterRoom
     d_addr FadeIn_func_ptr, Func_Noop
     D_END
 _TerrainData:
@@ -202,7 +202,7 @@ _Passages_sPassage_arr:
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
 .ENDPROC
 
-.PROC FuncC_Temple_Entry_InitRoom
+.PROC FuncC_Temple_Entry_EnterRoom
 _MaybeRemoveMermaid:
     ;; If the temple breaker has been activated, then remove the mermaid from
     ;; this room, and mark the column as raised (although normally, you can't

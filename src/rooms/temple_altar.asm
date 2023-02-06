@@ -177,8 +177,8 @@ _Ext_sRoomExt:
            DataA_Dialog_TempleAltar_sDialog_ptr_arr
     .linecont -
     d_addr Passages_sPassage_arr_ptr, _Passages_sPassage_arr
-    d_addr Init_func_ptr, FuncC_Temple_Altar_InitRoom
-    d_addr Enter_func_ptr, Func_Noop
+    d_addr Init_func_ptr, Func_Noop
+    d_addr Enter_func_ptr, FuncC_Temple_Altar_EnterRoom
     d_addr FadeIn_func_ptr, Func_Noop
     D_END
 _TerrainData:
@@ -320,7 +320,7 @@ _Passages_sPassage_arr:
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
 .ENDPROC
 
-.PROC FuncC_Temple_Altar_InitRoom
+.PROC FuncC_Temple_Altar_EnterRoom
     ;; If the breakable column has already been destroyed, remove its platform.
     flag_bit Sram_ProgressFlags_arr, eFlag::TempleAltarColumnBroken
     beq @done

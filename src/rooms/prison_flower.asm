@@ -72,8 +72,8 @@ _Ext_sRoomExt:
            DataA_Dialog_PrisonFlower_sDialog_ptr_arr
     .linecont -
     d_addr Passages_sPassage_arr_ptr, _Passages_sPassage_arr
-    d_addr Init_func_ptr, FuncC_Prison_Flower_InitRoom
-    d_addr Enter_func_ptr, Func_Noop
+    d_addr Init_func_ptr, Func_Noop
+    d_addr Enter_func_ptr, FuncC_Prison_Flower_EnterRoom
     d_addr FadeIn_func_ptr, Func_Noop
     D_END
 _TerrainData:
@@ -131,7 +131,7 @@ _Passages_sPassage_arr:
 .ENDPROC
 
 ;;; @prereq PRGA_Room is loaded.
-.PROC FuncC_Prison_Flower_InitRoom
+.PROC FuncC_Prison_Flower_EnterRoom
     ldx #kFlowerDeviceIndex  ; param: device index
     jmp FuncA_Room_RemoveFlowerDeviceIfCarriedOrDelivered
 .ENDPROC

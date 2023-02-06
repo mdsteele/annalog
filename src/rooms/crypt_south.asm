@@ -152,8 +152,8 @@ _Ext_sRoomExt:
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
     d_addr Dialogs_sDialog_ptr_arr_ptr, 0
     d_addr Passages_sPassage_arr_ptr, _Passages_sPassage_arr
-    d_addr Init_func_ptr, FuncC_Crypt_South_InitRoom
-    d_addr Enter_func_ptr, Func_Noop
+    d_addr Init_func_ptr, Func_Noop
+    d_addr Enter_func_ptr, FuncC_Crypt_South_EnterRoom
     d_addr FadeIn_func_ptr, Func_Noop
     D_END
 _TerrainData:
@@ -273,8 +273,7 @@ _Passages_sPassage_arr:
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
 .ENDPROC
 
-;;; Init function for the CryptSouth room.
-.PROC FuncC_Crypt_South_InitRoom
+.PROC FuncC_Crypt_South_EnterRoom
     ;; If the weak floor hasn't been broken yet, initialize its HP.  Otherwise,
     ;; remove its platform.
     flag_bit Sram_ProgressFlags_arr, eFlag::CryptSouthWeakFloor

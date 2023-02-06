@@ -126,8 +126,8 @@ _Ext_sRoomExt:
            DataA_Dialog_MermaidDrain_sDialog_ptr_arr
     .linecont -
     d_addr Passages_sPassage_arr_ptr, _Passages_sPassage_arr
-    d_addr Init_func_ptr, DataC_Mermaid_Drain_InitRoom
-    d_addr Enter_func_ptr, Func_Noop
+    d_addr Init_func_ptr, Func_Noop
+    d_addr Enter_func_ptr, DataC_Mermaid_Drain_EnterRoom
     d_addr FadeIn_func_ptr, Func_Noop
     D_END
 _TerrainData:
@@ -224,7 +224,7 @@ _Passages_sPassage_arr:
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
 .ENDPROC
 
-.PROC DataC_Mermaid_Drain_InitRoom
+.PROC DataC_Mermaid_Drain_EnterRoom
     ;; TODO: remove console device if Alex hasn't repaired it yet
     flag_bit Sram_ProgressFlags_arr, eFlag::MermaidDrainUnplugged
     bne _Drained
