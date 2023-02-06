@@ -28,7 +28,7 @@
     UpperRight_u8_arr_ptr .addr
     LowerRight_u8_arr_ptr .addr
     ;; The default CHR08 bank number to set when using this tileset.  A room's
-    ;; Init_func_ptr can modify this in Zp_Current_sTileset to override the
+    ;; Enter_func_ptr can modify this in Zp_Current_sTileset to override the
     ;; default.
     Chr08Bank_u8          .byte
 .ENDSTRUCT

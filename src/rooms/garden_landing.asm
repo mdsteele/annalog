@@ -81,7 +81,6 @@ _Ext_sRoomExt:
            DataA_Dialog_GardenLanding_sDialog_ptr_arr
     .linecont -
     d_addr Passages_sPassage_arr_ptr, _Passages_sPassage_arr
-    d_addr Init_func_ptr, Func_Noop
     d_addr Enter_func_ptr, FuncC_Garden_Landing_EnterRoom
     d_addr FadeIn_func_ptr, Func_Noop
     D_END

@@ -153,8 +153,8 @@ Zp_Current_sTileset: .tag sTileset
 
 ;;; A chunk of memory that each room can divvy up however it wants to store
 ;;; state specific to that room.  These bytes are automatically zeroed just
-;;; before a room is loaded, but can be further initialized by room/machine
-;;; Init functions.
+;;; before a room is loaded, but can be further initialized by room
+;;; Enter_func_ptr functions and/or machine Init_func_ptr functions.
 .EXPORTZP Zp_RoomState
 Zp_RoomState: .res kRoomStateSize
 
@@ -467,19 +467,7 @@ _SetVars:
     stx Zp_ConsoleMachineIndex_u8
     stx Zp_HudMachineIndex_u8
 _CallInit:
-    jsr FuncA_Room_CallRoomInit
     jmp FuncA_Room_InitAllMachines
-.ENDPROC
-
-;;; Calls the current room's Init_func_ptr function.
-.PROC FuncA_Room_CallRoomInit
-    ldy #sRoomExt::Init_func_ptr
-    lda (Zp_Current_sRoom + sRoom::Ext_sRoomExt_ptr), y
-    sta Zp_Tmp_ptr + 0
-    iny
-    lda (Zp_Current_sRoom + sRoom::Ext_sRoomExt_ptr), y
-    sta Zp_Tmp_ptr + 1
-    jmp (Zp_Tmp_ptr)
 .ENDPROC
 
 ;;; Calls the current room's Tick_func_ptr function.

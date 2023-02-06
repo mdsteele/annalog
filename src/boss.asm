@@ -83,8 +83,9 @@ Zp_BossPhaseTimer_u8: .res 1
 
 .SEGMENT "PRGA_Room"
 
-;;; Sets the initial boss phase upon entering a boss room, and sets up the
-;;; room as necessary.  This should be called from boss room init functions.
+;;; Sets the initial boss phase upon entering a boss room, and sets up the room
+;;; as necessary.  This should be called from boss room Enter_func_ptr
+;;; functions.
 ;;; @param AX A pointer to the sBoss struct for this boss.
 ;;; @return A The initial eBossPhase value.
 ;;; @return Z Set if the boss is initially alive.

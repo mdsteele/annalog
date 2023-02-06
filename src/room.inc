@@ -229,7 +229,7 @@ kMaxPassages = 8
     ;; A pointer to the machine data array for this room.
     Machines_sMachine_arr_ptr .addr
     ;; The default CHR18 bank number to set for this room.  The room's
-    ;; Init_func_ptr can modify this in Zp_Current_sRoom to override the
+    ;; Enter_func_ptr can modify this in Zp_Current_sRoom to override the
     ;; default.
     Chr18Bank_u8              .byte
     ;; Function to call each frame to update room state.
@@ -252,35 +252,28 @@ kMaxPassages = 8
     ;; A pointer to a static array of platforms that should always be loaded
     ;; into the room upon entering, terminated by an ePlatform::None byte.  The
     ;; dynamic set of platforms can optionally be modified afterwards by the
-    ;; room's Init_func_ptr.
+    ;; room's Enter_func_ptr.
     Platforms_sPlatform_arr_ptr .addr
     ;; A pointer to a static array of actors that should always be loaded into
     ;; the room upon entering, terminated by an eActor::None byte.  The dynamic
     ;; set of actors can optionally be modified afterwards by the room's
-    ;; Init_func_ptr.
+    ;; Enter_func_ptr.
     Actors_sActor_arr_ptr       .addr
     ;; A pointer to a static array of devices that should always be loaded into
     ;; the room upon entering, terminated by an eDevice::None byte.  The
     ;; dynamic set of devices can optionally be modified afterwards by the
-    ;; room's Init_func_ptr.
+    ;; room's Enter_func_ptr.
     Devices_sDevice_arr_ptr     .addr
     ;; A pointer to an array of pointers to dialogs used in this room.
     ;; @prereq PRGA_Dialog is loaded.
     Dialogs_sDialog_ptr_arr_ptr .addr
     ;; A pointer to the list of passage exits from this room.
     Passages_sPassage_arr_ptr   .addr
-    ;; Function to initialize room-specific state before the avatar has been
-    ;; spawned into the room.  If the room is to be marked unsafe, that must be
-    ;; done in this function.
-    ;; @prereq PRGA_Room is loaded.
-    Init_func_ptr               .addr
-    ;; Function to further initialize room-specific state after the avatar has
+    ;; Function to initialize room-specific state after the player avatar has
     ;; been spawned in the room, but before the nametables have been populated
-    ;; with the room's terrain.  Any room initialization that requires knowing
-    ;; where the avatar is spawning from, or that needs to lock the camera,
-    ;; must be done in this function.
+    ;; with the room's terrain.
     ;; @prereq PRGA_Room is loaded.
-    ;; @prereq Room is loaded and avatar is positioned.
+    ;; @prereq Static room data is loaded and avatar is positioned.
     ;; @param A The bSpawn value for where the avatar is entering the room.
     Enter_func_ptr              .addr
     ;; Function to update BG nametables just before fading in the room,

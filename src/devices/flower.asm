@@ -67,7 +67,7 @@ kFlowerAnimCountdown = 48
 
 ;;; If the specified flower device's flower is currently being carried or has
 ;;; already been delivered, then changes the device into a placeholder.  This
-;;; should be called from flower room init functions.
+;;; should be called from flower room Enter_func_ptr functions.
 ;;; @param X The device index for the flower.
 .EXPORT FuncA_Room_RemoveFlowerDeviceIfCarriedOrDelivered
 .PROC FuncA_Room_RemoveFlowerDeviceIfCarriedOrDelivered
