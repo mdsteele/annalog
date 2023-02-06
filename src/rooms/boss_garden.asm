@@ -200,7 +200,7 @@ kBossZoneBottomY = $88
     D_STRUCT sRoom
     d_byte MinScrollX_u8, $0
     d_word MaxScrollX_u16, $0
-    d_byte Flags_bRoom, bRoom::Tall | eArea::Garden
+    d_byte Flags_bRoom, bRoom::Unsafe | bRoom::Tall | eArea::Garden
     d_byte MinimapStartRow_u8, 9
     d_byte MinimapStartCol_u8, 7
     d_addr TerrainData_ptr, _TerrainData
@@ -219,7 +219,7 @@ _Ext_sRoomExt:
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
     d_addr Dialogs_sDialog_ptr_arr_ptr, 0
     d_addr Passages_sPassage_arr_ptr, 0
-    d_addr Init_func_ptr, FuncC_Boss_Garden_InitRoom
+    d_addr Init_func_ptr, Func_Noop
     d_addr Enter_func_ptr, FuncC_Boss_Garden_EnterRoom
     d_addr FadeIn_func_ptr, Func_Noop
     D_END
@@ -345,34 +345,29 @@ _Devices_sDevice_arr:
     D_END
 .ENDPROC
 
-;;; Room init function for the BossGarden room.
-.PROC FuncC_Boss_Garden_InitRoom
+.PROC FuncC_Boss_Garden_EnterRoom
+_LockScrolling:
+    lda #0
+    sta Zp_CameraCanScroll_bool
+    sta Zp_RoomScrollX_u16 + 0
+    sta Zp_RoomScrollX_u16 + 1
+    sta Zp_RoomScrollY_u8
+_InitBoss:
     ldax #FuncC_Boss_Garden_sBoss  ; param: sBoss ptr
     jsr FuncA_Room_InitBoss  ; sets Z if boss is alive
-    beq _InitializeBoss
-_BossIsAlreadyDead:
+    beq _BossIsAlive
+_BossIsDead:
     ;; Remove the boss's thorns.
     lda #ePlatform::Zone
     sta Ram_PlatformType_ePlatform_arr + kThornsPlatformIndex
     rts
-_InitializeBoss:
+_BossIsAlive:
     lda #kBossInitHealth
     sta Zp_RoomState + sState::BossHealth_u8
     lda #kBossInitCooldown
     sta Zp_RoomState + sState::BossCooldown_u8
     lda #eBoss::Waiting
     sta Zp_RoomState + sState::BossMode_eBoss
-    rts
-.ENDPROC
-
-;;; Room enter function for the BossGarden room.
-.PROC FuncC_Boss_Garden_EnterRoom
-    ;; Lock scrolling.
-    lda #0
-    sta Zp_CameraCanScroll_bool
-    sta Zp_RoomScrollX_u16 + 0
-    sta Zp_RoomScrollX_u16 + 1
-    sta Zp_RoomScrollY_u8
     rts
 .ENDPROC
 

@@ -259,7 +259,7 @@ kBossBodyPlatformIndex = 4
     D_STRUCT sRoom
     d_byte MinScrollX_u8, $00
     d_word MaxScrollX_u16, $0000
-    d_byte Flags_bRoom, eArea::Crypt
+    d_byte Flags_bRoom, bRoom::Unsafe | eArea::Crypt
     d_byte MinimapStartRow_u8, 12
     d_byte MinimapStartCol_u8, 0
     d_addr TerrainData_ptr, _TerrainData
@@ -278,8 +278,8 @@ _Ext_sRoomExt:
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
     d_addr Dialogs_sDialog_ptr_arr_ptr, 0
     d_addr Passages_sPassage_arr_ptr, 0
-    d_addr Init_func_ptr, FuncC_Boss_Crypt_InitRoom
-    d_addr Enter_func_ptr, FuncC_Boss_Crypt_SetBossEyeDir
+    d_addr Init_func_ptr, Func_Noop
+    d_addr Enter_func_ptr, FuncC_Boss_Crypt_EnterRoom
     d_addr FadeIn_func_ptr, FuncC_Boss_Crypt_FadeInRoom
     D_END
 _TerrainData:
@@ -602,11 +602,13 @@ _Inner:
 
 ;;; Room init function for the BossCrypt room.
 ;;; @prereq PRGA_Room is loaded.
-.PROC FuncC_Boss_Crypt_InitRoom
+.PROC FuncC_Boss_Crypt_EnterRoom
+    jsr FuncC_Boss_Crypt_SetBossEyeDir
+_InitBoss:
     ldax #FuncC_Boss_Crypt_sBoss  ; param: sBoss ptr
     jsr FuncA_Room_InitBoss  ; sets Z if boss is alive
-    bne _BossIsAlreadyDead
-_InitializeBoss:
+    bne _BossIsDead
+_BossIsAlive:
     lda #eBossMode::Firing
     sta Zp_RoomState + sState::Current_eBossMode
     lda #3
@@ -617,7 +619,7 @@ _InitializeBoss:
     sta Zp_RoomState + sState::BossGoalPosX_u8
     lda #kBossInitPosY
     sta Zp_RoomState + sState::BossGoalPosY_u8
-_BossIsAlreadyDead:
+_BossIsDead:
     rts
 .ENDPROC
 

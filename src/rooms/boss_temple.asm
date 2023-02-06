@@ -239,7 +239,7 @@ kBossBodyPlatformIndex = 3
     D_STRUCT sRoom
     d_byte MinScrollX_u8,  kRoomScrollX
     d_word MaxScrollX_u16, kRoomScrollX + $0
-    d_byte Flags_bRoom, eArea::Temple
+    d_byte Flags_bRoom, bRoom::Unsafe | eArea::Temple
     d_byte MinimapStartRow_u8, 1
     d_byte MinimapStartCol_u8, 1
     d_addr TerrainData_ptr, _TerrainData
@@ -258,8 +258,8 @@ _Ext_sRoomExt:
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
     d_addr Dialogs_sDialog_ptr_arr_ptr, 0
     d_addr Passages_sPassage_arr_ptr, 0
-    d_addr Init_func_ptr, FuncC_Boss_Temple_InitRoom
-    d_addr Enter_func_ptr, Func_Noop
+    d_addr Init_func_ptr, Func_Noop
+    d_addr Enter_func_ptr, FuncC_Boss_Temple_EnterRoom
     d_addr FadeIn_func_ptr, FuncC_Boss_Temple_FadeInRoom
     D_END
 _TerrainData:
@@ -386,15 +386,14 @@ _Devices_sDevice_arr:
 
 ;;; Room init function for the BossTemple room.
 ;;; @prereq PRGA_Room is loaded.
-.PROC FuncC_Boss_Temple_InitRoom
+.PROC FuncC_Boss_Temple_EnterRoom
     ldax #FuncC_Boss_Temple_sBoss  ; param: sBoss ptr
     jsr FuncA_Room_InitBoss  ; sets Z if boss is alive
-    beq _InitializeBoss
-_BossIsAlreadyDead:
-    rts
-_InitializeBoss:
+    bne _BossIsDead
+_BossIsAlive:
     lda #eBossMode::Waiting
     sta Zp_RoomState + sState::Current_eBossMode
+_BossIsDead:
     rts
 .ENDPROC
 

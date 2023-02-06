@@ -46,7 +46,6 @@
 .IMPORT Ram_PlatformRight_i16_0_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORT Ram_PlatformTop_i16_1_arr
-.IMPORTZP Zp_Current_sRoom
 .IMPORTZP Zp_PointX_i16
 .IMPORTZP Zp_PointY_i16
 .IMPORTZP Zp_Tmp1_byte
@@ -104,15 +103,12 @@ Zp_BossPhaseTimer_u8: .res 1
     tax  ; param: boss flag
     jsr Func_IsFlagSet  ; returns Z
     bne _BossAlreadyDefeated
-    ;; The boss is still alive, so mark the room as unsafe.
-    lda Zp_Current_sRoom + sRoom::Flags_bRoom
-    ora #bRoom::Unsafe
-    sta Zp_Current_sRoom + sRoom::Flags_bRoom
     ;; Set and return the initial phase.
     lda #eBossPhase::BossBattle
     sta Zp_Boss_eBossPhase
     rts
 _BossAlreadyDefeated:
+    jsr Func_MarkRoomSafe
     ;; Check if the upgrade has been collected yet.
     ldx Ram_DeviceTarget_u8_arr + kBossUpgradeDeviceIndex  ; param: flag
     jsr Func_IsFlagSet  ; returns Z
