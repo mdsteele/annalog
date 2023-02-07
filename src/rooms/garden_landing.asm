@@ -31,6 +31,7 @@
 
 .IMPORT DataA_Room_Garden_sTileset
 .IMPORT Func_Noop
+.IMPORT Func_SetFlag
 .IMPORT Ppu_ChrObjGarden
 .IMPORT Sram_Minimap_u16_arr
 
@@ -130,6 +131,9 @@ _Passages_sPassage_arr:
     ;; nothing.
     cmp #bSpawn::IsPassage | kShaftPassageIndex
     bne @done
+    ;; Set the flag indicating that the player entered the garden.
+    ldx #eFlag::GardenLandingDroppedIn  ; param: flag
+    jsr Func_SetFlag
     ;; Compute the minimap byte we need to write to SRAM.  We want to mark the
     ;; top two minimap cells of the shaft as explored.
     .assert kShaftMinimapTopRow = 4, error

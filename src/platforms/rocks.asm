@@ -19,7 +19,9 @@
 
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
+.INCLUDE "../platform.inc"
 .INCLUDE "../ppu.inc"
+.INCLUDE "rocks.inc"
 
 .IMPORT FuncA_Objects_Alloc1x1Shape
 .IMPORT FuncA_Objects_MoveShapeRightOneTile
@@ -27,43 +29,59 @@
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORT Ram_PlatformLeft_i16_0_arr
 .IMPORT Ram_PlatformRight_i16_0_arr
+.IMPORT Ram_PlatformTop_i16_0_arr
+.IMPORT Ram_PlatformType_ePlatform_arr
+.IMPORTZP Zp_Tmp1_byte
 
 ;;;=========================================================================;;;
 
-;;; The OBJ palette number used for FuncA_Objects_DrawGirderPlatform.
-kPaletteObjGirder = 0
-;;; The OBJ tile ID used for FuncA_Objects_DrawGirderPlatform.
-kTileIdObjGirder = $7f
+;;; The OBJ palette number used for rocks platforms.
+kPaletteObjRocks = 0
 
 ;;;=========================================================================;;;
 
 .SEGMENT "PRGA_Objects"
 
-;;; Allocates and populates OAM slots to draw an Nx1 girder for the specified
-;;; platform.  The platform is assumed to be an integer number of tiles wide
-;;; (from 1 to at most 8) and one tile high.  When this function returns,
-;;; Zp_ShapePosX_i16 and Zp_ShapePosY_i16 will be positioned for the rightmost
-;;; tile of the girder (whether or not that tile was actually drawn).
+;;; Draws a horizontal (Nx1) rocks platform.  The platform is assumed to be an
+;;; integer number of tiles wide (from 1 to at most 8) and one tile high.  If
+;;; the platform type is non-solid, draws nothing.
 ;;; @param X The platform index.
-.EXPORT FuncA_Objects_DrawGirderPlatform
-.PROC FuncA_Objects_DrawGirderPlatform
+.EXPORT FuncA_Objects_DrawRocksPlatformHorz
+.PROC FuncA_Objects_DrawRocksPlatformHorz
+    ;; If the platform isn't solid, we're done.
+    lda Ram_PlatformType_ePlatform_arr, x
+    cmp #kFirstSolidPlatformType
+    blt @done
+    ;; Position the shape.
     jsr FuncA_Objects_SetShapePosToPlatformTopLeft  ; preserves X
+    ;; Determine which rocks tile to start with.
+    lda Ram_PlatformRight_i16_0_arr, x
+    eor Ram_PlatformTop_i16_0_arr, x
+    .assert kTileWidthPx = kTileHeightPx, error
+    div #kTileWidthPx
+    and #$01
+    .assert kTileIdObjRocksFirst .mod 2 = 0, error
+    ora #kTileIdObjRocksFirst
+    sta Zp_Tmp1_byte  ; base tile ID
     ;; Determine how many tiles wide the platform is.
     lda Ram_PlatformRight_i16_0_arr, x
     sub Ram_PlatformLeft_i16_0_arr, x
     div #kTileWidthPx
     tax  ; platform width, in tiles
-    ;; Allocate the objects.
+    ;; Draw the objects.
     bne @startLoop
+    @done:
     rts
     @loop:
-    jsr FuncA_Objects_MoveShapeRightOneTile  ; preserves X
+    jsr FuncA_Objects_MoveShapeRightOneTile  ; preserves X and Zp_Tmp*
     @startLoop:
-    jsr FuncA_Objects_Alloc1x1Shape  ; preserves X, returns C and Y
+    jsr FuncA_Objects_Alloc1x1Shape  ; preserves X and Zp_Tmp*, returns C and Y
     bcs @continue
-    lda #kTileIdObjGirder
+    txa
+    and #$01
+    eor Zp_Tmp1_byte  ; base tile ID
     sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
-    lda #kPaletteObjGirder
+    lda #kPaletteObjRocks
     sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
     @continue:
     dex

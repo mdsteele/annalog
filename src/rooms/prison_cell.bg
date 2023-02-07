@@ -1,29 +1,30 @@
 @BG 0 0 0 34x24
 >prison_0
 >prison_1
+>prison_3
 >prison_4
 
 
-          CHCHCHCHCICPCPCH
-    CHCHCI                CM
-  CN                      CGCH
-  CN  AB                      CM
-  CPCDCECECF                  CM        CNCPCMCNCPCPCPCPCPCP
-  CPCPCM  CI      CACC        CM      CNCP  CMCN    CP    CNCM
-  CN  CMCN                  BBCP    CNCPCP  CGCI  CPCPCP  CPCGCICM
-CHCI  CGCI                  CPCPCM  CN                          CM
-                  BABC        CPCPCPCP                          CPCP
-CECECF            CACC
-    CNBABE
-    CNCPCDCECF  BCAA      BA  CDCFCPCPCDCECECFCKCKCPCPCDCECECFCPCPCP
-    CPCPCPCPCPCDCECECFCPCPCDCFCMCPCPCPCPCM  CP      CP      CNCPCP
-CPCPCPCPCPCPCPCPCGCHCICPCPCPCPCPCPCPCLCPCPCPCLCPCPCPCPCGCHCICPCPCM
-CPCPCPCPCLCP            CPCPCPCPCLCP                          ABCP
-CPCPCPCP                                CPCKCP      CJCKCKCPCPCPCJ
-CPCPCP        CPCPCKCKCPCPCPCPCKCPCPCPCPCJ  CN      CM      CP
-    CP      CPCJ        CPCP        CLCM    CN      CP      CN
-CHCHCI    CJCP          CNCM        CN      CN      CPCM    CN
-          CPCKCM          CP        CP      CN      CLCP    CNCM
-CECECECECFCJ  CP          CP        CPCM    CP        CPCM  CPCM
-              CPCP      CNCP      CNCPCM    CP        CPCM  CPCM
-              CNCP      CNCPCM    CPCPCP  CNCP        CPCM  CPCM
+          DHDHDHDHDIDPDPDH      CE      CF                CE
+    DHDHDI                DM
+  DN                      DGDH                      CE
+  DN  AB                      DM      CF                      CE
+  DPDDDEDEDF                  DM        DNDPDMDNDPDPDPDPDPDP
+  DPDPDM  DI      DADC        DM  CEDNDPDP  DMDN    DP    DNDM
+  DN  DMDN                  BBDP    DN      DGDI  DPDPDP  DPDGDIDM
+DHDI  DGDI                  DPDPDM  DNAC                        DM
+                  BABC        DPDPDPDPDP                        DPDP
+DEDEDF            DADC
+    DNBABE
+    DNDPDDDEDF  BCAA      BA  DDDFDPDPDDDEDEDF      DPDDDEDEDFDPDPDP
+    DPDPDPDPDPDDDEDEDFDPDPDDDFDMDPDPDPDPDM  DP      DP      DNDPDP
+DPDPDPDPDPDPDPDPDGDHDIDPDPDPDPDPDPDPDLDPDPDPDLDP    DPDGDHDIDPDPDM
+DPDPDPDPDLDP            DPDPDPDPDLDP                          ABDP
+DPDPDPDP                                DPDKDPCK  CLDJDKDKDPDPDPDJ
+DPDPDP        DPDPDKDKDPDPDPDPDKDPDPDPDPDJ  DN      DM      DP
+    DP      DPDJ        DPDP        DLDM    DN      DP      DN
+DHDHDI    DJDP          DNDM        DN      DN      DPDM    DN
+          DPDKDM          DP        DP      DN      DLDP    DNDM
+DEDEDEDEDFDJ  DP          DP        DPDM    DP        DPDM  DPDM
+              DPDP      DNDP      DNDPDM    DP        DPDM  DPDM
+              DNDP      DNDPDM    DPDPDP  DNDP        DPDM  DPDM

@@ -36,20 +36,35 @@
 
 .IMPORT DataA_Room_Prison_sTileset
 .IMPORT FuncA_Machine_Error
+.IMPORT FuncA_Machine_GenericMoveTowardGoalHorz
 .IMPORT FuncA_Machine_GenericMoveTowardGoalVert
+.IMPORT FuncA_Machine_GenericTryMoveX
 .IMPORT FuncA_Machine_GenericTryMoveY
 .IMPORT FuncA_Machine_ReachedGoal
+.IMPORT FuncA_Objects_DrawCannonMachine
+.IMPORT FuncA_Objects_DrawCratePlatform
 .IMPORT FuncA_Objects_DrawLiftMachine
+.IMPORT FuncA_Objects_DrawRocksPlatformHorz
+.IMPORT FuncA_Room_SetPointToAvatarCenter
 .IMPORT FuncC_Prison_DrawGatePlatform
+.IMPORT FuncC_Prison_OpenGateAndFlipLever
+.IMPORT FuncC_Prison_TickGatePlatform
 .IMPORT Func_IsFlagSet
+.IMPORT Func_IsPointInPlatform
 .IMPORT Func_Noop
 .IMPORT Func_SetFlag
+.IMPORT Func_SetOrClearFlag
 .IMPORT Ppu_ChrObjPrison
+.IMPORT Ram_MachineGoalHorz_u8_arr
 .IMPORT Ram_MachineGoalVert_u8_arr
+.IMPORT Ram_PlatformLeft_i16_0_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
+.IMPORT Ram_PlatformType_ePlatform_arr
+.IMPORT Sram_ProgressFlags_arr
 .IMPORTZP Zp_CameraCanScroll_bool
 .IMPORTZP Zp_RoomScrollX_u16
 .IMPORTZP Zp_RoomScrollY_u8
+.IMPORTZP Zp_RoomState
 .IMPORTZP Zp_Tmp1_byte
 
 ;;;=========================================================================;;;
@@ -71,8 +86,24 @@ kBlasterMachineIndex = 1
 
 ;;; The platform index for the PrisonCellLift machine in this room.
 kLiftPlatformIndex = 0
+;;; The platform index for the PrisonCellBlaster machine in this room.
+kBlasterPlatformIndex = 1
 ;;; The platform index for the prison cell gate.
-kGatePlatformIndex = 1
+kGatePlatformIndex = 2
+;;; The platform index for the crate used to reach the gate lever.
+kCratePlatformIndex = 3
+;;; The platform indices for rocks that can be blasted away by the
+;;; PrisonCellBlaster machine.
+kUpperFloor1PlatformIndex = 4
+kUpperFloor2PlatformIndex = 5
+kMidCeilingPlatformIndex  = 6
+kEastCeilingPlatformIndex = 7
+;;; The platform index for the rocks that collapse when the player avatar walks
+;;; on them (after firing the blaster).
+kTrapFloorPlatformIndex = 8
+;;; The zone that the player avatar must be in in order for the trap floor to
+;;; collapse.
+kTrapZonePlatformIndex = 9
 
 ;;; The initial and maximum permitted vertical goal values for the lift.
 kLiftInitGoalY = 0
@@ -81,6 +112,29 @@ kLiftMaxGoalY = 1
 ;;; The maximum and initial Y-positions for the top of the lift platform.
 kLiftMaxPlatformTop = $0080
 kLiftInitPlatformTop = kLiftMaxPlatformTop - kLiftInitGoalY * kBlockHeightPx
+
+;;; The initial and maximum permitted horizontal goal values for the blaster.
+kBlasterInitGoalX = 1
+kBlasterMaxGoalX = 1
+
+;;; The minimum and initial X-positions for the left of the blaster platform.
+.LINECONT +
+kBlasterMinPlatformLeft = $0180
+kBlasterInitPlatformLeft = \
+    kBlasterMinPlatformLeft + kBlasterInitGoalX * kBlockWidthPx
+.LINECONT -
+
+;;; The room block row for the top of the gate when it's shut.
+kGateBlockRow = 10
+
+;;;=========================================================================;;;
+
+;;; Defines room-specific state data for this particular room.
+.STRUCT sState
+    ;; The current state of the lever in this room.
+    GateLever_u1 .byte
+.ENDSTRUCT
+.ASSERT .sizeof(sState) <= kRoomStateSize, error
 
 ;;;=========================================================================;;;
 
@@ -95,10 +149,10 @@ kLiftInitPlatformTop = kLiftMaxPlatformTop - kLiftInitGoalY * kBlockHeightPx
     d_byte MinimapStartRow_u8, 2
     d_byte MinimapStartCol_u8, 5
     d_addr TerrainData_ptr, _TerrainData
-    d_byte NumMachines_u8, 1
+    d_byte NumMachines_u8, 2
     d_addr Machines_sMachine_arr_ptr, _Machines_sMachine_arr
     d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjPrison)
-    d_addr Tick_func_ptr, Func_Noop
+    d_addr Tick_func_ptr, FuncC_Prison_Cell_TickRoom
     d_addr Draw_func_ptr, FuncC_Prison_Cell_DrawRoom
     d_addr Ext_sRoomExt_ptr, _Ext_sRoomExt
     D_END
@@ -127,33 +181,33 @@ _Machines_sMachine_arr:
     d_byte ScrollGoalY_u8, $0
     d_byte RegNames_u8_arr4, 0, 0, 0, "Y"
     d_byte MainPlatform_u8, kLiftPlatformIndex
-    d_addr Init_func_ptr, FuncC_Prison_CellLift_Init
+    d_addr Init_func_ptr, FuncC_Prison_CellLift_InitReset
     d_addr ReadReg_func_ptr, FuncC_Prison_CellLift_ReadReg
     d_addr WriteReg_func_ptr, Func_Noop
     d_addr TryMove_func_ptr, FuncC_Prison_CellLift_TryMove
     d_addr TryAct_func_ptr, FuncA_Machine_Error
     d_addr Tick_func_ptr, FuncC_Prison_CellLift_Tick
     d_addr Draw_func_ptr, FuncA_Objects_DrawLiftMachine
-    d_addr Reset_func_ptr, FuncC_Prison_CellLift_Reset
+    d_addr Reset_func_ptr, FuncC_Prison_CellLift_InitReset
     D_END
     .assert * - :- = kBlasterMachineIndex * .sizeof(sMachine), error
     D_STRUCT sMachine
     d_byte Code_eProgram, eProgram::PrisonCellBlaster
     d_byte Breaker_eFlag, 0
     d_byte Flags_bMachine, bMachine::MoveH | bMachine::Act
-    d_byte Status_eDiagram, eDiagram::Trolley  ; TODO
+    d_byte Status_eDiagram, eDiagram::CannonRight  ; TODO
     d_word ScrollGoalX_u16, $110
     d_byte ScrollGoalY_u8, $50
     d_byte RegNames_u8_arr4, 0, 0, "X", 0
-    d_byte MainPlatform_u8, 0  ; TODO
-    d_addr Init_func_ptr, _Blaster_Init
-    d_addr ReadReg_func_ptr, _Blaster_ReadReg
+    d_byte MainPlatform_u8, kBlasterPlatformIndex
+    d_addr Init_func_ptr, FuncC_Prison_CellBlaster_InitReset
+    d_addr ReadReg_func_ptr, FuncC_Prison_CellBlaster_ReadReg
     d_addr WriteReg_func_ptr, Func_Noop
-    d_addr TryMove_func_ptr, FuncA_Machine_Error  ; TODO
-    d_addr TryAct_func_ptr, FuncA_Machine_Error  ; TODO
-    d_addr Tick_func_ptr, _Blaster_Tick
-    d_addr Draw_func_ptr, FuncA_Objects_PrisonCellBlaster_Draw
-    d_addr Reset_func_ptr, _Blaster_Reset
+    d_addr TryMove_func_ptr, FuncC_Prison_CellBlaster_TryMove
+    d_addr TryAct_func_ptr, FuncC_Prison_CellBlaster_TryAct
+    d_addr Tick_func_ptr, FuncC_Prison_CellBlaster_Tick
+    d_addr Draw_func_ptr, FuncA_Objects_DrawCannonMachine  ; TODO
+    d_addr Reset_func_ptr, FuncC_Prison_CellBlaster_InitReset
     D_END
     .assert * - :- <= kMaxMachines * .sizeof(sMachine), error
 _Platforms_sPlatform_arr:
@@ -165,17 +219,98 @@ _Platforms_sPlatform_arr:
     d_word Left_i16, $0020
     d_word Top_i16, kLiftInitPlatformTop
     D_END
+    .assert * - :- = kBlasterPlatformIndex * .sizeof(sPlatform), error
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Solid
+    d_word WidthPx_u16, $10
+    d_byte HeightPx_u8, $10
+    d_word Left_i16, kBlasterInitPlatformLeft
+    d_word Top_i16,   $0060
+    D_END
     .assert * - :- = kGatePlatformIndex * .sizeof(sPlatform), error
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Solid
     d_word WidthPx_u16, kGatePlatformWidthPx
     d_byte HeightPx_u8, kGatePlatformHeightPx
     d_word Left_i16, $00f3
-    d_word Top_i16,  $00a0
+    d_word Top_i16, kGateBlockRow * kBlockHeightPx
+    D_END
+    .assert * - :- = kCratePlatformIndex * .sizeof(sPlatform), error
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Zone
+    d_word WidthPx_u16, $10
+    d_byte HeightPx_u8, $10
+    d_word Left_i16,  $0153
+    d_word Top_i16,   $00b0
+    D_END
+    ;; Breakable rocks:
+    .assert * - :- = kUpperFloor1PlatformIndex * .sizeof(sPlatform), error
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Solid
+    d_word WidthPx_u16, $30
+    d_byte HeightPx_u8, $08
+    d_word Left_i16,  $0170
+    d_word Top_i16,   $00c0
+    D_END
+    .assert * - :- = kUpperFloor2PlatformIndex * .sizeof(sPlatform), error
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Solid
+    d_word WidthPx_u16, $10
+    d_byte HeightPx_u8, $08
+    d_word Left_i16,  $0190
+    d_word Top_i16,   $00c8
+    D_END
+    .assert * - :- = kMidCeilingPlatformIndex * .sizeof(sPlatform), error
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Solid
+    d_word WidthPx_u16, $10
+    d_byte HeightPx_u8, $08
+    d_word Left_i16,  $0180
+    d_word Top_i16,   $00e8
+    D_END
+    .assert * - :- = kEastCeilingPlatformIndex * .sizeof(sPlatform), error
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Solid
+    d_word WidthPx_u16, $10
+    d_byte HeightPx_u8, $08
+    d_word Left_i16,  $0190
+    d_word Top_i16,   $00e8
+    D_END
+    .assert * - :- = kTrapFloorPlatformIndex * .sizeof(sPlatform), error
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Solid
+    d_word WidthPx_u16, $20
+    d_byte HeightPx_u8, $08
+    d_word Left_i16,  $0178
+    d_word Top_i16,   $0100
+    D_END
+    .assert * - :- = kTrapZonePlatformIndex * .sizeof(sPlatform), error
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Zone
+    d_word WidthPx_u16, $0e
+    d_byte HeightPx_u8, $09
+    d_word Left_i16,  $0181
+    d_word Top_i16,   $00f7
+    D_END
+    ;; Unbreakable rocks:
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Solid
+    d_word WidthPx_u16, $08
+    d_byte HeightPx_u8, $08
+    d_word Left_i16,  $0170
+    d_word Top_i16,   $0100
+    D_END
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Solid
+    d_word WidthPx_u16, $08
+    d_byte HeightPx_u8, $08
+    d_word Left_i16,  $0198
+    d_word Top_i16,   $0100
     D_END
     .assert * - :- <= kMaxPlatforms * .sizeof(sPlatform), error
     .byte ePlatform::None
 _Actors_sActor_arr:
+    ;; TODO: Add orc guards.
     .byte eActor::None
 _Devices_sDevice_arr:
 :   D_STRUCT sDevice
@@ -195,6 +330,12 @@ _Devices_sDevice_arr:
     d_byte BlockRow_u8, 15
     d_byte BlockCol_u8, 31
     d_byte Target_u8, kBlasterMachineIndex
+    D_END
+    D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::LeverFloor
+    d_byte BlockRow_u8, 8
+    d_byte BlockCol_u8, 19
+    d_byte Target_u8, sState::GateLever_u1
     D_END
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None
@@ -222,37 +363,28 @@ _Passages_sPassage_arr:
     d_byte SpawnBlock_u8, 25
     D_END
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
-_Blaster_Init:
-    ;; TODO
-    rts
-_Blaster_ReadReg:
-    lda #0  ; TODO
-    rts
-_Blaster_Tick:
-    ;; TODO
-    rts
-_Blaster_Reset:
-    ;; TODO
-    rts
 .ENDPROC
 
 ;;; Called when the player avatar enters the PrisonCell room.
 ;;; @param A The bSpawn value for where the avatar is entering the room.
 .PROC FuncC_Prison_Cell_EnterRoom
     sta Zp_Tmp1_byte  ; bSpawn value
+_CheckIfReachedTunnel:
+    ;; If the player has reached the tunnel before, then don't lock scrolling.
     ldx #eFlag::PrisonCellReachedTunnel  ; param: flag
     jsr Func_IsFlagSet  ; preserves X and Zp_Tmp*, returns Z
     bne @done
+    ;; If the player enters from the tunnel (or from the eastern passage,
+    ;; though normally that shouldn't be possible before reaching the tunnel),
+    ;; then set the flag indicating that the tunnel has been reached, and don't
+    ;; lock scrolling.
     lda Zp_Tmp1_byte  ; bSpawn value
+    cmp #bSpawn::IsPassage | kTunnelPassageIndex
+    beq @setFlag
     cmp #bSpawn::IsPassage | kEasternPassageIndex
     beq @setFlag
-    cmp #bSpawn::IsPassage | kTunnelPassageIndex
-    bne _LockScrolling
-    @setFlag:
-    jsr Func_SetFlag
-    @done:
-    rts
-_LockScrolling:
+    ;; Otherwise, lock scrolling so that only the prison cell is visible.
+    @lockScrolling:
     lda #0
     sta Zp_CameraCanScroll_bool
     sta Zp_RoomScrollY_u8
@@ -261,21 +393,93 @@ _LockScrolling:
     .assert <kMinScrollX > 0, error
     lda #kMinScrollX
     sta Zp_RoomScrollX_u16 + 0
+    .assert kMinScrollX <> 0, error
+    bne @done  ; unconditional
+    @setFlag:
+    ldx #eFlag::PrisonCellReachedTunnel  ; param: flag
+    jsr Func_SetFlag
+    @done:
+_InitGate:
+    flag_bit Sram_ProgressFlags_arr, eFlag::PrisonCellGateOpen
+    beq @shut
+    ldy #sState::GateLever_u1  ; param: lever target
+    ldx #kGatePlatformIndex  ; param: gate platform index
+    jsr FuncC_Prison_OpenGateAndFlipLever
+    @shut:
+_InitRocksAndCrate:
+    flag_bit Sram_ProgressFlags_arr, eFlag::GardenLandingDroppedIn
+    bne @removeAllRocks
+    flag_bit Sram_ProgressFlags_arr, eFlag::PrisonCellBlastedRocks
+    bne @removeSomeRocks
     rts
+    @removeAllRocks:
+    lda #ePlatform::None
+    sta Ram_PlatformType_ePlatform_arr + kTrapFloorPlatformIndex
+    sta Ram_PlatformType_ePlatform_arr + kEastCeilingPlatformIndex
+    lda #ePlatform::Solid
+    sta Ram_PlatformType_ePlatform_arr + kCratePlatformIndex
+    @removeSomeRocks:
+    lda #ePlatform::None
+    sta Ram_PlatformType_ePlatform_arr + kMidCeilingPlatformIndex
+    sta Ram_PlatformType_ePlatform_arr + kUpperFloor1PlatformIndex
+    sta Ram_PlatformType_ePlatform_arr + kUpperFloor2PlatformIndex
+    rts
+.ENDPROC
+
+;;; Tick function for the PrisonCell room.
+;;; @prereq PRGA_Room is loaded.
+.PROC FuncC_Prison_Cell_TickRoom
+_TrapFloorCollapse:
+    ;; If the trap floor is already gone, it can't collapse again.
+    lda Ram_PlatformType_ePlatform_arr + kTrapFloorPlatformIndex
+    .assert ePlatform::None = 0, error
+    beq @done
+    ;; The trap floor can't collapse until the rocks have been blasted.
+    flag_bit Sram_ProgressFlags_arr, eFlag::PrisonCellBlastedRocks
+    beq @done
+    ;; Don't collapse until the player avatar is in the trap zone.
+    jsr FuncA_Room_SetPointToAvatarCenter
+    ldy #kTrapZonePlatformIndex  ; param: platform index
+    jsr Func_IsPointInPlatform  ; returns C
+    bcc @done
+    ;; Collapse the trap floor.
+    lda #ePlatform::None
+    sta Ram_PlatformType_ePlatform_arr + kTrapFloorPlatformIndex
+    ;; TODO: Add smoke particles.
+    ;; TODO: Play a sound.
+    @done:
+_Gate:
+    ;; Update the flag from the lever.
+    ldx #eFlag::PrisonCellGateOpen  ; param: flag
+    lda Zp_RoomState + sState::GateLever_u1  ; param: zero for clear
+    jsr Func_SetOrClearFlag
+    ;; Move the gate based on the lever.
+    ldy Zp_RoomState + sState::GateLever_u1  ; param: zero for shut
+    ldx #kGatePlatformIndex  ; param: gate platform index
+    lda #kGateBlockRow  ; param: block row
+    jmp FuncC_Prison_TickGatePlatform
 .ENDPROC
 
 ;;; Draw function for the PrisonCell room.
 ;;; @prereq PRGA_Objects is loaded.
 .PROC FuncC_Prison_Cell_DrawRoom
+    ldx #kCratePlatformIndex  ; param: platform index
+    jsr FuncA_Objects_DrawCratePlatform
+    ldx #kTrapFloorPlatformIndex  ; param: platform index
+    jsr FuncA_Objects_DrawRocksPlatformHorz
+    ldx #kMidCeilingPlatformIndex  ; param: platform index
+    jsr FuncA_Objects_DrawRocksPlatformHorz
+    ldx #kEastCeilingPlatformIndex  ; param: platform index
+    jsr FuncA_Objects_DrawRocksPlatformHorz
+    ldx #kUpperFloor1PlatformIndex  ; param: platform index
+    jsr FuncA_Objects_DrawRocksPlatformHorz
+    ldx #kUpperFloor2PlatformIndex  ; param: platform index
+    jsr FuncA_Objects_DrawRocksPlatformHorz
     ldx #kGatePlatformIndex  ; param: platform index
     jmp FuncC_Prison_DrawGatePlatform
 .ENDPROC
 
-.PROC FuncC_Prison_CellLift_Init
-    .assert * = FuncC_Prison_CellLift_Reset, error, "fallthrough"
-.ENDPROC
-
-.PROC FuncC_Prison_CellLift_Reset
+.PROC FuncC_Prison_CellLift_InitReset
     lda #kLiftInitGoalY
     sta Ram_MachineGoalVert_u8_arr + kLiftMachineIndex
     rts
@@ -296,6 +500,44 @@ _LockScrolling:
 .PROC FuncC_Prison_CellLift_Tick
     ldax #kLiftMaxPlatformTop  ; param: max platform top
     jsr FuncA_Machine_GenericMoveTowardGoalVert  ; returns Z
+    jeq FuncA_Machine_ReachedGoal
+    rts
+.ENDPROC
+
+.PROC FuncC_Prison_CellBlaster_InitReset
+    lda #kBlasterInitGoalX
+    sta Ram_MachineGoalHorz_u8_arr + kBlasterMachineIndex
+    rts
+.ENDPROC
+
+.PROC FuncC_Prison_CellBlaster_ReadReg
+    lda Ram_PlatformLeft_i16_0_arr + kBlasterPlatformIndex
+    sub #<(kBlasterMinPlatformLeft - kTileWidthPx)
+    div #kBlockWidthPx
+    rts
+.ENDPROC
+
+.PROC FuncC_Prison_CellBlaster_TryMove
+    lda #kBlasterMaxGoalX  ; param: max goal horz
+    jmp FuncA_Machine_GenericTryMoveX
+.ENDPROC
+
+.PROC FuncC_Prison_CellBlaster_TryAct
+    lda Ram_MachineGoalHorz_u8_arr + kBlasterMachineIndex
+    jne FuncA_Machine_Error
+    ;; TODO: Shoot a projectile instead of destroying rocks instantly.
+    ldx #eFlag::PrisonCellBlastedRocks
+    jsr Func_SetFlag
+    lda #ePlatform::None
+    sta Ram_PlatformType_ePlatform_arr + kMidCeilingPlatformIndex
+    sta Ram_PlatformType_ePlatform_arr + kUpperFloor1PlatformIndex
+    sta Ram_PlatformType_ePlatform_arr + kUpperFloor2PlatformIndex
+    rts
+.ENDPROC
+
+.PROC FuncC_Prison_CellBlaster_Tick
+    ldax #kBlasterMinPlatformLeft  ; param: min platform left
+    jsr FuncA_Machine_GenericMoveTowardGoalHorz  ; returns Z
     jeq FuncA_Machine_ReachedGoal
     rts
 .ENDPROC
@@ -324,15 +566,6 @@ _LockScrolling:
     .byte "By then, I'm sure I'll$"
     .byte "be long gone.#"
     .word ePortrait::Done
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Objects"
-
-.PROC FuncA_Objects_PrisonCellBlaster_Draw
-    ;; TODO
-    rts
 .ENDPROC
 
 ;;;=========================================================================;;;

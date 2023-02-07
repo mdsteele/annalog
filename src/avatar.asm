@@ -38,6 +38,8 @@
 .IMPORTZP Zp_FrameCounter_u8
 .IMPORTZP Zp_P1ButtonsHeld_bJoypad
 .IMPORTZP Zp_P1ButtonsPressed_bJoypad
+.IMPORTZP Zp_PointX_i16
+.IMPORTZP Zp_PointY_i16
 .IMPORTZP Zp_Render_bPpuMask
 .IMPORTZP Zp_RoomScrollX_u16
 .IMPORTZP Zp_RoomScrollY_u8
@@ -599,6 +601,25 @@ _InAir:
     @setVelYHi:
     sta Zp_AvatarVelY_i16 + 1
     @noGravity:
+    rts
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Room"
+
+;;; Stores the player avatar's room pixel position in Zp_Point*_i16.
+;;; @preserve X, Y, Zp_Tmp*
+.EXPORT FuncA_Room_SetPointToAvatarCenter
+.PROC FuncA_Room_SetPointToAvatarCenter
+    lda Zp_AvatarPosX_i16 + 0
+    sta Zp_PointX_i16 + 0
+    lda Zp_AvatarPosX_i16 + 1
+    sta Zp_PointX_i16 + 1
+    lda Zp_AvatarPosY_i16 + 0
+    sta Zp_PointY_i16 + 0
+    lda Zp_AvatarPosY_i16 + 1
+    sta Zp_PointY_i16 + 1
     rts
 .ENDPROC
 

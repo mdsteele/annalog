@@ -41,14 +41,14 @@ kPaletteObjCrate = 0
 
 ;;; Draws a platform that is a stack of one or more wooden crates.  The
 ;;; platform height should be a multiple of kBlockHeightPx.  If the platform
-;;; type is not solid, draws nothing.
+;;; type is non-solid, draws nothing.
 ;;; @param X The platform index.
 .EXPORT FuncA_Objects_DrawCratePlatform
 .PROC FuncA_Objects_DrawCratePlatform
     ;; If the platform isn't solid, we're done.
     lda Ram_PlatformType_ePlatform_arr, x
-    cmp #ePlatform::Solid
-    bne @done
+    cmp #kFirstSolidPlatformType
+    blt @done
     ;; Position the shape.
     jsr FuncA_Objects_SetShapePosToPlatformTopLeft  ; preserves X
     jsr FuncA_Objects_MoveShapeDownAndRightOneTile  ; preserves X

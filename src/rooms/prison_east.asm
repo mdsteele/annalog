@@ -240,7 +240,7 @@ _Passages_sPassage_arr:
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
 .ENDPROC
 
-;;; Ener function for the PrisonEast room.
+;;; Enter function for the PrisonEast room.
 .PROC FuncC_Prison_East_EnterRoom
 _EastGate:
     flag_bit Sram_ProgressFlags_arr, eFlag::PrisonEastEastGateOpen

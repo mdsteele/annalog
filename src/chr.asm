@@ -49,6 +49,7 @@
 .INCLUDE "platforms/column.inc"
 .INCLUDE "platforms/crate.inc"
 .INCLUDE "platforms/gate.inc"
+.INCLUDE "platforms/rocks.inc"
 .INCLUDE "platforms/stepstone.inc"
 .INCLUDE "rooms/boss_garden.inc"
 .INCLUDE "rooms/garden_tower.inc"
@@ -891,7 +892,12 @@
     .incbin "out/data/tiles/toddler.chr"
     .assert * - :- = (kTileIdObjChildPonytailFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/child_ponytail.chr"
-    .res $14 * kSizeofChr
+    .res $0c * kSizeofChr
+    .assert * - :- = (kTileIdObjCrateFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/crate.chr"
+    .assert * - :- = (kTileIdObjRocksFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/rocks.chr"
+    .res $02 * kSizeofChr
     .assert * - :- = (kTileIdObjGrubFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/grub.chr"
     .assert * - :- = (kTileIdObjToadFirst - $80) * kSizeofChr, error
