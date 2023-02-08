@@ -19,10 +19,9 @@
 
 .INCLUDE "../actor.inc"
 .INCLUDE "../macros.inc"
-.INCLUDE "fireball.inc"
+.INCLUDE "../oam.inc"
+.INCLUDE "../ppu.inc"
 
-.IMPORT FuncA_Actor_CenterHitsTerrain
-.IMPORT FuncA_Actor_HarmAvatarIfCollision
 .IMPORT FuncA_Objects_Draw1x1Actor
 .IMPORT Func_Cosine
 .IMPORT Func_InitActorDefault
@@ -37,31 +36,37 @@
 
 ;;;=========================================================================;;;
 
-;;; The speed of a fireball, in half-pixels per frame.
-kFireballSpeed = 5
+;;; How long a particle actor animates before disappearing, in frames.
+kParticleNumFrames = 12
 
-;;; The OBJ palette number used for fireball actors.
-kPaletteObjFireball = 1
+;;; The speed of a particle, in half-pixels per frame.
+kParticleSpeed = 3
+
+;;; The first tile ID for the particle animation.
+kTileIdObjParticleFirst = $1a
+
+;;; The OBJ palette number used for particle actors.
+kPaletteObjParticle = 0
 
 ;;;=========================================================================;;;
 
 .SEGMENT "PRG8"
 
-;;; Initializes the specified actor as a fireball projectile.
+;;; Initializes the specified actor as a smoke particle.
 ;;; @prereq The actor's pixel position has already been initialized.
-;;; @param A The angle to fire at, measured in increments of tau/256.
+;;; @param A The angle to move at, measured in increments of tau/256.
 ;;; @param X The actor index.
 ;;; @preserve X
-.EXPORT Func_InitActorProjFireball
-.PROC Func_InitActorProjFireball
+.EXPORT Func_InitActorProjParticle
+.PROC Func_InitActorProjParticle
     pha  ; angle
-    ldy #eActor::ProjFireball  ; param: actor type
+    ldy #eActor::ProjParticle  ; param: actor type
     jsr Func_InitActorDefault  ; preserves X
     pla  ; angle
 _InitVelX:
     pha  ; angle
     jsr Func_Cosine  ; preserves X, returns A
-    ldy #kFireballSpeed  ; param: multiplier
+    ldy #kParticleSpeed  ; param: multiplier
     jsr Func_SignedMult  ; preserves X, returns YA
     sta Ram_ActorVelX_i16_0_arr, x
     tya
@@ -69,7 +74,7 @@ _InitVelX:
     pla  ; angle
 _InitVelY:
     jsr Func_Sine  ; preserves X, returns A
-    ldy #kFireballSpeed  ; param: multiplier
+    ldy #kParticleSpeed  ; param: multiplier
     jsr Func_SignedMult  ; preserves X, returns YA
     sta Ram_ActorVelY_i16_0_arr, x
     tya
@@ -81,17 +86,15 @@ _InitVelY:
 
 .SEGMENT "PRGA_Actor"
 
-;;; Performs per-frame updates for a fireball projectile actor.
+;;; Performs per-frame updates for a smoke particle actor.
 ;;; @param X The actor index.
 ;;; @preserve X
-.EXPORT FuncA_Actor_TickProjFireball
-.PROC FuncA_Actor_TickProjFireball
+.EXPORT FuncA_Actor_TickProjParticle
+.PROC FuncA_Actor_TickProjParticle
     inc Ram_ActorState1_byte_arr, x
-    beq @expire
-    jsr FuncA_Actor_HarmAvatarIfCollision  ; preserves X
-    jsr FuncA_Actor_CenterHitsTerrain  ; preserves X, returns C
-    bcc @done
-    @expire:
+    lda Ram_ActorState1_byte_arr, x
+    cmp #kParticleNumFrames
+    blt @done
     lda #eActor::None
     sta Ram_ActorType_eActor_arr, x
     @done:
@@ -102,16 +105,15 @@ _InitVelY:
 
 .SEGMENT "PRGA_Objects"
 
-;;; Draws a fireball projectile actor.
+;;; Draws a smoke particle actor.
 ;;; @param X The actor index.
 ;;; @preserve X
-.EXPORT FuncA_Objects_DrawActorProjFireball
-.PROC FuncA_Objects_DrawActorProjFireball
+.EXPORT FuncA_Objects_DrawActorProjParticle
+.PROC FuncA_Objects_DrawActorProjParticle
     lda Ram_ActorState1_byte_arr, x
     div #2
-    and #$01
-    add #kTileIdObjFireballFirst  ; param: tile ID
-    ldy #kPaletteObjFireball  ; param: palette
+    add #kTileIdObjParticleFirst  ; param: tile ID
+    ldy #kPaletteObjParticle  ; param: palette
     jmp FuncA_Objects_Draw1x1Actor  ; preserves X
 .ENDPROC
 

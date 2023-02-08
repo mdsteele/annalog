@@ -566,7 +566,6 @@ _InWater:
     ;; If moving downward, check for terminal velocity:
     @movingDown:
     sta Zp_AvatarVelY_i16 + 1
-    sta $ff
     cmp #>kAvatarMaxWaterSpeedDown
     blt @done
     bne @clampDown

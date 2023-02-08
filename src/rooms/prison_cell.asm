@@ -49,11 +49,18 @@
 .IMPORT FuncC_Prison_DrawGatePlatform
 .IMPORT FuncC_Prison_OpenGateAndFlipLever
 .IMPORT FuncC_Prison_TickGatePlatform
+.IMPORT Func_FindEmptyActorSlot
+.IMPORT Func_InitActorProjParticle
 .IMPORT Func_IsFlagSet
 .IMPORT Func_IsPointInPlatform
+.IMPORT Func_MovePointLeftByA
+.IMPORT Func_MovePointRightByA
 .IMPORT Func_Noop
+.IMPORT Func_SetActorCenterToPoint
 .IMPORT Func_SetFlag
 .IMPORT Func_SetOrClearFlag
+.IMPORT Func_SetPointToPlatformCenter
+.IMPORT Func_ShakeRoom
 .IMPORT Ppu_ChrObjPrison
 .IMPORT Ram_MachineGoalHorz_u8_arr
 .IMPORT Ram_MachineGoalVert_u8_arr
@@ -445,7 +452,29 @@ _TrapFloorCollapse:
     ;; Collapse the trap floor.
     lda #ePlatform::None
     sta Ram_PlatformType_ePlatform_arr + kTrapFloorPlatformIndex
-    ;; TODO: Add smoke particles.
+    lda #2  ; param: shake frames
+    jsr Func_ShakeRoom
+    ;; Add particles for the collapsing floor.
+    ldy #kTrapFloorPlatformIndex  ; param: platform index
+    jsr Func_SetPointToPlatformCenter
+    lda #kTileWidthPx * 2 + kTileWidthPx / 2  ; param: offset
+    jsr Func_MovePointLeftByA
+    ldy #3
+    @loop:
+    lda #kTileWidthPx  ; param: offset
+    jsr Func_MovePointRightByA  ; preserves Y
+    jsr Func_FindEmptyActorSlot  ; preserves Y, returns C and X
+    bcs @continue
+    jsr Func_SetActorCenterToPoint  ; preserves X and Y
+    tya
+    pha
+    lda _ParticleAngle_u8_arr, y  ; param: angle
+    jsr Func_InitActorProjParticle
+    pla
+    tay
+    @continue:
+    dey
+    bpl @loop
     ;; TODO: Play a sound.
     @done:
 _Gate:
@@ -458,6 +487,8 @@ _Gate:
     ldx #kGatePlatformIndex  ; param: gate platform index
     lda #kGateBlockRow  ; param: block row
     jmp FuncC_Prison_TickGatePlatform
+_ParticleAngle_u8_arr:
+    .byte 52, 65, 70, 76
 .ENDPROC
 
 ;;; Draw function for the PrisonCell room.

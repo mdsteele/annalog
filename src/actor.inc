@@ -47,6 +47,7 @@ kMaxActors = 8
     ProjFireball     ; shot from the garden boss's eyes
     ProjFlamewave    ; sweeps out horizontally from an exploding breakball
     ProjGrenade      ; shot by cannon machines
+    ProjParticle     ; a single particle of smoke
     ProjSmoke        ; a puff of smoke for when something explodes
     ProjSpike        ; a falling spike dropped by the garden boss
     ProjSteamHorz    ; emitted horizontally from boiler machine pipes
