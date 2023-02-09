@@ -44,13 +44,13 @@
 .IMPORT FuncA_Room_FindGrenadeActor
 .IMPORT FuncA_Room_MachineCannonReset
 .IMPORT Func_InitActorProjSmoke
+.IMPORT Func_IsPointInPlatform
 .IMPORT Func_MachineCannonReadRegY
 .IMPORT Func_Noop
 .IMPORT Func_SetFlag
+.IMPORT Func_SetPointToActorCenter
 .IMPORT Func_ShakeRoom
 .IMPORT Ppu_ChrObjGarden
-.IMPORT Ram_ActorPosX_i16_0_arr
-.IMPORT Ram_ActorPosX_i16_1_arr
 .IMPORT Ram_ActorPosY_i16_0_arr
 .IMPORT Ram_ActorPosY_i16_1_arr
 .IMPORT Ram_Oam_sObj_arr64
@@ -81,8 +81,6 @@ kBreakableWallPlatformTop  = $0080
 kBreakableWallPlatformWidth  = $08
 kBreakableWallPlatformHeight = $20
 .LINECONT +
-kBreakableWallPlatformRight = \
-    kBreakableWallPlatformLeft + kBreakableWallPlatformWidth
 kBreakableWallPlatformYCenter = \
     kBreakableWallPlatformTop + kBreakableWallPlatformHeight / 2
 .LINECONT -
@@ -332,18 +330,11 @@ _Crates:
     ;; Find the grenade (if any).  If there isn't one, we're done.
     jsr FuncA_Room_FindGrenadeActor  ; returns C and X
     bcs _Done
-    ;; Check if the grenade is horizontally within the breakable wall.  If not,
-    ;; we're done.
-    lda #<kBreakableWallPlatformLeft
-    cmp Ram_ActorPosX_i16_0_arr, x
-    lda #>kBreakableWallPlatformLeft
-    sbc Ram_ActorPosX_i16_1_arr, x
-    bge _Done
-    lda #<kBreakableWallPlatformRight
-    cmp Ram_ActorPosX_i16_0_arr, x
-    lda #>kBreakableWallPlatformRight
-    sbc Ram_ActorPosX_i16_1_arr, x
-    blt _Done
+    ;; Check if the grenade is within the breakable wall.  If not, we're done.
+    jsr Func_SetPointToActorCenter  ; preserves X
+    ldy #kBreakableWallPlatformIndex  ; param: platform inde
+    jsr Func_IsPointInPlatform  ; preserves X, returns C
+    bcc _Done
     ;; Check whether this is a high grenade or a low grenade.
     lda #<kBreakableWallPlatformYCenter
     cmp Ram_ActorPosY_i16_0_arr, x

@@ -17,10 +17,10 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
-;;; How many frames a launcher machine spends per act operation.
-kLauncherActFrames = $40
-
-;;; OBJ tile IDs used for drawing launcher machines.
-kTileIdObjLauncherFirst = $b8
+;;; State bytes for rocket projectiles:
+;;;   * State1: Counter that starts at zero and increments every frame; if it
+;;;     wraps back around to zero before the rocket hits anything, then the
+;;;     rocket is removed.
+;;;   * State2: Unused.
 
 ;;;=========================================================================;;;

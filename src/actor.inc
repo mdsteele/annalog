@@ -48,6 +48,7 @@ kMaxActors = 8
     ProjFlamewave    ; sweeps out horizontally from an exploding breakball
     ProjGrenade      ; shot by cannon machines
     ProjParticle     ; a single particle of smoke
+    ProjRocket       ; shot by launcher machines
     ProjSmoke        ; a puff of smoke for when something explodes
     ProjSpike        ; a falling spike dropped by the garden boss
     ProjSteamHorz    ; emitted horizontally from boiler machine pipes
@@ -69,9 +70,10 @@ kMaxActors = 8
     PosY_i16    .word
     ;; Type-specific initialization parameter.
     ;;   * For BadBeetle*, this is the actor flip flags to set.
+    ;;   * For BadBird, this is a bBadBird value.
     ;;   * For BadHothead*, this is the actor flip flags to set.
     ;;   * For NpcAdult, this is the first tile ID (of six).
-    ;;   * For NpcChild, this is the first tile ID (of four).
+    ;;   * For NpcChild, this is a bNpcChild value.
     ;;   * For NpcMermaid, this is the first tile ID (of six).
     ;;   * For NpcToddler, this is a bNpcToddler value.
     ;;   * For all other baddies and NPCs, this is ignored.

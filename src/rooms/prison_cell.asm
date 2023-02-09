@@ -24,6 +24,7 @@
 .INCLUDE "../dialog.inc"
 .INCLUDE "../flag.inc"
 .INCLUDE "../machine.inc"
+.INCLUDE "../machines/launcher.inc"
 .INCLUDE "../machines/lift.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
@@ -41,24 +42,30 @@
 .IMPORT FuncA_Machine_GenericTryMoveX
 .IMPORT FuncA_Machine_GenericTryMoveY
 .IMPORT FuncA_Machine_ReachedGoal
+.IMPORT FuncA_Machine_StartWaiting
 .IMPORT FuncA_Objects_DrawCratePlatform
 .IMPORT FuncA_Objects_DrawLauncherMachine
 .IMPORT FuncA_Objects_DrawLiftMachine
 .IMPORT FuncA_Objects_DrawRocksPlatformHorz
+.IMPORT FuncA_Room_FindRocketActor
 .IMPORT FuncA_Room_SetPointToAvatarCenter
 .IMPORT FuncC_Prison_DrawGatePlatform
 .IMPORT FuncC_Prison_OpenGateAndFlipLever
 .IMPORT FuncC_Prison_TickGatePlatform
 .IMPORT Func_FindEmptyActorSlot
 .IMPORT Func_InitActorProjParticle
+.IMPORT Func_InitActorProjRocket
+.IMPORT Func_InitActorProjSmoke
 .IMPORT Func_IsFlagSet
 .IMPORT Func_IsPointInPlatform
+.IMPORT Func_MovePointDownByA
 .IMPORT Func_MovePointLeftByA
 .IMPORT Func_MovePointRightByA
 .IMPORT Func_Noop
 .IMPORT Func_SetActorCenterToPoint
 .IMPORT Func_SetFlag
 .IMPORT Func_SetOrClearFlag
+.IMPORT Func_SetPointToActorCenter
 .IMPORT Func_SetPointToPlatformCenter
 .IMPORT Func_ShakeRoom
 .IMPORT Ppu_ChrObjPrison
@@ -420,8 +427,7 @@ _InitRocksAndCrate:
     flag_bit Sram_ProgressFlags_arr, eFlag::PrisonCellBlastedRocks
     bne @removeSomeRocks
     @loadRocketLauncher:
-    lda #1
-    sta Ram_MachineParam1_u8_arr + kLauncherMachineIndex
+    inc Ram_MachineParam1_u8_arr + kLauncherMachineIndex  ; ammo count
     rts
     @removeAllRocks:
     lda #ePlatform::None
@@ -440,7 +446,31 @@ _InitRocksAndCrate:
 ;;; Tick function for the PrisonCell room.
 ;;; @prereq PRGA_Room is loaded.
 .PROC FuncC_Prison_Cell_TickRoom
-_TrapFloorCollapse:
+_RocketImpact:
+    ;; Find the rocket (if any).  If there isn't one, we're done.
+    jsr FuncA_Room_FindRocketActor  ; returns C and X
+    bcs @done
+    ;; Check if the rocket has hit the breakable floor; if not, we're done.
+    ;; (Note that no rocket can exist in this room if the breakable floor is
+    ;; already gone.)
+    jsr Func_SetPointToActorCenter  ; preserves X
+    ldy #kUpperFloor1PlatformIndex  ; param: platform index
+    jsr Func_IsPointInPlatform  ; preserves X, returns C
+    bcc @done
+    ;; Explode the rocket and break the floor.
+    jsr Func_InitActorProjSmoke
+    ;; TODO: more smoke/particles
+    lda #30  ; param: shake frames
+    jsr Func_ShakeRoom
+    ;; TODO: play a sound
+    lda #ePlatform::None
+    sta Ram_PlatformType_ePlatform_arr + kMidCeilingPlatformIndex
+    sta Ram_PlatformType_ePlatform_arr + kUpperFloor1PlatformIndex
+    sta Ram_PlatformType_ePlatform_arr + kUpperFloor2PlatformIndex
+    ldx #eFlag::PrisonCellBlastedRocks
+    jsr Func_SetFlag
+    @done:
+_TrapFloor:
     ;; If the trap floor is already gone, it can't collapse again.
     lda Ram_PlatformType_ePlatform_arr + kTrapFloorPlatformIndex
     .assert ePlatform::None = 0, error
@@ -559,21 +589,28 @@ _ParticleAngle_u8_arr:
 
 .PROC FuncC_Prison_CellLauncher_TryAct
     ;; If the launcher is out of ammo, fail.
-    lda Ram_MachineParam1_u8_arr + kLauncherMachineIndex
+    lda Ram_MachineParam1_u8_arr + kLauncherMachineIndex  ; ammo count
     beq _Error
     ;; If the launcher is blocked, fail.
     lda Ram_MachineGoalHorz_u8_arr + kLauncherMachineIndex
     bne _Error
-    ;; TODO: Shoot a projectile instead of destroying rocks instantly.
-    lda #0
-    sta Ram_MachineParam1_u8_arr + kLauncherMachineIndex
-    ldx #eFlag::PrisonCellBlastedRocks
-    jsr Func_SetFlag
-    lda #ePlatform::None
-    sta Ram_PlatformType_ePlatform_arr + kMidCeilingPlatformIndex
-    sta Ram_PlatformType_ePlatform_arr + kUpperFloor1PlatformIndex
-    sta Ram_PlatformType_ePlatform_arr + kUpperFloor2PlatformIndex
-    rts
+    ;; Fire a rocket.
+    jsr Func_FindEmptyActorSlot  ; returns C and X
+    bcs _Finish
+    dec Ram_MachineParam1_u8_arr + kLauncherMachineIndex  ; ammo count
+    ldy #kLauncherPlatformIndex  ; param: platform index
+    jsr Func_SetPointToPlatformCenter  ; preserves X
+    lda #5
+    jsr Func_MovePointLeftByA  ; preserves X
+    lda #4
+    jsr Func_MovePointDownByA  ; preserves X
+    jsr Func_SetActorCenterToPoint  ; preserves X
+    lda #eDir::Down  ; param: rocket direction
+    jsr Func_InitActorProjRocket
+    ;; TODO: play a sound
+_Finish:
+    lda #kLauncherActFrames  ; param: wait frames
+    jmp FuncA_Machine_StartWaiting
 _Error:
     jmp FuncA_Machine_Error
 .ENDPROC

@@ -163,7 +163,7 @@ kCannonTileIdBarrelLow  = kTileIdCannonFirst + $04
     ;; Initialize the grenade and finish.
     jsr Func_InitActorProjGrenade
     @doneGrenade:
-    lda #kCannonActCountdown
+    lda #kCannonActCountdown  ; param: wait frames
     jmp FuncA_Machine_StartWaiting
 .ENDPROC
 

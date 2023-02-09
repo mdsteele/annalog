@@ -44,6 +44,7 @@
 .IMPORT FuncA_Actor_TickProjFlamewave
 .IMPORT FuncA_Actor_TickProjGrenade
 .IMPORT FuncA_Actor_TickProjParticle
+.IMPORT FuncA_Actor_TickProjRocket
 .IMPORT FuncA_Actor_TickProjSmoke
 .IMPORT FuncA_Actor_TickProjSpike
 .IMPORT FuncA_Actor_TickProjSteamHorz
@@ -73,6 +74,7 @@
 .IMPORT FuncA_Objects_DrawActorProjFlamewave
 .IMPORT FuncA_Objects_DrawActorProjGrenade
 .IMPORT FuncA_Objects_DrawActorProjParticle
+.IMPORT FuncA_Objects_DrawActorProjRocket
 .IMPORT FuncA_Objects_DrawActorProjSmoke
 .IMPORT FuncA_Objects_DrawActorProjSpike
 .IMPORT FuncA_Objects_DrawActorProjSteamHorz
@@ -90,6 +92,7 @@
 .IMPORT Func_InitActorProjFlamewave
 .IMPORT Func_InitActorProjGrenade
 .IMPORT Func_InitActorProjParticle
+.IMPORT Func_InitActorProjRocket
 .IMPORT Func_InitActorProjSmoke
 .IMPORT Func_InitActorProjSpike
 .IMPORT Func_InitActorProjSteamHorz
@@ -116,6 +119,7 @@ kProjBulletRadius = 1
 kProjFireballRadius = 3
 kProjGrenadeRadius = 2
 kProjParticleRadius = 1
+kProjRocketRadius = 2
 kProjSmokeRadius = 6
 kProjSpikeRadius = 3
 kProjSteamMajorRadius = 8
@@ -302,6 +306,7 @@ Ram_ActorFlags_bObj_arr: .res kMaxActors
     d_byte ProjFlamewave,   12
     d_byte ProjGrenade,     kProjGrenadeRadius
     d_byte ProjParticle,    kProjParticleRadius
+    d_byte ProjRocket,      kProjRocketRadius
     d_byte ProjSmoke,       kProjSmokeRadius
     d_byte ProjSpike,       kProjSpikeRadius
     d_byte ProjSteamHorz,   kProjSteamMinorRadius
@@ -334,6 +339,7 @@ Ram_ActorFlags_bObj_arr: .res kMaxActors
     d_byte ProjFlamewave,    8
     d_byte ProjGrenade,     kProjGrenadeRadius
     d_byte ProjParticle,    kProjParticleRadius
+    d_byte ProjRocket,      kProjRocketRadius
     d_byte ProjSmoke,       kProjSmokeRadius
     d_byte ProjSpike,       kProjSpikeRadius
     d_byte ProjSteamHorz,   kProjSteamMinorRadius
@@ -366,6 +372,7 @@ Ram_ActorFlags_bObj_arr: .res kMaxActors
     d_byte ProjFlamewave,   3
     d_byte ProjGrenade,     kProjGrenadeRadius
     d_byte ProjParticle,    kProjParticleRadius
+    d_byte ProjRocket,      kProjRocketRadius
     d_byte ProjSmoke,       kProjSmokeRadius
     d_byte ProjSpike,       kProjSpikeRadius
     d_byte ProjSteamHorz,   kProjSteamMajorRadius
@@ -452,6 +459,7 @@ _TypeSpecificTick:
     d_entry table, ProjFlamewave,   FuncA_Actor_TickProjFlamewave
     d_entry table, ProjGrenade,     FuncA_Actor_TickProjGrenade
     d_entry table, ProjParticle,    FuncA_Actor_TickProjParticle
+    d_entry table, ProjRocket,      FuncA_Actor_TickProjRocket
     d_entry table, ProjSmoke,       FuncA_Actor_TickProjSmoke
     d_entry table, ProjSpike,       FuncA_Actor_TickProjSpike
     d_entry table, ProjSteamHorz,   FuncA_Actor_TickProjSteamHorz
@@ -715,12 +723,36 @@ _NoHit:
     d_entry table, ProjFlamewave,   Func_InitActorProjFlamewave
     d_entry table, ProjGrenade,     Func_InitActorProjGrenade
     d_entry table, ProjParticle,    Func_InitActorProjParticle
+    d_entry table, ProjRocket,      Func_InitActorProjRocket
     d_entry table, ProjSmoke,       Func_InitActorProjSmoke
     d_entry table, ProjSpike,       Func_InitActorProjSpike
     d_entry table, ProjSteamHorz,   Func_InitActorProjSteamHorz
     d_entry table, ProjSteamUp,     Func_InitActorProjSteamUp
     D_END
 .ENDREPEAT
+.ENDPROC
+
+;;; Finds an actor in the room with the specified type (if any) and returns its
+;;; index, or sets the C flag if there isn't any actor of that type right now.
+;;; @param A The eActor value to find.
+;;; @return C Set if no grenade was found.
+;;; @return X The index of the grenade actor (if any).
+;;; @preserve Y
+.EXPORT FuncA_Room_FindActorWithType
+.PROC FuncA_Room_FindActorWithType
+    sta Zp_Tmp1_byte  ; actor type to find
+    ldx #kMaxActors - 1
+    @loop:
+    lda Ram_ActorType_eActor_arr, x
+    cmp Zp_Tmp1_byte  ; actor type to find
+    beq @success
+    dex
+    bpl @loop
+    sec  ; set C to indicate failure
+    rts
+    @success:
+    clc  ; clear C to indicate success
+    rts
 .ENDPROC
 
 ;;; Checks if the horizontal and vertical distances between the centers of the
@@ -843,6 +875,7 @@ _NoHit:
     d_entry table, ProjFlamewave,   FuncA_Objects_DrawActorProjFlamewave
     d_entry table, ProjGrenade,     FuncA_Objects_DrawActorProjGrenade
     d_entry table, ProjParticle,    FuncA_Objects_DrawActorProjParticle
+    d_entry table, ProjRocket,      FuncA_Objects_DrawActorProjRocket
     d_entry table, ProjSmoke,       FuncA_Objects_DrawActorProjSmoke
     d_entry table, ProjSpike,       FuncA_Objects_DrawActorProjSpike
     d_entry table, ProjSteamHorz,   FuncA_Objects_DrawActorProjSteamHorz
