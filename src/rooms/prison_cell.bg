@@ -1,30 +1,31 @@
 @BG 0 0 0 34x24
 >prison_0
 >prison_1
+>prison_2
 >prison_3
 >prison_4
 
 
-          DHDHDHDHDIDPDPDH      CE      CF                CE
-    DHDHDI                DM
-  DN                      DGDH                      CE
-  DN  AB                      DM      CF                      CE
-  DPDDDEDEDF                  DM        DNDPDMDNDPDPDPDPDPDP
-  DPDPDM  DI      DADC        DM  CEDNDPDP  DMDN    DP    DNDM
-  DN  DMDN                  BBDP    DN      DGDI  DPDPDP  DPDGDIDM
-DHDI  DGDI                  DPDPDM  DNAC                        DM
-                  BABC        DPDPDPDPDP                        DPDP
-DEDEDF            DADC
-    DNBABE
-    DNDPDDDEDF  BCAA      BA  DDDFDPDPDDDEDEDF      DPDDDEDEDFDPDPDP
-    DPDPDPDPDPDDDEDEDFDPDPDDDFDMDPDPDPDPDM  DP      DP      DNDPDP
-DPDPDPDPDPDPDPDPDGDHDIDPDPDPDPDPDPDPDLDPDPDPDLDP    DPDGDHDIDPDPDM
-DPDPDPDPDLDP            DPDPDPDPDLDP                          ABDP
-DPDPDPDP                                DPDKDPCK  CLDJDKDKDPDPDPDJ
-DPDPDP        DPDPDKDKDPDPDPDPDKDPDPDPDPDJ  DN      DM      DP
-    DP      DPDJ        DPDP        DLDM    DN      DP      DN
-DHDHDI    DJDP          DNDM        DN      DN      DPDM    DN
-          DPDKDM          DP        DP      DN      DLDP    DNDM
-DEDEDEDEDFDJ  DP          DP        DPDM    DP        DPDM  DPDM
-              DPDP      DNDP      DNDPDM    DP        DPDM  DPDM
-              DNDP      DNDPDM    DPDPDP  DNDP        DPDM  DPDM
+    DF    EHEHEHEHEIEPEPEHDF    DE      DF                DE
+    EHEHEI                EM
+  EN                      EGEH                      DE
+  EN  AB                      EM      DF                      DE
+  EPEDEEEEEF                  EM        ENEPEMENEPEPEPEPEPEP
+  EPEPEM  EI      EAEC        EM  DEENEPEP  EMEN    EP    ENEM
+  EN  EMEN                  BBEP    EN      EGEI  EPEPEP  EPEGEIEM
+EHEI  EGEI                  EPEPEM  ENAC                      CCEM
+                  BABC        EPEPEPEPEPAL                    AMEPEP
+EEEEEF            EAEC
+    ENBABE
+    ENEPEDEEEF  BCAA      BA  EDEFEPEPEDEEEEEF      EPEDEFEPEPEPEPEP
+    EPEPEPEPEPEDEEEEEFEPEPEDEFEMEPEPEPEPEM  EP      EPEMEN  ABEPEP
+EPEPEPEPEPEPEPEPEGEHEIEPEPEPEPEPEPEPELEPEPEPELEP    EPEPEL  EPEPEM
+EPEPEPEPELEP            EPEPEPEPELEP                        ELEP
+EPEPEPEP                                EPEKEPDK  DLEJEKEKEPEPEJ
+EPEPEP        EPEPEKEKEPEPEPEPEKEPEPEPEPEJ  EN      EM      EP
+    EP      EPEJ        EPEP        ELEM    EN      EP      EN
+EHEHEI    EJEP          ENEM        EN      EN      EPEM    EN
+          EPEKEM          EP        EP      EN      ELEP    ENEM
+EEEEEEEEEFEJ  EP          EP        EPEM    EP        EPEM  EPEM
+              EPEP      ENEP      ENEPEM    EP        EPEM  EPEM
+              ENEP      ENEPEM    EPEPEP  ENEP        EPEM  EPEM

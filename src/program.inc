@@ -136,7 +136,7 @@ kFirstHorzDir = eDir::Left
     MineCollapseTrolley
     MinePitHoistEast
     MinePitHoistWest
-    PrisonCellBlaster
+    PrisonCellLauncher
     PrisonCellLift
     PrisonEastLift
     PrisonEscapeTrolley

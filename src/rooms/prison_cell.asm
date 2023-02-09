@@ -41,8 +41,8 @@
 .IMPORT FuncA_Machine_GenericTryMoveX
 .IMPORT FuncA_Machine_GenericTryMoveY
 .IMPORT FuncA_Machine_ReachedGoal
-.IMPORT FuncA_Objects_DrawCannonMachine
 .IMPORT FuncA_Objects_DrawCratePlatform
+.IMPORT FuncA_Objects_DrawLauncherMachine
 .IMPORT FuncA_Objects_DrawLiftMachine
 .IMPORT FuncA_Objects_DrawRocksPlatformHorz
 .IMPORT FuncA_Room_SetPointToAvatarCenter
@@ -64,6 +64,7 @@
 .IMPORT Ppu_ChrObjPrison
 .IMPORT Ram_MachineGoalHorz_u8_arr
 .IMPORT Ram_MachineGoalVert_u8_arr
+.IMPORT Ram_MachineParam1_u8_arr
 .IMPORT Ram_PlatformLeft_i16_0_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORT Ram_PlatformType_ePlatform_arr
@@ -89,24 +90,24 @@ kEasternPassageIndex = 2
 
 ;;; The machine indices for the machines in this room.
 kLiftMachineIndex = 0
-kBlasterMachineIndex = 1
+kLauncherMachineIndex = 1
 
 ;;; The platform index for the PrisonCellLift machine in this room.
 kLiftPlatformIndex = 0
-;;; The platform index for the PrisonCellBlaster machine in this room.
-kBlasterPlatformIndex = 1
+;;; The platform index for the PrisonCellLauncher machine in this room.
+kLauncherPlatformIndex = 1
 ;;; The platform index for the prison cell gate.
 kGatePlatformIndex = 2
 ;;; The platform index for the crate used to reach the gate lever.
 kCratePlatformIndex = 3
 ;;; The platform indices for rocks that can be blasted away by the
-;;; PrisonCellBlaster machine.
+;;; PrisonCellLauncher machine.
 kUpperFloor1PlatformIndex = 4
 kUpperFloor2PlatformIndex = 5
 kMidCeilingPlatformIndex  = 6
 kEastCeilingPlatformIndex = 7
 ;;; The platform index for the rocks that collapse when the player avatar walks
-;;; on them (after firing the blaster).
+;;; on them (after firing the launcher).
 kTrapFloorPlatformIndex = 8
 ;;; The zone that the player avatar must be in in order for the trap floor to
 ;;; collapse.
@@ -120,15 +121,15 @@ kLiftMaxGoalY = 1
 kLiftMaxPlatformTop = $0080
 kLiftInitPlatformTop = kLiftMaxPlatformTop - kLiftInitGoalY * kBlockHeightPx
 
-;;; The initial and maximum permitted horizontal goal values for the blaster.
-kBlasterInitGoalX = 1
-kBlasterMaxGoalX = 1
+;;; The initial and maximum permitted horizontal goal values for the launcher.
+kLauncherInitGoalX = 1
+kLauncherMaxGoalX = 1
 
-;;; The minimum and initial X-positions for the left of the blaster platform.
+;;; The minimum and initial X-positions for the left of the launcher platform.
 .LINECONT +
-kBlasterMinPlatformLeft = $0180
-kBlasterInitPlatformLeft = \
-    kBlasterMinPlatformLeft + kBlasterInitGoalX * kBlockWidthPx
+kLauncherMinPlatformLeft = $0180
+kLauncherInitPlatformLeft = \
+    kLauncherMinPlatformLeft + kLauncherInitGoalX * kBlockWidthPx
 .LINECONT -
 
 ;;; The room block row for the top of the gate when it's shut.
@@ -197,24 +198,24 @@ _Machines_sMachine_arr:
     d_addr Draw_func_ptr, FuncA_Objects_DrawLiftMachine
     d_addr Reset_func_ptr, FuncC_Prison_CellLift_InitReset
     D_END
-    .assert * - :- = kBlasterMachineIndex * .sizeof(sMachine), error
+    .assert * - :- = kLauncherMachineIndex * .sizeof(sMachine), error
     D_STRUCT sMachine
-    d_byte Code_eProgram, eProgram::PrisonCellBlaster
+    d_byte Code_eProgram, eProgram::PrisonCellLauncher
     d_byte Breaker_eFlag, 0
     d_byte Flags_bMachine, bMachine::MoveH | bMachine::Act
     d_byte Status_eDiagram, eDiagram::CannonRight  ; TODO
     d_word ScrollGoalX_u16, $110
     d_byte ScrollGoalY_u8, $50
     d_byte RegNames_u8_arr4, 0, 0, "X", 0
-    d_byte MainPlatform_u8, kBlasterPlatformIndex
-    d_addr Init_func_ptr, FuncC_Prison_CellBlaster_InitReset
-    d_addr ReadReg_func_ptr, FuncC_Prison_CellBlaster_ReadReg
+    d_byte MainPlatform_u8, kLauncherPlatformIndex
+    d_addr Init_func_ptr, FuncC_Prison_CellLauncher_InitReset
+    d_addr ReadReg_func_ptr, FuncC_Prison_CellLauncher_ReadReg
     d_addr WriteReg_func_ptr, Func_Noop
-    d_addr TryMove_func_ptr, FuncC_Prison_CellBlaster_TryMove
-    d_addr TryAct_func_ptr, FuncC_Prison_CellBlaster_TryAct
-    d_addr Tick_func_ptr, FuncC_Prison_CellBlaster_Tick
-    d_addr Draw_func_ptr, FuncA_Objects_DrawCannonMachine  ; TODO
-    d_addr Reset_func_ptr, FuncC_Prison_CellBlaster_InitReset
+    d_addr TryMove_func_ptr, FuncC_Prison_CellLauncher_TryMove
+    d_addr TryAct_func_ptr, FuncC_Prison_CellLauncher_TryAct
+    d_addr Tick_func_ptr, FuncC_Prison_CellLauncher_Tick
+    d_addr Draw_func_ptr, FuncA_Objects_DrawLauncherMachine
+    d_addr Reset_func_ptr, FuncC_Prison_CellLauncher_InitReset
     D_END
     .assert * - :- <= kMaxMachines * .sizeof(sMachine), error
 _Platforms_sPlatform_arr:
@@ -226,12 +227,12 @@ _Platforms_sPlatform_arr:
     d_word Left_i16, $0020
     d_word Top_i16, kLiftInitPlatformTop
     D_END
-    .assert * - :- = kBlasterPlatformIndex * .sizeof(sPlatform), error
+    .assert * - :- = kLauncherPlatformIndex * .sizeof(sPlatform), error
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Solid
     d_word WidthPx_u16, $10
     d_byte HeightPx_u8, $10
-    d_word Left_i16, kBlasterInitPlatformLeft
+    d_word Left_i16, kLauncherInitPlatformLeft
     d_word Top_i16,   $0060
     D_END
     .assert * - :- = kGatePlatformIndex * .sizeof(sPlatform), error
@@ -334,9 +335,9 @@ _Devices_sDevice_arr:
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Console
-    d_byte BlockRow_u8, 15
-    d_byte BlockCol_u8, 31
-    d_byte Target_u8, kBlasterMachineIndex
+    d_byte BlockRow_u8, 13
+    d_byte BlockCol_u8, 30
+    d_byte Target_u8, kLauncherMachineIndex
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::LeverFloor
@@ -418,6 +419,9 @@ _InitRocksAndCrate:
     bne @removeAllRocks
     flag_bit Sram_ProgressFlags_arr, eFlag::PrisonCellBlastedRocks
     bne @removeSomeRocks
+    @loadRocketLauncher:
+    lda #1
+    sta Ram_MachineParam1_u8_arr + kLauncherMachineIndex
     rts
     @removeAllRocks:
     lda #ePlatform::None
@@ -535,28 +539,34 @@ _ParticleAngle_u8_arr:
     rts
 .ENDPROC
 
-.PROC FuncC_Prison_CellBlaster_InitReset
-    lda #kBlasterInitGoalX
-    sta Ram_MachineGoalHorz_u8_arr + kBlasterMachineIndex
+.PROC FuncC_Prison_CellLauncher_InitReset
+    lda #kLauncherInitGoalX
+    sta Ram_MachineGoalHorz_u8_arr + kLauncherMachineIndex
     rts
 .ENDPROC
 
-.PROC FuncC_Prison_CellBlaster_ReadReg
-    lda Ram_PlatformLeft_i16_0_arr + kBlasterPlatformIndex
-    sub #<(kBlasterMinPlatformLeft - kTileWidthPx)
+.PROC FuncC_Prison_CellLauncher_ReadReg
+    lda Ram_PlatformLeft_i16_0_arr + kLauncherPlatformIndex
+    sub #<(kLauncherMinPlatformLeft - kTileWidthPx)
     div #kBlockWidthPx
     rts
 .ENDPROC
 
-.PROC FuncC_Prison_CellBlaster_TryMove
-    lda #kBlasterMaxGoalX  ; param: max goal horz
+.PROC FuncC_Prison_CellLauncher_TryMove
+    lda #kLauncherMaxGoalX  ; param: max goal horz
     jmp FuncA_Machine_GenericTryMoveX
 .ENDPROC
 
-.PROC FuncC_Prison_CellBlaster_TryAct
-    lda Ram_MachineGoalHorz_u8_arr + kBlasterMachineIndex
-    jne FuncA_Machine_Error
+.PROC FuncC_Prison_CellLauncher_TryAct
+    ;; If the launcher is out of ammo, fail.
+    lda Ram_MachineParam1_u8_arr + kLauncherMachineIndex
+    beq _Error
+    ;; If the launcher is blocked, fail.
+    lda Ram_MachineGoalHorz_u8_arr + kLauncherMachineIndex
+    bne _Error
     ;; TODO: Shoot a projectile instead of destroying rocks instantly.
+    lda #0
+    sta Ram_MachineParam1_u8_arr + kLauncherMachineIndex
     ldx #eFlag::PrisonCellBlastedRocks
     jsr Func_SetFlag
     lda #ePlatform::None
@@ -564,10 +574,12 @@ _ParticleAngle_u8_arr:
     sta Ram_PlatformType_ePlatform_arr + kUpperFloor1PlatformIndex
     sta Ram_PlatformType_ePlatform_arr + kUpperFloor2PlatformIndex
     rts
+_Error:
+    jmp FuncA_Machine_Error
 .ENDPROC
 
-.PROC FuncC_Prison_CellBlaster_Tick
-    ldax #kBlasterMinPlatformLeft  ; param: min platform left
+.PROC FuncC_Prison_CellLauncher_Tick
+    ldax #kLauncherMinPlatformLeft  ; param: min platform left
     jsr FuncA_Machine_GenericMoveTowardGoalHorz  ; returns Z
     jeq FuncA_Machine_ReachedGoal
     rts

@@ -41,6 +41,7 @@
 .INCLUDE "machines/crane.inc"
 .INCLUDE "machines/hoist.inc"
 .INCLUDE "machines/jet.inc"
+.INCLUDE "machines/launcher.inc"
 .INCLUDE "machines/minigun.inc"
 .INCLUDE "machines/multiplexer.inc"
 .INCLUDE "machines/pump.inc"
@@ -904,7 +905,9 @@
     .incbin "out/data/tiles/toad.chr"
     .assert * - :- = (kTileIdCraneFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/crane.chr"
-    .res $10 * kSizeofChr
+    .assert * - :- = (kTileIdObjLauncherFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/launcher.chr"
+    .res $0c * kSizeofChr
     .assert * - :- = (kTileIdObjChildAlexFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/alex.chr"
     .assert * - :- = (kTileIdObjStepstone - $80) * kSizeofChr, error
