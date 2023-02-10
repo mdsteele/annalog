@@ -18,22 +18,18 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "charmap.inc"
-.INCLUDE "console.inc"
 .INCLUDE "cpu.inc"
 .INCLUDE "flag.inc"
 .INCLUDE "joypad.inc"
 .INCLUDE "machine.inc"
 .INCLUDE "macros.inc"
 .INCLUDE "mmc3.inc"
-.INCLUDE "oam.inc"
 .INCLUDE "ppu.inc"
 .INCLUDE "program.inc"
 .INCLUDE "window.inc"
 
-.IMPORT FuncA_Console_GetCurrentFieldOffset
-.IMPORT FuncA_Console_GetCurrentFieldWidth
-.IMPORT FuncA_Console_GetCurrentInstNumFields
-.IMPORT FuncA_Console_SetFieldForNominalOffset
+.IMPORT FuncA_Console_DrawFieldCursorObjects
+.IMPORT FuncA_Console_MoveFieldCursor
 .IMPORT FuncA_Console_WriteNeedsPowerTransferData
 .IMPORT FuncA_Console_WriteStatusTransferData
 .IMPORT FuncA_Machine_Tick
@@ -52,7 +48,6 @@
 .IMPORT Func_Window_TransferClearRow
 .IMPORT Main_Explore_Continue
 .IMPORT Main_Menu_EditSelectedField
-.IMPORT Ram_Oam_sObj_arr64
 .IMPORT Ram_PpuTransfer_arr
 .IMPORT Sram_ProgressFlags_arr
 .IMPORTZP Zp_Current_sMachine_ptr
@@ -60,15 +55,12 @@
 .IMPORTZP Zp_HudMachineIndex_u8
 .IMPORTZP Zp_MachineIndex_u8
 .IMPORTZP Zp_MachineMaxInstructions_u8
-.IMPORTZP Zp_OamOffset_u8
 .IMPORTZP Zp_P1ButtonsPressed_bJoypad
 .IMPORTZP Zp_PpuTransferLen_u8
 .IMPORTZP Zp_ScrollGoalX_u16
 .IMPORTZP Zp_ScrollGoalY_u8
 .IMPORTZP Zp_Tmp1_byte
 .IMPORTZP Zp_Tmp2_byte
-.IMPORTZP Zp_Tmp3_byte
-.IMPORTZP Zp_Tmp4_byte
 .IMPORTZP Zp_Tmp_ptr
 .IMPORTZP Zp_WindowNextRowToTransfer_u8
 .IMPORTZP Zp_WindowTopGoal_u8
@@ -76,19 +68,8 @@
 
 ;;;=========================================================================;;;
 
-.LINECONT +
-.DEFINE OpcodeLabels \
-    _OpEmpty, _OpCopy, _OpSync, _OpAdd, _OpSub, _OpMul, _OpGoto, _OpSkip, \
-    _OpIf, _OpTil, _OpAct, _OpMove, _OpWait, _OpBeep, _OpEnd, _OpNop
-.LINECONT -
-
-;;;=========================================================================;;;
-
 ;;; How fast the console window scrolls up/down, in pixels per frame.
 kConsoleWindowScrollSpeed = 6
-
-;;; The OBJ palette number used for the console cursor.
-kPaletteObjCursor = 1
 
 ;;; The width of an instruction in the console, in tiles.
 kInstructionWidthTiles = 7
@@ -347,15 +328,13 @@ _SetScrollGoal:
 _CopyRegNames:
     ;; Set name of register $a, or #0 if that register isn't yet unlocked (by
     ;; the COPY opcode).
-    lda Sram_ProgressFlags_arr + (eFlag::UpgradeOpcodeCopy >> 3)
-    and #1 << (eFlag::UpgradeOpcodeCopy & $07)
+    flag_bit Sram_ProgressFlags_arr, eFlag::UpgradeOpcodeCopy
     beq @noRegA
     lda #kMachineRegNameA
     @noRegA:
     sta Ram_ConsoleRegNames_u8_arr6 + 0
     ;; Set name of register $b, or #0 if that register isn't yet unlocked.
-    lda Sram_ProgressFlags_arr + (eFlag::UpgradeRegisterB >> 3)
-    and #1 << (eFlag::UpgradeRegisterB & $07)
+    flag_bit Sram_ProgressFlags_arr, eFlag::UpgradeRegisterB
     beq @noRegB
     lda #kMachineRegNameB
     @noRegB:
@@ -419,129 +398,6 @@ _InitWindow:
     ;; Disable writes to SRAM.
     lda #bMmc3PrgRam::Enable | bMmc3PrgRam::DenyWrites
     sta Hw_Mmc3PrgRamProtect_wo
-    rts
-.ENDPROC
-
-;;; Moves the console field cursor based on the current joypad state.
-.PROC FuncA_Console_MoveFieldCursor
-.PROC _MoveCursorVertically
-_CheckDown:
-    lda Zp_P1ButtonsPressed_bJoypad
-    and #bJoypad::Down
-    beq _CheckUp
-    ldx Zp_ConsoleInstNumber_u8
-    ;; Check if the currently selection instruction is eOpcode::Empty; if so,
-    ;; moving down from there wraps back to instruction number zero.
-    txa
-    mul #.sizeof(sInst)
-    tay
-    lda Ram_Console_sProgram + sProgram::Code_sInst_arr + sInst::Op_byte, y
-    and #$f0
-    .assert eOpcode::Empty = 0, error
-    beq @wrap
-    ;; Increment the instruction number, but if that would exceed the max
-    ;; number of instructions in the console window, then wrap back to zero.
-    inx
-    cpx Zp_MachineMaxInstructions_u8
-    blt @noWrap
-    @wrap:
-    ldx #0
-    @noWrap:
-    stx Zp_ConsoleInstNumber_u8
-    jmp _FinishUpDown
-_CheckUp:
-    lda Zp_P1ButtonsPressed_bJoypad
-    and #bJoypad::Up
-    beq _NoUpOrDown
-    ;; If the current instruction number is nonzero, just decrement it.
-    ldx Zp_ConsoleInstNumber_u8
-    beq @loop
-    dec Zp_ConsoleInstNumber_u8
-    bpl _FinishUpDown  ; unconditional
-    ;; Otherwise, search forward (starting from instruction zero) for the first
-    ;; empty instruction.
-    @loop:
-    txa
-    mul #.sizeof(sInst)
-    tay
-    lda Ram_Console_sProgram + sProgram::Code_sInst_arr + sInst::Op_byte, y
-    and #$f0
-    ;; If this instruction is empty, select it.
-    .assert eOpcode::Empty = 0, error
-    beq @select
-    ;; Otherwise, keep looking.  If there are no empty instructions, we'll
-    ;; select the last instruction.
-    inx
-    cpx Zp_MachineMaxInstructions_u8
-    blt @loop
-    dex
-    @select:
-    stx Zp_ConsoleInstNumber_u8
-_FinishUpDown:
-    jsr FuncA_Console_SetFieldForNominalOffset
-_NoUpOrDown:
-.ENDPROC
-.PROC _MoveCursorHorizontally
-    jsr FuncA_Console_GetCurrentInstNumFields  ; returns X
-    stx Zp_Tmp1_byte  ; num fields
-_CheckLeft:
-    lda Zp_P1ButtonsPressed_bJoypad
-    and #bJoypad::Left
-    beq _CheckRight
-    ;; Decrement the field number; if we weren't at zero, we're done.
-    ldx Zp_ConsoleFieldNumber_u8
-    dex
-    bpl @setFieldNumber
-    ;; We're trying to move left from field zero.  If we're in the left-hand
-    ;; column of instructions, then give up.
-    lda Zp_ConsoleInstNumber_u8
-    sub Zp_ConsoleNumInstRows_u8
-    blt _NoLeftOrRight
-    ;; Looks like we're in the right-hand column, so move to the last field of
-    ;; the instruction on the same row in the left-hand column.
-    sta Zp_ConsoleInstNumber_u8
-    jsr FuncA_Console_GetCurrentInstNumFields  ; returns X
-    dex
-    @setFieldNumber:
-    stx Zp_ConsoleFieldNumber_u8
-    jmp _FinishLeftRight
-_CheckRight:
-    lda Zp_P1ButtonsPressed_bJoypad
-    and #bJoypad::Right
-    beq _NoLeftOrRight
-    ;; Increment the field number; if we weren't in the last field, we're done.
-    ldx Zp_ConsoleFieldNumber_u8
-    inx
-    cpx Zp_Tmp1_byte  ; num fields
-    blt @setFieldNumber
-    ;; We're trying to move right from the last field.  If we're in the
-    ;; right-hand column of instructions, then give up.
-    lda Zp_ConsoleInstNumber_u8
-    cmp Zp_ConsoleNumInstRows_u8
-    bge _NoLeftOrRight
-    ;; Looks like we're in the left-hand column, so move to the first field of
-    ;; the instruction on the same row in the right-hand column.
-    add Zp_ConsoleNumInstRows_u8
-    sta Zp_ConsoleInstNumber_u8
-    ;; If we're now beyond the first empty instruction, then undo what we just
-    ;; did, and go back to the left-hand instruction column.
-    jsr FuncA_Console_IsPrevInstructionEmpty  ; returns Z
-    bne @prevInstNotEmpty
-    lda Zp_ConsoleInstNumber_u8
-    sub Zp_ConsoleNumInstRows_u8
-    sta Zp_ConsoleInstNumber_u8
-    bpl _NoLeftOrRight  ; unconditional
-    ;; Otherwise, now that we moved to the right-hand instruction column,
-    ;; select the leftmost field.
-    @prevInstNotEmpty:
-    ldx #0
-    @setFieldNumber:
-    stx Zp_ConsoleFieldNumber_u8
-_FinishLeftRight:
-    jsr FuncA_Console_GetCurrentFieldOffset  ; returns A
-    sta Zp_ConsoleNominalFieldOffset_u8
-_NoLeftOrRight:
-.ENDPROC
     rts
 .ENDPROC
 
@@ -613,100 +469,6 @@ _RewriteGotos:
 _Finish:
     jsr FuncA_Console_TransferAllInstructions
     sec  ; set C to indicate success
-    rts
-.ENDPROC
-
-;;; Allocates and populates OAM slots for the console instruction field cursor.
-;;; @param A True ($ff) to draw the cursor diminished, false ($00) otherwise.
-.EXPORT FuncA_Console_DrawFieldCursorObjects
-.PROC FuncA_Console_DrawFieldCursorObjects
-    sta Zp_Tmp4_byte  ; cursor diminished bool
-_YPosition:
-    ;; Calculate the window row that the cursor is in.
-    lda Zp_ConsoleInstNumber_u8
-    cmp Zp_ConsoleNumInstRows_u8
-    blt @leftColumn
-    sub Zp_ConsoleNumInstRows_u8
-    @leftColumn:
-    add #1  ; add 1 for the top border
-    ;; Calculate the Y-position of the objects and store in Zp_Tmp1_byte.
-    mul #kTileHeightPx
-    adc Zp_WindowTop_u8  ; carry will by clear
-    adc #$ff  ; subtract 1 (carry will still be clear)
-    sta Zp_Tmp1_byte  ; Y-position
-_XPosition:
-    jsr FuncA_Console_GetCurrentFieldOffset  ; preserves Zp_Tmp*, returns A
-    mul #kTileWidthPx
-    add #kTileWidthPx * 4
-    ldx Zp_ConsoleInstNumber_u8
-    cpx Zp_ConsoleNumInstRows_u8
-    blt @leftColumn
-    add #kTileWidthPx * 10
-    @leftColumn:
-    sta Zp_Tmp2_byte  ; X-position
-_PrepareForLoop:
-    jsr FuncA_Console_GetCurrentFieldWidth  ; preserves Zp_Tmp*, returns A
-    sta Zp_Tmp3_byte  ; cursor width - 1
-    tax  ; loop variable (counts from cursor width - 1 down to zero)
-    ldy Zp_OamOffset_u8
-_ObjectLoop:
-    ;; Set Y-position.
-    lda Zp_Tmp1_byte  ; Y-position
-    sta Ram_Oam_sObj_arr64 + sObj::YPos_u8, y
-    ;; Set and increment X-position.
-    lda Zp_Tmp2_byte  ; X-position
-    sta Ram_Oam_sObj_arr64 + sObj::XPos_u8, y
-    add #kTileWidthPx
-    sta Zp_Tmp2_byte  ; X-position
-    ;; Set flags.
-    lda #bObj::Pri | kPaletteObjCursor
-    sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
-    ;; Set tile ID.
-    lda Zp_Tmp4_byte  ; cursor diminished bool
-    bpl @undiminished
-    lda Zp_Tmp3_byte  ; cursor width - 1
-    beq @dimSingle
-    cpx Zp_Tmp3_byte  ; cursor width - 1
-    beq @dimLeft
-    txa
-    bne @continue
-    @dimRight:
-    lda #kConsoleObjTileIdCursorDimRight
-    bne @setTile  ; unconditional
-    @dimLeft:
-    lda #kConsoleObjTileIdCursorDimLeft
-    bne @setTile  ; unconditional
-    @dimSingle:
-    lda #kConsoleObjTileIdCursorDimSingle
-    bne @setTile  ; unconditional
-    @undiminished:
-    lda Zp_Tmp3_byte  ; cursor width - 1
-    beq @tileSingle
-    cpx Zp_Tmp3_byte  ; cursor width - 1
-    beq @tileLeft
-    txa
-    beq @tileRight
-    @tileMiddle:
-    lda #kConsoleObjTileIdCursorSolidMiddle
-    bne @setTile  ; unconditional
-    @tileRight:
-    lda #kConsoleObjTileIdCursorSolidRight
-    bne @setTile  ; unconditional
-    @tileLeft:
-    lda #kConsoleObjTileIdCursorSolidLeft
-    bne @setTile  ; unconditional
-    @tileSingle:
-    lda #kConsoleObjTileIdCursorSolidSingle
-    @setTile:
-    sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
-    ;; Move offset to the next object.
-    .repeat .sizeof(sObj)
-    iny
-    .endrepeat
-    @continue:
-    dex
-    bpl _ObjectLoop
-    sty Zp_OamOffset_u8
     rts
 .ENDPROC
 
@@ -881,11 +643,31 @@ _DrawStatus:
     lda _JumpTable_ptr_1_arr, y
     sta Zp_Tmp_ptr + 1
     jmp (Zp_Tmp_ptr)
+.REPEAT 2, table
+    D_TABLE_LO table, _JumpTable_ptr_0_arr
+    D_TABLE_HI table, _JumpTable_ptr_1_arr
+    D_TABLE eOpcode
+    d_entry table, Empty, _OpEmpty
+    d_entry table, Copy,  _OpCopy
+    d_entry table, Sync,  _OpSync
+    d_entry table, Add,   _OpAdd
+    d_entry table, Sub,   _OpSub
+    d_entry table, Mul,   _OpMul
+    d_entry table, Goto,  _OpGoto
+    d_entry table, Skip,  _OpSkip
+    d_entry table, If,    _OpIf
+    d_entry table, Til,   _OpTil
+    d_entry table, Act,   _OpAct
+    d_entry table, Move,  _OpMove
+    d_entry table, Wait,  _OpWait
+    d_entry table, Beep,  _OpBeep
+    d_entry table, End,   _OpEnd
+    d_entry table, Nop,   _OpNop
+    D_END
+.ENDREPEAT
 _Write7Spaces:
     jsr _Write3Spaces
     jmp _Write4Spaces
-_JumpTable_ptr_0_arr: .lobytes OpcodeLabels
-_JumpTable_ptr_1_arr: .hibytes OpcodeLabels
 _OpEmpty:
     ldya #@string
     jsr _WriteString5
@@ -1078,6 +860,7 @@ _WriteComparisonOperator:
 ;;; instruction in the program.
 ;;; @return Z Set if the previous instruction is empty; cleared if the previous
 ;;;     instruction is not empty (or if we're on the first instruction).
+.EXPORT FuncA_Console_IsPrevInstructionEmpty
 .PROC FuncA_Console_IsPrevInstructionEmpty
     ldy Zp_ConsoleInstNumber_u8
     dey

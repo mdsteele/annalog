@@ -18,12 +18,15 @@
 ;;;=========================================================================;;;
 
 ;;; OBJ tile IDs for drawing the console field/menu cursors.
-kConsoleObjTileIdCursorSolidSingle = $00
-kConsoleObjTileIdCursorSolidLeft   = $01
-kConsoleObjTileIdCursorSolidRight  = $03
-kConsoleObjTileIdCursorSolidMiddle = $02
-kConsoleObjTileIdCursorDimSingle   = $04
-kConsoleObjTileIdCursorDimLeft     = $05
-kConsoleObjTileIdCursorDimRight    = $07
+kTileIdObjCursorSolidSingle = $00
+kTileIdObjCursorSolidLeft   = $01
+kTileIdObjCursorSolidRight  = $03
+kTileIdObjCursorSolidMiddle = $02
+kTileIdObjCursorDimSingle   = $04
+kTileIdObjCursorDimLeft     = $05
+kTileIdObjCursorDimRight    = $07
+
+;;; The OBJ palette number used for the cursor.
+kPaletteObjCursor = 1
 
 ;;;=========================================================================;;;

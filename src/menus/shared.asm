@@ -17,31 +17,18 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
-;;; The maximum number of selectable items in a menu.
-.DEFINE kMaxMenuItems 16
-
-;;; The topmost window row in the menu area of the console.
-kMenuStartWindowRow = 1
-
-;;; The leftmost nametable tile column in the menu area of the console.
-kMenuStartTileColumn = 22
+.INCLUDE "../charmap.inc"
+.INCLUDE "../menu.inc"
 
 ;;;=========================================================================;;;
 
-;;; Represents static data about a console instruction field editing menu.
-.STRUCT sMenu
-    ;; The (width - 1) of each menu item, in tiles.
-    WidthsMinusOne_u8_arr   .res kMaxMenuItems
-    ;; Pointers to the label string for each menu item.  Each string must have
-    ;; length equal to 1 plus the corresponding value in WidthsMinusOne_u8_arr.
-    Labels_u8_arr_ptr_arr   .res kMaxMenuItems * 2
-    ;; Pointers to the functions to be called when the player presses various
-    ;; directions on the D-pad; each function should update Zp_MenuItem_u8
-    ;; appropriately based on the menu layout.
-    OnUp_func_ptr           .res 2
-    OnDown_func_ptr         .res 2
-    OnLeft_func_ptr         .res 2
-    OnRight_func_ptr        .res 2
-.ENDSTRUCT
+.SEGMENT "PRGA_Console"
+
+;;; BG tile IDs for numbers, from 0 through 15.
+.EXPORT DataA_Console_NumberLabels_u8_arr
+.PROC DataA_Console_NumberLabels_u8_arr
+    .byte "0123456789", $1a, $1b, $1c, $1d, $1e, $1f
+.ENDPROC
+.ASSERT .sizeof(DataA_Console_NumberLabels_u8_arr) = kMaxMenuItems, error
 
 ;;;=========================================================================;;;

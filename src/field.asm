@@ -367,8 +367,28 @@ _SetOpcode:
     lda _JumpTable_ptr_1_arr, y
     sta Zp_Tmp_ptr + 1
     jmp (Zp_Tmp_ptr)
-_JumpTable_ptr_0_arr: .lobytes OpcodeLabels
-_JumpTable_ptr_1_arr: .hibytes OpcodeLabels
+.REPEAT 2, table
+    D_TABLE_LO table, _JumpTable_ptr_0_arr
+    D_TABLE_HI table, _JumpTable_ptr_1_arr
+    D_TABLE eOpcode
+    d_entry table, Empty, _OpEmpty
+    d_entry table, Copy,  _OpCopy
+    d_entry table, Sync,  _OpSync
+    d_entry table, Add,   _OpAdd
+    d_entry table, Sub,   _OpSub
+    d_entry table, Mul,   _OpMul
+    d_entry table, Goto,  _OpGoto
+    d_entry table, Skip,  _OpSkip
+    d_entry table, If,    _OpIf
+    d_entry table, Til,   _OpTil
+    d_entry table, Act,   _OpAct
+    d_entry table, Move,  _OpMove
+    d_entry table, Wait,  _OpWait
+    d_entry table, Beep,  _OpBeep
+    d_entry table, End,   _OpEnd
+    d_entry table, Nop,   _OpNop
+    D_END
+.ENDREPEAT
 _OpEmpty:
 _OpSync:
 _OpGoto:

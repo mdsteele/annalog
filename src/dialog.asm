@@ -18,8 +18,8 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "charmap.inc"
-.INCLUDE "console.inc"
 .INCLUDE "cpu.inc"
+.INCLUDE "cursor.inc"
 .INCLUDE "dialog.inc"
 .INCLUDE "joypad.inc"
 .INCLUDE "macros.inc"
@@ -808,13 +808,13 @@ _EndOfLine:
     beq @right
     cpx Zp_Tmp2_byte  ; width - 1
     beq @left
-    lda #kConsoleObjTileIdCursorSolidMiddle
+    lda #kTileIdObjCursorSolidMiddle
     bpl @setTileId  ; unconditional
     @left:
-    lda #kConsoleObjTileIdCursorSolidLeft
+    lda #kTileIdObjCursorSolidLeft
     bpl @setTileId  ; unconditional
     @right:
-    lda #kConsoleObjTileIdCursorSolidRight
+    lda #kTileIdObjCursorSolidRight
     @setTileId:
     sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
     lda #bObj::Pri | kPaletteObjDialogPrompt
