@@ -20,6 +20,10 @@
 .INCLUDE "macros.inc"
 .INCLUDE "tileset.inc"
 
+.IMPORT DataA_Terrain_CoreLowerLeft_u8_arr
+.IMPORT DataA_Terrain_CoreLowerRight_u8_arr
+.IMPORT DataA_Terrain_CoreUpperLeft_u8_arr
+.IMPORT DataA_Terrain_CoreUpperRight_u8_arr
 .IMPORT DataA_Terrain_CryptLowerLeft_u8_arr
 .IMPORT DataA_Terrain_CryptLowerRight_u8_arr
 .IMPORT DataA_Terrain_CryptUpperLeft_u8_arr
@@ -68,6 +72,7 @@
 .IMPORT DataA_Terrain_TempleLowerRight_u8_arr
 .IMPORT DataA_Terrain_TempleUpperLeft_u8_arr
 .IMPORT DataA_Terrain_TempleUpperRight_u8_arr
+.IMPORT Ppu_ChrBgCore
 .IMPORT Ppu_ChrBgCrypt
 .IMPORT Ppu_ChrBgFactory
 .IMPORT Ppu_ChrBgGarden
@@ -84,6 +89,17 @@
 ;;;=========================================================================;;;
 
 .SEGMENT "PRGA_Room"
+
+.EXPORT DataA_Room_Core_sTileset
+.PROC DataA_Room_Core_sTileset
+    D_STRUCT sTileset
+    d_addr UpperLeft_u8_arr_ptr,  DataA_Terrain_CoreUpperLeft_u8_arr
+    d_addr LowerLeft_u8_arr_ptr,  DataA_Terrain_CoreLowerLeft_u8_arr
+    d_addr UpperRight_u8_arr_ptr, DataA_Terrain_CoreUpperRight_u8_arr
+    d_addr LowerRight_u8_arr_ptr, DataA_Terrain_CoreLowerRight_u8_arr
+    d_byte Chr08Bank_u8, <.bank(Ppu_ChrBgCore)
+    D_END
+.ENDPROC
 
 .EXPORT DataA_Room_Crypt_sTileset
 .PROC DataA_Room_Crypt_sTileset

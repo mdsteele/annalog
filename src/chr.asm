@@ -183,6 +183,19 @@
 
 ;;;=========================================================================;;;
 
+.SEGMENT "CHR_BgCore"
+
+.EXPORT Ppu_ChrBgCore
+.PROC Ppu_ChrBgCore
+:   .incbin "out/data/tiles/core_pipes1.chr"
+    .incbin "out/data/tiles/core_pipes2.chr"
+    .res $24 * kSizeofChr
+    .incbin "out/data/tiles/console.chr"
+    .assert * - :- = kSizeofChr * $40, error
+.ENDPROC
+
+;;;=========================================================================;;;
+
 .SEGMENT "CHR_BgCrypt"
 
 .EXPORT Ppu_ChrBgCrypt

@@ -28,7 +28,7 @@
 .INCLUDE "../program.inc"
 .INCLUDE "../room.inc"
 
-.IMPORT DataA_Room_Factory_sTileset
+.IMPORT DataA_Room_Core_sTileset
 .IMPORT FuncA_Machine_Error
 .IMPORT FuncA_Machine_GenericTryMoveY
 .IMPORT FuncA_Machine_JetTick
@@ -87,7 +87,7 @@ kJetInitPlatformTop = kJetMaxPlatformTop - kJetInitGoalY * kJetMoveInterval
     D_END
 _Ext_sRoomExt:
     D_STRUCT sRoomExt
-    d_addr Terrain_sTileset_ptr, DataA_Room_Factory_sTileset
+    d_addr Terrain_sTileset_ptr, DataA_Room_Core_sTileset
     d_addr Platforms_sPlatform_arr_ptr, _Platforms_sPlatform_arr
     d_addr Actors_sActor_arr_ptr, _Actors_sActor_arr
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr

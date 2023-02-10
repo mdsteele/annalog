@@ -54,6 +54,8 @@ static const struct {
   {0x90, "cobweb"},
   {0xbc, "console"},
   {0xc8, "conveyor_anim0"},
+  {0x80, "core_pipes1"},
+  {0x90, "core_pipes2"},
   {0x80, "crypt"},
   {0x80, "crystal"},
   {0xb4, "drawbridge"},

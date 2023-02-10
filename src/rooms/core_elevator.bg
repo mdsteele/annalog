@@ -1,30 +1,32 @@
 @BG 0 0 0 18x24
->factory_0
->factory_1
->factory_4
->factory_5
+>core_0
+>core_1
+>core_2
+>core_3
+>core_4
+>core_5
 
-
-    CMCKCKCKCKCKCKCKCKCKCKCKCKCN
-    CD                        CC
-CKCKCF                        CECKCK
-
-    BCBD      AC        AB  BABB
-CICICICICICICICB    CACICICICICICICI
-            CMCF    CECN
-            CD        CC
-            CD        CC
-          CMCF        CECN
-          COCB        CACP
-            CD        CC
-            CD        CC
-          CMCF        CECN
-          COCB        CACP
-            CD        CC
-            CD        CC
-          CMCF        CECN
-          COCB        CACP
-            CD        CC
-            CD        CC
-          CMCF        CECN
-          COCB        CACP
+    FK  AJAG            EN    EEEJ
+    ECEAEAEPEAEMEAEAEAEAEHEAEAEDEEEA
+    EB  AFAK                  EN
+EAEAEF  AFBGADADADADAHADADBB  EEEAEA
+        AF                AG
+        AF    AC        ABAG
+EAEAEDFMEMEGEAEP    EPEAEAEAEAEMEAEA
+    EBBEBLEEEGEF    EEED  AK
+EAEMEPAK    EB        EB  BKAEAEAEAE
+      AK    EN        EB
+AEAEAEBD    EP    BIADEPADADADAHADAD
+            EB    AK  EB
+ADADADADAHADEBADADBP  EN
+        FMEMEP        EPFN
+          FBFE        FPFC
+            FP        FA
+            FD        FC
+            FD        FC
+            FD        FP
+            FP        FB
+            FP        FP
+            FB        FP
+            FD        FC
+            FD        FC
