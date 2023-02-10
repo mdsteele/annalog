@@ -44,6 +44,7 @@ kMaxPassages = 8
     BossGarden
     BossTemple
     CoreElevator
+    CoreLock
     CryptEast
     CryptEscape
     CryptFlower

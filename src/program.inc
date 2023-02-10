@@ -109,6 +109,9 @@ kFirstHorzDir = eDir::Left
     BossGardenCannon
     BossTempleMinigun
     CoreElevatorJet
+    CoreLockLift1
+    CoreLockLift2
+    CoreLockLift3
     CryptFlowerWinch
     CryptGalleryWinch
     CryptNorthLift
