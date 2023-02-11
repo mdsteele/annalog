@@ -478,8 +478,8 @@ _ShiftInstructions:
     sta Ram_Console_sProgram + sProgram::Code_sInst_arr, y
     cpx Zp_Tmp2_byte  ; byte offset for current instruction
     bne @loop
-    ;; Set the current instruction to END, and select field zero.
-    lda #eOpcode::End * $10
+    ;; Set the current instruction to NOP, and select field zero.
+    lda #eOpcode::Nop * $10
     sta Ram_Console_sProgram + sProgram::Code_sInst_arr + sInst::Op_byte, x
     lda #0
     sta Ram_Console_sProgram + sProgram::Code_sInst_arr + sInst::Arg_byte, x
@@ -711,6 +711,7 @@ _Write7Spaces:
     jsr _Write3Spaces
     jmp _Write4Spaces
 _OpEmpty:
+_OpNop:
     ldya #@string
     jsr _WriteString5
     jmp _Write2Spaces
@@ -808,11 +809,6 @@ _OpEnd:
     jsr _WriteString3
     jmp _Write4Spaces
     @string: .byte "END"
-_OpNop:
-    ldya #@string
-    jsr _WriteString3
-    jmp _Write4Spaces
-    @string: .byte "NOP"
 _WriteString3:
     stya Zp_Tmp_ptr
     ldy #0

@@ -225,6 +225,13 @@ _OnLeft:
 .PROC FuncA_Console_SetUpOpcodeMenu
     ldax #DataA_Console_Opcode_sMenu
     stax Zp_Current_sMenu_ptr
+_SelectDeleteInsteadOfNop:
+    lda Zp_MenuItem_u8
+    cmp #eOpcode::Nop
+    bne @done
+    lda #eOpcode::Empty
+    sta Zp_MenuItem_u8
+    @done:
 _SetColumnsForAllMenuItems:
     ldx #kMaxMenuItems - 1
     @loop:

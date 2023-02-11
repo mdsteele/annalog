@@ -96,6 +96,7 @@ _OpcodeTable_u8_arr:
     OPCODE_TABLE _WidthTable_u8_arr
 _WidthTable_u8_arr:
 _OpEmpty:
+_OpNop:
     .byte 5
 _OpCopy:
     .byte 0, 0, 0
@@ -114,7 +115,6 @@ _OpTil:
     .byte 2, 0, 0, 0
 _OpAct:
 _OpEnd:
-_OpNop:
     .byte 2
 _OpSync:
 _OpWait:

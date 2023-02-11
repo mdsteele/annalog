@@ -277,8 +277,7 @@ _NowNotEmpty:
     dec Zp_ConsoleInstNumber_u8
     ;; Redraw the current instruction.
     @transferCurrent:
-    jsr FuncA_Console_TransferInstruction
-    rts
+    jmp FuncA_Console_TransferInstruction
 _NowEmpty:
     ;; The instruction is empty now.  If it already was before, we're done.
     txa  ; zero if instruction was empty
@@ -358,6 +357,40 @@ _RedrawInstructions:
     jmp FuncA_Console_TransferAllInstructions
 .ENDPROC
 
+;;; Responds to any joypad presses while in menu mode.
+;;; @return C Set if the menu should exit, cleared otherwise.
+.PROC FuncA_Console_MenuHandleJoypad
+    bit Zp_P1ButtonsPressed_bJoypad
+    ;; B button:
+    .assert bJoypad::BButton = bProc::Overflow, error
+    bvs _Cancel
+    ;; A button:
+    .assert bJoypad::AButton = bProc::Negative, error
+    bmi _SetValue
+    ;; D-pad:
+    jsr FuncA_Console_MoveMenuCursor
+    clc
+    rts
+_Cancel:
+    ;; If we cancel editing a NOP opcode (i.e. we were inserting a new
+    ;; instruction), then delete that instruction (thus cancelling the
+    ;; insertion).  In all other cases, we can simply exit the menu.
+    jsr FuncA_Console_GetCurrentFieldType  ; returns A
+    cmp #eField::Opcode
+    bne _ExitMenu
+    jsr FuncA_Console_GetCurrentFieldValue  ; returns A
+    cmp #eOpcode::Nop
+    bne _ExitMenu
+    lda #eOpcode::Empty
+    sta Zp_MenuItem_u8
+_SetValue:
+    jsr FuncA_Console_MenuSetValue
+_ExitMenu:
+    jsr FuncA_Console_TransferAllStatusRows
+    sec
+    rts
+.ENDPROC
+
 ;;;=========================================================================;;;
 
 .SEGMENT "PRG8"
@@ -373,27 +406,14 @@ _GameLoop:
     jsr_prga FuncA_Objects_DrawObjectsForRoom
     jsr_prga FuncA_Console_DrawMenuCursor
     jsr Func_ClearRestOfOamAndProcessFrame
-_CheckForCancel:
-    bit Zp_P1ButtonsPressed_bJoypad
-    ;; B button:
-    .assert bJoypad::BButton = bProc::Overflow, error
-    bvs _ExitMenu
-    ;; A button:
-    .assert bJoypad::AButton = bProc::Negative, error
-    bmi _SetValue
-    ;; D-pad:
-    jsr_prga FuncA_Console_MoveMenuCursor
+    jsr FuncA_Console_MenuHandleJoypad  ; returns C
+    jcs Main_Console_ContinueEditing
 _Tick:
     jsr_prga FuncA_Terrain_ScrollTowardsGoal
     ldx Zp_ConsoleMachineIndex_u8  ; param: machine index
     jsr Func_SetMachineIndex
     jsr_prga FuncA_Machine_Tick
     jmp _GameLoop
-_SetValue:
-    jsr_prga FuncA_Console_MenuSetValue
-_ExitMenu:
-    jsr_prga FuncA_Console_TransferAllStatusRows
-    jmp Main_Console_ContinueEditing
 .ENDPROC
 
 ;;;=========================================================================;;;
