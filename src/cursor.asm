@@ -271,6 +271,10 @@ _ObjectLoop:
     sta Zp_Tmp2_byte  ; X-position
     ;; Set flags.
     lda #bObj::Pri | kPaletteObjCursor
+    cpx #0
+    bne @noFlip
+    eor #bObj::FlipH
+    @noFlip:
     sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
     ;; Set tile ID.
     lda Zp_Tmp4_byte  ; cursor diminished bool
@@ -278,13 +282,10 @@ _ObjectLoop:
     lda Zp_Tmp3_byte  ; cursor width - 1
     beq @dimSingle
     cpx Zp_Tmp3_byte  ; cursor width - 1
-    beq @dimLeft
+    beq @dimSide
     txa
     bne @continue
-    @dimRight:
-    lda #kTileIdObjCursorDimRight
-    bne @setTile  ; unconditional
-    @dimLeft:
+    @dimSide:
     lda #kTileIdObjCursorDimLeft
     bne @setTile  ; unconditional
     @dimSingle:
@@ -294,16 +295,13 @@ _ObjectLoop:
     lda Zp_Tmp3_byte  ; cursor width - 1
     beq @tileSingle
     cpx Zp_Tmp3_byte  ; cursor width - 1
-    beq @tileLeft
+    beq @tileSide
     txa
-    beq @tileRight
+    beq @tileSide
     @tileMiddle:
     lda #kTileIdObjCursorSolidMiddle
     bne @setTile  ; unconditional
-    @tileRight:
-    lda #kTileIdObjCursorSolidRight
-    bne @setTile  ; unconditional
-    @tileLeft:
+    @tileSide:
     lda #kTileIdObjCursorSolidLeft
     bne @setTile  ; unconditional
     @tileSingle:
@@ -359,21 +357,22 @@ _ObjectLoop:
     sta Zp_Tmp2_byte  ; X-position
     ;; Set flags.
     lda #bObj::Pri | kPaletteObjCursor
+    cpx #0
+    bne @noFlip
+    eor #bObj::FlipH
+    @noFlip:
     sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
     ;; Set tile ID.
     lda Zp_Tmp3_byte  ; cursor (width - 1), in tiles
     beq @tileSingle
     cpx Zp_Tmp3_byte  ; cursor (width - 1), in tiles
-    beq @tileLeft
+    beq @tileSide
     txa
-    beq @tileRight
+    beq @tileSide
     @tileMiddle:
     lda #kTileIdObjCursorSolidMiddle
     bne @setTile  ; unconditional
-    @tileRight:
-    lda #kTileIdObjCursorSolidRight
-    bne @setTile  ; unconditional
-    @tileLeft:
+    @tileSide:
     lda #kTileIdObjCursorSolidLeft
     bne @setTile  ; unconditional
     @tileSingle:

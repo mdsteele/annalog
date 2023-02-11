@@ -803,22 +803,26 @@ _EndOfLine:
     stx Zp_Tmp2_byte  ; width - 1
     ;; Draw cursor objects.
     ldy Zp_OamOffset_u8
-    @loop:
+_Loop:
+    ;; Set tile ID.
     txa
-    beq @right
+    beq @side  ; right side
     cpx Zp_Tmp2_byte  ; width - 1
-    beq @left
+    beq @side  ; left side
     lda #kTileIdObjCursorSolidMiddle
     bpl @setTileId  ; unconditional
-    @left:
+    @side:
     lda #kTileIdObjCursorSolidLeft
-    bpl @setTileId  ; unconditional
-    @right:
-    lda #kTileIdObjCursorSolidRight
     @setTileId:
     sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
-    lda #bObj::Pri | kPaletteObjDialogPrompt
+    ;; Set flags.
+    lda #bObj::Pri | kPaletteObjCursor
+    cpx #0
+    bne @noFlip
+    eor #bObj::FlipH
+    @noFlip:
     sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
+    ;; Set position.
     lda #kDialogYesNoObjY
     sta Ram_Oam_sObj_arr64 + sObj::YPos_u8, y
     lda Zp_Tmp1_byte  ; obj left
@@ -830,7 +834,7 @@ _EndOfLine:
     iny
     .endrepeat
     dex
-    bpl @loop
+    bpl _Loop
     sty Zp_OamOffset_u8
     rts
 .ENDPROC
