@@ -28,7 +28,8 @@
 .INCLUDE "program.inc"
 .INCLUDE "window.inc"
 
-.IMPORT FuncA_Console_DrawFieldCursorObjects
+.IMPORT FuncA_Console_DrawErrorCursor
+.IMPORT FuncA_Console_DrawFieldCursor
 .IMPORT FuncA_Console_MoveFieldCursor
 .IMPORT FuncA_Console_WriteNeedsPowerTransferData
 .IMPORT FuncA_Console_WriteStatusTransferData
@@ -48,6 +49,8 @@
 .IMPORT Func_Window_TransferClearRow
 .IMPORT Main_Explore_Continue
 .IMPORT Main_Menu_EditSelectedField
+.IMPORT Ram_MachinePc_u8_arr
+.IMPORT Ram_MachineStatus_eMachine_arr
 .IMPORT Ram_PpuTransfer_arr
 .IMPORT Sram_ProgressFlags_arr
 .IMPORTZP Zp_Current_sMachine_ptr
@@ -140,32 +143,75 @@ Ram_ConsoleRegNames_u8_arr6: .res 6
 .EXPORT Main_Console_OpenWindow
 .PROC Main_Console_OpenWindow
     stx Zp_ConsoleMachineIndex_u8
-    jsr Func_SetMachineIndex
+    jsr Func_SetMachineIndex  ; preserves X
+    lda Ram_MachineStatus_eMachine_arr, x
+    cmp #eMachine::Error
+    beq @noReset
     jsr_prga FuncA_Room_MachineReset
+    @noReset:
     jsr_prga FuncA_Console_Init
 _GameLoop:
     jsr_prga FuncA_Objects_DrawObjectsForRoom
     jsr Func_ClearRestOfOamAndProcessFrame
-_ScrollWindowUp:
-    lda Zp_WindowTop_u8
-    sub #kConsoleWindowScrollSpeed
-    cmp Zp_WindowTopGoal_u8
-    bge @notDone
-    lda Zp_WindowTopGoal_u8
-    @notDone:
-    sta Zp_WindowTop_u8
-    jsr_prga FuncA_Console_TransferNextWindowRow
-_CheckIfDone:
-    lda Zp_WindowTop_u8
-    cmp Zp_WindowTopGoal_u8
-    beq _StartEditing
+    jsr_prga FuncA_Console_ScrollWindowUp  ; returns C
+    bcs _StartInteraction
+    jsr_prga FuncA_Terrain_ScrollTowardsGoal
+    jmp _GameLoop
+_StartInteraction:
+    lda Zp_ConsoleNeedsPower_u8
+    bne Main_Console_NoPower
+    ldx Zp_ConsoleMachineIndex_u8
+    lda Ram_MachineStatus_eMachine_arr, x
+    cmp #eMachine::Error
+    beq Main_Console_ShowError
+    jmp Main_Console_StartEditing
+.ENDPROC
+
+;;; Mode for showing which instruction caused the machine error.
+;;; @prereq Rendering is enabled.
+;;; @prereq The console window is fully visible.
+;;; @prereq Explore mode is initialized.
+.PROC Main_Console_ShowError
+    ;; Initialize the cursor.
+    ldx Zp_ConsoleMachineIndex_u8
+    lda Ram_MachinePc_u8_arr, x
+    sta Zp_ConsoleInstNumber_u8
+    lda #0
+    sta Zp_ConsoleFieldNumber_u8
+    sta Zp_ConsoleNominalFieldOffset_u8
+_GameLoop:
+    jsr_prga FuncA_Objects_DrawObjectsForRoom
+    jsr_prga FuncA_Console_DrawErrorCursor
+    jsr Func_ClearRestOfOamAndProcessFrame
+_CheckButtons:
+    lda Zp_P1ButtonsPressed_bJoypad
+    bne _StartEditing
 _UpdateScrolling:
     jsr_prga FuncA_Terrain_ScrollTowardsGoal
     jmp _GameLoop
 _StartEditing:
-    lda Zp_ConsoleNeedsPower_u8
-    beq Main_Console_StartEditing
-    jmp Main_Console_NoPower
+    ldx Zp_ConsoleMachineIndex_u8  ; param: machine index
+    jsr Func_SetMachineIndex
+    jsr_prga FuncA_Room_MachineReset
+    jmp Main_Console_ContinueEditing
+.ENDPROC
+
+;;; Mode for using a console for a machine whose required circuit breaker
+;;; hasn't yet been activated.
+;;; @prereq Rendering is enabled.
+;;; @prereq The console window is fully visible.
+;;; @prereq Explore mode is initialized.
+.PROC Main_Console_NoPower
+_GameLoop:
+    jsr_prga FuncA_Objects_DrawObjectsForRoom
+    jsr Func_ClearRestOfOamAndProcessFrame
+_CheckButtons:
+    lda Zp_P1ButtonsPressed_bJoypad
+    and #bJoypad::AButton | bJoypad::BButton
+    bne Main_Console_CloseWindow
+_UpdateScrolling:
+    jsr_prga FuncA_Terrain_ScrollTowardsGoal
+    jmp _GameLoop
 .ENDPROC
 
 ;;; Mode for scrolling out the console window.  Switches to explore mode once
@@ -186,8 +232,6 @@ _ScrollWindowDown:
     lda #$ff
     @notDone:
     sta Zp_WindowTop_u8
-_CheckIfDone:
-    lda Zp_WindowTop_u8
     cmp #$ff
     jeq Main_Explore_Continue
 _UpdateScrolling:
@@ -216,8 +260,7 @@ _UpdateScrolling:
 .PROC Main_Console_ContinueEditing
 _GameLoop:
     jsr_prga FuncA_Objects_DrawObjectsForRoom
-    lda #$00  ; param: cursor diminished bool ($00 = undiminished)
-    jsr_prga FuncA_Console_DrawFieldCursorObjects
+    jsr_prga FuncA_Console_DrawFieldCursor
     jsr Func_ClearRestOfOamAndProcessFrame
 _CheckButtons:
     ;; B button:
@@ -251,24 +294,6 @@ _Tick:
     jmp _GameLoop
 .ENDPROC
 
-;;; Mode for using a console for a machine whose required circuit breaker
-;;; hasn't yet been activated.
-;;; @prereq Rendering is enabled.
-;;; @prereq The console window is fully visible.
-;;; @prereq Explore mode is initialized.
-.PROC Main_Console_NoPower
-_GameLoop:
-    jsr_prga FuncA_Objects_DrawObjectsForRoom
-    jsr Func_ClearRestOfOamAndProcessFrame
-_CheckButtons:
-    lda Zp_P1ButtonsPressed_bJoypad
-    and #bJoypad::AButton | bJoypad::BButton
-    jne Main_Console_CloseWindow
-_UpdateScrolling:
-    jsr_prga FuncA_Terrain_ScrollTowardsGoal
-    jmp _GameLoop
-.ENDPROC
-
 ;;;=========================================================================;;;
 
 .SEGMENT "PRGA_Console"
@@ -277,7 +302,6 @@ _UpdateScrolling:
 ;;; @prereq Rendering is enabled.
 ;;; @prereq Explore mode is initialized.
 ;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
-;;; @param X The machine index to open a console for.
 .PROC FuncA_Console_Init
     jsr FuncA_Console_LoadProgram
     lda Zp_MachineMaxInstructions_u8
@@ -398,6 +422,24 @@ _InitWindow:
     ;; Disable writes to SRAM.
     lda #bMmc3PrgRam::Enable | bMmc3PrgRam::DenyWrites
     sta Hw_Mmc3PrgRamProtect_wo
+    rts
+.ENDPROC
+
+;;; Scrolls the console window in a bit, and transfers PPU data as needed; call
+;;; this each frame when the window is opening.
+;;; @return C Set if the window is now fully scrolled in.
+.PROC FuncA_Console_ScrollWindowUp
+    lda Zp_WindowTop_u8
+    sub #kConsoleWindowScrollSpeed
+    cmp Zp_WindowTopGoal_u8
+    bge @notDone
+    lda Zp_WindowTopGoal_u8
+    @notDone:
+    sta Zp_WindowTop_u8
+    jsr FuncA_Console_TransferNextWindowRow
+_CheckIfDone:
+    lda Zp_WindowTopGoal_u8
+    cmp Zp_WindowTop_u8  ; clears C if Zp_WindowTopGoal_u8 < Zp_WindowTop_u8
     rts
 .ENDPROC
 

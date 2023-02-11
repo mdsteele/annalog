@@ -25,7 +25,7 @@
 .INCLUDE "ppu.inc"
 .INCLUDE "program.inc"
 
-.IMPORT FuncA_Console_DrawMenuCursorObjects
+.IMPORT FuncA_Console_DrawMenuCursor
 .IMPORT FuncA_Console_GetCurrentFieldType
 .IMPORT FuncA_Console_GetCurrentFieldValue
 .IMPORT FuncA_Console_MoveMenuCursor
@@ -371,7 +371,7 @@ _RedrawInstructions:
     jsr_prga FuncA_Console_InitMenu
 _GameLoop:
     jsr_prga FuncA_Objects_DrawObjectsForRoom
-    jsr_prga FuncA_Console_DrawMenuCursorObjects
+    jsr_prga FuncA_Console_DrawMenuCursor
     jsr Func_ClearRestOfOamAndProcessFrame
 _CheckForCancel:
     bit Zp_P1ButtonsPressed_bJoypad
