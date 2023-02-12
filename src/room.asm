@@ -30,6 +30,7 @@
 .IMPORT DataC_Boss_Garden_sRoom
 .IMPORT DataC_Boss_Temple_sRoom
 .IMPORT DataC_Core_Elevator_sRoom
+.IMPORT DataC_Core_Flower_sRoom
 .IMPORT DataC_Core_Lock_sRoom
 .IMPORT DataC_Crypt_East_sRoom
 .IMPORT DataC_Crypt_Escape_sRoom
@@ -175,6 +176,7 @@ Zp_RoomState: .res kRoomStateSize
     d_entry table, BossGarden,      DataC_Boss_Garden_sRoom
     d_entry table, BossTemple,      DataC_Boss_Temple_sRoom
     d_entry table, CoreElevator,    DataC_Core_Elevator_sRoom
+    d_entry table, CoreFlower,      DataC_Core_Flower_sRoom
     d_entry table, CoreLock,        DataC_Core_Lock_sRoom
     d_entry table, CryptEast,       DataC_Crypt_East_sRoom
     d_entry table, CryptEscape,     DataC_Crypt_Escape_sRoom

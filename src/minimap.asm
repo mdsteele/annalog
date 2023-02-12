@@ -496,6 +496,12 @@ _MarkMinimap:
     d_byte Not_eFlag, eFlag::FlowerPrison
     D_END
     D_STRUCT sMarker
+    d_byte Row_u8, 4
+    d_byte Col_u8, 13  ; room: CoreFlower
+    d_byte If_eFlag, 0
+    d_byte Not_eFlag, eFlag::FlowerCore
+    D_END
+    D_STRUCT sMarker
     d_byte Row_u8, 5
     d_byte Col_u8, 4  ; room: TempleFlower
     d_byte If_eFlag, 0
@@ -578,6 +584,12 @@ _MarkMinimap:
     d_byte Col_u8, 11  ; room: MermaidVillage
     d_byte If_eFlag, eFlag::MermaidHut1MetQueen
     d_byte Not_eFlag, eFlag::GardenTowerCratesPlaced
+    D_END
+    D_STRUCT sMarker
+    d_byte Row_u8, 12
+    d_byte Col_u8, 0  ; room: BossCrypt
+    d_byte If_eFlag, 0
+    d_byte Not_eFlag, eFlag::BreakerCrypt
     D_END
     D_STRUCT sMarker
     d_byte Row_u8, 12
