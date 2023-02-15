@@ -26,6 +26,7 @@
 .INCLUDE "mmc3.inc"
 .INCLUDE "oam.inc"
 .INCLUDE "room.inc"
+.INCLUDE "spawn.inc"
 .INCLUDE "tileset.inc"
 
 .IMPORT DataA_Room_Banks_u8_arr
@@ -168,7 +169,8 @@ _GameLoop:
 .PROC FuncA_Breaker_InitActivate
     stx Zp_BreakerDeviceIndex_u8
     ;; Set the spawn point and mark the breaker as activated.
-    txa  ; param: bSpawn value
+    txa  ; breaker device index
+    ora #bSpawn::Device  ; param: bSpawn value
     jsr Func_SetLastSpawnPoint  ; preserves X
     lda Ram_DeviceTarget_u8_arr, x
     sta Zp_Breaker_eFlag

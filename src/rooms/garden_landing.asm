@@ -129,7 +129,7 @@ _Passages_sPassage_arr:
 .PROC FuncC_Garden_Landing_EnterRoom
     ;; If the player avatar didn't enter from the vertical shaft at the top, do
     ;; nothing.
-    cmp #bSpawn::IsPassage | kShaftPassageIndex
+    cmp #bSpawn::Passage | kShaftPassageIndex
     bne @done
     ;; Set the flag indicating that the player entered the garden.
     ldx #eFlag::GardenLandingDroppedIn  ; param: flag

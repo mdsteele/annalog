@@ -288,8 +288,7 @@ _BreakableWall:
     ;; player won't be trapped.  (In normal gameplay, it should be impossible
     ;; to enter from that door if the wall is still there; this is just a
     ;; safety measure.)
-    .assert bSpawn::IsPassage <> 0, error
-    cmp #kDoorDeviceIndex
+    cmp #bSpawn::Device | kDoorDeviceIndex
     beq @removeWall
     ;; Check if the breakable wall has been broken already; if so, remove it.
     flag_bit Sram_ProgressFlags_arr, eFlag::GardenTowerWallBroken
@@ -305,7 +304,7 @@ _Crates:
     ;; should be impossible to enter from that passage before the flag is set;
     ;; this is just a safety measure.)
     lda Zp_Tmp1_byte  ; bSpawn value
-    cmp #bSpawn::IsPassage | kCratePassageIndex
+    cmp #bSpawn::Passage | kCratePassageIndex
     beq @removeWallCrates
     ;; Check whether the crates should be in the wall or on the floor, and
     ;; remove them from whichever of those two places they shouldn't be.

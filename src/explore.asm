@@ -335,8 +335,8 @@ _SetSpawnPoint:
     ;; We'll soon be setting the entrance door in the destination room as the
     ;; spawn point, but first we set the exit door in the current room as the
     ;; spawn point, in case this room is safe and the destination room is not.
-    .assert bSpawn::IsPassage <> 0, error
-    lda Zp_NearbyDevice_u8  ; param: bSpawn value
+    lda Zp_NearbyDevice_u8
+    ora #bSpawn::Device  ; param: bSpawn value
     jsr Func_SetLastSpawnPoint
 _FadeOut:
     jsr_prga FuncA_Objects_DrawObjectsForRoom
@@ -359,8 +359,8 @@ _FadeIn:
 ;;; @param X The upgrade device index.
 .PROC Main_Explore_PickUpUpgrade
 _SetSpawnPoint:
-    .assert bSpawn::IsPassage <> 0, error
-    txa  ; param: bSpawn value
+    txa  ; upgrade device index
+    ora #bSpawn::Device  ; param: bSpawn value
     jsr Func_SetLastSpawnPoint  ; preserves X
 _DisableHud:
     ldy #0
@@ -391,8 +391,8 @@ _CollectUpgrade:
     lda #eAvatar::Reading
     sta Zp_AvatarMode_eAvatar
 _SetSpawnPoint:
-    .assert bSpawn::IsPassage <> 0, error
-    txa  ; param: bSpawn value
+    txa  ; console device index
+    ora #bSpawn::Device  ; param: bSpawn value
     jsr Func_SetLastSpawnPoint  ; preserves X
 _EnableHud:
     lda #$ff

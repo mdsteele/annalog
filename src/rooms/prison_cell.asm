@@ -394,9 +394,9 @@ _CheckIfReachedTunnel:
     ;; then set the flag indicating that the tunnel has been reached, and don't
     ;; lock scrolling.
     lda Zp_Tmp1_byte  ; bSpawn value
-    cmp #bSpawn::IsPassage | kTunnelPassageIndex
+    cmp #bSpawn::Passage | kTunnelPassageIndex
     beq @setFlag
-    cmp #bSpawn::IsPassage | kEasternPassageIndex
+    cmp #bSpawn::Passage | kEasternPassageIndex
     beq @setFlag
     ;; Otherwise, lock scrolling so that only the prison cell is visible.
     @lockScrolling:

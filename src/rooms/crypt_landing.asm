@@ -119,10 +119,11 @@ _Passages_sPassage_arr:
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
 .ENDPROC
 
+;;; @param A The bSpawn value for where the avatar is entering the room.
 .PROC FuncC_Crypt_Landing_EnterRoom
     ;; If the player avatar didn't enter from the vertical shaft at the top, do
     ;; nothing.
-    cmp #bSpawn::IsPassage | kShaftPassageIndex
+    cmp #bSpawn::Passage | kShaftPassageIndex
     bne @done
     ;; Otherwise, set the flag indicating that the player entered the crypt.
     ldx #eFlag::CryptLandingDroppedIn  ; param: flag

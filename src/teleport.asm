@@ -76,8 +76,8 @@ _FadeIn:
 ;;; @prereq There is a Teleport device in the new room.
 .PROC FuncA_Avatar_EnterRoomViaTeleporter
     jsr FuncA_Avatar_FindTeleportDevice  ; returns X
-    .assert bSpawn::IsPassage <> 0, error
-    txa  ; param: bSpawn value
+    txa  ; teleporter device index
+    ora #bSpawn::Device  ; param: bSpawn value
     jsr Func_SetLastSpawnPoint  ; preserves X
     jmp FuncA_Avatar_SpawnAtDevice
 .ENDPROC

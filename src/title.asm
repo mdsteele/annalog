@@ -56,7 +56,7 @@
 
 ;;; The starting location for a new game.
 kStartingRoom = eRoom::PrisonCell
-kStartingSpawn = 0
+kStartingSpawn = bSpawn::Device | 0
 
 ;;; The nametable tile row (of the upper nametable) that the game title starts
 ;;; on.

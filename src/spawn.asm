@@ -131,7 +131,7 @@ Zp_LastPoint_eRoom: .res 1
     lda Sram_LastSafe_bSpawn
     sta Zp_LastPoint_bSpawn
     ;; Check what kind of spawn point is set.
-    .assert bSpawn::IsPassage = bProc::Negative, error
+    .assert bSpawn::Passage = bProc::Negative, error
     bmi _SpawnAtPassage
 _SpawnAtDevice:
     and #bSpawn::IndexMask
@@ -268,8 +268,8 @@ _Finish:
     inx
     @break:
     ;; Update the the last spawn point.
-    .assert bSpawn::IsPassage <> 0, error
-    txa  ; param: bSpawn value
+    txa  ; door device index
+    ora #bSpawn::Device  ; param: bSpawn value
     jsr Func_SetLastSpawnPoint  ; preserves X
     ;; Spawn the avatar.
     .assert * = FuncA_Avatar_SpawnAtDevice, error, "fallthrough"
@@ -364,7 +364,7 @@ _DeviceOffset_u8_arr:
     cmp Zp_Tmp1_byte  ; calculated bPassage value
     bne @wrongSide
     lda Zp_Tmp2_byte  ; passage index
-    ora #bSpawn::IsPassage  ; param: bSpawn value
+    ora #bSpawn::Passage  ; param: bSpawn value
     jsr Func_SetLastSpawnPoint  ; preserves Y and Zp_Tmp_*
     iny
     .assert sPassage::Destination_eRoom = 1, error
@@ -436,7 +436,7 @@ _FindDestinationPassage:
     @foundMatch:
     ;; Update the the last spawn point.
     lda Zp_Tmp3_byte  ; passage index
-    ora #bSpawn::IsPassage  ; param: bSpawn value
+    ora #bSpawn::Passage  ; param: bSpawn value
     jsr Func_SetLastSpawnPoint  ; preserves Y and Zp_Tmp_*
     ;; Prepare to adjust position.
     .assert sPassage::SpawnBlock_u8 = 2, error

@@ -286,8 +286,7 @@ _Passages_sPassage_arr:
 .PROC FuncC_Crypt_Tomb_EnterRoom
     ;; If the player avatar enters the room from the doorway, remove the
     ;; breakable floors (to ensure they aren't stuck down there).
-    .assert bSpawn::IsPassage <> 0, error
-    cmp #kDoorDeviceIndex
+    cmp #bSpawn::Device | kDoorDeviceIndex
     beq FuncC_Crypt_Tomb_RemoveBreakableFloors
     ;; If the weak floors have already been broken, remove them platforms.
     flag_bit Sram_ProgressFlags_arr, eFlag::CryptTombWeakFloors
