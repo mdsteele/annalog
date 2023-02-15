@@ -26,11 +26,11 @@
 ;;;=========================================================================;;;
 
 .SEGMENT "PRGE_Vector"
-    .assert * = Data_NmiVector_ptr, error
+    .assert * = Data_NmiVector_int_ptr, error
     .addr Int_Nmi  ; See https://www.nesdev.org/wiki/NMI
-    .assert * = Data_ResetVector_ptr, error
+    .assert * = Data_ResetVector_main_ptr, error
     .addr Main_Reset
-    .assert * = Data_IrqVector_ptr, error
+    .assert * = Data_IrqVector_int_ptr, error
     .addr Int_Irq  ; See https://www.nesdev.org/wiki/IRQ
 
 ;;;=========================================================================;;;

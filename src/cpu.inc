@@ -17,6 +17,7 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
+;;; The size (in bytes) of a 6502 memory address.
 kSizeofAddr = 2
 
 ;;;=========================================================================;;;
@@ -35,8 +36,8 @@ kSizeofAddr = 2
 ;;;=========================================================================;;;
 
 ;;; Fixed addresses for interrupt/reset vectors.
-Data_NmiVector_ptr   = $fffa  ; See https://www.nesdev.org/wiki/NMI
-Data_ResetVector_ptr = $fffc
-Data_IrqVector_ptr   = $fffe  ; See https://www.nesdev.org/wiki/IRQ
+Data_NmiVector_int_ptr    = $fffa  ; See https://www.nesdev.org/wiki/NMI
+Data_ResetVector_main_ptr = $fffc
+Data_IrqVector_int_ptr    = $fffe  ; See https://www.nesdev.org/wiki/IRQ
 
 ;;;=========================================================================;;;
