@@ -65,6 +65,7 @@ kPaletteObjAvatarDeath  = 3
 ;;; values is the starting tile ID to use for the avatar objects when the
 ;;; avatar is in that mode.
 .ENUM eAvatar
+    Hidden    = $00  ; not drawn (e.g. for cutscenes)
     Standing  = $40  ; (grounded) standing still on the ground
     Looking   = $44  ; (grounded) standing still and looking upward
     Reaching  = $48  ; (grounded) standing still and reaching upward

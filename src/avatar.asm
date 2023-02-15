@@ -657,6 +657,8 @@ _InAir:
 _DrawObjects:
     jsr FuncA_Objects_SetShapePosToAvatarCenter
     lda Zp_AvatarMode_eAvatar  ; param: first tile ID
+    .assert eAvatar::Hidden = 0, error
+    beq _Done
     ldy Zp_AvatarFlags_bObj  ; param: object flags
     jmp FuncA_Objects_Draw2x2Shape
 _Done:

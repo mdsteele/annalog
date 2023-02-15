@@ -138,10 +138,14 @@ _GameLoop:
 ;;; @prereq Rendering is disabled.
 ;;; @prereq Explore mode is initialized.
 .PROC Main_Breaker_PlayCutscene
+    ;; Load the room where the cutscene takes place.
     jsr_prga FuncA_Breaker_GetCutsceneRoom  ; returns X
     prga_bank #<.bank(DataA_Room_Banks_u8_arr)
     prgc_bank DataA_Room_Banks_u8_arr, x
     jsr FuncA_Room_Load
+    ;; Hide the player avatar.
+    lda #eAvatar::Hidden
+    sta Zp_AvatarMode_eAvatar
     ;; TODO: set room scroll and lock scrolling
     jmp Main_Explore_FadeIn
 .ENDPROC
@@ -152,10 +156,14 @@ _GameLoop:
 .EXPORT Main_Breaker_FadeBackToBreakerRoom
 .PROC Main_Breaker_FadeBackToBreakerRoom
     jsr Func_FadeOutToBlack
+    ;; Reload the room that the breaker was in.
     prga_bank #<.bank(DataA_Room_Banks_u8_arr)
     ldx Zp_Previous_eRoom  ; param: room to load
     prgc_bank DataA_Room_Banks_u8_arr, x
     jsr FuncA_Room_Load
+    ;; Un-hide the player avatar.
+    lda #eAvatar::Kneeling
+    sta Zp_AvatarMode_eAvatar
     jmp Main_Explore_EnterRoom
 .ENDPROC
 
