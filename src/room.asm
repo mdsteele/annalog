@@ -101,7 +101,6 @@
 .IMPORT DataC_Town_House6_sRoom
 .IMPORT DataC_Town_Outdoors_sRoom
 .IMPORT FuncA_Room_InitActor
-.IMPORT FuncA_Room_InitAllMachines
 .IMPORT Ram_ActorPosX_i16_0_arr
 .IMPORT Ram_ActorPosX_i16_1_arr
 .IMPORT Ram_ActorPosY_i16_0_arr
@@ -470,8 +469,7 @@ _SetVars:
     stx Zp_CameraCanScroll_bool
     stx Zp_ConsoleMachineIndex_u8
     stx Zp_HudMachineIndex_u8
-_CallInit:
-    jmp FuncA_Room_InitAllMachines
+    rts
 .ENDPROC
 
 ;;; Calls the current room's Tick_func_ptr function.

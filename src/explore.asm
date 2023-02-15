@@ -47,7 +47,7 @@
 .IMPORT FuncA_Objects_MoveShapeLeftHalfTile
 .IMPORT FuncA_Objects_MoveShapeUpByA
 .IMPORT FuncA_Objects_SetShapePosToAvatarCenter
-.IMPORT FuncA_Room_CallRoomEnter
+.IMPORT FuncA_Room_CallRoomEnterAndInitMachines
 .IMPORT FuncA_Room_CallRoomTick
 .IMPORT FuncA_Room_Load
 .IMPORT FuncA_Room_PickUpFlowerDevice
@@ -148,7 +148,7 @@ Zp_NextCutscene_main_ptr: .res 2
 ;;; @prereq Rendering is disabled.
 .EXPORT Main_Explore_EnterRoom
 .PROC Main_Explore_EnterRoom
-    jsr_prga FuncA_Room_CallRoomEnter
+    jsr_prga FuncA_Room_CallRoomEnterAndInitMachines
     .assert * = Main_Explore_FadeIn, error, "fallthrough"
 .ENDPROC
 

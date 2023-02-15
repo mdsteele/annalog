@@ -29,6 +29,7 @@
 .INCLUDE "spawn.inc"
 
 .IMPORT FuncA_Avatar_InitMotionless
+.IMPORT FuncA_Room_InitAllMachines
 .IMPORT Ram_DeviceBlockCol_u8_arr
 .IMPORT Ram_DeviceBlockRow_u8_arr
 .IMPORT Ram_DeviceTarget_u8_arr
@@ -522,8 +523,15 @@ _EastWest:
 .SEGMENT "PRGA_Room"
 
 ;;; Calls the current room's Enter_func_ptr with the last spawn point as an
+;;; argument, and then initializes state for all machines in the room.
+.EXPORT FuncA_Room_CallRoomEnterAndInitMachines
+.PROC FuncA_Room_CallRoomEnterAndInitMachines
+    jsr FuncA_Room_CallRoomEnter
+    jmp FuncA_Room_InitAllMachines
+.ENDPROC
+
+;;; Calls the current room's Enter_func_ptr with the last spawn point as an
 ;;; argument.
-.EXPORT FuncA_Room_CallRoomEnter
 .PROC FuncA_Room_CallRoomEnter
     ldy #sRoomExt::Enter_func_ptr
     lda (Zp_Current_sRoom + sRoom::Ext_sRoomExt_ptr), y

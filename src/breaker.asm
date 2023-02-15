@@ -21,16 +21,24 @@
 .INCLUDE "cpu.inc"
 .INCLUDE "device.inc"
 .INCLUDE "devices/breaker.inc"
+.INCLUDE "flag.inc"
 .INCLUDE "macros.inc"
 .INCLUDE "mmc3.inc"
 .INCLUDE "oam.inc"
+.INCLUDE "room.inc"
+.INCLUDE "tileset.inc"
 
+.IMPORT DataA_Room_Banks_u8_arr
 .IMPORT FuncA_Objects_DrawObjectsForRoom
+.IMPORT FuncA_Room_Load
 .IMPORT Func_ClearRestOfOamAndProcessFrame
+.IMPORT Func_FadeOutToBlack
 .IMPORT Func_SetFlag
 .IMPORT Func_SetLastSpawnPoint
 .IMPORT Func_TickAllDevices
-.IMPORT Main_Explore_Continue
+.IMPORT Main_BreakerCutscene_Garden
+.IMPORT Main_Explore_EnterRoom
+.IMPORT Main_Explore_FadeIn
 .IMPORT Ram_DeviceAnim_u8_arr
 .IMPORT Ram_DeviceTarget_u8_arr
 .IMPORT Ram_DeviceType_eDevice_arr
@@ -45,6 +53,8 @@
 .IMPORTZP Zp_AvatarVelX_i16
 .IMPORTZP Zp_AvatarVelY_i16
 .IMPORTZP Zp_FrameCounter_u8
+.IMPORTZP Zp_NextCutscene_main_ptr
+.IMPORTZP Zp_Previous_eRoom
 .IMPORTZP Zp_Tmp1_byte
 .IMPORTZP Zp_Tmp_ptr
 
@@ -73,6 +83,9 @@ kBreakerFlipFrames   = kBreakerDoneDeviceAnimStart + 60
 ;;; The device index of the breaker that's being activated.
 Zp_BreakerDeviceIndex_u8: .res 1
 
+;;; The flag for the breaker that's being activated.
+Zp_Breaker_eFlag: .res 1
+
 ;;; Which phase of the breaker activation process we're currently in.
 Zp_Breaker_ePhase: .res 1
 
@@ -89,17 +102,60 @@ Zp_BreakerTimer_u8: .res 1
 ;;; @param X The device index for the breaker to activate.
 .EXPORT Main_Breaker_Activate
 .PROC Main_Breaker_Activate
-    jsr_prga FuncA_Breaker_Init
+    jsr_prga FuncA_Breaker_InitActivate
 _GameLoop:
     jsr_prga FuncA_Objects_DrawObjectsForRoom
     jsr Func_ClearRestOfOamAndProcessFrame
     jsr Func_TickAllDevices
-    jsr_prga FuncA_Breaker_Tick
-    ;; Once we've finished the last phase, breaker mode is done.
+    jsr_prga FuncA_Breaker_TickActivate
+    ;; Once we've finished the last phase, breaker activate mode is done.
     lda Zp_Breaker_ePhase
     cmp #ePhase::NUM_VALUES
     blt _GameLoop
-    jmp Main_Explore_Continue
+    jsr Func_FadeOutToBlack
+    .assert * = Main_Breaker_TraceCircuit, error, "fallthrough"
+.ENDPROC
+
+;;; Mode for the circuit-tracing cutscene that plays when activating a breaker.
+;;; @prereq Rendering is disabled.
+;;; @prereq Explore mode is initialized.
+.PROC Main_Breaker_TraceCircuit
+    ;; TODO: implement this
+    .assert * = Main_Breaker_ShowPowerCore, error, "fallthrough"
+.ENDPROC
+
+;;; Mode for the power core cutscene that plays when activating a breaker.
+;;; @prereq Rendering is disabled.
+;;; @prereq Explore mode is initialized.
+.PROC Main_Breaker_ShowPowerCore
+    ;; TODO: implement this
+    .assert * = Main_Breaker_PlayCutscene, error, "fallthrough"
+.ENDPROC
+
+;;; Mode for the breaker-specific cutscene that plays after activating a
+;;; breaker.
+;;; @prereq Rendering is disabled.
+;;; @prereq Explore mode is initialized.
+.PROC Main_Breaker_PlayCutscene
+    jsr_prga FuncA_Breaker_GetCutsceneRoom  ; returns X
+    prga_bank #<.bank(DataA_Room_Banks_u8_arr)
+    prgc_bank DataA_Room_Banks_u8_arr, x
+    jsr FuncA_Room_Load
+    ;; TODO: set room scroll and lock scrolling
+    jmp Main_Explore_FadeIn
+.ENDPROC
+
+;;; Mode for fading to black from a breaker cutscene and switching back to
+;;; explore mode in the room the breaker was in.
+;;; @prereq Rendering is enabled.
+.EXPORT Main_Breaker_FadeBackToBreakerRoom
+.PROC Main_Breaker_FadeBackToBreakerRoom
+    jsr Func_FadeOutToBlack
+    prga_bank #<.bank(DataA_Room_Banks_u8_arr)
+    ldx Zp_Previous_eRoom  ; param: room to load
+    prgc_bank DataA_Room_Banks_u8_arr, x
+    jsr FuncA_Room_Load
+    jmp Main_Explore_EnterRoom
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -109,12 +165,13 @@ _GameLoop:
 ;;; Initializes breaker mode.
 ;;; @prereq Explore mode is initialized.
 ;;; @param X The device index for the breaker to activate.
-.PROC FuncA_Breaker_Init
+.PROC FuncA_Breaker_InitActivate
     stx Zp_BreakerDeviceIndex_u8
     ;; Set the spawn point and mark the breaker as activated.
     txa  ; param: bSpawn value
     jsr Func_SetLastSpawnPoint  ; preserves X
     lda Ram_DeviceTarget_u8_arr, x
+    sta Zp_Breaker_eFlag
     tax  ; param: eFlag value
     jsr Func_SetFlag
     ;; Zero the player avatar's velocity, and fully heal them.
@@ -133,7 +190,7 @@ _GameLoop:
 .ENDPROC
 
 ;;; Performs per-frame updates for breaker activation mode.
-.PROC FuncA_Breaker_Tick
+.PROC FuncA_Breaker_TickActivate
     ldy Zp_Breaker_ePhase
     lda _JumpTable_ptr_0_arr, y
     sta Zp_Tmp_ptr + 0
@@ -144,10 +201,10 @@ _GameLoop:
     D_TABLE_LO table, _JumpTable_ptr_0_arr
     D_TABLE_HI table, _JumpTable_ptr_1_arr
     D_TABLE ePhase
-    d_entry table, Adjust, FuncA_Breaker_TickAdjust
-    d_entry table, Reach,  FuncA_Breaker_TickReach
-    d_entry table, Strain, FuncA_Breaker_TickStrain
-    d_entry table, Flip,   FuncA_Breaker_TickFlip
+    d_entry table, Adjust, FuncA_Breaker_TickActivateAdjust
+    d_entry table, Reach,  FuncA_Breaker_TickActivateReach
+    d_entry table, Strain, FuncA_Breaker_TickActivateStrain
+    d_entry table, Flip,   FuncA_Breaker_TickActivateFlip
     D_END
 .ENDREPEAT
 .ENDPROC
@@ -155,7 +212,7 @@ _GameLoop:
 ;;; Performs per-frame updates for the "adjust" phase of breaker activation.
 ;;; In this phase, the player avatar's position is adjusted over several frames
 ;;; until it reaches a specific offset from the breaker device's position.
-.PROC FuncA_Breaker_TickAdjust
+.PROC FuncA_Breaker_TickActivateAdjust
     lda #eAvatar::Looking
     sta Zp_AvatarMode_eAvatar
     lda Zp_AvatarPosX_i16 + 0
@@ -193,7 +250,7 @@ _FinishedAdjusting:
 ;;; Performs per-frame updates for the "reach" phase of breaker activation.  In
 ;;; this phase, the player avatar reaches upward towards the breaker lever (but
 ;;; can't quite reach it).
-.PROC FuncA_Breaker_TickReach
+.PROC FuncA_Breaker_TickActivateReach
     lda Zp_BreakerTimer_u8
     and #$30
     cmp #$20
@@ -229,7 +286,7 @@ _Return:
 ;;; Performs per-frame updates for the "strain" phase of breaker activation.
 ;;; In this phase, the player avatar strains upward and wobbles as they try to
 ;;; reach the breaker lever.
-.PROC FuncA_Breaker_TickStrain
+.PROC FuncA_Breaker_TickActivateStrain
     ;; Make the avatar wobble horizontally.
     lda Zp_FrameCounter_u8
     and #$04
@@ -272,7 +329,7 @@ _Return:
 
 ;;; Performs per-frame updates for the "flip" phase of breaker activation.  In
 ;;; this phase, the player avatar grabs and pulls the breaker lever down.
-.PROC FuncA_Breaker_TickFlip
+.PROC FuncA_Breaker_TickActivateFlip
     ;; Animate the avatar to match the flipping breaker.
     ldx Zp_BreakerDeviceIndex_u8
     lda Ram_DeviceAnim_u8_arr, x
@@ -306,6 +363,48 @@ _AvatarOffsetY_u8_arr:
     .byte $08
     .byte $08
     .byte $06
+.ENDPROC
+
+;;; Sets up the cutscene pointer and returns the room that the cutscene takes
+;;; place in.
+;;; @return X The eRoom value for the cutscene room.
+.PROC FuncA_Breaker_GetCutsceneRoom
+    ;; Set Y to the eBreaker value for the breaker that just got activated.
+    lda Zp_Breaker_eFlag
+    .assert kFirstBreakerFlag > 0, error
+    sub #kFirstBreakerFlag
+    tay
+    ;; Set the cutscene pointer.
+    lda _Cutscene_main_ptr_0_arr, y
+    sta Zp_NextCutscene_main_ptr + 0
+    lda _Cutscene_main_ptr_1_arr, y
+    sta Zp_NextCutscene_main_ptr + 1
+    ;; Return the eRoom value for the room the cutscene takes place in.
+    ldx _Cutscene_eRoom_arr, y
+    rts
+_Cutscene_eRoom_arr:
+    D_ENUM eBreaker
+    d_byte Garden, eRoom::MermaidHut1
+    d_byte Temple, eRoom::PrisonUpper
+    d_byte Crypt,  eRoom::MermaidHut1  ; TODO
+    d_byte Lava,   eRoom::MermaidHut1  ; TODO
+    d_byte Mine,   eRoom::MermaidHut1  ; TODO
+    d_byte City,   eRoom::MermaidHut1  ; TODO
+    d_byte Shadow, eRoom::MermaidHut1  ; TODO
+    D_END
+.REPEAT 2, table
+    D_TABLE_LO table, _Cutscene_main_ptr_0_arr
+    D_TABLE_HI table, _Cutscene_main_ptr_1_arr
+    D_TABLE eBreaker
+    d_entry table, Garden, Main_BreakerCutscene_Garden
+    d_entry table, Temple, Main_Breaker_FadeBackToBreakerRoom  ; TODO
+    d_entry table, Crypt,  Main_Breaker_FadeBackToBreakerRoom  ; TODO
+    d_entry table, Lava,   Main_Breaker_FadeBackToBreakerRoom  ; TODO
+    d_entry table, Mine,   Main_Breaker_FadeBackToBreakerRoom  ; TODO
+    d_entry table, City,   Main_Breaker_FadeBackToBreakerRoom  ; TODO
+    d_entry table, Shadow, Main_Breaker_FadeBackToBreakerRoom  ; TODO
+    D_END
+.ENDREPEAT
 .ENDPROC
 
 ;;;=========================================================================;;;

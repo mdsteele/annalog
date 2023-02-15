@@ -33,6 +33,18 @@ kSaveMagicNumber = $b2
 
 ;;;=========================================================================;;;
 
+;;; Circuit breakers that can be activated throughout the game.
+.ENUM eBreaker
+    Garden
+    Temple
+    Crypt
+    Lava
+    Mine
+    City
+    Shadow
+    NUM_VALUES
+.ENDENUM
+
 ;;; Progress flags for the save file, each of which can be cleared or set.
 ;;; These represent things like "has this upgrade been acquired?" or "has this
 ;;; boss been defeated?" or "is this switch turned on?"
@@ -123,8 +135,15 @@ kNumUpgradeFlags = 15
 
 kFirstBreakerFlag = eFlag::BreakerGarden
 kLastBreakerFlag = eFlag::BreakerShadow
-kNumBreakerFlags = 7
+kNumBreakerFlags = eBreaker::NUM_VALUES
 .ASSERT kNumBreakerFlags = kLastBreakerFlag + 1 - kFirstBreakerFlag, error
+.ASSERT eFlag::BreakerGarden - kFirstBreakerFlag = eBreaker::Garden, error
+.ASSERT eFlag::BreakerTemple - kFirstBreakerFlag = eBreaker::Temple, error
+.ASSERT eFlag::BreakerCrypt - kFirstBreakerFlag = eBreaker::Crypt, error
+.ASSERT eFlag::BreakerLava - kFirstBreakerFlag = eBreaker::Lava, error
+.ASSERT eFlag::BreakerMine - kFirstBreakerFlag = eBreaker::Mine, error
+.ASSERT eFlag::BreakerCity - kFirstBreakerFlag = eBreaker::City, error
+.ASSERT eFlag::BreakerShadow - kFirstBreakerFlag = eBreaker::Shadow, error
 
 kFirstFlowerFlag = eFlag::FlowerTemple
 kLastFlowerFlag = eFlag::FlowerMine
