@@ -189,7 +189,9 @@
 .PROC Ppu_ChrBgCore
 :   .incbin "out/data/tiles/core_pipes1.chr"
     .incbin "out/data/tiles/core_pipes2.chr"
-    .res $24 * kSizeofChr
+    .res $08 * kSizeofChr
+    .incbin "out/data/tiles/fullcore.chr"
+    .res $16 * kSizeofChr
     .incbin "out/data/tiles/console.chr"
     .assert * - :- = kSizeofChr * $40, error
 .ENDPROC

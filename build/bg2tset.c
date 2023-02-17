@@ -62,6 +62,7 @@ static const struct {
   {0x80, "factory1"},
   {0xb0, "field_bg"},
   {0x40, "font_lower"},
+  {0xa0, "fullcore"},
   {0xa0, "furniture"},
   {0xa0, "house"},
   {0x90, "hut"},

@@ -105,6 +105,7 @@ kFirstHorzDir = eDir::Left
 ;;; of these programs, although in a few cases, multiple machines may share the
 ;;; same program.
 .ENUM eProgram
+    BossCoreCannon
     BossCryptWinch
     BossGardenCannon
     BossTempleMinigun
