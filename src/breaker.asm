@@ -34,6 +34,7 @@
 .IMPORT FuncA_Room_Load
 .IMPORT Func_ClearRestOfOamAndProcessFrame
 .IMPORT Func_FadeOutToBlack
+.IMPORT Func_ProcessFrame
 .IMPORT Func_SetFlag
 .IMPORT Func_SetLastSpawnPoint
 .IMPORT Func_TickAllDevices
@@ -53,9 +54,12 @@
 .IMPORTZP Zp_AvatarSubY_u8
 .IMPORTZP Zp_AvatarVelX_i16
 .IMPORTZP Zp_AvatarVelY_i16
+.IMPORTZP Zp_CameraCanScroll_bool
+.IMPORTZP Zp_Current_eRoom
 .IMPORTZP Zp_FrameCounter_u8
 .IMPORTZP Zp_NextCutscene_main_ptr
-.IMPORTZP Zp_Previous_eRoom
+.IMPORTZP Zp_RoomScrollX_u16
+.IMPORTZP Zp_RoomScrollY_u8
 .IMPORTZP Zp_Tmp1_byte
 .IMPORTZP Zp_Tmp_ptr
 
@@ -80,6 +84,9 @@ kBreakerFlipFrames   = kBreakerDoneDeviceAnimStart + 60
 ;;;=========================================================================;;;
 
 .ZEROPAGE
+
+;;; The room that the breaker is in.
+Zp_Breaker_eRoom: .res 1
 
 ;;; The device index of the breaker that's being activated.
 Zp_BreakerDeviceIndex_u8: .res 1
@@ -122,22 +129,58 @@ _GameLoop:
 ;;; @prereq Explore mode is initialized.
 .PROC Main_Breaker_TraceCircuit
     ;; TODO: implement this
-    .assert * = Main_Breaker_ShowPowerCore, error, "fallthrough"
+    .assert * = Main_Breaker_LoadCoreRoom, error, "fallthrough"
 .ENDPROC
 
-;;; Mode for the power core cutscene that plays when activating a breaker.
+;;; Mode to load the room for the power core cutscene that plays when
+;;; activating a breaker.
 ;;; @prereq Rendering is disabled.
 ;;; @prereq Explore mode is initialized.
-.PROC Main_Breaker_ShowPowerCore
-    ;; TODO: implement this
-    .assert * = Main_Breaker_PlayCutscene, error, "fallthrough"
+.PROC Main_Breaker_LoadCoreRoom
+    ;; Load the core room.
+    ldx #eRoom::CoreBoss  ; param: room to load
+    prga_bank #<.bank(DataA_Room_Banks_u8_arr)
+    prgc_bank DataA_Room_Banks_u8_arr, x
+    jsr FuncA_Room_Load
+    ;; Hide the player avatar.
+    lda #eAvatar::Hidden
+    sta Zp_AvatarMode_eAvatar
+    ;; Set room scroll and lock scrolling.
+    lda #$50
+    sta Zp_RoomScrollY_u8
+    lda #$90
+    sta Zp_RoomScrollX_u16 + 0
+    lda #$00
+    sta Zp_RoomScrollX_u16 + 1
+    sta Zp_CameraCanScroll_bool
+    ;; Start the cutscene.
+    ldax #Main_Breaker_PowerCoreCutscene
+    stax Zp_NextCutscene_main_ptr
+    jmp Main_Explore_EnterRoom
 .ENDPROC
 
-;;; Mode for the breaker-specific cutscene that plays after activating a
-;;; breaker.
+;;; Explore mode cutscene for showing the power core after a breaker is
+;;; activated.
+;;; @prereq Rendering is enabled.
+;;; @prereq Explore mode is initialized.
+.PROC Main_Breaker_PowerCoreCutscene
+    lda #240  ; 4 seconds
+    sta Zp_BreakerTimer_u8
+_GameLoop:
+    jsr Func_ProcessFrame
+    ;; TODO: Show new circuit powering up.
+    dec Zp_BreakerTimer_u8
+    bne _GameLoop
+_FadeOut:
+    jsr Func_FadeOutToBlack
+    .assert * = Main_Breaker_LoadCutsceneRoom, error, "fallthrough"
+.ENDPROC
+
+;;; Mode to load the room for the breaker-specific cutscene that plays after
+;;; activating a breaker.
 ;;; @prereq Rendering is disabled.
 ;;; @prereq Explore mode is initialized.
-.PROC Main_Breaker_PlayCutscene
+.PROC Main_Breaker_LoadCutsceneRoom
     ;; Load the room where the cutscene takes place.
     jsr_prga FuncA_Breaker_GetCutsceneRoom  ; returns X
     prga_bank #<.bank(DataA_Room_Banks_u8_arr)
@@ -156,14 +199,14 @@ _GameLoop:
 .EXPORT Main_Breaker_FadeBackToBreakerRoom
 .PROC Main_Breaker_FadeBackToBreakerRoom
     jsr Func_FadeOutToBlack
-    ;; Reload the room that the breaker was in.
-    prga_bank #<.bank(DataA_Room_Banks_u8_arr)
-    ldx Zp_Previous_eRoom  ; param: room to load
-    prgc_bank DataA_Room_Banks_u8_arr, x
-    jsr FuncA_Room_Load
     ;; Un-hide the player avatar.
     lda #eAvatar::Kneeling
     sta Zp_AvatarMode_eAvatar
+    ;; Reload the room that the breaker was in.
+    ldx Zp_Breaker_eRoom  ; param: room to load
+    prga_bank #<.bank(DataA_Room_Banks_u8_arr)
+    prgc_bank DataA_Room_Banks_u8_arr, x
+    jsr FuncA_Room_Load
     jmp Main_Explore_EnterRoom
 .ENDPROC
 
@@ -175,6 +218,8 @@ _GameLoop:
 ;;; @prereq Explore mode is initialized.
 ;;; @param X The device index for the breaker to activate.
 .PROC FuncA_Breaker_InitActivate
+    lda Zp_Current_eRoom
+    sta Zp_Breaker_eRoom
     stx Zp_BreakerDeviceIndex_u8
     ;; Set the spawn point and mark the breaker as activated.
     txa  ; breaker device index

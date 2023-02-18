@@ -76,7 +76,7 @@ _Ext_sRoomExt:
     d_addr FadeIn_func_ptr, Func_Noop
     D_END
 _TerrainData:
-:   .incbin "out/data/boss_core.room"
+:   .incbin "out/data/core_boss.room"
     .assert * - :- = 33 * 24, error
 _Machines_sMachine_arr:
 :   .assert * - :- = kCannonMachineIndex * .sizeof(sMachine), error

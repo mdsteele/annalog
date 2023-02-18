@@ -17,6 +17,7 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
+.INCLUDE "avatar.inc"
 .INCLUDE "charmap.inc"
 .INCLUDE "cpu.inc"
 .INCLUDE "flag.inc"
@@ -28,6 +29,7 @@
 
 .IMPORT Data_PowersOfTwo_u8_arr8
 .IMPORT Sram_Minimap_u16_arr
+.IMPORTZP Zp_AvatarMode_eAvatar
 .IMPORTZP Zp_Current_sRoom
 .IMPORTZP Zp_RoomScrollX_u16
 .IMPORTZP Zp_RoomScrollY_u8
@@ -51,6 +53,10 @@ Zp_CameraMinimapCol_u8: .res 1
 ;;; minimap cell as explored.
 .EXPORT FuncA_Terrain_UpdateAndMarkMinimap
 .PROC FuncA_Terrain_UpdateAndMarkMinimap
+    ;; Don't update the minimap if the avatar is hidden for a cutscene.
+    lda Zp_AvatarMode_eAvatar
+    .assert eAvatar::Hidden = 0, error
+    beq _Done
 _UpdateMinimapRow:
     ldy <(Zp_Current_sRoom + sRoom::MinimapStartRow_u8)
     bit <(Zp_Current_sRoom + sRoom::Flags_bRoom)
@@ -108,6 +114,7 @@ _MarkMinimap:
     ldy #bMmc3PrgRam::Enable | bMmc3PrgRam::DenyWrites
     sty Hw_Mmc3PrgRamProtect_wo
     @done:
+_Done:
     rts
 .ENDPROC
 
