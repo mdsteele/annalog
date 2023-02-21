@@ -41,6 +41,7 @@
 .IMPORT Main_BreakerCutscene_Garden
 .IMPORT Main_Explore_EnterRoom
 .IMPORT Main_Explore_FadeIn
+.IMPORT Ppu_ChrBgAnimA0
 .IMPORT Ram_DeviceAnim_u8_arr
 .IMPORT Ram_DeviceTarget_u8_arr
 .IMPORT Ram_DeviceType_eDevice_arr
@@ -55,6 +56,7 @@
 .IMPORTZP Zp_AvatarVelX_i16
 .IMPORTZP Zp_AvatarVelY_i16
 .IMPORTZP Zp_CameraCanScroll_bool
+.IMPORTZP Zp_Chr0cBank_u8
 .IMPORTZP Zp_Current_eRoom
 .IMPORTZP Zp_FrameCounter_u8
 .IMPORTZP Zp_NextCutscene_main_ptr
@@ -146,7 +148,7 @@ _GameLoop:
     lda #eAvatar::Hidden
     sta Zp_AvatarMode_eAvatar
     ;; Set room scroll and lock scrolling.
-    lda #$50
+    lda #$48
     sta Zp_RoomScrollY_u8
     lda #$90
     sta Zp_RoomScrollX_u16 + 0
@@ -167,6 +169,12 @@ _GameLoop:
     lda #240  ; 4 seconds
     sta Zp_BreakerTimer_u8
 _GameLoop:
+    ;; Update CHR0C bank (for animated terrain tiles).
+    lda Zp_FrameCounter_u8
+    div #4
+    and #$07
+    add #<.bank(Ppu_ChrBgAnimA0)
+    sta Zp_Chr0cBank_u8
     jsr Func_ProcessFrame
     ;; TODO: Show new circuit powering up.
     dec Zp_BreakerTimer_u8

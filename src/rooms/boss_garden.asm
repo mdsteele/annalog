@@ -61,7 +61,7 @@
 .IMPORT Func_Noop
 .IMPORT Func_SetPointToActorCenter
 .IMPORT Func_ShakeRoom
-.IMPORT Ppu_ChrBgAnim0
+.IMPORT Ppu_ChrBgAnimA0
 .IMPORT Ppu_ChrObjGarden
 .IMPORT Ram_ActorPosX_i16_0_arr
 .IMPORT Ram_ActorPosX_i16_1_arr
@@ -747,7 +747,7 @@ _AnimateThorns:
     lda Zp_RoomState + sState::BossThornCounter_u8
     div #4
     and #$07
-    add #<.bank(Ppu_ChrBgAnim0)
+    add #<.bank(Ppu_ChrBgAnimA0)
     sta Zp_Chr0cBank_u8
 _SetUpIrq:
     ;; Compute the IRQ latch value to set between the bottom of the boss's zone

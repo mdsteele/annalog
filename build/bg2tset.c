@@ -51,6 +51,7 @@ static const struct {
   {0xb0, "arch"},
   {0xa0, "beach"},
   {0x80, "cave"},
+  {0xea, "circuit_anim0"},
   {0x90, "cobweb"},
   {0xbc, "console"},
   {0xc8, "conveyor_anim0"},

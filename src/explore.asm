@@ -69,7 +69,7 @@
 .IMPORT Main_Dialog_OpenWindow
 .IMPORT Main_Pause
 .IMPORT Main_Upgrade_OpenWindow
-.IMPORT Ppu_ChrBgAnim0
+.IMPORT Ppu_ChrBgAnimA0
 .IMPORT Ram_DeviceBlockCol_u8_arr
 .IMPORT Ram_DeviceBlockRow_u8_arr
 .IMPORT Ram_DeviceTarget_u8_arr
@@ -519,7 +519,7 @@ _UpDownPassage:
     lda Zp_FrameCounter_u8
     div #4
     and #$07
-    add #<.bank(Ppu_ChrBgAnim0)
+    add #<.bank(Ppu_ChrBgAnimA0)
     sta Zp_Chr0cBank_u8
     ;; Draw HUD.
     bit Zp_HudEnabled_bool

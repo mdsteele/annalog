@@ -72,6 +72,7 @@
 .IMPORT Func_ResetWinchMachineParams
 .IMPORT Func_SetActorCenterToPoint
 .IMPORT Func_SetPointToPlatformCenter
+.IMPORT Ppu_ChrBgAnimB0
 .IMPORT Ppu_ChrObjCrypt
 .IMPORT Ram_MachineGoalHorz_u8_arr
 .IMPORT Ram_MachineGoalVert_u8_arr
@@ -83,6 +84,8 @@
 .IMPORTZP Zp_AvatarPosX_i16
 .IMPORTZP Zp_AvatarPosY_i16
 .IMPORTZP Zp_Buffered_sIrq
+.IMPORTZP Zp_Chr0cBank_u8
+.IMPORTZP Zp_FrameCounter_u8
 .IMPORTZP Zp_IrqTmp_byte
 .IMPORTZP Zp_NextIrq_int_ptr
 .IMPORTZP Zp_PointX_i16
@@ -881,6 +884,13 @@ _GoalPosX_u8_arr8:
 ;;; Draw function for the crypt boss.
 ;;; @prereq PRGA_Objects is loaded.
 .PROC FuncC_Boss_Crypt_DrawBoss
+_AnimateTentacles:
+    lda Zp_FrameCounter_u8
+    div #8
+    and #$03
+    add #<.bank(Ppu_ChrBgAnimB0)
+    sta Zp_Chr0cBank_u8
+_SetEyeShapePosition:
     ;; Set the shape position to the center of the boss's eye.
     ldx #kBossBodyPlatformIndex  ; param: platform index
     jsr FuncA_Objects_SetShapePosToPlatformTopLeft
