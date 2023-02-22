@@ -84,9 +84,6 @@
 
 ;;;=========================================================================;;;
 
-;;; The dialog index for the paper in this room.
-kPaperDialogIndex = 0
-
 ;;; The minimum scroll-X value for this room.
 kMinScrollX = $10
 
@@ -177,7 +174,6 @@ _Ext_sRoomExt:
     d_addr Platforms_sPlatform_arr_ptr, _Platforms_sPlatform_arr
     d_addr Actors_sActor_arr_ptr, _Actors_sActor_arr
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
-    d_addr Dialogs_sDialog_ptr_arr_ptr, DataA_Dialog_PrisonCell_sDialog_ptr_arr
     d_addr Passages_sPassage_arr_ptr, _Passages_sPassage_arr
     d_addr Enter_func_ptr, FuncC_Prison_Cell_EnterRoom
     d_addr FadeIn_func_ptr, Func_Noop
@@ -332,7 +328,7 @@ _Devices_sDevice_arr:
     d_byte Type_eDevice, eDevice::Paper
     d_byte BlockRow_u8, 12
     d_byte BlockCol_u8, 9
-    d_byte Target_u8, kPaperDialogIndex
+    d_byte Target_u8, eDialog::PrisonCellPaper
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Console
@@ -626,13 +622,8 @@ _Error:
 
 .SEGMENT "PRGA_Dialog"
 
-;;; Dialog data for the PrisonCell room.
-.PROC DataA_Dialog_PrisonCell_sDialog_ptr_arr
-:   .assert * - :- = kPaperDialogIndex * kSizeofAddr, error
-    .addr DataA_Dialog_PrisonCell_Paper_sDialog
-.ENDPROC
-
-.PROC DataA_Dialog_PrisonCell_Paper_sDialog
+.EXPORT DataA_Dialog_PrisonCellPaper_sDialog
+.PROC DataA_Dialog_PrisonCellPaper_sDialog
     .word ePortrait::Paper
     .byte "Day 87: By now there's$"
     .byte "probably not much time$"

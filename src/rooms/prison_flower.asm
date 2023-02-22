@@ -35,9 +35,6 @@
 
 ;;;=========================================================================;;;
 
-;;; The dialog index for the sign in this room.
-kSignDialogIndex = 0
-
 ;;; The device index for the flower in this room.
 kFlowerDeviceIndex = 1
 
@@ -67,10 +64,6 @@ _Ext_sRoomExt:
     d_addr Platforms_sPlatform_arr_ptr, _Platforms_sPlatform_arr
     d_addr Actors_sActor_arr_ptr, _Actors_sActor_arr
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
-    .linecont +
-    d_addr Dialogs_sDialog_ptr_arr_ptr, \
-           DataA_Dialog_PrisonFlower_sDialog_ptr_arr
-    .linecont -
     d_addr Passages_sPassage_arr_ptr, _Passages_sPassage_arr
     d_addr Enter_func_ptr, FuncC_Prison_Flower_EnterRoom
     d_addr FadeIn_func_ptr, Func_Noop
@@ -109,7 +102,7 @@ _Devices_sDevice_arr:
     d_byte Type_eDevice, eDevice::Sign
     d_byte BlockRow_u8, 12
     d_byte BlockCol_u8, 3
-    d_byte Target_u8, kSignDialogIndex
+    d_byte Target_u8, eDialog::PrisonFlowerSign
     D_END
     .assert * - :- = kFlowerDeviceIndex * .sizeof(sDevice), error
     D_STRUCT sDevice
@@ -145,13 +138,8 @@ _Passages_sPassage_arr:
 
 .SEGMENT "PRGA_Dialog"
 
-;;; Dialog data for the PrisonFlower room.
-.PROC DataA_Dialog_PrisonFlower_sDialog_ptr_arr
-:   .assert * - :- = kSignDialogIndex * kSizeofAddr, error
-    .addr DataA_Dialog_PrisonFlower_Sign_sDialog
-.ENDPROC
-
-.PROC DataA_Dialog_PrisonFlower_Sign_sDialog
+.EXPORT DataA_Dialog_PrisonFlowerSign_sDialog
+.PROC DataA_Dialog_PrisonFlowerSign_sDialog
     .word ePortrait::Sign
     .byte "Surface Access ", kTileIdArrowRight, "$"
     .byte "$"

@@ -48,6 +48,49 @@
 
 ;;;=========================================================================;;;
 
+;;; The list of dialogs in the game.
+.ENUM eDialog
+    GardenEastMermaid
+    GardenLandingPaper
+    MermaidDrainSign
+    MermaidEntrySign
+    MermaidHut1Guard
+    MermaidHut1Queen
+    MermaidHut2Guard
+    MermaidHut3MermaidAdult
+    MermaidHut3MermaidGirl
+    MermaidHut4Florist
+    MermaidHut5Nora
+    MermaidVillageFarmer
+    MermaidVillageGuard
+    MermaidVillageYouth
+    PrisonCellPaper
+    PrisonEscapePaper
+    PrisonFlowerSign
+    PrisonUpperAlexCell
+    PrisonUpperAlexFree
+    PrisonUpperBruno
+    PrisonUpperMarie
+    PrisonUpperNora
+    TempleAltarPlaque
+    TempleEntryMermaid
+    TempleNaveAlexBoosting
+    TempleNaveAlexStanding
+    TemplePitPaper
+    TownHouse1Nora
+    TownHouse2Stela
+    TownHouse3Smith
+    TownHouse4Laura
+    TownHouse4Martin
+    TownHouse5Bruno
+    TownHouse5Marie
+    TownHouse6Elder
+    TownOutdoorsSign
+    NUM_VALUES
+.ENDENUM
+
+;;;=========================================================================;;;
+
 ;;; Special characters in dialog text indicating linebreaks, end-of-text, and
 ;;; end-of-text-with-a-yes-or-no-question.
 kDialogTextNewline = $fd

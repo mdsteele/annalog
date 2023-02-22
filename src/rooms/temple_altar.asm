@@ -61,9 +61,6 @@
 
 ;;;=========================================================================;;;
 
-;;; The dialog index for the plaque sign in this room.
-kPlaqueDialogIndex = 0
-
 ;;; The highest actor index among the beetles in this room.
 kLastBeetleActorIndex = 2
 
@@ -172,10 +169,6 @@ _Ext_sRoomExt:
     d_addr Platforms_sPlatform_arr_ptr, _Platforms_sPlatform_arr
     d_addr Actors_sActor_arr_ptr, _Actors_sActor_arr
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
-    .linecont +
-    d_addr Dialogs_sDialog_ptr_arr_ptr, \
-           DataA_Dialog_TempleAltar_sDialog_ptr_arr
-    .linecont -
     d_addr Passages_sPassage_arr_ptr, _Passages_sPassage_arr
     d_addr Enter_func_ptr, FuncC_Temple_Altar_EnterRoom
     d_addr FadeIn_func_ptr, Func_Noop
@@ -277,7 +270,7 @@ _Devices_sDevice_arr:
     d_byte Type_eDevice, eDevice::Sign
     d_byte BlockRow_u8, 9
     d_byte BlockCol_u8, 8
-    d_byte Target_u8, kPlaqueDialogIndex
+    d_byte Target_u8, eDialog::TempleAltarPlaque
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Console
@@ -556,13 +549,8 @@ _MoveToLowerRight:
 
 .SEGMENT "PRGA_Dialog"
 
-;;; Dialog data for the TempleAltar room.
-.PROC DataA_Dialog_TempleAltar_sDialog_ptr_arr
-:   .assert * - :- = kPlaqueDialogIndex * kSizeofAddr, error
-    .addr DataA_Dialog_TempleAltar_Plaque_sDialog
-.ENDPROC
-
-.PROC DataA_Dialog_TempleAltar_Plaque_sDialog
+.EXPORT DataA_Dialog_TempleAltarPlaque_sDialog
+.PROC DataA_Dialog_TempleAltarPlaque_sDialog
     .word ePortrait::Sign  ; TODO
     .byte "- Temple of Peace -$"
     .byte "Built together as a$"

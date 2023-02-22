@@ -49,8 +49,6 @@
 
 ;;; The actor index for the mermaid in this room.
 kMermaidActorIndex = 0
-;;; The dialog index for the mermaid in this room.
-kMermaidDialogIndex = 0
 ;;; The talk devices indices for the mermaid in this room.
 kMermaidDeviceIndexLeft = 1
 kMermaidDeviceIndexRight = 0
@@ -106,10 +104,6 @@ _Ext_sRoomExt:
     d_addr Platforms_sPlatform_arr_ptr, _Platforms_sPlatform_arr
     d_addr Actors_sActor_arr_ptr, _Actors_sActor_arr
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
-    .linecont +
-    d_addr Dialogs_sDialog_ptr_arr_ptr, \
-           DataA_Dialog_TempleEntry_sDialog_ptr_arr
-    .linecont -
     d_addr Passages_sPassage_arr_ptr, _Passages_sPassage_arr
     d_addr Enter_func_ptr, FuncC_Temple_Entry_EnterRoom
     d_addr FadeIn_func_ptr, Func_Noop
@@ -176,14 +170,14 @@ _Devices_sDevice_arr:
     d_byte Type_eDevice, eDevice::TalkRight
     d_byte BlockRow_u8, 21
     d_byte BlockCol_u8, 6
-    d_byte Target_u8, kMermaidDialogIndex
+    d_byte Target_u8, eDialog::TempleEntryMermaid
     D_END
     .assert * - :- = kMermaidDeviceIndexLeft * .sizeof(sDevice), error
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::TalkLeft
     d_byte BlockRow_u8, 21
     d_byte BlockCol_u8, 7
-    d_byte Target_u8, kMermaidDialogIndex
+    d_byte Target_u8, eDialog::TempleEntryMermaid
     D_END
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None
@@ -263,13 +257,8 @@ _MaybeRaiseColumn:
 
 .SEGMENT "PRGA_Dialog"
 
-;;; Dialog data for the TempleEntry room.
-.PROC DataA_Dialog_TempleEntry_sDialog_ptr_arr
-:   .assert * - :- = kMermaidDialogIndex * kSizeofAddr, error
-    .addr DataA_Dialog_TempleEntry_Mermaid_sDialog
-.ENDPROC
-
-.PROC DataA_Dialog_TempleEntry_Mermaid_sDialog
+.EXPORT DataA_Dialog_TempleEntryMermaid_sDialog
+.PROC DataA_Dialog_TempleEntryMermaid_sDialog
     .word ePortrait::Mermaid
     .byte "I am guarding the$"
     .byte "entrance to the temple$"

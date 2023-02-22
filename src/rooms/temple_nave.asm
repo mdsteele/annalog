@@ -72,9 +72,6 @@
 
 ;;; The actor index for Alex in this room.
 kAlexActorIndex = 0
-;;; The dialog indices for Alex in this room.
-kAlexStandingDialogIndex = 0
-kAlexBoostingDialogIndex = 1
 ;;; The talk device indices for Alex in this room.
 kAlexStandingDeviceIndexRight = 0
 kAlexStandingDeviceIndexLeft  = 1
@@ -216,7 +213,6 @@ _Ext_sRoomExt:
     d_addr Platforms_sPlatform_arr_ptr, _Platforms_sPlatform_arr
     d_addr Actors_sActor_arr_ptr, _Actors_sActor_arr
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
-    d_addr Dialogs_sDialog_ptr_arr_ptr, DataA_Dialog_TempleNave_sDialog_ptr_arr
     d_addr Passages_sPassage_arr_ptr, _Passages_sPassage_arr
     d_addr Enter_func_ptr, FuncC_Temple_Nave_EnterRoom
     d_addr FadeIn_func_ptr, Func_Noop
@@ -374,21 +370,21 @@ _Devices_sDevice_arr:
     d_byte Type_eDevice, eDevice::Placeholder  ; becomes TalkRight
     d_byte BlockRow_u8, 21
     d_byte BlockCol_u8, 8
-    d_byte Target_u8, kAlexStandingDialogIndex
+    d_byte Target_u8, eDialog::TempleNaveAlexStanding
     D_END
     .assert * - :- = kAlexStandingDeviceIndexLeft * .sizeof(sDevice), error
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Placeholder  ; becomes TalkLeft
     d_byte BlockRow_u8, 21
     d_byte BlockCol_u8, 9
-    d_byte Target_u8, kAlexStandingDialogIndex
+    d_byte Target_u8, eDialog::TempleNaveAlexStanding
     D_END
     .assert * - :- = kAlexBoostingDeviceIndex * .sizeof(sDevice), error
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Placeholder  ; becomes TalkLeft
     d_byte BlockRow_u8, 21
     d_byte BlockCol_u8, 7
-    d_byte Target_u8, kAlexBoostingDialogIndex
+    d_byte Target_u8, eDialog::TempleNaveAlexBoosting
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Console
@@ -722,7 +718,7 @@ _ResumeDialog:
     ldx #eFlag::TempleNaveTalkedToAlex  ; param: flag
     jsr Func_SetFlag
     ;; Resume dialog.
-    ldx #kAlexBoostingDialogIndex  ; param: dialog index
+    ldy #eDialog::TempleNaveAlexBoosting  ; param: eDialog value
     jmp Main_Dialog_OpenWindow
 .ENDPROC
 
@@ -739,15 +735,8 @@ _ResumeDialog:
 
 .SEGMENT "PRGA_Dialog"
 
-;;; Dialog data for the TempleNave room.
-.PROC DataA_Dialog_TempleNave_sDialog_ptr_arr
-:   .assert * - :- = kAlexStandingDialogIndex * kSizeofAddr, error
-    .addr DataA_Dialog_TempleNave_AlexStanding_sDialog
-    .assert * - :- = kAlexBoostingDialogIndex * kSizeofAddr, error
-    .addr DataA_Dialog_TempleNave_AlexBoosting_sDialog
-.ENDPROC
-
-.PROC DataA_Dialog_TempleNave_AlexStanding_sDialog
+.EXPORT DataA_Dialog_TempleNaveAlexStanding_sDialog
+.PROC DataA_Dialog_TempleNaveAlexStanding_sDialog
     .word ePortrait::Alex
     .byte "There's something$"
     .byte "hidden underneath this$"
@@ -757,18 +746,19 @@ _ResumeDialog:
 _CutsceneFunc:
     ldya #MainC_Temple_NaveCutscene
     stya Zp_NextCutscene_main_ptr
-    ldya #DataA_Dialog_TempleNave_Empty_sDialog
+    ldya #DataA_Dialog_TempleNaveEmpty_sDialog
     rts
 .ENDPROC
 
-.PROC DataA_Dialog_TempleNave_AlexBoosting_sDialog
+.EXPORT DataA_Dialog_TempleNaveAlexBoosting_sDialog
+.PROC DataA_Dialog_TempleNaveAlexBoosting_sDialog
     .word ePortrait::Alex
     .byte "Hop on up. I'll give$"
     .byte "you a boost.#"
-    .assert * = DataA_Dialog_TempleNave_Empty_sDialog, error, "fallthrough"
+    .assert * = DataA_Dialog_TempleNaveEmpty_sDialog, error, "fallthrough"
 .ENDPROC
 
-.PROC DataA_Dialog_TempleNave_Empty_sDialog
+.PROC DataA_Dialog_TempleNaveEmpty_sDialog
     .word ePortrait::Done
 .ENDPROC
 

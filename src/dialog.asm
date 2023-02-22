@@ -29,6 +29,42 @@
 .INCLUDE "room.inc"
 .INCLUDE "window.inc"
 
+.IMPORT DataA_Dialog_GardenEastMermaid_sDialog
+.IMPORT DataA_Dialog_GardenLandingPaper_sDialog
+.IMPORT DataA_Dialog_MermaidDrainSign_sDialog
+.IMPORT DataA_Dialog_MermaidEntrySign_sDialog
+.IMPORT DataA_Dialog_MermaidHut1Guard_sDialog
+.IMPORT DataA_Dialog_MermaidHut1Queen_sDialog
+.IMPORT DataA_Dialog_MermaidHut2Guard_sDialog
+.IMPORT DataA_Dialog_MermaidHut3MermaidAdult_sDialog
+.IMPORT DataA_Dialog_MermaidHut3MermaidGirl_sDialog
+.IMPORT DataA_Dialog_MermaidHut4Florist_sDialog
+.IMPORT DataA_Dialog_MermaidHut5Nora_sDialog
+.IMPORT DataA_Dialog_MermaidVillageFarmer_sDialog
+.IMPORT DataA_Dialog_MermaidVillageGuard_sDialog
+.IMPORT DataA_Dialog_MermaidVillageYouth_sDialog
+.IMPORT DataA_Dialog_PrisonCellPaper_sDialog
+.IMPORT DataA_Dialog_PrisonEscapePaper_sDialog
+.IMPORT DataA_Dialog_PrisonFlowerSign_sDialog
+.IMPORT DataA_Dialog_PrisonUpperAlexCell_sDialog
+.IMPORT DataA_Dialog_PrisonUpperAlexFree_sDialog
+.IMPORT DataA_Dialog_PrisonUpperBruno_sDialog
+.IMPORT DataA_Dialog_PrisonUpperMarie_sDialog
+.IMPORT DataA_Dialog_PrisonUpperNora_sDialog
+.IMPORT DataA_Dialog_TempleAltarPlaque_sDialog
+.IMPORT DataA_Dialog_TempleEntryMermaid_sDialog
+.IMPORT DataA_Dialog_TempleNaveAlexBoosting_sDialog
+.IMPORT DataA_Dialog_TempleNaveAlexStanding_sDialog
+.IMPORT DataA_Dialog_TemplePitPaper_sDialog
+.IMPORT DataA_Dialog_TownHouse1Nora_sDialog
+.IMPORT DataA_Dialog_TownHouse2Stela_sDialog
+.IMPORT DataA_Dialog_TownHouse3Smith_sDialog
+.IMPORT DataA_Dialog_TownHouse4Laura_sDialog
+.IMPORT DataA_Dialog_TownHouse4Martin_sDialog
+.IMPORT DataA_Dialog_TownHouse5Bruno_sDialog
+.IMPORT DataA_Dialog_TownHouse5Marie_sDialog
+.IMPORT DataA_Dialog_TownHouse6Elder_sDialog
+.IMPORT DataA_Dialog_TownOutdoorsSign_sDialog
 .IMPORT FuncA_Objects_DrawObjectsForRoom
 .IMPORT FuncA_Terrain_ScrollTowardsAvatar
 .IMPORT FuncA_Terrain_ScrollTowardsGoal
@@ -41,7 +77,6 @@
 .IMPORT Main_Explore_Continue
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORT Ram_PpuTransfer_arr
-.IMPORTZP Zp_Current_sRoom
 .IMPORTZP Zp_FrameCounter_u8
 .IMPORTZP Zp_OamOffset_u8
 .IMPORTZP Zp_P1ButtonsPressed_bJoypad
@@ -163,7 +198,7 @@ Zp_DialogText_ptr: .res 2
 ;;; Mode for scrolling in the dialog window.
 ;;; @prereq Rendering is enabled.
 ;;; @prereq Explore mode is initialized.
-;;; @param X The dialog index.
+;;; @param Y The eDialog value for the dialog.
 .EXPORT Main_Dialog_OpenWindow
 .PROC Main_Dialog_OpenWindow
     jsr_prga FuncA_Dialog_Init  ; sets C if dialog is empty
@@ -215,6 +250,60 @@ _UpdateScrolling:
 
 .SEGMENT "PRGA_Dialog"
 
+.LINECONT +
+.REPEAT 2, table
+    D_TABLE_LO table, DataA_Dialog_Table_sDialog_ptr_0_arr
+    D_TABLE_HI table, DataA_Dialog_Table_sDialog_ptr_1_arr
+    D_TABLE eDialog
+    d_entry table, GardenEastMermaid,  DataA_Dialog_GardenEastMermaid_sDialog
+    d_entry table, GardenLandingPaper, DataA_Dialog_GardenLandingPaper_sDialog
+    d_entry table, MermaidDrainSign,   DataA_Dialog_MermaidDrainSign_sDialog
+    d_entry table, MermaidEntrySign,   DataA_Dialog_MermaidEntrySign_sDialog
+    d_entry table, MermaidHut1Guard,   DataA_Dialog_MermaidHut1Guard_sDialog
+    d_entry table, MermaidHut1Queen,   DataA_Dialog_MermaidHut1Queen_sDialog
+    d_entry table, MermaidHut2Guard,   DataA_Dialog_MermaidHut2Guard_sDialog
+    d_entry table, MermaidHut3MermaidAdult, \
+            DataA_Dialog_MermaidHut3MermaidAdult_sDialog
+    d_entry table, MermaidHut3MermaidGirl, \
+            DataA_Dialog_MermaidHut3MermaidGirl_sDialog
+    d_entry table, MermaidHut4Florist, DataA_Dialog_MermaidHut4Florist_sDialog
+    d_entry table, MermaidHut5Nora,    DataA_Dialog_MermaidHut5Nora_sDialog
+    d_entry table, MermaidVillageFarmer, \
+            DataA_Dialog_MermaidVillageFarmer_sDialog
+    d_entry table, MermaidVillageGuard, \
+            DataA_Dialog_MermaidVillageGuard_sDialog
+    d_entry table, MermaidVillageYouth, \
+            DataA_Dialog_MermaidVillageYouth_sDialog
+    d_entry table, PrisonCellPaper,    DataA_Dialog_PrisonCellPaper_sDialog
+    d_entry table, PrisonEscapePaper,  DataA_Dialog_PrisonEscapePaper_sDialog
+    d_entry table, PrisonFlowerSign,   DataA_Dialog_PrisonFlowerSign_sDialog
+    d_entry table, PrisonUpperAlexCell, \
+            DataA_Dialog_PrisonUpperAlexCell_sDialog
+    d_entry table, PrisonUpperAlexFree, \
+            DataA_Dialog_PrisonUpperAlexFree_sDialog
+    d_entry table, PrisonUpperBruno,   DataA_Dialog_PrisonUpperBruno_sDialog
+    d_entry table, PrisonUpperMarie,   DataA_Dialog_PrisonUpperMarie_sDialog
+    d_entry table, PrisonUpperNora,    DataA_Dialog_PrisonUpperNora_sDialog
+    d_entry table, TempleAltarPlaque,  DataA_Dialog_TempleAltarPlaque_sDialog
+    d_entry table, TempleEntryMermaid, DataA_Dialog_TempleEntryMermaid_sDialog
+    d_entry table, TempleNaveAlexBoosting, \
+            DataA_Dialog_TempleNaveAlexBoosting_sDialog
+    d_entry table, TempleNaveAlexStanding, \
+            DataA_Dialog_TempleNaveAlexStanding_sDialog
+    d_entry table, TemplePitPaper,     DataA_Dialog_TemplePitPaper_sDialog
+    d_entry table, TownHouse1Nora,     DataA_Dialog_TownHouse1Nora_sDialog
+    d_entry table, TownHouse2Stela,    DataA_Dialog_TownHouse2Stela_sDialog
+    d_entry table, TownHouse3Smith,    DataA_Dialog_TownHouse3Smith_sDialog
+    d_entry table, TownHouse4Laura,    DataA_Dialog_TownHouse4Laura_sDialog
+    d_entry table, TownHouse4Martin,   DataA_Dialog_TownHouse4Martin_sDialog
+    d_entry table, TownHouse5Bruno,    DataA_Dialog_TownHouse5Bruno_sDialog
+    d_entry table, TownHouse5Marie,    DataA_Dialog_TownHouse5Marie_sDialog
+    d_entry table, TownHouse6Elder,    DataA_Dialog_TownHouse6Elder_sDialog
+    d_entry table, TownOutdoorsSign,   DataA_Dialog_TownOutdoorsSign_sDialog
+    D_END
+.ENDREPEAT
+.LINECONT -
+
 ;;; If the specified flag isn't already set to true, then sets it and plays the
 ;;; sound effect for a newly-added quest marker.
 ;;; @param X The eFlag value to set.
@@ -264,26 +353,12 @@ _UpdateScrolling:
 .ENDPROC
 
 ;;; Initializes dialog mode.
-;;; @param X The dialog index.
+;;; @param Y The eDialog value for the dialog.
 ;;; @return C Set if the dialog is empty, cleared otherwise.
 .PROC FuncA_Dialog_Init
-    txa
-    asl a
-    sta Zp_Tmp1_byte  ; byte offset into dialogs array
-    ;; Copy the current room's Dialogs_sDialog_ptr_arr_ptr into Zp_Tmp_ptr.
-    ldy #sRoomExt::Dialogs_sDialog_ptr_arr_ptr
-    lda (Zp_Current_sRoom + sRoom::Ext_sRoomExt_ptr), y
-    sta Zp_Tmp_ptr + 0
-    iny
-    lda (Zp_Current_sRoom + sRoom::Ext_sRoomExt_ptr), y
-    sta Zp_Tmp_ptr + 1
-    ;; Index into Dialogs_sDialog_ptr_arr_ptr using the byte offset we already
-    ;; calculated, and copy the resulting pointer into Zp_DialogText_ptr.
-    ldy Zp_Tmp1_byte  ; byte offset into dialogs array
-    lda (Zp_Tmp_ptr), y
+    lda DataA_Dialog_Table_sDialog_ptr_0_arr, y
     sta Zp_DialogText_ptr + 0
-    iny
-    lda (Zp_Tmp_ptr), y
+    lda DataA_Dialog_Table_sDialog_ptr_1_arr, y
     sta Zp_DialogText_ptr + 1
     ;; Load the first portrait of the dialog.
     jsr FuncA_Dialog_LoadNextPortrait  ; sets C if dialog is already done

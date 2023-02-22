@@ -37,13 +37,6 @@
 
 ;;;=========================================================================;;;
 
-;;; The dialog indices for the mermaids in this room.
-kMermaidGuardDialogIndex = 0
-kMermaidFarmerDialogIndex = 1
-kMermaidYouthDialogIndex = 2
-
-;;;=========================================================================;;;
-
 .SEGMENT "PRGC_Mermaid"
 
 .EXPORT DataC_Mermaid_Village_sRoom
@@ -68,10 +61,6 @@ _Ext_sRoomExt:
     d_addr Platforms_sPlatform_arr_ptr, _Platforms_sPlatform_arr
     d_addr Actors_sActor_arr_ptr, _Actors_sActor_arr
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
-    .linecont +
-    d_addr Dialogs_sDialog_ptr_arr_ptr, \
-           DataA_Dialog_MermaidVillage_sDialog_ptr_arr
-    .linecont -
     d_addr Passages_sPassage_arr_ptr, _Passages_sPassage_arr
     d_addr Enter_func_ptr, Func_Noop
     d_addr FadeIn_func_ptr, Func_Noop
@@ -172,37 +161,37 @@ _Devices_sDevice_arr:
     d_byte Type_eDevice, eDevice::TalkRight
     d_byte BlockRow_u8, 8
     d_byte BlockCol_u8, 41
-    d_byte Target_u8, kMermaidGuardDialogIndex
+    d_byte Target_u8, eDialog::MermaidVillageGuard
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::TalkLeft
     d_byte BlockRow_u8, 8
     d_byte BlockCol_u8, 42
-    d_byte Target_u8, kMermaidGuardDialogIndex
+    d_byte Target_u8, eDialog::MermaidVillageGuard
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::TalkRight
     d_byte BlockRow_u8, 21
     d_byte BlockCol_u8, 12
-    d_byte Target_u8, kMermaidFarmerDialogIndex
+    d_byte Target_u8, eDialog::MermaidVillageFarmer
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::TalkLeft
     d_byte BlockRow_u8, 21
     d_byte BlockCol_u8, 13
-    d_byte Target_u8, kMermaidFarmerDialogIndex
+    d_byte Target_u8, eDialog::MermaidVillageFarmer
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::TalkRight
     d_byte BlockRow_u8, 21
     d_byte BlockCol_u8, 16
-    d_byte Target_u8, kMermaidYouthDialogIndex
+    d_byte Target_u8, eDialog::MermaidVillageYouth
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::TalkLeft
     d_byte BlockRow_u8, 21
     d_byte BlockCol_u8, 17
-    d_byte Target_u8, kMermaidYouthDialogIndex
+    d_byte Target_u8, eDialog::MermaidVillageYouth
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::OpenDoorway
@@ -254,17 +243,8 @@ _Passages_sPassage_arr:
 
 .SEGMENT "PRGA_Dialog"
 
-;;; Dialog data for the MermaidVillage room.
-.PROC DataA_Dialog_MermaidVillage_sDialog_ptr_arr
-:   .assert * - :- = kMermaidGuardDialogIndex * kSizeofAddr, error
-    .addr DataA_Dialog_MermaidVillage_MermaidGuard_sDialog
-    .assert * - :- = kMermaidFarmerDialogIndex * kSizeofAddr, error
-    .addr DataA_Dialog_MermaidVillage_MermaidFarmer_sDialog
-    .assert * - :- = kMermaidYouthDialogIndex * kSizeofAddr, error
-    .addr DataA_Dialog_MermaidVillage_MermaidYouth_sDialog
-.ENDPROC
-
-.PROC DataA_Dialog_MermaidVillage_MermaidGuard_sDialog
+.EXPORT DataA_Dialog_MermaidVillageGuard_sDialog
+.PROC DataA_Dialog_MermaidVillageGuard_sDialog
     ;; TODO: Different dialog once temple permission has been given.
     .word ePortrait::Mermaid
     .byte "I am guarding this$"
@@ -272,7 +252,8 @@ _Passages_sPassage_arr:
     .word ePortrait::Done
 .ENDPROC
 
-.PROC DataA_Dialog_MermaidVillage_MermaidFarmer_sDialog
+.EXPORT DataA_Dialog_MermaidVillageFarmer_sDialog
+.PROC DataA_Dialog_MermaidVillageFarmer_sDialog
     .addr _InitialFunc
 _InitialFunc:
     flag_bit Sram_ProgressFlags_arr, eFlag::BreakerGarden
@@ -337,7 +318,8 @@ _ThankYou_sDialog:
     .word ePortrait::Done
 .ENDPROC
 
-.PROC DataA_Dialog_MermaidVillage_MermaidYouth_sDialog
+.EXPORT DataA_Dialog_MermaidVillageYouth_sDialog
+.PROC DataA_Dialog_MermaidVillageYouth_sDialog
     .word ePortrait::MermaidYouth
     .byte "TODO: put some actual$"
     .byte "dialogue text here.#"

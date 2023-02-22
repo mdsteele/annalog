@@ -71,8 +71,7 @@ kFirstInteractiveDeviceType = eDevice::BreakerReady
     ;;   * For flowers, this is the eFlag::Flower* value.
     ;;   * For levers, this is the byte offset into Zp_RoomState for the
     ;;     lever's state value (0 or 1).
-    ;;   * For paper/sign/talk devices, this is the dialog index (i.e. the
-    ;;     index into the room's sRoomExt::Dialogs_sDialog_ptr_arr_ptr).
+    ;;   * For paper/sign/talk devices, this is the eDialog value.
     ;;   * For teleporters, this is the eRoom value for the destination room.
     ;;   * For upgrades, this is the eFlag::Upgrade* value.
     Target_u8    .byte

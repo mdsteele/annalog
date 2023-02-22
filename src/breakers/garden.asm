@@ -17,6 +17,7 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
+.INCLUDE "../dialog.inc"
 .INCLUDE "../macros.inc"
 
 .IMPORT Main_Breaker_FadeBackToBreakerRoom
@@ -33,7 +34,7 @@
     ldax #Main_Breaker_FadeBackToBreakerRoom
     stax Zp_NextCutscene_main_ptr
     ;; TODO: use correct dialog index
-    ldx #0  ; param: dialog index
+    ldy #eDialog::MermaidHut1Guard  ; param: eDialog value
     jmp Main_Dialog_OpenWindow
 .ENDPROC
 

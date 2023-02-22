@@ -44,9 +44,6 @@
 
 ;;;=========================================================================;;;
 
-;;; The dialog index for the sign in this room.
-kSignDialogIndex = 0
-
 ;;; The room pixel Y-positions for the top and bottom of the treeline.  These
 ;;; are the breaks between separate parallax scrolling bands.
 kTreelineTopY    = $2e
@@ -78,10 +75,6 @@ _Ext_sRoomExt:
     d_addr Platforms_sPlatform_arr_ptr, _Platforms_sPlatform_arr
     d_addr Actors_sActor_arr_ptr, _Actors_sActor_arr
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
-    .linecont +
-    d_addr Dialogs_sDialog_ptr_arr_ptr, \
-           DataA_Dialog_TownOutdoors_sDialog_ptr_arr
-    .linecont -
     d_addr Passages_sPassage_arr_ptr, 0
     d_addr Enter_func_ptr, Func_Noop
     d_addr FadeIn_func_ptr, Func_Noop
@@ -118,7 +111,7 @@ _Devices_sDevice_arr:
     d_byte Type_eDevice, eDevice::Sign
     d_byte BlockRow_u8, 12
     d_byte BlockCol_u8, 32
-    d_byte Target_u8, kSignDialogIndex
+    d_byte Target_u8, eDialog::TownOutdoorsSign
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::OpenDoorway
@@ -265,13 +258,8 @@ _Devices_sDevice_arr:
 
 .SEGMENT "PRGA_Dialog"
 
-;;; Dialog data for the TownOutdoors room.
-.PROC DataA_Dialog_TownOutdoors_sDialog_ptr_arr
-:   .assert * - :- = kSignDialogIndex * kSizeofAddr, error
-    .addr DataA_Dialog_TownOutdoors_Sign_sDialog
-.ENDPROC
-
-.PROC DataA_Dialog_TownOutdoors_Sign_sDialog
+.EXPORT DataA_Dialog_TownOutdoorsSign_sDialog
+.PROC DataA_Dialog_TownOutdoorsSign_sDialog
     .word ePortrait::Sign
     .byte "$"
     .byte " Bartik Town Hall#"

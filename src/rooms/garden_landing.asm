@@ -37,9 +37,6 @@
 
 ;;;=========================================================================;;;
 
-;;; The dialog index for the paper in this room.
-kPaperDialogIndex = 0
-
 ;;; The index of the vertical passage at the top of the room.
 kShaftPassageIndex = 1
 
@@ -77,10 +74,6 @@ _Ext_sRoomExt:
     d_addr Platforms_sPlatform_arr_ptr, _Platforms_sPlatform_arr
     d_addr Actors_sActor_arr_ptr, _Actors_sActor_arr
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
-    .linecont +
-    d_addr Dialogs_sDialog_ptr_arr_ptr, \
-           DataA_Dialog_GardenLanding_sDialog_ptr_arr
-    .linecont -
     d_addr Passages_sPassage_arr_ptr, _Passages_sPassage_arr
     d_addr Enter_func_ptr, FuncC_Garden_Landing_EnterRoom
     d_addr FadeIn_func_ptr, Func_Noop
@@ -104,7 +97,7 @@ _Devices_sDevice_arr:
     d_byte Type_eDevice, eDevice::Paper
     d_byte BlockRow_u8, 17
     d_byte BlockCol_u8, 23
-    d_byte Target_u8, kPaperDialogIndex
+    d_byte Target_u8, eDialog::GardenLandingPaper
     D_END
     .byte eDevice::None
 _Passages_sPassage_arr:
@@ -158,13 +151,8 @@ _Passages_sPassage_arr:
 
 .SEGMENT "PRGA_Dialog"
 
-;;; Dialog data for the GardenLanding room.
-.PROC DataA_Dialog_GardenLanding_sDialog_ptr_arr
-:   .assert * - :- = kPaperDialogIndex * kSizeofAddr, error
-    .addr DataA_Dialog_GardenLanding_Paper_sDialog
-.ENDPROC
-
-.PROC DataA_Dialog_GardenLanding_Paper_sDialog
+.EXPORT DataA_Dialog_GardenLandingPaper_sDialog
+.PROC DataA_Dialog_GardenLandingPaper_sDialog
     .word ePortrait::Paper
     .byte "Day 13: And now, there$"
     .byte "is nothing left of us$"

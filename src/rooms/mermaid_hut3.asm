@@ -35,12 +35,6 @@
 
 ;;;=========================================================================;;;
 
-;;; The dialog indices for the mermaids in this room.
-kMermaidAdultDialogIndex = 0
-kMermaidGirlDialogIndex = 1
-
-;;;=========================================================================;;;
-
 .SEGMENT "PRGC_Mermaid"
 
 .EXPORT DataC_Mermaid_Hut3_sRoom
@@ -65,10 +59,6 @@ _Ext_sRoomExt:
     d_addr Platforms_sPlatform_arr_ptr, _Platforms_sPlatform_arr
     d_addr Actors_sActor_arr_ptr, _Actors_sActor_arr
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
-    .linecont +
-    d_addr Dialogs_sDialog_ptr_arr_ptr, \
-           DataA_Dialog_MermaidHut3_sDialog_ptr_arr
-    .linecont -
     d_addr Passages_sPassage_arr_ptr, 0
     d_addr Enter_func_ptr, Func_Noop
     d_addr FadeIn_func_ptr, Func_Noop
@@ -104,25 +94,25 @@ _Devices_sDevice_arr:
     d_byte Type_eDevice, eDevice::TalkRight
     d_byte BlockRow_u8, 12
     d_byte BlockCol_u8, 3
-    d_byte Target_u8, kMermaidAdultDialogIndex
+    d_byte Target_u8, eDialog::MermaidHut3MermaidAdult
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::TalkLeft
     d_byte BlockRow_u8, 12
     d_byte BlockCol_u8, 4
-    d_byte Target_u8, kMermaidAdultDialogIndex
+    d_byte Target_u8, eDialog::MermaidHut3MermaidAdult
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::TalkRight
     d_byte BlockRow_u8, 12
     d_byte BlockCol_u8, 9
-    d_byte Target_u8, kMermaidGirlDialogIndex
+    d_byte Target_u8, eDialog::MermaidHut3MermaidGirl
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::TalkLeft
     d_byte BlockRow_u8, 12
     d_byte BlockCol_u8, 10
-    d_byte Target_u8, kMermaidGirlDialogIndex
+    d_byte Target_u8, eDialog::MermaidHut3MermaidGirl
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::OpenDoorway
@@ -137,15 +127,8 @@ _Devices_sDevice_arr:
 
 .SEGMENT "PRGA_Dialog"
 
-;;; Dialog data for the MermaidHut3 room.
-.PROC DataA_Dialog_MermaidHut3_sDialog_ptr_arr
-:   .assert * - :- = kMermaidAdultDialogIndex * kSizeofAddr, error
-    .addr DataA_Dialog_MermaidHut3_MermaidAdult_sDialog
-    .assert * - :- = kMermaidGirlDialogIndex * kSizeofAddr, error
-    .addr DataA_Dialog_MermaidHut3_MermaidGirl_sDialog
-.ENDPROC
-
-.PROC DataA_Dialog_MermaidHut3_MermaidAdult_sDialog
+.EXPORT DataA_Dialog_MermaidHut3MermaidAdult_sDialog
+.PROC DataA_Dialog_MermaidHut3MermaidAdult_sDialog
     .word ePortrait::Mermaid
     .byte "There's a natural hot$"
     .byte "spring just east of$"
@@ -175,7 +158,8 @@ _HotSpringClosed_sDialog:
     .word ePortrait::Done
 .ENDPROC
 
-.PROC DataA_Dialog_MermaidHut3_MermaidGirl_sDialog
+.EXPORT DataA_Dialog_MermaidHut3MermaidGirl_sDialog
+.PROC DataA_Dialog_MermaidHut3MermaidGirl_sDialog
     .word ePortrait::MermaidGirl
     .byte "You're so lucky that$"
     .byte "you get to go on an$"

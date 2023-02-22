@@ -33,11 +33,6 @@
 
 ;;;=========================================================================;;;
 
-;;; The dialog index for the girl in this room.
-kGirlDialogIndex = 0
-
-;;;=========================================================================;;;
-
 .SEGMENT "PRGC_Town"
 
 .EXPORT DataC_Town_House1_sRoom
@@ -62,7 +57,6 @@ _Ext_sRoomExt:
     d_addr Platforms_sPlatform_arr_ptr, _Platforms_sPlatform_arr
     d_addr Actors_sActor_arr_ptr, _Actors_sActor_arr
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
-    d_addr Dialogs_sDialog_ptr_arr_ptr, DataA_Dialog_TownHouse1_sDialog_ptr_arr
     d_addr Passages_sPassage_arr_ptr, 0
     d_addr Enter_func_ptr, Func_Noop
     d_addr FadeIn_func_ptr, Func_Noop
@@ -91,13 +85,13 @@ _Devices_sDevice_arr:
     d_byte Type_eDevice, eDevice::TalkRight
     d_byte BlockRow_u8, 12
     d_byte BlockCol_u8, 9
-    d_byte Target_u8, kGirlDialogIndex
+    d_byte Target_u8, eDialog::TownHouse1Nora
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::TalkLeft
     d_byte BlockRow_u8, 12
     d_byte BlockCol_u8, 10
-    d_byte Target_u8, kGirlDialogIndex
+    d_byte Target_u8, eDialog::TownHouse1Nora
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::OpenDoorway
@@ -112,13 +106,8 @@ _Devices_sDevice_arr:
 
 .SEGMENT "PRGA_Dialog"
 
-;;; Dialog data for the TownHouse1 room.
-.PROC DataA_Dialog_TownHouse1_sDialog_ptr_arr
-:   .assert * - :- = kGirlDialogIndex * kSizeofAddr, error
-    .addr DataA_Dialog_TownHouse1_Girl_sDialog
-.ENDPROC
-
-.PROC DataA_Dialog_TownHouse1_Girl_sDialog
+.EXPORT DataA_Dialog_TownHouse1Nora_sDialog
+.PROC DataA_Dialog_TownHouse1Nora_sDialog
     .word ePortrait::ChildNora
     .byte "My baby sister keeps$"
     .byte "peeing her pants!#"

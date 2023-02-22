@@ -267,9 +267,6 @@ kMaxPassages = 8
     ;; dynamic set of devices can optionally be modified afterwards by the
     ;; room's Enter_func_ptr.
     Devices_sDevice_arr_ptr     .addr
-    ;; A pointer to an array of pointers to dialogs used in this room.
-    ;; @prereq PRGA_Dialog is loaded.
-    Dialogs_sDialog_ptr_arr_ptr .addr
     ;; A pointer to the list of passage exits from this room.
     Passages_sPassage_arr_ptr   .addr
     ;; Function to initialize room-specific state after the player avatar has

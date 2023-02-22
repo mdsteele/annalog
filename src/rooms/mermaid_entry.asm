@@ -33,11 +33,6 @@
 
 ;;;=========================================================================;;;
 
-;;; The dialog index for the sign in this room.
-kSignDialogIndex = 0
-
-;;;=========================================================================;;;
-
 .SEGMENT "PRGC_Mermaid"
 
 .EXPORT DataC_Mermaid_Entry_sRoom
@@ -62,10 +57,6 @@ _Ext_sRoomExt:
     d_addr Platforms_sPlatform_arr_ptr, _Platforms_sPlatform_arr
     d_addr Actors_sActor_arr_ptr, _Actors_sActor_arr
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
-    .linecont +
-    d_addr Dialogs_sDialog_ptr_arr_ptr, \
-           DataA_Dialog_MermaidEntry_sDialog_ptr_arr
-    .linecont -
     d_addr Passages_sPassage_arr_ptr, _Passages_sPassage_arr
     d_addr Enter_func_ptr, Func_Noop
     d_addr FadeIn_func_ptr, Func_Noop
@@ -131,7 +122,7 @@ _Devices_sDevice_arr:
     d_byte Type_eDevice, eDevice::Sign
     d_byte BlockRow_u8, 8
     d_byte BlockCol_u8, 10
-    d_byte Target_u8, kSignDialogIndex
+    d_byte Target_u8, eDialog::MermaidEntrySign
     D_END
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None
@@ -153,13 +144,8 @@ _Passages_sPassage_arr:
 
 .SEGMENT "PRGA_Dialog"
 
-;;; Dialog data for the MermaidEntry room.
-.PROC DataA_Dialog_MermaidEntry_sDialog_ptr_arr
-:   .assert * - :- = kSignDialogIndex * kSizeofAddr, error
-    .addr DataA_Dialog_MermaidEntry_Sign_sDialog
-.ENDPROC
-
-.PROC DataA_Dialog_MermaidEntry_Sign_sDialog
+.EXPORT DataA_Dialog_MermaidEntrySign_sDialog
+.PROC DataA_Dialog_MermaidEntrySign_sDialog
     .word ePortrait::Sign
     .byte kTileIdArrowLeft, " Hanging Gardens$"
     .byte "$"

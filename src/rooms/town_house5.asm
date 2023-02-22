@@ -33,12 +33,6 @@
 
 ;;;=========================================================================;;;
 
-;;; The dialog indices for the kids in this room.
-kBrunoDialogIndex = 0
-kMarieDialogIndex = 1
-
-;;;=========================================================================;;;
-
 .SEGMENT "PRGC_Town"
 
 .EXPORT DataC_Town_House5_sRoom
@@ -63,7 +57,6 @@ _Ext_sRoomExt:
     d_addr Platforms_sPlatform_arr_ptr, _Platforms_sPlatform_arr
     d_addr Actors_sActor_arr_ptr, _Actors_sActor_arr
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
-    d_addr Dialogs_sDialog_ptr_arr_ptr, DataA_Dialog_TownHouse5_sDialog_ptr_arr
     d_addr Passages_sPassage_arr_ptr, 0
     d_addr Enter_func_ptr, Func_Noop
     d_addr FadeIn_func_ptr, Func_Noop
@@ -92,13 +85,13 @@ _Devices_sDevice_arr:
     d_byte Type_eDevice, eDevice::TalkRight
     d_byte BlockRow_u8, 12
     d_byte BlockCol_u8, 5
-    d_byte Target_u8, kBrunoDialogIndex
+    d_byte Target_u8, eDialog::TownHouse5Bruno
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::TalkLeft
     d_byte BlockRow_u8, 12
     d_byte BlockCol_u8, 6
-    d_byte Target_u8, kBrunoDialogIndex
+    d_byte Target_u8, eDialog::TownHouse5Bruno
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::OpenDoorway
@@ -110,13 +103,13 @@ _Devices_sDevice_arr:
     d_byte Type_eDevice, eDevice::TalkRight
     d_byte BlockRow_u8, 12
     d_byte BlockCol_u8, 11
-    d_byte Target_u8, kMarieDialogIndex
+    d_byte Target_u8, eDialog::TownHouse5Marie
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::TalkLeft
     d_byte BlockRow_u8, 12
     d_byte BlockCol_u8, 12
-    d_byte Target_u8, kMarieDialogIndex
+    d_byte Target_u8, eDialog::TownHouse5Marie
     D_END
     .byte eDevice::None
 .ENDPROC
@@ -125,21 +118,15 @@ _Devices_sDevice_arr:
 
 .SEGMENT "PRGA_Dialog"
 
-;;; Dialog data for the TownHouse5 room.
-.PROC DataA_Dialog_TownHouse5_sDialog_ptr_arr
-:   .assert * - :- = kBrunoDialogIndex * kSizeofAddr, error
-    .addr DataA_Dialog_TownHouse5_Bruno_sDialog
-    .assert * - :- = kMarieDialogIndex * kSizeofAddr, error
-    .addr DataA_Dialog_TownHouse5_Marie_sDialog
-.ENDPROC
-
-.PROC DataA_Dialog_TownHouse5_Bruno_sDialog
+.EXPORT DataA_Dialog_TownHouse5Bruno_sDialog
+.PROC DataA_Dialog_TownHouse5Bruno_sDialog
     .word ePortrait::ChildBruno
     .byte "Lorem ipsum?#"
     .word ePortrait::Done
 .ENDPROC
 
-.PROC DataA_Dialog_TownHouse5_Marie_sDialog
+.EXPORT DataA_Dialog_TownHouse5Marie_sDialog
+.PROC DataA_Dialog_TownHouse5Marie_sDialog
     .word ePortrait::ChildMarie
     .byte "Lorem ipsum!#"
     .word ePortrait::Done

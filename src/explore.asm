@@ -268,8 +268,7 @@ _Talk:
     lda #$ff
     sta Zp_NearbyDevice_u8
 _Dialog:
-    lda Ram_DeviceTarget_u8_arr, x
-    tax  ; param: dialog index
+    ldy Ram_DeviceTarget_u8_arr, x  ; param: eDialog value
     jmp Main_Dialog_OpenWindow
 _DeviceLever:
     jsr Func_ToggleLeverDevice

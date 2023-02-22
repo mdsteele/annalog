@@ -59,9 +59,6 @@
 
 ;;;=========================================================================;;;
 
-;;; The dialog index for the sign in this room.
-kSignDialogIndex = 0
-
 ;;; The device index for the MermaidDrainPump console.
 kConsoleDeviceIndex = 1
 ;;; The device index for the lever at the bottom of the hot spring.
@@ -121,10 +118,6 @@ _Ext_sRoomExt:
     d_addr Platforms_sPlatform_arr_ptr, _Platforms_sPlatform_arr
     d_addr Actors_sActor_arr_ptr, _Actors_sActor_arr
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
-    .linecont +
-    d_addr Dialogs_sDialog_ptr_arr_ptr, \
-           DataA_Dialog_MermaidDrain_sDialog_ptr_arr
-    .linecont -
     d_addr Passages_sPassage_arr_ptr, _Passages_sPassage_arr
     d_addr Enter_func_ptr, DataC_Mermaid_Drain_EnterRoom
     d_addr FadeIn_func_ptr, Func_Noop
@@ -186,7 +179,7 @@ _Devices_sDevice_arr:
     d_byte Type_eDevice, eDevice::Sign
     d_byte BlockRow_u8, 6
     d_byte BlockCol_u8, 5
-    d_byte Target_u8, kSignDialogIndex
+    d_byte Target_u8, eDialog::MermaidDrainSign
     D_END
     .assert * - :- = kConsoleDeviceIndex * .sizeof(sDevice), error
     D_STRUCT sDevice
@@ -369,13 +362,8 @@ _WaterWidth_u8_arr:
 
 .SEGMENT "PRGA_Dialog"
 
-;;; Dialog data for the MermaidDrain room.
-.PROC DataA_Dialog_MermaidDrain_sDialog_ptr_arr
-:   .assert * - :- = kSignDialogIndex * kSizeofAddr, error
-    .addr DataA_Dialog_MermaidDrain_Sign_sDialog
-.ENDPROC
-
-.PROC DataA_Dialog_MermaidDrain_Sign_sDialog
+.EXPORT DataA_Dialog_MermaidDrainSign_sDialog
+.PROC DataA_Dialog_MermaidDrainSign_sDialog
     .addr _InitialFunc
 _InitialFunc:
     flag_bit Sram_ProgressFlags_arr, eFlag::MermaidDrainUnplugged

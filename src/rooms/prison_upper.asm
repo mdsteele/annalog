@@ -54,13 +54,6 @@
 ;;; The actor index for Alex in this room.
 kAlexActorIndex = 0
 
-;;; Dialog indices for the kids in this room.
-kAlexCellDialogIndex = 0
-kAlexFreeDialogIndex = 1
-kBrunoDialogIndex    = 2
-kMarieDialogIndex    = 3
-kNoraDialogIndex     = 4
-
 ;;; Device indices for various talk devices in this room.
 kAlexCellDeviceIndex      = 0
 kAlexFreeRightDeviceIndex = 1
@@ -115,10 +108,6 @@ _Ext_sRoomExt:
     d_addr Platforms_sPlatform_arr_ptr, _Platforms_sPlatform_arr
     d_addr Actors_sActor_arr_ptr, _Actors_sActor_arr
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
-    .linecont +
-    d_addr Dialogs_sDialog_ptr_arr_ptr, \
-           DataA_Dialog_PrisonUpper_sDialog_ptr_arr
-    .linecont -
     d_addr Passages_sPassage_arr_ptr, _Passages_sPassage_arr
     d_addr Enter_func_ptr, FuncC_Prison_Upper_EnterRoom
     d_addr FadeIn_func_ptr, Func_Noop
@@ -218,57 +207,57 @@ _Devices_sDevice_arr:
     d_byte Type_eDevice, eDevice::TalkLeft
     d_byte BlockRow_u8, 11
     d_byte BlockCol_u8, 7
-    d_byte Target_u8, kAlexCellDialogIndex
+    d_byte Target_u8, eDialog::PrisonUpperAlexCell
     D_END
     .assert * - :- = kAlexFreeRightDeviceIndex * .sizeof(sDevice), error
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Placeholder  ; becomes TalkRight
     d_byte BlockRow_u8, 11
     d_byte BlockCol_u8, 8
-    d_byte Target_u8, kAlexFreeDialogIndex
+    d_byte Target_u8, eDialog::PrisonUpperAlexFree
     D_END
     .assert * - :- = kAlexFreeLeftDeviceIndex * .sizeof(sDevice), error
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Placeholder  ; becomes TalkLeft
     d_byte BlockRow_u8, 11
     d_byte BlockCol_u8, 9
-    d_byte Target_u8, kAlexFreeDialogIndex
+    d_byte Target_u8, eDialog::PrisonUpperAlexFree
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::TalkRight
     d_byte BlockRow_u8, 7
     d_byte BlockCol_u8, 16
-    d_byte Target_u8, kNoraDialogIndex
+    d_byte Target_u8, eDialog::PrisonUpperNora
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::TalkLeft
     d_byte BlockRow_u8, 7
     d_byte BlockCol_u8, 17
-    d_byte Target_u8, kNoraDialogIndex
+    d_byte Target_u8, eDialog::PrisonUpperNora
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::TalkRight
     d_byte BlockRow_u8, 11
     d_byte BlockCol_u8, 21
-    d_byte Target_u8, kBrunoDialogIndex
+    d_byte Target_u8, eDialog::PrisonUpperBruno
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::TalkLeft
     d_byte BlockRow_u8, 11
     d_byte BlockCol_u8, 22
-    d_byte Target_u8, kBrunoDialogIndex
+    d_byte Target_u8, eDialog::PrisonUpperBruno
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::TalkRight
     d_byte BlockRow_u8, 11
     d_byte BlockCol_u8, 24
-    d_byte Target_u8, kMarieDialogIndex
+    d_byte Target_u8, eDialog::PrisonUpperMarie
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::TalkLeft
     d_byte BlockRow_u8, 11
     d_byte BlockCol_u8, 25
-    d_byte Target_u8, kMarieDialogIndex
+    d_byte Target_u8, eDialog::PrisonUpperMarie
     D_END
     .assert * - :- = kFirstNonTalkDeviceIndex * .sizeof(sDevice), error
     D_STRUCT sDevice
@@ -375,21 +364,8 @@ _OpenGate:
 
 .SEGMENT "PRGA_Dialog"
 
-;;; Dialog data for the PrisonUpper room.
-.PROC DataA_Dialog_PrisonUpper_sDialog_ptr_arr
-:   .assert * - :- = kAlexCellDialogIndex * kSizeofAddr, error
-    .addr DataA_Dialog_PrisonUpper_AlexCell_sDialog
-    .assert * - :- = kAlexFreeDialogIndex * kSizeofAddr, error
-    .addr DataA_Dialog_PrisonUpper_AlexFree_sDialog
-    .assert * - :- = kBrunoDialogIndex * kSizeofAddr, error
-    .addr DataA_Dialog_PrisonUpper_Bruno_sDialog
-    .assert * - :- = kMarieDialogIndex * kSizeofAddr, error
-    .addr DataA_Dialog_PrisonUpper_Marie_sDialog
-    .assert * - :- = kNoraDialogIndex * kSizeofAddr, error
-    .addr DataA_Dialog_PrisonUpper_Nora_sDialog
-.ENDPROC
-
-.PROC DataA_Dialog_PrisonUpper_AlexCell_sDialog
+.EXPORT DataA_Dialog_PrisonUpperAlexCell_sDialog
+.PROC DataA_Dialog_PrisonUpperAlexCell_sDialog
     .word ePortrait::Alex
     .byte "Anna! Thank goodness$"
     .byte "you're here! The orcs$"
@@ -411,7 +387,8 @@ _GetDoorOpen_sDialog:
     .word ePortrait::Done
 .ENDPROC
 
-.PROC DataA_Dialog_PrisonUpper_AlexFree_sDialog
+.EXPORT DataA_Dialog_PrisonUpperAlexFree_sDialog
+.PROC DataA_Dialog_PrisonUpperAlexFree_sDialog
     .word ePortrait::Alex
     .byte "Thanks! That door was$"
     .byte "too heavy, but I think$"
@@ -437,13 +414,15 @@ _Finish_sDialog:
     .word ePortrait::Done
 .ENDPROC
 
-.PROC DataA_Dialog_PrisonUpper_Bruno_sDialog
+.EXPORT DataA_Dialog_PrisonUpperBruno_sDialog
+.PROC DataA_Dialog_PrisonUpperBruno_sDialog
     .word ePortrait::ChildBruno
     .byte "Are the adults OK?#"
     .word ePortrait::Done
 .ENDPROC
 
-.PROC DataA_Dialog_PrisonUpper_Marie_sDialog
+.EXPORT DataA_Dialog_PrisonUpperMarie_sDialog
+.PROC DataA_Dialog_PrisonUpperMarie_sDialog
     .addr _InitialFunc
 _InitialFunc:
     flag_bit Sram_ProgressFlags_arr, eFlag::PrisonUpperTalkedToAlex
@@ -471,7 +450,8 @@ _Stepstone_sDialog:
     .word ePortrait::Done
 .ENDPROC
 
-.PROC DataA_Dialog_PrisonUpper_Nora_sDialog
+.EXPORT DataA_Dialog_PrisonUpperNora_sDialog
+.PROC DataA_Dialog_PrisonUpperNora_sDialog
     .word ePortrait::ChildNora
     .byte "My sister STILL keeps$"
     .byte "peeing her pants!#"
