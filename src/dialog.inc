@@ -55,6 +55,7 @@
     GardenLandingPaper
     MermaidDrainSign
     MermaidEntrySign
+    MermaidHut1Cutscene
     MermaidHut1Guard
     MermaidHut1Queen
     MermaidHut2Guard

@@ -33,6 +33,7 @@
 .IMPORT DataA_Dialog_GardenLandingPaper_sDialog
 .IMPORT DataA_Dialog_MermaidDrainSign_sDialog
 .IMPORT DataA_Dialog_MermaidEntrySign_sDialog
+.IMPORT DataA_Dialog_MermaidHut1Cutscene_sDialog
 .IMPORT DataA_Dialog_MermaidHut1Guard_sDialog
 .IMPORT DataA_Dialog_MermaidHut1Queen_sDialog
 .IMPORT DataA_Dialog_MermaidHut2Guard_sDialog
@@ -259,6 +260,8 @@ _UpdateScrolling:
     d_entry table, GardenLandingPaper, DataA_Dialog_GardenLandingPaper_sDialog
     d_entry table, MermaidDrainSign,   DataA_Dialog_MermaidDrainSign_sDialog
     d_entry table, MermaidEntrySign,   DataA_Dialog_MermaidEntrySign_sDialog
+    d_entry table, MermaidHut1Cutscene, \
+            DataA_Dialog_MermaidHut1Cutscene_sDialog
     d_entry table, MermaidHut1Guard,   DataA_Dialog_MermaidHut1Guard_sDialog
     d_entry table, MermaidHut1Queen,   DataA_Dialog_MermaidHut1Queen_sDialog
     d_entry table, MermaidHut2Guard,   DataA_Dialog_MermaidHut2Guard_sDialog

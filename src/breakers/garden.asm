@@ -17,9 +17,16 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
+.INCLUDE "../charmap.inc"
 .INCLUDE "../dialog.inc"
 .INCLUDE "../macros.inc"
+.INCLUDE "../mmc3.inc"
 
+.IMPORT FuncA_Actor_TickAllActors
+.IMPORT FuncA_Objects_DrawObjectsForRoom
+.IMPORT FuncA_Terrain_ScrollTowardsGoal
+.IMPORT Func_ClearRestOfOamAndProcessFrame
+.IMPORT Func_ShakeRoom
 .IMPORT Main_Breaker_FadeBackToBreakerRoom
 .IMPORT Main_Dialog_OpenWindow
 .IMPORTZP Zp_NextCutscene_main_ptr
@@ -30,12 +37,42 @@
 
 .EXPORT Main_BreakerCutscene_Garden
 .PROC Main_BreakerCutscene_Garden
-    ;; TODO: wait a bit, then shake the room, then wait another beat
+    lda #120
+_GameLoop:
+    pha
+    jsr_prga FuncA_Objects_DrawObjectsForRoom
+    jsr Func_ClearRestOfOamAndProcessFrame
+    jsr_prga FuncA_Actor_TickAllActors
+    jsr_prga FuncA_Terrain_ScrollTowardsGoal
+    pla
+    tax
+    dex
+    cpx #60
+    bne @noShake
+    ;; TODO: play a sound
+    lda #30  ; param: num shake frames
+    jsr Func_ShakeRoom  ; preserves X
+    @noShake:
+    txa
+    bne _GameLoop
+_StartDialog:
+    ;; TODO: wait a bit more after dialog before fading back
     ldax #Main_Breaker_FadeBackToBreakerRoom
     stax Zp_NextCutscene_main_ptr
-    ;; TODO: use correct dialog index
-    ldy #eDialog::MermaidHut1Guard  ; param: eDialog value
+    ldy #eDialog::MermaidHut1Cutscene  ; param: eDialog value
     jmp Main_Dialog_OpenWindow
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Dialog"
+
+.EXPORT DataA_Dialog_MermaidHut1Cutscene_sDialog
+.PROC DataA_Dialog_MermaidHut1Cutscene_sDialog
+    .word ePortrait::MermaidQueen
+    .byte "What the...What did$"
+    .byte "that human just do!?#"
+    .word ePortrait::Done
 .ENDPROC
 
 ;;;=========================================================================;;;
