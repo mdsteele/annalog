@@ -164,28 +164,28 @@ _FirstMeetingFunc:
     ldya #_GrantAsylum_sDialog
     rts
 _FirstMeeting_sDialog:
-    .word ePortrait::Mermaid
+    .word ePortrait::MermaidQueen
     .byte "So, you must be the$"
     .byte "human I've heard is$"
     .byte "running around.#"
-    .word ePortrait::Mermaid
+    .word ePortrait::MermaidQueen
     .byte "Humans belong on the$"
     .byte "surface, not here. So$"
     .byte "what are you doing$"
     .byte "down here among us?#"
     ;; TODO: use a dialog function to fade to black and back
-    .word ePortrait::Mermaid
+    .word ePortrait::MermaidQueen
     .byte "...I see. So the orcs$"
     .byte "attacked, and now you$"
     .byte "are a refugee. This$"
     .byte "complicates things.#"
-    .word ePortrait::Mermaid
-    .byte "I will be honest. I do$"
+    .word ePortrait::MermaidQueen
+    .byte "I will be honest: I do$"
     .byte "not trust humans.$"
     .byte "However, I don't care$"
     .byte "for the orcs either.#"
 _GrantAsylum_sDialog:
-    .word ePortrait::Mermaid
+    .word ePortrait::MermaidQueen
     .byte "I will grant you safe$"
     .byte "asylum in our village,$"
     .byte "on one condition: that$"
@@ -197,23 +197,23 @@ _HelpFramersFunc:
     ldya #_HelpFarmers_sDialog
     rts
 _HelpFarmers_sDialog:
-    .word ePortrait::Mermaid
+    .word ePortrait::MermaidQueen
     .byte "Speak with our farmers$"
     .byte "in this village. They$"
     .byte "have a problem a human$"
     .byte "could perhaps solve.#"
     .word ePortrait::Done
 _GardenBossDefeated_sDialog:
-    .word ePortrait::Mermaid
+    .word ePortrait::MermaidQueen
     .byte "I heard you helped our$"
     .byte "farmers. And you even$"
     .byte "survived. I thank you.#"
-    .word ePortrait::Mermaid
+    .word ePortrait::MermaidQueen
     .byte "Perhaps...perhaps you$"
     .byte "could help us with one$"
     .byte "more problem.#"
 _TempleProblem_sDialog:
-    .word ePortrait::Mermaid
+    .word ePortrait::MermaidQueen
     .byte "There's a temple west$"
     .byte "of the gardens. It's$"
     .byte "very important to us.$"
@@ -225,7 +225,7 @@ _TemplePermissionFunc:
     ldya #_TemplePermission_sDialog
     rts
 _TemplePermission_sDialog:
-    .word ePortrait::Mermaid
+    .word ePortrait::MermaidQueen
     .byte "I'd like you to visit$"
     .byte "the temple. The guards$"
     .byte "east of my hut can$"

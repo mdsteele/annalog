@@ -129,7 +129,7 @@ _Devices_sDevice_arr:
 
 .EXPORT DataA_Dialog_MermaidHut3MermaidAdult_sDialog
 .PROC DataA_Dialog_MermaidHut3MermaidAdult_sDialog
-    .word ePortrait::Mermaid
+    .word ePortrait::MermaidAdult
     .byte "There's a natural hot$"
     .byte "spring just east of$"
     .byte "this village.#"
@@ -143,14 +143,14 @@ _HotSpringFunc:
     ldya #_HotSpringClosed_sDialog
     rts
 _HotSpringOpen_sDialog:
-    .word ePortrait::Mermaid
+    .word ePortrait::MermaidAdult
     .byte "The water is heated by$"
     .byte "magma flows far below.$"
     .byte "It's a great place to$"
     .byte "relax.#"
     .word ePortrait::Done
 _HotSpringClosed_sDialog:
-    .word ePortrait::Mermaid
+    .word ePortrait::MermaidAdult
     .byte "Unfortunately, all the$"
     .byte "water got drained out$"
     .byte "somehow. So now we$"

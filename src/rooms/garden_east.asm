@@ -64,11 +64,11 @@
 
 ;;;=========================================================================;;;
 
-;;; The actor index for the mermaid in this room.
-kMermaidActorIndex = 0
-;;; The talk device indices for the mermaid in this room.
-kMermaidDeviceIndexLeft = 1
-kMermaidDeviceIndexRight = 0
+;;; The actor index for Corra in this room.
+kCorraActorIndex = 0
+;;; The talk device indices for Corra in this room.
+kCorraDeviceIndexLeft = 1
+kCorraDeviceIndexRight = 0
 
 ;;; The actor index for the vinebug that can be killed with the cannon.
 kKillableVinebugActorIndex = 3
@@ -211,12 +211,12 @@ _Platforms_sPlatform_arr:
     .assert * - :- <= kMaxPlatforms * .sizeof(sPlatform), error
     .byte ePlatform::None
 _Actors_sActor_arr:
-:   .assert * - :- = kMermaidActorIndex * .sizeof(sActor), error
+:   .assert * - :- = kCorraActorIndex * .sizeof(sActor), error
     D_STRUCT sActor
     d_byte Type_eActor, eActor::NpcMermaid
     d_word PosX_i16, $0080
     d_word PosY_i16, $0098
-    d_byte Param_byte, kTileIdMermaidAdultFirst
+    d_byte Param_byte, kTileIdMermaidCorraFirst
     D_END
     D_STRUCT sActor
     d_byte Type_eActor, eActor::BadVinebug
@@ -252,19 +252,19 @@ _Actors_sActor_arr:
     .assert * - :- <= kMaxActors * .sizeof(sActor), error
     .byte eActor::None
 _Devices_sDevice_arr:
-:   .assert * - :- = kMermaidDeviceIndexRight * .sizeof(sDevice), error
+:   .assert * - :- = kCorraDeviceIndexRight * .sizeof(sDevice), error
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::TalkRight
     d_byte BlockRow_u8, 9
     d_byte BlockCol_u8, 7
-    d_byte Target_u8, eDialog::GardenEastMermaid
+    d_byte Target_u8, eDialog::GardenEastCorra
     D_END
-    .assert * - :- = kMermaidDeviceIndexLeft * .sizeof(sDevice), error
+    .assert * - :- = kCorraDeviceIndexLeft * .sizeof(sDevice), error
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::TalkLeft
     d_byte BlockRow_u8, 9
     d_byte BlockCol_u8, 8
-    d_byte Target_u8, eDialog::GardenEastMermaid
+    d_byte Target_u8, eDialog::GardenEastCorra
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Console
@@ -312,16 +312,16 @@ _Passages_sPassage_arr:
 .ENDPROC
 
 .PROC FuncC_Garden_East_EnterRoom
-    ;; Remove the mermaid from this room if the player has already met with the
+    ;; Remove Corra from this room if the player has already met with the
     ;; mermaid queen.
     flag_bit Sram_ProgressFlags_arr, eFlag::MermaidHut1MetQueen
     beq @done
     lda #0
     .assert eActor::None = 0, error
-    sta Ram_ActorType_eActor_arr + kMermaidActorIndex
+    sta Ram_ActorType_eActor_arr + kCorraActorIndex
     .assert eDevice::None = 0, error
-    sta Ram_DeviceType_eDevice_arr + kMermaidDeviceIndexLeft
-    sta Ram_DeviceType_eDevice_arr + kMermaidDeviceIndexRight
+    sta Ram_DeviceType_eDevice_arr + kCorraDeviceIndexLeft
+    sta Ram_DeviceType_eDevice_arr + kCorraDeviceIndexRight
     @done:
     rts
 .ENDPROC
@@ -420,8 +420,8 @@ _Done:
 
 .SEGMENT "PRGA_Dialog"
 
-.EXPORT DataA_Dialog_GardenEastMermaid_sDialog
-.PROC DataA_Dialog_GardenEastMermaid_sDialog
+.EXPORT DataA_Dialog_GardenEastCorra_sDialog
+.PROC DataA_Dialog_GardenEastCorra_sDialog
     .addr _InitialFunc
 _InitialFunc:
     flag_bit Sram_ProgressFlags_arr, eFlag::GardenEastTalkedToMermaid
@@ -432,7 +432,7 @@ _InitialFunc:
     ldya #_Later_sDialog
     rts
 _Question_sDialog:
-    .word ePortrait::Mermaid
+    .word ePortrait::MermaidCorra
     .byte "Are you...a human?$"
     .byte "A real human girl?%"
     .addr _QuestionFunc
@@ -446,16 +446,16 @@ _QuestionFunc:
     ldya #_YesAnswer_sDialog
     rts
 _NoAnswer_sDialog:
-    .word ePortrait::Mermaid
+    .word ePortrait::MermaidCorra
     .byte "Ha! You can't fool me.#"
 _YesAnswer_sDialog:
-    .word ePortrait::Mermaid
+    .word ePortrait::MermaidCorra
     .byte "But...humans aren't$"
     .byte "supposed to be down$"
     .byte "here! I've never even$"
     .byte "met one before.#"
 _Later_sDialog:
-    .word ePortrait::Mermaid
+    .word ePortrait::MermaidCorra
     .byte "You should meet with$"
     .byte "our queen. She will$"
     .byte "know what to do with$"
@@ -467,7 +467,7 @@ _SetFlagFunc:
     ldya #_MarkMap_sDialog
     rts
 _MarkMap_sDialog:
-    .word ePortrait::Mermaid
+    .word ePortrait::MermaidCorra
     .byte "I'll mark her hut on$"
     .byte "your map.#"
     .word ePortrait::Done

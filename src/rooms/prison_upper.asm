@@ -366,7 +366,7 @@ _OpenGate:
 
 .EXPORT DataA_Dialog_PrisonUpperAlexCell_sDialog
 .PROC DataA_Dialog_PrisonUpperAlexCell_sDialog
-    .word ePortrait::Alex
+    .word ePortrait::ChildAlex
     .byte "Anna! Thank goodness$"
     .byte "you're here! The orcs$"
     .byte "threw us in here, but$"
@@ -380,7 +380,7 @@ _SetFlagFunc:
     ldya #_GetDoorOpen_sDialog
     rts
 _GetDoorOpen_sDialog:
-    .word ePortrait::Alex
+    .word ePortrait::ChildAlex
     .byte "See if you can find a$"
     .byte "way to get this door$"
     .byte "open.#"
@@ -389,12 +389,12 @@ _GetDoorOpen_sDialog:
 
 .EXPORT DataA_Dialog_PrisonUpperAlexFree_sDialog
 .PROC DataA_Dialog_PrisonUpperAlexFree_sDialog
-    .word ePortrait::Alex
+    .word ePortrait::ChildAlex
     .byte "Thanks! That door was$"
     .byte "too heavy, but I think$"
     .byte "I can pick the locks$"
     .byte "on the other cells.#"
-    .word ePortrait::Alex
+    .word ePortrait::ChildAlex
     .byte "I'll let the others$"
     .byte "out, then scout ahead.$"
     .byte "Be right back.#"
@@ -406,7 +406,7 @@ _CutsceneFunc:
     ldya #_Finish_sDialog
     rts
 _Finish_sDialog:
-    .word ePortrait::Alex
+    .word ePortrait::ChildAlex
     .byte "Bad news: the passage$"
     .byte "to the surface has$"
     .byte "has collapsed.#"

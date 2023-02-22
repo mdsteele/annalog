@@ -29,7 +29,7 @@
 .INCLUDE "room.inc"
 .INCLUDE "window.inc"
 
-.IMPORT DataA_Dialog_GardenEastMermaid_sDialog
+.IMPORT DataA_Dialog_GardenEastCorra_sDialog
 .IMPORT DataA_Dialog_GardenLandingPaper_sDialog
 .IMPORT DataA_Dialog_MermaidDrainSign_sDialog
 .IMPORT DataA_Dialog_MermaidEntrySign_sDialog
@@ -40,9 +40,9 @@
 .IMPORT DataA_Dialog_MermaidHut3MermaidGirl_sDialog
 .IMPORT DataA_Dialog_MermaidHut4Florist_sDialog
 .IMPORT DataA_Dialog_MermaidHut5Nora_sDialog
+.IMPORT DataA_Dialog_MermaidVillageCorra_sDialog
 .IMPORT DataA_Dialog_MermaidVillageFarmer_sDialog
 .IMPORT DataA_Dialog_MermaidVillageGuard_sDialog
-.IMPORT DataA_Dialog_MermaidVillageYouth_sDialog
 .IMPORT DataA_Dialog_PrisonCellPaper_sDialog
 .IMPORT DataA_Dialog_PrisonEscapePaper_sDialog
 .IMPORT DataA_Dialog_PrisonFlowerSign_sDialog
@@ -255,7 +255,7 @@ _UpdateScrolling:
     D_TABLE_LO table, DataA_Dialog_Table_sDialog_ptr_0_arr
     D_TABLE_HI table, DataA_Dialog_Table_sDialog_ptr_1_arr
     D_TABLE eDialog
-    d_entry table, GardenEastMermaid,  DataA_Dialog_GardenEastMermaid_sDialog
+    d_entry table, GardenEastCorra,    DataA_Dialog_GardenEastCorra_sDialog
     d_entry table, GardenLandingPaper, DataA_Dialog_GardenLandingPaper_sDialog
     d_entry table, MermaidDrainSign,   DataA_Dialog_MermaidDrainSign_sDialog
     d_entry table, MermaidEntrySign,   DataA_Dialog_MermaidEntrySign_sDialog
@@ -268,12 +268,12 @@ _UpdateScrolling:
             DataA_Dialog_MermaidHut3MermaidGirl_sDialog
     d_entry table, MermaidHut4Florist, DataA_Dialog_MermaidHut4Florist_sDialog
     d_entry table, MermaidHut5Nora,    DataA_Dialog_MermaidHut5Nora_sDialog
+    d_entry table, MermaidVillageCorra, \
+            DataA_Dialog_MermaidVillageCorra_sDialog
     d_entry table, MermaidVillageFarmer, \
             DataA_Dialog_MermaidVillageFarmer_sDialog
     d_entry table, MermaidVillageGuard, \
             DataA_Dialog_MermaidVillageGuard_sDialog
-    d_entry table, MermaidVillageYouth, \
-            DataA_Dialog_MermaidVillageYouth_sDialog
     d_entry table, PrisonCellPaper,    DataA_Dialog_PrisonCellPaper_sDialog
     d_entry table, PrisonEscapePaper,  DataA_Dialog_PrisonEscapePaper_sDialog
     d_entry table, PrisonFlowerSign,   DataA_Dialog_PrisonFlowerSign_sDialog

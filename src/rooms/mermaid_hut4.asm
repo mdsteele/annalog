@@ -228,11 +228,11 @@ _InitialDialogFunc:
     ldya #_AllDone_sDialog
     rts
 _MeetFlorist_sDialog:
-    .word ePortrait::Florist
+    .word ePortrait::MermaidFlorist
     .byte "Ah...you must be that$"
     .byte "human that I've been$"
     .byte "hearing about.#"
-    .word ePortrait::Florist
+    .word ePortrait::MermaidFlorist
     .byte "I don't suppose you'd$"
     .byte "like to do me a favor?%"
     .addr _QuestionFunc
@@ -248,34 +248,34 @@ _QuestionFunc:
     ldya #_NoFlowersYet_sDialog
     rts
 _NeverMind_sDialog:
-    .word ePortrait::Florist
+    .word ePortrait::MermaidFlorist
     .byte "Yes, well, I suppose$"
     .byte "you must be very busy,$"
     .byte "running around and$"
     .byte "causing trouble.#"
-    .word ePortrait::Florist
+    .word ePortrait::MermaidFlorist
     .byte "Come back if you ever$"
     .byte "change your mind.#"
     .word ePortrait::Done
 _NoFlowersYet_sDialog:
-    .word ePortrait::Florist
+    .word ePortrait::MermaidFlorist
     .byte "As you can see, my$"
     .byte "home is looking rather$"
     .byte "drab. Could you bring$"
     .byte "me a flower?#"
-    .word ePortrait::Florist
+    .word ePortrait::MermaidFlorist
     .byte "If you go east from$"
     .byte "this village and then$"
     .byte "up a bit, you'll find$"
     .byte "the one I want.#"
-    .word ePortrait::Florist
+    .word ePortrait::MermaidFlorist
     .byte "It's very delicate.$"
     .byte "Don't get hurt and$"
     .byte "break it, or you'll$"
     .byte "have to get another.#"
     .word ePortrait::Done
 _BroughtFlower_sDialog:
-    .word ePortrait::Florist
+    .word ePortrait::MermaidFlorist
     .byte "Ah, I see you've$"
     .byte "brought me a flower!$"
     .byte "How kind of you.#"
@@ -297,38 +297,38 @@ _DeliverFlowerFunc:
     ldya #_DeliveredLastFlower_sDialog
     rts
 _WantMoreFlowers_sDialog:
-    .word ePortrait::Florist
+    .word ePortrait::MermaidFlorist
     .byte "It does look nice up$"
     .byte "there, don't you$"
     .byte "think?#"
-    .word ePortrait::Florist
+    .word ePortrait::MermaidFlorist
     .byte "Only...it seems lonely$"
     .byte "by itself. I suppose$"
     .byte "you'll need to find$"
     .byte "some more.#"
-    .word ePortrait::Florist
+    .word ePortrait::MermaidFlorist
     .byte "Not from where you got$"
     .byte "this one, of course.$"
     .byte "You'll have to look$"
     .byte "elsewhere.#"
     .word ePortrait::Done
 _DeliveredLastFlower_sDialog:
-    .word ePortrait::Florist
+    .word ePortrait::MermaidFlorist
     .byte "And that makes an even$"
     .byte "dozen! How lovely. I$"
     .byte "do appreciate all your$"
     .byte "help, young one.#"
-    .word ePortrait::Florist
+    .word ePortrait::MermaidFlorist
     .byte "In exchange for this$"
     .byte "gift of beauty...I'd$"
     .byte "like to give you the$"
     .byte "gift of music.#"
-    .word ePortrait::Florist
+    .word ePortrait::MermaidFlorist
     .byte "I'll unlock my cellar.$"
     .byte "You may take what you$"
     .byte "find there.#"
 _AllDone_sDialog:
-    .word ePortrait::Florist
+    .word ePortrait::MermaidFlorist
     .byte "Perhaps this gift will$"
     .byte "give you a better use$"
     .byte "for all those terrible$"

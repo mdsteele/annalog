@@ -259,7 +259,7 @@ _MaybeRaiseColumn:
 
 .EXPORT DataA_Dialog_TempleEntryMermaid_sDialog
 .PROC DataA_Dialog_TempleEntryMermaid_sDialog
-    .word ePortrait::Mermaid
+    .word ePortrait::MermaidAdult
     .byte "I am guarding the$"
     .byte "entrance to the temple$"
     .byte "you see above us.#"
@@ -270,7 +270,7 @@ _CheckPermissionFunc:
     ldya #_NoPermission_sDialog
     rts
 _NoPermission_sDialog:
-    .word ePortrait::Mermaid
+    .word ePortrait::MermaidAdult
     .byte "I cannot help you to$"
     .byte "enter it without the$"
     .byte "queen's permission.#"
@@ -281,7 +281,7 @@ _RaiseColumnFunc:
     ldya #_Enter_sDialog
     rts
 _Enter_sDialog:
-    .word ePortrait::Mermaid
+    .word ePortrait::MermaidAdult
     .byte "Our queen has sent$"
     .byte "word: I am to allow$"
     .byte "you to enter.#"

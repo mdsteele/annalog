@@ -811,8 +811,8 @@
     .incbin "out/data/tiles/upgrade_opif.chr"
     .assert * - :- = (kTileIdCannonFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/cannon.chr"
-    .assert * - :- = (kTileIdMermaidAdultFirst - $80) * kSizeofChr, error
-    .incbin "out/data/tiles/mermaid_adult.chr"
+    .assert * - :- = (kTileIdMermaidCorraFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/mermaid_corra.chr"
     .assert * - :- = (kTileIdObjCrateFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/crate.chr"
     .res $02 * kSizeofChr
@@ -1060,12 +1060,12 @@
 .EXPORT Ppu_ChrObjVillage
 .PROC Ppu_ChrObjVillage
 :   .res $0e * kSizeofChr
-    .assert * - :- = (kTileIdMermaidAdultFirst - $80) * kSizeofChr, error
-    .incbin "out/data/tiles/mermaid_adult.chr"
+    .assert * - :- = (kTileIdMermaidCorraFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/mermaid_corra.chr"
     .assert * - :- = (kTileIdMermaidFloristFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/mermaid_florist.chr"
-    .assert * - :- = (kTileIdMermaidYouthFirst - $80) * kSizeofChr, error
-    .incbin "out/data/tiles/mermaid_youth.chr"
+    .assert * - :- = (kTileIdMermaidAdultFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/mermaid_adult.chr"
     .assert * - :- = (kTileIdMermaidGuardFFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/mermaid_guardf.chr"
     .assert * - :- = (kTileIdMermaidPonytailFirst - $80) * kSizeofChr, error

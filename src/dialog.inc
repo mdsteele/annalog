@@ -31,26 +31,27 @@
 ;;; dialog is paused, and the hi byte is the bank number to alternate with the
 ;;; first to animate the portrait while text is being written.
 .ENUM ePortrait
-    Done         = $0000  ; indicates end of dialog
-    Woman        = $0201
-    Sign         = $0303
-    Paper        = $0404
-    Mermaid      = $0605
-    Man          = $0807
-    ChildNora    = $0a09  ; same portrait as MermaidGirl
-    MermaidGirl  = $0a09  ; same portrait as ChildNora
-    Alex         = $0c0b
-    MermaidYouth = $0e0d
-    Florist      = $100f
-    ChildMarie   = $1211
-    ChildBruno   = $1413
+    Done           = $0000  ; indicates end of dialog
+    ChildAlex      = $0c0b
+    ChildBruno     = $1413
+    ChildMarie     = $1211
+    ChildNora      = $0a09  ; same portrait as MermaidGirl
+    Man            = $0807
+    MermaidAdult   = $0605
+    MermaidCorra   = $0e0d
+    MermaidFlorist = $100f
+    MermaidGirl    = $0a09  ; same portrait as ChildNora
+    MermaidQueen   = $0605  ; TODO: make a unique portrait for the queen
+    Paper          = $0404
+    Sign           = $0303
+    Woman          = $0201
 .ENDENUM
 
 ;;;=========================================================================;;;
 
 ;;; The list of dialogs in the game.
 .ENUM eDialog
-    GardenEastMermaid
+    GardenEastCorra
     GardenLandingPaper
     MermaidDrainSign
     MermaidEntrySign
@@ -61,9 +62,9 @@
     MermaidHut3MermaidGirl
     MermaidHut4Florist
     MermaidHut5Nora
+    MermaidVillageCorra
     MermaidVillageFarmer
     MermaidVillageGuard
-    MermaidVillageYouth
     PrisonCellPaper
     PrisonEscapePaper
     PrisonFlowerSign

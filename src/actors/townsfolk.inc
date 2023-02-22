@@ -66,9 +66,9 @@ kTileIdAdultWomanFirst = $88
 kTileIdAdultManFirst   = $8e
 
 ;;; The first tile IDs for various mermaids.
-kTileIdMermaidAdultFirst    = $8e
+kTileIdMermaidCorraFirst    = $8e
 kTileIdMermaidFloristFirst  = $94
-kTileIdMermaidYouthFirst    = $9a
+kTileIdMermaidAdultFirst    = $9a
 kTileIdMermaidGuardFFirst   = $a0
 kTileIdMermaidPonytailFirst = $a6
 kTileIdMermaidGuardMFirst   = $ac

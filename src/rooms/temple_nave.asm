@@ -737,7 +737,7 @@ _ResumeDialog:
 
 .EXPORT DataA_Dialog_TempleNaveAlexStanding_sDialog
 .PROC DataA_Dialog_TempleNaveAlexStanding_sDialog
-    .word ePortrait::Alex
+    .word ePortrait::ChildAlex
     .byte "There's something$"
     .byte "hidden underneath this$"
     .byte "temple, and we should$"
@@ -752,7 +752,7 @@ _CutsceneFunc:
 
 .EXPORT DataA_Dialog_TempleNaveAlexBoosting_sDialog
 .PROC DataA_Dialog_TempleNaveAlexBoosting_sDialog
-    .word ePortrait::Alex
+    .word ePortrait::ChildAlex
     .byte "Hop on up. I'll give$"
     .byte "you a boost.#"
     .assert * = DataA_Dialog_TempleNaveEmpty_sDialog, error, "fallthrough"

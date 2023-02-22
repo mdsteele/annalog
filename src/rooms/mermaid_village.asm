@@ -33,7 +33,17 @@
 .IMPORT Func_Noop
 .IMPORT Func_SetFlag
 .IMPORT Ppu_ChrObjVillage
+.IMPORT Ram_ActorType_eActor_arr
+.IMPORT Ram_DeviceType_eDevice_arr
 .IMPORT Sram_ProgressFlags_arr
+
+;;;=========================================================================;;;
+
+;;; The actor index for Corra in this room.
+kCorraActorIndex = 2
+;;; The talk device indices for Corra in this room.
+kCorraDeviceIndexLeft = 5
+kCorraDeviceIndexRight = 4
 
 ;;;=========================================================================;;;
 
@@ -62,7 +72,7 @@ _Ext_sRoomExt:
     d_addr Actors_sActor_arr_ptr, _Actors_sActor_arr
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
     d_addr Passages_sPassage_arr_ptr, _Passages_sPassage_arr
-    d_addr Enter_func_ptr, Func_Noop
+    d_addr Enter_func_ptr, FuncC_Mermaid_Village_EnterRoom
     d_addr FadeIn_func_ptr, Func_Noop
     D_END
 _TerrainData:
@@ -148,11 +158,12 @@ _Actors_sActor_arr:
     d_word PosY_i16, $0158
     d_byte Param_byte, kTileIdMermaidFarmerFirst
     D_END
+    .assert * - :- = kCorraActorIndex * .sizeof(sActor), error
     D_STRUCT sActor
     d_byte Type_eActor, eActor::NpcMermaid
     d_word PosX_i16, $0110
     d_word PosY_i16, $0158
-    d_byte Param_byte, kTileIdMermaidYouthFirst
+    d_byte Param_byte, kTileIdMermaidCorraFirst
     D_END
     .assert * - :- <= kMaxActors * .sizeof(sActor), error
     .byte eActor::None
@@ -181,17 +192,19 @@ _Devices_sDevice_arr:
     d_byte BlockCol_u8, 13
     d_byte Target_u8, eDialog::MermaidVillageFarmer
     D_END
+    .assert * - :- = kCorraDeviceIndexRight * .sizeof(sDevice), error
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::TalkRight
     d_byte BlockRow_u8, 21
     d_byte BlockCol_u8, 16
-    d_byte Target_u8, eDialog::MermaidVillageYouth
+    d_byte Target_u8, eDialog::MermaidVillageCorra
     D_END
+    .assert * - :- = kCorraDeviceIndexLeft * .sizeof(sDevice), error
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::TalkLeft
     d_byte BlockRow_u8, 21
     d_byte BlockCol_u8, 17
-    d_byte Target_u8, eDialog::MermaidVillageYouth
+    d_byte Target_u8, eDialog::MermaidVillageCorra
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::OpenDoorway
@@ -239,6 +252,21 @@ _Passages_sPassage_arr:
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
 .ENDPROC
 
+.PROC FuncC_Mermaid_Village_EnterRoom
+    ;; Remove Corra from this room until the player has met with the mermaid
+    ;; queen.
+    flag_bit Sram_ProgressFlags_arr, eFlag::MermaidHut1MetQueen
+    bne @done
+    lda #0
+    .assert eActor::None = 0, error
+    sta Ram_ActorType_eActor_arr + kCorraActorIndex
+    .assert eDevice::None = 0, error
+    sta Ram_DeviceType_eDevice_arr + kCorraDeviceIndexLeft
+    sta Ram_DeviceType_eDevice_arr + kCorraDeviceIndexRight
+    @done:
+    rts
+.ENDPROC
+
 ;;;=========================================================================;;;
 
 .SEGMENT "PRGA_Dialog"
@@ -246,7 +274,7 @@ _Passages_sPassage_arr:
 .EXPORT DataA_Dialog_MermaidVillageGuard_sDialog
 .PROC DataA_Dialog_MermaidVillageGuard_sDialog
     ;; TODO: Different dialog once temple permission has been given.
-    .word ePortrait::Mermaid
+    .word ePortrait::MermaidAdult
     .byte "I am guarding this$"
     .byte "village.#"
     .word ePortrait::Done
@@ -318,11 +346,14 @@ _ThankYou_sDialog:
     .word ePortrait::Done
 .ENDPROC
 
-.EXPORT DataA_Dialog_MermaidVillageYouth_sDialog
-.PROC DataA_Dialog_MermaidVillageYouth_sDialog
-    .word ePortrait::MermaidYouth
-    .byte "TODO: put some actual$"
-    .byte "dialogue text here.#"
+.EXPORT DataA_Dialog_MermaidVillageCorra_sDialog
+.PROC DataA_Dialog_MermaidVillageCorra_sDialog
+    .word ePortrait::MermaidCorra
+    .byte "Oh, hi! I met you back$"
+    .byte "in the gardens. I'm$"
+    .byte "Corra, by the way.#"
+    .word ePortrait::MermaidCorra
+    .byte "TODO: more dialog#"
     .word ePortrait::Done
 .ENDPROC
 
