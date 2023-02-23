@@ -284,12 +284,23 @@ _ShakeScrollY:
     lda Zp_RoomShake_u8
     beq @done
     dec Zp_RoomShake_u8
-    ;; If the room is shaking, replace bit 0 of Zp_RoomScrollY_u8 with bit 1 of
-    ;; Zp_RoomShake_u8.
+    cmp #17
+    bge @bigShake
+    @smallShake:
+    ;; Replace bit 0 of Zp_RoomScrollY_u8 with bit 1 of Zp_RoomShake_u8.
     lsr Zp_RoomScrollY_u8
     lsr a
     lsr a
     rol Zp_RoomScrollY_u8
+    bcc @done  ; unconditional
+    @bigShake:
+    ;; Replace bit 1 of Zp_RoomScrollY_u8 with bit 1 of Zp_RoomShake_u8.
+    and #%00000010
+    sta Zp_Tmp1_byte
+    lda Zp_RoomScrollY_u8
+    and #%11111101
+    ora Zp_Tmp1_byte
+    sta Zp_RoomScrollY_u8
     @done:
 _PrepareToScrollHorz:
     ;; If scrolling is locked, don't scroll horizontally.

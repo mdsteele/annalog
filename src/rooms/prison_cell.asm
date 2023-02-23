@@ -18,6 +18,7 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "../actor.inc"
+.INCLUDE "../actors/rocket.inc"
 .INCLUDE "../charmap.inc"
 .INCLUDE "../cpu.inc"
 .INCLUDE "../device.inc"
@@ -115,6 +116,9 @@ kTrapFloorPlatformIndex = 8
 ;;; The zone that the player avatar must be in in order for the trap floor to
 ;;; collapse.
 kTrapZonePlatformIndex = 9
+
+;;; How much to shake the room when the trap floor collapses.
+kTrapFloorShakeFrames = 4
 
 ;;; The initial and maximum permitted vertical goal values for the lift.
 kLiftInitGoalY = 0
@@ -454,7 +458,7 @@ _RocketImpact:
     ;; Explode the rocket and break the floor.
     jsr Func_InitActorProjSmoke
     ;; TODO: more smoke/particles
-    lda #30  ; param: shake frames
+    lda #kRocketShakeFrames  ; param: shake frames
     jsr Func_ShakeRoom
     ;; TODO: play a sound
     lda #ePlatform::None
@@ -480,7 +484,7 @@ _TrapFloor:
     ;; Collapse the trap floor.
     lda #ePlatform::None
     sta Ram_PlatformType_ePlatform_arr + kTrapFloorPlatformIndex
-    lda #2  ; param: shake frames
+    lda #kTrapFloorShakeFrames  ; param: shake frames
     jsr Func_ShakeRoom
     ;; Add particles for the collapsing floor.
     ldy #kTrapFloorPlatformIndex  ; param: platform index

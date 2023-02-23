@@ -41,9 +41,6 @@
 
 ;;;=========================================================================;;;
 
-;;; How many frames the room shakes for when a grenade hits the ground.
-kGrenadeShakeFrames = 4
-
 ;;; The OBJ palette number used for grenade projectile actors.
 kPaletteObjGrenade = 0
 

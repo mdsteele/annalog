@@ -18,6 +18,7 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "../actor.inc"
+.INCLUDE "../actors/grenade.inc"
 .INCLUDE "../charmap.inc"
 .INCLUDE "../device.inc"
 .INCLUDE "../flag.inc"
@@ -76,6 +77,11 @@ kCannonPlatformIndex = 0
 
 ;;; The platform index for the breakable tower wall.
 kBreakableWallPlatformIndex = 3
+
+;;; How much to shake the room when a grenade hits the breakable tower wall
+;;; (instead of the floor).
+kBreakableWallShakeFrames = 8
+.ASSERT kBreakableWallShakeFrames > kGrenadeShakeFrames, error
 
 ;;; The room pixel position/size of the breakable tower wall.
 kBreakableWallPlatformLeft = $0090
@@ -375,7 +381,7 @@ _ExplodeGrenade:
     ;; We've hit the wall, so explode the grenade.
     jsr Func_InitActorProjSmoke  ; preserves X
     ;; Shake the room.
-    lda #8  ; param: num frames
+    lda #kBreakableWallShakeFrames  ; param: num frames
     jsr Func_ShakeRoom
     ;; TODO: play a sound for hitting the wall
 _Done:

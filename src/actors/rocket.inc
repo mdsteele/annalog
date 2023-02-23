@@ -23,4 +23,7 @@
 ;;;     rocket is removed.
 ;;;   * State2: Unused.
 
+;;; How many frames the room shakes for when a rocket hits the ground.
+kRocketShakeFrames = 30
+
 ;;;=========================================================================;;;

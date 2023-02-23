@@ -22,6 +22,7 @@
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
 .INCLUDE "../program.inc"
+.INCLUDE "rocket.inc"
 
 .IMPORT FuncA_Actor_CenterHitsTerrain
 .IMPORT FuncA_Actor_HarmAvatarIfCollision
@@ -40,9 +41,6 @@
 
 ;;; The speed of a rocket projectile, in pixels per frame:
 kRocketSpeed = 7
-
-;;; How many frames the room shakes for when a rocket hits the ground.
-kRocketShakeFrames = 24
 
 ;;; OBJ tile IDs for rocket projectile actors.
 kTileIdObjRocketVert = kTileIdObjLauncherFirst + 3

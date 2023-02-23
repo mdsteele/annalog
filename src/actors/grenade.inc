@@ -23,6 +23,9 @@
 ;;;     grenade explodes.
 ;;;   * State2: Unused.
 
+;;; How many frames the room shakes for when a grenade hits the ground.
+kGrenadeShakeFrames = 4
+
 ;;; The first tile ID for the grenade actor animation.
 kTileIdObjGrenadeFirst = $dc
 

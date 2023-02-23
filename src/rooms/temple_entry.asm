@@ -64,6 +64,9 @@ kColumnPlatformMaxTop = $160
 ;;; How many frames it takes for the movable column to move one pixel.
 kColumnPlatformSlowdown = 3
 
+;;; How much to shake the room (each frame) when the movable column moves.
+kColumnShakeFrames = 10
+
 ;;; Various OBJ tile IDs used for drawing the movable column.
 kTileIdObjColumnFirst  = $9a
 kTileIdObjColumnCorner = kTileIdObjColumnFirst + 0
@@ -238,7 +241,7 @@ _MaybeRaiseColumn:
     ldx #kColumnPlatformIndex  ; param: platform index
     jsr Func_MovePlatformTopTowardPointY  ; returns Z
     beq @done
-    lda #10  ; param: num frames
+    lda #kColumnShakeFrames  ; param: num frames
     jmp Func_ShakeRoom
     @slowdown:
     dec Zp_RoomState + sState::ColumnSlowdown_u8
