@@ -50,12 +50,14 @@
 .IMPORT Func_SetFlag
 .IMPORT Func_SetPointToActorCenter
 .IMPORT Func_ShakeRoom
+.IMPORT Ppu_ChrBgAnimStatic
 .IMPORT Ppu_ChrObjGarden
 .IMPORT Ram_ActorPosY_i16_0_arr
 .IMPORT Ram_ActorPosY_i16_1_arr
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORT Ram_PlatformType_ePlatform_arr
 .IMPORT Sram_ProgressFlags_arr
+.IMPORTZP Zp_Chr0cBank_u8
 .IMPORTZP Zp_RoomState
 .IMPORTZP Zp_Tmp1_byte
 
@@ -196,6 +198,7 @@ _Platforms_sPlatform_arr:
     d_word Left_i16,    kBreakableWallPlatformLeft
     d_word Top_i16,     kBreakableWallPlatformTop
     D_END
+    ;; TODO: add Harm platforms for thorns (removed when boss is defeated)
     .assert * - :- <= kMaxPlatforms * .sizeof(sPlatform), error
     .byte ePlatform::None
 _Actors_sActor_arr:
@@ -409,6 +412,14 @@ _Done:
 
 ;;; Allocates and populates OAM slots for this room.
 .PROC FuncA_Objects_GardenTower_DrawRoom
+_Thorns:
+    ;; If the garden boss has been defeated, disable the BG thorns animation.
+    flag_bit Sram_ProgressFlags_arr, eFlag::BossGarden
+    beq @done
+    lda #<.bank(Ppu_ChrBgAnimStatic)
+    sta Zp_Chr0cBank_u8
+    @done:
+    ;; TODO: If thorns present, animate them like in the boss room.
 _BreakableWall:
     lda Ram_PlatformType_ePlatform_arr + kBreakableWallPlatformIndex
     cmp #ePlatform::Solid

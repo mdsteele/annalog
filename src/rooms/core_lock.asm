@@ -36,9 +36,12 @@
 .IMPORT FuncA_Machine_ReachedGoal
 .IMPORT FuncA_Objects_DrawLiftMachine
 .IMPORT Func_Noop
+.IMPORT Ppu_ChrBgAnimStatic
 .IMPORT Ppu_ChrObjPrison
 .IMPORT Ram_MachineGoalVert_u8_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
+.IMPORT Sram_ProgressFlags_arr
+.IMPORTZP Zp_Chr0cBank_u8
 .IMPORTZP Zp_MachineIndex_u8
 
 ;;;=========================================================================;;;
@@ -82,7 +85,7 @@ kLift3InitPlatformTop = kLift3MaxPlatformTop - kLiftInitGoalY * kBlockHeightPx
     d_addr Machines_sMachine_arr_ptr, _Machines_sMachine_arr
     d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjPrison)
     d_addr Tick_func_ptr, Func_Noop
-    d_addr Draw_func_ptr, Func_Noop
+    d_addr Draw_func_ptr, FuncC_Core_Lock_DrawRoom
     d_addr Ext_sRoomExt_ptr, _Ext_sRoomExt
     D_END
 _Ext_sRoomExt:
@@ -219,6 +222,17 @@ _Passages_sPassage_arr:
     d_byte SpawnBlock_u8, 4
     D_END
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
+.ENDPROC
+
+.PROC FuncC_Core_Lock_DrawRoom
+    ;; If the temple breaker hasn't been activated yet, disable the BG circuit
+    ;; animation.
+    flag_bit Sram_ProgressFlags_arr, eFlag::BreakerTemple
+    bne @done
+    lda #<.bank(Ppu_ChrBgAnimStatic)
+    sta Zp_Chr0cBank_u8
+    @done:
+    rts
 .ENDPROC
 
 .PROC FuncC_Core_LockLift_InitReset

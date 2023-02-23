@@ -216,6 +216,19 @@
 
 ;;;=========================================================================;;;
 
+.SEGMENT "CHR_BgAnimStatic"
+
+.EXPORT Ppu_ChrBgAnimStatic
+.PROC Ppu_ChrBgAnimStatic
+:   .res $10 * kSizeofChr
+    .incbin "out/data/tiles/thorns_anim_static.chr"
+    .res $0a * kSizeofChr
+    .incbin "out/data/tiles/circuit_anim_static.chr"
+    .assert * - :- = kSizeofChr * $40, error
+.ENDPROC
+
+;;;=========================================================================;;;
+
 .SEGMENT "CHR_BgCore"
 
 .EXPORT Ppu_ChrBgCore
