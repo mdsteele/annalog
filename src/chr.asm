@@ -822,7 +822,7 @@
     .res $02 * kSizeofChr
     .assert * - :- = (kTileIdObjUpgradeOpIfFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/upgrade_opif.chr"
-    .assert * - :- = (kTileIdCannonFirst - $80) * kSizeofChr, error
+    .assert * - :- = (kTileIdObjCannonFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/cannon.chr"
     .assert * - :- = (kTileIdMermaidCorraFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/mermaid_corra.chr"

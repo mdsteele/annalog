@@ -43,8 +43,8 @@
 ;;;=========================================================================;;;
 
 ;;; OBJ tile IDs used for drawing machine status lights.
-kMachineLightTileIdOff = $3e
-kMachineLightTileIdOn  = $3f
+kTileIdObjMachineLightOff = $3e
+kTileIdObjMachineLightOn  = $3f
 
 ;;;=========================================================================;;;
 
@@ -237,10 +237,10 @@ kMachineLightTileIdOn  = $3f
     and #$08
     beq @lightOff
     @lightOn:
-    lda #kMachineLightTileIdOn
+    lda #kTileIdObjMachineLightOn
     rts
     @lightOff:
-    lda #kMachineLightTileIdOff
+    lda #kTileIdObjMachineLightOff
     rts
 .ENDPROC
 

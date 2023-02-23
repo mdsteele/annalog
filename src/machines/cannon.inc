@@ -18,7 +18,7 @@
 ;;;=========================================================================;;;
 
 ;;; The first tile ID use for drawing cannon machines.
-kTileIdCannonFirst = $88
+kTileIdObjCannonFirst = $88
 
 ;;; How many frames a cannon machine spends per move/act operation.
 kCannonMoveCountdown = $20

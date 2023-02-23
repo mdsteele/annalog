@@ -54,11 +54,11 @@
 ;;;=========================================================================;;;
 
 ;;; Various OBJ tile IDs used for drawing cannon machines.
-kCannonTileIdCornerTop  = kTileIdCannonFirst + $00
-kCannonTileIdCornerBase = kTileIdCannonFirst + $01
-kCannonTileIdBarrelHigh = kTileIdCannonFirst + $02
-kCannonTileIdBarrelMid  = kTileIdCannonFirst + $03
-kCannonTileIdBarrelLow  = kTileIdCannonFirst + $04
+kTileIdObjCannonCornerTop  = kTileIdObjCannonFirst + $00
+kTileIdObjCannonCornerBase = kTileIdObjCannonFirst + $01
+kTileIdObjCannonBarrelHigh = kTileIdObjCannonFirst + $02
+kTileIdObjCannonBarrelMid  = kTileIdObjCannonFirst + $03
+kTileIdObjCannonBarrelLow  = kTileIdObjCannonFirst + $04
 
 ;;;=========================================================================;;;
 
@@ -225,22 +225,22 @@ _SetBarrelTileId:
     cmp #$c0
     blt @barrelMid
     @barrelHigh:
-    lda #kCannonTileIdBarrelHigh
+    lda #kTileIdObjCannonBarrelHigh
     bne @setBarrel  ; unconditional
     @barrelMid:
-    lda #kCannonTileIdBarrelMid
+    lda #kTileIdObjCannonBarrelMid
     bne @setBarrel  ; unconditional
     @barrelLow:
-    lda #kCannonTileIdBarrelLow
+    lda #kTileIdObjCannonBarrelLow
     @setBarrel:
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Tile_u8, y
 _SetLightTileId:
     jsr FuncA_Objects_GetMachineLightTileId  ; preserves Y, returns A
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Tile_u8, y
 _SetCornerTileIds:
-    lda #kCannonTileIdCornerTop
+    lda #kTileIdObjCannonCornerTop
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Tile_u8, y
-    lda #kCannonTileIdCornerBase
+    lda #kTileIdObjCannonCornerBase
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Tile_u8, y
 _Done:
     rts

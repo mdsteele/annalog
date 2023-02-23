@@ -53,8 +53,8 @@
 ;;;=========================================================================;;;
 
 ;;; Various OBJ tile IDs used for drawing bridge machines.
-kTileIdObjBridgeCornerBase = kTileIdCannonFirst + $01
-kTileIdObjBridgeSegment    = kTileIdCannonFirst + $05
+kTileIdObjBridgeCornerBase = kTileIdObjCannonFirst + $01
+kTileIdObjBridgeSegment    = kTileIdObjCannonFirst + $05
 
 ;;; The OBJ palette number used for moveable bridge segments.
 kPaletteObjBridgeSegment = 0

@@ -42,7 +42,7 @@
 kSmokeNumFrames = 12
 
 ;;; The first tile ID for the smoke particle animation.
-kSmokeFirstTileId = $1a
+kTileIdObjSmokeFirst = $1a
 
 ;;;=========================================================================;;;
 
@@ -114,7 +114,7 @@ _DrawSmokeParticle:
     bcs @done
     lda Ram_ActorState1_byte_arr, x
     div #2
-    add #kSmokeFirstTileId
+    add #kTileIdObjSmokeFirst
     sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
     lda Ram_ActorFlags_bObj_arr, x
     sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
