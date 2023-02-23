@@ -85,7 +85,9 @@ kMachineRegNameB = $21  ; 'B'
     RegNames_u8_arr4  .res 4
     ;; The main platform index for this machine (not used for all machines).
     MainPlatform_u8   .byte
-    ;; Function to initialize machine-specific state (when entering the area).
+    ;; Function to initialize machine-specific state (after the player avatar
+    ;; has been spawned into the room, but before the room's Enter_func_ptr has
+    ;; been called).
     ;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
     ;; @prereq PRGA_Room is loaded.
     Init_func_ptr     .addr

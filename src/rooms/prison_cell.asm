@@ -56,7 +56,6 @@
 .IMPORT Func_InitActorProjParticle
 .IMPORT Func_InitActorProjRocket
 .IMPORT Func_InitActorProjSmoke
-.IMPORT Func_IsFlagSet
 .IMPORT Func_IsPointInPlatform
 .IMPORT Func_MovePointDownByA
 .IMPORT Func_MovePointLeftByA
@@ -382,8 +381,7 @@ _Passages_sPassage_arr:
     sta Zp_Tmp1_byte  ; bSpawn value
 _CheckIfReachedTunnel:
     ;; If the player has reached the tunnel before, then don't lock scrolling.
-    ldx #eFlag::PrisonCellReachedTunnel  ; param: flag
-    jsr Func_IsFlagSet  ; preserves X and Zp_Tmp*, returns Z
+    flag_bit Sram_ProgressFlags_arr, eFlag::PrisonCellReachedTunnel
     bne @done
     ;; If the player enters from the tunnel (or from the eastern passage,
     ;; though normally that shouldn't be possible before reaching the tunnel),

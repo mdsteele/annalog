@@ -522,12 +522,12 @@ _EastWest:
 
 .SEGMENT "PRGA_Room"
 
-;;; Calls the current room's Enter_func_ptr with the last spawn point as an
-;;; argument, and then initializes state for all machines in the room.
-.EXPORT FuncA_Room_CallRoomEnterAndInitMachines
-.PROC FuncA_Room_CallRoomEnterAndInitMachines
-    jsr FuncA_Room_CallRoomEnter
-    jmp FuncA_Room_InitAllMachines
+;;; Initializes state for all machines in the current room, then calls the
+;;; current room's Enter_func_ptr with the last spawn point as an argument.
+.EXPORT FuncA_Room_InitAllMachinesAndCallRoomEnter
+.PROC FuncA_Room_InitAllMachinesAndCallRoomEnter
+    jsr FuncA_Room_InitAllMachines
+    .assert * = FuncA_Room_CallRoomEnter, error, "fallthrough"
 .ENDPROC
 
 ;;; Calls the current room's Enter_func_ptr with the last spawn point as an

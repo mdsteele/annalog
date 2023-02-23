@@ -269,9 +269,10 @@ kMaxPassages = 8
     Devices_sDevice_arr_ptr     .addr
     ;; A pointer to the list of passage exits from this room.
     Passages_sPassage_arr_ptr   .addr
-    ;; Function to initialize room-specific state after the player avatar has
-    ;; been spawned in the room, but before the nametables have been populated
-    ;; with the room's terrain.
+    ;; Function to initialize room-specific state (after the player avatar has
+    ;; been spawned into the room, and after any machines in the room have been
+    ;; initialized, but before the nametables have been populated with the
+    ;; room's terrain).
     ;; @prereq PRGA_Room is loaded.
     ;; @prereq Static room data is loaded and avatar is positioned.
     ;; @param A The bSpawn value for where the avatar is entering the room.
