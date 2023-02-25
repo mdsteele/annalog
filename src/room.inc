@@ -46,6 +46,7 @@ kMaxPassages = 8
     CoreBoss
     CoreElevator
     CoreFlower
+    CoreJunction
     CoreLock
     CoreWest
     CryptEast
