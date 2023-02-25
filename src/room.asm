@@ -33,6 +33,7 @@
 .IMPORT DataC_Core_Elevator_sRoom
 .IMPORT DataC_Core_Flower_sRoom
 .IMPORT DataC_Core_Lock_sRoom
+.IMPORT DataC_Core_West_sRoom
 .IMPORT DataC_Crypt_East_sRoom
 .IMPORT DataC_Crypt_Escape_sRoom
 .IMPORT DataC_Crypt_Flower_sRoom
@@ -124,7 +125,7 @@
 .IMPORT Ram_PlatformType_ePlatform_arr
 .IMPORTZP Zp_AvatarExit_ePassage
 .IMPORTZP Zp_AvatarPlatformIndex_u8
-.IMPORTZP Zp_CameraCanScroll_bool
+.IMPORTZP Zp_Camera_bScroll
 .IMPORTZP Zp_ConsoleMachineIndex_u8
 .IMPORTZP Zp_HudMachineIndex_u8
 .IMPORTZP Zp_RoomShake_u8
@@ -179,6 +180,7 @@ Zp_RoomState: .res kRoomStateSize
     d_entry table, CoreElevator,    DataC_Core_Elevator_sRoom
     d_entry table, CoreFlower,      DataC_Core_Flower_sRoom
     d_entry table, CoreLock,        DataC_Core_Lock_sRoom
+    d_entry table, CoreWest,        DataC_Core_West_sRoom
     d_entry table, CryptEast,       DataC_Crypt_East_sRoom
     d_entry table, CryptEscape,     DataC_Crypt_Escape_sRoom
     d_entry table, CryptFlower,     DataC_Crypt_Flower_sRoom
@@ -465,10 +467,10 @@ _SetVars:
     ldx #0
     .assert ePassage::None = 0, error
     stx Zp_AvatarExit_ePassage
+    stx Zp_Camera_bScroll
     stx Zp_RoomShake_u8
     dex  ; now X is $ff
     stx Zp_AvatarPlatformIndex_u8
-    stx Zp_CameraCanScroll_bool
     stx Zp_ConsoleMachineIndex_u8
     stx Zp_HudMachineIndex_u8
     rts

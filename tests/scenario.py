@@ -31,7 +31,8 @@ PERMITTED_DOOR_MISMATCHES = {
 }
 
 PERMITTED_OOB_CELLS = set([
-    ('GardenLanding', (6, 7)),
+    ('CoreWest',      (3, 10)),
+    ('GardenLanding', (6,  7)),
 ])
 
 ROOM_PARENTS = {

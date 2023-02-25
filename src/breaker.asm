@@ -26,6 +26,7 @@
 .INCLUDE "mmc3.inc"
 .INCLUDE "oam.inc"
 .INCLUDE "room.inc"
+.INCLUDE "scroll.inc"
 .INCLUDE "spawn.inc"
 .INCLUDE "tileset.inc"
 
@@ -55,7 +56,7 @@
 .IMPORTZP Zp_AvatarSubY_u8
 .IMPORTZP Zp_AvatarVelX_i16
 .IMPORTZP Zp_AvatarVelY_i16
-.IMPORTZP Zp_CameraCanScroll_bool
+.IMPORTZP Zp_Camera_bScroll
 .IMPORTZP Zp_Chr0cBank_u8
 .IMPORTZP Zp_Current_eRoom
 .IMPORTZP Zp_FrameCounter_u8
@@ -150,11 +151,10 @@ _GameLoop:
     ;; Set room scroll and lock scrolling.
     lda #$48
     sta Zp_RoomScrollY_u8
-    lda #$90
-    sta Zp_RoomScrollX_u16 + 0
-    lda #$00
-    sta Zp_RoomScrollX_u16 + 1
-    sta Zp_CameraCanScroll_bool
+    ldax #$0090
+    stax Zp_RoomScrollX_u16
+    lda #bScroll::LockHorz | bScroll::LockVert
+    sta Zp_Camera_bScroll
     ;; Start the cutscene.
     ldax #Main_Breaker_PowerCoreCutscene
     stax Zp_NextCutscene_main_ptr

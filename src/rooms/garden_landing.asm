@@ -27,6 +27,7 @@
 .INCLUDE "../mmc3.inc"
 .INCLUDE "../platform.inc"
 .INCLUDE "../room.inc"
+.INCLUDE "../scroll.inc"
 .INCLUDE "../spawn.inc"
 
 .IMPORT DataA_Room_Garden_sTileset
@@ -34,6 +35,11 @@
 .IMPORT Func_SetFlag
 .IMPORT Ppu_ChrObjGarden
 .IMPORT Sram_Minimap_u16_arr
+.IMPORTZP Zp_AvatarPosY_i16
+.IMPORTZP Zp_Camera_bScroll
+.IMPORTZP Zp_RoomScrollX_u16
+.IMPORTZP Zp_RoomScrollY_u8
+.IMPORTZP Zp_RoomState
 
 ;;;=========================================================================;;;
 
@@ -47,6 +53,17 @@ kShaftMinimapTopRow = 4
 
 ;;; The byte offset into Sram_Minimap_u16_arr for the vertical shaft.
 kShaftMinimapByteOffset = 2 * kShaftMinimapCol + kShaftMinimapTopRow / 8
+
+;;; Once the player avatar falls to this room pixel Y-position, the camera
+;;; changes from being horizontally locked to vertically locked.
+kScrollCutoffPosY = $0140
+
+;;; Defines room-specific state data for this particular room.
+.STRUCT sState
+    ;; Whether the camera should be locked horizontally instead of vertically.
+    LockHorz_bool .byte
+.ENDSTRUCT
+.ASSERT .sizeof(sState) <= kRoomStateSize, error
 
 ;;;=========================================================================;;;
 
@@ -64,7 +81,7 @@ kShaftMinimapByteOffset = 2 * kShaftMinimapCol + kShaftMinimapTopRow / 8
     d_byte NumMachines_u8, 0
     d_addr Machines_sMachine_arr_ptr, 0
     d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjGarden)
-    d_addr Tick_func_ptr, Func_Noop
+    d_addr Tick_func_ptr, FuncC_Garden_Landing_UpdateScrollLock
     d_addr Draw_func_ptr, Func_Noop
     d_addr Ext_sRoomExt_ptr, _Ext_sRoomExt
     D_END
@@ -124,6 +141,8 @@ _Passages_sPassage_arr:
     ;; nothing.
     cmp #bSpawn::Passage | kShaftPassageIndex
     bne @done
+    ;; Arrange to lock the camera horizontally.
+    dec Zp_RoomState + sState::LockHorz_bool  ; now LockHorz_bool is $ff
     ;; Set the flag indicating that the player entered the garden.
     ldx #eFlag::GardenLandingDroppedIn  ; param: flag
     jsr Func_SetFlag
@@ -144,6 +163,30 @@ _Passages_sPassage_arr:
     ldy #bMmc3PrgRam::Enable | bMmc3PrgRam::DenyWrites
     sty Hw_Mmc3PrgRamProtect_wo
     @done:
+    .assert * = FuncC_Garden_Landing_UpdateScrollLock, error, "fallthrough"
+.ENDPROC
+
+.PROC FuncC_Garden_Landing_UpdateScrollLock
+    bit Zp_RoomState + sState::LockHorz_bool
+    bpl _LockVert
+    lda Zp_AvatarPosY_i16 + 0
+    cmp #<kScrollCutoffPosY
+    lda Zp_AvatarPosY_i16 + 1
+    sbc #>kScrollCutoffPosY
+    bge _UnlockHorz
+_LockHorz:
+    ldax #$0000
+    stax Zp_RoomScrollX_u16
+    lda #bScroll::LockHorz
+    sta Zp_Camera_bScroll
+    rts
+_UnlockHorz:
+    inc Zp_RoomState + sState::LockHorz_bool  ; now LockHorz_bool is $00
+_LockVert:
+    lda #$90
+    sta Zp_RoomScrollY_u8
+    lda #bScroll::LockVert
+    sta Zp_Camera_bScroll
     rts
 .ENDPROC
 

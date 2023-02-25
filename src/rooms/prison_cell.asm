@@ -34,6 +34,7 @@
 .INCLUDE "../ppu.inc"
 .INCLUDE "../program.inc"
 .INCLUDE "../room.inc"
+.INCLUDE "../scroll.inc"
 .INCLUDE "../spawn.inc"
 
 .IMPORT DataA_Room_Prison_sTileset
@@ -76,7 +77,7 @@
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORT Ram_PlatformType_ePlatform_arr
 .IMPORT Sram_ProgressFlags_arr
-.IMPORTZP Zp_CameraCanScroll_bool
+.IMPORTZP Zp_Camera_bScroll
 .IMPORTZP Zp_RoomScrollX_u16
 .IMPORTZP Zp_RoomScrollY_u8
 .IMPORTZP Zp_RoomState
@@ -91,6 +92,8 @@ kMinScrollX = $10
 kTunnelPassageIndex = 1
 ;;; The index of the passage on the eastern side of the room.
 kEasternPassageIndex = 2
+;;; The index of the console device for the PrisonCellLauncher machine.
+kLauncherConsoleDeviceIndex = 2
 
 ;;; The machine indices for the machines in this room.
 kLiftMachineIndex = 0
@@ -339,6 +342,7 @@ _Devices_sDevice_arr:
     d_byte BlockCol_u8, 3
     d_byte Target_u8, kLiftMachineIndex
     D_END
+    .assert * - :- = kLauncherConsoleDeviceIndex * .sizeof(sDevice), error
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Console
     d_byte BlockRow_u8, 13
@@ -387,19 +391,22 @@ _CheckIfReachedTunnel:
     ;; If the player has reached the tunnel before, then don't lock scrolling.
     flag_bit Sram_ProgressFlags_arr, eFlag::PrisonCellReachedTunnel
     bne @done
-    ;; If the player enters from the tunnel (or from the eastern passage,
-    ;; though normally that shouldn't be possible before reaching the tunnel),
-    ;; then set the flag indicating that the tunnel has been reached, and don't
-    ;; lock scrolling.
+    ;; If the player enters from the tunnel (or from the eastern passage or
+    ;; eastern console, though normally that shouldn't be possible before
+    ;; reaching the tunnel), then set the flag indicating that the tunnel has
+    ;; been reached, and don't lock scrolling.
     lda Zp_Tmp1_byte  ; bSpawn value
     cmp #bSpawn::Passage | kTunnelPassageIndex
     beq @setFlag
     cmp #bSpawn::Passage | kEasternPassageIndex
     beq @setFlag
+    cmp #bSpawn::Device | kLauncherConsoleDeviceIndex
+    beq @setFlag
     ;; Otherwise, lock scrolling so that only the prison cell is visible.
     @lockScrolling:
+    lda #bScroll::LockHorz | bScroll::LockVert
+    sta Zp_Camera_bScroll
     lda #0
-    sta Zp_CameraCanScroll_bool
     sta Zp_RoomScrollY_u8
     .assert >kMinScrollX = 0, error
     sta Zp_RoomScrollX_u16 + 1

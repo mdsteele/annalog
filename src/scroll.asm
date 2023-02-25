@@ -21,6 +21,7 @@
 .INCLUDE "macros.inc"
 .INCLUDE "ppu.inc"
 .INCLUDE "room.inc"
+.INCLUDE "scroll.inc"
 
 .IMPORT FuncA_Terrain_CallRoomFadeIn
 .IMPORT FuncA_Terrain_FillNametables
@@ -72,12 +73,13 @@ Zp_RoomScrollX_u16: .res 2
 .EXPORTZP Zp_RoomScrollY_u8
 Zp_RoomScrollY_u8: .res 1
 
-;;; If true ($ff), the camera position (that is, Zp_RoomScroll*) will track
-;;; towards the scroll goal (Zp_ScrollGoal*) each frame; if false ($00), then
-;;; the camera position will stay locked (though the scroll goal can continue
-;;; to update).
-.EXPORTZP Zp_CameraCanScroll_bool
-Zp_CameraCanScroll_bool: .res 1
+;;; Scroll lock settings for the camera position.  Normally, the camera
+;;; position (that is, Zp_RoomScroll*) will track towards the scroll goal
+;;; (Zp_ScrollGoal*) each frame; however, if scrolling is locked horizontally
+;;; and/or vertically, then the camera position will stay locked on that axis
+;;; (though the scroll goal can continue to update).
+.EXPORTZP Zp_Camera_bScroll
+Zp_Camera_bScroll: .res 1
 
 ;;; If nonzero, the room will shake for this many more frames.
 .EXPORTZP Zp_RoomShake_u8
@@ -177,13 +179,17 @@ _SetScrollGoalX:
     jsr Func_FillLowerAttributeTable
     ;; Initialize the scroll position.
     jsr FuncA_Terrain_SetScrollGoalFromAvatar
-    bit Zp_CameraCanScroll_bool
-    bpl @done
-    lda Zp_ScrollGoalY_u8
-    sta Zp_RoomScrollY_u8
+    bit Zp_Camera_bScroll
+    .assert bScroll::LockHorz = bProc::Negative, error
+    bmi @lockHorz
     ldax Zp_ScrollGoalX_u16
     stax Zp_RoomScrollX_u16
-    @done:
+    @lockHorz:
+    .assert bScroll::LockVert = bProc::Overflow, error
+    bvs @lockVert
+    lda Zp_ScrollGoalY_u8
+    sta Zp_RoomScrollY_u8
+    @lockVert:
     jsr FuncA_Terrain_UpdateAndMarkMinimap
     ;; Calculate the index of the leftmost room tile column that should be in
     ;; the nametable.
@@ -216,10 +222,11 @@ _SetScrollGoalX:
 ;;; for the current room as necessary.
 .EXPORT FuncA_Terrain_ScrollTowardsGoal
 .PROC FuncA_Terrain_ScrollTowardsGoal
-    ;; If scrolling is locked, don't scroll vertically (but still allow camera
-    ;; shake to work).
-    bit Zp_CameraCanScroll_bool
-    bpl _ShakeScrollY
+    ;; If scrolling is vertically locked, don't scroll vertically (but still
+    ;; allow camera shake to work).
+    bit Zp_Camera_bScroll
+    .assert bScroll::LockVert = bProc::Overflow, error
+    bvs _ShakeScrollY
 _TrackScrollYTowardsGoal:
     ;; Compute the delta from the current scroll-Y position to the goal
     ;; position, storing it in A.
@@ -303,11 +310,10 @@ _ShakeScrollY:
     sta Zp_RoomScrollY_u8
     @done:
 _PrepareToScrollHorz:
-    ;; If scrolling is locked, don't scroll horizontally.
-    bit Zp_CameraCanScroll_bool
-    bmi @canScroll
-    rts
-    @canScroll:
+    ;; If scrolling is horizontally locked, don't scroll horizontally.
+    bit Zp_Camera_bScroll
+    .assert bScroll::LockHorz = bProc::Negative, error
+    bmi _UpdateMinimap
     ;; Calculate the index of the leftmost room tile column that is currently
     ;; in the nametable, and put that index in Zp_Tmp1_byte.
     lda Zp_RoomScrollX_u16 + 0
@@ -390,6 +396,7 @@ _UpdateNametable:
     @doTransfer:
     jsr FuncA_Terrain_TransferTileColumn
     @doneTransfer:
+_UpdateMinimap:
     jmp FuncA_Terrain_UpdateAndMarkMinimap
 .ENDPROC
 

@@ -33,6 +33,7 @@
 .INCLUDE "../ppu.inc"
 .INCLUDE "../program.inc"
 .INCLUDE "../room.inc"
+.INCLUDE "../scroll.inc"
 .INCLUDE "boss_garden.inc"
 
 .IMPORT DataA_Room_Garden_sTileset
@@ -71,11 +72,10 @@
 .IMPORT Ram_PlatformType_ePlatform_arr
 .IMPORTZP Zp_AvatarPosX_i16
 .IMPORTZP Zp_Buffered_sIrq
-.IMPORTZP Zp_CameraCanScroll_bool
+.IMPORTZP Zp_Camera_bScroll
 .IMPORTZP Zp_Chr0cBank_u8
 .IMPORTZP Zp_FrameCounter_u8
 .IMPORTZP Zp_NextIrq_int_ptr
-.IMPORTZP Zp_RoomScrollX_u16
 .IMPORTZP Zp_RoomScrollY_u8
 .IMPORTZP Zp_RoomState
 .IMPORTZP Zp_Tmp1_byte
@@ -346,10 +346,9 @@ _Devices_sDevice_arr:
 .PROC FuncC_Boss_Garden_EnterRoom
 _LockScrolling:
     lda #0
-    sta Zp_CameraCanScroll_bool
-    sta Zp_RoomScrollX_u16 + 0
-    sta Zp_RoomScrollX_u16 + 1
     sta Zp_RoomScrollY_u8
+    lda #bScroll::LockVert
+    sta Zp_Camera_bScroll
 _InitBoss:
     ldax #FuncC_Boss_Garden_sBoss  ; param: sBoss ptr
     jsr FuncA_Room_InitBoss  ; sets Z if boss is alive
