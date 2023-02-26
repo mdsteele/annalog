@@ -119,7 +119,6 @@ Zp_AudioTmp2_byte: .res 1
 .SEGMENT "RAM_Audio"
 
 ;;; Music channel state for all the different APU channels.
-.EXPORT Ram_Music_sChanState_arr
 Ram_Music_sChanState_arr: .res .sizeof(sChanState) * kNumApuChannels
 
 ;;; SFX channel state for all the different APU channels.
@@ -135,7 +134,6 @@ Ram_Sound_sChanSfx_arr: .res .sizeof(sChanSfx) * kNumApuChannels
 .PROC Data_Empty_sMusic
     D_STRUCT sMusic
     d_addr Opcodes_bMusic_arr_ptr, _Opcodes_bMusic_arr
-    d_addr Instruments_func_ptr_arr_ptr, 0
     d_addr Parts_sPart_arr_ptr, 0
     d_addr Phrases_sPhrase_ptr_arr_ptr, 0
     D_END
@@ -152,15 +150,6 @@ _Opcodes_bMusic_arr:
 ;;; A sPhrase struct that contains no notes.
 .PROC Data_Empty_sPhrase
     .byte $00
-.ENDPROC
-
-;;; The default instrument for music channels that don't specify one.
-;;; @param X The channel number (0-4) times four (so, 0, 4, 8, 12, or 16).
-;;; @return A The duty/envelope byte to use.
-;;; @preserve X
-.PROC Func_DefaultInstrument
-    lda #$3f
-    rts
 .ENDPROC
 
 ;;; Mutes all APU channels, resets APU registers, disables APU IRQs, and
@@ -305,10 +294,9 @@ _StartSfx:
     lda #0
     sta Ram_Music_sChanState_arr + sChanState::NoteDuration_u8, x
     sta Ram_Music_sChanState_arr + sChanState::NoteFrames_u8, x
-    lda #<Func_DefaultInstrument
-    sta Ram_Music_sChanState_arr + sChanState::Instrument_func_ptr + 0, x
-    lda #>Func_DefaultInstrument
-    sta Ram_Music_sChanState_arr + sChanState::Instrument_func_ptr + 1, x
+    sta Ram_Music_sChanState_arr + sChanState::InstParam_byte, x
+    .assert eInst::Default = 0, error
+    sta Ram_Music_sChanState_arr + sChanState::Instrument_eInst, x
     .repeat .sizeof(sChanNext)
     inx
     .endrepeat
@@ -578,16 +566,16 @@ _SkipTone:
     rts
 _NoteInst:
     and #bNote::InstMask
-    ;; Set this channel's current instrument to entry number A in the music's
-    ;; instrument array.
-    mul #2
-    tay
-    lda (Zp_Current_sMusic + sMusic::Instruments_func_ptr_arr_ptr), y
-    sta Ram_Music_sChanState_arr + sChanState::Instrument_func_ptr + 0, x
-    iny
-    lda (Zp_Current_sMusic + sMusic::Instruments_func_ptr_arr_ptr), y
-    sta Ram_Music_sChanState_arr + sChanState::Instrument_func_ptr + 1, x
-    jmp _StartNextNote
+    sta Ram_Music_sChanState_arr + sChanState::Instrument_eInst, x
+    .assert bNote::InstMask & $80 = 0, error
+    ;; Read the second byte of the INST note and use it as the param byte.
+    lda (Zp_Music_sChanNext_arr + sChanNext::PhraseNext_ptr, x)
+    sta Ram_Music_sChanState_arr + sChanState::InstParam_byte, x
+    ;; Increment the channel's PhraseNext_ptr a second time.
+    inc Zp_Music_sChanNext_arr + sChanNext::PhraseNext_ptr + 0, x
+    bne _StartNextNote
+    inc Zp_Music_sChanNext_arr + sChanNext::PhraseNext_ptr + 1, x
+    bne _StartNextNote  ; unconditional
 _NoteDone:
     sec  ; set C to indicate that the phrase has finished
     ;; Disable this channel unless it's playing SFX.
@@ -618,9 +606,10 @@ _DisableChannel:
 ;;; @return A The duty/envelope byte to use.
 ;;; @preserve X
 .PROC Func_AudioCallInstrument
-    lda Ram_Music_sChanState_arr + sChanState::Instrument_func_ptr + 0, x
+    ldy Ram_Music_sChanState_arr + sChanState::Instrument_eInst, x
+    lda Data_Instruments_ptr_0_arr, y
     sta Zp_AudioTmp1_byte
-    lda Ram_Music_sChanState_arr + sChanState::Instrument_func_ptr + 1, x
+    lda Data_Instruments_ptr_1_arr, y
     sta Zp_AudioTmp2_byte
     .assert Zp_AudioTmp1_byte + 1 = Zp_AudioTmp2_byte, error
     jmp (Zp_AudioTmp1_byte)
@@ -678,6 +667,52 @@ _DisableChannel:
 _CallSfx:
     .assert Zp_AudioTmp1_byte + 1 = Zp_AudioTmp2_byte, error
     jmp (Zp_AudioTmp1_byte)
+.ENDPROC
+
+;;; Maps from eInst enum values to instrument function pointers.  Each
+;;; instrument function returns the envelope byte to set (not taking master
+;;; volume into account), and can optionally update other APU registers for
+;;; the channel.
+;;; @param X The channel number (0-4) times four (so, 0, 4, 8, 12, or 16).
+;;; @return A The duty/envelope byte to use.
+;;; @preserve X
+.REPEAT 2, table
+    D_TABLE_LO table, Data_Instruments_ptr_0_arr
+    D_TABLE_HI table, Data_Instruments_ptr_1_arr
+    D_TABLE eInst
+    d_entry table, Default,  Func_InstrumentDefault
+    d_entry table, RampDown, Func_InstrumentRampDown
+    d_entry table, RampUp,   Func_InstrumentRampUp
+    D_END
+.ENDREPEAT
+
+;;; The default instrument for music channels that don't specify one.
+;;; @param X The channel number (0-4) times four (so, 0, 4, 8, 12, or 16).
+;;; @return A The duty/envelope byte to use.
+;;; @preserve X
+.PROC Func_InstrumentDefault
+    lda #$3f
+    rts
+.ENDPROC
+
+.PROC Func_InstrumentRampDown
+    lda #$0c
+    sub Ram_Music_sChanState_arr + sChanState::NoteFrames_u8, x
+    bge @setDuty
+    lda #$00
+    @setDuty:
+    ora #$b0
+    rts
+.ENDPROC
+
+.PROC Func_InstrumentRampUp
+    lda Ram_Music_sChanState_arr + sChanState::NoteFrames_u8, x
+    cmp #$0f
+    blt @setDuty
+    lda #$0f
+    @setDuty:
+    ora #$b0
+    rts
 .ENDPROC
 
 ;;;=========================================================================;;;

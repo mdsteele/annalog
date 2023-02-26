@@ -39,7 +39,6 @@
 .IMPORT Func_Window_Disable
 .IMPORT Main_Explore_SpawnInLastSafeRoom
 .IMPORT Ppu_ChrBgTitle
-.IMPORT Ram_Music_sChanState_arr
 .IMPORT Sram_LastSafe_bSpawn
 .IMPORT Sram_LastSafe_eRoom
 .IMPORT Sram_MagicNumber_u8
@@ -97,32 +96,12 @@ _StartGame:
 .PROC Data_Title_Placeholder_sMusic
     D_STRUCT sMusic
     d_addr Opcodes_bMusic_arr_ptr, _Opcodes_bMusic_arr
-    d_addr Instruments_func_ptr_arr_ptr, _Instruments_func_ptr_arr
     d_addr Parts_sPart_arr_ptr, _Parts_sPart_arr
     d_addr Phrases_sPhrase_ptr_arr_ptr, _Phrases_sPhrase_ptr_arr
     D_END
 _Opcodes_bMusic_arr:
     .byte bMusic::IsPlay | 0     ; PLAY 0
     .byte bMusic::JumpMask & -1  ; JUMP -1
-_Instruments_func_ptr_arr:
-    .addr _Instrument0
-    .addr _Instrument1
-_Instrument0:
-    lda Ram_Music_sChanState_arr + sChanState::NoteFrames_u8, x
-    cmp #$0f
-    blt @setDuty
-    lda #$0f
-    @setDuty:
-    ora #$b0
-    rts
-_Instrument1:
-    lda #$0c
-    sub Ram_Music_sChanState_arr + sChanState::NoteFrames_u8, x
-    bge @setDuty
-    lda #$00
-    @setDuty:
-    ora #$b0
-    rts
 _Parts_sPart_arr:
     D_STRUCT sPart
     d_addr Chain1_u8_arr_ptr, _Chain1A_u8_arr
@@ -141,7 +120,7 @@ _Phrases_sPhrase_ptr_arr:
     .addr _Phrase0_sPhrase
     .addr _Phrase1_sPhrase
 _Phrase0_sPhrase:
-    .byte $80  ; INST 0
+    .byte bNote::NotRest | eInst::RampUp, 0  ; INST
     .byte $c1, $00, 15  ; TONE
     .byte 15  ; REST
     .byte $c3, $00, 30  ; TONE
@@ -149,7 +128,7 @@ _Phrase0_sPhrase:
     .byte $c3, $00, 30  ; TONE
     .byte $00  ; DONE
 _Phrase1_sPhrase:
-    .byte $81  ; INST 1
+    .byte bNote::NotRest | eInst::RampDown, 0  ; INST
     .byte $c0, $09, 15  ; TONE
     .byte $c0, $00, 15  ; TONE
     .byte $00  ; DONE

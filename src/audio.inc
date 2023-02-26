@@ -17,15 +17,23 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
+;;; Instruments that can be used for music notes.
+.ENUM eInst
+    Default
+    RampDown
+    RampUp
+    NUM_VALUES
+.ENDENUM
+
 ;;; Each note in a phrase is one or more bytes, using the following encoding:
 ;;;   * DONE (1 byte) [%00000000].  This marks the end of the phrase.
 ;;;   * REST (1 byte) [%0xxxxxxx].  Silences this channel for 1 + %0xxxxxxx
 ;;;     frames (0-127).  Multiple REST notes in a row can be used to silence
 ;;;     the channel for longer durations.
-;;;   * INST (1 byte) [%10xxxxxx].  Sets this channel to use instrument number
-;;;     %00xxxxxx from the song's instrument table (0-63).  The chosen
-;;;     instrument will persist across phrases and parts, until the next INST
-;;;     note is executed.
+;;;   * INST (2 bytes) [%10xxxxxx %yyyyyyyy].  Sets this channel to use the
+;;;     instrument with eInst value %00xxxxxx (0-63), and sets %yyyyyyyy as the
+;;;     instrument-specific parameter byte.  The chosen instrument will persist
+;;;     across phrases and parts, until the next INST note is executed.
 ;;;   * TONE (3 bytes) [%11qqqwww %xxxxyyyy %zzzzzzzz].  Plays a sound for
 ;;;     %zzzzzzzz frames (1-255), with attributes depending on the channel:
 ;;;       * On the pulse and triangle channels, the tone will have a frequency
@@ -43,6 +51,9 @@
     InstMask = %00111111  ; mask for instrument number of an INST note
     ToneMask = %00111111  ; mask for data for first byte of a TONE note
 .ENDSCOPE
+;;; Ensure that the bNote instrument mask is wide enough to include any
+;;; instrument.
+.ASSERT bNote::InstMask + 1 >= eInst::NUM_VALUES, error
 
 ;;; A variable-length sequence of notes, terminated by a $00 byte (i.e. a DONE
 ;;; note).  Each note is one or more bytes, the first of which uses bNote
@@ -95,14 +106,6 @@
     ;; A pointer to an array of music opcodes for this song.  This controls
     ;; which parts are played, and in what order.
     Opcodes_bMusic_arr_ptr       .addr
-    ;; A pointer to an array of instruments that can be used by this song.
-    ;; Each instrument function returns the envelope byte to set (not taking
-    ;; master volume into account), and can optionally update other APU
-    ;; registers for channel.
-    ;; @param X The channel number (0-4) times four (so, 0, 4, 8, 12, or 16).
-    ;; @return A The duty/envelope byte to use.
-    ;; @preserve X
-    Instruments_func_ptr_arr_ptr .addr
     ;; A pointer to an array of parts that can appear in this song.  Each song
     ;; plays some sequence of parts in some order, possibly looping, and/or
     ;; possibly dynamically affected by the global music flag.
@@ -116,14 +119,15 @@
 ;;; Music state variables for a given APU channel.
 .STRUCT sChanState
     ;; The length of the current tone/rest, in frames.
-    NoteDuration_u8     .byte
+    NoteDuration_u8  .byte
     ;; How many frames of the current tone/rest have elapsed so far.
-    NoteFrames_u8       .byte
-    ;; The instrument function to call each frame to update the tone.
-    ;; @param X The channel number (0-4) times four (so, 0, 4, 8, 12, or 16).
-    ;; @return A The duty/envelope byte to use.
-    ;; @preserve X
-    Instrument_func_ptr .addr
+    NoteFrames_u8    .byte
+    ;; Arbitrary parameter/state byte that can be used by the instrument
+    ;; function.
+    InstParam_byte   .byte
+    ;; Indicates which instrument function to call each frame to update the
+    ;; tone.
+    Instrument_eInst .byte
 .ENDSTRUCT
 
 ;;; SFX state variables for a given APU channel.
