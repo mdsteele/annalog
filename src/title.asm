@@ -22,12 +22,12 @@
 .INCLUDE "joypad.inc"
 .INCLUDE "macros.inc"
 .INCLUDE "mmc3.inc"
+.INCLUDE "music.inc"
 .INCLUDE "ppu.inc"
 .INCLUDE "program.inc"
 .INCLUDE "room.inc"
 .INCLUDE "spawn.inc"
 
-.IMPORT Data_EmptyChain_u8_arr
 .IMPORT FuncA_Upgrade_ComputeMaxInstructions
 .IMPORT Func_ClearRestOfOam
 .IMPORT Func_ClearRestOfOamAndProcessFrame
@@ -92,48 +92,6 @@ _StartGame:
     jmp Main_Explore_SpawnInLastSafeRoom
 .ENDPROC
 
-;;; TODO: Remove this once music generation is implemented.
-.PROC Data_Title_Placeholder_sMusic
-    D_STRUCT sMusic
-    d_addr Opcodes_bMusic_arr_ptr, _Opcodes_bMusic_arr
-    d_addr Parts_sPart_arr_ptr, _Parts_sPart_arr
-    d_addr Phrases_sPhrase_ptr_arr_ptr, _Phrases_sPhrase_ptr_arr
-    D_END
-_Opcodes_bMusic_arr:
-    .byte bMusic::IsPlay | 0     ; PLAY 0
-    .byte bMusic::JumpMask & -1  ; JUMP -1
-_Parts_sPart_arr:
-    D_STRUCT sPart
-    d_addr Chain1_u8_arr_ptr, _Chain1A_u8_arr
-    d_addr Chain2_u8_arr_ptr, Data_EmptyChain_u8_arr
-    d_addr ChainT_u8_arr_ptr, Data_EmptyChain_u8_arr
-    d_addr ChainN_u8_arr_ptr, _ChainNA_u8_arr
-    d_addr ChainD_u8_arr_ptr, Data_EmptyChain_u8_arr
-    D_END
-_Chain1A_u8_arr:
-    .byte 0
-    .byte $ff  ; end-of-chain
-_ChainNA_u8_arr:
-    .byte 1, 1, 1, 1
-    .byte $ff  ; end-of-chain
-_Phrases_sPhrase_ptr_arr:
-    .addr _Phrase0_sPhrase
-    .addr _Phrase1_sPhrase
-_Phrase0_sPhrase:
-    .byte bNote::NotRest | eInst::RampUp, 0  ; INST
-    .byte $c1, $00, 15  ; TONE
-    .byte 15  ; REST
-    .byte $c3, $00, 30  ; TONE
-    .byte $c2, $00, 30  ; TONE
-    .byte $c3, $00, 30  ; TONE
-    .byte $00  ; DONE
-_Phrase1_sPhrase:
-    .byte bNote::NotRest | eInst::RampDown, 0  ; INST
-    .byte $c0, $09, 15  ; TONE
-    .byte $c0, $00, 15  ; TONE
-    .byte $00  ; DONE
-.ENDPROC
-
 ;;;=========================================================================;;;
 
 .SEGMENT "PRGA_Title"
@@ -152,10 +110,10 @@ End:
     chr08_bank #<.bank(Ppu_ChrBgTitle)
 _StartMusic:
     lda #$ff
-    sta <(Zp_Next_sAudioCtrl + sAudioCtrl::Enable_bool)
-    sta <(Zp_Next_sAudioCtrl + sAudioCtrl::MasterVolume_u8)
-    ldax #Data_Title_Placeholder_sMusic
-    stax <(Zp_Next_sAudioCtrl + sAudioCtrl::Song_sMusic_ptr)
+    sta Zp_Next_sAudioCtrl + sAudioCtrl::Enable_bool
+    sta Zp_Next_sAudioCtrl + sAudioCtrl::MasterVolume_u8
+    lda #eMusic::Title
+    sta Zp_Next_sAudioCtrl + sAudioCtrl::Music_eMusic
 _ClearOam:
     lda #0
     sta Zp_OamOffset_u8

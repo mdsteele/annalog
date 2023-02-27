@@ -21,6 +21,10 @@
 .INCLUDE "audio.inc"
 .INCLUDE "cpu.inc"
 .INCLUDE "macros.inc"
+.INCLUDE "music.inc"
+
+.IMPORT Data_Music_sMusic_ptr_0_arr
+.IMPORT Data_Music_sMusic_ptr_1_arr
 
 ;;;=========================================================================;;;
 
@@ -57,14 +61,14 @@
 .ZEROPAGE
 
 ;;; Stores commands that will be sent to the audio driver the next time that
-;;; Func_ProcessFrame is called.  This can be safely written to on the main
-;;; thread.
-;;;
-;;; TODO: This is a big struct, and it doesn't really need to be in the zero
-;;; page, so if we start running out of ZP space, this is a good candidate to
-;;; move into RAM.
+;;; Func_ProcessFrame is called.  The main thread can read/write this freely;
+;;; the audio thread will only read/write this during a call to
+;;; Func_ProcessFrame.
 .EXPORTZP Zp_Next_sAudioCtrl
 Zp_Next_sAudioCtrl: .tag sAudioCtrl
+
+;;; The currently-playing music.
+Zp_Current_eMusic: .res 1
 
 ;;; A copy of the currently-playing music struct.  Storing this in the zero
 ;;; page allows us to use the Zero Page Indirect Y-Indexed addressing mode to
@@ -129,18 +133,6 @@ Ram_Sound_sChanSfx_arr: .res .sizeof(sChanSfx) * kNumApuChannels
 
 .SEGMENT "PRG8"
 
-;;; A sMusic struct that just plays silence.
-;;; TODO: .EXPORT Data_Empty_sMusic
-.PROC Data_Empty_sMusic
-    D_STRUCT sMusic
-    d_addr Opcodes_bMusic_arr_ptr, _Opcodes_bMusic_arr
-    d_addr Parts_sPart_arr_ptr, 0
-    d_addr Phrases_sPhrase_ptr_arr_ptr, 0
-    D_END
-_Opcodes_bMusic_arr:
-    .byte $00  ; STOP opcode
-.ENDPROC
-
 ;;; A music chain that contains no phrases.
 .EXPORT Data_EmptyChain_u8_arr
 .PROC Data_EmptyChain_u8_arr
@@ -175,13 +167,7 @@ _Opcodes_bMusic_arr:
     sta Zp_AudioEnabled_bool
     sta Zp_MusicFlag_bMusic
 _HaltMusic:
-    ldx #.sizeof(sMusic) - 1
-    @loop:
-    lda Data_Empty_sMusic, x
-    sta Zp_Current_sMusic, x
-    dex
-    .assert .sizeof(sMusic) <= $80, error
-    bpl @loop
+    ldx #eMusic::Silence  ; param: eMusic to play
     jsr Func_AudioRestartMusic
 _HaltSfx:
     lda #0
@@ -210,30 +196,18 @@ _Enable:
     and #$f0
     sta Zp_MasterVolume_u8
 _SyncMusicFlag:
-    lda <(Zp_Next_sAudioCtrl + sAudioCtrl::MusicFlag_bMusic)
+    lda Zp_Next_sAudioCtrl + sAudioCtrl::MusicFlag_bMusic
     .assert bMusic::UsesFlag = bProc::Negative, error
     bpl @done
     and #bMusic::FlagMask
     sta Zp_MusicFlag_bMusic
-    sta <(Zp_Next_sAudioCtrl + sAudioCtrl::MusicFlag_bMusic)
     @done:
+    lda Zp_MusicFlag_bMusic
+    sta Zp_Next_sAudioCtrl + sAudioCtrl::MusicFlag_bMusic
 _StartMusic:
-    ;; Check if we should start playing a new song.
-    lda <(Zp_Next_sAudioCtrl + sAudioCtrl::Song_sMusic_ptr + 1)
+    ldx Zp_Next_sAudioCtrl + sAudioCtrl::Music_eMusic  ; param: eMusic to play
+    cpx Zp_Current_eMusic
     beq @done
-    ;; Copy the sMusic struct for the song into Zp_Current_sMusic.
-    ldy #.sizeof(sMusic) - 1
-    @loop:
-    lda (Zp_Next_sAudioCtrl + sAudioCtrl::Song_sMusic_ptr), y
-    sta Zp_Current_sMusic, y
-    dey
-    .assert .sizeof(sMusic) <= $80, error
-    bpl @loop
-    ;; Null out the high byte of the Song_sMusic_ptr so we don't restart the
-    ;; music again next frame.
-    lda #0
-    sta <(Zp_Next_sAudioCtrl + sAudioCtrl::Song_sMusic_ptr + 1)
-    ;; Start the music from the beginning.
     jsr Func_AudioRestartMusic
     @done:
 _StartSfx:
@@ -278,8 +252,24 @@ _StartSfx:
     rts
 .ENDPROC
 
-;;; Sets audio RAM to start playing from the beginning of Zp_Current_sMusic.
+;;; Sets audio RAM to start playing the specific music from the beginning.
+;;; @param X The eMusic value to start playing.
 .PROC Func_AudioRestartMusic
+    stx Zp_Current_eMusic
+_CopyMusicStruct:
+    lda Data_Music_sMusic_ptr_0_arr, x
+    sta Zp_AudioTmp1_byte
+    lda Data_Music_sMusic_ptr_1_arr, x
+    sta Zp_AudioTmp2_byte
+    ldy #.sizeof(sMusic) - 1
+    @loop:
+    .assert Zp_AudioTmp1_byte + 1 = Zp_AudioTmp2_byte, error
+    lda (Zp_AudioTmp1_byte), y
+    sta Zp_Current_sMusic, y
+    dey
+    .assert .sizeof(sMusic) <= $80, error
+    bpl @loop
+_ResetChannels:
     ldx #0
     stx Zp_MusicOpcodeIndex_u8
     @loop:
@@ -607,9 +597,9 @@ _DisableChannel:
 ;;; @preserve X
 .PROC Func_AudioCallInstrument
     ldy Ram_Music_sChanState_arr + sChanState::Instrument_eInst, x
-    lda Data_Instruments_ptr_0_arr, y
+    lda Data_Instruments_func_ptr_0_arr, y
     sta Zp_AudioTmp1_byte
-    lda Data_Instruments_ptr_1_arr, y
+    lda Data_Instruments_func_ptr_1_arr, y
     sta Zp_AudioTmp2_byte
     .assert Zp_AudioTmp1_byte + 1 = Zp_AudioTmp2_byte, error
     jmp (Zp_AudioTmp1_byte)
@@ -677,8 +667,8 @@ _CallSfx:
 ;;; @return A The duty/envelope byte to use.
 ;;; @preserve X
 .REPEAT 2, table
-    D_TABLE_LO table, Data_Instruments_ptr_0_arr
-    D_TABLE_HI table, Data_Instruments_ptr_1_arr
+    D_TABLE_LO table, Data_Instruments_func_ptr_0_arr
+    D_TABLE_HI table, Data_Instruments_func_ptr_1_arr
     D_TABLE eInst
     d_entry table, Default,  Func_InstrumentDefault
     d_entry table, RampDown, Func_InstrumentRampDown

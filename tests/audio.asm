@@ -20,6 +20,7 @@
 .INCLUDE "../src/apu.inc"
 .INCLUDE "../src/audio.inc"
 .INCLUDE "../src/macros.inc"
+.INCLUDE "../src/music.inc"
 
 .IMPORT Data_EmptyChain_u8_arr
 .IMPORT Exit_Success
@@ -49,6 +50,11 @@ Hw_Pulse1TimerLo_wo = Hw_Channels_sChanRegs_arr5 + \
 ;;;=========================================================================;;;
 
 .CODE
+
+.EXPORT Data_Music_sMusic_ptr_0_arr
+.EXPORT Data_Music_sMusic_ptr_1_arr
+Data_Music_sMusic_ptr_0_arr: .byte <Data_Test_sMusic
+Data_Music_sMusic_ptr_1_arr: .byte >Data_Test_sMusic
 
 .PROC Data_Test_sMusic
     D_STRUCT sMusic
@@ -122,12 +128,12 @@ ResetAudio:
     jsr Func_ExpectAEqualsY
 EnableAndStartMusic:
     lda #$ff
-    sta <(Zp_Next_sAudioCtrl + sAudioCtrl::Enable_bool)
-    sta <(Zp_Next_sAudioCtrl + sAudioCtrl::MasterVolume_u8)
+    sta Zp_Next_sAudioCtrl + sAudioCtrl::Enable_bool
+    sta Zp_Next_sAudioCtrl + sAudioCtrl::MasterVolume_u8
     lda #bMusic::UsesFlag
-    sta <(Zp_Next_sAudioCtrl + sAudioCtrl::MusicFlag_bMusic)
-    ldax #Data_Test_sMusic
-    stax <(Zp_Next_sAudioCtrl + sAudioCtrl::Song_sMusic_ptr)
+    sta Zp_Next_sAudioCtrl + sAudioCtrl::MusicFlag_bMusic
+    lda #0
+    sta Zp_Next_sAudioCtrl + sAudioCtrl::Music_eMusic
     jsr Func_AudioSync
 PlayMusic:
     ;; First frame:
@@ -169,7 +175,7 @@ PlayMusic:
     jsr Func_ExpectAEqualsY
 DisableAudio:
     lda #$00
-    sta <(Zp_Next_sAudioCtrl + sAudioCtrl::Enable_bool)
+    sta Zp_Next_sAudioCtrl + sAudioCtrl::Enable_bool
     jsr Func_AudioSync
     lda Hw_ApuStatus_rw
     ldy #0
