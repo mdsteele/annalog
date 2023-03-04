@@ -1,0 +1,14 @@
+@PRG8
+
+!SONG Title_Placeholder "|A"
+
+=tempo q30
+=key 2#  % D major
+
+!INST 1U RampUp   0
+!INST ND RampDown 0
+
+!PART A
+
+1| iU d4e re d3q a3 d3 |
+N| p(iD x9e x0)NA pNA pNA pNA |

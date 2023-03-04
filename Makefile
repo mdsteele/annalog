@@ -31,6 +31,7 @@ AHI2CHR = $(BINDIR)/ahi2chr
 BG2MAP = $(BINDIR)/bg2map
 BG2ROOM = $(BINDIR)/bg2room
 BG2TSET = $(BINDIR)/bg2tset
+SNG2ASM = $(BINDIR)/sng2asm
 LABEL2NL = $(BINDIR)/label2nl
 
 CFGFILE = $(SRCDIR)/linker.cfg
@@ -41,11 +42,13 @@ ROMFILE = $(OUTDIR)/$(ROMNAME).nes
 AHIFILES := $(shell find $(SRCDIR) -name '*.ahi')
 ASMFILES := $(shell find $(SRCDIR) -name '*.asm')
 INCFILES := $(shell find $(SRCDIR) -name '*.inc')
+SNGFILES := $(shell find $(SRCDIR)/music -name '*.sng')
 ROOM_BG_FILES := $(shell find $(SRCDIR)/rooms -name '*.bg')
 TSET_BG_FILES := $(shell find $(SRCDIR)/tilesets -name '*.bg')
 
 CHRFILES := $(patsubst $(SRCDIR)/%.ahi,$(DATADIR)/%.chr,$(AHIFILES))
 GENFILES := \
+  $(patsubst $(SRCDIR)/music/%.sng,$(GENDIR)/music/%.asm,$(SNGFILES)) \
   $(patsubst $(SRCDIR)/tilesets/%.bg,$(GENDIR)/tilesets/%.asm,$(TSET_BG_FILES))
 OBJFILES := \
   $(patsubst $(SRCDIR)/%.asm,$(OBJDIR)/%.o,$(ASMFILES)) \
@@ -104,6 +107,9 @@ $(BG2TSET): build/bg2tset.c
 $(LABEL2NL): build/label2nl.c
 	$(compile-c)
 
+$(SNG2ASM): build/sng2asm.c
+	$(compile-c)
+
 #=============================================================================#
 # Generated files:
 
@@ -134,6 +140,11 @@ $(DATADIR)/%.room: $(SRCDIR)/rooms/%.bg $(BG2ROOM)
 	@$(BG2ROOM) < $< > $@
 
 .SECONDARY: $(ROOMFILES)
+
+$(GENDIR)/music/%.asm: $(SRCDIR)/music/%.sng $(SNG2ASM)
+	@echo "Generating $@"
+	@mkdir -p $(@D)
+	@$(SNG2ASM) < $< > $@
 
 $(GENDIR)/tilesets/%.asm: $(SRCDIR)/tilesets/%.bg $(BG2TSET) $(AHIFILES)
 	@echo "Generating $@"

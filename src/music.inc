@@ -99,7 +99,7 @@
 ;;;   * BFEQ [%1yxxxxxx].  If the music flag bit is equal to %y, jumps
 ;;;     forward/backward by %xxxxxx opcodes from this one (signed).  Otherwise,
 ;;;     does nothing (and proceeds to the next opcode).
-;;;   * PLAY [%010xxxxx].  Starts playing part number %xxxxx (0-25).  The next
+;;;   * PLAY [%010xxxxx].  Starts playing part number %xxxxx (0-31).  The next
 ;;;     opcode will be executed once that part has finished playing.
 .SCOPE bMusic
     UsesFlag = %10000000  ; set for flag-related opcodes
