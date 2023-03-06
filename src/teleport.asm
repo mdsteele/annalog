@@ -22,9 +22,8 @@
 .INCLUDE "mmc3.inc"
 .INCLUDE "spawn.inc"
 
-.IMPORT DataA_Room_Banks_u8_arr
 .IMPORT FuncA_Avatar_SpawnAtDevice
-.IMPORT FuncA_Room_Load
+.IMPORT FuncM_SwitchPrgcAndLoadRoom
 .IMPORT Func_FadeOutToBlack
 .IMPORT Func_SetLastSpawnPoint
 .IMPORT Main_Explore_Continue
@@ -47,9 +46,7 @@
     jsr Func_FadeOutToBlack
 _LoadDestinationRoom:
     jsr_prga FuncA_Avatar_GetTeleportDestinationRoom  ; returns X
-    prga_bank #<.bank(DataA_Room_Banks_u8_arr)
-    prgc_bank DataA_Room_Banks_u8_arr, x
-    jsr FuncA_Room_Load
+    jsr FuncM_SwitchPrgcAndLoadRoom
     jsr_prga FuncA_Avatar_EnterRoomViaTeleporter
 _FadeIn:
     ldya #Main_CutsceneTeleportIn

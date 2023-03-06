@@ -22,6 +22,7 @@
 .INCLUDE "cpu.inc"
 .INCLUDE "device.inc"
 .INCLUDE "macros.inc"
+.INCLUDE "mmc3.inc"
 .INCLUDE "platform.inc"
 .INCLUDE "room.inc"
 .INCLUDE "tileset.inc"
@@ -164,11 +165,24 @@ Zp_RoomState: .res kRoomStateSize
 
 ;;;=========================================================================;;;
 
+.SEGMENT "PRG8"
+
+;;; Switches PRGC banks, then loads and initializes data for the specified
+;;; room.
+;;; @param X The eRoom value for the room to load.
+.EXPORT FuncM_SwitchPrgcAndLoadRoom
+.PROC FuncM_SwitchPrgcAndLoadRoom
+    prga_bank #<.bank(DataA_Room_Banks_u8_arr)
+    prgc_bank DataA_Room_Banks_u8_arr, x
+    jmp FuncA_Room_Load
+.ENDPROC
+
+;;;=========================================================================;;;
+
 .SEGMENT "PRGA_Room"
 
 ;;; Pointers and PRGC bank numbers for sRoom structs for all rooms in the game,
 ;;; indexed by eRoom values.
-.EXPORT DataA_Room_Banks_u8_arr
 .REPEAT 3, table
     D_TABLE_LO table, DataA_Room_Table_sRoom_ptr_0_arr
     D_TABLE_HI table, DataA_Room_Table_sRoom_ptr_1_arr
@@ -257,7 +271,6 @@ Zp_RoomState: .res kRoomStateSize
 ;;; Loads and initializes data for the specified room.
 ;;; @prereq The correct PRGC bank has been set for the room to be loaded.
 ;;; @param X The eRoom value for the room to load.
-.EXPORT FuncA_Room_Load
 .PROC FuncA_Room_Load
     lda Zp_Current_eRoom
     sta Zp_Previous_eRoom

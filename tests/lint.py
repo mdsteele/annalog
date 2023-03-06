@@ -53,7 +53,7 @@ PRGA_PROC_NAME = re.compile(  # e.g. FuncA_SegmentName_Foobar
 PRGC_PROC_NAME = re.compile(  # e.g. DataC_SegmentName_Foobar_sBaz_arr
     '^(?:DataC|FuncC|MainC)_([a-zA-Z0-9]+)_[a-zA-Z0-9_]+$')
 UNBANKED_PROC_NAME = re.compile(  # e.g. Main_Foobar
-    '^(?:Data|Exit|Func|Int|Main|Ppu|Sram)_[a-zA-Z0-9_]+$')
+    '^(?:Data|Exit|Func|FuncM|Int|Main|Ppu|Sram)_[a-zA-Z0-9_]+$')
 
 SORT_PATTERNS = [
     ('src/actor.inc', '.ENUM eActor', 'NUM_VALUES', 1),
@@ -144,11 +144,12 @@ def run_tests():
                 if not proc.startswith('_'):
                     top_proc = proc
             if top_proc:
-                # Check that bank-switches only happen in Main procs.
+                # Check that bank-switches only happen in Main or FuncM procs.
                 match = BANK_SWITCH_PATTERN.match(line)
                 if match:
                     kind = match.group(1)
                     if not (top_proc.startswith('Main_') or
+                            top_proc.startswith('FuncM_') or
                             top_proc.startswith('MainC_') and 'prga' in kind):
                         fail('{} in {}'.format(kind, top_proc))
                 # Check that procs don't jump incorrectly to other procs.

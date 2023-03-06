@@ -30,9 +30,8 @@
 .INCLUDE "spawn.inc"
 .INCLUDE "tileset.inc"
 
-.IMPORT DataA_Room_Banks_u8_arr
 .IMPORT FuncA_Objects_DrawObjectsForRoom
-.IMPORT FuncA_Room_Load
+.IMPORT FuncM_SwitchPrgcAndLoadRoom
 .IMPORT Func_ClearRestOfOamAndProcessFrame
 .IMPORT Func_FadeOutToBlack
 .IMPORT Func_ProcessFrame
@@ -142,9 +141,7 @@ _GameLoop:
 .PROC Main_Breaker_LoadCoreRoom
     ;; Load the core room.
     ldx #eRoom::CoreBoss  ; param: room to load
-    prga_bank #<.bank(DataA_Room_Banks_u8_arr)
-    prgc_bank DataA_Room_Banks_u8_arr, x
-    jsr FuncA_Room_Load
+    jsr FuncM_SwitchPrgcAndLoadRoom
     ;; Hide the player avatar.
     lda #eAvatar::Hidden
     sta Zp_AvatarMode_eAvatar
@@ -191,9 +188,7 @@ _FadeOut:
 .PROC Main_Breaker_LoadCutsceneRoom
     ;; Load the room where the cutscene takes place.
     jsr_prga FuncA_Breaker_GetCutsceneRoom  ; returns X
-    prga_bank #<.bank(DataA_Room_Banks_u8_arr)
-    prgc_bank DataA_Room_Banks_u8_arr, x
-    jsr FuncA_Room_Load
+    jsr FuncM_SwitchPrgcAndLoadRoom
     ;; Hide the player avatar.
     lda #eAvatar::Hidden
     sta Zp_AvatarMode_eAvatar
@@ -212,9 +207,7 @@ _FadeOut:
     sta Zp_AvatarMode_eAvatar
     ;; Reload the room that the breaker was in.
     ldx Zp_Breaker_eRoom  ; param: room to load
-    prga_bank #<.bank(DataA_Room_Banks_u8_arr)
-    prgc_bank DataA_Room_Banks_u8_arr, x
-    jsr FuncA_Room_Load
+    jsr FuncM_SwitchPrgcAndLoadRoom
     jmp Main_Explore_EnterRoom
 .ENDPROC
 

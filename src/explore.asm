@@ -30,7 +30,6 @@
 .INCLUDE "terrain.inc"
 .INCLUDE "tileset.inc"
 
-.IMPORT DataA_Room_Banks_u8_arr
 .IMPORT FuncA_Actor_TickAllActors
 .IMPORT FuncA_Avatar_EnterRoomViaDoor
 .IMPORT FuncA_Avatar_EnterRoomViaPassage
@@ -49,10 +48,10 @@
 .IMPORT FuncA_Objects_SetShapePosToAvatarCenter
 .IMPORT FuncA_Room_CallRoomTick
 .IMPORT FuncA_Room_InitAllMachinesAndCallRoomEnter
-.IMPORT FuncA_Room_Load
 .IMPORT FuncA_Room_PickUpFlowerDevice
 .IMPORT FuncA_Terrain_InitRoomScrollAndNametables
 .IMPORT FuncA_Terrain_ScrollTowardsAvatar
+.IMPORT FuncM_SwitchPrgcAndLoadRoom
 .IMPORT Func_ClearRestOfOam
 .IMPORT Func_ClearRestOfOamAndProcessFrame
 .IMPORT Func_FadeInFromBlack
@@ -135,9 +134,7 @@ Zp_NextCutscene_main_ptr: .res 2
 .EXPORT Main_Explore_SpawnInLastSafeRoom
 .PROC Main_Explore_SpawnInLastSafeRoom
     ldx Sram_LastSafe_eRoom  ; param: room number
-    prga_bank #<.bank(DataA_Room_Banks_u8_arr)
-    prgc_bank DataA_Room_Banks_u8_arr, x
-    jsr FuncA_Room_Load
+    jsr FuncM_SwitchPrgcAndLoadRoom
     jsr_prga FuncA_Avatar_SpawnAtLastSafePoint
     .assert * = Main_Explore_EnterRoom, error, "fallthrough"
 .ENDPROC
@@ -310,9 +307,7 @@ _LoadNextRoom:
     tax  ; param: origin bPassage value (calculated)
     jsr FuncA_Avatar_ExitRoomViaPassage  ; returns X (eRoom) and A (block)
     pha  ; origin SpawnBlock_u8
-    prga_bank #<.bank(DataA_Room_Banks_u8_arr)
-    prgc_bank DataA_Room_Banks_u8_arr, x
-    jsr FuncA_Room_Load
+    jsr FuncM_SwitchPrgcAndLoadRoom
     pla  ; origin SpawnBlock_u8
     tay  ; param: origin SpawnBlock_u8
     pla  ; origin bPassage value (calculated)
@@ -342,11 +337,9 @@ _FadeOut:
     jsr Func_ClearRestOfOam
     jsr Func_FadeOutToBlack
 _LoadNextRoom:
-    prga_bank #<.bank(DataA_Room_Banks_u8_arr)
     ldy Zp_NearbyDevice_u8
     ldx Ram_DeviceTarget_u8_arr, y  ; param: eRoom value
-    prgc_bank DataA_Room_Banks_u8_arr, x
-    jsr FuncA_Room_Load
+    jsr FuncM_SwitchPrgcAndLoadRoom
     jsr_prga FuncA_Avatar_EnterRoomViaDoor
 _FadeIn:
     jmp Main_Explore_EnterRoom
