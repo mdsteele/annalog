@@ -18,11 +18,13 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "actor.inc"
+.INCLUDE "audio.inc"
 .INCLUDE "boss.inc"
 .INCLUDE "cpu.inc"
 .INCLUDE "device.inc"
 .INCLUDE "macros.inc"
 .INCLUDE "mmc3.inc"
+.INCLUDE "music.inc"
 .INCLUDE "platform.inc"
 .INCLUDE "room.inc"
 .INCLUDE "tileset.inc"
@@ -105,6 +107,7 @@
 .IMPORT DataC_Town_House6_sRoom
 .IMPORT DataC_Town_Outdoors_sRoom
 .IMPORT FuncA_Room_InitActor
+.IMPORT Func_ProcessFrame
 .IMPORT Ram_ActorPosX_i16_0_arr
 .IMPORT Ram_ActorPosX_i16_1_arr
 .IMPORT Ram_ActorPosY_i16_0_arr
@@ -130,6 +133,7 @@
 .IMPORTZP Zp_Camera_bScroll
 .IMPORTZP Zp_ConsoleMachineIndex_u8
 .IMPORTZP Zp_HudMachineIndex_u8
+.IMPORTZP Zp_Next_sAudioCtrl
 .IMPORTZP Zp_RoomShake_u8
 .IMPORTZP Zp_Tmp1_byte
 .IMPORTZP Zp_Tmp2_byte
@@ -167,11 +171,46 @@ Zp_RoomState: .res kRoomStateSize
 
 .SEGMENT "PRG8"
 
-;;; Switches PRGC banks, then loads and initializes data for the specified
-;;; room.
+;;; Queues up the music for the specified room (if it's not already playing),
+;;; switches PRGC banks, then loads and initializes data for the room.
+;;; @prereq Rendering is disabled.
 ;;; @param X The eRoom value for the room to load.
 .EXPORT FuncM_SwitchPrgcAndLoadRoom
 .PROC FuncM_SwitchPrgcAndLoadRoom
+    ;; TODO: replace this with real logic for picking music
+    ldy #eMusic::Title
+    cpx #eRoom::BossGarden
+    bne @done
+    ldy #eMusic::Boss
+    @done:
+    .assert * = FuncM_SwitchPrgcAndLoadRoomWithMusic, error
+.ENDPROC
+
+;;; Queues up the specified music (if it's not already playing), switches PRGC
+;;; banks, then loads and initializes data for the specified room.
+;;; @prereq Rendering is disabled.
+;;; @param X The eRoom value for the room to load.
+;;; @param Y The eMusic value for the music to play in the new room.
+.EXPORT FuncM_SwitchPrgcAndLoadRoomWithMusic
+.PROC FuncM_SwitchPrgcAndLoadRoomWithMusic
+_ChangeMusicIfNeeded:
+    ;; If the music will be different in the new room, then we need to disable
+    ;; audio before performing the PRGC bank switch (since the old music may be
+    ;; in the old PRGC bank).
+    cpy Zp_Next_sAudioCtrl + sAudioCtrl::Music_eMusic
+    beq @done
+    sty Zp_Next_sAudioCtrl + sAudioCtrl::Music_eMusic
+    lda #0
+    sta Zp_Next_sAudioCtrl + sAudioCtrl::Enable_bool
+    txa  ; eRoom to load
+    pha  ; eRoom to load
+    jsr Func_ProcessFrame
+    lda #$ff
+    sta Zp_Next_sAudioCtrl + sAudioCtrl::Enable_bool
+    pla  ; eRoom to load
+    tax  ; eRoom to load
+    @done:
+_LoadNewRoom:
     prga_bank #<.bank(DataA_Room_Banks_u8_arr)
     prgc_bank DataA_Room_Banks_u8_arr, x
     jmp FuncA_Room_Load

@@ -179,7 +179,7 @@ typedef enum {
 static sng_channel_t read_channel() {
   switch (read_char()) {
     case '1': return CH_PULSE1;
-    case '2': return CH_PULSE1;
+    case '2': return CH_PULSE2;
     case 'T': return CH_TRIANGLE;
     case 'N': return CH_NOISE;
     case 'D': return CH_DMC;
@@ -585,13 +585,24 @@ static void alias_chain(void) {
   if (alias_part_name < 'A' || alias_part_name > 'Z') {
     ERROR("invalid part name: '%c'\n", alias_part_name);
   }
-  if (alias_song->part_index_for_letter[alias_part_name - 'A'] < 0) {
+  int alias_part_index =
+    alias_song->part_index_for_letter[alias_part_name - 'A'];
+  if (alias_part_index < 0) {
     ERROR("cannot alias to nonexistent part %s:%c\n",
           alias_song->id, alias_part_name);
   }
-  chain->alias_song_id = alias_song->id;
-  chain->alias_part_name = alias_part_name;
-  chain->alias_channel = read_channel();
+  sng_part_t *alias_part = &alias_song->parts[alias_part_index];
+  sng_channel_t alias_channel = read_channel();
+  sng_chain_t *alias_chain = &alias_part->chains[alias_channel];
+  if (alias_chain->alias_song_id != NULL) {
+    chain->alias_song_id = alias_chain->alias_song_id;
+    chain->alias_part_name = alias_chain->alias_part_name;
+    chain->alias_channel = alias_chain->alias_channel;
+  } else {
+    chain->alias_song_id = alias_song->id;
+    chain->alias_part_name = alias_part_name;
+    chain->alias_channel = alias_channel;
+  }
 }
 
 static int find_phrase_index_for_name(unsigned short phrase_name) {

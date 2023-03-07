@@ -20,6 +20,7 @@
 ;;; Music songs that can be played.
 .ENUM eMusic
     Silence
+    Boss
     Title
     NUM_VALUES
 .ENDENUM

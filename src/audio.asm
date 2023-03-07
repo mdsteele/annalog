@@ -390,6 +390,7 @@ _OpcodePlay:
     lda (Zp_Current_sMusic + sMusic::Parts_sPart_arr_ptr), y
     sta Zp_Music_sChanNext_arr, x
     inx
+    iny
     .assert sChanNext::PhraseNext_ptr = 2, error
     lda #<Data_Empty_sPhrase
     sta Zp_Music_sChanNext_arr, x
@@ -398,8 +399,7 @@ _OpcodePlay:
     sta Zp_Music_sChanNext_arr, x
     inx
     .assert .sizeof(sChanNext) = 4, error
-    iny
-    cpy #.sizeof(sPart)
+    cpx #.sizeof(sChanNext) * kNumApuChannels
     blt @loop
     jmp _ContinueCurrentPart
 .ENDPROC

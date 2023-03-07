@@ -20,6 +20,7 @@
 .INCLUDE "macros.inc"
 .INCLUDE "music.inc"
 
+.IMPORT DataC_Boss_BossPlaceholder_sMusic
 .IMPORT Data_Title_Placeholder_sMusic
 
 ;;;=========================================================================;;;
@@ -34,6 +35,7 @@
     D_TABLE_HI table, Data_Music_sMusic_ptr_1_arr
     D_TABLE eMusic
     d_entry table, Silence, Data_Silence_sMusic
+    d_entry table, Boss,    DataC_Boss_BossPlaceholder_sMusic
     d_entry table, Title,   Data_Title_Placeholder_sMusic
     D_END
 .ENDREPEAT

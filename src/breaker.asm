@@ -24,6 +24,7 @@
 .INCLUDE "flag.inc"
 .INCLUDE "macros.inc"
 .INCLUDE "mmc3.inc"
+.INCLUDE "music.inc"
 .INCLUDE "oam.inc"
 .INCLUDE "room.inc"
 .INCLUDE "scroll.inc"
@@ -32,6 +33,7 @@
 
 .IMPORT FuncA_Objects_DrawObjectsForRoom
 .IMPORT FuncM_SwitchPrgcAndLoadRoom
+.IMPORT FuncM_SwitchPrgcAndLoadRoomWithMusic
 .IMPORT Func_ClearRestOfOamAndProcessFrame
 .IMPORT Func_FadeOutToBlack
 .IMPORT Func_ProcessFrame
@@ -141,7 +143,8 @@ _GameLoop:
 .PROC Main_Breaker_LoadCoreRoom
     ;; Load the core room.
     ldx #eRoom::CoreBoss  ; param: room to load
-    jsr FuncM_SwitchPrgcAndLoadRoom
+    ldy #eMusic::Silence  ; param: music to play
+    jsr FuncM_SwitchPrgcAndLoadRoomWithMusic
     ;; Hide the player avatar.
     lda #eAvatar::Hidden
     sta Zp_AvatarMode_eAvatar
@@ -188,7 +191,8 @@ _FadeOut:
 .PROC Main_Breaker_LoadCutsceneRoom
     ;; Load the room where the cutscene takes place.
     jsr_prga FuncA_Breaker_GetCutsceneRoom  ; returns X
-    jsr FuncM_SwitchPrgcAndLoadRoom
+    ldy #eMusic::Silence  ; param: music to play
+    jsr FuncM_SwitchPrgcAndLoadRoomWithMusic
     ;; Hide the player avatar.
     lda #eAvatar::Hidden
     sta Zp_AvatarMode_eAvatar

@@ -1,0 +1,67 @@
+@PRGC_Boss
+
+!SONG BossPlaceholder "A|BCCADDEEFFEEMMAB"
+
+=tempo q28
+=key 3#  % F# minor
+
+!INST 1D RampDown 0
+!INST 2D RampDown 0
+!INST TD Default  0
+!INST ND RampDown 0
+
+!PART A
+
+1| p(iD c5e c  ' ds de ds   )1A ' p1A | p1A ' p1A |
+2| p(iD c4e c  ' ds de ds   )2A ' p2A | p2A ' p2A |
+T| p(iD f2q    ' c          )3A ' p3A | p3A ' p3A |
+N| p(iD x1e x6 ' x3s x3e x3s)NA ' pNA | pNA ' pNA |
+
+!PART B
+
+T| p(f2e c)3B ' p3B ' p3B ' p3B | p3B ' p3B ' p3B ' p3B |
+N=:AN
+
+!PART C
+
+2| iD re f3 ' g a ' b as g ' ae f |
+ | a3e fs e ' fe c ' g e ' fq |
+T=:BT
+N=:AN
+
+!PART D
+
+2| iD re f4 ' g a ' b as g ' ae f |
+ | a4e gs f ' ge e ' g e# ' fq |
+T=:BT
+N=:AN
+
+!PART E
+
+1| iD rq ' c4q ' f ' c |
+2=:C2
+T=:CT
+N=:CN
+
+!PART F
+
+1| iD rq    ' rq ' f5e gs a ' ge e |
+ | g5s g ee ' fq '
+2=:D2
+T=:DT
+N=:DN
+
+!PART M
+
+1| f3q r f r | f3q r g r |
+2| p(f4s f  f  f)2M  ' a4q ' p2M  ' bq |
+ | p2M  ' c5e a4 ' d5 b4 ' c5 e#4 |
+T| p(f2e c ' a  c  ' f c ' b c |
+ | f2e c ' c3 a2 ' f c ' f c)TM |
+N| pNA ' pNA | pNA ' pNA |
+
+1| a3q c4 a3 d4 | a3q f e# g |
+2| p2M  ' a4e f ' p2M  ' be f |
+ | p2M  ' c5s d c b4 ' a b a g ' c5 b4 a g |
+T| pTM |
+N| pNA ' pNA | pNA ' pNA |
