@@ -78,7 +78,7 @@ kAlexFreePositionX = $0090
 ;;; Defines room-specific state data for this particular room.
 .STRUCT sState
     ;; The current state of the lever in this room.
-    GateLever_u1 .byte
+    GateLever_u8 .byte
 .ENDSTRUCT
 .ASSERT .sizeof(sState) <= kRoomStateSize, error
 
@@ -264,7 +264,7 @@ _Devices_sDevice_arr:
     d_byte Type_eDevice, eDevice::LeverFloor
     d_byte BlockRow_u8, 6
     d_byte BlockCol_u8, 4
-    d_byte Target_u8, sState::GateLever_u1
+    d_byte Target_u8, sState::GateLever_u8
     D_END
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None
@@ -320,7 +320,7 @@ _MoveAlex:
     sta Ram_DeviceType_eDevice_arr + kAlexFreeLeftDeviceIndex
 _OpenGate:
     ldx #kGatePlatformIndex  ; param: platform index
-    ldy #sState::GateLever_u1  ; param: lever target
+    ldy #sState::GateLever_u8  ; param: lever target
     jsr FuncC_Prison_OpenGateAndFlipLever
 _PlaceStepstone:
     lda #ePlatform::Solid
@@ -333,7 +333,7 @@ _PlaceStepstone:
     ;; TODO: once Alex is done walking, place his new talk devices
 _CheckLever:
     ;; Check if the lever is flipped.
-    lda Zp_RoomState + sState::GateLever_u1
+    lda Zp_RoomState + sState::GateLever_u8
     beq @done
     ;; If so, mark the gate as open...
     ldx #eFlag::PrisonUpperGateOpened

@@ -233,8 +233,8 @@ kBossBodyPlatformIndex = 4
 ;;; Defines room-specific state data for this particular room.
 .STRUCT sState
     ;; The current states of the room's two levers.
-    LeverLeft_u1      .byte
-    LeverRight_u1     .byte
+    LeverLeft_u8      .byte
+    LeverRight_u8     .byte
     ;; Which step of its reset sequence the CryptTombWinch machine is on.
     Winch_eResetSeq   .byte
     ;; What mode the boss is in.
@@ -392,13 +392,13 @@ _Devices_sDevice_arr:
     d_byte Type_eDevice, eDevice::LeverFloor
     d_byte BlockRow_u8, 11
     d_byte BlockCol_u8, 4
-    d_byte Target_u8, sState::LeverLeft_u1
+    d_byte Target_u8, sState::LeverLeft_u8
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::LeverFloor
     d_byte BlockRow_u8, 12
     d_byte BlockCol_u8, 11
-    d_byte Target_u8, sState::LeverRight_u1
+    d_byte Target_u8, sState::LeverRight_u8
     D_END
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None
@@ -431,10 +431,10 @@ _ReadX:
     div #kBlockWidthPx
     rts
 _ReadL:
-    lda Zp_RoomState + sState::LeverLeft_u1
+    lda Zp_RoomState + sState::LeverLeft_u8
     rts
 _ReadR:
-    lda Zp_RoomState + sState::LeverRight_u1
+    lda Zp_RoomState + sState::LeverRight_u8
     rts
 .ENDPROC
 

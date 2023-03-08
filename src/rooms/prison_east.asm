@@ -83,9 +83,9 @@ kStepstonePlatformIndex = 4
 ;;; Defines room-specific state data for this particular room.
 .STRUCT sState
     ;; The current state of the levers in this room.
-    EastGateLever_u1  .byte
-    LowerGateLever_u1 .byte
-    WestGateLever_u1  .byte
+    EastGateLever_u8  .byte
+    LowerGateLever_u8 .byte
+    WestGateLever_u8  .byte
 .ENDSTRUCT
 .ASSERT .sizeof(sState) <= kRoomStateSize, error
 
@@ -203,19 +203,19 @@ _Devices_sDevice_arr:
     d_byte Type_eDevice, eDevice::LeverFloor
     d_byte BlockRow_u8, 3
     d_byte BlockCol_u8, 30
-    d_byte Target_u8, sState::EastGateLever_u1
+    d_byte Target_u8, sState::EastGateLever_u8
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::LeverFloor
     d_byte BlockRow_u8, 17
     d_byte BlockCol_u8, 11
-    d_byte Target_u8, sState::LowerGateLever_u1
+    d_byte Target_u8, sState::LowerGateLever_u8
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::LeverFloor
     d_byte BlockRow_u8, 8
     d_byte BlockCol_u8, 13
-    d_byte Target_u8, sState::WestGateLever_u1
+    d_byte Target_u8, sState::WestGateLever_u8
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Console
@@ -244,14 +244,14 @@ _Passages_sPassage_arr:
 _EastGate:
     flag_bit Sram_ProgressFlags_arr, eFlag::PrisonEastEastGateOpen
     beq @shut
-    ldy #sState::EastGateLever_u1  ; param: lever target
+    ldy #sState::EastGateLever_u8  ; param: lever target
     ldx #kEastGatePlatformIndex  ; param: gate platform index
     jsr FuncC_Prison_OpenGateAndFlipLever
     @shut:
 _LowerGate:
     flag_bit Sram_ProgressFlags_arr, eFlag::PrisonEastLowerGateShut
     bne @shut
-    ldy #sState::LowerGateLever_u1  ; param: lever target
+    ldy #sState::LowerGateLever_u8  ; param: lever target
     ldx #kLowerGatePlatformIndex  ; param: gate platform index
     jsr FuncC_Prison_OpenGateAndFlipLever
     @shut:
@@ -260,7 +260,7 @@ _WestGate:
     bne @open
     rts
     @open:
-    ldy #sState::WestGateLever_u1  ; param: lever target
+    ldy #sState::WestGateLever_u8  ; param: lever target
     ldx #kWestGatePlatformIndex  ; param: gate platform index
     jmp FuncC_Prison_OpenGateAndFlipLever
 .ENDPROC
@@ -271,31 +271,31 @@ _WestGate:
 _EastGate:
     ;; Update the flag from the lever.
     ldx #eFlag::PrisonEastEastGateOpen  ; param: flag
-    lda Zp_RoomState + sState::EastGateLever_u1  ; param: zero for clear
+    lda Zp_RoomState + sState::EastGateLever_u8  ; param: zero for clear
     jsr Func_SetOrClearFlag
     ;; Move the gate based on the lever.
-    ldy Zp_RoomState + sState::EastGateLever_u1  ; param: zero for shut
+    ldy Zp_RoomState + sState::EastGateLever_u8  ; param: zero for shut
     ldx #kEastGatePlatformIndex  ; param: gate platform index
     lda #kEastGateBlockRow  ; param: block row
     jsr FuncC_Prison_TickGatePlatform
 _LowerGate:
     ;; Update the flag from the lever.
     ldx #eFlag::PrisonEastLowerGateShut  ; param: flag
-    lda Zp_RoomState + sState::LowerGateLever_u1
+    lda Zp_RoomState + sState::LowerGateLever_u8
     eor #1  ; param: zero for clear
     jsr Func_SetOrClearFlag
     ;; Move the gate based on the lever.
-    ldy Zp_RoomState + sState::LowerGateLever_u1  ; param: zero for shut
+    ldy Zp_RoomState + sState::LowerGateLever_u8  ; param: zero for shut
     ldx #kLowerGatePlatformIndex  ; param: gate platform index
     lda #kLowerGateBlockRow  ; param: block row
     jsr FuncC_Prison_TickGatePlatform
 _WestGate:
     ;; Update the flag from the lever.
     ldx #eFlag::PrisonEastWestGateOpen  ; param: flag
-    lda Zp_RoomState + sState::WestGateLever_u1  ; param: zero for clear
+    lda Zp_RoomState + sState::WestGateLever_u8  ; param: zero for clear
     jsr Func_SetOrClearFlag
     ;; Move the gate based on the lever.
-    ldy Zp_RoomState + sState::WestGateLever_u1  ; param: zero for shut
+    ldy Zp_RoomState + sState::WestGateLever_u8  ; param: zero for shut
     ldx #kWestGatePlatformIndex  ; param: gate platform index
     lda #kWestGateBlockRow  ; param: block row
     jmp FuncC_Prison_TickGatePlatform

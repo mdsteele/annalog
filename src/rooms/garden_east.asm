@@ -96,8 +96,8 @@ kBridgePivotPosY = $0080
 ;;; Defines room-specific state data for this particular room.
 .STRUCT sState
     ;; The current states of the room's two levers.
-    LeverBridge_u1 .byte
-    LeverCannon_u1 .byte
+    LeverBridge_u8 .byte
+    LeverCannon_u8 .byte
 .ENDSTRUCT
 .ASSERT .sizeof(sState) <= kRoomStateSize, error
 
@@ -276,7 +276,7 @@ _Devices_sDevice_arr:
     d_byte Type_eDevice, eDevice::LeverFloor
     d_byte BlockRow_u8, 7
     d_byte BlockCol_u8, 27
-    d_byte Target_u8, sState::LeverBridge_u1
+    d_byte Target_u8, sState::LeverBridge_u8
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Console
@@ -288,7 +288,7 @@ _Devices_sDevice_arr:
     d_byte Type_eDevice, eDevice::LeverFloor
     d_byte BlockRow_u8, 19
     d_byte BlockCol_u8, 16
-    d_byte Target_u8, sState::LeverCannon_u1
+    d_byte Target_u8, sState::LeverCannon_u8
     D_END
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None
@@ -358,7 +358,7 @@ _Done:
     @readY:
     jmp Func_MachineBridgeReadRegY
     @readL:
-    lda Zp_RoomState + sState::LeverBridge_u1
+    lda Zp_RoomState + sState::LeverBridge_u8
     rts
 .ENDPROC
 
@@ -380,7 +380,7 @@ _Done:
     @readY:
     jmp Func_MachineCannonReadRegY
     @readL:
-    lda Zp_RoomState + sState::LeverCannon_u1
+    lda Zp_RoomState + sState::LeverCannon_u8
     rts
 .ENDPROC
 

@@ -72,7 +72,7 @@ kUpperBridgePivotPosY = $0080
 ;;; Defines room-specific state data for this particular room.
 .STRUCT sState
     ;; The current states of the room's two levers, indexed by machine index.
-    Lever_u1_arr       .res 2
+    Lever_u8_arr       .res 2
 .ENDSTRUCT
 
 ;;;=========================================================================;;;
@@ -185,7 +185,7 @@ _Devices_sDevice_arr:
     d_byte Type_eDevice, eDevice::LeverFloor
     d_byte BlockRow_u8, 6
     d_byte BlockCol_u8, 2
-    d_byte Target_u8, sState::Lever_u1_arr + kUpperBridgeMachineIndex
+    d_byte Target_u8, sState::Lever_u8_arr + kUpperBridgeMachineIndex
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Console
@@ -197,7 +197,7 @@ _Devices_sDevice_arr:
     d_byte Type_eDevice, eDevice::LeverFloor
     d_byte BlockRow_u8, 17
     d_byte BlockCol_u8, 2
-    d_byte Target_u8, sState::Lever_u1_arr + kLowerBridgeMachineIndex
+    d_byte Target_u8, sState::Lever_u8_arr + kLowerBridgeMachineIndex
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Console
@@ -228,7 +228,7 @@ _Passages_sPassage_arr:
     jmp Func_MachineBridgeReadRegY
     @readL:
     ldx Zp_MachineIndex_u8
-    lda Zp_RoomState + sState::Lever_u1_arr, x
+    lda Zp_RoomState + sState::Lever_u8_arr, x
     rts
 .ENDPROC
 

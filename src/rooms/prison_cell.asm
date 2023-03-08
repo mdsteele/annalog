@@ -150,7 +150,7 @@ kGateBlockRow = 10
 ;;; Defines room-specific state data for this particular room.
 .STRUCT sState
     ;; The current state of the lever in this room.
-    GateLever_u1 .byte
+    GateLever_u8 .byte
 .ENDSTRUCT
 .ASSERT .sizeof(sState) <= kRoomStateSize, error
 
@@ -353,7 +353,7 @@ _Devices_sDevice_arr:
     d_byte Type_eDevice, eDevice::LeverFloor
     d_byte BlockRow_u8, 8
     d_byte BlockCol_u8, 19
-    d_byte Target_u8, sState::GateLever_u1
+    d_byte Target_u8, sState::GateLever_u8
     D_END
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None
@@ -422,7 +422,7 @@ _CheckIfReachedTunnel:
 _InitGate:
     flag_bit Sram_ProgressFlags_arr, eFlag::PrisonCellGateOpen
     beq @shut
-    ldy #sState::GateLever_u1  ; param: lever target
+    ldy #sState::GateLever_u8  ; param: lever target
     ldx #kGatePlatformIndex  ; param: gate platform index
     jsr FuncC_Prison_OpenGateAndFlipLever
     @shut:
@@ -519,10 +519,10 @@ _TrapFloor:
 _Gate:
     ;; Update the flag from the lever.
     ldx #eFlag::PrisonCellGateOpen  ; param: flag
-    lda Zp_RoomState + sState::GateLever_u1  ; param: zero for clear
+    lda Zp_RoomState + sState::GateLever_u8  ; param: zero for clear
     jsr Func_SetOrClearFlag
     ;; Move the gate based on the lever.
-    ldy Zp_RoomState + sState::GateLever_u1  ; param: zero for shut
+    ldy Zp_RoomState + sState::GateLever_u8  ; param: zero for shut
     ldx #kGatePlatformIndex  ; param: gate platform index
     lda #kGateBlockRow  ; param: block row
     jmp FuncC_Prison_TickGatePlatform

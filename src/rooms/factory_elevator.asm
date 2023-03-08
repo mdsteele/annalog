@@ -72,8 +72,8 @@ kLowerJetInitPlatformTop = \
 ;;; Defines room-specific state data for this particular room.
 .STRUCT sState
     ;; The current state of the levers in this room.
-    UpperJetLowerLever_u1 .byte
-    LowerJetUpperLever_u1 .byte
+    UpperJetLowerLever_u8 .byte
+    LowerJetUpperLever_u8 .byte
 .ENDSTRUCT
 .ASSERT .sizeof(sState) <= kRoomStateSize, error
 
@@ -182,7 +182,7 @@ _Devices_sDevice_arr:
     d_byte Type_eDevice, eDevice::LeverFloor
     d_byte BlockRow_u8, 8
     d_byte BlockCol_u8, 7
-    d_byte Target_u8, sState::UpperJetLowerLever_u1
+    d_byte Target_u8, sState::UpperJetLowerLever_u8
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Console
@@ -194,7 +194,7 @@ _Devices_sDevice_arr:
     d_byte Type_eDevice, eDevice::LeverFloor
     d_byte BlockRow_u8, 18
     d_byte BlockCol_u8, 7
-    d_byte Target_u8, sState::LowerJetUpperLever_u1
+    d_byte Target_u8, sState::LowerJetUpperLever_u8
     D_END
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None
@@ -254,7 +254,7 @@ _Passages_sPassage_arr:
     lda #0  ; TODO read upper lever (in room above)
     rts
     @readL:
-    lda Zp_RoomState + sState::UpperJetLowerLever_u1
+    lda Zp_RoomState + sState::UpperJetLowerLever_u8
     rts
 .ENDPROC
 
@@ -287,7 +287,7 @@ _Passages_sPassage_arr:
     ldax #kLowerJetMaxPlatformTop  ; param: max platform top
     jmp Func_MachineJetReadRegY  ; returns A
     @readU:
-    lda Zp_RoomState + sState::LowerJetUpperLever_u1
+    lda Zp_RoomState + sState::LowerJetUpperLever_u8
     rts
     @readL:
     lda #0  ; TODO read lower lever (in room below)

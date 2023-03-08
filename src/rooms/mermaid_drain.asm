@@ -88,7 +88,7 @@ kWaterMinPlatformTop = kWaterMaxPlatformTop - kPumpMaxGoalY * kBlockHeightPx
 ;;; Defines room-specific state data for this particular room.
 .STRUCT sState
     ;; The current states of the lever at the bottom of the hot spring.
-    Lever_u1 .byte
+    Lever_u8 .byte
 .ENDSTRUCT
 .ASSERT .sizeof(sState) <= kRoomStateSize, error
 
@@ -193,7 +193,7 @@ _Devices_sDevice_arr:
     d_byte Type_eDevice, eDevice::LeverCeiling
     d_byte BlockRow_u8, 15
     d_byte BlockCol_u8, 7
-    d_byte Target_u8, sState::Lever_u1
+    d_byte Target_u8, sState::Lever_u8
     D_END
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None
@@ -227,14 +227,14 @@ _Drained:
     sta Ram_PlatformType_ePlatform_arr + kWaterPlatformIndex
     sta Ram_PlatformType_ePlatform_arr + kSandPlatformIndex
     .assert ePlatform::Zone = 1, error
-    sta Zp_RoomState + sState::Lever_u1
+    sta Zp_RoomState + sState::Lever_u8
     lda #eDevice::Placeholder
     sta Ram_DeviceType_eDevice_arr + kConsoleDeviceIndex
     rts
 .ENDPROC
 
 .PROC DataC_Mermaid_Drain_TickRoom
-    lda Zp_RoomState + sState::Lever_u1
+    lda Zp_RoomState + sState::Lever_u8
     beq @done
     lda #ePlatform::Zone
     sta Ram_PlatformType_ePlatform_arr + kWaterPlatformIndex

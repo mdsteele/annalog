@@ -61,7 +61,7 @@ kJetInitPlatformTop = kJetMaxPlatformTop - kJetInitGoalY * kJetMoveInterval
 ;;; Defines room-specific state data for this particular room.
 .STRUCT sState
     ;; The current state of the lever in this room.
-    JetUpperLever_u1 .byte
+    JetUpperLever_u8 .byte
 .ENDSTRUCT
 .ASSERT .sizeof(sState) <= kRoomStateSize, error
 
@@ -143,7 +143,7 @@ _Devices_sDevice_arr:
     d_byte Type_eDevice, eDevice::LeverFloor
     d_byte BlockRow_u8, 5
     d_byte BlockCol_u8, 7
-    d_byte Target_u8, sState::JetUpperLever_u1
+    d_byte Target_u8, sState::JetUpperLever_u8
     D_END
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None
@@ -185,7 +185,7 @@ _Passages_sPassage_arr:
     ldax #kJetMaxPlatformTop  ; param: max platform top
     jmp Func_MachineJetReadRegY  ; returns A
     @readU:
-    lda Zp_RoomState + sState::JetUpperLever_u1
+    lda Zp_RoomState + sState::JetUpperLever_u8
     rts
     @readL:
     lda #0  ; TODO read lower lever (in room below)

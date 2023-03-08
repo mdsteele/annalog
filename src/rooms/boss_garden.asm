@@ -158,8 +158,8 @@ kBossZoneBottomY = $88
 ;;; Defines room-specific state data for this particular room.
 .STRUCT sState
     ;; The current states of the room's two levers.
-    LeverLeft_u1         .byte
-    LeverRight_u1        .byte
+    LeverLeft_u8         .byte
+    LeverRight_u8        .byte
     ;; How many more grenade hits are needed before the boss dies.
     BossHealth_u8        .byte
     ;; Timer that ticks down each frame when nonzero.  Used to time transitions
@@ -316,13 +316,13 @@ _Devices_sDevice_arr:
     d_byte Type_eDevice, eDevice::LeverFloor
     d_byte BlockRow_u8, 10
     d_byte BlockCol_u8, 3
-    d_byte Target_u8, sState::LeverLeft_u1
+    d_byte Target_u8, sState::LeverLeft_u8
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::LeverFloor
     d_byte BlockRow_u8, 11
     d_byte BlockCol_u8, 10
-    d_byte Target_u8, sState::LeverRight_u1
+    d_byte Target_u8, sState::LeverRight_u8
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Console
@@ -707,10 +707,10 @@ _Done:
     @readY:
     jmp Func_MachineCannonReadRegY
     @readL:
-    lda Zp_RoomState + sState::LeverLeft_u1
+    lda Zp_RoomState + sState::LeverLeft_u8
     rts
     @readR:
-    lda Zp_RoomState + sState::LeverRight_u1
+    lda Zp_RoomState + sState::LeverRight_u8
     rts
 .ENDPROC
 
