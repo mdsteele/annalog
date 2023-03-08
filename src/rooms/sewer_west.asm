@@ -216,8 +216,10 @@ _ReadX:
     rts
 .ENDPROC
 
+;;; @param A The value to write (0-9).
+;;; @param X The register to write to ($c-$f).
 .PROC FuncC_Sewer_WestMultiplexer_WriteReg
-    stx Ram_MachineGoalVert_u8_arr + kMultiplexerMachineIndex  ; J register
+    sta Ram_MachineGoalVert_u8_arr + kMultiplexerMachineIndex  ; J register
     rts
 .ENDPROC
 

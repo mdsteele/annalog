@@ -108,21 +108,19 @@ kPaletteObjValve = 0
 
 ;;; WriteReg implemention for boiler machines.
 ;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
-;;; @param A The register to write to ($c-$f).
-;;; @param X The value to write (0-9).
+;;; @param A The value to write (0-9).
+;;; @param X The register to write to ($c-$f).
 .EXPORT FuncA_Machine_BoilerWriteReg
 .PROC FuncA_Machine_BoilerWriteReg
     ldy Zp_MachineIndex_u8
-    cmp #$0d
+    cpx #$0d
     beq @valve2
     @valve1:
-    txa
     cmp Ram_MachineGoalVert_u8_arr, y
     beq @done
     sta Ram_MachineGoalVert_u8_arr, y
     jmp FuncA_Machine_StartWorking
     @valve2:
-    txa
     cmp Ram_MachineGoalHorz_u8_arr, y
     beq @done
     sta Ram_MachineGoalHorz_u8_arr, y

@@ -103,8 +103,8 @@ kMachineRegNameB = $21  ; 'B'
     ;; is instantaneous, this can just return without changing the mode.
     ;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
     ;; @prereq PRGA_Machine is loaded.
-    ;; @param A The register to write to ($c-$f).
-    ;; @param X The value to write (0-9).
+    ;; @param A The value to write (0-9).
+    ;; @param X The register to write to ($c-$f).
     WriteReg_func_ptr .addr
     ;; Function to call when the machine tries to move.  If the machine can't
     ;; move, this should call FuncA_Machine_Error; otherwise it should probably

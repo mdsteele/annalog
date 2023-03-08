@@ -228,10 +228,9 @@ _ReadL:
 .ENDPROC
 
 ;;; @prereq PRGA_Machine is loaded.
-;;; @param A The register to write to ($c-$f).
-;;; @param X The value to write (0-9).
+;;; @param A The value to write (0-9).
+;;; @param X The register to write to ($c-$f).
 .PROC FuncC_Garden_CrossroadLift_WriteReg
-    txa  ; param: value to write
     ldx #kLeverDeviceIndex  ; param: device index
     jmp FuncA_Machine_WriteToLever
 .ENDPROC

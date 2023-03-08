@@ -598,9 +598,11 @@ _OpCopy:
     and #$0f  ; param: immediate value or register to read
     jsr Func_MachineRead  ; returns A
 _SetLValueToA:
-    tax       ; param: value to write
+    pha  ; value to write
     lda <(Zp_Current_sInst + sInst::Op_byte)
-    and #$0f  ; param: register to write to
+    and #$0f
+    tax  ; param: register to write to
+    pla  ; param: value to write
     jsr FuncA_Machine_WriteReg
     jmp _IncrementPcIfRunning
 _OpSkip:
@@ -722,15 +724,14 @@ _OpSync:
 
 ;;; Writes a value to a register of the current machine.
 ;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
-;;; @param A The register to write to ($a-$f).
-;;; @param X The value to write (0-9).
+;;; @param A The value to write (0-9).
+;;; @param X The register to write to ($a-$f).
 .PROC FuncA_Machine_WriteReg
-    cmp #$0a
+    cpx #$0a
     beq @writeRegA
     ldy #sMachine::WriteReg_func_ptr  ; param: function pointer offset
     jmp Func_MachineCall
     @writeRegA:
-    txa  ; the value to write
     ldx Zp_MachineIndex_u8
     sta Ram_MachineRegA_u8_arr, x
     rts
