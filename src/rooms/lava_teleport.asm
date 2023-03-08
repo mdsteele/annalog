@@ -29,6 +29,7 @@
 .INCLUDE "../ppu.inc"
 .INCLUDE "../program.inc"
 .INCLUDE "../room.inc"
+.INCLUDE "../teleport.inc"
 
 .IMPORT DataA_Room_Lava_sTileset
 .IMPORT FuncA_Machine_Error
@@ -55,10 +56,6 @@ kFieldPlatformLeft1 = $48
 kFieldPlatformLeft2 = \
     kFieldPlatformLeft1 + kFieldMachineWidth + kTeleportFieldWidth
 .LINECONT -
-
-;;; The device index for the device where the player avatar should spawn when
-;;; teleporting into this room.
-kTeleportSpawnDeviceIndex = 0
 
 ;;;=========================================================================;;;
 
@@ -143,7 +140,7 @@ _Platforms_sPlatform_arr:
 _Actors_sActor_arr:
     .byte eActor::None
 _Devices_sDevice_arr:
-:   .assert * - :- = kTeleportSpawnDeviceIndex * .sizeof(sDevice), error
+:   .assert * - :- = kTeleporterDeviceIndex * .sizeof(sDevice), error
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Teleporter
     d_byte BlockRow_u8, 7

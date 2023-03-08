@@ -292,6 +292,8 @@ _Tick:
 
 ;;; Mode for leaving the current room through a passage and entering the next
 ;;; room.
+;;; @prereq Rendering is enabled.
+;;; @prereq Explore mode is already initialized.
 ;;; @param A The ePassage value for the side of the room the player hit.
 .PROC Main_Explore_GoThroughPassage
 _FadeOut:
