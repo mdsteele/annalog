@@ -22,6 +22,7 @@
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
 
+.IMPORT FuncA_Machine_StartWaiting
 .IMPORT FuncA_Objects_Alloc1x1Shape
 .IMPORT FuncA_Objects_MoveShapeDownByA
 .IMPORT FuncA_Objects_MoveShapeRightOneTile
@@ -65,8 +66,45 @@ kLeverAnimCountdown = kLeverNumAnimFrames * kLeverAnimSlowdown - 1
     sta Ram_DeviceAnim_u8_arr, x
     ldy Ram_DeviceTarget_u8_arr, x
     lda Zp_RoomState, y
-    eor #$01
+    beq @setToOne
+    @setToZero:
+    lda #0
+    beq @set  ; unconditional
+    @setToOne:
+    lda #1
+    @set:
     sta Zp_RoomState, y
+    rts
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Machine"
+
+;;; Writes a value to a register that represents a lever.  This should be
+;;; called from a machine's WriteReg_func_ptr implementation.
+;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
+;;; @param X The device index for the lever.
+;;; @param A The value to write (0-9).
+.EXPORT FuncA_Machine_WriteToLever
+.PROC FuncA_Machine_WriteToLever
+    sta Zp_Tmp1_byte  ; value to write
+    ldy Ram_DeviceTarget_u8_arr, x
+    lda Zp_RoomState, y
+    beq _CurrentlyZero
+_CurrentlyNonzero:
+    lda Zp_Tmp1_byte  ; value to write
+    sta Zp_RoomState, y
+    bne _NoAnimate
+_Animate:
+    lda #kLeverAnimCountdown  ; param: num frames
+    sta Ram_DeviceAnim_u8_arr, x
+    jmp FuncA_Machine_StartWaiting
+_CurrentlyZero:
+    lda Zp_Tmp1_byte  ; value to write
+    sta Zp_RoomState, y
+    bne _Animate
+_NoAnimate:
     rts
 .ENDPROC
 

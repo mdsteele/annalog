@@ -33,6 +33,7 @@
 .IMPORT FuncA_Machine_GenericMoveTowardGoalVert
 .IMPORT FuncA_Machine_GenericTryMoveY
 .IMPORT FuncA_Machine_ReachedGoal
+.IMPORT FuncA_Machine_WriteToLever
 .IMPORT FuncA_Objects_DrawLiftMachine
 .IMPORT Func_InitActorProjSmoke
 .IMPORT Func_IsPointInPlatform
@@ -45,6 +46,9 @@
 .IMPORTZP Zp_RoomState
 
 ;;;=========================================================================;;;
+
+;;; The device index for the lever in this room.
+kLeverDeviceIndex = 1
 
 ;;; The machine index for the GardenCrossroadLift machine in this room.
 kLiftMachineIndex = 0
@@ -108,7 +112,7 @@ _Machines_sMachine_arr:
     D_STRUCT sMachine
     d_byte Code_eProgram, eProgram::GardenCrossroadLift
     d_byte Breaker_eFlag, 0
-    d_byte Flags_bMachine, bMachine::MoveV
+    d_byte Flags_bMachine, bMachine::MoveV | bMachine::WriteC
     d_byte Status_eDiagram, eDiagram::Lift
     d_word ScrollGoalX_u16, $08
     d_byte ScrollGoalY_u8, $60
@@ -116,7 +120,7 @@ _Machines_sMachine_arr:
     d_byte MainPlatform_u8, kLiftPlatformIndex
     d_addr Init_func_ptr, FuncC_Garden_CrossroadLift_Init
     d_addr ReadReg_func_ptr, FuncC_Garden_CrossroadLift_ReadReg
-    d_addr WriteReg_func_ptr, Func_Noop
+    d_addr WriteReg_func_ptr, FuncC_Garden_CrossroadLift_WriteReg
     d_addr TryMove_func_ptr, FuncC_Garden_CrossroadLift_TryMove
     d_addr TryAct_func_ptr, FuncA_Machine_Error
     d_addr Tick_func_ptr, FuncC_Garden_CrossroadLift_Tick
@@ -166,6 +170,7 @@ _Devices_sDevice_arr:
     d_byte BlockCol_u8, 2
     d_byte Target_u8, kLiftMachineIndex
     D_END
+    .assert * - :- = kLeverDeviceIndex * .sizeof(sDevice), error
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::LeverFloor
     d_byte BlockRow_u8, 15
@@ -220,6 +225,15 @@ _ReadY:
 _ReadL:
     lda Zp_RoomState + sState::Lever_u8
     rts
+.ENDPROC
+
+;;; @prereq PRGA_Machine is loaded.
+;;; @param A The register to write to ($c-$f).
+;;; @param X The value to write (0-9).
+.PROC FuncC_Garden_CrossroadLift_WriteReg
+    txa  ; param: value to write
+    ldx #kLeverDeviceIndex  ; param: device index
+    jmp FuncA_Machine_WriteToLever
 .ENDPROC
 
 .PROC FuncC_Garden_CrossroadLift_TryMove
