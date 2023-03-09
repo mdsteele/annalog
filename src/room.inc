@@ -44,6 +44,7 @@ kMaxPassages = 8
     BossGarden
     BossTemple
     CoreBoss
+    CoreEast
     CoreElevator
     CoreFlower
     CoreJunction
