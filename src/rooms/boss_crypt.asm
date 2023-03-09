@@ -41,6 +41,7 @@
 .IMPORT FuncA_Machine_StartWorking
 .IMPORT FuncA_Machine_WinchReachedGoal
 .IMPORT FuncA_Machine_WinchStartFalling
+.IMPORT FuncA_Machine_WriteToLever
 .IMPORT FuncA_Objects_Alloc1x1Shape
 .IMPORT FuncA_Objects_Draw1x1Shape
 .IMPORT FuncA_Objects_DrawBoss
@@ -100,6 +101,10 @@
 .IMPORTZP Zp_Tmp_ptr
 
 ;;;=========================================================================;;;
+
+;;; The device indices for the levers in this room.
+kLeverLeftDeviceIndex = 4
+kLeverRightDeviceIndex = 5
 
 ;;; The machine index for the CryptTombWinch machine in this room.
 kWinchMachineIndex = 0
@@ -291,7 +296,7 @@ _Machines_sMachine_arr:
     D_STRUCT sMachine
     d_byte Code_eProgram, eProgram::BossCryptWinch
     d_byte Breaker_eFlag, 0
-    d_byte Flags_bMachine, bMachine::MoveH | bMachine::MoveV | bMachine::Act
+    d_byte Flags_bMachine, bMachine::MoveHV | bMachine::Act | bMachine::WriteCD
     d_byte Status_eDiagram, eDiagram::Winch
     d_word ScrollGoalX_u16, $0
     d_byte ScrollGoalY_u8, $0
@@ -299,7 +304,7 @@ _Machines_sMachine_arr:
     d_byte MainPlatform_u8, kWinchPlatformIndex
     d_addr Init_func_ptr, FuncC_Boss_CryptWinch_Init
     d_addr ReadReg_func_ptr, FuncC_Boss_CryptWinch_ReadReg
-    d_addr WriteReg_func_ptr, Func_Noop
+    d_addr WriteReg_func_ptr, FuncC_Boss_CryptWinch_WriteReg
     d_addr TryMove_func_ptr, FuncC_Boss_CryptWinch_TryMove
     d_addr TryAct_func_ptr, FuncC_Boss_CryptWinch_TryAct
     d_addr Tick_func_ptr, FuncC_Boss_CryptWinch_Tick
@@ -388,12 +393,14 @@ _Devices_sDevice_arr:
     d_byte BlockCol_u8, 13
     d_byte Target_u8, kWinchMachineIndex
     D_END
+    .assert * - :- = kLeverLeftDeviceIndex * .sizeof(sDevice), error
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::LeverFloor
     d_byte BlockRow_u8, 11
     d_byte BlockCol_u8, 4
     d_byte Target_u8, sState::LeverLeft_u8
     D_END
+    .assert * - :- = kLeverRightDeviceIndex * .sizeof(sDevice), error
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::LeverFloor
     d_byte BlockRow_u8, 12
@@ -436,6 +443,17 @@ _ReadL:
 _ReadR:
     lda Zp_RoomState + sState::LeverRight_u8
     rts
+.ENDPROC
+
+.PROC FuncC_Boss_CryptWinch_WriteReg
+    cpx #$d
+    beq _WriteR
+_WriteL:
+    ldx #kLeverLeftDeviceIndex  ; param: device index
+    jmp FuncA_Machine_WriteToLever
+_WriteR:
+    ldx #kLeverRightDeviceIndex  ; param: device index
+    jmp FuncA_Machine_WriteToLever
 .ENDPROC
 
 .PROC FuncC_Boss_CryptWinch_TryMove

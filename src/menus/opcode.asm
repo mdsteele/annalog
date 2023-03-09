@@ -322,8 +322,8 @@ _SetRowsForMenuRightColumn:
     ;; Check if this machine supports the ACT opcode.
     ldy #sMachine::Flags_bMachine
     lda (Zp_Current_sMachine_ptr), y
-    and #bMachine::Act
-    beq @noActOpcode
+    .assert bMachine::Act = $80, error
+    bpl @noActOpcode
     stx Ram_MenuRows_u8_arr + eOpcode::Act
     @noActOpcode:
     rts

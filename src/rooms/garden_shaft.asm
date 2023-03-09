@@ -36,6 +36,7 @@
 .IMPORT FuncA_Machine_BridgeTick
 .IMPORT FuncA_Machine_BridgeTryMove
 .IMPORT FuncA_Machine_Error
+.IMPORT FuncA_Machine_WriteToLever
 .IMPORT FuncA_Objects_DrawBridgeMachine
 .IMPORT Func_MachineBridgeReadRegY
 .IMPORT Func_Noop
@@ -51,6 +52,10 @@
 ;;; GardenShaftUpperBridge machines.
 kLowerBridgeMachineIndex = 0
 kUpperBridgeMachineIndex = 1
+
+;;; The device indices for the levers in this room.
+kLeverLowerDeviceIndex = 0
+kLeverUpperDeviceIndex = 1
 
 ;;; The number of movable segments in each drawbridge (i.e. NOT including the
 ;;; fixed segment).
@@ -113,7 +118,7 @@ _Machines_sMachine_arr:
     D_STRUCT sMachine
     d_byte Code_eProgram, eProgram::GardenShaftLowerBridge
     d_byte Breaker_eFlag, 0
-    d_byte Flags_bMachine, bMachine::FlipH | bMachine::MoveV
+    d_byte Flags_bMachine, bMachine::FlipH | bMachine::MoveV | bMachine::WriteC
     d_byte Status_eDiagram, eDiagram::BridgeLeft
     d_word ScrollGoalX_u16, $00
     d_byte ScrollGoalY_u8, $90
@@ -121,7 +126,7 @@ _Machines_sMachine_arr:
     d_byte MainPlatform_u8, kLowerBridgePivotPlatformIndex
     d_addr Init_func_ptr, FuncC_Garden_ShaftBridge_Init
     d_addr ReadReg_func_ptr, FuncC_Garden_ShaftBridge_ReadReg
-    d_addr WriteReg_func_ptr, Func_Noop
+    d_addr WriteReg_func_ptr, FuncC_Garden_ShaftBridge_WriteReg
     d_addr TryMove_func_ptr, FuncA_Machine_BridgeTryMove
     d_addr TryAct_func_ptr, FuncA_Machine_Error
     d_addr Tick_func_ptr, FuncC_Garden_ShaftLowerBridge_Tick
@@ -132,7 +137,7 @@ _Machines_sMachine_arr:
     D_STRUCT sMachine
     d_byte Code_eProgram, eProgram::GardenShaftUpperBridge
     d_byte Breaker_eFlag, 0
-    d_byte Flags_bMachine, bMachine::MoveV
+    d_byte Flags_bMachine, bMachine::MoveV | bMachine::WriteC
     d_byte Status_eDiagram, eDiagram::BridgeRight
     d_word ScrollGoalX_u16, $00
     d_byte ScrollGoalY_u8, $20
@@ -140,7 +145,7 @@ _Machines_sMachine_arr:
     d_byte MainPlatform_u8, kUpperBridgePivotPlatformIndex
     d_addr Init_func_ptr, FuncC_Garden_ShaftBridge_Init
     d_addr ReadReg_func_ptr, FuncC_Garden_ShaftBridge_ReadReg
-    d_addr WriteReg_func_ptr, Func_Noop
+    d_addr WriteReg_func_ptr, FuncC_Garden_ShaftBridge_WriteReg
     d_addr TryMove_func_ptr, FuncA_Machine_BridgeTryMove
     d_addr TryAct_func_ptr, FuncA_Machine_Error
     d_addr Tick_func_ptr, FuncC_Garden_ShaftUpperBridge_Tick
@@ -181,7 +186,15 @@ _Actors_sActor_arr:
     .assert * - :- <= kMaxActors * .sizeof(sActor), error
     .byte eActor::None
 _Devices_sDevice_arr:
-:   D_STRUCT sDevice
+:   .assert * - :- = kLeverLowerDeviceIndex * .sizeof(sDevice), error
+    D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::LeverFloor
+    d_byte BlockRow_u8, 17
+    d_byte BlockCol_u8, 2
+    d_byte Target_u8, sState::Lever_u8_arr + kLowerBridgeMachineIndex
+    D_END
+    .assert * - :- = kLeverUpperDeviceIndex * .sizeof(sDevice), error
+    D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::LeverFloor
     d_byte BlockRow_u8, 6
     d_byte BlockCol_u8, 2
@@ -192,12 +205,6 @@ _Devices_sDevice_arr:
     d_byte BlockRow_u8, 11
     d_byte BlockCol_u8, 3
     d_byte Target_u8, kUpperBridgeMachineIndex
-    D_END
-    D_STRUCT sDevice
-    d_byte Type_eDevice, eDevice::LeverFloor
-    d_byte BlockRow_u8, 17
-    d_byte BlockCol_u8, 2
-    d_byte Target_u8, sState::Lever_u8_arr + kLowerBridgeMachineIndex
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Console
@@ -230,6 +237,13 @@ _Passages_sPassage_arr:
     ldx Zp_MachineIndex_u8
     lda Zp_RoomState + sState::Lever_u8_arr, x
     rts
+.ENDPROC
+
+.PROC FuncC_Garden_ShaftBridge_WriteReg
+    .assert kLeverLowerDeviceIndex = kLowerBridgeMachineIndex, error
+    .assert kLeverUpperDeviceIndex = kUpperBridgeMachineIndex, error
+    ldx Zp_MachineIndex_u8  ; param: device index
+    jmp FuncA_Machine_WriteToLever
 .ENDPROC
 
 .PROC FuncC_Garden_ShaftLowerBridge_Tick

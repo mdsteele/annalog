@@ -123,7 +123,7 @@ _Machines_sMachine_arr:
     d_byte MainPlatform_u8, kUpperJetPlatformIndex
     d_addr Init_func_ptr, FuncC_Factory_ElevatorUpperJet_Init
     d_addr ReadReg_func_ptr, FuncC_Factory_ElevatorUpperJet_ReadReg
-    d_addr WriteReg_func_ptr, Func_Noop
+    d_addr WriteReg_func_ptr, Func_Noop  ; TODO
     d_addr TryMove_func_ptr, FuncC_Factory_ElevatorUpperJet_TryMove
     d_addr TryAct_func_ptr, FuncA_Machine_Error
     d_addr Tick_func_ptr, FuncC_Factory_ElevatorUpperJet_Tick
@@ -142,7 +142,7 @@ _Machines_sMachine_arr:
     d_byte MainPlatform_u8, kLowerJetPlatformIndex
     d_addr Init_func_ptr, FuncC_Factory_ElevatorLowerJet_Init
     d_addr ReadReg_func_ptr, FuncC_Factory_ElevatorLowerJet_ReadReg
-    d_addr WriteReg_func_ptr, Func_Noop
+    d_addr WriteReg_func_ptr, Func_Noop  ; TODO
     d_addr TryMove_func_ptr, FuncC_Factory_ElevatorLowerJet_TryMove
     d_addr TryAct_func_ptr, FuncA_Machine_Error
     d_addr Tick_func_ptr, FuncC_Factory_ElevatorLowerJet_Tick

@@ -46,15 +46,19 @@ kMachineRegNameB = $21  ; 'B'
 
 ;;; Flags indicating features of a given machine.
 .SCOPE bMachine
-    MoveH  = %10000000  ; The machine supports MOVE left/right instructions.
-    FlipH  = %01000000  ; The machine is drawn horizontally flipped.
-    MoveV  = %00100000  ; The machine supports MOVE up/down instructions.
-    Act    = %00010000  ; The machine supports ACT instructions.
-    WriteC = %00001000  ; The $c register is writable.
-    WriteD = %00000100  ; The $d register is writable.
-    WriteE = %00000010  ; The $e register is writable.
-    WriteF = %00000001  ; The $f register is writable.
+    Act     = %10000000  ; The machine supports ACT instructions.
+    FlipH   = %01000000  ; The machine is drawn horizontally flipped.
+    MoveH   = %00100000  ; The machine supports MOVE left/right instructions.
+    MoveV   = %00010000  ; The machine supports MOVE up/down instructions.
+    MoveHV  = %00110000  ; The machine supports 4-way MOVE instructions.
+    WriteC  = %00001000  ; The $c register is writable.
+    WriteD  = %00000100  ; The $d register is writable.
+    WriteCD = %00001100  ; The $c and $d registers are both writable.
+    WriteE  = %00000010  ; The $e register is writable.
+    WriteF  = %00000001  ; The $f register is writable.
 .ENDSCOPE
+.ASSERT bMachine::MoveHV = bMachine::MoveH | bMachine::MoveV, error
+.ASSERT bMachine::WriteCD = bMachine::WriteC | bMachine::WriteD, error
 
 ;;; States that a given machine can be in.
 .ENUM eMachine

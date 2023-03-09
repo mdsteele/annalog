@@ -42,6 +42,7 @@
 .IMPORT FuncA_Machine_CannonTryAct
 .IMPORT FuncA_Machine_CannonTryMove
 .IMPORT FuncA_Machine_Error
+.IMPORT FuncA_Machine_WriteToLever
 .IMPORT FuncA_Objects_DrawBridgeMachine
 .IMPORT FuncA_Objects_DrawCannonMachine
 .IMPORT FuncA_Room_AreActorsWithinDistance
@@ -69,6 +70,10 @@ kCorraActorIndex = 0
 ;;; The talk device indices for Corra in this room.
 kCorraDeviceIndexLeft = 1
 kCorraDeviceIndexRight = 0
+
+;;; The device indices for the levers in this room.
+kLeverBridgeDeviceIndex = 3
+kLeverCannonDeviceIndex = 5
 
 ;;; The actor index for the vinebug that can be killed with the cannon.
 kKillableVinebugActorIndex = 3
@@ -139,7 +144,7 @@ _Machines_sMachine_arr:
     D_STRUCT sMachine
     d_byte Code_eProgram, eProgram::GardenEastBridge
     d_byte Breaker_eFlag, 0
-    d_byte Flags_bMachine, bMachine::MoveV
+    d_byte Flags_bMachine, bMachine::MoveV | bMachine::WriteC
     d_byte Status_eDiagram, eDiagram::BridgeRight
     d_word ScrollGoalX_u16, $d0
     d_byte ScrollGoalY_u8, $00
@@ -147,7 +152,7 @@ _Machines_sMachine_arr:
     d_byte MainPlatform_u8, kBridgePivotPlatformIndex
     d_addr Init_func_ptr, Func_Noop
     d_addr ReadReg_func_ptr, FuncC_Garden_EastBridge_ReadReg
-    d_addr WriteReg_func_ptr, Func_Noop
+    d_addr WriteReg_func_ptr, FuncC_Garden_EastBridge_WriteReg
     d_addr TryMove_func_ptr, FuncA_Machine_BridgeTryMove
     d_addr TryAct_func_ptr, FuncA_Machine_Error
     d_addr Tick_func_ptr, FuncC_Garden_EastBridge_Tick
@@ -158,7 +163,10 @@ _Machines_sMachine_arr:
     D_STRUCT sMachine
     d_byte Code_eProgram, eProgram::GardenEastCannon
     d_byte Breaker_eFlag, 0
-    d_byte Flags_bMachine, bMachine::FlipH | bMachine::MoveV | bMachine::Act
+    .linecont +
+    d_byte Flags_bMachine, bMachine::FlipH | bMachine::MoveV | \
+                           bMachine::Act | bMachine::WriteC
+    .linecont -
     d_byte Status_eDiagram, eDiagram::CannonLeft
     d_word ScrollGoalX_u16, $b0
     d_byte ScrollGoalY_u8, $9f
@@ -166,7 +174,7 @@ _Machines_sMachine_arr:
     d_byte MainPlatform_u8, kCannonPlatformIndex
     d_addr Init_func_ptr, Func_Noop
     d_addr ReadReg_func_ptr, FuncC_Garden_EastCannon_ReadReg
-    d_addr WriteReg_func_ptr, Func_Noop
+    d_addr WriteReg_func_ptr, FuncC_Garden_EastCannon_WriteReg
     d_addr TryMove_func_ptr, FuncA_Machine_CannonTryMove
     d_addr TryAct_func_ptr, FuncC_Garden_EastCannon_TryAct
     d_addr Tick_func_ptr, FuncA_Machine_CannonTick
@@ -272,6 +280,7 @@ _Devices_sDevice_arr:
     d_byte BlockCol_u8, 13
     d_byte Target_u8, kBridgeMachineIndex
     D_END
+    .assert * - :- = kLeverBridgeDeviceIndex * .sizeof(sDevice), error
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::LeverFloor
     d_byte BlockRow_u8, 7
@@ -284,6 +293,7 @@ _Devices_sDevice_arr:
     d_byte BlockCol_u8, 21
     d_byte Target_u8, kCannonMachineIndex
     D_END
+    .assert * - :- = kLeverCannonDeviceIndex * .sizeof(sDevice), error
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::LeverFloor
     d_byte BlockRow_u8, 19
@@ -362,6 +372,11 @@ _Done:
     rts
 .ENDPROC
 
+.PROC FuncC_Garden_EastBridge_WriteReg
+    ldx #kLeverBridgeDeviceIndex  ; param: device index
+    jmp FuncA_Machine_WriteToLever
+.ENDPROC
+
 .PROC FuncC_Garden_EastBridge_Tick
     lda #kBridgePivotPlatformIndex  ; param: fixed segment platform index
     ldx #kBridgePivotPlatformIndex + kNumMovableBridgeSegments  ; param: last
@@ -382,6 +397,11 @@ _Done:
     @readL:
     lda Zp_RoomState + sState::LeverCannon_u8
     rts
+.ENDPROC
+
+.PROC FuncC_Garden_EastCannon_WriteReg
+    ldx #kLeverCannonDeviceIndex  ; param: device index
+    jmp FuncA_Machine_WriteToLever
 .ENDPROC
 
 ;;; @prereq PRGA_Machine is loaded.

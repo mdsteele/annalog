@@ -39,6 +39,7 @@
 .IMPORT FuncA_Machine_MinigunRotateBarrel
 .IMPORT FuncA_Machine_MinigunTryAct
 .IMPORT FuncA_Machine_ReachedGoal
+.IMPORT FuncA_Machine_WriteToLever
 .IMPORT FuncA_Objects_Alloc2x1Shape
 .IMPORT FuncA_Objects_Draw1x1Shape
 .IMPORT FuncA_Objects_DrawBoss
@@ -84,6 +85,10 @@
 
 ;;; The fixed scroll-X position for this room.
 kRoomScrollX = $08
+
+;;; The device indices for the levers in this room.
+kLeverLeftDeviceIndex = 4
+kLeverRightDeviceIndex = 5
 
 ;;; The machine index for the BossTempleMinigun machine.
 kMinigunMachineIndex = 0
@@ -268,7 +273,7 @@ _Machines_sMachine_arr:
     D_STRUCT sMachine
     d_byte Code_eProgram, eProgram::BossTempleMinigun
     d_byte Breaker_eFlag, 0
-    d_byte Flags_bMachine, bMachine::MoveH | bMachine::Act
+    d_byte Flags_bMachine, bMachine::MoveH | bMachine::Act | bMachine::WriteCD
     d_byte Status_eDiagram, eDiagram::Carriage  ; TODO
     d_word ScrollGoalX_u16, $0008
     d_byte ScrollGoalY_u8, $16
@@ -276,7 +281,7 @@ _Machines_sMachine_arr:
     d_byte MainPlatform_u8, kMinigunPlatformIndex
     d_addr Init_func_ptr, FuncC_Boss_TempleMinigun_Init
     d_addr ReadReg_func_ptr, FuncC_Boss_TempleMinigun_ReadReg
-    d_addr WriteReg_func_ptr, Func_Noop
+    d_addr WriteReg_func_ptr, FuncC_Boss_TempleMinigun_WriteReg
     d_addr TryMove_func_ptr, FuncC_Boss_TempleMinigun_TryMove
     d_addr TryAct_func_ptr, FuncC_Boss_TempleMinigun_TryAct
     d_addr Tick_func_ptr, FuncC_Boss_TempleMinigun_Tick
@@ -357,12 +362,14 @@ _Devices_sDevice_arr:
     d_byte BlockCol_u8, 3
     d_byte Target_u8, kMinigunMachineIndex
     D_END
+    .assert * - :- = kLeverLeftDeviceIndex * .sizeof(sDevice), error
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::LeverFloor
     d_byte BlockRow_u8, 12
     d_byte BlockCol_u8, 6
     d_byte Target_u8, sState::LeverLeft_u8
     D_END
+    .assert * - :- = kLeverRightDeviceIndex * .sizeof(sDevice), error
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::LeverFloor
     d_byte BlockRow_u8, 12
@@ -849,6 +856,17 @@ _Offset_u8_arr2:
     @readR:
     lda Zp_RoomState + sState::LeverRight_u8
     rts
+.ENDPROC
+
+.PROC FuncC_Boss_TempleMinigun_WriteReg
+    cpx #$d
+    beq _WriteR
+_WriteL:
+    ldx #kLeverLeftDeviceIndex  ; param: device index
+    jmp FuncA_Machine_WriteToLever
+_WriteR:
+    ldx #kLeverRightDeviceIndex  ; param: device index
+    jmp FuncA_Machine_WriteToLever
 .ENDPROC
 
 .PROC FuncC_Boss_TempleMinigun_TryMove

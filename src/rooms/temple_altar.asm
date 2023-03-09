@@ -40,6 +40,7 @@
 .IMPORT FuncA_Machine_MinigunRotateBarrel
 .IMPORT FuncA_Machine_MinigunTryAct
 .IMPORT FuncA_Machine_ReachedGoal
+.IMPORT FuncA_Machine_WriteToLever
 .IMPORT FuncA_Objects_DrawMinigunDownMachine
 .IMPORT FuncA_Objects_DrawMinigunSideMachine
 .IMPORT FuncA_Room_AreActorsWithinDistance
@@ -60,6 +61,10 @@
 .IMPORTZP Zp_RoomState
 
 ;;;=========================================================================;;;
+
+;;; The device indices for the levers in this room.
+kLeverLeftDeviceIndex = 2
+kLeverRightDeviceIndex = 3
 
 ;;; The highest actor index among the beetles in this room.
 kLastBeetleActorIndex = 2
@@ -181,7 +186,7 @@ _Machines_sMachine_arr:
     D_STRUCT sMachine
     d_byte Code_eProgram, eProgram::TempleAltarUpperMinigun
     d_byte Breaker_eFlag, 0
-    d_byte Flags_bMachine, bMachine::MoveH | bMachine::Act
+    d_byte Flags_bMachine, bMachine::MoveH | bMachine::Act | bMachine::WriteCD
     d_byte Status_eDiagram, eDiagram::Carriage  ; TODO
     d_word ScrollGoalX_u16, $0010
     d_byte ScrollGoalY_u8, $00
@@ -189,7 +194,7 @@ _Machines_sMachine_arr:
     d_byte MainPlatform_u8, kUpperMinigunPlatformIndex
     d_addr Init_func_ptr, FuncC_Temple_AltarUpperMinigun_Init
     d_addr ReadReg_func_ptr, FuncC_Temple_AltarUpperMinigun_ReadReg
-    d_addr WriteReg_func_ptr, Func_Noop
+    d_addr WriteReg_func_ptr, FuncC_Temple_AltarUpperMinigun_WriteReg
     d_addr TryMove_func_ptr, FuncC_Temple_AltarUpperMinigun_TryMove
     d_addr TryAct_func_ptr, FuncC_Temple_AltarUpperMinigun_TryAct
     d_addr Tick_func_ptr, FuncC_Temple_AltarUpperMinigun_Tick
@@ -278,12 +283,14 @@ _Devices_sDevice_arr:
     d_byte BlockCol_u8, 2
     d_byte Target_u8, kUpperMinigunMachineIndex
     D_END
+    .assert * - :- = kLeverLeftDeviceIndex * .sizeof(sDevice), error
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::LeverFloor
     d_byte BlockRow_u8, 10
     d_byte BlockCol_u8, 4
     d_byte Target_u8, sState::LeverLeft_u8
     D_END
+    .assert * - :- = kLeverRightDeviceIndex * .sizeof(sDevice), error
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::LeverFloor
     d_byte BlockRow_u8, 10
@@ -439,6 +446,17 @@ _ReadX:
     sub #kUpperMinigunMinPlatformLeft - kTileHeightPx
     div #kBlockWidthPx
     rts
+.ENDPROC
+
+.PROC FuncC_Temple_AltarUpperMinigun_WriteReg
+    cpx #$d
+    beq _WriteR
+_WriteL:
+    ldx #kLeverLeftDeviceIndex  ; param: device index
+    jmp FuncA_Machine_WriteToLever
+_WriteR:
+    ldx #kLeverRightDeviceIndex  ; param: device index
+    jmp FuncA_Machine_WriteToLever
 .ENDPROC
 
 .PROC FuncC_Temple_AltarUpperMinigun_TryMove

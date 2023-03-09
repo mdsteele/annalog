@@ -40,6 +40,7 @@
 .IMPORT FuncA_Machine_CannonTick
 .IMPORT FuncA_Machine_CannonTryAct
 .IMPORT FuncA_Machine_CannonTryMove
+.IMPORT FuncA_Machine_WriteToLever
 .IMPORT FuncA_Objects_Alloc2x2Shape
 .IMPORT FuncA_Objects_DrawBoss
 .IMPORT FuncA_Objects_DrawCannonMachine
@@ -82,6 +83,10 @@
 .IMPORTZP Zp_Tmp_ptr
 
 ;;;=========================================================================;;;
+
+;;; The device indices for the levers in this room.
+kLeverLeftDeviceIndex = 3
+kLeverRightDeviceIndex = 4
 
 ;;; The machine index for the BossGardenCannon machine.
 kCannonMachineIndex = 0
@@ -229,7 +234,7 @@ _Machines_sMachine_arr:
     D_STRUCT sMachine
     d_byte Code_eProgram, eProgram::BossGardenCannon
     d_byte Breaker_eFlag, 0
-    d_byte Flags_bMachine, bMachine::MoveV | bMachine::Act
+    d_byte Flags_bMachine, bMachine::MoveV | bMachine::Act | bMachine::WriteCD
     d_byte Status_eDiagram, eDiagram::CannonRight
     d_word ScrollGoalX_u16, $0
     d_byte ScrollGoalY_u8, $0e
@@ -237,7 +242,7 @@ _Machines_sMachine_arr:
     d_byte MainPlatform_u8, kCannonPlatformIndex
     d_addr Init_func_ptr, Func_Noop
     d_addr ReadReg_func_ptr, FuncC_Boss_GardenCannon_ReadReg
-    d_addr WriteReg_func_ptr, Func_Noop
+    d_addr WriteReg_func_ptr, FuncC_Boss_GardenCannon_WriteReg
     d_addr TryMove_func_ptr, FuncA_Machine_CannonTryMove
     d_addr TryAct_func_ptr, FuncA_Machine_CannonTryAct
     d_addr Tick_func_ptr, FuncA_Machine_CannonTick
@@ -312,12 +317,14 @@ _Devices_sDevice_arr:
     d_byte BlockCol_u8, 5
     d_byte Target_u8, eFlag::BreakerGarden
     D_END
+    .assert * - :- = kLeverLeftDeviceIndex * .sizeof(sDevice), error
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::LeverFloor
     d_byte BlockRow_u8, 10
     d_byte BlockCol_u8, 3
     d_byte Target_u8, sState::LeverLeft_u8
     D_END
+    .assert * - :- = kLeverRightDeviceIndex * .sizeof(sDevice), error
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::LeverFloor
     d_byte BlockRow_u8, 11
@@ -712,6 +719,17 @@ _Done:
     @readR:
     lda Zp_RoomState + sState::LeverRight_u8
     rts
+.ENDPROC
+
+.PROC FuncC_Boss_GardenCannon_WriteReg
+    cpx #$d
+    beq _WriteR
+_WriteL:
+    ldx #kLeverLeftDeviceIndex  ; param: device index
+    jmp FuncA_Machine_WriteToLever
+_WriteR:
+    ldx #kLeverRightDeviceIndex  ; param: device index
+    jmp FuncA_Machine_WriteToLever
 .ENDPROC
 
 ;;; @prereq PRGA_Room is loaded.
