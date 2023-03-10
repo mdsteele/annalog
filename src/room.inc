@@ -101,6 +101,7 @@ kMaxPassages = 8
     PrisonFlower
     PrisonUpper
     SewerFlower
+    SewerPool
     SewerWest
     ShadowTeleport
     TempleAltar

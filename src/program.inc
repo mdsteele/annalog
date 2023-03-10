@@ -145,6 +145,7 @@ kFirstHorzDir = eDir::Left
     PrisonEastLift
     PrisonEscapeTrolley
     SewerFlowerPump
+    SewerPoolMultiplexer
     SewerWestMultiplexer
     ShadowTeleportField
     TempleAltarLowerMinigun
