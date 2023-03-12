@@ -27,8 +27,9 @@
 
 ;;; Instruments that can be used for music notes.
 .ENUM eInst
-    Default
-    RampDown
+    Constant
+    NoiseDrum
+    PulseBasic
     RampUp
     NUM_VALUES
 .ENDENUM

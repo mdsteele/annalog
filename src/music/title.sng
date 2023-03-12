@@ -5,8 +5,8 @@
 =tempo q30
 =key 2#  % D major
 
-!INST 1U RampUp   0
-!INST ND RampDown 0
+!INST 1U RampUp    $00
+!INST ND NoiseDrum $0c
 
 !PART A
 

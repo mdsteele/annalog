@@ -5,21 +5,21 @@
 =tempo q28
 =key 3#  % F# minor
 
-!INST 1D RampDown 0
-!INST 2D RampDown 0
-!INST TD Default  0
-!INST ND RampDown 0
+!INST 1D PulseBasic $cc  % duty = 3/4
+!INST 2D PulseBasic $0c  % duty = 1/8
+!INST TB Constant   $ff
+!INST ND NoiseDrum  $0c
 
 !PART A
 
 1| p(iD c5e c  ' ds de ds   )1A ' p1A | p1A ' p1A |
 2| p(iD c4e c  ' ds de ds   )2A ' p2A | p2A ' p2A |
-T| p(iD f2q    ' c          )3A ' p3A | p3A ' p3A |
+T| p(iB f2q    ' c          )3A ' p3A | p3A ' p3A |
 N| p(iD x1e x6 ' x3s x3e x3s)NA ' pNA | pNA ' pNA |
 
 !PART B
 
-T| p(f2e c)3B ' p3B ' p3B ' p3B | p3B ' p3B ' p3B ' p3B |
+T| p(iB f2e c)3B ' p3B ' p3B ' p3B | p3B ' p3B ' p3B ' p3B |
 N=:AN
 
 !PART C

@@ -138,7 +138,7 @@ static char *read_quoted_string(void) {
   return strdup(buffer);
 }
 
-static int read_unsigned_int(void) {
+static int read_unsigned_decimal_int(void) {
   int value = 0;
   int num_digits = 0;
   while (1) {
@@ -154,14 +154,34 @@ static int read_unsigned_int(void) {
   }
 }
 
-static int read_signed_int(void) {
+static int read_unsigned_hex_or_dec_int(void) {
+  if (peek_char() != '$') return read_unsigned_decimal_int();
+  read_char();
+  int value = 0;
+  int num_digits = 0;
+  while (1) {
+    const char ch = peek_char();
+    int digit;
+    if (ch >= '0' && ch <= '9') digit = ch - '0';
+    else if (ch >= 'a' && ch <= 'f') digit = ch - 'a' + 10;
+    else if (ch >= 'A' && ch <= 'F') digit = ch - 'A' + 10;
+    else if (num_digits == 0) ERROR("expected hex digit, not '%c'\n", ch);
+    else return value;
+    read_char();
+    ++num_digits;
+    if (num_digits > MAX_INTEGER_DIGITS) ERROR("integer value is too large\n");
+    value = 0x10 * value + digit;
+  }
+}
+
+static int read_signed_decimal_int(void) {
   int sign = 1;
   switch (read_char()) {
     case '+': sign = 1; break;
     case '-': sign = -1; break;
     default: ERROR("invalid sign char: '%c'\n", input.last_char);
   }
-  return sign * read_unsigned_int();
+  return sign * read_unsigned_decimal_int();
 }
 
 /*===========================================================================*/
@@ -751,7 +771,7 @@ static void parse_dpcm_declaration(void) {
   read_one_or_more_spaces();
   sample->id = read_identifier();
   read_one_or_more_spaces();
-  int length = read_unsigned_int();
+  int length = read_unsigned_hex_or_dec_int();
   if ((length >> 4) > 0x3f) {
     ERROR("sample byte length is too high\n");
   } else if (length % 16 != 1) {
@@ -779,7 +799,7 @@ static void parse_inst_declaration(void) {
   read_one_or_more_spaces();
   inst->id = read_identifier();
   read_one_or_more_spaces();
-  int param = read_unsigned_int();
+  int param = read_unsigned_hex_or_dec_int();
   if (param > 255) ERROR("invalid instrument param: %d\n", param);
   inst->param = param;
 }
@@ -855,7 +875,7 @@ static void parse_declaration(void) {
 
 static void parse_key_directive(void) {
   read_one_or_more_spaces();
-  int num_accidentals = read_unsigned_int();
+  int num_accidentals = read_unsigned_decimal_int();
   if (num_accidentals > 7) ERROR("invalid key signature number\n");
   switch (read_char()) {
     case '#': parser.current_key = num_accidentals; break;
@@ -878,13 +898,13 @@ static void parse_tempo_directive(void) {
     case 'x': multiplier = 64; break;
     default: ERROR("invalid tempo basis '%c'\n", input.last_char);
   }
-  int num_frames = read_unsigned_int();
+  int num_frames = read_unsigned_decimal_int();
   parser.frames_per_whole_note = multiplier * num_frames;
 }
 
 static void parse_transpose_directive(void) {
   read_one_or_more_spaces();
-  parser.global_transpose = read_signed_int();
+  parser.global_transpose = read_signed_decimal_int();
 }
 
 void parse_directive(void) {

@@ -285,7 +285,6 @@ _ResetChannels:
     sta Ram_Music_sChanState_arr + sChanState::NoteDuration_u8, x
     sta Ram_Music_sChanState_arr + sChanState::NoteFrames_u8, x
     sta Ram_Music_sChanState_arr + sChanState::InstParam_byte, x
-    .assert eInst::Default = 0, error
     sta Ram_Music_sChanState_arr + sChanState::Instrument_eInst, x
     .repeat .sizeof(sChanNext)
     inx
@@ -670,28 +669,65 @@ _CallSfx:
     D_TABLE_LO table, Data_Instruments_func_ptr_0_arr
     D_TABLE_HI table, Data_Instruments_func_ptr_1_arr
     D_TABLE eInst
-    d_entry table, Default,  Func_InstrumentDefault
-    d_entry table, RampDown, Func_InstrumentRampDown
-    d_entry table, RampUp,   Func_InstrumentRampUp
+    d_entry table, Constant,   Func_InstrumentConstant
+    d_entry table, NoiseDrum,  Func_InstrumentNoiseDrum
+    d_entry table, PulseBasic, Func_InstrumentPulseBasic
+    d_entry table, RampUp,     Func_InstrumentRampUp
     D_END
 .ENDREPEAT
 
-;;; The default instrument for music channels that don't specify one.
+;;; An instrument that sets a constant duty/envelope byte.  This is the default
+;;; instrument for music channels that don't specify one.
 ;;; @param X The channel number (0-4) times four (so, 0, 4, 8, 12, or 16).
 ;;; @return A The duty/envelope byte to use.
 ;;; @preserve X
-.PROC Func_InstrumentDefault
-    lda #$3f
+.PROC Func_InstrumentConstant
+    lda Ram_Music_sChanState_arr + sChanState::InstParam_byte, x
     rts
 .ENDPROC
 
-.PROC Func_InstrumentRampDown
-    lda #$0c
+;;; An instrument for playing simple drum sounds on the noise channel.
+;;; @param X The channel number (0-4) times four (so, 0, 4, 8, 12, or 16).
+;;; @return A The duty/envelope byte to use.
+;;; @preserve X
+.PROC Func_InstrumentNoiseDrum
+    ;; Calculate volume:
+    lda Ram_Music_sChanState_arr + sChanState::InstParam_byte, x
+    and #bEnvelope::VolMask
     sub Ram_Music_sChanState_arr + sChanState::NoteFrames_u8, x
-    bge @setDuty
+    bge @setVolume
     lda #$00
-    @setDuty:
-    ora #$b0
+    @setVolume:
+    ;; Combine volume with other envelope bits:
+    ora #bEnvelope::NoLength | bEnvelope::ConstVol
+    rts
+.ENDPROC
+
+;;; A basic instrument for the pulse channels.  The bottom four bits of the
+;;; instrument param specify the max volume, which fades out at the end of the
+;;; note.  The top two bits of the instrument param specify the pulse duty.
+;;; @param X The channel number (0-4) times four (so, 0, 4, 8, 12, or 16).
+;;; @return A The duty/envelope byte to use.
+;;; @preserve X
+.PROC Func_InstrumentPulseBasic
+    lda Ram_Music_sChanState_arr + sChanState::InstParam_byte, x
+    tay  ; instrument param
+    ;; Calculate volume:
+    and #bEnvelope::VolMask
+    sta Zp_AudioTmp1_byte  ; max volume
+    lda Ram_Music_sChanState_arr + sChanState::NoteDuration_u8, x
+    sub Ram_Music_sChanState_arr + sChanState::NoteFrames_u8, x
+    mul #2
+    cmp Zp_AudioTmp1_byte  ; max volume
+    blt @setVolume
+    lda Zp_AudioTmp1_byte  ; max volume
+    @setVolume:
+    sta Zp_AudioTmp1_byte  ; volume
+    ;; Combine volume with other envelope bits:
+    tya  ; instrument param
+    and #bEnvelope::DutyMask
+    ora #bEnvelope::NoLength | bEnvelope::ConstVol
+    ora Zp_AudioTmp1_byte  ; volume
     rts
 .ENDPROC
 
