@@ -40,6 +40,7 @@ kMachineRegNameB = $21  ; 'B'
     BridgeRight = $0a
     BridgeLeft  = $0b
     Crane       = $0c
+    Multiplexer = $0d
 .ENDENUM
 
 ;;;=========================================================================;;;

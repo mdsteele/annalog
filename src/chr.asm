@@ -410,7 +410,7 @@
 
 .PROC Ppu_ChrBgFontLower0D
 :   .incbin "out/data/tiles/font_lower.chr"
-    .res $10 * kSizeofChr
+    .incbin "out/data/tiles/diagram0d.chr"
     .incbin "out/data/tiles/portrait0d.chr"
     .assert * - :- = kSizeofChr * $40, error
 .ENDPROC

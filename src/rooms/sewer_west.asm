@@ -115,7 +115,7 @@ _Machines_sMachine_arr:
     d_byte Code_eProgram, eProgram::SewerWestMultiplexer
     d_byte Breaker_eFlag, 0
     d_byte Flags_bMachine, bMachine::MoveH | bMachine::WriteC
-    d_byte Status_eDiagram, eDiagram::Carriage  ; TODO
+    d_byte Status_eDiagram, eDiagram::Multiplexer
     d_word ScrollGoalX_u16, $0010
     d_byte ScrollGoalY_u8, $c0
     d_byte RegNames_u8_arr4, "J", 0, "X", 0
