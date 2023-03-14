@@ -25,15 +25,6 @@
     NUM_VALUES
 .ENDENUM
 
-;;; Instruments that can be used for music notes.
-.ENUM eInst
-    Constant
-    NoiseDrum
-    PulseBasic
-    RampUp
-    NUM_VALUES
-.ENDENUM
-
 ;;;=========================================================================;;;
 
 ;;; Each note in a phrase is one or more bytes, using the following encoding:
@@ -50,7 +41,8 @@
 ;;;       * On the pulse and triangle channels, the tone will have a frequency
 ;;;         value of %00000www.xxxxyyyy (0-2047), and the %qqq bits must be 0.
 ;;;       * On the noise channel, the tone will have a period value of %yyyy,
-;;;         and the %qqqwww and %xxxx bits must be 0.
+;;;         and will buzz if the high bit of %xxxx is set, and the %qqqwww bits
+;;;         must be 0.
 ;;;       * On the DMC channel, the sample starts at address %11xxxxyy.yy000000
 ;;;         and has a length of %000000qq.qwww0001 bytes.
 ;;;     Other characteristics of the sound (such as volume, duty cycle, and/or
@@ -62,9 +54,6 @@
     InstMask = %00111111  ; mask for instrument number of an INST note
     ToneMask = %00111111  ; mask for data for first byte of a TONE note
 .ENDSCOPE
-;;; Ensure that the bNote instrument mask is wide enough to include any
-;;; instrument.
-.ASSERT bNote::InstMask + 1 >= eInst::NUM_VALUES, error
 
 ;;; A variable-length sequence of notes, terminated by a $00 byte (i.e. a DONE
 ;;; note).  Each note is one or more bytes, the first of which uses bNote

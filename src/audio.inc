@@ -17,18 +17,26 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
-;;; Music state variables for a given APU channel.
-.STRUCT sChanState
-    ;; The length of the current tone/rest, in frames.
-    NoteDuration_u8  .byte
+;;; Music note state variables for a given APU channel.
+.STRUCT sChanNote
     ;; How many frames of the current tone/rest have elapsed so far.
-    NoteFrames_u8    .byte
-    ;; Arbitrary parameter/state byte that can be used by the instrument
-    ;; function.
-    InstParam_byte   .byte
+    ElapsedFrames_u8   .byte
+    ;; The length of the current tone/rest, in frames.
+    DurationFrames_u8  .byte
+    ;; The values written to the TimerLo/TimerHi APU registers for this note.
+    TimerLo_byte       .byte
+    TimerHi_byte       .byte
+.ENDSTRUCT
+
+;;; Music instrument state variables for a given APU channel.
+.STRUCT sChanInst
     ;; Indicates which instrument function to call each frame to update the
     ;; tone.
     Instrument_eInst .byte
+    ;; Parameter byte for the instrument.
+    Param_byte       .byte
+    ;; Currently-unused padding bytes.
+    Unused           .word
 .ENDSTRUCT
 
 ;;; SFX state variables for a given APU channel.

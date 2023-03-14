@@ -51,10 +51,18 @@ Hw_Pulse1TimerLo_wo = Hw_Channels_sChanRegs_arr5 + \
 
 .CODE
 
+;;; Stub implementation.
 .EXPORT Data_Music_sMusic_ptr_0_arr
 .EXPORT Data_Music_sMusic_ptr_1_arr
 Data_Music_sMusic_ptr_0_arr: .byte <Data_Test_sMusic
 Data_Music_sMusic_ptr_1_arr: .byte >Data_Test_sMusic
+
+;;; Stub implementation.
+.EXPORT Func_AudioCallInstrument
+.PROC Func_AudioCallInstrument
+    lda #0
+    rts
+.ENDPROC
 
 .PROC Data_Test_sMusic
     D_STRUCT sMusic

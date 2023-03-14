@@ -25,6 +25,7 @@
 
 .IMPORT Data_Music_sMusic_ptr_0_arr
 .IMPORT Data_Music_sMusic_ptr_1_arr
+.IMPORT Func_AudioCallInstrument
 
 ;;;=========================================================================;;;
 
@@ -51,10 +52,11 @@
 ;;; Assert that all the channel structs we use are exactly four bytes.  This
 ;;; allows us to use four times the channel number as a byte index into any the
 ;;; struct arrays.
-.ASSERT .sizeof(sChanRegs)  = 4, error
-.ASSERT .sizeof(sChanNext)  = 4, error
-.ASSERT .sizeof(sChanSfx)   = 4, error
-.ASSERT .sizeof(sChanState) = 4, error
+.ASSERT .sizeof(sChanInst) = 4, error
+.ASSERT .sizeof(sChanNext) = 4, error
+.ASSERT .sizeof(sChanNote) = 4, error
+.ASSERT .sizeof(sChanRegs) = 4, error
+.ASSERT .sizeof(sChanSfx)  = 4, error
 
 ;;;=========================================================================;;;
 
@@ -123,7 +125,10 @@ Zp_AudioTmp2_byte: .res 1
 .SEGMENT "RAM_Audio"
 
 ;;; Music channel state for all the different APU channels.
-Ram_Music_sChanState_arr: .res .sizeof(sChanState) * kNumApuChannels
+.EXPORT Ram_Music_sChanInst_arr
+Ram_Music_sChanInst_arr: .res .sizeof(sChanInst) * kNumApuChannels
+.EXPORT Ram_Music_sChanNote_arr
+Ram_Music_sChanNote_arr: .res .sizeof(sChanNote) * kNumApuChannels
 
 ;;; SFX channel state for all the different APU channels.
 .EXPORT Ram_Sound_sChanSfx_arr
@@ -282,10 +287,12 @@ _ResetChannels:
     lda #>Data_Empty_sPhrase
     sta Zp_Music_sChanNext_arr + sChanNext::PhraseNext_ptr + 1, x
     lda #0
-    sta Ram_Music_sChanState_arr + sChanState::NoteDuration_u8, x
-    sta Ram_Music_sChanState_arr + sChanState::NoteFrames_u8, x
-    sta Ram_Music_sChanState_arr + sChanState::InstParam_byte, x
-    sta Ram_Music_sChanState_arr + sChanState::Instrument_eInst, x
+    sta Ram_Music_sChanNote_arr + sChanNote::ElapsedFrames_u8, x
+    sta Ram_Music_sChanNote_arr + sChanNote::DurationFrames_u8, x
+    sta Ram_Music_sChanNote_arr + sChanNote::TimerLo_byte, x
+    sta Ram_Music_sChanNote_arr + sChanNote::TimerHi_byte, x
+    sta Ram_Music_sChanInst_arr + sChanInst::Instrument_eInst, x
+    sta Ram_Music_sChanInst_arr + sChanInst::Param_byte, x
     .repeat .sizeof(sChanNext)
     inx
     .endrepeat
@@ -465,8 +472,8 @@ _ChainFinished:
 ;;; @return C Set if no note/rest was played, and the phrase is now finished.
 ;;; @preserve X
 .PROC Func_AudioContinuePhrase
-    lda Ram_Music_sChanState_arr + sChanState::NoteFrames_u8, x
-    cmp Ram_Music_sChanState_arr + sChanState::NoteDuration_u8, x
+    lda Ram_Music_sChanNote_arr + sChanNote::ElapsedFrames_u8, x
+    cmp Ram_Music_sChanNote_arr + sChanNote::DurationFrames_u8, x
     bge _StartNextNote
 _ContinueNote:
     ;; If this channel is playing SFX, then don't play music on this channel.
@@ -482,7 +489,7 @@ _ContinueTone:
     ;; TODO: Apply master volume.
     sta Hw_Channels_sChanRegs_arr5 + sChanRegs::Envelope_wo, x
 _IncrementFramesAndReturn:
-    inc Ram_Music_sChanState_arr + sChanState::NoteFrames_u8, x
+    inc Ram_Music_sChanNote_arr + sChanNote::ElapsedFrames_u8, x
     clc  ; clear C to indicate that the phrase is still going
     rts
 _StartNextNote:
@@ -514,13 +521,15 @@ _NoteTone:
     ;; Reset sweep and note frames.
     lda #0
     sta Hw_Channels_sChanRegs_arr5 + sChanRegs::Sweep_wo, x
-    sta Ram_Music_sChanState_arr + sChanState::NoteFrames_u8, x
+    sta Ram_Music_sChanNote_arr + sChanNote::ElapsedFrames_u8, x
     ;; Read the second byte of the TONE note and use it as the TimerLo value.
     lda (Zp_Music_sChanNext_arr + sChanNext::PhraseNext_ptr, x)
+    sta Ram_Music_sChanNote_arr + sChanNote::TimerLo_byte, x
     sta Hw_Channels_sChanRegs_arr5 + sChanRegs::TimerLo_wo, x
     ;; Mask the first byte of the TONE note and use it as the TimerHi value.
     lda Zp_AudioTmp1_byte  ; first note byte
     and #bNote::ToneMask
+    sta Ram_Music_sChanNote_arr + sChanNote::TimerHi_byte, x
     sta Hw_Channels_sChanRegs_arr5 + sChanRegs::TimerHi_wo, x
     ;; Increment the channel's PhraseNext_ptr a second time.
     inc Zp_Music_sChanNext_arr + sChanNext::PhraseNext_ptr + 0, x
@@ -529,7 +538,7 @@ _NoteTone:
     @incDone2:
     ;; Read the third byte of the TONE note and use it as the note duration.
     lda (Zp_Music_sChanNext_arr + sChanNext::PhraseNext_ptr, x)
-    sta Ram_Music_sChanState_arr + sChanState::NoteDuration_u8, x
+    sta Ram_Music_sChanNote_arr + sChanNote::DurationFrames_u8, x
     ;; Increment the channel's PhraseNext_ptr a third time.
     inc Zp_Music_sChanNext_arr + sChanNext::PhraseNext_ptr + 0, x
     bne _ContinueTone
@@ -543,9 +552,9 @@ _SkipTone:
     @incDone2:
     ;; Read the third byte of the TONE note and use it as the note duration.
     lda (Zp_Music_sChanNext_arr + sChanNext::PhraseNext_ptr, x)
-    sta Ram_Music_sChanState_arr + sChanState::NoteDuration_u8, x
+    sta Ram_Music_sChanNote_arr + sChanNote::DurationFrames_u8, x
     lda #1
-    sta Ram_Music_sChanState_arr + sChanState::NoteFrames_u8, x
+    sta Ram_Music_sChanNote_arr + sChanNote::ElapsedFrames_u8, x
     ;; Increment the channel's PhraseNext_ptr a third time.
     inc Zp_Music_sChanNext_arr + sChanNext::PhraseNext_ptr + 0, x
     bne @incDone3
@@ -555,11 +564,11 @@ _SkipTone:
     rts
 _NoteInst:
     and #bNote::InstMask
-    sta Ram_Music_sChanState_arr + sChanState::Instrument_eInst, x
+    sta Ram_Music_sChanInst_arr + sChanInst::Instrument_eInst, x
     .assert bNote::InstMask & $80 = 0, error
     ;; Read the second byte of the INST note and use it as the param byte.
     lda (Zp_Music_sChanNext_arr + sChanNext::PhraseNext_ptr, x)
-    sta Ram_Music_sChanState_arr + sChanState::InstParam_byte, x
+    sta Ram_Music_sChanInst_arr + sChanInst::Param_byte, x
     ;; Increment the channel's PhraseNext_ptr a second time.
     inc Zp_Music_sChanNext_arr + sChanNext::PhraseNext_ptr + 0, x
     bne _StartNextNote
@@ -573,9 +582,9 @@ _NoteDone:
     rts
 _NoteRest:
     ;; Record the rest duration.
-    sta Ram_Music_sChanState_arr + sChanState::NoteDuration_u8, x
+    sta Ram_Music_sChanNote_arr + sChanNote::DurationFrames_u8, x
     lda #1
-    sta Ram_Music_sChanState_arr + sChanState::NoteFrames_u8, x
+    sta Ram_Music_sChanNote_arr + sChanNote::ElapsedFrames_u8, x
     clc  ; clear C to indicate that the phrase is still going
     ;; Disable this channel unless it's playing SFX.
     lda Ram_Sound_sChanSfx_arr + sChanSfx::Sfx_func_ptr + 1, x
@@ -588,20 +597,6 @@ _DisableChannel:
     sta Zp_ActiveChannels_bApuStatus
     sta Hw_ApuStatus_rw
     rts
-.ENDPROC
-
-;;; Calls the current instrument function for the specified music channel.
-;;; @param X The channel number (0-4) times four (so, 0, 4, 8, 12, or 16).
-;;; @return A The duty/envelope byte to use.
-;;; @preserve X
-.PROC Func_AudioCallInstrument
-    ldy Ram_Music_sChanState_arr + sChanState::Instrument_eInst, x
-    lda Data_Instruments_func_ptr_0_arr, y
-    sta Zp_AudioTmp1_byte
-    lda Data_Instruments_func_ptr_1_arr, y
-    sta Zp_AudioTmp2_byte
-    .assert Zp_AudioTmp1_byte + 1 = Zp_AudioTmp2_byte, error
-    jmp (Zp_AudioTmp1_byte)
 .ENDPROC
 
 ;;; Continues playing any active sound effects.
@@ -656,89 +651,6 @@ _DisableChannel:
 _CallSfx:
     .assert Zp_AudioTmp1_byte + 1 = Zp_AudioTmp2_byte, error
     jmp (Zp_AudioTmp1_byte)
-.ENDPROC
-
-;;; Maps from eInst enum values to instrument function pointers.  Each
-;;; instrument function returns the envelope byte to set (not taking master
-;;; volume into account), and can optionally update other APU registers for
-;;; the channel.
-;;; @param X The channel number (0-4) times four (so, 0, 4, 8, 12, or 16).
-;;; @return A The duty/envelope byte to use.
-;;; @preserve X
-.REPEAT 2, table
-    D_TABLE_LO table, Data_Instruments_func_ptr_0_arr
-    D_TABLE_HI table, Data_Instruments_func_ptr_1_arr
-    D_TABLE eInst
-    d_entry table, Constant,   Func_InstrumentConstant
-    d_entry table, NoiseDrum,  Func_InstrumentNoiseDrum
-    d_entry table, PulseBasic, Func_InstrumentPulseBasic
-    d_entry table, RampUp,     Func_InstrumentRampUp
-    D_END
-.ENDREPEAT
-
-;;; An instrument that sets a constant duty/envelope byte.  This is the default
-;;; instrument for music channels that don't specify one.
-;;; @param X The channel number (0-4) times four (so, 0, 4, 8, 12, or 16).
-;;; @return A The duty/envelope byte to use.
-;;; @preserve X
-.PROC Func_InstrumentConstant
-    lda Ram_Music_sChanState_arr + sChanState::InstParam_byte, x
-    rts
-.ENDPROC
-
-;;; An instrument for playing simple drum sounds on the noise channel.
-;;; @param X The channel number (0-4) times four (so, 0, 4, 8, 12, or 16).
-;;; @return A The duty/envelope byte to use.
-;;; @preserve X
-.PROC Func_InstrumentNoiseDrum
-    ;; Calculate volume:
-    lda Ram_Music_sChanState_arr + sChanState::InstParam_byte, x
-    and #bEnvelope::VolMask
-    sub Ram_Music_sChanState_arr + sChanState::NoteFrames_u8, x
-    bge @setVolume
-    lda #$00
-    @setVolume:
-    ;; Combine volume with other envelope bits:
-    ora #bEnvelope::NoLength | bEnvelope::ConstVol
-    rts
-.ENDPROC
-
-;;; A basic instrument for the pulse channels.  The bottom four bits of the
-;;; instrument param specify the max volume, which fades out at the end of the
-;;; note.  The top two bits of the instrument param specify the pulse duty.
-;;; @param X The channel number (0-4) times four (so, 0, 4, 8, 12, or 16).
-;;; @return A The duty/envelope byte to use.
-;;; @preserve X
-.PROC Func_InstrumentPulseBasic
-    lda Ram_Music_sChanState_arr + sChanState::InstParam_byte, x
-    tay  ; instrument param
-    ;; Calculate volume:
-    and #bEnvelope::VolMask
-    sta Zp_AudioTmp1_byte  ; max volume
-    lda Ram_Music_sChanState_arr + sChanState::NoteDuration_u8, x
-    sub Ram_Music_sChanState_arr + sChanState::NoteFrames_u8, x
-    mul #2
-    cmp Zp_AudioTmp1_byte  ; max volume
-    blt @setVolume
-    lda Zp_AudioTmp1_byte  ; max volume
-    @setVolume:
-    sta Zp_AudioTmp1_byte  ; volume
-    ;; Combine volume with other envelope bits:
-    tya  ; instrument param
-    and #bEnvelope::DutyMask
-    ora #bEnvelope::NoLength | bEnvelope::ConstVol
-    ora Zp_AudioTmp1_byte  ; volume
-    rts
-.ENDPROC
-
-.PROC Func_InstrumentRampUp
-    lda Ram_Music_sChanState_arr + sChanState::NoteFrames_u8, x
-    cmp #$0f
-    blt @setDuty
-    lda #$0f
-    @setDuty:
-    ora #$b0
-    rts
 .ENDPROC
 
 ;;;=========================================================================;;;
