@@ -99,6 +99,7 @@
 .IMPORT Func_InitActorProjSteamUp
 .IMPORT Func_Noop
 .IMPORT Func_PointHitsTerrain
+.IMPORTZP Zp_AvatarFlags_bObj
 .IMPORTZP Zp_AvatarPosX_i16
 .IMPORTZP Zp_AvatarPosY_i16
 .IMPORTZP Zp_PointX_i16
@@ -567,8 +568,29 @@ _NoHit:
 ;;; @preserve X
 .EXPORT FuncA_Actor_HarmAvatarIfCollision
 .PROC FuncA_Actor_HarmAvatarIfCollision
+    ;; If there's no collision, we're done.
     jsr FuncA_Actor_IsCollidingWithAvatar  ; preserves X, returns C
     bcc @done
+    ;; Face the player avatar towards the actor (so that the avatar will get
+    ;; knocked back away from the actor, instead of through it).
+    lda Zp_AvatarPosX_i16 + 0
+    cmp Ram_ActorPosX_i16_0_arr, x
+    lda Zp_AvatarPosX_i16 + 1
+    sbc Ram_ActorPosX_i16_1_arr, x
+    bvc @noOverflow  ; N eor V
+    eor #$80
+    @noOverflow:
+    bmi @faceRight
+    @faceLeft:
+    lda Zp_AvatarFlags_bObj
+    ora #bObj::FlipH
+    bne @setFlags  ; unconditional
+    @faceRight:
+    lda Zp_AvatarFlags_bObj
+    and #<~bObj::FlipH
+    @setFlags:
+    sta Zp_AvatarFlags_bObj
+    ;; Harm the avatar.
     jsr Func_HarmAvatar  ; preserves X
     sec
     @done:
