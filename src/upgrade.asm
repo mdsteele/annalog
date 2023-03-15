@@ -20,6 +20,7 @@
 .INCLUDE "charmap.inc"
 .INCLUDE "device.inc"
 .INCLUDE "flag.inc"
+.INCLUDE "hud.inc"
 .INCLUDE "joypad.inc"
 .INCLUDE "macros.inc"
 .INCLUDE "mmc3.inc"
@@ -43,6 +44,7 @@
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORT Ram_PpuTransfer_arr
 .IMPORT Sram_ProgressFlags_arr
+.IMPORTZP Zp_FloatingHud_bHud
 .IMPORTZP Zp_FrameCounter_u8
 .IMPORTZP Zp_MachineMaxInstructions_u8
 .IMPORTZP Zp_OamOffset_u8
@@ -167,6 +169,10 @@ _UpdateScrolling:
 ;;; @param X The upgrade device index.
 .PROC FuncA_Upgrade_Init
     jsr FuncA_Upgrade_Collect
+_HideHud:
+    lda Zp_FloatingHud_bHud
+    ora #bHud::Hidden
+    sta Zp_FloatingHud_bHud
 _AdjustScrollGoal:
     lda Zp_ScrollGoalY_u8
     add #(kScreenHeightPx - kUpgradeWindowTopGoal) / 2

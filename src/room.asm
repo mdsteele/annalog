@@ -134,7 +134,7 @@
 .IMPORTZP Zp_AvatarPlatformIndex_u8
 .IMPORTZP Zp_Camera_bScroll
 .IMPORTZP Zp_ConsoleMachineIndex_u8
-.IMPORTZP Zp_HudMachineIndex_u8
+.IMPORTZP Zp_FloatingHud_bHud
 .IMPORTZP Zp_Next_sAudioCtrl
 .IMPORTZP Zp_RoomShake_u8
 .IMPORTZP Zp_Tmp1_byte
@@ -530,7 +530,7 @@ _SetVars:
     dex  ; now X is $ff
     stx Zp_AvatarPlatformIndex_u8
     stx Zp_ConsoleMachineIndex_u8
-    stx Zp_HudMachineIndex_u8
+    stx Zp_FloatingHud_bHud  ; disable the floating HUD
     rts
 .ENDPROC
 

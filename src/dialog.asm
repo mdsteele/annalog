@@ -21,6 +21,7 @@
 .INCLUDE "cpu.inc"
 .INCLUDE "cursor.inc"
 .INCLUDE "dialog.inc"
+.INCLUDE "hud.inc"
 .INCLUDE "joypad.inc"
 .INCLUDE "macros.inc"
 .INCLUDE "mmc3.inc"
@@ -78,6 +79,7 @@
 .IMPORT Main_Explore_Continue
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORT Ram_PpuTransfer_arr
+.IMPORTZP Zp_FloatingHud_bHud
 .IMPORTZP Zp_FrameCounter_u8
 .IMPORTZP Zp_OamOffset_u8
 .IMPORTZP Zp_P1ButtonsPressed_bJoypad
@@ -366,6 +368,10 @@ _UpdateScrolling:
     ;; Load the first portrait of the dialog.
     jsr FuncA_Dialog_LoadNextPortrait  ; sets C if dialog is already done
     bcs _Done
+_HideHud:
+    lda Zp_FloatingHud_bHud
+    ora #bHud::Hidden
+    sta Zp_FloatingHud_bHud
 _AdjustScrollGoal:
     lda Zp_ScrollGoalY_u8
     add #(kScreenHeightPx - kDialogWindowTopGoal) / 2

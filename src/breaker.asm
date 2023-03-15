@@ -22,6 +22,7 @@
 .INCLUDE "device.inc"
 .INCLUDE "devices/breaker.inc"
 .INCLUDE "flag.inc"
+.INCLUDE "hud.inc"
 .INCLUDE "macros.inc"
 .INCLUDE "mmc3.inc"
 .INCLUDE "music.inc"
@@ -60,6 +61,7 @@
 .IMPORTZP Zp_Camera_bScroll
 .IMPORTZP Zp_Chr0cBank_u8
 .IMPORTZP Zp_Current_eRoom
+.IMPORTZP Zp_FloatingHud_bHud
 .IMPORTZP Zp_FrameCounter_u8
 .IMPORTZP Zp_NextCutscene_main_ptr
 .IMPORTZP Zp_RoomScrollX_u16
@@ -234,6 +236,10 @@ _FadeOut:
     sta Zp_Breaker_eFlag
     tax  ; param: eFlag value
     jsr Func_SetFlag
+    ;; Hide the floating HUD.
+    lda Zp_FloatingHud_bHud
+    ora #bHud::Hidden
+    sta Zp_FloatingHud_bHud
     ;; Zero the player avatar's velocity, and fully heal them.
     lda #0
     sta Zp_AvatarVelX_i16 + 0

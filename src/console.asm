@@ -20,6 +20,7 @@
 .INCLUDE "charmap.inc"
 .INCLUDE "cpu.inc"
 .INCLUDE "flag.inc"
+.INCLUDE "hud.inc"
 .INCLUDE "joypad.inc"
 .INCLUDE "machine.inc"
 .INCLUDE "macros.inc"
@@ -34,6 +35,7 @@
 .IMPORT FuncA_Console_WriteNeedsPowerTransferData
 .IMPORT FuncA_Console_WriteStatusTransferData
 .IMPORT FuncA_Machine_Tick
+.IMPORT FuncA_Objects_DrawHudInWindow
 .IMPORT FuncA_Objects_DrawObjectsForRoom
 .IMPORT FuncA_Room_MachineReset
 .IMPORT FuncA_Terrain_ScrollTowardsAvatar
@@ -55,8 +57,7 @@
 .IMPORT Sram_ProgressFlags_arr
 .IMPORTZP Zp_Current_sMachine_ptr
 .IMPORTZP Zp_Current_sProgram_ptr
-.IMPORTZP Zp_HudMachineIndex_u8
-.IMPORTZP Zp_MachineIndex_u8
+.IMPORTZP Zp_FloatingHud_bHud
 .IMPORTZP Zp_MachineMaxInstructions_u8
 .IMPORTZP Zp_P1ButtonsPressed_bJoypad
 .IMPORTZP Zp_PpuTransferLen_u8
@@ -81,8 +82,8 @@ kInstructionWidthTiles = 7
 
 .ZEROPAGE
 
-;;; The index of the machine being controlled by the open console, or $ff for
-;;; none.
+;;; The index of the machine being controlled by the open console, or $ff if
+;;; no console is open.
 .EXPORTZP Zp_ConsoleMachineIndex_u8
 Zp_ConsoleMachineIndex_u8: .res 1
 
@@ -151,13 +152,15 @@ Ram_ConsoleRegNames_u8_arr6: .res 6
     @noReset:
     jsr_prga FuncA_Console_Init
 _GameLoop:
-    jsr_prga FuncA_Objects_DrawObjectsForRoom
+    jsr_prga FuncA_Objects_DrawObjectsForRoomAndHud
     jsr Func_ClearRestOfOamAndProcessFrame
     jsr_prga FuncA_Console_ScrollWindowUp  ; returns C
     bcs _StartInteraction
     jsr_prga FuncA_Terrain_ScrollTowardsGoal
     jmp _GameLoop
 _StartInteraction:
+    lda #bHud::NoMachine | bHud::Hidden
+    sta Zp_FloatingHud_bHud
     lda Zp_ConsoleNeedsPower_u8
     bne Main_Console_NoPower
     ldx Zp_ConsoleMachineIndex_u8
@@ -180,7 +183,7 @@ _StartInteraction:
     sta Zp_ConsoleFieldNumber_u8
     sta Zp_ConsoleNominalFieldOffset_u8
 _GameLoop:
-    jsr_prga FuncA_Objects_DrawObjectsForRoom
+    jsr_prga FuncA_Objects_DrawObjectsForRoomAndHud
     jsr_prga FuncA_Console_DrawErrorCursor
     jsr Func_ClearRestOfOamAndProcessFrame
 _CheckButtons:
@@ -219,10 +222,14 @@ _UpdateScrolling:
 ;;; @prereq Rendering is enabled.
 ;;; @prereq Explore mode is initialized.
 .PROC Main_Console_CloseWindow
-    lda #$ff
-    sta Zp_ConsoleMachineIndex_u8
+    ;; If the machine is powered, enable the floating HUD.
+    lda Zp_ConsoleNeedsPower_u8
+    bne @done
+    lda Zp_ConsoleMachineIndex_u8
+    sta Zp_FloatingHud_bHud
+    @done:
 _GameLoop:
-    jsr_prga FuncA_Objects_DrawObjectsForRoom
+    jsr_prga FuncA_Objects_DrawObjectsForRoomAndHud
     jsr Func_ClearRestOfOamAndProcessFrame
 _ScrollWindowDown:
     lda Zp_WindowTop_u8
@@ -233,10 +240,14 @@ _ScrollWindowDown:
     @notDone:
     sta Zp_WindowTop_u8
     cmp #$ff
-    jeq Main_Explore_Continue
+    beq _Done
 _UpdateScrolling:
     jsr_prga FuncA_Terrain_ScrollTowardsAvatar
     jmp _GameLoop
+_Done:
+    lda #$ff
+    sta Zp_ConsoleMachineIndex_u8
+    jmp Main_Explore_Continue
 .ENDPROC
 
 ;;; Mode for editing a program in the console window.
@@ -259,7 +270,7 @@ _UpdateScrolling:
 .EXPORT Main_Console_ContinueEditing
 .PROC Main_Console_ContinueEditing
 _GameLoop:
-    jsr_prga FuncA_Objects_DrawObjectsForRoom
+    jsr_prga FuncA_Objects_DrawObjectsForRoomAndHud
     jsr_prga FuncA_Console_DrawFieldCursor
     jsr Func_ClearRestOfOamAndProcessFrame
 _CheckButtons:
@@ -325,15 +336,6 @@ _CheckIfPowered:
     sub #kFirstBreakerFlag - 1
     @setNeedsPower:
     sta Zp_ConsoleNeedsPower_u8
-    ;; If the machine is powered, enable the HUD, otherwise disable the HUD.
-    beq @enableHud
-    @disableHud:
-    ldx #$ff
-    bne @setHud  ; unconditional
-    @enableHud:
-    ldx Zp_MachineIndex_u8
-    @setHud:
-    stx Zp_HudMachineIndex_u8
 _SetDiagram:
     ldy #sMachine::Status_eDiagram
     chr04_bank (Zp_Current_sMachine_ptr), y
@@ -911,6 +913,22 @@ _WriteComparisonOperator:
     .assert eOpcode::Empty = 0, error
     @done:
     rts
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Objects"
+
+.PROC FuncA_Objects_DrawObjectsForRoomAndHud
+_Hud:
+    lda Zp_ConsoleNeedsPower_u8
+    bne @done
+    ldx Zp_ConsoleMachineIndex_u8  ; param: machine index
+    jsr Func_SetMachineIndex
+    jsr FuncA_Objects_DrawHudInWindow
+    @done:
+_Room:
+    jmp FuncA_Objects_DrawObjectsForRoom
 .ENDPROC
 
 ;;;=========================================================================;;;

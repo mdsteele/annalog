@@ -133,7 +133,7 @@ _WriteDiagramRow:
     .assert kStatusBoxWidthTiles = 8, error
     lda #kWindowTileIdBlank
     sta Ram_PpuTransfer_arr + 0, x
-    sta Ram_PpuTransfer_arr + 1, x
+    sta Ram_PpuTransfer_arr + 5, x
     sta Ram_PpuTransfer_arr + 6, x
     sta Ram_PpuTransfer_arr + 7, x
     ;; Draw the diagram itself.
@@ -141,7 +141,7 @@ _WriteDiagramRow:
     add #$60
     ldy #kNumDiagramRows
     @loop:
-    sta Ram_PpuTransfer_arr + 2, x
+    sta Ram_PpuTransfer_arr + 1, x
     adc #kNumDiagramRows
     inx
     dey

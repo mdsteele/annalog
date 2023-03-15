@@ -20,6 +20,7 @@
 .INCLUDE "avatar.inc"
 .INCLUDE "cpu.inc"
 .INCLUDE "device.inc"
+.INCLUDE "hud.inc"
 .INCLUDE "joypad.inc"
 .INCLUDE "macros.inc"
 .INCLUDE "mmc3.inc"
@@ -41,7 +42,7 @@
 .IMPORT FuncA_Objects_DrawAllActors
 .IMPORT FuncA_Objects_DrawAllDevices
 .IMPORT FuncA_Objects_DrawAllMachines
-.IMPORT FuncA_Objects_DrawMachineHud
+.IMPORT FuncA_Objects_DrawFloatingHud
 .IMPORT FuncA_Objects_DrawPlayerAvatar
 .IMPORT FuncA_Objects_MoveShapeLeftHalfTile
 .IMPORT FuncA_Objects_MoveShapeUpByA
@@ -85,6 +86,7 @@
 .IMPORTZP Zp_Chr0cBank_u8
 .IMPORTZP Zp_Current_sRoom
 .IMPORTZP Zp_Current_sTileset
+.IMPORTZP Zp_FloatingHud_bHud
 .IMPORTZP Zp_FrameCounter_u8
 .IMPORTZP Zp_OamOffset_u8
 .IMPORTZP Zp_P1ButtonsPressed_bJoypad
@@ -110,11 +112,6 @@ kTileIdObjDevicePrompt = $09
 ;;; The index of the (interactive) device that the player avatar is near, or
 ;;; $ff if none.
 Zp_NearbyDevice_u8: .res 1
-
-;;; If true ($ff), the register value HUD will be displayed (assuming that
-;;; Zp_HudMachineIndex_u8 is also valid); if false ($00), the register value
-;;; HUD will not be drawn.
-Zp_HudEnabled_bool: .res 1
 
 ;;; If set to a PRG ROM address ($8000+), e.g. by a dialog function or a room
 ;;; or machine tick function, then explore mode will jump to this mode (and
@@ -196,9 +193,12 @@ _CheckForToggleHud:
     lda Zp_P1ButtonsPressed_bJoypad
     and #bJoypad::Select
     beq @done
-    lda Zp_HudEnabled_bool
-    eor #$ff
-    sta Zp_HudEnabled_bool
+    bit Zp_FloatingHud_bHud
+    .assert bHud::NoMachine = bProc::Overflow, error
+    bvs @done
+    lda Zp_FloatingHud_bHud
+    eor #bHud::Hidden
+    sta Zp_FloatingHud_bHud
     @done:
 _CheckForPause:
     lda Zp_P1ButtonsPressed_bJoypad
@@ -356,11 +356,8 @@ _SetSpawnPoint:
     txa  ; upgrade device index
     ora #bSpawn::Device  ; param: bSpawn value
     jsr Func_SetLastSpawnPoint  ; preserves X
-_DisableHud:
-    ldy #0
-    sty Zp_HudEnabled_bool
 _CollectUpgrade:
-    dey  ; now Y is $ff
+    ldy #$ff
     sty Zp_NearbyDevice_u8
     jmp Main_Upgrade_OpenWindow
 .ENDPROC
@@ -370,9 +367,7 @@ _CollectUpgrade:
 ;;; @prereq Explore mode is already initialized.
 ;;; @param X The breaker device index.
 .PROC Main_Explore_UseBreaker
-    ldy #0
-    sty Zp_HudEnabled_bool
-    dey  ; now Y is $ff
+    ldy #$ff
     sty Zp_NearbyDevice_u8
     jmp Main_Breaker_Activate
 .ENDPROC
@@ -388,9 +383,6 @@ _SetSpawnPoint:
     txa  ; console device index
     ora #bSpawn::Device  ; param: bSpawn value
     jsr Func_SetLastSpawnPoint  ; preserves X
-_EnableHud:
-    lda #$ff
-    sta Zp_HudEnabled_bool
 _OpenConsoleWindow:
     lda Ram_DeviceTarget_u8_arr, x
     tax  ; param: machine index
@@ -515,12 +507,8 @@ _UpDownPassage:
     and #$07
     add #<.bank(Ppu_ChrBgAnimA0)
     sta Zp_Chr0cBank_u8
-    ;; Draw HUD.
-    bit Zp_HudEnabled_bool
-    bpl @skipHud
-    jsr FuncA_Objects_DrawMachineHud
-    @skipHud:
-    ;; Draw other objects.
+    ;; Draw objects.
+    jsr FuncA_Objects_DrawFloatingHud
     jsr FuncA_Objects_DrawPlayerAvatar
     jsr FuncA_Objects_DrawDevicePrompt
     jsr FuncA_Objects_DrawAllActors
