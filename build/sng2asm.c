@@ -1105,35 +1105,42 @@ static void write_separator(void) {
           "====================================;;;\n");
 }
 
-static void write_notes(const sng_phrase_t *phrase) {
+static int write_notes(const sng_phrase_t *phrase) {
+  int num_bytes = 0;
   assert(phrase->num_notes > 0);
   for (int n = 0; n < phrase->num_notes; ++n) {
     const sng_note_t *note = &phrase->notes[n];
     switch (note->kind) {
       case NT_REST: {
+        num_bytes += 1;
         assert(note->duration <= 127);
         fprintf(stdout, "    .byte $%02x            ; REST %d\n",
                 note->duration, note->duration);
       } break;
       case NT_INST: {
+        num_bytes += 2;
         fprintf(stdout, "    .byte $80 | eInst::%s, $%02x\n",
                 note->id, note->param);
       } break;
       case NT_TONE: {
+        num_bytes += 3;
         fprintf(stdout, "    .byte $%02x, $%02x, $%02x  ; TONE %d, %d\n",
                 0xc0 | (note->param >> 8), note->param & 0xff,
                 note->duration, note->param, note->duration);
       } break;
       case NT_DPCM: {
+        num_bytes += 3;
         fprintf(stdout, "    .byte $%02x, <(%s >> 6), $%02x\n",
                 0xc0 | (note->param & 0xff), note->id, note->duration);
       } break;
     }
   }
+  num_bytes += 1;
   fprintf(stdout, "    .byte $00            ; DONE\n");
+  return num_bytes;
 }
 
-static void write_opcode(const sng_song_t *song, const sng_opcode_t *opcode) {
+static int write_opcode(const sng_song_t *song, const sng_opcode_t *opcode) {
   switch (opcode->kind) {
     case OP_STOP:
       fprintf(stdout, "    .byte $00  ; STOP\n");
@@ -1157,12 +1164,15 @@ static void write_opcode(const sng_song_t *song, const sng_opcode_t *opcode) {
               part_index, opcode->part);
     } break;
   }
+  return 1;
 }
 
-static void write_part(const sng_song_t *song, const sng_part_t *part) {
+static int write_part(const sng_song_t *song, const sng_part_t *part) {
+  int num_bytes = 0;
   fprintf(stdout, "    D_STRUCT sPart  ; Part %c\n", part->letter);
   for (sng_channel_t c = 0; c < NUM_CHANNELS; ++c) {
     const sng_chain_t *chain = &part->chains[c];
+    num_bytes += 2;
     fprintf(stdout, "    d_addr Chain%c_u8_arr_ptr, ", channel_name(c));
     if (chain->alias_song_id != NULL) {
       assert(chain->num_phrases == 0);
@@ -1177,11 +1187,14 @@ static void write_part(const sng_song_t *song, const sng_part_t *part) {
     }
   }
   fprintf(stdout, "    D_END\n");
+  return num_bytes;
 }
 
-static void write_song(const sng_song_t *song) {
+static int write_song(const sng_song_t *song) {
+  int num_bytes = 0;
   fprintf(stdout, "\n.EXPORT %s_%s_sMusic\n", parser.prefix, song->id);
   fprintf(stdout, ".PROC %s_%s_sMusic\n", parser.prefix, song->id);
+  num_bytes += 6;
   fprintf(stdout,
           "    D_STRUCT sMusic\n"
           "    d_addr Opcodes_bMusic_arr_ptr, _Opcodes_bMusic_arr\n"
@@ -1193,33 +1206,39 @@ static void write_song(const sng_song_t *song) {
           "    D_END\n"
           "_Opcodes_bMusic_arr:\n");
   for (int o = 0; o < song->num_opcodes; ++o) {
-    write_opcode(song, &song->opcodes[o]);
+    num_bytes += write_opcode(song, &song->opcodes[o]);
   }
   fprintf(stdout, "_Parts_sPart_arr:\n");
   for (int p = 0; p < song->num_parts; ++p) {
-    write_part(song, &song->parts[p]);
+    num_bytes += write_part(song, &song->parts[p]);
   }
   fprintf(stdout, ".ENDPROC\n");
+  return num_bytes;
 }
 
-static void write_chain(const sng_song_t *song, const sng_part_t *part,
-                        sng_channel_t channel, const sng_chain_t *chain) {
+static int write_chain(const sng_song_t *song, const sng_part_t *part,
+                       sng_channel_t channel, const sng_chain_t *chain) {
+  int num_bytes = 0;
   fprintf(stdout, "\n.PROC %s_%s_Chain%c%c_u8_arr\n",
           parser.prefix, song->id, part->letter, channel_name(channel));
   int i = 0;
   for (; i < chain->num_phrases; ++i) {
     int phrase_index = chain->phrase_indices[i];
+    num_bytes += 1;
     if (i % 14 == 0) {
       if (i != 0) fprintf(stdout, "\n");
       fprintf(stdout, "    .byte $%02x", phrase_index);
     } else fprintf(stdout, ", $%02x", phrase_index);
   }
+  num_bytes += 1;
   if (i % 14 == 0) fprintf(stdout, "\n    .byte $ff\n");
   else fprintf(stdout, ", $ff\n");
   fprintf(stdout, ".ENDPROC\n");
+  return num_bytes;
 }
 
-static void write_chains(void) {
+static int write_chains(void) {
+  int num_bytes = 0;
   for (int s = 0; s < parser.num_songs; ++s) {
     const sng_song_t *song = &parser.songs[s];
     for (int p = 0; p < song->num_parts; ++p) {
@@ -1228,11 +1247,12 @@ static void write_chains(void) {
         const sng_chain_t *chain = &part->chains[c];
         if (chain->num_phrases != 0) {
           assert(chain->alias_part_name == '\0');
-          write_chain(song, part, c, chain);
+          num_bytes += write_chain(song, part, c, chain);
         }
       }
     }
   }
+  return num_bytes;
 }
 
 static void write_phrase_name(const sng_phrase_t *phrase) {
@@ -1242,10 +1262,12 @@ static void write_phrase_name(const sng_phrase_t *phrase) {
   fprintf(stdout, "\n");
 }
 
-static void write_phrases(void) {
+static int write_phrases(void) {
+  int num_bytes = 0;
   fprintf(stdout, "\n.PROC %s_%s_sPhrase_ptr_arr\n",
           parser.prefix, parser.songs[0].id);
   for (int p = 0; p < parser.num_phrases; ++p) {
+    num_bytes += 2;
     fprintf(stdout, "    .addr _Phrase%02X_sPhrase", p);
     write_phrase_name(&parser.phrases[p]);
   }
@@ -1253,9 +1275,10 @@ static void write_phrases(void) {
     const sng_phrase_t *phrase = &parser.phrases[p];
     fprintf(stdout, "_Phrase%02X_sPhrase:", p);
     write_phrase_name(phrase);
-    write_notes(phrase);
+    num_bytes += write_notes(phrase);
   }
   fprintf(stdout, ".ENDPROC\n");
+  return num_bytes;
 }
 
 static void write_samples(void) {
@@ -1280,6 +1303,7 @@ static void write_samples(void) {
 }
 
 static void write_output(void) {
+  int num_bytes = 0;
   fprintf(stdout,
           ";;; This file was generated by sng2asm.\n\n"
           ".INCLUDE \"../../../src/inst.inc\"\n"
@@ -1291,10 +1315,11 @@ static void write_output(void) {
   if (parser.num_songs == 0) return;
   fprintf(stdout, "\n.SEGMENT \"%s\"\n", parser.segment);
   for (int s = 0; s < parser.num_songs; ++s) {
-    write_song(&parser.songs[s]);
+    num_bytes += write_song(&parser.songs[s]);
   }
-  write_chains();
-  write_phrases();
+  num_bytes += write_chains();
+  num_bytes += write_phrases();
+  fprintf(stdout, "\n;;; Total data size: $%04x\n", num_bytes);
   write_separator();
 }
 
