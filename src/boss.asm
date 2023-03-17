@@ -46,6 +46,7 @@
 .IMPORT Ram_PlatformRight_i16_0_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORT Ram_PlatformTop_i16_1_arr
+.IMPORTZP Zp_ConsoleMachineIndex_u8
 .IMPORTZP Zp_PointX_i16
 .IMPORTZP Zp_PointY_i16
 .IMPORTZP Zp_Tmp1_byte
@@ -156,6 +157,10 @@ _BreakerAlreadyDone:
 ;;; @param A Zero if the boss is dead, nonzero otherwise.
 .EXPORT FuncA_Room_TickBoss
 .PROC FuncA_Room_TickBoss
+    ;; Don't tick the boss if a machine console is open.
+    bit Zp_ConsoleMachineIndex_u8
+    bpl _Return
+    ;; Handle the current boss phase.
     sta Zp_Tmp1_byte  ; zero if boss is dead
     ldy Zp_Boss_eBossPhase
     lda _JumpTable_ptr_0_arr, y
@@ -204,6 +209,7 @@ _BossBattle:
     sta Zp_BossPhaseTimer_u8
     lda #eBossPhase::BossBlinking
     sta Zp_Boss_eBossPhase
+_Return:
     rts
 _BossBlinking:
     ;; Wait for the phase timer to reach zero.

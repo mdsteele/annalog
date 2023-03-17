@@ -39,9 +39,8 @@
 .IMPORT FuncA_Console_TransferAllInstructions
 .IMPORT FuncA_Console_TransferAllStatusRows
 .IMPORT FuncA_Console_TransferInstruction
-.IMPORT FuncA_Machine_Tick
 .IMPORT FuncA_Objects_DrawObjectsForRoom
-.IMPORT FuncA_Terrain_ScrollTowardsGoal
+.IMPORT FuncM_ConsoleScrollTowardsGoalAndTick
 .IMPORT Func_ClearRestOfOamAndProcessFrame
 .IMPORT Func_SetMachineIndex
 .IMPORT Func_Window_GetRowPpuAddr
@@ -409,10 +408,7 @@ _GameLoop:
     jsr FuncA_Console_MenuHandleJoypad  ; returns C
     jcs Main_Console_ContinueEditing
 _Tick:
-    jsr_prga FuncA_Terrain_ScrollTowardsGoal
-    ldx Zp_ConsoleMachineIndex_u8  ; param: machine index
-    jsr Func_SetMachineIndex
-    jsr_prga FuncA_Machine_Tick
+    jsr FuncM_ConsoleScrollTowardsGoalAndTick
     jmp _GameLoop
 .ENDPROC
 

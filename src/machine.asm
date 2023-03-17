@@ -739,7 +739,6 @@ _OpSync:
 
 ;;; Calls the current machine's per-frame tick function.
 ;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
-.EXPORT FuncA_Machine_Tick
 .PROC FuncA_Machine_Tick
     ;; Decrement the machine's slowdown value if it's not zero.
     ldx Zp_MachineIndex_u8
@@ -750,6 +749,26 @@ _OpSync:
     ;; Call the machine's tick function.
     ldy #sMachine::Tick_func_ptr  ; param: function pointer offset
     jmp Func_MachineCall
+.ENDPROC
+
+;;; Performs per-frame state updates for all machines in the room (but does not
+;;; execute any further instructions).
+.EXPORT FuncA_Machine_TickAll
+.PROC FuncA_Machine_TickAll
+    ;; If there are no machines in this room, then we're done.
+    lda <(Zp_Current_sRoom + sRoom::NumMachines_u8)
+    beq @return
+    ;; Call each machine's tick function.
+    ldx #0
+    @loop:
+    jsr Func_SetMachineIndex
+    jsr FuncA_Machine_Tick
+    ldx Zp_MachineIndex_u8
+    inx
+    cpx <(Zp_Current_sRoom + sRoom::NumMachines_u8)
+    blt @loop
+    @return:
+    rts
 .ENDPROC
 
 ;;; Executes instructions and performs per-frame state updates for all machines

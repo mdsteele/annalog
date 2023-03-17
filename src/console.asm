@@ -34,9 +34,10 @@
 .IMPORT FuncA_Console_MoveFieldCursor
 .IMPORT FuncA_Console_WriteNeedsPowerTransferData
 .IMPORT FuncA_Console_WriteStatusTransferData
-.IMPORT FuncA_Machine_Tick
+.IMPORT FuncA_Machine_TickAll
 .IMPORT FuncA_Objects_DrawHudInWindow
 .IMPORT FuncA_Objects_DrawObjectsForRoom
+.IMPORT FuncA_Room_CallRoomTick
 .IMPORT FuncA_Room_MachineReset
 .IMPORT FuncA_Terrain_ScrollTowardsAvatar
 .IMPORT FuncA_Terrain_ScrollTowardsGoal
@@ -45,6 +46,7 @@
 .IMPORT Func_IsFlagSet
 .IMPORT Func_ProcessFrame
 .IMPORT Func_SetMachineIndex
+.IMPORT Func_TickAllDevices
 .IMPORT Func_Window_GetRowPpuAddr
 .IMPORT Func_Window_PrepareRowTransfer
 .IMPORT Func_Window_TransferBottomBorder
@@ -156,7 +158,7 @@ _GameLoop:
     jsr Func_ClearRestOfOamAndProcessFrame
     jsr_prga FuncA_Console_ScrollWindowUp  ; returns C
     bcs _StartInteraction
-    jsr_prga FuncA_Terrain_ScrollTowardsGoal
+    jsr FuncM_ConsoleScrollTowardsGoalAndTick
     jmp _GameLoop
 _StartInteraction:
     lda #bHud::NoMachine | bHud::Hidden
@@ -186,11 +188,9 @@ _GameLoop:
     jsr_prga FuncA_Objects_DrawObjectsForRoomAndHud
     jsr_prga FuncA_Console_DrawErrorCursor
     jsr Func_ClearRestOfOamAndProcessFrame
-_CheckButtons:
     lda Zp_P1ButtonsPressed_bJoypad
     bne _StartEditing
-_UpdateScrolling:
-    jsr_prga FuncA_Terrain_ScrollTowardsGoal
+    jsr FuncM_ConsoleScrollTowardsGoalAndTick
     jmp _GameLoop
 _StartEditing:
     ldx Zp_ConsoleMachineIndex_u8  ; param: machine index
@@ -213,7 +213,7 @@ _CheckButtons:
     and #bJoypad::AButton | bJoypad::BButton
     bne Main_Console_CloseWindow
 _UpdateScrolling:
-    jsr_prga FuncA_Terrain_ScrollTowardsGoal
+    jsr FuncM_ConsoleScrollTowardsGoalAndTick
     jmp _GameLoop
 .ENDPROC
 
@@ -243,6 +243,7 @@ _ScrollWindowDown:
     beq _Done
 _UpdateScrolling:
     jsr_prga FuncA_Terrain_ScrollTowardsAvatar
+    jsr FuncM_ConsoleTick
     jmp _GameLoop
 _Done:
     lda #$ff
@@ -298,11 +299,24 @@ _CheckButtons:
     ;; D-pad:
     jsr_prga FuncA_Console_MoveFieldCursor
 _Tick:
-    jsr_prga FuncA_Terrain_ScrollTowardsGoal
-    ldx Zp_ConsoleMachineIndex_u8  ; param: machine index
-    jsr Func_SetMachineIndex
-    jsr_prga FuncA_Machine_Tick
+    jsr FuncM_ConsoleScrollTowardsGoalAndTick
     jmp _GameLoop
+.ENDPROC
+
+;;; Calls FuncA_Terrain_ScrollTowardsGoal and then FuncM_ConsoleTick.
+.EXPORT FuncM_ConsoleScrollTowardsGoalAndTick
+.PROC FuncM_ConsoleScrollTowardsGoalAndTick
+    jsr_prga FuncA_Terrain_ScrollTowardsGoal
+    .assert * = FuncM_ConsoleTick, error, "fallthrough"
+.ENDPROC
+
+;;; Calls per-frame tick functions that should still happen even when the
+;;; machine console is open.
+.PROC FuncM_ConsoleTick
+    jsr Func_TickAllDevices
+    jsr_prga FuncA_Room_CallRoomTick
+    jsr_prga FuncA_Machine_TickAll
+    rts
 .ENDPROC
 
 ;;;=========================================================================;;;
