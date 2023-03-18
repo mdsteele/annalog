@@ -75,14 +75,14 @@ kTileIdBgMinimapUnexplored = $80
 ;;; The BG tile ID for the bottom-left tile for all upgrade symbols.  Add 1 to
 ;;; this to get the the bottom-right tile ID for those symbols.
 kTileIdBgUpgradeBottomLeft = $c0
-;;; The BG tile ID for the top-left tile of the symbol for max-instruction
-;;; upgrades.  Add 1 to this to get the the top-right tile ID for that symbol.
-kTileIdBgMaxInstTopLeft    = $c2
-;;; The BG tile ID for the top-left tile for the symbol of the first
-;;; non-max-instruction upgrade.  Add 1 to this to get the the top-right tile
-;;; ID for that symbol, then add another 1 to get the top-left tile ID for the
-;;; next upgrade, and so on.
-kTileidBgRemainingTopLeft  = $c4
+;;; The BG tile ID for the top-left tile of the symbol for RAM upgrades.  Add 1
+;;; to this to get the the top-right tile ID for that symbol.
+kTileIdBgRamTopLeft        = $c2
+;;; The BG tile ID for the top-left tile for the symbol of the first non-RAM
+;;; upgrade.  Add 1 to this to get the the top-right tile ID for that symbol,
+;;; then add another 1 to get the top-left tile ID for the next upgrade, and so
+;;; on.
+kTileIdBgRemainingTopLeft  = $c4
 
 ;;; The screen pixel positions for the top and left edges of the minimap rect.
 kMinimapTopPx  = $28
@@ -502,14 +502,13 @@ _Finish:
     bne @draw  ; unconditional
     @top:
     txa  ; upgrade eFlag
-    .assert kNumMaxInstructionUpgrades = 4, error
-    sub #eFlag::UpgradeMaxInstructions3 + 1
-    blt @upgradeMaxInstructions
+    sub #kLastRamUpgradeFlag + 1
+    blt @isRamUpgrade
     mul #2
-    add #kTileidBgRemainingTopLeft
+    add #kTileIdBgRemainingTopLeft
     bcc @draw  ; unconditional
-    @upgradeMaxInstructions:
-    lda #kTileIdBgMaxInstTopLeft
+    @isRamUpgrade:
+    lda #kTileIdBgRamTopLeft
     @draw:
     ;; Draw the upgrade.
     sta Hw_PpuData_rw
@@ -716,7 +715,7 @@ _CircuitFlags_bObj_arr:
 .PROC FuncA_Pause_DrawFlowerCount
     ;; Only display the flower count if at least one flower has been delivered,
     ;; but the BEEP opcode has not been unlocked yet.
-    flag_bit Sram_ProgressFlags_arr, eFlag::UpgradeOpcodeBeep
+    flag_bit Sram_ProgressFlags_arr, eFlag::UpgradeOpBeep
     bne @noFlowerCount
     jsr Func_CountDeliveredFlowers  ; returns Z and A
     beq @noFlowerCount

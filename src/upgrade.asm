@@ -80,16 +80,16 @@ kUpgradeSymbolLeft = $14
 kPaletteObjUpgradeSymbol = 0
 
 ;;; The OBJ tile IDs for the bottom two tiles of all upgrade symbols.
-kUpgradeTileIdBottomLeft  = kTileIdObjUpgradeBottomFirst + 0
-kUpgradeTileIdBottomRight = kTileIdObjUpgradeBottomFirst + 1
-;;; The OBJ tile ID for the top-left tile of the symbol for max-instruction
-;;; upgrades.  Add 1 to this to get the the top-right tile ID for that symbol.
-kMaxInstTileIdTopLeft     = kTileIdObjUpgradeMaxInstFirst + 0
-;;; The OBJ tile ID for the top-left tile for the symbol of the first
-;;; non-max-instruction upgrade.  Add 1 to this to get the the top-right tile
-;;; ID for that symbol, then add another 1 to get the top-left tile ID for the
-;;; next upgrade, and so on.
-kRemainingTileIdTopLeft   = kTileIdObjUpgradeBRemoteFirst + 0
+kTileIdObjUpgradeBottomLeft  = kTileIdObjUpgradeBottomFirst + 0
+kTileIdObjUpgradeBottomRight = kTileIdObjUpgradeBottomFirst + 1
+;;; The OBJ tile ID for the top-left tile of the symbol for RAM upgrades.  Add
+;;; 1 to this to get the the top-right tile ID for that symbol.
+kTileIdObjRamTopLeft         = kTileIdObjUpgradeRamFirst + 0
+;;; The OBJ tile ID for the top-left tile for the symbol of the first non-RAM
+;;; upgrade.  Add 1 to this to get the the top-right tile ID for that symbol,
+;;; then add another 1 to get the top-left tile ID for the next upgrade, and so
+;;; on.
+kTileIdObjRemainingTopLeft   = kTileIdObjUpgradeBRemoteFirst + 0
 
 ;;;=========================================================================;;;
 
@@ -200,34 +200,32 @@ _InitWindow:
     sta Zp_CurrentUpgrade_eFlag
     tax  ; param: eFlag value
     jsr Func_SetFlag
-    ;; Update Zp_MachineMaxInstructions_u8, in case we just got a
-    ;; max-instructions upgrade.
+    ;; Update Zp_MachineMaxInstructions_u8, in case we just got a RAM upgrade.
     .assert * = FuncA_Upgrade_ComputeMaxInstructions, error, "fallthrough"
 .ENDPROC
 
 ;;; Recomputes Zp_MachineMaxInstructions_u8 from Sram_ProgressFlags_arr.
 .EXPORT FuncA_Upgrade_ComputeMaxInstructions
 .PROC FuncA_Upgrade_ComputeMaxInstructions
-    ;; Store the max-instruction upgrade flags in the bottom
-    ;; kNumMaxInstructionUpgrades bits of A.
-    .assert eFlag::UpgradeMaxInstructions0 = 1, error
-    .assert eFlag::UpgradeMaxInstructions1 = 2, error
-    .assert eFlag::UpgradeMaxInstructions2 = 3, error
-    .assert eFlag::UpgradeMaxInstructions3 = 4, error
-    .assert kNumMaxInstructionUpgrades = 4, error
+    ;; Store the RAM upgrade flags in the bottom kNumRamUpgrades bits of A.
+    .assert eFlag::UpgradeRam1 = 1, error
+    .assert eFlag::UpgradeRam2 = 2, error
+    .assert eFlag::UpgradeRam3 = 3, error
+    .assert eFlag::UpgradeRam4 = 4, error
+    .assert kNumRamUpgrades = 4, error
     lda Sram_ProgressFlags_arr + 0
     lsr a
     and #$0f
-    ;; Loop over each of the kNumMaxInstructionUpgrades bottom bits of A.
-    ;; Start with a max instructions count of kMaxProgramLength, and for each
-    ;; max-instructions upgrade that we *don't* have, decrement that count by
-    ;; kNumExtraInstructionsPerUpgrade.
+    ;; Loop over each of the kNumRamUpgrades bottom bits of A.  Start with a
+    ;; max instructions count of kMaxProgramLength, and for each RAM upgrade
+    ;; that we *don't* have, decrement that count by
+    ;; kNumExtraInstructionsPerRamUpgrade.
     ldx #kMaxProgramLength  ; max instructions
-    ldy #kNumMaxInstructionUpgrades
+    ldy #kNumRamUpgrades
     @loop:
     lsr a
     bcs @continue
-    .repeat kNumExtraInstructionsPerUpgrade
+    .repeat kNumExtraInstructionsPerRamUpgrade
     dex
     .endrepeat
     @continue:
@@ -238,42 +236,42 @@ _InitWindow:
 .ENDPROC
 
 .PROC DataA_Upgrade_Descriptions
-MaxInstructions1_u8_arr: .byte "     PROGRAM RAM", $ff
-MaxInstructions2_u8_arr: .byte "Increases max program", $ff
-MaxInstructions3_u8_arr: .byte "size by 2 instructions.", $ff
-RegisterB1_u8_arr:       .byte "       B-REMOTE", $ff
-RegisterB2_u8_arr:       .byte "Uses the B button to", $ff
-RegisterB3_u8_arr:       .byte "control the B register.", $ff
-OpcodeIf1_u8_arr:        .byte "      IF OPCODE", $ff
-OpcodeIf2_u8_arr:        .byte "Skips next instruction", $ff
-OpcodeIf3_u8_arr:        .byte "unless condition is met.", $ff
-OpcodeTil1_u8_arr:       .byte "      TIL OPCODE", $ff
-OpcodeTil2_u8_arr:       .byte "Repeats last instruction", $ff
-OpcodeTil3_u8_arr:       .byte "until condition is met.", $ff
-OpcodeCopy1_u8_arr:      .byte "     COPY OPCODE", $ff
-OpcodeCopy2_u8_arr:      .byte "Copies a value into a", $ff
-OpcodeCopy3_u8_arr:      .byte "register.", $ff
-OpcodeAddSub1_u8_arr:    .byte "   ADD/SUB OPCODES", $ff
-OpcodeAddSub2_u8_arr:    .byte "Adds or subtracts one", $ff
-OpcodeAddSub3_u8_arr:    .byte "value from another.", $ff
-OpcodeMul1_u8_arr:       .byte "      MUL OPCODE", $ff
-OpcodeMul2_u8_arr:       .byte "Multiplies one value by", $ff
-OpcodeMul3_u8_arr:       .byte "another.", $ff
-OpcodeGoto1_u8_arr:      .byte "     GOTO OPCODE", $ff
-OpcodeGoto2_u8_arr:      .byte "Jumps directly to a", $ff
-OpcodeGoto3_u8_arr:      .byte "specific instruction.", $ff
-OpcodeSkip1_u8_arr:      .byte "     SKIP OPCODE", $ff
-OpcodeSkip2_u8_arr:      .byte "Skips over a variable", $ff
-OpcodeSkip3_u8_arr:      .byte "number of instructions.", $ff
-OpcodeWait1_u8_arr:      .byte "     WAIT OPCODE", $ff
-OpcodeWait2_u8_arr:      .byte "Pauses execution for a", $ff
-OpcodeWait3_u8_arr:      .byte "short time.", $ff
-OpcodeSync1_u8_arr:      .byte "     SYNC OPCODE", $ff
-OpcodeSync2_u8_arr:      .byte "Pauses execution until", $ff
-OpcodeSync3_u8_arr:      .byte "all machines sync.", $ff
-OpcodeBeep1_u8_arr:      .byte "     BEEP OPCODE", $ff
-OpcodeBeep2_u8_arr:      .byte "Plays one of ten musical", $ff
-OpcodeBeep3_u8_arr:      .byte "tones.", $ff
+Ram1_u8_arr:      .byte "     PROGRAM RAM", $ff
+Ram2_u8_arr:      .byte "Increases max program", $ff
+Ram3_u8_arr:      .byte "size by 2 instructions.", $ff
+BRemote1_u8_arr:  .byte "       B-REMOTE", $ff
+BRemote2_u8_arr:  .byte "Uses the B button to", $ff
+BRemote3_u8_arr:  .byte "control the B register.", $ff
+OpIf1_u8_arr:     .byte "      IF OPCODE", $ff
+OpIf2_u8_arr:     .byte "Skips next instruction", $ff
+OpIf3_u8_arr:     .byte "unless condition is met.", $ff
+OpTil1_u8_arr:    .byte "      TIL OPCODE", $ff
+OpTil2_u8_arr:    .byte "Repeats last instruction", $ff
+OpTil3_u8_arr:    .byte "until condition is met.", $ff
+OpCopy1_u8_arr:   .byte "     COPY OPCODE", $ff
+OpCopy2_u8_arr:   .byte "Copies a value into a", $ff
+OpCopy3_u8_arr:   .byte "register.", $ff
+OpAddSub1_u8_arr: .byte "   ADD/SUB OPCODES", $ff
+OpAddSub2_u8_arr: .byte "Adds or subtracts one", $ff
+OpAddSub3_u8_arr: .byte "value from another.", $ff
+OpMul1_u8_arr:    .byte "      MUL OPCODE", $ff
+OpMul2_u8_arr:    .byte "Multiplies one value by", $ff
+OpMul3_u8_arr:    .byte "another.", $ff
+OpGoto1_u8_arr:   .byte "     GOTO OPCODE", $ff
+OpGoto2_u8_arr:   .byte "Jumps directly to a", $ff
+OpGoto3_u8_arr:   .byte "specific instruction.", $ff
+OpSkip1_u8_arr:   .byte "     SKIP OPCODE", $ff
+OpSkip2_u8_arr:   .byte "Skips over a variable", $ff
+OpSkip3_u8_arr:   .byte "number of instructions.", $ff
+OpWait1_u8_arr:   .byte "     WAIT OPCODE", $ff
+OpWait2_u8_arr:   .byte "Pauses execution for a", $ff
+OpWait3_u8_arr:   .byte "short time.", $ff
+OpSync1_u8_arr:   .byte "     SYNC OPCODE", $ff
+OpSync2_u8_arr:   .byte "Pauses execution until", $ff
+OpSync3_u8_arr:   .byte "all machines sync.", $ff
+OpBeep1_u8_arr:   .byte "     BEEP OPCODE", $ff
+OpBeep2_u8_arr:   .byte "Plays one of ten musical", $ff
+OpBeep3_u8_arr:   .byte "tones.", $ff
 .ENDPROC
 
 ;;; Scrolls the upgrade window in a bit, and transfers PPU data as needed; call
@@ -383,56 +381,56 @@ _ClearRest:
     rts
 _DescTable_ptr_arr:
     .res 6
-    .assert * - _DescTable_ptr_arr = 6 * eFlag::UpgradeMaxInstructions0, error
-    .repeat kNumMaxInstructionUpgrades
-    .addr DataA_Upgrade_Descriptions::MaxInstructions1_u8_arr
-    .addr DataA_Upgrade_Descriptions::MaxInstructions2_u8_arr
-    .addr DataA_Upgrade_Descriptions::MaxInstructions3_u8_arr
+    .assert * - _DescTable_ptr_arr = 6 * kFirstRamUpgradeFlag, error
+    .repeat kNumRamUpgrades
+    .addr DataA_Upgrade_Descriptions::Ram1_u8_arr
+    .addr DataA_Upgrade_Descriptions::Ram2_u8_arr
+    .addr DataA_Upgrade_Descriptions::Ram3_u8_arr
     .endrepeat
-    .assert * - _DescTable_ptr_arr = 6 * eFlag::UpgradeRegisterB, error
-    .addr DataA_Upgrade_Descriptions::RegisterB1_u8_arr
-    .addr DataA_Upgrade_Descriptions::RegisterB2_u8_arr
-    .addr DataA_Upgrade_Descriptions::RegisterB3_u8_arr
-    .assert * - _DescTable_ptr_arr = 6 * eFlag::UpgradeOpcodeIf, error
-    .addr DataA_Upgrade_Descriptions::OpcodeIf1_u8_arr
-    .addr DataA_Upgrade_Descriptions::OpcodeIf2_u8_arr
-    .addr DataA_Upgrade_Descriptions::OpcodeIf3_u8_arr
-    .assert * - _DescTable_ptr_arr = 6 * eFlag::UpgradeOpcodeTil, error
-    .addr DataA_Upgrade_Descriptions::OpcodeTil1_u8_arr
-    .addr DataA_Upgrade_Descriptions::OpcodeTil2_u8_arr
-    .addr DataA_Upgrade_Descriptions::OpcodeTil3_u8_arr
-    .assert * - _DescTable_ptr_arr = 6 * eFlag::UpgradeOpcodeCopy, error
-    .addr DataA_Upgrade_Descriptions::OpcodeCopy1_u8_arr
-    .addr DataA_Upgrade_Descriptions::OpcodeCopy2_u8_arr
-    .addr DataA_Upgrade_Descriptions::OpcodeCopy3_u8_arr
-    .assert * - _DescTable_ptr_arr = 6 * eFlag::UpgradeOpcodeAddSub, error
-    .addr DataA_Upgrade_Descriptions::OpcodeAddSub1_u8_arr
-    .addr DataA_Upgrade_Descriptions::OpcodeAddSub2_u8_arr
-    .addr DataA_Upgrade_Descriptions::OpcodeAddSub3_u8_arr
-    .assert * - _DescTable_ptr_arr = 6 * eFlag::UpgradeOpcodeMul, error
-    .addr DataA_Upgrade_Descriptions::OpcodeMul1_u8_arr
-    .addr DataA_Upgrade_Descriptions::OpcodeMul2_u8_arr
-    .addr DataA_Upgrade_Descriptions::OpcodeMul3_u8_arr
-    .assert * - _DescTable_ptr_arr = 6 * eFlag::UpgradeOpcodeBeep, error
-    .addr DataA_Upgrade_Descriptions::OpcodeBeep1_u8_arr
-    .addr DataA_Upgrade_Descriptions::OpcodeBeep2_u8_arr
-    .addr DataA_Upgrade_Descriptions::OpcodeBeep3_u8_arr
-    .assert * - _DescTable_ptr_arr = 6 * eFlag::UpgradeOpcodeGoto, error
-    .addr DataA_Upgrade_Descriptions::OpcodeGoto1_u8_arr
-    .addr DataA_Upgrade_Descriptions::OpcodeGoto2_u8_arr
-    .addr DataA_Upgrade_Descriptions::OpcodeGoto3_u8_arr
-    .assert * - _DescTable_ptr_arr = 6 * eFlag::UpgradeOpcodeSkip, error
-    .addr DataA_Upgrade_Descriptions::OpcodeSkip1_u8_arr
-    .addr DataA_Upgrade_Descriptions::OpcodeSkip2_u8_arr
-    .addr DataA_Upgrade_Descriptions::OpcodeSkip3_u8_arr
-    .assert * - _DescTable_ptr_arr = 6 * eFlag::UpgradeOpcodeWait, error
-    .addr DataA_Upgrade_Descriptions::OpcodeWait1_u8_arr
-    .addr DataA_Upgrade_Descriptions::OpcodeWait2_u8_arr
-    .addr DataA_Upgrade_Descriptions::OpcodeWait3_u8_arr
-    .assert * - _DescTable_ptr_arr = 6 * eFlag::UpgradeOpcodeSync, error
-    .addr DataA_Upgrade_Descriptions::OpcodeSync1_u8_arr
-    .addr DataA_Upgrade_Descriptions::OpcodeSync2_u8_arr
-    .addr DataA_Upgrade_Descriptions::OpcodeSync3_u8_arr
+    .assert * - _DescTable_ptr_arr = 6 * eFlag::UpgradeBRemote, error
+    .addr DataA_Upgrade_Descriptions::BRemote1_u8_arr
+    .addr DataA_Upgrade_Descriptions::BRemote2_u8_arr
+    .addr DataA_Upgrade_Descriptions::BRemote3_u8_arr
+    .assert * - _DescTable_ptr_arr = 6 * eFlag::UpgradeOpIf, error
+    .addr DataA_Upgrade_Descriptions::OpIf1_u8_arr
+    .addr DataA_Upgrade_Descriptions::OpIf2_u8_arr
+    .addr DataA_Upgrade_Descriptions::OpIf3_u8_arr
+    .assert * - _DescTable_ptr_arr = 6 * eFlag::UpgradeOpTil, error
+    .addr DataA_Upgrade_Descriptions::OpTil1_u8_arr
+    .addr DataA_Upgrade_Descriptions::OpTil2_u8_arr
+    .addr DataA_Upgrade_Descriptions::OpTil3_u8_arr
+    .assert * - _DescTable_ptr_arr = 6 * eFlag::UpgradeOpCopy, error
+    .addr DataA_Upgrade_Descriptions::OpCopy1_u8_arr
+    .addr DataA_Upgrade_Descriptions::OpCopy2_u8_arr
+    .addr DataA_Upgrade_Descriptions::OpCopy3_u8_arr
+    .assert * - _DescTable_ptr_arr = 6 * eFlag::UpgradeOpAddSub, error
+    .addr DataA_Upgrade_Descriptions::OpAddSub1_u8_arr
+    .addr DataA_Upgrade_Descriptions::OpAddSub2_u8_arr
+    .addr DataA_Upgrade_Descriptions::OpAddSub3_u8_arr
+    .assert * - _DescTable_ptr_arr = 6 * eFlag::UpgradeOpMul, error
+    .addr DataA_Upgrade_Descriptions::OpMul1_u8_arr
+    .addr DataA_Upgrade_Descriptions::OpMul2_u8_arr
+    .addr DataA_Upgrade_Descriptions::OpMul3_u8_arr
+    .assert * - _DescTable_ptr_arr = 6 * eFlag::UpgradeOpBeep, error
+    .addr DataA_Upgrade_Descriptions::OpBeep1_u8_arr
+    .addr DataA_Upgrade_Descriptions::OpBeep2_u8_arr
+    .addr DataA_Upgrade_Descriptions::OpBeep3_u8_arr
+    .assert * - _DescTable_ptr_arr = 6 * eFlag::UpgradeOpGoto, error
+    .addr DataA_Upgrade_Descriptions::OpGoto1_u8_arr
+    .addr DataA_Upgrade_Descriptions::OpGoto2_u8_arr
+    .addr DataA_Upgrade_Descriptions::OpGoto3_u8_arr
+    .assert * - _DescTable_ptr_arr = 6 * eFlag::UpgradeOpSkip, error
+    .addr DataA_Upgrade_Descriptions::OpSkip1_u8_arr
+    .addr DataA_Upgrade_Descriptions::OpSkip2_u8_arr
+    .addr DataA_Upgrade_Descriptions::OpSkip3_u8_arr
+    .assert * - _DescTable_ptr_arr = 6 * eFlag::UpgradeOpWait, error
+    .addr DataA_Upgrade_Descriptions::OpWait1_u8_arr
+    .addr DataA_Upgrade_Descriptions::OpWait2_u8_arr
+    .addr DataA_Upgrade_Descriptions::OpWait3_u8_arr
+    .assert * - _DescTable_ptr_arr = 6 * eFlag::UpgradeOpSync, error
+    .addr DataA_Upgrade_Descriptions::OpSync1_u8_arr
+    .addr DataA_Upgrade_Descriptions::OpSync2_u8_arr
+    .addr DataA_Upgrade_Descriptions::OpSync3_u8_arr
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -494,21 +492,20 @@ _YOffsets_u8_arr16:
 ;;; @preserve X
 .EXPORT FuncA_Objects_SetUpgradeTileIds
 .PROC FuncA_Objects_SetUpgradeTileIds
-    .assert kNumMaxInstructionUpgrades = 4, error
-    sub #eFlag::UpgradeMaxInstructions3 + 1
-    blt @upgradeMaxInstructions
+    sub #kLastRamUpgradeFlag + 1
+    blt @isRamUpgrade
     mul #2
-    add #kRemainingTileIdTopLeft
+    add #kTileIdObjRemainingTopLeft
     bcc @setTileIds  ; unconditional
-    @upgradeMaxInstructions:
-    lda #kMaxInstTileIdTopLeft
+    @isRamUpgrade:
+    lda #kTileIdObjRamTopLeft
     @setTileIds:
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Tile_u8, y
     add #1
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Tile_u8, y
-    lda #kUpgradeTileIdBottomLeft
+    lda #kTileIdObjUpgradeBottomLeft
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Tile_u8, y
-    lda #kUpgradeTileIdBottomRight
+    lda #kTileIdObjUpgradeBottomRight
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Tile_u8, y
     rts
 .ENDPROC

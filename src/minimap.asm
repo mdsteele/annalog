@@ -530,13 +530,13 @@ _Done:
     d_byte Row_u8, 6
     d_byte Col_u8, 4  ; room: TempleLobby
     d_byte If_eFlag, 0
-    d_byte Not_eFlag, eFlag::UpgradeOpcodeTil
+    d_byte Not_eFlag, eFlag::UpgradeOpTil
     D_END
     D_STRUCT sMarker
     d_byte Row_u8, 7
     d_byte Col_u8, 8  ; room: GardenShrine
     d_byte If_eFlag, 0
-    d_byte Not_eFlag, eFlag::UpgradeOpcodeIf
+    d_byte Not_eFlag, eFlag::UpgradeOpIf
     D_END
     D_STRUCT sMarker
     d_byte Row_u8, 7
@@ -548,7 +548,7 @@ _Done:
     d_byte Row_u8, 7
     d_byte Col_u8, 13  ; room: FactoryCenter
     d_byte If_eFlag, 0
-    d_byte Not_eFlag, eFlag::UpgradeOpcodeSkip
+    d_byte Not_eFlag, eFlag::UpgradeOpSkip
     D_END
     D_STRUCT sMarker
     d_byte Row_u8, 8
@@ -578,7 +578,7 @@ _Done:
     d_byte Row_u8, 10
     d_byte Col_u8, 4  ; room: CryptGallery
     d_byte If_eFlag, 0
-    d_byte Not_eFlag, eFlag::UpgradeOpcodeGoto
+    d_byte Not_eFlag, eFlag::UpgradeOpGoto
     D_END
     D_STRUCT sMarker
     d_byte Row_u8, 10
@@ -602,13 +602,13 @@ _Done:
     d_byte Row_u8, 12
     d_byte Col_u8, 17  ; room: LavaStation
     d_byte If_eFlag, 0
-    d_byte Not_eFlag, eFlag::UpgradeOpcodeCopy
+    d_byte Not_eFlag, eFlag::UpgradeOpCopy
     D_END
     D_STRUCT sMarker
     d_byte Row_u8, 13
     d_byte Col_u8, 22  ; room: MinePit
     d_byte If_eFlag, 0
-    d_byte Not_eFlag, eFlag::UpgradeOpcodeSync
+    d_byte Not_eFlag, eFlag::UpgradeOpSync
     D_END
     D_STRUCT sMarker
     d_byte Row_u8, 14

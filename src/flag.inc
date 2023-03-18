@@ -25,11 +25,10 @@ kSaveMagicNumber = $b2
 
 ;;; How many upgrades there are that increase the maximum number of program
 ;;; instructions.
-.DEFINE kNumMaxInstructionUpgrades 4
+.DEFINE kNumRamUpgrades 4
 
-;;; How many extra program instructions are permitted per max-instructions
-;;; upgrade.
-.DEFINE kNumExtraInstructionsPerUpgrade 2
+;;; How many extra program instructions are permitted per UpgradeRam* upgrade.
+.DEFINE kNumExtraInstructionsPerRamUpgrade 2
 
 ;;;=========================================================================;;;
 
@@ -51,21 +50,21 @@ kSaveMagicNumber = $b2
 .ENUM eFlag
     None  ; null flag, never set
     ;; Each of these flags is set when that upgrade has been collected:
-    UpgradeMaxInstructions0  ; Each of these four upgrades
-    UpgradeMaxInstructions1  ; increases the maximum number
-    UpgradeMaxInstructions2  ; of instructions in a program
-    UpgradeMaxInstructions3  ; by kNumExtraInstructionsPerUpgrade.
-    UpgradeRegisterB
-    UpgradeOpcodeIf
-    UpgradeOpcodeTil
-    UpgradeOpcodeCopy
-    UpgradeOpcodeAddSub
-    UpgradeOpcodeMul
-    UpgradeOpcodeBeep
-    UpgradeOpcodeGoto
-    UpgradeOpcodeSkip
-    UpgradeOpcodeWait
-    UpgradeOpcodeSync
+    UpgradeRam1
+    UpgradeRam2
+    UpgradeRam3
+    UpgradeRam4
+    UpgradeBRemote
+    UpgradeOpIf
+    UpgradeOpTil
+    UpgradeOpCopy
+    UpgradeOpAddSub
+    UpgradeOpMul
+    UpgradeOpBeep
+    UpgradeOpGoto
+    UpgradeOpSkip
+    UpgradeOpWait
+    UpgradeOpSync
     ;; Each of these flags is set when that flower is delivered to the florist:
     FlowerTemple
     FlowerPrison
@@ -128,10 +127,14 @@ kSaveMagicNumber = $b2
 
 ;;;=========================================================================;;;
 
-kFirstUpgradeFlag = eFlag::UpgradeMaxInstructions0
-kLastUpgradeFlag = eFlag::UpgradeOpcodeSync
+kFirstUpgradeFlag = eFlag::UpgradeRam1
+kLastUpgradeFlag = eFlag::UpgradeOpSync
 kNumUpgradeFlags = 15
 .ASSERT kNumUpgradeFlags = kLastUpgradeFlag + 1 - kFirstUpgradeFlag, error
+
+kFirstRamUpgradeFlag = eFlag::UpgradeRam1
+kLastRamUpgradeFlag = eFlag::UpgradeRam4
+.ASSERT kNumRamUpgrades = kLastRamUpgradeFlag + 1 - kFirstRamUpgradeFlag, error
 
 kFirstBreakerFlag = eFlag::BreakerGarden
 kLastBreakerFlag = eFlag::BreakerShadow

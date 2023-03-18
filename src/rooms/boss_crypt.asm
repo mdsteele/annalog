@@ -378,7 +378,7 @@ _Devices_sDevice_arr:
     d_byte Type_eDevice, eDevice::Placeholder  ; will be an upgrade
     d_byte BlockRow_u8, 11
     d_byte BlockCol_u8, 2
-    d_byte Target_u8, eFlag::UpgradeOpcodeWait
+    d_byte Target_u8, eFlag::UpgradeOpWait
     D_END
     .assert * - :- = kBossBreakerDeviceIndex * .sizeof(sDevice), error
     D_STRUCT sDevice

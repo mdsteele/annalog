@@ -50,7 +50,7 @@
 kUpgradeDeviceIndex = 0
 
 ;;; The eFlag value for the upgrade in this room.
-kUpgradeFlag = eFlag::UpgradeOpcodeSync
+kUpgradeFlag = eFlag::UpgradeOpSync
 
 ;;; The machine indices for the MinePitHoistWest and MinePitHoistEast machines.
 kHoistWestMachineIndex = 0

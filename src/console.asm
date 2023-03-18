@@ -368,13 +368,13 @@ _SetScrollGoal:
 _CopyRegNames:
     ;; Set name of register $a, or #0 if that register isn't yet unlocked (by
     ;; the COPY opcode).
-    flag_bit Sram_ProgressFlags_arr, eFlag::UpgradeOpcodeCopy
+    flag_bit Sram_ProgressFlags_arr, eFlag::UpgradeOpCopy
     beq @noRegA
     lda #kMachineRegNameA
     @noRegA:
     sta Ram_ConsoleRegNames_u8_arr6 + 0
     ;; Set name of register $b, or #0 if that register isn't yet unlocked.
-    flag_bit Sram_ProgressFlags_arr, eFlag::UpgradeRegisterB
+    flag_bit Sram_ProgressFlags_arr, eFlag::UpgradeBRemote
     beq @noRegB
     lda #kMachineRegNameB
     @noRegB:

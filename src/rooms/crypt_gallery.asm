@@ -65,7 +65,7 @@
 kUpgradeDeviceIndex = 2
 
 ;;; The eFlag value for the upgrade in this room.
-kUpgradeFlag = eFlag::UpgradeOpcodeGoto
+kUpgradeFlag = eFlag::UpgradeOpGoto
 
 ;;; The machine index for the CryptGalleryWinch machine in this room.
 kWinchMachineIndex = 0

@@ -53,7 +53,7 @@
 kUpgradeDeviceIndex = 0
 
 ;;; The eFlag value for the upgrade in this room.
-kUpgradeFlag = eFlag::UpgradeOpcodeTil
+kUpgradeFlag = eFlag::UpgradeOpTil
 
 ;;; The machine index for the TempleLobbyCarriage machine in this room.
 kCarriageMachineIndex = 0

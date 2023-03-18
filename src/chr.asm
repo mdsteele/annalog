@@ -648,7 +648,7 @@
 .EXPORT Ppu_ChrBgPause
 .PROC Ppu_ChrBgPause
 :   .incbin "out/data/tiles/upgrade_bottom.chr"
-    .incbin "out/data/tiles/upgrade_maxinst.chr"
+    .incbin "out/data/tiles/upgrade_ram.chr"
     .incbin "out/data/tiles/upgrade_bremote.chr"
     .incbin "out/data/tiles/upgrade_opif.chr"
     .incbin "out/data/tiles/upgrade_optil.chr"
@@ -817,8 +817,8 @@
 .PROC Ppu_ChrObjGarden
 :   .assert * - :- = (kTileIdObjUpgradeBottomFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/upgrade_bottom.chr"
-    .assert * - :- = (kTileIdObjUpgradeMaxInstFirst - $80) * kSizeofChr, error
-    .incbin "out/data/tiles/upgrade_maxinst.chr"
+    .assert * - :- = (kTileIdObjUpgradeRamFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/upgrade_ram.chr"
     .res $02 * kSizeofChr
     .assert * - :- = (kTileIdObjUpgradeOpIfFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/upgrade_opif.chr"
@@ -860,8 +860,8 @@
 .PROC Ppu_ChrObjLava
 :   .assert * - :- = (kTileIdObjUpgradeBottomFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/upgrade_bottom.chr"
-    .assert * - :- = (kTileIdObjUpgradeMaxInstFirst - $80) * kSizeofChr, error
-    .incbin "out/data/tiles/upgrade_maxinst.chr"
+    .assert * - :- = (kTileIdObjUpgradeRamFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/upgrade_ram.chr"
     .assert * - :- = (kTileIdObjEmber - $80) * kSizeofChr, error
     .incbin "out/data/tiles/ember.chr"
     .res $05 * kSizeofChr
@@ -916,8 +916,8 @@
 .PROC Ppu_ChrObjMine
 :   .assert * - :- = (kTileIdObjUpgradeBottomFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/upgrade_bottom.chr"
-    .assert * - :- = (kTileIdObjUpgradeMaxInstFirst - $80) * kSizeofChr, error
-    .incbin "out/data/tiles/upgrade_maxinst.chr"
+    .assert * - :- = (kTileIdObjUpgradeRamFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/upgrade_ram.chr"
     .assert * - :- = (kTileIdObjHoistFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/hoist.chr"
     .res $0e * kSizeofChr
@@ -1011,8 +1011,8 @@
 .PROC Ppu_ChrObjTemple
 :   .assert * - :- = (kTileIdObjUpgradeBottomFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/upgrade_bottom.chr"
-    .assert * - :- = (kTileIdObjUpgradeMaxInstFirst - $80) * kSizeofChr, error
-    .incbin "out/data/tiles/upgrade_maxinst.chr"
+    .assert * - :- = (kTileIdObjUpgradeRamFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/upgrade_ram.chr"
     .assert * - :- = (kTileIdObjBreakballFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/breakball.chr"
     .assert * - :- = (kTileIdObjColumnFirst - $80) * kSizeofChr, error

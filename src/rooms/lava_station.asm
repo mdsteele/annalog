@@ -54,7 +54,7 @@
 kUpgradeDeviceIndex = 1
 
 ;;; The eFlag value for the upgrade in this room.
-kUpgradeFlag = eFlag::UpgradeOpcodeCopy
+kUpgradeFlag = eFlag::UpgradeOpCopy
 
 ;;; The machine index for the LavaStationBoiler machine in this room.
 kBoilerMachineIndex = 0

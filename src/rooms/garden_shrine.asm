@@ -36,7 +36,7 @@
 kUpgradeDeviceIndex = 0
 
 ;;; The eFlag value for the upgrade in this room.
-kUpgradeFlag = eFlag::UpgradeOpcodeIf
+kUpgradeFlag = eFlag::UpgradeOpIf
 
 ;;;=========================================================================;;;
 
