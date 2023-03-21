@@ -45,7 +45,7 @@
 .IMPORT FuncA_Objects_DrawMinigunSideMachine
 .IMPORT FuncA_Room_AreActorsWithinDistance
 .IMPORT FuncC_Temple_DrawColumnCrackedPlatform
-.IMPORT Func_InitActorProjSmoke
+.IMPORT Func_InitActorSmokeExplosion
 .IMPORT Func_IsPointInPlatform
 .IMPORT Func_Noop
 .IMPORT Func_SetFlag
@@ -400,7 +400,7 @@ _HitBeetle:
     ;; Kill the beetle.
     tya  ; beetle actor index
     tax  ; param: actor index
-    jsr Func_InitActorProjSmoke
+    jsr Func_InitActorSmokeExplosion
     ;; TODO: play a sound
     ;; Restore the bullet actor index (so this function can preserve X).
     pla  ; bullet actor index

@@ -31,7 +31,7 @@
 .IMPORT Func_ClearRestOfOamAndProcessFrame
 .IMPORT Func_FadeOutToBlack
 .IMPORT Func_FindEmptyActorSlot
-.IMPORT Func_InitActorProjSmoke
+.IMPORT Func_InitActorSmokeExplosion
 .IMPORT Func_SetActorCenterToPoint
 .IMPORT Func_SetLastSpawnPoint
 .IMPORT Func_TickAllDevices
@@ -121,7 +121,7 @@ _MakeSmokePuff:
     bcs @done
     jsr FuncA_Room_SetPointToAvatarCenter  ; preserves X
     jsr Func_SetActorCenterToPoint  ; preserves X
-    jsr Func_InitActorProjSmoke
+    jsr Func_InitActorSmokeExplosion
     @done:
 _InitCutsceneState:
     lda #kTeleportFramesUntilFadeOut

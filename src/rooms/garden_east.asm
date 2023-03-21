@@ -48,7 +48,7 @@
 .IMPORT FuncA_Room_AreActorsWithinDistance
 .IMPORT FuncA_Room_FindGrenadeActor
 .IMPORT FuncA_Room_MachineCannonReset
-.IMPORT Func_InitActorProjSmoke
+.IMPORT Func_InitActorSmokeExplosion
 .IMPORT Func_MachineBridgeReadRegY
 .IMPORT Func_MachineCannonReadRegY
 .IMPORT Func_Noop
@@ -353,10 +353,10 @@ _CheckForCollision:
     jsr FuncA_Room_AreActorsWithinDistance  ; preserves X, returns C
     bcc _Done
     ;; Explode the grenade.
-    jsr Func_InitActorProjSmoke
+    jsr Func_InitActorSmokeExplosion
     ;; Explode the vinebug.
     ldx #kKillableVinebugActorIndex  ; param: actor index
-    jsr Func_InitActorProjSmoke
+    jsr Func_InitActorSmokeExplosion
     ;; TODO: play a sound
 _Done:
     rts

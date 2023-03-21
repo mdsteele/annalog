@@ -47,14 +47,18 @@ kMaxActors = 8
     ProjFireball     ; shot from the garden boss's eyes
     ProjFlamewave    ; sweeps out horizontally from an exploding breakball
     ProjGrenade      ; shot by cannon machines
-    ProjParticle     ; a single particle of smoke
     ProjRocket       ; shot by launcher machines
-    ProjSmoke        ; a puff of smoke for when something explodes
     ProjSpike        ; a falling spike dropped by the garden boss
     ProjSteamHorz    ; emitted horizontally from boiler machine pipes
     ProjSteamUp      ; emitted vertically from boiler machine pipes
+    SmokeExplosion   ; a puff of smoke for when something explodes
+    SmokeParticle    ; a single particle of smoke
     NUM_VALUES
 .ENDENUM
+
+;;; eActor values greater than or equal to this are "smoke" actors; that is,
+;;; they are decorative animations that don't affect game physics.
+kFirstSmokeActorType = eActor::SmokeExplosion
 
 ;;;=========================================================================;;;
 

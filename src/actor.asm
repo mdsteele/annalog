@@ -43,12 +43,12 @@
 .IMPORT FuncA_Actor_TickProjFireball
 .IMPORT FuncA_Actor_TickProjFlamewave
 .IMPORT FuncA_Actor_TickProjGrenade
-.IMPORT FuncA_Actor_TickProjParticle
 .IMPORT FuncA_Actor_TickProjRocket
-.IMPORT FuncA_Actor_TickProjSmoke
 .IMPORT FuncA_Actor_TickProjSpike
 .IMPORT FuncA_Actor_TickProjSteamHorz
 .IMPORT FuncA_Actor_TickProjSteamUp
+.IMPORT FuncA_Actor_TickSmokeExplosion
+.IMPORT FuncA_Actor_TickSmokeParticle
 .IMPORT FuncA_Objects_Draw1x1Shape
 .IMPORT FuncA_Objects_Draw2x2Shape
 .IMPORT FuncA_Objects_DrawActorBadBeetleHorz
@@ -73,12 +73,12 @@
 .IMPORT FuncA_Objects_DrawActorProjFireball
 .IMPORT FuncA_Objects_DrawActorProjFlamewave
 .IMPORT FuncA_Objects_DrawActorProjGrenade
-.IMPORT FuncA_Objects_DrawActorProjParticle
 .IMPORT FuncA_Objects_DrawActorProjRocket
-.IMPORT FuncA_Objects_DrawActorProjSmoke
 .IMPORT FuncA_Objects_DrawActorProjSpike
 .IMPORT FuncA_Objects_DrawActorProjSteamHorz
 .IMPORT FuncA_Objects_DrawActorProjSteamUp
+.IMPORT FuncA_Objects_DrawActorSmokeExplosion
+.IMPORT FuncA_Objects_DrawActorSmokeParticle
 .IMPORT FuncA_Objects_MoveShapeLeftHalfTile
 .IMPORT FuncA_Objects_MoveShapeUpByA
 .IMPORT FuncA_Room_InitActorBadBird
@@ -91,12 +91,12 @@
 .IMPORT Func_InitActorProjFireball
 .IMPORT Func_InitActorProjFlamewave
 .IMPORT Func_InitActorProjGrenade
-.IMPORT Func_InitActorProjParticle
 .IMPORT Func_InitActorProjRocket
-.IMPORT Func_InitActorProjSmoke
 .IMPORT Func_InitActorProjSpike
 .IMPORT Func_InitActorProjSteamHorz
 .IMPORT Func_InitActorProjSteamUp
+.IMPORT Func_InitActorSmokeExplosion
+.IMPORT Func_InitActorSmokeParticle
 .IMPORT Func_Noop
 .IMPORT Func_PointHitsTerrain
 .IMPORTZP Zp_AvatarFlags_bObj
@@ -116,15 +116,15 @@
 ;;;=========================================================================;;;
 
 ;;; The hit radius of various actors, in pixels.
-kProjBulletRadius = 1
-kProjFireballRadius = 3
-kProjGrenadeRadius = 2
-kProjParticleRadius = 1
-kProjRocketRadius = 2
-kProjSmokeRadius = 6
-kProjSpikeRadius = 3
+kProjBulletRadius     = 1
+kProjFireballRadius   = 3
+kProjGrenadeRadius    = 2
+kProjRocketRadius     = 2
+kProjSpikeRadius      = 3
 kProjSteamMajorRadius = 8
 kProjSteamMinorRadius = 5
+kSmokeExplosionRadius = 6
+kSmokeParticleRadius  = 1
 
 ;;;=========================================================================;;;
 
@@ -306,12 +306,12 @@ Ram_ActorFlags_bObj_arr: .res kMaxActors
     d_byte ProjFireball,    kProjFireballRadius
     d_byte ProjFlamewave,   12
     d_byte ProjGrenade,     kProjGrenadeRadius
-    d_byte ProjParticle,    kProjParticleRadius
     d_byte ProjRocket,      kProjRocketRadius
-    d_byte ProjSmoke,       kProjSmokeRadius
     d_byte ProjSpike,       kProjSpikeRadius
     d_byte ProjSteamHorz,   kProjSteamMinorRadius
     d_byte ProjSteamUp,     kProjSteamMajorRadius
+    d_byte SmokeExplosion,  kSmokeExplosionRadius
+    d_byte SmokeParticle,   kSmokeParticleRadius
     D_END
 .ENDPROC
 .PROC DataA_Actor_BoundingBoxDown_u8_arr
@@ -339,12 +339,12 @@ Ram_ActorFlags_bObj_arr: .res kMaxActors
     d_byte ProjFireball,    kProjFireballRadius
     d_byte ProjFlamewave,    8
     d_byte ProjGrenade,     kProjGrenadeRadius
-    d_byte ProjParticle,    kProjParticleRadius
     d_byte ProjRocket,      kProjRocketRadius
-    d_byte ProjSmoke,       kProjSmokeRadius
     d_byte ProjSpike,       kProjSpikeRadius
     d_byte ProjSteamHorz,   kProjSteamMinorRadius
     d_byte ProjSteamUp,     kProjSteamMajorRadius
+    d_byte SmokeExplosion,  kSmokeExplosionRadius
+    d_byte SmokeParticle,   kSmokeParticleRadius
     D_END
 .ENDPROC
 .PROC DataA_Actor_BoundingBoxSide_u8_arr
@@ -372,12 +372,12 @@ Ram_ActorFlags_bObj_arr: .res kMaxActors
     d_byte ProjFireball,    kProjFireballRadius
     d_byte ProjFlamewave,   3
     d_byte ProjGrenade,     kProjGrenadeRadius
-    d_byte ProjParticle,    kProjParticleRadius
     d_byte ProjRocket,      kProjRocketRadius
-    d_byte ProjSmoke,       kProjSmokeRadius
     d_byte ProjSpike,       kProjSpikeRadius
     d_byte ProjSteamHorz,   kProjSteamMajorRadius
     d_byte ProjSteamUp,     kProjSteamMinorRadius
+    d_byte SmokeExplosion,  kSmokeExplosionRadius
+    d_byte SmokeParticle,   kSmokeParticleRadius
     D_END
 .ENDPROC
 
@@ -387,6 +387,21 @@ Ram_ActorFlags_bObj_arr: .res kMaxActors
     ldx #kMaxActors - 1
     @loop:
     jsr FuncA_Actor_TickOneActor  ; preserves X
+    dex
+    bpl @loop
+    rts
+.ENDPROC
+
+;;; Performs per-frame updates for each smoke actor in the room.
+.EXPORT FuncA_Actor_TickAllSmokeActors
+.PROC FuncA_Actor_TickAllSmokeActors
+    ldx #kMaxActors - 1
+    @loop:
+    lda Ram_ActorType_eActor_arr, x
+    cmp #kFirstSmokeActorType
+    blt @continue
+    jsr FuncA_Actor_TickOneActor  ; preserves X
+    @continue:
     dex
     bpl @loop
     rts
@@ -459,12 +474,12 @@ _TypeSpecificTick:
     d_entry table, ProjFireball,    FuncA_Actor_TickProjFireball
     d_entry table, ProjFlamewave,   FuncA_Actor_TickProjFlamewave
     d_entry table, ProjGrenade,     FuncA_Actor_TickProjGrenade
-    d_entry table, ProjParticle,    FuncA_Actor_TickProjParticle
     d_entry table, ProjRocket,      FuncA_Actor_TickProjRocket
-    d_entry table, ProjSmoke,       FuncA_Actor_TickProjSmoke
     d_entry table, ProjSpike,       FuncA_Actor_TickProjSpike
     d_entry table, ProjSteamHorz,   FuncA_Actor_TickProjSteamHorz
     d_entry table, ProjSteamUp,     FuncA_Actor_TickProjSteamUp
+    d_entry table, SmokeExplosion,  FuncA_Actor_TickSmokeExplosion
+    d_entry table, SmokeParticle,   FuncA_Actor_TickSmokeParticle
     D_END
 .ENDREPEAT
 .ENDPROC
@@ -744,12 +759,12 @@ _NoHit:
     d_entry table, ProjFireball,    Func_InitActorProjFireball
     d_entry table, ProjFlamewave,   Func_InitActorProjFlamewave
     d_entry table, ProjGrenade,     Func_InitActorProjGrenade
-    d_entry table, ProjParticle,    Func_InitActorProjParticle
     d_entry table, ProjRocket,      Func_InitActorProjRocket
-    d_entry table, ProjSmoke,       Func_InitActorProjSmoke
     d_entry table, ProjSpike,       Func_InitActorProjSpike
     d_entry table, ProjSteamHorz,   Func_InitActorProjSteamHorz
     d_entry table, ProjSteamUp,     Func_InitActorProjSteamUp
+    d_entry table, SmokeExplosion,  Func_InitActorSmokeExplosion
+    d_entry table, SmokeParticle,   Func_InitActorSmokeParticle
     D_END
 .ENDREPEAT
 .ENDPROC
@@ -896,12 +911,12 @@ _NoHit:
     d_entry table, ProjFireball,    FuncA_Objects_DrawActorProjFireball
     d_entry table, ProjFlamewave,   FuncA_Objects_DrawActorProjFlamewave
     d_entry table, ProjGrenade,     FuncA_Objects_DrawActorProjGrenade
-    d_entry table, ProjParticle,    FuncA_Objects_DrawActorProjParticle
     d_entry table, ProjRocket,      FuncA_Objects_DrawActorProjRocket
-    d_entry table, ProjSmoke,       FuncA_Objects_DrawActorProjSmoke
     d_entry table, ProjSpike,       FuncA_Objects_DrawActorProjSpike
     d_entry table, ProjSteamHorz,   FuncA_Objects_DrawActorProjSteamHorz
     d_entry table, ProjSteamUp,     FuncA_Objects_DrawActorProjSteamUp
+    d_entry table, SmokeExplosion,  FuncA_Objects_DrawActorSmokeExplosion
+    d_entry table, SmokeParticle,   FuncA_Objects_DrawActorSmokeParticle
     D_END
 .ENDREPEAT
 .ENDPROC

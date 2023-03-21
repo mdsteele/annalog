@@ -28,7 +28,7 @@
 .IMPORT FuncA_Objects_SetShapePosToDeviceTopLeft
 .IMPORT FuncA_Objects_SetUpgradeTileIds
 .IMPORT Func_FindEmptyActorSlot
-.IMPORT Func_InitActorProjSmoke
+.IMPORT Func_InitActorSmokeExplosion
 .IMPORT Ram_ActorPosX_i16_0_arr
 .IMPORT Ram_ActorPosX_i16_1_arr
 .IMPORT Ram_ActorPosY_i16_0_arr
@@ -90,7 +90,7 @@ _SmokePuff:
     adc #kTileWidthPx
     sta Ram_ActorPosX_i16_0_arr, x
     ;; Spawn the smoke.
-    jsr Func_InitActorProjSmoke
+    jsr Func_InitActorSmokeExplosion
     @done:
 _PlaySound:
     ;; TODO: play a sound

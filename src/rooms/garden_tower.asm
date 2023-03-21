@@ -45,7 +45,7 @@
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
 .IMPORT FuncA_Room_FindGrenadeActor
 .IMPORT FuncA_Room_MachineCannonReset
-.IMPORT Func_InitActorProjSmoke
+.IMPORT Func_InitActorSmokeExplosion
 .IMPORT Func_IsPointInPlatform
 .IMPORT Func_MachineCannonReadRegY
 .IMPORT Func_Noop
@@ -385,7 +385,7 @@ _CheckIfWallDestroyed:
     ldx Zp_Tmp1_byte  ; grenade actor index
 _ExplodeGrenade:
     ;; We've hit the wall, so explode the grenade.
-    jsr Func_InitActorProjSmoke  ; preserves X
+    jsr Func_InitActorSmokeExplosion  ; preserves X
     ;; Shake the room.
     lda #kBreakableWallShakeFrames  ; param: num frames
     jsr Func_ShakeRoom

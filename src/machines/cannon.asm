@@ -18,6 +18,7 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "../actor.inc"
+.INCLUDE "../actors/particle.inc"
 .INCLUDE "../machine.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
@@ -40,6 +41,7 @@
 .IMPORT Ram_ActorPosX_i16_1_arr
 .IMPORT Ram_ActorPosY_i16_0_arr
 .IMPORT Ram_ActorPosY_i16_1_arr
+.IMPORT Ram_ActorState1_byte_arr
 .IMPORT Ram_ActorType_eActor_arr
 .IMPORT Ram_MachineGoalVert_u8_arr
 .IMPORT Ram_MachineParam1_u8_arr
@@ -91,8 +93,14 @@ kTileIdObjCannonBarrelLow  = kTileIdObjCannonFirst + $04
     ;; If there's a grenade in flight, remove it.
     jsr FuncA_Room_FindGrenadeActor  ; returns C and X
     bcs @done
-    lda #eActor::None
+    ;; Replace the grenade with a smoke particle, keeping the same position and
+    ;; velocity as the grenade, and setting the particle's age counter such
+    ;; that the particle starts at half size (about the size of a grenade) and
+    ;; decays from there.
+    lda #eActor::SmokeParticle
     sta Ram_ActorType_eActor_arr, x
+    lda #kSmokeParticleNumFrames / 2
+    sta Ram_ActorState1_byte_arr, x  ; particle age in frames
     @done:
     rts
 .ENDPROC

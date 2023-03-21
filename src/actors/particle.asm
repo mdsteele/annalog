@@ -21,6 +21,7 @@
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
 .INCLUDE "../ppu.inc"
+.INCLUDE "particle.inc"
 
 .IMPORT FuncA_Objects_Draw1x1Actor
 .IMPORT Func_Cosine
@@ -35,9 +36,6 @@
 .IMPORT Ram_ActorVelY_i16_1_arr
 
 ;;;=========================================================================;;;
-
-;;; How long a particle actor animates before disappearing, in frames.
-kParticleNumFrames = 12
 
 ;;; The speed of a particle, in half-pixels per frame.
 kParticleSpeed = 3
@@ -57,10 +55,10 @@ kPaletteObjParticle = 0
 ;;; @param A The angle to move at, measured in increments of tau/256.
 ;;; @param X The actor index.
 ;;; @preserve X
-.EXPORT Func_InitActorProjParticle
-.PROC Func_InitActorProjParticle
+.EXPORT Func_InitActorSmokeParticle
+.PROC Func_InitActorSmokeParticle
     pha  ; angle
-    ldy #eActor::ProjParticle  ; param: actor type
+    ldy #eActor::SmokeParticle  ; param: actor type
     jsr Func_InitActorDefault  ; preserves X
     pla  ; angle
 _InitVelX:
@@ -89,11 +87,11 @@ _InitVelY:
 ;;; Performs per-frame updates for a smoke particle actor.
 ;;; @param X The actor index.
 ;;; @preserve X
-.EXPORT FuncA_Actor_TickProjParticle
-.PROC FuncA_Actor_TickProjParticle
+.EXPORT FuncA_Actor_TickSmokeParticle
+.PROC FuncA_Actor_TickSmokeParticle
     inc Ram_ActorState1_byte_arr, x
     lda Ram_ActorState1_byte_arr, x
-    cmp #kParticleNumFrames
+    cmp #kSmokeParticleNumFrames
     blt @done
     lda #eActor::None
     sta Ram_ActorType_eActor_arr, x
@@ -108,8 +106,8 @@ _InitVelY:
 ;;; Draws a smoke particle actor.
 ;;; @param X The actor index.
 ;;; @preserve X
-.EXPORT FuncA_Objects_DrawActorProjParticle
-.PROC FuncA_Objects_DrawActorProjParticle
+.EXPORT FuncA_Objects_DrawActorSmokeParticle
+.PROC FuncA_Objects_DrawActorSmokeParticle
     lda Ram_ActorState1_byte_arr, x
     div #2
     add #kTileIdObjParticleFirst  ; param: tile ID

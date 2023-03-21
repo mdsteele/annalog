@@ -40,7 +40,7 @@
 .IMPORT FuncA_Objects_SetShapePosToMachineTopLeft
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
 .IMPORT Func_FindEmptyActorSlot
-.IMPORT Func_InitActorProjSmoke
+.IMPORT Func_InitActorSmokeExplosion
 .IMPORT Func_ShakeRoom
 .IMPORT Ram_ActorPosX_i16_0_arr
 .IMPORT Ram_ActorPosX_i16_1_arr
@@ -276,7 +276,7 @@ _AddSmokeActor:
     adc #0
     sta Ram_ActorPosY_i16_1_arr, x
     ;; Init actor:
-    jsr Func_InitActorProjSmoke
+    jsr Func_InitActorSmokeExplosion
     @done:
 _SlowFallingSpeed:
     jsr FuncA_Machine_WinchShakeOnImpact

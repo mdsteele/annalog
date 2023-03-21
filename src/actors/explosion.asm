@@ -48,13 +48,13 @@ kTileIdObjSmokeFirst = $1a
 
 .SEGMENT "PRG8"
 
-;;; Initializes the specified actor as a smoke cloud.
+;;; Initializes the specified actor as a smoke explosion.
 ;;; @prereq The actor's pixel position has already been initialized.
 ;;; @param X The actor index.
 ;;; @preserve X
-.EXPORT Func_InitActorProjSmoke
-.PROC Func_InitActorProjSmoke
-    ldy #eActor::ProjSmoke  ; param: actor type
+.EXPORT Func_InitActorSmokeExplosion
+.PROC Func_InitActorSmokeExplosion
+    ldy #eActor::SmokeExplosion  ; param: actor type
     jmp Func_InitActorDefault  ; preserves X
 .ENDPROC
 
@@ -62,11 +62,11 @@ kTileIdObjSmokeFirst = $1a
 
 .SEGMENT "PRGA_Actor"
 
-;;; Performs per-frame updates for a smoke cloud actor.
+;;; Performs per-frame updates for a smoke explosion actor.
 ;;; @param X The actor index.
 ;;; @preserve X
-.EXPORT FuncA_Actor_TickProjSmoke
-.PROC FuncA_Actor_TickProjSmoke
+.EXPORT FuncA_Actor_TickSmokeExplosion
+.PROC FuncA_Actor_TickSmokeExplosion
     inc Ram_ActorState1_byte_arr, x
     lda Ram_ActorState1_byte_arr, x
     cmp #kSmokeNumFrames
@@ -81,11 +81,11 @@ kTileIdObjSmokeFirst = $1a
 
 .SEGMENT "PRGA_Objects"
 
-;;; Draws a smoke cloud actor.
+;;; Draws a smoke explosion actor.
 ;;; @param X The actor index.
 ;;; @preserve X
-.EXPORT FuncA_Objects_DrawActorProjSmoke
-.PROC FuncA_Objects_DrawActorProjSmoke
+.EXPORT FuncA_Objects_DrawActorSmokeExplosion
+.PROC FuncA_Objects_DrawActorSmokeExplosion
 _BottomRight:
     jsr FuncA_Objects_SetShapePosToActorCenter  ; preserves X
     lda Ram_ActorState1_byte_arr, x  ; param: offset

@@ -56,8 +56,8 @@
 .IMPORT Func_FindEmptyActorSlot
 .IMPORT Func_GetRandomByte
 .IMPORT Func_InitActorProjFireball
-.IMPORT Func_InitActorProjSmoke
 .IMPORT Func_InitActorProjSpike
+.IMPORT Func_InitActorSmokeExplosion
 .IMPORT Func_IsPointInPlatform
 .IMPORT Func_MachineCannonReadRegY
 .IMPORT Func_Noop
@@ -700,7 +700,7 @@ _CheckEyes:
     jsr FuncC_Boss_Garden_StartWaiting  ; preserves X
     ;; Explode the grenade.
     @explode:
-    jsr Func_InitActorProjSmoke
+    jsr Func_InitActorSmokeExplosion
     ;; TODO: play a sound for hitting the eye
 _Done:
     rts

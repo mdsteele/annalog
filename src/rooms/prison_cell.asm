@@ -55,9 +55,9 @@
 .IMPORT FuncC_Prison_OpenGateAndFlipLever
 .IMPORT FuncC_Prison_TickGatePlatform
 .IMPORT Func_FindEmptyActorSlot
-.IMPORT Func_InitActorProjParticle
 .IMPORT Func_InitActorProjRocket
-.IMPORT Func_InitActorProjSmoke
+.IMPORT Func_InitActorSmokeExplosion
+.IMPORT Func_InitActorSmokeParticle
 .IMPORT Func_IsPointInPlatform
 .IMPORT Func_MovePointDownByA
 .IMPORT Func_MovePointLeftByA
@@ -463,7 +463,7 @@ _RocketImpact:
     jsr Func_IsPointInPlatform  ; preserves X, returns C
     bcc @done
     ;; Explode the rocket and break the floor.
-    jsr Func_InitActorProjSmoke
+    jsr Func_InitActorSmokeExplosion
     ;; TODO: more smoke/particles
     lda #kRocketShakeFrames  ; param: shake frames
     jsr Func_ShakeRoom
@@ -508,7 +508,7 @@ _TrapFloor:
     tya
     pha
     lda _ParticleAngle_u8_arr, y  ; param: angle
-    jsr Func_InitActorProjParticle
+    jsr Func_InitActorSmokeParticle
     pla
     tay
     @continue:

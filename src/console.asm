@@ -29,6 +29,7 @@
 .INCLUDE "program.inc"
 .INCLUDE "window.inc"
 
+.IMPORT FuncA_Actor_TickAllSmokeActors
 .IMPORT FuncA_Console_DrawErrorCursor
 .IMPORT FuncA_Console_DrawFieldCursor
 .IMPORT FuncA_Console_MoveFieldCursor
@@ -313,6 +314,7 @@ _Tick:
 ;;; Calls per-frame tick functions that should still happen even when the
 ;;; machine console is open.
 .PROC FuncM_ConsoleTick
+    jsr_prga FuncA_Actor_TickAllSmokeActors
     jsr Func_TickAllDevices
     jsr_prga FuncA_Room_CallRoomTick
     jsr_prga FuncA_Machine_TickAll

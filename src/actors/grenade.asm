@@ -27,7 +27,7 @@
 .IMPORT FuncA_Objects_Draw1x1Actor
 .IMPORT FuncA_Room_FindActorWithType
 .IMPORT Func_InitActorDefault
-.IMPORT Func_InitActorProjSmoke
+.IMPORT Func_InitActorSmokeExplosion
 .IMPORT Func_ShakeRoom
 .IMPORT Ram_ActorPosX_i16_0_arr
 .IMPORT Ram_ActorPosX_i16_1_arr
@@ -146,7 +146,7 @@ _ShakeAndExplode:
     jsr Func_ShakeRoom  ; preserves X
 _Explode:
     ;; TODO: play a sound
-    jmp Func_InitActorProjSmoke  ; preserves X
+    jmp Func_InitActorSmokeExplosion  ; preserves X
 .ENDPROC
 
 ;;;=========================================================================;;;

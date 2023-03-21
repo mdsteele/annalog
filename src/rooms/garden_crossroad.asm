@@ -35,7 +35,7 @@
 .IMPORT FuncA_Machine_ReachedGoal
 .IMPORT FuncA_Machine_WriteToLever
 .IMPORT FuncA_Objects_DrawLiftMachine
-.IMPORT Func_InitActorProjSmoke
+.IMPORT Func_InitActorSmokeExplosion
 .IMPORT Func_IsPointInPlatform
 .IMPORT Func_Noop
 .IMPORT Func_SetPointToActorCenter
@@ -254,7 +254,7 @@ _ReadL:
     ldy #kLiftPlatformIndex  ; param: platform index
     jsr Func_IsPointInPlatform  ; preserves X, returns C
     bcc @noSquish
-    jmp Func_InitActorProjSmoke
+    jmp Func_InitActorSmokeExplosion
     @noSquish:
     rts
 .ENDPROC

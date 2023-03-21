@@ -29,7 +29,7 @@
 .IMPORT Func_DivMod
 .IMPORT Func_FindEmptyActorSlot
 .IMPORT Func_GetRandomByte
-.IMPORT Func_InitActorProjSmoke
+.IMPORT Func_InitActorSmokeExplosion
 .IMPORT Func_IsFlagSet
 .IMPORT Func_LockDoorDevice
 .IMPORT Func_MarkRoomSafe
@@ -238,7 +238,7 @@ _BossExploding:
     jsr Func_FindEmptyActorSlot  ; sets C on failure, returns X
     bcs @noExplosion
     jsr Func_SetActorCenterToPoint  ; preserves X
-    jsr Func_InitActorProjSmoke
+    jsr Func_InitActorSmokeExplosion
     ;; TODO: play a sound
     @noExplosion:
     ;; Wait for the phase timer to reach zero.
