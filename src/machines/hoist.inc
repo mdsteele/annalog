@@ -17,6 +17,10 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
+;;; The size of a hoist machine's main platform, in pixels.
+kHoistMachineWidthPx  = $10
+kHoistMachineHeightPx = $10
+
 ;;; Tile IDs for drawing hoist machines.
 kTileIdObjHoistFirst = $84
 

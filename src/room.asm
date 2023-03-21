@@ -81,6 +81,7 @@
 .IMPORT DataC_Mermaid_Hut6_sRoom
 .IMPORT DataC_Mermaid_Village_sRoom
 .IMPORT DataC_Mine_Collapse_sRoom
+.IMPORT DataC_Mine_Flower_sRoom
 .IMPORT DataC_Mine_Pit_sRoom
 .IMPORT DataC_Mine_South_sRoom
 .IMPORT DataC_Mine_West_sRoom
@@ -282,6 +283,7 @@ _LoadNewRoom:
     d_entry table, MermaidHut6,     DataC_Mermaid_Hut6_sRoom
     d_entry table, MermaidVillage,  DataC_Mermaid_Village_sRoom
     d_entry table, MineCollapse,    DataC_Mine_Collapse_sRoom
+    d_entry table, MineFlower,      DataC_Mine_Flower_sRoom
     d_entry table, MinePit,         DataC_Mine_Pit_sRoom
     d_entry table, MineSouth,       DataC_Mine_South_sRoom
     d_entry table, MineWest,        DataC_Mine_West_sRoom

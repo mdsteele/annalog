@@ -587,6 +587,12 @@ _Done:
     d_byte Not_eFlag, eFlag::MermaidHut1MetQueen
     D_END
     D_STRUCT sMarker
+    d_byte Row_u8, 10
+    d_byte Col_u8, 19  ; room: MineFlower
+    d_byte If_eFlag, 0
+    d_byte Not_eFlag, eFlag::FlowerMine
+    D_END
+    D_STRUCT sMarker
     d_byte Row_u8, 11
     d_byte Col_u8, 11  ; room: MermaidVillage
     d_byte If_eFlag, eFlag::MermaidHut1MetQueen

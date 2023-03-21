@@ -22,6 +22,7 @@
 .INCLUDE "../device.inc"
 .INCLUDE "../flag.inc"
 .INCLUDE "../machine.inc"
+.INCLUDE "../machines/hoist.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../platform.inc"
 .INCLUDE "../ppu.inc"
@@ -162,16 +163,16 @@ _Platforms_sPlatform_arr:
 :   .assert * - :- = kHoistWestPlatformIndex * .sizeof(sPlatform), error
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Solid
-    d_word WidthPx_u16, $10
-    d_byte HeightPx_u8, $10
+    d_word WidthPx_u16, kHoistMachineWidthPx
+    d_byte HeightPx_u8, kHoistMachineHeightPx
     d_word Left_i16,  $0020
     d_word Top_i16,   $0050
     D_END
     .assert * - :- = kHoistEastPlatformIndex * .sizeof(sPlatform), error
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Solid
-    d_word WidthPx_u16, $10
-    d_byte HeightPx_u8, $10
+    d_word WidthPx_u16, kHoistMachineWidthPx
+    d_byte HeightPx_u8, kHoistMachineHeightPx
     d_word Left_i16,  $00b0
     d_word Top_i16,   $0030
     D_END
