@@ -144,8 +144,8 @@ _Machines_sMachine_arr:
     d_byte Breaker_eFlag, 0
     d_byte Flags_bMachine, bMachine::MoveH | bMachine::MoveV
     d_byte Status_eDiagram, eDiagram::Carriage
-    d_word ScrollGoalX_u16, $0108
-    d_byte ScrollGoalY_u8, $a0
+    d_word ScrollGoalX_u16, $00b8
+    d_byte ScrollGoalY_u8, $90
     d_byte RegNames_u8_arr4, 0, 0, "X", "Y"
     d_byte MainPlatform_u8, kCarriagePlatformIndex
     d_addr Init_func_ptr, FuncC_Temple_LobbyCarriage_Init
