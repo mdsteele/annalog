@@ -51,6 +51,7 @@
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
 .IMPORT FuncA_Room_InitActorProjBreakball
 .IMPORT FuncA_Room_InitBoss
+.IMPORT FuncA_Room_RemoveAllBulletsIfConsoleOpen
 .IMPORT FuncA_Room_TickBoss
 .IMPORT Func_AckIrqAndLatchWindowFromParam3
 .IMPORT Func_AckIrqAndSetLatch
@@ -279,14 +280,14 @@ _Machines_sMachine_arr:
     d_byte ScrollGoalY_u8, $16
     d_byte RegNames_u8_arr4, "L", "R", "X", 0
     d_byte MainPlatform_u8, kMinigunPlatformIndex
-    d_addr Init_func_ptr, FuncC_Boss_TempleMinigun_Init
+    d_addr Init_func_ptr, FuncC_Boss_TempleMinigun_InitReset
     d_addr ReadReg_func_ptr, FuncC_Boss_TempleMinigun_ReadReg
     d_addr WriteReg_func_ptr, FuncC_Boss_TempleMinigun_WriteReg
     d_addr TryMove_func_ptr, FuncC_Boss_TempleMinigun_TryMove
     d_addr TryAct_func_ptr, FuncC_Boss_TempleMinigun_TryAct
     d_addr Tick_func_ptr, FuncC_Boss_TempleMinigun_Tick
     d_addr Draw_func_ptr, FuncA_Objects_DrawMinigunUpMachine
-    d_addr Reset_func_ptr, FuncC_Boss_TempleMinigun_Reset
+    d_addr Reset_func_ptr, FuncC_Boss_TempleMinigun_InitReset
     D_END
     .assert * - :- <= kMaxMachines * .sizeof(sMachine), error
 _Platforms_sPlatform_arr:
@@ -474,6 +475,7 @@ _ColumnTileCol_u8_arr:
 ;;; Room tick function for the BossTemple room.
 ;;; @prereq PRGA_Room is loaded.
 .PROC FuncC_Boss_Temple_TickRoom
+    jsr FuncA_Room_RemoveAllBulletsIfConsoleOpen
     .assert eBossMode::Dead = 0, error
     lda Zp_RoomState + sState::Current_eBossMode  ; param: zero if boss dead
     jmp FuncA_Room_TickBoss
@@ -830,11 +832,7 @@ _Offset_u8_arr2:
     rts
 .ENDPROC
 
-.PROC FuncC_Boss_TempleMinigun_Init
-    .assert * = FuncC_Boss_TempleMinigun_Reset, error, "fallthrough"
-.ENDPROC
-
-.PROC FuncC_Boss_TempleMinigun_Reset
+.PROC FuncC_Boss_TempleMinigun_InitReset
     lda #kMinigunInitGoalX
     sta Ram_MachineGoalHorz_u8_arr + kMinigunMachineIndex
     rts

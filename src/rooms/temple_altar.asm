@@ -44,6 +44,7 @@
 .IMPORT FuncA_Objects_DrawMinigunDownMachine
 .IMPORT FuncA_Objects_DrawMinigunSideMachine
 .IMPORT FuncA_Room_AreActorsWithinDistance
+.IMPORT FuncA_Room_RemoveAllBulletsIfConsoleOpen
 .IMPORT FuncC_Temple_DrawColumnCrackedPlatform
 .IMPORT Func_InitActorSmokeExplosion
 .IMPORT Func_IsPointInPlatform
@@ -192,14 +193,14 @@ _Machines_sMachine_arr:
     d_byte ScrollGoalY_u8, $00
     d_byte RegNames_u8_arr4, "L", "R", "X", 0
     d_byte MainPlatform_u8, kUpperMinigunPlatformIndex
-    d_addr Init_func_ptr, FuncC_Temple_AltarUpperMinigun_Init
+    d_addr Init_func_ptr, FuncC_Temple_AltarUpperMinigun_InitReset
     d_addr ReadReg_func_ptr, FuncC_Temple_AltarUpperMinigun_ReadReg
     d_addr WriteReg_func_ptr, FuncC_Temple_AltarUpperMinigun_WriteReg
     d_addr TryMove_func_ptr, FuncC_Temple_AltarUpperMinigun_TryMove
     d_addr TryAct_func_ptr, FuncC_Temple_AltarUpperMinigun_TryAct
     d_addr Tick_func_ptr, FuncC_Temple_AltarUpperMinigun_Tick
     d_addr Draw_func_ptr, FuncA_Objects_DrawMinigunDownMachine
-    d_addr Reset_func_ptr, FuncC_Temple_AltarUpperMinigun_Reset
+    d_addr Reset_func_ptr, FuncC_Temple_AltarUpperMinigun_InitReset
     D_END
     .assert * - :- = kLowerMinigunMachineIndex * .sizeof(sMachine), error
     D_STRUCT sMachine
@@ -331,6 +332,7 @@ _Passages_sPassage_arr:
 
 ;;; @prereq PRGA_Room is loaded.
 .PROC FuncC_Temple_Altar_TickRoom
+    jsr FuncA_Room_RemoveAllBulletsIfConsoleOpen
     ldx #kMaxActors - 1
     @loop:
     lda Ram_ActorType_eActor_arr, x
@@ -420,11 +422,7 @@ _HitBeetle:
     rts
 .ENDPROC
 
-.PROC FuncC_Temple_AltarUpperMinigun_Init
-    .assert * = FuncC_Temple_AltarUpperMinigun_Reset, error, "fallthrough"
-.ENDPROC
-
-.PROC FuncC_Temple_AltarUpperMinigun_Reset
+.PROC FuncC_Temple_AltarUpperMinigun_InitReset
     lda #kUpperMinigunInitGoalX
     sta Ram_MachineGoalHorz_u8_arr + kUpperMinigunMachineIndex
     rts

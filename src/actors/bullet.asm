@@ -21,6 +21,7 @@
 .INCLUDE "../macros.inc"
 .INCLUDE "../program.inc"
 .INCLUDE "bullet.inc"
+.INCLUDE "particle.inc"
 
 .IMPORT FuncA_Actor_CenterHitsTerrain
 .IMPORT FuncA_Actor_HarmAvatarIfCollision
@@ -30,6 +31,7 @@
 .IMPORT Ram_ActorType_eActor_arr
 .IMPORT Ram_ActorVelX_i16_1_arr
 .IMPORT Ram_ActorVelY_i16_1_arr
+.IMPORTZP Zp_ConsoleMachineIndex_u8
 
 ;;;=========================================================================;;;
 
@@ -99,6 +101,33 @@ _Expire:
     lda #eActor::None
     sta Ram_ActorType_eActor_arr, x
 _Done:
+    rts
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Room"
+
+;;; If the console window is open, turns all bullet projectiles into smoke
+;;; particles.  If the console window is closed, does nothing.  This should be
+;;; called from room tick functions in rooms containing minigun machines.
+.EXPORT FuncA_Room_RemoveAllBulletsIfConsoleOpen
+.PROC FuncA_Room_RemoveAllBulletsIfConsoleOpen
+    lda Zp_ConsoleMachineIndex_u8
+    bmi @done
+    ldx #kMaxActors - 1
+    @loop:
+    lda Ram_ActorType_eActor_arr, x
+    cmp #eActor::ProjBullet
+    bne @continue
+    lda #eActor::SmokeParticle
+    sta Ram_ActorType_eActor_arr, x
+    lda #kSmokeParticleNumFrames / 2
+    sta Ram_ActorState1_byte_arr, x  ; particle age in frames
+    @continue:
+    dex
+    bpl @loop
+    @done:
     rts
 .ENDPROC
 
