@@ -41,6 +41,7 @@ kMachineRegNameB = $21  ; 'B'
     BridgeLeft  = $0b
     Crane       = $0c
     Multiplexer = $0d
+    Debugger    = $0e
 .ENDENUM
 
 ;;;=========================================================================;;;

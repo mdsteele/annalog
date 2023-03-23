@@ -264,7 +264,6 @@ _CheckButtons:
     and #$f0
     .assert eOpcode::Empty = 0, error
     beq @noDebug
-    jsr_prga FuncA_Console_SaveProgram
     jmp Main_Console_Debug
     @noDebug:
     ;; Select button (insert instruction):
@@ -410,6 +409,7 @@ _InitWindow:
 
 ;;; Saves Ram_Console_sProgram back to SRAM.
 ;;; @prereq Zp_ConsoleSram_sProgram_ptr has been initialized.
+.EXPORT FuncA_Console_SaveProgram
 .PROC FuncA_Console_SaveProgram
     ;; Enable writes to SRAM.
     lda #bMmc3PrgRam::Enable

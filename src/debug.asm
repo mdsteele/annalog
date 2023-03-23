@@ -22,8 +22,11 @@
 .INCLUDE "machine.inc"
 .INCLUDE "macros.inc"
 .INCLUDE "mmc3.inc"
+.INCLUDE "ppu.inc"
+.INCLUDE "window.inc"
 
 .IMPORT FuncA_Console_DrawDebugCursor
+.IMPORT FuncA_Console_SaveProgram
 .IMPORT FuncA_Machine_ExecuteNext
 .IMPORT FuncA_Objects_DrawHudInWindowAndObjectsForRoom
 .IMPORT FuncA_Room_MachineReset
@@ -34,12 +37,25 @@
 .IMPORT Ram_Console_sProgram
 .IMPORT Ram_MachinePc_u8_arr
 .IMPORT Ram_MachineStatus_eMachine_arr
+.IMPORT Ram_PpuTransfer_arr
 .IMPORTZP Zp_ConsoleFieldNumber_u8
 .IMPORTZP Zp_ConsoleInstNumber_u8
 .IMPORTZP Zp_ConsoleMachineIndex_u8
 .IMPORTZP Zp_ConsoleNominalFieldOffset_u8
+.IMPORTZP Zp_Current_sMachine_ptr
 .IMPORTZP Zp_Current_sProgram_ptr
 .IMPORTZP Zp_P1ButtonsPressed_bJoypad
+.IMPORTZP Zp_PpuTransferLen_u8
+
+;;;=========================================================================;;;
+
+;;; The PPU address (within the lower nametable) for the start of the attribute
+;;; bytes that cover the dialog portrait.
+.LINECONT +
+.ASSERT (kWindowStartRow + 1) .mod 4 = 0, error
+Ppu_DebugAttrStart = Ppu_Nametable3_sName + sName::Attrs_u8_arr64 + \
+    ((kWindowStartRow + 1) / 4) * 8 + 5
+.LINECONT -
 
 ;;;=========================================================================;;;
 
@@ -51,6 +67,7 @@
 ;;; @prereq Explore mode is initialized.
 .EXPORT Main_Console_Debug
 .PROC Main_Console_Debug
+    jsr_prga FuncA_Console_InitDebugger
 _GameLoop:
     jsr_prga FuncA_Objects_DrawHudInWindowAndObjectsForRoom
     jsr_prga FuncA_Console_DrawDebugCursor
@@ -60,7 +77,8 @@ _GameLoop:
     jsr FuncM_ConsoleScrollTowardsGoalAndTick
     jmp _GameLoop
 _ResumeEditing:
-    jsr_prga FuncA_Room_FinishDebuggingMachine
+    jsr_prga FuncA_Console_FinishDebuggingMachine
+    jsr_prga FuncA_Room_MachineReset
     jmp Main_Console_ContinueEditing
 .ENDPROC
 
@@ -122,10 +140,60 @@ _ContinueDebugging:
 
 ;;;=========================================================================;;;
 
-.SEGMENT "PRGA_Room"
+.SEGMENT "PRGA_Console"
 
-;;; Stops the console debugger.
-.PROC FuncA_Room_FinishDebuggingMachine
+;;; The PPU transfer entry for setting nametable attributes for the debugger
+;;; diagram.
+.PROC DataA_Console_DebugAttrTransfer_arr
+    .byte kPpuCtrlFlagsHorz      ; control flags
+    .byte >Ppu_DebugAttrStart    ; destination address (hi)
+    .byte <Ppu_DebugAttrStart    ; destination address (lo)
+    .byte @dataEnd - @dataStart  ; transfer length
+    @dataStart:
+    .byte $44, $11
+    @dataEnd:
+.ENDPROC
+
+;;; The PPU transfer entry for undoing the nametable attributes changes made by
+;;; DataA_Console_DebugAttrTransfer_arr above.
+.PROC DataA_Console_UndoDebugAttrTransfer_arr
+    .byte kPpuCtrlFlagsHorz      ; control flags
+    .byte >Ppu_DebugAttrStart    ; destination address (hi)
+    .byte <Ppu_DebugAttrStart    ; destination address (lo)
+    .byte @dataEnd - @dataStart  ; transfer length
+    @dataStart:
+    .byte $00, $00
+    @dataEnd:
+.ENDPROC
+
+;;; Initializes debug mode.
+.PROC FuncA_Console_InitDebugger
+    ldx Zp_ConsoleMachineIndex_u8
+    lda Ram_MachineStatus_eMachine_arr, x
+    cmp #eMachine::Error
+    beq _Return
+_SaveProgram:
+    jsr FuncA_Console_SaveProgram
+_ChangeDiagram:
+    chr04_bank #eDiagram::Debugger
+_SetBgAttributes:
+    ldx Zp_PpuTransferLen_u8
+    ldy #0
+    @loop:
+    lda DataA_Console_DebugAttrTransfer_arr, y
+    sta Ram_PpuTransfer_arr, x
+    inx
+    iny
+    cpy #.sizeof(DataA_Console_DebugAttrTransfer_arr)
+    blt @loop
+    stx Zp_PpuTransferLen_u8
+_Return:
+    rts
+.ENDPROC
+
+;;; Stops the console debugger, and sets the current machine index so that the
+;;; machine can be reset.
+.PROC FuncA_Console_FinishDebuggingMachine
     ;; Make the console field cursor point at the current instruction.
     ldx Zp_ConsoleMachineIndex_u8  ; param: machine index
     lda Ram_MachinePc_u8_arr, x
@@ -133,9 +201,22 @@ _ContinueDebugging:
     lda #0
     sta Zp_ConsoleFieldNumber_u8
     sta Zp_ConsoleNominalFieldOffset_u8
-    ;; Reset the machine.
     jsr Func_SetMachineIndex
-    jmp FuncA_Room_MachineReset
+_ChangeDiagram:
+    ldy #sMachine::Status_eDiagram
+    chr04_bank (Zp_Current_sMachine_ptr), y
+_ResetBgAttributes:
+    ldx Zp_PpuTransferLen_u8
+    ldy #0
+    @loop:
+    lda DataA_Console_UndoDebugAttrTransfer_arr, y
+    sta Ram_PpuTransfer_arr, x
+    inx
+    iny
+    cpy #.sizeof(DataA_Console_UndoDebugAttrTransfer_arr)
+    blt @loop
+    stx Zp_PpuTransferLen_u8
+    rts
 .ENDPROC
 
 ;;;=========================================================================;;;
