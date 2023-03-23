@@ -106,6 +106,8 @@ kPaletteObjBridgeSegment = 0
 .ENDPROC
 
 ;;; Ticks the current bridge machine for the current frame.
+;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
+;;; @prereq Zp_Current_sProgram_ptr is initialized.
 ;;; @param A The platform index for the fixed pivot segment.
 ;;; @param X The platform index for the last movable segment.
 .EXPORT FuncA_Machine_BridgeTick

@@ -19,6 +19,7 @@
 
 .INCLUDE "cursor.inc"
 .INCLUDE "joypad.inc"
+.INCLUDE "machine.inc"
 .INCLUDE "macros.inc"
 .INCLUDE "menu.inc"
 .INCLUDE "oam.inc"
@@ -31,11 +32,14 @@
 .IMPORT FuncA_Console_IsPrevInstructionEmpty
 .IMPORT FuncA_Console_SetFieldForNominalOffset
 .IMPORT Ram_Console_sProgram
+.IMPORT Ram_MachinePc_u8_arr
+.IMPORT Ram_MachineStatus_eMachine_arr
 .IMPORT Ram_MenuCols_u8_arr
 .IMPORT Ram_MenuRows_u8_arr
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORTZP Zp_ConsoleFieldNumber_u8
 .IMPORTZP Zp_ConsoleInstNumber_u8
+.IMPORTZP Zp_ConsoleMachineIndex_u8
 .IMPORTZP Zp_ConsoleNominalFieldOffset_u8
 .IMPORTZP Zp_ConsoleNumInstRows_u8
 .IMPORTZP Zp_Current_sMenu_ptr
@@ -391,30 +395,30 @@ _DrawFieldCursor:
     jmp FuncA_Console_DrawFieldCursorDiminished
 .ENDPROC
 
-;;; Draws the console instruction error cursor.
-.EXPORT FuncA_Console_DrawErrorCursor
-.PROC FuncA_Console_DrawErrorCursor
-    lda Zp_FrameCounter_u8
-    and #$08
-    beq _Done
+;;; Draws a console debug cursor that hilights the instruction number for the
+;;; console machine's current PC.
+;;; @prereq The machine console is open.
+.PROC FuncA_Console_DrawInstructionCursor
     ldy Zp_OamOffset_u8
 _YPosition:
     ;; Calculate the window row that the cursor is in.
-    lda Zp_ConsoleInstNumber_u8
+    ldx Zp_ConsoleMachineIndex_u8
+    lda Ram_MachinePc_u8_arr, x
+    sta Zp_Tmp1_byte  ; instruction number
     cmp Zp_ConsoleNumInstRows_u8
     blt @leftColumn
     sub Zp_ConsoleNumInstRows_u8
     @leftColumn:
     add #1  ; add 1 for the top border
-    ;; Calculate the Y-position of the objects and store in Zp_Tmp1_byte.
+    ;; Calculate the Y-position of the objects.
     mul #kTileHeightPx
     adc Zp_WindowTop_u8  ; carry will by clear
-    adc #$ff  ; subtract 1 (carry will still be clear)
+    adc #<-1  ; subtract 1 (carry will still be clear)
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::YPos_u8, y
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::YPos_u8, y
 _XPosition:
     lda #kTileWidthPx * 2
-    ldx Zp_ConsoleInstNumber_u8
+    ldx Zp_Tmp1_byte  ; instruction number
     cpx Zp_ConsoleNumInstRows_u8
     blt @leftColumn
     lda #kTileWidthPx * 12
@@ -433,7 +437,82 @@ _TileAndFlags:
     tya
     add #.sizeof(sObj) * 2
     sta Zp_OamOffset_u8
-_Done:
+    rts
+.ENDPROC
+
+;;; Draws the console debug cursor.
+;;; @prereq The machine console is open.
+.EXPORT FuncA_Console_DrawDebugCursor
+.PROC FuncA_Console_DrawDebugCursor
+    ldx Zp_ConsoleMachineIndex_u8
+    lda Ram_MachineStatus_eMachine_arr, x
+    .assert eMachine::Running = 0, error
+    beq FuncA_Console_DrawBetweenCursor
+    cmp #eMachine::Error
+    beq _Error
+    cmp #eMachine::Resetting
+    beq _Resetting
+    cmp #eMachine::Ended
+    bne FuncA_Console_DrawInstructionCursor
+_Ended:
+    lda Zp_FrameCounter_u8
+    and #$02
+    bne FuncA_Console_DrawInstructionCursor
+    rts
+_Error:
+    lda Zp_FrameCounter_u8
+    and #$08
+    bne FuncA_Console_DrawInstructionCursor
+    rts
+_Resetting:
+    lda Zp_FrameCounter_u8
+    and #$02
+    bne FuncA_Console_DrawBetweenCursor
+    rts
+.ENDPROC
+
+;;; Draws a console debug cursor between two instructions; that is, just before
+;;; the console machine's current PC.
+;;; @prereq The machine console is open.
+.PROC FuncA_Console_DrawBetweenCursor
+    ldy Zp_OamOffset_u8
+_YPosition:
+    ;; Calculate the window row that the cursor is in.
+    ldx Zp_ConsoleMachineIndex_u8
+    lda Ram_MachinePc_u8_arr, x
+    sta Zp_Tmp1_byte  ; instruction number
+    cmp Zp_ConsoleNumInstRows_u8
+    blt @leftColumn
+    sub Zp_ConsoleNumInstRows_u8
+    @leftColumn:
+    add #1  ; add 1 for the top border
+    ;; Calculate the Y-position of the objects.
+    mul #kTileHeightPx
+    adc Zp_WindowTop_u8  ; carry will by clear
+    adc #<-4  ; subtract 4 (carry will still be clear)
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::YPos_u8, y
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::YPos_u8, y
+_XPosition:
+    lda #kTileWidthPx * 2
+    ldx Zp_Tmp1_byte  ; instruction number
+    cpx Zp_ConsoleNumInstRows_u8
+    blt @leftColumn
+    lda #kTileWidthPx * 12
+    @leftColumn:
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::XPos_u8, y
+    add #5
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::XPos_u8, y
+_TileAndFlags:
+    lda #kTileIdObjCursorBetween
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Tile_u8, y
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Tile_u8, y
+    lda #bObj::Pri | kPaletteObjCursor
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Flags_bObj, y
+    eor #bObj::FlipH
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Flags_bObj, y
+    tya
+    add #.sizeof(sObj) * 2
+    sta Zp_OamOffset_u8
     rts
 .ENDPROC
 

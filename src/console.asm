@@ -30,7 +30,6 @@
 .INCLUDE "window.inc"
 
 .IMPORT FuncA_Actor_TickAllSmokeActors
-.IMPORT FuncA_Console_DrawErrorCursor
 .IMPORT FuncA_Console_DrawFieldCursor
 .IMPORT FuncA_Console_MoveFieldCursor
 .IMPORT FuncA_Console_WriteNeedsPowerTransferData
@@ -52,9 +51,9 @@
 .IMPORT Func_Window_PrepareRowTransfer
 .IMPORT Func_Window_TransferBottomBorder
 .IMPORT Func_Window_TransferClearRow
+.IMPORT Main_Console_Debug
 .IMPORT Main_Explore_Continue
 .IMPORT Main_Menu_EditSelectedField
-.IMPORT Ram_MachinePc_u8_arr
 .IMPORT Ram_MachineStatus_eMachine_arr
 .IMPORT Ram_PpuTransfer_arr
 .IMPORT Sram_ProgressFlags_arr
@@ -155,7 +154,7 @@ Ram_ConsoleRegNames_u8_arr6: .res 6
     @noReset:
     jsr_prga FuncA_Console_Init
 _GameLoop:
-    jsr_prga FuncA_Objects_DrawObjectsForRoomAndHud
+    jsr_prga FuncA_Objects_DrawHudInWindowAndObjectsForRoom
     jsr Func_ClearRestOfOamAndProcessFrame
     jsr_prga FuncA_Console_ScrollWindowUp  ; returns C
     bcs _StartInteraction
@@ -169,35 +168,8 @@ _StartInteraction:
     ldx Zp_ConsoleMachineIndex_u8
     lda Ram_MachineStatus_eMachine_arr, x
     cmp #eMachine::Error
-    beq Main_Console_ShowError
-    jmp Main_Console_StartEditing
-.ENDPROC
-
-;;; Mode for showing which instruction caused the machine error.
-;;; @prereq Rendering is enabled.
-;;; @prereq The console window is fully visible.
-;;; @prereq Explore mode is initialized.
-.PROC Main_Console_ShowError
-    ;; Initialize the cursor.
-    ldx Zp_ConsoleMachineIndex_u8
-    lda Ram_MachinePc_u8_arr, x
-    sta Zp_ConsoleInstNumber_u8
-    lda #0
-    sta Zp_ConsoleFieldNumber_u8
-    sta Zp_ConsoleNominalFieldOffset_u8
-_GameLoop:
-    jsr_prga FuncA_Objects_DrawObjectsForRoomAndHud
-    jsr_prga FuncA_Console_DrawErrorCursor
-    jsr Func_ClearRestOfOamAndProcessFrame
-    lda Zp_P1ButtonsPressed_bJoypad
-    bne _StartEditing
-    jsr FuncM_ConsoleScrollTowardsGoalAndTick
-    jmp _GameLoop
-_StartEditing:
-    ldx Zp_ConsoleMachineIndex_u8  ; param: machine index
-    jsr Func_SetMachineIndex
-    jsr_prga FuncA_Room_MachineReset
-    jmp Main_Console_ContinueEditing
+    bne Main_Console_StartEditing
+    jmp Main_Console_Debug
 .ENDPROC
 
 ;;; Mode for using a console for a machine whose required circuit breaker
@@ -230,7 +202,7 @@ _UpdateScrolling:
     sta Zp_FloatingHud_bHud
     @done:
 _GameLoop:
-    jsr_prga FuncA_Objects_DrawObjectsForRoomAndHud
+    jsr_prga FuncA_Objects_DrawHudInWindowAndObjectsForRoom
     jsr Func_ClearRestOfOamAndProcessFrame
 _ScrollWindowDown:
     lda Zp_WindowTop_u8
@@ -272,25 +244,37 @@ _Done:
 .EXPORT Main_Console_ContinueEditing
 .PROC Main_Console_ContinueEditing
 _GameLoop:
-    jsr_prga FuncA_Objects_DrawObjectsForRoomAndHud
+    jsr_prga FuncA_Objects_DrawHudInWindowAndObjectsForRoom
     jsr_prga FuncA_Console_DrawFieldCursor
     jsr Func_ClearRestOfOamAndProcessFrame
 _CheckButtons:
-    ;; B button:
+    ;; B button (exit console):
     bit Zp_P1ButtonsPressed_bJoypad
     .assert bJoypad::BButton = bProc::Overflow, error
     bvc @noClose
     jsr_prga FuncA_Console_SaveProgram
     jmp Main_Console_CloseWindow
     @noClose:
-    ;; Select button:
+    ;; Start button (start debugging):
+    lda Zp_P1ButtonsPressed_bJoypad
+    and #bJoypad::Start
+    beq @noDebug
+    ;; Don't start debugging if the program is empty.
+    lda Ram_Console_sProgram + sProgram::Code_sInst_arr + sInst::Op_byte
+    and #$f0
+    .assert eOpcode::Empty = 0, error
+    beq @noDebug
+    jsr_prga FuncA_Console_SaveProgram
+    jmp Main_Console_Debug
+    @noDebug:
+    ;; Select button (insert instruction):
     lda Zp_P1ButtonsPressed_bJoypad
     and #bJoypad::Select
     beq @noInsert
     jsr_prga FuncA_Console_TryInsertInstruction  ; sets C on success
     bcs @edit
     @noInsert:
-    ;; A button:
+    ;; A button (edit field):
     bit Zp_P1ButtonsPressed_bJoypad
     .assert bJoypad::AButton = bProc::Negative, error
     bpl @noEdit
@@ -935,7 +919,9 @@ _WriteComparisonOperator:
 
 .SEGMENT "PRGA_Objects"
 
-.PROC FuncA_Objects_DrawObjectsForRoomAndHud
+;;; Draws the in-window console HUD, as well as any objects in the room.
+.EXPORT FuncA_Objects_DrawHudInWindowAndObjectsForRoom
+.PROC FuncA_Objects_DrawHudInWindowAndObjectsForRoom
 _Hud:
     lda Zp_ConsoleNeedsPower_u8
     bne @done

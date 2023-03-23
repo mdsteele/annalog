@@ -131,6 +131,7 @@ kPaletteObjValve = 0
 
 ;;; Tick implemention for boiler machines.
 ;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
+;;; @prereq Zp_Current_sProgram_ptr is initialized.
 .EXPORT FuncA_Machine_BoilerTick
 .PROC FuncA_Machine_BoilerTick
     lda #0

@@ -18,6 +18,7 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "../actor.inc"
+.INCLUDE "../actors/particle.inc"
 .INCLUDE "../actors/rocket.inc"
 .INCLUDE "../charmap.inc"
 .INCLUDE "../cpu.inc"
@@ -70,6 +71,8 @@
 .IMPORT Func_SetPointToPlatformCenter
 .IMPORT Func_ShakeRoom
 .IMPORT Ppu_ChrObjPrison
+.IMPORT Ram_ActorState1_byte_arr
+.IMPORT Ram_ActorType_eActor_arr
 .IMPORT Ram_MachineGoalHorz_u8_arr
 .IMPORT Ram_MachineGoalVert_u8_arr
 .IMPORT Ram_MachineParam1_u8_arr
@@ -78,6 +81,7 @@
 .IMPORT Ram_PlatformType_ePlatform_arr
 .IMPORT Sram_ProgressFlags_arr
 .IMPORTZP Zp_Camera_bScroll
+.IMPORTZP Zp_ConsoleMachineIndex_u8
 .IMPORTZP Zp_RoomScrollX_u16
 .IMPORTZP Zp_RoomScrollY_u8
 .IMPORTZP Zp_RoomState
@@ -602,7 +606,6 @@ _ParticleAngle_u8_arr:
     ;; Fire a rocket.
     jsr Func_FindEmptyActorSlot  ; returns C and X
     bcs _Finish
-    dec Ram_MachineParam1_u8_arr + kLauncherMachineIndex  ; ammo count
     ldy #kLauncherPlatformIndex  ; param: platform index
     jsr Func_SetPointToPlatformCenter  ; preserves X
     lda #5
@@ -611,7 +614,21 @@ _ParticleAngle_u8_arr:
     jsr Func_MovePointDownByA  ; preserves X
     jsr Func_SetActorCenterToPoint  ; preserves X
     lda #eDir::Down  ; param: rocket direction
-    jsr Func_InitActorProjRocket
+    jsr Func_InitActorProjRocket  ; preserves X
+    ;; If debugging, replace the rocket with a smoke particle.  Otherwise,
+    ;; decrement the ammo count.
+    lda Zp_ConsoleMachineIndex_u8
+    bmi _DecrementAmmo
+_DryFire:
+    lda #kSmokeParticleNumFrames / 3
+    sta Ram_ActorState1_byte_arr, x  ; particle age in frames
+    lda #eActor::SmokeParticle
+    sta Ram_ActorType_eActor_arr, x
+    ;; TODO: play a sound?
+    .assert eActor::SmokeParticle <> 0, error
+    bne _Finish  ; unconditional
+_DecrementAmmo:
+    dec Ram_MachineParam1_u8_arr + kLauncherMachineIndex  ; ammo count
     ;; TODO: play a sound
 _Finish:
     lda #kLauncherActFrames  ; param: wait frames

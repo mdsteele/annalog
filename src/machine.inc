@@ -126,6 +126,7 @@ kMachineRegNameB = $21  ; 'B'
     TryAct_func_ptr   .addr
     ;; Function to call each frame to update the machine.
     ;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
+    ;; @prereq Zp_Current_sProgram_ptr is initialized.
     ;; @prereq PRGA_Machine is loaded.
     Tick_func_ptr     .addr
     ;; Function to call each frame to draw the machine's objects.

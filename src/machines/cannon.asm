@@ -50,6 +50,7 @@
 .IMPORT Ram_PlatformLeft_i16_1_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORT Ram_PlatformTop_i16_1_arr
+.IMPORTZP Zp_ConsoleMachineIndex_u8
 .IMPORTZP Zp_Current_sMachine_ptr
 .IMPORTZP Zp_MachineIndex_u8
 
@@ -168,8 +169,18 @@ kTileIdObjCannonBarrelLow  = kTileIdObjCannonFirst + $04
     @noFlip:
     ldy Zp_MachineIndex_u8
     ora Ram_MachineGoalVert_u8_arr, y  ; param: aim angle (0-3)
-    ;; Initialize the grenade and finish.
-    jsr Func_InitActorProjGrenade
+    ;; Initialize the grenade.
+    jsr Func_InitActorProjGrenade  ; preserves X
+    ;; If the console is active, then we must be debugging, so immediately
+    ;; replace the grenade with a smoke particle (so as to dry-fire the
+    ;; cannon).
+    lda Zp_ConsoleMachineIndex_u8
+    bmi @doneGrenade
+    lda #eActor::SmokeParticle
+    sta Ram_ActorType_eActor_arr, x
+    lda #kSmokeParticleNumFrames / 2
+    sta Ram_ActorState1_byte_arr, x  ; particle age in frames
+    ;; Set the cooldown for the ACT instruction.
     @doneGrenade:
     lda #kCannonActCountdown  ; param: wait frames
     jmp FuncA_Machine_StartWaiting
@@ -177,7 +188,8 @@ kTileIdObjCannonBarrelLow  = kTileIdObjCannonFirst + $04
 
 ;;; Tick implemention for cannon machines.
 ;;; Function to call each frame to update the machine.
-;;; @prereq Zp_MachineIndex_u8 is initialized.
+;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
+;;; @prereq Zp_Current_sProgram_ptr is initialized.
 .EXPORT FuncA_Machine_CannonTick
 .PROC FuncA_Machine_CannonTick
     ldx Zp_MachineIndex_u8

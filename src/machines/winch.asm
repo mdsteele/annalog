@@ -217,7 +217,8 @@ _Falling:
 ;;; impact, and makes the winch wait for a short time to recover before
 ;;; continuing execution.  If the winch wasn't falling, then this resumes
 ;;; execution right away.
-;;; @prereq Zp_MachineIndex_u8 is initialized.
+;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
+;;; @prereq Zp_Current_sProgram_ptr is initialized.
 .EXPORT FuncA_Machine_WinchReachedGoal
 .PROC FuncA_Machine_WinchReachedGoal
     ldy Zp_MachineIndex_u8

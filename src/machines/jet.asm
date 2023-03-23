@@ -103,6 +103,7 @@ kTileIdJetLowerMiddleFirst = kTileIdJetFirst + 1
 
 ;;; Tick implementation for jet elevator machines.
 ;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
+;;; @prereq Zp_Current_sProgram_ptr is initialized.
 ;;; @param AX The maximum platform top position for the jet machine.
 .EXPORT FuncA_Machine_JetTick
 .PROC FuncA_Machine_JetTick

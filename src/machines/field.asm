@@ -173,6 +173,7 @@ _Cooldown:
 
 ;;; Tick implemention for teleport field machines.
 ;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
+;;; @prereq Zp_Current_sProgram_ptr is initialized.
 .EXPORT FuncA_Machine_FieldTick
 .PROC FuncA_Machine_FieldTick
     ;; TODO: don't charge if console is open

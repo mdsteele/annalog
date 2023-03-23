@@ -44,8 +44,6 @@ Zp_MachineMaxInstructions_u8: .res 1
 ;;; The index of the "current" machine, used for indexing into
 ;;; sRoom::Machines_sMachine_arr_ptr as well as Ram_MachinePc_u8_arr and
 ;;; friends.
-;;; This is either the machine that's currently executing, or (if the console
-;;; window is open) the machine that the console is controlling.
 .EXPORTZP Zp_MachineIndex_u8
 Zp_MachineIndex_u8: .res 1
 
@@ -373,28 +371,24 @@ _ReadRegB:
 ;;; has been reached.
 ;;;   * If the machine is in Resetting mode, this will put it back into Running
 ;;;     mode so it can start executing its program.
-;;;   * If the machine is in Working mode, this will make the machine resume
-;;;     execution on the next instruction next frame.
+;;;   * If the machine is in Working mode, this will increment its PC and put
+;;;     it back into Running mode, so that it is ready to execute the next
+;;;     instruction.
 ;;;   * If the machine is in any other mode, this will do nothing.
 ;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
+;;; @prereq Zp_Current_sProgram_ptr is initialized.
 .EXPORT FuncA_Machine_ReachedGoal
 .PROC FuncA_Machine_ReachedGoal
     ldx Zp_MachineIndex_u8
     lda Ram_MachineStatus_eMachine_arr, x
     cmp #eMachine::Resetting
-    beq _FinishResetting
+    beq _StartRunning
     cmp #eMachine::Working
-    beq _FinishWorking
-    rts
-_FinishResetting:
-    lda #eMachine::Running
-    .assert eMachine::Running = 0, error
-    beq _SetStatus  ; unconditional
+    bne _Return
 _FinishWorking:
-    lda #1
-    sta Ram_MachineWait_u8_arr, x
-    lda #eMachine::Waiting
-_SetStatus:
+    jsr FuncA_Machine_IncrementPc
+_StartRunning:
+    lda #eMachine::Running
     sta Ram_MachineStatus_eMachine_arr, x
 _Return:
     rts
@@ -481,31 +475,15 @@ _Le:
 ;;; Executes the next instruction on the current machine.
 ;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
 ;;; @prereq Zp_Current_sProgram_ptr is initialized.
+.EXPORT FuncA_Machine_ExecuteNext
 .PROC FuncA_Machine_ExecuteNext
-    ldx Zp_MachineIndex_u8
-_CheckStatus:
     ;; If the machine is in Running mode, then execute the next instruction.
+    ;; Otherwise, execution is blocked, so we're done.
+    ldx Zp_MachineIndex_u8
     lda Ram_MachineStatus_eMachine_arr, x
     .assert eMachine::Running = 0, error
     beq _ExecInstruction
-    ;; If the machine is in any other mode than Waiting, then execution is
-    ;; blocked and we're done.
-    cmp #eMachine::Waiting
-    bne @blocked
-    ;; If the machine is in Waiting mode, then decrement the wait counter.  If
-    ;; it's still nonzero, then execution is still blocked and we're done.
-    dec Ram_MachineWait_u8_arr, x
-    beq @doneWaiting
-    @blocked:
     rts
-    ;; If the machine has finished waiting, then put it back into Running mode,
-    ;; increment past the instruction that had been blocking execution, and
-    ;; execute the next instruction.
-    @doneWaiting:
-    lda #eMachine::Running
-    sta Ram_MachineStatus_eMachine_arr, x
-    jsr _IncrementPc
-    ldx Zp_MachineIndex_u8
 _ExecInstruction:
     ;; Load next instruction into Zp_Current_sInst.
     lda Ram_MachinePc_u8_arr, x
@@ -546,7 +524,7 @@ _ExecInstruction:
     d_entry table, Wait,  _OpWait
     d_entry table, Beep,  _OpBeep
     d_entry table, End,   _OpEnd
-    d_entry table, Nop,   _OpNop
+    d_entry table, Nop,   FuncA_Machine_IncrementPc
     D_END
 .ENDREPEAT
 _OpAdd:
@@ -604,22 +582,22 @@ _SetLValueToA:
     tax  ; param: register to write to
     pla  ; param: value to write
     jsr FuncA_Machine_WriteReg
-    jmp _IncrementPcIfRunning
+    jmp FuncA_Machine_IncrementPcIfRunning
 _OpSkip:
     lda <(Zp_Current_sInst + sInst::Op_byte)
     and #$0f  ; param: immediate value or register
     jsr Func_MachineRead  ; returns A
     tax
     inx
-    bne _IncrementPcByX  ; unconditional
+    bne FuncA_Machine_IncrementPcByX  ; unconditional
 _OpIf:
     jsr FuncA_Machine_EvalConditional  ; sets Z if condition is true
-    beq _IncrementPc
+    beq FuncA_Machine_IncrementPc
     ldx #2
-    bne _IncrementPcByX  ; unconditional
+    bne FuncA_Machine_IncrementPcByX  ; unconditional
 _OpTil:
     jsr FuncA_Machine_EvalConditional  ; sets Z if condition is true
-    beq _IncrementPc
+    beq FuncA_Machine_IncrementPc
 _DecrementPc:
     ldx Zp_MachineIndex_u8
     lda Ram_MachinePc_u8_arr, x
@@ -646,44 +624,6 @@ _DecrementPc:
     div #.sizeof(sInst)
     sta Ram_MachinePc_u8_arr, x
     rts
-_IncrementPcIfRunning:
-    ldx Zp_MachineIndex_u8
-    lda Ram_MachineStatus_eMachine_arr, x
-    .assert eMachine::Running = 0, error
-    beq _IncrementPc
-    rts
-_OpNop:
-_IncrementPc:
-    ldx #1
-_IncrementPcByX:
-    lda Zp_MachineMaxInstructions_u8
-    mul #.sizeof(sInst)
-    sta Zp_Tmp1_byte  ; max offset
-    ldy Zp_MachineIndex_u8
-    lda Ram_MachinePc_u8_arr, y
-    mul #.sizeof(sInst)
-    tay
-    .assert sInst::Op_byte = 1, error
-    iny
-    @loop:
-    .repeat .sizeof(sInst)
-    iny
-    .endrepeat
-    cpy Zp_Tmp1_byte  ; max offset
-    bge @wrap
-    lda (Zp_Current_sProgram_ptr), y
-    and #$f0
-    bne @noWrap
-    @wrap:
-    ldy #.sizeof(sInst) * 0 + sInst::Op_byte
-    @noWrap:
-    dex
-    bne @loop
-    tya
-    div #.sizeof(sInst)
-    ldx Zp_MachineIndex_u8
-    sta Ram_MachinePc_u8_arr, x
-    rts
 _OpAct:
     ldy #sMachine::TryAct_func_ptr  ; param: function pointer offset
     .assert sMachine::TryAct_func_ptr > 0, error
@@ -697,7 +637,7 @@ _OpMove:
     ldy #sMachine::TryMove_func_ptr  ; param: function pointer offset
 _MoveOrAct:
     jsr Func_MachineCall
-    jmp _IncrementPcIfRunning
+    jmp FuncA_Machine_IncrementPcIfRunning
 _OpGoto:
     lda <(Zp_Current_sInst + sInst::Op_byte)
     and #$0f
@@ -722,6 +662,64 @@ _OpSync:
     rts
 .ENDPROC
 
+;;; If the current machine's status is Running, increments its program counter
+;;; by 1.  Otherwise (e.g. if the program is still busy working on the current
+;;; instruction), does nothing.
+;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
+;;; @prereq Zp_Current_sProgram_ptr is initialized.
+.PROC FuncA_Machine_IncrementPcIfRunning
+    ldx Zp_MachineIndex_u8
+    lda Ram_MachineStatus_eMachine_arr, x
+    .assert eMachine::Running = 0, error
+    beq FuncA_Machine_IncrementPc
+    rts
+.ENDPROC
+
+;;; Increments the program counter of the current machine by 1.
+;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
+;;; @prereq Zp_Current_sProgram_ptr is initialized.
+.PROC FuncA_Machine_IncrementPc
+    ldx #1  ; param: num instructions
+    .assert * = FuncA_Machine_IncrementPcByX, error, "fallthrough"
+.ENDPROC
+
+;;; Increments the program counter of the current machine by 1.
+;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
+;;; @prereq Zp_Current_sProgram_ptr is initialized.
+;;; @param X The number of instructions to increment by (must be nonzero).
+.PROC FuncA_Machine_IncrementPcByX
+    lda Zp_MachineMaxInstructions_u8
+    mul #.sizeof(sInst)
+    sta Zp_Tmp1_byte  ; max byte offset
+    ldy Zp_MachineIndex_u8
+    lda Ram_MachinePc_u8_arr, y
+    mul #.sizeof(sInst)
+    .assert sProgram::Code_sInst_arr = 0, error
+    tay  ; byte offset for current instruction
+    .assert sInst::Op_byte = 1, error
+    iny
+    @loop:
+    .repeat .sizeof(sInst)
+    iny
+    .endrepeat
+    cpy Zp_Tmp1_byte  ; max byte offset
+    bge @wrap
+    lda (Zp_Current_sProgram_ptr), y
+    and #$f0
+    .assert eOpcode::Empty = 0, error
+    bne @noWrap
+    @wrap:
+    ldy #sProgram::Code_sInst_arr + .sizeof(sInst) * 0 + sInst::Op_byte
+    @noWrap:
+    dex
+    bne @loop
+    tya  ; byte offset for opcode of new PC instruction
+    div #.sizeof(sInst)
+    ldx Zp_MachineIndex_u8
+    sta Ram_MachinePc_u8_arr, x
+    rts
+.ENDPROC
+
 ;;; Writes a value to a register of the current machine.
 ;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
 ;;; @param A The value to write (0-9).
@@ -739,14 +737,28 @@ _OpSync:
 
 ;;; Calls the current machine's per-frame tick function.
 ;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
+;;; @prereq Zp_Current_sProgram_ptr is initialized.
 .PROC FuncA_Machine_Tick
-    ;; Decrement the machine's slowdown value if it's not zero.
     ldx Zp_MachineIndex_u8
+_DecrementWaitTimer:
+    ;; If the machine is in Waiting mode, decrement its wait timer.
+    lda Ram_MachineStatus_eMachine_arr, x
+    cmp #eMachine::Waiting
+    bne @done
+    dec Ram_MachineWait_u8_arr, x
+    bne @done
+    ;; Return the machine to Running mode when the timer reaches zero.
+    lda #eMachine::Running
+    sta Ram_MachineStatus_eMachine_arr, x
+    jsr FuncA_Machine_IncrementPc
+    @done:
+_DecrementSlowdownTimer:
+    ;; Decrement the machine's slowdown value if it's not zero.
     lda Ram_MachineSlowdown_u8_arr, x
-    beq @doneWithSlowdown
+    beq @done
     dec Ram_MachineSlowdown_u8_arr, x
-    @doneWithSlowdown:
-    ;; Call the machine's tick function.
+    @done:
+_CallTickFunction:
     ldy #sMachine::Tick_func_ptr  ; param: function pointer offset
     jmp Func_MachineCall
 .ENDPROC
@@ -762,6 +774,7 @@ _OpSync:
     ldx #0
     @loop:
     jsr Func_SetMachineIndex
+    jsr Func_GetMachineProgram
     jsr FuncA_Machine_Tick
     ldx Zp_MachineIndex_u8
     inx
@@ -803,13 +816,16 @@ _CheckForSync:
     blt @loop
 _UnblockSync:
     ;; At this point, all machines in the room have reached a SYNC instruction,
-    ;; so allow them all to continue executing next frame.
+    ;; so advance each one past the SYNC instruction and put them back into
+    ;; Running mode.
     ldx #0
     @loop:
-    lda #eMachine::Waiting
+    lda #eMachine::Running
     sta Ram_MachineStatus_eMachine_arr, x
-    lda #1
-    sta Ram_MachineWait_u8_arr, x
+    jsr Func_SetMachineIndex
+    jsr Func_GetMachineProgram
+    jsr FuncA_Machine_IncrementPc
+    ldx Zp_MachineIndex_u8
     inx
     cpx <(Zp_Current_sRoom + sRoom::NumMachines_u8)
     blt @loop

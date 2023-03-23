@@ -17,6 +17,7 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
+.INCLUDE "../actor.inc"
 .INCLUDE "../machine.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
@@ -34,6 +35,8 @@
 .IMPORT Func_FindEmptyActorSlot
 .IMPORT Func_InitActorProjBullet
 .IMPORT Func_SetActorCenterToPoint
+.IMPORT Ram_ActorState1_byte_arr
+.IMPORT Ram_ActorType_eActor_arr
 .IMPORT Ram_MachineParam1_u8_arr
 .IMPORT Ram_MachineParam2_i16_0_arr
 .IMPORT Ram_Oam_sObj_arr64
@@ -44,6 +47,7 @@
 .IMPORT Ram_PlatformRight_i16_0_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORT Ram_PlatformTop_i16_1_arr
+.IMPORTZP Zp_ConsoleMachineIndex_u8
 .IMPORTZP Zp_Current_sMachine_ptr
 .IMPORTZP Zp_MachineIndex_u8
 .IMPORTZP Zp_PointX_i16
@@ -139,7 +143,14 @@ _BulletVert:
 _InitBullet:
     jsr Func_SetActorCenterToPoint  ; preserves X, Y, and Zp_Tmp*
     lda Zp_Tmp1_byte  ; param: bullet direction
-    jsr Func_InitActorProjBullet
+    jsr Func_InitActorProjBullet  ; preserves X
+    ;; If debugging, replace the bullet with a smoke particle.
+    lda Zp_ConsoleMachineIndex_u8
+    bmi _DoneWithBullet
+    lda #eActor::SmokeParticle
+    sta Ram_ActorType_eActor_arr, x
+    lda #0
+    sta Ram_ActorState1_byte_arr, x  ; particle age in frames
 _DoneWithBullet:
     ldx Zp_MachineIndex_u8
     inc Ram_MachineParam1_u8_arr, x  ; shot counter
