@@ -592,7 +592,9 @@
 .PROC Ppu_ChrBgMine
 :   .incbin "out/data/tiles/crystal.chr"
     .incbin "out/data/tiles/ropediag.chr"
-    .res $20 * kSizeofChr
+    .incbin "out/data/tiles/minecart.chr"
+    .incbin "out/data/tiles/scaffhold.chr"
+    .res $0c * kSizeofChr
     .incbin "out/data/tiles/sign.chr"
     .incbin "out/data/tiles/console.chr"
     .assert * - :- = kSizeofChr * $40, error
