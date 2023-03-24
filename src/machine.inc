@@ -42,6 +42,8 @@ kMachineRegNameB = $21  ; 'B'
     Crane       = $0c
     Multiplexer = $0d
     Debugger    = $0e
+    HoistRight  = $0f
+    HoistLeft   = $10
 .ENDENUM
 
 ;;;=========================================================================;;;

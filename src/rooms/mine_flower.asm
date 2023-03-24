@@ -145,7 +145,7 @@ _Machines_sMachine_arr:
     d_byte Code_eProgram, eProgram::MineFlowerHoistWest
     d_byte Breaker_eFlag, 0
     d_byte Flags_bMachine, bMachine::MoveV
-    d_byte Status_eDiagram, eDiagram::Trolley  ; TODO
+    d_byte Status_eDiagram, eDiagram::HoistRight
     d_word ScrollGoalX_u16, $00
     d_byte ScrollGoalY_u8, $10
     d_byte RegNames_u8_arr4, 0, 0, 0, "Z"
@@ -164,7 +164,7 @@ _Machines_sMachine_arr:
     d_byte Code_eProgram, eProgram::MineFlowerHoistEast
     d_byte Breaker_eFlag, 0
     d_byte Flags_bMachine, bMachine::FlipH | bMachine::MoveV
-    d_byte Status_eDiagram, eDiagram::Trolley  ; TODO
+    d_byte Status_eDiagram, eDiagram::HoistLeft
     d_word ScrollGoalX_u16, $00
     d_byte ScrollGoalY_u8, $10
     d_byte RegNames_u8_arr4, 0, 0, 0, "Z"
