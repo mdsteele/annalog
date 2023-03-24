@@ -36,6 +36,7 @@
 .INCLUDE "actors/vinebug.inc"
 .INCLUDE "avatar.inc"
 .INCLUDE "devices/breaker.inc"
+.INCLUDE "machine.inc"
 .INCLUDE "machines/boiler.inc"
 .INCLUDE "machines/cannon.inc"
 .INCLUDE "machines/crane.inc"
@@ -278,7 +279,8 @@
 .EXPORT Ppu_ChrBgFontLower01
 .PROC Ppu_ChrBgFontLower01
 :   .incbin "out/data/tiles/font_lower.chr"
-    .incbin "out/data/tiles/diagram01.chr"
+    .assert eDiagram::Lift = $01, error
+    .incbin "out/data/tiles/diagram_lift.chr"
     .incbin "out/data/tiles/portrait01.chr"
     .assert * - :- = kSizeofChr * $40, error
 .ENDPROC
@@ -289,7 +291,8 @@
 
 .PROC Ppu_ChrBgFontLower02
 :   .incbin "out/data/tiles/font_lower.chr"
-    .incbin "out/data/tiles/diagram02.chr"
+    .assert eDiagram::Trolley = $02, error
+    .incbin "out/data/tiles/diagram_trolley.chr"
     .incbin "out/data/tiles/portrait02.chr"
     .assert * - :- = kSizeofChr * $40, error
 .ENDPROC
@@ -300,7 +303,8 @@
 
 .PROC Ppu_ChrBgFontLower03
 :   .incbin "out/data/tiles/font_lower.chr"
-    .incbin "out/data/tiles/diagram03.chr"
+    .assert eDiagram::Winch = $03, error
+    .incbin "out/data/tiles/diagram_winch.chr"
     .incbin "out/data/tiles/portrait03.chr"
     .assert * - :- = kSizeofChr * $40, error
 .ENDPROC
@@ -311,7 +315,8 @@
 
 .PROC Ppu_ChrBgFontLower04
 :   .incbin "out/data/tiles/font_lower.chr"
-    .incbin "out/data/tiles/diagram04.chr"
+    .assert eDiagram::Boiler = $04, error
+    .incbin "out/data/tiles/diagram_boiler.chr"
     .incbin "out/data/tiles/portrait04.chr"
     .assert * - :- = kSizeofChr * $40, error
 .ENDPROC
@@ -322,7 +327,8 @@
 
 .PROC Ppu_ChrBgFontLower05
 :   .incbin "out/data/tiles/font_lower.chr"
-    .incbin "out/data/tiles/diagram05.chr"
+    .assert eDiagram::Field = $05, error
+    .incbin "out/data/tiles/diagram_field.chr"
     .incbin "out/data/tiles/portrait05.chr"
     .assert * - :- = kSizeofChr * $40, error
 .ENDPROC
@@ -333,7 +339,8 @@
 
 .PROC Ppu_ChrBgFontLower06
 :   .incbin "out/data/tiles/font_lower.chr"
-    .incbin "out/data/tiles/diagram06.chr"
+    .assert eDiagram::Jet = $06, error
+    .incbin "out/data/tiles/diagram_jet.chr"
     .incbin "out/data/tiles/portrait06.chr"
     .assert * - :- = kSizeofChr * $40, error
 .ENDPROC
@@ -344,7 +351,8 @@
 
 .PROC Ppu_ChrBgFontLower07
 :   .incbin "out/data/tiles/font_lower.chr"
-    .incbin "out/data/tiles/diagram07.chr"
+    .assert eDiagram::Carriage = $07, error
+    .incbin "out/data/tiles/diagram_carriage.chr"
     .incbin "out/data/tiles/portrait07.chr"
     .assert * - :- = kSizeofChr * $40, error
 .ENDPROC
@@ -355,7 +363,8 @@
 
 .PROC Ppu_ChrBgFontLower08
 :   .incbin "out/data/tiles/font_lower.chr"
-    .incbin "out/data/tiles/diagram08.chr"
+    .assert eDiagram::CannonRight = $08, error
+    .incbin "out/data/tiles/diagram_cannon_right.chr"
     .incbin "out/data/tiles/portrait08.chr"
     .assert * - :- = kSizeofChr * $40, error
 .ENDPROC
@@ -366,7 +375,8 @@
 
 .PROC Ppu_ChrBgFontLower09
 :   .incbin "out/data/tiles/font_lower.chr"
-    .incbin "out/data/tiles/diagram09.chr"
+    .assert eDiagram::CannonLeft = $09, error
+    .incbin "out/data/tiles/diagram_cannon_left.chr"
     .incbin "out/data/tiles/portrait09.chr"
     .assert * - :- = kSizeofChr * $40, error
 .ENDPROC
@@ -377,7 +387,8 @@
 
 .PROC Ppu_ChrBgFontLower0A
 :   .incbin "out/data/tiles/font_lower.chr"
-    .incbin "out/data/tiles/diagram0a.chr"
+    .assert eDiagram::BridgeRight = $0a, error
+    .incbin "out/data/tiles/diagram_bridge_right.chr"
     .incbin "out/data/tiles/portrait0a.chr"
     .assert * - :- = kSizeofChr * $40, error
 .ENDPROC
@@ -388,7 +399,8 @@
 
 .PROC Ppu_ChrBgFontLower0B
 :   .incbin "out/data/tiles/font_lower.chr"
-    .incbin "out/data/tiles/diagram0b.chr"
+    .assert eDiagram::BridgeLeft = $0b, error
+    .incbin "out/data/tiles/diagram_bridge_left.chr"
     .incbin "out/data/tiles/portrait0b.chr"
     .assert * - :- = kSizeofChr * $40, error
 .ENDPROC
@@ -399,7 +411,8 @@
 
 .PROC Ppu_ChrBgFontLower0C
 :   .incbin "out/data/tiles/font_lower.chr"
-    .incbin "out/data/tiles/diagram0c.chr"
+    .assert eDiagram::Crane = $0c, error
+    .incbin "out/data/tiles/diagram_crane.chr"
     .incbin "out/data/tiles/portrait0c.chr"
     .assert * - :- = kSizeofChr * $40, error
 .ENDPROC
@@ -410,7 +423,8 @@
 
 .PROC Ppu_ChrBgFontLower0D
 :   .incbin "out/data/tiles/font_lower.chr"
-    .incbin "out/data/tiles/diagram0d.chr"
+    .assert eDiagram::Multiplexer = $0d, error
+    .incbin "out/data/tiles/diagram_multiplexer.chr"
     .incbin "out/data/tiles/portrait0d.chr"
     .assert * - :- = kSizeofChr * $40, error
 .ENDPROC
@@ -421,7 +435,8 @@
 
 .PROC Ppu_ChrBgFontLower0E
 :   .incbin "out/data/tiles/font_lower.chr"
-    .incbin "out/data/tiles/diagram0e.chr"
+    .assert eDiagram::Debugger = $0e, error
+    .incbin "out/data/tiles/diagram_debugger.chr"
     .incbin "out/data/tiles/portrait0e.chr"
     .assert * - :- = kSizeofChr * $40, error
 .ENDPROC
@@ -432,7 +447,8 @@
 
 .PROC Ppu_ChrBgFontLower0F
 :   .incbin "out/data/tiles/font_lower.chr"
-    .incbin "out/data/tiles/diagram0f.chr"
+    .assert eDiagram::HoistRight = $0f, error
+    .incbin "out/data/tiles/diagram_hoist_right.chr"
     .incbin "out/data/tiles/portrait0f.chr"
     .assert * - :- = kSizeofChr * $40, error
 .ENDPROC
@@ -443,7 +459,8 @@
 
 .PROC Ppu_ChrBgFontLower10
 :   .incbin "out/data/tiles/font_lower.chr"
-    .incbin "out/data/tiles/diagram10.chr"
+    .assert eDiagram::HoistLeft = $10, error
+    .incbin "out/data/tiles/diagram_hoist_left.chr"
     .incbin "out/data/tiles/portrait10.chr"
     .assert * - :- = kSizeofChr * $40, error
 .ENDPROC
