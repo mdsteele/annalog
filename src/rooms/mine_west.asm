@@ -29,14 +29,20 @@
 .INCLUDE "../ppu.inc"
 .INCLUDE "../program.inc"
 .INCLUDE "../room.inc"
+.INCLUDE "mine_west.inc"
 
 .IMPORT DataA_Room_Mine_sTileset
 .IMPORT FuncA_Machine_GenericTryMoveZ
 .IMPORT FuncA_Machine_HoistMoveTowardGoal
 .IMPORT FuncA_Machine_ReachedGoal
 .IMPORT FuncA_Machine_StartWaiting
+.IMPORT FuncA_Objects_Draw1x1Shape
 .IMPORT FuncA_Objects_DrawCraneMachine
+.IMPORT FuncA_Objects_DrawCranePulleyAndRope
 .IMPORT FuncA_Objects_DrawGirderPlatform
+.IMPORT FuncA_Objects_MoveShapeLeftOneTile
+.IMPORT FuncA_Objects_MoveShapeUpOneTile
+.IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
 .IMPORT Func_MovePlatformVert
 .IMPORT Func_Noop
 .IMPORT Func_ShakeRoom
@@ -55,6 +61,8 @@ kCraneMachineIndex = 0
 
 ;;; The platform index for the MineWestCrane machine.
 kCranePlatformIndex = 0
+;;; The platform index for the pulley that the crane hangs from.
+kPulleyPlatformIndex = 1
 
 ;;; The initial and maximum permitted values for the crane's Z-goal.
 kCraneInitGoalZ = 0
@@ -67,8 +75,8 @@ kCraneInitPlatformTop = kCraneMinPlatformTop + kCraneInitGoalZ * kBlockHeightPx
 ;;;=========================================================================;;;
 
 ;;; The platform indices for the ceiling/floor of the cage.
-kCageUpperPlatformIndex = 1
-kCageLowerPlatformIndex = 2
+kCageUpperPlatformIndex = 2
+kCageLowerPlatformIndex = 3
 
 ;;; The width and height for each platform that makes up the cage.
 kCagePlatformWidth = kTileWidthPx * 3
@@ -88,6 +96,14 @@ kCageMaxTop = kCageMaxBottom - (kCagePlatformHeight * 2 + kCageInteriorHeight)
 
 ;;; How many frames the room shakes for when the cage hits the ground.
 kCageShakeFrames = 15
+
+;;; OBJ tile IDs for drawing the cage.
+kTileIdObjCageHandle = kTileIdObjMineCageFirst + 0
+kTileIdObjCageRods   = kTileIdObjMineCageFirst + 1
+
+;;; OBJ palette numbers for drawing the cage.
+kPaletteObjCageHandle = 0
+kPaletteObjCageRods   = 0
 
 ;;;=========================================================================;;;
 
@@ -165,6 +181,14 @@ _Platforms_sPlatform_arr:
     d_byte HeightPx_u8, $10
     d_word Left_i16,  $0088
     d_word Top_i16, kCraneInitPlatformTop
+    D_END
+    .assert * - :- = kPulleyPlatformIndex * .sizeof(sPlatform), error
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Solid
+    d_word WidthPx_u16, $08
+    d_byte HeightPx_u8, $08
+    d_word Left_i16,  $008c
+    d_word Top_i16,   $002e
     D_END
     .assert * - :- = kCageUpperPlatformIndex * .sizeof(sPlatform), error
     D_STRUCT sPlatform
@@ -346,19 +370,35 @@ _Done:
 .SEGMENT "PRGA_Objects"
 
 .PROC FuncA_Objects_MineWest_DrawRoom
-    ;; TODO: draw handle that crane grasps
-    ;; TODO: draw connectors between the girders
     ldx #kCageUpperPlatformIndex
     jsr FuncA_Objects_DrawGirderPlatform
+    jsr FuncA_Objects_MoveShapeUpOneTile
+    jsr FuncA_Objects_MoveShapeLeftOneTile
+    ldy #kPaletteObjCageHandle  ; param: object flags
+    lda #kTileIdObjCageHandle  ; param: tile ID
+    jsr FuncA_Objects_Draw1x1Shape
     ldx #kCageLowerPlatformIndex
-    jmp FuncA_Objects_DrawGirderPlatform
+    jsr FuncA_Objects_SetShapePosToPlatformTopLeft
+    jsr _DrawCageSide
+    ldx #kCageLowerPlatformIndex
+    jsr FuncA_Objects_DrawGirderPlatform
+_DrawCageSide:
+    ldx #4
+    @loop:
+    jsr FuncA_Objects_MoveShapeUpOneTile
+    ldy #kPaletteObjCageRods  ; param: object flags
+    lda #kTileIdObjCageRods  ; param: tile ID
+    jsr FuncA_Objects_Draw1x1Shape  ; preserves X and Zp_Tmp*; returns C and Y
+    dex
+    bne @loop
+    rts
 .ENDPROC
 
 ;;; Draws the BossCryptWinch machine.
 .PROC FuncA_Objects_MineWestCrypt_Draw
     jsr FuncA_Objects_DrawCraneMachine
-    ;; TODO: draw pulley and rope
-    rts
+    ldx #kPulleyPlatformIndex  ; param: platform index
+    jmp FuncA_Objects_DrawCranePulleyAndRope
 .ENDPROC
 
 ;;;=========================================================================;;;

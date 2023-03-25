@@ -55,6 +55,7 @@
 .INCLUDE "platforms/stepstone.inc"
 .INCLUDE "rooms/boss_garden.inc"
 .INCLUDE "rooms/garden_tower.inc"
+.INCLUDE "rooms/mine_west.inc"
 .INCLUDE "upgrade.inc"
 
 ;;;=========================================================================;;;
@@ -939,7 +940,9 @@
     .incbin "out/data/tiles/upgrade_ram.chr"
     .assert * - :- = (kTileIdObjHoistFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/hoist.chr"
-    .res $0e * kSizeofChr
+    .assert * - :- = (kTileIdObjMineCageFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/mine_cage.chr"
+    .res $0c * kSizeofChr
     .assert * - :- = (kTileIdObjUpgradeOpSyncFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/upgrade_opsync.chr"
     .res $16 * kSizeofChr

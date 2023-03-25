@@ -35,6 +35,7 @@
 .IMPORT FuncA_Machine_ReachedGoal
 .IMPORT FuncA_Machine_StartWaiting
 .IMPORT FuncA_Objects_DrawCraneMachine
+.IMPORT FuncA_Objects_DrawCranePulleyAndRope
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrObjFactory
 .IMPORT Ram_MachineGoalHorz_u8_arr
@@ -48,6 +49,8 @@ kCraneMachineIndex = 0
 
 ;;; The platform index for the FactoryWestCrane machine.
 kCranePlatformIndex = 0
+;;; The platform index for the pulley that the crane hangs from.
+kPulleyPlatformIndex = 1
 
 ;;; The initial and maximum permitted values for the crane's Z-goal.
 kCraneInitGoalZ = 0
@@ -119,6 +122,14 @@ _Platforms_sPlatform_arr:
     d_byte HeightPx_u8, $10
     d_word Left_i16,  $00a0
     d_word Top_i16, kCraneInitPlatformTop
+    D_END
+    .assert * - :- = kPulleyPlatformIndex * .sizeof(sPlatform), error
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Solid
+    d_word WidthPx_u16, $08
+    d_byte HeightPx_u8, $08
+    d_word Left_i16,  $00a4
+    d_word Top_i16,   $009f
     D_END
     .assert * - :- <= kMaxPlatforms * .sizeof(sPlatform), error
     .byte ePlatform::None
@@ -201,8 +212,8 @@ _ReadZ:
 ;;; Draws the BossCryptWinch machine.
 .PROC FuncA_Objects_FactoryWestCrypt_Draw
     jsr FuncA_Objects_DrawCraneMachine
-    ;; TODO: draw pulley and rope
-    rts
+    ldx #kPulleyPlatformIndex  ; param: platform index
+    jmp FuncA_Objects_DrawCranePulleyAndRope
 .ENDPROC
 
 ;;;=========================================================================;;;

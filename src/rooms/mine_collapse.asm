@@ -35,8 +35,8 @@
 .IMPORT FuncA_Machine_StartWaiting
 .IMPORT FuncA_Machine_StartWorking
 .IMPORT FuncA_Objects_DrawCraneMachine
+.IMPORT FuncA_Objects_DrawCraneRopeToPulley
 .IMPORT FuncA_Objects_DrawTrolleyMachine
-.IMPORT FuncA_Objects_DrawTrolleyRopeToCrane
 .IMPORT Func_MovePlatformHorz
 .IMPORT Func_MovePlatformLeftTowardPointX
 .IMPORT Func_MovePlatformTopTowardPointY
@@ -54,13 +54,13 @@
 
 ;;; The machine indices for the MineCollapseTrolley and MineCollapseCrane
 ;;; machines in this room.
-kCraneMachineIndex   = 0
-kTrolleyMachineIndex = 1
+kTrolleyMachineIndex = 0
+kCraneMachineIndex   = 1
 
 ;;; The platform indices for the MineCollapseTrolley and MineCollapseCrane
 ;;; machines in this room.
-kCranePlatformIndex   = 0
-kTrolleyPlatformIndex = 1
+kTrolleyPlatformIndex = 0
+kCranePlatformIndex   = 1
 
 ;;; The initial and maximum permitted values for the crane's Z-goal.
 kCraneInitGoalZ = 0
@@ -120,26 +120,7 @@ _TerrainData:
 :   .incbin "out/data/mine_collapse.room"
     .assert * - :- = 33 * 16, error
 _Machines_sMachine_arr:
-:   .assert * - :- = kCraneMachineIndex * .sizeof(sMachine), error
-    D_STRUCT sMachine
-    d_byte Code_eProgram, eProgram::MineCollapseCrane
-    d_byte Breaker_eFlag, 0
-    d_byte Flags_bMachine, bMachine::MoveV | bMachine::Act
-    d_byte Status_eDiagram, eDiagram::Crane
-    d_word ScrollGoalX_u16, $00
-    d_byte ScrollGoalY_u8, $10
-    d_byte RegNames_u8_arr4, "D", 0, 0, "Z"
-    d_byte MainPlatform_u8, kCranePlatformIndex
-    d_addr Init_func_ptr, FuncC_Mine_CollapseCrane_Init
-    d_addr ReadReg_func_ptr, FuncC_Mine_CollapseCrane_ReadReg
-    d_addr WriteReg_func_ptr, FuncA_Machine_Error
-    d_addr TryMove_func_ptr, FuncC_Mine_CollapseCrane_TryMove
-    d_addr TryAct_func_ptr, FuncC_Mine_CollapseCrane_TryAct
-    d_addr Tick_func_ptr, FuncC_Mine_CollapseCrane_Tick
-    d_addr Draw_func_ptr, FuncA_Objects_DrawCraneMachine
-    d_addr Reset_func_ptr, FuncC_Mine_CollapseCrane_Reset
-    D_END
-    .assert * - :- = kTrolleyMachineIndex * .sizeof(sMachine), error
+:   .assert * - :- = kTrolleyMachineIndex * .sizeof(sMachine), error
     D_STRUCT sMachine
     d_byte Code_eProgram, eProgram::MineCollapseTrolley
     d_byte Breaker_eFlag, 0
@@ -155,26 +136,45 @@ _Machines_sMachine_arr:
     d_addr TryMove_func_ptr, FuncC_Mine_CollapseTrolley_TryMove
     d_addr TryAct_func_ptr, FuncA_Machine_Error
     d_addr Tick_func_ptr, FuncC_Mine_CollapseTrolley_Tick
-    d_addr Draw_func_ptr, FuncA_Objects_MineCollapseTrolley_Draw
+    d_addr Draw_func_ptr, FuncA_Objects_DrawTrolleyMachine
     d_addr Reset_func_ptr, FuncC_Mine_CollapseTrolley_Reset
+    D_END
+    .assert * - :- = kCraneMachineIndex * .sizeof(sMachine), error
+    D_STRUCT sMachine
+    d_byte Code_eProgram, eProgram::MineCollapseCrane
+    d_byte Breaker_eFlag, 0
+    d_byte Flags_bMachine, bMachine::MoveV | bMachine::Act
+    d_byte Status_eDiagram, eDiagram::Crane
+    d_word ScrollGoalX_u16, $00
+    d_byte ScrollGoalY_u8, $10
+    d_byte RegNames_u8_arr4, "D", 0, 0, "Z"
+    d_byte MainPlatform_u8, kCranePlatformIndex
+    d_addr Init_func_ptr, FuncC_Mine_CollapseCrane_Init
+    d_addr ReadReg_func_ptr, FuncC_Mine_CollapseCrane_ReadReg
+    d_addr WriteReg_func_ptr, FuncA_Machine_Error
+    d_addr TryMove_func_ptr, FuncC_Mine_CollapseCrane_TryMove
+    d_addr TryAct_func_ptr, FuncC_Mine_CollapseCrane_TryAct
+    d_addr Tick_func_ptr, FuncC_Mine_CollapseCrane_Tick
+    d_addr Draw_func_ptr, FuncA_Objects_MineCollapseCrane_Draw
+    d_addr Reset_func_ptr, FuncC_Mine_CollapseCrane_Reset
     D_END
     .assert * - :- <= kMaxMachines * .sizeof(sMachine), error
 _Platforms_sPlatform_arr:
-:   .assert * - :- = kCranePlatformIndex * .sizeof(sPlatform), error
-    D_STRUCT sPlatform
-    d_byte Type_ePlatform, ePlatform::Solid
-    d_word WidthPx_u16, $10
-    d_byte HeightPx_u8, $10
-    d_word Left_i16, kTrolleyInitPlatformLeft
-    d_word Top_i16, kCraneInitPlatformTop
-    D_END
-    .assert * - :- = kTrolleyPlatformIndex * .sizeof(sPlatform), error
+:   .assert * - :- = kTrolleyPlatformIndex * .sizeof(sPlatform), error
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Solid
     d_word WidthPx_u16, $10
     d_byte HeightPx_u8, $0e
     d_word Left_i16, kTrolleyInitPlatformLeft
     d_word Top_i16,   $0020
+    D_END
+    .assert * - :- = kCranePlatformIndex * .sizeof(sPlatform), error
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Solid
+    d_word WidthPx_u16, $10
+    d_byte HeightPx_u8, $10
+    d_word Left_i16, kTrolleyInitPlatformLeft
+    d_word Top_i16, kCraneInitPlatformTop
     D_END
     .assert * - :- <= kMaxPlatforms * .sizeof(sPlatform), error
     .byte ePlatform::None
@@ -369,11 +369,10 @@ _RegZ:
 
 .SEGMENT "PRGA_Objects"
 
-;;; Draws the MineCollapseTrolley machine.
-.PROC FuncA_Objects_MineCollapseTrolley_Draw
-    jsr FuncA_Objects_DrawTrolleyMachine
-    ldx #kCranePlatformIndex  ; param: crane platform index
-    jmp FuncA_Objects_DrawTrolleyRopeToCrane
+.PROC FuncA_Objects_MineCollapseCrane_Draw
+    jsr FuncA_Objects_DrawCraneMachine
+    ldx #kTrolleyPlatformIndex  ; param: pulley platform index
+    jmp FuncA_Objects_DrawCraneRopeToPulley
 .ENDPROC
 
 ;;;=========================================================================;;;

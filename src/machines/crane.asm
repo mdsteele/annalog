@@ -25,16 +25,19 @@
 
 .IMPORT FuncA_Objects_Alloc1x1Shape
 .IMPORT FuncA_Objects_Alloc2x2Shape
+.IMPORT FuncA_Objects_Draw1x1Shape
 .IMPORT FuncA_Objects_GetMachineLightTileId
 .IMPORT FuncA_Objects_MoveShapeDownAndRightOneTile
 .IMPORT FuncA_Objects_MoveShapeDownOneTile
 .IMPORT FuncA_Objects_MoveShapeLeftOneTile
 .IMPORT FuncA_Objects_MoveShapeRightByA
+.IMPORT FuncA_Objects_MoveShapeUpOneTile
 .IMPORT FuncA_Objects_SetShapePosToMachineTopLeft
+.IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
 .IMPORT Ram_MachineGoalHorz_u8_arr
 .IMPORT Ram_Oam_sObj_arr64
-.IMPORT Ram_PlatformTop_i16_0_arr
-.IMPORT Ram_PlatformTop_i16_1_arr
+.IMPORT Ram_PlatformBottom_i16_0_arr
+.IMPORT Ram_PlatformBottom_i16_1_arr
 .IMPORTZP Zp_MachineIndex_u8
 .IMPORTZP Zp_RoomScrollY_u8
 .IMPORTZP Zp_ShapePosY_i16
@@ -49,12 +52,14 @@ kTileIdObjCraneRope       = kTileIdCraneFirst + 1
 kTileIdObjCraneClawOpen   = kTileIdCraneFirst + 2
 kTileIdObjCraneClawClosed = kTileIdCraneFirst + 3
 kTileIdObjCraneCorner     = kTileIdCraneFirst + 4
+kTileIdObjPulley          = kTileIdCraneFirst + 7
 kTileIdObjTrolleyCorner   = kTileIdObjMachineCorner
 kTileIdObjTrolleyRope     = kTileIdObjCraneRope
 kTileIdObjTrolleyWheel    = kTileIdObjCraneWheel
 
 ;;; OBJ palette numbers used for various parts of crane/trolley machines.
-kPaletteObjRope = 0
+kPaletteObjPulley = 0
+kPaletteObjRope   = 0
 
 ;;;=========================================================================;;;
 
@@ -142,48 +147,76 @@ _LeftClaw:
     rts
 .ENDPROC
 
-;;; Draws a rope hanging from the current trolley machine down to the specified
-;;; crane machine platform.
+;;; Draws a fixed pulley that the current crane machine is suspended from, and
+;;; a double-rope between the crane and the pulley.
 ;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
-;;; @param X The platform index for the crane machine.
-.EXPORT FuncA_Objects_DrawTrolleyRopeToCrane
-.PROC FuncA_Objects_DrawTrolleyRopeToCrane
+;;; @param X The platform index for the pulley.
+.EXPORT FuncA_Objects_DrawCranePulleyAndRope
+.PROC FuncA_Objects_DrawCranePulleyAndRope
+    txa  ; pulley platform index
+    pha  ; pulley platform index
+    jsr FuncA_Objects_SetShapePosToPlatformTopLeft
+    ldy #kPaletteObjPulley  ; param: object flags
+    lda #kTileIdObjPulley  ; param: tile ID
+    jsr FuncA_Objects_Draw1x1Shape
+    pla  ; pulley platform index
+    tax  ; param: pulley platform index
+    .assert * = FuncA_Objects_DrawCraneRopeToPulley, error, "fallthrough"
+.ENDPROC
+
+;;; Draws a rope that the current crane machine is hanging from up to the
+;;; specified pulley platform.
+;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
+;;; @param X The platform index for the pulley.
+.EXPORT FuncA_Objects_DrawCraneRopeToPulley
+.PROC FuncA_Objects_DrawCraneRopeToPulley
     stx Zp_Tmp1_byte  ; crane platform index
     jsr FuncA_Objects_SetShapePosToMachineTopLeft  ; preserves Zp_Tmp*
     ldx Zp_Tmp1_byte  ; crane platform index
-    ;; Calculate the offset to the rope position.  This combines three things:
-    ;; the room scroll, the height of the trolley (since Zp_ShapePosY_i16 is
-    ;; set to its top instead of bottom), and an extra (kTileHeightPx - 1), so
-    ;; that our later division by kTileHeightPx will effectively round up.
-    lda Zp_RoomScrollY_u8
-    add #kBlockHeightPx - (kTileHeightPx - 1)
-    sta Zp_Tmp1_byte  ; offset
-    ;; Calculate the offset screen-space Y-position of the bottom of the rope,
-    ;; storing the lo byte in Zp_Tmp1_byte and the hi byte in Zp_Tmp2_byte.
-    lda Ram_PlatformTop_i16_0_arr, x
-    sub Zp_Tmp1_byte  ; offset
-    sta Zp_Tmp1_byte  ; offset screen-space rope bottom (lo)
-    lda Ram_PlatformTop_i16_1_arr, x
+    ;; Calculate the screen-space position for the bottom of the pulley.
+    lda Ram_PlatformBottom_i16_0_arr, x
+    sub Zp_RoomScrollY_u8
+    sta Zp_Tmp1_byte  ; screen-space rope top (lo)
+    lda Ram_PlatformBottom_i16_1_arr, x
     sbc #0
-    sta Zp_Tmp2_byte  ; offset screen-space rope bottom (hi)
-    ;; Calculate the length of the rope, in pixels, storing the lo byte in
-    ;; Zp_Tmp1_byte and the hi byte in A.
-    lda Zp_Tmp1_byte  ; offset screen-space rope bottom (lo)
-    sub Zp_ShapePosY_i16 + 0
-    sta Zp_Tmp1_byte  ; rope pixel length (lo)
-    lda Zp_Tmp2_byte  ; offset screen-space rope bottom (hi)
-    sbc Zp_ShapePosY_i16 + 1
-    ;; Divide the rope pixel length by kTileHeightPx to get the length of the
-    ;; rope in tiles.  Because of the (kTileHeightPx - 1) offset to the rope
-    ;; length above, this division will effectively round up instead of down.
-    .assert kTileHeightPx = 8, error
+    sta Zp_Tmp2_byte  ; screen-space rope top (hi)
+    ;; Calculate the length of the rope, in pixels.
+    lda Zp_ShapePosY_i16 + 0
+    sub Zp_Tmp1_byte  ; screen-space rope top (lo)
+    sta Zp_Tmp1_byte  ; rope length in pixels (lo)
+    lda Zp_ShapePosY_i16 + 1
+    sbc Zp_Tmp2_byte  ; screen-space rope top (hi)
+    sta Zp_Tmp2_byte  ; rope length in pixels (hi)
+    ;; Add (kTileHeightPx - 1) before dividing by kTileHeightPx, so that the
+    ;; division will round up.
+    lda Zp_Tmp1_byte  ; rope length in pixels (lo)
+    add #kTileHeightPx - 1
+    sta Zp_Tmp1_byte
+    lda Zp_Tmp2_byte  ; rope length in pixels (hi)
+    adc #0
+    .assert kTileHeightPx = 1 << 3, error
     .repeat 3
-    lsr a             ; rope pixel length (hi)
-    ror Zp_Tmp1_byte  ; rope pixel length (lo)
+    lsr a
+    ror Zp_Tmp1_byte
     .endrepeat
     ;; Draw the rope (if it contains a nonzero number of tiles).
     ldx Zp_Tmp1_byte  ; param: rope length in tiles
-    bne FuncA_Objects_DrawTrolleyRopeWithLength
+    beq _Return
+_DrawRope:
+    lda #kTileWidthPx / 2  ; param: offset
+    jsr FuncA_Objects_MoveShapeRightByA  ; preserves X
+    @loop:
+    jsr FuncA_Objects_MoveShapeUpOneTile  ; preserves X
+    jsr FuncA_Objects_Alloc1x1Shape  ; preserves X, returns C and Y
+    bcs @continue
+    lda #kTileIdObjCraneRope
+    sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
+    lda #kPaletteObjRope
+    sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
+    @continue:
+    dex
+    bne @loop
+_Return:
     rts
 .ENDPROC
 
