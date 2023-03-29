@@ -17,6 +17,17 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
+;;; Audio channels.  The numerical values are multiples of four, so they can be
+;;; used as indices into arrays of sChan* structs (which are all four-byte
+;;; structs).
+.ENUM eChan
+    Pulse1   =  0
+    Pulse2   =  4
+    Triangle =  8
+    Noise    = 12
+    Dmc      = 16
+.ENDENUM
+
 ;;; Music note state variables for a given APU channel.
 .STRUCT sChanNote
     ;; How many frames of the current tone/rest have elapsed so far.

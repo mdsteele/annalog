@@ -49,6 +49,8 @@
 .IMPORT Func_IsPointInPlatform
 .IMPORT Func_MachineCannonReadRegY
 .IMPORT Func_Noop
+.IMPORT Func_PlaySfxExplodeFracture
+.IMPORT Func_PlaySfxExplodeSmall
 .IMPORT Func_SetFlag
 .IMPORT Func_SetPointToActorCenter
 .IMPORT Func_ShakeRoom
@@ -356,25 +358,31 @@ _Crates:
     bge _GrenadeIsHigh
 _GrenadeIsLow:
     ;; If the lower portion of the wall is already destroyed, we're done.
-    lda Zp_RoomState + sState::BreakableWallLowerHits_u8
-    cmp #kBreakableWallHitsToDestroy
+    ldy Zp_RoomState + sState::BreakableWallLowerHits_u8
+    cpy #kBreakableWallHitsToDestroy
     bge _Done
     ;; Hit the wall.
-    inc Zp_RoomState + sState::BreakableWallLowerHits_u8
-    bne _CheckIfWallDestroyed  ; unconditional
+    iny
+    sty Zp_RoomState + sState::BreakableWallLowerHits_u8
+    cpy #kBreakableWallHitsToDestroy
+    blt _WallDamaged
+    bge _PartOfWallDestroyed  ; unconditional
 _GrenadeIsHigh:
-    ;; If the lower portion of the wall is already destroyed, we're done.
-    lda Zp_RoomState + sState::BreakableWallUpperHits_u8
-    cmp #kBreakableWallHitsToDestroy
+    ;; If the upper portion of the wall is already destroyed, we're done.
+    ldy Zp_RoomState + sState::BreakableWallUpperHits_u8
+    cpy #kBreakableWallHitsToDestroy
     bge _Done
     ;; Hit the wall.
-    inc Zp_RoomState + sState::BreakableWallUpperHits_u8
-_CheckIfWallDestroyed:
+    iny
+    sty Zp_RoomState + sState::BreakableWallUpperHits_u8
+    cpy #kBreakableWallHitsToDestroy
+    blt _WallDamaged
+_PartOfWallDestroyed:
+    jsr Func_PlaySfxExplodeFracture  ; preserves X
+    ;; Check if both parts of the wall are now destroyed.
     lda Zp_RoomState + sState::BreakableWallUpperHits_u8
-    cmp #kBreakableWallHitsToDestroy
-    blt _ExplodeGrenade
-    lda Zp_RoomState + sState::BreakableWallLowerHits_u8
-    cmp #kBreakableWallHitsToDestroy
+    add Zp_RoomState + sState::BreakableWallLowerHits_u8
+    cmp #kBreakableWallHitsToDestroy * 2
     blt _ExplodeGrenade
     ;; Remove the wall.
     lda #ePlatform::Zone
@@ -383,13 +391,13 @@ _CheckIfWallDestroyed:
     ldx #eFlag::GardenTowerWallBroken  ; param: flag
     jsr Func_SetFlag  ; preserves Zp_Tmp*
     ldx Zp_Tmp1_byte  ; grenade actor index
+    bpl _ExplodeGrenade  ; unconditional
+_WallDamaged:
+    jsr Func_PlaySfxExplodeSmall
 _ExplodeGrenade:
-    ;; We've hit the wall, so explode the grenade.
     jsr Func_InitActorSmokeExplosion  ; preserves X
-    ;; Shake the room.
     lda #kBreakableWallShakeFrames  ; param: num frames
     jsr Func_ShakeRoom
-    ;; TODO: play a sound for hitting the wall
 _Done:
     rts
 .ENDPROC

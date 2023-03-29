@@ -21,6 +21,7 @@
 .ENUM eSound
     None
     Beep
+    Explode
     Sample
     NUM_VALUES
 .ENDENUM

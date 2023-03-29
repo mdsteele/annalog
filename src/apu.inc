@@ -68,6 +68,18 @@ Hw_Channels_sChanRegs_arr5 = $4000
 
 ;;;=========================================================================;;;
 
+;;; Volume envelope control for the noise channel.
+Hw_NoiseEnvelope_wo = $400c
+
+;;; Controls the noise channel period (in the bottom four bits).  In addition,
+;;; setting the highest bit makes the noise sound more metallic.
+Hw_NoisePeriod_wo = $400e
+
+;;; Controls length counter for the noise channel (in the upper five bits).
+Hw_NoiseLength_wo = $400f
+
+;;;=========================================================================;;;
+
 ;;; Delta modulated sample data for the DMC must be aligned to this many bytes.
 kDmcSampleAlign = $40
 

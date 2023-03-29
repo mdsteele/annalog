@@ -44,7 +44,7 @@ kBeepInitVolume = 3
 ;;; @preserve X
 .EXPORT Func_SfxBeep
 .PROC Func_SfxBeep
-    lda Ram_Sound_sChanSfx_arr + sChanSfx::Param2_byte, x
+    lda Ram_Sound_sChanSfx_arr + sChanSfx::Timer_u8, x
     beq _Initialize
     cmp #kBeepDurationFrames
     blt _Continue
@@ -56,17 +56,17 @@ _Initialize:
     lda #0
     sta Hw_Channels_sChanRegs_arr5 + sChanRegs::Sweep_wo, x
     ldy Ram_Sound_sChanSfx_arr + sChanSfx::Param1_byte, x
-    lda _TimerLo, y
+    lda _TimerLo_u8_arr10, y
     sta Hw_Channels_sChanRegs_arr5 + sChanRegs::TimerLo_wo, x
-    lda _TimerHi, y
+    lda _TimerHi_u8_arr10, y
     sta Hw_Channels_sChanRegs_arr5 + sChanRegs::TimerHi_wo, x
 _Continue:
-    inc Ram_Sound_sChanSfx_arr + sChanSfx::Param2_byte, x
+    inc Ram_Sound_sChanSfx_arr + sChanSfx::Timer_u8, x
     clc  ; clear C to indicate that the sound is still going
     rts
 ;;; These values represent the ten natural notes from A3 through C5.
-_TimerLo: .byte $fb, $c4, $ab, $7c, $52, $3f, $1c, $fd, $e1, $d5
-_TimerHi: .byte $01, $01, $01, $01, $01, $01, $01, $00, $00, $00
+_TimerLo_u8_arr10: .byte $fb, $c4, $ab, $7c, $52, $3f, $1c, $fd, $e1, $d5
+_TimerHi_u8_arr10: .byte $01, $01, $01, $01, $01, $01, $01, $00, $00, $00
 .ENDPROC
 
 ;;;=========================================================================;;;

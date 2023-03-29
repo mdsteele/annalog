@@ -28,6 +28,7 @@
 .IMPORT FuncA_Room_FindActorWithType
 .IMPORT Func_InitActorDefault
 .IMPORT Func_InitActorSmokeExplosion
+.IMPORT Func_PlaySfxExplodeSmall
 .IMPORT Func_ShakeRoom
 .IMPORT Ram_ActorPosX_i16_0_arr
 .IMPORT Ram_ActorPosX_i16_1_arr
@@ -145,7 +146,7 @@ _ShakeAndExplode:
     lda #kGrenadeShakeFrames  ; param: num frames
     jsr Func_ShakeRoom  ; preserves X
 _Explode:
-    ;; TODO: play a sound
+    jsr Func_PlaySfxExplodeSmall  ; preserves X
     jmp Func_InitActorSmokeExplosion  ; preserves X
 .ENDPROC
 

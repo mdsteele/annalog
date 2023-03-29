@@ -22,6 +22,7 @@
 
 .IMPORT Func_Noop
 .IMPORT Func_SfxBeep
+.IMPORT Func_SfxExplode
 .IMPORT Func_SfxSample
 .IMPORTZP Zp_AudioTmp1_byte
 .IMPORTZP Zp_AudioTmp2_byte
@@ -56,9 +57,10 @@
     D_TABLE_LO table, Data_Sfx_func_ptr_0_arr
     D_TABLE_HI table, Data_Sfx_func_ptr_1_arr
     D_TABLE eSound
-    d_entry table, None,   Func_Noop
-    d_entry table, Beep,   Func_SfxBeep
-    d_entry table, Sample, Func_SfxSample
+    d_entry table, None,    Func_Noop
+    d_entry table, Beep,    Func_SfxBeep
+    d_entry table, Explode, Func_SfxExplode
+    d_entry table, Sample,  Func_SfxSample
     D_END
 .ENDREPEAT
 

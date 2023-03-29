@@ -53,6 +53,7 @@
 .IMPORT Func_MovePlatformLeftTowardPointX
 .IMPORT Func_MovePlatformTopTowardPointY
 .IMPORT Func_Noop
+.IMPORT Func_PlaySfxExplodeFracture
 .IMPORT Func_ResetWinchMachineParams
 .IMPORT Func_SetFlag
 .IMPORT Ppu_ChrObjCrypt
@@ -460,6 +461,7 @@ _MoveVert:
     dec Zp_RoomState + sState::WeakFloorHp_u8_arr2, x
     bne @stopFalling  ; floor isn't completely broken yet
     ;; The floor is now completely broken.
+    jsr Func_PlaySfxExplodeFracture
     lda #ePlatform::None
     sta Ram_PlatformType_ePlatform_arr, x
     lda Zp_RoomState + sState::WeakFloorHp_u8_arr2 + 0

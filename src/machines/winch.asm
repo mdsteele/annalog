@@ -41,6 +41,8 @@
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
 .IMPORT Func_FindEmptyActorSlot
 .IMPORT Func_InitActorSmokeExplosion
+.IMPORT Func_PlaySfxExplodeBig
+.IMPORT Func_PlaySfxExplodeSmall
 .IMPORT Func_ShakeRoom
 .IMPORT Ram_ActorPosX_i16_0_arr
 .IMPORT Ram_ActorPosX_i16_1_arr
@@ -230,7 +232,6 @@ _Falling:
     jsr FuncA_Machine_WinchShakeOnImpact
     ;; Stop falling.
     jsr Func_ResetWinchMachineParams
-    ;; TODO: play a sound for impact
     ;; Wait for a bit before resuming program execution.
     lda #kWinchFallRecoverFrames
     jmp FuncA_Machine_StartWaiting
@@ -287,8 +288,6 @@ _SlowFallingSpeed:
     ldx Zp_MachineIndex_u8
     lda #kWinchBreakthroughSpeed
     sta Ram_MachineParam2_i16_1_arr, x
-_PlaySound:
-    ;; TODO: Play a sound.
     rts
 .ENDPROC
 
@@ -299,9 +298,19 @@ _PlaySound:
     ldy Zp_MachineIndex_u8
     ldx Ram_MachineParam2_i16_1_arr, y
     lda _ShakeFrames_u8_arr, x  ; param: num frames
-    jmp Func_ShakeRoom
+    jsr Func_ShakeRoom  ; preserves X
+_PlaySound:
+    cpx #kWinchMaxFallSpeed
+    bge @bigSound
+    cpx #2
+    bge @smallSound
+    rts
+    @bigSound:
+    jmp Func_PlaySfxExplodeBig
+    @smallSound:
+    jmp Func_PlaySfxExplodeSmall
 _ShakeFrames_u8_arr:
-:   .byte 0, 0, 4, 8, 12, 16
+:   .byte 0, 0, 4, 8, 8, 16
     .assert * - :- = kWinchMaxFallSpeed + 1, error
 .ENDPROC
 

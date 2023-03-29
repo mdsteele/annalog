@@ -221,7 +221,7 @@ _StartSfx:
     ;; Loop over all APU channels.
     lda #bApuStatus::Dmc
     sta Zp_CurrentChannel_bApuStatus
-    ldx #.sizeof(sChanSfx) * (kNumApuChannels - 1)
+    ldx #eChan::Dmc
     @loop:
     ;; Assert that we can treat sAudioCtrl::Sfx1_sChanSfx as the start of an
     ;; array of sChanSfx structs.
@@ -616,7 +616,7 @@ _Return:
     .assert bApuStatus::Dmc = $10, error
     lda #bApuStatus::Dmc
     sta Zp_CurrentChannel_bApuStatus
-    ldx #.sizeof(sChanSfx) * (kNumApuChannels - 1)
+    ldx #eChan::Dmc
     @loop:
     jsr Func_AudioContinueOneSfx  ; preserves X
     .repeat .sizeof(sChanSfx)
@@ -638,7 +638,7 @@ _Return:
     beq _Return
     ;; For non-DMC channels, we need to enable the channel *before* calling the
     ;; SFX function (because otherwise the register writes won't take effect).
-    cpx #$10
+    cpx #eChan::Dmc
     beq @callSfx
     jsr _EnableChannel
     @callSfx:
@@ -647,7 +647,7 @@ _Return:
     bcs _SoundFinished
     ;; For the DMC channel, we need to enable the channel *after* calling the
     ;; SFX function (because otherwise it will restart the previous sample).
-    cpx #$10
+    cpx #eChan::Dmc
     beq _EnableChannel
 _Return:
     rts
