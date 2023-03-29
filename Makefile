@@ -31,8 +31,9 @@ AHI2CHR = $(BINDIR)/ahi2chr
 BG2MAP = $(BINDIR)/bg2map
 BG2ROOM = $(BINDIR)/bg2room
 BG2TSET = $(BINDIR)/bg2tset
-SNG2ASM = $(BINDIR)/sng2asm
 LABEL2NL = $(BINDIR)/label2nl
+SNG2ASM = $(BINDIR)/sng2asm
+WAV2DM = $(BINDIR)/wav2dm
 
 CFGFILE = $(SRCDIR)/linker.cfg
 LABELFILE = $(OUTDIR)/$(ROMNAME).labels.txt
@@ -43,10 +44,12 @@ AHIFILES := $(shell find $(SRCDIR) -name '*.ahi')
 ASMFILES := $(shell find $(SRCDIR) -name '*.asm')
 INCFILES := $(shell find $(SRCDIR) -name '*.inc')
 SNGFILES := $(shell find $(SRCDIR)/music -name '*.sng')
+WAVFILES := $(shell find $(SRCDIR) -name '*.wav')
 ROOM_BG_FILES := $(shell find $(SRCDIR)/rooms -name '*.bg')
 TSET_BG_FILES := $(shell find $(SRCDIR)/tilesets -name '*.bg')
 
 CHRFILES := $(patsubst $(SRCDIR)/%.ahi,$(DATADIR)/%.chr,$(AHIFILES))
+DMFILES := $(patsubst $(SRCDIR)/%.wav,$(DATADIR)/%.dm,$(WAVFILES))
 GENFILES := \
   $(patsubst $(SRCDIR)/music/%.sng,$(GENDIR)/music/%.asm,$(SNGFILES)) \
   $(patsubst $(SRCDIR)/tilesets/%.bg,$(GENDIR)/tilesets/%.asm,$(TSET_BG_FILES))
@@ -110,6 +113,9 @@ $(LABEL2NL): build/label2nl.c
 $(SNG2ASM): build/sng2asm.c
 	$(compile-c)
 
+$(WAV2DM): build/wav2dm.c
+	$(compile-c)
+
 #=============================================================================#
 # Generated files:
 
@@ -154,6 +160,13 @@ $(GENDIR)/tilesets/%.asm: $(SRCDIR)/tilesets/%.bg $(BG2TSET) $(AHIFILES)
 
 .SECONDARY: $(GENFILES)
 
+$(DATADIR)/%.dm: $(SRCDIR)/%.wav $(WAV2DM)
+	@echo "Converting $<"
+	@mkdir -p $(@D)
+	@$(WAV2DM) < $< > $@
+
+.SECONDARY: $(DMFILES)
+
 $(ROMFILE).ram.nl: $(LABELFILE) $(LABEL2NL)
 	@echo "Generating $@"
 	@mkdir -p $(@D)
@@ -197,6 +210,9 @@ $(OBJDIR)/chr.o: $(SRCDIR)/chr.asm $(INCFILES) $(CHRFILES)
 	$(compile-asm)
 
 $(OBJDIR)/pause.o: $(SRCDIR)/pause.asm $(INCFILES) $(DATADIR)/minimap.map
+	$(compile-asm)
+
+$(OBJDIR)/sample.o: $(SRCDIR)/sample.asm $(INCFILES) $(DMFILES)
 	$(compile-asm)
 
 $(OBJDIR)/title.o: $(SRCDIR)/title.asm $(INCFILES) $(DATADIR)/title.map

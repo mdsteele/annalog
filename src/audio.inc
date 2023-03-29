@@ -41,16 +41,15 @@
 
 ;;; SFX state variables for a given APU channel.
 .STRUCT sChanSfx
-    ;; The SFX function to call each frame to update the channel's APU
-    ;; registers for the sound effect.  If the high byte is zero, then no sound
-    ;; effect is active.
-    ;; @param X The channel number (0-4) times four (so, 0, 4, 8, 12, or 16).
-    ;; @return C Set if the sound is finished, cleared otherwise.
-    ;; @preserve X
-    Sfx_func_ptr .addr
-    ;; Arbitrary parameter/state bytes that can be used by the Sfx_func_ptr.
-    Param1_byte  .byte
-    Param2_byte  .byte
+    ;; Indicates which SFX function to call each frame while the sound is
+    ;; active.
+    Sfx_eSound  .byte
+    ;; Typically used as a frame timer to track how long the sound effect
+    ;; should play, but the SFX function can use this however it wants.
+    Timer_u8    .byte
+    ;; Arbitrary parameter/state bytes that can be used by the SFX function.
+    Param1_byte .byte
+    Param2_byte .byte
 .ENDSTRUCT
 
 ;;;=========================================================================;;;

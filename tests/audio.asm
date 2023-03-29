@@ -64,6 +64,13 @@ Data_Music_sMusic_ptr_1_arr: .byte >Data_Test_sMusic
     rts
 .ENDPROC
 
+;;; Stub implementation.
+.EXPORT Func_AudioCallSfx
+.PROC Func_AudioCallSfx
+    sec  ; set C to indicate that the sound is finished
+    rts
+.ENDPROC
+
 .PROC Data_Test_sMusic
     D_STRUCT sMusic
     d_addr Opcodes_bMusic_arr_ptr, _Opcodes_bMusic_arr

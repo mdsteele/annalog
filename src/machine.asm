@@ -24,7 +24,7 @@
 .INCLUDE "program.inc"
 .INCLUDE "room.inc"
 
-.IMPORT Func_PlayBeepSfx
+.IMPORT FuncA_Machine_PlaySfxBeep
 .IMPORT Sram_Programs_sProgram_arr
 .IMPORTZP Zp_Current_sRoom
 .IMPORTZP Zp_P1ButtonsHeld_bJoypad
@@ -647,7 +647,7 @@ _OpBeep:
     lda <(Zp_Current_sInst + sInst::Op_byte)
     and #$0f  ; param: immediate value or register
     jsr Func_MachineRead  ; returns A
-    jsr Func_PlayBeepSfx
+    jsr FuncA_Machine_PlaySfxBeep
 _OpWait:
     lda #$10  ; 16 frames = about a quarter second
     jmp FuncA_Machine_StartWaiting

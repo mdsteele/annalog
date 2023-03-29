@@ -68,6 +68,9 @@ Hw_Channels_sChanRegs_arr5 = $4000
 
 ;;;=========================================================================;;;
 
+;;; Delta modulated sample data for the DMC must be aligned to this many bytes.
+kDmcSampleAlign = $40
+
 ;;; DMC channel flags and rate (https://www.nesdev.org/wiki/APU_DMC)
 Hw_DmcFlags_wo = $4010
 
@@ -77,12 +80,15 @@ Hw_DmcFlags_wo = $4010
     RateMask  = %00001111  ; bits used to specify sample rate
 .ENDSCOPE
 
+;;; Write here to directly set the output level of the DMC (0-127).
+Hw_DmcLevel_wo = $4011
+
 ;;; Encoded address of the delta modulated sample to play.  The actual address
-;;; used will be ($c000 + 64 * this).
+;;; used will be ($c000 + kDmcSampleAlign * this).
 Hw_DmcSampleStart_wo = $4012
 
-;;; Length of the delta modulated sample to play.  The actual length used will
-;;; be (1 + 16 * this).
+;;; Encoded byte length of the delta modulated sample to play.  The actual
+;;; length used will be (1 + 16 * this).
 Hw_DmcSampleLength_wo = $4013
 
 ;;;=========================================================================;;;

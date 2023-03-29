@@ -17,9 +17,10 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
-.INCLUDE "apu.inc"
-.INCLUDE "audio.inc"
-.INCLUDE "macros.inc"
+.INCLUDE "../apu.inc"
+.INCLUDE "../audio.inc"
+.INCLUDE "../macros.inc"
+.INCLUDE "../sound.inc"
 
 .IMPORT Ram_Sound_sChanSfx_arr
 .IMPORTZP Zp_Next_sAudioCtrl
@@ -35,29 +36,13 @@ kBeepInitVolume = 3
 
 .SEGMENT "PRG8"
 
-;;; Plays a sound for the BEEP opcode.
-;;; @param A The tone number (0-9).
-.EXPORT Func_PlayBeepSfx
-.PROC Func_PlayBeepSfx
-    .linecont +
-    sta <(Zp_Next_sAudioCtrl + sAudioCtrl::Sfx2_sChanSfx + \
-          sChanSfx::Param1_byte)
-    lda #0
-    sta <(Zp_Next_sAudioCtrl + sAudioCtrl::Sfx2_sChanSfx + \
-          sChanSfx::Param2_byte)
-    ldax #Func_SfxBeep
-    stax <(Zp_Next_sAudioCtrl + sAudioCtrl::Sfx2_sChanSfx + \
-           sChanSfx::Sfx_func_ptr)
-    .linecont -
-    rts
-.ENDPROC
-
 ;;; SFX function for the BEEP opcode.  When starting this sound, Param1_byte
-;;; should hold the tone number (0-9), and Param2_byte should be initialized to
+;;; should hold the tone number (0-9), and Timer_u8 should be initialized to
 ;;; zero.
 ;;; @param X The channel number (0-4) times four (so, 0, 4, 8, 12, or 16).
 ;;; @return C Set if the sound is finished, cleared otherwise.
 ;;; @preserve X
+.EXPORT Func_SfxBeep
 .PROC Func_SfxBeep
     lda Ram_Sound_sChanSfx_arr + sChanSfx::Param2_byte, x
     beq _Initialize
@@ -82,6 +67,23 @@ _Continue:
 ;;; These values represent the ten natural notes from A3 through C5.
 _TimerLo: .byte $fb, $c4, $ab, $7c, $52, $3f, $1c, $fd, $e1, $d5
 _TimerHi: .byte $01, $01, $01, $01, $01, $01, $01, $00, $00, $00
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Machine"
+
+;;; Starts playing a sound for the BEEP opcode.
+;;; @param A The tone number (0-9).
+;;; @preserve X, Y, Zp_Tmp*
+.EXPORT FuncA_Machine_PlaySfxBeep
+.PROC FuncA_Machine_PlaySfxBeep
+    sta Zp_Next_sAudioCtrl + sAudioCtrl::Sfx2_sChanSfx + sChanSfx::Param1_byte
+    lda #0
+    sta Zp_Next_sAudioCtrl + sAudioCtrl::Sfx2_sChanSfx + sChanSfx::Timer_u8
+    lda #eSound::Beep
+    sta Zp_Next_sAudioCtrl + sAudioCtrl::Sfx2_sChanSfx + sChanSfx::Sfx_eSound
+    rts
 .ENDPROC
 
 ;;;=========================================================================;;;

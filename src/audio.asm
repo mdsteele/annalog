@@ -22,10 +22,12 @@
 .INCLUDE "cpu.inc"
 .INCLUDE "macros.inc"
 .INCLUDE "music.inc"
+.INCLUDE "sound.inc"
 
 .IMPORT Data_Music_sMusic_ptr_0_arr
 .IMPORT Data_Music_sMusic_ptr_1_arr
 .IMPORT Func_AudioCallInstrument
+.IMPORT Func_AudioCallSfx
 
 ;;;=========================================================================;;;
 
@@ -216,44 +218,54 @@ _StartMusic:
     jsr Func_AudioRestartMusic
     @done:
 _StartSfx:
-    .linecont +
     ;; Loop over all APU channels.
+    lda #bApuStatus::Dmc
+    sta Zp_CurrentChannel_bApuStatus
     ldx #.sizeof(sChanSfx) * (kNumApuChannels - 1)
     @loop:
     ;; Assert that we can treat sAudioCtrl::Sfx1_sChanSfx as the start of an
     ;; array of sChanSfx structs.
+    .linecont +
     .assert sAudioCtrl::Sfx1_sChanSfx + \
             .sizeof(sChanSfx) * (kNumApuChannels - 1) = \
             sAudioCtrl::SfxD_sChanSfx, error
     ;; Check if there's an SFX to start on this channel.
     lda <(Zp_Next_sAudioCtrl + sAudioCtrl::Sfx1_sChanSfx + \
-          sChanSfx::Sfx_func_ptr + 1), x
+          sChanSfx::Sfx_eSound), x
     ;; If not, continue to the next channel.
+    .assert eSound::None = 0, error
     beq @continue
     ;; Otherwise, copy this sChanSfx struct into Ram_Sound_sChanSfx_arr.
-    sta Ram_Sound_sChanSfx_arr + sChanSfx::Sfx_func_ptr + 1, x
-    lda <(Zp_Next_sAudioCtrl + sAudioCtrl::Sfx1_sChanSfx + \
-          sChanSfx::Sfx_func_ptr + 0), x
-    sta Ram_Sound_sChanSfx_arr + sChanSfx::Sfx_func_ptr + 0, x
+    sta Ram_Sound_sChanSfx_arr + sChanSfx::Sfx_eSound, x
+    lda Zp_Next_sAudioCtrl + sAudioCtrl::Sfx1_sChanSfx + sChanSfx::Timer_u8, x
+    sta Ram_Sound_sChanSfx_arr + sChanSfx::Timer_u8, x
     lda <(Zp_Next_sAudioCtrl + sAudioCtrl::Sfx1_sChanSfx + \
           sChanSfx::Param1_byte), x
     sta Ram_Sound_sChanSfx_arr + sChanSfx::Param1_byte, x
     lda <(Zp_Next_sAudioCtrl + sAudioCtrl::Sfx1_sChanSfx + \
           sChanSfx::Param2_byte), x
     sta Ram_Sound_sChanSfx_arr + sChanSfx::Param2_byte, x
-    ;; Null out the high byte of the Sfx_func_ptr so we don't restart this SFX
-    ;; again next frame.
-    lda #0
+    ;; Null out the Sfx_eSound field in Zp_Next_sAudioCtrl, so we don't restart
+    ;; this SFX again next frame.
+    lda #eSound::None
     sta <(Zp_Next_sAudioCtrl + sAudioCtrl::Sfx1_sChanSfx + \
-          sChanSfx::Sfx_func_ptr + 1), x
+          sChanSfx::Sfx_eSound), x
+    .linecont -
+    ;; Disable the channel that the sound is about to play on, so as to reset
+    ;; its state (it'll get enabled again when we call the SFX function).
+    lda Zp_CurrentChannel_bApuStatus
+    eor #$ff
+    and Zp_ActiveChannels_bApuStatus
+    sta Zp_ActiveChannels_bApuStatus
+    sta Hw_ApuStatus_rw
     ;; Continue to the next channel.
     @continue:
-    txa
-    sub #.sizeof(sChanSfx)
-    tax
-    .assert .sizeof(sChanSfx) * kNumApuChannels <= $80, error
-    bpl @loop
-    .linecont -
+    .repeat .sizeof(sChanSfx)
+    dex
+    .endrepeat
+    lsr Zp_CurrentChannel_bApuStatus
+    bne @loop
+    @done:
     rts
 .ENDPROC
 
@@ -421,14 +433,11 @@ _OpcodePlay:
     ldx #.sizeof(sChanNext) * (kNumApuChannels - 1)
     @loop:
     jsr Func_AudioContinueChain  ; preserves X
+    .repeat .sizeof(sChanSfx)
+    dex
+    .endrepeat
     lsr Zp_CurrentChannel_bApuStatus
-    beq @done
-    txa
-    sub #.sizeof(sChanNext)
-    tax
-    .assert .sizeof(sChanNext) * kNumApuChannels <= $80, error
-    bpl @loop  ; unconditional
-    @done:
+    bne @loop
     rts
 .ENDPROC
 
@@ -468,6 +477,7 @@ _ChainFinished:
 ;;; Continues playing the current music phrase for one APU channel.  If any
 ;;; notes/rests were played this frame, clears the C (carry) flag.  Otherwise,
 ;;; sets the C flag, and the phrase is now finished.
+;;; @prereq Zp_CurrentChannel_bApuStatus is initialized.
 ;;; @param X The channel number (0-4) times four (so, 0, 4, 8, 12, or 16).
 ;;; @return C Set if no note/rest was played, and the phrase is now finished.
 ;;; @preserve X
@@ -477,7 +487,8 @@ _ChainFinished:
     bge _StartNextNote
 _ContinueNote:
     ;; If this channel is playing SFX, then don't play music on this channel.
-    lda Ram_Sound_sChanSfx_arr + sChanSfx::Sfx_func_ptr + 1, x
+    lda Ram_Sound_sChanSfx_arr + sChanSfx::Sfx_eSound, x
+    .assert eSound::None = 0, error
     bne _IncrementFramesAndReturn
     ;; Otherwise, if the channel is disabled, then we're playing a rest (rather
     ;; than a tone).
@@ -511,7 +522,8 @@ _StartNextNote:
     bvc _NoteInst
 _NoteTone:
     ;; If this channel is playing SFX, skip this tone.
-    lda Ram_Sound_sChanSfx_arr + sChanSfx::Sfx_func_ptr + 1, x
+    lda Ram_Sound_sChanSfx_arr + sChanSfx::Sfx_eSound, x
+    .assert eSound::None = 0, error
     bne _SkipTone
     ;; Enable the channel.
     lda Zp_CurrentChannel_bApuStatus
@@ -576,26 +588,25 @@ _NoteInst:
     bne _StartNextNote  ; unconditional
 _NoteDone:
     sec  ; set C to indicate that the phrase has finished
-    ;; Disable this channel unless it's playing SFX.
-    lda Ram_Sound_sChanSfx_arr + sChanSfx::Sfx_func_ptr + 1, x
-    beq _DisableChannel
-    rts
+    bcs _DisableChannelUnlessSfx  ; unconditional
 _NoteRest:
     ;; Record the rest duration.
     sta Ram_Music_sChanNote_arr + sChanNote::DurationFrames_u8, x
     lda #1
     sta Ram_Music_sChanNote_arr + sChanNote::ElapsedFrames_u8, x
     clc  ; clear C to indicate that the phrase is still going
+_DisableChannelUnlessSfx:
     ;; Disable this channel unless it's playing SFX.
-    lda Ram_Sound_sChanSfx_arr + sChanSfx::Sfx_func_ptr + 1, x
-    beq _DisableChannel
-    rts
+    lda Ram_Sound_sChanSfx_arr + sChanSfx::Sfx_eSound, x
+    .assert eSound::None = 0, error
+    bne _Return
 _DisableChannel:
     lda Zp_CurrentChannel_bApuStatus
     eor #$ff
     and Zp_ActiveChannels_bApuStatus
     sta Zp_ActiveChannels_bApuStatus
     sta Hw_ApuStatus_rw
+_Return:
     rts
 .ENDPROC
 
@@ -608,49 +619,56 @@ _DisableChannel:
     ldx #.sizeof(sChanSfx) * (kNumApuChannels - 1)
     @loop:
     jsr Func_AudioContinueOneSfx  ; preserves X
+    .repeat .sizeof(sChanSfx)
+    dex
+    .endrepeat
     lsr Zp_CurrentChannel_bApuStatus
-    beq @done
-    txa
-    sub #.sizeof(sChanSfx)
-    tax
-    .assert .sizeof(sChanSfx) * kNumApuChannels <= $80, error
-    bpl @loop  ; unconditional
-    @done:
+    bne @loop
     rts
 .ENDPROC
 
 ;;; Continues playing the active SFX (if any) for the specified APU channel.
+;;; @prereq Zp_CurrentChannel_bApuStatus is initialized.
 ;;; @param X The channel number (0-4) times four (so, 0, 4, 8, 12, or 16).
 ;;; @preserve X
 .PROC Func_AudioContinueOneSfx
-    ;; Check if there's an SFX function pointer set.  If so, copy it into
-    ;; Zp_AudioTmp*_byte; if not, we're done.
-    lda Ram_Sound_sChanSfx_arr + sChanSfx::Sfx_func_ptr + 1, x
-    beq @done
-    sta Zp_AudioTmp2_byte
-    lda Ram_Sound_sChanSfx_arr + sChanSfx::Sfx_func_ptr + 0, x
-    sta Zp_AudioTmp1_byte
-    ;; Enable the channel.
-    lda Zp_CurrentChannel_bApuStatus
-    ora Zp_ActiveChannels_bApuStatus
-    sta Zp_ActiveChannels_bApuStatus
-    sta Hw_ApuStatus_rw
-    ;; Call the SFX function.  If the sound is still playing, we're done.
-    jsr _CallSfx  ; preserves X, sets C if sound is done
-    bcc @done
-    ;; Disable the channel and the SFX.
+    ;; Check if there's an active SFX.  If not, we're done.
+    ldy Ram_Sound_sChanSfx_arr + sChanSfx::Sfx_eSound, x  ; param: eSound
+    .assert eSound::None = 0, error
+    beq _Return
+    ;; For non-DMC channels, we need to enable the channel *before* calling the
+    ;; SFX function (because otherwise the register writes won't take effect).
+    cpx #$10
+    beq @callSfx
+    jsr _EnableChannel
+    @callSfx:
+    ;; Call the SFX function and check if the sound is now finished.
+    jsr Func_AudioCallSfx  ; preserves X, sets C if sound is done
+    bcs _SoundFinished
+    ;; For the DMC channel, we need to enable the channel *after* calling the
+    ;; SFX function (because otherwise it will restart the previous sample).
+    cpx #$10
+    beq _EnableChannel
+_Return:
+    rts
+_SoundFinished:
+    ;; Disable the channel.
     lda Zp_CurrentChannel_bApuStatus
     eor #$ff
     and Zp_ActiveChannels_bApuStatus
     sta Zp_ActiveChannels_bApuStatus
     sta Hw_ApuStatus_rw
-    lda #0
-    sta Ram_Sound_sChanSfx_arr + sChanSfx::Sfx_func_ptr + 1, x
+    ;; Halt the SFX.
+    lda #eSound::None
+    sta Ram_Sound_sChanSfx_arr + sChanSfx::Sfx_eSound, x
     @done:
     rts
-_CallSfx:
-    .assert Zp_AudioTmp1_byte + 1 = Zp_AudioTmp2_byte, error
-    jmp (Zp_AudioTmp1_byte)
+_EnableChannel:
+    lda Zp_CurrentChannel_bApuStatus
+    ora Zp_ActiveChannels_bApuStatus
+    sta Zp_ActiveChannels_bApuStatus
+    sta Hw_ApuStatus_rw
+    rts
 .ENDPROC
 
 ;;;=========================================================================;;;

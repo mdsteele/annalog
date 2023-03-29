@@ -22,7 +22,9 @@
 .INCLUDE "macros.inc"
 .INCLUDE "mmc3.inc"
 .INCLUDE "oam.inc"
+.INCLUDE "sample.inc"
 
+.IMPORT Func_PlaySfxSample
 .IMPORT Ppu_ChrObjAnnaNormal
 .IMPORT Sram_CarryingFlower_eFlag
 .IMPORTZP Zp_AvatarAirborne_bool
@@ -55,6 +57,8 @@ kAvatarStunVelY = $ffff & -350
     rts
 _Harm:
     jsr Func_DropFlower  ; preserves X
+    lda #eSample::Harm  ; param: eSample to play
+    jsr Func_PlaySfxSample  ; preserves X
     ;; Mark the avatar as damaged.
     lda #kAvatarHarmHealFrames
     sta Zp_AvatarHarmTimer_u8

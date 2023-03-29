@@ -27,10 +27,12 @@
 .INCLUDE "platform.inc"
 .INCLUDE "ppu.inc"
 .INCLUDE "room.inc"
+.INCLUDE "sample.inc"
 .INCLUDE "terrain.inc"
 
 .IMPORT FuncA_Avatar_UpdateWaterDepth
 .IMPORT FuncA_Objects_Draw2x2Shape
+.IMPORT Func_PlaySfxSample
 .IMPORT Func_TryPushAvatarHorz
 .IMPORT Func_TryPushAvatarVert
 .IMPORTZP Zp_AvatarExit_ePassage
@@ -504,7 +506,8 @@ _Grounded:
     bit Zp_P1ButtonsPressed_bJoypad
     .assert bJoypad::AButton = bProc::Negative, error
     bpl @noJump
-    ;; TODO: play a jumping sound
+    lda #eSample::Jump  ; param: eSample to play
+    jsr Func_PlaySfxSample
     ldax #kAvatarJumpVelocity
     stax Zp_AvatarVelY_i16
     lda #$ff
