@@ -19,11 +19,20 @@
 
 .INCLUDE "../apu.inc"
 .INCLUDE "../audio.inc"
+.INCLUDE "../cpu.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../sound.inc"
 
 .IMPORT Ram_Sound_sChanSfx_arr
-.IMPORTZP Zp_Next_sAudioCtrl
+.IMPORTZP Zp_Next_sChanSfx_arr
+
+;;;=========================================================================;;;
+
+;;; Bitfield used for Param1_byte for the eSound::Explode SFX function.
+.SCOPE bSfxExplode
+    DivEnv   = %10000000  ; if set, halve Timer_u8 before setting envelope
+    ModTimer = %01000000  ; if set, mod Timer_u8 by 2 before indexing period
+.ENDSCOPE
 
 ;;;=========================================================================;;;
 
@@ -41,12 +50,14 @@
     rts
 _Continue:
     bit Ram_Sound_sChanSfx_arr + eChan::Noise + sChanSfx::Param1_byte
+    .assert bSfxExplode::DivEnv = bProc::Negative, error
     bpl @noDivEnv
     div #2
     @noDivEnv:
     ora #bEnvelope::NoLength | bEnvelope::ConstVol
     sta Hw_NoiseEnvelope_wo
-    bvs @noModTimer
+    .assert bSfxExplode::ModTimer = bProc::Overflow, error
+    bvc @noModTimer
     and #$01
     tay
     bpl @loadTimer  ; unconditional
@@ -71,38 +82,46 @@ _NoisePeriod_u8_arr:
 ;;; @preserve X, Y, Zp_Tmp*
 .EXPORT Func_PlaySfxExplodeSmall
 .PROC Func_PlaySfxExplodeSmall
+    lda #bSfxExplode::ModTimer
+    sta Zp_Next_sChanSfx_arr + eChan::Noise + sChanSfx::Param1_byte
     lda #$0f
-    sta Zp_Next_sAudioCtrl + sAudioCtrl::SfxN_sChanSfx + sChanSfx::Timer_u8
-    lda #$00
-    sta Zp_Next_sAudioCtrl + sAudioCtrl::SfxN_sChanSfx + sChanSfx::Param1_byte
-    lda #eSound::Explode
-    sta Zp_Next_sAudioCtrl + sAudioCtrl::SfxN_sChanSfx + sChanSfx::Sfx_eSound
-    rts
+    bne Func_PlaySfxExplode  ; unconditional
 .ENDPROC
 
 ;;; Starts playing an big explosion sound.
 ;;; @preserve X, Y, Zp_Tmp*
 .EXPORT Func_PlaySfxExplodeBig
 .PROC Func_PlaySfxExplodeBig
-    lda #$1f
-    sta Zp_Next_sAudioCtrl + sAudioCtrl::SfxN_sChanSfx + sChanSfx::Timer_u8
-    lda #$80
-    sta Zp_Next_sAudioCtrl + sAudioCtrl::SfxN_sChanSfx + sChanSfx::Param1_byte
-    lda #eSound::Explode
-    sta Zp_Next_sAudioCtrl + sAudioCtrl::SfxN_sChanSfx + sChanSfx::Sfx_eSound
-    rts
+    lda #bSfxExplode::DivEnv | bSfxExplode::ModTimer
+    sta Zp_Next_sChanSfx_arr + eChan::Noise + sChanSfx::Param1_byte
+    bne Func_PlaySfxExplodeLong  ; unconditional
 .ENDPROC
 
 ;;; Starts playing a explosion sound where something is breaking into pieces.
 ;;; @preserve X, Y, Zp_Tmp*
 .EXPORT Func_PlaySfxExplodeFracture
 .PROC Func_PlaySfxExplodeFracture
+    lda #bSfxExplode::DivEnv
+    sta Zp_Next_sChanSfx_arr + eChan::Noise + sChanSfx::Param1_byte
+    .assert * = Func_PlaySfxExplodeLong, error, "fallthrough"
+.ENDPROC
+
+;;; Starts playing a explosion sound with a longer duration.
+;;; @prereq The Param1_byte is already initialized.
+;;; @preserve X, Y, Zp_Tmp*
+.PROC Func_PlaySfxExplodeLong
     lda #$1f
-    sta Zp_Next_sAudioCtrl + sAudioCtrl::SfxN_sChanSfx + sChanSfx::Timer_u8
-    lda #$c0
-    sta Zp_Next_sAudioCtrl + sAudioCtrl::SfxN_sChanSfx + sChanSfx::Param1_byte
+    .assert * = Func_PlaySfxExplode, error, "fallthrough"
+.ENDPROC
+
+;;; Starts playing a explosion sound.
+;;; @prereq The Param1_byte is already initialized.
+;;; @param A The value to set for Timer_u8.
+;;; @preserve X, Y, Zp_Tmp*
+.PROC Func_PlaySfxExplode
+    sta Zp_Next_sChanSfx_arr + eChan::Noise + sChanSfx::Timer_u8
     lda #eSound::Explode
-    sta Zp_Next_sAudioCtrl + sAudioCtrl::SfxN_sChanSfx + sChanSfx::Sfx_eSound
+    sta Zp_Next_sChanSfx_arr + eChan::Noise + sChanSfx::Sfx_eSound
     rts
 .ENDPROC
 

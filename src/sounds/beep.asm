@@ -23,7 +23,7 @@
 .INCLUDE "../sound.inc"
 
 .IMPORT Ram_Sound_sChanSfx_arr
-.IMPORTZP Zp_Next_sAudioCtrl
+.IMPORTZP Zp_Next_sChanSfx_arr
 
 ;;;=========================================================================;;;
 
@@ -78,11 +78,11 @@ _TimerHi_u8_arr10: .byte $01, $01, $01, $01, $01, $01, $01, $00, $00, $00
 ;;; @preserve X, Y, Zp_Tmp*
 .EXPORT FuncA_Machine_PlaySfxBeep
 .PROC FuncA_Machine_PlaySfxBeep
-    sta Zp_Next_sAudioCtrl + sAudioCtrl::Sfx2_sChanSfx + sChanSfx::Param1_byte
+    sta Zp_Next_sChanSfx_arr + eChan::Pulse2 + sChanSfx::Param1_byte
     lda #0
-    sta Zp_Next_sAudioCtrl + sAudioCtrl::Sfx2_sChanSfx + sChanSfx::Timer_u8
+    sta Zp_Next_sChanSfx_arr + eChan::Pulse2 + sChanSfx::Timer_u8
     lda #eSound::Beep
-    sta Zp_Next_sAudioCtrl + sAudioCtrl::Sfx2_sChanSfx + sChanSfx::Sfx_eSound
+    sta Zp_Next_sChanSfx_arr + eChan::Pulse2 + sChanSfx::Sfx_eSound
     rts
 .ENDPROC
 

@@ -65,11 +65,13 @@
 .ZEROPAGE
 
 ;;; Stores commands that will be sent to the audio driver the next time that
-;;; Func_ProcessFrame is called.  The main thread can read/write this freely;
-;;; the audio thread will only read/write this during a call to
+;;; Func_ProcessFrame is called.  The main thread can read/write these freely;
+;;; the audio thread will only read/write these during a call to
 ;;; Func_ProcessFrame.
 .EXPORTZP Zp_Next_sAudioCtrl
 Zp_Next_sAudioCtrl: .tag sAudioCtrl
+.EXPORTZP Zp_Next_sChanSfx_arr
+Zp_Next_sChanSfx_arr: .res .sizeof(sChanSfx) * kNumApuChannels
 
 ;;; The currently-playing music.
 Zp_Current_eMusic: .res 1
@@ -223,34 +225,23 @@ _StartSfx:
     sta Zp_CurrentChannel_bApuStatus
     ldx #eChan::Dmc
     @loop:
-    ;; Assert that we can treat sAudioCtrl::Sfx1_sChanSfx as the start of an
-    ;; array of sChanSfx structs.
-    .linecont +
-    .assert sAudioCtrl::Sfx1_sChanSfx + \
-            .sizeof(sChanSfx) * (kNumApuChannels - 1) = \
-            sAudioCtrl::SfxD_sChanSfx, error
     ;; Check if there's an SFX to start on this channel.
-    lda <(Zp_Next_sAudioCtrl + sAudioCtrl::Sfx1_sChanSfx + \
-          sChanSfx::Sfx_eSound), x
+    lda Zp_Next_sChanSfx_arr + sChanSfx::Sfx_eSound, x
     ;; If not, continue to the next channel.
     .assert eSound::None = 0, error
     beq @continue
     ;; Otherwise, copy this sChanSfx struct into Ram_Sound_sChanSfx_arr.
     sta Ram_Sound_sChanSfx_arr + sChanSfx::Sfx_eSound, x
-    lda Zp_Next_sAudioCtrl + sAudioCtrl::Sfx1_sChanSfx + sChanSfx::Timer_u8, x
+    lda Zp_Next_sChanSfx_arr + sChanSfx::Timer_u8, x
     sta Ram_Sound_sChanSfx_arr + sChanSfx::Timer_u8, x
-    lda <(Zp_Next_sAudioCtrl + sAudioCtrl::Sfx1_sChanSfx + \
-          sChanSfx::Param1_byte), x
+    lda Zp_Next_sChanSfx_arr + sChanSfx::Param1_byte, x
     sta Ram_Sound_sChanSfx_arr + sChanSfx::Param1_byte, x
-    lda <(Zp_Next_sAudioCtrl + sAudioCtrl::Sfx1_sChanSfx + \
-          sChanSfx::Param2_byte), x
+    lda Zp_Next_sChanSfx_arr + sChanSfx::Param2_byte, x
     sta Ram_Sound_sChanSfx_arr + sChanSfx::Param2_byte, x
     ;; Null out the Sfx_eSound field in Zp_Next_sAudioCtrl, so we don't restart
     ;; this SFX again next frame.
     lda #eSound::None
-    sta <(Zp_Next_sAudioCtrl + sAudioCtrl::Sfx1_sChanSfx + \
-          sChanSfx::Sfx_eSound), x
-    .linecont -
+    sta Zp_Next_sChanSfx_arr + sChanSfx::Sfx_eSound, x
     ;; Disable the channel that the sound is about to play on, so as to reset
     ;; its state (it'll get enabled again when we call the SFX function).
     lda Zp_CurrentChannel_bApuStatus

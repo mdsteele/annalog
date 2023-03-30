@@ -89,13 +89,6 @@
     ;; is different than the currently-playing music, then the current music
     ;; will be stopped, and this music will be started from the beginning.
     Music_eMusic     .byte
-    ;; For each of these sChanSfx structs, if the high byte of the Sfx_func_ptr
-    ;; is nonzero, then the audio driver will start playing that SFX.
-    Sfx1_sChanSfx    .tag sChanSfx
-    Sfx2_sChanSfx    .tag sChanSfx
-    SfxT_sChanSfx    .tag sChanSfx
-    SfxN_sChanSfx    .tag sChanSfx
-    SfxD_sChanSfx    .tag sChanSfx
 .ENDSTRUCT
 
 ;;;=========================================================================;;;

@@ -24,7 +24,7 @@
 .INCLUDE "sound.inc"
 
 .IMPORT Ram_Sound_sChanSfx_arr
-.IMPORTZP Zp_Next_sAudioCtrl
+.IMPORTZP Zp_Next_sChanSfx_arr
 
 ;;;=========================================================================;;;
 
@@ -115,11 +115,11 @@ _Continue:
 ;;; @preserve X, Y, Zp_Tmp*
 .EXPORT Func_PlaySfxSample
 .PROC Func_PlaySfxSample
-    sta Zp_Next_sAudioCtrl + sAudioCtrl::SfxD_sChanSfx + sChanSfx::Param1_byte
+    sta Zp_Next_sChanSfx_arr + eChan::Dmc + sChanSfx::Param1_byte
     lda #0
-    sta Zp_Next_sAudioCtrl + sAudioCtrl::SfxD_sChanSfx + sChanSfx::Timer_u8
+    sta Zp_Next_sChanSfx_arr + eChan::Dmc + sChanSfx::Timer_u8
     lda #eSound::Sample
-    sta Zp_Next_sAudioCtrl + sAudioCtrl::SfxD_sChanSfx + sChanSfx::Sfx_eSound
+    sta Zp_Next_sChanSfx_arr + eChan::Dmc + sChanSfx::Sfx_eSound
     rts
 .ENDPROC
 
