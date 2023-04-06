@@ -25,7 +25,6 @@
 .INCLUDE "../machine.inc"
 .INCLUDE "../machines/cannon.inc"
 .INCLUDE "../macros.inc"
-.INCLUDE "../oam.inc"
 .INCLUDE "../platform.inc"
 .INCLUDE "../ppu.inc"
 .INCLUDE "../program.inc"
@@ -38,7 +37,7 @@
 .IMPORT FuncA_Machine_CannonTryAct
 .IMPORT FuncA_Machine_CannonTryMove
 .IMPORT FuncA_Machine_WriteToLever
-.IMPORT FuncA_Objects_Alloc1x1Shape
+.IMPORT FuncA_Objects_Draw1x1Shape
 .IMPORT FuncA_Objects_DrawCannonMachine
 .IMPORT FuncA_Objects_DrawCratePlatform
 .IMPORT FuncA_Objects_MoveShapeDownOneTile
@@ -58,7 +57,6 @@
 .IMPORT Ppu_ChrObjGarden
 .IMPORT Ram_ActorPosY_i16_0_arr
 .IMPORT Ram_ActorPosY_i16_1_arr
-.IMPORT Ram_Oam_sObj_arr64
 .IMPORT Ram_PlatformType_ePlatform_arr
 .IMPORT Sram_ProgressFlags_arr
 .IMPORTZP Zp_Chr0cBank_u8
@@ -101,6 +99,9 @@ kBreakableWallPlatformYCenter = \
 ;;; How many grenades need to hit the upper/lower breakable wall to destroy it.
 kBreakableWallHitsToDestroy = 2
 
+;;; How many frames to blink the breakable wall for when resetting it.
+kBreakableWallBlinkFrames = 28
+
 ;;; The platform indices for the positions the crates can be in.
 kWallCratePlatformIndex = 1
 kFloorCratePlatformIndex = 2
@@ -119,6 +120,8 @@ kPaletteObjGardenBrick = 0
     ;; How many times each section of the breakable wall has been hit.
     BreakableWallUpperHits_u8 .byte
     BreakableWallLowerHits_u8 .byte
+    ;; How many more frames to blink the breakable wall for.
+    BreakableWallBlink_u8 .byte
 .ENDSTRUCT
 .ASSERT .sizeof(sState) <= kRoomStateSize, error
 
@@ -337,6 +340,15 @@ _Crates:
 ;;; Room tick function for the GardenTower room.
 ;;; @prereq PRGA_Room is loaded.
 .PROC FuncC_Garden_Tower_TickRoom
+    lda Zp_RoomState + sState::BreakableWallBlink_u8
+    beq @done
+    dec Zp_RoomState + sState::BreakableWallBlink_u8
+    bne @done
+    lda #0
+    sta Zp_RoomState + sState::BreakableWallUpperHits_u8
+    sta Zp_RoomState + sState::BreakableWallLowerHits_u8
+    @done:
+_CheckGrenade:
     ;; If the breakable wall is already destroyed, then we're done.
     lda Ram_PlatformType_ePlatform_arr + kBreakableWallPlatformIndex
     cmp #ePlatform::Solid
@@ -429,11 +441,15 @@ _WriteR:
 
 ;;; @prereq PRGA_Room is loaded.
 .PROC FuncC_Garden_TowerCannon_Reset
-    jsr FuncA_Room_MachineCannonReset
-    lda #0
-    sta Zp_RoomState + sState::BreakableWallUpperHits_u8
-    sta Zp_RoomState + sState::BreakableWallLowerHits_u8
-    rts
+_ResetBreakbleWall:
+    lda Zp_RoomState + sState::BreakableWallUpperHits_u8
+    ora Zp_RoomState + sState::BreakableWallLowerHits_u8
+    beq @done
+    lda #kBreakableWallBlinkFrames
+    sta Zp_RoomState + sState::BreakableWallBlink_u8
+    @done:
+_ResetMachine:
+    jmp FuncA_Room_MachineCannonReset
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -451,21 +467,38 @@ _Thorns:
     @done:
     ;; TODO: If thorns present, animate them like in the boss room.
 _BreakableWall:
+    ;; If the breakble wall platform is completely destroyed, we're done.
     lda Ram_PlatformType_ePlatform_arr + kBreakableWallPlatformIndex
     cmp #ePlatform::Solid
     bne @done
+    ;; If the breakable wall blink timer is active, blink between drawing the
+    ;; wall as it actually is, and drawing it solid.
+    lda Zp_RoomState + sState::BreakableWallBlink_u8
+    and #$04
+    beq @drawNormal
+    @drawSolid:
+    lda #0
+    sta T2  ; virtual num upper hits
+    beq @draw  ; unconditional
+    @drawNormal:
+    lda Zp_RoomState + sState::BreakableWallUpperHits_u8
+    sta T2  ; virtual num upper hits
+    lda Zp_RoomState + sState::BreakableWallLowerHits_u8
+    @draw:
+    sta T3  ; virtual num lower hits
+    ;; Draw each brick of the breakable wall.
     ldx #kBreakableWallPlatformIndex  ; param: platform index
     jsr FuncA_Objects_SetShapePosToPlatformTopLeft
-    ldx Zp_RoomState + sState::BreakableWallUpperHits_u8
+    ldx T2  ; virtual num upper hits
     lda _Brick0TileId_u8, x  ; param: tile ID
-    jsr FuncA_Objects_DrawGardenBrick  ; preserves X
+    jsr FuncA_Objects_DrawGardenBrick  ; preserves X and T2+
     lda _Brick1TileId_u8, x  ; param: tile ID
-    jsr FuncA_Objects_DrawGardenBrick  ; preserves X
-    ldx Zp_RoomState + sState::BreakableWallLowerHits_u8
+    jsr FuncA_Objects_DrawGardenBrick  ; preserves X and T2+
+    ldx T3  ; virtual num lower hits
     lda _Brick2TileId_u8, x  ; param: tile ID
     jsr FuncA_Objects_DrawGardenBrick  ; preserves X
     lda _Brick3TileId_u8, x  ; param: tile ID
-    jsr FuncA_Objects_DrawGardenBrick  ; preserves X
+    jsr FuncA_Objects_DrawGardenBrick
     @done:
 _Crates:
     ldx #kWallCratePlatformIndex
@@ -493,17 +526,11 @@ _Brick3TileId_u8:
 ;;; Draws one brick in the breakable tower wall, at the current shape position,
 ;;; then moves the shape position down by one tile.
 ;;; @param A The tile ID.
-;;; @preserve X
+;;; @preserve X, T2+
 .PROC FuncA_Objects_DrawGardenBrick
-    pha  ; tile ID
-    jsr FuncA_Objects_Alloc1x1Shape  ; preserves X, returns C and Y
-    pla  ; tile ID
-    bcs @done
-    sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
-    lda #kPaletteObjGardenBrick
-    sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
-    @done:
-    jmp FuncA_Objects_MoveShapeDownOneTile  ; preserves X
+    ldy #kPaletteObjGardenBrick  ; param: object flags
+    jsr FuncA_Objects_Draw1x1Shape  ; preserves X and T2+
+    jmp FuncA_Objects_MoveShapeDownOneTile  ; preserves X and T2+
 .ENDPROC
 
 ;;;=========================================================================;;;
