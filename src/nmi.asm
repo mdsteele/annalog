@@ -185,6 +185,7 @@ _DoneUpdatingPpu:
 
 ;;; Signals that shadow OAM/PPU data is ready to be transferred, then waits for
 ;;; the next NMI to complete.
+;;; @preserve T0+
 .EXPORT Func_ProcessFrame
 .PROC Func_ProcessFrame
     ;; Change this to ".if 1" to enable frame budget debugging.
@@ -206,7 +207,7 @@ _DoneUpdatingPpu:
     bit Zp_NmiReady_bool  ; loop until high bit is 0 again
     bmi @loop
     ;; Read the joypad for this frame.
-    jmp Func_ReadJoypad
+    jmp Func_ReadJoypad  ; preserves T0+
 .ENDPROC
 
 ;;;=========================================================================;;;

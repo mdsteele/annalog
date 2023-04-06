@@ -55,10 +55,6 @@ Zp_Current_sRoom: .tag sRoom
 .EXPORTZP Zp_P1ButtonsHeld_bJoypad
 Zp_P1ButtonsHeld_bJoypad: .res 1
 
-.EXPORTZP Zp_Tmp1_byte, Zp_Tmp_ptr
-Zp_Tmp1_byte: .res 1
-Zp_Tmp_ptr: .res 2
-
 ;;; The current X/Y position of the test machine.
 Zp_TestMachinePosX_u8: .res 1
 Zp_TestMachinePosY_u8: .res 1

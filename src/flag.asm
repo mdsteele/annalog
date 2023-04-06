@@ -31,7 +31,7 @@
 ;;; Determines if the specified eFlag is set.
 ;;; @param X The eFlag value to test.
 ;;; @return Z Cleared if the flag is set, or set if the flag is cleared.
-;;; @preserve X, Zp_Tmp*
+;;; @preserve X, T0+
 .EXPORT Func_IsFlagSet
 .PROC Func_IsFlagSet
     ;; Get the bitmask for this eFlag.
@@ -54,7 +54,7 @@
 ;;; Sets or clears the specified eFlag.
 ;;; @param A Zero if the flag should be cleared; nonzero if it should be set.
 ;;; @param X The eFlag value to set/clear.
-;;; @preserve Zp_Tmp*
+;;; @preserve T0+
 .EXPORT Func_SetOrClearFlag
 .PROC Func_SetOrClearFlag
     tay
@@ -65,7 +65,7 @@
 ;;; Sets the specified eFlag to true if it isn't already.
 ;;; @param X The eFlag value to set.
 ;;; @return C Set if the flag was already set to true, cleared otherwise.
-;;; @preserve Zp_Tmp*
+;;; @preserve T0+
 .EXPORT Func_SetFlag
 .PROC Func_SetFlag
     ;; Get the bitmask for this eFlag.
@@ -86,7 +86,7 @@
     ;; Compute the new value for the byte in Sram_ProgressFlags_arr.
     tya  ; flag bitmask
     ora Sram_ProgressFlags_arr, x
-    bne Func_WriteFlag  ; unconditional; preserves Zp_Tmp*, clears C
+    bne Func_WriteFlag  ; unconditional; preserves T0+, clears C
 _AlreadySet:
     sec
     rts
@@ -94,7 +94,7 @@ _AlreadySet:
 
 ;;; Clears the specified eFlag to false if it isn't already.
 ;;; @param X The eFlag value to clear.
-;;; @preserve Zp_Tmp*
+;;; @preserve T0+
 .EXPORT Func_ClearFlag
 .PROC Func_ClearFlag
     ;; Get the bitmask for this eFlag.
@@ -123,7 +123,7 @@ _ClearFlag:
 ;;; @param A The byte to write.
 ;;; @param X The byte index into Sram_ProgressFlags_arr.
 ;;; @return C Always cleared.
-;;; @preserve Zp_Tmp*
+;;; @preserve T0+
 .PROC Func_WriteFlag
     ;; Enable writes to SRAM.
     ldy #bMmc3PrgRam::Enable
@@ -140,7 +140,7 @@ _ClearFlag:
 ;;; Returns the number of flowers that have been delivered.
 ;;; @return A The number of delivered flowers.
 ;;; @return Z Set if zero flowers have been delivered.
-;;; @preserve Zp_Tmp*
+;;; @preserve T0+
 .EXPORT Func_CountDeliveredFlowers
 .PROC Func_CountDeliveredFlowers
     ldy #0

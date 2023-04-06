@@ -52,7 +52,6 @@
 .IMPORT Ram_PlatformBottom_i16_0_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORTZP Zp_RoomState
-.IMPORTZP Zp_Tmp1_byte
 
 ;;;=========================================================================;;;
 
@@ -323,7 +322,7 @@ _Finish:
     lda #<kCageMaxTop
     sub Ram_PlatformTop_i16_0_arr + kCageUpperPlatformIndex
     beq _Done
-    sta Zp_Tmp1_byte  ; cage dist above floor
+    sta T0  ; cage dist above floor
 _ApplyGravity:
     lda Zp_RoomState + sState::CageVelY_i16 + 0
     add #<kAvatarGravity
@@ -342,17 +341,17 @@ _ApplyVelocity:
 _MaybeHitFloor:
     ;; If the number of pixels to move this frame is >= the distance above the
     ;; floor, then the cage is hitting the floor this frame.
-    cmp Zp_Tmp1_byte  ; cage dist above floor
+    cmp T0  ; cage dist above floor
     blt @done
     ;; TODO: play a sound for the cage hitting the floor
     lda #kCageShakeFrames  ; param: shake frames
-    jsr Func_ShakeRoom  ; preserves Zp_Tmp*
+    jsr Func_ShakeRoom  ; preserves T0+
     ;; Zero the cage's velocity, and move it to exactly hit the floor.
     lda #0
     sta Zp_RoomState + sState::CageSubY_u8
     sta Zp_RoomState + sState::CageVelY_i16 + 0
     sta Zp_RoomState + sState::CageVelY_i16 + 1
-    lda Zp_Tmp1_byte  ; cage dist above floor
+    lda T0  ; cage dist above floor
     @done:
 _MoveCagePlatforms:
     pha  ; param: move delta
@@ -388,7 +387,7 @@ _DrawCageSide:
     jsr FuncA_Objects_MoveShapeUpOneTile
     ldy #kPaletteObjCageRods  ; param: object flags
     lda #kTileIdObjCageRods  ; param: tile ID
-    jsr FuncA_Objects_Draw1x1Shape  ; preserves X and Zp_Tmp*; returns C and Y
+    jsr FuncA_Objects_Draw1x1Shape  ; preserves X; returns C and Y
     dex
     bne @loop
     rts

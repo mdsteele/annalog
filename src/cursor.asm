@@ -48,11 +48,6 @@
 .IMPORTZP Zp_MenuItem_u8
 .IMPORTZP Zp_OamOffset_u8
 .IMPORTZP Zp_P1ButtonsPressed_bJoypad
-.IMPORTZP Zp_Tmp1_byte
-.IMPORTZP Zp_Tmp2_byte
-.IMPORTZP Zp_Tmp3_byte
-.IMPORTZP Zp_Tmp4_byte
-.IMPORTZP Zp_Tmp_ptr
 .IMPORTZP Zp_WindowTop_u8
 
 ;;;=========================================================================;;;
@@ -121,7 +116,7 @@ _NoUpOrDown:
 .ENDPROC
 .PROC _MoveCursorHorizontally
     jsr FuncA_Console_GetCurrentInstNumFields  ; returns X
-    stx Zp_Tmp1_byte  ; num fields
+    stx T0  ; num fields
 _CheckLeft:
     lda Zp_P1ButtonsPressed_bJoypad
     and #bJoypad::Left
@@ -150,7 +145,7 @@ _CheckRight:
     ;; Increment the field number; if we weren't in the last field, we're done.
     ldx Zp_ConsoleFieldNumber_u8
     inx
-    cpx Zp_Tmp1_byte  ; num fields
+    cpx T0  ; num fields
     blt @setFieldNumber
     ;; We're trying to move right from the last field.  If we're in the
     ;; right-hand column of instructions, then give up.
@@ -218,11 +213,11 @@ _MoveCursorRight:
     rts
 _MenuFunc:
     lda (Zp_Current_sMenu_ptr), y
-    sta Zp_Tmp_ptr + 0
+    sta T0
     iny
     lda (Zp_Current_sMenu_ptr), y
-    sta Zp_Tmp_ptr + 1
-    jmp (Zp_Tmp_ptr)
+    sta T1
+    jmp (T1T0)
 .ENDPROC
 
 ;;; Draws the console instruction field cursor.
@@ -235,7 +230,7 @@ _MenuFunc:
 ;;; Draws the console instruction field cursor, possibly diminished.
 ;;; @param A True ($ff) to draw the cursor diminished, false ($00) otherwise.
 .PROC FuncA_Console_DrawFieldCursorDiminished
-    sta Zp_Tmp4_byte  ; cursor diminished bool
+    sta T3  ; cursor diminished bool
 _YPosition:
     ;; Calculate the window row that the cursor is in.
     lda Zp_ConsoleInstNumber_u8
@@ -244,13 +239,13 @@ _YPosition:
     sub Zp_ConsoleNumInstRows_u8
     @leftColumn:
     add #1  ; add 1 for the top border
-    ;; Calculate the Y-position of the objects and store in Zp_Tmp1_byte.
+    ;; Calculate the Y-position of the objects and store in T0.
     mul #kTileHeightPx
     adc Zp_WindowTop_u8  ; carry will by clear
     adc #$ff  ; subtract 1 (carry will still be clear)
-    sta Zp_Tmp1_byte  ; Y-position
+    sta T0  ; Y-position
 _XPosition:
-    jsr FuncA_Console_GetCurrentFieldOffset  ; preserves Zp_Tmp*, returns A
+    jsr FuncA_Console_GetCurrentFieldOffset  ; preserves T0+, returns A
     mul #kTileWidthPx
     add #kTileWidthPx * 4
     ldx Zp_ConsoleInstNumber_u8
@@ -258,21 +253,21 @@ _XPosition:
     blt @leftColumn
     add #kTileWidthPx * 10
     @leftColumn:
-    sta Zp_Tmp2_byte  ; X-position
+    sta T1  ; X-position
 _PrepareForLoop:
-    jsr FuncA_Console_GetCurrentFieldWidth  ; preserves Zp_Tmp*, returns A
-    sta Zp_Tmp3_byte  ; cursor width - 1
+    jsr FuncA_Console_GetCurrentFieldWidth  ; preserves T0+, returns A
+    sta T2  ; cursor width - 1
     tax  ; loop variable (counts from cursor width - 1 down to zero)
     ldy Zp_OamOffset_u8
 _ObjectLoop:
     ;; Set Y-position.
-    lda Zp_Tmp1_byte  ; Y-position
+    lda T0  ; Y-position
     sta Ram_Oam_sObj_arr64 + sObj::YPos_u8, y
     ;; Set and increment X-position.
-    lda Zp_Tmp2_byte  ; X-position
+    lda T1  ; X-position
     sta Ram_Oam_sObj_arr64 + sObj::XPos_u8, y
     add #kTileWidthPx
-    sta Zp_Tmp2_byte  ; X-position
+    sta T1  ; X-position
     ;; Set flags.
     lda #bObj::Pri | kPaletteObjCursor
     cpx #0
@@ -281,11 +276,11 @@ _ObjectLoop:
     @noFlip:
     sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
     ;; Set tile ID.
-    lda Zp_Tmp4_byte  ; cursor diminished bool
+    lda T3  ; cursor diminished bool
     bpl @undiminished
-    lda Zp_Tmp3_byte  ; cursor width - 1
+    lda T2  ; cursor width - 1
     beq @dimSingle
-    cpx Zp_Tmp3_byte  ; cursor width - 1
+    cpx T2  ; cursor width - 1
     beq @dimSide
     txa
     bne @continue
@@ -296,9 +291,9 @@ _ObjectLoop:
     lda #kTileIdObjCursorDimSingle
     bne @setTile  ; unconditional
     @undiminished:
-    lda Zp_Tmp3_byte  ; cursor width - 1
+    lda T2  ; cursor width - 1
     beq @tileSingle
-    cpx Zp_Tmp3_byte  ; cursor width - 1
+    cpx T2  ; cursor width - 1
     beq @tileSide
     txa
     beq @tileSide
@@ -331,34 +326,34 @@ _XPosition:
     lda Ram_MenuCols_u8_arr, x
     mul #kTileWidthPx
     add #kMenuStartTileColumn * kTileWidthPx
-    sta Zp_Tmp2_byte  ; cursor left X-position, in pixels
+    sta T1  ; cursor left X-position, in pixels
 _CursorWidth:
     txa
     add #sMenu::WidthsMinusOne_u8_arr
     tay
     lda (Zp_Current_sMenu_ptr), y
-    sta Zp_Tmp3_byte  ; cursor (width - 1), in tiles
+    sta T2  ; cursor (width - 1), in tiles
 _YPosition:
     ;; Calculate the window row that the cursor is in.
     lda Ram_MenuRows_u8_arr, x
     add #kMenuStartWindowRow
-    ;; Calculate the Y-position of the objects and store in Zp_Tmp1_byte.
+    ;; Calculate the Y-position of the objects and store in T0.
     mul #kTileHeightPx
     adc Zp_WindowTop_u8  ; carry will by clear
     adc #$ff  ; subtract 1 (carry will still be clear)
-    sta Zp_Tmp1_byte  ; cursor Y-position, in pixels
+    sta T0  ; cursor Y-position, in pixels
 _PrepareForLoop:
-    ldx Zp_Tmp3_byte  ; cursor (width - 1), in tiles
+    ldx T2  ; cursor (width - 1), in tiles
     ldy Zp_OamOffset_u8
 _ObjectLoop:
     ;; Set Y-position.
-    lda Zp_Tmp1_byte  ; Y-position
+    lda T0  ; Y-position
     sta Ram_Oam_sObj_arr64 + sObj::YPos_u8, y
     ;; Set and increment X-position.
-    lda Zp_Tmp2_byte  ; X-position
+    lda T1  ; X-position
     sta Ram_Oam_sObj_arr64 + sObj::XPos_u8, y
     add #kTileWidthPx
-    sta Zp_Tmp2_byte  ; X-position
+    sta T1  ; X-position
     ;; Set flags.
     lda #bObj::Pri | kPaletteObjCursor
     cpx #0
@@ -367,9 +362,9 @@ _ObjectLoop:
     @noFlip:
     sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
     ;; Set tile ID.
-    lda Zp_Tmp3_byte  ; cursor (width - 1), in tiles
+    lda T2  ; cursor (width - 1), in tiles
     beq @tileSingle
-    cpx Zp_Tmp3_byte  ; cursor (width - 1), in tiles
+    cpx T2  ; cursor (width - 1), in tiles
     beq @tileSide
     txa
     beq @tileSide
@@ -437,13 +432,13 @@ _DrawDim:
 ;;; @prereq The machine console is open.
 ;;; @param A True ($ff) to draw the cursor diminished, false ($00) otherwise.
 .PROC FuncA_Console_DrawInstructionCursor
-    sta Zp_Tmp2_byte  ; cursor diminished bool
+    sta T1  ; cursor diminished bool
     ldy Zp_OamOffset_u8
 _YPosition:
     ;; Calculate the window row that the cursor is in.
     ldx Zp_ConsoleMachineIndex_u8
     lda Ram_MachinePc_u8_arr, x
-    sta Zp_Tmp1_byte  ; instruction number
+    sta T0  ; instruction number
     cmp Zp_ConsoleNumInstRows_u8
     blt @leftColumn
     sub Zp_ConsoleNumInstRows_u8
@@ -457,7 +452,7 @@ _YPosition:
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::YPos_u8, y
 _XPosition:
     lda #kTileWidthPx * 2
-    ldx Zp_Tmp1_byte  ; instruction number
+    ldx T0  ; instruction number
     cpx Zp_ConsoleNumInstRows_u8
     blt @leftColumn
     lda #kTileWidthPx * 12
@@ -467,7 +462,7 @@ _XPosition:
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::XPos_u8, y
 _TileAndFlags:
     lda #kTileIdObjCursorSolidLeft
-    bit Zp_Tmp2_byte  ; cursor diminished bool
+    bit T1  ; cursor diminished bool
     bpl @undiminished
     lda #kTileIdObjCursorDimLeft
     @undiminished:

@@ -51,12 +51,12 @@ kPaletteObjSteam = 0
 ;;; @prereq The actor's pixel position has already been initialized.
 ;;; @param A The facing direction (either 0 or bObj::FlipH).
 ;;; @param X The actor index.
-;;; @preserve X
+;;; @preserve X, T0+
 .EXPORT Func_InitActorProjSteamHorz
 .PROC Func_InitActorProjSteamHorz
     pha  ; facing dir
     ldy #eActor::ProjSteamHorz  ; param: actor type
-    jsr Func_InitActorDefault  ; preserves X
+    jsr Func_InitActorDefault  ; preserves X and T0+
     pla  ; facing dir
     sta Ram_ActorFlags_bObj_arr, x
     rts
@@ -65,11 +65,11 @@ kPaletteObjSteam = 0
 ;;; Initializes the specified actor as an upward steam projectile.
 ;;; @prereq The actor's pixel position has already been initialized.
 ;;; @param X The actor index.
-;;; @preserve X
+;;; @preserve X, T0+
 .EXPORT Func_InitActorProjSteamUp
 .PROC Func_InitActorProjSteamUp
     ldy #eActor::ProjSteamUp  ; param: actor type
-    jmp Func_InitActorDefault  ; preserves X
+    jmp Func_InitActorDefault  ; preserves X and T0+
 .ENDPROC
 
 ;;;=========================================================================;;;

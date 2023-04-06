@@ -34,7 +34,6 @@
 .IMPORTZP Zp_Current_sMachine_ptr
 .IMPORTZP Zp_OamOffset_u8
 .IMPORTZP Zp_ShapePosY_i16
-.IMPORTZP Zp_Tmp1_byte
 .IMPORTZP Zp_WindowTop_u8
 
 ;;;=========================================================================;;;
@@ -107,9 +106,9 @@ Zp_FloatingHud_bHud: .res 1
     bge @setDelta
     lda #0
     @setDelta:
-    sta Zp_Tmp1_byte
+    sta T0  ; Y-delta
     lda #<kFloatingHudTop
-    sbc Zp_Tmp1_byte  ; carry is already set
+    sub T0  ; Y-delta
     sta Zp_ShapePosY_i16 + 0
     lda #>kFloatingHudTop
     sbc #0

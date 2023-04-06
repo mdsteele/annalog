@@ -139,10 +139,6 @@
 .IMPORTZP Zp_FloatingHud_bHud
 .IMPORTZP Zp_Next_sAudioCtrl
 .IMPORTZP Zp_RoomShake_u8
-.IMPORTZP Zp_Tmp1_byte
-.IMPORTZP Zp_Tmp2_byte
-.IMPORTZP Zp_Tmp3_byte
-.IMPORTZP Zp_Tmp_ptr
 
 ;;;=========================================================================;;;
 
@@ -323,34 +319,34 @@ _LoadNewRoom:
     sta Zp_Previous_eRoom
     stx Zp_Current_eRoom
 _CopyRoomStruct:
-    ;; Get a pointer to the sRoom struct and store it in Zp_Tmp_ptr.
+    ;; Get a pointer to the sRoom struct and store it in T1T0.
     lda DataA_Room_Table_sRoom_ptr_0_arr, x
-    sta Zp_Tmp_ptr + 0
+    sta T0
     lda DataA_Room_Table_sRoom_ptr_1_arr, x
-    sta Zp_Tmp_ptr + 1
+    sta T1
     ;; Copy the sRoom struct into Zp_Current_sRoom.
     ldy #.sizeof(sRoom) - 1
-    .assert .sizeof(sRoom) <= $80, error
     @loop:
-    lda (Zp_Tmp_ptr), y
+    lda (T1T0), y
     sta Zp_Current_sRoom, y
     dey
+    .assert .sizeof(sRoom) <= $80, error
     bpl @loop
 _CopyTilesetStruct:
-    ;; Copy the current room's Terrain_sTileset_ptr into Zp_Tmp_ptr.
+    ;; Copy the current room's Terrain_sTileset_ptr into T1T0.
     ldy #sRoomExt::Terrain_sTileset_ptr
     lda (Zp_Current_sRoom + sRoom::Ext_sRoomExt_ptr), y
-    sta Zp_Tmp_ptr + 0
+    sta T0
     iny
     lda (Zp_Current_sRoom + sRoom::Ext_sRoomExt_ptr), y
-    sta Zp_Tmp_ptr + 1
+    sta T1
     ;; Copy the sTileset struct into Zp_Current_sTileset.
     ldy #.sizeof(sTileset) - 1
-    .assert .sizeof(sTileset) <= $80, error
     @loop:
-    lda (Zp_Tmp_ptr), y
+    lda (T1T0), y
     sta Zp_Current_sTileset, y
     dey
+    .assert .sizeof(sTileset) <= $80, error
     bpl @loop
 _ClearRoomState:
     lda #0
@@ -360,53 +356,53 @@ _ClearRoomState:
     sta Zp_RoomState, x
     bne @loop
 _LoadPlatforms:
-    ;; Copy the current room's Platforms_sPlatform_arr_ptr into Zp_Tmp_ptr.
+    ;; Copy the current room's Platforms_sPlatform_arr_ptr into T1T0.
     ldy #sRoomExt::Platforms_sPlatform_arr_ptr
     lda (Zp_Current_sRoom + sRoom::Ext_sRoomExt_ptr), y
-    sta Zp_Tmp_ptr + 0
+    sta T0
     iny
     lda (Zp_Current_sRoom + sRoom::Ext_sRoomExt_ptr), y
-    sta Zp_Tmp_ptr + 1
+    sta T1
     ;; Copy room platform structs into platform RAM.
     ldx #0  ; platform index
     .assert kMaxPlatforms * .sizeof(sPlatform) < $100, error
     ldy #0  ; byte offset into Platforms_sPlatform_arr_ptr
     @copyLoop:
     .assert sPlatform::Type_ePlatform = 0, error
-    lda (Zp_Tmp_ptr), y
+    lda (T1T0), y
     .assert ePlatform::None = 0, error
     beq @copyDone
     sta Ram_PlatformType_ePlatform_arr, x
     iny
     .assert sPlatform::WidthPx_u16 = 1, error
-    lda (Zp_Tmp_ptr), y
-    sta Zp_Tmp1_byte  ; platform width (lo)
+    lda (T1T0), y
+    sta T2  ; platform width (lo)
     iny
-    lda (Zp_Tmp_ptr), y
-    sta Zp_Tmp2_byte  ; platform width (hi)
+    lda (T1T0), y
+    sta T3  ; platform width (hi)
     iny
     .assert sPlatform::HeightPx_u8 = 3, error
-    lda (Zp_Tmp_ptr), y
-    sta Zp_Tmp3_byte  ; platform height
+    lda (T1T0), y
+    sta T4  ; platform height
     iny
     .assert sPlatform::Left_i16 = 4, error
-    lda (Zp_Tmp_ptr), y
+    lda (T1T0), y
     sta Ram_PlatformLeft_i16_0_arr, x
-    add Zp_Tmp1_byte  ; platform width (lo)
+    add T2  ; platform width (lo)
     sta Ram_PlatformRight_i16_0_arr, x
     iny
-    lda (Zp_Tmp_ptr), y
+    lda (T1T0), y
     sta Ram_PlatformLeft_i16_1_arr, x
-    adc Zp_Tmp2_byte  ; platform width (hi)
+    adc T3  ; platform width (hi)
     sta Ram_PlatformRight_i16_1_arr, x
     iny
     .assert sPlatform::Top_i16 = 6, error
-    lda (Zp_Tmp_ptr), y
+    lda (T1T0), y
     sta Ram_PlatformTop_i16_0_arr, x
-    add Zp_Tmp3_byte  ; platform height
+    add T4  ; platform height
     sta Ram_PlatformBottom_i16_0_arr, x
     iny
-    lda (Zp_Tmp_ptr), y
+    lda (T1T0), y
     sta Ram_PlatformTop_i16_1_arr, x
     adc #0
     sta Ram_PlatformBottom_i16_1_arr, x
@@ -422,13 +418,13 @@ _LoadPlatforms:
     cpx #kMaxPlatforms
     blt @clearLoop
 _LoadActors:
-    ;; Copy the current room's Actors_sActor_arr_ptr into Zp_Tmp_ptr.
+    ;; Copy the current room's Actors_sActor_arr_ptr into T1T0.
     ldy #sRoomExt::Actors_sActor_arr_ptr
     lda (Zp_Current_sRoom + sRoom::Ext_sRoomExt_ptr), y
-    sta Zp_Tmp_ptr + 0
+    sta T0
     iny
     lda (Zp_Current_sRoom + sRoom::Ext_sRoomExt_ptr), y
-    sta Zp_Tmp_ptr + 1
+    sta T1
     ;; Copy room actor structs into actor RAM.
     ldx #0  ; actor index
     .assert kMaxActors * .sizeof(sActor) < $100, error
@@ -436,30 +432,30 @@ _LoadActors:
     @copyLoop:
     ;; Actor type:
     .assert sActor::Type_eActor = 0, error
-    lda (Zp_Tmp_ptr), y
+    lda (T1T0), y
     .assert eActor::None = 0, error
     beq @copyDone
     sta Ram_ActorType_eActor_arr, x
     iny
     ;; X-position:
     .assert sActor::PosX_i16 = 1, error
-    lda (Zp_Tmp_ptr), y
+    lda (T1T0), y
     iny
     sta Ram_ActorPosX_i16_0_arr, x
-    lda (Zp_Tmp_ptr), y
+    lda (T1T0), y
     iny
     sta Ram_ActorPosX_i16_1_arr, x
     ;; Y-position:
     .assert sActor::PosY_i16 = 3, error
-    lda (Zp_Tmp_ptr), y
+    lda (T1T0), y
     iny
     sta Ram_ActorPosY_i16_0_arr, x
-    lda (Zp_Tmp_ptr), y
+    lda (T1T0), y
     iny
     sta Ram_ActorPosY_i16_1_arr, x
     ;; Temporarily store param byte in Ram_ActorState1_byte_arr:
     .assert sActor::Param_byte = 5, error
-    lda (Zp_Tmp_ptr), y
+    lda (T1T0), y
     iny
     sta Ram_ActorState1_byte_arr, x
     ;; Continue to next sActor entry.
@@ -483,34 +479,34 @@ _LoadActors:
     .assert kMaxActors < $80, error
     bpl @initLoop
 _LoadDevices:
-    ;; Copy the current room's Devices_sDevice_arr_ptr into Zp_Tmp_ptr.
+    ;; Copy the current room's Devices_sDevice_arr_ptr into T1T0.
     ldy #sRoomExt::Devices_sDevice_arr_ptr
     lda (Zp_Current_sRoom + sRoom::Ext_sRoomExt_ptr), y
-    sta Zp_Tmp_ptr + 0
+    sta T0
     iny
     lda (Zp_Current_sRoom + sRoom::Ext_sRoomExt_ptr), y
-    sta Zp_Tmp_ptr + 1
+    sta T1
     ;; Copy room device structs into device RAM.
     ldx #0  ; device index
     .assert kMaxDevices * .sizeof(sDevice) < $100, error
     ldy #0  ; byte offset into Devices_sDevice_arr_ptr
     @copyLoop:
     .assert sDevice::Type_eDevice = 0, error
-    lda (Zp_Tmp_ptr), y
+    lda (T1T0), y
     .assert eDevice::None = 0, error
     beq @copyDone
     sta Ram_DeviceType_eDevice_arr, x
     iny
     .assert sDevice::BlockRow_u8 = 1, error
-    lda (Zp_Tmp_ptr), y
+    lda (T1T0), y
     sta Ram_DeviceBlockRow_u8_arr, x
     iny
     .assert sDevice::BlockCol_u8 = 2, error
-    lda (Zp_Tmp_ptr), y
+    lda (T1T0), y
     sta Ram_DeviceBlockCol_u8_arr, x
     iny
     .assert sDevice::Target_u8 = 3, error
-    lda (Zp_Tmp_ptr), y
+    lda (T1T0), y
     sta Ram_DeviceTarget_u8_arr, x
     iny
     .assert .sizeof(sDevice) = 4, error

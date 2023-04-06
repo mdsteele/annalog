@@ -37,8 +37,6 @@
 .IMPORTZP Zp_RoomScrollY_u8
 .IMPORTZP Zp_ShapePosX_i16
 .IMPORTZP Zp_ShapePosY_i16
-.IMPORTZP Zp_Tmp1_byte
-.IMPORTZP Zp_Tmp2_byte
 
 ;;;=========================================================================;;;
 
@@ -85,7 +83,7 @@ Ram_PlatformRight_i16_1_arr: .res kMaxPlatforms
 ;;; Stores the room pixel position of the center of the platform in
 ;;; Zp_Point*_i16.  The platform's width and height must fit in one byte.
 ;;; @param Y The platform index.
-;;; @preserve X, Y, Zp_Tmp*
+;;; @preserve X, Y, T0+
 .EXPORT Func_SetPointToPlatformCenter
 .PROC Func_SetPointToPlatformCenter
     ;; Set X-position.
@@ -113,7 +111,7 @@ Ram_PlatformRight_i16_1_arr: .res kMaxPlatforms
 ;;; platform.
 ;;; @param Y The platform index.
 ;;; @return C Set if the point is in the platform, cleared otherwise.
-;;; @preserve X, Y, Zp_Tmp*
+;;; @preserve X, Y, T0+
 .EXPORT Func_IsPointInPlatform
 .PROC Func_IsPointInPlatform
 _CheckPlatformLeft:
@@ -164,7 +162,7 @@ _Outside:
 ;;; solid platform in the room.
 ;;; @return C Set if the point is in a solid platform, cleared otherwise.
 ;;; @return Y The platform index that was hit (if C is set).
-;;; @preserve X, Zp_Tmp*
+;;; @preserve X, T0+
 .EXPORT Func_IsPointInAnySolidPlatform
 .PROC Func_IsPointInAnySolidPlatform
     ldy #kMaxPlatforms - 1
@@ -172,7 +170,7 @@ _Outside:
     lda Ram_PlatformType_ePlatform_arr, y
     cmp #kFirstSolidPlatformType
     blt @continue
-    jsr Func_IsPointInPlatform  ; preserves X, Y, and Zp_Tmp*; returns C
+    jsr Func_IsPointInPlatform  ; preserves X, Y, and T0+; returns C
     bcs @return
     @continue:
     dey
@@ -193,32 +191,32 @@ _Outside:
 ;;; @preserve X
 .EXPORT Func_MovePlatformLeftTowardPointX
 .PROC Func_MovePlatformLeftTowardPointX
-    sta Zp_Tmp1_byte  ; max distance
+    sta T0  ; max distance
     lda Zp_PointX_i16 + 0
     sub Ram_PlatformLeft_i16_0_arr, x
-    sta Zp_Tmp2_byte  ; delta (lo)
+    sta T1  ; delta (lo)
     lda Zp_PointX_i16 + 1
     sbc Ram_PlatformLeft_i16_1_arr, x
     bmi _MoveLeft
 _MoveRight:
     bne _MoveRightByMax
-    lda Zp_Tmp2_byte  ; delta (lo)
-    cmp Zp_Tmp1_byte  ; max distance
+    lda T1  ; delta (lo)
+    cmp T0  ; max distance
     blt _MoveByA
 _MoveRightByMax:
-    lda Zp_Tmp1_byte  ; max distance
+    lda T0  ; max distance
     bpl _MoveByA  ; unconditional
 _MoveLeft:
     cmp #$ff
     blt _MoveLeftByMax
-    lda Zp_Tmp2_byte  ; delta (lo)
-    add Zp_Tmp1_byte  ; max distance
+    lda T1  ; delta (lo)
+    add T0  ; max distance
     bcc _MoveLeftByMax
-    lda Zp_Tmp2_byte  ; delta (lo)
+    lda T1  ; delta (lo)
     bmi _MoveByA  ; unconditional
 _MoveLeftByMax:
     lda #0
-    sub Zp_Tmp1_byte  ; max distance
+    sub T0  ; max distance
 _MoveByA:
     pha  ; move delta
     jsr Func_MovePlatformHorz  ; preserves X
@@ -241,21 +239,21 @@ _MoveByA:
     dey  ; now Y is $ff
     @nonnegative:
     sta Zp_AvatarPushDelta_i8  ; move delta (lo)
-    sty Zp_Tmp1_byte           ; move delta (hi)
+    sty T0                     ; move delta (hi)
 _MovePlatform:
     ;; Move the platform's left edge.
     lda Ram_PlatformLeft_i16_0_arr, x
     add Zp_AvatarPushDelta_i8  ; move delta (lo)
     sta Ram_PlatformLeft_i16_0_arr, x
     lda Ram_PlatformLeft_i16_1_arr, x
-    adc Zp_Tmp1_byte           ; move delta (hi)
+    adc T0                     ; move delta (hi)
     sta Ram_PlatformLeft_i16_1_arr, x
     ;; Move the platform's right edge.
     lda Ram_PlatformRight_i16_0_arr, x
     add Zp_AvatarPushDelta_i8  ; move delta (lo)
     sta Ram_PlatformRight_i16_0_arr, x
     lda Ram_PlatformRight_i16_1_arr, x
-    adc Zp_Tmp1_byte           ; move delta (hi)
+    adc T0                     ; move delta (hi)
     sta Ram_PlatformRight_i16_1_arr, x
 _CheckIfSolid:
     ;; If the platform type is non-solid, then we're done (no need to push or
@@ -321,32 +319,32 @@ _Return:
 ;;; @preserve X
 .EXPORT Func_MovePlatformTopTowardPointY
 .PROC Func_MovePlatformTopTowardPointY
-    sta Zp_Tmp1_byte  ; max distance
+    sta T0  ; max distance
     lda Zp_PointY_i16 + 0
     sub Ram_PlatformTop_i16_0_arr, x
-    sta Zp_Tmp2_byte  ; delta (lo)
+    sta T1  ; delta (lo)
     lda Zp_PointY_i16 + 1
     sbc Ram_PlatformTop_i16_1_arr, x
     bmi _MoveUp
 _MoveDown:
     bne _MoveDownByMax
-    lda Zp_Tmp2_byte  ; delta (lo)
-    cmp Zp_Tmp1_byte  ; max distance
+    lda T1  ; delta (lo)
+    cmp T0  ; max distance
     blt _MoveByA
 _MoveDownByMax:
-    lda Zp_Tmp1_byte  ; max distance
+    lda T0  ; max distance
     bpl _MoveByA  ; unconditional
 _MoveUp:
     cmp #$ff
     blt _MoveUpByMax
-    lda Zp_Tmp2_byte  ; delta (lo)
-    add Zp_Tmp1_byte  ; max distance
+    lda T1  ; delta (lo)
+    add T0  ; max distance
     bcc _MoveUpByMax
-    lda Zp_Tmp2_byte  ; delta (lo)
+    lda T1  ; delta (lo)
     bmi _MoveByA  ; unconditional
 _MoveUpByMax:
     lda #0
-    sub Zp_Tmp1_byte  ; max distance
+    sub T0  ; max distance
 _MoveByA:
     pha  ; move delta
     jsr Func_MovePlatformVert  ; preserves X
@@ -369,21 +367,21 @@ _MoveByA:
     dey  ; now Y is $ff
     @nonnegative:
     sta Zp_AvatarPushDelta_i8  ; move delta (lo)
-    sty Zp_Tmp1_byte           ; move delta (hi)
+    sty T0                     ; move delta (hi)
 _MovePlatform:
     ;; Move the platform's top edge.
     lda Ram_PlatformTop_i16_0_arr, x
     add Zp_AvatarPushDelta_i8  ; move delta (lo)
     sta Ram_PlatformTop_i16_0_arr, x
     lda Ram_PlatformTop_i16_1_arr, x
-    adc Zp_Tmp1_byte           ; move delta (hi)
+    adc T0                     ; move delta (hi)
     sta Ram_PlatformTop_i16_1_arr, x
     ;; Move the platform's bottom edge.
     lda Ram_PlatformBottom_i16_0_arr, x
     add Zp_AvatarPushDelta_i8  ; move delta (lo)
     sta Ram_PlatformBottom_i16_0_arr, x
     lda Ram_PlatformBottom_i16_1_arr, x
-    adc Zp_Tmp1_byte           ; move delta (hi)
+    adc T0                     ; move delta (hi)
     sta Ram_PlatformBottom_i16_1_arr, x
 _CheckIfSolid:
     ;; If the platform type is non-solid, then we're done (no need to push or
@@ -487,23 +485,23 @@ _MovingRight:
     ;; Check left edge of platform.
     lda Ram_PlatformLeft_i16_0_arr, x
     sub #kAvatarBoundingBoxRight
-    sta Zp_Tmp1_byte  ; platform left edge - bbox (lo)
+    sta T0  ; platform left edge - bbox (lo)
     lda Ram_PlatformLeft_i16_1_arr, x
     sbc #0
-    sta Zp_Tmp2_byte  ; platform left edge - bbox (hi)
+    sta T1  ; platform left edge - bbox (hi)
     cmp Zp_AvatarPosX_i16 + 1
     blt @leftEdgeHit
     bne _Return
-    lda Zp_Tmp1_byte  ; platform left edge - bbox (lo)
+    lda T0  ; platform left edge - bbox (lo)
     cmp Zp_AvatarPosX_i16 + 0
     beq @leftEdgeHit
     bge _Return
     @leftEdgeHit:
     ;; We've hit the left edge of this platform, so set horizontal position to
     ;; just to the right of the platform we hit.
-    lda Zp_Tmp1_byte  ; platform left edge - bbox (lo)
+    lda T0  ; platform left edge - bbox (lo)
     sta Zp_AvatarPosX_i16 + 0
-    lda Zp_Tmp2_byte  ; platform left edge - bbox (hi)
+    lda T1  ; platform left edge - bbox (hi)
     sta Zp_AvatarPosX_i16 + 1
     jmp _Collided
 _MovingLeft:
@@ -519,22 +517,22 @@ _MovingLeft:
     ;; Check right edge of platform.
     lda Ram_PlatformRight_i16_0_arr, x
     add #kAvatarBoundingBoxLeft
-    sta Zp_Tmp1_byte  ; platform right edge + bbox (lo)
+    sta T0  ; platform right edge + bbox (lo)
     lda Ram_PlatformRight_i16_1_arr, x
     adc #0
-    sta Zp_Tmp2_byte  ; platform right edge + bbox (hi)
+    sta T1  ; platform right edge + bbox (hi)
     cmp Zp_AvatarPosX_i16 + 1
     blt _Return
     bne @rightEdgeHit
-    lda Zp_Tmp1_byte
+    lda T0
     cmp Zp_AvatarPosX_i16 + 0
     blt _Return
     @rightEdgeHit:
     ;; We've hit the right edge of this platform, so set horizontal position to
     ;; just to the right of the platform we hit.
-    lda Zp_Tmp1_byte  ; platform right edge + bbox (lo)
+    lda T0  ; platform right edge + bbox (lo)
     sta Zp_AvatarPosX_i16 + 0
-    lda Zp_Tmp2_byte  ; platform right edge + bbox (hi)
+    lda T1  ; platform right edge + bbox (hi)
     sta Zp_AvatarPosX_i16 + 1
 _Collided:
     lda Ram_PlatformType_ePlatform_arr, x
@@ -590,22 +588,22 @@ _MovingUp:
     ;; Check bottom edge of platform.
     lda Ram_PlatformBottom_i16_0_arr, x
     add #kAvatarBoundingBoxUp
-    sta Zp_Tmp1_byte  ; platform bottom edge + bbox (lo)
+    sta T0  ; platform bottom edge + bbox (lo)
     lda Ram_PlatformBottom_i16_1_arr, x
     adc #0
-    sta Zp_Tmp2_byte  ; platform bottom edge + bbox (hi)
+    sta T1  ; platform bottom edge + bbox (hi)
     cmp Zp_AvatarPosY_i16 + 1
     blt _Return
     bne @bottomEdgeHit
-    lda Zp_Tmp1_byte
+    lda T0
     cmp Zp_AvatarPosY_i16 + 0
     blt _Return
     @bottomEdgeHit:
     ;; We've hit the bottom edge of this platform, so set vertical position to
     ;; just below the platform we hit.
-    lda Zp_Tmp1_byte  ; platform bottom edge + bbox (lo)
+    lda T0  ; platform bottom edge + bbox (lo)
     sta Zp_AvatarPosY_i16 + 0
-    lda Zp_Tmp2_byte  ; platform bottom edge + bbox (hi)
+    lda T1  ; platform bottom edge + bbox (hi)
     sta Zp_AvatarPosY_i16 + 1
     jmp _Collided
 _MovingDown:
@@ -621,23 +619,23 @@ _MovingDown:
     ;; Check top edge of platform.
     lda Ram_PlatformTop_i16_0_arr, x
     sub #kAvatarBoundingBoxDown
-    sta Zp_Tmp1_byte  ; platform top edge - bbox (lo)
+    sta T0  ; platform top edge - bbox (lo)
     lda Ram_PlatformTop_i16_1_arr, x
     sbc #0
-    sta Zp_Tmp2_byte  ; platform top edge - bbox (hi)
+    sta T1  ; platform top edge - bbox (hi)
     cmp Zp_AvatarPosY_i16 + 1
     blt @topEdgeHit
     bne _Return
-    lda Zp_Tmp1_byte  ; platform top edge - bbox (lo)
+    lda T0  ; platform top edge - bbox (lo)
     cmp Zp_AvatarPosY_i16 + 0
     beq @topEdgeHit
     bge _Return
     @topEdgeHit:
     ;; We've hit the top edge of this platform, so set vertical position to
     ;; just above the platform we hit.
-    lda Zp_Tmp1_byte  ; platform top edge - bbox (lo)
+    lda T0  ; platform top edge - bbox (lo)
     sta Zp_AvatarPosY_i16 + 0
-    lda Zp_Tmp2_byte  ; platform top edge - bbox (hi)
+    lda T1  ; platform top edge - bbox (hi)
     sta Zp_AvatarPosY_i16 + 1
     ;; Record that the avatar is now riding this platform.
     stx Zp_AvatarPlatformIndex_u8
@@ -672,15 +670,15 @@ _Return:
     ;; Calculate the room pixel Y-position of the bottom of the avatar.
     lda Zp_AvatarPosY_i16 + 0
     add #kAvatarBoundingBoxDown
-    sta Zp_Tmp1_byte  ; bottom of avatar (lo)
+    sta T0  ; bottom of avatar (lo)
     lda Zp_AvatarPosY_i16 + 1
     adc #0
-    sta Zp_Tmp2_byte  ; bottom of avatar (hi)
+    sta T1  ; bottom of avatar (hi)
     ;; Compare the bottom of the avatar to the top of the platform.
-    lda Zp_Tmp1_byte  ; bottom of avatar (lo)
+    lda T0  ; bottom of avatar (lo)
     sub Ram_PlatformTop_i16_0_arr, x
     tay  ; depth (lo)
-    lda Zp_Tmp2_byte  ; bottom of avatar (hi)
+    lda T1  ; bottom of avatar (hi)
     sbc Ram_PlatformTop_i16_1_arr, x
     bmi _NotInPlatform
     bne _MaxDepth
@@ -709,16 +707,16 @@ _NotInPlatform:
     ;; Calculate the room pixel Y-position of top of the avatar.
     lda Zp_AvatarPosY_i16 + 0
     sub #kAvatarBoundingBoxUp
-    sta Zp_Tmp1_byte  ; top of avatar (lo)
+    sta T0  ; top of avatar (lo)
     lda Zp_AvatarPosY_i16 + 1
     sbc #0
-    sta Zp_Tmp2_byte  ; top of avatar (hi)
+    sta T1  ; top of avatar (hi)
     ;; Compare the top of avatar to the bottom of the platform.
     lda Ram_PlatformBottom_i16_0_arr, x
-    sub Zp_Tmp1_byte  ; top of avatar (lo)
+    sub T0  ; top of avatar (lo)
     tay  ; depth (lo)
     lda Ram_PlatformBottom_i16_1_arr, x
-    sbc Zp_Tmp2_byte  ; top of avatar (hi)
+    sbc T1  ; top of avatar (hi)
     bmi _NotInPlatform
     bne _MaxDepth
     cpy #127
@@ -757,15 +755,15 @@ _NotInPlatform:
     ;; Calculate the room pixel X-position of the avatar's right side.
     lda Zp_AvatarPosX_i16 + 0
     add #kAvatarBoundingBoxRight
-    sta Zp_Tmp1_byte  ; avatar's right side (lo)
+    sta T0  ; avatar's right side (lo)
     lda Zp_AvatarPosX_i16 + 1
     adc #0
-    sta Zp_Tmp2_byte  ; avatar's right side (hi)
+    sta T1  ; avatar's right side (hi)
     ;; Compare the avatar's right side to the platform's left side.
-    lda Zp_Tmp1_byte  ; avatar's right side (lo)
+    lda T0  ; avatar's right side (lo)
     sub Ram_PlatformLeft_i16_0_arr, x
     tay  ; depth (lo)
-    lda Zp_Tmp2_byte  ; avatar's right side (hi)
+    lda T1  ; avatar's right side (hi)
     sbc Ram_PlatformLeft_i16_1_arr, x
     bmi _NotInPlatform
     bne _MaxDepth
@@ -794,16 +792,16 @@ _NotInPlatform:
     ;; Calculate the room pixel X-position of the avatar's left side.
     lda Zp_AvatarPosX_i16 + 0
     sub #kAvatarBoundingBoxLeft
-    sta Zp_Tmp1_byte  ; avatar's left side (lo)
+    sta T0  ; avatar's left side (lo)
     lda Zp_AvatarPosX_i16 + 1
     sbc #0
-    sta Zp_Tmp2_byte  ; avatar's left side (hi)
+    sta T1  ; avatar's left side (hi)
     ;; Compare the avatar's left side to the platform's right side.
     lda Ram_PlatformRight_i16_0_arr, x
-    sub Zp_Tmp1_byte  ; avatar's left side (lo)
+    sub T0  ; avatar's left side (lo)
     tay  ; depth (lo)
     lda Ram_PlatformRight_i16_1_arr, x
-    sbc Zp_Tmp2_byte  ; avatar's left side (hi)
+    sbc T1  ; avatar's left side (hi)
     bmi _NotInPlatform
     bne _MaxDepth
     cpy #127
@@ -881,12 +879,12 @@ _NotInPlatform:
     ;; Check top edge of platform.
     lda Zp_AvatarPosY_i16 + 0
     sub Ram_PlatformTop_i16_0_arr, x
-    sta Zp_Tmp1_byte  ; distance below water (lo)
+    sta T0  ; distance below water (lo)
     lda Zp_AvatarPosY_i16 + 1
     sbc Ram_PlatformTop_i16_1_arr, x
     bmi _NotInWater
     bne _MaxDepth
-    lda Zp_Tmp1_byte  ; distance below water (lo)
+    lda T0  ; distance below water (lo)
     rts
 _MaxDepth:
     lda #$ff
@@ -903,7 +901,7 @@ _NotInWater:
 ;;; Populates Zp_ShapePosX_i16 and Zp_ShapePosY_i16 with the screen position of
 ;;; the top-left corner of the specified platform.
 ;;; @param X The platform index.
-;;; @preserve X, Y, Zp_Tmp*
+;;; @preserve X, Y, T0+
 .EXPORT FuncA_Objects_SetShapePosToPlatformTopLeft
 .PROC FuncA_Objects_SetShapePosToPlatformTopLeft
     ;; Calculate top edge in screen space.

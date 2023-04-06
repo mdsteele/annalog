@@ -41,7 +41,7 @@ kBeepInitVolume = 3
 ;;; zero.
 ;;; @param X The channel number (0-4) times four (so, 0, 4, 8, 12, or 16).
 ;;; @return C Set if the sound is finished, cleared otherwise.
-;;; @preserve X
+;;; @preserve X, T0+
 .EXPORT Func_SfxBeep
 .PROC Func_SfxBeep
     lda Ram_Sound_sChanSfx_arr + sChanSfx::Timer_u8, x
@@ -75,7 +75,7 @@ _TimerHi_u8_arr10: .byte $01, $01, $01, $01, $01, $01, $01, $00, $00, $00
 
 ;;; Starts playing a sound for the BEEP opcode.
 ;;; @param A The tone number (0-9).
-;;; @preserve X, Y, Zp_Tmp*
+;;; @preserve X, Y, T0+
 .EXPORT FuncA_Machine_PlaySfxBeep
 .PROC FuncA_Machine_PlaySfxBeep
     sta Zp_Next_sChanSfx_arr + eChan::Pulse2 + sChanSfx::Param1_byte

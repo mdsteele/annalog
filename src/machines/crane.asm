@@ -41,8 +41,6 @@
 .IMPORTZP Zp_MachineIndex_u8
 .IMPORTZP Zp_RoomScrollY_u8
 .IMPORTZP Zp_ShapePosY_i16
-.IMPORTZP Zp_Tmp1_byte
-.IMPORTZP Zp_Tmp2_byte
 
 ;;;=========================================================================;;;
 
@@ -170,37 +168,37 @@ _LeftClaw:
 ;;; @param X The platform index for the pulley.
 .EXPORT FuncA_Objects_DrawCraneRopeToPulley
 .PROC FuncA_Objects_DrawCraneRopeToPulley
-    stx Zp_Tmp1_byte  ; crane platform index
-    jsr FuncA_Objects_SetShapePosToMachineTopLeft  ; preserves Zp_Tmp*
-    ldx Zp_Tmp1_byte  ; crane platform index
+    stx T0  ; crane platform index
+    jsr FuncA_Objects_SetShapePosToMachineTopLeft  ; preserves T0+
+    ldx T0  ; crane platform index
     ;; Calculate the screen-space position for the bottom of the pulley.
     lda Ram_PlatformBottom_i16_0_arr, x
     sub Zp_RoomScrollY_u8
-    sta Zp_Tmp1_byte  ; screen-space rope top (lo)
+    sta T0  ; screen-space rope top (lo)
     lda Ram_PlatformBottom_i16_1_arr, x
     sbc #0
-    sta Zp_Tmp2_byte  ; screen-space rope top (hi)
+    sta T1  ; screen-space rope top (hi)
     ;; Calculate the length of the rope, in pixels.
     lda Zp_ShapePosY_i16 + 0
-    sub Zp_Tmp1_byte  ; screen-space rope top (lo)
-    sta Zp_Tmp1_byte  ; rope length in pixels (lo)
+    sub T0  ; screen-space rope top (lo)
+    sta T0  ; rope length in pixels (lo)
     lda Zp_ShapePosY_i16 + 1
-    sbc Zp_Tmp2_byte  ; screen-space rope top (hi)
-    sta Zp_Tmp2_byte  ; rope length in pixels (hi)
+    sbc T1  ; screen-space rope top (hi)
+    sta T1  ; rope length in pixels (hi)
     ;; Add (kTileHeightPx - 1) before dividing by kTileHeightPx, so that the
     ;; division will round up.
-    lda Zp_Tmp1_byte  ; rope length in pixels (lo)
+    lda T0  ; rope length in pixels (lo)
     add #kTileHeightPx - 1
-    sta Zp_Tmp1_byte
-    lda Zp_Tmp2_byte  ; rope length in pixels (hi)
+    sta T0
+    lda T1  ; rope length in pixels (hi)
     adc #0
     .assert kTileHeightPx = 1 << 3, error
     .repeat 3
     lsr a
-    ror Zp_Tmp1_byte
+    ror T0
     .endrepeat
     ;; Draw the rope (if it contains a nonzero number of tiles).
-    ldx Zp_Tmp1_byte  ; param: rope length in tiles
+    ldx T0  ; param: rope length in tiles
     beq _Return
 _DrawRope:
     lda #kTileWidthPx / 2  ; param: offset
@@ -226,9 +224,9 @@ _Return:
 ;;; @param X The number of tiles in the rope (nonzero).
 .EXPORT FuncA_Objects_DrawTrolleyRopeWithLength
 .PROC FuncA_Objects_DrawTrolleyRopeWithLength
-    stx Zp_Tmp1_byte  ; rope length in tiles
-    jsr FuncA_Objects_SetShapePosToMachineTopLeft  ; preserves Zp_Tmp*
-    ldx Zp_Tmp1_byte  ; rope length in tiles
+    stx T0  ; rope length in tiles
+    jsr FuncA_Objects_SetShapePosToMachineTopLeft  ; preserves T0+
+    ldx T0  ; rope length in tiles
     jsr FuncA_Objects_MoveShapeDownOneTile  ; preserves X
     lda #kTileWidthPx / 2  ; param: offset
     jsr FuncA_Objects_MoveShapeRightByA  ; preserves X

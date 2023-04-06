@@ -28,8 +28,6 @@
 .IMPORT Sram_Programs_sProgram_arr
 .IMPORTZP Zp_Current_sRoom
 .IMPORTZP Zp_P1ButtonsHeld_bJoypad
-.IMPORTZP Zp_Tmp1_byte
-.IMPORTZP Zp_Tmp_ptr
 
 ;;;=========================================================================;;;
 
@@ -150,19 +148,19 @@ _MachineOffsets_u8_arr:
     ldy #sMachine::Code_eProgram
     lda (Zp_Current_sMachine_ptr), y
     ;; Calculate the 16-bit byte offset into Sram_Programs_sProgram_arr,
-    ;; putting the lo byte in A and the hi byte in Zp_Tmp1_byte.
+    ;; putting the lo byte in A and the hi byte in T0.
     .assert sMachine::Code_eProgram = 0, error
-    sty Zp_Tmp1_byte  ; Y is currently zero
-    .assert .sizeof(sProgram) = $20, error
+    sty T0  ; Y is currently zero
+    .assert .sizeof(sProgram) = 1 << 5, error
     .repeat 5
     asl a
-    rol Zp_Tmp1_byte
+    rol T0
     .endrepeat
     ;; Calculate a pointer to the start of the sProgram in SRAM and store it in
     ;; Zp_Current_sProgram_ptr.
-    add #<Sram_Programs_sProgram_arr
+    adc #<Sram_Programs_sProgram_arr  ; carry is already clear
     sta Zp_Current_sProgram_ptr + 0
-    lda Zp_Tmp1_byte
+    lda T0  ; byte offset (hi)
     adc #>Sram_Programs_sProgram_arr
     sta Zp_Current_sProgram_ptr + 1
     rts
@@ -227,14 +225,14 @@ _ReadRegB:
 ;;; @param X The X parameter for the function (if any).
 ;;; @return Whatever the called function returns (if anything).
 .PROC Func_MachineCall
-    sta Zp_Tmp1_byte
+    sta T2  ; parameter A
     lda (Zp_Current_sMachine_ptr), y
-    sta Zp_Tmp_ptr + 0
+    sta T0  ; func ptr (lo)
     iny
     lda (Zp_Current_sMachine_ptr), y
-    sta Zp_Tmp_ptr + 1
-    lda Zp_Tmp1_byte
-    jmp (Zp_Tmp_ptr)
+    sta T1  ; func ptr (hi)
+    lda T2  ; parameter A
+    jmp (T1T0)
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -420,8 +418,8 @@ _Return:
 ;;; @return Z Set if the condition is true, cleared if false.
 .PROC FuncA_Machine_EvalConditional
     jsr FuncA_Machine_GetBinopArgs  ; returns A and Y
-    sty Zp_Tmp1_byte  ; right-hand value
-    cmp Zp_Tmp1_byte
+    sty T0  ; right-hand value
+    cmp T0  ; right-hand value
     php  ; comparison flags
     lda <(Zp_Current_sInst + sInst::Op_byte)
     and #$0f
@@ -501,10 +499,10 @@ _ExecInstruction:
     div #$10
     tay  ; opcode
     lda _JumpTable_ptr_0_arr, y
-    sta Zp_Tmp_ptr + 0
+    sta T0
     lda _JumpTable_ptr_1_arr, y
-    sta Zp_Tmp_ptr + 1
-    jmp (Zp_Tmp_ptr)
+    sta T1
+    jmp (T1T0)
 .REPEAT 2, table
     D_TABLE_LO table, _JumpTable_ptr_0_arr
     D_TABLE_HI table, _JumpTable_ptr_1_arr
@@ -529,29 +527,29 @@ _ExecInstruction:
 .ENDREPEAT
 _OpAdd:
     jsr FuncA_Machine_GetBinopArgs  ; returns A and Y
-    sty Zp_Tmp1_byte  ; right-hand value
-    add Zp_Tmp1_byte
+    sty T0  ; right-hand value
+    add T0  ; right-hand value
     cmp #10
     blt _SetLValueToA
     lda #9
     bne _SetLValueToA  ; unconditional
 _OpSub:
     jsr FuncA_Machine_GetBinopArgs  ; returns A and Y
-    sty Zp_Tmp1_byte  ; right-hand value
-    sub Zp_Tmp1_byte
+    sty T0  ; right-hand value
+    sub T0  ; right-hand value
     bge _SetLValueToA
     lda #0
     beq _SetLValueToA  ; unconditional
 _OpMul:
     ;; Get the two factors to multiply together.
     jsr FuncA_Machine_GetBinopArgs  ; returns A and Y
-    sty Zp_Tmp1_byte  ; right-hand value
+    sty T0  ; right-hand value
     ;; If necessary, swap the two factors so that the smaller factor is in A,
-    ;; and the larger factor is in Zp_Tmp1_byte.
-    cmp Zp_Tmp1_byte
+    ;; and the larger factor is in T0.
+    cmp T0  ; right-hand value
     blt @doneSwap
-    sta Zp_Tmp1_byte  ; larger factor
-    tya               ; smaller factor
+    sta T0  ; larger factor
+    tya     ; smaller factor
     @doneSwap:
     ;; If the smaller factor is >= 3, then the product will be >= 9, so just
     ;; saturate at 9.
@@ -563,9 +561,9 @@ _OpMul:
     ;; Otherwise, the smaller factor is 1 or 2, so the product is the other
     ;; factor, possibly doubled.  We just have to check for saturation.
     beq @doneShift
-    asl Zp_Tmp1_byte  ; larger factor
+    asl T0  ; larger factor
     @doneShift:
-    lda Zp_Tmp1_byte  ; product (possibly > 9)
+    lda T0  ; product (possibly > 9)
     cmp #10
     blt _SetLValueToA
     @productIs9:
@@ -690,7 +688,7 @@ _OpSync:
 .PROC FuncA_Machine_IncrementPcByX
     lda Zp_MachineMaxInstructions_u8
     mul #.sizeof(sInst)
-    sta Zp_Tmp1_byte  ; max byte offset
+    sta T0  ; max byte offset
     ldy Zp_MachineIndex_u8
     lda Ram_MachinePc_u8_arr, y
     mul #.sizeof(sInst)
@@ -702,7 +700,7 @@ _OpSync:
     .repeat .sizeof(sInst)
     iny
     .endrepeat
-    cpy Zp_Tmp1_byte  ; max byte offset
+    cpy T0  ; max byte offset
     bge @wrap
     lda (Zp_Current_sProgram_ptr), y
     and #$f0

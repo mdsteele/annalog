@@ -41,10 +41,6 @@
 .IMPORTZP Zp_FrameCounter_u8
 .IMPORTZP Zp_MachineIndex_u8
 .IMPORTZP Zp_PointY_i16
-.IMPORTZP Zp_Tmp1_byte
-.IMPORTZP Zp_Tmp2_byte
-.IMPORTZP Zp_Tmp3_byte
-.IMPORTZP Zp_Tmp4_byte
 
 ;;;=========================================================================;;;
 
@@ -65,23 +61,23 @@ kTileIdJetLowerMiddleFirst = kTileIdJetFirst + 1
 .EXPORT Func_MachineJetReadRegY
 .PROC Func_MachineJetReadRegY
     ;; Add kJetMoveInterval/2 to the max platform top to get an offset origin.
-    sta Zp_Tmp2_byte  ; max platform top (hi)
+    sta T1  ; max platform top (hi)
     txa
     add #kJetMoveInterval / 2
-    sta Zp_Tmp1_byte  ; offset origin (lo)
-    lda Zp_Tmp2_byte  ; max platform top (hi)
+    sta T0  ; offset origin (lo)
+    lda T1  ; max platform top (hi)
     adc #0
-    sta Zp_Tmp2_byte  ; offset origin (lo)
+    sta T1  ; offset origin (lo)
     ;; Get the machine's platform index, storing it in Y.
     ldy #sMachine::MainPlatform_u8
     lda (Zp_Current_sMachine_ptr), y
     tay  ; platform index
     ;; Compute the platform's 16-bit relative position, storing the lo byte in
-    ;; Zp_Tmp1_byte and the hi byte in A.
-    lda Zp_Tmp1_byte  ; offset origin (lo)
+    ;; T0 and the hi byte in A.
+    lda T0  ; offset origin (lo)
     sub Ram_PlatformTop_i16_0_arr, y
-    sta Zp_Tmp1_byte  ; relative position (lo)
-    lda Zp_Tmp2_byte  ; offset origin (hi)
+    sta T0  ; relative position (lo)
+    lda T1  ; offset origin (hi)
     sbc Ram_PlatformTop_i16_1_arr, y
     ;; We need to divide the 16-bit relative position by kJetMoveInterval, but
     ;; it's not a power of two, so we need to use Func_DivMod.  Assert that
@@ -89,8 +85,8 @@ kTileIdJetLowerMiddleFirst = kTileIdJetFirst + 1
     .assert kJetMoveInterval * 9 < $200, error
     .assert kJetMoveInterval .mod 2 = 0, error
     lsr a
-    ror Zp_Tmp1_byte  ; relative position (lo)
-    lda Zp_Tmp1_byte  ; relative position / 2
+    ror T0  ; relative position (lo)
+    lda T0  ; relative position / 2
     ldy #kJetMoveInterval / 2  ; param: divisor
     jsr Func_DivMod  ; returns quotient in Y
     tya
@@ -107,36 +103,36 @@ kTileIdJetLowerMiddleFirst = kTileIdJetFirst + 1
 ;;; @param AX The maximum platform top position for the jet machine.
 .EXPORT FuncA_Machine_JetTick
 .PROC FuncA_Machine_JetTick
-    sta Zp_Tmp1_byte  ; max platform top (hi)
+    sta T0  ; max platform top (hi)
     ;; Get the machine's platform index.
     ldy #sMachine::MainPlatform_u8
     lda (Zp_Current_sMachine_ptr), y
-    sta Zp_Tmp2_byte  ; platform index
+    sta T1  ; platform index
     ;; Calculate the goal delta from the max platform top position, storing the
-    ;; lo byte in Zp_Tmp3_byte and the hi byte in Zp_Tmp4_byte.
+    ;; lo byte in T2 and the hi byte in T3.
     ldy Zp_MachineIndex_u8
     lda #0
-    sta Zp_Tmp4_byte  ; goal delta (hi)
+    sta T3  ; goal delta (hi)
     .assert kJetMoveInterval = %110000, error
     lda Ram_MachineGoalVert_u8_arr, y
     .assert 9 * %10000 < $100, error
     mul #%10000  ; fits in one byte
-    sta Zp_Tmp3_byte
+    sta T2
     asl a
     .assert 9 * %100000 >= $100, error
-    rol Zp_Tmp4_byte  ; goal delta (hi)
-    adc Zp_Tmp3_byte  ; carry is already cleared
-    sta Zp_Tmp3_byte  ; goal delta (lo)
-    lda Zp_Tmp4_byte  ; goal delta (hi)
+    rol T3  ; goal delta (hi)
+    adc T2  ; carry is already cleared
+    sta T2  ; goal delta (lo)
+    lda T3  ; goal delta (hi)
     adc #0
-    sta Zp_Tmp4_byte  ; goal delta (hi)
+    sta T3  ; goal delta (hi)
     ;; Calculate the desired Y-position for the top edge of the jet, in
     ;; room-space pixels, storing it in Zp_PointY_i16.
     txa               ; max platform top (lo)
-    sub Zp_Tmp3_byte  ; goal delta (lo)
+    sub T2  ; goal delta (lo)
     sta Zp_PointY_i16 + 0
-    lda Zp_Tmp1_byte  ; max platform top (hi)
-    sbc Zp_Tmp4_byte  ; goal delta (hi)
+    lda T0  ; max platform top (hi)
+    sbc T3  ; goal delta (hi)
     sta Zp_PointY_i16 + 1
     ;; Determine the vertical speed of the jet (faster if resetting).
     ldx Ram_MachineStatus_eMachine_arr, y
@@ -146,7 +142,7 @@ kTileIdJetLowerMiddleFirst = kTileIdJetFirst + 1
     mul #2
     @slow:
     ;; Move the jet vertically, as necessary.
-    ldx Zp_Tmp2_byte  ; param: platform index
+    ldx T1  ; param: platform index
     jsr Func_MovePlatformTopTowardPointY  ; returns Z
     jeq FuncA_Machine_ReachedGoal
     rts
@@ -178,9 +174,9 @@ _LeftHalf:
     jsr FuncA_Objects_Alloc2x2Shape  ; preserves X, returns C and Y
     bcs @done
     ;; Set tile IDs.
-    stx Zp_Tmp1_byte  ; tile ID offset
-    jsr FuncA_Objects_GetMachineLightTileId  ; preserves Y and Zp_Tmp*, ret A
-    ldx Zp_Tmp1_byte  ; param: tile ID offset
+    stx T0  ; tile ID offset
+    jsr FuncA_Objects_GetMachineLightTileId  ; preserves Y and T0+, returns A
+    ldx T0  ; param: tile ID offset
     jsr FuncA_Objects_SetJetMachineTiles  ; preserves X and Y
     @done:
 _RightHalf:
@@ -206,14 +202,14 @@ _RightHalf:
 ;;; @preserve X, Y
 .PROC FuncA_Objects_SetJetMachineTiles
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Tile_u8, y
-    stx Zp_Tmp1_byte  ; tile ID offset
+    stx T0  ; tile ID offset
     lda #kTileIdJetLowerCornerFirst
-    add Zp_Tmp1_byte  ; tile ID offset
+    add T0  ; tile ID offset
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Tile_u8, y
     lda #kTileIdJetTopSurface
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Tile_u8, y
     lda #kTileIdJetLowerMiddleFirst
-    add Zp_Tmp1_byte  ; tile ID offset
+    add T0  ; tile ID offset
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Tile_u8, y
     rts
 .ENDPROC

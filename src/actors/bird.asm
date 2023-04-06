@@ -46,8 +46,6 @@
 .IMPORTZP Zp_AvatarPosX_i16
 .IMPORTZP Zp_AvatarPosY_i16
 .IMPORTZP Zp_AvatarVelY_i16
-.IMPORTZP Zp_Tmp1_byte
-.IMPORTZP Zp_Tmp2_byte
 
 ;;;=========================================================================;;;
 
@@ -149,15 +147,15 @@ _NotMoving:
     @cooldownIsZero:
 _GetHorzDist:
     ;; Calculate how far in front of the bird the player avatar is, storing
-    ;; that distance in Zp_Tmp1_byte.  If it's farther than this bird's limit,
-    ;; or the player avatar is behind the bird, we're done.
+    ;; that distance in T0.  If it's farther than this bird's limit, or the
+    ;; player avatar is behind the bird, we're done.
     lda Ram_ActorFlags_bObj_arr, x
     and #bObj::FlipH
     bne @facingLeft
     @facingRight:
     lda Zp_AvatarPosX_i16 + 0
     sub Ram_ActorPosX_i16_0_arr, x
-    sta Zp_Tmp1_byte  ; horz distance to avatar
+    sta T0  ; horz distance to avatar
     lda Zp_AvatarPosX_i16 + 1
     sbc Ram_ActorPosX_i16_1_arr, x
     bne _Done  ; avatar is either too far away or behind bird
@@ -165,24 +163,24 @@ _GetHorzDist:
     @facingLeft:
     lda Ram_ActorPosX_i16_0_arr, x
     sub Zp_AvatarPosX_i16 + 0
-    sta Zp_Tmp1_byte  ; horz distance to avatar
+    sta T0  ; horz distance to avatar
     lda Ram_ActorPosX_i16_1_arr, x
     sbc Zp_AvatarPosX_i16 + 1
     bne _Done  ; avatar is either too far away horizontally or behind bird
     @checkDist:
     lda Ram_ActorState1_byte_arr, x  ; max look-ahead
-    cmp Zp_Tmp1_byte  ; horz distance to avatar
+    cmp T0  ; horz distance to avatar
     blt _Done  ; avatar is too far away horizontally
     ;; Calculate approximately how many frames it would take the bird to reach
-    ;; the player avatar horizontally, storing that time in Zp_Tmp1_byte.
-    lda Zp_Tmp1_byte  ; param: dividend (horz distance to avatar)
+    ;; the player avatar horizontally, storing that time in T0.
+    lda T0  ; param: dividend (horz distance to avatar)
     ldy #>kBirdSpeed  ; param: divisor
     jsr Func_DivMod  ; preserves X, returns quotient in Y
-    sty Zp_Tmp1_byte  ; num frames horz
+    sty T0  ; num frames horz
 _GetVertDist:
     lda Ram_ActorPosY_i16_0_arr, x
     sub Zp_AvatarPosY_i16 + 0
-    sta Zp_Tmp2_byte  ; vert delta to avatar (signed)
+    sta T1  ; vert delta to avatar (signed)
     lda Ram_ActorPosY_i16_1_arr, x
     sbc Zp_AvatarPosY_i16 + 1
     beq _AvatarIsAbove
@@ -192,9 +190,9 @@ _AvatarIsBelow:
     ;; Negate the vertical distance byte to get an unsigned value.  This is
     ;; off-by-one, but it's close enough; if we incremented, then -256 would
     ;; wrap around to zero.
-    lda Zp_Tmp2_byte  ; vert delta to avatar (-256 to -1)
+    lda T1  ; vert delta to avatar (-256 to -1)
     eor #$ff
-    sta Zp_Tmp2_byte  ; approximate vert distance to avatar (0 to 255)
+    sta T1  ; approximate vert distance to avatar (0 to 255)
     ;; If the player avatar's Y-velocity is nonnegative (i.e. zero or moving
     ;; downward), we're done.
     lda Zp_AvatarVelY_i16 + 1
@@ -212,16 +210,16 @@ _AvatarIsAbove:
 _GetVertFrames:
     ;; Calculate approximately how many frames until the player avatar is at
     ;; the same height as the bird.
-    lda Zp_Tmp1_byte  ; num frames horz
+    lda T0  ; num frames horz
     pha  ; num frames horz
-    lda Zp_Tmp2_byte  ; param: dividend (vert distance, unsigned)
+    lda T1  ; param: dividend (vert distance, unsigned)
     jsr Func_DivMod  ; preserves X, returns quotient in Y
-    sty Zp_Tmp2_byte  ; num frames vert
+    sty T1  ; num frames vert
     pla  ; num frames horz
     ;; If it would take longer for the player avatar to reach the bird
     ;; vertically than it would take the bird to reach the avatar horizontally,
     ;; then the avatar is still too far away, and the bird shouldn't fly yet.
-    cmp Zp_Tmp2_byte  ; num frames vert
+    cmp T1  ; num frames vert
     blt _Done  ; avatar is too far away
 _StartFlying:
     ;; Set X-velocity for flying.

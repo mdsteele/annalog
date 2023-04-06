@@ -30,7 +30,6 @@
 .IMPORT Ram_DeviceAnim_u8_arr
 .IMPORT Ram_DeviceType_eDevice_arr
 .IMPORT Ram_Oam_sObj_arr64
-.IMPORTZP Zp_Tmp1_byte
 
 ;;;=========================================================================;;;
 
@@ -95,9 +94,9 @@ _PlaySound:
     .assert kBreakerDoneDeviceAnimStart = $1f, error
     lsr a
     and #$0c
-    sta Zp_Tmp1_byte
+    sta T0
     lda #kTileIdObjBreakerFirst + $0c
-    sub Zp_Tmp1_byte
+    sub T0
     tay  ; param: first tile ID
     lda #kTileHeightPx  ; param: vertical offset
     .assert * = FuncA_Objects_DrawBreakerDevice, error, "fallthrough"

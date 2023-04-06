@@ -60,12 +60,6 @@
 .IMPORTZP Zp_PpuScrollX_u8
 .IMPORTZP Zp_PpuScrollY_u8
 .IMPORTZP Zp_Render_bPpuMask
-.IMPORTZP Zp_Tmp1_byte
-.IMPORTZP Zp_Tmp2_byte
-.IMPORTZP Zp_Tmp3_byte
-.IMPORTZP Zp_Tmp4_byte
-.IMPORTZP Zp_Tmp5_byte
-.IMPORTZP Zp_Tmp_ptr
 
 ;;;=========================================================================;;;
 
@@ -227,14 +221,14 @@ _DrawCurrentAreaLabel:
     cpx #DataA_Pause_CurrentAreaLabel_u8_arr::kSize
     blt @loop
 _DrawCurrentAreaName:
-    ;; Copy the current room's AreaName_u8_arr_ptr into Zp_Tmp_ptr.
+    ;; Copy the current room's AreaName_u8_arr_ptr into T1T0.
     lda <(Zp_Current_sRoom + sRoom::Flags_bRoom)
     and #bRoom::AreaMask
     tay  ; eArea value
     lda DataA_Pause_AreaNames_u8_arr_ptr_0_arr, y
-    sta Zp_Tmp_ptr + 0
+    sta T0
     lda DataA_Pause_AreaNames_u8_arr_ptr_1_arr, y
-    sta Zp_Tmp_ptr + 1
+    sta T1
     ;; Draw the room's area name.
     ldy #0
     beq @start  ; unconditional
@@ -242,7 +236,7 @@ _DrawCurrentAreaName:
     sta Hw_PpuData_rw
     iny
     @start:
-    lda (Zp_Tmp_ptr), y
+    lda (T1T0), y
     bpl @loop
     @break:
 _FinishCurrentAreaLine:
@@ -258,12 +252,12 @@ _FinishCurrentAreaLine:
 _DrawMinimap:
     jsr _DrawBlankLine
     ldya #DataA_Pause_Minimap_u8_arr
-    stya Zp_Tmp_ptr
+    stya T1T0  ; param: start of minimap row data
     ldx #0
     stx Zp_MinimapMarkerOffset_u8
     @rowLoop:
-    jsr _DrawLineBreak  ; preserves X and Zp_Tmp_ptr
-    jsr FuncA_Pause_DirectDrawMinimapLine  ; preserves X, advances Zp_Tmp_ptr
+    jsr _DrawLineBreak  ; preserves X and T0+
+    jsr FuncA_Pause_DirectDrawMinimapLine  ; preserves X, advances T1T0
     inx
     cpx #kMinimapHeight
     bne @rowLoop
@@ -323,9 +317,9 @@ _DrawBlankLine:
 ;;; the borders, but including the margin on either side between the border and
 ;;; the minimap) directly to the PPU.
 ;;; @prereq Rendering is disabled.
-;;; @param Zp_Tmp_ptr The start of the minimap tile data row.
+;;; @param T1T0 The start of the minimap tile data row.
 ;;; @param X The minimap row (0-15).
-;;; @return Zp_Tmp_ptr The start of the next minimap tile data row.
+;;; @return T1T0 The start of the next minimap tile data row.
 ;;; @preserve X
 .PROC FuncA_Pause_DirectDrawMinimapLine
     ;; Draw left margin.
@@ -333,48 +327,47 @@ _DrawBlankLine:
     sta Hw_PpuData_rw
     sta Hw_PpuData_rw
     ;; Determine the bitmask we should use for this minimap row, and store it
-    ;; in Zp_Tmp1_byte.
+    ;; in T2.
     txa  ; minimap row
     and #$07
     tay
     lda Data_PowersOfTwo_u8_arr8, y
-    sta Zp_Tmp1_byte  ; mask
-    ;; Save X in Zp_Tmp2_byte so we can use X for something else and later
-    ;; restore it.
-    stx Zp_Tmp2_byte  ; minimap row
+    sta T2  ; mask
+    ;; Save X in T3 so we can use X for something else and later restore it.
+    stx T3  ; minimap row
     ;; We'll use X as the byte index into Sram_Minimap_u16_arr.  If we're in
     ;; the first eight rows, we'll be checking our bitmask against the low
     ;; eight bits of each u16; otherwise, we'll be checking against the high
     ;; eight bits.
     txa  ; minimap row
     ldx #0
-    stx Zp_Tmp3_byte  ; byte index into minimap tile data (from Zp_Tmp_ptr)
+    stx T4  ; byte index into minimap tile data (from pointer in T1T0)
     cmp #8
     blt @ready
     inx  ; now X is 1
     @ready:
 _ColLoop:
     ;; Determine the "original" tile ID for this cell of the minimap (without
-    ;; yet taking map markers into account), and store it in Zp_Tmp4_byte.
+    ;; yet taking map markers into account), and store it in T5.
     lda Sram_Minimap_u16_arr, x
-    and Zp_Tmp1_byte  ; mask
+    and T2  ; mask
     bne @explored
     @unexplored:
     lda #kTileIdBgMinimapUnexplored
     .assert kTileIdBgMinimapUnexplored > 0, error
     bne @setOriginalTile  ; unconditional
     @explored:
-    ldy Zp_Tmp3_byte  ; byte index into minimap tile data (from Zp_Tmp_ptr)
-    lda (Zp_Tmp_ptr), y
+    ldy T4  ; byte index into minimap tile data (from pointer in T1T0)
+    lda (T1T0), y
     @setOriginalTile:
-    sta Zp_Tmp4_byte  ; original minimap tile ID
+    sta T5  ; original minimap tile ID
 _MarkerLoop:
     ;; Check the minimap row number for the next map marker.  If it is greater
     ;; than the current row, then we haven't reached that marker yet, so just
     ;; draw the original minimap tile.  If it's less than the current row, then
     ;; skip this marker and check the next one.
     ldy Zp_MinimapMarkerOffset_u8
-    lda Zp_Tmp2_byte  ; minimap row
+    lda T3  ; minimap row
     cmp DataA_Pause_Minimap_sMarker_arr + sMarker::Row_u8, y
     blt _DrawOriginalTile
     bne @continue
@@ -386,11 +379,11 @@ _MarkerLoop:
     bne @continue
     ;; At this point, we need to save X so we can use it for Func_IsFlagSet and
     ;; then restore it later.
-    stx Zp_Tmp5_byte  ; byte index into Sram_Minimap_u16_arr
+    stx T6  ; byte index into Sram_Minimap_u16_arr
     ;; If this map marker's "Not" flag is set, then skip this marker and check
     ;; the next one.
     ldx DataA_Pause_Minimap_sMarker_arr + sMarker::Not_eFlag, y  ; param: flag
-    jsr Func_IsFlagSet  ; preserves Zp_Tmp_*
+    jsr Func_IsFlagSet  ; preserves T0+
     bne @restoreXAndContinue
     ;; Check this map marker's "If" flag; if it's zero, this is an item marker
     ;; (small dot), otherwise it's a quest marker (large dot).
@@ -401,53 +394,53 @@ _MarkerLoop:
     ;; the marker if not.  But if the flag is set, we can compute the new tile
     ;; ID to use and draw it.
     @questMarker:
-    jsr Func_IsFlagSet  ; preserves Zp_Tmp_*
+    jsr Func_IsFlagSet  ; preserves T0+
     beq @restoreXAndContinue
-    lda Zp_Tmp4_byte  ; original minimap tile ID
+    lda T5  ; original minimap tile ID
     sub #$80
     tay
     lda DataA_Pause_MinimapQuestMarkerTiles_u8_arr, y
-    ldx Zp_Tmp5_byte  ; byte index into Sram_Minimap_u16_arr
+    ldx T6  ; byte index into Sram_Minimap_u16_arr
     bpl _DrawTileA  ; unconditional
     ;; For item markers, we can just always draw the marker; if the original
     ;; tile ID for this minimap cell is unexplored, then that will just map
     ;; back to the unexplored tile.
     @itemMarker:
-    lda Zp_Tmp4_byte  ; original minimap tile ID
+    lda T5  ; original minimap tile ID
     sub #$80
     tay
     lda DataA_Pause_MinimapItemMarkerTiles_u8_arr, y
-    ldx Zp_Tmp5_byte  ; byte index into Sram_Minimap_u16_arr
+    ldx T6  ; byte index into Sram_Minimap_u16_arr
     bpl _DrawTileA  ; unconditional
     ;; If we had to skip this marker, then increment the byte offset into the
     ;; marker table and check the next marker.
     @restoreXAndContinue:
-    ldx Zp_Tmp5_byte  ; byte index into Sram_Minimap_u16_arr
+    ldx T6  ; byte index into Sram_Minimap_u16_arr
     @continue:
     lda Zp_MinimapMarkerOffset_u8
     add #.sizeof(sMarker)
     sta Zp_MinimapMarkerOffset_u8
     bne _MarkerLoop  ; unconditional
 _DrawOriginalTile:
-    lda Zp_Tmp4_byte  ; original minimap tile ID
+    lda T5  ; original minimap tile ID
 _DrawTileA:
     sta Hw_PpuData_rw
-    inc Zp_Tmp3_byte  ; byte index into minimap tile data (from Zp_Tmp_ptr)
+    inc T4  ; byte index into minimap tile data (from pointer in T1T0)
     ;; Increment byte index into Sram_Minimap_u16_arr.
     inx
     inx
     cpx #kMinimapWidth * 2
     blt _ColLoop
 _Finish:
-    ;; Advance Zp_Tmp_ptr.
-    lda Zp_Tmp_ptr + 0
-    add Zp_Tmp3_byte  ; byte index into minimap tile data (from Zp_Tmp_ptr)
-    sta Zp_Tmp_ptr + 0
-    lda Zp_Tmp_ptr + 1
+    ;; Advance T1T0 to point to the next minimap row.
+    lda T0
+    add T4  ; byte index into minimap tile data (from pointer in T1T0)
+    sta T0
+    lda T1
     adc #0
-    sta Zp_Tmp_ptr + 1
+    sta T1
     ;; Restore X (since this function needs to preserve it).
-    ldx Zp_Tmp2_byte  ; minimap row
+    ldx T3  ; minimap row
     ;; Draw right margin.
     lda #kWindowTileIdBlank
     sta Hw_PpuData_rw
@@ -461,27 +454,27 @@ _Finish:
 ;;; @param X The item line number (0-5).
 ;;; @preserve X
 .PROC FuncA_Pause_DirectDrawItemsLine
-    stx Zp_Tmp1_byte  ; line number (0-5)
+    stx T0  ; line number (0-5)
     lda #kWindowTileIdBlank
     sta Hw_PpuData_rw
     sta Hw_PpuData_rw
 .PROC _DrawUpgrades
     ;; Calculate the eFlag value for the first upgrade on this line, and store
     ;; it in X.
-    lda Zp_Tmp1_byte  ; line number (0-5)
+    lda T0  ; line number (0-5)
     div #2
-    sta Zp_Tmp2_byte  ; upgrade row (0-2)
+    sta T1  ; upgrade row (0-2)
     mul #4
-    adc Zp_Tmp2_byte  ; upgrade row (0-2), carry flag is already zero
+    adc T1  ; upgrade row (0-2), carry flag is already zero
     .assert kFirstUpgradeFlag > 0, error
     adc #kFirstUpgradeFlag
     tax  ; first upgrade eFlag
-    ;; Calculate the loop limit, and store it in Zp_Tmp2_byte.
+    ;; Calculate the loop limit, and store it in T1.
     add #5
-    sta Zp_Tmp2_byte  ; ending eFlag
+    sta T1  ; ending eFlag
     ;; Loop over each upgrade on this line.
     @loop:
-    jsr Func_IsFlagSet  ; preserves X and Zp_Tmp*, sets Z if flag X is not set
+    jsr Func_IsFlagSet  ; preserves X and T0+, sets Z if flag X is not set
     bne @drawUpgrade
     ;; The player doesn't have this upgrade yet, so draw some blank space.
     lda #kWindowTileIdBlank
@@ -493,7 +486,7 @@ _Finish:
     @drawUpgrade:
     ;; The player does have this upgrade.  Determine the first tile ID to draw
     ;; for this line of this upgrade.
-    lda Zp_Tmp1_byte  ; line number (0-5)
+    lda T0  ; line number (0-5)
     and #$01
     beq @top
     @bottom:
@@ -519,13 +512,13 @@ _Finish:
     @continue:
     ;; Continue to the next upgrade on this line.
     inx  ; upgrade eFlag
-    cpx Zp_Tmp2_byte  ; ending eFlag
+    cpx T1  ; ending eFlag
     blt @loop
     ;; At this point, A is still set to kWindowTileIdBlank.
     sta Hw_PpuData_rw
 .ENDPROC
 .PROC _DrawCircuits
-    lda Zp_Tmp1_byte  ; line number (0-5)
+    lda T0  ; line number (0-5)
     mul #8
     tax
     ldy #8
@@ -545,7 +538,7 @@ _Finish:
     sta Hw_PpuData_rw
     sta Hw_PpuData_rw
 .ENDPROC
-    ldx Zp_Tmp1_byte  ; restore X register (line number)
+    ldx T0  ; restore X register (line number)
     rts
 _CircuitTiles_u8_arr8_arr6:
     .byte "1", $e0, $00, $f0, $f6, $00, $e1, "6"
@@ -572,39 +565,39 @@ _CircuitBreakers_byte_arr8_arr6:
 
 ;;; Draws objects to mark the current area on the minimap.
 .PROC FuncA_Pause_DrawMinimapObjects
-    ;; Copy the current room's AreaCells_u8_arr2_arr_ptr into Zp_Tmp_ptr.
+    ;; Copy the current room's AreaCells_u8_arr2_arr_ptr into T1T0.
     lda <(Zp_Current_sRoom + sRoom::Flags_bRoom)
     and #bRoom::AreaMask
     tay  ; eArea value
     lda DataA_Pause_AreaCells_u8_arr2_arr_ptr_0_arr, y
-    sta Zp_Tmp_ptr + 0
+    sta T0
     lda DataA_Pause_AreaCells_u8_arr2_arr_ptr_1_arr, y
-    sta Zp_Tmp_ptr + 1
+    sta T1
     ;; Draw an object for each explored minimap cell in the array.
     ldy #0
     beq @continue  ; unconditional
     @loop:
-    ;; At this point, A holds the most recently read minimap row.  Store it in
-    ;; Zp_Tmp1_byte for later.
+    ;; At this point, A holds the most recently read minimap row number.  Store
+    ;; it in T2 for later.
     iny
-    sta Zp_Tmp1_byte  ; minimap row
-    ;; Determine the bitmask we should use for this minimap row, and store it
-    ;; in Zp_Tmp3_byte.
+    sta T2  ; minimap row number
+    ;; Determine the bitmask we should use for this minimap row number, and
+    ;; store it in T4.
     and #$07
     tax
     lda Data_PowersOfTwo_u8_arr8, x
-    sta Zp_Tmp3_byte  ; mask
-    ;; Read the minimap col and store it in Zp_Tmp2_byte for later.
-    lda (Zp_Tmp_ptr), y
+    sta T4  ; mask
+    ;; Read the minimap column number and store it in T3 for later.
+    lda (T1T0), y
     iny
-    sta Zp_Tmp2_byte  ; minimap col
+    sta T3  ; minimap col number
     ;; We'll use X as the byte index into Sram_Minimap_u16_arr.  If we're in
     ;; the first eight rows, we'll be checking our bitmask against the low
     ;; eight bits of each u16; otherwise, we'll be checking against the high
     ;; eight bits.
     mul #2
     tax
-    lda Zp_Tmp1_byte  ; minimap row
+    lda T2  ; minimap row number
     cmp #$08
     blt @loByte
     inx
@@ -612,13 +605,13 @@ _CircuitBreakers_byte_arr8_arr6:
     ;; Check if this minimap cell has been explored.  If not, don't draw an
     ;; object for this cell.
     lda Sram_Minimap_u16_arr, x
-    and Zp_Tmp3_byte  ; mask
+    and T4  ; mask
     beq @continue
     ;; If this minimap cell is the avatar's current position, blink its color.
-    lda Zp_Tmp1_byte  ; minimap row
+    lda T2  ; minimap row number
     cmp Zp_CameraMinimapRow_u8
     bne @noBlink
-    lda Zp_Tmp2_byte  ; minimap col
+    lda T3  ; minimap col number
     cmp Zp_CameraMinimapCol_u8
     bne @noBlink
     lda Zp_FrameCounter_u8
@@ -633,11 +626,11 @@ _CircuitBreakers_byte_arr8_arr6:
     ;; Draw an object for this minimap cell.
     ldx Zp_OamOffset_u8
     sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, x
-    lda Zp_Tmp1_byte  ; minimap row
+    lda T2  ; minimap row number
     mul #kTileHeightPx
     adc #kMinimapTopPx - 1
     sta Ram_Oam_sObj_arr64 + sObj::YPos_u8, x
-    lda Zp_Tmp2_byte  ; minimap col
+    lda T3  ; minimap col number
     mul #kTileWidthPx
     adc #kMinimapLeftPx
     sta Ram_Oam_sObj_arr64 + sObj::XPos_u8, x
@@ -647,9 +640,9 @@ _CircuitBreakers_byte_arr8_arr6:
     inx
     .endrepeat
     stx Zp_OamOffset_u8
-    ;; Read the minimap row (or $ff terminator) for the next iteration.
+    ;; Read the minimap row number (or $ff terminator) for the next iteration.
     @continue:
-    lda (Zp_Tmp_ptr), y
+    lda (T1T0), y
     bpl @loop
     rts
 .ENDPROC
@@ -659,7 +652,7 @@ _CircuitBreakers_byte_arr8_arr6:
     lda Zp_FrameCounter_u8
     div #4
     and #$03
-    sta Zp_Tmp1_byte  ; anim offset
+    sta T0  ; anim offset
     ldy Zp_OamOffset_u8
     ldx #14
     @loop:
@@ -673,7 +666,7 @@ _CircuitBreakers_byte_arr8_arr6:
     lda _CircuitFlags_bObj_arr, x
     sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
     lda _CircuitFirstTile_u8_arr, x
-    add Zp_Tmp1_byte  ; anim offset
+    add T0  ; anim offset
     sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
     .repeat .sizeof(sObj)
     iny
@@ -719,7 +712,7 @@ _CircuitFlags_bObj_arr:
     bne @noFlowerCount
     jsr Func_CountDeliveredFlowers  ; returns Z and A
     beq @noFlowerCount
-    sta Zp_Tmp1_byte  ; flower count
+    sta T0  ; flower count
     ;; Allocate objects to display the flower count.
     ldy Zp_OamOffset_u8
     tya
@@ -742,7 +735,7 @@ _CircuitFlags_bObj_arr:
     ;; Set object tile IDs.
     lda #kTileIdObjFlowerTop
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Tile_u8, y
-    lda Zp_Tmp1_byte  ; flower count
+    lda T0  ; flower count
     ora #$80 | '0'
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Tile_u8, y
     @noFlowerCount:

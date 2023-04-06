@@ -30,10 +30,6 @@
 .IMPORTZP Zp_Current_sMachine_ptr
 .IMPORTZP Zp_Current_sMenu_ptr
 .IMPORTZP Zp_MenuItem_u8
-.IMPORTZP Zp_Tmp1_byte
-.IMPORTZP Zp_Tmp2_byte
-.IMPORTZP Zp_Tmp3_byte
-.IMPORTZP Zp_Tmp4_byte
 
 ;;;=========================================================================;;;
 
@@ -149,32 +145,32 @@ _OnLeft:
     bne @setToA  ; unconditional
     @notAtZero:
     lda Ram_MenuRows_u8_arr, x
-    sta Zp_Tmp1_byte  ; current menu row
+    sta T0  ; current menu row
     lda Ram_MenuCols_u8_arr, x
-    sta Zp_Tmp2_byte  ; current menu col
+    sta T1  ; current menu col
     lda #0
-    sta Zp_Tmp3_byte  ; best new col so far
+    sta T2  ; best new col so far
     lda #$ff
-    sta Zp_Tmp4_byte  ; best new item so far
+    sta T3  ; best new item so far
     ;; Check all menu items, and find the rightmost possible one that is still
     ;; to the left of the current item and in the same row.
     ldx #kMaxMenuItems - 1
     @loop:
     lda Ram_MenuRows_u8_arr, x
-    cmp Zp_Tmp1_byte  ; current menu row
+    cmp T0  ; current menu row
     bne @continue
     lda Ram_MenuCols_u8_arr, x
-    cmp Zp_Tmp2_byte  ; current menu col
+    cmp T1  ; current menu col
     bge @continue
-    cmp Zp_Tmp3_byte  ; best new col so far
+    cmp T2  ; best new col so far
     blt @continue
-    sta Zp_Tmp3_byte  ; best new col so far
-    stx Zp_Tmp4_byte  ; best new item so far
+    sta T2  ; best new col so far
+    stx T3  ; best new item so far
     @continue:
     dex
     bpl @loop
     ;; If we found any such item, set it as the new selected item.
-    lda Zp_Tmp4_byte  ; best new item so far
+    lda T3  ; best new item so far
     bmi @doNotSet
     @setToA:
     sta Zp_MenuItem_u8
@@ -187,31 +183,31 @@ _OnRight:
     bne @setToA  ; unconditional
     @notAtZero:
     lda Ram_MenuRows_u8_arr, x
-    sta Zp_Tmp1_byte  ; current menu row
+    sta T0  ; current menu row
     lda Ram_MenuCols_u8_arr, x
-    sta Zp_Tmp2_byte  ; current menu col
+    sta T1  ; current menu col
     lda #$ff
-    sta Zp_Tmp3_byte  ; best new col so far
-    sta Zp_Tmp4_byte  ; best new item so far
+    sta T2  ; best new col so far
+    sta T3  ; best new item so far
     ;; Check all menu items, and find the leftmost possible one that is still
     ;; to the right of the current item and in the same row.
     ldx #kMaxMenuItems - 1
     @loop:
     lda Ram_MenuRows_u8_arr, x
-    cmp Zp_Tmp1_byte  ; current menu row
+    cmp T0  ; current menu row
     bne @continue
     lda Ram_MenuCols_u8_arr, x
-    cmp Zp_Tmp2_byte  ; current menu col
+    cmp T1  ; current menu col
     ble @continue
-    cmp Zp_Tmp3_byte  ; best new col so far
+    cmp T2  ; best new col so far
     bge @continue
-    sta Zp_Tmp3_byte  ; best new col so far
-    stx Zp_Tmp4_byte  ; best new item so far
+    sta T2  ; best new col so far
+    stx T3  ; best new item so far
     @continue:
     dex
     bpl @loop
     ;; If we found any such item, set it as the new selected item.
-    lda Zp_Tmp4_byte  ; best new item so far
+    lda T3  ; best new item so far
     bmi @doNotSet
     @setToA:
     sta Zp_MenuItem_u8
@@ -235,7 +231,7 @@ _SetColumnsForAllMenuItems:
 _DisableMenuItemsForReadOnlyRegisters:
     ldy #sMachine::Flags_bMachine
     lda (Zp_Current_sMachine_ptr), y
-    sta Zp_Tmp1_byte  ; machine flags
+    sta T0  ; machine flags
     lda #$ff
     sta Ram_MenuRows_u8_arr + $b  ; the B register is always read-only
     .assert bMachine::WriteF = $01, error
@@ -244,7 +240,7 @@ _DisableMenuItemsForReadOnlyRegisters:
     .assert bMachine::WriteC = $08, error
     ldx #$f
     @loop:
-    lsr Zp_Tmp1_byte
+    lsr T0
     bcs @continue
     sta Ram_MenuRows_u8_arr, x
     @continue:
@@ -271,7 +267,7 @@ _SetColumnsForAllMenuItems:
 _SetRowsForImmediateValues:
     lda Zp_ConsoleNumInstRows_u8
     sub #4
-    lsr a
+    div #2
     tax
     stx Ram_MenuRows_u8_arr + 0
     inx
@@ -299,17 +295,17 @@ _Columns_u8_arr:
 _SetRowsForRegisters:
     lda Zp_ConsoleNumInstRows_u8
     sub #4
-    lsr a
-    sta Zp_Tmp1_byte  ; starting row
+    div #2
+    sta T0  ; starting row
     ldy #$f
     ldx #5
     @loop:
     lda Ram_ConsoleRegNames_u8_arr6, x
     beq @continue
     txa
-    lsr a
+    div #2
     sec
-    adc Zp_Tmp1_byte  ; starting row
+    adc T0  ; starting row
     sta Ram_MenuRows_u8_arr, y
     @continue:
     dey

@@ -40,7 +40,6 @@
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORTZP Zp_AvatarPosX_i16
 .IMPORTZP Zp_FrameCounter_u8
-.IMPORTZP Zp_Tmp1_byte
 
 ;;;=========================================================================;;;
 
@@ -115,10 +114,10 @@ kPaletteObjMermaidQueenHead = 1
 .PROC FuncA_Objects_DrawActorNpcMermaid
     jsr FuncA_Objects_SetShapePosToActorCenter  ; preserves X
     ;; Adjust vertical position (to make the mermaid bob in the water).
-    stx Zp_Tmp1_byte  ; actor index
+    stx T0  ; actor index
     lda Zp_FrameCounter_u8
     div #8
-    add Zp_Tmp1_byte  ; actor index
+    add T0  ; actor index
     and #$07
     tay
     lda _VertOffset_u8_arr8, y  ; param: offset
@@ -166,7 +165,7 @@ _BottomHalf:
     ;; Otherwise, only use the bObj::Pri bit from ActorFlags; ignore the flip
     ;; flags and make the actor face towards the avatar.
     and #bObj::Pri
-    sta Zp_Tmp1_byte  ; bObj::Pri bit
+    sta T0  ; bObj::Pri bit
     lda Zp_AvatarPosX_i16 + 0
     cmp Ram_ActorPosX_i16_0_arr, x
     lda Zp_AvatarPosX_i16 + 1
@@ -177,10 +176,10 @@ _BottomHalf:
     bpl @faceRight
     @faceLeft:
     lda #bObj::FlipH
-    ora Zp_Tmp1_byte  ; bObj::Pri bit
+    ora T0  ; bObj::Pri bit
     rts
     @faceRight:
-    lda Zp_Tmp1_byte  ; bObj::Pri bit
+    lda T0  ; bObj::Pri bit
     @return:
     rts
 .ENDPROC
@@ -189,32 +188,27 @@ _BottomHalf:
 ;;; subsequent tile IDs.
 ;;; @prereq The shape position has been initialized.
 ;;; @param A The first tile ID.
-;;; @param Y The OBJ palette to use when drawing the actor.
+;;; @param Y The object flags to use.
 ;;; @preserve X
 .PROC FuncA_Objects_Draw2x3TownsfolkShape
-    pha  ; first tile ID
+    sta T2  ; first tile ID
+    sty T3  ; object flags
 _BottomThird:
     tya  ; param: object flags
-    pha  ; object flags
-    jsr FuncA_Objects_Alloc2x1Shape  ; preserves X, returns C and Y
+    jsr FuncA_Objects_Alloc2x1Shape  ; preserves X and T2+, returns C and Y
     bcs @doneBottom
-    pla  ; object flags
-    sta Zp_Tmp1_byte  ; object flags
-    pla  ; first tile ID
-    pha  ; first tile ID
+    lda T2  ; first tile ID
     adc #2  ; carry flag is already clear
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Tile_u8, y
     adc #3
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Tile_u8, y
-    lda Zp_Tmp1_byte  ; object flags
-    pha  ; object flags
     @doneBottom:
 _TopTwoThirds:
-    jsr FuncA_Objects_MoveShapeUpOneTile
-    pla  ; param: object flags
-    jsr FuncA_Objects_Alloc2x2Shape  ; preserves X, returns C and Y
-    pla  ; first tile ID
+    jsr FuncA_Objects_MoveShapeUpOneTile  ; preserves X and T0+
+    lda T3  ; param: object flags
+    jsr FuncA_Objects_Alloc2x2Shape  ; preserves X and T2+, returns C and Y
     bcs @doneTop
+    lda T2  ; first tile ID
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Tile_u8, y
     adc #1  ; carry flag is already clear
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Tile_u8, y

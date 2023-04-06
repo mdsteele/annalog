@@ -33,7 +33,6 @@
 .IMPORT Ram_DeviceTarget_u8_arr
 .IMPORT Ram_DeviceType_eDevice_arr
 .IMPORT Sram_CarryingFlower_eFlag
-.IMPORTZP Zp_Tmp1_byte
 
 ;;;=========================================================================;;;
 
@@ -76,11 +75,11 @@ kFlowerAnimCountdown = 48
     cmp Sram_CarryingFlower_eFlag
     beq @remove
     ;; If the flower has already been delivered, remove the device.
-    stx Zp_Tmp1_byte  ; device index
+    stx T0  ; device index
     tax  ; param: eFlag value
-    jsr Func_IsFlagSet  ; preserves Zp_Tmp*, clears Z if flag is set
+    jsr Func_IsFlagSet  ; preserves T0+, clears Z if flag is set
     beq @done
-    ldx Zp_Tmp1_byte  ; device index
+    ldx T0  ; device index
     ;; Remove the device.
     @remove:
     lda #eDevice::Placeholder
@@ -105,11 +104,11 @@ kFlowerAnimCountdown = 48
     cmp Sram_CarryingFlower_eFlag
     beq @done
     ;; If the flower has already been delivered, don't respawn it.
-    stx Zp_Tmp1_byte  ; device index
+    stx T0  ; device index
     tax  ; param: eFlag value
-    jsr Func_IsFlagSet  ; preserves Zp_Tmp*, clears Z if flag is set
+    jsr Func_IsFlagSet  ; preserves T0+, clears Z if flag is set
     bne @done
-    ldx Zp_Tmp1_byte  ; device index
+    ldx T0  ; device index
     ;; Respawn the flower.
     lda #eDevice::Flower
     sta Ram_DeviceType_eDevice_arr, x

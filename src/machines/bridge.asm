@@ -47,8 +47,6 @@
 .IMPORTZP Zp_MachineIndex_u8
 .IMPORTZP Zp_PointX_i16
 .IMPORTZP Zp_PointY_i16
-.IMPORTZP Zp_Tmp1_byte
-.IMPORTZP Zp_Tmp2_byte
 
 ;;;=========================================================================;;;
 
@@ -112,8 +110,8 @@ kPaletteObjBridgeSegment = 0
 ;;; @param X The platform index for the last movable segment.
 .EXPORT FuncA_Machine_BridgeTick
 .PROC FuncA_Machine_BridgeTick
-    sta Zp_Tmp1_byte  ; pivot platform index
-    stx Zp_Tmp2_byte  ; last platform index
+    sta T0  ; pivot platform index
+    stx T1  ; last platform index
     ldx Zp_MachineIndex_u8
     lda Ram_MachineGoalVert_u8_arr, x
     beq _MoveDown
@@ -138,8 +136,8 @@ _SetAngle:
     tya
     sta Ram_MachineParam1_u8_arr, x
 _RepositionSegments:
-    ldx Zp_Tmp1_byte  ; pivot platform index
-    lda Zp_Tmp2_byte  ; last platform index
+    ldx T0  ; pivot platform index
+    lda T1  ; last platform index
     pha  ; last platform index
     ;; Loop through each consequtive pair of bridge segments, starting with the
     ;; fixed pivot segment and the first movable segment.
@@ -162,10 +160,10 @@ _RepositionSegments:
     ldy Zp_MachineIndex_u8
     lda #kBridgeMaxAngle
     sub Ram_MachineParam1_u8_arr, y
-    sta Zp_Tmp1_byte  ; angle index
+    sta T0  ; angle index
     ldy #sMachine::Flags_bMachine
     lda (Zp_Current_sMachine_ptr), y
-    ldy Zp_Tmp1_byte  ; angle index
+    ldy T0  ; angle index
     and #bMachine::FlipH
     beq @facingRight
     @facingLeft:
@@ -189,9 +187,9 @@ _RepositionSegments:
     jsr Func_MovePlatformLeftTowardPointX  ; preserves X
     ;; Continue to the next pair of segments.
     pla  ; last platform index
-    sta Zp_Tmp1_byte  ; last platform index
+    sta T0  ; last platform index
     pha  ; last platform index
-    cpx Zp_Tmp1_byte  ; last platform index
+    cpx T0  ; last platform index
     blt @loop
     pla  ; last platform index
     rts
@@ -223,9 +221,9 @@ _SegmentLoop:
     sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
     @continue:
     pla  ; pivot platform index
-    sta Zp_Tmp1_byte  ; pivot platform index
+    sta T0  ; pivot platform index
     dex
-    cpx Zp_Tmp1_byte  ; pivot platform index
+    cpx T0  ; pivot platform index
     bne _SegmentLoop
 _MainMachine:
     tax  ; param: platform index

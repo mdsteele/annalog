@@ -36,9 +36,6 @@
 .IMPORTZP Zp_MachineIndex_u8
 .IMPORTZP Zp_PointX_i16
 .IMPORTZP Zp_PointY_i16
-.IMPORTZP Zp_Tmp1_byte
-.IMPORTZP Zp_Tmp2_byte
-.IMPORTZP Zp_Tmp3_byte
 
 ;;;=========================================================================;;;
 
@@ -58,13 +55,13 @@ kTileIdObjMachineLightOn  = $3f
 ;;; @param X The eDir value for the direction to move in (up or down).
 .EXPORT FuncA_Machine_GenericTryMoveX
 .PROC FuncA_Machine_GenericTryMoveX
-    sta Zp_Tmp1_byte  ; max goal horz
+    sta T0  ; max goal horz
     ldy Zp_MachineIndex_u8
     lda Ram_MachineGoalHorz_u8_arr, y
     cpx #eDir::Right
     bne @moveLeft
     @moveRight:
-    cmp Zp_Tmp1_byte  ; max goal horz
+    cmp T0  ; max goal horz
     bge @error
     tax
     inx
@@ -89,13 +86,13 @@ kTileIdObjMachineLightOn  = $3f
 ;;; @param X The eDir value for the direction to move in (up or down).
 .EXPORT FuncA_Machine_GenericTryMoveY
 .PROC FuncA_Machine_GenericTryMoveY
-    sta Zp_Tmp1_byte  ; max goal vert
+    sta T0  ; max goal vert
     ldy Zp_MachineIndex_u8
     lda Ram_MachineGoalVert_u8_arr, y
     cpx #eDir::Up
     bne @moveDown
     @moveUp:
-    cmp Zp_Tmp1_byte  ; max goal vert
+    cmp T0  ; max goal vert
     bge @error
     add #1
     bne @success  ; unconditional
@@ -119,13 +116,13 @@ kTileIdObjMachineLightOn  = $3f
 ;;; @param X The eDir value for the direction to move in (up or down).
 .EXPORT FuncA_Machine_GenericTryMoveZ
 .PROC FuncA_Machine_GenericTryMoveZ
-    sta Zp_Tmp1_byte  ; max goal vert
+    sta T0  ; max goal vert
     ldy Zp_MachineIndex_u8
     lda Ram_MachineGoalVert_u8_arr, y
     cpx #eDir::Up
     beq @moveUp
     @moveDown:
-    cmp Zp_Tmp1_byte  ; max goal vert
+    cmp T0  ; max goal vert
     bge @error
     add #1
     bne @success  ; unconditional
@@ -149,21 +146,21 @@ kTileIdObjMachineLightOn  = $3f
 ;;; @return Z Cleared if the platform moved, set if it didn't.
 .EXPORT FuncA_Machine_GenericMoveTowardGoalHorz
 .PROC FuncA_Machine_GenericMoveTowardGoalHorz
-    sta Zp_Tmp1_byte  ; min platform left (hi)
+    sta T0  ; min platform left (hi)
     ;; Get the machine's platform index.
     ldy #sMachine::MainPlatform_u8
     lda (Zp_Current_sMachine_ptr), y
-    sta Zp_Tmp2_byte  ; platform index
+    sta T1  ; platform index
     ;; Calculate the desired X-position for the left edge of the machine, in
     ;; room-space pixels, storing it in Zp_PointX_i16.
     ldy Zp_MachineIndex_u8
     lda Ram_MachineGoalHorz_u8_arr, y
     mul #kBlockHeightPx
-    sta Zp_Tmp3_byte  ; goal delta
-    txa               ; max platform top (lo)
-    add Zp_Tmp3_byte  ; goal delta
+    sta T2  ; goal delta
+    txa     ; max platform left (lo)
+    add T2  ; goal delta
     sta Zp_PointX_i16 + 0
-    lda Zp_Tmp1_byte  ; max platform top (hi)
+    lda T0  ; max platform left (hi)
     adc #0
     sta Zp_PointX_i16 + 1
     ;; Determine the horizontal speed of the machine (faster if resetting).
@@ -174,7 +171,7 @@ kTileIdObjMachineLightOn  = $3f
     mul #2
     @slow:
     ;; Move the machine horizontally, as necessary.
-    ldx Zp_Tmp2_byte  ; param: platform index
+    ldx T1  ; param: platform index
     jmp Func_MovePlatformLeftTowardPointX  ; returns Z, N, and A
 .ENDPROC
 
@@ -186,21 +183,21 @@ kTileIdObjMachineLightOn  = $3f
 ;;; @return Z Cleared if the platform moved, set if it didn't.
 .EXPORT FuncA_Machine_GenericMoveTowardGoalVert
 .PROC FuncA_Machine_GenericMoveTowardGoalVert
-    sta Zp_Tmp1_byte  ; max platform top (hi)
+    sta T0  ; max platform top (hi)
     ;; Get the machine's platform index.
     ldy #sMachine::MainPlatform_u8
     lda (Zp_Current_sMachine_ptr), y
-    sta Zp_Tmp2_byte  ; platform index
+    sta T1  ; platform index
     ;; Calculate the desired Y-position for the top edge of the machine, in
     ;; room-space pixels, storing it in Zp_PointY_i16.
     ldy Zp_MachineIndex_u8
     lda Ram_MachineGoalVert_u8_arr, y
     mul #kBlockHeightPx
-    sta Zp_Tmp3_byte  ; goal delta
-    txa               ; max platform top (lo)
-    sub Zp_Tmp3_byte  ; goal delta
+    sta T2  ; goal delta
+    txa     ; max platform top (lo)
+    sub T2  ; goal delta
     sta Zp_PointY_i16 + 0
-    lda Zp_Tmp1_byte  ; max platform top (hi)
+    lda T0  ; max platform top (hi)
     sbc #0
     sta Zp_PointY_i16 + 1
     ;; Determine the vertical speed of the machine (faster if resetting).
@@ -211,7 +208,7 @@ kTileIdObjMachineLightOn  = $3f
     mul #2
     @slow:
     ;; Move the machine vertically, as necessary.
-    ldx Zp_Tmp2_byte  ; param: platform index
+    ldx T1  ; param: platform index
     jmp Func_MovePlatformTopTowardPointY  ; returns Z, N, and A
 .ENDPROC
 
@@ -222,7 +219,7 @@ kTileIdObjMachineLightOn  = $3f
 ;;; Returns the tile ID to use for the status light on the current machine.
 ;;; @prereq Zp_MachineIndex_u8 is initialized.
 ;;; @return A The tile ID to use.
-;;; @preserve Y, Zp_Tmp*
+;;; @preserve Y, T0+
 .EXPORT FuncA_Objects_GetMachineLightTileId
 .PROC FuncA_Objects_GetMachineLightTileId
     ldx Zp_MachineIndex_u8
@@ -247,13 +244,13 @@ kTileIdObjMachineLightOn  = $3f
 ;;; Populates Zp_ShapePosX_i16 and Zp_ShapePosY_i16 with the screen position of
 ;;; the top-left corner of the current machine's primary platform.
 ;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
-;;; @preserve Zp_Tmp*
+;;; @preserve T0+
 .EXPORT FuncA_Objects_SetShapePosToMachineTopLeft
 .PROC FuncA_Objects_SetShapePosToMachineTopLeft
     ldy #sMachine::MainPlatform_u8
     lda (Zp_Current_sMachine_ptr), y
     tax  ; param: platform index
-    jmp FuncA_Objects_SetShapePosToPlatformTopLeft  ; preserves Zp_Tmp*
+    jmp FuncA_Objects_SetShapePosToPlatformTopLeft  ; preserves T0+
 .ENDPROC
 
 ;;;=========================================================================;;;

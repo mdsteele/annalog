@@ -30,7 +30,6 @@
 .IMPORTZP Zp_Current_sMachine_ptr
 .IMPORTZP Zp_Current_sMenu_ptr
 .IMPORTZP Zp_MenuItem_u8
-.IMPORTZP Zp_Tmp1_byte
 
 ;;;=========================================================================;;;
 
@@ -93,22 +92,23 @@ _SetItem:
 .PROC FuncA_Console_SetUpDirectionMenu
     ldax #DataA_Console_Direction_sMenu
     stax Zp_Current_sMenu_ptr
-    ;; Store the starting row in Zp_Tmp1_byte.
+    ;; Store the starting row in T0.
     lda Zp_ConsoleNumInstRows_u8
     sub #3
     lsr a
-    sta Zp_Tmp1_byte
+    sta T0  ; starting row
     ;; Check if this machine supports moving vertically.
     ldy #sMachine::Flags_bMachine
     lda (Zp_Current_sMachine_ptr), y
-    tay
+    tay  ; machine flags
     and #bMachine::MoveV
     beq @noMoveVert
     ;; If so, position menu items for up/down.
-    lda Zp_Tmp1_byte
-    sta Ram_MenuRows_u8_arr + eDir::Up
-    add #2
-    sta Ram_MenuRows_u8_arr + eDir::Down
+    ldx T0  ; starting row
+    stx Ram_MenuRows_u8_arr + eDir::Up
+    inx
+    inx
+    stx Ram_MenuRows_u8_arr + eDir::Down
     lda #3
     sta Ram_MenuCols_u8_arr + eDir::Up
     sta Ram_MenuCols_u8_arr + eDir::Down
@@ -118,7 +118,7 @@ _SetItem:
     and #bMachine::MoveH
     beq @noMoveHorz
     ;; If so, position menu items for left/right.
-    ldx Zp_Tmp1_byte
+    ldx T0  ; starting row
     inx
     stx Ram_MenuRows_u8_arr + eDir::Left
     stx Ram_MenuRows_u8_arr + eDir::Right

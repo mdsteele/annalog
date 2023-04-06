@@ -30,10 +30,6 @@
 .IMPORTZP Zp_PointX_i16
 .IMPORTZP Zp_PointY_i16
 .IMPORTZP Zp_PpuTransferLen_u8
-.IMPORTZP Zp_Tmp1_byte
-.IMPORTZP Zp_Tmp2_byte
-.IMPORTZP Zp_Tmp3_byte
-.IMPORTZP Zp_Tmp_ptr
 
 ;;;=========================================================================;;;
 
@@ -60,7 +56,7 @@ Zp_NametableColumnIndex_u8: .res 1
 ;;; and within the bounds of the room terrain.
 ;;; @return A The terrain type at the point.
 ;;; @return C Set if the terrain is solid, cleared otherwise.
-;;; @preserve X, Zp_Tmp*
+;;; @preserve X, T0+
 .EXPORT Func_PointHitsTerrain
 .PROC Func_PointHitsTerrain
     lda Zp_PointY_i16 + 1
@@ -72,7 +68,7 @@ Zp_NametableColumnIndex_u8: .res 1
     ror a
     .endrepeat
     tay  ; room block row index
-    jsr Func_GetTerrainColumnPtrForPointX  ; preserves X, Y, and Zp_Tmp*
+    jsr Func_GetTerrainColumnPtrForPointX  ; preserves X, Y, and T0+
     lda (Zp_TerrainColumn_u8_arr_ptr), y
     cmp #kFirstSolidTerrainType
     rts
@@ -82,7 +78,7 @@ Zp_NametableColumnIndex_u8: .res 1
 ;;; terrain block column in the current room that contains the room pixel
 ;;; X-position stored in Zp_PointX_i16.  It is assumed that Zp_PointX_i16 is
 ;;; nonnegative and within the bounds of the room terrain.
-;;; @preserve X, Y, Zp_Tmp*
+;;; @preserve X, Y, T0+
 .EXPORT Func_GetTerrainColumnPtrForPointX
 .PROC Func_GetTerrainColumnPtrForPointX
     bit <(Zp_Current_sRoom + sRoom::Flags_bRoom)
@@ -110,7 +106,7 @@ _TallRoom:
     .assert kTallRoomHeightBlocks = 24, error
     ;; We start by dividing the hi byte of Zp_PointX_i16 in half, and using
     ;; Zp_TerrainColumn_u8_arr_ptr + 1 as a temporary variable to store it (so
-    ;; we can preserve Zp_Tmp*).
+    ;; we can preserve T0+).
     lda Zp_PointX_i16 + 1   ; effectively block row * 16 (hi)
     lsr a  ; sets up C
     sta Zp_TerrainColumn_u8_arr_ptr + 1  ; block row * 8 (hi)
@@ -145,7 +141,7 @@ _TallRoom:
 ;;; terrain block column in the current room that contains the specified room
 ;;; tile column.
 ;;; @param A The index of the room tile column.
-;;; @preserve Zp_Tmp*
+;;; @preserve T0+
 .EXPORT Func_GetTerrainColumnPtrForTileIndex
 .PROC Func_GetTerrainColumnPtrForTileIndex
     and #$fe
@@ -200,43 +196,43 @@ _SetPtr:
 ;;; @param A The tile column index for the left side of the screen.
 .EXPORT FuncA_Terrain_FillNametables
 .PROC FuncA_Terrain_FillNametables
-    sta Zp_Tmp1_byte  ; current room tile column index
+    sta T0  ; current room tile column index
     add #kScreenWidthTiles - 1
-    sta Zp_Tmp2_byte  ; final room tile column index
+    sta T1  ; final room tile column index
     bit Hw_PpuStatus_ro  ; reset the Hw_PpuAddr_w2 write-twice latch
     ldx #kPpuCtrlFlagsVert
     stx Hw_PpuCtrl_wo
 _TileColumnLoop:
-    lda Zp_Tmp1_byte  ; param: room tile column index
-    jsr Func_GetTerrainColumnPtrForTileIndex  ; preserves Zp_Tmp*_byte
+    lda T0  ; param: room tile column index
+    jsr Func_GetTerrainColumnPtrForTileIndex  ; preserves T0+
     ldy #0  ; room block row index
-    lda Zp_Tmp1_byte  ; room tile column index
+    lda T0  ; room tile column index
     and #$01
     bne _RightSide
 .PROC _LeftSide
     ;; Fill in the top screen's worth of tiles.
     ldx #>Ppu_Nametable0_sName
     .assert <Ppu_Nametable0_sName = 0, error
-    lda Zp_Tmp1_byte  ; room tile column index
+    lda T0  ; room tile column index
     and #$1f
     stx Hw_PpuAddr_w2
     sta Hw_PpuAddr_w2
     @tileLoop:
     lda (Zp_TerrainColumn_u8_arr_ptr), y
-    sty Zp_Tmp3_byte  ; room block row index
+    sty T2  ; room block row index
     tay  ; terrain block type
     lda (Zp_Current_sTileset + sTileset::UpperLeft_u8_arr_ptr), y
     sta Hw_PpuData_rw
     lda (Zp_Current_sTileset + sTileset::LowerLeft_u8_arr_ptr), y
     sta Hw_PpuData_rw
-    ldy Zp_Tmp3_byte  ; room block row index
+    ldy T2  ; room block row index
     iny
     cpy #kScreenHeightBlocks
     bne @tileLoop
     ;; Prepare to fill in the bottom screen's worth of tiles.
     ldx #>Ppu_Nametable3_sName
     .assert <Ppu_Nametable3_sName = 0, error
-    lda Zp_Tmp1_byte  ; room tile column index
+    lda T0  ; room tile column index
     and #$1f
     stx Hw_PpuAddr_w2
     sta Hw_PpuAddr_w2
@@ -247,13 +243,13 @@ _TileColumnLoop:
 _TallRoom:
     @tileLoop:
     lda (Zp_TerrainColumn_u8_arr_ptr), y
-    sty Zp_Tmp3_byte  ; room block row index
+    sty T2  ; room block row index
     tay  ; terrain block type
     lda (Zp_Current_sTileset + sTileset::UpperLeft_u8_arr_ptr), y
     sta Hw_PpuData_rw
     lda (Zp_Current_sTileset + sTileset::LowerLeft_u8_arr_ptr), y
     sta Hw_PpuData_rw
-    ldy Zp_Tmp3_byte  ; room block row index
+    ldy T2  ; room block row index
     iny
     cpy #kTallRoomHeightBlocks
     bne @tileLoop
@@ -263,26 +259,26 @@ _TallRoom:
     ;; Fill in the top screen's worth of tiles.
     ldx #>Ppu_Nametable0_sName
     .assert <Ppu_Nametable0_sName = 0, error
-    lda Zp_Tmp1_byte  ; room tile column index
+    lda T0  ; room tile column index
     and #$1f
     stx Hw_PpuAddr_w2
     sta Hw_PpuAddr_w2
     @tileLoop:
     lda (Zp_TerrainColumn_u8_arr_ptr), y
-    sty Zp_Tmp3_byte  ; room block row index
+    sty T2  ; room block row index
     tay  ; terrain block type
     lda (Zp_Current_sTileset + sTileset::UpperRight_u8_arr_ptr), y
     sta Hw_PpuData_rw
     lda (Zp_Current_sTileset + sTileset::LowerRight_u8_arr_ptr), y
     sta Hw_PpuData_rw
-    ldy Zp_Tmp3_byte  ; room block row index
+    ldy T2  ; room block row index
     iny
     cpy #kScreenHeightBlocks
     bne @tileLoop
     ;; Prepare to fill in the bottom screen's worth of tiles.
     ldx #>Ppu_Nametable3_sName
     .assert <Ppu_Nametable3_sName = 0, error
-    lda Zp_Tmp1_byte  ; room tile column index
+    lda T0  ; room tile column index
     and #$1f
     stx Hw_PpuAddr_w2
     sta Hw_PpuAddr_w2
@@ -293,13 +289,13 @@ _TallRoom:
 _TallRoom:
     @tileLoop:
     lda (Zp_TerrainColumn_u8_arr_ptr), y
-    sty Zp_Tmp3_byte  ; room block row index
+    sty T2  ; room block row index
     tay  ; terrain block type
     lda (Zp_Current_sTileset + sTileset::UpperRight_u8_arr_ptr), y
     sta Hw_PpuData_rw
     lda (Zp_Current_sTileset + sTileset::LowerRight_u8_arr_ptr), y
     sta Hw_PpuData_rw
-    ldy Zp_Tmp3_byte  ; room block row index
+    ldy T2  ; room block row index
     iny
     cpy #kTallRoomHeightBlocks
     bne @tileLoop
@@ -314,10 +310,10 @@ _ShortRoom:
     cpy #kTallRoomHeightBlocks
     bne @tileLoop
 _Continue:
-    lda Zp_Tmp1_byte  ; current room tile column index
-    cmp Zp_Tmp2_byte  ; final room tile column index
+    lda T0  ; current room tile column index
+    cmp T1  ; final room tile column index
     beq _Done
-    inc Zp_Tmp1_byte  ; current room tile column index
+    inc T0  ; current room tile column index
     jmp _TileColumnLoop
 _Done:
     rts
@@ -395,12 +391,12 @@ _Return:
 ;;; @param X PPU transfer array index for start of the entry's data.
 ;;; @param Y Starting block row index.
 .PROC FuncA_Terrain_TransferTileColumnData
-    sty Zp_Tmp1_byte  ; block row index
+    sty T0  ; block row index
     lda Zp_NametableColumnIndex_u8
     and #$01
     bne _Right
 _Left:
-    ldy Zp_Tmp1_byte  ; block row index
+    ldy T0  ; block row index
     lda (Zp_TerrainColumn_u8_arr_ptr), y
     tay  ; terrain block type
     lda (Zp_Current_sTileset + sTileset::UpperLeft_u8_arr_ptr), y
@@ -409,12 +405,12 @@ _Left:
     lda (Zp_Current_sTileset + sTileset::LowerLeft_u8_arr_ptr), y
     sta Ram_PpuTransfer_arr, x
     inx
-    inc Zp_Tmp1_byte  ; block row index
+    inc T0  ; block row index
     cpx Zp_PpuTransferLen_u8
     bne _Left
     rts
 _Right:
-    ldy Zp_Tmp1_byte  ; block row index
+    ldy T0  ; block row index
     lda (Zp_TerrainColumn_u8_arr_ptr), y
     tay  ; terrain block type
     lda (Zp_Current_sTileset + sTileset::UpperRight_u8_arr_ptr), y
@@ -423,7 +419,7 @@ _Right:
     lda (Zp_Current_sTileset + sTileset::LowerRight_u8_arr_ptr), y
     sta Ram_PpuTransfer_arr, x
     inx
-    inc Zp_Tmp1_byte  ; block row index
+    inc T0  ; block row index
     cpx Zp_PpuTransferLen_u8
     bne _Right
     rts
@@ -434,11 +430,11 @@ _Right:
 .PROC FuncA_Terrain_CallRoomFadeIn
     ldy #sRoomExt::FadeIn_func_ptr
     lda (Zp_Current_sRoom + sRoom::Ext_sRoomExt_ptr), y
-    sta Zp_Tmp_ptr + 0
+    sta T0
     iny
     lda (Zp_Current_sRoom + sRoom::Ext_sRoomExt_ptr), y
-    sta Zp_Tmp_ptr + 1
-    jmp (Zp_Tmp_ptr)
+    sta T1
+    jmp (T1T0)
 .ENDPROC
 
 ;;;=========================================================================;;;

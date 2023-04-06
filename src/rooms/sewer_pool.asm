@@ -44,7 +44,6 @@
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORTZP Zp_PointY_i16
 .IMPORTZP Zp_RoomState
-.IMPORTZP Zp_Tmp1_byte
 
 ;;;=========================================================================;;;
 
@@ -291,9 +290,9 @@ _Loop:
     ;; room-space pixels, storing it in Zp_PointY_i16.
     lda Zp_RoomState + sState::MultiplexerGoalVert_u8_arr, x
     mul #kBlockHeightPx
-    sta Zp_Tmp1_byte  ; goal delta
+    sta T0  ; goal delta
     lda #<kMultiplexerMaxPlatformTop
-    sub Zp_Tmp1_byte  ; goal delta
+    sub T0  ; goal delta
     sta Zp_PointY_i16 + 0
     lda #>kMultiplexerMaxPlatformTop
     sbc #0

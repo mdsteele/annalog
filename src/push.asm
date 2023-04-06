@@ -45,9 +45,6 @@
 .IMPORTZP Zp_Current_sRoom
 .IMPORTZP Zp_PointX_i16
 .IMPORTZP Zp_TerrainColumn_u8_arr_ptr
-.IMPORTZP Zp_Tmp1_byte
-.IMPORTZP Zp_Tmp2_byte
-.IMPORTZP Zp_Tmp_ptr
 
 ;;;=========================================================================;;;
 
@@ -142,10 +139,10 @@ _Done:
     bmi _Western
 _Eastern:
     ;; Calculate the room pixel X-position where the avatar will be offscreen
-    ;; to the right, storing the result in Zp_Tmp1_byte (lo) and A (hi).
+    ;; to the right, storing the result in T0 (lo) and A (hi).
     lda <(Zp_Current_sRoom + sRoom::MaxScrollX_u16 + 0)
     add #<(kScreenWidthPx + kAvatarBoundingBoxLeft)
-    sta Zp_Tmp1_byte  ; passage X-position (lo)
+    sta T0  ; passage X-position (lo)
     lda <(Zp_Current_sRoom + sRoom::MaxScrollX_u16 + 1)
     adc #>(kScreenWidthPx + kAvatarBoundingBoxLeft)
     ;; Compare the avatar's position to the offscreen position.
@@ -157,7 +154,7 @@ _Eastern:
     rts
     @checkLoByte:
     lda Zp_AvatarPosX_i16 + 0
-    cmp Zp_Tmp1_byte  ; passage X-position (lo)
+    cmp T0  ; passage X-position (lo)
     bge @hitPassage
     blt _NoHitPassage  ; unconditional
 _Western:
@@ -191,38 +188,38 @@ _NoHitPassage:
 ;;; @prereq Zp_AvatarPushDelta_i8 holds a nonzero horz delta for the avatar.
 .PROC Func_AvatarCollideWithTerrainHorz
     ;; Calculate the room block row index that the avatar's feet are in, and
-    ;; store it in Zp_Tmp1_byte.
+    ;; store it in T0.
     lda Zp_AvatarPosY_i16 + 0
     add #kAvatarBoundingBoxDown - 1
-    sta Zp_Tmp1_byte
+    sta T0
     lda Zp_AvatarPosY_i16 + 1
     adc #0
     .repeat 4
     lsr a
-    ror Zp_Tmp1_byte
+    ror T0
     .endrepeat
     ;; Calculate the room block row index that the avatar's head is in, and
-    ;; store it in Zp_Tmp2_byte.
+    ;; store it in T1.
     lda Zp_AvatarPosY_i16 + 0
     sub #kAvatarBoundingBoxUp
-    sta Zp_Tmp2_byte
+    sta T1
     lda Zp_AvatarPosY_i16 + 1
     sbc #0
     .repeat 4
     lsr a
-    ror Zp_Tmp2_byte
+    ror T1
     .endrepeat
     ;; Check if the player is moving to the left or to the right.
     bit Zp_AvatarPushDelta_i8
     bmi _MovingLeft
 _MovingRight:
     ;; Check for tile collisions.
-    jsr Func_GetAvatarRightXAndTerrain  ; preserves Zp_Tmp*
-    ldy Zp_Tmp1_byte  ; room block row index (bottom of avatar)
+    jsr Func_GetAvatarRightXAndTerrain  ; preserves T0+
+    ldy T0  ; room block row index (bottom of avatar)
     lda (Zp_TerrainColumn_u8_arr_ptr), y  ; terrain block type
     cmp #kFirstSolidTerrainType
     bge @solid
-    ldy Zp_Tmp2_byte  ; room block row index (top of avatar)
+    ldy T1  ; room block row index (top of avatar)
     lda (Zp_TerrainColumn_u8_arr_ptr), y  ; terrain block type
     cmp #kFirstSolidTerrainType
     blt @done
@@ -244,12 +241,12 @@ _MovingRight:
     rts
 _MovingLeft:
     ;; Check for tile collisions.
-    jsr Func_GetAvatarLeftXAndTerrain  ; preserves Zp_Tmp*
-    ldy Zp_Tmp1_byte  ; room block row index (bottom of avatar)
+    jsr Func_GetAvatarLeftXAndTerrain  ; preserves T0+
+    ldy T0  ; room block row index (bottom of avatar)
     lda (Zp_TerrainColumn_u8_arr_ptr), y  ; terrain block type
     cmp #kFirstSolidTerrainType
     bge @solid
-    ldy Zp_Tmp2_byte  ; room block row index (top of avatar)
+    ldy T1  ; room block row index (top of avatar)
     lda (Zp_TerrainColumn_u8_arr_ptr), y  ; terrain block type
     cmp #kFirstSolidTerrainType
     blt @done
@@ -314,7 +311,7 @@ _DetectCollision:
     beq _NowAirborne
 _HandleCollision:
     ldy Zp_AvatarVelY_i16 + 1
-    sty Zp_Tmp1_byte  ; old Y-velocity (hi)
+    sty T0  ; old Y-velocity (hi)
     ;; Set vertical velocity and subpixel position to zero.
     ldy #0
     sty Zp_AvatarSubY_u8
@@ -340,7 +337,7 @@ _NowGrounded:
     bit Zp_AvatarAirborne_bool
     bpl @done
     @wasAirborne:
-    ldy Zp_Tmp1_byte  ; old Y-velocity (hi)
+    ldy T0  ; old Y-velocity (hi)
     bmi @nowGrounded
     lda Data_AvatarLandingFrames_u8_arr, y
     sta Zp_AvatarLanding_u8
@@ -361,8 +358,7 @@ _NowGrounded:
     bmi _Top
 _Bottom:
     ;; Calculate the room pixel Y-position where the avatar will be touching
-    ;; the bottom edge of the room, storing the result in Zp_Tmp1_byte (lo) and
-    ;; A (hi).
+    ;; the bottom edge of the room, storing the result in T0 (lo) and A (hi).
     bit <(Zp_Current_sRoom + sRoom::Flags_bRoom)
     .assert bRoom::Tall = bProc::Overflow, error
     bvs @tall
@@ -373,7 +369,7 @@ _Bottom:
     @tall:
     ldya #kTallRoomHeightBlocks * kBlockHeightPx - kAvatarBoundingBoxDown
     @finishHeight:
-    sta Zp_Tmp1_byte  ; passage Y-position (lo)
+    sta T0  ; passage Y-position (lo)
     ;; Compare the avatar's position to the passage position.
     cpy Zp_AvatarPosY_i16 + 1
     beq @checkLoByte
@@ -383,7 +379,7 @@ _Bottom:
     rts
     @checkLoByte:
     lda Zp_AvatarPosY_i16 + 0
-    cmp Zp_Tmp1_byte  ; passage Y-position (lo)
+    cmp T0  ; passage Y-position (lo)
     bge @hitPassage
     blt _NoHitPassage  ; unconditional
 _Top:
@@ -413,31 +409,31 @@ _NoHitPassage:
 ;;; sets Zp_AvatarCollided_ePlatform to ePlatform::Solid.
 .PROC Func_AvatarCollideWithTerrainVert
     ;; Get the terrain pointer for the left side of the avatar, storing it in
-    ;; Zp_Tmp_ptr.
+    ;; T1T0.
     jsr Func_GetAvatarLeftXAndTerrain
     ldax Zp_TerrainColumn_u8_arr_ptr
-    stax Zp_Tmp_ptr
+    stax T1T0
     ;; Get the terrain pointer for the right side of the avatar, storing it in
     ;; Zp_TerrainColumn_u8_arr_ptr.
-    jsr Func_GetAvatarRightXAndTerrain  ; preserves Zp_Tmp*
+    jsr Func_GetAvatarRightXAndTerrain  ; preserves T0+
     ;; Check if the player is moving up or down.
     lda Zp_AvatarPushDelta_i8
     bpl _MovingDown
 _MovingUp:
     ;; Calculate the room block row index just above the avatar's head, and
-    ;; store it in Zp_Tmp1_byte.
+    ;; store it in T2.
     lda Zp_AvatarPosY_i16 + 0
     sub #kAvatarBoundingBoxUp
-    sta Zp_Tmp1_byte
+    sta T2
     lda Zp_AvatarPosY_i16 + 1
     sbc #0
     .repeat 4
     lsr a
-    ror Zp_Tmp1_byte
+    ror T2
     .endrepeat
     ;; Check for tile collisions.
-    ldy Zp_Tmp1_byte  ; room block row index (top of avatar)
-    lda (Zp_Tmp_ptr), y  ; terrain block type (left side)
+    ldy T2  ; room block row index (top of avatar)
+    lda (T1T0), y  ; terrain block type (left side)
     cmp #kFirstSolidTerrainType
     bge @solid
     lda (Zp_TerrainColumn_u8_arr_ptr), y  ; terrain block type (right side)
@@ -448,11 +444,11 @@ _MovingUp:
     ;; ceiling we hit.
     lda #0
     .repeat 4
-    asl Zp_Tmp1_byte  ; room block row index (top of avatar)
+    asl T2  ; room block row index (top of avatar)
     rol a
     .endrepeat
     tax
-    lda Zp_Tmp1_byte
+    lda T2
     add #kBlockHeightPx + kAvatarBoundingBoxUp
     sta Zp_AvatarPosY_i16 + 0
     txa
@@ -465,19 +461,19 @@ _MovingUp:
     rts
 _MovingDown:
     ;; Calculate the room block row index just below the avatar's feet, and
-    ;; store it in Zp_Tmp1_byte.
+    ;; store it in T2.
     lda Zp_AvatarPosY_i16 + 0
     add #kAvatarBoundingBoxDown
-    sta Zp_Tmp1_byte
+    sta T2
     lda Zp_AvatarPosY_i16 + 1
     adc #0
     .repeat 4
     lsr a
-    ror Zp_Tmp1_byte
+    ror T2
     .endrepeat
     ;; Check for tile collisions.
-    ldy Zp_Tmp1_byte  ; room block row index (top of avatar)
-    lda (Zp_Tmp_ptr), y  ; terrain block type (left side)
+    ldy T2  ; room block row index (top of avatar)
+    lda (T1T0), y  ; terrain block type (left side)
     cmp #kFirstSolidTerrainType
     bge @solid
     lda (Zp_TerrainColumn_u8_arr_ptr), y  ; terrain block type (right side)
@@ -487,11 +483,11 @@ _MovingDown:
     ;; Set vertical position to just above the floor we hit.
     lda #0
     .repeat 4
-    asl Zp_Tmp1_byte
+    asl T2
     rol a
     .endrepeat
     tax
-    lda Zp_Tmp1_byte
+    lda T2
     sub #kAvatarBoundingBoxDown
     sta Zp_AvatarPosY_i16 + 0
     txa
@@ -507,7 +503,7 @@ _MovingDown:
 ;;; Stores the room pixel X-position of the avatar's left side in
 ;;; Zp_PointX_i16, then calls Func_GetTerrainColumnPtrForPointX to populate
 ;;; Zp_TerrainColumn_u8_arr_ptr.
-;;; @preserve Zp_Tmp*
+;;; @preserve T0+
 .PROC Func_GetAvatarLeftXAndTerrain
     lda Zp_AvatarPosX_i16 + 0
     sub #kAvatarBoundingBoxLeft
@@ -515,13 +511,13 @@ _MovingDown:
     lda Zp_AvatarPosX_i16 + 1
     sbc #0
     sta Zp_PointX_i16 + 1
-    jmp Func_GetTerrainColumnPtrForPointX  ; preserves Zp_Tmp*
+    jmp Func_GetTerrainColumnPtrForPointX  ; preserves T0+
 .ENDPROC
 
 ;;; Stores the room pixel X-position of the avatar's right side in
 ;;; Zp_PointX_i16, then calls Func_GetTerrainColumnPtrForPointX to populate
 ;;; Zp_TerrainColumn_u8_arr_ptr.
-;;; @preserve Zp_Tmp*
+;;; @preserve T0+
 .PROC Func_GetAvatarRightXAndTerrain
     lda Zp_AvatarPosX_i16 + 0
     add #kAvatarBoundingBoxRight - 1
@@ -529,7 +525,7 @@ _MovingDown:
     lda Zp_AvatarPosX_i16 + 1
     adc #0
     sta Zp_PointX_i16 + 1
-    jmp Func_GetTerrainColumnPtrForPointX  ; preserves Zp_Tmp*
+    jmp Func_GetTerrainColumnPtrForPointX  ; preserves T0+
 .ENDPROC
 
 ;;; Maps from non-negative (Zp_AvatarVelY_i16 + 1) values to the value to set

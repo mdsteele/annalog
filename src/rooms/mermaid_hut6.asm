@@ -40,7 +40,6 @@
 .IMPORTZP Zp_MachineIndex_u8
 .IMPORTZP Zp_PointY_i16
 .IMPORTZP Zp_RoomState
-.IMPORTZP Zp_Tmp1_byte
 
 ;;;=========================================================================;;;
 
@@ -204,9 +203,9 @@ _Devices_sDevice_arr:
     ;; room-space pixels, storing it in Zp_PointY_i16.
     lda Zp_RoomState + sState::MachineGoalY_u8_arr, x
     mul #kBlockHeightPx  ; fits in one byte
-    sta Zp_Tmp1_byte
+    sta T0
     lda #kMachineInitPlatformTop
-    sub Zp_Tmp1_byte
+    sub T0
     sta Zp_PointY_i16 + 0
     lda #0
     sta Zp_PointY_i16 + 1

@@ -46,7 +46,6 @@
 .IMPORT Ram_MachineGoalHorz_u8_arr
 .IMPORT Ram_MachineGoalVert_u8_arr
 .IMPORTZP Zp_MachineIndex_u8
-.IMPORTZP Zp_Tmp1_byte
 
 ;;;=========================================================================;;;
 
@@ -362,7 +361,7 @@ _Valve2ExitPlatformIndex_u8_arr10:
 ;;; @prereq PRGA_Machine is loaded.
 .PROC FuncC_Lava_EastLowerBoiler_TryAct
     lda #0
-    sta Zp_Tmp1_byte  ; num steams emitted
+    sta T0  ; num steams emitted
 _Pipe1:
     ldy Zp_MachineIndex_u8
     ldx Ram_MachineGoalHorz_u8_arr, y  ; valve 2 angle (0-9)
@@ -372,19 +371,19 @@ _Pipe1:
     ldx Ram_MachineGoalVert_u8_arr, y  ; valve 1 angle (0-9)
     ldy _Valve1PipePlatformIndex1_u8_arr10, x  ; platform index
     bmi @done
-    jsr FuncA_Machine_EmitSteamRightFromPipe
-    inc Zp_Tmp1_byte  ; num steams emitted
+    jsr FuncA_Machine_EmitSteamRightFromPipe  ; preserves T0+
+    inc T0  ; num steams emitted
     @done:
 _Pipe2:
     ldy Zp_MachineIndex_u8
     ldx Ram_MachineGoalVert_u8_arr, y  ; valve 1 angle (0-9)
     ldy _Valve1PipePlatformIndex2_u8_arr10, x  ; platform index
     bmi @done
-    jsr FuncA_Machine_EmitSteamUpFromPipe
-    inc Zp_Tmp1_byte  ; num steams emitted
+    jsr FuncA_Machine_EmitSteamUpFromPipe  ; preserves T0+
+    inc T0  ; num steams emitted
     @done:
 _Finish:
-    lda Zp_Tmp1_byte  ; num steams emitted
+    lda T0  ; num steams emitted
     beq _Failure
     jmp FuncA_Machine_BoilerFinishEmittingSteam
 _Failure:

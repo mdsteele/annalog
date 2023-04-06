@@ -45,8 +45,6 @@
 .IMPORTZP Zp_PointY_i16
 .IMPORTZP Zp_RoomScrollY_u8
 .IMPORTZP Zp_ShapePosY_i16
-.IMPORTZP Zp_Tmp1_byte
-.IMPORTZP Zp_Tmp2_byte
 
 ;;;=========================================================================;;;
 
@@ -75,17 +73,17 @@ kPaletteObjRope = 0
 ;;; @return Z Cleared if the platform moved, set if it didn't.
 .EXPORT FuncA_Machine_HoistMoveTowardGoal
 .PROC FuncA_Machine_HoistMoveTowardGoal
-    sta Zp_Tmp1_byte  ; min platform top (lo)
-    sty Zp_Tmp2_byte  ; min platform top (hi)
+    sta T0  ; min platform top (lo)
+    sty T1  ; min platform top (hi)
     ;; Calculate the desired Y-position for the top edge of the load, in
     ;; room-space pixels, storing it in Zp_PointY_i16.
     ldy Zp_MachineIndex_u8
     lda Ram_MachineGoalVert_u8_arr, y
     mul #kBlockHeightPx
-    adc Zp_Tmp1_byte  ; min platform top (lo) (carry is alredy clear from mul)
+    adc T0  ; min platform top (lo) (carry is alredy clear from mul)
     sta Zp_PointY_i16 + 0
     lda #0
-    adc Zp_Tmp2_byte  ; min platform top (hi)
+    adc T1  ; min platform top (hi)
     sta Zp_PointY_i16 + 1
     ;; Determine the vertical speed of the hoist (faster if resetting).
     lda Ram_MachineStatus_eMachine_arr, y
@@ -191,22 +189,22 @@ _RopeTriangle:
     ;; down.
     lda Zp_RoomScrollY_u8
     add #kPulleyRopeOverlapPx + (kTileHeightPx - 1)
-    sta Zp_Tmp1_byte  ; offset
+    sta T0  ; offset
     ;; Calculate the screen-space Y-position of the top of the rope, storing
-    ;; the lo byte in Zp_Tmp1_byte and the hi byte in Zp_Tmp2_byte.
+    ;; the lo byte in T0 and the hi byte in T1.
     lda Ram_PlatformBottom_i16_0_arr, x
-    sub Zp_Tmp1_byte  ; offset
-    sta Zp_Tmp1_byte  ; screen-space chain top (lo)
+    sub T0  ; offset
+    sta T0  ; screen-space chain top (lo)
     lda Ram_PlatformBottom_i16_1_arr, x
     sbc #0
-    sta Zp_Tmp2_byte  ; screen-space chain top (hi)
+    sta T1  ; screen-space chain top (hi)
     ;; Calculate the length of the rope, in pixels, storing the lo byte in
-    ;; Zp_Tmp1_byte and the hi byte in A.
+    ;; T0 and the hi byte in A.
     lda Zp_ShapePosY_i16 + 0
-    sub Zp_Tmp1_byte  ; screen-space chain top (lo)
-    sta Zp_Tmp1_byte  ; chain pixel length (lo)
+    sub T0  ; screen-space chain top (lo)
+    sta T0  ; chain pixel length (lo)
     lda Zp_ShapePosY_i16 + 1
-    sbc Zp_Tmp2_byte  ; screen-space chain top (hi)
+    sbc T1  ; screen-space chain top (hi)
     ;; Divide the chain pixel length by kTileHeightPx to get the length of the
     ;; chain in tiles, storing it in X.  Because we added an additional
     ;; (kTileHeightPx - 1) to the chain length above, this division will
@@ -214,9 +212,9 @@ _RopeTriangle:
     .assert kTileHeightPx = 8, error
     .repeat 3
     lsr a
-    ror Zp_Tmp1_byte  ; chain pixel length (lo)
+    ror T0  ; chain pixel length (lo)
     .endrepeat
-    ldx Zp_Tmp1_byte  ; param: chain length in tiles
+    ldx T0  ; param: chain length in tiles
 _Loop:
     jsr FuncA_Objects_MoveShapeUpOneTile  ; preserves X
     ldy #kPaletteObjRope | bObj::Pri  ; param: object flags

@@ -80,7 +80,6 @@
 .IMPORTZP Zp_RoomState
 .IMPORTZP Zp_ShapePosX_i16
 .IMPORTZP Zp_ShapePosY_i16
-.IMPORTZP Zp_Tmp_ptr
 
 ;;;=========================================================================;;;
 
@@ -495,10 +494,10 @@ _CheckMode:
     ;; Branch based on the current boss mode.
     ldy Zp_RoomState + sState::Current_eBossMode
     lda _JumpTable_ptr_0_arr, y
-    sta Zp_Tmp_ptr + 0
+    sta T0
     lda _JumpTable_ptr_1_arr, y
-    sta Zp_Tmp_ptr + 1
-    jmp (Zp_Tmp_ptr)
+    sta T1
+    jmp (T1T0)
 .REPEAT 2, table
     D_TABLE_LO table, _JumpTable_ptr_0_arr
     D_TABLE_HI table, _JumpTable_ptr_1_arr
@@ -819,7 +818,7 @@ _Offset_u8_arr2:
 
 ;;; Sets Zp_ShapePosX_i16 and Zp_ShapePosY_i16 to the screen-space position of
 ;;; the top-center of the boss's body.
-;;; @preserve X, Y, Zp_Tmp*
+;;; @preserve X, Y, T0+
 .PROC FuncC_Boss_Temple_SetShapePosToBossMidTop
     lda #kScreenWidthPx / 2
     sta Zp_ShapePosX_i16 + 0

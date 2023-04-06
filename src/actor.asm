@@ -108,10 +108,6 @@
 .IMPORTZP Zp_RoomScrollY_u8
 .IMPORTZP Zp_ShapePosX_i16
 .IMPORTZP Zp_ShapePosY_i16
-.IMPORTZP Zp_Tmp1_byte
-.IMPORTZP Zp_Tmp2_byte
-.IMPORTZP Zp_Tmp3_byte
-.IMPORTZP Zp_Tmp_ptr
 
 ;;;=========================================================================;;;
 
@@ -174,7 +170,7 @@ Ram_ActorFlags_bObj_arr: .res kMaxActors
 ;;; if all actor slots are full.
 ;;; @return C Set if all slots were full; cleared if an empty slot was found.
 ;;; @return X The index of the empty slot (if any).
-;;; @preserve Y, Zp_Tmp*
+;;; @preserve Y, T0+
 .EXPORT Func_FindEmptyActorSlot
 .PROC Func_FindEmptyActorSlot
     ldx #kMaxActors - 1
@@ -193,7 +189,7 @@ Ram_ActorFlags_bObj_arr: .res kMaxActors
 
 ;;; Stores the actor's room pixel position in Zp_Point*_i16.
 ;;; @param X The actor index.
-;;; @preserve X, Y, Zp_Tmp*
+;;; @preserve X, Y, T0+
 .EXPORT Func_SetPointToActorCenter
 .PROC Func_SetPointToActorCenter
     lda Ram_ActorPosX_i16_0_arr, x
@@ -209,7 +205,7 @@ Ram_ActorFlags_bObj_arr: .res kMaxActors
 
 ;;; Sets the actor's room pixel position to Zp_Point*_i16.
 ;;; @param X The actor index.
-;;; @preserve X, Y, Zp_Tmp*
+;;; @preserve X, Y, T0+
 .EXPORT Func_SetActorCenterToPoint
 .PROC Func_SetActorCenterToPoint
     lda Zp_PointX_i16 + 0
@@ -229,10 +225,10 @@ Ram_ActorFlags_bObj_arr: .res kMaxActors
 ;;; @param A The flags to set.
 ;;; @param X The actor index.
 ;;; @param Y The actor type to set.
-;;; @preserve X, Zp_Tmp*
+;;; @preserve X, T0+
 .PROC Func_InitActorWithFlags
     pha  ; flags
-    jsr Func_InitActorDefault  ; preserves X and Zp_Tmp*
+    jsr Func_InitActorDefault  ; preserves X and T0+
     pla  ; flags
     sta Ram_ActorFlags_bObj_arr, x
     rts
@@ -244,7 +240,7 @@ Ram_ActorFlags_bObj_arr: .res kMaxActors
 ;;; @prereq The actor's pixel position has already been initialized.
 ;;; @param X The actor index.
 ;;; @param Y The actor type to set.
-;;; @preserve X, Zp_Tmp*
+;;; @preserve X, T0+
 .EXPORT Func_InitActorDefault
 .PROC Func_InitActorDefault
     lda #0  ; param: state byte
@@ -257,7 +253,7 @@ Ram_ActorFlags_bObj_arr: .res kMaxActors
 ;;; @param A The state byte to set.
 ;;; @param X The actor index.
 ;;; @param Y The actor type to set.
-;;; @preserve X, Zp_Tmp*
+;;; @preserve X, T0+
 .EXPORT Func_InitActorWithState1
 .PROC Func_InitActorWithState1
     sta Ram_ActorState1_byte_arr, x
@@ -443,10 +439,10 @@ _TypeSpecificTick:
     lda Ram_ActorType_eActor_arr, x
     tay
     lda _JumpTable_ptr_0_arr, y
-    sta Zp_Tmp_ptr + 0
+    sta T0
     lda _JumpTable_ptr_1_arr, y
-    sta Zp_Tmp_ptr + 1
-    jmp (Zp_Tmp_ptr)
+    sta T1
+    jmp (T1T0)
 .REPEAT 2, table
     D_TABLE_LO table, _JumpTable_ptr_0_arr
     D_TABLE_HI table, _JumpTable_ptr_1_arr
@@ -499,16 +495,16 @@ _TypeSpecificTick:
     ;; Check top side.
     lda DataA_Actor_BoundingBoxUp_u8_arr, y
     add #kAvatarBoundingBoxDown
-    sta Zp_Tmp1_byte
+    sta T0
     lda Ram_ActorPosY_i16_0_arr, x
-    sub Zp_Tmp1_byte
-    sta Zp_Tmp1_byte
+    sub T0
+    sta T0
     lda Ram_ActorPosY_i16_1_arr, x
     sbc #0
     cmp Zp_AvatarPosY_i16 + 1
     blt @hitTop
     bne _NoHit
-    lda Zp_Tmp1_byte
+    lda T0
     cmp Zp_AvatarPosY_i16 + 0
     bge _NoHit
     @hitTop:
@@ -516,13 +512,13 @@ _TypeSpecificTick:
     lda DataA_Actor_BoundingBoxDown_u8_arr, y
     add #kAvatarBoundingBoxUp
     adc Ram_ActorPosY_i16_0_arr, x
-    sta Zp_Tmp1_byte
+    sta T0
     lda Ram_ActorPosY_i16_1_arr, x
     adc #0
     cmp Zp_AvatarPosY_i16 + 1
     blt _NoHit
     bne @hitBottom
-    lda Zp_Tmp1_byte
+    lda T0
     cmp Zp_AvatarPosY_i16 + 0
     ble _NoHit
     @hitBottom:
@@ -543,29 +539,29 @@ _Return:
 ;;; @preserve X, Y
 .EXPORT FuncA_Actor_IsAvatarWithinHorzDistance
 .PROC FuncA_Actor_IsAvatarWithinHorzDistance
-    sta Zp_Tmp1_byte  ; distance
+    sta T0  ; distance
     ;; Check actor-left-of-avatar.
     lda Ram_ActorPosX_i16_0_arr, x
-    add Zp_Tmp1_byte  ; distance
-    sta Zp_Tmp2_byte  ; x-pos (lo)
+    add T0  ; distance
+    sta T1  ; x-pos (lo)
     lda Ram_ActorPosX_i16_1_arr, x
     adc #0
-    sta Zp_Tmp3_byte  ; x-pos (hi)
-    lda Zp_Tmp2_byte  ; x-pos (lo)
+    sta T2  ; x-pos (hi)
+    lda T1  ; x-pos (lo)
     sub Zp_AvatarPosX_i16 + 0
-    lda Zp_Tmp3_byte  ; x-pos (hi)
+    lda T2  ; x-pos (hi)
     sbc Zp_AvatarPosX_i16 + 1
     blt _NoHit
     ;; Check avatar-left-of-actor.
     lda Zp_AvatarPosX_i16 + 0
-    add Zp_Tmp1_byte  ; distance
-    sta Zp_Tmp2_byte  ; x-pos (lo)
+    add T0  ; distance
+    sta T1  ; x-pos (lo)
     lda Zp_AvatarPosX_i16 + 1
     adc #0
-    sta Zp_Tmp3_byte  ; x-pos (hi)
-    lda Zp_Tmp2_byte  ; x-pos (lo)
+    sta T2  ; x-pos (hi)
+    lda T1  ; x-pos (lo)
     sub Ram_ActorPosX_i16_0_arr, x
-    lda Zp_Tmp3_byte  ; x-pos (hi)
+    lda T2  ; x-pos (hi)
     sbc Ram_ActorPosX_i16_1_arr, x
     blt _NoHit
 _Hit:
@@ -645,11 +641,11 @@ _NoHit:
 .EXPORT FuncA_Actor_GetRoomTileColumn
 .PROC FuncA_Actor_GetRoomTileColumn
     lda Ram_ActorPosX_i16_1_arr, x
-    sta Zp_Tmp1_byte
+    sta T0
     lda Ram_ActorPosX_i16_0_arr, x
     .assert kTileWidthPx = (1 << 3), error
     .repeat 3
-    lsr Zp_Tmp1_byte
+    lsr T0
     ror a
     .endrepeat
     rts
@@ -662,11 +658,11 @@ _NoHit:
 .EXPORT FuncA_Actor_GetRoomBlockRow
 .PROC FuncA_Actor_GetRoomBlockRow
     lda Ram_ActorPosY_i16_1_arr, x
-    sta Zp_Tmp1_byte
+    sta T0
     lda Ram_ActorPosY_i16_0_arr, x
     .assert kBlockHeightPx = (1 << 4), error
     .repeat 4
-    lsr Zp_Tmp1_byte
+    lsr T0
     ror a
     .endrepeat
     tay
@@ -676,16 +672,16 @@ _NoHit:
 ;;; Checks if the actor's center position is colliding with solid terrain.
 ;;; @param X The actor index.
 ;;; @return C Set if a collision occurred, cleared otherwise.
-;;; @preserve X, Zp_Tmp*
+;;; @preserve X, T0+
 .EXPORT FuncA_Actor_CenterHitsTerrain
 .PROC FuncA_Actor_CenterHitsTerrain
     jsr Func_SetPointToActorCenter
-    jmp Func_PointHitsTerrain  ; preserves X and Zp_Tmp*, returns C
+    jmp Func_PointHitsTerrain  ; preserves X and T0+, returns C
 .ENDPROC
 
 ;;; Negates the actor's X-velocity.
 ;;; @param X The actor index.
-;;; @preserve X, Y, Zp_Tmp*
+;;; @preserve X, Y, T0+
 .EXPORT FuncA_Actor_NegateVelX
 .PROC FuncA_Actor_NegateVelX
     lda #0
@@ -699,7 +695,7 @@ _NoHit:
 
 ;;; Negates the actor's Y-velocity.
 ;;; @param X The actor index.
-;;; @preserve X, Y, Zp_Tmp*
+;;; @preserve X, Y, T0+
 .EXPORT FuncA_Actor_NegateVelY
 .PROC FuncA_Actor_NegateVelY
     lda #0
@@ -724,14 +720,14 @@ _NoHit:
 ;;; @preserve X
 .EXPORT FuncA_Room_InitActor
 .PROC FuncA_Room_InitActor
-    sta Zp_Tmp1_byte  ; initialization parameter
+    pha  ; initialization parameter
     ldy Ram_ActorType_eActor_arr, x
     lda _JumpTable_ptr_0_arr, y
-    sta Zp_Tmp_ptr + 0
+    sta T0
     lda _JumpTable_ptr_1_arr, y
-    sta Zp_Tmp_ptr + 1
-    lda Zp_Tmp1_byte  ; param: initialization parameter
-    jmp (Zp_Tmp_ptr)
+    sta T1
+    pla  ; param: initialization parameter
+    jmp (T1T0)
 .REPEAT 2, table
     D_TABLE_LO table, _JumpTable_ptr_0_arr
     D_TABLE_HI table, _JumpTable_ptr_1_arr
@@ -777,11 +773,11 @@ _NoHit:
 ;;; @preserve Y
 .EXPORT FuncA_Room_FindActorWithType
 .PROC FuncA_Room_FindActorWithType
-    sta Zp_Tmp1_byte  ; actor type to find
+    sta T0  ; actor type to find
     ldx #kMaxActors - 1
     @loop:
     lda Ram_ActorType_eActor_arr, x
-    cmp Zp_Tmp1_byte  ; actor type to find
+    cmp T0  ; actor type to find
     beq @success
     dex
     bpl @loop
@@ -801,53 +797,53 @@ _NoHit:
 ;;; @preserve X, Y
 .EXPORT FuncA_Room_AreActorsWithinDistance
 .PROC FuncA_Room_AreActorsWithinDistance
-    sta Zp_Tmp1_byte  ; distance
+    sta T0  ; distance
     ;; Check first-left-of-second.
     lda Ram_ActorPosX_i16_0_arr, x
-    add Zp_Tmp1_byte  ; distance
-    sta Zp_Tmp2_byte  ; x-pos (lo)
+    add T0  ; distance
+    sta T1  ; x-pos (lo)
     lda Ram_ActorPosX_i16_1_arr, x
     adc #0
-    sta Zp_Tmp3_byte  ; x-pos (hi)
-    lda Zp_Tmp2_byte  ; x-pos (lo)
+    sta T2  ; x-pos (hi)
+    lda T1  ; x-pos (lo)
     sub Ram_ActorPosX_i16_0_arr, y
-    lda Zp_Tmp3_byte  ; x-pos (hi)
+    lda T2  ; x-pos (hi)
     sbc Ram_ActorPosX_i16_1_arr, y
     blt _NoHit
     ;; Check second-left-of-first.
     lda Ram_ActorPosX_i16_0_arr, y
-    add Zp_Tmp1_byte  ; distance
-    sta Zp_Tmp2_byte  ; x-pos (lo)
+    add T0  ; distance
+    sta T1  ; x-pos (lo)
     lda Ram_ActorPosX_i16_1_arr, y
     adc #0
-    sta Zp_Tmp3_byte  ; x-pos (hi)
-    lda Zp_Tmp2_byte  ; x-pos (lo)
+    sta T2  ; x-pos (hi)
+    lda T1  ; x-pos (lo)
     sub Ram_ActorPosX_i16_0_arr, x
-    lda Zp_Tmp3_byte  ; x-pos (hi)
+    lda T2  ; x-pos (hi)
     sbc Ram_ActorPosX_i16_1_arr, x
     blt _NoHit
     ;; Check first-above-of-second.
     lda Ram_ActorPosY_i16_0_arr, x
-    add Zp_Tmp1_byte  ; distance
-    sta Zp_Tmp2_byte  ; y-pos (lo)
+    add T0  ; distance
+    sta T1  ; y-pos (lo)
     lda Ram_ActorPosY_i16_1_arr, x
     adc #0
-    sta Zp_Tmp3_byte  ; y-pos (hi)
-    lda Zp_Tmp2_byte  ; y-pos (lo)
+    sta T2  ; y-pos (hi)
+    lda T1  ; y-pos (lo)
     sub Ram_ActorPosY_i16_0_arr, y
-    lda Zp_Tmp3_byte  ; y-pos (hi)
+    lda T2  ; y-pos (hi)
     sbc Ram_ActorPosY_i16_1_arr, y
     blt _NoHit
     ;; Check second-above-of-first.
     lda Ram_ActorPosY_i16_0_arr, y
-    add Zp_Tmp1_byte  ; distance
-    sta Zp_Tmp2_byte  ; y-pos (lo)
+    add T0  ; distance
+    sta T1  ; y-pos (lo)
     lda Ram_ActorPosY_i16_1_arr, y
     adc #0
-    sta Zp_Tmp3_byte  ; y-pos (hi)
-    lda Zp_Tmp2_byte  ; y-pos (lo)
+    sta T2  ; y-pos (hi)
+    lda T1  ; y-pos (lo)
     sub Ram_ActorPosY_i16_0_arr, x
-    lda Zp_Tmp3_byte  ; y-pos (hi)
+    lda T2  ; y-pos (hi)
     sbc Ram_ActorPosY_i16_1_arr, x
     blt _NoHit
 _Hit:
@@ -880,10 +876,10 @@ _NoHit:
     lda Ram_ActorType_eActor_arr, x
     tay
     lda _JumpTable_ptr_0_arr, y
-    sta Zp_Tmp_ptr + 0
+    sta T0
     lda _JumpTable_ptr_1_arr, y
-    sta Zp_Tmp_ptr + 1
-    jmp (Zp_Tmp_ptr)
+    sta T1
+    jmp (T1T0)
 .REPEAT 2, table
     D_TABLE_LO table, _JumpTable_ptr_0_arr
     D_TABLE_HI table, _JumpTable_ptr_1_arr
@@ -924,7 +920,7 @@ _NoHit:
 ;;; Sets Zp_ShapePosX_i16 and Zp_ShapePosY_i16 to the screen-space position of
 ;;; the specified actor.
 ;;; @param X The actor index.
-;;; @preserve X, Y, Zp_Tmp*
+;;; @preserve X, Y, T0+
 .EXPORT FuncA_Objects_SetShapePosToActorCenter
 .PROC FuncA_Objects_SetShapePosToActorCenter
     ;; Calculate screen-space Y-position.

@@ -27,9 +27,6 @@
 .IMPORTZP Zp_ConsoleInstNumber_u8
 .IMPORTZP Zp_ConsoleNominalFieldOffset_u8
 .IMPORTZP Zp_Current_sMachine_ptr
-.IMPORTZP Zp_Tmp1_byte
-.IMPORTZP Zp_Tmp2_byte
-.IMPORTZP Zp_Tmp_ptr
 
 ;;;=========================================================================;;;
 
@@ -51,10 +48,10 @@
 
 ;;; Returns the number of fields for the currently-selected instruction.
 ;;; @return X The number of fields.
-;;; @preserve Zp_Tmp*
+;;; @preserve T0+
 .EXPORT FuncA_Console_GetCurrentInstNumFields
 .PROC FuncA_Console_GetCurrentInstNumFields
-    jsr FuncA_Console_GetCurrentOpcode  ; preserves Zp_Tmp*, returns A
+    jsr FuncA_Console_GetCurrentOpcode  ; preserves T0+, returns A
     tay
     ldx _NumFields_u8_arr, y
     rts
@@ -82,10 +79,10 @@ _NumFields_u8_arr:
 ;;; Returns the width of the currently-selected instruction field, in tiles,
 ;;; minus one.
 ;;; @return A The width minus one.
-;;; @preserve Zp_Tmp*
+;;; @preserve T0+
 .EXPORT FuncA_Console_GetCurrentFieldWidth
 .PROC FuncA_Console_GetCurrentFieldWidth
-    jsr FuncA_Console_GetCurrentOpcode  ; preserves Zp_Tmp*, returns A
+    jsr FuncA_Console_GetCurrentOpcode  ; preserves T0+, returns A
     tay
     lda _OpcodeTable_u8_arr, y
     add Zp_ConsoleFieldNumber_u8
@@ -124,10 +121,10 @@ _OpWait:
 ;;; Returns the horizontal offset of the currently-selected instruction field,
 ;;; in tiles.  This can range from 0-6 inclusive.
 ;;; @return A The field offset.
-;;; @preserve Zp_Tmp*
+;;; @preserve T0+
 .EXPORT FuncA_Console_GetCurrentFieldOffset
 .PROC FuncA_Console_GetCurrentFieldOffset
-    jsr FuncA_Console_GetCurrentOpcode  ; preserves Zp_Tmp*, returns A
+    jsr FuncA_Console_GetCurrentOpcode  ; preserves T0+, returns A
     tay
     lda _OpcodeTable_u8_arr, y
     add Zp_ConsoleFieldNumber_u8
@@ -164,10 +161,10 @@ _OpTil:
 ;;; Sets Zp_ConsoleFieldNumber_u8 to whichever field in the current instruction
 ;;; best overlaps with Zp_ConsoleNominalFieldOffset_u8 (which must be in the
 ;;; range 0-6 inclusive).
-;;; @preserve Zp_Tmp*
+;;; @preserve T0+
 .EXPORT FuncA_Console_SetFieldForNominalOffset
 .PROC FuncA_Console_SetFieldForNominalOffset
-    jsr FuncA_Console_GetCurrentOpcode  ; preserves Zp_Tmp*, returns A
+    jsr FuncA_Console_GetCurrentOpcode  ; preserves T0+, returns A
     tay
     lda _OpcodeTable_u8_arr, y
     add Zp_ConsoleNominalFieldOffset_u8
@@ -204,10 +201,10 @@ _OpTil:
 
 ;;; Returns the eField for the currently-selected instruction field.
 ;;; @return A The eField value.
-;;; @preserve Zp_Tmp*
+;;; @preserve T0+
 .EXPORT FuncA_Console_GetCurrentFieldType
 .PROC FuncA_Console_GetCurrentFieldType
-    jsr FuncA_Console_GetCurrentOpcode  ; preserves Zp_Tmp*, returns A
+    jsr FuncA_Console_GetCurrentOpcode  ; preserves T0+, returns A
     tay
     lda _OpcodeTable_u8_arr, y
     add Zp_ConsoleFieldNumber_u8
@@ -247,9 +244,9 @@ _OpMove:
 ;;; field.  The opcode nibble of the sInst is slot 0, the first argument nibble
 ;;; is slot 1, and so on.
 ;;; @return A Slot number for the field (0-3).
-;;; @preserve Zp_Tmp*
+;;; @preserve T0+
 .PROC FuncA_Console_GetCurrentFieldSlot
-    jsr FuncA_Console_GetCurrentOpcode  ; preserves Zp_Tmp*, returns A
+    jsr FuncA_Console_GetCurrentOpcode  ; preserves T0+, returns A
     tay
     lda _OpcodeTable_u8_arr, y
     add Zp_ConsoleFieldNumber_u8
@@ -284,10 +281,10 @@ _OpTil:
 
 ;;; Returns the value of the currently selected instruction field.
 ;;; @return A The value of the field (0-15).
-;;; @preserve Zp_Tmp*
+;;; @preserve T0+
 .EXPORT FuncA_Console_GetCurrentFieldValue
 .PROC FuncA_Console_GetCurrentFieldValue
-    jsr FuncA_Console_GetCurrentFieldSlot  ; preserves Zp_Tmp*, returns A
+    jsr FuncA_Console_GetCurrentFieldSlot  ; preserves T0+, returns A
     tay  ; field slot
     lda Zp_ConsoleInstNumber_u8
     mul #.sizeof(sInst)
@@ -311,16 +308,16 @@ _OpTil:
 ;;; Sets the value of the currently selected instruction field.  If that field
 ;;; is the opcode, then other fields may also be updated.
 ;;; @prereq Zp_Current_sMachine_ptr is initialized.
-;;; @param A The new field value.
+;;; @param A The new field value ($0-$f).
 .EXPORT FuncA_Console_SetCurrentFieldValue
 .PROC FuncA_Console_SetCurrentFieldValue
-    pha  ; new value
+    pha  ; new field value (in low nibble)
     jsr FuncA_Console_GetCurrentFieldSlot  ; returns A
     tay  ; field slot
     lda Zp_ConsoleInstNumber_u8
     mul #.sizeof(sInst)
     tax  ; sProgram byte index
-    pla  ; new value
+    pla  ; new field value (in low nibble)
     dey
     bmi _SetOpcode
     dey
@@ -329,44 +326,44 @@ _OpTil:
     bmi _SetArg2
 _SetArg3:
     mul #$10
-    sta Zp_Tmp1_byte  ; new value (in high nibble)
+    sta T0  ; new field value (in high nibble)
     lda Ram_Console_sProgram + sProgram::Code_sInst_arr + sInst::Arg_byte, x
     and #$0f
-    ora Zp_Tmp1_byte
+    ora T0  ; new field value (in high nibble)
     sta Ram_Console_sProgram + sProgram::Code_sInst_arr + sInst::Arg_byte, x
     rts
 _SetArg2:
-    sta Zp_Tmp1_byte  ; new value
+    sta T0  ; new field value (in low nibble)
     lda Ram_Console_sProgram + sProgram::Code_sInst_arr + sInst::Arg_byte, x
     and #$f0
-    ora Zp_Tmp1_byte
+    ora T0  ; new field value (in low nibble)
     sta Ram_Console_sProgram + sProgram::Code_sInst_arr + sInst::Arg_byte, x
     rts
 _SetArg1:
-    sta Zp_Tmp1_byte  ; new value
+    sta T0  ; new field value (in low nibble)
     lda Ram_Console_sProgram + sProgram::Code_sInst_arr + sInst::Op_byte, x
     and #$f0
-    ora Zp_Tmp1_byte
+    ora T0  ; new field value (in low nibble)
     sta Ram_Console_sProgram + sProgram::Code_sInst_arr + sInst::Op_byte, x
     rts
 _SetOpcode:
-    pha  ; new opcode
+    pha  ; new eOpcode value
     jsr FuncA_Console_GetCurrentOpcode
-    sta Zp_Tmp1_byte  ; old opcode
-    pla  ; new opcode
-    cmp Zp_Tmp1_byte
+    sta T0  ; old eOpcode value
+    pla  ; new eOpcode value
+    cmp T0  ; old eOpcode value
     bne @update
     rts
     @update:
-    tay  ; new opcode
+    tay  ; new eOpcode value
     lda Zp_ConsoleInstNumber_u8
     mul #.sizeof(sInst)
     tax  ; sProgram byte index
     lda _JumpTable_ptr_0_arr, y
-    sta Zp_Tmp_ptr + 0
+    sta T2
     lda _JumpTable_ptr_1_arr, y
-    sta Zp_Tmp_ptr + 1
-    jmp (Zp_Tmp_ptr)
+    sta T3
+    jmp (T3T2)
 .REPEAT 2, table
     D_TABLE_LO table, _JumpTable_ptr_0_arr
     D_TABLE_HI table, _JumpTable_ptr_1_arr
@@ -396,13 +393,13 @@ _OpAct:
 _OpWait:
 _OpEnd:
 _OpNop:
-    tya  ; new opcode
+    tya  ; new eOpcode value
     mul #$10
     sta Ram_Console_sProgram + sProgram::Code_sInst_arr + sInst::Op_byte, x
     jmp _ZeroArgByteAndFieldNumber
 _OpCopy:
     ;; If coming from ADD/SUB/MUL, just remove third arg.
-    lda Zp_Tmp1_byte  ; old opcode
+    lda T0  ; old eOpcode value
     cmp #eOpcode::Add
     beq @clearThirdArg
     cmp #eOpcode::Sub
@@ -425,19 +422,19 @@ _OpCopy:
     lda #1
     bne _SetFieldNumber  ; unconditional
 _UpdateOpcodeOnly:
-    tya  ; new opcode
+    tya  ; new eOpcode value
     mul #$10
-    sta Zp_Tmp2_byte
+    sta T1  ; new eOpcode (in high nibble)
     lda Ram_Console_sProgram + sProgram::Code_sInst_arr + sInst::Op_byte, x
     and #$0f
-    ora Zp_Tmp2_byte
+    ora T1  ; new eOpcode (in high nibble)
     sta Ram_Console_sProgram + sProgram::Code_sInst_arr + sInst::Op_byte, x
     rts
 _OpAdd:
 _OpSub:
 _OpMul:
     ;; If coming from ADD/SUB/MUL, leave all args the same.
-    lda Zp_Tmp1_byte  ; old opcode
+    lda T0  ; old eOpcode value
     cmp #eOpcode::Add
     beq _UpdateOpcodeOnly
     cmp #eOpcode::Sub
@@ -448,7 +445,7 @@ _OpMul:
     cmp #eOpcode::Copy
     beq @setThirdArg
     ;; Otherwise, initialize args to A <- A op 1.
-    tya  ; new opcode
+    tya  ; new eOpcode value
     mul #$10
     ora #$0a
     sta Ram_Console_sProgram + sProgram::Code_sInst_arr + sInst::Op_byte, x
@@ -478,13 +475,13 @@ _OpSkip:
 _OpIf:
 _OpTil:
     ;; If coming from IF/TIL, leave all args the same.
-    lda Zp_Tmp1_byte  ; old opcode
+    lda T0  ; old eOpcode value
     cmp #eOpcode::If
     beq _UpdateOpcodeOnly
     cmp #eOpcode::Til
     beq _UpdateOpcodeOnly
     ;; Otherwise, pick an available register.
-    sty Zp_Tmp2_byte  ; new opcode
+    sty T1  ; new eOpcode value
     ldy #0
     @loop:
     lda Ram_ConsoleRegNames_u8_arr6, y
@@ -494,7 +491,7 @@ _OpTil:
     blt @loop
     @foundRegister:
     ;; Initialize args to R = 0, where R is the register we picked.
-    lda Zp_Tmp2_byte  ; new opcode
+    lda T1  ; new eOpcode value
     mul #$10
     sta Ram_Console_sProgram + sProgram::Code_sInst_arr + sInst::Op_byte, x
     tya  ; register name index (0-5)
@@ -526,7 +523,7 @@ _OpBeep:
 
 ;;; Returns the opcode for the currently-selected instruction.
 ;;; @return A The eOpcode value.
-;;; @preserve Zp_Tmp*
+;;; @preserve T0+
 .PROC FuncA_Console_GetCurrentOpcode
     lda Zp_ConsoleInstNumber_u8
     mul #.sizeof(sInst)

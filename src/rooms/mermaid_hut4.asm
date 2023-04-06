@@ -31,6 +31,7 @@
 .INCLUDE "../room.inc"
 
 .IMPORT DataA_Room_Hut_sTileset
+.IMPORT FuncA_Objects_Draw1x1Shape
 .IMPORT Func_CountDeliveredFlowers
 .IMPORT Func_DropFlower
 .IMPORT Func_IsFlagSet
@@ -39,14 +40,12 @@
 .IMPORT Func_UnlockDoorDevice
 .IMPORT Ppu_ChrObjVillage
 .IMPORT Ram_DeviceType_eDevice_arr
-.IMPORT Ram_Oam_sObj_arr64
 .IMPORT Sram_CarryingFlower_eFlag
 .IMPORT Sram_ProgressFlags_arr
 .IMPORTZP Zp_DialogAnsweredYes_bool
-.IMPORTZP Zp_OamOffset_u8
 .IMPORTZP Zp_RoomScrollY_u8
-.IMPORTZP Zp_Tmp1_byte
-.IMPORTZP Zp_Tmp2_byte
+.IMPORTZP Zp_ShapePosX_i16
+.IMPORTZP Zp_ShapePosY_i16
 
 ;;;=========================================================================;;;
 
@@ -147,6 +146,7 @@ _Devices_sDevice_arr:
 .ENDPROC
 
 ;;; Allocates and populates OAM slots for this room.
+;;; @prereq PRGA_Objects is loaded.
 .PROC FuncC_Mermaid_Hut4_DrawRoom
     ldx #kFirstFlowerFlag
     @loop:
@@ -162,6 +162,7 @@ _Devices_sDevice_arr:
 .ENDPROC
 
 ;;; Allocates and populates OAM slots for one delivered flower.
+;;; @prereq PRGA_Objects is loaded.
 ;;; @param X The eFlag value for the flower.
 ;;; @preserve X
 .PROC FuncC_Mermaid_Hut4_DrawFlower
@@ -170,29 +171,22 @@ _Devices_sDevice_arr:
     sub #kFirstFlowerFlag
     tay
     lda _PosX_u8_arr, y
-    sta Zp_Tmp1_byte  ; X-pos
+    sta Zp_ShapePosX_i16 + 0
     lda _PosY_u8_arr, y
     sub Zp_RoomScrollY_u8
-    sta Zp_Tmp2_byte  ; Y-pos
-    ;; Allocate the object.
-    ldy Zp_OamOffset_u8
-    lda Zp_Tmp1_byte  ; X-pos
-    sta Ram_Oam_sObj_arr64 + sObj::XPos_u8, y
-    lda Zp_Tmp2_byte  ; Y-pos
-    sta Ram_Oam_sObj_arr64 + sObj::YPos_u8, y
-    lda #kTileIdObjFlowerTop
-    sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
-    lda #kPaletteObjFlowerTop
-    sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
-    tya
-    add #.sizeof(sObj)
-    sta Zp_OamOffset_u8
-    rts
+    sta Zp_ShapePosY_i16 + 0
+    lda #0
+    sta Zp_ShapePosX_i16 + 1
+    sta Zp_ShapePosY_i16 + 1
+    ;; Draw the object.
+    lda #kTileIdObjFlowerTop  ; param: tile ID
+    ldy #kPaletteObjFlowerTop  ; param: object flags
+    jmp FuncA_Objects_Draw1x1Shape  ; preserves X
 _PosX_u8_arr:
     .byte $54, $64, $74, $84, $94, $a4, $54, $64, $74, $84, $94, $a4
     .assert * - _PosX_u8_arr = kNumFlowerFlags, error
 _PosY_u8_arr:
-    .byte $4f, $4f, $4f, $4f, $4f, $4f, $6f, $6f, $6f, $6f, $6f, $6f
+    .byte $50, $50, $50, $50, $50, $50, $70, $70, $70, $70, $70, $70
     .assert * - _PosY_u8_arr = kNumFlowerFlags, error
 .ENDPROC
 

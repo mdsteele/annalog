@@ -28,7 +28,7 @@
 ;;; @return A 127 times the cosine of the angle (signed).
 ;;; @return N Set if the cosine is negative.
 ;;; @return Z Set if the cosine is zero.
-;;; @preserve X, Zp_Tmp*
+;;; @preserve X, T0+
 .EXPORT Func_Cosine
 .PROC Func_Cosine
     add #$40
@@ -40,7 +40,7 @@
 ;;; @return A 127 times the sine of the angle (signed).
 ;;; @return N Set if the sine is negative.
 ;;; @return Z Set if the sine is zero.
-;;; @preserve X, Zp_Tmp*
+;;; @preserve X, T0+
 .EXPORT Func_Sine
 .PROC Func_Sine
     tay

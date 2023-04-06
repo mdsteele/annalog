@@ -66,8 +66,6 @@
 .IMPORTZP Zp_NextCutscene_main_ptr
 .IMPORTZP Zp_RoomScrollX_u16
 .IMPORTZP Zp_RoomScrollY_u8
-.IMPORTZP Zp_Tmp1_byte
-.IMPORTZP Zp_Tmp_ptr
 
 ;;;=========================================================================;;;
 
@@ -259,10 +257,10 @@ _FadeOut:
 .PROC FuncA_Breaker_TickActivate
     ldy Zp_Breaker_ePhase
     lda _JumpTable_ptr_0_arr, y
-    sta Zp_Tmp_ptr + 0
+    sta T0
     lda _JumpTable_ptr_1_arr, y
-    sta Zp_Tmp_ptr + 1
-    jmp (Zp_Tmp_ptr)
+    sta T1
+    jmp (T1T0)
 .REPEAT 2, table
     D_TABLE_LO table, _JumpTable_ptr_0_arr
     D_TABLE_HI table, _JumpTable_ptr_1_arr
@@ -364,10 +362,10 @@ _Return:
     @left:
     lda #kBreakerAvatarOffset - 1
     @setPos:
-    sta Zp_Tmp1_byte
+    sta T0  ; wobble offset (0-15)
     lda Zp_AvatarPosX_i16 + 0
     and #$f0
-    ora Zp_Tmp1_byte
+    ora T0  ; wobble offset (0-15)
     sta Zp_AvatarPosX_i16 + 0
 _DecrementTimer:
     dec Zp_BreakerTimer_u8

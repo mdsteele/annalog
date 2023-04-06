@@ -33,7 +33,6 @@
 .IMPORTZP Zp_Current_sRoom
 .IMPORTZP Zp_RoomScrollX_u16
 .IMPORTZP Zp_RoomScrollY_u8
-.IMPORTZP Zp_Tmp1_byte
 
 ;;;=========================================================================;;;
 
@@ -85,13 +84,13 @@ _UpdateMinimapCol:
     sta Zp_CameraMinimapCol_u8
 _MarkMinimap:
     ;; Determine the bitmask to use for Sram_Minimap_u16_arr, and store it in
-    ;; Zp_Tmp1_byte.
+    ;; T0.
     lda Zp_CameraMinimapRow_u8
     tay
     and #$07
     tax
     lda Data_PowersOfTwo_u8_arr8, x
-    sta Zp_Tmp1_byte  ; mask
+    sta T0  ; mask
     ;; Calculate the byte offset into Sram_Minimap_u16_arr and store it in X.
     lda Zp_CameraMinimapCol_u8
     mul #2
@@ -102,7 +101,7 @@ _MarkMinimap:
     @loByte:
     ;; Check if minimap needs to be updated.
     lda Sram_Minimap_u16_arr, x
-    ora Zp_Tmp1_byte  ; mask
+    ora T0  ; mask
     cmp Sram_Minimap_u16_arr, x
     beq @done
     ;; Enable writes to SRAM.

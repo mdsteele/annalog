@@ -24,7 +24,6 @@
 .INCLUDE "../machine.inc"
 .INCLUDE "../machines/pump.inc"
 .INCLUDE "../macros.inc"
-.INCLUDE "../oam.inc"
 .INCLUDE "../platform.inc"
 .INCLUDE "../ppu.inc"
 .INCLUDE "../program.inc"
@@ -34,7 +33,7 @@
 .IMPORT FuncA_Machine_Error
 .IMPORT FuncA_Machine_GenericTryMoveY
 .IMPORT FuncA_Machine_ReachedGoal
-.IMPORT FuncA_Objects_Alloc1x1Shape
+.IMPORT FuncA_Objects_Draw1x1Shape
 .IMPORT FuncA_Objects_MoveShapeRightByA
 .IMPORT FuncA_Objects_MoveShapeRightOneTile
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
@@ -46,12 +45,9 @@
 .IMPORT Ram_MachineGoalVert_u8_arr
 .IMPORT Ram_MachineSlowdown_u8_arr
 .IMPORT Ram_MachineStatus_eMachine_arr
-.IMPORT Ram_Oam_sObj_arr64
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORTZP Zp_FrameCounter_u8
 .IMPORTZP Zp_PointY_i16
-.IMPORTZP Zp_Tmp1_byte
-.IMPORTZP Zp_Tmp2_byte
 
 ;;;=========================================================================;;;
 
@@ -231,10 +227,10 @@ _Passages_sPassage_arr:
     lda Ram_MachineGoalVert_u8_arr + kPumpMachineIndex
     .assert kPumpMaxGoalY * kBlockHeightPx < $100, error
     mul #kBlockHeightPx
-    sta Zp_Tmp1_byte  ; goal delta
+    sta T0  ; goal delta
     .assert kWaterMaxPlatformTop < $100, error
     lda #kWaterMaxPlatformTop
-    sub Zp_Tmp1_byte  ; goal delta
+    sub T0  ; goal delta
     sta Zp_PointY_i16 + 0
     lda #0
     sta Zp_PointY_i16 + 1
@@ -270,7 +266,7 @@ _WaterLeft:
     lda Ram_PlatformTop_i16_0_arr + kWaterPlatformIndex
     sub #kWaterMinPlatformTop & $f0
     div #kBlockHeightPx
-    tay
+    tay  ; row index
     lda _WaterOffsetL_u8_arr, y  ; param: offset
     jsr FuncA_Objects_MoveShapeRightByA  ; preserves Y
     ;; Determine the water tile ID.
@@ -279,14 +275,14 @@ _WaterLeft:
     and #$03
     tax
     lda _WaterTileIds_u8_arr4, x
-    sta Zp_Tmp1_byte  ; water tile ID
+    sta T2  ; water tile ID
     ;; Determine the width of the left side of the water in tiles, and draw
     ;; that many objects.
     ldx _WaterWidthL_u8_arr, y
-    sty Zp_Tmp2_byte  ; row index
-    jsr _DrawWaterObjects
+    sty T3  ; row index
+    jsr _DrawWaterObjects  ; preserves T2+
 _WaterRight:
-    ldy Zp_Tmp2_byte  ; row index
+    ldy T3  ; row index
     lda _WaterOffsetR_u8_arr, y  ; param: offset
     jsr FuncA_Objects_MoveShapeRightByA  ; preserves Y
     ;; Determine the width of the right side of the water in tiles, and draw
@@ -294,14 +290,10 @@ _WaterRight:
     ldx _WaterWidthR_u8_arr, y
 _DrawWaterObjects:
     @loop:
-    jsr FuncA_Objects_Alloc1x1Shape  ; preserves X and Zp_Tmp*, returns C and Y
-    bcs @continue
-    lda Zp_Tmp1_byte  ; water tile ID
-    sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
-    lda #kPaletteObjWater
-    sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
-    @continue:
-    jsr FuncA_Objects_MoveShapeRightOneTile  ; preserves X and Zp_Tmp*
+    ldy #kPaletteObjWater  ; param: object flags
+    lda T2  ; param: water tile ID
+    jsr FuncA_Objects_Draw1x1Shape  ; preserves X and T2+
+    jsr FuncA_Objects_MoveShapeRightOneTile  ; preserves X and T0+
     dex
     bne @loop
     rts

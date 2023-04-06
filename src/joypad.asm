@@ -38,7 +38,7 @@ Zp_P1ButtonsPressed_bJoypad: .res 1
 
 ;;; Helper function for Func_ReadJoypad.  Reads buttons from the joypad and
 ;;; populates Zp_P1ButtonsHeld_bJoypad.
-;;; @preserve X, Y
+;;; @preserve X, Y, T0+
 .PROC Func_ReadJoypadOnce
     ;; This function's code comes almost directly from
     ;; https://wiki.nesdev.org/w/index.php/Controller_reading_code.
@@ -63,6 +63,7 @@ Zp_P1ButtonsPressed_bJoypad: .res 1
 
 ;;; Reads buttons from joypad and populates Zp_P1ButtonsHeld_bJoypad and
 ;;; Zp_P1ButtonsPressed_bJoypad.
+;;; @preserve T0+
 .EXPORT Func_ReadJoypad
 .PROC Func_ReadJoypad
     ;; Store the buttons *not* held last frame in Y.
@@ -74,10 +75,10 @@ Zp_P1ButtonsPressed_bJoypad: .res 1
     ;; Bros. 3) is to read the controller repeatedly until you get the same
     ;; result twice in a row.  This part of the code is adapted from
     ;; https://wiki.nesdev.org/w/index.php/Controller_reading_code.
-    jsr Func_ReadJoypadOnce  ; preserves X and Y
+    jsr Func_ReadJoypadOnce  ; preserves X, Y, and T0+
     @rereadLoop:
     ldx Zp_P1ButtonsHeld_bJoypad
-    jsr Func_ReadJoypadOnce  ; preserves X and Y
+    jsr Func_ReadJoypadOnce  ; preserves X, Y, and T0+
     cpx Zp_P1ButtonsHeld_bJoypad
     bne @rereadLoop
     ;; Now that we have a reliable value for Zp_P1ButtonsHeld_bJoypad, we can

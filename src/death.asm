@@ -41,7 +41,6 @@
 .IMPORTZP Zp_AvatarMode_eAvatar
 .IMPORTZP Zp_AvatarPosX_i16
 .IMPORTZP Zp_PpuTransferLen_u8
-.IMPORTZP Zp_Tmp1_byte
 
 ;;;=========================================================================;;;
 
@@ -144,10 +143,10 @@ _SetAvatarMode:
     @straining:
     div #4
     and #$01
-    sta Zp_Tmp1_byte
+    sta T0  ; horz vibration (0 or 1)
     lda Zp_AvatarPosX_i16 + 0
     and #$fe
-    ora Zp_Tmp1_byte
+    ora T0  ; horz vibration (0 or 1)
     sta Zp_AvatarPosX_i16 + 0
     lda #eAvatar::Straining
     bne @setAvatarMode  ; unconditional
@@ -187,7 +186,7 @@ _SetAvatarMode:
 ;;; Buffers a PPU transfer to blank out one tile column of terrain.
 ;;; @param Y The nametable tile column number to blank out.
 .PROC FuncA_Death_TransferBlankBgTileColumn
-    sty Zp_Tmp1_byte  ; nametable tile column index
+    sty T0  ; nametable tile column index
     ldx Zp_PpuTransferLen_u8
 _UpperNametable:
     lda #kPpuCtrlFlagsVert
@@ -218,7 +217,7 @@ _LowerNametable:
     sta Ram_PpuTransfer_arr, x
     inx
     .assert <Ppu_Nametable3_sName = 0, error
-    lda Zp_Tmp1_byte  ; nametable tile column index
+    lda T0  ; nametable tile column index
     sta Ram_PpuTransfer_arr, x
     inx
     lda #kTallRoomHeightTiles - kScreenHeightTiles

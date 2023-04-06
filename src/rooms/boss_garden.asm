@@ -79,8 +79,6 @@
 .IMPORTZP Zp_NextIrq_int_ptr
 .IMPORTZP Zp_RoomScrollY_u8
 .IMPORTZP Zp_RoomState
-.IMPORTZP Zp_Tmp1_byte
-.IMPORTZP Zp_Tmp_ptr
 
 ;;;=========================================================================;;;
 
@@ -420,10 +418,10 @@ _CheckMode:
     ;; Branch based on the current boss mode.
     ldy Zp_RoomState + sState::BossMode_eBoss
     lda _JumpTable_ptr_0_arr, y
-    sta Zp_Tmp_ptr + 0
+    sta T0
     lda _JumpTable_ptr_1_arr, y
-    sta Zp_Tmp_ptr + 1
-    jmp (Zp_Tmp_ptr)
+    sta T1
+    jmp (T1T0)
 .REPEAT 2, table
     D_TABLE_LO table, _JumpTable_ptr_0_arr
     D_TABLE_HI table, _JumpTable_ptr_1_arr
@@ -473,11 +471,11 @@ _BossAngry:
     rts
 _BossWaiting:
     jsr Func_GetRandomByte  ; returns A
-    sta Zp_Tmp1_byte  ; 8 random bits
+    sta T0  ; 8 random bits
     ;; Choose a random eye to open.
     and #$01
     sta Zp_RoomState + sState::BossActive_eEye
-    lsr Zp_Tmp1_byte  ; now 7 random bits
+    lsr T0  ; now 7 random bits
     ;; If the boss is at high health, switch to Shoot mode; if at low health,
     ;; randomly choose between Shoot and Spray mode.
     lda Zp_RoomState + sState::BossHealth_u8
@@ -488,15 +486,15 @@ _BossWaiting:
     .assert eBoss::Shoot > 0, error
     bne @setMode  ; unconditional
     @lowHealth:
-    lda Zp_Tmp1_byte  ; 7 random bits
+    lda T0  ; 7 random bits
     and #$01
     .assert eBoss::Shoot + 1 = eBoss::Spray, error
     add #eBoss::Shoot
-    lsr Zp_Tmp1_byte  ; now 6 random bits
+    lsr T0  ; now 6 random bits
     @setMode:
     sta Zp_RoomState + sState::BossMode_eBoss
     ;; Choose a random number of fireballs to shoot, from 4-7.
-    lda Zp_Tmp1_byte  ; at least 6 random bits
+    lda T0  ; at least 6 random bits
     and #$03
     add #4
     sta Zp_RoomState + sState::BossProjCount_u8
@@ -548,9 +546,9 @@ _Close:
 ;;; @param A Which room block column to shoot at.
 ;;; @param Y Which eEye to shoot from.
 .PROC FuncC_Boss_Garden_ShootFireballAtColumn
-    sta Zp_Tmp1_byte  ; room block column
+    sta T0  ; room block column
     ;; Shoot a fireball.
-    jsr Func_FindEmptyActorSlot  ; preserves Y and Zp_Tmp*, returns C and X
+    jsr Func_FindEmptyActorSlot  ; preserves Y and T0+, returns C and X
     bcs @done
     ;; Initialize fireball position based on which eye we're shooting from.
     lda #0
@@ -561,7 +559,7 @@ _Close:
     lda _FireballPosX_u8_arr2, y
     sta Ram_ActorPosX_i16_0_arr, x
     ;; Choose fireball angle based on target column.
-    lda Zp_Tmp1_byte  ; room block column
+    lda T0  ; room block column
     mul #2
     ora Zp_RoomState + sState::BossActive_eEye
     tay
@@ -801,12 +799,12 @@ _SetUpIrq:
     beq @noFlash
     lda #$10
     @noFlash:
-    sta Zp_Tmp1_byte  ; flash bit
+    sta T0  ; flash bit
     ;; Compute the first tile ID based on the current eye openness.
     lda Zp_RoomState + sState::BossEyeOpen_u8_arr2, x
     div #2
     and #$fe
-    ora Zp_Tmp1_byte  ; flash bit
+    ora T0  ; flash bit
     add #kTileIdObjPlantEyeFirst
     ;; Set tile IDs:
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Tile_u8, y

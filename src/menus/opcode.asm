@@ -32,10 +32,6 @@
 .IMPORTZP Zp_Current_sMachine_ptr
 .IMPORTZP Zp_Current_sMenu_ptr
 .IMPORTZP Zp_MenuItem_u8
-.IMPORTZP Zp_Tmp1_byte
-.IMPORTZP Zp_Tmp2_byte
-.IMPORTZP Zp_Tmp3_byte
-.IMPORTZP Zp_Tmp4_byte
 
 ;;;=========================================================================;;;
 
@@ -105,7 +101,7 @@ _LabelNop:   .byte "NOP"
 _OnRight:
     ldx Zp_MenuItem_u8
     lda Ram_MenuRows_u8_arr, x
-    sta Zp_Tmp1_byte  ; current menu row
+    sta T0  ; current menu row
     ;; Check all menu items, and find the item that is in the same row as the
     ;; current item, but in the right column.
     ldx #kMaxMenuItems - 1
@@ -114,7 +110,7 @@ _OnRight:
     .assert kOpcodeMenuLeftCol = 0, error
     beq @continue
     lda Ram_MenuRows_u8_arr, x
-    cmp Zp_Tmp1_byte  ; current menu row
+    cmp T0  ; current menu row
     bne @continue
     stx Zp_MenuItem_u8
     rts
@@ -130,32 +126,32 @@ _OnUp:
     ldx Zp_MenuItem_u8
     lda Ram_MenuCols_u8_arr, x
 _UpFromCol:
-    sta Zp_Tmp2_byte  ; current menu col
+    sta T1  ; current menu col
     lda Ram_MenuRows_u8_arr, x
-    sta Zp_Tmp1_byte  ; current menu row
+    sta T0  ; current menu row
     lda #0
-    sta Zp_Tmp3_byte  ; best new row so far
+    sta T2  ; best new row so far
     lda #$ff
-    sta Zp_Tmp4_byte  ; best new item so far
+    sta T3  ; best new item so far
     ;; Check all menu items, and find the lowest possible one that is still
     ;; above the current item and in the same column.
     ldx #kMaxMenuItems - 1
     @loop:
     lda Ram_MenuCols_u8_arr, x
-    cmp Zp_Tmp2_byte  ; current menu col
+    cmp T1  ; current menu col
     bne @continue
     lda Ram_MenuRows_u8_arr, x
-    cmp Zp_Tmp1_byte  ; current menu row
+    cmp T0  ; current menu row
     bge @continue
-    cmp Zp_Tmp3_byte  ; best new row so far
+    cmp T2  ; best new row so far
     blt @continue
-    sta Zp_Tmp3_byte  ; best new row so far
-    stx Zp_Tmp4_byte  ; best new item so far
+    sta T2  ; best new row so far
+    stx T3  ; best new item so far
     @continue:
     dex
     bpl @loop
     ;; If we found any such item, set it as the new selected item.
-    lda Zp_Tmp4_byte  ; best new item so far
+    lda T3  ; best new item so far
     bmi @doNotSet
     sta Zp_MenuItem_u8
     @doNotSet:
@@ -163,41 +159,41 @@ _UpFromCol:
 _OnDown:
     ldx Zp_MenuItem_u8
     lda Ram_MenuRows_u8_arr, x
-    sta Zp_Tmp1_byte  ; current menu row
+    sta T0  ; current menu row
     lda Ram_MenuCols_u8_arr, x
-    sta Zp_Tmp2_byte  ; current menu col
+    sta T1  ; current menu col
     ;; If we don't find anything else, default to the "delete" option at the
     ;; bottom.
     ldy Zp_ConsoleNumInstRows_u8
     dey
-    sty Zp_Tmp3_byte  ; best new row so far
+    sty T2  ; best new row so far
     lda #eOpcode::Empty
-    sta Zp_Tmp4_byte  ; best new item so far
+    sta T3  ; best new item so far
     ;; Check all menu items, and find the highest possible one that is still
     ;; below the current item and in the same column.
     ldx #kMaxMenuItems - 1
     @loop:
     lda Ram_MenuCols_u8_arr, x
-    cmp Zp_Tmp2_byte  ; current menu col
+    cmp T1  ; current menu col
     bne @continue
     lda Ram_MenuRows_u8_arr, x
-    cmp Zp_Tmp1_byte  ; current menu row
+    cmp T0  ; current menu row
     ble @continue
-    cmp Zp_Tmp3_byte  ; best new row so far
+    cmp T2  ; best new row so far
     bge @continue
-    sta Zp_Tmp3_byte  ; best new row so far
-    stx Zp_Tmp4_byte  ; best new item so far
+    sta T2  ; best new row so far
+    stx T3  ; best new item so far
     @continue:
     dex
     bpl @loop
     ;; Set whatever we found as the new selected item.
-    lda Zp_Tmp4_byte  ; best new item so far
+    lda T3  ; best new item so far
     sta Zp_MenuItem_u8
     rts
 _OnLeft:
     ldx Zp_MenuItem_u8
     lda Ram_MenuRows_u8_arr, x
-    sta Zp_Tmp1_byte  ; current menu row
+    sta T0  ; current menu row
     ;; Check all menu items, and find the item that is in the same row as the
     ;; current item, but in the left column.
     ldx #kMaxMenuItems - 1
@@ -206,7 +202,7 @@ _OnLeft:
     .assert kOpcodeMenuLeftCol = 0, error
     bne @continue
     lda Ram_MenuRows_u8_arr, x
-    cmp Zp_Tmp1_byte  ; current menu row
+    cmp T0  ; current menu row
     beq @setItem
     @continue:
     dex

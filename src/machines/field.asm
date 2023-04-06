@@ -48,7 +48,6 @@
 .IMPORTZP Zp_Current_sMachine_ptr
 .IMPORTZP Zp_MachineIndex_u8
 .IMPORTZP Zp_NextCutscene_main_ptr
-.IMPORTZP Zp_Tmp1_byte
 
 ;;;=========================================================================;;;
 
@@ -149,13 +148,13 @@ _TryTeleport:
     ;; field; if not, then no teleport will occur.
     lda Zp_AvatarPosX_i16 + 0
     sub #kTeleportFieldWidth
-    sta Zp_Tmp1_byte  ; shifted avatar pos X (lo)
+    sta T0  ; shifted avatar pos X (lo)
     lda Zp_AvatarPosX_i16 + 1
     sbc #0
     cmp Ram_PlatformRight_i16_1_arr, x
     blt @doneRight
     bne @noTeleport
-    lda Zp_Tmp1_byte  ; shifted avatar pos X (lo)
+    lda T0  ; shifted avatar pos X (lo)
     cmp Ram_PlatformRight_i16_0_arr, x
     bge @noTeleport
     @doneRight:

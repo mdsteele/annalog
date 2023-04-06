@@ -21,21 +21,6 @@
 
 ;;;=========================================================================;;;
 
-.ZEROPAGE
-
-;;; Temporary variables that any main-thread function can use.  In general, it
-;;; should be assumed that these are not preserved across function calls.
-.EXPORTZP Zp_Tmp1_byte, Zp_Tmp2_byte, Zp_Tmp3_byte, Zp_Tmp4_byte, Zp_Tmp5_byte
-.EXPORTZP Zp_Tmp_ptr
-Zp_Tmp1_byte: .res 1
-Zp_Tmp2_byte: .res 1
-Zp_Tmp3_byte: .res 1
-Zp_Tmp4_byte: .res 1
-Zp_Tmp5_byte: .res 1
-Zp_Tmp_ptr: .res 2
-
-;;;=========================================================================;;;
-
 .SEGMENT "PRG8"
 
 ;;; Does nothing and returns immediately.  Can be used as a null function
@@ -57,25 +42,25 @@ Zp_Tmp_ptr: .res 2
 ;;; @param A The 8-bit unsigned multiplicand.
 ;;; @param Y The 8-bit unsigned multiplier.
 ;;; @return YA The 16-bit unsigned product.
-;;; @preserve X
+;;; @preserve X, T2+
 .EXPORT Func_UnsignedMult
 .PROC Func_UnsignedMult
-    sty Zp_Tmp1_byte
-    sta Zp_Tmp2_byte
+    sty T0
+    sta T1
     ;; This comes from https://www.lysator.liu.se/~nisse/misc/6502-mul.html
     lda #0
     ldy #8
-    lsr Zp_Tmp1_byte
+    lsr T0
     @loop:
     bcc @noAdd
-    add Zp_Tmp2_byte
+    add T1
     @noAdd:
     ror a
-    ror Zp_Tmp1_byte
+    ror T0
     dey
     bne @loop
-    tay               ; unsigned product (hi)
-    lda Zp_Tmp1_byte  ; unsigned product (lo)
+    tay     ; unsigned product (hi)
+    lda T0  ; unsigned product (lo)
     rts
 .ENDPROC
 
@@ -83,14 +68,14 @@ Zp_Tmp_ptr: .res 2
 ;;; @param A The 8-bit signed multiplicand.
 ;;; @param Y The 8-bit unsigned multiplier.
 ;;; @return YA The 16-bit signed product.
-;;; @preserve X
+;;; @preserve X, T2+
 .EXPORT Func_SignedMult
 .PROC Func_SignedMult
     ora #0
-    bpl Func_UnsignedMult  ; preserves X, returns YA
+    bpl Func_UnsignedMult  ; preserves X and T2+, returns YA
     eor #$ff
     add #1
-    jsr Func_UnsignedMult  ; preserves X, returns YA
+    jsr Func_UnsignedMult  ; preserves X and T2+, returns YA
     eor #$ff
     add #1
     pha  ; signed product (lo)
@@ -107,23 +92,23 @@ Zp_Tmp_ptr: .res 2
 ;;; @param Y The 8-bit unsigned divisor (must be nonzero).
 ;;; @return A The remainder.
 ;;; @return Y The quotient (rounded down).
-;;; @preserve X
+;;; @preserve X, T2+
 .EXPORT Func_DivMod
 .PROC Func_DivMod
-    sta Zp_Tmp1_byte  ; dividend
-    sty Zp_Tmp2_byte  ; divisor
+    sta T0  ; dividend
+    sty T1  ; divisor
     ;; The below comes from http://6502org.wikidot.com/software-math-intdiv
     lda #0
     ldy #8
-    asl Zp_Tmp1_byte  ; dividend/quotient
+    asl T0  ; dividend/quotient
 L1: rol a
-    cmp Zp_Tmp2_byte  ; divisor
+    cmp T1  ; divisor
     bcc L2
-    sbc Zp_Tmp2_byte  ; divisor
-L2: rol Zp_Tmp1_byte  ; dividend/quotient
+    sbc T1  ; divisor
+L2: rol T0  ; dividend/quotient
     dey
     bne L1
-    ldy Zp_Tmp1_byte  ; quotient
+    ldy T0  ; quotient
     rts
 .ENDPROC
 

@@ -35,7 +35,7 @@ Zp_PointY_i16: .res 2
 
 ;;; Moves Zp_PointX_i16 rightwards by the given number of pixels.
 ;;; @param A The number of pixels to shift right by (unsigned).
-;;; @preserve X, Y, Zp_Tmp*
+;;; @preserve X, Y, T0+
 .EXPORT Func_MovePointRightByA
 .PROC Func_MovePointRightByA
     add Zp_PointX_i16 + 0
@@ -48,7 +48,7 @@ Zp_PointY_i16: .res 2
 
 ;;; Moves Zp_PointX_i16 leftwards by the given number of pixels.
 ;;; @param A The number of pixels to shift left by (unsigned).
-;;; @preserve X, Y, Zp_Tmp*
+;;; @preserve X, Y, T0+
 .EXPORT Func_MovePointLeftByA
 .PROC Func_MovePointLeftByA
     eor #$ff
@@ -63,7 +63,7 @@ Zp_PointY_i16: .res 2
 
 ;;; Moves Zp_PointX_i16 downwards by the given number of pixels.
 ;;; @param A The number of pixels to shift down by (unsigned).
-;;; @preserve X, Y, Zp_Tmp*
+;;; @preserve X, Y, T0+
 .EXPORT Func_MovePointDownByA
 .PROC Func_MovePointDownByA
     add Zp_PointY_i16 + 0
@@ -76,7 +76,7 @@ Zp_PointY_i16: .res 2
 
 ;;; Moves Zp_PointY_i16 upwards by the given number of pixels.
 ;;; @param A The number of pixels to shift up by (unsigned).
-;;; @preserve X, Y, Zp_Tmp*
+;;; @preserve X, Y, T0+
 .EXPORT Func_MovePointUpByA
 .PROC Func_MovePointUpByA
     eor #$ff

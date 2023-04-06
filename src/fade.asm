@@ -25,9 +25,6 @@
 .IMPORT Ram_PpuTransfer_arr
 .IMPORTZP Zp_PpuTransferLen_u8
 .IMPORTZP Zp_Render_bPpuMask
-.IMPORTZP Zp_Tmp1_byte
-.IMPORTZP Zp_Tmp2_byte
-.IMPORTZP Zp_Tmp_ptr
 
 ;;;=========================================================================;;;
 
@@ -297,13 +294,13 @@ kPalettesTransferLen = .sizeof(sPal) * 8
 ;;; @preserve X, Y
 .EXPORT Func_TransferPalettes
 .PROC Func_TransferPalettes
-    sty Zp_Tmp1_byte  ; fade step
-    stx Zp_Tmp2_byte  ; old X register (just to preserve it)
-    ;; Make Zp_Tmp_ptr point to the palettes array for this fade step.
+    sty T2  ; fade step
+    stx T3  ; old X register (just to preserve it)
+    ;; Make T1T0 point to the palettes array for this fade step.
     lda Data_FadePalettes_sPal_arr4_ptr_0_arr, y
-    sta Zp_Tmp_ptr + 0
+    sta T0  ; palettes array ptr (lo)
     lda Data_FadePalettes_sPal_arr4_ptr_1_arr, y
-    sta Zp_Tmp_ptr + 1
+    sta T1  ; palettes array ptr (hi)
     ;; Write the transfer entry header.
     ldx Zp_PpuTransferLen_u8
     lda #kPpuCtrlFlagsHorz
@@ -323,13 +320,13 @@ kPalettesTransferLen = .sizeof(sPal) * 8
     jsr _WritePaletteData
     ;; Update the PPU transfer array length and restore X and Y.
     stx Zp_PpuTransferLen_u8
-    ldy Zp_Tmp1_byte  ; fade step (just to preserve Y)
-    ldx Zp_Tmp2_byte  ; old X register (just to preserve X)
+    ldy T2  ; fade step (just to preserve Y)
+    ldx T3  ; old X register (just to preserve X)
     rts
 _WritePaletteData:
     ldy #0
     @loop:
-    lda (Zp_Tmp_ptr), y
+    lda (T1T0), y
     sta Ram_PpuTransfer_arr, x
     inx
     iny

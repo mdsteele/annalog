@@ -66,7 +66,6 @@
 .IMPORTZP Zp_PointX_i16
 .IMPORTZP Zp_PointY_i16
 .IMPORTZP Zp_RoomState
-.IMPORTZP Zp_Tmp1_byte
 
 ;;;=========================================================================;;;
 
@@ -319,15 +318,15 @@ _ReadX:
 _ReadZ:
     lda Ram_PlatformTop_i16_0_arr + kCrusherUpperPlatformIndex
     sub #kCrusherMinPlatformTop - kTileHeightPx
-    sta Zp_Tmp1_byte
+    sta T0
     lda Ram_PlatformTop_i16_1_arr + kCrusherUpperPlatformIndex
     sbc #0
     .assert kBlockHeightPx = 16, error
     .repeat 4
     lsr a
-    ror Zp_Tmp1_byte
+    ror T0
     .endrepeat
-    lda Zp_Tmp1_byte
+    lda T0
     cmp #9
     blt @done
     lda #9

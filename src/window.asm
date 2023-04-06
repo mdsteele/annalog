@@ -28,7 +28,6 @@
 .IMPORTZP Zp_Buffered_sIrq
 .IMPORTZP Zp_NextIrq_int_ptr
 .IMPORTZP Zp_PpuTransferLen_u8
-.IMPORTZP Zp_Tmp1_byte
 
 ;;;=========================================================================;;;
 
@@ -178,10 +177,10 @@ _Disable:
 .PROC Func_Window_PrepareRowTransfer
     lda Zp_WindowNextRowToTransfer_u8  ; param: window tile row
     inc Zp_WindowNextRowToTransfer_u8
-    ;; Get the transfer destination address, and store it in Zp_Tmp1_byte (hi)
-    ;; and Y (lo).
+    ;; Get the transfer destination address, and store it in T0 (hi) and Y
+    ;; (lo).
     jsr Func_Window_GetRowPpuAddr  ; returns XY
-    stx Zp_Tmp1_byte
+    stx T0  ; transfer destination (hi)
     ;; Update Zp_PpuTransferLen_u8.
     ldx Zp_PpuTransferLen_u8
     txa
@@ -191,10 +190,10 @@ _Disable:
     lda #kPpuCtrlFlagsHorz
     sta Ram_PpuTransfer_arr, x
     inx
-    lda Zp_Tmp1_byte  ; transfer destination (hi)
+    lda T0  ; transfer destination (hi)
     sta Ram_PpuTransfer_arr, x
     inx
-    tya               ; transfer destination (lo)
+    tya     ; transfer destination (lo)
     sta Ram_PpuTransfer_arr, x
     inx
     lda #kScreenWidthTiles
@@ -210,7 +209,7 @@ _Disable:
 .EXPORT Func_Window_GetRowPpuAddr
 .PROC Func_Window_GetRowPpuAddr
     ldx #0
-    stx Zp_Tmp1_byte
+    stx T0
     ;; First, we need to multiply the window row (A) by kScreenWidthTiles to
     ;; get the address offset from the top of the window.  Since we're
     ;; multiplying by kScreenWidthTiles = $20, we need five ASL instructions.
@@ -222,11 +221,11 @@ _Disable:
     ;; byte after the fifth ASL, but not after any of the earlier ones.
     .assert kWindowMaxNumRows <= $10, error
     .assert kWindowMaxNumRows > $8, error
-    rol Zp_Tmp1_byte
+    rol T0
     ;; Add the offset we just calculated to the start address for the window.
     add #<Ppu_WindowTopLeft
     tay  ; return value (lo)
-    lda Zp_Tmp1_byte
+    lda T0
     adc #>Ppu_WindowTopLeft
     tax  ; return value (hi)
     rts

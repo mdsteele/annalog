@@ -65,9 +65,6 @@
 .IMPORTZP Zp_PpuTransferLen_u8
 .IMPORTZP Zp_ScrollGoalX_u16
 .IMPORTZP Zp_ScrollGoalY_u8
-.IMPORTZP Zp_Tmp1_byte
-.IMPORTZP Zp_Tmp2_byte
-.IMPORTZP Zp_Tmp_ptr
 .IMPORTZP Zp_WindowNextRowToTransfer_u8
 .IMPORTZP Zp_WindowTopGoal_u8
 .IMPORTZP Zp_WindowTop_u8
@@ -383,9 +380,9 @@ _InitWindow:
     ;; Calculate the window top goal from the number of instruction rows.
     lda Zp_ConsoleNumInstRows_u8
     mul #kTileHeightPx
-    sta Zp_Tmp1_byte
+    sta T0  ; instruction pane height in pixels
     lda #kScreenHeightPx - (kTileHeightPx * 2 + kWindowMarginBottomPx)
-    sub Zp_Tmp1_byte
+    sub T0  ; instruction pane height in pixels
     sta Zp_WindowTopGoal_u8
     rts
 .ENDPROC
@@ -454,7 +451,7 @@ _CheckIfDone:
     ;; insert a new instruction.
     lda Zp_MachineMaxInstructions_u8
     mul #.sizeof(sInst)
-    sta Zp_Tmp1_byte  ; machine max program byte length
+    sta T0  ; machine max program byte length
     tay
     .assert sInst::Op_byte = .sizeof(sInst) - 1, error
     dey
@@ -467,9 +464,9 @@ _CheckIfDone:
 _ShiftInstructions:
     lda Zp_ConsoleInstNumber_u8
     mul #.sizeof(sInst)
-    sta Zp_Tmp2_byte  ; byte offset for current instruction
-    ldy Zp_Tmp1_byte  ; machine max program byte length
-    ldx Zp_Tmp1_byte  ; machine max program byte length
+    sta T1  ; byte offset for current instruction
+    ldy T0  ; machine max program byte length
+    ldx T0  ; machine max program byte length
     .repeat .sizeof(sInst)
     dex
     .endrepeat
@@ -478,7 +475,7 @@ _ShiftInstructions:
     dey
     lda Ram_Console_sProgram + sProgram::Code_sInst_arr, x
     sta Ram_Console_sProgram + sProgram::Code_sInst_arr, y
-    cpx Zp_Tmp2_byte  ; byte offset for current instruction
+    cpx T1  ; byte offset for current instruction
     bne @loop
     ;; Set the current instruction to NOP, and select field zero.
     lda #eOpcode::Nop * $10
@@ -621,8 +618,8 @@ _DrawStatus:
 ;;; Appends a PPU transfer entry to redraw the current instruction.
 .EXPORT FuncA_Console_TransferInstruction
 .PROC FuncA_Console_TransferInstruction
-    ;; Get the transfer destination address, and store it in Zp_Tmp1_byte (lo)
-    ;; and Zp_Tmp2_byte (hi).
+    ;; Get the transfer destination address, and store it in T0 (lo) and T1
+    ;; (hi).
     lda Zp_ConsoleInstNumber_u8
     cmp Zp_ConsoleNumInstRows_u8
     blt @leftColumn
@@ -630,18 +627,18 @@ _DrawStatus:
     @leftColumn:
     add #1  ; add 1 for the top border
     jsr Func_Window_GetRowPpuAddr  ; returns XY
-    sty Zp_Tmp1_byte
+    sty T0  ; window row PPU address (lo)
     lda #14
     ldy Zp_ConsoleInstNumber_u8
     cpy Zp_ConsoleNumInstRows_u8
     bge @rightColumn
     lda #4
     @rightColumn:
-    add Zp_Tmp1_byte
-    sta Zp_Tmp1_byte  ; transfer destination (lo)
-    txa
+    add T0  ; window row PPU address (lo)
+    sta T0  ; transfer destination (lo)
+    txa     ; window row PPU address (hi)
     adc #0
-    sta Zp_Tmp2_byte  ; transfer destination (hi)
+    sta T1  ; transfer destination (hi)
     ;; Update Zp_PpuTransferLen_u8.
     ldx Zp_PpuTransferLen_u8
     txa
@@ -651,10 +648,10 @@ _DrawStatus:
     lda #kPpuCtrlFlagsHorz
     sta Ram_PpuTransfer_arr, x
     inx
-    lda Zp_Tmp2_byte  ; transfer destination (hi)
+    lda T1  ; transfer destination (hi)
     sta Ram_PpuTransfer_arr, x
     inx
-    lda Zp_Tmp1_byte  ; transfer destination (lo)
+    lda T0  ; transfer destination (lo)
     sta Ram_PpuTransfer_arr, x
     inx
     lda #kInstructionWidthTiles
@@ -670,23 +667,23 @@ _DrawStatus:
 .PROC FuncA_Console_WriteInstTransferData
     jsr FuncA_Console_IsPrevInstructionEmpty
     beq _Write7Spaces
-    ;; Store the Arg_byte in Zp_Tmp2_byte.
+    ;; Store the Arg_byte in T1.
     lda Zp_ConsoleInstNumber_u8
     mul #.sizeof(sInst)
     tay
     lda Ram_Console_sProgram + sProgram::Code_sInst_arr + sInst::Arg_byte, y
-    sta Zp_Tmp2_byte  ; Arg_byte
-    ;; Store the Op_byte in Zp_Tmp1_byte.
+    sta T1  ; Arg_byte
+    ;; Store the Op_byte in T0.
     lda Ram_Console_sProgram + sProgram::Code_sInst_arr + sInst::Op_byte, y
-    sta Zp_Tmp1_byte  ; Op_byte
+    sta T0  ; Op_byte
     ;; Extract the opcode and jump to the correct label below.
     div #$10
     tay
     lda _JumpTable_ptr_0_arr, y
-    sta Zp_Tmp_ptr + 0
+    sta T2
     lda _JumpTable_ptr_1_arr, y
-    sta Zp_Tmp_ptr + 1
-    jmp (Zp_Tmp_ptr)
+    sta T3
+    jmp (T3T2)
 .REPEAT 2, table
     D_TABLE_LO table, _JumpTable_ptr_0_arr
     D_TABLE_HI table, _JumpTable_ptr_1_arr
@@ -719,10 +716,10 @@ _OpNop:
     jmp _Write2Spaces
     @string: .byte " ----"
 _OpCopy:
-    lda Zp_Tmp1_byte  ; Op_byte
+    lda T0  ; Op_byte
     jsr _WriteLowRegisterOrImmediate
     jsr _WriteArrowLeft
-    lda Zp_Tmp2_byte  ; Arg_byte
+    lda T1  ; Arg_byte
     jsr _WriteLowRegisterOrImmediate
     jmp _Write4Spaces
 _OpSync:
@@ -742,7 +739,7 @@ _OpMul:
 _OpGoto:
     ldya #@string
     jsr _WriteString5
-    lda Zp_Tmp1_byte  ; Op_byte
+    lda T0  ; Op_byte
     and #$0f
     .assert '0' & $0f = 0, error
     ora #'0'
@@ -753,17 +750,17 @@ _OpGoto:
 _OpSkip:
     ldya #@string
     jsr _WriteString5
-    lda Zp_Tmp1_byte  ; Op_byte
+    lda T0  ; Op_byte
     jsr _WriteLowRegisterOrImmediate
     jmp _Write1Space
     @string: .byte "SKIP "
 _OpIf:
     ldya #@string
     jsr _WriteString3
-    lda Zp_Tmp2_byte  ; Arg_byte
+    lda T1  ; Arg_byte
     jsr _WriteLowRegisterOrImmediate
     jsr _WriteComparisonOperator
-    lda Zp_Tmp2_byte  ; Arg_byte
+    lda T1  ; Arg_byte
     jsr _WriteHighRegisterOrImmediate
     jmp _Write1Space
     @string: .byte "IF "
@@ -771,10 +768,10 @@ _OpTil:
     ldya #@string
     jsr _WriteString3
     jsr _Write1Space
-    lda Zp_Tmp2_byte  ; Arg_byte
+    lda T1  ; Arg_byte
     jsr _WriteLowRegisterOrImmediate
     jsr _WriteComparisonOperator
-    lda Zp_Tmp2_byte  ; Arg_byte
+    lda T1  ; Arg_byte
     jmp _WriteHighRegisterOrImmediate
     @string: .byte "TIL"
 _OpAct:
@@ -785,7 +782,7 @@ _OpAct:
 _OpMove:
     ldya #@string
     jsr _WriteString5
-    lda Zp_Tmp1_byte  ; Op_byte
+    lda T0  ; Op_byte
     and #$03
     .assert eDir::Up = 0, error
     .assert kTileIdArrowUp & $03 = 0, error
@@ -802,7 +799,7 @@ _OpWait:
 _OpBeep:
     ldya #@string
     jsr _WriteString5
-    lda Zp_Tmp1_byte  ; Op_byte
+    lda T0  ; Op_byte
     jsr _WriteLowRegisterOrImmediate
     jmp _Write1Space
     @string: .byte "BEEP "
@@ -812,10 +809,10 @@ _OpEnd:
     jmp _Write4Spaces
     @string: .byte "END"
 _WriteString3:
-    stya Zp_Tmp_ptr
+    stya T3T2
     ldy #0
     @loop:
-    lda (Zp_Tmp_ptr), y
+    lda (T3T2), y
     sta Ram_PpuTransfer_arr, x
     inx
     iny
@@ -823,10 +820,10 @@ _WriteString3:
     bne @loop
     rts
 _WriteString5:
-    stya Zp_Tmp_ptr
+    stya T3T2
     ldy #0
     @loop:
-    lda (Zp_Tmp_ptr), y
+    lda (T3T2), y
     sta Ram_PpuTransfer_arr, x
     inx
     iny
@@ -835,15 +832,15 @@ _WriteString5:
     rts
 _WriteBinop:
     pha
-    lda Zp_Tmp1_byte  ; Op_byte
+    lda T0  ; Op_byte
     jsr _WriteLowRegisterOrImmediate
     jsr _WriteArrowLeft
-    lda Zp_Tmp2_byte  ; Arg_byte
+    lda T1  ; Arg_byte
     jsr _WriteLowRegisterOrImmediate
     pla
     sta Ram_PpuTransfer_arr, x
     inx
-    lda Zp_Tmp2_byte  ; Arg_byte
+    lda T1  ; Arg_byte
     jsr _WriteHighRegisterOrImmediate
     jmp _Write2Spaces
 _Write4Spaces:
@@ -886,7 +883,7 @@ _WriteLowRegisterOrImmediate:
     inx
     rts
 _WriteComparisonOperator:
-    lda Zp_Tmp1_byte  ; Op_byte
+    lda T0  ; Op_byte
     and #$07
     .assert eCmp::Eq = 0, error
     .assert '=' & $07 = 0, error

@@ -28,6 +28,14 @@ import sys
 BAD_CODE_PATTERNS = [
     ('incorrect ZP export', re.compile(r'\.EXPORT +Zp')),
     ('incorrect ZP import', re.compile(r'\.IMPORT +Zp')),
+    # This pattern matches instructions using indirect addressing on e.g. T0
+    # instead of T1T0.
+    ('one-byte T register as address', re.compile(
+        r'^ *(ad[cd]|and|cmp|eor|jmp|lda|ora|sbc|sub|sta) +\( *T[0-9] *[),]')),
+    # This pattern matches 16-bit load/store macros (e.g. ldax) using e.g. T0
+    # instead of T1T0.
+    ('one-byte T register as two-byte operand', re.compile(
+        r'^ *(ld|st)[axy][axy] +T[0-9][^T]')),
     # This pattern matches instructions that were probably intended to use
     # immediate addressing.
     ('suspicious address', re.compile(
@@ -37,7 +45,7 @@ BAD_CODE_PATTERNS = [
     # zero page indirect Y-indexed addressing.
     ('suspicious direct Y-index', re.compile(
         r'^ *(ad[cd]|and|cmp|eor|lda|ora|sub|sbc|sta) +'
-        r'Zp_[A-Za-z0-9_]+_ptr, *[yY]'))
+        r'(Zp_[A-Za-z0-9_]+_ptr|T[0-9]T[0-9]), *[yY]')),
 ]
 
 SEGMENT_DECL_PATTERN = re.compile(r'^\.SEGMENT +"([a-zA-Z0-9_]*)"')

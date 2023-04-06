@@ -33,7 +33,6 @@
 .IMPORT Ram_ActorPosX_i16_1_arr
 .IMPORT Ram_ActorState1_byte_arr
 .IMPORTZP Zp_TerrainColumn_u8_arr_ptr
-.IMPORTZP Zp_Tmp1_byte
 
 ;;;=========================================================================;;;
 
@@ -90,10 +89,10 @@ _StartMove:
     dey
     @doneFacing:
     ;; Get the terrain for the tile column we're checking.
-    stx Zp_Tmp1_byte
+    stx T0  ; crab actor index
     tya  ; param: room tile column index
-    jsr Func_GetTerrainColumnPtrForTileIndex  ; preserves Zp_Tmp*
-    ldx Zp_Tmp1_byte
+    jsr Func_GetTerrainColumnPtrForTileIndex  ; preserves T0+
+    ldx T0  ; crab actor index
     ;; Check the terrain block just in front of the crab.  If it's solid, the
     ;; crab has to turn around.
     jsr FuncA_Actor_GetRoomBlockRow  ; preserves X, returns Y

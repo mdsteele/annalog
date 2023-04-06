@@ -39,7 +39,6 @@
 .IMPORTZP Zp_RoomScrollY_u8
 .IMPORTZP Zp_ShapePosX_i16
 .IMPORTZP Zp_ShapePosY_i16
-.IMPORTZP Zp_Tmp_ptr
 
 ;;;=========================================================================;;;
 
@@ -114,10 +113,10 @@ _Continue:
 .PROC FuncA_Objects_DrawOneDevice
     ldy Ram_DeviceType_eDevice_arr, x
     lda _JumpTable_ptr_0_arr, y
-    sta Zp_Tmp_ptr + 0
+    sta T0
     lda _JumpTable_ptr_1_arr, y
-    sta Zp_Tmp_ptr + 1
-    jmp (Zp_Tmp_ptr)
+    sta T1
+    jmp (T1T0)
 .REPEAT 2, table
     D_TABLE_LO table, _JumpTable_ptr_0_arr
     D_TABLE_HI table, _JumpTable_ptr_1_arr
@@ -147,7 +146,7 @@ _Continue:
 ;;; Populates Zp_ShapePosX_i16 and Zp_ShapePosY_i16 with the screen position of
 ;;; the top-left corner of the specified device.
 ;;; @param X The device index.
-;;; @preserve X, Y, Zp_Tmp*
+;;; @preserve X, Y, T0+
 .EXPORT FuncA_Objects_SetShapePosToDeviceTopLeft
 .PROC FuncA_Objects_SetShapePosToDeviceTopLeft
     lda #0

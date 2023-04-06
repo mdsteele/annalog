@@ -54,7 +54,6 @@
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORT Ram_PlatformTop_i16_1_arr
 .IMPORTZP Zp_MachineIndex_u8
-.IMPORTZP Zp_Tmp1_byte
 
 ;;;=========================================================================;;;
 
@@ -135,7 +134,7 @@ kPaletteObjValve = 0
 .EXPORT FuncA_Machine_BoilerTick
 .PROC FuncA_Machine_BoilerTick
     lda #0
-    sta Zp_Tmp1_byte  ; num valves moved
+    sta T0  ; num valves moved
 _Valve1:
     lda Ram_MachineGoalVert_u8_arr, x
     mul #kBoilerValveAnimSlowdown
@@ -148,7 +147,7 @@ _Valve1:
     @decrement:
     dec Ram_MachineParam1_u8_arr, x
     @moved:
-    inc Zp_Tmp1_byte  ; num valves moved
+    inc T0  ; num valves moved
     @done:
 _Valve2:
     lda Ram_MachineGoalHorz_u8_arr, x
@@ -162,12 +161,11 @@ _Valve2:
     @decrement:
     dec Ram_MachineParam2_i16_0_arr, x
     @moved:
-    inc Zp_Tmp1_byte  ; num valves moved
+    inc T0  ; num valves moved
     @done:
 _Finish:
-    lda Zp_Tmp1_byte  ; num valves moved
+    lda T0  ; num valves moved
     jeq FuncA_Machine_ReachedGoal
-_Return:
     rts
 .ENDPROC
 
@@ -175,9 +173,10 @@ _Return:
 ;;; Given an 8x8 pixel platform covering the end tile of a leftward-facing
 ;;; pipe, spawns a leftward steam actor emitting from that pipe.
 ;;; @param Y The platform index for the pipe.
+;;; @preserve T0+
 .PROC FuncA_Machine_EmitSteamLeftFromPipe
     ;; Set X to the actor index for the steam.
-    jsr Func_FindEmptyActorSlot  ; preserves Y, returns C and X
+    jsr Func_FindEmptyActorSlot  ; preserves Y and T0+, returns C and X
     bcs @done
     ;; Calculate the steam's X-position.
     lda Ram_PlatformLeft_i16_0_arr, y
@@ -195,7 +194,7 @@ _Return:
     sta Ram_ActorPosY_i16_1_arr, x
     ;; Spawn the steam.
     lda #bObj::FlipH  ; param: facing dir
-    jmp Func_InitActorProjSteamHorz
+    jmp Func_InitActorProjSteamHorz  ; preserves T0+
     @done:
     rts
 .ENDPROC
@@ -203,10 +202,11 @@ _Return:
 ;;; Given an 8x8 pixel platform covering the end tile of a rightward-facing
 ;;; pipe, spawns a rightward steam actor emitting from that pipe.
 ;;; @param Y The platform index for the pipe.
+;;; @preserve T0+
 .EXPORT FuncA_Machine_EmitSteamRightFromPipe
 .PROC FuncA_Machine_EmitSteamRightFromPipe
     ;; Set X to the actor index for the steam.
-    jsr Func_FindEmptyActorSlot  ; preserves Y, returns C and X
+    jsr Func_FindEmptyActorSlot  ; preserves Y and T0+, returns C and X
     bcs @done
     ;; Calculate the steam's X-position.
     lda Ram_PlatformRight_i16_0_arr, y
@@ -224,7 +224,7 @@ _Return:
     sta Ram_ActorPosY_i16_1_arr, x
     ;; Spawn the steam.
     lda #0  ; param: facing dir
-    jmp Func_InitActorProjSteamHorz
+    jmp Func_InitActorProjSteamHorz  ; preserves T0+
     @done:
     rts
 .ENDPROC
@@ -232,10 +232,11 @@ _Return:
 ;;; Given an 8x8 pixel platform covering the end tile of an upward-facing pipe,
 ;;; spawns an upward steam actor emitting from that pipe.
 ;;; @param Y The platform index for the pipe.
+;;; @preserve T0+
 .EXPORT FuncA_Machine_EmitSteamUpFromPipe
 .PROC FuncA_Machine_EmitSteamUpFromPipe
     ;; Set X to the actor index for the steam.
-    jsr Func_FindEmptyActorSlot  ; preserves Y, returns C and X
+    jsr Func_FindEmptyActorSlot  ; preserves Y and T0+, returns C and X
     bcs @done
     ;; Calculate the steam's X-position.
     lda Ram_PlatformLeft_i16_0_arr, y
@@ -252,7 +253,7 @@ _Return:
     sbc #0
     sta Ram_ActorPosY_i16_1_arr, x
     ;; Spawn the steam.
-    jmp Func_InitActorProjSteamUp
+    jmp Func_InitActorProjSteamUp  ; preserves T0+
     @done:
     rts
 .ENDPROC
@@ -339,9 +340,10 @@ _Tank:
 ;;; @param A The valve angle (0-9).
 ;;; @param X The platform index for the valve.
 .PROC FuncA_Objects_DrawBoilerValve
-    sta Zp_Tmp1_byte  ; valve angle
-    jsr FuncA_Objects_SetShapePosToPlatformTopLeft  ; preserves Zp_Tmp*
-    ldx Zp_Tmp1_byte  ; valve angle
+    pha  ; valve angle
+    jsr FuncA_Objects_SetShapePosToPlatformTopLeft
+    pla  ; valve angle
+    tax  ; valve angle
     ldy _Flags_bObj_arr10, x  ; param: object flags
     lda _Tile_u8_arr10, x  ; param: tile ID
     jmp FuncA_Objects_Draw1x1Shape

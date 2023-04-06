@@ -18,6 +18,7 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "charmap.inc"
+.INCLUDE "cpu.inc"
 .INCLUDE "device.inc"
 .INCLUDE "flag.inc"
 .INCLUDE "hud.inc"
@@ -51,8 +52,6 @@
 .IMPORTZP Zp_P1ButtonsPressed_bJoypad
 .IMPORTZP Zp_PpuTransferLen_u8
 .IMPORTZP Zp_ScrollGoalY_u8
-.IMPORTZP Zp_Tmp1_byte
-.IMPORTZP Zp_Tmp_ptr
 .IMPORTZP Zp_WindowNextRowToTransfer_u8
 .IMPORTZP Zp_WindowTopGoal_u8
 .IMPORTZP Zp_WindowTop_u8
@@ -340,26 +339,26 @@ _Interior:
     dey
     bne @indentLoop
 _CopyUpgradeDescription:
-    ;; Store a pointer to the description text for this row in Zp_Tmp_ptr.
+    ;; Store a pointer to the description text for this row in T1T0.
     ldy Zp_WindowNextRowToTransfer_u8
     dey
     dey
-    sty Zp_Tmp1_byte
+    sty T2  ; text row
     lda Zp_CurrentUpgrade_eFlag
-    asl a
+    mul #2
     adc Zp_CurrentUpgrade_eFlag
-    adc Zp_Tmp1_byte
-    asl a
-    tay
+    adc T2  ; text row
+    mul #kSizeofAddr
+    tay  ; kSizeofAddr * (eFlag * 3 + text_row)
     lda _DescTable_ptr_arr, y
-    sta Zp_Tmp_ptr + 0
+    sta T0  ; text pointer (lo)
     iny
     lda _DescTable_ptr_arr, y
-    sta Zp_Tmp_ptr + 1
+    sta T1  ; text pointer (hi)
     ;; Copy upgrade description.
     ldy #0
     @loop:
-    lda (Zp_Tmp_ptr), y
+    lda (T1T0), y
     bmi @done
     sta Ram_PpuTransfer_arr, x
     inx

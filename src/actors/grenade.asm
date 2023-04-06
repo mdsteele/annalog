@@ -38,7 +38,6 @@
 .IMPORT Ram_ActorVelX_i16_1_arr
 .IMPORT Ram_ActorVelY_i16_0_arr
 .IMPORT Ram_ActorVelY_i16_1_arr
-.IMPORTZP Zp_Tmp1_byte
 
 ;;;=========================================================================;;;
 
@@ -80,17 +79,17 @@ kPaletteObjGrenade = 0
     sta Ram_ActorPosY_i16_1_arr, x
     ;; Initialize X-velocity:
     lda #0
-    sta Zp_Tmp1_byte
+    sta T0
     lda _InitVelX_i16_1_arr, y
     sta Ram_ActorVelX_i16_1_arr, x
     bpl @nonnegative
-    dec Zp_Tmp1_byte  ; now Zp_Tmp1_byte is $ff
+    dec T0  ; now T0 is $ff
     @nonnegative:
     ;; Adjust X-position:
     mul #2
     add Ram_ActorPosX_i16_0_arr, x
     sta Ram_ActorPosX_i16_0_arr, x
-    lda Zp_Tmp1_byte
+    lda T0
     adc Ram_ActorPosX_i16_1_arr, x
     sta Ram_ActorPosX_i16_1_arr, x
     rts

@@ -45,11 +45,11 @@ kPaletteObjEmber = 1
 ;;; Initializes the specified actor as an ember projectile.
 ;;; @prereq The actor's pixel position has already been initialized.
 ;;; @param X The actor index.
-;;; @preserve X, Zp_Tmp*
+;;; @preserve X, T0+
 .EXPORT Func_InitActorProjEmber
 .PROC Func_InitActorProjEmber
     ldy #eActor::ProjEmber  ; param: actor type
-    jmp Func_InitActorDefault  ; preserves X and Zp_Tmp*
+    jmp Func_InitActorDefault  ; preserves X and T0+
 .ENDPROC
 
 ;;;=========================================================================;;;

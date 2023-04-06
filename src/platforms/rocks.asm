@@ -31,7 +31,6 @@
 .IMPORT Ram_PlatformRight_i16_0_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORT Ram_PlatformType_ePlatform_arr
-.IMPORTZP Zp_Tmp1_byte
 
 ;;;=========================================================================;;;
 
@@ -62,7 +61,7 @@ kPaletteObjRocks = 0
     and #$01
     .assert kTileIdObjRocksFirst .mod 2 = 0, error
     ora #kTileIdObjRocksFirst
-    sta Zp_Tmp1_byte  ; base tile ID
+    sta T0  ; base tile ID
     ;; Determine how many tiles wide the platform is.
     lda Ram_PlatformRight_i16_0_arr, x
     sub Ram_PlatformLeft_i16_0_arr, x
@@ -73,13 +72,13 @@ kPaletteObjRocks = 0
     @done:
     rts
     @loop:
-    jsr FuncA_Objects_MoveShapeRightOneTile  ; preserves X and Zp_Tmp*
+    jsr FuncA_Objects_MoveShapeRightOneTile  ; preserves X and T0+
     @startLoop:
-    jsr FuncA_Objects_Alloc1x1Shape  ; preserves X and Zp_Tmp*, returns C and Y
+    jsr FuncA_Objects_Alloc1x1Shape  ; preserves X and T0+, returns C and Y
     bcs @continue
     txa
     and #$01
-    eor Zp_Tmp1_byte  ; base tile ID
+    eor T0  ; base tile ID
     sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
     lda #kPaletteObjRocks
     sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y

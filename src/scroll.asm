@@ -32,8 +32,6 @@
 .IMPORTZP Zp_AvatarPosX_i16
 .IMPORTZP Zp_AvatarPosY_i16
 .IMPORTZP Zp_Current_sRoom
-.IMPORTZP Zp_Tmp1_byte
-.IMPORTZP Zp_Tmp2_byte
 .IMPORTZP Zp_WindowTop_u8
 
 ;;;=========================================================================;;;
@@ -91,7 +89,7 @@ Zp_RoomShake_u8: .res 1
 
 ;;; Shakes the room for the given number of frames.
 ;;; @param A How many frames to shake the room for.
-;;; @preserve X, Y, Zp_Tmp*
+;;; @preserve X, Y, T0+
 .EXPORT Func_ShakeRoom
 .PROC Func_ShakeRoom
     cmp Zp_RoomShake_u8
@@ -110,14 +108,14 @@ Zp_RoomShake_u8: .res 1
 ;;; keeping the scroll goal within the valid range for the current room.
 .PROC FuncA_Terrain_SetScrollGoalFromAvatar
 _SetScrollGoalY:
-    ;; Calculate the maximum permitted scroll-Y and store it in Zp_Tmp1_byte.
+    ;; Calculate the maximum permitted scroll-Y and store it in T0.
     lda #0
     bit <(Zp_Current_sRoom + sRoom::Flags_bRoom)
     .assert bRoom::Tall = bProc::Overflow, error
     bvc @shortRoom
     lda #kTallRoomHeightBlocks * kBlockHeightPx - kScreenHeightPx
     @shortRoom:
-    sta Zp_Tmp1_byte  ; max scroll-Y
+    sta T0  ; max scroll-Y
     ;; Subtract half the screen height from the player avatar's Y-position,
     ;; storing the result in AX.
     lda Zp_AvatarPosY_i16 + 0
@@ -129,10 +127,10 @@ _SetScrollGoalY:
     bmi @minGoal
     bne @maxGoal
     txa
-    cmp Zp_Tmp1_byte  ; max scroll-Y
+    cmp T0  ; max scroll-Y
     blt @setGoalToA
     @maxGoal:
-    lda Zp_Tmp1_byte  ; max scroll-Y
+    lda T0  ; max scroll-Y
     jmp @setGoalToA
     @minGoal:
     lda #0
@@ -195,14 +193,14 @@ _SetScrollGoalX:
     ;; the nametable.
     lda Zp_RoomScrollX_u16 + 0
     add #kTileWidthPx - 1
-    sta Zp_Tmp1_byte
+    sta T0
     lda Zp_RoomScrollX_u16 + 1
     adc #0
     .repeat 3
     lsr a
-    ror Zp_Tmp1_byte
+    ror T0
     .endrepeat
-    lda Zp_Tmp1_byte  ; param: left block column index
+    lda T0  ; param: left block column index
     ;; Populate the nametables.
     jsr FuncA_Terrain_FillNametables
     jmp FuncA_Terrain_CallRoomFadeIn
@@ -263,27 +261,27 @@ _TrackScrollYTowardsGoal:
     @doneScrollVert:
 _ClampScrollY:
     ;; Calculate the visible height of the screen (the part not covered by the
-    ;; window), and store it in Zp_Tmp1_byte.
+    ;; window), and store it in T0.
     lda Zp_WindowTop_u8
     cmp #kScreenHeightPx
     blt @windowVisible
     lda #kScreenHeightPx
     @windowVisible:
-    sta Zp_Tmp1_byte  ; visible screen height
-    ;; Calculate the maximum permitted scroll-Y and store it in Zp_Tmp2_byte.
+    sta T0  ; visible screen height
+    ;; Calculate the maximum permitted scroll-Y and store it in T1.
     lda #kScreenHeightPx
     bit <(Zp_Current_sRoom + sRoom::Flags_bRoom)
     .assert bRoom::Tall = bProc::Overflow, error
     bvc @shortRoom
     lda #<(kTallRoomHeightBlocks * kBlockHeightPx)
     @shortRoom:
-    sub Zp_Tmp1_byte  ; visible screen height
-    sta Zp_Tmp2_byte  ; max scroll-Y
+    sub T0  ; visible screen height
+    sta T1  ; max scroll-Y
     ;; Clamp Zp_RoomScrollY_u8 to no more than the permitted value.
     lda Zp_RoomScrollY_u8
-    cmp Zp_Tmp2_byte  ; max scroll-Y
+    cmp T1  ; max scroll-Y
     blt @done
-    lda Zp_Tmp2_byte  ; max scroll-Y
+    lda T1  ; max scroll-Y
     sta Zp_RoomScrollY_u8
     @done:
 _ShakeScrollY:
@@ -303,10 +301,10 @@ _ShakeScrollY:
     @bigShake:
     ;; Replace bit 1 of Zp_RoomScrollY_u8 with bit 1 of Zp_RoomShake_u8.
     and #%00000010
-    sta Zp_Tmp1_byte
+    sta T0
     lda Zp_RoomScrollY_u8
     and #%11111101
-    ora Zp_Tmp1_byte
+    ora T0
     sta Zp_RoomScrollY_u8
     @done:
 _PrepareToScrollHorz:
@@ -315,23 +313,23 @@ _PrepareToScrollHorz:
     .assert bScroll::LockHorz = bProc::Negative, error
     bmi _UpdateMinimap
     ;; Calculate the index of the leftmost room tile column that is currently
-    ;; in the nametable, and put that index in Zp_Tmp1_byte.
+    ;; in the nametable, and put that index in T0.
     lda Zp_RoomScrollX_u16 + 0
     add #kTileWidthPx - 1
-    sta Zp_Tmp1_byte
+    sta T0
     lda Zp_RoomScrollX_u16 + 1
     adc #0
     .repeat 3
     lsr a
-    ror Zp_Tmp1_byte
+    ror T0
     .endrepeat
 _TrackScrollXTowardsGoal:
     ldy #0
     ;; Compute the delta from the current scroll-X position to the goal
-    ;; position, storing it in Zp_Tmp2_byte (lo) and A (hi).
+    ;; position, storing it in T1 (lo) and A (hi).
     lda Zp_ScrollGoalX_u16 + 0
     sub Zp_RoomScrollX_u16 + 0
-    sta Zp_Tmp2_byte  ; delta (lo)
+    sta T1  ; delta (lo)
     lda Zp_ScrollGoalX_u16 + 1
     sbc Zp_RoomScrollX_u16 + 1
     bmi @goalLessThanCurr
@@ -341,7 +339,7 @@ _TrackScrollXTowardsGoal:
     @goalMoreThanCurr:
     .assert kMaxScrollXSpeed << kScrollXSlowdown < $100, error
     bne @maxScroll
-    lda Zp_Tmp2_byte  ; delta (lo)
+    lda T1  ; delta (lo)
     .repeat kScrollXSlowdown
     lsr a
     .endrepeat
@@ -358,7 +356,7 @@ _TrackScrollXTowardsGoal:
     dey  ; now Y is $ff
     cmp #$ff
     bne @minScroll
-    lda Zp_Tmp2_byte  ; delta (lo)
+    lda T1  ; delta (lo)
     .repeat kScrollXSlowdown
     sec
     ror a
@@ -376,20 +374,20 @@ _TrackScrollXTowardsGoal:
     sta Zp_RoomScrollX_u16 + 1
 _UpdateNametable:
     ;; Calculate the index of the leftmost room tile column that should now be
-    ;; in the nametable, and put that index in Zp_Tmp2_byte.
+    ;; in the nametable, and put that index in T1.
     lda Zp_RoomScrollX_u16 + 0
     add #kTileWidthPx - 1
-    sta Zp_Tmp2_byte
+    sta T1
     lda Zp_RoomScrollX_u16 + 1
     adc #0
     .repeat 3
     lsr a
-    ror Zp_Tmp2_byte
+    ror T1
     .endrepeat
     ;; Determine if we need to update the nametable; if so, set A to the index
     ;; of the room tile column that should be loaded.
-    lda Zp_Tmp2_byte  ; new leftmost room tile column
-    cmp Zp_Tmp1_byte  ; old leftmost room tile column
+    lda T1  ; new leftmost room tile column
+    cmp T0  ; old leftmost room tile column
     beq @doneTransfer
     bmi @doTransfer
     add #kScreenWidthTiles - 1

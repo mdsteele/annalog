@@ -96,9 +96,6 @@
 .IMPORTZP Zp_RoomState
 .IMPORTZP Zp_ShapePosX_i16
 .IMPORTZP Zp_ShapePosY_i16
-.IMPORTZP Zp_Tmp1_byte
-.IMPORTZP Zp_Tmp2_byte
-.IMPORTZP Zp_Tmp_ptr
 
 ;;;=========================================================================;;;
 
@@ -679,10 +676,10 @@ _CheckMode:
     ;; Branch based on the current boss mode.
     ldy Zp_RoomState + sState::Current_eBossMode
     lda _JumpTable_ptr_0_arr, y
-    sta Zp_Tmp_ptr + 0
+    sta T0
     lda _JumpTable_ptr_1_arr, y
-    sta Zp_Tmp_ptr + 1
-    jmp (Zp_Tmp_ptr)
+    sta T1
+    jmp (T1T0)
 .REPEAT 2, table
     D_TABLE_LO table, _JumpTable_ptr_0_arr
     D_TABLE_HI table, _JumpTable_ptr_1_arr
@@ -841,19 +838,19 @@ _GoalPosX_u8_arr8:
     bge @setYOffset
     lda #0
     @setYOffset:
-    sta Zp_Tmp1_byte  ; avatar Y-offset
+    sta T0  ; avatar Y-offset
     ;; Compute the avatar's X-position relative to the boss.
     lda Zp_AvatarPosX_i16 + 0
     sub Zp_PointX_i16 + 0
     blt @avatarToTheLeft
     @avatarToTheRight:
-    sta Zp_Tmp2_byte  ; avatar X-offset
+    sta T1  ; avatar X-offset
     div #2
-    cmp Zp_Tmp1_byte  ; avatar Y-offset
+    cmp T0  ; avatar Y-offset
     bge @lookRight
-    lda Zp_Tmp1_byte  ; avatar Y-offset
+    lda T0  ; avatar Y-offset
     div #2
-    cmp Zp_Tmp2_byte  ; avatar X-offset
+    cmp T1  ; avatar X-offset
     bge @lookDown
     @lookDownRight:
     ldx #eEyeDir::DownRight
@@ -869,13 +866,13 @@ _GoalPosX_u8_arr8:
     bne @setEyeDir  ; unconditional
     @avatarToTheLeft:
     eor #$ff  ; negate (off by one, but close enough)
-    sta Zp_Tmp2_byte  ; avatar X-offset
+    sta T1  ; avatar X-offset
     div #2
-    cmp Zp_Tmp1_byte  ; avatar Y-offset
+    cmp T0  ; avatar Y-offset
     bge @lookLeft
-    lda Zp_Tmp1_byte  ; avatar Y-offset
+    lda T0  ; avatar Y-offset
     div #2
-    cmp Zp_Tmp2_byte  ; avatar X-offset
+    cmp T1  ; avatar X-offset
     bge @lookDown
     @lookDownLeft:
     ldx #eEyeDir::DownLeft

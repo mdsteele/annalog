@@ -55,7 +55,6 @@
 .IMPORTZP Zp_FrameCounter_u8
 .IMPORTZP Zp_PointY_i16
 .IMPORTZP Zp_RoomState
-.IMPORTZP Zp_Tmp1_byte
 
 ;;;=========================================================================;;;
 
@@ -282,10 +281,10 @@ _Drained:
     lda Ram_MachineGoalVert_u8_arr + kPumpMachineIndex
     .assert kPumpMaxGoalY * kBlockHeightPx < $100, error
     mul #kBlockHeightPx
-    sta Zp_Tmp1_byte  ; goal delta
+    sta T0  ; goal delta
     .assert kWaterMaxPlatformTop >= $100, error
     lda #<kWaterMaxPlatformTop
-    sub Zp_Tmp1_byte  ; goal delta
+    sub T0  ; goal delta
     sta Zp_PointY_i16 + 0
     lda #>kWaterMaxPlatformTop
     sbc #0

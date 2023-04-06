@@ -85,9 +85,6 @@
 .IMPORTZP Zp_P1ButtonsPressed_bJoypad
 .IMPORTZP Zp_PpuTransferLen_u8
 .IMPORTZP Zp_ScrollGoalY_u8
-.IMPORTZP Zp_Tmp1_byte
-.IMPORTZP Zp_Tmp2_byte
-.IMPORTZP Zp_Tmp_ptr
 .IMPORTZP Zp_WindowNextRowToTransfer_u8
 .IMPORTZP Zp_WindowTopGoal_u8
 .IMPORTZP Zp_WindowTop_u8
@@ -494,12 +491,12 @@ _ReadPortrait:
     beq _DialogDone
     bpl _SetPortrait
 _DynamicDialog:
-    stax Zp_Tmp_ptr
-    jsr _CallTmpPtr
+    stax T1T0
+    jsr _CallT1T0
     stya Zp_DialogText_ptr
     jmp _ReadPortrait
-_CallTmpPtr:
-    jmp (Zp_Tmp_ptr)
+_CallT1T0:
+    jmp (T1T0)
 _DialogDone:
     sec  ; dialog done
     rts
@@ -667,7 +664,7 @@ _TransferCharacter:
     pha  ; character to transfer
     lda Zp_DialogTextRow_u8  ; param: window row
     jsr Func_Window_GetRowPpuAddr  ; returns XY
-    stx Zp_Tmp1_byte  ; destination address (hi)
+    stx T0  ; destination address (hi)
     ;; Update Zp_PpuTransferLen_u8.
     ldx Zp_PpuTransferLen_u8
     txa
@@ -676,9 +673,9 @@ _TransferCharacter:
     ;; Write the transfer entry.
     lda #kPpuCtrlFlagsHorz
     sta Ram_PpuTransfer_arr + 0, x
-    lda Zp_Tmp1_byte  ; destination address (hi)
+    lda T0  ; destination address (hi)
     sta Ram_PpuTransfer_arr + 1, x
-    tya               ; destination address (lo)
+    tya     ; destination address (lo)
     ora Zp_DialogTextCol_u8
     sta Ram_PpuTransfer_arr + 2, x
     lda #1
@@ -698,7 +695,7 @@ _YesNoQuestion:
 
 ;;; Gets dialog ready for a yes-or-no question.
 ;;; @prereq Zp_DialogPaused_bool is true.
-;;; @preserve Zp_Tmp*
+;;; @preserve T0+
 .PROC FuncA_Dialog_BeginYesNoQuestion
     ;; Enable the yes-or-no cursor, putting it on "yes" by default.
     lda #bYesNo::Active | bYesNo::Yes
@@ -732,19 +729,19 @@ _TransferLine:
     ;; of the current line of text.
     lda Zp_DialogTextRow_u8  ; param: window row
     jsr Func_Window_GetRowPpuAddr  ; returns XY
-    stx Zp_Tmp1_byte  ; destination address (hi)
+    stx T0  ; destination address (hi)
     ldx Zp_PpuTransferLen_u8
     lda #kPpuCtrlFlagsHorz
     sta Ram_PpuTransfer_arr, x
     inx
-    lda Zp_Tmp1_byte  ; destination address (hi)
+    lda T0  ; destination address (hi)
     sta Ram_PpuTransfer_arr, x
     inx
-    tya               ; destination address (lo)
+    tya     ; destination address (lo)
     ora Zp_DialogTextCol_u8
     sta Ram_PpuTransfer_arr, x
     inx
-    stx Zp_Tmp1_byte  ; byte offset for transfer data length
+    stx T0  ; byte offset for transfer data length
     inx
     ;; Write the transfer data for the rest of the current line of text.
     ldy #0
@@ -759,8 +756,8 @@ _TransferLine:
     @finish:
     pha  ; end-of-line/text marker
     stx Zp_PpuTransferLen_u8
-    ldx Zp_Tmp1_byte  ; byte offset for transfer data length
-    tya               ; transfer data length
+    ldx T0  ; byte offset for transfer data length
+    tya     ; transfer data length
     sta Ram_PpuTransfer_arr, x
     pla  ; end-of-line/text marker
 _EndOfLine:
@@ -775,9 +772,9 @@ _EndOfLine:
     inc Zp_DialogTextRow_u8
     bne @advance  ; unconditional
     @yesNo:
-    sty Zp_Tmp1_byte  ; dialog text byte offset
-    jsr FuncA_Dialog_BeginYesNoQuestion  ; preserves Zp_Tmp*
-    ldy Zp_Tmp1_byte  ; dialog text byte offset
+    sty T0  ; dialog text byte offset
+    jsr FuncA_Dialog_BeginYesNoQuestion  ; preserves T0+
+    ldy T0  ; dialog text byte offset
     @endOfText:
     lda #$ff
     sta Zp_DialogPaused_bool
@@ -798,15 +795,15 @@ _EndOfLine:
     pha
     ;; Write the transfer entry header.
     jsr Func_Window_GetRowPpuAddr  ; returns XY
-    stx Zp_Tmp1_byte  ; destination address (hi)
+    stx T0  ; destination address (hi)
     ldx Zp_PpuTransferLen_u8
     lda #kPpuCtrlFlagsHorz
     sta Ram_PpuTransfer_arr, x
     inx
-    lda Zp_Tmp1_byte  ; destination address (hi)
+    lda T0  ; destination address (hi)
     sta Ram_PpuTransfer_arr, x
     inx
-    tya               ; destination address (lo)
+    tya     ; destination address (lo)
     ora #kDialogTextStartCol
     sta Ram_PpuTransfer_arr, x
     inx
@@ -883,15 +880,15 @@ _EndOfLine:
     dex
     lda #kDialogNoObjX
     @yes:
-    sta Zp_Tmp1_byte  ; obj left
-    stx Zp_Tmp2_byte  ; width - 1
+    sta T0  ; obj left
+    stx T1  ; width - 1
     ;; Draw cursor objects.
     ldy Zp_OamOffset_u8
 _Loop:
     ;; Set tile ID.
     txa
     beq @side  ; right side
-    cpx Zp_Tmp2_byte  ; width - 1
+    cpx T1  ; width - 1
     beq @side  ; left side
     lda #kTileIdObjCursorSolidMiddle
     bpl @setTileId  ; unconditional
@@ -909,10 +906,10 @@ _Loop:
     ;; Set position.
     lda #kDialogYesNoObjY
     sta Ram_Oam_sObj_arr64 + sObj::YPos_u8, y
-    lda Zp_Tmp1_byte  ; obj left
+    lda T0  ; obj left
     sta Ram_Oam_sObj_arr64 + sObj::XPos_u8, y
     add #kTileWidthPx
-    sta Zp_Tmp1_byte  ; obj left
+    sta T0  ; obj left
     ;; Move OAM offset to the next object.
     .repeat .sizeof(sObj)
     iny

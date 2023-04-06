@@ -49,8 +49,6 @@
 .IMPORTZP Zp_ConsoleMachineIndex_u8
 .IMPORTZP Zp_PointX_i16
 .IMPORTZP Zp_PointY_i16
-.IMPORTZP Zp_Tmp1_byte
-.IMPORTZP Zp_Tmp_ptr
 
 ;;;=========================================================================;;;
 
@@ -98,7 +96,7 @@ Zp_BossPhaseTimer_u8: .res 1
     sta Zp_BossPhaseTimer_u8
     ;; Lock the door for now.
     ldx #kBossDoorDeviceIndex  ; param: device index
-    jsr Func_LockDoorDevice  ; preserves Zp_Tmp*
+    jsr Func_LockDoorDevice
     ;; Check if the boss has been defeated yet.
     ldy #sBoss::Boss_eFlag
     lda (Zp_Current_sBoss_ptr), y
@@ -161,13 +159,13 @@ _BreakerAlreadyDone:
     bit Zp_ConsoleMachineIndex_u8
     bpl _Return
     ;; Handle the current boss phase.
-    sta Zp_Tmp1_byte  ; zero if boss is dead
+    sta T2  ; zero if boss is dead
     ldy Zp_Boss_eBossPhase
     lda _JumpTable_ptr_0_arr, y
-    sta Zp_Tmp_ptr + 0
+    sta T0
     lda _JumpTable_ptr_1_arr, y
-    sta Zp_Tmp_ptr + 1
-    jmp (Zp_Tmp_ptr)
+    sta T1
+    jmp (T1T0)
 .REPEAT 2, table
     D_TABLE_LO table, _JumpTable_ptr_0_arr
     D_TABLE_HI table, _JumpTable_ptr_1_arr
@@ -185,17 +183,17 @@ _BreakerAlreadyDone:
 .ENDREPEAT
 _BossBattle:
     ;; Check if the boss is dead yet.
-    lda Zp_Tmp1_byte  ; zero if boss is dead
+    lda T2  ; zero if boss is dead
     beq @dead
     ;; If the boss is alive, call its tick function.
     @alive:
     ldy #sBoss::Tick_func_ptr
     lda (Zp_Current_sBoss_ptr), y
-    sta Zp_Tmp_ptr + 0
+    sta T0
     iny
     lda (Zp_Current_sBoss_ptr), y
-    sta Zp_Tmp_ptr + 1
-    jmp (Zp_Tmp_ptr)
+    sta T1
+    jmp (T1T0)
     ;; If the boss is dead, then set its flag and mark the room as safe.
     @dead:
     ldy #sBoss::Boss_eFlag
@@ -384,11 +382,11 @@ _PointY:
 _Draw:
     ldy #sBoss::Draw_func_ptr
     lda (Zp_Current_sBoss_ptr), y
-    sta Zp_Tmp_ptr + 0
+    sta T0
     iny
     lda (Zp_Current_sBoss_ptr), y
-    sta Zp_Tmp_ptr + 1
-    jmp (Zp_Tmp_ptr)
+    sta T1
+    jmp (T1T0)
 .ENDPROC
 
 ;;;=========================================================================;;;

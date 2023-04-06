@@ -29,7 +29,6 @@
 .IMPORT Ram_MachineStatus_eMachine_arr
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORTZP Zp_ShapePosY_i16
-.IMPORTZP Zp_Tmp1_byte
 
 ;;;=========================================================================;;;
 
@@ -63,11 +62,11 @@ _AdjustPosition:
 _AllocateObject:
     jsr FuncA_Objects_Alloc1x1Shape  ; preserves X, returns C and Y
     bcs @done
-    sty Zp_Tmp1_byte  ; OAM offset
+    sty T0  ; OAM offset
     ;; Determine if the machine has an error.
     ldy Ram_DeviceTarget_u8_arr, x  ; machine index
     lda Ram_MachineStatus_eMachine_arr, y
-    ldy Zp_Tmp1_byte  ; OAM offset
+    ldy T0  ; OAM offset
     cmp #eMachine::Error
     beq @machineError
     @machineOk:

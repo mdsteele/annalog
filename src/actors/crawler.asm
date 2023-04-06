@@ -50,7 +50,6 @@
 .IMPORTZP Zp_AvatarPosY_i16
 .IMPORTZP Zp_FrameCounter_u8
 .IMPORTZP Zp_TerrainColumn_u8_arr_ptr
-.IMPORTZP Zp_Tmp1_byte
 
 ;;;=========================================================================;;;
 
@@ -160,14 +159,16 @@ _Crawl:
     jsr Func_SetPointToActorCenter  ; preserves X
     jsr _AdjustPoint
     ;; Drop an ember.
-    stx Zp_Tmp1_byte  ; hothead actor index
-    jsr Func_FindEmptyActorSlot  ; preserves Zp_Tmp*, returns C and X
-    bcs @done
-    jsr Func_SetActorCenterToPoint  ; preserves X and Zp_Tmp*
-    jsr Func_InitActorProjEmber  ; preserves X and Zp_Tmp*
-    ldx Zp_Tmp1_byte  ; hothead actor index
+    stx T0  ; hothead actor index
+    jsr Func_FindEmptyActorSlot  ; preserves T0+, returns C and X
+    bcs @noEmber
+    jsr Func_SetActorCenterToPoint  ; preserves X and T0+
+    jsr Func_InitActorProjEmber  ; preserves X and T0+
+    ldx T0  ; hothead actor index
     lda #kHotheadEmberCooldownFrames
     sta Ram_ActorState2_byte_arr, x  ; ember cooldown
+    @noEmber:
+    ldx T0  ; hothead actor index
     @done:
     rts
 _AdjustPoint:
@@ -240,10 +241,10 @@ _CheckForOuterCorner:
     dey
     @facingRight:
     ;; Get the terrain for the tile column we're checking.
-    stx Zp_Tmp1_byte
+    stx T0
     tya  ; param: room tile column index
-    jsr Func_GetTerrainColumnPtrForTileIndex  ; preserves Zp_Tmp*
-    ldx Zp_Tmp1_byte
+    jsr Func_GetTerrainColumnPtrForTileIndex  ; preserves T0+
+    ldx T0
     ;; Compute the room block row at the baddie's feet.
     jsr FuncA_Actor_GetRoomBlockRow  ; preserves X, returns Y
     lda Ram_ActorFlags_bObj_arr, x
@@ -266,7 +267,7 @@ _NoTurn:
 _TurnAtOuterCorner:
     ;; Adjust the baddie's vertical position.
     lda Ram_ActorFlags_bObj_arr, x
-    sta Zp_Tmp1_byte  ; actor flags
+    sta T0  ; actor flags
     .assert bObj::FlipV = bProc::Negative, error
     bmi @upsideDown
     @rightSideUp:
@@ -286,7 +287,7 @@ _TurnAtOuterCorner:
     sta Ram_ActorPosY_i16_1_arr, x
     @doneAdjustVert:
     ;; Adjust the baddie's horizontal position.
-    bit Zp_Tmp1_byte  ; actor flags
+    bit T0  ; actor flags
     .assert bObj::FlipH = bProc::Overflow, error
     bvc @facingRight
     @facingLeft:
@@ -366,10 +367,10 @@ _CheckForOuterCorner:
     dey
     @doneFacing:
     ;; Get the terrain for the tile column we're checking.
-    stx Zp_Tmp1_byte
+    stx T0  ; actor index
     tya  ; param: room tile column index
-    jsr Func_GetTerrainColumnPtrForTileIndex  ; preserves Zp_Tmp*
-    ldx Zp_Tmp1_byte
+    jsr Func_GetTerrainColumnPtrForTileIndex  ; preserves T0+
+    ldx T0  ; actor index
     ;; Compute the room block row just in front (above/below) of the baddie.
     ;; Note that at this point, the baddie's Y-position is zero mod
     ;; kBlockHeightPx.
@@ -391,7 +392,7 @@ _NoTurn:
 _TurnAtOuterCorner:
     ;; Adjust the baddie's vertical position.
     lda Ram_ActorFlags_bObj_arr, x
-    sta Zp_Tmp1_byte  ; actor flags
+    sta T0  ; actor flags
     .assert bObj::FlipV = bProc::Negative, error
     bpl @movingDown
     @movingUp:
@@ -411,7 +412,7 @@ _TurnAtOuterCorner:
     sta Ram_ActorPosY_i16_1_arr, x
     @doneAdjustVert:
     ;; Adjust the baddie's horizontal position.
-    bit Zp_Tmp1_byte  ; actor flags
+    bit T0  ; actor flags
     .assert bObj::FlipH = bProc::Overflow, error
     bvc @facingRight
     @facingLeft:
@@ -431,7 +432,7 @@ _TurnAtOuterCorner:
     sta Ram_ActorPosX_i16_1_arr, x
     @doneAdjustHorz:
     ;; Switch the baddie to crawling on a horizontal wall.
-    lda Zp_Tmp1_byte  ; actor flags
+    lda T0  ; actor flags
     eor #bObj::FlipHV
     sta Ram_ActorFlags_bObj_arr, x
     sec
@@ -519,7 +520,7 @@ _TurnAtOuterCorner:
 ;;; @return Y The OAM byte offset for the first of the four objects.
 ;;; @preserve X
 .PROC FuncA_Objects_DrawActorBadCrawlerShape
-    sta Zp_Tmp1_byte  ; first tile ID
+    sta T0  ; first tile ID
     lda Zp_FrameCounter_u8
     and #$08
     lsr a
@@ -527,7 +528,7 @@ _TurnAtOuterCorner:
     .assert kTileIdObjBeetleVertFirst .mod $08 = 0, error
     .assert kTileIdObjHotheadHorzFirst .mod $08 = 0, error
     .assert kTileIdObjHotheadVertFirst .mod $08 = 0, error
-    ora Zp_Tmp1_byte  ; first tile ID
+    ora T0  ; first tile ID
     ldy #kPaletteObjCrawler  ; param: palette
     jmp FuncA_Objects_Draw2x2Actor  ; preserves X, returns C and Y
 .ENDPROC

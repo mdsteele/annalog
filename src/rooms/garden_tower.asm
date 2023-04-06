@@ -63,7 +63,6 @@
 .IMPORT Sram_ProgressFlags_arr
 .IMPORTZP Zp_Chr0cBank_u8
 .IMPORTZP Zp_RoomState
-.IMPORTZP Zp_Tmp1_byte
 
 ;;;=========================================================================;;;
 
@@ -298,7 +297,7 @@ _Passages_sPassage_arr:
 ;;; Room init function for the GardenTower room.
 ;;; @param A The bSpawn value for where the avatar is entering the room.
 .PROC FuncC_Garden_Tower_EnterRoom
-    sta Zp_Tmp1_byte  ; bSpawn value
+    sta T0  ; bSpawn value
 _BreakableWall:
     ;; If entering from the boss room door, remove the breakable wall, so the
     ;; player won't be trapped.  (In normal gameplay, it should be impossible
@@ -319,7 +318,7 @@ _Crates:
     ;; the wall crate, even if the flag isn't set.  (In normal gameplay, it
     ;; should be impossible to enter from that passage before the flag is set;
     ;; this is just a safety measure.)
-    lda Zp_Tmp1_byte  ; bSpawn value
+    lda T0  ; bSpawn value
     cmp #bSpawn::Passage | kCratePassageIndex
     beq @removeWallCrates
     ;; Check whether the crates should be in the wall or on the floor, and
@@ -387,10 +386,10 @@ _PartOfWallDestroyed:
     ;; Remove the wall.
     lda #ePlatform::Zone
     sta Ram_PlatformType_ePlatform_arr + kBreakableWallPlatformIndex
-    stx Zp_Tmp1_byte  ; grenade actor index
+    stx T0  ; grenade actor index
     ldx #eFlag::GardenTowerWallBroken  ; param: flag
-    jsr Func_SetFlag  ; preserves Zp_Tmp*
-    ldx Zp_Tmp1_byte  ; grenade actor index
+    jsr Func_SetFlag  ; preserves T0+
+    ldx T0  ; grenade actor index
     bpl _ExplodeGrenade  ; unconditional
 _WallDamaged:
     jsr Func_PlaySfxExplodeSmall

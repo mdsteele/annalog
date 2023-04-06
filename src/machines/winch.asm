@@ -65,8 +65,6 @@
 .IMPORTZP Zp_PointY_i16
 .IMPORTZP Zp_RoomScrollY_u8
 .IMPORTZP Zp_ShapePosY_i16
-.IMPORTZP Zp_Tmp1_byte
-.IMPORTZP Zp_Tmp2_byte
 
 ;;;=========================================================================;;;
 
@@ -375,22 +373,22 @@ _Done:
     ;; down.
     lda Zp_RoomScrollY_u8
     add #kWinchChainOverlapPx + (kTileHeightPx - 1)
-    sta Zp_Tmp1_byte  ; offset
+    sta T0  ; offset
     ;; Calculate the screen-space Y-position of the top of the chain, storing
-    ;; the lo byte in Zp_Tmp1_byte and the hi byte in Zp_Tmp2_byte.
+    ;; the lo byte in T0 and the hi byte in T1.
     lda Ram_PlatformBottom_i16_0_arr, x
-    sub Zp_Tmp1_byte  ; offset
-    sta Zp_Tmp1_byte  ; screen-space chain top (lo)
+    sub T0  ; offset
+    sta T0  ; screen-space chain top (lo)
     lda Ram_PlatformBottom_i16_1_arr, x
     sbc #0
-    sta Zp_Tmp2_byte  ; screen-space chain top (hi)
+    sta T1  ; screen-space chain top (hi)
     ;; Calculate the length of the chain, in pixels, storing the lo byte in
-    ;; Zp_Tmp1_byte and the hi byte in A.
+    ;; T0 and the hi byte in A.
     lda Zp_ShapePosY_i16 + 0
-    sub Zp_Tmp1_byte  ; screen-space chain top (lo)
-    sta Zp_Tmp1_byte  ; chain pixel length (lo)
+    sub T0  ; screen-space chain top (lo)
+    sta T0  ; chain pixel length (lo)
     lda Zp_ShapePosY_i16 + 1
-    sbc Zp_Tmp2_byte  ; screen-space chain top (hi)
+    sbc T1  ; screen-space chain top (hi)
     ;; Divide the chain pixel length by kTileHeightPx to get the length of the
     ;; chain in tiles, storing it in X.  Because we added an additional
     ;; (kTileHeightPx - 1) to the chain length above, this division will
@@ -398,9 +396,9 @@ _Done:
     .assert kTileHeightPx = 8, error
     .repeat 3
     lsr a
-    ror Zp_Tmp1_byte  ; chain pixel length (lo)
+    ror T0  ; chain pixel length (lo)
     .endrepeat
-    ldx Zp_Tmp1_byte  ; param: chain length in tiles
+    ldx T0  ; param: chain length in tiles
     ;; Draw the chain.
     .assert * = FuncA_Objects_DrawChainWithLength, error, "fallthrough"
 .ENDPROC

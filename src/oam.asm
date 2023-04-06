@@ -22,8 +22,6 @@
 .INCLUDE "oam.inc"
 .INCLUDE "ppu.inc"
 
-.IMPORTZP Zp_Tmp1_byte
-.IMPORTZP Zp_Tmp2_byte
 .IMPORTZP Zp_WindowTop_u8
 
 ;;;=========================================================================;;;
@@ -78,15 +76,15 @@ Ram_Oam_sObj_arr64: .res .sizeof(sObj) * kNumOamSlots
 .SEGMENT "PRGA_Objects"
 
 ;;; Moves the shape position down and right by the size of one tile.
-;;; @preserve X, Y, Zp_Tmp*
+;;; @preserve X, Y, T0+
 .EXPORT FuncA_Objects_MoveShapeDownAndRightOneTile
 .PROC FuncA_Objects_MoveShapeDownAndRightOneTile
-    jsr FuncA_Objects_MoveShapeDownOneTile  ; preserves X, Y, and Zp_Tmp*
+    jsr FuncA_Objects_MoveShapeDownOneTile  ; preserves X, Y, and T0+
     .assert * = FuncA_Objects_MoveShapeRightOneTile, error, "fallthrough"
 .ENDPROC
 
 ;;; Moves Zp_ShapePosX_i16 rightwards by the width of one tile.
-;;; @preserve X, Y, Zp_Tmp*
+;;; @preserve X, Y, T0+
 .EXPORT FuncA_Objects_MoveShapeRightOneTile
 .PROC FuncA_Objects_MoveShapeRightOneTile
     lda #kTileWidthPx
@@ -95,7 +93,7 @@ Ram_Oam_sObj_arr64: .res .sizeof(sObj) * kNumOamSlots
 
 ;;; Moves Zp_ShapePosX_i16 rightwards by the given number of pixels.
 ;;; @param A The number of pixels to shift right by (unsigned).
-;;; @preserve X, Y, Zp_Tmp*
+;;; @preserve X, Y, T0+
 .EXPORT FuncA_Objects_MoveShapeRightByA
 .PROC FuncA_Objects_MoveShapeRightByA
     add Zp_ShapePosX_i16 + 0
@@ -107,7 +105,7 @@ Ram_Oam_sObj_arr64: .res .sizeof(sObj) * kNumOamSlots
 .ENDPROC
 
 ;;; Moves Zp_ShapePosX_i16 leftwards by half the width of a tile.
-;;; @preserve X, Y, Zp_Tmp*
+;;; @preserve X, Y, T0+
 .EXPORT FuncA_Objects_MoveShapeLeftHalfTile
 .PROC FuncA_Objects_MoveShapeLeftHalfTile
     lda #kTileWidthPx / 2
@@ -115,7 +113,7 @@ Ram_Oam_sObj_arr64: .res .sizeof(sObj) * kNumOamSlots
 .ENDPROC
 
 ;;; Moves Zp_ShapePosX_i16 leftwards by the width of one tile.
-;;; @preserve X, Y, Zp_Tmp*
+;;; @preserve X, Y, T0+
 .EXPORT FuncA_Objects_MoveShapeLeftOneTile
 .PROC FuncA_Objects_MoveShapeLeftOneTile
     lda #kTileWidthPx
@@ -124,7 +122,7 @@ Ram_Oam_sObj_arr64: .res .sizeof(sObj) * kNumOamSlots
 
 ;;; Moves Zp_ShapePosX_i16 leftwards by the given number of pixels.
 ;;; @param A The number of pixels to shift left by (unsigned).
-;;; @preserve X, Y, Zp_Tmp*
+;;; @preserve X, Y, T0+
 .EXPORT FuncA_Objects_MoveShapeLeftByA
 .PROC FuncA_Objects_MoveShapeLeftByA
     eor #$ff
@@ -138,7 +136,7 @@ Ram_Oam_sObj_arr64: .res .sizeof(sObj) * kNumOamSlots
 .ENDPROC
 
 ;;; Moves Zp_ShapePosY_i16 downwards by the height of one tile.
-;;; @preserve X, Y, Zp_Tmp*
+;;; @preserve X, Y, T0+
 .EXPORT FuncA_Objects_MoveShapeDownOneTile
 .PROC FuncA_Objects_MoveShapeDownOneTile
     lda #kTileHeightPx
@@ -147,7 +145,7 @@ Ram_Oam_sObj_arr64: .res .sizeof(sObj) * kNumOamSlots
 
 ;;; Moves Zp_ShapePosX_i16 downwards by the given number of pixels.
 ;;; @param A The number of pixels to shift down by (unsigned).
-;;; @preserve X, Y, Zp_Tmp*
+;;; @preserve X, Y, T0+
 .EXPORT FuncA_Objects_MoveShapeDownByA
 .PROC FuncA_Objects_MoveShapeDownByA
     add Zp_ShapePosY_i16 + 0
@@ -159,7 +157,7 @@ Ram_Oam_sObj_arr64: .res .sizeof(sObj) * kNumOamSlots
 .ENDPROC
 
 ;;; Moves Zp_ShapePosY_i16 upwards by the height of one tile.
-;;; @preserve X, Y, Zp_Tmp*
+;;; @preserve X, Y, T0+
 .EXPORT FuncA_Objects_MoveShapeUpOneTile
 .PROC FuncA_Objects_MoveShapeUpOneTile
     lda #kTileHeightPx
@@ -168,7 +166,7 @@ Ram_Oam_sObj_arr64: .res .sizeof(sObj) * kNumOamSlots
 
 ;;; Moves Zp_ShapePosY_i16 upwards by the given number of pixels.
 ;;; @param A The number of pixels to shift up by (unsigned).
-;;; @preserve X, Y, Zp_Tmp*
+;;; @preserve X, Y, T0+
 .EXPORT FuncA_Objects_MoveShapeUpByA
 .PROC FuncA_Objects_MoveShapeUpByA
     eor #$ff
@@ -191,7 +189,7 @@ Ram_Oam_sObj_arr64: .res .sizeof(sObj) * kNumOamSlots
 ;;;
 ;;; @return C Set if no OAM slot was allocated, cleared otherwise.
 ;;; @return Y The OAM byte offset for the allocated object.
-;;; @preserve X, Zp_Tmp*
+;;; @preserve X, T0+
 .EXPORT FuncA_Objects_Alloc1x1Shape
 .PROC FuncA_Objects_Alloc1x1Shape
     ;; If the shape is offscreen horizontally, return without allocating any
@@ -243,10 +241,10 @@ Ram_Oam_sObj_arr64: .res .sizeof(sObj) * kNumOamSlots
 ;;;     included, then the order of the two objects will be reversed.
 ;;; @return C Set if no OAM slots were allocated, cleared otherwise.
 ;;; @return Y The OAM byte offset for the first of the four objects.
-;;; @preserve X
+;;; @preserve X, T2+
 .EXPORT FuncA_Objects_Alloc2x1Shape
 .PROC FuncA_Objects_Alloc2x1Shape
-    sta Zp_Tmp2_byte  ; Flags_bObj to set
+    sta T1  ; Flags_bObj to set
 _ObjectYPositions:
     ;; If the shape is completely offscreen vertically or behind the window,
     ;; return without allocating any objects.
@@ -272,7 +270,7 @@ _RightObjectXPosition:
     beq @show
     @hide:
     lda #$ff
-    bit Zp_Tmp2_byte  ; Flags_bObj to set
+    bit T1  ; Flags_bObj to set
     .assert bObj::FlipH = bProc::Overflow, error
     bvs @hideFlipped
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::YPos_u8, y
@@ -282,7 +280,7 @@ _RightObjectXPosition:
     bvs @doneRight  ; unconditional
     @show:
     lda Zp_ShapePosX_i16 + 0
-    bit Zp_Tmp2_byte  ; Flags_bObj to set
+    bit T1  ; Flags_bObj to set
     .assert bObj::FlipH = bProc::Overflow, error
     bvs @showFlipped
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::XPos_u8, y
@@ -297,14 +295,14 @@ _LeftObjectXPosition:
     ;; object.
     lda Zp_ShapePosX_i16 + 0
     sub #kTileWidthPx
-    sta Zp_Tmp1_byte  ; left X position on screen (lo)
+    sta T0  ; left X position on screen (lo)
     lda Zp_ShapePosX_i16 + 1
     sbc #0
     beq @show
     bpl _NotVisible
     @hide:
     lda #$ff
-    bit Zp_Tmp2_byte  ; Flags_bObj to set
+    bit T1  ; Flags_bObj to set
     .assert bObj::FlipH = bProc::Overflow, error
     bvs @hideFlipped
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::YPos_u8, y
@@ -313,8 +311,8 @@ _LeftObjectXPosition:
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::YPos_u8, y
     bvs @doneLeft  ; unconditional
     @show:
-    lda Zp_Tmp1_byte  ; left X position on screen (lo)
-    bit Zp_Tmp2_byte  ; Flags_bObj to set
+    lda T0  ; left X position on screen (lo)
+    bit T1  ; Flags_bObj to set
     .assert bObj::FlipH = bProc::Overflow, error
     bvs @showFlipped
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::XPos_u8, y
@@ -324,7 +322,7 @@ _LeftObjectXPosition:
     @doneLeft:
 _FinishAllocation:
     ;; Set the object flags.
-    lda Zp_Tmp2_byte  ; Flags_bObj to set
+    lda T1  ; Flags_bObj to set
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Flags_bObj, y
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Flags_bObj, y
     ;; Update the OAM offset.
@@ -357,10 +355,10 @@ _NotVisible:
 ;;;     and/or FlipV is set, then the order of the objects will be flipped.
 ;;; @return C Set if no OAM slots were allocated, cleared otherwise.
 ;;; @return Y The OAM byte offset for the first of the four objects.
-;;; @preserve X
+;;; @preserve X, T2+
 .EXPORT FuncA_Objects_Alloc2x2Shape
 .PROC FuncA_Objects_Alloc2x2Shape
-    sta Zp_Tmp2_byte  ; Flags_bObj to set
+    sta T1  ; Flags_bObj to set
 _ObjectYPositions:
     ;; If the shape is completely offscreen vertically or behind the window,
     ;; return without allocating any objects.
@@ -377,7 +375,7 @@ _ObjectYPositions:
     ;; Set the vertical positions of the four objects.
     sub #1
     ldy Zp_OamOffset_u8
-    bit Zp_Tmp2_byte  ; Flags_bObj to set
+    bit T1  ; Flags_bObj to set
     .assert bObj::FlipV = bProc::Negative, error
     bmi @topFlipped
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::YPos_u8, y
@@ -392,7 +390,7 @@ _ObjectYPositions:
     blt @bottom
     lda #$ff
     @bottom:
-    bit Zp_Tmp2_byte  ; Flags_bObj to set
+    bit T1  ; Flags_bObj to set
     .assert bObj::FlipV = bProc::Negative, error
     bmi @bottomFlipped
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::YPos_u8, y
@@ -415,7 +413,7 @@ _RightObjectXPositions:
     beq @show
     @hide:
     lda #$ff
-    bit Zp_Tmp2_byte  ; Flags_bObj to set
+    bit T1  ; Flags_bObj to set
     .assert bObj::FlipH = bProc::Overflow, error
     bvs @hideFlipped
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::YPos_u8, y
@@ -427,7 +425,7 @@ _RightObjectXPositions:
     bvs @doneRight  ; unconditional
     @show:
     lda Zp_ShapePosX_i16 + 0
-    bit Zp_Tmp2_byte  ; Flags_bObj to set
+    bit T1  ; Flags_bObj to set
     .assert bObj::FlipH = bProc::Overflow, error
     bvs @showFlipped
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::XPos_u8, y
@@ -444,14 +442,14 @@ _LeftObjectXPositions:
     ;; left-hand objects.
     lda Zp_ShapePosX_i16 + 0
     sub #kTileWidthPx
-    sta Zp_Tmp1_byte  ; left X position on screen (lo)
+    sta T0  ; left X position on screen (lo)
     lda Zp_ShapePosX_i16 + 1
     sbc #0
     beq @show
     bpl _NotVisible
     @hide:
     lda #$ff
-    bit Zp_Tmp2_byte  ; Flags_bObj to set
+    bit T1  ; Flags_bObj to set
     .assert bObj::FlipH = bProc::Overflow, error
     bvs @hideFlipped
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::YPos_u8, y
@@ -462,8 +460,8 @@ _LeftObjectXPositions:
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::YPos_u8, y
     bvs @doneLeft  ; unconditional
     @show:
-    lda Zp_Tmp1_byte  ; left X position on screen (lo)
-    bit Zp_Tmp2_byte  ; Flags_bObj to set
+    lda T0  ; left X position on screen (lo)
+    bit T1  ; Flags_bObj to set
     .assert bObj::FlipH = bProc::Overflow, error
     bvs @showFlipped
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::XPos_u8, y
@@ -475,7 +473,7 @@ _LeftObjectXPositions:
     @doneLeft:
 _FinishAllocation:
     ;; Set the object flags.
-    lda Zp_Tmp2_byte  ; Flags_bObj to set
+    lda T1  ; Flags_bObj to set
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Flags_bObj, y
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Flags_bObj, y
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Flags_bObj, y
@@ -495,16 +493,16 @@ _FinishAllocation:
 ;;; @param Y The Flags_bObj value to set for the object.
 ;;; @return C Set if no OAM slot was allocated, cleared otherwise.
 ;;; @return Y The OAM byte offset for the allocated object.
-;;; @preserve X
+;;; @preserve X, T2+
 .EXPORT FuncA_Objects_Draw1x1Shape
 .PROC FuncA_Objects_Draw1x1Shape
-    sta Zp_Tmp1_byte  ; tile ID
-    sty Zp_Tmp2_byte  ; object flags
-    jsr FuncA_Objects_Alloc1x1Shape  ; preserves X and Zp_Tmp*, returns C and Y
+    sta T0  ; tile ID
+    sty T1  ; object flags
+    jsr FuncA_Objects_Alloc1x1Shape  ; preserves X and T0+, returns C and Y
     bcs @done
-    lda Zp_Tmp1_byte  ; tile ID
+    lda T0  ; tile ID
     sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
-    lda Zp_Tmp2_byte  ; object flags
+    lda T1  ; object flags
     sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
     @done:
     rts
@@ -518,12 +516,12 @@ _FinishAllocation:
 ;;;     and/or FlipV is set, then the order of the objects will be flipped.
 ;;; @return C Set if no OAM slots were allocated, cleared otherwise.
 ;;; @return Y The OAM byte offset for the first of the four objects.
-;;; @preserve X
+;;; @preserve X, T2+
 .EXPORT FuncA_Objects_Draw2x2Shape
 .PROC FuncA_Objects_Draw2x2Shape
     pha  ; first tile ID
     tya  ; param: object flags
-    jsr FuncA_Objects_Alloc2x2Shape  ; preserves X, returns C and Y
+    jsr FuncA_Objects_Alloc2x2Shape  ; preserves X and T2+, returns C and Y
     pla  ; first tile ID
     bcs @done
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Tile_u8, y

@@ -35,7 +35,6 @@
 .IMPORT Ram_ActorState1_byte_arr
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORTZP Zp_TerrainColumn_u8_arr_ptr
-.IMPORTZP Zp_Tmp1_byte
 
 ;;;=========================================================================;;;
 
@@ -79,10 +78,10 @@ _StartMove:
     ;; Compute the room tile column index for the center of the spider, storing
     ;; it in Y.
     lda Ram_ActorPosX_i16_1_arr, x
-    sta Zp_Tmp1_byte
+    sta T0
     lda Ram_ActorPosX_i16_0_arr, x
     .repeat 3
-    lsr Zp_Tmp1_byte
+    lsr T0
     ror a
     .endrepeat
     tay
@@ -100,17 +99,17 @@ _StartMove:
     dey
     @doneFacing:
     ;; Get the terrain for the tile column we're checking.
-    stx Zp_Tmp1_byte
+    stx T0  ; spider actor index
     tya  ; param: room tile column index
-    jsr Func_GetTerrainColumnPtrForTileIndex  ; preserves Zp_Tmp*
-    ldx Zp_Tmp1_byte
+    jsr Func_GetTerrainColumnPtrForTileIndex  ; preserves T0+
+    ldx T0  ; spider actor index
     ;; Compute the room block row index for the center of the spider, storing
     ;; it in Y.
     lda Ram_ActorPosY_i16_1_arr, x
-    sta Zp_Tmp1_byte
+    sta T0
     lda Ram_ActorPosY_i16_0_arr, x
     .repeat 4
-    lsr Zp_Tmp1_byte
+    lsr T0
     ror a
     .endrepeat
     tay

@@ -112,7 +112,7 @@ _Continue:
 
 ;;; Starts playing a delta modulated sample sound effect on the DMC.
 ;;; @param A The eSample value for the sample to play.
-;;; @preserve X, Y, Zp_Tmp*
+;;; @preserve X, Y, T0+
 .EXPORT Func_PlaySfxSample
 .PROC Func_PlaySfxSample
     sta Zp_Next_sChanSfx_arr + eChan::Dmc + sChanSfx::Param1_byte

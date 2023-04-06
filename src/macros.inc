@@ -22,6 +22,26 @@
 
 ;;;=========================================================================;;;
 
+;;; Temporary variables stored in the zero page.  These can be treated like
+;;; registers.
+T0 = $00
+T1 = $01
+T2 = $02
+T3 = $03
+T4 = $04
+T5 = $05
+T6 = $06
+T7 = $07
+
+;;; Aliases for the above variables for when a pair of them is used to store a
+;;; 2-byte value (e.g. a pointer).
+T1T0 = $00
+T3T2 = $02
+T5T4 = $04
+T7T6 = $06
+
+;;;=========================================================================;;;
+
 .DEFINE _is_immediate(ARG) .match(.left(1, {ARG}), #)
 .DEFINE _get_immediate(ARG) .right(.tcount({ARG}) - 1, {ARG})
 

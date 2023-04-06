@@ -50,7 +50,6 @@
 .IMPORT Ram_ActorVelY_i16_1_arr
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORTZP Zp_FrameCounter_u8
-.IMPORTZP Zp_Tmp1_byte
 
 ;;;=========================================================================;;;
 
@@ -75,9 +74,9 @@ kProjBreakballSpeedVert = $60
 ;;; @preserve X
 .EXPORT FuncA_Room_InitActorProjBreakball
 .PROC FuncA_Room_InitActorProjBreakball
-    sta Zp_Tmp1_byte  ; horz flag
+    sta T0  ; horz flag
     ldy #eActor::ProjBreakball  ; param: actor type
-    jsr Func_InitActorDefault  ; preserves X and Zp_Tmp*
+    jsr Func_InitActorDefault  ; preserves X and T0+
 _InitVelY:
     lda #kProjBreakballSpeedVert
     ldy #0
@@ -85,7 +84,7 @@ _InitVelY:
     tya
     sta Ram_ActorVelY_i16_1_arr, x
 _InitVelX:
-    bit Zp_Tmp1_byte  ; horz flag
+    bit T0  ; horz flag
     .assert bObj::FlipH = bProc::Overflow, error
     bvs @left
     @right:

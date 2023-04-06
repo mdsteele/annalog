@@ -53,11 +53,6 @@
 .IMPORTZP Zp_MachineMaxInstructions_u8
 .IMPORTZP Zp_P1ButtonsPressed_bJoypad
 .IMPORTZP Zp_PpuTransferLen_u8
-.IMPORTZP Zp_Tmp1_byte
-.IMPORTZP Zp_Tmp2_byte
-.IMPORTZP Zp_Tmp3_byte
-.IMPORTZP Zp_Tmp4_byte
-.IMPORTZP Zp_Tmp_ptr
 
 ;;;=========================================================================;;;
 
@@ -126,10 +121,10 @@ Ram_MenuCols_u8_arr: .res kMaxMenuItems
     jsr FuncA_Console_GetCurrentFieldType  ; returns A
     tay
     lda _JumpTable_ptr_0_arr, y
-    sta Zp_Tmp_ptr + 0
+    sta T0
     lda _JumpTable_ptr_1_arr, y
-    sta Zp_Tmp_ptr + 1
-    jmp (Zp_Tmp_ptr)
+    sta T1
+    jmp (T1T0)
 .REPEAT 2, table
     D_TABLE_LO table, _JumpTable_ptr_0_arr
     D_TABLE_HI table, _JumpTable_ptr_1_arr
@@ -148,20 +143,20 @@ Ram_MenuCols_u8_arr: .res kMaxMenuItems
 ;;; @param X The menu row to transfer.
 ;;; @preserve X
 .PROC FuncA_Console_TransferMenuRow
-    stx Zp_Tmp3_byte  ; menu row
+    stx T2  ; menu row
 _WriteTransferEntryHeader:
-    ;; Get the transfer destination address, and store it in Zp_Tmp1_byte (lo)
-    ;; and Zp_Tmp2_byte (hi).
+    ;; Get the transfer destination address, and store it in T0 (lo)
+    ;; and T1 (hi).
     .assert kMenuStartWindowRow = 1, error
     inx
     txa  ; window row
     jsr Func_Window_GetRowPpuAddr  ; returns XY
     tya
     add #kMenuStartTileColumn
-    sta Zp_Tmp1_byte  ; transfer destination (lo)
+    sta T0  ; transfer destination (lo)
     txa
     adc #0
-    sta Zp_Tmp2_byte  ; transfer destination (hi)
+    sta T1  ; transfer destination (hi)
     ;; Update Zp_PpuTransferLen_u8.
     ldx Zp_PpuTransferLen_u8
     txa
@@ -171,10 +166,10 @@ _WriteTransferEntryHeader:
     lda #kPpuCtrlFlagsHorz
     sta Ram_PpuTransfer_arr, x
     inx
-    lda Zp_Tmp2_byte  ; transfer destination (hi)
+    lda T1  ; transfer destination (hi)
     sta Ram_PpuTransfer_arr, x
     inx
-    lda Zp_Tmp1_byte  ; transfer destination (lo)
+    lda T0  ; transfer destination (lo)
     sta Ram_PpuTransfer_arr, x
     inx
     lda #kMenuWidthTiles
@@ -182,7 +177,7 @@ _WriteTransferEntryHeader:
     inx
 _InitTransferData:
     ;; Fill the transfer data with spaces for now.
-    stx Zp_Tmp1_byte  ; start of transfer data
+    stx T0  ; start of transfer data
     lda #0
     @loop:
     sta Ram_PpuTransfer_arr, x
@@ -194,43 +189,43 @@ _TransferLabels:
     ldy #kMaxMenuItems - 1
     @itemLoop:
     lda Ram_MenuRows_u8_arr, y
-    cmp Zp_Tmp3_byte  ; menu row
+    cmp T2  ; menu row
     bne @noLabel
-    sty Zp_Tmp2_byte  ; item index
-    ;; Make Zp_Tmp_ptr point to start of the label string.
+    sty T1  ; item index
+    ;; Make T5T4 point to start of the label string.
     tya
     asl a
     add #sMenu::Labels_u8_arr_ptr_arr
     tay
     lda (Zp_Current_sMenu_ptr), y
-    sta Zp_Tmp_ptr + 0
+    sta T4  ; label string ptr (lo)
     iny
     lda (Zp_Current_sMenu_ptr), y
-    sta Zp_Tmp_ptr + 1
-    ;; Set Zp_Tmp4_byte to the (width - 1) of the label.
-    lda Zp_Tmp2_byte  ; item index
+    sta T5  ; label string ptr (hi)
+    ;; Set T3 to the (width - 1) of the label.
+    lda T1  ; item index
     add #sMenu::WidthsMinusOne_u8_arr
     tay
     lda (Zp_Current_sMenu_ptr), y  ; item width
-    sta Zp_Tmp4_byte  ; the label's (width - 1)
+    sta T3  ; the label's (width - 1)
     ;; Set X to the PPU transfer array index for the last byte in the label.
     adc Ram_MenuCols_u8_arr, y  ; starting menu col
-    adc Zp_Tmp1_byte  ; start of transfer data
+    adc T0  ; start of transfer data
     tax
     ;; Copy the label into the PPU transfer entry.
-    ldy Zp_Tmp4_byte  ; the label's (width - 1)
+    ldy T3  ; the label's (width - 1)
     @labelLoop:
-    lda (Zp_Tmp_ptr), y  ; label chr
+    lda (T5T4), y  ; label chr
     sta Ram_PpuTransfer_arr, x
     dex
     dey
     bpl @labelLoop
     ;; Restore Y as the item loop index, and move on to the next item (if any).
-    ldy Zp_Tmp2_byte  ; item index
+    ldy T1  ; item index
     @noLabel:
     dey
     bpl @itemLoop
-    ldx Zp_Tmp3_byte  ; menu row
+    ldx T2  ; menu row
     rts
 .ENDPROC
 

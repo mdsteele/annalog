@@ -40,8 +40,6 @@
 .IMPORT Ram_ActorVelX_i16_1_arr
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORTZP Zp_FrameCounter_u8
-.IMPORTZP Zp_Tmp1_byte
-.IMPORTZP Zp_Tmp2_byte
 
 ;;;=========================================================================;;;
 
@@ -68,11 +66,11 @@ kProjFlamewaveMaxBounces = 1
 ;;; @preserve X
 .EXPORT Func_InitActorProjFlamewave
 .PROC Func_InitActorProjFlamewave
-    sta Zp_Tmp1_byte  ; horz flag
+    sta T0  ; horz flag
     ldy #eActor::ProjFlamewave  ; param: actor type
-    jsr Func_InitActorDefault  ; preserves X and Zp_Tmp*
+    jsr Func_InitActorDefault  ; preserves X and T0+
 _InitVelX:
-    bit Zp_Tmp1_byte  ; horz flag
+    bit T0  ; horz flag
     .assert bObj::FlipH = bProc::Overflow, error
     bvs _Left
 _Right:
@@ -141,26 +139,26 @@ _Expire:
     bcs _Tall
 _Short:
     lda #2
-    sta Zp_Tmp1_byte  ; num tiles
+    sta T0  ; num tiles
     lda #kTileIdObjFlamewaveFirst + 4
-    sta Zp_Tmp2_byte  ; first tile ID
+    sta T1  ; first tile ID
     bne _Loop  ; unconditional
 _Tall:
     lda #3
-    sta Zp_Tmp1_byte  ; num tiles
+    sta T0  ; num tiles
     lda #kTileIdObjFlamewaveFirst + 2
-    sta Zp_Tmp2_byte  ; first tile ID
+    sta T1  ; first tile ID
 _Loop:
-    jsr FuncA_Objects_Alloc1x1Shape  ; preserves X and Zp_Tmp*, returns C and Y
+    jsr FuncA_Objects_Alloc1x1Shape  ; preserves X and T0+, returns C and Y
     bcs @continue
-    lda Zp_Tmp2_byte  ; tile ID
+    lda T1  ; tile ID
     sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
     lda #kPaletteObjFlamewave
     sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
     @continue:
-    jsr FuncA_Objects_MoveShapeUpOneTile  ; preserves X and Zp_Tmp*
-    dec Zp_Tmp2_byte  ; tile ID
-    dec Zp_Tmp1_byte  ; num tiles
+    jsr FuncA_Objects_MoveShapeUpOneTile  ; preserves X and T0+
+    dec T1  ; tile ID
+    dec T0  ; num tiles
     bne _Loop
     rts
 .ENDPROC

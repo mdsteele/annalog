@@ -41,7 +41,7 @@
 ;;; SFX function for an explosion sound.
 ;;; @param X The channel number (0-4) times four (so, 0, 4, 8, 12, or 16).
 ;;; @return C Set if the sound is finished, cleared otherwise.
-;;; @preserve X
+;;; @preserve X, T0+
 .EXPORT Func_SfxExplode
 .PROC Func_SfxExplode
     lda Ram_Sound_sChanSfx_arr + eChan::Noise + sChanSfx::Timer_u8
@@ -79,7 +79,7 @@ _NoisePeriod_u8_arr:
 .ENDPROC
 
 ;;; Starts playing a small explosion sound.
-;;; @preserve X, Y, Zp_Tmp*
+;;; @preserve X, Y, T0+
 .EXPORT Func_PlaySfxExplodeSmall
 .PROC Func_PlaySfxExplodeSmall
     lda #bSfxExplode::ModTimer
@@ -89,7 +89,7 @@ _NoisePeriod_u8_arr:
 .ENDPROC
 
 ;;; Starts playing an big explosion sound.
-;;; @preserve X, Y, Zp_Tmp*
+;;; @preserve X, Y, T0+
 .EXPORT Func_PlaySfxExplodeBig
 .PROC Func_PlaySfxExplodeBig
     lda #bSfxExplode::DivEnv | bSfxExplode::ModTimer
@@ -98,7 +98,7 @@ _NoisePeriod_u8_arr:
 .ENDPROC
 
 ;;; Starts playing a explosion sound where something is breaking into pieces.
-;;; @preserve X, Y, Zp_Tmp*
+;;; @preserve X, Y, T0+
 .EXPORT Func_PlaySfxExplodeFracture
 .PROC Func_PlaySfxExplodeFracture
     lda #bSfxExplode::DivEnv
@@ -108,7 +108,7 @@ _NoisePeriod_u8_arr:
 
 ;;; Starts playing a explosion sound with a longer duration.
 ;;; @prereq The Param1_byte is already initialized.
-;;; @preserve X, Y, Zp_Tmp*
+;;; @preserve X, Y, T0+
 .PROC Func_PlaySfxExplodeLong
     lda #$1f
     .assert * = Func_PlaySfxExplode, error, "fallthrough"
@@ -117,7 +117,7 @@ _NoisePeriod_u8_arr:
 ;;; Starts playing a explosion sound.
 ;;; @prereq The Param1_byte is already initialized.
 ;;; @param A The value to set for Timer_u8.
-;;; @preserve X, Y, Zp_Tmp*
+;;; @preserve X, Y, T0+
 .PROC Func_PlaySfxExplode
     sta Zp_Next_sChanSfx_arr + eChan::Noise + sChanSfx::Timer_u8
     lda #eSound::Explode

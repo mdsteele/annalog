@@ -31,9 +31,6 @@
 .IMPORT Ram_DeviceTarget_u8_arr
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORTZP Zp_RoomState
-.IMPORTZP Zp_Tmp1_byte
-.IMPORTZP Zp_Tmp2_byte
-.IMPORTZP Zp_Tmp3_byte
 
 ;;;=========================================================================;;;
 
@@ -88,12 +85,12 @@ kLeverAnimCountdown = kLeverNumAnimFrames * kLeverAnimSlowdown - 1
 ;;; @param A The value to write (0-9).
 .EXPORT FuncA_Machine_WriteToLever
 .PROC FuncA_Machine_WriteToLever
-    sta Zp_Tmp1_byte  ; value to write
+    sta T0  ; value to write
     ldy Ram_DeviceTarget_u8_arr, x
     lda Zp_RoomState, y
     beq _CurrentlyZero
 _CurrentlyNonzero:
-    lda Zp_Tmp1_byte  ; value to write
+    lda T0  ; value to write
     sta Zp_RoomState, y
     bne _NoAnimate
 _Animate:
@@ -101,7 +98,7 @@ _Animate:
     sta Ram_DeviceAnim_u8_arr, x
     jmp FuncA_Machine_StartWaiting
 _CurrentlyZero:
-    lda Zp_Tmp1_byte  ; value to write
+    lda T0  ; value to write
     sta Zp_RoomState, y
     bne _Animate
 _NoAnimate:
@@ -136,31 +133,31 @@ _NoAnimate:
 ;;; @preserve X
 .PROC FuncA_Objects_DrawLeverDevice
     jsr FuncA_Objects_SetShapePosToDeviceTopLeft  ; preserves X and Y
-    sty Zp_Tmp2_byte  ; object flags
+    sty T1  ; object flags
 _Animation:
     ;; Compute the animation frame number, storing it in Y.
     lda Ram_DeviceAnim_u8_arr, x
     div #kLeverAnimSlowdown
-    sta Zp_Tmp1_byte  ; animation delta
+    sta T0  ; animation delta
     ldy Ram_DeviceTarget_u8_arr, x
     lda Zp_RoomState, y
     bne @leverIsOn
     @leverIsOff:
-    lda Zp_Tmp1_byte  ; animation delta
+    lda T0  ; animation delta
     bpl @setAnimFrame  ; unconditional
     @leverIsOn:
     lda #kLeverNumAnimFrames - 1
-    sub Zp_Tmp1_byte  ; animation delta
+    sub T0  ; animation delta
     @setAnimFrame:
-    sta Zp_Tmp1_byte  ; animation frame
+    sta T0  ; animation frame
 _AdjustPosition:
     ;; Adjust X-position for the lever handle.
     cmp #kLeverNumAnimFrames / 2
     blt @leftSide
-    jsr FuncA_Objects_MoveShapeRightOneTile  ; preserves X and Zp_Tmp*
+    jsr FuncA_Objects_MoveShapeRightOneTile  ; preserves X and T0+
     @leftSide:
     ;; Adjust Y-position for the lever handle.
-    bit Zp_Tmp2_byte  ; object flags
+    bit T1  ; object flags
     .assert bObj::FlipV = bProc::Negative, error
     bpl @floor
     @ceiling:
@@ -169,13 +166,13 @@ _AdjustPosition:
     @floor:
     lda #3
     @moveDown:
-    jsr FuncA_Objects_MoveShapeDownByA  ; preserves X and Zp_Tmp*
+    jsr FuncA_Objects_MoveShapeDownByA  ; preserves X and T0+
 _AllocateObject:
-    jsr FuncA_Objects_Alloc1x1Shape  ; preserves X and Zp_Tmp*, returns C and Y
+    jsr FuncA_Objects_Alloc1x1Shape  ; preserves X and T0+, returns C and Y
     bcs @done
-    stx Zp_Tmp3_byte  ; device index
-    ldx Zp_Tmp1_byte  ; animation frame
-    lda Zp_Tmp2_byte  ; object flags
+    stx T2  ; device index
+    ldx T0  ; animation frame
+    lda T1  ; object flags
     cpx #kLeverNumAnimFrames / 2
     blt @noFlip
     eor #bObj::FlipH
@@ -183,7 +180,7 @@ _AllocateObject:
     sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
     lda _LeverTileIds_u8_arr, x
     sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
-    ldx Zp_Tmp3_byte  ; device index
+    ldx T2  ; device index
     @done:
     rts
 _LeverTileIds_u8_arr:

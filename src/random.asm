@@ -34,7 +34,7 @@ Zp_RngT_u8: .res 1
 ;;; Generates a pseudorandom byte.
 ;;; @return A The random byte.
 ;;; @return N Set if the uppermost bit of the random byte is set.
-;;; @preserve X, Y, Zp_Tmp*
+;;; @preserve X, Y, T0+
 .EXPORT Func_GetRandomByte
 .PROC Func_GetRandomByte
     ;; This algorithm is used by Super Mario World, and is explained in the

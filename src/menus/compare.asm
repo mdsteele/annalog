@@ -28,7 +28,6 @@
 .IMPORTZP Zp_ConsoleNumInstRows_u8
 .IMPORTZP Zp_Current_sMenu_ptr
 .IMPORTZP Zp_MenuItem_u8
-.IMPORTZP Zp_Tmp1_byte
 
 ;;;=========================================================================;;;
 
@@ -98,20 +97,20 @@ _SetItem:
 .PROC FuncA_Console_SetUpCompareMenu
     ldax #DataA_Console_Compare_sMenu
     stax Zp_Current_sMenu_ptr
-    ;; Store the starting row in Zp_Tmp1_byte.
+    ;; Store the starting row in T0.
     lda Zp_ConsoleNumInstRows_u8
     sub #3
-    lsr a
-    sta Zp_Tmp1_byte  ; starting row
+    div #2
+    sta T0  ; starting row
     ;; Set up rows and cols.
     ldx #eCmp::NUM_VALUES - 1
     @loop:
-    txa
+    txa  ; eCmp value
     and #$01
-    asl a
-    add Zp_Tmp1_byte  ; starting row
+    mul #2
+    add T0  ; starting row
     sta Ram_MenuRows_u8_arr, x
-    txa
+    txa  ; eCmp value
     ora #$01
     sta Ram_MenuCols_u8_arr, x
     dex

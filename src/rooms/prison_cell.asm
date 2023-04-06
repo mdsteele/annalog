@@ -85,7 +85,6 @@
 .IMPORTZP Zp_RoomScrollX_u16
 .IMPORTZP Zp_RoomScrollY_u8
 .IMPORTZP Zp_RoomState
-.IMPORTZP Zp_Tmp1_byte
 
 ;;;=========================================================================;;;
 
@@ -390,7 +389,7 @@ _Passages_sPassage_arr:
 ;;; Called when the player avatar enters the PrisonCell room.
 ;;; @param A The bSpawn value for where the avatar is entering the room.
 .PROC FuncC_Prison_Cell_EnterRoom
-    sta Zp_Tmp1_byte  ; bSpawn value
+    sta T0  ; bSpawn value
 _CheckIfReachedTunnel:
     ;; If the player has reached the tunnel before, then don't lock scrolling.
     flag_bit Sram_ProgressFlags_arr, eFlag::PrisonCellReachedTunnel
@@ -399,7 +398,7 @@ _CheckIfReachedTunnel:
     ;; eastern console, though normally that shouldn't be possible before
     ;; reaching the tunnel), then set the flag indicating that the tunnel has
     ;; been reached, and don't lock scrolling.
-    lda Zp_Tmp1_byte  ; bSpawn value
+    lda T0  ; bSpawn value
     cmp #bSpawn::Passage | kTunnelPassageIndex
     beq @setFlag
     cmp #bSpawn::Passage | kEasternPassageIndex

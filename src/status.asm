@@ -26,9 +26,6 @@
 .IMPORT Ram_PpuTransfer_arr
 .IMPORTZP Zp_ConsoleNumInstRows_u8
 .IMPORTZP Zp_PpuTransferLen_u8
-.IMPORTZP Zp_Tmp1_byte
-.IMPORTZP Zp_Tmp2_byte
-.IMPORTZP Zp_Tmp3_byte
 
 ;;;=========================================================================;;;
 
@@ -70,17 +67,17 @@ kNoPowerWidthTiles = 19
 .PROC FuncA_Console_TransferStatusRow
     tya
     pha
-    ;; Get the transfer destination address, and store it in Zp_Tmp1_byte (lo)
-    ;; and Zp_Tmp2_byte (hi).
+    ;; Get the transfer destination address, and store it in T0 (lo) and T1
+    ;; (hi).
     iny  ; add 1 for the top border
     tya  ; param: window row
     jsr Func_Window_GetRowPpuAddr  ; returns XY
     tya
     add #kStatusBoxStartTileColumn
-    sta Zp_Tmp1_byte  ; transfer destination (lo)
+    sta T0  ; transfer destination (lo)
     txa
     adc #0
-    sta Zp_Tmp2_byte  ; transfer destination (hi)
+    sta T1  ; transfer destination (hi)
     ;; Update Zp_PpuTransferLen_u8.
     ldx Zp_PpuTransferLen_u8
     txa
@@ -90,10 +87,10 @@ kNoPowerWidthTiles = 19
     lda #kPpuCtrlFlagsHorz
     sta Ram_PpuTransfer_arr, x
     inx
-    lda Zp_Tmp2_byte  ; transfer destination (hi)
+    lda T1  ; transfer destination (hi)
     sta Ram_PpuTransfer_arr, x
     inx
-    lda Zp_Tmp1_byte  ; transfer destination (lo)
+    lda T0  ; transfer destination (lo)
     sta Ram_PpuTransfer_arr, x
     inx
     lda #kStatusBoxWidthTiles
@@ -113,15 +110,15 @@ kNoPowerWidthTiles = 19
 ;;; @preserve Y
 .EXPORT FuncA_Console_WriteStatusTransferData
 .PROC FuncA_Console_WriteStatusTransferData
-    stx Zp_Tmp1_byte  ; starting PPU transfer index
-    sty Zp_Tmp2_byte  ; status box row
+    stx T0  ; starting PPU transfer index
+    sty T1  ; status box row
     ;; Compute the diagram row and store it in A.
     lda Zp_ConsoleNumInstRows_u8
     sub #kNumDiagramRows
     div #2
-    sta Zp_Tmp3_byte  ; num leading blank rows
-    lda Zp_Tmp2_byte  ; status box row
-    sub Zp_Tmp3_byte  ; num leading blank rows
+    sta T2  ; num leading blank rows
+    lda T1  ; status box row
+    sub T2  ; num leading blank rows
     ;; If the diagram row is negative, or more than the number of diagram rows,
     ;; then transfer a blank row.
     bmi _WriteBlankRow
@@ -146,7 +143,7 @@ _WriteDiagramRow:
     inx
     dey
     bne @loop
-    beq _WriteRegisters  ; unconditional
+    beq _Finish  ; unconditional
 _WriteBlankRow:
     lda #kWindowTileIdBlank
     ldy #kStatusBoxWidthTiles
@@ -155,12 +152,11 @@ _WriteBlankRow:
     inx
     dey
     bne @loop
-_WriteRegisters:
-    ;; TODO: Write any register values that should appear on this status row.
-    lda Zp_Tmp1_byte  ; starting PPU transfer index
+_Finish:
+    lda T0  ; starting PPU transfer index
     add #kStatusBoxWidthTiles
-    tax
-    ldy Zp_Tmp2_byte  ; status box row
+    tax     ; updated PPU transfer index (return value)
+    ldy T1  ; status box row (just to preserve Y)
     rts
 .ENDPROC
 
@@ -172,14 +168,14 @@ _WriteRegisters:
 ;;; @return X Updated PPU transfer array index.
 .EXPORT FuncA_Console_WriteNeedsPowerTransferData
 .PROC FuncA_Console_WriteNeedsPowerTransferData
-    sta Zp_Tmp1_byte  ; circuit number (1-7)
+    sta T0  ; circuit number (1-7)
     ;; Compute the message row and store it in A.
     lda Zp_ConsoleNumInstRows_u8
     sub #kNumNoPowerRows
     div #2
-    sta Zp_Tmp2_byte  ; num leading blank rows
+    sta T1  ; num leading blank rows
     tya
-    sub Zp_Tmp2_byte  ; num leading blank rows
+    sub T1  ; num leading blank rows
     ;; If the message row is negative, or more than the number of diagram rows,
     ;; then transfer a blank row.
     beq _WriteMessageRow0
@@ -217,7 +213,7 @@ _WriteMessageRow1:
     cpy #15
     blt @loop
     ;; Write the tile ID for the circuit number.
-    lda Zp_Tmp1_byte  ; circuit number (1-7)
+    lda T0  ; circuit number (1-7)
     .assert '0' & $0f = 0, error
     ora #'0'
     sta Ram_PpuTransfer_arr, x

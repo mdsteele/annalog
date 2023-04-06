@@ -94,9 +94,6 @@
 .IMPORTZP Zp_PpuScrollY_u8
 .IMPORTZP Zp_RoomScrollX_u16
 .IMPORTZP Zp_RoomScrollY_u8
-.IMPORTZP Zp_Tmp1_byte
-.IMPORTZP Zp_Tmp2_byte
-.IMPORTZP Zp_Tmp_ptr
 
 ;;;=========================================================================;;;
 
@@ -178,13 +175,13 @@ _GameLoop:
     ;; Check if we need to start a cutscene:
     lda Zp_NextCutscene_main_ptr + 1
     bpl @noCutscene
-    sta Zp_Tmp_ptr + 1
+    sta T1
     lda Zp_NextCutscene_main_ptr + 0
-    sta Zp_Tmp_ptr + 0
+    sta T0
     lda #0
     sta Zp_NextCutscene_main_ptr + 0
     sta Zp_NextCutscene_main_ptr + 1
-    jmp (Zp_Tmp_ptr)
+    jmp (T1T0)
     @noCutscene:
     ;; Draw this frame:
     jsr_prga FuncA_Objects_DrawObjectsForRoom
@@ -216,10 +213,10 @@ _CheckForPause:
     bmi _DoneWithDevice
     ldy Ram_DeviceType_eDevice_arr, x
     lda _JumpTable_ptr_0_arr, y
-    sta Zp_Tmp_ptr + 0
+    sta T0
     lda _JumpTable_ptr_1_arr, y
-    sta Zp_Tmp_ptr + 1
-    jmp (Zp_Tmp_ptr)
+    sta T1
+    jmp (T1T0)
 .REPEAT 2, table
     D_TABLE_LO table, _JumpTable_ptr_0_arr
     D_TABLE_HI table, _JumpTable_ptr_1_arr
@@ -429,8 +426,8 @@ _UpDownPassage:
     sbc #0
     ;; Construct the bPassage value from the screen number and ePassage value.
     and #bPassage::ScreenMask
-    sty Zp_Tmp1_byte  ; ePassage value
-    ora Zp_Tmp1_byte
+    sty T0  ; ePassage value
+    ora T0
     rts
 .ENDPROC
 
@@ -447,23 +444,21 @@ _UpDownPassage:
     ldx #$ff
     bne @done  ; unconditional
     @notAirborne:
-    ;; Calculate the player avatar's room block row and store it in
-    ;; Zp_Tmp1_byte.
+    ;; Calculate the player avatar's room block row and store it in T0.
     lda Zp_AvatarPosY_i16 + 0
-    sta Zp_Tmp1_byte
+    sta T0
     lda Zp_AvatarPosY_i16 + 1
     .repeat 4
     lsr a
-    ror Zp_Tmp1_byte
+    ror T0
     .endrepeat
-    ;; Calculate the player avatar's room block column and store it in
-    ;; Zp_Tmp2_byte.
+    ;; Calculate the player avatar's room block column and store it in T1.
     lda Zp_AvatarPosX_i16 + 0
-    sta Zp_Tmp2_byte
+    sta T1
     lda Zp_AvatarPosX_i16 + 1
     .repeat 4
     lsr a
-    ror Zp_Tmp2_byte
+    ror T1
     .endrepeat
     ;; Find an interactive device with the same block row/col.
     ldx #kMaxDevices - 1
@@ -472,10 +467,10 @@ _UpDownPassage:
     cmp #kFirstInteractiveDeviceType
     blt @continue
     lda Ram_DeviceBlockCol_u8_arr, x
-    cmp Zp_Tmp2_byte  ; player block col
+    cmp T1  ; player block col
     bne @continue
     lda Ram_DeviceBlockRow_u8_arr, x
-    cmp Zp_Tmp1_byte  ; player block row
+    cmp T0  ; player block row
     beq @done
     @continue:
     dex

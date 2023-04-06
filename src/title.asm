@@ -49,7 +49,6 @@
 .IMPORTZP Zp_PpuScrollX_u8
 .IMPORTZP Zp_PpuScrollY_u8
 .IMPORTZP Zp_Render_bPpuMask
-.IMPORTZP Zp_Tmp1_byte
 
 ;;;=========================================================================;;;
 
@@ -201,9 +200,9 @@ _FadeIn:
     ldx _Flags_eFlag_arr, y  ; param: flag to set
     .assert eFlag::None = 0, error
     beq @doneFlags
-    sty Zp_Tmp1_byte
-    jsr Func_SetFlag  ; preserves Zp_Tmp*
-    ldy Zp_Tmp1_byte
+    sty T0  ; index into _Flags_eFlag_arr
+    jsr Func_SetFlag  ; preserves T0+
+    ldy T0  ; index into _Flags_eFlag_arr
     iny
     bne @flagLoop  ; unconditional
     @doneFlags:

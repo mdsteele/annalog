@@ -47,7 +47,6 @@
 .IMPORTZP Zp_RoomScrollY_u8
 .IMPORTZP Zp_ShapePosX_i16
 .IMPORTZP Zp_ShapePosY_i16
-.IMPORTZP Zp_Tmp1_byte
 
 ;;;=========================================================================;;;
 
@@ -373,7 +372,7 @@ _Stop:
     sta Zp_AvatarFlags_bObj
 _DetermineLimit:
     ;; Determine the (negative) X-velocity limit in pixels/frame, storing it in
-    ;; Zp_Tmp1_byte.
+    ;; T0.
     lda Zp_AvatarWaterDepth_u8
     beq @inAir
     @inWater:
@@ -384,13 +383,13 @@ _DetermineLimit:
     .assert <kAvatarMaxAirSpeedHorz = 0, error
     lda #>-kAvatarMaxAirSpeedHorz
     @setLimit:
-    sta Zp_Tmp1_byte  ; negative X-vel limit (pixels/frame)
+    sta T0  ; negative X-vel limit (pixels/frame)
 _AccelOrDecel:
     ;; If the avatar is moving to the right, or moving to the left slower than
     ;; the limit, then accelerate.  Otherwise, decelerate.
     lda Zp_AvatarVelX_i16 + 1
     bpl _AccelerateTowardsLimit
-    cmp Zp_Tmp1_byte  ; negative X-vel limit (pixels/frame)
+    cmp T0  ; negative X-vel limit (pixels/frame)
     bge _AccelerateTowardsLimit
 _DecelerateTowardsLimit:
     ;; Slowly decelerate, up to the (negative) velocity limit at maximum.
@@ -399,12 +398,12 @@ _DecelerateTowardsLimit:
     sta Zp_AvatarVelX_i16 + 0
     lda Zp_AvatarVelX_i16 + 1
     adc #0
-    cmp Zp_Tmp1_byte  ; negitive X-vel limit (pixels/frame)
+    cmp T0  ; negitive X-vel limit (pixels/frame)
     blt @noClamp
     @clamp:
     lda #0
     sta Zp_AvatarVelX_i16 + 0
-    lda Zp_Tmp1_byte  ; negitive X-vel limit (pixels/frame)
+    lda T0  ; negitive X-vel limit (pixels/frame)
     @noClamp:
     sta Zp_AvatarVelX_i16 + 1
     rts
@@ -417,12 +416,12 @@ _AccelerateTowardsLimit:
     lda Zp_AvatarVelX_i16 + 1
     sbc #0
     bpl @noClamp
-    cmp Zp_Tmp1_byte  ; negative X-vel limit (pixels/frame)
+    cmp T0  ; negative X-vel limit (pixels/frame)
     bge @noClamp
     @clamp:
     lda #0
     sta Zp_AvatarVelX_i16 + 0
-    lda Zp_Tmp1_byte  ; negative X-vel limit (pixels/frame)
+    lda T0  ; negative X-vel limit (pixels/frame)
     @noClamp:
     sta Zp_AvatarVelX_i16 + 1
     rts
@@ -436,7 +435,7 @@ _AccelerateTowardsLimit:
     sta Zp_AvatarFlags_bObj
 _DetermineLimit:
     ;; Determine the (positive) X-velocity limit in pixels/frame, storing it in
-    ;; Zp_Tmp1_byte.
+    ;; T0.
     lda Zp_AvatarWaterDepth_u8
     beq @inAir
     @inWater:
@@ -447,13 +446,13 @@ _DetermineLimit:
     .assert <kAvatarMaxAirSpeedHorz = 0, error
     lda #>kAvatarMaxAirSpeedHorz
     @setLimit:
-    sta Zp_Tmp1_byte  ; positive X-vel limit (pixels/frame)
+    sta T0  ; positive X-vel limit (pixels/frame)
 _AccelOrDecel:
     ;; If the avatar is moving to the left, or moving to the right slower than
     ;; the limit, then accelerate.  Otherwise, decelerate.
     lda Zp_AvatarVelX_i16 + 1
     bmi _AccelerateTowardsLimit
-    cmp Zp_Tmp1_byte  ; positive X-vel limit (pixels/frame)
+    cmp T0  ; positive X-vel limit (pixels/frame)
     blt _AccelerateTowardsLimit
 _DecelerateTowardsLimit:
     ;; Slowly decelerate, down to the (positive) velocity limit at minimum.
@@ -462,12 +461,12 @@ _DecelerateTowardsLimit:
     sta Zp_AvatarVelX_i16 + 0
     lda Zp_AvatarVelX_i16 + 1
     sbc #0
-    cmp Zp_Tmp1_byte  ; positive X-vel limit (pixels/frame)
+    cmp T0  ; positive X-vel limit (pixels/frame)
     bge @noClamp
     @clamp:
     lda #0
     sta Zp_AvatarVelX_i16 + 0
-    lda Zp_Tmp1_byte  ; positive X-vel limit (pixels/frame)
+    lda T0  ; positive X-vel limit (pixels/frame)
     @noClamp:
     sta Zp_AvatarVelX_i16 + 1
     rts
@@ -479,12 +478,12 @@ _AccelerateTowardsLimit:
     lda Zp_AvatarVelX_i16 + 1
     adc #0
     bmi @noClamp
-    cmp Zp_Tmp1_byte  ; positive X-vel limit (pixels/frame)
+    cmp T0  ; positive X-vel limit (pixels/frame)
     blt @noClamp
     @clamp:
     lda #0
     sta Zp_AvatarVelX_i16 + 0
-    lda Zp_Tmp1_byte  ; positive X-vel limit (pixels/frame)
+    lda T0  ; positive X-vel limit (pixels/frame)
     @noClamp:
     sta Zp_AvatarVelX_i16 + 1
     rts
@@ -547,7 +546,7 @@ _InWater:
     blt @setMaxUpwardSpeed
     ldy #>kAvatarMaxWaterSpeedUp
     @setMaxUpwardSpeed:
-    sty Zp_Tmp1_byte  ; max upward speed
+    sty T0  ; max upward speed
     ;; Accelerate the player avatar upwards.
     lda Zp_AvatarVelY_i16 + 0
     sub #kAvatarBouyancy
@@ -559,11 +558,11 @@ _InWater:
     ;; If moving upward, cap upward velocity.
     @movingUp:
     sta Zp_AvatarVelY_i16 + 1
-    add Zp_Tmp1_byte  ; max upward speed
+    add T0  ; max upward speed
     bcs @done
     lda #0
     sta Zp_AvatarVelY_i16 + 0
-    sub Zp_Tmp1_byte  ; max upward speed
+    sub T0  ; max upward speed
     sta Zp_AvatarVelY_i16 + 1
     rts
     ;; If moving downward, check for terminal velocity:
@@ -611,7 +610,7 @@ _InAir:
 .SEGMENT "PRGA_Room"
 
 ;;; Stores the player avatar's room pixel position in Zp_Point*_i16.
-;;; @preserve X, Y, Zp_Tmp*
+;;; @preserve X, Y, T0+
 .EXPORT FuncA_Room_SetPointToAvatarCenter
 .PROC FuncA_Room_SetPointToAvatarCenter
     lda Zp_AvatarPosX_i16 + 0
@@ -670,7 +669,7 @@ _Done:
 
 ;;; Sets Zp_ShapePosX_i16 and Zp_ShapePosY_i16 to the screen-space position of
 ;;; the player avatar.
-;;; @preserve X, Y, Zp_Tmp*
+;;; @preserve X, Y, T0+
 .EXPORT FuncA_Objects_SetShapePosToAvatarCenter
 .PROC FuncA_Objects_SetShapePosToAvatarCenter
     ;; Calculate screen-space Y-position.

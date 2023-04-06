@@ -53,8 +53,6 @@
 .IMPORTZP Zp_MachineIndex_u8
 .IMPORTZP Zp_PointX_i16
 .IMPORTZP Zp_PointY_i16
-.IMPORTZP Zp_Tmp1_byte
-.IMPORTZP Zp_Tmp2_byte
 
 ;;;=========================================================================;;;
 
@@ -79,21 +77,21 @@ kPaletteObjMinigun = 0
 .PROC FuncA_Machine_MinigunTryAct
     jsr Func_FindEmptyActorSlot  ; preserves Y, sets C on failure, returns X
     jcs _DoneWithBullet
-    sty Zp_Tmp1_byte  ; bullet direction
-    ;; Compute the firing offset, storing it in Zp_Tmp2_byte.
+    sty T0  ; bullet direction
+    ;; Compute the firing offset, storing it in T1.
     ldy Zp_MachineIndex_u8
     lda Ram_MachineParam1_u8_arr, y  ; shot counter
     and #$03
     tay
     lda _FiringOffset_i8_arr4, y
-    sta Zp_Tmp2_byte  ; firing offset (signed)
+    sta T1  ; firing offset (signed)
     ;; Get the minigun's platform index, storing it in Y.
     ldy #sMachine::MainPlatform_u8
     lda (Zp_Current_sMachine_ptr), y
     tay  ; platform index
 _SetBulletPosition:
     ;; Position the new bullet actor.
-    lda Zp_Tmp1_byte  ; bullet direction
+    lda T0  ; bullet direction
     .assert eDir::Up = 0, error
     beq _BulletUp
     cmp #eDir::Down
@@ -109,7 +107,7 @@ _BulletHorz:
     lda Ram_PlatformBottom_i16_0_arr, y
     sub Ram_PlatformTop_i16_0_arr, y
     div #2
-    add Zp_Tmp2_byte  ; firing offset (signed)
+    add T1  ; firing offset (signed)
     add Ram_PlatformTop_i16_0_arr, y
     sta Zp_PointY_i16 + 0
     lda #0
@@ -135,15 +133,15 @@ _BulletVert:
     lda Ram_PlatformRight_i16_0_arr, y
     sub Ram_PlatformLeft_i16_0_arr, y
     div #2
-    add Zp_Tmp2_byte  ; firing offset (signed)
+    add T1  ; firing offset (signed)
     add Ram_PlatformLeft_i16_0_arr, y
     sta Zp_PointX_i16 + 0
     lda #0
     adc Ram_PlatformLeft_i16_1_arr, y
     sta Zp_PointY_i16 + 1
 _InitBullet:
-    jsr Func_SetActorCenterToPoint  ; preserves X, Y, and Zp_Tmp*
-    lda Zp_Tmp1_byte  ; param: bullet direction
+    jsr Func_SetActorCenterToPoint  ; preserves X, Y, and T0+
+    lda T0  ; param: bullet direction
     jsr Func_InitActorProjBullet  ; preserves X
     ;; If debugging, replace the bullet with a smoke particle.
     lda Zp_ConsoleMachineIndex_u8

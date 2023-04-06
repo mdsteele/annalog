@@ -40,7 +40,6 @@
 .IMPORTZP Zp_PpuScrollX_u8
 .IMPORTZP Zp_RoomScrollX_u16
 .IMPORTZP Zp_RoomScrollY_u8
-.IMPORTZP Zp_Tmp1_byte
 
 ;;;=========================================================================;;;
 
@@ -157,11 +156,11 @@ _Devices_sDevice_arr:
     ;; Param1_byte and Param2_byte, respectively.
     lda Zp_RoomScrollX_u16 + 1
     lsr a
-    sta Zp_Tmp1_byte
+    sta T0
     lda Zp_RoomScrollX_u16 + 0
     sta <(Zp_Buffered_sIrq + sIrq::Param2_byte)  ; houses scroll-X
     ror a
-    lsr Zp_Tmp1_byte
+    lsr T0
     ror a
     sta <(Zp_Buffered_sIrq + sIrq::Param1_byte)  ; treeline scroll-X
     rts
