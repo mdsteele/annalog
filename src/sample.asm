@@ -85,7 +85,7 @@
 ;;; be initialized to zero.
 ;;; @param X The channel number (0-4) times four (so, 0, 4, 8, 12, or 16).
 ;;; @return C Set if the sound is finished, cleared otherwise.
-;;; @preserve X
+;;; @preserve X, T0+
 .EXPORT Func_SfxSample
 .PROC Func_SfxSample
     ldy Ram_Sound_sChanSfx_arr + sChanSfx::Param1_byte, x

@@ -22,6 +22,7 @@
     None
     Beep
     Explode
+    Quest
     Sample
     NUM_VALUES
 .ENDENUM

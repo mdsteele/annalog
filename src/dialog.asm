@@ -67,6 +67,7 @@
 .IMPORT DataA_Dialog_TownHouse5Marie_sDialog
 .IMPORT DataA_Dialog_TownHouse6Elder_sDialog
 .IMPORT DataA_Dialog_TownOutdoorsSign_sDialog
+.IMPORT FuncA_Dialog_PlaySfxQuestMarker
 .IMPORT FuncA_Objects_DrawObjectsForRoom
 .IMPORT FuncA_Terrain_ScrollTowardsAvatar
 .IMPORT FuncA_Terrain_ScrollTowardsGoal
@@ -312,9 +313,7 @@ _UpdateScrolling:
 .EXPORT FuncA_Dialog_AddQuestMarker
 .PROC FuncA_Dialog_AddQuestMarker
     jsr Func_SetFlag  ; sets C if flag was already set
-    bcs @done
-    ;; TODO: Play sound effect for new quest marker
-    @done:
+    jcc FuncA_Dialog_PlaySfxQuestMarker
     rts
 .ENDPROC
 

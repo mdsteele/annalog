@@ -27,63 +27,68 @@
 
 ;;;=========================================================================;;;
 
-;;; The duration of a Func_SfxBeep sound, in frames.
-kBeepDurationFrames = 15
+;;; The eChan value for the channel that Quest Marker sounds play on.
+kChannel = eChan::Pulse2
 
 ;;; How slowly the envelope volume decreases (0-15).
-kBeepEnvPeriod = 3
+kQuestEnvPeriod = 4
 
 ;;;=========================================================================;;;
 
-.SEGMENT "PRG8"
+.Segment "PRG8"
 
-;;; SFX function for the BEEP opcode.  When starting this sound, Param1_byte
-;;; should hold the tone number (0-9), and Timer_u8 should be initialized to
-;;; zero.
+;;; SFX function for the quest marker jingle.  When starting this sound,
+;;; Timer_u8 and Param1_byte should be initialized to zero.
 ;;; @param X The channel number (0-4) times four (so, 0, 4, 8, 12, or 16).
 ;;; @return C Set if the sound is finished, cleared otherwise.
 ;;; @preserve X, T0+
-.EXPORT Func_SfxBeep
-.PROC Func_SfxBeep
-    lda Ram_Sound_sChanSfx_arr + sChanSfx::Timer_u8, x
-    beq _Initialize
-    cmp #kBeepDurationFrames
-    blt _Continue
-    sec  ; set C to indicate that the sound is finished
-    rts
-_Initialize:
-    lda #bEnvelope::Duty12 | bEnvelope::NoLength | kBeepEnvPeriod
-    sta Hw_Channels_sChanRegs_arr5 + sChanRegs::Envelope_wo, x
-    lda #0
-    sta Hw_Channels_sChanRegs_arr5 + sChanRegs::Sweep_wo, x
-    ldy Ram_Sound_sChanSfx_arr + sChanSfx::Param1_byte, x
-    lda _TimerLo_u8_arr10, y
-    sta Hw_Channels_sChanRegs_arr5 + sChanRegs::TimerLo_wo, x
-    lda _TimerHi_u8_arr10, y
-    sta Hw_Channels_sChanRegs_arr5 + sChanRegs::TimerHi_wo, x
-_Continue:
-    inc Ram_Sound_sChanSfx_arr + sChanSfx::Timer_u8, x
+.EXPORT Func_SfxQuest
+.PROC Func_SfxQuest
+    lda Ram_Sound_sChanSfx_arr + kChannel + sChanSfx::Timer_u8
+    beq _StartNote
+_ContinueNote:
+    dec Ram_Sound_sChanSfx_arr + kChannel + sChanSfx::Timer_u8
     clc  ; clear C to indicate that the sound is still going
     rts
-;;; These values represent the ten natural notes from A3 through C5.
-_TimerLo_u8_arr10: .byte $fb, $c4, $ab, $7c, $52, $3f, $1c, $fd, $e1, $d5
-_TimerHi_u8_arr10: .byte $01, $01, $01, $01, $01, $01, $01, $00, $00, $00
+_StartNote:
+    ldy Ram_Sound_sChanSfx_arr + kChannel + sChanSfx::Param1_byte
+    cpy #5
+    bge _SoundFinished
+    inc Ram_Sound_sChanSfx_arr + kChannel + sChanSfx::Param1_byte
+    lda _NoteDuration_u8_arr5, y
+    sta Ram_Sound_sChanSfx_arr + kChannel + sChanSfx::Timer_u8
+    lda #bEnvelope::Duty14 | bEnvelope::NoLength | kQuestEnvPeriod
+    sta Hw_Channels_sChanRegs_arr5 + kChannel + sChanRegs::Envelope_wo
+    lda #0
+    sta Hw_Channels_sChanRegs_arr5 + kChannel + sChanRegs::Sweep_wo
+    lda _NoteFreq_u16_0_arr5, y
+    sta Hw_Channels_sChanRegs_arr5 + kChannel + sChanRegs::TimerLo_wo
+    lda _NoteFreq_u16_1_arr5, y
+    sta Hw_Channels_sChanRegs_arr5 + kChannel + sChanRegs::TimerHi_wo
+    clc  ; clear C to indicate that the sound is still going
+    rts
+_SoundFinished:
+    sec  ; set C to indicate that the sound is finished
+    rts
+_NoteDuration_u8_arr5: .byte 4, 4, 4, 4, 16
+_NoteFreq_u16_0_arr5: .byte $1c, $52, $1c, $52, $d5
+_NoteFreq_u16_1_arr5: .byte $01, $01, $01, $01, $00
 .ENDPROC
 
 ;;;=========================================================================;;;
 
-.SEGMENT "PRGA_Machine"
+.SEGMENT "PRGA_Dialog"
 
-;;; Starts playing a sound for the BEEP opcode.
-;;; @param A The tone number (0-9).
+;;; Starts playing the jingle sound for when a quest marker is added to the
+;;; minimap.
 ;;; @preserve X, Y, T0+
-.EXPORT FuncA_Machine_PlaySfxBeep
-.PROC FuncA_Machine_PlaySfxBeep
-    sta Zp_Next_sChanSfx_arr + eChan::Pulse2 + sChanSfx::Param1_byte
+.EXPORT FuncA_Dialog_PlaySfxQuestMarker
+.PROC FuncA_Dialog_PlaySfxQuestMarker
     lda #0
-    sta Zp_Next_sChanSfx_arr + eChan::Pulse2 + sChanSfx::Timer_u8
-    lda #eSound::Beep
-    sta Zp_Next_sChanSfx_arr + eChan::Pulse2 + sChanSfx::Sfx_eSound
+    sta Zp_Next_sChanSfx_arr + kChannel + sChanSfx::Timer_u8
+    sta Zp_Next_sChanSfx_arr + kChannel + sChanSfx::Param1_byte
+    lda #eSound::Quest
+    sta Zp_Next_sChanSfx_arr + kChannel + sChanSfx::Sfx_eSound
     rts
 .ENDPROC
 

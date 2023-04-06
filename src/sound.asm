@@ -23,6 +23,7 @@
 .IMPORT Func_Noop
 .IMPORT Func_SfxBeep
 .IMPORT Func_SfxExplode
+.IMPORT Func_SfxQuest
 .IMPORT Func_SfxSample
 .IMPORTZP Zp_AudioTmp1_byte
 .IMPORTZP Zp_AudioTmp2_byte
@@ -36,7 +37,7 @@
 ;;; @param X The channel number (0-4) times four (so, 0, 4, 8, 12, or 16).
 ;;; @param Y The eSound value for the SFX function to call.
 ;;; @return C Set if the sound is finished, cleared otherwise.
-;;; @preserve X
+;;; @preserve X, T0+
 .EXPORT Func_AudioCallSfx
 .PROC Func_AudioCallSfx
     lda Data_Sfx_func_ptr_0_arr, y
@@ -52,7 +53,7 @@
 ;;; APU registers.
 ;;; @param X The channel number (0-4) times four (so, 0, 4, 8, 12, or 16).
 ;;; @return C Set if the sound is finished, cleared otherwise.
-;;; @preserve X
+;;; @preserve X, T0+
 .REPEAT 2, table
     D_TABLE_LO table, Data_Sfx_func_ptr_0_arr
     D_TABLE_HI table, Data_Sfx_func_ptr_1_arr
@@ -60,6 +61,7 @@
     d_entry table, None,    Func_Noop
     d_entry table, Beep,    Func_SfxBeep
     d_entry table, Explode, Func_SfxExplode
+    d_entry table, Quest,   Func_SfxQuest
     d_entry table, Sample,  Func_SfxSample
     D_END
 .ENDREPEAT
