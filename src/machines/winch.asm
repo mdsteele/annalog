@@ -480,11 +480,18 @@ _Done:
 .ENDPROC
 
 ;;; Allocates and populates OAM slots for a winch-breakable floor.
-;;; @param A How many more hits the floor can take (1-3).
+;;; @param A The blink timer for the breakable floor.
 ;;; @param X The platform index for the breakable floor.
+;;; @param Y How many more hits the floor can take (0-3).
 ;;; @preserve X
 .EXPORT FuncA_Objects_DrawWinchBreakableFloor
 .PROC FuncA_Objects_DrawWinchBreakableFloor
+    and #$04
+    beq @noBlink
+    ldy #kNumWinchHitsToBreakFloor
+    @noBlink:
+    tya  ; floor HP
+    beq @done
     pha  ; floor HP
     jsr FuncA_Objects_SetShapePosToPlatformTopLeft  ; preserves X
     jsr FuncA_Objects_MoveShapeRightOneTile  ; preserves X

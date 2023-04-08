@@ -132,6 +132,8 @@ kSpikeballInitPlatformTop = \
     WinchReset_eResetSeq .byte
     ;; How many more hits each weak floor can take before breaking.
     WeakFloorHp_u8_arr2 .res 2
+    ;; How many more frames to blink the weak floors for.
+    WeakFloorBlink_u8 .byte
 .ENDSTRUCT
 .ASSERT .sizeof(sState) <= kRoomStateSize, error
 
@@ -151,7 +153,7 @@ kSpikeballInitPlatformTop = \
     d_byte NumMachines_u8, 1
     d_addr Machines_sMachine_arr_ptr, _Machines_sMachine_arr
     d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjCrypt)
-    d_addr Tick_func_ptr, Func_Noop
+    d_addr Tick_func_ptr, FuncC_Crypt_Tomb_TickRoom
     d_addr Draw_func_ptr, FuncC_Crypt_Tomb_DrawRoom
     d_addr Ext_sRoomExt_ptr, _Ext_sRoomExt
     D_END
@@ -316,6 +318,18 @@ _Passages_sPassage_arr:
     rts
 .ENDPROC
 
+.PROC FuncC_Crypt_Tomb_TickRoom
+    lda Zp_RoomState + sState::WeakFloorBlink_u8
+    beq @done
+    dec Zp_RoomState + sState::WeakFloorBlink_u8
+    bne @done
+    lda #kNumWinchHitsToBreakFloor
+    sta Zp_RoomState + sState::WeakFloorHp_u8_arr2 + 0
+    sta Zp_RoomState + sState::WeakFloorHp_u8_arr2 + 1
+    @done:
+    rts
+.ENDPROC
+
 ;;; Draw function for the CryptTomb room.
 ;;; @prereq PRGA_Objects is loaded.
 .PROC FuncC_Crypt_Tomb_DrawRoom
@@ -325,10 +339,9 @@ _Passages_sPassage_arr:
     .assert kWeakFloor1PlatformIndex = 1, error
     ldx #1  ; param: platform index
     @loop:
-    lda Zp_RoomState + sState::WeakFloorHp_u8_arr2, x  ; param: floor HP
-    beq @continue
+    ldy Zp_RoomState + sState::WeakFloorHp_u8_arr2, x  ; param: floor HP
+    lda Zp_RoomState + sState::WeakFloorBlink_u8  ; param: blink timer
     jsr FuncA_Objects_DrawWinchBreakableFloor  ; preserves X
-    @continue:
     dex
     bpl @loop
     rts
@@ -501,6 +514,18 @@ _Finished:
 .ENDPROC
 
 .PROC FuncC_Crypt_TombWinch_Reset
+_ResetBreakbleFloor:
+    lda Zp_RoomState + sState::WeakFloorBlink_u8
+    bne @done  ; floors are already blinking
+    lda Zp_RoomState + sState::WeakFloorHp_u8_arr2 + 0
+    add Zp_RoomState + sState::WeakFloorHp_u8_arr2 + 1
+    beq @done  ; both floors are already broken
+    cmp #kNumWinchHitsToBreakFloor * 2
+    bge @done  ; both floors are undamaged
+    lda #kWinchBreakableFloorBlinkFrames
+    sta Zp_RoomState + sState::WeakFloorBlink_u8
+    @done:
+_ResetMachine:
     jsr Func_ResetWinchMachineParams
     ;; TODO: heal breakable floors if not both totally broken
     lda Ram_MachineGoalHorz_u8_arr + kWinchMachineIndex

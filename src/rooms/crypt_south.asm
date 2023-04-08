@@ -121,6 +121,8 @@ kCrusherInitPlatformTop = \
     WinchReset_eResetSeq .byte
     ;; How many more hits the weak floor can take before breaking.
     WeakFloorHp_u8 .byte
+    ;; How many more frames to blink the weak floor for.
+    WeakFloorBlink_u8 .byte
 .ENDSTRUCT
 .ASSERT .sizeof(sState) <= kRoomStateSize, error
 
@@ -140,7 +142,7 @@ kCrusherInitPlatformTop = \
     d_byte NumMachines_u8, 1
     d_addr Machines_sMachine_arr_ptr, _Machines_sMachine_arr
     d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjCrypt)
-    d_addr Tick_func_ptr, Func_Noop
+    d_addr Tick_func_ptr, FuncC_Crypt_South_TickRoom
     d_addr Draw_func_ptr, FuncC_Crypt_South_DrawRoom
     d_addr Ext_sRoomExt_ptr, _Ext_sRoomExt
     D_END
@@ -286,12 +288,24 @@ _Passages_sPassage_arr:
     rts
 .ENDPROC
 
+.PROC FuncC_Crypt_South_TickRoom
+    lda Zp_RoomState + sState::WeakFloorBlink_u8
+    beq @done
+    dec Zp_RoomState + sState::WeakFloorBlink_u8
+    bne @done
+    lda #kNumWinchHitsToBreakFloor
+    sta Zp_RoomState + sState::WeakFloorHp_u8
+    @done:
+    rts
+.ENDPROC
+
 ;;; Draw function for the CryptSouth room.
 ;;; @prereq PRGA_Objects is loaded.
 .PROC FuncC_Crypt_South_DrawRoom
-    lda Zp_RoomState + sState::WeakFloorHp_u8  ; param: floor HP
+    ldy Zp_RoomState + sState::WeakFloorHp_u8  ; param: floor HP
     beq @done
     ldx #kWeakFloorPlatformIndex  ; param: platform index
+    lda Zp_RoomState + sState::WeakFloorBlink_u8  ; param: blink timer
     jmp FuncA_Objects_DrawWinchBreakableFloor
     @done:
     rts
@@ -465,7 +479,17 @@ _Finished:
 .ENDPROC
 
 .PROC FuncC_Crypt_SouthWinch_Reset
-    ;; TODO: heal breakable floor if not totally broken
+_ResetBreakbleFloor:
+    lda Zp_RoomState + sState::WeakFloorBlink_u8
+    bne @done  ; floor is already blinking
+    lda Zp_RoomState + sState::WeakFloorHp_u8
+    beq @done  ; floor is already broken
+    cmp #kNumWinchHitsToBreakFloor
+    bge @done  ; floor is undamaged
+    lda #kWinchBreakableFloorBlinkFrames
+    sta Zp_RoomState + sState::WeakFloorBlink_u8
+    @done:
+_ResetMachine:
     lda Ram_MachineGoalHorz_u8_arr + kWinchMachineIndex
     .assert kWinchInitGoalX = 0, error
     beq FuncC_Crypt_SouthWinch_Init

@@ -27,6 +27,9 @@ kWinchMoveUpSlowdown = 3
 ;;; destroy it.
 kNumWinchHitsToBreakFloor = 3
 
+;;; How many frames to blink the breakable floor for when resetting it.
+kWinchBreakableFloorBlinkFrames = 28
+
 ;;; Tile IDs for drawing winch machines.
 kTileIdCrusherFirst   = $b4
 kTileIdWeakFloorFirst = $c3
