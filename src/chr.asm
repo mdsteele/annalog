@@ -34,6 +34,7 @@
 .INCLUDE "actors/toddler.inc"
 .INCLUDE "actors/townsfolk.inc"
 .INCLUDE "actors/vinebug.inc"
+.INCLUDE "actors/wasp.inc"
 .INCLUDE "avatar.inc"
 .INCLUDE "devices/breaker.inc"
 .INCLUDE "machine.inc"
@@ -942,7 +943,9 @@
     .incbin "out/data/tiles/hoist.chr"
     .assert * - :- = (kTileIdObjMineCageFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/mine_cage.chr"
-    .res $0c * kSizeofChr
+    .res $04 * kSizeofChr
+    .assert * - :- = (kTileIdObjWaspFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/wasp.chr"
     .assert * - :- = (kTileIdObjUpgradeOpSyncFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/upgrade_opsync.chr"
     .res $16 * kSizeofChr

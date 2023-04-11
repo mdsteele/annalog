@@ -1,29 +1,31 @@
 @BG 0 0 0 33x24
 >mine_0
 >mine_1
+>mine_2
+>mine_3
 >mine_4
 
-CMCMCICFCFCFCFCFCFCFCFCFCFCFCFCFCFCFCFCFCFCFCFCFCFCFCFCFCFCFCFCFCJ
-CMCMCH                                                          CG
-CFCFCD                                                          CG
-                                                                CG
-                                                                CG
-CECECB                                                          CG
-CMCMCH                                                          CG
-CMCMCHCACB                                                      CG
-CMCMCHCCCD                                                      CG
-CMCMCH          CACB                                            CG
-CMCMCH          CCCD                                            CG
-CMCMCH  CACB                                                    CG
-CMCMCH  CCCD                                                    CG
-CMCMCH        CACB                                              CG
-CMCMCH        CCCD                                              CG
-CMCMCH              CACB                                        CG
-CMCMCH              CCCD                                        CG
-CFCFCD                        CACB                              CG
-                              CCCD                              CG
-                      CACB                                      CG
-                      CCCD                                      CG
-CECECECECECECECECECECECECECECECECECECECECECB            CACECECECL
-CMCMCMCMCMCMCMCMCMCMCMCMCMCMCMCMCMCMCMCMCMCH            CGCMCMCMCM
-CMCMCMCMCMCMCMCMCMCMCMCMCMCMCMCMCMCMCMCMCMCKCECB    CACECLCMCMCMCM
+EMEMEIEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEJ
+EMEMEH          CACB                                            EG
+EFEFED          CCCD                                            EG
+                CACB                                            EG
+                CCCD                                            EG
+EEEEEB          CACB                                            EG
+EMEMEH          CCEAEEEEEB                                      EG
+EMEMEHEAEB      CAECEFEFED                                      EG
+EMEMEHECED      CCCD                                            EG
+EMEMEH          EAEB                                            EG
+EMEMEH          ECED                                            EG
+EMEMEH  EAEB                                                    EG
+EMEMEH  ECED                                                    EG
+EMEMEH        EAEB                                              EG
+EMEMEH        ECED                                              EG
+EMEMEH              EAEB                                        EG
+EMEMEH              ECED                                        EG
+EFEFED                        EAEB                              EG
+                              ECED                              EG
+                      EAEB                                      EG
+                      ECED                                      EG
+EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEB            EAEEEEEEEL
+EMEMEMEMEMEMEMEMEMEMEMEMEMEMEMEMEMEMEMEMEMEH            EGEMEMEMEM
+EMEMEMEMEMEMEMEMEMEMEMEMEMEMEMEMEMEMEMEMEMEKEEEB    EAEEELEMEMEMEM

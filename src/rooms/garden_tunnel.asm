@@ -63,7 +63,7 @@ _TerrainData:
 _Platforms_sPlatform_arr:
     .byte ePlatform::None
 _Actors_sActor_arr:
-    D_STRUCT sActor
+:   D_STRUCT sActor
     d_byte Type_eActor, eActor::BadGrub
     d_word PosX_i16, $00a0
     d_word PosY_i16, $0048
@@ -75,6 +75,7 @@ _Actors_sActor_arr:
     d_word PosY_i16, $00c8
     d_byte Param_byte, 0
     D_END
+    .assert * - :- <= kMaxActors * .sizeof(sActor), error
     .byte eActor::None
 _Devices_sDevice_arr:
     .byte eDevice::None

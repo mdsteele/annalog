@@ -36,6 +36,7 @@
 .IMPORT FuncA_Actor_TickBadSpider
 .IMPORT FuncA_Actor_TickBadToad
 .IMPORT FuncA_Actor_TickBadVinebug
+.IMPORT FuncA_Actor_TickBadWasp
 .IMPORT FuncA_Actor_TickNpcToddler
 .IMPORT FuncA_Actor_TickProjBreakball
 .IMPORT FuncA_Actor_TickProjBullet
@@ -62,6 +63,7 @@
 .IMPORT FuncA_Objects_DrawActorBadSpider
 .IMPORT FuncA_Objects_DrawActorBadToad
 .IMPORT FuncA_Objects_DrawActorBadVinebug
+.IMPORT FuncA_Objects_DrawActorBadWasp
 .IMPORT FuncA_Objects_DrawActorNpcAdult
 .IMPORT FuncA_Objects_DrawActorNpcChild
 .IMPORT FuncA_Objects_DrawActorNpcMermaid
@@ -82,6 +84,7 @@
 .IMPORT FuncA_Objects_MoveShapeLeftHalfTile
 .IMPORT FuncA_Objects_MoveShapeUpByA
 .IMPORT FuncA_Room_InitActorBadBird
+.IMPORT FuncA_Room_InitActorBadWasp
 .IMPORT FuncA_Room_InitActorNpcChild
 .IMPORT FuncA_Room_InitActorNpcToddler
 .IMPORT FuncA_Room_InitActorProjBreakball
@@ -291,6 +294,7 @@ Ram_ActorFlags_bObj_arr: .res kMaxActors
     d_byte BadSpider,        8
     d_byte BadToad,          9
     d_byte BadVinebug,       7
+    d_byte BadWasp,          5
     d_byte NpcAdult,        13
     d_byte NpcChild,         7
     d_byte NpcMermaid,      13
@@ -324,6 +328,7 @@ Ram_ActorFlags_bObj_arr: .res kMaxActors
     d_byte BadSpider,        2
     d_byte BadToad,          0
     d_byte BadVinebug,       7
+    d_byte BadWasp,          6
     d_byte NpcAdult,         8
     d_byte NpcChild,         8
     d_byte NpcMermaid,       8
@@ -357,6 +362,7 @@ Ram_ActorFlags_bObj_arr: .res kMaxActors
     d_byte BadSpider,       7
     d_byte BadToad,         7
     d_byte BadVinebug,      5
+    d_byte BadWasp,         6
     d_byte NpcAdult,        5
     d_byte NpcChild,        5
     d_byte NpcMermaid,      5
@@ -459,6 +465,7 @@ _TypeSpecificTick:
     d_entry table, BadSpider,       FuncA_Actor_TickBadSpider
     d_entry table, BadToad,         FuncA_Actor_TickBadToad
     d_entry table, BadVinebug,      FuncA_Actor_TickBadVinebug
+    d_entry table, BadWasp,         FuncA_Actor_TickBadWasp
     d_entry table, NpcAdult,        Func_Noop
     d_entry table, NpcChild,        Func_Noop
     d_entry table, NpcMermaid,      Func_Noop
@@ -744,6 +751,7 @@ _NoHit:
     d_entry table, BadSpider,       Func_InitActorDefault
     d_entry table, BadToad,         Func_InitActorDefault
     d_entry table, BadVinebug,      Func_InitActorDefault
+    d_entry table, BadWasp,         FuncA_Room_InitActorBadWasp
     d_entry table, NpcAdult,        Func_InitActorWithState1
     d_entry table, NpcChild,        FuncA_Room_InitActorNpcChild
     d_entry table, NpcMermaid,      Func_InitActorWithState1
@@ -896,6 +904,7 @@ _NoHit:
     d_entry table, BadSpider,       FuncA_Objects_DrawActorBadSpider
     d_entry table, BadToad,         FuncA_Objects_DrawActorBadToad
     d_entry table, BadVinebug,      FuncA_Objects_DrawActorBadVinebug
+    d_entry table, BadWasp,         FuncA_Objects_DrawActorBadWasp
     d_entry table, NpcAdult,        FuncA_Objects_DrawActorNpcAdult
     d_entry table, NpcChild,        FuncA_Objects_DrawActorNpcChild
     d_entry table, NpcMermaid,      FuncA_Objects_DrawActorNpcMermaid

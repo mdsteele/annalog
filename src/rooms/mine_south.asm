@@ -18,6 +18,7 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "../actor.inc"
+.INCLUDE "../actors/wasp.inc"
 .INCLUDE "../device.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../platform.inc"
@@ -63,6 +64,13 @@ _TerrainData:
 _Platforms_sPlatform_arr:
     .byte ePlatform::None
 _Actors_sActor_arr:
+:   D_STRUCT sActor
+    d_byte Type_eActor, eActor::BadWasp
+    d_word PosX_i16, $0090
+    d_word PosY_i16, $0040
+    d_byte Param_byte, (bBadWasp::ThetaMask & $c0) | (bBadWasp::DeltaMask & 2)
+    D_END
+    .assert * - :- <= kMaxActors * .sizeof(sActor), error
     .byte eActor::None
 _Devices_sDevice_arr:
     .byte eDevice::None

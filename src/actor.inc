@@ -25,17 +25,18 @@ kMaxActors = 8
 ;;; Types of actors in a room (e.g. baddies, NPCs, or projectiles).
 .ENUM eActor
     None
-    BadBeetleHorz
-    BadBeetleVert
-    BadBird
-    BadCrab
-    BadFish
-    BadGrub
-    BadHotheadHorz
-    BadHotheadVert
+    BadBeetleHorz    ; crawls around a platform
+    BadBeetleVert    ; crawls around a platform
+    BadBird          ; flies horizontally when it can hit the player avatar
+    BadCrab          ; moves left/right randomly on a floor
+    BadFish          ; swims back and forth in water
+    BadGrub          ; crawls left/right on a floor
+    BadHotheadHorz   ; crawls around a platform, and can drop fire
+    BadHotheadVert   ; crawls around a platform, and can drop fire
     BadSpider
-    BadToad
-    BadVinebug
+    BadToad          ; jumps in place
+    BadVinebug       ; moves vertically on a vine
+    BadWasp          ; flies in a circle
     NpcAdult
     NpcChild
     NpcMermaid
