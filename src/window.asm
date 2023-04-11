@@ -17,6 +17,7 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
+.INCLUDE "charmap.inc"
 .INCLUDE "irq.inc"
 .INCLUDE "macros.inc"
 .INCLUDE "mmc3.inc"
@@ -109,19 +110,21 @@ _Disable:
     bit Hw_PpuStatus_ro  ; reset the Hw_PpuAddr_w2 write-twice latch
     sta Hw_PpuAddr_w2
     stx Hw_PpuAddr_w2
-    lda #kWindowTileIdBlank
+    lda #' '
     sta Hw_PpuData_rw
-    lda #kWindowTileIdTopLeft
+    lda #kTileIdBgWindowTopLeft
     sta Hw_PpuData_rw
-    lda #kWindowTileIdHorz
+    lda #kTileIdBgWindowHorz
     ldx #kScreenWidthTiles - 4
     @loop:
     sta Hw_PpuData_rw
     dex
     bne @loop
-    lda #kWindowTileIdTopRight
+    lda #kTileIdBgWindowTopRight
     sta Hw_PpuData_rw
-    .assert kWindowTileIdBlank = 0, error
+    ;; At this point, X is zero (from exiting the loop), which conveniently
+    ;; just happens to be the tile ID we want to draw next.
+    .assert ' ' = 0, error
     stx Hw_PpuData_rw
     rts
 .ENDPROC
@@ -131,23 +134,23 @@ _Disable:
 .EXPORT Func_Window_TransferBottomBorder
 .PROC Func_Window_TransferBottomBorder
     jsr Func_Window_PrepareRowTransfer
-    lda #kWindowTileIdBlank
+    lda #' '
     sta Ram_PpuTransfer_arr, x
     inx
-    lda #kWindowTileIdBottomLeft
+    lda #kTileIdBgWindowBottomLeft
     sta Ram_PpuTransfer_arr, x
     inx
-    lda #kWindowTileIdHorz
+    lda #kTileIdBgWindowHorz
     ldy #kScreenWidthTiles - 4
     @loop:
     sta Ram_PpuTransfer_arr, x
     inx
     dey
     bne @loop
-    lda #kWindowTileIdBottomRight
+    lda #kTileIdBgWindowBottomRight
     sta Ram_PpuTransfer_arr, x
     inx
-    lda #kWindowTileIdBlank
+    lda #' '
     sta Ram_PpuTransfer_arr, x
     rts
 .ENDPROC
@@ -156,7 +159,7 @@ _Disable:
 .EXPORT Func_Window_TransferClearRow
 .PROC Func_Window_TransferClearRow
     jsr Func_Window_PrepareRowTransfer
-    lda #kWindowTileIdBlank
+    lda #' '
     ldy #kScreenWidthTiles
     @loop:
     sta Ram_PpuTransfer_arr, x

@@ -531,10 +531,10 @@ _BottomBorder:
 _Interior:
     jsr Func_Window_PrepareRowTransfer
     ;; Draw margins, borders, and column separators:
-    lda #kWindowTileIdBlank
+    lda #' '
     sta Ram_PpuTransfer_arr, x
     sta Ram_PpuTransfer_arr + kScreenWidthTiles - 1, x
-    lda #kWindowTileIdVert
+    lda #kTileIdBgWindowVert
     sta Ram_PpuTransfer_arr + 1, x
     sta Ram_PpuTransfer_arr + 21, x
     sta Ram_PpuTransfer_arr + kScreenWidthTiles - 2, x
@@ -844,19 +844,19 @@ _WriteBinop:
     jsr _WriteHighRegisterOrImmediate
     jmp _Write2Spaces
 _Write4Spaces:
-    lda #kWindowTileIdBlank
+    lda #' '
     sta Ram_PpuTransfer_arr, x
     inx
 _Write3Spaces:
-    lda #kWindowTileIdBlank
+    lda #' '
     sta Ram_PpuTransfer_arr, x
     inx
 _Write2Spaces:
-    lda #kWindowTileIdBlank
+    lda #' '
     sta Ram_PpuTransfer_arr, x
     inx
 _Write1Space:
-    lda #kWindowTileIdBlank
+    lda #' '
     sta Ram_PpuTransfer_arr, x
     inx
     rts

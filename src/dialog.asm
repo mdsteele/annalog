@@ -589,10 +589,10 @@ _BottomBorder:
 _Interior:
     jsr Func_Window_PrepareRowTransfer
     ;; Draw borders and margins:
-    lda #kWindowTileIdBlank
+    lda #' '
     sta Ram_PpuTransfer_arr, x
     sta Ram_PpuTransfer_arr + kScreenWidthTiles - 1, x
-    lda #kWindowTileIdVert
+    lda #kTileIdBgWindowVert
     sta Ram_PpuTransfer_arr + 1, x
     sta Ram_PpuTransfer_arr + kScreenWidthTiles - 2, x
     inx
@@ -608,7 +608,7 @@ _Interior:
     dey
     bne @portraitLoop
     ;; Clear interior:
-    lda #kWindowTileIdBlank
+    lda #' '
     ldy #kScreenWidthTiles - 8
     @clearLoop:
     sta Ram_PpuTransfer_arr, x
@@ -810,7 +810,7 @@ _EndOfLine:
     sta Ram_PpuTransfer_arr, x
     inx
     ;; Write the transfer data.
-    lda #kWindowTileIdBlank
+    lda #' '
     ldy #kDialogTextMaxCols
     @columnLoop:
     sta Ram_PpuTransfer_arr, x

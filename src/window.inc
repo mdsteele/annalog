@@ -38,13 +38,12 @@ kWindowMaxNumRows = 11
 ;;; at the bottom of a tall room.
 kWindowMarginBottomPx = 12
 
-;;; Tile IDs for drawing pieces of the window border.
-kWindowTileIdBlank       = $00
-kWindowTileIdTopLeft     = $3a
-kWindowTileIdTopRight    = $3b
-kWindowTileIdBottomLeft  = $3c
-kWindowTileIdBottomRight = $3d
-kWindowTileIdHorz        = $3e
-kWindowTileIdVert        = $3f
+;;; BG tile IDs for drawing pieces of the window border.
+kTileIdBgWindowTopLeft     = $3a
+kTileIdBgWindowTopRight    = $3b
+kTileIdBgWindowBottomLeft  = $3c
+kTileIdBgWindowBottomRight = $3d
+kTileIdBgWindowHorz        = $3e
+kTileIdBgWindowVert        = $3f
 
 ;;;=========================================================================;;;

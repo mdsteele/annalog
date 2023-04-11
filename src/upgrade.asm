@@ -325,9 +325,9 @@ _BottomBorder:
 _Interior:
     jsr Func_Window_PrepareRowTransfer
     ;; Draw left-hand border and margin.
-    lda #kWindowTileIdVert
+    lda #kTileIdBgWindowVert
     sta Ram_PpuTransfer_arr + 1, x
-    lda #kWindowTileIdBlank
+    lda #' '
     sta Ram_PpuTransfer_arr, x
     inx
     inx
@@ -366,7 +366,7 @@ _CopyUpgradeDescription:
     bne @loop  ; unconditional
     @done:
 _ClearRest:
-    lda #kWindowTileIdBlank
+    lda #' '
     @loop:
     sta Ram_PpuTransfer_arr, x
     inx
@@ -375,7 +375,7 @@ _ClearRest:
     ;; Draw right-hand border.
     dex
     dex
-    lda #kWindowTileIdVert
+    lda #kTileIdBgWindowVert
     sta Ram_PpuTransfer_arr, x
     rts
 _DescTable_ptr_arr:

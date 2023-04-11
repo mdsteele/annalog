@@ -139,9 +139,9 @@ _CheckForUnause:
 ;;; some of the surrounding tiles.
 .PROC DataA_Pause_CurrentAreaLabel_u8_arr
 Start:
-    .byte kWindowTileIdTopRight, kWindowTileIdBlank
+    .byte kTileIdBgWindowTopRight, ' '
 LineStart:
-    .byte kWindowTileIdBlank, kWindowTileIdVert
+    .byte ' ', kTileIdBgWindowVert
     .byte " Current area: "
 kAreaNameStartCol = * - LineStart
 kSize = * - Start
@@ -197,16 +197,16 @@ _FadeIn:
     sta Hw_PpuAddr_w2
     stx Hw_PpuAddr_w2
 _ClearTopRows:
-    lda #kWindowTileIdBlank
+    lda #' '
     ldx #kScreenWidthTiles * 2 + 1
     @loop:
     sta Hw_PpuData_rw
     dex
     bne @loop
 _DrawTopBorder:
-    lda #kWindowTileIdTopLeft
+    lda #kTileIdBgWindowTopLeft
     sta Hw_PpuData_rw
-    lda #kWindowTileIdHorz
+    lda #kTileIdBgWindowHorz
     ldx #kScreenWidthTiles - 4
     @loop:
     sta Hw_PpuData_rw
@@ -240,8 +240,8 @@ _DrawCurrentAreaName:
     bpl @loop
     @break:
 _FinishCurrentAreaLine:
-    lda #kWindowTileIdBlank
-    .assert kWindowTileIdBlank = 0, error
+    lda #' '
+    .assert ' ' = 0, error
     beq @start  ; unconditional
     @loop:
     sta Hw_PpuData_rw
@@ -271,23 +271,23 @@ _DrawItems:
     cpx #6
     bne @rowLoop
 _DrawBottomBorder:
-    lda #kWindowTileIdVert
+    lda #kTileIdBgWindowVert
     sta Hw_PpuData_rw
-    lda #kWindowTileIdBlank
+    lda #' '
     sta Hw_PpuData_rw
     sta Hw_PpuData_rw
-    lda #kWindowTileIdBottomLeft
+    lda #kTileIdBgWindowBottomLeft
     sta Hw_PpuData_rw
-    lda #kWindowTileIdHorz
+    lda #kTileIdBgWindowHorz
     ldx #kScreenWidthTiles - 4
     @loop:
     sta Hw_PpuData_rw
     dex
     bne @loop
-    lda #kWindowTileIdBottomRight
+    lda #kTileIdBgWindowBottomRight
     sta Hw_PpuData_rw
 _ClearBottomRows:
-    lda #kWindowTileIdBlank
+    lda #' '
     ldx #kScreenWidthTiles * 2 + 1
     @loop:
     sta Hw_PpuData_rw
@@ -295,8 +295,8 @@ _ClearBottomRows:
     bne @loop
     rts
 _DrawLineBreak:
-    lda #kWindowTileIdVert
-    ldy #kWindowTileIdBlank
+    lda #kTileIdBgWindowVert
+    ldy #' '
     sta Hw_PpuData_rw
     sty Hw_PpuData_rw
     sty Hw_PpuData_rw
@@ -304,7 +304,7 @@ _DrawLineBreak:
     rts
 _DrawBlankLine:
     jsr _DrawLineBreak
-    lda #kWindowTileIdBlank
+    lda #' '
     ldy #kScreenWidthTiles - 4
     @colLoop:
     sta Hw_PpuData_rw
@@ -323,7 +323,7 @@ _DrawBlankLine:
 ;;; @preserve X
 .PROC FuncA_Pause_DirectDrawMinimapLine
     ;; Draw left margin.
-    lda #kWindowTileIdBlank
+    lda #' '
     sta Hw_PpuData_rw
     sta Hw_PpuData_rw
     ;; Determine the bitmask we should use for this minimap row, and store it
@@ -442,7 +442,7 @@ _Finish:
     ;; Restore X (since this function needs to preserve it).
     ldx T3  ; minimap row
     ;; Draw right margin.
-    lda #kWindowTileIdBlank
+    lda #' '
     sta Hw_PpuData_rw
     sta Hw_PpuData_rw
     rts
@@ -455,7 +455,7 @@ _Finish:
 ;;; @preserve X
 .PROC FuncA_Pause_DirectDrawItemsLine
     stx T0  ; line number (0-5)
-    lda #kWindowTileIdBlank
+    lda #' '
     sta Hw_PpuData_rw
     sta Hw_PpuData_rw
 .PROC _DrawUpgrades
@@ -477,11 +477,11 @@ _Finish:
     jsr Func_IsFlagSet  ; preserves X and T0+, sets Z if flag X is not set
     bne @drawUpgrade
     ;; The player doesn't have this upgrade yet, so draw some blank space.
-    lda #kWindowTileIdBlank
+    lda #' '
     sta Hw_PpuData_rw
     sta Hw_PpuData_rw
     sta Hw_PpuData_rw
-    .assert kWindowTileIdBlank = 0, error
+    .assert ' ' = 0, error
     beq @continue  ; unconditional
     @drawUpgrade:
     ;; The player does have this upgrade.  Determine the first tile ID to draw
@@ -507,14 +507,14 @@ _Finish:
     sta Hw_PpuData_rw
     add #1
     sta Hw_PpuData_rw
-    lda #kWindowTileIdBlank
+    lda #' '
     sta Hw_PpuData_rw
     @continue:
     ;; Continue to the next upgrade on this line.
     inx  ; upgrade eFlag
     cpx T1  ; ending eFlag
     blt @loop
-    ;; At this point, A is still set to kWindowTileIdBlank.
+    ;; At this point, A is still set to ' '.
     sta Hw_PpuData_rw
 .ENDPROC
 .PROC _DrawCircuits
@@ -534,7 +534,7 @@ _Finish:
     inx
     dey
     bne @loop
-    lda #kWindowTileIdBlank
+    lda #' '
     sta Hw_PpuData_rw
     sta Hw_PpuData_rw
 .ENDPROC

@@ -20,7 +20,6 @@
 .INCLUDE "charmap.inc"
 .INCLUDE "macros.inc"
 .INCLUDE "ppu.inc"
-.INCLUDE "window.inc"
 
 .IMPORT Func_Window_GetRowPpuAddr
 .IMPORT Ram_PpuTransfer_arr
@@ -128,7 +127,7 @@ _WriteDiagramRow:
     tay  ; diagram row
     ;; Draw the blank margin on either side of the diagram.
     .assert kStatusBoxWidthTiles = 8, error
-    lda #kWindowTileIdBlank
+    lda #' '
     sta Ram_PpuTransfer_arr + 0, x
     sta Ram_PpuTransfer_arr + 5, x
     sta Ram_PpuTransfer_arr + 6, x
@@ -145,7 +144,7 @@ _WriteDiagramRow:
     bne @loop
     beq _Finish  ; unconditional
 _WriteBlankRow:
-    lda #kWindowTileIdBlank
+    lda #' '
     ldy #kStatusBoxWidthTiles
     @loop:
     sta Ram_PpuTransfer_arr, x
@@ -185,7 +184,7 @@ _Finish:
 _WriteBlankRow:
     ldy #kNoPowerWidthTiles
 _WriteYSpaces:
-    lda #kWindowTileIdBlank
+    lda #' '
     @loop:
     sta Ram_PpuTransfer_arr, x
     inx
