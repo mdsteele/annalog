@@ -17,8 +17,8 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
-;;; The NES 2.0 header.  See https://wiki.nesdev.org/w/index.php/NES_2.0.  This
-;;; is used for constructing the iNES-format ROM container file, and is used by
+;;; The NES 2.0 header.  See https://www.nesdev.org/wiki/NES_2.0.  This is used
+;;; for constructing the iNES-format ROM container file, and is used by
 ;;; emulators, but does not appear on a real NES cartridge.
 
 ;;;=========================================================================;;;

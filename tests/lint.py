@@ -71,6 +71,8 @@ SORT_PATTERNS = [
 #=============================================================================#
 
 def src_and_test_entries():
+    for entry in os.walk('nsf'):
+        yield entry
     for entry in os.walk('src'):
         yield entry
     for entry in os.walk('tests'):

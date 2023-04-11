@@ -48,6 +48,8 @@ USE_PATTERN = re.compile(r'[^.A-Za-z0-9_]([A-Z][A-Za-z0-9_]+)')
 #=============================================================================#
 
 def src_and_test_entries():
+    for entry in os.walk('nsf'):
+        yield entry
     for entry in os.walk('src'):
         yield entry
     for entry in os.walk('tests'):

@@ -38,6 +38,7 @@ WAV2DM = $(BINDIR)/wav2dm
 CFGFILE = $(SRCDIR)/linker.cfg
 LABELFILE = $(OUTDIR)/$(ROMNAME).labels.txt
 MAPFILE = $(OUTDIR)/$(ROMNAME).map.txt
+NSFFILE = $(OUTDIR)/$(ROMNAME).nsf
 ROMFILE = $(OUTDIR)/$(ROMNAME).nes
 
 AHIFILES := $(shell find $(SRCDIR) -name '*.ahi')
@@ -59,17 +60,22 @@ OBJFILES := \
 ROOMFILES := \
   $(patsubst $(SRCDIR)/rooms/%.bg,$(DATADIR)/%.room,$(ROOM_BG_FILES))
 
+NSF_CFGFILE = nsf/nsf.cfg
+NSF_OBJFILES := $(OUTDIR)/nsf/nsf.o \
+  $(OBJDIR)/audio.o $(OBJDIR)/inst.o $(OBJDIR)/music.o \
+  $(patsubst $(SRCDIR)/music/%.sng,$(GENDIR)/music/%.o,$(SNGFILES))
+
 SIM65_DIR = $(OUTDIR)/sim65
-SIM65_ASMS = $(shell find $(TESTDIR) -name '*.asm')
-SIM65_CFGS = $(shell find $(TESTDIR) -name '*.cfg')
-SIM65_OBJS = $(patsubst $(TESTDIR)/%.asm,$(SIM65_DIR)/%.o,$(SIM65_ASMS))
-SIM65_BINS = $(patsubst $(TESTDIR)/%.cfg,$(SIM65_DIR)/%,$(SIM65_CFGS))
+SIM65_ASMS := $(shell find $(TESTDIR) -name '*.asm')
+SIM65_CFGS := $(shell find $(TESTDIR) -name '*.cfg')
+SIM65_OBJS := $(patsubst $(TESTDIR)/%.asm,$(SIM65_DIR)/%.o,$(SIM65_ASMS))
+SIM65_BINS := $(patsubst $(TESTDIR)/%.cfg,$(SIM65_DIR)/%,$(SIM65_CFGS))
 
 #=============================================================================#
 # Phony targets:
 
-.PHONY: rom
-rom: $(ROMFILE)
+.PHONY: all
+all: $(ROMFILE) $(NSFFILE)
 
 .PHONY: run
 run: $(ROMFILE) $(ROMFILE).ram.nl $(ROMFILE).3.nl
@@ -255,5 +261,16 @@ $(ROMFILE) $(LABELFILE): $(CFGFILE) $(OBJFILES) tests/lint.py
 	@mkdir -p $(@D)
 	@ld65 -Ln $(LABELFILE) -m $(MAPFILE) -o $@ -C $(CFGFILE) $(OBJFILES)
 $(LABELFILE): $(ROMFILE)
+
+#=============================================================================#
+# NSF file:
+
+$(OUTDIR)/nsf/nsf.o: nsf/nsf.asm $(INCFILES)
+	$(compile-asm)
+
+$(NSFFILE): $(NSF_CFGFILE) $(NSF_OBJFILES)
+	@echo "Linking $@"
+	@mkdir -p $(@D)
+	@ld65 -o $@ -C $(NSF_CFGFILE) $(NSF_OBJFILES)
 
 #=============================================================================#
