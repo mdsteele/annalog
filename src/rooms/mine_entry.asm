@@ -32,14 +32,14 @@
 
 .SEGMENT "PRGC_Mine"
 
-.EXPORT DataC_Mine_South_sRoom
-.PROC DataC_Mine_South_sRoom
+.EXPORT DataC_Mine_Entry_sRoom
+.PROC DataC_Mine_Entry_sRoom
     D_STRUCT sRoom
     d_byte MinScrollX_u8, $10
-    d_word MaxScrollX_u16, $110
-    d_byte Flags_bRoom, bRoom::Tall | eArea::Mine
-    d_byte MinimapStartRow_u8, 11
-    d_byte MinimapStartCol_u8, 21
+    d_word MaxScrollX_u16, $10
+    d_byte Flags_bRoom, eArea::Mine
+    d_byte MinimapStartRow_u8, 12
+    d_byte MinimapStartCol_u8, 20
     d_addr TerrainData_ptr, _TerrainData
     d_byte NumMachines_u8, 0
     d_addr Machines_sMachine_arr_ptr, 0
@@ -59,16 +59,30 @@ _Ext_sRoomExt:
     d_addr FadeIn_func_ptr, Func_Noop
     D_END
 _TerrainData:
-:   .incbin "out/data/mine_south.room"
-    .assert * - :- = 33 * 24, error
+:   .incbin "out/data/mine_entry.room"
+    .assert * - :- = 18 * 16, error
 _Platforms_sPlatform_arr:
+:   D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Harm
+    d_word WidthPx_u16, $30
+    d_byte HeightPx_u8, $08
+    d_word Left_i16,  $0070
+    d_word Top_i16,   $00de
+    D_END
+    .assert * - :- <= kMaxPlatforms * .sizeof(sPlatform), error
     .byte ePlatform::None
 _Actors_sActor_arr:
 :   D_STRUCT sActor
     d_byte Type_eActor, eActor::BadWasp
-    d_word PosX_i16, $0090
-    d_word PosY_i16, $0040
-    d_byte Param_byte, (bBadWasp::ThetaMask & $c0) | (bBadWasp::DeltaMask & 2)
+    d_word PosX_i16, $0068
+    d_word PosY_i16, $0054
+    d_byte Param_byte, (bBadWasp::ThetaMask & $40) | (bBadWasp::DeltaMask & -1)
+    D_END
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::BadWasp
+    d_word PosX_i16, $00c0
+    d_word PosY_i16, $002a
+    d_byte Param_byte, (bBadWasp::ThetaMask & $40) | (bBadWasp::DeltaMask & -3)
     D_END
     .assert * - :- <= kMaxActors * .sizeof(sActor), error
     .byte eActor::None
@@ -77,18 +91,13 @@ _Devices_sDevice_arr:
 _Passages_sPassage_arr:
 :   D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Western | 0
-    d_byte Destination_eRoom, eRoom::MineWest
-    d_byte SpawnBlock_u8, 4
+    d_byte Destination_eRoom, eRoom::MineEntry  ; TODO
+    d_byte SpawnBlock_u8, 11
     D_END
     D_STRUCT sPassage
-    d_byte Exit_bPassage, ePassage::Western | 1
-    d_byte Destination_eRoom, eRoom::MineEntry
-    d_byte SpawnBlock_u8, 20
-    D_END
-    D_STRUCT sPassage
-    d_byte Exit_bPassage, ePassage::Bottom | 1
-    d_byte Destination_eRoom, eRoom::MinePit
-    d_byte SpawnBlock_u8, 25
+    d_byte Exit_bPassage, ePassage::Eastern | 0
+    d_byte Destination_eRoom, eRoom::MineSouth
+    d_byte SpawnBlock_u8, 5
     D_END
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
 .ENDPROC
