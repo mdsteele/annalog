@@ -25,6 +25,7 @@
 .INCLUDE "../machine.inc"
 .INCLUDE "../machines/crane.inc"
 .INCLUDE "../macros.inc"
+.INCLUDE "../oam.inc"
 .INCLUDE "../platform.inc"
 .INCLUDE "../ppu.inc"
 .INCLUDE "../program.inc"
@@ -64,7 +65,7 @@ kCranePlatformIndex = 0
 kPulleyPlatformIndex = 1
 
 ;;; The initial and maximum permitted values for the crane's Z-goal.
-kCraneInitGoalZ = 0
+kCraneInitGoalZ = 1
 kCraneMaxGoalZ = 9
 
 ;;; The minimum and initial Y-positions for the top of the crane platform.
@@ -215,7 +216,13 @@ _Platforms_sPlatform_arr:
     .assert * - :- <= kMaxPlatforms * .sizeof(sPlatform), error
     .byte ePlatform::None
 _Actors_sActor_arr:
-    ;; TODO: add some baddies
+:   D_STRUCT sActor
+    d_byte Type_eActor, eActor::BadFirefly
+    d_word PosX_i16, $00d0
+    d_word PosY_i16, $00d0
+    d_byte Param_byte, bObj::FlipH
+    D_END
+    .assert * - :- <= kMaxActors * .sizeof(sActor), error
     .byte eActor::None
 _Devices_sDevice_arr:
 :   D_STRUCT sDevice
@@ -249,7 +256,7 @@ _Passages_sPassage_arr:
     lda #0
     sta Ram_MachineGoalHorz_u8_arr + kCraneMachineIndex  ; is closed
     sta Zp_RoomState + sState::CageIsGrasped_bool
-    .assert kCraneInitGoalZ = 0, error
+    lda #kCraneInitGoalZ
     sta Ram_MachineGoalVert_u8_arr + kCraneMachineIndex
     rts
 .ENDPROC

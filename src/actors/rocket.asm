@@ -27,7 +27,6 @@
 .IMPORT FuncA_Actor_CenterHitsTerrain
 .IMPORT FuncA_Actor_HarmAvatarIfCollision
 .IMPORT FuncA_Objects_Draw1x1Actor
-.IMPORT FuncA_Room_FindActorWithType
 .IMPORT Func_InitActorDefault
 .IMPORT Func_InitActorSmokeExplosion
 .IMPORT Func_ShakeRoom
@@ -95,21 +94,6 @@ _VelY_i8_arr:
     d_byte Left,  0
     d_byte Right, 0
     D_END
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Room"
-
-;;; Finds a rocket actor in the room (if any) and returns its index, or sets
-;;; the C flag if there isn't any rocket actor right now.
-;;; @return C Set if no rocket was found.
-;;; @return X The index of the rocket actor (if any).
-;;; @preserve Y
-.EXPORT FuncA_Room_FindRocketActor
-.PROC FuncA_Room_FindRocketActor
-    lda #eActor::ProjRocket  ; param: actor type to find
-    jmp FuncA_Room_FindActorWithType  ; preserves Y, returns C and X
 .ENDPROC
 
 ;;;=========================================================================;;;

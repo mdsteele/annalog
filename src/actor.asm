@@ -21,14 +21,13 @@
 .INCLUDE "actors/breakball.inc"
 .INCLUDE "avatar.inc"
 .INCLUDE "macros.inc"
-.INCLUDE "oam.inc"
 .INCLUDE "ppu.inc"
-.INCLUDE "terrain.inc"
 
 .IMPORT FuncA_Actor_TickBadBeetleHorz
 .IMPORT FuncA_Actor_TickBadBeetleVert
 .IMPORT FuncA_Actor_TickBadBird
 .IMPORT FuncA_Actor_TickBadCrab
+.IMPORT FuncA_Actor_TickBadFirefly
 .IMPORT FuncA_Actor_TickBadFish
 .IMPORT FuncA_Actor_TickBadGrub
 .IMPORT FuncA_Actor_TickBadHotheadHorz
@@ -50,12 +49,11 @@
 .IMPORT FuncA_Actor_TickProjSteamUp
 .IMPORT FuncA_Actor_TickSmokeExplosion
 .IMPORT FuncA_Actor_TickSmokeParticle
-.IMPORT FuncA_Objects_Draw1x1Shape
-.IMPORT FuncA_Objects_Draw2x2Shape
 .IMPORT FuncA_Objects_DrawActorBadBeetleHorz
 .IMPORT FuncA_Objects_DrawActorBadBeetleVert
 .IMPORT FuncA_Objects_DrawActorBadBird
 .IMPORT FuncA_Objects_DrawActorBadCrab
+.IMPORT FuncA_Objects_DrawActorBadFirefly
 .IMPORT FuncA_Objects_DrawActorBadFish
 .IMPORT FuncA_Objects_DrawActorBadGrub
 .IMPORT FuncA_Objects_DrawActorBadHotheadHorz
@@ -81,14 +79,11 @@
 .IMPORT FuncA_Objects_DrawActorProjSteamUp
 .IMPORT FuncA_Objects_DrawActorSmokeExplosion
 .IMPORT FuncA_Objects_DrawActorSmokeParticle
-.IMPORT FuncA_Objects_MoveShapeLeftHalfTile
-.IMPORT FuncA_Objects_MoveShapeUpByA
 .IMPORT FuncA_Room_InitActorBadBird
 .IMPORT FuncA_Room_InitActorBadWasp
 .IMPORT FuncA_Room_InitActorNpcChild
 .IMPORT FuncA_Room_InitActorNpcToddler
 .IMPORT FuncA_Room_InitActorProjBreakball
-.IMPORT Func_HarmAvatar
 .IMPORT Func_InitActorProjBullet
 .IMPORT Func_InitActorProjEmber
 .IMPORT Func_InitActorProjFireball
@@ -101,16 +96,10 @@
 .IMPORT Func_InitActorSmokeExplosion
 .IMPORT Func_InitActorSmokeParticle
 .IMPORT Func_Noop
-.IMPORT Func_PointHitsTerrain
-.IMPORTZP Zp_AvatarFlags_bObj
 .IMPORTZP Zp_AvatarPosX_i16
 .IMPORTZP Zp_AvatarPosY_i16
 .IMPORTZP Zp_PointX_i16
 .IMPORTZP Zp_PointY_i16
-.IMPORTZP Zp_RoomScrollX_u16
-.IMPORTZP Zp_RoomScrollY_u8
-.IMPORTZP Zp_ShapePosX_i16
-.IMPORTZP Zp_ShapePosY_i16
 
 ;;;=========================================================================;;;
 
@@ -176,10 +165,21 @@ Ram_ActorFlags_bObj_arr: .res kMaxActors
 ;;; @preserve Y, T0+
 .EXPORT Func_FindEmptyActorSlot
 .PROC Func_FindEmptyActorSlot
+    lda #eActor::None  ; param: actor type to find
+    .assert * = Func_FindActorWithType, error, "fallthrough"
+.ENDPROC
+
+;;; Finds an actor in the room with the specified type (if any) and returns its
+;;; index, or sets the C flag if there isn't any actor of that type right now.
+;;; @param A The eActor value to find.
+;;; @return C Set if no actor of that type was found.
+;;; @return X The index of the found actor (if any).
+;;; @preserve Y, T0+
+.EXPORT Func_FindActorWithType
+.PROC Func_FindActorWithType
     ldx #kMaxActors - 1
     @loop:
-    lda Ram_ActorType_eActor_arr, x
-    .assert eActor::None = 0, error
+    cmp Ram_ActorType_eActor_arr, x
     beq @success
     dex
     bpl @loop
@@ -287,6 +287,7 @@ Ram_ActorFlags_bObj_arr: .res kMaxActors
     d_byte BadBeetleVert,    6
     d_byte BadBird,          4
     d_byte BadCrab,          6
+    d_byte BadFirefly,       6
     d_byte BadFish,          6
     d_byte BadGrub,          0
     d_byte BadHotheadHorz,   6
@@ -321,6 +322,7 @@ Ram_ActorFlags_bObj_arr: .res kMaxActors
     d_byte BadBeetleVert,    6
     d_byte BadBird,          4
     d_byte BadCrab,          8
+    d_byte BadFirefly,       8
     d_byte BadFish,          4
     d_byte BadGrub,          8
     d_byte BadHotheadHorz,   6
@@ -355,6 +357,7 @@ Ram_ActorFlags_bObj_arr: .res kMaxActors
     d_byte BadBeetleVert,   4
     d_byte BadBird,         7
     d_byte BadCrab,         7
+    d_byte BadFirefly,      6
     d_byte BadFish,         6
     d_byte BadGrub,         7
     d_byte BadHotheadHorz,  6
@@ -458,6 +461,7 @@ _TypeSpecificTick:
     d_entry table, BadBeetleVert,   FuncA_Actor_TickBadBeetleVert
     d_entry table, BadBird,         FuncA_Actor_TickBadBird
     d_entry table, BadCrab,         FuncA_Actor_TickBadCrab
+    d_entry table, BadFirefly,      FuncA_Actor_TickBadFirefly
     d_entry table, BadFish,         FuncA_Actor_TickBadFish
     d_entry table, BadGrub,         FuncA_Actor_TickBadGrub
     d_entry table, BadHotheadHorz,  FuncA_Actor_TickBadHotheadHorz
@@ -494,47 +498,65 @@ _TypeSpecificTick:
 .EXPORT FuncA_Actor_IsCollidingWithAvatar
 .PROC FuncA_Actor_IsCollidingWithAvatar
     ldy Ram_ActorType_eActor_arr, x
+_CheckHorz:
     lda DataA_Actor_BoundingBoxSide_u8_arr, y
     add #kAvatarBoundingBoxLeft  ; param: distance
     .assert kAvatarBoundingBoxLeft = kAvatarBoundingBoxRight, error
     jsr FuncA_Actor_IsAvatarWithinHorzDistance  ; preserves X, Y; returns C
-    bcc _Return
-    ;; Check top side.
-    lda DataA_Actor_BoundingBoxUp_u8_arr, y
-    add #kAvatarBoundingBoxDown
-    sta T0
-    lda Ram_ActorPosY_i16_0_arr, x
-    sub T0
-    sta T0
-    lda Ram_ActorPosY_i16_1_arr, x
-    sbc #0
-    cmp Zp_AvatarPosY_i16 + 1
-    blt @hitTop
-    bne _NoHit
-    lda T0
-    cmp Zp_AvatarPosY_i16 + 0
-    bge _NoHit
-    @hitTop:
-    ;; Check bottom side.
+    bcs @hitHorz
+    rts
+    @hitHorz:
+_CheckVert:
     lda DataA_Actor_BoundingBoxDown_u8_arr, y
     add #kAvatarBoundingBoxUp
-    adc Ram_ActorPosY_i16_0_arr, x
-    sta T0
+    pha  ; distance above avatar
+    lda DataA_Actor_BoundingBoxUp_u8_arr, y
+    add #kAvatarBoundingBoxDown
+    tay  ; param: distance below avatar
+    pla  ; param: distance above avatar
+    .assert * = FuncA_Actor_IsAvatarWithinVertDistances, error, "fallthrough"
+.ENDPROC
+
+;;; Checks if the vertical distance between the centers of the actor and the
+;;; player avatar is within the given up/down distances.
+;;; @param A The distance above the avatar to check for.
+;;; @param Y The distance below the avatar to check for.
+;;; @param X The actor index.
+;;; @return C Set if a collision occurred, cleared otherwise.
+;;; @preserve X, T2+
+.EXPORT FuncA_Actor_IsAvatarWithinVertDistances
+.PROC FuncA_Actor_IsAvatarWithinVertDistances
+    sty T0  ; distance below avatar
+    ;; Check bottom side of actor.
+    add Ram_ActorPosY_i16_0_arr, x
+    sta T1
     lda Ram_ActorPosY_i16_1_arr, x
     adc #0
     cmp Zp_AvatarPosY_i16 + 1
     blt _NoHit
     bne @hitBottom
-    lda T0
+    lda T1
     cmp Zp_AvatarPosY_i16 + 0
     ble _NoHit
     @hitBottom:
+    ;; Check top side of actor.
+    lda Ram_ActorPosY_i16_0_arr, x
+    sub T0  ; distance below avatar
+    sta T1
+    lda Ram_ActorPosY_i16_1_arr, x
+    sbc #0
+    cmp Zp_AvatarPosY_i16 + 1
+    blt @hitTop
+    bne _NoHit
+    lda T1
+    cmp Zp_AvatarPosY_i16 + 0
+    bge _NoHit
+    @hitTop:
 _Hit:
     sec
     rts
 _NoHit:
     clc
-_Return:
     rts
 .ENDPROC
 
@@ -579,141 +601,6 @@ _NoHit:
     rts
 .ENDPROC
 
-;;; Checks if the actor is colliding with the player avatar; if so, harms the
-;;; avatar.
-;;; @param X The actor index.
-;;; @return C Set if a collision occurred, cleared otherwise.
-;;; @preserve X
-.EXPORT FuncA_Actor_HarmAvatarIfCollision
-.PROC FuncA_Actor_HarmAvatarIfCollision
-    ;; If there's no collision, we're done.
-    jsr FuncA_Actor_IsCollidingWithAvatar  ; preserves X, returns C
-    bcc @done
-    ;; Face the player avatar towards the actor (so that the avatar will get
-    ;; knocked back away from the actor, instead of through it).
-    lda Zp_AvatarPosX_i16 + 0
-    cmp Ram_ActorPosX_i16_0_arr, x
-    lda Zp_AvatarPosX_i16 + 1
-    sbc Ram_ActorPosX_i16_1_arr, x
-    bvc @noOverflow  ; N eor V
-    eor #$80
-    @noOverflow:
-    bmi @faceRight
-    @faceLeft:
-    lda Zp_AvatarFlags_bObj
-    ora #bObj::FlipH
-    bne @setFlags  ; unconditional
-    @faceRight:
-    lda Zp_AvatarFlags_bObj
-    and #<~bObj::FlipH
-    @setFlags:
-    sta Zp_AvatarFlags_bObj
-    ;; Harm the avatar.
-    jsr Func_HarmAvatar  ; preserves X
-    sec
-    @done:
-    rts
-.ENDPROC
-
-;;; Sets or clears bObj::FlipH in the actor's flags so as to face the actor
-;;; horizontally towards the player avatar.
-;;; @param X The actor index.
-;;; @preserve X
-.EXPORT FuncA_Actor_FaceTowardsAvatar
-.PROC FuncA_Actor_FaceTowardsAvatar
-    lda Zp_AvatarPosX_i16 + 0
-    cmp Ram_ActorPosX_i16_0_arr, x
-    lda Zp_AvatarPosX_i16 + 1
-    sbc Ram_ActorPosX_i16_1_arr, x
-    bvc @noOverflow  ; N eor V
-    eor #$80
-    @noOverflow:
-    bpl @faceRight
-    @faceLeft:
-    lda Ram_ActorFlags_bObj_arr, x
-    ora #bObj::FlipH
-    bne @setFlags  ; unconditional
-    @faceRight:
-    lda Ram_ActorFlags_bObj_arr, x
-    and #<~bObj::FlipH
-    @setFlags:
-    sta Ram_ActorFlags_bObj_arr, x
-    rts
-.ENDPROC
-
-;;; Returns the room tile column index for the actor position.
-;;; @param X The actor index.
-;;; @return A The room tile column index.
-;;; @preserve X
-.EXPORT FuncA_Actor_GetRoomTileColumn
-.PROC FuncA_Actor_GetRoomTileColumn
-    lda Ram_ActorPosX_i16_1_arr, x
-    sta T0
-    lda Ram_ActorPosX_i16_0_arr, x
-    .assert kTileWidthPx = (1 << 3), error
-    .repeat 3
-    lsr T0
-    ror a
-    .endrepeat
-    rts
-.ENDPROC
-
-;;; Returns the room block row index for the actor position.
-;;; @param X The actor index.
-;;; @return Y The room block row index.
-;;; @preserve X
-.EXPORT FuncA_Actor_GetRoomBlockRow
-.PROC FuncA_Actor_GetRoomBlockRow
-    lda Ram_ActorPosY_i16_1_arr, x
-    sta T0
-    lda Ram_ActorPosY_i16_0_arr, x
-    .assert kBlockHeightPx = (1 << 4), error
-    .repeat 4
-    lsr T0
-    ror a
-    .endrepeat
-    tay
-    rts
-.ENDPROC
-
-;;; Checks if the actor's center position is colliding with solid terrain.
-;;; @param X The actor index.
-;;; @return C Set if a collision occurred, cleared otherwise.
-;;; @preserve X, T0+
-.EXPORT FuncA_Actor_CenterHitsTerrain
-.PROC FuncA_Actor_CenterHitsTerrain
-    jsr Func_SetPointToActorCenter
-    jmp Func_PointHitsTerrain  ; preserves X and T0+, returns C
-.ENDPROC
-
-;;; Negates the actor's X-velocity.
-;;; @param X The actor index.
-;;; @preserve X, Y, T0+
-.EXPORT FuncA_Actor_NegateVelX
-.PROC FuncA_Actor_NegateVelX
-    lda #0
-    sub Ram_ActorVelX_i16_0_arr, x
-    sta Ram_ActorVelX_i16_0_arr, x
-    lda #0
-    sbc Ram_ActorVelX_i16_1_arr, x
-    sta Ram_ActorVelX_i16_1_arr, x
-    rts
-.ENDPROC
-
-;;; Negates the actor's Y-velocity.
-;;; @param X The actor index.
-;;; @preserve X, Y, T0+
-.EXPORT FuncA_Actor_NegateVelY
-.PROC FuncA_Actor_NegateVelY
-    lda #0
-    sub Ram_ActorVelY_i16_0_arr, x
-    sta Ram_ActorVelY_i16_0_arr, x
-    lda #0
-    sbc Ram_ActorVelY_i16_1_arr, x
-    sta Ram_ActorVelY_i16_1_arr, x
-    rts
-.ENDPROC
-
 ;;;=========================================================================;;;
 
 .SEGMENT "PRGA_Room"
@@ -744,6 +631,7 @@ _NoHit:
     d_entry table, BadBeetleVert,   Func_InitActorWithFlags
     d_entry table, BadBird,         FuncA_Room_InitActorBadBird
     d_entry table, BadCrab,         Func_InitActorDefault
+    d_entry table, BadFirefly,      Func_InitActorWithFlags
     d_entry table, BadFish,         Func_InitActorDefault
     d_entry table, BadGrub,         Func_InitActorDefault
     d_entry table, BadHotheadHorz,  Func_InitActorWithFlags
@@ -771,29 +659,6 @@ _NoHit:
     d_entry table, SmokeParticle,   Func_InitActorSmokeParticle
     D_END
 .ENDREPEAT
-.ENDPROC
-
-;;; Finds an actor in the room with the specified type (if any) and returns its
-;;; index, or sets the C flag if there isn't any actor of that type right now.
-;;; @param A The eActor value to find.
-;;; @return C Set if no grenade was found.
-;;; @return X The index of the grenade actor (if any).
-;;; @preserve Y
-.EXPORT FuncA_Room_FindActorWithType
-.PROC FuncA_Room_FindActorWithType
-    sta T0  ; actor type to find
-    ldx #kMaxActors - 1
-    @loop:
-    lda Ram_ActorType_eActor_arr, x
-    cmp T0  ; actor type to find
-    beq @success
-    dex
-    bpl @loop
-    sec  ; set C to indicate failure
-    rts
-    @success:
-    clc  ; clear C to indicate success
-    rts
 .ENDPROC
 
 ;;; Checks if the horizontal and vertical distances between the centers of the
@@ -897,6 +762,7 @@ _NoHit:
     d_entry table, BadBeetleVert,   FuncA_Objects_DrawActorBadBeetleVert
     d_entry table, BadBird,         FuncA_Objects_DrawActorBadBird
     d_entry table, BadCrab,         FuncA_Objects_DrawActorBadCrab
+    d_entry table, BadFirefly,      FuncA_Objects_DrawActorBadFirefly
     d_entry table, BadFish,         FuncA_Objects_DrawActorBadFish
     d_entry table, BadGrub,         FuncA_Objects_DrawActorBadGrub
     d_entry table, BadHotheadHorz,  FuncA_Objects_DrawActorBadHotheadHorz
@@ -924,70 +790,6 @@ _NoHit:
     d_entry table, SmokeParticle,   FuncA_Objects_DrawActorSmokeParticle
     D_END
 .ENDREPEAT
-.ENDPROC
-
-;;; Sets Zp_ShapePosX_i16 and Zp_ShapePosY_i16 to the screen-space position of
-;;; the specified actor.
-;;; @param X The actor index.
-;;; @preserve X, Y, T0+
-.EXPORT FuncA_Objects_SetShapePosToActorCenter
-.PROC FuncA_Objects_SetShapePosToActorCenter
-    ;; Calculate screen-space Y-position.
-    lda Ram_ActorPosY_i16_0_arr, x
-    sub Zp_RoomScrollY_u8
-    sta Zp_ShapePosY_i16 + 0
-    lda Ram_ActorPosY_i16_1_arr, x
-    sbc #0
-    sta Zp_ShapePosY_i16 + 1
-    ;; Calculate screen-space X-position.
-    lda Ram_ActorPosX_i16_0_arr, x
-    sub Zp_RoomScrollX_u16 + 0
-    sta Zp_ShapePosX_i16 + 0
-    lda Ram_ActorPosX_i16_1_arr, x
-    sbc Zp_RoomScrollX_u16 + 1
-    sta Zp_ShapePosX_i16 + 1
-    rts
-.ENDPROC
-
-;;; Draws a 1x1-tile actor, with the tile centered on the actor position.
-;;; @param A The tile ID.
-;;; @param X The actor index.
-;;; @param Y The OBJ palette to use when drawing the actor.
-;;; @preserve X
-.EXPORT FuncA_Objects_Draw1x1Actor
-.PROC FuncA_Objects_Draw1x1Actor
-    pha  ; tile ID
-    jsr FuncA_Objects_SetShapePosToActorCenter  ; preserves X and Y
-    ;; Adjust position.
-    jsr FuncA_Objects_MoveShapeLeftHalfTile  ; preserves X and Y
-    lda #kTileHeightPx / 2
-    jsr FuncA_Objects_MoveShapeUpByA  ; preserves X and Y
-    ;; Draw object.
-    tya
-    ora Ram_ActorFlags_bObj_arr, x
-    tay  ; param: object flags
-    pla  ; param: tile ID
-    jmp FuncA_Objects_Draw1x1Shape  ; preserves X
-.ENDPROC
-
-;;; Allocates and populates OAM slots for the specified actor, using the given
-;;; first tile ID and the three subsequent tile IDs.  The caller can then
-;;; further modify the objects if needed.
-;;; @param A The first tile ID.
-;;; @param X The actor index.
-;;; @param Y The OBJ palette to use when drawing the actor.
-;;; @return C Set if no OAM slots were allocated, cleared otherwise.
-;;; @return Y The OAM byte offset for the first of the four objects.
-;;; @preserve X
-.EXPORT FuncA_Objects_Draw2x2Actor
-.PROC FuncA_Objects_Draw2x2Actor
-    pha  ; first tile ID
-    jsr FuncA_Objects_SetShapePosToActorCenter  ; preserves X and Y
-    tya
-    ora Ram_ActorFlags_bObj_arr, x
-    tay  ; param: object flags
-    pla  ; param: first tile ID
-    jmp FuncA_Objects_Draw2x2Shape  ; preserves X, returns C and Y
 .ENDPROC
 
 ;;;=========================================================================;;;

@@ -51,26 +51,26 @@ kPaletteObjFireball = 1
 ;;; @prereq The actor's pixel position has already been initialized.
 ;;; @param A The angle to fire at, measured in increments of tau/256.
 ;;; @param X The actor index.
-;;; @preserve X
+;;; @preserve X, T2+
 .EXPORT Func_InitActorProjFireball
 .PROC Func_InitActorProjFireball
     pha  ; angle
     ldy #eActor::ProjFireball  ; param: actor type
-    jsr Func_InitActorDefault  ; preserves X
+    jsr Func_InitActorDefault  ; preserves X and T0+
     pla  ; angle
 _InitVelX:
     pha  ; angle
-    jsr Func_Cosine  ; preserves X, returns A
+    jsr Func_Cosine  ; preserves X and T0+, returns A
     ldy #kFireballSpeed  ; param: multiplier
-    jsr Func_SignedMult  ; preserves X, returns YA
+    jsr Func_SignedMult  ; preserves X and T2+, returns YA
     sta Ram_ActorVelX_i16_0_arr, x
     tya
     sta Ram_ActorVelX_i16_1_arr, x
     pla  ; angle
 _InitVelY:
-    jsr Func_Sine  ; preserves X, returns A
+    jsr Func_Sine  ; preserves X and T0+, returns A
     ldy #kFireballSpeed  ; param: multiplier
-    jsr Func_SignedMult  ; preserves X, returns YA
+    jsr Func_SignedMult  ; preserves X and T2+, returns YA
     sta Ram_ActorVelY_i16_0_arr, x
     tya
     sta Ram_ActorVelY_i16_1_arr, x

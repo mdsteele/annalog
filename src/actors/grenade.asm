@@ -25,7 +25,7 @@
 .IMPORT FuncA_Actor_CenterHitsTerrain
 .IMPORT FuncA_Actor_HarmAvatarIfCollision
 .IMPORT FuncA_Objects_Draw1x1Actor
-.IMPORT FuncA_Room_FindActorWithType
+.IMPORT Func_FindActorWithType
 .IMPORT Func_InitActorDefault
 .IMPORT Func_InitActorSmokeExplosion
 .IMPORT Func_PlaySfxExplodeSmall
@@ -111,11 +111,11 @@ _InitVelY_i16_1_arr:
 ;;; the C flag if there isn't any grenade actor right now.
 ;;; @return C Set if no grenade was found.
 ;;; @return X The index of the grenade actor (if any).
-;;; @preserve Y
+;;; @preserve Y, T0+
 .EXPORT FuncA_Room_FindGrenadeActor
 .PROC FuncA_Room_FindGrenadeActor
     lda #eActor::ProjGrenade  ; param: actor type to find
-    jmp FuncA_Room_FindActorWithType  ; preserves Y, returns C and X
+    jmp Func_FindActorWithType  ; preserves Y and T0+, returns C and X
 .ENDPROC
 
 ;;;=========================================================================;;;

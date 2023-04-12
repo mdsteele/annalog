@@ -50,11 +50,11 @@
 .IMPORT FuncA_Objects_DrawLauncherMachine
 .IMPORT FuncA_Objects_DrawLiftMachine
 .IMPORT FuncA_Objects_DrawRocksPlatformHorz
-.IMPORT FuncA_Room_FindRocketActor
 .IMPORT FuncA_Room_SetPointToAvatarCenter
 .IMPORT FuncC_Prison_DrawGatePlatform
 .IMPORT FuncC_Prison_OpenGateAndFlipLever
 .IMPORT FuncC_Prison_TickGatePlatform
+.IMPORT Func_FindActorWithType
 .IMPORT Func_FindEmptyActorSlot
 .IMPORT Func_InitActorProjRocket
 .IMPORT Func_InitActorSmokeExplosion
@@ -456,7 +456,8 @@ _InitRocksAndCrate:
 .PROC FuncC_Prison_Cell_TickRoom
 _RocketImpact:
     ;; Find the rocket (if any).  If there isn't one, we're done.
-    jsr FuncA_Room_FindRocketActor  ; returns C and X
+    lda #eActor::ProjRocket  ; param: actor type to find
+    jsr Func_FindActorWithType  ; returns C and X
     bcs @done
     ;; Check if the rocket has hit the breakable floor; if not, we're done.
     ;; (Note that no rocket can exist in this room if the breakable floor is

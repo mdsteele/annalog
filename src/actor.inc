@@ -29,6 +29,7 @@ kMaxActors = 8
     BadBeetleVert    ; crawls around a platform
     BadBird          ; flies horizontally when it can hit the player avatar
     BadCrab          ; moves left/right randomly on a floor
+    BadFirefly       ; flies up and down, and shoots horizontally
     BadFish          ; swims back and forth in water
     BadGrub          ; crawls left/right on a floor
     BadHotheadHorz   ; crawls around a platform, and can drop fire

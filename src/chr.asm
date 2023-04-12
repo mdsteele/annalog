@@ -24,6 +24,7 @@
 .INCLUDE "actors/crawler.inc"
 .INCLUDE "actors/ember.inc"
 .INCLUDE "actors/fireball.inc"
+.INCLUDE "actors/firefly.inc"
 .INCLUDE "actors/fish.inc"
 .INCLUDE "actors/flamewave.inc"
 .INCLUDE "actors/grenade.inc"
@@ -948,7 +949,12 @@
     .incbin "out/data/tiles/wasp.chr"
     .assert * - :- = (kTileIdObjUpgradeOpSyncFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/upgrade_opsync.chr"
-    .res $16 * kSizeofChr
+    .assert * - :- = (kTileIdObjFireballFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/fireball.chr"
+    .res $04 * kSizeofChr
+    .assert * - :- = (kTileIdObjFireflyFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/firefly.chr"
+    .res $08 * kSizeofChr
     .assert * - :- = (kTileIdCraneFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/crane.chr"
     .res $38 * kSizeofChr

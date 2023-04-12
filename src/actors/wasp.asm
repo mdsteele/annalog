@@ -17,6 +17,7 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
+.INCLUDE "../actor.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
 .INCLUDE "../terrain.inc"
@@ -59,6 +60,7 @@ kPaletteObjWasp = 0
     blt @nonneg
     ora #%11110000
     @nonneg:
+    ldy #eActor::BadWasp  ; param: actor type
     jsr Func_InitActorWithState1  ; preserves X
     pla  ; bBadWasp param
     and #bBadWasp::ThetaMask
