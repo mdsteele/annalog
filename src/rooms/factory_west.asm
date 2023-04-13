@@ -30,8 +30,8 @@
 .INCLUDE "../room.inc"
 
 .IMPORT DataA_Room_Factory_sTileset
+.IMPORT FuncA_Machine_CraneMoveTowardGoal
 .IMPORT FuncA_Machine_GenericTryMoveZ
-.IMPORT FuncA_Machine_HoistMoveTowardGoal
 .IMPORT FuncA_Machine_ReachedGoal
 .IMPORT FuncA_Machine_StartWaiting
 .IMPORT FuncA_Objects_DrawCraneMachine
@@ -53,7 +53,7 @@ kCranePlatformIndex = 0
 kPulleyPlatformIndex = 1
 
 ;;; The initial and maximum permitted values for the crane's Z-goal.
-kCraneInitGoalZ = 0
+kCraneInitGoalZ = 1
 kCraneMaxGoalZ = 9
 
 ;;; The minimum and initial Y-positions for the top of the crane platform.
@@ -104,14 +104,14 @@ _Machines_sMachine_arr:
     d_byte ScrollGoalY_u8, $a0
     d_byte RegNames_u8_arr4, "D", 0, 0, "Z"
     d_byte MainPlatform_u8, kCranePlatformIndex
-    d_addr Init_func_ptr, FuncC_Factory_WestCrane_Init
+    d_addr Init_func_ptr, FuncC_Factory_WestCrane_InitReset
     d_addr ReadReg_func_ptr, FuncC_Factory_WestCrane_ReadReg
     d_addr WriteReg_func_ptr, Func_Noop
     d_addr TryMove_func_ptr, FuncC_Factory_WestCrane_TryMove
     d_addr TryAct_func_ptr, FuncC_Factory_WestCrane_TryAct
     d_addr Tick_func_ptr, FuncC_Factory_WestCrane_Tick
     d_addr Draw_func_ptr, FuncA_Objects_FactoryWestCrypt_Draw
-    d_addr Reset_func_ptr, FuncC_Factory_WestCrane_Reset
+    d_addr Reset_func_ptr, FuncC_Factory_WestCrane_InitReset
     D_END
     .assert * - :- <= kMaxMachines * .sizeof(sMachine), error
 _Platforms_sPlatform_arr:
@@ -159,14 +159,10 @@ _Passages_sPassage_arr:
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
 .ENDPROC
 
-.PROC FuncC_Factory_WestCrane_Reset
-    .assert * = FuncC_Factory_WestCrane_Init, error, "fallthrough"
-.ENDPROC
-
-.PROC FuncC_Factory_WestCrane_Init
+.PROC FuncC_Factory_WestCrane_InitReset
     lda #0
     sta Ram_MachineGoalHorz_u8_arr + kCraneMachineIndex  ; is closed
-    .assert kCraneInitGoalZ = 0, error
+    lda #kCraneInitGoalZ
     sta Ram_MachineGoalVert_u8_arr + kCraneMachineIndex
     rts
 .ENDPROC
@@ -198,9 +194,8 @@ _ReadZ:
 .ENDPROC
 
 .PROC FuncC_Factory_WestCrane_Tick
-    ldx #kCranePlatformIndex  ; param: platform index
     ldya #kCraneMinPlatformTop  ; param: min platform top
-    jsr FuncA_Machine_HoistMoveTowardGoal  ; returns Z
+    jsr FuncA_Machine_CraneMoveTowardGoal  ; returns Z
     jeq FuncA_Machine_ReachedGoal
     rts
 .ENDPROC

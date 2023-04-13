@@ -17,6 +17,7 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
+.INCLUDE "../machine.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
 .INCLUDE "../ppu.inc"
@@ -34,11 +35,16 @@
 .IMPORT FuncA_Objects_MoveShapeUpOneTile
 .IMPORT FuncA_Objects_SetShapePosToMachineTopLeft
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
+.IMPORT Func_MovePlatformTopTowardPointY
 .IMPORT Ram_MachineGoalHorz_u8_arr
+.IMPORT Ram_MachineGoalVert_u8_arr
+.IMPORT Ram_MachineStatus_eMachine_arr
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORT Ram_PlatformBottom_i16_0_arr
 .IMPORT Ram_PlatformBottom_i16_1_arr
+.IMPORTZP Zp_Current_sMachine_ptr
 .IMPORTZP Zp_MachineIndex_u8
+.IMPORTZP Zp_PointY_i16
 .IMPORTZP Zp_RoomScrollY_u8
 .IMPORTZP Zp_ShapePosY_i16
 
@@ -58,6 +64,47 @@ kTileIdObjTrolleyWheel    = kTileIdObjCraneWheel
 ;;; OBJ palette numbers used for various parts of crane/trolley machines.
 kPaletteObjPulley = 0
 kPaletteObjRope   = 0
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Machine"
+
+;;; Moves the current crane machine's platform towards its goal position.
+;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
+;;; @param YA The minimum platform top position for the crane machine.
+;;; @return A The pixel delta that the platform actually moved by (signed).
+;;; @return N Set if the platform moved up, cleared otherwise.
+;;; @return Z Cleared if the platform moved, set if it didn't.
+.EXPORT FuncA_Machine_CraneMoveTowardGoal
+.PROC FuncA_Machine_CraneMoveTowardGoal
+    sta T0  ; min platform top (lo)
+    sty T1  ; min platform top (hi)
+    ldy #sMachine::MainPlatform_u8
+    lda (Zp_Current_sMachine_ptr), y
+    tax  ; param: platform index
+    ;; Calculate the desired Y-position for the top edge of the load, in
+    ;; room-space pixels, storing it in Zp_PointY_i16.
+    ldy Zp_MachineIndex_u8
+    lda Ram_MachineGoalVert_u8_arr, y
+    mul #kBlockHeightPx
+    adc T0  ; min platform top (lo) (carry is alredy clear from mul)
+    sta Zp_PointY_i16 + 0
+    lda #0
+    adc T1  ; min platform top (hi)
+    sta Zp_PointY_i16 + 1
+    ;; Determine the vertical speed of the crane (faster if resetting).
+    lda Ram_MachineStatus_eMachine_arr, y
+    cmp #eMachine::Resetting
+    beq @fast
+    @slow:
+    lda #1
+    bne @move  ; unconditional
+     @fast:
+    lda #2
+    @move:
+    ;; Move the load platform vertically, as necessary.
+    jmp Func_MovePlatformTopTowardPointY  ; returns Z, N, and A
+.ENDPROC
 
 ;;;=========================================================================;;;
 

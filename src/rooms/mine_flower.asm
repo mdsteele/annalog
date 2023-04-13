@@ -100,12 +100,6 @@ kCageEastMinTop = $0070
 kCageEastInitTop = kCageEastMinTop + kBlockHeightPx * kHoistEastInitGoalZ
 .LINECONT +
 
-;;; OBJ tile ID for the rope between cage platforms.
-kTileIdObjRopeVert = kTileIdObjHoistFirst + 5
-
-;;; The OBJ palette number to use for drawing hoist ropes.
-kPaletteObjRope = 0
-
 ;;;=========================================================================;;;
 
 .SEGMENT "PRGC_Mine"
@@ -313,8 +307,8 @@ _Passages_sPassage_arr:
 .PROC FuncC_Mine_FlowerHoistWest_Tick
     ldx #kCageWestUpperPlatformIndex  ; param: platform index
     ldya #kCageWestMinTop  ; param: min platform top
-    jsr FuncA_Machine_HoistMoveTowardGoal  ; returns Z
-    jeq FuncA_Machine_ReachedGoal
+    jsr FuncA_Machine_HoistMoveTowardGoal  ; returns C and A
+    jcs FuncA_Machine_ReachedGoal
     ldx #kCageWestLowerPlatformIndex  ; param: platform index
     jmp Func_MovePlatformVert
 .ENDPROC
@@ -340,8 +334,8 @@ _Passages_sPassage_arr:
 .PROC FuncC_Mine_FlowerHoistEast_Tick
     ldx #kCageEastUpperPlatformIndex  ; param: platform index
     ldya #kCageEastMinTop  ; param: min platform top
-    jsr FuncA_Machine_HoistMoveTowardGoal  ; returns Z and A
-    jeq FuncA_Machine_ReachedGoal
+    jsr FuncA_Machine_HoistMoveTowardGoal  ; returns C and A
+    jcs FuncA_Machine_ReachedGoal
     ldx #kCageEastLowerPlatformIndex  ; param: platform index
     jmp Func_MovePlatformVert
 .ENDPROC
@@ -388,8 +382,8 @@ _Passages_sPassage_arr:
     jsr FuncA_Objects_MoveShapeUpOneTile
     jsr _DrawRope
 _DrawRope:
-    ldy #kPaletteObjRope  ; param: object flags
-    lda #kTileIdObjRopeVert  ; param: tile ID
+    ldy #kPaletteObjHoistRope  ; param: object flags
+    lda #kTileIdObjHoistRopeVert  ; param: tile ID
     jsr FuncA_Objects_Draw1x1Shape
     jmp FuncA_Objects_MoveShapeUpOneTile
 .ENDPROC

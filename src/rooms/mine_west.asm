@@ -33,8 +33,8 @@
 .INCLUDE "mine_west.inc"
 
 .IMPORT DataA_Room_Mine_sTileset
+.IMPORT FuncA_Machine_CraneMoveTowardGoal
 .IMPORT FuncA_Machine_GenericTryMoveZ
-.IMPORT FuncA_Machine_HoistMoveTowardGoal
 .IMPORT FuncA_Machine_ReachedGoal
 .IMPORT FuncA_Machine_StartWaiting
 .IMPORT FuncA_Objects_Draw1x1Shape
@@ -169,7 +169,7 @@ _Machines_sMachine_arr:
     d_addr TryMove_func_ptr, FuncC_Mine_WestCrane_TryMove
     d_addr TryAct_func_ptr, FuncC_Mine_WestCrane_TryAct
     d_addr Tick_func_ptr, FuncC_Mine_WestCrane_Tick
-    d_addr Draw_func_ptr, FuncA_Objects_MineWestCrypt_Draw
+    d_addr Draw_func_ptr, FuncA_Objects_MineWestCrane_Draw
     d_addr Reset_func_ptr, FuncC_Mine_WestCrane_InitReset
     D_END
     .assert * - :- <= kMaxMachines * .sizeof(sMachine), error
@@ -302,9 +302,8 @@ _Finish:
 .PROC FuncC_Mine_WestCrane_Tick
     jsr FuncC_Mine_West_TickCage
     ;; Move the crane itself.
-    ldx #kCranePlatformIndex  ; param: platform index
     ldya #kCraneMinPlatformTop  ; param: min platform top
-    jsr FuncA_Machine_HoistMoveTowardGoal  ; returns Z and A
+    jsr FuncA_Machine_CraneMoveTowardGoal  ; returns Z and A
     jeq FuncA_Machine_ReachedGoal
     ;; If the crane moved, and it's grasping the cage, then move the cage along
     ;; with it.
@@ -400,8 +399,8 @@ _DrawCageSide:
     rts
 .ENDPROC
 
-;;; Draws the BossCryptWinch machine.
-.PROC FuncA_Objects_MineWestCrypt_Draw
+;;; Draws the MineWestCrane machine.
+.PROC FuncA_Objects_MineWestCrane_Draw
     jsr FuncA_Objects_DrawCraneMachine
     ldx #kPulleyPlatformIndex  ; param: platform index
     jmp FuncA_Objects_DrawCranePulleyAndRope

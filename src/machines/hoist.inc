@@ -23,5 +23,9 @@ kHoistMachineHeightPx = $10
 
 ;;; Tile IDs for drawing hoist machines.
 kTileIdObjHoistFirst = $84
+kTileIdObjHoistRopeVert = kTileIdObjHoistFirst + 5
+
+;;; The OBJ palette number to use for drawing hoist ropes.
+kPaletteObjHoistRope = 0
 
 ;;;=========================================================================;;;

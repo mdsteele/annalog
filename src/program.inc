@@ -138,6 +138,8 @@ kFirstHorzDir = eDir::Left
     MermaidElevatorJet
     MineCollapseCrane
     MineCollapseTrolley
+    MineEastHoist
+    MineEastLift
     MineFlowerHoistEast
     MineFlowerHoistWest
     MinePitHoistEast

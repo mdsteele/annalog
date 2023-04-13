@@ -277,8 +277,8 @@ _Passages_sPassage_arr:
 .PROC FuncC_Mine_PitHoistWest_Tick
     ldx #kGirderWestPlatformIndex  ; param: platform index
     ldya #kGirderWestMinPlatformTop  ; param: min platform top
-    jsr FuncA_Machine_HoistMoveTowardGoal  ; returns Z
-    jeq FuncA_Machine_ReachedGoal
+    jsr FuncA_Machine_HoistMoveTowardGoal  ; returns C
+    jcs FuncA_Machine_ReachedGoal
     rts
 .ENDPROC
 
@@ -307,8 +307,8 @@ _Passages_sPassage_arr:
 .PROC FuncC_Mine_PitHoistEast_Tick
     ldx #kGirderEastPlatformIndex  ; param: platform index
     ldya #kGirderEastMinPlatformTop  ; param: min platform top
-    jsr FuncA_Machine_HoistMoveTowardGoal  ; returns Z
-    jeq FuncA_Machine_ReachedGoal
+    jsr FuncA_Machine_HoistMoveTowardGoal  ; returns C
+    jcs FuncA_Machine_ReachedGoal
     rts
 .ENDPROC
 

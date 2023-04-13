@@ -45,7 +45,7 @@
 ;;;=========================================================================;;;
 
 ;;; How many frames a firefly baddie actor must wait between shots.
-kFireflyCooldownFrames = 25
+kFireflyCooldownFrames = 20
 
 ;;; How close, in pixels, the player avatar must be vertically to the firefly
 ;;; in order for the firefly to shoot.

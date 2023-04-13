@@ -36,10 +36,13 @@
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
 .IMPORT Func_MovePlatformTopTowardPointY
 .IMPORT Ram_MachineGoalVert_u8_arr
+.IMPORT Ram_MachineSlowdown_u8_arr
 .IMPORT Ram_MachineStatus_eMachine_arr
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORT Ram_PlatformBottom_i16_0_arr
 .IMPORT Ram_PlatformBottom_i16_1_arr
+.IMPORT Ram_PlatformTop_i16_0_arr
+.IMPORT Ram_PlatformTop_i16_1_arr
 .IMPORTZP Zp_Current_sMachine_ptr
 .IMPORTZP Zp_MachineIndex_u8
 .IMPORTZP Zp_PointY_i16
@@ -48,6 +51,10 @@
 
 ;;;=========================================================================;;;
 
+;;; How many frames it takes a hoist machine to move up/down one pixel.
+kHoistMoveUpSlowdown   = 3
+kHoistMoveDownSlowdown = 2
+
 ;;; How many pixels above the bottom of a pulley platform the rope must extend
 ;;; in order to appear to feed into the pulley.
 kPulleyRopeOverlapPx = 4
@@ -55,10 +62,6 @@ kPulleyRopeOverlapPx = 4
 ;;; OBJ tile IDs used for drawing various parts of hoist machines.
 kTileIdObjPulley   = kTileIdObjHoistFirst + 1
 kTileIdObjRopeDiag = kTileIdObjHoistFirst + 4
-kTileIdObjRopeVert = kTileIdObjHoistFirst + 5
-
-;;; The OBJ palette number to use for drawing hoist ropes.
-kPaletteObjRope = 0
 
 ;;;=========================================================================;;;
 
@@ -69,8 +72,7 @@ kPaletteObjRope = 0
 ;;; @param X The platform index for the hoist machine's load.
 ;;; @param YA The minimum platform top position for the hoist machine's load.
 ;;; @return A The pixel delta that the platform actually moved by (signed).
-;;; @return N Set if the platform moved up, cleared otherwise.
-;;; @return Z Cleared if the platform moved, set if it didn't.
+;;; @return C Set if the goal was reached.
 .EXPORT FuncA_Machine_HoistMoveTowardGoal
 .PROC FuncA_Machine_HoistMoveTowardGoal
     sta T0  ; min platform top (lo)
@@ -85,18 +87,40 @@ kPaletteObjRope = 0
     lda #0
     adc T1  ; min platform top (hi)
     sta Zp_PointY_i16 + 1
+_DetermineSpeed:
     ;; Determine the vertical speed of the hoist (faster if resetting).
     lda Ram_MachineStatus_eMachine_arr, y
     cmp #eMachine::Resetting
     beq @fast
+    lda Ram_MachineSlowdown_u8_arr, y
+    bne _DoNotMove
+    lda Zp_PointY_i16 + 0
+    cmp Ram_PlatformTop_i16_0_arr, x
+    lda Zp_PointY_i16 + 1
+    sbc Ram_PlatformTop_i16_1_arr, x
+    bpl @movingDown
+    @movingUp:
+    lda #kHoistMoveUpSlowdown
+    bne @slow  ; unconditional
+    @movingDown:
+    lda #kHoistMoveDownSlowdown
     @slow:
+    sta Ram_MachineSlowdown_u8_arr, y
     lda #1
-    bne @move  ; unconditional
+    bne _MoveTowardGoal  ; unconditional
     @fast:
     lda #2
-    @move:
+_MoveTowardGoal:
     ;; Move the load platform vertically, as necessary.
-    jmp Func_MovePlatformTopTowardPointY  ; returns Z, N, and A
+    jsr Func_MovePlatformTopTowardPointY  ; returns Z, N, and A
+    sec
+    bne _NotAtGoal
+    rts
+_DoNotMove:
+    lda #0
+_NotAtGoal:
+    clc
+    rts
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -167,12 +191,12 @@ _RopeTriangle:
     jsr FuncA_Objects_MoveShapeUpOneTile
     lda #1
     jsr FuncA_Objects_MoveShapeLeftByA
-    ldy #kPaletteObjRope | bObj::FlipH  ; param: object flags
+    ldy #kPaletteObjHoistRope | bObj::FlipH  ; param: object flags
     lda #kTileIdObjRopeDiag  ; param: tile ID
     jsr FuncA_Objects_Draw1x1Shape
     lda #kTileWidthPx - 1
     jsr FuncA_Objects_MoveShapeLeftByA
-    ldy #kPaletteObjRope  ; param: object flags
+    ldy #kPaletteObjHoistRope  ; param: object flags
     lda #kTileIdObjRopeDiag  ; param: tile ID
     jmp FuncA_Objects_Draw1x1Shape
 .ENDPROC
@@ -217,8 +241,8 @@ _RopeTriangle:
     ldx T0  ; param: chain length in tiles
 _Loop:
     jsr FuncA_Objects_MoveShapeUpOneTile  ; preserves X
-    ldy #kPaletteObjRope | bObj::Pri  ; param: object flags
-    lda #kTileIdObjRopeVert  ; param: tile ID
+    ldy #kPaletteObjHoistRope | bObj::Pri  ; param: object flags
+    lda #kTileIdObjHoistRopeVert  ; param: tile ID
     jsr FuncA_Objects_Draw1x1Shape  ; preserves X
     dex
     bne _Loop
