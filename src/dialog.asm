@@ -321,8 +321,7 @@ _UpdateScrolling:
 ;;; portrait.
 .PROC DataA_Dialog_PortraitAttrTransfer_arr
     .byte kPpuCtrlFlagsHorz       ; control flags
-    .byte >Ppu_PortraitAttrStart  ; destination address (hi)
-    .byte <Ppu_PortraitAttrStart  ; destination address (lo)
+    .dbyt Ppu_PortraitAttrStart   ; destination address
     .byte @dataEnd - @dataStart   ; transfer length
     @dataStart:
     .byte $44, $11
@@ -333,8 +332,7 @@ _UpdateScrolling:
 ;;; DataA_Dialog_PortraitAttrTransfer_arr above.
 .PROC DataA_Dialog_UndoPortraitAttrTransfer_arr
     .byte kPpuCtrlFlagsHorz       ; control flags
-    .byte >Ppu_PortraitAttrStart  ; destination address (hi)
-    .byte <Ppu_PortraitAttrStart  ; destination address (lo)
+    .dbyt Ppu_PortraitAttrStart   ; destination address
     .byte @dataEnd - @dataStart   ; transfer length
     @dataStart:
     .byte $00, $00
@@ -345,8 +343,7 @@ _UpdateScrolling:
 ;;; dialog question.
 .PROC DataA_Dialog_YesNoTransfer_arr
     .byte kPpuCtrlFlagsHorz      ; control flags
-    .byte >Ppu_DialogYesNoStart  ; destination address (hi)
-    .byte <Ppu_DialogYesNoStart  ; destination address (lo)
+    .dbyt Ppu_DialogYesNoStart   ; destination address
     .byte @dataEnd - @dataStart  ; transfer length
     @dataStart:
     .byte "YES   NO"

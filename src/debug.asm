@@ -146,8 +146,7 @@ _ContinueDebugging:
 ;;; diagram.
 .PROC DataA_Console_DebugAttrTransfer_arr
     .byte kPpuCtrlFlagsHorz      ; control flags
-    .byte >Ppu_DebugAttrStart    ; destination address (hi)
-    .byte <Ppu_DebugAttrStart    ; destination address (lo)
+    .dbyt Ppu_DebugAttrStart     ; destination address
     .byte @dataEnd - @dataStart  ; transfer length
     @dataStart:
     .byte $44, $11
@@ -158,8 +157,7 @@ _ContinueDebugging:
 ;;; DataA_Console_DebugAttrTransfer_arr above.
 .PROC DataA_Console_UndoDebugAttrTransfer_arr
     .byte kPpuCtrlFlagsHorz      ; control flags
-    .byte >Ppu_DebugAttrStart    ; destination address (hi)
-    .byte <Ppu_DebugAttrStart    ; destination address (lo)
+    .dbyt Ppu_DebugAttrStart     ; destination address
     .byte @dataEnd - @dataStart  ; transfer length
     @dataStart:
     .byte $00, $00

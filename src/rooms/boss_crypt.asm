@@ -586,32 +586,27 @@ _Inner:
     .assert kBossHeightTiles = 4, error
     ;; Row 0:
     .byte kPpuCtrlFlagsHorz
-    .byte >Ppu_BossRow0Start  ; transfer destination (hi)
-    .byte <Ppu_BossRow0Start  ; transfer destination (lo)
+    .dbyt Ppu_BossRow0Start  ; transfer destination
     .byte 6
     .byte $ec, $ed, $ee, $ef, $f0, $f1
     ;; Row 1:
     .byte kPpuCtrlFlagsHorz
-    .byte >Ppu_BossRow1Start  ; transfer destination (hi)
-    .byte <Ppu_BossRow1Start  ; transfer destination (lo)
+    .dbyt Ppu_BossRow1Start  ; transfer destination
     .byte 6
     .byte $f2, $f3, $a4, $a6, $f4, $f5
     ;; Row 2:
     .byte kPpuCtrlFlagsHorz
-    .byte >Ppu_BossRow2Start  ; transfer destination (hi)
-    .byte <Ppu_BossRow2Start  ; transfer destination (lo)
+    .dbyt Ppu_BossRow2Start  ; transfer destination
     .byte 6
     .byte $fc, $fd, $a5, $a7, $fe, $ff
     ;; Row 3:
     .byte kPpuCtrlFlagsHorz
-    .byte >Ppu_BossRow3Start  ; transfer destination (hi)
-    .byte <Ppu_BossRow3Start  ; transfer destination (lo)
+    .dbyt Ppu_BossRow3Start  ; transfer destination
     .byte 6
     .byte $f6, $f7, $f8, $f9, $fa, $fb
     ;; Nametable attributes to color eyeball red:
     .byte kPpuCtrlFlagsHorz
-    .byte >Ppu_BossEyeAttrs  ; transfer destination (hi)
-    .byte <Ppu_BossEyeAttrs  ; transfer destination (lo)
+    .dbyt Ppu_BossEyeAttrs  ; transfer destination
     .byte 1
     .byte $04
 .ENDPROC

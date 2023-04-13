@@ -149,12 +149,12 @@ _WriteTransferEntryHeader:
     ;; and T1 (hi).
     .assert kMenuStartWindowRow = 1, error
     inx
-    txa  ; window row
+    txa  ; param: window row
     jsr Func_Window_GetRowPpuAddr  ; returns XY
-    tya
+    tya     ; window row PPU addr (lo)
     add #kMenuStartTileColumn
     sta T0  ; transfer destination (lo)
-    txa
+    txa     ; window row PPU addr (hi)
     adc #0
     sta T1  ; transfer destination (hi)
     ;; Update Zp_PpuTransferLen_u8.

@@ -88,8 +88,6 @@ Ram_PpuTransfer_arr: .res $80
 ;;; NMI interrupt handler, which is called at the start of VBlank.
 .EXPORT Int_Nmi
 .PROC Int_Nmi
-    ;; Save registers.  (Note that the interrupt automatically saves processor
-    ;; flags, so we don't need a php instruction here.)
     pha
     txa
     pha
@@ -99,14 +97,13 @@ Ram_PpuTransfer_arr: .res $80
     bit Zp_NmiReady_bool
     bpl _DoneUpdatingPpu
 _TransferOamData:
-    lda #0
-    sta Hw_OamAddr_wo
+    ldx #0
+    stx Hw_OamAddr_wo
     .assert <Ram_Oam_sObj_arr64 = 0, error
     lda #>Ram_Oam_sObj_arr64
     sta Hw_OamDma_wo
 _TransferPpuData:
-    bit Hw_PpuStatus_ro  ; reset the Hw_PpuAddr_w2 write-twice latch
-    ldx #0
+    ;; At this point, X is still zero.
     @entryLoop:
     lda Ram_PpuTransfer_arr, x  ; control byte
     beq @done
@@ -144,30 +141,28 @@ _UpdatePpuRegisters:
     chr0c_bank Zp_Chr0cBank_u8
 _TransferIrqStruct:
     .repeat .sizeof(sIrq), index
-    lda <(Zp_Buffered_sIrq + index)
-    sta <(Zp_Active_sIrq + index)
+    lda Zp_Buffered_sIrq + index
+    sta Zp_Active_sIrq + index
     .endrepeat
 _DoneUpdatingPpu:
     ;; Set up HBlank IRQs for this frame.
-    lda <(Zp_Active_sIrq + sIrq::Latch_u8)
+    lda Zp_Active_sIrq + sIrq::Latch_u8
     sta Hw_Mmc3IrqLatch_wo
     sta Hw_Mmc3IrqReload_wo
-    ldax <(Zp_Active_sIrq + sIrq::FirstIrq_int_ptr)
+    ldax Zp_Active_sIrq + sIrq::FirstIrq_int_ptr
     stax Zp_NextIrq_int_ptr
     ;; Everything up until this point *must* finish before VBlank ends, while
     ;; everything after this point is safe to extend past the VBlank period.
-    ;; Call audio driver.
+_UpdateAudio:
     bit Zp_NmiReady_bool
     bpl @doneAudioSync
     jsr Func_AudioSync
     @doneAudioSync:
     jsr Func_AudioUpdate
+_Finish:
     ;; Indicate that we are done updating the PPU and APU.
     lda #0
     sta Zp_NmiReady_bool
-    ;; Restore registers and return.  (Note that the rti instruction
-    ;; automatically restores processor flags, so we don't need a plp
-    ;; instruction here.)
     pla
     tay
     pla
