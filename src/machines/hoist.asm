@@ -26,11 +26,11 @@
 .INCLUDE "shared.inc"
 
 .IMPORT FuncA_Objects_Draw1x1Shape
-.IMPORT FuncA_Objects_Draw2x2Shape
 .IMPORT FuncA_Objects_DrawGirderPlatform
 .IMPORT FuncA_Objects_GetMachineLightTileId
-.IMPORT FuncA_Objects_MoveShapeDownAndRightOneTile
+.IMPORT FuncA_Objects_MoveShapeDownOneTile
 .IMPORT FuncA_Objects_MoveShapeLeftByA
+.IMPORT FuncA_Objects_MoveShapeRightOneTile
 .IMPORT FuncA_Objects_MoveShapeUpOneTile
 .IMPORT FuncA_Objects_SetShapePosToMachineTopLeft
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
@@ -38,7 +38,6 @@
 .IMPORT Ram_MachineGoalVert_u8_arr
 .IMPORT Ram_MachineSlowdown_u8_arr
 .IMPORT Ram_MachineStatus_eMachine_arr
-.IMPORT Ram_Oam_sObj_arr64
 .IMPORT Ram_PlatformBottom_i16_0_arr
 .IMPORT Ram_PlatformBottom_i16_1_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
@@ -60,8 +59,9 @@ kHoistMoveDownSlowdown = 2
 kPulleyRopeOverlapPx = 4
 
 ;;; OBJ tile IDs used for drawing various parts of hoist machines.
-kTileIdObjPulley   = kTileIdObjHoistFirst + 1
-kTileIdObjRopeDiag = kTileIdObjHoistFirst + 4
+kTileIdObjHoistPulley   = kTileIdObjHoistFirst + 0
+kTileIdObjHoistSpindle  = kTileIdObjHoistFirst + 1
+kTileIdObjHoistRopeDiag = kTileIdObjHoistFirst + 2
 
 ;;;=========================================================================;;;
 
@@ -132,37 +132,37 @@ _NotAtGoal:
 ;;; @param A The low byte of the Y-position of the hoist load platform.
 .EXPORT FuncA_Objects_DrawHoistMachine
 .PROC FuncA_Objects_DrawHoistMachine
+_Spindle:
     pha  ; rope position
     jsr FuncA_Objects_SetShapePosToMachineTopLeft
-    jsr FuncA_Objects_MoveShapeDownAndRightOneTile
-    pla  ; rope position
-    tax  ; rope position
     ldy #sMachine::Flags_bMachine
     lda (Zp_Current_sMachine_ptr), y
     and #bMachine::FlipH
     .assert bMachine::FlipH = bObj::FlipH, error
-    pha  ; object flags
-    tay  ; param: object flags
-    lda #kTileIdObjHoistFirst
-    jsr FuncA_Objects_Draw2x2Shape  ; preserves X, returns C and Y
-    pla  ; object flags
-    bcs @done
-    ;; Set machine light flags:
-    ora #bObj::FlipV | kPaletteObjMachineLight
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Flags_bObj, y
-    ;; Set spindle flags:
-    txa  ; rope position
+    sta T2  ; machine FlipH (0 or bObj::FlipH)
+    bne @noAdjust
+    jsr FuncA_Objects_MoveShapeRightOneTile  ; preserves T0+
+    @noAdjust:
+    pla  ; rope position
     and #$04
     beq @noTurnSpindle
-    lda Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Flags_bObj, y
-    eor #bObj::FlipH
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Flags_bObj, y
+    lda #bObj::FlipH
     @noTurnSpindle:
-    ;; Set machine light tile:
+    tay  ; param: object flags
+    lda #kTileIdObjHoistSpindle  ; param: tile ID
+    jsr FuncA_Objects_Draw1x1Shape  ; preserves T2+
+_MachineLight:
+    jsr FuncA_Objects_SetShapePosToMachineTopLeft  ; preserves T0+
+    jsr FuncA_Objects_MoveShapeDownOneTile  ; preserves T0+
+    lda T2  ; machine FlipH (0 or bObj::FlipH)
+    beq @noAdjust
+    jsr FuncA_Objects_MoveShapeRightOneTile  ; preserves T0+
+    @noAdjust:
+    lda T2  ; machine FlipH (0 or bObj::FlipH)
+    ora #bObj::FlipV | kPaletteObjMachineLight
+    tay  ; param: object flags
     jsr FuncA_Objects_GetMachineLightTileId  ; preserves Y, returns A
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Tile_u8, y
-    @done:
-    rts
+    jmp FuncA_Objects_Draw1x1Shape
 .ENDPROC
 
 ;;; Draws a pulley that a hoist load is suspended from.
@@ -175,7 +175,7 @@ _NotAtGoal:
     and #$04
     mul #bObj::FlipH / $04
     tay  ; param: object flags
-    lda #kTileIdObjPulley  ; param: tile ID
+    lda #kTileIdObjHoistPulley  ; param: tile ID
     jmp FuncA_Objects_Draw1x1Shape
 .ENDPROC
 
@@ -192,12 +192,12 @@ _RopeTriangle:
     lda #1
     jsr FuncA_Objects_MoveShapeLeftByA
     ldy #kPaletteObjHoistRope | bObj::FlipH  ; param: object flags
-    lda #kTileIdObjRopeDiag  ; param: tile ID
+    lda #kTileIdObjHoistRopeDiag  ; param: tile ID
     jsr FuncA_Objects_Draw1x1Shape
     lda #kTileWidthPx - 1
     jsr FuncA_Objects_MoveShapeLeftByA
     ldy #kPaletteObjHoistRope  ; param: object flags
-    lda #kTileIdObjRopeDiag  ; param: tile ID
+    lda #kTileIdObjHoistRopeDiag  ; param: tile ID
     jmp FuncA_Objects_Draw1x1Shape
 .ENDPROC
 

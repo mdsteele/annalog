@@ -18,6 +18,6 @@
 ;;;=========================================================================;;;
 
 ;;; OBJ tile IDs for drawing the MineWest room.
-kTileIdObjMineCageFirst = $8a
+kTileIdObjMineCageFirst = $88
 
 ;;;=========================================================================;;;

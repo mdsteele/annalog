@@ -611,10 +611,11 @@
 .EXPORT Ppu_ChrBgMine
 .PROC Ppu_ChrBgMine
 :   .incbin "out/data/tiles/crystal.chr"
-    .incbin "out/data/tiles/ropediag.chr"
+    .res $04 * kSizeofChr
     .incbin "out/data/tiles/minecart.chr"
     .incbin "out/data/tiles/scaffhold.chr"
-    .res $0c * kSizeofChr
+    .res $04 * kSizeofChr
+    .incbin "out/data/tiles/hoist_bg.chr"
     .incbin "out/data/tiles/sign.chr"
     .incbin "out/data/tiles/console.chr"
     .assert * - :- = kSizeofChr * $40, error
@@ -941,10 +942,10 @@
     .assert * - :- = (kTileIdObjUpgradeRamFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/upgrade_ram.chr"
     .assert * - :- = (kTileIdObjHoistFirst - $80) * kSizeofChr, error
-    .incbin "out/data/tiles/hoist.chr"
+    .incbin "out/data/tiles/hoist_obj.chr"
     .assert * - :- = (kTileIdObjMineCageFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/mine_cage.chr"
-    .res $04 * kSizeofChr
+    .res $06 * kSizeofChr
     .assert * - :- = (kTileIdObjWaspFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/wasp.chr"
     .assert * - :- = (kTileIdObjUpgradeOpSyncFirst - $80) * kSizeofChr, error
