@@ -31,9 +31,8 @@
 
 .IMPORT DataA_Room_Core_sTileset
 .IMPORT FuncA_Machine_Error
-.IMPORT FuncA_Machine_GenericMoveTowardGoalVert
-.IMPORT FuncA_Machine_GenericTryMoveY
-.IMPORT FuncA_Machine_ReachedGoal
+.IMPORT FuncA_Machine_LiftTick
+.IMPORT FuncA_Machine_LiftTryMove
 .IMPORT FuncA_Objects_DrawLiftMachine
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrBgAnimStatic
@@ -269,28 +268,22 @@ _Passages_sPassage_arr:
 
 .PROC FuncC_Core_LockLift_TryMove
     lda #kLiftMaxGoalY  ; param: max goal vert
-    jmp FuncA_Machine_GenericTryMoveY
+    jmp FuncA_Machine_LiftTryMove
 .ENDPROC
 
 .PROC FuncC_Core_LockLift1_Tick
     ldax #kLift1MaxPlatformTop  ; param: max platform top
-    jsr FuncA_Machine_GenericMoveTowardGoalVert  ; returns Z
-    jeq FuncA_Machine_ReachedGoal
-    rts
+    jmp FuncA_Machine_LiftTick
 .ENDPROC
 
 .PROC FuncC_Core_LockLift2_Tick
     ldax #kLift2MaxPlatformTop  ; param: max platform top
-    jsr FuncA_Machine_GenericMoveTowardGoalVert  ; returns Z
-    jeq FuncA_Machine_ReachedGoal
-    rts
+    jmp FuncA_Machine_LiftTick
 .ENDPROC
 
 .PROC FuncC_Core_LockLift3_Tick
     ldax #kLift3MaxPlatformTop  ; param: max platform top
-    jsr FuncA_Machine_GenericMoveTowardGoalVert  ; returns Z
-    jeq FuncA_Machine_ReachedGoal
-    rts
+    jmp FuncA_Machine_LiftTick
 .ENDPROC
 
 ;;;=========================================================================;;;

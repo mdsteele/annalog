@@ -41,9 +41,9 @@
 .IMPORT DataA_Room_Prison_sTileset
 .IMPORT FuncA_Machine_Error
 .IMPORT FuncA_Machine_GenericMoveTowardGoalHorz
-.IMPORT FuncA_Machine_GenericMoveTowardGoalVert
 .IMPORT FuncA_Machine_GenericTryMoveX
-.IMPORT FuncA_Machine_GenericTryMoveY
+.IMPORT FuncA_Machine_LiftTick
+.IMPORT FuncA_Machine_LiftTryMove
 .IMPORT FuncA_Machine_ReachedGoal
 .IMPORT FuncA_Machine_StartWaiting
 .IMPORT FuncA_Objects_DrawCratePlatform
@@ -568,14 +568,12 @@ _ParticleAngle_u8_arr:
 
 .PROC FuncC_Prison_CellLift_TryMove
     lda #kLiftMaxGoalY  ; param: max goal vert
-    jmp FuncA_Machine_GenericTryMoveY
+    jmp FuncA_Machine_LiftTryMove
 .ENDPROC
 
 .PROC FuncC_Prison_CellLift_Tick
     ldax #kLiftMaxPlatformTop  ; param: max platform top
-    jsr FuncA_Machine_GenericMoveTowardGoalVert  ; returns Z
-    jeq FuncA_Machine_ReachedGoal
-    rts
+    jmp FuncA_Machine_LiftTick
 .ENDPROC
 
 .PROC FuncC_Prison_CellLauncher_InitReset

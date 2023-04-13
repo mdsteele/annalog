@@ -30,9 +30,8 @@
 
 .IMPORT DataA_Room_Garden_sTileset
 .IMPORT FuncA_Machine_Error
-.IMPORT FuncA_Machine_GenericMoveTowardGoalVert
-.IMPORT FuncA_Machine_GenericTryMoveY
-.IMPORT FuncA_Machine_ReachedGoal
+.IMPORT FuncA_Machine_LiftTick
+.IMPORT FuncA_Machine_LiftTryMove
 .IMPORT FuncA_Machine_WriteToLever
 .IMPORT FuncA_Objects_DrawLiftMachine
 .IMPORT Func_InitActorSmokeExplosion
@@ -237,14 +236,14 @@ _ReadL:
 
 .PROC FuncC_Garden_CrossroadLift_TryMove
     lda #kLiftMaxGoalY  ; param: max goal vert
-    jmp FuncA_Machine_GenericTryMoveY
+    jmp FuncA_Machine_LiftTryMove
 .ENDPROC
 
 .PROC FuncC_Garden_CrossroadLift_Tick
     ldax #kLiftMaxPlatformTop  ; param: max platform top
-    jsr FuncA_Machine_GenericMoveTowardGoalVert  ; returns Z, N, and A
-    jeq FuncA_Machine_ReachedGoal
+    jsr FuncA_Machine_LiftTick  ; returns N and Z
     ;; If the machine moved downwards, check if the baddie below got squished.
+    beq @noSquish  ; the machine didn't move
     bmi @noSquish  ; the machine moved up, not down
     lda Ram_ActorType_eActor_arr + kSquishableActorIndex
     .assert eActor::None = 0, error

@@ -25,6 +25,7 @@
 .INCLUDE "hoist.inc"
 .INCLUDE "shared.inc"
 
+.IMPORT FuncA_Machine_GenericTryMoveZ
 .IMPORT FuncA_Objects_Draw1x1Shape
 .IMPORT FuncA_Objects_DrawGirderPlatform
 .IMPORT FuncA_Objects_GetMachineLightTileId
@@ -66,6 +67,12 @@ kTileIdObjHoistRopeDiag = kTileIdObjHoistFirst + 2
 ;;;=========================================================================;;;
 
 .SEGMENT "PRGA_Machine"
+
+;;; Tries to move the current hoist machine's vertical goal value.
+;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
+;;; @param A The maximum permitted vertical goal value.
+;;; @param X The eDir value for the direction to move in (up or down).
+.EXPORT FuncA_Machine_HoistTryMove := FuncA_Machine_GenericTryMoveZ
 
 ;;; Moves the current hoist machine's platform towards its goal position.
 ;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.

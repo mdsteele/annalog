@@ -24,6 +24,9 @@
 .INCLUDE "../program.inc"
 .INCLUDE "shared.inc"
 
+.IMPORT FuncA_Machine_GenericMoveTowardGoalVert
+.IMPORT FuncA_Machine_GenericTryMoveY
+.IMPORT FuncA_Machine_ReachedGoal
 .IMPORT FuncA_Objects_Alloc2x2Shape
 .IMPORT FuncA_Objects_GetMachineLightTileId
 .IMPORT FuncA_Objects_MoveShapeDownAndRightOneTile
@@ -36,6 +39,36 @@
 ;;; Various OBJ tile IDs used for drawing lift machines.
 kTileIdLiftCorner  = kTileIdObjMachineCorner
 kTileIdLiftSurface = kTileIdObjMachineSurfaceVert
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Machine"
+
+;;; Tries to move the current lift machine's vertical goal value.
+;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
+;;; @param A The maximum permitted vertical goal value.
+;;; @param X The eDir value for the direction to move in (up or down).
+.EXPORT FuncA_Machine_LiftTryMove := FuncA_Machine_GenericTryMoveY
+
+;;; Tick implementation for lift machines.
+;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
+;;; @prereq Zp_Current_sProgram_ptr is initialized.
+;;; @param AX The maximum platform top position for the lift machine.
+;;; @return A The pixel delta that the platform actually moved by (signed).
+;;; @return N Set if the lift moved up, cleared otherwise.
+;;; @return Z Set if the lift's goal was reached.
+.EXPORT FuncA_Machine_LiftTick
+.PROC FuncA_Machine_LiftTick
+    jsr FuncA_Machine_GenericMoveTowardGoalVert  ; returns Z, N, and A
+    php
+    pha
+    bne @notAtGoal
+    jsr FuncA_Machine_ReachedGoal
+    @notAtGoal:
+    pla
+    plp
+    rts
+.ENDPROC
 
 ;;;=========================================================================;;;
 

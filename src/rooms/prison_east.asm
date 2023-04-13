@@ -33,9 +33,8 @@
 
 .IMPORT DataA_Room_Prison_sTileset
 .IMPORT FuncA_Machine_Error
-.IMPORT FuncA_Machine_GenericMoveTowardGoalVert
-.IMPORT FuncA_Machine_GenericTryMoveY
-.IMPORT FuncA_Machine_ReachedGoal
+.IMPORT FuncA_Machine_LiftTick
+.IMPORT FuncA_Machine_LiftTryMove
 .IMPORT FuncA_Objects_DrawLiftMachine
 .IMPORT FuncA_Objects_DrawStepstonePlatform
 .IMPORT FuncC_Prison_DrawGatePlatform
@@ -333,14 +332,12 @@ _WestGate:
 
 .PROC FuncC_Prison_EastLift_TryMove
     lda #kLiftMaxGoalY  ; param: max goal vert
-    jmp FuncA_Machine_GenericTryMoveY
+    jmp FuncA_Machine_LiftTryMove
 .ENDPROC
 
 .PROC FuncC_Prison_EastLift_Tick
     ldax #kLiftMaxPlatformTop  ; param: max platform top
-    jsr FuncA_Machine_GenericMoveTowardGoalVert  ; returns Z, N, and A
-    jeq FuncA_Machine_ReachedGoal
-    rts
+    jmp FuncA_Machine_LiftTick
 .ENDPROC
 
 ;;;=========================================================================;;;

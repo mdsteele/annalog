@@ -33,10 +33,10 @@
 
 .IMPORT DataA_Room_Mine_sTileset
 .IMPORT FuncA_Machine_Error
-.IMPORT FuncA_Machine_GenericMoveTowardGoalVert
-.IMPORT FuncA_Machine_GenericTryMoveY
-.IMPORT FuncA_Machine_GenericTryMoveZ
 .IMPORT FuncA_Machine_HoistMoveTowardGoal
+.IMPORT FuncA_Machine_HoistTryMove
+.IMPORT FuncA_Machine_LiftTick
+.IMPORT FuncA_Machine_LiftTryMove
 .IMPORT FuncA_Machine_ReachedGoal
 .IMPORT FuncA_Objects_Draw1x1Shape
 .IMPORT FuncA_Objects_DrawGirderPlatform
@@ -299,7 +299,7 @@ _Passages_sPassage_arr:
 
 .PROC FuncC_Mine_EastHoist_TryMove
     lda #kHoistMaxGoalZ  ; param: max goal vert
-    jmp FuncA_Machine_GenericTryMoveZ
+    jmp FuncA_Machine_HoistTryMove
 .ENDPROC
 
 .PROC FuncC_Mine_EastHoist_Tick
@@ -327,14 +327,12 @@ _Passages_sPassage_arr:
 
 .PROC FuncC_Mine_EastLift_TryMove
     lda #kLiftMaxGoalY  ; param: max goal vert
-    jmp FuncA_Machine_GenericTryMoveY
+    jmp FuncA_Machine_LiftTryMove
 .ENDPROC
 
 .PROC FuncC_Mine_EastLift_Tick
     ldax #kLiftMaxPlatformTop  ; param: max platform top
-    jsr FuncA_Machine_GenericMoveTowardGoalVert  ; returns Z, N, and A
-    jeq FuncA_Machine_ReachedGoal
-    rts
+    jmp FuncA_Machine_LiftTick
 .ENDPROC
 
 ;;;=========================================================================;;;
