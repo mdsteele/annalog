@@ -27,14 +27,12 @@
 .IMPORT FuncA_Actor_HarmAvatarIfCollision
 .IMPORT FuncA_Actor_IsAvatarToLeftOrRight
 .IMPORT FuncA_Actor_IsAvatarWithinVertDistances
+.IMPORT FuncA_Actor_SetPointInFrontOfActorByA
 .IMPORT FuncA_Objects_Draw2x2Actor
 .IMPORT Func_Cosine
 .IMPORT Func_FindEmptyActorSlot
 .IMPORT Func_InitActorProjFireball
-.IMPORT Func_MovePointLeftByA
-.IMPORT Func_MovePointRightByA
 .IMPORT Func_SetActorCenterToPoint
-.IMPORT Func_SetPointToActorCenter
 .IMPORT Ram_ActorFlags_bObj_arr
 .IMPORT Ram_ActorState1_byte_arr
 .IMPORT Ram_ActorState2_byte_arr
@@ -113,21 +111,12 @@ _ReturnIfAvatarNotInFront:
     bvs _Return
     @avatarIsInFront:
 _ShootFireball:
-    jsr Func_SetPointToActorCenter  ; preserves X and T0+
+    lda #kFireflyFireballHorzOffset  ; param: offset
+    jsr FuncA_Actor_SetPointInFrontOfActorByA  ; preserves X and T0+
     stx T2  ; firefly actor index
     jsr Func_FindEmptyActorSlot  ; preserves T0+, returns C and X
     bcs @done
     ;; Set the fireball position just in front of the firefly actor.
-    lda #kFireflyFireballHorzOffset  ; param: offset
-    bit T0  ; firefly actor flags
-    .assert bObj::FlipH = bProc::Overflow, error
-    bvc @adjustRight
-    @adjustLeft:
-    jsr Func_MovePointLeftByA  ; preserves X and T0+
-    jmp @doneAdjust
-    @adjustRight:
-    jsr Func_MovePointRightByA  ; preserves X and T0+
-    @doneAdjust:
     jsr Func_SetActorCenterToPoint  ; preserves X and T0+
     ;; Set the fireball aim angle depending on which way the firefly is facing.
     lda #$00  ; param: aim angle ($00 = to the right)

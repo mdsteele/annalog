@@ -27,13 +27,11 @@
 
 .IMPORT FuncA_Actor_HarmAvatarIfCollision
 .IMPORT FuncA_Actor_NegateVelX
+.IMPORT FuncA_Actor_SetPointInFrontOfActorByA
 .IMPORT FuncA_Objects_Draw2x2Actor
 .IMPORT Func_DivMod
 .IMPORT Func_InitActorWithState1
-.IMPORT Func_MovePointLeftByA
-.IMPORT Func_MovePointRightByA
 .IMPORT Func_PointHitsTerrain
-.IMPORT Func_SetPointToActorCenter
 .IMPORT Ram_ActorFlags_bObj_arr
 .IMPORT Ram_ActorPosX_i16_0_arr
 .IMPORT Ram_ActorPosX_i16_1_arr
@@ -103,20 +101,9 @@ kPaletteObjBird = 0
     beq _NotMoving
 _Moving:
     inc Ram_ActorState2_byte_arr, x  ; flying animation counter
-    ;; Set the point to a position in front of the bird.
-    jsr Func_SetPointToActorCenter  ; preserves X
-    lda Ram_ActorFlags_bObj_arr, x
-    and #bObj::FlipH
-    bne @facingLeft
-    @facingRight:
-    lda #kBirdLandDistance  ; param: offset
-    jsr Func_MovePointRightByA  ; preserves X
-    jmp @checkTerrain
-    @facingLeft:
-    lda #kBirdLandDistance  ; param: offset
-    jsr Func_MovePointLeftByA  ; preserves X
-    @checkTerrain:
     ;; Check the terrain in front of the bird.  If it's solid, then land.
+    lda #kBirdLandDistance  ; param: offset
+    jsr FuncA_Actor_SetPointInFrontOfActorByA  ; preserves X
     jsr Func_PointHitsTerrain  ; preserves X, returns C
     bcc _Done
 _LandOnWall:

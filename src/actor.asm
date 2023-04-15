@@ -362,7 +362,7 @@ Ram_ActorFlags_bObj_arr: .res kMaxActors
     d_byte BadGrub,         7
     d_byte BadHotheadHorz,  6
     d_byte BadHotheadVert,  6
-    d_byte BadSpider,       7
+    d_byte BadSpider,       6
     d_byte BadToad,         7
     d_byte BadVinebug,      5
     d_byte BadWasp,         6

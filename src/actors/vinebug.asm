@@ -24,6 +24,7 @@
 .INCLUDE "vinebug.inc"
 
 .IMPORT FuncA_Actor_HarmAvatarIfCollision
+.IMPORT FuncA_Actor_IsAvatarAboveOrBelow
 .IMPORT FuncA_Actor_IsAvatarWithinHorzDistance
 .IMPORT FuncA_Objects_Draw2x2Actor
 .IMPORT Func_GetRandomByte
@@ -31,13 +32,10 @@
 .IMPORT Func_MovePointUpByA
 .IMPORT Func_PointHitsTerrain
 .IMPORT Func_SetPointToActorCenter
-.IMPORT Ram_ActorPosY_i16_0_arr
-.IMPORT Ram_ActorPosY_i16_1_arr
 .IMPORT Ram_ActorState1_byte_arr
 .IMPORT Ram_ActorState2_byte_arr
 .IMPORT Ram_ActorVelY_i16_0_arr
 .IMPORT Ram_ActorVelY_i16_1_arr
-.IMPORTZP Zp_AvatarPosY_i16
 
 ;;;=========================================================================;;;
 
@@ -65,11 +63,8 @@ _DropIfAvatarIsBelow:
     jsr FuncA_Actor_IsAvatarWithinHorzDistance  ; preserves X, returns C
     bcc @notNear
     ;; Don't drop if the player avatar is above the vinebug.
-    lda Ram_ActorPosY_i16_0_arr, x
-    cmp Zp_AvatarPosY_i16 + 0
-    lda Ram_ActorPosY_i16_1_arr, x
-    sbc Zp_AvatarPosY_i16 + 1
-    bge @notNear
+    jsr FuncA_Actor_IsAvatarAboveOrBelow  ; preserves X, returns N
+    bmi @notNear
     ;; Drop quickly.
     lda #1
     sta Ram_ActorState1_byte_arr, x

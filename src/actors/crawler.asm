@@ -28,6 +28,7 @@
 .IMPORT FuncA_Actor_GetRoomBlockRow
 .IMPORT FuncA_Actor_GetRoomTileColumn
 .IMPORT FuncA_Actor_HarmAvatarIfCollision
+.IMPORT FuncA_Actor_IsAvatarAboveOrBelow
 .IMPORT FuncA_Actor_IsAvatarWithinHorzDistance
 .IMPORT FuncA_Objects_Draw2x2Actor
 .IMPORT Func_FindEmptyActorSlot
@@ -47,7 +48,6 @@
 .IMPORT Ram_ActorState2_byte_arr
 .IMPORT Ram_ActorType_eActor_arr
 .IMPORT Ram_Oam_sObj_arr64
-.IMPORTZP Zp_AvatarPosY_i16
 .IMPORTZP Zp_FrameCounter_u8
 .IMPORTZP Zp_TerrainColumn_u8_arr_ptr
 
@@ -150,11 +150,8 @@ _Crawl:
     jsr FuncA_Actor_IsAvatarWithinHorzDistance  ; preserves X, returns C
     bcc @done
     ;; Don't drop an ember if the player avatar is above the hothead.
-    lda Ram_ActorPosY_i16_0_arr, x
-    cmp Zp_AvatarPosY_i16 + 0
-    lda Ram_ActorPosY_i16_1_arr, x
-    sbc Zp_AvatarPosY_i16 + 1
-    bge @done
+    jsr FuncA_Actor_IsAvatarAboveOrBelow  ; preserves X, returns N
+    bmi @done
     ;; Set the starting position for the ember.
     jsr Func_SetPointToActorCenter  ; preserves X
     jsr _AdjustPoint

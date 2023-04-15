@@ -23,11 +23,9 @@
 .INCLUDE "fish.inc"
 
 .IMPORT FuncA_Actor_HarmAvatarIfCollision
+.IMPORT FuncA_Actor_SetPointInFrontOfActorByA
 .IMPORT FuncA_Objects_Draw2x2Actor
-.IMPORT Func_MovePointLeftByA
-.IMPORT Func_MovePointRightByA
 .IMPORT Func_PointHitsTerrain
-.IMPORT Func_SetPointToActorCenter
 .IMPORT Ram_ActorFlags_bObj_arr
 .IMPORT Ram_ActorState1_byte_arr
 .IMPORT Ram_ActorVelX_i16_0_arr
@@ -54,20 +52,9 @@ kPaletteObjFish = 0
 ;;; @preserve X
 .EXPORT FuncA_Actor_TickBadFish
 .PROC FuncA_Actor_TickBadFish
-    ;; Set the point to a position in front of the fish.
-    jsr Func_SetPointToActorCenter  ; preserves X
-    lda Ram_ActorFlags_bObj_arr, x
-    and #bObj::FlipH
-    bne @facingLeft
-    @facingRight:
-    lda #kFishTurnDistance  ; param: offset
-    jsr Func_MovePointRightByA  ; preserves X
-    jmp @checkTerrain
-    @facingLeft:
-    lda #kFishTurnDistance  ; param: offset
-    jsr Func_MovePointLeftByA  ; preserves X
-    @checkTerrain:
     ;; Check the terrain in front of the fish.  If it's solid, turn around.
+    lda #kFishTurnDistance  ; param: offset
+    jsr FuncA_Actor_SetPointInFrontOfActorByA  ; preserves X
     jsr Func_PointHitsTerrain  ; preserves X, returns C
     bcc @continueForward
     ;; Make the fish face the opposite direction.

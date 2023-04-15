@@ -27,6 +27,8 @@
 .IMPORT FuncA_Objects_MoveShapeLeftHalfTile
 .IMPORT FuncA_Objects_MoveShapeUpByA
 .IMPORT Func_HarmAvatar
+.IMPORT Func_MovePointLeftByA
+.IMPORT Func_MovePointRightByA
 .IMPORT Func_PointHitsTerrain
 .IMPORT Func_SetPointToActorCenter
 .IMPORT Ram_ActorFlags_bObj_arr
@@ -40,6 +42,7 @@
 .IMPORT Ram_ActorVelY_i16_1_arr
 .IMPORTZP Zp_AvatarFlags_bObj
 .IMPORTZP Zp_AvatarPosX_i16
+.IMPORTZP Zp_AvatarPosY_i16
 .IMPORTZP Zp_RoomScrollX_u16
 .IMPORTZP Zp_RoomScrollY_u8
 .IMPORTZP Zp_ShapePosX_i16
@@ -90,6 +93,22 @@
     cmp Ram_ActorPosX_i16_0_arr, x
     lda Zp_AvatarPosX_i16 + 1
     sbc Ram_ActorPosX_i16_1_arr, x
+    bvc @noOverflow  ; N eor V
+    eor #$80
+    @noOverflow:
+    rts
+.ENDPROC
+
+;;; Determines if the player avatar is above the actor or below actor.
+;;; @param X The actor index.
+;;; @return N Set if the avatar is above the actor, cleared if it's below.
+;;; @preserve X, Y, T0+
+.EXPORT FuncA_Actor_IsAvatarAboveOrBelow
+.PROC FuncA_Actor_IsAvatarAboveOrBelow
+    lda Zp_AvatarPosY_i16 + 0
+    cmp Ram_ActorPosY_i16_0_arr, x
+    lda Zp_AvatarPosY_i16 + 1
+    sbc Ram_ActorPosY_i16_1_arr, x
     bvc @noOverflow  ; N eor V
     eor #$80
     @noOverflow:
@@ -159,6 +178,27 @@
 .PROC FuncA_Actor_CenterHitsTerrain
     jsr Func_SetPointToActorCenter  ; preserves X and T0+
     jmp Func_PointHitsTerrain  ; preserves X and T0+, returns C
+.ENDPROC
+
+;;; Sets Zp_PointY_i16 to the vertical center of the actor, and sets
+;;; Zp_PointX_i16 to a position A pixels in front of the horizontal center of
+;;; the actor, based on the FlipH bit of the actor's flags.
+;;; @param A How many pixels in front to place the point (unsigned).
+;;; @param X The actor index.
+;;; @preserve X, Y, T0+
+.EXPORT FuncA_Actor_SetPointInFrontOfActorByA
+.PROC FuncA_Actor_SetPointInFrontOfActorByA
+    pha  ; offset
+    jsr Func_SetPointToActorCenter  ; preserves X, Y, and T0+
+    lda Ram_ActorFlags_bObj_arr, x
+    and #bObj::FlipH
+    bne @facingLeft
+    @facingRight:
+    pla  ; param: offset
+    jmp Func_MovePointRightByA  ; preserves X, Y, and T0+
+    @facingLeft:
+    pla  ; param: offset
+    jmp Func_MovePointLeftByA  ; preserves X, Y, and T0+
 .ENDPROC
 
 ;;; Negates the actor's X-velocity.

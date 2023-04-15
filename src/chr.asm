@@ -795,9 +795,10 @@
     .res $02 * kSizeofChr
     .assert * - :- = (kTileIdObjFireballFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/fireball.chr"
-    .res $14 * kSizeofChr
+    .res $0c * kSizeofChr
     .assert * - :- = (kTileIdObjSpiderFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/spider.chr"
+    .res $04 * kSizeofChr
     .assert * - :- = (kTileIdCrusherFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/crusher.chr"
     .assert * - :- = (kTileIdWinchFirst - $80) * kSizeofChr, error

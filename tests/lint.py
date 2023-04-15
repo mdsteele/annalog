@@ -40,7 +40,7 @@ BAD_CODE_PATTERNS = [
     # immediate addressing.
     ('suspicious address', re.compile(
         r'^ *(ad[cd]|and|cmp|cp[xy]|eor|ora|sub|sbc|ld[a-z]+) +'
-        r'[<>(]*([a-z0-9$%.]|Func|Main)')),
+        r'[-+~<>(]*([a-z0-9$%.]|Func|Main)')),
     # This pattern matches instructions that were probably intended to use
     # zero page indirect Y-indexed addressing.
     ('suspicious direct Y-index', re.compile(

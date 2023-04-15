@@ -17,31 +17,69 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
+.INCLUDE "../cpu.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
+.INCLUDE "../ppu.inc"
 .INCLUDE "../terrain.inc"
 .INCLUDE "spider.inc"
 
+.IMPORT FuncA_Actor_GetRoomBlockRow
 .IMPORT FuncA_Actor_HarmAvatarIfCollision
-.IMPORT FuncA_Objects_Alloc2x2Shape
+.IMPORT FuncA_Actor_IsAvatarAboveOrBelow
+.IMPORT FuncA_Actor_IsAvatarWithinHorzDistance
+.IMPORT FuncA_Actor_NegateVelY
+.IMPORT FuncA_Actor_SetPointInFrontOfActorByA
+.IMPORT FuncA_Objects_Draw1x1Shape
+.IMPORT FuncA_Objects_MoveShapeLeftByA
+.IMPORT FuncA_Objects_MoveShapeRightByA
+.IMPORT FuncA_Objects_MoveShapeUpOneTile
 .IMPORT FuncA_Objects_SetShapePosToActorCenter
 .IMPORT Func_GetRandomByte
-.IMPORT Func_GetTerrainColumnPtrForTileIndex
+.IMPORT Func_GetTerrainColumnPtrForPointX
 .IMPORT Ram_ActorFlags_bObj_arr
-.IMPORT Ram_ActorPosX_i16_0_arr
-.IMPORT Ram_ActorPosX_i16_1_arr
 .IMPORT Ram_ActorPosY_i16_0_arr
-.IMPORT Ram_ActorPosY_i16_1_arr
 .IMPORT Ram_ActorState1_byte_arr
-.IMPORT Ram_Oam_sObj_arr64
+.IMPORT Ram_ActorState2_byte_arr
+.IMPORT Ram_ActorVelX_i16_0_arr
+.IMPORT Ram_ActorVelX_i16_1_arr
+.IMPORT Ram_ActorVelY_i16_0_arr
+.IMPORT Ram_ActorVelY_i16_1_arr
 .IMPORTZP Zp_TerrainColumn_u8_arr_ptr
 
 ;;;=========================================================================;;;
 
-kTileIdObjSpiderLegs1 = kTileIdObjSpiderFirst + 0
-kTileIdObjSpiderHead1 = kTileIdObjSpiderFirst + 1
-kTileIdObjSpiderLegs2 = kTileIdObjSpiderFirst + 2
-kTileIdObjSpiderHead2 = kTileIdObjSpiderFirst + 3
+;;; How many frames a spider baddie actor spends moving left/right in each
+;;; movement cycle.
+kSpiderMoveFrames = 8
+
+;;; How many frames the spider pauses for after moving in each movement cycle.
+kSpiderPauseFrames = 8
+
+;;; The total number of frames in a spider baddie actor's movement cycle.
+kSpiderMovementCycleFrames = kSpiderMoveFrames + kSpiderPauseFrames
+
+;;; How fast the spider moves sideways, in pixels/frame.
+kSpiderMoveSpeed = 1
+
+;;; How far a spider moves in each movement cycle, in pixels.
+kSpiderStridePx = kSpiderMoveSpeed * kSpiderMoveFrames
+
+;;; How close the player avatar must be horizontally to the spider, in pixels,
+;;; in order for the spider to drop down on a thread.
+kSpiderDropProximity = 24
+
+;;; How long the spider spends dropping down on a thread and coming back up.
+kSpiderDropFrames = 75
+
+;;; How fast the spider drops on a thread, in subpixels/frame.
+kSpiderDropSpeed = $01a0
+
+;;; Tile IDs for drawing spider baddie actors.
+kTileIdObjSpiderThread = kTileIdObjSpiderFirst + 6
+
+;;; The OBJ palette number used for drawing spider baddies.
+kPaletteObjSpider = 0
 
 ;;;=========================================================================;;;
 
@@ -52,69 +90,88 @@ kTileIdObjSpiderHead2 = kTileIdObjSpiderFirst + 3
 ;;; @preserve X
 .EXPORT FuncA_Actor_TickBadSpider
 .PROC FuncA_Actor_TickBadSpider
-    lda Ram_ActorState1_byte_arr, x
-    beq _StartMove
-    dec Ram_ActorState1_byte_arr, x
-    cmp #$08
-    blt _DetectCollision
+    jsr FuncA_Actor_HarmAvatarIfCollision  ; preserves X
     lda Ram_ActorFlags_bObj_arr, x
-    and #bObj::FlipH
-    bne _MoveLeft
-_MoveRight:
-    inc Ram_ActorPosX_i16_0_arr, x
-    bne @noCarry
-    inc Ram_ActorPosX_i16_1_arr, x
-    @noCarry:
-    jmp FuncA_Actor_HarmAvatarIfCollision  ; preserves X
-_MoveLeft:
-    lda Ram_ActorPosX_i16_0_arr, x
-    bne @noBorrow
-    dec Ram_ActorPosX_i16_1_arr, x
-    @noBorrow:
-    dec Ram_ActorPosX_i16_0_arr, x
-_DetectCollision:
-    jmp FuncA_Actor_HarmAvatarIfCollision  ; preserves X
-_StartMove:
-    ;; Compute the room tile column index for the center of the spider, storing
-    ;; it in Y.
-    lda Ram_ActorPosX_i16_1_arr, x
-    sta T0
-    lda Ram_ActorPosX_i16_0_arr, x
-    .repeat 3
-    lsr T0
-    ror a
-    .endrepeat
-    tay
-    ;; If the spider is facing right, increment Y (so as to check the tile
-    ;; column to the right of the spider); if the spider is facing left,
-    ;; decrement Y (so as to check the tile column to the left of the spider).
+    .assert bObj::FlipV = bProc::Negative, error
+    bpl _IsInMovementCycle
+_IsHangingFromThread:
+    lda Ram_ActorState1_byte_arr, x  ; move cycle timer
+    beq _ThreadCycleFinished
+    dec Ram_ActorState1_byte_arr, x  ; move cycle timer
+    cmp #kSpiderDropFrames / 2 + 1
+    bne _Return
+    jmp FuncA_Actor_NegateVelY
+_ThreadCycleFinished:
+    ;; Halt vertical velocity.
+    lda #0
+    sta Ram_ActorVelY_i16_0_arr, x
+    sta Ram_ActorVelY_i16_1_arr, x
+    ;; Clear the FlipV flag to indicate that the spider is no longer hanging on
+    ;; a thread.
     lda Ram_ActorFlags_bObj_arr, x
-    and #bObj::FlipH
-    bne @facingLeft
-    @facingRight:
-    iny
-    bne @doneFacing  ; unconditional
-    @facingLeft:
-    dey
-    dey
-    @doneFacing:
-    ;; Get the terrain for the tile column we're checking.
-    stx T0  ; spider actor index
-    tya  ; param: room tile column index
-    jsr Func_GetTerrainColumnPtrForTileIndex  ; preserves T0+
-    ldx T0  ; spider actor index
-    ;; Compute the room block row index for the center of the spider, storing
-    ;; it in Y.
-    lda Ram_ActorPosY_i16_1_arr, x
-    sta T0
+    and #<~bObj::FlipV
+    sta Ram_ActorFlags_bObj_arr, x
+    ;; Pause before starting the next movement cycle.
+    lda #kSpiderPauseFrames
+    sta Ram_ActorState1_byte_arr, x  ; move cycle timer
+_Return:
+    rts
+_IsInMovementCycle:
+    ;; A spider actor's "movement cycle" consists of moving at kSpiderMoveSpeed
+    ;; for kSpiderMoveFrames, and then standing still for kSpiderPauseFrames.
+    lda Ram_ActorState1_byte_arr, x  ; move cycle timer
+    beq _MovementCycleFinished
+    dec Ram_ActorState1_byte_arr, x  ; move cycle timer
+    cmp #kSpiderPauseFrames + 1
+    bge @done
+    @paused:
+    lda #0
+    sta Ram_ActorVelX_i16_0_arr, x
+    sta Ram_ActorVelX_i16_1_arr, x
+    @done:
+    rts
+_MovementCycleFinished:
+    ;; Whenever the spider finishes a movement cycle, it can either start a new
+    ;; movement cycle, or start dropping down on a thread.
+    ;;
+    ;; Don't drop down on a thread if the player avatar isn't horizontally
+    ;; nearby.
+    lda #kSpiderDropProximity  ; param: distance
+    jsr FuncA_Actor_IsAvatarWithinHorzDistance  ; preserves X, returns C
+    bcc _StartNewMovementCycle
+    ;; Don't drop down on a thread if the player avatar is above the spider.
+    jsr FuncA_Actor_IsAvatarAboveOrBelow  ; preserves X, returns N
+    bmi _StartNewMovementCycle
+    ;; Even if the spider could drop down on a thread, only do so 50% of the
+    ;; time.
+    jsr Func_GetRandomByte  ; preserves X, returns N
+    bmi _StartNewMovementCycle
+_StartDroppingDownOnThread:
+    lda #kSpiderDropFrames
+    sta Ram_ActorState1_byte_arr, x  ; move cycle timer
+    ;; Set velocity.
+    lda #<kSpiderDropSpeed
+    sta Ram_ActorVelY_i16_0_arr, x
+    lda #>kSpiderDropSpeed
+    sta Ram_ActorVelY_i16_1_arr, x
+    ;; Set thread origin.
     lda Ram_ActorPosY_i16_0_arr, x
-    .repeat 4
-    lsr T0
-    ror a
-    .endrepeat
-    tay
+    sub #kTileHeightPx - 1
+    sta Ram_ActorState2_byte_arr, x  ; thread origin
+    ;; Set the FlipV flag to indicate that the spider is now hanging on a
+    ;; thread.
+    lda Ram_ActorFlags_bObj_arr, x
+    ora #bObj::FlipV
+    sta Ram_ActorFlags_bObj_arr, x
+    rts
+_StartNewMovementCycle:
+    ;; Get the terrain column in front of the spider.
+    lda #kSpiderStridePx + 1  ; param: offset
+    jsr FuncA_Actor_SetPointInFrontOfActorByA  ; preserves X
+    jsr Func_GetTerrainColumnPtrForPointX  ; preserves X
     ;; Check the terrain block just in front of the spider.  If it's solid,
     ;; the spider has to turn around.
+    jsr FuncA_Actor_GetRoomBlockRow  ; preserves X, returns Y
     lda (Zp_TerrainColumn_u8_arr_ptr), y
     cmp #kFirstSolidTerrainType
     bge @turnAround
@@ -128,16 +185,29 @@ _StartMove:
     jsr Func_GetRandomByte  ; preserves X, returns A
     and #$03
     bne @continueForward
-    ;; TODO: Otherwise, sometimes drop down on a thread.
     ;; Make the spider face the opposite direction.
     @turnAround:
     lda Ram_ActorFlags_bObj_arr, x
     eor #bObj::FlipH
     sta Ram_ActorFlags_bObj_arr, x
-    ;; Start a new movement cycle for the spider.
     @continueForward:
-    lda #$0f
-    sta Ram_ActorState1_byte_arr, x
+_SetVelocityForMove:
+    lda Ram_ActorFlags_bObj_arr, x
+    and #bObj::FlipH
+    beq @facingRight
+    @facingLeft:
+    lda #<-kSpiderMoveSpeed
+    bne @setVel  ; unconditional
+    @facingRight:
+    lda #kSpiderMoveSpeed
+    @setVel:
+    sta Ram_ActorVelX_i16_1_arr, x
+    lda #0
+    sta Ram_ActorVelX_i16_0_arr, x
+    ;; Start a new movement cycle for the spider.  To do this, we decrement the
+    ;; timer from its current value of zero, mod kSpiderMovementCycleFrames.
+    lda #kSpiderMovementCycleFrames - 1
+    sta Ram_ActorState1_byte_arr, x  ; move cycle timer
     rts
 .ENDPROC
 
@@ -151,35 +221,54 @@ _StartMove:
 .EXPORT FuncA_Objects_DrawActorBadSpider
 .PROC FuncA_Objects_DrawActorBadSpider
     jsr FuncA_Objects_SetShapePosToActorCenter  ; preserves X
-    lda Ram_ActorFlags_bObj_arr, x  ; param: object flags
-    jsr FuncA_Objects_Alloc2x2Shape  ; preserves X, returns C and Y
-    bcs @done
-    lda Ram_ActorState1_byte_arr, x
-    add #$04
-    and #$08
-    bne @frame2
-    @frame1:
-    lda #kTileIdObjSpiderLegs1
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Tile_u8, y
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Tile_u8, y
-    lda #kTileIdObjSpiderHead1
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Tile_u8, y
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Tile_u8, y
-    bne @setFlags  ; unconditional
-    @frame2:
-    lda #kTileIdObjSpiderLegs2
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Tile_u8, y
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Tile_u8, y
-    lda #kTileIdObjSpiderHead2
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Tile_u8, y
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Tile_u8, y
-    @setFlags:
     lda Ram_ActorFlags_bObj_arr, x
-    eor #bObj::FlipH
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Flags_bObj, y
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Flags_bObj, y
-    @done:
-    rts
+    .assert bObj::FlipV = bProc::Negative, error
+    bpl _NotOnThread
+_HangingFromThread:
+    lda Ram_ActorPosY_i16_0_arr, x
+    sub Ram_ActorState2_byte_arr, x  ; thread origin
+    div #kTileHeightPx
+    beq @doneThread
+    sta T2  ; num thread tiles
+    jsr FuncA_Objects_MoveShapeUpOneTile  ; preserves X and T0+
+    @loop:
+    jsr FuncA_Objects_MoveShapeUpOneTile  ; preserves X and T0+
+    ldy #kPaletteObjSpider | bObj::Pri  ; param: object flags
+    lda #kTileIdObjSpiderThread  ; param: tile ID
+    jsr FuncA_Objects_Draw1x1Shape  ; preserves X and T2+
+    dec T2  ; num thread tiles
+    bne @loop
+    jsr FuncA_Objects_SetShapePosToActorCenter  ; preserves X
+    @doneThread:
+    lda #4
+    bne _DrawSpider  ; unconditional
+_NotOnThread:
+    lda Ram_ActorState1_byte_arr, x  ; move cycle timer
+    add #$04
+    div #4
+    and #$02
+_DrawSpider:
+    ;; At this point, A holds the spider tile ID offset (0, 2, or 4).
+    .assert kTileIdObjSpiderFirst .mod 8 = 0, error
+    ora #kTileIdObjSpiderFirst | 1
+    sta T2  ; param: tile ID
+    ldy #kPaletteObjSpider | bObj::FlipH  ; param: object flags
+    jsr FuncA_Objects_Draw1x1Shape  ; preserves X and T2+
+    lda #7
+    jsr FuncA_Objects_MoveShapeLeftByA  ; preserves X and T0+
+    lda T2  ; param: tile ID
+    ldy #kPaletteObjSpider  ; param: object flags
+    jsr FuncA_Objects_Draw1x1Shape  ; preserves X and T2+
+    jsr FuncA_Objects_MoveShapeUpOneTile  ; preserves X and T0+
+    dec T2  ; tile ID
+    lda T2  ; param: tile ID
+    ldy #kPaletteObjSpider  ; param: object flags
+    jsr FuncA_Objects_Draw1x1Shape  ; preserves X and T2+
+    lda #7
+    jsr FuncA_Objects_MoveShapeRightByA  ; preserves X and T0+
+    lda T2  ; param: tile ID
+    ldy #kPaletteObjSpider | bObj::FlipH  ; param: object flags
+    jmp FuncA_Objects_Draw1x1Shape  ; preserves X and T2+
 .ENDPROC
 
 ;;;=========================================================================;;;
