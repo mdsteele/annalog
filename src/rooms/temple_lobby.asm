@@ -20,6 +20,7 @@
 .INCLUDE "../actor.inc"
 .INCLUDE "../charmap.inc"
 .INCLUDE "../device.inc"
+.INCLUDE "../dialog.inc"
 .INCLUDE "../flag.inc"
 .INCLUDE "../machine.inc"
 .INCLUDE "../machines/shared.inc"
@@ -197,6 +198,12 @@ _Devices_sDevice_arr:
     d_byte BlockCol_u8, 26
     d_byte Target_u8, kCarriageMachineIndex
     D_END
+    D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::Paper
+    d_byte BlockRow_u8, 21
+    d_byte BlockCol_u8, 12
+    d_byte Target_u8, eDialog::TempleLobbyPaper
+    D_END
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None
 _Passages_sPassage_arr:
@@ -303,6 +310,25 @@ _MoveToBottomRight:
     lda #kCarriageInitGoalY
     sta Ram_MachineGoalVert_u8_arr + kCarriageMachineIndex
     rts
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Dialog"
+
+.EXPORT DataA_Dialog_TempleLobbyPaper_sDialog
+.PROC DataA_Dialog_TempleLobbyPaper_sDialog
+    .word ePortrait::Paper
+    .byte "CPU FIELD MANUAL p.03:$"
+    .byte "Basic console control:$"
+    .byte " A: confirm$"
+    .byte " B: cancel/exit#"
+    .word ePortrait::Paper
+    .byte " SELECT: insert new$"
+    .byte "   instruction$"
+    .byte " START: activate$"
+    .byte "   debugger#"
+    .word ePortrait::Done
 .ENDPROC
 
 ;;;=========================================================================;;;

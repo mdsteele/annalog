@@ -212,6 +212,12 @@ _Devices_sDevice_arr:
     d_byte BlockCol_u8, 8
     d_byte Target_u8, kLowerBridgeMachineIndex
     D_END
+    D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::Paper
+    d_byte BlockRow_u8, 11
+    d_byte BlockCol_u8, 1
+    d_byte Target_u8, eDialog::GardenShaftPaper
+    D_END
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None
 _Passages_sPassage_arr:
@@ -288,6 +294,25 @@ _Passages_sPassage_arr:
 .PROC FuncA_Objects_GardenShaftUpperBridge_Draw
     ldx #kUpperBridgePivotPlatformIndex + kNumMovableUpperBridgeSegments
     jmp FuncA_Objects_DrawBridgeMachine
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Dialog"
+
+.EXPORT DataA_Dialog_GardenShaftPaper_sDialog
+.PROC DataA_Dialog_GardenShaftPaper_sDialog
+    .word ePortrait::Paper
+    .byte "CPU FIELD MANUAL p.11:$"
+    .byte "It can be useful to$"
+    .byte "compare one register$"
+    .byte "directly to another.#"
+    .word ePortrait::Paper
+    .byte "For example$"
+    .byte "  :IF Y<L$"
+    .byte "  :MOVE ", kTileIdArrowUp, "$"
+    .byte "or the opposite.#"
+    .word ePortrait::Done
 .ENDPROC
 
 ;;;=========================================================================;;;

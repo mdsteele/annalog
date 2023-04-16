@@ -53,6 +53,8 @@
 .ENUM eDialog
     GardenEastCorra
     GardenLandingPaper
+    GardenShaftPaper
+    LavaStationPaper
     MermaidDrainSign
     MermaidEntrySign
     MermaidHut1Cutscene
@@ -76,6 +78,7 @@
     PrisonUpperNora
     TempleAltarPlaque
     TempleEntryMermaid
+    TempleLobbyPaper
     TempleNaveAlexBoosting
     TempleNaveAlexStanding
     TemplePitPaper

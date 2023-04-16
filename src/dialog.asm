@@ -32,6 +32,8 @@
 
 .IMPORT DataA_Dialog_GardenEastCorra_sDialog
 .IMPORT DataA_Dialog_GardenLandingPaper_sDialog
+.IMPORT DataA_Dialog_GardenShaftPaper_sDialog
+.IMPORT DataA_Dialog_LavaStationPaper_sDialog
 .IMPORT DataA_Dialog_MermaidDrainSign_sDialog
 .IMPORT DataA_Dialog_MermaidEntrySign_sDialog
 .IMPORT DataA_Dialog_MermaidHut1Cutscene_sDialog
@@ -55,6 +57,7 @@
 .IMPORT DataA_Dialog_PrisonUpperNora_sDialog
 .IMPORT DataA_Dialog_TempleAltarPlaque_sDialog
 .IMPORT DataA_Dialog_TempleEntryMermaid_sDialog
+.IMPORT DataA_Dialog_TempleLobbyPaper_sDialog
 .IMPORT DataA_Dialog_TempleNaveAlexBoosting_sDialog
 .IMPORT DataA_Dialog_TempleNaveAlexStanding_sDialog
 .IMPORT DataA_Dialog_TemplePitPaper_sDialog
@@ -258,6 +261,8 @@ _UpdateScrolling:
     D_TABLE eDialog
     d_entry table, GardenEastCorra,    DataA_Dialog_GardenEastCorra_sDialog
     d_entry table, GardenLandingPaper, DataA_Dialog_GardenLandingPaper_sDialog
+    d_entry table, GardenShaftPaper,   DataA_Dialog_GardenShaftPaper_sDialog
+    d_entry table, LavaStationPaper,   DataA_Dialog_LavaStationPaper_sDialog
     d_entry table, MermaidDrainSign,   DataA_Dialog_MermaidDrainSign_sDialog
     d_entry table, MermaidEntrySign,   DataA_Dialog_MermaidEntrySign_sDialog
     d_entry table, MermaidHut1Cutscene, \
@@ -289,6 +294,7 @@ _UpdateScrolling:
     d_entry table, PrisonUpperNora,    DataA_Dialog_PrisonUpperNora_sDialog
     d_entry table, TempleAltarPlaque,  DataA_Dialog_TempleAltarPlaque_sDialog
     d_entry table, TempleEntryMermaid, DataA_Dialog_TempleEntryMermaid_sDialog
+    d_entry table, TempleLobbyPaper,   DataA_Dialog_TempleLobbyPaper_sDialog
     d_entry table, TempleNaveAlexBoosting, \
             DataA_Dialog_TempleNaveAlexBoosting_sDialog
     d_entry table, TempleNaveAlexStanding, \

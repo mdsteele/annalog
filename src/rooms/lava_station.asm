@@ -20,6 +20,7 @@
 .INCLUDE "../actor.inc"
 .INCLUDE "../charmap.inc"
 .INCLUDE "../device.inc"
+.INCLUDE "../dialog.inc"
 .INCLUDE "../flag.inc"
 .INCLUDE "../machine.inc"
 .INCLUDE "../machines/boiler.inc"
@@ -170,6 +171,12 @@ _Devices_sDevice_arr:
     d_byte BlockCol_u8, 13
     d_byte Target_u8, kUpgradeFlag
     D_END
+    D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::Paper
+    d_byte BlockRow_u8, 4
+    d_byte BlockCol_u8, 11
+    d_byte Target_u8, eDialog::LavaStationPaper
+    D_END
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None
 _Passages_sPassage_arr:
@@ -233,6 +240,25 @@ _ValvePipePlatformIndex_u8_arr10:
     jsr FuncA_Objects_DrawBoilerMachine
     ldx #kValvePlatformIndex  ; param: platform index
     jmp FuncA_Objects_DrawBoilerValve1
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Dialog"
+
+.EXPORT DataA_Dialog_LavaStationPaper_sDialog
+.PROC DataA_Dialog_LavaStationPaper_sDialog
+    .word ePortrait::Paper
+    .byte "CPU FIELD MANUAL p.07:$"
+    .byte "Every machine has an$"
+    .byte "'A' register that you$"
+    .byte "can COPY values into.#"
+    .word ePortrait::Paper
+    .byte "Unlike other registers$"
+    .byte "it does nothing on its$"
+    .byte "own, but it can store$"
+    .byte "a value for later.#"
+    .word ePortrait::Done
 .ENDPROC
 
 ;;;=========================================================================;;;
