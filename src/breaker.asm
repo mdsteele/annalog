@@ -45,6 +45,9 @@
 .IMPORT Main_Explore_EnterRoom
 .IMPORT Main_Explore_FadeIn
 .IMPORT Ppu_ChrBgAnimA0
+.IMPORT Ppu_ChrBgAnimStatic
+.IMPORT Ppu_ChrBgFontLower01
+.IMPORT Ppu_ChrBgFontUpper
 .IMPORT Ram_DeviceAnim_u8_arr
 .IMPORT Ram_DeviceTarget_u8_arr
 .IMPORT Ram_DeviceType_eDevice_arr
@@ -96,7 +99,8 @@ Zp_Breaker_eRoom: .res 1
 Zp_BreakerDeviceIndex_u8: .res 1
 
 ;;; The flag for the breaker that's being activated.
-Zp_Breaker_eFlag: .res 1
+.EXPORTZP Zp_BreakerBeingActivated_eFlag
+Zp_BreakerBeingActivated_eFlag: .res 1
 
 ;;; Which phase of the breaker activation process we're currently in.
 Zp_Breaker_ePhase: .res 1
@@ -155,6 +159,9 @@ _GameLoop:
     stax Zp_RoomScrollX_u16
     lda #bScroll::LockHorz | bScroll::LockVert
     sta Zp_Camera_bScroll
+    ;; Set CHR banks for breaker circuits.
+    chr00_bank #<.bank(Ppu_ChrBgAnimStatic)
+    chr04_bank #<.bank(Ppu_ChrBgAnimStatic)
     ;; Start the cutscene.
     ldax #Main_Breaker_PowerCoreCutscene
     stax Zp_NextCutscene_main_ptr
@@ -166,7 +173,7 @@ _GameLoop:
 ;;; @prereq Rendering is enabled.
 ;;; @prereq Explore mode is initialized.
 .PROC Main_Breaker_PowerCoreCutscene
-    lda #240  ; 4 seconds
+    lda #255
     sta Zp_BreakerTimer_u8
 _GameLoop:
     ;; Update CHR0C bank (for animated terrain tiles).
@@ -176,11 +183,36 @@ _GameLoop:
     add #<.bank(Ppu_ChrBgAnimA0)
     sta Zp_Chr0cBank_u8
     jsr Func_ProcessFrame
-    ;; TODO: Show new circuit powering up.
+_PowerUpCircuit:
+    ;; TODO: split this up into phases
+    lda Zp_BreakerTimer_u8
+    sub #130
+    blt @on
+    cmp #64
+    bge @off
+    sta T1  ; 0-63
+    and #$03
+    sta T0  ; 0-3
+    lda #63
+    sub T1  ; 0-63
+    div #16
+    cmp T0  ; 0-3
+    bge @on
+    @off:
+    ldx #<.bank(Ppu_ChrBgAnimStatic)
+    .assert <.bank(Ppu_ChrBgAnimStatic) <> 0, error
+    bne @setBank  ; unconditional
+    @on:
+    ldx Zp_Chr0cBank_u8
+    @setBank:
+    chr04_bank x
     dec Zp_BreakerTimer_u8
     bne _GameLoop
 _FadeOut:
     jsr Func_FadeOutToBlack
+    ;; Restore CHR banks for window text.
+    chr00_bank #<.bank(Ppu_ChrBgFontUpper)
+    chr04_bank #<.bank(Ppu_ChrBgFontLower01)
     .assert * = Main_Breaker_LoadCutsceneRoom, error, "fallthrough"
 .ENDPROC
 
@@ -231,7 +263,7 @@ _FadeOut:
     ora #bSpawn::Device  ; param: bSpawn value
     jsr Func_SetLastSpawnPoint  ; preserves X
     lda Ram_DeviceTarget_u8_arr, x
-    sta Zp_Breaker_eFlag
+    sta Zp_BreakerBeingActivated_eFlag
     tax  ; param: eFlag value
     jsr Func_SetFlag
     ;; Hide the floating HUD.
@@ -434,10 +466,10 @@ _AvatarOffsetY_u8_arr:
 ;;; @return X The eRoom value for the cutscene room.
 .PROC FuncA_Breaker_GetCutsceneRoom
     ;; Set Y to the eBreaker value for the breaker that just got activated.
-    lda Zp_Breaker_eFlag
+    lda Zp_BreakerBeingActivated_eFlag
     .assert kFirstBreakerFlag > 0, error
     sub #kFirstBreakerFlag
-    tay
+    tay  ; eBreaker value
     ;; Set the cutscene pointer.
     lda _Cutscene_main_ptr_0_arr, y
     sta Zp_NextCutscene_main_ptr + 0

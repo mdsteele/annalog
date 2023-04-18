@@ -18,8 +18,10 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "../actor.inc"
+.INCLUDE "../avatar.inc"
 .INCLUDE "../charmap.inc"
 .INCLUDE "../device.inc"
+.INCLUDE "../flag.inc"
 .INCLUDE "../machine.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../platform.inc"
@@ -33,9 +35,12 @@
 .IMPORT FuncA_Machine_CannonTryMove
 .IMPORT FuncA_Objects_DrawCannonMachine
 .IMPORT FuncA_Room_MachineCannonReset
+.IMPORT Func_IsFlagSet
 .IMPORT Func_MachineCannonReadRegY
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrObjGarden
+.IMPORTZP Zp_AvatarMode_eAvatar
+.IMPORTZP Zp_BreakerBeingActivated_eFlag
 
 ;;;=========================================================================;;;
 
@@ -72,7 +77,7 @@ _Ext_sRoomExt:
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
     d_addr Passages_sPassage_arr_ptr, _Passages_sPassage_arr
     d_addr Enter_func_ptr, Func_Noop
-    d_addr FadeIn_func_ptr, Func_Noop
+    d_addr FadeIn_func_ptr, FuncC_Core_Boss_FadeInRoom
     D_END
 _TerrainData:
 :   .incbin "out/data/core_boss.room"
@@ -151,6 +156,357 @@ _Passages_sPassage_arr:
     d_byte SpawnBlock_u8, 21
     D_END
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
+.ENDPROC
+
+.PROC FuncC_Core_Boss_FadeInRoom
+    ;; Only redraw circuits if the circuit activation cutscene is playing (in
+    ;; this room, the player avatar will be hidden iff that's the case).
+    lda Zp_AvatarMode_eAvatar
+    .assert eAvatar::Hidden = 0, error
+    bne _Return
+_RedrawCircuits:
+    ldx #kLastBreakerFlag
+    @loop:
+    cpx Zp_BreakerBeingActivated_eFlag
+    beq @currentBreaker
+    jsr Func_IsFlagSet  ; preserves X, returns Z
+    bne @continue
+    lda #$00  ; param: tile ID base
+    beq @redraw  ; unconditional
+    @currentBreaker:
+    lda #$40  ; param: tile ID base
+    @redraw:
+    jsr FuncC_Core_Boss_RedrawCircuit  ; preserves X
+    @continue:
+    dex
+    cpx #kFirstBreakerFlag
+    bge @loop
+_Return:
+    rts
+.ENDPROC
+
+;;; Redraws tiles for a breaker circuit for the circuit activation cutscene.
+;;; @prereq Rendering is disabled.
+;;; @param A The tile ID base to use.
+;;; @param X The eFlag::Breaker* value for the circuit to redraw.
+;;; @preserve X
+.PROC FuncC_Core_Boss_RedrawCircuit
+    sta T2  ; tile ID base
+    stx T3  ; eFlag::Breaker* value
+_GetTransferEntries:
+    txa  ; eFlag::Breaker* value
+    sub #kFirstBreakerFlag
+    tay  ; eBreaker value
+    lda DataC_Core_Boss_BreakerTransfers_arr_ptr_0_arr, y
+    sta T0  ; transfer ptr (lo)
+    lda DataC_Core_Boss_BreakerTransfers_arr_ptr_1_arr, y
+    sta T1  ; transfer ptr (hi)
+_ReadHeader:
+    ldy #0
+    lda (T1T0), y  ; PPU control byte
+    sta Hw_PpuCtrl_wo
+    iny
+    lda (T1T0), y  ; PPU destination address (lo)
+    sta T4         ; PPU destination address (lo)
+    iny
+    lda (T1T0), y  ; PPU destination address (hi)
+    iny
+_WriteToPpu:
+    bne @entryBegin  ; unconditional
+    @entryLoop:
+    iny
+    ;; At this point, A holds the PPU address offset.
+    add T4  ; PPU destination address (lo)
+    sta T4  ; PPU destination address (lo)
+    lda #0
+    adc T5  ; PPU destination address (hi)
+    @entryBegin:
+    sta T5  ; PPU destination address (hi)
+    sta Hw_PpuAddr_w2
+    lda T4  ; PPU destination address (lo)
+    sta Hw_PpuAddr_w2
+    lda (T1T0), y  ; tile ID index
+    iny
+    tax  ; tile ID index
+    lda (T1T0), y  ; transfer length
+    iny
+    sta T6  ; transfer length
+    @dataLoop:
+    lda DataC_Core_Boss_CircuitTiles_u8_arr, x
+    ora T2  ; tile ID base
+    sta Hw_PpuData_rw
+    inx
+    dec T6  ; transfer length
+    bne @dataLoop
+    lda (T1T0), y  ; PPU address offset
+    bne @entryLoop
+    ldx T3  ; eFlag::Breaker* value (to preserve X)
+    rts
+.ENDPROC
+
+;;; Maps from eBreaker enum values to PPU transfer arrays.
+.REPEAT 2, table
+    D_TABLE_LO table, DataC_Core_Boss_BreakerTransfers_arr_ptr_0_arr
+    D_TABLE_HI table, DataC_Core_Boss_BreakerTransfers_arr_ptr_1_arr
+    D_TABLE eBreaker
+    d_entry table, Garden, DataC_Core_Boss_CircuitGardenTransfer_arr
+    d_entry table, Temple, DataC_Core_Boss_CircuitTempleTransfer_arr
+    d_entry table, Crypt,  DataC_Core_Boss_CircuitCryptTransfer_arr
+    d_entry table, Lava,   DataC_Core_Boss_CircuitLavaTransfer_arr
+    d_entry table, Mine,   DataC_Core_Boss_CircuitMineTransfer_arr
+    d_entry table, City,   DataC_Core_Boss_CircuitCityTransfer_arr
+    d_entry table, Shadow, DataC_Core_Boss_CircuitShadowTransfer_arr
+    D_END
+.ENDREPEAT
+
+.PROC DataC_Core_Boss_CircuitGardenTransfer_arr
+    .byte kPpuCtrlFlagsHorz  ; control flags
+    .addr $21d3              ; destination address
+_Row0:
+    .byte $03  ; tile ID offset
+    .byte 1    ; transfer length
+    .byte $20  ; address offset
+_Row1:
+    .byte $02  ; tile ID offset
+    .byte 2    ; transfer length
+    .byte $20  ; address offset
+_Row2:
+    .byte $01  ; tile ID offset
+    .byte 3    ; transfer length
+    .byte $20  ; address offset
+_Row3:
+    .byte $00  ; tile ID offset
+    .byte 4    ; transfer length
+    .byte $21  ; address offset
+_Row4:
+    .byte $40  ; tile ID offset
+    .byte 10   ; transfer length
+    .byte $21  ; address offset
+_Row5:
+    .byte $27  ; tile ID offset
+    .byte 9    ; transfer length
+    .byte 0    ; address offset (0 = stop)
+.ENDPROC
+
+.PROC DataC_Core_Boss_CircuitTempleTransfer_arr
+    .byte kPpuCtrlFlagsHorz  ; control flags
+    .addr $2716              ; destination address
+_Row0:
+    .byte $20  ; tile ID offset
+    .byte 7    ; transfer length
+    .byte $1f  ; address offset
+_Row1:
+    .byte $10  ; tile ID offset
+    .byte 8    ; transfer length
+    .byte $1f  ; address offset
+_Row2:
+    .byte $04  ; tile ID offset
+    .byte 4    ; transfer length
+    .byte $1f  ; address offset
+_Row3:
+    .byte $04  ; tile ID offset
+    .byte 4    ; transfer length
+    .byte $20  ; address offset
+_Row4:
+    .byte $05  ; tile ID offset
+    .byte 3    ; transfer length
+    .byte $20  ; address offset
+_Row5:
+    .byte $06  ; tile ID offset
+    .byte 2    ; transfer length
+    .byte $60  ; address offset
+_Row6:
+    .byte $07  ; tile ID offset
+    .byte 1    ; transfer length
+    .byte 0    ; address offset (0 = stop)
+.ENDPROC
+
+.PROC DataC_Core_Boss_CircuitCryptTransfer_arr
+    .byte kPpuCtrlFlagsHorz  ; control flags
+    .addr $2c1a              ; destination address
+_Row0:
+    .byte $20  ; tile ID offset
+    .byte 4    ; transfer length
+    .byte $1f  ; address offset
+_Row1:
+    .byte $10  ; tile ID offset
+    .byte 5    ; transfer length
+    .byte $1f  ; address offset
+_Row2:
+    .byte $04  ; tile ID offset
+    .byte 4    ; transfer length
+    .byte $1f  ; address offset
+_Row3:
+    .byte $04  ; tile ID offset
+    .byte 4    ; transfer length
+    .byte $1f  ; address offset
+_Row4:
+    .byte $04  ; tile ID offset
+    .byte 4    ; transfer length
+    .byte $1f  ; address offset
+_Row5:
+    .byte $04  ; tile ID offset
+    .byte 4    ; transfer length
+    .byte $1f  ; address offset
+_Row6:
+    .byte $04  ; tile ID offset
+    .byte 4    ; transfer length
+    .byte $1f  ; address offset
+_Row7:
+    .byte $04  ; tile ID offset
+    .byte 4    ; transfer length
+    .byte $20  ; address offset
+_Row8:
+    .byte $05  ; tile ID offset
+    .byte 3    ; transfer length
+    .byte 0    ; address offset (0 = stop)
+.ENDPROC
+
+.PROC DataC_Core_Boss_CircuitLavaTransfer_arr
+    .byte kPpuCtrlFlagsHorz  ; control flags
+    .addr $2c06              ; destination address
+_Row0:
+    .byte $33  ; tile ID offset
+    .byte 4    ; transfer length
+    .byte $20  ; address offset
+_Row1:
+    .byte $1b  ; tile ID offset
+    .byte 5    ; transfer length
+    .byte $22  ; address offset
+_Row2:
+    .byte $08  ; tile ID offset
+    .byte 4    ; transfer length
+    .byte $21  ; address offset
+_Row3:
+    .byte $08  ; tile ID offset
+    .byte 4    ; transfer length
+    .byte $21  ; address offset
+_Row4:
+    .byte $08  ; tile ID offset
+    .byte 4    ; transfer length
+    .byte $21  ; address offset
+_Row5:
+    .byte $08  ; tile ID offset
+    .byte 4    ; transfer length
+    .byte $21  ; address offset
+_Row6:
+    .byte $08  ; tile ID offset
+    .byte 4    ; transfer length
+    .byte $21  ; address offset
+_Row7:
+    .byte $08  ; tile ID offset
+    .byte 4    ; transfer length
+    .byte $21  ; address offset
+_Row8:
+    .byte $08  ; tile ID offset
+    .byte 4    ; transfer length
+    .byte 0    ; address offset (0 = stop)
+.ENDPROC
+
+.PROC DataC_Core_Boss_CircuitMineTransfer_arr
+    .byte kPpuCtrlFlagsHorz  ; control flags
+    .addr $2707              ; destination address
+_Row0:
+    .byte $30  ; tile ID offset
+    .byte 7    ; transfer length
+    .byte $20  ; address offset
+_Row1:
+    .byte $18  ; tile ID offset
+    .byte 8    ; transfer length
+    .byte $25  ; address offset
+_Row2:
+    .byte $08  ; tile ID offset
+    .byte 4    ; transfer length
+    .byte $21  ; address offset
+_Row3:
+    .byte $08  ; tile ID offset
+    .byte 4    ; transfer length
+    .byte $21  ; address offset
+_Row4:
+    .byte $08  ; tile ID offset
+    .byte 4    ; transfer length
+    .byte $21  ; address offset
+_Row5:
+    .byte $08  ; tile ID offset
+    .byte 3    ; transfer length
+    .byte $61  ; address offset
+_Row6:
+    .byte $08  ; tile ID offset
+    .byte 2    ; transfer length
+    .byte $21  ; address offset
+_Row7:
+    .byte $08  ; tile ID offset
+    .byte 1    ; transfer length
+    .byte 0    ; address offset (0 = stop)
+.ENDPROC
+
+.PROC DataC_Core_Boss_CircuitCityTransfer_arr
+    .byte kPpuCtrlFlagsHorz ; control flags
+    .addr $21b1             ; destination address
+_Row0:
+    .byte $0c  ; tile ID offset
+    .byte 1    ; transfer length
+    .byte $1f  ; address offset
+_Row1:
+    .byte $0c  ; tile ID offset
+    .byte 2    ; transfer length
+    .byte $1f  ; address offset
+_Row2:
+    .byte $0c  ; tile ID offset
+    .byte 3    ; transfer length
+    .byte $1f  ; address offset
+_Row3:
+    .byte $0c  ; tile ID offset
+    .byte 4    ; transfer length
+    .byte $1f  ; address offset
+_Row4:
+    .byte $0c  ; tile ID offset
+    .byte 4    ; transfer length
+    .byte $19  ; address offset
+_Row5:
+    .byte $4a  ; tile ID offset
+    .byte 10   ; transfer length
+    .byte $20  ; address offset
+_Row6:
+    .byte $37  ; tile ID offset
+    .byte 9    ; transfer length
+    .byte 0    ; address offset (0 = stop)
+.ENDPROC
+
+.PROC DataC_Core_Boss_CircuitShadowTransfer_arr
+    .byte kPpuCtrlFlagsVert  ; control flags
+    .addr $2ca1              ; destination address
+_Col0:
+    .byte $54  ; tile ID offset
+    .byte 4    ; transfer length
+    .byte $01  ; address offset
+_Col1:
+    .byte $58  ; tile ID offset
+    .byte 4    ; transfer length
+    .byte 0    ; address offset (0 = stop)
+.ENDPROC
+
+.PROC DataC_Core_Boss_CircuitTiles_u8_arr
+    ;; $00
+    .byte $33, $32, $31, $30
+    .byte $34, $35, $36, $37
+    .byte $3b, $3a, $39, $38
+    .byte $3c, $3d, $3e, $3f
+    ;; $10
+    .byte $34, $35, $36, $2b, $2b, $2b, $2b, $2b
+    .byte $2d, $2d, $2d, $2d, $2d, $3a, $39, $38
+    ;; $20
+    .byte $34, $2a, $2a, $2a, $2a, $2a, $2a
+    .byte $33, $2b, $2b, $2b, $2b, $2b, $2b, $2b, $2b
+    ;; $30
+    .byte $2c, $2c, $2c, $2c, $2c, $2c, $38
+    .byte $2d, $2d, $2d, $2d, $2d, $2d, $2d, $2d, $3f
+    ;; $40
+    .byte $33, $32, $31, $2a, $2a, $2a, $2a, $2a, $2a, $2a
+    .byte $2c, $2c, $2c, $2c, $2c, $2c, $2c, $3d, $3e, $3f
+    ;; $54
+    .byte $2e, $2e, $2e, $2e
+    .byte $2f, $2f, $2f, $2f
 .ENDPROC
 
 ;;;=========================================================================;;;
