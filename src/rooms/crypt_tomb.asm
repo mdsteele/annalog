@@ -278,6 +278,18 @@ _Devices_sDevice_arr:
     d_byte BlockCol_u8, 7
     d_byte Target_u8, eRoom::BossCrypt
     D_END
+    D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::Console
+    d_byte BlockRow_u8, 16
+    d_byte BlockCol_u8, 11
+    d_byte Target_u8, kWinchMachineIndex
+    D_END
+    D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::Sign
+    d_byte BlockRow_u8, 18
+    d_byte BlockCol_u8, 7
+    d_byte Target_u8, eDialog::CryptTombPlaque
+    D_END
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None
 _Passages_sPassage_arr:
@@ -616,6 +628,25 @@ _Chain:
     jsr FuncA_Objects_MoveShapeLeftHalfTile
     ldx #kWinchPlatformIndex  ; param: platform index
     jmp FuncA_Objects_DrawWinchChain
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Dialog"
+
+.EXPORT DataA_Dialog_CryptTombPlaque_sDialog
+.PROC DataA_Dialog_CryptTombPlaque_sDialog
+    .word ePortrait::Plaque
+    .byte "Here lies Dr. Zoe Alda$"
+    .byte "$"
+    .byte "Daughter of humans and$"
+    .byte "The mother of mermaids#"
+    .word ePortrait::Plaque
+    .byte "May we ever remember$"
+    .byte "    her service,$"
+    .byte "  And never repeat$"
+    .byte "    her mistakes#"
+    .word ePortrait::Done
 .ENDPROC
 
 ;;;=========================================================================;;;

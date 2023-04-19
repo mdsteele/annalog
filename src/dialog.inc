@@ -43,6 +43,7 @@
     MermaidGirl    = $0a09  ; same portrait as ChildNora
     MermaidQueen   = $0605  ; TODO: make a unique portrait for the queen
     Paper          = $0404
+    Plaque         = $1515
     Sign           = $0303
     Woman          = $0201
 .ENDENUM
@@ -51,6 +52,7 @@
 
 ;;; The list of dialogs in the game.
 .ENUM eDialog
+    CryptTombPlaque
     GardenEastCorra
     GardenLandingPaper
     GardenShaftPaper

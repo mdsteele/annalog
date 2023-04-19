@@ -30,6 +30,7 @@
 .INCLUDE "room.inc"
 .INCLUDE "window.inc"
 
+.IMPORT DataA_Dialog_CryptTombPlaque_sDialog
 .IMPORT DataA_Dialog_GardenEastCorra_sDialog
 .IMPORT DataA_Dialog_GardenLandingPaper_sDialog
 .IMPORT DataA_Dialog_GardenShaftPaper_sDialog
@@ -259,6 +260,7 @@ _UpdateScrolling:
     D_TABLE_LO table, DataA_Dialog_Table_sDialog_ptr_0_arr
     D_TABLE_HI table, DataA_Dialog_Table_sDialog_ptr_1_arr
     D_TABLE eDialog
+    d_entry table, CryptTombPlaque,    DataA_Dialog_CryptTombPlaque_sDialog
     d_entry table, GardenEastCorra,    DataA_Dialog_GardenEastCorra_sDialog
     d_entry table, GardenLandingPaper, DataA_Dialog_GardenLandingPaper_sDialog
     d_entry table, GardenShaftPaper,   DataA_Dialog_GardenShaftPaper_sDialog

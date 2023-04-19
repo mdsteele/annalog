@@ -567,11 +567,11 @@ _MoveToLowerRight:
 
 .EXPORT DataA_Dialog_TempleAltarPlaque_sDialog
 .PROC DataA_Dialog_TempleAltarPlaque_sDialog
-    .word ePortrait::Sign  ; TODO
+    .word ePortrait::Plaque
     .byte "- Temple of Peace -$"
-    .byte "Built together as a$"
-    .byte "Symbol of Unity by$"
-    .byte "mermaids and humans.#"
+    .byte " Built together by$"
+    .byte "mermaids and humans.$"
+    .byte "   - A.D. 2250 -#"
     .word ePortrait::Done
 .ENDPROC
 

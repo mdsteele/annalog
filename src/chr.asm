@@ -259,8 +259,8 @@
     .incbin "out/data/tiles/gazer_eye.chr"
     .res $04 * kSizeofChr
     .incbin "out/data/tiles/arch.chr"
-    .res $04 * kSizeofChr
-    .incbin "out/data/tiles/sign.chr"
+    .res $06 * kSizeofChr
+    .incbin "out/data/tiles/plaque.chr"
     .incbin "out/data/tiles/console.chr"
     .assert * - :- = kSizeofChr * $40, error
 .ENDPROC
@@ -509,6 +509,17 @@
 :   .incbin "out/data/tiles/font_lower.chr"
     .res $10 * kSizeofChr
     .incbin "out/data/tiles/portrait14.chr"
+    .assert * - :- = kSizeofChr * $40, error
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "CHR_BgFontLower15"
+
+.PROC Ppu_ChrBgFontLower15
+:   .incbin "out/data/tiles/font_lower.chr"
+    .res $10 * kSizeofChr
+    .incbin "out/data/tiles/portrait15.chr"
     .assert * - :- = kSizeofChr * $40, error
 .ENDPROC
 
