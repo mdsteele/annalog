@@ -205,10 +205,6 @@ _LockVert:
     .byte "those will keep on$"
     .byte "working. A long time.$"
     .byte "Maybe forever.#"
-    .word ePortrait::Paper
-    .byte "So I should probably$"
-    .byte "teach you how to use$"
-    .byte "them.#"
     .word ePortrait::Done
 .ENDPROC
 

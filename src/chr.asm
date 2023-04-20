@@ -643,7 +643,7 @@
     .incbin "out/data/tiles/minimap3.chr"
     .res $03 * kSizeofChr
     .incbin "out/data/tiles/minimap4.chr"
-    .res $02 * kSizeofChr
+    .res $01 * kSizeofChr
     .assert * - :- = kSizeofChr * $40, error
 .ENDPROC
 
@@ -877,9 +877,12 @@
     .incbin "out/data/tiles/vinebug.chr"
     .assert * - :- = (kTileIdObjPlantEyeFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/plant_eye.chr"
-    .res $04 * kSizeofChr
     .assert * - :- = (kTileIdObjGrenadeFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/grenade.chr"
+    .assert * - :- = (kTileIdObjPlantEyeRedFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/plant_eye_red.chr"
+    .assert * - :- = (kTileIdObjFishFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/fish.chr"
     .assert * - :- = (kTileIdObjBeetleFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/beetle.chr"
     .assert * - :- = (kTileIdObjBreakerFirst - $80) * kSizeofChr, error
@@ -934,9 +937,10 @@
     .incbin "out/data/tiles/bird.chr"
     .assert * - :- = (kTileIdObjCrabFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/crab.chr"
+    .res $04 * kSizeofChr
     .assert * - :- = (kTileIdObjFishFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/fish.chr"
-    .res $08 * kSizeofChr
+    .res $04 * kSizeofChr
     .assert * - :- = (kTileIdObjHotSpringFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/hotspring.chr"
     .res $18 * kSizeofChr

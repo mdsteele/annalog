@@ -49,6 +49,7 @@ kMaxPassages = 8
     CoreFlower
     CoreJunction
     CoreLock
+    CoreSouth
     CoreWest
     CryptEast
     CryptEscape

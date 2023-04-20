@@ -222,6 +222,8 @@ _Done:
     .byte  1, 20
     .byte  1, 21
     .byte  1, 22
+    .byte  2, 16
+    .byte  2, 17
     .byte  2, 18
     .byte  2, 19
     .byte  2, 20
@@ -246,15 +248,15 @@ _Done:
     .byte  2, 13
     .byte  2, 14
     .byte  2, 15
-    .byte  2, 16
-    .byte  2, 17
     .byte  3, 11
     .byte  3, 12
     .byte  3, 13
     .byte  3, 14
     .byte  3, 15
+    .byte  4, 12
     .byte  4, 13
     .byte  4, 14
+    .byte  5, 12
     .byte $ff
 .ENDPROC
 
@@ -280,9 +282,7 @@ _Done:
 .ENDPROC
 
 .PROC DataA_Pause_FactoryAreaCells_u8_arr2_arr
-    .byte  4, 12
     .byte  5, 11
-    .byte  5, 12
     .byte  5, 14
     .byte  5, 15
     .byte  6, 10
@@ -500,6 +500,12 @@ _Done:
     d_byte Col_u8, 8  ; room: PrisonFlower
     d_byte If_eFlag, 0
     d_byte Not_eFlag, eFlag::FlowerPrison
+    D_END
+    D_STRUCT sMarker
+    d_byte Row_u8, 4
+    d_byte Col_u8, 12  ; room: CoreSouth
+    d_byte If_eFlag, eFlag::CoreSouthCorraWaiting
+    d_byte Not_eFlag, eFlag::CoreSouthCorraHelped
     D_END
     D_STRUCT sMarker
     d_byte Row_u8, 4

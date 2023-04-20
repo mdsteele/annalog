@@ -96,6 +96,8 @@ kSaveMagicNumber = $b2
     BreakerCity
     BreakerShadow
     ;; Flags for persistent room state:
+    CoreSouthCorraHelped
+    CoreSouthCorraWaiting
     CryptLandingDroppedIn
     CryptSouthWeakFloor
     CryptTombWeakFloors

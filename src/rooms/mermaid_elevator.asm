@@ -101,7 +101,7 @@ _Machines_sMachine_arr:
 :   .assert * - :- = kJetMachineIndex * .sizeof(sMachine), error
     D_STRUCT sMachine
     d_byte Code_eProgram, eProgram::MermaidElevatorJet
-    d_byte Breaker_eFlag, eFlag::BreakerMine
+    d_byte Breaker_eFlag, eFlag::BreakerTemple
     d_byte Flags_bMachine, bMachine::MoveV
     d_byte Status_eDiagram, eDiagram::Jet
     d_word ScrollGoalX_u16, $10

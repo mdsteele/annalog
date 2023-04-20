@@ -52,6 +52,7 @@
 
 ;;; The list of dialogs in the game.
 .ENUM eDialog
+    CoreSouthCorra
     CryptTombPlaque
     GardenEastCorra
     GardenLandingPaper

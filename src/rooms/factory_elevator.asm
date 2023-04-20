@@ -114,7 +114,7 @@ _Machines_sMachine_arr:
 :   .assert * - :- = kUpperJetMachineIndex * .sizeof(sMachine), error
     D_STRUCT sMachine
     d_byte Code_eProgram, eProgram::CoreElevatorJet
-    d_byte Breaker_eFlag, eFlag::BreakerCity
+    d_byte Breaker_eFlag, eFlag::BreakerCrypt
     d_byte Flags_bMachine, bMachine::MoveV
     d_byte Status_eDiagram, eDiagram::Jet
     d_word ScrollGoalX_u16, $10
@@ -133,7 +133,7 @@ _Machines_sMachine_arr:
     .assert * - :- = kLowerJetMachineIndex * .sizeof(sMachine), error
     D_STRUCT sMachine
     d_byte Code_eProgram, eProgram::MermaidElevatorJet
-    d_byte Breaker_eFlag, eFlag::BreakerMine
+    d_byte Breaker_eFlag, eFlag::BreakerTemple
     d_byte Flags_bMachine, bMachine::MoveV
     d_byte Status_eDiagram, eDiagram::Jet
     d_word ScrollGoalX_u16, $10

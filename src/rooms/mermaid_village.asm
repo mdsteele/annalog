@@ -253,17 +253,20 @@ _Passages_sPassage_arr:
 .ENDPROC
 
 .PROC FuncC_Mermaid_Village_EnterRoom
-    ;; Remove Corra from this room until the player has met with the mermaid
-    ;; queen.
+    ;; Until Anna meets the mermaid queen, Corra is in GardenEast, not here.
     flag_bit Sram_ProgressFlags_arr, eFlag::MermaidHut1MetQueen
-    bne @done
+    beq @removeCorra
+    ;; Once Corra is waiting in CoreSouth, she's no longer here.
+    flag_bit Sram_ProgressFlags_arr, eFlag::CoreSouthCorraWaiting
+    beq @keepCorra
+    @removeCorra:
     lda #0
     .assert eActor::None = 0, error
     sta Ram_ActorType_eActor_arr + kCorraActorIndex
     .assert eDevice::None = 0, error
     sta Ram_DeviceType_eDevice_arr + kCorraDeviceIndexLeft
     sta Ram_DeviceType_eDevice_arr + kCorraDeviceIndexRight
-    @done:
+    @keepCorra:
     rts
 .ENDPROC
 
@@ -284,27 +287,38 @@ _Passages_sPassage_arr:
 .PROC DataA_Dialog_MermaidVillageFarmer_sDialog
     .addr _InitialFunc
 _InitialFunc:
-    flag_bit Sram_ProgressFlags_arr, eFlag::BreakerGarden
-    bne @thankYou
-    flag_bit Sram_ProgressFlags_arr, eFlag::GardenTowerCratesPlaced
-    bne @monster
     flag_bit Sram_ProgressFlags_arr, eFlag::MermaidHut1MetQueen
-    bne @needHelp
-    @farming:
+    beq _NoQuestFunc
+    ;; First quest: Defeat the Garden boss.
+    flag_bit Sram_ProgressFlags_arr, eFlag::BreakerGarden
+    beq _Quest1Func
+    ;; To be safe, set the "crates placed" flag (although normally, you can't
+    ;; reach the garden breaker without the crates being placed).
+    ldx #eFlag::GardenTowerCratesPlaced  ; param: flag
+    jsr Func_SetFlag
+    ;; Intermission: Thanks for defeating the garden boss.
+    flag_bit Sram_ProgressFlags_arr, eFlag::CoreSouthCorraWaiting
+    beq _ThankYouFunc
+    ;; Third quest: Rescue Alex and the other children.
+    flag_bit Sram_ProgressFlags_arr, eFlag::PrisonUpperFreedKids
+    beq _Quest2Func
+    ;; Otherwise, back to no quest.
+_NoQuestFunc:
     ldya #_Farming_sDialog
     rts
-    @needHelp:
+_Quest1Func:
+    flag_bit Sram_ProgressFlags_arr, eFlag::GardenTowerCratesPlaced
+    bne @monster
     ldya #_NeedHelp_sDialog
     rts
     @monster:
     ldya #_Monster_sDialog
     rts
-    @thankYou:
-    ;; To be safe, place crates (although normally, you can't reach the garden
-    ;; breaker without first having the crates placed).
-    ldx #eFlag::GardenTowerCratesPlaced  ; param: flag
-    jsr Func_SetFlag
+_ThankYouFunc:
     ldya #_ThankYou_sDialog
+    rts
+_Quest2Func:
+    ldya #_LookingForCorra_sDialog
     rts
 _Farming_sDialog:
     .word ePortrait::Man
@@ -343,6 +357,13 @@ _ThankYou_sDialog:
     .byte "for your help. You$"
     .byte "should go see the$"
     .byte "queen.#"
+    .word ePortrait::Done
+_LookingForCorra_sDialog:
+    .word ePortrait::Man
+    .byte "Are you looking for$"
+    .byte "Corra? I think she$"
+    .byte "went exploring in the$"
+    .byte "caves above our vale.#"
     .word ePortrait::Done
 .ENDPROC
 

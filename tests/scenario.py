@@ -391,6 +391,11 @@ def test_marker_rooms(areas, markers):
         room_name = marker['room']
         area_name = area_name_from_room_name(room_name)
         area = areas[area_name]
+        if room_name not in area['rooms']:
+            print('SCENARIO: marker {} is in nonexistant room {}'.format(
+                marker['name'], room_name))
+            failed = True
+            continue
         room = area['rooms'][room_name]
         cell = marker['cell']
         if cell not in room['cells']:
