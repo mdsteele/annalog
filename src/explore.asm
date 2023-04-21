@@ -88,7 +88,6 @@
 .IMPORTZP Zp_Current_sTileset
 .IMPORTZP Zp_FloatingHud_bHud
 .IMPORTZP Zp_FrameCounter_u8
-.IMPORTZP Zp_OamOffset_u8
 .IMPORTZP Zp_P1ButtonsPressed_bJoypad
 .IMPORTZP Zp_PpuScrollX_u8
 .IMPORTZP Zp_PpuScrollY_u8
@@ -156,8 +155,6 @@ Zp_NextCutscene_main_ptr: .res 2
     chr18_bank <(Zp_Current_sRoom + sRoom::Chr18Bank_u8)
     jsr_prga FuncA_Terrain_InitRoomScrollAndNametables
     jsr_prga FuncA_Avatar_FindNearbyDevice
-    lda #0
-    sta Zp_OamOffset_u8
     jsr_prga FuncA_Objects_DrawObjectsForRoom
     jsr Func_ClearRestOfOam
     ;; Zp_Render_bPpuMask will be set by FuncA_Objects_DrawObjectsForRoom.

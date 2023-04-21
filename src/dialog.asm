@@ -76,6 +76,7 @@
 .IMPORT FuncA_Objects_DrawObjectsForRoom
 .IMPORT FuncA_Terrain_ScrollTowardsAvatar
 .IMPORT FuncA_Terrain_ScrollTowardsGoal
+.IMPORT Func_AllocOneObject
 .IMPORT Func_ClearRestOfOamAndProcessFrame
 .IMPORT Func_SetFlag
 .IMPORT Func_Window_GetRowPpuAddr
@@ -87,7 +88,6 @@
 .IMPORT Ram_PpuTransfer_arr
 .IMPORTZP Zp_FloatingHud_bHud
 .IMPORTZP Zp_FrameCounter_u8
-.IMPORTZP Zp_OamOffset_u8
 .IMPORTZP Zp_P1ButtonsPressed_bJoypad
 .IMPORTZP Zp_PpuTransferLen_u8
 .IMPORTZP Zp_ScrollGoalY_u8
@@ -240,8 +240,7 @@ _UpdateScrolling:
 ;;; @prereq Explore mode is initialized.
 .PROC Main_Dialog_Run
 _GameLoop:
-    jsr_prga FuncA_Objects_DrawObjectsForRoom
-    jsr_prga FuncA_Dialog_DrawCursorOrPrompt
+    jsr_prga FuncA_Objects_DrawDialogCursorAndObjectsForRoom
     jsr Func_ClearRestOfOamAndProcessFrame
 _Tick:
     jsr_prga FuncA_Dialog_Tick  ; sets C if window should be closed; returns X
@@ -832,22 +831,27 @@ _EndOfLine:
     rts
 .ENDPROC
 
-;;; If a yes-or-no question is active, draws the yes/no cursor; or, if dialog
-;;; is paused, draws the button prompt; otherwise, does nothing.
-.PROC FuncA_Dialog_DrawCursorOrPrompt
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Objects"
+
+;;; Draws the dialog cursor/prompt, as well as any objects in the room.
+.PROC FuncA_Objects_DrawDialogCursorAndObjectsForRoom
+    jsr FuncA_Objects_DrawObjectsForRoom
     bit Zp_DialogPaused_bool
     bmi @paused
     rts
     @paused:
     bit Zp_DialogYesNoCursor_bYesNo
     .assert bYesNo::Active = bProc::Negative, error
-    bmi FuncA_Dialog_DrawYesNoCursor
-    .assert * = FuncA_Dialog_DrawButtonPrompt, error, "fallthrough"
+    bmi FuncA_Objects_DrawDialogYesNoCursor
+    .assert * = FuncA_Objects_DrawDialogButtonPrompt, error, "fallthrough"
 .ENDPROC
 
 ;;; Draws the dialog-paused button prompt.
 ;;; @prereq Zp_DialogPaused_bool is true.
-.PROC FuncA_Dialog_DrawButtonPrompt
+.PROC FuncA_Objects_DrawDialogButtonPrompt
+    jsr Func_AllocOneObject  ; returns Y
     ;; Calculate the screen Y-position.
     lda Zp_FrameCounter_u8
     div #8
@@ -858,7 +862,6 @@ _EndOfLine:
     @noZigZag:
     add #kScreenHeightPx - kWindowMarginBottomPx - $12
     ;; Set object attributes.
-    ldy Zp_OamOffset_u8
     sta Ram_Oam_sObj_arr64 + sObj::YPos_u8, y
     lda #$e8
     sta Ram_Oam_sObj_arr64 + sObj::XPos_u8, y
@@ -866,31 +869,26 @@ _EndOfLine:
     sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
     lda #kTileIdObjDialogPrompt
     sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
-    ;; Update the OAM offset.
-    .repeat .sizeof(sObj)
-    iny
-    .endrepeat
-    sty Zp_OamOffset_u8
     rts
 .ENDPROC
 
 ;;; Draws the yes/no cursor.
 ;;; @prereq Yes-or-no question mode is active.
-.PROC FuncA_Dialog_DrawYesNoCursor
+.PROC FuncA_Objects_DrawDialogYesNoCursor
     ;; Determine cursor position and width.
-    ldx #2
+    ldx #2  ; width - 1 (2 for "YES")
     lda #kDialogYesObjX
     bit Zp_DialogYesNoCursor_bYesNo
     .assert bYesNo::Yes = bProc::Overflow, error
     bvs @yes
-    dex
+    @no:
+    dex  ; width - 1 (now 1 for "NO")
     lda #kDialogNoObjX
     @yes:
     sta T0  ; obj left
     stx T1  ; width - 1
-    ;; Draw cursor objects.
-    ldy Zp_OamOffset_u8
 _Loop:
+    jsr Func_AllocOneObject  ; preserves X and T0+, returns Y
     ;; Set tile ID.
     txa
     beq @side  ; right side
@@ -916,13 +914,8 @@ _Loop:
     sta Ram_Oam_sObj_arr64 + sObj::XPos_u8, y
     add #kTileWidthPx
     sta T0  ; obj left
-    ;; Move OAM offset to the next object.
-    .repeat .sizeof(sObj)
-    iny
-    .endrepeat
     dex
     bpl _Loop
-    sty Zp_OamOffset_u8
     rts
 .ENDPROC
 

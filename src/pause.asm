@@ -35,6 +35,8 @@
 .IMPORT DataA_Pause_AreaNames_u8_arr_ptr_1_arr
 .IMPORT DataA_Pause_Minimap_sMarker_arr
 .IMPORT Data_PowersOfTwo_u8_arr8
+.IMPORT Func_AllocObjects
+.IMPORT Func_AllocOneObject
 .IMPORT Func_ClearRestOfOam
 .IMPORT Func_ClearRestOfOamAndProcessFrame
 .IMPORT Func_CountDeliveredFlowers
@@ -55,7 +57,6 @@
 .IMPORTZP Zp_Chr0cBank_u8
 .IMPORTZP Zp_Current_sRoom
 .IMPORTZP Zp_FrameCounter_u8
-.IMPORTZP Zp_OamOffset_u8
 .IMPORTZP Zp_P1ButtonsPressed_bJoypad
 .IMPORTZP Zp_PpuScrollX_u8
 .IMPORTZP Zp_PpuScrollY_u8
@@ -565,7 +566,7 @@ _CircuitBreakers_byte_arr8_arr6:
 
 ;;; Draws objects to mark the current area on the minimap.
 .PROC FuncA_Pause_DrawMinimapObjects
-    ;; Copy the current room's AreaCells_u8_arr2_arr_ptr into T1T0.
+    ;; Copy the current area's AreaCells_u8_arr2_arr_ptr into T1T0.
     lda <(Zp_Current_sRoom + sRoom::Flags_bRoom)
     and #bRoom::AreaMask
     tay  ; eArea value
@@ -573,7 +574,8 @@ _CircuitBreakers_byte_arr8_arr6:
     sta T0
     lda DataA_Pause_AreaCells_u8_arr2_arr_ptr_1_arr, y
     sta T1
-    ;; Draw an object for each explored minimap cell in the array.
+    ;; Draw an object for each minimap cell in the array (objects for any
+    ;; unexplored cells will be hidden behind the minimap BG tiles).
     ldy #0
     beq @continue  ; unconditional
     @loop:
@@ -581,38 +583,15 @@ _CircuitBreakers_byte_arr8_arr6:
     ;; it in T2 for later.
     iny
     sta T2  ; minimap row number
-    ;; Determine the bitmask we should use for this minimap row number, and
-    ;; store it in T4.
-    and #$07
-    tax
-    lda Data_PowersOfTwo_u8_arr8, x
-    sta T4  ; mask
     ;; Read the minimap column number and store it in T3 for later.
     lda (T1T0), y
     iny
     sta T3  ; minimap col number
-    ;; We'll use X as the byte index into Sram_Minimap_u16_arr.  If we're in
-    ;; the first eight rows, we'll be checking our bitmask against the low
-    ;; eight bits of each u16; otherwise, we'll be checking against the high
-    ;; eight bits.
-    mul #2
-    tax
-    lda T2  ; minimap row number
-    cmp #$08
-    blt @loByte
-    inx
-    @loByte:
-    ;; Check if this minimap cell has been explored.  If not, don't draw an
-    ;; object for this cell.
-    lda Sram_Minimap_u16_arr, x
-    and T4  ; mask
-    beq @continue
     ;; If this minimap cell is the avatar's current position, blink its color.
+    cmp Zp_CameraMinimapCol_u8
+    bne @noBlink
     lda T2  ; minimap row number
     cmp Zp_CameraMinimapRow_u8
-    bne @noBlink
-    lda T3  ; minimap col number
-    cmp Zp_CameraMinimapCol_u8
     bne @noBlink
     lda Zp_FrameCounter_u8
     and #$10
@@ -623,23 +602,23 @@ _CircuitBreakers_byte_arr8_arr6:
     @noBlink:
     lda #bObj::Pri | kPaletteObjMinimapCurrentArea
     @setFlags:
+    sta T4  ; object flags
     ;; Draw an object for this minimap cell.
-    ldx Zp_OamOffset_u8
-    sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, x
+    sty T5  ; byte offset into AreaCells_u8_arr2_arr_ptr
+    jsr Func_AllocOneObject  ; preserves T0+, returns Y
+    lda T4  ; object flags
+    sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
     lda T2  ; minimap row number
     mul #kTileHeightPx
     adc #kMinimapTopPx - 1
-    sta Ram_Oam_sObj_arr64 + sObj::YPos_u8, x
+    sta Ram_Oam_sObj_arr64 + sObj::YPos_u8, y
     lda T3  ; minimap col number
     mul #kTileWidthPx
     adc #kMinimapLeftPx
-    sta Ram_Oam_sObj_arr64 + sObj::XPos_u8, x
+    sta Ram_Oam_sObj_arr64 + sObj::XPos_u8, y
     lda #kTileIdObjMinimapCurrentArea
-    sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, x
-    .repeat .sizeof(sObj)
-    inx
-    .endrepeat
-    stx Zp_OamOffset_u8
+    sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
+    ldy T5  ; byte offset into AreaCells_u8_arr2_arr_ptr
     ;; Read the minimap row number (or $ff terminator) for the next iteration.
     @continue:
     lda (T1T0), y
@@ -653,12 +632,12 @@ _CircuitBreakers_byte_arr8_arr6:
     div #4
     and #$03
     sta T0  ; anim offset
-    ldy Zp_OamOffset_u8
     ldx #14
     @loop:
     lda _CircuitBreakerMask_byte_arr, x
     and Zp_ActivatedBreakers_byte
     beq @continue
+    jsr Func_AllocOneObject  ; preserves X and T0+, returns Y
     lda _CircuitPosX_u8_arr, x
     sta Ram_Oam_sObj_arr64 + sObj::XPos_u8, y
     lda _CircuitPosY_u8_arr, x
@@ -668,13 +647,9 @@ _CircuitBreakers_byte_arr8_arr6:
     lda _CircuitFirstTile_u8_arr, x
     add T0  ; anim offset
     sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
-    .repeat .sizeof(sObj)
-    iny
-    .endrepeat
     @continue:
     dex
     bpl @loop
-    sty Zp_OamOffset_u8
     rts
 _CircuitBreakerMask_byte_arr:
     .byte $01, $01, $01, $20, $20, $20
@@ -714,10 +689,8 @@ _CircuitFlags_bObj_arr:
     beq @noFlowerCount
     sta T0  ; flower count
     ;; Allocate objects to display the flower count.
-    ldy Zp_OamOffset_u8
-    tya
-    add #.sizeof(sObj) * 2
-    sta Zp_OamOffset_u8
+    lda #2  ; param: num objects
+    jsr Func_AllocObjects  ; preserves T0+, returns Y
     ;; Set object positions.
     lda #$28
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::XPos_u8, y

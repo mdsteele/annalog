@@ -96,8 +96,8 @@ _InitializeRam:
     .endrepeat
     inx
     bne @loop
-    ;; May as well also clear OAM (note that Zp_OamOffset_u8 is zero, since we
-    ;; just zeroed all of RAM).
+    ;; May as well also clear OAM (note that our OAM offset is zero, since we
+    ;; just zeroed all of RAM, so this will clear OAM from the beginning).
     jsr Func_ClearRestOfOam
     ;; Initialize HBlank IRQs.
     lda #$ff

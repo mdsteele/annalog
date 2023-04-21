@@ -30,7 +30,6 @@
 
 ;;; A byte offset into Ram_Oam_sObj_arr64 pointing to the next unused entry.
 ;;; This must always be a multiple of .sizeof(sObj).
-.EXPORTZP Zp_OamOffset_u8
 Zp_OamOffset_u8: .res 1
 
 ;;; The screen-space X/Y positions to use for various shape functions below.
@@ -68,6 +67,30 @@ Ram_Oam_sObj_arr64: .res .sizeof(sObj) * kNumOamSlots
     .assert .sizeof(sObj) * 64 = $100, error
     bne @loop
     sty Zp_OamOffset_u8
+    rts
+.ENDPROC
+
+;;; Allocates a single OAM slot, and returns the byte offset into
+;;; Ram_Oam_sObj_arr64 for the allocated slot.
+;;; @return Y The OAM byte offset for the allocated object.
+;;; @preserve X, T0+
+.EXPORT Func_AllocOneObject
+.PROC Func_AllocOneObject
+    lda #1  ; param: num objects
+    .assert * = Func_AllocObjects, error, "fallthrough"
+.ENDPROC
+
+;;; Allocates a number of contiguous OAM slots, and returns the byte offset
+;;; into Ram_Oam_sObj_arr64 for the first allocated slot.
+;;; @param A The number of OAM slots to allocate.
+;;; @return Y The OAM byte offset for the first of the allocated objects.
+;;; @preserve X, T0+
+.EXPORT Func_AllocObjects
+.PROC Func_AllocObjects
+    ldy Zp_OamOffset_u8
+    mul #.sizeof(sObj)
+    adc Zp_OamOffset_u8  ; carry will already by clear from the multiply
+    sta Zp_OamOffset_u8
     rts
 .ENDPROC
 

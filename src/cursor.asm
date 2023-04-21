@@ -31,6 +31,8 @@
 .IMPORT FuncA_Console_GetCurrentInstNumFields
 .IMPORT FuncA_Console_IsPrevInstructionEmpty
 .IMPORT FuncA_Console_SetFieldForNominalOffset
+.IMPORT Func_AllocObjects
+.IMPORT Func_AllocOneObject
 .IMPORT Ram_Console_sProgram
 .IMPORT Ram_MachinePc_u8_arr
 .IMPORT Ram_MachineStatus_eMachine_arr
@@ -46,7 +48,6 @@
 .IMPORTZP Zp_FrameCounter_u8
 .IMPORTZP Zp_MachineMaxInstructions_u8
 .IMPORTZP Zp_MenuItem_u8
-.IMPORTZP Zp_OamOffset_u8
 .IMPORTZP Zp_P1ButtonsPressed_bJoypad
 .IMPORTZP Zp_WindowTop_u8
 
@@ -220,104 +221,6 @@ _MenuFunc:
     jmp (T1T0)
 .ENDPROC
 
-;;; Draws the console instruction field cursor.
-.EXPORT FuncA_Console_DrawFieldCursor
-.PROC FuncA_Console_DrawFieldCursor
-    lda #$00  ; param: cursor diminished bool ($00 = undiminished)
-    .assert * = FuncA_Console_DrawFieldCursorDiminished, error, "fallthrough"
-.ENDPROC
-
-;;; Draws the console instruction field cursor, possibly diminished.
-;;; @param A True ($ff) to draw the cursor diminished, false ($00) otherwise.
-.PROC FuncA_Console_DrawFieldCursorDiminished
-    sta T3  ; cursor diminished bool
-_YPosition:
-    ;; Calculate the window row that the cursor is in.
-    lda Zp_ConsoleInstNumber_u8
-    cmp Zp_ConsoleNumInstRows_u8
-    blt @leftColumn
-    sub Zp_ConsoleNumInstRows_u8
-    @leftColumn:
-    add #1  ; add 1 for the top border
-    ;; Calculate the Y-position of the objects and store in T0.
-    mul #kTileHeightPx
-    adc Zp_WindowTop_u8  ; carry will by clear
-    adc #$ff  ; subtract 1 (carry will still be clear)
-    sta T0  ; Y-position
-_XPosition:
-    jsr FuncA_Console_GetCurrentFieldOffset  ; preserves T0+, returns A
-    mul #kTileWidthPx
-    add #kTileWidthPx * 4
-    ldx Zp_ConsoleInstNumber_u8
-    cpx Zp_ConsoleNumInstRows_u8
-    blt @leftColumn
-    add #kTileWidthPx * 10
-    @leftColumn:
-    sta T1  ; X-position
-_PrepareForLoop:
-    jsr FuncA_Console_GetCurrentFieldWidth  ; preserves T0+, returns A
-    sta T2  ; cursor width - 1
-    tax  ; loop variable (counts from cursor width - 1 down to zero)
-    ldy Zp_OamOffset_u8
-_ObjectLoop:
-    ;; Set Y-position.
-    lda T0  ; Y-position
-    sta Ram_Oam_sObj_arr64 + sObj::YPos_u8, y
-    ;; Set and increment X-position.
-    lda T1  ; X-position
-    sta Ram_Oam_sObj_arr64 + sObj::XPos_u8, y
-    add #kTileWidthPx
-    sta T1  ; X-position
-    ;; Set flags.
-    lda #bObj::Pri | kPaletteObjCursor
-    cpx #0
-    bne @noFlip
-    eor #bObj::FlipH
-    @noFlip:
-    sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
-    ;; Set tile ID.
-    lda T3  ; cursor diminished bool
-    bpl @undiminished
-    lda T2  ; cursor width - 1
-    beq @dimSingle
-    cpx T2  ; cursor width - 1
-    beq @dimSide
-    txa
-    bne @continue
-    @dimSide:
-    lda #kTileIdObjCursorDimLeft
-    bne @setTile  ; unconditional
-    @dimSingle:
-    lda #kTileIdObjCursorDimSingle
-    bne @setTile  ; unconditional
-    @undiminished:
-    lda T2  ; cursor width - 1
-    beq @tileSingle
-    cpx T2  ; cursor width - 1
-    beq @tileSide
-    txa
-    beq @tileSide
-    @tileMiddle:
-    lda #kTileIdObjCursorSolidMiddle
-    bne @setTile  ; unconditional
-    @tileSide:
-    lda #kTileIdObjCursorSolidLeft
-    bne @setTile  ; unconditional
-    @tileSingle:
-    lda #kTileIdObjCursorSolidSingle
-    @setTile:
-    sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
-    ;; Move offset to the next object.
-    .repeat .sizeof(sObj)
-    iny
-    .endrepeat
-    @continue:
-    dex
-    bpl _ObjectLoop
-    sty Zp_OamOffset_u8
-    rts
-.ENDPROC
-
 ;;; Draws the console menu cursor and the diminished console field cursor.
 .EXPORT FuncA_Console_DrawMenuCursor
 .PROC FuncA_Console_DrawMenuCursor
@@ -342,10 +245,89 @@ _YPosition:
     adc Zp_WindowTop_u8  ; carry will by clear
     adc #$ff  ; subtract 1 (carry will still be clear)
     sta T0  ; cursor Y-position, in pixels
-_PrepareForLoop:
+_DrawCursors:
+    jsr FuncA_Console_DrawFullCursor
+    lda #$ff  ; param: cursor diminished bool ($ff = diminished)
+    bne FuncA_Console_DrawFieldCursorFullOrDim  ; unconditional
+.ENDPROC
+
+;;; Draws the console instruction field cursor.
+.EXPORT FuncA_Console_DrawFieldCursor
+.PROC FuncA_Console_DrawFieldCursor
+    lda #$00  ; param: cursor diminished bool ($00 = undiminished)
+    .assert * = FuncA_Console_DrawFieldCursorFullOrDim, error, "fallthrough"
+.ENDPROC
+
+;;; Draws the console instruction field cursor, possibly diminished.
+;;; @param A True ($ff) to draw the cursor diminished, false ($00) otherwise.
+.PROC FuncA_Console_DrawFieldCursorFullOrDim
+    sta T3  ; cursor diminished bool
+_YPosition:
+    ;; Calculate the window row that the cursor is in.
+    lda Zp_ConsoleInstNumber_u8
+    cmp Zp_ConsoleNumInstRows_u8
+    blt @leftColumn
+    sub Zp_ConsoleNumInstRows_u8
+    @leftColumn:
+    add #1  ; add 1 for the top border
+    ;; Calculate the Y-position of the objects and store in T0.
+    mul #kTileHeightPx
+    adc Zp_WindowTop_u8  ; carry will by clear
+    adc #$ff  ; subtract 1 (carry will still be clear)
+    sta T0  ; Y-position
+_XPosition:
+    jsr FuncA_Console_GetCurrentFieldOffset  ; preserves T0+, returns A
+    mul #kTileWidthPx
+    add #kTileWidthPx * 4
+    ldx Zp_ConsoleInstNumber_u8
+    cpx Zp_ConsoleNumInstRows_u8
+    blt @leftColumn
+    add #kTileWidthPx * 10
+    @leftColumn:
+    sta T1  ; X-position
+_DrawCursor:
+    jsr FuncA_Console_GetCurrentFieldWidth  ; preserves T0+, returns A
+    sta T2  ; cursor width - 1
+    bit T3  ; cursor diminished bool
+    bpl FuncA_Console_DrawFullCursor
+    .assert * = FuncA_Console_DrawDiminishedCursor, error, "fallthrough"
+.ENDPROC
+
+;;; Draws a diminished window cursor at the specified position on the screen.
+;;; @param T0 The Y-position for the top of the cursor.
+;;; @param T1 The X-position for the left of the cursor.
+;;; @param T2 The (width - 1) of the cursor, in tiles.
+.PROC FuncA_Console_DrawDiminishedCursor
+    lda #2  ; param: num objects
+    jsr Func_AllocObjects  ; preserves T0+, returns Y
+    lda T1  ; X-position
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::XPos_u8, y
+    lda T2  ; cursor (width - 1), in tiles
+    mul #kTileWidthPx
+    adc T1  ; X-position
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::XPos_u8, y
+    lda T0  ; Y-position
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::YPos_u8, y
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::YPos_u8, y
+    lda #kTileIdObjCursorDimLeft
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Tile_u8, y
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Tile_u8, y
+    lda #bObj::Pri | kPaletteObjCursor
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Flags_bObj, y
+    eor #bObj::FlipH
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Flags_bObj, y
+    rts
+.ENDPROC
+
+;;; Draws a full (undiminished) window cursor at the specified position on the
+;;; screen.
+;;; @param T0 The screen pixel Y-position for the top of the cursor.
+;;; @param T1 The screen pixel X-position for the left of the cursor.
+;;; @param T2 The (width - 1) of the cursor, in tiles.
+.PROC FuncA_Console_DrawFullCursor
     ldx T2  ; cursor (width - 1), in tiles
-    ldy Zp_OamOffset_u8
 _ObjectLoop:
+    jsr Func_AllocOneObject  ; preserves X and T0+, returns Y
     ;; Set Y-position.
     lda T0  ; Y-position
     sta Ram_Oam_sObj_arr64 + sObj::YPos_u8, y
@@ -379,15 +361,9 @@ _ObjectLoop:
     @setTile:
     sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
     ;; Move offset to the next object.
-    .repeat .sizeof(sObj)
-    iny
-    .endrepeat
     dex
     bpl _ObjectLoop
-    sty Zp_OamOffset_u8
-_DrawFieldCursor:
-    lda #$ff  ; param: cursor diminished bool ($ff = diminished)
-    jmp FuncA_Console_DrawFieldCursorDiminished
+    rts
 .ENDPROC
 
 ;;; Draws the console debug cursor.
@@ -433,7 +409,8 @@ _DrawDim:
 ;;; @param A True ($ff) to draw the cursor diminished, false ($00) otherwise.
 .PROC FuncA_Console_DrawInstructionCursor
     sta T1  ; cursor diminished bool
-    ldy Zp_OamOffset_u8
+    lda #2  ; param: num objects
+    jsr Func_AllocObjects  ; preserves T0+, returns Y
 _YPosition:
     ;; Calculate the window row that the cursor is in.
     ldx Zp_ConsoleMachineIndex_u8
@@ -472,9 +449,6 @@ _TileAndFlags:
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Flags_bObj, y
     eor #bObj::FlipH
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Flags_bObj, y
-    tya
-    add #.sizeof(sObj) * 2
-    sta Zp_OamOffset_u8
     rts
 .ENDPROC
 

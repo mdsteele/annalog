@@ -27,12 +27,12 @@
 .INCLUDE "ppu.inc"
 
 .IMPORT FuncA_Objects_MoveShapeDownOneTile
+.IMPORT Func_AllocObjects
 .IMPORT Func_MachineRead
 .IMPORT Func_SetMachineIndex
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORT Sram_ProgressFlags_arr
 .IMPORTZP Zp_Current_sMachine_ptr
-.IMPORTZP Zp_OamOffset_u8
 .IMPORTZP Zp_ShapePosY_i16
 .IMPORTZP Zp_WindowTop_u8
 
@@ -165,39 +165,40 @@ _OtherRegisters:
 ;;; @param A The name of the register ('A'-'Z').
 ;;; @param X The register number ($a-$f) whose value should be read.
 .PROC FuncA_Objects_DrawHudRegister
-    pha  ; register name
-    txa  ; param: register number
-    jsr Func_MachineRead  ; returns A
-    ldy Zp_OamOffset_u8
-    ;; Set the tile ID for the register value.
-    .assert '0' & $0f = 0, error
-    ora #'0'
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Tile_u8, y
-    ;; Set the tile ID for the register name.
-    pla  ; register name
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Tile_u8, y
-    ;; Set the Y-positions of the objects.  If they would be offscreen
-    ;; vertically, skip the rest of object allocation.
+    tay  ; register name tile ID
+    ;; Calulcate the Y-positions of the objects.  If they would be offscreen
+    ;; vertically, skip object allocation.
     lda Zp_ShapePosY_i16 + 1
     bne @skip
     lda Zp_ShapePosY_i16 + 0
     cmp #kScreenHeightPx
     bge @skip
+    pha  ; object Y-position
+    tya  ; register name tile ID
+    pha  ; register name tile ID
+    ;; Get the tile ID for the register value.
+    txa  ; param: register number
+    jsr Func_MachineRead  ; returns A
+    .assert '0' & $0f = 0, error
+    ora #'0'
+    pha  ; register value tile ID
+    ;; Allocate objects.
+    lda #2  ; param: num objects
+    jsr Func_AllocObjects  ; returns Y
+    pla  ; register value tile ID
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Tile_u8, y
+    pla  ; register name tile ID
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Tile_u8, y
+    pla  ; object Y-position
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::YPos_u8, y
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::YPos_u8, y
-    ;; Set the X-positions of the objects.
     lda #kHudLeft
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::XPos_u8, y
     lda #kHudLeft + kTileWidthPx
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::XPos_u8, y
-    ;; Set flags for the objects.
     lda #kPaletteObjHud
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Flags_bObj, y
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Flags_bObj, y
-    ;; Finish the allocation.
-    tya
-    add #.sizeof(sObj) * 2
-    sta Zp_OamOffset_u8
     @skip:
     jmp FuncA_Objects_MoveShapeDownOneTile  ; preserves X and Y
 .ENDPROC

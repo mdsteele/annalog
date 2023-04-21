@@ -21,9 +21,7 @@
 kTileIdObjCursorSolidSingle = $00
 kTileIdObjCursorSolidLeft   = $01
 kTileIdObjCursorSolidMiddle = $02
-kTileIdObjCursorDimSingle   = $03
-kTileIdObjCursorDimLeft     = $04
-kTileIdObjCursorBetween     = $06
+kTileIdObjCursorDimLeft     = $03
 
 ;;; The OBJ palette number used for the cursor.
 kPaletteObjCursor = 1

@@ -29,7 +29,6 @@
 .INCLUDE "spawn.inc"
 
 .IMPORT FuncA_Upgrade_ComputeMaxInstructions
-.IMPORT Func_ClearRestOfOam
 .IMPORT Func_ClearRestOfOamAndProcessFrame
 .IMPORT Func_FadeInFromBlack
 .IMPORT Func_FadeOutToBlack
@@ -44,7 +43,6 @@
 .IMPORT Sram_MagicNumber_u8
 .IMPORT Sram_Minimap_u16_arr
 .IMPORTZP Zp_Next_sAudioCtrl
-.IMPORTZP Zp_OamOffset_u8
 .IMPORTZP Zp_P1ButtonsPressed_bJoypad
 .IMPORTZP Zp_PpuScrollX_u8
 .IMPORTZP Zp_PpuScrollY_u8
@@ -113,10 +111,6 @@ _StartMusic:
     sta Zp_Next_sAudioCtrl + sAudioCtrl::MasterVolume_u8
     lda #eMusic::Title
     sta Zp_Next_sAudioCtrl + sAudioCtrl::Music_eMusic
-_ClearOam:
-    lda #0
-    sta Zp_OamOffset_u8
-    jsr Func_ClearRestOfOam
 _ClearUpperNametable:
     lda #kPpuCtrlFlagsHorz
     sta Hw_PpuCtrl_wo

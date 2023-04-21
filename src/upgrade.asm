@@ -34,6 +34,7 @@
 .IMPORT FuncA_Objects_DrawObjectsForRoom
 .IMPORT FuncA_Terrain_ScrollTowardsAvatar
 .IMPORT FuncA_Terrain_ScrollTowardsGoal
+.IMPORT Func_AllocObjects
 .IMPORT Func_ClearRestOfOamAndProcessFrame
 .IMPORT Func_SetFlag
 .IMPORT Func_Window_PrepareRowTransfer
@@ -48,7 +49,6 @@
 .IMPORTZP Zp_FloatingHud_bHud
 .IMPORTZP Zp_FrameCounter_u8
 .IMPORTZP Zp_MachineMaxInstructions_u8
-.IMPORTZP Zp_OamOffset_u8
 .IMPORTZP Zp_P1ButtonsPressed_bJoypad
 .IMPORTZP Zp_PpuTransferLen_u8
 .IMPORTZP Zp_ScrollGoalY_u8
@@ -439,7 +439,8 @@ _DescTable_ptr_arr:
 ;;; Allocates and populates OAM slots for the upgrade symbol that appears
 ;;; within the upgrade window.
 .PROC FuncA_Objects_DrawUpgradeSymbol
-    ldy Zp_OamOffset_u8
+    lda #4  ; param: num objects
+    jsr Func_AllocObjects  ; returns Y
     ;; Compute the screen pixel Y-position of the top of the symbol.
     lda Zp_FrameCounter_u8
     div #4
@@ -448,7 +449,9 @@ _DescTable_ptr_arr:
     lda _YOffsets_u8_arr16, x
     add Zp_WindowTop_u8
     cmp #kScreenHeightPx
-    bge _Done
+    blt _Draw
+    rts
+_Draw:
     ;; Set Y-positions.
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::YPos_u8, y
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::YPos_u8, y
@@ -470,13 +473,7 @@ _DescTable_ptr_arr:
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Flags_bObj, y
     ;; Set tile IDs.
     lda Zp_CurrentUpgrade_eFlag  ; param: eFlag
-    jsr FuncA_Objects_SetUpgradeTileIds
-    ;; Finish.
-    tya
-    add #.sizeof(sObj) * 4
-    sta Zp_OamOffset_u8
-_Done:
-    rts
+    jmp FuncA_Objects_SetUpgradeTileIds
 _YOffsets_u8_arr16:
     ;; [13 + int(round(sin(x * pi / 8))) for x in range(16)]
     .byte 13, 13, 14, 14, 14, 14, 14, 13, 13, 13, 12, 12, 12, 12, 12, 13
