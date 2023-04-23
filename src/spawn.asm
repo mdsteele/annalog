@@ -301,6 +301,7 @@ _DeviceOffset_u8_arr:
     d_byte None,          $08
     d_byte BreakerDone,   kBreakerAvatarOffset
     d_byte BreakerRising, kBreakerAvatarOffset
+    d_byte FlowerInert,   $08
     d_byte LockedDoor,    $08
     d_byte Placeholder,   $08
     d_byte Teleporter,    $08

@@ -35,6 +35,9 @@
 .IMPORT Func_PlaySfxSample
 .IMPORT Func_TryPushAvatarHorz
 .IMPORT Func_TryPushAvatarVert
+.IMPORT Ppu_ChrObjAnnaFlower
+.IMPORT Ppu_ChrObjAnnaNormal
+.IMPORT Sram_CarryingFlower_eFlag
 .IMPORTZP Zp_AvatarExit_ePassage
 .IMPORTZP Zp_AvatarPushDelta_i8
 .IMPORTZP Zp_FrameCounter_u8
@@ -149,6 +152,7 @@ Zp_AvatarHarmTimer_u8: .res 1
     sta Zp_AvatarVelY_i16 + 0
     sta Zp_AvatarVelY_i16 + 1
     jsr FuncA_Avatar_UpdateWaterDepth
+_SetAvatarMode:
     ;; Determine whether the avatar is standing, hovering, or swimming.
     lda Zp_AvatarWaterDepth_u8
     bne @swimming
@@ -164,6 +168,13 @@ Zp_AvatarHarmTimer_u8: .res 1
     lda #eAvatar::Swimming1
     @setMode:
     sta Zp_AvatarMode_eAvatar
+_InitChr10Bank:
+    ldx #<.bank(Ppu_ChrObjAnnaNormal)
+    lda Sram_CarryingFlower_eFlag
+    beq @setBank
+    ldx #<.bank(Ppu_ChrObjAnnaFlower)
+    @setBank:
+    chr10_bank x
     rts
 .ENDPROC
 

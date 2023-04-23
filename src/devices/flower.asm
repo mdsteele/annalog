@@ -70,21 +70,28 @@ kFlowerAnimCountdown = 48
 ;;; @param X The device index for the flower.
 .EXPORT FuncA_Room_RemoveFlowerDeviceIfCarriedOrDelivered
 .PROC FuncA_Room_RemoveFlowerDeviceIfCarriedOrDelivered
-    ;; If the player avatar is carrying the flower, remove the device.
-    lda Ram_DeviceTarget_u8_arr, x  ; flower eFlag value
-    cmp Sram_CarryingFlower_eFlag
-    beq @remove
-    ;; If the flower has already been delivered, remove the device.
     stx T0  ; device index
+    ;; If the flower has already been delivered, remove the device.
     tax  ; param: eFlag value
     jsr Func_IsFlagSet  ; preserves T0+, clears Z if flag is set
-    beq @done
+    bne _RemoveFlower
+    ;; If the player avatar is not carrying a flower, keep the device.
     ldx T0  ; device index
-    ;; Remove the device.
-    @remove:
+    lda Ram_DeviceTarget_u8_arr, x  ; flower eFlag value
+    beq _KeepFlower
+    ;; If the player avatar is carrying the flower, remove the device.
+    cmp Sram_CarryingFlower_eFlag
+    beq _RemoveFlower
+    ;; Otherwise, the player avatar must be carrying some other flower, in
+    ;; which case we should make this room's flower non-interactive for now.
+    lda #eDevice::FlowerInert
+    sta Ram_DeviceType_eDevice_arr, x
+    rts
+_RemoveFlower:
+    ldx T0  ; device index
     lda #eDevice::Placeholder
     sta Ram_DeviceType_eDevice_arr, x
-    @done:
+_KeepFlower:
     rts
 .ENDPROC
 
@@ -95,14 +102,16 @@ kFlowerAnimCountdown = 48
 ;;; @param X The device index for the flower.
 .EXPORT FuncA_Room_RespawnFlowerDeviceIfDropped
 .PROC FuncA_Room_RespawnFlowerDeviceIfDropped
-    ;; If the device is already a flower, there's nothing to do.
+    ;; If the player avatar is still carrying a flower, there's nothing to do.
+    lda Sram_CarryingFlower_eFlag
+    bne @done
+    ;; If this device is already an interactive flower, there's nothing to do.
     lda Ram_DeviceType_eDevice_arr, x
     cmp #eDevice::Flower
     beq @done
-    ;; If the player avatar is carrying the flower, don't respawn it.
-    lda Ram_DeviceTarget_u8_arr, x  ; flower eFlag value
-    cmp Sram_CarryingFlower_eFlag
-    beq @done
+    ;; If this device is a non-interactive flower, make it interactive.
+    cmp #eDevice::FlowerInert
+    beq @makeIntoFlower
     ;; If the flower has already been delivered, don't respawn it.
     stx T0  ; device index
     tax  ; param: eFlag value
@@ -110,10 +119,11 @@ kFlowerAnimCountdown = 48
     bne @done
     ldx T0  ; device index
     ;; Respawn the flower.
-    lda #eDevice::Flower
-    sta Ram_DeviceType_eDevice_arr, x
     lda #kFlowerAnimCountdown
     sta Ram_DeviceAnim_u8_arr, x
+    @makeIntoFlower:
+    lda #eDevice::Flower
+    sta Ram_DeviceType_eDevice_arr, x
     @done:
     rts
 .ENDPROC

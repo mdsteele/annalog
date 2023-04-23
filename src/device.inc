@@ -29,6 +29,7 @@ kMaxDevices = 12
     None           ; empty slot
     BreakerDone    ; circuit breaker, after being activated
     BreakerRising  ; circuit breaker, rising out of the ground
+    FlowerInert    ; a flower that can't be picked
     LockedDoor
     Placeholder    ; invisible and does nothing
     Teleporter     ; invisible spawn point for teleport field machines
