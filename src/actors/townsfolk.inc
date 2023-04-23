@@ -37,6 +37,7 @@
     AlexLooking      = $13
     AlexKneeling     = $14
     AlexBoosting     = $15
+    AlexHolding      = $15
     AlexWalking1     = $16
     AlexWalking2     = $17
     CrewcutStanding  = $19
@@ -57,7 +58,12 @@
 
 ;;; The first tile IDs for various children.
 kTileIdObjChildPonytailFirst = $80 | (eNpcChild::PonytailStanding << 2)
-kTileIdObjChildAlexFirst     = $80 | (eNpcChild::AlexStanding     << 2)
+kTileIdObjAlexStandingFirst  = $80 | (eNpcChild::AlexStanding     << 2)
+kTileIdObjAlexLookingFirst   = $80 | (eNpcChild::AlexLooking      << 2)
+kTileIdObjAlexKneelingFirst  = $80 | (eNpcChild::AlexKneeling     << 2)
+kTileIdObjAlexBoostingFirst  = $80 | (eNpcChild::AlexBoosting     << 2)
+kTileIdObjAlexHoldingFirst   = $80 | (eNpcChild::AlexHolding      << 2)
+kTileIdObjAlexWalkingFirst   = $80 | (eNpcChild::AlexWalking1     << 2)
 kTileIdObjChildCrewcutFirst  = $80 | (eNpcChild::CrewcutStanding  << 2)
 kTileIdObjChildBobcutFirst   = $80 | (eNpcChild::BobcutStanding   << 2)
 

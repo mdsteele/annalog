@@ -93,6 +93,9 @@
     TownHouse5Bruno
     TownHouse5Marie
     TownHouse6Elder
+    TownOutdoorsAlex1
+    TownOutdoorsAlex2
+    TownOutdoorsAlex3
     TownOutdoorsSign
     NUM_VALUES
 .ENDENUM

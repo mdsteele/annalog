@@ -668,10 +668,10 @@
     .incbin "out/data/tiles/roof.chr"
     .incbin "out/data/tiles/window.chr"
     .incbin "out/data/tiles/house.chr"
-    .res $04 * kSizeofChr
     .incbin "out/data/tiles/tree.chr"
+    .res $02 * kSizeofChr
     .incbin "out/data/tiles/sign.chr"
-    .res $04 * kSizeofChr
+    .incbin "out/data/tiles/hill.chr"
     .assert * - :- = kSizeofChr * $40, error
 .ENDPROC
 
@@ -1017,8 +1017,11 @@
     .assert * - :- = (kTileIdObjLauncherFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/launcher.chr"
     .res $0c * kSizeofChr
-    .assert * - :- = (kTileIdObjChildAlexFirst - $80) * kSizeofChr, error
-    .incbin "out/data/tiles/alex.chr"
+    .assert * - :- = (kTileIdObjAlexStandingFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/alex_standing.chr"
+    .res $0c * kSizeofChr
+    .assert * - :- = (kTileIdObjAlexWalkingFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/alex_walking.chr"
     .assert * - :- = (kTileIdObjStepstone - $80) * kSizeofChr, error
     .incbin "out/data/tiles/stepstone.chr"
     .assert * - :- = (kTileIdObjGateFirst - $80) * kSizeofChr, error
@@ -1087,8 +1090,15 @@
     .incbin "out/data/tiles/minigun_horz.chr"
     .assert * - :- = (kTileIdObjMinigunVertFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/minigun_vert.chr"
-    .assert * - :- = (kTileIdObjChildAlexFirst - $80) * kSizeofChr, error
-    .incbin "out/data/tiles/alex.chr"
+    .assert * - :- = (kTileIdObjAlexStandingFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/alex_standing.chr"
+    .assert * - :- = (kTileIdObjAlexLookingFirst - $80) * kSizeofChr, error
+    .res $04 * kSizeofChr
+    .incbin "out/data/tiles/alex_kneeling.chr"
+    .assert * - :- = (kTileIdObjAlexBoostingFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/alex_boosting.chr"
+    .assert * - :- = (kTileIdObjAlexWalkingFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/alex_walking.chr"
     .assert * - :- = (kTileIdObjBeetleFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/beetle.chr"
     .assert * - :- = (kTileIdObjBreakerFirst - $80) * kSizeofChr, error
@@ -1108,8 +1118,16 @@
     .assert * - :- = (kTileIdAdultManFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/adult_man.chr"
     .res $34 * kSizeofChr
-    .assert * - :- = (kTileIdObjChildAlexFirst - $80) * kSizeofChr, error
-    .incbin "out/data/tiles/alex.chr"
+    .assert * - :- = (kTileIdObjAlexStandingFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/alex_standing.chr"
+    .assert * - :- = (kTileIdObjAlexLookingFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/alex_looking.chr"
+    .assert * - :- = (kTileIdObjAlexKneelingFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/alex_kneeling.chr"
+    .assert * - :- = (kTileIdObjAlexHoldingFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/alex_holding.chr"
+    .assert * - :- = (kTileIdObjAlexWalkingFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/alex_walking.chr"
     .res $20 * kSizeofChr
     .assert * - :- = kSizeofChr * $80, error
 .ENDPROC

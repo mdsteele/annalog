@@ -32,6 +32,7 @@
 .IMPORTZP Zp_AvatarPosX_i16
 .IMPORTZP Zp_AvatarPosY_i16
 .IMPORTZP Zp_Current_sRoom
+.IMPORTZP Zp_PpuTransferLen_u8
 .IMPORTZP Zp_WindowTop_u8
 
 ;;;=========================================================================;;;
@@ -45,6 +46,13 @@
 ;;; vertically, in pixels per frame.
 kMaxScrollXSpeed = 7
 kMaxScrollYSpeed = 4
+
+;;; Don't attempt to scroll horizontally if the PPU transfer buffer already has
+;;; this many bytes or more in it (so we don't risk putting more in the buffer
+;;; than can be processed in one VBlank).  The specific value chosen for this
+;;; limit is somewhat arbitrary; but in particular, it's high to still allow
+;;; for transferring a full window row (which takes $24 buffer bytes).
+kScrollTransferThreshold = $30
 
 ;;;=========================================================================;;;
 
@@ -312,6 +320,11 @@ _PrepareToScrollHorz:
     bit Zp_Camera_bScroll
     .assert bScroll::LockHorz = bProc::Negative, error
     bmi _UpdateMinimap
+    ;; If the PPU transfer buffer already has a fair bit of data in it, don't
+    ;; scroll horizontally this frame.
+    lda Zp_PpuTransferLen_u8
+    cmp #kScrollTransferThreshold
+    bge _UpdateMinimap
     ;; Calculate the index of the leftmost room tile column that is currently
     ;; in the nametable, and put that index in T0.
     lda Zp_RoomScrollX_u16 + 0

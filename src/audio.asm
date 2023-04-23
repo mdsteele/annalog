@@ -197,7 +197,7 @@ _HaltSfx:
     bmi _Enable
 _Disable:
     bit Zp_AudioEnabled_bool
-    jmi Func_AudioReset
+    bmi Func_AudioReset
     rts
 _Enable:
     sta Zp_AudioEnabled_bool

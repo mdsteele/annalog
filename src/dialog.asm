@@ -71,7 +71,10 @@
 .IMPORT DataA_Dialog_TownHouse5Bruno_sDialog
 .IMPORT DataA_Dialog_TownHouse5Marie_sDialog
 .IMPORT DataA_Dialog_TownHouse6Elder_sDialog
-.IMPORT DataA_Dialog_TownOutdoorsSign_sDialog
+.IMPORT DataC_Town_TownOutdoorsAlex1_sDialog
+.IMPORT DataC_Town_TownOutdoorsAlex2_sDialog
+.IMPORT DataC_Town_TownOutdoorsAlex3_sDialog
+.IMPORT DataC_Town_TownOutdoorsSign_sDialog
 .IMPORT FuncA_Dialog_PlaySfxQuestMarker
 .IMPORT FuncA_Objects_DrawObjectsForRoom
 .IMPORT FuncA_Terrain_ScrollTowardsAvatar
@@ -311,7 +314,10 @@ _UpdateScrolling:
     d_entry table, TownHouse5Bruno,    DataA_Dialog_TownHouse5Bruno_sDialog
     d_entry table, TownHouse5Marie,    DataA_Dialog_TownHouse5Marie_sDialog
     d_entry table, TownHouse6Elder,    DataA_Dialog_TownHouse6Elder_sDialog
-    d_entry table, TownOutdoorsSign,   DataA_Dialog_TownOutdoorsSign_sDialog
+    d_entry table, TownOutdoorsAlex1,  DataC_Town_TownOutdoorsAlex1_sDialog
+    d_entry table, TownOutdoorsAlex2,  DataC_Town_TownOutdoorsAlex2_sDialog
+    d_entry table, TownOutdoorsAlex3,  DataC_Town_TownOutdoorsAlex3_sDialog
+    d_entry table, TownOutdoorsSign,   DataC_Town_TownOutdoorsSign_sDialog
     D_END
 .ENDREPEAT
 .LINECONT -

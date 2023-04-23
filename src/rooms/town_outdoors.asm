@@ -18,6 +18,8 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "../actor.inc"
+.INCLUDE "../actors/townsfolk.inc"
+.INCLUDE "../avatar.inc"
 .INCLUDE "../charmap.inc"
 .INCLUDE "../cpu.inc"
 .INCLUDE "../device.inc"
@@ -25,21 +27,38 @@
 .INCLUDE "../irq.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../mmc3.inc"
+.INCLUDE "../oam.inc"
 .INCLUDE "../platform.inc"
 .INCLUDE "../ppu.inc"
 .INCLUDE "../room.inc"
 
 .IMPORT DataA_Room_Outdoors_sTileset
+.IMPORT FuncA_Objects_DrawObjectsForRoom
+.IMPORT FuncA_Terrain_ScrollTowardsGoal
 .IMPORT Func_AckIrqAndLatchWindowFromParam3
 .IMPORT Func_AckIrqAndSetLatch
+.IMPORT Func_ClearRestOfOamAndProcessFrame
 .IMPORT Func_Noop
+.IMPORT Main_Dialog_OpenWindow
 .IMPORT Ppu_ChrObjTown
+.IMPORT Ram_ActorFlags_bObj_arr
+.IMPORT Ram_ActorPosX_i16_0_arr
+.IMPORT Ram_ActorState1_byte_arr
+.IMPORT Ram_ActorState2_byte_arr
+.IMPORT Ram_DeviceType_eDevice_arr
 .IMPORTZP Zp_Active_sIrq
+.IMPORTZP Zp_AvatarFlags_bObj
+.IMPORTZP Zp_AvatarMode_eAvatar
+.IMPORTZP Zp_AvatarPosX_i16
 .IMPORTZP Zp_Buffered_sIrq
+.IMPORTZP Zp_FrameCounter_u8
+.IMPORTZP Zp_NextCutscene_main_ptr
 .IMPORTZP Zp_NextIrq_int_ptr
 .IMPORTZP Zp_PpuScrollX_u8
 .IMPORTZP Zp_RoomScrollX_u16
 .IMPORTZP Zp_RoomScrollY_u8
+.IMPORTZP Zp_RoomState
+.IMPORTZP Zp_ScrollGoalX_u16
 
 ;;;=========================================================================;;;
 
@@ -47,6 +66,28 @@
 ;;; are the breaks between separate parallax scrolling bands.
 kTreelineTopY    = $2e
 kTreelineBottomY = $62
+
+;;; The actor index for Alex in this room.
+kAlexActorIndex = 0
+
+;;; The room pixel X-position that the Alex actor should be at when kneeling
+;;; down to pick up the metal thing he found.
+kAlexPickupPositionX = $0590
+
+;;; CutsceneTimer_u8 values for various phases of the cutscene.
+kCutsceneTimerKneeling = 60
+kCutsceneTimerStanding = 20 + kCutsceneTimerKneeling
+kCutsceneTimerTurning  = 20 + kCutsceneTimerStanding
+kCutsceneTimerHolding  = 30 + kCutsceneTimerTurning
+
+;;;=========================================================================;;;
+
+;;; Defines room-specific state data for this particular room.
+.STRUCT sState
+    ;; A timer used for animating cutscenes in this room.
+    CutsceneTimer_u8 .byte
+.ENDSTRUCT
+.ASSERT .sizeof(sState) <= kRoomStateSize, error
 
 ;;;=========================================================================;;;
 
@@ -86,9 +127,17 @@ _TerrainData:
 _Platforms_sPlatform_arr:
     .byte ePlatform::None
 _Actors_sActor_arr:
+:   .assert * - :- = kAlexActorIndex * .sizeof(sActor), error
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::NpcChild
+    d_word PosX_i16, $0570
+    d_word PosY_i16, $00c8
+    d_byte Param_byte, eNpcChild::AlexStanding
+    D_END
+    .assert * - :- <= kMaxActors * .sizeof(sActor), error
     .byte eActor::None
 _Devices_sDevice_arr:
-    D_STRUCT sDevice
+:   D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::OpenDoorway
     d_byte BlockRow_u8, 12
     d_byte BlockCol_u8, 6
@@ -130,6 +179,19 @@ _Devices_sDevice_arr:
     d_byte BlockCol_u8, 71
     d_byte Target_u8, eRoom::TownHouse6
     D_END
+    D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::TalkRight
+    d_byte BlockRow_u8, 12
+    d_byte BlockCol_u8, 86
+    d_byte Target_u8, eDialog::TownOutdoorsAlex1
+    D_END
+    D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::TalkLeft
+    d_byte BlockRow_u8, 12
+    d_byte BlockCol_u8, 87
+    d_byte Target_u8, eDialog::TownOutdoorsAlex1
+    D_END
+    .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None
 .ENDPROC
 
@@ -164,6 +226,221 @@ _Devices_sDevice_arr:
     ror a
     sta <(Zp_Buffered_sIrq + sIrq::Param1_byte)  ; treeline scroll-X
     rts
+.ENDPROC
+
+.EXPORT DataC_Town_TownOutdoorsAlex1_sDialog
+.PROC DataC_Town_TownOutdoorsAlex1_sDialog
+    .word ePortrait::ChildAlex
+    .byte "Hi, Anna! I wanted to$"
+    .byte "show you something.$"
+    .byte "Look at what I found$"
+    .byte "in the dirt over here!#"
+    .addr _CutsceneFunc
+_CutsceneFunc:
+    ldya #MainC_Town_OutdoorsCutscene1
+    stya Zp_NextCutscene_main_ptr
+    ldya #DataC_Town_TownOutdoorsEmpty_sDialog
+    rts
+.ENDPROC
+
+.PROC MainC_Town_OutdoorsCutscene1
+_RemoveAllDevices:
+    ;; Remove all devices from the room (so that the player can't start dialog
+    ;; or run into a building once the orcs attack).
+    ldx #kMaxDevices - 1
+    lda #eDevice::None
+    @loop:
+    sta Ram_DeviceType_eDevice_arr, x
+    dex
+    bpl @loop
+_GameLoop:
+    ;; Draw the frame:
+    jsr_prga FuncA_Objects_DrawObjectsForRoom
+    jsr Func_ClearRestOfOamAndProcessFrame
+    ;; Check if Alex is at his picking-up position yet.
+    lda Ram_ActorPosX_i16_0_arr + kAlexActorIndex
+    cmp #<kAlexPickupPositionX
+    beq _InPickupPosition
+_WalkToPickupPosition:
+    ;; Face the player avatar towards Alex.
+    lda Ram_ActorPosX_i16_0_arr + kAlexActorIndex
+    cmp Zp_AvatarPosX_i16 + 0
+    blt @noTurnAvatar
+    lda #kPaletteObjAvatarNormal
+    sta Zp_AvatarFlags_bObj
+    @noTurnAvatar:
+    ;; Animate Alex walking towards his picking-up position.
+    inc Ram_ActorPosX_i16_0_arr + kAlexActorIndex
+    lda Zp_FrameCounter_u8
+    and #$08
+    beq @walk2
+    lda #eNpcChild::AlexWalking1
+    bne @setState  ; unconditional
+    @walk2:
+    lda #eNpcChild::AlexWalking2
+    @setState:
+    sta Ram_ActorState1_byte_arr + kAlexActorIndex
+    lda #$ff
+    sta Ram_ActorState2_byte_arr + kAlexActorIndex
+    lda #0
+    sta Ram_ActorFlags_bObj_arr + kAlexActorIndex
+    beq _GameLoop  ; unconditional
+_InPickupPosition:
+    ;; Animate Alex crouching down, standing back up, then facing Anna again.
+    inc Zp_RoomState + sState::CutsceneTimer_u8
+    lda Zp_RoomState + sState::CutsceneTimer_u8
+    cmp #kCutsceneTimerKneeling
+    blt @kneeling
+    cmp #kCutsceneTimerStanding
+    blt @standing
+    cmp #kCutsceneTimerTurning
+    blt @turning
+    cmp #kCutsceneTimerHolding
+    bge _ResumeDialog
+    @holding:
+    lda #eNpcChild::AlexHolding
+    bne @setState  ; unconditional
+    @turning:
+    lda #bObj::FlipH
+    sta Ram_ActorFlags_bObj_arr + kAlexActorIndex
+    bne _GameLoop  ; unconditional
+    @standing:
+    lda #eNpcChild::AlexStanding
+    bne @setState  ; unconditional
+    @kneeling:
+    lda #eNpcChild::AlexKneeling
+    @setState:
+    sta Ram_ActorState1_byte_arr + kAlexActorIndex
+    bne _GameLoop  ; unconditional
+_ResumeDialog:
+    ldy #eDialog::TownOutdoorsAlex2  ; param: eDialog value
+    jmp Main_Dialog_OpenWindow
+.ENDPROC
+
+.EXPORT DataC_Town_TownOutdoorsAlex2_sDialog
+.PROC DataC_Town_TownOutdoorsAlex2_sDialog
+    .word ePortrait::ChildAlex
+    .byte "It's some weird metal$"
+    .byte "thing. But nothing$"
+    .byte "like the iron or steel$"
+    .byte "Smith Duncan works on.#"
+    .word ePortrait::ChildAlex
+    .byte "No idea what it is. It$"
+    .byte "almost looks like part$"
+    .byte "of a machine, but it$"
+    .byte "seems so...advanced.#"
+    .addr _StandingFunc
+_StandingFunc:
+    lda #eNpcChild::AlexStanding
+    sta Ram_ActorState1_byte_arr + kAlexActorIndex
+    ldya #_IWonder_sDialog
+    rts
+_IWonder_sDialog:
+    .word ePortrait::ChildAlex
+    .byte "I wonder where a thing$"
+    .byte "like this could have$"
+    .byte "come from...#"
+    .addr _CutsceneFunc
+_CutsceneFunc:
+    ldya #MainC_Town_OutdoorsCutscene2
+    stya Zp_NextCutscene_main_ptr
+    ldya #DataC_Town_TownOutdoorsEmpty_sDialog
+    rts
+.ENDPROC
+
+.PROC MainC_Town_OutdoorsCutscene2
+    lda #0
+    sta Zp_RoomState + sState::CutsceneTimer_u8
+    ;; TODO: scroll slowly instead
+    ldax #$04c0
+    stax Zp_ScrollGoalX_u16
+    ;; Make Alex look up at the stars.
+    lda #eNpcChild::AlexLooking
+    sta Ram_ActorState1_byte_arr + kAlexActorIndex
+    lda #bObj::FlipH
+    sta Ram_ActorFlags_bObj_arr + kAlexActorIndex
+_GameLoop:
+    ;; Draw the frame:
+    jsr_prga FuncA_Objects_DrawObjectsForRoom
+    jsr Func_ClearRestOfOamAndProcessFrame
+_Tick:
+    lda Zp_RoomState + sState::CutsceneTimer_u8
+    ;; One second into the cutscene, make Anna look up at the stars too.
+    cmp #60
+    bne @doneAnnaLook
+    lda #eAvatar::Looking
+    sta Zp_AvatarMode_eAvatar
+    lda #bObj::FlipH | kPaletteObjAvatarNormal
+    sta Zp_AvatarFlags_bObj
+    @doneAnnaLook:
+    ;; TODO: Two seconds into the cutscene, make a star twinkle in the sky.
+    ;; End the cutscene after four seconds.
+    cmp #240
+    beq _ResumeDialog
+_UpdateScrolling:
+    inc Zp_RoomState + sState::CutsceneTimer_u8
+    jsr_prga FuncA_Terrain_ScrollTowardsGoal
+    jmp _GameLoop
+_ResumeDialog:
+    ldy #eDialog::TownOutdoorsAlex3  ; param: eDialog value
+    jmp Main_Dialog_OpenWindow
+.ENDPROC
+
+.EXPORT DataC_Town_TownOutdoorsAlex3_sDialog
+.PROC DataC_Town_TownOutdoorsAlex3_sDialog
+    .word ePortrait::ChildAlex
+    .byte "Do you ever wish we$"
+    .byte "could just leave this$"
+    .byte "town and go exploring?$"
+    .byte "You and me?#"
+    .word ePortrait::ChildAlex
+    .byte "Mom always says it's$"
+    .byte "too dangerous, but I$"
+    .byte "bet we could handle$"
+    .byte "anything out there...#"
+    .addr _ScrollFunc
+_ScrollFunc:
+    ;; Scroll the orcs into view.
+    ldax #$0500
+    stax Zp_ScrollGoalX_u16
+    ldya #_HandleThis_sDialog
+    rts
+_HandleThis_sDialog:
+    .word ePortrait::Man  ; TODO Orc
+    .byte "Handle THIS, human.#"
+    .addr _TurnAroundFunc
+_TurnAroundFunc:
+    ;; Make Anna turn to face the orcs.
+    lda #kPaletteObjAvatarNormal
+    sta Zp_AvatarFlags_bObj
+    ;; Make Alex turn and look up at the orcs.
+    lda #eNpcChild::AlexLooking
+    sta Ram_ActorState1_byte_arr + kAlexActorIndex
+    lda #0
+    sta Ram_ActorFlags_bObj_arr + kAlexActorIndex
+    ldya #_WhaWhat_sDialog
+    rts
+_WhaWhat_sDialog:
+    .word ePortrait::ChildAlex
+    .byte "Wha- what?#"
+    .word ePortrait::Man  ; TODO Orc
+    .byte "Orcs, attaaaaaack!#"
+    .word ePortrait::ChildAlex
+    .byte "Anna, run!#"
+    ;; TODO: make orcs attack
+    .word ePortrait::Done
+.ENDPROC
+
+.EXPORT DataC_Town_TownOutdoorsSign_sDialog
+.PROC DataC_Town_TownOutdoorsSign_sDialog
+    .word ePortrait::Sign
+    .byte "$"
+    .byte " Bartik Town Hall#"
+    .assert * = DataC_Town_TownOutdoorsEmpty_sDialog, error, "fallthrough"
+.ENDPROC
+
+.PROC DataC_Town_TownOutdoorsEmpty_sDialog
+    .word ePortrait::Done
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -251,18 +528,6 @@ _Devices_sDevice_arr:
     tax
     pla
     rti
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Dialog"
-
-.EXPORT DataA_Dialog_TownOutdoorsSign_sDialog
-.PROC DataA_Dialog_TownOutdoorsSign_sDialog
-    .word ePortrait::Sign
-    .byte "$"
-    .byte " Bartik Town Hall#"
-    .word ePortrait::Done
 .ENDPROC
 
 ;;;=========================================================================;;;
