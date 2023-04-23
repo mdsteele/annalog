@@ -64,13 +64,13 @@
 .IMPORT DataA_Dialog_TempleNaveAlexStanding_sDialog
 .IMPORT DataA_Dialog_TemplePitPaper_sDialog
 .IMPORT DataA_Dialog_TownHouse1Nora_sDialog
-.IMPORT DataA_Dialog_TownHouse2Stela_sDialog
 .IMPORT DataA_Dialog_TownHouse3Smith_sDialog
 .IMPORT DataA_Dialog_TownHouse4Laura_sDialog
 .IMPORT DataA_Dialog_TownHouse4Martin_sDialog
 .IMPORT DataA_Dialog_TownHouse5Bruno_sDialog
 .IMPORT DataA_Dialog_TownHouse5Marie_sDialog
 .IMPORT DataA_Dialog_TownHouse6Elder_sDialog
+.IMPORT DataC_Town_TownHouse2Stela_sDialog
 .IMPORT DataC_Town_TownOutdoorsAlex1_sDialog
 .IMPORT DataC_Town_TownOutdoorsAlex2_sDialog
 .IMPORT DataC_Town_TownOutdoorsAlex3_sDialog
@@ -307,7 +307,7 @@ _UpdateScrolling:
             DataA_Dialog_TempleNaveAlexStanding_sDialog
     d_entry table, TemplePitPaper,     DataA_Dialog_TemplePitPaper_sDialog
     d_entry table, TownHouse1Nora,     DataA_Dialog_TownHouse1Nora_sDialog
-    d_entry table, TownHouse2Stela,    DataA_Dialog_TownHouse2Stela_sDialog
+    d_entry table, TownHouse2Stela,    DataC_Town_TownHouse2Stela_sDialog
     d_entry table, TownHouse3Smith,    DataA_Dialog_TownHouse3Smith_sDialog
     d_entry table, TownHouse4Laura,    DataA_Dialog_TownHouse4Laura_sDialog
     d_entry table, TownHouse4Martin,   DataA_Dialog_TownHouse4Martin_sDialog
