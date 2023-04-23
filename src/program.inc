@@ -155,7 +155,7 @@ kFirstHorzDir = eDir::Left
     ShadowTeleportField
     TempleAltarLowerMinigun
     TempleAltarUpperMinigun
-    TempleLobbyCarriage
+    TempleFoyerCarriage
     TempleNaveLowerCarriage
     TempleNaveUpperCarriage
     NUM_VALUES

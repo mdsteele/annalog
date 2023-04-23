@@ -81,7 +81,7 @@
     PrisonUpperNora
     TempleAltarPlaque
     TempleEntryMermaid
-    TempleLobbyPaper
+    TempleFoyerPaper
     TempleNaveAlexBoosting
     TempleNaveAlexStanding
     TemplePitPaper

@@ -101,7 +101,7 @@
 .IMPORT DataC_Temple_Altar_sRoom
 .IMPORT DataC_Temple_Entry_sRoom
 .IMPORT DataC_Temple_Flower_sRoom
-.IMPORT DataC_Temple_Lobby_sRoom
+.IMPORT DataC_Temple_Foyer_sRoom
 .IMPORT DataC_Temple_Nave_sRoom
 .IMPORT DataC_Temple_Pit_sRoom
 .IMPORT DataC_Temple_Spire_sRoom
@@ -302,7 +302,7 @@ _LoadNewRoom:
     d_entry table, TempleAltar,     DataC_Temple_Altar_sRoom
     d_entry table, TempleEntry,     DataC_Temple_Entry_sRoom
     d_entry table, TempleFlower,    DataC_Temple_Flower_sRoom
-    d_entry table, TempleLobby,     DataC_Temple_Lobby_sRoom
+    d_entry table, TempleFoyer,     DataC_Temple_Foyer_sRoom
     d_entry table, TempleNave,      DataC_Temple_Nave_sRoom
     d_entry table, TemplePit,       DataC_Temple_Pit_sRoom
     d_entry table, TempleSpire,     DataC_Temple_Spire_sRoom

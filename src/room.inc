@@ -112,7 +112,7 @@ kMaxPassages = 8
     TempleAltar
     TempleEntry
     TempleFlower
-    TempleLobby
+    TempleFoyer
     TempleNave
     TemplePit
     TempleSpire

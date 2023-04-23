@@ -56,14 +56,14 @@ kUpgradeDeviceIndex = 0
 ;;; The eFlag value for the upgrade in this room.
 kUpgradeFlag = eFlag::UpgradeOpTil
 
-;;; The machine index for the TempleLobbyCarriage machine in this room.
+;;; The machine index for the TempleFoyerCarriage machine in this room.
 kCarriageMachineIndex = 0
 
-;;; The platform index for the TempleLobbyCarriage machine in this room.
+;;; The platform index for the TempleFoyerCarriage machine in this room.
 kCarriagePlatformIndex = 0
 
 ;;; The initial and maximum permitted horizontal and vertical goal values for
-;;; the TempleLobbyCarriage machine.
+;;; the TempleFoyerCarriage machine.
 kCarriageInitGoalX = 9
 kCarriageMaxGoalX = 9
 kCarriageInitGoalY = 0
@@ -91,7 +91,7 @@ kCarriageMinPlatformTop = \
 
 ;;;=========================================================================;;;
 
-;;; Enum for the steps of the TempleLobbyCarriage machine's reset sequence
+;;; Enum for the steps of the TempleFoyerCarriage machine's reset sequence
 ;;; (listed in reverse order).
 .ENUM eResetSeq
     BottomRight = 0  ; last step: move to bottom-right position
@@ -100,7 +100,7 @@ kCarriageMinPlatformTop = \
 
 ;;; Defines room-specific state data for this particular room.
 .STRUCT sState
-    ;; Which step of its reset sequence the TempleLobbyCarriage machine is on.
+    ;; Which step of its reset sequence the TempleFoyerCarriage machine is on.
     CarriageReset_eResetSeq .byte
 .ENDSTRUCT
 .ASSERT .sizeof(sState) <= kRoomStateSize, error
@@ -109,8 +109,8 @@ kCarriageMinPlatformTop = \
 
 .SEGMENT "PRGC_Temple"
 
-.EXPORT DataC_Temple_Lobby_sRoom
-.PROC DataC_Temple_Lobby_sRoom
+.EXPORT DataC_Temple_Foyer_sRoom
+.PROC DataC_Temple_Foyer_sRoom
     D_STRUCT sRoom
     d_byte MinScrollX_u8, $08
     d_word MaxScrollX_u16, $0108
@@ -132,16 +132,16 @@ _Ext_sRoomExt:
     d_addr Actors_sActor_arr_ptr, _Actors_sActor_arr
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
     d_addr Passages_sPassage_arr_ptr, _Passages_sPassage_arr
-    d_addr Enter_func_ptr, FuncC_Temple_Lobby_EnterRoom
+    d_addr Enter_func_ptr, FuncC_Temple_Foyer_EnterRoom
     d_addr FadeIn_func_ptr, Func_Noop
     D_END
 _TerrainData:
-:   .incbin "out/data/temple_lobby.room"
+:   .incbin "out/data/temple_foyer.room"
     .assert * - :- = 34 * 24, error
 _Machines_sMachine_arr:
 :   .assert * - :- = kCarriageMachineIndex * .sizeof(sMachine), error
     D_STRUCT sMachine
-    d_byte Code_eProgram, eProgram::TempleLobbyCarriage
+    d_byte Code_eProgram, eProgram::TempleFoyerCarriage
     d_byte Breaker_eFlag, 0
     d_byte Flags_bMachine, bMachine::MoveH | bMachine::MoveV
     d_byte Status_eDiagram, eDiagram::Carriage
@@ -149,14 +149,14 @@ _Machines_sMachine_arr:
     d_byte ScrollGoalY_u8, $90
     d_byte RegNames_u8_arr4, 0, 0, "X", "Y"
     d_byte MainPlatform_u8, kCarriagePlatformIndex
-    d_addr Init_func_ptr, FuncC_Temple_LobbyCarriage_Init
-    d_addr ReadReg_func_ptr, FuncC_Temple_LobbyCarriage_ReadReg
+    d_addr Init_func_ptr, FuncC_Temple_FoyerCarriage_Init
+    d_addr ReadReg_func_ptr, FuncC_Temple_FoyerCarriage_ReadReg
     d_addr WriteReg_func_ptr, Func_Noop
-    d_addr TryMove_func_ptr, FuncC_Temple_LobbyCarriage_TryMove
+    d_addr TryMove_func_ptr, FuncC_Temple_FoyerCarriage_TryMove
     d_addr TryAct_func_ptr, FuncA_Machine_Error
-    d_addr Tick_func_ptr, FuncC_Temple_LobbyCarriage_Tick
+    d_addr Tick_func_ptr, FuncC_Temple_FoyerCarriage_Tick
     d_addr Draw_func_ptr, FuncA_Objects_DrawCarriageMachine
-    d_addr Reset_func_ptr, FuncC_Temple_LobbyCarriage_Reset
+    d_addr Reset_func_ptr, FuncC_Temple_FoyerCarriage_Reset
     D_END
     .assert * - :- <= kMaxMachines * .sizeof(sMachine), error
 _Platforms_sPlatform_arr:
@@ -202,7 +202,7 @@ _Devices_sDevice_arr:
     d_byte Type_eDevice, eDevice::Paper
     d_byte BlockRow_u8, 21
     d_byte BlockCol_u8, 12
-    d_byte Target_u8, eDialog::TempleLobbyPaper
+    d_byte Target_u8, eDialog::TempleFoyerPaper
     D_END
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None
@@ -225,7 +225,7 @@ _Passages_sPassage_arr:
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
 .ENDPROC
 
-.PROC FuncC_Temple_Lobby_EnterRoom
+.PROC FuncC_Temple_Foyer_EnterRoom
     flag_bit Sram_ProgressFlags_arr, kUpgradeFlag
     beq @done
     lda #eDevice::None
@@ -236,7 +236,7 @@ _Passages_sPassage_arr:
 
 ;;; @param A The register to read ($c-$f).
 ;;; @return A The value of the register (0-9).
-.PROC FuncC_Temple_LobbyCarriage_ReadReg
+.PROC FuncC_Temple_FoyerCarriage_ReadReg
     cmp #$f
     beq _ReadY
 _ReadX:
@@ -255,13 +255,13 @@ _ReadY:
     rts
 .ENDPROC
 
-.PROC FuncC_Temple_LobbyCarriage_TryMove
+.PROC FuncC_Temple_FoyerCarriage_TryMove
     lda #kCarriageMaxGoalX  ; param: max goal horz
     ldy #kCarriageMaxGoalY  ; param: max goal vert
     jmp FuncA_Machine_CarriageTryMove
 .ENDPROC
 
-.PROC FuncC_Temple_LobbyCarriage_Tick
+.PROC FuncC_Temple_FoyerCarriage_Tick
 _MoveVert:
     ldax #kCarriageMaxPlatformTop  ; param: max platform top
     jsr FuncA_Machine_GenericMoveTowardGoalVert  ; returns Z
@@ -277,10 +277,10 @@ _MoveHorz:
 _ReachedGoal:
     lda Zp_RoomState + sState::CarriageReset_eResetSeq
     jeq FuncA_Machine_ReachedGoal
-    .assert * = FuncC_Temple_LobbyCarriage_Reset, error, "fallthrough"
+    .assert * = FuncC_Temple_FoyerCarriage_Reset, error, "fallthrough"
 .ENDPROC
 
-.PROC FuncC_Temple_LobbyCarriage_Reset
+.PROC FuncC_Temple_FoyerCarriage_Reset
     lda Ram_MachineGoalHorz_u8_arr + kCarriageMachineIndex
     cmp #5
     bge _MoveToBottomRight
@@ -301,10 +301,10 @@ _MoveStraightToMiddle:
 _MoveToBottomRight:
     lda #eResetSeq::BottomRight
     sta Zp_RoomState + sState::CarriageReset_eResetSeq
-    .assert * = FuncC_Temple_LobbyCarriage_Init, error, "fallthrough"
+    .assert * = FuncC_Temple_FoyerCarriage_Init, error, "fallthrough"
 .ENDPROC
 
-.PROC FuncC_Temple_LobbyCarriage_Init
+.PROC FuncC_Temple_FoyerCarriage_Init
     lda #kCarriageInitGoalX
     sta Ram_MachineGoalHorz_u8_arr + kCarriageMachineIndex
     lda #kCarriageInitGoalY
@@ -316,8 +316,8 @@ _MoveToBottomRight:
 
 .SEGMENT "PRGA_Dialog"
 
-.EXPORT DataA_Dialog_TempleLobbyPaper_sDialog
-.PROC DataA_Dialog_TempleLobbyPaper_sDialog
+.EXPORT DataA_Dialog_TempleFoyerPaper_sDialog
+.PROC DataA_Dialog_TempleFoyerPaper_sDialog
     .word ePortrait::Paper
     .byte "CPU FIELD MANUAL p.03:$"
     .byte "Basic console control:$"
