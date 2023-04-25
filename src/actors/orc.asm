@@ -20,23 +20,34 @@
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
 .INCLUDE "../ppu.inc"
+.INCLUDE "../terrain.inc"
 .INCLUDE "orc.inc"
 
 .IMPORT FuncA_Actor_FaceTowardsAvatar
+.IMPORT FuncA_Actor_GetRoomBlockRow
 .IMPORT FuncA_Actor_HarmAvatarIfCollision
 .IMPORT FuncA_Actor_IsAvatarWithinHorzDistance
 .IMPORT FuncA_Actor_IsAvatarWithinVertDistances
+.IMPORT FuncA_Actor_MovePointTowardVelXDir
+.IMPORT FuncA_Actor_ZeroVelX
 .IMPORT FuncA_Objects_Draw2x2Shape
 .IMPORT FuncA_Objects_MoveShapeUpByA
 .IMPORT FuncA_Objects_SetShapePosToActorCenter
+.IMPORT Func_GetTerrainColumnPtrForPointX
+.IMPORT Func_SetPointToActorCenter
 .IMPORT Ram_ActorFlags_bObj_arr
 .IMPORT Ram_ActorState1_byte_arr
 .IMPORT Ram_ActorState2_byte_arr
 .IMPORT Ram_ActorState3_byte_arr
 .IMPORT Ram_ActorVelX_i16_0_arr
 .IMPORT Ram_ActorVelX_i16_1_arr
+.IMPORTZP Zp_TerrainColumn_u8_arr_ptr
 
 ;;;=========================================================================;;;
+
+;;; How many pixels in front of its center an orc baddie actor checks for solid
+;;; terrain to see if it needs to stop.
+kOrcStopDistance = 10
 
 ;;; The horizontal acceleration applied to an orc baddie actor when it's
 ;;; chasing the player avatar, in subpixels per frame per frame.
@@ -134,32 +145,27 @@ kTileIdObjOrcFeetRunning3 = kTileIdObjOrcRunningFirst  + 12
 .PROC FuncA_Actor_TickBadOrc_Chasing
     ;; If the orc catches the player avatar, pause briefly.
     bcc @noCollide
-    lda #0
-    sta Ram_ActorVelX_i16_0_arr, x
-    sta Ram_ActorVelX_i16_1_arr, x
+    jsr FuncA_Actor_ZeroVelX  ; preserves X
     lda #eBadOrc::Pausing
     sta Ram_ActorState1_byte_arr, x  ; current mode
     lda #kOrcPauseFrames
     sta Ram_ActorState2_byte_arr, x  ; mode timer
     rts
     @noCollide:
+_StopChasingIfAvatarEscapes:
     ;; If the player avatar gets far away vertically, stop chasing.
     ldy #kTileHeightPx * 5  ; param: distance above actor
     lda #kTileHeightPx * 3  ; param: distance below actor
     jsr FuncA_Actor_IsAvatarWithinVertDistances  ; preserves X, returns C
     bcs _KeepChasing
-_StopChasing:
     ;; TODO: Don't halt immediately; go into a Patrol mode for a few seconds.
     ;; TODO: When Patrol timer ends, decelerate into Standing mode.
-    lda #0
-    sta Ram_ActorVelX_i16_0_arr, x
-    sta Ram_ActorVelX_i16_1_arr, x
-    .assert eBadOrc::Standing = 0, error
+    jsr FuncA_Actor_ZeroVelX  ; preserves X
+    lda #eBadOrc::Standing
     sta Ram_ActorState1_byte_arr, x  ; current mode
     rts
 _KeepChasing:
     jsr FuncA_Actor_FaceTowardsAvatar  ; preserves X, returns A
-    ldy #0
     and #bObj::FlipH
     beq @accelerateRight
     @accelerateLeft:
@@ -202,6 +208,32 @@ _ClampVelocity:
     @setHi:
     sta Ram_ActorVelX_i16_1_arr, x
     @done:
+_StopIfBlockedByTerrain:
+    jsr Func_SetPointToActorCenter  ; preserves X
+    lda #kOrcStopDistance  ; param: offset
+    jsr FuncA_Actor_MovePointTowardVelXDir  ; preserves X
+    ;; TODO: If a prison gate is in front of the orc, switch to Pounding mode.
+    jsr Func_GetTerrainColumnPtrForPointX  ; preserves X
+    jsr FuncA_Actor_GetRoomBlockRow  ; preserves X, returns Y
+    ;; If the wall in front of the orc's feet is solid, stop in place.
+    lda (Zp_TerrainColumn_u8_arr_ptr), y
+    cmp #kFirstSolidTerrainType
+    bge @stop
+    ;; If the wall in front of the orc's head is solid, stop in place.
+    dey
+    lda (Zp_TerrainColumn_u8_arr_ptr), y
+    cmp #kFirstSolidTerrainType
+    bge @stop
+    ;; If the floor in front of the orc is not solid, stop in place.
+    iny
+    iny
+    lda (Zp_TerrainColumn_u8_arr_ptr), y
+    cmp #kFirstSolidTerrainType
+    bge @done
+    @stop:
+    jsr FuncA_Actor_ZeroVelX  ; preserves X
+    @done:
+_MaybeJump:
     ;; TODO: sometimes jump at player avatar
     rts
 .ENDPROC
@@ -237,7 +269,7 @@ _DeterminePose:
     ldy #2
     bpl @setPose  ; unconditional
     @pausing:
-    ldy #0
+    ldy #1
     bpl @setPose  ; unconditional
     @standing:
     ldy #4

@@ -27,6 +27,7 @@
 .INCLUDE "breakball.inc"
 
 .IMPORT FuncA_Actor_HarmAvatarIfCollision
+.IMPORT FuncA_Actor_MovePointTowardVelXDir
 .IMPORT FuncA_Actor_NegateVelX
 .IMPORT FuncA_Actor_NegateVelY
 .IMPORT FuncA_Objects_Alloc2x2Shape
@@ -36,8 +37,6 @@
 .IMPORT Func_InitActorProjFlamewave
 .IMPORT Func_IsPointInAnySolidPlatform
 .IMPORT Func_MovePointDownByA
-.IMPORT Func_MovePointLeftByA
-.IMPORT Func_MovePointRightByA
 .IMPORT Func_MovePointUpByA
 .IMPORT Func_PointHitsTerrain
 .IMPORT Func_SetActorCenterToPoint
@@ -79,11 +78,9 @@ kProjBreakballSpeedVert = $60
     jsr Func_InitActorDefault  ; preserves X and T0+
 _InitVelY:
     lda #kProjBreakballSpeedVert
-    ldy #0
     sta Ram_ActorVelY_i16_0_arr, x
-    tya
-    sta Ram_ActorVelY_i16_1_arr, x
 _InitVelX:
+    ldy #0
     bit T0  ; horz flag
     .assert bObj::FlipH = bProc::Overflow, error
     bvs @left
@@ -122,15 +119,8 @@ _InitVelX:
 ;;; @preserve X
 .PROC FuncA_Actor_ProjBreakball_CheckForCollisionHorz
     jsr Func_SetPointToActorCenter  ; preserves X
-    lda Ram_ActorVelX_i16_1_arr, x
-    bpl @movingRight
-    @movingLeft:
     lda #kProjBreakballRadius  ; param: offset
-    jsr Func_MovePointLeftByA  ; preserves X
-    jmp _CheckForCollision
-    @movingRight:
-    lda #kProjBreakballRadius  ; param: offset
-    jsr Func_MovePointRightByA  ; preserves X
+    jsr FuncA_Actor_MovePointTowardVelXDir  ; preserves X
 _CheckForCollision:
     ;; If the bottom of the breakball hits terrain, bounce off of it.
     jsr Func_PointHitsTerrain  ; preserves X, returns C

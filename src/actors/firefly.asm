@@ -27,7 +27,7 @@
 .IMPORT FuncA_Actor_HarmAvatarIfCollision
 .IMPORT FuncA_Actor_IsAvatarToLeftOrRight
 .IMPORT FuncA_Actor_IsAvatarWithinVertDistances
-.IMPORT FuncA_Actor_SetPointInFrontOfActorByA
+.IMPORT FuncA_Actor_SetPointInFrontOfActor
 .IMPORT FuncA_Objects_Draw2x2Actor
 .IMPORT Func_Cosine
 .IMPORT Func_FindEmptyActorSlot
@@ -112,7 +112,7 @@ _ReturnIfAvatarNotInFront:
     @avatarIsInFront:
 _ShootFireball:
     lda #kFireflyFireballHorzOffset  ; param: offset
-    jsr FuncA_Actor_SetPointInFrontOfActorByA  ; preserves X and T0+
+    jsr FuncA_Actor_SetPointInFrontOfActor  ; preserves X and T0+
     stx T2  ; firefly actor index
     jsr Func_FindEmptyActorSlot  ; preserves T0+, returns C and X
     bcs @done

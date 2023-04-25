@@ -29,7 +29,9 @@
 .IMPORT FuncA_Actor_IsAvatarAboveOrBelow
 .IMPORT FuncA_Actor_IsAvatarWithinHorzDistance
 .IMPORT FuncA_Actor_NegateVelY
-.IMPORT FuncA_Actor_SetPointInFrontOfActorByA
+.IMPORT FuncA_Actor_SetPointInFrontOfActor
+.IMPORT FuncA_Actor_ZeroVelX
+.IMPORT FuncA_Actor_ZeroVelY
 .IMPORT FuncA_Objects_Draw1x1Shape
 .IMPORT FuncA_Objects_MoveShapeLeftByA
 .IMPORT FuncA_Objects_MoveShapeRightByA
@@ -102,10 +104,7 @@ _IsHangingFromThread:
     bne _Return
     jmp FuncA_Actor_NegateVelY
 _ThreadCycleFinished:
-    ;; Halt vertical velocity.
-    lda #0
-    sta Ram_ActorVelY_i16_0_arr, x
-    sta Ram_ActorVelY_i16_1_arr, x
+    jsr FuncA_Actor_ZeroVelY  ; preserves X
     ;; Clear the FlipV flag to indicate that the spider is no longer hanging on
     ;; a thread.
     lda Ram_ActorFlags_bObj_arr, x
@@ -125,9 +124,7 @@ _IsInMovementCycle:
     cmp #kSpiderPauseFrames + 1
     bge @done
     @paused:
-    lda #0
-    sta Ram_ActorVelX_i16_0_arr, x
-    sta Ram_ActorVelX_i16_1_arr, x
+    jmp FuncA_Actor_ZeroVelX  ; preserves X
     @done:
     rts
 _MovementCycleFinished:
@@ -167,7 +164,7 @@ _StartDroppingDownOnThread:
 _StartNewMovementCycle:
     ;; Get the terrain column in front of the spider.
     lda #kSpiderStridePx + 1  ; param: offset
-    jsr FuncA_Actor_SetPointInFrontOfActorByA  ; preserves X
+    jsr FuncA_Actor_SetPointInFrontOfActor  ; preserves X
     jsr Func_GetTerrainColumnPtrForPointX  ; preserves X
     ;; Check the terrain block just in front of the spider.  If it's solid,
     ;; the spider has to turn around.

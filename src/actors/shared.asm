@@ -187,8 +187,8 @@
 ;;; @param A How many pixels in front to place the point (unsigned).
 ;;; @param X The actor index.
 ;;; @preserve X, Y, T0+
-.EXPORT FuncA_Actor_SetPointInFrontOfActorByA
-.PROC FuncA_Actor_SetPointInFrontOfActorByA
+.EXPORT FuncA_Actor_SetPointInFrontOfActor
+.PROC FuncA_Actor_SetPointInFrontOfActor
     pha  ; offset
     jsr Func_SetPointToActorCenter  ; preserves X, Y, and T0+
     lda Ram_ActorFlags_bObj_arr, x
@@ -200,6 +200,21 @@
     @facingLeft:
     pla  ; param: offset
     jmp Func_MovePointLeftByA  ; preserves X, Y, and T0+
+.ENDPROC
+
+;;; Moves Zp_PointX_i16 left or right by the given number of pixels, in the
+;;; direction of the actor's X-velocity.
+;;; @param A The number of pixels to shift by (unsigned).
+;;; @param X The actor index.
+;;; @preserve X, T0+
+.EXPORT FuncA_Actor_MovePointTowardVelXDir
+.PROC FuncA_Actor_MovePointTowardVelXDir
+    ldy Ram_ActorVelX_i16_1_arr, x
+    bpl @movingRight
+    @movingLeft:
+    jmp Func_MovePointLeftByA
+    @movingRight:
+    jmp Func_MovePointRightByA
 .ENDPROC
 
 ;;; Negates the actor's X-velocity.
@@ -226,6 +241,28 @@
     sta Ram_ActorVelY_i16_0_arr, x
     lda #0
     sbc Ram_ActorVelY_i16_1_arr, x
+    sta Ram_ActorVelY_i16_1_arr, x
+    rts
+.ENDPROC
+
+;;; Sets the actor's X-velocity to zero.
+;;; @param X The actor index.
+;;; @preserve X, Y, T0+
+.EXPORT FuncA_Actor_ZeroVelX
+.PROC FuncA_Actor_ZeroVelX
+    lda #0
+    sta Ram_ActorVelX_i16_0_arr, x
+    sta Ram_ActorVelX_i16_1_arr, x
+    rts
+.ENDPROC
+
+;;; Sets the actor's Y-velocity to zero.
+;;; @param X The actor index.
+;;; @preserve X, Y, T0+
+.EXPORT FuncA_Actor_ZeroVelY
+.PROC FuncA_Actor_ZeroVelY
+    lda #0
+    sta Ram_ActorVelY_i16_0_arr, x
     sta Ram_ActorVelY_i16_1_arr, x
     rts
 .ENDPROC

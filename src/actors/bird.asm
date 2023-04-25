@@ -27,7 +27,8 @@
 
 .IMPORT FuncA_Actor_HarmAvatarIfCollision
 .IMPORT FuncA_Actor_NegateVelX
-.IMPORT FuncA_Actor_SetPointInFrontOfActorByA
+.IMPORT FuncA_Actor_SetPointInFrontOfActor
+.IMPORT FuncA_Actor_ZeroVelX
 .IMPORT FuncA_Objects_Draw2x2Actor
 .IMPORT Func_DivMod
 .IMPORT Func_InitActorWithState1
@@ -103,14 +104,11 @@ _Moving:
     inc Ram_ActorState2_byte_arr, x  ; flying animation counter
     ;; Check the terrain in front of the bird.  If it's solid, then land.
     lda #kBirdLandDistance  ; param: offset
-    jsr FuncA_Actor_SetPointInFrontOfActorByA  ; preserves X
+    jsr FuncA_Actor_SetPointInFrontOfActor  ; preserves X
     jsr Func_PointHitsTerrain  ; preserves X, returns C
     bcc _Done
 _LandOnWall:
-    ;; Stop moving.
-    lda #0
-    sta Ram_ActorVelX_i16_0_arr, x
-    sta Ram_ActorVelX_i16_1_arr, x
+    jsr FuncA_Actor_ZeroVelX  ; preserves X
     ;; Make the bird face the opposite direction.
     lda Ram_ActorFlags_bObj_arr, x
     eor #bObj::FlipH
