@@ -118,6 +118,7 @@
 ;;; Sets or clears bObj::FlipH in the actor's flags so as to face the actor
 ;;; horizontally towards the player avatar.
 ;;; @param X The actor index.
+;;; @return A The new bObj value that was set for the actor.
 ;;; @preserve X, Y, T0+
 .EXPORT FuncA_Actor_FaceTowardsAvatar
 .PROC FuncA_Actor_FaceTowardsAvatar

@@ -22,6 +22,7 @@
 ;;;     wraps back around to zero before the fireball hits anything, then the
 ;;;     fireball is removed.
 ;;;   * State2: Unused.
+;;;   * State3: Unused.
 
 ;;; The first tile ID for the fireball actor animation.
 kTileIdObjFireballFirst = $9a

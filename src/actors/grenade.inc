@@ -22,6 +22,7 @@
 ;;;     wraps back around to zero before the grenade hits anything, then the
 ;;;     grenade explodes.
 ;;;   * State2: Unused.
+;;;   * State3: Unused.
 
 ;;; How many frames the room shakes for when a grenade hits the ground.
 kGrenadeShakeFrames = 4

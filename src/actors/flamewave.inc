@@ -22,6 +22,7 @@
 ;;;     wraps back around to zero before the flamewave hits a wall, then the
 ;;;     flamewave is removed.
 ;;;   * State2: How many times the flamewave has bounced off a wall.
+;;;   * State3: Unused.
 
 ;;; The first tile ID for drawing flamewave projectile actors.
 kTileIdObjFlamewaveFirst = $8a

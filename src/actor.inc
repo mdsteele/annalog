@@ -34,7 +34,8 @@ kMaxActors = 8
     BadGrub          ; crawls left/right on a floor
     BadHotheadHorz   ; crawls around a platform, and can drop fire
     BadHotheadVert   ; crawls around a platform, and can drop fire
-    BadSpider
+    BadOrc           ; chases after player avatar
+    BadSpider        ; crawls randomly on ceiling, and drops down on a thread
     BadToad          ; jumps in place
     BadVinebug       ; moves vertically on a vine
     BadWasp          ; flies in a circle

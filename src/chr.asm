@@ -29,6 +29,7 @@
 .INCLUDE "actors/flamewave.inc"
 .INCLUDE "actors/grenade.inc"
 .INCLUDE "actors/grub.inc"
+.INCLUDE "actors/orc.inc"
 .INCLUDE "actors/spider.inc"
 .INCLUDE "actors/spike.inc"
 .INCLUDE "actors/toad.inc"
@@ -1002,7 +1003,10 @@
     .incbin "out/data/tiles/toddler.chr"
     .assert * - :- = (kTileIdObjChildPonytailFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/child_ponytail.chr"
-    .res $0c * kSizeofChr
+    .assert * - :- = (kTileIdObjOrcStandingFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/orc_standing.chr"
+    .assert * - :- = (kTileIdObjLauncherFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/launcher.chr"
     .assert * - :- = (kTileIdObjCrateFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/crate.chr"
     .assert * - :- = (kTileIdObjRocksFirst - $80) * kSizeofChr, error
@@ -1014,9 +1018,8 @@
     .incbin "out/data/tiles/toad.chr"
     .assert * - :- = (kTileIdCraneFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/crane.chr"
-    .assert * - :- = (kTileIdObjLauncherFirst - $80) * kSizeofChr, error
-    .incbin "out/data/tiles/launcher.chr"
-    .res $0c * kSizeofChr
+    .assert * - :- = (kTileIdObjOrcRunningFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/orc_running.chr"
     .assert * - :- = (kTileIdObjAlexStandingFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/alex_standing.chr"
     .res $0c * kSizeofChr
@@ -1113,11 +1116,15 @@
 .EXPORT Ppu_ChrObjTown
 .PROC Ppu_ChrObjTown
 :   .res $08 * kSizeofChr
+    .assert * - :- = (kTileIdObjOrcStandingFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/orc_standing.chr"
     .assert * - :- = (kTileIdAdultWomanFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/adult_woman.chr"
     .assert * - :- = (kTileIdAdultManFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/adult_man.chr"
-    .res $34 * kSizeofChr
+    .res $1c * kSizeofChr
+    .assert * - :- = (kTileIdObjOrcRunningFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/orc_running.chr"
     .assert * - :- = (kTileIdObjAlexStandingFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/alex_standing.chr"
     .assert * - :- = (kTileIdObjAlexLookingFirst - $80) * kSizeofChr, error

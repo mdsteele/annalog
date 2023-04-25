@@ -21,6 +21,7 @@
 ;;;   * State1: Counter that increments each frame and drives the fish's
 ;;;     animation (but doesn't affect behavior).
 ;;;   * State2: Unused.
+;;;   * State3: Unused.
 
 ;;; Tile IDs for drawing fish baddie actors.
 kTileIdObjFishFirst = $d4

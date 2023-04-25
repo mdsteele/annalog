@@ -21,6 +21,7 @@
 ;;;   * State1: Counter that decrements each frame; when it's zero, the grub
 ;;;     starts another movement cycle and resets the counter.
 ;;;   * State2: Unused.
+;;;   * State3: Unused.
 
 ;;; Tile IDs for drawing grub baddie actors.
 kTileIdObjGrubFirst = $9c

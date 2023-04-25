@@ -21,6 +21,6 @@
 kLauncherActFrames = $40
 
 ;;; OBJ tile IDs used for drawing launcher machines.
-kTileIdObjLauncherFirst = $b8
+kTileIdObjLauncherFirst = $90
 
 ;;;=========================================================================;;;

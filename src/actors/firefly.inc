@@ -22,6 +22,7 @@
 ;;;     another fireball.
 ;;;   * State2: The firefly's current angle within its sinusoidal flight
 ;;;     pattern.
+;;;   * State3: Unused.
 
 ;;; Tile IDs for drawing firefly baddie actors.
 kTileIdObjFireflyFirst = $a0

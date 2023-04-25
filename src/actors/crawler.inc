@@ -22,6 +22,7 @@
 ;;;     by one pixel every other frame.
 ;;;   * State2: Unused for beetles; for hotheads, this is the number of
 ;;;     cooldown frames before it can drop another ember.
+;;;   * State3: Unused.
 
 ;;; Tile IDs for drawing beetle actors.
 kTileIdObjBeetleFirst = $e0

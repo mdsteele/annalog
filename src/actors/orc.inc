@@ -17,14 +17,22 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
-;;; State bytes for bullet projectiles:
-;;;   * State1: Counter that starts at zero and increments every frame; if it
-;;;     wraps back around to zero before the bullet hits anything, then the
-;;;     bullet is removed.
-;;;   * State2: Unused.
-;;;   * State3: Unused.
+;;; State bytes for orc baddies:
+;;;   * State1: The eBadOrc value for the orc's current behavior mode.
+;;;   * State2: A timer for the current mode that decrements each frame.
+;;;   * State3: An animation counter that increments each frame.
 
-;;; OBJ tile IDs for bullet projectile actors:
-kTileIdObjBulletFirst = $92
+;;; Possible values for an orc baddie actor's State1 byte.
+.ENUM eBadOrc
+    Standing  ; standing guard
+    Chasing   ; chasing player avatar
+    Pausing   ; pausing for a short time
+    Jumping   ; jumping towards player avatar
+    NUM_VALUES
+.ENDENUM
+
+;;; Tile IDs for drawing orc baddie actors.
+kTileIdObjOrcStandingFirst = $88
+kTileIdObjOrcRunningFirst = $b8
 
 ;;;=========================================================================;;;

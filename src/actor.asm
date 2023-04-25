@@ -32,6 +32,7 @@
 .IMPORT FuncA_Actor_TickBadGrub
 .IMPORT FuncA_Actor_TickBadHotheadHorz
 .IMPORT FuncA_Actor_TickBadHotheadVert
+.IMPORT FuncA_Actor_TickBadOrc
 .IMPORT FuncA_Actor_TickBadSpider
 .IMPORT FuncA_Actor_TickBadToad
 .IMPORT FuncA_Actor_TickBadVinebug
@@ -58,6 +59,7 @@
 .IMPORT FuncA_Objects_DrawActorBadGrub
 .IMPORT FuncA_Objects_DrawActorBadHotheadHorz
 .IMPORT FuncA_Objects_DrawActorBadHotheadVert
+.IMPORT FuncA_Objects_DrawActorBadOrc
 .IMPORT FuncA_Objects_DrawActorBadSpider
 .IMPORT FuncA_Objects_DrawActorBadToad
 .IMPORT FuncA_Objects_DrawActorBadVinebug
@@ -144,9 +146,12 @@ Ram_ActorVelY_i16_0_arr: .res kMaxActors
 Ram_ActorVelY_i16_1_arr: .res kMaxActors
 
 ;;; Type-specific state data for each actor in the room.
-.EXPORT Ram_ActorState1_byte_arr, Ram_ActorState2_byte_arr
+.EXPORT Ram_ActorState1_byte_arr
 Ram_ActorState1_byte_arr: .res kMaxActors
+.EXPORT Ram_ActorState2_byte_arr
 Ram_ActorState2_byte_arr: .res kMaxActors
+.EXPORT Ram_ActorState3_byte_arr
+Ram_ActorState3_byte_arr: .res kMaxActors
 
 ;;; The object flags to apply for each actor in the room.  In particular, if
 ;;; bObj::FlipH is set, then the actor will face left instead of right, and if
@@ -270,6 +275,7 @@ Ram_ActorFlags_bObj_arr: .res kMaxActors
     sta Ram_ActorVelY_i16_0_arr, x
     sta Ram_ActorVelY_i16_1_arr, x
     sta Ram_ActorState2_byte_arr, x
+    sta Ram_ActorState3_byte_arr, x
     sta Ram_ActorFlags_bObj_arr, x
     rts
 .ENDPROC
@@ -292,6 +298,7 @@ Ram_ActorFlags_bObj_arr: .res kMaxActors
     d_byte BadGrub,          0
     d_byte BadHotheadHorz,   6
     d_byte BadHotheadVert,   6
+    d_byte BadOrc,          17
     d_byte BadSpider,        8
     d_byte BadToad,          9
     d_byte BadVinebug,       7
@@ -327,6 +334,7 @@ Ram_ActorFlags_bObj_arr: .res kMaxActors
     d_byte BadGrub,          8
     d_byte BadHotheadHorz,   6
     d_byte BadHotheadVert,   6
+    d_byte BadOrc,           8
     d_byte BadSpider,        2
     d_byte BadToad,          0
     d_byte BadVinebug,       7
@@ -362,6 +370,7 @@ Ram_ActorFlags_bObj_arr: .res kMaxActors
     d_byte BadGrub,         7
     d_byte BadHotheadHorz,  6
     d_byte BadHotheadVert,  6
+    d_byte BadOrc,          6
     d_byte BadSpider,       6
     d_byte BadToad,         7
     d_byte BadVinebug,      5
@@ -466,6 +475,7 @@ _TypeSpecificTick:
     d_entry table, BadGrub,         FuncA_Actor_TickBadGrub
     d_entry table, BadHotheadHorz,  FuncA_Actor_TickBadHotheadHorz
     d_entry table, BadHotheadVert,  FuncA_Actor_TickBadHotheadVert
+    d_entry table, BadOrc,          FuncA_Actor_TickBadOrc
     d_entry table, BadSpider,       FuncA_Actor_TickBadSpider
     d_entry table, BadToad,         FuncA_Actor_TickBadToad
     d_entry table, BadVinebug,      FuncA_Actor_TickBadVinebug
@@ -636,6 +646,7 @@ _NoHit:
     d_entry table, BadGrub,         Func_InitActorDefault
     d_entry table, BadHotheadHorz,  Func_InitActorWithFlags
     d_entry table, BadHotheadVert,  Func_InitActorWithFlags
+    d_entry table, BadOrc,          Func_InitActorWithFlags
     d_entry table, BadSpider,       Func_InitActorDefault
     d_entry table, BadToad,         Func_InitActorDefault
     d_entry table, BadVinebug,      Func_InitActorDefault
@@ -767,6 +778,7 @@ _NoHit:
     d_entry table, BadGrub,         FuncA_Objects_DrawActorBadGrub
     d_entry table, BadHotheadHorz,  FuncA_Objects_DrawActorBadHotheadHorz
     d_entry table, BadHotheadVert,  FuncA_Objects_DrawActorBadHotheadVert
+    d_entry table, BadOrc,          FuncA_Objects_DrawActorBadOrc
     d_entry table, BadSpider,       FuncA_Objects_DrawActorBadSpider
     d_entry table, BadToad,         FuncA_Objects_DrawActorBadToad
     d_entry table, BadVinebug,      FuncA_Objects_DrawActorBadVinebug

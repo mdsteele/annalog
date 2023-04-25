@@ -21,6 +21,7 @@
 ;;;   * State1: Counter that decrements each frame; when it's zero, the crab
 ;;;     starts another movement cycle and resets the counter.
 ;;;   * State2: Unused.
+;;;   * State3: Unused.
 
 ;;; Tile IDs for drawing crab baddie actors.
 kTileIdObjCrabFirst = $c8

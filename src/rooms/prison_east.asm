@@ -195,7 +195,13 @@ _Platforms_sPlatform_arr:
     .assert * - :- <= kMaxPlatforms * .sizeof(sPlatform), error
     .byte ePlatform::None
 _Actors_sActor_arr:
-    ;; TODO: Add an orc guard.
+:   D_STRUCT sActor
+    d_byte Type_eActor, eActor::BadOrc
+    d_word PosX_i16, $011c
+    d_word PosY_i16, $00f8
+    d_byte Param_byte, 0
+    D_END
+    .assert * - :- <= kMaxActors * .sizeof(sActor), error
     .byte eActor::None
 _Devices_sDevice_arr:
 :   D_STRUCT sDevice
@@ -240,6 +246,7 @@ _Passages_sPassage_arr:
 
 ;;; Enter function for the PrisonEast room.
 .PROC FuncC_Prison_East_EnterRoom
+    ;; TODO: Once the kids have been rescued, remove the orc from this room.
 _EastGate:
     flag_bit Sram_ProgressFlags_arr, eFlag::PrisonEastEastGateOpen
     beq @shut

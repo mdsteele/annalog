@@ -23,6 +23,7 @@
 ;;;   * State2: If the bird is standing still, this is the cooldown
 ;;;     (decremented each frame) until it can fly again.  If the bird is
 ;;;     flying, this is an animation counter (incremented each from).
+;;;   * State3: Unused.
 
 ;;; Tile IDs for drawing bird baddie actors.
 kTileIdObjBirdFirst = $c0
