@@ -74,6 +74,8 @@
 .IMPORT DataC_Town_TownOutdoorsAlex1_sDialog
 .IMPORT DataC_Town_TownOutdoorsAlex2_sDialog
 .IMPORT DataC_Town_TownOutdoorsAlex3_sDialog
+.IMPORT DataC_Town_TownOutdoorsIvan_sDialog
+.IMPORT DataC_Town_TownOutdoorsSandra_sDialog
 .IMPORT DataC_Town_TownOutdoorsSign_sDialog
 .IMPORT FuncA_Dialog_PlaySfxQuestMarker
 .IMPORT FuncA_Objects_DrawObjectsForRoom
@@ -317,6 +319,8 @@ _UpdateScrolling:
     d_entry table, TownOutdoorsAlex1,  DataC_Town_TownOutdoorsAlex1_sDialog
     d_entry table, TownOutdoorsAlex2,  DataC_Town_TownOutdoorsAlex2_sDialog
     d_entry table, TownOutdoorsAlex3,  DataC_Town_TownOutdoorsAlex3_sDialog
+    d_entry table, TownOutdoorsIvan,   DataC_Town_TownOutdoorsIvan_sDialog
+    d_entry table, TownOutdoorsSandra, DataC_Town_TownOutdoorsSandra_sDialog
     d_entry table, TownOutdoorsSign,   DataC_Town_TownOutdoorsSign_sDialog
     D_END
 .ENDREPEAT

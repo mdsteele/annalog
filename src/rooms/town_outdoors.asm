@@ -45,6 +45,7 @@
 .IMPORT Ram_ActorPosX_i16_0_arr
 .IMPORT Ram_ActorState1_byte_arr
 .IMPORT Ram_ActorState2_byte_arr
+.IMPORT Ram_ActorType_eActor_arr
 .IMPORT Ram_DeviceType_eDevice_arr
 .IMPORTZP Zp_Active_sIrq
 .IMPORTZP Zp_AvatarFlags_bObj
@@ -67,8 +68,10 @@
 kTreelineTopY    = $2e
 kTreelineBottomY = $62
 
-;;; The actor index for Alex in this room.
-kAlexActorIndex = 0
+;;; The actor indices for the townsfolk in this room.
+kIvanActorIndex   = 0
+kSandraActorIndex = 1
+kAlexActorIndex   = 2
 
 ;;; The room pixel X-position that the Alex actor should be at when kneeling
 ;;; down to pick up the metal thing he found.
@@ -127,7 +130,21 @@ _TerrainData:
 _Platforms_sPlatform_arr:
     .byte ePlatform::None
 _Actors_sActor_arr:
-:   .assert * - :- = kAlexActorIndex * .sizeof(sActor), error
+:   .assert * - :- = kIvanActorIndex * .sizeof(sActor), error
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::NpcAdult
+    d_word PosX_i16, $02f0
+    d_word PosY_i16, $00c8
+    d_byte Param_byte, kTileIdAdultManFirst
+    D_END
+    .assert * - :- = kSandraActorIndex * .sizeof(sActor), error
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::NpcAdult
+    d_word PosX_i16, $0350
+    d_word PosY_i16, $00c8
+    d_byte Param_byte, kTileIdAdultWomanFirst
+    D_END
+    .assert * - :- = kAlexActorIndex * .sizeof(sActor), error
     D_STRUCT sActor
     d_byte Type_eActor, eActor::NpcChild
     d_word PosX_i16, $0570
@@ -178,6 +195,30 @@ _Devices_sDevice_arr:
     d_byte BlockRow_u8, 12
     d_byte BlockCol_u8, 71
     d_byte Target_u8, eRoom::TownHouse6
+    D_END
+    D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::TalkRight
+    d_byte BlockRow_u8, 12
+    d_byte BlockCol_u8, 46
+    d_byte Target_u8, eDialog::TownOutdoorsIvan
+    D_END
+    D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::TalkLeft
+    d_byte BlockRow_u8, 12
+    d_byte BlockCol_u8, 47
+    d_byte Target_u8, eDialog::TownOutdoorsIvan
+    D_END
+    D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::TalkRight
+    d_byte BlockRow_u8, 12
+    d_byte BlockCol_u8, 52
+    d_byte Target_u8, eDialog::TownOutdoorsSandra
+    D_END
+    D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::TalkLeft
+    d_byte BlockRow_u8, 12
+    d_byte BlockCol_u8, 53
+    d_byte Target_u8, eDialog::TownOutdoorsSandra
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::TalkRight
@@ -244,6 +285,10 @@ _CutsceneFunc:
 .ENDPROC
 
 .PROC MainC_Town_OutdoorsCutscene1
+    ;; Remove the other townsfolk (other than Alex).
+    lda #eActor::None
+    sta Ram_ActorType_eActor_arr + kIvanActorIndex
+    sta Ram_ActorType_eActor_arr + kSandraActorIndex
 _RemoveAllDevices:
     ;; Remove all devices from the room (so that the player can't start dialog
     ;; or run into a building once the orcs attack).
@@ -323,7 +368,7 @@ _ResumeDialog:
     .byte "It's some weird metal$"
     .byte "thing. But nothing$"
     .byte "like the iron or steel$"
-    .byte "Smith Duncan works on.#"
+    .byte "Smith Dominic uses.#"
     .word ePortrait::ChildAlex
     .byte "No idea what it is. It$"
     .byte "almost looks like part$"
@@ -428,6 +473,32 @@ _WhaWhat_sDialog:
     .word ePortrait::ChildAlex
     .byte "Anna, run!#"
     ;; TODO: make orcs attack
+    .word ePortrait::Done
+.ENDPROC
+
+.EXPORT DataC_Town_TownOutdoorsIvan_sDialog
+.PROC DataC_Town_TownOutdoorsIvan_sDialog
+    .word ePortrait::Man
+    .byte "The harvest isn't$"
+    .byte "looking good, Sandra.$"
+    .byte "This might be a tough$"
+    .byte "winter for all of us.#"
+    .word ePortrait::Man
+    .byte "Oh, sorry Anna, I$"
+    .byte "didn't see you there.#"
+    .word ePortrait::Done
+.ENDPROC
+
+.EXPORT DataC_Town_TownOutdoorsSandra_sDialog
+.PROC DataC_Town_TownOutdoorsSandra_sDialog
+    .word ePortrait::Woman
+    .byte "Looking for Alex? He$"
+    .byte "popped by the house$"
+    .byte "earlier to see Bruno$"
+    .byte "and Marie.#"
+    .word ePortrait::Woman
+    .byte "One of them might know$"
+    .byte "where he went.#"
     .word ePortrait::Done
 .ENDPROC
 

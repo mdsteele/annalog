@@ -96,6 +96,8 @@
     TownOutdoorsAlex1
     TownOutdoorsAlex2
     TownOutdoorsAlex3
+    TownOutdoorsIvan
+    TownOutdoorsSandra
     TownOutdoorsSign
     NUM_VALUES
 .ENDENUM
