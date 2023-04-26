@@ -37,6 +37,7 @@
 .IMPORT Func_AllocObjects
 .IMPORT Func_ClearRestOfOamAndProcessFrame
 .IMPORT Func_SetFlag
+.IMPORT Func_SetLastSpawnPointToNearbyDevice
 .IMPORT Func_Window_PrepareRowTransfer
 .IMPORT Func_Window_TransferBottomBorder
 .IMPORT Func_Window_TransferClearRow
@@ -49,6 +50,7 @@
 .IMPORTZP Zp_FloatingHud_bHud
 .IMPORTZP Zp_FrameCounter_u8
 .IMPORTZP Zp_MachineMaxInstructions_u8
+.IMPORTZP Zp_Nearby_bDevice
 .IMPORTZP Zp_P1ButtonsPressed_bJoypad
 .IMPORTZP Zp_PpuTransferLen_u8
 .IMPORTZP Zp_ScrollGoalY_u8
@@ -104,9 +106,9 @@ Zp_CurrentUpgrade_eFlag: .res 1
 ;;; Mode for scrolling in the upgrade window.
 ;;; @prereq Rendering is enabled.
 ;;; @prereq Explore mode is initialized.
-;;; @param X The upgrade's device index.
-.EXPORT Main_Upgrade_OpenWindow
-.PROC Main_Upgrade_OpenWindow
+;;; @prereq Zp_Nearby_bDevice holds the index of an upgrade device.
+.EXPORT Main_Upgrade_PickUp
+.PROC Main_Upgrade_PickUp
     jsr_prga FuncA_Upgrade_Init
 _GameLoop:
     prga_bank #<.bank(FuncA_Objects_DrawUpgradeSymbol)
@@ -165,7 +167,7 @@ _UpdateScrolling:
 .SEGMENT "PRGA_Upgrade"
 
 ;;; Initializes upgrade mode.
-;;; @param X The upgrade device index.
+;;; @prereq Zp_Nearby_bDevice holds the index of an upgrade device.
 .PROC FuncA_Upgrade_Init
     jsr FuncA_Upgrade_Collect
 _HideHud:
@@ -189,8 +191,12 @@ _InitWindow:
 ;;; Removes the specified upgrade device from the room, sets that upgrade's
 ;;; flag in SRAM as collected (updating Zp_MachineMaxInstructions_u8 as
 ;;; needed), and stores the upgrade's eFlag value in Zp_CurrentUpgrade_eFlag.
-;;; @param X The upgrade device index.
+;;; @prereq Zp_Nearby_bDevice holds the index of an upgrade device.
 .PROC FuncA_Upgrade_Collect
+    jsr Func_SetLastSpawnPointToNearbyDevice
+    lda Zp_Nearby_bDevice
+    and #bDevice::IndexMask
+    tax  ; device index
     ;; Remove the upgrade device from the room.
     lda #eDevice::None
     sta Ram_DeviceType_eDevice_arr, x
@@ -439,8 +445,6 @@ _DescTable_ptr_arr:
 ;;; Allocates and populates OAM slots for the upgrade symbol that appears
 ;;; within the upgrade window.
 .PROC FuncA_Objects_DrawUpgradeSymbol
-    lda #4  ; param: num objects
-    jsr Func_AllocObjects  ; returns Y
     ;; Compute the screen pixel Y-position of the top of the symbol.
     lda Zp_FrameCounter_u8
     div #4
@@ -448,10 +452,15 @@ _DescTable_ptr_arr:
     tax
     lda _YOffsets_u8_arr16, x
     add Zp_WindowTop_u8
+    ;; If the symbol would be completely off-screen, we're done.
     cmp #kScreenHeightPx
     blt _Draw
     rts
 _Draw:
+    tax  ; top Y-position
+    lda #4  ; param: num objects
+    jsr Func_AllocObjects  ; preserves X, returns Y
+    txa  ; top Y-position
     ;; Set Y-positions.
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::YPos_u8, y
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::YPos_u8, y

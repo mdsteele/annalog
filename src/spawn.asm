@@ -41,6 +41,7 @@
 .IMPORTZP Zp_AvatarPosY_i16
 .IMPORTZP Zp_Current_eRoom
 .IMPORTZP Zp_Current_sRoom
+.IMPORTZP Zp_Nearby_bDevice
 .IMPORTZP Zp_Previous_eRoom
 
 ;;;=========================================================================;;;
@@ -65,6 +66,19 @@ Zp_LastPoint_eRoom: .res 1
 ;;;=========================================================================;;;
 
 .SEGMENT "PRG8"
+
+;;; Sets the last spawn point to the nearby device in the current room.  If the
+;;; current room is currently marked as safe, then the last safe point will
+;;; also be set.
+;;; @prereq Zp_Nearby_bDevice holds the index of a device.
+;;; @preserve X, Y, T0+
+.EXPORT Func_SetLastSpawnPointToNearbyDevice
+.PROC Func_SetLastSpawnPointToNearbyDevice
+    lda Zp_Nearby_bDevice
+    and #bDevice::IndexMask
+    ora #bSpawn::Device  ; param: bSpawn value
+    .assert * = Func_SetLastSpawnPoint, error, "fallthrough"
+.ENDPROC
 
 ;;; Sets the last spawn point to the specified point in the current room.  If
 ;;; the current room is currently marked as safe, then the last safe point will

@@ -57,7 +57,7 @@
 .IMPORT Func_ClearRestOfOamAndProcessFrame
 .IMPORT Func_FadeInFromBlack
 .IMPORT Func_FadeOutToBlack
-.IMPORT Func_SetLastSpawnPoint
+.IMPORT Func_SetLastSpawnPointToNearbyDevice
 .IMPORT Func_TickAllDevices
 .IMPORT Func_ToggleLeverDevice
 .IMPORT Func_Window_DirectDrawTopBorder
@@ -68,7 +68,7 @@
 .IMPORT Main_Death
 .IMPORT Main_Dialog_OpenWindow
 .IMPORT Main_Pause
-.IMPORT Main_Upgrade_OpenWindow
+.IMPORT Main_Upgrade_PickUp
 .IMPORT Ppu_ChrBgAnimA0
 .IMPORT Ram_DeviceBlockCol_u8_arr
 .IMPORT Ram_DeviceBlockRow_u8_arr
@@ -105,9 +105,10 @@ kTileIdObjDevicePrompt = $09
 
 .ZEROPAGE
 
-;;; The index of the (interactive) device that the player avatar is near, or
-;;; $ff if none.
-Zp_NearbyDevice_u8: .res 1
+;;; Information about the (interactive) device that the player avatar is near,
+;;; if any.
+.EXPORTZP Zp_Nearby_bDevice
+Zp_Nearby_bDevice: .res 1
 
 ;;; If set to a PRG ROM address ($8000+), e.g. by a dialog function or a room
 ;;; or machine tick function, then explore mode will jump to this mode (and
@@ -206,8 +207,13 @@ _CheckForPause:
     bit Zp_P1ButtonsPressed_bJoypad
     .assert bJoypad::BButton = bProc::Overflow, error
     bvc _DoneWithDevice
-    ldx Zp_NearbyDevice_u8  ; param: device index
-    bmi _DoneWithDevice
+    lda Zp_Nearby_bDevice
+    .assert bDevice::NoneNearby = bProc::Negative, error
+    bmi _DoneWithDevice  ; no nearby device
+    ora #bDevice::Active
+    sta Zp_Nearby_bDevice
+    and #bDevice::IndexMask
+    tax  ; param: device index
     ldy Ram_DeviceType_eDevice_arr, x
     lda _JumpTable_ptr_0_arr, y
     sta T0
@@ -225,7 +231,7 @@ _CheckForPause:
     d_entry table, LockedDoor,    _DoneWithDevice
     d_entry table, Placeholder,   _DoneWithDevice
     d_entry table, Teleporter,    _DoneWithDevice
-    d_entry table, BreakerReady,  Main_Explore_UseBreaker
+    d_entry table, BreakerReady,  Main_Breaker_Activate
     d_entry table, Console,       Main_Console_UseDevice
     d_entry table, Flower,        _DeviceFlower
     d_entry table, LeverCeiling,  _DeviceLever
@@ -236,12 +242,10 @@ _CheckForPause:
     d_entry table, TalkLeft,      _DeviceTalkLeft
     d_entry table, TalkRight,     _DeviceTalkRight
     d_entry table, UnlockedDoor,  Main_Explore_GoThroughDoor
-    d_entry table, Upgrade,       Main_Explore_PickUpUpgrade
+    d_entry table, Upgrade,       Main_Upgrade_PickUp
     D_END
 .ENDREPEAT
 _DeviceFlower:
-    lda #$ff
-    sta Zp_NearbyDevice_u8
     jsr_prga FuncA_Room_PickUpFlowerDevice
     jmp _DoneWithDevice
 _DeviceSign:
@@ -257,12 +261,11 @@ _DeviceTalkRight:
     and #<~bObj::FlipH
 _Talk:
     sta Zp_AvatarFlags_bObj
-    lda #$ff
-    sta Zp_NearbyDevice_u8
 _Dialog:
     ldy Ram_DeviceTarget_u8_arr, x  ; param: eDialog value
     jmp Main_Dialog_OpenWindow
 _DeviceLever:
+    stx Zp_Nearby_bDevice  ; clear bDevice::Active
     jsr Func_ToggleLeverDevice
 _DoneWithDevice:
 .ENDPROC
@@ -318,7 +321,7 @@ _FadeIn:
 ;;; next room.
 ;;; @prereq Rendering is enabled.
 ;;; @prereq Explore mode is already initialized.
-;;; @prereq Zp_NearbyDevice_u8 holds the index of a door device.
+;;; @prereq Zp_Nearby_bDevice holds the index of a door device.
 .PROC Main_Explore_GoThroughDoor
     lda #eAvatar::Reading
     sta Zp_AvatarMode_eAvatar
@@ -326,45 +329,20 @@ _SetSpawnPoint:
     ;; We'll soon be setting the entrance door in the destination room as the
     ;; spawn point, but first we set the exit door in the current room as the
     ;; spawn point, in case this room is safe and the destination room is not.
-    lda Zp_NearbyDevice_u8
-    ora #bSpawn::Device  ; param: bSpawn value
-    jsr Func_SetLastSpawnPoint
+    jsr Func_SetLastSpawnPointToNearbyDevice
 _FadeOut:
     jsr_prga FuncA_Objects_DrawObjectsForRoom
     jsr Func_ClearRestOfOam
     jsr Func_FadeOutToBlack
 _LoadNextRoom:
-    ldy Zp_NearbyDevice_u8
+    lda Zp_Nearby_bDevice
+    and #bDevice::IndexMask
+    tay  ; door device index
     ldx Ram_DeviceTarget_u8_arr, y  ; param: eRoom value
     jsr FuncM_SwitchPrgcAndLoadRoom
     jsr_prga FuncA_Avatar_EnterRoomViaDoor
 _FadeIn:
     jmp Main_Explore_EnterRoom
-.ENDPROC
-
-;;; Mode for pickup up an upgrade device.
-;;; @prereq Rendering is enabled.
-;;; @prereq Explore mode is already initialized.
-;;; @param X The upgrade device index.
-.PROC Main_Explore_PickUpUpgrade
-_SetSpawnPoint:
-    txa  ; upgrade device index
-    ora #bSpawn::Device  ; param: bSpawn value
-    jsr Func_SetLastSpawnPoint  ; preserves X
-_CollectUpgrade:
-    ldy #$ff
-    sty Zp_NearbyDevice_u8
-    jmp Main_Upgrade_OpenWindow
-.ENDPROC
-
-;;; Mode for activating a breaker device.
-;;; @prereq Rendering is enabled.
-;;; @prereq Explore mode is already initialized.
-;;; @param X The breaker device index.
-.PROC Main_Explore_UseBreaker
-    ldy #$ff
-    sty Zp_NearbyDevice_u8
-    jmp Main_Breaker_Activate
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -412,9 +390,9 @@ _UpDownPassage:
     rts
 .ENDPROC
 
-;;; Sets Zp_NearbyDevice_u8 to the index of the (interactive) device that the
-;;; player avatar is near (if any), or to $ff if the avatar is not near an
-;;; interactive device.
+;;; Sets Zp_Nearby_bDevice with the index of the (interactive) device that the
+;;; player avatar is near (if any), or sets bDevice::NoneNearby if the avatar
+;;; is not near an interactive device.
 .PROC FuncA_Avatar_FindNearbyDevice
     ;; Check if the player avatar is airborne (and not in water); if so, treat
     ;; them as not near any device.
@@ -456,8 +434,11 @@ _UpDownPassage:
     @continue:
     dex
     bpl @loop
+    ;; If we exit the loop this way (because we didn't find a nearby device),
+    ;; then X is now $ff, so bDevice::NoneNearby is set.
+    .assert bDevice::NoneNearby = bProc::Negative, error
     @done:
-    stx Zp_NearbyDevice_u8
+    stx Zp_Nearby_bDevice
     rts
 .ENDPROC
 
@@ -501,11 +482,9 @@ _UpDownPassage:
 ;;; Allocates and populates OAM slots for the visual prompt that appears when
 ;;; the player avatar is near a device.
 .PROC FuncA_Objects_DrawDevicePrompt
-    lda Zp_NearbyDevice_u8
-    bmi _NotVisible
-    lda Zp_AvatarMode_eAvatar
-    cmp #eAvatar::Reading
-    beq _NotVisible
+    lda Zp_Nearby_bDevice
+    and #bDevice::NoneNearby | bDevice::Active
+    bne _NotVisible
 _DrawObject:
     jsr FuncA_Objects_SetShapePosToAvatarCenter
     jsr FuncA_Objects_MoveShapeLeftHalfTile

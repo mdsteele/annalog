@@ -56,6 +56,19 @@ kFirstInteractiveDeviceType = eDevice::BreakerReady
 
 ;;;=========================================================================;;;
 
+;;; Describes a nearby device (if any).
+.SCOPE bDevice
+    NoneNearby = %10000000  ; if set, other bits should be ignored
+    Active     = %01000000  ; if set, the nearby device is being actively used
+    IndexMask  = %00001111  ; bits used for the nearby device index
+.ENDSCOPE
+
+;;; Ensure that the bDevice index mask is wide enough to include any device
+;;; index.
+.ASSERT bDevice::IndexMask + 1 >= kMaxDevices, error
+
+;;;=========================================================================;;;
+
 ;;; Static information about a given device.
 .STRUCT sDevice
     ;; The type of this device.
