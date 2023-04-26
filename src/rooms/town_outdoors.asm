@@ -427,6 +427,7 @@ _UpdateScrolling:
     jsr_prga FuncA_Terrain_ScrollTowardsGoal
     jmp _GameLoop
 _ResumeDialog:
+    ;; TODO: spawn orc actors
     ldy #eDialog::TownOutdoorsAlex3  ; param: eDialog value
     jmp Main_Dialog_OpenWindow
 .ENDPROC
@@ -451,7 +452,7 @@ _ScrollFunc:
     ldya #_HandleThis_sDialog
     rts
 _HandleThis_sDialog:
-    .word ePortrait::Man  ; TODO Orc
+    .word ePortrait::OrcGronta
     .byte "Handle THIS, human.#"
     .addr _TurnAroundFunc
 _TurnAroundFunc:
@@ -468,9 +469,9 @@ _TurnAroundFunc:
 _WhaWhat_sDialog:
     .word ePortrait::ChildAlex
     .byte "Wha- what?#"
-    .word ePortrait::Man  ; TODO Orc
+    .word ePortrait::OrcGrontaShout
     .byte "Orcs, attaaaaaack!#"
-    .word ePortrait::ChildAlex
+    .word ePortrait::ChildAlexShout
     .byte "Anna, run!#"
     ;; TODO: make orcs attack
     .word ePortrait::Done

@@ -33,6 +33,7 @@
 .ENUM ePortrait
     Done           = $0000  ; indicates end of dialog
     ChildAlex      = $0c0b
+    ChildAlexShout = $0b0c
     ChildBruno     = $1413
     ChildMarie     = $1211
     ChildNora      = $0a09  ; same portrait as MermaidGirl
@@ -42,6 +43,9 @@
     MermaidFlorist = $100f
     MermaidGirl    = $0a09  ; same portrait as ChildNora
     MermaidQueen   = $0605  ; TODO: make a unique portrait for the queen
+    OrcGronta      = $1716
+    OrcGrontaShout = $1617
+    OrcMale        = $1918
     Paper          = $0404
     Plaque         = $1515
     Sign           = $0303

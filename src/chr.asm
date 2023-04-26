@@ -551,6 +551,54 @@
 
 ;;;=========================================================================;;;
 
+.SEGMENT "CHR_BgFontLower16"
+
+.PROC Ppu_ChrBgFontLower16
+:   .incbin "out/data/tiles/font_lower.chr"
+    .res $10 * kSizeofChr
+    .assert .bank(*) = <ePortrait::OrcGronta, error
+    .incbin "out/data/tiles/portrait_gronta_rest.chr"
+    .assert * - :- = kSizeofChr * $40, error
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "CHR_BgFontLower17"
+
+.PROC Ppu_ChrBgFontLower17
+:   .incbin "out/data/tiles/font_lower.chr"
+    .res $10 * kSizeofChr
+    .assert .bank(*) = >ePortrait::OrcGronta, error
+    .incbin "out/data/tiles/portrait_gronta_talk.chr"
+    .assert * - :- = kSizeofChr * $40, error
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "CHR_BgFontLower18"
+
+.PROC Ppu_ChrBgFontLower18
+:   .incbin "out/data/tiles/font_lower.chr"
+    .res $10 * kSizeofChr
+    .assert .bank(*) = <ePortrait::OrcMale, error
+    .incbin "out/data/tiles/portrait_orc_rest.chr"
+    .assert * - :- = kSizeofChr * $40, error
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "CHR_BgFontLower19"
+
+.PROC Ppu_ChrBgFontLower19
+:   .incbin "out/data/tiles/font_lower.chr"
+    .res $10 * kSizeofChr
+    .assert .bank(*) = >ePortrait::OrcMale, error
+    .incbin "out/data/tiles/portrait_orc_talk.chr"
+    .assert * - :- = kSizeofChr * $40, error
+.ENDPROC
+
+;;;=========================================================================;;;
+
 .SEGMENT "CHR_BgFactory"
 
 .EXPORT Ppu_ChrBgFactory
