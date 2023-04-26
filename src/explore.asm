@@ -64,7 +64,7 @@
 .IMPORT Func_Window_Disable
 .IMPORT Func_Window_SetUpIrq
 .IMPORT Main_Breaker_Activate
-.IMPORT Main_Console_OpenWindow
+.IMPORT Main_Console_UseDevice
 .IMPORT Main_Death
 .IMPORT Main_Dialog_OpenWindow
 .IMPORT Main_Pause
@@ -226,7 +226,7 @@ _CheckForPause:
     d_entry table, Placeholder,   _DoneWithDevice
     d_entry table, Teleporter,    _DoneWithDevice
     d_entry table, BreakerReady,  Main_Explore_UseBreaker
-    d_entry table, Console,       Main_Explore_UseConsole
+    d_entry table, Console,       Main_Console_UseDevice
     d_entry table, Flower,        _DeviceFlower
     d_entry table, LeverCeiling,  _DeviceLever
     d_entry table, LeverFloor,    _DeviceLever
@@ -365,23 +365,6 @@ _CollectUpgrade:
     ldy #$ff
     sty Zp_NearbyDevice_u8
     jmp Main_Breaker_Activate
-.ENDPROC
-
-;;; Mode for using a console device.
-;;; @prereq Rendering is enabled.
-;;; @prereq Explore mode is already initialized.
-;;; @param X The console device index.
-.PROC Main_Explore_UseConsole
-    lda #eAvatar::Reading
-    sta Zp_AvatarMode_eAvatar
-_SetSpawnPoint:
-    txa  ; console device index
-    ora #bSpawn::Device  ; param: bSpawn value
-    jsr Func_SetLastSpawnPoint  ; preserves X
-_OpenConsoleWindow:
-    lda Ram_DeviceTarget_u8_arr, x
-    tax  ; param: machine index
-    jmp Main_Console_OpenWindow
 .ENDPROC
 
 ;;;=========================================================================;;;

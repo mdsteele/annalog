@@ -28,7 +28,6 @@
 .IMPORT Ram_DeviceTarget_u8_arr
 .IMPORT Ram_MachineStatus_eMachine_arr
 .IMPORT Ram_Oam_sObj_arr64
-.IMPORTZP Zp_ShapePosY_i16
 
 ;;;=========================================================================;;;
 
@@ -44,22 +43,14 @@ kPaletteObjConsoleScreenErr = 1
 
 .SEGMENT "PRGA_Objects"
 
-;;; Allocates and populates OAM slots for a console device.
+;;; Draws a console device.
 ;;; @param X The device index.
 ;;; @preserve X
 .EXPORT FuncA_Objects_DrawConsoleDevice
 .PROC FuncA_Objects_DrawConsoleDevice
     jsr FuncA_Objects_SetShapePosToDeviceTopLeft  ; preserves X
-_AdjustPosition:
-    ;; Adjust X-position for the console screen.
     lda #4  ; param: offset
     jsr FuncA_Objects_MoveShapeRightByA  ; preserves X
-    ;; Adjust Y-position for the console screen.
-    inc Zp_ShapePosY_i16 + 0
-    bne @noCarry
-    inc Zp_ShapePosY_i16 + 1
-    @noCarry:
-_AllocateObject:
     jsr FuncA_Objects_Alloc1x1Shape  ; preserves X, returns C and Y
     bcs @done
     sty T0  ; OAM offset

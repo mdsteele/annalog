@@ -21,6 +21,7 @@
 .INCLUDE "cpu.inc"
 .INCLUDE "device.inc"
 .INCLUDE "devices/breaker.inc"
+.INCLUDE "devices/console.inc"
 .INCLUDE "macros.inc"
 .INCLUDE "mmc3.inc"
 .INCLUDE "oam.inc"
@@ -306,7 +307,7 @@ _DeviceOffset_u8_arr:
     d_byte Placeholder,   $08
     d_byte Teleporter,    $08
     d_byte BreakerReady,  kBreakerAvatarOffset
-    d_byte Console,       $06
+    d_byte Console,       kConsoleAvatarOffset
     d_byte Flower,        $08
     d_byte LeverCeiling,  $06
     d_byte LeverFloor,    $06

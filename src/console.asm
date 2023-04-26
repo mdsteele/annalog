@@ -17,16 +17,20 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
+.INCLUDE "avatar.inc"
 .INCLUDE "charmap.inc"
 .INCLUDE "cpu.inc"
+.INCLUDE "devices/console.inc"
 .INCLUDE "flag.inc"
 .INCLUDE "hud.inc"
 .INCLUDE "joypad.inc"
 .INCLUDE "machine.inc"
 .INCLUDE "macros.inc"
 .INCLUDE "mmc3.inc"
+.INCLUDE "oam.inc"
 .INCLUDE "ppu.inc"
 .INCLUDE "program.inc"
+.INCLUDE "spawn.inc"
 .INCLUDE "window.inc"
 
 .IMPORT FuncA_Actor_TickAllSmokeActors
@@ -45,6 +49,7 @@
 .IMPORT Func_GetMachineProgram
 .IMPORT Func_IsFlagSet
 .IMPORT Func_ProcessFrame
+.IMPORT Func_SetLastSpawnPoint
 .IMPORT Func_SetMachineIndex
 .IMPORT Func_TickAllDevices
 .IMPORT Func_Window_GetRowPpuAddr
@@ -54,9 +59,15 @@
 .IMPORT Main_Console_Debug
 .IMPORT Main_Explore_Continue
 .IMPORT Main_Menu_EditSelectedField
+.IMPORT Ram_DeviceTarget_u8_arr
 .IMPORT Ram_MachineStatus_eMachine_arr
 .IMPORT Ram_PpuTransfer_arr
 .IMPORT Sram_ProgressFlags_arr
+.IMPORTZP Zp_AvatarFlags_bObj
+.IMPORTZP Zp_AvatarMode_eAvatar
+.IMPORTZP Zp_AvatarPosX_i16
+.IMPORTZP Zp_AvatarSubX_u8
+.IMPORTZP Zp_AvatarVelX_i16
 .IMPORTZP Zp_Current_sMachine_ptr
 .IMPORTZP Zp_Current_sProgram_ptr
 .IMPORTZP Zp_FloatingHud_bHud
@@ -136,12 +147,19 @@ Ram_ConsoleRegNames_u8_arr6: .res 6
 
 .SEGMENT "PRG8"
 
-;;; Mode for scrolling in the console window.
+;;; Mode for using a console device.
 ;;; @prereq Rendering is enabled.
-;;; @prereq Explore mode is initialized.
-;;; @param X The machine index to open a console for.
-.EXPORT Main_Console_OpenWindow
-.PROC Main_Console_OpenWindow
+;;; @prereq Explore mode is already initialized.
+;;; @param X The console device index.
+.EXPORT Main_Console_UseDevice
+.PROC Main_Console_UseDevice
+_SetSpawnPoint:
+    txa  ; console device index
+    ora #bSpawn::Device  ; param: bSpawn value
+    jsr Func_SetLastSpawnPoint  ; preserves X
+_OpenConsoleWindow:
+    lda Ram_DeviceTarget_u8_arr, x
+    tax  ; machine index
     stx Zp_ConsoleMachineIndex_u8
     jsr Func_SetMachineIndex  ; preserves X
     lda Ram_MachineStatus_eMachine_arr, x
@@ -372,6 +390,10 @@ _CopyRegNames:
     inx
     cpx #6
     blt @loop
+_InitAvatar:
+    lda #0
+    sta Zp_AvatarVelX_i16 + 0
+    sta Zp_AvatarVelX_i16 + 1
 _InitWindow:
     lda #kScreenHeightPx - kConsoleWindowScrollSpeed
     sta Zp_WindowTop_u8
@@ -428,6 +450,27 @@ _InitWindow:
 ;;; this each frame when the window is opening.
 ;;; @return C Set if the window is now fully scrolled in.
 .PROC FuncA_Console_ScrollWindowUp
+_AdjustAvatar:
+    lda #eAvatar::Reading
+    sta Zp_AvatarMode_eAvatar
+    lda Zp_AvatarFlags_bObj
+    and #<~bObj::FlipH
+    sta Zp_AvatarFlags_bObj
+    ;; Slide the player avatar to stand directly in front of the console.
+    lda #0
+    sta Zp_AvatarSubX_u8
+    lda Zp_AvatarPosX_i16 + 0
+    and #$0f
+    cmp #kConsoleAvatarOffset
+    beq @done
+    blt @adjustRight
+    @adjustLeft:
+    dec Zp_AvatarPosX_i16 + 0
+    bne @done  ; unconditional
+    @adjustRight:
+    inc Zp_AvatarPosX_i16 + 0
+    @done:
+_ScrollWindow:
     lda Zp_WindowTop_u8
     sub #kConsoleWindowScrollSpeed
     cmp Zp_WindowTopGoal_u8
