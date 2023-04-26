@@ -180,12 +180,12 @@ _ResumeExploring:
 
 .EXPORT DataC_Town_TownHouse2Stela_sDialog
 .PROC DataC_Town_TownHouse2Stela_sDialog
-    .word ePortrait::Woman
+    .word ePortrait::AdultWoman
     .byte "Can't sleep, Anna?#"
-    .word ePortrait::Woman
+    .word ePortrait::AdultWoman
     .byte "Your brother Alex is$"
     .byte "up late, too.#"
-    .word ePortrait::Woman
+    .word ePortrait::AdultWoman
     .byte "I think he went$"
     .byte "outside somewhere. Why$"
     .byte "don't you go find him?#"

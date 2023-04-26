@@ -286,7 +286,7 @@
 :   .incbin "out/data/tiles/font_lower.chr"
     .assert .bank(*) = eDiagram::Lift, error
     .incbin "out/data/tiles/diagram_lift.chr"
-    .assert .bank(*) = <ePortrait::Woman, error
+    .assert .bank(*) = <ePortrait::AdultWoman, error
     .incbin "out/data/tiles/portrait_woman_rest.chr"
     .assert * - :- = kSizeofChr * $40, error
 .ENDPROC
@@ -299,7 +299,7 @@
 :   .incbin "out/data/tiles/font_lower.chr"
     .assert .bank(*) = eDiagram::Trolley, error
     .incbin "out/data/tiles/diagram_trolley.chr"
-    .assert .bank(*) = >ePortrait::Woman, error
+    .assert .bank(*) = >ePortrait::AdultWoman, error
     .incbin "out/data/tiles/portrait_woman_talk.chr"
     .assert * - :- = kSizeofChr * $40, error
 .ENDPROC
@@ -366,7 +366,7 @@
 :   .incbin "out/data/tiles/font_lower.chr"
     .assert .bank(*) = eDiagram::Carriage, error
     .incbin "out/data/tiles/diagram_carriage.chr"
-    .assert .bank(*) = <ePortrait::Man, error
+    .assert .bank(*) = <ePortrait::AdultMan, error
     .incbin "out/data/tiles/portrait_man_rest.chr"
     .assert * - :- = kSizeofChr * $40, error
 .ENDPROC
@@ -379,7 +379,7 @@
 :   .incbin "out/data/tiles/font_lower.chr"
     .assert .bank(*) = eDiagram::CannonRight, error
     .incbin "out/data/tiles/diagram_cannon_right.chr"
-    .assert .bank(*) = >ePortrait::Man, error
+    .assert .bank(*) = >ePortrait::AdultMan, error
     .incbin "out/data/tiles/portrait_man_talk.chr"
     .assert * - :- = kSizeofChr * $40, error
 .ENDPROC

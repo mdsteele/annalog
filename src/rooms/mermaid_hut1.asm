@@ -131,7 +131,7 @@ _Devices_sDevice_arr:
 
 .EXPORT DataA_Dialog_MermaidHut1Guard_sDialog
 .PROC DataA_Dialog_MermaidHut1Guard_sDialog
-    .word ePortrait::Man
+    .word ePortrait::AdultMan
     .byte "All hail Queen Eirene!#"
     .word ePortrait::Done
 .ENDPROC

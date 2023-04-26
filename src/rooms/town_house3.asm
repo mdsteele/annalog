@@ -102,7 +102,7 @@ _Devices_sDevice_arr:
 
 .EXPORT DataA_Dialog_TownHouse3Smith_sDialog
 .PROC DataA_Dialog_TownHouse3Smith_sDialog
-    .word ePortrait::Man
+    .word ePortrait::AdultMan
     .byte "Lorem ipsum.#"
     .word ePortrait::Done
 .ENDPROC

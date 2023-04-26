@@ -102,7 +102,7 @@ _Devices_sDevice_arr:
 
 .EXPORT DataA_Dialog_TownHouse6Elder_sDialog
 .PROC DataA_Dialog_TownHouse6Elder_sDialog
-    .word ePortrait::Man
+    .word ePortrait::AdultMan  ; TODO
     .byte "I am Elder Roman.#"
     .word ePortrait::Done
 .ENDPROC

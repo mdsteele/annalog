@@ -109,7 +109,7 @@ _Devices_sDevice_arr:
 
 .EXPORT DataA_Dialog_MermaidHut2Guard_sDialog
 .PROC DataA_Dialog_MermaidHut2Guard_sDialog
-    .word ePortrait::Man
+    .word ePortrait::AdultMan
     .byte "Lorem ipsum.#"  ; TODO
     .word ePortrait::Done
 .ENDPROC

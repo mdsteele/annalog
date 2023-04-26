@@ -321,19 +321,19 @@ _Quest2Func:
     ldya #_LookingForCorra_sDialog
     rts
 _Farming_sDialog:
-    .word ePortrait::Man
+    .word ePortrait::MermaidFarmer
     .byte "I am farming seaweed.$"
     .byte "The harvest has not$"
     .byte "been good this year,$"
     .byte "though.#"
     .word ePortrait::Done
 _NeedHelp_sDialog:
-    .word ePortrait::Man
+    .word ePortrait::MermaidFarmer
     .byte "The queen sent you?$"
     .byte "Thank goodness. We$"
     .byte "could use your help.#"
 _Monster_sDialog:
-    .word ePortrait::Man
+    .word ePortrait::MermaidFarmer
     .byte "West of our village,$"
     .byte "there is a tower in$"
     .byte "the gardens. A monster$"
@@ -345,21 +345,21 @@ _OpenTheWayFunc:
     ldya #_OpenTheWay_sDialog
     rts
 _OpenTheWay_sDialog:
-    .word ePortrait::Man
+    .word ePortrait::MermaidFarmer
     .byte "Perhaps one with your$"
     .byte "ingenuity could get$"
     .byte "rid of it? We'll open$"
     .byte "the way up for you.#"
     .word ePortrait::Done
 _ThankYou_sDialog:
-    .word ePortrait::Man
+    .word ePortrait::MermaidFarmer
     .byte "You did it! Thank you$"
     .byte "for your help. You$"
     .byte "should go see the$"
     .byte "queen.#"
     .word ePortrait::Done
 _LookingForCorra_sDialog:
-    .word ePortrait::Man
+    .word ePortrait::MermaidFarmer
     .byte "Are you looking for$"
     .byte "Corra? I think she$"
     .byte "went exploring in the$"

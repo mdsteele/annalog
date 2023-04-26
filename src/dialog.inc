@@ -32,14 +32,16 @@
 ;;; first to animate the portrait while text is being written.
 .ENUM ePortrait
     Done           = $0000  ; indicates end of dialog
+    AdultMan       = $0807  ; same portrait as MermaidFarmer
+    AdultWoman     = $0201
     ChildAlex      = $0c0b
     ChildAlexShout = $0b0c
     ChildBruno     = $1413
     ChildMarie     = $1211
     ChildNora      = $0a09  ; same portrait as MermaidGirl
-    Man            = $0807
     MermaidAdult   = $0605
     MermaidCorra   = $0e0d
+    MermaidFarmer  = $0807  ; same portrait as AdultMan
     MermaidFlorist = $100f
     MermaidGirl    = $0a09  ; same portrait as ChildNora
     MermaidQueen   = $0605  ; TODO: make a unique portrait for the queen
@@ -49,7 +51,6 @@
     Paper          = $0404
     Plaque         = $1515
     Sign           = $0303
-    Woman          = $0201
 .ENDENUM
 
 ;;;=========================================================================;;;

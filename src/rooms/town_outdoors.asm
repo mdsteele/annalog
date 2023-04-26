@@ -479,12 +479,12 @@ _WhaWhat_sDialog:
 
 .EXPORT DataC_Town_TownOutdoorsIvan_sDialog
 .PROC DataC_Town_TownOutdoorsIvan_sDialog
-    .word ePortrait::Man
+    .word ePortrait::AdultMan
     .byte "The harvest isn't$"
     .byte "looking good, Sandra.$"
     .byte "This might be a tough$"
     .byte "winter for all of us.#"
-    .word ePortrait::Man
+    .word ePortrait::AdultMan
     .byte "Oh, sorry Anna, I$"
     .byte "didn't see you there.#"
     .word ePortrait::Done
@@ -492,12 +492,12 @@ _WhaWhat_sDialog:
 
 .EXPORT DataC_Town_TownOutdoorsSandra_sDialog
 .PROC DataC_Town_TownOutdoorsSandra_sDialog
-    .word ePortrait::Woman
+    .word ePortrait::AdultWoman
     .byte "Looking for Alex? He$"
     .byte "popped by the house$"
     .byte "earlier to see Bruno$"
     .byte "and Marie.#"
-    .word ePortrait::Woman
+    .word ePortrait::AdultWoman
     .byte "One of them might know$"
     .byte "where he went.#"
     .word ePortrait::Done

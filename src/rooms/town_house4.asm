@@ -120,12 +120,12 @@ _Devices_sDevice_arr:
 
 .EXPORT DataA_Dialog_TownHouse4Laura_sDialog
 .PROC DataA_Dialog_TownHouse4Laura_sDialog
-    .word ePortrait::Woman
+    .word ePortrait::AdultWoman
     .byte "Your Uncle Martin and$"
     .byte "I are waiting here for$"
     .byte "Elder Roman to meet$"
     .byte "with us.#"
-    .word ePortrait::Woman
+    .word ePortrait::AdultWoman
     .byte "I wonder what's taking$"
     .byte "him so long?#"
     .word ePortrait::Done
@@ -133,7 +133,7 @@ _Devices_sDevice_arr:
 
 .EXPORT DataA_Dialog_TownHouse4Martin_sDialog
 .PROC DataA_Dialog_TownHouse4Martin_sDialog
-    .word ePortrait::Man
+    .word ePortrait::AdultMan
     .byte "I hope Nora is taking$"
     .byte "good care of her baby$"
     .byte "sister Nina back at$"
