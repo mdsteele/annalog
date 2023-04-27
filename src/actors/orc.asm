@@ -17,6 +17,7 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
+.INCLUDE "../actor.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
 .INCLUDE "../ppu.inc"
@@ -34,6 +35,7 @@
 .IMPORT FuncA_Objects_MoveShapeUpByA
 .IMPORT FuncA_Objects_SetShapePosToActorCenter
 .IMPORT Func_GetTerrainColumnPtrForPointX
+.IMPORT Func_InitActorWithFlags
 .IMPORT Func_SetPointToActorCenter
 .IMPORT Ram_ActorFlags_bObj_arr
 .IMPORT Ram_ActorState1_byte_arr
@@ -66,6 +68,21 @@ kTileIdObjOrcFeetStanding = kTileIdObjOrcStandingFirst +  4
 kTileIdObjOrcFeetRunning1 = kTileIdObjOrcRunningFirst  +  4
 kTileIdObjOrcFeetRunning2 = kTileIdObjOrcRunningFirst  +  8
 kTileIdObjOrcFeetRunning3 = kTileIdObjOrcRunningFirst  + 12
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRG8"
+
+;;; Initializes an orc baddie actor.
+;;; @prereq The actor's pixel position has already been initialized.
+;;; @param A The flags to set.
+;;; @param X The actor index.
+;;; @preserve X, T0+
+.EXPORT Func_InitActorBadOrc
+.PROC Func_InitActorBadOrc
+    ldy #eActor::BadOrc  ; param: actor type
+    jmp Func_InitActorWithFlags
+.ENDPROC
 
 ;;;=========================================================================;;;
 

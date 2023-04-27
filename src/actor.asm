@@ -86,6 +86,7 @@
 .IMPORT FuncA_Room_InitActorNpcChild
 .IMPORT FuncA_Room_InitActorNpcToddler
 .IMPORT FuncA_Room_InitActorProjBreakball
+.IMPORT Func_InitActorBadOrc
 .IMPORT Func_InitActorProjBullet
 .IMPORT Func_InitActorProjEmber
 .IMPORT Func_InitActorProjFireball
@@ -234,6 +235,7 @@ Ram_ActorFlags_bObj_arr: .res kMaxActors
 ;;; @param X The actor index.
 ;;; @param Y The actor type to set.
 ;;; @preserve X, T0+
+.EXPORT Func_InitActorWithFlags
 .PROC Func_InitActorWithFlags
     pha  ; flags
     jsr Func_InitActorDefault  ; preserves X and T0+
@@ -646,7 +648,7 @@ _NoHit:
     d_entry table, BadGrub,         Func_InitActorDefault
     d_entry table, BadHotheadHorz,  Func_InitActorWithFlags
     d_entry table, BadHotheadVert,  Func_InitActorWithFlags
-    d_entry table, BadOrc,          Func_InitActorWithFlags
+    d_entry table, BadOrc,          Func_InitActorBadOrc
     d_entry table, BadSpider,       Func_InitActorDefault
     d_entry table, BadToad,         Func_InitActorDefault
     d_entry table, BadVinebug,      Func_InitActorDefault

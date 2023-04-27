@@ -38,11 +38,15 @@
 .IMPORT Func_AckIrqAndLatchWindowFromParam3
 .IMPORT Func_AckIrqAndSetLatch
 .IMPORT Func_ClearRestOfOamAndProcessFrame
+.IMPORT Func_InitActorBadOrc
 .IMPORT Func_Noop
 .IMPORT Main_Dialog_OpenWindow
 .IMPORT Ppu_ChrObjTown
 .IMPORT Ram_ActorFlags_bObj_arr
 .IMPORT Ram_ActorPosX_i16_0_arr
+.IMPORT Ram_ActorPosX_i16_1_arr
+.IMPORT Ram_ActorPosY_i16_0_arr
+.IMPORT Ram_ActorPosY_i16_1_arr
 .IMPORT Ram_ActorState1_byte_arr
 .IMPORT Ram_ActorState2_byte_arr
 .IMPORT Ram_ActorType_eActor_arr
@@ -72,6 +76,8 @@ kTreelineBottomY = $62
 kIvanActorIndex   = 0
 kSandraActorIndex = 1
 kAlexActorIndex   = 2
+kOrc1ActorIndex   = 0
+kOrc2ActorIndex   = 1
 
 ;;; The room pixel X-position that the Alex actor should be at when kneeling
 ;;; down to pick up the metal thing he found.
@@ -82,6 +88,11 @@ kCutsceneTimerKneeling = 60
 kCutsceneTimerStanding = 20 + kCutsceneTimerKneeling
 kCutsceneTimerTurning  = 20 + kCutsceneTimerStanding
 kCutsceneTimerHolding  = 30 + kCutsceneTimerTurning
+
+;;; Initial room pixel positions for the orc actors.
+kOrcInitPosY  = $0098
+kOrc1InitPosX = $05e8
+kOrc2InitPosX = $05f9
 
 ;;;=========================================================================;;;
 
@@ -427,7 +438,25 @@ _UpdateScrolling:
     jsr_prga FuncA_Terrain_ScrollTowardsGoal
     jmp _GameLoop
 _ResumeDialog:
-    ;; TODO: spawn orc actors
+    ldax #kOrc1InitPosX
+    stx Ram_ActorPosX_i16_0_arr + kOrc1ActorIndex
+    sta Ram_ActorPosX_i16_1_arr + kOrc1ActorIndex
+    .assert >kOrc2InitPosX = >kOrc1InitPosX, error
+    ldx #<kOrc2InitPosX
+    stx Ram_ActorPosX_i16_0_arr + kOrc2ActorIndex
+    sta Ram_ActorPosX_i16_1_arr + kOrc2ActorIndex
+    ldax #kOrcInitPosY
+    stx Ram_ActorPosY_i16_0_arr + kOrc1ActorIndex
+    sta Ram_ActorPosY_i16_1_arr + kOrc1ActorIndex
+    stx Ram_ActorPosY_i16_0_arr + kOrc2ActorIndex
+    sta Ram_ActorPosY_i16_1_arr + kOrc2ActorIndex
+    ldx #kOrc1ActorIndex  ; param: actor index
+    lda #bObj::FlipH  ; param: actor flags
+    jsr Func_InitActorBadOrc
+    ldx #kOrc2ActorIndex  ; param: actor index
+    lda #bObj::FlipH  ; param: actor flags
+    jsr Func_InitActorBadOrc
+    ;; TODO: spawn actor for Chief Gronta
     ldy #eDialog::TownOutdoorsAlex3  ; param: eDialog value
     jmp Main_Dialog_OpenWindow
 .ENDPROC
