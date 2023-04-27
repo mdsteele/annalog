@@ -17,9 +17,11 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
+.INCLUDE "avatar.inc"
 .INCLUDE "charmap.inc"
 .INCLUDE "cpu.inc"
 .INCLUDE "cursor.inc"
+.INCLUDE "device.inc"
 .INCLUDE "dialog.inc"
 .INCLUDE "hud.inc"
 .INCLUDE "joypad.inc"
@@ -89,10 +91,17 @@
 .IMPORT Func_Window_TransferBottomBorder
 .IMPORT Func_Window_TransferClearRow
 .IMPORT Main_Explore_Continue
+.IMPORT Ram_DeviceTarget_u8_arr
+.IMPORT Ram_DeviceType_eDevice_arr
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORT Ram_PpuTransfer_arr
+.IMPORTZP Zp_AvatarFlags_bObj
+.IMPORTZP Zp_AvatarMode_eAvatar
+.IMPORTZP Zp_AvatarVelX_i16
+.IMPORTZP Zp_AvatarWaterDepth_u8
 .IMPORTZP Zp_FloatingHud_bHud
 .IMPORTZP Zp_FrameCounter_u8
+.IMPORTZP Zp_Nearby_bDevice
 .IMPORTZP Zp_P1ButtonsPressed_bJoypad
 .IMPORTZP Zp_PpuTransferLen_u8
 .IMPORTZP Zp_ScrollGoalY_u8
@@ -206,6 +215,17 @@ Zp_DialogText_ptr: .res 2
 
 .SEGMENT "PRG8"
 
+;;; Mode for beginning dialog by using a dialog device.
+;;; @prereq Rendering is enabled.
+;;; @prereq Explore mode is initialized.
+;;; @prereq Zp_Nearby_bDevice holds an active dialog device.
+;;; @param X The dialog device index.
+.EXPORT Main_Dialog_UseDevice
+.PROC Main_Dialog_UseDevice
+    ldy Ram_DeviceTarget_u8_arr, x  ; param: eDialog value
+    .assert * = Main_Dialog_OpenWindow, error, "fallthrough"
+.ENDPROC
+
 ;;; Mode for scrolling in the dialog window.
 ;;; @prereq Rendering is enabled.
 ;;; @prereq Explore mode is initialized.
@@ -218,7 +238,7 @@ _GameLoop:
     jsr_prga FuncA_Objects_DrawObjectsForRoom
     jsr Func_ClearRestOfOamAndProcessFrame
     jsr_prga FuncA_Dialog_ScrollWindowUp  ; sets C if window is now fully open
-    jcs Main_Dialog_Run
+    bcs Main_Dialog_Run
 _UpdateScrolling:
     jsr_prga FuncA_Terrain_ScrollTowardsGoal
     jmp _GameLoop
@@ -388,6 +408,52 @@ _AdjustScrollGoal:
     lda Zp_ScrollGoalY_u8
     add #(kScreenHeightPx - kDialogWindowTopGoal) / 2
     sta Zp_ScrollGoalY_u8
+_InitAvatar:
+    ;; If the player is activating a dialog device, we need to set up the
+    ;; avatar.  Otherwise, this is cutscene dialog, so don't change the avatar.
+    bit Zp_Nearby_bDevice
+    .assert bDevice::NoneNearby = bProc::Negative, error
+    bmi @done
+    .assert bDevice::Active = bProc::Overflow, error
+    bvc @done
+    ;; Make the player avatar stand still.
+    lda #0
+    sta Zp_AvatarVelX_i16 + 0
+    sta Zp_AvatarVelX_i16 + 1
+    ;; Set the player avatar's appearance and facing direction based on the
+    ;; device type.
+    lda Zp_Nearby_bDevice
+    and #bDevice::IndexMask
+    tax  ; device index
+    lda Ram_DeviceType_eDevice_arr, x
+    cmp #eDevice::TalkLeft
+    beq @faceLeft
+    cmp #eDevice::TalkRight
+    beq @faceRight
+    @faceWall:
+    lda #eAvatar::Reading
+    bne @setMode  ; unconditional
+    @faceLeft:
+    lda Zp_AvatarFlags_bObj
+    ora #bObj::FlipH
+    bne @setFlags  ; unconditional
+    @faceRight:
+    lda Zp_AvatarFlags_bObj
+    and #<~bObj::FlipH
+    @setFlags:
+    sta Zp_AvatarFlags_bObj
+    lda Zp_AvatarWaterDepth_u8
+    bne @done
+    lda #eAvatar::Standing
+    @setMode:
+    sta Zp_AvatarMode_eAvatar
+    @done:
+_DeactivateDevice:
+    ;; Now that the player avatar is set up, clear Zp_Nearby_bDevice so that
+    ;; the active dialog device type won't interfere with any futher cutscene
+    ;; dialog that may be triggered by this device's dialog.
+    lda #bDevice::NoneNearby
+    sta Zp_Nearby_bDevice
 _InitWindow:
     lda #kScreenHeightPx - kDialogWindowScrollSpeed
     sta Zp_WindowTop_u8

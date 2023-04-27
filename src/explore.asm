@@ -57,18 +57,18 @@
 .IMPORT Func_ClearRestOfOamAndProcessFrame
 .IMPORT Func_FadeInFromBlack
 .IMPORT Func_FadeOutToBlack
-.IMPORT Func_SetLastSpawnPointToNearbyDevice
+.IMPORT Func_SetLastSpawnPointToActiveDevice
 .IMPORT Func_TickAllDevices
 .IMPORT Func_ToggleLeverDevice
 .IMPORT Func_Window_DirectDrawTopBorder
 .IMPORT Func_Window_Disable
 .IMPORT Func_Window_SetUpIrq
-.IMPORT Main_Breaker_Activate
+.IMPORT Main_Breaker_UseDevice
 .IMPORT Main_Console_UseDevice
 .IMPORT Main_Death
-.IMPORT Main_Dialog_OpenWindow
+.IMPORT Main_Dialog_UseDevice
 .IMPORT Main_Pause
-.IMPORT Main_Upgrade_PickUp
+.IMPORT Main_Upgrade_UseDevice
 .IMPORT Ppu_ChrBgAnimA0
 .IMPORT Ram_DeviceBlockCol_u8_arr
 .IMPORT Ram_DeviceBlockRow_u8_arr
@@ -77,7 +77,6 @@
 .IMPORT Sram_LastSafe_eRoom
 .IMPORTZP Zp_AvatarAirborne_bool
 .IMPORTZP Zp_AvatarExit_ePassage
-.IMPORTZP Zp_AvatarFlags_bObj
 .IMPORTZP Zp_AvatarHarmTimer_u8
 .IMPORTZP Zp_AvatarMode_eAvatar
 .IMPORTZP Zp_AvatarPosX_i16
@@ -231,39 +230,23 @@ _CheckForPause:
     d_entry table, LockedDoor,    _DoneWithDevice
     d_entry table, Placeholder,   _DoneWithDevice
     d_entry table, Teleporter,    _DoneWithDevice
-    d_entry table, BreakerReady,  Main_Breaker_Activate
+    d_entry table, BreakerReady,  Main_Breaker_UseDevice
     d_entry table, Console,       Main_Console_UseDevice
     d_entry table, Flower,        _DeviceFlower
     d_entry table, LeverCeiling,  _DeviceLever
     d_entry table, LeverFloor,    _DeviceLever
     d_entry table, OpenDoorway,   Main_Explore_GoThroughDoor
-    d_entry table, Paper,         _DeviceSign
-    d_entry table, Sign,          _DeviceSign
-    d_entry table, TalkLeft,      _DeviceTalkLeft
-    d_entry table, TalkRight,     _DeviceTalkRight
+    d_entry table, Paper,         Main_Dialog_UseDevice
+    d_entry table, Sign,          Main_Dialog_UseDevice
+    d_entry table, TalkLeft,      Main_Dialog_UseDevice
+    d_entry table, TalkRight,     Main_Dialog_UseDevice
     d_entry table, UnlockedDoor,  Main_Explore_GoThroughDoor
-    d_entry table, Upgrade,       Main_Upgrade_PickUp
+    d_entry table, Upgrade,       Main_Upgrade_UseDevice
     D_END
 .ENDREPEAT
 _DeviceFlower:
     jsr_prga FuncA_Room_PickUpFlowerDevice
     jmp _DoneWithDevice
-_DeviceSign:
-    lda #eAvatar::Reading
-    sta Zp_AvatarMode_eAvatar
-    bne _Dialog  ; unconditional
-_DeviceTalkLeft:
-    lda Zp_AvatarFlags_bObj
-    ora #bObj::FlipH
-    bne _Talk  ; unconditional
-_DeviceTalkRight:
-    lda Zp_AvatarFlags_bObj
-    and #<~bObj::FlipH
-_Talk:
-    sta Zp_AvatarFlags_bObj
-_Dialog:
-    ldy Ram_DeviceTarget_u8_arr, x  ; param: eDialog value
-    jmp Main_Dialog_OpenWindow
 _DeviceLever:
     stx Zp_Nearby_bDevice  ; clear bDevice::Active
     jsr Func_ToggleLeverDevice
@@ -321,7 +304,7 @@ _FadeIn:
 ;;; next room.
 ;;; @prereq Rendering is enabled.
 ;;; @prereq Explore mode is already initialized.
-;;; @prereq Zp_Nearby_bDevice holds the index of a door device.
+;;; @prereq Zp_Nearby_bDevice holds an active door device.
 .PROC Main_Explore_GoThroughDoor
     lda #eAvatar::Reading
     sta Zp_AvatarMode_eAvatar
@@ -329,7 +312,7 @@ _SetSpawnPoint:
     ;; We'll soon be setting the entrance door in the destination room as the
     ;; spawn point, but first we set the exit door in the current room as the
     ;; spawn point, in case this room is safe and the destination room is not.
-    jsr Func_SetLastSpawnPointToNearbyDevice
+    jsr Func_SetLastSpawnPointToActiveDevice
 _FadeOut:
     jsr_prga FuncA_Objects_DrawObjectsForRoom
     jsr Func_ClearRestOfOam

@@ -39,7 +39,7 @@
 .IMPORT Func_FadeOutToBlack
 .IMPORT Func_ProcessFrame
 .IMPORT Func_SetFlag
-.IMPORT Func_SetLastSpawnPointToNearbyDevice
+.IMPORT Func_SetLastSpawnPointToActiveDevice
 .IMPORT Func_TickAllDevices
 .IMPORT Main_BreakerCutscene_Garden
 .IMPORT Main_Explore_EnterRoom
@@ -110,12 +110,12 @@ Zp_BreakerTimer_u8: .res 1
 
 .SEGMENT "PRG8"
 
-;;; Mode for activating a circuit breaker.
+;;; Mode for activating a circuit breaker device.
 ;;; @prereq Rendering is enabled.
 ;;; @prereq Explore mode is initialized.
-;;; @prereq Zp_Nearby_bDevice holds the index of a breaker device.
-.EXPORT Main_Breaker_Activate
-.PROC Main_Breaker_Activate
+;;; @prereq Zp_Nearby_bDevice holds an active breaker device.
+.EXPORT Main_Breaker_UseDevice
+.PROC Main_Breaker_UseDevice
     jsr_prga FuncA_Breaker_InitActivate
 _GameLoop:
     jsr_prga FuncA_Objects_DrawObjectsForRoom
@@ -251,12 +251,12 @@ _FadeOut:
 
 ;;; Initializes breaker mode.
 ;;; @prereq Explore mode is initialized.
-;;; @prereq Zp_Nearby_bDevice holds the index of a breaker device.
+;;; @prereq Zp_Nearby_bDevice holds an active breaker device.
 .PROC FuncA_Breaker_InitActivate
     lda Zp_Current_eRoom
     sta Zp_Breaker_eRoom
     ;; Set the spawn point and mark the breaker as activated.
-    jsr Func_SetLastSpawnPointToNearbyDevice  ; preserves X
+    jsr Func_SetLastSpawnPointToActiveDevice  ; preserves X
     lda Ram_DeviceTarget_u8_arr, x
     sta Zp_BreakerBeingActivated_eFlag
     tax  ; param: eFlag value
@@ -281,7 +281,7 @@ _FadeOut:
 .ENDPROC
 
 ;;; Performs per-frame updates for breaker activation mode.
-;;; @prereq Zp_Nearby_bDevice holds the index of a breaker device.
+;;; @prereq Zp_Nearby_bDevice holds an active breaker device.
 .PROC FuncA_Breaker_TickActivate
     ldy Zp_Breaker_ePhase
     lda _JumpTable_ptr_0_arr, y
@@ -378,7 +378,7 @@ _Return:
 ;;; Performs per-frame updates for the "strain" phase of breaker activation.
 ;;; In this phase, the player avatar strains upward and wobbles as they try to
 ;;; reach the breaker lever.
-;;; @prereq Zp_Nearby_bDevice holds the index of a breaker device.
+;;; @prereq Zp_Nearby_bDevice holds an active breaker device.
 .PROC FuncA_Breaker_TickActivateStrain
     ;; Make the avatar wobble horizontally.
     lda Zp_FrameCounter_u8
@@ -424,7 +424,7 @@ _Return:
 
 ;;; Performs per-frame updates for the "flip" phase of breaker activation.  In
 ;;; this phase, the player avatar grabs and pulls the breaker lever down.
-;;; @prereq Zp_Nearby_bDevice holds the index of a breaker device.
+;;; @prereq Zp_Nearby_bDevice holds an active breaker device.
 .PROC FuncA_Breaker_TickActivateFlip
     ;; Animate the avatar to match the flipping breaker.
     lda Zp_Nearby_bDevice

@@ -70,10 +70,10 @@ Zp_LastPoint_eRoom: .res 1
 ;;; Sets the last spawn point to the nearby device in the current room.  If the
 ;;; current room is currently marked as safe, then the last safe point will
 ;;; also be set.
-;;; @prereq Zp_Nearby_bDevice holds the index of a device.
+;;; @prereq Zp_Nearby_bDevice holds an active device.
 ;;; @preserve X, Y, T0+
-.EXPORT Func_SetLastSpawnPointToNearbyDevice
-.PROC Func_SetLastSpawnPointToNearbyDevice
+.EXPORT Func_SetLastSpawnPointToActiveDevice
+.PROC Func_SetLastSpawnPointToActiveDevice
     lda Zp_Nearby_bDevice
     and #bDevice::IndexMask
     ora #bSpawn::Device  ; param: bSpawn value

@@ -37,7 +37,7 @@
 .IMPORT Func_AllocObjects
 .IMPORT Func_ClearRestOfOamAndProcessFrame
 .IMPORT Func_SetFlag
-.IMPORT Func_SetLastSpawnPointToNearbyDevice
+.IMPORT Func_SetLastSpawnPointToActiveDevice
 .IMPORT Func_Window_PrepareRowTransfer
 .IMPORT Func_Window_TransferBottomBorder
 .IMPORT Func_Window_TransferClearRow
@@ -106,9 +106,9 @@ Zp_CurrentUpgrade_eFlag: .res 1
 ;;; Mode for scrolling in the upgrade window.
 ;;; @prereq Rendering is enabled.
 ;;; @prereq Explore mode is initialized.
-;;; @prereq Zp_Nearby_bDevice holds the index of an upgrade device.
-.EXPORT Main_Upgrade_PickUp
-.PROC Main_Upgrade_PickUp
+;;; @prereq Zp_Nearby_bDevice holds an active upgrade device.
+.EXPORT Main_Upgrade_UseDevice
+.PROC Main_Upgrade_UseDevice
     jsr_prga FuncA_Upgrade_Init
 _GameLoop:
     prga_bank #<.bank(FuncA_Objects_DrawUpgradeSymbol)
@@ -167,7 +167,7 @@ _UpdateScrolling:
 .SEGMENT "PRGA_Upgrade"
 
 ;;; Initializes upgrade mode.
-;;; @prereq Zp_Nearby_bDevice holds the index of an upgrade device.
+;;; @prereq Zp_Nearby_bDevice holds an active upgrade device.
 .PROC FuncA_Upgrade_Init
     jsr FuncA_Upgrade_Collect
 _HideHud:
@@ -191,9 +191,9 @@ _InitWindow:
 ;;; Removes the specified upgrade device from the room, sets that upgrade's
 ;;; flag in SRAM as collected (updating Zp_MachineMaxInstructions_u8 as
 ;;; needed), and stores the upgrade's eFlag value in Zp_CurrentUpgrade_eFlag.
-;;; @prereq Zp_Nearby_bDevice holds the index of an upgrade device.
+;;; @prereq Zp_Nearby_bDevice holds an active upgrade device.
 .PROC FuncA_Upgrade_Collect
-    jsr Func_SetLastSpawnPointToNearbyDevice
+    jsr Func_SetLastSpawnPointToActiveDevice
     lda Zp_Nearby_bDevice
     and #bDevice::IndexMask
     tax  ; device index
