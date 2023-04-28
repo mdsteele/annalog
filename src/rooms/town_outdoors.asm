@@ -18,6 +18,7 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "../actor.inc"
+.INCLUDE "../actors/orc.inc"
 .INCLUDE "../actors/townsfolk.inc"
 .INCLUDE "../avatar.inc"
 .INCLUDE "../charmap.inc"
@@ -50,6 +51,10 @@
 .IMPORT Ram_ActorState1_byte_arr
 .IMPORT Ram_ActorState2_byte_arr
 .IMPORT Ram_ActorType_eActor_arr
+.IMPORT Ram_ActorVelX_i16_0_arr
+.IMPORT Ram_ActorVelX_i16_1_arr
+.IMPORT Ram_ActorVelY_i16_0_arr
+.IMPORT Ram_ActorVelY_i16_1_arr
 .IMPORT Ram_DeviceType_eDevice_arr
 .IMPORTZP Zp_Active_sIrq
 .IMPORTZP Zp_AvatarFlags_bObj
@@ -73,11 +78,11 @@ kTreelineTopY    = $2e
 kTreelineBottomY = $62
 
 ;;; The actor indices for the townsfolk in this room.
-kIvanActorIndex   = 0
-kSandraActorIndex = 1
-kAlexActorIndex   = 2
-kOrc1ActorIndex   = 0
-kOrc2ActorIndex   = 1
+kAlexActorIndex   = 0
+kIvanActorIndex   = 1
+kSandraActorIndex = 2
+kOrc1ActorIndex   = 1
+kOrc2ActorIndex   = 2
 
 ;;; The room pixel X-position that the Alex actor should be at when kneeling
 ;;; down to pick up the metal thing he found.
@@ -100,6 +105,8 @@ kOrc2InitPosX = $05f9
 .STRUCT sState
     ;; A timer used for animating cutscenes in this room.
     CutsceneTimer_u8 .byte
+    ;; Timer for making the second orc jump.
+    OrcJumpTimer_u8  .byte
 .ENDSTRUCT
 .ASSERT .sizeof(sState) <= kRoomStateSize, error
 
@@ -119,7 +126,7 @@ kOrc2InitPosX = $05f9
     d_byte NumMachines_u8, 0
     d_addr Machines_sMachine_arr_ptr, 0
     d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjTown)
-    d_addr Tick_func_ptr, Func_Noop
+    d_addr Tick_func_ptr, FuncC_Town_Outdoors_TickRoom
     d_addr Draw_func_ptr, FuncC_Town_Outdoors_DrawRoom
     d_addr Ext_sRoomExt_ptr, _Ext_sRoomExt
     D_END
@@ -141,7 +148,14 @@ _TerrainData:
 _Platforms_sPlatform_arr:
     .byte ePlatform::None
 _Actors_sActor_arr:
-:   .assert * - :- = kIvanActorIndex * .sizeof(sActor), error
+:   .assert * - :- = kAlexActorIndex * .sizeof(sActor), error
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::NpcChild
+    d_word PosX_i16, $0570
+    d_word PosY_i16, $00c8
+    d_byte Param_byte, eNpcChild::AlexStanding
+    D_END
+    .assert * - :- = kIvanActorIndex * .sizeof(sActor), error
     D_STRUCT sActor
     d_byte Type_eActor, eActor::NpcAdult
     d_word PosX_i16, $02f0
@@ -154,13 +168,6 @@ _Actors_sActor_arr:
     d_word PosX_i16, $0350
     d_word PosY_i16, $00c8
     d_byte Param_byte, kTileIdAdultWomanFirst
-    D_END
-    .assert * - :- = kAlexActorIndex * .sizeof(sActor), error
-    D_STRUCT sActor
-    d_byte Type_eActor, eActor::NpcChild
-    d_word PosX_i16, $0570
-    d_word PosY_i16, $00c8
-    d_byte Param_byte, eNpcChild::AlexStanding
     D_END
     .assert * - :- <= kMaxActors * .sizeof(sActor), error
     .byte eActor::None
@@ -247,6 +254,17 @@ _Devices_sDevice_arr:
     .byte eDevice::None
 .ENDPROC
 
+.PROC FuncC_Town_Outdoors_TickRoom
+    lda Zp_RoomState + sState::OrcJumpTimer_u8
+    beq @done
+    dec Zp_RoomState + sState::OrcJumpTimer_u8
+    bne @done
+    ldx #kOrc2ActorIndex
+    jmp FuncC_Town_Outdoors_MakeOrcJump  ; unconditional
+    @done:
+    rts
+.ENDPROC
+
 ;;; Draw function for the TownOutdoors room.
 .PROC FuncC_Town_Outdoors_DrawRoom
     ;; Fix the horizontal scrolling position for the top of the screen, so that
@@ -277,6 +295,23 @@ _Devices_sDevice_arr:
     lsr T0
     ror a
     sta <(Zp_Buffered_sIrq + sIrq::Param1_byte)  ; treeline scroll-X
+    rts
+.ENDPROC
+
+;;; Make the specified orc actor jump to the left.
+;;; @param X The actor index.
+;;; @preserve X, Y, T0+
+.PROC FuncC_Town_Outdoors_MakeOrcJump
+    lda #eBadOrc::Jumping
+    sta Ram_ActorState1_byte_arr, x  ; current mode
+    lda #<-kOrcMaxRunSpeed
+    sta Ram_ActorVelX_i16_0_arr, x
+    lda #>-kOrcMaxRunSpeed
+    sta Ram_ActorVelX_i16_1_arr, x
+    lda #<kOrcJumpVelocity
+    sta Ram_ActorVelY_i16_0_arr, x
+    lda #>kOrcJumpVelocity
+    sta Ram_ActorVelY_i16_1_arr, x
     rts
 .ENDPROC
 
@@ -502,8 +537,14 @@ _WhaWhat_sDialog:
     .byte "Orcs, attaaaaaack!#"
     .word ePortrait::ChildAlexShout
     .byte "Anna, run!#"
-    ;; TODO: make orcs attack
-    .word ePortrait::Done
+    .addr _AttackFunc
+_AttackFunc:
+    ldx #kOrc1ActorIndex
+    jsr FuncC_Town_Outdoors_MakeOrcJump
+    lda #30
+    sta Zp_RoomState + sState::OrcJumpTimer_u8
+    ldya #DataC_Town_TownOutdoorsEmpty_sDialog
+    rts
 .ENDPROC
 
 .EXPORT DataC_Town_TownOutdoorsIvan_sDialog

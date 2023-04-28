@@ -31,6 +31,20 @@
     NUM_VALUES
 .ENDENUM
 
+;;; How far an orc actor's bounding box extends in each direction from the
+;;; actor's center position.
+kBadOrcBoundingBoxUp   = 17
+kBadOrcBoundingBoxDown =  8
+kBadOrcBoundingBoxSide =  6
+
+;;; How fast an orc baddie can run/fall, in subpixels per frame.
+kOrcMaxRunSpeed  = $0260
+kOrcMaxFallSpeed = $0500
+
+;;; The (signed, 16-bit) initial Y-velocity of an orc actor when jumping, in
+;;; subpixels per frame.
+kOrcJumpVelocity = $ffff & -600
+
 ;;; Tile IDs for drawing orc baddie actors.
 kTileIdObjOrcStandingFirst = $88
 kTileIdObjOrcRunningFirst = $b8

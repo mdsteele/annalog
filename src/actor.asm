@@ -19,6 +19,7 @@
 
 .INCLUDE "actor.inc"
 .INCLUDE "actors/breakball.inc"
+.INCLUDE "actors/orc.inc"
 .INCLUDE "avatar.inc"
 .INCLUDE "macros.inc"
 .INCLUDE "ppu.inc"
@@ -300,7 +301,7 @@ Ram_ActorFlags_bObj_arr: .res kMaxActors
     d_byte BadGrub,          0
     d_byte BadHotheadHorz,   6
     d_byte BadHotheadVert,   6
-    d_byte BadOrc,          17
+    d_byte BadOrc,          kBadOrcBoundingBoxUp
     d_byte BadSpider,        8
     d_byte BadToad,          9
     d_byte BadVinebug,       7
@@ -336,7 +337,7 @@ Ram_ActorFlags_bObj_arr: .res kMaxActors
     d_byte BadGrub,          8
     d_byte BadHotheadHorz,   6
     d_byte BadHotheadVert,   6
-    d_byte BadOrc,           8
+    d_byte BadOrc,          kBadOrcBoundingBoxDown
     d_byte BadSpider,        2
     d_byte BadToad,          0
     d_byte BadVinebug,       7
@@ -372,7 +373,7 @@ Ram_ActorFlags_bObj_arr: .res kMaxActors
     d_byte BadGrub,         7
     d_byte BadHotheadHorz,  6
     d_byte BadHotheadVert,  6
-    d_byte BadOrc,          6
+    d_byte BadOrc,          kBadOrcBoundingBoxSide
     d_byte BadSpider,       6
     d_byte BadToad,         7
     d_byte BadVinebug,      5

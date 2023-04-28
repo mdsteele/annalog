@@ -18,6 +18,7 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "../actor.inc"
+.INCLUDE "../avatar.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
 .INCLUDE "../ppu.inc"
@@ -31,18 +32,26 @@
 .IMPORT FuncA_Actor_IsAvatarWithinVertDistances
 .IMPORT FuncA_Actor_MovePointTowardVelXDir
 .IMPORT FuncA_Actor_ZeroVelX
+.IMPORT FuncA_Actor_ZeroVelY
 .IMPORT FuncA_Objects_Draw2x2Shape
 .IMPORT FuncA_Objects_MoveShapeUpByA
 .IMPORT FuncA_Objects_SetShapePosToActorCenter
 .IMPORT Func_GetTerrainColumnPtrForPointX
 .IMPORT Func_InitActorWithFlags
+.IMPORT Func_MovePointDownByA
+.IMPORT Func_PointHitsTerrain
 .IMPORT Func_SetPointToActorCenter
 .IMPORT Ram_ActorFlags_bObj_arr
+.IMPORT Ram_ActorPosY_i16_0_arr
+.IMPORT Ram_ActorPosY_i16_1_arr
 .IMPORT Ram_ActorState1_byte_arr
 .IMPORT Ram_ActorState2_byte_arr
 .IMPORT Ram_ActorState3_byte_arr
 .IMPORT Ram_ActorVelX_i16_0_arr
 .IMPORT Ram_ActorVelX_i16_1_arr
+.IMPORT Ram_ActorVelY_i16_0_arr
+.IMPORT Ram_ActorVelY_i16_1_arr
+.IMPORTZP Zp_PointY_i16
 .IMPORTZP Zp_TerrainColumn_u8_arr_ptr
 
 ;;;=========================================================================;;;
@@ -54,9 +63,6 @@ kOrcStopDistance = 10
 ;;; The horizontal acceleration applied to an orc baddie actor when it's
 ;;; chasing the player avatar, in subpixels per frame per frame.
 kOrcChasingHorzAccel = 40
-
-;;; How fast an orc baddie can run, in subpixels per frame.
-kOrcMaxSpeedHorz = $0260
 
 ;;; How many frames the orc should pause for after catching the player avatar.
 kOrcPauseFrames = 20
@@ -204,24 +210,24 @@ _ClampVelocity:
     bmi @negative
     @positive:
     lda Ram_ActorVelX_i16_0_arr, x
-    cmp #<kOrcMaxSpeedHorz
+    cmp #<kOrcMaxRunSpeed
     lda Ram_ActorVelX_i16_1_arr, x
-    sbc #>kOrcMaxSpeedHorz
+    sbc #>kOrcMaxRunSpeed
     blt @done
-    lda #<kOrcMaxSpeedHorz
+    lda #<kOrcMaxRunSpeed
     sta Ram_ActorVelX_i16_0_arr, x
-    lda #>kOrcMaxSpeedHorz
-    .assert >kOrcMaxSpeedHorz > 0, error
+    lda #>kOrcMaxRunSpeed
+    .assert >kOrcMaxRunSpeed > 0, error
     bne @setHi  ; unconditional
     @negative:
     lda Ram_ActorVelX_i16_0_arr, x
-    cmp #<-kOrcMaxSpeedHorz
+    cmp #<-kOrcMaxRunSpeed
     lda Ram_ActorVelX_i16_1_arr, x
-    sbc #>-kOrcMaxSpeedHorz
+    sbc #>-kOrcMaxRunSpeed
     bge @done
-    lda #<-kOrcMaxSpeedHorz
+    lda #<-kOrcMaxRunSpeed
     sta Ram_ActorVelX_i16_0_arr, x
-    lda #>-kOrcMaxSpeedHorz
+    lda #>-kOrcMaxRunSpeed
     @setHi:
     sta Ram_ActorVelX_i16_1_arr, x
     @done:
@@ -259,8 +265,43 @@ _MaybeJump:
 ;;; @param X The actor index.
 ;;; @preserve X
 .PROC FuncA_Actor_TickBadOrc_Jumping
-    ;; TODO: apply gravity
-    ;; TODO: check for collision with floor; resume Chasing upon landing
+_ApplyGravity:
+    ;; Accelerate the actor downwards.
+    lda #kAvatarGravity
+    add Ram_ActorVelY_i16_0_arr, x
+    sta Ram_ActorVelY_i16_0_arr, x
+    lda #0
+    adc Ram_ActorVelY_i16_1_arr, x
+    ;; If moving downward, check for terminal velocity:
+    bmi @setVelYHi
+    .assert <kOrcMaxFallSpeed = 0, error
+    cmp #>kOrcMaxFallSpeed
+    blt @setVelYHi
+    lda #0
+    sta Ram_ActorVelY_i16_0_arr, x
+    lda #>kAvatarMaxAirSpeedVert
+    @setVelYHi:
+    sta Ram_ActorVelY_i16_1_arr, x
+_CheckForFloor:
+    ;; Check if the orc has hit the floor.
+    jsr Func_SetPointToActorCenter  ; preserves X
+    lda #kBadOrcBoundingBoxDown  ; param: offset
+    jsr Func_MovePointDownByA  ; preserves X
+    jsr Func_PointHitsTerrain  ; preserves X, returns C
+    bcc @noCollision
+    ;; Move the orc upwards to be on top of the floor.
+    lda Zp_PointY_i16 + 0
+    and #$f0
+    sub #kBadOrcBoundingBoxDown
+    sta Ram_ActorPosY_i16_0_arr, x
+    lda Zp_PointY_i16 + 1
+    sbc #0
+    sta Ram_ActorPosY_i16_1_arr, x
+    ;; Exit jumping mode.
+    jsr FuncA_Actor_ZeroVelY  ; preserves X
+    lda #eBadOrc::Chasing
+    sta Ram_ActorState1_byte_arr, x  ; current mode
+    @noCollision:
     rts
 .ENDPROC
 
