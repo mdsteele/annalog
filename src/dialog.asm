@@ -51,7 +51,6 @@
 .IMPORT DataA_Dialog_MermaidVillageCorra_sDialog
 .IMPORT DataA_Dialog_MermaidVillageFarmer_sDialog
 .IMPORT DataA_Dialog_MermaidVillageGuard_sDialog
-.IMPORT DataA_Dialog_PrisonCellPaper_sDialog
 .IMPORT DataA_Dialog_PrisonEscapePaper_sDialog
 .IMPORT DataA_Dialog_PrisonFlowerSign_sDialog
 .IMPORT DataA_Dialog_PrisonUpperAlexCell_sDialog
@@ -72,6 +71,7 @@
 .IMPORT DataA_Dialog_TownHouse5Bruno_sDialog
 .IMPORT DataA_Dialog_TownHouse5Marie_sDialog
 .IMPORT DataA_Dialog_TownHouse6Elder_sDialog
+.IMPORT DataC_Prison_PrisonCellPaper_sDialog
 .IMPORT DataC_Town_TownHouse2Stela_sDialog
 .IMPORT DataC_Town_TownOutdoorsAlex1_sDialog
 .IMPORT DataC_Town_TownOutdoorsAlex2_sDialog
@@ -310,7 +310,7 @@ _UpdateScrolling:
             DataA_Dialog_MermaidVillageFarmer_sDialog
     d_entry table, MermaidVillageGuard, \
             DataA_Dialog_MermaidVillageGuard_sDialog
-    d_entry table, PrisonCellPaper,    DataA_Dialog_PrisonCellPaper_sDialog
+    d_entry table, PrisonCellPaper,    DataC_Prison_PrisonCellPaper_sDialog
     d_entry table, PrisonEscapePaper,  DataA_Dialog_PrisonEscapePaper_sDialog
     d_entry table, PrisonFlowerSign,   DataA_Dialog_PrisonFlowerSign_sDialog
     d_entry table, PrisonUpperAlexCell, \

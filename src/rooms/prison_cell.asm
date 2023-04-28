@@ -20,6 +20,7 @@
 .INCLUDE "../actor.inc"
 .INCLUDE "../actors/particle.inc"
 .INCLUDE "../actors/rocket.inc"
+.INCLUDE "../avatar.inc"
 .INCLUDE "../charmap.inc"
 .INCLUDE "../cpu.inc"
 .INCLUDE "../device.inc"
@@ -54,6 +55,7 @@
 .IMPORT FuncC_Prison_DrawGatePlatform
 .IMPORT FuncC_Prison_OpenGateAndFlipLever
 .IMPORT FuncC_Prison_TickGatePlatform
+.IMPORT FuncM_SwitchPrgcAndLoadRoom
 .IMPORT Func_FindActorWithType
 .IMPORT Func_FindEmptyActorSlot
 .IMPORT Func_InitActorProjRocket
@@ -66,10 +68,13 @@
 .IMPORT Func_Noop
 .IMPORT Func_SetActorCenterToPoint
 .IMPORT Func_SetFlag
+.IMPORT Func_SetLastSpawnPoint
 .IMPORT Func_SetOrClearFlag
 .IMPORT Func_SetPointToActorCenter
 .IMPORT Func_SetPointToPlatformCenter
 .IMPORT Func_ShakeRoom
+.IMPORT Main_Explore_Continue
+.IMPORT Main_Explore_EnterRoom
 .IMPORT Ppu_ChrObjPrison
 .IMPORT Ram_ActorState1_byte_arr
 .IMPORT Ram_ActorType_eActor_arr
@@ -80,8 +85,12 @@
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORT Ram_PlatformType_ePlatform_arr
 .IMPORT Sram_ProgressFlags_arr
+.IMPORTZP Zp_AvatarMode_eAvatar
+.IMPORTZP Zp_AvatarPosX_i16
+.IMPORTZP Zp_AvatarPosY_i16
 .IMPORTZP Zp_Camera_bScroll
 .IMPORTZP Zp_ConsoleMachineIndex_u8
+.IMPORTZP Zp_NextCutscene_main_ptr
 .IMPORTZP Zp_RoomScrollX_u16
 .IMPORTZP Zp_RoomScrollY_u8
 .IMPORTZP Zp_RoomState
@@ -91,12 +100,16 @@
 ;;; The minimum scroll-X value for this room.
 kMinScrollX = $10
 
+;;; The device index to use for the last spawn point after the player avatar
+;;; enters the room via the get-thrown-in-prison cutscene.
+kCutsceneSpawnDeviceIndex = 0
+
 ;;; The index of the passage that leads into the tunnel under the prison cell.
 kTunnelPassageIndex = 1
 ;;; The index of the passage on the eastern side of the room.
 kEasternPassageIndex = 2
 ;;; The index of the console device for the PrisonCellLauncher machine.
-kLauncherConsoleDeviceIndex = 2
+kLauncherConsoleDeviceIndex = 3
 
 ;;; The machine indices for the machines in this room.
 kLiftMachineIndex = 0
@@ -333,7 +346,14 @@ _Actors_sActor_arr:
     ;; TODO: Add orc guards.
     .byte eActor::None
 _Devices_sDevice_arr:
-:   D_STRUCT sDevice
+:   .assert * - :- = kCutsceneSpawnDeviceIndex * .sizeof(sDevice), error
+    D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::Placeholder
+    d_byte BlockRow_u8, 12
+    d_byte BlockCol_u8, 12
+    d_byte Target_u8, 0
+    D_END
+    D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Paper
     d_byte BlockRow_u8, 12
     d_byte BlockCol_u8, 9
@@ -642,12 +662,30 @@ _Error:
     rts
 .ENDPROC
 
-;;;=========================================================================;;;
+;;; Mode to spawn the player avatar into the PrisonCell room, then start the
+;;; cutscene where Anna gets thrown into prison by the orcs.
+;;; @prereq Rendering is disabled.
+;;; @prereq The PrisonCell room has been loaded.
+.PROC MainC_Prison_Cell_StartCutscene
+    lda #bSpawn::Device | kCutsceneSpawnDeviceIndex  ; param: bSpawn value
+    jsr Func_SetLastSpawnPoint
+    lda #eAvatar::Hidden
+    sta Zp_AvatarMode_eAvatar
+    ldya #MainC_Prison_Cell_CutsceneThrownInJail
+    stya Zp_NextCutscene_main_ptr
+    jmp Main_Explore_EnterRoom
+.ENDPROC
 
-.SEGMENT "PRGA_Dialog"
+.PROC MainC_Prison_Cell_CutsceneThrownInJail
+    ;; TODO: Animate orc guards entering and throwing Anna into the cell.
+    ldax #$00c8
+    stax Zp_AvatarPosX_i16
+    stax Zp_AvatarPosY_i16
+    jmp Main_Explore_Continue
+.ENDPROC
 
-.EXPORT DataA_Dialog_PrisonCellPaper_sDialog
-.PROC DataA_Dialog_PrisonCellPaper_sDialog
+.EXPORT DataC_Prison_PrisonCellPaper_sDialog
+.PROC DataC_Prison_PrisonCellPaper_sDialog
     .word ePortrait::Paper
     .byte "Day 87: By now there's$"
     .byte "probably not much time$"
@@ -661,6 +699,20 @@ _Error:
     .byte "By then, I'm sure I'll$"
     .byte "be long gone.#"
     .word ePortrait::Done
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRG8"
+
+;;; Mode to switch PRGC banks and load the PrisonCell room, then start the
+;;; cutscene where Anna gets thrown into prison by the orcs.
+;;; @prereq Rendering is disabled.
+.EXPORT Main_LoadPrisonCellAndStartCutscene
+.PROC Main_LoadPrisonCellAndStartCutscene
+    ldx #eRoom::PrisonCell  ; param: room to load
+    jsr FuncM_SwitchPrgcAndLoadRoom
+    jmp MainC_Prison_Cell_StartCutscene
 .ENDPROC
 
 ;;;=========================================================================;;;

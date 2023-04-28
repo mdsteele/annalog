@@ -39,9 +39,11 @@
 .IMPORT Func_AckIrqAndLatchWindowFromParam3
 .IMPORT Func_AckIrqAndSetLatch
 .IMPORT Func_ClearRestOfOamAndProcessFrame
+.IMPORT Func_FadeOutToBlackSlowly
 .IMPORT Func_InitActorBadOrc
 .IMPORT Func_Noop
 .IMPORT Main_Dialog_OpenWindow
+.IMPORT Main_LoadPrisonCellAndStartCutscene
 .IMPORT Ppu_ChrObjTown
 .IMPORT Ram_ActorFlags_bObj_arr
 .IMPORT Ram_ActorPosX_i16_0_arr
@@ -58,6 +60,7 @@
 .IMPORT Ram_DeviceType_eDevice_arr
 .IMPORTZP Zp_Active_sIrq
 .IMPORTZP Zp_AvatarFlags_bObj
+.IMPORTZP Zp_AvatarHarmTimer_u8
 .IMPORTZP Zp_AvatarMode_eAvatar
 .IMPORTZP Zp_AvatarPosX_i16
 .IMPORTZP Zp_Buffered_sIrq
@@ -255,12 +258,25 @@ _Devices_sDevice_arr:
 .ENDPROC
 
 .PROC FuncC_Town_Outdoors_TickRoom
+_MakeOrcJump:
     lda Zp_RoomState + sState::OrcJumpTimer_u8
     beq @done
     dec Zp_RoomState + sState::OrcJumpTimer_u8
     bne @done
     ldx #kOrc2ActorIndex
     jmp FuncC_Town_Outdoors_MakeOrcJump  ; unconditional
+    @done:
+_DetectAvatarDeath:
+    ;; If the player avatar would die (because they were caught by the orcs;
+    ;; there's no other way to die in this room), then prevent the death and
+    ;; instead start the cutscene for getting caught.
+    lda Zp_AvatarHarmTimer_u8
+    cmp #kAvatarHarmDeath
+    bne @done
+    lda #60
+    sta Zp_AvatarHarmTimer_u8
+    ldya #MainC_Town_Outdoors_CutsceneGetCaught
+    stya Zp_NextCutscene_main_ptr
     @done:
     rts
 .ENDPROC
@@ -324,13 +340,13 @@ _Devices_sDevice_arr:
     .byte "in the dirt over here!#"
     .addr _CutsceneFunc
 _CutsceneFunc:
-    ldya #MainC_Town_OutdoorsCutscene1
+    ldya #MainC_Town_Outdoors_CutsceneAlexPickUp
     stya Zp_NextCutscene_main_ptr
     ldya #DataC_Town_TownOutdoorsEmpty_sDialog
     rts
 .ENDPROC
 
-.PROC MainC_Town_OutdoorsCutscene1
+.PROC MainC_Town_Outdoors_CutsceneAlexPickUp
     ;; Remove the other townsfolk (other than Alex).
     lda #eActor::None
     sta Ram_ActorType_eActor_arr + kIvanActorIndex
@@ -433,13 +449,13 @@ _IWonder_sDialog:
     .byte "come from...#"
     .addr _CutsceneFunc
 _CutsceneFunc:
-    ldya #MainC_Town_OutdoorsCutscene2
+    ldya #MainC_Town_Outdoors_CutsceneStargazing
     stya Zp_NextCutscene_main_ptr
     ldya #DataC_Town_TownOutdoorsEmpty_sDialog
     rts
 .ENDPROC
 
-.PROC MainC_Town_OutdoorsCutscene2
+.PROC MainC_Town_Outdoors_CutsceneStargazing
     lda #0
     sta Zp_RoomState + sState::CutsceneTimer_u8
     ;; TODO: scroll slowly instead
@@ -545,6 +561,13 @@ _AttackFunc:
     sta Zp_RoomState + sState::OrcJumpTimer_u8
     ldya #DataC_Town_TownOutdoorsEmpty_sDialog
     rts
+.ENDPROC
+
+.PROC MainC_Town_Outdoors_CutsceneGetCaught
+    ;; TODO: make Anna fall to the ground unconscious
+    ;; TODO: make Chief Gronta walk onscreen and give orders to the orc
+    jsr Func_FadeOutToBlackSlowly
+    jmp Main_LoadPrisonCellAndStartCutscene
 .ENDPROC
 
 .EXPORT DataC_Town_TownOutdoorsIvan_sDialog

@@ -126,7 +126,7 @@ Zp_NextCutscene_main_ptr: .res 2
 ;;; @prereq Rendering is disabled.
 .EXPORT Main_Explore_SpawnInLastSafeRoom
 .PROC Main_Explore_SpawnInLastSafeRoom
-    ldx Sram_LastSafe_eRoom  ; param: room number
+    ldx Sram_LastSafe_eRoom  ; param: room to load
     jsr FuncM_SwitchPrgcAndLoadRoom
     jsr_prga FuncA_Avatar_SpawnAtLastSafePoint
     .assert * = Main_Explore_EnterRoom, error, "fallthrough"
@@ -321,7 +321,7 @@ _LoadNextRoom:
     lda Zp_Nearby_bDevice
     and #bDevice::IndexMask
     tay  ; door device index
-    ldx Ram_DeviceTarget_u8_arr, y  ; param: eRoom value
+    ldx Ram_DeviceTarget_u8_arr, y  ; param: room to load
     jsr FuncM_SwitchPrgcAndLoadRoom
     jsr_prga FuncA_Avatar_EnterRoomViaDoor
 _FadeIn:

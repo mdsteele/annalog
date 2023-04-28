@@ -76,7 +76,7 @@ Zp_TeleportTimer_u8: .res 1
 ;;; @prereq Explore mode is already initialized.
 ;;; @prereq There is a Teleporter device in the current room.
 .PROC Main_GoThroughTeleporter
-    ldx Ram_DeviceTarget_u8_arr + kTeleporterDeviceIndex
+    ldx Ram_DeviceTarget_u8_arr + kTeleporterDeviceIndex  ; param: room to load
     jsr FuncM_SwitchPrgcAndLoadRoom
     jsr_prga FuncA_Avatar_EnterRoomViaTeleporter
     jmp Main_Explore_EnterRoom

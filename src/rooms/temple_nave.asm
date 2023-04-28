@@ -648,7 +648,7 @@ _MoveToBottomRight:
     rts
 .ENDPROC
 
-.PROC MainC_Temple_NaveCutscene
+.PROC MainC_Temple_Nave_CutsceneAlexBoosting
     lda #eDevice::Placeholder
     sta Ram_DeviceType_eDevice_arr + kAlexStandingDeviceIndexLeft
     sta Ram_DeviceType_eDevice_arr + kAlexStandingDeviceIndexRight
@@ -744,7 +744,7 @@ _ResumeDialog:
     .byte "find out what it is.#"
     .addr _CutsceneFunc
 _CutsceneFunc:
-    ldya #MainC_Temple_NaveCutscene
+    ldya #MainC_Temple_Nave_CutsceneAlexBoosting
     stya Zp_NextCutscene_main_ptr
     ldya #DataA_Dialog_TempleNaveEmpty_sDialog
     rts

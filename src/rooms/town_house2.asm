@@ -151,13 +151,13 @@ _Devices_sDevice_arr:
     sta Zp_AvatarPosY_i16 + 0
     lda #bObj::FlipH | kPaletteObjAvatarNormal
     sta Zp_AvatarFlags_bObj
-    ldya #MainC_Town_House2Cutscene
+    ldya #MainC_Town_House2_CutsceneWakeUp
     stya Zp_NextCutscene_main_ptr
     @done:
     rts
 .ENDPROC
 
-.PROC MainC_Town_House2Cutscene
+.PROC MainC_Town_House2_CutsceneWakeUp
 _GameLoop:
     jsr_prga FuncA_Objects_DrawObjectsForRoom
     jsr Func_ClearRestOfOamAndProcessFrame
