@@ -43,6 +43,7 @@ kMaxActors = 8
     NpcChild
     NpcMermaid
     NpcMermaidQueen
+    NpcOrc
     NpcToddler
     ProjBreakball    ; a bouncing ball shot by the temple boss
     ProjBullet       ; shot by minigun machines

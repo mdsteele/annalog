@@ -22,12 +22,14 @@
 ;;;   * State2: Boolean; If true ($ff), the NPC uses Ram_ActorFlags_bObj_arr
 ;;;     unchanged; if false ($00), the NPC is automatically drawn facing the
 ;;;     player avatar.
+;;;   * State3: Unused.
 
 ;;; State bytes for adult/mermaid NPCs:
 ;;;   * State1: The first tile ID for the actor.
 ;;;   * State2: Boolean; If true ($ff), the NPC uses Ram_ActorFlags_bObj_arr
 ;;;     unchanged; if false ($00), the NPC is automatically drawn facing the
 ;;;     player avatar.
+;;;   * State3: Unused.
 
 ;;;=========================================================================;;;
 

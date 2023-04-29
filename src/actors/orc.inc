@@ -19,8 +19,19 @@
 
 ;;; State bytes for orc baddies:
 ;;;   * State1: The eBadOrc value for the orc's current behavior mode.
-;;;   * State2: A timer for the current mode that decrements each frame.
-;;;   * State3: An animation counter that increments each frame.
+;;;   * State2: A timer for the current mode that decrements each frame when
+;;;     nonzero.
+;;;   * State3: An animation counter that increments each frame (wrapping
+;;;     around after 255).
+
+;;; State bytes for orc NPCs:
+;;;   * State1: The eNpcOrc value for the orc's current pose.
+;;;   * State2: Boolean; If true ($ff), the NPC uses Ram_ActorFlags_bObj_arr
+;;;     unchanged; if false ($00), the NPC is automatically drawn facing the
+;;;     player avatar.
+;;;   * State3: Unused.
+
+;;;=========================================================================;;;
 
 ;;; Possible values for an orc baddie actor's State1 byte.
 .ENUM eBadOrc
@@ -31,11 +42,21 @@
     NUM_VALUES
 .ENDENUM
 
+;;; Possible values for an orc NPC actor's State1 byte.
+.ENUM eNpcOrc
+    Running1
+    Running2
+    Running3
+    Running4
+    Standing
+    NUM_VALUES
+.ENDENUM
+
 ;;; How far an orc actor's bounding box extends in each direction from the
 ;;; actor's center position.
-kBadOrcBoundingBoxUp   = 17
-kBadOrcBoundingBoxDown =  8
-kBadOrcBoundingBoxSide =  6
+kOrcBoundingBoxUp   = 17
+kOrcBoundingBoxDown =  8
+kOrcBoundingBoxSide =  6
 
 ;;; How fast an orc baddie can run/fall, in subpixels per frame.
 kOrcMaxRunSpeed  = $0260

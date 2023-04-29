@@ -34,6 +34,7 @@
 .IMPORT FuncA_Actor_ZeroVelX
 .IMPORT FuncA_Actor_ZeroVelY
 .IMPORT FuncA_Objects_Draw2x2Shape
+.IMPORT FuncA_Objects_GetNpcActorFlags
 .IMPORT FuncA_Objects_MoveShapeUpByA
 .IMPORT FuncA_Objects_SetShapePosToActorCenter
 .IMPORT Func_GetTerrainColumnPtrForPointX
@@ -128,22 +129,31 @@ kTileIdObjOrcFeetRunning3 = kTileIdObjOrcRunningFirst  + 12
 .ENDREPEAT
 .ENDPROC
 
+;;; Puts an orc baddie actor into Chasing mode.
+;;; @param X The actor index.
+;;; @preserve X
+.PROC FuncA_Actor_TickBadOrc_StartChasing
+    lda #eBadOrc::Chasing
+    sta Ram_ActorState1_byte_arr, x  ; current mode
+    lda #0
+    sta Ram_ActorState2_byte_arr, x  ; mode timer
+    sta Ram_ActorState3_byte_arr, x  ; animation counter
+    rts
+.ENDPROC
+
 ;;; Performs per-frame updates for an orc baddie actor that's in Standing mode.
 ;;; @param C Set if the orc just collided with the player avatar.
 ;;; @param X The actor index.
 ;;; @preserve X
 .PROC FuncA_Actor_TickBadOrc_Standing
-    bcs @startChasing
+    bcs FuncA_Actor_TickBadOrc_StartChasing
     ldy #kTileHeightPx * 3  ; param: distance above actor
     lda #kTileHeightPx      ; param: distance below actor
     jsr FuncA_Actor_IsAvatarWithinVertDistances  ; preserves X, returns C
     bcc @done
     lda #kBlockWidthPx * 5  ; param: distance
     jsr FuncA_Actor_IsAvatarWithinHorzDistance  ; preserves X, returns C
-    bcc @done
-    @startChasing:
-    lda #eBadOrc::Chasing
-    sta Ram_ActorState1_byte_arr, x  ; current mode
+    bcs FuncA_Actor_TickBadOrc_StartChasing
     @done:
     rts
 .ENDPROC
@@ -154,10 +164,7 @@ kTileIdObjOrcFeetRunning3 = kTileIdObjOrcRunningFirst  + 12
 ;;; @preserve X
 .PROC FuncA_Actor_TickBadOrc_Pausing
     lda Ram_ActorState2_byte_arr, x  ; mode timer
-    bne @done
-    lda #eBadOrc::Chasing
-    sta Ram_ActorState1_byte_arr, x  ; current mode
-    @done:
+    beq FuncA_Actor_TickBadOrc_StartChasing
     rts
 .ENDPROC
 
@@ -285,22 +292,21 @@ _ApplyGravity:
 _CheckForFloor:
     ;; Check if the orc has hit the floor.
     jsr Func_SetPointToActorCenter  ; preserves X
-    lda #kBadOrcBoundingBoxDown  ; param: offset
+    lda #kOrcBoundingBoxDown  ; param: offset
     jsr Func_MovePointDownByA  ; preserves X
     jsr Func_PointHitsTerrain  ; preserves X, returns C
     bcc @noCollision
     ;; Move the orc upwards to be on top of the floor.
     lda Zp_PointY_i16 + 0
     and #$f0
-    sub #kBadOrcBoundingBoxDown
+    sub #kOrcBoundingBoxDown
     sta Ram_ActorPosY_i16_0_arr, x
     lda Zp_PointY_i16 + 1
     sbc #0
     sta Ram_ActorPosY_i16_1_arr, x
     ;; Exit jumping mode.
     jsr FuncA_Actor_ZeroVelY  ; preserves X
-    lda #eBadOrc::Chasing
-    sta Ram_ActorState1_byte_arr, x  ; current mode
+    jmp FuncA_Actor_TickBadOrc_StartChasing
     @noCollision:
     rts
 .ENDPROC
@@ -314,8 +320,7 @@ _CheckForFloor:
 ;;; @preserve X
 .EXPORT FuncA_Objects_DrawActorBadOrc
 .PROC FuncA_Objects_DrawActorBadOrc
-    jsr FuncA_Objects_SetShapePosToActorCenter  ; preserves X
-_DeterminePose:
+    ldy Ram_ActorFlags_bObj_arr, x  ; param: object flags
     lda Ram_ActorState1_byte_arr, x  ; current mode
     .assert eBadOrc::Standing = 0, error
     beq @standing
@@ -324,45 +329,70 @@ _DeterminePose:
     cmp #eBadOrc::Pausing
     beq @pausing
     @jumping:
-    ldy #2
-    bpl @setPose  ; unconditional
+    lda #eNpcOrc::Running3  ; param: pose
+    bpl FuncA_Objects_DrawActorOrcInPose  ; unconditional
     @pausing:
-    ldy #1
-    bpl @setPose  ; unconditional
+    lda #eNpcOrc::Running2  ; param: pose
+    bpl FuncA_Objects_DrawActorOrcInPose  ; unconditional
     @standing:
-    ldy #4
-    bpl @setPose  ; unconditional
+    lda #eNpcOrc::Standing  ; param: pose
+    bpl FuncA_Objects_DrawActorOrcInPose  ; unconditional
     @chasing:
     lda Ram_ActorState3_byte_arr, x  ; animation counter
     div #8
-    and #$03
-    tay
-    @setPose:
-_Draw:
-    sty T2  ; pose index
+    and #$03  ; param: pose
+    .assert eNpcOrc::Running1 = 0, error
+    bpl FuncA_Objects_DrawActorOrcInPose  ; unconditional
+.ENDPROC
+
+;;; Draws an orc NPC actor.
+;;; @param X The actor index.
+;;; @preserve X
+.EXPORT FuncA_Objects_DrawActorNpcOrc
+.PROC FuncA_Objects_DrawActorNpcOrc
+    jsr FuncA_Objects_GetNpcActorFlags  ; preserves X, returns A
+    tay  ; param: object flags
+    lda Ram_ActorState1_byte_arr, x  ; param: pose
+    .assert * = FuncA_Objects_DrawActorOrcInPose, error, "fallthrough"
+.ENDPROC
+
+;;; Draws an orc actor in the specified pose.
+;;; @param A The eNpcOrc value for the pose.
+;;; @param X The actor index.
+;;; @param Y The bObj flags to use.
+;;; @preserve X
+.PROC FuncA_Objects_DrawActorOrcInPose
+    sta T2  ; pose index
+    sty T3  ; object flags
+    jsr FuncA_Objects_SetShapePosToActorCenter  ; preserves X and T0+
     ;; Draw feet:
-    lda _TileIdFeetRunning_u8_arr, y  ; param: first tile ID
-    ldy Ram_ActorFlags_bObj_arr, x  ; param: object flags
+    ldy T2  ; pose index
+    lda _TileIdFeet_u8_arr, y  ; param: first tile ID
+    ldy T3  ; param: object flags
     jsr FuncA_Objects_Draw2x2Shape  ; preserves X and T2+
     ;; Draw head:
     lda #kBlockHeightPx
     jsr FuncA_Objects_MoveShapeUpByA  ; preserves X and T0+
     ldy T2  ; pose index
-    lda _TileIdHeadRunning_u8_arr, y  ; param: first tile ID
-    ldy Ram_ActorFlags_bObj_arr, x  ; param: object flags
+    lda _TileIdHead_u8_arr, y  ; param: first tile ID
+    ldy T3  ; param: object flags
     jmp FuncA_Objects_Draw2x2Shape  ; preserves X
-_TileIdHeadRunning_u8_arr:
-    .byte kTileIdObjOrcHeadLow
-    .byte kTileIdObjOrcHeadHigh
-    .byte kTileIdObjOrcHeadLow
-    .byte kTileIdObjOrcHeadHigh
-    .byte kTileIdObjOrcHeadHigh
-_TileIdFeetRunning_u8_arr:
-    .byte kTileIdObjOrcFeetRunning1
-    .byte kTileIdObjOrcFeetRunning2
-    .byte kTileIdObjOrcFeetRunning3
-    .byte kTileIdObjOrcFeetRunning2
-    .byte kTileIdObjOrcFeetStanding
+_TileIdHead_u8_arr:
+    D_ENUM eNpcOrc
+    d_byte Running1, kTileIdObjOrcHeadLow
+    d_byte Running2, kTileIdObjOrcHeadHigh
+    d_byte Running3, kTileIdObjOrcHeadLow
+    d_byte Running4, kTileIdObjOrcHeadHigh
+    d_byte Standing, kTileIdObjOrcHeadHigh
+    D_END
+_TileIdFeet_u8_arr:
+    D_ENUM eNpcOrc
+    d_byte Running1, kTileIdObjOrcFeetRunning1
+    d_byte Running2, kTileIdObjOrcFeetRunning2
+    d_byte Running3, kTileIdObjOrcFeetRunning3
+    d_byte Running4, kTileIdObjOrcFeetRunning2
+    d_byte Standing, kTileIdObjOrcFeetStanding
+    D_END
 .ENDPROC
 
 ;;;=========================================================================;;;

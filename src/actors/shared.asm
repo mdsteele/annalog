@@ -36,6 +36,7 @@
 .IMPORT Ram_ActorPosX_i16_1_arr
 .IMPORT Ram_ActorPosY_i16_0_arr
 .IMPORT Ram_ActorPosY_i16_1_arr
+.IMPORT Ram_ActorState2_byte_arr
 .IMPORT Ram_ActorVelX_i16_0_arr
 .IMPORT Ram_ActorVelX_i16_1_arr
 .IMPORT Ram_ActorVelY_i16_0_arr
@@ -291,6 +292,38 @@
     lda Ram_ActorPosX_i16_1_arr, x
     sbc Zp_RoomScrollX_u16 + 1
     sta Zp_ShapePosX_i16 + 1
+    rts
+.ENDPROC
+
+;;; Returns the object flags to use for drawing the specified NPC actor.
+;;; @param X The actor index.
+;;; @return A The bObj flags (excluding palette) to use for drawing the NPC.
+;;; @preserve X
+.EXPORT FuncA_Objects_GetNpcActorFlags
+.PROC FuncA_Objects_GetNpcActorFlags
+    lda Ram_ActorFlags_bObj_arr, x
+    ;; If State2 is true ($ff), use ActorFlags unchanged.
+    ldy Ram_ActorState2_byte_arr, x  ; "use flags" boolean
+    bmi @return
+    ;; Otherwise, only use the bObj::Pri bit from ActorFlags; ignore the flip
+    ;; flags and make the actor face towards the avatar.
+    and #bObj::Pri
+    sta T0  ; bObj::Pri bit
+    lda Zp_AvatarPosX_i16 + 0
+    cmp Ram_ActorPosX_i16_0_arr, x
+    lda Zp_AvatarPosX_i16 + 1
+    sbc Ram_ActorPosX_i16_1_arr, x
+    bvc @noOverflow  ; N eor V
+    eor #$80
+    @noOverflow:
+    bpl @faceRight
+    @faceLeft:
+    lda #bObj::FlipH
+    ora T0  ; bObj::Pri bit
+    rts
+    @faceRight:
+    lda T0  ; bObj::Pri bit
+    @return:
     rts
 .ENDPROC
 

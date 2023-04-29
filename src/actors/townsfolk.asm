@@ -27,18 +27,15 @@
 .IMPORT FuncA_Objects_Alloc2x1Shape
 .IMPORT FuncA_Objects_Alloc2x2Shape
 .IMPORT FuncA_Objects_Draw2x2Shape
+.IMPORT FuncA_Objects_GetNpcActorFlags
 .IMPORT FuncA_Objects_MoveShapeDownByA
 .IMPORT FuncA_Objects_MoveShapeUpByA
 .IMPORT FuncA_Objects_MoveShapeUpOneTile
 .IMPORT FuncA_Objects_SetShapePosToActorCenter
 .IMPORT Func_InitActorWithState1
 .IMPORT Ram_ActorFlags_bObj_arr
-.IMPORT Ram_ActorPosX_i16_0_arr
-.IMPORT Ram_ActorPosX_i16_1_arr
 .IMPORT Ram_ActorState1_byte_arr
-.IMPORT Ram_ActorState2_byte_arr
 .IMPORT Ram_Oam_sObj_arr64
-.IMPORTZP Zp_AvatarPosX_i16
 .IMPORTZP Zp_FrameCounter_u8
 
 ;;;=========================================================================;;;
@@ -84,7 +81,7 @@ kPaletteObjMermaidQueenHead = 1
 .EXPORT FuncA_Objects_DrawActorNpcAdult
 .PROC FuncA_Objects_DrawActorNpcAdult
     jsr FuncA_Objects_SetShapePosToActorCenter  ; preserves X
-    jsr FuncA_Objects_GetTownsfolkFlags  ; preserves X, returns A
+    jsr FuncA_Objects_GetNpcActorFlags  ; preserves X, returns A
     .assert kPaletteObjAdult = 0, error
     tay  ; param: object flags
     lda Ram_ActorState1_byte_arr, x  ; param: first tile ID
@@ -97,7 +94,7 @@ kPaletteObjMermaidQueenHead = 1
 .EXPORT FuncA_Objects_DrawActorNpcChild
 .PROC FuncA_Objects_DrawActorNpcChild
     jsr FuncA_Objects_SetShapePosToActorCenter  ; preserves X
-    jsr FuncA_Objects_GetTownsfolkFlags  ; preserves X, returns A
+    jsr FuncA_Objects_GetNpcActorFlags  ; preserves X, returns A
     .assert kPaletteObjChild <> 0, error
     ora #kPaletteObjChild
     tay  ; param: object flags
@@ -123,7 +120,7 @@ kPaletteObjMermaidQueenHead = 1
     lda _VertOffset_u8_arr8, y  ; param: offset
     jsr FuncA_Objects_MoveShapeUpByA
     ;; Draw the actor.
-    jsr FuncA_Objects_GetTownsfolkFlags  ; preserves X, returns A
+    jsr FuncA_Objects_GetNpcActorFlags  ; preserves X, returns A
     .assert kPaletteObjMermaid = 0, error
     tay  ; param: object flags
     lda Ram_ActorState1_byte_arr, x  ; param: first tile ID
@@ -139,7 +136,7 @@ _VertOffset_u8_arr8:
 .PROC FuncA_Objects_DrawActorNpcMermaidQueen
     jsr FuncA_Objects_SetShapePosToActorCenter  ; preserves X
 _TopHalf:
-    jsr FuncA_Objects_GetTownsfolkFlags  ; preserves X, returns A
+    jsr FuncA_Objects_GetNpcActorFlags  ; preserves X, returns A
     .assert kPaletteObjMermaidQueenHead <> 0, error
     ora #kPaletteObjMermaidQueenHead
     tay  ; param: object flags
@@ -151,37 +148,6 @@ _BottomHalf:
     ldy #kPaletteObjMermaidQueenBody  ; param: object flags
     lda #kTileIdMermaidQueenFirst + 4  ; param: first tile ID
     jmp FuncA_Objects_Draw2x2Shape  ; preserves X
-.ENDPROC
-
-;;; Returns the flags to use for drawing the specified townsfolk NPC actor.
-;;; @param X The actor index.
-;;; @return A The bObj flags (excluding palette) to use for drawing the NPC.
-;;; @preserve X
-.PROC FuncA_Objects_GetTownsfolkFlags
-    lda Ram_ActorFlags_bObj_arr, x
-    ;; If State2 is true ($ff), use ActorFlags unchanged.
-    ldy Ram_ActorState2_byte_arr, x  ; "use flags" boolean
-    bmi @return
-    ;; Otherwise, only use the bObj::Pri bit from ActorFlags; ignore the flip
-    ;; flags and make the actor face towards the avatar.
-    and #bObj::Pri
-    sta T0  ; bObj::Pri bit
-    lda Zp_AvatarPosX_i16 + 0
-    cmp Ram_ActorPosX_i16_0_arr, x
-    lda Zp_AvatarPosX_i16 + 1
-    sbc Ram_ActorPosX_i16_1_arr, x
-    bvc @noOverflow  ; N eor V
-    eor #$80
-    @noOverflow:
-    bpl @faceRight
-    @faceLeft:
-    lda #bObj::FlipH
-    ora T0  ; bObj::Pri bit
-    rts
-    @faceRight:
-    lda T0  ; bObj::Pri bit
-    @return:
-    rts
 .ENDPROC
 
 ;;; Draws a 2x3-tile shape, using the given first tile ID and the five

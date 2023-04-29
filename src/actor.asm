@@ -69,6 +69,7 @@
 .IMPORT FuncA_Objects_DrawActorNpcChild
 .IMPORT FuncA_Objects_DrawActorNpcMermaid
 .IMPORT FuncA_Objects_DrawActorNpcMermaidQueen
+.IMPORT FuncA_Objects_DrawActorNpcOrc
 .IMPORT FuncA_Objects_DrawActorNpcToddler
 .IMPORT FuncA_Objects_DrawActorProjBreakball
 .IMPORT FuncA_Objects_DrawActorProjBullet
@@ -301,7 +302,7 @@ Ram_ActorFlags_bObj_arr: .res kMaxActors
     d_byte BadGrub,          0
     d_byte BadHotheadHorz,   6
     d_byte BadHotheadVert,   6
-    d_byte BadOrc,          kBadOrcBoundingBoxUp
+    d_byte BadOrc,          kOrcBoundingBoxUp
     d_byte BadSpider,        8
     d_byte BadToad,          9
     d_byte BadVinebug,       7
@@ -310,6 +311,7 @@ Ram_ActorFlags_bObj_arr: .res kMaxActors
     d_byte NpcChild,         7
     d_byte NpcMermaid,      13
     d_byte NpcMermaidQueen,  2
+    d_byte NpcOrc,          kOrcBoundingBoxUp
     d_byte NpcToddler,       4
     d_byte ProjBreakball,   kProjBreakballRadius
     d_byte ProjBullet,      kProjBulletRadius
@@ -337,7 +339,7 @@ Ram_ActorFlags_bObj_arr: .res kMaxActors
     d_byte BadGrub,          8
     d_byte BadHotheadHorz,   6
     d_byte BadHotheadVert,   6
-    d_byte BadOrc,          kBadOrcBoundingBoxDown
+    d_byte BadOrc,          kOrcBoundingBoxDown
     d_byte BadSpider,        2
     d_byte BadToad,          0
     d_byte BadVinebug,       7
@@ -346,6 +348,7 @@ Ram_ActorFlags_bObj_arr: .res kMaxActors
     d_byte NpcChild,         8
     d_byte NpcMermaid,       8
     d_byte NpcMermaidQueen, 24
+    d_byte NpcOrc,          kOrcBoundingBoxDown
     d_byte NpcToddler,       8
     d_byte ProjBreakball,   kProjBreakballRadius
     d_byte ProjBullet,      kProjBulletRadius
@@ -373,7 +376,7 @@ Ram_ActorFlags_bObj_arr: .res kMaxActors
     d_byte BadGrub,         7
     d_byte BadHotheadHorz,  6
     d_byte BadHotheadVert,  6
-    d_byte BadOrc,          kBadOrcBoundingBoxSide
+    d_byte BadOrc,          kOrcBoundingBoxSide
     d_byte BadSpider,       6
     d_byte BadToad,         7
     d_byte BadVinebug,      5
@@ -382,6 +385,7 @@ Ram_ActorFlags_bObj_arr: .res kMaxActors
     d_byte NpcChild,        5
     d_byte NpcMermaid,      5
     d_byte NpcMermaidQueen, 5
+    d_byte NpcOrc,          kOrcBoundingBoxSide
     d_byte NpcToddler,      3
     d_byte ProjBreakball,   kProjBreakballRadius
     d_byte ProjBullet,      kProjBulletRadius
@@ -487,6 +491,7 @@ _TypeSpecificTick:
     d_entry table, NpcChild,        Func_Noop
     d_entry table, NpcMermaid,      Func_Noop
     d_entry table, NpcMermaidQueen, Func_Noop
+    d_entry table, NpcOrc,          Func_Noop
     d_entry table, NpcToddler,      FuncA_Actor_TickNpcToddler
     d_entry table, ProjBreakball,   FuncA_Actor_TickProjBreakball
     d_entry table, ProjBullet,      FuncA_Actor_TickProjBullet
@@ -658,6 +663,7 @@ _NoHit:
     d_entry table, NpcChild,        FuncA_Room_InitActorNpcChild
     d_entry table, NpcMermaid,      Func_InitActorWithState1
     d_entry table, NpcMermaidQueen, Func_InitActorDefault
+    d_entry table, NpcOrc,          Func_InitActorWithState1
     d_entry table, NpcToddler,      FuncA_Room_InitActorNpcToddler
     d_entry table, ProjBreakball,   FuncA_Room_InitActorProjBreakball
     d_entry table, ProjBullet,      Func_InitActorProjBullet
@@ -790,6 +796,7 @@ _NoHit:
     d_entry table, NpcChild,        FuncA_Objects_DrawActorNpcChild
     d_entry table, NpcMermaid,      FuncA_Objects_DrawActorNpcMermaid
     d_entry table, NpcMermaidQueen, FuncA_Objects_DrawActorNpcMermaidQueen
+    d_entry table, NpcOrc,          FuncA_Objects_DrawActorNpcOrc
     d_entry table, NpcToddler,      FuncA_Objects_DrawActorNpcToddler
     d_entry table, ProjBreakball,   FuncA_Objects_DrawActorProjBreakball
     d_entry table, ProjBullet,      FuncA_Objects_DrawActorProjBullet
