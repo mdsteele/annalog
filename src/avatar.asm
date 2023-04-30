@@ -194,6 +194,13 @@ _InitChr10Bank:
     jsr FuncA_Avatar_ApplyDpad
     jsr FuncA_Avatar_ApplyJump
     @doneJoypad:
+    .assert * = FuncA_Avatar_RagdollMove, error, "fallthrough"
+.ENDPROC
+
+;;; Updates the player avatar state without healing or applying the joypad.
+;;; Sets Zp_AvatarExit_ePassage if the avatar hits a passage.
+.EXPORT FuncA_Avatar_RagdollMove
+.PROC FuncA_Avatar_RagdollMove
 _RecoverFromLanding:
     lda Zp_AvatarLanding_u8
     beq @done

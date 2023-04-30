@@ -76,6 +76,7 @@ kGateObjFlags = kPaletteObjGate | bObj::Pri
 ;;; @param A The room block row for the top of the gate when it's shut.
 ;;; @param X The gate platform index.
 ;;; @param Y Zero if the gate should shut, nonzero if it should open.
+;;; @return Z Cleared if the platform moved, set if it didn't.
 .EXPORT FuncC_Prison_TickGatePlatform
 .PROC FuncC_Prison_TickGatePlatform
     ;; Store the top of the gate's shut position in Zp_PointY_i16.
@@ -93,7 +94,7 @@ kGateObjFlags = kPaletteObjGate | bObj::Pri
     bne _Open
 _Shut:
     lda #kGateShutSpeed  ; param: move speed
-    jmp Func_MovePlatformTopTowardPointY
+    jmp Func_MovePlatformTopTowardPointY  ; returns Z
 _Open:
     lda Zp_PointY_i16 + 0
     sub #kGateRiseDistancePx
@@ -102,7 +103,7 @@ _Open:
     sbc #0
     sta Zp_PointY_i16 + 1
     lda #kGateOpenSpeed  ; param: move speed
-    jmp Func_MovePlatformTopTowardPointY
+    jmp Func_MovePlatformTopTowardPointY  ; returns Z
 .ENDPROC
 
 ;;; Draws a prison gate.
