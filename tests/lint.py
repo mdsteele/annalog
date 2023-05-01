@@ -116,6 +116,8 @@ def is_valid_jump_dest(dest, top_proc, segment):
     if match:
         if top_proc.startswith('Func_'):
             return False
+        if top_proc.startswith('DataA_Cutscene_' + match.group(1)):
+            return True
         if segment.startswith('PRGA_'):
             return False
         if segment.startswith('PRGC_') and match.group(1) != segment[5:]:

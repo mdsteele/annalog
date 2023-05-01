@@ -22,13 +22,13 @@
 .INCLUDE "../avatar.inc"
 .INCLUDE "../charmap.inc"
 .INCLUDE "../cpu.inc"
+.INCLUDE "../cutscene.inc"
 .INCLUDE "../device.inc"
 .INCLUDE "../dialog.inc"
 .INCLUDE "../flag.inc"
 .INCLUDE "../machine.inc"
 .INCLUDE "../machines/shared.inc"
 .INCLUDE "../macros.inc"
-.INCLUDE "../mmc3.inc"
 .INCLUDE "../oam.inc"
 .INCLUDE "../platform.inc"
 .INCLUDE "../ppu.inc"
@@ -43,13 +43,9 @@
 .IMPORT FuncA_Machine_ReachedGoal
 .IMPORT FuncA_Objects_DrawCarriageMachine
 .IMPORT FuncA_Objects_DrawCratePlatform
-.IMPORT FuncA_Objects_DrawObjectsForRoom
-.IMPORT Func_ClearRestOfOamAndProcessFrame
 .IMPORT Func_Noop
 .IMPORT Func_SetFlag
-.IMPORT Main_Dialog_OpenWindow
 .IMPORT Ppu_ChrObjTemple
-.IMPORT Ram_ActorFlags_bObj_arr
 .IMPORT Ram_ActorPosX_i16_0_arr
 .IMPORT Ram_ActorPosX_i16_1_arr
 .IMPORT Ram_ActorState1_byte_arr
@@ -65,7 +61,7 @@
 .IMPORTZP Zp_AvatarFlags_bObj
 .IMPORTZP Zp_AvatarPosX_i16
 .IMPORTZP Zp_FrameCounter_u8
-.IMPORTZP Zp_NextCutscene_main_ptr
+.IMPORTZP Zp_Next_eCutscene
 .IMPORTZP Zp_RoomState
 
 ;;;=========================================================================;;;
@@ -85,11 +81,6 @@ kCratePlatformIndex = 3
 ;;; The room pixel X-position that the Alex actor should be at when giving Anna
 ;;; a boost.
 kAlexBoostingPositionX = $0068
-
-;;; CutsceneAlexBoostTimer_u8 values for various phases of the cutscene.
-kCutsceneTimerStanding = 50
-kCutsceneTimerKneeling = 20 + kCutsceneTimerStanding
-kCutsceneTimerBoosting = 30 + kCutsceneTimerKneeling
 
 ;;;=========================================================================;;;
 
@@ -181,9 +172,6 @@ kUpperCarriageMinPlatformTop = \
     LowerCarriageReset_eLowerResetSeq .byte
     ;; Which step of its reset sequence the TempleNaveUpperCarriage is on.
     UpperCarriageReset_eUpperResetSeq .byte
-    ;; A timer used for animating Alex crouching down into his boosting
-    ;; position.  Counts up each frame during that portion of the cutscene.
-    CutsceneAlexBoostTimer_u8 .byte
 .ENDSTRUCT
 .ASSERT .sizeof(sState) <= kRoomStateSize, error
 
@@ -648,19 +636,31 @@ _MoveToBottomRight:
     rts
 .ENDPROC
 
-.PROC MainC_Temple_Nave_CutsceneAlexBoosting
-    lda #eDevice::Placeholder
-    sta Ram_DeviceType_eDevice_arr + kAlexStandingDeviceIndexLeft
-    sta Ram_DeviceType_eDevice_arr + kAlexStandingDeviceIndexRight
-_GameLoop:
-    ;; Draw the frame:
-    jsr_prga FuncA_Objects_DrawObjectsForRoom
-    jsr Func_ClearRestOfOamAndProcessFrame
-    ;; Check if Alex is at his boosting position yet.
-    lda Ram_ActorPosX_i16_0_arr + kAlexActorIndex
-    cmp #<kAlexBoostingPositionX
-    beq _InBoostingPosition
-_WalkToBoostingPosition:
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Cutscene"
+
+.EXPORT DataA_Cutscene_TempleNaveAlexBoosting_arr
+.PROC DataA_Cutscene_TempleNaveAlexBoosting_arr
+    ;; Animate Alex walking towards his boosting position.
+    .byte eAction::SetActorState2, kAlexActorIndex, $ff
+    .byte eAction::SetActorFlags, kAlexActorIndex, bObj::FlipH
+    .byte eAction::WaitUntilZ
+    .addr _WalkAlex
+    ;; Animate Alex turning around, crouching down, and raising his arms to
+    ;; give Anna a boost.
+    .byte eAction::SetActorFlags, kAlexActorIndex, 0
+    .byte eAction::SetActorState1, kAlexActorIndex, eNpcChild::AlexStanding
+    .byte eAction::WaitFrames, 50
+    .byte eAction::SetActorState1, kAlexActorIndex, eNpcChild::AlexKneeling
+    .byte eAction::WaitFrames, 20
+    .byte eAction::SetActorState1, kAlexActorIndex, eNpcChild::AlexBoosting
+    .byte eAction::WaitFrames, 30
+    .byte eAction::CallFunc
+    .addr _SetUpBoostingPlatform
+    .byte eAction::RunDialog, eDialog::TempleNaveAlexBoosting
+    .byte eAction::ContinueExploring
+_WalkAlex:
     ;; Face the player avatar towards Alex.
     lda Ram_ActorPosX_i16_0_arr + kAlexActorIndex
     cmp Zp_AvatarPosX_i16 + 0
@@ -669,7 +669,6 @@ _WalkToBoostingPosition:
     sta Zp_AvatarFlags_bObj
     @noTurnAvatar:
     ;; Animate Alex walking towards his boosting position.
-    dec Ram_ActorPosX_i16_0_arr + kAlexActorIndex
     lda Zp_FrameCounter_u8
     and #$08
     beq @walk2
@@ -679,47 +678,22 @@ _WalkToBoostingPosition:
     lda #eNpcChild::AlexWalking2
     @setState:
     sta Ram_ActorState1_byte_arr + kAlexActorIndex
-    lda #$ff
-    sta Ram_ActorState2_byte_arr + kAlexActorIndex
-    lda #bObj::FlipH
-    sta Ram_ActorFlags_bObj_arr + kAlexActorIndex
-    bne _GameLoop  ; unconditional
-_InBoostingPosition:
-    ;; Animate Alex turning around, crouching down, and raising his arms to
-    ;; give Anna a boost.
-    lda #0
-    sta Ram_ActorFlags_bObj_arr + kAlexActorIndex
-    inc Zp_RoomState + sState::CutsceneAlexBoostTimer_u8
-    lda Zp_RoomState + sState::CutsceneAlexBoostTimer_u8
-    cmp #kCutsceneTimerStanding
-    blt @standing
-    cmp #kCutsceneTimerKneeling
-    blt @kneeling
-    cmp #kCutsceneTimerBoosting
-    bge _ResumeDialog
-    @boosting:
-    lda #eNpcChild::AlexBoosting
-    bne @setState  ; unconditional
-    @standing:
-    lda #eNpcChild::AlexStanding
-    bne @setState  ; unconditional
-    @kneeling:
-    lda #eNpcChild::AlexKneeling
-    @setState:
-    sta Ram_ActorState1_byte_arr + kAlexActorIndex
-    bne _GameLoop  ; unconditional
-_ResumeDialog:
+    dec Ram_ActorPosX_i16_0_arr + kAlexActorIndex
+    lda Ram_ActorPosX_i16_0_arr + kAlexActorIndex
+    cmp #<kAlexBoostingPositionX
+    rts
+_SetUpBoostingPlatform:
     ;; Set up the device/platform for Alex giving Anna a boost.
+    lda #eDevice::Placeholder
+    sta Ram_DeviceType_eDevice_arr + kAlexStandingDeviceIndexLeft
+    sta Ram_DeviceType_eDevice_arr + kAlexStandingDeviceIndexRight
     lda #eDevice::TalkLeft
     sta Ram_DeviceType_eDevice_arr + kAlexBoostingDeviceIndex
     lda #ePlatform::Solid
     sta Ram_PlatformType_ePlatform_arr + kAlexBoostingPlatformIndex
     ;; Set the flag indicating that Alex is now in the boosting position.
     ldx #eFlag::TempleNaveTalkedToAlex  ; param: flag
-    jsr Func_SetFlag
-    ;; Resume dialog.
-    ldy #eDialog::TempleNaveAlexBoosting  ; param: eDialog value
-    jmp Main_Dialog_OpenWindow
+    jmp Func_SetFlag
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -744,8 +718,8 @@ _ResumeDialog:
     .byte "find out what it is.#"
     .addr _CutsceneFunc
 _CutsceneFunc:
-    ldya #MainC_Temple_Nave_CutsceneAlexBoosting
-    stya Zp_NextCutscene_main_ptr
+    lda #eCutscene::TempleNaveAlexBoosting
+    sta Zp_Next_eCutscene
     ldya #DataA_Dialog_TempleNaveEmpty_sDialog
     rts
 .ENDPROC

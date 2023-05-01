@@ -23,6 +23,7 @@
 .INCLUDE "../avatar.inc"
 .INCLUDE "../charmap.inc"
 .INCLUDE "../cpu.inc"
+.INCLUDE "../cutscene.inc"
 .INCLUDE "../device.inc"
 .INCLUDE "../dialog.inc"
 .INCLUDE "../irq.inc"
@@ -34,15 +35,10 @@
 .INCLUDE "../room.inc"
 
 .IMPORT DataA_Room_Outdoors_sTileset
-.IMPORT FuncA_Objects_DrawObjectsForRoom
-.IMPORT FuncA_Terrain_ScrollTowardsGoal
 .IMPORT Func_AckIrqAndLatchWindowFromParam3
 .IMPORT Func_AckIrqAndSetLatch
-.IMPORT Func_ClearRestOfOamAndProcessFrame
-.IMPORT Func_FadeOutToBlackSlowly
 .IMPORT Func_InitActorBadOrc
 .IMPORT Func_Noop
-.IMPORT Main_Dialog_OpenWindow
 .IMPORT Main_LoadPrisonCellAndStartCutscene
 .IMPORT Ppu_ChrObjTown
 .IMPORT Ram_ActorFlags_bObj_arr
@@ -51,7 +47,6 @@
 .IMPORT Ram_ActorPosY_i16_0_arr
 .IMPORT Ram_ActorPosY_i16_1_arr
 .IMPORT Ram_ActorState1_byte_arr
-.IMPORT Ram_ActorState2_byte_arr
 .IMPORT Ram_ActorType_eActor_arr
 .IMPORT Ram_ActorVelX_i16_0_arr
 .IMPORT Ram_ActorVelX_i16_1_arr
@@ -61,12 +56,11 @@
 .IMPORTZP Zp_Active_sIrq
 .IMPORTZP Zp_AvatarFlags_bObj
 .IMPORTZP Zp_AvatarHarmTimer_u8
-.IMPORTZP Zp_AvatarMode_eAvatar
 .IMPORTZP Zp_AvatarPosX_i16
 .IMPORTZP Zp_Buffered_sIrq
 .IMPORTZP Zp_FrameCounter_u8
-.IMPORTZP Zp_NextCutscene_main_ptr
 .IMPORTZP Zp_NextIrq_int_ptr
+.IMPORTZP Zp_Next_eCutscene
 .IMPORTZP Zp_PpuScrollX_u8
 .IMPORTZP Zp_RoomScrollX_u16
 .IMPORTZP Zp_RoomScrollY_u8
@@ -275,8 +269,8 @@ _DetectAvatarDeath:
     bne @done
     lda #60
     sta Zp_AvatarHarmTimer_u8
-    ldya #MainC_Town_Outdoors_CutsceneGetCaught
-    stya Zp_NextCutscene_main_ptr
+    lda #eCutscene::TownOutdoorsGetCaught
+    sta Zp_Next_eCutscene
     @done:
     rts
 .ENDPROC
@@ -340,88 +334,10 @@ _DetectAvatarDeath:
     .byte "in the dirt over here!#"
     .addr _CutsceneFunc
 _CutsceneFunc:
-    ldya #MainC_Town_Outdoors_CutsceneAlexPickUp
-    stya Zp_NextCutscene_main_ptr
+    lda #eCutscene::TownOutdoorsOrcAttack
+    sta Zp_Next_eCutscene
     ldya #DataC_Town_TownOutdoorsEmpty_sDialog
     rts
-.ENDPROC
-
-.PROC MainC_Town_Outdoors_CutsceneAlexPickUp
-    ;; Remove the other townsfolk (other than Alex).
-    lda #eActor::None
-    sta Ram_ActorType_eActor_arr + kIvanActorIndex
-    sta Ram_ActorType_eActor_arr + kSandraActorIndex
-_RemoveAllDevices:
-    ;; Remove all devices from the room (so that the player can't start dialog
-    ;; or run into a building once the orcs attack).
-    ldx #kMaxDevices - 1
-    lda #eDevice::None
-    @loop:
-    sta Ram_DeviceType_eDevice_arr, x
-    dex
-    bpl @loop
-_GameLoop:
-    ;; Draw the frame:
-    jsr_prga FuncA_Objects_DrawObjectsForRoom
-    jsr Func_ClearRestOfOamAndProcessFrame
-    ;; Check if Alex is at his picking-up position yet.
-    lda Ram_ActorPosX_i16_0_arr + kAlexActorIndex
-    cmp #<kAlexPickupPositionX
-    beq _InPickupPosition
-_WalkToPickupPosition:
-    ;; Face the player avatar towards Alex.
-    lda Ram_ActorPosX_i16_0_arr + kAlexActorIndex
-    cmp Zp_AvatarPosX_i16 + 0
-    blt @noTurnAvatar
-    lda #kPaletteObjAvatarNormal
-    sta Zp_AvatarFlags_bObj
-    @noTurnAvatar:
-    ;; Animate Alex walking towards his picking-up position.
-    inc Ram_ActorPosX_i16_0_arr + kAlexActorIndex
-    lda Zp_FrameCounter_u8
-    and #$08
-    beq @walk2
-    lda #eNpcChild::AlexWalking1
-    bne @setState  ; unconditional
-    @walk2:
-    lda #eNpcChild::AlexWalking2
-    @setState:
-    sta Ram_ActorState1_byte_arr + kAlexActorIndex
-    lda #$ff
-    sta Ram_ActorState2_byte_arr + kAlexActorIndex
-    lda #0
-    sta Ram_ActorFlags_bObj_arr + kAlexActorIndex
-    beq _GameLoop  ; unconditional
-_InPickupPosition:
-    ;; Animate Alex crouching down, standing back up, then facing Anna again.
-    inc Zp_RoomState + sState::CutsceneTimer_u8
-    lda Zp_RoomState + sState::CutsceneTimer_u8
-    cmp #kCutsceneTimerKneeling
-    blt @kneeling
-    cmp #kCutsceneTimerStanding
-    blt @standing
-    cmp #kCutsceneTimerTurning
-    blt @turning
-    cmp #kCutsceneTimerHolding
-    bge _ResumeDialog
-    @holding:
-    lda #eNpcChild::AlexHolding
-    bne @setState  ; unconditional
-    @turning:
-    lda #bObj::FlipH
-    sta Ram_ActorFlags_bObj_arr + kAlexActorIndex
-    bne _GameLoop  ; unconditional
-    @standing:
-    lda #eNpcChild::AlexStanding
-    bne @setState  ; unconditional
-    @kneeling:
-    lda #eNpcChild::AlexKneeling
-    @setState:
-    sta Ram_ActorState1_byte_arr + kAlexActorIndex
-    bne _GameLoop  ; unconditional
-_ResumeDialog:
-    ldy #eDialog::TownOutdoorsAlex2  ; param: eDialog value
-    jmp Main_Dialog_OpenWindow
 .ENDPROC
 
 .EXPORT DataC_Town_TownOutdoorsAlex2_sDialog
@@ -447,69 +363,7 @@ _IWonder_sDialog:
     .byte "I wonder where a thing$"
     .byte "like this could have$"
     .byte "come from...#"
-    .addr _CutsceneFunc
-_CutsceneFunc:
-    ldya #MainC_Town_Outdoors_CutsceneStargazing
-    stya Zp_NextCutscene_main_ptr
-    ldya #DataC_Town_TownOutdoorsEmpty_sDialog
-    rts
-.ENDPROC
-
-.PROC MainC_Town_Outdoors_CutsceneStargazing
-    lda #0
-    sta Zp_RoomState + sState::CutsceneTimer_u8
-    ;; TODO: scroll slowly instead
-    ldax #$04c0
-    stax Zp_ScrollGoalX_u16
-    ;; Make Alex look up at the stars.
-    lda #eNpcChild::AlexLooking
-    sta Ram_ActorState1_byte_arr + kAlexActorIndex
-    lda #bObj::FlipH
-    sta Ram_ActorFlags_bObj_arr + kAlexActorIndex
-_GameLoop:
-    ;; Draw the frame:
-    jsr_prga FuncA_Objects_DrawObjectsForRoom
-    jsr Func_ClearRestOfOamAndProcessFrame
-_Tick:
-    lda Zp_RoomState + sState::CutsceneTimer_u8
-    ;; One second into the cutscene, make Anna look up at the stars too.
-    cmp #60
-    bne @doneAnnaLook
-    lda #eAvatar::Looking
-    sta Zp_AvatarMode_eAvatar
-    lda #bObj::FlipH | kPaletteObjAvatarNormal
-    sta Zp_AvatarFlags_bObj
-    @doneAnnaLook:
-    ;; TODO: Two seconds into the cutscene, make a star twinkle in the sky.
-    ;; End the cutscene after four seconds.
-    cmp #240
-    beq _ResumeDialog
-_UpdateScrolling:
-    inc Zp_RoomState + sState::CutsceneTimer_u8
-    jsr_prga FuncA_Terrain_ScrollTowardsGoal
-    jmp _GameLoop
-_ResumeDialog:
-    ldax #kOrc1InitPosX
-    stx Ram_ActorPosX_i16_0_arr + kOrc1ActorIndex
-    sta Ram_ActorPosX_i16_1_arr + kOrc1ActorIndex
-    .assert >kOrc2InitPosX = >kOrc1InitPosX, error
-    ldx #<kOrc2InitPosX
-    stx Ram_ActorPosX_i16_0_arr + kOrc2ActorIndex
-    sta Ram_ActorPosX_i16_1_arr + kOrc2ActorIndex
-    ldax #kOrcInitPosY
-    stx Ram_ActorPosY_i16_0_arr + kOrc1ActorIndex
-    sta Ram_ActorPosY_i16_1_arr + kOrc1ActorIndex
-    stx Ram_ActorPosY_i16_0_arr + kOrc2ActorIndex
-    sta Ram_ActorPosY_i16_1_arr + kOrc2ActorIndex
-    ldx #kOrc1ActorIndex  ; param: actor index
-    lda #bObj::FlipH  ; param: actor flags
-    jsr Func_InitActorBadOrc
-    ldx #kOrc2ActorIndex  ; param: actor index
-    lda #bObj::FlipH  ; param: actor flags
-    jsr Func_InitActorBadOrc
-    ;; TODO: spawn actor for Chief Gronta
-    ldy #eDialog::TownOutdoorsAlex3  ; param: eDialog value
-    jmp Main_Dialog_OpenWindow
+    .word ePortrait::Done
 .ENDPROC
 
 .EXPORT DataC_Town_TownOutdoorsAlex3_sDialog
@@ -563,13 +417,6 @@ _AttackFunc:
     rts
 .ENDPROC
 
-.PROC MainC_Town_Outdoors_CutsceneGetCaught
-    ;; TODO: make Anna fall to the ground unconscious
-    ;; TODO: make Chief Gronta walk onscreen and give orders to the orc
-    jsr Func_FadeOutToBlackSlowly
-    jmp Main_LoadPrisonCellAndStartCutscene
-.ENDPROC
-
 .EXPORT DataC_Town_TownOutdoorsIvan_sDialog
 .PROC DataC_Town_TownOutdoorsIvan_sDialog
     .word ePortrait::AdultMan
@@ -606,6 +453,117 @@ _AttackFunc:
 
 .PROC DataC_Town_TownOutdoorsEmpty_sDialog
     .word ePortrait::Done
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Cutscene"
+
+.EXPORT DataA_Cutscene_TownOutdoorsOrcAttack_arr
+.PROC DataA_Cutscene_TownOutdoorsOrcAttack_arr
+    .byte eAction::CallFunc
+    .addr _RemoveDevicesAndTownsfolk
+    ;; Animate Alex walking towards his picking-up position.
+    .byte eAction::SetActorFlags, kAlexActorIndex, 0
+    .byte eAction::SetActorState2, kAlexActorIndex, $ff
+    .byte eAction::WaitUntilZ
+    .addr _WalkAlex
+    ;; Animate Alex bending down, picking something up, then turning around and
+    ;; showing it to Anna.
+    .byte eAction::SetActorState1, kAlexActorIndex, eNpcChild::AlexKneeling
+    .byte eAction::WaitFrames, 60
+    .byte eAction::SetActorState1, kAlexActorIndex, eNpcChild::AlexStanding
+    .byte eAction::WaitFrames, 20
+    .byte eAction::SetActorFlags, kAlexActorIndex, bObj::FlipH
+    .byte eAction::WaitFrames, 20
+    .byte eAction::SetActorState1, kAlexActorIndex, eNpcChild::AlexHolding
+    .byte eAction::WaitFrames, 30
+    .byte eAction::RunDialog, eDialog::TownOutdoorsAlex2
+    ;; Animate Alex and Anna looking up at the stars.
+    .byte eAction::CallFunc
+    .addr _SetScrollGoal
+    .byte eAction::SetActorFlags, kAlexActorIndex, bObj::FlipH
+    .byte eAction::SetActorState1, kAlexActorIndex, eNpcChild::AlexLooking
+    .byte eAction::WaitFrames, 60
+    .byte eAction::SetAvatarFlags, bObj::FlipH | kPaletteObjAvatarNormal
+    .byte eAction::SetAvatarMode, eAvatar::Looking
+    .byte eAction::WaitFrames, 60
+    ;; TODO: Make a star twinkle in the sky.
+    .byte eAction::WaitFrames, 120
+    .byte eAction::CallFunc
+    .addr _InitOrcs
+    .byte eAction::RunDialog, eDialog::TownOutdoorsAlex3
+    .byte eAction::ContinueExploring
+_RemoveDevicesAndTownsfolk:
+    ;; Remove all devices from the room (so that the player can't start dialog
+    ;; or run into a building once the orcs attack).
+    ldx #kMaxDevices - 1
+    lda #eDevice::None
+    @loop:
+    sta Ram_DeviceType_eDevice_arr, x
+    dex
+    bpl @loop
+    ;; Remove the other townsfolk (other than Alex).
+    lda #eActor::None
+    sta Ram_ActorType_eActor_arr + kIvanActorIndex
+    sta Ram_ActorType_eActor_arr + kSandraActorIndex
+    rts
+_WalkAlex:
+    ;; Face the player avatar towards Alex.
+    lda Ram_ActorPosX_i16_0_arr + kAlexActorIndex
+    cmp Zp_AvatarPosX_i16 + 0
+    blt @noTurnAvatar
+    lda #kPaletteObjAvatarNormal
+    sta Zp_AvatarFlags_bObj
+    @noTurnAvatar:
+    ;; Animate Alex walking towards his picking-up position.
+    lda Zp_FrameCounter_u8
+    and #$08
+    beq @walk2
+    lda #eNpcChild::AlexWalking1
+    bne @setState  ; unconditional
+    @walk2:
+    lda #eNpcChild::AlexWalking2
+    @setState:
+    sta Ram_ActorState1_byte_arr + kAlexActorIndex
+    inc Ram_ActorPosX_i16_0_arr + kAlexActorIndex
+    lda Ram_ActorPosX_i16_0_arr + kAlexActorIndex
+    cmp #<kAlexPickupPositionX
+    rts
+_SetScrollGoal:
+    ;; TODO: scroll slowly instead
+    ldax #$04c0
+    stax Zp_ScrollGoalX_u16
+    rts
+_InitOrcs:
+    ldax #kOrc1InitPosX
+    stx Ram_ActorPosX_i16_0_arr + kOrc1ActorIndex
+    sta Ram_ActorPosX_i16_1_arr + kOrc1ActorIndex
+    .assert >kOrc2InitPosX = >kOrc1InitPosX, error
+    ldx #<kOrc2InitPosX
+    stx Ram_ActorPosX_i16_0_arr + kOrc2ActorIndex
+    sta Ram_ActorPosX_i16_1_arr + kOrc2ActorIndex
+    ldax #kOrcInitPosY
+    stx Ram_ActorPosY_i16_0_arr + kOrc1ActorIndex
+    sta Ram_ActorPosY_i16_1_arr + kOrc1ActorIndex
+    stx Ram_ActorPosY_i16_0_arr + kOrc2ActorIndex
+    sta Ram_ActorPosY_i16_1_arr + kOrc2ActorIndex
+    ldx #kOrc1ActorIndex  ; param: actor index
+    lda #bObj::FlipH  ; param: actor flags
+    jsr Func_InitActorBadOrc
+    ldx #kOrc2ActorIndex  ; param: actor index
+    lda #bObj::FlipH  ; param: actor flags
+    jsr Func_InitActorBadOrc
+    ;; TODO: spawn actor for Chief Gronta
+    rts
+.ENDPROC
+
+.EXPORT DataA_Cutscene_TownOutdoorsGetCaught_arr
+.PROC DataA_Cutscene_TownOutdoorsGetCaught_arr
+    ;; TODO: make Anna fall to the ground unconscious
+    ;; TODO: make Chief Gronta walk onscreen and give orders to the orc
+    .byte eAction::JumpToMain
+    .addr Main_LoadPrisonCellAndStartCutscene
 .ENDPROC
 
 ;;;=========================================================================;;;

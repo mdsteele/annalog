@@ -19,6 +19,7 @@
 
 .INCLUDE "avatar.inc"
 .INCLUDE "cpu.inc"
+.INCLUDE "cutscene.inc"
 .INCLUDE "device.inc"
 .INCLUDE "devices/breaker.inc"
 .INCLUDE "flag.inc"
@@ -41,7 +42,6 @@
 .IMPORT Func_SetFlag
 .IMPORT Func_SetLastSpawnPointToActiveDevice
 .IMPORT Func_TickAllDevices
-.IMPORT Main_BreakerCutscene_Garden
 .IMPORT Main_Explore_EnterRoom
 .IMPORT Main_Explore_FadeIn
 .IMPORT Ppu_ChrBgAnimA0
@@ -67,7 +67,7 @@
 .IMPORTZP Zp_FloatingHud_bHud
 .IMPORTZP Zp_FrameCounter_u8
 .IMPORTZP Zp_Nearby_bDevice
-.IMPORTZP Zp_NextCutscene_main_ptr
+.IMPORTZP Zp_Next_eCutscene
 .IMPORTZP Zp_RoomScrollX_u16
 .IMPORTZP Zp_RoomScrollY_u8
 
@@ -118,6 +118,7 @@ Zp_BreakerTimer_u8: .res 1
 .PROC Main_Breaker_UseDevice
     jsr_prga FuncA_Breaker_InitActivate
 _GameLoop:
+    ;; TODO: turn this into a cutscene
     jsr_prga FuncA_Objects_DrawObjectsForRoom
     jsr Func_ClearRestOfOamAndProcessFrame
     jsr Func_TickAllDevices
@@ -161,8 +162,8 @@ _GameLoop:
     chr00_bank #<.bank(Ppu_ChrBgAnimStatic)
     chr04_bank #<.bank(Ppu_ChrBgAnimStatic)
     ;; Start the cutscene.
-    ldax #Main_Breaker_PowerCoreCutscene
-    stax Zp_NextCutscene_main_ptr
+    lda #eCutscene::CoreBossPowerUpCircuit
+    sta Zp_Next_eCutscene
     jmp Main_Explore_EnterRoom
 .ENDPROC
 
@@ -171,6 +172,7 @@ _GameLoop:
 ;;; @prereq Rendering is enabled.
 ;;; @prereq Explore mode is initialized.
 .PROC Main_Breaker_PowerCoreCutscene
+    ;; TODO: move some/all of this into the cutscene
     lda #255
     sta Zp_BreakerTimer_u8
 _GameLoop:
@@ -243,6 +245,22 @@ _FadeOut:
     ldx Zp_Breaker_eRoom  ; param: room to load
     jsr FuncM_SwitchPrgcAndLoadRoom
     jmp Main_Explore_EnterRoom
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Cutscene"
+
+.EXPORT DataA_Cutscene_CoreBossPowerUpCircuit_arr
+.PROC DataA_Cutscene_CoreBossPowerUpCircuit_arr
+    .byte eAction::JumpToMain
+    .addr Main_Breaker_PowerCoreCutscene
+.ENDPROC
+
+.EXPORT DataA_Cutscene_SharedFadeBackToBreakerRoom_arr
+.PROC DataA_Cutscene_SharedFadeBackToBreakerRoom_arr
+    .byte eAction::JumpToMain
+    .addr Main_Breaker_FadeBackToBreakerRoom
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -472,11 +490,9 @@ _AvatarOffsetY_u8_arr:
     .assert kFirstBreakerFlag > 0, error
     sub #kFirstBreakerFlag
     tay  ; eBreaker value
-    ;; Set the cutscene pointer.
-    lda _Cutscene_main_ptr_0_arr, y
-    sta Zp_NextCutscene_main_ptr + 0
-    lda _Cutscene_main_ptr_1_arr, y
-    sta Zp_NextCutscene_main_ptr + 1
+    ;; Set up the cutscene.
+    lda _Cutscene_eCutscene_arr, y
+    sta Zp_Next_eCutscene
     ;; Return the eRoom value for the room the cutscene takes place in.
     ldx _Cutscene_eRoom_arr, y
     rts
@@ -490,19 +506,16 @@ _Cutscene_eRoom_arr:
     d_byte City,   eRoom::MermaidHut1  ; TODO
     d_byte Shadow, eRoom::MermaidHut1  ; TODO
     D_END
-.REPEAT 2, table
-    D_TABLE_LO table, _Cutscene_main_ptr_0_arr
-    D_TABLE_HI table, _Cutscene_main_ptr_1_arr
-    D_TABLE eBreaker
-    d_entry table, Garden, Main_BreakerCutscene_Garden
-    d_entry table, Temple, Main_Breaker_FadeBackToBreakerRoom  ; TODO
-    d_entry table, Crypt,  Main_Breaker_FadeBackToBreakerRoom  ; TODO
-    d_entry table, Lava,   Main_Breaker_FadeBackToBreakerRoom  ; TODO
-    d_entry table, Mine,   Main_Breaker_FadeBackToBreakerRoom  ; TODO
-    d_entry table, City,   Main_Breaker_FadeBackToBreakerRoom  ; TODO
-    d_entry table, Shadow, Main_Breaker_FadeBackToBreakerRoom  ; TODO
+_Cutscene_eCutscene_arr:
+    D_ENUM eBreaker
+    d_byte Garden, eCutscene::MermaidHut1BreakerGarden
+    d_byte Temple, eCutscene::SharedFadeBackToBreakerRoom
+    d_byte Crypt,  eCutscene::SharedFadeBackToBreakerRoom
+    d_byte Lava,   eCutscene::SharedFadeBackToBreakerRoom
+    d_byte Mine,   eCutscene::SharedFadeBackToBreakerRoom
+    d_byte City,   eCutscene::SharedFadeBackToBreakerRoom
+    d_byte Shadow, eCutscene::SharedFadeBackToBreakerRoom
     D_END
-.ENDREPEAT
 .ENDPROC
 
 ;;;=========================================================================;;;

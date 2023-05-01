@@ -17,6 +17,7 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
+.INCLUDE "../cutscene.inc"
 .INCLUDE "../machine.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
@@ -32,7 +33,6 @@
 .IMPORT FuncA_Objects_MoveShapeRightByA
 .IMPORT FuncA_Objects_MoveShapeUpOneTile
 .IMPORT FuncA_Objects_SetShapePosToMachineTopLeft
-.IMPORT Main_CutsceneTeleportOut
 .IMPORT Ram_MachineParam1_u8_arr
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORT Ram_PlatformBottom_i16_0_arr
@@ -47,7 +47,7 @@
 .IMPORTZP Zp_AvatarPosY_i16
 .IMPORTZP Zp_Current_sMachine_ptr
 .IMPORTZP Zp_MachineIndex_u8
-.IMPORTZP Zp_NextCutscene_main_ptr
+.IMPORTZP Zp_Next_eCutscene
 
 ;;;=========================================================================;;;
 
@@ -159,8 +159,8 @@ _TryTeleport:
     bge @noTeleport
     @doneRight:
     ;; Teleport the avatar.
-    ldya #Main_CutsceneTeleportOut
-    stya Zp_NextCutscene_main_ptr
+    lda #eCutscene::SharedTeleportOut
+    sta Zp_Next_eCutscene
     @noTeleport:
 _Cooldown:
     ldx Zp_MachineIndex_u8

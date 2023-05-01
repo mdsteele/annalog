@@ -19,6 +19,7 @@
 
 .INCLUDE "avatar.inc"
 .INCLUDE "cpu.inc"
+.INCLUDE "cutscene.inc"
 .INCLUDE "device.inc"
 .INCLUDE "hud.inc"
 .INCLUDE "joypad.inc"
@@ -65,6 +66,7 @@
 .IMPORT Func_Window_SetUpIrq
 .IMPORT Main_Breaker_UseDevice
 .IMPORT Main_Console_UseDevice
+.IMPORT Main_Cutscene_Start
 .IMPORT Main_Death
 .IMPORT Main_Dialog_UseDevice
 .IMPORT Main_Pause
@@ -109,13 +111,11 @@ kTileIdObjDevicePrompt = $09
 .EXPORTZP Zp_Nearby_bDevice
 Zp_Nearby_bDevice: .res 1
 
-;;; If set to a PRG ROM address ($8000+), e.g. by a dialog function or a room
-;;; or machine tick function, then explore mode will jump to this mode (and
-;;; zero this variable) just before it would draw the next frame.
-;;; @prereq Rendering is enabled.
-;;; @prereq Explore mode is already initialized.
-.EXPORTZP Zp_NextCutscene_main_ptr
-Zp_NextCutscene_main_ptr: .res 2
+;;; If not eCutscene::None, then explore mode will start this cutscene (and set
+;;; this variable back to eCutscene::None) just before it would draw the next
+;;; frame.
+.EXPORTZP Zp_Next_eCutscene
+Zp_Next_eCutscene: .res 1
 
 ;;;=========================================================================;;;
 
@@ -170,15 +170,13 @@ Zp_NextCutscene_main_ptr: .res 2
 .PROC Main_Explore_Continue
 _GameLoop:
     ;; Check if we need to start a cutscene:
-    lda Zp_NextCutscene_main_ptr + 1
-    bpl @noCutscene
-    sta T1
-    lda Zp_NextCutscene_main_ptr + 0
-    sta T0
-    lda #0
-    sta Zp_NextCutscene_main_ptr + 0
-    sta Zp_NextCutscene_main_ptr + 1
-    jmp (T1T0)
+    lda Zp_Next_eCutscene
+    .assert eCutscene::None = 0, error
+    beq @noCutscene
+    tax  ; param: eCutscene value
+    lda #eCutscene::None
+    sta Zp_Next_eCutscene
+    jmp Main_Cutscene_Start
     @noCutscene:
     ;; Draw this frame:
     jsr_prga FuncA_Objects_DrawObjectsForRoom

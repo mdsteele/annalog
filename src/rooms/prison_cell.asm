@@ -23,6 +23,7 @@
 .INCLUDE "../avatar.inc"
 .INCLUDE "../charmap.inc"
 .INCLUDE "../cpu.inc"
+.INCLUDE "../cutscene.inc"
 .INCLUDE "../device.inc"
 .INCLUDE "../dialog.inc"
 .INCLUDE "../flag.inc"
@@ -41,7 +42,6 @@
 .INCLUDE "../spawn.inc"
 
 .IMPORT DataA_Room_Prison_sTileset
-.IMPORT FuncA_Avatar_RagdollMove
 .IMPORT FuncA_Avatar_SpawnAtDevice
 .IMPORT FuncA_Machine_Error
 .IMPORT FuncA_Machine_GenericMoveTowardGoalHorz
@@ -53,14 +53,12 @@
 .IMPORT FuncA_Objects_DrawCratePlatform
 .IMPORT FuncA_Objects_DrawLauncherMachine
 .IMPORT FuncA_Objects_DrawLiftMachine
-.IMPORT FuncA_Objects_DrawObjectsForRoom
 .IMPORT FuncA_Objects_DrawRocksPlatformHorz
-.IMPORT FuncA_Room_SetPointToAvatarCenter
 .IMPORT FuncC_Prison_DrawGatePlatform
 .IMPORT FuncC_Prison_OpenGateAndFlipLever
 .IMPORT FuncC_Prison_TickGatePlatform
 .IMPORT FuncM_SwitchPrgcAndLoadRoom
-.IMPORT Func_ClearRestOfOamAndProcessFrame
+.IMPORT Func_FadeOutToBlackSlowly
 .IMPORT Func_FindActorWithType
 .IMPORT Func_FindEmptyActorSlot
 .IMPORT Func_InitActorProjRocket
@@ -76,6 +74,7 @@
 .IMPORT Func_SetLastSpawnPoint
 .IMPORT Func_SetOrClearFlag
 .IMPORT Func_SetPointToActorCenter
+.IMPORT Func_SetPointToAvatarCenter
 .IMPORT Func_SetPointToPlatformCenter
 .IMPORT Func_ShakeRoom
 .IMPORT Main_Explore_Continue
@@ -99,7 +98,7 @@
 .IMPORTZP Zp_AvatarVelY_i16
 .IMPORTZP Zp_Camera_bScroll
 .IMPORTZP Zp_ConsoleMachineIndex_u8
-.IMPORTZP Zp_NextCutscene_main_ptr
+.IMPORTZP Zp_Next_eCutscene
 .IMPORTZP Zp_RoomScrollX_u16
 .IMPORTZP Zp_RoomScrollY_u8
 .IMPORTZP Zp_RoomState
@@ -172,26 +171,10 @@ kGateBlockRow = 10
 
 ;;;=========================================================================;;;
 
-;;; Phases for the cutscene that plays in this room.
-.ENUM ePhase
-    InitDelay
-    OpenGate
-    ;; TODO: OrcEnter
-    ThrowAnna
-    ;; TODO: OrcExit
-    CloseGate
-    WakeUp
-    NUM_VALUES
-.ENDENUM
-
 ;;; Defines room-specific state data for this particular room.
 .STRUCT sState
     ;; The current state of the lever in this room.
     GateLever_u8 .byte
-    ;; The current phase of the cutscene in this room.
-    Cutscene_ePhase .byte
-    ;; A timer used for animating the cutscene in this room.
-    CutsceneTimer_u8 .byte
 .ENDSTRUCT
 .ASSERT .sizeof(sState) <= kRoomStateSize, error
 
@@ -533,7 +516,7 @@ _TrapFloor:
     flag_bit Sram_ProgressFlags_arr, eFlag::PrisonCellBlastedRocks
     beq @done
     ;; Don't collapse until the player avatar is in the trap zone.
-    jsr FuncA_Room_SetPointToAvatarCenter
+    jsr Func_SetPointToAvatarCenter
     ldy #kTrapZonePlatformIndex  ; param: platform index
     jsr Func_IsPointInPlatform  ; returns C
     bcc @done
@@ -705,89 +688,9 @@ _Error:
     jsr_prga FuncA_Avatar_SpawnAtDevice
     lda #eAvatar::Hidden
     sta Zp_AvatarMode_eAvatar
-    ldya #MainC_Prison_Cell_CutsceneThrownInJail
-    stya Zp_NextCutscene_main_ptr
+    lda #eCutscene::PrisonCellGetThrownIn
+    sta Zp_Next_eCutscene
     jmp Main_Explore_EnterRoom
-.ENDPROC
-
-.PROC MainC_Prison_Cell_CutsceneThrownInJail
-_GameLoop:
-    jsr_prga FuncA_Objects_DrawObjectsForRoom
-    jsr Func_ClearRestOfOamAndProcessFrame
-    ldy Zp_RoomState + sState::Cutscene_ePhase
-    lda _JumpTable_ptr_0_arr, y
-    sta T0
-    lda _JumpTable_ptr_1_arr, y
-    sta T1
-    jmp (T1T0)
-.REPEAT 2, table
-    D_TABLE_LO table, _JumpTable_ptr_0_arr
-    D_TABLE_HI table, _JumpTable_ptr_1_arr
-    D_TABLE ePhase
-    d_entry table, InitDelay, _TickInitDelay
-    d_entry table, OpenGate,  _TickOpenGate
-    d_entry table, ThrowAnna, _TickThrowAnna
-    d_entry table, CloseGate, _TickCloseGate
-    d_entry table, WakeUp,    _TickWakeUp
-    D_END
-.ENDREPEAT
-_NextPhase:
-    inc Zp_RoomState + sState::Cutscene_ePhase
-    lda #0
-    sta Zp_RoomState + sState::CutsceneTimer_u8
-_Continue:
-    jmp _GameLoop
-_TickInitDelay:
-    inc Zp_RoomState + sState::CutsceneTimer_u8
-    lda Zp_RoomState + sState::CutsceneTimer_u8
-    cmp #60
-    beq _NextPhase
-    bne _Continue  ; unconditional
-_TickOpenGate:
-    ldy #1  ; param: zero for shut
-    jsr FuncC_Prison_Cell_TickGate  ; returns Z
-    bne _Continue
-    lda #eAvatar::Jumping
-    sta Zp_AvatarMode_eAvatar
-    ldax #$ffff & -365
-    stax Zp_AvatarVelX_i16
-    ldax #$ffff & -560
-    stax Zp_AvatarVelY_i16
-    ldax #$00f0
-    stax Zp_AvatarPosX_i16
-    ldx #$b0
-    stax Zp_AvatarPosY_i16
-    bne _NextPhase  ; unconditional
-_TickCloseGate:
-    ldy #0  ; param: zero for shut
-    jsr FuncC_Prison_Cell_TickGate  ; returns Z
-    beq _NextPhase
-    bne _Continue  ; unconditional
-_TickThrowAnna:
-    jsr_prga FuncA_Avatar_RagdollMove
-    lda Zp_AvatarMode_eAvatar
-    cmp #eAvatar::Landing
-    bne _Continue
-    lda #bObj::FlipH | kPaletteObjAvatarNormal
-    sta Zp_AvatarFlags_bObj
-    lda #eAvatar::Sleeping
-    sta Zp_AvatarMode_eAvatar
-    lda #0
-    sta Zp_AvatarLanding_u8
-    sta Zp_AvatarVelX_i16 + 0
-    sta Zp_AvatarVelX_i16 + 1
-    beq _NextPhase  ; unconditional
-_TickWakeUp:
-    inc Zp_RoomState + sState::CutsceneTimer_u8
-    lda Zp_RoomState + sState::CutsceneTimer_u8
-    cmp #60
-    bne @noKneel
-    lda #eAvatar::Kneeling
-    sta Zp_AvatarMode_eAvatar
-    @noKneel:
-    cmp #90
-    bne _Continue
-    jmp Main_Explore_Continue
 .ENDPROC
 
 .EXPORT DataC_Prison_PrisonCellPaper_sDialog
@@ -813,12 +716,74 @@ _TickWakeUp:
 
 ;;; Mode to switch PRGC banks and load the PrisonCell room, then start the
 ;;; cutscene where Anna gets thrown into prison by the orcs.
-;;; @prereq Rendering is disabled.
+;;; @prereq Rendering is enabled.
 .EXPORT Main_LoadPrisonCellAndStartCutscene
 .PROC Main_LoadPrisonCellAndStartCutscene
+    jsr Func_FadeOutToBlackSlowly
     ldx #eRoom::PrisonCell  ; param: room to load
     jsr FuncM_SwitchPrgcAndLoadRoom
     jmp MainC_Prison_Cell_StartCutscene
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Cutscene"
+
+.EXPORT DataA_Cutscene_PrisonCellGetThrownIn_arr
+.PROC DataA_Cutscene_PrisonCellGetThrownIn_arr
+    .byte eAction::WaitFrames, 60
+    ;; Animate the prison gate opening.
+    .byte eAction::WaitUntilZ
+    .addr _OpenGate
+    ;; TODO: Animate the orc walking in.
+    ;; Animate Anna getting thrown into the cell.
+    .byte eAction::CallFunc
+    .addr _InitThrowAnna
+    .byte eAction::SetCutsceneFlags, bCutscene::AvatarRagdoll
+    .byte eAction::WaitUntilZ
+    .addr _AnnaHasLanded
+    .byte eAction::SetCutsceneFlags, 0
+    .byte eAction::SetAvatarMode, eAvatar::Sleeping
+    .byte eAction::CallFunc
+    .addr _FinishLanding
+    ;; TODO: Animate the orc walking out.
+    ;; Animate the prison gate closing.
+    .byte eAction::WaitUntilZ
+    .addr _CloseGate
+    ;; Animate Anna waking and standing up.
+    .byte eAction::WaitFrames, 60
+    .byte eAction::SetAvatarMode, eAvatar::Kneeling
+    .byte eAction::WaitFrames, 30
+    .byte eAction::JumpToMain
+    .addr Main_Explore_Continue
+_OpenGate:
+    ldy #1  ; param: zero for shut
+    jmp FuncC_Prison_Cell_TickGate  ; returns Z
+_CloseGate:
+    ldy #0  ; param: zero for shut
+    jmp FuncC_Prison_Cell_TickGate  ; returns Z
+_InitThrowAnna:
+    ldax #$ffff & -365
+    stax Zp_AvatarVelX_i16
+    ldax #$ffff & -560
+    stax Zp_AvatarVelY_i16
+    ldax #$00f0
+    stax Zp_AvatarPosX_i16
+    ldx #$b0
+    stax Zp_AvatarPosY_i16
+    rts
+_AnnaHasLanded:
+    lda Zp_AvatarMode_eAvatar
+    cmp #eAvatar::Landing
+    rts
+_FinishLanding:
+    lda #bObj::FlipH | kPaletteObjAvatarNormal
+    sta Zp_AvatarFlags_bObj
+    lda #0
+    sta Zp_AvatarLanding_u8
+    sta Zp_AvatarVelX_i16 + 0
+    sta Zp_AvatarVelX_i16 + 1
+    rts
 .ENDPROC
 
 ;;;=========================================================================;;;

@@ -22,18 +22,16 @@
 .INCLUDE "../avatar.inc"
 .INCLUDE "../charmap.inc"
 .INCLUDE "../cpu.inc"
+.INCLUDE "../cutscene.inc"
 .INCLUDE "../device.inc"
 .INCLUDE "../dialog.inc"
 .INCLUDE "../macros.inc"
-.INCLUDE "../mmc3.inc"
 .INCLUDE "../oam.inc"
 .INCLUDE "../platform.inc"
 .INCLUDE "../room.inc"
 .INCLUDE "../spawn.inc"
 
 .IMPORT DataA_Room_House_sTileset
-.IMPORT FuncA_Objects_DrawObjectsForRoom
-.IMPORT Func_ClearRestOfOamAndProcessFrame
 .IMPORT Func_Noop
 .IMPORT Main_Explore_Continue
 .IMPORT Ppu_ChrObjTown
@@ -42,8 +40,7 @@
 .IMPORTZP Zp_AvatarPosX_i16
 .IMPORTZP Zp_AvatarPosY_i16
 .IMPORTZP Zp_AvatarVelY_i16
-.IMPORTZP Zp_NextCutscene_main_ptr
-.IMPORTZP Zp_RoomState
+.IMPORTZP Zp_Next_eCutscene
 
 ;;;=========================================================================;;;
 
@@ -53,19 +50,6 @@ kDoorDeviceIndex = 2
 ;;; The room pixel position for Anna when she's sleeping on the bed.
 kAnnaSleepPositionX = $bd
 kAnnaSleepPositionY = $c1
-
-;;; CutsceneTimer_u8 values for various phases of the cutscene.
-kCutsceneTimerSleeping = 150
-kCutsceneTimerKneeling = 20 + kCutsceneTimerSleeping
-
-;;;=========================================================================;;;
-
-;;; Defines room-specific state data for this particular room.
-.STRUCT sState
-    ;; A timer used for animating the cutscene in this room.
-    CutsceneTimer_u8 .byte
-.ENDSTRUCT
-.ASSERT .sizeof(sState) <= kRoomStateSize, error
 
 ;;;=========================================================================;;;
 
@@ -151,31 +135,10 @@ _Devices_sDevice_arr:
     sta Zp_AvatarPosY_i16 + 0
     lda #bObj::FlipH | kPaletteObjAvatarNormal
     sta Zp_AvatarFlags_bObj
-    ldya #MainC_Town_House2_CutsceneWakeUp
-    stya Zp_NextCutscene_main_ptr
+    lda #eCutscene::TownHouse2WakeUp
+    sta Zp_Next_eCutscene
     @done:
     rts
-.ENDPROC
-
-.PROC MainC_Town_House2_CutsceneWakeUp
-_GameLoop:
-    jsr_prga FuncA_Objects_DrawObjectsForRoom
-    jsr Func_ClearRestOfOamAndProcessFrame
-_WakeUp:
-    inc Zp_RoomState + sState::CutsceneTimer_u8
-    lda Zp_RoomState + sState::CutsceneTimer_u8
-    cmp #kCutsceneTimerSleeping
-    blt _GameLoop
-    cmp #kCutsceneTimerKneeling
-    bge _ResumeExploring
-    @kneeling:
-    lda #eAvatar::Kneeling
-    sta Zp_AvatarMode_eAvatar
-    bne _GameLoop  ; unconditional
-_ResumeExploring:
-    lda #<-1
-    sta Zp_AvatarVelY_i16 + 1
-    jmp Main_Explore_Continue
 .ENDPROC
 
 .EXPORT DataC_Town_TownHouse2Stela_sDialog
@@ -190,6 +153,25 @@ _ResumeExploring:
     .byte "outside somewhere. Why$"
     .byte "don't you go find him?#"
     .word ePortrait::Done
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Cutscene"
+
+.EXPORT DataA_Cutscene_TownHouse2WakeUp_arr
+.PROC DataA_Cutscene_TownHouse2WakeUp_arr
+    .byte eAction::WaitFrames, 150
+    .byte eAction::SetAvatarMode, eAvatar::Kneeling
+    .byte eAction::WaitFrames, 20
+    .byte eAction::CallFunc
+    .addr _HopOutOfBed
+    .byte eAction::JumpToMain
+    .addr Main_Explore_Continue
+_HopOutOfBed:
+    lda #<-1
+    sta Zp_AvatarVelY_i16 + 1
+    rts
 .ENDPROC
 
 ;;;=========================================================================;;;

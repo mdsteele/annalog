@@ -17,38 +17,46 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
-.INCLUDE "../charmap.inc"
-.INCLUDE "../cutscene.inc"
-.INCLUDE "../dialog.inc"
-.INCLUDE "../macros.inc"
-.INCLUDE "../mmc3.inc"
+;;; The list of cutscenes in the game.
+.ENUM eCutscene
+    None
+    CoreBossPowerUpCircuit
+    MermaidHut1BreakerGarden
+    PrisonCellGetThrownIn
+    SharedFadeBackToBreakerRoom  ; TODO: get rid of this
+    SharedTeleportIn
+    SharedTeleportOut
+    TempleNaveAlexBoosting
+    TownHouse2WakeUp
+    TownOutdoorsGetCaught
+    TownOutdoorsOrcAttack
+    NUM_VALUES
+.ENDENUM
 
-.IMPORT Main_Breaker_FadeBackToBreakerRoom
+;;; Flags to control which tick functions are called during a cutscene.
+.SCOPE bCutscene
+    AvatarRagdoll = %01000000  ; if set, player avatar uses ragdoll physics
+.ENDSCOPE
 
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Cutscene"
-
-.EXPORT DataA_Cutscene_MermaidHut1BreakerGarden_arr
-.PROC DataA_Cutscene_MermaidHut1BreakerGarden_arr
-    .byte eAction::WaitFrames, 60
-    .byte eAction::ShakeRoom, 30
-    .byte eAction::WaitFrames, 60
-    .byte eAction::RunDialog, eDialog::MermaidHut1Cutscene
-    .byte eAction::JumpToMain
-    .addr Main_Breaker_FadeBackToBreakerRoom
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Dialog"
-
-.EXPORT DataA_Dialog_MermaidHut1Cutscene_sDialog
-.PROC DataA_Dialog_MermaidHut1Cutscene_sDialog
-    .word ePortrait::MermaidQueen
-    .byte "What the...What did$"
-    .byte "that human just do!?#"
-    .word ePortrait::Done
-.ENDPROC
+;;; Actions that can be executed during a cutscene.
+.ENUM eAction
+    ;; Terminal actions:
+    ContinueExploring  ; args: (none)
+    JumpToMain         ; args: main ptr (2 bytes)
+    ;; Zero-frame actions:
+    CallFunc           ; args: func ptr (2 bytes)
+    SetActorFlags      ; args: actor index, new bObj value
+    SetActorState1     ; args: actor index, new byte value
+    SetActorState2     ; args: actor index, new byte value
+    SetAvatarFlags     ; args: new bObj value
+    SetAvatarMode      ; args: new eAvatar value
+    SetCutsceneFlags   ; args: bCutscene value
+    ShakeRoom          ; args: num shake frames
+    ;; Multi-frame actions:
+    RunDialog          ; args: eDialog value
+    WaitFrames         ; args: number of frames
+    WaitUntilZ         ; args: func ptr (2 bytes); func must return Z
+    NUM_VALUES
+.ENDENUM
 
 ;;;=========================================================================;;;

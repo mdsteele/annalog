@@ -625,12 +625,12 @@ _InAir:
 
 ;;;=========================================================================;;;
 
-.SEGMENT "PRGA_Room"
+.SEGMENT "PRG8"
 
 ;;; Stores the player avatar's room pixel position in Zp_Point*_i16.
 ;;; @preserve X, Y, T0+
-.EXPORT FuncA_Room_SetPointToAvatarCenter
-.PROC FuncA_Room_SetPointToAvatarCenter
+.EXPORT Func_SetPointToAvatarCenter
+.PROC Func_SetPointToAvatarCenter
     lda Zp_AvatarPosX_i16 + 0
     sta Zp_PointX_i16 + 0
     lda Zp_AvatarPosX_i16 + 1

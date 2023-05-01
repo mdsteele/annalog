@@ -18,57 +18,28 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "avatar.inc"
+.INCLUDE "cutscene.inc"
 .INCLUDE "macros.inc"
 .INCLUDE "mmc3.inc"
 .INCLUDE "spawn.inc"
 .INCLUDE "teleport.inc"
 
-.IMPORT FuncA_Actor_TickAllActors
 .IMPORT FuncA_Avatar_SpawnAtDevice
-.IMPORT FuncA_Objects_DrawObjectsForRoom
-.IMPORT FuncA_Room_SetPointToAvatarCenter
 .IMPORT FuncM_SwitchPrgcAndLoadRoom
-.IMPORT Func_ClearRestOfOamAndProcessFrame
 .IMPORT Func_FadeOutToBlack
 .IMPORT Func_FindEmptyActorSlot
 .IMPORT Func_InitActorSmokeExplosion
 .IMPORT Func_SetActorCenterToPoint
 .IMPORT Func_SetLastSpawnPoint
-.IMPORT Func_TickAllDevices
-.IMPORT Main_Explore_Continue
+.IMPORT Func_SetPointToAvatarCenter
 .IMPORT Main_Explore_EnterRoom
 .IMPORT Ram_DeviceTarget_u8_arr
 .IMPORTZP Zp_AvatarMode_eAvatar
-.IMPORTZP Zp_NextCutscene_main_ptr
-
-;;;=========================================================================;;;
-
-;;; How long to wait for various phases of the teleport out/in cutscenes.
-kTeleportFramesUntilFadeOut = 60
-kTeleportFramesUntilAvatarAppears = 30
-
-;;;=========================================================================;;;
-
-.ZEROPAGE
-
-;;; The number of remaining frames in the current teleport cutscene phase.
-Zp_TeleportTimer_u8: .res 1
+.IMPORTZP Zp_Next_eCutscene
 
 ;;;=========================================================================;;;
 
 .SEGMENT "PRG8"
-
-;;; Cutscene mode for teleporting the player avatar out of the current room.
-;;; @prereq Rendering is enabled.
-;;; @prereq Explore mode is already initialized.
-;;; @prereq There is a Teleporter device in the current room.
-.EXPORT Main_CutsceneTeleportOut
-.PROC Main_CutsceneTeleportOut
-    jsr_prga FuncA_Room_InitTeleportOutCutscene
-    jsr FuncM_TeleportWaitForTimer
-    jsr Func_FadeOutToBlack
-    .assert * = Main_GoThroughTeleporter, error, "fallthrough"
-.ENDPROC
 
 ;;; Mode for leaving the current room via a teleporter and entering the next
 ;;; room.
@@ -76,57 +47,40 @@ Zp_TeleportTimer_u8: .res 1
 ;;; @prereq Explore mode is already initialized.
 ;;; @prereq There is a Teleporter device in the current room.
 .PROC Main_GoThroughTeleporter
+    jsr Func_FadeOutToBlack
     ldx Ram_DeviceTarget_u8_arr + kTeleporterDeviceIndex  ; param: room to load
     jsr FuncM_SwitchPrgcAndLoadRoom
     jsr_prga FuncA_Avatar_EnterRoomViaTeleporter
     jmp Main_Explore_EnterRoom
 .ENDPROC
 
-;;; Cutscene mode for teleporting the player avatar into the current room.
-;;; @prereq Rendering is enabled.
-;;; @prereq Explore mode is already initialized.
-.PROC Main_CutsceneTeleportIn
-    jsr FuncM_TeleportWaitForTimer
-    ;; TODO: make teleport zap actor
-    jmp Main_Explore_Continue
-.ENDPROC
-
-;;; Waits for Zp_TeleportTimer_u8 frames (while decrementing it down to zero).
-;;; Ticks actors and devices, but not machines, the room, or the player avatar.
-;;; @prereq Rendering is enabled.
-;;; @prereq Explore mode is already initialized.
-.PROC FuncM_TeleportWaitForTimer
-    @loop:
-    jsr_prga FuncA_Objects_DrawObjectsForRoom
-    jsr Func_ClearRestOfOamAndProcessFrame
-    jsr_prga FuncA_Actor_TickAllActors
-    jsr Func_TickAllDevices
-    dec Zp_TeleportTimer_u8
-    bne @loop
-    rts
-.ENDPROC
-
 ;;;=========================================================================;;;
 
-.SEGMENT "PRGA_Room"
+.SEGMENT "PRGA_Cutscene"
 
-;;; Initializes state for the cutscene that plays when the player avatar
-;;; teleports out of a room.
-.PROC FuncA_Room_InitTeleportOutCutscene
-_HideAvatar:
-    lda #eAvatar::Hidden
-    sta Zp_AvatarMode_eAvatar
+.EXPORT DataA_Cutscene_SharedTeleportOut_arr
+.PROC DataA_Cutscene_SharedTeleportOut_arr
+    .byte eAction::SetAvatarMode, eAvatar::Hidden
+    .byte eAction::CallFunc
+    .addr _MakeSmokePuff
+    .byte eAction::WaitFrames, 60
+    .byte eAction::JumpToMain
+    .addr Main_GoThroughTeleporter
 _MakeSmokePuff:
     jsr Func_FindEmptyActorSlot  ; sets C on failure, returns X
     bcs @done
-    jsr FuncA_Room_SetPointToAvatarCenter  ; preserves X
+    jsr Func_SetPointToAvatarCenter  ; preserves X
     jsr Func_SetActorCenterToPoint  ; preserves X
-    jsr Func_InitActorSmokeExplosion
+    jmp Func_InitActorSmokeExplosion
     @done:
-_InitCutsceneState:
-    lda #kTeleportFramesUntilFadeOut
-    sta Zp_TeleportTimer_u8
     rts
+.ENDPROC
+
+.EXPORT DataA_Cutscene_SharedTeleportIn_arr
+.PROC DataA_Cutscene_SharedTeleportIn_arr
+    .byte eAction::WaitFrames, 30
+    ;; TODO: spawn a teleport zap actor
+    .byte eAction::ContinueExploring
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -146,10 +100,8 @@ _InitCutsceneState:
 _InitCutsceneState:
     lda #eAvatar::Hidden
     sta Zp_AvatarMode_eAvatar
-    ldya #Main_CutsceneTeleportIn
-    stya Zp_NextCutscene_main_ptr
-    lda #kTeleportFramesUntilAvatarAppears
-    sta Zp_TeleportTimer_u8
+    lda #eCutscene::SharedTeleportIn
+    sta Zp_Next_eCutscene
     rts
 .ENDPROC
 
