@@ -56,9 +56,7 @@
 .IMPORTZP Zp_Active_sIrq
 .IMPORTZP Zp_AvatarFlags_bObj
 .IMPORTZP Zp_AvatarHarmTimer_u8
-.IMPORTZP Zp_AvatarPosX_i16
 .IMPORTZP Zp_Buffered_sIrq
-.IMPORTZP Zp_FrameCounter_u8
 .IMPORTZP Zp_NextIrq_int_ptr
 .IMPORTZP Zp_Next_eCutscene
 .IMPORTZP Zp_PpuScrollX_u8
@@ -463,11 +461,8 @@ _AttackFunc:
 .PROC DataA_Cutscene_TownOutdoorsOrcAttack_arr
     .byte eAction::CallFunc
     .addr _RemoveDevicesAndTownsfolk
-    ;; Animate Alex walking towards his picking-up position.
-    .byte eAction::SetActorFlags, kAlexActorIndex, 0
-    .byte eAction::SetActorState2, kAlexActorIndex, $ff
-    .byte eAction::WaitUntilZ
-    .addr _WalkAlex
+    .byte eAction::WalkAlex, kAlexActorIndex
+    .word kAlexPickupPositionX
     ;; Animate Alex bending down, picking something up, then turning around and
     ;; showing it to Anna.
     .byte eAction::SetActorState1, kAlexActorIndex, eNpcChild::AlexKneeling
@@ -507,28 +502,6 @@ _RemoveDevicesAndTownsfolk:
     lda #eActor::None
     sta Ram_ActorType_eActor_arr + kIvanActorIndex
     sta Ram_ActorType_eActor_arr + kSandraActorIndex
-    rts
-_WalkAlex:
-    ;; Face the player avatar towards Alex.
-    lda Ram_ActorPosX_i16_0_arr + kAlexActorIndex
-    cmp Zp_AvatarPosX_i16 + 0
-    blt @noTurnAvatar
-    lda #kPaletteObjAvatarNormal
-    sta Zp_AvatarFlags_bObj
-    @noTurnAvatar:
-    ;; Animate Alex walking towards his picking-up position.
-    lda Zp_FrameCounter_u8
-    and #$08
-    beq @walk2
-    lda #eNpcChild::AlexWalking1
-    bne @setState  ; unconditional
-    @walk2:
-    lda #eNpcChild::AlexWalking2
-    @setState:
-    sta Ram_ActorState1_byte_arr + kAlexActorIndex
-    inc Ram_ActorPosX_i16_0_arr + kAlexActorIndex
-    lda Ram_ActorPosX_i16_0_arr + kAlexActorIndex
-    cmp #<kAlexPickupPositionX
     rts
 _SetScrollGoal:
     ;; TODO: scroll slowly instead

@@ -58,9 +58,6 @@
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORT Ram_PlatformType_ePlatform_arr
 .IMPORT Sram_ProgressFlags_arr
-.IMPORTZP Zp_AvatarFlags_bObj
-.IMPORTZP Zp_AvatarPosX_i16
-.IMPORTZP Zp_FrameCounter_u8
 .IMPORTZP Zp_Next_eCutscene
 .IMPORTZP Zp_RoomState
 
@@ -642,11 +639,8 @@ _MoveToBottomRight:
 
 .EXPORT DataA_Cutscene_TempleNaveAlexBoosting_arr
 .PROC DataA_Cutscene_TempleNaveAlexBoosting_arr
-    ;; Animate Alex walking towards his boosting position.
-    .byte eAction::SetActorState2, kAlexActorIndex, $ff
-    .byte eAction::SetActorFlags, kAlexActorIndex, bObj::FlipH
-    .byte eAction::WaitUntilZ
-    .addr _WalkAlex
+    .byte eAction::WalkAlex, kAlexActorIndex
+    .word kAlexBoostingPositionX
     ;; Animate Alex turning around, crouching down, and raising his arms to
     ;; give Anna a boost.
     .byte eAction::SetActorFlags, kAlexActorIndex, 0
@@ -660,28 +654,6 @@ _MoveToBottomRight:
     .addr _SetUpBoostingPlatform
     .byte eAction::RunDialog, eDialog::TempleNaveAlexBoosting
     .byte eAction::ContinueExploring
-_WalkAlex:
-    ;; Face the player avatar towards Alex.
-    lda Ram_ActorPosX_i16_0_arr + kAlexActorIndex
-    cmp Zp_AvatarPosX_i16 + 0
-    bge @noTurnAvatar
-    lda #bObj::FlipH | kPaletteObjAvatarNormal
-    sta Zp_AvatarFlags_bObj
-    @noTurnAvatar:
-    ;; Animate Alex walking towards his boosting position.
-    lda Zp_FrameCounter_u8
-    and #$08
-    beq @walk2
-    lda #eNpcChild::AlexWalking1
-    bne @setState  ; unconditional
-    @walk2:
-    lda #eNpcChild::AlexWalking2
-    @setState:
-    sta Ram_ActorState1_byte_arr + kAlexActorIndex
-    dec Ram_ActorPosX_i16_0_arr + kAlexActorIndex
-    lda Ram_ActorPosX_i16_0_arr + kAlexActorIndex
-    cmp #<kAlexBoostingPositionX
-    rts
 _SetUpBoostingPlatform:
     ;; Set up the device/platform for Alex giving Anna a boost.
     lda #eDevice::Placeholder

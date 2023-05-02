@@ -17,10 +17,13 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
+.INCLUDE "actors/townsfolk.inc"
+.INCLUDE "avatar.inc"
 .INCLUDE "cpu.inc"
 .INCLUDE "cutscene.inc"
 .INCLUDE "macros.inc"
 .INCLUDE "mmc3.inc"
+.INCLUDE "oam.inc"
 
 .IMPORT DataA_Cutscene_CoreBossPowerUpCircuit_arr
 .IMPORT DataA_Cutscene_MermaidHut1BreakerGarden_arr
@@ -42,10 +45,15 @@
 .IMPORT Main_Dialog_WithinCutscene
 .IMPORT Main_Explore_Continue
 .IMPORT Ram_ActorFlags_bObj_arr
+.IMPORT Ram_ActorPosX_i16_0_arr
+.IMPORT Ram_ActorPosX_i16_1_arr
 .IMPORT Ram_ActorState1_byte_arr
 .IMPORT Ram_ActorState2_byte_arr
 .IMPORTZP Zp_AvatarFlags_bObj
+.IMPORTZP Zp_AvatarPosX_i16
 .IMPORTZP Zp_AvatarPose_eAvatar
+.IMPORTZP Zp_FrameCounter_u8
+.IMPORTZP Zp_PointX_i16
 
 ;;;=========================================================================;;;
 
@@ -204,6 +212,7 @@ _Finish:
     d_entry table, RunDialog,         _RunDialog
     d_entry table, WaitFrames,        _WaitFrames
     d_entry table, WaitUntilZ,        _WaitUntilZ
+    d_entry table, WalkAlex,          _WalkAlex
     D_END
 .ENDREPEAT
 _ContinueExploring:
@@ -213,10 +222,11 @@ _ContinueExploring:
     rts
 _JumpToMain:
     lda (Zp_CutsceneAction_ptr), y
+    sta T0
     tax
     iny
     lda (Zp_CutsceneAction_ptr), y
-    stax T1T0
+    sta T1
     sec  ; exit cutscene mode
     rts
 _CallFunc:
@@ -298,6 +308,24 @@ _WaitUntilZ:
     @advance:
     ldy #3  ; param: byte offset
     jmp FuncA_Cutscene_AdvanceAndExecute
+_WalkAlex:
+    lda (Zp_CutsceneAction_ptr), y
+    tax  ; actor index
+    iny
+    lda (Zp_CutsceneAction_ptr), y
+    sta Zp_PointX_i16 + 0
+    iny
+    lda (Zp_CutsceneAction_ptr), y
+    sta Zp_PointX_i16 + 1
+    jsr FuncA_Cutscene_MoveActorTowardPointX  ; preserves X, returns Z and N
+    beq @reachedGoal
+    jsr FuncA_Cutscene_AnimateAlexWalking  ; preserves X
+    jsr FuncA_Cutscene_FaceAvatarTowardsActor
+    clc  ; cutscene should continue
+    rts
+    @reachedGoal:
+    ldy #4  ; param: byte offset
+    jmp FuncA_Cutscene_AdvanceAndExecute
 _CallFuncArg:
     lda (Zp_CutsceneAction_ptr), y
     sta T0
@@ -305,6 +333,95 @@ _CallFuncArg:
     lda (Zp_CutsceneAction_ptr), y
     sta T1
     jmp (T1T0)
+.ENDPROC
+
+;;; Moves the specified actor one pixel left or right towards Zp_PointX_i16.
+;;; @param X The actor index.
+;;; @return A The pixel delta that the actor actually moved by (signed).
+;;; @return N Set if the actor moved left, cleared otherwise.
+;;; @return Z Cleared if the actor moved, set if it was at the goal position.
+;;; @preserve X
+.PROC FuncA_Cutscene_MoveActorTowardPointX
+    lda Zp_PointX_i16 + 0
+    sub Ram_ActorPosX_i16_0_arr, x
+    sta T0  ; delta (lo)
+    lda Zp_PointX_i16 + 1
+    sbc Ram_ActorPosX_i16_1_arr, x
+    bmi _MoveLeft
+    bne _MoveRight
+    lda T0  ; delta (lo)
+    bmi _MoveLeft
+    bne _MoveRight
+    rts
+_MoveRight:
+    lda #1
+    ldy #0
+    beq _MoveByYA  ; unconditional
+_MoveLeft:
+    lda #<-1
+    ldy #>-1
+_MoveByYA:
+    pha  ; move delta (lo)
+    add Ram_ActorPosX_i16_0_arr, x
+    sta Ram_ActorPosX_i16_0_arr, x
+    tya
+    adc Ram_ActorPosX_i16_1_arr, x
+    sta Ram_ActorPosX_i16_1_arr, x
+    pla  ; move delta (lo)
+    rts
+.ENDPROC
+
+;;; Updates the flags and state of the specified Alex NPC actor for a walking
+;;; animation.
+;;; @param N If set, the actor will face left; otherwise, it will face right.
+;;; @param X The actor index.
+;;; @preserve X, Y, T0+
+.PROC FuncA_Cutscene_AnimateAlexWalking
+    bpl @faceRight
+    @faceLeft:
+    lda #bObj::FlipH
+    bne @setFace  ; unconditional
+    @faceRight:
+    lda #0
+    @setFace:
+    sta Ram_ActorFlags_bObj_arr, x
+    lda #$ff
+    sta Ram_ActorState2_byte_arr, x
+_AnimatePose:
+    lda Zp_FrameCounter_u8
+    and #$08
+    beq @walk2
+    @walk1:
+    lda #eNpcChild::AlexWalking1
+    .assert eNpcChild::AlexWalking1 > 0, error
+    bne @setState  ; unconditional
+    @walk2:
+    lda #eNpcChild::AlexWalking2
+    @setState:
+    sta Ram_ActorState1_byte_arr, x
+    rts
+.ENDPROC
+
+;;; Update Zp_AvatarFlags_bObj to make player avatar face the specified actor.
+;;; @param X The actor index.
+;;; @preserve X, Y, T0+
+.PROC FuncA_Cutscene_FaceAvatarTowardsActor
+    lda Zp_AvatarPosX_i16 + 0
+    cmp Ram_ActorPosX_i16_0_arr, x
+    lda Zp_AvatarPosX_i16 + 1
+    sbc Ram_ActorPosX_i16_1_arr, x
+    bvc @noOverflow  ; N eor V
+    eor #$80
+    @noOverflow:
+    bmi @faceRight
+    @faceLeft:
+    lda #bObj::FlipH | kPaletteObjAvatarNormal
+    bne @setFace  ; unconditional
+    @faceRight:
+    lda #kPaletteObjAvatarNormal
+    @setFace:
+    sta Zp_AvatarFlags_bObj
+    rts
 .ENDPROC
 
 ;;;=========================================================================;;;

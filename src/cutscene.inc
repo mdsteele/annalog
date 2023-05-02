@@ -56,6 +56,7 @@
     RunDialog          ; args: eDialog value
     WaitFrames         ; args: number of frames
     WaitUntilZ         ; args: func ptr (2 bytes); func must return Z
+    WalkAlex           ; args: actor index, goal X-position (2 bytes)
     NUM_VALUES
 .ENDENUM
 
