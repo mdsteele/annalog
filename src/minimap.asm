@@ -29,7 +29,7 @@
 
 .IMPORT Data_PowersOfTwo_u8_arr8
 .IMPORT Sram_Minimap_u16_arr
-.IMPORTZP Zp_AvatarMode_eAvatar
+.IMPORTZP Zp_AvatarPose_eAvatar
 .IMPORTZP Zp_Current_sRoom
 .IMPORTZP Zp_RoomScrollX_u16
 .IMPORTZP Zp_RoomScrollY_u8
@@ -53,7 +53,7 @@ Zp_CameraMinimapCol_u8: .res 1
 .EXPORT FuncA_Terrain_UpdateAndMarkMinimap
 .PROC FuncA_Terrain_UpdateAndMarkMinimap
     ;; Don't update the minimap if the avatar is hidden for a cutscene.
-    lda Zp_AvatarMode_eAvatar
+    lda Zp_AvatarPose_eAvatar
     .assert eAvatar::Hidden = 0, error
     beq _Done
 _UpdateMinimapRow:

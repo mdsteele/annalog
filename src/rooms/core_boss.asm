@@ -39,7 +39,7 @@
 .IMPORT Func_MachineCannonReadRegY
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrObjGarden
-.IMPORTZP Zp_AvatarMode_eAvatar
+.IMPORTZP Zp_AvatarPose_eAvatar
 .IMPORTZP Zp_BreakerBeingActivated_eFlag
 
 ;;;=========================================================================;;;
@@ -161,7 +161,7 @@ _Passages_sPassage_arr:
 .PROC FuncC_Core_Boss_FadeInRoom
     ;; Only redraw circuits if the circuit activation cutscene is playing (in
     ;; this room, the player avatar will be hidden iff that's the case).
-    lda Zp_AvatarMode_eAvatar
+    lda Zp_AvatarPose_eAvatar
     .assert eAvatar::Hidden = 0, error
     bne _Return
 _RedrawCircuits:

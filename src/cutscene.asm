@@ -45,7 +45,7 @@
 .IMPORT Ram_ActorState1_byte_arr
 .IMPORT Ram_ActorState2_byte_arr
 .IMPORTZP Zp_AvatarFlags_bObj
-.IMPORTZP Zp_AvatarMode_eAvatar
+.IMPORTZP Zp_AvatarPose_eAvatar
 
 ;;;=========================================================================;;;
 
@@ -198,7 +198,7 @@ _Finish:
     d_entry table, SetActorState1,    _SetActorState1
     d_entry table, SetActorState2,    _SetActorState2
     d_entry table, SetAvatarFlags,    _SetAvatarFlags
-    d_entry table, SetAvatarMode,     _SetAvatarMode
+    d_entry table, SetAvatarPose,     _SetAvatarPose
     d_entry table, SetCutsceneFlags,  _SetCutsceneFlags
     d_entry table, ShakeRoom,         _ShakeRoom
     d_entry table, RunDialog,         _RunDialog
@@ -252,9 +252,9 @@ _SetAvatarFlags:
     sta Zp_AvatarFlags_bObj
     iny
     jmp FuncA_Cutscene_AdvanceAndExecute
-_SetAvatarMode:
+_SetAvatarPose:
     lda (Zp_CutsceneAction_ptr), y
-    sta Zp_AvatarMode_eAvatar
+    sta Zp_AvatarPose_eAvatar
     iny
     jmp FuncA_Cutscene_AdvanceAndExecute
 _SetCutsceneFlags:

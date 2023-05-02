@@ -97,7 +97,7 @@
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORT Ram_PpuTransfer_arr
 .IMPORTZP Zp_AvatarFlags_bObj
-.IMPORTZP Zp_AvatarMode_eAvatar
+.IMPORTZP Zp_AvatarPose_eAvatar
 .IMPORTZP Zp_AvatarVelX_i16
 .IMPORTZP Zp_AvatarWaterDepth_u8
 .IMPORTZP Zp_FloatingHud_bHud
@@ -451,7 +451,7 @@ _InitAvatar:
     beq @faceRight
     @faceWall:
     lda #eAvatar::Reading
-    bne @setMode  ; unconditional
+    bne @setPose  ; unconditional
     @faceLeft:
     lda Zp_AvatarFlags_bObj
     ora #bObj::FlipH
@@ -464,8 +464,8 @@ _InitAvatar:
     lda Zp_AvatarWaterDepth_u8
     bne @done
     lda #eAvatar::Standing
-    @setMode:
-    sta Zp_AvatarMode_eAvatar
+    @setPose:
+    sta Zp_AvatarPose_eAvatar
     @done:
 _DeactivateDevice:
     ;; Now that the player avatar is set up, clear Zp_Nearby_bDevice so that

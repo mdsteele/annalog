@@ -38,8 +38,8 @@
 .IMPORT Ram_PpuTransfer_arr
 .IMPORTZP Zp_AvatarFlags_bObj
 .IMPORTZP Zp_AvatarHarmTimer_u8
-.IMPORTZP Zp_AvatarMode_eAvatar
 .IMPORTZP Zp_AvatarPosX_i16
+.IMPORTZP Zp_AvatarPose_eAvatar
 .IMPORTZP Zp_PpuTransferLen_u8
 
 ;;;=========================================================================;;;
@@ -125,8 +125,8 @@ _BlankOutBg:
     bge @noTransfer
     jsr FuncA_Death_TransferBlankBgTileColumn
     @noTransfer:
-_SetAvatarMode:
-    ;; Update the avatar mode based on the current value of the death animation
+_SetAvatarPose:
+    ;; Update the avatar pose based on the current value of the death animation
     ;; timer.
     lda Zp_DeathTimer_u8
     sec
@@ -149,14 +149,14 @@ _SetAvatarMode:
     ora T0  ; horz vibration (0 or 1)
     sta Zp_AvatarPosX_i16 + 0
     lda #eAvatar::Straining
-    bne @setAvatarMode  ; unconditional
-    ;; If the player avatar is reaching or kneeling, just set the avatar mode.
+    bne @setAvatarPose  ; unconditional
+    ;; If the player avatar is reaching or kneeling, just set the avatar pose.
     @reaching:
     lda #eAvatar::Reaching
-    bne @setAvatarMode  ; unconditional
+    bne @setAvatarPose  ; unconditional
     @kneeling:
     lda #eAvatar::Kneeling
-    bne @setAvatarMode  ; unconditional
+    bne @setAvatarPose  ; unconditional
     ;; If the player avatar needs to lie down, adjust its horizontal position
     ;; (to make the animation from the kneeling position more natural).
     @lieDown:
@@ -178,8 +178,8 @@ _SetAvatarMode:
     sta Zp_AvatarPosX_i16 + 1
     @sleeping:
     lda #eAvatar::Sleeping
-    @setAvatarMode:
-    sta Zp_AvatarMode_eAvatar
+    @setAvatarPose:
+    sta Zp_AvatarPose_eAvatar
     rts
 .ENDPROC
 

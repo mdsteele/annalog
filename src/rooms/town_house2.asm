@@ -36,9 +36,9 @@
 .IMPORT Main_Explore_Continue
 .IMPORT Ppu_ChrObjTown
 .IMPORTZP Zp_AvatarFlags_bObj
-.IMPORTZP Zp_AvatarMode_eAvatar
 .IMPORTZP Zp_AvatarPosX_i16
 .IMPORTZP Zp_AvatarPosY_i16
+.IMPORTZP Zp_AvatarPose_eAvatar
 .IMPORTZP Zp_AvatarVelY_i16
 .IMPORTZP Zp_Next_eCutscene
 
@@ -128,7 +128,7 @@ _Devices_sDevice_arr:
     cmp #bSpawn::Device | kDoorDeviceIndex
     beq @done
     lda #eAvatar::Sleeping
-    sta Zp_AvatarMode_eAvatar
+    sta Zp_AvatarPose_eAvatar
     lda #kAnnaSleepPositionX
     sta Zp_AvatarPosX_i16 + 0
     lda #kAnnaSleepPositionY
@@ -162,7 +162,7 @@ _Devices_sDevice_arr:
 .EXPORT DataA_Cutscene_TownHouse2WakeUp_arr
 .PROC DataA_Cutscene_TownHouse2WakeUp_arr
     .byte eAction::WaitFrames, 150
-    .byte eAction::SetAvatarMode, eAvatar::Kneeling
+    .byte eAction::SetAvatarPose, eAvatar::Kneeling
     .byte eAction::WaitFrames, 20
     .byte eAction::CallFunc
     .addr _HopOutOfBed

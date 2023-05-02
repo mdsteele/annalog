@@ -112,11 +112,11 @@ Zp_AvatarWaterDepth_u8: .res 1
 .EXPORTZP Zp_AvatarAirborne_bool
 Zp_AvatarAirborne_bool: .res 1
 
-;;; What mode the avatar is currently in (e.g. standing, jumping, etc.).
-.EXPORTZP Zp_AvatarMode_eAvatar
-Zp_AvatarMode_eAvatar: .res 1
+;;; What pose the avatar is currently in (e.g. standing, jumping, etc.).
+.EXPORTZP Zp_AvatarPose_eAvatar
+Zp_AvatarPose_eAvatar: .res 1
 
-;;; How many more frames the player avatar should stay in eAvatar::Landing mode
+;;; How many more frames the player avatar should stay in eAvatar::Landing pose
 ;;; (after landing from a jump).
 .EXPORTZP Zp_AvatarLanding_u8
 Zp_AvatarLanding_u8: .res 1
@@ -152,7 +152,7 @@ Zp_AvatarHarmTimer_u8: .res 1
     sta Zp_AvatarVelY_i16 + 0
     sta Zp_AvatarVelY_i16 + 1
     jsr FuncA_Avatar_UpdateWaterDepth
-_SetAvatarMode:
+_SetAvatarPose:
     ;; Determine whether the avatar is standing, hovering, or swimming.
     lda Zp_AvatarWaterDepth_u8
     bne @swimming
@@ -160,14 +160,14 @@ _SetAvatarMode:
     bmi @hovering
     @standing:
     lda #eAvatar::Standing
-    bne @setMode  ; unconditional
+    bne @setPose  ; unconditional
     @hovering:
     lda #eAvatar::Hovering
-    bne @setMode  ; unconditional
+    bne @setPose  ; unconditional
     @swimming:
     lda #eAvatar::Swimming1
-    @setMode:
-    sta Zp_AvatarMode_eAvatar
+    @setPose:
+    sta Zp_AvatarPose_eAvatar
 _InitChr10Bank:
     ldx #<.bank(Ppu_ChrObjAnnaNormal)
     lda Sram_CarryingFlower_eFlag
@@ -218,42 +218,42 @@ _ApplyGravity:
     ;; Update state now that the avatar is repositioned.
     jsr FuncA_Avatar_UpdateWaterDepth
     jsr FuncA_Avatar_ApplyGravity
-_SetAvatarMode:
+_SetAvatarPose:
     ;; Check if the player avatar is in water.
     lda Zp_AvatarWaterDepth_u8
-    bne _SetModeInWater
+    bne _SetPoseInWater
     bit Zp_AvatarAirborne_bool
-    bpl _SetModeOnGround
-_SetModeInAir:
-    ;; The player avatar is airborne; set its mode based on its Y-velocity.
+    bpl _SetPoseOnGround
+_SetPoseInAir:
+    ;; The player avatar is airborne; set its pose based on its Y-velocity.
     lda Zp_AvatarVelY_i16 + 1
     bmi @jumping
     cmp #2
     blt @hovering
     lda #eAvatar::Falling
-    bne @setAvatarMode  ; unconditional
+    bne @setAvatarPose  ; unconditional
     @jumping:
     lda #eAvatar::Jumping
-    bne @setAvatarMode  ; unconditional
+    bne @setAvatarPose  ; unconditional
     @hovering:
     lda #eAvatar::Hovering
-    @setAvatarMode:
-    sta Zp_AvatarMode_eAvatar
+    @setAvatarPose:
+    sta Zp_AvatarPose_eAvatar
     rts
-_SetModeInWater:
-    ;; The player avatar is in water, so set its mode to Swimming.
+_SetPoseInWater:
+    ;; The player avatar is in water, so set its pose to Swimming.
     lda Zp_FrameCounter_u8
     and #$10
     bne @swimming2
     @swimming1:
     lda #eAvatar::Swimming1
-    bne @setAvatarMode  ; unconditional
+    bne @setAvatarPose  ; unconditional
     @swimming2:
     lda #eAvatar::Swimming2
-    @setAvatarMode:
-    sta Zp_AvatarMode_eAvatar
+    @setAvatarPose:
+    sta Zp_AvatarPose_eAvatar
     rts
-_SetModeOnGround:
+_SetPoseOnGround:
     lda Zp_AvatarLanding_u8
     beq @standOrRun
     @landing:
@@ -261,7 +261,7 @@ _SetModeOnGround:
     and #bJoypad::Down
     bne @kneeling
     lda #eAvatar::Landing
-    bne @setAvatarMode  ; unconditional
+    bne @setAvatarPose  ; unconditional
     @standOrRun:
     lda Zp_AvatarVelX_i16 + 1
     beq @standing
@@ -270,10 +270,10 @@ _SetModeOnGround:
     bne @running2
     @running1:
     lda #eAvatar::Running1
-    bne @setAvatarMode  ; unconditional
+    bne @setAvatarPose  ; unconditional
     @running2:
     lda #eAvatar::Running2
-    bne @setAvatarMode  ; unconditional
+    bne @setAvatarPose  ; unconditional
     @standing:
     lda Zp_AvatarHarmTimer_u8
     bne @kneeling
@@ -284,14 +284,14 @@ _SetModeOnGround:
     and #bJoypad::Up
     bne @looking
     lda #eAvatar::Standing
-    bne @setAvatarMode  ; unconditional
+    bne @setAvatarPose  ; unconditional
     @kneeling:
     lda #eAvatar::Kneeling
-    bne @setAvatarMode  ; unconditional
+    bne @setAvatarPose  ; unconditional
     @looking:
     lda #eAvatar::Looking
-    @setAvatarMode:
-    sta Zp_AvatarMode_eAvatar
+    @setAvatarPose:
+    sta Zp_AvatarPose_eAvatar
     rts
 .ENDPROC
 
@@ -676,7 +676,7 @@ _InAir:
     @notInvincible:
 _DrawObjects:
     jsr FuncA_Objects_SetShapePosToAvatarCenter
-    lda Zp_AvatarMode_eAvatar  ; param: first tile ID
+    lda Zp_AvatarPose_eAvatar  ; param: first tile ID
     .assert eAvatar::Hidden = 0, error
     beq _Done
     ldy Zp_AvatarFlags_bObj  ; param: object flags

@@ -486,7 +486,7 @@ _AttackFunc:
     .byte eAction::SetActorState1, kAlexActorIndex, eNpcChild::AlexLooking
     .byte eAction::WaitFrames, 60
     .byte eAction::SetAvatarFlags, bObj::FlipH | kPaletteObjAvatarNormal
-    .byte eAction::SetAvatarMode, eAvatar::Looking
+    .byte eAction::SetAvatarPose, eAvatar::Looking
     .byte eAction::WaitFrames, 60
     ;; TODO: Make a star twinkle in the sky.
     .byte eAction::WaitFrames, 120

@@ -80,9 +80,9 @@
 .IMPORTZP Zp_AvatarAirborne_bool
 .IMPORTZP Zp_AvatarExit_ePassage
 .IMPORTZP Zp_AvatarHarmTimer_u8
-.IMPORTZP Zp_AvatarMode_eAvatar
 .IMPORTZP Zp_AvatarPosX_i16
 .IMPORTZP Zp_AvatarPosY_i16
+.IMPORTZP Zp_AvatarPose_eAvatar
 .IMPORTZP Zp_AvatarWaterDepth_u8
 .IMPORTZP Zp_Chr0cBank_u8
 .IMPORTZP Zp_Current_sRoom
@@ -305,7 +305,7 @@ _FadeIn:
 ;;; @prereq Zp_Nearby_bDevice holds an active door device.
 .PROC Main_Explore_GoThroughDoor
     lda #eAvatar::Reading
-    sta Zp_AvatarMode_eAvatar
+    sta Zp_AvatarPose_eAvatar
 _SetSpawnPoint:
     ;; We'll soon be setting the entrance door in the destination room as the
     ;; spawn point, but first we set the exit door in the current room as the

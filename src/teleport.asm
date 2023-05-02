@@ -34,7 +34,7 @@
 .IMPORT Func_SetPointToAvatarCenter
 .IMPORT Main_Explore_EnterRoom
 .IMPORT Ram_DeviceTarget_u8_arr
-.IMPORTZP Zp_AvatarMode_eAvatar
+.IMPORTZP Zp_AvatarPose_eAvatar
 .IMPORTZP Zp_Next_eCutscene
 
 ;;;=========================================================================;;;
@@ -60,7 +60,7 @@
 
 .EXPORT DataA_Cutscene_SharedTeleportOut_arr
 .PROC DataA_Cutscene_SharedTeleportOut_arr
-    .byte eAction::SetAvatarMode, eAvatar::Hidden
+    .byte eAction::SetAvatarPose, eAvatar::Hidden
     .byte eAction::CallFunc
     .addr _MakeSmokePuff
     .byte eAction::WaitFrames, 60
@@ -99,7 +99,7 @@ _MakeSmokePuff:
     jsr FuncA_Avatar_SpawnAtDevice
 _InitCutsceneState:
     lda #eAvatar::Hidden
-    sta Zp_AvatarMode_eAvatar
+    sta Zp_AvatarPose_eAvatar
     lda #eCutscene::SharedTeleportIn
     sta Zp_Next_eCutscene
     rts

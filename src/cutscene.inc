@@ -49,7 +49,7 @@
     SetActorState1     ; args: actor index, new byte value
     SetActorState2     ; args: actor index, new byte value
     SetAvatarFlags     ; args: new bObj value
-    SetAvatarMode      ; args: new eAvatar value
+    SetAvatarPose      ; args: new eAvatar value
     SetCutsceneFlags   ; args: bCutscene value
     ShakeRoom          ; args: num shake frames
     ;; Multi-frame actions:

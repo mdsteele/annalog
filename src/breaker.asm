@@ -54,9 +54,9 @@
 .IMPORTZP Zp_AvatarFlags_bObj
 .IMPORTZP Zp_AvatarHarmTimer_u8
 .IMPORTZP Zp_AvatarLanding_u8
-.IMPORTZP Zp_AvatarMode_eAvatar
 .IMPORTZP Zp_AvatarPosX_i16
 .IMPORTZP Zp_AvatarPosY_i16
+.IMPORTZP Zp_AvatarPose_eAvatar
 .IMPORTZP Zp_AvatarSubX_u8
 .IMPORTZP Zp_AvatarSubY_u8
 .IMPORTZP Zp_AvatarVelX_i16
@@ -150,7 +150,7 @@ _GameLoop:
     jsr FuncM_SwitchPrgcAndLoadRoomWithMusic
     ;; Hide the player avatar.
     lda #eAvatar::Hidden
-    sta Zp_AvatarMode_eAvatar
+    sta Zp_AvatarPose_eAvatar
     ;; Set room scroll and lock scrolling.
     lda #$48
     sta Zp_RoomScrollY_u8
@@ -227,7 +227,7 @@ _FadeOut:
     jsr FuncM_SwitchPrgcAndLoadRoomWithMusic
     ;; Hide the player avatar.
     lda #eAvatar::Hidden
-    sta Zp_AvatarMode_eAvatar
+    sta Zp_AvatarPose_eAvatar
     ;; TODO: set room scroll and lock scrolling
     jmp Main_Explore_FadeIn
 .ENDPROC
@@ -240,7 +240,7 @@ _FadeOut:
     jsr Func_FadeOutToBlack
     ;; Un-hide the player avatar.
     lda #eAvatar::Kneeling
-    sta Zp_AvatarMode_eAvatar
+    sta Zp_AvatarPose_eAvatar
     ;; Reload the room that the breaker was in.
     ldx Zp_Breaker_eRoom  ; param: room to load
     jsr FuncM_SwitchPrgcAndLoadRoom
@@ -324,7 +324,7 @@ _FadeOut:
 ;;; until it reaches a specific offset from the breaker device's position.
 .PROC FuncA_Breaker_TickActivateAdjust
     lda #eAvatar::Looking
-    sta Zp_AvatarMode_eAvatar
+    sta Zp_AvatarPose_eAvatar
     lda Zp_AvatarPosX_i16 + 0
     and #$0f
     cmp #kBreakerAvatarOffset
@@ -377,13 +377,13 @@ _FinishedAdjusting:
     @looking:
     lda #eAvatar::Looking
     @setAvatar:
-    sta Zp_AvatarMode_eAvatar
+    sta Zp_AvatarPose_eAvatar
 _DecrementTimer:
     dec Zp_BreakerTimer_u8
     bne _Return
 _FinishedReaching:
     lda #eAvatar::Straining
-    sta Zp_AvatarMode_eAvatar
+    sta Zp_AvatarPose_eAvatar
     ;; Proceed to the next phase.
     lda #kBreakerStrainFrames
     sta Zp_BreakerTimer_u8
@@ -451,8 +451,8 @@ _Return:
     lda Ram_DeviceAnim_u8_arr, x
     div #8
     tay
-    lda _AvatarMode_eAvatar_arr, y
-    sta Zp_AvatarMode_eAvatar
+    lda _AvatarPose_eAvatar_arr, y
+    sta Zp_AvatarPose_eAvatar
     ;; Adjust the avatar's Y-position.
     lda Zp_AvatarPosY_i16 + 0
     and #$f0
@@ -469,7 +469,7 @@ _FinishedFlipping:
     inc Zp_Breaker_ePhase
 _Return:
     rts
-_AvatarMode_eAvatar_arr:
+_AvatarPose_eAvatar_arr:
     .byte eAvatar::Kneeling
     .byte eAvatar::Standing
     .byte eAvatar::Reaching

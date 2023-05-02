@@ -61,9 +61,9 @@ kPaletteObjAvatarDeath  = 3
 
 ;;;=========================================================================;;;
 
-;;; Modes that the player avatar can be in.  The number for each of these enum
+;;; Poses that the player avatar can be in.  The number for each of these enum
 ;;; values is the starting tile ID to use for the avatar objects when the
-;;; avatar is in that mode.
+;;; avatar is in that pose.
 .ENUM eAvatar
     Hidden    = $00  ; not drawn (e.g. for cutscenes)
     Standing  = $40  ; (grounded) standing still on the ground

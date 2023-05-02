@@ -64,8 +64,8 @@
 .IMPORT Ram_PpuTransfer_arr
 .IMPORT Sram_ProgressFlags_arr
 .IMPORTZP Zp_AvatarFlags_bObj
-.IMPORTZP Zp_AvatarMode_eAvatar
 .IMPORTZP Zp_AvatarPosX_i16
+.IMPORTZP Zp_AvatarPose_eAvatar
 .IMPORTZP Zp_AvatarSubX_u8
 .IMPORTZP Zp_AvatarVelX_i16
 .IMPORTZP Zp_Current_sMachine_ptr
@@ -452,7 +452,7 @@ _InitWindow:
 .PROC FuncA_Console_ScrollWindowUp
 _AdjustAvatar:
     lda #eAvatar::Reading
-    sta Zp_AvatarMode_eAvatar
+    sta Zp_AvatarPose_eAvatar
     lda Zp_AvatarFlags_bObj
     and #<~bObj::FlipH
     sta Zp_AvatarFlags_bObj

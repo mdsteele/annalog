@@ -91,9 +91,9 @@
 .IMPORT Sram_ProgressFlags_arr
 .IMPORTZP Zp_AvatarFlags_bObj
 .IMPORTZP Zp_AvatarLanding_u8
-.IMPORTZP Zp_AvatarMode_eAvatar
 .IMPORTZP Zp_AvatarPosX_i16
 .IMPORTZP Zp_AvatarPosY_i16
+.IMPORTZP Zp_AvatarPose_eAvatar
 .IMPORTZP Zp_AvatarVelX_i16
 .IMPORTZP Zp_AvatarVelY_i16
 .IMPORTZP Zp_Camera_bScroll
@@ -687,7 +687,7 @@ _Error:
     ldx #kCutsceneSpawnDeviceIndex  ; param: device index
     jsr_prga FuncA_Avatar_SpawnAtDevice
     lda #eAvatar::Hidden
-    sta Zp_AvatarMode_eAvatar
+    sta Zp_AvatarPose_eAvatar
     lda #eCutscene::PrisonCellGetThrownIn
     sta Zp_Next_eCutscene
     jmp Main_Explore_EnterRoom
@@ -743,7 +743,7 @@ _Error:
     .byte eAction::WaitUntilZ
     .addr _AnnaHasLanded
     .byte eAction::SetCutsceneFlags, 0
-    .byte eAction::SetAvatarMode, eAvatar::Sleeping
+    .byte eAction::SetAvatarPose, eAvatar::Sleeping
     .byte eAction::CallFunc
     .addr _FinishLanding
     ;; TODO: Animate the orc walking out.
@@ -752,7 +752,7 @@ _Error:
     .addr _CloseGate
     ;; Animate Anna waking and standing up.
     .byte eAction::WaitFrames, 60
-    .byte eAction::SetAvatarMode, eAvatar::Kneeling
+    .byte eAction::SetAvatarPose, eAvatar::Kneeling
     .byte eAction::WaitFrames, 30
     .byte eAction::JumpToMain
     .addr Main_Explore_Continue
@@ -773,7 +773,7 @@ _InitThrowAnna:
     stax Zp_AvatarPosY_i16
     rts
 _AnnaHasLanded:
-    lda Zp_AvatarMode_eAvatar
+    lda Zp_AvatarPose_eAvatar
     cmp #eAvatar::Landing
     rts
 _FinishLanding:
