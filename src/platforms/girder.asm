@@ -33,7 +33,7 @@
 ;;; The OBJ palette number used for FuncA_Objects_DrawGirderPlatform.
 kPaletteObjGirder = 0
 ;;; The OBJ tile ID used for FuncA_Objects_DrawGirderPlatform.
-kTileIdObjGirder = $7f
+kTileIdObjGirder = $3d
 
 ;;;=========================================================================;;;
 

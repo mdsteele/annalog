@@ -80,7 +80,8 @@ kPaletteObjAvatarDeath  = 3
     Jumping   = $6c  ; (airborne) jumping up
     Hovering  = $70  ; (airborne) mid-jump hang time
     Falling   = $74  ; (airborne) falling down
-    Sleeping  = $78  ; (sleeping) lying down unconscious
+    Slumping  = $78  ; (sleeping) falling down unconscious
+    Sleeping  = $7c  ; (sleeping) lying down unconscious
 .ENDENUM
 
 ;;;=========================================================================;;;

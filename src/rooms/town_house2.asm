@@ -162,8 +162,10 @@ _Devices_sDevice_arr:
 .EXPORT DataA_Cutscene_TownHouse2WakeUp_arr
 .PROC DataA_Cutscene_TownHouse2WakeUp_arr
     .byte eAction::WaitFrames, 150
+    .byte eAction::SetAvatarPose, eAvatar::Slumping
+    .byte eAction::WaitFrames, 60
     .byte eAction::SetAvatarPose, eAvatar::Kneeling
-    .byte eAction::WaitFrames, 20
+    .byte eAction::WaitFrames, 15
     .byte eAction::CallFunc
     .addr _HopOutOfBed
     .byte eAction::JumpToMain

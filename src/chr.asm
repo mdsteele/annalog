@@ -50,7 +50,6 @@
 .INCLUDE "machines/minigun.inc"
 .INCLUDE "machines/multiplexer.inc"
 .INCLUDE "machines/pump.inc"
-.INCLUDE "machines/shared.inc"
 .INCLUDE "machines/winch.inc"
 .INCLUDE "platforms/column.inc"
 .INCLUDE "platforms/crate.inc"
@@ -841,8 +840,6 @@
 :   .incbin "out/data/tiles/font_hilight.chr"
     .assert * - :- = kSizeofChr * eAvatar::Standing, error
     .incbin "out/data/tiles/player_flower.chr"
-    .assert * - :- = kSizeofChr * kTileIdObjMachineFirst, error
-    .incbin "out/data/tiles/machine.chr"
     .assert * - :- = kSizeofChr * $80, error
 .ENDPROC
 
@@ -855,8 +852,6 @@
 :   .incbin "out/data/tiles/font_hilight.chr"
     .assert * - :- = kSizeofChr * eAvatar::Standing, error
     .incbin "out/data/tiles/player_normal.chr"
-    .assert * - :- = kSizeofChr * kTileIdObjMachineFirst, error
-    .incbin "out/data/tiles/machine.chr"
     .assert * - :- = kSizeofChr * $80, error
 .ENDPROC
 

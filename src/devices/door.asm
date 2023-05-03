@@ -43,8 +43,8 @@ kDoorNumAnimFrames = 6
 kDoorAnimCountdown = kDoorNumAnimFrames * kDoorAnimSlowdown - 1
 
 ;;; OBJ tile IDs used for drawing door devices.
-kTileIdObjDoorwayFull = $3a
-kTileIdObjDoorwayHalf = $3b
+kTileIdObjDoorwayFull = $06
+kTileIdObjDoorwayHalf = $07
 
 ;;; The OBJ palette number used for drawing door devices.
 kPaletteObjDoorway = 0

@@ -49,12 +49,13 @@
 kDeathKneelingFrames  = 45
 kDeathStrainingFrames = 60
 kDeathReachingFrames  = 8
-kDeathSlumpingFrames  = 30
+kDeathStumblingFrames = 30
+kDeathSlumpingFrames  = 10
 kDeathSleepingFrames  = 80
 .LINECONT +
 kDeathTotalAvatarAnimationFrames = \
     kDeathKneelingFrames + kDeathStrainingFrames + kDeathReachingFrames + \
-    kDeathSlumpingFrames + kDeathSleepingFrames
+    kDeathStumblingFrames + kDeathSlumpingFrames + kDeathSleepingFrames
 .LINECONT -
 
 ;;; How many pixels to adjust the player avatar's horizontal position by when
@@ -134,6 +135,8 @@ _SetAvatarPose:
     beq @lieDown
     blt @sleeping
     sbc #kDeathSlumpingFrames
+    blt @slumping
+    sbc #kDeathStumblingFrames
     blt @kneeling
     sbc #kDeathReachingFrames
     blt @reaching
@@ -150,12 +153,16 @@ _SetAvatarPose:
     sta Zp_AvatarPosX_i16 + 0
     lda #eAvatar::Straining
     bne @setAvatarPose  ; unconditional
-    ;; If the player avatar is reaching or kneeling, just set the avatar pose.
+    ;; If the player avatar is reaching/kneeling/slumping, just set the avatar
+    ;; pose.
     @reaching:
     lda #eAvatar::Reaching
     bne @setAvatarPose  ; unconditional
     @kneeling:
     lda #eAvatar::Kneeling
+    bne @setAvatarPose  ; unconditional
+    @slumping:
+    lda #eAvatar::Slumping
     bne @setAvatarPose  ; unconditional
     ;; If the player avatar needs to lie down, adjust its horizontal position
     ;; (to make the animation from the kneeling position more natural).

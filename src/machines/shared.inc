@@ -18,10 +18,9 @@
 ;;;=========================================================================;;;
 
 ;;; OBJ tile IDs used for drawing many different kinds of machines.
-kTileIdObjMachineFirst       = $7c
-kTileIdObjMachineCorner      = kTileIdObjMachineFirst + 0
-kTileIdObjMachineSurfaceHorz = kTileIdObjMachineFirst + 1
-kTileIdObjMachineSurfaceVert = kTileIdObjMachineFirst + 2
+kTileIdObjMachineCorner      = $3a
+kTileIdObjMachineSurfaceHorz = $3b
+kTileIdObjMachineSurfaceVert = $3c
 
 ;;; The OBJ palette number used for the blinking error light on machines.
 kPaletteObjMachineLight = 1

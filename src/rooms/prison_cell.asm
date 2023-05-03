@@ -89,7 +89,6 @@
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORT Ram_PlatformType_ePlatform_arr
 .IMPORT Sram_ProgressFlags_arr
-.IMPORTZP Zp_AvatarFlags_bObj
 .IMPORTZP Zp_AvatarLanding_u8
 .IMPORTZP Zp_AvatarPosX_i16
 .IMPORTZP Zp_AvatarPosY_i16
@@ -743,6 +742,7 @@ _Error:
     .byte eAction::WaitUntilZ
     .addr _AnnaHasLanded
     .byte eAction::SetCutsceneFlags, 0
+    .byte eAction::SetAvatarFlags, bObj::FlipH | kPaletteObjAvatarNormal
     .byte eAction::SetAvatarPose, eAvatar::Sleeping
     .byte eAction::CallFunc
     .addr _FinishLanding
@@ -751,9 +751,11 @@ _Error:
     .byte eAction::WaitUntilZ
     .addr _CloseGate
     ;; Animate Anna waking and standing up.
-    .byte eAction::WaitFrames, 60
-    .byte eAction::SetAvatarPose, eAvatar::Kneeling
+    .byte eAction::WaitFrames, 90
+    .byte eAction::SetAvatarPose, eAvatar::Slumping
     .byte eAction::WaitFrames, 30
+    .byte eAction::SetAvatarPose, eAvatar::Kneeling
+    .byte eAction::WaitFrames, 20
     .byte eAction::JumpToMain
     .addr Main_Explore_Continue
 _OpenGate:
@@ -777,8 +779,6 @@ _AnnaHasLanded:
     cmp #eAvatar::Landing
     rts
 _FinishLanding:
-    lda #bObj::FlipH | kPaletteObjAvatarNormal
-    sta Zp_AvatarFlags_bObj
     lda #0
     sta Zp_AvatarLanding_u8
     sta Zp_AvatarVelX_i16 + 0
