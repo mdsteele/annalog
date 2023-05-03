@@ -18,6 +18,7 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "../actor.inc"
+.INCLUDE "../actors/orc.inc"
 .INCLUDE "../actors/particle.inc"
 .INCLUDE "../actors/rocket.inc"
 .INCLUDE "../avatar.inc"
@@ -80,7 +81,9 @@
 .IMPORT Main_Explore_Continue
 .IMPORT Main_Explore_EnterRoom
 .IMPORT Ppu_ChrObjPrison
+.IMPORT Ram_ActorFlags_bObj_arr
 .IMPORT Ram_ActorState1_byte_arr
+.IMPORT Ram_ActorState2_byte_arr
 .IMPORT Ram_ActorType_eActor_arr
 .IMPORT Ram_MachineGoalHorz_u8_arr
 .IMPORT Ram_MachineGoalVert_u8_arr
@@ -117,6 +120,10 @@ kTunnelPassageIndex = 1
 kEasternPassageIndex = 2
 ;;; The index of the console device for the PrisonCellLauncher machine.
 kLauncherConsoleDeviceIndex = 3
+
+;;; The actor indices for the orcs in this room.
+kOrc1ActorIndex = 0
+kOrc2ActorIndex = 1
 
 ;;; The machine indices for the machines in this room.
 kLiftMachineIndex = 0
@@ -350,7 +357,21 @@ _Platforms_sPlatform_arr:
     .assert * - :- <= kMaxPlatforms * .sizeof(sPlatform), error
     .byte ePlatform::None
 _Actors_sActor_arr:
-    ;; TODO: Add orc guards.
+:   .assert * - :- = kOrc1ActorIndex * .sizeof(sActor), error
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::NpcOrc
+    d_word PosX_i16, $0175
+    d_word PosY_i16, $00b8
+    d_byte Param_byte, eNpcOrc::Standing
+    D_END
+    .assert * - :- = kOrc2ActorIndex * .sizeof(sActor), error
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::NpcOrc
+    d_word PosX_i16, $01a2
+    d_word PosY_i16, $00b8
+    d_byte Param_byte, eNpcOrc::Standing
+    D_END
+    .assert * - :- <= kMaxActors * .sizeof(sActor), error
     .byte eActor::None
 _Devices_sDevice_arr:
 :   .assert * - :- = kCutsceneSpawnDeviceIndex * .sizeof(sDevice), error
@@ -417,6 +438,12 @@ _Passages_sPassage_arr:
 ;;; @param A The bSpawn value for where the avatar is entering the room.
 .PROC FuncC_Prison_Cell_EnterRoom
     sta T0  ; bSpawn value
+_InitOrcs:
+    lda #$ff
+    sta Ram_ActorState2_byte_arr + kOrc1ActorIndex
+    sta Ram_ActorState2_byte_arr + kOrc2ActorIndex
+    lda #bObj::FlipH
+    sta Ram_ActorFlags_bObj_arr + kOrc1ActorIndex
 _CheckIfReachedTunnel:
     ;; If the player has reached the tunnel before, then don't lock scrolling.
     flag_bit Sram_ProgressFlags_arr, eFlag::PrisonCellReachedTunnel
@@ -475,6 +502,9 @@ _InitRocksAndCrate:
     sta Ram_PlatformType_ePlatform_arr + kMidCeilingPlatformIndex
     sta Ram_PlatformType_ePlatform_arr + kUpperFloor1PlatformIndex
     sta Ram_PlatformType_ePlatform_arr + kUpperFloor2PlatformIndex
+    .assert eActor::None = ePlatform::None, error
+    sta Ram_ActorType_eActor_arr + kOrc1ActorIndex
+    sta Ram_ActorType_eActor_arr + kOrc2ActorIndex
     rts
 .ENDPROC
 
@@ -505,6 +535,10 @@ _RocketImpact:
     sta Ram_PlatformType_ePlatform_arr + kUpperFloor2PlatformIndex
     ldx #eFlag::PrisonCellBlastedRocks
     jsr Func_SetFlag
+    ;; TODO: Make the orcs go flying and run away, instead of removing them.
+    lda #eActor::None
+    sta Ram_ActorType_eActor_arr + kOrc1ActorIndex
+    sta Ram_ActorType_eActor_arr + kOrc2ActorIndex
     @done:
 _TrapFloor:
     ;; If the trap floor is already gone, it can't collapse again.
@@ -734,11 +768,20 @@ _Error:
     ;; Animate the prison gate opening.
     .byte eAction::WaitUntilZ
     .addr _OpenGate
-    ;; TODO: Animate the orc walking in.
+    ;; Animate the orc walking in.
+    .byte eAction::SetActorPosX, kOrc1ActorIndex
+    .word $0118
+    .byte eAction::WalkNpcOrc, kOrc1ActorIndex
+    .word $00f8
+    .byte eAction::SetActorState1, kOrc1ActorIndex, eNpcOrc::Standing
+    .byte eAction::WaitFrames, 30
     ;; Animate Anna getting thrown into the cell.
+    .byte eAction::SetActorState1, kOrc1ActorIndex, eNpcOrc::Running1
     .byte eAction::CallFunc
     .addr _InitThrowAnna
     .byte eAction::SetCutsceneFlags, bCutscene::AvatarRagdoll
+    .byte eAction::WaitFrames, 15
+    .byte eAction::SetActorState1, kOrc1ActorIndex, eNpcOrc::Standing
     .byte eAction::WaitUntilZ
     .addr _AnnaHasLanded
     .byte eAction::SetCutsceneFlags, 0
@@ -748,11 +791,14 @@ _Error:
     .byte eAction::SetAvatarPose, eAvatar::Sleeping
     .byte eAction::CallFunc
     .addr _FinishLanding
-    ;; TODO: Animate the orc walking out.
+    ;; Animate the orc walking out.
+    .byte eAction::WaitFrames, 30
+    .byte eAction::WalkNpcOrc, kOrc1ActorIndex
+    .word $0118
     ;; Animate the prison gate closing.
     .byte eAction::WaitUntilZ
     .addr _CloseGate
-    ;; Animate Anna waking and standing up.
+    ;; Animate Anna standing back up.
     .byte eAction::WaitFrames, 90
     .byte eAction::SetAvatarPose, eAvatar::Slumping
     .byte eAction::WaitFrames, 30
@@ -762,9 +808,6 @@ _Error:
     .addr Main_Explore_Continue
 _OpenGate:
     ldy #1  ; param: zero for shut
-    jmp FuncC_Prison_Cell_TickGate  ; returns Z
-_CloseGate:
-    ldy #0  ; param: zero for shut
     jmp FuncC_Prison_Cell_TickGate  ; returns Z
 _InitThrowAnna:
     ldax #$ffff & -365
@@ -786,6 +829,9 @@ _FinishLanding:
     sta Zp_AvatarVelX_i16 + 0
     sta Zp_AvatarVelX_i16 + 1
     rts
+_CloseGate:
+    ldy #0  ; param: zero for shut
+    jmp FuncC_Prison_Cell_TickGate  ; returns Z
 .ENDPROC
 
 ;;;=========================================================================;;;

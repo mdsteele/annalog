@@ -46,6 +46,7 @@
     ;; Zero-frame actions:
     CallFunc           ; args: func ptr (2 bytes)
     SetActorFlags      ; args: actor index, new bObj value
+    SetActorPosX       ; args: actor index, new X-position (2 bytes)
     SetActorState1     ; args: actor index, new byte value
     SetActorState2     ; args: actor index, new byte value
     SetAvatarFlags     ; args: new bObj value
@@ -58,6 +59,7 @@
     WaitUntilC         ; args: func ptr (2 bytes); func must return C
     WaitUntilZ         ; args: func ptr (2 bytes); func must return Z
     WalkAlex           ; args: actor index, goal X-position (2 bytes)
+    WalkNpcOrc         ; args: actor index, goal X-position (2 bytes)
     NUM_VALUES
 .ENDENUM
 

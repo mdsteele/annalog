@@ -17,6 +17,7 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
+.INCLUDE "actors/orc.inc"
 .INCLUDE "actors/townsfolk.inc"
 .INCLUDE "avatar.inc"
 .INCLUDE "cpu.inc"
@@ -203,6 +204,7 @@ _Finish:
     d_entry table, JumpToMain,        _JumpToMain
     d_entry table, CallFunc,          _CallFunc
     d_entry table, SetActorFlags,     _SetActorFlags
+    d_entry table, SetActorPosX,      _SetActorPosX
     d_entry table, SetActorState1,    _SetActorState1
     d_entry table, SetActorState2,    _SetActorState2
     d_entry table, SetAvatarFlags,    _SetAvatarFlags
@@ -214,6 +216,7 @@ _Finish:
     d_entry table, WaitUntilC,        _WaitUntilC
     d_entry table, WaitUntilZ,        _WaitUntilZ
     d_entry table, WalkAlex,          _WalkAlex
+    d_entry table, WalkNpcOrc,        _WalkNpcOrc
     D_END
 .ENDREPEAT
 _ContinueExploring:
@@ -239,24 +242,35 @@ _SetActorFlags:
     tax  ; actor index
     iny
     lda (Zp_CutsceneAction_ptr), y
-    iny
     sta Ram_ActorFlags_bObj_arr, x
+    iny
+    jmp FuncA_Cutscene_AdvanceAndExecute
+_SetActorPosX:
+    lda (Zp_CutsceneAction_ptr), y
+    tax  ; actor index
+    iny
+    lda (Zp_CutsceneAction_ptr), y
+    sta Ram_ActorPosX_i16_0_arr, x
+    iny
+    lda (Zp_CutsceneAction_ptr), y
+    sta Ram_ActorPosX_i16_1_arr, x
+    iny
     jmp FuncA_Cutscene_AdvanceAndExecute
 _SetActorState1:
     lda (Zp_CutsceneAction_ptr), y
     tax  ; actor index
     iny
     lda (Zp_CutsceneAction_ptr), y
-    iny
     sta Ram_ActorState1_byte_arr, x
+    iny
     jmp FuncA_Cutscene_AdvanceAndExecute
 _SetActorState2:
     lda (Zp_CutsceneAction_ptr), y
     tax  ; actor index
     iny
     lda (Zp_CutsceneAction_ptr), y
-    iny
     sta Ram_ActorState2_byte_arr, x
+    iny
     jmp FuncA_Cutscene_AdvanceAndExecute
 _SetAvatarFlags:
     lda (Zp_CutsceneAction_ptr), y
@@ -335,6 +349,23 @@ _WalkAlex:
     @reachedGoal:
     ldy #4  ; param: byte offset
     jmp FuncA_Cutscene_AdvanceAndExecute
+_WalkNpcOrc:
+    lda (Zp_CutsceneAction_ptr), y
+    tax  ; actor index
+    iny
+    lda (Zp_CutsceneAction_ptr), y
+    sta Zp_PointX_i16 + 0
+    iny
+    lda (Zp_CutsceneAction_ptr), y
+    sta Zp_PointX_i16 + 1
+    jsr FuncA_Cutscene_MoveActorTowardPointX  ; preserves X, returns Z and N
+    beq @reachedGoal
+    jsr FuncA_Cutscene_AnimateNpcOrcWalking  ; preserves X
+    clc  ; cutscene should continue
+    rts
+    @reachedGoal:
+    ldy #4  ; param: byte offset
+    jmp FuncA_Cutscene_AdvanceAndExecute
 _CallFuncArg:
     lda (Zp_CutsceneAction_ptr), y
     sta T0
@@ -407,6 +438,31 @@ _AnimatePose:
     @walk2:
     lda #eNpcChild::AlexWalking2
     @setState:
+    sta Ram_ActorState1_byte_arr, x
+    rts
+.ENDPROC
+
+;;; Updates the flags and state of the specified orc NPC actor for a walking
+;;; animation.
+;;; @param N If set, the actor will face left; otherwise, it will face right.
+;;; @param X The actor index.
+;;; @preserve X, Y, T0+
+.PROC FuncA_Cutscene_AnimateNpcOrcWalking
+    bpl @faceRight
+    @faceLeft:
+    lda #bObj::FlipH
+    bne @setFace  ; unconditional
+    @faceRight:
+    lda #0
+    @setFace:
+    sta Ram_ActorFlags_bObj_arr, x
+    lda #$ff
+    sta Ram_ActorState2_byte_arr, x
+_AnimatePose:
+    lda Zp_FrameCounter_u8
+    div #08
+    and #$03  ; param: pose
+    .assert eNpcOrc::Running1 = 0, error
     sta Ram_ActorState1_byte_arr, x
     rts
 .ENDPROC
