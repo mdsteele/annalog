@@ -49,6 +49,7 @@
 .IMPORT FuncA_Objects_MoveShapeLeftHalfTile
 .IMPORT FuncA_Objects_MoveShapeUpOneTile
 .IMPORT FuncA_Objects_SetShapePosToSpikeballCenter
+.IMPORT FuncA_Room_ResetLever
 .IMPORT Func_MovePlatformHorz
 .IMPORT Func_MovePlatformLeftTowardPointX
 .IMPORT Func_MovePlatformTopTowardPointY
@@ -521,11 +522,19 @@ _MoveHorz:
     @reachedGoal:
 _Finished:
     lda Zp_RoomState + sState::WinchReset_eResetSeq
-    jeq FuncA_Machine_WinchReachedGoal
-    .assert * = FuncC_Crypt_TombWinch_Reset, error, "fallthrough"
+    bne FuncC_Crypt_TombWinch_ContinueResetting
+    jmp FuncA_Machine_WinchReachedGoal
 .ENDPROC
 
 .PROC FuncC_Crypt_TombWinch_Reset
+    ldx #kLeverLeftDeviceIndex  ; param: device index
+    jsr FuncA_Room_ResetLever
+    ldx #kLeverRightDeviceIndex  ; param: device index
+    jsr FuncA_Room_ResetLever
+    .assert * = FuncC_Crypt_TombWinch_ContinueResetting, error, "fallthrough"
+.ENDPROC
+
+.PROC FuncC_Crypt_TombWinch_ContinueResetting
 _ResetBreakbleFloor:
     lda Zp_RoomState + sState::WeakFloorBlink_u8
     bne @done  ; floors are already blinking

@@ -121,14 +121,14 @@ _Machines_sMachine_arr:
     d_byte ScrollGoalY_u8, $10
     d_byte RegNames_u8_arr4, "U", 0, "L", "Y"
     d_byte MainPlatform_u8, kUpperJetPlatformIndex
-    d_addr Init_func_ptr, FuncC_Factory_ElevatorUpperJet_Init
+    d_addr Init_func_ptr, FuncC_Factory_ElevatorUpperJet_InitReset
     d_addr ReadReg_func_ptr, FuncC_Factory_ElevatorUpperJet_ReadReg
     d_addr WriteReg_func_ptr, Func_Noop  ; TODO
     d_addr TryMove_func_ptr, FuncC_Factory_ElevatorUpperJet_TryMove
     d_addr TryAct_func_ptr, FuncA_Machine_Error
     d_addr Tick_func_ptr, FuncC_Factory_ElevatorUpperJet_Tick
     d_addr Draw_func_ptr, FuncA_Objects_DrawJetMachine
-    d_addr Reset_func_ptr, FuncC_Factory_ElevatorUpperJet_Reset
+    d_addr Reset_func_ptr, FuncC_Factory_ElevatorUpperJet_InitReset
     D_END
     .assert * - :- = kLowerJetMachineIndex * .sizeof(sMachine), error
     D_STRUCT sMachine
@@ -140,14 +140,14 @@ _Machines_sMachine_arr:
     d_byte ScrollGoalY_u8, $b0
     d_byte RegNames_u8_arr4, "U", 0, "L", "Y"
     d_byte MainPlatform_u8, kLowerJetPlatformIndex
-    d_addr Init_func_ptr, FuncC_Factory_ElevatorLowerJet_Init
+    d_addr Init_func_ptr, FuncC_Factory_ElevatorLowerJet_InitReset
     d_addr ReadReg_func_ptr, FuncC_Factory_ElevatorLowerJet_ReadReg
     d_addr WriteReg_func_ptr, Func_Noop  ; TODO
     d_addr TryMove_func_ptr, FuncC_Factory_ElevatorLowerJet_TryMove
     d_addr TryAct_func_ptr, FuncA_Machine_Error
     d_addr Tick_func_ptr, FuncC_Factory_ElevatorLowerJet_Tick
     d_addr Draw_func_ptr, FuncA_Objects_DrawJetMachine
-    d_addr Reset_func_ptr, FuncC_Factory_ElevatorLowerJet_Reset
+    d_addr Reset_func_ptr, FuncC_Factory_ElevatorLowerJet_InitReset
     D_END
     .assert * - :- <= kMaxMachines * .sizeof(sMachine), error
 _Platforms_sPlatform_arr:
@@ -232,11 +232,9 @@ _Passages_sPassage_arr:
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
 .ENDPROC
 
-.PROC FuncC_Factory_ElevatorUpperJet_Reset
-    .assert * = FuncC_Factory_ElevatorUpperJet_Init, error, "fallthrough"
-.ENDPROC
-
-.PROC FuncC_Factory_ElevatorUpperJet_Init
+.PROC FuncC_Factory_ElevatorUpperJet_InitReset
+    ;; TODO: Reset upper lever (in room above)
+    ;; TODO: Reset lower lever
     lda #kUpperJetInitGoalY
     sta Ram_MachineGoalVert_u8_arr + kUpperJetMachineIndex
     rts
@@ -268,11 +266,9 @@ _Passages_sPassage_arr:
     jmp FuncA_Machine_JetTick
 .ENDPROC
 
-.PROC FuncC_Factory_ElevatorLowerJet_Reset
-    .assert * = FuncC_Factory_ElevatorLowerJet_Init, error, "fallthrough"
-.ENDPROC
-
-.PROC FuncC_Factory_ElevatorLowerJet_Init
+.PROC FuncC_Factory_ElevatorLowerJet_InitReset
+    ;; TODO: Reset upper lever
+    ;; TODO: Reset lower lever (in room below)
     lda #kLowerJetInitGoalY
     sta Ram_MachineGoalVert_u8_arr + kLowerJetMachineIndex
     rts

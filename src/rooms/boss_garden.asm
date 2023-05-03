@@ -49,6 +49,7 @@
 .IMPORT FuncA_Room_FindGrenadeActor
 .IMPORT FuncA_Room_InitBoss
 .IMPORT FuncA_Room_MachineCannonReset
+.IMPORT FuncA_Room_ResetLever
 .IMPORT FuncA_Room_TickBoss
 .IMPORT Func_AckIrqAndLatchWindowFromParam3
 .IMPORT Func_AckIrqAndSetLatch
@@ -732,6 +733,10 @@ _WriteR:
 
 ;;; @prereq PRGA_Room is loaded.
 .PROC FuncC_Boss_GardenCannon_Reset
+    ldx #kLeverLeftDeviceIndex  ; param: device index
+    jsr FuncA_Room_ResetLever
+    ldx #kLeverRightDeviceIndex  ; param: device index
+    jsr FuncA_Room_ResetLever
     jsr FuncA_Room_MachineCannonReset
     ;; If the boss is currently shooting/spraying, switch to waiting mode (to
     ;; avoid the player cheesing by reprogramming the machine every time the

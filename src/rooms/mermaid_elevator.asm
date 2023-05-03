@@ -108,14 +108,14 @@ _Machines_sMachine_arr:
     d_byte ScrollGoalY_u8, $90
     d_byte RegNames_u8_arr4, "U", 0, "L", "Y"
     d_byte MainPlatform_u8, kJetPlatformIndex
-    d_addr Init_func_ptr, FuncC_Mermaid_ElevatorJet_Init
+    d_addr Init_func_ptr, FuncC_Mermaid_ElevatorJet_InitReset
     d_addr ReadReg_func_ptr, FuncC_Mermaid_ElevatorJet_ReadReg
     d_addr WriteReg_func_ptr, Func_Noop  ; TODO
     d_addr TryMove_func_ptr, FuncC_Mermaid_ElevatorJet_TryMove
     d_addr TryAct_func_ptr, FuncA_Machine_Error
     d_addr Tick_func_ptr, FuncC_Mermaid_ElevatorJet_Tick
     d_addr Draw_func_ptr, FuncA_Objects_DrawJetMachine
-    d_addr Reset_func_ptr, FuncC_Mermaid_ElevatorJet_Reset
+    d_addr Reset_func_ptr, FuncC_Mermaid_ElevatorJet_InitReset
     D_END
     .assert * - :- <= kMaxMachines * .sizeof(sMachine), error
 _Platforms_sPlatform_arr:
@@ -195,11 +195,9 @@ _Passages_sPassage_arr:
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
 .ENDPROC
 
-.PROC FuncC_Mermaid_ElevatorJet_Reset
-    .assert * = FuncC_Mermaid_ElevatorJet_Init, error, "fallthrough"
-.ENDPROC
-
-.PROC FuncC_Mermaid_ElevatorJet_Init
+.PROC FuncC_Mermaid_ElevatorJet_InitReset
+    ;; TODO: Reset upper lever (in room above)
+    ;; TODO: Reset lower lever
     lda #kJetInitGoalY
     sta Ram_MachineGoalVert_u8_arr + kJetMachineIndex
     rts

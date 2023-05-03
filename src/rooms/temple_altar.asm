@@ -45,6 +45,7 @@
 .IMPORT FuncA_Objects_DrawMinigunSideMachine
 .IMPORT FuncA_Room_AreActorsWithinDistance
 .IMPORT FuncA_Room_RemoveAllBulletsIfConsoleOpen
+.IMPORT FuncA_Room_ResetLever
 .IMPORT FuncC_Temple_DrawColumnCrackedPlatform
 .IMPORT Func_InitActorSmokeExplosion
 .IMPORT Func_IsPointInPlatform
@@ -425,7 +426,10 @@ _HitBeetle:
 .PROC FuncC_Temple_AltarUpperMinigun_InitReset
     lda #kUpperMinigunInitGoalX
     sta Ram_MachineGoalHorz_u8_arr + kUpperMinigunMachineIndex
-    rts
+    ldx #kLeverLeftDeviceIndex  ; param: device index
+    jsr FuncA_Room_ResetLever
+    ldx #kLeverRightDeviceIndex  ; param: device index
+    jmp FuncA_Room_ResetLever
 .ENDPROC
 
 .PROC FuncC_Temple_AltarUpperMinigun_ReadReg

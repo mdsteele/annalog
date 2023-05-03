@@ -44,6 +44,7 @@
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
 .IMPORT FuncA_Room_FindGrenadeActor
 .IMPORT FuncA_Room_MachineCannonReset
+.IMPORT FuncA_Room_ResetLever
 .IMPORT Func_InitActorSmokeExplosion
 .IMPORT Func_IsPointInPlatform
 .IMPORT Func_MachineCannonReadRegY
@@ -441,6 +442,10 @@ _WriteR:
 
 ;;; @prereq PRGA_Room is loaded.
 .PROC FuncC_Garden_TowerCannon_Reset
+    ldx #kLeverLeftDeviceIndex  ; param: device index
+    jsr FuncA_Room_ResetLever
+    ldx #kLeverRightDeviceIndex  ; param: device index
+    jsr FuncA_Room_ResetLever
 _ResetBreakbleWall:
     lda Zp_RoomState + sState::BreakableWallUpperHits_u8
     ora Zp_RoomState + sState::BreakableWallLowerHits_u8

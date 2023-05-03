@@ -58,6 +58,7 @@
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
 .IMPORT FuncA_Objects_SetShapePosToSpikeballCenter
 .IMPORT FuncA_Room_InitBoss
+.IMPORT FuncA_Room_ResetLever
 .IMPORT FuncA_Room_TickBoss
 .IMPORT Func_AckIrqAndLatchWindowFromParam3
 .IMPORT Func_AckIrqAndSetLatch
@@ -544,11 +545,19 @@ _MoveHorz:
     @reachedGoal:
 _Finished:
     lda Zp_RoomState + sState::Winch_eResetSeq
-    jeq FuncA_Machine_WinchReachedGoal
-    .assert * = FuncC_Boss_CryptWinch_Reset, error, "fallthrough"
+    bne FuncC_Boss_CryptWinch_ContinueResetting
+    jmp FuncA_Machine_WinchReachedGoal
 .ENDPROC
 
 .PROC FuncC_Boss_CryptWinch_Reset
+    ldx #kLeverLeftDeviceIndex  ; param: device index
+    jsr FuncA_Room_ResetLever
+    ldx #kLeverRightDeviceIndex  ; param: device index
+    jsr FuncA_Room_ResetLever
+    .assert * = FuncC_Boss_CryptWinch_ContinueResetting, error, "fallthrough"
+.ENDPROC
+
+.PROC FuncC_Boss_CryptWinch_ContinueResetting
     jsr Func_ResetWinchMachineParams
     lda Ram_MachineGoalHorz_u8_arr + kWinchMachineIndex
     cmp #3

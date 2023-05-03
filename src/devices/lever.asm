@@ -107,6 +107,28 @@ _NoAnimate:
 
 ;;;=========================================================================;;;
 
+.SEGMENT "PRGA_Room"
+
+;;; Resets the specified lever device to value zero.  This should be called
+;;; from a machine's Reset_func_ptr implementation (it can also be called from
+;;; a machine's Init_func_ptr implementation, although it isn't generally
+;;; necessary).
+;;; @param X The device index for the lever.
+.EXPORT FuncA_Room_ResetLever
+.PROC FuncA_Room_ResetLever
+    ldy Ram_DeviceTarget_u8_arr, x
+    lda Zp_RoomState, y
+    beq @done
+    lda #kLeverAnimCountdown  ; param: num frames
+    sta Ram_DeviceAnim_u8_arr, x
+    lda #0
+    sta Zp_RoomState, y
+    @done:
+    rts
+.ENDPROC
+
+;;;=========================================================================;;;
+
 .SEGMENT "PRGA_Objects"
 
 ;;; Draws a ceiling-mounted lever device.

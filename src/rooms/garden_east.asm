@@ -48,6 +48,7 @@
 .IMPORT FuncA_Room_AreActorsWithinDistance
 .IMPORT FuncA_Room_FindGrenadeActor
 .IMPORT FuncA_Room_MachineCannonReset
+.IMPORT FuncA_Room_ResetLever
 .IMPORT Func_InitActorSmokeExplosion
 .IMPORT Func_MachineBridgeReadRegY
 .IMPORT Func_MachineCannonReadRegY
@@ -180,7 +181,7 @@ _Machines_sMachine_arr:
     d_addr TryAct_func_ptr, FuncC_Garden_EastCannon_TryAct
     d_addr Tick_func_ptr, FuncA_Machine_CannonTick
     d_addr Draw_func_ptr, FuncA_Objects_DrawCannonMachine
-    d_addr Reset_func_ptr, FuncA_Room_MachineCannonReset
+    d_addr Reset_func_ptr, FuncC_Garden_EastCannon_Reset
     D_END
     .assert * - :- <= kMaxMachines * .sizeof(sMachine), error
 _Platforms_sPlatform_arr:
@@ -374,21 +375,25 @@ _Done:
     rts
 .ENDPROC
 
+;;; @prereq PRGA_Machine is loaded.
 .PROC FuncC_Garden_EastBridge_WriteReg
     ldx #kLeverBridgeDeviceIndex  ; param: device index
     jmp FuncA_Machine_WriteToLever
 .ENDPROC
 
+;;; @prereq PRGA_Machine is loaded.
 .PROC FuncC_Garden_EastBridge_Tick
     lda #kBridgePivotPlatformIndex  ; param: fixed segment platform index
     ldx #kBridgePivotPlatformIndex + kNumMovableBridgeSegments  ; param: last
     jmp FuncA_Machine_BridgeTick
 .ENDPROC
 
+;;; @prereq PRGA_Room is loaded.
 .PROC FuncC_Garden_EastBridge_Reset
     lda #0
     sta Ram_MachineGoalVert_u8_arr + kBridgeMachineIndex
-    rts
+    ldx #kLeverBridgeDeviceIndex  ; param: device index
+    jmp FuncA_Room_ResetLever
 .ENDPROC
 
 .PROC FuncC_Garden_EastCannon_ReadReg
@@ -401,6 +406,7 @@ _Done:
     rts
 .ENDPROC
 
+;;; @prereq PRGA_Machine is loaded.
 .PROC FuncC_Garden_EastCannon_WriteReg
     ldx #kLeverCannonDeviceIndex  ; param: device index
     jmp FuncA_Machine_WriteToLever
@@ -425,6 +431,13 @@ _Done:
     sty Ram_ActorVelY_i16_1_arr + kKillableVinebugActorIndex
     ;; Fire a grenade.
     jmp FuncA_Machine_CannonTryAct
+.ENDPROC
+
+;;; @prereq PRGA_Room is loaded.
+.PROC FuncC_Garden_EastCannon_Reset
+    ldx #kLeverCannonDeviceIndex  ; param: device index
+    jsr FuncA_Room_ResetLever
+    jmp FuncA_Room_MachineCannonReset
 .ENDPROC
 
 ;;;=========================================================================;;;

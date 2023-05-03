@@ -52,6 +52,7 @@
 .IMPORT FuncA_Room_InitActorProjBreakball
 .IMPORT FuncA_Room_InitBoss
 .IMPORT FuncA_Room_RemoveAllBulletsIfConsoleOpen
+.IMPORT FuncA_Room_ResetLever
 .IMPORT FuncA_Room_TickBoss
 .IMPORT Func_AckIrqAndLatchWindowFromParam3
 .IMPORT Func_AckIrqAndSetLatch
@@ -834,7 +835,10 @@ _Offset_u8_arr2:
 .PROC FuncC_Boss_TempleMinigun_InitReset
     lda #kMinigunInitGoalX
     sta Ram_MachineGoalHorz_u8_arr + kMinigunMachineIndex
-    rts
+    ldx #kLeverLeftDeviceIndex  ; param: device index
+    jsr FuncA_Room_ResetLever
+    ldx #kLeverRightDeviceIndex  ; param: device index
+    jmp FuncA_Room_ResetLever
 .ENDPROC
 
 .PROC FuncC_Boss_TempleMinigun_ReadReg

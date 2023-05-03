@@ -34,6 +34,7 @@
 .IMPORT FuncA_Machine_LiftTryMove
 .IMPORT FuncA_Machine_WriteToLever
 .IMPORT FuncA_Objects_DrawLiftMachine
+.IMPORT FuncA_Room_ResetLever
 .IMPORT Func_InitActorSmokeExplosion
 .IMPORT Func_IsPointInPlatform
 .IMPORT Func_Noop
@@ -117,14 +118,14 @@ _Machines_sMachine_arr:
     d_byte ScrollGoalY_u8, $60
     d_byte RegNames_u8_arr4, "L", 0, 0, "Y"
     d_byte MainPlatform_u8, kLiftPlatformIndex
-    d_addr Init_func_ptr, FuncC_Garden_CrossroadLift_Init
+    d_addr Init_func_ptr, FuncC_Garden_CrossroadLift_InitReset
     d_addr ReadReg_func_ptr, FuncC_Garden_CrossroadLift_ReadReg
     d_addr WriteReg_func_ptr, FuncC_Garden_CrossroadLift_WriteReg
     d_addr TryMove_func_ptr, FuncC_Garden_CrossroadLift_TryMove
     d_addr TryAct_func_ptr, FuncA_Machine_Error
     d_addr Tick_func_ptr, FuncC_Garden_CrossroadLift_Tick
     d_addr Draw_func_ptr, FuncA_Objects_DrawLiftMachine
-    d_addr Reset_func_ptr, FuncC_Garden_CrossroadLift_Reset
+    d_addr Reset_func_ptr, FuncC_Garden_CrossroadLift_InitReset
     D_END
     .assert * - :- <= kMaxMachines * .sizeof(sMachine), error
 _Platforms_sPlatform_arr:
@@ -202,14 +203,11 @@ _Passages_sPassage_arr:
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
 .ENDPROC
 
-.PROC FuncC_Garden_CrossroadLift_Reset
-    .assert * = FuncC_Garden_CrossroadLift_Init, error, "fallthrough"
-.ENDPROC
-
-.PROC FuncC_Garden_CrossroadLift_Init
+.PROC FuncC_Garden_CrossroadLift_InitReset
     lda #kLiftInitGoalY
     sta Ram_MachineGoalVert_u8_arr + kLiftMachineIndex
-    rts
+    ldx #kLeverDeviceIndex
+    jmp FuncA_Room_ResetLever
 .ENDPROC
 
 .PROC FuncC_Garden_CrossroadLift_ReadReg

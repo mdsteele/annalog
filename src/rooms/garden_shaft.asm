@@ -38,6 +38,7 @@
 .IMPORT FuncA_Machine_Error
 .IMPORT FuncA_Machine_WriteToLever
 .IMPORT FuncA_Objects_DrawBridgeMachine
+.IMPORT FuncA_Room_ResetLever
 .IMPORT Func_MachineBridgeReadRegY
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrObjGarden
@@ -275,7 +276,7 @@ _Passages_sPassage_arr:
     ldx Zp_MachineIndex_u8
     lda #1
     sta Ram_MachineGoalVert_u8_arr, x
-    rts
+    jmp FuncA_Room_ResetLever
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -309,9 +310,9 @@ _Passages_sPassage_arr:
     .byte "directly to another.#"
     .word ePortrait::Paper
     .byte "For example$"
-    .byte "  :IF Y<L$"
-    .byte "  :MOVE ", kTileIdArrowUp, "$"
-    .byte "or the opposite.#"
+    .byte "  :IF Y>L$"
+    .byte "  :MOVE ", kTileIdArrowDown, "$"
+    .byte "or the reverse.#"
     .word ePortrait::Done
 .ENDPROC
 
