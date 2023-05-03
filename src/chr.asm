@@ -493,7 +493,8 @@
 
 .PROC Ppu_ChrBgFontLower11
 :   .incbin "out/data/tiles/font_lower.chr"
-    .res $10 * kSizeofChr
+    .assert .bank(*) = eDiagram::LauncherDown, error
+    .incbin "out/data/tiles/diagram_launcher_down.chr"
     .assert .bank(*) = <ePortrait::ChildMarie, error
     .incbin "out/data/tiles/portrait_marie_rest.chr"
     .assert * - :- = kSizeofChr * $40, error

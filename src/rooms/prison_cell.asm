@@ -242,7 +242,7 @@ _Machines_sMachine_arr:
     d_byte Code_eProgram, eProgram::PrisonCellLauncher
     d_byte Breaker_eFlag, 0
     d_byte Flags_bMachine, bMachine::MoveH | bMachine::Act
-    d_byte Status_eDiagram, eDiagram::CannonRight  ; TODO
+    d_byte Status_eDiagram, eDiagram::LauncherDown
     d_word ScrollGoalX_u16, $110
     d_byte ScrollGoalY_u8, $50
     d_byte RegNames_u8_arr4, 0, 0, "X", 0
