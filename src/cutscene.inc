@@ -55,6 +55,7 @@
     ;; Multi-frame actions:
     RunDialog          ; args: eDialog value
     WaitFrames         ; args: number of frames
+    WaitUntilC         ; args: func ptr (2 bytes); func must return C
     WaitUntilZ         ; args: func ptr (2 bytes); func must return Z
     WalkAlex           ; args: actor index, goal X-position (2 bytes)
     NUM_VALUES

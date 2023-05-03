@@ -211,6 +211,7 @@ _Finish:
     d_entry table, ShakeRoom,         _ShakeRoom
     d_entry table, RunDialog,         _RunDialog
     d_entry table, WaitFrames,        _WaitFrames
+    d_entry table, WaitUntilC,        _WaitUntilC
     d_entry table, WaitUntilZ,        _WaitUntilZ
     d_entry table, WalkAlex,          _WalkAlex
     D_END
@@ -300,6 +301,14 @@ _WaitFrames:
     inc Zp_CutsceneTimer_u8
     clc  ; cutscene should continue
     rts
+_WaitUntilC:
+    jsr _CallFuncArg  ; returns C
+    bcs @advance
+    clc  ; cutscene should continue
+    rts
+    @advance:
+    ldy #3  ; param: byte offset
+    jmp FuncA_Cutscene_AdvanceAndExecute
 _WaitUntilZ:
     jsr _CallFuncArg  ; returns Z
     beq @advance

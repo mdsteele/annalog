@@ -37,6 +37,7 @@
 .IMPORT DataA_Room_Outdoors_sTileset
 .IMPORT Func_AckIrqAndLatchWindowFromParam3
 .IMPORT Func_AckIrqAndSetLatch
+.IMPORT Func_HarmAvatar
 .IMPORT Func_InitActorBadOrc
 .IMPORT Func_Noop
 .IMPORT Main_LoadPrisonCellAndStartCutscene
@@ -56,6 +57,9 @@
 .IMPORTZP Zp_Active_sIrq
 .IMPORTZP Zp_AvatarFlags_bObj
 .IMPORTZP Zp_AvatarHarmTimer_u8
+.IMPORTZP Zp_AvatarLanding_u8
+.IMPORTZP Zp_AvatarPose_eAvatar
+.IMPORTZP Zp_AvatarVelX_i16
 .IMPORTZP Zp_Buffered_sIrq
 .IMPORTZP Zp_NextIrq_int_ptr
 .IMPORTZP Zp_Next_eCutscene
@@ -265,8 +269,9 @@ _DetectAvatarDeath:
     lda Zp_AvatarHarmTimer_u8
     cmp #kAvatarHarmDeath
     bne @done
-    lda #60
+    lda #0
     sta Zp_AvatarHarmTimer_u8
+    jsr Func_HarmAvatar
     lda #eCutscene::TownOutdoorsGetCaught
     sta Zp_Next_eCutscene
     @done:
@@ -533,10 +538,32 @@ _InitOrcs:
 
 .EXPORT DataA_Cutscene_TownOutdoorsGetCaught_arr
 .PROC DataA_Cutscene_TownOutdoorsGetCaught_arr
-    ;; TODO: make Anna fall to the ground unconscious
+    .byte eAction::SetCutsceneFlags, bCutscene::AvatarRagdoll
+    .byte eAction::WaitUntilC
+    .addr _AnnaHasLanded
+    .byte eAction::SetCutsceneFlags, 0
+    .byte eAction::CallFunc
+    .addr _FinishLanding
+    .byte eAction::SetAvatarFlags, kPaletteObjAvatarNormal | bObj::FlipH
+    .byte eAction::SetAvatarPose, eAvatar::Slumping
+    .byte eAction::WaitFrames, 4
+    .byte eAction::SetAvatarPose, eAvatar::Sleeping
+    .byte eAction::WaitFrames, 120
     ;; TODO: make Chief Gronta walk onscreen and give orders to the orc
     .byte eAction::JumpToMain
     .addr Main_LoadPrisonCellAndStartCutscene
+_AnnaHasLanded:
+    lda #eAvatar::Swimming1
+    cmp Zp_AvatarPose_eAvatar  ; sets C if pose <= Swimming1
+    rts
+_FinishLanding:
+    lda #kAvatarHarmHealFrames - kAvatarHarmInvincibileFrames - 1
+    sta Zp_AvatarHarmTimer_u8
+    lda #0
+    sta Zp_AvatarLanding_u8
+    sta Zp_AvatarVelX_i16 + 0
+    sta Zp_AvatarVelX_i16 + 1
+    rts
 .ENDPROC
 
 ;;;=========================================================================;;;

@@ -743,6 +743,8 @@ _Error:
     .addr _AnnaHasLanded
     .byte eAction::SetCutsceneFlags, 0
     .byte eAction::SetAvatarFlags, bObj::FlipH | kPaletteObjAvatarNormal
+    .byte eAction::SetAvatarPose, eAvatar::Slumping
+    .byte eAction::WaitFrames, 4
     .byte eAction::SetAvatarPose, eAvatar::Sleeping
     .byte eAction::CallFunc
     .addr _FinishLanding
