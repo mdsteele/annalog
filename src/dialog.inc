@@ -48,6 +48,7 @@
     OrcGronta      = $1716
     OrcGrontaShout = $1617
     OrcMale        = $1918
+    OrcMaleShout   = $1819
     Paper          = $0404
     Plaque         = $1515
     Sign           = $0303
@@ -65,7 +66,7 @@
     LavaStationPaper
     MermaidDrainSign
     MermaidEntrySign
-    MermaidHut1Cutscene
+    MermaidHut1BreakerGarden
     MermaidHut1Guard
     MermaidHut1Queen
     MermaidHut2Guard
@@ -81,6 +82,7 @@
     PrisonFlowerSign
     PrisonUpperAlexCell
     PrisonUpperAlexFree
+    PrisonUpperBreakerTemple
     PrisonUpperBruno
     PrisonUpperMarie
     PrisonUpperNora

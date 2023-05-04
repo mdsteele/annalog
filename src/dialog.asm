@@ -40,7 +40,7 @@
 .IMPORT DataA_Dialog_LavaStationPaper_sDialog
 .IMPORT DataA_Dialog_MermaidDrainSign_sDialog
 .IMPORT DataA_Dialog_MermaidEntrySign_sDialog
-.IMPORT DataA_Dialog_MermaidHut1Cutscene_sDialog
+.IMPORT DataA_Dialog_MermaidHut1BreakerGarden_sDialog
 .IMPORT DataA_Dialog_MermaidHut1Guard_sDialog
 .IMPORT DataA_Dialog_MermaidHut1Queen_sDialog
 .IMPORT DataA_Dialog_MermaidHut2Guard_sDialog
@@ -55,6 +55,7 @@
 .IMPORT DataA_Dialog_PrisonFlowerSign_sDialog
 .IMPORT DataA_Dialog_PrisonUpperAlexCell_sDialog
 .IMPORT DataA_Dialog_PrisonUpperAlexFree_sDialog
+.IMPORT DataA_Dialog_PrisonUpperBreakerTemple_sDialog
 .IMPORT DataA_Dialog_PrisonUpperBruno_sDialog
 .IMPORT DataA_Dialog_PrisonUpperMarie_sDialog
 .IMPORT DataA_Dialog_PrisonUpperNora_sDialog
@@ -312,8 +313,8 @@ _UpdateScrolling:
     d_entry table, LavaStationPaper,   DataA_Dialog_LavaStationPaper_sDialog
     d_entry table, MermaidDrainSign,   DataA_Dialog_MermaidDrainSign_sDialog
     d_entry table, MermaidEntrySign,   DataA_Dialog_MermaidEntrySign_sDialog
-    d_entry table, MermaidHut1Cutscene, \
-            DataA_Dialog_MermaidHut1Cutscene_sDialog
+    d_entry table, MermaidHut1BreakerGarden, \
+            DataA_Dialog_MermaidHut1BreakerGarden_sDialog
     d_entry table, MermaidHut1Guard,   DataA_Dialog_MermaidHut1Guard_sDialog
     d_entry table, MermaidHut1Queen,   DataA_Dialog_MermaidHut1Queen_sDialog
     d_entry table, MermaidHut2Guard,   DataA_Dialog_MermaidHut2Guard_sDialog
@@ -336,6 +337,8 @@ _UpdateScrolling:
             DataA_Dialog_PrisonUpperAlexCell_sDialog
     d_entry table, PrisonUpperAlexFree, \
             DataA_Dialog_PrisonUpperAlexFree_sDialog
+    d_entry table, PrisonUpperBreakerTemple, \
+            DataA_Dialog_PrisonUpperBreakerTemple_sDialog
     d_entry table, PrisonUpperBruno,   DataA_Dialog_PrisonUpperBruno_sDialog
     d_entry table, PrisonUpperMarie,   DataA_Dialog_PrisonUpperMarie_sDialog
     d_entry table, PrisonUpperNora,    DataA_Dialog_PrisonUpperNora_sDialog

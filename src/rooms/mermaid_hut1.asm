@@ -21,6 +21,7 @@
 .INCLUDE "../actors/townsfolk.inc"
 .INCLUDE "../charmap.inc"
 .INCLUDE "../cpu.inc"
+.INCLUDE "../cutscene.inc"
 .INCLUDE "../device.inc"
 .INCLUDE "../dialog.inc"
 .INCLUDE "../flag.inc"
@@ -32,6 +33,7 @@
 .IMPORT FuncA_Dialog_AddQuestMarker
 .IMPORT Func_Noop
 .IMPORT Func_SetFlag
+.IMPORT Main_Breaker_FadeBackToBreakerRoom
 .IMPORT Ppu_ChrObjVillage
 .IMPORT Sram_ProgressFlags_arr
 
@@ -123,6 +125,20 @@ _Devices_sDevice_arr:
     d_byte Target_u8, eRoom::MermaidVillage
     D_END
     .byte eDevice::None
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Cutscene"
+
+.EXPORT DataA_Cutscene_MermaidHut1BreakerGarden_arr
+.PROC DataA_Cutscene_MermaidHut1BreakerGarden_arr
+    .byte eAction::WaitFrames, 60
+    .byte eAction::ShakeRoom, 30
+    .byte eAction::WaitFrames, 60
+    .byte eAction::RunDialog, eDialog::MermaidHut1BreakerGarden
+    .byte eAction::JumpToMain
+    .addr Main_Breaker_FadeBackToBreakerRoom
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -292,6 +308,14 @@ _FindYourFriends_sDialog:
     .byte "through there, you may$"
     .byte "be able to find and$"
     .byte "rescue your friends.#"
+    .word ePortrait::Done
+.ENDPROC
+
+.EXPORT DataA_Dialog_MermaidHut1BreakerGarden_sDialog
+.PROC DataA_Dialog_MermaidHut1BreakerGarden_sDialog
+    .word ePortrait::MermaidQueen
+    .byte "What the...What did$"
+    .byte "that human just do!?#"
     .word ePortrait::Done
 .ENDPROC
 

@@ -43,7 +43,6 @@
 .IMPORT Func_SetLastSpawnPointToActiveDevice
 .IMPORT Func_TickAllDevices
 .IMPORT Main_Explore_EnterRoom
-.IMPORT Main_Explore_FadeIn
 .IMPORT Ppu_ChrBgAnimA0
 .IMPORT Ppu_ChrBgAnimStatic
 .IMPORT Ppu_ChrBgFontLower01
@@ -228,8 +227,9 @@ _FadeOut:
     ;; Hide the player avatar.
     lda #eAvatar::Hidden
     sta Zp_AvatarPose_eAvatar
-    ;; TODO: set room scroll and lock scrolling
-    jmp Main_Explore_FadeIn
+    ;; Set up the room scroll and fade in.
+    jsr_prga FuncA_Breaker_InitCutsceneScroll
+    jmp Main_Explore_EnterRoom
 .ENDPROC
 
 ;;; Mode for fading to black from a breaker cutscene and switching back to
@@ -509,12 +509,48 @@ _Cutscene_eRoom_arr:
 _Cutscene_eCutscene_arr:
     D_ENUM eBreaker
     d_byte Garden, eCutscene::MermaidHut1BreakerGarden
-    d_byte Temple, eCutscene::SharedFadeBackToBreakerRoom
+    d_byte Temple, eCutscene::PrisonUpperBreakerTemple
     d_byte Crypt,  eCutscene::SharedFadeBackToBreakerRoom
     d_byte Lava,   eCutscene::SharedFadeBackToBreakerRoom
     d_byte Mine,   eCutscene::SharedFadeBackToBreakerRoom
     d_byte City,   eCutscene::SharedFadeBackToBreakerRoom
     d_byte Shadow, eCutscene::SharedFadeBackToBreakerRoom
+    D_END
+.ENDPROC
+
+.PROC FuncA_Breaker_InitCutsceneScroll
+    ;; Set Y to the eBreaker value for the breaker that just got activated.
+    lda Zp_BreakerBeingActivated_eFlag
+    .assert kFirstBreakerFlag > 0, error
+    sub #kFirstBreakerFlag
+    tay  ; eBreaker value
+    ;; Set room scroll and lock scrolling.
+    lda _ScrollX_u16_0_arr, y
+    sta Zp_RoomScrollX_u16 + 0
+    lda _ScrollX_u16_1_arr, y
+    sta Zp_RoomScrollX_u16 + 1
+    lda #bScroll::LockHorz
+    sta Zp_Camera_bScroll
+    rts
+_ScrollX_u16_0_arr:
+    D_ENUM eBreaker
+    d_byte Garden, $00
+    d_byte Temple, $d0
+    d_byte Crypt,  $00  ; TODO
+    d_byte Lava,   $00  ; TODO
+    d_byte Mine,   $00  ; TODO
+    d_byte City,   $00  ; TODO
+    d_byte Shadow, $00  ; TODO
+    D_END
+_ScrollX_u16_1_arr:
+    D_ENUM eBreaker
+    d_byte Garden, $00
+    d_byte Temple, $00
+    d_byte Crypt,  $00  ; TODO
+    d_byte Lava,   $00  ; TODO
+    d_byte Mine,   $00  ; TODO
+    d_byte City,   $00  ; TODO
+    d_byte Shadow, $00  ; TODO
     D_END
 .ENDPROC
 

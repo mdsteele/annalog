@@ -29,6 +29,7 @@
 .IMPORT DataA_Cutscene_CoreBossPowerUpCircuit_arr
 .IMPORT DataA_Cutscene_MermaidHut1BreakerGarden_arr
 .IMPORT DataA_Cutscene_PrisonCellGetThrownIn_arr
+.IMPORT DataA_Cutscene_PrisonUpperBreakerTemple_arr
 .IMPORT DataA_Cutscene_SharedFadeBackToBreakerRoom_arr
 .IMPORT DataA_Cutscene_SharedTeleportIn_arr
 .IMPORT DataA_Cutscene_SharedTeleportOut_arr
@@ -48,6 +49,8 @@
 .IMPORT Ram_ActorFlags_bObj_arr
 .IMPORT Ram_ActorPosX_i16_0_arr
 .IMPORT Ram_ActorPosX_i16_1_arr
+.IMPORT Ram_ActorPosY_i16_0_arr
+.IMPORT Ram_ActorPosY_i16_1_arr
 .IMPORT Ram_ActorState1_byte_arr
 .IMPORT Ram_ActorState2_byte_arr
 .IMPORTZP Zp_AvatarFlags_bObj
@@ -130,6 +133,8 @@ _Finish:
             DataA_Cutscene_MermaidHut1BreakerGarden_arr
     d_entry table, PrisonCellGetThrownIn, \
             DataA_Cutscene_PrisonCellGetThrownIn_arr
+    d_entry table, PrisonUpperBreakerTemple, \
+            DataA_Cutscene_PrisonUpperBreakerTemple_arr
     d_entry table, SharedFadeBackToBreakerRoom, \
             DataA_Cutscene_SharedFadeBackToBreakerRoom_arr
     d_entry table, SharedTeleportIn, \
@@ -205,6 +210,7 @@ _Finish:
     d_entry table, CallFunc,          _CallFunc
     d_entry table, SetActorFlags,     _SetActorFlags
     d_entry table, SetActorPosX,      _SetActorPosX
+    d_entry table, SetActorPosY,      _SetActorPosY
     d_entry table, SetActorState1,    _SetActorState1
     d_entry table, SetActorState2,    _SetActorState2
     d_entry table, SetAvatarFlags,    _SetAvatarFlags
@@ -254,6 +260,17 @@ _SetActorPosX:
     iny
     lda (Zp_CutsceneAction_ptr), y
     sta Ram_ActorPosX_i16_1_arr, x
+    iny
+    jmp FuncA_Cutscene_AdvanceAndExecute
+_SetActorPosY:
+    lda (Zp_CutsceneAction_ptr), y
+    tax  ; actor index
+    iny
+    lda (Zp_CutsceneAction_ptr), y
+    sta Ram_ActorPosY_i16_0_arr, x
+    iny
+    lda (Zp_CutsceneAction_ptr), y
+    sta Ram_ActorPosY_i16_1_arr, x
     iny
     jmp FuncA_Cutscene_AdvanceAndExecute
 _SetActorState1:
@@ -390,7 +407,6 @@ _CallFuncArg:
     bmi _MoveLeft
     bne _MoveRight
     lda T0  ; delta (lo)
-    bmi _MoveLeft
     bne _MoveRight
     rts
 _MoveRight:

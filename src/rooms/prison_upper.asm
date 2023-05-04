@@ -18,10 +18,13 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "../actor.inc"
+.INCLUDE "../actors/orc.inc"
 .INCLUDE "../actors/toddler.inc"
 .INCLUDE "../actors/townsfolk.inc"
+.INCLUDE "../avatar.inc"
 .INCLUDE "../charmap.inc"
 .INCLUDE "../cpu.inc"
+.INCLUDE "../cutscene.inc"
 .INCLUDE "../device.inc"
 .INCLUDE "../dialog.inc"
 .INCLUDE "../flag.inc"
@@ -40,19 +43,24 @@
 .IMPORT FuncC_Prison_TickGatePlatform
 .IMPORT Func_Noop
 .IMPORT Func_SetFlag
+.IMPORT Main_Breaker_FadeBackToBreakerRoom
 .IMPORT Ppu_ChrObjPrison
 .IMPORT Ram_ActorPosX_i16_0_arr
 .IMPORT Ram_ActorPosX_i16_1_arr
+.IMPORT Ram_ActorState2_byte_arr
 .IMPORT Ram_ActorType_eActor_arr
 .IMPORT Ram_DeviceType_eDevice_arr
 .IMPORT Ram_PlatformType_ePlatform_arr
 .IMPORT Sram_ProgressFlags_arr
+.IMPORTZP Zp_AvatarPose_eAvatar
 .IMPORTZP Zp_RoomState
 
 ;;;=========================================================================;;;
 
-;;; The actor index for Alex in this room.
+;;; Actor indices for specific NPCs in this room.
 kAlexActorIndex = 0
+kOrc1ActorIndex = 5
+kOrc2ActorIndex = 6
 
 ;;; Device indices for various talk devices in this room.
 kAlexCellDeviceIndex      = 0
@@ -199,6 +207,20 @@ _Actors_sActor_arr:
     d_word PosY_i16, $00b8
     d_byte Param_byte, bNpcChild::Pri | eNpcChild::BobcutStanding
     D_END
+    .assert * - :- = kOrc1ActorIndex * .sizeof(sActor), error
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::NpcOrc
+    d_word PosX_i16, $0136
+    d_word PosY_i16, $00b8
+    d_byte Param_byte, eNpcOrc::Standing
+    D_END
+    .assert * - :- = kOrc2ActorIndex * .sizeof(sActor), error
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::NpcOrc
+    d_word PosX_i16, $01e8
+    d_word PosY_i16, $00b0
+    d_byte Param_byte, eNpcOrc::Standing
+    D_END
     .assert * - :- <= kMaxActors * .sizeof(sActor), error
     .byte eActor::None
 _Devices_sDevice_arr:
@@ -278,6 +300,15 @@ _Passages_sPassage_arr:
 .ENDPROC
 
 .PROC FuncC_Prison_Upper_EnterRoom
+    ;; If the cutscene is playing, initialize it (and skip the checking of
+    ;; progress flags below).  Otherwise, remove the orc NPCs (which only
+    ;; appear in the cutscene).
+    lda Zp_AvatarPose_eAvatar
+    .assert eAvatar::Hidden = 0, error
+    beq _InitCutscene
+    lda #eActor::None
+    sta Ram_ActorType_eActor_arr + kOrc1ActorIndex
+    sta Ram_ActorType_eActor_arr + kOrc2ActorIndex
     ;; If the kids have already been freed, remove them (and also open the gate
     ;; and place the stepstone).
     flag_bit Sram_ProgressFlags_arr, eFlag::PrisonUpperFreedKids
@@ -289,6 +320,10 @@ _Passages_sPassage_arr:
     ;; Otherwise, if Anna has already talked to Alex, place the stepstone.
     flag_bit Sram_ProgressFlags_arr, eFlag::PrisonUpperTalkedToAlex
     bne _PlaceStepstone
+    rts
+_InitCutscene:
+    lda #$ff
+    sta Ram_ActorState2_byte_arr + kOrc1ActorIndex
     rts
 _RemoveKids:
     ;; Remove talk devices.
@@ -362,7 +397,44 @@ _OpenGate:
 
 ;;;=========================================================================;;;
 
+.SEGMENT "PRGA_Cutscene"
+
+.EXPORT DataA_Cutscene_PrisonUpperBreakerTemple_arr
+.PROC DataA_Cutscene_PrisonUpperBreakerTemple_arr
+    .byte eAction::WaitFrames, 60
+    .byte eAction::ShakeRoom, 30
+    .byte eAction::WaitFrames, 60
+    .byte eAction::WalkNpcOrc, kOrc2ActorIndex
+    .word $01b6
+    .byte eAction::SetActorState1, kOrc2ActorIndex, eNpcOrc::Running3
+    .byte eAction::RunDialog, eDialog::PrisonUpperBreakerTemple
+    .byte eAction::WalkNpcOrc, kOrc2ActorIndex
+    .word $01e8
+    .byte eAction::WalkNpcOrc, kOrc1ActorIndex
+    .word $01ac
+    .byte eAction::SetActorPosY, kOrc1ActorIndex
+    .word $00b0
+    .byte eAction::WalkNpcOrc, kOrc1ActorIndex
+    .word $01e8
+    .byte eAction::WaitFrames, 60
+    .byte eAction::JumpToMain
+    .addr Main_Breaker_FadeBackToBreakerRoom
+.ENDPROC
+
+;;;=========================================================================;;;
+
 .SEGMENT "PRGA_Dialog"
+
+.EXPORT DataA_Dialog_PrisonUpperBreakerTemple_sDialog
+.PROC DataA_Dialog_PrisonUpperBreakerTemple_sDialog
+    .word ePortrait::OrcMaleShout
+    .byte "Oktok! Chief Gronta$"
+    .byte "say come quick!#"
+    .word ePortrait::OrcMaleShout
+    .byte "More machines, they$"
+    .byte "are turning on!#"
+    .word ePortrait::Done
+.ENDPROC
 
 .EXPORT DataA_Dialog_PrisonUpperAlexCell_sDialog
 .PROC DataA_Dialog_PrisonUpperAlexCell_sDialog

@@ -23,6 +23,7 @@
     CoreBossPowerUpCircuit
     MermaidHut1BreakerGarden
     PrisonCellGetThrownIn
+    PrisonUpperBreakerTemple
     SharedFadeBackToBreakerRoom  ; TODO: get rid of this
     SharedTeleportIn
     SharedTeleportOut
@@ -47,6 +48,7 @@
     CallFunc           ; args: func ptr (2 bytes)
     SetActorFlags      ; args: actor index, new bObj value
     SetActorPosX       ; args: actor index, new X-position (2 bytes)
+    SetActorPosY       ; args: actor index, new Y-position (2 bytes)
     SetActorState1     ; args: actor index, new byte value
     SetActorState2     ; args: actor index, new byte value
     SetAvatarFlags     ; args: new bObj value
