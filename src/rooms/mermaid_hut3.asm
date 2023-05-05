@@ -86,7 +86,7 @@ _Actors_sActor_arr:
     d_byte Type_eActor, eActor::NpcMermaid
     d_word PosX_i16, $00a0
     d_word PosY_i16, $00c8
-    d_byte Param_byte, kTileIdMermaidPonytailFirst
+    d_byte Param_byte, kTileIdMermaidPhoebeFirst
     D_END
     .byte eActor::None
 _Devices_sDevice_arr:
@@ -106,13 +106,13 @@ _Devices_sDevice_arr:
     d_byte Type_eDevice, eDevice::TalkRight
     d_byte BlockRow_u8, 12
     d_byte BlockCol_u8, 9
-    d_byte Target_u8, eDialog::MermaidHut3MermaidGirl
+    d_byte Target_u8, eDialog::MermaidHut3MermaidPhoebe
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::TalkLeft
     d_byte BlockRow_u8, 12
     d_byte BlockCol_u8, 10
-    d_byte Target_u8, eDialog::MermaidHut3MermaidGirl
+    d_byte Target_u8, eDialog::MermaidHut3MermaidPhoebe
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::OpenDoorway
@@ -158,9 +158,9 @@ _HotSpringClosed_sDialog:
     .word ePortrait::Done
 .ENDPROC
 
-.EXPORT DataA_Dialog_MermaidHut3MermaidGirl_sDialog
-.PROC DataA_Dialog_MermaidHut3MermaidGirl_sDialog
-    .word ePortrait::MermaidGirl
+.EXPORT DataA_Dialog_MermaidHut3MermaidPhoebe_sDialog
+.PROC DataA_Dialog_MermaidHut3MermaidPhoebe_sDialog
+    .word ePortrait::MermaidPhoebe
     .byte "You're so lucky that$"
     .byte "you get to go on an$"
     .byte "adventure. I'm stuck$"

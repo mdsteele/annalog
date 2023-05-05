@@ -38,12 +38,12 @@
     ChildAlexShout = $0b0c
     ChildBruno     = $1413
     ChildMarie     = $1211
-    ChildNora      = $0a09  ; same portrait as MermaidGirl
+    ChildNora      = $0a09  ; same portrait as MermaidPhoebe
     MermaidAdult   = $0605
     MermaidCorra   = $0e0d
     MermaidFarmer  = $0807  ; same portrait as AdultMan
     MermaidFlorist = $100f
-    MermaidGirl    = $0a09  ; same portrait as ChildNora
+    MermaidPhoebe  = $0a09  ; same portrait as ChildNora
     MermaidQueen   = $0605  ; TODO: make a unique portrait for the queen
     OrcGronta      = $1716
     OrcGrontaShout = $1617
@@ -71,7 +71,7 @@
     MermaidHut1Queen
     MermaidHut2Guard
     MermaidHut3MermaidAdult
-    MermaidHut3MermaidGirl
+    MermaidHut3MermaidPhoebe
     MermaidHut4Florist
     MermaidHut5Nora
     MermaidVillageCorra

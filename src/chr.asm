@@ -1205,11 +1205,15 @@
     .incbin "out/data/tiles/mermaid_adult.chr"
     .assert * - :- = (kTileIdMermaidGuardFFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/mermaid_guardf.chr"
-    .assert * - :- = (kTileIdMermaidPonytailFirst - $80) * kSizeofChr, error
-    .incbin "out/data/tiles/mermaids.chr"
+    .assert * - :- = (kTileIdMermaidGuardMFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/mermaid_guardm.chr"
+    .assert * - :- = (kTileIdMermaidPhoebeFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/mermaid_phoebe.chr"
+    .assert * - :- = (kTileIdMermaidFarmerFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/mermaid_farmer.chr"
     .assert * - :- = (kTileIdMermaidQueenFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/mermaid_queen.chr"
-    .res $34 * kSizeofChr
+    .res $40 * kSizeofChr
     .assert * - :- = kSizeofChr * $80, error
 .ENDPROC
 

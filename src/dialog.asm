@@ -45,7 +45,7 @@
 .IMPORT DataA_Dialog_MermaidHut1Queen_sDialog
 .IMPORT DataA_Dialog_MermaidHut2Guard_sDialog
 .IMPORT DataA_Dialog_MermaidHut3MermaidAdult_sDialog
-.IMPORT DataA_Dialog_MermaidHut3MermaidGirl_sDialog
+.IMPORT DataA_Dialog_MermaidHut3MermaidPhoebe_sDialog
 .IMPORT DataA_Dialog_MermaidHut4Florist_sDialog
 .IMPORT DataA_Dialog_MermaidHut5Nora_sDialog
 .IMPORT DataA_Dialog_MermaidVillageCorra_sDialog
@@ -320,8 +320,8 @@ _UpdateScrolling:
     d_entry table, MermaidHut2Guard,   DataA_Dialog_MermaidHut2Guard_sDialog
     d_entry table, MermaidHut3MermaidAdult, \
             DataA_Dialog_MermaidHut3MermaidAdult_sDialog
-    d_entry table, MermaidHut3MermaidGirl, \
-            DataA_Dialog_MermaidHut3MermaidGirl_sDialog
+    d_entry table, MermaidHut3MermaidPhoebe, \
+            DataA_Dialog_MermaidHut3MermaidPhoebe_sDialog
     d_entry table, MermaidHut4Florist, DataA_Dialog_MermaidHut4Florist_sDialog
     d_entry table, MermaidHut5Nora,    DataA_Dialog_MermaidHut5Nora_sDialog
     d_entry table, MermaidVillageCorra, \

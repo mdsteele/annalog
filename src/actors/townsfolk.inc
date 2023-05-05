@@ -31,13 +31,13 @@ kTileIdAdultWomanFirst = $d0
 kTileIdAdultManFirst   = $d6
 
 ;;; The first tile IDs for various mermaids.
-kTileIdMermaidCorraFirst    = $8e
-kTileIdMermaidFloristFirst  = $94
-kTileIdMermaidAdultFirst    = $9a
-kTileIdMermaidGuardFFirst   = $a0
-kTileIdMermaidPonytailFirst = $a6
-kTileIdMermaidGuardMFirst   = $ac
-kTileIdMermaidFarmerFirst   = $be
-kTileIdMermaidQueenFirst    = $c4
+kTileIdMermaidCorraFirst   = $8e
+kTileIdMermaidFloristFirst = $94
+kTileIdMermaidAdultFirst   = $9a
+kTileIdMermaidGuardFFirst  = $a0
+kTileIdMermaidGuardMFirst  = $a6
+kTileIdMermaidPhoebeFirst  = $ac
+kTileIdMermaidFarmerFirst  = $b2
+kTileIdMermaidQueenFirst   = $b8
 
 ;;;=========================================================================;;;
