@@ -1182,7 +1182,8 @@
     .incbin "out/data/tiles/orc_gronta.chr"
     .assert * - :- = (kTileIdObjOrcRunningFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/orc_running.chr"
-    .res $10 * kSizeofChr
+    .assert * - :- = (kTileIdObjOrcThrowingFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/orc_throwing.chr"
     .assert * - :- = (kTileIdAdultWomanFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/adult_woman.chr"
     .assert * - :- = (kTileIdAdultManFirst - $80) * kSizeofChr, error

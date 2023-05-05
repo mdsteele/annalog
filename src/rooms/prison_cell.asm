@@ -776,7 +776,9 @@ _Error:
     .byte eAction::SetActorState1, kOrc1ActorIndex, eNpcOrc::Standing
     .byte eAction::WaitFrames, 30
     ;; Animate Anna getting thrown into the cell.
-    .byte eAction::SetActorState1, kOrc1ActorIndex, eNpcOrc::Running1
+    .byte eAction::SetActorState1, kOrc1ActorIndex, eNpcOrc::Throwing1
+    .byte eAction::WaitFrames, 6
+    .byte eAction::SetActorState1, kOrc1ActorIndex, eNpcOrc::Throwing2
     .byte eAction::CallFunc
     .addr _InitThrowAnna
     .byte eAction::SetCutsceneFlags, bCutscene::AvatarRagdoll

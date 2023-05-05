@@ -49,6 +49,8 @@
     Running3
     Running4
     Standing
+    Throwing1
+    Throwing2
     GrontaStanding
     GrontaArmsRaised
     NUM_VALUES
@@ -72,5 +74,6 @@ kOrcJumpVelocity = $ffff & -600
 kTileIdObjOrcGrontaFirst   = $a0
 kTileIdObjOrcRunningFirst  = $b0
 kTileIdObjOrcStandingFirst = $88
+kTileIdObjOrcThrowingFirst = $c0
 
 ;;;=========================================================================;;;

@@ -401,21 +401,25 @@ _CheckForFloor:
     jmp FuncA_Objects_Draw2x2Shape  ; preserves X
 _TileIdHead_u8_arr:
     D_ENUM eNpcOrc
-    d_byte Running1, kTileIdObjOrcHeadLow
-    d_byte Running2, kTileIdObjOrcHeadHigh
-    d_byte Running3, kTileIdObjOrcHeadLow
-    d_byte Running4, kTileIdObjOrcHeadHigh
-    d_byte Standing, kTileIdObjOrcHeadHigh
+    d_byte Running1,  kTileIdObjOrcHeadLow
+    d_byte Running2,  kTileIdObjOrcHeadHigh
+    d_byte Running3,  kTileIdObjOrcHeadLow
+    d_byte Running4,  kTileIdObjOrcHeadHigh
+    d_byte Standing,  kTileIdObjOrcHeadHigh
+    d_byte Throwing1, kTileIdObjOrcThrowingFirst + $00
+    d_byte Throwing2, kTileIdObjOrcThrowingFirst + $08
     d_byte GrontaStanding,   kTileIdObjOrcGrontaFirst + $00
     d_byte GrontaArmsRaised, kTileIdObjOrcGrontaFirst + $04
     D_END
 _TileIdFeet_u8_arr:
     D_ENUM eNpcOrc
-    d_byte Running1, kTileIdObjOrcFeetRunning1
-    d_byte Running2, kTileIdObjOrcFeetRunning2
-    d_byte Running3, kTileIdObjOrcFeetRunning3
-    d_byte Running4, kTileIdObjOrcFeetRunning2
-    d_byte Standing, kTileIdObjOrcFeetStanding
+    d_byte Running1,  kTileIdObjOrcFeetRunning1
+    d_byte Running2,  kTileIdObjOrcFeetRunning2
+    d_byte Running3,  kTileIdObjOrcFeetRunning3
+    d_byte Running4,  kTileIdObjOrcFeetRunning2
+    d_byte Standing,  kTileIdObjOrcFeetStanding
+    d_byte Throwing1, kTileIdObjOrcThrowingFirst + $04
+    d_byte Throwing2, kTileIdObjOrcThrowingFirst + $0c
     d_byte GrontaStanding,   kTileIdObjOrcGrontaFirst + $08
     d_byte GrontaArmsRaised, kTileIdObjOrcGrontaFirst + $0c
     D_END
