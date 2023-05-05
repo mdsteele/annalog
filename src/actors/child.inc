@@ -17,11 +17,43 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
-;;; The size of a gate platform, in pixels.
-kGatePlatformWidthPx  = $0d
-kGatePlatformHeightPx = $20
+;;; State bytes for child NPCs:
+;;;   * State1: The eNpcChild value.
+;;;   * State2: Boolean; If true ($ff), the NPC uses Ram_ActorFlags_bObj_arr
+;;;     unchanged; if false ($00), the NPC is automatically drawn facing the
+;;;     player avatar.
+;;;   * State3: Unused.
 
-;;; OBJ tile IDs for drawing prison gate platforms.
-kTileIdObjGateFirst = $85
+;;;=========================================================================;;;
+
+;;; Possible values for a child NPC actor's State1 byte.
+.ENUM eNpcChild
+    AlexBoosting
+    AlexHolding
+    AlexKneeling
+    AlexLooking
+    AlexStanding
+    AlexWalking1
+    AlexWalking2
+    BrunoStanding
+    BrunoWalking1
+    BrunoWalking2
+    MarieStanding
+    MarieWalking1
+    MarieWalking2
+    NoraStanding
+    NUM_VALUES
+.ENDENUM
+
+;;; Flags for the param byte for child NPC actors.
+.SCOPE bNpcChild
+    Pri      = %10000000  ; if set, draw this actor behind the background
+    EnumMask = %00011111  ; bits used for the eNpcChild value
+.ENDSCOPE
+
+;;;=========================================================================;;;
+
+;;; Tile IDs for drawing child NPC actors.
+kTileIdObjChildFirst = $e0
 
 ;;;=========================================================================;;;

@@ -18,6 +18,7 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "../actor.inc"
+.INCLUDE "../actors/child.inc"
 .INCLUDE "../actors/orc.inc"
 .INCLUDE "../actors/townsfolk.inc"
 .INCLUDE "../avatar.inc"

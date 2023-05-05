@@ -20,6 +20,7 @@
 .INCLUDE "actors/bird.inc"
 .INCLUDE "actors/breakball.inc"
 .INCLUDE "actors/bullet.inc"
+.INCLUDE "actors/child.inc"
 .INCLUDE "actors/crab.inc"
 .INCLUDE "actors/crawler.inc"
 .INCLUDE "actors/ember.inc"
@@ -57,6 +58,7 @@
 .INCLUDE "platforms/rocks.inc"
 .INCLUDE "platforms/stepstone.inc"
 .INCLUDE "rooms/boss_garden.inc"
+.INCLUDE "rooms/boss_temple.inc"
 .INCLUDE "rooms/garden_tower.inc"
 .INCLUDE "rooms/mine_west.inc"
 .INCLUDE "upgrade.inc"
@@ -858,6 +860,50 @@
 
 ;;;=========================================================================;;;
 
+.SEGMENT "CHR_ObjBoss1"
+
+.EXPORT Ppu_ChrObjBoss1
+.PROC Ppu_ChrObjBoss1
+:   .assert * - :- = (kTileIdObjUpgradeBottomFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/upgrade_bottom.chr"
+    .assert * - :- = (kTileIdObjUpgradeRamFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/upgrade_ram.chr"
+    .assert * - :- = (kTileIdObjBreakballFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/breakball.chr"
+    .res $02 * kSizeofChr
+    .assert * - :- = (kTileIdObjCannonFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/cannon.chr"
+    .res $04 * kSizeofChr
+    .assert * - :- = (kTileIdObjBulletFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/bullet.chr"
+    .res $06 * kSizeofChr
+    .assert * - :- = (kTileIdObjFireballFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/fireball.chr"
+    .assert * - :- = (kTileIdObjOutbreakFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/outbreak_obj.chr"
+    .res $08 * kSizeofChr
+    .assert * - :- = (kTileIdObjSpike - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/spike.chr"
+    .assert * - :- = (kTileIdObjFlamewaveFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/flamewave.chr"
+    .res $02 * kSizeofChr
+    .assert * - :- = (kTileIdObjPlantEyeFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/plant_eye.chr"
+    .assert * - :- = (kTileIdObjGrenadeFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/grenade.chr"
+    .assert * - :- = (kTileIdObjPlantEyeRedFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/plant_eye_red.chr"
+    .res $0c * kSizeofChr
+    .assert * - :- = (kTileIdObjMinigunVertFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/minigun_vert.chr"
+    .res $10 * kSizeofChr
+    .assert * - :- = (kTileIdObjBreakerFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/breaker.chr"
+    .assert * - :- = kSizeofChr * $80, error
+.ENDPROC
+
+;;;=========================================================================;;;
+
 .SEGMENT "CHR_ObjCrypt"
 
 .EXPORT Ppu_ChrObjCrypt
@@ -901,13 +947,15 @@
 .PROC Ppu_ChrObjFactory
 :   .assert * - :- = (kTileIdObjUpgradeBottomFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/upgrade_bottom.chr"
-    .res $12 * kSizeofChr
-    .assert * - :- = (kTileIdObjUpgradeOpSkipFirst - $80) * kSizeofChr, error
-    .incbin "out/data/tiles/upgrade_opskip.chr"
-    .res $04 * kSizeofChr
     .assert * - :- = (kTileIdJetFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/jet.chr"
-    .res $10 * kSizeofChr
+    .res $0c * kSizeofChr
+    .assert * - :- = (kTileIdObjUpgradeOpSkipFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/upgrade_opskip.chr"
+    .res $06 * kSizeofChr
+    .assert * - :- = (kTileIdObjGrubFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/grub.chr"
+    .res $08 * kSizeofChr
     .assert * - :- = (kTileIdCraneFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/crane.chr"
     .res $48 * kSizeofChr
@@ -922,9 +970,7 @@
 .PROC Ppu_ChrObjGarden
 :   .assert * - :- = (kTileIdObjUpgradeBottomFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/upgrade_bottom.chr"
-    .assert * - :- = (kTileIdObjUpgradeRamFirst - $80) * kSizeofChr, error
-    .incbin "out/data/tiles/upgrade_ram.chr"
-    .res $02 * kSizeofChr
+    .res $04 * kSizeofChr
     .assert * - :- = (kTileIdObjUpgradeOpIfFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/upgrade_opif.chr"
     .assert * - :- = (kTileIdObjCannonFirst - $80) * kSizeofChr, error
@@ -933,31 +979,23 @@
     .incbin "out/data/tiles/mermaid_corra.chr"
     .assert * - :- = (kTileIdObjCrateFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/crate.chr"
-    .res $02 * kSizeofChr
-    .assert * - :- = (kTileIdObjFireballFirst - $80) * kSizeofChr, error
-    .incbin "out/data/tiles/fireball.chr"
+    .res $04 * kSizeofChr
     .assert * - :- = (kTileIdObjGrubFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/grub.chr"
-    .assert * - :- = (kTileIdObjSpike - $80) * kSizeofChr, error
-    .incbin "out/data/tiles/spike.chr"
-    .res $01 * kSizeofChr
+    .res $02 * kSizeofChr
     .assert * - :- = (kTileIdObjGardenBricksFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/garden_bricks.chr"
     .assert * - :- = (kTileIdVinebugFirst1 - $80) * kSizeofChr, error
     .incbin "out/data/tiles/vinebug.chr"
-    .assert * - :- = (kTileIdObjPlantEyeFirst - $80) * kSizeofChr, error
-    .incbin "out/data/tiles/plant_eye.chr"
+    .res $04 * kSizeofChr
     .assert * - :- = (kTileIdObjGrenadeFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/grenade.chr"
-    .assert * - :- = (kTileIdObjPlantEyeRedFirst - $80) * kSizeofChr, error
-    .incbin "out/data/tiles/plant_eye_red.chr"
-    .assert * - :- = (kTileIdObjFishFirst - $80) * kSizeofChr, error
-    .incbin "out/data/tiles/fish.chr"
     .assert * - :- = (kTileIdObjBeetleFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/beetle.chr"
-    .assert * - :- = (kTileIdObjBreakerFirst - $80) * kSizeofChr, error
-    .incbin "out/data/tiles/breaker.chr"
-    .assert * - :- = kSizeofChr * $80, error
+    .res $04 * kSizeofChr
+    .assert * - :- = (kTileIdObjFishFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/fish.chr"
+    .res $20 * kSizeofChr
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -1064,50 +1102,6 @@
 
 ;;;=========================================================================;;;
 
-.SEGMENT "CHR_ObjPrison"
-
-.EXPORT Ppu_ChrObjPrison
-.PROC Ppu_ChrObjPrison
-:   .assert * - :- = (kTileIdObjToddlerFirst - $80) * kSizeofChr, error
-    .incbin "out/data/tiles/toddler.chr"
-    .assert * - :- = (kTileIdObjChildPonytailFirst - $80) * kSizeofChr, error
-    .incbin "out/data/tiles/child_ponytail.chr"
-    .assert * - :- = (kTileIdObjOrcStandingFirst - $80) * kSizeofChr, error
-    .incbin "out/data/tiles/orc_standing.chr"
-    .assert * - :- = (kTileIdObjLauncherFirst - $80) * kSizeofChr, error
-    .incbin "out/data/tiles/launcher.chr"
-    .assert * - :- = (kTileIdObjCrateFirst - $80) * kSizeofChr, error
-    .incbin "out/data/tiles/crate.chr"
-    .assert * - :- = (kTileIdObjRocksFirst - $80) * kSizeofChr, error
-    .incbin "out/data/tiles/rocks.chr"
-    .res $02 * kSizeofChr
-    .assert * - :- = (kTileIdObjGrubFirst - $80) * kSizeofChr, error
-    .incbin "out/data/tiles/grub.chr"
-    .assert * - :- = (kTileIdObjToadFirst - $80) * kSizeofChr, error
-    .incbin "out/data/tiles/toad.chr"
-    .assert * - :- = (kTileIdCraneFirst - $80) * kSizeofChr, error
-    .incbin "out/data/tiles/crane.chr"
-    .assert * - :- = (kTileIdObjOrcRunningFirst - $80) * kSizeofChr, error
-    .incbin "out/data/tiles/orc_running.chr"
-    .assert * - :- = (kTileIdObjAlexStandingFirst - $80) * kSizeofChr, error
-    .incbin "out/data/tiles/alex_standing.chr"
-    .res $0c * kSizeofChr
-    .assert * - :- = (kTileIdObjAlexWalkingFirst - $80) * kSizeofChr, error
-    .incbin "out/data/tiles/alex_walking.chr"
-    .assert * - :- = (kTileIdObjStepstone - $80) * kSizeofChr, error
-    .incbin "out/data/tiles/stepstone.chr"
-    .assert * - :- = (kTileIdObjGateFirst - $80) * kSizeofChr, error
-    .incbin "out/data/tiles/gate.chr"
-    .assert * - :- = (kTileIdObjChildCrewcutFirst - $80) * kSizeofChr, error
-    .incbin "out/data/tiles/child_crewcut.chr"
-    .assert * - :- = (kTileIdObjChildBobcutFirst - $80) * kSizeofChr, error
-    .incbin "out/data/tiles/child_bobcut.chr"
-    .res $04 * kSizeofChr
-    .assert * - :- = kSizeofChr * $80, error
-.ENDPROC
-
-;;;=========================================================================;;;
-
 .SEGMENT "CHR_ObjSewer"
 
 .EXPORT Ppu_ChrObjSewer
@@ -1134,23 +1128,17 @@
 .PROC Ppu_ChrObjTemple
 :   .assert * - :- = (kTileIdObjUpgradeBottomFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/upgrade_bottom.chr"
-    .assert * - :- = (kTileIdObjUpgradeRamFirst - $80) * kSizeofChr, error
-    .incbin "out/data/tiles/upgrade_ram.chr"
-    .assert * - :- = (kTileIdObjBreakballFirst - $80) * kSizeofChr, error
-    .incbin "out/data/tiles/breakball.chr"
+    .res $04 * kSizeofChr
     .assert * - :- = (kTileIdObjColumnFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/column.chr"
     .assert * - :- = (kTileIdObjUpgradeOpTilFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/upgrade_optil.chr"
-    .assert * - :- = (kTileIdObjFlamewaveFirst - $80) * kSizeofChr, error
-    .incbin "out/data/tiles/flamewave.chr"
-    .res $03 * kSizeofChr
+    .res $08 * kSizeofChr
     .assert * - :- = (kTileIdObjBulletFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/bullet.chr"
     .assert * - :- = (kTileIdObjCrateFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/crate.chr"
-    .res $04 * kSizeofChr
-    .incbin "out/data/tiles/outbreak_obj.chr"
+    .res $08 * kSizeofChr
     .assert * - :- = (kTileIdMermaidGuardFFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/mermaid_guardf.chr"
     .res $02 * kSizeofChr
@@ -1158,24 +1146,15 @@
     .incbin "out/data/tiles/toad.chr"
     .assert * - :- = (kTileIdObjColumnCrackedFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/column_cracked.chr"
+    .res $08 * kSizeofChr
+    .assert * - :- = (kTileIdObjBeetleFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/beetle.chr"
     .assert * - :- = (kTileIdObjMinigunHorzFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/minigun_horz.chr"
     .assert * - :- = (kTileIdObjMinigunVertFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/minigun_vert.chr"
-    .assert * - :- = (kTileIdObjAlexStandingFirst - $80) * kSizeofChr, error
-    .incbin "out/data/tiles/alex_standing.chr"
-    .assert * - :- = (kTileIdObjAlexLookingFirst - $80) * kSizeofChr, error
-    .res $04 * kSizeofChr
-    .incbin "out/data/tiles/alex_kneeling.chr"
-    .assert * - :- = (kTileIdObjAlexBoostingFirst - $80) * kSizeofChr, error
-    .incbin "out/data/tiles/alex_boosting.chr"
-    .assert * - :- = (kTileIdObjAlexWalkingFirst - $80) * kSizeofChr, error
-    .incbin "out/data/tiles/alex_walking.chr"
-    .assert * - :- = (kTileIdObjBeetleFirst - $80) * kSizeofChr, error
-    .incbin "out/data/tiles/beetle.chr"
-    .assert * - :- = (kTileIdObjBreakerFirst - $80) * kSizeofChr, error
-    .incbin "out/data/tiles/breaker.chr"
-    .assert * - :- = kSizeofChr * $80, error
+    .assert * - :- = (kTileIdObjChildFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/child.chr"
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -1184,27 +1163,30 @@
 
 .EXPORT Ppu_ChrObjTown
 .PROC Ppu_ChrObjTown
-:   .res $08 * kSizeofChr
+:   .assert * - :- = (kTileIdObjToddlerFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/toddler.chr"
+    .assert * - :- = (kTileIdObjStepstone - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/stepstone.chr"
+    .assert * - :- = (kTileIdObjGateFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/gate.chr"
     .assert * - :- = (kTileIdObjOrcStandingFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/orc_standing.chr"
-    .assert * - :- = (kTileIdAdultWomanFirst - $80) * kSizeofChr, error
+    .assert * - :- = (kTileIdObjLauncherFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/launcher.chr"
+    .assert * - :- = (kTileIdObjCrateFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/crate.chr"
+    .assert * - :- = (kTileIdObjRocksFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/rocks.chr"
+    .res $1e * kSizeofChr
+    .assert * - :- = (kTileIdObjOrcRunningFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/orc_running.chr"
+    .res $08 * kSizeofChr
     .incbin "out/data/tiles/adult_woman.chr"
     .assert * - :- = (kTileIdAdultManFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/adult_man.chr"
-    .res $1c * kSizeofChr
-    .assert * - :- = (kTileIdObjOrcRunningFirst - $80) * kSizeofChr, error
-    .incbin "out/data/tiles/orc_running.chr"
-    .assert * - :- = (kTileIdObjAlexStandingFirst - $80) * kSizeofChr, error
-    .incbin "out/data/tiles/alex_standing.chr"
-    .assert * - :- = (kTileIdObjAlexLookingFirst - $80) * kSizeofChr, error
-    .incbin "out/data/tiles/alex_looking.chr"
-    .assert * - :- = (kTileIdObjAlexKneelingFirst - $80) * kSizeofChr, error
-    .incbin "out/data/tiles/alex_kneeling.chr"
-    .assert * - :- = (kTileIdObjAlexHoldingFirst - $80) * kSizeofChr, error
-    .incbin "out/data/tiles/alex_holding.chr"
-    .assert * - :- = (kTileIdObjAlexWalkingFirst - $80) * kSizeofChr, error
-    .incbin "out/data/tiles/alex_walking.chr"
-    .res $20 * kSizeofChr
+    .res $04 * kSizeofChr
+    .assert * - :- = (kTileIdObjChildFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/child.chr"
     .assert * - :- = kSizeofChr * $80, error
 .ENDPROC
 

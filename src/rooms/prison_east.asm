@@ -42,7 +42,7 @@
 .IMPORT FuncC_Prison_TickGatePlatform
 .IMPORT Func_Noop
 .IMPORT Func_SetOrClearFlag
-.IMPORT Ppu_ChrObjPrison
+.IMPORT Ppu_ChrObjTown
 .IMPORT Ram_MachineGoalVert_u8_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORT Sram_ProgressFlags_arr
@@ -103,7 +103,7 @@ kStepstonePlatformIndex = 4
     d_addr TerrainData_ptr, _TerrainData
     d_byte NumMachines_u8, 1
     d_addr Machines_sMachine_arr_ptr, _Machines_sMachine_arr
-    d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjPrison)
+    d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjTown)
     d_addr Tick_func_ptr, FuncC_Prison_East_TickRoom
     d_addr Draw_func_ptr, FuncC_Prison_East_DrawRoom
     d_addr Ext_sRoomExt_ptr, _Ext_sRoomExt

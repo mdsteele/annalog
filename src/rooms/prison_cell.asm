@@ -80,7 +80,7 @@
 .IMPORT Func_ShakeRoom
 .IMPORT Main_Explore_Continue
 .IMPORT Main_Explore_EnterRoom
-.IMPORT Ppu_ChrObjPrison
+.IMPORT Ppu_ChrObjTown
 .IMPORT Ram_ActorFlags_bObj_arr
 .IMPORT Ram_ActorState1_byte_arr
 .IMPORT Ram_ActorState2_byte_arr
@@ -199,7 +199,7 @@ kGateBlockRow = 10
     d_addr TerrainData_ptr, _TerrainData
     d_byte NumMachines_u8, 2
     d_addr Machines_sMachine_arr_ptr, _Machines_sMachine_arr
-    d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjPrison)
+    d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjTown)
     d_addr Tick_func_ptr, FuncC_Prison_Cell_TickRoom
     d_addr Draw_func_ptr, FuncC_Prison_Cell_DrawRoom
     d_addr Ext_sRoomExt_ptr, _Ext_sRoomExt

@@ -18,9 +18,9 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "../actor.inc"
+.INCLUDE "../actors/child.inc"
 .INCLUDE "../actors/orc.inc"
 .INCLUDE "../actors/toddler.inc"
-.INCLUDE "../actors/townsfolk.inc"
 .INCLUDE "../avatar.inc"
 .INCLUDE "../charmap.inc"
 .INCLUDE "../cpu.inc"
@@ -44,7 +44,7 @@
 .IMPORT Func_Noop
 .IMPORT Func_SetFlag
 .IMPORT Main_Breaker_FadeBackToBreakerRoom
-.IMPORT Ppu_ChrObjPrison
+.IMPORT Ppu_ChrObjTown
 .IMPORT Ram_ActorPosX_i16_0_arr
 .IMPORT Ram_ActorPosX_i16_1_arr
 .IMPORT Ram_ActorState2_byte_arr
@@ -105,7 +105,7 @@ kAlexFreePositionX = $0090
     d_addr TerrainData_ptr, _TerrainData
     d_byte NumMachines_u8, 0
     d_addr Machines_sMachine_arr_ptr, 0
-    d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjPrison)
+    d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjTown)
     d_addr Tick_func_ptr, FuncC_Prison_Upper_TickRoom
     d_addr Draw_func_ptr, FuncC_Prison_Upper_DrawRoom
     d_addr Ext_sRoomExt_ptr, _Ext_sRoomExt
@@ -187,7 +187,7 @@ _Actors_sActor_arr:
     d_byte Type_eActor, eActor::NpcChild
     d_word PosX_i16, $0110
     d_word PosY_i16, $0078
-    d_byte Param_byte, bNpcChild::Pri | eNpcChild::PonytailStanding
+    d_byte Param_byte, bNpcChild::Pri | eNpcChild::NoraStanding
     D_END
     D_STRUCT sActor
     d_byte Type_eActor, eActor::NpcToddler
@@ -199,13 +199,13 @@ _Actors_sActor_arr:
     d_byte Type_eActor, eActor::NpcChild
     d_word PosX_i16, $0160
     d_word PosY_i16, $00b8
-    d_byte Param_byte, bNpcChild::Pri | eNpcChild::CrewcutStanding
+    d_byte Param_byte, bNpcChild::Pri | eNpcChild::BrunoStanding
     D_END
     D_STRUCT sActor
     d_byte Type_eActor, eActor::NpcChild
     d_word PosX_i16, $0190
     d_word PosY_i16, $00b8
-    d_byte Param_byte, bNpcChild::Pri | eNpcChild::BobcutStanding
+    d_byte Param_byte, bNpcChild::Pri | eNpcChild::MarieStanding
     D_END
     .assert * - :- = kOrc1ActorIndex * .sizeof(sActor), error
     D_STRUCT sActor

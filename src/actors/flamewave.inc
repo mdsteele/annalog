@@ -25,6 +25,6 @@
 ;;;   * State3: Unused.
 
 ;;; The first tile ID for drawing flamewave projectile actors.
-kTileIdObjFlamewaveFirst = $8a
+kTileIdObjFlamewaveFirst = $a9
 
 ;;;=========================================================================;;;

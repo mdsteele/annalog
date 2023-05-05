@@ -17,8 +17,8 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
+.INCLUDE "actors/child.inc"
 .INCLUDE "actors/orc.inc"
-.INCLUDE "actors/townsfolk.inc"
 .INCLUDE "avatar.inc"
 .INCLUDE "cpu.inc"
 .INCLUDE "cutscene.inc"

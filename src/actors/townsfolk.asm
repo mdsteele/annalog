@@ -18,7 +18,6 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "../actor.inc"
-.INCLUDE "../cpu.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
 .INCLUDE "../ppu.inc"
@@ -32,8 +31,6 @@
 .IMPORT FuncA_Objects_MoveShapeUpByA
 .IMPORT FuncA_Objects_MoveShapeUpOneTile
 .IMPORT FuncA_Objects_SetShapePosToActorCenter
-.IMPORT Func_InitActorWithState1
-.IMPORT Ram_ActorFlags_bObj_arr
 .IMPORT Ram_ActorState1_byte_arr
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORTZP Zp_FrameCounter_u8
@@ -42,34 +39,9 @@
 
 ;;; OBJ palette numbers to use for drawing various townsfolks NPC actors.
 kPaletteObjAdult            = 0
-kPaletteObjChild            = 1
 kPaletteObjMermaid          = 0
 kPaletteObjMermaidQueenBody = 0
 kPaletteObjMermaidQueenHead = 1
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Room"
-
-;;; Initializes a child NPC actor.
-;;; @prereq The actor's pixel position has already been initialized.
-;;; @param A The bNpcChild param.
-;;; @param X The actor index.
-;;; @preserve X
-.EXPORT FuncA_Room_InitActorNpcChild
-.PROC FuncA_Room_InitActorNpcChild
-    pha  ; bNpcChild bits
-    and #bNpcChild::EnumMask  ; param: state byte
-    ldy #eActor::NpcChild  ; param: actor type
-    jsr Func_InitActorWithState1  ; preserves X
-    pla  ; bNpcChild bits
-    .assert bNpcChild::Pri = bProc::Negative, error
-    bpl @done
-    lda #bObj::Pri
-    sta Ram_ActorFlags_bObj_arr, x
-    @done:
-    rts
-.ENDPROC
 
 ;;;=========================================================================;;;
 
@@ -86,22 +58,6 @@ kPaletteObjMermaidQueenHead = 1
     tay  ; param: object flags
     lda Ram_ActorState1_byte_arr, x  ; param: first tile ID
     jmp FuncA_Objects_Draw2x3TownsfolkShape  ; preserves X
-.ENDPROC
-
-;;; Draws a child NPC actor.
-;;; @param X The actor index.
-;;; @preserve X
-.EXPORT FuncA_Objects_DrawActorNpcChild
-.PROC FuncA_Objects_DrawActorNpcChild
-    jsr FuncA_Objects_SetShapePosToActorCenter  ; preserves X
-    jsr FuncA_Objects_GetNpcActorFlags  ; preserves X, returns A
-    .assert kPaletteObjChild <> 0, error
-    ora #kPaletteObjChild
-    tay  ; param: object flags
-    lda Ram_ActorState1_byte_arr, x  ; eNpcChild value
-    mul #4
-    ora #$80  ; param: first tile ID
-    jmp FuncA_Objects_Draw2x2Shape  ; preserves X
 .ENDPROC
 
 ;;; Draws a mermaid NPC actor.

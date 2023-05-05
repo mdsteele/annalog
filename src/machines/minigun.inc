@@ -18,7 +18,7 @@
 ;;;=========================================================================;;;
 
 ;;; Various OBJ tile IDs used for drawing minigun machines.
-kTileIdObjMinigunHorzFirst = $b8
-kTileIdObjMinigunVertFirst = $c0
+kTileIdObjMinigunHorzFirst = $d0
+kTileIdObjMinigunVertFirst = $d8
 
 ;;;=========================================================================;;;

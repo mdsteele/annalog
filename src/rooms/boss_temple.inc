@@ -17,11 +17,7 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
-;;; The size of a gate platform, in pixels.
-kGatePlatformWidthPx  = $0d
-kGatePlatformHeightPx = $20
-
-;;; OBJ tile IDs for drawing prison gate platforms.
-kTileIdObjGateFirst = $85
+;;; OBJ tile IDs for drawing the temple boss.
+kTileIdObjOutbreakFirst = $9c
 
 ;;;=========================================================================;;;

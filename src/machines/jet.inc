@@ -28,6 +28,6 @@ kJetPlatformHeightPx = $0b
 kJetMoveSpeed = 3
 
 ;;; The start of OBJ tile IDs used for drawing jet machines.
-kTileIdJetFirst = $9a
+kTileIdJetFirst = $82
 
 ;;;=========================================================================;;;

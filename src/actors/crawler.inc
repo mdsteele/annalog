@@ -25,7 +25,7 @@
 ;;;   * State3: Unused.
 
 ;;; Tile IDs for drawing beetle actors.
-kTileIdObjBeetleFirst = $e0
+kTileIdObjBeetleFirst = $c0
 kTileIdObjBeetleHorzFirst = kTileIdObjBeetleFirst + $00
 kTileIdObjBeetleVertFirst = kTileIdObjBeetleFirst + $08
 

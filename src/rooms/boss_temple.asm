@@ -32,6 +32,7 @@
 .INCLUDE "../program.inc"
 .INCLUDE "../room.inc"
 .INCLUDE "../window.inc"
+.INCLUDE "boss_temple.inc"
 
 .IMPORT DataA_Room_Temple_sTileset
 .IMPORT FuncA_Machine_GenericMoveTowardGoalHorz
@@ -66,7 +67,7 @@
 .IMPORT Func_SetPointToActorCenter
 .IMPORT Func_SetPointToPlatformCenter
 .IMPORT Ppu_ChrBgOutbreak
-.IMPORT Ppu_ChrObjTemple
+.IMPORT Ppu_ChrObjBoss1
 .IMPORT Ram_ActorType_eActor_arr
 .IMPORT Ram_ActorVelY_i16_1_arr
 .IMPORT Ram_MachineGoalHorz_u8_arr
@@ -178,7 +179,6 @@ kBossStunFrames = 250
 ;;;=========================================================================;;;
 
 ;;; OBJ tile IDs used for drawing the boss.
-kTileIdObjOutbreakFirst     = $9c
 kTileIdObjOutbreakBrain     = kTileIdObjOutbreakFirst + 0
 kTileIdObjOutbreakClaw      = kTileIdObjOutbreakFirst + 1
 kTileIdObjOutbreakEyeOpen   = kTileIdObjOutbreakFirst + 2
@@ -251,7 +251,7 @@ kBossBodyPlatformIndex = 3
     d_addr TerrainData_ptr, _TerrainData
     d_byte NumMachines_u8, 1
     d_addr Machines_sMachine_arr_ptr, _Machines_sMachine_arr
-    d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjTemple)
+    d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjBoss1)
     d_addr Tick_func_ptr, FuncC_Boss_Temple_TickRoom
     d_addr Draw_func_ptr, FuncC_Boss_Temple_DrawRoom
     d_addr Ext_sRoomExt_ptr, _Ext_sRoomExt

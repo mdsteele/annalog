@@ -22,6 +22,6 @@ kStepstonePlatformWidthPx  = $08
 kStepstonePlatformHeightPx = $06
 
 ;;; The OBJ tile ID for drawing stepping stone platforms.
-kTileIdObjStepstone = $e0
+kTileIdObjStepstone = $84
 
 ;;;=========================================================================;;;

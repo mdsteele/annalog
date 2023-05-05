@@ -18,7 +18,7 @@
 ;;;=========================================================================;;;
 
 ;;; OBJ tile IDs for drawing the garden boss.
-kTileIdObjPlantEyeFirst    = $b8
-kTileIdObjPlantEyeRedFirst = $c8
+kTileIdObjPlantEyeFirst    = $b0
+kTileIdObjPlantEyeRedFirst = $c0
 
 ;;;=========================================================================;;;
