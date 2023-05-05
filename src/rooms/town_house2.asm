@@ -159,8 +159,8 @@ _Devices_sDevice_arr:
 
 .SEGMENT "PRGA_Cutscene"
 
-.EXPORT DataA_Cutscene_TownHouse2WakeUp_arr
-.PROC DataA_Cutscene_TownHouse2WakeUp_arr
+.EXPORT DataA_Cutscene_TownHouse2WakeUp_sCutscene
+.PROC DataA_Cutscene_TownHouse2WakeUp_sCutscene
     .byte eAction::WaitFrames, 150
     .byte eAction::SetAvatarPose, eAvatar::Slumping
     .byte eAction::WaitFrames, 60

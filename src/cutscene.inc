@@ -17,6 +17,12 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
+;;; A sCutscene struct is a variable-length sequence of one or more actions,
+;;; where each action consists of an eAction byte followed by zero or more arg
+;;; bytes (depending on the eAction value).
+
+;;;=========================================================================;;;
+
 ;;; The list of cutscenes in the game.
 .ENUM eCutscene
     None
@@ -33,6 +39,8 @@
     TownOutdoorsOrcAttack
     NUM_VALUES
 .ENDENUM
+
+;;;=========================================================================;;;
 
 ;;; Flags to control which tick functions are called during a cutscene.
 .SCOPE bCutscene

@@ -26,17 +26,17 @@
 .INCLUDE "mmc3.inc"
 .INCLUDE "oam.inc"
 
-.IMPORT DataA_Cutscene_CoreBossPowerUpCircuit_arr
-.IMPORT DataA_Cutscene_MermaidHut1BreakerGarden_arr
-.IMPORT DataA_Cutscene_PrisonCellGetThrownIn_arr
-.IMPORT DataA_Cutscene_PrisonUpperBreakerTemple_arr
-.IMPORT DataA_Cutscene_SharedFadeBackToBreakerRoom_arr
-.IMPORT DataA_Cutscene_SharedTeleportIn_arr
-.IMPORT DataA_Cutscene_SharedTeleportOut_arr
-.IMPORT DataA_Cutscene_TempleNaveAlexBoosting_arr
-.IMPORT DataA_Cutscene_TownHouse2WakeUp_arr
-.IMPORT DataA_Cutscene_TownOutdoorsGetCaught_arr
-.IMPORT DataA_Cutscene_TownOutdoorsOrcAttack_arr
+.IMPORT DataA_Cutscene_CoreBossPowerUpCircuit_sCutscene
+.IMPORT DataA_Cutscene_MermaidHut1BreakerGarden_sCutscene
+.IMPORT DataA_Cutscene_PrisonCellGetThrownIn_sCutscene
+.IMPORT DataA_Cutscene_PrisonUpperBreakerTemple_sCutscene
+.IMPORT DataA_Cutscene_SharedFadeBackToBreakerRoom_sCutscene
+.IMPORT DataA_Cutscene_SharedTeleportIn_sCutscene
+.IMPORT DataA_Cutscene_SharedTeleportOut_sCutscene
+.IMPORT DataA_Cutscene_TempleNaveAlexBoosting_sCutscene
+.IMPORT DataA_Cutscene_TownHouse2WakeUp_sCutscene
+.IMPORT DataA_Cutscene_TownOutdoorsGetCaught_sCutscene
+.IMPORT DataA_Cutscene_TownOutdoorsOrcAttack_sCutscene
 .IMPORT FuncA_Actor_TickAllSmokeActors
 .IMPORT FuncA_Avatar_RagdollMove
 .IMPORT FuncA_Objects_DrawObjectsForRoom
@@ -116,39 +116,39 @@ _Finish:
 .SEGMENT "PRGA_Cutscene"
 
 ;;; An empty cutscene that just immediately jumps back to explore mode.
-.PROC DataA_Cutscene_Empty_arr
+.PROC DataA_Cutscene_Empty_sCutscene
     .byte eAction::ContinueExploring
 .ENDPROC
 
 ;;; Maps from an eCutscene value to a pointer to the cutscene action sequence.
 .LINECONT +
 .REPEAT 2, table
-    D_TABLE_LO table, DataA_Cutscene_Table_arr_ptr_0_arr
-    D_TABLE_HI table, DataA_Cutscene_Table_arr_ptr_1_arr
+    D_TABLE_LO table, DataA_Cutscene_Table_sCutscene_ptr_0_arr
+    D_TABLE_HI table, DataA_Cutscene_Table_sCutscene_ptr_1_arr
     D_TABLE eCutscene
-    d_entry table, None, DataA_Cutscene_Empty_arr
+    d_entry table, None, DataA_Cutscene_Empty_sCutscene
     d_entry table, CoreBossPowerUpCircuit, \
-            DataA_Cutscene_CoreBossPowerUpCircuit_arr
+            DataA_Cutscene_CoreBossPowerUpCircuit_sCutscene
     d_entry table, MermaidHut1BreakerGarden, \
-            DataA_Cutscene_MermaidHut1BreakerGarden_arr
+            DataA_Cutscene_MermaidHut1BreakerGarden_sCutscene
     d_entry table, PrisonCellGetThrownIn, \
-            DataA_Cutscene_PrisonCellGetThrownIn_arr
+            DataA_Cutscene_PrisonCellGetThrownIn_sCutscene
     d_entry table, PrisonUpperBreakerTemple, \
-            DataA_Cutscene_PrisonUpperBreakerTemple_arr
+            DataA_Cutscene_PrisonUpperBreakerTemple_sCutscene
     d_entry table, SharedFadeBackToBreakerRoom, \
-            DataA_Cutscene_SharedFadeBackToBreakerRoom_arr
+            DataA_Cutscene_SharedFadeBackToBreakerRoom_sCutscene
     d_entry table, SharedTeleportIn, \
-            DataA_Cutscene_SharedTeleportIn_arr
+            DataA_Cutscene_SharedTeleportIn_sCutscene
     d_entry table, SharedTeleportOut, \
-            DataA_Cutscene_SharedTeleportOut_arr
+            DataA_Cutscene_SharedTeleportOut_sCutscene
     d_entry table, TempleNaveAlexBoosting, \
-            DataA_Cutscene_TempleNaveAlexBoosting_arr
+            DataA_Cutscene_TempleNaveAlexBoosting_sCutscene
     d_entry table, TownHouse2WakeUp, \
-            DataA_Cutscene_TownHouse2WakeUp_arr
+            DataA_Cutscene_TownHouse2WakeUp_sCutscene
     d_entry table, TownOutdoorsGetCaught, \
-            DataA_Cutscene_TownOutdoorsGetCaught_arr
+            DataA_Cutscene_TownOutdoorsGetCaught_sCutscene
     d_entry table, TownOutdoorsOrcAttack, \
-            DataA_Cutscene_TownOutdoorsOrcAttack_arr
+            DataA_Cutscene_TownOutdoorsOrcAttack_sCutscene
     D_END
 .ENDREPEAT
 .LINECONT -
@@ -156,9 +156,9 @@ _Finish:
 ;;; Initializes variables for a new cutscene.
 ;;; @param X The eCutscene value for the cutscene to play.
 .PROC FuncA_Cutscene_Init
-    lda DataA_Cutscene_Table_arr_ptr_0_arr, x
+    lda DataA_Cutscene_Table_sCutscene_ptr_0_arr, x
     sta Zp_CutsceneAction_ptr + 0
-    lda DataA_Cutscene_Table_arr_ptr_1_arr, x
+    lda DataA_Cutscene_Table_sCutscene_ptr_1_arr, x
     sta Zp_CutsceneAction_ptr + 1
     lda #0
     sta Zp_CutsceneFlags_bCutscene
@@ -170,7 +170,7 @@ _Finish:
 ;;; @param Y The byte offset to add to Zp_CutsceneAction_ptr.
 ;;; @preserve X, Y, T0+
 .PROC FuncA_Cutscene_AdvanceActionPtr
-    Tya
+    tya
     add Zp_CutsceneAction_ptr + 0
     sta Zp_CutsceneAction_ptr + 0
     lda Zp_CutsceneAction_ptr + 1

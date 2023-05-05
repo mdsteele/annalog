@@ -58,8 +58,8 @@
 
 .SEGMENT "PRGA_Cutscene"
 
-.EXPORT DataA_Cutscene_SharedTeleportOut_arr
-.PROC DataA_Cutscene_SharedTeleportOut_arr
+.EXPORT DataA_Cutscene_SharedTeleportOut_sCutscene
+.PROC DataA_Cutscene_SharedTeleportOut_sCutscene
     .byte eAction::SetAvatarPose, eAvatar::Hidden
     .byte eAction::CallFunc
     .addr _MakeSmokePuff
@@ -76,8 +76,8 @@ _MakeSmokePuff:
     rts
 .ENDPROC
 
-.EXPORT DataA_Cutscene_SharedTeleportIn_arr
-.PROC DataA_Cutscene_SharedTeleportIn_arr
+.EXPORT DataA_Cutscene_SharedTeleportIn_sCutscene
+.PROC DataA_Cutscene_SharedTeleportIn_sCutscene
     .byte eAction::WaitFrames, 30
     ;; TODO: spawn a teleport zap actor
     .byte eAction::ContinueExploring

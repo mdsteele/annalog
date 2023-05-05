@@ -131,8 +131,8 @@ _Devices_sDevice_arr:
 
 .SEGMENT "PRGA_Cutscene"
 
-.EXPORT DataA_Cutscene_MermaidHut1BreakerGarden_arr
-.PROC DataA_Cutscene_MermaidHut1BreakerGarden_arr
+.EXPORT DataA_Cutscene_MermaidHut1BreakerGarden_sCutscene
+.PROC DataA_Cutscene_MermaidHut1BreakerGarden_sCutscene
     .byte eAction::WaitFrames, 60
     .byte eAction::ShakeRoom, 30
     .byte eAction::WaitFrames, 60

@@ -399,8 +399,8 @@ _OpenGate:
 
 .SEGMENT "PRGA_Cutscene"
 
-.EXPORT DataA_Cutscene_PrisonUpperBreakerTemple_arr
-.PROC DataA_Cutscene_PrisonUpperBreakerTemple_arr
+.EXPORT DataA_Cutscene_PrisonUpperBreakerTemple_sCutscene
+.PROC DataA_Cutscene_PrisonUpperBreakerTemple_sCutscene
     .byte eAction::WaitFrames, 60
     .byte eAction::ShakeRoom, 30
     .byte eAction::WaitFrames, 60

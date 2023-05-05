@@ -488,8 +488,8 @@ _OrcJumpFunc:
 
 .SEGMENT "PRGA_Cutscene"
 
-.EXPORT DataA_Cutscene_TownOutdoorsOrcAttack_arr
-.PROC DataA_Cutscene_TownOutdoorsOrcAttack_arr
+.EXPORT DataA_Cutscene_TownOutdoorsOrcAttack_sCutscene
+.PROC DataA_Cutscene_TownOutdoorsOrcAttack_sCutscene
     .byte eAction::CallFunc
     .addr _RemoveDevicesAndTownsfolk
     .byte eAction::WalkAlex, kAlexActorIndex
@@ -571,8 +571,8 @@ _InitOrcs:
     rts
 .ENDPROC
 
-.EXPORT DataA_Cutscene_TownOutdoorsGetCaught_arr
-.PROC DataA_Cutscene_TownOutdoorsGetCaught_arr
+.EXPORT DataA_Cutscene_TownOutdoorsGetCaught_sCutscene
+.PROC DataA_Cutscene_TownOutdoorsGetCaught_sCutscene
     .byte eAction::SetCutsceneFlags, bCutscene::AvatarRagdoll
     .byte eAction::WaitUntilC
     .addr _AnnaHasLanded

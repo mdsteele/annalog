@@ -762,8 +762,8 @@ _Error:
 
 .SEGMENT "PRGA_Cutscene"
 
-.EXPORT DataA_Cutscene_PrisonCellGetThrownIn_arr
-.PROC DataA_Cutscene_PrisonCellGetThrownIn_arr
+.EXPORT DataA_Cutscene_PrisonCellGetThrownIn_sCutscene
+.PROC DataA_Cutscene_PrisonCellGetThrownIn_sCutscene
     .byte eAction::WaitFrames, 60
     ;; Animate the prison gate opening.
     .byte eAction::WaitUntilZ

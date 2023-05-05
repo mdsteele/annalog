@@ -637,8 +637,8 @@ _MoveToBottomRight:
 
 .SEGMENT "PRGA_Cutscene"
 
-.EXPORT DataA_Cutscene_TempleNaveAlexBoosting_arr
-.PROC DataA_Cutscene_TempleNaveAlexBoosting_arr
+.EXPORT DataA_Cutscene_TempleNaveAlexBoosting_sCutscene
+.PROC DataA_Cutscene_TempleNaveAlexBoosting_sCutscene
     .byte eAction::WalkAlex, kAlexActorIndex
     .word kAlexBoostingPositionX
     ;; Animate Alex turning around, crouching down, and raising his arms to
