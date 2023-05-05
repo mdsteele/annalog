@@ -1177,10 +1177,13 @@
     .incbin "out/data/tiles/crate.chr"
     .assert * - :- = (kTileIdObjRocksFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/rocks.chr"
-    .res $1e * kSizeofChr
+    .res $06 * kSizeofChr
+    .assert * - :- = (kTileIdObjOrcGrontaFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/orc_gronta.chr"
     .assert * - :- = (kTileIdObjOrcRunningFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/orc_running.chr"
-    .res $08 * kSizeofChr
+    .res $10 * kSizeofChr
+    .assert * - :- = (kTileIdAdultWomanFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/adult_woman.chr"
     .assert * - :- = (kTileIdAdultManFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/adult_man.chr"

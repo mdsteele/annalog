@@ -103,6 +103,7 @@
     TownOutdoorsAlex1
     TownOutdoorsAlex2
     TownOutdoorsAlex3
+    TownOutdoorsGronta
     TownOutdoorsIvan
     TownOutdoorsSandra
     TownOutdoorsSign

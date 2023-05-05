@@ -39,6 +39,7 @@
 .IMPORT FuncA_Objects_SetShapePosToActorCenter
 .IMPORT Func_GetTerrainColumnPtrForPointX
 .IMPORT Func_InitActorWithFlags
+.IMPORT Func_InitActorWithState1
 .IMPORT Func_MovePointDownByA
 .IMPORT Func_PointHitsTerrain
 .IMPORT Func_SetPointToActorCenter
@@ -76,6 +77,9 @@ kTileIdObjOrcFeetRunning1 = kTileIdObjOrcRunningFirst  +  4
 kTileIdObjOrcFeetRunning2 = kTileIdObjOrcRunningFirst  +  8
 kTileIdObjOrcFeetRunning3 = kTileIdObjOrcRunningFirst  + 12
 
+;;; The OBJ palette number to use for Gronta's head.
+kPaletteObjGrontaHead = 1
+
 ;;;=========================================================================;;;
 
 .SEGMENT "PRG8"
@@ -89,6 +93,17 @@ kTileIdObjOrcFeetRunning3 = kTileIdObjOrcRunningFirst  + 12
 .PROC Func_InitActorBadOrc
     ldy #eActor::BadOrc  ; param: actor type
     jmp Func_InitActorWithFlags
+.ENDPROC
+
+;;; Initializes an orc NPC actor.
+;;; @prereq The actor's pixel position has already been initialized.
+;;; @param A The eNpcOrc value.
+;;; @param X The actor index.
+;;; @preserve X, T0+
+.EXPORT Func_InitActorNpcOrc
+.PROC Func_InitActorNpcOrc
+    ldy #eActor::NpcOrc  ; param: actor type
+    jmp Func_InitActorWithState1
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -363,7 +378,14 @@ _CheckForFloor:
 ;;; @preserve X
 .PROC FuncA_Objects_DrawActorOrcInPose
     sta T2  ; pose index
-    sty T3  ; object flags
+    sty T3  ; feet object flags
+    cmp #eNpcOrc::GrontaStanding
+    blt @notGronta
+    tya
+    ora #kPaletteObjGrontaHead
+    tay
+    @notGronta:
+    sty T4  ; head object flags
     jsr FuncA_Objects_SetShapePosToActorCenter  ; preserves X and T0+
     ;; Draw feet:
     ldy T2  ; pose index
@@ -375,7 +397,7 @@ _CheckForFloor:
     jsr FuncA_Objects_MoveShapeUpByA  ; preserves X and T0+
     ldy T2  ; pose index
     lda _TileIdHead_u8_arr, y  ; param: first tile ID
-    ldy T3  ; param: object flags
+    ldy T4  ; param: object flags
     jmp FuncA_Objects_Draw2x2Shape  ; preserves X
 _TileIdHead_u8_arr:
     D_ENUM eNpcOrc
@@ -384,6 +406,8 @@ _TileIdHead_u8_arr:
     d_byte Running3, kTileIdObjOrcHeadLow
     d_byte Running4, kTileIdObjOrcHeadHigh
     d_byte Standing, kTileIdObjOrcHeadHigh
+    d_byte GrontaStanding,   kTileIdObjOrcGrontaFirst + $00
+    d_byte GrontaArmsRaised, kTileIdObjOrcGrontaFirst + $04
     D_END
 _TileIdFeet_u8_arr:
     D_ENUM eNpcOrc
@@ -392,6 +416,8 @@ _TileIdFeet_u8_arr:
     d_byte Running3, kTileIdObjOrcFeetRunning3
     d_byte Running4, kTileIdObjOrcFeetRunning2
     d_byte Standing, kTileIdObjOrcFeetStanding
+    d_byte GrontaStanding,   kTileIdObjOrcGrontaFirst + $08
+    d_byte GrontaArmsRaised, kTileIdObjOrcGrontaFirst + $0c
     D_END
 .ENDPROC
 

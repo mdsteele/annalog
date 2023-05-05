@@ -40,6 +40,7 @@
 .IMPORT Func_AckIrqAndSetLatch
 .IMPORT Func_HarmAvatar
 .IMPORT Func_InitActorBadOrc
+.IMPORT Func_InitActorNpcOrc
 .IMPORT Func_Noop
 .IMPORT Main_LoadPrisonCellAndStartCutscene
 .IMPORT Ppu_ChrObjTown
@@ -83,6 +84,7 @@ kIvanActorIndex   = 1
 kSandraActorIndex = 2
 kOrc1ActorIndex   = 1
 kOrc2ActorIndex   = 2
+kGrontaActorIndex = 3
 
 ;;; The room pixel X-position that the Alex actor should be at when kneeling
 ;;; down to pick up the metal thing he found.
@@ -95,9 +97,10 @@ kCutsceneTimerTurning  = 20 + kCutsceneTimerStanding
 kCutsceneTimerHolding  = 30 + kCutsceneTimerTurning
 
 ;;; Initial room pixel positions for the orc actors.
-kOrcInitPosY  = $0098
-kOrc1InitPosX = $05e8
-kOrc2InitPosX = $05f9
+kOrcInitPosY    = $0098
+kGrontaInitPosX = $05d7
+kOrc1InitPosX   = $05e8
+kOrc2InitPosX   = $05f9
 
 ;;;=========================================================================;;;
 
@@ -407,18 +410,40 @@ _TurnAroundFunc:
 _WhaWhat_sDialog:
     .word ePortrait::ChildAlex
     .byte "Wha- what?#"
+    .addr _AttackFunc
+_AttackFunc:
+    lda #eNpcOrc::GrontaArmsRaised
+    sta Ram_ActorState1_byte_arr + kGrontaActorIndex
+    ldya #_Attack_sDialog
+    rts
+_Attack_sDialog:
     .word ePortrait::OrcGrontaShout
     .byte "Orcs, attaaaaaack!#"
     .word ePortrait::ChildAlexShout
     .byte "Anna, run!#"
-    .addr _AttackFunc
-_AttackFunc:
+    .addr _OrcJumpFunc
+_OrcJumpFunc:
     ldx #kOrc1ActorIndex
     jsr FuncC_Town_Outdoors_MakeOrcJump
     lda #30
     sta Zp_RoomState + sState::OrcJumpTimer_u8
     ldya #DataC_Town_TownOutdoorsEmpty_sDialog
     rts
+.ENDPROC
+
+.EXPORT DataC_Town_TownOutdoorsGronta_sDialog
+.PROC DataC_Town_TownOutdoorsGronta_sDialog
+    .word ePortrait::OrcGronta
+    .byte "Lieutenent Thurg! Have$"
+    .byte "the grunts round up$"
+    .byte "the townsfolk, and$"
+    .byte "lock these kids up.#"
+    .word ePortrait::OrcGronta
+    .byte "Then we can begin our$"
+    .byte "search.#"
+    .word ePortrait::OrcMale
+    .byte "Yes, Chief Gronta!#"
+    .word ePortrait::Done
 .ENDPROC
 
 .EXPORT DataC_Town_TownOutdoorsIvan_sDialog
@@ -494,6 +519,7 @@ _AttackFunc:
     .byte eAction::CallFunc
     .addr _InitOrcs
     .byte eAction::RunDialog, eDialog::TownOutdoorsAlex3
+    .byte eAction::SetActorState1, kGrontaActorIndex, eNpcOrc::GrontaStanding
     .byte eAction::ContinueExploring
 _RemoveDevicesAndTownsfolk:
     ;; Remove all devices from the room (so that the player can't start dialog
@@ -515,7 +541,11 @@ _SetScrollGoal:
     stax Zp_ScrollGoalX_u16
     rts
 _InitOrcs:
-    ldax #kOrc1InitPosX
+    ldax #kGrontaInitPosX
+    stx Ram_ActorPosX_i16_0_arr + kGrontaActorIndex
+    sta Ram_ActorPosX_i16_1_arr + kGrontaActorIndex
+    .assert >kOrc1InitPosX = >kGrontaInitPosX, error
+    ldx #<kOrc1InitPosX
     stx Ram_ActorPosX_i16_0_arr + kOrc1ActorIndex
     sta Ram_ActorPosX_i16_1_arr + kOrc1ActorIndex
     .assert >kOrc2InitPosX = >kOrc1InitPosX, error
@@ -523,17 +553,21 @@ _InitOrcs:
     stx Ram_ActorPosX_i16_0_arr + kOrc2ActorIndex
     sta Ram_ActorPosX_i16_1_arr + kOrc2ActorIndex
     ldax #kOrcInitPosY
+    stx Ram_ActorPosY_i16_0_arr + kGrontaActorIndex
+    sta Ram_ActorPosY_i16_1_arr + kGrontaActorIndex
     stx Ram_ActorPosY_i16_0_arr + kOrc1ActorIndex
     sta Ram_ActorPosY_i16_1_arr + kOrc1ActorIndex
     stx Ram_ActorPosY_i16_0_arr + kOrc2ActorIndex
     sta Ram_ActorPosY_i16_1_arr + kOrc2ActorIndex
+    ldx #kGrontaActorIndex  ; param: actor index
+    lda #eNpcOrc::GrontaStanding  ; param: eNpcOrc value
+    jsr Func_InitActorNpcOrc
     ldx #kOrc1ActorIndex  ; param: actor index
     lda #bObj::FlipH  ; param: actor flags
     jsr Func_InitActorBadOrc
     ldx #kOrc2ActorIndex  ; param: actor index
     lda #bObj::FlipH  ; param: actor flags
     jsr Func_InitActorBadOrc
-    ;; TODO: spawn actor for Chief Gronta
     rts
 .ENDPROC
 
@@ -550,7 +584,8 @@ _InitOrcs:
     .byte eAction::WaitFrames, 4
     .byte eAction::SetAvatarPose, eAvatar::Sleeping
     .byte eAction::WaitFrames, 120
-    ;; TODO: make Chief Gronta walk onscreen and give orders to the orc
+    ;; TODO: make Chief Gronta walk onscreen
+    .byte eAction::RunDialog, eDialog::TownOutdoorsGronta
     .byte eAction::JumpToMain
     .addr Main_LoadPrisonCellAndStartCutscene
 _AnnaHasLanded:

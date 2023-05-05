@@ -49,6 +49,8 @@
     Running3
     Running4
     Standing
+    GrontaStanding
+    GrontaArmsRaised
     NUM_VALUES
 .ENDENUM
 
@@ -67,7 +69,8 @@ kOrcMaxFallSpeed = $0500
 kOrcJumpVelocity = $ffff & -600
 
 ;;; Tile IDs for drawing orc baddie actors.
+kTileIdObjOrcGrontaFirst   = $a0
+kTileIdObjOrcRunningFirst  = $b0
 kTileIdObjOrcStandingFirst = $88
-kTileIdObjOrcRunningFirst = $b8
 
 ;;;=========================================================================;;;

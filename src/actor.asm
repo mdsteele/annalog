@@ -89,6 +89,7 @@
 .IMPORT FuncA_Room_InitActorNpcToddler
 .IMPORT FuncA_Room_InitActorProjBreakball
 .IMPORT Func_InitActorBadOrc
+.IMPORT Func_InitActorNpcOrc
 .IMPORT Func_InitActorProjBullet
 .IMPORT Func_InitActorProjEmber
 .IMPORT Func_InitActorProjFireball
@@ -663,7 +664,7 @@ _NoHit:
     d_entry table, NpcChild,        FuncA_Room_InitActorNpcChild
     d_entry table, NpcMermaid,      Func_InitActorWithState1
     d_entry table, NpcMermaidQueen, Func_InitActorDefault
-    d_entry table, NpcOrc,          Func_InitActorWithState1
+    d_entry table, NpcOrc,          Func_InitActorNpcOrc
     d_entry table, NpcToddler,      FuncA_Room_InitActorNpcToddler
     d_entry table, ProjBreakball,   FuncA_Room_InitActorProjBreakball
     d_entry table, ProjBullet,      Func_InitActorProjBullet
