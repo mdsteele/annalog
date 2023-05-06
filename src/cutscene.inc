@@ -52,6 +52,9 @@
     ;; Terminal actions:
     ContinueExploring  ; args: (none)
     JumpToMain         ; args: main ptr (2 bytes)
+    ;; Fork actions:
+    ForkStart          ; args: fork index, sCutscene ptr (2 bytes)
+    ForkStop           ; args: fork index (or $ff for current fork)
     ;; Zero-frame actions:
     CallFunc           ; args: func ptr (2 bytes)
     SetActorFlags      ; args: actor index, new bObj value

@@ -408,8 +408,8 @@ _OpenGate:
     .word $01b6
     .byte eAction::SetActorState1, kOrc2ActorIndex, eNpcOrc::Running3
     .byte eAction::RunDialog, eDialog::PrisonUpperBreakerTemple
-    .byte eAction::WalkNpcOrc, kOrc2ActorIndex
-    .word $01e8
+    .byte eAction::ForkStart, 1
+    .addr _Orc2Exit_sCutscene
     .byte eAction::WalkNpcOrc, kOrc1ActorIndex
     .word $01ac
     .byte eAction::SetActorPosY, kOrc1ActorIndex
@@ -419,6 +419,10 @@ _OpenGate:
     .byte eAction::WaitFrames, 60
     .byte eAction::JumpToMain
     .addr Main_Breaker_FadeBackToBreakerRoom
+_Orc2Exit_sCutscene:
+    .byte eAction::WalkNpcOrc, kOrc2ActorIndex
+    .word $01e8
+    .byte eAction::ForkStop, $ff
 .ENDPROC
 
 ;;;=========================================================================;;;
