@@ -61,9 +61,6 @@
 
 ;;;=========================================================================;;;
 
-;;; The maximum number of cutscene forks, including the main fork.
-kMaxForks = 4
-
 ;;; The fork index for the main cutscene fork.
 kMainForkIndex = 0
 

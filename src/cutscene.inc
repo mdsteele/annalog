@@ -20,6 +20,18 @@
 ;;; A sCutscene struct is a variable-length sequence of one or more actions,
 ;;; where each action consists of an eAction byte followed by zero or more arg
 ;;; bytes (depending on the eAction value).
+;;;
+;;; A cutscene can have up to kMaxForks concurrent forks of execution.  When a
+;;; cutscene starts, fork 0 (the "main" fork) starts executing the cutscene,
+;;; and all other forks are initially halted.  The other forks can be started
+;;; and stopped throughout the cutscene; if the main fork is ever stopped, then
+;;; the cutscene immediately ends and the game will return to explore mode.
+;;; During each frame, each fork executes in order (starting with fork 0),
+;;; switching to the next fork only once it reaches an action that suspends the
+;;; fork for one or more frames.
+
+;;; The maximum number of cutscene forks, including the main fork.
+kMaxForks = 4
 
 ;;;=========================================================================;;;
 
@@ -49,28 +61,57 @@
 
 ;;; Actions that can be executed during a cutscene.
 .ENUM eAction
-    ;; Terminal actions:
+    ;; Ends the cutscene immediately, returning to explore mode, even if other
+    ;; cutscene forks are still executing.
     ContinueExploring  ; args: (none)
+    ;; Ends the cutscene immediately, jumping to the specified main, even if
+    ;; other cutscene forks are still executing.
     JumpToMain         ; args: main ptr (2 bytes)
-    ;; Fork actions:
+    ;; Sets the specified cutscene fork to start executing the specified
+    ;; sCutscene struct, then the current fork immediately continues on to the
+    ;; next action.  If the current fork performs a ForkStart on itself, it
+    ;; will immediately start executing the new sCutscene.
     ForkStart          ; args: fork index, sCutscene ptr (2 bytes)
+    ;; Halts the specified cutscene fork.  If the main fork is halted, the
+    ;; cutscene ends immediately, returning to explore mode, even if other
+    ;; forks are still executing.  Otherwise, if the halted fork wasn't the
+    ;; current fork, then the current fork immediately continues on to the next
+    ;; action.
     ForkStop           ; args: fork index (or $ff for current fork)
-    ;; Zero-frame actions:
+    ;; Calls the specified function, then the current cutscene fork immediately
+    ;; continues on to the next action.
     CallFunc           ; args: func ptr (2 bytes)
+    ;; Sets a field on the specified actor to the specified value, then the
+    ;; current cutscene fork immediately continues on to the next action.
     SetActorFlags      ; args: actor index, new bObj value
     SetActorPosX       ; args: actor index, new X-position (2 bytes)
     SetActorPosY       ; args: actor index, new Y-position (2 bytes)
     SetActorState1     ; args: actor index, new byte value
     SetActorState2     ; args: actor index, new byte value
+    ;; Sets a field on the player avatar to the specified value, then the
+    ;; current cutscene fork immediately continues on to the next action.
     SetAvatarFlags     ; args: new bObj value
     SetAvatarPose      ; args: new eAvatar value
+    ;; Sets the cutscene tick flags to the specified value, then the current
+    ;; cutscene fork immediately continues on to the next action.
     SetCutsceneFlags   ; args: bCutscene value
+    ;; Shakes the room by the specified amount, then the current cutscene fork
+    ;; immediately continues on to the next action.
     ShakeRoom          ; args: num shake frames
-    ;; Multi-frame actions:
+    ;; Starts the specified dialog, and suspends *all* cutscene forks while the
+    ;; dialog runs.  The cutscene will continue once the dialog is done.
     RunDialog          ; args: eDialog value
+    ;; Suspends the current cutscene fork for the specified number of frames.
     WaitFrames         ; args: number of frames
+    ;; Calls the specified function.  If the function clears C/Z, then the
+    ;; current cutscene fork is suspended for one frame, and the function will
+    ;; be called again next frame.  If the function sets C/Z, then the current
+    ;; cutscene fork immediately continues on to the next action.
     WaitUntilC         ; args: func ptr (2 bytes); func must return C
     WaitUntilZ         ; args: func ptr (2 bytes); func must return Z
+    ;; Causes the specified actor to walk to the specified room pixel
+    ;; X-position.  Suspends the current cutscene fork until the actor reaches
+    ;; the goal position.
     WalkAlex           ; args: actor index, goal X-position (2 bytes)
     WalkNpcOrc         ; args: actor index, goal X-position (2 bytes)
     NUM_VALUES
