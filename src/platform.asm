@@ -18,6 +18,7 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "avatar.inc"
+.INCLUDE "cpu.inc"
 .INCLUDE "macros.inc"
 .INCLUDE "oam.inc"
 .INCLUDE "platform.inc"
@@ -30,7 +31,7 @@
 .IMPORTZP Zp_AvatarPosX_i16
 .IMPORTZP Zp_AvatarPosY_i16
 .IMPORTZP Zp_AvatarPushDelta_i8
-.IMPORTZP Zp_AvatarWaterDepth_u8
+.IMPORTZP Zp_AvatarState_bAvatar
 .IMPORTZP Zp_PointX_i16
 .IMPORTZP Zp_PointY_i16
 .IMPORTZP Zp_RoomScrollX_u16
@@ -821,7 +822,7 @@ _NotInPlatform:
 .SEGMENT "PRGA_Avatar"
 
 ;;; Checks whether the player avatar is currently in water, and updates
-;;; Zp_AvatarWaterDepth_u8 accordingly.
+;;; Zp_AvatarState_bAvatar accordingly.
 .EXPORT FuncA_Avatar_UpdateWaterDepth
 .PROC FuncA_Avatar_UpdateWaterDepth
     ldx #kMaxPlatforms - 1
@@ -829,24 +830,32 @@ _NotInPlatform:
     lda Ram_PlatformType_ePlatform_arr, x
     cmp #ePlatform::Water
     bne @continue
-    jsr FuncA_Avatar_IsInWaterPlatform  ; preserves X, returns A and Z
-    bne @done
+    jsr FuncA_Avatar_IsInWaterPlatform  ; preserves X, returns C and A
+    bcs _InWater
     @continue:
     dex
     .assert kMaxPlatforms <= $80, error
     bpl @loop
-    lda #0  ; not in water
+_NotInWater:
+    bit Zp_AvatarState_bAvatar
+    .assert bAvatar::Swimming = bProc::Overflow, error
+    bvc @done
+    lda #bAvatar::Airborne
+    sta Zp_AvatarState_bAvatar
     @done:
-    sta Zp_AvatarWaterDepth_u8
+    rts
+_InWater:
+    ora #bAvatar::Swimming
+    sta Zp_AvatarState_bAvatar
     rts
 .ENDPROC
 
 ;;; Checks whether the player avatar is currently in the specified Water
-;;; platform.  If not, sets Z; otherwise, clears Z and returns how far below
-;;; the surface the avatar is.
+;;; platform.  If not, clears C; otherwise, sets C and returns how far below
+;;; the surface the avatar is (clamped to bAvatar::DepthMask at most).
 ;;; @param X The platform index.
+;;; @return C Set if the avatar is in this Water platform.
 ;;; @return A The avatar's depth below the surface.
-;;; @return Z Set if the avatar is not in this Water platform.
 ;;; @preserve X
 .PROC FuncA_Avatar_IsInWaterPlatform
     ;; Check left edge of platform.
@@ -885,12 +894,16 @@ _NotInPlatform:
     bmi _NotInWater
     bne _MaxDepth
     lda T0  ; distance below water (lo)
+    cmp #bAvatar::DepthMask
+    bge _MaxDepth
+    sec
     rts
 _MaxDepth:
-    lda #$ff
+    lda #bAvatar::DepthMask
+    sec
     rts
 _NotInWater:
-    lda #0
+    clc
     rts
 .ENDPROC
 

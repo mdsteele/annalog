@@ -92,10 +92,10 @@
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORT Ram_PlatformType_ePlatform_arr
 .IMPORT Sram_ProgressFlags_arr
-.IMPORTZP Zp_AvatarLanding_u8
 .IMPORTZP Zp_AvatarPosX_i16
 .IMPORTZP Zp_AvatarPosY_i16
 .IMPORTZP Zp_AvatarPose_eAvatar
+.IMPORTZP Zp_AvatarState_bAvatar
 .IMPORTZP Zp_AvatarVelX_i16
 .IMPORTZP Zp_AvatarVelY_i16
 .IMPORTZP Zp_Camera_bScroll
@@ -822,12 +822,12 @@ _InitThrowAnna:
     stax Zp_AvatarPosY_i16
     rts
 _AnnaHasLanded:
-    lda Zp_AvatarPose_eAvatar
-    cmp #eAvatar::Landing
+    lda Zp_AvatarState_bAvatar
+    and #bAvatar::Airborne
     rts
 _FinishLanding:
     lda #0
-    sta Zp_AvatarLanding_u8
+    sta Zp_AvatarState_bAvatar
     sta Zp_AvatarVelX_i16 + 0
     sta Zp_AvatarVelX_i16 + 1
     rts

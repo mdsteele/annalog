@@ -52,10 +52,10 @@
 .IMPORT Ram_DeviceType_eDevice_arr
 .IMPORTZP Zp_AvatarFlags_bObj
 .IMPORTZP Zp_AvatarHarmTimer_u8
-.IMPORTZP Zp_AvatarLanding_u8
 .IMPORTZP Zp_AvatarPosX_i16
 .IMPORTZP Zp_AvatarPosY_i16
 .IMPORTZP Zp_AvatarPose_eAvatar
+.IMPORTZP Zp_AvatarState_bAvatar
 .IMPORTZP Zp_AvatarSubX_u8
 .IMPORTZP Zp_AvatarSubY_u8
 .IMPORTZP Zp_AvatarVelX_i16
@@ -290,7 +290,7 @@ _FadeOut:
     sta Zp_AvatarVelY_i16 + 0
     sta Zp_AvatarVelY_i16 + 1
     sta Zp_AvatarHarmTimer_u8
-    sta Zp_AvatarLanding_u8
+    sta Zp_AvatarState_bAvatar
     ;; Initialize the breaker mode's state machine.
     .assert ePhase::Adjust = 0, error
     sta Zp_Breaker_ePhase

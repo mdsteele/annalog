@@ -200,8 +200,8 @@ _TopEdge:
     sta Zp_AvatarPosY_i16 + 0
     lda #0
     sta Zp_AvatarPosY_i16 + 1
-    lda #$ff  ; param: is airborne ($ff = true)
-    ldx #0  ; param: facing direction (0 = right)
+    ldx #bAvatar::Airborne  ; param: bAvatar value
+    lda #0  ; param: facing direction (0 = right)
     beq _Finish  ; unconditional
 _BottomEdge:
     bit <(Zp_Current_sRoom + sRoom::Flags_bRoom)
@@ -215,8 +215,8 @@ _BottomEdge:
     ldax #kTallRoomHeightBlocks * kBlockHeightPx - kPassageSpawnMargin
     @finishBottom:
     stax Zp_AvatarPosY_i16
-    lda #$ff  ; param: is airborne ($ff = true)
-    ldx #0  ; param: facing direction (0 = right)
+    ldx #bAvatar::Airborne  ; param: bAvatar value
+    lda #0  ; param: facing direction (0 = right)
     beq _Finish  ; unconditional
 _EastWest:
     ora #kBlockHeightPx - kAvatarBoundingBoxDown
@@ -231,17 +231,16 @@ _EastEdge:
     lda <(Zp_Current_sRoom + sRoom::MaxScrollX_u16 + 1)
     adc #0
     sta Zp_AvatarPosX_i16 + 1
-    lda #0  ; param: is airborne (0 = false)
-    ldx #bObj::FlipH  ; param: facing direction (FlipH = left)
+    ldx #0  ; param: bAvatar value
+    lda #bObj::FlipH  ; param: facing direction (FlipH = left)
     bne _Finish  ; unconditional
 _WestEdge:
     lda <(Zp_Current_sRoom + sRoom::MinScrollX_u8)
     add #kPassageSpawnMargin
     sta Zp_AvatarPosX_i16 + 0
-    lda #0
+    lda #0  ; param: facing direction (0 = right)
     sta Zp_AvatarPosX_i16 + 1
-    lda #0  ; param: is airborne (0 = false)
-    tax  ; param: facing direction (0 = right)
+    tax  ; param: bAvatar value
 _Finish:
     jmp FuncA_Avatar_InitMotionless
 .ENDPROC
@@ -308,8 +307,8 @@ _Finish:
     ora #kBlockHeightPx - kAvatarBoundingBoxDown
     sta Zp_AvatarPosY_i16 + 0
     ;; Make the avatar stand still, facing to the right.
-    lda #0  ; param: is airborne (0 = false)
-    tax  ; param: facing direction (0 = right)
+    lda #0  ; param: facing direction (0 = right)
+    tax  ; param: bAvatar value
     jmp FuncA_Avatar_InitMotionless
 _DeviceOffset_u8_arr:
     D_ENUM eDevice

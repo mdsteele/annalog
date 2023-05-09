@@ -34,8 +34,6 @@
 .IMPORT Func_GetTerrainColumnPtrForPointX
 .IMPORT Func_HarmAvatar
 .IMPORT Func_KillAvatar
-.IMPORTZP Zp_AvatarAirborne_bool
-.IMPORTZP Zp_AvatarLanding_u8
 .IMPORTZP Zp_AvatarPosX_i16
 .IMPORTZP Zp_AvatarPosY_i16
 .IMPORTZP Zp_AvatarSubX_u8
@@ -282,7 +280,7 @@ _MovingLeft:
     lda Zp_AvatarExit_ePassage
     .assert ePassage::None = 0, error
     bne _Done
-_ApplyVelocity:
+_Push:
     lda Zp_AvatarPushDelta_i8
     bpl @nonnegative
     dey  ; now y is $ff
@@ -295,7 +293,7 @@ _ApplyVelocity:
 _DetectPassage:
     jsr Func_AvatarDetectVertPassage  ; preserves X, returns Z and A
     sta Zp_AvatarExit_ePassage
-    bne _NowAirborne
+    bne _Done
 _DetectCollision:
     ;; Preserve X across these function calls that don't preserve it.
     txa
@@ -304,14 +302,10 @@ _DetectCollision:
     jsr Func_AvatarCollideWithAllPlatformsVert
     pla
     tax
-    ;; If no vertical collision occurred, then the avatar is now airborne
-    ;; (unless it's in water, but that will be detected later).
     lda Zp_AvatarCollided_ePlatform
     .assert ePlatform::None = 0, error
-    beq _NowAirborne
+    beq _Done  ; no collision
 _HandleCollision:
-    ldy Zp_AvatarVelY_i16 + 1
-    sty T0  ; old Y-velocity (hi)
     ;; Set vertical velocity and subpixel position to zero.
     ldy #0
     sty Zp_AvatarSubY_u8
@@ -321,30 +315,8 @@ _HandleCollision:
     cmp #ePlatform::Kill
     jeq Func_KillAvatar  ; preserves X
     cmp #ePlatform::Harm
-    bne @noHarm
-    jsr Func_HarmAvatar  ; preserves X
-    @noHarm:
-    ;; If this was a downward collision, the avatar is now grounded.  If it was
-    ;; an upward collision, the avatar must be airborne.
-    bit Zp_AvatarPushDelta_i8
-    bpl _NowGrounded
-_NowAirborne:
-    lda #$ff
-    sta Zp_AvatarAirborne_bool
+    jeq Func_HarmAvatar  ; preserves X
 _Done:
-    rts
-_NowGrounded:
-    bit Zp_AvatarAirborne_bool
-    bpl @done
-    @wasAirborne:
-    ldy T0  ; old Y-velocity (hi)
-    bmi @nowGrounded
-    lda Data_AvatarLandingFrames_u8_arr, y
-    sta Zp_AvatarLanding_u8
-    @nowGrounded:
-    lda #0
-    sta Zp_AvatarAirborne_bool
-    @done:
     rts
 .ENDPROC
 
@@ -526,14 +498,6 @@ _MovingDown:
     adc #0
     sta Zp_PointX_i16 + 1
     jmp Func_GetTerrainColumnPtrForPointX  ; preserves T0+
-.ENDPROC
-
-;;; Maps from non-negative (Zp_AvatarVelY_i16 + 1) values to the value to set
-;;; for Zp_AvatarLanding_u8.  The higher the downward speed, the longer the
-;;; recovery time.
-.PROC Data_AvatarLandingFrames_u8_arr
-:   .byte 0, 0, 8, 8, 12, 18
-    .assert * - :- = 1 + >kAvatarMaxAirSpeedVert, error
 .ENDPROC
 
 ;;;=========================================================================;;;

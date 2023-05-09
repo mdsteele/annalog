@@ -38,6 +38,7 @@
 .IMPORT Ppu_ChrObjAnnaFlower
 .IMPORT Ppu_ChrObjAnnaNormal
 .IMPORT Sram_CarryingFlower_eFlag
+.IMPORTZP Zp_AvatarCollided_ePlatform
 .IMPORTZP Zp_AvatarExit_ePassage
 .IMPORTZP Zp_AvatarPushDelta_i8
 .IMPORTZP Zp_FrameCounter_u8
@@ -100,26 +101,26 @@ Zp_AvatarVelY_i16: .res 2
 .EXPORTZP Zp_AvatarFlags_bObj
 Zp_AvatarFlags_bObj: .res 1
 
-;;; How far below the surface of the water the player avatar is, in pixels.  If
-;;; the avatar is not in water, this is zero.  If the avatar is more than $ff
-;;; pixels underwater, this is $ff.
-.EXPORTZP Zp_AvatarWaterDepth_u8
-Zp_AvatarWaterDepth_u8: .res 1
-
-;;; If false ($00), then the player avatar is on solid ground; if true ($ff),
-;;; then the avatar is in midair.  This value is only meaningful if the avatar
-;;; is not in water (i.e. if Zp_AvatarWaterDepth_u8 is zero).
-.EXPORTZP Zp_AvatarAirborne_bool
-Zp_AvatarAirborne_bool: .res 1
+;;; State bits indicating whether the player avatar is grounded, swimming or
+;;; airborne:
+;;;   * If the avatar is grounded, then the Airborne/Swimming/Jumping bits are
+;;;     cleared, and the LandMask bits indicate how many more frames until the
+;;;     avatar is done landing from a jump (normally zero).
+;;;   * If the avatar is swimming, then the Swimming bit is set, the
+;;;     Airborne/Jumping bits are cleared, and the DepthMask bits indicate how
+;;;     many pixels underwater the avatar is (0 if at the surface; clamped if
+;;;     the depth is too great to fit in DepthMask).
+;;;   * If the avatar is airborne, then the Airborne bit is set, and the
+;;;     Swimming/DepthMask/LandMask bits are cleared.  If the avatar is in
+;;;     midair because it just jumped, then the Jumping bit will be set,
+;;;     indicating that releasing the A button early should slow the avatar's
+;;;     Y-velocity.
+.EXPORTZP Zp_AvatarState_bAvatar
+Zp_AvatarState_bAvatar: .res 1
 
 ;;; What pose the avatar is currently in (e.g. standing, jumping, etc.).
 .EXPORTZP Zp_AvatarPose_eAvatar
 Zp_AvatarPose_eAvatar: .res 1
-
-;;; How many more frames the player avatar should stay in eAvatar::Landing pose
-;;; (after landing from a jump).
-.EXPORTZP Zp_AvatarLanding_u8
-Zp_AvatarLanding_u8: .res 1
 
 ;;; If zero, the player avatar is at full health; otherwise, the avatar has
 ;;; been harmed, and will be back to full health in this many frames.
@@ -134,17 +135,15 @@ Zp_AvatarHarmTimer_u8: .res 1
 ;;; avatar's velocity will be set to zero.
 ;;; @prereq The room is loaded.
 ;;; @prereq The avatar position has been initialized.
-;;; @param A True ($ff) if airborne, false ($00) otherwise.
-;;; @param X The facing direction (either 0 or bObj::FlipH).
+;;; @param A The facing direction (either 0 or bObj::FlipH).
+;;; @param X The initial bAvatar value to set.
 .EXPORT FuncA_Avatar_InitMotionless
 .PROC FuncA_Avatar_InitMotionless
-    sta Zp_AvatarAirborne_bool
-    txa  ; facing direction
+    stx Zp_AvatarState_bAvatar
     ora #kPaletteObjAvatarNormal
     sta Zp_AvatarFlags_bObj
     lda #0
     sta Zp_AvatarHarmTimer_u8
-    sta Zp_AvatarLanding_u8
     sta Zp_AvatarSubX_u8
     sta Zp_AvatarSubY_u8
     sta Zp_AvatarVelX_i16 + 0
@@ -154,9 +153,10 @@ Zp_AvatarHarmTimer_u8: .res 1
     jsr FuncA_Avatar_UpdateWaterDepth
 _SetAvatarPose:
     ;; Determine whether the avatar is standing, hovering, or swimming.
-    lda Zp_AvatarWaterDepth_u8
-    bne @swimming
-    bit Zp_AvatarAirborne_bool
+    bit Zp_AvatarState_bAvatar
+    .assert bAvatar::Swimming = bProc::Overflow, error
+    bvs @swimming
+    .assert bAvatar::Airborne = bProc::Negative, error
     bmi @hovering
     @standing:
     lda #eAvatar::Standing
@@ -202,9 +202,16 @@ _InitChr10Bank:
 .EXPORT FuncA_Avatar_RagdollMove
 .PROC FuncA_Avatar_RagdollMove
 _RecoverFromLanding:
-    lda Zp_AvatarLanding_u8
-    beq @done
-    dec Zp_AvatarLanding_u8
+    bit Zp_AvatarState_bAvatar
+    .assert bAvatar::Airborne = bProc::Negative, error
+    bmi @done
+    .assert bAvatar::Swimming = bProc::Overflow, error
+    bvs @done
+    lda Zp_AvatarState_bAvatar
+    and #bAvatar::LandMask
+    beq @done  ; landing timer is already zero
+    .assert bAvatar::LandMask & $01, error
+    dec Zp_AvatarState_bAvatar
     @done:
 _ApplyVelocity:
     ;; Move horizontally first, then vertically.
@@ -219,10 +226,11 @@ _ApplyGravity:
     jsr FuncA_Avatar_UpdateWaterDepth
     jsr FuncA_Avatar_ApplyGravity
 _SetAvatarPose:
-    ;; Check if the player avatar is in water.
-    lda Zp_AvatarWaterDepth_u8
-    bne _SetPoseInWater
-    bit Zp_AvatarAirborne_bool
+    ;; Check if the player avatar is airborne, swimming, or grounded.
+    bit Zp_AvatarState_bAvatar
+    .assert bAvatar::Swimming = bProc::Overflow, error
+    bvs _SetPoseInWater
+    .assert bAvatar::Airborne = bProc::Negative, error
     bpl _SetPoseOnGround
 _SetPoseInAir:
     ;; The player avatar is airborne; set its pose based on its Y-velocity.
@@ -254,8 +262,9 @@ _SetPoseInWater:
     sta Zp_AvatarPose_eAvatar
     rts
 _SetPoseOnGround:
-    lda Zp_AvatarLanding_u8
-    beq @standOrRun
+    lda Zp_AvatarState_bAvatar
+    and #bAvatar::LandMask
+    beq @standOrRun  ; landing timer is zero
     @landing:
     lda Zp_P1ButtonsHeld_bJoypad
     and #bJoypad::Down
@@ -316,9 +325,46 @@ _SetPoseOnGround:
     add Zp_AvatarSubY_u8
     sta Zp_AvatarSubY_u8
     lda Zp_AvatarVelY_i16 + 1
+    pha  ; old Y-velocity (hi)
     adc #0
     sta Zp_AvatarPushDelta_i8
-    jmp Func_TryPushAvatarVert
+    jsr Func_TryPushAvatarVert
+    pla  ; old Y-velocity (hi)
+    bmi _NowAirborne  ; avatar is moving up
+    sta T0  ; old Y-velocity (hi)
+    lda Zp_AvatarCollided_ePlatform
+    .assert ePlatform::None = 0, error
+    beq _NowAirborne  ; no downward collision
+_NowGrounded:
+    bit Zp_AvatarState_bAvatar
+    .assert bAvatar::Airborne = bProc::Negative, error
+    bpl @done  ; avatar was already grounded
+    @wasAirborne:
+    lda #0
+    ldy T0  ; old Y-velocity (hi)
+    bmi @setState
+    lda DataA_Avatar_LandingFrames_u8_arr, y
+    @setState:
+    sta Zp_AvatarState_bAvatar
+    @done:
+    rts
+_NowAirborne:
+    bit Zp_AvatarState_bAvatar
+    .assert bAvatar::Airborne = bProc::Negative, error
+    bmi @done
+    lda #bAvatar::Airborne
+    sta Zp_AvatarState_bAvatar
+    @done:
+    rts
+.ENDPROC
+
+;;; Maps from non-negative (Zp_AvatarVelY_i16 + 1) values to the value to set
+;;; for Zp_AvatarLanding_u8.  The higher the downward speed, the longer the
+;;; recovery time.
+.PROC DataA_Avatar_LandingFrames_u8_arr
+:   .byte 0, 0, 8, 8, 12, 18
+    .assert 18 <= bAvatar::LandMask, error
+    .assert * - :- = 1 + >kAvatarMaxAirSpeedVert, error
 .ENDPROC
 
 ;;; Updates the player avatar's X-velocity and flags based on the D-pad
@@ -391,8 +437,9 @@ _Stop:
 _DetermineLimit:
     ;; Determine the (negative) X-velocity limit in pixels/frame, storing it in
     ;; T0.
-    lda Zp_AvatarWaterDepth_u8
-    beq @inAir
+    bit Zp_AvatarState_bAvatar
+    .assert bAvatar::Swimming = bProc::Overflow, error
+    bvc @inAir
     @inWater:
     .assert <kAvatarMaxWaterSpeedHorz = 0, error
     lda #>-kAvatarMaxWaterSpeedHorz
@@ -454,8 +501,9 @@ _AccelerateTowardsLimit:
 _DetermineLimit:
     ;; Determine the (positive) X-velocity limit in pixels/frame, storing it in
     ;; T0.
-    lda Zp_AvatarWaterDepth_u8
-    beq @inAir
+    bit Zp_AvatarState_bAvatar
+    .assert bAvatar::Swimming = bProc::Overflow, error
+    bvc @inAir
     @inWater:
     .assert <kAvatarMaxWaterSpeedHorz = 0, error
     lda #>kAvatarMaxWaterSpeedHorz
@@ -510,14 +558,17 @@ _AccelerateTowardsLimit:
 ;;; Updates the player avatar's Y-velocity based on the jump button.
 .PROC FuncA_Avatar_ApplyJump
     ;; Check whether the avatar can jump right now.
-    lda Zp_AvatarWaterDepth_u8
-    beq _NotInWater
-    cmp #1
-    beq _Grounded  ; floating on surface of water; allow jumping as if grounded
-    rts  ; avatar is underwater and cannot jump
-_NotInWater:
-    bit Zp_AvatarAirborne_bool
+    bit Zp_AvatarState_bAvatar
+    .assert bAvatar::Airborne = bProc::Negative, error
     bmi _Airborne
+    .assert bAvatar::Swimming = bProc::Overflow, error
+    bvc _Grounded
+    ;; At this point, we know the avatar is swimming, so check if the avatar is
+    ;; underwater, or at the surface.  If at the surface, allow jumping as if
+    ;; grounded.
+    lda Zp_AvatarState_bAvatar
+    and #bAvatar::DepthMask
+    bne _Return  ; avatar is underwater and cannot jump
 _Grounded:
     ;; If the player presses the jump button while grounded, start a jump.
     bit Zp_P1ButtonsPressed_bJoypad
@@ -527,44 +578,51 @@ _Grounded:
     jsr Func_PlaySfxSample
     ldax #kAvatarJumpVelocity
     stax Zp_AvatarVelY_i16
-    lda #$ff
-    sta Zp_AvatarAirborne_bool
+    lda #bAvatar::Airborne | bAvatar::Jumping
+    sta Zp_AvatarState_bAvatar
     @noJump:
     rts
 _Airborne:
-    ;; If the player stops holding the jump button while airborne, cap the
+    ;; If the player stops holding the jump button while jumping, cap the
     ;; upward speed to kAvatarStopJumpSpeed (that is, the Y velocity will be
     ;; greater than or equal to -kAvatarStopJumpSpeed).
     ;; TODO: This interacts poorly with being pushed up by e.g. steam.
+    lda Zp_AvatarState_bAvatar
+    and #bAvatar::Jumping
+    beq _Return  ; avatar is airborne, but is not jumping
     bit Zp_P1ButtonsHeld_bJoypad
     .assert bJoypad::AButton = bProc::Negative, error
-    bmi _DoneJump
+    bmi _Return  ; A button is still held, so don't slow the jump
     lda Zp_AvatarVelY_i16 + 1
-    bpl _DoneJump
+    bpl _Return  ; avatar is moving downward, not upward
     cmp #$ff & -kAvatarStopJumpSpeed
-    bge _DoneJump
+    bge _Return  ; avatar is already at or below the upward speed cap
     lda #$ff & -kAvatarStopJumpSpeed
     sta Zp_AvatarVelY_i16 + 1
     lda #$00
     sta Zp_AvatarVelY_i16 + 0
-_DoneJump:
+_Return:
     rts
 .ENDPROC
 
 ;;; Updates the player avatar's Y-velocity to apply gravity.
 .PROC FuncA_Avatar_ApplyGravity
-    ldy Zp_AvatarWaterDepth_u8
-    beq _InAir
+    bit Zp_AvatarState_bAvatar
+    .assert bAvatar::Airborne = bProc::Negative, error
+    bmi _InAir
+    .assert bAvatar::Swimming = bProc::Overflow, error
+    bvc _Done
 _InWater:
-    ;; Calculate the max upward speed in pixels/frame: either (depth - 1) or
+    lda Zp_AvatarState_bAvatar
+    and #bAvatar::DepthMask
+    ;; Calculate the max upward speed in pixels/frame: either (depth) or
     ;; >kAvatarMaxWaterSpeedUp, whichever is less.
-    dey
     .assert <kAvatarMaxWaterSpeedUp = 0, error
-    cpy #>kAvatarMaxWaterSpeedUp
+    cmp #>kAvatarMaxWaterSpeedUp
     blt @setMaxUpwardSpeed
-    ldy #>kAvatarMaxWaterSpeedUp
+    lda #>kAvatarMaxWaterSpeedUp
     @setMaxUpwardSpeed:
-    sty T0  ; max upward speed
+    sta T0  ; max upward speed
     ;; Accelerate the player avatar upwards.
     lda Zp_AvatarVelY_i16 + 0
     sub #kAvatarBouyancy
@@ -600,9 +658,6 @@ _InWater:
     @done:
     rts
 _InAir:
-    ;; Only apply gravity if the player avatar is airborne.
-    bit Zp_AvatarAirborne_bool
-    bpl @noGravity
     ;; Accelerate the player avatar downwards.
     lda #kAvatarGravity
     add Zp_AvatarVelY_i16 + 0
@@ -619,7 +674,7 @@ _InAir:
     lda #>kAvatarMaxAirSpeedVert
     @setVelYHi:
     sta Zp_AvatarVelY_i16 + 1
-    @noGravity:
+_Done:
     rts
 .ENDPROC
 

@@ -100,8 +100,8 @@
 .IMPORT Ram_PpuTransfer_arr
 .IMPORTZP Zp_AvatarFlags_bObj
 .IMPORTZP Zp_AvatarPose_eAvatar
+.IMPORTZP Zp_AvatarState_bAvatar
 .IMPORTZP Zp_AvatarVelX_i16
-.IMPORTZP Zp_AvatarWaterDepth_u8
 .IMPORTZP Zp_FloatingHud_bHud
 .IMPORTZP Zp_FrameCounter_u8
 .IMPORTZP Zp_Nearby_bDevice
@@ -466,8 +466,9 @@ _InitAvatar:
     and #<~bObj::FlipH
     @setFlags:
     sta Zp_AvatarFlags_bObj
-    lda Zp_AvatarWaterDepth_u8
-    bne @done
+    bit Zp_AvatarState_bAvatar
+    .assert bAvatar::Swimming = bProc::Overflow, error
+    bvs @done
     lda #eAvatar::Standing
     @setPose:
     sta Zp_AvatarPose_eAvatar

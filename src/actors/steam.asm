@@ -28,6 +28,7 @@
 .IMPORT Ram_ActorFlags_bObj_arr
 .IMPORT Ram_ActorState1_byte_arr
 .IMPORT Ram_ActorType_eActor_arr
+.IMPORTZP Zp_AvatarState_bAvatar
 .IMPORTZP Zp_AvatarVelX_i16
 .IMPORTZP Zp_AvatarVelY_i16
 
@@ -114,6 +115,9 @@ kPaletteObjSteam = 0
     ;; If the player avatar is in the steam, push them upwards.
     jsr FuncA_Actor_IsCollidingWithAvatar  ; preserves X, returns C
     bcc @noPush
+    lda Zp_AvatarState_bAvatar
+    and #<~bAvatar::Jumping
+    sta Zp_AvatarState_bAvatar
     lda Zp_AvatarVelY_i16 + 0
     sub #<kSteamAccel
     sta Zp_AvatarVelY_i16 + 0

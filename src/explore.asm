@@ -77,13 +77,12 @@
 .IMPORT Ram_DeviceTarget_u8_arr
 .IMPORT Ram_DeviceType_eDevice_arr
 .IMPORT Sram_LastSafe_eRoom
-.IMPORTZP Zp_AvatarAirborne_bool
 .IMPORTZP Zp_AvatarExit_ePassage
 .IMPORTZP Zp_AvatarHarmTimer_u8
 .IMPORTZP Zp_AvatarPosX_i16
 .IMPORTZP Zp_AvatarPosY_i16
 .IMPORTZP Zp_AvatarPose_eAvatar
-.IMPORTZP Zp_AvatarWaterDepth_u8
+.IMPORTZP Zp_AvatarState_bAvatar
 .IMPORTZP Zp_Chr0cBank_u8
 .IMPORTZP Zp_Current_sRoom
 .IMPORTZP Zp_Current_sTileset
@@ -375,15 +374,10 @@ _UpDownPassage:
 ;;; player avatar is near (if any), or sets bDevice::NoneNearby if the avatar
 ;;; is not near an interactive device.
 .PROC FuncA_Avatar_FindNearbyDevice
-    ;; Check if the player avatar is airborne (and not in water); if so, treat
-    ;; them as not near any device.
-    lda Zp_AvatarWaterDepth_u8
-    bne @notAirborne
-    bit Zp_AvatarAirborne_bool
-    bpl @notAirborne
-    ldx #$ff
-    bne @done  ; unconditional
-    @notAirborne:
+    ;; If the player avatar is airborne, treat them as not near any device.
+    bit Zp_AvatarState_bAvatar
+    .assert bAvatar::Airborne = bProc::Negative, error
+    bmi @noneNearby
     ;; Calculate the player avatar's room block row and store it in T0.
     lda Zp_AvatarPosY_i16 + 0
     sta T0
@@ -415,9 +409,8 @@ _UpDownPassage:
     @continue:
     dex
     bpl @loop
-    ;; If we exit the loop this way (because we didn't find a nearby device),
-    ;; then X is now $ff, so bDevice::NoneNearby is set.
-    .assert bDevice::NoneNearby = bProc::Negative, error
+    @noneNearby:
+    ldx #bDevice::NoneNearby
     @done:
     stx Zp_Nearby_bDevice
     rts

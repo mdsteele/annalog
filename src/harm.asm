@@ -27,9 +27,9 @@
 .IMPORT Func_PlaySfxSample
 .IMPORT Ppu_ChrObjAnnaNormal
 .IMPORT Sram_CarryingFlower_eFlag
-.IMPORTZP Zp_AvatarAirborne_bool
 .IMPORTZP Zp_AvatarFlags_bObj
 .IMPORTZP Zp_AvatarHarmTimer_u8
+.IMPORTZP Zp_AvatarState_bAvatar
 .IMPORTZP Zp_AvatarVelX_i16
 .IMPORTZP Zp_AvatarVelY_i16
 
@@ -62,23 +62,29 @@ _Harm:
     ;; Mark the avatar as damaged.
     lda #kAvatarHarmHealFrames
     sta Zp_AvatarHarmTimer_u8
-    ;; Make the avatar go flying backwards.
-    lda #$ff
-    sta Zp_AvatarAirborne_bool
+_SetVelY:
+    ;; Make the avatar go flying upwards.
     lda #<kAvatarStunVelY
     sta Zp_AvatarVelY_i16 + 0
     lda #>kAvatarStunVelY
     sta Zp_AvatarVelY_i16 + 1
-    ;; Set the avatar's X-velocity depending on which way it's facing.
-    .assert bObj::FlipH = bProc::Overflow, error
+    bit Zp_AvatarState_bAvatar
+    .assert bAvatar::Swimming = bProc::Overflow, error
+    bvs @done
+    lda #bAvatar::Airborne
+    sta Zp_AvatarState_bAvatar
+    @done:
+_SetVelX:
+    ;; Make the avatar go flying backwards.
     bit Zp_AvatarFlags_bObj
+    .assert bObj::FlipH = bProc::Overflow, error
     bvc @facingRight
     @facingLeft:
     .assert <kAvatarMaxAirSpeedHorz = 0, error
     lda #>kAvatarMaxAirSpeedHorz
     bne @setVelX  ; unconditional
     @facingRight:
-    .assert <kAvatarMaxAirSpeedHorz = 0, error
+    .assert <-kAvatarMaxAirSpeedHorz = 0, error
     lda #>-kAvatarMaxAirSpeedHorz
     @setVelX:
     sta Zp_AvatarVelX_i16 + 1

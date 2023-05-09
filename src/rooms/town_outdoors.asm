@@ -59,8 +59,7 @@
 .IMPORTZP Zp_Active_sIrq
 .IMPORTZP Zp_AvatarFlags_bObj
 .IMPORTZP Zp_AvatarHarmTimer_u8
-.IMPORTZP Zp_AvatarLanding_u8
-.IMPORTZP Zp_AvatarPose_eAvatar
+.IMPORTZP Zp_AvatarState_bAvatar
 .IMPORTZP Zp_AvatarVelX_i16
 .IMPORTZP Zp_Buffered_sIrq
 .IMPORTZP Zp_NextIrq_int_ptr
@@ -574,7 +573,7 @@ _InitOrcs:
 .EXPORT DataA_Cutscene_TownOutdoorsGetCaught_sCutscene
 .PROC DataA_Cutscene_TownOutdoorsGetCaught_sCutscene
     .byte eAction::SetCutsceneFlags, bCutscene::AvatarRagdoll
-    .byte eAction::WaitUntilC
+    .byte eAction::WaitUntilZ
     .addr _AnnaHasLanded
     .byte eAction::SetCutsceneFlags, 0
     .byte eAction::CallFunc
@@ -589,14 +588,14 @@ _InitOrcs:
     .byte eAction::JumpToMain
     .addr Main_LoadPrisonCellAndStartCutscene
 _AnnaHasLanded:
-    lda #eAvatar::Swimming1
-    cmp Zp_AvatarPose_eAvatar  ; sets C if pose <= Swimming1
+    lda Zp_AvatarState_bAvatar
+    and #bAvatar::Airborne
     rts
 _FinishLanding:
     lda #kAvatarHarmHealFrames - kAvatarHarmInvincibileFrames - 1
     sta Zp_AvatarHarmTimer_u8
     lda #0
-    sta Zp_AvatarLanding_u8
+    sta Zp_AvatarState_bAvatar
     sta Zp_AvatarVelX_i16 + 0
     sta Zp_AvatarVelX_i16 + 1
     rts

@@ -61,6 +61,17 @@ kPaletteObjAvatarDeath  = 3
 
 ;;;=========================================================================;;;
 
+;;; State bits for the player avatar.
+.SCOPE bAvatar
+    Airborne  = %10000000  ; if set, the avatar is in midair
+    Swimming  = %01000000  ; if set, the avatar is in water
+    Jumping   = %00100000  ; set during upward jump; release A button to slow
+    DepthMask = %00011111  ; bits used for water depth
+    LandMask  = %00011111  ; bits used for landing timer
+.ENDSCOPE
+
+;;;=========================================================================;;;
+
 ;;; Poses that the player avatar can be in.  The number for each of these enum
 ;;; values is the starting tile ID to use for the avatar objects when the
 ;;; avatar is in that pose.
