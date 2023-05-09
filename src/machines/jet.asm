@@ -45,10 +45,10 @@
 ;;;=========================================================================;;;
 
 ;;; Various OBJ tile IDs used for drawing jet elevator machines.
-kTileIdJetUpperCorner      = kTileIdObjMachineCorner
-kTileIdJetTopSurface       = kTileIdObjMachineSurfaceHorz
-kTileIdJetLowerCornerFirst = kTileIdJetFirst + 0
-kTileIdJetLowerMiddleFirst = kTileIdJetFirst + 1
+kTileIdObjJetUpperCorner      = kTileIdObjMachineCorner
+kTileIdObjJetTopSurface       = kTileIdObjMachineSurfaceHorz
+kTileIdObjJetLowerCornerFirst = kTileIdObjJetFirst + 0
+kTileIdObjJetLowerMiddleFirst = kTileIdObjJetFirst + 1
 
 ;;;=========================================================================;;;
 
@@ -190,7 +190,7 @@ _RightHalf:
     @notDone:
     lda #kPaletteObjMachineLight | bObj::FlipV
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Flags_bObj, y
-    lda #kTileIdJetUpperCorner
+    lda #kTileIdObjJetUpperCorner
     .assert * = FuncA_Objects_SetJetMachineTiles, error, "fallthrough"
 .ENDPROC
 
@@ -203,12 +203,12 @@ _RightHalf:
 .PROC FuncA_Objects_SetJetMachineTiles
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Tile_u8, y
     stx T0  ; tile ID offset
-    lda #kTileIdJetLowerCornerFirst
+    lda #kTileIdObjJetLowerCornerFirst
     add T0  ; tile ID offset
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Tile_u8, y
-    lda #kTileIdJetTopSurface
+    lda #kTileIdObjJetTopSurface
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Tile_u8, y
-    lda #kTileIdJetLowerMiddleFirst
+    lda #kTileIdObjJetLowerMiddleFirst
     add T0  ; tile ID offset
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Tile_u8, y
     rts

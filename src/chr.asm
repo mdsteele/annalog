@@ -947,7 +947,7 @@
 .PROC Ppu_ChrObjFactory
 :   .assert * - :- = (kTileIdObjUpgradeBottomFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/upgrade_bottom.chr"
-    .assert * - :- = (kTileIdJetFirst - $80) * kSizeofChr, error
+    .assert * - :- = (kTileIdObjJetFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/jet.chr"
     .res $0c * kSizeofChr
     .assert * - :- = (kTileIdObjUpgradeOpSkipFirst - $80) * kSizeofChr, error
@@ -985,7 +985,7 @@
     .res $02 * kSizeofChr
     .assert * - :- = (kTileIdObjGardenBricksFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/garden_bricks.chr"
-    .assert * - :- = (kTileIdVinebugFirst1 - $80) * kSizeofChr, error
+    .assert * - :- = (kTileIdObjVinebugFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/vinebug.chr"
     .res $04 * kSizeofChr
     .assert * - :- = (kTileIdObjGrenadeFirst - $80) * kSizeofChr, error
@@ -1014,9 +1014,9 @@
     .assert * - :- = (kTileIdObjUpgradeOpCopyFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/upgrade_opcopy.chr"
     .res $0e * kSizeofChr
-    .assert * - :- = (kTileIdBoilerFirst - $80) * kSizeofChr, error
+    .assert * - :- = (kTileIdObjBoilerFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/boiler.chr"
-    .assert * - :- = (kTileIdValveFirst - $80) * kSizeofChr, error
+    .assert * - :- = (kTileIdObjValveFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/valve.chr"
     .assert * - :- = (kTileIdObjHotheadFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/hothead.chr"

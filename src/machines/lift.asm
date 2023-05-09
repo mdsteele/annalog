@@ -37,8 +37,8 @@
 ;;;=========================================================================;;;
 
 ;;; Various OBJ tile IDs used for drawing lift machines.
-kTileIdLiftCorner  = kTileIdObjMachineCorner
-kTileIdLiftSurface = kTileIdObjMachineSurfaceVert
+kTileIdObjLiftCorner  = kTileIdObjMachineCorner
+kTileIdObjLiftSurface = kTileIdObjMachineSurfaceVert
 
 ;;;=========================================================================;;;
 
@@ -92,10 +92,10 @@ _TopHalf:
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Flags_bObj, y
     lda #kPaletteObjMachineLight | bObj::FlipV
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Flags_bObj, y
-    lda #kTileIdLiftCorner
+    lda #kTileIdObjLiftCorner
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Tile_u8, y
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Tile_u8, y
-    lda #kTileIdLiftSurface
+    lda #kTileIdObjLiftSurface
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Tile_u8, y
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Tile_u8, y
     @done:
@@ -112,9 +112,9 @@ _BottomHalf:
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Flags_bObj, y
     lda #kPaletteObjMachineLight | bObj::FlipH | bObj::FlipV
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Flags_bObj, y
-    lda #kTileIdLiftCorner
+    lda #kTileIdObjLiftCorner
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Tile_u8, y
-    lda #kTileIdLiftSurface
+    lda #kTileIdObjLiftSurface
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Tile_u8, y
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Tile_u8, y
     jsr FuncA_Objects_GetMachineLightTileId  ; preserves Y, returns A

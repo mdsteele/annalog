@@ -23,8 +23,7 @@
 ;;;   * State2: Counter that increments every frame; used to periodically
 ;;;     randomly change the vinebug's velocity (when State1 is zero).
 
-;;; The first tile ID for the vinebug actor animation.
-kTileIdVinebugFirst1 = $b0
-kTileIdVinebugFirst2 = kTileIdVinebugFirst1 + $04
+;;; Tile IDs for drawing vinebug baddie actors.
+kTileIdObjVinebugFirst = $b0
 
 ;;;=========================================================================;;;

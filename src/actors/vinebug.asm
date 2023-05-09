@@ -161,7 +161,8 @@ _Finish:
     ldy #kPaletteObjVinebug  ; param: palette
     jmp FuncA_Objects_Draw2x2Actor  ; preserves X
 _TileIds_u8_arr2:
-    .byte kTileIdVinebugFirst1, kTileIdVinebugFirst2
+    .byte kTileIdObjVinebugFirst + 0
+    .byte kTileIdObjVinebugFirst + 4
 .ENDPROC
 
 ;;;=========================================================================;;;

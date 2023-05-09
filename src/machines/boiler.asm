@@ -58,8 +58,8 @@
 ;;;=========================================================================;;;
 
 kTileIdObjBoilerLeftCorner  = kTileIdObjMachineCorner
-kTileIdObjBoilerCenter      = kTileIdBoilerFirst + 0
-kTileIdObjBoilerRightCorner = kTileIdBoilerFirst + 1
+kTileIdObjBoilerCenter      = kTileIdObjBoilerFirst + 0
+kTileIdObjBoilerRightCorner = kTileIdObjBoilerFirst + 1
 
 ;;; OBJ palette numbers used for boiler machines and valves.
 kPaletteObjBoiler = 0
@@ -348,16 +348,16 @@ _Tank:
     lda _Tile_u8_arr10, x  ; param: tile ID
     jmp FuncA_Objects_Draw1x1Shape
 _Tile_u8_arr10:
-:   .byte kTileIdValveFirst + 0
-    .byte kTileIdValveFirst + 1
-    .byte kTileIdValveFirst + 2
-    .byte kTileIdValveFirst + 3
-    .byte kTileIdValveFirst + 2
-    .byte kTileIdValveFirst + 1
-    .byte kTileIdValveFirst + 0
-    .byte kTileIdValveFirst + 1
-    .byte kTileIdValveFirst + 2
-    .byte kTileIdValveFirst + 3
+:   .byte kTileIdObjValveFirst + 0
+    .byte kTileIdObjValveFirst + 1
+    .byte kTileIdObjValveFirst + 2
+    .byte kTileIdObjValveFirst + 3
+    .byte kTileIdObjValveFirst + 2
+    .byte kTileIdObjValveFirst + 1
+    .byte kTileIdObjValveFirst + 0
+    .byte kTileIdObjValveFirst + 1
+    .byte kTileIdObjValveFirst + 2
+    .byte kTileIdObjValveFirst + 3
     .assert * - :- = 10, error
 _Flags_bObj_arr10:
 :   .byte kPaletteObjValve
