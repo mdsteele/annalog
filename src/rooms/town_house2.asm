@@ -33,13 +33,11 @@
 
 .IMPORT DataA_Room_House_sTileset
 .IMPORT Func_Noop
-.IMPORT Main_Explore_Continue
 .IMPORT Ppu_ChrObjTown
 .IMPORTZP Zp_AvatarFlags_bObj
 .IMPORTZP Zp_AvatarPosX_i16
 .IMPORTZP Zp_AvatarPosY_i16
 .IMPORTZP Zp_AvatarPose_eAvatar
-.IMPORTZP Zp_AvatarVelY_i16
 .IMPORTZP Zp_Next_eCutscene
 
 ;;;=========================================================================;;;
@@ -166,14 +164,9 @@ _Devices_sDevice_arr:
     .byte eAction::WaitFrames, 60
     .byte eAction::SetAvatarPose, eAvatar::Kneeling
     .byte eAction::WaitFrames, 15
-    .byte eAction::CallFunc
-    .addr _HopOutOfBed
-    .byte eAction::JumpToMain
-    .addr Main_Explore_Continue
-_HopOutOfBed:
-    lda #<-1
-    sta Zp_AvatarVelY_i16 + 1
-    rts
+    .byte eAction::SetAvatarVelY
+    .word $ff00
+    .byte eAction::ContinueExploring
 .ENDPROC
 
 ;;;=========================================================================;;;

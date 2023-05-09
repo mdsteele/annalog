@@ -60,7 +60,6 @@
 .IMPORTZP Zp_AvatarFlags_bObj
 .IMPORTZP Zp_AvatarHarmTimer_u8
 .IMPORTZP Zp_AvatarState_bAvatar
-.IMPORTZP Zp_AvatarVelX_i16
 .IMPORTZP Zp_Buffered_sIrq
 .IMPORTZP Zp_NextIrq_int_ptr
 .IMPORTZP Zp_Next_eCutscene
@@ -576,8 +575,11 @@ _InitOrcs:
     .byte eAction::WaitUntilZ
     .addr _AnnaHasLanded
     .byte eAction::SetCutsceneFlags, 0
+    .byte eAction::SetAvatarState, 0
+    .byte eAction::SetAvatarVelX
+    .word 0
     .byte eAction::CallFunc
-    .addr _FinishLanding
+    .addr _SetHarmTimer
     .byte eAction::SetAvatarFlags, kPaletteObjAvatarNormal | bObj::FlipH
     .byte eAction::SetAvatarPose, eAvatar::Slumping
     .byte eAction::WaitFrames, 4
@@ -591,13 +593,9 @@ _AnnaHasLanded:
     lda Zp_AvatarState_bAvatar
     and #bAvatar::Airborne
     rts
-_FinishLanding:
+_SetHarmTimer:
     lda #kAvatarHarmHealFrames - kAvatarHarmInvincibileFrames - 1
     sta Zp_AvatarHarmTimer_u8
-    lda #0
-    sta Zp_AvatarState_bAvatar
-    sta Zp_AvatarVelX_i16 + 0
-    sta Zp_AvatarVelX_i16 + 1
     rts
 .ENDPROC
 

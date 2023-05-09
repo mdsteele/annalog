@@ -43,12 +43,16 @@
 .IMPORT Func_Noop
 .IMPORT Func_SetOrClearFlag
 .IMPORT Ppu_ChrObjTown
+.IMPORT Ram_ActorType_eActor_arr
 .IMPORT Ram_MachineGoalVert_u8_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORT Sram_ProgressFlags_arr
 .IMPORTZP Zp_RoomState
 
 ;;;=========================================================================;;;
+
+;;; The actor index for the orc in this room.
+kOrcActorIndex = 0
 
 ;;; The machine index for the PrisonEastLift machine in this room.
 kLiftMachineIndex = 0
@@ -195,7 +199,8 @@ _Platforms_sPlatform_arr:
     .assert * - :- <= kMaxPlatforms * .sizeof(sPlatform), error
     .byte ePlatform::None
 _Actors_sActor_arr:
-:   D_STRUCT sActor
+:   .assert * - :- = kOrcActorIndex * .sizeof(sActor), error
+    D_STRUCT sActor
     d_byte Type_eActor, eActor::BadOrc
     d_word PosX_i16, $011c
     d_word PosY_i16, $00f8
@@ -246,7 +251,12 @@ _Passages_sPassage_arr:
 
 ;;; Enter function for the PrisonEast room.
 .PROC FuncC_Prison_East_EnterRoom
-    ;; TODO: Once the kids have been rescued, remove the orc from this room.
+    ;; Once the kids have been rescued, remove the orc from this room.
+    flag_bit Sram_ProgressFlags_arr, eFlag::PrisonUpperFreedKids
+    beq @done
+    lda #eActor::None
+    sta Ram_ActorType_eActor_arr + kOrcActorIndex
+    @done:
 _EastGate:
     flag_bit Sram_ProgressFlags_arr, eFlag::PrisonEastEastGateOpen
     beq @shut

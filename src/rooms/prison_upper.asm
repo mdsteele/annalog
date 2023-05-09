@@ -43,6 +43,7 @@
 .IMPORT FuncC_Prison_TickGatePlatform
 .IMPORT Func_Noop
 .IMPORT Func_SetFlag
+.IMPORT Func_SetOrClearFlag
 .IMPORT Main_Breaker_FadeBackToBreakerRoom
 .IMPORT Ppu_ChrObjTown
 .IMPORT Ram_ActorPosX_i16_0_arr
@@ -53,6 +54,8 @@
 .IMPORT Ram_PlatformType_ePlatform_arr
 .IMPORT Sram_ProgressFlags_arr
 .IMPORTZP Zp_AvatarPose_eAvatar
+.IMPORTZP Zp_Nearby_bDevice
+.IMPORTZP Zp_Next_eCutscene
 .IMPORTZP Zp_RoomState
 
 ;;;=========================================================================;;;
@@ -300,30 +303,42 @@ _Passages_sPassage_arr:
 .ENDPROC
 
 .PROC FuncC_Prison_Upper_EnterRoom
-    ;; If the cutscene is playing, initialize it (and skip the checking of
-    ;; progress flags below).  Otherwise, remove the orc NPCs (which only
-    ;; appear in the cutscene).
+_Gate:
+    flag_bit Sram_ProgressFlags_arr, eFlag::PrisonUpperGateOpen
+    beq @shut
+    ldy #sState::GateLever_u8  ; param: lever target
+    ldx #kGatePlatformIndex  ; param: gate platform index
+    jsr FuncC_Prison_OpenGateAndFlipLever
+    @shut:
+_CheckForBreakerCutscene:
+    ;; If the temple breaker cutscene is playing, initialize it (and skip the
+    ;; checking of progress flags below).  Otherwise, remove the orc NPCs
+    ;; (which only appear in the cutscene).
     lda Zp_AvatarPose_eAvatar
     .assert eAvatar::Hidden = 0, error
-    beq _InitCutscene
+    bne @noCutscene
+    @initCutscene:
+    lda #$ff
+    sta Ram_ActorState2_byte_arr + kOrc1ActorIndex
+    rts
+    @noCutscene:
     lda #eActor::None
     sta Ram_ActorType_eActor_arr + kOrc1ActorIndex
     sta Ram_ActorType_eActor_arr + kOrc2ActorIndex
-    ;; If the kids have already been freed, remove them (and also open the gate
-    ;; and place the stepstone).
+_CheckProgressFlags:
+    ;; If the kids have already been freed, remove them (and also place the
+    ;; stepstone).
     flag_bit Sram_ProgressFlags_arr, eFlag::PrisonUpperFreedKids
     bne _RemoveKids
-    ;; Otherwise, if the gate has already been opened, move Alex and open the
-    ;; gate.
-    flag_bit Sram_ProgressFlags_arr, eFlag::PrisonUpperGateOpened
+    ;; Otherwise, if Alex has already been freed, move Alex (and also place the
+    ;; stepstone).
+    flag_bit Sram_ProgressFlags_arr, eFlag::PrisonUpperFreedAlex
     bne _MoveAlex
-    ;; Otherwise, if Anna has already talked to Alex, place the stepstone.
-    flag_bit Sram_ProgressFlags_arr, eFlag::PrisonUpperTalkedToAlex
-    bne _PlaceStepstone
-    rts
-_InitCutscene:
     lda #$ff
-    sta Ram_ActorState2_byte_arr + kOrc1ActorIndex
+    sta Ram_ActorState2_byte_arr + kAlexActorIndex
+    ;; Otherwise, if Anna has already talked with Alex, place the stepstone.
+    flag_bit Sram_ProgressFlags_arr, eFlag::PrisonUpperFoundAlex
+    bne _PlaceStepstone
     rts
 _RemoveKids:
     ;; Remove talk devices.
@@ -342,7 +357,7 @@ _RemoveKids:
     dex
     .assert kMaxActors < $80, error
     bpl @actorLoop
-    bmi _OpenGate  ; unconditional
+    bmi _PlaceStepstone  ; unconditional
 _MoveAlex:
     ldya #kAlexFreePositionX
     sty Ram_ActorPosX_i16_1_arr + kAlexActorIndex
@@ -353,10 +368,6 @@ _MoveAlex:
     sta Ram_DeviceType_eDevice_arr + kAlexFreeRightDeviceIndex
     lda #eDevice::TalkLeft
     sta Ram_DeviceType_eDevice_arr + kAlexFreeLeftDeviceIndex
-_OpenGate:
-    ldx #kGatePlatformIndex  ; param: platform index
-    ldy #sState::GateLever_u8  ; param: lever target
-    jsr FuncC_Prison_OpenGateAndFlipLever
 _PlaceStepstone:
     lda #ePlatform::Solid
     sta Ram_PlatformType_ePlatform_arr + kStepstonePlatformIndex
@@ -364,26 +375,37 @@ _PlaceStepstone:
 .ENDPROC
 
 .PROC FuncC_Prison_Upper_TickRoom
-    ;; TODO: once gate is open, walk Alex out of the cell
-    ;; TODO: once Alex is done walking, place his new talk devices
-_CheckLever:
-    ;; Check if the lever is flipped.
-    lda Zp_RoomState + sState::GateLever_u8
+_Gate:
+    ;; Update the flag from the lever.
+    ldx #eFlag::PrisonUpperGateOpen  ; param: flag
+    lda Zp_RoomState + sState::GateLever_u8  ; param: zero for clear
+    jsr Func_SetOrClearFlag
+    ;; Move the gate based on the lever.
+    ldy Zp_RoomState + sState::GateLever_u8  ; param: zero for shut
+    jsr FuncC_Prison_Upper_TickGate
+_FreeAlex:
+    ;; If Alex has already been freed, we're done.
+    flag_bit Sram_ProgressFlags_arr, eFlag::PrisonUpperFreedAlex
+    bne @done
+    ;; Otherwise, if the gate has been opened, mark Alex as freed and start a
+    ;; cutscene.
+    flag_bit Sram_ProgressFlags_arr, eFlag::PrisonUpperGateOpen
     beq @done
-    ;; If so, mark the gate as open...
-    ldx #eFlag::PrisonUpperGateOpened
+    ldx #eFlag::PrisonUpperFreedAlex
     jsr Func_SetFlag
-    ;; ...and remove Alex's cell talk device.
-    lda #eDevice::None
-    sta Ram_DeviceType_eDevice_arr + kAlexCellDeviceIndex
+    lda #eCutscene::PrisonUpperFreeAlex
+    sta Zp_Next_eCutscene
     @done:
-_OpenGate:
-    ;; If the gate has been opened, move it up into its open position.
-    flag_bit Sram_ProgressFlags_arr, eFlag::PrisonUpperGateOpened
-    tay  ; param: zero for shut
-    ldx #kGatePlatformIndex  ; param: platform index
+    rts
+.ENDPROC
+
+;;; Performs per-frame updates for the gate in this room.
+;;; @param Y Zero if the gate should shut, nonzero if it should open.
+;;; @return Z Cleared if the platform moved, set if it didn't.
+.PROC FuncC_Prison_Upper_TickGate
+    ldx #kGatePlatformIndex  ; param: gate platform index
     lda #kGateBlockRow  ; param: block row
-    jmp FuncC_Prison_TickGatePlatform
+    jmp FuncC_Prison_TickGatePlatform  ; returns Z
 .ENDPROC
 
 ;;; Draw function for the PrisonUpper room.
@@ -425,6 +447,42 @@ _Orc2Exit_sCutscene:
     .byte eAction::ForkStop, $ff
 .ENDPROC
 
+.EXPORT DataA_Cutscene_PrisonUpperFreeAlex_sCutscene
+.PROC DataA_Cutscene_PrisonUpperFreeAlex_sCutscene
+    .byte eAction::SetAvatarPose, eAvatar::Standing
+    .byte eAction::SetAvatarState, 0
+    .byte eAction::SetAvatarVelX
+    .word 0
+    .byte eAction::CallFunc
+    .addr _SetDevices
+    ;; Make Alex look up at the gate as he waits for it to open.
+    .byte eAction::SetActorState1, kAlexActorIndex, eNpcChild::AlexLooking
+    .byte eAction::WaitUntilZ
+    .addr _OpenGate
+    .byte eAction::WaitFrames, 15
+    .byte eAction::SetActorState1, kAlexActorIndex, eNpcChild::AlexStanding
+    .byte eAction::WaitFrames, 15
+    ;; Make Alex walk out of the prison cell.
+    .byte eAction::WalkAlex, kAlexActorIndex
+    .word kAlexFreePositionX
+    .byte eAction::SetActorState1, kAlexActorIndex, eNpcChild::AlexStanding
+    .byte eAction::SetActorState2, kAlexActorIndex, $00
+    .byte eAction::ContinueExploring
+_SetDevices:
+    lda #bDevice::NoneNearby
+    sta Zp_Nearby_bDevice
+    lda #eDevice::Placeholder
+    sta Ram_DeviceType_eDevice_arr + kAlexCellDeviceIndex
+    lda #eDevice::TalkRight
+    sta Ram_DeviceType_eDevice_arr + kAlexFreeRightDeviceIndex
+    lda #eDevice::TalkLeft
+    sta Ram_DeviceType_eDevice_arr + kAlexFreeLeftDeviceIndex
+    rts
+_OpenGate:
+    ldy #1  ; param: zero for shut
+    jmp FuncC_Prison_Upper_TickGate  ; returns Z
+.ENDPROC
+
 ;;;=========================================================================;;;
 
 .SEGMENT "PRGA_Dialog"
@@ -451,7 +509,7 @@ _Orc2Exit_sCutscene:
 _SetFlagFunc:
     lda #ePlatform::Solid
     sta Ram_PlatformType_ePlatform_arr + kStepstonePlatformIndex
-    ldx #eFlag::PrisonUpperTalkedToAlex  ; param: flag
+    ldx #eFlag::PrisonUpperFoundAlex  ; param: flag
     jsr Func_SetFlag
     ldya #_GetDoorOpen_sDialog
     rts
@@ -501,7 +559,7 @@ _Finish_sDialog:
 .PROC DataA_Dialog_PrisonUpperMarie_sDialog
     .addr _InitialFunc
 _InitialFunc:
-    flag_bit Sram_ProgressFlags_arr, eFlag::PrisonUpperTalkedToAlex
+    flag_bit Sram_ProgressFlags_arr, eFlag::PrisonUpperFoundAlex
     bne @stepstone
     ldya #_GoTalkToAlex_sDialog
     rts

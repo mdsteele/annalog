@@ -115,9 +115,10 @@ kSaveMagicNumber = $b2
     PrisonEastEastGateOpen
     PrisonEastLowerGateShut
     PrisonEastWestGateOpen
+    PrisonUpperFoundAlex
+    PrisonUpperFreedAlex
     PrisonUpperFreedKids
-    PrisonUpperGateOpened
-    PrisonUpperTalkedToAlex
+    PrisonUpperGateOpen
     TempleAltarColumnBroken
     TempleEntryColumnRaised
     TempleEntryPermission

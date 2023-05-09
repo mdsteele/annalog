@@ -347,7 +347,7 @@ _CheckForFloor:
     lda #eNpcOrc::Running3  ; param: pose
     bpl FuncA_Objects_DrawActorOrcInPose  ; unconditional
     @pausing:
-    lda #eNpcOrc::Running2  ; param: pose
+    lda #eNpcOrc::Throwing1  ; param: pose
     bpl FuncA_Objects_DrawActorOrcInPose  ; unconditional
     @standing:
     lda #eNpcOrc::Standing  ; param: pose

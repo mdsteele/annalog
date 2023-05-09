@@ -42,6 +42,7 @@ kMaxForks = 4
     MermaidHut1BreakerGarden
     PrisonCellGetThrownIn
     PrisonUpperBreakerTemple
+    PrisonUpperFreeAlex
     SharedFadeBackToBreakerRoom  ; TODO: get rid of this
     SharedTeleportIn
     SharedTeleportOut
@@ -91,7 +92,12 @@ kMaxForks = 4
     ;; Sets a field on the player avatar to the specified value, then the
     ;; current cutscene fork immediately continues on to the next action.
     SetAvatarFlags     ; args: new bObj value
+    SetAvatarPosX      ; args: new X-position (2 bytes)
+    SetAvatarPosY      ; args: new Y-position (2 bytes)
     SetAvatarPose      ; args: new eAvatar value
+    SetAvatarState     ; args: new bAvatar value
+    SetAvatarVelX      ; args: new X-velocity (2 bytes)
+    SetAvatarVelY      ; args: new Y-velocity (2 bytes)
     ;; Sets the cutscene tick flags to the specified value, then the current
     ;; cutscene fork immediately continues on to the next action.
     SetCutsceneFlags   ; args: bCutscene value

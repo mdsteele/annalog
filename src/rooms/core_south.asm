@@ -154,7 +154,7 @@ _Passages_sPassage_arr:
 .PROC FuncC_Core_South_EnterRoom
     flag_bit Sram_ProgressFlags_arr, eFlag::CoreSouthCorraWaiting
     beq @removeCorra
-    flag_bit Sram_ProgressFlags_arr, eFlag::PrisonUpperTalkedToAlex
+    flag_bit Sram_ProgressFlags_arr, eFlag::PrisonUpperFoundAlex
     beq @keepCorra
     @removeCorra:
     lda #0

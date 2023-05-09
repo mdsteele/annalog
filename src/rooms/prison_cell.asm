@@ -78,7 +78,6 @@
 .IMPORT Func_SetPointToAvatarCenter
 .IMPORT Func_SetPointToPlatformCenter
 .IMPORT Func_ShakeRoom
-.IMPORT Main_Explore_Continue
 .IMPORT Main_Explore_EnterRoom
 .IMPORT Ppu_ChrObjTown
 .IMPORT Ram_ActorFlags_bObj_arr
@@ -92,12 +91,8 @@
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORT Ram_PlatformType_ePlatform_arr
 .IMPORT Sram_ProgressFlags_arr
-.IMPORTZP Zp_AvatarPosX_i16
-.IMPORTZP Zp_AvatarPosY_i16
 .IMPORTZP Zp_AvatarPose_eAvatar
 .IMPORTZP Zp_AvatarState_bAvatar
-.IMPORTZP Zp_AvatarVelX_i16
-.IMPORTZP Zp_AvatarVelY_i16
 .IMPORTZP Zp_Camera_bScroll
 .IMPORTZP Zp_ConsoleMachineIndex_u8
 .IMPORTZP Zp_Next_eCutscene
@@ -779,8 +774,14 @@ _Error:
     .byte eAction::SetActorState1, kOrc1ActorIndex, eNpcOrc::Throwing1
     .byte eAction::WaitFrames, 6
     .byte eAction::SetActorState1, kOrc1ActorIndex, eNpcOrc::Throwing2
-    .byte eAction::CallFunc
-    .addr _InitThrowAnna
+    .byte eAction::SetAvatarPosX
+    .word $00f0
+    .byte eAction::SetAvatarPosY
+    .word $00b0
+    .byte eAction::SetAvatarVelX
+    .word $ffff & -365
+    .byte eAction::SetAvatarVelY
+    .word $ffff & -580
     .byte eAction::SetCutsceneFlags, bCutscene::AvatarRagdoll
     .byte eAction::WaitFrames, 15
     .byte eAction::SetActorState1, kOrc1ActorIndex, eNpcOrc::Standing
@@ -789,10 +790,11 @@ _Error:
     .byte eAction::SetCutsceneFlags, 0
     .byte eAction::SetAvatarFlags, bObj::FlipH | kPaletteObjAvatarNormal
     .byte eAction::SetAvatarPose, eAvatar::Slumping
+    .byte eAction::SetAvatarState, 0
+    .byte eAction::SetAvatarVelX
+    .word 0
     .byte eAction::WaitFrames, 4
     .byte eAction::SetAvatarPose, eAvatar::Sleeping
-    .byte eAction::CallFunc
-    .addr _FinishLanding
     ;; Animate the orc walking out.
     .byte eAction::WaitFrames, 30
     .byte eAction::WalkNpcOrc, kOrc1ActorIndex
@@ -806,30 +808,13 @@ _Error:
     .byte eAction::WaitFrames, 30
     .byte eAction::SetAvatarPose, eAvatar::Kneeling
     .byte eAction::WaitFrames, 20
-    .byte eAction::JumpToMain
-    .addr Main_Explore_Continue
+    .byte eAction::ContinueExploring
 _OpenGate:
     ldy #1  ; param: zero for shut
     jmp FuncC_Prison_Cell_TickGate  ; returns Z
-_InitThrowAnna:
-    ldax #$ffff & -365
-    stax Zp_AvatarVelX_i16
-    ldax #$ffff & -560
-    stax Zp_AvatarVelY_i16
-    ldax #$00f0
-    stax Zp_AvatarPosX_i16
-    ldx #$b0
-    stax Zp_AvatarPosY_i16
-    rts
 _AnnaHasLanded:
     lda Zp_AvatarState_bAvatar
     and #bAvatar::Airborne
-    rts
-_FinishLanding:
-    lda #0
-    sta Zp_AvatarState_bAvatar
-    sta Zp_AvatarVelX_i16 + 0
-    sta Zp_AvatarVelX_i16 + 1
     rts
 _CloseGate:
     ldy #0  ; param: zero for shut

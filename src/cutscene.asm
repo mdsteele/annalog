@@ -30,6 +30,7 @@
 .IMPORT DataA_Cutscene_MermaidHut1BreakerGarden_sCutscene
 .IMPORT DataA_Cutscene_PrisonCellGetThrownIn_sCutscene
 .IMPORT DataA_Cutscene_PrisonUpperBreakerTemple_sCutscene
+.IMPORT DataA_Cutscene_PrisonUpperFreeAlex_sCutscene
 .IMPORT DataA_Cutscene_SharedFadeBackToBreakerRoom_sCutscene
 .IMPORT DataA_Cutscene_SharedTeleportIn_sCutscene
 .IMPORT DataA_Cutscene_SharedTeleportOut_sCutscene
@@ -55,7 +56,11 @@
 .IMPORT Ram_ActorState2_byte_arr
 .IMPORTZP Zp_AvatarFlags_bObj
 .IMPORTZP Zp_AvatarPosX_i16
+.IMPORTZP Zp_AvatarPosY_i16
 .IMPORTZP Zp_AvatarPose_eAvatar
+.IMPORTZP Zp_AvatarState_bAvatar
+.IMPORTZP Zp_AvatarVelX_i16
+.IMPORTZP Zp_AvatarVelY_i16
 .IMPORTZP Zp_FrameCounter_u8
 .IMPORTZP Zp_PointX_i16
 
@@ -147,6 +152,8 @@ _Finish:
             DataA_Cutscene_PrisonCellGetThrownIn_sCutscene
     d_entry table, PrisonUpperBreakerTemple, \
             DataA_Cutscene_PrisonUpperBreakerTemple_sCutscene
+    d_entry table, PrisonUpperFreeAlex, \
+            DataA_Cutscene_PrisonUpperFreeAlex_sCutscene
     d_entry table, SharedFadeBackToBreakerRoom, \
             DataA_Cutscene_SharedFadeBackToBreakerRoom_sCutscene
     d_entry table, SharedTeleportIn, \
@@ -269,7 +276,12 @@ _InitMainFork:
     d_entry table, SetActorState1,    _SetActorState1
     d_entry table, SetActorState2,    _SetActorState2
     d_entry table, SetAvatarFlags,    _SetAvatarFlags
+    d_entry table, SetAvatarPosX,     _SetAvatarPosX
+    d_entry table, SetAvatarPosY,     _SetAvatarPosY
     d_entry table, SetAvatarPose,     _SetAvatarPose
+    d_entry table, SetAvatarState,    _SetAvatarState
+    d_entry table, SetAvatarVelX,     _SetAvatarVelX
+    d_entry table, SetAvatarVelY,     _SetAvatarVelY
     d_entry table, SetCutsceneFlags,  _SetCutsceneFlags
     d_entry table, ShakeRoom,         _ShakeRoom
     d_entry table, RunDialog,         _RunDialog
@@ -391,9 +403,46 @@ _SetAvatarFlags:
     sta Zp_AvatarFlags_bObj
     iny
     jmp _AdvanceAndExecuteForkT2
+_SetAvatarPosX:
+    lda (T1T0), y
+    sta Zp_AvatarPosX_i16 + 0
+    iny
+    lda (T1T0), y
+    sta Zp_AvatarPosX_i16 + 1
+    iny
+    jmp _AdvanceAndExecuteForkT2
+_SetAvatarPosY:
+    lda (T1T0), y
+    sta Zp_AvatarPosY_i16 + 0
+    iny
+    lda (T1T0), y
+    sta Zp_AvatarPosY_i16 + 1
+    iny
+    jmp _AdvanceAndExecuteForkT2
 _SetAvatarPose:
     lda (T1T0), y
     sta Zp_AvatarPose_eAvatar
+    iny
+    jmp _AdvanceAndExecuteForkT2
+_SetAvatarState:
+    lda (T1T0), y
+    sta Zp_AvatarState_bAvatar
+    iny
+    jmp _AdvanceAndExecuteForkT2
+_SetAvatarVelX:
+    lda (T1T0), y
+    sta Zp_AvatarVelX_i16 + 0
+    iny
+    lda (T1T0), y
+    sta Zp_AvatarVelX_i16 + 1
+    iny
+    jmp _AdvanceAndExecuteForkT2
+_SetAvatarVelY:
+    lda (T1T0), y
+    sta Zp_AvatarVelY_i16 + 0
+    iny
+    lda (T1T0), y
+    sta Zp_AvatarVelY_i16 + 1
     iny
     jmp _AdvanceAndExecuteForkT2
 _SetCutsceneFlags:
