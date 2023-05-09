@@ -62,12 +62,12 @@ kMaxForks = 4
 
 ;;; Actions that can be executed during a cutscene.
 .ENUM eAction
+    ;; Calls the specified function, then the current cutscene fork immediately
+    ;; continues on to the next action.
+    CallFunc           ; args: func ptr (2 bytes)
     ;; Ends the cutscene immediately, returning to explore mode, even if other
     ;; cutscene forks are still executing.
     ContinueExploring  ; args: (none)
-    ;; Ends the cutscene immediately, jumping to the specified main, even if
-    ;; other cutscene forks are still executing.
-    JumpToMain         ; args: main ptr (2 bytes)
     ;; Sets the specified cutscene fork to start executing the specified
     ;; sCutscene struct, then the current fork immediately continues on to the
     ;; next action.  If the current fork performs a ForkStart on itself, it
@@ -79,9 +79,12 @@ kMaxForks = 4
     ;; current fork, then the current fork immediately continues on to the next
     ;; action.
     ForkStop           ; args: fork index (or $ff for current fork)
-    ;; Calls the specified function, then the current cutscene fork immediately
-    ;; continues on to the next action.
-    CallFunc           ; args: func ptr (2 bytes)
+    ;; Ends the cutscene immediately, jumping to the specified main, even if
+    ;; other cutscene forks are still executing.
+    JumpToMain         ; args: main ptr (2 bytes)
+    ;; Starts the specified dialog, and suspends *all* cutscene forks while the
+    ;; dialog runs.  The cutscene will continue once the dialog is done.
+    RunDialog          ; args: eDialog value
     ;; Sets a field on the specified actor to the specified value, then the
     ;; current cutscene fork immediately continues on to the next action.
     SetActorFlags      ; args: actor index, new bObj value
@@ -104,9 +107,6 @@ kMaxForks = 4
     ;; Shakes the room by the specified amount, then the current cutscene fork
     ;; immediately continues on to the next action.
     ShakeRoom          ; args: num shake frames
-    ;; Starts the specified dialog, and suspends *all* cutscene forks while the
-    ;; dialog runs.  The cutscene will continue once the dialog is done.
-    RunDialog          ; args: eDialog value
     ;; Suspends the current cutscene fork for the specified number of frames.
     WaitFrames         ; args: number of frames
     ;; Calls the specified function.  If the function clears C/Z, then the

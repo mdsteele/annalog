@@ -265,11 +265,12 @@ _InitMainFork:
     D_TABLE_LO table, _JumpTable_ptr_0_arr
     D_TABLE_HI table, _JumpTable_ptr_1_arr
     D_TABLE eAction
+    d_entry table, CallFunc,          _CallFunc
     d_entry table, ContinueExploring, _ContinueExploring
-    d_entry table, JumpToMain,        _JumpToMain
     d_entry table, ForkStart,         _ForkStart
     d_entry table, ForkStop,          _ForkStop
-    d_entry table, CallFunc,          _CallFunc
+    d_entry table, JumpToMain,        _JumpToMain
+    d_entry table, RunDialog,         _RunDialog
     d_entry table, SetActorFlags,     _SetActorFlags
     d_entry table, SetActorPosX,      _SetActorPosX
     d_entry table, SetActorPosY,      _SetActorPosY
@@ -284,7 +285,6 @@ _InitMainFork:
     d_entry table, SetAvatarVelY,     _SetAvatarVelY
     d_entry table, SetCutsceneFlags,  _SetCutsceneFlags
     d_entry table, ShakeRoom,         _ShakeRoom
-    d_entry table, RunDialog,         _RunDialog
     d_entry table, WaitFrames,        _WaitFrames
     d_entry table, WaitUntilC,        _WaitUntilC
     d_entry table, WaitUntilZ,        _WaitUntilZ
@@ -295,16 +295,16 @@ _InitMainFork:
 _AdvanceAndExecuteForkT2:
     ldx T2  ; param: current fork index
     jmp FuncA_Cutscene_AdvanceForkAndExecute
+_CallFunc:
+    lda T2  ; current fork index
+    pha  ; current fork index
+    jsr _CallFuncArg
+    pla  ; current fork index
+    tax  ; param: current fork index
+    ldy #3  ; param: byte offset
+    jmp FuncA_Cutscene_AdvanceForkAndExecute
 _ContinueExploring:
     ldax #Main_Explore_Continue
-    stax T1T0
-    sec  ; exit cutscene mode
-    rts
-_JumpToMain:
-    lda (T1T0), y
-    tax
-    iny
-    lda (T1T0), y
     stax T1T0
     sec  ; exit cutscene mode
     rts
@@ -344,14 +344,26 @@ _ForkStop:
     beq _ContinueExploring
     clc  ; cutscene should continue
     rts
-_CallFunc:
-    lda T2  ; current fork index
-    pha  ; current fork index
-    jsr _CallFuncArg
-    pla  ; current fork index
-    tax  ; param: current fork index
-    ldy #3  ; param: byte offset
-    jmp FuncA_Cutscene_AdvanceForkAndExecute
+_JumpToMain:
+    lda (T1T0), y
+    tax
+    iny
+    lda (T1T0), y
+    stax T1T0
+    sec  ; exit cutscene mode
+    rts
+_RunDialog:
+    lda (T1T0), y
+    pha  ; eDialog value
+    iny
+    ldx T2  ; param: current fork index
+    jsr FuncA_Cutscene_AdvanceFork
+    pla  ; eDialog value
+    tay  ; param: eDialog value
+    ldax #Main_Dialog_WithinCutscene
+    stax T1T0
+    sec  ; exit cutscene mode
+    rts
 _SetActorFlags:
     lda (T1T0), y
     tax  ; actor index
@@ -455,18 +467,6 @@ _ShakeRoom:
     jsr Func_ShakeRoom  ; preserves Y
     iny
     jmp _AdvanceAndExecuteForkT2
-_RunDialog:
-    lda (T1T0), y
-    pha  ; eDialog value
-    iny
-    ldx T2  ; param: current fork index
-    jsr FuncA_Cutscene_AdvanceFork
-    pla  ; eDialog value
-    tay  ; param: eDialog value
-    ldax #Main_Dialog_WithinCutscene
-    stax T1T0
-    sec  ; exit cutscene mode
-    rts
 _WaitFrames:
     ldx T2  ; current fork index
     lda (T1T0), y
