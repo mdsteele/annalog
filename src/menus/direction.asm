@@ -62,10 +62,10 @@
     d_addr OnLeft_func_ptr,  _OnLeft
     d_addr OnRight_func_ptr, _OnRight
     D_END
-_LabelUp:    .byte kTileIdArrowUp
-_LabelDown:  .byte kTileIdArrowDown
-_LabelLeft:  .byte kTileIdArrowLeft
-_LabelRight: .byte kTileIdArrowRight
+_LabelUp:    .byte kTileIdBgArrowUp
+_LabelDown:  .byte kTileIdBgArrowDown
+_LabelLeft:  .byte kTileIdBgArrowLeft
+_LabelRight: .byte kTileIdBgArrowRight
 _OnUp:
     ldx #eDir::Up
     bpl _SetItem  ; unconditional

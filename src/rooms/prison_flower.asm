@@ -141,9 +141,9 @@ _Passages_sPassage_arr:
 .EXPORT DataA_Dialog_PrisonFlowerSign_sDialog
 .PROC DataA_Dialog_PrisonFlowerSign_sDialog
     .word ePortrait::Sign
-    .byte "Surface Access ", kTileIdArrowRight, "$"
+    .byte "Surface Access ", kTileIdBgArrowRight, "$"
     .byte "$"
-    .byte kTileIdArrowLeft, " Holding Cells#"
+    .byte kTileIdBgArrowLeft, " Holding Cells#"
     .word ePortrait::Done
 .ENDPROC
 

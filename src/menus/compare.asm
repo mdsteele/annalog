@@ -63,11 +63,11 @@
     d_addr OnRight_func_ptr, _OnRight
     D_END
 _LabelEq: .byte "="
-_LabelNe: .byte kTileIdCmpNe
+_LabelNe: .byte kTileIdBgCmpNe
 _LabelLt: .byte "<"
-_LabelLe: .byte kTileIdCmpLe
+_LabelLe: .byte kTileIdBgCmpLe
 _LabelGt: .byte ">"
-_LabelGe: .byte kTileIdCmpGe
+_LabelGe: .byte kTileIdBgCmpGe
 _OnLeft:
     lda Zp_MenuItem_u8
     sub #2

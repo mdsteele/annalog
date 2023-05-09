@@ -311,7 +311,7 @@ _Passages_sPassage_arr:
     .word ePortrait::Paper
     .byte "For example$"
     .byte "  :IF Y>L$"
-    .byte "  :MOVE ", kTileIdArrowDown, "$"
+    .byte "  :MOVE ", kTileIdBgArrowDown, "$"
     .byte "or the reverse.#"
     .word ePortrait::Done
 .ENDPROC

@@ -31,9 +31,9 @@
 .CHARMAP $3d, $08  ; '='
 .CHARMAP $3e, $0c  ; '>'
 
-kTileIdCmpNe = $09
-kTileIdCmpLe = $0b
-kTileIdCmpGe = $0d
+kTileIdBgCmpNe = $09
+kTileIdBgCmpLe = $0b
+kTileIdBgCmpGe = $0d
 
 .CHARMAP $30, $10  ; '0'
 .CHARMAP $31, $11  ; '1'
@@ -100,9 +100,9 @@ kTileIdCmpGe = $0d
 .CHARMAP $79, $58  ; 'y'
 .CHARMAP $7a, $59  ; 'z'
 
-kTileIdArrowUp    = $5c
-kTileIdArrowDown  = $5d
-kTileIdArrowLeft  = $5e
-kTileIdArrowRight = $5f
+kTileIdBgArrowUp    = $5c
+kTileIdBgArrowDown  = $5d
+kTileIdBgArrowLeft  = $5e
+kTileIdBgArrowRight = $5f
 
 ;;;=========================================================================;;;

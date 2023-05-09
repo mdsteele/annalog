@@ -147,9 +147,9 @@ _Passages_sPassage_arr:
 .EXPORT DataA_Dialog_MermaidEntrySign_sDialog
 .PROC DataA_Dialog_MermaidEntrySign_sDialog
     .word ePortrait::Sign
-    .byte kTileIdArrowLeft, " Hanging Gardens$"
+    .byte kTileIdBgArrowLeft, " Hanging Gardens$"
     .byte "$"
-    .byte "Mermaid Village ", kTileIdArrowRight, "#"
+    .byte "Mermaid Village ", kTileIdBgArrowRight, "#"
     .word ePortrait::Done
 .ENDPROC
 

@@ -828,8 +828,8 @@ _OpMove:
     lda T0  ; Op_byte
     and #$03
     .assert eDir::Up = 0, error
-    .assert kTileIdArrowUp & $03 = 0, error
-    ora #kTileIdArrowUp
+    .assert kTileIdBgArrowUp & $03 = 0, error
+    ora #kTileIdBgArrowUp
     sta Ram_PpuTransfer_arr, x
     inx
     jmp _Write1Space
@@ -904,7 +904,7 @@ _Write1Space:
     inx
     rts
 _WriteArrowLeft:
-    lda #kTileIdArrowLeft
+    lda #kTileIdBgArrowLeft
     sta Ram_PpuTransfer_arr, x
     inx
     rts
