@@ -32,7 +32,7 @@
 .INCLUDE "../room.inc"
 .INCLUDE "../teleport.inc"
 
-.IMPORT DataA_Room_Crypt_sTileset
+.IMPORT DataA_Room_Shadow_sTileset
 .IMPORT FuncA_Machine_Error
 .IMPORT FuncA_Machine_FieldTick
 .IMPORT FuncA_Machine_FieldTryAct
@@ -80,13 +80,13 @@ kFieldPlatformLeft2 = \
     D_END
 _Ext_sRoomExt:
     D_STRUCT sRoomExt
-    d_addr Terrain_sTileset_ptr, DataA_Room_Crypt_sTileset  ; TODO
+    d_addr Terrain_sTileset_ptr, DataA_Room_Shadow_sTileset
     d_addr Platforms_sPlatform_arr_ptr, _Platforms_sPlatform_arr
     d_addr Actors_sActor_arr_ptr, _Actors_sActor_arr
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
     d_addr Passages_sPassage_arr_ptr, _Passages_sPassage_arr
     d_addr Enter_func_ptr, Func_Noop
-    d_addr FadeIn_func_ptr, Func_Noop
+    d_addr FadeIn_func_ptr, FuncC_Shadow_Teleport_FadeInRoom
     D_END
 _TerrainData:
 :   .incbin "out/data/shadow_teleport.room"
@@ -128,6 +128,14 @@ _Platforms_sPlatform_arr:
     d_word Left_i16, kFieldPlatformLeft2
     d_word Top_i16,  kFieldPlatformTop
     D_END
+    ;; Acid:
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Kill
+    d_word WidthPx_u16, $d0
+    d_byte HeightPx_u8, $20
+    d_word Left_i16,  $0030
+    d_word Top_i16,   $00ba
+    D_END
     .assert * - :- <= kMaxPlatforms * .sizeof(sPlatform), error
     .byte ePlatform::None
 _Actors_sActor_arr:
@@ -143,7 +151,7 @@ _Devices_sDevice_arr:
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Console
     d_byte BlockRow_u8, 10
-    d_byte BlockCol_u8, 5
+    d_byte BlockCol_u8, 13
     d_byte Target_u8, kFieldMachineIndex
     D_END
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
@@ -155,6 +163,32 @@ _Passages_sPassage_arr:
     d_byte SpawnBlock_u8, 9
     D_END
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
+.ENDPROC
+
+;;; Sets two block rows of the lower nametable to use BG palette 1.
+;;; @prereq Rendering is disabled.
+.PROC FuncC_Shadow_Teleport_FadeInRoom
+    lda #kPpuCtrlFlagsHorz
+    sta Hw_PpuCtrl_wo
+    ldax #Ppu_Nametable0_sName + sName::Attrs_u8_arr64 + $28
+    bit Hw_PpuStatus_ro  ; reset the Hw_PpuAddr_w2 write-twice latch
+    sta Hw_PpuAddr_w2
+    stx Hw_PpuAddr_w2
+_Row11:
+    lda #$a0
+    ldx #8
+    @loop:
+    sta Hw_PpuData_rw
+    dex
+    bne @loop
+_Row12:
+    lda #$0a
+    ldx #8
+    @loop:
+    sta Hw_PpuData_rw
+    dex
+    bne @loop
+    rts
 .ENDPROC
 
 ;;;=========================================================================;;;

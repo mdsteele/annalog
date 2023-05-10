@@ -48,6 +48,7 @@ static const struct {
   char start;
   const char* name;
 } tile_files[] = {
+  {0xc8, "acid_anim0"},
   {0xb0, "arch"},
   {0xa0, "beach"},
   {0x80, "cave"},
@@ -87,6 +88,7 @@ static const struct {
   {0xe0, "sewage_anim0"},
   {0x80, "sewer1"},
   {0x90, "sewer2"},
+  {0x80, "shadow1"},
   {0xb8, "sign"},
   {0x80, "steam_pipes"},
   {0x80, "temple1"},
