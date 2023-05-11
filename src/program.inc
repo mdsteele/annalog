@@ -152,6 +152,7 @@ kFirstHorzDir = eDir::Left
     SewerFlowerPump
     SewerPoolMultiplexer
     SewerWestMultiplexer
+    ShadowEntryLift
     ShadowTeleportField
     TempleAltarLowerMinigun
     TempleAltarUpperMinigun

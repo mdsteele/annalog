@@ -159,13 +159,13 @@ _Devices_sDevice_arr:
 _Passages_sPassage_arr:
 :   D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Western | 0
-    d_byte Destination_eRoom, eRoom::ShadowTeleport  ; TODO
+    d_byte Destination_eRoom, eRoom::ShadowEntry
     d_byte SpawnBlock_u8, 9
     D_END
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
 .ENDPROC
 
-;;; Sets two block rows of the lower nametable to use BG palette 1.
+;;; Sets two block rows of the upper nametable to use BG palette 2.
 ;;; @prereq Rendering is disabled.
 .PROC FuncC_Shadow_Teleport_FadeInRoom
     lda #kPpuCtrlFlagsHorz

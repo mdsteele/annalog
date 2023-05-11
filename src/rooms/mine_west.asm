@@ -18,6 +18,7 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "../actor.inc"
+.INCLUDE "../actors/firefly.inc"
 .INCLUDE "../avatar.inc"
 .INCLUDE "../charmap.inc"
 .INCLUDE "../device.inc"
@@ -220,7 +221,7 @@ _Actors_sActor_arr:
     d_byte Type_eActor, eActor::BadFirefly
     d_word PosX_i16, $00d0
     d_word PosY_i16, $00d0
-    d_byte Param_byte, bObj::FlipH
+    d_byte Param_byte, (bBadFirefly::ThetaMask & $00) | bBadFirefly::FlipH
     D_END
     .assert * - :- <= kMaxActors * .sizeof(sActor), error
     .byte eActor::None

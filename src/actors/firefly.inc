@@ -28,3 +28,11 @@
 kTileIdObjFireflyFirst = $a0
 
 ;;;=========================================================================;;;
+
+;;; Flags for the param byte for firefly baddie actors.
+.SCOPE bBadFirefly
+    ThetaMask = %11110000  ; bits used for initial flight pattern angle
+    FlipH     = %00000001  ; if set, face the firefly initially to the left
+.ENDSCOPE
+
+;;;=========================================================================;;;

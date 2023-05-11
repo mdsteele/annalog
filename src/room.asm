@@ -97,6 +97,7 @@
 .IMPORT DataC_Sewer_Flower_sRoom
 .IMPORT DataC_Sewer_Pool_sRoom
 .IMPORT DataC_Sewer_West_sRoom
+.IMPORT DataC_Shadow_Entry_sRoom
 .IMPORT DataC_Shadow_Teleport_sRoom
 .IMPORT DataC_Temple_Altar_sRoom
 .IMPORT DataC_Temple_Entry_sRoom
@@ -298,6 +299,7 @@ _LoadNewRoom:
     d_entry table, SewerFlower,     DataC_Sewer_Flower_sRoom
     d_entry table, SewerPool,       DataC_Sewer_Pool_sRoom
     d_entry table, SewerWest,       DataC_Sewer_West_sRoom
+    d_entry table, ShadowEntry,     DataC_Shadow_Entry_sRoom
     d_entry table, ShadowTeleport,  DataC_Shadow_Teleport_sRoom
     d_entry table, TempleAltar,     DataC_Temple_Altar_sRoom
     d_entry table, TempleEntry,     DataC_Temple_Entry_sRoom

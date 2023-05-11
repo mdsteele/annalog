@@ -84,6 +84,7 @@
 .IMPORT FuncA_Objects_DrawActorSmokeExplosion
 .IMPORT FuncA_Objects_DrawActorSmokeParticle
 .IMPORT FuncA_Room_InitActorBadBird
+.IMPORT FuncA_Room_InitActorBadFirefly
 .IMPORT FuncA_Room_InitActorBadWasp
 .IMPORT FuncA_Room_InitActorNpcChild
 .IMPORT FuncA_Room_InitActorNpcToddler
@@ -650,7 +651,7 @@ _NoHit:
     d_entry table, BadBeetleVert,   Func_InitActorWithFlags
     d_entry table, BadBird,         FuncA_Room_InitActorBadBird
     d_entry table, BadCrab,         Func_InitActorDefault
-    d_entry table, BadFirefly,      Func_InitActorWithFlags
+    d_entry table, BadFirefly,      FuncA_Room_InitActorBadFirefly
     d_entry table, BadFish,         Func_InitActorDefault
     d_entry table, BadGrub,         Func_InitActorDefault
     d_entry table, BadHotheadHorz,  Func_InitActorWithFlags

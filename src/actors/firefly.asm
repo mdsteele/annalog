@@ -17,6 +17,7 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
+.INCLUDE "../actor.inc"
 .INCLUDE "../cpu.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
@@ -32,6 +33,7 @@
 .IMPORT Func_Cosine
 .IMPORT Func_FindEmptyActorSlot
 .IMPORT Func_InitActorProjFireball
+.IMPORT Func_InitActorWithFlags
 .IMPORT Func_SetActorCenterToPoint
 .IMPORT Ram_ActorFlags_bObj_arr
 .IMPORT Ram_ActorState1_byte_arr
@@ -54,6 +56,30 @@ kFireflyFireballHorzOffset = 8
 
 ;;; The OBJ palette number to use for drawing firefly baddie actors.
 kPaletteObjFirefly = 0
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Room"
+
+;;; Initializes a firefly baddie actor.
+;;; @prereq The actor's pixel position has already been initialized.
+;;; @param A The bBadFirefly param.
+;;; @param X The actor index.
+;;; @preserve X
+.EXPORT FuncA_Room_InitActorBadFirefly
+.PROC FuncA_Room_InitActorBadFirefly
+    pha  ; bBadFirefly param
+    and #bBadFirefly::FlipH
+    beq @noFlip
+    lda #bObj::FlipH
+    @noFlip:
+    ldy #eActor::BadFirefly
+    jsr Func_InitActorWithFlags  ; preserves X
+    pla  ; bBadFirefly param
+    and #bBadFirefly::ThetaMask
+    sta Ram_ActorState2_byte_arr, x  ; angle
+    rts
+.ENDPROC
 
 ;;;=========================================================================;;;
 

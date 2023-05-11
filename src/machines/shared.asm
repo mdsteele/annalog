@@ -191,14 +191,20 @@ kTileIdObjMachineLightOn  = $3f
     ;; Calculate the desired Y-position for the top edge of the machine, in
     ;; room-space pixels, storing it in Zp_PointY_i16.
     ldy Zp_MachineIndex_u8
+    lda #0
+    sta T3  ; goal delta (hi)
     lda Ram_MachineGoalVert_u8_arr, y
-    mul #kBlockHeightPx
-    sta T2  ; goal delta
+    .assert kBlockHeightPx = 1 << 4, error
+    .repeat 4
+    asl a
+    rol T3  ; goal delta (hi)
+    .endrepeat
+    sta T2  ; goal delta (lo)
     txa     ; max platform top (lo)
-    sub T2  ; goal delta
+    sub T2  ; goal delta (lo)
     sta Zp_PointY_i16 + 0
     lda T0  ; max platform top (hi)
-    sbc #0
+    sbc T3  ; goal delta (hi)
     sta Zp_PointY_i16 + 1
     ;; Determine the vertical speed of the machine (faster if resetting).
     ldx Ram_MachineStatus_eMachine_arr, y

@@ -108,6 +108,7 @@ kMaxPassages = 8
     SewerFlower
     SewerPool
     SewerWest
+    ShadowEntry
     ShadowTeleport
     TempleAltar
     TempleEntry
