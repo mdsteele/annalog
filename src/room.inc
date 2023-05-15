@@ -43,6 +43,7 @@ kMaxPassages = 8
     BossCrypt
     BossGarden
     BossTemple
+    CityEast
     CoreBoss
     CoreEast
     CoreElevator

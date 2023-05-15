@@ -32,6 +32,7 @@
 .IMPORT DataC_Boss_Crypt_sRoom
 .IMPORT DataC_Boss_Garden_sRoom
 .IMPORT DataC_Boss_Temple_sRoom
+.IMPORT DataC_City_East_sRoom
 .IMPORT DataC_Core_Boss_sRoom
 .IMPORT DataC_Core_East_sRoom
 .IMPORT DataC_Core_Elevator_sRoom
@@ -234,6 +235,7 @@ _LoadNewRoom:
     d_entry table, BossCrypt,       DataC_Boss_Crypt_sRoom
     d_entry table, BossGarden,      DataC_Boss_Garden_sRoom
     d_entry table, BossTemple,      DataC_Boss_Temple_sRoom
+    d_entry table, CityEast,        DataC_City_East_sRoom
     d_entry table, CoreBoss,        DataC_Core_Boss_sRoom
     d_entry table, CoreEast,        DataC_Core_East_sRoom
     d_entry table, CoreElevator,    DataC_Core_Elevator_sRoom
