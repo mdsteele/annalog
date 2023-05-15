@@ -32,6 +32,7 @@
 .IMPORT FuncA_Objects_DrawLeverFloorDevice
 .IMPORT FuncA_Objects_DrawLockedDoorDevice
 .IMPORT FuncA_Objects_DrawPaperDevice
+.IMPORT FuncA_Objects_DrawScreenDevice
 .IMPORT FuncA_Objects_DrawUnlockedDoorDevice
 .IMPORT FuncA_Objects_DrawUpgradeDevice
 .IMPORT Func_Noop
@@ -135,6 +136,7 @@ _Continue:
     d_entry table, LeverFloor,    FuncA_Objects_DrawLeverFloorDevice
     d_entry table, OpenDoorway,   Func_Noop
     d_entry table, Paper,         FuncA_Objects_DrawPaperDevice
+    d_entry table, Screen,        FuncA_Objects_DrawScreenDevice
     d_entry table, Sign,          Func_Noop
     d_entry table, TalkLeft,      Func_Noop
     d_entry table, TalkRight,     Func_Noop

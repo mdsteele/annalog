@@ -154,6 +154,12 @@ _Devices_sDevice_arr:
     d_byte BlockCol_u8, 13
     d_byte Target_u8, kFieldMachineIndex
     D_END
+    D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::Screen
+    d_byte BlockRow_u8, 10
+    d_byte BlockCol_u8, 5
+    d_byte Target_u8, eDialog::ShadowTeleportScreen
+    D_END
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None
 _Passages_sPassage_arr:
@@ -171,7 +177,6 @@ _Passages_sPassage_arr:
     lda #kPpuCtrlFlagsHorz
     sta Hw_PpuCtrl_wo
     ldax #Ppu_Nametable0_sName + sName::Attrs_u8_arr64 + $28
-    bit Hw_PpuStatus_ro  ; reset the Hw_PpuAddr_w2 write-twice latch
     sta Hw_PpuAddr_w2
     stx Hw_PpuAddr_w2
 _Row11:
@@ -189,6 +194,17 @@ _Row12:
     dex
     bne @loop
     rts
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Dialog"
+
+.EXPORT DataA_Dialog_ShadowTeleportScreen_sDialog
+.PROC DataA_Dialog_ShadowTeleportScreen_sDialog
+    .word ePortrait::Screen
+    .byte "Lorem ipsum.#"
+    .word ePortrait::Done
 .ENDPROC
 
 ;;;=========================================================================;;;

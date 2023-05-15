@@ -23,6 +23,7 @@
 .INCLUDE "../oam.inc"
 
 .IMPORT FuncA_Objects_Alloc1x1Shape
+.IMPORT FuncA_Objects_Draw1x1Shape
 .IMPORT FuncA_Objects_MoveShapeRightByA
 .IMPORT FuncA_Objects_SetShapePosToDeviceTopLeft
 .IMPORT Ram_DeviceTarget_u8_arr
@@ -32,12 +33,14 @@
 ;;;=========================================================================;;;
 
 ;;; OBJ tile IDs used for drawing console devices.
-kTileIdObjConsoleScreenOk  = $0a
-kTileIdObjConsoleScreenErr = $0b
+kTileIdObjConsoleOk  = $0a
+kTileIdObjConsoleErr = $0b
+kTileIdObjScreen     = kTileIdObjConsoleOk
 
-;;; OBJ palette numbers used for drawing console devices.
-kPaletteObjConsoleScreenOk  = 2
-kPaletteObjConsoleScreenErr = 1
+;;; OBJ palette numbers used for drawing console/screen devices.
+kPaletteObjConsoleOk  = 2
+kPaletteObjConsoleErr = 1
+kPaletteObjScreen     = 1
 
 ;;;=========================================================================;;;
 
@@ -61,18 +64,31 @@ kPaletteObjConsoleScreenErr = 1
     cmp #eMachine::Error
     beq @machineError
     @machineOk:
-    lda #kPaletteObjConsoleScreenOk
+    lda #kPaletteObjConsoleOk
     sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
-    lda #kTileIdObjConsoleScreenOk
+    lda #kTileIdObjConsoleOk
     sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
     rts
     @machineError:
-    lda #kPaletteObjConsoleScreenErr
+    lda #kPaletteObjConsoleErr
     sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
-    lda #kTileIdObjConsoleScreenErr
+    lda #kTileIdObjConsoleErr
     sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
     @done:
     rts
+.ENDPROC
+
+;;; Draws a screen device.
+;;; @param X The device index.
+;;; @preserve X
+.EXPORT FuncA_Objects_DrawScreenDevice
+.PROC FuncA_Objects_DrawScreenDevice
+    jsr FuncA_Objects_SetShapePosToDeviceTopLeft  ; preserves X
+    lda #4  ; param: offset
+    jsr FuncA_Objects_MoveShapeRightByA  ; preserves X
+    ldy #kPaletteObjScreen  ; param: object flags
+    lda #kTileIdObjScreen  ; param: tile ID
+    jmp FuncA_Objects_Draw1x1Shape  ; preserves X
 .ENDPROC
 
 ;;;=========================================================================;;;

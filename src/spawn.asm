@@ -326,6 +326,7 @@ _DeviceOffset_u8_arr:
     d_byte LeverFloor,    $06
     d_byte OpenDoorway,   $08
     d_byte Paper,         $06
+    d_byte Screen,        kConsoleAvatarOffset
     d_byte Sign,          $06
     d_byte TalkLeft,      $0a
     d_byte TalkRight,     $06

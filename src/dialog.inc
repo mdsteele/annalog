@@ -51,6 +51,7 @@
     OrcMaleShout   = $1819
     Paper          = $0404
     Plaque         = $1515
+    Screen         = $1a1a
     Sign           = $0303
 .ENDENUM
 
@@ -86,6 +87,7 @@
     PrisonUpperBruno
     PrisonUpperMarie
     PrisonUpperNora
+    ShadowTeleportScreen
     TempleAltarPlaque
     TempleEntryMermaid
     TempleFoyerPaper

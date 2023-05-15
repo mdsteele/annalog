@@ -59,6 +59,7 @@
 .IMPORT DataA_Dialog_PrisonUpperBruno_sDialog
 .IMPORT DataA_Dialog_PrisonUpperMarie_sDialog
 .IMPORT DataA_Dialog_PrisonUpperNora_sDialog
+.IMPORT DataA_Dialog_ShadowTeleportScreen_sDialog
 .IMPORT DataA_Dialog_TempleAltarPlaque_sDialog
 .IMPORT DataA_Dialog_TempleEntryMermaid_sDialog
 .IMPORT DataA_Dialog_TempleFoyerPaper_sDialog
@@ -343,6 +344,8 @@ _UpdateScrolling:
     d_entry table, PrisonUpperBruno,   DataA_Dialog_PrisonUpperBruno_sDialog
     d_entry table, PrisonUpperMarie,   DataA_Dialog_PrisonUpperMarie_sDialog
     d_entry table, PrisonUpperNora,    DataA_Dialog_PrisonUpperNora_sDialog
+    d_entry table, ShadowTeleportScreen,  \
+            DataA_Dialog_ShadowTeleportScreen_sDialog
     d_entry table, TempleAltarPlaque,  DataA_Dialog_TempleAltarPlaque_sDialog
     d_entry table, TempleEntryMermaid, DataA_Dialog_TempleEntryMermaid_sDialog
     d_entry table, TempleFoyerPaper,   DataA_Dialog_TempleFoyerPaper_sDialog

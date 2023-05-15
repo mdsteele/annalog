@@ -617,6 +617,19 @@
 
 ;;;=========================================================================;;;
 
+.SEGMENT "CHR_BgFontLower1A"
+
+.PROC Ppu_ChrBgFontLower1A
+:   .incbin "out/data/tiles/font_lower.chr"
+    .res $10 * kSizeofChr
+    .assert .bank(*) = <ePortrait::Screen, error
+    .assert .bank(*) = >ePortrait::Screen, error
+    .incbin "out/data/tiles/portrait_screen.chr"
+    .assert * - :- = kSizeofChr * $40, error
+.ENDPROC
+
+;;;=========================================================================;;;
+
 .SEGMENT "CHR_BgFactory"
 
 .EXPORT Ppu_ChrBgFactory

@@ -36,15 +36,16 @@ kMaxDevices = 16
     ;; Interactive device types.  The player can interact with these by
     ;; pressing the B button while standing in front of them.
     BreakerReady   ; circuit breaker, ready to be activated
-    Console
+    Console        ; operates a machine
     Flower
     LeverCeiling
     LeverFloor
     OpenDoorway
-    Paper          ; initiate dialogue with the avatar's back to the camera
-    Sign           ; initiate dialogue with the avatar's back to the camera
-    TalkLeft       ; initiate dialogue with the avatar facing to the left
-    TalkRight      ; initiate dialogue with the avatar facing to the right
+    Paper          ; initiates dialogue with the avatar's back to the camera
+    Screen         ; initiates dialogue with the avatar's back to the camera
+    Sign           ; initiates dialogue with the avatar's back to the camera
+    TalkLeft       ; initiates dialogue with the avatar facing to the left
+    TalkRight      ; initiates dialogue with the avatar facing to the right
     UnlockedDoor
     Upgrade
     NUM_VALUES
@@ -85,7 +86,7 @@ kFirstInteractiveDeviceType = eDevice::BreakerReady
     ;;   * For flowers, this is the eFlag::Flower* value.
     ;;   * For levers, this is the byte offset into Zp_RoomState for the
     ;;     lever's state value (0 or 1).
-    ;;   * For paper/sign/talk devices, this is the eDialog value.
+    ;;   * For paper/screen/sign/talk devices, this is the eDialog value.
     ;;   * For teleporters, this is the eRoom value for the destination room.
     ;;   * For upgrades, this is the eFlag::Upgrade* value.
     Target_u8    .byte

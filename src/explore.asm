@@ -234,6 +234,7 @@ _CheckForPause:
     d_entry table, LeverFloor,    _DeviceLever
     d_entry table, OpenDoorway,   Main_Explore_GoThroughDoor
     d_entry table, Paper,         Main_Dialog_UseDevice
+    d_entry table, Screen,        Main_Dialog_UseDevice
     d_entry table, Sign,          Main_Dialog_UseDevice
     d_entry table, TalkLeft,      Main_Dialog_UseDevice
     d_entry table, TalkRight,     Main_Dialog_UseDevice
