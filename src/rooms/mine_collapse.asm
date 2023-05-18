@@ -193,6 +193,12 @@ _Devices_sDevice_arr:
     d_byte BlockCol_u8, 13
     d_byte Target_u8, kCraneMachineIndex
     D_END
+    D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::UnlockedDoor
+    d_byte BlockRow_u8, 12
+    d_byte BlockCol_u8, 2
+    d_byte Target_u8, eRoom::BossMine
+    D_END
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None
 _Passages_sPassage_arr:

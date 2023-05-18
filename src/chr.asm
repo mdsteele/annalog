@@ -743,7 +743,7 @@
     .res $04 * kSizeofChr
     .incbin "out/data/tiles/minecart.chr"
     .incbin "out/data/tiles/scaffhold.chr"
-    .res $04 * kSizeofChr
+    .incbin "out/data/tiles/mine_door.chr"
     .incbin "out/data/tiles/hoist_bg.chr"
     .incbin "out/data/tiles/sign.chr"
     .incbin "out/data/tiles/console.chr"
@@ -1133,7 +1133,8 @@
     .incbin "out/data/tiles/upgrade_opsync.chr"
     .assert * - :- = (kTileIdObjFireballFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/fireball.chr"
-    .res $04 * kSizeofChr
+    .assert * - :- = (kTileIdObjBoulderFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/boulder.chr"
     .assert * - :- = (kTileIdObjFireflyFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/firefly.chr"
     .res $08 * kSizeofChr

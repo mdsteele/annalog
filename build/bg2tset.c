@@ -81,6 +81,7 @@ static const struct {
   {0xb6, "lever_ceil"},
   {0x90, "metal"},
   {0x98, "minecart"},
+  {0xac, "mine_door"},
   {0x80, "outdoors"},
   {0xba, "plaque"},
   {0x90, "prison"},

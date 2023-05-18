@@ -42,6 +42,7 @@ kMaxPassages = 8
 .ENUM eRoom
     BossCrypt
     BossGarden
+    BossMine
     BossTemple
     CityEast
     CoreBoss

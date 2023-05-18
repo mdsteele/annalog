@@ -889,7 +889,7 @@ _GoalPosX_u8_arr8:
     rts
 .ENDPROC
 
-;;; Draw function for the BossTemple room.
+;;; Draw function for the BossCrypt room.
 ;;; @prereq PRGA_Objects is loaded.
 .PROC FuncC_Boss_Crypt_DrawRoom
     ldx #kLeftWallPlatformIndex  ; param: platform index

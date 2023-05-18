@@ -17,6 +17,9 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
+;;; OBJ tile IDs for drawing boulder platforms.
+kTileIdObjBoulderFirst = $9c
+
 ;;; OBJ tile IDs for drawing crate platforms.
 kTileIdObjCrateFirst = $94
 

@@ -38,6 +38,7 @@ PERMITTED_OOB_CELLS = set([
 ROOM_PARENTS = {
     'BossCrypt': 'CryptTomb',
     'BossGarden': 'GardenTower',
+    'BossMine': 'MineCollapse',
     'BossTemple': 'TempleSpire',
     'MermaidCellar': 'MermaidHut4',
     'MermaidHut1': 'MermaidVillage',
