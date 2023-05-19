@@ -45,6 +45,9 @@ kMachineRegNameB = $21  ; 'B'
     HoistRight   = $0f
     HoistLeft    = $10
     LauncherDown = $11
+    MinigunDown  = $12
+    MinigunLeft  = $13
+    MinigunUp    = $14
 .ENDENUM
 
 ;;;=========================================================================;;;

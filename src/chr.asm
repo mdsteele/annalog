@@ -537,7 +537,8 @@
 
 .PROC Ppu_ChrBgFontLower12
 :   .incbin "out/data/tiles/font_lower.chr"
-    .res $10 * kSizeofChr
+    .assert .bank(*) = eDiagram::MinigunDown, error
+    .incbin "out/data/tiles/diagram_minigun_down.chr"
     .assert .bank(*) = >ePortrait::ChildMarie, error
     .incbin "out/data/tiles/portrait_marie_talk.chr"
     .assert * - :- = kSizeofChr * $40, error
@@ -549,7 +550,8 @@
 
 .PROC Ppu_ChrBgFontLower13
 :   .incbin "out/data/tiles/font_lower.chr"
-    .res $10 * kSizeofChr
+    .assert .bank(*) = eDiagram::MinigunLeft, error
+    .incbin "out/data/tiles/diagram_minigun_left.chr"
     .assert .bank(*) = <ePortrait::ChildBruno, error
     .incbin "out/data/tiles/portrait_bruno_rest.chr"
     .assert * - :- = kSizeofChr * $40, error
@@ -561,7 +563,8 @@
 
 .PROC Ppu_ChrBgFontLower14
 :   .incbin "out/data/tiles/font_lower.chr"
-    .res $10 * kSizeofChr
+    .assert .bank(*) = eDiagram::MinigunUp, error
+    .incbin "out/data/tiles/diagram_minigun_up.chr"
     .assert .bank(*) = >ePortrait::ChildBruno, error
     .incbin "out/data/tiles/portrait_bruno_talk.chr"
     .assert * - :- = kSizeofChr * $40, error

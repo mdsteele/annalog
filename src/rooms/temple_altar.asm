@@ -189,7 +189,7 @@ _Machines_sMachine_arr:
     d_byte Code_eProgram, eProgram::TempleAltarUpperMinigun
     d_byte Breaker_eFlag, 0
     d_byte Flags_bMachine, bMachine::MoveH | bMachine::Act | bMachine::WriteCD
-    d_byte Status_eDiagram, eDiagram::Carriage  ; TODO
+    d_byte Status_eDiagram, eDiagram::MinigunDown
     d_word ScrollGoalX_u16, $0010
     d_byte ScrollGoalY_u8, $00
     d_byte RegNames_u8_arr4, "L", "R", "X", 0
@@ -208,7 +208,7 @@ _Machines_sMachine_arr:
     d_byte Code_eProgram, eProgram::TempleAltarLowerMinigun
     d_byte Breaker_eFlag, 0
     d_byte Flags_bMachine, bMachine::MoveH | bMachine::MoveV | bMachine::Act
-    d_byte Status_eDiagram, eDiagram::Carriage  ; TODO
+    d_byte Status_eDiagram, eDiagram::MinigunLeft
     d_word ScrollGoalX_u16, $0010
     d_byte ScrollGoalY_u8, $b0
     d_byte RegNames_u8_arr4, 0, 0, "X", "Y"

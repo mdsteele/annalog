@@ -1,21 +1,23 @@
 @BG 0 0 0 17x15
 >temple_0
 >temple_1
+>temple_2
+>temple_3
 >temple_4
 >temple_5
 
-
-
-  CACBCCCGCCCBCCCBCCCGCCCGCCCD
-  CN                        CN
-  CO                        CO
-  CO      BB        BB      CO
-  CO      BC        BD      CO
-  CO                        CP
-  CO  AM                AL  CACGCC
-  CO  AO                AO  AN
-  CP  AP  CACD    CACD  AP  AP
-  CACGCCCBCCCD    CACBCCCGCCCBCCCB
-            CL    DB
-            DB    CL
-            CL    CL
+    EO  AO            AO  EO  EOEO
+    EP  AP            AP  EP  EOEO
+  EAEBECEGECEBECEBECEGECEGECEDEOEO
+  EN                        ENEPEP
+  EO                        EOEAEB
+FOEO      BB        BB      EOENEN
+FOEO      BC        BD      EOEOEO
+FPEO                        EPEPEP
+FPEO  AM                AL  EAEGEC
+FPEO  AO                AO  AN
+FPEP  AP  EAED    EAED  AP  AP
+FPEAEGECEBECED    EAEBECEGECEBECEB
+FPFM  CN    EL    FB    AN    ENEN
+FPFO        FB    EL    CO    EPEP
+FP          EL    EL          FPFP
