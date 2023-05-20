@@ -1009,6 +1009,14 @@ static void parse_input(void) {
             parser.octave = ch - '0';
             parser.state = BEGIN_DURATION;
             break;
+          case 'v':
+            --parser.octave;
+            parser.state = BEGIN_DURATION;
+            break;
+          case '^':
+            ++parser.octave;
+            parser.state = BEGIN_DURATION;
+            break;
           case 'w': case 'h': case 'q': case 'e': case 's': case 't': case 'x':
             goto begin_duration;
           case ')': finish_note(); finish_defining_phrase(); break;
