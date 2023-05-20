@@ -5,8 +5,8 @@
 =tempo q32
 =key 1b  % D minor
 
-!INST 1A PulseBasic $0c  % duty = 1/8
-!INST TA TriangleVibrato 0
+!INST 1A PulseBasic $0c d1/8
+!INST TA TriangleVibrato
 
 !PART A
 

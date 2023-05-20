@@ -5,8 +5,8 @@
 =tempo q36
 =key 3b  % c minor
 
-!INST 1A PulseBasic $8c  % duty = 1/2
-!INST 1B PulseBasic $4c  % duty = 1/4
+!INST 1A PulseBasic $0c d1/2
+!INST 1B PulseBasic $0c d1/4
 !INST TA Constant   $ff
 !INST ND NoiseDrum  $0c
 

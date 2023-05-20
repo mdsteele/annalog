@@ -5,9 +5,9 @@
 =tempo q28
 =key 3#  % F# minor
 
-!INST 1D PulseBasic $cc  % duty = 3/4
-!INST 2D PulseBasic $0c  % duty = 1/8
-!INST TB TriangleVibrato $ff
+!INST 1D PulseBasic $0c d3/4
+!INST 2D PulseBasic $0c d1/8
+!INST TB TriangleVibrato
 !INST ND NoiseDrum  $0c
 
 !PART A

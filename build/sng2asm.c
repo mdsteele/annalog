@@ -85,6 +85,11 @@ static void read_one_or_more_spaces(void) {
   read_zero_or_more_spaces();
 }
 
+static int is_at_linebreak_or_comment(void) {
+  int ch = peek_char();
+  return ch == '\n' || ch == '%';
+}
+
 static int read_exactly(const char *str) {
   for (char ch = *str; ch != 0; ch = *++str) {
     if (read_char() != ch) return 0;
@@ -780,6 +785,28 @@ static void parse_dpcm_declaration(void) {
   sample->length_param = length >> 4;
 }
 
+static int read_inst_param(void) {
+  switch (peek_char()) {
+    case 'd': {
+      read_char();
+      int numerator = read_unsigned_decimal_int();
+      int ch = read_char();
+      if (ch != '/') ERROR("expected '/', not '%c'\n", ch);
+      int denominator = read_unsigned_decimal_int();
+      if (numerator == 1 && denominator == 8) return 0x00;
+      else if (numerator == 1 && denominator == 4) return 0x40;
+      else if (numerator == 1 && denominator == 2) return 0x80;
+      else if (numerator == 3 && denominator == 4) return 0xc0;
+      else ERROR("invalid duty: %d/%d\n", numerator, denominator);
+    }
+    default: {
+      int param = read_unsigned_hex_or_dec_int();
+      if (param > 255) ERROR("invalid instrument param: %d\n", param);
+      return param;
+    }
+  }
+}
+
 static void parse_inst_declaration(void) {
   if (parser.num_songs == 0) {
     ERROR("can't declare an instrument outside of a song\n");
@@ -798,10 +825,13 @@ static void parse_inst_declaration(void) {
   }
   read_one_or_more_spaces();
   inst->id = read_identifier();
-  read_one_or_more_spaces();
-  int param = read_unsigned_hex_or_dec_int();
-  if (param > 255) ERROR("invalid instrument param: %d\n", param);
-  inst->param = param;
+  inst->param = 0;
+  while (1) {
+    if (is_at_linebreak_or_comment()) break;
+    read_one_or_more_spaces();
+    if (is_at_linebreak_or_comment()) break;
+    inst->param |= read_inst_param();
+  }
 }
 
 static void parse_part_declaration(void) {
