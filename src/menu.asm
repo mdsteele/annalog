@@ -235,9 +235,9 @@ _TransferLabels:
 .PROC FuncA_Console_MenuSetValue
     ;; Check if the current instruction was previously empty.
     lda Zp_ConsoleInstNumber_u8
-    mul #.sizeof(sInst)
+    mul #.sizeof(sIns)
     tay
-    lda Ram_Console_sProgram + sProgram::Code_sInst_arr + sInst::Op_byte, y
+    lda Ram_Console_sProgram + sProgram::Code_sIns_arr + sIns::Op_byte, y
     and #$f0
     pha  ; zero if instruction was empty
     ;; Set the field value.
@@ -249,9 +249,9 @@ _TransferLabels:
     pla  ; zero if instruction was empty
     tax
     lda Zp_ConsoleInstNumber_u8
-    mul #.sizeof(sInst)
+    mul #.sizeof(sIns)
     tay
-    lda Ram_Console_sProgram + sProgram::Code_sInst_arr + sInst::Op_byte, y
+    lda Ram_Console_sProgram + sProgram::Code_sIns_arr + sIns::Op_byte, y
     and #$f0
     beq _NowEmpty
 _NowNotEmpty:
@@ -283,41 +283,41 @@ _NowEmpty:
 _ShiftInstructions:
     ;; Shift all instructions after the current one back one slot.
     lda Zp_ConsoleInstNumber_u8
-    mul #.sizeof(sInst)
+    mul #.sizeof(sIns)
     tax  ; byte offset for instruction
     tay  ; byte offset for following instruction
-    .repeat .sizeof(sInst)
+    .repeat .sizeof(sIns)
     iny
     .endrepeat
     bne @compare  ; unconditional
     @loop:
-    lda Ram_Console_sProgram + sProgram::Code_sInst_arr, y
-    sta Ram_Console_sProgram + sProgram::Code_sInst_arr, x
+    lda Ram_Console_sProgram + sProgram::Code_sIns_arr, y
+    sta Ram_Console_sProgram + sProgram::Code_sIns_arr, x
     inx
     iny
     @compare:
-    cpy #.sizeof(sInst) * kMaxProgramLength
+    cpy #.sizeof(sIns) * kMaxProgramLength
     blt @loop
     ;; Mark the final instruction empty.
     lda Zp_MachineMaxInstructions_u8
-    mul #.sizeof(sInst)
+    mul #.sizeof(sIns)
     tax
     lda #0
-    .repeat .sizeof(sInst)
+    .repeat .sizeof(sIns)
     dex
-    sta Ram_Console_sProgram + sProgram::Code_sInst_arr, x
+    sta Ram_Console_sProgram + sProgram::Code_sIns_arr, x
     .endrepeat
 _RewriteGotos:
     ;; Loop over all instructions.
     ldx #0  ; byte offset into program
     @loop:
     ;; If this is not a GOTO instruction, skip it.
-    lda Ram_Console_sProgram + sProgram::Code_sInst_arr + sInst::Op_byte, x
+    lda Ram_Console_sProgram + sProgram::Code_sIns_arr + sIns::Op_byte, x
     and #$f0
     cmp #eOpcode::Goto * $10
     bne @continue
     ;; Get the destination address of the GOTO.
-    lda Ram_Console_sProgram + sProgram::Code_sInst_arr + sInst::Op_byte, x
+    lda Ram_Console_sProgram + sProgram::Code_sIns_arr + sIns::Op_byte, x
     and #$0f
     ;; If it points to before the removed instruction, no change is needed.
     cmp Zp_ConsoleInstNumber_u8
@@ -327,25 +327,25 @@ _RewriteGotos:
     ;; Otherwise, the GOTO points to the removed instruction exactly.  If that
     ;; address still points to a non-empty instruction (which used to be the
     ;; next instruction, before we shifted things), leave the address the same.
-    mul #.sizeof(sInst)
+    mul #.sizeof(sIns)
     tay
-    lda Ram_Console_sProgram + sProgram::Code_sInst_arr + sInst::Op_byte, y
+    lda Ram_Console_sProgram + sProgram::Code_sIns_arr + sIns::Op_byte, y
     and #$f0
     bne @continue
     ;; Otherwise, the removed instruction that the GOTO points to was the last
     ;; instruction, so its old "next" instruction was instruction zero, so make
     ;; the GOTO point to that.
     lda #eOpcode::Goto * $10 + 0
-    sta Ram_Console_sProgram + sProgram::Code_sInst_arr + sInst::Op_byte, x
+    sta Ram_Console_sProgram + sProgram::Code_sIns_arr + sIns::Op_byte, x
     bne @continue  ; unconditional
     ;; Decrement the destination address.
     @decrement:
-    dec Ram_Console_sProgram + sProgram::Code_sInst_arr + sInst::Op_byte, x
+    dec Ram_Console_sProgram + sProgram::Code_sIns_arr + sIns::Op_byte, x
     @continue:
-    .repeat .sizeof(sInst)
+    .repeat .sizeof(sIns)
     inx
     .endrepeat
-    cpx #.sizeof(sInst) * kMaxProgramLength
+    cpx #.sizeof(sIns) * kMaxProgramLength
     blt @loop
 _RedrawInstructions:
     jmp FuncA_Console_TransferAllInstructions

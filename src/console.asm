@@ -275,7 +275,7 @@ _CheckButtons:
     and #bJoypad::Start
     beq @noDebug
     ;; Don't start debugging if the program is empty.
-    lda Ram_Console_sProgram + sProgram::Code_sInst_arr + sInst::Op_byte
+    lda Ram_Console_sProgram + sProgram::Code_sIns_arr + sIns::Op_byte
     and #$f0
     .assert eOpcode::Empty = 0, error
     beq @noDebug
@@ -493,10 +493,10 @@ _CheckIfDone:
     ;; Check if the final instruction in the program is empty; if not, we can't
     ;; insert a new instruction.
     lda Zp_MachineMaxInstructions_u8
-    mul #.sizeof(sInst)
+    mul #.sizeof(sIns)
     sta T0  ; machine max program byte length
     tay
-    .assert sInst::Op_byte = .sizeof(sInst) - 1, error
+    .assert sIns::Op_byte = .sizeof(sIns) - 1, error
     dey
     lda Ram_Console_sProgram, y
     and #$f0
@@ -506,25 +506,25 @@ _CheckIfDone:
     @canInsert:
 _ShiftInstructions:
     lda Zp_ConsoleInstNumber_u8
-    mul #.sizeof(sInst)
+    mul #.sizeof(sIns)
     sta T1  ; byte offset for current instruction
     ldy T0  ; machine max program byte length
     ldx T0  ; machine max program byte length
-    .repeat .sizeof(sInst)
+    .repeat .sizeof(sIns)
     dex
     .endrepeat
     @loop:
     dex
     dey
-    lda Ram_Console_sProgram + sProgram::Code_sInst_arr, x
-    sta Ram_Console_sProgram + sProgram::Code_sInst_arr, y
+    lda Ram_Console_sProgram + sProgram::Code_sIns_arr, x
+    sta Ram_Console_sProgram + sProgram::Code_sIns_arr, y
     cpx T1  ; byte offset for current instruction
     bne @loop
     ;; Set the current instruction to NOP, and select field zero.
     lda #eOpcode::Nop * $10
-    sta Ram_Console_sProgram + sProgram::Code_sInst_arr + sInst::Op_byte, x
+    sta Ram_Console_sProgram + sProgram::Code_sIns_arr + sIns::Op_byte, x
     lda #0
-    sta Ram_Console_sProgram + sProgram::Code_sInst_arr + sInst::Arg_byte, x
+    sta Ram_Console_sProgram + sProgram::Code_sIns_arr + sIns::Arg_byte, x
     sta Zp_ConsoleFieldNumber_u8
     sta Zp_ConsoleNominalFieldOffset_u8
 _RewriteGotos:
@@ -532,23 +532,23 @@ _RewriteGotos:
     ldx #0  ; byte offset into program
     @loop:
     ;; If this is not a GOTO instruction, skip it.
-    lda Ram_Console_sProgram + sProgram::Code_sInst_arr + sInst::Op_byte, x
+    lda Ram_Console_sProgram + sProgram::Code_sIns_arr + sIns::Op_byte, x
     and #$f0
     cmp #eOpcode::Goto * $10
     bne @continue
     ;; Get the destination address of the GOTO.
-    lda Ram_Console_sProgram + sProgram::Code_sInst_arr + sInst::Op_byte, x
+    lda Ram_Console_sProgram + sProgram::Code_sIns_arr + sIns::Op_byte, x
     and #$0f
     ;; If it points to before the inserted instruction, no change is needed.
     cmp Zp_ConsoleInstNumber_u8
     blt @continue
     ;; Otherwise, increment the destination address.
-    inc Ram_Console_sProgram + sProgram::Code_sInst_arr + sInst::Op_byte, x
+    inc Ram_Console_sProgram + sProgram::Code_sIns_arr + sIns::Op_byte, x
     @continue:
-    .repeat .sizeof(sInst)
+    .repeat .sizeof(sIns)
     inx
     .endrepeat
-    cpx #.sizeof(sInst) * kMaxProgramLength
+    cpx #.sizeof(sIns) * kMaxProgramLength
     blt @loop
 _Finish:
     jsr FuncA_Console_TransferAllInstructions
@@ -712,12 +712,12 @@ _DrawStatus:
     beq _Write7Spaces
     ;; Store the Arg_byte in T1.
     lda Zp_ConsoleInstNumber_u8
-    mul #.sizeof(sInst)
+    mul #.sizeof(sIns)
     tay
-    lda Ram_Console_sProgram + sProgram::Code_sInst_arr + sInst::Arg_byte, y
+    lda Ram_Console_sProgram + sProgram::Code_sIns_arr + sIns::Arg_byte, y
     sta T1  ; Arg_byte
     ;; Store the Op_byte in T0.
-    lda Ram_Console_sProgram + sProgram::Code_sInst_arr + sInst::Op_byte, y
+    lda Ram_Console_sProgram + sProgram::Code_sIns_arr + sIns::Op_byte, y
     sta T0  ; Op_byte
     ;; Extract the opcode and jump to the correct label below.
     div #$10
@@ -946,9 +946,9 @@ _WriteComparisonOperator:
     dey
     bmi @done
     tya
-    mul #.sizeof(sInst)
+    mul #.sizeof(sIns)
     tay
-    lda Ram_Console_sProgram + sProgram::Code_sInst_arr + sInst::Op_byte, y
+    lda Ram_Console_sProgram + sProgram::Code_sIns_arr + sIns::Op_byte, y
     and #$f0
     .assert eOpcode::Empty = 0, error
     @done:

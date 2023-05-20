@@ -105,7 +105,7 @@ _OnRight:
     ldax #DataA_Console_Address_sMenu
     stax Zp_Current_sMenu_ptr
     ldx #0
-    ldy #sInst::Op_byte
+    ldy #sIns::Op_byte
     @loop:
     lda Ram_Console_sProgram, y
     and #$f0
@@ -124,7 +124,7 @@ _OnRight:
     @setCol:
     sta Ram_MenuCols_u8_arr, x
     inx
-    .repeat .sizeof(sInst)
+    .repeat .sizeof(sIns)
     iny
     .endrepeat
     cpx Zp_MachineMaxInstructions_u8

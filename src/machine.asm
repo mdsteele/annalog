@@ -59,7 +59,7 @@ Zp_Current_sMachine_ptr: .res 2
 Zp_Current_sProgram_ptr: .res 2
 
 ;;; Temporary storage for the instruction that is currently being executed.
-Zp_Current_sInst: .tag sInst
+Zp_Current_sIns: .tag sIns
 
 ;;;=========================================================================;;;
 
@@ -395,15 +395,15 @@ _Return:
 ;;; Helper function for FuncA_Machine_ExecuteNext.  Extracts the two arguments
 ;;; from a binop instruction (ADD, SUB, MUL, IF, or TIL).
 ;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
-;;; @prereq Zp_Current_sInst holds a binop instruction.
+;;; @prereq Zp_Current_sIns holds a binop instruction.
 ;;; @return A The left-hand value (0-9).
 ;;; @return Y The right-hand value (0-9).
 .PROC FuncA_Machine_GetBinopArgs
-    lda <(Zp_Current_sInst + sInst::Arg_byte)
+    lda <(Zp_Current_sIns + sIns::Arg_byte)
     and #$0f  ; param: immediate value or register to read
     jsr Func_MachineRead  ; returns A
     pha  ; left-hand value
-    lda <(Zp_Current_sInst + sInst::Arg_byte)
+    lda <(Zp_Current_sIns + sIns::Arg_byte)
     div #$10  ; param: immediate value or register to read
     jsr Func_MachineRead  ; returns A
     tay  ; right-hand value
@@ -414,14 +414,14 @@ _Return:
 ;;; Helper function for FuncA_Machine_ExecuteNext.  Evaluates the predicate for
 ;;; a conditional instruction (IF or TIL).
 ;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
-;;; @prereq Zp_Current_sInst holds a conditional instruction.
+;;; @prereq Zp_Current_sIns holds a conditional instruction.
 ;;; @return Z Set if the condition is true, cleared if false.
 .PROC FuncA_Machine_EvalConditional
     jsr FuncA_Machine_GetBinopArgs  ; returns A and Y
     sty T0  ; right-hand value
     cmp T0  ; right-hand value
     php  ; comparison flags
-    lda <(Zp_Current_sInst + sInst::Op_byte)
+    lda <(Zp_Current_sIns + sIns::Op_byte)
     and #$0f
     tax  ; eCmp value
     pla  ; comparison flags
@@ -483,18 +483,18 @@ _Le:
     beq _ExecInstruction
     rts
 _ExecInstruction:
-    ;; Load next instruction into Zp_Current_sInst.
+    ;; Load next instruction into Zp_Current_sIns.
     lda Ram_MachinePc_u8_arr, x
-    mul #.sizeof(sInst)
+    mul #.sizeof(sIns)
     tay
     lda (Zp_Current_sProgram_ptr), y
-    sta Zp_Current_sInst + 0
+    sta Zp_Current_sIns + 0
     iny
     lda (Zp_Current_sProgram_ptr), y
-    sta Zp_Current_sInst + 1
-    .assert .sizeof(sInst) = 2, error
+    sta Zp_Current_sIns + 1
+    .assert .sizeof(sIns) = 2, error
     ;; Branch based on opcode.
-    .assert sInst::Op_byte = 1, error
+    .assert sIns::Op_byte = 1, error
     and #$f0
     div #$10
     tay  ; opcode
@@ -570,19 +570,19 @@ _OpMul:
     lda #9
     bne _SetLValueToA  ; unconditional
 _OpCopy:
-    lda <(Zp_Current_sInst + sInst::Arg_byte)
+    lda <(Zp_Current_sIns + sIns::Arg_byte)
     and #$0f  ; param: immediate value or register to read
     jsr Func_MachineRead  ; returns A
 _SetLValueToA:
     pha  ; value to write
-    lda <(Zp_Current_sInst + sInst::Op_byte)
+    lda <(Zp_Current_sIns + sIns::Op_byte)
     and #$0f
     tax  ; param: register to write to
     pla  ; param: value to write
     jsr FuncA_Machine_WriteReg
     jmp FuncA_Machine_IncrementPcIfRunning
 _OpSkip:
-    lda <(Zp_Current_sInst + sInst::Op_byte)
+    lda <(Zp_Current_sIns + sIns::Op_byte)
     and #$0f  ; param: immediate value or register
     jsr Func_MachineRead  ; returns A
     tax
@@ -605,21 +605,21 @@ _DecrementPc:
     rts
     @wrap:
     lda Zp_MachineMaxInstructions_u8
-    mul #.sizeof(sInst)
+    mul #.sizeof(sIns)
     tay
-    .assert sInst::Op_byte = .sizeof(sInst) - 1, error
+    .assert sIns::Op_byte = .sizeof(sIns) - 1, error
     dey
     @loop:
     lda (Zp_Current_sProgram_ptr), y
     and #$f0
     bne @break
-    .repeat .sizeof(sInst)
+    .repeat .sizeof(sIns)
     dey
     .endrepeat
     bpl @loop
     @break:
     tya
-    div #.sizeof(sInst)
+    div #.sizeof(sIns)
     sta Ram_MachinePc_u8_arr, x
     rts
 _OpAct:
@@ -627,7 +627,7 @@ _OpAct:
     .assert sMachine::TryAct_func_ptr > 0, error
     bne _MoveOrAct  ; unconditional
 _OpMove:
-    lda <(Zp_Current_sInst + sInst::Op_byte)
+    lda <(Zp_Current_sIns + sIns::Op_byte)
     and #$0f  ; param: immediate value or register
     jsr Func_MachineRead  ; returns A
     and #$03  ; turn 0-9 value into 2-bit eDir value
@@ -637,12 +637,12 @@ _MoveOrAct:
     jsr Func_MachineCall
     jmp FuncA_Machine_IncrementPcIfRunning
 _OpGoto:
-    lda <(Zp_Current_sInst + sInst::Op_byte)
+    lda <(Zp_Current_sIns + sIns::Op_byte)
     and #$0f
     sta Ram_MachinePc_u8_arr, x
     rts
 _OpBeep:
-    lda <(Zp_Current_sInst + sInst::Op_byte)
+    lda <(Zp_Current_sIns + sIns::Op_byte)
     and #$0f  ; param: immediate value or register
     jsr Func_MachineRead  ; returns A
     jsr FuncA_Machine_PlaySfxBeep
@@ -687,17 +687,17 @@ _OpSync:
 ;;; @param X The number of instructions to increment by (must be nonzero).
 .PROC FuncA_Machine_IncrementPcByX
     lda Zp_MachineMaxInstructions_u8
-    mul #.sizeof(sInst)
+    mul #.sizeof(sIns)
     sta T0  ; max byte offset
     ldy Zp_MachineIndex_u8
     lda Ram_MachinePc_u8_arr, y
-    mul #.sizeof(sInst)
-    .assert sProgram::Code_sInst_arr = 0, error
+    mul #.sizeof(sIns)
+    .assert sProgram::Code_sIns_arr = 0, error
     tay  ; byte offset for current instruction
-    .assert sInst::Op_byte = 1, error
+    .assert sIns::Op_byte = 1, error
     iny
     @loop:
-    .repeat .sizeof(sInst)
+    .repeat .sizeof(sIns)
     iny
     .endrepeat
     cpy T0  ; max byte offset
@@ -707,12 +707,12 @@ _OpSync:
     .assert eOpcode::Empty = 0, error
     bne @noWrap
     @wrap:
-    ldy #sProgram::Code_sInst_arr + .sizeof(sInst) * 0 + sInst::Op_byte
+    ldy #sProgram::Code_sIns_arr + .sizeof(sIns) * 0 + sIns::Op_byte
     @noWrap:
     dex
     bne @loop
     tya  ; byte offset for opcode of new PC instruction
-    div #.sizeof(sInst)
+    div #.sizeof(sIns)
     ldx Zp_MachineIndex_u8
     sta Ram_MachinePc_u8_arr, x
     rts

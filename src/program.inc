@@ -82,7 +82,7 @@ kFirstHorzDir = eDir::Left
 ;;;=========================================================================;;;
 
 ;;; One instruction in a program for an in-game machine.
-.STRUCT sInst
+.STRUCT sIns
     ;; The low nibble stores the second argument (if any), and the high nibble
     ;; stores the third argument (if any).
     Arg_byte .byte
@@ -96,7 +96,7 @@ kFirstHorzDir = eDir::Left
     ;; The instructions in the program.  The length of the program is the index
     ;; of the first eOpcode::Empty instruction if any, or kMaxProgramLength
     ;; otherwise.
-    Code_sInst_arr .res .sizeof(sInst) * kMaxProgramLength
+    Code_sIns_arr .res .sizeof(sIns) * kMaxProgramLength
 .ENDSTRUCT
 
 ;;;=========================================================================;;;

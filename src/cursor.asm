@@ -67,9 +67,9 @@ _CheckDown:
     ;; Check if the currently selection instruction is eOpcode::Empty; if so,
     ;; moving down from there wraps back to instruction number zero.
     txa
-    mul #.sizeof(sInst)
+    mul #.sizeof(sIns)
     tay
-    lda Ram_Console_sProgram + sProgram::Code_sInst_arr + sInst::Op_byte, y
+    lda Ram_Console_sProgram + sProgram::Code_sIns_arr + sIns::Op_byte, y
     and #$f0
     .assert eOpcode::Empty = 0, error
     beq @wrap
@@ -96,9 +96,9 @@ _CheckUp:
     ;; empty instruction.
     @loop:
     txa
-    mul #.sizeof(sInst)
+    mul #.sizeof(sIns)
     tay
-    lda Ram_Console_sProgram + sProgram::Code_sInst_arr + sInst::Op_byte, y
+    lda Ram_Console_sProgram + sProgram::Code_sIns_arr + sIns::Op_byte, y
     and #$f0
     ;; If this instruction is empty, select it.
     .assert eOpcode::Empty = 0, error

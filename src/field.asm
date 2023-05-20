@@ -241,7 +241,7 @@ _OpMove:
 .ENDPROC
 
 ;;; Returns the argument slot number for the currently-selected instruction
-;;; field.  The opcode nibble of the sInst is slot 0, the first argument nibble
+;;; field.  The opcode nibble of the sIns is slot 0, the first argument nibble
 ;;; is slot 1, and so on.
 ;;; @return A Slot number for the field (0-3).
 ;;; @preserve T0+
@@ -287,14 +287,14 @@ _OpTil:
     jsr FuncA_Console_GetCurrentFieldSlot  ; preserves T0+, returns A
     tay  ; field slot
     lda Zp_ConsoleInstNumber_u8
-    mul #.sizeof(sInst)
+    mul #.sizeof(sIns)
     tax  ; sProgram byte index
-    lda Ram_Console_sProgram + sProgram::Code_sInst_arr + sInst::Op_byte, x
+    lda Ram_Console_sProgram + sProgram::Code_sIns_arr + sIns::Op_byte, x
     dey
     bmi @highNibble
     dey
     bmi @lowNibble
-    lda Ram_Console_sProgram + sProgram::Code_sInst_arr + sInst::Arg_byte, x
+    lda Ram_Console_sProgram + sProgram::Code_sIns_arr + sIns::Arg_byte, x
     dey
     bmi @lowNibble
     @highNibble:
@@ -315,7 +315,7 @@ _OpTil:
     jsr FuncA_Console_GetCurrentFieldSlot  ; returns A
     tay  ; field slot
     lda Zp_ConsoleInstNumber_u8
-    mul #.sizeof(sInst)
+    mul #.sizeof(sIns)
     tax  ; sProgram byte index
     pla  ; new field value (in low nibble)
     dey
@@ -327,24 +327,24 @@ _OpTil:
 _SetArg3:
     mul #$10
     sta T0  ; new field value (in high nibble)
-    lda Ram_Console_sProgram + sProgram::Code_sInst_arr + sInst::Arg_byte, x
+    lda Ram_Console_sProgram + sProgram::Code_sIns_arr + sIns::Arg_byte, x
     and #$0f
     ora T0  ; new field value (in high nibble)
-    sta Ram_Console_sProgram + sProgram::Code_sInst_arr + sInst::Arg_byte, x
+    sta Ram_Console_sProgram + sProgram::Code_sIns_arr + sIns::Arg_byte, x
     rts
 _SetArg2:
     sta T0  ; new field value (in low nibble)
-    lda Ram_Console_sProgram + sProgram::Code_sInst_arr + sInst::Arg_byte, x
+    lda Ram_Console_sProgram + sProgram::Code_sIns_arr + sIns::Arg_byte, x
     and #$f0
     ora T0  ; new field value (in low nibble)
-    sta Ram_Console_sProgram + sProgram::Code_sInst_arr + sInst::Arg_byte, x
+    sta Ram_Console_sProgram + sProgram::Code_sIns_arr + sIns::Arg_byte, x
     rts
 _SetArg1:
     sta T0  ; new field value (in low nibble)
-    lda Ram_Console_sProgram + sProgram::Code_sInst_arr + sInst::Op_byte, x
+    lda Ram_Console_sProgram + sProgram::Code_sIns_arr + sIns::Op_byte, x
     and #$f0
     ora T0  ; new field value (in low nibble)
-    sta Ram_Console_sProgram + sProgram::Code_sInst_arr + sInst::Op_byte, x
+    sta Ram_Console_sProgram + sProgram::Code_sIns_arr + sIns::Op_byte, x
     rts
 _SetOpcode:
     pha  ; new eOpcode value
@@ -357,7 +357,7 @@ _SetOpcode:
     @update:
     tay  ; new eOpcode value
     lda Zp_ConsoleInstNumber_u8
-    mul #.sizeof(sInst)
+    mul #.sizeof(sIns)
     tax  ; sProgram byte index
     lda _JumpTable_ptr_0_arr, y
     sta T2
@@ -395,7 +395,7 @@ _OpEnd:
 _OpNop:
     tya  ; new eOpcode value
     mul #$10
-    sta Ram_Console_sProgram + sProgram::Code_sInst_arr + sInst::Op_byte, x
+    sta Ram_Console_sProgram + sProgram::Code_sIns_arr + sIns::Op_byte, x
     jmp _ZeroArgByteAndFieldNumber
 _OpCopy:
     ;; If coming from ADD/SUB/MUL, just remove third arg.
@@ -408,16 +408,16 @@ _OpCopy:
     beq @clearThirdArg
     ;; Otherwise, initialize args to A <- 0.
     lda #eOpcode::Copy * $10 + $0a
-    sta Ram_Console_sProgram + sProgram::Code_sInst_arr + sInst::Op_byte, x
+    sta Ram_Console_sProgram + sProgram::Code_sIns_arr + sIns::Op_byte, x
     lda #$00
-    sta Ram_Console_sProgram + sProgram::Code_sInst_arr + sInst::Arg_byte, x
+    sta Ram_Console_sProgram + sProgram::Code_sIns_arr + sIns::Arg_byte, x
     lda #1
     bne _SetFieldNumber  ; unconditional
     ;; Clear third arg to 0.
     @clearThirdArg:
-    lda Ram_Console_sProgram + sProgram::Code_sInst_arr + sInst::Arg_byte, x
+    lda Ram_Console_sProgram + sProgram::Code_sIns_arr + sIns::Arg_byte, x
     and #$0f
-    sta Ram_Console_sProgram + sProgram::Code_sInst_arr + sInst::Arg_byte, x
+    sta Ram_Console_sProgram + sProgram::Code_sIns_arr + sIns::Arg_byte, x
     jsr _UpdateOpcodeOnly
     lda #1
     bne _SetFieldNumber  ; unconditional
@@ -425,10 +425,10 @@ _UpdateOpcodeOnly:
     tya  ; new eOpcode value
     mul #$10
     sta T1  ; new eOpcode (in high nibble)
-    lda Ram_Console_sProgram + sProgram::Code_sInst_arr + sInst::Op_byte, x
+    lda Ram_Console_sProgram + sProgram::Code_sIns_arr + sIns::Op_byte, x
     and #$0f
     ora T1  ; new eOpcode (in high nibble)
-    sta Ram_Console_sProgram + sProgram::Code_sInst_arr + sInst::Op_byte, x
+    sta Ram_Console_sProgram + sProgram::Code_sIns_arr + sIns::Op_byte, x
     rts
 _OpAdd:
 _OpSub:
@@ -448,21 +448,21 @@ _OpMul:
     tya  ; new eOpcode value
     mul #$10
     ora #$0a
-    sta Ram_Console_sProgram + sProgram::Code_sInst_arr + sInst::Op_byte, x
+    sta Ram_Console_sProgram + sProgram::Code_sIns_arr + sIns::Op_byte, x
     lda #$1a
-    sta Ram_Console_sProgram + sProgram::Code_sInst_arr + sInst::Arg_byte, x
+    sta Ram_Console_sProgram + sProgram::Code_sIns_arr + sIns::Arg_byte, x
     lda #1
     bne _SetFieldNumber  ; unconditional
     ;; Initialize third arg to 1.
     @setThirdArg:
-    lda Ram_Console_sProgram + sProgram::Code_sInst_arr + sInst::Arg_byte, x
+    lda Ram_Console_sProgram + sProgram::Code_sIns_arr + sIns::Arg_byte, x
     and #$0f
     ora #$10
-    sta Ram_Console_sProgram + sProgram::Code_sInst_arr + sInst::Arg_byte, x
+    sta Ram_Console_sProgram + sProgram::Code_sIns_arr + sIns::Arg_byte, x
     bne _UpdateOpcodeOnly  ; unconditional
 _ZeroArgByteAndFieldNumber:
     lda #0
-    sta Ram_Console_sProgram + sProgram::Code_sInst_arr + sInst::Arg_byte, x
+    sta Ram_Console_sProgram + sProgram::Code_sIns_arr + sIns::Arg_byte, x
 _SetFieldNumber:
     sta Zp_ConsoleFieldNumber_u8
     jsr FuncA_Console_GetCurrentFieldOffset  ; returns A
@@ -470,7 +470,7 @@ _SetFieldNumber:
     rts
 _OpSkip:
     lda #eOpcode::Skip * $10 + $01
-    sta Ram_Console_sProgram + sProgram::Code_sInst_arr + sInst::Op_byte, x
+    sta Ram_Console_sProgram + sProgram::Code_sIns_arr + sIns::Op_byte, x
     bne _ZeroArgByteAndFieldNumber  ; unconditional
 _OpIf:
 _OpTil:
@@ -493,10 +493,10 @@ _OpTil:
     ;; Initialize args to R = 0, where R is the register we picked.
     lda T1  ; new eOpcode value
     mul #$10
-    sta Ram_Console_sProgram + sProgram::Code_sInst_arr + sInst::Op_byte, x
+    sta Ram_Console_sProgram + sProgram::Code_sIns_arr + sIns::Op_byte, x
     tya  ; register name index (0-5)
     add #$0a
-    sta Ram_Console_sProgram + sProgram::Code_sInst_arr + sInst::Arg_byte, x
+    sta Ram_Console_sProgram + sProgram::Code_sIns_arr + sIns::Arg_byte, x
     lda #0
     beq _SetFieldNumber  ; unconditional
 _OpMove:
@@ -513,11 +513,11 @@ _OpMove:
     @moveHorz:
     lda #eOpcode::Move * $10 + eDir::Right
     @setOp:
-    sta Ram_Console_sProgram + sProgram::Code_sInst_arr + sInst::Op_byte, x
+    sta Ram_Console_sProgram + sProgram::Code_sIns_arr + sIns::Op_byte, x
     bne _ZeroArgByteAndFieldNumber  ; unconditional
 _OpBeep:
     lda #eOpcode::Beep * $10 + $02
-    sta Ram_Console_sProgram + sProgram::Code_sInst_arr + sInst::Op_byte, x
+    sta Ram_Console_sProgram + sProgram::Code_sIns_arr + sIns::Op_byte, x
     bne _ZeroArgByteAndFieldNumber  ; unconditional
 .ENDPROC
 
@@ -526,9 +526,9 @@ _OpBeep:
 ;;; @preserve T0+
 .PROC FuncA_Console_GetCurrentOpcode
     lda Zp_ConsoleInstNumber_u8
-    mul #.sizeof(sInst)
+    mul #.sizeof(sIns)
     tay
-    lda Ram_Console_sProgram + sProgram::Code_sInst_arr + sInst::Op_byte, y
+    lda Ram_Console_sProgram + sProgram::Code_sIns_arr + sIns::Op_byte, y
     div #$10
     rts
 .ENDPROC
