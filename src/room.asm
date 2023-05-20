@@ -183,12 +183,8 @@ Zp_RoomState: .res kRoomStateSize
 ;;; @param X The eRoom value for the room to load.
 .EXPORT FuncM_SwitchPrgcAndLoadRoom
 .PROC FuncM_SwitchPrgcAndLoadRoom
-    ;; TODO: replace this with real logic for picking music
-    ldy #eMusic::Title
-    cpx #eRoom::BossGarden
-    bne @done
-    ldy #eMusic::Boss
-    @done:
+    prga_bank #<.bank(DataA_Room_Music_eMusic_arr)
+    ldy DataA_Room_Music_eMusic_arr, x
     .assert * = FuncM_SwitchPrgcAndLoadRoomWithMusic, error
 .ENDPROC
 
@@ -322,6 +318,99 @@ _LoadNewRoom:
     d_entry table, TownOutdoors,    DataC_Town_Outdoors_sRoom
     D_END
 .ENDREPEAT
+
+;;; Maps from eRoom values to the eMusic to play in each room.
+.PROC DataA_Room_Music_eMusic_arr
+    D_ENUM eRoom
+    d_byte BossCrypt,       eMusic::Boss
+    d_byte BossGarden,      eMusic::Boss
+    d_byte BossMine,        eMusic::Boss
+    d_byte BossTemple,      eMusic::Boss
+    d_byte CityEast,        eMusic::Silence
+    d_byte CoreBoss,        eMusic::Silence
+    d_byte CoreEast,        eMusic::Silence
+    d_byte CoreElevator,    eMusic::Silence
+    d_byte CoreFlower,      eMusic::Silence
+    d_byte CoreJunction,    eMusic::Silence
+    d_byte CoreLock,        eMusic::Silence
+    d_byte CoreSouth,       eMusic::Silence
+    d_byte CoreWest,        eMusic::Silence
+    d_byte CryptEast,       eMusic::Silence
+    d_byte CryptEscape,     eMusic::Silence
+    d_byte CryptFlower,     eMusic::Silence
+    d_byte CryptGallery,    eMusic::Silence
+    d_byte CryptLanding,    eMusic::Silence
+    d_byte CryptNorth,      eMusic::Silence
+    d_byte CryptSouth,      eMusic::Silence
+    d_byte CryptTomb,       eMusic::Silence
+    d_byte CryptWest,       eMusic::Silence
+    d_byte FactoryBridge,   eMusic::Silence
+    d_byte FactoryCenter,   eMusic::Silence
+    d_byte FactoryElevator, eMusic::Silence
+    d_byte FactoryWest,     eMusic::Silence
+    d_byte GardenCrossroad, eMusic::Silence
+    d_byte GardenEast,      eMusic::Silence
+    d_byte GardenFlower,    eMusic::Silence
+    d_byte GardenHallway,   eMusic::Silence
+    d_byte GardenLanding,   eMusic::Silence
+    d_byte GardenShaft,     eMusic::Silence
+    d_byte GardenShrine,    eMusic::Silence
+    d_byte GardenTower,     eMusic::Silence
+    d_byte GardenTunnel,    eMusic::Silence
+    d_byte LavaEast,        eMusic::Silence
+    d_byte LavaFlower,      eMusic::Silence
+    d_byte LavaShaft,       eMusic::Silence
+    d_byte LavaStation,     eMusic::Silence
+    d_byte LavaTeleport,    eMusic::Silence
+    d_byte LavaWest,        eMusic::Silence
+    d_byte MermaidCellar,   eMusic::Silence
+    d_byte MermaidDrain,    eMusic::Silence
+    d_byte MermaidEast,     eMusic::Silence
+    d_byte MermaidElevator, eMusic::Silence
+    d_byte MermaidEntry,    eMusic::Silence
+    d_byte MermaidFlower,   eMusic::Silence
+    d_byte MermaidHut1,     eMusic::Silence
+    d_byte MermaidHut2,     eMusic::Silence
+    d_byte MermaidHut3,     eMusic::Silence
+    d_byte MermaidHut4,     eMusic::Silence
+    d_byte MermaidHut5,     eMusic::Silence
+    d_byte MermaidHut6,     eMusic::Silence
+    d_byte MermaidVillage,  eMusic::Silence
+    d_byte MineCollapse,    eMusic::Mine
+    d_byte MineEast,        eMusic::Mine
+    d_byte MineEntry,       eMusic::Mine
+    d_byte MineFlower,      eMusic::Mine
+    d_byte MinePit,         eMusic::Mine
+    d_byte MineSouth,       eMusic::Mine
+    d_byte MineWest,        eMusic::Mine
+    d_byte PrisonCell,      eMusic::Silence
+    d_byte PrisonCrossroad, eMusic::Silence
+    d_byte PrisonEast,      eMusic::Silence
+    d_byte PrisonEscape,    eMusic::Silence
+    d_byte PrisonFlower,    eMusic::Silence
+    d_byte PrisonUpper,     eMusic::Silence
+    d_byte SewerFlower,     eMusic::Silence
+    d_byte SewerPool,       eMusic::Silence
+    d_byte SewerWest,       eMusic::Silence
+    d_byte ShadowEntry,     eMusic::Silence
+    d_byte ShadowTeleport,  eMusic::Silence
+    d_byte TempleAltar,     eMusic::Temple
+    d_byte TempleEntry,     eMusic::Temple
+    d_byte TempleFlower,    eMusic::Temple
+    d_byte TempleFoyer,     eMusic::Temple
+    d_byte TempleNave,      eMusic::Temple
+    d_byte TemplePit,       eMusic::Temple
+    d_byte TempleSpire,     eMusic::Temple
+    d_byte TempleWest,      eMusic::Temple
+    d_byte TownHouse1,      eMusic::Silence
+    d_byte TownHouse2,      eMusic::Silence
+    d_byte TownHouse3,      eMusic::Silence
+    d_byte TownHouse4,      eMusic::Silence
+    d_byte TownHouse5,      eMusic::Silence
+    d_byte TownHouse6,      eMusic::Silence
+    d_byte TownOutdoors,    eMusic::Silence
+    D_END
+.ENDPROC
 
 ;;; Loads and initializes data for the specified room.
 ;;; @prereq The correct PRGC bank has been set for the room to be loaded.

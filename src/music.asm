@@ -21,6 +21,8 @@
 .INCLUDE "music.inc"
 
 .IMPORT DataC_Boss_BossPlaceholder_sMusic
+.IMPORT DataC_Mine_MinePlaceholder_sMusic
+.IMPORT DataC_Temple_TemplePlaceholder_sMusic
 .IMPORT Data_Title_Placeholder_sMusic
 
 ;;;=========================================================================;;;
@@ -36,6 +38,8 @@
     D_TABLE eMusic
     d_entry table, Silence, Data_Silence_sMusic
     d_entry table, Boss,    DataC_Boss_BossPlaceholder_sMusic
+    d_entry table, Mine,    DataC_Mine_MinePlaceholder_sMusic
+    d_entry table, Temple,  DataC_Temple_TemplePlaceholder_sMusic
     d_entry table, Title,   Data_Title_Placeholder_sMusic
     D_END
 .ENDREPEAT

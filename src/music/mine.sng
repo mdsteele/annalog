@@ -1,0 +1,23 @@
+@PRGC_Mine
+
+!SONG MinePlaceholder "|A"
+
+=tempo q36
+=key 3b  % c minor
+
+!INST 1A PulseBasic $8c  % duty = 1/2
+!INST 1B PulseBasic $4c  % duty = 1/4
+!INST TA Constant   $ff
+!INST ND NoiseDrum  $0c
+
+!PART A
+
+1| p(iA c3e g c4 iB f3q g iA ee)1A | p1A | p1A | p1A |
+ | p1A | p1A | p1A | p1A |
+T| p(iA c5w | g4 | e5 | b4)TA | pTA |
+N| p(iD x3e x1 r x1)NA pNA | pNA pNA | pNA pNA | pNA pNA |
+ | pNA pNA | pNA pNA | pNA pNA | pNA pNA |
+
+1| p1A | p1A | p1A | p1A |
+T| c5w |
+N| pNA pNA | pNA pNA | pNA pNA | pNA pNA |

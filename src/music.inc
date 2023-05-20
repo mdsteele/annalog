@@ -21,6 +21,8 @@
 .ENUM eMusic
     Silence
     Boss
+    Mine
+    Temple
     Title
     NUM_VALUES
 .ENDENUM
