@@ -51,6 +51,7 @@
 .INCLUDE "machines/minigun.inc"
 .INCLUDE "machines/multiplexer.inc"
 .INCLUDE "machines/pump.inc"
+.INCLUDE "machines/rotor.inc"
 .INCLUDE "machines/winch.inc"
 .INCLUDE "platforms/column.inc"
 .INCLUDE "platforms/crate.inc"
@@ -896,6 +897,20 @@
 
 ;;;=========================================================================;;;
 
+.SEGMENT "CHR_BgWheel"
+
+.EXPORT Ppu_ChrBgWheel
+.PROC Ppu_ChrBgWheel
+:   .incbin "out/data/tiles/wheel1.chr"
+    .incbin "out/data/tiles/wheel2.chr"
+    .incbin "out/data/tiles/wheel3.chr"
+    .incbin "out/data/tiles/wheel4.chr"
+    .res $0d * kSizeofChr
+    .assert * - :- = kSizeofChr * $40, error
+.ENDPROC
+
+;;;=========================================================================;;;
+
 .SEGMENT "CHR_ObjAnnaFlower"
 
 .EXPORT Ppu_ChrObjAnnaFlower
@@ -1009,7 +1024,9 @@
     .incbin "out/data/tiles/upgrade_bottom.chr"
     .assert * - :- = (kTileIdObjJetFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/jet.chr"
-    .res $0c * kSizeofChr
+    .res $08 * kSizeofChr
+    .assert * - :- = (kTileIdObjRotorFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/rotor.chr"
     .assert * - :- = (kTileIdObjUpgradeOpSkipFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/upgrade_opskip.chr"
     .res $06 * kSizeofChr

@@ -25,7 +25,7 @@
 .IMPORT FuncA_Objects_Draw1x1Shape
 .IMPORT FuncA_Objects_Draw2x2Shape
 .IMPORT FuncA_Objects_MoveShapeLeftHalfTile
-.IMPORT FuncA_Objects_MoveShapeUpByA
+.IMPORT FuncA_Objects_MoveShapeUpHalfTile
 .IMPORT Func_HarmAvatar
 .IMPORT Func_MovePointLeftByA
 .IMPORT Func_MovePointRightByA
@@ -336,10 +336,8 @@
 .PROC FuncA_Objects_Draw1x1Actor
     pha  ; tile ID
     jsr FuncA_Objects_SetShapePosToActorCenter  ; preserves X and Y
-    ;; Adjust position.
     jsr FuncA_Objects_MoveShapeLeftHalfTile  ; preserves X and Y
-    lda #kTileHeightPx / 2
-    jsr FuncA_Objects_MoveShapeUpByA  ; preserves X and Y
+    jsr FuncA_Objects_MoveShapeUpHalfTile  ; preserves X and Y
     ;; Draw object.
     tya
     ora Ram_ActorFlags_bObj_arr, x

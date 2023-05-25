@@ -51,6 +51,7 @@
 .IMPORT DataC_Crypt_South_sRoom
 .IMPORT DataC_Crypt_Tomb_sRoom
 .IMPORT DataC_Crypt_West_sRoom
+.IMPORT DataC_Factory_Access_sRoom
 .IMPORT DataC_Factory_Bridge_sRoom
 .IMPORT DataC_Factory_Center_sRoom
 .IMPORT DataC_Factory_Elevator_sRoom
@@ -251,6 +252,7 @@ _LoadNewRoom:
     d_entry table, CryptSouth,      DataC_Crypt_South_sRoom
     d_entry table, CryptTomb,       DataC_Crypt_Tomb_sRoom
     d_entry table, CryptWest,       DataC_Crypt_West_sRoom
+    d_entry table, FactoryAccess,   DataC_Factory_Access_sRoom
     d_entry table, FactoryBridge,   DataC_Factory_Bridge_sRoom
     d_entry table, FactoryCenter,   DataC_Factory_Center_sRoom
     d_entry table, FactoryElevator, DataC_Factory_Elevator_sRoom
@@ -344,6 +346,7 @@ _LoadNewRoom:
     d_byte CryptSouth,      eMusic::Silence
     d_byte CryptTomb,       eMusic::Silence
     d_byte CryptWest,       eMusic::Silence
+    d_byte FactoryAccess,   eMusic::Silence
     d_byte FactoryBridge,   eMusic::Silence
     d_byte FactoryCenter,   eMusic::Silence
     d_byte FactoryElevator, eMusic::Silence

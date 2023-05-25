@@ -98,6 +98,18 @@ Ram_Oam_sObj_arr64: .res .sizeof(sObj) * kNumOamSlots
 
 .SEGMENT "PRGA_Objects"
 
+;;; Moves Zp_ShapePosX_i16 by the given signed number of pixels (positive for
+;;; right, negative for left).
+;;; @param A The number of pixels to shift by (signed).
+;;; @preserve X, Y, T0+
+.EXPORT FuncA_Objects_MoveShapeHorz
+.PROC FuncA_Objects_MoveShapeHorz
+    ora #0
+    bpl FuncA_Objects_MoveShapeRightByA  ; preserves X, Y, and T0+
+    clc  ; param: carry bit
+    bcc FuncA_Objects_MoveShapeHorzNegative  ; unconditional
+.ENDPROC
+
 ;;; Moves the shape position down and right by the size of one tile.
 ;;; @preserve X, Y, T0+
 .EXPORT FuncA_Objects_MoveShapeDownAndRightOneTile
@@ -148,14 +160,35 @@ Ram_Oam_sObj_arr64: .res .sizeof(sObj) * kNumOamSlots
 ;;; @preserve X, Y, T0+
 .EXPORT FuncA_Objects_MoveShapeLeftByA
 .PROC FuncA_Objects_MoveShapeLeftByA
-    eor #$ff
-    sec
+    eor #$ff  ; param: negative offset
+    sec  ; param: carry bit
+    .assert * = FuncA_Objects_MoveShapeHorzNegative, error, "fallthrough"
+.ENDPROC
+
+;;; Helper function for FuncA_Objects_MoveShapeHorz and
+;;; FuncA_Objects_MoveShapeLeftByA.
+;;; @param A The negative number of pixels to shift by.
+;;; @param C The carry bit to include in the addition.
+;;; @preserve X, Y, T0+
+.PROC FuncA_Objects_MoveShapeHorzNegative
     adc Zp_ShapePosX_i16 + 0
     sta Zp_ShapePosX_i16 + 0
     lda Zp_ShapePosX_i16 + 1
     adc #$ff
     sta Zp_ShapePosX_i16 + 1
     rts
+.ENDPROC
+
+;;; Moves Zp_ShapePosY_i16 by the given signed number of pixels (positive for
+;;; down, negative for up).
+;;; @param A The number of pixels to shift by (signed).
+;;; @preserve X, Y, T0+
+.EXPORT FuncA_Objects_MoveShapeVert
+.PROC FuncA_Objects_MoveShapeVert
+    ora #0
+    bpl FuncA_Objects_MoveShapeDownByA  ; preserves X, Y, and T0+
+    clc  ; param: carry bit
+    bcc FuncA_Objects_MoveShapeVertNegative  ; unconditional
 .ENDPROC
 
 ;;; Moves Zp_ShapePosY_i16 downwards by the height of one tile.
@@ -179,6 +212,14 @@ Ram_Oam_sObj_arr64: .res .sizeof(sObj) * kNumOamSlots
     rts
 .ENDPROC
 
+;;; Moves Zp_ShapePosY_i16 upwards by half the height of a tile.
+;;; @preserve X, Y, T0+
+.EXPORT FuncA_Objects_MoveShapeUpHalfTile
+.PROC FuncA_Objects_MoveShapeUpHalfTile
+    lda #kTileHeightPx / 2
+    bne FuncA_Objects_MoveShapeUpByA  ; unconditional
+.ENDPROC
+
 ;;; Moves Zp_ShapePosY_i16 upwards by the height of one tile.
 ;;; @preserve X, Y, T0+
 .EXPORT FuncA_Objects_MoveShapeUpOneTile
@@ -194,6 +235,15 @@ Ram_Oam_sObj_arr64: .res .sizeof(sObj) * kNumOamSlots
 .PROC FuncA_Objects_MoveShapeUpByA
     eor #$ff
     sec
+    .assert * = FuncA_Objects_MoveShapeVertNegative, error, "fallthrough"
+.ENDPROC
+
+;;; Helper function for FuncA_Objects_MoveShapeVert and
+;;; FuncA_Objects_MoveShapeUpByA.
+;;; @param A The negative number of pixels to shift by.
+;;; @param C The carry bit to include in the addition.
+;;; @preserve X, Y, T0+
+.PROC FuncA_Objects_MoveShapeVertNegative
     adc Zp_ShapePosY_i16 + 0
     sta Zp_ShapePosY_i16 + 0
     lda Zp_ShapePosY_i16 + 1

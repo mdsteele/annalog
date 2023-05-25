@@ -62,6 +62,7 @@ kMaxPassages = 8
     CryptSouth
     CryptTomb
     CryptWest
+    FactoryAccess
     FactoryBridge
     FactoryCenter
     FactoryElevator

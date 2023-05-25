@@ -187,7 +187,6 @@ kTileIdObjCannonBarrelLow  = kTileIdObjCannonFirst + $04
 .ENDPROC
 
 ;;; Tick implemention for cannon machines.
-;;; Function to call each frame to update the machine.
 ;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
 ;;; @prereq Zp_Current_sProgram_ptr is initialized.
 .EXPORT FuncA_Machine_CannonTick
