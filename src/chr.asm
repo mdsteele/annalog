@@ -652,7 +652,7 @@
 .EXPORT Ppu_ChrBgFactory
 .PROC Ppu_ChrBgFactory
 :   .incbin "out/data/tiles/factory1.chr"
-    .incbin "out/data/tiles/metal.chr"
+    .incbin "out/data/tiles/factory2.chr"
     .res $10 * kSizeofChr
     .incbin "out/data/tiles/sign.chr"
     .incbin "out/data/tiles/console.chr"
@@ -905,7 +905,7 @@
     .incbin "out/data/tiles/wheel2.chr"
     .incbin "out/data/tiles/wheel3.chr"
     .incbin "out/data/tiles/wheel4.chr"
-    .res $0d * kSizeofChr
+    .res $05 * kSizeofChr
     .assert * - :- = kSizeofChr * $40, error
 .ENDPROC
 

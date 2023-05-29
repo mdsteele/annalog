@@ -1,20 +1,23 @@
 @BG 0 0 0 18x15
 >factory_0
 >factory_1
+>factory_2
+>factory_3
 >factory_4
 >factory_5
+>factory_6
 
-              DHDHDHDHDHDH
-    DHDDDDDDDDDDDDDDDDDDDDDDDDDH
-    DD  BGBH        BGBH      DD
-CKCKCH    BN          BN      CGCKCK
+              FHFHFHFHFHFH
+    FHFDFDFDFDFDFDFDFDFDFDFDFDFH
+  FFFD  BGBH        BGBH      FDFM
+EKGMEH    BN          BN      EGGNEK
           BN          BN
           BN          BN
-CICICB  CGCJCH      CGCJCJCH  CACICI
-    CD    BN          BN      CC
-    CDANANAHANAODDAPANAHANAOANCC
-    CD    BN          BN      CC
-    CDANANAHAODDAPANANAHAPANANCC
-    CF    BN          BN      CE
-    DDDDBEBF        BEBF    DDDD
-    DKDKDDDDDDDDDDDDDDDDDDDKDK
+EIEIEB  EGGAEH      EGEJGBEH  EAGDEI
+    GH    BN          BN      EC
+    EDCLCKAHCOAOFDAPANAHCOAOCPEC
+    ED    BN          BN      EC
+    EDCPANAHAOFDAPANCPAHAPCLCKGE
+    EF    BN          BN      EE
+    FDFDBEBF        BEBF    FDFD
+    FKFKFDFDFDFDFDFDFDFDFDFKFK
