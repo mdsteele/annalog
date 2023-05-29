@@ -55,6 +55,7 @@
 .IMPORT DataC_Factory_Bridge_sRoom
 .IMPORT DataC_Factory_Center_sRoom
 .IMPORT DataC_Factory_Elevator_sRoom
+.IMPORT DataC_Factory_Upper_sRoom
 .IMPORT DataC_Factory_West_sRoom
 .IMPORT DataC_Garden_Crossroad_sRoom
 .IMPORT DataC_Garden_East_sRoom
@@ -256,6 +257,7 @@ _LoadNewRoom:
     d_entry table, FactoryBridge,   DataC_Factory_Bridge_sRoom
     d_entry table, FactoryCenter,   DataC_Factory_Center_sRoom
     d_entry table, FactoryElevator, DataC_Factory_Elevator_sRoom
+    d_entry table, FactoryUpper,    DataC_Factory_Upper_sRoom
     d_entry table, FactoryWest,     DataC_Factory_West_sRoom
     d_entry table, GardenCrossroad, DataC_Garden_Crossroad_sRoom
     d_entry table, GardenEast,      DataC_Garden_East_sRoom
@@ -350,6 +352,7 @@ _LoadNewRoom:
     d_byte FactoryBridge,   eMusic::Silence
     d_byte FactoryCenter,   eMusic::Silence
     d_byte FactoryElevator, eMusic::Silence
+    d_byte FactoryUpper,    eMusic::Silence
     d_byte FactoryWest,     eMusic::Silence
     d_byte GardenCrossroad, eMusic::Silence
     d_byte GardenEast,      eMusic::Silence
