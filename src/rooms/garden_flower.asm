@@ -67,7 +67,7 @@ _Ext_sRoomExt:
     D_END
 _TerrainData:
 :   .incbin "out/data/garden_flower.room"
-    .assert * - :- = 17 * 16, error
+    .assert * - :- = 17 * 15, error
 _Platforms_sPlatform_arr:
     .byte ePlatform::None
 _Actors_sActor_arr:

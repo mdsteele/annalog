@@ -87,7 +87,7 @@ _Ext_sRoomExt:
 _TerrainData:
 :   .incbin "out/data/garden_hallway1.room"
     .incbin "out/data/garden_hallway2.room"
-    .assert * - :- = 50 * 16, error
+    .assert * - :- = 50 * 15, error
 _Machines_sMachine_arr:
 :   .assert * - :- = kLiftMachineIndex * .sizeof(sMachine), error
     D_STRUCT sMachine

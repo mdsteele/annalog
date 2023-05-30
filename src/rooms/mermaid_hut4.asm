@@ -84,7 +84,7 @@ _Ext_sRoomExt:
     D_END
 _TerrainData:
 :   .incbin "out/data/mermaid_hut4.room"
-    .assert * - :- = 16 * 16, error
+    .assert * - :- = 16 * 15, error
 _Platforms_sPlatform_arr:
 :   D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Water

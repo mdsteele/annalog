@@ -118,7 +118,7 @@ _Ext_sRoomExt:
     D_END
 _TerrainData:
 :   .incbin "out/data/mine_collapse.room"
-    .assert * - :- = 33 * 16, error
+    .assert * - :- = 33 * 15, error
 _Machines_sMachine_arr:
 :   .assert * - :- = kTrolleyMachineIndex * .sizeof(sMachine), error
     D_STRUCT sMachine

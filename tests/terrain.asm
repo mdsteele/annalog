@@ -18,6 +18,7 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "../src/macros.inc"
+.INCLUDE "../src/ppu.inc"
 .INCLUDE "../src/room.inc"
 .INCLUDE "../src/tileset.inc"
 
@@ -31,11 +32,11 @@
 
 kTerrainDataPtr = $80ff
 kBlockColumnIndex = 11
-kExpectedStripePtrShortRoom = $81af
+kExpectedStripePtrShortRoom = $81a4
 kExpectedStripePtrTallRoom = $8207
 
 .LINECONT +
-.ASSERT kTerrainDataPtr + kBlockColumnIndex * 16 = \
+.ASSERT kTerrainDataPtr + kBlockColumnIndex * kScreenHeightBlocks = \
         kExpectedStripePtrShortRoom, error
 .ASSERT kTerrainDataPtr + kBlockColumnIndex * kTallRoomHeightBlocks = \
         kExpectedStripePtrTallRoom, error
@@ -110,7 +111,7 @@ DataA_Terrain_LowerRight_u8_arr:
     ;; Setup:
     lda #0
     sta Zp_Current_sRoom + sRoom::Flags_bRoom
-    ldax #kBlockColumnIndex * 16 + 5
+    ldax #kBlockColumnIndex * kBlockWidthPx + 5
     stax Zp_PointX_i16
     ;; Test:
     jsr Func_GetTerrainColumnPtrForPointX
@@ -127,7 +128,7 @@ DataA_Terrain_LowerRight_u8_arr:
     ;; Setup:
     lda #bRoom::Tall
     sta Zp_Current_sRoom + sRoom::Flags_bRoom
-    ldax #kBlockColumnIndex * 16 + 5
+    ldax #kBlockColumnIndex * kBlockWidthPx + 5
     stax Zp_PointX_i16
     ;; Test:
     jsr Func_GetTerrainColumnPtrForPointX

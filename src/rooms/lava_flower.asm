@@ -92,7 +92,7 @@ _Ext_sRoomExt:
     D_END
 _TerrainData:
 :   .incbin "out/data/lava_flower.room"
-    .assert * - :- = 18 * 16, error
+    .assert * - :- = 18 * 15, error
 _Machines_sMachine_arr:
 :   .assert * - :- = kBoilerMachineIndex * .sizeof(sMachine), error
     D_STRUCT sMachine

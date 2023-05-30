@@ -25,8 +25,6 @@
 
 #define HEIGHT_SHORT 15
 #define HEIGHT_TALL 24
-#define STRIDE_SHORT 16
-#define STRIDE_TALL 24
 
 #define MIN_WIDTH 16
 #define MAX_WIDTH 128
@@ -113,7 +111,6 @@ int main(int argc, char **argv) {
     ERROR("Invalid size: %dx%d\n", width, height);
   }
   expect_newline();
-  const int stride = height == HEIGHT_SHORT ? STRIDE_SHORT : STRIDE_TALL;
 
   // Read the list of tilesets.
   char *tilesets[MAX_TILESETS] = {0};
@@ -129,14 +126,14 @@ int main(int argc, char **argv) {
 
   // Read the BG grid, which appears in row-major order, and store the output
   // data in column-major order.
-  const int grid_size = width * stride;
+  const int grid_size = width * height;
   unsigned char *grid = calloc(grid_size, sizeof(unsigned char));
   for (int row = 0; row < height; ++row) {
     for (int col = 0; col < width; ++col) {
       const int ch = fgetc(stdin);
       if (ch == '\n' || ch == EOF) {
         for (; col < width; ++col) {
-          grid[stride * col + row] = 0x00;
+          grid[height * col + row] = 0x00;
         }
         goto end_row;
       }
@@ -145,7 +142,7 @@ int main(int argc, char **argv) {
         ERROR("tileset index %d out of range\n", tileset_index);
       }
       const int tile_index = from_base64(fgetc(stdin));
-      unsigned char *block = &grid[stride * col + row];
+      unsigned char *block = &grid[height * col + row];
       if (tileset_index < 0 || tile_index < 0) {
         *block = 0x00;
       } else {

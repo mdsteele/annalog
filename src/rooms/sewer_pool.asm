@@ -110,7 +110,7 @@ _Ext_sRoomExt:
     D_END
 _TerrainData:
 :   .incbin "out/data/sewer_pool.room"
-    .assert * - :- = 34 * 16, error
+    .assert * - :- = 34 * 15, error
 _Machines_sMachine_arr:
 :   .assert * - :- = kMultiplexerMachineIndex * .sizeof(sMachine), error
     D_STRUCT sMachine
