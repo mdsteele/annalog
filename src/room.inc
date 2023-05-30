@@ -45,6 +45,7 @@ kMaxPassages = 8
     BossMine
     BossTemple
     CityEast
+    CityOutskirts
     CoreBoss
     CoreEast
     CoreElevator

@@ -84,7 +84,7 @@ Zp_PointY_i16: .res 2
 ;;; Moves Zp_PointY_i16 by the given signed number of pixels (positive for
 ;;; down, negative for up).
 ;;; @param A The number of pixels to shift by (signed).
-;;; @preserve X, T0+
+;;; @preserve X, Y, T0+
 .EXPORT Func_MovePointVert
 .PROC Func_MovePointVert
     ora #0

@@ -17,10 +17,15 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
+;;; The size of a launcher machine's main platform, in pixels.
+kLauncherMachineWidthPx  = $10
+kLauncherMachineHeightPx = $10
+
 ;;; How many frames a launcher machine spends per act operation.
 kLauncherActFrames = $40
 
 ;;; OBJ tile IDs used for drawing launcher machines.
-kTileIdObjLauncherFirst = $90
+kTileIdObjLauncherHorzFirst = $94
+kTileIdObjLauncherVertFirst = $90
 
 ;;;=========================================================================;;;

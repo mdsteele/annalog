@@ -47,12 +47,12 @@
 .IMPORT FuncA_Machine_Error
 .IMPORT FuncA_Machine_GenericMoveTowardGoalHorz
 .IMPORT FuncA_Machine_GenericTryMoveX
+.IMPORT FuncA_Machine_LauncherTryAct
 .IMPORT FuncA_Machine_LiftTick
 .IMPORT FuncA_Machine_LiftTryMove
 .IMPORT FuncA_Machine_ReachedGoal
-.IMPORT FuncA_Machine_StartWaiting
 .IMPORT FuncA_Objects_DrawCratePlatform
-.IMPORT FuncA_Objects_DrawLauncherMachine
+.IMPORT FuncA_Objects_DrawLauncherMachineVert
 .IMPORT FuncA_Objects_DrawLiftMachine
 .IMPORT FuncA_Objects_DrawRocksPlatformHorz
 .IMPORT FuncC_Prison_DrawGatePlatform
@@ -62,11 +62,9 @@
 .IMPORT Func_FadeOutToBlackSlowly
 .IMPORT Func_FindActorWithType
 .IMPORT Func_FindEmptyActorSlot
-.IMPORT Func_InitActorProjRocket
 .IMPORT Func_InitActorSmokeExplosion
 .IMPORT Func_InitActorSmokeParticle
 .IMPORT Func_IsPointInPlatform
-.IMPORT Func_MovePointDownByA
 .IMPORT Func_MovePointLeftByA
 .IMPORT Func_MovePointRightByA
 .IMPORT Func_Noop
@@ -81,7 +79,6 @@
 .IMPORT Main_Explore_EnterRoom
 .IMPORT Ppu_ChrObjTown
 .IMPORT Ram_ActorFlags_bObj_arr
-.IMPORT Ram_ActorState1_byte_arr
 .IMPORT Ram_ActorState2_byte_arr
 .IMPORT Ram_ActorType_eActor_arr
 .IMPORT Ram_MachineGoalHorz_u8_arr
@@ -94,7 +91,6 @@
 .IMPORTZP Zp_AvatarPose_eAvatar
 .IMPORTZP Zp_AvatarState_bAvatar
 .IMPORTZP Zp_Camera_bScroll
-.IMPORTZP Zp_ConsoleMachineIndex_u8
 .IMPORTZP Zp_Next_eCutscene
 .IMPORTZP Zp_RoomScrollX_u16
 .IMPORTZP Zp_RoomScrollY_u8
@@ -248,7 +244,7 @@ _Machines_sMachine_arr:
     d_addr TryMove_func_ptr, FuncC_Prison_CellLauncher_TryMove
     d_addr TryAct_func_ptr, FuncC_Prison_CellLauncher_TryAct
     d_addr Tick_func_ptr, FuncC_Prison_CellLauncher_Tick
-    d_addr Draw_func_ptr, FuncA_Objects_DrawLauncherMachine
+    d_addr Draw_func_ptr, FuncA_Objects_DrawLauncherMachineVert
     d_addr Reset_func_ptr, FuncC_Prison_CellLauncher_InitReset
     D_END
     .assert * - :- <= kMaxMachines * .sizeof(sMachine), error
@@ -264,8 +260,8 @@ _Platforms_sPlatform_arr:
     .assert * - :- = kLauncherPlatformIndex * .sizeof(sPlatform), error
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Solid
-    d_word WidthPx_u16, $10
-    d_byte HeightPx_u8, $10
+    d_word WidthPx_u16, kLauncherMachineWidthPx
+    d_byte HeightPx_u8, kLauncherMachineHeightPx
     d_word Left_i16, kLauncherInitPlatformLeft
     d_word Top_i16,   $0060
     D_END
@@ -658,44 +654,12 @@ _ParticleAngle_u8_arr:
 .ENDPROC
 
 .PROC FuncC_Prison_CellLauncher_TryAct
-    ;; If the launcher is out of ammo, fail.
-    lda Ram_MachineParam1_u8_arr + kLauncherMachineIndex  ; ammo count
-    beq _Error
     ;; If the launcher is blocked, fail.
     lda Ram_MachineGoalHorz_u8_arr + kLauncherMachineIndex
-    bne _Error
-    ;; Fire a rocket.
-    jsr Func_FindEmptyActorSlot  ; returns C and X
-    bcs _Finish
-    ldy #kLauncherPlatformIndex  ; param: platform index
-    jsr Func_SetPointToPlatformCenter  ; preserves X
-    lda #5
-    jsr Func_MovePointLeftByA  ; preserves X
-    lda #4
-    jsr Func_MovePointDownByA  ; preserves X
-    jsr Func_SetActorCenterToPoint  ; preserves X
+    jne FuncA_Machine_Error
+    ;; Otherwise, try to fire a rocket.
     lda #eDir::Down  ; param: rocket direction
-    jsr Func_InitActorProjRocket  ; preserves X
-    ;; If debugging, replace the rocket with a smoke particle.  Otherwise,
-    ;; decrement the ammo count.
-    lda Zp_ConsoleMachineIndex_u8
-    bmi _DecrementAmmo
-_DryFire:
-    lda #kSmokeParticleNumFrames / 3
-    sta Ram_ActorState1_byte_arr, x  ; particle age in frames
-    lda #eActor::SmokeParticle
-    sta Ram_ActorType_eActor_arr, x
-    ;; TODO: play a sound?
-    .assert eActor::SmokeParticle <> 0, error
-    bne _Finish  ; unconditional
-_DecrementAmmo:
-    dec Ram_MachineParam1_u8_arr + kLauncherMachineIndex  ; ammo count
-    ;; TODO: play a sound
-_Finish:
-    lda #kLauncherActFrames  ; param: wait frames
-    jmp FuncA_Machine_StartWaiting
-_Error:
-    jmp FuncA_Machine_Error
+    jmp FuncA_Machine_LauncherTryAct
 .ENDPROC
 
 .PROC FuncC_Prison_CellLauncher_Tick

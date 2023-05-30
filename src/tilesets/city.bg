@@ -1,17 +1,18 @@
 @BG 0 0 0 32x12
+>circuit_anim0
 >city1
 >city2
 >console
 
-    CACC        BCBD                        BK      BJ  BM  BN
-    CBCDBABB    BCBD                        BJ  BO  BL  BP  BP
-AI    AJAIAN  AJ                                  ANAN  BIBIBEBF
-AI    AJAI  ANAJ                          ANAN          BIBIBGBH
+    DADC        CCCD                        CK      CJ  CM  CN
+    DBDDCACB    CCCD                        CJ  CO  CL  CP  CP
+BI    BJBIBN  BJ                                  BNBN  CICICECF
+BI    BJBI  BNBJ                          BNBN          CICICGCH
+ACACARAQAPAO    ACAT    ASATAUAV
+ADAD  ARAQAPAO  ADAD  ASATAUAV
 
 
-
-
-AAAEAEABAEAE    AEAFAEAE
-ACAGAGADAGAG    AGAGAGAH
-AKAKAKAKAKAPAOAKAKAPAOAKAKAKAMAKAKALAOAP
-AKAOAPAKAKAOAPAKAPAOAPAOAPAOAPAOAPAOAPAO
+BABEBEBBBEBE    BEBFBEBE
+BCBGBGBDBGBG    BGBGBGBH
+BKBKBKBKBKBPBOBKBKBPBOBKBKBKBMBKBKBLBOBP
+BKBOBPBKBKBOBPBKBPBOBPBOBPBOBPBOBPBOBPBO

@@ -86,7 +86,6 @@ kSaveMagicNumber = $b2
     BossMine
     BossCity
     BossShadow
-    BossCore
     ;; Each of these flags is set when that circuit breaker has been activated:
     BreakerGarden
     BreakerTemple
@@ -96,6 +95,7 @@ kSaveMagicNumber = $b2
     BreakerCity
     BreakerShadow
     ;; Flags for persistent room state:
+    CityOutskirtsBlastedRocks
     CoreSouthCorraHelped
     CoreSouthCorraWaiting
     CryptLandingDroppedIn

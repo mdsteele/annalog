@@ -42,8 +42,8 @@
 kRocketSpeed = 7
 
 ;;; OBJ tile IDs for rocket projectile actors.
-kTileIdObjRocketVert = kTileIdObjLauncherFirst + 3
-kTileIdObjRocketHorz = kTileIdObjLauncherFirst + 3  ; TODO
+kTileIdObjRocketHorz = kTileIdObjLauncherHorzFirst + 3
+kTileIdObjRocketVert = kTileIdObjLauncherVertFirst + 3
 
 ;;; The OBJ palette number used for rocket projectile actors:
 kPaletteObjRocket = 1

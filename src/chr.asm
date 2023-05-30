@@ -577,7 +577,8 @@
 
 .PROC Ppu_ChrBgFontLower15
 :   .incbin "out/data/tiles/font_lower.chr"
-    .res $10 * kSizeofChr
+    .assert .bank(*) = eDiagram::LauncherLeft, error
+    .incbin "out/data/tiles/diagram_launcher_left.chr"
     .assert .bank(*) = <ePortrait::Plaque, error
     .assert .bank(*) = >ePortrait::Plaque, error
     .incbin "out/data/tiles/portrait_plaque.chr"
@@ -979,6 +980,23 @@
 
 ;;;=========================================================================;;;
 
+.SEGMENT "CHR_ObjCity"
+
+.EXPORT Ppu_ChrObjCity
+.PROC Ppu_ChrObjCity
+:   .res $10 * kSizeofChr
+    .assert * - :- = (kTileIdObjLauncherVertFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/launcher_vert.chr"
+    .assert * - :- = (kTileIdObjLauncherHorzFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/launcher_horz.chr"
+    .assert * - :- = (kTileIdObjRocksFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/rocks.chr"
+    .res $66 * kSizeofChr
+    .assert * - :- = kSizeofChr * $80, error
+.ENDPROC
+
+;;;=========================================================================;;;
+
 .SEGMENT "CHR_ObjCrypt"
 
 .EXPORT Ppu_ChrObjCrypt
@@ -1249,8 +1267,8 @@
     .incbin "out/data/tiles/gate.chr"
     .assert * - :- = (kTileIdObjOrcStandingFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/orc_standing.chr"
-    .assert * - :- = (kTileIdObjLauncherFirst - $80) * kSizeofChr, error
-    .incbin "out/data/tiles/launcher.chr"
+    .assert * - :- = (kTileIdObjLauncherVertFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/launcher_vert.chr"
     .assert * - :- = (kTileIdObjCrateFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/crate.chr"
     .assert * - :- = (kTileIdObjRocksFirst - $80) * kSizeofChr, error
