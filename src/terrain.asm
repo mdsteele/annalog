@@ -41,12 +41,6 @@
 .EXPORTZP Zp_TerrainColumn_u8_arr_ptr
 Zp_TerrainColumn_u8_arr_ptr: .res 2
 
-;;; Temporary variable for FuncA_Terrain_FillNametables.
-Zp_TerrainColumnIndexLimit_u8: .res 1
-
-;;; Temporary variable for FuncA_Terrain_TransferTileColumn.
-Zp_NametableColumnIndex_u8: .res 1
-
 ;;;=========================================================================;;;
 
 .SEGMENT "PRG8"
@@ -350,11 +344,11 @@ _Done:
     tax
     .assert kScreenWidthTiles = $20, error
     and #$1f
-    sta Zp_NametableColumnIndex_u8
+    sta T1  ; nametable column index
     txa  ; param: room tile column index
     jsr FuncA_Terrain_GetColumnPtrForTileIndex
     ;; Buffer a PPU transfer for the upper nametable.
-.PROC _UpperTransfer
+_UpperTransfer:
     ldx Zp_PpuTransferLen_u8
     txa
     add #4 + kScreenHeightTiles
@@ -366,21 +360,21 @@ _Done:
     sta Ram_PpuTransfer_arr, x
     inx
     .assert <Ppu_Nametable0_sName = 0, error
-    lda Zp_NametableColumnIndex_u8
+    lda T1  ; nametable column index
     sta Ram_PpuTransfer_arr, x
     inx
     lda #kScreenHeightTiles
     sta Ram_PpuTransfer_arr, x
     inx
     ldy #0  ; param: starting block row index
-    jsr FuncA_Terrain_TransferTileColumnData
-.ENDPROC
+    jsr FuncA_Terrain_TransferTileColumnData  ; preserves T1+
     ;; If this is a tall room, then we need to also buffer a PPU transfer for
     ;; the lower nametable.
     bit <(Zp_Current_sRoom + sRoom::Flags_bRoom)
     .assert bRoom::Tall = bProc::Overflow, error
-    bvc _Return
-.PROC _LowerTransfer
+    bvs _LowerTransfer
+    rts
+_LowerTransfer:
     ldx Zp_PpuTransferLen_u8
     txa
     add #4 + (kTallRoomHeightTiles - kScreenHeightTiles)
@@ -392,31 +386,28 @@ _Done:
     sta Ram_PpuTransfer_arr, x
     inx
     .assert <Ppu_Nametable3_sName = 0, error
-    lda Zp_NametableColumnIndex_u8
+    lda T1  ; nametable column index
     sta Ram_PpuTransfer_arr, x
     inx
     lda #kTallRoomHeightTiles - kScreenHeightTiles
     sta Ram_PpuTransfer_arr, x
     inx
     ldy #kScreenHeightBlocks  ; param: starting block row index
-    jsr FuncA_Terrain_TransferTileColumnData
-.ENDPROC
-_Return:
-    rts
+    jmp FuncA_Terrain_TransferTileColumnData
 .ENDPROC
 
 ;;; Helper function for FuncA_Terrain_TransferTileColumn.  Fills out a PPU
 ;;; transfer entry with the data for a particular tile column in the current
 ;;; room.
-;;; @prereq Zp_NametableColumnIndex_u8 holds the index of the nametable tile
-;;;         column that should be updated.
 ;;; @prereq The PPU transfer entry header has already been written.
 ;;; @prereq Zp_PpuTransferLen_u8 is set as though the entry were complete.
 ;;; @param X PPU transfer array index for start of the entry's data.
 ;;; @param Y Starting block row index.
+;;; @param T1 The index of the nametable tile column that should be updated.
+;;; @preserve T1+
 .PROC FuncA_Terrain_TransferTileColumnData
     sty T0  ; block row index
-    lda Zp_NametableColumnIndex_u8
+    lda T1  ; nametable column index
     and #$01
     bne _Right
 _Left:
