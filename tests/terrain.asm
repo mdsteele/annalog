@@ -23,9 +23,9 @@
 .INCLUDE "../src/tileset.inc"
 
 .IMPORT Exit_Success
+.IMPORT FuncA_Terrain_GetColumnPtrForTileIndex
 .IMPORT Func_ExpectAEqualsY
 .IMPORT Func_GetTerrainColumnPtrForPointX
-.IMPORT Func_GetTerrainColumnPtrForTileIndex
 .IMPORTZP Zp_TerrainColumn_u8_arr_ptr
 
 ;;;=========================================================================;;;
@@ -65,7 +65,7 @@ Ram_PpuTransfer_arr: .res $80
 
 ;;;=========================================================================;;;
 
-.CODE
+.SEGMENT "PRGA_Terrain"
 
 .EXPORT DataA_Terrain_UpperLeft_u8_arr, DataA_Terrain_UpperRight_u8_arr
 .EXPORT DataA_Terrain_LowerLeft_u8_arr, DataA_Terrain_LowerRight_u8_arr
@@ -75,13 +75,13 @@ DataA_Terrain_UpperRight_u8_arr:
 DataA_Terrain_LowerRight_u8_arr:
     .res $100
 
-.PROC Func_TestColumnForTileIndexInShortRoom
+.PROC FuncA_Terrain_TestColumnForTileIndexInShortRoom
     ;; Setup:
     lda #0
     sta Zp_Current_sRoom + sRoom::Flags_bRoom
     ;; Test:
     lda #kBlockColumnIndex * 2  ; param: tile column index
-    jsr Func_GetTerrainColumnPtrForTileIndex
+    jsr FuncA_Terrain_GetColumnPtrForTileIndex
     ;; Verify:
     lda Zp_TerrainColumn_u8_arr_ptr + 0
     ldy #<kExpectedStripePtrShortRoom
@@ -91,13 +91,13 @@ DataA_Terrain_LowerRight_u8_arr:
     jmp Func_ExpectAEqualsY
 .ENDPROC
 
-.PROC Func_TestColumnForTileIndexInTallRoom
+.PROC FuncA_Terrain_TestColumnForTileIndexInTallRoom
     ;; Setup:
     lda #bRoom::Tall
     sta Zp_Current_sRoom + sRoom::Flags_bRoom
     ;; Test:
     lda #kBlockColumnIndex * 2  ; param: tile column index
-    jsr Func_GetTerrainColumnPtrForTileIndex
+    jsr FuncA_Terrain_GetColumnPtrForTileIndex
     ;; Verify:
     lda Zp_TerrainColumn_u8_arr_ptr + 0
     ldy #<kExpectedStripePtrTallRoom
@@ -107,7 +107,7 @@ DataA_Terrain_LowerRight_u8_arr:
     jmp Func_ExpectAEqualsY
 .ENDPROC
 
-.PROC Func_TestColumnForPointInShortRoom
+.PROC FuncA_Terrain_TestColumnForPointInShortRoom
     ;; Setup:
     lda #0
     sta Zp_Current_sRoom + sRoom::Flags_bRoom
@@ -124,7 +124,7 @@ DataA_Terrain_LowerRight_u8_arr:
     jmp Func_ExpectAEqualsY
 .ENDPROC
 
-.PROC Func_TestColumnForPointInTallRoom
+.PROC FuncA_Terrain_TestColumnForPointInTallRoom
     ;; Setup:
     lda #bRoom::Tall
     sta Zp_Current_sRoom + sRoom::Flags_bRoom
@@ -152,10 +152,10 @@ SetUp:
     ldax #kTerrainDataPtr
     stax Zp_Current_sRoom + sRoom::TerrainData_ptr
 Tests:
-    jsr Func_TestColumnForTileIndexInShortRoom
-    jsr Func_TestColumnForTileIndexInTallRoom
-    jsr Func_TestColumnForPointInShortRoom
-    jsr Func_TestColumnForPointInTallRoom
+    jsr FuncA_Terrain_TestColumnForTileIndexInShortRoom
+    jsr FuncA_Terrain_TestColumnForTileIndexInTallRoom
+    jsr FuncA_Terrain_TestColumnForPointInShortRoom
+    jsr FuncA_Terrain_TestColumnForPointInTallRoom
 Success:
     jmp Exit_Success
 

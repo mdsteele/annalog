@@ -156,13 +156,17 @@ _TallRoom:
     rts
 .ENDPROC
 
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Terrain"
+
 ;;; Populates Zp_TerrainColumn_u8_arr_ptr with a pointer to the start of the
 ;;; terrain block column in the current room that contains the specified room
 ;;; tile column.
 ;;; @param A The index of the room tile column.
 ;;; @preserve T0+
-.EXPORT Func_GetTerrainColumnPtrForTileIndex
-.PROC Func_GetTerrainColumnPtrForTileIndex
+.EXPORT FuncA_Terrain_GetColumnPtrForTileIndex
+.PROC FuncA_Terrain_GetColumnPtrForTileIndex
     bit <(Zp_Current_sRoom + sRoom::Flags_bRoom)
     .assert bRoom::Tall = bProc::Overflow, error
     bvs _TallRoom
@@ -186,7 +190,7 @@ _ShortRoom:
     lda Zp_TerrainColumn_u8_arr_ptr + 1  ; block col * 16 (hi)
     sbc #0
     sta Zp_TerrainColumn_u8_arr_ptr + 1  ; block col * 15 (hi)
-    bpl Func_GetTerrainColumnPtrForByteOffset  ; unconditional
+    jmp Func_GetTerrainColumnPtrForByteOffset
 _TallRoom:
     and #$fe
     ;; Currently, A is (block col * 2).  Calculate (block col * 8), with the lo
@@ -207,12 +211,8 @@ _TallRoom:
     txa
     adc Zp_TerrainColumn_u8_arr_ptr + 1  ; hi byte of (col * 24)
     sta Zp_TerrainColumn_u8_arr_ptr + 1
-    bpl Func_GetTerrainColumnPtrForByteOffset  ; unconditional
+    jmp Func_GetTerrainColumnPtrForByteOffset
 .ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Terrain"
 
 ;;; Directly fills the PPU nametables with terrain tile data for the current
 ;;; room.
@@ -228,7 +228,7 @@ _TallRoom:
     stx Hw_PpuCtrl_wo
 _TileColumnLoop:
     lda T0  ; param: room tile column index
-    jsr Func_GetTerrainColumnPtrForTileIndex  ; preserves T0+
+    jsr FuncA_Terrain_GetColumnPtrForTileIndex  ; preserves T0+
     ldy #0  ; room block row index
     lda T0  ; room tile column index
     and #$01
@@ -352,7 +352,7 @@ _Done:
     and #$1f
     sta Zp_NametableColumnIndex_u8
     txa  ; param: room tile column index
-    jsr Func_GetTerrainColumnPtrForTileIndex
+    jsr FuncA_Terrain_GetColumnPtrForTileIndex
     ;; Buffer a PPU transfer for the upper nametable.
 .PROC _UpperTransfer
     ldx Zp_PpuTransferLen_u8
