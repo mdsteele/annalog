@@ -24,6 +24,7 @@
 .INCLUDE "../dialog.inc"
 .INCLUDE "../flag.inc"
 .INCLUDE "../machine.inc"
+.INCLUDE "../machines/minigun.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
 .INCLUDE "../platform.inc"
@@ -227,16 +228,16 @@ _Platforms_sPlatform_arr:
 :   .assert * - :- = kUpperMinigunPlatformIndex * .sizeof(sPlatform), error
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Solid
-    d_word WidthPx_u16, $20
-    d_byte HeightPx_u8, $10
+    d_word WidthPx_u16, kMinigunMachineWidthPx
+    d_byte HeightPx_u8, kMinigunMachineHeightPx
     d_word Left_i16, kUpperMinigunInitPlatformLeft
     d_word Top_i16,   $0030
     D_END
     .assert * - :- = kLowerMinigunPlatformIndex * .sizeof(sPlatform), error
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Solid
-    d_word WidthPx_u16, $20
-    d_byte HeightPx_u8, $10
+    d_word WidthPx_u16, kMinigunMachineWidthPx
+    d_byte HeightPx_u8, kMinigunMachineHeightPx
     d_word Left_i16, kLowerMinigunInitPlatformLeft
     d_word Top_i16,  kLowerMinigunInitPlatformTop
     D_END

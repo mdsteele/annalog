@@ -23,7 +23,7 @@
 .INCLUDE "../dialog.inc"
 .INCLUDE "../flag.inc"
 .INCLUDE "../machine.inc"
-.INCLUDE "../machines/shared.inc"
+.INCLUDE "../machines/carriage.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
 .INCLUDE "../platform.inc"
@@ -163,8 +163,8 @@ _Platforms_sPlatform_arr:
 :   .assert * - :- = kCarriagePlatformIndex * .sizeof(sPlatform), error
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Solid
-    d_word WidthPx_u16, $20
-    d_byte HeightPx_u8, $10
+    d_word WidthPx_u16, kCarriageMachineWidthPx
+    d_byte HeightPx_u8, kCarriageMachineHeightPx
     d_word Left_i16, kCarriageInitPlatformLeft
     d_word Top_i16, kCarriageInitPlatformTop
     D_END

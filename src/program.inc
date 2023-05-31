@@ -76,9 +76,6 @@
     NUM_VALUES
 .ENDENUM
 
-;;; eDir values less than this are vertical.
-kFirstHorzDir = eDir::Left
-
 ;;;=========================================================================;;;
 
 ;;; One instruction in a program for an in-game machine.

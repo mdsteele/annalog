@@ -17,12 +17,8 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
-;;; The size of a minigun machine's main platform, in pixels.
-kMinigunMachineWidthPx  = $20
-kMinigunMachineHeightPx = $10
-
-;;; Various OBJ tile IDs used for drawing minigun machines.
-kTileIdObjMinigunHorzFirst = $d0
-kTileIdObjMinigunVertFirst = $d8
+;;; The size of a carriage machine's main platform, in pixels.
+kCarriageMachineWidthPx  = $20
+kCarriageMachineHeightPx = $10
 
 ;;;=========================================================================;;;

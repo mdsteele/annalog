@@ -23,6 +23,7 @@
 .INCLUDE "../ppu.inc"
 .INCLUDE "../program.inc"
 .INCLUDE "../terrain.inc"
+.INCLUDE "carriage.inc"
 .INCLUDE "shared.inc"
 
 .IMPORT FuncA_Machine_Error
@@ -32,21 +33,17 @@
 .IMPORT FuncA_Objects_MoveShapeDownAndRightOneTile
 .IMPORT FuncA_Objects_MoveShapeRightByA
 .IMPORT FuncA_Objects_SetShapePosToMachineTopLeft
-.IMPORT Func_GetTerrainColumnPtrForTileIndex
+.IMPORT Func_MovePointDownByA
+.IMPORT Func_MovePointLeftByA
+.IMPORT Func_MovePointRightByA
+.IMPORT Func_MovePointUpByA
+.IMPORT Func_PointHitsTerrain
+.IMPORT Func_SetPointToPlatformCenter
 .IMPORT Ram_MachineGoalHorz_u8_arr
 .IMPORT Ram_MachineGoalVert_u8_arr
 .IMPORT Ram_Oam_sObj_arr64
-.IMPORT Ram_PlatformBottom_i16_0_arr
-.IMPORT Ram_PlatformBottom_i16_1_arr
-.IMPORT Ram_PlatformLeft_i16_0_arr
-.IMPORT Ram_PlatformLeft_i16_1_arr
-.IMPORT Ram_PlatformRight_i16_0_arr
-.IMPORT Ram_PlatformRight_i16_1_arr
-.IMPORT Ram_PlatformTop_i16_0_arr
-.IMPORT Ram_PlatformTop_i16_1_arr
 .IMPORTZP Zp_Current_sMachine_ptr
 .IMPORTZP Zp_MachineIndex_u8
-.IMPORTZP Zp_TerrainColumn_u8_arr_ptr
 
 ;;;=========================================================================;;;
 
@@ -66,169 +63,97 @@ kTileIdObjCarriageSurface = kTileIdObjMachineSurfaceHorz
 ;;; @param X The eDir value for the direction to move in.
 .EXPORT FuncA_Machine_CarriageTryMove
 .PROC FuncA_Machine_CarriageTryMove
-    sta T3  ; max goal horz
-    sty T4  ; max goal vert
-    ;; Get the carriage platform index.
+    sta T0  ; max goal horz
+    sty T1  ; max goal vert
+    ;; Get the carriage platform index and position.
     ldy #sMachine::MainPlatform_u8
     lda (Zp_Current_sMachine_ptr), y
-    sta T0  ; platform index
-    ;; Check if the direction is vertical or horizontal.
-    cpx #kFirstHorzDir
-    bge _TryMoveHorz
-_TryMoveVert:
-    ;; Calculate the room tile column index for the left side of the carriage,
-    ;; storing it in T1.
-    ldy T0  ; platform index
-    lda Ram_PlatformLeft_i16_0_arr, y
-    add #kTileWidthPx
-    sta T1  ; X position (lo)
-    lda Ram_PlatformLeft_i16_1_arr, y
-    adc #0
-    .assert kTileWidthPx = (1 << 3), error
-    .repeat 3
-    lsr a
-    ror T1  ; room tile column index
-    .endrepeat
-    ;; Check if the carriage is trying to move up or down.
+    tay  ; param: platform index
+    jsr Func_SetPointToPlatformCenter  ; preserves X and T0+
+    ;; Try moving in the desired direction.
     txa  ; eDir value
-    .assert eDir::Up = 0, error
-    bne _TryMoveDown
+    ldx Zp_MachineIndex_u8
+    cmp #eDir::Left
+    beq _TryMoveLeft
+    cmp #eDir::Right
+    beq _TryMoveRight
+    cmp #eDir::Down
+    beq _TryMoveDown
 _TryMoveUp:
     ;; If the current vert goal is the maximum, the carriage can't move up.
-    ldx Zp_MachineIndex_u8
     lda Ram_MachineGoalVert_u8_arr, x
-    cmp T4  ; max goal vert
+    cmp T1  ; max goal vert
     bge _Error
     ;; If either terrain block above the carriage is solid, the carriage can't
     ;; move up.
-    ldy T0  ; platform index
-    lda Ram_PlatformTop_i16_0_arr, y
-    sub #kTileHeightPx
-    sta T2  ; Y position (lo)
-    lda Ram_PlatformTop_i16_1_arr, y
-    sbc #0
-    jsr _CheckIfSolidVert  ; sets C if the terrain is solid
+    lda #kBlockHeightPx  ; param: offset
+    jsr Func_MovePointUpByA  ; preserves X
+    jsr FuncA_Machine_CarriageCanMoveVert  ; preserves X, returns C
     bcs _Error
     ;; Start moving the carriage upwards.
-    ldx Zp_MachineIndex_u8
     inc Ram_MachineGoalVert_u8_arr, x
     jmp FuncA_Machine_StartWorking
 _TryMoveDown:
     ;; If the current vert goal is zero, the carriage can't move left.
-    ldx Zp_MachineIndex_u8
     lda Ram_MachineGoalVert_u8_arr, x
     beq _Error
     ;; If either terrain block below the carriage is solid, the carriage can't
     ;; move down.
-    ldy T0  ; platform index
-    lda Ram_PlatformBottom_i16_0_arr, y
-    add #kTileHeightPx
-    sta T2  ; Y position (lo)
-    lda Ram_PlatformBottom_i16_1_arr, y
-    adc #0
-    jsr _CheckIfSolidVert  ; sets C if the terrain is solid
+    lda #kBlockHeightPx  ; param: offset
+    jsr Func_MovePointDownByA  ; preserves X
+    jsr FuncA_Machine_CarriageCanMoveVert  ; preserves X, returns C
     bcs _Error
     ;; Start moving the carriage downwards.
-    ldx Zp_MachineIndex_u8
     dec Ram_MachineGoalVert_u8_arr, x
     jmp FuncA_Machine_StartWorking
 _Error:
     jmp FuncA_Machine_Error
-_TryMoveHorz:
-    ;; Calculate the room block row index for the center of the carriage,
-    ;; storing it in T1.
-    ldy T0  ; platform index
-    lda Ram_PlatformTop_i16_0_arr, y
-    add #kTileHeightPx
-    sta T1  ; Y position (lo)
-    lda Ram_PlatformTop_i16_1_arr, y
-    adc #0
-    .assert kBlockHeightPx = (1 << 4), error
-    .repeat 4
-    lsr a
-    ror T1  ; room block row index
-    .endrepeat
-    ;; Check if the carriage is trying to move left or right.
-    cpx #eDir::Right
-    beq _TryMoveRight
 _TryMoveLeft:
     ;; If the current horz goal is zero, the carriage can't move left.
-    ldx Zp_MachineIndex_u8
     lda Ram_MachineGoalHorz_u8_arr, x
     beq _Error
-    ;; If the terrain block to the left of the carriage is solid, the carriage
-    ;; can't move left.
-    ldx T0  ; platform index
-    lda Ram_PlatformLeft_i16_0_arr, x
-    sub #kTileWidthPx
-    sta T2  ; X position (lo)
-    lda Ram_PlatformLeft_i16_1_arr, x
-    sbc #0
-    jsr _CheckIfSolidHorz  ; sets C if the terrain is solid
+    ;; If the terrain block to the right of the carriage is solid, the carriage
+    ;; can't move right.
+    lda #kCarriageMachineWidthPx / 2 + kTileWidthPx
+    jsr Func_MovePointLeftByA  ; preserves X
+    jsr Func_PointHitsTerrain  ; preserves X, returns C
     bcs _Error
     ;; Start moving the carriage to the left.
-    ldx Zp_MachineIndex_u8
     dec Ram_MachineGoalHorz_u8_arr, x
     jmp FuncA_Machine_StartWorking
 _TryMoveRight:
     ;; If the current horz goal is the maximum, the carriage can't move right.
-    ldx Zp_MachineIndex_u8
     lda Ram_MachineGoalHorz_u8_arr, x
-    cmp T3  ; max goal horz
+    cmp T0  ; max goal horz
     bge _Error
     ;; If the terrain block to the right of the carriage is solid, the carriage
     ;; can't move right.
-    ldx T0  ; platform index
-    lda Ram_PlatformRight_i16_0_arr, x
-    add #kTileWidthPx
-    sta T2  ; X position (lo)
-    lda Ram_PlatformRight_i16_1_arr, x
-    adc #0
-    jsr _CheckIfSolidHorz  ; sets C if the terrain is solid
+    lda #kCarriageMachineWidthPx / 2 + kTileWidthPx
+    jsr Func_MovePointRightByA  ; preserves X
+    jsr Func_PointHitsTerrain  ; preserves X, returns C
     bcs _Error
     ;; Start moving the carriage to the right.
-    ldx Zp_MachineIndex_u8
     inc Ram_MachineGoalHorz_u8_arr, x
     jmp FuncA_Machine_StartWorking
-_CheckIfSolidHorz:
-    ;; At this point, T1 holds the room block row index to check, and
-    ;; A (hi) and T2 (lo) store the room pixel X-position to check.
-    .assert kTileWidthPx = (1 << 3), error
-    .repeat 3
-    lsr a
-    ror T2  ; X position (lo)
-    .endrepeat
-    lda T2  ; param: room tile column index
-    jsr Func_GetTerrainColumnPtrForTileIndex  ; preserves T0+
-    ldy T1  ; room block row index
-    lda (Zp_TerrainColumn_u8_arr_ptr), y
-    cmp #kFirstSolidTerrainType  ; sets C if the terrain is solid
+.ENDPROC
+
+;;; Helper function for FuncA_Machine_CarriageTryMove; checks if a carriage
+;;; machine can move vertically.
+;;; @prereq Zp_Point* is set one block above/below the carriage center.
+;;; @return C Cleared if the carriage can move, or set if it is blocked.
+;;; @preserve X, T0+
+.PROC FuncA_Machine_CarriageCanMoveVert
+    .assert kCarriageMachineWidthPx = kBlockWidthPx * 2, error
+_CheckLeftSide:
+    lda #kTileWidthPx
+    jsr Func_MovePointLeftByA  ; preserves X and T0+
+    jsr Func_PointHitsTerrain  ; preserves X and T0+, returns C
+    bcc _CheckRightSide
     rts
-_CheckIfSolidVert:
-    ;; At this point, T1 holds the left-hand block column index to
-    ;; check, and A (hi) and T2 (lo) store the room pixel Y-position
-    ;; to check.
-    .assert kBlockHeightPx = (1 << 4), error
-    .repeat 4
-    lsr a
-    ror T2  ; room block row index
-    .endrepeat
-    ;; Check the left-hand terrain block:
-    lda T1  ; param: room tile column index
-    jsr Func_GetTerrainColumnPtrForTileIndex  ; preserves T0+
-    ldy T2  ; room block row index
-    lda (Zp_TerrainColumn_u8_arr_ptr), y
-    cmp #kFirstSolidTerrainType  ; sets C if the terrain is solid
-    bcs @return
-    ;; Check the right-hand terrain block:
-    lda T1  ; left-hand room tile column index
-    adc #2  ; param: room tile column index (carry is already clear)
-    jsr Func_GetTerrainColumnPtrForTileIndex  ; preserves T0+
-    ldy T2  ; room block row index
-    lda (Zp_TerrainColumn_u8_arr_ptr), y
-    cmp #kFirstSolidTerrainType  ; sets C if the terrain is solid
-    @return:
-    rts
+_CheckRightSide:
+    lda #kTileWidthPx * 2
+    jsr Func_MovePointRightByA  ; preserves X and T0+
+    jmp Func_PointHitsTerrain  ; preserves X and T0+, returns C
 .ENDPROC
 
 ;;;=========================================================================;;;
