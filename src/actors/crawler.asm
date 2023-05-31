@@ -26,13 +26,13 @@
 .INCLUDE "crawler.inc"
 
 .IMPORT FuncA_Actor_GetRoomBlockRow
-.IMPORT FuncA_Actor_GetRoomTileColumn
 .IMPORT FuncA_Actor_HarmAvatarIfCollision
 .IMPORT FuncA_Actor_IsAvatarAboveOrBelow
 .IMPORT FuncA_Actor_IsAvatarWithinHorzDistance
+.IMPORT FuncA_Actor_SetPointInFrontOfActor
 .IMPORT FuncA_Objects_Draw2x2Actor
 .IMPORT Func_FindEmptyActorSlot
-.IMPORT Func_GetTerrainColumnPtrForTileIndex
+.IMPORT Func_GetTerrainColumnPtrForPointX
 .IMPORT Func_InitActorProjEmber
 .IMPORT Func_MovePointDownByA
 .IMPORT Func_MovePointLeftByA
@@ -215,7 +215,9 @@ _MoveLeft:
     @noBorrow:
     dec Ram_ActorPosX_i16_0_arr, x
 _CheckForTurn:
+    ;; Check the baddie's X-position mod kBlockWidthPx.
     lda Ram_ActorPosX_i16_0_arr, x
+    .assert kBlockWidthPx = $10, error
     and #$0f
     beq _CheckForOuterCorner
     cmp #$08
@@ -225,23 +227,11 @@ _CheckForInnerCorner:
     ;; TODO: check if we need to turn
     jmp _NoTurn
 _CheckForOuterCorner:
-    ;; Compute the room tile column index for the center of the baddie, storing
-    ;; it in Y.
-    jsr FuncA_Actor_GetRoomTileColumn  ; preserves X, returns A
-    tay
-    ;; Compute the room tile column just in front the baddie.   Note that at
-    ;; this point, the baddie's Y-position is zero mod kBlockHeightPx.
-    lda Ram_ActorFlags_bObj_arr, x
-    and #bObj::FlipH
-    beq @facingRight
-    @facingLeft:
-    dey
-    @facingRight:
-    ;; Get the terrain for the tile column we're checking.
-    stx T0
-    tya  ; param: room tile column index
-    jsr Func_GetTerrainColumnPtrForTileIndex  ; preserves T0+
-    ldx T0
+    ;; Get the terrain column in front of the baddie.  Note that at this point,
+    ;; the baddie's X-position is zero mod kBlockWidthPx.
+    lda #kTileWidthPx  ; param: offset
+    jsr FuncA_Actor_SetPointInFrontOfActor  ; preserves X
+    jsr Func_GetTerrainColumnPtrForPointX  ; preserves X
     ;; Compute the room block row at the baddie's feet.
     jsr FuncA_Actor_GetRoomBlockRow  ; preserves X, returns Y
     lda Ram_ActorFlags_bObj_arr, x
@@ -335,7 +325,9 @@ _MoveUp:
     @noBorrow:
     dec Ram_ActorPosY_i16_0_arr, x
 _CheckForTurn:
+    ;; Check the baddie's Y-position mod kBlockHeightPx.
     lda Ram_ActorPosY_i16_0_arr, x
+    .assert kBlockHeightPx = $10, error
     and #$0f
     beq _CheckForOuterCorner
     cmp #$08
@@ -345,29 +337,10 @@ _CheckForInnerCorner:
     ;; TODO: check if we need to turn
     jmp _NoTurn
 _CheckForOuterCorner:
-    ;; Compute the room tile column index for the center of the baddie, storing
-    ;; it in Y.
-    jsr FuncA_Actor_GetRoomTileColumn  ; preserves X, returns A
-    tay
-    ;; If the baddie is to the right of the vertical wall, decrement Y twice to
-    ;; get a tile column for the wall it's on.  If instead the baddie is to the
-    ;; left of the wall, increment Y twice.
-    lda Ram_ActorFlags_bObj_arr, x
-    and #bObj::FlipH
-    beq @facingRight
-    @facingLeft:
-    iny
-    iny
-    bne @doneFacing  ; unconditional
-    @facingRight:
-    dey
-    dey
-    @doneFacing:
-    ;; Get the terrain for the tile column we're checking.
-    stx T0  ; actor index
-    tya  ; param: room tile column index
-    jsr Func_GetTerrainColumnPtrForTileIndex  ; preserves T0+
-    ldx T0  ; actor index
+    ;; Get the terrain column for the wall the baddie is crawling on.
+    lda #<-kBlockWidthPx  ; param: offset
+    jsr FuncA_Actor_SetPointInFrontOfActor  ; preserves X
+    jsr Func_GetTerrainColumnPtrForPointX  ; preserves X
     ;; Compute the room block row just in front (above/below) of the baddie.
     ;; Note that at this point, the baddie's Y-position is zero mod
     ;; kBlockHeightPx.

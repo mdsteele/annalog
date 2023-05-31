@@ -27,6 +27,7 @@
 .IMPORT FuncA_Objects_MoveShapeLeftHalfTile
 .IMPORT FuncA_Objects_MoveShapeUpHalfTile
 .IMPORT Func_HarmAvatar
+.IMPORT Func_MovePointHorz
 .IMPORT Func_MovePointLeftByA
 .IMPORT Func_MovePointRightByA
 .IMPORT Func_PointHitsTerrain
@@ -137,23 +138,6 @@
     rts
 .ENDPROC
 
-;;; Returns the room tile column index for the actor position.
-;;; @param X The actor index.
-;;; @return A The room tile column index.
-;;; @preserve X
-.EXPORT FuncA_Actor_GetRoomTileColumn
-.PROC FuncA_Actor_GetRoomTileColumn
-    lda Ram_ActorPosX_i16_1_arr, x
-    sta T0
-    lda Ram_ActorPosX_i16_0_arr, x
-    .assert kTileWidthPx = (1 << 3), error
-    .repeat 3
-    lsr T0
-    ror a
-    .endrepeat
-    rts
-.ENDPROC
-
 ;;; Returns the room block row index for the actor position.
 ;;; @param X The actor index.
 ;;; @return Y The room block row index.
@@ -185,22 +169,23 @@
 ;;; Sets Zp_PointY_i16 to the vertical center of the actor, and sets
 ;;; Zp_PointX_i16 to a position A pixels in front of the horizontal center of
 ;;; the actor, based on the FlipH bit of the actor's flags.
-;;; @param A How many pixels in front to place the point (unsigned).
+;;; @param A How many pixels in front to place the point (signed).
 ;;; @param X The actor index.
-;;; @preserve X, Y, T0+
+;;; @preserve X, T0+
 .EXPORT FuncA_Actor_SetPointInFrontOfActor
 .PROC FuncA_Actor_SetPointInFrontOfActor
-    pha  ; offset
+    tay  ; param: offset
     jsr Func_SetPointToActorCenter  ; preserves X, Y, and T0+
     lda Ram_ActorFlags_bObj_arr, x
     and #bObj::FlipH
-    bne @facingLeft
-    @facingRight:
-    pla  ; param: offset
-    jmp Func_MovePointRightByA  ; preserves X, Y, and T0+
-    @facingLeft:
-    pla  ; param: offset
-    jmp Func_MovePointLeftByA  ; preserves X, Y, and T0+
+    beq @noNegate
+    dey
+    tya
+    eor #$ff
+    tay
+    @noNegate:
+    tya  ; param: offset
+    jmp Func_MovePointHorz  ; preserves X and T0+
 .ENDPROC
 
 ;;; Moves Zp_PointX_i16 left or right by the given number of pixels, in the

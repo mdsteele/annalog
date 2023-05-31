@@ -19,14 +19,15 @@
 
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
+.INCLUDE "../ppu.inc"
 .INCLUDE "../terrain.inc"
 .INCLUDE "grub.inc"
 
 .IMPORT FuncA_Actor_GetRoomBlockRow
-.IMPORT FuncA_Actor_GetRoomTileColumn
 .IMPORT FuncA_Actor_HarmAvatarIfCollision
+.IMPORT FuncA_Actor_SetPointInFrontOfActor
 .IMPORT FuncA_Objects_Draw2x2Actor
-.IMPORT Func_GetTerrainColumnPtrForTileIndex
+.IMPORT Func_GetTerrainColumnPtrForPointX
 .IMPORT Ram_ActorFlags_bObj_arr
 .IMPORT Ram_ActorPosX_i16_0_arr
 .IMPORT Ram_ActorPosX_i16_1_arr
@@ -70,28 +71,10 @@ _MoveLeft:
 _DetectCollision:
     jmp FuncA_Actor_HarmAvatarIfCollision  ; preserves X
 _StartMove:
-    ;; Compute the room tile column index for the center of the grub, storing
-    ;; it in Y.
-    jsr FuncA_Actor_GetRoomTileColumn  ; preserves X, returns A
-    tay
-    ;; If the grub is facing right, increment Y (so as to check the tile column
-    ;; to the right of the grub); if the grub is facing left, decrement Y (so
-    ;; as to check the tile column to the left of the grub).
-    lda Ram_ActorFlags_bObj_arr, x
-    and #bObj::FlipH
-    bne @facingLeft
-    @facingRight:
-    iny
-    bne @doneFacing  ; unconditional
-    @facingLeft:
-    dey
-    dey
-    @doneFacing:
-    ;; Get the terrain for the tile column we're checking.
-    stx T0  ; grub actor index
-    tya  ; param: room tile column index
-    jsr Func_GetTerrainColumnPtrForTileIndex  ; preserves T0+
-    ldx T0  ; grub actor index
+    ;; Get the terrain column in front of the grub.
+    lda #kTileWidthPx + 1  ; param: offset
+    jsr FuncA_Actor_SetPointInFrontOfActor  ; preserves X
+    jsr Func_GetTerrainColumnPtrForPointX  ; preserves X
     ;; Check the terrain block just in front of the grub.  If it's solid, the
     ;; grub has to turn around.
     jsr FuncA_Actor_GetRoomBlockRow  ; preserves X, returns Y
