@@ -224,6 +224,12 @@ $(OBJDIR)/sample.o: $(SRCDIR)/sample.asm $(INCFILES) $(DMFILES)
 $(OBJDIR)/title.o: $(SRCDIR)/title.asm $(INCFILES) $(DATADIR)/title.map
 	$(compile-asm)
 
+$(OBJDIR)/rooms/city_center.o: $(SRCDIR)/rooms/city_center.asm \
+                               $(INCFILES) \
+                               $(DATADIR)/city_center1.room \
+                               $(DATADIR)/city_center2.room
+	$(compile-asm)
+
 $(OBJDIR)/rooms/garden_hallway.o: $(SRCDIR)/rooms/garden_hallway.asm \
                                   $(INCFILES) \
                                   $(DATADIR)/garden_hallway1.room \

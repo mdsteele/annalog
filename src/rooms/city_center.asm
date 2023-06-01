@@ -31,14 +31,14 @@
 
 .SEGMENT "PRGC_City"
 
-.EXPORT DataC_City_East_sRoom
-.PROC DataC_City_East_sRoom
+.EXPORT DataC_City_Center_sRoom
+.PROC DataC_City_Center_sRoom
     D_STRUCT sRoom
     d_byte MinScrollX_u8, $10
-    d_word MaxScrollX_u16, $10
+    d_word MaxScrollX_u16, $310
     d_byte Flags_bRoom, bRoom::Tall | eArea::City
-    d_byte MinimapStartRow_u8, 2
-    d_byte MinimapStartCol_u8, 23
+    d_byte MinimapStartRow_u8, 1
+    d_byte MinimapStartCol_u8, 19
     d_addr TerrainData_ptr, _TerrainData
     d_byte NumMachines_u8, 0
     d_addr Machines_sMachine_arr_ptr, 0
@@ -58,26 +58,52 @@ _Ext_sRoomExt:
     d_addr FadeIn_func_ptr, Func_Noop
     D_END
 _TerrainData:
-:   .incbin "out/data/city_east.room"
-    .assert * - :- = 17 * 24, error
+:   .incbin "out/data/city_center1.room"
+    .incbin "out/data/city_center2.room"
+    .assert * - :- = 66 * 24, error
 _Platforms_sPlatform_arr:
+:   D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Solid
+    d_word WidthPx_u16, $30
+    d_byte HeightPx_u8, $06
+    d_word Left_i16,  $00e0
+    d_word Top_i16,   $0090
+    D_END
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Solid
+    d_word WidthPx_u16, $180
+    d_byte HeightPx_u8,  $06
+    d_word Left_i16,   $01d0
+    d_word Top_i16,    $0090
+    D_END
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Solid
+    d_word WidthPx_u16, $60
+    d_byte HeightPx_u8, $06
+    d_word Left_i16,  $02f0
+    d_word Top_i16,   $00c0
+    D_END
+    .assert * - :- <= kMaxPlatforms * .sizeof(sPlatform), error
     .byte ePlatform::None
 _Actors_sActor_arr:
-    ;; TODO: add some baddies
     .byte eActor::None
 _Devices_sDevice_arr:
-    ;; TODO: doors into building
     .byte eDevice::None
 _Passages_sPassage_arr:
 :   D_STRUCT sPassage
-    d_byte Exit_bPassage, ePassage::Western | 0
-    d_byte Destination_eRoom, eRoom::CityCenter
-    d_byte SpawnBlock_u8, 4
+    d_byte Exit_bPassage, ePassage::Western | 1
+    d_byte Destination_eRoom, eRoom::CityCenter  ; TODO CityWest
+    d_byte SpawnBlock_u8, 21
     D_END
     D_STRUCT sPassage
-    d_byte Exit_bPassage, ePassage::Western | 1
-    d_byte Destination_eRoom, eRoom::CityEast  ; TODO
+    d_byte Exit_bPassage, ePassage::Eastern | 1
+    d_byte Destination_eRoom, eRoom::CityEast
     d_byte SpawnBlock_u8, 21
+    D_END
+    D_STRUCT sPassage
+    d_byte Exit_bPassage, ePassage::Bottom | 2
+    d_byte Destination_eRoom, eRoom::CityCenter  ; TODO CityPit
+    d_byte SpawnBlock_u8, 42
     D_END
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
 .ENDPROC

@@ -259,7 +259,8 @@
 .PROC Ppu_ChrBgCity
 :   .incbin "out/data/tiles/city1.chr"
     .incbin "out/data/tiles/city2.chr"
-    .res $1c * kSizeofChr
+    .incbin "out/data/tiles/city3.chr"
+    .res $14 * kSizeofChr
     .incbin "out/data/tiles/console.chr"
     .assert * - :- = kSizeofChr * $40, error
 .ENDPROC

@@ -2,16 +2,17 @@
 >circuit_anim0
 >city1
 >city2
+>city3
 >console
 
-    DADC        CCCD                        CK      CJ  CM  CN
-    DBDDCACB    CCCD                        CJ  CO  CL  CP  CP
+    EAEC        CCCDDCDD                    CK      CJ  CM  CN
+    EBEDCACBDADBCCCDDCDD                    CJ  CO  CL  CP  CP
 BI    BJBIBN  BJ                                  BNBN  CICICECF
 BI    BJBI  BNBJ                          BNBN          CICICGCH
 ACACARAQAPAO    ACAT    ASATAUAV
 ADAD  ARAQAPAO  ADAD  ASATAUAV
-
-
+                                        DGDHDHDGDGDG
+                                                    DFDFDFDEDEDF
 BABEBEBBBEBE    BEBFBEBE
 BCBGBGBDBGBG    BGBGBGBH
 BKBKBKBKBKBPBOBKBKBPBOBKBKBKBMBKBKBLBOBP
