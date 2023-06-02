@@ -44,6 +44,7 @@ kMaxPassages = 8
     BossGarden
     BossMine
     BossTemple
+    CityBuilding1
     CityCenter
     CityEast
     CityOutskirts

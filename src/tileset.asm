@@ -20,6 +20,10 @@
 .INCLUDE "macros.inc"
 .INCLUDE "tileset.inc"
 
+.IMPORT DataA_Terrain_BuildingLowerLeft_u8_arr
+.IMPORT DataA_Terrain_BuildingLowerRight_u8_arr
+.IMPORT DataA_Terrain_BuildingUpperLeft_u8_arr
+.IMPORT DataA_Terrain_BuildingUpperRight_u8_arr
 .IMPORT DataA_Terrain_CityLowerLeft_u8_arr
 .IMPORT DataA_Terrain_CityLowerRight_u8_arr
 .IMPORT DataA_Terrain_CityUpperLeft_u8_arr
@@ -80,6 +84,7 @@
 .IMPORT DataA_Terrain_TempleLowerRight_u8_arr
 .IMPORT DataA_Terrain_TempleUpperLeft_u8_arr
 .IMPORT DataA_Terrain_TempleUpperRight_u8_arr
+.IMPORT Ppu_ChrBgBuilding
 .IMPORT Ppu_ChrBgCity
 .IMPORT Ppu_ChrBgCore
 .IMPORT Ppu_ChrBgCrypt
@@ -99,6 +104,17 @@
 ;;;=========================================================================;;;
 
 .SEGMENT "PRGA_Room"
+
+.EXPORT DataA_Room_Building_sTileset
+.PROC DataA_Room_Building_sTileset
+    D_STRUCT sTileset
+    d_addr UpperLeft_u8_arr_ptr,  DataA_Terrain_BuildingUpperLeft_u8_arr
+    d_addr LowerLeft_u8_arr_ptr,  DataA_Terrain_BuildingLowerLeft_u8_arr
+    d_addr UpperRight_u8_arr_ptr, DataA_Terrain_BuildingUpperRight_u8_arr
+    d_addr LowerRight_u8_arr_ptr, DataA_Terrain_BuildingLowerRight_u8_arr
+    d_byte Chr08Bank_u8, <.bank(Ppu_ChrBgBuilding)
+    D_END
+.ENDPROC
 
 .EXPORT DataA_Room_City_sTileset
 .PROC DataA_Room_City_sTileset

@@ -135,6 +135,7 @@ _Continue:
     d_entry table, LeverCeiling,  FuncA_Objects_DrawLeverCeilingDevice
     d_entry table, LeverFloor,    FuncA_Objects_DrawLeverFloorDevice
     d_entry table, OpenDoorway,   Func_Noop
+    d_entry table, OpenDoorway2,  Func_Noop
     d_entry table, Paper,         FuncA_Objects_DrawPaperDevice
     d_entry table, Screen,        FuncA_Objects_DrawScreenDevice
     d_entry table, Sign,          Func_Noop

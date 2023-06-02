@@ -51,6 +51,8 @@ static const struct {
   {0xc8, "acid_anim0"},
   {0xb0, "arch"},
   {0xa0, "beach"},
+  {0x80, "building1"},
+  {0x90, "building2"},
   {0x80, "cave"},
   {0xea, "circuit_anim0"},
   {0x80, "city1"},

@@ -46,6 +46,10 @@
 
 ;;;=========================================================================;;;
 
+;;; The horizontal mod-16 offset within a door device's block that the player
+;;; avatar should be positioned at when entering the room via a door.
+kDoorAvatarOffset = $08
+
 ;;; How far from the edge of the screen to position the avatar when spawning at
 ;;; a passage.
 kPassageSpawnMargin = 15
@@ -248,28 +252,36 @@ _Finish:
 ;;; Called when entering a new room via a door device.  Marks the entrance door
 ;;; as the last spawn point and positions the player avatar at that door.
 ;;; @prereq The new room is loaded, and Zp_Previous_eRoom is initialized.
+;;; @param Y The device type of the origin door from the previous room.
 .EXPORT FuncA_Avatar_EnterRoomViaDoor
 .PROC FuncA_Avatar_EnterRoomViaDoor
-    ;; Find the corresponding door (of any type) to enter from in the new room.
+    ;; Find the corresponding door to enter from in the new room.
     ldx #kMaxDevices - 1
     @loop:
     lda Ram_DeviceType_eDevice_arr, x
+    cpy #eDevice::OpenDoorway2
+    beq @door2
+    @door1:
     cmp #eDevice::LockedDoor
-    beq @door
+    beq @foundDoor
     cmp #eDevice::OpenDoorway
-    beq @door
+    beq @foundDoor
     cmp #eDevice::UnlockedDoor
+    beq @foundDoor
+    bne @continue  ; unconditional
+    @door2:
+    cmp #eDevice::OpenDoorway2
     bne @continue
-    @door:
+    @foundDoor:
     lda Ram_DeviceTarget_u8_arr, x
     cmp Zp_Previous_eRoom
-    beq @break
+    beq _FoundMatchingDoor
     @continue:
     dex
     .assert kMaxDevices <= $80, error
     bpl @loop
-    inx
-    @break:
+    inx  ; this should never happen, but at least make device index valid
+_FoundMatchingDoor:
     ;; Update the the last spawn point.
     txa  ; door device index
     ora #bSpawn::Device  ; param: bSpawn value
@@ -316,7 +328,7 @@ _DeviceOffset_u8_arr:
     d_byte BreakerDone,   kBreakerAvatarOffset
     d_byte BreakerRising, kBreakerAvatarOffset
     d_byte FlowerInert,   $08
-    d_byte LockedDoor,    $08
+    d_byte LockedDoor,    kDoorAvatarOffset
     d_byte Placeholder,   $08
     d_byte Teleporter,    $08
     d_byte BreakerReady,  kBreakerAvatarOffset
@@ -324,13 +336,14 @@ _DeviceOffset_u8_arr:
     d_byte Flower,        $08
     d_byte LeverCeiling,  $06
     d_byte LeverFloor,    $06
-    d_byte OpenDoorway,   $08
+    d_byte OpenDoorway,   kDoorAvatarOffset
+    d_byte OpenDoorway2,  kDoorAvatarOffset
     d_byte Paper,         $06
     d_byte Screen,        kConsoleAvatarOffset
     d_byte Sign,          $06
     d_byte TalkLeft,      $0a
     d_byte TalkRight,     $06
-    d_byte UnlockedDoor,  $08
+    d_byte UnlockedDoor,  kDoorAvatarOffset
     d_byte Upgrade,       $08
     D_END
 .ENDPROC
@@ -533,12 +546,8 @@ _EastWest:
 .EXPORT FuncA_Room_InitAllMachinesAndCallRoomEnter
 .PROC FuncA_Room_InitAllMachinesAndCallRoomEnter
     jsr FuncA_Room_InitAllMachines
-    .assert * = FuncA_Room_CallRoomEnter, error, "fallthrough"
-.ENDPROC
-
-;;; Calls the current room's Enter_func_ptr with the last spawn point as an
-;;; argument.
-.PROC FuncA_Room_CallRoomEnter
+    ;; Call the current room's Enter_func_ptr with the last spawn point as an
+    ;; argument.
     ldy #sRoomExt::Enter_func_ptr
     lda (Zp_Current_sRoom + sRoom::Ext_sRoomExt_ptr), y
     sta T0

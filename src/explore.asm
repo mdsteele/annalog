@@ -233,6 +233,7 @@ _CheckForPause:
     d_entry table, LeverCeiling,  _DeviceLever
     d_entry table, LeverFloor,    _DeviceLever
     d_entry table, OpenDoorway,   Main_Explore_GoThroughDoor
+    d_entry table, OpenDoorway2,  Main_Explore_GoThroughDoor
     d_entry table, Paper,         Main_Dialog_UseDevice
     d_entry table, Screen,        Main_Dialog_UseDevice
     d_entry table, Sign,          Main_Dialog_UseDevice
@@ -319,8 +320,12 @@ _LoadNextRoom:
     lda Zp_Nearby_bDevice
     and #bDevice::IndexMask
     tay  ; door device index
+    lda Ram_DeviceType_eDevice_arr, y
+    pha  ; origin door device type
     ldx Ram_DeviceTarget_u8_arr, y  ; param: room to load
     jsr FuncM_SwitchPrgcAndLoadRoom
+    pla  ; origin door device type
+    tay  ; param: origin door device type
     jsr_prga FuncA_Avatar_EnterRoomViaDoor
 _FadeIn:
     jmp Main_Explore_EnterRoom

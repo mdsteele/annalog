@@ -253,6 +253,20 @@
 
 ;;;=========================================================================;;;
 
+.SEGMENT "CHR_BgBuilding"
+
+.EXPORT Ppu_ChrBgBuilding
+.PROC Ppu_ChrBgBuilding
+:   .incbin "out/data/tiles/building1.chr"
+    .res $02 * kSizeofChr
+    .incbin "out/data/tiles/building2.chr"
+    .res $23 * kSizeofChr
+    .incbin "out/data/tiles/console.chr"
+    .assert * - :- = kSizeofChr * $40, error
+.ENDPROC
+
+;;;=========================================================================;;;
+
 .SEGMENT "CHR_BgCity"
 
 .EXPORT Ppu_ChrBgCity

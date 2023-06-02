@@ -159,7 +159,18 @@ _Devices_sDevice_arr:
     d_byte BlockCol_u8, 23
     d_byte Target_u8, kLauncherMachineIndex
     D_END
-    ;; TODO: doors into building
+    D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::OpenDoorway
+    d_byte BlockRow_u8, 4
+    d_byte BlockCol_u8, 25
+    d_byte Target_u8, eRoom::CityBuilding1
+    D_END
+    D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::OpenDoorway2
+    d_byte BlockRow_u8, 12
+    d_byte BlockCol_u8, 23
+    d_byte Target_u8, eRoom::CityBuilding1
+    D_END
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None
 _Passages_sPassage_arr:

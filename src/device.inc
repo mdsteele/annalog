@@ -30,7 +30,7 @@ kMaxDevices = 16
     BreakerDone    ; circuit breaker, after being activated
     BreakerRising  ; circuit breaker, rising out of the ground
     FlowerInert    ; a flower that can't be picked
-    LockedDoor
+    LockedDoor     ; TODO: rename to Door1Locked
     Placeholder    ; invisible and does nothing
     Teleporter     ; invisible spawn point for teleport field machines
     ;; Interactive device types.  The player can interact with these by
@@ -40,13 +40,14 @@ kMaxDevices = 16
     Flower
     LeverCeiling
     LeverFloor
-    OpenDoorway
+    OpenDoorway    ; TODO: rename to Door1Open
+    OpenDoorway2   ; TODO: rename to Door2Open
     Paper          ; initiates dialogue with the avatar's back to the camera
     Screen         ; initiates dialogue with the avatar's back to the camera
     Sign           ; initiates dialogue with the avatar's back to the camera
     TalkLeft       ; initiates dialogue with the avatar facing to the left
     TalkRight      ; initiates dialogue with the avatar facing to the right
-    UnlockedDoor
+    UnlockedDoor   ; TODO: rename to Door1Unlocked
     Upgrade
     NUM_VALUES
 .ENDENUM
