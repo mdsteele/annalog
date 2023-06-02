@@ -223,23 +223,23 @@ _CheckForPause:
     d_entry table, None,          _DoneWithDevice
     d_entry table, BreakerDone,   _DoneWithDevice
     d_entry table, BreakerRising, _DoneWithDevice
+    d_entry table, Door1Locked,   _DoneWithDevice
     d_entry table, FlowerInert,   _DoneWithDevice
-    d_entry table, LockedDoor,    _DoneWithDevice
     d_entry table, Placeholder,   _DoneWithDevice
     d_entry table, Teleporter,    _DoneWithDevice
     d_entry table, BreakerReady,  Main_Breaker_UseDevice
     d_entry table, Console,       Main_Console_UseDevice
+    d_entry table, Door1Open,     Main_Explore_GoThroughDoor
+    d_entry table, Door1Unlocked, Main_Explore_GoThroughDoor
+    d_entry table, Door2Open,     Main_Explore_GoThroughDoor
     d_entry table, Flower,        _DeviceFlower
     d_entry table, LeverCeiling,  _DeviceLever
     d_entry table, LeverFloor,    _DeviceLever
-    d_entry table, OpenDoorway,   Main_Explore_GoThroughDoor
-    d_entry table, OpenDoorway2,  Main_Explore_GoThroughDoor
     d_entry table, Paper,         Main_Dialog_UseDevice
     d_entry table, Screen,        Main_Dialog_UseDevice
     d_entry table, Sign,          Main_Dialog_UseDevice
     d_entry table, TalkLeft,      Main_Dialog_UseDevice
     d_entry table, TalkRight,     Main_Dialog_UseDevice
-    d_entry table, UnlockedDoor,  Main_Explore_GoThroughDoor
     d_entry table, Upgrade,       Main_Upgrade_UseDevice
     D_END
 .ENDREPEAT

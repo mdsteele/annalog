@@ -266,7 +266,7 @@ _Devices_sDevice_arr:
     D_END
     .assert * - :- = kDoorDeviceIndex * .sizeof(sDevice), error
     D_STRUCT sDevice
-    d_byte Type_eDevice, eDevice::UnlockedDoor
+    d_byte Type_eDevice, eDevice::Door1Unlocked
     d_byte BlockRow_u8, 10
     d_byte BlockCol_u8, 14
     d_byte Target_u8, eRoom::BossGarden

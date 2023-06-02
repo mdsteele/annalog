@@ -118,14 +118,14 @@ _Devices_sDevice_arr:
     d_byte Target_u8, eDialog::MermaidHut4Florist
     D_END
     D_STRUCT sDevice
-    d_byte Type_eDevice, eDevice::OpenDoorway
+    d_byte Type_eDevice, eDevice::Door1Open
     d_byte BlockRow_u8, 12
     d_byte BlockCol_u8, 4
     d_byte Target_u8, eRoom::MermaidVillage
     D_END
     .assert * - :- = kCellarDoorDeviceIndex * .sizeof(sDevice), error
     D_STRUCT sDevice
-    d_byte Type_eDevice, eDevice::LockedDoor
+    d_byte Type_eDevice, eDevice::Door1Locked
     d_byte BlockRow_u8, 10
     d_byte BlockCol_u8, 11
     d_byte Target_u8, eRoom::MermaidCellar
@@ -139,7 +139,7 @@ _Devices_sDevice_arr:
 .PROC FuncC_Mermaid_Hut4_EnterRoom
     flag_bit Sram_ProgressFlags_arr, eFlag::MermaidHut4OpenedCellar
     beq @done
-    lda #eDevice::UnlockedDoor
+    lda #eDevice::Door1Unlocked
     sta Ram_DeviceType_eDevice_arr + kCellarDoorDeviceIndex
     @done:
     rts

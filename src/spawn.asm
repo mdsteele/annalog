@@ -259,18 +259,18 @@ _Finish:
     ldx #kMaxDevices - 1
     @loop:
     lda Ram_DeviceType_eDevice_arr, x
-    cpy #eDevice::OpenDoorway2
+    cpy #eDevice::Door2Open
     beq @door2
     @door1:
-    cmp #eDevice::LockedDoor
+    cmp #eDevice::Door1Locked
     beq @foundDoor
-    cmp #eDevice::OpenDoorway
+    cmp #eDevice::Door1Open
     beq @foundDoor
-    cmp #eDevice::UnlockedDoor
+    cmp #eDevice::Door1Unlocked
     beq @foundDoor
     bne @continue  ; unconditional
     @door2:
-    cmp #eDevice::OpenDoorway2
+    cmp #eDevice::Door2Open
     bne @continue
     @foundDoor:
     lda Ram_DeviceTarget_u8_arr, x
@@ -327,23 +327,23 @@ _DeviceOffset_u8_arr:
     d_byte None,          $08
     d_byte BreakerDone,   kBreakerAvatarOffset
     d_byte BreakerRising, kBreakerAvatarOffset
+    d_byte Door1Locked,   kDoorAvatarOffset
     d_byte FlowerInert,   $08
-    d_byte LockedDoor,    kDoorAvatarOffset
     d_byte Placeholder,   $08
     d_byte Teleporter,    $08
     d_byte BreakerReady,  kBreakerAvatarOffset
     d_byte Console,       kConsoleAvatarOffset
+    d_byte Door1Open,     kDoorAvatarOffset
+    d_byte Door1Unlocked, kDoorAvatarOffset
+    d_byte Door2Open,     kDoorAvatarOffset
     d_byte Flower,        $08
     d_byte LeverCeiling,  $06
     d_byte LeverFloor,    $06
-    d_byte OpenDoorway,   kDoorAvatarOffset
-    d_byte OpenDoorway2,  kDoorAvatarOffset
     d_byte Paper,         $06
     d_byte Screen,        kConsoleAvatarOffset
     d_byte Sign,          $06
     d_byte TalkLeft,      $0a
     d_byte TalkRight,     $06
-    d_byte UnlockedDoor,  kDoorAvatarOffset
     d_byte Upgrade,       $08
     D_END
 .ENDPROC

@@ -58,7 +58,7 @@ kPaletteObjDoorway = 0
 ;;; @preserve T0+
 .EXPORT Func_LockDoorDevice
 .PROC Func_LockDoorDevice
-    lda #eDevice::LockedDoor
+    lda #eDevice::Door1Locked
     cmp Ram_DeviceType_eDevice_arr, x
     beq @done
     sta Ram_DeviceType_eDevice_arr, x
@@ -74,7 +74,7 @@ kPaletteObjDoorway = 0
 ;;; @preserve T0+
 .EXPORT Func_UnlockDoorDevice
 .PROC Func_UnlockDoorDevice
-    lda #eDevice::UnlockedDoor
+    lda #eDevice::Door1Unlocked
     cmp Ram_DeviceType_eDevice_arr, x
     beq @done
     sta Ram_DeviceType_eDevice_arr, x

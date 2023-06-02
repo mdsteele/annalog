@@ -134,7 +134,7 @@ _Actors_sActor_arr:
     .byte eActor::None
 _Devices_sDevice_arr:
     D_STRUCT sDevice
-    d_byte Type_eDevice, eDevice::OpenDoorway
+    d_byte Type_eDevice, eDevice::Door1Open
     d_byte BlockRow_u8, 18
     d_byte BlockCol_u8, 24
     d_byte Target_u8, eRoom::MermaidHut6

@@ -207,31 +207,31 @@ _Devices_sDevice_arr:
     d_byte Target_u8, eDialog::MermaidVillageCorra
     D_END
     D_STRUCT sDevice
-    d_byte Type_eDevice, eDevice::OpenDoorway
+    d_byte Type_eDevice, eDevice::Door1Open
     d_byte BlockRow_u8, 9
     d_byte BlockCol_u8, 24
     d_byte Target_u8, eRoom::MermaidHut1
     D_END
     D_STRUCT sDevice
-    d_byte Type_eDevice, eDevice::OpenDoorway
+    d_byte Type_eDevice, eDevice::Door1Open
     d_byte BlockRow_u8, 8
     d_byte BlockCol_u8, 39
     d_byte Target_u8, eRoom::MermaidHut2
     D_END
     D_STRUCT sDevice
-    d_byte Type_eDevice, eDevice::OpenDoorway
+    d_byte Type_eDevice, eDevice::Door1Open
     d_byte BlockRow_u8, 21
     d_byte BlockCol_u8, 5
     d_byte Target_u8, eRoom::MermaidHut3
     D_END
     D_STRUCT sDevice
-    d_byte Type_eDevice, eDevice::OpenDoorway
+    d_byte Type_eDevice, eDevice::Door1Open
     d_byte BlockRow_u8, 19
     d_byte BlockCol_u8, 25
     d_byte Target_u8, eRoom::MermaidHut4
     D_END
     D_STRUCT sDevice
-    d_byte Type_eDevice, eDevice::OpenDoorway
+    d_byte Type_eDevice, eDevice::Door1Open
     d_byte BlockRow_u8, 18
     d_byte BlockCol_u8, 41
     d_byte Target_u8, eRoom::MermaidHut5

@@ -119,7 +119,7 @@ _Devices_sDevice_arr:
     d_byte Target_u8, eDialog::MermaidHut1Queen
     D_END
     D_STRUCT sDevice
-    d_byte Type_eDevice, eDevice::OpenDoorway
+    d_byte Type_eDevice, eDevice::Door1Open
     d_byte BlockRow_u8, 12
     d_byte BlockCol_u8, 7
     d_byte Target_u8, eRoom::MermaidVillage

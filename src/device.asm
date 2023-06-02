@@ -125,23 +125,23 @@ _Continue:
     d_entry table, None,          Func_Noop
     d_entry table, BreakerDone,   FuncA_Objects_DrawBreakerDoneDevice
     d_entry table, BreakerRising, FuncA_Objects_DrawBreakerRisingDevice
+    d_entry table, Door1Locked,   FuncA_Objects_DrawLockedDoorDevice
     d_entry table, FlowerInert,   FuncA_Objects_DrawFlowerDevice
-    d_entry table, LockedDoor,    FuncA_Objects_DrawLockedDoorDevice
     d_entry table, Placeholder,   Func_Noop
     d_entry table, Teleporter,    Func_Noop
     d_entry table, BreakerReady,  FuncA_Objects_DrawBreakerReadyDevice
     d_entry table, Console,       FuncA_Objects_DrawConsoleDevice
+    d_entry table, Door1Open,     Func_Noop
+    d_entry table, Door1Unlocked, FuncA_Objects_DrawUnlockedDoorDevice
+    d_entry table, Door2Open,     Func_Noop
     d_entry table, Flower,        FuncA_Objects_DrawFlowerDevice
     d_entry table, LeverCeiling,  FuncA_Objects_DrawLeverCeilingDevice
     d_entry table, LeverFloor,    FuncA_Objects_DrawLeverFloorDevice
-    d_entry table, OpenDoorway,   Func_Noop
-    d_entry table, OpenDoorway2,  Func_Noop
     d_entry table, Paper,         FuncA_Objects_DrawPaperDevice
     d_entry table, Screen,        FuncA_Objects_DrawScreenDevice
     d_entry table, Sign,          Func_Noop
     d_entry table, TalkLeft,      Func_Noop
     d_entry table, TalkRight,     Func_Noop
-    d_entry table, UnlockedDoor,  FuncA_Objects_DrawUnlockedDoorDevice
     d_entry table, Upgrade,       FuncA_Objects_DrawUpgradeDevice
     D_END
 .ENDREPEAT

@@ -174,19 +174,19 @@ _Actors_sActor_arr:
     .byte eActor::None
 _Devices_sDevice_arr:
 :   D_STRUCT sDevice
-    d_byte Type_eDevice, eDevice::OpenDoorway
+    d_byte Type_eDevice, eDevice::Door1Open
     d_byte BlockRow_u8, 12
     d_byte BlockCol_u8, 6
     d_byte Target_u8, eRoom::TownHouse1
     D_END
     D_STRUCT sDevice
-    d_byte Type_eDevice, eDevice::OpenDoorway
+    d_byte Type_eDevice, eDevice::Door1Open
     d_byte BlockRow_u8, 12
     d_byte BlockCol_u8, 13
     d_byte Target_u8, eRoom::TownHouse2
     D_END
     D_STRUCT sDevice
-    d_byte Type_eDevice, eDevice::OpenDoorway
+    d_byte Type_eDevice, eDevice::Door1Open
     d_byte BlockRow_u8, 12
     d_byte BlockCol_u8, 24
     d_byte Target_u8, eRoom::TownHouse3
@@ -198,19 +198,19 @@ _Devices_sDevice_arr:
     d_byte Target_u8, eDialog::TownOutdoorsSign
     D_END
     D_STRUCT sDevice
-    d_byte Type_eDevice, eDevice::OpenDoorway
+    d_byte Type_eDevice, eDevice::Door1Open
     d_byte BlockRow_u8, 12
     d_byte BlockCol_u8, 37
     d_byte Target_u8, eRoom::TownHouse4
     D_END
     D_STRUCT sDevice
-    d_byte Type_eDevice, eDevice::OpenDoorway
+    d_byte Type_eDevice, eDevice::Door1Open
     d_byte BlockRow_u8, 12
     d_byte BlockCol_u8, 59
     d_byte Target_u8, eRoom::TownHouse5
     D_END
     D_STRUCT sDevice
-    d_byte Type_eDevice, eDevice::OpenDoorway
+    d_byte Type_eDevice, eDevice::Door1Open
     d_byte BlockRow_u8, 12
     d_byte BlockCol_u8, 71
     d_byte Target_u8, eRoom::TownHouse6

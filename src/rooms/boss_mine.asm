@@ -305,7 +305,7 @@ _Actors_sActor_arr:
 _Devices_sDevice_arr:
 :   .assert * - :- = kBossDoorDeviceIndex * .sizeof(sDevice), error
     D_STRUCT sDevice
-    d_byte Type_eDevice, eDevice::UnlockedDoor
+    d_byte Type_eDevice, eDevice::Door1Unlocked
     d_byte BlockRow_u8, 11
     d_byte BlockCol_u8, 3
     d_byte Target_u8, eRoom::MineCollapse
