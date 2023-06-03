@@ -60,6 +60,7 @@
 .INCLUDE "platforms/stepstone.inc"
 .INCLUDE "rooms/boss_garden.inc"
 .INCLUDE "rooms/boss_temple.inc"
+.INCLUDE "rooms/core_south.inc"
 .INCLUDE "rooms/garden_tower.inc"
 .INCLUDE "rooms/mine_west.inc"
 .INCLUDE "upgrade.inc"
@@ -1080,7 +1081,9 @@
 .PROC Ppu_ChrObjGarden
 :   .assert * - :- = (kTileIdObjUpgradeBottomFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/upgrade_bottom.chr"
-    .res $04 * kSizeofChr
+    .assert * - :- = (kTileIdObjAnchorFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/anchor.chr"
+    .res $01 * kSizeofChr
     .assert * - :- = (kTileIdObjUpgradeOpIfFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/upgrade_opif.chr"
     .assert * - :- = (kTileIdObjCannonFirst - $80) * kSizeofChr, error

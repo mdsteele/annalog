@@ -506,9 +506,9 @@ _BreakableWall:
     jsr FuncA_Objects_DrawGardenBrick
     @done:
 _Crates:
-    ldx #kWallCratePlatformIndex
+    ldx #kWallCratePlatformIndex  ; param: platform index
     jsr FuncA_Objects_DrawCratePlatform
-    ldx #kFloorCratePlatformIndex
+    ldx #kFloorCratePlatformIndex  ; param: platform index
     jmp FuncA_Objects_DrawCratePlatform
 _Brick0TileId_u8:
     .byte kTileIdObjGardenBricksFirst + 0

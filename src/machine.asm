@@ -827,6 +827,7 @@ _UnblockSync:
     inx
     cpx <(Zp_Current_sRoom + sRoom::NumMachines_u8)
     blt @loop
+    ;; TODO: play a sound
 _Return:
     rts
 .ENDPROC
