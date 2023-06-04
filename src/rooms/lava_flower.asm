@@ -36,11 +36,13 @@
 .IMPORT FuncA_Machine_BoilerWriteReg
 .IMPORT FuncA_Machine_EmitSteamUpFromPipe
 .IMPORT FuncA_Machine_Error
+.IMPORT FuncA_Objects_AnimateLavaTerrain
 .IMPORT FuncA_Objects_DrawBoilerMachine
 .IMPORT FuncA_Objects_DrawBoilerValve1
 .IMPORT FuncA_Room_MachineBoilerReset
 .IMPORT FuncA_Room_RemoveFlowerDeviceIfCarriedOrDelivered
 .IMPORT FuncA_Room_RespawnFlowerDeviceIfDropped
+.IMPORT FuncA_Terrain_FadeInShortRoomWithLava
 .IMPORT Func_MachineBoilerReadReg
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrObjLava
@@ -77,7 +79,7 @@ kPipe2PlatformIndex  = 3
     d_addr Machines_sMachine_arr_ptr, _Machines_sMachine_arr
     d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjLava)
     d_addr Tick_func_ptr, FuncC_Lava_Flower_TickRoom
-    d_addr Draw_func_ptr, Func_Noop
+    d_addr Draw_func_ptr, FuncA_Objects_AnimateLavaTerrain
     d_addr Ext_sRoomExt_ptr, _Ext_sRoomExt
     D_END
 _Ext_sRoomExt:
@@ -88,7 +90,7 @@ _Ext_sRoomExt:
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
     d_addr Passages_sPassage_arr_ptr, _Passages_sPassage_arr
     d_addr Enter_func_ptr, FuncC_Lava_Flower_EnterRoom
-    d_addr FadeIn_func_ptr, FuncC_Lava_Flower_FadeInRoom
+    d_addr FadeIn_func_ptr, FuncA_Terrain_FadeInShortRoomWithLava
     D_END
 _TerrainData:
 :   .incbin "out/data/lava_flower.room"
@@ -193,32 +195,6 @@ _Passages_sPassage_arr:
 .PROC FuncC_Lava_Flower_EnterRoom
     ldx #kFlowerDeviceIndex  ; param: device index
     jmp FuncA_Room_RemoveFlowerDeviceIfCarriedOrDelivered
-.ENDPROC
-
-;;; Sets the bottom two block rows of the upper nametable to use BG palette 1.
-;;; @prereq Rendering is disabled.
-.PROC FuncC_Lava_Flower_FadeInRoom
-    lda #kPpuCtrlFlagsHorz
-    sta Hw_PpuCtrl_wo
-    ldax #Ppu_Nametable0_sName + sName::Attrs_u8_arr64 + $30
-    bit Hw_PpuStatus_ro  ; reset the Hw_PpuAddr_w2 write-twice latch
-    sta Hw_PpuAddr_w2
-    stx Hw_PpuAddr_w2
-_Row13:
-    lda #$50
-    ldx #8
-    @loop:
-    sta Hw_PpuData_rw
-    dex
-    bne @loop
-_Row14:
-    lda #$05
-    ldx #8
-    @loop:
-    sta Hw_PpuData_rw
-    dex
-    bne @loop
-    rts
 .ENDPROC
 
 ;;; @prereq PRGA_Room is loaded.

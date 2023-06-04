@@ -196,7 +196,8 @@
 
 .EXPORT Ppu_ChrBgAnimB0
 .PROC Ppu_ChrBgAnimB0
-:   .res $08 * kSizeofChr
+:   .incbin "out/data/tiles/lava_anim0.chr"
+    .res $06 * kSizeofChr
     .incbin "out/data/tiles/conveyor_anim0.chr"
     .res $1e * kSizeofChr
     .incbin "out/data/tiles/gazer_anim0.chr"
@@ -208,7 +209,8 @@
 .SEGMENT "CHR_BgAnimB1"
 
 .PROC Ppu_ChrBgAnimB1
-:   .res $08 * kSizeofChr
+:   .incbin "out/data/tiles/lava_anim1.chr"
+    .res $06 * kSizeofChr
     .incbin "out/data/tiles/conveyor_anim1.chr"
     .res $1e * kSizeofChr
     .incbin "out/data/tiles/gazer_anim1.chr"
@@ -220,7 +222,8 @@
 .SEGMENT "CHR_BgAnimB2"
 
 .PROC Ppu_ChrBgAnimB2
-:   .res $08 * kSizeofChr
+:   .incbin "out/data/tiles/lava_anim2.chr"
+    .res $06 * kSizeofChr
     .incbin "out/data/tiles/conveyor_anim2.chr"
     .res $1e * kSizeofChr
     .incbin "out/data/tiles/gazer_anim2.chr"
@@ -232,7 +235,8 @@
 .SEGMENT "CHR_BgAnimB3"
 
 .PROC Ppu_ChrBgAnimB3
-:   .res $08 * kSizeofChr
+:   .incbin "out/data/tiles/lava_anim3.chr"
+    .res $06 * kSizeofChr
     .incbin "out/data/tiles/conveyor_anim3.chr"
     .res $1e * kSizeofChr
     .incbin "out/data/tiles/gazer_anim3.chr"

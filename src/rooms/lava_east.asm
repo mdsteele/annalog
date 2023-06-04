@@ -25,7 +25,6 @@
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
 .INCLUDE "../platform.inc"
-.INCLUDE "../ppu.inc"
 .INCLUDE "../program.inc"
 .INCLUDE "../room.inc"
 
@@ -36,10 +35,12 @@
 .IMPORT FuncA_Machine_EmitSteamRightFromPipe
 .IMPORT FuncA_Machine_EmitSteamUpFromPipe
 .IMPORT FuncA_Machine_Error
+.IMPORT FuncA_Objects_AnimateLavaTerrain
 .IMPORT FuncA_Objects_DrawBoilerMachine
 .IMPORT FuncA_Objects_DrawBoilerValve1
 .IMPORT FuncA_Objects_DrawBoilerValve2
 .IMPORT FuncA_Room_MachineBoilerReset
+.IMPORT FuncA_Terrain_FadeInTallRoomWithLava
 .IMPORT Func_MachineBoilerReadReg
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrObjLava
@@ -86,7 +87,7 @@ kLowerPipe2PlatformIndex  = 10
     d_addr Machines_sMachine_arr_ptr, _Machines_sMachine_arr
     d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjLava)
     d_addr Tick_func_ptr, Func_Noop
-    d_addr Draw_func_ptr, Func_Noop
+    d_addr Draw_func_ptr, FuncA_Objects_AnimateLavaTerrain
     d_addr Ext_sRoomExt_ptr, _Ext_sRoomExt
     D_END
 _Ext_sRoomExt:
@@ -97,7 +98,7 @@ _Ext_sRoomExt:
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
     d_addr Passages_sPassage_arr_ptr, _Passages_sPassage_arr
     d_addr Enter_func_ptr, Func_Noop
-    d_addr FadeIn_func_ptr, FuncC_Lava_East_FadeInRoom
+    d_addr FadeIn_func_ptr, FuncA_Terrain_FadeInTallRoomWithLava
     D_END
 _TerrainData:
 :   .incbin "out/data/lava_east.room"
@@ -280,32 +281,6 @@ _Passages_sPassage_arr:
     d_byte SpawnBlock_u8, 15
     D_END
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
-.ENDPROC
-
-;;; Sets two block rows of the lower nametable to use BG palette 1.
-;;; @prereq Rendering is disabled.
-.PROC FuncC_Lava_East_FadeInRoom
-    lda #kPpuCtrlFlagsHorz
-    sta Hw_PpuCtrl_wo
-    ldax #Ppu_Nametable3_sName + sName::Attrs_u8_arr64 + $18
-    bit Hw_PpuStatus_ro  ; reset the Hw_PpuAddr_w2 write-twice latch
-    sta Hw_PpuAddr_w2
-    stx Hw_PpuAddr_w2
-_Row7:
-    lda #$50
-    ldx #8
-    @loop:
-    sta Hw_PpuData_rw
-    dex
-    bne @loop
-_Row8:
-    lda #$05
-    ldx #8
-    @loop:
-    sta Hw_PpuData_rw
-    dex
-    bne @loop
-    rts
 .ENDPROC
 
 ;;; TryAct implemention for the LavaEastUpperBoiler machine.
