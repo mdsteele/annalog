@@ -44,7 +44,7 @@
     MermaidFarmer  = $0807  ; same portrait as AdultMan
     MermaidFlorist = $100f
     MermaidPhoebe  = $0a09  ; same portrait as ChildNora
-    MermaidQueen   = $0605  ; TODO: make a unique portrait for the queen
+    MermaidQueen   = $1c1b  ; TODO: rename to MermaidEirene
     OrcGronta      = $1716
     OrcGrontaShout = $1617
     OrcMale        = $1918
