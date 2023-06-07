@@ -184,6 +184,18 @@ _Draw:
     rts
 .ENDPROC
 
+;;; Stub implementation.
+.EXPORT FuncA_Machine_PlaySfxError
+.PROC FuncA_Machine_PlaySfxError
+    rts
+.ENDPROC
+
+;;; Stub implementation.
+.EXPORT FuncA_Machine_PlaySfxSync
+.PROC FuncA_Machine_PlaySfxSync
+    rts
+.ENDPROC
+
 ;;;=========================================================================;;;
 
 .SEGMENT "MAIN"

@@ -25,6 +25,8 @@
 .INCLUDE "room.inc"
 
 .IMPORT FuncA_Machine_PlaySfxBeep
+.IMPORT FuncA_Machine_PlaySfxError
+.IMPORT FuncA_Machine_PlaySfxSync
 .IMPORT Sram_Programs_sProgram_arr
 .IMPORTZP Zp_Current_sRoom
 .IMPORTZP Zp_P1ButtonsHeld_bJoypad
@@ -331,7 +333,7 @@ _ReadRegB:
     ldx Zp_MachineIndex_u8
     lda #eMachine::Error
     sta Ram_MachineStatus_eMachine_arr, x
-    rts
+    jmp FuncA_Machine_PlaySfxError
 .ENDPROC
 
 ;;; Puts the current machine into Working mode (which blocks execution until
@@ -827,7 +829,7 @@ _UnblockSync:
     inx
     cpx <(Zp_Current_sRoom + sRoom::NumMachines_u8)
     blt @loop
-    ;; TODO: play a sound
+    jmp FuncA_Machine_PlaySfxSync
 _Return:
     rts
 .ENDPROC

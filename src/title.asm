@@ -75,6 +75,14 @@ Ppu_TitleTopLeft = Ppu_Nametable0_sName + sName::Tiles_u8_arr + \
 .PROC Main_Title
     jsr_prga FuncA_Title_Init
 _GameLoop:
+    ;; TODO: For testing, allow triggering sound effects (remove this later).
+.IF 0
+    lda Zp_P1ButtonsPressed_bJoypad
+    and #bJoypad::AButton
+    beq @noSound
+    jsr_prga FuncA_Actor_PlaySfxBounce
+    @noSound:
+.ENDIF
     ;; Check START button.
     lda Zp_P1ButtonsPressed_bJoypad
     and #bJoypad::Start

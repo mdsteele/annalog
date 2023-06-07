@@ -17,33 +17,51 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
-;;; SFX functions that can be played.
-.ENUM eSound
-    None
-    Beep
-    Explode
-    Quest
-    Sample
-    Sequence
-    NUM_VALUES
-.ENDENUM
+.INCLUDE "../apu.inc"
+.INCLUDE "../audio.inc"
+.INCLUDE "../macros.inc"
+.INCLUDE "../sound.inc"
+
+.IMPORT Func_PlaySfxSequence
 
 ;;;=========================================================================;;;
 
-;;; Sound effects that use the eSound::Sequence function can be specified as an
-;;; sSfxSeq_arr that describes the APU register values to set.  The array must
-;;; be terminated by a zero byte.
-.STRUCT sSfxSeq
-    ;; The duration of this part of the SFX sequence, in frames.  Must be
-    ;; nonzero (except for the last entry in the array, where the zero byte
-    ;; signals the end of the array).
-    Duration_u8   .byte
-    ;; The 8-bit value to set in the channel's envelope register.
-    Env_bEnvelope .byte
-    ;; The 8-bit value to set in the channel's sweep register.
-    Sweep_byte    .byte
-    ;; The 16-bit value to set in the channel's TimerLo/TimerHi registers.
-    Timer_u16     .word
-.ENDSTRUCT
+.SEGMENT "PRG8"
+
+;;; SFX sequence data for the "machine error" sound effect.
+.PROC Data_MachineError_sSfxSeq_arr
+    D_STRUCT sSfxSeq
+    d_byte Duration_u8, 8
+    d_byte Env_bEnvelope, bEnvelope::Duty14 | bEnvelope::NoLength | 4
+    d_byte Sweep_byte, 0
+    d_word Timer_u16, $0340
+    D_END
+    D_STRUCT sSfxSeq
+    d_byte Duration_u8, 8
+    d_byte Env_bEnvelope, bEnvelope::Duty18 | bEnvelope::NoLength | 4
+    d_byte Sweep_byte, 0
+    d_word Timer_u16, $0340
+    D_END
+    D_STRUCT sSfxSeq
+    d_byte Duration_u8, 8
+    d_byte Env_bEnvelope, bEnvelope::Duty14 | bEnvelope::NoLength | 4
+    d_byte Sweep_byte, 0
+    d_word Timer_u16, $0340
+    D_END
+    .byte 0
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Machine"
+
+;;; Starts playing the sound for when all machines SYNC up.
+;;; @preserve T0+
+.EXPORT FuncA_Machine_PlaySfxError
+.PROC FuncA_Machine_PlaySfxError
+    ldx #eChan::Pulse2
+    ldya #Data_MachineError_sSfxSeq_arr
+    jmp Func_PlaySfxSequence  ; preserves T0+
+.ENDPROC
 
 ;;;=========================================================================;;;

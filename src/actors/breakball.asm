@@ -30,6 +30,7 @@
 .IMPORT FuncA_Actor_MovePointTowardVelXDir
 .IMPORT FuncA_Actor_NegateVelX
 .IMPORT FuncA_Actor_NegateVelY
+.IMPORT FuncA_Actor_PlaySfxBounce
 .IMPORT FuncA_Objects_Alloc2x2Shape
 .IMPORT FuncA_Objects_SetShapePosToActorCenter
 .IMPORT Func_FindEmptyActorSlot
@@ -130,6 +131,7 @@ _CheckForCollision:
     bcs _Bounce
     rts
 _Bounce:
+    jsr FuncA_Actor_PlaySfxBounce  ; preserves X
     jmp FuncA_Actor_NegateVelX  ; preserves X
 .ENDPROC
 
@@ -163,6 +165,7 @@ _MovingDown:
     ;; If the bottom of the breakball hits a platform, bounce off of it.
     jsr Func_IsPointInAnySolidPlatform  ; preserves X, returns C
     bcc @noBounce
+    jsr FuncA_Actor_PlaySfxBounce  ; preserves X
     jmp FuncA_Actor_NegateVelY  ; preserves X
     @noBounce:
     rts
