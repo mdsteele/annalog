@@ -55,7 +55,7 @@
 .IMPORT Ppu_ChrObjCity
 .IMPORT Ram_MachineGoalHorz_u8_arr
 .IMPORT Ram_MachineGoalVert_u8_arr
-.IMPORT Ram_MachineParam1_u8_arr
+.IMPORT Ram_MachineState1_byte_arr
 .IMPORT Ram_PlatformLeft_i16_0_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORTZP Zp_RoomState
@@ -488,7 +488,7 @@ _WriteR:
 
 .PROC FuncC_Boss_CityReloader_TryAct
     ldx Ram_MachineGoalHorz_u8_arr + kReloaderMachineIndex
-    lda Ram_MachineParam1_u8_arr + kReloaderMachineIndex  ; ammo count
+    lda Ram_MachineState1_byte_arr + kReloaderMachineIndex  ; ammo count
     beq _TryPickUpAmmo
 _TryDropOffAmmo:
     ;; Error unless the reloader and launcher machines are lined up.
@@ -498,22 +498,22 @@ _TryDropOffAmmo:
     cmp #<kLauncherMinPlatformTop
     bne _Error
     ;; Error if the launcher machine already has a rocket loaded.
-    lda Ram_MachineParam1_u8_arr + kLauncherMachineIndex  ; ammo count
+    lda Ram_MachineState1_byte_arr + kLauncherMachineIndex  ; ammo count
     bne _Error
     ;; TODO: play a sound
-    dec Ram_MachineParam1_u8_arr + kReloaderMachineIndex  ; ammo count
-    inc Ram_MachineParam1_u8_arr + kLauncherMachineIndex  ; ammo count
+    dec Ram_MachineState1_byte_arr + kReloaderMachineIndex  ; ammo count
+    inc Ram_MachineState1_byte_arr + kLauncherMachineIndex  ; ammo count
     bne _StartWaiting  ; unconditional
 _TryPickUpAmmo:
     cpx #kNumAmmoRackSlots
     bge _Error
     lda Data_PowersOfTwo_u8_arr8, x
-    bit Ram_MachineParam1_u8_arr + kAmmoRackMachineIndex  ; ammo slot bits
+    bit Ram_MachineState1_byte_arr + kAmmoRackMachineIndex  ; ammo slot bits
     beq _Error
     eor #$ff
-    and Ram_MachineParam1_u8_arr + kAmmoRackMachineIndex  ; ammo slot bits
-    sta Ram_MachineParam1_u8_arr + kAmmoRackMachineIndex  ; ammo slot bits
-    inc Ram_MachineParam1_u8_arr + kReloaderMachineIndex  ; ammo count
+    and Ram_MachineState1_byte_arr + kAmmoRackMachineIndex  ; ammo slot bits
+    sta Ram_MachineState1_byte_arr + kAmmoRackMachineIndex  ; ammo slot bits
+    inc Ram_MachineState1_byte_arr + kReloaderMachineIndex  ; ammo count
     ;; TODO: play a sound
 _StartWaiting:
     lda #kReloaderActCountdown  ; param: num frames
@@ -524,11 +524,11 @@ _Error:
 
 .PROC FuncC_Boss_CityAmmoRack_TryAct
     ;; Can't refill the ammo rack if it's not empty.
-    lda Ram_MachineParam1_u8_arr + kAmmoRackMachineIndex  ; ammo slot bits
+    lda Ram_MachineState1_byte_arr + kAmmoRackMachineIndex  ; ammo slot bits
     jne FuncA_Machine_Error
     ;; Refill all ammo slots.
     lda #(1 << kNumAmmoRackSlots) - 1
-    sta Ram_MachineParam1_u8_arr + kAmmoRackMachineIndex  ; ammo slot bits
+    sta Ram_MachineState1_byte_arr + kAmmoRackMachineIndex  ; ammo slot bits
     ;; TODO: play a sound
     lda #kAmmoRackActCountdown  ; param: num frames
     jmp FuncA_Machine_StartWaiting

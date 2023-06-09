@@ -33,7 +33,7 @@
 .IMPORT FuncA_Objects_MoveShapeRightByA
 .IMPORT FuncA_Objects_MoveShapeUpOneTile
 .IMPORT FuncA_Objects_SetShapePosToMachineTopLeft
-.IMPORT Ram_MachineParam1_u8_arr
+.IMPORT Ram_MachineState1_byte_arr
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORT Ram_PlatformBottom_i16_0_arr
 .IMPORT Ram_PlatformBottom_i16_1_arr
@@ -69,7 +69,7 @@ kFieldActCooldown = $20
 .EXPORT Func_MachineFieldReadRegT
 .PROC Func_MachineFieldReadRegT
     ldx Zp_MachineIndex_u8
-    lda Ram_MachineParam1_u8_arr, x
+    lda Ram_MachineState1_byte_arr, x  ; charge frames
     div #kFieldFramesPerChargePoint
     rts
 .ENDPROC
@@ -84,7 +84,7 @@ kFieldActCooldown = $20
 .PROC FuncA_Room_MachineFieldReset
     ldx Zp_MachineIndex_u8
     lda #0
-    sta Ram_MachineParam1_u8_arr, x
+    sta Ram_MachineState1_byte_arr, x  ; charge frames
     rts
 .ENDPROC
 
@@ -101,7 +101,7 @@ kFieldActCooldown = $20
     ;; Check if the machine is fully charged; if not, then no teleport will
     ;; occur.
     ldx Zp_MachineIndex_u8
-    lda Ram_MachineParam1_u8_arr, x
+    lda Ram_MachineState1_byte_arr, x  ; charge frames
     cmp #kFieldMaxChargePoints * kFieldFramesPerChargePoint
     bge _IsCharged
 _NotCharged:
@@ -165,7 +165,7 @@ _TryTeleport:
 _Cooldown:
     ldx Zp_MachineIndex_u8
     lda #0
-    sta Ram_MachineParam1_u8_arr, x
+    sta Ram_MachineState1_byte_arr, x  ; charge frames
     lda #kFieldActCooldown
     jmp FuncA_Machine_StartWaiting
 .ENDPROC
@@ -178,10 +178,10 @@ _Cooldown:
     ;; TODO: don't charge if console is open
     ;; TODO: don't charge if machine's breaker isn't activated
     ldx Zp_MachineIndex_u8
-    lda Ram_MachineParam1_u8_arr, x
+    lda Ram_MachineState1_byte_arr, x  ; charge frames
     cmp #kFieldMaxChargePoints * kFieldFramesPerChargePoint
     bge @done
-    inc Ram_MachineParam1_u8_arr, x
+    inc Ram_MachineState1_byte_arr, x  ; charge frames
     @done:
     jmp FuncA_Machine_ReachedGoal
 .ENDPROC

@@ -17,6 +17,11 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
+;;; State bytes for lift machines:
+;;;   * State1: Unused.
+;;;   * State2: Unused.
+;;;   * State3: Unused.
+
 ;;; The size of a lift machine's main platform, in pixels.
 kLiftMachineWidthPx  = $10
 kLiftMachineHeightPx = $20

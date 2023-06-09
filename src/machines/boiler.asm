@@ -44,8 +44,8 @@
 .IMPORT Ram_ActorPosY_i16_1_arr
 .IMPORT Ram_MachineGoalHorz_u8_arr
 .IMPORT Ram_MachineGoalVert_u8_arr
-.IMPORT Ram_MachineParam1_u8_arr
-.IMPORT Ram_MachineParam2_i16_0_arr
+.IMPORT Ram_MachineState1_byte_arr
+.IMPORT Ram_MachineState2_byte_arr
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORT Ram_PlatformLeft_i16_0_arr
 .IMPORT Ram_PlatformLeft_i16_1_arr
@@ -138,28 +138,28 @@ kPaletteObjValve = 0
 _Valve1:
     lda Ram_MachineGoalVert_u8_arr, x
     mul #kBoilerValveAnimSlowdown
-    cmp Ram_MachineParam1_u8_arr, x
+    cmp Ram_MachineState1_byte_arr, x  ; valve 1 angle
     beq @done
     blt @decrement
     @increment:
-    inc Ram_MachineParam1_u8_arr, x
+    inc Ram_MachineState1_byte_arr, x  ; valve 1 angle
     bne @moved  ; unconditional
     @decrement:
-    dec Ram_MachineParam1_u8_arr, x
+    dec Ram_MachineState1_byte_arr, x  ; valve 1 angle
     @moved:
     inc T0  ; num valves moved
     @done:
 _Valve2:
     lda Ram_MachineGoalHorz_u8_arr, x
     mul #kBoilerValveAnimSlowdown
-    cmp Ram_MachineParam2_i16_0_arr, x
+    cmp Ram_MachineState2_byte_arr, x  ; valve 2 angle
     beq @done
     blt @decrement
     @increment:
-    inc Ram_MachineParam2_i16_0_arr, x
+    inc Ram_MachineState2_byte_arr, x  ; valve 2 angle
     bne @moved  ; unconditional
     @decrement:
-    dec Ram_MachineParam2_i16_0_arr, x
+    dec Ram_MachineState2_byte_arr, x  ; valve 2 angle
     @moved:
     inc T0  ; num valves moved
     @done:
@@ -319,7 +319,7 @@ _Tank:
 .EXPORT FuncA_Objects_DrawBoilerValve2
 .PROC FuncA_Objects_DrawBoilerValve2
     ldy Zp_MachineIndex_u8
-    lda Ram_MachineParam2_i16_0_arr, y
+    lda Ram_MachineState2_byte_arr, y  ; valve 2 angle
     div #kBoilerValveAnimSlowdown  ; param: valve angle
     bpl FuncA_Objects_DrawBoilerValve  ; unconditional
 .ENDPROC
@@ -330,7 +330,7 @@ _Tank:
 .EXPORT FuncA_Objects_DrawBoilerValve1
 .PROC FuncA_Objects_DrawBoilerValve1
     ldy Zp_MachineIndex_u8
-    lda Ram_MachineParam1_u8_arr, y
+    lda Ram_MachineState1_byte_arr, y  ; valve 1 angle
     div #kBoilerValveAnimSlowdown  ; param: valve angle
     .assert * = FuncA_Objects_DrawBoilerValve, error, "fallthrough"
 .ENDPROC

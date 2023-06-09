@@ -17,8 +17,14 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
+;;; State bytes for bridge machines:
+;;;   * State1: The current bridge angle, from 0 for all the way down, to
+;;;     kBridgeMaxAngle for all the way up.
+;;;   * State2: Unused.
+;;;   * State3: Unused.
+
 ;;; The maximum permitted value for the bridge angle (which is stored in
-;;; Ram_MachineParam1_u8_arr).
+;;; State1).
 kBridgeMaxAngle = $10
 
 ;;; How many frames the bridge machine spends per move operation.

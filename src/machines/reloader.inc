@@ -17,6 +17,12 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
+;;; State bytes for rocket reloader machines:
+;;;   * State1: The number of rockets currently carried by the reloader machine
+;;;     (0 or 1).
+;;;   * State2: Unused.
+;;;   * State3: Unused.
+
 ;;; The size of a reloader machine's main platform, in pixels.
 kReloaderMachineWidthPx  = $10
 kReloaderMachineHeightPx = $10

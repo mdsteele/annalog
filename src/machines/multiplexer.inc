@@ -17,6 +17,11 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
+;;; State bytes for multiplexer machines:
+;;;   * State1: Unused.
+;;;   * State2: Unused.
+;;;   * State3: Unused.
+
 ;;; Various OBJ tile IDs used for drawing multiplexer machines.
 kTileIdObjMultiplexerFirst = $82
 

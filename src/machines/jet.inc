@@ -17,6 +17,11 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
+;;; State bytes for jet machines:
+;;;   * State1: Unused.
+;;;   * State2: Unused.
+;;;   * State3: Unused.
+
 ;;; The size of a jet machine's main platform, in pixels.
 kJetPlatformWidthPx  = $20
 kJetPlatformHeightPx = $0b

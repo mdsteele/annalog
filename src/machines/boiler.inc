@@ -17,6 +17,13 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
+;;; State bytes for boiler machines:
+;;;   * State1: The current angle of valve #1, which tends toward
+;;;     MachineGoalVert * kBoilerValveAnimSlowdown.
+;;;   * State2: The current angle of valve #2, which tends toward
+;;;     MachineGoalHorz * kBoilerValveAnimSlowdown.
+;;;   * State3: Unused.
+
 ;;; The number of frames between valve angles when animating a boiler valve.
 .DEFINE kBoilerValveAnimSlowdown 2
 

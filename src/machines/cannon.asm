@@ -44,7 +44,7 @@
 .IMPORT Ram_ActorState1_byte_arr
 .IMPORT Ram_ActorType_eActor_arr
 .IMPORT Ram_MachineGoalVert_u8_arr
-.IMPORT Ram_MachineParam1_u8_arr
+.IMPORT Ram_MachineState1_byte_arr
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORT Ram_PlatformLeft_i16_0_arr
 .IMPORT Ram_PlatformLeft_i16_1_arr
@@ -77,7 +77,7 @@ kTileIdObjCannonBarrelLow  = kTileIdObjCannonFirst + $04
 .EXPORT Func_MachineCannonReadRegY
 .PROC Func_MachineCannonReadRegY
     ldy Zp_MachineIndex_u8
-    lda Ram_MachineParam1_u8_arr, y
+    lda Ram_MachineState1_byte_arr, y  ; aim angle (0-255)
     and #$80
     asl a
     rol a
@@ -199,21 +199,21 @@ kTileIdObjCannonBarrelLow  = kTileIdObjCannonFirst + $04
     lda Ram_MachineGoalVert_u8_arr, x
     beq @moveDown
     @moveUp:
-    lda Ram_MachineParam1_u8_arr, x
+    lda Ram_MachineState1_byte_arr, x  ; aim angle (0-255)
     add #$100 / kCannonMoveCountdown
     bcc @setAngle
     lda #$ff
-    sta Ram_MachineParam1_u8_arr, x
+    sta Ram_MachineState1_byte_arr, x  ; aim angle (0-255)
     jmp FuncA_Machine_ReachedGoal
     @moveDown:
-    lda Ram_MachineParam1_u8_arr, x
+    lda Ram_MachineState1_byte_arr, x  ; aim angle (0-255)
     sub #$100 / kCannonMoveCountdown
     bge @setAngle
     lda #0
-    sta Ram_MachineParam1_u8_arr, x
+    sta Ram_MachineState1_byte_arr, x  ; aim angle (0-255)
     jmp FuncA_Machine_ReachedGoal
     @setAngle:
-    sta Ram_MachineParam1_u8_arr, x
+    sta Ram_MachineState1_byte_arr, x  ; aim angle (0-255)
     rts
 .ENDPROC
 
@@ -242,7 +242,7 @@ kTileIdObjCannonBarrelLow  = kTileIdObjCannonFirst + $04
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Flags_bObj, y
 _SetBarrelTileId:
     ldx Zp_MachineIndex_u8
-    lda Ram_MachineParam1_u8_arr, x  ; aim angle
+    lda Ram_MachineState1_byte_arr, x  ; aim angle (0-255)
     cmp #$40
     blt @barrelLow
     cmp #$c0

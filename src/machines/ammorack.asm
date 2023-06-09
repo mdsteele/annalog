@@ -28,7 +28,7 @@
 .IMPORT FuncA_Objects_MoveShapeRightByA
 .IMPORT FuncA_Objects_MoveShapeRightOneTile
 .IMPORT FuncA_Objects_SetShapePosToMachineTopLeft
-.IMPORT Ram_MachineParam1_u8_arr
+.IMPORT Ram_MachineState1_byte_arr
 .IMPORTZP Zp_MachineIndex_u8
 
 ;;;=========================================================================;;;
@@ -48,7 +48,7 @@ _RocketSlots:
     jsr FuncA_Objects_SetShapePosToMachineTopLeft
     jsr FuncA_Objects_MoveShapeRightOneTile
     ldx Zp_MachineIndex_u8
-    lda Ram_MachineParam1_u8_arr, x  ; ammo slot bits
+    lda Ram_MachineState1_byte_arr, x  ; ammo slot bits
     sta T2  ; ammo slot bits
     @loop:
     lsr T2

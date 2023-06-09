@@ -17,6 +17,14 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
+;;; State bytes for minigun machines:
+;;;   * State1: A counter that gets incremented every time the minigun fires a
+;;;     shot.  Used to offset the lateral position of each bullet fired.
+;;;   * State2: A counter that decrements each frame, and is set each time the
+;;;     minigun fires a shot.  Used to animate the rotation of the minigun
+;;;     barrel.
+;;;   * State3: Unused.
+
 ;;; The size of a minigun machine's main platform, in pixels.
 kMinigunMachineWidthPx  = $20
 kMinigunMachineHeightPx = $10

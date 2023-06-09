@@ -55,7 +55,7 @@
 .IMPORT Func_MovePlatformTopTowardPointY
 .IMPORT Func_Noop
 .IMPORT Func_PlaySfxExplodeFracture
-.IMPORT Func_ResetWinchMachineParams
+.IMPORT Func_ResetWinchMachineState
 .IMPORT Func_SetFlag
 .IMPORT Ppu_ChrObjCrypt
 .IMPORT Ram_MachineGoalHorz_u8_arr
@@ -547,7 +547,7 @@ _ResetBreakbleFloor:
     sta Zp_RoomState + sState::WeakFloorBlink_u8
     @done:
 _ResetMachine:
-    jsr Func_ResetWinchMachineParams
+    jsr Func_ResetWinchMachineState
     ;; TODO: heal breakable floors if not both totally broken
     lda Ram_MachineGoalHorz_u8_arr + kWinchMachineIndex
     cmp #3

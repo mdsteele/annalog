@@ -41,7 +41,7 @@
 .IMPORT Ppu_ChrBgWheel
 .IMPORT Ppu_ChrObjFactory
 .IMPORT Ram_MachineGoalHorz_u8_arr
-.IMPORT Ram_MachineParam1_u8_arr
+.IMPORT Ram_MachineState1_byte_arr
 .IMPORTZP Zp_Chr0cBank_u8
 
 ;;;=========================================================================;;;
@@ -261,14 +261,14 @@ _Passages_sPassage_arr:
 .PROC FuncC_Factory_UpperRotor_Tick
     jsr FuncA_Machine_RotorTick
 _MoveUpperCarriage:
-    lda Ram_MachineParam1_u8_arr + kRotorMachineIndex
+    lda Ram_MachineState1_byte_arr + kRotorMachineIndex  ; rotor angle (0-255)
     add #$c0  ; param: carriage angle
     ldx #kTopLgWheelCenterPlatformIndex  ; param: center platform index
     ldy #kTopRotorCarriagePlatformIndex  ; param: carriage platform index
     jsr FuncA_Machine_RotorMoveCarriage
 _MoveLowerCarriage:
     lda #$80
-    sub Ram_MachineParam1_u8_arr + kRotorMachineIndex
+    sub Ram_MachineState1_byte_arr + kRotorMachineIndex  ; rotor angle (0-255)
     ldx #kBotLgWheelCenterPlatformIndex  ; param: center platform index
     ldy #kBotRotorCarriagePlatformIndex  ; param: carriage platform index
     jmp FuncA_Machine_RotorMoveCarriage
@@ -284,23 +284,23 @@ _BottomCarriage:
     ldx #kBotRotorCarriagePlatformIndex  ; param: platform index
     jsr FuncA_Objects_DrawRotorCarriage
 _TopLargeWheel:
-    lda Ram_MachineParam1_u8_arr + kRotorMachineIndex
+    lda Ram_MachineState1_byte_arr + kRotorMachineIndex  ; rotor angle (0-255)
     ldx #kTopLgWheelCenterPlatformIndex  ; param: center platform index
     jsr FuncA_Objects_DrawRotorWheelLarge
 _BottomLargeWheel:
     lda #$20
-    sub Ram_MachineParam1_u8_arr + kRotorMachineIndex
+    sub Ram_MachineState1_byte_arr + kRotorMachineIndex  ; rotor angle (0-255)
     ldx #kBotLgWheelCenterPlatformIndex  ; param: center platform index
     jsr FuncA_Objects_DrawRotorWheelLarge
 _TopSmallWheel:
-    lda Ram_MachineParam1_u8_arr + kRotorMachineIndex
+    lda Ram_MachineState1_byte_arr + kRotorMachineIndex  ; rotor angle (0-255)
     mul #2
     eor #$ff
     add #$40  ; param: rotation angle
     ldx #kTopSmWheelCenterPlatformIndex  ; param: center platform index
     jsr FuncA_Objects_DrawRotorWheelSmall
 _BottomSmallWheel:
-    lda Ram_MachineParam1_u8_arr + kRotorMachineIndex
+    lda Ram_MachineState1_byte_arr + kRotorMachineIndex  ; rotor angle (0-255)
     mul #2  ; param: rotation angle
     ldx #kBotSmWheelCenterPlatformIndex  ; param: center platform index
     jmp FuncA_Objects_DrawRotorWheelSmall

@@ -52,7 +52,7 @@
 .IMPORT Func_MovePlatformVert
 .IMPORT Func_Noop
 .IMPORT Func_PlaySfxExplodeFracture
-.IMPORT Func_ResetWinchMachineParams
+.IMPORT Func_ResetWinchMachineState
 .IMPORT Func_SetFlag
 .IMPORT Ppu_ChrObjCrypt
 .IMPORT Ram_MachineGoalHorz_u8_arr
@@ -504,7 +504,7 @@ _ResetMachine:
     @left:
     lda #eResetSeq::UpLeft
     sta Zp_RoomState + sState::WinchReset_eResetSeq
-    jmp Func_ResetWinchMachineParams
+    jmp Func_ResetWinchMachineState
 .ENDPROC
 
 .PROC FuncC_Crypt_SouthWinch_Init

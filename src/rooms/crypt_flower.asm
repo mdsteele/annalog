@@ -46,7 +46,7 @@
 .IMPORT Func_MovePlatformTopTowardPointY
 .IMPORT Func_MovePlatformVert
 .IMPORT Func_Noop
-.IMPORT Func_ResetWinchMachineParams
+.IMPORT Func_ResetWinchMachineState
 .IMPORT Ppu_ChrObjCrypt
 .IMPORT Ram_MachineGoalVert_u8_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
@@ -225,7 +225,7 @@ _Winch_Init:
 _Winch_Reset:
     lda #kWinchInitGoalZ
     sta Ram_MachineGoalVert_u8_arr + kWinchMachineIndex
-    jmp Func_ResetWinchMachineParams
+    jmp Func_ResetWinchMachineState
 .ENDPROC
 
 ;;; @prereq PRGA_Room is loaded.
@@ -267,7 +267,7 @@ _ReadZ:
 .PROC FuncC_Crypt_FlowerWinch_Init
     lda #kWinchInitGoalZ
     sta Ram_MachineGoalVert_u8_arr + kWinchMachineIndex
-    jmp Func_ResetWinchMachineParams
+    jmp Func_ResetWinchMachineState
 .ENDPROC
 
 .PROC FuncC_Crypt_FlowerWinch_TryMove

@@ -37,7 +37,7 @@
 .IMPORT Func_MovePlatformLeftTowardPointX
 .IMPORT Func_MovePlatformTopTowardPointY
 .IMPORT Ram_MachineGoalVert_u8_arr
-.IMPORT Ram_MachineParam1_u8_arr
+.IMPORT Ram_MachineState1_byte_arr
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORT Ram_PlatformLeft_i16_0_arr
 .IMPORT Ram_PlatformLeft_i16_1_arr
@@ -67,7 +67,7 @@ kPaletteObjBridgeSegment = 0
 .EXPORT Func_MachineBridgeReadRegY
 .PROC Func_MachineBridgeReadRegY
     ldy Zp_MachineIndex_u8
-    lda Ram_MachineParam1_u8_arr, y
+    lda Ram_MachineState1_byte_arr, y  ; bridge angle (0-kBridgeMaxAngle)
     cmp #kBridgeMaxAngle / 2  ; now carry bit is 1 if angle >= this
     lda #0
     rol a  ; shift in carry bit, now A is 0 or 1
@@ -119,13 +119,13 @@ kPaletteObjBridgeSegment = 0
 _Finished:
     jmp FuncA_Machine_ReachedGoal
 _MoveUp:
-    ldy Ram_MachineParam1_u8_arr, x
+    ldy Ram_MachineState1_byte_arr, x  ; bridge angle (0-kBridgeMaxAngle)
     cpy #kBridgeMaxAngle
     beq _Finished
     iny
     bne _SetAngle  ; unconditional
 _MoveDown:
-    ldy Ram_MachineParam1_u8_arr, x
+    ldy Ram_MachineState1_byte_arr, x  ; bridge angle (0-kBridgeMaxAngle)
     beq _Finished
     dey
     dey
@@ -134,7 +134,7 @@ _MoveDown:
     @noUnderflow:
 _SetAngle:
     tya
-    sta Ram_MachineParam1_u8_arr, x
+    sta Ram_MachineState1_byte_arr, x  ; bridge angle (0-kBridgeMaxAngle)
 _RepositionSegments:
     ldx T0  ; pivot platform index
     lda T1  ; last platform index
@@ -144,7 +144,7 @@ _RepositionSegments:
     @loop:
     ;; Position the next segment vertically relative to the previous segment.
     ldy Zp_MachineIndex_u8
-    lda Ram_MachineParam1_u8_arr, y
+    lda Ram_MachineState1_byte_arr, y  ; bridge angle (0-kBridgeMaxAngle)
     tay
     lda Ram_PlatformTop_i16_0_arr, x
     sub _Delta_u8_arr, y
@@ -159,7 +159,7 @@ _RepositionSegments:
     ;; Position the next segment horizontally relative to the previous segment.
     ldy Zp_MachineIndex_u8
     lda #kBridgeMaxAngle
-    sub Ram_MachineParam1_u8_arr, y
+    sub Ram_MachineState1_byte_arr, y  ; bridge angle (0-kBridgeMaxAngle)
     sta T0  ; angle index
     ldy #sMachine::Flags_bMachine
     lda (Zp_Current_sMachine_ptr), y

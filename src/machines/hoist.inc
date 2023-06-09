@@ -17,6 +17,11 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
+;;; State bytes for hoist machines:
+;;;   * State1: Unused.
+;;;   * State2: Unused.
+;;;   * State3: Unused.
+
 ;;; The size of a hoist machine's main platform, in pixels.
 kHoistMachineWidthPx  = $10
 kHoistMachineHeightPx = $10

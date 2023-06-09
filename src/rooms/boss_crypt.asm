@@ -71,7 +71,7 @@
 .IMPORT Func_MovePlatformLeftTowardPointX
 .IMPORT Func_MovePlatformTopTowardPointY
 .IMPORT Func_Noop
-.IMPORT Func_ResetWinchMachineParams
+.IMPORT Func_ResetWinchMachineState
 .IMPORT Func_SetActorCenterToPoint
 .IMPORT Func_SetPointToPlatformCenter
 .IMPORT Ppu_ChrBgAnimB0
@@ -558,7 +558,7 @@ _Finished:
 .ENDPROC
 
 .PROC FuncC_Boss_CryptWinch_ContinueResetting
-    jsr Func_ResetWinchMachineParams
+    jsr Func_ResetWinchMachineState
     lda Ram_MachineGoalHorz_u8_arr + kWinchMachineIndex
     cmp #3
     blt _Outer

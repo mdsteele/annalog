@@ -43,7 +43,7 @@
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrObjGarden
 .IMPORT Ram_MachineGoalVert_u8_arr
-.IMPORT Ram_MachineParam1_u8_arr
+.IMPORT Ram_MachineState1_byte_arr
 .IMPORTZP Zp_MachineIndex_u8
 .IMPORTZP Zp_RoomState
 
@@ -268,7 +268,7 @@ _Passages_sPassage_arr:
 .PROC FuncC_Garden_ShaftBridge_Init
     ldx Zp_MachineIndex_u8
     lda #kBridgeMaxAngle
-    sta Ram_MachineParam1_u8_arr, x
+    sta Ram_MachineState1_byte_arr, x  ; bridge angle (0-kBridgeMaxAngle)
     .assert * = FuncC_Garden_ShaftBridge_Reset, error, "fallthrough"
 .ENDPROC
 

@@ -49,10 +49,10 @@
 .IMPORT Ram_ActorPosY_i16_0_arr
 .IMPORT Ram_ActorPosY_i16_1_arr
 .IMPORT Ram_MachineGoalVert_u8_arr
-.IMPORT Ram_MachineParam1_u8_arr
-.IMPORT Ram_MachineParam2_i16_0_arr
-.IMPORT Ram_MachineParam2_i16_1_arr
 .IMPORT Ram_MachineSlowdown_u8_arr
+.IMPORT Ram_MachineState1_byte_arr
+.IMPORT Ram_MachineState2_byte_arr
+.IMPORT Ram_MachineState3_byte_arr
 .IMPORT Ram_MachineStatus_eMachine_arr
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORT Ram_PlatformBottom_i16_0_arr
@@ -102,17 +102,17 @@ kPaletteObjWinchGear  = 0
 
 .SEGMENT "PRG8"
 
-;;; Resets machine params for a winch machine.
+;;; Resets machine state bytes for a winch machine.
 ;;; @prereq Zp_MachineIndex_u8 is initialized.
-.EXPORT Func_ResetWinchMachineParams
-.PROC Func_ResetWinchMachineParams
+.EXPORT Func_ResetWinchMachineState
+.PROC Func_ResetWinchMachineState
     ldy Zp_MachineIndex_u8
     ;; Start "falling" to false.
     lda #0
-    sta Ram_MachineParam1_u8_arr, y  ; falling bool
+    sta Ram_MachineState1_byte_arr, y  ; falling bool
     ;; Set fall speed to zero.
-    sta Ram_MachineParam2_i16_0_arr, y
-    sta Ram_MachineParam2_i16_1_arr, y
+    sta Ram_MachineState2_byte_arr, y  ; fall speed (lo)
+    sta Ram_MachineState3_byte_arr, y  ; fall speed (hi)
     rts
 .ENDPROC
 
@@ -157,7 +157,7 @@ kPaletteObjWinchGear  = 0
     lda #2
     rts
 _NotResetting:
-    lda Ram_MachineParam1_u8_arr, y  ; falling bool
+    lda Ram_MachineState1_byte_arr, y  ; falling bool
     bne _Falling
     lda Zp_PointY_i16 + 0
     sub Ram_PlatformTop_i16_0_arr, x
@@ -177,19 +177,19 @@ _MovingDown:
     rts
 _Falling:
     ;; Apply gravity.
-    lda Ram_MachineParam2_i16_0_arr, y
+    lda Ram_MachineState2_byte_arr, y  ; fall speed (lo)
     add #kAvatarGravity
-    sta Ram_MachineParam2_i16_0_arr, y
-    lda Ram_MachineParam2_i16_1_arr, y
+    sta Ram_MachineState2_byte_arr, y  ; fall speed (lo)
+    lda Ram_MachineState3_byte_arr, y  ; fall speed (hi)
     adc #0
     ;; Cap speed at kWinchMaxFallSpeed.
     cmp #kWinchMaxFallSpeed
     blt @setVelHi
     lda #0
-    sta Ram_MachineParam2_i16_0_arr, y
+    sta Ram_MachineState2_byte_arr, y  ; fall speed (lo)
     lda #kWinchMaxFallSpeed
     @setVelHi:
-    sta Ram_MachineParam2_i16_1_arr, y
+    sta Ram_MachineState3_byte_arr, y  ; fall speed (hi)
     tay  ; to set/clear Z
     rts
 .ENDPROC
@@ -204,11 +204,11 @@ _Falling:
     sta Ram_MachineGoalVert_u8_arr, y
     ;; Start "falling" to true.
     lda #$ff
-    sta Ram_MachineParam1_u8_arr, y  ; falling bool
+    sta Ram_MachineState1_byte_arr, y  ; falling bool
     ;; Set fall speed to zero.
     lda #0
-    sta Ram_MachineParam2_i16_0_arr, y
-    sta Ram_MachineParam2_i16_1_arr, y
+    sta Ram_MachineState2_byte_arr, y  ; fall speed (lo)
+    sta Ram_MachineState3_byte_arr, y  ; fall speed (hi)
     jmp FuncA_Machine_StartWorking
 .ENDPROC
 
@@ -222,14 +222,14 @@ _Falling:
 .EXPORT FuncA_Machine_WinchReachedGoal
 .PROC FuncA_Machine_WinchReachedGoal
     ldy Zp_MachineIndex_u8
-    lda Ram_MachineParam1_u8_arr, y  ; falling bool
+    lda Ram_MachineState1_byte_arr, y  ; falling bool
     bmi _Falling
 _NotFalling:
     jmp FuncA_Machine_ReachedGoal
 _Falling:
     jsr FuncA_Machine_WinchShakeOnImpact
     ;; Stop falling.
-    jsr Func_ResetWinchMachineParams
+    jsr Func_ResetWinchMachineState
     ;; Wait for a bit before resuming program execution.
     lda #kWinchFallRecoverFrames
     jmp FuncA_Machine_StartWaiting
@@ -242,9 +242,9 @@ _Falling:
 .EXPORT FuncA_Machine_IsWinchFallingFast
 .PROC FuncA_Machine_IsWinchFallingFast
     ldy Zp_MachineIndex_u8
-    lda Ram_MachineParam1_u8_arr, y  ; falling bool
+    lda Ram_MachineState1_byte_arr, y  ; falling bool
     beq @notFalling
-    lda Ram_MachineParam2_i16_1_arr, y
+    lda Ram_MachineState3_byte_arr, y  ; fall speed (hi)
     cmp #kWinchMaxFallSpeed  ; clears C if Param2 less than max speed
     rts
     @notFalling:
@@ -285,7 +285,7 @@ _SlowFallingSpeed:
     ;; separately stop the winch falling entirely.)
     ldx Zp_MachineIndex_u8
     lda #kWinchBreakthroughSpeed
-    sta Ram_MachineParam2_i16_1_arr, x
+    sta Ram_MachineState3_byte_arr, x  ; fall speed (hi)
     rts
 .ENDPROC
 
@@ -294,7 +294,7 @@ _SlowFallingSpeed:
 ;;; @prereq Zp_MachineIndex_u8 is initialized.
 .PROC FuncA_Machine_WinchShakeOnImpact
     ldy Zp_MachineIndex_u8
-    ldx Ram_MachineParam2_i16_1_arr, y
+    ldx Ram_MachineState3_byte_arr, y  ; fall speed (hi)
     lda _ShakeFrames_u8_arr, x  ; param: num frames
     jsr Func_ShakeRoom  ; preserves X
 _PlaySound:

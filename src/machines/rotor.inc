@@ -17,6 +17,11 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
+;;; State bytes for rotor machines:
+;;;   * State1: The current rotation angle for the rotor wheel (0-255).
+;;;   * State2: Unused.
+;;;   * State3: Unused.
+
 ;;; The size of a rotor machine's main platform, in pixels.
 kRotorMachineWidthPx  = $10
 kRotorMachineHeightPx = $0d

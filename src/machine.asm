@@ -96,24 +96,21 @@ Ram_MachineSlowdown_u8_arr: .res kMaxMachines
 ;;; else in the machine's Init function), but are *not* automatically modified
 ;;; on reset (so that the machine's Reset function can check their current
 ;;; values when deciding how to reset).
-.EXPORT Ram_MachineGoalHorz_u8_arr, Ram_MachineGoalVert_u8_arr
+.EXPORT Ram_MachineGoalHorz_u8_arr
 Ram_MachineGoalHorz_u8_arr: .res kMaxMachines
+.EXPORT Ram_MachineGoalVert_u8_arr
 Ram_MachineGoalVert_u8_arr: .res kMaxMachines
 
-;;; A one-byte variable that each machine can use however it wants.  This is
-;;; automatically set to zero on init (though it can be set to something else
-;;; in the machine's Init function), but is *not* automatically modified on
+;;; State variables that each machine can use however it wants.  These are
+;;; automatically set to zero on init (though they can be set to something else
+;;; in the machine's Init function), but are *not* automatically modified on
 ;;; reset.
-.EXPORT Ram_MachineParam1_u8_arr
-Ram_MachineParam1_u8_arr: .res kMaxMachines
-
-;;; A two-byte variable that each machine can use however it wants.  This is
-;;; automatically set to zero on init (though it can be set to something else
-;;; in the machine's Init function), but is *not* automatically modified on
-;;; reset.
-.EXPORT Ram_MachineParam2_i16_0_arr, Ram_MachineParam2_i16_1_arr
-Ram_MachineParam2_i16_0_arr: .res kMaxMachines
-Ram_MachineParam2_i16_1_arr: .res kMaxMachines
+.EXPORT Ram_MachineState1_byte_arr
+Ram_MachineState1_byte_arr: .res kMaxMachines
+.EXPORT Ram_MachineState2_byte_arr
+Ram_MachineState2_byte_arr: .res kMaxMachines
+.EXPORT Ram_MachineState3_byte_arr
+Ram_MachineState3_byte_arr: .res kMaxMachines
 
 ;;;=========================================================================;;;
 
@@ -287,9 +284,9 @@ _ReadRegB:
     jsr FuncA_Room_ZeroMachineVarsAndSetStatus  ; preserves X, returns 0 in A
     sta Ram_MachineGoalHorz_u8_arr, x
     sta Ram_MachineGoalVert_u8_arr, x
-    sta Ram_MachineParam1_u8_arr, x
-    sta Ram_MachineParam2_i16_0_arr, x
-    sta Ram_MachineParam2_i16_1_arr, x
+    sta Ram_MachineState1_byte_arr, x
+    sta Ram_MachineState2_byte_arr, x
+    sta Ram_MachineState3_byte_arr, x
     ;; Initialize any machine-specific state.
     ldy #sMachine::Init_func_ptr  ; param: function pointer offset
     jsr Func_MachineCall

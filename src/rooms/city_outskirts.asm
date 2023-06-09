@@ -49,7 +49,7 @@
 .IMPORT Ppu_ChrBgAnimStatic
 .IMPORT Ppu_ChrObjCity
 .IMPORT Ram_MachineGoalVert_u8_arr
-.IMPORT Ram_MachineParam1_u8_arr
+.IMPORT Ram_MachineState1_byte_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORT Ram_PlatformType_ePlatform_arr
 .IMPORT Sram_ProgressFlags_arr
@@ -191,7 +191,7 @@ _Passages_sPassage_arr:
     flag_bit Sram_ProgressFlags_arr, eFlag::CityOutskirtsBlastedRocks
     bne @removeRocks
     @loadRocketLauncher:
-    inc Ram_MachineParam1_u8_arr + kLauncherMachineIndex  ; ammo count
+    inc Ram_MachineState1_byte_arr + kLauncherMachineIndex  ; ammo count
     rts
     @removeRocks:
     lda #ePlatform::None

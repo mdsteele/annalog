@@ -17,6 +17,12 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
+;;; State bytes for cannon machines:
+;;;   * State1: The current aim angle (0 for all the way down, 255 for all the
+;;;     way up).
+;;;   * State2: Unused.
+;;;   * State3: Unused.
+
 ;;; The first tile ID use for drawing cannon machines.
 kTileIdObjCannonFirst = $88
 

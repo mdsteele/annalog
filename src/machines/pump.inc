@@ -17,6 +17,11 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
+;;; State bytes for pump machines:
+;;;   * State1: Unused.
+;;;   * State2: Unused.
+;;;   * State3: Unused.
+
 ;;; How many frames it takes a pump machine to pump water up or down one pixel.
 kPumpWaterSlowdown = 3
 

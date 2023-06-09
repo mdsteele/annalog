@@ -38,8 +38,8 @@
 .IMPORT Func_SetActorCenterToPoint
 .IMPORT Ram_ActorState1_byte_arr
 .IMPORT Ram_ActorType_eActor_arr
-.IMPORT Ram_MachineParam1_u8_arr
-.IMPORT Ram_MachineParam2_i16_0_arr
+.IMPORT Ram_MachineState1_byte_arr
+.IMPORT Ram_MachineState2_byte_arr
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORT Ram_PlatformBottom_i16_0_arr
 .IMPORT Ram_PlatformBottom_i16_1_arr
@@ -80,7 +80,7 @@ kPaletteObjMinigun = 0
     sty T0  ; bullet direction
     ;; Compute the firing offset, storing it in T1.
     ldy Zp_MachineIndex_u8
-    lda Ram_MachineParam1_u8_arr, y  ; shot counter
+    lda Ram_MachineState1_byte_arr, y  ; shot counter
     and #$03
     tay
     lda _FiringOffset_i8_arr4, y
@@ -152,9 +152,9 @@ _InitBullet:
     sta Ram_ActorState1_byte_arr, x  ; particle age in frames
 _DoneWithBullet:
     ldx Zp_MachineIndex_u8
-    inc Ram_MachineParam1_u8_arr, x  ; shot counter
+    inc Ram_MachineState1_byte_arr, x  ; shot counter
     lda #kMinigunCooldownFrames  ; param: number of frames
-    sta Ram_MachineParam2_i16_0_arr, x  ; barrel rotation counter
+    sta Ram_MachineState2_byte_arr, x  ; barrel rotation counter
     jmp FuncA_Machine_StartWaiting
 _FiringOffset_i8_arr4:
     .byte 2, 0, <-2, 0
@@ -165,9 +165,9 @@ _FiringOffset_i8_arr4:
 .EXPORT FuncA_Machine_MinigunRotateBarrel
 .PROC FuncA_Machine_MinigunRotateBarrel
     ldx Zp_MachineIndex_u8
-    lda Ram_MachineParam2_i16_0_arr, x  ; barrel rotation counter
+    lda Ram_MachineState2_byte_arr, x  ; barrel rotation counter
     beq @done
-    dec Ram_MachineParam2_i16_0_arr, x  ; barrel rotation counter
+    dec Ram_MachineState2_byte_arr, x  ; barrel rotation counter
     @done:
     rts
 .ENDPROC
@@ -183,7 +183,7 @@ _FiringOffset_i8_arr4:
     jsr FuncA_Objects_SetShapePosToMachineTopLeft
 _BarrelAnimation:
     ldx Zp_MachineIndex_u8
-    lda Ram_MachineParam2_i16_0_arr, x  ; barrel rotation counter
+    lda Ram_MachineState2_byte_arr, x  ; barrel rotation counter
     div #2
     and #$06
     tax  ; barrel tile ID offset
@@ -242,7 +242,7 @@ _RightHalf:
     jsr FuncA_Objects_SetShapePosToMachineTopLeft
 _BarrelAnimation:
     ldx Zp_MachineIndex_u8
-    lda Ram_MachineParam2_i16_0_arr, x  ; barrel rotation counter
+    lda Ram_MachineState2_byte_arr, x  ; barrel rotation counter
     div #2
     and #$06
     tax  ; barrel tile ID offset
@@ -301,7 +301,7 @@ _RightHalf:
     jsr FuncA_Objects_SetShapePosToMachineTopLeft
 _BarrelAnimation:
     ldx Zp_MachineIndex_u8
-    lda Ram_MachineParam2_i16_0_arr, x  ; barrel rotation counter
+    lda Ram_MachineState2_byte_arr, x  ; barrel rotation counter
     div #2
     and #$06
     tax  ; barrel tile ID offset

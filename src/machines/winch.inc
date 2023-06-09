@@ -17,6 +17,13 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
+;;; State bytes for winch machines:
+;;;   * State1: A boolean value indicating whether the winch is currently
+;;;     falling ($ff) or not falling ($00).
+;;;   * State2: The lo byte of the current falling speed, measured in subpixels
+;;;     per frame.
+;;;   * State3: The hi byte of the current falling speed.
+
 ;;; How many frames it takes a winch machine to move up one pixel.
 kWinchMoveUpSlowdown = 3
 

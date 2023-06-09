@@ -45,7 +45,7 @@
 .IMPORT Func_MovePlatformTopTowardPointY
 .IMPORT Func_MovePlatformVert
 .IMPORT Func_Noop
-.IMPORT Func_ResetWinchMachineParams
+.IMPORT Func_ResetWinchMachineState
 .IMPORT Ppu_ChrObjCrypt
 .IMPORT Ram_MachineGoalVert_u8_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
@@ -229,7 +229,7 @@ _Passages_sPassage_arr:
 .PROC FuncC_Crypt_WestWinch_Init
     lda #kWinchInitGoalZ
     sta Ram_MachineGoalVert_u8_arr + kWinchMachineIndex
-    jmp Func_ResetWinchMachineParams
+    jmp Func_ResetWinchMachineState
 .ENDPROC
 
 .PROC FuncC_Crypt_WestWinch_ReadReg

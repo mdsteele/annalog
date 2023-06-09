@@ -17,6 +17,12 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
+;;; State bytes for rocket launcher machines:
+;;;   * State1: The number of rockets currently carried by the launcher machine
+;;;     (0 or 1).
+;;;   * State2: Unused.
+;;;   * State3: Unused.
+
 ;;; The size of a launcher machine's main platform, in pixels.
 kLauncherMachineWidthPx  = $10
 kLauncherMachineHeightPx = $10

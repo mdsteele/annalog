@@ -83,7 +83,7 @@
 .IMPORT Ram_ActorType_eActor_arr
 .IMPORT Ram_MachineGoalHorz_u8_arr
 .IMPORT Ram_MachineGoalVert_u8_arr
-.IMPORT Ram_MachineParam1_u8_arr
+.IMPORT Ram_MachineState1_byte_arr
 .IMPORT Ram_PlatformLeft_i16_0_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORT Ram_PlatformType_ePlatform_arr
@@ -480,7 +480,7 @@ _InitRocksAndCrate:
     flag_bit Sram_ProgressFlags_arr, eFlag::PrisonCellBlastedRocks
     bne @removeSomeRocks
     @loadRocketLauncher:
-    inc Ram_MachineParam1_u8_arr + kLauncherMachineIndex  ; ammo count
+    inc Ram_MachineState1_byte_arr + kLauncherMachineIndex  ; ammo count
     rts
     @removeAllRocks:
     lda #ePlatform::None

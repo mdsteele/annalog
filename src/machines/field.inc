@@ -17,6 +17,12 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
+;;; State bytes for field machines:
+;;;   * State1: The number of frames the field machine has been charging for
+;;;     since it was last reset or discharged.
+;;;   * State2: Unused.
+;;;   * State3: Unused.
+
 ;;; The size, in pixels, of a teleport field machine's primary platform.
 kFieldMachineWidth = $10
 kFieldMachineHeight = $10

@@ -42,7 +42,7 @@
 .IMPORT Ppu_ChrBgWheel
 .IMPORT Ppu_ChrObjFactory
 .IMPORT Ram_MachineGoalHorz_u8_arr
-.IMPORT Ram_MachineParam1_u8_arr
+.IMPORT Ram_MachineState1_byte_arr
 .IMPORTZP Zp_Chr0cBank_u8
 
 ;;;=========================================================================;;;
@@ -221,7 +221,7 @@ _Passages_sPassage_arr:
 .PROC FuncC_Factory_AccessRotor_Tick
     jsr FuncA_Machine_RotorTick
 _MoveCarriage:
-    lda Ram_MachineParam1_u8_arr + kRotorMachineIndex
+    lda Ram_MachineState1_byte_arr + kRotorMachineIndex  ; rotor angle (0-255)
     add #$40  ; param: carriage angle
     ldx #kLargeWheelCenterPlatformIndex  ; param: center platform index
     ldy #kRotorCarriagePlatformIndex  ; param: carriage platform index
@@ -235,11 +235,11 @@ _Carriage:
     ldx #kRotorCarriagePlatformIndex  ; param: platform index
     jsr FuncA_Objects_DrawRotorCarriage
 _LargeWheel:
-    lda Ram_MachineParam1_u8_arr + kRotorMachineIndex
+    lda Ram_MachineState1_byte_arr + kRotorMachineIndex  ; rotor angle (0-255)
     ldx #kLargeWheelCenterPlatformIndex  ; param: center platform index
     jsr FuncA_Objects_DrawRotorWheelLarge
 _SmallWheel:
-    lda Ram_MachineParam1_u8_arr + kRotorMachineIndex
+    lda Ram_MachineState1_byte_arr + kRotorMachineIndex  ; rotor angle (0-255)
     mul #2
     eor #$ff
     add #$40  ; param: rotation angle

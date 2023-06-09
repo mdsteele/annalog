@@ -40,7 +40,7 @@
 .IMPORT Func_SetPointToPlatformCenter
 .IMPORT Ram_ActorState1_byte_arr
 .IMPORT Ram_ActorType_eActor_arr
-.IMPORT Ram_MachineParam1_u8_arr
+.IMPORT Ram_MachineState1_byte_arr
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORTZP Zp_ConsoleMachineIndex_u8
 .IMPORTZP Zp_Current_sMachine_ptr
@@ -74,7 +74,7 @@ kPaletteObjLauncher = 0
     sta T0  ; rocket direction
     ;; If the launcher is out of ammo, fail.
     ldy Zp_MachineIndex_u8
-    lda Ram_MachineParam1_u8_arr, y  ; ammo count
+    lda Ram_MachineState1_byte_arr, y  ; ammo count
     beq _Error
 _FireRocket:
     ;; Fire a rocket.
@@ -106,7 +106,7 @@ _DryFire:
     bne _Finish  ; unconditional
 _DecrementAmmo:
     ldx Zp_MachineIndex_u8
-    dec Ram_MachineParam1_u8_arr, x  ; ammo count
+    dec Ram_MachineState1_byte_arr, x  ; ammo count
     ;; TODO: play a sound
 _Finish:
     lda #kLauncherActFrames  ; param: wait frames
@@ -163,7 +163,7 @@ _SetOtherTileIds:
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Tile_u8, y
 _SetTubeFrontTileId:
     ldx Zp_MachineIndex_u8
-    lda Ram_MachineParam1_u8_arr, x
+    lda Ram_MachineState1_byte_arr, x
     .assert kTileIdObjLauncherHorzTubeFrontEmpty & $01 = 0, error
     ora #kTileIdObjLauncherHorzTubeFrontEmpty
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Tile_u8, y
@@ -194,7 +194,7 @@ _SetOtherTileIds:
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Tile_u8, y
 _SetTubeBottomTileId:
     ldx Zp_MachineIndex_u8
-    lda Ram_MachineParam1_u8_arr, x
+    lda Ram_MachineState1_byte_arr, x
     .assert kTileIdObjLauncherVertTubeBottomEmpty & $01 = 0, error
     ora #kTileIdObjLauncherVertTubeBottomEmpty
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Tile_u8, y

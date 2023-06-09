@@ -17,6 +17,11 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
+;;; State bytes for carriage machines:
+;;;   * State1: Unused.
+;;;   * State2: Unused.
+;;;   * State3: Unused.
+
 ;;; The size of a carriage machine's main platform, in pixels.
 kCarriageMachineWidthPx  = $20
 kCarriageMachineHeightPx = $10

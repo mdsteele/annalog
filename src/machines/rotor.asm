@@ -43,7 +43,7 @@
 .IMPORT Func_SignedMult
 .IMPORT Func_Sine
 .IMPORT Ram_MachineGoalHorz_u8_arr
-.IMPORT Ram_MachineParam1_u8_arr
+.IMPORT Ram_MachineState1_byte_arr
 .IMPORT Ram_MachineStatus_eMachine_arr
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORTZP Zp_MachineIndex_u8
@@ -69,7 +69,7 @@ kPaletteObjRotor = 0
 .EXPORT Func_MachineRotorReadRegT
 .PROC Func_MachineRotorReadRegT
     ldx Zp_MachineIndex_u8
-    lda Ram_MachineParam1_u8_arr, x  ; rotation angle (0-255)
+    lda Ram_MachineState1_byte_arr, x  ; rotation angle (0-255)
     add #$10
     div #$20
     rts
@@ -158,26 +158,26 @@ _MoveTowardsGoal:
     lda Ram_MachineGoalHorz_u8_arr, x  ; goal position (0-7)
     mul #$20
     sta T1  ; goal angle (0-255)
-    sub Ram_MachineParam1_u8_arr, x  ; rotation angle (0-255)
+    sub Ram_MachineState1_byte_arr, x  ; rotation angle (0-255)
     beq _ReachedGoal
     bpl @increment
     @decrement:
     eor #$ff
     cmp T0  ; turn speed
     blt @moveToGoal
-    lda Ram_MachineParam1_u8_arr, x  ; rotation angle (0-255)
+    lda Ram_MachineState1_byte_arr, x  ; rotation angle (0-255)
     sub T0  ; turn speed
     jmp @setAngle
     @increment:
     cmp T0  ; turn speed
     blt @moveToGoal
-    lda Ram_MachineParam1_u8_arr, x  ; rotation angle (0-255)
+    lda Ram_MachineState1_byte_arr, x  ; rotation angle (0-255)
     add T0  ; turn speed
     jmp @setAngle
     @moveToGoal:
     lda T1  ; goal angle
     @setAngle:
-    sta Ram_MachineParam1_u8_arr, x  ; rotation angle (0-255)
+    sta Ram_MachineState1_byte_arr, x  ; rotation angle (0-255)
     rts
 _ReachedGoal:
     jmp FuncA_Machine_ReachedGoal

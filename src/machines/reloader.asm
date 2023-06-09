@@ -28,7 +28,7 @@
 .IMPORT FuncA_Objects_GetMachineLightTileId
 .IMPORT FuncA_Objects_MoveShapeDownAndRightOneTile
 .IMPORT FuncA_Objects_SetShapePosToMachineTopLeft
-.IMPORT Ram_MachineParam1_u8_arr
+.IMPORT Ram_MachineState1_byte_arr
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORTZP Zp_MachineIndex_u8
 
@@ -51,7 +51,7 @@ kPaletteObjReloader = 0
 .PROC FuncA_Objects_DrawReloaderMachine
 _Rocket:
     ldx Zp_MachineIndex_u8
-    lda Ram_MachineParam1_u8_arr, x  ; ammo count
+    lda Ram_MachineState1_byte_arr, x  ; ammo count
     beq @done
     jsr FuncA_Objects_SetShapePosToMachineTopLeft
     jsr FuncA_Objects_MoveShapeDownAndRightOneTile
