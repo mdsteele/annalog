@@ -1,10 +1,11 @@
-@BG 0 0 0 32x10
+@BG 0 0 0 32x12
 >building1
 >building2
 >console
+>font_lower
 
-    CACC        BCBD                                    BIBIBEBF
-    CBCDBABB    BCBD                                    BIBIBGBH
+    CACC        BCBDAMAMAMAN                            BIBIBEBF
+    CBCDBABBDaDbBCBDBIBIBIBI                            BIBIBGBH
 
 
 
@@ -13,3 +14,5 @@
 
 AKAKALAK        AI    AJAAAKAKABAKAKAKAL  AGAH    AGAH
         AMAMAMANAI    AJACAMAMADAMANAMAM  AEAF            AEAF
+AAAKAKABAO    AJAI    AJ            ALAK        AMAMAMAMAF    AE
+AI    AJAI    APACAMAMAD            AMAN          BPBOBPACAMAMAD

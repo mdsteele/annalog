@@ -17,12 +17,10 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
-;;; The size of a launcher machine's main platform, in pixels.
-kLauncherMachineWidthPx  = $10
-kLauncherMachineHeightPx = $10
+;;; The height of an ammo rack machine's main platform, in pixels.
+kAmmoRackMachineHeightPx = $08
 
-;;; OBJ tile IDs used for drawing launcher machines.
-kTileIdObjLauncherHorzFirst = $94
-kTileIdObjLauncherVertFirst = $90
+;;; How many frames an ammo rack machine spends per ACT operation.
+kAmmoRackActCountdown = 8
 
 ;;;=========================================================================;;;

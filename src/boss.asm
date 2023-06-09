@@ -156,6 +156,7 @@ _BreakerAlreadyDone:
 .EXPORT FuncA_Room_TickBoss
 .PROC FuncA_Room_TickBoss
     ;; Don't tick the boss if a machine console is open.
+    ;; TODO: unless the eBossPhase is FlashWhite
     bit Zp_ConsoleMachineIndex_u8
     bpl _Return
     ;; Handle the current boss phase.

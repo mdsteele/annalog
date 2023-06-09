@@ -37,6 +37,7 @@
 .IMPORT FuncA_Machine_ReachedGoal
 .IMPORT FuncA_Machine_StartWaiting
 .IMPORT FuncA_Machine_StartWorking
+.IMPORT FuncA_Machine_WriteToLever
 .IMPORT FuncA_Objects_DrawBoss
 .IMPORT FuncA_Objects_DrawBoulderPlatform
 .IMPORT FuncA_Objects_DrawCraneMachine
@@ -238,7 +239,7 @@ _Machines_sMachine_arr:
     d_byte MainPlatform_u8, kTrolleyPlatformIndex
     d_addr Init_func_ptr, FuncC_Boss_MineTrolley_InitReset
     d_addr ReadReg_func_ptr, FuncC_Boss_MineTrolley_ReadReg
-    d_addr WriteReg_func_ptr, Func_Noop
+    d_addr WriteReg_func_ptr, FuncC_Boss_Mine_WriteReg
     d_addr TryMove_func_ptr, FuncC_Boss_MineTrolley_TryMove
     d_addr TryAct_func_ptr, FuncA_Machine_Error
     d_addr Tick_func_ptr, FuncC_Boss_MineTrolley_Tick
@@ -257,7 +258,7 @@ _Machines_sMachine_arr:
     d_byte MainPlatform_u8, kCranePlatformIndex
     d_addr Init_func_ptr, FuncC_Boss_MineCrane_InitReset
     d_addr ReadReg_func_ptr, FuncC_Boss_MineCrane_ReadReg
-    d_addr WriteReg_func_ptr, FuncA_Machine_Error
+    d_addr WriteReg_func_ptr, FuncC_Boss_Mine_WriteReg
     d_addr TryMove_func_ptr, FuncC_Boss_MineCrane_TryMove
     d_addr TryAct_func_ptr, FuncC_Boss_MineCrane_TryAct
     d_addr Tick_func_ptr, FuncC_Boss_MineCrane_Tick
@@ -703,6 +704,23 @@ _RegL:
 _RegR:
     lda Zp_RoomState + sState::LeverRight_u8
     rts
+.ENDPROC
+
+;;; Shared WriteReg implementation for the BossMineTrolley and BossMineCrane
+;;; machines.
+;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
+;;; @prereq PRGA_Machine is loaded.
+;;; @param A The value to write (0-9).
+;;; @param X The register to write to ($c-$f).
+.PROC FuncC_Boss_Mine_WriteReg
+    cpx #$d
+    beq _WriteR
+_WriteL:
+    ldx #kLeverLeftDeviceIndex  ; param: device index
+    jmp FuncA_Machine_WriteToLever
+_WriteR:
+    ldx #kLeverRightDeviceIndex  ; param: device index
+    jmp FuncA_Machine_WriteToLever
 .ENDPROC
 
 .PROC FuncC_Boss_MineTrolley_TryMove

@@ -40,6 +40,7 @@ kMaxPassages = 8
 
 ;;; The list of rooms in the game.
 .ENUM eRoom
+    BossCity
     BossCrypt
     BossGarden
     BossMine

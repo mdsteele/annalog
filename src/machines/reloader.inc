@@ -17,12 +17,15 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
-;;; The size of a launcher machine's main platform, in pixels.
-kLauncherMachineWidthPx  = $10
-kLauncherMachineHeightPx = $10
+;;; The size of a reloader machine's main platform, in pixels.
+kReloaderMachineWidthPx  = $10
+kReloaderMachineHeightPx = $10
 
-;;; OBJ tile IDs used for drawing launcher machines.
-kTileIdObjLauncherHorzFirst = $94
-kTileIdObjLauncherVertFirst = $90
+;;; How many frames a realoder machine spends per ACT operation.
+kReloaderActCountdown = 16
+
+;;; OBJ tile IDs used for drawing reloader machines.
+kTileIdObjReloaderFirst = $86
+kTileIdObjReloaderRocketVert = kTileIdObjReloaderFirst + 2
 
 ;;;=========================================================================;;;

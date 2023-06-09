@@ -51,6 +51,7 @@
 .INCLUDE "machines/minigun.inc"
 .INCLUDE "machines/multiplexer.inc"
 .INCLUDE "machines/pump.inc"
+.INCLUDE "machines/reloader.inc"
 .INCLUDE "machines/rotor.inc"
 .INCLUDE "machines/winch.inc"
 .INCLUDE "platforms/column.inc"
@@ -263,9 +264,8 @@
 .EXPORT Ppu_ChrBgBuilding
 .PROC Ppu_ChrBgBuilding
 :   .incbin "out/data/tiles/building1.chr"
-    .res $02 * kSizeofChr
     .incbin "out/data/tiles/building2.chr"
-    .res $23 * kSizeofChr
+    .res $1c * kSizeofChr
     .incbin "out/data/tiles/console.chr"
     .assert * - :- = kSizeofChr * $40, error
 .ENDPROC
@@ -1028,14 +1028,23 @@
 
 .EXPORT Ppu_ChrObjCity
 .PROC Ppu_ChrObjCity
-:   .res $10 * kSizeofChr
+:   .assert * - :- = (kTileIdObjUpgradeBottomFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/upgrade_bottom.chr"
+    .res $02 * kSizeofChr
+    .assert * - :- = (kTileIdObjUpgradeBRemoteFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/upgrade_bremote.chr"
+    .assert * - :- = (kTileIdObjReloaderFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/reloader.chr"
+    .res $07 * kSizeofChr
     .assert * - :- = (kTileIdObjLauncherVertFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/launcher_vert.chr"
     .assert * - :- = (kTileIdObjLauncherHorzFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/launcher_horz.chr"
     .assert * - :- = (kTileIdObjRocksFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/rocks.chr"
-    .res $66 * kSizeofChr
+    .res $56 * kSizeofChr
+    .assert * - :- = (kTileIdObjBreakerFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/breaker.chr"
     .assert * - :- = kSizeofChr * $80, error
 .ENDPROC
 

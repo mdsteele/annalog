@@ -29,6 +29,7 @@
 .INCLUDE "room.inc"
 .INCLUDE "tileset.inc"
 
+.IMPORT DataC_Boss_City_sRoom
 .IMPORT DataC_Boss_Crypt_sRoom
 .IMPORT DataC_Boss_Garden_sRoom
 .IMPORT DataC_Boss_Mine_sRoom
@@ -234,6 +235,7 @@ _LoadNewRoom:
     D_TABLE_HI table, DataA_Room_Table_sRoom_ptr_1_arr
     D_TABLE_BANK table, DataA_Room_Banks_u8_arr
     D_TABLE eRoom
+    d_entry table, BossCity,        DataC_Boss_City_sRoom
     d_entry table, BossCrypt,       DataC_Boss_Crypt_sRoom
     d_entry table, BossGarden,      DataC_Boss_Garden_sRoom
     d_entry table, BossMine,        DataC_Boss_Mine_sRoom
@@ -332,6 +334,7 @@ _LoadNewRoom:
 ;;; Maps from eRoom values to the eMusic to play in each room.
 .PROC DataA_Room_Music_eMusic_arr
     D_ENUM eRoom
+    d_byte BossCity,        eMusic::Boss
     d_byte BossCrypt,       eMusic::Boss
     d_byte BossGarden,      eMusic::Boss
     d_byte BossMine,        eMusic::Boss

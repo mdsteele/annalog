@@ -48,6 +48,9 @@
 
 ;;;=========================================================================;;;
 
+;;; How many frames a launcher machine spends per ACT operation.
+kLauncherActFrames = $40
+
 ;;; Various OBJ tile IDs used for drawing launcher machines.
 kTileIdObjLauncherHorzTubeFrontEmpty  = kTileIdObjLauncherHorzFirst + 0
 kTileIdObjLauncherHorzTubeFrontFull   = kTileIdObjLauncherHorzFirst + 1

@@ -56,6 +56,10 @@
 
 ;;;=========================================================================;;;
 
+;;; How many frames a cannon machine spends per move/act operation.
+kCannonMoveCountdown = $20
+kCannonActCountdown = $60
+
 ;;; Various OBJ tile IDs used for drawing cannon machines.
 kTileIdObjCannonCornerTop  = kTileIdObjCannonFirst + $00
 kTileIdObjCannonCornerBase = kTileIdObjCannonFirst + $01
