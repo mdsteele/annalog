@@ -49,6 +49,7 @@ kMaxPassages = 8
     CityCenter
     CityEast
     CityOutskirts
+    CityPit
     CoreBoss
     CoreEast
     CoreElevator

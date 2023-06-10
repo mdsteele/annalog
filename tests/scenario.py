@@ -36,6 +36,7 @@ PERMITTED_OOB_CELLS = set([
 ])
 
 ROOM_PARENTS = {
+    'BossCity': 'CityPit',
     'BossCrypt': 'CryptTomb',
     'BossGarden': 'GardenTower',
     'BossMine': 'MineCollapse',

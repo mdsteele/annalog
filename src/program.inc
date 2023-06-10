@@ -112,6 +112,7 @@
     BossMineTrolley
     BossTempleMinigun
     CityOutskirtsLauncher
+    CityPitLift
     CoreElevatorJet
     CoreLockLift1
     CoreLockLift2

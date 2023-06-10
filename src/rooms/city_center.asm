@@ -102,7 +102,7 @@ _Passages_sPassage_arr:
     D_END
     D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Bottom | 2
-    d_byte Destination_eRoom, eRoom::CityCenter  ; TODO CityPit
+    d_byte Destination_eRoom, eRoom::CityPit
     d_byte SpawnBlock_u8, 42
     D_END
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error

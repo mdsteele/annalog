@@ -281,7 +281,7 @@ _Devices_sDevice_arr:
     d_byte Type_eDevice, eDevice::Door1Unlocked
     d_byte BlockRow_u8, 12
     d_byte BlockCol_u8, 4
-    d_byte Target_u8, eRoom::BossCity  ; TODO: CityPit
+    d_byte Target_u8, eRoom::CityPit
     D_END
     .assert * - :- = kBossUpgradeDeviceIndex * .sizeof(sDevice), error
     D_STRUCT sDevice
