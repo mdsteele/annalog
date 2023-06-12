@@ -232,10 +232,10 @@ _Done:
     .byte  2, 23
     .byte  3, 18
     .byte  3, 19
+    .byte  3, 20
     .byte  3, 21
-    .byte  3, 22
     .byte  3, 23
-    .byte  4, 22
+    .byte  4, 19
     .byte $ff
 .ENDPROC
 
@@ -414,8 +414,8 @@ _Done:
 .ENDPROC
 
 .PROC DataA_Pause_SewerAreaCells_u8_arr2_arr
-    .byte  3, 20
-    .byte  4, 20
+    .byte  3, 22
+    .byte  4, 22
     .byte  5, 18
     .byte  5, 19
     .byte  5, 20

@@ -114,6 +114,7 @@ kMaxPassages = 8
     PrisonEscape
     PrisonFlower
     PrisonUpper
+    SewerAscent
     SewerFlower
     SewerPool
     SewerWest

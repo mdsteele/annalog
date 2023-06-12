@@ -891,7 +891,7 @@
 .PROC Ppu_ChrBgSewer
 :   .incbin "out/data/tiles/sewer1.chr"
     .incbin "out/data/tiles/sewer2.chr"
-    .res $22 * kSizeofChr
+    .res $1e * kSizeofChr
     .incbin "out/data/tiles/sign.chr"
     .incbin "out/data/tiles/console.chr"
     .assert * - :- = kSizeofChr * $40, error
