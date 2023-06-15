@@ -39,6 +39,7 @@ kMaxForks = 4
 .ENUM eCutscene
     None
     CoreBossPowerUpCircuit
+    CoreSouthCorraHelping
     MermaidHut1BreakerGarden
     PrisonCellGetThrownIn
     PrisonUpperBreakerTemple
@@ -57,6 +58,7 @@ kMaxForks = 4
 
 ;;; Flags to control which tick functions are called during a cutscene.
 .SCOPE bCutscene
+    RoomTick      = %10000000  ; if set, room's Tick_func_ptr gets called
     AvatarRagdoll = %01000000  ; if set, player avatar uses ragdoll physics
 .ENDSCOPE
 
@@ -82,6 +84,9 @@ kMaxForks = 4
     ;; Ends the cutscene immediately, jumping to the specified main, even if
     ;; other cutscene forks are still executing.
     JumpToMain         ; args: main ptr (2 bytes)
+    ;; Suspends the current cutscene fork for the specified number of frames,
+    ;; calling the specified function once each frame.
+    RepeatFunc         ; args: number of frames, func ptr (2 bytes)
     ;; Starts the specified dialog, and suspends *all* cutscene forks while the
     ;; dialog runs.  The cutscene will continue once the dialog is done.
     RunDialog          ; args: eDialog value

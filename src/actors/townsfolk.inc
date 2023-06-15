@@ -19,7 +19,7 @@
 
 ;;; State bytes for adult/mermaid NPCs:
 ;;;   * State1: The first tile ID for the actor.
-;;;   * State2: Boolean; If true ($ff), the NPC uses Ram_ActorFlags_bObj_arr
+;;;   * State2: Boolean; if true ($ff), the NPC uses Ram_ActorFlags_bObj_arr
 ;;;     unchanged; if false ($00), the NPC is automatically drawn facing the
 ;;;     player avatar.
 ;;;   * State3: Unused.
@@ -31,13 +31,22 @@ kTileIdAdultWomanFirst = $d0
 kTileIdAdultManFirst   = $d6
 
 ;;; The first tile IDs for various mermaids.
-kTileIdMermaidCorraFirst   = $8e
-kTileIdMermaidFloristFirst = $94
-kTileIdMermaidAdultFirst   = $9a
-kTileIdMermaidGuardFFirst  = $a0
-kTileIdMermaidGuardMFirst  = $a6
-kTileIdMermaidPhoebeFirst  = $ac
-kTileIdMermaidFarmerFirst  = $b2
-kTileIdMermaidQueenFirst   = $b8
+kTileIdCorraSwimmingDownFirst = $e0
+kTileIdCorraSwimmingDown1     = kTileIdCorraSwimmingDownFirst + 0
+kTileIdCorraSwimmingDown2     = kTileIdCorraSwimmingDownFirst + 6
+kTileIdCorraSwimmingUpFirst   = $f0
+kTileIdCorraSwimmingUp1       = kTileIdCorraSwimmingUpFirst + 0
+kTileIdCorraSwimmingUp2       = kTileIdCorraSwimmingUpFirst + 8
+kTileIdMermaidCorraFirst      = $8e
+kTileIdMermaidFloristFirst    = $94
+kTileIdMermaidAdultFirst      = $9a
+kTileIdMermaidGuardFFirst     = $a0
+kTileIdMermaidGuardMFirst     = $a6
+kTileIdMermaidPhoebeFirst     = $ac
+kTileIdMermaidFarmerFirst     = $b2
+kTileIdMermaidQueenFirst      = $b8
+
+;;; Mermaid first tile IDs of this or more must be drawn 2x4 instead of 2x3.
+kFirst2x4MermaidTileId = kTileIdCorraSwimmingUpFirst
 
 ;;;=========================================================================;;;

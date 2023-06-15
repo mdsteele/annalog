@@ -27,6 +27,7 @@
 .INCLUDE "oam.inc"
 
 .IMPORT DataA_Cutscene_CoreBossPowerUpCircuit_sCutscene
+.IMPORT DataA_Cutscene_CoreSouthCorraHelping_sCutscene
 .IMPORT DataA_Cutscene_MermaidHut1BreakerGarden_sCutscene
 .IMPORT DataA_Cutscene_PrisonCellGetThrownIn_sCutscene
 .IMPORT DataA_Cutscene_PrisonUpperBreakerTemple_sCutscene
@@ -41,6 +42,7 @@
 .IMPORT FuncA_Actor_TickAllSmokeActors
 .IMPORT FuncA_Avatar_RagdollMove
 .IMPORT FuncA_Objects_DrawObjectsForRoom
+.IMPORT FuncA_Room_CallRoomTick
 .IMPORT FuncA_Terrain_ScrollTowardsGoal
 .IMPORT Func_ClearRestOfOamAndProcessFrame
 .IMPORT Func_ShakeRoom
@@ -118,6 +120,13 @@ _GameLoop:
     jsr_prga FuncA_Terrain_ScrollTowardsGoal
     jsr_prga FuncA_Actor_TickAllSmokeActors
     jsr Func_TickAllDevices
+_MaybeTickRoom:
+    bit Zp_CutsceneFlags_bCutscene
+    .assert bCutscene::RoomTick = bProc::Negative, error
+    bpl @noRoomTick
+    jsr_prga FuncA_Room_CallRoomTick
+    @noRoomTick:
+_MaybeAvatarRagdoll:
     bit Zp_CutsceneFlags_bCutscene
     .assert bCutscene::AvatarRagdoll = bProc::Overflow, error
     bvc @noRagdoll
@@ -146,6 +155,8 @@ _Finish:
     d_entry table, None, DataA_Cutscene_Null_sCutscene
     d_entry table, CoreBossPowerUpCircuit, \
             DataA_Cutscene_CoreBossPowerUpCircuit_sCutscene
+    d_entry table, CoreSouthCorraHelping, \
+            DataA_Cutscene_CoreSouthCorraHelping_sCutscene
     d_entry table, MermaidHut1BreakerGarden, \
             DataA_Cutscene_MermaidHut1BreakerGarden_sCutscene
     d_entry table, PrisonCellGetThrownIn, \
@@ -270,6 +281,7 @@ _InitMainFork:
     d_entry table, ForkStart,         _ForkStart
     d_entry table, ForkStop,          _ForkStop
     d_entry table, JumpToMain,        _JumpToMain
+    d_entry table, RepeatFunc,        _RepeatFunc
     d_entry table, RunDialog,         _RunDialog
     d_entry table, SetActorFlags,     _SetActorFlags
     d_entry table, SetActorPosX,      _SetActorPosX
@@ -351,6 +363,21 @@ _JumpToMain:
     lda (T1T0), y
     stax T1T0
     sec  ; exit cutscene mode
+    rts
+_RepeatFunc:
+    ldx T2  ; current fork index
+    lda (T1T0), y
+    cmp Ram_CutsceneTimer_u8_arr, x
+    bne @stillWaiting
+    lda #0
+    sta Ram_CutsceneTimer_u8_arr, x
+    ldy #4  ; param: byte offset
+    jmp FuncA_Cutscene_AdvanceForkAndExecute
+    @stillWaiting:
+    inc Ram_CutsceneTimer_u8_arr, x
+    iny
+    jsr _CallFuncArg
+    clc  ; cutscene should continue
     rts
 _RunDialog:
     lda (T1T0), y

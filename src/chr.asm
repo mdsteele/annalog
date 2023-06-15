@@ -1145,7 +1145,11 @@
     .res $04 * kSizeofChr
     .assert * - :- = (kTileIdObjFishFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/fish.chr"
-    .res $20 * kSizeofChr
+    .assert * - :- = (kTileIdCorraSwimmingDownFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/corra_swimming_down.chr"
+    .res $04 * kSizeofChr
+    .assert * - :- = (kTileIdCorraSwimmingUpFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/corra_swimming_up.chr"
 .ENDPROC
 
 ;;;=========================================================================;;;

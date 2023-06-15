@@ -20,10 +20,12 @@
 .INCLUDE "../actor.inc"
 .INCLUDE "../actors/townsfolk.inc"
 .INCLUDE "../charmap.inc"
+.INCLUDE "../cutscene.inc"
 .INCLUDE "../device.inc"
 .INCLUDE "../dialog.inc"
 .INCLUDE "../flag.inc"
 .INCLUDE "../macros.inc"
+.INCLUDE "../oam.inc"
 .INCLUDE "../platform.inc"
 .INCLUDE "../room.inc"
 .INCLUDE "core_south.inc"
@@ -35,18 +37,29 @@
 .IMPORT FuncA_Objects_MoveShapeDownOneTile
 .IMPORT FuncA_Objects_MoveShapeRightByA
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
+.IMPORT Func_FindEmptyActorSlot
+.IMPORT Func_InitActorSmokeExplosion
 .IMPORT Func_MovePlatformTopTowardPointY
 .IMPORT Func_MovePointDownByA
 .IMPORT Func_MovePointVert
 .IMPORT Func_Noop
+.IMPORT Func_SetActorCenterToPoint
 .IMPORT Func_SetFlag
+.IMPORT Func_SetPointToPlatformCenter
 .IMPORT Ppu_ChrObjGarden
+.IMPORT Ram_ActorPosX_i16_0_arr
+.IMPORT Ram_ActorPosY_i16_0_arr
+.IMPORT Ram_ActorState1_byte_arr
+.IMPORT Ram_ActorSubX_u8_arr
+.IMPORT Ram_ActorSubY_u8_arr
 .IMPORT Ram_ActorType_eActor_arr
 .IMPORT Ram_DeviceType_eDevice_arr
 .IMPORT Ram_PlatformBottom_i16_0_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORT Sram_ProgressFlags_arr
 .IMPORTZP Zp_AvatarPlatformIndex_u8
+.IMPORTZP Zp_FrameCounter_u8
+.IMPORTZP Zp_Next_eCutscene
 .IMPORTZP Zp_PointY_i16
 .IMPORTZP Zp_RoomState
 
@@ -147,7 +160,7 @@ _Platforms_sPlatform_arr:
     D_END
     .assert * - :- = kAnchor1PlatformIndex * .sizeof(sPlatform), error
     D_STRUCT sPlatform
-    d_byte Type_ePlatform, ePlatform::Water
+    d_byte Type_ePlatform, ePlatform::Zone
     d_word WidthPx_u16, $08
     d_byte HeightPx_u8, $08
     d_word Left_i16,  $0064
@@ -155,7 +168,7 @@ _Platforms_sPlatform_arr:
     D_END
     .assert * - :- = kAnchor2PlatformIndex * .sizeof(sPlatform), error
     D_STRUCT sPlatform
-    d_byte Type_ePlatform, ePlatform::Water
+    d_byte Type_ePlatform, ePlatform::Zone
     d_word WidthPx_u16, $08
     d_byte HeightPx_u8, $08
     d_word Left_i16,  $00bc
@@ -163,7 +176,7 @@ _Platforms_sPlatform_arr:
     D_END
     .assert * - :- = kAnchor3PlatformIndex * .sizeof(sPlatform), error
     D_STRUCT sPlatform
-    d_byte Type_ePlatform, ePlatform::Water
+    d_byte Type_ePlatform, ePlatform::Zone
     d_word WidthPx_u16, $08
     d_byte HeightPx_u8, $08
     d_word Left_i16,  $0084
@@ -219,14 +232,14 @@ _Devices_sDevice_arr:
     d_byte Type_eDevice, eDevice::TalkRight
     d_byte BlockRow_u8, 10
     d_byte BlockCol_u8, 5
-    d_byte Target_u8, eDialog::CoreSouthCorra
+    d_byte Target_u8, eDialog::CoreSouthCorra1
     D_END
     .assert * - :- = kCorraDeviceIndexLeft * .sizeof(sDevice), error
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::TalkLeft
     d_byte BlockRow_u8, 10
     d_byte BlockCol_u8, 6
-    d_byte Target_u8, eDialog::CoreSouthCorra
+    d_byte Target_u8, eDialog::CoreSouthCorra1
     D_END
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None
@@ -374,11 +387,102 @@ _UpperCrates:
 
 ;;;=========================================================================;;;
 
+.SEGMENT "PRGA_Cutscene"
+
+.EXPORT DataA_Cutscene_CoreSouthCorraHelping_sCutscene
+.PROC DataA_Cutscene_CoreSouthCorraHelping_sCutscene
+    .byte eAction::SetCutsceneFlags, bCutscene::RoomTick
+    .byte eAction::SetActorState2, kCorraActorIndex, $ff
+    .byte eAction::RepeatFunc, 123
+    .addr _SwimDownFunc
+    .byte eAction::RepeatFunc, 40
+    .addr _AnimateSwimmingDownFunc
+    .byte eAction::CallFunc
+    .addr _ReleaseCratesFunc
+    .byte eAction::RepeatFunc, 40
+    .addr _AnimateSwimmingDownFunc
+    .byte eAction::SetActorFlags, kCorraActorIndex, bObj::FlipH
+    .byte eAction::RepeatFunc, 82
+    .addr _SwimUpFunc
+    .byte eAction::SetActorState1, kCorraActorIndex, kTileIdMermaidCorraFirst
+    .byte eAction::WaitFrames, 15
+    .byte eAction::SetActorState2, kCorraActorIndex, 0
+    .byte eAction::WaitFrames, 15
+    .byte eAction::RunDialog, eDialog::CoreSouthCorra2
+    .byte eAction::ContinueExploring
+_SwimDownFunc:
+    lda Ram_ActorSubY_u8_arr + kCorraActorIndex
+    add #$80
+    sta Ram_ActorSubY_u8_arr + kCorraActorIndex
+    lda Ram_ActorPosY_i16_0_arr + kCorraActorIndex
+    adc #0
+    sta Ram_ActorPosY_i16_0_arr + kCorraActorIndex
+    lda Ram_ActorSubX_u8_arr + kCorraActorIndex
+    add #$40
+    sta Ram_ActorSubX_u8_arr + kCorraActorIndex
+    lda Ram_ActorPosX_i16_0_arr + kCorraActorIndex
+    adc #0
+    sta Ram_ActorPosX_i16_0_arr + kCorraActorIndex
+_AnimateSwimmingDownFunc:
+    ldy #kTileIdCorraSwimmingDown1
+    lda Zp_FrameCounter_u8
+    and #$08
+    beq @setState1
+    ldy #kTileIdCorraSwimmingDown2
+    @setState1:
+    sty Ram_ActorState1_byte_arr + kCorraActorIndex
+    rts
+_ReleaseCratesFunc:
+    jsr Func_FindEmptyActorSlot  ; returns C and X
+    bcs @doneSmoke
+    ldy #kAnchor3PlatformIndex  ; param: platform index
+    jsr Func_SetPointToPlatformCenter  ; preserves X
+    jsr Func_SetActorCenterToPoint  ; preserves X
+    jsr Func_InitActorSmokeExplosion
+    @doneSmoke:
+    ldx #eFlag::CoreSouthCorraHelped  ; param: flag
+    jmp Func_SetFlag
+_SwimUpFunc:
+    lda Ram_ActorSubY_u8_arr + kCorraActorIndex
+    sub #$c0
+    sta Ram_ActorSubY_u8_arr + kCorraActorIndex
+    lda Ram_ActorPosY_i16_0_arr + kCorraActorIndex
+    sbc #0
+    sta Ram_ActorPosY_i16_0_arr + kCorraActorIndex
+    lda Ram_ActorSubX_u8_arr + kCorraActorIndex
+    sub #$60
+    sta Ram_ActorSubX_u8_arr + kCorraActorIndex
+    lda Ram_ActorPosX_i16_0_arr + kCorraActorIndex
+    sbc #0
+    sta Ram_ActorPosX_i16_0_arr + kCorraActorIndex
+_AnimateSwimmingUpFunc:
+    ldy #kTileIdCorraSwimmingUp1
+    lda Zp_FrameCounter_u8
+    and #$08
+    beq @setState1
+    ldy #kTileIdCorraSwimmingUp2
+    @setState1:
+    sty Ram_ActorState1_byte_arr + kCorraActorIndex
+    rts
+.ENDPROC
+
+;;;=========================================================================;;;
+
 .SEGMENT "PRGA_Dialog"
 
-.EXPORT DataA_Dialog_CoreSouthCorra_sDialog
-.PROC DataA_Dialog_CoreSouthCorra_sDialog
-    ;; TODO: Once Corra has released the crates, skip to the latter dialog.
+.EXPORT DataA_Dialog_CoreSouthCorra1_sDialog
+.PROC DataA_Dialog_CoreSouthCorra1_sDialog
+    .addr _CheckIfHelpedFunc
+_CheckIfHelpedFunc:
+    flag_bit Sram_ProgressFlags_arr, eFlag::CoreSouthCorraHelped
+    beq _HelloAgainFunc
+_AlreadyHelpedFunc:
+    ldya #DataA_Dialog_CoreSouthCorra2_sDialog
+    rts
+_HelloAgainFunc:
+    ldya #_HelloAgain_sDialog
+    rts
+_HelloAgain_sDialog:
     .word ePortrait::MermaidCorra
     .byte "Hello again! I heard$"
     .byte "that you were going to$"
@@ -395,15 +499,21 @@ _UpperCrates:
     .byte "can help you...#"
     .addr _HelpFunc
 _HelpFunc:
-    ;; TODO: play a cutscene showing Corra diving down to release the crates
-    ldx #eFlag::CoreSouthCorraHelped  ; param: flag
-    jsr Func_SetFlag
-    ldya #_GoodLuck_sDialog
+    lda #eCutscene::CoreSouthCorraHelping
+    sta Zp_Next_eCutscene
+    ldya #DataA_Dialog_CoreSouthEmpty_sDialog
     rts
-_GoodLuck_sDialog:
+.ENDPROC
+
+.EXPORT DataA_Dialog_CoreSouthCorra2_sDialog
+.PROC DataA_Dialog_CoreSouthCorra2_sDialog
     .word ePortrait::MermaidCorra
     .byte "Good luck! And be$"
     .byte "careful!#"
+    .assert * = DataA_Dialog_CoreSouthEmpty_sDialog, error, "fallthrough"
+.ENDPROC
+
+.PROC DataA_Dialog_CoreSouthEmpty_sDialog
     .word ePortrait::Done
 .ENDPROC
 

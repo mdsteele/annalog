@@ -80,7 +80,9 @@ kPaletteObjMermaidQueenHead = 1
     .assert kPaletteObjMermaid = 0, error
     tay  ; param: object flags
     lda Ram_ActorState1_byte_arr, x  ; param: first tile ID
-    jmp FuncA_Objects_Draw2x3TownsfolkShape  ; preserves X
+    cmp #kFirst2x4MermaidTileId
+    blt FuncA_Objects_Draw2x3TownsfolkShape  ; preserves X
+    jmp FuncA_Objects_Draw2x4TownsfolkShape  ; preserves X
 _VertOffset_u8_arr8:
     .byte 0, 0, 0, 1, 2, 2, 2, 1
 .ENDPROC
@@ -128,6 +130,7 @@ _BottomThird:
 _TopTwoThirds:
     jsr FuncA_Objects_MoveShapeUpOneTile  ; preserves X and T0+
     lda T3  ; param: object flags
+    ;; TODO: This could just be Draw2x2Shape if we re-ordered the tiles.
     jsr FuncA_Objects_Alloc2x2Shape  ; preserves X and T2+, returns C and Y
     bcs @doneTop
     lda T2  ; first tile ID
@@ -140,6 +143,28 @@ _TopTwoThirds:
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Tile_u8, y
     @doneTop:
     rts
+.ENDPROC
+
+;;; Draws a 2x4-tile shape, using the given first tile ID and the seven
+;;; subsequent tile IDs.
+;;; @prereq The shape position has been initialized.
+;;; @param A The first tile ID.
+;;; @param Y The object flags to use.
+;;; @preserve X
+.PROC FuncA_Objects_Draw2x4TownsfolkShape
+    sta T2  ; first tile ID
+    sty T3  ; object flags
+_TopHalf:
+    jsr FuncA_Objects_MoveShapeUpOneTile  ; preserves X, Y, and T0+
+    lda T2  ; param: first tile ID
+    jsr FuncA_Objects_Draw2x2Shape  ; preserves X and T2+
+_BottomHalf:
+    lda #kTileHeightPx * 2  ; param: offset
+    jsr FuncA_Objects_MoveShapeDownByA  ; preserves X and T0+
+    lda T2  ; first tile ID
+    add #4  ; param: first tile ID
+    ldy T3  ; param: object flags
+    jmp FuncA_Objects_Draw2x2Shape  ; preserves X
 .ENDPROC
 
 ;;;=========================================================================;;;
