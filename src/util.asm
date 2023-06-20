@@ -23,13 +23,6 @@
 
 .SEGMENT "PRG8"
 
-;;; Does nothing and returns immediately.  Can be used as a null function
-;;; pointer.
-.EXPORT Func_Noop
-.PROC Func_Noop
-    rts
-.ENDPROC
-
 ;;; Maps from N to 2^N for 0 <= N < 8.
 .EXPORT Data_PowersOfTwo_u8_arr8
 .PROC Data_PowersOfTwo_u8_arr8

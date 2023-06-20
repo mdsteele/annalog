@@ -80,8 +80,8 @@ _TerrainData:
     .incbin "out/data/mermaid_village2.room"
     .assert * - :- = 50 * 24, error
 _Platforms_sPlatform_arr:
-    ;; Water for upper-left passage:
-:   D_STRUCT sPlatform
+:   ;; Water for upper-left passage:
+    D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Water
     d_word WidthPx_u16, $b0
     d_byte HeightPx_u8, $30

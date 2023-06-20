@@ -62,6 +62,8 @@ _TerrainData:
 :   .incbin "out/data/mine_south.room"
     .assert * - :- = 33 * 24, error
 _Platforms_sPlatform_arr:
+:   ;; TODO: add machine platforms?
+    .assert * - :- <= kMaxPlatforms * .sizeof(sPlatform), error
     .byte ePlatform::None
 _Actors_sActor_arr:
 :   D_STRUCT sActor
@@ -73,6 +75,8 @@ _Actors_sActor_arr:
     .assert * - :- <= kMaxActors * .sizeof(sActor), error
     .byte eActor::None
 _Devices_sDevice_arr:
+:   ;; TODO: add consoles?
+    .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None
 _Passages_sPassage_arr:
 :   D_STRUCT sPassage

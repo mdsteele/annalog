@@ -34,7 +34,7 @@ PATTERNS = [
     ('trailing whitespace', re.compile(r' $')),
     ('unindented .directive', re.compile(r'^\.[a-z]')),
     ('wrong comment style',
-     re.compile(r'^[ \t]+;;;|^;;[^;]|^[ \t]*; |^[^;]*[^; \t][^;]*;;')),
+     re.compile(r'^[ \t]+;;;|^;;[^;]|^[ \t]*; |^[^;]*[^;: \t][^;]*;;')),
 ]
 
 EXPORT_PATTERN = re.compile(r'^\.EXPORT(?:ZP)? +([A-Za-z0-9_]+)$')

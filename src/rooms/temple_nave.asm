@@ -36,6 +36,7 @@
 .INCLUDE "../room.inc"
 
 .IMPORT DataA_Room_Temple_sTileset
+.IMPORT Data_Empty_sDialog
 .IMPORT FuncA_Machine_CarriageTryMove
 .IMPORT FuncA_Machine_Error
 .IMPORT FuncA_Machine_GenericMoveTowardGoalHorz
@@ -692,7 +693,7 @@ _SetUpBoostingPlatform:
 _CutsceneFunc:
     lda #eCutscene::TempleNaveAlexBoosting
     sta Zp_Next_eCutscene
-    ldya #DataA_Dialog_TempleNaveEmpty_sDialog
+    ldya #Data_Empty_sDialog
     rts
 .ENDPROC
 
@@ -701,10 +702,6 @@ _CutsceneFunc:
     .word ePortrait::ChildAlex
     .byte "Hop on up. I'll give$"
     .byte "you a boost.#"
-    .assert * = DataA_Dialog_TempleNaveEmpty_sDialog, error, "fallthrough"
-.ENDPROC
-
-.PROC DataA_Dialog_TempleNaveEmpty_sDialog
     .word ePortrait::Done
 .ENDPROC
 

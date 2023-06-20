@@ -28,6 +28,7 @@
 .INCLUDE "../room.inc"
 
 .IMPORT DataA_Room_Hut_sTileset
+.IMPORT Data_Empty_sActor_arr
 .IMPORT FuncA_Machine_Error
 .IMPORT FuncA_Machine_ReachedGoal
 .IMPORT FuncA_Machine_StartWorking
@@ -76,7 +77,7 @@ _Ext_sRoomExt:
     D_STRUCT sRoomExt
     d_addr Terrain_sTileset_ptr, DataA_Room_Hut_sTileset
     d_addr Platforms_sPlatform_arr_ptr, _Platforms_sPlatform_arr
-    d_addr Actors_sActor_arr_ptr, _Actors_sActor_arr
+    d_addr Actors_sActor_arr_ptr, Data_Empty_sActor_arr
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
     d_addr Passages_sPassage_arr_ptr, 0
     d_addr Enter_func_ptr, Func_Noop
@@ -124,7 +125,7 @@ _Machines_sMachine_arr:
     d_addr Reset_func_ptr, FuncC_Mermaid_Hut6Machine_Reset
     D_END
 _Platforms_sPlatform_arr:
-    D_STRUCT sPlatform
+:   D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Solid
     d_word WidthPx_u16, $10
     d_byte HeightPx_u8, $08
@@ -138,11 +139,10 @@ _Platforms_sPlatform_arr:
     d_word Left_i16,  $0070
     d_word Top_i16, kMachineInitPlatformTop
     D_END
+    .assert * - :- <= kMaxPlatforms * .sizeof(sPlatform), error
     .byte ePlatform::None
-_Actors_sActor_arr:
-    .byte eActor::None
 _Devices_sDevice_arr:
-    D_STRUCT sDevice
+:   D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Console
     d_byte BlockRow_u8, 11
     d_byte BlockCol_u8, 5
@@ -160,6 +160,7 @@ _Devices_sDevice_arr:
     d_byte BlockCol_u8, 9
     d_byte Target_u8, eRoom::MermaidEast
     D_END
+    .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None
 .ENDPROC
 

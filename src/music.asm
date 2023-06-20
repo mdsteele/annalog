@@ -23,6 +23,7 @@
 .IMPORT DataC_Boss_BossPlaceholder_sMusic
 .IMPORT DataC_Mine_MinePlaceholder_sMusic
 .IMPORT DataC_Temple_TemplePlaceholder_sMusic
+.IMPORT Data_Empty_bMusic_arr
 .IMPORT Data_Title_Placeholder_sMusic
 
 ;;;=========================================================================;;;
@@ -47,12 +48,10 @@
 ;;; A sMusic struct that just plays silence.
 .PROC Data_Silence_sMusic
     D_STRUCT sMusic
-    d_addr Opcodes_bMusic_arr_ptr, _Opcodes_bMusic_arr
+    d_addr Opcodes_bMusic_arr_ptr, Data_Empty_bMusic_arr
     d_addr Parts_sPart_arr_ptr, 0
     d_addr Phrases_sPhrase_ptr_arr_ptr, 0
     D_END
-_Opcodes_bMusic_arr:
-    .byte $00  ; STOP opcode
 .ENDPROC
 
 ;;;=========================================================================;;;

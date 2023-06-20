@@ -62,7 +62,7 @@ ROOMFILES := \
 
 NSF_CFGFILE = nsf/nsf.cfg
 NSF_OBJFILES := $(OUTDIR)/nsf/nsf.o \
-  $(OBJDIR)/audio.o $(OBJDIR)/inst.o $(OBJDIR)/music.o \
+  $(OBJDIR)/audio.o $(OBJDIR)/inst.o $(OBJDIR)/music.o $(OBJDIR)/null.o \
   $(patsubst $(SRCDIR)/music/%.sng,$(GENDIR)/music/%.o,$(SNGFILES))
 
 SIM65_DIR = $(OUTDIR)/sim65
@@ -200,7 +200,7 @@ $(SIM65_DIR)/%.o: $(TESTDIR)/%.asm $(INCFILES)
 .SECONDARY: $(SIM65_OBJS)
 
 $(SIM65_DIR)/%: $(TESTDIR)/%.cfg $(SIM65_DIR)/%.o $(OBJDIR)/%.o \
-                $(SIM65_DIR)/sim65.o
+                $(SIM65_DIR)/sim65.o $(OBJDIR)/null.o
 	$(link-test)
 
 #=============================================================================#

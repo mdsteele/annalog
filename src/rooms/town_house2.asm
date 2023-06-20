@@ -32,6 +32,7 @@
 .INCLUDE "../spawn.inc"
 
 .IMPORT DataA_Room_House_sTileset
+.IMPORT Data_Empty_sPlatform_arr
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrObjTown
 .IMPORTZP Zp_AvatarFlags_bObj
@@ -72,7 +73,7 @@ kAnnaSleepPositionY = $c1
 _Ext_sRoomExt:
     D_STRUCT sRoomExt
     d_addr Terrain_sTileset_ptr, DataA_Room_House_sTileset
-    d_addr Platforms_sPlatform_arr_ptr, _Platforms_sPlatform_arr
+    d_addr Platforms_sPlatform_arr_ptr, Data_Empty_sPlatform_arr
     d_addr Actors_sActor_arr_ptr, _Actors_sActor_arr
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
     d_addr Passages_sPassage_arr_ptr, 0
@@ -82,8 +83,6 @@ _Ext_sRoomExt:
 _TerrainData:
 :   .incbin "out/data/town_house2.room"
     .assert * - :- = 16 * 15, error
-_Platforms_sPlatform_arr:
-    .byte ePlatform::None
 _Actors_sActor_arr:
 :   D_STRUCT sActor
     d_byte Type_eActor, eActor::NpcAdult

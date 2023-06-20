@@ -26,6 +26,7 @@
 .INCLUDE "../spawn.inc"
 
 .IMPORT DataA_Room_Crypt_sTileset
+.IMPORT Data_Empty_sDevice_arr
 .IMPORT Func_Noop
 .IMPORT Func_SetFlag
 .IMPORT Ppu_ChrObjCrypt
@@ -60,7 +61,7 @@ _Ext_sRoomExt:
     d_addr Terrain_sTileset_ptr, DataA_Room_Crypt_sTileset
     d_addr Platforms_sPlatform_arr_ptr, _Platforms_sPlatform_arr
     d_addr Actors_sActor_arr_ptr, _Actors_sActor_arr
-    d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
+    d_addr Devices_sDevice_arr_ptr, Data_Empty_sDevice_arr
     d_addr Passages_sPassage_arr_ptr, _Passages_sPassage_arr
     d_addr Enter_func_ptr, FuncC_Crypt_Landing_EnterRoom
     d_addr FadeIn_func_ptr, Func_Noop
@@ -100,9 +101,9 @@ _Platforms_sPlatform_arr:
     .assert * - :- <= kMaxPlatforms * .sizeof(sPlatform), error
     .byte ePlatform::None
 _Actors_sActor_arr:
+:   ;; TODO: add some baddies?
+    .assert * - :- <= kMaxActors * .sizeof(sActor), error
     .byte eActor::None
-_Devices_sDevice_arr:
-    .byte eDevice::None
 _Passages_sPassage_arr:
 :   .assert * - :- = kShaftPassageIndex * .sizeof(sPassage), error
     D_STRUCT sPassage

@@ -24,6 +24,7 @@
 .INCLUDE "../room.inc"
 
 .IMPORT DataA_Room_Temple_sTileset
+.IMPORT Data_Empty_sPlatform_arr
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrObjTemple
 
@@ -50,7 +51,7 @@
 _Ext_sRoomExt:
     D_STRUCT sRoomExt
     d_addr Terrain_sTileset_ptr, DataA_Room_Temple_sTileset
-    d_addr Platforms_sPlatform_arr_ptr, _Platforms_sPlatform_arr
+    d_addr Platforms_sPlatform_arr_ptr, Data_Empty_sPlatform_arr
     d_addr Actors_sActor_arr_ptr, _Actors_sActor_arr
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
     d_addr Passages_sPassage_arr_ptr, _Passages_sPassage_arr
@@ -60,9 +61,9 @@ _Ext_sRoomExt:
 _TerrainData:
 :   .incbin "out/data/temple_spire.room"
     .assert * - :- = 17 * 24, error
-_Platforms_sPlatform_arr:
-    .byte ePlatform::None
 _Actors_sActor_arr:
+:   ;; TODO: add some baddies
+    .assert * - :- <= kMaxActors * .sizeof(sActor), error
     .byte eActor::None
 _Devices_sDevice_arr:
 :   D_STRUCT sDevice

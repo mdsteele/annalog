@@ -36,6 +36,8 @@
 .INCLUDE "../room.inc"
 
 .IMPORT DataA_Room_Outdoors_sTileset
+.IMPORT Data_Empty_sDialog
+.IMPORT Data_Empty_sPlatform_arr
 .IMPORT Func_AckIrqAndLatchWindowFromParam3
 .IMPORT Func_AckIrqAndSetLatch
 .IMPORT Func_HarmAvatar
@@ -134,7 +136,7 @@ kOrc2InitPosX   = $05f9
 _Ext_sRoomExt:
     D_STRUCT sRoomExt
     d_addr Terrain_sTileset_ptr, DataA_Room_Outdoors_sTileset
-    d_addr Platforms_sPlatform_arr_ptr, _Platforms_sPlatform_arr
+    d_addr Platforms_sPlatform_arr_ptr, Data_Empty_sPlatform_arr
     d_addr Actors_sActor_arr_ptr, _Actors_sActor_arr
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
     d_addr Passages_sPassage_arr_ptr, 0
@@ -146,8 +148,6 @@ _TerrainData:
     .incbin "out/data/town_outdoors2.room"
     .incbin "out/data/town_outdoors3.room"
     .assert * - :- = 96 * 15, error
-_Platforms_sPlatform_arr:
-    .byte ePlatform::None
 _Actors_sActor_arr:
 :   .assert * - :- = kAlexActorIndex * .sizeof(sActor), error
     D_STRUCT sActor
@@ -341,7 +341,7 @@ _DetectAvatarDeath:
 _CutsceneFunc:
     lda #eCutscene::TownOutdoorsOrcAttack
     sta Zp_Next_eCutscene
-    ldya #DataC_Town_TownOutdoorsEmpty_sDialog
+    ldya #Data_Empty_sDialog
     rts
 .ENDPROC
 
@@ -425,7 +425,7 @@ _OrcJumpFunc:
     jsr FuncC_Town_Outdoors_MakeOrcJump
     lda #30
     sta Zp_RoomState + sState::OrcJumpTimer_u8
-    ldya #DataC_Town_TownOutdoorsEmpty_sDialog
+    ldya #Data_Empty_sDialog
     rts
 .ENDPROC
 
@@ -475,10 +475,6 @@ _OrcJumpFunc:
     .word ePortrait::Sign
     .byte "$"
     .byte " Bartik Town Hall#"
-    .assert * = DataC_Town_TownOutdoorsEmpty_sDialog, error, "fallthrough"
-.ENDPROC
-
-.PROC DataC_Town_TownOutdoorsEmpty_sDialog
     .word ePortrait::Done
 .ENDPROC
 

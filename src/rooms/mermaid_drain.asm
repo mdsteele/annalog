@@ -172,6 +172,8 @@ _Platforms_sPlatform_arr:
     D_END
     .byte ePlatform::None
 _Actors_sActor_arr:
+:   ;; TODO: add Alex actor for cutscene
+    .assert * - :- <= kMaxActors * .sizeof(sActor), error
     .byte eActor::None
 _Devices_sDevice_arr:
 :   D_STRUCT sDevice

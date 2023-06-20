@@ -141,8 +141,8 @@ _Platforms_sPlatform_arr:
     .assert * - :- <= kMaxPlatforms * .sizeof(sPlatform), error
     .byte ePlatform::None
 _Actors_sActor_arr:
-    ;; The enemy that can get squished by the lift machine:
-:   .assert * - :- = kSquishableActorIndex * .sizeof(sPlatform), error
+:   ;; The enemy that can get squished by the lift machine:
+    .assert * - :- = kSquishableActorIndex * .sizeof(sPlatform), error
     D_STRUCT sActor
     d_byte Type_eActor, eActor::BadGrub
     d_word PosX_i16, $0098

@@ -24,6 +24,7 @@
 .INCLUDE "music.inc"
 .INCLUDE "sound.inc"
 
+.IMPORT Data_Empty_sPhrase
 .IMPORT Data_Music_sMusic_ptr_0_arr
 .IMPORT Data_Music_sMusic_ptr_1_arr
 .IMPORT Func_AudioCallInstrument
@@ -146,11 +147,6 @@ Ram_Sound_sChanSfx_arr: .res .sizeof(sChanSfx) * kNumApuChannels
 .EXPORT Data_EmptyChain_u8_arr
 .PROC Data_EmptyChain_u8_arr
     .byte $ff  ; end-of-chain
-.ENDPROC
-
-;;; A sPhrase struct that contains no notes.
-.PROC Data_Empty_sPhrase
-    .byte $00
 .ENDPROC
 
 ;;; Mutes all APU channels, resets APU registers, disables APU IRQs, and

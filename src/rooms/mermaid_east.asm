@@ -64,7 +64,7 @@ _TerrainData:
 :   .incbin "out/data/mermaid_east.room"
     .assert * - :- = 33 * 24, error
 _Platforms_sPlatform_arr:
-    D_STRUCT sPlatform
+:   D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Water
     d_word WidthPx_u16, $50
     d_byte HeightPx_u8, $20
@@ -99,9 +99,10 @@ _Platforms_sPlatform_arr:
     d_word Left_i16,  $0030
     d_word Top_i16,   $0078
     D_END
+    .assert * - :- <= kMaxPlatforms * .sizeof(sPlatform), error
     .byte ePlatform::None
 _Actors_sActor_arr:
-    D_STRUCT sActor
+:   D_STRUCT sActor
     d_byte Type_eActor, eActor::BadCrab
     d_word PosX_i16, $0080
     d_word PosY_i16, $0078
@@ -131,14 +132,16 @@ _Actors_sActor_arr:
     d_word PosY_i16, $0140
     d_byte Param_byte, 0
     D_END
+    .assert * - :- <= kMaxActors * .sizeof(sActor), error
     .byte eActor::None
 _Devices_sDevice_arr:
-    D_STRUCT sDevice
+:   D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Door1Open
     d_byte BlockRow_u8, 18
     d_byte BlockCol_u8, 24
     d_byte Target_u8, eRoom::MermaidHut6
     D_END
+    .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None
 _Passages_sPassage_arr:
 :   D_STRUCT sPassage

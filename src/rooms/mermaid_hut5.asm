@@ -28,6 +28,7 @@
 .INCLUDE "../room.inc"
 
 .IMPORT DataA_Room_Hut_sTileset
+.IMPORT Data_Empty_sPlatform_arr
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrObjTown
 
@@ -54,7 +55,7 @@
 _Ext_sRoomExt:
     D_STRUCT sRoomExt
     d_addr Terrain_sTileset_ptr, DataA_Room_Hut_sTileset
-    d_addr Platforms_sPlatform_arr_ptr, _Platforms_sPlatform_arr
+    d_addr Platforms_sPlatform_arr_ptr, Data_Empty_sPlatform_arr
     d_addr Actors_sActor_arr_ptr, _Actors_sActor_arr
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
     d_addr Passages_sPassage_arr_ptr, 0
@@ -64,18 +65,17 @@ _Ext_sRoomExt:
 _TerrainData:
 :   .incbin "out/data/mermaid_hut5.room"
     .assert * - :- = 16 * 15, error
-_Platforms_sPlatform_arr:
-    .byte ePlatform::None
 _Actors_sActor_arr:
-    D_STRUCT sActor
+:   D_STRUCT sActor
     d_byte Type_eActor, eActor::NpcChild
     d_word PosX_i16, $0090
     d_word PosY_i16, $00b8
     d_byte Param_byte, eNpcChild::NoraStanding
     D_END
+    .assert * - :- <= kMaxActors * .sizeof(sActor), error
     .byte eActor::None
 _Devices_sDevice_arr:
-    D_STRUCT sDevice
+:   D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::TalkRight
     d_byte BlockRow_u8, 11
     d_byte BlockCol_u8, 8
@@ -93,6 +93,7 @@ _Devices_sDevice_arr:
     d_byte BlockCol_u8, 6
     d_byte Target_u8, eRoom::MermaidVillage
     D_END
+    .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None
 .ENDPROC
 

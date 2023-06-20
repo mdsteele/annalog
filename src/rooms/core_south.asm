@@ -31,6 +31,7 @@
 .INCLUDE "core_south.inc"
 
 .IMPORT DataA_Room_Core_sTileset
+.IMPORT Data_Empty_sDialog
 .IMPORT FuncA_Objects_Draw1x1Shape
 .IMPORT FuncA_Objects_DrawCratePlatform
 .IMPORT FuncA_Objects_MoveShapeDownByA
@@ -501,7 +502,7 @@ _HelloAgain_sDialog:
 _HelpFunc:
     lda #eCutscene::CoreSouthCorraHelping
     sta Zp_Next_eCutscene
-    ldya #DataA_Dialog_CoreSouthEmpty_sDialog
+    ldya #Data_Empty_sDialog
     rts
 .ENDPROC
 
@@ -510,10 +511,6 @@ _HelpFunc:
     .word ePortrait::MermaidCorra
     .byte "Good luck! And be$"
     .byte "careful!#"
-    .assert * = DataA_Dialog_CoreSouthEmpty_sDialog, error, "fallthrough"
-.ENDPROC
-
-.PROC DataA_Dialog_CoreSouthEmpty_sDialog
     .word ePortrait::Done
 .ENDPROC
 
