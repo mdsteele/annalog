@@ -673,7 +673,7 @@
 .PROC Ppu_ChrBgFontLower1B
 :   .incbin "out/data/tiles/font_lower.chr"
     .res $10 * kSizeofChr
-    .assert .bank(*) = <ePortrait::MermaidQueen, error
+    .assert .bank(*) = <ePortrait::MermaidEirene, error
     .incbin "out/data/tiles/portrait_eirene_rest.chr"
     .assert * - :- = kSizeofChr * $40, error
 .ENDPROC
@@ -685,7 +685,7 @@
 .PROC Ppu_ChrBgFontLower1C
 :   .incbin "out/data/tiles/font_lower.chr"
     .res $10 * kSizeofChr
-    .assert .bank(*) = >ePortrait::MermaidQueen, error
+    .assert .bank(*) = >ePortrait::MermaidEirene, error
     .incbin "out/data/tiles/portrait_eirene_talk.chr"
     .assert * - :- = kSizeofChr * $40, error
 .ENDPROC

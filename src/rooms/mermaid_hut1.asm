@@ -200,28 +200,28 @@ _Quest3Func:
     ldya #_OtherRuins_sDialog
     rts
 _FirstMeeting_sDialog:
-    .word ePortrait::MermaidQueen
+    .word ePortrait::MermaidEirene
     .byte "So, you must be the$"
     .byte "human I've heard is$"
     .byte "running around.#"
-    .word ePortrait::MermaidQueen
+    .word ePortrait::MermaidEirene
     .byte "Humans belong on the$"
     .byte "surface, not here. So$"
     .byte "what are you doing$"
     .byte "down here among us?#"
     ;; TODO: use a dialog function to fade to black and back
-    .word ePortrait::MermaidQueen
+    .word ePortrait::MermaidEirene
     .byte "...I see. So the orcs$"
     .byte "attacked, and now you$"
     .byte "are a refugee. This$"
     .byte "complicates things.#"
-    .word ePortrait::MermaidQueen
+    .word ePortrait::MermaidEirene
     .byte "I will be honest: I do$"
     .byte "not trust humans.$"
     .byte "However, I don't care$"
     .byte "for the orcs either.#"
 _GrantAsylum_sDialog:
-    .word ePortrait::MermaidQueen
+    .word ePortrait::MermaidEirene
     .byte "I will grant you safe$"
     .byte "asylum in our village,$"
     .byte "on one condition: that$"
@@ -233,23 +233,23 @@ _HelpFramersFunc:
     ldya #_HelpFarmers_sDialog
     rts
 _HelpFarmers_sDialog:
-    .word ePortrait::MermaidQueen
+    .word ePortrait::MermaidEirene
     .byte "Speak with our farmers$"
     .byte "in this village. They$"
     .byte "have a problem a human$"
     .byte "could perhaps solve.#"
     .word ePortrait::Done
 _GardenBossDefeated_sDialog:
-    .word ePortrait::MermaidQueen
+    .word ePortrait::MermaidEirene
     .byte "I heard you helped our$"
     .byte "farmers. And you even$"
     .byte "survived. I thank you.#"
-    .word ePortrait::MermaidQueen
+    .word ePortrait::MermaidEirene
     .byte "Perhaps...perhaps you$"
     .byte "could help us with one$"
     .byte "more problem.#"
 _TempleProblem_sDialog:
-    .word ePortrait::MermaidQueen
+    .word ePortrait::MermaidEirene
     .byte "There's a temple west$"
     .byte "of the gardens. It's$"
     .byte "very important to us.$"
@@ -261,40 +261,40 @@ _TemplePermissionFunc:
     ldya #_TemplePermission_sDialog
     rts
 _TemplePermission_sDialog:
-    .word ePortrait::MermaidQueen
+    .word ePortrait::MermaidEirene
     .byte "I'd like you to visit$"
     .byte "the temple. The guards$"
     .byte "east of my hut can$"
     .byte "tell you more.#"
     .word ePortrait::Done
 _TempleBossDefeated_sDialog:
-    .word ePortrait::MermaidQueen
+    .word ePortrait::MermaidEirene
     .byte "I take it that you've$"
     .byte "seen the whole of the$"
     .byte "ruined temple? Maybe$"
     .byte "now you understand.#"
-    .word ePortrait::MermaidQueen
+    .word ePortrait::MermaidEirene
     .byte "Our two peoples built$"
     .byte "it together, centuries$"
     .byte "ago. It was to be a$"
     .byte "symbol of peace.#"
-    .word ePortrait::MermaidQueen
+    .word ePortrait::MermaidEirene
     .byte "But before long, the$"
     .byte "humans desecrated it$"
     .byte "into a mechanized$"
     .byte "fortress instead.#"
-    .word ePortrait::MermaidQueen
+    .word ePortrait::MermaidEirene
     .byte "Humans are just like$"
     .byte "the orcs. Violent and$"
     .byte "untrustworthy, despite$"
     .byte "our best efforts.#"
-    .word ePortrait::MermaidQueen
+    .word ePortrait::MermaidEirene
     .byte "But enough. My scouts$"
     .byte "tell me there is a way$"
     .byte "for you to reach your$"
     .byte "fellow villagers.#"
 _OtherRuins_sDialog:
-    .word ePortrait::MermaidQueen
+    .word ePortrait::MermaidEirene
     .byte "There are...another$"
     .byte "kind of ruins buried$"
     .byte "just above our humble$"
@@ -306,7 +306,7 @@ _FindYourFriendsFunc:
     ldya #_FindYourFriends_sDialog
     rts
 _FindYourFriends_sDialog:
-    .word ePortrait::MermaidQueen
+    .word ePortrait::MermaidEirene
     .byte "If you climb upwards$"
     .byte "through there, you may$"
     .byte "be able to find and$"
@@ -316,7 +316,7 @@ _FindYourFriends_sDialog:
 
 .EXPORT DataA_Dialog_MermaidHut1BreakerGarden_sDialog
 .PROC DataA_Dialog_MermaidHut1BreakerGarden_sDialog
-    .word ePortrait::MermaidQueen
+    .word ePortrait::MermaidEirene
     .byte "What the...What did$"
     .byte "that human just do!?#"
     .word ePortrait::Done

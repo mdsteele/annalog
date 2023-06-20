@@ -41,10 +41,10 @@
     ChildNora      = $0a09  ; same portrait as MermaidPhoebe
     MermaidAdult   = $0605
     MermaidCorra   = $0e0d
+    MermaidEirene  = $1c1b
     MermaidFarmer  = $0807  ; same portrait as AdultMan
     MermaidFlorist = $100f
     MermaidPhoebe  = $0a09  ; same portrait as ChildNora
-    MermaidQueen   = $1c1b  ; TODO: rename to MermaidEirene
     OrcGronta      = $1716
     OrcGrontaShout = $1617
     OrcMale        = $1918
