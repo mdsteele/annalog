@@ -22,7 +22,8 @@
     Constant
     NoiseDrum
     PulseBasic
-    RampUp
+    RampUp  ; TODO: get rid of this
+    TriangleDrum
     TriangleVibrato
     NUM_VALUES
 .ENDENUM

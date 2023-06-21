@@ -35,6 +35,9 @@
     ;; The length of the current tone/rest, in frames.
     DurationFrames_u8  .byte
     ;; The values written to the TimerLo/TimerHi APU registers for this note.
+    ;; Instrument functions may read these values e.g. to implement vibrato.
+    ;; Nothing else reads these, so instrument functions may also override
+    ;; these values if desired.
     TimerLo_byte       .byte
     TimerHi_byte       .byte
 .ENDSTRUCT

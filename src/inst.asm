@@ -67,6 +67,7 @@
     d_entry table, NoiseDrum,       Func_InstrumentNoiseDrum
     d_entry table, PulseBasic,      Func_InstrumentPulseBasic
     d_entry table, RampUp,          Func_InstrumentRampUp
+    d_entry table, TriangleDrum,    Func_InstrumentTriangleDrum
     d_entry table, TriangleVibrato, Func_InstrumentTriangleVibrato
     D_END
 .ENDREPEAT
@@ -133,6 +134,28 @@
     lda #$0f
     @setDuty:
     ora #$b0
+    rts
+.ENDPROC
+
+;;; An instrument for playing bass drum sounds on the triangle channel.  Each
+;;; frame, this increases the timer value (thus lowering the frequency) by the
+;;; instrument param.
+;;; @param X The channel number (0-4) times four (so, 0, 4, 8, 12, or 16).
+;;; @return A The duty/envelope byte to use.
+;;; @preserve X
+.PROC Func_InstrumentTriangleDrum
+_Pitch:
+    lda Ram_Music_sChanNote_arr + sChanNote::TimerLo_byte, x
+    add Ram_Music_sChanInst_arr + sChanInst::Param_byte, x
+    sta Ram_Music_sChanNote_arr + sChanNote::TimerLo_byte, x
+    sta Hw_Channels_sChanRegs_arr5 + sChanRegs::TimerLo_wo, x
+    lda Ram_Music_sChanNote_arr + sChanNote::TimerHi_byte, x
+    adc #0
+    and #$07
+    sta Hw_Channels_sChanRegs_arr5 + sChanRegs::TimerHi_wo, x
+    sta Ram_Music_sChanNote_arr + sChanNote::TimerHi_byte, x
+_Envelope:
+    lda #$ff
     rts
 .ENDPROC
 

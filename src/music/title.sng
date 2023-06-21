@@ -5,10 +5,12 @@
 =tempo q30
 =key 2#  % D major
 
-!INST 1U RampUp    $00
-!INST ND NoiseDrum $0c
+!INST 1U RampUp       $00
+!INST TD TriangleDrum $20
+!INST ND NoiseDrum    $0c
 
 !PART A
 
 1| iU d4e re d3q a3 d3 |
+T| p(iD c4e re)TA pTA pTA pTA |
 N| p(iD x9e x0)NA pNA pNA pNA |
