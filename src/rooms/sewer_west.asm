@@ -171,17 +171,17 @@ _Passages_sPassage_arr:
     D_END
     D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Eastern | 0
-    d_byte Destination_eRoom, eRoom::SewerWest  ; TODO
+    d_byte Destination_eRoom, eRoom::SewerWest  ; TODO SewerNorth
     d_byte SpawnBlock_u8, 5
     D_END
     D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Top | 0
-    d_byte Destination_eRoom, eRoom::SewerWest  ; TODO CityDrain
+    d_byte Destination_eRoom, eRoom::CityDrain
     d_byte SpawnBlock_u8, 9
     D_END
     D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Bottom | 0
-    d_byte Destination_eRoom, eRoom::SewerWest  ; TODO
+    d_byte Destination_eRoom, eRoom::SewerWest  ; TODO SewerSouth
     d_byte SpawnBlock_u8, 9
     D_END
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
