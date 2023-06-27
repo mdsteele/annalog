@@ -152,7 +152,7 @@ _Platforms_sPlatform_arr:
     ;; Lava:
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Kill
-    d_word WidthPx_u16, $180
+    d_word WidthPx_u16, $120
     d_byte HeightPx_u8,  $20
     d_word Left_i16,   $0000
     d_word Top_i16,    $00d3

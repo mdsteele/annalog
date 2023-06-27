@@ -45,6 +45,7 @@
 .INCLUDE "machines/boiler.inc"
 .INCLUDE "machines/cannon.inc"
 .INCLUDE "machines/crane.inc"
+.INCLUDE "machines/emitter.inc"
 .INCLUDE "machines/hoist.inc"
 .INCLUDE "machines/jet.inc"
 .INCLUDE "machines/launcher.inc"
@@ -56,6 +57,7 @@
 .INCLUDE "machines/winch.inc"
 .INCLUDE "platforms/column.inc"
 .INCLUDE "platforms/crate.inc"
+.INCLUDE "platforms/force.inc"
 .INCLUDE "platforms/gate.inc"
 .INCLUDE "platforms/rocks.inc"
 .INCLUDE "platforms/stepstone.inc"
@@ -904,7 +906,8 @@
 .EXPORT Ppu_ChrBgShadow
 .PROC Ppu_ChrBgShadow
 :   .incbin "out/data/tiles/shadow1.chr"
-    .res $24 * kSizeofChr
+    .incbin "out/data/tiles/shadow2.chr"
+    .res $10 * kSizeofChr
     .incbin "out/data/tiles/field_bg.chr"
     .res $06 * kSizeofChr
     .incbin "out/data/tiles/plaque.chr"
@@ -1272,6 +1275,27 @@
     .assert * - :- = (kTileIdObjWaterFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/water.chr"
     .res $63 * kSizeofChr
+    .assert * - :- = kSizeofChr * $80, error
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "CHR_ObjShadow"
+
+.EXPORT Ppu_ChrObjShadow
+.PROC Ppu_ChrObjShadow
+:   .assert * - :- = (kTileIdObjUpgradeBottomFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/upgrade_bottom.chr"
+    .res $0c * kSizeofChr
+    .assert * - :- = (kTileIdObjUpgradeOpMulFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/upgrade_opmul.chr"
+    .res $52 * kSizeofChr
+    .assert * - :- = (kTileIdObjEmitterFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/emitter.chr"
+    .assert * - :- = (kTileIdObjForcefieldFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/forcefield.chr"
+    .assert * - :- = (kTileIdObjBreakerFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/breaker.chr"
     .assert * - :- = kSizeofChr * $80, error
 .ENDPROC
 

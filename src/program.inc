@@ -110,6 +110,8 @@
     BossGardenCannon
     BossMineCrane
     BossMineTrolley
+    BossShadowEmitterX
+    BossShadowEmitterY
     BossTempleMinigun
     CityOutskirtsLauncher
     CityPitLift
