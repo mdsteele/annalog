@@ -18,6 +18,7 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "../actor.inc"
+.INCLUDE "../actors/lavaball.inc"
 .INCLUDE "../charmap.inc"
 .INCLUDE "../device.inc"
 .INCLUDE "../machine.inc"
@@ -243,7 +244,24 @@ _Platforms_sPlatform_arr:
     .assert * - :- <= kMaxPlatforms * .sizeof(sPlatform), error
     .byte ePlatform::None
 _Actors_sActor_arr:
-:   ;; TODO: add some baddies
+:   D_STRUCT sActor
+    d_byte Type_eActor, eActor::BadLavaball
+    d_word PosX_i16, $0074
+    d_word PosY_i16, kLavaballStartYTall
+    d_byte Param_byte, 6
+    D_END
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::BadLavaball
+    d_word PosX_i16, $008c
+    d_word PosY_i16, kLavaballStartYTall
+    d_byte Param_byte, 7
+    D_END
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::BadLavaball
+    d_word PosX_i16, $00d4
+    d_word PosY_i16, kLavaballStartYTall
+    d_byte Param_byte, 5
+    D_END
     .assert * - :- <= kMaxActors * .sizeof(sActor), error
     .byte eActor::None
 _Devices_sDevice_arr:

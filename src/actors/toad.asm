@@ -24,9 +24,11 @@
 .INCLUDE "../terrain.inc"
 .INCLUDE "toad.inc"
 
+.IMPORT FuncA_Actor_ApplyGravity
 .IMPORT FuncA_Actor_CenterHitsTerrain
 .IMPORT FuncA_Actor_FaceTowardsAvatar
 .IMPORT FuncA_Actor_HarmAvatarIfCollision
+.IMPORT FuncA_Actor_ZeroVelY
 .IMPORT FuncA_Objects_Draw2x2Shape
 .IMPORT FuncA_Objects_MoveShapeUpByA
 .IMPORT FuncA_Objects_SetShapePosToActorCenter
@@ -66,21 +68,13 @@ kPaletteObjToad = 0
 _IsAirborne:
     jsr FuncA_Actor_CenterHitsTerrain  ; preserves X, returns C
     bcs _LandOnGround
-    ;; Apply gravity:
-    lda #kAvatarGravity
-    add Ram_ActorVelY_i16_0_arr, x
-    sta Ram_ActorVelY_i16_0_arr, x
-    lda #0
-    adc Ram_ActorVelY_i16_1_arr, x
-    sta Ram_ActorVelY_i16_1_arr, x
+    jsr FuncA_Actor_ApplyGravity  ; preserves X
     jmp FuncA_Actor_HarmAvatarIfCollision  ; preserves X
 _LandOnGround:
     ;; Mark the toad as being grounded.
     lda #0
     sta Ram_ActorState2_byte_arr, x  ; 0 if grounded, 1 if airborne
-    ;; Zero the vertical velocity.
-    sta Ram_ActorVelY_i16_0_arr, x
-    sta Ram_ActorVelY_i16_1_arr, x
+    jsr FuncA_Actor_ZeroVelY  ; preserves X
     ;; Position the toad on top of the terrain block it landed on.
     sta Ram_ActorSubY_u8_arr, x
     lda Ram_ActorPosY_i16_0_arr, x

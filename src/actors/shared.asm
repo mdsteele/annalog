@@ -17,6 +17,7 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
+.INCLUDE "../avatar.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
 .INCLUDE "../ppu.inc"
@@ -249,6 +250,20 @@
 .PROC FuncA_Actor_ZeroVelY
     lda #0
     sta Ram_ActorVelY_i16_0_arr, x
+    sta Ram_ActorVelY_i16_1_arr, x
+    rts
+.ENDPROC
+
+;;; Accelerates the actor downward.
+;;; @param X The actor index.
+;;; @preserve X, Y, T0+
+.EXPORT FuncA_Actor_ApplyGravity
+.PROC FuncA_Actor_ApplyGravity
+    lda #kAvatarGravity
+    add Ram_ActorVelY_i16_0_arr, x
+    sta Ram_ActorVelY_i16_0_arr, x
+    lda #0
+    adc Ram_ActorVelY_i16_1_arr, x
     sta Ram_ActorVelY_i16_1_arr, x
     rts
 .ENDPROC

@@ -30,6 +30,7 @@
 .INCLUDE "actors/flamewave.inc"
 .INCLUDE "actors/grenade.inc"
 .INCLUDE "actors/grub.inc"
+.INCLUDE "actors/lavaball.inc"
 .INCLUDE "actors/orc.inc"
 .INCLUDE "actors/spider.inc"
 .INCLUDE "actors/spike.inc"
@@ -1170,7 +1171,10 @@
     .res $05 * kSizeofChr
     .assert * - :- = (kTileIdObjUpgradeOpCopyFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/upgrade_opcopy.chr"
-    .res $0e * kSizeofChr
+    .res $04 * kSizeofChr
+    .assert * - :- = (kTileIdObjLavaballFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/lavaball.chr"
+    .res $02 * kSizeofChr
     .assert * - :- = (kTileIdObjBoilerFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/boiler.chr"
     .assert * - :- = (kTileIdObjValveFirst - $80) * kSizeofChr, error

@@ -18,6 +18,7 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "../actor.inc"
+.INCLUDE "../actors/lavaball.inc"
 .INCLUDE "../charmap.inc"
 .INCLUDE "../device.inc"
 .INCLUDE "../machine.inc"
@@ -177,6 +178,18 @@ _Actors_sActor_arr:
     d_word PosX_i16, $01c8
     d_word PosY_i16, $0118
     d_byte Param_byte, bObj::FlipH
+    D_END
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::BadLavaball
+    d_word PosX_i16, $0098
+    d_word PosY_i16, kLavaballStartYTall
+    d_byte Param_byte, 6
+    D_END
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::BadLavaball
+    d_word PosX_i16, $0110
+    d_word PosY_i16, kLavaballStartYTall
+    d_byte Param_byte, 6
     D_END
     .assert * - :- <= kMaxActors * .sizeof(sActor), error
     .byte eActor::None

@@ -66,6 +66,7 @@ T7T6 := $06
 ;;; LDAX (load a 16-bit value into AX)
 ;;;
 ;;; Loads a 16-bit value, putting the low byte in X and the high byte in A.
+;;; Sets N based on the high byte; destroys Z.
 ;;;
 ;;; Examples:
 ;;;     ldax #$1234       ; immidiate mode; sets X to $34 and A to $12
@@ -79,6 +80,7 @@ T7T6 := $06
 ;;; LDXY (load a 16-bit value into XY)
 ;;;
 ;;; Loads a 16-bit value, putting the low byte in Y and the high byte in X.
+;;; Sets N based on the high byte; destroys Z.
 ;;;
 ;;; Examples:
 ;;;     ldxy #$1234       ; immidiate mode; sets Y to $34 and X to $12
@@ -92,6 +94,7 @@ T7T6 := $06
 ;;; LDYA (load a 16-bit value into YA)
 ;;;
 ;;; Loads a 16-bit value, putting the low byte in A and the high byte in Y.
+;;; Sets N based on the high byte; destroys Z.
 ;;;
 ;;; Examples:
 ;;;     ldya #$1234       ; immidiate mode; sets A to $34 and Y to $12

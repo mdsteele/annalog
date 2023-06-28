@@ -33,6 +33,7 @@
 .IMPORT FuncA_Actor_TickBadGrub
 .IMPORT FuncA_Actor_TickBadHotheadHorz
 .IMPORT FuncA_Actor_TickBadHotheadVert
+.IMPORT FuncA_Actor_TickBadLavaball
 .IMPORT FuncA_Actor_TickBadOrc
 .IMPORT FuncA_Actor_TickBadSpider
 .IMPORT FuncA_Actor_TickBadToad
@@ -60,6 +61,7 @@
 .IMPORT FuncA_Objects_DrawActorBadGrub
 .IMPORT FuncA_Objects_DrawActorBadHotheadHorz
 .IMPORT FuncA_Objects_DrawActorBadHotheadVert
+.IMPORT FuncA_Objects_DrawActorBadLavaball
 .IMPORT FuncA_Objects_DrawActorBadOrc
 .IMPORT FuncA_Objects_DrawActorBadSpider
 .IMPORT FuncA_Objects_DrawActorBadToad
@@ -85,6 +87,7 @@
 .IMPORT FuncA_Objects_DrawActorSmokeParticle
 .IMPORT FuncA_Room_InitActorBadBird
 .IMPORT FuncA_Room_InitActorBadFirefly
+.IMPORT FuncA_Room_InitActorBadLavaball
 .IMPORT FuncA_Room_InitActorBadWasp
 .IMPORT FuncA_Room_InitActorNpcChild
 .IMPORT FuncA_Room_InitActorNpcToddler
@@ -304,6 +307,7 @@ Ram_ActorFlags_bObj_arr: .res kMaxActors
     d_byte BadGrub,          0
     d_byte BadHotheadHorz,   6
     d_byte BadHotheadVert,   6
+    d_byte BadLavaball,      7
     d_byte BadOrc,          kOrcBoundingBoxUp
     d_byte BadSpider,        8
     d_byte BadToad,          9
@@ -341,6 +345,7 @@ Ram_ActorFlags_bObj_arr: .res kMaxActors
     d_byte BadGrub,          8
     d_byte BadHotheadHorz,   6
     d_byte BadHotheadVert,   6
+    d_byte BadLavaball,      7
     d_byte BadOrc,          kOrcBoundingBoxDown
     d_byte BadSpider,        2
     d_byte BadToad,          0
@@ -378,6 +383,7 @@ Ram_ActorFlags_bObj_arr: .res kMaxActors
     d_byte BadGrub,         7
     d_byte BadHotheadHorz,  6
     d_byte BadHotheadVert,  6
+    d_byte BadLavaball,     6
     d_byte BadOrc,          kOrcBoundingBoxSide
     d_byte BadSpider,       6
     d_byte BadToad,         7
@@ -484,6 +490,7 @@ _TypeSpecificTick:
     d_entry table, BadGrub,         FuncA_Actor_TickBadGrub
     d_entry table, BadHotheadHorz,  FuncA_Actor_TickBadHotheadHorz
     d_entry table, BadHotheadVert,  FuncA_Actor_TickBadHotheadVert
+    d_entry table, BadLavaball,     FuncA_Actor_TickBadLavaball
     d_entry table, BadOrc,          FuncA_Actor_TickBadOrc
     d_entry table, BadSpider,       FuncA_Actor_TickBadSpider
     d_entry table, BadToad,         FuncA_Actor_TickBadToad
@@ -656,6 +663,7 @@ _NoHit:
     d_entry table, BadGrub,         Func_InitActorDefault
     d_entry table, BadHotheadHorz,  Func_InitActorWithFlags
     d_entry table, BadHotheadVert,  Func_InitActorWithFlags
+    d_entry table, BadLavaball,     FuncA_Room_InitActorBadLavaball
     d_entry table, BadOrc,          Func_InitActorBadOrc
     d_entry table, BadSpider,       Func_InitActorDefault
     d_entry table, BadToad,         Func_InitActorDefault
@@ -789,6 +797,7 @@ _NoHit:
     d_entry table, BadGrub,         FuncA_Objects_DrawActorBadGrub
     d_entry table, BadHotheadHorz,  FuncA_Objects_DrawActorBadHotheadHorz
     d_entry table, BadHotheadVert,  FuncA_Objects_DrawActorBadHotheadVert
+    d_entry table, BadLavaball,     FuncA_Objects_DrawActorBadLavaball
     d_entry table, BadOrc,          FuncA_Objects_DrawActorBadOrc
     d_entry table, BadSpider,       FuncA_Objects_DrawActorBadSpider
     d_entry table, BadToad,         FuncA_Objects_DrawActorBadToad
