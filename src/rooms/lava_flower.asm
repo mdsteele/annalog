@@ -174,14 +174,14 @@ _Devices_sDevice_arr:
     d_byte Type_eDevice, eDevice::Console
     d_byte BlockRow_u8, 4
     d_byte BlockCol_u8, 11
-    d_byte Target_u8, kBoilerMachineIndex
+    d_byte Target_byte, kBoilerMachineIndex
     D_END
     .assert * - :- = kFlowerDeviceIndex * .sizeof(sDevice), error
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Flower
     d_byte BlockRow_u8, 9
     d_byte BlockCol_u8, 13
-    d_byte Target_u8, eFlag::FlowerLava
+    d_byte Target_byte, eFlag::FlowerLava
     D_END
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None

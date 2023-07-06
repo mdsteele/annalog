@@ -220,20 +220,20 @@ _Devices_sDevice_arr:
     d_byte Type_eDevice, eDevice::Console
     d_byte BlockRow_u8, 10
     d_byte BlockCol_u8, 9
-    d_byte Target_u8, kWinchMachineIndex
+    d_byte Target_byte, kWinchMachineIndex
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Console
     d_byte BlockRow_u8, 10
     d_byte BlockCol_u8, 25
-    d_byte Target_u8, kWinchMachineIndex
+    d_byte Target_byte, kWinchMachineIndex
     D_END
     .assert * - :- = kUpgradeDeviceIndex * .sizeof(sDevice), error
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Upgrade
     d_byte BlockRow_u8, 9
     d_byte BlockCol_u8, 29
-    d_byte Target_u8, kUpgradeFlag
+    d_byte Target_byte, kUpgradeFlag
     D_END
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None

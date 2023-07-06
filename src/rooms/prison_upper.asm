@@ -232,64 +232,64 @@ _Devices_sDevice_arr:
     d_byte Type_eDevice, eDevice::TalkLeft
     d_byte BlockRow_u8, 11
     d_byte BlockCol_u8, 7
-    d_byte Target_u8, eDialog::PrisonUpperAlexCell
+    d_byte Target_byte, eDialog::PrisonUpperAlexCell
     D_END
     .assert * - :- = kAlexFreeRightDeviceIndex * .sizeof(sDevice), error
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Placeholder  ; becomes TalkRight
     d_byte BlockRow_u8, 11
     d_byte BlockCol_u8, 8
-    d_byte Target_u8, eDialog::PrisonUpperAlexFree
+    d_byte Target_byte, eDialog::PrisonUpperAlexFree
     D_END
     .assert * - :- = kAlexFreeLeftDeviceIndex * .sizeof(sDevice), error
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Placeholder  ; becomes TalkLeft
     d_byte BlockRow_u8, 11
     d_byte BlockCol_u8, 9
-    d_byte Target_u8, eDialog::PrisonUpperAlexFree
+    d_byte Target_byte, eDialog::PrisonUpperAlexFree
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::TalkRight
     d_byte BlockRow_u8, 7
     d_byte BlockCol_u8, 16
-    d_byte Target_u8, eDialog::PrisonUpperNora
+    d_byte Target_byte, eDialog::PrisonUpperNora
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::TalkLeft
     d_byte BlockRow_u8, 7
     d_byte BlockCol_u8, 17
-    d_byte Target_u8, eDialog::PrisonUpperNora
+    d_byte Target_byte, eDialog::PrisonUpperNora
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::TalkRight
     d_byte BlockRow_u8, 11
     d_byte BlockCol_u8, 21
-    d_byte Target_u8, eDialog::PrisonUpperBruno
+    d_byte Target_byte, eDialog::PrisonUpperBruno
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::TalkLeft
     d_byte BlockRow_u8, 11
     d_byte BlockCol_u8, 22
-    d_byte Target_u8, eDialog::PrisonUpperBruno
+    d_byte Target_byte, eDialog::PrisonUpperBruno
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::TalkRight
     d_byte BlockRow_u8, 11
     d_byte BlockCol_u8, 24
-    d_byte Target_u8, eDialog::PrisonUpperMarie
+    d_byte Target_byte, eDialog::PrisonUpperMarie
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::TalkLeft
     d_byte BlockRow_u8, 11
     d_byte BlockCol_u8, 25
-    d_byte Target_u8, eDialog::PrisonUpperMarie
+    d_byte Target_byte, eDialog::PrisonUpperMarie
     D_END
     .assert * - :- = kFirstNonTalkDeviceIndex * .sizeof(sDevice), error
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::LeverFloor
     d_byte BlockRow_u8, 6
     d_byte BlockCol_u8, 4
-    d_byte Target_u8, sState::GateLever_u8
+    d_byte Target_byte, sState::GateLever_u8
     D_END
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None

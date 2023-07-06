@@ -96,7 +96,7 @@
 .IMPORT Func_Window_TransferClearRow
 .IMPORT Main_Cutscene_Continue
 .IMPORT Main_Explore_Continue
-.IMPORT Ram_DeviceTarget_u8_arr
+.IMPORT Ram_DeviceTarget_byte_arr
 .IMPORT Ram_DeviceType_eDevice_arr
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORT Ram_PpuTransfer_arr
@@ -221,7 +221,7 @@ Zp_DialogText_ptr: .res 2
 ;;; @param X The dialog device index.
 .EXPORT Main_Dialog_UseDevice
 .PROC Main_Dialog_UseDevice
-    ldy Ram_DeviceTarget_u8_arr, x  ; param: eDialog value
+    ldy Ram_DeviceTarget_byte_arr, x  ; param: eDialog value
     lda #0
     sta Zp_DialogStatus_bDialog
     beq Main_Dialog_OpenWindow  ; unconditional

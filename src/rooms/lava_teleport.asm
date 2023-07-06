@@ -144,13 +144,13 @@ _Devices_sDevice_arr:
     d_byte Type_eDevice, eDevice::Teleporter
     d_byte BlockRow_u8, 7
     d_byte BlockCol_u8, 7
-    d_byte Target_u8, eRoom::ShadowTeleport
+    d_byte Target_byte, eRoom::ShadowTeleport
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Console
     d_byte BlockRow_u8, 10
     d_byte BlockCol_u8, 11
-    d_byte Target_u8, kFieldMachineIndex
+    d_byte Target_byte, kFieldMachineIndex
     D_END
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None

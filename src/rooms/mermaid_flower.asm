@@ -108,7 +108,7 @@ _Devices_sDevice_arr:
     d_byte Type_eDevice, eDevice::Flower
     d_byte BlockRow_u8, 3
     d_byte BlockCol_u8, 11
-    d_byte Target_u8, eFlag::FlowerMermaid
+    d_byte Target_byte, eFlag::FlowerMermaid
     D_END
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None

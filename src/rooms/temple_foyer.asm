@@ -190,19 +190,19 @@ _Devices_sDevice_arr:
     d_byte Type_eDevice, eDevice::Upgrade
     d_byte BlockRow_u8, 4
     d_byte BlockCol_u8, 28
-    d_byte Target_u8, kUpgradeFlag
+    d_byte Target_byte, kUpgradeFlag
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Console
     d_byte BlockRow_u8, 16
     d_byte BlockCol_u8, 26
-    d_byte Target_u8, kCarriageMachineIndex
+    d_byte Target_byte, kCarriageMachineIndex
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Paper
     d_byte BlockRow_u8, 21
     d_byte BlockCol_u8, 12
-    d_byte Target_u8, eDialog::TempleFoyerPaper
+    d_byte Target_byte, eDialog::TempleFoyerPaper
     D_END
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None

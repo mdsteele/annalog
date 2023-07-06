@@ -175,25 +175,25 @@ _Devices_sDevice_arr:
     d_byte Type_eDevice, eDevice::Console
     d_byte BlockRow_u8, 8
     d_byte BlockCol_u8, 3
-    d_byte Target_u8, kUpperJetMachineIndex
+    d_byte Target_byte, kUpperJetMachineIndex
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::LeverFloor
     d_byte BlockRow_u8, 8
     d_byte BlockCol_u8, 7
-    d_byte Target_u8, sState::UpperJetLowerLever_u8
+    d_byte Target_byte, sState::UpperJetLowerLever_u8
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Console
     d_byte BlockRow_u8, 16
     d_byte BlockCol_u8, 15
-    d_byte Target_u8, kLowerJetMachineIndex
+    d_byte Target_byte, kLowerJetMachineIndex
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::LeverFloor
     d_byte BlockRow_u8, 18
     d_byte BlockCol_u8, 7
-    d_byte Target_u8, sState::LowerJetUpperLever_u8
+    d_byte Target_byte, sState::LowerJetUpperLever_u8
     D_END
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None

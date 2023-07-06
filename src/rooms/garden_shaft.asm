@@ -192,32 +192,32 @@ _Devices_sDevice_arr:
     d_byte Type_eDevice, eDevice::LeverFloor
     d_byte BlockRow_u8, 17
     d_byte BlockCol_u8, 2
-    d_byte Target_u8, sState::Lever_u8_arr + kLowerBridgeMachineIndex
+    d_byte Target_byte, sState::Lever_u8_arr + kLowerBridgeMachineIndex
     D_END
     .assert * - :- = kLeverUpperDeviceIndex * .sizeof(sDevice), error
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::LeverFloor
     d_byte BlockRow_u8, 6
     d_byte BlockCol_u8, 2
-    d_byte Target_u8, sState::Lever_u8_arr + kUpperBridgeMachineIndex
+    d_byte Target_byte, sState::Lever_u8_arr + kUpperBridgeMachineIndex
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Console
     d_byte BlockRow_u8, 11
     d_byte BlockCol_u8, 3
-    d_byte Target_u8, kUpperBridgeMachineIndex
+    d_byte Target_byte, kUpperBridgeMachineIndex
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Console
     d_byte BlockRow_u8, 21
     d_byte BlockCol_u8, 8
-    d_byte Target_u8, kLowerBridgeMachineIndex
+    d_byte Target_byte, kLowerBridgeMachineIndex
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Paper
     d_byte BlockRow_u8, 11
     d_byte BlockCol_u8, 1
-    d_byte Target_u8, eDialog::GardenShaftPaper
+    d_byte Target_byte, eDialog::GardenShaftPaper
     D_END
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None

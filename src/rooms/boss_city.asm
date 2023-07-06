@@ -280,53 +280,53 @@ _Devices_sDevice_arr:
     d_byte Type_eDevice, eDevice::Door1Unlocked
     d_byte BlockRow_u8, 12
     d_byte BlockCol_u8, 4
-    d_byte Target_u8, eRoom::CityPit
+    d_byte Target_byte, eRoom::CityPit
     D_END
     .assert * - :- = kBossUpgradeDeviceIndex * .sizeof(sDevice), error
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Placeholder  ; will be an upgrade
     d_byte BlockRow_u8, 10
     d_byte BlockCol_u8, 2
-    d_byte Target_u8, eFlag::UpgradeBRemote
+    d_byte Target_byte, eFlag::UpgradeBRemote
     D_END
     .assert * - :- = kBossBreakerDeviceIndex * .sizeof(sDevice), error
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Placeholder  ; will be a breaker
     d_byte BlockRow_u8, 12
     d_byte BlockCol_u8, 10
-    d_byte Target_u8, eFlag::BreakerCity
+    d_byte Target_byte, eFlag::BreakerCity
     D_END
     .assert * - :- = kLeverLeftDeviceIndex * .sizeof(sDevice), error
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::LeverFloor
     d_byte BlockRow_u8, 10
     d_byte BlockCol_u8, 6
-    d_byte Target_u8, sState::LeverLeft_u8
+    d_byte Target_byte, sState::LeverLeft_u8
     D_END
     .assert * - :- = kLeverRightDeviceIndex * .sizeof(sDevice), error
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::LeverFloor
     d_byte BlockRow_u8, 10
     d_byte BlockCol_u8, 8
-    d_byte Target_u8, sState::LeverRight_u8
+    d_byte Target_byte, sState::LeverRight_u8
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Console
     d_byte BlockRow_u8, 12
     d_byte BlockCol_u8, 1
-    d_byte Target_u8, kAmmoRackMachineIndex
+    d_byte Target_byte, kAmmoRackMachineIndex
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Console
     d_byte BlockRow_u8, 10
     d_byte BlockCol_u8, 13
-    d_byte Target_u8, kReloaderMachineIndex
+    d_byte Target_byte, kReloaderMachineIndex
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Console
     d_byte BlockRow_u8, 12
     d_byte BlockCol_u8, 13
-    d_byte Target_u8, kLauncherMachineIndex
+    d_byte Target_byte, kLauncherMachineIndex
     D_END
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None

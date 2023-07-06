@@ -137,7 +137,7 @@
 .IMPORT Ram_DeviceAnim_u8_arr
 .IMPORT Ram_DeviceBlockCol_u8_arr
 .IMPORT Ram_DeviceBlockRow_u8_arr
-.IMPORT Ram_DeviceTarget_u8_arr
+.IMPORT Ram_DeviceTarget_byte_arr
 .IMPORT Ram_DeviceType_eDevice_arr
 .IMPORT Ram_PlatformBottom_i16_0_arr
 .IMPORT Ram_PlatformBottom_i16_1_arr
@@ -636,9 +636,9 @@ _LoadDevices:
     lda (T1T0), y
     sta Ram_DeviceBlockCol_u8_arr, x
     iny
-    .assert sDevice::Target_u8 = 3, error
+    .assert sDevice::Target_byte = 3, error
     lda (T1T0), y
-    sta Ram_DeviceTarget_u8_arr, x
+    sta Ram_DeviceTarget_byte_arr, x
     iny
     .assert .sizeof(sDevice) = 4, error
     lda #0

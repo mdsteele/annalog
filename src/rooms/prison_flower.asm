@@ -102,14 +102,14 @@ _Devices_sDevice_arr:
     d_byte Type_eDevice, eDevice::Sign
     d_byte BlockRow_u8, 12
     d_byte BlockCol_u8, 3
-    d_byte Target_u8, eDialog::PrisonFlowerSign
+    d_byte Target_byte, eDialog::PrisonFlowerSign
     D_END
     .assert * - :- = kFlowerDeviceIndex * .sizeof(sDevice), error
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Flower
     d_byte BlockRow_u8, 6
     d_byte BlockCol_u8, 11
-    d_byte Target_u8, eFlag::FlowerPrison
+    d_byte Target_byte, eFlag::FlowerPrison
     D_END
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None

@@ -176,13 +176,13 @@ _Devices_sDevice_arr:
     d_byte Type_eDevice, eDevice::Paper
     d_byte BlockRow_u8, 11
     d_byte BlockCol_u8, 11
-    d_byte Target_u8, eDialog::PrisonEscapePaper
+    d_byte Target_byte, eDialog::PrisonEscapePaper
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Console
     d_byte BlockRow_u8, 20
     d_byte BlockCol_u8, 16
-    d_byte Target_u8, kTrolleyMachineIndex
+    d_byte Target_byte, kTrolleyMachineIndex
     D_END
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None

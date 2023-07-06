@@ -180,21 +180,21 @@ _Devices_sDevice_arr:
     d_byte Type_eDevice, eDevice::Sign
     d_byte BlockRow_u8, 6
     d_byte BlockCol_u8, 5
-    d_byte Target_u8, eDialog::MermaidDrainSign
+    d_byte Target_byte, eDialog::MermaidDrainSign
     D_END
     .assert * - :- = kConsoleDeviceIndex * .sizeof(sDevice), error
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Console
     d_byte BlockRow_u8, 6
     d_byte BlockCol_u8, 12
-    d_byte Target_u8, kPumpMachineIndex
+    d_byte Target_byte, kPumpMachineIndex
     D_END
     .assert * - :- = kLeverDeviceIndex * .sizeof(sDevice), error
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::LeverCeiling
     d_byte BlockRow_u8, 15
     d_byte BlockCol_u8, 7
-    d_byte Target_u8, sState::Lever_u8
+    d_byte Target_byte, sState::Lever_u8
     D_END
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None

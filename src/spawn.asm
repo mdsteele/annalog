@@ -33,7 +33,7 @@
 .IMPORT FuncA_Room_InitAllMachines
 .IMPORT Ram_DeviceBlockCol_u8_arr
 .IMPORT Ram_DeviceBlockRow_u8_arr
-.IMPORT Ram_DeviceTarget_u8_arr
+.IMPORT Ram_DeviceTarget_byte_arr
 .IMPORT Ram_DeviceType_eDevice_arr
 .IMPORT Sram_LastSafe_bSpawn
 .IMPORT Sram_LastSafe_eRoom
@@ -273,7 +273,7 @@ _Finish:
     cmp #eDevice::Door2Open
     bne @continue
     @foundDoor:
-    lda Ram_DeviceTarget_u8_arr, x
+    lda Ram_DeviceTarget_byte_arr, x
     cmp Zp_Previous_eRoom
     beq _FoundMatchingDoor
     @continue:

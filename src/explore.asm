@@ -74,7 +74,7 @@
 .IMPORT Ppu_ChrBgAnimA0
 .IMPORT Ram_DeviceBlockCol_u8_arr
 .IMPORT Ram_DeviceBlockRow_u8_arr
-.IMPORT Ram_DeviceTarget_u8_arr
+.IMPORT Ram_DeviceTarget_byte_arr
 .IMPORT Ram_DeviceType_eDevice_arr
 .IMPORT Sram_LastSafe_eRoom
 .IMPORTZP Zp_AvatarExit_ePassage
@@ -323,7 +323,7 @@ _LoadNextRoom:
     tay  ; door device index
     lda Ram_DeviceType_eDevice_arr, y
     pha  ; origin door device type
-    ldx Ram_DeviceTarget_u8_arr, y  ; param: room to load
+    ldx Ram_DeviceTarget_byte_arr, y  ; param: room to load
     jsr FuncM_SwitchPrgcAndLoadRoom
     pla  ; origin door device type
     tay  ; param: origin door device type

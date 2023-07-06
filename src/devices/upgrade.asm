@@ -36,7 +36,7 @@
 .IMPORT Ram_DeviceAnim_u8_arr
 .IMPORT Ram_DeviceBlockCol_u8_arr
 .IMPORT Ram_DeviceBlockRow_u8_arr
-.IMPORT Ram_DeviceTarget_u8_arr
+.IMPORT Ram_DeviceTarget_byte_arr
 .IMPORT Ram_DeviceType_eDevice_arr
 
 ;;;=========================================================================;;;
@@ -116,7 +116,7 @@ _AllocateObjects:
     lda #kPaletteObjUpgrade  ; param: object flags
     jsr FuncA_Objects_Alloc2x2Shape  ; preserves X, returns C and Y
     bcs @done
-    lda Ram_DeviceTarget_u8_arr, x  ; param: eFlag value
+    lda Ram_DeviceTarget_byte_arr, x  ; param: eFlag value
     jmp FuncA_Objects_SetUpgradeTileIds  ; preserves X
     @done:
     rts

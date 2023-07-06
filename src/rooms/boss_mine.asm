@@ -308,47 +308,47 @@ _Devices_sDevice_arr:
     d_byte Type_eDevice, eDevice::Door1Unlocked
     d_byte BlockRow_u8, 11
     d_byte BlockCol_u8, 3
-    d_byte Target_u8, eRoom::MineCollapse
+    d_byte Target_byte, eRoom::MineCollapse
     D_END
     .assert * - :- = kBossUpgradeDeviceIndex * .sizeof(sDevice), error
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Placeholder  ; will be an upgrade
     d_byte BlockRow_u8, 11
     d_byte BlockCol_u8, 4
-    d_byte Target_u8, eFlag::UpgradeRam4
+    d_byte Target_byte, eFlag::UpgradeRam4
     D_END
     .assert * - :- = kBossBreakerDeviceIndex * .sizeof(sDevice), error
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Placeholder  ; will be a breaker
     d_byte BlockRow_u8, 12
     d_byte BlockCol_u8, 10
-    d_byte Target_u8, eFlag::BreakerMine
+    d_byte Target_byte, eFlag::BreakerMine
     D_END
     .assert * - :- = kLeverLeftDeviceIndex * .sizeof(sDevice), error
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::LeverFloor
     d_byte BlockRow_u8, 12
     d_byte BlockCol_u8, 5
-    d_byte Target_u8, sState::LeverLeft_u8
+    d_byte Target_byte, sState::LeverLeft_u8
     D_END
     .assert * - :- = kLeverRightDeviceIndex * .sizeof(sDevice), error
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::LeverFloor
     d_byte BlockRow_u8, 12
     d_byte BlockCol_u8, 8
-    d_byte Target_u8, sState::LeverRight_u8
+    d_byte Target_byte, sState::LeverRight_u8
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Console
     d_byte BlockRow_u8, 10
     d_byte BlockCol_u8, 12
-    d_byte Target_u8, kTrolleyMachineIndex
+    d_byte Target_byte, kTrolleyMachineIndex
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Console
     d_byte BlockRow_u8, 10
     d_byte BlockCol_u8, 13
-    d_byte Target_u8, kCraneMachineIndex
+    d_byte Target_byte, kCraneMachineIndex
     D_END
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None

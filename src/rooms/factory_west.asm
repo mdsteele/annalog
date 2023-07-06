@@ -142,7 +142,7 @@ _Devices_sDevice_arr:
     d_byte Type_eDevice, eDevice::Console
     d_byte BlockRow_u8, 20
     d_byte BlockCol_u8, 13
-    d_byte Target_u8, kCraneMachineIndex
+    d_byte Target_byte, kCraneMachineIndex
     D_END
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None

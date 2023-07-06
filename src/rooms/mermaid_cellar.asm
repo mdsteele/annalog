@@ -88,13 +88,13 @@ _Devices_sDevice_arr:
     d_byte Type_eDevice, eDevice::Upgrade
     d_byte BlockRow_u8, 12
     d_byte BlockCol_u8, 3
-    d_byte Target_u8, kUpgradeFlag
+    d_byte Target_byte, kUpgradeFlag
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Door1Open
     d_byte BlockRow_u8, 6
     d_byte BlockCol_u8, 11
-    d_byte Target_u8, eRoom::MermaidHut4
+    d_byte Target_byte, eRoom::MermaidHut4
     D_END
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None

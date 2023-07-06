@@ -258,40 +258,40 @@ _Devices_sDevice_arr:
     d_byte Type_eDevice, eDevice::Console
     d_byte BlockRow_u8, 7
     d_byte BlockCol_u8, 9
-    d_byte Target_u8, kWinchMachineIndex
+    d_byte Target_byte, kWinchMachineIndex
     D_END
     .assert * - :- = kLeverLeftDeviceIndex * .sizeof(sDevice), error
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::LeverFloor
     d_byte BlockRow_u8, 6
     d_byte BlockCol_u8, 5
-    d_byte Target_u8, sState::LeverLeft_u8
+    d_byte Target_byte, sState::LeverLeft_u8
     D_END
     .assert * - :- = kLeverRightDeviceIndex * .sizeof(sDevice), error
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::LeverFloor
     d_byte BlockRow_u8, 7
     d_byte BlockCol_u8, 7
-    d_byte Target_u8, sState::LeverRight_u8
+    d_byte Target_byte, sState::LeverRight_u8
     D_END
     .assert * - :- = kDoorDeviceIndex * .sizeof(sDevice), error
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Door1Unlocked
     d_byte BlockRow_u8, 21
     d_byte BlockCol_u8, 7
-    d_byte Target_u8, eRoom::BossCrypt
+    d_byte Target_byte, eRoom::BossCrypt
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Console
     d_byte BlockRow_u8, 16
     d_byte BlockCol_u8, 11
-    d_byte Target_u8, kWinchMachineIndex
+    d_byte Target_byte, kWinchMachineIndex
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Sign
     d_byte BlockRow_u8, 18
     d_byte BlockCol_u8, 7
-    d_byte Target_u8, eDialog::CryptTombPlaque
+    d_byte Target_byte, eDialog::CryptTombPlaque
     D_END
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None

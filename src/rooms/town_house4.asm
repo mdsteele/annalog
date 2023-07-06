@@ -85,31 +85,31 @@ _Devices_sDevice_arr:
     d_byte Type_eDevice, eDevice::TalkRight
     d_byte BlockRow_u8, 12
     d_byte BlockCol_u8, 4
-    d_byte Target_u8, eDialog::TownHouse4Laura
+    d_byte Target_byte, eDialog::TownHouse4Laura
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::TalkLeft
     d_byte BlockRow_u8, 12
     d_byte BlockCol_u8, 5
-    d_byte Target_u8, eDialog::TownHouse4Laura
+    d_byte Target_byte, eDialog::TownHouse4Laura
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Door1Open
     d_byte BlockRow_u8, 12
     d_byte BlockCol_u8, 8
-    d_byte Target_u8, eRoom::TownOutdoors
+    d_byte Target_byte, eRoom::TownOutdoors
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::TalkRight
     d_byte BlockRow_u8, 12
     d_byte BlockCol_u8, 10
-    d_byte Target_u8, eDialog::TownHouse4Martin
+    d_byte Target_byte, eDialog::TownHouse4Martin
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::TalkLeft
     d_byte BlockRow_u8, 12
     d_byte BlockCol_u8, 11
-    d_byte Target_u8, eDialog::TownHouse4Martin
+    d_byte Target_byte, eDialog::TownHouse4Martin
     D_END
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None

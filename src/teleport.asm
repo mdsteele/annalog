@@ -33,7 +33,7 @@
 .IMPORT Func_SetLastSpawnPoint
 .IMPORT Func_SetPointToAvatarCenter
 .IMPORT Main_Explore_EnterRoom
-.IMPORT Ram_DeviceTarget_u8_arr
+.IMPORT Ram_DeviceTarget_byte_arr
 .IMPORTZP Zp_AvatarPose_eAvatar
 .IMPORTZP Zp_Next_eCutscene
 
@@ -48,7 +48,7 @@
 ;;; @prereq There is a Teleporter device in the current room.
 .PROC Main_GoThroughTeleporter
     jsr Func_FadeOutToBlack
-    ldx Ram_DeviceTarget_u8_arr + kTeleporterDeviceIndex  ; param: room to load
+    ldx Ram_DeviceTarget_byte_arr + kTeleporterDeviceIndex  ; param: eRoom
     jsr FuncM_SwitchPrgcAndLoadRoom
     jsr_prga FuncA_Avatar_EnterRoomViaTeleporter
     jmp Main_Explore_EnterRoom

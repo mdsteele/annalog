@@ -267,40 +267,40 @@ _Devices_sDevice_arr:
     d_byte Type_eDevice, eDevice::TalkRight
     d_byte BlockRow_u8, 9
     d_byte BlockCol_u8, 7
-    d_byte Target_u8, eDialog::GardenEastCorra
+    d_byte Target_byte, eDialog::GardenEastCorra
     D_END
     .assert * - :- = kCorraDeviceIndexLeft * .sizeof(sDevice), error
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::TalkLeft
     d_byte BlockRow_u8, 9
     d_byte BlockCol_u8, 8
-    d_byte Target_u8, eDialog::GardenEastCorra
+    d_byte Target_byte, eDialog::GardenEastCorra
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Console
     d_byte BlockRow_u8, 7
     d_byte BlockCol_u8, 13
-    d_byte Target_u8, kBridgeMachineIndex
+    d_byte Target_byte, kBridgeMachineIndex
     D_END
     .assert * - :- = kLeverBridgeDeviceIndex * .sizeof(sDevice), error
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::LeverFloor
     d_byte BlockRow_u8, 7
     d_byte BlockCol_u8, 27
-    d_byte Target_u8, sState::LeverBridge_u8
+    d_byte Target_byte, sState::LeverBridge_u8
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Console
     d_byte BlockRow_u8, 20
     d_byte BlockCol_u8, 21
-    d_byte Target_u8, kCannonMachineIndex
+    d_byte Target_byte, kCannonMachineIndex
     D_END
     .assert * - :- = kLeverCannonDeviceIndex * .sizeof(sDevice), error
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::LeverFloor
     d_byte BlockRow_u8, 19
     d_byte BlockCol_u8, 16
-    d_byte Target_u8, sState::LeverCannon_u8
+    d_byte Target_byte, sState::LeverCannon_u8
     D_END
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None

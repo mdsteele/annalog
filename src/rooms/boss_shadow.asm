@@ -237,33 +237,33 @@ _Devices_sDevice_arr:
     d_byte Type_eDevice, eDevice::Door1Unlocked
     d_byte BlockRow_u8, 11
     d_byte BlockCol_u8, 10
-    d_byte Target_u8, eRoom::BossShadow  ; TODO
+    d_byte Target_byte, eRoom::BossShadow  ; TODO
     D_END
     .assert * - :- = kBossUpgradeDeviceIndex * .sizeof(sDevice), error
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Placeholder  ; will be an upgrade
     d_byte BlockRow_u8, 11
     d_byte BlockCol_u8, 7
-    d_byte Target_u8, eFlag::UpgradeOpMul
+    d_byte Target_byte, eFlag::UpgradeOpMul
     D_END
     .assert * - :- = kBossBreakerDeviceIndex * .sizeof(sDevice), error
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Placeholder  ; will be a breaker
     d_byte BlockRow_u8, 11
     d_byte BlockCol_u8, 5
-    d_byte Target_u8, eFlag::BreakerShadow
+    d_byte Target_byte, eFlag::BreakerShadow
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Console
     d_byte BlockRow_u8, 10
     d_byte BlockCol_u8, 3
-    d_byte Target_u8, kEmitterYMachineIndex
+    d_byte Target_byte, kEmitterYMachineIndex
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Console
     d_byte BlockRow_u8, 10
     d_byte BlockCol_u8, 12
-    d_byte Target_u8, kEmitterXMachineIndex
+    d_byte Target_byte, kEmitterXMachineIndex
     D_END
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None

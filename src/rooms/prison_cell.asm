@@ -370,32 +370,32 @@ _Devices_sDevice_arr:
     d_byte Type_eDevice, eDevice::Placeholder
     d_byte BlockRow_u8, 12
     d_byte BlockCol_u8, 11
-    d_byte Target_u8, 0
+    d_byte Target_byte, 0
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Paper
     d_byte BlockRow_u8, 12
     d_byte BlockCol_u8, 9
-    d_byte Target_u8, eDialog::PrisonCellPaper
+    d_byte Target_byte, eDialog::PrisonCellPaper
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Console
     d_byte BlockRow_u8, 4
     d_byte BlockCol_u8, 3
-    d_byte Target_u8, kLiftMachineIndex
+    d_byte Target_byte, kLiftMachineIndex
     D_END
     .assert * - :- = kLauncherConsoleDeviceIndex * .sizeof(sDevice), error
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Console
     d_byte BlockRow_u8, 13
     d_byte BlockCol_u8, 30
-    d_byte Target_u8, kLauncherMachineIndex
+    d_byte Target_byte, kLauncherMachineIndex
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::LeverFloor
     d_byte BlockRow_u8, 8
     d_byte BlockCol_u8, 19
-    d_byte Target_u8, sState::GateLever_u8
+    d_byte Target_byte, sState::GateLever_u8
     D_END
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None

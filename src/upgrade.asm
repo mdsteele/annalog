@@ -42,7 +42,7 @@
 .IMPORT Func_Window_TransferBottomBorder
 .IMPORT Func_Window_TransferClearRow
 .IMPORT Main_Explore_Continue
-.IMPORT Ram_DeviceTarget_u8_arr
+.IMPORT Ram_DeviceTarget_byte_arr
 .IMPORT Ram_DeviceType_eDevice_arr
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORT Ram_PpuTransfer_arr
@@ -201,7 +201,7 @@ _InitWindow:
     lda #eDevice::None
     sta Ram_DeviceType_eDevice_arr, x
     ;; Set the upgrade's flag in SRAM.
-    lda Ram_DeviceTarget_u8_arr, x
+    lda Ram_DeviceTarget_byte_arr, x
     sta Zp_CurrentUpgrade_eFlag
     tax  ; param: eFlag value
     jsr Func_SetFlag

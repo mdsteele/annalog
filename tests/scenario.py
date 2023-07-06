@@ -82,7 +82,7 @@ START_COL_RE = re.compile(r'^ *d_byte +MinimapStartCol_u8, *([0-9]+)')
 DEVICE_TYPE_RE = re.compile(r'^ *d_byte +Type_eDevice, *eDevice::([A-Za-z]+)')
 DEVICE_ROW_RE = re.compile(r'^ *d_byte +BlockRow_u8, *([0-9]+)')
 DEVICE_COL_RE = re.compile(r'^ *d_byte +BlockCol_u8, *([0-9]+)')
-DOOR_TARGET_RE = re.compile(r'^ *d_byte +Target_u8, *eRoom::([A-Za-z0-9]+)')
+DOOR_TARGET_RE = re.compile(r'^ *d_byte +Target_byte, *eRoom::([A-Za-z0-9]+)')
 
 PASSAGE_EXIT_RE = re.compile(
     r'^ *d_byte Exit_bPassage, *ePassage::([A-Za-z]+) *'

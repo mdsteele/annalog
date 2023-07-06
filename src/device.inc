@@ -92,7 +92,7 @@ kFirstInteractiveDeviceType = eDevice::BreakerReady
     ;;   * For paper/screen/sign/talk devices, this is the eDialog value.
     ;;   * For teleporters, this is the eRoom value for the destination room.
     ;;   * For upgrades, this is the eFlag::Upgrade* value.
-    Target_u8    .byte
+    Target_byte    .byte
 .ENDSTRUCT
 
 ;;;=========================================================================;;;

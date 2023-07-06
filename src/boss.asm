@@ -38,7 +38,7 @@
 .IMPORT Func_SetFlag
 .IMPORT Func_TransferPalettes
 .IMPORT Func_UnlockDoorDevice
-.IMPORT Ram_DeviceTarget_u8_arr
+.IMPORT Ram_DeviceTarget_byte_arr
 .IMPORT Ram_DeviceType_eDevice_arr
 .IMPORT Ram_PlatformBottom_i16_0_arr
 .IMPORT Ram_PlatformLeft_i16_0_arr
@@ -110,7 +110,7 @@ Zp_BossPhaseTimer_u8: .res 1
 _BossAlreadyDefeated:
     jsr Func_MarkRoomSafe
     ;; Check if the upgrade has been collected yet.
-    ldx Ram_DeviceTarget_u8_arr + kBossUpgradeDeviceIndex  ; param: flag
+    ldx Ram_DeviceTarget_byte_arr + kBossUpgradeDeviceIndex  ; param: flag
     jsr Func_IsFlagSet  ; returns Z
     bne _UpgradeAlreadyCollected
     ;; If not, the player must have saved after defeating the boss, but before
@@ -123,7 +123,7 @@ _BossAlreadyDefeated:
     rts
 _UpgradeAlreadyCollected:
     ;; Check if the breaker has been activated yet.
-    ldx Ram_DeviceTarget_u8_arr + kBossBreakerDeviceIndex  ; param: flag
+    ldx Ram_DeviceTarget_byte_arr + kBossBreakerDeviceIndex  ; param: flag
     jsr Func_IsFlagSet  ; returns Z
     bne _BreakerAlreadyDone
     ;; If not, the player must have saved after defeating the boss and

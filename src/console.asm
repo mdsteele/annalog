@@ -59,7 +59,7 @@
 .IMPORT Main_Console_Debug
 .IMPORT Main_Explore_Continue
 .IMPORT Main_Menu_EditSelectedField
-.IMPORT Ram_DeviceTarget_u8_arr
+.IMPORT Ram_DeviceTarget_byte_arr
 .IMPORT Ram_MachineStatus_eMachine_arr
 .IMPORT Ram_PpuTransfer_arr
 .IMPORT Sram_ProgressFlags_arr
@@ -158,7 +158,7 @@ _SetSpawnPoint:
     ora #bSpawn::Device  ; param: bSpawn value
     jsr Func_SetLastSpawnPoint  ; preserves X
 _OpenConsoleWindow:
-    lda Ram_DeviceTarget_u8_arr, x
+    lda Ram_DeviceTarget_byte_arr, x
     tax  ; machine index
     stx Zp_ConsoleMachineIndex_u8
     jsr Func_SetMachineIndex  ; preserves X

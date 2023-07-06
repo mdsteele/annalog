@@ -165,13 +165,13 @@ _Devices_sDevice_arr:
     d_byte Type_eDevice, eDevice::Console
     d_byte BlockRow_u8, 16
     d_byte BlockCol_u8, 15
-    d_byte Target_u8, kJetMachineIndex
+    d_byte Target_byte, kJetMachineIndex
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::LeverFloor
     d_byte BlockRow_u8, 18
     d_byte BlockCol_u8, 7
-    d_byte Target_u8, sState::LowerLever_u8
+    d_byte Target_byte, sState::LowerLever_u8
     D_END
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None

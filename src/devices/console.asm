@@ -26,7 +26,7 @@
 .IMPORT FuncA_Objects_Draw1x1Shape
 .IMPORT FuncA_Objects_MoveShapeRightByA
 .IMPORT FuncA_Objects_SetShapePosToDeviceTopLeft
-.IMPORT Ram_DeviceTarget_u8_arr
+.IMPORT Ram_DeviceTarget_byte_arr
 .IMPORT Ram_MachineStatus_eMachine_arr
 .IMPORT Ram_Oam_sObj_arr64
 
@@ -58,7 +58,7 @@ kPaletteObjScreen     = 1
     bcs @done
     sty T0  ; OAM offset
     ;; Determine if the machine has an error.
-    ldy Ram_DeviceTarget_u8_arr, x  ; machine index
+    ldy Ram_DeviceTarget_byte_arr, x  ; machine index
     lda Ram_MachineStatus_eMachine_arr, y
     ldy T0  ; OAM offset
     cmp #eMachine::Error

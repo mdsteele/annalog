@@ -278,33 +278,33 @@ _Devices_sDevice_arr:
     d_byte Type_eDevice, eDevice::Sign
     d_byte BlockRow_u8, 9
     d_byte BlockCol_u8, 8
-    d_byte Target_u8, eDialog::TempleAltarPlaque
+    d_byte Target_byte, eDialog::TempleAltarPlaque
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Console
     d_byte BlockRow_u8, 7
     d_byte BlockCol_u8, 2
-    d_byte Target_u8, kUpperMinigunMachineIndex
+    d_byte Target_byte, kUpperMinigunMachineIndex
     D_END
     .assert * - :- = kLeverLeftDeviceIndex * .sizeof(sDevice), error
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::LeverFloor
     d_byte BlockRow_u8, 10
     d_byte BlockCol_u8, 4
-    d_byte Target_u8, sState::LeverLeft_u8
+    d_byte Target_byte, sState::LeverLeft_u8
     D_END
     .assert * - :- = kLeverRightDeviceIndex * .sizeof(sDevice), error
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::LeverFloor
     d_byte BlockRow_u8, 10
     d_byte BlockCol_u8, 12
-    d_byte Target_u8, sState::LeverRight_u8
+    d_byte Target_byte, sState::LeverRight_u8
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Console
     d_byte BlockRow_u8, 20
     d_byte BlockCol_u8, 15
-    d_byte Target_u8, kLowerMinigunMachineIndex
+    d_byte Target_byte, kLowerMinigunMachineIndex
     D_END
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None

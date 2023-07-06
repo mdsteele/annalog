@@ -30,7 +30,7 @@
 .IMPORT Func_IsFlagSet
 .IMPORT Ppu_ChrObjAnnaFlower
 .IMPORT Ram_DeviceAnim_u8_arr
-.IMPORT Ram_DeviceTarget_u8_arr
+.IMPORT Ram_DeviceTarget_byte_arr
 .IMPORT Ram_DeviceType_eDevice_arr
 .IMPORT Sram_CarryingFlower_eFlag
 
@@ -49,7 +49,7 @@ kFlowerAnimCountdown = 48
 .EXPORT FuncA_Room_PickUpFlowerDevice
 .PROC FuncA_Room_PickUpFlowerDevice
     chr10_bank #<.bank(Ppu_ChrObjAnnaFlower)
-    lda Ram_DeviceTarget_u8_arr, x
+    lda Ram_DeviceTarget_byte_arr, x
     ;; Enable writes to SRAM.
     ldy #bMmc3PrgRam::Enable
     sty Hw_Mmc3PrgRamProtect_wo
@@ -77,7 +77,7 @@ kFlowerAnimCountdown = 48
     bne _RemoveFlower
     ;; If the player avatar is not carrying a flower, keep the device.
     ldx T0  ; device index
-    lda Ram_DeviceTarget_u8_arr, x  ; flower eFlag value
+    lda Ram_DeviceTarget_byte_arr, x  ; flower eFlag value
     beq _KeepFlower
     ;; If the player avatar is carrying the flower, remove the device.
     cmp Sram_CarryingFlower_eFlag

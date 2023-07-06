@@ -28,7 +28,7 @@
 .IMPORT FuncA_Objects_MoveShapeRightOneTile
 .IMPORT FuncA_Objects_SetShapePosToDeviceTopLeft
 .IMPORT Ram_DeviceAnim_u8_arr
-.IMPORT Ram_DeviceTarget_u8_arr
+.IMPORT Ram_DeviceTarget_byte_arr
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORTZP Zp_RoomState
 
@@ -61,7 +61,7 @@ kLeverAnimCountdown = kLeverNumAnimFrames * kLeverAnimSlowdown - 1
 .PROC Func_ToggleLeverDevice
     lda #kLeverAnimCountdown
     sta Ram_DeviceAnim_u8_arr, x
-    ldy Ram_DeviceTarget_u8_arr, x
+    ldy Ram_DeviceTarget_byte_arr, x
     lda Zp_RoomState, y
     beq @setToOne
     @setToZero:
@@ -86,7 +86,7 @@ kLeverAnimCountdown = kLeverNumAnimFrames * kLeverAnimSlowdown - 1
 .EXPORT FuncA_Machine_WriteToLever
 .PROC FuncA_Machine_WriteToLever
     sta T0  ; value to write
-    ldy Ram_DeviceTarget_u8_arr, x
+    ldy Ram_DeviceTarget_byte_arr, x
     lda Zp_RoomState, y
     beq _CurrentlyZero
 _CurrentlyNonzero:
@@ -116,7 +116,7 @@ _NoAnimate:
 ;;; @param X The device index for the lever.
 .EXPORT FuncA_Room_ResetLever
 .PROC FuncA_Room_ResetLever
-    ldy Ram_DeviceTarget_u8_arr, x
+    ldy Ram_DeviceTarget_byte_arr, x
     lda Zp_RoomState, y
     beq @done
     lda #kLeverAnimCountdown  ; param: num frames
@@ -161,7 +161,7 @@ _Animation:
     lda Ram_DeviceAnim_u8_arr, x
     div #kLeverAnimSlowdown
     sta T0  ; animation delta
-    ldy Ram_DeviceTarget_u8_arr, x
+    ldy Ram_DeviceTarget_byte_arr, x
     lda Zp_RoomState, y
     bne @leverIsOn
     @leverIsOff:

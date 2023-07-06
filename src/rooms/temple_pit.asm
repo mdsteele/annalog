@@ -70,7 +70,7 @@ _Devices_sDevice_arr:
     d_byte Type_eDevice, eDevice::Paper
     d_byte BlockRow_u8, 9
     d_byte BlockCol_u8, 5
-    d_byte Target_u8, eDialog::TemplePitPaper
+    d_byte Target_byte, eDialog::TemplePitPaper
     D_END
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None

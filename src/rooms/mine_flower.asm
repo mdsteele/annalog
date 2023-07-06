@@ -250,19 +250,19 @@ _Devices_sDevice_arr:
     d_byte Type_eDevice, eDevice::Flower
     d_byte BlockRow_u8, 3
     d_byte BlockCol_u8, 10
-    d_byte Target_u8, eFlag::FlowerMine
+    d_byte Target_byte, eFlag::FlowerMine
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Console
     d_byte BlockRow_u8, 12
     d_byte BlockCol_u8, 5
-    d_byte Target_u8, kHoistWestMachineIndex
+    d_byte Target_byte, kHoistWestMachineIndex
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Console
     d_byte BlockRow_u8, 12
     d_byte BlockCol_u8, 12
-    d_byte Target_u8, kHoistEastMachineIndex
+    d_byte Target_byte, kHoistEastMachineIndex
     D_END
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None

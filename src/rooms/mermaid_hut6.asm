@@ -146,19 +146,19 @@ _Devices_sDevice_arr:
     d_byte Type_eDevice, eDevice::Console
     d_byte BlockRow_u8, 11
     d_byte BlockCol_u8, 5
-    d_byte Target_u8, 0  ; TODO: use constant
+    d_byte Target_byte, 0  ; TODO: use constant
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Console
     d_byte BlockRow_u8, 11
     d_byte BlockCol_u8, 7
-    d_byte Target_u8, 1  ; TODO: use constant
+    d_byte Target_byte, 1  ; TODO: use constant
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Door1Open
     d_byte BlockRow_u8, 11
     d_byte BlockCol_u8, 9
-    d_byte Target_u8, eRoom::MermaidEast
+    d_byte Target_byte, eRoom::MermaidEast
     D_END
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None

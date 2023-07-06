@@ -139,7 +139,7 @@ _Devices_sDevice_arr:
     d_byte Type_eDevice, eDevice::Door1Open
     d_byte BlockRow_u8, 18
     d_byte BlockCol_u8, 24
-    d_byte Target_u8, eRoom::MermaidHut6
+    d_byte Target_byte, eRoom::MermaidHut6
     D_END
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None

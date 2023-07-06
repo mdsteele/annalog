@@ -86,31 +86,31 @@ _Devices_sDevice_arr:
     d_byte Type_eDevice, eDevice::Mousehole
     d_byte BlockRow_u8, 2
     d_byte BlockCol_u8, 11
-    d_byte Target_u8, bMousehole::OnRight | bMousehole::RunLeft
+    d_byte Target_byte, bMousehole::OnRight | bMousehole::RunLeft
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Mousehole
     d_byte BlockRow_u8, 4
     d_byte BlockCol_u8, 4
-    d_byte Target_u8, bMousehole::OnRight | bMousehole::RunRight
+    d_byte Target_byte, bMousehole::OnRight | bMousehole::RunRight
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Mousehole
     d_byte BlockRow_u8, 12
     d_byte BlockCol_u8, 10
-    d_byte Target_u8, bMousehole::OnLeft | bMousehole::RunEither
+    d_byte Target_byte, bMousehole::OnLeft | bMousehole::RunEither
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Door1Unlocked
     d_byte BlockRow_u8, 2
     d_byte BlockCol_u8, 10
-    d_byte Target_u8, eRoom::CityOutskirts
+    d_byte Target_byte, eRoom::CityOutskirts
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Door2Open  ; TODO Door2Unlocked
     d_byte BlockRow_u8, 12
     d_byte BlockCol_u8, 5
-    d_byte Target_u8, eRoom::CityOutskirts
+    d_byte Target_byte, eRoom::CityOutskirts
     D_END
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None

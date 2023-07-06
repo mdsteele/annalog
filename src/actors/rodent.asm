@@ -51,7 +51,7 @@
 .IMPORT Ram_ActorVelY_i16_1_arr
 .IMPORT Ram_DeviceBlockCol_u8_arr
 .IMPORT Ram_DeviceBlockRow_u8_arr
-.IMPORT Ram_DeviceTarget_u8_arr
+.IMPORT Ram_DeviceTarget_byte_arr
 .IMPORT Ram_DeviceType_eDevice_arr
 .IMPORTZP Zp_PointX_i16
 .IMPORTZP Zp_PointY_i16
@@ -145,7 +145,7 @@ _StartEmerging:
     sta Ram_ActorState1_byte_arr, x  ; eBadRodent mode
 _SetEmergeDirection:
     ;; Choose a direction for the rodent to run in (left or right).
-    lda Ram_DeviceTarget_u8_arr, y  ; bMousehole value
+    lda Ram_DeviceTarget_byte_arr, y  ; bMousehole value
     and #bMousehole::RunLeft | bMousehole::RunRight
     cmp #bMousehole::RunLeft
     beq @runLeft
@@ -165,7 +165,7 @@ _SetEmergePosition:
     jsr FuncA_Actor_SetPointToDeviceTopLeft  ; preserves X and Y
     lda #kTileHeightPx + kTileHeightPx / 2  ; param: offset
     jsr Func_MovePointDownByA  ; preserves X and Y
-    lda Ram_DeviceTarget_u8_arr, y  ; bMousehole value
+    lda Ram_DeviceTarget_byte_arr, y  ; bMousehole value
     .assert bMousehole::OnRight = bProc::Negative, error
     bpl @onLeft
     @onRight:
@@ -268,7 +268,7 @@ _CheckForMousehole:
     .assert kTileWidthPx = $08, error
     and #$08
     sta T0  ; rodent block side (zero or nonzero)
-    lda Ram_DeviceTarget_u8_arr, y
+    lda Ram_DeviceTarget_byte_arr, y
     .assert bMousehole::OnRight = bProc::Negative, error
     bmi @mouseholeOnRight
     @mouseholeOnLeft:

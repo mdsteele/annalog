@@ -79,19 +79,19 @@ _Devices_sDevice_arr:
     d_byte Type_eDevice, eDevice::Door1Open
     d_byte BlockRow_u8, 12
     d_byte BlockCol_u8, 5
-    d_byte Target_u8, eRoom::TownOutdoors
+    d_byte Target_byte, eRoom::TownOutdoors
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::TalkRight
     d_byte BlockRow_u8, 12
     d_byte BlockCol_u8, 9
-    d_byte Target_u8, eDialog::TownHouse3Smith
+    d_byte Target_byte, eDialog::TownHouse3Smith
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::TalkLeft
     d_byte BlockRow_u8, 12
     d_byte BlockCol_u8, 10
-    d_byte Target_u8, eDialog::TownHouse3Smith
+    d_byte Target_byte, eDialog::TownHouse3Smith
     D_END
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None

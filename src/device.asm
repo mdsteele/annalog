@@ -57,9 +57,9 @@ Ram_DeviceBlockRow_u8_arr: .res kMaxDevices
 .EXPORT Ram_DeviceBlockCol_u8_arr
 Ram_DeviceBlockCol_u8_arr: .res kMaxDevices
 
-;;; The "target" for each device (see sDevice::Target_u8 for details).
-.EXPORT Ram_DeviceTarget_u8_arr
-Ram_DeviceTarget_u8_arr: .res kMaxDevices
+;;; The "target" for each device (see sDevice::Target_byte for details).
+.EXPORT Ram_DeviceTarget_byte_arr
+Ram_DeviceTarget_byte_arr: .res kMaxDevices
 
 ;;; An animation counter for each device (not used by all device types).
 .EXPORT Ram_DeviceAnim_u8_arr

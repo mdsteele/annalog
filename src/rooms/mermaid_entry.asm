@@ -122,7 +122,7 @@ _Devices_sDevice_arr:
     d_byte Type_eDevice, eDevice::Sign
     d_byte BlockRow_u8, 8
     d_byte BlockCol_u8, 10
-    d_byte Target_u8, eDialog::MermaidEntrySign
+    d_byte Target_byte, eDialog::MermaidEntrySign
     D_END
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None

@@ -103,7 +103,7 @@ _Devices_sDevice_arr:
     d_byte Type_eDevice, eDevice::Flower
     d_byte BlockRow_u8, 20
     d_byte BlockCol_u8, 14
-    d_byte Target_u8, eFlag::FlowerCore
+    d_byte Target_byte, eFlag::FlowerCore
     D_END
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None

@@ -233,14 +233,14 @@ _Devices_sDevice_arr:
     d_byte Type_eDevice, eDevice::TalkRight
     d_byte BlockRow_u8, 10
     d_byte BlockCol_u8, 5
-    d_byte Target_u8, eDialog::CoreSouthCorra1
+    d_byte Target_byte, eDialog::CoreSouthCorra1
     D_END
     .assert * - :- = kCorraDeviceIndexLeft * .sizeof(sDevice), error
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::TalkLeft
     d_byte BlockRow_u8, 10
     d_byte BlockCol_u8, 6
-    d_byte Target_u8, eDialog::CoreSouthCorra1
+    d_byte Target_byte, eDialog::CoreSouthCorra1
     D_END
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None

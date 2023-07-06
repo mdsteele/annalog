@@ -197,7 +197,7 @@ _Devices_sDevice_arr:
     d_byte Type_eDevice, eDevice::Console
     d_byte BlockRow_u8, 5
     d_byte BlockCol_u8, 29
-    d_byte Target_u8, kMultiplexerMachineIndex
+    d_byte Target_byte, kMultiplexerMachineIndex
     D_END
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None

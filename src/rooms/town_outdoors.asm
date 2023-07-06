@@ -177,79 +177,79 @@ _Devices_sDevice_arr:
     d_byte Type_eDevice, eDevice::Door1Open
     d_byte BlockRow_u8, 12
     d_byte BlockCol_u8, 6
-    d_byte Target_u8, eRoom::TownHouse1
+    d_byte Target_byte, eRoom::TownHouse1
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Door1Open
     d_byte BlockRow_u8, 12
     d_byte BlockCol_u8, 13
-    d_byte Target_u8, eRoom::TownHouse2
+    d_byte Target_byte, eRoom::TownHouse2
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Door1Open
     d_byte BlockRow_u8, 12
     d_byte BlockCol_u8, 24
-    d_byte Target_u8, eRoom::TownHouse3
+    d_byte Target_byte, eRoom::TownHouse3
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Sign
     d_byte BlockRow_u8, 12
     d_byte BlockCol_u8, 32
-    d_byte Target_u8, eDialog::TownOutdoorsSign
+    d_byte Target_byte, eDialog::TownOutdoorsSign
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Door1Open
     d_byte BlockRow_u8, 12
     d_byte BlockCol_u8, 37
-    d_byte Target_u8, eRoom::TownHouse4
+    d_byte Target_byte, eRoom::TownHouse4
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Door1Open
     d_byte BlockRow_u8, 12
     d_byte BlockCol_u8, 59
-    d_byte Target_u8, eRoom::TownHouse5
+    d_byte Target_byte, eRoom::TownHouse5
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Door1Open
     d_byte BlockRow_u8, 12
     d_byte BlockCol_u8, 71
-    d_byte Target_u8, eRoom::TownHouse6
+    d_byte Target_byte, eRoom::TownHouse6
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::TalkRight
     d_byte BlockRow_u8, 12
     d_byte BlockCol_u8, 46
-    d_byte Target_u8, eDialog::TownOutdoorsIvan
+    d_byte Target_byte, eDialog::TownOutdoorsIvan
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::TalkLeft
     d_byte BlockRow_u8, 12
     d_byte BlockCol_u8, 47
-    d_byte Target_u8, eDialog::TownOutdoorsIvan
+    d_byte Target_byte, eDialog::TownOutdoorsIvan
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::TalkRight
     d_byte BlockRow_u8, 12
     d_byte BlockCol_u8, 52
-    d_byte Target_u8, eDialog::TownOutdoorsSandra
+    d_byte Target_byte, eDialog::TownOutdoorsSandra
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::TalkLeft
     d_byte BlockRow_u8, 12
     d_byte BlockCol_u8, 53
-    d_byte Target_u8, eDialog::TownOutdoorsSandra
+    d_byte Target_byte, eDialog::TownOutdoorsSandra
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::TalkRight
     d_byte BlockRow_u8, 12
     d_byte BlockCol_u8, 86
-    d_byte Target_u8, eDialog::TownOutdoorsAlex1
+    d_byte Target_byte, eDialog::TownOutdoorsAlex1
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::TalkLeft
     d_byte BlockRow_u8, 12
     d_byte BlockCol_u8, 87
-    d_byte Target_u8, eDialog::TownOutdoorsAlex1
+    d_byte Target_byte, eDialog::TownOutdoorsAlex1
     D_END
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None

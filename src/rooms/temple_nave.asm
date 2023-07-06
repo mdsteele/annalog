@@ -356,33 +356,33 @@ _Devices_sDevice_arr:
     d_byte Type_eDevice, eDevice::Placeholder  ; becomes TalkRight
     d_byte BlockRow_u8, 21
     d_byte BlockCol_u8, 8
-    d_byte Target_u8, eDialog::TempleNaveAlexStanding
+    d_byte Target_byte, eDialog::TempleNaveAlexStanding
     D_END
     .assert * - :- = kAlexStandingDeviceIndexLeft * .sizeof(sDevice), error
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Placeholder  ; becomes TalkLeft
     d_byte BlockRow_u8, 21
     d_byte BlockCol_u8, 9
-    d_byte Target_u8, eDialog::TempleNaveAlexStanding
+    d_byte Target_byte, eDialog::TempleNaveAlexStanding
     D_END
     .assert * - :- = kAlexBoostingDeviceIndex * .sizeof(sDevice), error
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Placeholder  ; becomes TalkLeft
     d_byte BlockRow_u8, 21
     d_byte BlockCol_u8, 7
-    d_byte Target_u8, eDialog::TempleNaveAlexBoosting
+    d_byte Target_byte, eDialog::TempleNaveAlexBoosting
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Console
     d_byte BlockRow_u8, 21
     d_byte BlockCol_u8, 14
-    d_byte Target_u8, kUpperCarriageMachineIndex
+    d_byte Target_byte, kUpperCarriageMachineIndex
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Console
     d_byte BlockRow_u8, 21
     d_byte BlockCol_u8, 20
-    d_byte Target_u8, kLowerCarriageMachineIndex
+    d_byte Target_byte, kLowerCarriageMachineIndex
     D_END
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None

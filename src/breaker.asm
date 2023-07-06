@@ -48,7 +48,7 @@
 .IMPORT Ppu_ChrBgFontLower01
 .IMPORT Ppu_ChrBgFontUpper
 .IMPORT Ram_DeviceAnim_u8_arr
-.IMPORT Ram_DeviceTarget_u8_arr
+.IMPORT Ram_DeviceTarget_byte_arr
 .IMPORT Ram_DeviceType_eDevice_arr
 .IMPORTZP Zp_AvatarFlags_bObj
 .IMPORTZP Zp_AvatarHarmTimer_u8
@@ -275,7 +275,7 @@ _FadeOut:
     sta Zp_Breaker_eRoom
     ;; Set the spawn point and mark the breaker as activated.
     jsr Func_SetLastSpawnPointToActiveDevice  ; preserves X
-    lda Ram_DeviceTarget_u8_arr, x
+    lda Ram_DeviceTarget_byte_arr, x
     sta Zp_BreakerBeingActivated_eFlag
     tax  ; param: eFlag value
     jsr Func_SetFlag

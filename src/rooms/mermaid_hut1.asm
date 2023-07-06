@@ -100,31 +100,31 @@ _Devices_sDevice_arr:
     d_byte Type_eDevice, eDevice::TalkRight
     d_byte BlockRow_u8, 12
     d_byte BlockCol_u8, 3
-    d_byte Target_u8, eDialog::MermaidHut1Guard
+    d_byte Target_byte, eDialog::MermaidHut1Guard
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::TalkLeft
     d_byte BlockRow_u8, 12
     d_byte BlockCol_u8, 4
-    d_byte Target_u8, eDialog::MermaidHut1Guard
+    d_byte Target_byte, eDialog::MermaidHut1Guard
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::TalkRight
     d_byte BlockRow_u8, 11
     d_byte BlockCol_u8, 11
-    d_byte Target_u8, eDialog::MermaidHut1Queen
+    d_byte Target_byte, eDialog::MermaidHut1Queen
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::TalkLeft
     d_byte BlockRow_u8, 11
     d_byte BlockCol_u8, 12
-    d_byte Target_u8, eDialog::MermaidHut1Queen
+    d_byte Target_byte, eDialog::MermaidHut1Queen
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Door1Open
     d_byte BlockRow_u8, 12
     d_byte BlockCol_u8, 7
-    d_byte Target_u8, eRoom::MermaidVillage
+    d_byte Target_byte, eRoom::MermaidVillage
     D_END
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None
