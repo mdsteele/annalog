@@ -121,78 +121,91 @@ _Done:
 
 .SEGMENT "PRGA_Pause"
 
-.EXPORT DataA_Pause_AreaNames_u8_arr_ptr_0_arr
-.EXPORT DataA_Pause_AreaNames_u8_arr_ptr_1_arr
+.EXPORT DataA_Pause_AreaNames_u8_arr12_ptr_0_arr
+.EXPORT DataA_Pause_AreaNames_u8_arr12_ptr_1_arr
 .REPEAT 2, table
-    D_TABLE_LO table, DataA_Pause_AreaNames_u8_arr_ptr_0_arr
-    D_TABLE_HI table, DataA_Pause_AreaNames_u8_arr_ptr_1_arr
+    D_TABLE_LO table, DataA_Pause_AreaNames_u8_arr12_ptr_0_arr
+    D_TABLE_HI table, DataA_Pause_AreaNames_u8_arr12_ptr_1_arr
     D_TABLE eArea
-    d_entry table, City,    DataA_Pause_CityAreaName_u8_arr
-    d_entry table, Core,    DataA_Pause_CoreAreaName_u8_arr
-    d_entry table, Crypt,   DataA_Pause_CryptAreaName_u8_arr
-    d_entry table, Factory, DataA_Pause_FactoryAreaName_u8_arr
-    d_entry table, Garden,  DataA_Pause_GardenAreaName_u8_arr
-    d_entry table, Lava,    DataA_Pause_LavaAreaName_u8_arr
-    d_entry table, Mermaid, DataA_Pause_MermaidAreaName_u8_arr
-    d_entry table, Mine,    DataA_Pause_MineAreaName_u8_arr
-    d_entry table, Prison,  DataA_Pause_PrisonAreaName_u8_arr
-    d_entry table, Sewer,   DataA_Pause_SewerAreaName_u8_arr
-    d_entry table, Shadow,  DataA_Pause_ShadowAreaName_u8_arr
-    d_entry table, Temple,  DataA_Pause_TempleAreaName_u8_arr
-    d_entry table, Town,    DataA_Pause_TownAreaName_u8_arr
+    d_entry table, City,    DataA_Pause_CityAreaName_u8_arr12
+    d_entry table, Core,    DataA_Pause_CoreAreaName_u8_arr12
+    d_entry table, Crypt,   DataA_Pause_CryptAreaName_u8_arr12
+    d_entry table, Factory, DataA_Pause_FactoryAreaName_u8_arr12
+    d_entry table, Garden,  DataA_Pause_GardenAreaName_u8_arr12
+    d_entry table, Lava,    DataA_Pause_LavaAreaName_u8_arr12
+    d_entry table, Mermaid, DataA_Pause_MermaidAreaName_u8_arr12
+    d_entry table, Mine,    DataA_Pause_MineAreaName_u8_arr12
+    d_entry table, Prison,  DataA_Pause_PrisonAreaName_u8_arr12
+    d_entry table, Sewer,   DataA_Pause_SewerAreaName_u8_arr12
+    d_entry table, Shadow,  DataA_Pause_ShadowAreaName_u8_arr12
+    d_entry table, Temple,  DataA_Pause_TempleAreaName_u8_arr12
+    d_entry table, Town,    DataA_Pause_TownAreaName_u8_arr12
     D_END
 .ENDREPEAT
 
-.PROC DataA_Pause_CityAreaName_u8_arr
-    .byte "Ancient City", $ff
+.PROC DataA_Pause_CityAreaName_u8_arr12
+:   .byte "Ancient City"
+    .assert * - :- = 12, error
 .ENDPROC
 
-.PROC DataA_Pause_CoreAreaName_u8_arr
-    .byte "Power Core", $ff
+.PROC DataA_Pause_CoreAreaName_u8_arr12
+:   .byte " Power Core "
+    .assert * - :- = 12, error
 .ENDPROC
 
-.PROC DataA_Pause_CryptAreaName_u8_arr
-    .byte "Deep Crypt", $ff
+.PROC DataA_Pause_CryptAreaName_u8_arr12
+:   .byte " Deep Crypt "
+    .assert * - :- = 12, error
 .ENDPROC
 
-.PROC DataA_Pause_FactoryAreaName_u8_arr
-    .byte "Rust Factory", $ff
+.PROC DataA_Pause_FactoryAreaName_u8_arr12
+:   .byte "Rust Factory"
+    .assert * - :- = 12, error
 .ENDPROC
 
-.PROC DataA_Pause_GardenAreaName_u8_arr
-    .byte "Vine Garden", $ff
+.PROC DataA_Pause_GardenAreaName_u8_arr12
+:   .byte " Vine Garden"
+    .assert * - :- = 12, error
 .ENDPROC
 
-.PROC DataA_Pause_LavaAreaName_u8_arr
-    .byte "Lava Pits", $ff
+.PROC DataA_Pause_LavaAreaName_u8_arr12
+:   .byte "  Lava Pits "
+    .assert * - :- = 12, error
 .ENDPROC
 
-.PROC DataA_Pause_MermaidAreaName_u8_arr
-    .byte "Mermaid Vale", $ff
+.PROC DataA_Pause_MermaidAreaName_u8_arr12
+:   .byte "Mermaid Vale"
+    .assert * - :- = 12, error
 .ENDPROC
 
-.PROC DataA_Pause_MineAreaName_u8_arr
-    .byte "Salt Mines", $ff
+.PROC DataA_Pause_MineAreaName_u8_arr12
+:   .byte " Salt Mines "
+    .assert * - :- = 12, error
 .ENDPROC
 
-.PROC DataA_Pause_PrisonAreaName_u8_arr
-    .byte "Prison Caves", $ff
+.PROC DataA_Pause_PrisonAreaName_u8_arr12
+:   .byte "Prison Caves"
+    .assert * - :- = 12, error
 .ENDPROC
 
-.PROC DataA_Pause_SewerAreaName_u8_arr
-    .byte "Old Waterway", $ff
+.PROC DataA_Pause_SewerAreaName_u8_arr12
+:   .byte "Old Waterway"
+    .assert * - :- = 12, error
 .ENDPROC
 
-.PROC DataA_Pause_ShadowAreaName_u8_arr
-    .byte "Shadow Labs", $ff
+.PROC DataA_Pause_ShadowAreaName_u8_arr12
+:   .byte " Shadow Labs"
+    .assert * - :- = 12, error
 .ENDPROC
 
-.PROC DataA_Pause_TempleAreaName_u8_arr
-    .byte "Lost Temple", $ff
+.PROC DataA_Pause_TempleAreaName_u8_arr12
+:   .byte " Lost Temple"
+    .assert * - :- = 12, error
 .ENDPROC
 
-.PROC DataA_Pause_TownAreaName_u8_arr
-    .byte "Bartik Town", $ff
+.PROC DataA_Pause_TownAreaName_u8_arr12
+:   .byte " Bartik Town"
+    .assert * - :- = 12, error
 .ENDPROC
 
 .EXPORT DataA_Pause_AreaCells_u8_arr2_arr_ptr_0_arr

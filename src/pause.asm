@@ -31,8 +31,8 @@
 
 .IMPORT DataA_Pause_AreaCells_u8_arr2_arr_ptr_0_arr
 .IMPORT DataA_Pause_AreaCells_u8_arr2_arr_ptr_1_arr
-.IMPORT DataA_Pause_AreaNames_u8_arr_ptr_0_arr
-.IMPORT DataA_Pause_AreaNames_u8_arr_ptr_1_arr
+.IMPORT DataA_Pause_AreaNames_u8_arr12_ptr_0_arr
+.IMPORT DataA_Pause_AreaNames_u8_arr12_ptr_1_arr
 .IMPORT DataA_Pause_Minimap_sMarker_arr
 .IMPORT Data_PowersOfTwo_u8_arr8
 .IMPORT Func_AllocObjects
@@ -139,17 +139,9 @@ _CheckForUnause:
 ;;; The "Current area:" label that is drawn on the pause screen, along with
 ;;; some of the surrounding tiles.
 .PROC DataA_Pause_CurrentAreaLabel_u8_arr
-Start:
     .byte kTileIdBgWindowTopRight, ' '
-LineStart:
-    .byte ' ', kTileIdBgWindowVert
-    .byte " Current area: "
-kAreaNameStartCol = * - LineStart
-kSize = * - Start
+    .byte ' ', kTileIdBgWindowVert, " Current area: "
 .ENDPROC
-
-;;; The screen tile column that the area name begins on.
-kAreaNameStartCol = DataA_Pause_CurrentAreaLabel_u8_arr::kAreaNameStartCol
 
 ;;; Initializes pause mode, then fades in the screen.
 ;;; @prereq Rendering is disabled.
@@ -219,36 +211,24 @@ _DrawCurrentAreaLabel:
     lda DataA_Pause_CurrentAreaLabel_u8_arr, x
     sta Hw_PpuData_rw
     inx
-    cpx #DataA_Pause_CurrentAreaLabel_u8_arr::kSize
+    cpx #.sizeof(DataA_Pause_CurrentAreaLabel_u8_arr)
     blt @loop
 _DrawCurrentAreaName:
     ;; Copy the current room's AreaName_u8_arr_ptr into T1T0.
     lda <(Zp_Current_sRoom + sRoom::Flags_bRoom)
     and #bRoom::AreaMask
     tay  ; eArea value
-    lda DataA_Pause_AreaNames_u8_arr_ptr_0_arr, y
+    lda DataA_Pause_AreaNames_u8_arr12_ptr_0_arr, y
     sta T0
-    lda DataA_Pause_AreaNames_u8_arr_ptr_1_arr, y
+    lda DataA_Pause_AreaNames_u8_arr12_ptr_1_arr, y
     sta T1
     ;; Draw the room's area name.
     ldy #0
-    beq @start  ; unconditional
     @loop:
-    sta Hw_PpuData_rw
-    iny
-    @start:
     lda (T1T0), y
-    bpl @loop
-    @break:
-_FinishCurrentAreaLine:
-    lda #' '
-    .assert ' ' = 0, error
-    beq @start  ; unconditional
-    @loop:
     sta Hw_PpuData_rw
     iny
-    @start:
-    cpy #kScreenWidthTiles - kAreaNameStartCol - 2
+    cpy #12
     blt @loop
 _DrawMinimap:
     jsr _DrawBlankLine
@@ -272,10 +252,8 @@ _DrawItems:
     cpx #6
     bne @rowLoop
 _DrawBottomBorder:
-    lda #kTileIdBgWindowVert
-    sta Hw_PpuData_rw
+    jsr _DrawStartOrEndOfLine
     lda #' '
-    sta Hw_PpuData_rw
     sta Hw_PpuData_rw
     lda #kTileIdBgWindowBottomLeft
     sta Hw_PpuData_rw
@@ -296,17 +274,18 @@ _ClearBottomRows:
     bne @loop
     rts
 _DrawLineBreak:
-    lda #kTileIdBgWindowVert
-    ldy #' '
+    jsr _DrawStartOrEndOfLine
+_DrawStartOrEndOfLine:
+    lda #' '
     sta Hw_PpuData_rw
-    sty Hw_PpuData_rw
+    ldy #kTileIdBgWindowVert
     sty Hw_PpuData_rw
     sta Hw_PpuData_rw
     rts
 _DrawBlankLine:
     jsr _DrawLineBreak
     lda #' '
-    ldy #kScreenWidthTiles - 4
+    ldy #kScreenWidthTiles - 6
     @colLoop:
     sta Hw_PpuData_rw
     dey
@@ -325,7 +304,6 @@ _DrawBlankLine:
 .PROC FuncA_Pause_DirectDrawMinimapLine
     ;; Draw left margin.
     lda #' '
-    sta Hw_PpuData_rw
     sta Hw_PpuData_rw
     ;; Determine the bitmask we should use for this minimap row, and store it
     ;; in T2.
@@ -445,7 +423,6 @@ _Finish:
     ;; Draw right margin.
     lda #' '
     sta Hw_PpuData_rw
-    sta Hw_PpuData_rw
     rts
 .ENDPROC
 
@@ -457,7 +434,6 @@ _Finish:
 .PROC FuncA_Pause_DirectDrawItemsLine
     stx T0  ; line number (0-5)
     lda #' '
-    sta Hw_PpuData_rw
     sta Hw_PpuData_rw
 .PROC _DrawUpgrades
     ;; Calculate the eFlag value for the first upgrade on this line, and store
@@ -536,7 +512,6 @@ _Finish:
     dey
     bne @loop
     lda #' '
-    sta Hw_PpuData_rw
     sta Hw_PpuData_rw
 .ENDPROC
     ldx T0  ; restore X register (line number)
