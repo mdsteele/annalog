@@ -24,12 +24,11 @@
 
 .IMPORT FuncA_Actor_HarmAvatarIfCollision
 .IMPORT FuncA_Actor_SetPointInFrontOfActor
+.IMPORT FuncA_Actor_SetVelXForward
 .IMPORT FuncA_Objects_Draw2x2Actor
 .IMPORT Func_PointHitsTerrain
 .IMPORT Ram_ActorFlags_bObj_arr
 .IMPORT Ram_ActorState1_byte_arr
-.IMPORT Ram_ActorVelX_i16_0_arr
-.IMPORT Ram_ActorVelX_i16_1_arr
 
 ;;;=========================================================================;;;
 
@@ -65,22 +64,9 @@ kPaletteObjFish = 0
     @continueForward:
 _SetVelocity:
     ;; TODO: Move fast if player avatar is ahead, move slower otherwise.
-    lda Ram_ActorFlags_bObj_arr, x
-    and #bObj::FlipH
-    bne @facingLeft
-    @facingRight:
-    lda #<kFishSpeed
-    sta Ram_ActorVelX_i16_0_arr, x
-    lda #>kFishSpeed
-    sta Ram_ActorVelX_i16_1_arr, x
-    bpl @done  ; unconditional
-    @facingLeft:
-    lda #<($ffff & -kFishSpeed)
-    sta Ram_ActorVelX_i16_0_arr, x
-    lda #>($ffff & -kFishSpeed)
-    sta Ram_ActorVelX_i16_1_arr, x
-    @done:
-    inc Ram_ActorState1_byte_arr, x
+    ldya #kFishSpeed  ; param: speed
+    jsr FuncA_Actor_SetVelXForward  ; preserves X
+    inc Ram_ActorState1_byte_arr, x  ; animation timer
     jmp FuncA_Actor_HarmAvatarIfCollision  ; preserves X
 .ENDPROC
 
@@ -93,7 +79,7 @@ _SetVelocity:
 ;;; @preserve X
 .EXPORT FuncA_Objects_DrawActorBadFish
 .PROC FuncA_Objects_DrawActorBadFish
-    lda Ram_ActorState1_byte_arr, x
+    lda Ram_ActorState1_byte_arr, x  ; animation timer
     div #8
     and #$03
     tay

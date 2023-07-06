@@ -37,9 +37,9 @@ PATTERNS = [
      re.compile(r'^[ \t]+;;;|^;;[^;]|^[ \t]*; |^[^;]*[^;: \t][^;]*;;')),
 ]
 
-EXPORT_PATTERN = re.compile(r'^\.EXPORT(?:ZP)? +([A-Za-z0-9_]+)$')
+EXPORT_PATTERN = re.compile(r'^\.EXPORT(?:ZP)? +([A-Za-z0-9_]+)(?: *;.*)?$')
 
-IMPORT_PATTERN = re.compile(r'^\.IMPORT(?:ZP)? +([A-Za-z0-9_]+)$')
+IMPORT_PATTERN = re.compile(r'^\.IMPORT(?:ZP)? +([A-Za-z0-9_]+)(?: *;.*)?$')
 
 INCLUDE_PATTERN = re.compile(r'^\.INCLUDE +"([^"]+)"')
 

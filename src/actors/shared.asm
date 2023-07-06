@@ -18,6 +18,8 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "../avatar.inc"
+.INCLUDE "../cpu.inc"
+.INCLUDE "../device.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
 .INCLUDE "../ppu.inc"
@@ -31,6 +33,7 @@
 .IMPORT Func_MovePointHorz
 .IMPORT Func_MovePointLeftByA
 .IMPORT Func_MovePointRightByA
+.IMPORT Func_MovePointVert
 .IMPORT Func_PointHitsTerrain
 .IMPORT Func_SetPointToActorCenter
 .IMPORT Ram_ActorFlags_bObj_arr
@@ -43,6 +46,9 @@
 .IMPORT Ram_ActorVelX_i16_1_arr
 .IMPORT Ram_ActorVelY_i16_0_arr
 .IMPORT Ram_ActorVelY_i16_1_arr
+.IMPORT Ram_DeviceBlockCol_u8_arr
+.IMPORT Ram_DeviceBlockRow_u8_arr
+.IMPORT Ram_DeviceType_eDevice_arr
 .IMPORTZP Zp_AvatarFlags_bObj
 .IMPORTZP Zp_AvatarPosX_i16
 .IMPORTZP Zp_AvatarPosY_i16
@@ -139,6 +145,42 @@
     rts
 .ENDPROC
 
+;;; Returns the index of the device whose block the the actor's center is in,
+;;; if any.
+;;; @param X The actor index.
+;;; @return N Set if there was no device nearby, cleared otherwise.
+;;; @return Y The device index of the nearby device, or $ff for none.
+;;; @preserve X
+.EXPORT FuncA_Actor_FindNearbyDevice
+.PROC FuncA_Actor_FindNearbyDevice
+    jsr FuncA_Actor_GetRoomBlockRow  ; preserves X, returns Y
+    sty T1  ; actor block row
+    ;; Calculate actor's block column, storing it in T0.
+    lda Ram_ActorPosX_i16_0_arr, x
+    sta T0
+    lda Ram_ActorPosX_i16_1_arr, x
+    .assert kBlockWidthPx = (1 << 4), error
+    .repeat 4
+    lsr a
+    ror T0  ; actor block col
+    .endrepeat
+    ;; Find a device in the same room block row/col.
+    ldy #kMaxDevices - 1
+    @loop:
+    lda Ram_DeviceType_eDevice_arr, y
+    lda Ram_DeviceBlockRow_u8_arr, y
+    cmp T1  ; actor block row
+    bne @continue
+    lda Ram_DeviceBlockCol_u8_arr, y
+    cmp T0  ; actor block col
+    beq @done
+    @continue:
+    dey
+    bpl @loop
+    @done:
+    rts
+.ENDPROC
+
 ;;; Returns the room block row index for the actor position.
 ;;; @param X The actor index.
 ;;; @return Y The room block row index.
@@ -189,6 +231,28 @@
     jmp Func_MovePointHorz  ; preserves X and T0+
 .ENDPROC
 
+;;; Sets Zp_PointX_i16 to the horizontal center of the actor, and sets
+;;; Zp_PointY_i16 to a position A pixels above/below the vertical center of the
+;;; actor, based on the FlipV bit of the actor's flags.
+;;; @param A How many pixels above/below to place the point (signed).
+;;; @param X The actor index.
+;;; @preserve X, T0+
+.EXPORT FuncA_Actor_SetPointAboveOrBelowActor
+.PROC FuncA_Actor_SetPointAboveOrBelowActor
+    tay  ; param: offset
+    jsr Func_SetPointToActorCenter  ; preserves X, Y, and T0+
+    lda Ram_ActorFlags_bObj_arr, x
+    .assert bObj::FlipV = bProc::Negative, error
+    bpl @noNegate
+    dey
+    tya
+    eor #$ff
+    tay
+    @noNegate:
+    tya  ; param: offset
+    jmp Func_MovePointVert  ; preserves X and T0+
+.ENDPROC
+
 ;;; Moves Zp_PointX_i16 left or right by the given number of pixels, in the
 ;;; direction of the actor's X-velocity.
 ;;; @param A The number of pixels to shift by (unsigned).
@@ -202,6 +266,38 @@
     jmp Func_MovePointLeftByA
     @movingRight:
     jmp Func_MovePointRightByA
+.ENDPROC
+
+;;; If the actor is facing right, sets its X-velocity to the given speed; if
+;;; the actor is facing left, sets it to the negative of that speed.
+;;; @param YA The speed to set (signed), in subpixels per frame.
+;;; @param X The actor index.
+;;; @preserve X, T0+
+.EXPORT FuncA_Actor_SetVelXForward
+.PROC FuncA_Actor_SetVelXForward
+    sta Ram_ActorVelX_i16_0_arr, x
+    tya
+    sta Ram_ActorVelX_i16_1_arr, x
+    lda Ram_ActorFlags_bObj_arr, x
+    and #bObj::FlipH
+    bne FuncA_Actor_NegateVelX  ; preserves X
+    rts
+.ENDPROC
+
+;;; If the actor is facing down, sets its Y-velocity to the given speed; if the
+;;; actor is facing up, sets it to the negative of that speed.
+;;; @param YA The speed to set (signed), in subpixels per frame.
+;;; @param X The actor index.
+;;; @preserve X, T0+
+.EXPORT FuncA_Actor_SetVelYUpOrDown
+.PROC FuncA_Actor_SetVelYUpOrDown
+    sta Ram_ActorVelY_i16_0_arr, x
+    tya
+    sta Ram_ActorVelY_i16_1_arr, x
+    lda Ram_ActorFlags_bObj_arr, x
+    .assert bObj::FlipV = bProc::Negative, error
+    bmi FuncA_Actor_NegateVelY  ; preserves X
+    rts
 .ENDPROC
 
 ;;; Negates the actor's X-velocity.

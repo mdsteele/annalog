@@ -22,6 +22,7 @@
 .INCLUDE "../charmap.inc"
 .INCLUDE "../cpu.inc"
 .INCLUDE "../device.inc"
+.INCLUDE "../devices/mousehole.inc"
 .INCLUDE "../dialog.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../platform.inc"
@@ -30,7 +31,7 @@
 .IMPORT DataA_Room_Building_sTileset
 .IMPORT Data_Empty_sPlatform_arr
 .IMPORT Func_Noop
-.IMPORT Ppu_ChrObjTown
+.IMPORT Ppu_ChrObjCity
 
 ;;;=========================================================================;;;
 
@@ -47,7 +48,7 @@
     d_addr TerrainData_ptr, _TerrainData
     d_byte NumMachines_u8, 0
     d_addr Machines_sMachine_arr_ptr, 0
-    d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjTown)  ; TODO
+    d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjCity)
     d_addr Tick_func_ptr, Func_Noop
     d_addr Draw_func_ptr, Func_Noop
     d_addr Ext_sRoomExt_ptr, _Ext_sRoomExt
@@ -66,18 +67,47 @@ _TerrainData:
 :   .incbin "out/data/city_building1.room"
     .assert * - :- = 16 * 15, error
 _Actors_sActor_arr:
-:   ;; TODO: add some baddies
+:   D_STRUCT sActor
+    d_byte Type_eActor, eActor::BadRodent
+    d_word PosX_i16, 0
+    d_word PosY_i16, 0
+    d_byte Param_byte, 0
+    D_END
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::BadRodent
+    d_word PosX_i16, 0
+    d_word PosY_i16, 0
+    d_byte Param_byte, 0
+    D_END
     .assert * - :- <= kMaxActors * .sizeof(sActor), error
     .byte eActor::None
 _Devices_sDevice_arr:
 :   D_STRUCT sDevice
-    d_byte Type_eDevice, eDevice::Door1Open
+    d_byte Type_eDevice, eDevice::Mousehole
+    d_byte BlockRow_u8, 2
+    d_byte BlockCol_u8, 11
+    d_byte Target_u8, bMousehole::OnRight | bMousehole::RunLeft
+    D_END
+    D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::Mousehole
+    d_byte BlockRow_u8, 4
+    d_byte BlockCol_u8, 4
+    d_byte Target_u8, bMousehole::OnRight | bMousehole::RunRight
+    D_END
+    D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::Mousehole
+    d_byte BlockRow_u8, 12
+    d_byte BlockCol_u8, 10
+    d_byte Target_u8, bMousehole::OnLeft | bMousehole::RunEither
+    D_END
+    D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::Door1Unlocked
     d_byte BlockRow_u8, 2
     d_byte BlockCol_u8, 10
     d_byte Target_u8, eRoom::CityOutskirts
     D_END
     D_STRUCT sDevice
-    d_byte Type_eDevice, eDevice::Door2Open
+    d_byte Type_eDevice, eDevice::Door2Open  ; TODO Door2Unlocked
     d_byte BlockRow_u8, 12
     d_byte BlockCol_u8, 5
     d_byte Target_u8, eRoom::CityOutskirts

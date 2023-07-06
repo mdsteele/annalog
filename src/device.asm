@@ -127,6 +127,7 @@ _Continue:
     d_entry table, BreakerRising, FuncA_Objects_DrawBreakerRisingDevice
     d_entry table, Door1Locked,   FuncA_Objects_DrawLockedDoorDevice
     d_entry table, FlowerInert,   FuncA_Objects_DrawFlowerDevice
+    d_entry table, Mousehole,     Func_Noop
     d_entry table, Placeholder,   Func_Noop
     d_entry table, Teleporter,    Func_Noop
     d_entry table, BreakerReady,  FuncA_Objects_DrawBreakerReadyDevice

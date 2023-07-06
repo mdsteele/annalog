@@ -64,12 +64,13 @@ T7T6 := $06
 ;;;=========================================================================;;;
 
 ;;; LDAX (load a 16-bit value into AX)
+;;; Affects flags: N Z
 ;;;
 ;;; Loads a 16-bit value, putting the low byte in X and the high byte in A.
 ;;; Sets N based on the high byte; destroys Z.
 ;;;
 ;;; Examples:
-;;;     ldax #$1234       ; immidiate mode; sets X to $34 and A to $12
+;;;     ldax #$1234       ; immediate mode; sets X to $34 and A to $12
 ;;;     ldax Zp_Foo_u16   ; zeropage mode; sets X to [Foo] and A to [Foo+1]
 ;;;     ldax Ram_Foo_u16  ; absolute mode; sets X to [Foo] and A to [Foo+1]
 .MACRO ldax ARG
@@ -78,12 +79,13 @@ T7T6 := $06
 .ENDMACRO
 
 ;;; LDXY (load a 16-bit value into XY)
+;;; Affects flags: N Z
 ;;;
 ;;; Loads a 16-bit value, putting the low byte in Y and the high byte in X.
 ;;; Sets N based on the high byte; destroys Z.
 ;;;
 ;;; Examples:
-;;;     ldxy #$1234       ; immidiate mode; sets Y to $34 and X to $12
+;;;     ldxy #$1234       ; immediate mode; sets Y to $34 and X to $12
 ;;;     ldxy Zp_Foo_u16   ; zeropage mode; sets Y to [Foo] and X to [Foo+1]
 ;;;     ldxy Ram_Foo_u16  ; absolute mode; sets Y to [Foo] and X to [Foo+1]
 .MACRO ldxy ARG
@@ -92,12 +94,13 @@ T7T6 := $06
 .ENDMACRO
 
 ;;; LDYA (load a 16-bit value into YA)
+;;; Affects flags: N Z
 ;;;
 ;;; Loads a 16-bit value, putting the low byte in A and the high byte in Y.
 ;;; Sets N based on the high byte; destroys Z.
 ;;;
 ;;; Examples:
-;;;     ldya #$1234       ; immidiate mode; sets A to $34 and Y to $12
+;;;     ldya #$1234       ; immediate mode; sets A to $34 and Y to $12
 ;;;     ldya Zp_Foo_u16   ; zeropage mode; sets A to [Foo] and Y to [Foo+1]
 ;;;     ldya Ram_Foo_u16  ; absolute mode; sets A to [Foo] and Y to [Foo+1]
 .MACRO ldya ARG
@@ -106,6 +109,7 @@ T7T6 := $06
 .ENDMACRO
 
 ;;; STAX (store a 16-bit value from AX)
+;;; Affects flags: none
 ;;;
 ;;; Stores a 16-bit value, using X as the low byte and A as the high byte.
 ;;;
@@ -118,6 +122,7 @@ T7T6 := $06
 .ENDMACRO
 
 ;;; STXY (store a 16-bit value from XY)
+;;; Affects flags: none
 ;;;
 ;;; Stores a 16-bit value, using Y as the low byte and X as the high byte.
 ;;;
@@ -130,6 +135,7 @@ T7T6 := $06
 .ENDMACRO
 
 ;;; STYA (store a 16-bit value from YA)
+;;; Affects flags: none
 ;;;
 ;;; Stores a 16-bit value, using A as the low byte and Y as the high byte.
 ;;;

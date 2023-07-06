@@ -30,6 +30,7 @@
 .IMPORT FuncA_Actor_IsAvatarWithinHorzDistance
 .IMPORT FuncA_Actor_NegateVelY
 .IMPORT FuncA_Actor_SetPointInFrontOfActor
+.IMPORT FuncA_Actor_SetVelXForward
 .IMPORT FuncA_Actor_ZeroVelX
 .IMPORT FuncA_Actor_ZeroVelY
 .IMPORT FuncA_Objects_Draw1x1Shape
@@ -43,8 +44,6 @@
 .IMPORT Ram_ActorPosY_i16_0_arr
 .IMPORT Ram_ActorState1_byte_arr
 .IMPORT Ram_ActorState2_byte_arr
-.IMPORT Ram_ActorVelX_i16_0_arr
-.IMPORT Ram_ActorVelX_i16_1_arr
 .IMPORT Ram_ActorVelY_i16_0_arr
 .IMPORT Ram_ActorVelY_i16_1_arr
 .IMPORTZP Zp_TerrainColumn_u8_arr_ptr
@@ -189,18 +188,8 @@ _StartNewMovementCycle:
     sta Ram_ActorFlags_bObj_arr, x
     @continueForward:
 _SetVelocityForMove:
-    lda Ram_ActorFlags_bObj_arr, x
-    and #bObj::FlipH
-    beq @facingRight
-    @facingLeft:
-    lda #<-kSpiderMoveSpeed
-    bne @setVel  ; unconditional
-    @facingRight:
-    lda #kSpiderMoveSpeed
-    @setVel:
-    sta Ram_ActorVelX_i16_1_arr, x
-    lda #0
-    sta Ram_ActorVelX_i16_0_arr, x
+    ldya #kSpiderMoveSpeed * $100  ; param: speed
+    jsr FuncA_Actor_SetVelXForward
     ;; Start a new movement cycle for the spider.  To do this, we decrement the
     ;; timer from its current value of zero, mod kSpiderMovementCycleFrames.
     lda #kSpiderMovementCycleFrames - 1

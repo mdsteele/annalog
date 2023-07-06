@@ -22,12 +22,13 @@
 .INCLUDE "../cpu.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
+.INCLUDE "../ppu.inc"
 .INCLUDE "../terrain.inc"
 .INCLUDE "bird.inc"
 
 .IMPORT FuncA_Actor_HarmAvatarIfCollision
-.IMPORT FuncA_Actor_NegateVelX
 .IMPORT FuncA_Actor_SetPointInFrontOfActor
+.IMPORT FuncA_Actor_SetVelXForward
 .IMPORT FuncA_Actor_ZeroVelX
 .IMPORT FuncA_Objects_Draw2x2Actor
 .IMPORT Func_DivMod
@@ -40,7 +41,7 @@
 .IMPORT Ram_ActorPosY_i16_1_arr
 .IMPORT Ram_ActorState1_byte_arr
 .IMPORT Ram_ActorState2_byte_arr
-.IMPORT Ram_ActorVelX_i16_0_arr
+.IMPORT Ram_ActorSubX_u8_arr
 .IMPORT Ram_ActorVelX_i16_1_arr
 .IMPORTZP Zp_AvatarPosX_i16
 .IMPORTZP Zp_AvatarPosY_i16
@@ -114,7 +115,10 @@ _LandOnWall:
     eor #bObj::FlipH
     sta Ram_ActorFlags_bObj_arr, x
     ;; Adjust position to be on the wall.
+    lda #0
+    sta Ram_ActorSubX_u8_arr, x
     lda Ram_ActorPosX_i16_0_arr, x
+    .assert kBlockWidthPx = $10, error
     and #$f0
     ora #$08
     sta Ram_ActorPosX_i16_0_arr, x
@@ -207,18 +211,8 @@ _GetVertFrames:
     cmp T1  ; num frames vert
     blt _Done  ; avatar is too far away
 _StartFlying:
-    ;; Set X-velocity for flying.
-    lda #<kBirdSpeed
-    sta Ram_ActorVelX_i16_0_arr, x
-    lda #>kBirdSpeed
-    sta Ram_ActorVelX_i16_1_arr, x
-    lda Ram_ActorFlags_bObj_arr, x
-    and #bObj::FlipH
-    beq @facingRight
-    @facingLeft:
-    jsr FuncA_Actor_NegateVelX  ; preserves X
-    @facingRight:
-    rts
+    ldya #kBirdSpeed  ; param: speed
+    jmp FuncA_Actor_SetVelXForward  ; preserves X
 .ENDPROC
 
 ;;;=========================================================================;;;

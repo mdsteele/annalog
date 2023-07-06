@@ -225,6 +225,7 @@ _CheckForPause:
     d_entry table, BreakerRising, _DoneWithDevice
     d_entry table, Door1Locked,   _DoneWithDevice
     d_entry table, FlowerInert,   _DoneWithDevice
+    d_entry table, Mousehole,     _DoneWithDevice
     d_entry table, Placeholder,   _DoneWithDevice
     d_entry table, Teleporter,    _DoneWithDevice
     d_entry table, BreakerReady,  Main_Breaker_UseDevice

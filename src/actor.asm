@@ -35,6 +35,7 @@
 .IMPORT FuncA_Actor_TickBadHotheadVert
 .IMPORT FuncA_Actor_TickBadLavaball
 .IMPORT FuncA_Actor_TickBadOrc
+.IMPORT FuncA_Actor_TickBadRodent
 .IMPORT FuncA_Actor_TickBadSpider
 .IMPORT FuncA_Actor_TickBadToad
 .IMPORT FuncA_Actor_TickBadVinebug
@@ -63,6 +64,7 @@
 .IMPORT FuncA_Objects_DrawActorBadHotheadVert
 .IMPORT FuncA_Objects_DrawActorBadLavaball
 .IMPORT FuncA_Objects_DrawActorBadOrc
+.IMPORT FuncA_Objects_DrawActorBadRodent
 .IMPORT FuncA_Objects_DrawActorBadSpider
 .IMPORT FuncA_Objects_DrawActorBadToad
 .IMPORT FuncA_Objects_DrawActorBadVinebug
@@ -224,6 +226,9 @@ Ram_ActorFlags_bObj_arr: .res kMaxActors
 ;;; @preserve X, Y, T0+
 .EXPORT Func_SetActorCenterToPoint
 .PROC Func_SetActorCenterToPoint
+    lda #0
+    sta Ram_ActorSubX_u8_arr, x
+    sta Ram_ActorSubY_u8_arr, x
     lda Zp_PointX_i16 + 0
     sta Ram_ActorPosX_i16_0_arr, x
     lda Zp_PointX_i16 + 1
@@ -309,6 +314,7 @@ Ram_ActorFlags_bObj_arr: .res kMaxActors
     d_byte BadHotheadVert,   6
     d_byte BadLavaball,      7
     d_byte BadOrc,          kOrcBoundingBoxUp
+    d_byte BadRodent,        2
     d_byte BadSpider,        8
     d_byte BadToad,          9
     d_byte BadVinebug,       7
@@ -347,6 +353,7 @@ Ram_ActorFlags_bObj_arr: .res kMaxActors
     d_byte BadHotheadVert,   6
     d_byte BadLavaball,      7
     d_byte BadOrc,          kOrcBoundingBoxDown
+    d_byte BadRodent,        2
     d_byte BadSpider,        2
     d_byte BadToad,          0
     d_byte BadVinebug,       7
@@ -385,6 +392,7 @@ Ram_ActorFlags_bObj_arr: .res kMaxActors
     d_byte BadHotheadVert,  6
     d_byte BadLavaball,     6
     d_byte BadOrc,          kOrcBoundingBoxSide
+    d_byte BadRodent,       2
     d_byte BadSpider,       6
     d_byte BadToad,         7
     d_byte BadVinebug,      5
@@ -469,8 +477,7 @@ _ApplyVelY:
     adc Ram_ActorPosY_i16_1_arr, x
     sta Ram_ActorPosY_i16_1_arr, x
 _TypeSpecificTick:
-    lda Ram_ActorType_eActor_arr, x
-    tay
+    ldy Ram_ActorType_eActor_arr, x
     lda _JumpTable_ptr_0_arr, y
     sta T0
     lda _JumpTable_ptr_1_arr, y
@@ -492,6 +499,7 @@ _TypeSpecificTick:
     d_entry table, BadHotheadVert,  FuncA_Actor_TickBadHotheadVert
     d_entry table, BadLavaball,     FuncA_Actor_TickBadLavaball
     d_entry table, BadOrc,          FuncA_Actor_TickBadOrc
+    d_entry table, BadRodent,       FuncA_Actor_TickBadRodent
     d_entry table, BadSpider,       FuncA_Actor_TickBadSpider
     d_entry table, BadToad,         FuncA_Actor_TickBadToad
     d_entry table, BadVinebug,      FuncA_Actor_TickBadVinebug
@@ -665,6 +673,7 @@ _NoHit:
     d_entry table, BadHotheadVert,  Func_InitActorWithFlags
     d_entry table, BadLavaball,     FuncA_Room_InitActorBadLavaball
     d_entry table, BadOrc,          Func_InitActorBadOrc
+    d_entry table, BadRodent,       Func_InitActorDefault
     d_entry table, BadSpider,       Func_InitActorDefault
     d_entry table, BadToad,         Func_InitActorDefault
     d_entry table, BadVinebug,      Func_InitActorDefault
@@ -799,6 +808,7 @@ _NoHit:
     d_entry table, BadHotheadVert,  FuncA_Objects_DrawActorBadHotheadVert
     d_entry table, BadLavaball,     FuncA_Objects_DrawActorBadLavaball
     d_entry table, BadOrc,          FuncA_Objects_DrawActorBadOrc
+    d_entry table, BadRodent,       FuncA_Objects_DrawActorBadRodent
     d_entry table, BadSpider,       FuncA_Objects_DrawActorBadSpider
     d_entry table, BadToad,         FuncA_Objects_DrawActorBadToad
     d_entry table, BadVinebug,      FuncA_Objects_DrawActorBadVinebug

@@ -31,6 +31,7 @@ kMaxDevices = 16
     BreakerRising  ; circuit breaker, rising out of the ground
     Door1Locked    ; leads to another Door1*; can't be entered until unlocked
     FlowerInert    ; a flower that can't be picked
+    Mousehole      ; used by rodent baddies
     Placeholder    ; invisible and does nothing
     Teleporter     ; invisible spawn point for teleport field machines
     ;; Interactive device types.  The player can interact with these by
@@ -87,6 +88,7 @@ kFirstInteractiveDeviceType = eDevice::BreakerReady
     ;;   * For flowers, this is the eFlag::Flower* value.
     ;;   * For levers, this is the byte offset into Zp_RoomState for the
     ;;     lever's state value (0 or 1).
+    ;;   * For mouseholes, this the bMousehole value.
     ;;   * For paper/screen/sign/talk devices, this is the eDialog value.
     ;;   * For teleporters, this is the eRoom value for the destination room.
     ;;   * For upgrades, this is the eFlag::Upgrade* value.

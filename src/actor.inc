@@ -36,6 +36,7 @@ kMaxActors = 8
     BadHotheadVert   ; crawls around a platform, and can drop fire
     BadLavaball      ; jumps out of lava
     BadOrc           ; chases after player avatar
+    BadRodent        ; runs in/out of mouseholes and along walls
     BadSpider        ; crawls randomly on ceiling, and drops down on a thread
     BadToad          ; jumps in place
     BadVinebug       ; moves vertically on a vine

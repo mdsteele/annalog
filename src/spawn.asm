@@ -329,6 +329,7 @@ _DeviceOffset_u8_arr:
     d_byte BreakerRising, kBreakerAvatarOffset
     d_byte Door1Locked,   kDoorAvatarOffset
     d_byte FlowerInert,   $08
+    d_byte Mousehole,     $08
     d_byte Placeholder,   $08
     d_byte Teleporter,    $08
     d_byte BreakerReady,  kBreakerAvatarOffset

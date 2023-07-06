@@ -32,6 +32,7 @@
 .INCLUDE "actors/grub.inc"
 .INCLUDE "actors/lavaball.inc"
 .INCLUDE "actors/orc.inc"
+.INCLUDE "actors/rodent.inc"
 .INCLUDE "actors/spider.inc"
 .INCLUDE "actors/spike.inc"
 .INCLUDE "actors/toad.inc"
@@ -1046,7 +1047,10 @@
     .incbin "out/data/tiles/launcher_horz.chr"
     .assert * - :- = (kTileIdObjRocksFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/rocks.chr"
-    .res $56 * kSizeofChr
+    .res $06 * kSizeofChr
+    .assert * - :- = (kTileIdObjRodentFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/rodent.chr"
+    .res $47 * kSizeofChr
     .assert * - :- = (kTileIdObjBreakerFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/breaker.chr"
     .assert * - :- = kSizeofChr * $80, error
