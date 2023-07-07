@@ -83,16 +83,16 @@ _SetVelY:
 _VelX_i8_arr:
     D_ENUM eDir
     d_byte Up,   0
+    d_byte Right, kRocketSpeed
     d_byte Down, 0
     d_byte Left, <-kRocketSpeed
-    d_byte Right,  kRocketSpeed
     D_END
 _VelY_i8_arr:
     D_ENUM eDir
     d_byte Up, <-kRocketSpeed
+    d_byte Right, 0
     d_byte Down, kRocketSpeed
     d_byte Left,  0
-    d_byte Right, 0
     D_END
 .ENDPROC
 

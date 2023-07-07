@@ -18,9 +18,10 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "../actor.inc"
-.INCLUDE "../device.inc"
+.INCLUDE "../actors/jelly.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../platform.inc"
+.INCLUDE "../program.inc"
 .INCLUDE "../room.inc"
 
 .IMPORT DataA_Room_Sewer_sTileset
@@ -63,7 +64,30 @@ _TerrainData:
 :   .incbin "out/data/sewer_ascent.room"
     .assert * - :- = 17 * 24, error
 _Actors_sActor_arr:
-:   ;; TODO: add some baddies
+:   D_STRUCT sActor
+    d_byte Type_eActor, eActor::BadJelly
+    d_word PosX_i16, $0028
+    d_word PosY_i16, $0044
+    d_byte Param_byte, bBadJelly::TurnCcw | eDir::Down
+    D_END
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::BadJelly
+    d_word PosX_i16, $008c
+    d_word PosY_i16, $0098
+    d_byte Param_byte, bBadJelly::TurnCw | eDir::Right
+    D_END
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::BadJelly
+    d_word PosX_i16, $00b8
+    d_word PosY_i16, $00f8
+    d_byte Param_byte, bBadJelly::TurnCcw | eDir::Right
+    D_END
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::BadJelly
+    d_word PosX_i16, $0038
+    d_word PosY_i16, $0130
+    d_byte Param_byte, bBadJelly::TurnCw | eDir::Up
+    D_END
     .assert * - :- <= kMaxActors * .sizeof(sActor), error
     .byte eActor::None
 _Passages_sPassage_arr:

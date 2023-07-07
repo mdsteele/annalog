@@ -30,9 +30,11 @@
 .IMPORT FuncA_Objects_MoveShapeLeftHalfTile
 .IMPORT FuncA_Objects_MoveShapeUpHalfTile
 .IMPORT Func_HarmAvatar
+.IMPORT Func_MovePointDownByA
 .IMPORT Func_MovePointHorz
 .IMPORT Func_MovePointLeftByA
 .IMPORT Func_MovePointRightByA
+.IMPORT Func_MovePointUpByA
 .IMPORT Func_MovePointVert
 .IMPORT Func_PointHitsTerrain
 .IMPORT Func_SetPointToActorCenter
@@ -266,6 +268,21 @@
     jmp Func_MovePointLeftByA
     @movingRight:
     jmp Func_MovePointRightByA
+.ENDPROC
+
+;;; Moves Zp_PointY_i16 up or down by the given number of pixels, in the
+;;; direction of the actor's Y-velocity.
+;;; @param A The number of pixels to shift by (unsigned).
+;;; @param X The actor index.
+;;; @preserve X, T0+
+.EXPORT FuncA_Actor_MovePointTowardVelYDir
+.PROC FuncA_Actor_MovePointTowardVelYDir
+    ldy Ram_ActorVelY_i16_1_arr, x
+    bpl @movingDown
+    @movingUp:
+    jmp Func_MovePointUpByA
+    @movingDown:
+    jmp Func_MovePointDownByA
 .ENDPROC
 
 ;;; If the actor is facing right, sets its X-velocity to the given speed; if

@@ -52,9 +52,9 @@
     d_addr Labels_u8_arr_ptr_arr
     D_ENUM eDir, kSizeofAddr
     d_addr Up,    _LabelUp
+    d_addr Right, _LabelRight
     d_addr Down,  _LabelDown
     d_addr Left,  _LabelLeft
-    d_addr Right, _LabelRight
     D_END
     .addr 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
     d_addr OnUp_func_ptr,    _OnUp
@@ -63,9 +63,9 @@
     d_addr OnRight_func_ptr, _OnRight
     D_END
 _LabelUp:    .byte kTileIdBgArrowUp
+_LabelRight: .byte kTileIdBgArrowRight
 _LabelDown:  .byte kTileIdBgArrowDown
 _LabelLeft:  .byte kTileIdBgArrowLeft
-_LabelRight: .byte kTileIdBgArrowRight
 _OnUp:
     ldx #eDir::Up
     bpl _SetItem  ; unconditional

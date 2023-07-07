@@ -70,9 +70,9 @@
 ;;; Directions that can be used in MOVE instructions.
 .ENUM eDir
     Up
+    Right
     Down
     Left
-    Right
     NUM_VALUES
 .ENDENUM
 

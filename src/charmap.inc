@@ -101,8 +101,8 @@ kTileIdBgCmpGe = $0d
 .CHARMAP $7a, $59  ; 'z'
 
 kTileIdBgArrowUp    = $5c
-kTileIdBgArrowDown  = $5d
-kTileIdBgArrowLeft  = $5e
-kTileIdBgArrowRight = $5f
+kTileIdBgArrowRight = $5d
+kTileIdBgArrowDown  = $5e
+kTileIdBgArrowLeft  = $5f
 
 ;;;=========================================================================;;;

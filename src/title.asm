@@ -105,7 +105,6 @@ _StartGame:
 .PROC DataA_Title_Map_u8_arr
 :   .incbin "out/data/title.map"
     .assert * - :- = kScreenWidthTiles * 3, error
-End:
 .ENDPROC
 
 ;;; Initializes title mode, then fades in the screen.
@@ -141,7 +140,7 @@ _DrawTitle:
     bit Hw_PpuStatus_ro  ; reset the Hw_PpuAddr_w2 write-twice latch
     sta Hw_PpuAddr_w2
     stx Hw_PpuAddr_w2
-    ldy #DataA_Title_Map_u8_arr::End - DataA_Title_Map_u8_arr
+    ldy #.sizeof(DataA_Title_Map_u8_arr)
     ldx #0
     @loop:
     lda DataA_Title_Map_u8_arr, x

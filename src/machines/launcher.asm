@@ -116,16 +116,16 @@ _Error:
 _HorzAdjust_i8_arr:
     D_ENUM eDir
     d_byte Up, <-5
+    d_byte Right, 4
     d_byte Down, <-5
     d_byte Left, <-4
-    d_byte Right, 4
     D_END
 _VertAdjust_i8_arr:
     D_ENUM eDir
     d_byte Up, <-4
+    d_byte Right, 5
     d_byte Down, 4
     d_byte Left, 5
-    d_byte Right, 5
     D_END
 .ENDPROC
 

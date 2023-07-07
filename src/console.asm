@@ -826,8 +826,12 @@ _OpMove:
     ldya #@string
     jsr _WriteString5
     lda T0  ; Op_byte
+    .assert eDir::NUM_VALUES = 4, error
     and #$03
-    .assert eDir::Up = 0, error
+    .assert eDir::Up    = kTileIdBgArrowUp    - kTileIdBgArrowUp, error
+    .assert eDir::Right = kTileIdBgArrowRight - kTileIdBgArrowUp, error
+    .assert eDir::Down  = kTileIdBgArrowDown  - kTileIdBgArrowUp, error
+    .assert eDir::Left  = kTileIdBgArrowLeft  - kTileIdBgArrowUp, error
     .assert kTileIdBgArrowUp & $03 = 0, error
     ora #kTileIdBgArrowUp
     sta Ram_PpuTransfer_arr, x

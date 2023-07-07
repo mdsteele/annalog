@@ -30,6 +30,7 @@
 .INCLUDE "actors/flamewave.inc"
 .INCLUDE "actors/grenade.inc"
 .INCLUDE "actors/grub.inc"
+.INCLUDE "actors/jelly.inc"
 .INCLUDE "actors/lavaball.inc"
 .INCLUDE "actors/orc.inc"
 .INCLUDE "actors/rodent.inc"
@@ -1282,7 +1283,9 @@
     .res $0c * kSizeofChr
     .assert * - :- = (kTileIdObjWaterFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/water.chr"
-    .res $63 * kSizeofChr
+    .assert * - :- = (kTileIdObjJellyFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/jelly.chr"
+    .res $60 * kSizeofChr
     .assert * - :- = kSizeofChr * $80, error
 .ENDPROC
 

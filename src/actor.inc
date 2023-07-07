@@ -34,6 +34,7 @@ kMaxActors = 8
     BadGrub          ; crawls left/right on a floor
     BadHotheadHorz   ; crawls around a platform, and can drop fire
     BadHotheadVert   ; crawls around a platform, and can drop fire
+    BadJelly         ; moves in a straight line, turning when it hits a wall
     BadLavaball      ; jumps out of lava
     BadOrc           ; chases after player avatar
     BadRodent        ; runs in/out of mouseholes and along walls

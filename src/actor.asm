@@ -33,6 +33,7 @@
 .IMPORT FuncA_Actor_TickBadGrub
 .IMPORT FuncA_Actor_TickBadHotheadHorz
 .IMPORT FuncA_Actor_TickBadHotheadVert
+.IMPORT FuncA_Actor_TickBadJelly
 .IMPORT FuncA_Actor_TickBadLavaball
 .IMPORT FuncA_Actor_TickBadOrc
 .IMPORT FuncA_Actor_TickBadRodent
@@ -62,6 +63,7 @@
 .IMPORT FuncA_Objects_DrawActorBadGrub
 .IMPORT FuncA_Objects_DrawActorBadHotheadHorz
 .IMPORT FuncA_Objects_DrawActorBadHotheadVert
+.IMPORT FuncA_Objects_DrawActorBadJelly
 .IMPORT FuncA_Objects_DrawActorBadLavaball
 .IMPORT FuncA_Objects_DrawActorBadOrc
 .IMPORT FuncA_Objects_DrawActorBadRodent
@@ -116,6 +118,7 @@
 ;;;=========================================================================;;;
 
 ;;; The hit radius of various actors, in pixels.
+kBadJellyRadius       = 5
 kProjBulletRadius     = 1
 kProjFireballRadius   = 3
 kProjGrenadeRadius    = 2
@@ -312,6 +315,7 @@ Ram_ActorFlags_bObj_arr: .res kMaxActors
     d_byte BadGrub,          0
     d_byte BadHotheadHorz,   6
     d_byte BadHotheadVert,   6
+    d_byte BadJelly,        kBadJellyRadius
     d_byte BadLavaball,      7
     d_byte BadOrc,          kOrcBoundingBoxUp
     d_byte BadRodent,        2
@@ -351,6 +355,7 @@ Ram_ActorFlags_bObj_arr: .res kMaxActors
     d_byte BadGrub,          8
     d_byte BadHotheadHorz,   6
     d_byte BadHotheadVert,   6
+    d_byte BadJelly,        kBadJellyRadius
     d_byte BadLavaball,      7
     d_byte BadOrc,          kOrcBoundingBoxDown
     d_byte BadRodent,        2
@@ -390,6 +395,7 @@ Ram_ActorFlags_bObj_arr: .res kMaxActors
     d_byte BadGrub,         7
     d_byte BadHotheadHorz,  6
     d_byte BadHotheadVert,  6
+    d_byte BadJelly,        kBadJellyRadius
     d_byte BadLavaball,     6
     d_byte BadOrc,          kOrcBoundingBoxSide
     d_byte BadRodent,       2
@@ -497,6 +503,7 @@ _TypeSpecificTick:
     d_entry table, BadGrub,         FuncA_Actor_TickBadGrub
     d_entry table, BadHotheadHorz,  FuncA_Actor_TickBadHotheadHorz
     d_entry table, BadHotheadVert,  FuncA_Actor_TickBadHotheadVert
+    d_entry table, BadJelly,        FuncA_Actor_TickBadJelly
     d_entry table, BadLavaball,     FuncA_Actor_TickBadLavaball
     d_entry table, BadOrc,          FuncA_Actor_TickBadOrc
     d_entry table, BadRodent,       FuncA_Actor_TickBadRodent
@@ -671,6 +678,7 @@ _NoHit:
     d_entry table, BadGrub,         Func_InitActorDefault
     d_entry table, BadHotheadHorz,  Func_InitActorWithFlags
     d_entry table, BadHotheadVert,  Func_InitActorWithFlags
+    d_entry table, BadJelly,        Func_InitActorWithState1
     d_entry table, BadLavaball,     FuncA_Room_InitActorBadLavaball
     d_entry table, BadOrc,          Func_InitActorBadOrc
     d_entry table, BadRodent,       Func_InitActorDefault
@@ -806,6 +814,7 @@ _NoHit:
     d_entry table, BadGrub,         FuncA_Objects_DrawActorBadGrub
     d_entry table, BadHotheadHorz,  FuncA_Objects_DrawActorBadHotheadHorz
     d_entry table, BadHotheadVert,  FuncA_Objects_DrawActorBadHotheadVert
+    d_entry table, BadJelly,        FuncA_Objects_DrawActorBadJelly
     d_entry table, BadLavaball,     FuncA_Objects_DrawActorBadLavaball
     d_entry table, BadOrc,          FuncA_Objects_DrawActorBadOrc
     d_entry table, BadRodent,       FuncA_Objects_DrawActorBadRodent
