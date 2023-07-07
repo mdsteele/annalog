@@ -118,8 +118,7 @@ Ram_MenuCols_u8_arr: .res kMaxMenuItems
     ldx Zp_ConsoleMachineIndex_u8  ; param: machine index
     jsr Func_SetMachineIndex
     ;; Jump to field-type-specific setup function.
-    jsr FuncA_Console_GetCurrentFieldType  ; returns A
-    tay
+    jsr FuncA_Console_GetCurrentFieldType  ; returns Y
     lda _JumpTable_ptr_0_arr, y
     sta T0
     lda _JumpTable_ptr_1_arr, y
@@ -369,8 +368,8 @@ _Cancel:
     ;; If we cancel editing a NOP opcode (i.e. we were inserting a new
     ;; instruction), then delete that instruction (thus cancelling the
     ;; insertion).  In all other cases, we can simply exit the menu.
-    jsr FuncA_Console_GetCurrentFieldType  ; returns A
-    cmp #eField::Opcode
+    jsr FuncA_Console_GetCurrentFieldType  ; returns Y
+    cpy #eField::Opcode
     bne _ExitMenu
     jsr FuncA_Console_GetCurrentFieldValue  ; returns A
     cmp #eOpcode::Nop

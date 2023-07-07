@@ -51,8 +51,7 @@
 ;;; @preserve T0+
 .EXPORT FuncA_Console_GetCurrentInstNumFields
 .PROC FuncA_Console_GetCurrentInstNumFields
-    jsr FuncA_Console_GetCurrentOpcode  ; preserves T0+, returns A
-    tay
+    jsr FuncA_Console_GetCurrentOpcode  ; preserves T0+, returns Y
     ldx _NumFields_u8_arr, y
     rts
 _NumFields_u8_arr:
@@ -82,8 +81,7 @@ _NumFields_u8_arr:
 ;;; @preserve T0+
 .EXPORT FuncA_Console_GetCurrentFieldWidth
 .PROC FuncA_Console_GetCurrentFieldWidth
-    jsr FuncA_Console_GetCurrentOpcode  ; preserves T0+, returns A
-    tay
+    jsr FuncA_Console_GetCurrentOpcode  ; preserves T0+, returns Y
     lda _OpcodeTable_u8_arr, y
     add Zp_ConsoleFieldNumber_u8
     tay
@@ -124,8 +122,7 @@ _OpWait:
 ;;; @preserve T0+
 .EXPORT FuncA_Console_GetCurrentFieldOffset
 .PROC FuncA_Console_GetCurrentFieldOffset
-    jsr FuncA_Console_GetCurrentOpcode  ; preserves T0+, returns A
-    tay
+    jsr FuncA_Console_GetCurrentOpcode  ; preserves T0+, returns Y
     lda _OpcodeTable_u8_arr, y
     add Zp_ConsoleFieldNumber_u8
     tay
@@ -164,8 +161,7 @@ _OpTil:
 ;;; @preserve T0+
 .EXPORT FuncA_Console_SetFieldForNominalOffset
 .PROC FuncA_Console_SetFieldForNominalOffset
-    jsr FuncA_Console_GetCurrentOpcode  ; preserves T0+, returns A
-    tay
+    jsr FuncA_Console_GetCurrentOpcode  ; preserves T0+, returns Y
     lda _OpcodeTable_u8_arr, y
     add Zp_ConsoleNominalFieldOffset_u8
     tay
@@ -200,16 +196,15 @@ _OpTil:
 .ENDPROC
 
 ;;; Returns the eField for the currently-selected instruction field.
-;;; @return A The eField value.
+;;; @return Y The eField value.
 ;;; @preserve T0+
 .EXPORT FuncA_Console_GetCurrentFieldType
 .PROC FuncA_Console_GetCurrentFieldType
-    jsr FuncA_Console_GetCurrentOpcode  ; preserves T0+, returns A
-    tay
+    jsr FuncA_Console_GetCurrentOpcode  ; preserves T0+, returns Y
     lda _OpcodeTable_u8_arr, y
     add Zp_ConsoleFieldNumber_u8
-    tay
-    lda _TypeTable_u8_arr, y
+    tax
+    ldy _TypeTable_u8_arr, x
     rts
 _OpcodeTable_u8_arr:
     OPCODE_TABLE _TypeTable_u8_arr
@@ -243,15 +238,14 @@ _OpMove:
 ;;; Returns the argument slot number for the currently-selected instruction
 ;;; field.  The opcode nibble of the sIns is slot 0, the first argument nibble
 ;;; is slot 1, and so on.
-;;; @return A Slot number for the field (0-3).
+;;; @return Y Slot number for the field (0-3).
 ;;; @preserve T0+
 .PROC FuncA_Console_GetCurrentFieldSlot
-    jsr FuncA_Console_GetCurrentOpcode  ; preserves T0+, returns A
-    tay
+    jsr FuncA_Console_GetCurrentOpcode  ; preserves T0+, returns Y
     lda _OpcodeTable_u8_arr, y
     add Zp_ConsoleFieldNumber_u8
-    tay
-    lda _SlotTable_u8_arr, y
+    tax
+    ldy _SlotTable_u8_arr, x
     rts
 _OpcodeTable_u8_arr:
     OPCODE_TABLE _SlotTable_u8_arr
@@ -284,8 +278,7 @@ _OpTil:
 ;;; @preserve T0+
 .EXPORT FuncA_Console_GetCurrentFieldValue
 .PROC FuncA_Console_GetCurrentFieldValue
-    jsr FuncA_Console_GetCurrentFieldSlot  ; preserves T0+, returns A
-    tay  ; field slot
+    jsr FuncA_Console_GetCurrentFieldSlot  ; preserves T0+, returns Y
     lda Zp_ConsoleInstNumber_u8
     mul #.sizeof(sIns)
     tax  ; sProgram byte index
@@ -312,8 +305,7 @@ _OpTil:
 .EXPORT FuncA_Console_SetCurrentFieldValue
 .PROC FuncA_Console_SetCurrentFieldValue
     pha  ; new field value (in low nibble)
-    jsr FuncA_Console_GetCurrentFieldSlot  ; returns A
-    tay  ; field slot
+    jsr FuncA_Console_GetCurrentFieldSlot  ; returns Y
     lda Zp_ConsoleInstNumber_u8
     mul #.sizeof(sIns)
     tax  ; sProgram byte index
@@ -348,8 +340,8 @@ _SetArg1:
     rts
 _SetOpcode:
     pha  ; new eOpcode value
-    jsr FuncA_Console_GetCurrentOpcode
-    sta T0  ; old eOpcode value
+    jsr FuncA_Console_GetCurrentOpcode  ; returns Y
+    sty T0  ; old eOpcode value
     pla  ; new eOpcode value
     cmp T0  ; old eOpcode value
     bne @update
@@ -522,7 +514,7 @@ _OpBeep:
 .ENDPROC
 
 ;;; Returns the opcode for the currently-selected instruction.
-;;; @return A The eOpcode value.
+;;; @return Y The eOpcode value.
 ;;; @preserve T0+
 .PROC FuncA_Console_GetCurrentOpcode
     lda Zp_ConsoleInstNumber_u8
@@ -530,6 +522,7 @@ _OpBeep:
     tay
     lda Ram_Console_sProgram + sProgram::Code_sIns_arr + sIns::Op_byte, y
     div #$10
+    tay
     rts
 .ENDPROC
 
