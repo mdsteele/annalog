@@ -73,7 +73,7 @@ Zp_TestCycleCount_u8: .res 1
 .PROC Sram_Programs_sProgram_arr
     .res .sizeof(sProgram) * kTestProgramIndex
 TestProgram:
-    .word $b300  ; MOVE >
+    .word $b100  ; MOVE >
     .word $93e5  ; TIL 5<=X
     .word $b000  ; MOVE ^
     .word $1a0f  ; A <- Y
@@ -82,7 +82,7 @@ TestProgram:
     .word $a000  ; ACT
     .word $815a  ; IF A!=5
     .word $6200  ; GOTO 2
-    .word $b300  ; MOVE >
+    .word $b100  ; MOVE >
     .word $e000  ; END
     .word $0000
     .word $0000
