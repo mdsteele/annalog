@@ -26,8 +26,8 @@
 
 .IMPORT FuncA_Actor_FaceTowardsAvatar
 .IMPORT FuncA_Actor_HarmAvatarIfCollision
-.IMPORT FuncA_Actor_IsAvatarToLeftOrRight
 .IMPORT FuncA_Actor_IsAvatarWithinVertDistances
+.IMPORT FuncA_Actor_IsFacingAvatar
 .IMPORT FuncA_Actor_SetPointInFrontOfActor
 .IMPORT FuncA_Objects_Draw2x2Actor
 .IMPORT Func_Cosine
@@ -122,35 +122,24 @@ _ReturnIfAvatarNotVerticallyNearby:
     jsr FuncA_Actor_IsAvatarWithinVertDistances  ; preserves X, returns C
     bcc _Return
 _ReturnIfAvatarNotInFront:
-    lda Ram_ActorFlags_bObj_arr, x
-    sta T0  ; firefly actor flags
-    jsr FuncA_Actor_IsAvatarToLeftOrRight  ; preserves X and T0+, returns N
-    bpl @avatarIsToTheRight
-    @avatarIsToTheLeft:
-    bit T0  ; firefly actor flags
-    .assert bObj::FlipH = bProc::Overflow, error
-    bvc _Return
-    bvs @avatarIsInFront  ; unconditional
-    @avatarIsToTheRight:
-    bit T0  ; firefly actor flags
-    .assert bObj::FlipH = bProc::Overflow, error
-    bvs _Return
-    @avatarIsInFront:
+    jsr FuncA_Actor_IsFacingAvatar  ; preserves X, returns C
+    bcc _Return
 _ShootFireball:
     lda #kFireflyFireballHorzOffset  ; param: offset
     jsr FuncA_Actor_SetPointInFrontOfActor  ; preserves X and T0+
+    ;; Set the fireball aim angle depending on which way the firefly is facing.
+    lda Ram_ActorFlags_bObj_arr, x
+    and #bObj::FlipH
+    .assert bObj::FlipH = $40, error
+    asl a
+    sta T0  ; aim angle ($00 for right, or $80 for left)
+    ;; Allocate the fireball.
     stx T2  ; firefly actor index
     jsr Func_FindEmptyActorSlot  ; preserves T0+, returns C and X
     bcs @done
     ;; Set the fireball position just in front of the firefly actor.
     jsr Func_SetActorCenterToPoint  ; preserves X and T0+
-    ;; Set the fireball aim angle depending on which way the firefly is facing.
-    lda #$00  ; param: aim angle ($00 = to the right)
-    bit T0  ; firefly actor flags
-    .assert bObj::FlipH = bProc::Overflow, error
-    bvc @setAngle
-    lda #$80  ; param: aim angle ($80 = to the left)
-    @setAngle:
+    lda T0  ; param: aim angle ($00 for right, or $80 for left)
     jsr Func_InitActorProjFireball  ; preserves T2+
     ;; Set the firefly cooldown angle and restore the X register.
     ldx T2  ; firefly actor index

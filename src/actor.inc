@@ -37,6 +37,7 @@ kMaxActors = 8
     BadJelly         ; moves in a straight line, turning when it hits a wall
     BadLavaball      ; jumps out of lava
     BadOrc           ; chases after player avatar
+    BadRhino         ; walks back and forth, and charges at the player avatar
     BadRodent        ; runs in/out of mouseholes and along walls
     BadSpider        ; crawls randomly on ceiling, and drops down on a thread
     BadToad          ; jumps in place

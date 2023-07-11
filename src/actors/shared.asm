@@ -93,12 +93,35 @@
     rts
 .ENDPROC
 
+;;; Determines if the actor is facing left/right toward the player avatar.
+;;; @param X The actor index.
+;;; @return C Set if the actor is facing the player avatar, cleared if not.
+;;; @preserve X, Y, T0+
+.EXPORT FuncA_Actor_IsFacingAvatar
+.PROC FuncA_Actor_IsFacingAvatar
+    jsr FuncA_Actor_IsAvatarToLeftOrRight  ; preserves X, Y, and T0+, returns N
+    bpl @avatarIsToTheRight
+    @avatarIsToTheLeft:
+    lda Ram_ActorFlags_bObj_arr, x
+    and #bObj::FlipH
+    beq @notFacing
+    @facing:
+    sec
+    rts
+    @avatarIsToTheRight:
+    lda Ram_ActorFlags_bObj_arr, x
+    and #bObj::FlipH
+    beq @facing
+    @notFacing:
+    clc
+    rts
+.ENDPROC
+
 ;;; Determines if the player avatar is to the left of the actor or to the
 ;;; right.
 ;;; @param X The actor index.
 ;;; @return N Set if the avatar is to the left, cleared if it's to the right.
 ;;; @preserve X, Y, T0+
-.EXPORT FuncA_Actor_IsAvatarToLeftOrRight
 .PROC FuncA_Actor_IsAvatarToLeftOrRight
     lda Zp_AvatarPosX_i16 + 0
     cmp Ram_ActorPosX_i16_0_arr, x

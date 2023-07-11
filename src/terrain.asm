@@ -45,11 +45,14 @@ Zp_TerrainColumn_u8_arr_ptr: .res 2
 
 .SEGMENT "PRG8"
 
-;;; Checks if the point stored in Zp_PointX_i16 and Zp_PointY_i16 is colliding
+;;; Populates Zp_TerrainColumn_u8_arr_ptr with a pointer to the start of the
+;;; terrain block column in the current room that contains the point stored in
+;;; Zp_PointX_i16 and Zp_PointY_i16, and determines if that point is colliding
 ;;; with solid terrain.  It is assumed that both coordinates are nonnegative
 ;;; and within the bounds of the room terrain.
 ;;; @return A The terrain type at the point.
 ;;; @return C Set if the terrain is solid, cleared otherwise.
+;;; @return Y The index of the room block row that contains the point.
 ;;; @preserve X, T0+
 .EXPORT Func_PointHitsTerrain
 .PROC Func_PointHitsTerrain
