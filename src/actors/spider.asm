@@ -24,7 +24,6 @@
 .INCLUDE "../terrain.inc"
 .INCLUDE "spider.inc"
 
-.IMPORT FuncA_Actor_GetRoomBlockRow
 .IMPORT FuncA_Actor_HarmAvatarIfCollision
 .IMPORT FuncA_Actor_IsAvatarAboveOrBelow
 .IMPORT FuncA_Actor_IsAvatarWithinHorzDistance
@@ -39,7 +38,7 @@
 .IMPORT FuncA_Objects_MoveShapeUpOneTile
 .IMPORT FuncA_Objects_SetShapePosToActorCenter
 .IMPORT Func_GetRandomByte
-.IMPORT Func_GetTerrainColumnPtrForPointX
+.IMPORT Func_PointHitsTerrain
 .IMPORT Ram_ActorFlags_bObj_arr
 .IMPORT Ram_ActorPosY_i16_0_arr
 .IMPORT Ram_ActorState1_byte_arr
@@ -161,16 +160,12 @@ _StartDroppingDownOnThread:
     sta Ram_ActorFlags_bObj_arr, x
     rts
 _StartNewMovementCycle:
-    ;; Get the terrain column in front of the spider.
-    lda #kSpiderStridePx + 1  ; param: offset
-    jsr FuncA_Actor_SetPointInFrontOfActor  ; preserves X
-    jsr Func_GetTerrainColumnPtrForPointX  ; preserves X
     ;; Check the terrain block just in front of the spider.  If it's solid,
     ;; the spider has to turn around.
-    jsr FuncA_Actor_GetRoomBlockRow  ; preserves X, returns Y
-    lda (Zp_TerrainColumn_u8_arr_ptr), y
-    cmp #kFirstSolidTerrainType
-    bge @turnAround
+    lda #kSpiderStridePx + 1  ; param: offset
+    jsr FuncA_Actor_SetPointInFrontOfActor  ; preserves X
+    jsr Func_PointHitsTerrain  ; preserves X, returns C and Y
+    bcs @turnAround
     ;; Check the ceiling just in front of the spider.  If it's not solid, the
     ;; spider has to turn around.
     dey

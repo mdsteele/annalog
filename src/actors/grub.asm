@@ -23,11 +23,10 @@
 .INCLUDE "../terrain.inc"
 .INCLUDE "grub.inc"
 
-.IMPORT FuncA_Actor_GetRoomBlockRow
 .IMPORT FuncA_Actor_HarmAvatarIfCollision
 .IMPORT FuncA_Actor_SetPointInFrontOfActor
 .IMPORT FuncA_Objects_Draw2x2Actor
-.IMPORT Func_GetTerrainColumnPtrForPointX
+.IMPORT Func_PointHitsTerrain
 .IMPORT Ram_ActorFlags_bObj_arr
 .IMPORT Ram_ActorPosX_i16_0_arr
 .IMPORT Ram_ActorPosX_i16_1_arr
@@ -71,16 +70,12 @@ _MoveLeft:
 _DetectCollision:
     jmp FuncA_Actor_HarmAvatarIfCollision  ; preserves X
 _StartMove:
-    ;; Get the terrain column in front of the grub.
-    lda #kTileWidthPx + 1  ; param: offset
-    jsr FuncA_Actor_SetPointInFrontOfActor  ; preserves X
-    jsr Func_GetTerrainColumnPtrForPointX  ; preserves X
     ;; Check the terrain block just in front of the grub.  If it's solid, the
     ;; grub has to turn around.
-    jsr FuncA_Actor_GetRoomBlockRow  ; preserves X, returns Y
-    lda (Zp_TerrainColumn_u8_arr_ptr), y
-    cmp #kFirstSolidTerrainType
-    bge @turnAround
+    lda #kTileWidthPx + 1  ; param: offset
+    jsr FuncA_Actor_SetPointInFrontOfActor  ; preserves X
+    jsr Func_PointHitsTerrain  ; preserves X, returns C and Y
+    bcs @turnAround
     ;; Check the floor just in front of the grub.  If it's not solid, the grub
     ;; has to turn around.
     iny
