@@ -123,7 +123,7 @@ _Platforms_sPlatform_arr:
     d_byte Type_ePlatform, ePlatform::Solid
     d_word WidthPx_u16, $10
     d_byte HeightPx_u8, $10
-    d_word Left_i16,  $00b0
+    d_word Left_i16,  $00b8
     d_word Top_i16,   $0060
     D_END
     .assert * - :- = kValvePlatformIndex * .sizeof(sPlatform), error

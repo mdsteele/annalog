@@ -765,7 +765,7 @@
     .incbin "out/data/tiles/volcanic.chr"
     .res $10 * kSizeofChr
     .incbin "out/data/tiles/field_bg.chr"
-    .res $04 * kSizeofChr
+    .incbin "out/data/tiles/boiler.chr"
     .incbin "out/data/tiles/sign.chr"
     .incbin "out/data/tiles/console.chr"
     .assert * - :- = kSizeofChr * $40, error
@@ -1183,9 +1183,7 @@
     .res $04 * kSizeofChr
     .assert * - :- = (kTileIdObjLavaballFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/lavaball.chr"
-    .res $02 * kSizeofChr
-    .assert * - :- = (kTileIdObjBoilerFirst - $80) * kSizeofChr, error
-    .incbin "out/data/tiles/boiler.chr"
+    .res $04 * kSizeofChr
     .assert * - :- = (kTileIdObjValveFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/valve.chr"
     .assert * - :- = (kTileIdObjHotheadFirst - $80) * kSizeofChr, error

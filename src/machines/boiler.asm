@@ -27,11 +27,9 @@
 .IMPORT FuncA_Machine_ReachedGoal
 .IMPORT FuncA_Machine_StartWaiting
 .IMPORT FuncA_Machine_StartWorking
-.IMPORT FuncA_Objects_Alloc2x2Shape
 .IMPORT FuncA_Objects_Draw1x1Shape
 .IMPORT FuncA_Objects_GetMachineLightTileId
 .IMPORT FuncA_Objects_MoveShapeDownOneTile
-.IMPORT FuncA_Objects_MoveShapeRightByA
 .IMPORT FuncA_Objects_SetShapePosToMachineTopLeft
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
 .IMPORT Func_FindEmptyActorSlot
@@ -45,7 +43,6 @@
 .IMPORT Ram_MachineGoalVert_u8_arr
 .IMPORT Ram_MachineState1_byte_arr
 .IMPORT Ram_MachineState2_byte_arr
-.IMPORT Ram_Oam_sObj_arr64
 .IMPORT Ram_PlatformLeft_i16_0_arr
 .IMPORT Ram_PlatformLeft_i16_1_arr
 .IMPORT Ram_PlatformRight_i16_0_arr
@@ -55,10 +52,6 @@
 .IMPORTZP Zp_MachineIndex_u8
 
 ;;;=========================================================================;;;
-
-kTileIdObjBoilerLeftCorner  = kTileIdObjMachineCorner
-kTileIdObjBoilerCenter      = kTileIdObjBoilerFirst + 0
-kTileIdObjBoilerRightCorner = kTileIdObjBoilerFirst + 1
 
 ;;; OBJ palette numbers used for boiler machines and valves.
 kPaletteObjBoiler = 0
@@ -276,32 +269,13 @@ _Finish:
 .EXPORT FuncA_Objects_DrawBoilerMachine
 .PROC FuncA_Objects_DrawBoilerMachine
     jsr FuncA_Objects_SetShapePosToMachineTopLeft
-_Light:
     jsr FuncA_Objects_GetMachineLightTileId  ; returns A (param: tile ID)
     ldy #kPaletteObjMachineLight  ; param: object flags
     jsr FuncA_Objects_Draw1x1Shape
-_Corner:
     jsr FuncA_Objects_MoveShapeDownOneTile
     ldy #bObj::FlipH | kPaletteObjBoiler  ; param: object flags
-    lda #kTileIdObjBoilerLeftCorner  ; param: tile ID
-    jsr FuncA_Objects_Draw1x1Shape
-_Tank:
-    lda #kTileWidthPx * 2  ; param: offset
-    jsr FuncA_Objects_MoveShapeRightByA
-    lda #kPaletteObjBoiler  ; param: object flags
-    jsr FuncA_Objects_Alloc2x2Shape  ; returns C and Y
-    bcs @done
-    lda #kTileIdObjBoilerCenter
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Tile_u8, y
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Tile_u8, y
-    lda #kTileIdObjBoilerRightCorner
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Tile_u8, y
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Tile_u8, y
-    lda #bObj::FlipV | kPaletteObjBoiler
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Flags_bObj, y
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Flags_bObj, y
-    @done:
-    rts
+    lda #kTileIdObjMachineCorner  ; param: tile ID
+    jmp FuncA_Objects_Draw1x1Shape
 .ENDPROC
 
 ;;; Draws the second valve for a boiler machine.  The valve platform should be
