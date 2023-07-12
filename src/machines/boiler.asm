@@ -27,7 +27,6 @@
 .IMPORT FuncA_Machine_ReachedGoal
 .IMPORT FuncA_Machine_StartWaiting
 .IMPORT FuncA_Machine_StartWorking
-.IMPORT FuncA_Objects_Alloc1x1Shape
 .IMPORT FuncA_Objects_Alloc2x2Shape
 .IMPORT FuncA_Objects_Draw1x1Shape
 .IMPORT FuncA_Objects_GetMachineLightTileId
@@ -278,22 +277,14 @@ _Finish:
 .PROC FuncA_Objects_DrawBoilerMachine
     jsr FuncA_Objects_SetShapePosToMachineTopLeft
 _Light:
-    jsr FuncA_Objects_Alloc1x1Shape  ; returns C and Y
-    bcs @done
-    jsr FuncA_Objects_GetMachineLightTileId  ; preserves Y, returns A
-    sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
-    lda #kPaletteObjMachineLight
-    sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
-    @done:
+    jsr FuncA_Objects_GetMachineLightTileId  ; returns A (param: tile ID)
+    ldy #kPaletteObjMachineLight  ; param: object flags
+    jsr FuncA_Objects_Draw1x1Shape
 _Corner:
     jsr FuncA_Objects_MoveShapeDownOneTile
-    jsr FuncA_Objects_Alloc1x1Shape  ; returns C and Y
-    bcs @done
-    lda #kTileIdObjBoilerLeftCorner
-    sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
-    lda #bObj::FlipH | kPaletteObjBoiler
-    sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
-    @done:
+    ldy #bObj::FlipH | kPaletteObjBoiler  ; param: object flags
+    lda #kTileIdObjBoilerLeftCorner  ; param: tile ID
+    jsr FuncA_Objects_Draw1x1Shape
 _Tank:
     lda #kTileWidthPx * 2  ; param: offset
     jsr FuncA_Objects_MoveShapeRightByA

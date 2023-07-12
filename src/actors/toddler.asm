@@ -23,16 +23,12 @@
 .INCLUDE "../oam.inc"
 .INCLUDE "toddler.inc"
 
-.IMPORT FuncA_Objects_Alloc1x1Shape
-.IMPORT FuncA_Objects_MoveShapeLeftHalfTile
-.IMPORT FuncA_Objects_MoveShapeUpOneTile
-.IMPORT FuncA_Objects_SetShapePosToActorCenter
+.IMPORT FuncA_Objects_Draw1x2Actor
 .IMPORT Func_InitActorWithState1
 .IMPORT Ram_ActorFlags_bObj_arr
 .IMPORT Ram_ActorPosX_i16_0_arr
 .IMPORT Ram_ActorPosX_i16_1_arr
 .IMPORT Ram_ActorState1_byte_arr
-.IMPORT Ram_Oam_sObj_arr64
 
 ;;;=========================================================================;;;
 
@@ -120,39 +116,8 @@ kToddlerTime = 64
     @draw:
     ;; Assert that we can use ORA instead of ADD.
     .assert kTileIdObjToddlerFirst & $02 = 0, error
-    ora #kTileIdObjToddlerFirst
+    ora #kTileIdObjToddlerFirst  ; param: first tile ID
     jmp FuncA_Objects_Draw1x2Actor  ; preserves X
-.ENDPROC
-
-;;; Allocates and populates OAM slots for the specified actor, using the given
-;;; first tile ID and the subsequent tile ID.
-;;; @param A The first tile ID.
-;;; @param X The actor index.
-;;; @preserve X
-.PROC FuncA_Objects_Draw1x2Actor
-    pha  ; first tile ID
-    jsr FuncA_Objects_SetShapePosToActorCenter  ; preserves X
-    jsr FuncA_Objects_MoveShapeLeftHalfTile  ; preserves X
-    ;; Allocate lower object.
-    jsr FuncA_Objects_Alloc1x1Shape  ; preserves X
-    bcs @doneLower
-    pla  ; first tile ID
-    pha  ; first tile ID
-    adc #1  ; carry bit is already clear
-    sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
-    lda Ram_ActorFlags_bObj_arr, x
-    sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
-    @doneLower:
-    ;; Allocate upper object.
-    jsr FuncA_Objects_MoveShapeUpOneTile  ; preserves X
-    jsr FuncA_Objects_Alloc1x1Shape  ; preserves X
-    pla  ; first tile ID
-    bcs @doneUpper
-    sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
-    lda Ram_ActorFlags_bObj_arr, x
-    sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
-    @doneUpper:
-    rts
 .ENDPROC
 
 ;;;=========================================================================;;;

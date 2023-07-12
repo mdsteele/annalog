@@ -27,14 +27,13 @@
 
 .IMPORT FuncA_Machine_ReachedGoal
 .IMPORT FuncA_Machine_StartWaiting
-.IMPORT FuncA_Objects_Alloc1x1Shape
+.IMPORT FuncA_Objects_Draw1x1Shape
 .IMPORT FuncA_Objects_GetMachineLightTileId
 .IMPORT FuncA_Objects_MoveShapeDownOneTile
 .IMPORT FuncA_Objects_MoveShapeRightByA
 .IMPORT FuncA_Objects_MoveShapeUpOneTile
 .IMPORT FuncA_Objects_SetShapePosToMachineTopLeft
 .IMPORT Ram_MachineState1_byte_arr
-.IMPORT Ram_Oam_sObj_arr64
 .IMPORT Ram_PlatformBottom_i16_0_arr
 .IMPORT Ram_PlatformBottom_i16_1_arr
 .IMPORT Ram_PlatformLeft_i16_0_arr
@@ -196,41 +195,25 @@ _Cooldown:
 .PROC FuncA_Objects_DrawFieldMachine
     jsr FuncA_Objects_SetShapePosToMachineTopLeft
 _Light:
-    jsr FuncA_Objects_Alloc1x1Shape  ; returns C and Y
-    bcs @done
-    lda #kPaletteObjMachineLight
-    sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
-    jsr FuncA_Objects_GetMachineLightTileId  ; preserves Y, returns A
-    sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
-    @done:
+    jsr FuncA_Objects_GetMachineLightTileId  ; returns A (param: tile ID)
+    ldy #kPaletteObjMachineLight  ; param: object flags
+    jsr FuncA_Objects_Draw1x1Shape
 _BottomLeftCorner:
     jsr FuncA_Objects_MoveShapeDownOneTile
-    jsr FuncA_Objects_Alloc1x1Shape  ; returns C and Y
-    bcs @done
-    lda #bObj::FlipH | kPaletteObjMachineLight
-    sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
-    lda #kTileIdObjMachineCorner
-    sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
-    @done:
+    ldy #bObj::FlipH | kPaletteObjMachineLight  ; param: object flags
+    lda #kTileIdObjMachineCorner  ; param: tile ID
+    jsr FuncA_Objects_Draw1x1Shape
 _BottomRightCorner:
     lda #kFieldMachineWidth + kTeleportFieldWidth + kTileWidthPx
     jsr FuncA_Objects_MoveShapeRightByA
-    jsr FuncA_Objects_Alloc1x1Shape  ; returns C and Y
-    bcs @done
-    lda #kPaletteObjMachineLight
-    sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
-    lda #kTileIdObjMachineCorner
-    sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
-    @done:
+    ldy #kPaletteObjMachineLight  ; param: object flags
+    lda #kTileIdObjMachineCorner  ; param: tile ID
+    jsr FuncA_Objects_Draw1x1Shape
 _TopRightCorner:
     jsr FuncA_Objects_MoveShapeUpOneTile
-    jsr FuncA_Objects_Alloc1x1Shape  ; returns C and Y
-    bcs @done
-    lda #bObj::FlipV | kPaletteObjMachineLight
-    sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
-    lda #kTileIdObjMachineCorner
-    sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
-    @done:
+    ldy #bObj::FlipV | kPaletteObjMachineLight  ; param: object flags
+    lda #kTileIdObjMachineCorner  ; param: tile ID
+    jsr FuncA_Objects_Draw1x1Shape
 _Zap:
     ;; TODO: draw teleportation effect
     rts

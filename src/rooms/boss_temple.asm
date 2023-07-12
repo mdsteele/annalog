@@ -43,12 +43,12 @@
 .IMPORT FuncA_Machine_MinigunTryAct
 .IMPORT FuncA_Machine_ReachedGoal
 .IMPORT FuncA_Machine_WriteToLever
-.IMPORT FuncA_Objects_Alloc2x1Shape
 .IMPORT FuncA_Objects_Draw1x1Shape
 .IMPORT FuncA_Objects_DrawBoss
 .IMPORT FuncA_Objects_DrawMinigunUpMachine
 .IMPORT FuncA_Objects_MoveShapeDownByA
 .IMPORT FuncA_Objects_MoveShapeLeftByA
+.IMPORT FuncA_Objects_MoveShapeLeftOneTile
 .IMPORT FuncA_Objects_MoveShapeRightByA
 .IMPORT FuncA_Objects_MoveShapeUpOneTile
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
@@ -73,7 +73,6 @@
 .IMPORT Ram_ActorType_eActor_arr
 .IMPORT Ram_ActorVelY_i16_1_arr
 .IMPORT Ram_MachineGoalHorz_u8_arr
-.IMPORT Ram_Oam_sObj_arr64
 .IMPORT Ram_PlatformLeft_i16_0_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORTZP Zp_Active_sIrq
@@ -736,15 +735,13 @@ _DrawBossEyes:
 _DrawBossBrain:
     jsr FuncC_Boss_Temple_SetShapePosToBossMidTop
     jsr FuncA_Objects_MoveShapeUpOneTile
-    lda #kPaletteObjOutbreakBrain  ; param: object flags
-    jsr FuncA_Objects_Alloc2x1Shape  ; returns C and Y
-    bcs @done
-    lda #kPaletteObjOutbreakBrain | bObj::FlipH
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Flags_bObj, y
-    lda #kTileIdObjOutbreakBrain
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Tile_u8, y
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Tile_u8, y
-    @done:
+    ldy #kPaletteObjOutbreakBrain | bObj::FlipH  ; param: object flags
+    lda #kTileIdObjOutbreakBrain  ; param: tile ID
+    jsr FuncA_Objects_Draw1x1Shape
+    jsr FuncA_Objects_MoveShapeLeftOneTile
+    ldy #kPaletteObjOutbreakBrain  ; param: object flags
+    lda #kTileIdObjOutbreakBrain  ; param: tile ID
+    jsr FuncA_Objects_Draw1x1Shape
 _SetUpIrq:
     ;; Compute the IRQ latch value to set between the bottom of the boss's zone
     ;; and the top of the window (if any), and set that as Param3_byte.

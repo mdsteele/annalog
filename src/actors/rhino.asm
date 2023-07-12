@@ -30,13 +30,12 @@
 .IMPORT FuncA_Actor_SetPointInFrontOfActor
 .IMPORT FuncA_Actor_SetVelXForward
 .IMPORT FuncA_Actor_ZeroVelX
-.IMPORT FuncA_Objects_Draw1x1Shape
+.IMPORT FuncA_Objects_Draw1x2Shape
 .IMPORT FuncA_Objects_Draw2x2Shape
 .IMPORT FuncA_Objects_MoveShapeLeftByA
 .IMPORT FuncA_Objects_MoveShapeLeftHalfTile
 .IMPORT FuncA_Objects_MoveShapeRightByA
 .IMPORT FuncA_Objects_MoveShapeRightOneTile
-.IMPORT FuncA_Objects_MoveShapeUpOneTile
 .IMPORT FuncA_Objects_SetShapePosToActorCenter
 .IMPORT Func_PointHitsTerrain
 .IMPORT Ram_ActorFlags_bObj_arr
@@ -252,7 +251,7 @@ _NoTurn:
     div #16
     and #$03
     sta T2  ; animation frame
-_DrawBack:
+_DrawBody:
     jsr FuncA_Objects_SetShapePosToActorCenter  ; preserves X and T0+
     lda Ram_ActorFlags_bObj_arr, x
     and #bObj::FlipH
@@ -283,19 +282,10 @@ _DrawHead:
     lda T2  ; animation frame
     and #$01
     mul #2
-    sta T4  ; head tile ID offset
     .assert kTileIdObjRhinoHeadFirst .mod 4 = 0, error
-    ora #kTileIdObjRhinoHeadFirst | 1  ; param: tile ID
+    ora #kTileIdObjRhinoHeadFirst | 0  ; param: first tile ID
     ldy Ram_ActorFlags_bObj_arr, x  ; param: object flags
-    .assert kPaletteObjRhino = 0, error
-    jsr FuncA_Objects_Draw1x1Shape  ; preserves X and T2+
-    jsr FuncA_Objects_MoveShapeUpOneTile  ; preserves X and T0+
-    lda T4  ; head tile ID offset
-    .assert kTileIdObjRhinoHeadFirst .mod 4 = 0, error
-    ora #kTileIdObjRhinoHeadFirst | 0  ; param: tile ID
-    ldy Ram_ActorFlags_bObj_arr, x  ; param: object flags
-    .assert kPaletteObjRhino = 0, error
-    jmp FuncA_Objects_Draw1x1Shape  ; preserves X
+    jmp FuncA_Objects_Draw1x2Shape  ; preserves X
 _TileIdObjRhinoBodyFirst_u8_arr:
     .byte kTileIdObjRhinoFirst + 0
     .byte kTileIdObjRhinoFirst + 4

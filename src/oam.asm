@@ -297,6 +297,87 @@ Ram_Oam_sObj_arr64: .res .sizeof(sObj) * kNumOamSlots
     rts
 .ENDPROC
 
+;;; Allocates and sets X/Y positions and flags for a 1x2 grid of objects (that
+;;; is, one tile wide and two tiles high), taking into account the window
+;;; position and hiding any of the objects as necessary.
+;;;
+;;; The screen-space center-left of the 1x2 grid is given by Zp_ShapePosX_i16
+;;; and Zp_ShapePosY_i16.  These variables will be preserved by this function.
+;;;
+;;; If both of the objects would be offscreen, then none are allocated (and C
+;;; is cleared).  Otherwise, the caller should use the returned OAM byte
+;;; offset in Y to set the objects' tile IDs.  If bObj::FlipV was cleared, then
+;;; the top object will come first, followed by the bottom; if bObj::FlipV was
+;;; set, then bottom object will come first instead.
+;;;
+;;; @param A The Flags_bObj value to set for each object.  If bObj::FlipV is
+;;;     included, then the order of the two objects will be reversed.
+;;; @return C Set if no OAM slots were allocated, cleared otherwise.
+;;; @return Y The OAM byte offset for the first of the two objects.
+;;; @preserve X, T2+
+.PROC FuncA_Objects_Alloc1x2Shape
+    sta T0  ; Flags_bObj to set
+    ;; If the shape is offscreen horizontally, return without allocating any
+    ;; objects.
+    lda Zp_ShapePosX_i16 + 1
+    bne _NotVisible
+_ObjectYPositions:
+    ;; If the shape is completely offscreen vertically or behind the window,
+    ;; return without allocating any objects.
+    lda Zp_ShapePosY_i16 + 1
+    bne _NotVisible
+    lda Zp_ShapePosY_i16 + 0
+    sub #kTileHeightPx
+    blt @visible
+    cmp #kScreenHeightPx
+    bge _NotVisible
+    cmp Zp_WindowTop_u8
+    bge _NotVisible
+    @visible:
+    ;; Set the vertical positions of the two objects.
+    sub #1
+    ldy Zp_OamOffset_u8
+    bit T0  ; Flags_bObj to set
+    .assert bObj::FlipV = bProc::Negative, error
+    bmi @topFlipped
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::YPos_u8, y
+    bpl @doneTop  ; unconditional
+    @topFlipped:
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::YPos_u8, y
+    @doneTop:
+    add #kTileHeightPx
+    cmp Zp_WindowTop_u8
+    blt @bottom
+    lda #$ff
+    @bottom:
+    bit T0  ; Flags_bObj to set
+    .assert bObj::FlipV = bProc::Negative, error
+    bmi @bottomFlipped
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::YPos_u8, y
+    bpl _ObjectXPositions  ; unconditional
+    @bottomFlipped:
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::YPos_u8, y
+    bmi _ObjectXPositions  ; unconditional
+_NotVisible:
+    sec  ; Set C to indicate that no objects were allocated.
+    rts
+_ObjectXPositions:
+    lda Zp_ShapePosX_i16 + 0
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::XPos_u8, y
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::XPos_u8, y
+_FinishAllocation:
+    ;; Set the object flags.
+    lda T0  ; Flags_bObj to set
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Flags_bObj, y
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Flags_bObj, y
+    ;; Update the OAM offset.
+    tya
+    add #.sizeof(sObj) * 2
+    sta Zp_OamOffset_u8
+    clc  ; Clear C to indicate that objects were allocated.
+    rts
+.ENDPROC
+
 ;;; Allocates and sets X/Y positions and flags for a 2x1 grid of objects (that
 ;;; is, two tiles wide and one tile high), taking into account the window
 ;;; position and hiding any of the objects as necessary.
@@ -313,7 +394,7 @@ Ram_Oam_sObj_arr64: .res .sizeof(sObj) * kNumOamSlots
 ;;; @param A The Flags_bObj value to set for each object.  If bObj::FlipH is
 ;;;     included, then the order of the two objects will be reversed.
 ;;; @return C Set if no OAM slots were allocated, cleared otherwise.
-;;; @return Y The OAM byte offset for the first of the four objects.
+;;; @return Y The OAM byte offset for the first of the two objects.
 ;;; @preserve X, T2+
 .EXPORT FuncA_Objects_Alloc2x1Shape
 .PROC FuncA_Objects_Alloc2x1Shape
@@ -578,6 +659,57 @@ _FinishAllocation:
     lda T1  ; object flags
     sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
     @done:
+    rts
+.ENDPROC
+
+;;; Draws a 1x2 shape with its center-left point on the current shape position,
+;;; using the given first tile ID and the subsequent tile ID.  The caller can
+;;; then further modify the objects if needed.
+;;; @param A The first tile ID.
+;;; @param Y The Flags_bObj value to set for each object.  If bObj::FlipV is
+;;;     is set, then the order of the objects will be flipped.
+;;; @return C Set if no OAM slots were allocated, cleared otherwise.
+;;; @return Y The OAM byte offset for the first of the two objects.
+;;; @preserve X, T2+
+.EXPORT FuncA_Objects_Draw1x2Shape
+.PROC FuncA_Objects_Draw1x2Shape
+    pha  ; first tile ID
+    tya  ; param: object flags
+    jsr FuncA_Objects_Alloc1x2Shape  ; preserves X and T2+, returns C and Y
+    pla  ; first tile ID
+    bcc FuncA_Objects_SetTwoTileIdsForShape
+    rts
+.ENDPROC
+
+;;; Draws a 2x1 shape with its top-center point on the current shape position,
+;;; using the given first tile ID and the subsequent tile ID.  The caller can
+;;; then further modify the objects if needed.
+;;; @param A The first tile ID.
+;;; @param Y The Flags_bObj value to set for each object.  If bObj::FlipH is
+;;;     is set, then the order of the objects will be flipped.
+;;; @return C Set if no OAM slots were allocated, cleared otherwise.
+;;; @return Y The OAM byte offset for the first of the two objects.
+;;; @preserve X, T2+
+.EXPORT FuncA_Objects_Draw2x1Shape
+.PROC FuncA_Objects_Draw2x1Shape
+    pha  ; first tile ID
+    tya  ; param: object flags
+    jsr FuncA_Objects_Alloc2x1Shape  ; preserves X and T2+, returns C and Y
+    pla  ; first tile ID
+    bcc FuncA_Objects_SetTwoTileIdsForShape
+    rts
+.ENDPROC
+
+;;; Private helper function for FuncA_Objects_Draw1x2Shape and
+;;; FuncA_Objects_Draw2x1Shape.  Sets tile IDs for two objects.
+;;; @prereq C is cleared.
+;;; @param A The first tile ID.
+;;; @param Y The OAM byte offset for the first of the two objects.
+;;; @preserve X, Y, T0+
+.PROC FuncA_Objects_SetTwoTileIdsForShape
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Tile_u8, y
+    adc #1  ; carry bit is already clear
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Tile_u8, y
     rts
 .ENDPROC
 

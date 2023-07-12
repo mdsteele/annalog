@@ -28,9 +28,9 @@
 .IMPORT FuncA_Machine_ReachedGoal
 .IMPORT FuncA_Machine_StartWaiting
 .IMPORT FuncA_Machine_StartWorking
-.IMPORT FuncA_Objects_Alloc1x1Shape
-.IMPORT FuncA_Objects_Alloc2x1Shape
 .IMPORT FuncA_Objects_Alloc2x2Shape
+.IMPORT FuncA_Objects_Draw1x1Shape
+.IMPORT FuncA_Objects_Draw2x1Shape
 .IMPORT FuncA_Objects_GetMachineLightTileId
 .IMPORT FuncA_Objects_MoveShapeDownAndRightOneTile
 .IMPORT FuncA_Objects_MoveShapeDownByA
@@ -412,12 +412,9 @@ _Done:
 .PROC FuncA_Objects_DrawChainWithLength
     @loop:
     jsr FuncA_Objects_MoveShapeUpOneTile  ; preserves X
-    jsr FuncA_Objects_Alloc1x1Shape  ; preserves X, returns C and Y
-    bcs @continue
-    lda #kTileIdObjWinchChain
-    sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
-    lda #kPaletteObjWinchChain
-    sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
+    lda #kTileIdObjWinchChain  ; param: tile ID
+    ldy #kPaletteObjWinchChain  ; param: object flags
+    jsr FuncA_Objects_Draw1x1Shape  ; preserves X
     @continue:
     dex
     bne @loop
@@ -490,20 +487,14 @@ _Done:
     beq @noBlink
     ldy #kNumWinchHitsToBreakFloor
     @noBlink:
+    jsr FuncA_Objects_SetShapePosToPlatformTopLeft  ; preserves X and Y
+    jsr FuncA_Objects_MoveShapeRightOneTile  ; preserves X and Y
     tya  ; floor HP
     beq @done
-    pha  ; floor HP
-    jsr FuncA_Objects_SetShapePosToPlatformTopLeft  ; preserves X
-    jsr FuncA_Objects_MoveShapeRightOneTile  ; preserves X
-    lda #0  ; param: object flags
-    jsr FuncA_Objects_Alloc2x1Shape  ; preserves X, returns C and Y
-    pla  ; floor HP
-    bcs @done
     mul #2
     adc #kTileIdWeakFloorFirst - 2  ; carry bit is already clear
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Tile_u8, y
-    adc #1  ; carry bit is already clear
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Tile_u8, y
+    ldy #0  ; param: object flags
+    jmp FuncA_Objects_Draw2x1Shape  ; preserves X
     @done:
     rts
 .ENDPROC
