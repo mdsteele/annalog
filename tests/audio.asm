@@ -22,7 +22,7 @@
 .INCLUDE "../src/macros.inc"
 .INCLUDE "../src/music.inc"
 
-.IMPORT Data_EmptyChain_u8_arr
+.IMPORT Data_Empty_bChain_arr
 .IMPORT Exit_Success
 .IMPORT Func_AudioReset
 .IMPORT Func_AudioSync
@@ -87,26 +87,26 @@ _Opcodes_bMusic_arr:
 _Parts_sPart_arr:
     ;; Part 0:
     D_STRUCT sPart
-    d_addr Chain1_u8_arr_ptr, _Chain0_u8_arr
-    d_addr Chain2_u8_arr_ptr, Data_EmptyChain_u8_arr
-    d_addr ChainT_u8_arr_ptr, Data_EmptyChain_u8_arr
-    d_addr ChainN_u8_arr_ptr, Data_EmptyChain_u8_arr
-    d_addr ChainD_u8_arr_ptr, Data_EmptyChain_u8_arr
+    d_addr Chain1_bChain_arr_ptr, _Chain0_bChain_arr
+    d_addr Chain2_bChain_arr_ptr, Data_Empty_bChain_arr
+    d_addr ChainT_bChain_arr_ptr, Data_Empty_bChain_arr
+    d_addr ChainN_bChain_arr_ptr, Data_Empty_bChain_arr
+    d_addr ChainD_bChain_arr_ptr, Data_Empty_bChain_arr
     D_END
     ;; Part 1:
     D_STRUCT sPart
-    d_addr Chain1_u8_arr_ptr, _Chain1_u8_arr
-    d_addr Chain2_u8_arr_ptr, Data_EmptyChain_u8_arr
-    d_addr ChainT_u8_arr_ptr, Data_EmptyChain_u8_arr
-    d_addr ChainN_u8_arr_ptr, Data_EmptyChain_u8_arr
-    d_addr ChainD_u8_arr_ptr, Data_EmptyChain_u8_arr
+    d_addr Chain1_bChain_arr_ptr, _Chain1_bChain_arr
+    d_addr Chain2_bChain_arr_ptr, Data_Empty_bChain_arr
+    d_addr ChainT_bChain_arr_ptr, Data_Empty_bChain_arr
+    d_addr ChainN_bChain_arr_ptr, Data_Empty_bChain_arr
+    d_addr ChainD_bChain_arr_ptr, Data_Empty_bChain_arr
     D_END
-_Chain0_u8_arr:
-    .byte 0
-    .byte $ff  ; end-of-chain
-_Chain1_u8_arr:
-    .byte 1
-    .byte $ff  ; end-of-chain
+_Chain0_bChain_arr:
+    .byte $80
+    .byte $00  ; end-of-chain
+_Chain1_bChain_arr:
+    .byte $81
+    .byte $00  ; end-of-chain
 _Phrases_sPhrase_ptr_arr:
     .addr _Phrase0_sPhrase
     .addr _Phrase1_sPhrase

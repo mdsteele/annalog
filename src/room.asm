@@ -415,12 +415,12 @@ _LoadNewRoom:
     d_byte MinePit,         eMusic::Mine
     d_byte MineSouth,       eMusic::Mine
     d_byte MineWest,        eMusic::Mine
-    d_byte PrisonCell,      eMusic::Silence
-    d_byte PrisonCrossroad, eMusic::Silence
-    d_byte PrisonEast,      eMusic::Silence
-    d_byte PrisonEscape,    eMusic::Silence
-    d_byte PrisonFlower,    eMusic::Silence
-    d_byte PrisonUpper,     eMusic::Silence
+    d_byte PrisonCell,      eMusic::Prison2
+    d_byte PrisonCrossroad, eMusic::Prison2
+    d_byte PrisonEast,      eMusic::Prison2
+    d_byte PrisonEscape,    eMusic::Prison2
+    d_byte PrisonFlower,    eMusic::Prison2
+    d_byte PrisonUpper,     eMusic::Prison2
     d_byte SewerAscent,     eMusic::Silence
     d_byte SewerFlower,     eMusic::Silence
     d_byte SewerPool,       eMusic::Silence

@@ -33,6 +33,12 @@
     .assert * = Data_Zero_arr2, error, "fallthrough"
 .ENDPROC
 
+;;; A music chain that contains no phrases.
+.EXPORT Data_Empty_bChain_arr
+.PROC Data_Empty_bChain_arr
+    .assert * = Data_Zero_arr2, error, "fallthrough"
+.ENDPROC
+
 ;;; An empty sDevice array (that is immediately terminated by eDevice::None).
 .EXPORT Data_Empty_sDevice_arr
 .PROC Data_Empty_sDevice_arr

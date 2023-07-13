@@ -33,7 +33,7 @@ kNumSongs      = eMusic::NUM_VALUES
 kFirstSong     = 1
 kDataLoadAddr  = $8000
 kDataInitAddr  = Func_NsfInit
-kDataPlayAddr  = Func_NsfPlay
+kDataPlayAddr  = Func_AudioUpdate
 kPlaySpeedNtsc = 16639  ; this value recommended by https://nesdev.org/wiki/NSF
 kPlaySpeedPal  = 19997  ; this value recommended by https://nesdev.org/wiki/NSF
 kRegion        = 0      ; 0 = NTSC, 1 = PAL, 2 = both
@@ -94,12 +94,6 @@ kSoundChip     = 0      ; 0 = no extra sound chips
     sta Zp_Next_sAudioCtrl + sAudioCtrl::Enable_bool
     sta Zp_Next_sAudioCtrl + sAudioCtrl::MasterVolume_u8
     jmp Func_AudioSync
-.ENDPROC
-
-;;; Called once per frame by the NSF driver to continue playing the current
-;;; song.
-.PROC Func_NsfPlay
-    jmp Func_AudioUpdate
 .ENDPROC
 
 ;;; Stub implementation.

@@ -24,6 +24,7 @@
 .INCLUDE "music.inc"
 .INCLUDE "sound.inc"
 
+.IMPORT Data_Empty_bChain_arr
 .IMPORT Data_Empty_sPhrase
 .IMPORT Data_Music_sMusic_ptr_0_arr
 .IMPORT Data_Music_sMusic_ptr_1_arr
@@ -44,10 +45,10 @@
 ;;; Pointers to the next byte to execute within the current chain and current
 ;;; phrase for a given APU channel.
 .STRUCT sChanNext
-    ;; A pointer to the next byte in the current chain to execute once the
+    ;; A pointer to the next item in the current chain to execute once the
     ;; current phrase finishes.
-    ChainNext_u8_ptr .addr
-    ;; A pointer to the next byte in the current phrase to execute once the
+    Next_bChain_ptr .addr
+    ;; A pointer to the next note in the current phrase to execute once the
     ;; current note finishes.
     PhraseNext_ptr   .addr
 .ENDSTRUCT
@@ -142,12 +143,6 @@ Ram_Sound_sChanSfx_arr: .res .sizeof(sChanSfx) * kNumApuChannels
 ;;;=========================================================================;;;
 
 .SEGMENT "PRG8"
-
-;;; A music chain that contains no phrases.
-.EXPORT Data_EmptyChain_u8_arr
-.PROC Data_EmptyChain_u8_arr
-    .byte $ff  ; end-of-chain
-.ENDPROC
 
 ;;; Mutes all APU channels, resets APU registers, disables APU IRQs, and
 ;;; initializes audio driver RAM.
@@ -277,10 +272,10 @@ _ResetChannels:
     ldx #0
     stx Zp_MusicOpcodeIndex_u8
     @loop:
-    lda #<Data_EmptyChain_u8_arr
-    sta Zp_Music_sChanNext_arr + sChanNext::ChainNext_u8_ptr + 0, x
-    lda #>Data_EmptyChain_u8_arr
-    sta Zp_Music_sChanNext_arr + sChanNext::ChainNext_u8_ptr + 1, x
+    lda #<Data_Empty_bChain_arr
+    sta Zp_Music_sChanNext_arr + sChanNext::Next_bChain_ptr + 0, x
+    lda #>Data_Empty_bChain_arr
+    sta Zp_Music_sChanNext_arr + sChanNext::Next_bChain_ptr + 1, x
     lda #<Data_Empty_sPhrase
     sta Zp_Music_sChanNext_arr + sChanNext::PhraseNext_ptr + 0, x
     lda #>Data_Empty_sPhrase
@@ -292,6 +287,7 @@ _ResetChannels:
     sta Ram_Music_sChanNote_arr + sChanNote::TimerHi_byte, x
     sta Ram_Music_sChanInst_arr + sChanInst::Instrument_eInst, x
     sta Ram_Music_sChanInst_arr + sChanInst::Param_byte, x
+    sta Ram_Music_sChanInst_arr + sChanInst::RepeatCount_u8, x
     .repeat .sizeof(sChanNext)
     inx
     .endrepeat
@@ -387,7 +383,7 @@ _OpcodePlay:
     ;; Read in the sPart struct and populate Zp_Music_sChanNext_arr.
     ldx #0
     @loop:
-    .assert sChanNext::ChainNext_u8_ptr = 0, error
+    .assert sChanNext::Next_bChain_ptr = 0, error
     lda (Zp_Current_sMusic + sMusic::Parts_sPart_arr_ptr), y
     sta Zp_Music_sChanNext_arr, x
     inx
@@ -437,13 +433,32 @@ _OpcodePlay:
 .PROC Func_AudioContinueChain
 _ContinuePhrase:
     jsr Func_AudioContinuePhrase  ; preserves X, clears C if progress was made
-    bcs _StartNextPhrase
+    bcs _ReadNextItem
     lda #$ff
     sta Zp_MusicMadeProgress_bool
     rts
+_FinishRepeat:
+    lda #0
+    sta Ram_Music_sChanInst_arr + sChanInst::RepeatCount_u8, x
+    inc Zp_Music_sChanNext_arr + sChanNext::Next_bChain_ptr + 0, x
+    bne _ReadNextItem
+    inc Zp_Music_sChanNext_arr + sChanNext::Next_bChain_ptr + 1, x
+    bne _ReadNextItem  ; unconditional
+_StartRepeat:
+    inc Ram_Music_sChanInst_arr + sChanInst::RepeatCount_u8, x
+    cmp Ram_Music_sChanInst_arr + sChanInst::RepeatCount_u8, x
+    beq _FinishRepeat
+    ;; Decrement the channel's Next_bChain_ptr.
+    lda Zp_Music_sChanNext_arr + sChanNext::Next_bChain_ptr + 0, x
+    bne @decLo
+    dec Zp_Music_sChanNext_arr + sChanNext::Next_bChain_ptr + 1, x
+    @decLo:
+    dec Zp_Music_sChanNext_arr + sChanNext::Next_bChain_ptr + 0, x
+_ReadNextItem:
+    lda (Zp_Music_sChanNext_arr + sChanNext::Next_bChain_ptr, x)
+    beq _ChainFinished
+    bpl _StartRepeat
 _StartNextPhrase:
-    lda (Zp_Music_sChanNext_arr + sChanNext::ChainNext_u8_ptr, x)
-    bmi _ChainFinished
     ;; Initialize the next phrase.
     mul #2
     tay
@@ -452,10 +467,10 @@ _StartNextPhrase:
     iny
     lda (Zp_Current_sMusic + sMusic::Phrases_sPhrase_ptr_arr_ptr), y
     sta Zp_Music_sChanNext_arr + sChanNext::PhraseNext_ptr + 1, x
-    ;; Increment the channel's ChainNext_u8_ptr.
-    inc Zp_Music_sChanNext_arr + sChanNext::ChainNext_u8_ptr + 0, x
+    ;; Increment the channel's Next_bChain_ptr.
+    inc Zp_Music_sChanNext_arr + sChanNext::Next_bChain_ptr + 0, x
     bne _ContinuePhrase
-    inc Zp_Music_sChanNext_arr + sChanNext::ChainNext_u8_ptr + 1, x
+    inc Zp_Music_sChanNext_arr + sChanNext::Next_bChain_ptr + 1, x
     bne _ContinuePhrase  ; unconditional
 _ChainFinished:
     rts

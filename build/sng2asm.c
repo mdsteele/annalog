@@ -33,9 +33,11 @@
 #define MAX_INTEGER_DIGITS 6
 #define MAX_NOTES_PER_PHRASE 1000
 #define MAX_PARTS_PER_SONG NUM_LETTERS
-#define MAX_PHRASES_PER_CHAIN 1000
+#define MAX_ITEMS_PER_CHAIN 1000
 #define MAX_PHRASES_PER_FILE 128
 #define MAX_QUOTED_STRING_CHARS 80
+#define MAX_REPEAT_COUNT 127
+#define MIN_REPEAT_COUNT 2
 #define MAX_SEGMENT_CHARS 80
 #define MAX_SONGS_PER_FILE 20
 
@@ -242,8 +244,8 @@ typedef struct {
   const char *alias_song_id;
   char alias_part_name;
   sng_channel_t alias_channel;
-  int num_phrases;
-  int *phrase_indices;
+  int num_items;
+  int *items;  // 0+ for a phrase index, or negative for a repeat
 } sng_chain_t;
 
 typedef struct {
@@ -449,13 +451,13 @@ static void append_phrase_to_current_chain(int phrase_index) {
   if (chain->alias_song_id != NULL) {
     ERROR("cannot add notes to an aliased chain\n");
   }
-  if (chain->phrase_indices == NULL) {
-    chain->phrase_indices = calloc(MAX_PHRASES_PER_CHAIN, sizeof(int));
+  if (chain->items == NULL) {
+    chain->items = calloc(MAX_ITEMS_PER_CHAIN, sizeof(int));
   }
-  if (chain->num_phrases == MAX_PHRASES_PER_CHAIN) {
-    ERROR("too many phrases in one chain\n");
+  if (chain->num_items == MAX_ITEMS_PER_CHAIN) {
+    ERROR("too many items in one chain\n");
   }
-  chain->phrase_indices[chain->num_phrases++] = phrase_index;
+  chain->items[chain->num_items++] = phrase_index;
 }
 
 // Returns the phrase that we're currently adding notes to.  If there's no
@@ -592,7 +594,7 @@ static void alias_chain(void) {
   sng_song_t *song = &parser.songs[parser.num_songs - 1];
   sng_part_t *part = &song->parts[song->num_parts - 1];
   sng_chain_t *chain = &part->chains[parser.current_channel];
-  if (chain->num_phrases > 0) ERROR("cannot alias a non-empty chain\n");
+  if (chain->num_items > 0) ERROR("cannot alias a non-empty chain\n");
   if (chain->alias_song_id != NULL) ERROR("cannot re-alias a chain\n");
   const sng_song_t *alias_song = NULL;
   if (peek_char() != ':') {
@@ -635,6 +637,46 @@ static int find_phrase_index_for_name(unsigned short phrase_name) {
     if (parser.phrases[p].name == phrase_name) return p;
   }
   return -1;
+}
+
+static void end_current_phrase(void) {
+  if (parser.is_defining_phrase) {
+    ERROR("can't end phrase with ';' within a phrase definition\n");
+  }
+  if (parser.current_channel == CH_NONE) {
+    ERROR("can't end phrase with ';' before setting the channel\n");
+  }
+  parser.current_phrase_for_channel[parser.current_channel] = -1;
+}
+
+static void insert_repeat(void) {
+  if (parser.is_defining_phrase) {
+    ERROR("can't nest a repeat within a phrase definition\n");
+  }
+  if (parser.current_channel == CH_NONE) {
+    ERROR("can't start a repeat before setting the channel\n");
+  }
+  parser.current_phrase_for_channel[parser.current_channel] = -1;
+  sng_song_t *song = &parser.songs[parser.num_songs - 1];
+  sng_part_t *part = &song->parts[song->num_parts - 1];
+  sng_chain_t *chain = &part->chains[parser.current_channel];
+  if (chain->num_items == 0) {
+    ERROR("can't put a repeat at the start of a chain\n");
+  }
+  if (chain->items[chain->num_items - 1] < 0) {
+    ERROR("can't have two repeats in a row\n");
+  }
+  if (chain->num_items == MAX_ITEMS_PER_CHAIN) {
+    ERROR("too many items in one chain\n");
+  }
+  int repeat_count = read_unsigned_decimal_int();
+  if (repeat_count < MIN_REPEAT_COUNT) {
+    ERROR("repeat count can't be less than %d\n", MIN_REPEAT_COUNT);
+  }
+  if (repeat_count > MAX_REPEAT_COUNT) {
+    ERROR("repeat count can't be more than %d\n", MAX_REPEAT_COUNT);
+  }
+  chain->items[chain->num_items++] = -repeat_count;
 }
 
 static void start_inserting_phrase(void) {
@@ -1001,6 +1043,8 @@ static void parse_input(void) {
       case NEW_NOTE: {
         switch (ch) {
           case '=': alias_chain(); break;
+          case ';': end_current_phrase(); break;
+          case ':': insert_repeat(); break;
           case 'a': start_tone( 9, -3, 5); break;
           case 'b': start_tone(11, -1, 7); break;
           case 'c': start_tone( 0, -6, 2); break;
@@ -1211,16 +1255,16 @@ static int write_part(const sng_song_t *song, const sng_part_t *part) {
   for (sng_channel_t c = 0; c < NUM_CHANNELS; ++c) {
     const sng_chain_t *chain = &part->chains[c];
     num_bytes += 2;
-    fprintf(stdout, "    d_addr Chain%c_u8_arr_ptr, ", channel_name(c));
+    fprintf(stdout, "    d_addr Chain%c_bChain_arr_ptr, ", channel_name(c));
     if (chain->alias_song_id != NULL) {
-      assert(chain->num_phrases == 0);
-      fprintf(stdout, "%s_%s_Chain%c%c_u8_arr\n", parser.prefix,
+      assert(chain->num_items == 0);
+      fprintf(stdout, "%s_%s_Chain%c%c_bChain_arr\n", parser.prefix,
               chain->alias_song_id, chain->alias_part_name,
               channel_name(chain->alias_channel));
-    } else if (chain->num_phrases == 0) {
-      fprintf(stdout, "Data_EmptyChain_u8_arr\n");
+    } else if (chain->num_items == 0) {
+      fprintf(stdout, "Data_Empty_bChain_arr\n");
     } else {
-      fprintf(stdout, "%s_%s_Chain%c%c_u8_arr\n", parser.prefix,
+      fprintf(stdout, "%s_%s_Chain%c%c_bChain_arr\n", parser.prefix,
               song->id, part->letter, channel_name(c));
     }
   }
@@ -1257,20 +1301,21 @@ static int write_song(const sng_song_t *song) {
 static int write_chain(const sng_song_t *song, const sng_part_t *part,
                        sng_channel_t channel, const sng_chain_t *chain) {
   int num_bytes = 0;
-  fprintf(stdout, "\n.PROC %s_%s_Chain%c%c_u8_arr\n",
+  fprintf(stdout, "\n.PROC %s_%s_Chain%c%c_bChain_arr\n",
           parser.prefix, song->id, part->letter, channel_name(channel));
   int i = 0;
-  for (; i < chain->num_phrases; ++i) {
-    int phrase_index = chain->phrase_indices[i];
+  for (; i < chain->num_items; ++i) {
+    int item = chain->items[i];
+    int value = item < 0 ? -item : 0x80 | item;
     num_bytes += 1;
     if (i % 14 == 0) {
       if (i != 0) fprintf(stdout, "\n");
-      fprintf(stdout, "    .byte $%02x", phrase_index);
-    } else fprintf(stdout, ", $%02x", phrase_index);
+      fprintf(stdout, "    .byte $%02x", value);
+    } else fprintf(stdout, ", $%02x", value);
   }
   num_bytes += 1;
-  if (i % 14 == 0) fprintf(stdout, "\n    .byte $ff\n");
-  else fprintf(stdout, ", $ff\n");
+  if (i % 14 == 0) fprintf(stdout, "\n    .byte $00\n");
+  else fprintf(stdout, ", $00\n");
   fprintf(stdout, ".ENDPROC\n");
   return num_bytes;
 }
@@ -1283,7 +1328,7 @@ static int write_chains(void) {
       const sng_part_t *part = &song->parts[p];
       for (sng_channel_t c = 0; c < NUM_CHANNELS; ++c) {
         const sng_chain_t *chain = &part->chains[c];
-        if (chain->num_phrases != 0) {
+        if (chain->num_items != 0) {
           assert(chain->alias_part_name == '\0');
           num_bytes += write_chain(song, part, c, chain);
         }
@@ -1347,7 +1392,7 @@ static void write_output(void) {
           ".INCLUDE \"../../../src/inst.inc\"\n"
           ".INCLUDE \"../../../src/macros.inc\"\n"
           ".INCLUDE \"../../../src/music.inc\"\n\n"
-          ".IMPORT Data_EmptyChain_u8_arr\n");
+          ".IMPORT Data_Empty_bChain_arr\n");
   write_samples();
   write_separator();
   if (parser.num_songs == 0) return;

@@ -12,10 +12,10 @@
 
 !PART A
 
-1| p(iD c5e c  ' ds de ds   )1A ' p1A | p1A ' p1A |
-2| p(iD c4e c  ' ds de ds   )2A ' p2A | p2A ' p2A |
-T| p(iB f4q    ' c          )3A ' p3A | p3A ' p3A |
-N| p(iD x1e x6 ' x3s x3e x3s)NA ' pNA | pNA ' pNA |
+1| iD c5e c  ' ds de ds :4 |
+2| iD c4e c  ' ds de ds :4 |
+T| iB f4q    ' c        :4 |
+N| p(iD x1e x6 ' x3s x3e x3s)NA :4 |
 
 !PART B
 
@@ -54,14 +54,11 @@ N=:DN
 !PART M
 
 1| f3q r f r | f3q r g r |
+ | a3q c4 a3 d4 | a3q f e# g |
 2| p(f4s f  f  f)2M  ' a4q ' p2M  ' bq |
  | p2M  ' c5e a4 ' d5 b4 ' c5 e#4 |
-T| p(f3e c ' a  c  ' f c ' b c |
- | f3e c ' c4 a3 ' f c ' f c)TM |
-N| pNA ' pNA | pNA ' pNA |
-
-1| a3q c4 a3 d4 | a3q f e# g |
-2| p2M  ' a4e f ' p2M  ' be f |
+ | p2M  ' a4e f ' p2M  ' be f |
  | p2M  ' c5s d c b4 ' a b a g ' c5 b4 a g |
-T| pTM |
-N| pNA ' pNA | pNA ' pNA |
+T| f3e c ' a  c  ' f c ' b c |
+ | f3e c ' c4 a3 ' f c ' f c :2 |
+N| pNA :8 |

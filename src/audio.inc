@@ -49,8 +49,10 @@
     Instrument_eInst .byte
     ;; Parameter byte for the instrument.
     Param_byte       .byte
-    ;; Currently-unused padding bytes.
-    Unused           .word
+    ;; Currently-unused padding byte.
+    Unused           .byte
+    ;; How many times the same chain repeat has been reached in a row.
+    RepeatCount_u8   .byte
 .ENDSTRUCT
 
 ;;; SFX state variables for a given APU channel.

@@ -22,6 +22,7 @@
 
 .IMPORT DataC_Boss_BossPlaceholder_sMusic
 .IMPORT DataC_Mine_MinePlaceholder_sMusic
+.IMPORT DataC_Prison_Prison2_sMusic
 .IMPORT DataC_Temple_TemplePlaceholder_sMusic
 .IMPORT Data_Empty_bMusic_arr
 .IMPORT Data_Title_Placeholder_sMusic
@@ -40,6 +41,7 @@
     d_entry table, Silence, Data_Silence_sMusic
     d_entry table, Boss,    DataC_Boss_BossPlaceholder_sMusic
     d_entry table, Mine,    DataC_Mine_MinePlaceholder_sMusic
+    d_entry table, Prison2, DataC_Prison_Prison2_sMusic
     d_entry table, Temple,  DataC_Temple_TemplePlaceholder_sMusic
     d_entry table, Title,   Data_Title_Placeholder_sMusic
     D_END

@@ -1,0 +1,43 @@
+@PRGC_Prison
+
+!SONG Prison2 "|ABCAABCBCA"
+
+=tempo q32
+=key 3b  % c minor
+
+!INST 1H PulseBasic $0c d1/2
+!INST 1Q PulseBasic $0c d1/4
+!INST 2E PulseBasic $0c d1/8
+!INST TB Constant $ff         % bass
+!INST TK TriangleDrum $20     % kick drum
+!INST ND NoiseDrum $0c
+
+!PART A
+
+2| iE c4s ce :4 ce ce |
+ |  ; a3s ae :4 ae ae |
+ |  ; b3s be :4 be be |
+ |  ; g3s ge :4 ge ge |
+T| iB c3q iK c4e iB e3e :2 |
+ |  ; a2q iK c4e iB e3e :2 |
+ |  ; b2q iK c4e iB d3e :2 |
+ |  ; g2q iK c4e iB b2e :2 |
+N| iD x9e x0 :16 |
+
+!PART B
+
+1| p(iQ g4e. fe. ce+q+e ave)1A |
+ | a4e. ge. fe+q+e ce |
+ | p(f4e. ge. ae ge. fe.)1B c4e+ | +h avq b |
+2=:A2
+T=:AT
+N=:AN
+
+!PART C
+
+1| p1A |
+ | a4e. iH be. iQ c^e bve.+e. ce |
+ | p1B c4e+ | +h. rq |
+2=:A2
+T=:AT
+N=:AN

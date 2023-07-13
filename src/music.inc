@@ -22,6 +22,7 @@
     Silence
     Boss
     Mine
+    Prison2
     Temple
     Title
     NUM_VALUES
@@ -64,19 +65,27 @@
     ;; variable-length
 .ENDSTRUCT
 
+;;; Each item in a chain a byte in one of the following forms:
+;;;   * PHRA [%1xxxxxxx].  Plays phrase number %xxxxxxx.
+;;;   * REPT [%0xxxxxxx].  Repeats the previous item (which must be a PHRA) for
+;;;     a total of %xxxxxxx times.
+;;;   * HALT [%00000000].  This marks the end of the chain.
+.SCOPE bChain
+    IsPhrase = %10000000  ; if this bit is set, this is a PHRA item
+.ENDSCOPE
+
 ;;; One section of a song.  A part consists of one chain for each APU channel,
 ;;; which all play in parallel.  However, these chains need not all be the same
-;;; duration (and indeed, some can just be empty); the part will end only once
-;;; all chains have finished.
+;;; duration (and indeed, some can just be empty); the part will only end once
+;;; all chains have halted.
 .STRUCT sPart
-    ;; Chains for each APU channel.  Each chain is a sequence of phrase numbers
-    ;; (0-127), terminated by $ff (or any other value with the high bit set).
-    ;; Each phrase number is an index into Phrases_sPhrase_ptr_arr_ptr.
-    Chain1_u8_arr_ptr .addr
-    Chain2_u8_arr_ptr .addr
-    ChainT_u8_arr_ptr .addr
-    ChainN_u8_arr_ptr .addr
-    ChainD_u8_arr_ptr .addr
+    ;; Chains for each APU channel.  Each chain is a sequence of bChain bytes,
+    ;; terminated by $00 (HALT).
+    Chain1_bChain_arr_ptr .addr
+    Chain2_bChain_arr_ptr .addr
+    ChainT_bChain_arr_ptr .addr
+    ChainN_bChain_arr_ptr .addr
+    ChainD_bChain_arr_ptr .addr
 .ENDSTRUCT
 
 ;;; Bit flags for music opcodes.  A music opcode byte can take one of the
