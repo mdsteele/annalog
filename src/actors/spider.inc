@@ -18,6 +18,7 @@
 ;;;=========================================================================;;;
 
 ;;; State bytes for spider baddies:
+;;;   * Param: Unused.
 ;;;   * Flags: The FlipV bit is set if the spider is hanging from a thread, or
 ;;;     cleared otherwise.  The FlipH bit is set of the spider is moving to the
 ;;;     left, or cleared if the spider is moving to the right.
@@ -27,6 +28,7 @@
 ;;;     byte of the room pixel Y position for the top of the thread.  Since the
 ;;;     thread is never longer than 255 pixels, subtracting this from the low
 ;;;     byte of the spider's Y position gives the length of the thread.
+;;;   * State3: Unused.
 
 ;;; Tile IDs for drawing spider baddie actors.
 kTileIdObjSpiderFirst = $a8

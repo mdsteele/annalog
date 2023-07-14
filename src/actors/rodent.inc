@@ -18,6 +18,7 @@
 ;;;=========================================================================;;;
 
 ;;; State bytes for rodent baddies:
+;;;   * Param: Unused.
 ;;;   * State1: The current eBadRodent state value.
 ;;;   * State2: A timer that counts up/down each frame, depending on the
 ;;;     current eBadRodent value.

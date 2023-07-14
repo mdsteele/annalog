@@ -22,6 +22,7 @@
 ;;;     wraps back around to zero before the spike hits anything, then the
 ;;;     spike is removed.
 ;;;   * State2: Unused.
+;;;   * State3: Unused.
 
 ;;; The OBJ tile ID for spike projectile actors.
 kTileIdObjSpike = $a8

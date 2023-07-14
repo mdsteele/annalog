@@ -18,6 +18,9 @@
 ;;;=========================================================================;;;
 
 ;;; State bytes for fish baddies:
+;;;   * Param: The initial flags to set (0 or bObj::FlipH).
+;;;   * Flags: The bObj::FlipH bit is set if the grub is facing left, or
+;;;     cleared if it is facing right.
 ;;;   * State1: Counter that increments each frame and drives the fish's
 ;;;     animation (but doesn't affect behavior).
 ;;;   * State2: Unused.

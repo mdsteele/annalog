@@ -18,8 +18,10 @@
 ;;;=========================================================================;;;
 
 ;;; State bytes for toad baddies:
+;;;   * Param: Unused.
 ;;;   * State1: How many more frames until the toad jumps.
 ;;;   * State2: 0 if the toad is grounded, or 1 if it's airborne (jumping).
+;;;   * State3: Unused.
 
 ;;; Tile IDs for drawing toad baddie actors.
 kTileIdObjToadFirst = $a8

@@ -18,10 +18,14 @@
 ;;;=========================================================================;;;
 
 ;;; State bytes for vinebug baddies:
+;;;   * Param: Unused.
+;;;   * Flags: Unused.
 ;;;   * State1: If nonzero, the vinebug's velocity is locked until the next
 ;;;     time it turns around.
-;;;   * State2: Counter that increments every frame; used to periodically
-;;;     randomly change the vinebug's velocity (when State1 is zero).
+;;;   * State2: Counter that increments every frame; used for animation, and
+;;;     also to periodically randomly change the vinebug's velocity (when
+;;;     State1 is zero).
+;;;   * State3: Unused.
 
 ;;; Tile IDs for drawing vinebug baddie actors.
 kTileIdObjVinebugFirst = $b0

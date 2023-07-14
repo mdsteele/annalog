@@ -18,6 +18,7 @@
 ;;;=========================================================================;;;
 
 ;;; State bytes for crab baddies:
+;;;   * Param: Unused.
 ;;;   * State1: Counter that decrements each frame; when it's zero, the crab
 ;;;     starts another movement cycle and resets the counter.
 ;;;   * State2: Unused.

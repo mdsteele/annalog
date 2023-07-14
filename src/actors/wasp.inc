@@ -18,9 +18,15 @@
 ;;;=========================================================================;;;
 
 ;;; State bytes for wasp baddies:
+;;;   * Param: The bBadWasp value specifying the wasp's initial position
+;;;     (angle) within its circular flight path, and its per-frame angle delta.
+;;;     direction and max look-ahead distance.
+;;;   * Flags: Automatically set to bObj::FlipH whenever the wasp's X-velocity
+;;;     is negative, or to 0 whenever the wasp's X-velocity is nonnegative.
 ;;;   * State1: The signed delta that gets added to the wasps flight angle each
 ;;;     frame.
 ;;;   * State2: The wasp's current angle around the circle it flies in.
+;;;   * State3: Unused.
 
 ;;; Tile IDs for drawing wasp baddie actors.
 kTileIdObjWaspFirst = $90

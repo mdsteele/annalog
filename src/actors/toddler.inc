@@ -20,6 +20,7 @@
 ;;; State bytes for toddler NPCs:
 ;;;   * State1: How many more frames until the toddler turns around.
 ;;;   * State2: Unused.
+;;;   * State3: Unused.
 
 ;;; The first tile ID for toddler NPC actors.
 kTileIdObjToddlerFirst = $80

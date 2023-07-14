@@ -18,6 +18,10 @@
 ;;;=========================================================================;;;
 
 ;;; State bytes for bird baddies:
+;;;   * Param: The bBadBird value specifying the bird's initial facing
+;;;     direction and max look-ahead distance.
+;;;   * Flags: The bObj::FlipH bit is set if the bird is facing left, or
+;;;     cleared if it is facing right.
 ;;;   * State1: The maximum number of pixels to look ahead horizontally for the
 ;;;     player avatar.
 ;;;   * State2: If the bird is standing still, this is the cooldown

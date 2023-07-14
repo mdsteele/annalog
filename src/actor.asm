@@ -680,8 +680,8 @@ _NoHit:
     d_entry table, BadBird,         FuncA_Room_InitActorBadBird
     d_entry table, BadCrab,         Func_InitActorDefault
     d_entry table, BadFirefly,      FuncA_Room_InitActorBadFirefly
-    d_entry table, BadFish,         Func_InitActorDefault
-    d_entry table, BadGrub,         Func_InitActorDefault
+    d_entry table, BadFish,         Func_InitActorWithFlags
+    d_entry table, BadGrub,         Func_InitActorWithFlags
     d_entry table, BadHotheadHorz,  Func_InitActorWithFlags
     d_entry table, BadHotheadVert,  Func_InitActorWithFlags
     d_entry table, BadJelly,        Func_InitActorWithState1
