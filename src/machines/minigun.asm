@@ -27,6 +27,7 @@
 .INCLUDE "minigun.inc"
 .INCLUDE "shared.inc"
 
+.IMPORT FuncA_Machine_PlaySfxShootBullet
 .IMPORT FuncA_Machine_StartWaiting
 .IMPORT FuncA_Objects_Alloc2x2Shape
 .IMPORT FuncA_Objects_GetMachineLightTileId
@@ -76,7 +77,7 @@ kPaletteObjMinigun = 0
 .EXPORT FuncA_Machine_MinigunTryAct
 .PROC FuncA_Machine_MinigunTryAct
     jsr Func_FindEmptyActorSlot  ; preserves Y, sets C on failure, returns X
-    jcs _DoneWithBullet
+    jcs _StartCooldown
     sty T0  ; bullet direction
     ;; Compute the firing offset, storing it in T1.
     ldy Zp_MachineIndex_u8
@@ -145,12 +146,14 @@ _InitBullet:
     jsr Func_InitActorProjBullet  ; preserves X
     ;; If debugging, replace the bullet with a smoke particle.
     lda Zp_ConsoleMachineIndex_u8
-    bmi _DoneWithBullet
+    bmi @noDebug
     lda #eActor::SmokeParticle
     sta Ram_ActorType_eActor_arr, x
     lda #0
     sta Ram_ActorState1_byte_arr, x  ; particle age in frames
-_DoneWithBullet:
+    @noDebug:
+    jsr FuncA_Machine_PlaySfxShootBullet
+_StartCooldown:
     ldx Zp_MachineIndex_u8
     inc Ram_MachineState1_byte_arr, x  ; shot counter
     lda #kMinigunCooldownFrames  ; param: number of frames

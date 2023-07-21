@@ -28,25 +28,13 @@
 
 .SEGMENT "PRG8"
 
-;;; SFX sequence data for the "machine error" sound effect.
-.PROC Data_MachineError_sSfxSeq_arr
+;;; SFX sequence data for the "shoot bullet" sound effect.
+.PROC Data_ShootBullet_sSfxSeq_arr
     D_STRUCT sSfxSeq
     d_byte Duration_u8, 8
-    d_byte Env_bEnvelope, bEnvelope::Duty14 | bEnvelope::NoLength | 4
+    d_byte Env_bEnvelope, bEnvelope::NoLength | 1
     d_byte Sweep_byte, 0
-    d_word Timer_u16, $0340
-    D_END
-    D_STRUCT sSfxSeq
-    d_byte Duration_u8, 8
-    d_byte Env_bEnvelope, bEnvelope::Duty18 | bEnvelope::NoLength | 4
-    d_byte Sweep_byte, 0
-    d_word Timer_u16, $0340
-    D_END
-    D_STRUCT sSfxSeq
-    d_byte Duration_u8, 8
-    d_byte Env_bEnvelope, bEnvelope::Duty14 | bEnvelope::NoLength | 4
-    d_byte Sweep_byte, 0
-    d_word Timer_u16, $0340
+    d_word Timer_u16, $f803
     D_END
     .byte 0
 .ENDPROC
@@ -55,12 +43,12 @@
 
 .SEGMENT "PRGA_Machine"
 
-;;; Starts playing the sound for when a machine encounters an error.
+;;; Starts playing the sound for when a minigun machine shoots a bullet.
 ;;; @preserve T0+
-.EXPORT FuncA_Machine_PlaySfxError
-.PROC FuncA_Machine_PlaySfxError
-    ldx #eChan::Pulse2
-    ldya #Data_MachineError_sSfxSeq_arr
+.EXPORT FuncA_Machine_PlaySfxShootBullet
+.PROC FuncA_Machine_PlaySfxShootBullet
+    ldx #eChan::Noise
+    ldya #Data_ShootBullet_sSfxSeq_arr
     jmp Func_PlaySfxSequence  ; preserves T0+
 .ENDPROC
 
