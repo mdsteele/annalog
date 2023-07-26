@@ -253,14 +253,12 @@ _FadeOut:
 
 .EXPORT DataA_Cutscene_CoreBossPowerUpCircuit_sCutscene
 .PROC DataA_Cutscene_CoreBossPowerUpCircuit_sCutscene
-    .byte eAction::JumpToMain
-    .addr Main_Breaker_PowerCoreCutscene
+    act_JumpToMain Main_Breaker_PowerCoreCutscene
 .ENDPROC
 
 .EXPORT DataA_Cutscene_SharedFadeBackToBreakerRoom_sCutscene
 .PROC DataA_Cutscene_SharedFadeBackToBreakerRoom_sCutscene
-    .byte eAction::JumpToMain
-    .addr Main_Breaker_FadeBackToBreakerRoom
+    act_JumpToMain Main_Breaker_FadeBackToBreakerRoom
 .ENDPROC
 
 ;;;=========================================================================;;;

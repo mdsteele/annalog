@@ -484,37 +484,33 @@ _OrcJumpFunc:
 
 .EXPORT DataA_Cutscene_TownOutdoorsOrcAttack_sCutscene
 .PROC DataA_Cutscene_TownOutdoorsOrcAttack_sCutscene
-    .byte eAction::CallFunc
-    .addr _RemoveDevicesAndTownsfolk
-    .byte eAction::WalkAlex, kAlexActorIndex
-    .word kAlexPickupPositionX
+    act_CallFunc _RemoveDevicesAndTownsfolk
+    act_WalkAlex kAlexActorIndex, kAlexPickupPositionX
     ;; Animate Alex bending down, picking something up, then turning around and
     ;; showing it to Anna.
-    .byte eAction::SetActorState1, kAlexActorIndex, eNpcChild::AlexKneeling
-    .byte eAction::WaitFrames, 60
-    .byte eAction::SetActorState1, kAlexActorIndex, eNpcChild::AlexStanding
-    .byte eAction::WaitFrames, 20
-    .byte eAction::SetActorFlags, kAlexActorIndex, bObj::FlipH
-    .byte eAction::WaitFrames, 20
-    .byte eAction::SetActorState1, kAlexActorIndex, eNpcChild::AlexHolding
-    .byte eAction::WaitFrames, 30
-    .byte eAction::RunDialog, eDialog::TownOutdoorsAlex2
+    act_SetActorState1 kAlexActorIndex, eNpcChild::AlexKneeling
+    act_WaitFrames 60
+    act_SetActorState1 kAlexActorIndex, eNpcChild::AlexStanding
+    act_WaitFrames 20
+    act_SetActorFlags kAlexActorIndex, bObj::FlipH
+    act_WaitFrames 20
+    act_SetActorState1 kAlexActorIndex, eNpcChild::AlexHolding
+    act_WaitFrames 30
+    act_RunDialog eDialog::TownOutdoorsAlex2
     ;; Animate Alex and Anna looking up at the stars.
-    .byte eAction::CallFunc
-    .addr _SetScrollGoal
-    .byte eAction::SetActorFlags, kAlexActorIndex, bObj::FlipH
-    .byte eAction::SetActorState1, kAlexActorIndex, eNpcChild::AlexLooking
-    .byte eAction::WaitFrames, 60
-    .byte eAction::SetAvatarFlags, bObj::FlipH | kPaletteObjAvatarNormal
-    .byte eAction::SetAvatarPose, eAvatar::Looking
-    .byte eAction::WaitFrames, 60
+    act_CallFunc _SetScrollGoal
+    act_SetActorFlags kAlexActorIndex, bObj::FlipH
+    act_SetActorState1 kAlexActorIndex, eNpcChild::AlexLooking
+    act_WaitFrames 60
+    act_SetAvatarFlags bObj::FlipH | kPaletteObjAvatarNormal
+    act_SetAvatarPose eAvatar::Looking
+    act_WaitFrames 60
     ;; TODO: Make a star twinkle in the sky.
-    .byte eAction::WaitFrames, 120
-    .byte eAction::CallFunc
-    .addr _InitOrcs
-    .byte eAction::RunDialog, eDialog::TownOutdoorsAlex3
-    .byte eAction::SetActorState1, kGrontaActorIndex, eNpcOrc::GrontaStanding
-    .byte eAction::ContinueExploring
+    act_WaitFrames 120
+    act_CallFunc _InitOrcs
+    act_RunDialog eDialog::TownOutdoorsAlex3
+    act_SetActorState1 kGrontaActorIndex, eNpcOrc::GrontaStanding
+    act_ContinueExploring
 _RemoveDevicesAndTownsfolk:
     ;; Remove all devices from the room (so that the player can't start dialog
     ;; or run into a building once the orcs attack).
@@ -567,24 +563,20 @@ _InitOrcs:
 
 .EXPORT DataA_Cutscene_TownOutdoorsGetCaught_sCutscene
 .PROC DataA_Cutscene_TownOutdoorsGetCaught_sCutscene
-    .byte eAction::SetCutsceneFlags, bCutscene::AvatarRagdoll
-    .byte eAction::WaitUntilZ
-    .addr _AnnaHasLanded
-    .byte eAction::SetCutsceneFlags, 0
-    .byte eAction::SetAvatarState, 0
-    .byte eAction::SetAvatarVelX
-    .word 0
-    .byte eAction::CallFunc
-    .addr _SetHarmTimer
-    .byte eAction::SetAvatarFlags, kPaletteObjAvatarNormal | bObj::FlipH
-    .byte eAction::SetAvatarPose, eAvatar::Slumping
-    .byte eAction::WaitFrames, 4
-    .byte eAction::SetAvatarPose, eAvatar::Sleeping
-    .byte eAction::WaitFrames, 120
+    act_SetCutsceneFlags bCutscene::AvatarRagdoll
+    act_WaitUntilZ _AnnaHasLanded
+    act_SetCutsceneFlags 0
+    act_SetAvatarState 0
+    act_SetAvatarVelX 0
+    act_CallFunc _SetHarmTimer
+    act_SetAvatarFlags kPaletteObjAvatarNormal | bObj::FlipH
+    act_SetAvatarPose eAvatar::Slumping
+    act_WaitFrames 4
+    act_SetAvatarPose eAvatar::Sleeping
+    act_WaitFrames 120
     ;; TODO: make Chief Gronta walk onscreen
-    .byte eAction::RunDialog, eDialog::TownOutdoorsGronta
-    .byte eAction::JumpToMain
-    .addr Main_LoadPrisonCellAndStartCutscene
+    act_RunDialog eDialog::TownOutdoorsGronta
+    act_JumpToMain Main_LoadPrisonCellAndStartCutscene
 _AnnaHasLanded:
     lda Zp_AvatarState_bAvatar
     and #bAvatar::Airborne

@@ -723,56 +723,45 @@ _ParticleAngle_u8_arr:
 
 .EXPORT DataA_Cutscene_PrisonCellGetThrownIn_sCutscene
 .PROC DataA_Cutscene_PrisonCellGetThrownIn_sCutscene
-    .byte eAction::WaitFrames, 60
+    act_WaitFrames 60
     ;; Animate the prison gate opening.
-    .byte eAction::WaitUntilZ
-    .addr _OpenGate
+    act_WaitUntilZ _OpenGate
     ;; Animate the orc walking in.
-    .byte eAction::SetActorPosX, kOrc1ActorIndex
-    .word $0118
-    .byte eAction::WalkNpcOrc, kOrc1ActorIndex
-    .word $00f8
-    .byte eAction::SetActorState1, kOrc1ActorIndex, eNpcOrc::Standing
-    .byte eAction::WaitFrames, 30
+    act_SetActorPosX kOrc1ActorIndex, $0118
+    act_WalkNpcOrc kOrc1ActorIndex, $00f8
+    act_SetActorState1 kOrc1ActorIndex, eNpcOrc::Standing
+    act_WaitFrames 30
     ;; Animate Anna getting thrown into the cell.
-    .byte eAction::SetActorState1, kOrc1ActorIndex, eNpcOrc::Throwing1
-    .byte eAction::WaitFrames, 6
-    .byte eAction::SetActorState1, kOrc1ActorIndex, eNpcOrc::Throwing2
-    .byte eAction::SetAvatarPosX
-    .word $00f0
-    .byte eAction::SetAvatarPosY
-    .word $00b0
-    .byte eAction::SetAvatarVelX
-    .word $ffff & -365
-    .byte eAction::SetAvatarVelY
-    .word $ffff & -580
-    .byte eAction::SetCutsceneFlags, bCutscene::AvatarRagdoll
-    .byte eAction::WaitFrames, 15
-    .byte eAction::SetActorState1, kOrc1ActorIndex, eNpcOrc::Standing
-    .byte eAction::WaitUntilZ
-    .addr _AnnaHasLanded
-    .byte eAction::SetCutsceneFlags, 0
-    .byte eAction::SetAvatarFlags, bObj::FlipH | kPaletteObjAvatarNormal
-    .byte eAction::SetAvatarPose, eAvatar::Slumping
-    .byte eAction::SetAvatarState, 0
-    .byte eAction::SetAvatarVelX
-    .word 0
-    .byte eAction::WaitFrames, 4
-    .byte eAction::SetAvatarPose, eAvatar::Sleeping
+    act_SetActorState1 kOrc1ActorIndex, eNpcOrc::Throwing1
+    act_WaitFrames 6
+    act_SetActorState1 kOrc1ActorIndex, eNpcOrc::Throwing2
+    act_SetAvatarPosX $00f0
+    act_SetAvatarPosY $00b0
+    act_SetAvatarVelX $ffff & -365
+    act_SetAvatarVelY $ffff & -580
+    act_SetCutsceneFlags bCutscene::AvatarRagdoll
+    act_WaitFrames 15
+    act_SetActorState1 kOrc1ActorIndex, eNpcOrc::Standing
+    act_WaitUntilZ _AnnaHasLanded
+    act_SetCutsceneFlags 0
+    act_SetAvatarFlags bObj::FlipH | kPaletteObjAvatarNormal
+    act_SetAvatarPose eAvatar::Slumping
+    act_SetAvatarState 0
+    act_SetAvatarVelX 0
+    act_WaitFrames 4
+    act_SetAvatarPose eAvatar::Sleeping
     ;; Animate the orc walking out.
-    .byte eAction::WaitFrames, 30
-    .byte eAction::WalkNpcOrc, kOrc1ActorIndex
-    .word $0118
+    act_WaitFrames 30
+    act_WalkNpcOrc kOrc1ActorIndex, $0118
     ;; Animate the prison gate closing.
-    .byte eAction::WaitUntilZ
-    .addr _CloseGate
+    act_WaitUntilZ _CloseGate
     ;; Animate Anna standing back up.
-    .byte eAction::WaitFrames, 90
-    .byte eAction::SetAvatarPose, eAvatar::Slumping
-    .byte eAction::WaitFrames, 30
-    .byte eAction::SetAvatarPose, eAvatar::Kneeling
-    .byte eAction::WaitFrames, 20
-    .byte eAction::ContinueExploring
+    act_WaitFrames 90
+    act_SetAvatarPose eAvatar::Slumping
+    act_WaitFrames 30
+    act_SetAvatarPose eAvatar::Kneeling
+    act_WaitFrames 20
+    act_ContinueExploring
 _OpenGate:
     ldy #1  ; param: zero for shut
     jmp FuncC_Prison_Cell_TickGate  ; returns Z

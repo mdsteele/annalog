@@ -392,25 +392,20 @@ _UpperCrates:
 
 .EXPORT DataA_Cutscene_CoreSouthCorraHelping_sCutscene
 .PROC DataA_Cutscene_CoreSouthCorraHelping_sCutscene
-    .byte eAction::SetCutsceneFlags, bCutscene::RoomTick
-    .byte eAction::SetActorState2, kCorraActorIndex, $ff
-    .byte eAction::RepeatFunc, 123
-    .addr _SwimDownFunc
-    .byte eAction::RepeatFunc, 40
-    .addr _AnimateSwimmingDownFunc
-    .byte eAction::CallFunc
-    .addr _ReleaseCratesFunc
-    .byte eAction::RepeatFunc, 40
-    .addr _AnimateSwimmingDownFunc
-    .byte eAction::SetActorFlags, kCorraActorIndex, bObj::FlipH
-    .byte eAction::RepeatFunc, 82
-    .addr _SwimUpFunc
-    .byte eAction::SetActorState1, kCorraActorIndex, kTileIdMermaidCorraFirst
-    .byte eAction::WaitFrames, 15
-    .byte eAction::SetActorState2, kCorraActorIndex, 0
-    .byte eAction::WaitFrames, 15
-    .byte eAction::RunDialog, eDialog::CoreSouthCorra2
-    .byte eAction::ContinueExploring
+    act_SetCutsceneFlags bCutscene::RoomTick
+    act_SetActorState2 kCorraActorIndex, $ff
+    act_RepeatFunc 123, _SwimDownFunc
+    act_RepeatFunc 40, _AnimateSwimmingDownFunc
+    act_CallFunc _ReleaseCratesFunc
+    act_RepeatFunc 40, _AnimateSwimmingDownFunc
+    act_SetActorFlags kCorraActorIndex, bObj::FlipH
+    act_RepeatFunc 82, _SwimUpFunc
+    act_SetActorState1 kCorraActorIndex, kTileIdMermaidCorraFirst
+    act_WaitFrames 15
+    act_SetActorState2 kCorraActorIndex, 0
+    act_WaitFrames 15
+    act_RunDialog eDialog::CoreSouthCorra2
+    act_ContinueExploring
 _SwimDownFunc:
     lda Ram_ActorSubY_u8_arr + kCorraActorIndex
     add #$80

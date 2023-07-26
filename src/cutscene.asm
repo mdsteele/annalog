@@ -143,7 +143,7 @@ _Finish:
 
 ;;; A null cutscene that just immediately ends the current fork.
 .PROC DataA_Cutscene_Null_sCutscene
-    .byte eAction::ForkStop, $ff
+    act_ForkStop $ff
 .ENDPROC
 
 ;;; Maps from an eCutscene value to a pointer to the cutscene action sequence.

@@ -640,21 +640,19 @@ _MoveToBottomRight:
 
 .EXPORT DataA_Cutscene_TempleNaveAlexBoosting_sCutscene
 .PROC DataA_Cutscene_TempleNaveAlexBoosting_sCutscene
-    .byte eAction::WalkAlex, kAlexActorIndex
-    .word kAlexBoostingPositionX
+    act_WalkAlex kAlexActorIndex, kAlexBoostingPositionX
     ;; Animate Alex turning around, crouching down, and raising his arms to
     ;; give Anna a boost.
-    .byte eAction::SetActorFlags, kAlexActorIndex, 0
-    .byte eAction::SetActorState1, kAlexActorIndex, eNpcChild::AlexStanding
-    .byte eAction::WaitFrames, 50
-    .byte eAction::SetActorState1, kAlexActorIndex, eNpcChild::AlexKneeling
-    .byte eAction::WaitFrames, 20
-    .byte eAction::SetActorState1, kAlexActorIndex, eNpcChild::AlexBoosting
-    .byte eAction::WaitFrames, 30
-    .byte eAction::CallFunc
-    .addr _SetUpBoostingPlatform
-    .byte eAction::RunDialog, eDialog::TempleNaveAlexBoosting
-    .byte eAction::ContinueExploring
+    act_SetActorFlags kAlexActorIndex, 0
+    act_SetActorState1 kAlexActorIndex, eNpcChild::AlexStanding
+    act_WaitFrames 50
+    act_SetActorState1 kAlexActorIndex, eNpcChild::AlexKneeling
+    act_WaitFrames 20
+    act_SetActorState1 kAlexActorIndex, eNpcChild::AlexBoosting
+    act_WaitFrames 30
+    act_CallFunc _SetUpBoostingPlatform
+    act_RunDialog eDialog::TempleNaveAlexBoosting
+    act_ContinueExploring
 _SetUpBoostingPlatform:
     ;; Set up the device/platform for Alex giving Anna a boost.
     lda #eDevice::Placeholder

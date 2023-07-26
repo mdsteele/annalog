@@ -158,14 +158,13 @@ _Devices_sDevice_arr:
 
 .EXPORT DataA_Cutscene_TownHouse2WakeUp_sCutscene
 .PROC DataA_Cutscene_TownHouse2WakeUp_sCutscene
-    .byte eAction::WaitFrames, 150
-    .byte eAction::SetAvatarPose, eAvatar::Slumping
-    .byte eAction::WaitFrames, 60
-    .byte eAction::SetAvatarPose, eAvatar::Kneeling
-    .byte eAction::WaitFrames, 15
-    .byte eAction::SetAvatarVelY
-    .word $ff00
-    .byte eAction::ContinueExploring
+    act_WaitFrames 150
+    act_SetAvatarPose eAvatar::Slumping
+    act_WaitFrames 60
+    act_SetAvatarPose eAvatar::Kneeling
+    act_WaitFrames 15
+    act_SetAvatarVelY $ff00
+    act_ContinueExploring
 .ENDPROC
 
 ;;;=========================================================================;;;

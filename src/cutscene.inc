@@ -129,3 +129,123 @@ kMaxForks = 4
 .ENDENUM
 
 ;;;=========================================================================;;;
+
+.MACRO act_CallFunc FUNC
+    .byte eAction::CallFunc
+    .addr FUNC
+.ENDMACRO
+
+.MACRO act_ContinueExploring
+    .byte eAction::ContinueExploring
+.ENDMACRO
+
+.MACRO act_ForkStart INDEX, SCUTSCENE
+    .byte eAction::ForkStart, INDEX
+    .addr SCUTSCENE
+.ENDMACRO
+
+.MACRO act_ForkStop INDEX
+    .byte eAction::ForkStop, INDEX
+.ENDMACRO
+
+.MACRO act_JumpToMain MAIN
+    .byte eAction::JumpToMain
+    .addr MAIN
+.ENDMACRO
+
+.MACRO act_RepeatFunc FRAMES, FUNC
+    .byte eAction::CallFunc, FRAMES
+    .addr FUNC
+.ENDMACRO
+
+.MACRO act_RunDialog EDIALOG
+    .byte eAction::RunDialog, EDIALOG
+.ENDMACRO
+
+.MACRO act_SetActorFlags INDEX, BOBJ
+    .byte eAction::SetActorFlags, INDEX, BOBJ
+.ENDMACRO
+
+.MACRO act_SetActorPosX INDEX, POSX
+    .byte eAction::SetActorPosX, INDEX
+    .word POSX
+.ENDMACRO
+
+.MACRO act_SetActorPosY INDEX, POSY
+    .byte eAction::SetActorPosY, INDEX
+    .word POSY
+.ENDMACRO
+
+.MACRO act_SetActorState1 INDEX, BYTE
+    .byte eAction::SetActorState1, INDEX, BYTE
+.ENDMACRO
+
+.MACRO act_SetActorState2 INDEX, BYTE
+    .byte eAction::SetActorState2, INDEX, BYTE
+.ENDMACRO
+
+.MACRO act_SetAvatarFlags BOBJ
+    .byte eAction::SetAvatarFlags, BOBJ
+.ENDMACRO
+
+.MACRO act_SetAvatarPosX POSX
+    .byte eAction::SetAvatarPosX
+    .word POSX
+.ENDMACRO
+
+.MACRO act_SetAvatarPosY POSY
+    .byte eAction::SetAvatarPosY
+    .word POSY
+.ENDMACRO
+
+.MACRO act_SetAvatarPose EAVATAR
+    .byte eAction::SetAvatarPose, EAVATAR
+.ENDMACRO
+
+.MACRO act_SetAvatarState BAVATAR
+    .byte eAction::SetAvatarState, BAVATAR
+.ENDMACRO
+
+.MACRO act_SetAvatarVelX VELX
+    .byte eAction::SetAvatarVelX
+    .word VELX
+.ENDMACRO
+
+.MACRO act_SetAvatarVelY VELY
+    .byte eAction::SetAvatarVelY
+    .word VELY
+.ENDMACRO
+
+.MACRO act_SetCutsceneFlags BCUTSCENE
+    .byte eAction::SetCutsceneFlags, BCUTSCENE
+.ENDMACRO
+
+.MACRO act_ShakeRoom FRAMES
+    .byte eAction::ShakeRoom, FRAMES
+.ENDMACRO
+
+.MACRO act_WaitFrames FRAMES
+    .byte eAction::WaitFrames, FRAMES
+.ENDMACRO
+
+.MACRO act_WaitUntilC FUNC
+    .byte eAction::WaitUntilC
+    .addr FUNC
+.ENDMACRO
+
+.MACRO act_WaitUntilZ FUNC
+    .byte eAction::WaitUntilZ
+    .addr FUNC
+.ENDMACRO
+
+.MACRO act_WalkAlex INDEX, GOALX
+    .byte eAction::WalkAlex, INDEX
+    .word GOALX
+.ENDMACRO
+
+.MACRO act_WalkNpcOrc INDEX, GOALX
+    .byte eAction::WalkNpcOrc, INDEX
+    .word GOALX
+.ENDMACRO
+
+;;;=========================================================================;;;

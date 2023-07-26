@@ -136,12 +136,11 @@ _Devices_sDevice_arr:
 
 .EXPORT DataA_Cutscene_MermaidHut1BreakerGarden_sCutscene
 .PROC DataA_Cutscene_MermaidHut1BreakerGarden_sCutscene
-    .byte eAction::WaitFrames, 60
-    .byte eAction::ShakeRoom, 30
-    .byte eAction::WaitFrames, 60
-    .byte eAction::RunDialog, eDialog::MermaidHut1BreakerGarden
-    .byte eAction::JumpToMain
-    .addr Main_Breaker_FadeBackToBreakerRoom
+    act_WaitFrames 60
+    act_ShakeRoom 30
+    act_WaitFrames 60
+    act_RunDialog eDialog::MermaidHut1BreakerGarden
+    act_JumpToMain Main_Breaker_FadeBackToBreakerRoom
 .ENDPROC
 
 ;;;=========================================================================;;;

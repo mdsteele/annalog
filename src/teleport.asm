@@ -60,12 +60,10 @@
 
 .EXPORT DataA_Cutscene_SharedTeleportOut_sCutscene
 .PROC DataA_Cutscene_SharedTeleportOut_sCutscene
-    .byte eAction::SetAvatarPose, eAvatar::Hidden
-    .byte eAction::CallFunc
-    .addr _MakeSmokePuff
-    .byte eAction::WaitFrames, 60
-    .byte eAction::JumpToMain
-    .addr Main_GoThroughTeleporter
+    act_SetAvatarPose eAvatar::Hidden
+    act_CallFunc _MakeSmokePuff
+    act_WaitFrames 60
+    act_JumpToMain Main_GoThroughTeleporter
 _MakeSmokePuff:
     jsr Func_FindEmptyActorSlot  ; sets C on failure, returns X
     bcs @done
@@ -78,9 +76,9 @@ _MakeSmokePuff:
 
 .EXPORT DataA_Cutscene_SharedTeleportIn_sCutscene
 .PROC DataA_Cutscene_SharedTeleportIn_sCutscene
-    .byte eAction::WaitFrames, 30
+    act_WaitFrames 30
     ;; TODO: spawn a teleport zap actor
-    .byte eAction::ContinueExploring
+    act_ContinueExploring
 .ENDPROC
 
 ;;;=========================================================================;;;

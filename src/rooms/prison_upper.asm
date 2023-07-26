@@ -423,51 +423,40 @@ _FreeAlex:
 
 .EXPORT DataA_Cutscene_PrisonUpperBreakerTemple_sCutscene
 .PROC DataA_Cutscene_PrisonUpperBreakerTemple_sCutscene
-    .byte eAction::WaitFrames, 60
-    .byte eAction::ShakeRoom, 30
-    .byte eAction::WaitFrames, 60
-    .byte eAction::WalkNpcOrc, kOrc2ActorIndex
-    .word $01b6
-    .byte eAction::SetActorState1, kOrc2ActorIndex, eNpcOrc::Running3
-    .byte eAction::RunDialog, eDialog::PrisonUpperBreakerTemple
-    .byte eAction::ForkStart, 1
-    .addr _Orc2Exit_sCutscene
-    .byte eAction::WalkNpcOrc, kOrc1ActorIndex
-    .word $01ac
-    .byte eAction::SetActorPosY, kOrc1ActorIndex
-    .word $00b0
-    .byte eAction::WalkNpcOrc, kOrc1ActorIndex
-    .word $01e8
-    .byte eAction::WaitFrames, 60
-    .byte eAction::JumpToMain
-    .addr Main_Breaker_FadeBackToBreakerRoom
+    act_WaitFrames 60
+    act_ShakeRoom 30
+    act_WaitFrames 60
+    act_WalkNpcOrc kOrc2ActorIndex, $01b6
+    act_SetActorState1 kOrc2ActorIndex, eNpcOrc::Running3
+    act_RunDialog eDialog::PrisonUpperBreakerTemple
+    act_ForkStart 1, _Orc2Exit_sCutscene
+    act_WalkNpcOrc kOrc1ActorIndex, $01ac
+    act_SetActorPosY kOrc1ActorIndex, $00b0
+    act_WalkNpcOrc kOrc1ActorIndex, $01e8
+    act_WaitFrames 60
+    act_JumpToMain Main_Breaker_FadeBackToBreakerRoom
 _Orc2Exit_sCutscene:
-    .byte eAction::WalkNpcOrc, kOrc2ActorIndex
-    .word $01e8
-    .byte eAction::ForkStop, $ff
+    act_WalkNpcOrc kOrc2ActorIndex, $01e8
+    act_ForkStop $ff
 .ENDPROC
 
 .EXPORT DataA_Cutscene_PrisonUpperFreeAlex_sCutscene
 .PROC DataA_Cutscene_PrisonUpperFreeAlex_sCutscene
-    .byte eAction::SetAvatarPose, eAvatar::Standing
-    .byte eAction::SetAvatarState, 0
-    .byte eAction::SetAvatarVelX
-    .word 0
-    .byte eAction::CallFunc
-    .addr _SetDevices
+    act_SetAvatarPose eAvatar::Standing
+    act_SetAvatarState 0
+    act_SetAvatarVelX 0
+    act_CallFunc _SetDevices
     ;; Make Alex look up at the gate as he waits for it to open.
-    .byte eAction::SetActorState1, kAlexActorIndex, eNpcChild::AlexLooking
-    .byte eAction::WaitUntilZ
-    .addr _OpenGate
-    .byte eAction::WaitFrames, 15
-    .byte eAction::SetActorState1, kAlexActorIndex, eNpcChild::AlexStanding
-    .byte eAction::WaitFrames, 15
+    act_SetActorState1 kAlexActorIndex, eNpcChild::AlexLooking
+    act_WaitUntilZ _OpenGate
+    act_WaitFrames 15
+    act_SetActorState1 kAlexActorIndex, eNpcChild::AlexStanding
+    act_WaitFrames 15
     ;; Make Alex walk out of the prison cell.
-    .byte eAction::WalkAlex, kAlexActorIndex
-    .word kAlexFreePositionX
-    .byte eAction::SetActorState1, kAlexActorIndex, eNpcChild::AlexStanding
-    .byte eAction::SetActorState2, kAlexActorIndex, $00
-    .byte eAction::ContinueExploring
+    act_WalkAlex kAlexActorIndex, kAlexFreePositionX
+    act_SetActorState1 kAlexActorIndex, eNpcChild::AlexStanding
+    act_SetActorState2 kAlexActorIndex, $00
+    act_ContinueExploring
 _SetDevices:
     lda #bDevice::NoneNearby
     sta Zp_Nearby_bDevice
