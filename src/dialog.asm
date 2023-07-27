@@ -193,6 +193,9 @@ Zp_PortraitRestBank_u8: .res 1
 ;;; dialog portrait.
 Zp_PortraitAnimBank_u8: .res 1
 
+;;; The index into Ram_DialogText_u8_arr for the next character to draw.
+Zp_DialogTextIndex_u8: .res 1
+
 ;;; The window tile row/col where the next character of dialog text will be
 ;;; drawn.
 Zp_DialogTextRow_u8: .res 1
@@ -205,10 +208,16 @@ Zp_DialogTextCol_u8: .res 1
 .EXPORTZP Zp_DialogAnsweredYes_bool
 Zp_DialogAnsweredYes_bool: .res 1
 
-;;; A pointer into the current dialog data.  If bDialog::Paused is set, this
-;;; points to the 2-byte ePortrait value for the next block of text; otherwise,
-;;; this points to the next character of text to draw.
-Zp_DialogText_ptr: .res 2
+;;; A pointer to the next sDialog entry to execute.
+Zp_Next_sDialog_ptr: .res 2
+
+;;;=========================================================================;;;
+
+.SEGMENT "RAM_Dialog"
+
+;;; A copy of the current pane of dialog text, including the end-of-line/text
+;;; markers.
+Ram_DialogText_u8_arr: .res (kDialogTextMaxCols + 1) * kDialogNumTextRows
 
 ;;;=========================================================================;;;
 
@@ -423,9 +432,9 @@ _UpdateScrolling:
 ;;; @return C Set if the dialog is empty, cleared otherwise.
 .PROC FuncA_Dialog_Init
     lda DataA_Dialog_Table_sDialog_ptr_0_arr, y
-    sta Zp_DialogText_ptr + 0
+    sta Zp_Next_sDialog_ptr + 0
     lda DataA_Dialog_Table_sDialog_ptr_1_arr, y
-    sta Zp_DialogText_ptr + 1
+    sta Zp_Next_sDialog_ptr + 1
     ;; Load the first portrait of the dialog.
     jsr FuncA_Dialog_LoadNextPortrait  ; sets C if dialog is already done
     bcs _Done
@@ -567,16 +576,19 @@ _CloseWindow:
     rts
 .ENDPROC
 
-;;; Reads the first two bytes of the next sDialog entry that Zp_DialogText_ptr
+;;; Reads the first two bytes of the sDialog entry that Zp_Next_sDialog_ptr
 ;;; points to.
-;;;   * If it is a portrait, initializes dialog variables appropriately, and
-;;;     then advances Zp_DialogText_ptr to point to the start of the text.
+;;;   * If it is a portrait, initializes dialog variables appropriately, copies
+;;;     the pane of text into Ram_DialogText_u8_arr, and then advances
+;;;     Zp_Next_sDialog_ptr to point to the next sDialog entry.
 ;;;   * If it is a dynamic dialog function pointer, calls the function and then
 ;;;     tries again with the dialog entry returned by the function.
 ;;;   * If it is ePortrait::Done, sets the C flag and returns.
-;;; @prereq Zp_DialogText_ptr is pointing to the next sDialog entry.
+;;; @prereq Zp_Next_sDialog_ptr is pointing to the next sDialog entry.
 ;;; @return C Set if the dialog is now done, cleared otherwise.
 .PROC FuncA_Dialog_LoadNextPortrait
+    lda #0
+    sta Zp_DialogTextIndex_u8
     lda #kDialogTextStartCol
     sta Zp_DialogTextCol_u8
     lda #kDialogTextStartRow
@@ -586,16 +598,16 @@ _ReadPortrait:
     and #<~(bDialog::Paused | bDialog::YesNo)
     sta Zp_DialogStatus_bDialog
     ldy #0
-    lda (Zp_DialogText_ptr), y
+    lda (Zp_Next_sDialog_ptr), y
     tax
     iny
-    lda (Zp_DialogText_ptr), y
+    lda (Zp_Next_sDialog_ptr), y
     beq _DialogDone
     bpl _SetPortrait
 _DynamicDialog:
     stax T1T0
     jsr _CallT1T0
-    stya Zp_DialogText_ptr
+    stya Zp_Next_sDialog_ptr
     jmp _ReadPortrait
 _CallT1T0:
     jmp (T1T0)
@@ -607,19 +619,32 @@ _SetPortrait:
     sta Zp_PortraitAnimBank_u8
     stx Zp_PortraitRestBank_u8
     chr04_bank x
-    .assert * = FuncA_Dialog_AdvanceTextPtr, error, "fallthrough"
+_CopyTextPane:
+    ldx #0
+    beq @start  ; unconditional
+    @continue:
+    inx
+    iny
+    @start:
+    lda (Zp_Next_sDialog_ptr), y
+    sta Ram_DialogText_u8_arr, x
+    bpl @continue
+    cmp #kDialogTextNewline
+    beq @continue
+    iny
+    .assert * = FuncA_Dialog_AdvanceNextPtr, error, "fallthrough"
 .ENDPROC
 
-;;; Adds Y to Zp_DialogText_ptr and stores the result in Zp_DialogText_ptr.
-;;; @param Y The byte offset to add to Zp_DialogText_ptr.
+;;; Adds Y to Zp_Next_sDialog_ptr and stores the result in Zp_Next_sDialog_ptr.
+;;; @param Y The byte offset to add to Zp_Next_sDialog_ptr.
 ;;; @return C Always cleared.
-.PROC FuncA_Dialog_AdvanceTextPtr
+.PROC FuncA_Dialog_AdvanceNextPtr
     tya
-    add Zp_DialogText_ptr + 0
-    sta Zp_DialogText_ptr + 0
-    lda Zp_DialogText_ptr + 1
+    add Zp_Next_sDialog_ptr + 0
+    sta Zp_Next_sDialog_ptr + 0
+    lda Zp_Next_sDialog_ptr + 1
     adc #0
-    sta Zp_DialogText_ptr + 1
+    sta Zp_Next_sDialog_ptr + 1
     rts
 .ENDPROC
 
@@ -740,14 +765,13 @@ _BgAttributes:
 ;;; @prereq bDialog::Paused is cleared and Zp_DialogText_ptr points to text.
 .PROC FuncA_Dialog_TransferNextCharacter
     ;; Read the next character, then advance past it.
-    ldy #0
-    lda (Zp_DialogText_ptr), y
-    pha  ; next character
-    iny
-    jsr FuncA_Dialog_AdvanceTextPtr
-    pla  ; next character
+    ldx Zp_DialogTextIndex_u8
+    lda Ram_DialogText_u8_arr, x
+    inx
+    stx Zp_DialogTextIndex_u8
     ;; If the character is printable, then perform a PPU transfer to draw it to
     ;; the screen.
+    tax
     bpl _TransferCharacter
     ;; Or, if the character is an end-of-line marker, then get ready for the
     ;; next line of text.
@@ -828,8 +852,8 @@ _YesNoQuestion:
 _TransferLine:
     ;; If the next character is already an end-of-line/text marker, don't
     ;; create a transfer entry for this line.
-    ldy #0
-    lda (Zp_DialogText_ptr), y
+    ldy Zp_DialogTextIndex_u8
+    lda Ram_DialogText_u8_arr, y
     bmi _EndOfLine
     ;; Write the transfer entry header (except for transfer len) for the rest
     ;; of the current line of text.
@@ -850,9 +874,9 @@ _TransferLine:
     stx T0  ; byte offset for transfer data length
     inx
     ;; Write the transfer data for the rest of the current line of text.
-    ldy #0
+    ldy Zp_DialogTextIndex_u8
     @loop:
-    lda (Zp_DialogText_ptr), y
+    lda Ram_DialogText_u8_arr, y
     bmi @finish
     sta Ram_PpuTransfer_arr, x
     inx
@@ -863,11 +887,13 @@ _TransferLine:
     pha  ; end-of-line/text marker
     stx Zp_PpuTransferLen_u8
     ldx T0  ; byte offset for transfer data length
-    tya     ; transfer data length
+    tya     ; index of end-of-line/text byte
+    sub Zp_DialogTextIndex_u8
     sta Ram_PpuTransfer_arr, x
     pla  ; end-of-line/text marker
 _EndOfLine:
-    ;; Update the dialog text position.
+    ;; At this point, A holds the end-of-line/text byte, and Y holds the index
+    ;; of that byte within Ram_DialogText_u8_arr.
     cmp #kDialogTextEnd
     beq @endOfText
     cmp #kDialogTextYesNo
@@ -885,10 +911,9 @@ _EndOfLine:
     lda Zp_DialogStatus_bDialog
     ora #bDialog::Paused
     sta Zp_DialogStatus_bDialog
-    bne @advance  ; unconditional
     @advance:
     iny  ; Skip past the end-of-line/text marker.
-    jsr FuncA_Dialog_AdvanceTextPtr
+    sty Zp_DialogTextIndex_u8
     ;; Check whether there are still more lines to transfer.
     bit Zp_DialogStatus_bDialog
     .assert bDialog::Paused = bProc::Negative, error
