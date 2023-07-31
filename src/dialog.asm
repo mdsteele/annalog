@@ -46,12 +46,13 @@
 .IMPORT DataA_Dialog_MermaidHut1Queen_sDialog
 .IMPORT DataA_Dialog_MermaidHut2Guard_sDialog
 .IMPORT DataA_Dialog_MermaidHut3MermaidAdult_sDialog
-.IMPORT DataA_Dialog_MermaidHut3MermaidPhoebe_sDialog
+.IMPORT DataA_Dialog_MermaidHut3Phoebe_sDialog
 .IMPORT DataA_Dialog_MermaidHut4Florist_sDialog
 .IMPORT DataA_Dialog_MermaidHut5Nora_sDialog
 .IMPORT DataA_Dialog_MermaidVillageCorra_sDialog
 .IMPORT DataA_Dialog_MermaidVillageFarmer_sDialog
 .IMPORT DataA_Dialog_MermaidVillageGuard_sDialog
+.IMPORT DataA_Dialog_PrisonCellPaper_sDialog
 .IMPORT DataA_Dialog_PrisonEscapePaper_sDialog
 .IMPORT DataA_Dialog_PrisonFlowerSign_sDialog
 .IMPORT DataA_Dialog_PrisonUpperAlexCell_sDialog
@@ -74,7 +75,6 @@
 .IMPORT DataA_Dialog_TownHouse5Bruno_sDialog
 .IMPORT DataA_Dialog_TownHouse5Marie_sDialog
 .IMPORT DataA_Dialog_TownHouse6Elder_sDialog
-.IMPORT DataC_Prison_PrisonCellPaper_sDialog
 .IMPORT DataC_Town_TownHouse2Stela_sDialog
 .IMPORT DataC_Town_TownOutdoorsAlex1_sDialog
 .IMPORT DataC_Town_TownOutdoorsAlex2_sDialog
@@ -252,8 +252,9 @@ Ram_DialogText_u8_arr: .res (kDialogTextMaxCols + 1) * kDialogNumTextRows
 ;;; @prereq Explore mode is initialized.
 ;;; @param Y The eDialog value for the dialog.
 .PROC Main_Dialog_OpenWindow
-    jsr_prga FuncA_Dialog_Init  ; sets C if dialog is empty
-    bcs Main_Dialog_Finish
+    jsr_prga FuncA_Dialog_Init  ; returns C, T2, and T1T0
+    bcs Main_Dialog_Finish  ; dialog is empty
+    jsr FuncM_CopyDialogText
 _GameLoop:
     jsr_prga FuncA_Objects_DrawObjectsForRoom
     jsr Func_ClearRestOfOamAndProcessFrame
@@ -300,12 +301,32 @@ _GameLoop:
     jsr_prga FuncA_Objects_DrawDialogCursorAndObjectsForRoom
     jsr Func_ClearRestOfOamAndProcessFrame
 _Tick:
-    jsr_prga FuncA_Dialog_Tick  ; sets C if window should be closed; returns X
-    chr04_bank x
-    jcs Main_Dialog_CloseWindow
+    jsr_prga FuncA_Dialog_Tick  ; returns C, Z, T2, and T1T0
+    bcs Main_Dialog_CloseWindow
+    beq @done
+    jsr FuncM_CopyDialogText
+    @done:
 _UpdateScrolling:
     jsr_prga FuncA_Terrain_ScrollTowardsGoal
     jmp _GameLoop
+.ENDPROC
+
+;;; Given the bank/pointer returned by FuncA_Dialog_GetNextDialogTextPointer,
+;;; switches the PRGA bank and copies the dialog text into
+;;; Ram_DialogText_u8_arr.
+;;; @param T2 The PRGA bank that contains the dialog text.
+;;; @param T1T0 A pointer to the start of the dialog text.
+.PROC FuncM_CopyDialogText
+    prga_bank T2
+    ldy #$ff
+    @loop:
+    iny
+    lda (T1T0), y
+    sta Ram_DialogText_u8_arr, y
+    bpl @loop
+    cmp #kDialogTextNewline
+    beq @loop
+    rts
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -333,8 +354,7 @@ _UpdateScrolling:
     d_entry table, MermaidHut2Guard,   DataA_Dialog_MermaidHut2Guard_sDialog
     d_entry table, MermaidHut3MermaidAdult, \
             DataA_Dialog_MermaidHut3MermaidAdult_sDialog
-    d_entry table, MermaidHut3MermaidPhoebe, \
-            DataA_Dialog_MermaidHut3MermaidPhoebe_sDialog
+    d_entry table, MermaidHut3Phoebe,  DataA_Dialog_MermaidHut3Phoebe_sDialog
     d_entry table, MermaidHut4Florist, DataA_Dialog_MermaidHut4Florist_sDialog
     d_entry table, MermaidHut5Nora,    DataA_Dialog_MermaidHut5Nora_sDialog
     d_entry table, MermaidVillageCorra, \
@@ -343,7 +363,7 @@ _UpdateScrolling:
             DataA_Dialog_MermaidVillageFarmer_sDialog
     d_entry table, MermaidVillageGuard, \
             DataA_Dialog_MermaidVillageGuard_sDialog
-    d_entry table, PrisonCellPaper,    DataC_Prison_PrisonCellPaper_sDialog
+    d_entry table, PrisonCellPaper,    DataA_Dialog_PrisonCellPaper_sDialog
     d_entry table, PrisonEscapePaper,  DataA_Dialog_PrisonEscapePaper_sDialog
     d_entry table, PrisonFlowerSign,   DataA_Dialog_PrisonFlowerSign_sDialog
     d_entry table, PrisonUpperAlexCell, \
@@ -427,16 +447,20 @@ _UpdateScrolling:
     @dataEnd:
 .ENDPROC
 
-;;; Initializes dialog mode.
+;;; Initializes dialog mode.  If the dialog is not empty, then the caller must
+;;; subsequently call FuncM_CopyDialogText to load the first pane of dialog
+;;; text from its PRGA bank.
 ;;; @param Y The eDialog value for the dialog.
 ;;; @return C Set if the dialog is empty, cleared otherwise.
+;;; @return T2 The PRGA bank number that contains the first dialog text.
+;;; @return T1T0 A pointer to the start of the first dialog text.
 .PROC FuncA_Dialog_Init
     lda DataA_Dialog_Table_sDialog_ptr_0_arr, y
     sta Zp_Next_sDialog_ptr + 0
     lda DataA_Dialog_Table_sDialog_ptr_1_arr, y
     sta Zp_Next_sDialog_ptr + 1
     ;; Load the first portrait of the dialog.
-    jsr FuncA_Dialog_LoadNextPortrait  ; sets C if dialog is already done
+    jsr FuncA_Dialog_GetNextDialogTextPointer  ; returns C, T2, and T1T0
     bcs _Done
 _HideHud:
     lda Zp_FloatingHud_bHud
@@ -505,9 +529,14 @@ _Done:
     rts
 .ENDPROC
 
-;;; Updates the dialog text based on joypad input.
-;;; @return X The CHR04 bank number that should be set.
+;;; Updates the dialog text based on joypad input and animates the dialog
+;;; portrait appropriately.  The return values indicate whether dialog should
+;;; end or continue, and whether it's time to copy the next pane of dialog
+;;; text.
 ;;; @return C Set if dialog is finished and the window should be closed.
+;;; @return Z Cleared if we should copy the next pane of dialog text.
+;;; @return T2 The PRGA bank number that contains the next dialog text.
+;;; @return T1T0 A pointer to the start of the next dialog text.
 .PROC FuncA_Dialog_Tick
 _CheckDPad:
     ;; Ignore the D-pad if yes-or-no question mode isn't currently active.
@@ -546,9 +575,11 @@ _CheckAButton:
     ;; Otherwise, the player pressed the A button when we're already at
     ;; end-of-text, so begin the next page of text.
     jsr FuncA_Dialog_TransferClearText
-    jsr FuncA_Dialog_LoadNextPortrait  ; sets C if dialog is now done
+    jsr FuncA_Dialog_GetNextDialogTextPointer  ; returns C, T2, and T1T0
     bcs _CloseWindow
-    bcc _AnimatePortrait  ; unconditional
+    jsr _AnimatePortrait  ; preserves T0+, clears C
+    lda #1  ; Clear Z to indicate that we should copy the next pane of text.
+    rts
     @noAButton:
 _UpdateText:
     bit Zp_DialogStatus_bDialog
@@ -568,47 +599,59 @@ _AnimatePortrait:
     ldx Zp_PortraitRestBank_u8
     @done:
 _ContinueDialog:
+    chr04_bank x
+    lda #0  ; Set Z to indicate that we shouldn't copy the next pane of text.
     clc  ; Clear C to indicate that dialog should continue.
     rts
 _CloseWindow:
     ldx Zp_PortraitRestBank_u8
+    jsr _ContinueDialog  ; sets Z
     sec  ; Set C to indicate that we should close the dialog window.
     rts
 .ENDPROC
 
-;;; Reads the first two bytes of the sDialog entry that Zp_Next_sDialog_ptr
-;;; points to.
-;;;   * If it is a portrait, initializes dialog variables appropriately, copies
-;;;     the pane of text into Ram_DialogText_u8_arr, and then advances
-;;;     Zp_Next_sDialog_ptr to point to the next sDialog entry.
+;;; Reads the next sDialog entry, and handles it accordingly:
+;;;   * If it is a portrait, initializes dialog variables appropriately,
+;;;     advances Zp_Next_sDialog_ptr to point to the next sDialog entry, and
+;;;     returns the bank/pointer for the dialog text that should be copied into
+;;;     Ram_DialogText_u8_arr.
 ;;;   * If it is a dynamic dialog function pointer, calls the function and then
 ;;;     tries again with the dialog entry returned by the function.
 ;;;   * If it is ePortrait::Done, sets the C flag and returns.
 ;;; @prereq Zp_Next_sDialog_ptr is pointing to the next sDialog entry.
 ;;; @return C Set if the dialog is now done, cleared otherwise.
-.PROC FuncA_Dialog_LoadNextPortrait
+;;; @return T2 The PRGA bank number that contains the next dialog text.
+;;; @return T1T0 A pointer to the start of the next dialog text.
+.PROC FuncA_Dialog_GetNextDialogTextPointer
+    ;; Prepare to start a new pane of dialog text.
     lda #0
     sta Zp_DialogTextIndex_u8
     lda #kDialogTextStartCol
     sta Zp_DialogTextCol_u8
     lda #kDialogTextStartRow
     sta Zp_DialogTextRow_u8
-_ReadPortrait:
+    ;; Clear the Paused and YesNo dialog status bits.
     lda Zp_DialogStatus_bDialog
     and #<~(bDialog::Paused | bDialog::YesNo)
     sta Zp_DialogStatus_bDialog
+_ReadPortraitWord:
+    ;; Load the first word of the sDialog entry into AX.  If the highest bit is
+    ;; set, then this is a function address in PRG ROM for us to call;
+    ;; otherwise it's an ePortrait value.  If the high byte is zero, then
+    ;; dialog is done (the value must be ePortrait::Done), otherwise we've
+    ;; found our next pane of text.
     ldy #0
     lda (Zp_Next_sDialog_ptr), y
-    tax
     iny
+    tax
     lda (Zp_Next_sDialog_ptr), y
     beq _DialogDone
     bpl _SetPortrait
 _DynamicDialog:
     stax T1T0
-    jsr _CallT1T0
+    jsr _CallT1T0  ; returns YA
     stya Zp_Next_sDialog_ptr
-    jmp _ReadPortrait
+    jmp _ReadPortraitWord
 _CallT1T0:
     jmp (T1T0)
 _DialogDone:
@@ -619,31 +662,25 @@ _SetPortrait:
     sta Zp_PortraitAnimBank_u8
     stx Zp_PortraitRestBank_u8
     chr04_bank x
-_CopyTextPane:
-    ldx #0
-    beq @start  ; unconditional
-    @continue:
-    inx
-    iny
-    @start:
+_ReadTextPointer:
     lda (Zp_Next_sDialog_ptr), y
-    sta Ram_DialogText_u8_arr, x
-    bpl @continue
-    cmp #kDialogTextNewline
-    beq @continue
     iny
-    .assert * = FuncA_Dialog_AdvanceNextPtr, error, "fallthrough"
-.ENDPROC
-
-;;; Adds Y to Zp_Next_sDialog_ptr and stores the result in Zp_Next_sDialog_ptr.
-;;; @param Y The byte offset to add to Zp_Next_sDialog_ptr.
-;;; @return C Always cleared.
-.PROC FuncA_Dialog_AdvanceNextPtr
+    sta T0  ; dialog text address (lo)
+    lda (Zp_Next_sDialog_ptr), y
+    iny
+    tax  ; banked text pointer (hi)
+    and #$1f
+    ora #$a0
+    sta T1  ; dialog text address (hi)
+    txa  ; banked text pointer (hi)
+    div #32
+    sta T2  ; dialog text PRGA bank
+_UpdateDialogPointer:
     tya
     add Zp_Next_sDialog_ptr + 0
     sta Zp_Next_sDialog_ptr + 0
-    lda Zp_Next_sDialog_ptr + 1
-    adc #0
+    lda #0
+    adc Zp_Next_sDialog_ptr + 1  ; carry will be clear after this
     sta Zp_Next_sDialog_ptr + 1
     rts
 .ENDPROC

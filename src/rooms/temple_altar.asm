@@ -572,12 +572,19 @@ _MoveToLowerRight:
 
 .EXPORT DataA_Dialog_TempleAltarPlaque_sDialog
 .PROC DataA_Dialog_TempleAltarPlaque_sDialog
-    .word ePortrait::Plaque
+    dlg_Text Plaque, DataA_Text0_TempleAltarPlaque_u8_arr
+    dlg_Done
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Text0"
+
+.PROC DataA_Text0_TempleAltarPlaque_u8_arr
     .byte "- Temple of Peace -$"
     .byte " Built together by$"
     .byte "mermaids and humans.$"
     .byte "   - A.D. 2250 -#"
-    .word ePortrait::Done
 .ENDPROC
 
 ;;;=========================================================================;;;

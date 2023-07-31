@@ -365,7 +365,7 @@ _WaterWidth_u8_arr:
 
 .EXPORT DataA_Dialog_MermaidDrainSign_sDialog
 .PROC DataA_Dialog_MermaidDrainSign_sDialog
-    .addr _InitialFunc
+    dlg_Func _InitialFunc
 _InitialFunc:
     flag_bit Sram_ProgressFlags_arr, eFlag::MermaidDrainUnplugged
     bne @unplugged
@@ -375,17 +375,27 @@ _InitialFunc:
     ldya #_Closed_sDialog
     rts
 _Open_sDialog:
-    .word ePortrait::Sign
+    dlg_Text Sign, DataA_Text0_MermaidDrainSign_Open_u8_arr
+    dlg_Done
+_Closed_sDialog:
+    dlg_Text Sign, DataA_Text0_MermaidDrainSign_Closed_u8_arr
+    dlg_Done
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Text0"
+
+.PROC DataA_Text0_MermaidDrainSign_Open_u8_arr
     .byte "   - Hot Spring -$"
     .byte "Please enjoy a restful$"
     .byte "and relaxing soak.#"
-    .word ePortrait::Done
-_Closed_sDialog:
-    .word ePortrait::Sign
+.ENDPROC
+
+.PROC DataA_Text0_MermaidDrainSign_Closed_u8_arr
     .byte "   - Hot Spring -$"
     .byte "Currently closed for$"
     .byte "maintenance.#"
-    .word ePortrait::Done
 .ENDPROC
 
 ;;;=========================================================================;;;

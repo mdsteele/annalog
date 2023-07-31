@@ -478,23 +478,15 @@ _OpenGate:
 
 .EXPORT DataA_Dialog_PrisonUpperBreakerTemple_sDialog
 .PROC DataA_Dialog_PrisonUpperBreakerTemple_sDialog
-    .word ePortrait::OrcMaleShout
-    .byte "Oktok! Chief Gronta$"
-    .byte "say come quick!#"
-    .word ePortrait::OrcMaleShout
-    .byte "More machines, they$"
-    .byte "are turning on!#"
-    .word ePortrait::Done
+    dlg_Text OrcMaleShout, DataA_Text0_PrisonUpperBreakerTemple_Come1_u8_arr
+    dlg_Text OrcMaleShout, DataA_Text0_PrisonUpperBreakerTemple_Come2_u8_arr
+    dlg_Done
 .ENDPROC
 
 .EXPORT DataA_Dialog_PrisonUpperAlexCell_sDialog
 .PROC DataA_Dialog_PrisonUpperAlexCell_sDialog
-    .word ePortrait::ChildAlex
-    .byte "Anna! Thank goodness$"
-    .byte "you're here! The orcs$"
-    .byte "threw us in here, but$"
-    .byte "they're gone now.#"
-    .addr _SetFlagFunc
+    dlg_Text ChildAlex, DataA_Text0_PrisonUpperAlexCell_Intro_u8_arr
+    dlg_Func _SetFlagFunc
 _SetFlagFunc:
     lda #ePlatform::Solid
     sta Ram_PlatformType_ePlatform_arr + kStepstonePlatformIndex
@@ -503,25 +495,15 @@ _SetFlagFunc:
     ldya #_GetDoorOpen_sDialog
     rts
 _GetDoorOpen_sDialog:
-    .word ePortrait::ChildAlex
-    .byte "See if you can find a$"
-    .byte "way to get this door$"
-    .byte "open.#"
-    .word ePortrait::Done
+    dlg_Text ChildAlex, DataA_Text0_PrisonUpperAlexCell_GetDoorOpen_u8_arr
+    dlg_Done
 .ENDPROC
 
 .EXPORT DataA_Dialog_PrisonUpperAlexFree_sDialog
 .PROC DataA_Dialog_PrisonUpperAlexFree_sDialog
-    .word ePortrait::ChildAlex
-    .byte "Thanks! That door was$"
-    .byte "too heavy, but I think$"
-    .byte "I can pick the locks$"
-    .byte "on the other cells.#"
-    .word ePortrait::ChildAlex
-    .byte "I'll let the others$"
-    .byte "out, then scout ahead.$"
-    .byte "Be right back.#"
-    .addr _CutsceneFunc
+    dlg_Text ChildAlex, DataA_Text0_PrisonUpperAlexFree_Intro1_u8_arr
+    dlg_Text ChildAlex, DataA_Text0_PrisonUpperAlexFree_Intro2_u8_arr
+    dlg_Func _CutsceneFunc
 _CutsceneFunc:
     ;; TODO: cutscene for Alex to free the other kids
     ldx #eFlag::PrisonUpperFreedKids  ; param: flag
@@ -529,24 +511,20 @@ _CutsceneFunc:
     ldya #_Finish_sDialog
     rts
 _Finish_sDialog:
-    .word ePortrait::ChildAlex
-    .byte "Bad news: the passage$"
-    .byte "to the surface has$"
-    .byte "has collapsed.#"
+    dlg_Text ChildAlex, DataA_Text0_PrisonUpperAlexFree_Finish_u8_arr
     ;; TODO: rest of cutscene/dialog
-    .word ePortrait::Done
+    dlg_Done
 .ENDPROC
 
 .EXPORT DataA_Dialog_PrisonUpperBruno_sDialog
 .PROC DataA_Dialog_PrisonUpperBruno_sDialog
-    .word ePortrait::ChildBruno
-    .byte "Are the adults OK?#"
-    .word ePortrait::Done
+    dlg_Text ChildBruno, DataA_Text0_PrisonUpperBruno_u8_arr
+    dlg_Done
 .ENDPROC
 
 .EXPORT DataA_Dialog_PrisonUpperMarie_sDialog
 .PROC DataA_Dialog_PrisonUpperMarie_sDialog
-    .addr _InitialFunc
+    dlg_Func _InitialFunc
 _InitialFunc:
     flag_bit Sram_ProgressFlags_arr, eFlag::PrisonUpperFoundAlex
     bne @stepstone
@@ -556,29 +534,91 @@ _InitialFunc:
     ldya #_Stepstone_sDialog
     rts
 _GoTalkToAlex_sDialog:
-    .word ePortrait::ChildMarie
-    .byte "It's Anna! Quick, go$"
-    .byte "talk to Alex! He's in$"
-    .byte "the cell up ahead.#"
-    .word ePortrait::Done
+    dlg_Text ChildMarie, DataA_Text0_PrisonUpperMarie_GoTalkToAlex_u8_arr
+    dlg_Done
 _Stepstone_sDialog:
-    .word ePortrait::ChildMarie
-    .byte "Do you see that one$"
-    .byte "brick sticking out up$"
-    .byte "there?#"
-    .word ePortrait::ChildMarie
-    .byte "I think you could$"
-    .byte "stand on it if you're$"
-    .byte "careful.#"
-    .word ePortrait::Done
+    dlg_Text ChildMarie, DataA_Text0_PrisonUpperMarie_Stepstone1_u8_arr
+    dlg_Text ChildMarie, DataA_Text0_PrisonUpperMarie_Stepstone2_u8_arr
+    dlg_Done
 .ENDPROC
 
 .EXPORT DataA_Dialog_PrisonUpperNora_sDialog
 .PROC DataA_Dialog_PrisonUpperNora_sDialog
-    .word ePortrait::ChildNora
+    dlg_Text ChildNora, DataA_Text0_PrisonUpperNora_u8_arr
+    dlg_Done
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Text0"
+
+.PROC DataA_Text0_PrisonUpperBreakerTemple_Come1_u8_arr
+    .byte "Oktok! Chief Gronta$"
+    .byte "say come quick!#"
+.ENDPROC
+
+.PROC DataA_Text0_PrisonUpperBreakerTemple_Come2_u8_arr
+    .byte "More machines, they$"
+    .byte "are turning on!#"
+.ENDPROC
+
+.PROC DataA_Text0_PrisonUpperAlexCell_Intro_u8_arr
+    .byte "Anna! Thank goodness$"
+    .byte "you're here! The orcs$"
+    .byte "threw us in here, but$"
+    .byte "they're gone now.#"
+.ENDPROC
+
+.PROC DataA_Text0_PrisonUpperAlexCell_GetDoorOpen_u8_arr
+    .byte "See if you can find a$"
+    .byte "way to get this door$"
+    .byte "open.#"
+.ENDPROC
+
+.PROC DataA_Text0_PrisonUpperAlexFree_Intro1_u8_arr
+    .byte "Thanks! That door was$"
+    .byte "too heavy, but I think$"
+    .byte "I can pick the locks$"
+    .byte "on the other cells.#"
+.ENDPROC
+
+.PROC DataA_Text0_PrisonUpperAlexFree_Intro2_u8_arr
+    .byte "I'll let the others$"
+    .byte "out, then scout ahead.$"
+    .byte "Be right back.#"
+.ENDPROC
+
+.PROC DataA_Text0_PrisonUpperAlexFree_Finish_u8_arr
+    .byte "Bad news: the passage$"
+    .byte "to the surface has$"
+    .byte "has collapsed.#"
+.ENDPROC
+
+.PROC DataA_Text0_PrisonUpperBruno_u8_arr
+    .byte "Are the adults OK?#"
+.ENDPROC
+
+.PROC DataA_Text0_PrisonUpperMarie_GoTalkToAlex_u8_arr
+    .byte "It's Anna! Quick, go$"
+    .byte "talk to Alex! He's in$"
+    .byte "the cell up ahead.#"
+.ENDPROC
+
+.PROC DataA_Text0_PrisonUpperMarie_Stepstone1_u8_arr
+    .byte "Do you see that one$"
+    .byte "brick sticking out up$"
+    .byte "there?#"
+.ENDPROC
+
+.PROC DataA_Text0_PrisonUpperMarie_Stepstone2_u8_arr
+    .byte "I think you could$"
+    .byte "stand on it if you're$"
+    .byte "careful.#"
+.ENDPROC
+
+.PROC DataA_Text0_PrisonUpperNora_u8_arr
     .byte "My sister STILL keeps$"
     .byte "peeing her pants!#"
-    .word ePortrait::Done
 .ENDPROC
 
 ;;;=========================================================================;;;

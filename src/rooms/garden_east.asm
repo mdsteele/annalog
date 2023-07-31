@@ -457,7 +457,7 @@ _Done:
 
 .EXPORT DataA_Dialog_GardenEastCorra_sDialog
 .PROC DataA_Dialog_GardenEastCorra_sDialog
-    .addr _InitialFunc
+    dlg_Func _InitialFunc
 _InitialFunc:
     flag_bit Sram_ProgressFlags_arr, eFlag::GardenEastTalkedToMermaid
     bne @alreadyTalked
@@ -467,10 +467,8 @@ _InitialFunc:
     ldya #_Later_sDialog
     rts
 _Question_sDialog:
-    .word ePortrait::MermaidCorra
-    .byte "Are you...a human?$"
-    .byte "A real human girl?%"
-    .addr _QuestionFunc
+    dlg_Text MermaidCorra, DataA_Text0_GardenEastCorra_Question_u8_arr
+    dlg_Func _QuestionFunc
 _QuestionFunc:
     bit Zp_DialogAnsweredYes_bool
     bmi @yes
@@ -481,31 +479,52 @@ _QuestionFunc:
     ldya #_YesAnswer_sDialog
     rts
 _NoAnswer_sDialog:
-    .word ePortrait::MermaidCorra
-    .byte "Ha! You can't fool me.#"
+    dlg_Text MermaidCorra, DataA_Text0_GardenEastCorra_No_u8_arr
 _YesAnswer_sDialog:
-    .word ePortrait::MermaidCorra
-    .byte "But...humans aren't$"
-    .byte "supposed to be down$"
-    .byte "here! I've never even$"
-    .byte "met one before.#"
+    dlg_Text MermaidCorra, DataA_Text0_GardenEastCorra_Yes_u8_arr
 _Later_sDialog:
-    .word ePortrait::MermaidCorra
-    .byte "You should meet with$"
-    .byte "our queen. She will$"
-    .byte "know what to do with$"
-    .byte "you.#"
-    .addr _SetFlagFunc
+    dlg_Text MermaidCorra, DataA_Text0_GardenEastCorra_MeetQueen_u8_arr
+    dlg_Func _SetFlagFunc
 _SetFlagFunc:
     ldx #eFlag::GardenEastTalkedToMermaid  ; param: flag
     jsr FuncA_Dialog_AddQuestMarker
     ldya #_MarkMap_sDialog
     rts
 _MarkMap_sDialog:
-    .word ePortrait::MermaidCorra
+    dlg_Text MermaidCorra, DataA_Text0_GardenEastCorra_MarkMap_u8_arr
+    dlg_Done
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Text0"
+
+.PROC DataA_Text0_GardenEastCorra_Question_u8_arr
+    .byte "Are you...a human?$"
+    .byte "A real human girl?%"
+.ENDPROC
+
+.PROC DataA_Text0_GardenEastCorra_No_u8_arr
+    .byte "Ha! You can't fool me.#"
+.ENDPROC
+
+.PROC DataA_Text0_GardenEastCorra_Yes_u8_arr
+    .byte "But...humans aren't$"
+    .byte "supposed to be down$"
+    .byte "here! I've never even$"
+    .byte "met one before.#"
+.ENDPROC
+
+.PROC DataA_Text0_GardenEastCorra_MeetQueen_u8_arr
+    .byte "You should meet with$"
+    .byte "our queen. She will$"
+    .byte "know what to do with$"
+    .byte "you.#"
+.ENDPROC
+
+.PROC DataA_Text0_GardenEastCorra_MarkMap_u8_arr
     .byte "I'll mark her hut on$"
     .byte "your map.#"
-    .word ePortrait::Done
 .ENDPROC
 
 ;;;=========================================================================;;;

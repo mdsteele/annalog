@@ -468,7 +468,7 @@ _AnimateSwimmingUpFunc:
 
 .EXPORT DataA_Dialog_CoreSouthCorra1_sDialog
 .PROC DataA_Dialog_CoreSouthCorra1_sDialog
-    .addr _CheckIfHelpedFunc
+    dlg_Func _CheckIfHelpedFunc
 _CheckIfHelpedFunc:
     flag_bit Sram_ProgressFlags_arr, eFlag::CoreSouthCorraHelped
     beq _HelloAgainFunc
@@ -479,21 +479,10 @@ _HelloAgainFunc:
     ldya #_HelloAgain_sDialog
     rts
 _HelloAgain_sDialog:
-    .word ePortrait::MermaidCorra
-    .byte "Hello again! I heard$"
-    .byte "that you were going to$"
-    .byte "try to rescue your$"
-    .byte "friends from the orcs.#"
-    .word ePortrait::MermaidCorra
-    .byte "I've never seen ANY$"
-    .byte "place like this. Who$"
-    .byte "could have built$"
-    .byte "something like this?#"
-    .word ePortrait::MermaidCorra
-    .byte "Are you going to climb$"
-    .byte "up? Let me see if I$"
-    .byte "can help you...#"
-    .addr _HelpFunc
+    dlg_Text MermaidCorra, DataA_Text0_CoreSouthCorra1_HelloAgain1_u8_arr
+    dlg_Text MermaidCorra, DataA_Text0_CoreSouthCorra1_HelloAgain2_u8_arr
+    dlg_Text MermaidCorra, DataA_Text0_CoreSouthCorra1_HelloAgain3_u8_arr
+    dlg_Func _HelpFunc
 _HelpFunc:
     lda #eCutscene::CoreSouthCorraHelping
     sta Zp_Next_eCutscene
@@ -503,10 +492,37 @@ _HelpFunc:
 
 .EXPORT DataA_Dialog_CoreSouthCorra2_sDialog
 .PROC DataA_Dialog_CoreSouthCorra2_sDialog
-    .word ePortrait::MermaidCorra
+    dlg_Text MermaidCorra, DataA_Text0_CoreSouthCorra2_u8_arr
+    dlg_Done
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Text0"
+
+.PROC DataA_Text0_CoreSouthCorra1_HelloAgain1_u8_arr
+    .byte "Hello again! I heard$"
+    .byte "that you were going to$"
+    .byte "try to rescue your$"
+    .byte "friends from the orcs.#"
+.ENDPROC
+
+.PROC DataA_Text0_CoreSouthCorra1_HelloAgain2_u8_arr
+    .byte "I've never seen ANY$"
+    .byte "place like this. Who$"
+    .byte "could have built$"
+    .byte "something like this?#"
+.ENDPROC
+
+.PROC DataA_Text0_CoreSouthCorra1_HelloAgain3_u8_arr
+    .byte "Are you going to climb$"
+    .byte "up? Let me see if I$"
+    .byte "can help you...#"
+.ENDPROC
+
+.PROC DataA_Text0_CoreSouthCorra2_u8_arr
     .byte "Good luck! And be$"
     .byte "careful!#"
-    .word ePortrait::Done
 .ENDPROC
 
 ;;;=========================================================================;;;

@@ -240,16 +240,26 @@ _Passages_sPassage_arr:
 
 .EXPORT DataA_Dialog_PrisonEscapePaper_sDialog
 .PROC DataA_Dialog_PrisonEscapePaper_sDialog
-    .word ePortrait::Paper
+    dlg_Text Paper, DataA_Text0_PrisonEscapePaper_Page1_u8_arr
+    dlg_Text Paper, DataA_Text0_PrisonEscapePaper_Page2_u8_arr
+    dlg_Done
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Text0"
+
+.PROC DataA_Text0_PrisonEscapePaper_Page1_u8_arr
     .byte "Day 12: So where do I$"
     .byte "even start? We were a$"
     .byte "great civilization$"
     .byte "once, before the orcs.#"
-    .word ePortrait::Paper
+.ENDPROC
+
+.PROC DataA_Text0_PrisonEscapePaper_Page2_u8_arr
     .byte "But we were already$"
     .byte "crumbling long$"
     .byte "before they invaded.#"
-    .word ePortrait::Done
 .ENDPROC
 
 ;;;=========================================================================;;;

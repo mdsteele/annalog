@@ -332,12 +332,8 @@ _DetectAvatarDeath:
 
 .EXPORT DataC_Town_TownOutdoorsAlex1_sDialog
 .PROC DataC_Town_TownOutdoorsAlex1_sDialog
-    .word ePortrait::ChildAlex
-    .byte "Hi, Anna! I wanted to$"
-    .byte "show you something.$"
-    .byte "Look at what I found$"
-    .byte "in the dirt over here!#"
-    .addr _CutsceneFunc
+    dlg_Text ChildAlex, DataA_Text0_TownOutdoorsAlex1_u8_arr
+    dlg_Func _CutsceneFunc
 _CutsceneFunc:
     lda #eCutscene::TownOutdoorsOrcAttack
     sta Zp_Next_eCutscene
@@ -347,43 +343,24 @@ _CutsceneFunc:
 
 .EXPORT DataC_Town_TownOutdoorsAlex2_sDialog
 .PROC DataC_Town_TownOutdoorsAlex2_sDialog
-    .word ePortrait::ChildAlex
-    .byte "It's some weird metal$"
-    .byte "thing. But nothing$"
-    .byte "like the iron or steel$"
-    .byte "Smith Dominic uses.#"
-    .word ePortrait::ChildAlex
-    .byte "No idea what it is. It$"
-    .byte "almost looks like part$"
-    .byte "of a machine, but it$"
-    .byte "seems so...advanced.#"
-    .addr _StandingFunc
+    dlg_Text ChildAlex, DataA_Text0_TownOutdoorsAlex2_Part1_u8_arr
+    dlg_Text ChildAlex, DataA_Text0_TownOutdoorsAlex2_Part2_u8_arr
+    dlg_Func _StandingFunc
 _StandingFunc:
     lda #eNpcChild::AlexStanding
     sta Ram_ActorState1_byte_arr + kAlexActorIndex
     ldya #_IWonder_sDialog
     rts
 _IWonder_sDialog:
-    .word ePortrait::ChildAlex
-    .byte "I wonder where a thing$"
-    .byte "like this could have$"
-    .byte "come from...#"
-    .word ePortrait::Done
+    dlg_Text ChildAlex, DataA_Text0_TownOutdoorsAlex2_Part2_u8_arr
+    dlg_Done
 .ENDPROC
 
 .EXPORT DataC_Town_TownOutdoorsAlex3_sDialog
 .PROC DataC_Town_TownOutdoorsAlex3_sDialog
-    .word ePortrait::ChildAlex
-    .byte "Do you ever wish we$"
-    .byte "could just leave this$"
-    .byte "town and go exploring?$"
-    .byte "You and me?#"
-    .word ePortrait::ChildAlex
-    .byte "Mom always says it's$"
-    .byte "too dangerous, but I$"
-    .byte "bet we could handle$"
-    .byte "anything out there...#"
-    .addr _ScrollFunc
+    dlg_Text ChildAlex, DataA_Text0_TownOutdoorsAlex3_Explore1_u8_arr
+    dlg_Text ChildAlex, DataA_Text0_TownOutdoorsAlex3_Explore2_u8_arr
+    dlg_Func _ScrollFunc
 _ScrollFunc:
     ;; Scroll the orcs into view.
     ldax #$0500
@@ -391,9 +368,8 @@ _ScrollFunc:
     ldya #_HandleThis_sDialog
     rts
 _HandleThis_sDialog:
-    .word ePortrait::OrcGronta
-    .byte "Handle THIS, human.#"
-    .addr _TurnAroundFunc
+    dlg_Text OrcGronta, DataA_Text0_TownOutdoorsAlex3_HandleThis_u8_arr
+    dlg_Func _TurnAroundFunc
 _TurnAroundFunc:
     ;; Make Anna turn to face the orcs.
     lda #kPaletteObjAvatarNormal
@@ -406,20 +382,17 @@ _TurnAroundFunc:
     ldya #_WhaWhat_sDialog
     rts
 _WhaWhat_sDialog:
-    .word ePortrait::ChildAlex
-    .byte "Wha- what?#"
-    .addr _AttackFunc
+    dlg_Text ChildAlex, DataA_Text0_TownOutdoorsAlex3_WhaWhat_u8_arr
+    dlg_Func _AttackFunc
 _AttackFunc:
     lda #eNpcOrc::GrontaArmsRaised
     sta Ram_ActorState1_byte_arr + kGrontaActorIndex
     ldya #_Attack_sDialog
     rts
 _Attack_sDialog:
-    .word ePortrait::OrcGrontaShout
-    .byte "Orcs, attaaaaaack!#"
-    .word ePortrait::ChildAlexShout
-    .byte "Anna, run!#"
-    .addr _OrcJumpFunc
+    dlg_Text OrcGrontaShout, DataA_Text0_TownOutdoorsAlex3_Attack1_u8_arr
+    dlg_Text ChildAlexShout, DataA_Text0_TownOutdoorsAlex3_Attack2_u8_arr
+    dlg_Func _OrcJumpFunc
 _OrcJumpFunc:
     ldx #kOrc1ActorIndex
     jsr FuncC_Town_Outdoors_MakeOrcJump
@@ -431,51 +404,136 @@ _OrcJumpFunc:
 
 .EXPORT DataC_Town_TownOutdoorsGronta_sDialog
 .PROC DataC_Town_TownOutdoorsGronta_sDialog
-    .word ePortrait::OrcGronta
-    .byte "Lieutenent Thurg! Have$"
-    .byte "the grunts round up$"
-    .byte "the townsfolk, and$"
-    .byte "lock these kids up.#"
-    .word ePortrait::OrcGronta
-    .byte "Then we can begin our$"
-    .byte "search.#"
-    .word ePortrait::OrcMale
-    .byte "Yes, Chief Gronta!#"
-    .word ePortrait::Done
+    dlg_Text OrcGronta, DataA_Text0_TownOutdoorsGronta_Search1_u8_arr
+    dlg_Text OrcGronta, DataA_Text0_TownOutdoorsGronta_Search2_u8_arr
+    dlg_Text OrcMale, DataA_Text0_TownOutdoorsGronta_YesChief_u8_arr
+    dlg_Done
 .ENDPROC
 
 .EXPORT DataC_Town_TownOutdoorsIvan_sDialog
 .PROC DataC_Town_TownOutdoorsIvan_sDialog
-    .word ePortrait::AdultMan
-    .byte "The harvest isn't$"
-    .byte "looking good, Sandra.$"
-    .byte "This might be a tough$"
-    .byte "winter for all of us.#"
-    .word ePortrait::AdultMan
-    .byte "Oh, sorry Anna, I$"
-    .byte "didn't see you there.#"
-    .word ePortrait::Done
+    dlg_Text AdultMan, DataA_Text0_TownOutdoorsIvan_Part1_u8_arr
+    dlg_Text AdultMan, DataA_Text0_TownOutdoorsIvan_Part2_u8_arr
+    dlg_Done
 .ENDPROC
 
 .EXPORT DataC_Town_TownOutdoorsSandra_sDialog
 .PROC DataC_Town_TownOutdoorsSandra_sDialog
-    .word ePortrait::AdultWoman
-    .byte "Looking for Alex? He$"
-    .byte "popped by the house$"
-    .byte "earlier to see Bruno$"
-    .byte "and Marie.#"
-    .word ePortrait::AdultWoman
-    .byte "One of them might know$"
-    .byte "where he went.#"
-    .word ePortrait::Done
+    dlg_Text AdultWoman, DataA_Text0_TownOutdoorsSandra_Part1_u8_arr
+    dlg_Text AdultWoman, DataA_Text0_TownOutdoorsSandra_Part2_u8_arr
+    dlg_Done
 .ENDPROC
 
 .EXPORT DataC_Town_TownOutdoorsSign_sDialog
 .PROC DataC_Town_TownOutdoorsSign_sDialog
-    .word ePortrait::Sign
+    dlg_Text Sign, DataA_Text0_TownOutdoorsSign_u8_arr
+    dlg_Done
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Text0"
+
+.PROC DataA_Text0_TownOutdoorsAlex1_u8_arr
+    .byte "Hi, Anna! I wanted to$"
+    .byte "show you something.$"
+    .byte "Look at what I found$"
+    .byte "in the dirt over here!#"
+.ENDPROC
+
+.PROC DataA_Text0_TownOutdoorsAlex2_Part1_u8_arr
+    .byte "It's some weird metal$"
+    .byte "thing. But nothing$"
+    .byte "like the iron or steel$"
+    .byte "Smith Dominic uses.#"
+.ENDPROC
+
+.PROC DataA_Text0_TownOutdoorsAlex2_Part2_u8_arr
+    .byte "No idea what it is. It$"
+    .byte "almost looks like part$"
+    .byte "of a machine, but it$"
+    .byte "seems so...advanced.#"
+.ENDPROC
+
+.PROC DataA_Text0_TownOutdoorsAlex2_Part3_u8_arr
+    .byte "I wonder where a thing$"
+    .byte "like this could have$"
+    .byte "come from...#"
+.ENDPROC
+
+.PROC DataA_Text0_TownOutdoorsAlex3_Explore1_u8_arr
+    .byte "Do you ever wish we$"
+    .byte "could just leave this$"
+    .byte "town and go exploring?$"
+    .byte "You and me?#"
+.ENDPROC
+
+.PROC DataA_Text0_TownOutdoorsAlex3_Explore2_u8_arr
+    .byte "Mom always says it's$"
+    .byte "too dangerous, but I$"
+    .byte "bet we could handle$"
+    .byte "anything out there...#"
+.ENDPROC
+
+.PROC DataA_Text0_TownOutdoorsAlex3_HandleThis_u8_arr
+    .byte "Handle THIS, human.#"
+.ENDPROC
+
+.PROC DataA_Text0_TownOutdoorsAlex3_WhaWhat_u8_arr
+    .byte "Wha- what?#"
+.ENDPROC
+
+.PROC DataA_Text0_TownOutdoorsAlex3_Attack1_u8_arr
+    .byte "Orcs, attaaaaaack!#"
+.ENDPROC
+
+.PROC DataA_Text0_TownOutdoorsAlex3_Attack2_u8_arr
+    .byte "Anna, run!#"
+.ENDPROC
+
+.PROC DataA_Text0_TownOutdoorsGronta_Search1_u8_arr
+    .byte "Lieutenent Thurg! Have$"
+    .byte "the grunts round up$"
+    .byte "the townsfolk, and$"
+    .byte "lock these kids up.#"
+.ENDPROC
+
+.PROC DataA_Text0_TownOutdoorsGronta_Search2_u8_arr
+    .byte "Then we can begin our$"
+    .byte "search.#"
+.ENDPROC
+
+.PROC DataA_Text0_TownOutdoorsGronta_YesChief_u8_arr
+    .byte "Yes, Chief Gronta!#"
+.ENDPROC
+
+.PROC DataA_Text0_TownOutdoorsIvan_Part1_u8_arr
+    .byte "The harvest isn't$"
+    .byte "looking good, Sandra.$"
+    .byte "This might be a tough$"
+    .byte "winter for all of us.#"
+.ENDPROC
+
+.PROC DataA_Text0_TownOutdoorsIvan_Part2_u8_arr
+    .byte "Oh, sorry Anna, I$"
+    .byte "didn't see you there.#"
+.ENDPROC
+
+.PROC DataA_Text0_TownOutdoorsSandra_Part1_u8_arr
+    .byte "Looking for Alex? He$"
+    .byte "popped by the house$"
+    .byte "earlier to see Bruno$"
+    .byte "and Marie.#"
+.ENDPROC
+
+.PROC DataA_Text0_TownOutdoorsSandra_Part2_u8_arr
+    .byte "One of them might know$"
+    .byte "where he went.#"
+.ENDPROC
+
+.PROC DataA_Text0_TownOutdoorsSign_u8_arr
     .byte "$"
     .byte " Bartik Town Hall#"
-    .word ePortrait::Done
 .ENDPROC
 
 ;;;=========================================================================;;;

@@ -685,21 +685,38 @@ _ParticleAngle_u8_arr:
     jmp Main_Explore_EnterRoom
 .ENDPROC
 
-.EXPORT DataC_Prison_PrisonCellPaper_sDialog
-.PROC DataC_Prison_PrisonCellPaper_sDialog
-    .word ePortrait::Paper
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Dialog"
+
+.EXPORT DataA_Dialog_PrisonCellPaper_sDialog
+.PROC DataA_Dialog_PrisonCellPaper_sDialog
+    dlg_Text Paper, DataA_Text0_PrisonCellPaper_Page1_u8_arr
+    dlg_Text Paper, DataA_Text0_PrisonCellPaper_Page2_u8_arr
+    dlg_Text Paper, DataA_Text0_PrisonCellPaper_Page3_u8_arr
+    dlg_Done
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Text0"
+
+.PROC DataA_Text0_PrisonCellPaper_Page1_u8_arr
     .byte "Day 87: By now there's$"
     .byte "probably not much time$"
     .byte "left to finish this.#"
-    .word ePortrait::Paper
+.ENDPROC
+
+.PROC DataA_Text0_PrisonCellPaper_Page2_u8_arr
     .byte "I'm going to start$"
     .byte "pinning up all these$"
     .byte "pages. Maybe someday$"
     .byte "someone'll find them.#"
-    .word ePortrait::Paper
+.ENDPROC
+
+.PROC DataA_Text0_PrisonCellPaper_Page3_u8_arr
     .byte "By then, I'm sure I'll$"
     .byte "be long gone.#"
-    .word ePortrait::Done
 .ENDPROC
 
 ;;;=========================================================================;;;

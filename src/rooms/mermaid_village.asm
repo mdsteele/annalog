@@ -277,15 +277,13 @@ _Passages_sPassage_arr:
 .EXPORT DataA_Dialog_MermaidVillageGuard_sDialog
 .PROC DataA_Dialog_MermaidVillageGuard_sDialog
     ;; TODO: Different dialog once temple permission has been given.
-    .word ePortrait::MermaidAdult
-    .byte "I am guarding this$"
-    .byte "village.#"
-    .word ePortrait::Done
+    dlg_Text MermaidAdult, DataA_Text0_MermaidVillageGuard_u8_arr
+    dlg_Done
 .ENDPROC
 
 .EXPORT DataA_Dialog_MermaidVillageFarmer_sDialog
 .PROC DataA_Dialog_MermaidVillageFarmer_sDialog
-    .addr _InitialFunc
+    dlg_Func _InitialFunc
 _InitialFunc:
     flag_bit Sram_ProgressFlags_arr, eFlag::MermaidHut1MetQueen
     beq _NoQuestFunc
@@ -321,61 +319,90 @@ _Quest2Func:
     ldya #_LookingForCorra_sDialog
     rts
 _Farming_sDialog:
-    .word ePortrait::MermaidFarmer
-    .byte "I am farming seaweed.$"
-    .byte "The harvest has not$"
-    .byte "been good this year,$"
-    .byte "though.#"
-    .word ePortrait::Done
+    dlg_Text MermaidFarmer, DataA_Text0_MermaidVillageFarmer_Farming_u8_arr
+    dlg_Done
 _NeedHelp_sDialog:
-    .word ePortrait::MermaidFarmer
-    .byte "The queen sent you?$"
-    .byte "Thank goodness. We$"
-    .byte "could use your help.#"
+    dlg_Text MermaidFarmer, DataA_Text0_MermaidVillageFarmer_NeedHelp_u8_arr
 _Monster_sDialog:
-    .word ePortrait::MermaidFarmer
-    .byte "West of our village,$"
-    .byte "there is a tower in$"
-    .byte "the gardens. A monster$"
-    .byte "has taken it over.#"
-    .addr _OpenTheWayFunc
+    dlg_Text MermaidFarmer, DataA_Text0_MermaidVillageFarmer_Monster_u8_arr
+    dlg_Func _OpenTheWayFunc
 _OpenTheWayFunc:
     ldx #eFlag::GardenTowerCratesPlaced  ; param: flag
     jsr FuncA_Dialog_AddQuestMarker
     ldya #_OpenTheWay_sDialog
     rts
 _OpenTheWay_sDialog:
-    .word ePortrait::MermaidFarmer
-    .byte "Perhaps one with your$"
-    .byte "ingenuity could get$"
-    .byte "rid of it? We'll open$"
-    .byte "the way up for you.#"
-    .word ePortrait::Done
+    dlg_Text MermaidFarmer, DataA_Text0_MermaidVillageFarmer_OpenTheWay_u8_arr
+    dlg_Done
 _ThankYou_sDialog:
-    .word ePortrait::MermaidFarmer
-    .byte "You did it! Thank you$"
-    .byte "for your help. You$"
-    .byte "should go see the$"
-    .byte "queen.#"
-    .word ePortrait::Done
+    dlg_Text MermaidFarmer, DataA_Text0_MermaidVillageFarmer_ThankYou_u8_arr
+    dlg_Done
 _LookingForCorra_sDialog:
-    .word ePortrait::MermaidFarmer
-    .byte "Are you looking for$"
-    .byte "Corra? I think she$"
-    .byte "went exploring in the$"
-    .byte "caves above our vale.#"
-    .word ePortrait::Done
+    dlg_Text MermaidFarmer, DataA_Text0_MermaidVillageFarmer_LookingFor_u8_arr
+    dlg_Done
 .ENDPROC
 
 .EXPORT DataA_Dialog_MermaidVillageCorra_sDialog
 .PROC DataA_Dialog_MermaidVillageCorra_sDialog
-    .word ePortrait::MermaidCorra
+    dlg_Text MermaidCorra, DataA_Text0_MermaidVillageCorra_u8_arr
+    ;; TODO: more dialog
+    dlg_Done
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Text0"
+
+.PROC DataA_Text0_MermaidVillageGuard_u8_arr
+    .byte "I am guarding this$"
+    .byte "village.#"
+.ENDPROC
+
+.PROC DataA_Text0_MermaidVillageFarmer_Farming_u8_arr
+    .byte "I am farming seaweed.$"
+    .byte "The harvest has not$"
+    .byte "been good this year,$"
+    .byte "though.#"
+.ENDPROC
+
+.PROC DataA_Text0_MermaidVillageFarmer_NeedHelp_u8_arr
+    .byte "The queen sent you?$"
+    .byte "Thank goodness. We$"
+    .byte "could use your help.#"
+.ENDPROC
+
+.PROC DataA_Text0_MermaidVillageFarmer_Monster_u8_arr
+    .byte "West of our village,$"
+    .byte "there is a tower in$"
+    .byte "the gardens. A monster$"
+    .byte "has taken it over.#"
+.ENDPROC
+
+.PROC DataA_Text0_MermaidVillageFarmer_OpenTheWay_u8_arr
+    .byte "Perhaps one with your$"
+    .byte "ingenuity could get$"
+    .byte "rid of it? We'll open$"
+    .byte "the way up for you.#"
+.ENDPROC
+
+.PROC DataA_Text0_MermaidVillageFarmer_ThankYou_u8_arr
+    .byte "You did it! Thank you$"
+    .byte "for your help. You$"
+    .byte "should go see the$"
+    .byte "queen.#"
+.ENDPROC
+
+.PROC DataA_Text0_MermaidVillageFarmer_LookingFor_u8_arr
+    .byte "Are you looking for$"
+    .byte "Corra? I think she$"
+    .byte "went exploring in the$"
+    .byte "caves above our vale.#"
+.ENDPROC
+
+.PROC DataA_Text0_MermaidVillageCorra_u8_arr
     .byte "Oh, hi! I met you back$"
     .byte "in the gardens. I'm$"
     .byte "Corra, by the way.#"
-    .word ePortrait::MermaidCorra
-    .byte "TODO: more dialog#"
-    .word ePortrait::Done
 .ENDPROC
 
 ;;;=========================================================================;;;

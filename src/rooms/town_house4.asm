@@ -121,25 +121,38 @@ _Devices_sDevice_arr:
 
 .EXPORT DataA_Dialog_TownHouse4Laura_sDialog
 .PROC DataA_Dialog_TownHouse4Laura_sDialog
-    .word ePortrait::AdultWoman
-    .byte "Your Uncle Martin and$"
-    .byte "I are waiting here for$"
-    .byte "Elder Roman to meet$"
-    .byte "with us.#"
-    .word ePortrait::AdultWoman
-    .byte "I wonder what's taking$"
-    .byte "him so long?#"
-    .word ePortrait::Done
+    dlg_Text AdultWoman, DataA_Text0_TownHouse4Laura_Waiting1_u8_arr
+    dlg_Text AdultWoman, DataA_Text0_TownHouse4Laura_Waiting2_u8_arr
+    dlg_Done
 .ENDPROC
 
 .EXPORT DataA_Dialog_TownHouse4Martin_sDialog
 .PROC DataA_Dialog_TownHouse4Martin_sDialog
-    .word ePortrait::AdultMan
+    dlg_Text AdultMan, DataA_Text0_TownHouse4Martin_u8_arr
+    dlg_Done
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Text0"
+
+.PROC DataA_Text0_TownHouse4Laura_Waiting1_u8_arr
+    .byte "Your Uncle Martin and$"
+    .byte "I are waiting here for$"
+    .byte "Elder Roman to meet$"
+    .byte "with us.#"
+.ENDPROC
+
+.PROC DataA_Text0_TownHouse4Laura_Waiting2_u8_arr
+    .byte "I wonder what's taking$"
+    .byte "him so long?#"
+.ENDPROC
+
+.PROC DataA_Text0_TownHouse4Martin_u8_arr
     .byte "I hope Nora is taking$"
     .byte "good care of her baby$"
     .byte "sister Nina back at$"
     .byte "home...#"
-    .word ePortrait::Done
 .ENDPROC
 
 ;;;=========================================================================;;;

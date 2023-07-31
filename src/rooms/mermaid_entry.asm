@@ -146,11 +146,18 @@ _Passages_sPassage_arr:
 
 .EXPORT DataA_Dialog_MermaidEntrySign_sDialog
 .PROC DataA_Dialog_MermaidEntrySign_sDialog
-    .word ePortrait::Sign
+    dlg_Text Sign, DataA_Text0_MermaidEntrySign_u8_arr
+    dlg_Done
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Text0"
+
+.PROC DataA_Text0_MermaidEntrySign_u8_arr
     .byte kTileIdBgArrowLeft, " Hanging Gardens$"
     .byte "$"
     .byte "Mermaid Village ", kTileIdBgArrowRight, "#"
-    .word ePortrait::Done
 .ENDPROC
 
 ;;;=========================================================================;;;

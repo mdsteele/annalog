@@ -109,10 +109,17 @@ _Devices_sDevice_arr:
 
 .EXPORT DataA_Dialog_TownHouse1Nora_sDialog
 .PROC DataA_Dialog_TownHouse1Nora_sDialog
-    .word ePortrait::ChildNora
+    dlg_Text ChildNora, DataA_Text0_TownHouse1Nora_u8_arr
+    dlg_Done
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Text0"
+
+.PROC DataA_Text0_TownHouse1Nora_u8_arr
     .byte "My baby sister keeps$"
     .byte "peeing her pants!#"
-    .word ePortrait::Done
 .ENDPROC
 
 ;;;=========================================================================;;;

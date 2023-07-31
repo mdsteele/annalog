@@ -103,9 +103,16 @@ _Devices_sDevice_arr:
 
 .EXPORT DataA_Dialog_MermaidHut5Nora_sDialog
 .PROC DataA_Dialog_MermaidHut5Nora_sDialog
-    .word ePortrait::ChildNora
+    dlg_Text ChildNora, DataA_Text0_MermaidHut5Nora_u8_arr
+    dlg_Done
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Text0"
+
+.PROC DataA_Text0_MermaidHut5Nora_u8_arr
     .byte "Lorem ipsum.#"
-    .word ePortrait::Done
 .ENDPROC
 
 ;;;=========================================================================;;;

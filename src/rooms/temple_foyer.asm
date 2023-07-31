@@ -318,17 +318,27 @@ _MoveToBottomRight:
 
 .EXPORT DataA_Dialog_TempleFoyerPaper_sDialog
 .PROC DataA_Dialog_TempleFoyerPaper_sDialog
-    .word ePortrait::Paper
+    dlg_Text Paper, DataA_Text0_TempleFoyerPaper_Page1_u8_arr
+    dlg_Text Paper, DataA_Text0_TempleFoyerPaper_Page2_u8_arr
+    dlg_Done
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Text0"
+
+.PROC DataA_Text0_TempleFoyerPaper_Page1_u8_arr
     .byte "CPU FIELD MANUAL p.03:$"
     .byte "Basic console control:$"
     .byte " A: confirm$"
     .byte " B: cancel/exit#"
-    .word ePortrait::Paper
+.ENDPROC
+
+.PROC DataA_Text0_TempleFoyerPaper_Page2_u8_arr
     .byte " SELECT: insert new$"
     .byte "   instruction$"
     .byte " START: activate$"
     .byte "   debugger#"
-    .word ePortrait::Done
 .ENDPROC
 
 ;;;=========================================================================;;;

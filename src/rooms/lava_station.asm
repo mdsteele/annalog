@@ -247,17 +247,27 @@ _ValvePipePlatformIndex_u8_arr10:
 
 .EXPORT DataA_Dialog_LavaStationPaper_sDialog
 .PROC DataA_Dialog_LavaStationPaper_sDialog
-    .word ePortrait::Paper
+    dlg_Text Paper, DataA_Text0_LavaStationPaper_Page1_u8_arr
+    dlg_Text Paper, DataA_Text0_LavaStationPaper_Page2_u8_arr
+    dlg_Done
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Text0"
+
+.PROC DataA_Text0_LavaStationPaper_Page1_u8_arr
     .byte "CPU FIELD MANUAL p.07:$"
     .byte "Every machine has an$"
     .byte "'A' register that you$"
     .byte "can COPY values into.#"
-    .word ePortrait::Paper
+.ENDPROC
+
+.PROC DataA_Text0_LavaStationPaper_Page2_u8_arr
     .byte "Unlike other registers$"
     .byte "it does nothing on its$"
     .byte "own, but it can store$"
     .byte "a value for later.#"
-    .word ePortrait::Done
 .ENDPROC
 
 ;;;=========================================================================;;;

@@ -201,9 +201,16 @@ _Row12:
 
 .EXPORT DataA_Dialog_ShadowTeleportScreen_sDialog
 .PROC DataA_Dialog_ShadowTeleportScreen_sDialog
-    .word ePortrait::Screen
+    dlg_Text Screen, DataA_Text0_ShadowTeleportScreen_u8_arr
+    dlg_Done
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Text0"
+
+.PROC DataA_Text0_ShadowTeleportScreen_u8_arr
     .byte "Lorem ipsum.#"
-    .word ePortrait::Done
 .ENDPROC
 
 ;;;=========================================================================;;;

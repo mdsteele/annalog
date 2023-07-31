@@ -73,7 +73,7 @@
     MermaidHut1Queen
     MermaidHut2Guard
     MermaidHut3MermaidAdult
-    MermaidHut3MermaidPhoebe
+    MermaidHut3Phoebe
     MermaidHut4Florist
     MermaidHut5Nora
     MermaidVillageCorra
@@ -123,5 +123,27 @@ kDialogTextYesNo   = $ff
 .CHARMAP $24, kDialogTextNewline  ; '$'
 .CHARMAP $23, kDialogTextEnd      ; '#'
 .CHARMAP $25, kDialogTextYesNo    ; '%'
+
+;;;=========================================================================;;;
+
+;;; Expands to a sDialog entry that displays a pane of text.
+.MACRO dlg_Text PORTRAIT, LABEL
+    .assert LABEL >= $a000 && LABEL < $c000, error
+    .assert .bank(LABEL) < 8, error
+    .word ePortrait::PORTRAIT
+    .byte <LABEL
+    .byte (<.bank(LABEL) << 5) | ($1f & >LABEL)
+.ENDMACRO
+
+;;; Expands to a sDialog entry that calls a dynamic dialog function.
+.MACRO dlg_Func LABEL
+    .assert LABEL >= $8000, error
+    .addr LABEL
+.ENDMACRO
+
+;;; Expands to a sDialog entry indicating the end of the dialog.
+.MACRO dlg_Done
+    .word ePortrait::Done
+.ENDMACRO
 
 ;;;=========================================================================;;;

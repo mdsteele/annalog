@@ -121,16 +121,26 @@ _Devices_sDevice_arr:
 
 .EXPORT DataA_Dialog_TownHouse5Bruno_sDialog
 .PROC DataA_Dialog_TownHouse5Bruno_sDialog
-    .word ePortrait::ChildBruno
-    .byte "Lorem ipsum?#"
-    .word ePortrait::Done
+    dlg_Text ChildBruno, DataA_Text0_TownHouse5Bruno_u8_arr
+    dlg_Done
 .ENDPROC
 
 .EXPORT DataA_Dialog_TownHouse5Marie_sDialog
 .PROC DataA_Dialog_TownHouse5Marie_sDialog
-    .word ePortrait::ChildMarie
+    dlg_Text ChildMarie, DataA_Text0_TownHouse5Marie_u8_arr
+    dlg_Done
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Text0"
+
+.PROC DataA_Text0_TownHouse5Bruno_u8_arr
+    .byte "Lorem ipsum?#"
+.ENDPROC
+
+.PROC DataA_Text0_TownHouse5Marie_u8_arr
     .byte "Lorem ipsum!#"
-    .word ePortrait::Done
 .ENDPROC
 
 ;;;=========================================================================;;;

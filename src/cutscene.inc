@@ -154,7 +154,7 @@ kMaxForks = 4
 .ENDMACRO
 
 .MACRO act_RepeatFunc FRAMES, FUNC
-    .byte eAction::CallFunc, FRAMES
+    .byte eAction::RepeatFunc, FRAMES
     .addr FUNC
 .ENDMACRO
 

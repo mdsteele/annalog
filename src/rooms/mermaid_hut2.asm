@@ -112,9 +112,16 @@ _Devices_sDevice_arr:
 
 .EXPORT DataA_Dialog_MermaidHut2Guard_sDialog
 .PROC DataA_Dialog_MermaidHut2Guard_sDialog
-    .word ePortrait::AdultMan
+    dlg_Text AdultMan, DataA_Text0_MermaidHut2Guard_u8_arr
+    dlg_Done
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Text0"
+
+.PROC DataA_Text0_MermaidHut2Guard_u8_arr
     .byte "Lorem ipsum.#"  ; TODO
-    .word ePortrait::Done
 .ENDPROC
 
 ;;;=========================================================================;;;

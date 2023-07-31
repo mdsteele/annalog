@@ -196,7 +196,7 @@ _PosY_u8_arr:
 
 .EXPORT DataA_Dialog_MermaidHut4Florist_sDialog
 .PROC DataA_Dialog_MermaidHut4Florist_sDialog
-    .addr _InitialDialogFunc
+    dlg_Func _InitialDialogFunc
 _InitialDialogFunc:
     lda Sram_CarryingFlower_eFlag
     beq @notCarryingFlower
@@ -222,14 +222,9 @@ _InitialDialogFunc:
     ldya #_AllDone_sDialog
     rts
 _MeetFlorist_sDialog:
-    .word ePortrait::MermaidFlorist
-    .byte "Ah...you must be that$"
-    .byte "human that I've been$"
-    .byte "hearing about.#"
-    .word ePortrait::MermaidFlorist
-    .byte "I don't suppose you'd$"
-    .byte "like to do me a favor?%"
-    .addr _QuestionFunc
+    dlg_Text MermaidFlorist, DataA_Text0_MermaidHut4Florist_Meet1_u8_arr
+    dlg_Text MermaidFlorist, DataA_Text0_MermaidHut4Florist_Meet2_u8_arr
+    dlg_Func _QuestionFunc
 _QuestionFunc:
     bit Zp_DialogAnsweredYes_bool
     bmi @yes
@@ -242,38 +237,17 @@ _QuestionFunc:
     ldya #_NoFlowersYet_sDialog
     rts
 _NeverMind_sDialog:
-    .word ePortrait::MermaidFlorist
-    .byte "Yes, well, I suppose$"
-    .byte "you must be very busy,$"
-    .byte "running around and$"
-    .byte "causing trouble.#"
-    .word ePortrait::MermaidFlorist
-    .byte "Come back if you ever$"
-    .byte "change your mind.#"
-    .word ePortrait::Done
+    dlg_Text MermaidFlorist, DataA_Text0_MermaidHut4Florist_NeverMind1_u8_arr
+    dlg_Text MermaidFlorist, DataA_Text0_MermaidHut4Florist_NeverMind2_u8_arr
+    dlg_Done
 _NoFlowersYet_sDialog:
-    .word ePortrait::MermaidFlorist
-    .byte "As you can see, my$"
-    .byte "home is looking rather$"
-    .byte "drab. Could you bring$"
-    .byte "me a flower?#"
-    .word ePortrait::MermaidFlorist
-    .byte "If you go east from$"
-    .byte "this village and then$"
-    .byte "up a bit, you'll find$"
-    .byte "the one I want.#"
-    .word ePortrait::MermaidFlorist
-    .byte "It's very delicate.$"
-    .byte "Don't get hurt and$"
-    .byte "break it, or you'll$"
-    .byte "have to get another.#"
-    .word ePortrait::Done
+    dlg_Text MermaidFlorist, DataA_Text0_MermaidHut4Florist_HaveNone1_u8_arr
+    dlg_Text MermaidFlorist, DataA_Text0_MermaidHut4Florist_HaveNone2_u8_arr
+    dlg_Text MermaidFlorist, DataA_Text0_MermaidHut4Florist_HaveNone3_u8_arr
+    dlg_Done
 _BroughtFlower_sDialog:
-    .word ePortrait::MermaidFlorist
-    .byte "Ah, I see you've$"
-    .byte "brought me a flower!$"
-    .byte "How kind of you.#"
-    .addr _DeliverFlowerFunc
+    dlg_Text MermaidFlorist, DataA_Text0_MermaidHut4Florist_Give_u8_arr
+    dlg_Func _DeliverFlowerFunc
 _DeliverFlowerFunc:
     ;; Mark the carried flower as delivered.
     ldx Sram_CarryingFlower_eFlag  ; param: flag
@@ -291,43 +265,17 @@ _DeliverFlowerFunc:
     ldya #_DeliveredLastFlower_sDialog
     rts
 _WantMoreFlowers_sDialog:
-    .word ePortrait::MermaidFlorist
-    .byte "It does look nice up$"
-    .byte "there, don't you$"
-    .byte "think?#"
-    .word ePortrait::MermaidFlorist
-    .byte "Only...it seems lonely$"
-    .byte "by itself. I suppose$"
-    .byte "you'll need to find$"
-    .byte "some more.#"
-    .word ePortrait::MermaidFlorist
-    .byte "Not from where you got$"
-    .byte "this one, of course.$"
-    .byte "You'll have to look$"
-    .byte "elsewhere.#"
-    .word ePortrait::Done
+    dlg_Text MermaidFlorist, DataA_Text0_MermaidHut4Florist_GaveFirst1_u8_arr
+    dlg_Text MermaidFlorist, DataA_Text0_MermaidHut4Florist_GaveFirst2_u8_arr
+    dlg_Text MermaidFlorist, DataA_Text0_MermaidHut4Florist_GaveFirst3_u8_arr
+    dlg_Done
 _DeliveredLastFlower_sDialog:
-    .word ePortrait::MermaidFlorist
-    .byte "And that makes an even$"
-    .byte "dozen! How lovely. I$"
-    .byte "do appreciate all your$"
-    .byte "help, young one.#"
-    .word ePortrait::MermaidFlorist
-    .byte "In exchange for this$"
-    .byte "gift of beauty...I'd$"
-    .byte "like to give you the$"
-    .byte "gift of music.#"
-    .word ePortrait::MermaidFlorist
-    .byte "I'll unlock my cellar.$"
-    .byte "You may take what you$"
-    .byte "find there.#"
+    dlg_Text MermaidFlorist, DataA_Text0_MermaidHut4Florist_GaveLast1_u8_arr
+    dlg_Text MermaidFlorist, DataA_Text0_MermaidHut4Florist_GaveLast2_u8_arr
+    dlg_Text MermaidFlorist, DataA_Text0_MermaidHut4Florist_GaveLast3_u8_arr
 _AllDone_sDialog:
-    .word ePortrait::MermaidFlorist
-    .byte "Perhaps this gift will$"
-    .byte "give you a better use$"
-    .byte "for all those terrible$"
-    .byte "machines.#"
-    .word ePortrait::Done
+    dlg_Text MermaidFlorist, DataA_Text0_MermaidHut4Florist_AllDone_u8_arr
+    dlg_Done
 .ENDPROC
 
 ;;; Unlocks the cellar door in this room, and sets the flag indicating that the
@@ -337,6 +285,107 @@ _AllDone_sDialog:
     jsr Func_UnlockDoorDevice
     ldx #eFlag::MermaidHut4OpenedCellar  ; param: flag
     jmp Func_SetFlag
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Text0"
+
+.PROC DataA_Text0_MermaidHut4Florist_Meet1_u8_arr
+    .byte "Ah...you must be that$"
+    .byte "human that I've been$"
+    .byte "hearing about.#"
+.ENDPROC
+
+.PROC DataA_Text0_MermaidHut4Florist_Meet2_u8_arr
+    .byte "I don't suppose you'd$"
+    .byte "like to do me a favor?%"
+.ENDPROC
+
+.PROC DataA_Text0_MermaidHut4Florist_NeverMind1_u8_arr
+    .byte "Yes, well, I suppose$"
+    .byte "you must be very busy,$"
+    .byte "running around and$"
+    .byte "causing trouble.#"
+.ENDPROC
+
+.PROC DataA_Text0_MermaidHut4Florist_NeverMind2_u8_arr
+    .byte "Come back if you ever$"
+    .byte "change your mind.#"
+.ENDPROC
+
+.PROC DataA_Text0_MermaidHut4Florist_HaveNone1_u8_arr
+    .byte "As you can see, my$"
+    .byte "home is looking rather$"
+    .byte "drab. Could you bring$"
+    .byte "me a flower?#"
+.ENDPROC
+
+.PROC DataA_Text0_MermaidHut4Florist_HaveNone2_u8_arr
+    .byte "If you go east from$"
+    .byte "this village and then$"
+    .byte "up a bit, you'll find$"
+    .byte "the one I want.#"
+.ENDPROC
+
+.PROC DataA_Text0_MermaidHut4Florist_HaveNone3_u8_arr
+    .byte "It's very delicate.$"
+    .byte "Don't get hurt and$"
+    .byte "break it, or you'll$"
+    .byte "have to get another.#"
+.ENDPROC
+
+.PROC DataA_Text0_MermaidHut4Florist_Give_u8_arr
+    .byte "Ah, I see you've$"
+    .byte "brought me a flower!$"
+    .byte "How kind of you.#"
+.ENDPROC
+
+.PROC DataA_Text0_MermaidHut4Florist_GaveFirst1_u8_arr
+    .byte "It does look nice up$"
+    .byte "there, don't you$"
+    .byte "think?#"
+.ENDPROC
+
+.PROC DataA_Text0_MermaidHut4Florist_GaveFirst2_u8_arr
+    .byte "Only...it seems lonely$"
+    .byte "by itself. I suppose$"
+    .byte "you'll need to find$"
+    .byte "some more.#"
+.ENDPROC
+
+.PROC DataA_Text0_MermaidHut4Florist_GaveFirst3_u8_arr
+    .byte "Not from where you got$"
+    .byte "this one, of course.$"
+    .byte "You'll have to look$"
+    .byte "elsewhere.#"
+.ENDPROC
+
+.PROC DataA_Text0_MermaidHut4Florist_GaveLast1_u8_arr
+    .byte "And that makes an even$"
+    .byte "dozen! How lovely. I$"
+    .byte "do appreciate all your$"
+    .byte "help, young one.#"
+.ENDPROC
+
+.PROC DataA_Text0_MermaidHut4Florist_GaveLast2_u8_arr
+    .byte "In exchange for this$"
+    .byte "gift of beauty...I'd$"
+    .byte "like to give you the$"
+    .byte "gift of music.#"
+.ENDPROC
+
+.PROC DataA_Text0_MermaidHut4Florist_GaveLast3_u8_arr
+    .byte "I'll unlock my cellar.$"
+    .byte "You may take what you$"
+    .byte "find there.#"
+.ENDPROC
+
+.PROC DataA_Text0_MermaidHut4Florist_AllDone_u8_arr
+    .byte "Perhaps this gift will$"
+    .byte "give you a better use$"
+    .byte "for all those terrible$"
+    .byte "machines.#"
 .ENDPROC
 
 ;;;=========================================================================;;;

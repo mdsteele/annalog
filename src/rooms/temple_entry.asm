@@ -262,33 +262,46 @@ _MaybeRaiseColumn:
 
 .EXPORT DataA_Dialog_TempleEntryMermaid_sDialog
 .PROC DataA_Dialog_TempleEntryMermaid_sDialog
-    .word ePortrait::MermaidAdult
-    .byte "I am guarding the$"
-    .byte "entrance to the temple$"
-    .byte "you see above us.#"
-    .addr _CheckPermissionFunc
+    dlg_Text MermaidAdult, DataA_Text0_TempleEntryMermaid_Intro_u8_arr
+    dlg_Func _CheckPermissionFunc
 _CheckPermissionFunc:
     flag_bit Sram_ProgressFlags_arr, eFlag::TempleEntryPermission
     bne _RaiseColumnFunc
     ldya #_NoPermission_sDialog
     rts
 _NoPermission_sDialog:
-    .word ePortrait::MermaidAdult
-    .byte "I cannot help you to$"
-    .byte "enter it without the$"
-    .byte "queen's permission.#"
-    .word ePortrait::Done
+    dlg_Text MermaidAdult, DataA_Text0_TempleEntryMermaid_NoPermission_u8_arr
+    dlg_Done
 _RaiseColumnFunc:
     ldx #eFlag::TempleEntryColumnRaised  ; param: flag
     jsr Func_SetFlag
     ldya #_Enter_sDialog
     rts
 _Enter_sDialog:
-    .word ePortrait::MermaidAdult
+    dlg_Text MermaidAdult, DataA_Text0_TempleEntryMermaid_Enter_u8_arr
+    dlg_Done
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Text0"
+
+.PROC DataA_Text0_TempleEntryMermaid_Intro_u8_arr
+    .byte "I am guarding the$"
+    .byte "entrance to the temple$"
+    .byte "you see above us.#"
+.ENDPROC
+
+.PROC DataA_Text0_TempleEntryMermaid_NoPermission_u8_arr
+    .byte "I cannot help you to$"
+    .byte "enter it without the$"
+    .byte "queen's permission.#"
+.ENDPROC
+
+.PROC DataA_Text0_TempleEntryMermaid_Enter_u8_arr
     .byte "Our queen has sent$"
     .byte "word: I am to allow$"
     .byte "you to enter.#"
-    .word ePortrait::Done
 .ENDPROC
 
 ;;;=========================================================================;;;

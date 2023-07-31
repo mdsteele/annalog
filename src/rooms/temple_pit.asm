@@ -94,17 +94,27 @@ _Passages_sPassage_arr:
 
 .EXPORT DataA_Dialog_TemplePitPaper_sDialog
 .PROC DataA_Dialog_TemplePitPaper_sDialog
-    .word ePortrait::Paper
+    dlg_Text Paper, DataA_Text0_TemplePitPaper_Page1_u8_arr
+    dlg_Text Paper, DataA_Text0_TemplePitPaper_Page2_u8_arr
+    dlg_Done
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Text0"
+
+.PROC DataA_Text0_TemplePitPaper_Page1_u8_arr
     .byte "Day 34: Our technology$"
     .byte "is amazing, but don't$"
     .byte "forget, we're all$"
     .byte "still just mortals.#"
-    .word ePortrait::Paper
+.ENDPROC
+
+.PROC DataA_Text0_TemplePitPaper_Page2_u8_arr
     .byte "No matter how high we$"
     .byte "build, in the end the$"
     .byte "grave still comes for$"
     .byte "us all.#"
-    .word ePortrait::Done
 .ENDPROC
 
 ;;;=========================================================================;;;

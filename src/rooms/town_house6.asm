@@ -103,9 +103,17 @@ _Devices_sDevice_arr:
 
 .EXPORT DataA_Dialog_TownHouse6Elder_sDialog
 .PROC DataA_Dialog_TownHouse6Elder_sDialog
-    .word ePortrait::AdultMan  ; TODO
+    ;; TODO: Use a different portrait for Elder Roman.
+    dlg_Text AdultMan, DataA_Text0_TownHouse6Elder_Text_u8_arr
+    dlg_Done
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Text0"
+
+.PROC DataA_Text0_TownHouse6Elder_Text_u8_arr
     .byte "I am Elder Roman.#"
-    .word ePortrait::Done
 .ENDPROC
 
 ;;;=========================================================================;;;

@@ -149,14 +149,13 @@ _Devices_sDevice_arr:
 
 .EXPORT DataA_Dialog_MermaidHut1Guard_sDialog
 .PROC DataA_Dialog_MermaidHut1Guard_sDialog
-    .word ePortrait::AdultMan
-    .byte "All hail Queen Eirene!#"
-    .word ePortrait::Done
+    dlg_Text AdultMan, DataA_Text0_MermaidHut1Guard_u8_arr
+    dlg_Done
 .ENDPROC
 
 .EXPORT DataA_Dialog_MermaidHut1Queen_sDialog
 .PROC DataA_Dialog_MermaidHut1Queen_sDialog
-    .addr _InitialFunc
+    dlg_Func _InitialFunc
 _InitialFunc:
     ;; First quest: Defeat the Garden boss.
     flag_bit Sram_ProgressFlags_arr, eFlag::BreakerGarden
@@ -185,7 +184,7 @@ _Quest1Func:
 _Quest2Func:
     flag_bit Sram_ProgressFlags_arr, eFlag::TempleEntryPermission
     bne @templeProblem
-    ldya #_GardenBossDefeated_sDialog
+    ldya #_GardenBossDead_sDialog
     rts
     @templeProblem:
     ldya #_TempleProblem_sDialog
@@ -193,132 +192,194 @@ _Quest2Func:
 _Quest3Func:
     flag_bit Sram_ProgressFlags_arr, eFlag::CoreSouthCorraWaiting
     bne @otherRuins
-    ldya #_TempleBossDefeated_sDialog
+    ldya #_TempleBossDead_sDialog
     rts
     @otherRuins:
     ldya #_OtherRuins_sDialog
     rts
 _FirstMeeting_sDialog:
-    .word ePortrait::MermaidEirene
-    .byte "So, you must be the$"
-    .byte "human I've heard is$"
-    .byte "running around.#"
-    .word ePortrait::MermaidEirene
-    .byte "Humans belong on the$"
-    .byte "surface, not here. So$"
-    .byte "what are you doing$"
-    .byte "down here among us?#"
+    dlg_Text MermaidEirene, DataA_Text0_MermaidHut1Queen_FirstMeeting1_u8_arr
+    dlg_Text MermaidEirene, DataA_Text0_MermaidHut1Queen_FirstMeeting2_u8_arr
     ;; TODO: use a dialog function to fade to black and back
-    .word ePortrait::MermaidEirene
-    .byte "...I see. So the orcs$"
-    .byte "attacked, and now you$"
-    .byte "are a refugee. This$"
-    .byte "complicates things.#"
-    .word ePortrait::MermaidEirene
-    .byte "I will be honest: I do$"
-    .byte "not trust humans.$"
-    .byte "However, I don't care$"
-    .byte "for the orcs either.#"
+    dlg_Text MermaidEirene, DataA_Text0_MermaidHut1Queen_FirstMeeting3_u8_arr
+    dlg_Text MermaidEirene, DataA_Text0_MermaidHut1Queen_FirstMeeting4_u8_arr
 _GrantAsylum_sDialog:
-    .word ePortrait::MermaidEirene
-    .byte "I will grant you safe$"
-    .byte "asylum in our village,$"
-    .byte "on one condition: that$"
-    .byte "you help us in return.#"
-    .addr _HelpFramersFunc
+    dlg_Text MermaidEirene, DataA_Text0_MermaidHut1Queen_GrantAsylum_u8_arr
+    dlg_Func _HelpFramersFunc
 _HelpFramersFunc:
     ldx #eFlag::MermaidHut1MetQueen  ; param: flag
     jsr FuncA_Dialog_AddQuestMarker
     ldya #_HelpFarmers_sDialog
     rts
 _HelpFarmers_sDialog:
-    .word ePortrait::MermaidEirene
-    .byte "Speak with our farmers$"
-    .byte "in this village. They$"
-    .byte "have a problem a human$"
-    .byte "could perhaps solve.#"
-    .word ePortrait::Done
-_GardenBossDefeated_sDialog:
-    .word ePortrait::MermaidEirene
-    .byte "I heard you helped our$"
-    .byte "farmers. And you even$"
-    .byte "survived. I thank you.#"
-    .word ePortrait::MermaidEirene
-    .byte "Perhaps...perhaps you$"
-    .byte "could help us with one$"
-    .byte "more problem.#"
+    dlg_Text MermaidEirene, DataA_Text0_MermaidHut1Queen_HelpFarmers_u8_arr
+    dlg_Done
+_GardenBossDead_sDialog:
+    dlg_Text MermaidEirene, DataA_Text0_MermaidHut1Queen_GardenBossDead1_u8_arr
+    dlg_Text MermaidEirene, DataA_Text0_MermaidHut1Queen_GardenBossDead2_u8_arr
 _TempleProblem_sDialog:
-    .word ePortrait::MermaidEirene
-    .byte "There's a temple west$"
-    .byte "of the gardens. It's$"
-    .byte "very important to us.$"
-    .byte "At least, it once was.#"
-    .addr _TemplePermissionFunc
-_TemplePermissionFunc:
+    dlg_Text MermaidEirene, DataA_Text0_MermaidHut1Queen_TempleProblem_u8_arr
+    dlg_Func _TempleEntryFunc
+_TempleEntryFunc:
     ldx #eFlag::TempleEntryPermission  ; param: flag
     jsr FuncA_Dialog_AddQuestMarker
-    ldya #_TemplePermission_sDialog
+    ldya #_TempleEntry_sDialog
     rts
-_TemplePermission_sDialog:
-    .word ePortrait::MermaidEirene
-    .byte "I'd like you to visit$"
-    .byte "the temple. The guards$"
-    .byte "east of my hut can$"
-    .byte "tell you more.#"
-    .word ePortrait::Done
-_TempleBossDefeated_sDialog:
-    .word ePortrait::MermaidEirene
-    .byte "I take it that you've$"
-    .byte "seen the whole of the$"
-    .byte "ruined temple? Maybe$"
-    .byte "now you understand.#"
-    .word ePortrait::MermaidEirene
-    .byte "Our two peoples built$"
-    .byte "it together, centuries$"
-    .byte "ago. It was to be a$"
-    .byte "symbol of peace.#"
-    .word ePortrait::MermaidEirene
-    .byte "But before long, the$"
-    .byte "humans desecrated it$"
-    .byte "into a mechanized$"
-    .byte "fortress instead.#"
-    .word ePortrait::MermaidEirene
-    .byte "Humans are just like$"
-    .byte "the orcs. Violent and$"
-    .byte "untrustworthy, despite$"
-    .byte "our best efforts.#"
-    .word ePortrait::MermaidEirene
-    .byte "But enough. My scouts$"
-    .byte "tell me there is a way$"
-    .byte "for you to reach your$"
-    .byte "fellow villagers.#"
+_TempleEntry_sDialog:
+    dlg_Text MermaidEirene, DataA_Text0_MermaidHut1Queen_TempleEntry_u8_arr
+    dlg_Done
+_TempleBossDead_sDialog:
+    dlg_Text MermaidEirene, DataA_Text0_MermaidHut1Queen_TempleBossDead1_u8_arr
+    dlg_Text MermaidEirene, DataA_Text0_MermaidHut1Queen_TempleBossDead2_u8_arr
+    dlg_Text MermaidEirene, DataA_Text0_MermaidHut1Queen_TempleBossDead3_u8_arr
+    dlg_Text MermaidEirene, DataA_Text0_MermaidHut1Queen_TempleBossDead4_u8_arr
+    dlg_Text MermaidEirene, DataA_Text0_MermaidHut1Queen_TempleBossDead5_u8_arr
 _OtherRuins_sDialog:
-    .word ePortrait::MermaidEirene
-    .byte "There are...another$"
-    .byte "kind of ruins buried$"
-    .byte "just above our humble$"
-    .byte "vale. Older ones.#"
-    .addr _FindYourFriendsFunc
+    dlg_Text MermaidEirene, DataA_Text0_MermaidHut1Queen_OtherRuins_u8_arr
+    dlg_Func _FindYourFriendsFunc
 _FindYourFriendsFunc:
     ldx #eFlag::CoreSouthCorraWaiting  ; param: flag
     jsr FuncA_Dialog_AddQuestMarker
     ldya #_FindYourFriends_sDialog
     rts
 _FindYourFriends_sDialog:
-    .word ePortrait::MermaidEirene
-    .byte "If you climb upwards$"
-    .byte "through there, you may$"
-    .byte "be able to find and$"
-    .byte "rescue your friends.#"
-    .word ePortrait::Done
+    dlg_Text MermaidEirene, DataA_Text0_MermaidHut1Queen_FindYourFriends_u8_arr
+    dlg_Done
 .ENDPROC
 
 .EXPORT DataA_Dialog_MermaidHut1BreakerGarden_sDialog
 .PROC DataA_Dialog_MermaidHut1BreakerGarden_sDialog
-    .word ePortrait::MermaidEirene
+    dlg_Text MermaidEirene, DataA_Text0_MermaidHut1BreakerGarden_u8_arr
+    dlg_Done
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Text0"
+
+.PROC DataA_Text0_MermaidHut1Guard_u8_arr
+    .byte "All hail Queen Eirene!#"
+.ENDPROC
+
+.PROC DataA_Text0_MermaidHut1Queen_FirstMeeting1_u8_arr
+    .byte "So, you must be the$"
+    .byte "human I've heard is$"
+    .byte "running around.#"
+.ENDPROC
+
+.PROC DataA_Text0_MermaidHut1Queen_FirstMeeting2_u8_arr
+    .byte "Humans belong on the$"
+    .byte "surface, not here. So$"
+    .byte "what are you doing$"
+    .byte "down here among us?#"
+.ENDPROC
+
+.PROC DataA_Text0_MermaidHut1Queen_FirstMeeting3_u8_arr
+    .byte "...I see. So the orcs$"
+    .byte "attacked, and now you$"
+    .byte "are a refugee. This$"
+    .byte "complicates things.#"
+.ENDPROC
+
+.PROC DataA_Text0_MermaidHut1Queen_FirstMeeting4_u8_arr
+    .byte "I will be honest: I do$"
+    .byte "not trust humans.$"
+    .byte "However, I don't care$"
+    .byte "for the orcs either.#"
+.ENDPROC
+
+.PROC DataA_Text0_MermaidHut1Queen_GrantAsylum_u8_arr
+    .byte "I will grant you safe$"
+    .byte "asylum in our village,$"
+    .byte "on one condition: that$"
+    .byte "you help us in return.#"
+.ENDPROC
+
+.PROC DataA_Text0_MermaidHut1Queen_HelpFarmers_u8_arr
+    .byte "Speak with our farmers$"
+    .byte "in this village. They$"
+    .byte "have a problem a human$"
+    .byte "could perhaps solve.#"
+.ENDPROC
+
+.PROC DataA_Text0_MermaidHut1Queen_GardenBossDead1_u8_arr
+    .byte "I heard you helped our$"
+    .byte "farmers. And you even$"
+    .byte "survived. I thank you.#"
+.ENDPROC
+
+.PROC DataA_Text0_MermaidHut1Queen_GardenBossDead2_u8_arr
+    .byte "Perhaps...perhaps you$"
+    .byte "could help us with one$"
+    .byte "more problem.#"
+.ENDPROC
+
+.PROC DataA_Text0_MermaidHut1Queen_TempleProblem_u8_arr
+    .byte "There's a temple west$"
+    .byte "of the gardens. It's$"
+    .byte "very important to us.$"
+    .byte "At least, it once was.#"
+.ENDPROC
+
+.PROC DataA_Text0_MermaidHut1Queen_TempleEntry_u8_arr
+    .byte "I'd like you to visit$"
+    .byte "the temple. The guards$"
+    .byte "east of my hut can$"
+    .byte "tell you more.#"
+.ENDPROC
+
+.PROC DataA_Text0_MermaidHut1Queen_TempleBossDead1_u8_arr
+    .byte "I take it that you've$"
+    .byte "seen the whole of the$"
+    .byte "ruined temple? Maybe$"
+    .byte "now you understand.#"
+.ENDPROC
+
+.PROC DataA_Text0_MermaidHut1Queen_TempleBossDead2_u8_arr
+    .byte "Our two peoples built$"
+    .byte "it together, centuries$"
+    .byte "ago. It was to be a$"
+    .byte "symbol of peace.#"
+.ENDPROC
+
+.PROC DataA_Text0_MermaidHut1Queen_TempleBossDead3_u8_arr
+    .byte "But before long, the$"
+    .byte "humans desecrated it$"
+    .byte "into a mechanized$"
+    .byte "fortress instead.#"
+.ENDPROC
+
+.PROC DataA_Text0_MermaidHut1Queen_TempleBossDead4_u8_arr
+    .byte "Humans are just like$"
+    .byte "the orcs. Violent and$"
+    .byte "untrustworthy, despite$"
+    .byte "our best efforts.#"
+.ENDPROC
+
+.PROC DataA_Text0_MermaidHut1Queen_TempleBossDead5_u8_arr
+    .byte "But enough. My scouts$"
+    .byte "tell me there is a way$"
+    .byte "for you to reach your$"
+    .byte "fellow villagers.#"
+.ENDPROC
+
+.PROC DataA_Text0_MermaidHut1Queen_OtherRuins_u8_arr
+    .byte "There are...another$"
+    .byte "kind of ruins buried$"
+    .byte "just above our humble$"
+    .byte "vale. Older ones.#"
+.ENDPROC
+
+.PROC DataA_Text0_MermaidHut1Queen_FindYourFriends_u8_arr
+    .byte "If you climb upwards$"
+    .byte "through there, you may$"
+    .byte "be able to find and$"
+    .byte "rescue your friends.#"
+.ENDPROC
+
+.PROC DataA_Text0_MermaidHut1BreakerGarden_u8_arr
     .byte "What the...What did$"
     .byte "that human just do!?#"
-    .word ePortrait::Done
 .ENDPROC
 
 ;;;=========================================================================;;;

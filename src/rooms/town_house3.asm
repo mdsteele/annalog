@@ -103,9 +103,16 @@ _Devices_sDevice_arr:
 
 .EXPORT DataA_Dialog_TownHouse3Smith_sDialog
 .PROC DataA_Dialog_TownHouse3Smith_sDialog
-    .word ePortrait::AdultMan
+    dlg_Text AdultMan, DataA_Text0_TownHouse3Smith_u8_arr
+    dlg_Done
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Text0"
+
+.PROC DataA_Text0_TownHouse3Smith_u8_arr
     .byte "Lorem ipsum.#"
-    .word ePortrait::Done
 .ENDPROC
 
 ;;;=========================================================================;;;

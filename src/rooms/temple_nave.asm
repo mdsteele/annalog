@@ -682,12 +682,8 @@ _SetUpBoostingPlatform:
 
 .EXPORT DataA_Dialog_TempleNaveAlexStanding_sDialog
 .PROC DataA_Dialog_TempleNaveAlexStanding_sDialog
-    .word ePortrait::ChildAlex
-    .byte "There's something$"
-    .byte "hidden underneath this$"
-    .byte "temple, and we should$"
-    .byte "find out what it is.#"
-    .addr _CutsceneFunc
+    dlg_Text ChildAlex, DataA_Text0_TempleNaveAlexStanding_u8_arr
+    dlg_Func _CutsceneFunc
 _CutsceneFunc:
     lda #eCutscene::TempleNaveAlexBoosting
     sta Zp_Next_eCutscene
@@ -697,10 +693,24 @@ _CutsceneFunc:
 
 .EXPORT DataA_Dialog_TempleNaveAlexBoosting_sDialog
 .PROC DataA_Dialog_TempleNaveAlexBoosting_sDialog
-    .word ePortrait::ChildAlex
+    dlg_Text ChildAlex, DataA_Text0_TempleNaveAlexBoosting_u8_arr
+    dlg_Done
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Text0"
+
+.PROC DataA_Text0_TempleNaveAlexStanding_u8_arr
+    .byte "There's something$"
+    .byte "hidden underneath this$"
+    .byte "temple, and we should$"
+    .byte "find out what it is.#"
+.ENDPROC
+
+.PROC DataA_Text0_TempleNaveAlexBoosting_u8_arr
     .byte "Hop on up. I'll give$"
     .byte "you a boost.#"
-    .word ePortrait::Done
 .ENDPROC
 
 ;;;=========================================================================;;;

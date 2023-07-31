@@ -140,11 +140,18 @@ _Passages_sPassage_arr:
 
 .EXPORT DataA_Dialog_PrisonFlowerSign_sDialog
 .PROC DataA_Dialog_PrisonFlowerSign_sDialog
-    .word ePortrait::Sign
+    dlg_Text Sign, DataA_Text0_PrisonFlowerSign_u8_arr
+    dlg_Done
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Text0"
+
+.PROC DataA_Text0_PrisonFlowerSign_u8_arr
     .byte "Surface Access ", kTileIdBgArrowRight, "$"
     .byte "$"
     .byte kTileIdBgArrowLeft, " Holding Cells#"
-    .word ePortrait::Done
 .ENDPROC
 
 ;;;=========================================================================;;;

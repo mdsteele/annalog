@@ -303,17 +303,27 @@ _Passages_sPassage_arr:
 
 .EXPORT DataA_Dialog_GardenShaftPaper_sDialog
 .PROC DataA_Dialog_GardenShaftPaper_sDialog
-    .word ePortrait::Paper
+    dlg_Text Paper, DataA_Text0_GardenShaftPaper_Page1_u8_arr
+    dlg_Text Paper, DataA_Text0_GardenShaftPaper_Page2_u8_arr
+    dlg_Done
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Text0"
+
+.PROC DataA_Text0_GardenShaftPaper_Page1_u8_arr
     .byte "CPU FIELD MANUAL p.11:$"
     .byte "It can be useful to$"
     .byte "compare one register$"
     .byte "directly to another.#"
-    .word ePortrait::Paper
+.ENDPROC
+
+.PROC DataA_Text0_GardenShaftPaper_Page2_u8_arr
     .byte "For example$"
     .byte "  :IF Y>L$"
     .byte "  :MOVE ", kTileIdBgArrowDown, "$"
     .byte "or the reverse.#"
-    .word ePortrait::Done
 .ENDPROC
 
 ;;;=========================================================================;;;

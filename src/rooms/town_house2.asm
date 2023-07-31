@@ -140,16 +140,29 @@ _Devices_sDevice_arr:
 
 .EXPORT DataC_Town_TownHouse2Stela_sDialog
 .PROC DataC_Town_TownHouse2Stela_sDialog
-    .word ePortrait::AdultWoman
+    dlg_Text AdultWoman, DataA_Text0_TownHouse2Stela_Page1_u8_arr
+    dlg_Text AdultWoman, DataA_Text0_TownHouse2Stela_Page2_u8_arr
+    dlg_Text AdultWoman, DataA_Text0_TownHouse2Stela_Page3_u8_arr
+    dlg_Done
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Text0"
+
+.PROC DataA_Text0_TownHouse2Stela_Page1_u8_arr
     .byte "Can't sleep, Anna?#"
-    .word ePortrait::AdultWoman
+.ENDPROC
+
+.PROC DataA_Text0_TownHouse2Stela_Page2_u8_arr
     .byte "Your brother Alex is$"
     .byte "up late, too.#"
-    .word ePortrait::AdultWoman
+.ENDPROC
+
+.PROC DataA_Text0_TownHouse2Stela_Page3_u8_arr
     .byte "I think he went$"
     .byte "outside somewhere. Why$"
     .byte "don't you go find him?#"
-    .word ePortrait::Done
 .ENDPROC
 
 ;;;=========================================================================;;;
