@@ -52,6 +52,25 @@
 ;;; The device index for the door leading to the cellar.
 kCellarDoorDeviceIndex = 3
 
+;;; An enum for numbers of flowers that can be collected.  This enum exists
+;;; only for the benefit of a D_TABLE macro below.
+.ENUM eNumFlowers
+    Zero
+    One
+    Two
+    Three
+    Four
+    Five
+    Six
+    Seven
+    Eight
+    Nine
+    Ten
+    Eleven
+    Twelve
+    NUM_VALUES
+.ENDENUM
+
 ;;;=========================================================================;;;
 
 .SEGMENT "PRGC_Mermaid"
@@ -198,32 +217,22 @@ _PosY_u8_arr:
 .PROC DataA_Dialog_MermaidHut4Florist_sDialog
     dlg_Func _InitialDialogFunc
 _InitialDialogFunc:
+    ;; If Anna is carrying a flower, deliver it.
     lda Sram_CarryingFlower_eFlag
     beq @notCarryingFlower
     ldya #_BroughtFlower_sDialog
     rts
     @notCarryingFlower:
-    jsr Func_CountDeliveredFlowers  ; returns A and Z
-    bne @hasDeliveredSomeFlowers
+    ;; Otherwise, if Anna has already met the florist, repeat the florist's
+    ;; last message.
     flag_bit Sram_ProgressFlags_arr, eFlag::MermaidHut4MetFlorist
-    bne @hasMetFlorist
+    bne _CountFlowersFunc
+    ;; Otherwise, play the conversation for meeting the florist.
     ldya #_MeetFlorist_sDialog
     rts
-    @hasMetFlorist:
-    ldya #_NoFlowersYet_sDialog
-    rts
-    @hasDeliveredSomeFlowers:
-    cmp #kNumFlowerFlags
-    bge @hasDeliveredAllFlowers
-    ldya #_WantMoreFlowers_sDialog
-    rts
-    @hasDeliveredAllFlowers:
-    jsr FuncA_Dialog_MermaidHut4_OpenCellarDoor
-    ldya #_AllDone_sDialog
-    rts
 _MeetFlorist_sDialog:
-    dlg_Text MermaidFlorist, DataA_Text0_MermaidHut4Florist_Meet1_u8_arr
-    dlg_Text MermaidFlorist, DataA_Text0_MermaidHut4Florist_Meet2_u8_arr
+    dlg_Text MermaidFlorist, DataA_Text1_MermaidHut4Florist_Meet1_u8_arr
+    dlg_Text MermaidFlorist, DataA_Text1_MermaidHut4Florist_Meet2_u8_arr
     dlg_Func _QuestionFunc
 _QuestionFunc:
     bit Zp_DialogAnsweredYes_bool
@@ -234,154 +243,315 @@ _QuestionFunc:
     @yes:
     ldx #eFlag::MermaidHut4MetFlorist  ; param: flag
     jsr Func_SetFlag
-    ldya #_NoFlowersYet_sDialog
+    ldya #_Zero_sDialog
     rts
 _NeverMind_sDialog:
-    dlg_Text MermaidFlorist, DataA_Text0_MermaidHut4Florist_NeverMind1_u8_arr
-    dlg_Text MermaidFlorist, DataA_Text0_MermaidHut4Florist_NeverMind2_u8_arr
-    dlg_Done
-_NoFlowersYet_sDialog:
-    dlg_Text MermaidFlorist, DataA_Text0_MermaidHut4Florist_HaveNone1_u8_arr
-    dlg_Text MermaidFlorist, DataA_Text0_MermaidHut4Florist_HaveNone2_u8_arr
-    dlg_Text MermaidFlorist, DataA_Text0_MermaidHut4Florist_HaveNone3_u8_arr
+    dlg_Text MermaidFlorist, DataA_Text1_MermaidHut4Florist_NeverMind1_u8_arr
+    dlg_Text MermaidFlorist, DataA_Text1_MermaidHut4Florist_NeverMind2_u8_arr
     dlg_Done
 _BroughtFlower_sDialog:
-    dlg_Text MermaidFlorist, DataA_Text0_MermaidHut4Florist_Give_u8_arr
+    dlg_Text MermaidFlorist, DataA_Text1_MermaidHut4Florist_Brought_u8_arr
     dlg_Func _DeliverFlowerFunc
 _DeliverFlowerFunc:
+    ;; Mark that the player has met the florist (i.e. if the player brings a
+    ;; flower before the initial meeting conversation, then we just won't do
+    ;; that conversation).
+    ldx #eFlag::MermaidHut4MetFlorist  ; param: flag
+    jsr Func_SetFlag
     ;; Mark the carried flower as delivered.
     ldx Sram_CarryingFlower_eFlag  ; param: flag
     jsr Func_SetFlag
     ;; Mark the player as no longer carrying a flower.
     jsr Func_DropFlower
-    ;; Check if we have all the flowers yet.
-    jsr Func_CountDeliveredFlowers  ; returns A and Z
-    cmp #kNumFlowerFlags
-    bge @allFlowersDelivered
-    ldya #_WantMoreFlowers_sDialog
+_CountFlowersFunc:
+    jsr Func_CountDeliveredFlowers  ; returns A
+    tax  ; num delivered flowers
+    lda _DialogTable_ptr_0_arr, x
+    ldy _DialogTable_ptr_1_arr, x
     rts
-    @allFlowersDelivered:
-    jsr FuncA_Dialog_MermaidHut4_OpenCellarDoor
-    ldya #_DeliveredLastFlower_sDialog
-    rts
-_WantMoreFlowers_sDialog:
-    dlg_Text MermaidFlorist, DataA_Text0_MermaidHut4Florist_GaveFirst1_u8_arr
-    dlg_Text MermaidFlorist, DataA_Text0_MermaidHut4Florist_GaveFirst2_u8_arr
-    dlg_Text MermaidFlorist, DataA_Text0_MermaidHut4Florist_GaveFirst3_u8_arr
+.REPEAT 2, table
+    D_TABLE_LO table, _DialogTable_ptr_0_arr
+    D_TABLE_HI table, _DialogTable_ptr_1_arr
+    D_TABLE eNumFlowers
+    d_entry table, Zero,   _Zero_sDialog
+    d_entry table, One,    _One_sDialog
+    d_entry table, Two,    _Two_sDialog
+    d_entry table, Three,  _Three_sDialog
+    d_entry table, Four,   _Four_sDialog
+    d_entry table, Five,   _Five_sDialog
+    d_entry table, Six,    _Six_sDialog
+    d_entry table, Seven,  _Seven_sDialog
+    d_entry table, Eight,  _Eight_sDialog
+    d_entry table, Nine,   _Nine_sDialog
+    d_entry table, Ten,    _Ten_sDialog
+    d_entry table, Eleven, _Eleven_sDialog
+    d_entry table, Twelve, _Twelve_sDialog
+    D_END
+.ENDREPEAT
+_Zero_sDialog:
+    dlg_Text MermaidFlorist, DataA_Text1_MermaidHut4Florist_Zero1_u8_arr
+    dlg_Text MermaidFlorist, DataA_Text1_MermaidHut4Florist_Zero2_u8_arr
+    dlg_Text MermaidFlorist, DataA_Text1_MermaidHut4Florist_Zero3_u8_arr
     dlg_Done
-_DeliveredLastFlower_sDialog:
-    dlg_Text MermaidFlorist, DataA_Text0_MermaidHut4Florist_GaveLast1_u8_arr
-    dlg_Text MermaidFlorist, DataA_Text0_MermaidHut4Florist_GaveLast2_u8_arr
-    dlg_Text MermaidFlorist, DataA_Text0_MermaidHut4Florist_GaveLast3_u8_arr
-_AllDone_sDialog:
-    dlg_Text MermaidFlorist, DataA_Text0_MermaidHut4Florist_AllDone_u8_arr
+_One_sDialog:
+    dlg_Text MermaidFlorist, DataA_Text1_MermaidHut4Florist_One1_u8_arr
+    dlg_Text MermaidFlorist, DataA_Text1_MermaidHut4Florist_One2_u8_arr
+    dlg_Text MermaidFlorist, DataA_Text1_MermaidHut4Florist_One3_u8_arr
     dlg_Done
-.ENDPROC
-
-;;; Unlocks the cellar door in this room, and sets the flag indicating that the
-;;; door is open.
-.PROC FuncA_Dialog_MermaidHut4_OpenCellarDoor
+_Two_sDialog:
+    dlg_Text MermaidFlorist, DataA_Text1_MermaidHut4Florist_Two1_u8_arr
+    dlg_Text MermaidFlorist, DataA_Text1_MermaidHut4Florist_Two2_u8_arr
+    dlg_Text MermaidFlorist, DataA_Text1_MermaidHut4Florist_Two3_u8_arr
+    dlg_Done
+_Three_sDialog:
+    ;; TODO
+_Four_sDialog:
+    dlg_Text MermaidFlorist, DataA_Text1_MermaidHut4Florist_Four1_u8_arr
+    dlg_Text MermaidFlorist, DataA_Text1_MermaidHut4Florist_Four2_u8_arr
+    dlg_Text MermaidFlorist, DataA_Text1_MermaidHut4Florist_Four3_u8_arr
+    dlg_Text MermaidFlorist, DataA_Text1_MermaidHut4Florist_Four4_u8_arr
+    dlg_Done
+_Five_sDialog:
+    dlg_Text MermaidFlorist, DataA_Text1_MermaidHut4Florist_Five1_u8_arr
+    dlg_Text MermaidFlorist, DataA_Text1_MermaidHut4Florist_Five2_u8_arr
+    dlg_Text MermaidFlorist, DataA_Text1_MermaidHut4Florist_Five3_u8_arr
+    dlg_Text MermaidFlorist, DataA_Text1_MermaidHut4Florist_Five4_u8_arr
+    dlg_Done
+_Six_sDialog:
+    dlg_Text MermaidFlorist, DataA_Text1_MermaidHut4Florist_Six1_u8_arr
+    dlg_Text MermaidFlorist, DataA_Text1_MermaidHut4Florist_Six2_u8_arr
+    dlg_Text MermaidFlorist, DataA_Text1_MermaidHut4Florist_Six3_u8_arr
+    dlg_Text MermaidFlorist, DataA_Text1_MermaidHut4Florist_Six4_u8_arr
+    dlg_Done
+_Seven_sDialog:
+    ;; TODO
+_Eight_sDialog:
+    ;; TODO
+_Nine_sDialog:
+    ;; TODO
+_Ten_sDialog:
+    ;; TODO
+_Eleven_sDialog:
+    ;; TODO
+_Twelve_sDialog:
+    dlg_Func _TwelveFunc
+_TwelveFunc:
     ldx #kCellarDoorDeviceIndex  ; param: device index
     jsr Func_UnlockDoorDevice
     ldx #eFlag::MermaidHut4OpenedCellar  ; param: flag
-    jmp Func_SetFlag
+    jsr Func_SetFlag
+    flag_bit Sram_ProgressFlags_arr, eFlag::UpgradeOpBeep
+    bne @allDone
+    @openCellar:
+    ldya #_OpenCellar_sDialog
+    rts
+    @allDone:
+    ldya #_AllDone_sDialog
+    rts
+_OpenCellar_sDialog:
+    dlg_Text MermaidFlorist, DataA_Text1_MermaidHut4Florist_Twelve1_u8_arr
+    dlg_Text MermaidFlorist, DataA_Text1_MermaidHut4Florist_Twelve2_u8_arr
+    dlg_Text MermaidFlorist, DataA_Text1_MermaidHut4Florist_Twelve3_u8_arr
+_AllDone_sDialog:
+    dlg_Text MermaidFlorist, DataA_Text1_MermaidHut4Florist_AllDone_u8_arr
+    dlg_Done
 .ENDPROC
 
 ;;;=========================================================================;;;
 
-.SEGMENT "PRGA_Text0"
+.SEGMENT "PRGA_Text1"
 
-.PROC DataA_Text0_MermaidHut4Florist_Meet1_u8_arr
+.PROC DataA_Text1_MermaidHut4Florist_Meet1_u8_arr
     .byte "Ah...you must be that$"
     .byte "human that I've been$"
     .byte "hearing about.#"
 .ENDPROC
 
-.PROC DataA_Text0_MermaidHut4Florist_Meet2_u8_arr
+.PROC DataA_Text1_MermaidHut4Florist_Meet2_u8_arr
     .byte "I don't suppose you'd$"
     .byte "like to do me a favor?%"
 .ENDPROC
 
-.PROC DataA_Text0_MermaidHut4Florist_NeverMind1_u8_arr
+.PROC DataA_Text1_MermaidHut4Florist_NeverMind1_u8_arr
     .byte "Yes, well, I suppose$"
     .byte "you must be very busy,$"
     .byte "running around and$"
     .byte "causing trouble.#"
 .ENDPROC
 
-.PROC DataA_Text0_MermaidHut4Florist_NeverMind2_u8_arr
+.PROC DataA_Text1_MermaidHut4Florist_NeverMind2_u8_arr
     .byte "Come back if you ever$"
     .byte "change your mind.#"
 .ENDPROC
 
-.PROC DataA_Text0_MermaidHut4Florist_HaveNone1_u8_arr
+.PROC DataA_Text1_MermaidHut4Florist_Zero1_u8_arr
     .byte "As you can see, my$"
     .byte "home is looking rather$"
     .byte "drab. Could you bring$"
     .byte "me a flower?#"
 .ENDPROC
 
-.PROC DataA_Text0_MermaidHut4Florist_HaveNone2_u8_arr
+.PROC DataA_Text1_MermaidHut4Florist_Zero2_u8_arr
     .byte "If you go east from$"
     .byte "this village and then$"
     .byte "up a bit, you'll find$"
     .byte "the one I want.#"
 .ENDPROC
 
-.PROC DataA_Text0_MermaidHut4Florist_HaveNone3_u8_arr
+.PROC DataA_Text1_MermaidHut4Florist_Zero3_u8_arr
     .byte "It's very delicate.$"
     .byte "Don't get hurt and$"
     .byte "break it, or you'll$"
     .byte "have to get another.#"
 .ENDPROC
 
-.PROC DataA_Text0_MermaidHut4Florist_Give_u8_arr
+.PROC DataA_Text1_MermaidHut4Florist_Brought_u8_arr
     .byte "Ah, I see you've$"
     .byte "brought me a flower!$"
     .byte "How kind of you.#"
 .ENDPROC
 
-.PROC DataA_Text0_MermaidHut4Florist_GaveFirst1_u8_arr
+.PROC DataA_Text1_MermaidHut4Florist_One1_u8_arr
     .byte "It does look nice up$"
     .byte "there, don't you$"
     .byte "think?#"
 .ENDPROC
 
-.PROC DataA_Text0_MermaidHut4Florist_GaveFirst2_u8_arr
+.PROC DataA_Text1_MermaidHut4Florist_One2_u8_arr
     .byte "Only...it seems lonely$"
     .byte "by itself. I suppose$"
     .byte "you'll need to find$"
     .byte "some more.#"
 .ENDPROC
 
-.PROC DataA_Text0_MermaidHut4Florist_GaveFirst3_u8_arr
+.PROC DataA_Text1_MermaidHut4Florist_One3_u8_arr
     .byte "Not from where you got$"
     .byte "this one, of course.$"
     .byte "You'll have to look$"
     .byte "elsewhere.#"
 .ENDPROC
 
-.PROC DataA_Text0_MermaidHut4Florist_GaveLast1_u8_arr
+.PROC DataA_Text1_MermaidHut4Florist_Two1_u8_arr
+    .byte "You may be wondering$"
+    .byte "why our queen doesn't$"
+    .byte "trust humans. I assure$"
+    .byte "you, she has reasons.#"
+.ENDPROC
+
+.PROC DataA_Text1_MermaidHut4Florist_Two2_u8_arr
+    .byte "Truth be told, I don't$"
+    .byte "trust humans either.$"
+    .byte "Though your bringing$"
+    .byte "me flowers does help.#"
+.ENDPROC
+
+.PROC DataA_Text1_MermaidHut4Florist_Two3_u8_arr
+    .byte "Perhaps I could$"
+    .byte "trouble you to find$"
+    .byte "another? I would so$"
+    .byte "appreciate it.#"
+.ENDPROC
+
+.PROC DataA_Text1_MermaidHut4Florist_Four1_u8_arr
+    .byte "I suppose there's no$"
+    .byte "hiding it: by now you$"
+    .byte "have seen the complex$"
+    .byte "above our vale.#"
+.ENDPROC
+
+.PROC DataA_Text1_MermaidHut4Florist_Four2_u8_arr
+    .byte "Unlike our temple,$"
+    .byte "it was built by humans$"
+    .byte "alone. It predates$"
+    .byte "even us mermaids.#"
+.ENDPROC
+
+.PROC DataA_Text1_MermaidHut4Florist_Four3_u8_arr
+    .byte "And who knows? If not$"
+    .byte "for it, perhaps human$"
+    .byte "civilization could$"
+    .byte "have survived.#"
+.ENDPROC
+
+.PROC DataA_Text1_MermaidHut4Florist_Four4_u8_arr
+    .byte "Probably not, though.#"
+.ENDPROC
+
+.PROC DataA_Text1_MermaidHut4Florist_Five1_u8_arr
+    .byte "We've noticed you've$"
+    .byte "been restoring power$"
+    .byte "to those ancient$"
+    .byte "circuits, one by one.#"
+.ENDPROC
+
+.PROC DataA_Text1_MermaidHut4Florist_Five2_u8_arr
+    .byte "The queen isn't happy$"
+    .byte "about it. But we are a$"
+    .byte "people of peace, and$"
+    .byte "she promised you aid.#"
+.ENDPROC
+
+.PROC DataA_Text1_MermaidHut4Florist_Five3_u8_arr
+    .byte "If you really want to$"
+    .byte "doom your people all$"
+    .byte "over again, I suppose$"
+    .byte "that's your choice.#"
+.ENDPROC
+
+.PROC DataA_Text1_MermaidHut4Florist_Five4_u8_arr
+    .byte "But woe be upon you if$"
+    .byte "you bring that down on$"
+    .byte "us mermaids as well.#"
+.ENDPROC
+
+.PROC DataA_Text1_MermaidHut4Florist_Six1_u8_arr
+    .byte "Did you know there$"
+    .byte "used to be a human$"
+    .byte "city near here,$"
+    .byte "centuries ago?#"
+.ENDPROC
+
+.PROC DataA_Text1_MermaidHut4Florist_Six2_u8_arr
+    .byte "It was once the center$"
+    .byte "of everything around$"
+    .byte "here. A shining beacon$"
+    .byte "on a hill.#"
+.ENDPROC
+
+.PROC DataA_Text1_MermaidHut4Florist_Six3_u8_arr
+    .byte "The humans reveled in$"
+    .byte "all that they had$"
+    .byte "built: civilization,$"
+    .byte "sophistication.#"
+.ENDPROC
+
+.PROC DataA_Text1_MermaidHut4Florist_Six4_u8_arr
+    .byte "Now it's all forgotten$"
+    .byte "and forever buried$"
+    .byte "under the rubble.#"
+.ENDPROC
+
+.PROC DataA_Text1_MermaidHut4Florist_Twelve1_u8_arr
     .byte "And that makes an even$"
     .byte "dozen! How lovely. I$"
     .byte "do appreciate all your$"
     .byte "help, young one.#"
 .ENDPROC
 
-.PROC DataA_Text0_MermaidHut4Florist_GaveLast2_u8_arr
+.PROC DataA_Text1_MermaidHut4Florist_Twelve2_u8_arr
     .byte "In exchange for this$"
     .byte "gift of beauty...I'd$"
     .byte "like to give you the$"
     .byte "gift of music.#"
 .ENDPROC
 
-.PROC DataA_Text0_MermaidHut4Florist_GaveLast3_u8_arr
+.PROC DataA_Text1_MermaidHut4Florist_Twelve3_u8_arr
     .byte "I'll unlock my cellar.$"
     .byte "You may take what you$"
     .byte "find there.#"
 .ENDPROC
 
-.PROC DataA_Text0_MermaidHut4Florist_AllDone_u8_arr
+.PROC DataA_Text1_MermaidHut4Florist_AllDone_u8_arr
     .byte "Perhaps this gift will$"
     .byte "give you a better use$"
     .byte "for all those terrible$"
