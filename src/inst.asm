@@ -64,9 +64,9 @@
     D_TABLE_HI table, Data_Instruments_func_ptr_1_arr
     D_TABLE eInst
     d_entry table, Constant,        Func_InstrumentConstant
-    d_entry table, NoiseDrum,       Func_InstrumentNoiseDrum
     d_entry table, PulseBasic,      Func_InstrumentPulseBasic
     d_entry table, RampUp,          Func_InstrumentRampUp
+    d_entry table, Staccato,        Func_InstrumentStaccato
     d_entry table, TriangleDrum,    Func_InstrumentTriangleDrum
     d_entry table, TriangleVibrato, Func_InstrumentTriangleVibrato
     D_END
@@ -82,23 +82,6 @@
     rts
 .ENDPROC
 
-;;; An instrument for playing simple drum sounds on the noise channel.
-;;; @param X The channel number (0-4) times four (so, 0, 4, 8, 12, or 16).
-;;; @return A The duty/envelope byte to use.
-;;; @preserve X
-.PROC Func_InstrumentNoiseDrum
-    ;; Calculate volume:
-    lda Ram_Music_sChanInst_arr + sChanInst::Param_byte, x
-    and #bEnvelope::VolMask
-    sub Ram_Music_sChanNote_arr + sChanNote::ElapsedFrames_u8, x
-    bge @setVolume
-    lda #$00
-    @setVolume:
-    ;; Combine volume with other envelope bits:
-    ora #bEnvelope::NoLength | bEnvelope::ConstVol
-    rts
-.ENDPROC
-
 ;;; A basic instrument for the pulse channels.  The bottom four bits of the
 ;;; instrument param specify the max volume, which fades out at the end of the
 ;;; note.  The top two bits of the instrument param specify the pulse duty.
@@ -106,19 +89,19 @@
 ;;; @return A The duty/envelope byte to use.
 ;;; @preserve X
 .PROC Func_InstrumentPulseBasic
-    lda Ram_Music_sChanInst_arr + sChanInst::Param_byte, x
-    tay  ; instrument param
+    ldy Ram_Music_sChanInst_arr + sChanInst::Param_byte, x
     ;; Calculate volume:
+    tya  ; instrument param
     and #bEnvelope::VolMask
     sta Zp_AudioTmp1_byte  ; max volume
     lda Ram_Music_sChanNote_arr + sChanNote::DurationFrames_u8, x
     sub Ram_Music_sChanNote_arr + sChanNote::ElapsedFrames_u8, x
     mul #2
+    bcs @useMaxVolume
     cmp Zp_AudioTmp1_byte  ; max volume
-    blt @setVolume
-    lda Zp_AudioTmp1_byte  ; max volume
-    @setVolume:
+    bge @useMaxVolume
     sta Zp_AudioTmp1_byte  ; volume
+    @useMaxVolume:
     ;; Combine volume with other envelope bits:
     tya  ; instrument param
     and #bEnvelope::DutyMask
@@ -134,6 +117,31 @@
     lda #$0f
     @setDuty:
     ora #$b0
+    rts
+.ENDPROC
+
+;;; An instrument for the pulse and noise channels.  The bottom four bits of
+;;; the instrument param specify the initial volume, which starts fading out
+;;; immediately.  The top two bits of the instrument param specify the pulse
+;;; duty (ignored for the noise channel).
+;;; @param X The channel number (0-4) times four (so, 0, 4, 8, 12, or 16).
+;;; @return A The duty/envelope byte to use.
+;;; @preserve X
+.PROC Func_InstrumentStaccato
+    ldy Ram_Music_sChanInst_arr + sChanInst::Param_byte, x
+    ;; Calculate volume:
+    tya  ; instrument param
+    and #bEnvelope::VolMask
+    sub Ram_Music_sChanNote_arr + sChanNote::ElapsedFrames_u8, x
+    bge @setVolume
+    lda #$00
+    @setVolume:
+    sta Zp_AudioTmp1_byte  ; volume
+    ;; Combine volume with other envelope bits:
+    tya  ; instrument param
+    and #bEnvelope::DutyMask
+    ora #bEnvelope::NoLength | bEnvelope::ConstVol
+    ora Zp_AudioTmp1_byte  ; volume
     rts
 .ENDPROC
 

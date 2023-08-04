@@ -7,7 +7,7 @@
 
 !INST 1U RampUp       $00
 !INST TD TriangleDrum $20
-!INST ND NoiseDrum    $0c
+!INST ND Staccato     $0c
 
 !PART A
 

@@ -5,12 +5,12 @@
 =tempo q32
 =key 3b  % c minor
 
-!INST 1H PulseBasic $0c d1/2
-!INST 1Q PulseBasic $0c d1/4
-!INST 2E PulseBasic $0c d1/8
+!INST 1H PulseBasic $08 d1/2
+!INST 1Q PulseBasic $08 d1/4
+!INST 2E PulseBasic $08 d1/8
 !INST TB Constant $ff         % bass
 !INST TK TriangleDrum $20     % kick drum
-!INST ND NoiseDrum $0c
+!INST ND Staccato $0b         % drum
 
 !PART A
 

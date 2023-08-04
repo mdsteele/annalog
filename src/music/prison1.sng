@@ -1,0 +1,31 @@
+@PRGC_Prison
+
+!SONG Prison1 "|AB"
+
+=tempo q32
+=key 3b  % c minor
+
+!INST 1A Staccato $0a d1/2
+!INST 2E Staccato $06 d1/4    % echo 1
+!INST 2F Staccato $05 d1/4    % echo 2
+!INST 2G Staccato $04 d1/4    % echo 3
+!INST 2H Staccato $03 d1/8    % echo 4
+!INST 2I Staccato $02 d1/8    % echo 5
+!INST TB Constant $ff         % bass
+!INST ND Staccato $07         % drum
+!INST NE Staccato $05
+!INST NF Staccato $04
+
+!PART A
+
+1| iA   rq. c4e ge. fe. ce+ | +h |
+2| iE re+q. c4e ge. fe. ce. iF ce. iG ce. iH ce. iI ce. |
+T| iB c3w | a2w |  b2w | g2w |
+N| rw+q+e+s | ; iF x3t iE x3t iD x3e+t :2 |
+
+!PART B
+
+1| iA   rq. c4e ge. fe. ae+ | +h |
+2| iE re+q. c4e ge. fe. ae. iF ae. iG ae. iH ae. iI ae. |
+T=:AT
+N=:AN

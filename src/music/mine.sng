@@ -8,7 +8,7 @@
 !INST 1A PulseBasic $0c d1/2
 !INST 1B PulseBasic $0c d1/4
 !INST TA Constant   $ff
-!INST ND NoiseDrum  $0c
+!INST ND Staccato   $0c
 
 !PART A
 

@@ -20,9 +20,9 @@
 ;;; Instruments that can be used for music notes.
 .ENUM eInst
     Constant
-    NoiseDrum
     PulseBasic
     RampUp  ; TODO: get rid of this
+    Staccato
     TriangleDrum
     TriangleVibrato
     NUM_VALUES

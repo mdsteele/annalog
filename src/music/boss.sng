@@ -8,7 +8,7 @@
 !INST 1D PulseBasic $0c d3/4
 !INST 2D PulseBasic $0c d1/8
 !INST TB TriangleVibrato
-!INST ND NoiseDrum  $0c
+!INST ND Staccato   $0c
 
 !PART A
 

@@ -22,6 +22,7 @@
 .INCLUDE "boss.inc"
 .INCLUDE "cpu.inc"
 .INCLUDE "device.inc"
+.INCLUDE "flag.inc"
 .INCLUDE "macros.inc"
 .INCLUDE "mmc3.inc"
 .INCLUDE "music.inc"
@@ -151,6 +152,7 @@
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORT Ram_PlatformTop_i16_1_arr
 .IMPORT Ram_PlatformType_ePlatform_arr
+.IMPORT Sram_ProgressFlags_arr
 .IMPORTZP Zp_AvatarExit_ePassage
 .IMPORTZP Zp_AvatarPlatformIndex_u8
 .IMPORTZP Zp_Camera_bScroll
@@ -196,8 +198,7 @@ Zp_RoomState: .res kRoomStateSize
 ;;; @param X The eRoom value for the room to load.
 .EXPORT FuncM_SwitchPrgcAndLoadRoom
 .PROC FuncM_SwitchPrgcAndLoadRoom
-    prga_bank #<.bank(DataA_Room_Music_eMusic_arr)
-    ldy DataA_Room_Music_eMusic_arr, x
+    jsr_prga FuncA_Room_ChooseMusicForRoom  ; preserves X, returns Y
     .assert * = FuncM_SwitchPrgcAndLoadRoomWithMusic, error
 .ENDPROC
 
@@ -345,8 +346,28 @@ _LoadNewRoom:
     D_END
 .ENDREPEAT
 
-;;; Maps from eRoom values to the eMusic to play in each room.
-.PROC DataA_Room_Music_eMusic_arr
+;;; Chooses the music that should play in the specified room, based partly on
+;;; the current progress flags.  The room does *not* need to be loaded already,
+;;; nor its PRGC bank set.
+;;; @param X The eRoom value for the room to choose music for.
+;;; @return Y The eMusic value for the music to play in the specified room.
+;;; @preserve X
+.PROC FuncA_Room_ChooseMusicForRoom
+    ldy DataA_Room_DefaultMusic_eMusic_arr, x
+_PrisonMusic:
+    ;; When returning to the Prison Caves after escaping, play the Prison2
+    ;; music instead of Prison1.
+    cpy #eMusic::Prison1
+    bne @done
+    flag_bit Sram_ProgressFlags_arr, eFlag::GardenLandingDroppedIn
+    beq @done
+    ldy #eMusic::Prison2
+    @done:
+    rts
+.ENDPROC
+
+;;; Maps from eRoom values to the default eMusic to play in each room.
+.PROC DataA_Room_DefaultMusic_eMusic_arr
     D_ENUM eRoom
     d_byte BossCity,        eMusic::Boss
     d_byte BossCrypt,       eMusic::Boss
@@ -421,10 +442,10 @@ _LoadNewRoom:
     d_byte MinePit,         eMusic::Mine
     d_byte MineSouth,       eMusic::Mine
     d_byte MineWest,        eMusic::Mine
-    d_byte PrisonCell,      eMusic::Prison2
+    d_byte PrisonCell,      eMusic::Prison1
     d_byte PrisonCrossroad, eMusic::Prison2
     d_byte PrisonEast,      eMusic::Prison2
-    d_byte PrisonEscape,    eMusic::Prison2
+    d_byte PrisonEscape,    eMusic::Prison1
     d_byte PrisonFlower,    eMusic::Prison2
     d_byte PrisonUpper,     eMusic::Prison2
     d_byte SewerAscent,     eMusic::Silence

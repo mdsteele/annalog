@@ -22,6 +22,7 @@
     Silence
     Boss
     Mine
+    Prison1
     Prison2
     Temple
     Title
