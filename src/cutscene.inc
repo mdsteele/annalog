@@ -38,6 +38,7 @@ kMaxForks = 4
 ;;; The list of cutscenes in the game.
 .ENUM eCutscene
     None
+    CityFlowerOrcAttack
     CoreBossPowerUpCircuit
     CoreSouthCorraHelping
     MermaidHut1BreakerGarden

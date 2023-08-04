@@ -516,6 +516,12 @@ _Done:
     d_byte Not_eFlag, eFlag::FlowerPrison
     D_END
     D_STRUCT sMarker
+    d_byte Row_u8, 3
+    d_byte Col_u8, 20  ; room: CityFlower
+    d_byte If_eFlag, 0
+    d_byte Not_eFlag, eFlag::FlowerCity
+    D_END
+    D_STRUCT sMarker
     d_byte Row_u8, 4
     d_byte Col_u8, 12  ; room: CoreSouth
     d_byte If_eFlag, eFlag::CoreSouthCorraWaiting

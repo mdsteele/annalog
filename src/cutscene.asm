@@ -26,6 +26,7 @@
 .INCLUDE "mmc3.inc"
 .INCLUDE "oam.inc"
 
+.IMPORT DataA_Cutscene_CityFlowerOrcAttack_sCutscene
 .IMPORT DataA_Cutscene_CoreBossPowerUpCircuit_sCutscene
 .IMPORT DataA_Cutscene_CoreSouthCorraHelping_sCutscene
 .IMPORT DataA_Cutscene_MermaidHut1BreakerGarden_sCutscene
@@ -153,6 +154,8 @@ _Finish:
     D_TABLE_HI table, DataA_Cutscene_Table_sCutscene_ptr_1_arr
     D_TABLE eCutscene
     d_entry table, None, DataA_Cutscene_Null_sCutscene
+    d_entry table, CityFlowerOrcAttack, \
+            DataA_Cutscene_CityFlowerOrcAttack_sCutscene
     d_entry table, CoreBossPowerUpCircuit, \
             DataA_Cutscene_CoreBossPowerUpCircuit_sCutscene
     d_entry table, CoreSouthCorraHelping, \

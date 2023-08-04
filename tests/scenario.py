@@ -42,6 +42,7 @@ ROOM_PARENTS = {
     'BossMine': 'MineCollapse',
     'BossTemple': 'TempleSpire',
     'CityBuilding1': 'CityOutskirts',
+    'CityFlower': 'CityDump',
     'MermaidCellar': 'MermaidHut4',
     'MermaidHut1': 'MermaidVillage',
     'MermaidHut2': 'MermaidVillage',

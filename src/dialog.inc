@@ -59,6 +59,9 @@
 
 ;;; The list of dialogs in the game.
 .ENUM eDialog
+    CityDumpPaper
+    CityFlowerOrcAngry
+    CityFlowerOrcCalm
     CoreSouthCorra1
     CoreSouthCorra2
     CryptTombPlaque

@@ -113,6 +113,7 @@ _KeepFlower:
     cmp #eDevice::FlowerInert
     beq @makeIntoFlower
     ;; If the flower has already been delivered, don't respawn it.
+    lda Ram_DeviceTarget_byte_arr, x  ; flower eFlag value
     stx T0  ; device index
     tax  ; param: eFlag value
     jsr Func_IsFlagSet  ; preserves T0+, clears Z if flag is set

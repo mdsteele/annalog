@@ -49,7 +49,9 @@ kMaxPassages = 8
     CityBuilding1
     CityCenter
     CityDrain
+    CityDump
     CityEast
+    CityFlower
     CityOutskirts
     CityPit
     CityWest

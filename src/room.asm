@@ -38,7 +38,9 @@
 .IMPORT DataC_City_Building1_sRoom
 .IMPORT DataC_City_Center_sRoom
 .IMPORT DataC_City_Drain_sRoom
+.IMPORT DataC_City_Dump_sRoom
 .IMPORT DataC_City_East_sRoom
+.IMPORT DataC_City_Flower_sRoom
 .IMPORT DataC_City_Outskirts_sRoom
 .IMPORT DataC_City_Pit_sRoom
 .IMPORT DataC_City_West_sRoom
@@ -249,7 +251,9 @@ _LoadNewRoom:
     d_entry table, CityBuilding1,   DataC_City_Building1_sRoom
     d_entry table, CityCenter,      DataC_City_Center_sRoom
     d_entry table, CityDrain,       DataC_City_Drain_sRoom
+    d_entry table, CityDump,        DataC_City_Dump_sRoom
     d_entry table, CityEast,        DataC_City_East_sRoom
+    d_entry table, CityFlower,      DataC_City_Flower_sRoom
     d_entry table, CityOutskirts,   DataC_City_Outskirts_sRoom
     d_entry table, CityPit,         DataC_City_Pit_sRoom
     d_entry table, CityWest,        DataC_City_West_sRoom
@@ -353,7 +357,9 @@ _LoadNewRoom:
     d_byte CityBuilding1,   eMusic::Silence
     d_byte CityCenter,      eMusic::Silence
     d_byte CityDrain,       eMusic::Silence
+    d_byte CityDump,        eMusic::Silence
     d_byte CityEast,        eMusic::Silence
+    d_byte CityFlower,      eMusic::Silence
     d_byte CityOutskirts,   eMusic::Silence
     d_byte CityPit,         eMusic::Silence
     d_byte CityWest,        eMusic::Silence

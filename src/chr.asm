@@ -1116,7 +1116,8 @@
     .res $06 * kSizeofChr
     .assert * - :- = (kTileIdObjGrubFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/grub.chr"
-    .res $08 * kSizeofChr
+    .assert * - :- = (kTileIdObjToadFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/toad.chr"
     .assert * - :- = (kTileIdCraneFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/crane.chr"
     .res $48 * kSizeofChr
