@@ -64,7 +64,7 @@ _TerrainData:
 _Platforms_sPlatform_arr:
 :   D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Solid
-    d_word WidthPx_u16, $20
+    d_word WidthPx_u16, $30
     d_byte HeightPx_u8, $06
     d_word Left_i16,  $0050
     d_word Top_i16,   $0070

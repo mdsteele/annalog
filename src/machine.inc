@@ -49,6 +49,7 @@ kMachineRegNameB = $21  ; 'B'
     MinigunLeft  = $13
     MinigunUp    = $14
     LauncherLeft = $15
+    Semaphore    = $16
 .ENDENUM
 
 ;;;=========================================================================;;;

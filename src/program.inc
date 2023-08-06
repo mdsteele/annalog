@@ -113,6 +113,10 @@
     BossShadowEmitterX
     BossShadowEmitterY
     BossTempleMinigun
+    CityCenterSemaphore1
+    CityCenterSemaphore2
+    CityCenterSemaphore3
+    CityCenterSemaphore4
     CityOutskirtsLauncher
     CityPitLift
     CoreElevatorJet

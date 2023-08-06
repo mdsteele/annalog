@@ -58,6 +58,7 @@
 .INCLUDE "machines/pump.inc"
 .INCLUDE "machines/reloader.inc"
 .INCLUDE "machines/rotor.inc"
+.INCLUDE "machines/semaphore.inc"
 .INCLUDE "machines/winch.inc"
 .INCLUDE "platforms/column.inc"
 .INCLUDE "platforms/crate.inc"
@@ -285,7 +286,7 @@
 :   .incbin "out/data/tiles/city1.chr"
     .incbin "out/data/tiles/city2.chr"
     .incbin "out/data/tiles/city3.chr"
-    .res $14 * kSizeofChr
+    .res $0c * kSizeofChr
     .incbin "out/data/tiles/console.chr"
     .assert * - :- = kSizeofChr * $40, error
 .ENDPROC
@@ -617,7 +618,8 @@
 
 .PROC Ppu_ChrBgFontLower16
 :   .incbin "out/data/tiles/font_lower.chr"
-    .res $10 * kSizeofChr
+    .assert .bank(*) = eDiagram::Semaphore, error
+    .incbin "out/data/tiles/diagram_semaphore.chr"
     .assert .bank(*) = <ePortrait::OrcGronta, error
     .incbin "out/data/tiles/portrait_gronta_rest.chr"
     .assert * - :- = kSizeofChr * $40, error
@@ -1055,7 +1057,9 @@
     .res $07 * kSizeofChr
     .assert * - :- = (kTileIdObjRhinoFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/rhino.chr"
-    .res $30 * kSizeofChr
+    .assert * - :- = (kTileIdObjSemaphoreFirst - $80) * kSizeofChr, error
+    .incbin "out/data/tiles/semaphore.chr"
+    .res $28 * kSizeofChr
     .assert * - :- = (kTileIdObjBreakerFirst - $80) * kSizeofChr, error
     .incbin "out/data/tiles/breaker.chr"
     .assert * - :- = kSizeofChr * $80, error
