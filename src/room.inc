@@ -47,6 +47,7 @@ kMaxPassages = 8
     BossShadow
     BossTemple
     CityBuilding1
+    CityBuilding2
     CityCenter
     CityDrain
     CityDump

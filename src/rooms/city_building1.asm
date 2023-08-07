@@ -18,14 +18,9 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "../actor.inc"
-.INCLUDE "../actors/child.inc"
-.INCLUDE "../charmap.inc"
-.INCLUDE "../cpu.inc"
 .INCLUDE "../device.inc"
 .INCLUDE "../devices/mousehole.inc"
-.INCLUDE "../dialog.inc"
 .INCLUDE "../macros.inc"
-.INCLUDE "../platform.inc"
 .INCLUDE "../room.inc"
 
 .IMPORT DataA_Room_Building_sTileset

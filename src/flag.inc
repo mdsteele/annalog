@@ -95,6 +95,8 @@ kSaveMagicNumber = $b2
     BreakerCity
     BreakerShadow
     ;; Flags for persistent room state:
+    CityCenterDoorUnlocked
+    CityCenterKeygenConnected
     CityOutskirtsBlastedRocks
     CoreSouthCorraHelped
     CoreSouthCorraWaiting

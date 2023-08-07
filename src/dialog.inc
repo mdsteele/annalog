@@ -59,6 +59,7 @@
 
 ;;; The list of dialogs in the game.
 .ENUM eDialog
+    CityBuilding2Screen
     CityDumpPaper
     CityFlowerOrcAngry
     CityFlowerOrcCalm

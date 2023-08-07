@@ -20,6 +20,7 @@
 .INCLUDE "../actor.inc"
 .INCLUDE "../charmap.inc"
 .INCLUDE "../device.inc"
+.INCLUDE "../flag.inc"
 .INCLUDE "../machine.inc"
 .INCLUDE "../machines/semaphore.inc"
 .INCLUDE "../macros.inc"
@@ -38,11 +39,13 @@
 .IMPORT FuncA_Room_MachineSemaphoreReset
 .IMPORT Func_GetRandomByte
 .IMPORT Func_Noop
+.IMPORT Func_SetFlag
 .IMPORT Ppu_ChrObjCity
 .IMPORT Ram_MachineGoalHorz_u8_arr
 .IMPORT Ram_MachineState1_byte_arr
 .IMPORT Ram_MachineState2_byte_arr
 .IMPORT Ram_MachineState3_byte_arr
+.IMPORT Sram_ProgressFlags_arr
 .IMPORTZP Zp_MachineIndex_u8
 .IMPORTZP Zp_RoomState
 
@@ -272,12 +275,12 @@ _Devices_sDevice_arr:
     d_byte BlockCol_u8, 57
     d_byte Target_byte, kSemaphore4MachineIndex
     D_END
-    ;; D_STRUCT sDevice
-    ;; d_byte Type_eDevice, eDevice::Door1Open
-    ;; d_byte BlockRow_u8, 8
-    ;; d_byte BlockCol_u8, 9
-    ;; d_byte Target_byte, eRoom::CityCenter  ; TODO: CityBuilding2
-    ;; D_END
+    D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::Door1Open
+    d_byte BlockRow_u8, 8
+    d_byte BlockCol_u8, 9
+    d_byte Target_byte, eRoom::CityBuilding2
+    D_END
     ;; D_STRUCT sDevice
     ;; d_byte Type_eDevice, eDevice::Door1Open
     ;; d_byte BlockRow_u8, 14
@@ -354,6 +357,8 @@ _Passages_sPassage_arr:
 .ENDPROC
 
 .PROC FuncC_City_Center_EnterRoom
+    ;; TODO: If door has already been unlocked, unlock it.
+    ;; TODO: Play a sound for random key generation.
     ;; Generate a random key combination, with each digit between 1 and 4.
     ldx #kNumKeyDigits - 1
     @loop:
@@ -375,7 +380,11 @@ _Passages_sPassage_arr:
     bne @done  ; combination is incorrect
     dex
     bpl @loop
-    ;; TODO: Unlock the locked door.
+    ;; Combination is correct, so unlock the door.
+    ;; TODO: Play a sound.
+    ldx #eFlag::CityCenterDoorUnlocked  ; param: flag
+    jsr Func_SetFlag
+    ;; TODO: Actually unlock the door device.
     @done:
     rts
 .ENDPROC
@@ -422,8 +431,11 @@ _ReadRegJ:
     lda Ram_MachineGoalHorz_u8_arr, y  ; combination array index
     rts
 _ReadRegK:
+    flag_bit Sram_ProgressFlags_arr, eFlag::CityCenterKeygenConnected
+    beq @done
     jsr FuncC_City_GetSemaphoreArrayIndex  ; returns X
     lda Zp_RoomState + sState::Key_u8_arr, x
+    @done:
     rts
 _ReadRegL:
     jsr FuncC_City_GetSemaphoreArrayIndex  ; returns X
