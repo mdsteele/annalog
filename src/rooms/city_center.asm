@@ -136,7 +136,7 @@ _Machines_sMachine_arr:
     d_byte Status_eDiagram, eDiagram::SemaphoreNormal
     d_word ScrollGoalX_u16, $114
     d_byte ScrollGoalY_u8, $0d
-    d_byte RegNames_u8_arr4, 0, "F", "D", "Y"
+    d_byte RegNames_u8_arr4, 0, "F", "S", "Y"
     d_byte MainPlatform_u8, kSemaphore2PlatformIndex
     d_addr Init_func_ptr, Func_Noop
     d_addr ReadReg_func_ptr, FuncC_City_CenterSemaphore_ReadReg
@@ -155,7 +155,7 @@ _Machines_sMachine_arr:
     d_byte Status_eDiagram, eDiagram::SemaphoreNormal
     d_word ScrollGoalX_u16, $224
     d_byte ScrollGoalY_u8, $0d
-    d_byte RegNames_u8_arr4, 0, "F", "D", "Y"
+    d_byte RegNames_u8_arr4, 0, "F", "S", "Y"
     d_byte MainPlatform_u8, kSemaphore3PlatformIndex
     d_addr Init_func_ptr, Func_Noop
     d_addr ReadReg_func_ptr, FuncC_City_CenterSemaphore_ReadReg
@@ -174,7 +174,7 @@ _Machines_sMachine_arr:
     d_byte Status_eDiagram, eDiagram::SemaphoreNoFlags
     d_word ScrollGoalX_u16, $310
     d_byte ScrollGoalY_u8, $0d
-    d_byte RegNames_u8_arr4, "J", "L", "D", "Y"
+    d_byte RegNames_u8_arr4, "J", "L", "S", "Y"
     d_byte MainPlatform_u8, kSemaphore4PlatformIndex
     d_addr Init_func_ptr, Func_Noop
     d_addr ReadReg_func_ptr, FuncC_City_CenterSemaphore_ReadReg
@@ -399,11 +399,14 @@ _Passages_sPassage_arr:
     @regE:
     tya
     beq _ReadRegK
-_ReadRegD:
-    lda #0  ; TODO: implement distance register
-    rts
+_ReadRegS:
+    jsr _ReadRegY  ; returns A (param: flag number)
+    dey  ; now Y is the machine index for the next semaphore to the left
+    bpl _ReadFlagNumberA  ; unconditional
 _ReadRegF:
-    jsr _ReadRegY  ; returns Z
+    jsr _ReadRegY  ; returns A
+_ReadFlagNumberA:
+    tax
     beq @lowerFlag
     @upperFlag:
     lda Ram_MachineState2_byte_arr, y  ; upper bSemaphoreFlag
