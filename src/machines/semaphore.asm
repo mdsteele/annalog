@@ -182,25 +182,36 @@ _CheckIfDone:
 
 .SEGMENT "PRGA_Objects"
 
-;;; Draws a semaphore machine.
+;;; Draws a semaphore machine that doesn't have a distance sensor.
 ;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
-.EXPORT FuncA_Objects_DrawSemaphoreMachine
-.PROC FuncA_Objects_DrawSemaphoreMachine
-_DrawUpperFlag:
-    jsr FuncA_Objects_SetShapePosToMachineTopLeft
-    jsr FuncA_Objects_MoveShapeUpOneTile
-    ldx Zp_MachineIndex_u8
-    lda Ram_MachineState2_byte_arr, x  ; upper bSemaphoreFlag
-    and #bSemaphoreFlag::AngleMask  ; param: flag angle
-    jsr FuncA_Objects_DrawSemaphoreFlag
-_DrawLowerFlag:
-    jsr FuncA_Objects_SetShapePosToMachineTopLeft
-    jsr FuncA_Objects_MoveShapeDownOneTile
-    ldx Zp_MachineIndex_u8
-    lda Ram_MachineState1_byte_arr, x  ; lower bSemaphoreFlag
-    and #bSemaphoreFlag::AngleMask  ; param: flag angle
-    jsr FuncA_Objects_DrawSemaphoreFlag
-_DrawActuator:
+.EXPORT FuncA_Objects_DrawSemaphoreMachineNoSensor
+.PROC FuncA_Objects_DrawSemaphoreMachineNoSensor
+    jsr FuncA_Objects_DrawSemaphoreFlags
+    lda #kTileIdObjMachineCorner  ; param: corner tile ID
+    bne FuncA_Objects_DrawSemaphoreActuator  ; unconditional
+.ENDPROC
+
+;;; Draws a standard semaphore machine.
+;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
+.EXPORT FuncA_Objects_DrawSemaphoreMachineNormal
+.PROC FuncA_Objects_DrawSemaphoreMachineNormal
+    jsr FuncA_Objects_DrawSemaphoreFlags
+    .assert * = FuncA_Objects_DrawSemaphoreMachineNoFlags, error, "fallthrough"
+.ENDPROC
+
+;;; Draws a semaphore machine that doesn't have any flags.
+;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
+.EXPORT FuncA_Objects_DrawSemaphoreMachineNoFlags
+.PROC FuncA_Objects_DrawSemaphoreMachineNoFlags
+    lda #kTileIdObjSemaphoreDistSensor  ; param: corner tile ID
+    .assert * = FuncA_Objects_DrawSemaphoreActuator, error, "fallthrough"
+.ENDPROC
+
+;;; Draws the movable actuator for a semaphore machine.
+;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
+;;; @param A The tile ID for the corner of the actuator.
+.PROC FuncA_Objects_DrawSemaphoreActuator
+    pha  ; corner tile ID
     jsr FuncA_Objects_SetShapePosToMachineTopLeft
     lda #kBlockWidthPx  ; param: offset
     jsr FuncA_Objects_MoveShapeLeftByA
@@ -211,9 +222,28 @@ _DrawActuator:
     ldy #kPaletteObjMachineLight  ; param: object flags
     jsr FuncA_Objects_Draw1x1Shape
     jsr FuncA_Objects_MoveShapeDownOneTile
-    ldy #kPaletteObjMachineLight  ; param: object flags
-    lda #kTileIdObjSemaphoreDistSensor  ; param: tile ID
+    ldy #kPaletteObjMachineLight | bObj::FlipH  ; param: object flags
+    pla  ; param: corner tile ID
     jmp FuncA_Objects_Draw1x1Shape
+.ENDPROC
+
+;;; Draws both flags for a semaphore machine.
+;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
+.PROC FuncA_Objects_DrawSemaphoreFlags
+_UpperFlag:
+    jsr FuncA_Objects_SetShapePosToMachineTopLeft
+    jsr FuncA_Objects_MoveShapeUpOneTile
+    ldx Zp_MachineIndex_u8
+    lda Ram_MachineState2_byte_arr, x  ; upper bSemaphoreFlag
+    and #bSemaphoreFlag::AngleMask  ; param: flag angle
+    jsr FuncA_Objects_DrawSemaphoreFlag
+_LowerFlag:
+    jsr FuncA_Objects_SetShapePosToMachineTopLeft
+    jsr FuncA_Objects_MoveShapeDownOneTile
+    ldx Zp_MachineIndex_u8
+    lda Ram_MachineState1_byte_arr, x  ; lower bSemaphoreFlag
+    and #bSemaphoreFlag::AngleMask  ; param: flag angle
+    .assert * = FuncA_Objects_DrawSemaphoreFlag, error, "fallthrough"
 .ENDPROC
 
 ;;; Draws one flag on a semaphore machine.

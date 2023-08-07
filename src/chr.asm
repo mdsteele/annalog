@@ -618,8 +618,8 @@
 
 .PROC Ppu_ChrBgFontLower16
 :   .incbin "out/data/tiles/font_lower.chr"
-    .assert .bank(*) = eDiagram::Semaphore, error
-    .incbin "out/data/tiles/diagram_semaphore.chr"
+    .assert .bank(*) = eDiagram::SemaphoreNormal, error
+    .incbin "out/data/tiles/diagram_semaphore_normal.chr"
     .assert .bank(*) = <ePortrait::OrcGronta, error
     .incbin "out/data/tiles/portrait_gronta_rest.chr"
     .assert * - :- = kSizeofChr * $40, error
@@ -631,7 +631,8 @@
 
 .PROC Ppu_ChrBgFontLower17
 :   .incbin "out/data/tiles/font_lower.chr"
-    .res $10 * kSizeofChr
+    .assert .bank(*) = eDiagram::SemaphoreNoFlags, error
+    .incbin "out/data/tiles/diagram_semaphore_no_flags.chr"
     .assert .bank(*) = >ePortrait::OrcGronta, error
     .incbin "out/data/tiles/portrait_gronta_talk.chr"
     .assert * - :- = kSizeofChr * $40, error
@@ -643,7 +644,8 @@
 
 .PROC Ppu_ChrBgFontLower18
 :   .incbin "out/data/tiles/font_lower.chr"
-    .res $10 * kSizeofChr
+    .assert .bank(*) = eDiagram::SemaphoreNoSensor, error
+    .incbin "out/data/tiles/diagram_semaphore_no_sensor.chr"
     .assert .bank(*) = <ePortrait::OrcMale, error
     .incbin "out/data/tiles/portrait_orc_rest.chr"
     .assert * - :- = kSizeofChr * $40, error

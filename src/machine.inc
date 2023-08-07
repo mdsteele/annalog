@@ -28,28 +28,30 @@ kMachineRegNameB = $21  ; 'B'
 
 ;;; CHR04 bank numbers to set for various machine status diagrams.
 .ENUM eDiagram
-    Lift         = $01
-    Trolley      = $02
-    Winch        = $03
-    Boiler       = $04
-    Field        = $05
-    Jet          = $06
-    Carriage     = $07
-    CannonRight  = $08
-    CannonLeft   = $09
-    BridgeRight  = $0a
-    BridgeLeft   = $0b
-    Crane        = $0c
-    Multiplexer  = $0d
-    Debugger     = $0e
-    HoistRight   = $0f
-    HoistLeft    = $10
-    LauncherDown = $11
-    MinigunDown  = $12
-    MinigunLeft  = $13
-    MinigunUp    = $14
-    LauncherLeft = $15
-    Semaphore    = $16
+    Lift              = $01
+    Trolley           = $02
+    Winch             = $03
+    Boiler            = $04
+    Field             = $05
+    Jet               = $06
+    Carriage          = $07
+    CannonRight       = $08
+    CannonLeft        = $09
+    BridgeRight       = $0a
+    BridgeLeft        = $0b
+    Crane             = $0c
+    Multiplexer       = $0d
+    Debugger          = $0e
+    HoistRight        = $0f
+    HoistLeft         = $10
+    LauncherDown      = $11
+    MinigunDown       = $12
+    MinigunLeft       = $13
+    MinigunUp         = $14
+    LauncherLeft      = $15
+    SemaphoreNormal   = $16
+    SemaphoreNoFlags  = $17
+    SemaphoreNoSensor = $18
 .ENDENUM
 
 ;;;=========================================================================;;;

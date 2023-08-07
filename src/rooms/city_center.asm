@@ -32,7 +32,9 @@
 .IMPORT FuncA_Machine_SemaphoreTick
 .IMPORT FuncA_Machine_SemaphoreTryAct
 .IMPORT FuncA_Machine_SemaphoreTryMove
-.IMPORT FuncA_Objects_DrawSemaphoreMachine
+.IMPORT FuncA_Objects_DrawSemaphoreMachineNoFlags
+.IMPORT FuncA_Objects_DrawSemaphoreMachineNoSensor
+.IMPORT FuncA_Objects_DrawSemaphoreMachineNormal
 .IMPORT FuncA_Room_MachineSemaphoreReset
 .IMPORT Func_GetRandomByte
 .IMPORT Func_Noop
@@ -112,7 +114,7 @@ _Machines_sMachine_arr:
     d_byte Code_eProgram, eProgram::CityCenterSemaphore1
     d_byte Breaker_eFlag, 0
     d_byte Flags_bMachine, bMachine::MoveV | bMachine::Act | bMachine::WriteC
-    d_byte Status_eDiagram, eDiagram::Semaphore  ; TODO: diagram with no sensor
+    d_byte Status_eDiagram, eDiagram::SemaphoreNoSensor
     d_word ScrollGoalX_u16, $034
     d_byte ScrollGoalY_u8, $0d
     d_byte RegNames_u8_arr4, "J", "F", "K", "Y"
@@ -123,7 +125,7 @@ _Machines_sMachine_arr:
     d_addr TryMove_func_ptr, FuncA_Machine_SemaphoreTryMove
     d_addr TryAct_func_ptr, FuncA_Machine_SemaphoreTryAct
     d_addr Tick_func_ptr, FuncA_Machine_SemaphoreTick
-    d_addr Draw_func_ptr, FuncA_Objects_DrawSemaphoreMachine  ; TODO: no sensor
+    d_addr Draw_func_ptr, FuncA_Objects_DrawSemaphoreMachineNoSensor
     d_addr Reset_func_ptr, FuncA_Room_MachineSemaphoreReset
     D_END
     .assert * - :- = kSemaphore2MachineIndex * .sizeof(sMachine), error
@@ -131,7 +133,7 @@ _Machines_sMachine_arr:
     d_byte Code_eProgram, eProgram::CityCenterSemaphore2
     d_byte Breaker_eFlag, 0
     d_byte Flags_bMachine, bMachine::MoveV | bMachine::Act
-    d_byte Status_eDiagram, eDiagram::Semaphore
+    d_byte Status_eDiagram, eDiagram::SemaphoreNormal
     d_word ScrollGoalX_u16, $114
     d_byte ScrollGoalY_u8, $0d
     d_byte RegNames_u8_arr4, 0, "F", "D", "Y"
@@ -142,7 +144,7 @@ _Machines_sMachine_arr:
     d_addr TryMove_func_ptr, FuncA_Machine_SemaphoreTryMove
     d_addr TryAct_func_ptr, FuncA_Machine_SemaphoreTryAct
     d_addr Tick_func_ptr, FuncA_Machine_SemaphoreTick
-    d_addr Draw_func_ptr, FuncA_Objects_DrawSemaphoreMachine
+    d_addr Draw_func_ptr, FuncA_Objects_DrawSemaphoreMachineNormal
     d_addr Reset_func_ptr, FuncA_Room_MachineSemaphoreReset
     D_END
     .assert * - :- = kSemaphore3MachineIndex * .sizeof(sMachine), error
@@ -150,7 +152,7 @@ _Machines_sMachine_arr:
     d_byte Code_eProgram, eProgram::CityCenterSemaphore3
     d_byte Breaker_eFlag, 0
     d_byte Flags_bMachine, bMachine::MoveV | bMachine::Act
-    d_byte Status_eDiagram, eDiagram::Semaphore
+    d_byte Status_eDiagram, eDiagram::SemaphoreNormal
     d_word ScrollGoalX_u16, $224
     d_byte ScrollGoalY_u8, $0d
     d_byte RegNames_u8_arr4, 0, "F", "D", "Y"
@@ -161,7 +163,7 @@ _Machines_sMachine_arr:
     d_addr TryMove_func_ptr, FuncA_Machine_SemaphoreTryMove
     d_addr TryAct_func_ptr, FuncA_Machine_SemaphoreTryAct
     d_addr Tick_func_ptr, FuncA_Machine_SemaphoreTick
-    d_addr Draw_func_ptr, FuncA_Objects_DrawSemaphoreMachine
+    d_addr Draw_func_ptr, FuncA_Objects_DrawSemaphoreMachineNormal
     d_addr Reset_func_ptr, FuncA_Room_MachineSemaphoreReset
     D_END
     .assert * - :- = kSemaphore4MachineIndex * .sizeof(sMachine), error
@@ -169,7 +171,7 @@ _Machines_sMachine_arr:
     d_byte Code_eProgram, eProgram::CityCenterSemaphore4
     d_byte Breaker_eFlag, 0
     d_byte Flags_bMachine, bMachine::MoveV | bMachine::WriteCD
-    d_byte Status_eDiagram, eDiagram::Semaphore  ; TODO: diagram with no flags
+    d_byte Status_eDiagram, eDiagram::SemaphoreNoFlags
     d_word ScrollGoalX_u16, $310
     d_byte ScrollGoalY_u8, $0d
     d_byte RegNames_u8_arr4, "J", "L", "D", "Y"
@@ -180,7 +182,7 @@ _Machines_sMachine_arr:
     d_addr TryMove_func_ptr, FuncA_Machine_SemaphoreTryMove
     d_addr TryAct_func_ptr, FuncA_Machine_SemaphoreTryAct
     d_addr Tick_func_ptr, FuncA_Machine_SemaphoreTick
-    d_addr Draw_func_ptr, FuncA_Objects_DrawSemaphoreMachine  ; TODO: no flags
+    d_addr Draw_func_ptr, FuncA_Objects_DrawSemaphoreMachineNoFlags
     d_addr Reset_func_ptr, FuncA_Room_MachineSemaphoreReset
     D_END
     .assert * - :- <= kMaxMachines * .sizeof(sMachine), error
