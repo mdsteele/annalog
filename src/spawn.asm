@@ -261,6 +261,8 @@ _Finish:
     lda Ram_DeviceType_eDevice_arr, x
     cpy #eDevice::Door2Open
     beq @door2
+    cpy #eDevice::Door3Open
+    beq @door3
     @door1:
     cmp #eDevice::Door1Locked
     beq @foundDoor
@@ -271,6 +273,10 @@ _Finish:
     bne @continue  ; unconditional
     @door2:
     cmp #eDevice::Door2Open
+    beq @foundDoor
+    bne @continue  ; unconditional
+    @door3:
+    cmp #eDevice::Door3Open
     bne @continue
     @foundDoor:
     lda Ram_DeviceTarget_byte_arr, x
@@ -337,6 +343,7 @@ _DeviceOffset_u8_arr:
     d_byte Door1Open,     kDoorAvatarOffset
     d_byte Door1Unlocked, kDoorAvatarOffset
     d_byte Door2Open,     kDoorAvatarOffset
+    d_byte Door3Open,     kDoorAvatarOffset
     d_byte Flower,        $08
     d_byte LeverCeiling,  $06
     d_byte LeverFloor,    $06

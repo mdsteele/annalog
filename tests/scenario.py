@@ -43,6 +43,7 @@ ROOM_PARENTS = {
     'BossTemple': 'TempleSpire',
     'CityBuilding1': 'CityOutskirts',
     'CityBuilding2': 'CityCenter',
+    'CityBuilding6': 'CityCenter',
     'CityFlower': 'CityDump',
     'MermaidCellar': 'MermaidHut4',
     'MermaidHut1': 'MermaidVillage',
@@ -81,7 +82,8 @@ ROOM_FLAGS_RE = re.compile(r'^ *d_byte +Flags_bRoom, *(.*)eArea::([A-Za-z]+)$')
 START_ROW_RE = re.compile(r'^ *d_byte +MinimapStartRow_u8, *([0-9]+)')
 START_COL_RE = re.compile(r'^ *d_byte +MinimapStartCol_u8, *([0-9]+)')
 
-DEVICE_TYPE_RE = re.compile(r'^ *d_byte +Type_eDevice, *eDevice::([A-Za-z]+)')
+DEVICE_TYPE_RE = re.compile(
+    r'^ *d_byte +Type_eDevice, *eDevice::([A-Za-z0-9]+)')
 DEVICE_ROW_RE = re.compile(r'^ *d_byte +BlockRow_u8, *([0-9]+)')
 DEVICE_COL_RE = re.compile(r'^ *d_byte +BlockCol_u8, *([0-9]+)')
 DOOR_TARGET_RE = re.compile(r'^ *d_byte +Target_byte, *eRoom::([A-Za-z0-9]+)')
@@ -168,13 +170,16 @@ def load_room(filepath, prgc_name):
         struct_type = match.group(1)
         if struct_type == 'sDevice':
             device_type = read_match_line(file, DEVICE_TYPE_RE).group(1)
-            if 'Door' not in device_type: continue
+            if not device_type.startswith('Door'): continue
+            door_number = device_type[4]
+            assert door_number in '123'
             block_row = read_int_line(file, DEVICE_ROW_RE)
             block_col = read_int_line(file, DEVICE_COL_RE)
             door_dest = read_match_line(file, DOOR_TARGET_RE).group(1)
             cell_row = start_row + (1 if is_tall and block_row >= 12 else 0)
             cell_col = start_col + block_col // 16
             doors.append({
+                'door_number': door_number,
                 'cell': (cell_row, cell_col),
                 'dest_room': door_dest,
             })
@@ -343,10 +348,12 @@ def test_room_doors(areas):
             for door in room['doors']:
                 if PERMITTED_DOOR_MISMATCHES.get(room_name) == door['cell']:
                     continue
+                door_number = door['door_number']
                 dest_room_name = door['dest_room']
                 dest_room = area['rooms'][dest_room_name]
                 for dest_door in dest_room['doors']:
                     if dest_door['dest_room'] != room_name: continue
+                    if dest_door['door_number'] != door_number: continue
                     if dest_door['cell'] != door['cell']:
                         print('SCENARIO: {}/{} door cell mismatch'.format(
                             room_name, dest_room_name))

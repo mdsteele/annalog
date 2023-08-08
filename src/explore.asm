@@ -233,6 +233,7 @@ _CheckForPause:
     d_entry table, Door1Open,     Main_Explore_GoThroughDoor
     d_entry table, Door1Unlocked, Main_Explore_GoThroughDoor
     d_entry table, Door2Open,     Main_Explore_GoThroughDoor
+    d_entry table, Door3Open,     Main_Explore_GoThroughDoor
     d_entry table, Flower,        _DeviceFlower
     d_entry table, LeverCeiling,  _DeviceLever
     d_entry table, LeverFloor,    _DeviceLever

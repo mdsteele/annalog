@@ -17,8 +17,10 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
+.INCLUDE "../actor.inc"
 .INCLUDE "../charmap.inc"
 .INCLUDE "../device.inc"
+.INCLUDE "../devices/mousehole.inc"
 .INCLUDE "../dialog.inc"
 .INCLUDE "../flag.inc"
 .INCLUDE "../macros.inc"
@@ -26,73 +28,139 @@
 .INCLUDE "../room.inc"
 
 .IMPORT DataA_Room_Building_sTileset
-.IMPORT Data_Empty_sActor_arr
-.IMPORT Data_Empty_sDialog
+.IMPORT DataA_Text0_CityBuilding2Screen_Locked_u8_arr
+.IMPORT DataA_Text0_CityBuilding2Screen_Unlocked_u8_arr
 .IMPORT Data_Empty_sPlatform_arr
 .IMPORT Func_Noop
-.IMPORT Func_SetFlag
 .IMPORT Ppu_ChrObjCity
+.IMPORT Ram_DeviceType_eDevice_arr
 .IMPORT Sram_ProgressFlags_arr
-.IMPORTZP Zp_DialogAnsweredYes_bool
+
+;;;=========================================================================;;;
+
+;;; The device index for the locked door in this room.
+kLockedDoorDeviceIndex = 1
 
 ;;;=========================================================================;;;
 
 .SEGMENT "PRGC_City"
 
-.EXPORT DataC_City_Building2_sRoom
-.PROC DataC_City_Building2_sRoom
+.EXPORT DataC_City_Building6_sRoom
+.PROC DataC_City_Building6_sRoom
     D_STRUCT sRoom
     d_byte MinScrollX_u8, $0
     d_word MaxScrollX_u16, $0
-    d_byte Flags_bRoom, eArea::City
+    d_byte Flags_bRoom, bRoom::Tall | eArea::City
     d_byte MinimapStartRow_u8, 1
-    d_byte MinimapStartCol_u8, 19
+    d_byte MinimapStartCol_u8, 22
     d_addr TerrainData_ptr, _TerrainData
     d_byte NumMachines_u8, 0
     d_addr Machines_sMachine_arr_ptr, 0
     d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjCity)
     d_addr Tick_func_ptr, Func_Noop
-    d_addr Draw_func_ptr, FuncC_City_Building2_DrawRoom
+    d_addr Draw_func_ptr, Func_Noop
     d_addr Ext_sRoomExt_ptr, _Ext_sRoomExt
     D_END
 _Ext_sRoomExt:
     D_STRUCT sRoomExt
     d_addr Terrain_sTileset_ptr, DataA_Room_Building_sTileset
     d_addr Platforms_sPlatform_arr_ptr, Data_Empty_sPlatform_arr
-    d_addr Actors_sActor_arr_ptr, Data_Empty_sActor_arr
+    d_addr Actors_sActor_arr_ptr, _Actors_sActor_arr
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
     d_addr Passages_sPassage_arr_ptr, 0
-    d_addr Enter_func_ptr, FuncC_City_Building2_EnterRoom
+    d_addr Enter_func_ptr, FuncC_City_Building6_EnterRoom
     d_addr FadeIn_func_ptr, Func_Noop
     D_END
 _TerrainData:
-:   .incbin "out/data/city_building2.room"
-    .assert * - :- = 16 * 15, error
+:   .incbin "out/data/city_building6.room"
+    .assert * - :- = 16 * 24, error
+_Actors_sActor_arr:
+:   D_STRUCT sActor
+    d_byte Type_eActor, eActor::BadRodent
+    d_word PosX_i16, 0
+    d_word PosY_i16, 0
+    d_byte Param_byte, 0
+    D_END
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::BadRodent
+    d_word PosX_i16, 0
+    d_word PosY_i16, 0
+    d_byte Param_byte, 0
+    D_END
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::BadRodent
+    d_word PosX_i16, 0
+    d_word PosY_i16, 0
+    d_byte Param_byte, 0
+    D_END
+    .assert * - :- <= kMaxActors * .sizeof(sActor), error
+    .byte eActor::None
 _Devices_sDevice_arr:
 :   D_STRUCT sDevice
-    d_byte Type_eDevice, eDevice::Door1Unlocked
-    d_byte BlockRow_u8, 8
-    d_byte BlockCol_u8, 7
+    d_byte Type_eDevice, eDevice::Door2Open
+    d_byte BlockRow_u8, 3
+    d_byte BlockCol_u8, 6
+    d_byte Target_byte, eRoom::CityCenter
+    D_END
+    .assert * - :- = kLockedDoorDeviceIndex * .sizeof(sDevice), error
+    D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::Door1Locked
+    d_byte BlockRow_u8, 6
+    d_byte BlockCol_u8, 6
+    d_byte Target_byte, eRoom::CityCenter
+    D_END
+    D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::Door3Open
+    d_byte BlockRow_u8, 21
+    d_byte BlockCol_u8, 9
     d_byte Target_byte, eRoom::CityCenter
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Screen
-    d_byte BlockRow_u8, 8
-    d_byte BlockCol_u8, 11
-    d_byte Target_byte, eDialog::CityBuilding2Screen
+    d_byte BlockRow_u8, 6
+    d_byte BlockCol_u8, 3
+    d_byte Target_byte, eDialog::CityBuilding6Screen
+    D_END
+    D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::Mousehole
+    d_byte BlockRow_u8, 3
+    d_byte BlockCol_u8, 12
+    d_byte Target_byte, bMousehole::OnLeft | bMousehole::RunLeft
+    D_END
+    D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::Mousehole
+    d_byte BlockRow_u8, 6
+    d_byte BlockCol_u8, 8
+    d_byte Target_byte, bMousehole::OnLeft | bMousehole::RunRight
+    D_END
+    D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::Mousehole
+    d_byte BlockRow_u8, 15
+    d_byte BlockCol_u8, 8
+    d_byte Target_byte, bMousehole::OnRight | bMousehole::RunEither
+    D_END
+    D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::Mousehole
+    d_byte BlockRow_u8, 18
+    d_byte BlockCol_u8, 5
+    d_byte Target_byte, bMousehole::OnRight | bMousehole::RunEither
+    D_END
+    D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::Mousehole
+    d_byte BlockRow_u8, 21
+    d_byte BlockCol_u8, 3
+    d_byte Target_byte, bMousehole::OnRight | bMousehole::RunRight
     D_END
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None
 .ENDPROC
 
-.PROC FuncC_City_Building2_EnterRoom
-    ;; TODO: Play a sound for random key generation.
-    ;; TODO: Generate a random key combination.
-    rts
-.ENDPROC
-
-.PROC FuncC_City_Building2_DrawRoom
-    ;; TODO: Draw the key combination on the wall.
+.PROC FuncC_City_Building6_EnterRoom
+    flag_bit Sram_ProgressFlags_arr, eFlag::CityCenterDoorUnlocked
+    beq @done
+    lda #eDevice::Door1Unlocked
+    sta Ram_DeviceType_eDevice_arr + kLockedDoorDeviceIndex
+    @done:
     rts
 .ENDPROC
 
@@ -100,86 +168,24 @@ _Devices_sDevice_arr:
 
 .SEGMENT "PRGA_Dialog"
 
-.EXPORT DataA_Dialog_CityBuilding2Screen_sDialog
-.PROC DataA_Dialog_CityBuilding2Screen_sDialog
+.EXPORT DataA_Dialog_CityBuilding6Screen_sDialog
+.PROC DataA_Dialog_CityBuilding6Screen_sDialog
     dlg_Func _InitialFunc
 _InitialFunc:
-    ;; If the eastern door in CityCenter has already been unlocked, display a
-    ;; message to that effect.
+    ;; If the door has already been unlocked, display a message to that effect.
     flag_bit Sram_ProgressFlags_arr, eFlag::CityCenterDoorUnlocked
     beq @doorStillLocked
-    ;; For safety, connect the key generator (even though you shouldn't
-    ;; normally be able to unlock the door without connecting the key generator
-    ;; first).
-    ldx #eFlag::CityCenterKeygenConnected  ; param: flag
-    jsr Func_SetFlag
     ldya #_Unlocked_sDialog
     rts
     @doorStillLocked:
-    ;; Otherwise, if the key generator has already been connected to the
-    ;; western semaphore, display a message to that effect.
-    flag_bit Sram_ProgressFlags_arr, eFlag::CityCenterKeygenConnected
-    beq @notYetConnected
-    ldya #_AlreadyConnected_sDialog
+    ldya #_Locked_sDialog
     rts
-    ;; Otherwise, prompt the player to connect the key generator.
-    @notYetConnected:
-    ldya #_Unconnected_sDialog
-    rts
-_Unconnected_sDialog:
+_Locked_sDialog:
     dlg_Text Screen, DataA_Text0_CityBuilding2Screen_Locked_u8_arr
-    dlg_Text Screen, DataA_Text0_CityBuilding2Screen_Question_u8_arr
-    dlg_Func _QuestionFunc
-_QuestionFunc:
-    bit Zp_DialogAnsweredYes_bool
-    bmi @yes
-    @no:
-    ldya #Data_Empty_sDialog
-    rts
-    @yes:
-    ldx #eFlag::CityCenterKeygenConnected  ; param: flag
-    jsr Func_SetFlag
-    ldya #_NowConnected_sDialog
-    rts
-_AlreadyConnected_sDialog:
-    dlg_Text Screen, DataA_Text0_CityBuilding2Screen_Locked_u8_arr
-_NowConnected_sDialog:
-    dlg_Text Screen, DataA_Text0_CityBuilding2Screen_Connected_u8_arr
     dlg_Done
 _Unlocked_sDialog:
     dlg_Text Screen, DataA_Text0_CityBuilding2Screen_Unlocked_u8_arr
     dlg_Done
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Text0"
-
-.EXPORT DataA_Text0_CityBuilding2Screen_Unlocked_u8_arr
-.PROC DataA_Text0_CityBuilding2Screen_Unlocked_u8_arr
-    .byte "   SECURITY STATUS$"
-    .byte "Eastern door: UNLOCKED$"
-    .byte "Continuous key$"
-    .byte "randomization:     N/A#"
-.ENDPROC
-
-.EXPORT DataA_Text0_CityBuilding2Screen_Locked_u8_arr
-.PROC DataA_Text0_CityBuilding2Screen_Locked_u8_arr
-    .byte "   SECURITY STATUS$"
-    .byte "Eastern door:   LOCKED$"
-    .byte "Continuous key$"
-    .byte "randomization: ENABLED#"
-.ENDPROC
-
-.PROC DataA_Text0_CityBuilding2Screen_Question_u8_arr
-    .byte "Connect key generator$"
-    .byte "to western semaphore?%"
-.ENDPROC
-
-.PROC DataA_Text0_CityBuilding2Screen_Connected_u8_arr
-    .byte "Western semaphore is$"
-    .byte "now connected to key$"
-    .byte "generator output.#"
 .ENDPROC
 
 ;;;=========================================================================;;;

@@ -135,6 +135,7 @@ _Continue:
     d_entry table, Door1Open,     Func_Noop
     d_entry table, Door1Unlocked, FuncA_Objects_DrawUnlockedDoorDevice
     d_entry table, Door2Open,     Func_Noop
+    d_entry table, Door3Open,     Func_Noop
     d_entry table, Flower,        FuncA_Objects_DrawFlowerDevice
     d_entry table, LeverCeiling,  FuncA_Objects_DrawLeverCeilingDevice
     d_entry table, LeverFloor,    FuncA_Objects_DrawLeverFloorDevice

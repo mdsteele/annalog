@@ -33,6 +33,7 @@
 .INCLUDE "window.inc"
 
 .IMPORT DataA_Dialog_CityBuilding2Screen_sDialog
+.IMPORT DataA_Dialog_CityBuilding6Screen_sDialog
 .IMPORT DataA_Dialog_CityDumpPaper_sDialog
 .IMPORT DataA_Dialog_CityFlowerOrcAngry_sDialog
 .IMPORT DataA_Dialog_CityFlowerOrcCalm_sDialog
@@ -344,6 +345,8 @@ _UpdateScrolling:
     D_TABLE eDialog
     d_entry table, CityBuilding2Screen, \
             DataA_Dialog_CityBuilding2Screen_sDialog
+    d_entry table, CityBuilding6Screen, \
+            DataA_Dialog_CityBuilding6Screen_sDialog
     d_entry table, CityDumpPaper,      DataA_Dialog_CityDumpPaper_sDialog
     d_entry table, CityFlowerOrcAngry, DataA_Dialog_CityFlowerOrcAngry_sDialog
     d_entry table, CityFlowerOrcCalm,  DataA_Dialog_CityFlowerOrcCalm_sDialog

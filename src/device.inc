@@ -41,6 +41,7 @@ kMaxDevices = 16
     Door1Open      ; leads to another Door1*; is never locked
     Door1Unlocked  ; leads to another Door1*; can be locked by room scripts
     Door2Open      ; leads to another Door2*; is never locked
+    Door3Open      ; leads to another Door3*; is never locked
     Flower
     LeverCeiling
     LeverFloor

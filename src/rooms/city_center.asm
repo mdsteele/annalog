@@ -41,6 +41,7 @@
 .IMPORT Func_Noop
 .IMPORT Func_SetFlag
 .IMPORT Ppu_ChrObjCity
+.IMPORT Ram_DeviceType_eDevice_arr
 .IMPORT Ram_MachineGoalHorz_u8_arr
 .IMPORT Ram_MachineState1_byte_arr
 .IMPORT Ram_MachineState2_byte_arr
@@ -53,6 +54,9 @@
 
 ;;; The number of digits in the combination for the locked door.
 .DEFINE kNumKeyDigits 5
+
+;;; The device index for the locked door in this room.
+kLockedDoorDeviceIndex = 1
 
 ;;; The machine indices for the semaphore machines in this room.
 kSemaphore1MachineIndex = 0
@@ -252,6 +256,25 @@ _Actors_sActor_arr:
     .byte eActor::None
 _Devices_sDevice_arr:
 :   D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::Door2Open
+    d_byte BlockRow_u8, 8
+    d_byte BlockCol_u8, 55
+    d_byte Target_byte, eRoom::CityBuilding6
+    D_END
+    .assert * - :- = kLockedDoorDeviceIndex * .sizeof(sDevice), error
+    D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::Door1Locked
+    d_byte BlockRow_u8, 11
+    d_byte BlockCol_u8, 55
+    d_byte Target_byte, eRoom::CityBuilding6
+    D_END
+    D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::Door3Open
+    d_byte BlockRow_u8, 21
+    d_byte BlockCol_u8, 57
+    d_byte Target_byte, eRoom::CityBuilding6
+    D_END
+    D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Console
     d_byte BlockRow_u8, 8
     d_byte BlockCol_u8, 11
@@ -317,24 +340,6 @@ _Devices_sDevice_arr:
     ;; d_byte BlockCol_u8, 43
     ;; d_byte Target_byte, eRoom::CityCenter  ; TODO: CityBuilding5
     ;; D_END
-    ;; D_STRUCT sDevice
-    ;; d_byte Type_eDevice, eDevice::Door2Open
-    ;; d_byte BlockRow_u8, 8
-    ;; d_byte BlockCol_u8, 55
-    ;; d_byte Target_byte, eRoom::CityCenter  ; TODO: CityBuilding6
-    ;; D_END
-    ;; D_STRUCT sDevice
-    ;; d_byte Type_eDevice, eDevice::Door1Locked
-    ;; d_byte BlockRow_u8, 11
-    ;; d_byte BlockCol_u8, 55
-    ;; d_byte Target_byte, eRoom::CityCenter  ; TODO: CityBuilding6
-    ;; D_END
-    ;; D_STRUCT sDevice
-    ;; d_byte Type_eDevice, eDevice::Door1Open  ; TODO: Door3Open
-    ;; d_byte BlockRow_u8, 21
-    ;; d_byte BlockCol_u8, 57
-    ;; d_byte Target_byte, eRoom::CityCenter  ; TODO: CityBuilding6
-    ;; D_END
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None
 _Passages_sPassage_arr:
@@ -357,7 +362,14 @@ _Passages_sPassage_arr:
 .ENDPROC
 
 .PROC FuncC_City_Center_EnterRoom
-    ;; TODO: If door has already been unlocked, unlock it.
+_UnlockDoor:
+    ;; If the door has already been unlocked, unlock it.
+    flag_bit Sram_ProgressFlags_arr, eFlag::CityCenterDoorUnlocked
+    beq @done
+    lda #eDevice::Door1Unlocked
+    sta Ram_DeviceType_eDevice_arr + kLockedDoorDeviceIndex
+    @done:
+_GenerateKey:
     ;; TODO: Play a sound for random key generation.
     ;; Generate a random key combination, with each digit between 1 and 4.
     ldx #kNumKeyDigits - 1
