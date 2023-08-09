@@ -33,14 +33,14 @@
 ;;; Delta modulated sample data for eSample::Harm.
 .ALIGN kDmcSampleAlign
 .PROC Data_SampleHarm_arr
-:   .incbin "out/data/samples/harm.dm"
+:   .incbin "out/samples/harm.dm"
     .assert (* - :-) .mod 16 = 1, error
 .ENDPROC
 
 ;;; Delta modulated sample data for eSample::Jump.
 .ALIGN kDmcSampleAlign
 .PROC Data_SampleJump_arr
-:   .incbin "out/data/samples/jump.dm"
+:   .incbin "out/samples/jump.dm"
     .assert (* - :-) .mod 16 = 1, error
 .ENDPROC
 

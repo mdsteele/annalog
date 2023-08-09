@@ -19,74 +19,104 @@
 
 ROMNAME = annalog
 
-SRCDIR = src
 OUTDIR = out
-TESTDIR = tests
-BINDIR = $(OUTDIR)/bin
 DATADIR = $(OUTDIR)/data
-GENDIR = $(OUTDIR)/gen
 OBJDIR = $(OUTDIR)/obj
+BUILD_OUT_DIR = $(OUTDIR)/build
+LIB_OUT_DIR = $(OUTDIR)/lib
+MUSIC_OUT_DIR = $(OUTDIR)/music
+SIM65_OUT_DIR = $(OUTDIR)/sim65
+SFX_OUT_DIR = $(OUTDIR)/samples
+TILE_OUT_DIR = $(OUTDIR)/tiles
+TSET_OUT_DIR = $(OUTDIR)/tilesets
 
-AHI2CHR = $(BINDIR)/ahi2chr
-BG2MAP = $(BINDIR)/bg2map
-BG2ROOM = $(BINDIR)/bg2room
-BG2TSET = $(BINDIR)/bg2tset
-LABEL2NL = $(BINDIR)/label2nl
-SNG2ASM = $(BINDIR)/sng2asm
-WAV2DM = $(BINDIR)/wav2dm
+AHI2CHR = $(BUILD_OUT_DIR)/ahi2chr
+BG2MAP = $(BUILD_OUT_DIR)/bg2map
+BG2ROOM = $(BUILD_OUT_DIR)/bg2room
+BG2TSET = $(BUILD_OUT_DIR)/bg2tset
+LABEL2NL = $(BUILD_OUT_DIR)/label2nl
+SNG2ASM = $(BUILD_OUT_DIR)/sng2asm
+WAV2DM = $(BUILD_OUT_DIR)/wav2dm
 
-CFGFILE = $(SRCDIR)/linker.cfg
-LABELFILE = $(OUTDIR)/$(ROMNAME).labels.txt
-MAPFILE = $(OUTDIR)/$(ROMNAME).map.txt
-NSFFILE = $(OUTDIR)/$(ROMNAME).nsf
-ROMFILE = $(OUTDIR)/$(ROMNAME).nes
+INC_FILES := $(shell find src -name '*.inc')
 
-AHIFILES := $(shell find $(SRCDIR) -name '*.ahi')
-ASMFILES := $(shell find $(SRCDIR) -name '*.asm')
-INCFILES := $(shell find $(SRCDIR) -name '*.inc')
-WAVFILES := $(shell find $(SRCDIR) -name '*.wav')
-ROOM_BG_FILES := $(shell find $(SRCDIR)/rooms -name '*.bg')
-
-MUSIC_SNG_FILES := $(shell find $(SRCDIR)/music -name '*.sng')
+MUSIC_SNG_FILES := $(shell find src/music -name '*.sng')
 MUSIC_ASM_FILES := \
-  $(patsubst $(SRCDIR)/music/%.sng,$(GENDIR)/music/%.asm,$(MUSIC_SNG_FILES))
-MUSIC_OBJ_FILES := $(patsubst $(GENDIR)/%.asm,$(GENDIR)/%.o,$(MUSIC_ASM_FILES))
-MUSIC_LIB_FILE = $(GENDIR)/music.lib
+  $(patsubst src/music/%.sng,$(MUSIC_OUT_DIR)/%.asm,$(MUSIC_SNG_FILES))
+MUSIC_OBJ_FILES := \
+  $(patsubst $(MUSIC_OUT_DIR)/%.asm,$(MUSIC_OUT_DIR)/%.o,$(MUSIC_ASM_FILES))
+MUSIC_LIB_FILE = $(LIB_OUT_DIR)/music.lib
 
-TSET_BG_FILES := $(shell find $(SRCDIR)/tilesets -name '*.bg')
+ROOM_BG_FILES := $(shell find src/rooms -name '*.bg')
+ROOM_ROOM_FILES := \
+  $(patsubst src/rooms/%.bg,$(DATADIR)/%.room,$(ROOM_BG_FILES))
+
+SFX_WAV_FILES := $(shell find src/samples -name '*.wav')
+SFX_DM_FILES := \
+  $(patsubst src/samples/%.wav,$(SFX_OUT_DIR)/%.dm,$(SFX_WAV_FILES))
+
+TILE_AHI_FILES := $(shell find src/tiles -name '*.ahi')
+TILE_CHR_FILES := \
+  $(patsubst src/tiles/%.ahi,$(TILE_OUT_DIR)/%.chr,$(TILE_AHI_FILES))
+
+TSET_BG_FILES := $(shell find src/tilesets -name '*.bg')
 TSET_ASM_FILES := \
-  $(patsubst $(SRCDIR)/tilesets/%.bg,$(GENDIR)/tilesets/%.asm,$(TSET_BG_FILES))
-TSET_OBJ_FILES := $(patsubst $(GENDIR)/%.asm,$(GENDIR)/%.o,$(TSET_ASM_FILES))
-TSET_LIB_FILE = $(GENDIR)/tilesets.lib
+  $(patsubst src/tilesets/%.bg,$(TSET_OUT_DIR)/%.asm,$(TSET_BG_FILES))
+TSET_OBJ_FILES := \
+  $(patsubst $(TSET_OUT_DIR)/%.asm,$(TSET_OUT_DIR)/%.o,$(TSET_ASM_FILES))
+TSET_LIB_FILE = $(LIB_OUT_DIR)/tilesets.lib
 
-CHRFILES := $(patsubst $(SRCDIR)/%.ahi,$(DATADIR)/%.chr,$(AHIFILES))
-DMFILES := $(patsubst $(SRCDIR)/%.wav,$(DATADIR)/%.dm,$(WAVFILES))
-ROM_OBJ_FILES := $(patsubst $(SRCDIR)/%.asm,$(OBJDIR)/%.o,$(ASMFILES))
-ROOMFILES := \
-  $(patsubst $(SRCDIR)/rooms/%.bg,$(DATADIR)/%.room,$(ROOM_BG_FILES))
+ROM_ASM_FILES := $(shell find src -name '*.asm')
+ROM_OBJ_FILES := $(patsubst src/%.asm,$(OBJDIR)/%.o,$(ROM_ASM_FILES))
+ROM_CFG_FILE = src/linker.cfg
+ROM_LABEL_FILE = $(OUTDIR)/$(ROMNAME).labels.txt
+ROM_MAP_FILE = $(OUTDIR)/$(ROMNAME).map.txt
+ROM_BIN_FILE = $(OUTDIR)/$(ROMNAME).nes
 
 NSF_CFG_FILE = nsf/nsf.cfg
 NSF_OBJ_FILES := $(OUTDIR)/nsf/nsf.o \
   $(OBJDIR)/audio.o $(OBJDIR)/inst.o $(OBJDIR)/music.o $(OBJDIR)/null.o
+NSF_BIN_FILE = $(OUTDIR)/$(ROMNAME).nsf
 
-SIM65_DIR = $(OUTDIR)/sim65
-SIM65_ASMS := $(shell find $(TESTDIR) -name '*.asm')
-SIM65_CFGS := $(shell find $(TESTDIR) -name '*.cfg')
-SIM65_OBJS := $(patsubst $(TESTDIR)/%.asm,$(SIM65_DIR)/%.o,$(SIM65_ASMS))
-SIM65_BINS := $(patsubst $(TESTDIR)/%.cfg,$(SIM65_DIR)/%,$(SIM65_CFGS))
+SIM65_ASM_FILES := $(shell find tests -name '*.asm')
+SIM65_CFG_FILES := $(shell find tests -name '*.cfg')
+SIM65_OBJ_FILES := \
+  $(patsubst tests/%.asm,$(SIM65_OUT_DIR)/%.o,$(SIM65_ASM_FILES))
+SIM65_BIN_FILES := \
+  $(patsubst tests/%.cfg,$(SIM65_OUT_DIR)/%,$(SIM65_CFG_FILES))
+
+#=============================================================================#
+
+define compile-asm
+	@echo "Assembling $<"
+	@mkdir -p $(@D)
+	@ca65 --target nes -W1 --debug-info -o $@ $<
+endef
+
+define compile-c
+	@echo "Compiling $<"
+	@mkdir -p $(@D)
+	@cc -Wall -Werror -o $@ $<
+endef
+
+define update-archive
+	@echo "Updating $@"
+	@mkdir -p $(@D)
+	@ar65 r $@ $?
+endef
 
 #=============================================================================#
 # Phony targets:
 
 .PHONY: all
-all: $(ROMFILE) $(NSFFILE)
+all: $(ROM_BIN_FILE) $(NSF_BIN_FILE)
 
 .PHONY: run
-run: $(ROMFILE) $(ROMFILE).ram.nl $(ROMFILE).3.nl
+run: $(ROM_BIN_FILE) $(ROM_BIN_FILE).ram.nl $(ROM_BIN_FILE).3.nl
 	fceux $< > /dev/null
 
 .PHONY: test
-test: $(SIM65_BINS)
+test: $(SIM65_BIN_FILES)
 	python3 tests/lint.py
 	@for BIN in $^; do echo sim65 $$BIN; sim65 $$BIN; done
 	python3 tests/scenario.py
@@ -98,12 +128,6 @@ clean:
 
 #=============================================================================#
 # Build tools:
-
-define compile-c
-	@echo "Compiling $<"
-	@mkdir -p $(@D)
-	@cc -Wall -Werror -o $@ $<
-endef
 
 $(AHI2CHR): build/ahi2chr.c
 	$(compile-c)
@@ -129,60 +153,55 @@ $(WAV2DM): build/wav2dm.c
 #=============================================================================#
 # Generated files:
 
-$(DATADIR)/%.chr: $(SRCDIR)/%.ahi $(AHI2CHR)
+$(TILE_OUT_DIR)/%.chr: src/tiles/%.ahi $(AHI2CHR)
 	@echo "Converting $<"
 	@mkdir -p $(@D)
 	@$(AHI2CHR) < $< > $@
+.SECONDARY: $(TILE_CHR_FILES)
 
-.SECONDARY: $(CHRFILES)
-
-$(DATADIR)/minimap.map: $(SRCDIR)/minimap.bg $(BG2MAP)
+$(DATADIR)/minimap.map: src/minimap.bg $(BG2MAP)
 	@echo "Converting $<"
 	@mkdir -p $(@D)
 	@$(BG2MAP) < $< > $@
-
 .SECONDARY: $(DATADIR)/minimap.map
 
-$(DATADIR)/title.map: $(SRCDIR)/title.bg $(BG2MAP)
+$(DATADIR)/title.map: src/title.bg $(BG2MAP)
 	@echo "Converting $<"
 	@mkdir -p $(@D)
 	@$(BG2MAP) < $< > $@
-
 .SECONDARY: $(DATADIR)/title.map
 
-$(DATADIR)/%.room: $(SRCDIR)/rooms/%.bg $(BG2ROOM)
+$(DATADIR)/%.room: src/rooms/%.bg $(BG2ROOM)
 	@echo "Converting $<"
 	@mkdir -p $(@D)
 	@$(BG2ROOM) < $< > $@
+.SECONDARY: $(ROOM_ROOM_FILES)
 
-.SECONDARY: $(ROOMFILES)
-
-$(GENDIR)/music/%.asm: $(SRCDIR)/music/%.sng $(SNG2ASM)
+$(MUSIC_OUT_DIR)/%.asm: src/music/%.sng $(SNG2ASM)
 	@echo "Generating $@"
 	@mkdir -p $(@D)
 	@$(SNG2ASM) < $< > $@
 .SECONDARY: $(MUSIC_ASM_FILES)
 
-$(GENDIR)/tilesets/%.asm: $(SRCDIR)/tilesets/%.bg $(BG2TSET) $(AHIFILES)
+$(TSET_OUT_DIR)/%.asm: src/tilesets/%.bg $(BG2TSET) $(TILE_AHI_FILES)
 	@echo "Generating $@"
 	@mkdir -p $(@D)
 	@mkdir -p $(OUTDIR)/blocks
 	@$(BG2TSET) $* < $< > $@
 .SECONDARY: $(TSET_ASM_FILES)
 
-$(DATADIR)/%.dm: $(SRCDIR)/%.wav $(WAV2DM)
+$(SFX_OUT_DIR)/%.dm: src/samples/%.wav $(WAV2DM)
 	@echo "Converting $<"
 	@mkdir -p $(@D)
 	@$(WAV2DM) < $< > $@
+.SECONDARY: $(SFX_DM_FILES)
 
-.SECONDARY: $(DMFILES)
-
-$(ROMFILE).ram.nl: $(LABELFILE) $(LABEL2NL)
+$(ROM_BIN_FILE).ram.nl: $(ROM_LABEL_FILE) $(LABEL2NL)
 	@echo "Generating $@"
 	@mkdir -p $(@D)
 	@$(LABEL2NL) 0000 07ff < $< > $@
 
-$(ROMFILE).3.nl: $(LABELFILE) $(LABEL2NL)
+$(ROM_BIN_FILE).3.nl: $(ROM_LABEL_FILE) $(LABEL2NL)
 	@echo "Generating $@"
 	@mkdir -p $(@D)
 	@$(LABEL2NL) 8000 9fff c000 ffff < $< > $@
@@ -190,114 +209,99 @@ $(ROMFILE).3.nl: $(LABELFILE) $(LABEL2NL)
 #=============================================================================#
 # ASM tests:
 
-define link-test
-	@echo "Linking $@"
-	@mkdir -p $(@D)
-	@ld65 -o $@ -C $^
-endef
-
-$(SIM65_DIR)/%.o: $(TESTDIR)/%.asm $(INCFILES)
+$(SIM65_OUT_DIR)/%.o: tests/%.asm $(INC_FILES)
 	@echo "Assembling $<"
 	@mkdir -p $(@D)
 	@ca65 --target sim6502 -o $@ $<
+.SECONDARY: $(SIM65_OBJ_FILES)
 
-.SECONDARY: $(SIM65_OBJS)
-
-$(SIM65_DIR)/%: $(TESTDIR)/%.cfg $(SIM65_DIR)/%.o $(OBJDIR)/%.o \
-                $(SIM65_DIR)/sim65.o $(OBJDIR)/null.o
-	$(link-test)
+$(SIM65_OUT_DIR)/%: \
+  tests/%.cfg $(SIM65_OUT_DIR)/%.o $(OBJDIR)/%.o \
+  $(SIM65_OUT_DIR)/sim65.o $(OBJDIR)/null.o
+	@echo "Linking $@"
+	@mkdir -p $(@D)
+	@ld65 -o $@ -C $^
 
 #=============================================================================#
 # OBJ files:
 
-define compile-asm
-	@echo "Assembling $<"
-	@mkdir -p $(@D)
-	@ca65 --target nes -W1 --debug-info -o $@ $<
-endef
-
-$(OBJDIR)/chr.o: $(SRCDIR)/chr.asm $(INCFILES) $(CHRFILES)
+$(OBJDIR)/chr.o: src/chr.asm $(INC_FILES) $(TILE_CHR_FILES)
 	$(compile-asm)
 
-$(OBJDIR)/pause.o: $(SRCDIR)/pause.asm $(INCFILES) $(DATADIR)/minimap.map
+$(OBJDIR)/pause.o: src/pause.asm $(INC_FILES) $(DATADIR)/minimap.map
 	$(compile-asm)
 
-$(OBJDIR)/sample.o: $(SRCDIR)/sample.asm $(INCFILES) $(DMFILES)
+$(OBJDIR)/sample.o: src/sample.asm $(INC_FILES) $(SFX_DM_FILES)
 	$(compile-asm)
 
-$(OBJDIR)/title.o: $(SRCDIR)/title.asm $(INCFILES) $(DATADIR)/title.map
+$(OBJDIR)/title.o: src/title.asm $(INC_FILES) $(DATADIR)/title.map
 	$(compile-asm)
 
-$(OBJDIR)/rooms/city_center.o: $(SRCDIR)/rooms/city_center.asm \
-                               $(INCFILES) \
-                               $(DATADIR)/city_center1.room \
-                               $(DATADIR)/city_center2.room
+$(OBJDIR)/rooms/city_center.o: \
+  src/rooms/city_center.asm $(INC_FILES) \
+  $(DATADIR)/city_center1.room $(DATADIR)/city_center2.room
 	$(compile-asm)
 
-$(OBJDIR)/rooms/garden_hallway.o: $(SRCDIR)/rooms/garden_hallway.asm \
-                                  $(INCFILES) \
-                                  $(DATADIR)/garden_hallway1.room \
-                                  $(DATADIR)/garden_hallway2.room
+$(OBJDIR)/rooms/garden_hallway.o: \
+  src/rooms/garden_hallway.asm $(INC_FILES) \
+  $(DATADIR)/garden_hallway1.room $(DATADIR)/garden_hallway2.room
 	$(compile-asm)
 
-$(OBJDIR)/rooms/mermaid_village.o: $(SRCDIR)/rooms/mermaid_village.asm \
-                                   $(INCFILES) \
-                                   $(DATADIR)/mermaid_village1.room \
-                                   $(DATADIR)/mermaid_village2.room
+$(OBJDIR)/rooms/mermaid_village.o: \
+  src/rooms/mermaid_village.asm $(INC_FILES) \
+  $(DATADIR)/mermaid_village1.room $(DATADIR)/mermaid_village2.room
 	$(compile-asm)
 
-$(OBJDIR)/rooms/town_outdoors.o: $(SRCDIR)/rooms/town_outdoors.asm \
-                                 $(INCFILES) \
-                                 $(DATADIR)/town_outdoors1.room \
-                                 $(DATADIR)/town_outdoors2.room \
-                                 $(DATADIR)/town_outdoors3.room
+$(OBJDIR)/rooms/town_outdoors.o: \
+  src/rooms/town_outdoors.asm $(INC_FILES) \
+  $(DATADIR)/town_outdoors1.room $(DATADIR)/town_outdoors2.room \
+  $(DATADIR)/town_outdoors3.room
 	$(compile-asm)
 
-$(OBJDIR)/rooms/%.o: $(SRCDIR)/rooms/%.asm $(INCFILES) $(DATADIR)/%.room
+$(OBJDIR)/rooms/%.o: src/rooms/%.asm $(INC_FILES) $(DATADIR)/%.room
 	$(compile-asm)
 
-$(OBJDIR)/%.o: $(SRCDIR)/%.asm $(INCFILES)
+$(OBJDIR)/%.o: src/%.asm $(INC_FILES)
 	$(compile-asm)
 
-$(GENDIR)/%.o: $(GENDIR)/%.asm $(INCFILES)
+$(MUSIC_OUT_DIR)/%.o: $(MUSIC_OUT_DIR)/%.asm $(INC_FILES)
+	$(compile-asm)
+.SECONDARY: $(MUSIC_OBJ_FILES)
+
+$(TSET_OUT_DIR)/%.o: $(TSET_OUT_DIR)/%.asm $(INC_FILES)
+	$(compile-asm)
+.SECONDARY: $(TSET_OBJ_FILES)
+
+$(OUTDIR)/nsf/nsf.o: nsf/nsf.asm $(INC_FILES)
 	$(compile-asm)
 
 #=============================================================================#
-# Archives:
+# Libraries:
 
-define update-archive
-	@echo "Updating $@"
-	@mkdir -p $(@D)
-	@ar65 r $@ $?
-endef
-
-.SECONDARY: $(MUSIC_OBJ_FILES)
 $(MUSIC_LIB_FILE): $(MUSIC_OBJ_FILES)
 	$(update-archive)
 
-.SECONDARY: $(TSET_OBJ_FILES)
 $(TSET_LIB_FILE): $(TSET_OBJ_FILES)
 	$(update-archive)
 
 #=============================================================================#
 # Game ROM:
 
-$(ROMFILE) $(LABELFILE): tests/lint.py $(CFGFILE) $(ROM_OBJ_FILES) \
-                         $(MUSIC_LIB_FILE) $(TSET_LIB_FILE)
+$(ROM_BIN_FILE) $(ROM_LABEL_FILE): \
+  tests/lint.py $(ROM_CFG_FILE) $(ROM_OBJ_FILES) \
+  $(MUSIC_LIB_FILE) $(TSET_LIB_FILE)
 	python3 tests/lint.py
 	@echo "Linking $@"
 	@mkdir -p $(@D)
-	@ld65 -Ln $(LABELFILE) -m $(MAPFILE) -o $@ -C $(CFGFILE) \
-	      $(ROM_OBJ_FILES) $(MUSIC_LIB_FILE) $(TSET_LIB_FILE)
-$(LABELFILE): $(ROMFILE)
+	@ld65 -Ln $(ROM_LABEL_FILE) -m $(ROM_MAP_FILE) -o $@ \
+	      -C $(ROM_CFG_FILE) $(ROM_OBJ_FILES) \
+	      $(MUSIC_LIB_FILE) $(TSET_LIB_FILE)
+$(ROM_LABEL_FILE): $(ROM_BIN_FILE)
 
 #=============================================================================#
 # NSF file:
 
-$(OUTDIR)/nsf/nsf.o: nsf/nsf.asm $(INCFILES)
-	$(compile-asm)
-
-$(NSFFILE): $(NSF_CFG_FILE) $(NSF_OBJ_FILES) $(MUSIC_LIB_FILE)
+$(NSF_BIN_FILE): $(NSF_CFG_FILE) $(NSF_OBJ_FILES) $(MUSIC_LIB_FILE)
 	@echo "Linking $@"
 	@mkdir -p $(@D)
 	@ld65 -o $@ -C $(NSF_CFG_FILE) $(NSF_OBJ_FILES) $(MUSIC_LIB_FILE)
