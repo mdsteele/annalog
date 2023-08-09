@@ -40,6 +40,7 @@
 .IMPORT Func_GetRandomByte
 .IMPORT Func_Noop
 .IMPORT Func_SetFlag
+.IMPORT Func_UnlockDoorDevice
 .IMPORT Ppu_ChrObjCity
 .IMPORT Ram_DeviceType_eDevice_arr
 .IMPORT Ram_MachineGoalHorz_u8_arr
@@ -316,18 +317,18 @@ _Devices_sDevice_arr:
     ;; d_byte BlockCol_u8, 16
     ;; d_byte Target_byte, eRoom::CityCenter  ; TODO: CityBuilding3
     ;; D_END
-    ;; D_STRUCT sDevice
-    ;; d_byte Type_eDevice, eDevice::Door1Open
-    ;; d_byte BlockRow_u8, 8
-    ;; d_byte BlockCol_u8, 27
-    ;; d_byte Target_byte, eRoom::CityCenter  ; TODO: CityBuilding4
-    ;; D_END
-    ;; D_STRUCT sDevice
-    ;; d_byte Type_eDevice, eDevice::Door2Open
-    ;; d_byte BlockRow_u8, 21
-    ;; d_byte BlockCol_u8, 27
-    ;; d_byte Target_byte, eRoom::CityCenter  ; TODO: CityBuilding4
-    ;; D_END
+    D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::Door1Open
+    d_byte BlockRow_u8, 8
+    d_byte BlockCol_u8, 27
+    d_byte Target_byte, eRoom::CityBuilding4
+    D_END
+    D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::Door2Open
+    d_byte BlockRow_u8, 21
+    d_byte BlockCol_u8, 27
+    d_byte Target_byte, eRoom::CityBuilding4
+    D_END
     ;; D_STRUCT sDevice
     ;; d_byte Type_eDevice, eDevice::Door1Open
     ;; d_byte BlockRow_u8, 11
@@ -393,10 +394,11 @@ _GenerateKey:
     dex
     bpl @loop
     ;; Combination is correct, so unlock the door.
-    ;; TODO: Play a sound.
+    ;; TODO: Play a sound for entering the correct combination.
     ldx #eFlag::CityCenterDoorUnlocked  ; param: flag
     jsr Func_SetFlag
-    ;; TODO: Actually unlock the door device.
+    ldx #kLockedDoorDeviceIndex  ; param: device index
+    jsr Func_UnlockDoorDevice
     @done:
     rts
 .ENDPROC

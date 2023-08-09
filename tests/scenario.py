@@ -43,6 +43,7 @@ ROOM_PARENTS = {
     'BossTemple': 'TempleSpire',
     'CityBuilding1': 'CityOutskirts',
     'CityBuilding2': 'CityCenter',
+    'CityBuilding4': 'CityCenter',
     'CityBuilding6': 'CityCenter',
     'CityFlower': 'CityDump',
     'MermaidCellar': 'MermaidHut4',

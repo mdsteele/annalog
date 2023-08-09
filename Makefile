@@ -44,26 +44,30 @@ ROMFILE = $(OUTDIR)/$(ROMNAME).nes
 AHIFILES := $(shell find $(SRCDIR) -name '*.ahi')
 ASMFILES := $(shell find $(SRCDIR) -name '*.asm')
 INCFILES := $(shell find $(SRCDIR) -name '*.inc')
-SNGFILES := $(shell find $(SRCDIR)/music -name '*.sng')
 WAVFILES := $(shell find $(SRCDIR) -name '*.wav')
 ROOM_BG_FILES := $(shell find $(SRCDIR)/rooms -name '*.bg')
+
+MUSIC_SNG_FILES := $(shell find $(SRCDIR)/music -name '*.sng')
+MUSIC_ASM_FILES := \
+  $(patsubst $(SRCDIR)/music/%.sng,$(GENDIR)/music/%.asm,$(MUSIC_SNG_FILES))
+MUSIC_OBJ_FILES := $(patsubst $(GENDIR)/%.asm,$(GENDIR)/%.o,$(MUSIC_ASM_FILES))
+MUSIC_LIB_FILE = $(GENDIR)/music.lib
+
 TSET_BG_FILES := $(shell find $(SRCDIR)/tilesets -name '*.bg')
+TSET_ASM_FILES := \
+  $(patsubst $(SRCDIR)/tilesets/%.bg,$(GENDIR)/tilesets/%.asm,$(TSET_BG_FILES))
+TSET_OBJ_FILES := $(patsubst $(GENDIR)/%.asm,$(GENDIR)/%.o,$(TSET_ASM_FILES))
+TSET_LIB_FILE = $(GENDIR)/tilesets.lib
 
 CHRFILES := $(patsubst $(SRCDIR)/%.ahi,$(DATADIR)/%.chr,$(AHIFILES))
 DMFILES := $(patsubst $(SRCDIR)/%.wav,$(DATADIR)/%.dm,$(WAVFILES))
-GENFILES := \
-  $(patsubst $(SRCDIR)/music/%.sng,$(GENDIR)/music/%.asm,$(SNGFILES)) \
-  $(patsubst $(SRCDIR)/tilesets/%.bg,$(GENDIR)/tilesets/%.asm,$(TSET_BG_FILES))
-OBJFILES := \
-  $(patsubst $(SRCDIR)/%.asm,$(OBJDIR)/%.o,$(ASMFILES)) \
-  $(patsubst $(GENDIR)/%.asm,$(GENDIR)/%.o,$(GENFILES))
+ROM_OBJ_FILES := $(patsubst $(SRCDIR)/%.asm,$(OBJDIR)/%.o,$(ASMFILES))
 ROOMFILES := \
   $(patsubst $(SRCDIR)/rooms/%.bg,$(DATADIR)/%.room,$(ROOM_BG_FILES))
 
-NSF_CFGFILE = nsf/nsf.cfg
-NSF_OBJFILES := $(OUTDIR)/nsf/nsf.o \
-  $(OBJDIR)/audio.o $(OBJDIR)/inst.o $(OBJDIR)/music.o $(OBJDIR)/null.o \
-  $(patsubst $(SRCDIR)/music/%.sng,$(GENDIR)/music/%.o,$(SNGFILES))
+NSF_CFG_FILE = nsf/nsf.cfg
+NSF_OBJ_FILES := $(OUTDIR)/nsf/nsf.o \
+  $(OBJDIR)/audio.o $(OBJDIR)/inst.o $(OBJDIR)/music.o $(OBJDIR)/null.o
 
 SIM65_DIR = $(OUTDIR)/sim65
 SIM65_ASMS := $(shell find $(TESTDIR) -name '*.asm')
@@ -79,7 +83,7 @@ all: $(ROMFILE) $(NSFFILE)
 
 .PHONY: run
 run: $(ROMFILE) $(ROMFILE).ram.nl $(ROMFILE).3.nl
-	fceux $<
+	fceux $< > /dev/null
 
 .PHONY: test
 test: $(SIM65_BINS)
@@ -157,14 +161,14 @@ $(GENDIR)/music/%.asm: $(SRCDIR)/music/%.sng $(SNG2ASM)
 	@echo "Generating $@"
 	@mkdir -p $(@D)
 	@$(SNG2ASM) < $< > $@
+.SECONDARY: $(MUSIC_ASM_FILES)
 
 $(GENDIR)/tilesets/%.asm: $(SRCDIR)/tilesets/%.bg $(BG2TSET) $(AHIFILES)
 	@echo "Generating $@"
 	@mkdir -p $(@D)
 	@mkdir -p $(OUTDIR)/blocks
 	@$(BG2TSET) $* < $< > $@
-
-.SECONDARY: $(GENFILES)
+.SECONDARY: $(TSET_ASM_FILES)
 
 $(DATADIR)/%.dm: $(SRCDIR)/%.wav $(WAV2DM)
 	@echo "Converting $<"
@@ -259,13 +263,32 @@ $(GENDIR)/%.o: $(GENDIR)/%.asm $(INCFILES)
 	$(compile-asm)
 
 #=============================================================================#
+# Archives:
+
+define update-archive
+	@echo "Updating $@"
+	@mkdir -p $(@D)
+	@ar65 r $@ $?
+endef
+
+.SECONDARY: $(MUSIC_OBJ_FILES)
+$(MUSIC_LIB_FILE): $(MUSIC_OBJ_FILES)
+	$(update-archive)
+
+.SECONDARY: $(TSET_OBJ_FILES)
+$(TSET_LIB_FILE): $(TSET_OBJ_FILES)
+	$(update-archive)
+
+#=============================================================================#
 # Game ROM:
 
-$(ROMFILE) $(LABELFILE): $(CFGFILE) $(OBJFILES) tests/lint.py
+$(ROMFILE) $(LABELFILE): tests/lint.py $(CFGFILE) $(ROM_OBJ_FILES) \
+                         $(MUSIC_LIB_FILE) $(TSET_LIB_FILE)
 	python3 tests/lint.py
 	@echo "Linking $@"
 	@mkdir -p $(@D)
-	@ld65 -Ln $(LABELFILE) -m $(MAPFILE) -o $@ -C $(CFGFILE) $(OBJFILES)
+	@ld65 -Ln $(LABELFILE) -m $(MAPFILE) -o $@ -C $(CFGFILE) \
+	      $(ROM_OBJ_FILES) $(MUSIC_LIB_FILE) $(TSET_LIB_FILE)
 $(LABELFILE): $(ROMFILE)
 
 #=============================================================================#
@@ -274,9 +297,9 @@ $(LABELFILE): $(ROMFILE)
 $(OUTDIR)/nsf/nsf.o: nsf/nsf.asm $(INCFILES)
 	$(compile-asm)
 
-$(NSFFILE): $(NSF_CFGFILE) $(NSF_OBJFILES)
+$(NSFFILE): $(NSF_CFG_FILE) $(NSF_OBJ_FILES) $(MUSIC_LIB_FILE)
 	@echo "Linking $@"
 	@mkdir -p $(@D)
-	@ld65 -o $@ -C $(NSF_CFGFILE) $(NSF_OBJFILES)
+	@ld65 -o $@ -C $(NSF_CFG_FILE) $(NSF_OBJ_FILES) $(MUSIC_LIB_FILE)
 
 #=============================================================================#
