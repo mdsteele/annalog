@@ -49,6 +49,7 @@ kMaxPassages = 8
     CityBuilding1
     CityBuilding2
     CityBuilding4
+    CityBuilding5
     CityBuilding6
     CityCenter
     CityDrain

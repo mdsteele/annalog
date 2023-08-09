@@ -28,6 +28,8 @@ import sys
 PERMITTED_DOOR_MISMATCHES = {
     'BossGarden': (10, 7),
     'GardenTower': (9, 7),
+    'CityBuilding5': (2, 21),
+    'CityCenter': (1, 21),
 }
 
 PERMITTED_OOB_CELLS = set([
@@ -44,6 +46,7 @@ ROOM_PARENTS = {
     'CityBuilding1': 'CityOutskirts',
     'CityBuilding2': 'CityCenter',
     'CityBuilding4': 'CityCenter',
+    'CityBuilding5': 'CityCenter',
     'CityBuilding6': 'CityCenter',
     'CityFlower': 'CityDump',
     'MermaidCellar': 'MermaidHut4',
@@ -356,8 +359,9 @@ def test_room_doors(areas):
                     if dest_door['dest_room'] != room_name: continue
                     if dest_door['door_number'] != door_number: continue
                     if dest_door['cell'] != door['cell']:
-                        print('SCENARIO: {}/{} door cell mismatch'.format(
-                            room_name, dest_room_name))
+                        print('SCENARIO: {}/{} door cell mismatch: {} vs. {}'.
+                              format(room_name, dest_room_name, door['cell'],
+                                     dest_door['cell']))
                         failed = True
                     break
                 else:

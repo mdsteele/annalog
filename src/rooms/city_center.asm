@@ -98,7 +98,7 @@ kSemaphore4PlatformIndex = 3
     d_byte NumMachines_u8, 4
     d_addr Machines_sMachine_arr_ptr, _Machines_sMachine_arr
     d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjCity)
-    d_addr Tick_func_ptr, FuncC_City_Center_TickRoom
+    d_addr Tick_func_ptr, FuncA_Room_CityCenter_TickRoom
     d_addr Draw_func_ptr, Func_Noop
     d_addr Ext_sRoomExt_ptr, _Ext_sRoomExt
     D_END
@@ -109,7 +109,7 @@ _Ext_sRoomExt:
     d_addr Actors_sActor_arr_ptr, _Actors_sActor_arr
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
     d_addr Passages_sPassage_arr_ptr, _Passages_sPassage_arr
-    d_addr Enter_func_ptr, FuncC_City_Center_EnterRoom
+    d_addr Enter_func_ptr, FuncA_Room_CityCenter_EnterRoom
     d_addr FadeIn_func_ptr, Func_Noop
     D_END
 _TerrainData:
@@ -329,18 +329,18 @@ _Devices_sDevice_arr:
     d_byte BlockCol_u8, 27
     d_byte Target_byte, eRoom::CityBuilding4
     D_END
-    ;; D_STRUCT sDevice
-    ;; d_byte Type_eDevice, eDevice::Door1Open
-    ;; d_byte BlockRow_u8, 11
-    ;; d_byte BlockCol_u8, 43
-    ;; d_byte Target_byte, eRoom::CityCenter  ; TODO: CityBuilding5
-    ;; D_END
-    ;; D_STRUCT sDevice
-    ;; d_byte Type_eDevice, eDevice::Door2Open
-    ;; d_byte BlockRow_u8, 16
-    ;; d_byte BlockCol_u8, 43
-    ;; d_byte Target_byte, eRoom::CityCenter  ; TODO: CityBuilding5
-    ;; D_END
+    D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::Door1Open
+    d_byte BlockRow_u8, 11
+    d_byte BlockCol_u8, 43
+    d_byte Target_byte, eRoom::CityBuilding5
+    D_END
+    D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::Door2Open
+    d_byte BlockRow_u8, 16
+    d_byte BlockCol_u8, 43
+    d_byte Target_byte, eRoom::CityBuilding5
+    D_END
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None
 _Passages_sPassage_arr:
@@ -360,47 +360,6 @@ _Passages_sPassage_arr:
     d_byte SpawnBlock_u8, 42
     D_END
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
-.ENDPROC
-
-.PROC FuncC_City_Center_EnterRoom
-_UnlockDoor:
-    ;; If the door has already been unlocked, unlock it.
-    flag_bit Sram_ProgressFlags_arr, eFlag::CityCenterDoorUnlocked
-    beq @done
-    lda #eDevice::Door1Unlocked
-    sta Ram_DeviceType_eDevice_arr + kLockedDoorDeviceIndex
-    @done:
-_GenerateKey:
-    ;; TODO: Play a sound for random key generation.
-    ;; Generate a random key combination, with each digit between 1 and 4.
-    ldx #kNumKeyDigits - 1
-    @loop:
-    jsr Func_GetRandomByte  ; preserves X, returns A
-    and #$03
-    add #1
-    sta Zp_RoomState + sState::Key_u8_arr, x
-    dex
-    bpl @loop
-    rts
-.ENDPROC
-
-.PROC FuncC_City_Center_TickRoom
-    ;; Check the lock combination against the key.
-    ldx #kNumKeyDigits - 1
-    @loop:
-    lda Zp_RoomState + sState::Lock_u8_arr, x
-    cmp Zp_RoomState + sState::Key_u8_arr, x
-    bne @done  ; combination is incorrect
-    dex
-    bpl @loop
-    ;; Combination is correct, so unlock the door.
-    ;; TODO: Play a sound for entering the correct combination.
-    ldx #eFlag::CityCenterDoorUnlocked  ; param: flag
-    jsr Func_SetFlag
-    ldx #kLockedDoorDeviceIndex  ; param: device index
-    jsr Func_UnlockDoorDevice
-    @done:
-    rts
 .ENDPROC
 
 ;;; ReadReg implemention for the semaphore machines in this room.
@@ -494,6 +453,51 @@ _WriteRegL:
     sbc #kNumKeyDigits  ; carry is already set
     @setIndex:
     tax
+    rts
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Room"
+
+.PROC FuncA_Room_CityCenter_EnterRoom
+_UnlockDoor:
+    ;; If the door has already been unlocked, unlock it.
+    flag_bit Sram_ProgressFlags_arr, eFlag::CityCenterDoorUnlocked
+    beq @done
+    lda #eDevice::Door1Unlocked
+    sta Ram_DeviceType_eDevice_arr + kLockedDoorDeviceIndex
+    @done:
+_GenerateKey:
+    ;; TODO: Play a sound for random key generation.
+    ;; Generate a random key combination, with each digit between 1 and 4.
+    ldx #kNumKeyDigits - 1
+    @loop:
+    jsr Func_GetRandomByte  ; preserves X, returns A
+    and #$03
+    add #1
+    sta Zp_RoomState + sState::Key_u8_arr, x
+    dex
+    bpl @loop
+    rts
+.ENDPROC
+
+.PROC FuncA_Room_CityCenter_TickRoom
+    ;; Check the lock combination against the key.
+    ldx #kNumKeyDigits - 1
+    @loop:
+    lda Zp_RoomState + sState::Lock_u8_arr, x
+    cmp Zp_RoomState + sState::Key_u8_arr, x
+    bne @done  ; combination is incorrect
+    dex
+    bpl @loop
+    ;; Combination is correct, so unlock the door.
+    ;; TODO: Play a sound for entering the correct combination.
+    ldx #eFlag::CityCenterDoorUnlocked  ; param: flag
+    jsr Func_SetFlag
+    ldx #kLockedDoorDeviceIndex  ; param: device index
+    jsr Func_UnlockDoorDevice
+    @done:
     rts
 .ENDPROC
 

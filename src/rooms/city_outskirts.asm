@@ -94,7 +94,7 @@ kLauncherInitPlatformTop = \
     d_byte NumMachines_u8, 1
     d_addr Machines_sMachine_arr_ptr, _Machines_sMachine_arr
     d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjCity)
-    d_addr Tick_func_ptr, FuncC_City_Outskirts_TickRoom
+    d_addr Tick_func_ptr, FuncA_Room_CityOutskirts_TickRoom
     d_addr Draw_func_ptr, FuncC_City_Outskirts_DrawRoom
     d_addr Ext_sRoomExt_ptr, _Ext_sRoomExt
     D_END
@@ -105,7 +105,7 @@ _Ext_sRoomExt:
     d_addr Actors_sActor_arr_ptr, Data_Empty_sActor_arr
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
     d_addr Passages_sPassage_arr_ptr, _Passages_sPassage_arr
-    d_addr Enter_func_ptr, FuncC_City_Outskirts_EnterRoom
+    d_addr Enter_func_ptr, FuncA_Room_CityOutskirts_EnterRoom
     d_addr FadeIn_func_ptr, Func_Noop
     D_END
 _TerrainData:
@@ -122,14 +122,14 @@ _Machines_sMachine_arr:
     d_byte ScrollGoalY_u8, $20
     d_byte RegNames_u8_arr4, 0, 0, 0, "Y"
     d_byte MainPlatform_u8, kLauncherPlatformIndex
-    d_addr Init_func_ptr, FuncC_City_OutskirtsLauncher_InitReset
+    d_addr Init_func_ptr, FuncA_Room_CityOutskirtsLauncher_InitReset
     d_addr ReadReg_func_ptr, FuncC_City_OutskirtsLauncher_ReadReg
     d_addr WriteReg_func_ptr, Func_Noop
-    d_addr TryMove_func_ptr, FuncC_City_OutskirtsLauncher_TryMove
-    d_addr TryAct_func_ptr, FuncC_City_OutskirtsLauncher_TryAct
-    d_addr Tick_func_ptr, FuncC_City_OutskirtsLauncher_Tick
+    d_addr TryMove_func_ptr, FuncA_Machine_CityOutskirtsLauncher_TryMove
+    d_addr TryAct_func_ptr, FuncA_Machine_CityOutskirtsLauncher_TryAct
+    d_addr Tick_func_ptr, FuncA_Machine_CityOutskirtsLauncher_Tick
     d_addr Draw_func_ptr, FuncA_Objects_DrawLauncherMachineHorz
-    d_addr Reset_func_ptr, FuncC_City_OutskirtsLauncher_InitReset
+    d_addr Reset_func_ptr, FuncA_Room_CityOutskirtsLauncher_InitReset
     D_END
     .assert * - :- <= kMaxMachines * .sizeof(sMachine), error
 _Platforms_sPlatform_arr:
@@ -186,7 +186,32 @@ _Passages_sPassage_arr:
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
 .ENDPROC
 
-.PROC FuncC_City_Outskirts_EnterRoom
+.PROC FuncC_City_Outskirts_DrawRoom
+_BgAnimation:
+    ;; If the city breaker hasn't been activated yet, disable the BG circuit
+    ;; animation.
+    flag_bit Sram_ProgressFlags_arr, eFlag::BreakerCity
+    bne @done
+    lda #<.bank(Ppu_ChrBgAnimStatic)
+    sta Zp_Chr0cBank_u8
+    @done:
+_RockWall:
+    ldx #kRockWallPlatformIndex  ; param: platform index
+    jmp FuncA_Objects_DrawRocksPlatformVert
+.ENDPROC
+
+.PROC FuncC_City_OutskirtsLauncher_ReadReg
+    lda #kLauncherMaxPlatformTop + kTileHeightPx
+    sub Ram_PlatformTop_i16_0_arr + kLauncherPlatformIndex
+    div #kBlockHeightPx
+    rts
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Room"
+
+.PROC FuncA_Room_CityOutskirts_EnterRoom
     flag_bit Sram_ProgressFlags_arr, eFlag::CityOutskirtsBlastedRocks
     bne @removeRocks
     @loadRocketLauncher:
@@ -198,7 +223,7 @@ _Passages_sPassage_arr:
     rts
 .ENDPROC
 
-.PROC FuncC_City_Outskirts_TickRoom
+.PROC FuncA_Room_CityOutskirts_TickRoom
     ;; Find the rocket (if any).  If there isn't one, we're done.
     lda #eActor::ProjRocket  ; param: actor type to find
     jsr Func_FindActorWithType  ; returns C and X
@@ -224,39 +249,22 @@ _Passages_sPassage_arr:
     rts
 .ENDPROC
 
-.PROC FuncC_City_Outskirts_DrawRoom
-_BgAnimation:
-    ;; If the city breaker hasn't been activated yet, disable the BG circuit
-    ;; animation.
-    flag_bit Sram_ProgressFlags_arr, eFlag::BreakerCity
-    bne @done
-    lda #<.bank(Ppu_ChrBgAnimStatic)
-    sta Zp_Chr0cBank_u8
-    @done:
-_RockWall:
-    ldx #kRockWallPlatformIndex  ; param: platform index
-    jmp FuncA_Objects_DrawRocksPlatformVert
-.ENDPROC
-
-.PROC FuncC_City_OutskirtsLauncher_InitReset
+.PROC FuncA_Room_CityOutskirtsLauncher_InitReset
     lda #kLauncherInitGoalY
     sta Ram_MachineGoalVert_u8_arr + kLauncherMachineIndex
     rts
 .ENDPROC
 
-.PROC FuncC_City_OutskirtsLauncher_ReadReg
-    lda #kLauncherMaxPlatformTop + kTileHeightPx
-    sub Ram_PlatformTop_i16_0_arr + kLauncherPlatformIndex
-    div #kBlockHeightPx
-    rts
-.ENDPROC
+;;;=========================================================================;;;
 
-.PROC FuncC_City_OutskirtsLauncher_TryMove
+.SEGMENT "PRGA_Machine"
+
+.PROC FuncA_Machine_CityOutskirtsLauncher_TryMove
     lda #kLauncherMaxGoalY  ; param: max goal vert
     jmp FuncA_Machine_GenericTryMoveY
 .ENDPROC
 
-.PROC FuncC_City_OutskirtsLauncher_TryAct
+.PROC FuncA_Machine_CityOutskirtsLauncher_TryAct
     ;; If the launcher is blocked, fail.
     lda Ram_MachineGoalVert_u8_arr + kLauncherMachineIndex
     jne FuncA_Machine_Error
@@ -265,7 +273,7 @@ _RockWall:
     jmp FuncA_Machine_LauncherTryAct
 .ENDPROC
 
-.PROC FuncC_City_OutskirtsLauncher_Tick
+.PROC FuncA_Machine_CityOutskirtsLauncher_Tick
     ldax #kLauncherMaxPlatformTop  ; param: max platform top
     jsr FuncA_Machine_GenericMoveTowardGoalVert  ; returns Z
     jeq FuncA_Machine_ReachedGoal
