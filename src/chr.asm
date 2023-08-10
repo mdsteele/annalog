@@ -68,6 +68,7 @@
 .INCLUDE "platforms/stepstone.inc"
 .INCLUDE "rooms/boss_garden.inc"
 .INCLUDE "rooms/boss_temple.inc"
+.INCLUDE "rooms/city_building2.inc"
 .INCLUDE "rooms/core_south.inc"
 .INCLUDE "rooms/garden_tower.inc"
 .INCLUDE "rooms/mine_west.inc"
@@ -272,7 +273,9 @@
 .PROC Ppu_ChrBgBuilding
 :   .incbin "out/tiles/building1.chr"
     .incbin "out/tiles/building2.chr"
-    .res $1c * kSizeofChr
+    .incbin "out/tiles/building3.chr"
+    .incbin "out/tiles/building4.chr"
+    .res $0a * kSizeofChr
     .incbin "out/tiles/console.chr"
     .assert * - :- = kSizeofChr * $40, error
 .ENDPROC
@@ -1053,7 +1056,9 @@
     .incbin "out/tiles/launcher_horz.chr"
     .assert * - :- = (kTileIdObjRocksFirst - $80) * kSizeofChr, error
     .incbin "out/tiles/rocks.chr"
-    .res $06 * kSizeofChr
+    .res $02 * kSizeofChr
+    .assert * - :- = (kTileIdObjComboFirst - $80) * kSizeofChr, error
+    .incbin "out/tiles/combo.chr"
     .assert * - :- = (kTileIdObjRodentFirst - $80) * kSizeofChr, error
     .incbin "out/tiles/rodent.chr"
     .res $07 * kSizeofChr

@@ -21,19 +21,56 @@
 .INCLUDE "../device.inc"
 .INCLUDE "../dialog.inc"
 .INCLUDE "../flag.inc"
+.INCLUDE "../machines/semaphore.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../platform.inc"
+.INCLUDE "../ppu.inc"
 .INCLUDE "../room.inc"
+.INCLUDE "city_building2.inc"
 
 .IMPORT DataA_Room_Building_sTileset
 .IMPORT Data_Empty_sActor_arr
 .IMPORT Data_Empty_sDialog
-.IMPORT Data_Empty_sPlatform_arr
+.IMPORT FuncA_Objects_Draw1x1Shape
+.IMPORT FuncA_Objects_MoveShapeLeftByA
+.IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
+.IMPORT Func_GetRandomByte
 .IMPORT Func_Noop
 .IMPORT Func_SetFlag
 .IMPORT Ppu_ChrObjCity
 .IMPORT Sram_ProgressFlags_arr
 .IMPORTZP Zp_DialogAnsweredYes_bool
+.IMPORTZP Zp_FrameCounter_u8
+.IMPORTZP Zp_RoomState
+
+;;;=========================================================================;;;
+
+;;; The platform index for the zone where the last key combination digit is
+;;; drawn.
+kLastDigitPlatformIndex = 0
+
+;;; How many frames after entering the room before the first digit stops
+;;; spinning.
+kInitialSpinFrames = 30
+;;; How many frames after a digit stops spinning before the next digit stops
+;;; spinning.
+kPerDigitSpinFrames = 10
+
+;;; The OBJ palette number for drawing key combination digits.
+kPaletteObjComboDigit = 1
+
+;;;=========================================================================;;;
+
+;;; Defines room-specific state data for this particular room.
+.STRUCT sState
+    ;; The combination that appears on the monitors.
+    Key_u8_arr .res kNumSemaphoreKeyDigits
+    ;; The number of digits that have stopped spinning so far.
+    NumDigitsSet_u8 .byte
+    ;; How many more frames until the next digit stops spinning.
+    SpinTimer_u8 .byte
+.ENDSTRUCT
+.ASSERT .sizeof(sState) <= kRoomStateSize, error
 
 ;;;=========================================================================;;;
 
@@ -51,23 +88,34 @@
     d_byte NumMachines_u8, 0
     d_addr Machines_sMachine_arr_ptr, 0
     d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjCity)
-    d_addr Tick_func_ptr, Func_Noop
+    d_addr Tick_func_ptr, FuncA_Room_CityBuilding2_TickRoom
     d_addr Draw_func_ptr, FuncC_City_Building2_DrawRoom
     d_addr Ext_sRoomExt_ptr, _Ext_sRoomExt
     D_END
 _Ext_sRoomExt:
     D_STRUCT sRoomExt
     d_addr Terrain_sTileset_ptr, DataA_Room_Building_sTileset
-    d_addr Platforms_sPlatform_arr_ptr, Data_Empty_sPlatform_arr
+    d_addr Platforms_sPlatform_arr_ptr, _Platforms_sPlatform_arr
     d_addr Actors_sActor_arr_ptr, Data_Empty_sActor_arr
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
     d_addr Passages_sPassage_arr_ptr, 0
-    d_addr Enter_func_ptr, FuncC_City_Building2_EnterRoom
+    d_addr Enter_func_ptr, FuncA_Room_CityBuilding2_EnterRoom
     d_addr FadeIn_func_ptr, Func_Noop
     D_END
 _TerrainData:
 :   .incbin "out/data/city_building2.room"
     .assert * - :- = 16 * 15, error
+_Platforms_sPlatform_arr:
+:   .assert * - :- = kLastDigitPlatformIndex * .sizeof(sPlatform), error
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Zone
+    d_word WidthPx_u16, $08
+    d_byte HeightPx_u8, $08
+    d_word Left_i16,  $00a4
+    d_word Top_i16,   $0058
+    D_END
+    .assert * - :- <= kMaxPlatforms * .sizeof(sPlatform), error
+    .byte ePlatform::None
 _Devices_sDevice_arr:
 :   D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Door1Unlocked
@@ -85,14 +133,68 @@ _Devices_sDevice_arr:
     .byte eDevice::None
 .ENDPROC
 
-.PROC FuncC_City_Building2_EnterRoom
-    ;; TODO: Play a sound for random key generation.
-    ;; TODO: Generate a random key combination.
+.PROC FuncC_City_Building2_DrawRoom
+    flag_bit Sram_ProgressFlags_arr, eFlag::CityCenterDoorUnlocked
+    bne @done
+    ldx #kLastDigitPlatformIndex  ; param: platform index
+    jsr FuncA_Objects_SetShapePosToPlatformTopLeft
+    ldx #kNumSemaphoreKeyDigits - 1
+    @loop:
+    cpx Zp_RoomState + sState::NumDigitsSet_u8
+    bge @spinning
+    lda Zp_RoomState + sState::Key_u8_arr, x
+    sbc #0  ; carry is clear
+    bpl @draw  ; unconditional
+    @spinning:
+    txa
+    adc Zp_FrameCounter_u8  ; carry is set
+    and #$03
+    @draw:
+    .assert kTileIdObjComboFirst .mod 4 = 0, error
+    ora #kTileIdObjComboFirst  ; param: tile ID
+    ldy #kPaletteObjComboDigit  ; param: object flags
+    jsr FuncA_Objects_Draw1x1Shape  ; preserves X
+    lda #kBlockWidthPx  ; param: offset
+    jsr FuncA_Objects_MoveShapeLeftByA  ; preserves X
+    dex
+    bpl @loop
+    @done:
     rts
 .ENDPROC
 
-.PROC FuncC_City_Building2_DrawRoom
-    ;; TODO: Draw the key combination on the wall.
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Room"
+
+.PROC FuncA_Room_CityBuilding2_EnterRoom
+    flag_bit Sram_ProgressFlags_arr, eFlag::CityCenterDoorUnlocked
+    bne @done
+    ;; TODO: Play a sound for random key generation.
+    lda #kInitialSpinFrames
+    sta Zp_RoomState + sState::SpinTimer_u8
+    ;; Generate a random key combination, with each digit between 1 and 4.
+    ldx #kNumSemaphoreKeyDigits - 1
+    @loop:
+    jsr Func_GetRandomByte  ; preserves X, returns A
+    and #$03
+    add #1
+    sta Zp_RoomState + sState::Key_u8_arr, x
+    dex
+    bpl @loop
+    @done:
+    rts
+.ENDPROC
+
+.PROC FuncA_Room_CityBuilding2_TickRoom
+    dec Zp_RoomState + sState::SpinTimer_u8
+    bne @done
+    lda Zp_RoomState + sState::NumDigitsSet_u8
+    cmp #kNumSemaphoreKeyDigits
+    bge @done
+    inc Zp_RoomState + sState::NumDigitsSet_u8
+    lda #kPerDigitSpinFrames
+    sta Zp_RoomState + sState::SpinTimer_u8
+    @done:
     rts
 .ENDPROC
 

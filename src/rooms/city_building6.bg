@@ -1,28 +1,31 @@
 @BG 0 0 0 16x24
 >building_0
+>building_1
+>building_2
+>building_3
 >building_4
 >building_5
 
-    BOBCBDBCBCBCBCBCBDBCBCBP
-    CD                    BE
-    BF      AH            CC
-    CD      AJ          AMBE
-    BF    BGCICICJCIBICIBJBL
-    BKBH    AC            CC
-    CDAB    AE  AM    AP  BE
-    BKCIBJCICICIBIBH      CC
-    BF                  BGBL
-    CD                AP  BE
-    BF  AO    AP  BGBH    CC
-    CD                    BE
-    BKBICICIBJCIBIBH  AO  BE
-    CD                    CC
-    BF  AP    AP        BGBL
-    BF          AN        CC
-    CD      BGBJCIBICICIBJBL
-    BF                    BE
-    BMCB  AN  AP      AP  CC
-    BOCGCICJCICIBJBH      BE
-    CD            AH    BGBL
-    BFAN          AJ      CC
-    BMBABABBBABBBABABABBBABN
+    EOECEDECECECECECEDECECEP
+    FD                    EE
+    EF      AH    BB      FC
+    FD      AJ    BDBC  AMEE
+    EF    EGFIFIFJFIEIFIEJEL
+    EKEH    AC            FC
+    FDAB    AE  AM    AP  EE
+    EKFIEJFIFIFIEIEH      FC
+    EF                  EGEL
+    FD                AP  EE
+    EF  AO    AP  EGEH    FC
+    FD                    EE
+    EKEIFIFIEJFIEIEH  AO  EE
+    FD                    FC
+    EF  AP    AP        EGEL
+    EF          AN  BABC  FC
+    FD      EGEJFIEIFIFIEJEL
+    EF                    EE
+    EMFB  AN  AP      AP  FC
+    EOFGFIFJFIFIEJEH      EE
+    FD            AH    EGEL
+    EFAN  BEBFBG  AJ    BGFC
+    EMEAEAEBEAEBEAEAEAEBEAEN

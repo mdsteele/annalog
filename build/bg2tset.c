@@ -54,6 +54,8 @@ static const struct {
   {0xb4, "boiler"},
   {0x80, "building1"},
   {0x90, "building2"},
+  {0xa0, "building3"},
+  {0xb0, "building4"},
   {0x80, "cave"},
   {0xea, "circuit_anim0"},
   {0x80, "city1"},

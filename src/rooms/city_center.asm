@@ -53,9 +53,6 @@
 
 ;;;=========================================================================;;;
 
-;;; The number of digits in the combination for the locked door.
-.DEFINE kNumKeyDigits 5
-
 ;;; The device index for the locked door in this room.
 kLockedDoorDeviceIndex = 1
 
@@ -76,9 +73,9 @@ kSemaphore4PlatformIndex = 3
 ;;; Defines room-specific state data for this particular room.
 .STRUCT sState
     ;; The combination that must be entered into the lock to unlock the door.
-    Key_u8_arr  .res kNumKeyDigits
+    Key_u8_arr  .res kNumSemaphoreKeyDigits
     ;; The combination currently entered into the door.
-    Lock_u8_arr .res kNumKeyDigits
+    Lock_u8_arr .res kNumSemaphoreKeyDigits
 .ENDSTRUCT
 .ASSERT .sizeof(sState) <= kRoomStateSize, error
 
@@ -441,16 +438,16 @@ _WriteRegL:
 .ENDPROC
 
 ;;; Returns the combination array index for the specified semaphore machine,
-;;; modulo kNumKeyDigits.
+;;; modulo kNumSemaphoreKeyDigits.
 ;;; @param Y The machine index.
 ;;; @return X The array index.
 ;;; @preserve Y, T0+
 .PROC FuncC_City_GetSemaphoreArrayIndex
     lda Ram_MachineGoalHorz_u8_arr, y  ; combination array index
-    .assert kNumKeyDigits >= 5, error
-    cmp #kNumKeyDigits
+    .assert kNumSemaphoreKeyDigits >= 5, error
+    cmp #kNumSemaphoreKeyDigits
     blt @setIndex
-    sbc #kNumKeyDigits  ; carry is already set
+    sbc #kNumSemaphoreKeyDigits  ; carry is already set
     @setIndex:
     tax
     rts
@@ -471,7 +468,7 @@ _UnlockDoor:
 _GenerateKey:
     ;; TODO: Play a sound for random key generation.
     ;; Generate a random key combination, with each digit between 1 and 4.
-    ldx #kNumKeyDigits - 1
+    ldx #kNumSemaphoreKeyDigits - 1
     @loop:
     jsr Func_GetRandomByte  ; preserves X, returns A
     and #$03
@@ -484,7 +481,7 @@ _GenerateKey:
 
 .PROC FuncA_Room_CityCenter_TickRoom
     ;; Check the lock combination against the key.
-    ldx #kNumKeyDigits - 1
+    ldx #kNumSemaphoreKeyDigits - 1
     @loop:
     lda Zp_RoomState + sState::Lock_u8_arr, x
     cmp Zp_RoomState + sState::Key_u8_arr, x
