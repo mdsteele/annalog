@@ -281,16 +281,17 @@ _Done:
     .byte  8,  2
     .byte  9,  0
     .byte  9,  1
-    .byte  9,  2
-    .byte  9,  3
     .byte 10,  0
-    .byte 10,  1
     .byte 10,  2
     .byte 10,  3
-    .byte 10,  4
     .byte 11,  0
     .byte 11,  1
+    .byte 11,  2
+    .byte 11,  3
+    .byte 11,  4
     .byte 12,  0
+    .byte 12,  1
+    .byte 13,  0
     .byte $ff
 .ENDPROC
 
@@ -448,12 +449,11 @@ _Done:
 .ENDPROC
 
 .PROC DataA_Pause_ShadowAreaCells_u8_arr2_arr
-    .byte 12, 4
     .byte 12, 5
     .byte 12, 6
     .byte 12, 7
     .byte 12, 8
-    .byte 13, 2
+    .byte 12, 9
     .byte 13, 3
     .byte 13, 4
     .byte 13, 5
@@ -461,12 +461,13 @@ _Done:
     .byte 13, 7
     .byte 13, 8
     .byte 13, 9
-    .byte 14, 3
+    .byte 13, 10
     .byte 14, 4
     .byte 14, 5
     .byte 14, 6
     .byte 14, 7
     .byte 14, 8
+    .byte 14, 9
     .byte $ff
 .ENDPROC
 
@@ -583,12 +584,6 @@ _Done:
     D_END
     D_STRUCT sMarker
     d_byte Row_u8, 9
-    d_byte Col_u8, 3  ; room: CryptFlower
-    d_byte If_eFlag, 0
-    d_byte Not_eFlag, eFlag::FlowerCrypt
-    D_END
-    D_STRUCT sMarker
-    d_byte Row_u8, 9
     d_byte Col_u8, 7  ; room: GardenTower
     d_byte If_eFlag, eFlag::GardenTowerCratesPlaced
     d_byte Not_eFlag, eFlag::BreakerGarden
@@ -601,9 +596,9 @@ _Done:
     D_END
     D_STRUCT sMarker
     d_byte Row_u8, 10
-    d_byte Col_u8, 4  ; room: CryptGallery
+    d_byte Col_u8, 3  ; room: CryptFlower
     d_byte If_eFlag, 0
-    d_byte Not_eFlag, eFlag::UpgradeOpGoto
+    d_byte Not_eFlag, eFlag::FlowerCrypt
     D_END
     D_STRUCT sMarker
     d_byte Row_u8, 10
@@ -619,21 +614,27 @@ _Done:
     D_END
     D_STRUCT sMarker
     d_byte Row_u8, 11
+    d_byte Col_u8, 4  ; room: CryptGallery
+    d_byte If_eFlag, 0
+    d_byte Not_eFlag, eFlag::UpgradeOpGoto
+    D_END
+    D_STRUCT sMarker
+    d_byte Row_u8, 11
     d_byte Col_u8, 11  ; room: MermaidVillage
     d_byte If_eFlag, eFlag::MermaidHut1MetQueen
     d_byte Not_eFlag, eFlag::GardenTowerCratesPlaced
     D_END
     D_STRUCT sMarker
     d_byte Row_u8, 12
-    d_byte Col_u8, 0  ; room: BossCrypt
-    d_byte If_eFlag, 0
-    d_byte Not_eFlag, eFlag::BreakerCrypt
-    D_END
-    D_STRUCT sMarker
-    d_byte Row_u8, 12
     d_byte Col_u8, 17  ; room: LavaStation
     d_byte If_eFlag, 0
     d_byte Not_eFlag, eFlag::UpgradeOpCopy
+    D_END
+    D_STRUCT sMarker
+    d_byte Row_u8, 13
+    d_byte Col_u8, 0  ; room: BossCrypt
+    d_byte If_eFlag, 0
+    d_byte Not_eFlag, eFlag::BreakerCrypt
     D_END
     D_STRUCT sMarker
     d_byte Row_u8, 13

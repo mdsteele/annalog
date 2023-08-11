@@ -19,34 +19,26 @@
 
 .INCLUDE "../actor.inc"
 .INCLUDE "../device.inc"
-.INCLUDE "../flag.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../platform.inc"
 .INCLUDE "../room.inc"
-.INCLUDE "../spawn.inc"
 
 .IMPORT DataA_Room_Crypt_sTileset
 .IMPORT Data_Empty_sDevice_arr
 .IMPORT Func_Noop
-.IMPORT Func_SetFlag
 .IMPORT Ppu_ChrObjCrypt
-
-;;;=========================================================================;;;
-
-;;; The index of the vertical passage at the top of the room.
-kShaftPassageIndex = 0
 
 ;;;=========================================================================;;;
 
 .SEGMENT "PRGC_Crypt"
 
-.EXPORT DataC_Crypt_Landing_sRoom
-.PROC DataC_Crypt_Landing_sRoom
+.EXPORT DataC_Crypt_Nest_sRoom
+.PROC DataC_Crypt_Nest_sRoom
     D_STRUCT sRoom
     d_byte MinScrollX_u8, $00
     d_word MaxScrollX_u16, $0000
-    d_byte Flags_bRoom, bRoom::Tall | eArea::Crypt
-    d_byte MinimapStartRow_u8, 7
+    d_byte Flags_bRoom, eArea::Crypt
+    d_byte MinimapStartRow_u8, 9
     d_byte MinimapStartCol_u8, 0
     d_addr TerrainData_ptr, _TerrainData
     d_byte NumMachines_u8, 0
@@ -63,77 +55,62 @@ _Ext_sRoomExt:
     d_addr Actors_sActor_arr_ptr, _Actors_sActor_arr
     d_addr Devices_sDevice_arr_ptr, Data_Empty_sDevice_arr
     d_addr Passages_sPassage_arr_ptr, _Passages_sPassage_arr
-    d_addr Enter_func_ptr, FuncA_Room_CryptLanding_EnterRoom
+    d_addr Enter_func_ptr, Func_Noop
     d_addr FadeIn_func_ptr, Func_Noop
     D_END
 _TerrainData:
-:   .incbin "out/data/crypt_landing.room"
-    .assert * - :- = 17 * 24, error
+:   .incbin "out/data/crypt_nest.room"
+    .assert * - :- = 17 * 15, error
 _Platforms_sPlatform_arr:
 :   D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Harm
-    d_word WidthPx_u16, $0f
-    d_byte HeightPx_u8, $08
-    d_word Left_i16,  $0020
-    d_word Top_i16,   $013e
-    D_END
-    D_STRUCT sPlatform
-    d_byte Type_ePlatform, ePlatform::Harm
-    d_word WidthPx_u16, $0f
-    d_byte HeightPx_u8, $08
-    d_word Left_i16,  $0030
-    d_word Top_i16,   $014e
-    D_END
-    D_STRUCT sPlatform
-    d_byte Type_ePlatform, ePlatform::Harm
-    d_word WidthPx_u16, $80
+    d_word WidthPx_u16, $40
     d_byte HeightPx_u8, $08
     d_word Left_i16,  $0040
-    d_word Top_i16,   $015e
+    d_word Top_i16,   $0076
     D_END
     D_STRUCT sPlatform
-    d_byte Type_ePlatform, ePlatform::Harm
-    d_word WidthPx_u16, $0f
+    d_byte Type_ePlatform, ePlatform::Solid
+    d_word WidthPx_u16, $40
     d_byte HeightPx_u8, $08
-    d_word Left_i16,  $00c1
-    d_word Top_i16,   $014e
+    d_word Left_i16,  $0040
+    d_word Top_i16,   $0078
     D_END
     .assert * - :- <= kMaxPlatforms * .sizeof(sPlatform), error
     .byte ePlatform::None
 _Actors_sActor_arr:
-:   ;; TODO: add some baddies?
+:   D_STRUCT sActor
+    d_byte Type_eActor, eActor::BadSpider
+    d_word PosX_i16, $0058
+    d_word PosY_i16, $0028
+    d_byte Param_byte, 0
+    D_END
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::BadSpider
+    d_word PosX_i16, $00b8
+    d_word PosY_i16, $0028
+    d_byte Param_byte, 0
+    D_END
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::BadSpider
+    d_word PosX_i16, $0070
+    d_word PosY_i16, $0088
+    d_byte Param_byte, 0
+    D_END
     .assert * - :- <= kMaxActors * .sizeof(sActor), error
     .byte eActor::None
 _Passages_sPassage_arr:
-:   .assert * - :- = kShaftPassageIndex * .sizeof(sPassage), error
-    D_STRUCT sPassage
-    d_byte Exit_bPassage, ePassage::Top | 0
-    d_byte Destination_eRoom, eRoom::TemplePit
-    d_byte SpawnBlock_u8, 8
+:   D_STRUCT sPassage
+    d_byte Exit_bPassage, ePassage::Eastern | 0
+    d_byte Destination_eRoom, eRoom::CryptNorth
+    d_byte SpawnBlock_u8, 10
     D_END
     D_STRUCT sPassage
-    d_byte Exit_bPassage, ePassage::Eastern | 1
-    d_byte Destination_eRoom, eRoom::CryptNorth
-    d_byte SpawnBlock_u8, 18
+    d_byte Exit_bPassage, ePassage::Bottom | 0
+    d_byte Destination_eRoom, eRoom::CryptWest
+    d_byte SpawnBlock_u8, 12
     D_END
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Room"
-
-;;; @param A The bSpawn value for where the avatar is entering the room.
-.PROC FuncA_Room_CryptLanding_EnterRoom
-    ;; If the player avatar didn't enter from the vertical shaft at the top, do
-    ;; nothing.
-    cmp #bSpawn::Passage | kShaftPassageIndex
-    bne @done
-    ;; Otherwise, set the flag indicating that the player entered the crypt.
-    ldx #eFlag::CryptLandingDroppedIn  ; param: flag
-    jsr Func_SetFlag
-    @done:
-    rts
 .ENDPROC
 
 ;;;=========================================================================;;;

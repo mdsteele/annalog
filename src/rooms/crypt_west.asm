@@ -98,7 +98,7 @@ kSpikeball4InitPlatformTop = \
     d_byte MinScrollX_u8, $00
     d_word MaxScrollX_u16, $0000
     d_byte Flags_bRoom, bRoom::Tall | eArea::Crypt
-    d_byte MinimapStartRow_u8, 9
+    d_byte MinimapStartRow_u8, 10
     d_byte MinimapStartCol_u8, 0
     d_addr TerrainData_ptr, _TerrainData
     d_byte NumMachines_u8, 1
@@ -212,9 +212,9 @@ _Devices_sDevice_arr:
     .byte eDevice::None
 _Passages_sPassage_arr:
 :   D_STRUCT sPassage
-    d_byte Exit_bPassage, ePassage::Eastern | 0
-    d_byte Destination_eRoom, eRoom::CryptNorth
-    d_byte SpawnBlock_u8, 3
+    d_byte Exit_bPassage, ePassage::Top | 0
+    d_byte Destination_eRoom, eRoom::CryptNest
+    d_byte SpawnBlock_u8, 12
     D_END
     D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Eastern | 1

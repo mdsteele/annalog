@@ -62,6 +62,7 @@
 .IMPORT DataC_Crypt_Flower_sRoom
 .IMPORT DataC_Crypt_Gallery_sRoom
 .IMPORT DataC_Crypt_Landing_sRoom
+.IMPORT DataC_Crypt_Nest_sRoom
 .IMPORT DataC_Crypt_North_sRoom
 .IMPORT DataC_Crypt_South_sRoom
 .IMPORT DataC_Crypt_Tomb_sRoom
@@ -279,6 +280,7 @@ _LoadNewRoom:
     d_entry table, CryptFlower,     DataC_Crypt_Flower_sRoom
     d_entry table, CryptGallery,    DataC_Crypt_Gallery_sRoom
     d_entry table, CryptLanding,    DataC_Crypt_Landing_sRoom
+    d_entry table, CryptNest,       DataC_Crypt_Nest_sRoom
     d_entry table, CryptNorth,      DataC_Crypt_North_sRoom
     d_entry table, CryptSouth,      DataC_Crypt_South_sRoom
     d_entry table, CryptTomb,       DataC_Crypt_Tomb_sRoom
@@ -409,6 +411,7 @@ _PrisonMusic:
     d_byte CryptFlower,     eMusic::Silence
     d_byte CryptGallery,    eMusic::Silence
     d_byte CryptLanding,    eMusic::Silence
+    d_byte CryptNest,       eMusic::Silence
     d_byte CryptNorth,      eMusic::Silence
     d_byte CryptSouth,      eMusic::Silence
     d_byte CryptTomb,       eMusic::Silence

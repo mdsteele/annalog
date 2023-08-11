@@ -72,6 +72,7 @@ kMaxPassages = 8
     CryptFlower
     CryptGallery
     CryptLanding
+    CryptNest
     CryptNorth
     CryptSouth
     CryptTomb

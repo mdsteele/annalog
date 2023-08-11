@@ -136,7 +136,7 @@ kCrusherInitPlatformTop = \
     d_byte MinScrollX_u8, $10
     d_word MaxScrollX_u16, $0010
     d_byte Flags_bRoom, bRoom::Tall | eArea::Crypt
-    d_byte MinimapStartRow_u8, 10
+    d_byte MinimapStartRow_u8, 11
     d_byte MinimapStartCol_u8, 1
     d_addr TerrainData_ptr, _TerrainData
     d_byte NumMachines_u8, 1
