@@ -57,6 +57,7 @@
 .IMPORT DataC_Core_Lock_sRoom
 .IMPORT DataC_Core_South_sRoom
 .IMPORT DataC_Core_West_sRoom
+.IMPORT DataC_Crypt_Chains_sRoom
 .IMPORT DataC_Crypt_East_sRoom
 .IMPORT DataC_Crypt_Escape_sRoom
 .IMPORT DataC_Crypt_Flower_sRoom
@@ -275,6 +276,7 @@ _LoadNewRoom:
     d_entry table, CoreLock,        DataC_Core_Lock_sRoom
     d_entry table, CoreSouth,       DataC_Core_South_sRoom
     d_entry table, CoreWest,        DataC_Core_West_sRoom
+    d_entry table, CryptChains,     DataC_Crypt_Chains_sRoom
     d_entry table, CryptEast,       DataC_Crypt_East_sRoom
     d_entry table, CryptEscape,     DataC_Crypt_Escape_sRoom
     d_entry table, CryptFlower,     DataC_Crypt_Flower_sRoom
@@ -406,6 +408,7 @@ _PrisonMusic:
     d_byte CoreLock,        eMusic::Silence
     d_byte CoreSouth,       eMusic::Silence
     d_byte CoreWest,        eMusic::Silence
+    d_byte CryptChains,     eMusic::Silence
     d_byte CryptEast,       eMusic::Silence
     d_byte CryptEscape,     eMusic::Silence
     d_byte CryptFlower,     eMusic::Silence

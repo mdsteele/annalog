@@ -38,7 +38,7 @@
     d_byte MinScrollX_u8, $10
     d_word MaxScrollX_u16, $0010
     d_byte Flags_bRoom, bRoom::Tall | eArea::Crypt
-    d_byte MinimapStartRow_u8, 10
+    d_byte MinimapStartRow_u8, 9
     d_byte MinimapStartCol_u8, 2
     d_addr TerrainData_ptr, _TerrainData
     d_byte NumMachines_u8, 0
@@ -64,7 +64,7 @@ _TerrainData:
 _Platforms_sPlatform_arr:
 :   D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Water
-    d_word WidthPx_u16, $c0
+    d_word WidthPx_u16, $70
     d_byte HeightPx_u8, $30
     d_word Left_i16,  $0030
     d_word Top_i16,   $0154
@@ -107,7 +107,7 @@ _Platforms_sPlatform_arr:
     D_END
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Harm
-    d_word WidthPx_u16, $70
+    d_word WidthPx_u16, $20
     d_byte HeightPx_u8, $08
     d_word Left_i16,  $0080
     d_word Top_i16,   $0166
@@ -126,13 +126,18 @@ _Passages_sPassage_arr:
     D_END
     D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Western | 1
-    d_byte Destination_eRoom, eRoom::CryptSouth
+    d_byte Destination_eRoom, eRoom::CryptEast  ; TODO
     d_byte SpawnBlock_u8, 17
     D_END
     D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Eastern | 1
     d_byte Destination_eRoom, eRoom::CryptGallery
     d_byte SpawnBlock_u8, 17
+    D_END
+    D_STRUCT sPassage
+    d_byte Exit_bPassage, ePassage::Bottom | 0
+    d_byte Destination_eRoom, eRoom::CryptChains
+    d_byte SpawnBlock_u8, 13
     D_END
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
 .ENDPROC

@@ -281,14 +281,17 @@ _Done:
     .byte  8,  2
     .byte  9,  0
     .byte  9,  1
+    .byte  9,  2
+    .byte  9,  3
     .byte 10,  0
+    .byte 10,  1
     .byte 10,  2
     .byte 10,  3
+    .byte 10,  4
     .byte 11,  0
     .byte 11,  1
     .byte 11,  2
     .byte 11,  3
-    .byte 11,  4
     .byte 12,  0
     .byte 12,  1
     .byte 13,  0
@@ -584,6 +587,12 @@ _Done:
     D_END
     D_STRUCT sMarker
     d_byte Row_u8, 9
+    d_byte Col_u8, 3  ; room: CryptFlower
+    d_byte If_eFlag, 0
+    d_byte Not_eFlag, eFlag::FlowerCrypt
+    D_END
+    D_STRUCT sMarker
+    d_byte Row_u8, 9
     d_byte Col_u8, 7  ; room: GardenTower
     d_byte If_eFlag, eFlag::GardenTowerCratesPlaced
     d_byte Not_eFlag, eFlag::BreakerGarden
@@ -596,9 +605,9 @@ _Done:
     D_END
     D_STRUCT sMarker
     d_byte Row_u8, 10
-    d_byte Col_u8, 3  ; room: CryptFlower
+    d_byte Col_u8, 4  ; room: CryptGallery
     d_byte If_eFlag, 0
-    d_byte Not_eFlag, eFlag::FlowerCrypt
+    d_byte Not_eFlag, eFlag::UpgradeOpGoto
     D_END
     D_STRUCT sMarker
     d_byte Row_u8, 10
@@ -611,12 +620,6 @@ _Done:
     d_byte Col_u8, 19  ; room: MineFlower
     d_byte If_eFlag, 0
     d_byte Not_eFlag, eFlag::FlowerMine
-    D_END
-    D_STRUCT sMarker
-    d_byte Row_u8, 11
-    d_byte Col_u8, 4  ; room: CryptGallery
-    d_byte If_eFlag, 0
-    d_byte Not_eFlag, eFlag::UpgradeOpGoto
     D_END
     D_STRUCT sMarker
     d_byte Row_u8, 11
