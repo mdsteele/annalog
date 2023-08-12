@@ -154,7 +154,7 @@ kSpikeballInitPlatformTop = \
     d_byte NumMachines_u8, 1
     d_addr Machines_sMachine_arr_ptr, _Machines_sMachine_arr
     d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjCrypt)
-    d_addr Tick_func_ptr, FuncC_Crypt_Tomb_TickRoom
+    d_addr Tick_func_ptr, FuncA_Room_CryptTomb_TickRoom
     d_addr Draw_func_ptr, FuncC_Crypt_Tomb_DrawRoom
     d_addr Ext_sRoomExt_ptr, _Ext_sRoomExt
     D_END
@@ -165,7 +165,7 @@ _Ext_sRoomExt:
     d_addr Actors_sActor_arr_ptr, _Actors_sActor_arr
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
     d_addr Passages_sPassage_arr_ptr, _Passages_sPassage_arr
-    d_addr Enter_func_ptr, FuncC_Crypt_Tomb_EnterRoom
+    d_addr Enter_func_ptr, FuncA_Room_CryptTomb_EnterRoom
     d_addr FadeIn_func_ptr, Func_Noop
     D_END
 _TerrainData:
@@ -302,47 +302,6 @@ _Passages_sPassage_arr:
     d_byte SpawnBlock_u8, 7
     D_END
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
-.ENDPROC
-
-;;; Enter function for the CryptTomb room.
-;;; @param A The bSpawn value for where the avatar is entering the room.
-.PROC FuncC_Crypt_Tomb_EnterRoom
-    ;; If the player avatar enters the room from the doorway, remove the
-    ;; breakable floors (to ensure they aren't stuck down there).
-    cmp #bSpawn::Device | kDoorDeviceIndex
-    beq FuncC_Crypt_Tomb_RemoveBreakableFloors
-    ;; If the weak floors have already been broken, remove them platforms.
-    flag_bit Sram_ProgressFlags_arr, eFlag::CryptTombWeakFloors
-    bne FuncC_Crypt_Tomb_RemoveBreakableFloors
-    ;; Otherwise, initialize the floors' HP.
-    lda #kNumWinchHitsToBreakFloor
-    sta Zp_RoomState + sState::WeakFloorHp_u8_arr2 + 0
-    sta Zp_RoomState + sState::WeakFloorHp_u8_arr2 + 1
-    rts
-.ENDPROC
-
-;;; Helper function for this room's Init and Enter functions; removes the two
-;;; breakable floors from this room.
-.PROC FuncC_Crypt_Tomb_RemoveBreakableFloors
-    lda #0
-    sta Zp_RoomState + sState::WeakFloorHp_u8_arr2 + 0
-    sta Zp_RoomState + sState::WeakFloorHp_u8_arr2 + 1
-    .assert ePlatform::None = 0, error
-    sta Ram_PlatformType_ePlatform_arr + kWeakFloor0PlatformIndex
-    sta Ram_PlatformType_ePlatform_arr + kWeakFloor1PlatformIndex
-    rts
-.ENDPROC
-
-.PROC FuncC_Crypt_Tomb_TickRoom
-    lda Zp_RoomState + sState::WeakFloorBlink_u8
-    beq @done
-    dec Zp_RoomState + sState::WeakFloorBlink_u8
-    bne @done
-    lda #kNumWinchHitsToBreakFloor
-    sta Zp_RoomState + sState::WeakFloorHp_u8_arr2 + 0
-    sta Zp_RoomState + sState::WeakFloorHp_u8_arr2 + 1
-    @done:
-    rts
 .ENDPROC
 
 ;;; Draw function for the CryptTomb room.
@@ -619,6 +578,51 @@ _SolidFloorZ_u8_arr:
     @weakFloor1:
     ldx #1
     clc
+    rts
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Room"
+
+;;; Enter function for the CryptTomb room.
+;;; @param A The bSpawn value for where the avatar is entering the room.
+.PROC FuncA_Room_CryptTomb_EnterRoom
+    ;; If the player avatar enters the room from the doorway, remove the
+    ;; breakable floors (to ensure they aren't stuck down there).
+    cmp #bSpawn::Device | kDoorDeviceIndex
+    beq FuncA_Room_CryptTomb_RemoveBreakableFloors
+    ;; If the weak floors have already been broken, remove them platforms.
+    flag_bit Sram_ProgressFlags_arr, eFlag::CryptTombWeakFloors
+    bne FuncA_Room_CryptTomb_RemoveBreakableFloors
+    ;; Otherwise, initialize the floors' HP.
+    lda #kNumWinchHitsToBreakFloor
+    sta Zp_RoomState + sState::WeakFloorHp_u8_arr2 + 0
+    sta Zp_RoomState + sState::WeakFloorHp_u8_arr2 + 1
+    rts
+.ENDPROC
+
+;;; Helper function for this room's Init and Enter functions; removes the two
+;;; breakable floors from this room.
+.PROC FuncA_Room_CryptTomb_RemoveBreakableFloors
+    lda #0
+    sta Zp_RoomState + sState::WeakFloorHp_u8_arr2 + 0
+    sta Zp_RoomState + sState::WeakFloorHp_u8_arr2 + 1
+    .assert ePlatform::None = 0, error
+    sta Ram_PlatformType_ePlatform_arr + kWeakFloor0PlatformIndex
+    sta Ram_PlatformType_ePlatform_arr + kWeakFloor1PlatformIndex
+    rts
+.ENDPROC
+
+.PROC FuncA_Room_CryptTomb_TickRoom
+    lda Zp_RoomState + sState::WeakFloorBlink_u8
+    beq @done
+    dec Zp_RoomState + sState::WeakFloorBlink_u8
+    bne @done
+    lda #kNumWinchHitsToBreakFloor
+    sta Zp_RoomState + sState::WeakFloorHp_u8_arr2 + 0
+    sta Zp_RoomState + sState::WeakFloorHp_u8_arr2 + 1
+    @done:
     rts
 .ENDPROC
 

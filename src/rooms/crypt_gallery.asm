@@ -123,7 +123,7 @@ _Ext_sRoomExt:
     d_addr Actors_sActor_arr_ptr, _Actors_sActor_arr
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
     d_addr Passages_sPassage_arr_ptr, _Passages_sPassage_arr
-    d_addr Enter_func_ptr, FuncC_Crypt_Gallery_EnterRoom
+    d_addr Enter_func_ptr, FuncA_Room_CryptGallery_EnterRoom
     d_addr FadeIn_func_ptr, Func_Noop
     D_END
 _TerrainData:
@@ -140,14 +140,14 @@ _Machines_sMachine_arr:
     d_byte ScrollGoalY_u8, $0
     d_byte RegNames_u8_arr4, 0, "W", "X", "Z"
     d_byte MainPlatform_u8, kWinchPlatformIndex
-    d_addr Init_func_ptr, FuncC_Crypt_GalleryWinch_Init
+    d_addr Init_func_ptr, FuncA_Room_CryptGalleryWinch_InitReset
     d_addr ReadReg_func_ptr, FuncC_Crypt_GalleryWinch_ReadReg
     d_addr WriteReg_func_ptr, Func_Noop
-    d_addr TryMove_func_ptr, FuncC_Crypt_GalleryWinch_TryMove
-    d_addr TryAct_func_ptr, FuncC_Crypt_GalleryWinch_TryAct
-    d_addr Tick_func_ptr, FuncC_Crypt_GalleryWinch_Tick
+    d_addr TryMove_func_ptr, FuncA_Machine_CryptGalleryWinch_TryMove
+    d_addr TryAct_func_ptr, FuncA_Machine_CryptGalleryWinch_TryAct
+    d_addr Tick_func_ptr, FuncA_Machine_CryptGalleryWinch_Tick
     d_addr Draw_func_ptr, FuncA_Objects_CryptGalleryWinch_Draw
-    d_addr Reset_func_ptr, FuncC_Crypt_GalleryWinch_Reset
+    d_addr Reset_func_ptr, FuncA_Room_CryptGalleryWinch_InitReset
     D_END
     .assert * - :- <= kMaxMachines * .sizeof(sMachine), error
 _Platforms_sPlatform_arr:
@@ -246,27 +246,6 @@ _Passages_sPassage_arr:
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
 .ENDPROC
 
-.PROC FuncC_Crypt_Gallery_EnterRoom
-    flag_bit Sram_ProgressFlags_arr, kUpgradeFlag
-    beq @done
-    lda #eDevice::None
-    sta Ram_DeviceType_eDevice_arr + kUpgradeDeviceIndex
-    @done:
-    rts
-.ENDPROC
-
-.PROC FuncC_Crypt_GalleryWinch_Reset
-    .assert * = FuncC_Crypt_GalleryWinch_Init, error, "fallthrough"
-.ENDPROC
-
-.PROC FuncC_Crypt_GalleryWinch_Init
-    lda #kWinchInitGoalX
-    sta Ram_MachineGoalHorz_u8_arr + kWinchMachineIndex
-    lda #kWinchInitGoalZ
-    sta Ram_MachineGoalVert_u8_arr + kWinchMachineIndex
-    jmp Func_ResetWinchMachineState
-.ENDPROC
-
 .PROC FuncC_Crypt_GalleryWinch_ReadReg
     cmp #$f
     beq _ReadZ
@@ -292,7 +271,32 @@ _ReadZ:
     rts
 .ENDPROC
 
-.PROC FuncC_Crypt_GalleryWinch_TryMove
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Room"
+
+.PROC FuncA_Room_CryptGallery_EnterRoom
+    flag_bit Sram_ProgressFlags_arr, kUpgradeFlag
+    beq @done
+    lda #eDevice::None
+    sta Ram_DeviceType_eDevice_arr + kUpgradeDeviceIndex
+    @done:
+    rts
+.ENDPROC
+
+.PROC FuncA_Room_CryptGalleryWinch_InitReset
+    lda #kWinchInitGoalX
+    sta Ram_MachineGoalHorz_u8_arr + kWinchMachineIndex
+    lda #kWinchInitGoalZ
+    sta Ram_MachineGoalVert_u8_arr + kWinchMachineIndex
+    jmp Func_ResetWinchMachineState
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Machine"
+
+.PROC FuncA_Machine_CryptGalleryWinch_TryMove
     ldy Ram_MachineGoalHorz_u8_arr + kWinchMachineIndex
     .assert eDir::Up = 0, error
     txa
@@ -312,7 +316,7 @@ _MoveHorz:
     beq _Error
     dey
     @checkFloor:
-    lda DataC_Crypt_GalleryFloor_u8_arr, y
+    lda DataA_Machine_CryptGalleryFloor_u8_arr, y
     cmp Ram_MachineGoalVert_u8_arr + kWinchMachineIndex
     blt _Error
     sty Ram_MachineGoalHorz_u8_arr + kWinchMachineIndex
@@ -323,7 +327,7 @@ _MoveUp:
     dec Ram_MachineGoalVert_u8_arr + kWinchMachineIndex
     jmp FuncA_Machine_StartWorking
 _MoveDown:
-    lda DataC_Crypt_GalleryFloor_u8_arr, y
+    lda DataA_Machine_CryptGalleryFloor_u8_arr, y
     cmp Ram_MachineGoalVert_u8_arr + kWinchMachineIndex
     beq _Error
     inc Ram_MachineGoalVert_u8_arr + kWinchMachineIndex
@@ -333,14 +337,14 @@ _Error:
 .ENDPROC
 
 ;;; @prereq PRGA_Machine is loaded.
-.PROC FuncC_Crypt_GalleryWinch_TryAct
+.PROC FuncA_Machine_CryptGalleryWinch_TryAct
     ldy Ram_MachineGoalHorz_u8_arr + kWinchMachineIndex
-    lda DataC_Crypt_GalleryFloor_u8_arr, y  ; param: new Z-goal
+    lda DataA_Machine_CryptGalleryFloor_u8_arr, y  ; param: new Z-goal
     jmp FuncA_Machine_WinchStartFalling
 .ENDPROC
 
 ;;; @prereq PRGA_Machine is loaded.
-.PROC FuncC_Crypt_GalleryWinch_Tick
+.PROC FuncA_Machine_CryptGalleryWinch_Tick
 _MoveVert:
     ;; Calculate the desired room-space pixel Y-position for the top edge of
     ;; the crusher, storing it in Zp_PointY_i16.
@@ -394,7 +398,7 @@ _Finished:
     jmp FuncA_Machine_WinchReachedGoal
 .ENDPROC
 
-.PROC DataC_Crypt_GalleryFloor_u8_arr
+.PROC DataA_Machine_CryptGalleryFloor_u8_arr
     .byte 9, 9, 9, 1, 1, 9, 9, 9
 .ENDPROC
 

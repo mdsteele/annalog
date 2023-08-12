@@ -142,7 +142,7 @@ kCrusherInitPlatformTop = \
     d_byte NumMachines_u8, 1
     d_addr Machines_sMachine_arr_ptr, _Machines_sMachine_arr
     d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjCrypt)
-    d_addr Tick_func_ptr, FuncC_Crypt_South_TickRoom
+    d_addr Tick_func_ptr, FuncA_Room_CryptSouth_TickRoom
     d_addr Draw_func_ptr, FuncC_Crypt_South_DrawRoom
     d_addr Ext_sRoomExt_ptr, _Ext_sRoomExt
     D_END
@@ -153,7 +153,7 @@ _Ext_sRoomExt:
     d_addr Actors_sActor_arr_ptr, _Actors_sActor_arr
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
     d_addr Passages_sPassage_arr_ptr, _Passages_sPassage_arr
-    d_addr Enter_func_ptr, FuncC_Crypt_South_EnterRoom
+    d_addr Enter_func_ptr, FuncA_Room_CryptSouth_EnterRoom
     d_addr FadeIn_func_ptr, Func_Noop
     D_END
 _TerrainData:
@@ -273,32 +273,6 @@ _Passages_sPassage_arr:
     d_byte SpawnBlock_u8, 19
     D_END
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
-.ENDPROC
-
-.PROC FuncC_Crypt_South_EnterRoom
-    ;; If the weak floor hasn't been broken yet, initialize its HP.  Otherwise,
-    ;; remove its platform.
-    flag_bit Sram_ProgressFlags_arr, eFlag::CryptSouthWeakFloor
-    bne @floorBroken
-    @floorSolid:
-    lda #kNumWinchHitsToBreakFloor
-    sta Zp_RoomState + sState::WeakFloorHp_u8
-    rts
-    @floorBroken:
-    lda #ePlatform::None
-    sta Ram_PlatformType_ePlatform_arr + kWeakFloorPlatformIndex
-    rts
-.ENDPROC
-
-.PROC FuncC_Crypt_South_TickRoom
-    lda Zp_RoomState + sState::WeakFloorBlink_u8
-    beq @done
-    dec Zp_RoomState + sState::WeakFloorBlink_u8
-    bne @done
-    lda #kNumWinchHitsToBreakFloor
-    sta Zp_RoomState + sState::WeakFloorHp_u8
-    @done:
-    rts
 .ENDPROC
 
 ;;; Draw function for the CryptSouth room.
@@ -535,6 +509,36 @@ _ResetMachine:
     rts
 _SolidFloor_u8_arr:
     .byte 6, 2, 6, 4, 6, 3, 6, 5, 17, 3
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Room"
+
+.PROC FuncA_Room_CryptSouth_EnterRoom
+    ;; If the weak floor hasn't been broken yet, initialize its HP.  Otherwise,
+    ;; remove its platform.
+    flag_bit Sram_ProgressFlags_arr, eFlag::CryptSouthWeakFloor
+    bne @floorBroken
+    @floorSolid:
+    lda #kNumWinchHitsToBreakFloor
+    sta Zp_RoomState + sState::WeakFloorHp_u8
+    rts
+    @floorBroken:
+    lda #ePlatform::None
+    sta Ram_PlatformType_ePlatform_arr + kWeakFloorPlatformIndex
+    rts
+.ENDPROC
+
+.PROC FuncA_Room_CryptSouth_TickRoom
+    lda Zp_RoomState + sState::WeakFloorBlink_u8
+    beq @done
+    dec Zp_RoomState + sState::WeakFloorBlink_u8
+    bne @done
+    lda #kNumWinchHitsToBreakFloor
+    sta Zp_RoomState + sState::WeakFloorHp_u8
+    @done:
+    rts
 .ENDPROC
 
 ;;;=========================================================================;;;
