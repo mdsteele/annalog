@@ -20,6 +20,7 @@
 .INCLUDE "../actor.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../platform.inc"
+.INCLUDE "../program.inc"
 .INCLUDE "../room.inc"
 
 .IMPORT DataA_Room_Crypt_sTileset
@@ -91,7 +92,7 @@ _Platforms_sPlatform_arr:
     D_END
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Harm
-    d_word WidthPx_u16, $c0
+    d_word WidthPx_u16, $d0
     d_byte HeightPx_u8, $08
     d_word Left_i16,  $0020
     d_word Top_i16,   $00d6
@@ -99,7 +100,24 @@ _Platforms_sPlatform_arr:
     .assert * - :- <= kMaxPlatforms * .sizeof(sPlatform), error
     .byte ePlatform::None
 _Actors_sActor_arr:
-:   ;; TODO: add some baddies
+:   D_STRUCT sActor
+    d_byte Type_eActor, eActor::BadBat
+    d_word PosX_i16, $0038
+    d_word PosY_i16, $0098
+    d_byte Param_byte, eDir::Up
+    D_END
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::BadBat
+    d_word PosX_i16, $0078
+    d_word PosY_i16, $0073
+    d_byte Param_byte, eDir::Down
+    D_END
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::BadBat
+    d_word PosX_i16, $00e0
+    d_word PosY_i16, $0058
+    d_byte Param_byte, eDir::Left
+    D_END
     .assert * - :- <= kMaxActors * .sizeof(sActor), error
     .byte eActor::None
 _Passages_sPassage_arr:

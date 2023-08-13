@@ -26,14 +26,12 @@
 .INCLUDE "jelly.inc"
 
 .IMPORT FuncA_Actor_HarmAvatarIfCollision
-.IMPORT FuncA_Actor_MovePointTowardVelXDir
-.IMPORT FuncA_Actor_MovePointTowardVelYDir
+.IMPORT FuncA_Actor_SetPointInDirFromActor
 .IMPORT FuncA_Actor_ZeroVelX
 .IMPORT FuncA_Actor_ZeroVelY
 .IMPORT FuncA_Objects_Alloc2x2Shape
 .IMPORT FuncA_Objects_SetShapePosToActorCenter
 .IMPORT Func_PointHitsTerrain
-.IMPORT Func_SetPointToActorCenter
 .IMPORT Ram_ActorPosX_i16_0_arr
 .IMPORT Ram_ActorPosY_i16_0_arr
 .IMPORT Ram_ActorState1_byte_arr
@@ -72,19 +70,11 @@ kPaletteObjJelly = 0
 .PROC FuncA_Actor_TickBadJelly
     inc Ram_ActorState2_byte_arr, x  ; animation counter
     ;; Set the point in the direction the jelly is moving in.
-    jsr Func_SetPointToActorCenter  ; preserves X
-    lda Ram_ActorVelX_i16_1_arr, x
-    .assert kBadJellySpeed >= $100, error
-    beq @noVelX
+    lda Ram_ActorState1_byte_arr, x  ; bBadJelly value
+    and #bBadJelly::DirMask
+    tay  ; param: eDir
     lda #kBadJellyTurnDistance  ; param: offset
-    jsr FuncA_Actor_MovePointTowardVelXDir  ; preserves X
-    @noVelX:
-    lda Ram_ActorVelY_i16_1_arr, x
-    .assert kBadJellySpeed >= $100, error
-    beq @noVelY
-    lda #kBadJellyTurnDistance  ; param: offset
-    jsr FuncA_Actor_MovePointTowardVelYDir  ; preserves X
-    @noVelY:
+    jsr FuncA_Actor_SetPointInDirFromActor  ; preserves X
     ;; Check if there is solid terrain in front of the jelly.
     jsr Func_PointHitsTerrain  ; preserves X, returns C
     bcc _ContinueForward

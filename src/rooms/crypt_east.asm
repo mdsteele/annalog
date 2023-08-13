@@ -21,6 +21,7 @@
 .INCLUDE "../device.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../platform.inc"
+.INCLUDE "../program.inc"
 .INCLUDE "../room.inc"
 
 .IMPORT DataA_Room_Crypt_sTileset
@@ -115,7 +116,24 @@ _Platforms_sPlatform_arr:
     .assert * - :- <= kMaxPlatforms * .sizeof(sPlatform), error
     .byte ePlatform::None
 _Actors_sActor_arr:
-:   ;; TODO: add some baddies
+:   D_STRUCT sActor
+    d_byte Type_eActor, eActor::BadSpider
+    d_word PosX_i16, $0060
+    d_word PosY_i16, $0018
+    d_byte Param_byte, 0
+    D_END
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::BadBat
+    d_word PosX_i16, $00a0
+    d_word PosY_i16, $00d0
+    d_byte Param_byte, eDir::Up
+    D_END
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::BadBat
+    d_word PosX_i16, $0078
+    d_word PosY_i16, $00c8
+    d_byte Param_byte, eDir::Down
+    D_END
     .assert * - :- <= kMaxActors * .sizeof(sActor), error
     .byte eActor::None
 _Passages_sPassage_arr:

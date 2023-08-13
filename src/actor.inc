@@ -22,9 +22,10 @@ kMaxActors = 8
 
 ;;;=========================================================================;;;
 
-;;; Types of actors in a room (e.g. baddies, NPCs, or projectiles).
+;;; Types of actors in a room (e.g. baddies, NPCs, projectiles, or smoke).
 .ENUM eActor
     None
+    BadBat           ; flies up and down or back and forth
     BadBeetleHorz    ; crawls around a platform
     BadBeetleVert    ; crawls around a platform
     BadBird          ; flies horizontally when it can hit the player avatar

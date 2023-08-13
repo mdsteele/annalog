@@ -17,6 +17,7 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
+.INCLUDE "actors/bat.inc"
 .INCLUDE "actors/bird.inc"
 .INCLUDE "actors/breakball.inc"
 .INCLUDE "actors/bullet.inc"
@@ -1092,7 +1093,8 @@
     .res $02 * kSizeofChr
     .assert * - :- = (kTileIdObjFireballFirst - $80) * kSizeofChr, error
     .incbin "out/tiles/fireball.chr"
-    .res $0c * kSizeofChr
+    .assert * - :- = (kTileIdObjBatFirst - $80) * kSizeofChr, error
+    .incbin "out/tiles/bat.chr"
     .assert * - :- = (kTileIdObjSpiderFirst - $80) * kSizeofChr, error
     .incbin "out/tiles/spider.chr"
     .res $04 * kSizeofChr
@@ -1100,6 +1102,7 @@
     .incbin "out/tiles/crusher.chr"
     .assert * - :- = (kTileIdWinchFirst - $80) * kSizeofChr, error
     .incbin "out/tiles/winch.chr"
+    ;; TODO: add an assert here
     .incbin "out/tiles/gazer_obj.chr"
     .assert * - :- = (kTileIdWeakFloorFirst - $80) * kSizeofChr, error
     .incbin "out/tiles/breakable.chr"

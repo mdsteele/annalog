@@ -191,6 +191,12 @@ _Platforms_sPlatform_arr:
     .byte ePlatform::None
 _Actors_sActor_arr:
 :   D_STRUCT sActor
+    d_byte Type_eActor, eActor::BadBat
+    d_word PosX_i16, $00c8
+    d_word PosY_i16, $0020
+    d_byte Param_byte, eDir::Down
+    D_END
+    D_STRUCT sActor
     d_byte Type_eActor, eActor::BadSpider
     d_word PosX_i16, $00c0
     d_word PosY_i16, $0078

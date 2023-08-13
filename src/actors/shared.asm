@@ -23,6 +23,7 @@
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
 .INCLUDE "../ppu.inc"
+.INCLUDE "../program.inc"
 
 .IMPORT FuncA_Actor_IsCollidingWithAvatar
 .IMPORT FuncA_Objects_Draw1x1Shape
@@ -279,6 +280,26 @@
     jmp Func_MovePointVert  ; preserves X and T0+
 .ENDPROC
 
+;;; Sets Zp_PointX_i16 and Zp_PointY_i16 to be offset from the center of the
+;;; actor by the given number of pixels in the given direction.
+;;; @param A The number of pixels to offset by (unsigned).
+;;; @param Y The eDir value for the direction to offset the point in.
+;;; @param X The actor index.
+;;; @preserve X, T0+
+.EXPORT FuncA_Actor_SetPointInDirFromActor
+.PROC FuncA_Actor_SetPointInDirFromActor
+    pha  ; offset
+    jsr Func_SetPointToActorCenter  ; preserves X, Y, and T0+
+    pla  ; offset
+    cpy #eDir::Left
+    jeq Func_MovePointLeftByA  ; preserves X and T0+
+    cpy #eDir::Right
+    jeq Func_MovePointRightByA  ; preserves X and T0+
+    cpy #eDir::Down
+    jeq Func_MovePointDownByA  ; preserves X and T0+
+    jmp Func_MovePointUpByA  ; preserves X and T0+
+.ENDPROC
+
 ;;; Moves Zp_PointX_i16 left or right by the given number of pixels, in the
 ;;; direction of the actor's X-velocity.
 ;;; @param A The number of pixels to shift by (unsigned).
@@ -289,24 +310,9 @@
     ldy Ram_ActorVelX_i16_1_arr, x
     bpl @movingRight
     @movingLeft:
-    jmp Func_MovePointLeftByA
+    jmp Func_MovePointLeftByA  ; preserves X and T0+
     @movingRight:
-    jmp Func_MovePointRightByA
-.ENDPROC
-
-;;; Moves Zp_PointY_i16 up or down by the given number of pixels, in the
-;;; direction of the actor's Y-velocity.
-;;; @param A The number of pixels to shift by (unsigned).
-;;; @param X The actor index.
-;;; @preserve X, T0+
-.EXPORT FuncA_Actor_MovePointTowardVelYDir
-.PROC FuncA_Actor_MovePointTowardVelYDir
-    ldy Ram_ActorVelY_i16_1_arr, x
-    bpl @movingDown
-    @movingUp:
-    jmp Func_MovePointUpByA
-    @movingDown:
-    jmp Func_MovePointDownByA
+    jmp Func_MovePointRightByA  ; preserves X and T0+
 .ENDPROC
 
 ;;; If the actor is facing right, sets its X-velocity to the given speed; if
@@ -321,7 +327,7 @@
     sta Ram_ActorVelX_i16_1_arr, x
     lda Ram_ActorFlags_bObj_arr, x
     and #bObj::FlipH
-    bne FuncA_Actor_NegateVelX  ; preserves X
+    bne FuncA_Actor_NegateVelX  ; preserves X and T0+
     rts
 .ENDPROC
 
@@ -337,7 +343,7 @@
     sta Ram_ActorVelY_i16_1_arr, x
     lda Ram_ActorFlags_bObj_arr, x
     .assert bObj::FlipV = bProc::Negative, error
-    bmi FuncA_Actor_NegateVelY  ; preserves X
+    bmi FuncA_Actor_NegateVelY  ; preserves X and T0+
     rts
 .ENDPROC
 

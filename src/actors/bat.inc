@@ -17,22 +17,15 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
-;;; State bytes for firefly baddies:
-;;;   * State1: The number of cooldown frames before the firefly can shoot
-;;;     another fireball.
-;;;   * State2: The firefly's current angle within its sinusoidal flight
-;;;     pattern.
+;;; State bytes for bat baddies:
+;;;   * Param: The eDir value for the bat's initial flying direction.
+;;;   * Flags: The bObj::FlipH bit is set if the bat is facing left, or cleared
+;;;     if it is facing right.
+;;;   * State1: The eDir value for the bat's current flying direction.
+;;;   * State2: An animation timer that ticks up each frame.
 ;;;   * State3: Unused.
 
-;;; Tile IDs for drawing firefly baddie actors.
-kTileIdObjFireflyFirst = $a0
-
-;;;=========================================================================;;;
-
-;;; Flags for the param byte for firefly baddie actors.
-.SCOPE bBadFirefly
-    ThetaMask = %11110000  ; bits used for initial flight pattern angle
-    FlipH     = %00000001  ; if set, face the firefly initially to the left
-.ENDSCOPE
+;;; Tile IDs for drawing bat baddie actors.
+kTileIdObjBatFirst = $9c
 
 ;;;=========================================================================;;;

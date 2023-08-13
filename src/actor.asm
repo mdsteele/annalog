@@ -24,6 +24,7 @@
 .INCLUDE "macros.inc"
 .INCLUDE "ppu.inc"
 
+.IMPORT FuncA_Actor_TickBadBat
 .IMPORT FuncA_Actor_TickBadBeetleHorz
 .IMPORT FuncA_Actor_TickBadBeetleVert
 .IMPORT FuncA_Actor_TickBadBird
@@ -55,6 +56,7 @@
 .IMPORT FuncA_Actor_TickProjSteamUp
 .IMPORT FuncA_Actor_TickSmokeExplosion
 .IMPORT FuncA_Actor_TickSmokeParticle
+.IMPORT FuncA_Objects_DrawActorBadBat
 .IMPORT FuncA_Objects_DrawActorBadBeetleHorz
 .IMPORT FuncA_Objects_DrawActorBadBeetleVert
 .IMPORT FuncA_Objects_DrawActorBadBird
@@ -308,6 +310,7 @@ Ram_ActorFlags_bObj_arr: .res kMaxActors
 .PROC DataA_Actor_BoundingBoxUp_u8_arr
     D_ENUM eActor
     d_byte None,             0
+    d_byte BadBat,           4
     d_byte BadBeetleHorz,    4
     d_byte BadBeetleVert,    6
     d_byte BadBird,          4
@@ -349,6 +352,7 @@ Ram_ActorFlags_bObj_arr: .res kMaxActors
 .PROC DataA_Actor_BoundingBoxDown_u8_arr
     D_ENUM eActor
     d_byte None,             0
+    d_byte BadBat,           4
     d_byte BadBeetleHorz,    4
     d_byte BadBeetleVert,    6
     d_byte BadBird,          4
@@ -390,6 +394,7 @@ Ram_ActorFlags_bObj_arr: .res kMaxActors
 .PROC DataA_Actor_BoundingBoxSide_u8_arr
     D_ENUM eActor
     d_byte None,            0
+    d_byte BadBat,          6
     d_byte BadBeetleHorz,   6
     d_byte BadBeetleVert,   4
     d_byte BadBird,         7
@@ -499,6 +504,7 @@ _TypeSpecificTick:
     D_TABLE_HI table, _JumpTable_ptr_1_arr
     D_TABLE eActor
     d_entry table, None,            Func_Noop
+    d_entry table, BadBat,          FuncA_Actor_TickBadBat
     d_entry table, BadBeetleHorz,   FuncA_Actor_TickBadBeetleHorz
     d_entry table, BadBeetleVert,   FuncA_Actor_TickBadBeetleVert
     d_entry table, BadBird,         FuncA_Actor_TickBadBird
@@ -675,6 +681,7 @@ _NoHit:
     D_TABLE_HI table, _JumpTable_ptr_1_arr
     D_TABLE eActor
     d_entry table, None,            Func_InitActorDefault
+    d_entry table, BadBat,          Func_InitActorWithState1
     d_entry table, BadBeetleHorz,   Func_InitActorWithFlags
     d_entry table, BadBeetleVert,   Func_InitActorWithFlags
     d_entry table, BadBird,         FuncA_Room_InitActorBadBird
@@ -812,6 +819,7 @@ _NoHit:
     D_TABLE_HI table, _JumpTable_ptr_1_arr
     D_TABLE eActor
     d_entry table, None,            Func_Noop
+    d_entry table, BadBat,          FuncA_Objects_DrawActorBadBat
     d_entry table, BadBeetleHorz,   FuncA_Objects_DrawActorBadBeetleHorz
     d_entry table, BadBeetleVert,   FuncA_Objects_DrawActorBadBeetleVert
     d_entry table, BadBird,         FuncA_Objects_DrawActorBadBird
