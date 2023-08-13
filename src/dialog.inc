@@ -66,6 +66,7 @@
     CityFlowerOrcCalm
     CoreSouthCorra1
     CoreSouthCorra2
+    CryptSpiralPaper
     CryptTombPlaque
     GardenEastCorra
     GardenLandingPaper

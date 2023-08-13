@@ -39,6 +39,7 @@
 .IMPORT DataA_Dialog_CityFlowerOrcCalm_sDialog
 .IMPORT DataA_Dialog_CoreSouthCorra1_sDialog
 .IMPORT DataA_Dialog_CoreSouthCorra2_sDialog
+.IMPORT DataA_Dialog_CryptSpiralPaper_sDialog
 .IMPORT DataA_Dialog_CryptTombPlaque_sDialog
 .IMPORT DataA_Dialog_GardenEastCorra_sDialog
 .IMPORT DataA_Dialog_GardenLandingPaper_sDialog
@@ -352,6 +353,7 @@ _UpdateScrolling:
     d_entry table, CityFlowerOrcCalm,  DataA_Dialog_CityFlowerOrcCalm_sDialog
     d_entry table, CoreSouthCorra1,    DataA_Dialog_CoreSouthCorra1_sDialog
     d_entry table, CoreSouthCorra2,    DataA_Dialog_CoreSouthCorra2_sDialog
+    d_entry table, CryptSpiralPaper,   DataA_Dialog_CryptSpiralPaper_sDialog
     d_entry table, CryptTombPlaque,    DataA_Dialog_CryptTombPlaque_sDialog
     d_entry table, GardenEastCorra,    DataA_Dialog_GardenEastCorra_sDialog
     d_entry table, GardenLandingPaper, DataA_Dialog_GardenLandingPaper_sDialog

@@ -352,7 +352,7 @@ _StandingFunc:
     ldya #_IWonder_sDialog
     rts
 _IWonder_sDialog:
-    dlg_Text ChildAlex, DataA_Text0_TownOutdoorsAlex2_Part2_u8_arr
+    dlg_Text ChildAlex, DataA_Text0_TownOutdoorsAlex2_Part3_u8_arr
     dlg_Done
 .ENDPROC
 

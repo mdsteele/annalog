@@ -76,6 +76,7 @@ kMaxPassages = 8
     CryptNest
     CryptNorth
     CryptSouth
+    CryptSpiral
     CryptTomb
     CryptWest
     FactoryAccess
