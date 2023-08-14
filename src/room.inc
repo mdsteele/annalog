@@ -67,6 +67,7 @@ kMaxPassages = 8
     CoreLock
     CoreSouth
     CoreWest
+    CryptCenter
     CryptChains
     CryptEast
     CryptEscape
