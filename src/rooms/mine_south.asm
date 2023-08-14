@@ -39,7 +39,7 @@
     d_word MaxScrollX_u16, $110
     d_byte Flags_bRoom, bRoom::Tall | eArea::Mine
     d_byte MinimapStartRow_u8, 11
-    d_byte MinimapStartCol_u8, 21
+    d_byte MinimapStartCol_u8, 22
     d_addr TerrainData_ptr, _TerrainData
     d_byte NumMachines_u8, 0
     d_addr Machines_sMachine_arr_ptr, 0
@@ -81,7 +81,7 @@ _Devices_sDevice_arr:
 _Passages_sPassage_arr:
 :   D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Western | 0
-    d_byte Destination_eRoom, eRoom::MineWest
+    d_byte Destination_eRoom, eRoom::MineDrift
     d_byte SpawnBlock_u8, 4
     D_END
     D_STRUCT sPassage

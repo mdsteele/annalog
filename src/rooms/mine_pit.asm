@@ -98,7 +98,7 @@ kGirderEastInitPlatformTop = \
     d_word MaxScrollX_u16, $00
     d_byte Flags_bRoom, eArea::Mine
     d_byte MinimapStartRow_u8, 13
-    d_byte MinimapStartCol_u8, 22
+    d_byte MinimapStartCol_u8, 23
     d_addr TerrainData_ptr, _TerrainData
     d_byte NumMachines_u8, 2
     d_addr Machines_sMachine_arr_ptr, _Machines_sMachine_arr

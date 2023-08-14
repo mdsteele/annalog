@@ -347,7 +347,9 @@ _Done:
     .byte 12, 14
     .byte 12, 16
     .byte 12, 17
+    .byte 12, 18
     .byte 12, 19
+    .byte 12, 20
     .byte 13, 13
     .byte 13, 14
     .byte 13, 15
@@ -355,6 +357,7 @@ _Done:
     .byte 13, 17
     .byte 13, 18
     .byte 13, 19
+    .byte 13, 20
     .byte 14, 14
     .byte 14, 15
     .byte 14, 16
@@ -362,6 +365,7 @@ _Done:
     .byte 14, 18
     .byte 14, 19
     .byte 14, 20
+    .byte 14, 21
     .byte $ff
 .ENDPROC
 
@@ -387,23 +391,27 @@ _Done:
 .ENDPROC
 
 .PROC DataA_Pause_MineAreaCells_u8_arr2_arr
+    .byte  9, 18
     .byte  9, 19
     .byte  9, 20
     .byte  9, 21
     .byte  9, 22
     .byte  9, 23
+    .byte 10, 18
     .byte 10, 19
     .byte 10, 20
     .byte 10, 21
     .byte 10, 22
     .byte 10, 23
+    .byte 11, 19
     .byte 11, 20
     .byte 11, 21
     .byte 11, 22
-    .byte 12, 20
+    .byte 11, 23
     .byte 12, 21
     .byte 12, 22
-    .byte 13, 22
+    .byte 12, 23
+    .byte 13, 23
     .byte $ff
 .ENDPROC
 
@@ -438,6 +446,7 @@ _Done:
     .byte  5, 20
     .byte  5, 21
     .byte  5, 22
+    .byte  5, 23
     .byte  6, 19
     .byte  6, 22
     .byte  7, 17
@@ -617,7 +626,7 @@ _Done:
     D_END
     D_STRUCT sMarker
     d_byte Row_u8, 10
-    d_byte Col_u8, 19  ; room: MineFlower
+    d_byte Col_u8, 18  ; room: MineFlower
     d_byte If_eFlag, 0
     d_byte Not_eFlag, eFlag::FlowerMine
     D_END
@@ -641,7 +650,7 @@ _Done:
     D_END
     D_STRUCT sMarker
     d_byte Row_u8, 13
-    d_byte Col_u8, 22  ; room: MinePit
+    d_byte Col_u8, 23  ; room: MinePit
     d_byte If_eFlag, 0
     d_byte Not_eFlag, eFlag::UpgradeOpSync
     D_END

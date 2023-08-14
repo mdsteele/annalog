@@ -118,7 +118,7 @@ run: $(ROM_BIN_FILE) $(ROM_BIN_FILE).ram.nl $(ROM_BIN_FILE).3.nl
 .PHONY: test
 test: $(SIM65_BIN_FILES)
 	python3 tests/lint.py
-	@for BIN in $^; do echo sim65 $$BIN; sim65 $$BIN; done
+	@for BIN in $^; do echo sim65 $$BIN; sim65 $$BIN || exit 1; done
 	python3 tests/scenario.py
 	python3 tests/style.py
 

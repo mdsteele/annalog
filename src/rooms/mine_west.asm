@@ -131,7 +131,7 @@ kPaletteObjCageRods   = 0
     d_word MaxScrollX_u16, $10
     d_byte Flags_bRoom, bRoom::Tall | eArea::Mine
     d_byte MinimapStartRow_u8, 10
-    d_byte MinimapStartCol_u8, 20
+    d_byte MinimapStartCol_u8, 19
     d_addr TerrainData_ptr, _TerrainData
     d_byte NumMachines_u8, 1
     d_addr Machines_sMachine_arr_ptr, _Machines_sMachine_arr
@@ -242,12 +242,12 @@ _Passages_sPassage_arr:
     D_END
     D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Eastern | 0
-    d_byte Destination_eRoom, eRoom::MineWest  ; TODO MineNorth
+    d_byte Destination_eRoom, eRoom::MineWest  ; TODO
     d_byte SpawnBlock_u8, 5
     D_END
     D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Eastern | 1
-    d_byte Destination_eRoom, eRoom::MineSouth
+    d_byte Destination_eRoom, eRoom::MineDrift
     d_byte SpawnBlock_u8, 20
     D_END
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error

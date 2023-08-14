@@ -18,6 +18,7 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "../actor.inc"
+.INCLUDE "../actors/firefly.inc"
 .INCLUDE "../actors/wasp.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../platform.inc"
@@ -32,14 +33,14 @@
 
 .SEGMENT "PRGC_Mine"
 
-.EXPORT DataC_Mine_Entry_sRoom
-.PROC DataC_Mine_Entry_sRoom
+.EXPORT DataC_Mine_Drift_sRoom
+.PROC DataC_Mine_Drift_sRoom
     D_STRUCT sRoom
     d_byte MinScrollX_u8, $10
-    d_word MaxScrollX_u16, $10
+    d_word MaxScrollX_u16, $110
     d_byte Flags_bRoom, eArea::Mine
-    d_byte MinimapStartRow_u8, 12
-    d_byte MinimapStartCol_u8, 21
+    d_byte MinimapStartRow_u8, 11
+    d_byte MinimapStartCol_u8, 20
     d_addr TerrainData_ptr, _TerrainData
     d_byte NumMachines_u8, 0
     d_addr Machines_sMachine_arr_ptr, 0
@@ -59,14 +60,14 @@ _Ext_sRoomExt:
     d_addr FadeIn_func_ptr, Func_Noop
     D_END
 _TerrainData:
-:   .incbin "out/data/mine_entry.room"
-    .assert * - :- = 18 * 15, error
+:   .incbin "out/data/mine_drift.room"
+    .assert * - :- = 34 * 15, error
 _Platforms_sPlatform_arr:
 :   D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Harm
-    d_word WidthPx_u16, $30
+    d_word WidthPx_u16, $c0
     d_byte HeightPx_u8, $08
-    d_word Left_i16,  $0070
+    d_word Left_i16,  $00d0
     d_word Top_i16,   $00de
     D_END
     .assert * - :- <= kMaxPlatforms * .sizeof(sPlatform), error
@@ -74,28 +75,46 @@ _Platforms_sPlatform_arr:
 _Actors_sActor_arr:
 :   D_STRUCT sActor
     d_byte Type_eActor, eActor::BadWasp
-    d_word PosX_i16, $0068
-    d_word PosY_i16, $0054
-    d_byte Param_byte, (bBadWasp::ThetaMask & $40) | (bBadWasp::DeltaMask & -1)
+    d_word PosX_i16, $0040
+    d_word PosY_i16, $0064
+    d_byte Param_byte, (bBadWasp::ThetaMask & $40) | (bBadWasp::DeltaMask & 2)
+    D_END
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::BadFirefly
+    d_word PosX_i16, $010c
+    d_word PosY_i16, $0068
+    d_byte Param_byte, (bBadFirefly::ThetaMask & $40) | bBadFirefly::FlipH
+    D_END
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::BadFirefly
+    d_word PosX_i16, $00f0
+    d_word PosY_i16, $0088
+    d_byte Param_byte, (bBadFirefly::ThetaMask & $00) | bBadFirefly::FlipH
     D_END
     D_STRUCT sActor
     d_byte Type_eActor, eActor::BadWasp
-    d_word PosX_i16, $00c0
-    d_word PosY_i16, $002a
-    d_byte Param_byte, (bBadWasp::ThetaMask & $40) | (bBadWasp::DeltaMask & -3)
+    d_word PosX_i16, $01c0
+    d_word PosY_i16, $0050
+    d_byte Param_byte, (bBadWasp::ThetaMask & $00) | (bBadWasp::DeltaMask & -2)
+    D_END
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::BadWasp
+    d_word PosX_i16, $0184
+    d_word PosY_i16, $00ac
+    d_byte Param_byte, (bBadWasp::ThetaMask & $c0) | (bBadWasp::DeltaMask & 3)
     D_END
     .assert * - :- <= kMaxActors * .sizeof(sActor), error
     .byte eActor::None
 _Passages_sPassage_arr:
 :   D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Western | 0
-    d_byte Destination_eRoom, eRoom::MineEntry  ; TODO
+    d_byte Destination_eRoom, eRoom::MineWest
     d_byte SpawnBlock_u8, 11
     D_END
     D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Eastern | 0
     d_byte Destination_eRoom, eRoom::MineSouth
-    d_byte SpawnBlock_u8, 5
+    d_byte SpawnBlock_u8, 9
     D_END
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
 .ENDPROC

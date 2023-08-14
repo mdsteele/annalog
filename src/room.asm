@@ -105,6 +105,7 @@
 .IMPORT DataC_Mermaid_Hut6_sRoom
 .IMPORT DataC_Mermaid_Village_sRoom
 .IMPORT DataC_Mine_Collapse_sRoom
+.IMPORT DataC_Mine_Drift_sRoom
 .IMPORT DataC_Mine_East_sRoom
 .IMPORT DataC_Mine_Entry_sRoom
 .IMPORT DataC_Mine_Flower_sRoom
@@ -326,6 +327,7 @@ _LoadNewRoom:
     d_entry table, MermaidHut6,     DataC_Mermaid_Hut6_sRoom
     d_entry table, MermaidVillage,  DataC_Mermaid_Village_sRoom
     d_entry table, MineCollapse,    DataC_Mine_Collapse_sRoom
+    d_entry table, MineDrift,       DataC_Mine_Drift_sRoom
     d_entry table, MineEast,        DataC_Mine_East_sRoom
     d_entry table, MineEntry,       DataC_Mine_Entry_sRoom
     d_entry table, MineFlower,      DataC_Mine_Flower_sRoom
@@ -460,6 +462,7 @@ _PrisonMusic:
     d_byte MermaidHut6,     eMusic::Silence
     d_byte MermaidVillage,  eMusic::Silence
     d_byte MineCollapse,    eMusic::Mine
+    d_byte MineDrift,       eMusic::Mine
     d_byte MineEast,        eMusic::Mine
     d_byte MineEntry,       eMusic::Mine
     d_byte MineFlower,      eMusic::Mine

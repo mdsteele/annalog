@@ -115,6 +115,7 @@ kMaxPassages = 8
     MermaidHut6
     MermaidVillage
     MineCollapse
+    MineDrift
     MineEast
     MineEntry
     MineFlower
