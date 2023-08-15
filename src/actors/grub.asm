@@ -20,7 +20,7 @@
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
 .INCLUDE "../ppu.inc"
-.INCLUDE "../terrain.inc"
+.INCLUDE "../tileset.inc"
 .INCLUDE "grub.inc"
 
 .IMPORT FuncA_Actor_HarmAvatarIfCollision
@@ -31,6 +31,7 @@
 .IMPORT Ram_ActorPosX_i16_0_arr
 .IMPORT Ram_ActorPosX_i16_1_arr
 .IMPORT Ram_ActorState1_byte_arr
+.IMPORTZP Zp_Current_sTileset
 .IMPORTZP Zp_TerrainColumn_u8_arr_ptr
 
 ;;;=========================================================================;;;
@@ -80,7 +81,7 @@ _StartMove:
     ;; has to turn around.
     iny
     lda (Zp_TerrainColumn_u8_arr_ptr), y
-    cmp #kFirstSolidTerrainType
+    cmp Zp_Current_sTileset + sTileset::FirstSolidTerrainType_u8
     bge @continueForward
     ;; Make the grub face the opposite direction.
     @turnAround:

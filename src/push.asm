@@ -27,7 +27,7 @@
 .INCLUDE "platform.inc"
 .INCLUDE "ppu.inc"
 .INCLUDE "room.inc"
-.INCLUDE "terrain.inc"
+.INCLUDE "tileset.inc"
 
 .IMPORT Func_AvatarCollideWithAllPlatformsHorz
 .IMPORT Func_AvatarCollideWithAllPlatformsVert
@@ -41,6 +41,7 @@
 .IMPORTZP Zp_AvatarVelX_i16
 .IMPORTZP Zp_AvatarVelY_i16
 .IMPORTZP Zp_Current_sRoom
+.IMPORTZP Zp_Current_sTileset
 .IMPORTZP Zp_PointX_i16
 .IMPORTZP Zp_TerrainColumn_u8_arr_ptr
 
@@ -215,11 +216,11 @@ _MovingRight:
     jsr Func_GetAvatarRightXAndTerrain  ; preserves T0+
     ldy T0  ; room block row index (bottom of avatar)
     lda (Zp_TerrainColumn_u8_arr_ptr), y  ; terrain block type
-    cmp #kFirstSolidTerrainType
+    cmp Zp_Current_sTileset + sTileset::FirstSolidTerrainType_u8
     bge @solid
     ldy T1  ; room block row index (top of avatar)
     lda (Zp_TerrainColumn_u8_arr_ptr), y  ; terrain block type
-    cmp #kFirstSolidTerrainType
+    cmp Zp_Current_sTileset + sTileset::FirstSolidTerrainType_u8
     blt @done
     ;; We've hit the right wall, so set horizontal position to just to the left
     ;; of the wall we hit.
@@ -242,11 +243,11 @@ _MovingLeft:
     jsr Func_GetAvatarLeftXAndTerrain  ; preserves T0+
     ldy T0  ; room block row index (bottom of avatar)
     lda (Zp_TerrainColumn_u8_arr_ptr), y  ; terrain block type
-    cmp #kFirstSolidTerrainType
+    cmp Zp_Current_sTileset + sTileset::FirstSolidTerrainType_u8
     bge @solid
     ldy T1  ; room block row index (top of avatar)
     lda (Zp_TerrainColumn_u8_arr_ptr), y  ; terrain block type
-    cmp #kFirstSolidTerrainType
+    cmp Zp_Current_sTileset + sTileset::FirstSolidTerrainType_u8
     blt @done
     ;; We've hit the left wall, so set horizontal position to just to the right
     ;; of the wall we hit.
@@ -406,10 +407,10 @@ _MovingUp:
     ;; Check for tile collisions.
     ldy T2  ; room block row index (top of avatar)
     lda (T1T0), y  ; terrain block type (left side)
-    cmp #kFirstSolidTerrainType
+    cmp Zp_Current_sTileset + sTileset::FirstSolidTerrainType_u8
     bge @solid
     lda (Zp_TerrainColumn_u8_arr_ptr), y  ; terrain block type (right side)
-    cmp #kFirstSolidTerrainType
+    cmp Zp_Current_sTileset + sTileset::FirstSolidTerrainType_u8
     blt @done
     @solid:
     ;; We've hit the ceiling, so set vertical position to just below the
@@ -446,10 +447,10 @@ _MovingDown:
     ;; Check for tile collisions.
     ldy T2  ; room block row index (top of avatar)
     lda (T1T0), y  ; terrain block type (left side)
-    cmp #kFirstSolidTerrainType
+    cmp Zp_Current_sTileset + sTileset::FirstSolidTerrainType_u8
     bge @solid
     lda (Zp_TerrainColumn_u8_arr_ptr), y  ; terrain block type (right side)
-    cmp #kFirstSolidTerrainType
+    cmp Zp_Current_sTileset + sTileset::FirstSolidTerrainType_u8
     blt @done
     @solid:
     ;; Set vertical position to just above the floor we hit.

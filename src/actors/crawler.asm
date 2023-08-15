@@ -22,7 +22,7 @@
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
 .INCLUDE "../ppu.inc"
-.INCLUDE "../terrain.inc"
+.INCLUDE "../tileset.inc"
 .INCLUDE "crawler.inc"
 
 .IMPORT FuncA_Actor_GetRoomBlockRow
@@ -48,6 +48,7 @@
 .IMPORT Ram_ActorState2_byte_arr
 .IMPORT Ram_ActorType_eActor_arr
 .IMPORT Ram_Oam_sObj_arr64
+.IMPORTZP Zp_Current_sTileset
 .IMPORTZP Zp_FrameCounter_u8
 .IMPORTZP Zp_TerrainColumn_u8_arr_ptr
 
@@ -246,7 +247,7 @@ _CheckForOuterCorner:
     ;; If there's still a solid floor/ceiling for the baddie to continue on,
     ;; then no need to turn.
     lda (Zp_TerrainColumn_u8_arr_ptr), y
-    cmp #kFirstSolidTerrainType
+    cmp Zp_Current_sTileset + sTileset::FirstSolidTerrainType_u8
     blt _TurnAtOuterCorner
 _NoTurn:
     clc
@@ -354,7 +355,7 @@ _CheckForOuterCorner:
     ;; If there's still a solid vertical wall for the baddie to continue on,
     ;; then no need to turn.
     lda (Zp_TerrainColumn_u8_arr_ptr), y
-    cmp #kFirstSolidTerrainType
+    cmp Zp_Current_sTileset + sTileset::FirstSolidTerrainType_u8
     blt _TurnAtOuterCorner
 _NoTurn:
     clc

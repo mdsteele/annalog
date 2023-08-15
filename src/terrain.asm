@@ -21,7 +21,6 @@
 .INCLUDE "macros.inc"
 .INCLUDE "ppu.inc"
 .INCLUDE "room.inc"
-.INCLUDE "terrain.inc"
 .INCLUDE "tileset.inc"
 
 .IMPORT Ram_PpuTransfer_arr
@@ -67,7 +66,7 @@ Zp_TerrainColumn_u8_arr_ptr: .res 2
     tay  ; room block row index
     jsr Func_GetTerrainColumnPtrForPointX  ; preserves X, Y, and T0+
     lda (Zp_TerrainColumn_u8_arr_ptr), y
-    cmp #kFirstSolidTerrainType
+    cmp Zp_Current_sTileset + sTileset::FirstSolidTerrainType_u8
     rts
 .ENDPROC
 

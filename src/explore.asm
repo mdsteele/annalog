@@ -29,7 +29,6 @@
 .INCLUDE "ppu.inc"
 .INCLUDE "room.inc"
 .INCLUDE "spawn.inc"
-.INCLUDE "terrain.inc"
 .INCLUDE "tileset.inc"
 
 .IMPORT FuncA_Actor_TickAllActors

@@ -28,7 +28,6 @@
 .INCLUDE "ppu.inc"
 .INCLUDE "room.inc"
 .INCLUDE "sample.inc"
-.INCLUDE "terrain.inc"
 
 .IMPORT FuncA_Avatar_UpdateWaterDepth
 .IMPORT FuncA_Objects_Draw2x2Shape

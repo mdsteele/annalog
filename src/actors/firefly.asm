@@ -21,7 +21,6 @@
 .INCLUDE "../cpu.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
-.INCLUDE "../terrain.inc"
 .INCLUDE "firefly.inc"
 
 .IMPORT FuncA_Actor_FaceTowardsAvatar

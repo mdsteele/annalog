@@ -22,7 +22,6 @@
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
 .INCLUDE "../ppu.inc"
-.INCLUDE "../terrain.inc"
 .INCLUDE "flamewave.inc"
 
 .IMPORT FuncA_Actor_CenterHitsTerrain

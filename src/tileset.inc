@@ -30,7 +30,9 @@
     ;; The default CHR08 bank number to set when using this tileset.  A room's
     ;; Enter_func_ptr can modify this in Zp_Current_sTileset to override the
     ;; default.
-    Chr08Bank_u8          .byte
+    Chr08Bank_u8 .byte
+    ;; Terrain block IDs greater than or equal to this are considered solid.
+    FirstSolidTerrainType_u8 .byte
 .ENDSTRUCT
 
 ;;;=========================================================================;;;

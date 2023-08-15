@@ -19,7 +19,6 @@
 
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
-.INCLUDE "../terrain.inc"
 .INCLUDE "fish.inc"
 
 .IMPORT FuncA_Actor_HarmAvatarIfCollision

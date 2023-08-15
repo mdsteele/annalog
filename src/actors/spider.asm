@@ -21,7 +21,7 @@
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
 .INCLUDE "../ppu.inc"
-.INCLUDE "../terrain.inc"
+.INCLUDE "../tileset.inc"
 .INCLUDE "spider.inc"
 
 .IMPORT FuncA_Actor_HarmAvatarIfCollision
@@ -45,6 +45,7 @@
 .IMPORT Ram_ActorState2_byte_arr
 .IMPORT Ram_ActorVelY_i16_0_arr
 .IMPORT Ram_ActorVelY_i16_1_arr
+.IMPORTZP Zp_Current_sTileset
 .IMPORTZP Zp_TerrainColumn_u8_arr_ptr
 
 ;;;=========================================================================;;;
@@ -170,7 +171,7 @@ _StartNewMovementCycle:
     ;; spider has to turn around.
     dey
     lda (Zp_TerrainColumn_u8_arr_ptr), y
-    cmp #kFirstSolidTerrainType
+    cmp Zp_Current_sTileset + sTileset::FirstSolidTerrainType_u8
     blt @turnAround
     ;; Otherwise, randomly turn around 25% of the time.
     jsr Func_GetRandomByte  ; preserves X, returns A

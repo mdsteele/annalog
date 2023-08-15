@@ -23,7 +23,6 @@
 .INCLUDE "../oam.inc"
 .INCLUDE "../platform.inc"
 .INCLUDE "../ppu.inc"
-.INCLUDE "../terrain.inc"
 .INCLUDE "breakball.inc"
 
 .IMPORT FuncA_Actor_HarmAvatarIfCollision

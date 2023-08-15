@@ -22,7 +22,6 @@
 .INCLUDE "../oam.inc"
 .INCLUDE "../ppu.inc"
 .INCLUDE "../program.inc"
-.INCLUDE "../terrain.inc"
 .INCLUDE "carriage.inc"
 .INCLUDE "shared.inc"
 

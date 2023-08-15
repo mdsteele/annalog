@@ -20,7 +20,6 @@
 .INCLUDE "../actor.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
-.INCLUDE "../terrain.inc"
 .INCLUDE "vinebug.inc"
 
 .IMPORT FuncA_Actor_HarmAvatarIfCollision

@@ -23,7 +23,6 @@
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
 .INCLUDE "../ppu.inc"
-.INCLUDE "../terrain.inc"
 .INCLUDE "bird.inc"
 
 .IMPORT FuncA_Actor_HarmAvatarIfCollision

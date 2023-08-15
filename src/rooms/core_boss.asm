@@ -112,6 +112,14 @@ _Platforms_sPlatform_arr:
     d_word Left_i16, $01f0
     d_word Top_i16,  $012c
     D_END
+    ;; Top of reactor:
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Solid
+    d_word WidthPx_u16, $40
+    d_byte HeightPx_u8, $08
+    d_word Left_i16,  $00f0
+    d_word Top_i16,   $0078
+    D_END
     ;; Left side of reactor:
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Solid
@@ -128,13 +136,13 @@ _Platforms_sPlatform_arr:
     d_word Left_i16,  $0130
     d_word Top_i16,   $00a8
     D_END
-    ;; Bottom of reactor:
+    ;; Center of reactor:
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Solid
     d_word WidthPx_u16, $30
-    d_byte HeightPx_u8, $08
+    d_byte HeightPx_u8, $a8
     d_word Left_i16,  $00f8
-    d_word Top_i16,   $0110
+    d_word Top_i16,   $0070
     D_END
     .assert * - :- <= kMaxPlatforms * .sizeof(sPlatform), error
     .byte ePlatform::None

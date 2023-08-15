@@ -22,7 +22,7 @@
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
 .INCLUDE "../ppu.inc"
-.INCLUDE "../terrain.inc"
+.INCLUDE "../tileset.inc"
 .INCLUDE "orc.inc"
 
 .IMPORT FuncA_Actor_FaceTowardsAvatar
@@ -53,6 +53,7 @@
 .IMPORT Ram_ActorVelX_i16_1_arr
 .IMPORT Ram_ActorVelY_i16_0_arr
 .IMPORT Ram_ActorVelY_i16_1_arr
+.IMPORTZP Zp_Current_sTileset
 .IMPORTZP Zp_PointY_i16
 .IMPORTZP Zp_TerrainColumn_u8_arr_ptr
 
@@ -262,18 +263,18 @@ _StopIfBlockedByTerrain:
     jsr FuncA_Actor_GetRoomBlockRow  ; preserves X, returns Y
     ;; If the wall in front of the orc's feet is solid, stop in place.
     lda (Zp_TerrainColumn_u8_arr_ptr), y
-    cmp #kFirstSolidTerrainType
+    cmp Zp_Current_sTileset + sTileset::FirstSolidTerrainType_u8
     bge @stop
     ;; If the wall in front of the orc's head is solid, stop in place.
     dey
     lda (Zp_TerrainColumn_u8_arr_ptr), y
-    cmp #kFirstSolidTerrainType
+    cmp Zp_Current_sTileset + sTileset::FirstSolidTerrainType_u8
     bge @stop
     ;; If the floor in front of the orc is not solid, stop in place.
     iny
     iny
     lda (Zp_TerrainColumn_u8_arr_ptr), y
-    cmp #kFirstSolidTerrainType
+    cmp Zp_Current_sTileset + sTileset::FirstSolidTerrainType_u8
     bge @done
     @stop:
     jsr FuncA_Actor_ZeroVelX  ; preserves X

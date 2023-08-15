@@ -21,7 +21,6 @@
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
 .INCLUDE "../ppu.inc"
-.INCLUDE "../terrain.inc"
 .INCLUDE "toad.inc"
 
 .IMPORT FuncA_Actor_ApplyGravity
