@@ -115,6 +115,10 @@ all: $(ROM_BIN_FILE) $(NSF_BIN_FILE)
 run: $(ROM_BIN_FILE) $(ROM_BIN_FILE).ram.nl $(ROM_BIN_FILE).3.nl
 	fceux $< > /dev/null
 
+.PHONY: listen
+listen: $(NSF_BIN_FILE)
+	open -a 'Audio Overload' $<
+
 .PHONY: test
 test: $(SIM65_BIN_FILES)
 	python3 tests/lint.py

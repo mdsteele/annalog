@@ -1,6 +1,6 @@
 @PRGC_Prison
 
-!SONG Prison2 "|ABCAABCBCA"
+!SONG Prison2 "AD|BCAABCBCAA"
 
 =tempo q32
 =key 3b  % c minor
@@ -14,15 +14,15 @@
 
 !PART A
 
-2| iE c4s ce :4 ce ce |
- |  ; a3s ae :4 ae ae |
- |  ; b3s be :4 be be |
- |  ; g3s ge :4 ge ge |
-T| iB c3q iK c4e iB e3e :2 |
- |  ; a2q iK c4e iB e3e :2 |
- |  ; b2q iK c4e iB d3e :2 |
- |  ; g2q iK c4e iB b2e :2 |
-N| iD x9e x0 :16 |
+2| p(iE c4s ce)21 :4 p(c4e ce)2A |
+ | p(   a3s ae)22 :4 p(a3e ae)2B |
+ | p(   b3s be)23 :4 p(b3e be)2C |
+ | p(   g3s ge)24 :4 p(g3e ge)2D |
+T| p(iB c3q iK c4e iB e3e)T1 :2 |
+ | p(   a2q iK c4e iB e3e)T2 :2 |
+ | p(   b2q iK c4e iB d3e)T3 :2 |
+ | p(   g2q iK c4e iB b2e)T4 :2 |
+N| p(iD x9e x0)N1 :16 |
 
 !PART B
 
@@ -41,3 +41,17 @@ N=:AN
 2=:A2
 T=:AT
 N=:AN
+
+!PART D
+
+1| iH rq. c4e ge. fe. ce+ | +h rh |
+ |    rq. c4e ge. iQ fe. ae+ | +h rq. c4e |
+2| p21 :4 p2A |
+ | p22 :4 p2B |
+ | p23 :4 p2C |
+ | g3s ge gs ge ge ge re ge %re |
+T| pT1 :2 |
+ | pT2 :2 |
+ | pT3 :2 |
+ | pT4 iK c4e re c4e %re |
+N| pN1 :14 x9q x9q |
