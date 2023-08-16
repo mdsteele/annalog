@@ -20,12 +20,13 @@
 .INCLUDE "../actor.inc"
 .INCLUDE "../device.inc"
 .INCLUDE "../macros.inc"
+.INCLUDE "../oam.inc"
 .INCLUDE "../room.inc"
 
 .IMPORT DataA_Room_City_sTileset
 .IMPORT Data_Empty_sPlatform_arr
 .IMPORT Func_Noop
-.IMPORT Ppu_ChrObjGarden
+.IMPORT Ppu_ChrObjCity
 
 ;;;=========================================================================;;;
 
@@ -42,7 +43,7 @@
     d_addr TerrainData_ptr, _TerrainData
     d_byte NumMachines_u8, 0
     d_addr Machines_sMachine_arr_ptr, 0
-    d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjGarden)  ; TODO
+    d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjCity)
     d_addr Tick_func_ptr, Func_Noop
     d_addr Draw_func_ptr, Func_Noop
     d_addr Ext_sRoomExt_ptr, _Ext_sRoomExt
@@ -61,11 +62,39 @@ _TerrainData:
 :   .incbin "out/data/city_east.room"
     .assert * - :- = 17 * 24, error
 _Actors_sActor_arr:
-:   ;; TODO: add some baddies
+:   D_STRUCT sActor
+    d_byte Type_eActor, eActor::BadRhino
+    d_word PosX_i16, $0054
+    d_word PosY_i16, $0038
+    d_byte Param_byte, 0
+    D_END
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::BadRhino
+    d_word PosX_i16, $00c8
+    d_word PosY_i16, $0078
+    d_byte Param_byte, bObj::FlipH
+    D_END
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::BadRhino
+    d_word PosX_i16, $0060
+    d_word PosY_i16, $00b8
+    d_byte Param_byte, 0
+    D_END
     .assert * - :- <= kMaxActors * .sizeof(sActor), error
     .byte eActor::None
 _Devices_sDevice_arr:
-:   ;; TODO: doors into building
+:   D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::Door1Open
+    d_byte BlockRow_u8, 16
+    d_byte BlockCol_u8, 5
+    d_byte Target_byte, eRoom::CityBuilding7
+    D_END
+    D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::Door2Open
+    d_byte BlockRow_u8, 21
+    d_byte BlockCol_u8, 5
+    d_byte Target_byte, eRoom::CityBuilding7
+    D_END
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None
 _Passages_sPassage_arr:

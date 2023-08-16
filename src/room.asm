@@ -41,6 +41,7 @@
 .IMPORT DataC_City_Building4_sRoom
 .IMPORT DataC_City_Building5_sRoom
 .IMPORT DataC_City_Building6_sRoom
+.IMPORT DataC_City_Building7_sRoom
 .IMPORT DataC_City_Center_sRoom
 .IMPORT DataC_City_Drain_sRoom
 .IMPORT DataC_City_Dump_sRoom
@@ -263,6 +264,7 @@ _LoadNewRoom:
     d_entry table, CityBuilding4,   DataC_City_Building4_sRoom
     d_entry table, CityBuilding5,   DataC_City_Building5_sRoom
     d_entry table, CityBuilding6,   DataC_City_Building6_sRoom
+    d_entry table, CityBuilding7,   DataC_City_Building7_sRoom
     d_entry table, CityCenter,      DataC_City_Center_sRoom
     d_entry table, CityDrain,       DataC_City_Drain_sRoom
     d_entry table, CityDump,        DataC_City_Dump_sRoom
@@ -398,6 +400,7 @@ _PrisonMusic:
     d_byte CityBuilding4,   eMusic::Silence
     d_byte CityBuilding5,   eMusic::Silence
     d_byte CityBuilding6,   eMusic::Silence
+    d_byte CityBuilding7,   eMusic::Silence
     d_byte CityCenter,      eMusic::Silence
     d_byte CityDrain,       eMusic::Silence
     d_byte CityDump,        eMusic::Silence
