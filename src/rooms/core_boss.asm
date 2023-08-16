@@ -112,7 +112,7 @@ _Platforms_sPlatform_arr:
     d_word Left_i16, $01f0
     d_word Top_i16,  $012c
     D_END
-    ;; Top of reactor:
+    ;; Top corners of reactor:
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Solid
     d_word WidthPx_u16, $40
@@ -120,23 +120,15 @@ _Platforms_sPlatform_arr:
     d_word Left_i16,  $00f0
     d_word Top_i16,   $0078
     D_END
-    ;; Left side of reactor:
+    ;; Wide radius of reactor:
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Solid
-    d_word WidthPx_u16, $08
+    d_word WidthPx_u16, $50
     d_byte HeightPx_u8, $40
     d_word Left_i16,  $00e8
     d_word Top_i16,   $00a8
     D_END
-    ;; Right side of reactor:
-    D_STRUCT sPlatform
-    d_byte Type_ePlatform, ePlatform::Solid
-    d_word WidthPx_u16, $08
-    d_byte HeightPx_u8, $40
-    d_word Left_i16,  $0130
-    d_word Top_i16,   $00a8
-    D_END
-    ;; Center of reactor:
+    ;; Narrow radius of reactor:
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Solid
     d_word WidthPx_u16, $30

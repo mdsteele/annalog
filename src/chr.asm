@@ -304,8 +304,8 @@
 :   .incbin "out/tiles/core_pipes1.chr"
     .incbin "out/tiles/core_pipes2.chr"
     .res $08 * kSizeofChr
-    .incbin "out/tiles/fullcore.chr"
-    .res $16 * kSizeofChr
+    .incbin "out/tiles/fullcore1.chr"
+    .incbin "out/tiles/fullcore2.chr"
     .incbin "out/tiles/console.chr"
     .assert * - :- = kSizeofChr * $40, error
 .ENDPROC
