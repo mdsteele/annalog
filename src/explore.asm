@@ -457,7 +457,13 @@ _UpDownPassage:
 
 ;;; Calls the current room's Draw_func_ptr function.
 .PROC FuncA_Objects_CallRoomDraw
-    jmp (Zp_Current_sRoom + sRoom::Draw_func_ptr)
+    ldy #sRoomExt::Draw_func_ptr
+    lda (Zp_Current_sRoom + sRoom::Ext_sRoomExt_ptr), y
+    sta T0
+    iny
+    lda (Zp_Current_sRoom + sRoom::Ext_sRoomExt_ptr), y
+    sta T1
+    jmp (T1T0)
 .ENDPROC
 
 ;;; Allocates and populates OAM slots for the visual prompt that appears when

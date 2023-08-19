@@ -270,14 +270,6 @@ kMaxPassages = 8
     ;; Enter_func_ptr can modify this in Zp_Current_sRoom to override the
     ;; default.
     Chr18Bank_u8              .byte
-    ;; Function to call each frame to update room state.
-    ;; @prereq PRGA_Room is loaded.
-    Tick_func_ptr             .addr
-    ;; Function to call each frame to draw room-specific objects that aren't
-    ;; covered by machines/actors (e.g. bosses or special platforms).  This can
-    ;; also set up IRQs for the room.
-    ;; @prereq PRGA_Objects is loaded.
-    Draw_func_ptr             .addr
     ;; Extended information about the room.
     Ext_sRoomExt_ptr          .addr
 .ENDSTRUCT
@@ -318,6 +310,14 @@ kMaxPassages = 8
     ;; @prereq Rendering is disabled.
     ;; @prereq Room is loaded and avatar is positioned.
     FadeIn_func_ptr             .addr
+    ;; Function to call each frame to update room state.
+    ;; @prereq PRGA_Room is loaded.
+    Tick_func_ptr             .addr
+    ;; Function to call each frame to draw room-specific objects that aren't
+    ;; covered by machines/actors (e.g. bosses or special platforms).  This can
+    ;; also set up IRQs for the room.
+    ;; @prereq PRGA_Objects is loaded.
+    Draw_func_ptr             .addr
 .ENDSTRUCT
 
 ;;;=========================================================================;;;

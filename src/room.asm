@@ -728,7 +728,13 @@ _SetVars:
 ;;; Calls the current room's Tick_func_ptr function.
 .EXPORT FuncA_Room_CallRoomTick
 .PROC FuncA_Room_CallRoomTick
-    jmp (Zp_Current_sRoom + sRoom::Tick_func_ptr)
+    ldy #sRoomExt::Tick_func_ptr
+    lda (Zp_Current_sRoom + sRoom::Ext_sRoomExt_ptr), y
+    sta T0
+    iny
+    lda (Zp_Current_sRoom + sRoom::Ext_sRoomExt_ptr), y
+    sta T1
+    jmp (T1T0)
 .ENDPROC
 
 ;;;=========================================================================;;;

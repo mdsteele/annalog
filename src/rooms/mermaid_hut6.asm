@@ -69,8 +69,6 @@ kMachineMoveCountdown = $10
     d_byte NumMachines_u8, 2
     d_addr Machines_sMachine_arr_ptr, _Machines_sMachine_arr
     d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjVillage)
-    d_addr Tick_func_ptr, Func_Noop
-    d_addr Draw_func_ptr, Func_Noop
     d_addr Ext_sRoomExt_ptr, _Ext_sRoomExt
     D_END
 _Ext_sRoomExt:
@@ -82,6 +80,8 @@ _Ext_sRoomExt:
     d_addr Passages_sPassage_arr_ptr, 0
     d_addr Enter_func_ptr, Func_Noop
     d_addr FadeIn_func_ptr, Func_Noop
+    d_addr Tick_func_ptr, Func_Noop
+    d_addr Draw_func_ptr, Func_Noop
     D_END
 _TerrainData:
 :   .incbin "out/data/mermaid_hut6.room"
