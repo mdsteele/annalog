@@ -131,14 +131,14 @@ _Machines_sMachine_arr:
     d_byte ScrollGoalY_u8, $00
     d_byte RegNames_u8_arr4, 0, 0, 0, "Z"
     d_byte MainPlatform_u8, kHoistWestPlatformIndex
-    d_addr Init_func_ptr, FuncC_Mine_PitHoistWest_Init
+    d_addr Init_func_ptr, FuncC_Mine_PitHoistWest_InitReset
     d_addr ReadReg_func_ptr, FuncC_Mine_PitHoistWest_ReadReg
     d_addr WriteReg_func_ptr, Func_Noop
     d_addr TryMove_func_ptr, FuncC_Mine_PitHoistWest_TryMove
     d_addr TryAct_func_ptr, FuncA_Machine_Error
     d_addr Tick_func_ptr, FuncC_Mine_PitHoistWest_Tick
     d_addr Draw_func_ptr, FuncA_Objects_MinePitHoistWest_Draw
-    d_addr Reset_func_ptr, FuncC_Mine_PitHoistWest_Reset
+    d_addr Reset_func_ptr, FuncC_Mine_PitHoistWest_InitReset
     D_END
     .assert * - :- = kHoistEastMachineIndex * .sizeof(sMachine), error
     D_STRUCT sMachine
@@ -150,14 +150,14 @@ _Machines_sMachine_arr:
     d_byte ScrollGoalY_u8, $00
     d_byte RegNames_u8_arr4, 0, 0, 0, "Z"
     d_byte MainPlatform_u8, kHoistEastPlatformIndex
-    d_addr Init_func_ptr, FuncC_Mine_PitHoistEast_Init
+    d_addr Init_func_ptr, FuncC_Mine_PitHoistEast_InitReset
     d_addr ReadReg_func_ptr, FuncC_Mine_PitHoistEast_ReadReg
     d_addr WriteReg_func_ptr, Func_Noop
     d_addr TryMove_func_ptr, FuncC_Mine_PitHoistEast_TryMove
     d_addr TryAct_func_ptr, FuncA_Machine_Error
     d_addr Tick_func_ptr, FuncC_Mine_PitHoistEast_Tick
     d_addr Draw_func_ptr, FuncA_Objects_MinePitHoistEast_Draw
-    d_addr Reset_func_ptr, FuncC_Mine_PitHoistEast_Reset
+    d_addr Reset_func_ptr, FuncC_Mine_PitHoistEast_InitReset
     D_END
     .assert * - :- <= kMaxMachines * .sizeof(sMachine), error
 _Platforms_sPlatform_arr:
@@ -251,11 +251,7 @@ _Passages_sPassage_arr:
     rts
 .ENDPROC
 
-.PROC FuncC_Mine_PitHoistWest_Init
-    .assert * = FuncC_Mine_PitHoistWest_Reset, error, "fallthrough"
-.ENDPROC
-
-.PROC FuncC_Mine_PitHoistWest_Reset
+.PROC FuncC_Mine_PitHoistWest_InitReset
     lda #kHoistWestInitGoalZ
     sta Ram_MachineGoalVert_u8_arr + kHoistWestMachineIndex
     rts
@@ -281,11 +277,7 @@ _Passages_sPassage_arr:
     rts
 .ENDPROC
 
-.PROC FuncC_Mine_PitHoistEast_Init
-    .assert * = FuncC_Mine_PitHoistEast_Reset, error, "fallthrough"
-.ENDPROC
-
-.PROC FuncC_Mine_PitHoistEast_Reset
+.PROC FuncC_Mine_PitHoistEast_InitReset
     lda #kHoistEastInitGoalZ
     sta Ram_MachineGoalVert_u8_arr + kHoistEastMachineIndex
     rts

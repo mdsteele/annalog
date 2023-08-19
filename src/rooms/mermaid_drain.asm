@@ -135,14 +135,14 @@ _Machines_sMachine_arr:
     d_byte ScrollGoalY_u8, $00
     d_byte RegNames_u8_arr4, 0, 0, 0, "Y"
     d_byte MainPlatform_u8, kPumpPlatformIndex
-    d_addr Init_func_ptr, FuncC_Mermaid_DrainPump_Init
+    d_addr Init_func_ptr, FuncC_Mermaid_DrainPump_InitReset
     d_addr ReadReg_func_ptr, FuncC_Mermaid_DrainPump_ReadReg
     d_addr WriteReg_func_ptr, Func_Noop
     d_addr TryMove_func_ptr, FuncC_Mermaid_DrainPump_TryMove
     d_addr TryAct_func_ptr, FuncA_Machine_Error
     d_addr Tick_func_ptr, FuncC_Mermaid_DrainPump_Tick
     d_addr Draw_func_ptr, FuncA_Objects_MermaidDrainPump_Draw
-    d_addr Reset_func_ptr, FuncC_Mermaid_DrainPump_Reset
+    d_addr Reset_func_ptr, FuncC_Mermaid_DrainPump_InitReset
     D_END
     .assert * - :- <= kMaxMachines * .sizeof(sMachine), error
 _Platforms_sPlatform_arr:
@@ -253,11 +253,7 @@ _Drained:
     rts
 .ENDPROC
 
-.PROC FuncC_Mermaid_DrainPump_Reset
-    .assert * = FuncC_Mermaid_DrainPump_Init, error, "fallthrough"
-.ENDPROC
-
-.PROC FuncC_Mermaid_DrainPump_Init
+.PROC FuncC_Mermaid_DrainPump_InitReset
     lda #kPumpInitGoalY
     sta Ram_MachineGoalVert_u8_arr + kPumpMachineIndex
     rts

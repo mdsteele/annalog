@@ -113,14 +113,14 @@ _Machines_sMachine_arr:
     d_byte ScrollGoalY_u8, $38
     d_byte RegNames_u8_arr4, 0, 0, 0, "Y"
     d_byte MainPlatform_u8, kPumpPlatformIndex
-    d_addr Init_func_ptr, FuncC_Sewer_FlowerPump_Init
+    d_addr Init_func_ptr, FuncC_Sewer_FlowerPump_InitReset
     d_addr ReadReg_func_ptr, FuncC_Sewer_FlowerPump_ReadReg
     d_addr WriteReg_func_ptr, Func_Noop
     d_addr TryMove_func_ptr, FuncC_Sewer_FlowerPump_TryMove
     d_addr TryAct_func_ptr, FuncA_Machine_Error
     d_addr Tick_func_ptr, FuncC_Sewer_FlowerPump_Tick
     d_addr Draw_func_ptr, FuncA_Objects_SewerFlowerPump_Draw
-    d_addr Reset_func_ptr, FuncC_Sewer_FlowerPump_Reset
+    d_addr Reset_func_ptr, FuncC_Sewer_FlowerPump_InitReset
     D_END
     .assert * - :- <= kMaxMachines * .sizeof(sMachine), error
 _Platforms_sPlatform_arr:
@@ -185,11 +185,7 @@ _Passages_sPassage_arr:
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
 .ENDPROC
 
-.PROC FuncC_Sewer_FlowerPump_Reset
-    .assert * = FuncC_Sewer_FlowerPump_Init, error, "fallthrough"
-.ENDPROC
-
-.PROC FuncC_Sewer_FlowerPump_Init
+.PROC FuncC_Sewer_FlowerPump_InitReset
     lda #kPumpInitGoalY
     sta Ram_MachineGoalVert_u8_arr + kPumpMachineIndex
     rts

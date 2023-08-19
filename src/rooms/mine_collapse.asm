@@ -131,14 +131,14 @@ _Machines_sMachine_arr:
     d_byte ScrollGoalY_u8, $10
     d_byte RegNames_u8_arr4, "D", 0, "X", 0
     d_byte MainPlatform_u8, kTrolleyPlatformIndex
-    d_addr Init_func_ptr, FuncC_Mine_CollapseTrolley_Init
+    d_addr Init_func_ptr, FuncC_Mine_CollapseTrolley_InitReset
     d_addr ReadReg_func_ptr, FuncC_Mine_CollapseTrolley_ReadReg
     d_addr WriteReg_func_ptr, Func_Noop
     d_addr TryMove_func_ptr, FuncC_Mine_CollapseTrolley_TryMove
     d_addr TryAct_func_ptr, FuncA_Machine_Error
     d_addr Tick_func_ptr, FuncC_Mine_CollapseTrolley_Tick
     d_addr Draw_func_ptr, FuncA_Objects_DrawTrolleyMachine
-    d_addr Reset_func_ptr, FuncC_Mine_CollapseTrolley_Reset
+    d_addr Reset_func_ptr, FuncC_Mine_CollapseTrolley_InitReset
     D_END
     .assert * - :- = kCraneMachineIndex * .sizeof(sMachine), error
     D_STRUCT sMachine
@@ -150,14 +150,14 @@ _Machines_sMachine_arr:
     d_byte ScrollGoalY_u8, $10
     d_byte RegNames_u8_arr4, "D", 0, 0, "Z"
     d_byte MainPlatform_u8, kCranePlatformIndex
-    d_addr Init_func_ptr, FuncC_Mine_CollapseCrane_Init
+    d_addr Init_func_ptr, FuncC_Mine_CollapseCrane_InitReset
     d_addr ReadReg_func_ptr, FuncC_Mine_CollapseCrane_ReadReg
     d_addr WriteReg_func_ptr, FuncA_Machine_Error
     d_addr TryMove_func_ptr, FuncC_Mine_CollapseCrane_TryMove
     d_addr TryAct_func_ptr, FuncC_Mine_CollapseCrane_TryAct
     d_addr Tick_func_ptr, FuncC_Mine_CollapseCrane_Tick
     d_addr Draw_func_ptr, FuncA_Objects_MineCollapseCrane_Draw
-    d_addr Reset_func_ptr, FuncC_Mine_CollapseCrane_Reset
+    d_addr Reset_func_ptr, FuncC_Mine_CollapseCrane_InitReset
     D_END
     .assert * - :- <= kMaxMachines * .sizeof(sMachine), error
 _Platforms_sPlatform_arr:
@@ -209,21 +209,13 @@ _Passages_sPassage_arr:
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
 .ENDPROC
 
-.PROC FuncC_Mine_CollapseTrolley_Reset
-    .assert * = FuncC_Mine_CollapseTrolley_Init, error, "fallthrough"
-.ENDPROC
-
-.PROC FuncC_Mine_CollapseTrolley_Init
+.PROC FuncC_Mine_CollapseTrolley_InitReset
     lda #kTrolleyInitGoalX
     sta Ram_MachineGoalHorz_u8_arr + kTrolleyMachineIndex
     rts
 .ENDPROC
 
-.PROC FuncC_Mine_CollapseCrane_Reset
-    .assert * = FuncC_Mine_CollapseCrane_Init, error, "fallthrough"
-.ENDPROC
-
-.PROC FuncC_Mine_CollapseCrane_Init
+.PROC FuncC_Mine_CollapseCrane_InitReset
     lda #0
     sta Ram_MachineGoalHorz_u8_arr + kCraneMachineIndex  ; is closed
     .assert kCraneInitGoalZ = 0, error
