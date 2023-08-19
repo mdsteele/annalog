@@ -17,6 +17,9 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
+;;; The device index for the flower in a flower room.
+kFlowerDeviceIndex = 0
+
 ;;; OBJ tile IDs used for drawing flower devices.
 kTileIdObjFlowerTop    = $0c
 kTileIdObjFlowerBottom = $0d

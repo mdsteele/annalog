@@ -22,6 +22,7 @@
 .INCLUDE "../charmap.inc"
 .INCLUDE "../cutscene.inc"
 .INCLUDE "../device.inc"
+.INCLUDE "../devices/flower.inc"
 .INCLUDE "../dialog.inc"
 .INCLUDE "../flag.inc"
 .INCLUDE "../macros.inc"
@@ -48,8 +49,6 @@ kCratePlatformIndex = 0
 ;;; The actor index for the orc in this room.
 kOrcActorIndex = 0
 
-;;; The device index for the flower in this room.
-kFlowerDeviceIndex = 0
 ;;; The talk device indices for the orc in this room.
 kOrcDeviceIndexLeft = 2
 kOrcDeviceIndexRight = 1
@@ -81,7 +80,7 @@ _Ext_sRoomExt:
     d_addr Actors_sActor_arr_ptr, _Actors_sActor_arr
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
     d_addr Passages_sPassage_arr_ptr, 0
-    d_addr Enter_func_ptr, FuncC_City_Flower_EnterRoom
+    d_addr Enter_func_ptr, FuncA_Room_RemoveFlowerDeviceIfCarriedOrDelivered
     d_addr FadeIn_func_ptr, Func_Noop
     D_END
 _TerrainData:
@@ -141,12 +140,6 @@ _Devices_sDevice_arr:
 .ENDPROC
 
 ;;; @prereq PRGA_Room is loaded.
-.PROC FuncC_City_Flower_EnterRoom
-    ldx #kFlowerDeviceIndex  ; param: device index
-    jmp FuncA_Room_RemoveFlowerDeviceIfCarriedOrDelivered
-.ENDPROC
-
-;;; @prereq PRGA_Room is loaded.
 .PROC FuncC_City_Flower_TickRoom
 _OrcAttack:
     ;; If the orc is already hostile, we're done.
@@ -164,7 +157,6 @@ _OrcAttack:
     sta Zp_Next_eCutscene
     @done:
 _RespawnFlower:
-    ldx #kFlowerDeviceIndex  ; param: device index
     jmp FuncA_Room_RespawnFlowerDeviceIfDropped
 .ENDPROC
 
