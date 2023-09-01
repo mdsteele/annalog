@@ -27,11 +27,15 @@
 .IMPORT FuncA_Objects_Alloc1x1Shape
 .IMPORT FuncA_Objects_Alloc2x2Shape
 .IMPORT FuncA_Objects_Draw1x1Shape
+.IMPORT FuncA_Objects_DrawGirderPlatform
 .IMPORT FuncA_Objects_GetMachineLightTileId
 .IMPORT FuncA_Objects_MoveShapeDownAndRightOneTile
 .IMPORT FuncA_Objects_MoveShapeDownOneTile
+.IMPORT FuncA_Objects_MoveShapeLeftByA
+.IMPORT FuncA_Objects_MoveShapeLeftHalfTile
 .IMPORT FuncA_Objects_MoveShapeLeftOneTile
 .IMPORT FuncA_Objects_MoveShapeRightByA
+.IMPORT FuncA_Objects_MoveShapeRightOneTile
 .IMPORT FuncA_Objects_MoveShapeUpOneTile
 .IMPORT FuncA_Objects_SetShapePosToMachineTopLeft
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
@@ -56,6 +60,8 @@ kTileIdObjCraneRope       = kTileIdCraneFirst + 1
 kTileIdObjCraneClawOpen   = kTileIdCraneFirst + 2
 kTileIdObjCraneClawClosed = kTileIdCraneFirst + 3
 kTileIdObjCraneCorner     = kTileIdCraneFirst + 4
+kTileIdObjTrolleyBlock    = kTileIdCraneFirst + 5
+kTileIdObjRopeDiag        = kTileIdCraneFirst + 6
 kTileIdObjPulley          = kTileIdCraneFirst + 7
 kTileIdObjTrolleyCorner   = kTileIdObjMachineCorner
 kTileIdObjTrolleyRope     = kTileIdObjCraneRope
@@ -289,6 +295,48 @@ _Return:
     dex
     bne @loop
     rts
+.ENDPROC
+
+;;; Draws a girder platform hanging on a rope triangle from a trolley machine.
+;;; The girder platform must be four tiles wide.
+;;; @param X The platform index for the girder platform.
+.EXPORT FuncA_Objects_DrawTrolleyGirder
+.PROC FuncA_Objects_DrawTrolleyGirder
+    jsr FuncA_Objects_DrawGirderPlatform
+_RopeTriangle:
+    ;; The rope triangle tiles are shaped like this:
+    ;;
+    ;;     3/\4
+    ;;    2/  \1
+    ;;
+    ;; Tile 1:
+    jsr FuncA_Objects_MoveShapeUpOneTile
+    ldy #bObj::FlipH | kPaletteObjRope  ; param: object flags
+    lda #kTileIdObjRopeDiag  ; param: tile ID
+    jsr FuncA_Objects_Draw1x1Shape
+    ;; Tile 2:
+    lda #kTileWidthPx * 3  ; param: offset
+    jsr FuncA_Objects_MoveShapeLeftByA
+    ldy #kPaletteObjRope  ; param: object flags
+    lda #kTileIdObjRopeDiag  ; param: tile ID
+    jsr FuncA_Objects_Draw1x1Shape
+    ;; Tile 3:
+    jsr FuncA_Objects_MoveShapeRightOneTile
+    jsr FuncA_Objects_MoveShapeUpOneTile
+    ldy #kPaletteObjRope  ; param: object flags
+    lda #kTileIdObjRopeDiag  ; param: tile ID
+    jsr FuncA_Objects_Draw1x1Shape
+    ;; Tile 4:
+    jsr FuncA_Objects_MoveShapeRightOneTile
+    ldy #bObj::FlipH | kPaletteObjRope  ; param: object flags
+    lda #kTileIdObjRopeDiag  ; param: tile ID
+    jsr FuncA_Objects_Draw1x1Shape
+_HookBlock:
+    jsr FuncA_Objects_MoveShapeLeftHalfTile
+    jsr FuncA_Objects_MoveShapeUpOneTile
+    ldy #kPaletteObjRope  ; param: object flags
+    lda #kTileIdObjTrolleyBlock  ; param: tile ID
+    jmp FuncA_Objects_Draw1x1Shape
 .ENDPROC
 
 ;;;=========================================================================;;;

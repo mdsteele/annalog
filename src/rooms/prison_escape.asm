@@ -23,8 +23,6 @@
 .INCLUDE "../device.inc"
 .INCLUDE "../dialog.inc"
 .INCLUDE "../machine.inc"
-.INCLUDE "../machines/crane.inc"
-.INCLUDE "../machines/shared.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
 .INCLUDE "../platform.inc"
@@ -37,14 +35,9 @@
 .IMPORT FuncA_Machine_GenericMoveTowardGoalHorz
 .IMPORT FuncA_Machine_GenericTryMoveX
 .IMPORT FuncA_Machine_ReachedGoal
-.IMPORT FuncA_Objects_Draw1x1Shape
-.IMPORT FuncA_Objects_DrawGirderPlatform
+.IMPORT FuncA_Objects_DrawTrolleyGirder
 .IMPORT FuncA_Objects_DrawTrolleyMachine
 .IMPORT FuncA_Objects_DrawTrolleyRopeWithLength
-.IMPORT FuncA_Objects_MoveShapeLeftByA
-.IMPORT FuncA_Objects_MoveShapeLeftHalfTile
-.IMPORT FuncA_Objects_MoveShapeRightOneTile
-.IMPORT FuncA_Objects_MoveShapeUpOneTile
 .IMPORT Func_MovePlatformHorz
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrObjFactory
@@ -60,19 +53,16 @@ kTrolleyMachineIndex = 0
 kTrolleyPlatformIndex = 0
 kGirderPlatformIndex  = 1
 
-;;; The maximum permitted value for sState::TrolleyGoalX_u8.
+;;; The initial and maximum permitted horizontal goal values for the trolley.
+kTrolleyInitGoalX = 0
 kTrolleyMaxGoalX = 7
 
-;;; The minimum room pixel position for the left edge of the trolley.
-kTrolleyMinPlatformLeft = $100
-
-;;; Various OBJ tile IDs used for drawing the PrisonEscapeTrolley machine.
-kTrolleyTileIdPulley   = kTileIdCraneFirst + 5
-kTrolleyTileIdRopeDiag = kTileIdCraneFirst + 6
-
-;;; The OBJ palette number used for various parts of the PrisonEscapeTrolley
-;;; machine.
-kPaletteObjTrolleyRope = 0
+;;; The minimum and initial X-positions for the left of the trolley machine.
+.LINECONT +
+kTrolleyMinPlatformLeft = $0100
+kTrolleyInitPlatformLeft = \
+    kTrolleyMinPlatformLeft + kTrolleyInitGoalX * kBlockWidthPx
+.LINECONT -
 
 ;;;=========================================================================;;;
 
@@ -134,7 +124,7 @@ _Platforms_sPlatform_arr:
     d_byte Type_ePlatform, ePlatform::Solid
     d_word WidthPx_u16, $10
     d_byte HeightPx_u8, $0e
-    d_word Left_i16, kTrolleyMinPlatformLeft
+    d_word Left_i16, kTrolleyInitPlatformLeft
     d_word Top_i16,   $00c0
     D_END
     .assert * - :- = kGirderPlatformIndex * .sizeof(sPlatform), error
@@ -142,7 +132,7 @@ _Platforms_sPlatform_arr:
     d_byte Type_ePlatform, ePlatform::Solid
     d_word WidthPx_u16, $20
     d_byte HeightPx_u8, $08
-    d_word Left_i16, kTrolleyMinPlatformLeft - $08
+    d_word Left_i16, kTrolleyInitPlatformLeft - kTileWidthPx
     d_word Top_i16,   $0120
     D_END
     ;; Terrain spikes:
@@ -201,7 +191,7 @@ _Passages_sPassage_arr:
 .ENDPROC
 
 .PROC FuncC_Prison_EscapeTrolley_InitReset
-    lda #0
+    lda #kTrolleyInitGoalX
     sta Ram_MachineGoalHorz_u8_arr + kTrolleyMachineIndex
     rts
 .ENDPROC
@@ -268,44 +258,8 @@ _Passages_sPassage_arr:
     jsr FuncA_Objects_DrawTrolleyMachine
     ldx #7  ; param: num rope tiles
     jsr FuncA_Objects_DrawTrolleyRopeWithLength
-_Girder:
     ldx #kGirderPlatformIndex  ; param: platform index
-    jsr FuncA_Objects_DrawGirderPlatform
-_RopeTriangle:
-    ;; The rope triangle tiles are shaped like this:
-    ;;
-    ;;     3/\4
-    ;;    2/  \1
-    ;;
-    ;; Tile 1:
-    jsr FuncA_Objects_MoveShapeUpOneTile
-    ldy #bObj::FlipH | kPaletteObjTrolleyRope  ; param: object flags
-    lda #kTrolleyTileIdRopeDiag  ; param: tile ID
-    jsr FuncA_Objects_Draw1x1Shape
-    ;; Tile 2:
-    lda #kTileWidthPx * 3  ; param: offset
-    jsr FuncA_Objects_MoveShapeLeftByA
-    ldy #kPaletteObjTrolleyRope  ; param: object flags
-    lda #kTrolleyTileIdRopeDiag  ; param: tile ID
-    jsr FuncA_Objects_Draw1x1Shape
-    ;; Tile 3:
-    jsr FuncA_Objects_MoveShapeRightOneTile
-    jsr FuncA_Objects_MoveShapeUpOneTile
-    ldy #kPaletteObjTrolleyRope  ; param: object flags
-    lda #kTrolleyTileIdRopeDiag  ; param: tile ID
-    jsr FuncA_Objects_Draw1x1Shape
-    ;; Tile 4:
-    jsr FuncA_Objects_MoveShapeRightOneTile
-    ldy #bObj::FlipH | kPaletteObjTrolleyRope  ; param: object flags
-    lda #kTrolleyTileIdRopeDiag  ; param: tile ID
-    jsr FuncA_Objects_Draw1x1Shape
-_Pulley:
-    ;; Pulley:
-    jsr FuncA_Objects_MoveShapeLeftHalfTile
-    jsr FuncA_Objects_MoveShapeUpOneTile
-    ldy #kPaletteObjTrolleyRope  ; param: object flags
-    lda #kTrolleyTileIdPulley  ; param: tile ID
-    jmp FuncA_Objects_Draw1x1Shape
+    jmp FuncA_Objects_DrawTrolleyGirder
 .ENDPROC
 
 ;;;=========================================================================;;;

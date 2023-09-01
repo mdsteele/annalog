@@ -156,6 +156,8 @@
     MineFlowerHoistWest
     MinePitHoistEast
     MinePitHoistWest
+    MineSouthHoist
+    MineSouthTrolley
     MineWestCrane
     PrisonCellLauncher
     PrisonCellLift
