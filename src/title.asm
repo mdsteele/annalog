@@ -209,6 +209,72 @@ _FadeIn:
     @doneFlags:
     rts
 _Flags_eFlag_arr:
+.IF 0
+    .byte eFlag::PrisonCellBlastedRocks
+    .byte eFlag::GardenLandingDroppedIn
+    .byte eFlag::UpgradeOpIf
+    .byte eFlag::MermaidHut1MetQueen
+    .byte eFlag::MermaidHut4MetFlorist
+    .byte eFlag::GardenTowerCratesPlaced
+    .byte eFlag::FlowerMermaid
+    .byte eFlag::GardenTowerWallBroken
+    .byte eFlag::BossGarden
+    .byte eFlag::UpgradeRam1
+    .byte eFlag::BreakerGarden
+    .byte eFlag::TempleEntryPermission
+    .byte eFlag::TempleEntryColumnRaised
+    .byte eFlag::UpgradeOpTil
+    .byte eFlag::TempleAltarColumnBroken
+    .byte eFlag::BossTemple
+    .byte eFlag::UpgradeRam2
+    .byte eFlag::BreakerTemple
+    .byte eFlag::FlowerTemple
+    .byte eFlag::FlowerFactory
+    .byte eFlag::CoreSouthCorraWaiting
+    .byte eFlag::CoreSouthCorraHelped
+    .byte eFlag::PrisonUpperFoundAlex
+    .byte eFlag::PrisonUpperFreedAlex
+    .byte eFlag::PrisonUpperFreedKids
+    .byte eFlag::FlowerPrison
+    .byte eFlag::FlowerCore
+    .byte eFlag::TempleNaveAlexWaiting
+    .byte eFlag::TempleNaveTalkedToAlex
+    .byte eFlag::CryptLandingDroppedIn
+    .byte eFlag::UpgradeOpGoto
+    .byte eFlag::CryptSouthWeakFloor
+    .byte eFlag::CryptTombWeakFloors
+    .byte eFlag::BossCrypt
+    .byte eFlag::UpgradeOpWait
+    .byte eFlag::BreakerCrypt
+    .byte eFlag::FlowerCrypt
+    .byte eFlag::UpgradeOpSkip
+    .byte eFlag::FlowerGarden
+    .byte eFlag::MermaidDrainUnplugged
+    .byte eFlag::UpgradeOpCopy
+    .byte eFlag::BossLava
+    .byte eFlag::UpgradeRam3
+    .byte eFlag::BreakerLava
+    .byte eFlag::UpgradeOpSync
+    .byte eFlag::BossMine
+    .byte eFlag::UpgradeRam4
+    .byte eFlag::BreakerMine
+    .byte eFlag::UpgradeOpAddSub
+    .byte eFlag::FlowerMine
+    .byte eFlag::FlowerLava
+    .byte eFlag::FlowerSewer
+    .byte eFlag::CityCenterKeygenConnected
+    .byte eFlag::FlowerCity
+    .byte eFlag::CityCenterDoorUnlocked
+    .byte eFlag::BossCity
+    .byte eFlag::UpgradeBRemote
+    .byte eFlag::BreakerCity
+    .byte eFlag::BossShadow
+    .byte eFlag::UpgradeOpMul
+    .byte eFlag::BreakerShadow
+    .byte eFlag::FlowerShadow
+    .byte eFlag::MermaidHut4OpenedCellar
+    .byte eFlag::UpgradeOpBeep
+.ENDIF
     .byte eFlag::None
 .ENDPROC
 
