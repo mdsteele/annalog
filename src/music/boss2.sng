@@ -1,0 +1,113 @@
+@PRGC_Core
+
+!SONG Boss2 "N|AABCEEGHIJ"
+
+=tempo q24
+=key 3b  % c minor
+
+!INST 1H PulseBasic $08 d1/2
+!INST 1Q PulseBasic $08 d1/4
+!INST 1E PulseBasic $08 d1/8
+!INST 2E Staccato   $0a d1/8
+!INST 2L PulseBasic $09 d3/4
+!INST 2S Staccato   $0a d3/4
+!INST TB Constant $ff         % bass
+!INST TK TriangleDrum $20     % kick drum
+!INST ND Staccato $0b         % drum
+
+!PART N
+
+1| iQ c6s bNv b a ' g f e d  ' c  bNv b a ' g  f e d  |
+ |    c4s d   e f ' g a b bN ' g4 f   e d ' g3 a b bN |
+ |    a4s g   f e ' f d e bN ' b4 g   a f ' g3 b a bN |
+2| iE rw |
+ | c4s bNv b a ' g f e d  ' c d e f ' g f e d |
+ | c3s d e f ' d e f g ' e f g a ' f g a b |
+T| rw+w |
+ | iK c4e re ' c4e re ' e4e e4e ' g4s g4s g4s g4s |
+N| iD rq ' x7q :4 |
+ | x7q ' x7 ' x7e x7 ' x7s x7 x7 x7 |
+
+!PART A
+
+2| iS c3s c iL ce ' ee bvs iS c^e cs iL ce ' ee bv :4 |
+T| iB re c5e ' iK c4e iB c5e ' rq ' iK c4e re :4 |
+N| p(iD xAq ' x7q ' re x6e ' x7q)NA :3 |
+ | xAq ' x7q ' x5s x6 x8e ' x7q |
+
+!PART B
+
+1| p(iE re c4e ' rs cs+e ' iQ ge+s  iE cs+  ' +s rs ce)1B |
+ | p(   re c4e ' rs cs+e ' iQ ae+s  iE cs+  ' +s rs ce)1C |
+ | p1B |
+ |      re b3e ' rs bs+e ' iQ f^e+s iE bvs+ ' +s rs be    |
+2| iS c3s c iL ce ' ee es iS ce cs iL ce ' ee e |
+ | iS d3s d iL de ' fe fs iS de ds iL de ' fe f |
+ | iS e3s e iL ee ' ge gs iS ee es iL ee ' ge g |
+ | iS f3s f iL fe ' ae as iS fe fs iL fe ' ae a |
+T| p(iK rq ' c4e re+ ' +q ' iK c4e re)TB :4 |
+N=:AN
+
+!PART C
+
+1| p1B |
+ | p1C |
+ | p1B |
+ | iE re b3e ' rs iQ f^s+e ' ae+s bs+ ' +e bNe |
+2=:B2
+T=:BT
+N=:BN
+
+!PART E
+
+1| iQ c5e gv ' e c^ ' gv e ' c^ gv |
+ |    c5e av ' f c^ ' av f ' c^ av |
+ |    b4e g  ' e g  ' b  e ' g  b  |
+ |    a4e f  ' d f  ' a  f ' a  b  |
+2=:B2
+T| iB c4q ' iK c4e re :2 |
+ | iB d4q ' iK c4e re :2 |
+ | iB e4q ' iK c4e re :2 |
+ | iB f4q ' iK c4e re ' iB f4e g ' iK c4e iB b4e |
+N=:BN
+
+!PART G
+1| p(iQ c5s bv a g ' ae   f    ' cs d e f ' ge  e    |
+ |      g4s f  e f ' ge   e    ' ds e f g ' ae  f)1G |
+ |      b4s a  g f ' e bv c^ d ' gs f e d ' ee  g    |
+ |      d4s e  f g ' a g  f  e ' fs g a b ' g a b bN |
+2=:B2
+T=:BT
+N=:BN
+
+!PART H
+1| p1G | c4s d e g ' c^ av f d :3 ' c4e. ee. ce |
+2=:G2
+T| pTB :3 | iK c4e re ' c4e re ' e4e
+N| pNA :3 | x7q ' x7 ' x7e
+
+!PART I
+
+1| p(iQ g4e. fe. ce+q+e ave)1I |
+ | a4e. ge. fe+q+e ce |
+ | g4e. fe. ce+q bvq |
+ | e4q+e fh ce |
+2| p(iS c3s c iL ce)IC :4 |
+ | p(iS a3s a iL ae)IA :4 |
+ | p(iS e3s e iL ee)IE :4 |
+ | a3q+e be+q ' p(iS b3s b iL be)IB |
+T=:BT
+N=:AN
+
+!PART J
+
+1| p1I |
+ | a4e. iH be. iQ c^e bve.+e. ce |
+ | a4e. ge. ee fq bvq |
+ | c4w |
+2| pIC :4 |
+ | pIA :4 |
+ | pIB :2 | iS g3s g iL ge :2 |
+ | c3h ' pIC :2 |
+T=:IT
+N=:IN

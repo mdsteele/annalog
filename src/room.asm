@@ -389,12 +389,12 @@ _PrisonMusic:
 ;;; Maps from eRoom values to the default eMusic to play in each room.
 .PROC DataA_Room_DefaultMusic_eMusic_arr
     D_ENUM eRoom
-    d_byte BossCity,        eMusic::Boss
-    d_byte BossCrypt,       eMusic::Boss
-    d_byte BossGarden,      eMusic::Boss
-    d_byte BossMine,        eMusic::Boss
-    d_byte BossShadow,      eMusic::Boss
-    d_byte BossTemple,      eMusic::Boss
+    d_byte BossCity,        eMusic::Boss1
+    d_byte BossCrypt,       eMusic::Boss1
+    d_byte BossGarden,      eMusic::Boss1
+    d_byte BossMine,        eMusic::Boss1
+    d_byte BossShadow,      eMusic::Boss1
+    d_byte BossTemple,      eMusic::Boss1
     d_byte CityBuilding1,   eMusic::Silence
     d_byte CityBuilding2,   eMusic::Silence
     d_byte CityBuilding4,   eMusic::Silence

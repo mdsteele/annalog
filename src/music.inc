@@ -20,7 +20,8 @@
 ;;; Music songs that can be played.
 .ENUM eMusic
     Silence
-    Boss
+    Boss1
+    Boss2
     Mine
     Prison1
     Prison2
