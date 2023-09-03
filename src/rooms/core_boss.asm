@@ -23,6 +23,7 @@
 .INCLUDE "../device.inc"
 .INCLUDE "../flag.inc"
 .INCLUDE "../machine.inc"
+.INCLUDE "../machines/winch.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../platform.inc"
 .INCLUDE "../ppu.inc"
@@ -33,21 +34,62 @@
 .IMPORT FuncA_Machine_CannonTick
 .IMPORT FuncA_Machine_CannonTryAct
 .IMPORT FuncA_Machine_CannonTryMove
+.IMPORT FuncA_Machine_Error
+.IMPORT FuncA_Machine_GetWinchHorzSpeed
+.IMPORT FuncA_Machine_GetWinchVertSpeed
+.IMPORT FuncA_Machine_StartWorking
+.IMPORT FuncA_Machine_WinchReachedGoal
+.IMPORT FuncA_Machine_WinchStartFalling
 .IMPORT FuncA_Objects_DrawCannonMachine
+.IMPORT FuncA_Objects_DrawWinchMachineWithSpikeball
 .IMPORT FuncA_Room_MachineCannonReset
 .IMPORT Func_IsFlagSet
 .IMPORT Func_MachineCannonReadRegY
+.IMPORT Func_MovePlatformHorz
+.IMPORT Func_MovePlatformLeftTowardPointX
+.IMPORT Func_MovePlatformTopTowardPointY
 .IMPORT Func_Noop
-.IMPORT Ppu_ChrObjGarden
+.IMPORT Func_ResetWinchMachineState
+.IMPORT Ppu_ChrObjBoss1
+.IMPORT Ram_MachineGoalHorz_u8_arr
+.IMPORT Ram_MachineGoalVert_u8_arr
+.IMPORT Ram_PlatformLeft_i16_0_arr
+.IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORTZP Zp_AvatarPose_eAvatar
 .IMPORTZP Zp_BreakerBeingActivated_eFlag
+.IMPORTZP Zp_PointX_i16
+.IMPORTZP Zp_PointY_i16
 
 ;;;=========================================================================;;;
 
-;;; The machine index for the BossCoreCannon machine.
-kCannonMachineIndex = 0
-;;; The platform index for the BossCoreCannon machine.
-kCannonPlatformIndex = 0
+;;; The machine indices for the machines in this room.
+kWinchMachineIndex  = 0
+kCannonMachineIndex = 1
+;;; The platform indices for the machines in this room.
+kWinchPlatformIndex     = 0
+kSpikeballPlatformIndex = 1
+kCannonPlatformIndex    = 2
+
+;;; The initial and maximum permitted values for the winch's X and Z registers.
+kWinchInitGoalX = 0
+kWinchMaxGoalX  = 2
+kWinchInitGoalZ = 0
+kWinchMaxGoalZ  = 6
+
+;;; The minimum and initial room pixel position for the left edge of the winch.
+.LINECONT +
+kWinchMinPlatformLeft = $50
+kWinchInitPlatformLeft = \
+    kWinchMinPlatformLeft + kBlockWidthPx * kWinchInitGoalX
+.LINECONT +
+
+;;; The minimum and initial room pixel position for the top edge of the
+;;; spikeball.
+.LINECONT +
+kSpikeballMinPlatformTop = $22
+kSpikeballInitPlatformTop = \
+    kSpikeballMinPlatformTop + kBlockHeightPx * kWinchInitGoalZ
+.LINECONT +
 
 ;;;=========================================================================;;;
 
@@ -62,9 +104,9 @@ kCannonPlatformIndex = 0
     d_byte MinimapStartRow_u8, 1
     d_byte MinimapStartCol_u8, 13
     d_addr TerrainData_ptr, _TerrainData
-    d_byte NumMachines_u8, 1
+    d_byte NumMachines_u8, 2
     d_addr Machines_sMachine_arr_ptr, _Machines_sMachine_arr
-    d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjGarden)
+    d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjBoss1)
     d_addr Ext_sRoomExt_ptr, _Ext_sRoomExt
     D_END
 _Ext_sRoomExt:
@@ -83,9 +125,28 @@ _TerrainData:
 :   .incbin "out/data/core_boss.room"
     .assert * - :- = 33 * 24, error
 _Machines_sMachine_arr:
-:   .assert * - :- = kCannonMachineIndex * .sizeof(sMachine), error
+:   .assert * - :- = kWinchMachineIndex * .sizeof(sMachine), error
     D_STRUCT sMachine
-    d_byte Code_eProgram, eProgram::BossCoreCannon
+    d_byte Code_eProgram, eProgram::CoreBossWinch
+    d_byte Breaker_eFlag, 0
+    d_byte Flags_bMachine, bMachine::MoveHV | bMachine::Act
+    d_byte Status_eDiagram, eDiagram::Winch
+    d_word ScrollGoalX_u16, $010
+    d_byte ScrollGoalY_u8, $00
+    d_byte RegNames_u8_arr4, 0, 0, "X", "Z"
+    d_byte MainPlatform_u8, kWinchPlatformIndex
+    d_addr Init_func_ptr, FuncA_Room_CoreBossWinch_InitReset
+    d_addr ReadReg_func_ptr, FuncC_Core_BossWinch_ReadReg
+    d_addr WriteReg_func_ptr, Func_Noop
+    d_addr TryMove_func_ptr, FuncA_Machine_CoreBossWinch_TryMove
+    d_addr TryAct_func_ptr, FuncA_Machine_CoreBossWinch_TryAct
+    d_addr Tick_func_ptr, FuncA_Machine_CoreBossWinch_Tick
+    d_addr Draw_func_ptr, FuncA_Objects_CoreBossWinch_Draw
+    d_addr Reset_func_ptr, FuncA_Room_CoreBossWinch_InitReset
+    D_END
+    .assert * - :- = kCannonMachineIndex * .sizeof(sMachine), error
+    D_STRUCT sMachine
+    d_byte Code_eProgram, eProgram::CoreBossCannon
     d_byte Breaker_eFlag, 0
     d_byte Flags_bMachine, bMachine::FlipH | bMachine::MoveV | bMachine::Act
     d_byte Status_eDiagram, eDiagram::CannonLeft
@@ -104,7 +165,23 @@ _Machines_sMachine_arr:
     D_END
     .assert * - :- <= kMaxMachines * .sizeof(sMachine), error
 _Platforms_sPlatform_arr:
-:   .assert * - :- = kCannonPlatformIndex * .sizeof(sPlatform), error
+:   .assert * - :- = kWinchPlatformIndex * .sizeof(sPlatform), error
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Solid
+    d_word WidthPx_u16, $10
+    d_byte HeightPx_u8, $10
+    d_word Left_i16, kWinchInitPlatformLeft
+    d_word Top_i16,   $0010
+    D_END
+    .assert * - :- = kSpikeballPlatformIndex * .sizeof(sPlatform), error
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Harm
+    d_word WidthPx_u16, kSpikeballWidthPx
+    d_byte HeightPx_u8, kSpikeballHeightPx
+    d_word Left_i16, kWinchInitPlatformLeft + 2
+    d_word Top_i16, kSpikeballInitPlatformTop
+    D_END
+    .assert * - :- = kCannonPlatformIndex * .sizeof(sPlatform), error
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Solid
     d_word WidthPx_u16, kBlockWidthPx
@@ -112,6 +189,7 @@ _Platforms_sPlatform_arr:
     d_word Left_i16, $01f0
     d_word Top_i16,  $012c
     D_END
+    ;; TODO: wall to seal passage during boss fight
     ;; Top corners of reactor:
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Solid
@@ -144,6 +222,12 @@ _Actors_sActor_arr:
     .byte eActor::None
 _Devices_sDevice_arr:
 :   D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::Console
+    d_byte BlockRow_u8, 10
+    d_byte BlockCol_u8, 2
+    d_byte Target_byte, kWinchMachineIndex
+    D_END
+    D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Console
     d_byte BlockRow_u8, 20
     d_byte BlockCol_u8, 28
@@ -509,6 +593,148 @@ _Col1:
     ;; $54
     .byte $2e, $2e, $2e, $2e
     .byte $2f, $2f, $2f, $2f
+.ENDPROC
+
+.PROC FuncC_Core_BossWinch_ReadReg
+    cmp #$e
+    beq _ReadX
+_ReadZ:
+    lda Ram_PlatformTop_i16_0_arr + kSpikeballPlatformIndex
+    sub #kSpikeballMinPlatformTop - kTileHeightPx
+    div #kBlockHeightPx
+    rts
+_ReadX:
+    lda Ram_PlatformLeft_i16_0_arr + kWinchPlatformIndex
+    sub #kWinchMinPlatformLeft - kTileWidthPx
+    div #kBlockWidthPx
+    rts
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Machine"
+
+.PROC FuncA_Machine_CoreBossWinch_TryMove
+    ldy Ram_MachineGoalHorz_u8_arr + kWinchMachineIndex
+    .assert eDir::Up = 0, error
+    txa
+    beq _MoveUp
+    cpx #eDir::Down
+    beq _MoveDown
+_MoveHorz:
+    cpx #eDir::Left
+    beq @moveLeft
+    @moveRight:
+    cpy #kWinchMaxGoalX
+    bge _Error
+    iny
+    bne @checkFloor  ; unconditional
+    @moveLeft:
+    tya
+    beq _Error
+    dey
+    @checkFloor:
+    lda DataA_Machine_CoreBossWinchFloor_u8_arr, y
+    cmp Ram_MachineGoalVert_u8_arr + kWinchMachineIndex
+    blt _Error
+    sty Ram_MachineGoalHorz_u8_arr + kWinchMachineIndex
+    jmp FuncA_Machine_StartWorking
+_MoveUp:
+    lda Ram_MachineGoalVert_u8_arr + kWinchMachineIndex
+    beq _Error
+    dec Ram_MachineGoalVert_u8_arr + kWinchMachineIndex
+    jmp FuncA_Machine_StartWorking
+_MoveDown:
+    lda DataA_Machine_CoreBossWinchFloor_u8_arr, y
+    cmp Ram_MachineGoalVert_u8_arr + kWinchMachineIndex
+    beq _Error
+    inc Ram_MachineGoalVert_u8_arr + kWinchMachineIndex
+    jmp FuncA_Machine_StartWorking
+_Error:
+    jmp FuncA_Machine_Error
+.ENDPROC
+
+.PROC FuncA_Machine_CoreBossWinch_TryAct
+    ldy Ram_MachineGoalHorz_u8_arr + kWinchMachineIndex
+    lda DataA_Machine_CoreBossWinchFloor_u8_arr, y  ; param: new Z-goal
+    jmp FuncA_Machine_WinchStartFalling
+.ENDPROC
+
+.PROC FuncA_Machine_CoreBossWinch_Tick
+_MoveVert:
+    ;; Calculate the desired room-space pixel Y-position for the top edge of
+    ;; the spikeball, storing it in Zp_PointY_i16.
+    lda Ram_MachineGoalVert_u8_arr + kWinchMachineIndex
+    mul #kBlockHeightPx
+    adc #kSpikeballMinPlatformTop  ; carry is already clear
+    .linecont +
+    .assert kWinchMaxGoalZ * kBlockHeightPx + \
+            kSpikeballMinPlatformTop < $100, error
+    .linecont -
+    sta Zp_PointY_i16 + 0
+    lda #0
+    sta Zp_PointY_i16 + 1
+    ;; Determine how fast we should move toward the goal.
+    ldx #kSpikeballPlatformIndex  ; param: platform index
+    jsr FuncA_Machine_GetWinchVertSpeed  ; preserves X, returns Z and A
+    bne @move
+    rts
+    @move:
+    ;; Move the spikeball vertically, as necessary.
+    jsr Func_MovePlatformTopTowardPointY  ; returns Z and A
+    beq @reachedGoal
+    rts
+    @reachedGoal:
+_MoveHorz:
+    ;; Calculate the desired X-position for the left edge of the winch, in
+    ;; room-space pixels, storing it in Zp_PointX_i16.
+    lda Ram_MachineGoalHorz_u8_arr + kWinchMachineIndex
+    mul #kBlockWidthPx
+    adc #<kWinchMinPlatformLeft  ; carry is already clear
+    sta Zp_PointX_i16 + 0
+    .linecont +
+    .assert kWinchMaxGoalX * kBlockWidthPx + \
+            kWinchMinPlatformLeft < $100, error
+    .linecont -
+    lda #0
+    sta Zp_PointX_i16 + 1
+    ;; Move the winch horizontally, if necessary.
+    jsr FuncA_Machine_GetWinchHorzSpeed  ; returns A
+    ldx #kWinchPlatformIndex  ; param: platform index
+    jsr Func_MovePlatformLeftTowardPointX  ; returns Z and A
+    beq @reachedGoal
+    ;; If the winch moved, move the spikeball platform too.
+    ldx #kSpikeballPlatformIndex  ; param: platform index
+    jmp Func_MovePlatformHorz
+    @reachedGoal:
+_Finished:
+    jmp FuncA_Machine_WinchReachedGoal
+.ENDPROC
+
+.PROC DataA_Machine_CoreBossWinchFloor_u8_arr
+    .byte 2, 6, 6
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Room"
+
+.PROC FuncA_Room_CoreBossWinch_InitReset
+    lda #kWinchInitGoalX
+    sta Ram_MachineGoalHorz_u8_arr + kWinchMachineIndex
+    lda #kWinchInitGoalZ
+    sta Ram_MachineGoalVert_u8_arr + kWinchMachineIndex
+    jmp Func_ResetWinchMachineState
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Objects"
+
+;;; Draws the CoreBossWinch machine.
+.PROC FuncA_Objects_CoreBossWinch_Draw
+    ldx #kSpikeballPlatformIndex  ; param: spikeball platform index
+    jmp FuncA_Objects_DrawWinchMachineWithSpikeball
 .ENDPROC
 
 ;;;=========================================================================;;;

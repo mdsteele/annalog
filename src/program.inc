@@ -105,7 +105,6 @@
     BossCityAmmoRack
     BossCityLauncher
     BossCityReloader
-    BossCoreCannon
     BossCryptWinch
     BossGardenCannon
     BossMineCrane
@@ -119,6 +118,8 @@
     CityCenterSemaphore4
     CityOutskirtsLauncher
     CityPitLift
+    CoreBossCannon
+    CoreBossWinch
     CoreElevatorJet
     CoreLockLift1
     CoreLockLift2

@@ -556,7 +556,6 @@ _SolidFloor_u8_arr:
     ;; Draw chain:
     jsr FuncA_Objects_MoveShapeUpOneTile
     jsr FuncA_Objects_MoveShapeLeftHalfTile
-    ldx #kWinchPlatformIndex  ; param: platform index
     jmp FuncA_Objects_DrawWinchChain
 .ENDPROC
 

@@ -24,11 +24,9 @@
 ;;;     per frame.
 ;;;   * State3: The hi byte of the current falling speed.
 
-;;; How many frames it takes a winch machine to move up one pixel.
-kWinchMoveUpSlowdown = 3
-
-;;; The terminal velocity for a falling winch load, in pixels per frame.
-.DEFINE kWinchMaxFallSpeed 5
+;;; The size of a winch spikeball platform, in pixels.
+kSpikeballWidthPx  = $0d
+kSpikeballHeightPx = $0e
 
 ;;; How many times a winch load has to drop onto a breakable floor in order to
 ;;; destroy it.
@@ -38,8 +36,8 @@ kNumWinchHitsToBreakFloor = 3
 kWinchBreakableFloorBlinkFrames = 28
 
 ;;; Tile IDs for drawing winch machines.
-kTileIdCrusherFirst   = $b4
-kTileIdWeakFloorFirst = $c3
-kTileIdWinchFirst     = $bc
+kTileIdCrusherFirst   = $e0
+kTileIdWeakFloorFirst = $c0
+kTileIdWinchFirst     = $e8
 
 ;;;=========================================================================;;;

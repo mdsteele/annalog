@@ -40,6 +40,7 @@
 .IMPORT FuncA_Objects_DrawWinchMachine
 .IMPORT FuncA_Objects_DrawWinchSpikeball
 .IMPORT FuncA_Objects_MoveShapeLeftHalfTile
+.IMPORT FuncA_Objects_MoveShapeUpByA
 .IMPORT FuncA_Objects_MoveShapeUpOneTile
 .IMPORT FuncA_Objects_SetShapePosToSpikeballCenter
 .IMPORT Func_MovePlatformTopTowardPointY
@@ -154,29 +155,29 @@ _Platforms_sPlatform_arr:
     .assert * - :- = kSpikeball1PlatformIndex * .sizeof(sPlatform), error
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Harm
-    d_word WidthPx_u16, $0d
-    d_byte HeightPx_u8, $0e
+    d_word WidthPx_u16, kSpikeballWidthPx
+    d_byte HeightPx_u8, kSpikeballHeightPx
     d_word Left_i16, kSpikeballPlatformLeft
     d_word Top_i16, kSpikeball1InitPlatformTop
     D_END
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Harm
-    d_word WidthPx_u16, $0d
-    d_byte HeightPx_u8, $0e
+    d_word WidthPx_u16, kSpikeballWidthPx
+    d_byte HeightPx_u8, kSpikeballHeightPx
     d_word Left_i16, kSpikeballPlatformLeft
     d_word Top_i16, kSpikeball2InitPlatformTop
     D_END
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Harm
-    d_word WidthPx_u16, $0d
-    d_byte HeightPx_u8, $0e
+    d_word WidthPx_u16, kSpikeballWidthPx
+    d_byte HeightPx_u8, kSpikeballHeightPx
     d_word Left_i16, kSpikeballPlatformLeft
     d_word Top_i16, kSpikeball3InitPlatformTop
     D_END
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Harm
-    d_word WidthPx_u16, $0d
-    d_byte HeightPx_u8, $0e
+    d_word WidthPx_u16, kSpikeballWidthPx
+    d_byte HeightPx_u8, kSpikeballHeightPx
     d_word Left_i16, kSpikeballPlatformLeft
     d_word Top_i16, kSpikeball4InitPlatformTop
     D_END
@@ -316,17 +317,16 @@ _Chains:
     jsr FuncA_Objects_MoveShapeLeftHalfTile
     ldx #kChain34Tiles  ; param: chain length in tiles
     jsr FuncA_Objects_DrawChainWithLength
-    jsr FuncA_Objects_MoveShapeUpOneTile
-    jsr FuncA_Objects_MoveShapeUpOneTile
+    lda #kBlockHeightPx  ; param: offset
+    jsr FuncA_Objects_MoveShapeUpByA
     ldx #kChain23Tiles  ; param: chain length in tiles
     jsr FuncA_Objects_DrawChainWithLength
-    jsr FuncA_Objects_MoveShapeUpOneTile
-    jsr FuncA_Objects_MoveShapeUpOneTile
+    lda #kBlockHeightPx  ; param: offset
+    jsr FuncA_Objects_MoveShapeUpByA
     ldx #kChain12Tiles  ; param: chain length in tiles
     jsr FuncA_Objects_DrawChainWithLength
-    jsr FuncA_Objects_MoveShapeUpOneTile
-    jsr FuncA_Objects_MoveShapeUpOneTile
-    ldx #kWinchPlatformIndex  ; param: platform index
+    lda #kBlockHeightPx  ; param: offset
+    jsr FuncA_Objects_MoveShapeUpByA
     jmp FuncA_Objects_DrawWinchChain
 .ENDPROC
 

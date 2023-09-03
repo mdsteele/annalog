@@ -43,12 +43,7 @@
 .IMPORT FuncA_Machine_WinchStartFalling
 .IMPORT FuncA_Machine_WriteToLever
 .IMPORT FuncA_Objects_DrawWinchBreakableFloor
-.IMPORT FuncA_Objects_DrawWinchChain
-.IMPORT FuncA_Objects_DrawWinchMachine
-.IMPORT FuncA_Objects_DrawWinchSpikeball
-.IMPORT FuncA_Objects_MoveShapeLeftHalfTile
-.IMPORT FuncA_Objects_MoveShapeUpOneTile
-.IMPORT FuncA_Objects_SetShapePosToSpikeballCenter
+.IMPORT FuncA_Objects_DrawWinchMachineWithSpikeball
 .IMPORT FuncA_Room_ResetLever
 .IMPORT Func_MovePlatformHorz
 .IMPORT Func_MovePlatformLeftTowardPointX
@@ -220,8 +215,8 @@ _Platforms_sPlatform_arr:
     .assert * - :- = kSpikeballPlatformIndex * .sizeof(sPlatform), error
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Harm
-    d_word WidthPx_u16, $0d
-    d_byte HeightPx_u8, $0e
+    d_word WidthPx_u16, kSpikeballWidthPx
+    d_byte HeightPx_u8, kSpikeballHeightPx
     d_word Left_i16, kWinchInitPlatformLeft + 2
     d_word Top_i16, kSpikeballInitPlatformTop
     D_END
@@ -632,17 +627,8 @@ _SolidFloorZ_u8_arr:
 
 ;;; Draws the CryptTombWinch machine.
 .PROC FuncA_Objects_CryptTombWinch_Draw
-    lda Ram_PlatformTop_i16_0_arr + kSpikeballPlatformIndex  ; param: chain
-    jsr FuncA_Objects_DrawWinchMachine
-_Spikeball:
-    ldx #kSpikeballPlatformIndex  ; param: platform index
-    jsr FuncA_Objects_SetShapePosToSpikeballCenter
-    jsr FuncA_Objects_DrawWinchSpikeball
-_Chain:
-    jsr FuncA_Objects_MoveShapeUpOneTile
-    jsr FuncA_Objects_MoveShapeLeftHalfTile
-    ldx #kWinchPlatformIndex  ; param: platform index
-    jmp FuncA_Objects_DrawWinchChain
+    ldx #kSpikeballPlatformIndex  ; param: spikeball platform index
+    jmp FuncA_Objects_DrawWinchMachineWithSpikeball
 .ENDPROC
 
 ;;;=========================================================================;;;

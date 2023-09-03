@@ -17,17 +17,7 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
-;;; State bytes for grenade projectiles:
-;;;   * State1: Counter that starts at zero and increments every frame; if it
-;;;     wraps back around to zero before the grenade hits anything, then the
-;;;     grenade explodes.
-;;;   * State2: Unused.
-;;;   * State3: Unused.
-
-;;; How many frames the room shakes for when a grenade hits the ground.
-kGrenadeShakeFrames = 4
-
-;;; The first tile ID for the grenade actor animation.
-kTileIdObjGrenadeFirst = $ec
+;;; OBJ tile IDs for drawing the crypt boss.
+kTileIdObjGazerFirst = $cc
 
 ;;;=========================================================================;;;

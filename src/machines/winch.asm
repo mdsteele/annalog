@@ -34,6 +34,7 @@
 .IMPORT FuncA_Objects_GetMachineLightTileId
 .IMPORT FuncA_Objects_MoveShapeDownAndRightOneTile
 .IMPORT FuncA_Objects_MoveShapeDownByA
+.IMPORT FuncA_Objects_MoveShapeLeftHalfTile
 .IMPORT FuncA_Objects_MoveShapeRightByA
 .IMPORT FuncA_Objects_MoveShapeRightOneTile
 .IMPORT FuncA_Objects_MoveShapeUpOneTile
@@ -61,12 +62,19 @@
 .IMPORT Ram_PlatformLeft_i16_1_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORT Ram_PlatformTop_i16_1_arr
+.IMPORTZP Zp_Current_sMachine_ptr
 .IMPORTZP Zp_MachineIndex_u8
 .IMPORTZP Zp_PointY_i16
 .IMPORTZP Zp_RoomScrollY_u8
 .IMPORTZP Zp_ShapePosY_i16
 
 ;;;=========================================================================;;;
+
+;;; How many frames it takes a winch machine to move up one pixel.
+kWinchMoveUpSlowdown = 3
+
+;;; The terminal velocity for a falling winch load, in pixels per frame.
+.DEFINE kWinchMaxFallSpeed 5
 
 ;;; How many frames a falling winch machine must wait after hitting the ground
 ;;; before it can move again.
@@ -359,13 +367,34 @@ _Done:
     rts
 .ENDPROC
 
+;;; Draws a winch machine with a single spikeball hanging from its chain.
+;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
+;;; @param X The platform index for the spikeball.
+.EXPORT FuncA_Objects_DrawWinchMachineWithSpikeball
+.PROC FuncA_Objects_DrawWinchMachineWithSpikeball
+    txa  ; spikeball platform index
+    pha  ; spikeball platform index
+    lda Ram_PlatformTop_i16_0_arr, x  ; param: chain
+    jsr FuncA_Objects_DrawWinchMachine
+    pla  ; spikeball platform index
+    tax  ; param: spikeball platform index
+    jsr FuncA_Objects_SetShapePosToSpikeballCenter
+    jsr FuncA_Objects_DrawWinchSpikeball
+    jsr FuncA_Objects_MoveShapeUpOneTile
+    jsr FuncA_Objects_MoveShapeLeftHalfTile
+    .assert * = FuncA_Objects_DrawWinchChain, error, "fallthrough"
+.ENDPROC
+
 ;;; Allocates and populates OAM slots for a chain that feeds into a winch
 ;;; machine.  When this function returns, the shape position will be set to the
 ;;; top-left corner of the chain.
+;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
 ;;; @prereq The shape position is set to the bottom-left corner of the chain.
-;;; @param X The platform index for the winch machine.
 .EXPORT FuncA_Objects_DrawWinchChain
 .PROC FuncA_Objects_DrawWinchChain
+    ldy #sMachine::MainPlatform_u8
+    lda (Zp_Current_sMachine_ptr), y
+    tax  ; winch platform index
     ;; Calculate the offset to the room-space platform bottom Y-position that
     ;; will give us the screen-space Y-position for the top of the chain.  Note
     ;; that we offset by an additional (kTileHeightPx - 1), so that when we

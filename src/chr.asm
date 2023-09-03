@@ -67,6 +67,7 @@
 .INCLUDE "platforms/gate.inc"
 .INCLUDE "platforms/rocks.inc"
 .INCLUDE "platforms/stepstone.inc"
+.INCLUDE "rooms/boss_crypt.inc"
 .INCLUDE "rooms/boss_garden.inc"
 .INCLUDE "rooms/boss_temple.inc"
 .INCLUDE "rooms/city_building2.inc"
@@ -1005,13 +1006,18 @@
     .incbin "out/tiles/upgrade_ram.chr"
     .assert * - :- = (kTileIdObjBreakballFirst - $80) * kSizeofChr, error
     .incbin "out/tiles/breakball.chr"
-    .res $02 * kSizeofChr
+    .assert * - :- = (kTileIdObjEmber - $80) * kSizeofChr, error
+    .incbin "out/tiles/ember.chr"
+    .res $01 * kSizeofChr
     .assert * - :- = (kTileIdObjCannonFirst - $80) * kSizeofChr, error
     .incbin "out/tiles/cannon.chr"
     .res $04 * kSizeofChr
     .assert * - :- = (kTileIdObjBulletFirst - $80) * kSizeofChr, error
     .incbin "out/tiles/bullet.chr"
-    .res $06 * kSizeofChr
+    .res $02 * kSizeofChr
+    .assert * - :- = (kTileIdObjUpgradeOpWaitFirst - $80) * kSizeofChr, error
+    .incbin "out/tiles/upgrade_opwait.chr"
+    .res $02 * kSizeofChr
     .assert * - :- = (kTileIdObjFireballFirst - $80) * kSizeofChr, error
     .incbin "out/tiles/fireball.chr"
     .assert * - :- = (kTileIdObjOutbreakFirst - $80) * kSizeofChr, error
@@ -1024,14 +1030,20 @@
     .res $02 * kSizeofChr
     .assert * - :- = (kTileIdObjPlantEyeFirst - $80) * kSizeofChr, error
     .incbin "out/tiles/plant_eye.chr"
-    .assert * - :- = (kTileIdObjGrenadeFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/grenade.chr"
+    .res $04 * kSizeofChr
     .assert * - :- = (kTileIdObjPlantEyeRedFirst - $80) * kSizeofChr, error
     .incbin "out/tiles/plant_eye_red.chr"
-    .res $0c * kSizeofChr
+    .assert * - :- = (kTileIdObjGazerFirst - $80) * kSizeofChr, error
+    .incbin "out/tiles/gazer_obj.chr"
+    .res $09 * kSizeofChr
     .assert * - :- = (kTileIdObjMinigunVertFirst - $80) * kSizeofChr, error
     .incbin "out/tiles/minigun_vert.chr"
-    .res $10 * kSizeofChr
+    .assert * - :- = (kTileIdCrusherFirst - $80) * kSizeofChr, error
+    .incbin "out/tiles/crusher.chr"
+    .assert * - :- = (kTileIdWinchFirst - $80) * kSizeofChr, error
+    .incbin "out/tiles/winch.chr"
+    .assert * - :- = (kTileIdObjGrenadeFirst - $80) * kSizeofChr, error
+    .incbin "out/tiles/grenade.chr"
     .assert * - :- = (kTileIdObjBreakerFirst - $80) * kSizeofChr, error
     .incbin "out/tiles/breaker.chr"
     .assert * - :- = kSizeofChr * $80, error
@@ -1081,34 +1093,23 @@
 .PROC Ppu_ChrObjCrypt
 :   .assert * - :- = (kTileIdObjUpgradeBottomFirst - $80) * kSizeofChr, error
     .incbin "out/tiles/upgrade_bottom.chr"
-    .res $02 * kSizeofChr
-    .assert * - :- = (kTileIdObjEmber - $80) * kSizeofChr, error
-    .incbin "out/tiles/ember.chr"
-    .res $0d * kSizeofChr
+    .res $10 * kSizeofChr
     .assert * - :- = (kTileIdObjUpgradeOpGotoFirst - $80) * kSizeofChr, error
     .incbin "out/tiles/upgrade_opgoto.chr"
-    .res $02 * kSizeofChr
-    .assert * - :- = (kTileIdObjUpgradeOpWaitFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/upgrade_opwait.chr"
-    .res $02 * kSizeofChr
-    .assert * - :- = (kTileIdObjFireballFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/fireball.chr"
+    .res $08 * kSizeofChr
     .assert * - :- = (kTileIdObjBatFirst - $80) * kSizeofChr, error
     .incbin "out/tiles/bat.chr"
     .assert * - :- = (kTileIdObjSpiderFirst - $80) * kSizeofChr, error
     .incbin "out/tiles/spider.chr"
-    .res $04 * kSizeofChr
+    .res $10 * kSizeofChr
+    .assert * - :- = (kTileIdWeakFloorFirst - $80) * kSizeofChr, error
+    .incbin "out/tiles/breakable.chr"
+    .res $1a * kSizeofChr
     .assert * - :- = (kTileIdCrusherFirst - $80) * kSizeofChr, error
     .incbin "out/tiles/crusher.chr"
     .assert * - :- = (kTileIdWinchFirst - $80) * kSizeofChr, error
     .incbin "out/tiles/winch.chr"
-    ;; TODO: add an assert here
-    .incbin "out/tiles/gazer_obj.chr"
-    .assert * - :- = (kTileIdWeakFloorFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/breakable.chr"
-    .res $27 * kSizeofChr
-    .assert * - :- = (kTileIdObjBreakerFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/breaker.chr"
+    .res $14 * kSizeofChr
     .assert * - :- = kSizeofChr * $80, error
 .ENDPROC
 
@@ -1165,9 +1166,7 @@
     .incbin "out/tiles/garden_bricks.chr"
     .assert * - :- = (kTileIdObjVinebugFirst - $80) * kSizeofChr, error
     .incbin "out/tiles/vinebug.chr"
-    .res $04 * kSizeofChr
-    .assert * - :- = (kTileIdObjGrenadeFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/grenade.chr"
+    .res $08 * kSizeofChr
     .assert * - :- = (kTileIdObjBeetleFirst - $80) * kSizeofChr, error
     .incbin "out/tiles/beetle.chr"
     .res $04 * kSizeofChr
@@ -1175,7 +1174,8 @@
     .incbin "out/tiles/fish.chr"
     .assert * - :- = (kTileIdCorraSwimmingDownFirst - $80) * kSizeofChr, error
     .incbin "out/tiles/corra_swimming_down.chr"
-    .res $04 * kSizeofChr
+    .assert * - :- = (kTileIdObjGrenadeFirst - $80) * kSizeofChr, error
+    .incbin "out/tiles/grenade.chr"
     .assert * - :- = (kTileIdCorraSwimmingUpFirst - $80) * kSizeofChr, error
     .incbin "out/tiles/corra_swimming_up.chr"
 .ENDPROC
@@ -1190,9 +1190,10 @@
     .incbin "out/tiles/upgrade_bottom.chr"
     .assert * - :- = (kTileIdObjUpgradeRamFirst - $80) * kSizeofChr, error
     .incbin "out/tiles/upgrade_ram.chr"
+    .res $02 * kSizeofChr
     .assert * - :- = (kTileIdObjEmber - $80) * kSizeofChr, error
     .incbin "out/tiles/ember.chr"
-    .res $05 * kSizeofChr
+    .res $03 * kSizeofChr
     .assert * - :- = (kTileIdObjUpgradeOpCopyFirst - $80) * kSizeofChr, error
     .incbin "out/tiles/upgrade_opcopy.chr"
     .res $04 * kSizeofChr

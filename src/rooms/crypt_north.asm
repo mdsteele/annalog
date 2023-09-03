@@ -334,7 +334,6 @@ _ReadZ:
     jsr FuncA_Objects_DrawGirderPlatform
     ;; Draw the chain between the girder and the winch.
     jsr FuncA_Objects_MoveShapeLeftOneTile
-    ldx #kWinchPlatformIndex  ; param: platform index
     jmp FuncA_Objects_DrawWinchChain
 .ENDPROC
 

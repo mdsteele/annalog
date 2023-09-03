@@ -25,6 +25,6 @@
 ;;;   * State3: Unused.
 
 ;;; The OBJ tile ID for spike projectile actors.
-kTileIdObjEmber = $84
+kTileIdObjEmber = $86
 
 ;;;=========================================================================;;;

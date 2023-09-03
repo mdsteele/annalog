@@ -33,6 +33,7 @@
 .INCLUDE "../ppu.inc"
 .INCLUDE "../program.inc"
 .INCLUDE "../room.inc"
+.INCLUDE "boss_crypt.inc"
 
 .IMPORT DataA_Room_Crypt_sTileset
 .IMPORT Data_Empty_sActor_arr
@@ -46,18 +47,13 @@
 .IMPORT FuncA_Objects_Alloc1x1Shape
 .IMPORT FuncA_Objects_Draw1x1Shape
 .IMPORT FuncA_Objects_DrawBoss
-.IMPORT FuncA_Objects_DrawWinchChain
-.IMPORT FuncA_Objects_DrawWinchMachine
-.IMPORT FuncA_Objects_DrawWinchSpikeball
+.IMPORT FuncA_Objects_DrawWinchMachineWithSpikeball
 .IMPORT FuncA_Objects_MoveShapeDownByA
 .IMPORT FuncA_Objects_MoveShapeDownOneTile
 .IMPORT FuncA_Objects_MoveShapeLeftByA
-.IMPORT FuncA_Objects_MoveShapeLeftHalfTile
 .IMPORT FuncA_Objects_MoveShapeRightByA
 .IMPORT FuncA_Objects_MoveShapeUpByA
-.IMPORT FuncA_Objects_MoveShapeUpOneTile
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
-.IMPORT FuncA_Objects_SetShapePosToSpikeballCenter
 .IMPORT FuncA_Room_InitBoss
 .IMPORT FuncA_Room_ResetLever
 .IMPORT FuncA_Room_TickBoss
@@ -76,7 +72,7 @@
 .IMPORT Func_SetActorCenterToPoint
 .IMPORT Func_SetPointToPlatformCenter
 .IMPORT Ppu_ChrBgAnimB0
-.IMPORT Ppu_ChrObjCrypt
+.IMPORT Ppu_ChrObjBoss1
 .IMPORT Ram_MachineGoalHorz_u8_arr
 .IMPORT Ram_MachineGoalVert_u8_arr
 .IMPORT Ram_Oam_sObj_arr64
@@ -193,11 +189,11 @@ kBossHurtMoveDistPx = 60
 ;;;=========================================================================;;;
 
 ;;; The OBJ tile ID for the first of the two side wall tiles.
-kTileIdObjSideWallFirst = $c0
+kTileIdObjSideWallFirst = kTileIdObjGazerFirst + 0
 ;;; The OBJ palette number to use for the side walls.
 kPaletteObjSideWall = 0
 ;;; The OBJ tile ID for the pupil of the boss's eye.
-kTileIdObjBossPupil = $c2
+kTileIdObjBossPupil = kTileIdObjGazerFirst + 2
 ;;; The OBJ palette number to use for the pupil of the boss's eye.
 kPaletteObjBossPupil = 0
 
@@ -272,7 +268,7 @@ kBossBodyPlatformIndex = 4
     d_addr TerrainData_ptr, _TerrainData
     d_byte NumMachines_u8, 1
     d_addr Machines_sMachine_arr_ptr, _Machines_sMachine_arr
-    d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjCrypt)
+    d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjBoss1)
     d_addr Ext_sRoomExt_ptr, _Ext_sRoomExt
     D_END
 _Ext_sRoomExt:
@@ -323,8 +319,8 @@ _Platforms_sPlatform_arr:
     .assert * - :- = kSpikeballPlatformIndex * .sizeof(sPlatform), error
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Harm
-    d_word WidthPx_u16, $0d
-    d_byte HeightPx_u8, $0e
+    d_word WidthPx_u16, kSpikeballWidthPx
+    d_byte HeightPx_u8, kSpikeballHeightPx
     d_word Left_i16, kWinchInitPlatformLeft + 2
     d_word Top_i16, kSpikeballInitPlatformTop
     D_END
@@ -1074,17 +1070,8 @@ _EyeOffsetY_u8_arr:
 
 ;;; Draws the BossCryptWinch machine.
 .PROC FuncA_Objects_BossCryptWinch_Draw
-    lda Ram_PlatformTop_i16_0_arr + kSpikeballPlatformIndex  ; param: chain
-    jsr FuncA_Objects_DrawWinchMachine
-_Spikeball:
-    ldx #kSpikeballPlatformIndex  ; param: platform index
-    jsr FuncA_Objects_SetShapePosToSpikeballCenter
-    jsr FuncA_Objects_DrawWinchSpikeball
-_Chain:
-    jsr FuncA_Objects_MoveShapeUpOneTile
-    jsr FuncA_Objects_MoveShapeLeftHalfTile
-    ldx #kWinchPlatformIndex  ; param: platform index
-    jmp FuncA_Objects_DrawWinchChain
+    ldx #kSpikeballPlatformIndex  ; param: spikeball platform index
+    jmp FuncA_Objects_DrawWinchMachineWithSpikeball
 .ENDPROC
 
 ;;;=========================================================================;;;

@@ -336,14 +336,12 @@ _Error:
     jmp FuncA_Machine_Error
 .ENDPROC
 
-;;; @prereq PRGA_Machine is loaded.
 .PROC FuncA_Machine_CryptGalleryWinch_TryAct
     ldy Ram_MachineGoalHorz_u8_arr + kWinchMachineIndex
     lda DataA_Machine_CryptGalleryFloor_u8_arr, y  ; param: new Z-goal
     jmp FuncA_Machine_WinchStartFalling
 .ENDPROC
 
-;;; @prereq PRGA_Machine is loaded.
 .PROC FuncA_Machine_CryptGalleryWinch_Tick
 _MoveVert:
     ;; Calculate the desired room-space pixel Y-position for the top edge of
@@ -416,7 +414,6 @@ _Crusher:
 _Chain:
     jsr FuncA_Objects_MoveShapeUpOneTile
     jsr FuncA_Objects_MoveShapeLeftHalfTile
-    ldx #kWinchPlatformIndex  ; param: platform index
     jmp FuncA_Objects_DrawWinchChain
 .ENDPROC
 
