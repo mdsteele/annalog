@@ -68,6 +68,7 @@
     d_entry table, RampUp,          Func_InstrumentRampUp
     d_entry table, Staccato,        Func_InstrumentStaccato
     d_entry table, TriangleDrum,    Func_InstrumentTriangleDrum
+    d_entry table, TriangleSlide,   Func_InstrumentTriangleSlide
     d_entry table, TriangleVibrato, Func_InstrumentTriangleVibrato
     D_END
 .ENDREPEAT
@@ -167,6 +168,28 @@ _Envelope:
     rts
 .ENDPROC
 
+;;; An instrument for the triangle channel that slides down in pitch with
+;;; vibrato.  The instrument param is ignored.
+;;; @param X The channel number (0-4) times four (so, 0, 4, 8, 12, or 16).
+;;; @return A The duty/envelope byte to use.
+;;; @preserve X
+.PROC Func_InstrumentTriangleSlide
+_Slide:
+    lda Ram_Music_sChanNote_arr + sChanNote::ElapsedFrames_u8, x
+    and #$01
+    beq @done
+    lda Ram_Music_sChanNote_arr + sChanNote::TimerLo_byte, x
+    add #1
+    sta Ram_Music_sChanNote_arr + sChanNote::TimerLo_byte, x
+    lda Ram_Music_sChanNote_arr + sChanNote::TimerHi_byte, x
+    adc #0
+    and #$07
+    sta Ram_Music_sChanNote_arr + sChanNote::TimerHi_byte, x
+    @done:
+_Vibrato:
+    .assert * = Func_InstrumentTriangleVibrato, error, "fallthrough"
+.ENDPROC
+
 .PROC Func_InstrumentTriangleVibrato
 _Vibrato:
     lda Ram_Music_sChanNote_arr + sChanNote::ElapsedFrames_u8, x
@@ -183,9 +206,9 @@ _Envelope:
     lda #$ff
     rts
 _Delta_i16_0_arr8:
-    .byte <0, <4, <6, <4, <0, <-4, <-6, <-4
+    .byte <0, <2, <3, <2, <0, <-2, <-3, <-2
 _Delta_i16_1_arr8:
-    .byte >0, >4, >6, >4, >0, >-4, >-6, >-4
+    .byte >0, >2, >3, >2, >0, >-2, >-3, >-2
 .ENDPROC
 
 ;;;=========================================================================;;;

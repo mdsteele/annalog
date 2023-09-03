@@ -24,6 +24,7 @@
     RampUp  ; TODO: get rid of this
     Staccato
     TriangleDrum
+    TriangleSlide
     TriangleVibrato
     NUM_VALUES
 .ENDENUM

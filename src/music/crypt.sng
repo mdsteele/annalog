@@ -1,0 +1,45 @@
+@PRGC_Crypt
+
+!SONG Crypt "A|BBCDD"
+
+=tempo q40
+=key 1b  % d minor
+
+!INST 1A PulseBasic $07 d1/8
+!INST 2B Staccato   $08 d1/2
+!INST 2C Staccato   $0c d1/4
+!INST 2D Staccato   $0c d1/4
+!INST TS TriangleSlide
+!INST ND Staccato $0a         % drum
+
+!PART A
+
+T| iS d4w abvw :2 |
+N| iD x9e x9 ' x5 x9 ' x9q ' x5 :4 |
+
+!PART B
+
+1| iA d3e a a d b r d a | r d f g e f e c :2 |
+2| iB rw+w |
+ | d5q ' dq ' de de ' rq |
+ | re d5e ' dq ' re de de re |
+T=:AT
+N=:AN
+
+!PART C
+
+1=:B1
+2| iC d4e ee aq gq ae b | fq a e fe g |
+ | d4q a ge ae bq | fq a eh |
+T=:BT
+N=:BN
+
+!PART D
+
+1=:C1
+2| iD d5s av d^e     ' c   av   ' b     g  ' ae.  bt c^ |
+ |    d5s av d^e     ' c   av   ' e^s c ee ' dq         |
+ |    d5s av d^e     ' c   av   ' b     g  ' ae gt a bs |
+ |    c5s d  av d^s+ ' +s ae gs ' ee    c  ' dq         |
+T=:CT
+N=:CN

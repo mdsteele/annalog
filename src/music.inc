@@ -22,6 +22,7 @@
     Silence
     Boss1
     Boss2
+    Crypt
     Mine
     Prison1
     Prison2

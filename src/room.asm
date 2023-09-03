@@ -417,19 +417,19 @@ _PrisonMusic:
     d_byte CoreLock,        eMusic::Silence
     d_byte CoreSouth,       eMusic::Silence
     d_byte CoreWest,        eMusic::Silence
-    d_byte CryptCenter,     eMusic::Silence
-    d_byte CryptChains,     eMusic::Silence
-    d_byte CryptEast,       eMusic::Silence
-    d_byte CryptEscape,     eMusic::Silence
-    d_byte CryptFlower,     eMusic::Silence
-    d_byte CryptGallery,    eMusic::Silence
-    d_byte CryptLanding,    eMusic::Silence
-    d_byte CryptNest,       eMusic::Silence
-    d_byte CryptNorth,      eMusic::Silence
-    d_byte CryptSouth,      eMusic::Silence
-    d_byte CryptSpiral,     eMusic::Silence
-    d_byte CryptTomb,       eMusic::Silence
-    d_byte CryptWest,       eMusic::Silence
+    d_byte CryptCenter,     eMusic::Crypt
+    d_byte CryptChains,     eMusic::Crypt
+    d_byte CryptEast,       eMusic::Crypt
+    d_byte CryptEscape,     eMusic::Crypt
+    d_byte CryptFlower,     eMusic::Crypt
+    d_byte CryptGallery,    eMusic::Crypt
+    d_byte CryptLanding,    eMusic::Crypt
+    d_byte CryptNest,       eMusic::Crypt
+    d_byte CryptNorth,      eMusic::Crypt
+    d_byte CryptSouth,      eMusic::Crypt
+    d_byte CryptSpiral,     eMusic::Crypt
+    d_byte CryptTomb,       eMusic::Crypt
+    d_byte CryptWest,       eMusic::Crypt
     d_byte FactoryAccess,   eMusic::Silence
     d_byte FactoryBridge,   eMusic::Silence
     d_byte FactoryCenter,   eMusic::Silence
