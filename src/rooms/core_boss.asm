@@ -20,17 +20,25 @@
 .INCLUDE "../actor.inc"
 .INCLUDE "../avatar.inc"
 .INCLUDE "../charmap.inc"
+.INCLUDE "../cpu.inc"
+.INCLUDE "../cutscene.inc"
 .INCLUDE "../device.inc"
+.INCLUDE "../dialog.inc"
 .INCLUDE "../flag.inc"
 .INCLUDE "../machine.inc"
+.INCLUDE "../machines/shared.inc"
 .INCLUDE "../machines/winch.inc"
 .INCLUDE "../macros.inc"
+.INCLUDE "../music.inc"
+.INCLUDE "../oam.inc"
 .INCLUDE "../platform.inc"
 .INCLUDE "../ppu.inc"
 .INCLUDE "../program.inc"
 .INCLUDE "../room.inc"
+.INCLUDE "../scroll.inc"
 
 .IMPORT DataA_Room_Core_sTileset
+.IMPORT Data_Empty_sDialog
 .IMPORT FuncA_Machine_CannonTick
 .IMPORT FuncA_Machine_CannonTryAct
 .IMPORT FuncA_Machine_CannonTryMove
@@ -40,25 +48,37 @@
 .IMPORT FuncA_Machine_StartWorking
 .IMPORT FuncA_Machine_WinchReachedGoal
 .IMPORT FuncA_Machine_WinchStartFalling
+.IMPORT FuncA_Objects_Draw1x1Shape
 .IMPORT FuncA_Objects_DrawCannonMachine
 .IMPORT FuncA_Objects_DrawWinchMachineWithSpikeball
+.IMPORT FuncA_Objects_MoveShapeDownOneTile
+.IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
 .IMPORT FuncA_Room_MachineCannonReset
 .IMPORT Func_IsFlagSet
+.IMPORT Func_IsPointInPlatform
 .IMPORT Func_MachineCannonReadRegY
 .IMPORT Func_MovePlatformHorz
 .IMPORT Func_MovePlatformLeftTowardPointX
 .IMPORT Func_MovePlatformTopTowardPointY
 .IMPORT Func_Noop
 .IMPORT Func_ResetWinchMachineState
+.IMPORT Func_SetPointToAvatarCenter
 .IMPORT Ppu_ChrObjBoss1
 .IMPORT Ram_MachineGoalHorz_u8_arr
 .IMPORT Ram_MachineGoalVert_u8_arr
 .IMPORT Ram_PlatformLeft_i16_0_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
+.IMPORT Ram_PlatformType_ePlatform_arr
 .IMPORTZP Zp_AvatarPose_eAvatar
+.IMPORTZP Zp_AvatarState_bAvatar
 .IMPORTZP Zp_BreakerBeingActivated_eFlag
+.IMPORTZP Zp_Camera_bScroll
+.IMPORTZP Zp_DialogAnsweredYes_bool
+.IMPORTZP Zp_Next_eCutscene
 .IMPORTZP Zp_PointX_i16
 .IMPORTZP Zp_PointY_i16
+.IMPORTZP Zp_RoomState
+.IMPORTZP Zp_ScrollGoalX_u16
 
 ;;;=========================================================================;;;
 
@@ -69,6 +89,14 @@ kCannonMachineIndex = 1
 kWinchPlatformIndex     = 0
 kSpikeballPlatformIndex = 1
 kCannonPlatformIndex    = 2
+
+;;; The platform index for the zone that triggers the boss fight cutscene when
+;;; the player avatar stands in it.
+kCutsceneZonePlatformIndex = 3
+
+;;; The platform index for the wall that blocks the passage during the boss
+;;; fight.
+kPassageBarrierPlatformIndex = 4
 
 ;;; The initial and maximum permitted values for the winch's X and Z registers.
 kWinchInitGoalX = 0
@@ -90,6 +118,19 @@ kSpikeballMinPlatformTop = $22
 kSpikeballInitPlatformTop = \
     kSpikeballMinPlatformTop + kBlockHeightPx * kWinchInitGoalZ
 .LINECONT +
+
+;;;=========================================================================;;;
+
+;;; Defines room-specific state data for this particular room.
+.STRUCT sState
+    ;; True ($ff) if the Gronta cutscene has already been started; false ($00)
+    ;; otherwise.
+    TalkedToGronta_bool .byte
+    ;; True ($ff) if the player chose to give the B-Remote to Gronta; false
+    ;; ($00) otherwise.
+    GaveUpRemote_bool .byte
+.ENDSTRUCT
+.ASSERT .sizeof(sState) <= kRoomStateSize, error
 
 ;;;=========================================================================;;;
 
@@ -118,8 +159,8 @@ _Ext_sRoomExt:
     d_addr Passages_sPassage_arr_ptr, _Passages_sPassage_arr
     d_addr Enter_func_ptr, Func_Noop
     d_addr FadeIn_func_ptr, FuncC_Core_Boss_FadeInRoom
-    d_addr Tick_func_ptr, Func_Noop
-    d_addr Draw_func_ptr, Func_Noop
+    d_addr Tick_func_ptr, FuncA_Room_CoreBoss_TickRoom
+    d_addr Draw_func_ptr, FuncA_Objects_CoreBoss_DrawRoom
     D_END
 _TerrainData:
 :   .incbin "out/data/core_boss.room"
@@ -189,7 +230,22 @@ _Platforms_sPlatform_arr:
     d_word Left_i16, $01f0
     d_word Top_i16,  $012c
     D_END
-    ;; TODO: wall to seal passage during boss fight
+    .assert * - :- = kCutsceneZonePlatformIndex * .sizeof(sPlatform), error
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Zone
+    d_word WidthPx_u16, $e0
+    d_byte HeightPx_u8, $10
+    d_word Left_i16,  $00a0
+    d_word Top_i16,   $0060
+    D_END
+    .assert * - :- = kPassageBarrierPlatformIndex * .sizeof(sPlatform), error
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Zone
+    d_word WidthPx_u16, $08
+    d_byte HeightPx_u8, $20
+    d_word Left_i16,  $0018
+    d_word Top_i16,   $0140
+    D_END
     ;; Top corners of reactor:
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Solid
@@ -719,6 +775,34 @@ _Finished:
 
 .SEGMENT "PRGA_Room"
 
+.PROC FuncA_Room_CoreBoss_TickRoom
+    ;; If the avatar is hidden for a circuit activation cutscene, we're done.
+    lda Zp_AvatarPose_eAvatar
+    .assert eAvatar::Hidden = 0, error
+    beq _Return
+_TalkToGronta:
+    ;; If the Gronta cutscene has already played, no need to start it.
+    bit Zp_RoomState + sState::TalkedToGronta_bool
+    bmi @done
+    ;; If the player avatar isn't standing in the cutscene-starting zone, don't
+    ;; start it yet.
+    bit Zp_AvatarState_bAvatar
+    .assert bAvatar::Airborne = bProc::Negative, error
+    bmi @done
+    jsr Func_SetPointToAvatarCenter
+    ldy #kCutsceneZonePlatformIndex  ; param: platform index
+    jsr Func_IsPointInPlatform  ; returns C
+    bcc @done
+    ;; Start the cutscene.
+    lda #$ff
+    sta Zp_RoomState + sState::TalkedToGronta_bool
+    lda #eCutscene::CoreBossStartBattle
+    sta Zp_Next_eCutscene
+    @done:
+_Return:
+    rts
+.ENDPROC
+
 .PROC FuncA_Room_CoreBossWinch_InitReset
     lda #kWinchInitGoalX
     sta Ram_MachineGoalHorz_u8_arr + kWinchMachineIndex
@@ -731,10 +815,173 @@ _Finished:
 
 .SEGMENT "PRGA_Objects"
 
+.PROC FuncA_Objects_CoreBoss_DrawRoom
+_PassageBarrier:
+    lda Ram_PlatformType_ePlatform_arr + kPassageBarrierPlatformIndex
+    cmp #kFirstSolidPlatformType
+    blt @done
+    ldx #kPassageBarrierPlatformIndex  ; param: platform index
+    jsr FuncA_Objects_SetShapePosToPlatformTopLeft
+    ldx #3
+    @loop:
+    ldy _BarrierFlags_bObj_arr, x  ; param: object flags
+    lda _BarrierTileId_u8_arr, x  ; param: tile ID
+    jsr FuncA_Objects_Draw1x1Shape  ; preserves X
+    jsr FuncA_Objects_MoveShapeDownOneTile  ; preserves X
+    dex
+    bpl @loop
+    @done:
+    rts
+_BarrierFlags_bObj_arr:
+    .byte 0, 0, 0, bObj::FlipV
+_BarrierTileId_u8_arr:
+    .byte kTileIdObjMachineCorner
+    .byte kTileIdObjMachineSurfaceVert
+    .byte kTileIdObjMachineSurfaceVert
+    .byte kTileIdObjMachineCorner
+.ENDPROC
+
 ;;; Draws the CoreBossWinch machine.
 .PROC FuncA_Objects_CoreBossWinch_Draw
     ldx #kSpikeballPlatformIndex  ; param: spikeball platform index
     jmp FuncA_Objects_DrawWinchMachineWithSpikeball
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Cutscene"
+
+.EXPORT DataA_Cutscene_CoreBossStartBattle_sCutscene
+.PROC DataA_Cutscene_CoreBossStartBattle_sCutscene
+    act_CallFunc _SetupFunc
+    act_SetAvatarPose eAvatar::Standing
+    act_SetAvatarState 0
+    act_RunDialog eDialog::CoreBossGrontaIntro
+    act_BranchIfC _ShouldGiveUpRemoteFunc, _GiveUpRemote_sCutscene
+_BeginFight_sCutscene:
+    act_PlayMusic eMusic::Boss2
+    act_WaitFrames 210  ; TODO: animate Gronta getting ready to fight
+    act_CallFunc _UnlockScrollFunc
+    act_ContinueExploring
+_GiveUpRemote_sCutscene:
+    act_PlayMusic eMusic::Silence
+    act_WaitFrames 120  ; TODO: animate Anna throwing remote to Gronta
+    act_RunDialog eDialog::CoreBossGrontaGive
+    ;; TODO: animate core activating
+    act_ContinueExploring
+_SetupFunc:
+    lda #ePlatform::Solid
+    sta Ram_PlatformType_ePlatform_arr + kPassageBarrierPlatformIndex
+    ldax #$0090
+    stax Zp_ScrollGoalX_u16
+    rts
+_ShouldGiveUpRemoteFunc:
+    lda Zp_RoomState + sState::GaveUpRemote_bool
+    asl a  ; put highest bit into C
+    rts
+_UnlockScrollFunc:
+    lda #0
+    sta Zp_Camera_bScroll
+    rts
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Dialog"
+
+.EXPORT DataA_Dialog_CoreBossGrontaIntro_sDialog
+.PROC DataA_Dialog_CoreBossGrontaIntro_sDialog
+    dlg_Text OrcGronta, DataA_Text1_CoreBossGrontaIntro_Part1_u8_arr
+    dlg_Text OrcGronta, DataA_Text1_CoreBossGrontaIntro_Part2_u8_arr
+    dlg_Text OrcGronta, DataA_Text1_CoreBossGrontaIntro_Demand_u8_arr
+    dlg_Func _DemandFunc
+_DemandFunc:
+    bit Zp_DialogAnsweredYes_bool
+    bmi @yes
+    @no:
+    ldya #_PreparedToFight_sDialog
+    rts
+    @yes:
+    ldya #_HandItOver_sDialog
+    rts
+_HandItOver_sDialog:
+    dlg_Text OrcGronta, DataA_Text1_CoreBossGrontaIntro_HandItOver_u8_arr
+    dlg_Func _HandItOverFunc
+_HandItOverFunc:
+    bit Zp_DialogAnsweredYes_bool
+    bmi @yes
+    @no:
+    ldya #_PreparedToFight_sDialog
+    rts
+    @yes:
+    lda #$ff
+    sta Zp_RoomState + sState::GaveUpRemote_bool
+    bne _EndDialogFunc  ; unconditional
+_PreparedToFight_sDialog:
+    dlg_Text OrcGronta, DataA_Text1_CoreBossGrontaIntro_PreparedToFight_u8_arr
+    dlg_Func _PreparedToFightFunc
+_PreparedToFightFunc:
+    bit Zp_DialogAnsweredYes_bool
+    bmi @yes
+    @no:
+    ldya #_HandItOver_sDialog
+    rts
+    @yes:
+_EndDialogFunc:
+    lda #bScroll::LockHorz
+    sta Zp_Camera_bScroll
+    ldya #Data_Empty_sDialog
+    rts
+.ENDPROC
+
+.EXPORT DataA_Dialog_CoreBossGrontaGive_sDialog
+.PROC DataA_Dialog_CoreBossGrontaGive_sDialog
+    dlg_Text OrcGrontaShout, DataA_Text1_CoreBossGrontaGive_Part1_u8_arr
+    dlg_Text OrcGronta, DataA_Text1_CoreBossGrontaGive_Part2_u8_arr
+    dlg_Done
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Text1"
+
+.PROC DataA_Text1_CoreBossGrontaIntro_Part1_u8_arr
+    .byte "Ahhhh...here you are,$"
+    .byte "little human. You have$"
+    .byte "the remote, don't you?#"
+.ENDPROC
+
+.PROC DataA_Text1_CoreBossGrontaIntro_Part2_u8_arr
+    .byte "The remote that will$"
+    .byte "determine whether it$"
+    .byte "will be orcs or humans$"
+    .byte "that rule this place.#"
+.ENDPROC
+
+.PROC DataA_Text1_CoreBossGrontaIntro_Demand_u8_arr
+    .byte "I demand that you give$"
+    .byte "it to me!%"
+.ENDPROC
+
+.PROC DataA_Text1_CoreBossGrontaIntro_HandItOver_u8_arr
+    .byte "You're just going to$"
+    .byte "hand it over, then?%"
+.ENDPROC
+
+.PROC DataA_Text1_CoreBossGrontaIntro_PreparedToFight_u8_arr
+    .byte "Oh ho! Then are you$"
+    .byte "prepared to fight me?%"
+.ENDPROC
+
+.PROC DataA_Text1_CoreBossGrontaGive_Part1_u8_arr
+    .byte "Bwahahaha! What a$"
+    .byte "coward!#"
+.ENDPROC
+
+.PROC DataA_Text1_CoreBossGrontaGive_Part2_u8_arr
+    .byte "Now we orcs shall take$"
+    .byte "our rightful place as$"
+    .byte "masters of this world!#"
 .ENDPROC
 
 ;;;=========================================================================;;;

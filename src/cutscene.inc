@@ -40,6 +40,7 @@ kMaxForks = 4
     None
     CityFlowerOrcAttack
     CoreBossPowerUpCircuit
+    CoreBossStartBattle
     CoreSouthCorraHelping
     MermaidHut1BreakerGarden
     PrisonCellGetThrownIn
@@ -65,6 +66,11 @@ kMaxForks = 4
 
 ;;; Actions that can be executed during a cutscene.
 .ENUM eAction
+    ;; Calls the specified function.  If the function clears C, then the
+    ;; current cutscene fork immediately continues on to the next action.  If
+    ;; the function sets C, then the current cutscene fork will immediately
+    ;; start executing the specified sCutscene instead.
+    BranchIfC          ; args: func ptr (2 bytes), sCutscene ptr (2 bytes)
     ;; Calls the specified function, then the current cutscene fork immediately
     ;; continues on to the next action.
     CallFunc           ; args: func ptr (2 bytes)
@@ -85,6 +91,9 @@ kMaxForks = 4
     ;; Ends the cutscene immediately, jumping to the specified main, even if
     ;; other cutscene forks are still executing.
     JumpToMain         ; args: main ptr (2 bytes)
+    ;; Queues up the specified music to play next, then the current cutscene
+    ;; fork immediately continues on to the next action.
+    PlayMusic          ; args: eMusic value
     ;; Suspends the current cutscene fork for the specified number of frames,
     ;; calling the specified function once each frame.
     RepeatFunc         ; args: number of frames, func ptr (2 bytes)
@@ -131,6 +140,12 @@ kMaxForks = 4
 
 ;;;=========================================================================;;;
 
+.MACRO act_BranchIfC FUNC, SCUTSCENE
+    .byte eAction::BranchIfC
+    .addr FUNC
+    .addr SCUTSCENE
+.ENDMACRO
+
 .MACRO act_CallFunc FUNC
     .byte eAction::CallFunc
     .addr FUNC
@@ -152,6 +167,11 @@ kMaxForks = 4
 .MACRO act_JumpToMain MAIN
     .byte eAction::JumpToMain
     .addr MAIN
+.ENDMACRO
+
+.MACRO act_PlayMusic EMUSIC
+    .byte eAction::PlayMusic
+    .byte EMUSIC
 .ENDMACRO
 
 .MACRO act_RepeatFunc FRAMES, FUNC

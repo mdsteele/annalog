@@ -19,6 +19,7 @@
 
 .INCLUDE "actors/child.inc"
 .INCLUDE "actors/orc.inc"
+.INCLUDE "audio.inc"
 .INCLUDE "avatar.inc"
 .INCLUDE "cpu.inc"
 .INCLUDE "cutscene.inc"
@@ -28,6 +29,7 @@
 
 .IMPORT DataA_Cutscene_CityFlowerOrcAttack_sCutscene
 .IMPORT DataA_Cutscene_CoreBossPowerUpCircuit_sCutscene
+.IMPORT DataA_Cutscene_CoreBossStartBattle_sCutscene
 .IMPORT DataA_Cutscene_CoreSouthCorraHelping_sCutscene
 .IMPORT DataA_Cutscene_MermaidHut1BreakerGarden_sCutscene
 .IMPORT DataA_Cutscene_PrisonCellGetThrownIn_sCutscene
@@ -65,6 +67,7 @@
 .IMPORTZP Zp_AvatarVelX_i16
 .IMPORTZP Zp_AvatarVelY_i16
 .IMPORTZP Zp_FrameCounter_u8
+.IMPORTZP Zp_Next_sAudioCtrl
 .IMPORTZP Zp_PointX_i16
 
 ;;;=========================================================================;;;
@@ -158,6 +161,8 @@ _Finish:
             DataA_Cutscene_CityFlowerOrcAttack_sCutscene
     d_entry table, CoreBossPowerUpCircuit, \
             DataA_Cutscene_CoreBossPowerUpCircuit_sCutscene
+    d_entry table, CoreBossStartBattle, \
+            DataA_Cutscene_CoreBossStartBattle_sCutscene
     d_entry table, CoreSouthCorraHelping, \
             DataA_Cutscene_CoreSouthCorraHelping_sCutscene
     d_entry table, MermaidHut1BreakerGarden, \
@@ -279,11 +284,13 @@ _InitMainFork:
     D_TABLE_LO table, _JumpTable_ptr_0_arr
     D_TABLE_HI table, _JumpTable_ptr_1_arr
     D_TABLE eAction
+    d_entry table, BranchIfC,         _BranchIfC
     d_entry table, CallFunc,          _CallFunc
     d_entry table, ContinueExploring, _ContinueExploring
     d_entry table, ForkStart,         _ForkStart
     d_entry table, ForkStop,          _ForkStop
     d_entry table, JumpToMain,        _JumpToMain
+    d_entry table, PlayMusic,         _PlayMusic
     d_entry table, RepeatFunc,        _RepeatFunc
     d_entry table, RunDialog,         _RunDialog
     d_entry table, SetActorFlags,     _SetActorFlags
@@ -310,6 +317,27 @@ _InitMainFork:
 _AdvanceAndExecuteForkT2:
     ldx T2  ; param: current fork index
     jmp FuncA_Cutscene_AdvanceForkAndExecute
+_BranchIfC:
+    lda T2  ; current fork index
+    pha  ; current fork index
+    jsr _CallFuncArg  ; returns C
+    pla  ; current fork index
+    tax  ; param: current fork index
+    bcs @branch
+    ldy #5  ; param: byte offset
+    jmp FuncA_Cutscene_AdvanceForkAndExecute
+    @branch:
+    lda Ram_Next_sCutscene_ptr_0_arr, x
+    sta T0
+    lda Ram_Next_sCutscene_ptr_1_arr, x
+    sta T1
+    ldy #3
+    lda (T1T0), y
+    sta Ram_Next_sCutscene_ptr_0_arr, x
+    iny
+    lda (T1T0), y
+    sta Ram_Next_sCutscene_ptr_1_arr, x
+    jmp FuncA_Cutscene_ExecuteOneFork
 _CallFunc:
     lda T2  ; current fork index
     pha  ; current fork index
@@ -367,6 +395,11 @@ _JumpToMain:
     stax T1T0
     sec  ; exit cutscene mode
     rts
+_PlayMusic:
+    lda (T1T0), y
+    sta Zp_Next_sAudioCtrl + sAudioCtrl::Music_eMusic
+    iny
+    jmp _AdvanceAndExecuteForkT2
 _RepeatFunc:
     ldx T2  ; current fork index
     lda (T1T0), y

@@ -37,6 +37,8 @@
 .IMPORT DataA_Dialog_CityDumpPaper_sDialog
 .IMPORT DataA_Dialog_CityFlowerOrcAngry_sDialog
 .IMPORT DataA_Dialog_CityFlowerOrcCalm_sDialog
+.IMPORT DataA_Dialog_CoreBossGrontaGive_sDialog
+.IMPORT DataA_Dialog_CoreBossGrontaIntro_sDialog
 .IMPORT DataA_Dialog_CoreSouthCorra1_sDialog
 .IMPORT DataA_Dialog_CoreSouthCorra2_sDialog
 .IMPORT DataA_Dialog_CryptCenterPaper_sDialog
@@ -352,6 +354,9 @@ _UpdateScrolling:
     d_entry table, CityDumpPaper,      DataA_Dialog_CityDumpPaper_sDialog
     d_entry table, CityFlowerOrcAngry, DataA_Dialog_CityFlowerOrcAngry_sDialog
     d_entry table, CityFlowerOrcCalm,  DataA_Dialog_CityFlowerOrcCalm_sDialog
+    d_entry table, CoreBossGrontaGive, DataA_Dialog_CoreBossGrontaGive_sDialog
+    d_entry table, CoreBossGrontaIntro, \
+            DataA_Dialog_CoreBossGrontaIntro_sDialog
     d_entry table, CoreSouthCorra1,    DataA_Dialog_CoreSouthCorra1_sDialog
     d_entry table, CoreSouthCorra2,    DataA_Dialog_CoreSouthCorra2_sDialog
     d_entry table, CryptCenterPaper,   DataA_Dialog_CryptCenterPaper_sDialog

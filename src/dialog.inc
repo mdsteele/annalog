@@ -64,6 +64,8 @@
     CityDumpPaper
     CityFlowerOrcAngry
     CityFlowerOrcCalm
+    CoreBossGrontaGive
+    CoreBossGrontaIntro
     CoreSouthCorra1
     CoreSouthCorra2
     CryptCenterPaper
