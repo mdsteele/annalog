@@ -66,11 +66,12 @@ kMaxForks = 4
 
 ;;; Actions that can be executed during a cutscene.
 .ENUM eAction
-    ;; Calls the specified function.  If the function clears C, then the
+    ;; Calls the specified function.  If the function clears C/Z, then the
     ;; current cutscene fork immediately continues on to the next action.  If
-    ;; the function sets C, then the current cutscene fork will immediately
+    ;; the function sets C/Z, then the current cutscene fork will immediately
     ;; start executing the specified sCutscene instead.
     BranchIfC          ; args: func ptr (2 bytes), sCutscene ptr (2 bytes)
+    BranchIfZ          ; args: func ptr (2 bytes), sCutscene ptr (2 bytes)
     ;; Calls the specified function, then the current cutscene fork immediately
     ;; continues on to the next action.
     CallFunc           ; args: func ptr (2 bytes)
@@ -142,6 +143,12 @@ kMaxForks = 4
 
 .MACRO act_BranchIfC FUNC, SCUTSCENE
     .byte eAction::BranchIfC
+    .addr FUNC
+    .addr SCUTSCENE
+.ENDMACRO
+
+.MACRO act_BranchIfZ FUNC, SCUTSCENE
+    .byte eAction::BranchIfZ
     .addr FUNC
     .addr SCUTSCENE
 .ENDMACRO

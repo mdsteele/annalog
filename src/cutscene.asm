@@ -82,6 +82,10 @@ kMainForkIndex = 0
 ;;; Which tick functions to call during the current cutscene.
 Zp_CutsceneFlags_bCutscene: .res 1
 
+;;; The index of the current cutscene fork (from zero inclusive to kMaxForks
+;;; exclusive).
+Zp_ForkIndex_u8: .res 1
+
 ;;;=========================================================================;;;
 
 .SEGMENT "RAM_Cutscene"
@@ -119,7 +123,7 @@ Ram_Next_sCutscene_ptr_1_arr: .res kMaxForks
 _GameLoop:
     jsr_prga FuncA_Objects_DrawObjectsForRoom
     jsr Func_ClearRestOfOamAndProcessFrame
-    jsr_prga FuncA_Cutscene_ExecuteAllForks  ; returns C and T1T0
+    jsr_prga FuncA_Cutscene_ExecuteAllForks  ; returns C, T1T0, and Y
     bcs _Finish
     jsr_prga FuncA_Terrain_ScrollTowardsGoal
     jsr_prga FuncA_Actor_TickAllSmokeActors
@@ -220,15 +224,14 @@ _InitMainFork:
 ;;; Executes actions for the current frame on all cutscene forks.
 ;;; @return C Set if the cutscene should end.
 ;;; @return T1T0 If C is set, this holds the address of the main to jump to.
+;;; @return Y A parameter for the main to jump to, if any.
 .PROC FuncA_Cutscene_ExecuteAllForks
     ldx #0
     @loop:
-    txa  ; fork index
-    pha  ; fork index
-    jsr FuncA_Cutscene_ExecuteOneFork  ; returns C and T1T0
-    pla  ; fork index
-    bcs @return
-    tax  ; fork index
+    stx Zp_ForkIndex_u8
+    jsr FuncA_Cutscene_ExecuteOneFork  ; returns C, T1T0, and Y
+    bcs @return  ; cutscene should end
+    ldx Zp_ForkIndex_u8
     inx
     cpx #kMaxForks
     blt @loop
@@ -237,12 +240,13 @@ _InitMainFork:
     rts
 .ENDPROC
 
-;;; Adds T to the Next_sCutscene_ptr for the specified fork.
-;;; @param X The fork index.
+;;; Adds Y to the Next_sCutscene_ptr for the current cutscene fork.
+;;; @prereq Zp_ForkIndex_u8 is initialized.
 ;;; @param Y The byte offset to add.
-;;; @preserve X, T0+
+;;; @preserve T0+
 .PROC FuncA_Cutscene_AdvanceFork
-    tya
+    ldx Zp_ForkIndex_u8
+    tya  ; byte offset
     add Ram_Next_sCutscene_ptr_0_arr, x
     sta Ram_Next_sCutscene_ptr_0_arr, x
     lda #0
@@ -252,21 +256,23 @@ _InitMainFork:
 .ENDPROC
 
 ;;; Calls FuncA_Cutscene_AdvanceFork and then FuncA_Cutscene_ExecuteOneFork.
-;;; @param X The fork index.
+;;; @prereq Zp_ForkIndex_u8 is initialized.
 ;;; @param Y The byte offset to add.
 ;;; @return C Set if the cutscene should end.
 ;;; @return T1T0 If C is set, this holds the address of the main to jump to.
+;;; @return Y A parameter for the main to jump to, if any.
 .PROC FuncA_Cutscene_AdvanceForkAndExecute
     jsr FuncA_Cutscene_AdvanceFork
     .assert * = FuncA_Cutscene_ExecuteOneFork, error, "fallthrough"
 .ENDPROC
 
-;;; Executes actions for the current frame on the specified cutscene fork.
-;;; @param X The fork index.
+;;; Executes actions for the current frame on the current cutscene fork.
+;;; @prereq Zp_ForkIndex_u8 is initialized.
 ;;; @return C Set if the cutscene should end.
 ;;; @return T1T0 If C is set, this holds the address of the main to jump to.
+;;; @return Y A parameter for the main to jump to, if any.
 .PROC FuncA_Cutscene_ExecuteOneFork
-    stx T2  ; current fork index
+    ldx Zp_ForkIndex_u8
     lda Ram_Next_sCutscene_ptr_0_arr, x
     sta T0
     lda Ram_Next_sCutscene_ptr_1_arr, x
@@ -276,15 +282,16 @@ _InitMainFork:
     tax  ; eAction value
     iny
     lda _JumpTable_ptr_0_arr, x
-    sta T4
+    sta T2
     lda _JumpTable_ptr_1_arr, x
-    sta T5
-    jmp (T5T4)
+    sta T3
+    jmp (T3T2)
 .REPEAT 2, table
     D_TABLE_LO table, _JumpTable_ptr_0_arr
     D_TABLE_HI table, _JumpTable_ptr_1_arr
     D_TABLE eAction
     d_entry table, BranchIfC,         _BranchIfC
+    d_entry table, BranchIfZ,         _BranchIfZ
     d_entry table, CallFunc,          _CallFunc
     d_entry table, ContinueExploring, _ContinueExploring
     d_entry table, ForkStart,         _ForkStart
@@ -314,19 +321,18 @@ _InitMainFork:
     d_entry table, WalkNpcOrc,        _WalkNpcOrc
     D_END
 .ENDREPEAT
-_AdvanceAndExecuteForkT2:
-    ldx T2  ; param: current fork index
-    jmp FuncA_Cutscene_AdvanceForkAndExecute
 _BranchIfC:
-    lda T2  ; current fork index
-    pha  ; current fork index
     jsr _CallFuncArg  ; returns C
-    pla  ; current fork index
-    tax  ; param: current fork index
-    bcs @branch
+    bcs _Branch
+    bcc _NoBranch  ; unconditional
+_BranchIfZ:
+    jsr _CallFuncArg  ; returns Z
+    beq _Branch
+_NoBranch:
     ldy #5  ; param: byte offset
     jmp FuncA_Cutscene_AdvanceForkAndExecute
-    @branch:
+_Branch:
+    ldx Zp_ForkIndex_u8
     lda Ram_Next_sCutscene_ptr_0_arr, x
     sta T0
     lda Ram_Next_sCutscene_ptr_1_arr, x
@@ -339,11 +345,7 @@ _BranchIfC:
     sta Ram_Next_sCutscene_ptr_1_arr, x
     jmp FuncA_Cutscene_ExecuteOneFork
 _CallFunc:
-    lda T2  ; current fork index
-    pha  ; current fork index
     jsr _CallFuncArg
-    pla  ; current fork index
-    tax  ; param: current fork index
     ldy #3  ; param: byte offset
     jmp FuncA_Cutscene_AdvanceForkAndExecute
 _ContinueExploring:
@@ -360,19 +362,17 @@ _ForkStart:
     iny
     lda (T1T0), y
     sta Ram_Next_sCutscene_ptr_1_arr, x
-    cpx T2  ; current fork index
-    bne @startOtherFork
-    jmp FuncA_Cutscene_ExecuteOneFork
-    @startOtherFork:
+    cpx Zp_ForkIndex_u8
+    jeq FuncA_Cutscene_ExecuteOneFork
     iny
-    jmp _AdvanceAndExecuteForkT2
+    jmp FuncA_Cutscene_AdvanceForkAndExecute
 _ForkStop:
     lda (T1T0), y
     tax  ; fork index to end
     .assert kMainForkIndex = 0, error
     beq _ContinueExploring
     bmi @endCurrentFork
-    cpx T2  ; current fork index
+    cpx Zp_ForkIndex_u8
     beq @endCurrentFork
     @endOtherFork:
     iny
@@ -380,9 +380,9 @@ _ForkStop:
     sta Ram_Next_sCutscene_ptr_0_arr, x
     lda #>DataA_Cutscene_Null_sCutscene
     sta Ram_Next_sCutscene_ptr_1_arr, x
-    jmp _AdvanceAndExecuteForkT2
+    jmp FuncA_Cutscene_AdvanceForkAndExecute
     @endCurrentFork:
-    lda T2  ; current fork index
+    lda Zp_ForkIndex_u8
     .assert kMainForkIndex = 0, error
     beq _ContinueExploring
     clc  ; cutscene should continue
@@ -399,9 +399,9 @@ _PlayMusic:
     lda (T1T0), y
     sta Zp_Next_sAudioCtrl + sAudioCtrl::Music_eMusic
     iny
-    jmp _AdvanceAndExecuteForkT2
+    jmp FuncA_Cutscene_AdvanceForkAndExecute
 _RepeatFunc:
-    ldx T2  ; current fork index
+    ldx Zp_ForkIndex_u8
     lda (T1T0), y
     cmp Ram_CutsceneTimer_u8_arr, x
     bne @stillWaiting
@@ -419,7 +419,6 @@ _RunDialog:
     lda (T1T0), y
     pha  ; eDialog value
     iny
-    ldx T2  ; param: current fork index
     jsr FuncA_Cutscene_AdvanceFork
     pla  ; eDialog value
     tay  ; param: eDialog value
@@ -434,7 +433,7 @@ _SetActorFlags:
     lda (T1T0), y
     sta Ram_ActorFlags_bObj_arr, x
     iny
-    jmp _AdvanceAndExecuteForkT2
+    jmp FuncA_Cutscene_AdvanceForkAndExecute
 _SetActorPosX:
     lda (T1T0), y
     tax  ; actor index
@@ -445,7 +444,7 @@ _SetActorPosX:
     lda (T1T0), y
     sta Ram_ActorPosX_i16_1_arr, x
     iny
-    jmp _AdvanceAndExecuteForkT2
+    jmp FuncA_Cutscene_AdvanceForkAndExecute
 _SetActorPosY:
     lda (T1T0), y
     tax  ; actor index
@@ -456,7 +455,7 @@ _SetActorPosY:
     lda (T1T0), y
     sta Ram_ActorPosY_i16_1_arr, x
     iny
-    jmp _AdvanceAndExecuteForkT2
+    jmp FuncA_Cutscene_AdvanceForkAndExecute
 _SetActorState1:
     lda (T1T0), y
     tax  ; actor index
@@ -464,7 +463,7 @@ _SetActorState1:
     lda (T1T0), y
     sta Ram_ActorState1_byte_arr, x
     iny
-    jmp _AdvanceAndExecuteForkT2
+    jmp FuncA_Cutscene_AdvanceForkAndExecute
 _SetActorState2:
     lda (T1T0), y
     tax  ; actor index
@@ -472,12 +471,12 @@ _SetActorState2:
     lda (T1T0), y
     sta Ram_ActorState2_byte_arr, x
     iny
-    jmp _AdvanceAndExecuteForkT2
+    jmp FuncA_Cutscene_AdvanceForkAndExecute
 _SetAvatarFlags:
     lda (T1T0), y
     sta Zp_AvatarFlags_bObj
     iny
-    jmp _AdvanceAndExecuteForkT2
+    jmp FuncA_Cutscene_AdvanceForkAndExecute
 _SetAvatarPosX:
     lda (T1T0), y
     sta Zp_AvatarPosX_i16 + 0
@@ -485,7 +484,7 @@ _SetAvatarPosX:
     lda (T1T0), y
     sta Zp_AvatarPosX_i16 + 1
     iny
-    jmp _AdvanceAndExecuteForkT2
+    jmp FuncA_Cutscene_AdvanceForkAndExecute
 _SetAvatarPosY:
     lda (T1T0), y
     sta Zp_AvatarPosY_i16 + 0
@@ -493,17 +492,17 @@ _SetAvatarPosY:
     lda (T1T0), y
     sta Zp_AvatarPosY_i16 + 1
     iny
-    jmp _AdvanceAndExecuteForkT2
+    jmp FuncA_Cutscene_AdvanceForkAndExecute
 _SetAvatarPose:
     lda (T1T0), y
     sta Zp_AvatarPose_eAvatar
     iny
-    jmp _AdvanceAndExecuteForkT2
+    jmp FuncA_Cutscene_AdvanceForkAndExecute
 _SetAvatarState:
     lda (T1T0), y
     sta Zp_AvatarState_bAvatar
     iny
-    jmp _AdvanceAndExecuteForkT2
+    jmp FuncA_Cutscene_AdvanceForkAndExecute
 _SetAvatarVelX:
     lda (T1T0), y
     sta Zp_AvatarVelX_i16 + 0
@@ -511,7 +510,7 @@ _SetAvatarVelX:
     lda (T1T0), y
     sta Zp_AvatarVelX_i16 + 1
     iny
-    jmp _AdvanceAndExecuteForkT2
+    jmp FuncA_Cutscene_AdvanceForkAndExecute
 _SetAvatarVelY:
     lda (T1T0), y
     sta Zp_AvatarVelY_i16 + 0
@@ -519,19 +518,19 @@ _SetAvatarVelY:
     lda (T1T0), y
     sta Zp_AvatarVelY_i16 + 1
     iny
-    jmp _AdvanceAndExecuteForkT2
+    jmp FuncA_Cutscene_AdvanceForkAndExecute
 _SetCutsceneFlags:
     lda (T1T0), y
     sta Zp_CutsceneFlags_bCutscene
     iny
-    jmp _AdvanceAndExecuteForkT2
+    jmp FuncA_Cutscene_AdvanceForkAndExecute
 _ShakeRoom:
     lda (T1T0), y  ; param: num shake frames
     jsr Func_ShakeRoom  ; preserves Y
     iny
-    jmp _AdvanceAndExecuteForkT2
+    jmp FuncA_Cutscene_AdvanceForkAndExecute
 _WaitFrames:
-    ldx T2  ; current fork index
+    ldx Zp_ForkIndex_u8
     lda (T1T0), y
     cmp Ram_CutsceneTimer_u8_arr, x
     bne @stillWaiting
@@ -544,27 +543,15 @@ _WaitFrames:
     clc  ; cutscene should continue
     rts
 _WaitUntilC:
-    lda T2  ; current fork index
-    pha  ; current fork index
     jsr _CallFuncArg  ; returns C
-    pla  ; current fork index
-    bcs @advance
+    bcs _DoneWaitingUntil
     rts  ; carry is already clear (cutscene should continue)
-    @advance:
-    tax  ; param: current fork index
-    ldy #3  ; param: byte offset
-    jmp FuncA_Cutscene_AdvanceForkAndExecute
 _WaitUntilZ:
-    lda T2  ; current fork index
-    pha  ; current fork index
-    jsr _CallFuncArg  ; returns C
-    beq @advance
-    pla  ; current fork index
+    jsr _CallFuncArg  ; returns Z
+    beq _DoneWaitingUntil
     clc  ; cutscene should continue
     rts
-    @advance:
-    pla  ; current fork index
-    tax  ; param: current fork index
+_DoneWaitingUntil:
     ldy #3  ; param: byte offset
     jmp FuncA_Cutscene_AdvanceForkAndExecute
 _WalkAlex:
@@ -576,7 +563,7 @@ _WalkAlex:
     iny
     lda (T1T0), y
     sta Zp_PointX_i16 + 1
-    jsr FuncA_Cutscene_MoveActorTowardPointX  ; preserves X, T2+; returns Z, N
+    jsr FuncA_Cutscene_MoveActorTowardPointX  ; preserves X, returns Z and N
     beq @reachedGoal
     jsr FuncA_Cutscene_AnimateAlexWalking  ; preserves X
     jsr FuncA_Cutscene_FaceAvatarTowardsActor
@@ -584,7 +571,7 @@ _WalkAlex:
     rts
     @reachedGoal:
     ldy #4  ; param: byte offset
-    jmp _AdvanceAndExecuteForkT2
+    jmp FuncA_Cutscene_AdvanceForkAndExecute
 _WalkNpcOrc:
     lda (T1T0), y
     tax  ; actor index
@@ -594,14 +581,14 @@ _WalkNpcOrc:
     iny
     lda (T1T0), y
     sta Zp_PointX_i16 + 1
-    jsr FuncA_Cutscene_MoveActorTowardPointX  ; preserves X, T2+; returns Z, N
+    jsr FuncA_Cutscene_MoveActorTowardPointX  ; preserves X, returns Z and N
     beq @reachedGoal
     jsr FuncA_Cutscene_AnimateNpcOrcWalking  ; preserves X
     clc  ; cutscene should continue
     rts
     @reachedGoal:
     ldy #4  ; param: byte offset
-    jmp _AdvanceAndExecuteForkT2
+    jmp FuncA_Cutscene_AdvanceForkAndExecute
 _CallFuncArg:
     lda (T1T0), y
     sta T2
@@ -616,7 +603,7 @@ _CallFuncArg:
 ;;; @return A The pixel delta that the actor actually moved by (signed).
 ;;; @return N Set if the actor moved left, cleared otherwise.
 ;;; @return Z Cleared if the actor moved, set if it was at the goal position.
-;;; @preserve X, T2+
+;;; @preserve X
 .PROC FuncA_Cutscene_MoveActorTowardPointX
     lda Zp_PointX_i16 + 0
     sub Ram_ActorPosX_i16_0_arr, x

@@ -857,17 +857,17 @@ _BarrierTileId_u8_arr:
     act_SetAvatarPose eAvatar::Standing
     act_SetAvatarState 0
     act_RunDialog eDialog::CoreBossGrontaIntro
-    act_BranchIfC _ShouldGiveUpRemoteFunc, _GiveUpRemote_sCutscene
-_BeginFight_sCutscene:
-    act_PlayMusic eMusic::Boss2
-    act_WaitFrames 210  ; TODO: animate Gronta getting ready to fight
-    act_CallFunc _UnlockScrollFunc
-    act_ContinueExploring
+    act_BranchIfZ _ShouldGiveUpRemoteFunc, _BeginFight_sCutscene
 _GiveUpRemote_sCutscene:
     act_PlayMusic eMusic::Silence
     act_WaitFrames 120  ; TODO: animate Anna throwing remote to Gronta
     act_RunDialog eDialog::CoreBossGrontaGive
     ;; TODO: animate core activating
+    act_ContinueExploring
+_BeginFight_sCutscene:
+    act_PlayMusic eMusic::Boss2
+    act_WaitFrames 210  ; TODO: animate Gronta getting ready to fight
+    act_CallFunc _UnlockScrollFunc
     act_ContinueExploring
 _SetupFunc:
     lda #ePlatform::Solid
@@ -877,7 +877,6 @@ _SetupFunc:
     rts
 _ShouldGiveUpRemoteFunc:
     lda Zp_RoomState + sState::GaveUpRemote_bool
-    asl a  ; put highest bit into C
     rts
 _UnlockScrollFunc:
     lda #0
