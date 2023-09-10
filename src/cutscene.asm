@@ -317,7 +317,8 @@ _InitMainFork:
     d_entry table, WaitFrames,        _WaitFrames
     d_entry table, WaitUntilC,        _WaitUntilC
     d_entry table, WaitUntilZ,        _WaitUntilZ
-    d_entry table, WalkAlex,          _WalkAlex
+    d_entry table, WalkAvatar,        _WalkAvatar
+    d_entry table, WalkNpcAlex,       _WalkNpcAlex
     d_entry table, WalkNpcOrc,        _WalkNpcOrc
     D_END
 .ENDREPEAT
@@ -554,7 +555,21 @@ _WaitUntilZ:
 _DoneWaitingUntil:
     ldy #3  ; param: byte offset
     jmp FuncA_Cutscene_AdvanceForkAndExecute
-_WalkAlex:
+_WalkAvatar:
+    lda (T1T0), y
+    sta Zp_PointX_i16 + 0
+    iny
+    lda (T1T0), y
+    sta Zp_PointX_i16 + 1
+    jsr FuncA_Cutscene_MoveAvatarTowardPointX  ; returns Z and N
+    beq @reachedGoal
+    jsr FuncA_Cutscene_AnimateAvatarWalking
+    clc  ; cutscene should continue
+    rts
+    @reachedGoal:
+    ldy #3  ; param: byte offset
+    jmp FuncA_Cutscene_AdvanceForkAndExecute
+_WalkNpcAlex:
     lda (T1T0), y
     tax  ; actor index
     iny
@@ -565,7 +580,7 @@ _WalkAlex:
     sta Zp_PointX_i16 + 1
     jsr FuncA_Cutscene_MoveActorTowardPointX  ; preserves X, returns Z and N
     beq @reachedGoal
-    jsr FuncA_Cutscene_AnimateAlexWalking  ; preserves X
+    jsr FuncA_Cutscene_AnimateNpcAlexWalking  ; preserves X
     jsr FuncA_Cutscene_FaceAvatarTowardsActor
     clc  ; cutscene should continue
     rts
@@ -596,6 +611,37 @@ _CallFuncArg:
     lda (T1T0), y
     sta T3
     jmp (T3T2)
+.ENDPROC
+
+;;; Moves the player avatar one pixel left or right towards Zp_PointX_i16.
+;;; @return A The pixel delta that the avatar actually moved by (signed).
+;;; @return N Set if the avatar moved left, cleared otherwise.
+;;; @return Z Cleared if the avatar moved, set if it was at the goal position.
+.PROC FuncA_Cutscene_MoveAvatarTowardPointX
+    lda Zp_PointX_i16 + 0
+    sub Zp_AvatarPosX_i16 + 0
+    sta T0  ; delta (lo)
+    lda Zp_PointX_i16 + 1
+    sbc Zp_AvatarPosX_i16 + 1
+    bmi _MoveLeft
+    bne _MoveRight
+    lda T0  ; delta (lo)
+    bne _MoveRight
+    rts
+_MoveRight:
+    ldya #1
+    bpl _MoveByYA  ; unconditional
+_MoveLeft:
+    ldya #$ffff & -1
+_MoveByYA:
+    pha  ; move delta (lo)
+    add Zp_AvatarPosX_i16 + 0
+    sta Zp_AvatarPosX_i16 + 0
+    tya
+    adc Zp_AvatarPosX_i16 + 1
+    sta Zp_AvatarPosX_i16 + 1
+    pla  ; move delta (lo)
+    rts
 .ENDPROC
 
 ;;; Moves the specified actor one pixel left or right towards Zp_PointX_i16.
@@ -633,12 +679,41 @@ _MoveByYA:
     rts
 .ENDPROC
 
+;;; Updates the flags and pose of the player avatar for a walking animation.
+;;; @param N If set, the avatar will face left; otherwise, it will face right.
+;;; @preserve X, Y, T0+
+.PROC FuncA_Cutscene_AnimateAvatarWalking
+    bpl @faceRight
+    @faceLeft:
+    lda #kPaletteObjAvatarNormal | bObj::FlipH
+    bne @setFace  ; unconditional
+    @faceRight:
+    lda #kPaletteObjAvatarNormal
+    @setFace:
+    sta Zp_AvatarFlags_bObj
+    lda #0
+    sta Zp_AvatarState_bAvatar
+_AnimatePose:
+    lda Zp_FrameCounter_u8
+    and #$08
+    beq @walk2
+    @walk1:
+    lda #eAvatar::Running1
+    .assert eAvatar::Running1 > 0, error
+    bne @setPose  ; unconditional
+    @walk2:
+    lda #eAvatar::Running2
+    @setPose:
+    sta Zp_AvatarPose_eAvatar
+    rts
+.ENDPROC
+
 ;;; Updates the flags and state of the specified Alex NPC actor for a walking
 ;;; animation.
 ;;; @param N If set, the actor will face left; otherwise, it will face right.
 ;;; @param X The actor index.
 ;;; @preserve X, Y, T0+
-.PROC FuncA_Cutscene_AnimateAlexWalking
+.PROC FuncA_Cutscene_AnimateNpcAlexWalking
     bpl @faceRight
     @faceLeft:
     lda #bObj::FlipH

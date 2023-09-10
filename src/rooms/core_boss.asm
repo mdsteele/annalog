@@ -54,6 +54,8 @@
 .IMPORT FuncA_Objects_MoveShapeDownOneTile
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
 .IMPORT FuncA_Room_MachineCannonReset
+.IMPORT Func_FindEmptyActorSlot
+.IMPORT Func_InitActorSmokeFragment
 .IMPORT Func_IsFlagSet
 .IMPORT Func_IsPointInPlatform
 .IMPORT Func_MachineCannonReadRegY
@@ -62,13 +64,17 @@
 .IMPORT Func_MovePlatformTopTowardPointY
 .IMPORT Func_Noop
 .IMPORT Func_ResetWinchMachineState
+.IMPORT Func_SetActorCenterToPoint
 .IMPORT Func_SetPointToAvatarCenter
 .IMPORT Ppu_ChrObjBoss1
+.IMPORT Ram_ActorVelX_i16_1_arr
+.IMPORT Ram_ActorVelY_i16_1_arr
 .IMPORT Ram_MachineGoalHorz_u8_arr
 .IMPORT Ram_MachineGoalVert_u8_arr
 .IMPORT Ram_PlatformLeft_i16_0_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORT Ram_PlatformType_ePlatform_arr
+.IMPORTZP Zp_AvatarPosX_i16
 .IMPORTZP Zp_AvatarPose_eAvatar
 .IMPORTZP Zp_AvatarState_bAvatar
 .IMPORTZP Zp_BreakerBeingActivated_eFlag
@@ -854,13 +860,31 @@ _BarrierTileId_u8_arr:
 .EXPORT DataA_Cutscene_CoreBossStartBattle_sCutscene
 .PROC DataA_Cutscene_CoreBossStartBattle_sCutscene
     act_CallFunc _SetupFunc
-    act_SetAvatarPose eAvatar::Standing
     act_SetAvatarState 0
+    act_SetAvatarVelX 0
+    act_BranchIfZ _GetHorzScreen, _LeftSide_sCutscene
+_RightSide_sCutscene:
+    act_WalkAvatar $0168
+    act_SetAvatarFlags kPaletteObjAvatarNormal | bObj::FlipH
+    act_ForkStart 0, _IntroDialog_sCutscene
+_LeftSide_sCutscene:
+    act_WalkAvatar $00b8
+    act_SetAvatarFlags kPaletteObjAvatarNormal
+_IntroDialog_sCutscene:
+    act_SetAvatarPose eAvatar::Standing
     act_RunDialog eDialog::CoreBossGrontaIntro
     act_BranchIfZ _ShouldGiveUpRemoteFunc, _BeginFight_sCutscene
 _GiveUpRemote_sCutscene:
     act_PlayMusic eMusic::Silence
-    act_WaitFrames 120  ; TODO: animate Anna throwing remote to Gronta
+    act_WaitFrames 20
+    act_SetAvatarPose eAvatar::Kneeling
+    act_WaitFrames 20
+    act_SetAvatarPose eAvatar::Reaching
+    act_CallFunc _SpawnActorForRemote
+    act_WaitFrames 20
+    act_SetAvatarPose eAvatar::Standing
+    ;; TODO: animate Gronta catching the remote
+    act_WaitFrames 60
     act_RunDialog eDialog::CoreBossGrontaGive
     ;; TODO: animate core activating
     act_ContinueExploring
@@ -875,8 +899,31 @@ _SetupFunc:
     ldax #$0090
     stax Zp_ScrollGoalX_u16
     rts
+_GetHorzScreen:
+    lda Zp_AvatarPosX_i16 + 1
+    rts
 _ShouldGiveUpRemoteFunc:
     lda Zp_RoomState + sState::GaveUpRemote_bool
+    rts
+_SpawnActorForRemote:
+    jsr Func_FindEmptyActorSlot  ; returns C and X
+    bcs @done
+    jsr Func_SetPointToAvatarCenter  ; preserves X
+    jsr Func_SetActorCenterToPoint  ; preserves X
+    lda #40  ; param: frames until expire
+    jsr Func_InitActorSmokeFragment  ; preserves X
+    lda #<-3
+    sta Ram_ActorVelY_i16_1_arr, x
+    lda Zp_AvatarPosX_i16 + 1
+    bne @rightSide
+    @leftSide:
+    lda #2
+    bne @setVelX  ; unconditional
+    @rightSide:
+    lda #<-2
+    @setVelX:
+    sta Ram_ActorVelX_i16_1_arr, x
+    @done:
     rts
 _UnlockScrollFunc:
     lda #0

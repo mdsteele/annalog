@@ -61,6 +61,7 @@ kMaxActors = 8
     ProjSteamHorz    ; emitted horizontally from boiler machine pipes
     ProjSteamUp      ; emitted vertically from boiler machine pipes
     SmokeExplosion   ; a puff of smoke for when something explodes
+    SmokeFragment    ; a fragment that falls under gravity
     SmokeParticle    ; a single particle of smoke
     NUM_VALUES
 .ENDENUM

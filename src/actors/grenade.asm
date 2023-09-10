@@ -18,10 +18,10 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "../actor.inc"
-.INCLUDE "../avatar.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "grenade.inc"
 
+.IMPORT FuncA_Actor_ApplyGravity
 .IMPORT FuncA_Actor_CenterHitsTerrain
 .IMPORT FuncA_Actor_HarmAvatarIfCollision
 .IMPORT FuncA_Objects_Draw1x1Actor
@@ -133,14 +133,7 @@ _InitVelY_i16_1_arr:
     bcs _Explode
     jsr FuncA_Actor_CenterHitsTerrain  ; preserves X, returns C
     bcs _ShakeAndExplode
-_ApplyGravity:
-    lda #kAvatarGravity
-    add Ram_ActorVelY_i16_0_arr, x
-    sta Ram_ActorVelY_i16_0_arr, x
-    lda #0
-    adc Ram_ActorVelY_i16_1_arr, x
-    sta Ram_ActorVelY_i16_1_arr, x
-    rts
+    jmp FuncA_Actor_ApplyGravity  ; preserves X
 _ShakeAndExplode:
     lda #kGrenadeShakeFrames  ; param: num frames
     jsr Func_ShakeRoom  ; preserves X

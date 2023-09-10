@@ -543,7 +543,7 @@ _OrcJumpFunc:
 .EXPORT DataA_Cutscene_TownOutdoorsOrcAttack_sCutscene
 .PROC DataA_Cutscene_TownOutdoorsOrcAttack_sCutscene
     act_CallFunc _RemoveDevicesAndTownsfolk
-    act_WalkAlex kAlexActorIndex, kAlexPickupPositionX
+    act_WalkNpcAlex kAlexActorIndex, kAlexPickupPositionX
     ;; Animate Alex bending down, picking something up, then turning around and
     ;; showing it to Anna.
     act_SetActorState1 kAlexActorIndex, eNpcChild::AlexKneeling

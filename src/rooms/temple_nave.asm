@@ -640,7 +640,7 @@ _MoveToBottomRight:
 
 .EXPORT DataA_Cutscene_TempleNaveAlexBoosting_sCutscene
 .PROC DataA_Cutscene_TempleNaveAlexBoosting_sCutscene
-    act_WalkAlex kAlexActorIndex, kAlexBoostingPositionX
+    act_WalkNpcAlex kAlexActorIndex, kAlexBoostingPositionX
     ;; Animate Alex turning around, crouching down, and raising his arms to
     ;; give Anna a boost.
     act_SetActorFlags kAlexActorIndex, 0

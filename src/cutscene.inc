@@ -131,10 +131,14 @@ kMaxForks = 4
     ;; cutscene fork immediately continues on to the next action.
     WaitUntilC         ; args: func ptr (2 bytes); func must return C
     WaitUntilZ         ; args: func ptr (2 bytes); func must return Z
+    ;; Causes the player avatar to walk to the specified room pixel X-position.
+    ;; Suspends the current cutscene fork until the avatar reaches the goal
+    ;; position.
+    WalkAvatar         ; args: goal X-position (2 bytes)
     ;; Causes the specified actor to walk to the specified room pixel
     ;; X-position.  Suspends the current cutscene fork until the actor reaches
     ;; the goal position.
-    WalkAlex           ; args: actor index, goal X-position (2 bytes)
+    WalkNpcAlex        ; args: actor index, goal X-position (2 bytes)
     WalkNpcOrc         ; args: actor index, goal X-position (2 bytes)
     NUM_VALUES
 .ENDENUM
@@ -266,8 +270,13 @@ kMaxForks = 4
     .addr FUNC
 .ENDMACRO
 
-.MACRO act_WalkAlex INDEX, GOALX
-    .byte eAction::WalkAlex, INDEX
+.MACRO act_WalkAvatar GOALX
+    .byte eAction::WalkAvatar
+    .word GOALX
+.ENDMACRO
+
+.MACRO act_WalkNpcAlex INDEX, GOALX
+    .byte eAction::WalkNpcAlex, INDEX
     .word GOALX
 .ENDMACRO
 

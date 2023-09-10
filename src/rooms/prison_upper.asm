@@ -453,7 +453,7 @@ _Orc2Exit_sCutscene:
     act_SetActorState1 kAlexActorIndex, eNpcChild::AlexStanding
     act_WaitFrames 15
     ;; Make Alex walk out of the prison cell.
-    act_WalkAlex kAlexActorIndex, kAlexFreePositionX
+    act_WalkNpcAlex kAlexActorIndex, kAlexFreePositionX
     act_SetActorState1 kAlexActorIndex, eNpcChild::AlexStanding
     act_SetActorState2 kAlexActorIndex, $00
     act_ContinueExploring

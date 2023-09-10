@@ -24,7 +24,7 @@
 ;;;   * State2: Unused.
 ;;;   * State3: Unused.
 
-;;; The OBJ tile ID for spike projectile actors.
+;;; The OBJ tile ID for ember projectile actors.
 kTileIdObjEmber = $86
 
 ;;;=========================================================================;;;

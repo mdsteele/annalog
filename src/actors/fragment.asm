@@ -19,58 +19,47 @@
 
 .INCLUDE "../actor.inc"
 .INCLUDE "../macros.inc"
-.INCLUDE "../oam.inc"
-.INCLUDE "ember.inc"
 
 .IMPORT FuncA_Actor_ApplyGravity
-.IMPORT FuncA_Actor_CenterHitsTerrain
-.IMPORT FuncA_Actor_HarmAvatarIfCollision
 .IMPORT FuncA_Objects_Draw1x1Actor
-.IMPORT Func_InitActorDefault
-.IMPORT Ram_ActorFlags_bObj_arr
+.IMPORT Func_InitActorWithState1
 .IMPORT Ram_ActorState1_byte_arr
 .IMPORT Ram_ActorType_eActor_arr
 
 ;;;=========================================================================;;;
 
-;;; The OBJ palette number used for ember projectile actors.
-kPaletteObjEmber = 1
+;;; The OBJ tile ID for smoke fragment actors.
+kTileIdObjFragment = $1f
+
+;;; The OBJ palette number used for smoke fragment actors.
+kPaletteObjFragment = 0
 
 ;;;=========================================================================;;;
 
 .SEGMENT "PRG8"
 
-;;; Initializes the specified actor as an ember projectile.
+;;; Initializes the specified actor as a smoke fragment.
 ;;; @prereq The actor's pixel position has already been initialized.
+;;; @param A The number of frames before the fragment should expire.
 ;;; @param X The actor index.
-;;; @preserve X, T0+
-.EXPORT Func_InitActorProjEmber
-.PROC Func_InitActorProjEmber
-    ldy #eActor::ProjEmber  ; param: actor type
-    jmp Func_InitActorDefault  ; preserves X and T0+
+;;; @preserve X
+.EXPORT Func_InitActorSmokeFragment
+.PROC Func_InitActorSmokeFragment
+    ldy #eActor::SmokeFragment  ; param: actor type
+    jmp Func_InitActorWithState1  ; preserves X
 .ENDPROC
 
 ;;;=========================================================================;;;
 
 .SEGMENT "PRGA_Actor"
 
-;;; Performs per-frame updates for an ember projectile actor.
+;;; Performs per-frame updates for a smoke fragment actor.
 ;;; @param X The actor index.
 ;;; @preserve X
-.EXPORT FuncA_Actor_TickProjEmber
-.PROC FuncA_Actor_TickProjEmber
-    inc Ram_ActorState1_byte_arr, x
+.EXPORT FuncA_Actor_TickSmokeFragment
+.PROC FuncA_Actor_TickSmokeFragment
+    dec Ram_ActorState1_byte_arr, x  ; frames until expiration
     beq _Expire
-    jsr FuncA_Actor_HarmAvatarIfCollision  ; preserves X, returns C
-    bcs _Expire
-    jsr FuncA_Actor_CenterHitsTerrain  ; preserves X, returns C
-    bcs _Expire
-_FlipHorz:
-    lda Ram_ActorState1_byte_arr, x
-    mul #16
-    and #bObj::FlipH
-    sta Ram_ActorFlags_bObj_arr, x
-_ApplyGravity:
     jmp FuncA_Actor_ApplyGravity  ; preserves X
 _Expire:
     lda #eActor::None
@@ -82,13 +71,13 @@ _Expire:
 
 .SEGMENT "PRGA_Objects"
 
-;;; Draws an ember projectile actor.
+;;; Draws a smoke fragment actor.
 ;;; @param X The actor index.
 ;;; @preserve X
-.EXPORT FuncA_Objects_DrawActorProjEmber
-.PROC FuncA_Objects_DrawActorProjEmber
-    lda #kTileIdObjEmber  ; param: tile ID
-    ldy #kPaletteObjEmber  ; param: palette
+.EXPORT FuncA_Objects_DrawActorSmokeFragment
+.PROC FuncA_Objects_DrawActorSmokeFragment
+    lda #kTileIdObjFragment  ; param: tile ID
+    ldy #kPaletteObjFragment  ; param: palette
     jmp FuncA_Objects_Draw1x1Actor  ; preserves X
 .ENDPROC
 

@@ -55,6 +55,7 @@
 .IMPORT FuncA_Actor_TickProjSteamHorz
 .IMPORT FuncA_Actor_TickProjSteamUp
 .IMPORT FuncA_Actor_TickSmokeExplosion
+.IMPORT FuncA_Actor_TickSmokeFragment
 .IMPORT FuncA_Actor_TickSmokeParticle
 .IMPORT FuncA_Objects_DrawActorBadBat
 .IMPORT FuncA_Objects_DrawActorBadBeetleHorz
@@ -92,6 +93,7 @@
 .IMPORT FuncA_Objects_DrawActorProjSteamHorz
 .IMPORT FuncA_Objects_DrawActorProjSteamUp
 .IMPORT FuncA_Objects_DrawActorSmokeExplosion
+.IMPORT FuncA_Objects_DrawActorSmokeFragment
 .IMPORT FuncA_Objects_DrawActorSmokeParticle
 .IMPORT FuncA_Room_InitActorBadBird
 .IMPORT FuncA_Room_InitActorBadFirefly
@@ -112,6 +114,7 @@
 .IMPORT Func_InitActorProjSteamHorz
 .IMPORT Func_InitActorProjSteamUp
 .IMPORT Func_InitActorSmokeExplosion
+.IMPORT Func_InitActorSmokeFragment
 .IMPORT Func_InitActorSmokeParticle
 .IMPORT Func_Noop
 .IMPORTZP Zp_AvatarPosX_i16
@@ -131,6 +134,7 @@ kProjSpikeRadius      = 3
 kProjSteamMajorRadius = 8
 kProjSteamMinorRadius = 5
 kSmokeExplosionRadius = 6
+kSmokeFragmentRadius  = 1
 kSmokeParticleRadius  = 1
 
 ;;;=========================================================================;;;
@@ -346,6 +350,7 @@ Ram_ActorFlags_bObj_arr: .res kMaxActors
     d_byte ProjSteamHorz,   kProjSteamMinorRadius
     d_byte ProjSteamUp,     kProjSteamMajorRadius
     d_byte SmokeExplosion,  kSmokeExplosionRadius
+    d_byte SmokeFragment,   kSmokeFragmentRadius
     d_byte SmokeParticle,   kSmokeParticleRadius
     D_END
 .ENDPROC
@@ -388,6 +393,7 @@ Ram_ActorFlags_bObj_arr: .res kMaxActors
     d_byte ProjSteamHorz,   kProjSteamMinorRadius
     d_byte ProjSteamUp,     kProjSteamMajorRadius
     d_byte SmokeExplosion,  kSmokeExplosionRadius
+    d_byte SmokeFragment,   kSmokeFragmentRadius
     d_byte SmokeParticle,   kSmokeParticleRadius
     D_END
 .ENDPROC
@@ -430,6 +436,7 @@ Ram_ActorFlags_bObj_arr: .res kMaxActors
     d_byte ProjSteamHorz,   kProjSteamMajorRadius
     d_byte ProjSteamUp,     kProjSteamMinorRadius
     d_byte SmokeExplosion,  kSmokeExplosionRadius
+    d_byte SmokeFragment,   kSmokeFragmentRadius
     d_byte SmokeParticle,   kSmokeParticleRadius
     D_END
 .ENDPROC
@@ -540,6 +547,7 @@ _TypeSpecificTick:
     d_entry table, ProjSteamHorz,   FuncA_Actor_TickProjSteamHorz
     d_entry table, ProjSteamUp,     FuncA_Actor_TickProjSteamUp
     d_entry table, SmokeExplosion,  FuncA_Actor_TickSmokeExplosion
+    d_entry table, SmokeFragment,   FuncA_Actor_TickSmokeFragment
     d_entry table, SmokeParticle,   FuncA_Actor_TickSmokeParticle
     D_END
 .ENDREPEAT
@@ -717,6 +725,7 @@ _NoHit:
     d_entry table, ProjSteamHorz,   Func_InitActorProjSteamHorz
     d_entry table, ProjSteamUp,     Func_InitActorProjSteamUp
     d_entry table, SmokeExplosion,  Func_InitActorSmokeExplosion
+    d_entry table, SmokeFragment,   Func_InitActorSmokeFragment
     d_entry table, SmokeParticle,   Func_InitActorSmokeParticle
     D_END
 .ENDREPEAT
@@ -855,6 +864,7 @@ _NoHit:
     d_entry table, ProjSteamHorz,   FuncA_Objects_DrawActorProjSteamHorz
     d_entry table, ProjSteamUp,     FuncA_Objects_DrawActorProjSteamUp
     d_entry table, SmokeExplosion,  FuncA_Objects_DrawActorSmokeExplosion
+    d_entry table, SmokeFragment,   FuncA_Objects_DrawActorSmokeFragment
     d_entry table, SmokeParticle,   FuncA_Objects_DrawActorSmokeParticle
     D_END
 .ENDREPEAT
