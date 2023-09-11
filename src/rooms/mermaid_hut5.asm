@@ -23,6 +23,7 @@
 .INCLUDE "../cpu.inc"
 .INCLUDE "../device.inc"
 .INCLUDE "../dialog.inc"
+.INCLUDE "../flag.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../platform.inc"
 .INCLUDE "../room.inc"
@@ -31,6 +32,26 @@
 .IMPORT Data_Empty_sPlatform_arr
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrObjTown
+.IMPORT Ram_ActorType_eActor_arr
+.IMPORT Ram_DeviceType_eDevice_arr
+.IMPORT Sram_ProgressFlags_arr
+
+;;;=========================================================================;;;
+
+;;; The actor index for Marie in this room.
+kMarieActorIndex = 0
+;;; The talk device indices for Marie in this room.
+kMarieDeviceIndexLeft = 1
+kMarieDeviceIndexRight = 0
+
+;;; The actor index for Nora in this room.
+kNoraActorIndex = 1
+;;; The talk device indices for Nora in this room.
+kNoraDeviceIndexLeft = 3
+kNoraDeviceIndexRight = 2
+
+;;; The actor index for Nina in this room.
+kNinaActorIndex = 2
 
 ;;;=========================================================================;;;
 
@@ -57,7 +78,7 @@ _Ext_sRoomExt:
     d_addr Actors_sActor_arr_ptr, _Actors_sActor_arr
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
     d_addr Passages_sPassage_arr_ptr, 0
-    d_addr Enter_func_ptr, Func_Noop
+    d_addr Enter_func_ptr, FuncA_Room_MermaidHut5_EnterRoom
     d_addr FadeIn_func_ptr, Func_Noop
     d_addr Tick_func_ptr, Func_Noop
     d_addr Draw_func_ptr, Func_Noop
@@ -66,21 +87,52 @@ _TerrainData:
 :   .incbin "out/data/mermaid_hut5.room"
     .assert * - :- = 16 * 15, error
 _Actors_sActor_arr:
-:   D_STRUCT sActor
+:   .assert * - :- = kMarieActorIndex * .sizeof(sActor), error
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::NpcChild
+    d_word PosX_i16, $0050
+    d_word PosY_i16, $00b8
+    d_byte Param_byte, eNpcChild::MarieStanding
+    D_END
+    .assert * - :- = kNoraActorIndex * .sizeof(sActor), error
+    D_STRUCT sActor
     d_byte Type_eActor, eActor::NpcChild
     d_word PosX_i16, $0090
     d_word PosY_i16, $00b8
     d_byte Param_byte, eNpcChild::NoraStanding
     D_END
+    .assert * - :- = kNinaActorIndex * .sizeof(sActor), error
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::NpcToddler
+    d_word PosX_i16, $0080
+    d_word PosY_i16, $00b8
+    d_byte Param_byte, 55
+    D_END
     .assert * - :- <= kMaxActors * .sizeof(sActor), error
     .byte eActor::None
 _Devices_sDevice_arr:
-:   D_STRUCT sDevice
+:   .assert * - :- = kMarieDeviceIndexRight * .sizeof(sDevice), error
+    D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::TalkRight
+    d_byte BlockRow_u8, 11
+    d_byte BlockCol_u8, 4
+    d_byte Target_byte, eDialog::MermaidHut5Marie
+    D_END
+    .assert * - :- = kMarieDeviceIndexLeft * .sizeof(sDevice), error
+    D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::TalkLeft
+    d_byte BlockRow_u8, 11
+    d_byte BlockCol_u8, 5
+    d_byte Target_byte, eDialog::MermaidHut5Marie
+    D_END
+    .assert * - :- = kNoraDeviceIndexRight * .sizeof(sDevice), error
+    D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::TalkRight
     d_byte BlockRow_u8, 11
     d_byte BlockCol_u8, 8
     d_byte Target_byte, eDialog::MermaidHut5Nora
     D_END
+    .assert * - :- = kNoraDeviceIndexLeft * .sizeof(sDevice), error
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::TalkLeft
     d_byte BlockRow_u8, 11
@@ -99,10 +151,41 @@ _Devices_sDevice_arr:
 
 ;;;=========================================================================;;;
 
+.SEGMENT "PRGA_Room"
+
+.PROC FuncA_Room_MermaidHut5_EnterRoom
+    ;; Until the kids are rescued, they are in PrisonUpper, not here.
+    flag_bit Sram_ProgressFlags_arr, eFlag::PrisonUpperFreedKids
+    bne @keepKids
+    @removeKids:
+    lda #0
+    .assert eActor::None = 0, error
+    sta Ram_ActorType_eActor_arr + kMarieActorIndex
+    sta Ram_ActorType_eActor_arr + kNoraActorIndex
+    sta Ram_ActorType_eActor_arr + kNinaActorIndex
+    .assert eDevice::None = 0, error
+    sta Ram_DeviceType_eDevice_arr + kMarieDeviceIndexLeft
+    sta Ram_DeviceType_eDevice_arr + kMarieDeviceIndexRight
+    sta Ram_DeviceType_eDevice_arr + kNoraDeviceIndexLeft
+    sta Ram_DeviceType_eDevice_arr + kNoraDeviceIndexRight
+    @keepKids:
+    rts
+.ENDPROC
+
+;;;=========================================================================;;;
+
 .SEGMENT "PRGA_Dialog"
+
+.EXPORT DataA_Dialog_MermaidHut5Marie_sDialog
+.PROC DataA_Dialog_MermaidHut5Marie_sDialog
+    ;; TODO: Report on what the mermaids are up to throughout the game.
+    dlg_Text ChildMarie, DataA_Text0_MermaidHut5Marie_u8_arr
+    dlg_Done
+.ENDPROC
 
 .EXPORT DataA_Dialog_MermaidHut5Nora_sDialog
 .PROC DataA_Dialog_MermaidHut5Nora_sDialog
+    ;; TODO: at some point in the game, change dialog
     dlg_Text ChildNora, DataA_Text0_MermaidHut5Nora_u8_arr
     dlg_Done
 .ENDPROC
@@ -111,8 +194,15 @@ _Devices_sDevice_arr:
 
 .SEGMENT "PRGA_Text0"
 
-.PROC DataA_Text0_MermaidHut5Nora_u8_arr
+.PROC DataA_Text0_MermaidHut5Marie_u8_arr
     .byte "Lorem ipsum.#"
+.ENDPROC
+
+.PROC DataA_Text0_MermaidHut5Nora_u8_arr
+    .byte "Well...if we're stuck$"
+    .byte "here, I guess I may as$"
+    .byte "well potty train my$"
+    .byte "little sister.#"
 .ENDPROC
 
 ;;;=========================================================================;;;

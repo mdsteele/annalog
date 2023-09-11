@@ -103,7 +103,7 @@ kSaveMagicNumber = $b2
     CryptLandingDroppedIn
     CryptSouthWeakFloor
     CryptTombWeakFloors
-    GardenEastTalkedToMermaid
+    GardenEastTalkedToCorra
     GardenLandingDroppedIn
     GardenTowerCratesPlaced
     GardenTowerWallBroken

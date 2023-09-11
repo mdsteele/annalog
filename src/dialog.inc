@@ -84,7 +84,9 @@
     MermaidHut3MermaidAdult
     MermaidHut3Phoebe
     MermaidHut4Florist
+    MermaidHut5Marie
     MermaidHut5Nora
+    MermaidVillageBruno
     MermaidVillageCorra
     MermaidVillageFarmer
     MermaidVillageGuard

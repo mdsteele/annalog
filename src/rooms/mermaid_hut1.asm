@@ -172,7 +172,16 @@ _InitialFunc:
     ldx #eFlag::TempleEntryPermission  ; param: flag
     jsr Func_SetFlag
     ;; Third quest: Rescue Alex and the other children.
-    jmp _Quest3Func
+    flag_bit Sram_ProgressFlags_arr, eFlag::PrisonUpperFreedKids
+    beq _Quest3Func
+    ;; To be safe, set the "Corra waiting" flag (although normally, you can't
+    ;; rescue the kids without first meeting up with Corra).
+    ldx #eFlag::CoreSouthCorraWaiting  ; param: flag
+    jsr Func_SetFlag
+    ;; Once quests are done, give other dialog.
+    ;; TODO: Change the queen's dialog as the game progresses.
+    ldya #_KidsRescued_sDialog
+    rts
 _Quest1Func:
     flag_bit Sram_ProgressFlags_arr, eFlag::MermaidHut1MetQueen
     bne @grantAsylum
@@ -244,6 +253,10 @@ _FindYourFriendsFunc:
     rts
 _FindYourFriends_sDialog:
     dlg_Text MermaidEirene, DataA_Text0_MermaidHut1Queen_FindYourFriends_u8_arr
+    dlg_Done
+_KidsRescued_sDialog:
+    dlg_Text MermaidEirene, DataA_Text0_MermaidHut1Queen_KidsRescued1_u8_arr
+    dlg_Text MermaidEirene, DataA_Text0_MermaidHut1Queen_KidsRescued2_u8_arr
     dlg_Done
 .ENDPROC
 
@@ -375,6 +388,19 @@ _FindYourFriends_sDialog:
     .byte "through there, you may$"
     .byte "be able to find and$"
     .byte "rescue your friends.#"
+.ENDPROC
+
+.PROC DataA_Text0_MermaidHut1Queen_KidsRescued1_u8_arr
+    .byte "The children from your$"
+    .byte "village have arrived$"
+    .byte "safely. I have granted$"
+    .byte "them asylum for now.#"
+.ENDPROC
+
+.PROC DataA_Text0_MermaidHut1Queen_KidsRescued2_u8_arr
+    .byte "You can find them in$"
+    .byte "the southeastern hut$"
+    .byte "of this village.#"
 .ENDPROC
 
 .PROC DataA_Text0_MermaidHut1BreakerGarden_u8_arr

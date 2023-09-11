@@ -18,6 +18,7 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "../actor.inc"
+.INCLUDE "../actors/child.inc"
 .INCLUDE "../actors/townsfolk.inc"
 .INCLUDE "../charmap.inc"
 .INCLUDE "../cpu.inc"
@@ -45,6 +46,12 @@ kCorraActorIndex = 2
 kCorraDeviceIndexLeft = 5
 kCorraDeviceIndexRight = 4
 
+;;; The actor index for Bruno in this room.
+kBrunoActorIndex = 3
+;;; The talk device indices for Bruno in this room.
+kBrunoDeviceIndexLeft = 7
+kBrunoDeviceIndexRight = 6
+
 ;;;=========================================================================;;;
 
 .SEGMENT "PRGC_Mermaid"
@@ -70,7 +77,7 @@ _Ext_sRoomExt:
     d_addr Actors_sActor_arr_ptr, _Actors_sActor_arr
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
     d_addr Passages_sPassage_arr_ptr, _Passages_sPassage_arr
-    d_addr Enter_func_ptr, FuncC_Mermaid_Village_EnterRoom
+    d_addr Enter_func_ptr, FuncA_Room_MermaidVillage_EnterRoom
     d_addr FadeIn_func_ptr, Func_Noop
     d_addr Tick_func_ptr, Func_Noop
     d_addr Draw_func_ptr, Func_Noop
@@ -165,6 +172,13 @@ _Actors_sActor_arr:
     d_word PosY_i16, $0158
     d_byte Param_byte, kTileIdMermaidCorraFirst
     D_END
+    .assert * - :- = kBrunoActorIndex * .sizeof(sActor), error
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::NpcChild
+    d_word PosX_i16, $02c0
+    d_word PosY_i16, $0128
+    d_byte Param_byte, eNpcChild::BrunoStanding
+    D_END
     .assert * - :- <= kMaxActors * .sizeof(sActor), error
     .byte eActor::None
 _Devices_sDevice_arr:
@@ -205,6 +219,20 @@ _Devices_sDevice_arr:
     d_byte BlockRow_u8, 21
     d_byte BlockCol_u8, 17
     d_byte Target_byte, eDialog::MermaidVillageCorra
+    D_END
+    .assert * - :- = kBrunoDeviceIndexRight * .sizeof(sDevice), error
+    D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::TalkRight
+    d_byte BlockRow_u8, 18
+    d_byte BlockCol_u8, 43
+    d_byte Target_byte, eDialog::MermaidVillageBruno
+    D_END
+    .assert * - :- = kBrunoDeviceIndexLeft * .sizeof(sDevice), error
+    D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::TalkLeft
+    d_byte BlockRow_u8, 18
+    d_byte BlockCol_u8, 44
+    d_byte Target_byte, eDialog::MermaidVillageBruno
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Door1Open
@@ -252,7 +280,24 @@ _Passages_sPassage_arr:
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
 .ENDPROC
 
-.PROC FuncC_Mermaid_Village_EnterRoom
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Room"
+
+.PROC FuncA_Room_MermaidVillage_EnterRoom
+_Bruno:
+    ;; Until the kids are rescued, Bruno is in PrisonUpper, not here.
+    flag_bit Sram_ProgressFlags_arr, eFlag::PrisonUpperFreedKids
+    bne @keepBruno
+    @removeBruno:
+    lda #0
+    .assert eActor::None = 0, error
+    sta Ram_ActorType_eActor_arr + kBrunoActorIndex
+    .assert eDevice::None = 0, error
+    sta Ram_DeviceType_eDevice_arr + kBrunoDeviceIndexLeft
+    sta Ram_DeviceType_eDevice_arr + kBrunoDeviceIndexRight
+    @keepBruno:
+_Corra:
     ;; Until Anna meets the mermaid queen, Corra is in GardenEast, not here.
     flag_bit Sram_ProgressFlags_arr, eFlag::MermaidHut1MetQueen
     beq @removeCorra
@@ -349,6 +394,31 @@ _LookingForCorra_sDialog:
     dlg_Done
 .ENDPROC
 
+.EXPORT DataA_Dialog_MermaidVillageBruno_sDialog
+.PROC DataA_Dialog_MermaidVillageBruno_sDialog
+    dlg_Func _WhereIsAlexFunc
+_WhereIsAlexFunc:
+    ;; TODO: report other places where Alex can be
+    ;; If Alex has started waiting in the temple, and Anna hasn't yet visited
+    ;; the crypt, report that Alex is still in the temple.
+    flag_bit Sram_ProgressFlags_arr, eFlag::CryptLandingDroppedIn
+    bne @notInTemple
+    flag_bit Sram_ProgressFlags_arr, eFlag::TempleNaveAlexWaiting
+    beq @notInTemple
+    ldya #_AlexInTemple_sDialog
+    rts
+    @notInTemple:
+    ;; If all else fails, just report that Alex is off exploring somewhere.
+    ldya #_AlexExploring_sDialog
+    rts
+_AlexExploring_sDialog:
+    dlg_Text ChildBruno, DataA_Text0_MermaidVillageBruno_AlexExploring_u8_arr
+    dlg_Done
+_AlexInTemple_sDialog:
+    dlg_Text ChildBruno, DataA_Text0_MermaidVillageBruno_AlexInTemple_u8_arr
+    dlg_Done
+.ENDPROC
+
 ;;;=========================================================================;;;
 
 .SEGMENT "PRGA_Text0"
@@ -403,6 +473,19 @@ _LookingForCorra_sDialog:
     .byte "Oh, hi! I met you back$"
     .byte "in the gardens. I'm$"
     .byte "Corra, by the way.#"
+.ENDPROC
+
+.PROC DataA_Text0_MermaidVillageBruno_AlexExploring_u8_arr
+    .byte "I think Alex went off$"
+    .byte "exploring somewhere.$"
+    .byte "Not sure where he is$"
+    .byte "right now.#"
+.ENDPROC
+
+.PROC DataA_Text0_MermaidVillageBruno_AlexInTemple_u8_arr
+    .byte "If you're looking for$"
+    .byte "Alex, he's waiting for$"
+    .byte "you in the temple.#"
 .ENDPROC
 
 ;;;=========================================================================;;;

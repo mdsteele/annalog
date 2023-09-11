@@ -57,7 +57,9 @@
 .IMPORT DataA_Dialog_MermaidHut3MermaidAdult_sDialog
 .IMPORT DataA_Dialog_MermaidHut3Phoebe_sDialog
 .IMPORT DataA_Dialog_MermaidHut4Florist_sDialog
+.IMPORT DataA_Dialog_MermaidHut5Marie_sDialog
 .IMPORT DataA_Dialog_MermaidHut5Nora_sDialog
+.IMPORT DataA_Dialog_MermaidVillageBruno_sDialog
 .IMPORT DataA_Dialog_MermaidVillageCorra_sDialog
 .IMPORT DataA_Dialog_MermaidVillageFarmer_sDialog
 .IMPORT DataA_Dialog_MermaidVillageGuard_sDialog
@@ -343,84 +345,77 @@ _UpdateScrolling:
 .SEGMENT "PRGA_Dialog"
 
 .LINECONT +
-.REPEAT 2, table
-    D_TABLE_LO table, DataA_Dialog_Table_sDialog_ptr_0_arr
-    D_TABLE_HI table, DataA_Dialog_Table_sDialog_ptr_1_arr
+.REPEAT 2, t
+    D_TABLE_LO t, DataA_Dialog_Table_sDialog_ptr_0_arr
+    D_TABLE_HI t, DataA_Dialog_Table_sDialog_ptr_1_arr
     D_TABLE eDialog
-    d_entry table, CityBuilding2Screen, \
-            DataA_Dialog_CityBuilding2Screen_sDialog
-    d_entry table, CityBuilding6Screen, \
-            DataA_Dialog_CityBuilding6Screen_sDialog
-    d_entry table, CityDumpPaper,      DataA_Dialog_CityDumpPaper_sDialog
-    d_entry table, CityFlowerOrcAngry, DataA_Dialog_CityFlowerOrcAngry_sDialog
-    d_entry table, CityFlowerOrcCalm,  DataA_Dialog_CityFlowerOrcCalm_sDialog
-    d_entry table, CoreBossGrontaGive, DataA_Dialog_CoreBossGrontaGive_sDialog
-    d_entry table, CoreBossGrontaIntro, \
-            DataA_Dialog_CoreBossGrontaIntro_sDialog
-    d_entry table, CoreSouthCorra1,    DataA_Dialog_CoreSouthCorra1_sDialog
-    d_entry table, CoreSouthCorra2,    DataA_Dialog_CoreSouthCorra2_sDialog
-    d_entry table, CryptCenterPaper,   DataA_Dialog_CryptCenterPaper_sDialog
-    d_entry table, CryptSpiralPaper,   DataA_Dialog_CryptSpiralPaper_sDialog
-    d_entry table, CryptTombPlaque,    DataA_Dialog_CryptTombPlaque_sDialog
-    d_entry table, GardenEastCorra,    DataA_Dialog_GardenEastCorra_sDialog
-    d_entry table, GardenLandingPaper, DataA_Dialog_GardenLandingPaper_sDialog
-    d_entry table, GardenShaftPaper,   DataA_Dialog_GardenShaftPaper_sDialog
-    d_entry table, LavaStationPaper,   DataA_Dialog_LavaStationPaper_sDialog
-    d_entry table, MermaidDrainSign,   DataA_Dialog_MermaidDrainSign_sDialog
-    d_entry table, MermaidEntrySign,   DataA_Dialog_MermaidEntrySign_sDialog
-    d_entry table, MermaidHut1BreakerGarden, \
+    d_entry t, CityBuilding2Screen,  DataA_Dialog_CityBuilding2Screen_sDialog
+    d_entry t, CityBuilding6Screen,  DataA_Dialog_CityBuilding6Screen_sDialog
+    d_entry t, CityDumpPaper,        DataA_Dialog_CityDumpPaper_sDialog
+    d_entry t, CityFlowerOrcAngry,   DataA_Dialog_CityFlowerOrcAngry_sDialog
+    d_entry t, CityFlowerOrcCalm,    DataA_Dialog_CityFlowerOrcCalm_sDialog
+    d_entry t, CoreBossGrontaGive,   DataA_Dialog_CoreBossGrontaGive_sDialog
+    d_entry t, CoreBossGrontaIntro,  DataA_Dialog_CoreBossGrontaIntro_sDialog
+    d_entry t, CoreSouthCorra1,      DataA_Dialog_CoreSouthCorra1_sDialog
+    d_entry t, CoreSouthCorra2,      DataA_Dialog_CoreSouthCorra2_sDialog
+    d_entry t, CryptCenterPaper,     DataA_Dialog_CryptCenterPaper_sDialog
+    d_entry t, CryptSpiralPaper,     DataA_Dialog_CryptSpiralPaper_sDialog
+    d_entry t, CryptTombPlaque,      DataA_Dialog_CryptTombPlaque_sDialog
+    d_entry t, GardenEastCorra,      DataA_Dialog_GardenEastCorra_sDialog
+    d_entry t, GardenLandingPaper,   DataA_Dialog_GardenLandingPaper_sDialog
+    d_entry t, GardenShaftPaper,     DataA_Dialog_GardenShaftPaper_sDialog
+    d_entry t, LavaStationPaper,     DataA_Dialog_LavaStationPaper_sDialog
+    d_entry t, MermaidDrainSign,     DataA_Dialog_MermaidDrainSign_sDialog
+    d_entry t, MermaidEntrySign,     DataA_Dialog_MermaidEntrySign_sDialog
+    d_entry t, MermaidHut1BreakerGarden, \
             DataA_Dialog_MermaidHut1BreakerGarden_sDialog
-    d_entry table, MermaidHut1Guard,   DataA_Dialog_MermaidHut1Guard_sDialog
-    d_entry table, MermaidHut1Queen,   DataA_Dialog_MermaidHut1Queen_sDialog
-    d_entry table, MermaidHut2Guard,   DataA_Dialog_MermaidHut2Guard_sDialog
-    d_entry table, MermaidHut3MermaidAdult, \
+    d_entry t, MermaidHut1Guard,     DataA_Dialog_MermaidHut1Guard_sDialog
+    d_entry t, MermaidHut1Queen,     DataA_Dialog_MermaidHut1Queen_sDialog
+    d_entry t, MermaidHut2Guard,     DataA_Dialog_MermaidHut2Guard_sDialog
+    d_entry t, MermaidHut3MermaidAdult, \
             DataA_Dialog_MermaidHut3MermaidAdult_sDialog
-    d_entry table, MermaidHut3Phoebe,  DataA_Dialog_MermaidHut3Phoebe_sDialog
-    d_entry table, MermaidHut4Florist, DataA_Dialog_MermaidHut4Florist_sDialog
-    d_entry table, MermaidHut5Nora,    DataA_Dialog_MermaidHut5Nora_sDialog
-    d_entry table, MermaidVillageCorra, \
-            DataA_Dialog_MermaidVillageCorra_sDialog
-    d_entry table, MermaidVillageFarmer, \
-            DataA_Dialog_MermaidVillageFarmer_sDialog
-    d_entry table, MermaidVillageGuard, \
-            DataA_Dialog_MermaidVillageGuard_sDialog
-    d_entry table, PrisonCellPaper,    DataA_Dialog_PrisonCellPaper_sDialog
-    d_entry table, PrisonEscapePaper,  DataA_Dialog_PrisonEscapePaper_sDialog
-    d_entry table, PrisonFlowerSign,   DataA_Dialog_PrisonFlowerSign_sDialog
-    d_entry table, PrisonUpperAlexCell, \
-            DataA_Dialog_PrisonUpperAlexCell_sDialog
-    d_entry table, PrisonUpperAlexFree, \
-            DataA_Dialog_PrisonUpperAlexFree_sDialog
-    d_entry table, PrisonUpperBreakerTemple, \
+    d_entry t, MermaidHut3Phoebe,    DataA_Dialog_MermaidHut3Phoebe_sDialog
+    d_entry t, MermaidHut4Florist,   DataA_Dialog_MermaidHut4Florist_sDialog
+    d_entry t, MermaidHut5Marie,     DataA_Dialog_MermaidHut5Marie_sDialog
+    d_entry t, MermaidHut5Nora,      DataA_Dialog_MermaidHut5Nora_sDialog
+    d_entry t, MermaidVillageBruno,  DataA_Dialog_MermaidVillageBruno_sDialog
+    d_entry t, MermaidVillageCorra,  DataA_Dialog_MermaidVillageCorra_sDialog
+    d_entry t, MermaidVillageFarmer, DataA_Dialog_MermaidVillageFarmer_sDialog
+    d_entry t, MermaidVillageGuard,  DataA_Dialog_MermaidVillageGuard_sDialog
+    d_entry t, PrisonCellPaper,      DataA_Dialog_PrisonCellPaper_sDialog
+    d_entry t, PrisonEscapePaper,    DataA_Dialog_PrisonEscapePaper_sDialog
+    d_entry t, PrisonFlowerSign,     DataA_Dialog_PrisonFlowerSign_sDialog
+    d_entry t, PrisonUpperAlexCell,  DataA_Dialog_PrisonUpperAlexCell_sDialog
+    d_entry t, PrisonUpperAlexFree,  DataA_Dialog_PrisonUpperAlexFree_sDialog
+    d_entry t, PrisonUpperBreakerTemple, \
             DataA_Dialog_PrisonUpperBreakerTemple_sDialog
-    d_entry table, PrisonUpperBruno,   DataA_Dialog_PrisonUpperBruno_sDialog
-    d_entry table, PrisonUpperMarie,   DataA_Dialog_PrisonUpperMarie_sDialog
-    d_entry table, PrisonUpperNora,    DataA_Dialog_PrisonUpperNora_sDialog
-    d_entry table, ShadowTeleportScreen,  \
-            DataA_Dialog_ShadowTeleportScreen_sDialog
-    d_entry table, TempleAltarPlaque,  DataA_Dialog_TempleAltarPlaque_sDialog
-    d_entry table, TempleEntryMermaid, DataA_Dialog_TempleEntryMermaid_sDialog
-    d_entry table, TempleFoyerPaper,   DataA_Dialog_TempleFoyerPaper_sDialog
-    d_entry table, TempleNaveAlexBoosting, \
+    d_entry t, PrisonUpperBruno,     DataA_Dialog_PrisonUpperBruno_sDialog
+    d_entry t, PrisonUpperMarie,     DataA_Dialog_PrisonUpperMarie_sDialog
+    d_entry t, PrisonUpperNora,      DataA_Dialog_PrisonUpperNora_sDialog
+    d_entry t, ShadowTeleportScreen, DataA_Dialog_ShadowTeleportScreen_sDialog
+    d_entry t, TempleAltarPlaque,    DataA_Dialog_TempleAltarPlaque_sDialog
+    d_entry t, TempleEntryMermaid,   DataA_Dialog_TempleEntryMermaid_sDialog
+    d_entry t, TempleFoyerPaper,     DataA_Dialog_TempleFoyerPaper_sDialog
+    d_entry t, TempleNaveAlexBoosting, \
             DataA_Dialog_TempleNaveAlexBoosting_sDialog
-    d_entry table, TempleNaveAlexStanding, \
+    d_entry t, TempleNaveAlexStanding, \
             DataA_Dialog_TempleNaveAlexStanding_sDialog
-    d_entry table, TemplePitPaper,     DataA_Dialog_TemplePitPaper_sDialog
-    d_entry table, TownHouse1Nora,     DataA_Dialog_TownHouse1Nora_sDialog
-    d_entry table, TownHouse2Stela,    DataC_Town_TownHouse2Stela_sDialog
-    d_entry table, TownHouse3Smith,    DataA_Dialog_TownHouse3Smith_sDialog
-    d_entry table, TownHouse4Laura,    DataA_Dialog_TownHouse4Laura_sDialog
-    d_entry table, TownHouse4Martin,   DataA_Dialog_TownHouse4Martin_sDialog
-    d_entry table, TownHouse5Bruno,    DataA_Dialog_TownHouse5Bruno_sDialog
-    d_entry table, TownHouse5Marie,    DataA_Dialog_TownHouse5Marie_sDialog
-    d_entry table, TownHouse6Elder,    DataA_Dialog_TownHouse6Elder_sDialog
-    d_entry table, TownOutdoorsAlex1,  DataC_Town_TownOutdoorsAlex1_sDialog
-    d_entry table, TownOutdoorsAlex2,  DataC_Town_TownOutdoorsAlex2_sDialog
-    d_entry table, TownOutdoorsAlex3,  DataC_Town_TownOutdoorsAlex3_sDialog
-    d_entry table, TownOutdoorsGronta, DataC_Town_TownOutdoorsGronta_sDialog
-    d_entry table, TownOutdoorsIvan,   DataC_Town_TownOutdoorsIvan_sDialog
-    d_entry table, TownOutdoorsSandra, DataC_Town_TownOutdoorsSandra_sDialog
-    d_entry table, TownOutdoorsSign,   DataC_Town_TownOutdoorsSign_sDialog
+    d_entry t, TemplePitPaper,       DataA_Dialog_TemplePitPaper_sDialog
+    d_entry t, TownHouse1Nora,       DataA_Dialog_TownHouse1Nora_sDialog
+    d_entry t, TownHouse2Stela,      DataC_Town_TownHouse2Stela_sDialog
+    d_entry t, TownHouse3Smith,      DataA_Dialog_TownHouse3Smith_sDialog
+    d_entry t, TownHouse4Laura,      DataA_Dialog_TownHouse4Laura_sDialog
+    d_entry t, TownHouse4Martin,     DataA_Dialog_TownHouse4Martin_sDialog
+    d_entry t, TownHouse5Bruno,      DataA_Dialog_TownHouse5Bruno_sDialog
+    d_entry t, TownHouse5Marie,      DataA_Dialog_TownHouse5Marie_sDialog
+    d_entry t, TownHouse6Elder,      DataA_Dialog_TownHouse6Elder_sDialog
+    d_entry t, TownOutdoorsAlex1,    DataC_Town_TownOutdoorsAlex1_sDialog
+    d_entry t, TownOutdoorsAlex2,    DataC_Town_TownOutdoorsAlex2_sDialog
+    d_entry t, TownOutdoorsAlex3,    DataC_Town_TownOutdoorsAlex3_sDialog
+    d_entry t, TownOutdoorsGronta,   DataC_Town_TownOutdoorsGronta_sDialog
+    d_entry t, TownOutdoorsIvan,     DataC_Town_TownOutdoorsIvan_sDialog
+    d_entry t, TownOutdoorsSandra,   DataC_Town_TownOutdoorsSandra_sDialog
+    d_entry t, TownOutdoorsSign,     DataC_Town_TownOutdoorsSign_sDialog
     D_END
 .ENDREPEAT
 .LINECONT -

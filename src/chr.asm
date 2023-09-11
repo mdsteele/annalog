@@ -1425,7 +1425,9 @@
     .incbin "out/tiles/mermaid_farmer.chr"
     .assert * - :- = (kTileIdMermaidQueenFirst - $80) * kSizeofChr, error
     .incbin "out/tiles/mermaid_queen.chr"
-    .res $40 * kSizeofChr
+    .res $20 * kSizeofChr
+    .assert * - :- = (kTileIdObjChildFirst - $80) * kSizeofChr, error
+    .incbin "out/tiles/child.chr"
     .assert * - :- = kSizeofChr * $80, error
 .ENDPROC
 

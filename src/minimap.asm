@@ -621,7 +621,7 @@ _Done:
     D_STRUCT sMarker
     d_byte Row_u8, 10
     d_byte Col_u8, 12  ; room: MermaidHut1
-    d_byte If_eFlag, eFlag::GardenEastTalkedToMermaid
+    d_byte If_eFlag, eFlag::GardenEastTalkedToCorra
     d_byte Not_eFlag, eFlag::MermaidHut1MetQueen
     D_END
     D_STRUCT sMarker

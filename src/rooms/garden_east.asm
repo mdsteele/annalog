@@ -459,7 +459,7 @@ _Done:
 .PROC DataA_Dialog_GardenEastCorra_sDialog
     dlg_Func _InitialFunc
 _InitialFunc:
-    flag_bit Sram_ProgressFlags_arr, eFlag::GardenEastTalkedToMermaid
+    flag_bit Sram_ProgressFlags_arr, eFlag::GardenEastTalkedToCorra
     bne @alreadyTalked
     ldya #_Question_sDialog
     rts
@@ -486,7 +486,7 @@ _Later_sDialog:
     dlg_Text MermaidCorra, DataA_Text0_GardenEastCorra_MeetQueen_u8_arr
     dlg_Func _SetFlagFunc
 _SetFlagFunc:
-    ldx #eFlag::GardenEastTalkedToMermaid  ; param: flag
+    ldx #eFlag::GardenEastTalkedToCorra  ; param: flag
     jsr FuncA_Dialog_AddQuestMarker
     ldya #_MarkMap_sDialog
     rts
