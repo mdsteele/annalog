@@ -54,6 +54,7 @@ BANK_SWITCH_PATTERN = re.compile(r'^ *((?:prga|prgc)_bank|jsr_prga) ')
 JUMP_PATTERN = re.compile(
     r'^ *([jb](?:mp|sr|cc|cs|eq|ne|mi|pl|vc|vs|le|lt|ge|gt)) +'
     r'([A-Za-z0-9_]+)')
+DIALOG_TEXT_LINE_PATTERN = re.compile(r'^ *\.byte *(.*)\n$')
 
 LOCAL_PROC_NAME = re.compile(r'^_[a-zA-Z0-9_]+$')  # e.g. _Foobar
 PRGA_PROC_NAME = re.compile(  # e.g. FuncA_SegmentName_Foobar
@@ -126,11 +127,38 @@ def is_valid_jump_dest(dest, top_proc, segment):
 
 #=============================================================================#
 
+def parse_dialog_text(string):
+    unquoted = False
+    text = []
+    index = 0
+    while index < len(string) and string[index] != ';':
+        if string[index] == '"':
+            index += 1
+            while string[index] != '"':
+                text.append(string[index])
+                index += 1
+        elif string[index] == ',':
+            if unquoted:
+                text.append('@')
+                unquoted = False
+        elif string[index] != ' ':
+            unquoted = True
+        index += 1
+    if unquoted:
+        text.append('@')
+    return ''.join(text)
+
+def is_end_of_dialog_text(dialog_text_line):
+    return dialog_text_line.endswith('#') or dialog_text_line.endswith('%')
+
+#=============================================================================#
+
 def run_tests():
     failed = [False]
     for filepath in src_and_test_filepaths('.asm', '.inc'):
         segment = ''
-        top_proc = ''
+        proc_stack = []
+        dialog_text_lines = []
         for (line_number, line) in enumerate(open(filepath)):
             def fail(message):
                 print('LINT: {}:{}: found {}'.format(
@@ -153,17 +181,26 @@ def run_tests():
                 if not is_valid_proc_name_for_segment(proc, segment):
                     fail('misnamed proc for segment {}'.format(segment))
                 # Keep track of which top-level proc we're in.
-                if not proc.startswith('_'):
-                    top_proc = proc
-            if top_proc:
+                if not proc_stack:
+                    dialog_text_lines = []
+                proc_stack.append(proc)
+            if line.startswith('.ENDPROC'):
+                proc_stack.pop()
+                if not proc_stack and segment.startswith('PRGA_Text'):
+                    if not dialog_text_lines:
+                        fail('empty dialog text block')
+                    elif not is_end_of_dialog_text(dialog_text_lines[-1]):
+                        fail('unterminated dialog text block')
+            if proc_stack:
                 # Check that bank-switches only happen in Main or FuncM procs.
                 match = BANK_SWITCH_PATTERN.match(line)
                 if match:
                     kind = match.group(1)
-                    if not (top_proc.startswith('Main_') or
-                            top_proc.startswith('FuncM_') or
-                            top_proc.startswith('MainC_') and 'prga' in kind):
-                        fail('{} in {}'.format(kind, top_proc))
+                    if not (proc_stack[0].startswith('Main_') or
+                            proc_stack[0].startswith('FuncM_') or
+                            (proc_stack[0].startswith('MainC_') and
+                             'prga' in kind)):
+                        fail('{} in {}'.format(kind, proc_stack[0]))
                 # Check that procs don't jump incorrectly to other procs.
                 match = JUMP_PATTERN.match(line)
                 if match:
@@ -172,11 +209,28 @@ def run_tests():
                     if dest.startswith('Main'):
                         if opcode == 'jsr':
                             fail('call to a Main')
-                        if not top_proc.startswith('Main'):
+                        if not proc_stack[0].startswith('Main'):
                             fail('jump to a Main outside of a Main')
-                    if not is_valid_jump_dest(dest, top_proc, segment):
+                    if not is_valid_jump_dest(dest, proc_stack[0], segment):
                         fail('invalid {} from {}'.format(
-                            opcode, top_proc))
+                            opcode, proc_stack[0]))
+                # Check that dialog text is well-formed.
+                if segment.startswith('PRGA_Text'):
+                    match = DIALOG_TEXT_LINE_PATTERN.match(line)
+                    if match:
+                        text = parse_dialog_text(match.group(1))
+                        if (dialog_text_lines and
+                            is_end_of_dialog_text(dialog_text_lines[-1])):
+                            fail('another dialog text line after end-of-text')
+                        else:
+                            dialog_text_lines.append(text)
+                            if len(dialog_text_lines) > 4:
+                                fail('too many dialog text lines')
+                            elif not (text.endswith('$') or
+                                      is_end_of_dialog_text(text)):
+                                fail('unterminated dialog text line')
+                            elif len(text) > 23:
+                                fail('over-long dialog text line')
     for (filepath, start_string, end_string, skip) in SORT_PATTERNS:
         def fail(message):
             print('LINT: {}: {}'.format(filepath, message))
