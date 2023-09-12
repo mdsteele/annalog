@@ -42,6 +42,7 @@
 .IMPORT DataA_Dialog_CoreSouthCorra1_sDialog
 .IMPORT DataA_Dialog_CoreSouthCorra2_sDialog
 .IMPORT DataA_Dialog_CryptCenterPaper_sDialog
+.IMPORT DataA_Dialog_CryptEscapePaper_sDialog
 .IMPORT DataA_Dialog_CryptSpiralPaper_sDialog
 .IMPORT DataA_Dialog_CryptTombPlaque_sDialog
 .IMPORT DataA_Dialog_GardenEastCorra_sDialog
@@ -359,6 +360,7 @@ _UpdateScrolling:
     d_entry t, CoreSouthCorra1,      DataA_Dialog_CoreSouthCorra1_sDialog
     d_entry t, CoreSouthCorra2,      DataA_Dialog_CoreSouthCorra2_sDialog
     d_entry t, CryptCenterPaper,     DataA_Dialog_CryptCenterPaper_sDialog
+    d_entry t, CryptEscapePaper,     DataA_Dialog_CryptEscapePaper_sDialog
     d_entry t, CryptSpiralPaper,     DataA_Dialog_CryptSpiralPaper_sDialog
     d_entry t, CryptTombPlaque,      DataA_Dialog_CryptTombPlaque_sDialog
     d_entry t, GardenEastCorra,      DataA_Dialog_GardenEastCorra_sDialog

@@ -1104,7 +1104,9 @@
     .res $10 * kSizeofChr
     .assert * - :- = (kTileIdWeakFloorFirst - $80) * kSizeofChr, error
     .incbin "out/tiles/breakable.chr"
-    .res $1a * kSizeofChr
+    .res $0e * kSizeofChr
+    .assert * - :- = (kTileIdObjFishFirst - $80) * kSizeofChr, error
+    .incbin "out/tiles/fish.chr"
     .assert * - :- = (kTileIdCrusherFirst - $80) * kSizeofChr, error
     .incbin "out/tiles/crusher.chr"
     .assert * - :- = (kTileIdWinchFirst - $80) * kSizeofChr, error

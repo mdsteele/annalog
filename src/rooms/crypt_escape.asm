@@ -18,13 +18,15 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "../actor.inc"
+.INCLUDE "../charmap.inc"
 .INCLUDE "../device.inc"
+.INCLUDE "../dialog.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../platform.inc"
+.INCLUDE "../program.inc"
 .INCLUDE "../room.inc"
 
 .IMPORT DataA_Room_Temple_sTileset
-.IMPORT Data_Empty_sDevice_arr
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrObjCrypt
 
@@ -51,7 +53,7 @@ _Ext_sRoomExt:
     d_addr Terrain_sTileset_ptr, DataA_Room_Temple_sTileset
     d_addr Platforms_sPlatform_arr_ptr, _Platforms_sPlatform_arr
     d_addr Actors_sActor_arr_ptr, _Actors_sActor_arr
-    d_addr Devices_sDevice_arr_ptr, Data_Empty_sDevice_arr
+    d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
     d_addr Passages_sPassage_arr_ptr, _Passages_sPassage_arr
     d_addr Enter_func_ptr, Func_Noop
     d_addr FadeIn_func_ptr, Func_Noop
@@ -80,9 +82,53 @@ _Platforms_sPlatform_arr:
     .assert * - :- <= kMaxPlatforms * .sizeof(sPlatform), error
     .byte ePlatform::None
 _Actors_sActor_arr:
-:   ;; TODO: add some baddies
+:   D_STRUCT sActor
+    d_byte Type_eActor, eActor::BadSpider
+    d_word PosX_i16, $0050
+    d_word PosY_i16, $0028
+    d_byte Param_byte, 0
+    D_END
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::BadSpider
+    d_word PosX_i16, $0080
+    d_word PosY_i16, $0028
+    d_byte Param_byte, 0
+    D_END
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::BadBat
+    d_word PosX_i16, $00b0
+    d_word PosY_i16, $0098
+    d_byte Param_byte, eDir::Left
+    D_END
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::BadBat
+    d_word PosX_i16, $0088
+    d_word PosY_i16, $00a8
+    d_byte Param_byte, eDir::Right
+    D_END
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::BadBat
+    d_word PosX_i16, $00d8
+    d_word PosY_i16, $00e8
+    d_byte Param_byte, eDir::Up
+    D_END
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::BadFish
+    d_word PosX_i16, $0080
+    d_word PosY_i16, $0160
+    d_byte Param_byte, 0
+    D_END
     .assert * - :- <= kMaxActors * .sizeof(sActor), error
     .byte eActor::None
+_Devices_sDevice_arr:
+:   D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::Paper
+    d_byte BlockRow_u8, 15
+    d_byte BlockCol_u8, 4
+    d_byte Target_byte, eDialog::CryptEscapePaper
+    D_END
+    .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
+    .byte eDevice::None
 _Passages_sPassage_arr:
 :   D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Eastern | 0
@@ -95,6 +141,35 @@ _Passages_sPassage_arr:
     d_byte SpawnBlock_u8, 20
     D_END
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Dialog"
+
+.EXPORT DataA_Dialog_CryptEscapePaper_sDialog
+.PROC DataA_Dialog_CryptEscapePaper_sDialog
+    dlg_Text Paper, DataA_Text0_CryptEscapePaper_Page1_u8_arr
+    dlg_Text Paper, DataA_Text0_CryptEscapePaper_Page2_u8_arr
+    dlg_Done
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Text0"
+
+.PROC DataA_Text0_CryptEscapePaper_Page1_u8_arr
+    .byte "Day 21: When Dr. Alda$"
+    .byte "created the mermaids,$"
+    .byte "she was trying to help$"
+    .byte "solve that problem.#"
+.ENDPROC
+
+.PROC DataA_Text0_CryptEscapePaper_Page2_u8_arr
+    .byte "But frankly, I think$"
+    .byte "she only made things$"
+    .byte "worse. Not that I did$"
+    .byte "any better, of course.#"
 .ENDPROC
 
 ;;;=========================================================================;;;

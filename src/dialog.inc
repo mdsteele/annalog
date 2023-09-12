@@ -69,6 +69,7 @@
     CoreSouthCorra1
     CoreSouthCorra2
     CryptCenterPaper
+    CryptEscapePaper
     CryptSpiralPaper
     CryptTombPlaque
     GardenEastCorra
