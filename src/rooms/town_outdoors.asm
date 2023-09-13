@@ -556,10 +556,10 @@ _OrcJumpFunc:
     act_WaitFrames 30
     act_RunDialog eDialog::TownOutdoorsAlex2
     ;; Animate Alex and Anna looking up at the stars.
-    act_CallFunc _SetScrollGoal
+    act_ForkStart 1, _Scroll_sCutscene
     act_SetActorFlags kAlexActorIndex, bObj::FlipH
     act_SetActorState1 kAlexActorIndex, eNpcChild::AlexLooking
-    act_WaitFrames 60
+    act_WaitFrames 70
     act_SetAvatarFlags bObj::FlipH | kPaletteObjAvatarNormal
     act_SetAvatarPose eAvatar::Looking
     act_WaitFrames 60
@@ -569,6 +569,9 @@ _OrcJumpFunc:
     act_RunDialog eDialog::TownOutdoorsAlex3
     act_SetActorState1 kGrontaActorIndex, eNpcOrc::GrontaStanding
     act_ContinueExploring
+_Scroll_sCutscene:
+    act_ScrollSlowX $04c0
+    act_ForkStop $ff
 _RemoveDevicesAndTownsfolk:
     ;; Remove all devices from the room (so that the player can't start dialog
     ;; or run into a building once the orcs attack).
@@ -582,11 +585,6 @@ _RemoveDevicesAndTownsfolk:
     lda #eActor::None
     sta Ram_ActorType_eActor_arr + kIvanActorIndex
     sta Ram_ActorType_eActor_arr + kSandraActorIndex
-    rts
-_SetScrollGoal:
-    ;; TODO: scroll slowly instead
-    ldax #$04c0
-    stax Zp_ScrollGoalX_u16
     rts
 _InitOrcs:
     ldax #kGrontaInitPosX

@@ -35,6 +35,7 @@
 .IMPORT DataA_Cutscene_PrisonCellGetThrownIn_sCutscene
 .IMPORT DataA_Cutscene_PrisonUpperBreakerTemple_sCutscene
 .IMPORT DataA_Cutscene_PrisonUpperFreeAlex_sCutscene
+.IMPORT DataA_Cutscene_PrisonUpperFreeKids_sCutscene
 .IMPORT DataA_Cutscene_SharedFadeBackToBreakerRoom_sCutscene
 .IMPORT DataA_Cutscene_SharedTeleportIn_sCutscene
 .IMPORT DataA_Cutscene_SharedTeleportOut_sCutscene
@@ -66,9 +67,11 @@
 .IMPORTZP Zp_AvatarState_bAvatar
 .IMPORTZP Zp_AvatarVelX_i16
 .IMPORTZP Zp_AvatarVelY_i16
+.IMPORTZP Zp_Camera_bScroll
 .IMPORTZP Zp_FrameCounter_u8
 .IMPORTZP Zp_Next_sAudioCtrl
 .IMPORTZP Zp_PointX_i16
+.IMPORTZP Zp_ScrollGoalX_u16
 
 ;;;=========================================================================;;;
 
@@ -177,6 +180,8 @@ _Finish:
             DataA_Cutscene_PrisonUpperBreakerTemple_sCutscene
     d_entry table, PrisonUpperFreeAlex, \
             DataA_Cutscene_PrisonUpperFreeAlex_sCutscene
+    d_entry table, PrisonUpperFreeKids, \
+            DataA_Cutscene_PrisonUpperFreeKids_sCutscene
     d_entry table, SharedFadeBackToBreakerRoom, \
             DataA_Cutscene_SharedFadeBackToBreakerRoom_sCutscene
     d_entry table, SharedTeleportIn, \
@@ -300,6 +305,7 @@ _InitMainFork:
     d_entry table, PlayMusic,         _PlayMusic
     d_entry table, RepeatFunc,        _RepeatFunc
     d_entry table, RunDialog,         _RunDialog
+    d_entry table, ScrollSlowX,       _ScrollSlowX
     d_entry table, SetActorFlags,     _SetActorFlags
     d_entry table, SetActorPosX,      _SetActorPosX
     d_entry table, SetActorPosY,      _SetActorPosY
@@ -313,13 +319,16 @@ _InitMainFork:
     d_entry table, SetAvatarVelX,     _SetAvatarVelX
     d_entry table, SetAvatarVelY,     _SetAvatarVelY
     d_entry table, SetCutsceneFlags,  _SetCutsceneFlags
+    d_entry table, SetScrollFlags,    _SetScrollFlags
     d_entry table, ShakeRoom,         _ShakeRoom
     d_entry table, WaitFrames,        _WaitFrames
     d_entry table, WaitUntilC,        _WaitUntilC
     d_entry table, WaitUntilZ,        _WaitUntilZ
     d_entry table, WalkAvatar,        _WalkAvatar
     d_entry table, WalkNpcAlex,       _WalkNpcAlex
+    d_entry table, WalkNpcNora,       _WalkNpcNora
     d_entry table, WalkNpcOrc,        _WalkNpcOrc
+    d_entry table, WalkNpcToddler,    _WalkNpcToddler
     D_END
 .ENDREPEAT
 _BranchIfC:
@@ -427,6 +436,18 @@ _RunDialog:
     stax T1T0
     sec  ; exit cutscene mode
     rts
+_ScrollSlowX:
+    lda (T1T0), y
+    sta Zp_PointX_i16 + 0
+    iny
+    lda (T1T0), y
+    sta Zp_PointX_i16 + 1
+    jsr FuncA_Cutscene_MoveScrollGoalTowardPointX  ; returns C
+    bcs @reachedGoal
+    rts  ; otherwise, C is clear to indicate that the cutscene should continue
+    @reachedGoal:
+    ldy #3  ; param: byte offset
+    jmp FuncA_Cutscene_AdvanceForkAndExecute
 _SetActorFlags:
     lda (T1T0), y
     tax  ; actor index
@@ -525,6 +546,11 @@ _SetCutsceneFlags:
     sta Zp_CutsceneFlags_bCutscene
     iny
     jmp FuncA_Cutscene_AdvanceForkAndExecute
+_SetScrollFlags:
+    lda (T1T0), y
+    sta Zp_Camera_bScroll
+    iny
+    jmp FuncA_Cutscene_AdvanceForkAndExecute
 _ShakeRoom:
     lda (T1T0), y  ; param: num shake frames
     jsr Func_ShakeRoom  ; preserves Y
@@ -570,24 +596,31 @@ _WalkAvatar:
     ldy #3  ; param: byte offset
     jmp FuncA_Cutscene_AdvanceForkAndExecute
 _WalkNpcAlex:
-    lda (T1T0), y
-    tax  ; actor index
-    iny
-    lda (T1T0), y
-    sta Zp_PointX_i16 + 0
-    iny
-    lda (T1T0), y
-    sta Zp_PointX_i16 + 1
-    jsr FuncA_Cutscene_MoveActorTowardPointX  ; preserves X, returns Z and N
-    beq @reachedGoal
+    jsr _StartWalkNpc  ; returns X, Z, and N
+    beq _WalkNpcReachedGoal
     jsr FuncA_Cutscene_AnimateNpcAlexWalking  ; preserves X
     jsr FuncA_Cutscene_FaceAvatarTowardsActor
     clc  ; cutscene should continue
     rts
-    @reachedGoal:
-    ldy #4  ; param: byte offset
-    jmp FuncA_Cutscene_AdvanceForkAndExecute
+_WalkNpcNora:
+    jsr _StartWalkNpc  ; returns X, Z, and N
+    beq _WalkNpcReachedGoal
+    jsr FuncA_Cutscene_AnimateNpcNoraWalking
+    clc  ; cutscene should continue
+    rts
 _WalkNpcOrc:
+    jsr _StartWalkNpc  ; returns X, Z, and N
+    beq _WalkNpcReachedGoal
+    jsr FuncA_Cutscene_AnimateNpcOrcWalking
+    clc  ; cutscene should continue
+    rts
+_WalkNpcToddler:
+    jsr _StartWalkNpc  ; returns X, Z, and N
+    beq _WalkNpcReachedGoal
+    jsr FuncA_Cutscene_AnimateNpcToddlerWalking
+    clc  ; cutscene should continue
+    rts
+_StartWalkNpc:
     lda (T1T0), y
     tax  ; actor index
     iny
@@ -596,12 +629,8 @@ _WalkNpcOrc:
     iny
     lda (T1T0), y
     sta Zp_PointX_i16 + 1
-    jsr FuncA_Cutscene_MoveActorTowardPointX  ; preserves X, returns Z and N
-    beq @reachedGoal
-    jsr FuncA_Cutscene_AnimateNpcOrcWalking  ; preserves X
-    clc  ; cutscene should continue
-    rts
-    @reachedGoal:
+    jmp FuncA_Cutscene_MoveActorTowardPointX  ; preserves X, returns Z and N
+_WalkNpcReachedGoal:
     ldy #4  ; param: byte offset
     jmp FuncA_Cutscene_AdvanceForkAndExecute
 _CallFuncArg:
@@ -611,6 +640,35 @@ _CallFuncArg:
     lda (T1T0), y
     sta T3
     jmp (T3T2)
+.ENDPROC
+
+;;; Moves Zp_ScrollGoalX_u16 one pixel left or right towards Zp_PointX_i16.
+;;; @return C Set if the goal point has been reached.
+.PROC FuncA_Cutscene_MoveScrollGoalTowardPointX
+    lda Zp_PointX_i16 + 0
+    sub Zp_ScrollGoalX_u16 + 0
+    sta T0  ; delta (lo)
+    lda Zp_PointX_i16 + 1
+    sbc Zp_ScrollGoalX_u16 + 1
+    bmi _MoveLeft
+    bne _MoveRight
+    lda T0  ; delta (lo)
+    bne _MoveRight
+    sec  ; goal point has been reached
+    rts
+_MoveRight:
+    ldya #1
+    bpl _MoveByYA  ; unconditional
+_MoveLeft:
+    ldya #$ffff & -1
+_MoveByYA:
+    add Zp_ScrollGoalX_u16 + 0
+    sta Zp_ScrollGoalX_u16 + 0
+    tya
+    adc Zp_ScrollGoalX_u16 + 1
+    sta Zp_ScrollGoalX_u16 + 1
+    clc  ; not yet reached goal
+    rts
 .ENDPROC
 
 ;;; Moves the player avatar one pixel left or right towards Zp_PointX_i16.
@@ -714,14 +772,7 @@ _AnimatePose:
 ;;; @param X The actor index.
 ;;; @preserve X, Y, T0+
 .PROC FuncA_Cutscene_AnimateNpcAlexWalking
-    bpl @faceRight
-    @faceLeft:
-    lda #bObj::FlipH
-    bne @setFace  ; unconditional
-    @faceRight:
-    lda #0
-    @setFace:
-    sta Ram_ActorFlags_bObj_arr, x
+    jsr FuncA_Cutscene_SetActorFlipHFromN  ; preserves X, Y and T0+
     lda #$ff
     sta Ram_ActorState2_byte_arr, x
 _AnimatePose:
@@ -739,20 +790,25 @@ _AnimatePose:
     rts
 .ENDPROC
 
+;;; Updates the flags and state of the specified Nora NPC actor for a walking
+;;; animation.
+;;; @param N If set, the actor will face left; otherwise, it will face right.
+;;; @param X The actor index.
+;;; @preserve X, Y, T0+
+.PROC FuncA_Cutscene_AnimateNpcNoraWalking
+    jsr FuncA_Cutscene_SetActorFlipHFromN  ; preserves X, Y and T0+
+    lda #$ff
+    sta Ram_ActorState2_byte_arr, x
+    rts
+.ENDPROC
+
 ;;; Updates the flags and state of the specified orc NPC actor for a walking
 ;;; animation.
 ;;; @param N If set, the actor will face left; otherwise, it will face right.
 ;;; @param X The actor index.
 ;;; @preserve X, Y, T0+
 .PROC FuncA_Cutscene_AnimateNpcOrcWalking
-    bpl @faceRight
-    @faceLeft:
-    lda #bObj::FlipH
-    bne @setFace  ; unconditional
-    @faceRight:
-    lda #0
-    @setFace:
-    sta Ram_ActorFlags_bObj_arr, x
+    jsr FuncA_Cutscene_SetActorFlipHFromN  ; preserves X, Y and T0+
     lda #$ff
     sta Ram_ActorState2_byte_arr, x
 _AnimatePose:
@@ -761,6 +817,37 @@ _AnimatePose:
     and #$03  ; param: pose
     .assert eNpcOrc::Running1 = 0, error
     sta Ram_ActorState1_byte_arr, x
+    rts
+.ENDPROC
+
+;;; Updates the flags and state of the specified toddler NPC actor for a
+;;; walking animation.
+;;; @param N If set, the actor will face left; otherwise, it will face right.
+;;; @param X The actor index.
+;;; @preserve X, Y, T0+
+.PROC FuncA_Cutscene_AnimateNpcToddlerWalking
+    jsr FuncA_Cutscene_SetActorFlipHFromN  ; preserves X, Y and T0+
+_AnimatePose:
+    lda Zp_FrameCounter_u8
+    sta Ram_ActorState1_byte_arr, x
+    rts
+.ENDPROC
+
+;;; Sets the specified actor's FlipH flag bit based on the N flag.
+;;; @param N If set, the actor will face left; otherwise, it will face right.
+;;; @param X The actor index.
+;;; @preserve X, Y, T0+
+.PROC FuncA_Cutscene_SetActorFlipHFromN
+    bpl @faceRight
+    @faceLeft:
+    lda Ram_ActorFlags_bObj_arr, x
+    ora #bObj::FlipH
+    bne @setFace  ; unconditional
+    @faceRight:
+    lda Ram_ActorFlags_bObj_arr, x
+    and #<~bObj::FlipH
+    @setFace:
+    sta Ram_ActorFlags_bObj_arr, x
     rts
 .ENDPROC
 

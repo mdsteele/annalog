@@ -891,7 +891,7 @@ _GiveUpRemote_sCutscene:
 _BeginFight_sCutscene:
     act_PlayMusic eMusic::Boss2
     act_WaitFrames 210  ; TODO: animate Gronta getting ready to fight
-    act_CallFunc _UnlockScrollFunc
+    act_SetScrollFlags 0
     act_ContinueExploring
 _SetupFunc:
     lda #ePlatform::Solid
@@ -924,10 +924,6 @@ _SpawnActorForRemote:
     @setVelX:
     sta Ram_ActorVelX_i16_1_arr, x
     @done:
-    rts
-_UnlockScrollFunc:
-    lda #0
-    sta Zp_Camera_bScroll
     rts
 .ENDPROC
 

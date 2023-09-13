@@ -149,23 +149,23 @@ _Passages_sPassage_arr:
 
 .EXPORT DataA_Dialog_CryptEscapePaper_sDialog
 .PROC DataA_Dialog_CryptEscapePaper_sDialog
-    dlg_Text Paper, DataA_Text0_CryptEscapePaper_Page1_u8_arr
-    dlg_Text Paper, DataA_Text0_CryptEscapePaper_Page2_u8_arr
+    dlg_Text Paper, DataA_Text1_CryptEscapePaper_Page1_u8_arr
+    dlg_Text Paper, DataA_Text1_CryptEscapePaper_Page2_u8_arr
     dlg_Done
 .ENDPROC
 
 ;;;=========================================================================;;;
 
-.SEGMENT "PRGA_Text0"
+.SEGMENT "PRGA_Text1"
 
-.PROC DataA_Text0_CryptEscapePaper_Page1_u8_arr
+.PROC DataA_Text1_CryptEscapePaper_Page1_u8_arr
     .byte "Day 21: When Dr. Alda$"
     .byte "created the mermaids,$"
     .byte "she was trying to help$"
     .byte "solve that problem.#"
 .ENDPROC
 
-.PROC DataA_Text0_CryptEscapePaper_Page2_u8_arr
+.PROC DataA_Text1_CryptEscapePaper_Page2_u8_arr
     .byte "But frankly, I think$"
     .byte "she only made things$"
     .byte "worse. Not that I did$"

@@ -96,6 +96,7 @@
     PrisonFlowerSign
     PrisonUpperAlexCell
     PrisonUpperAlexFree
+    PrisonUpperAlexLast
     PrisonUpperBreakerTemple
     PrisonUpperBruno
     PrisonUpperMarie

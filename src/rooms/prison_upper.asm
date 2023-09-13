@@ -35,8 +35,10 @@
 .INCLUDE "../platforms/stepstone.inc"
 .INCLUDE "../ppu.inc"
 .INCLUDE "../room.inc"
+.INCLUDE "../scroll.inc"
 
 .IMPORT DataA_Room_Prison_sTileset
+.IMPORT Data_Empty_sDialog
 .IMPORT FuncA_Objects_DrawStepstonePlatform
 .IMPORT FuncC_Prison_DrawGatePlatform
 .IMPORT FuncC_Prison_OpenGateAndFlipLever
@@ -62,6 +64,8 @@
 
 ;;; Actor indices for specific NPCs in this room.
 kAlexActorIndex = 0
+kNoraActorIndex = 1
+kNinaActorIndex = 2
 kOrc1ActorIndex = 5
 kOrc2ActorIndex = 6
 
@@ -83,6 +87,9 @@ kGateBlockRow = 10
 ;;; The room pixel X-position that the Alex actor should walk to after the
 ;;; prison gate is opened.
 kAlexFreePositionX = $0090
+;;; The room pixel X-position that NPC actors can walk to during the
+;;; PrisonUpperFreedKids cutscene to be offscreen.
+kFreeKidsOffscreenPositionX = $0128
 
 ;;;=========================================================================;;;
 
@@ -186,12 +193,14 @@ _Actors_sActor_arr:
     d_word PosY_i16, $00b8
     d_byte Param_byte, eNpcChild::AlexStanding
     D_END
+    .assert * - :- = kNoraActorIndex * .sizeof(sActor), error
     D_STRUCT sActor
     d_byte Type_eActor, eActor::NpcChild
     d_word PosX_i16, $0110
     d_word PosY_i16, $0078
     d_byte Param_byte, bNpcChild::Pri | eNpcChild::NoraStanding
     D_END
+    .assert * - :- = kNinaActorIndex * .sizeof(sActor), error
     D_STRUCT sActor
     d_byte Type_eActor, eActor::NpcToddler
     d_word PosX_i16, $0128
@@ -472,6 +481,60 @@ _OpenGate:
     jmp FuncC_Prison_Upper_TickGate  ; returns Z
 .ENDPROC
 
+.EXPORT DataA_Cutscene_PrisonUpperFreeKids_sCutscene
+.PROC DataA_Cutscene_PrisonUpperFreeKids_sCutscene
+    ;; Make Alex walk offscreen (meanwhile, scroll the camera into position and
+    ;; have Nina move to watch what's happening).
+    act_ForkStart 1, _Scroll_sCutscene
+    act_ForkStart 2, _NinaWait_sCutscene
+    act_WalkNpcAlex kAlexActorIndex, kFreeKidsOffscreenPositionX
+    ;; Have Alex pick the locks offscreen.  While he does so, Nina leads Nora
+    ;; out of the cell.
+    act_WaitFrames 60  ; TODO: play sounds for picking locks
+    act_ForkStart 2, _NinaEscape_sCutscene
+    act_WaitFrames 31
+    act_WalkNpcNora kNoraActorIndex, kFreeKidsOffscreenPositionX
+    act_WaitFrames 90
+    ;; Make Alex walk back onscreen to report on his scouting.
+    act_WalkNpcAlex kAlexActorIndex, $00d8
+    act_SetActorState1 kAlexActorIndex, eNpcChild::AlexStanding
+    act_RunDialog eDialog::PrisonUpperAlexLast
+    ;; Make Alex walk back offscreen (and lead the kids out offscreen).
+    act_WalkNpcAlex kAlexActorIndex, kFreeKidsOffscreenPositionX
+    act_CallFunc _RemoveKids
+    act_SetScrollFlags 0
+    act_ContinueExploring
+_Scroll_sCutscene:
+    act_ScrollSlowX $0020
+    act_SetScrollFlags bScroll::LockHorz
+    act_ForkStop $ff
+_NinaWait_sCutscene:
+    act_WaitFrames 10
+    act_WalkNpcToddler kNinaActorIndex, $00f8
+    act_ForkStop $ff
+_NinaEscape_sCutscene:
+    act_WalkNpcToddler kNinaActorIndex, kFreeKidsOffscreenPositionX
+    act_ForkStop $ff
+_RemoveKids:
+    ;; Remove talk devices.
+    lda #eDevice::None
+    ldx #kFirstNonTalkDeviceIndex - 1
+    @deviceLoop:
+    sta Ram_DeviceType_eDevice_arr, x
+    dex
+    .assert kFirstNonTalkDeviceIndex < $80, error
+    bpl @deviceLoop
+    ;; Remove actors.
+    .assert eActor::None = eDevice::None, error
+    ldx #kMaxActors - 1
+    @actorLoop:
+    sta Ram_ActorType_eActor_arr, x
+    dex
+    .assert kMaxActors < $80, error
+    bpl @actorLoop
+    rts
+.ENDPROC
+
 ;;;=========================================================================;;;
 
 .SEGMENT "PRGA_Dialog"
@@ -501,18 +564,24 @@ _GetDoorOpen_sDialog:
 
 .EXPORT DataA_Dialog_PrisonUpperAlexFree_sDialog
 .PROC DataA_Dialog_PrisonUpperAlexFree_sDialog
-    dlg_Text ChildAlex, DataA_Text0_PrisonUpperAlexFree_Intro1_u8_arr
-    dlg_Text ChildAlex, DataA_Text0_PrisonUpperAlexFree_Intro2_u8_arr
+    dlg_Text ChildAlex, DataA_Text0_PrisonUpperAlexFree_Part1_u8_arr
+    dlg_Text ChildAlex, DataA_Text0_PrisonUpperAlexFree_Part2_u8_arr
     dlg_Func _CutsceneFunc
 _CutsceneFunc:
-    ;; TODO: cutscene for Alex to free the other kids
     ldx #eFlag::PrisonUpperFreedKids  ; param: flag
     jsr Func_SetFlag
-    ldya #_Finish_sDialog
+    lda #eCutscene::PrisonUpperFreeKids
+    sta Zp_Next_eCutscene
+    ldya #Data_Empty_sDialog
     rts
-_Finish_sDialog:
-    dlg_Text ChildAlex, DataA_Text0_PrisonUpperAlexFree_Finish_u8_arr
-    ;; TODO: rest of cutscene/dialog
+.ENDPROC
+
+.EXPORT DataA_Dialog_PrisonUpperAlexLast_sDialog
+.PROC DataA_Dialog_PrisonUpperAlexLast_sDialog
+    dlg_Text ChildAlex, DataA_Text0_PrisonUpperAlexLast_Part1_u8_arr
+    dlg_Text ChildAlex, DataA_Text0_PrisonUpperAlexLast_Part2_u8_arr
+    dlg_Text ChildAlex, DataA_Text0_PrisonUpperAlexLast_Part3_u8_arr
+    dlg_Text ChildAlex, DataA_Text0_PrisonUpperAlexLast_Part4_u8_arr
     dlg_Done
 .ENDPROC
 
@@ -575,23 +644,44 @@ _Stepstone_sDialog:
     .byte "open.#"
 .ENDPROC
 
-.PROC DataA_Text0_PrisonUpperAlexFree_Intro1_u8_arr
+.PROC DataA_Text0_PrisonUpperAlexFree_Part1_u8_arr
     .byte "Thanks! That door was$"
     .byte "too heavy, but I think$"
     .byte "I can pick the locks$"
     .byte "on the other cells.#"
 .ENDPROC
 
-.PROC DataA_Text0_PrisonUpperAlexFree_Intro2_u8_arr
+.PROC DataA_Text0_PrisonUpperAlexFree_Part2_u8_arr
     .byte "I'll let the others$"
     .byte "out, then scout ahead.$"
     .byte "Be right back.#"
 .ENDPROC
 
-.PROC DataA_Text0_PrisonUpperAlexFree_Finish_u8_arr
+.PROC DataA_Text0_PrisonUpperAlexLast_Part1_u8_arr
     .byte "Bad news: the passage$"
-    .byte "to the surface has$"
-    .byte "has collapsed.#"
+    .byte "up to the surface has$"
+    .byte "collapsed. I don't$"
+    .byte "know another way yet.#"
+.ENDPROC
+
+.PROC DataA_Text0_PrisonUpperAlexLast_Part2_u8_arr
+    .byte "We'll need a safe spot$"
+    .byte "to camp. Where have$"
+    .byte "you been staying since$"
+    .byte "you escaped, Anna?#"
+.ENDPROC
+
+.PROC DataA_Text0_PrisonUpperAlexLast_Part3_u8_arr
+    .byte "...Mermaid village?$"
+    .byte "Wait, seriously?$"
+    .byte "Mermaids are real?#"
+.ENDPROC
+
+.PROC DataA_Text0_PrisonUpperAlexLast_Part4_u8_arr
+    .byte "All right. I'll lead$"
+    .byte "the other kids down$"
+    .byte "and meet up with you$"
+    .byte "there. See you soon.#"
 .ENDPROC
 
 .PROC DataA_Text0_PrisonUpperBruno_u8_arr

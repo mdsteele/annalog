@@ -46,6 +46,7 @@ kMaxForks = 4
     PrisonCellGetThrownIn
     PrisonUpperBreakerTemple
     PrisonUpperFreeAlex
+    PrisonUpperFreeKids
     SharedFadeBackToBreakerRoom  ; TODO: get rid of this
     SharedTeleportIn
     SharedTeleportOut
@@ -101,6 +102,9 @@ kMaxForks = 4
     ;; Starts the specified dialog, and suspends *all* cutscene forks while the
     ;; dialog runs.  The cutscene will continue once the dialog is done.
     RunDialog          ; args: eDialog value
+    ;; Slowly scrolls the screen to the specified scroll-X position, suspending
+    ;; the current fork until that scroll position is reached.
+    ScrollSlowX        ; args: scroll-X goal (2 bytes)
     ;; Sets a field on the specified actor to the specified value, then the
     ;; current cutscene fork immediately continues on to the next action.
     SetActorFlags      ; args: actor index, new bObj value
@@ -120,6 +124,9 @@ kMaxForks = 4
     ;; Sets the cutscene tick flags to the specified value, then the current
     ;; cutscene fork immediately continues on to the next action.
     SetCutsceneFlags   ; args: bCutscene value
+    ;; Sets the camera scroll flags, then the current cutscene fork immediately
+    ;; continues on to the next action.
+    SetScrollFlags     ; args: bScroll value
     ;; Shakes the room by the specified amount, then the current cutscene fork
     ;; immediately continues on to the next action.
     ShakeRoom          ; args: num shake frames
@@ -139,7 +146,9 @@ kMaxForks = 4
     ;; X-position.  Suspends the current cutscene fork until the actor reaches
     ;; the goal position.
     WalkNpcAlex        ; args: actor index, goal X-position (2 bytes)
+    WalkNpcNora        ; args: actor index, goal X-position (2 bytes)
     WalkNpcOrc         ; args: actor index, goal X-position (2 bytes)
+    WalkNpcToddler     ; args: actor index, goal X-position (2 bytes)
     NUM_VALUES
 .ENDENUM
 
@@ -192,6 +201,11 @@ kMaxForks = 4
 
 .MACRO act_RunDialog EDIALOG
     .byte eAction::RunDialog, EDIALOG
+.ENDMACRO
+
+.MACRO act_ScrollSlowX GOALX
+    .byte eAction::ScrollSlowX
+    .word GOALX
 .ENDMACRO
 
 .MACRO act_SetActorFlags INDEX, BOBJ
@@ -252,6 +266,10 @@ kMaxForks = 4
     .byte eAction::SetCutsceneFlags, BCUTSCENE
 .ENDMACRO
 
+.MACRO act_SetScrollFlags BSCROLL
+    .byte eAction::SetScrollFlags, BSCROLL
+.ENDMACRO
+
 .MACRO act_ShakeRoom FRAMES
     .byte eAction::ShakeRoom, FRAMES
 .ENDMACRO
@@ -280,8 +298,18 @@ kMaxForks = 4
     .word GOALX
 .ENDMACRO
 
+.MACRO act_WalkNpcNora INDEX, GOALX
+    .byte eAction::WalkNpcNora, INDEX
+    .word GOALX
+.ENDMACRO
+
 .MACRO act_WalkNpcOrc INDEX, GOALX
     .byte eAction::WalkNpcOrc, INDEX
+    .word GOALX
+.ENDMACRO
+
+.MACRO act_WalkNpcToddler INDEX, GOALX
+    .byte eAction::WalkNpcToddler, INDEX
     .word GOALX
 .ENDMACRO
 
