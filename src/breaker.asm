@@ -498,7 +498,7 @@ _Cutscene_eRoom_arr:
     D_ENUM eBreaker
     d_byte Garden, eRoom::MermaidHut1
     d_byte Temple, eRoom::PrisonUpper
-    d_byte Crypt,  eRoom::MermaidHut1  ; TODO
+    d_byte Crypt,  eRoom::MermaidHut1
     d_byte Lava,   eRoom::MermaidHut1  ; TODO
     d_byte Mine,   eRoom::MermaidHut1  ; TODO
     d_byte City,   eRoom::MermaidHut1  ; TODO
@@ -508,11 +508,11 @@ _Cutscene_eCutscene_arr:
     D_ENUM eBreaker
     d_byte Garden, eCutscene::MermaidHut1BreakerGarden
     d_byte Temple, eCutscene::PrisonUpperBreakerTemple
-    d_byte Crypt,  eCutscene::SharedFadeBackToBreakerRoom
-    d_byte Lava,   eCutscene::SharedFadeBackToBreakerRoom
-    d_byte Mine,   eCutscene::SharedFadeBackToBreakerRoom
-    d_byte City,   eCutscene::SharedFadeBackToBreakerRoom
-    d_byte Shadow, eCutscene::SharedFadeBackToBreakerRoom
+    d_byte Crypt,  eCutscene::MermaidHut1BreakerCrypt
+    d_byte Lava,   eCutscene::SharedFadeBackToBreakerRoom  ; TODO
+    d_byte Mine,   eCutscene::SharedFadeBackToBreakerRoom  ; TODO
+    d_byte City,   eCutscene::SharedFadeBackToBreakerRoom  ; TODO
+    d_byte Shadow, eCutscene::SharedFadeBackToBreakerRoom  ; TODO
     D_END
 .ENDPROC
 
@@ -534,7 +534,7 @@ _ScrollX_u16_0_arr:
     D_ENUM eBreaker
     d_byte Garden, $00
     d_byte Temple, $d0
-    d_byte Crypt,  $00  ; TODO
+    d_byte Crypt,  $00
     d_byte Lava,   $00  ; TODO
     d_byte Mine,   $00  ; TODO
     d_byte City,   $00  ; TODO
@@ -544,7 +544,7 @@ _ScrollX_u16_1_arr:
     D_ENUM eBreaker
     d_byte Garden, $00
     d_byte Temple, $00
-    d_byte Crypt,  $00  ; TODO
+    d_byte Crypt,  $00
     d_byte Lava,   $00  ; TODO
     d_byte Mine,   $00  ; TODO
     d_byte City,   $00  ; TODO

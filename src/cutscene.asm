@@ -31,6 +31,7 @@
 .IMPORT DataA_Cutscene_CoreBossPowerUpCircuit_sCutscene
 .IMPORT DataA_Cutscene_CoreBossStartBattle_sCutscene
 .IMPORT DataA_Cutscene_CoreSouthCorraHelping_sCutscene
+.IMPORT DataA_Cutscene_MermaidHut1BreakerCrypt_sCutscene
 .IMPORT DataA_Cutscene_MermaidHut1BreakerGarden_sCutscene
 .IMPORT DataA_Cutscene_MermaidVillageAlexLeave_sCutscene
 .IMPORT DataA_Cutscene_PrisonCellGetThrownIn_sCutscene
@@ -173,6 +174,8 @@ _Finish:
             DataA_Cutscene_CoreBossStartBattle_sCutscene
     d_entry table, CoreSouthCorraHelping, \
             DataA_Cutscene_CoreSouthCorraHelping_sCutscene
+    d_entry table, MermaidHut1BreakerCrypt, \
+            DataA_Cutscene_MermaidHut1BreakerCrypt_sCutscene
     d_entry table, MermaidHut1BreakerGarden, \
             DataA_Cutscene_MermaidHut1BreakerGarden_sCutscene
     d_entry table, MermaidVillageAlexLeave, \

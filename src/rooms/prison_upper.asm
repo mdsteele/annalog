@@ -55,7 +55,6 @@
 .IMPORT Ram_DeviceType_eDevice_arr
 .IMPORT Ram_PlatformType_ePlatform_arr
 .IMPORT Sram_ProgressFlags_arr
-.IMPORTZP Zp_AvatarPose_eAvatar
 .IMPORTZP Zp_Nearby_bDevice
 .IMPORTZP Zp_Next_eCutscene
 .IMPORTZP Zp_RoomState
@@ -323,8 +322,8 @@ _CheckForBreakerCutscene:
     ;; If the temple breaker cutscene is playing, initialize it (and skip the
     ;; checking of progress flags below).  Otherwise, remove the orc NPCs
     ;; (which only appear in the cutscene).
-    lda Zp_AvatarPose_eAvatar
-    .assert eAvatar::Hidden = 0, error
+    lda Zp_Next_eCutscene
+    cmp #eCutscene::PrisonUpperBreakerTemple
     bne @noCutscene
     @initCutscene:
     lda #$ff

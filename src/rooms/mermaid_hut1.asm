@@ -18,6 +18,7 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "../actor.inc"
+.INCLUDE "../actors/child.inc"
 .INCLUDE "../actors/townsfolk.inc"
 .INCLUDE "../charmap.inc"
 .INCLUDE "../cpu.inc"
@@ -35,7 +36,17 @@
 .IMPORT Func_SetFlag
 .IMPORT Main_Breaker_FadeBackToBreakerRoom
 .IMPORT Ppu_ChrObjVillage
+.IMPORT Ram_ActorState2_byte_arr
+.IMPORT Ram_ActorType_eActor_arr
 .IMPORT Sram_ProgressFlags_arr
+.IMPORTZP Zp_Next_eCutscene
+
+;;;=========================================================================;;;
+
+;;; The actor index for the mermaid guard in this room.
+kGuardActorIndex = 0
+;;; The actor index for Alex in this room.
+kAlexActorIndex = 1
 
 ;;;=========================================================================;;;
 
@@ -62,7 +73,7 @@ _Ext_sRoomExt:
     d_addr Actors_sActor_arr_ptr, _Actors_sActor_arr
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
     d_addr Passages_sPassage_arr_ptr, 0
-    d_addr Enter_func_ptr, Func_Noop
+    d_addr Enter_func_ptr, FuncA_Room_MermaidHut1_EnterRoom
     d_addr FadeIn_func_ptr, Func_Noop
     d_addr Tick_func_ptr, Func_Noop
     d_addr Draw_func_ptr, Func_Noop
@@ -81,11 +92,19 @@ _Platforms_sPlatform_arr:
     .assert * - :- <= kMaxPlatforms * .sizeof(sPlatform), error
     .byte ePlatform::None
 _Actors_sActor_arr:
-:   D_STRUCT sActor
+:   .assert * - :- = kGuardActorIndex * .sizeof(sActor), error
+    D_STRUCT sActor
     d_byte Type_eActor, eActor::NpcMermaid
     d_word PosX_i16, $0040
     d_word PosY_i16, $00c8
     d_byte Param_byte, kTileIdMermaidGuardMFirst
+    D_END
+    .assert * - :- = kAlexActorIndex * .sizeof(sActor), error
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::NpcChild
+    d_word PosX_i16, $00a8
+    d_word PosY_i16, $00b8
+    d_byte Param_byte, eNpcChild::AlexStanding
     D_END
     D_STRUCT sActor
     d_byte Type_eActor, eActor::NpcMermaidQueen
@@ -132,7 +151,43 @@ _Devices_sDevice_arr:
 
 ;;;=========================================================================;;;
 
+.SEGMENT "PRGA_Room"
+
+.PROC FuncA_Room_MermaidHut1_EnterRoom
+    ;; If a breaker cutscene is playing, make sure that Alex and the mermaid
+    ;; guard both face to the right.  If not, remove Alex.
+    lda Zp_Next_eCutscene
+    .assert eCutscene::None = 0, error
+    beq @removeAlex
+    lda #$ff
+    sta Ram_ActorState2_byte_arr + kGuardActorIndex
+    sta Ram_ActorState2_byte_arr + kAlexActorIndex
+    ;; If this is the Crypt breaker cutscene specifically, Alex should stay;
+    ;; otherwise, remove him.
+    lda Zp_Next_eCutscene
+    cmp #eCutscene::MermaidHut1BreakerCrypt
+    beq @done
+    @removeAlex:
+    lda #eActor::None
+    sta Ram_ActorType_eActor_arr + kAlexActorIndex
+    @done:
+    rts
+.ENDPROC
+
+;;;=========================================================================;;;
+
 .SEGMENT "PRGA_Cutscene"
+
+.EXPORT DataA_Cutscene_MermaidHut1BreakerCrypt_sCutscene
+.PROC DataA_Cutscene_MermaidHut1BreakerCrypt_sCutscene
+    act_RunDialog eDialog::MermaidHut1BreakerCrypt1
+    act_WaitFrames 30
+    act_ShakeRoom 30
+    act_WaitFrames 60
+    act_SetActorState1 kAlexActorIndex, eNpcChild::AlexHolding
+    act_RunDialog eDialog::MermaidHut1BreakerCrypt2
+    act_JumpToMain Main_Breaker_FadeBackToBreakerRoom
+.ENDPROC
 
 .EXPORT DataA_Cutscene_MermaidHut1BreakerGarden_sCutscene
 .PROC DataA_Cutscene_MermaidHut1BreakerGarden_sCutscene
@@ -263,6 +318,23 @@ _KidsRescued_sDialog:
 .EXPORT DataA_Dialog_MermaidHut1BreakerGarden_sDialog
 .PROC DataA_Dialog_MermaidHut1BreakerGarden_sDialog
     dlg_Text MermaidEirene, DataA_Text0_MermaidHut1BreakerGarden_u8_arr
+    dlg_Done
+.ENDPROC
+
+.EXPORT DataA_Dialog_MermaidHut1BreakerCrypt1_sDialog
+.PROC DataA_Dialog_MermaidHut1BreakerCrypt1_sDialog
+    dlg_Text ChildAlex, DataA_Text0_MermaidHut1BreakerCrypt_Part1_u8_arr
+    dlg_Text MermaidEirene, DataA_Text0_MermaidHut1BreakerCrypt_Part2_u8_arr
+    dlg_Text MermaidEirene, DataA_Text0_MermaidHut1BreakerCrypt_Part3_u8_arr
+    dlg_Text ChildAlex, DataA_Text0_MermaidHut1BreakerCrypt_Part4_u8_arr
+    dlg_Text ChildAlex, DataA_Text0_MermaidHut1BreakerCrypt_Part5_u8_arr
+    dlg_Text MermaidEirene, DataA_Text0_MermaidHut1BreakerCrypt_Part6_u8_arr
+    dlg_Done
+.ENDPROC
+
+.EXPORT DataA_Dialog_MermaidHut1BreakerCrypt2_sDialog
+.PROC DataA_Dialog_MermaidHut1BreakerCrypt2_sDialog
+    dlg_Text ChildAlex, DataA_Text0_MermaidHut1BreakerCrypt_Part7_u8_arr
     dlg_Done
 .ENDPROC
 
@@ -406,6 +478,55 @@ _KidsRescued_sDialog:
 .PROC DataA_Text0_MermaidHut1BreakerGarden_u8_arr
     .byte "What the...What did$"
     .byte "that human just do!?#"
+.ENDPROC
+
+.PROC DataA_Text0_MermaidHut1BreakerCrypt_Part1_u8_arr
+    .byte "Why are you so afraid$"
+    .byte "of the old technology,$"
+    .byte "anyway? Why won't you$"
+    .byte "help us revive it?#"
+.ENDPROC
+
+.PROC DataA_Text0_MermaidHut1BreakerCrypt_Part2_u8_arr
+    .byte "More technology gives$"
+    .byte "you more power. And$"
+    .byte "too much power always,$"
+    .byte "always corrupts.#"
+.ENDPROC
+
+.PROC DataA_Text0_MermaidHut1BreakerCrypt_Part3_u8_arr
+    .byte "Don't take MY word for$"
+    .byte "it. Human civilization$"
+    .byte "collapsed! You can't$"
+    .byte "be trusted with it.#"
+.ENDPROC
+
+.PROC DataA_Text0_MermaidHut1BreakerCrypt_Part4_u8_arr
+    .byte "So what, we should all$"
+    .byte "go back to being poor,$"
+    .byte "and spending winters$"
+    .byte "trying not to starve?#"
+.ENDPROC
+
+.PROC DataA_Text0_MermaidHut1BreakerCrypt_Part5_u8_arr
+    .byte "If high civilization$"
+    .byte "failed last time, we$"
+    .byte "should learn from it,$"
+    .byte "and try again!#"
+.ENDPROC
+
+.PROC DataA_Text0_MermaidHut1BreakerCrypt_Part6_u8_arr
+    .byte "If you had learned$"
+    .byte "anything, you would$"
+    .byte "give up on this path.$"
+    .byte "It's a dead end.#"
+.ENDPROC
+
+.PROC DataA_Text0_MermaidHut1BreakerCrypt_Part7_u8_arr
+    .byte "And if you'd learned$"
+    .byte "anything about humans,$"
+    .byte "you'd know that we$"
+    .byte "NEVER give up.#"
 .ENDPROC
 
 ;;;=========================================================================;;;

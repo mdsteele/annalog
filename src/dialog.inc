@@ -79,6 +79,8 @@
     LavaStationPaper
     MermaidDrainSign
     MermaidEntrySign
+    MermaidHut1BreakerCrypt1
+    MermaidHut1BreakerCrypt2
     MermaidHut1BreakerGarden
     MermaidHut1Guard
     MermaidHut1Queen
