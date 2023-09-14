@@ -403,7 +403,8 @@
 :   .incbin "out/tiles/font_lower.chr"
     .assert .bank(*) = eDiagram::Field, error
     .incbin "out/tiles/diagram_field.chr"
-    .assert .bank(*) = <ePortrait::MermaidAdult, error
+    .assert .bank(*) = <ePortrait::MermaidDaphne, error
+    .assert .bank(*) = <ePortrait::MermaidGuardF, error
     .incbin "out/tiles/portrait_mermaid_rest.chr"
     .assert * - :- = kSizeofChr * $40, error
 .ENDPROC
@@ -416,7 +417,8 @@
 :   .incbin "out/tiles/font_lower.chr"
     .assert .bank(*) = eDiagram::Jet, error
     .incbin "out/tiles/diagram_jet.chr"
-    .assert .bank(*) = >ePortrait::MermaidAdult, error
+    .assert .bank(*) = >ePortrait::MermaidDaphne, error
+    .assert .bank(*) = >ePortrait::MermaidGuardF, error
     .incbin "out/tiles/portrait_mermaid_talk.chr"
     .assert * - :- = kSizeofChr * $40, error
 .ENDPROC
@@ -1363,8 +1365,8 @@
     .incbin "out/tiles/minigun_horz.chr"
     .assert * - :- = (kTileIdObjMinigunVertFirst - $80) * kSizeofChr, error
     .incbin "out/tiles/minigun_vert.chr"
-    .assert * - :- = (kTileIdObjChildFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/child.chr"
+    .assert * - :- = (kTileIdObjChildStandFirst - $80) * kSizeofChr, error
+    .incbin "out/tiles/child_stand.chr"
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -1399,8 +1401,8 @@
     .assert * - :- = (kTileIdAdultManFirst - $80) * kSizeofChr, error
     .incbin "out/tiles/adult_man.chr"
     .res $04 * kSizeofChr
-    .assert * - :- = (kTileIdObjChildFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/child.chr"
+    .assert * - :- = (kTileIdObjChildStandFirst - $80) * kSizeofChr, error
+    .incbin "out/tiles/child_stand.chr"
     .assert * - :- = kSizeofChr * $80, error
 .ENDPROC
 
@@ -1415,8 +1417,8 @@
     .incbin "out/tiles/mermaid_corra.chr"
     .assert * - :- = (kTileIdMermaidFloristFirst - $80) * kSizeofChr, error
     .incbin "out/tiles/mermaid_florist.chr"
-    .assert * - :- = (kTileIdMermaidAdultFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/mermaid_adult.chr"
+    .assert * - :- = (kTileIdMermaidDaphneFirst - $80) * kSizeofChr, error
+    .incbin "out/tiles/mermaid_daphne.chr"
     .assert * - :- = (kTileIdMermaidGuardFFirst - $80) * kSizeofChr, error
     .incbin "out/tiles/mermaid_guardf.chr"
     .assert * - :- = (kTileIdMermaidGuardMFirst - $80) * kSizeofChr, error
@@ -1427,9 +1429,11 @@
     .incbin "out/tiles/mermaid_farmer.chr"
     .assert * - :- = (kTileIdMermaidQueenFirst - $80) * kSizeofChr, error
     .incbin "out/tiles/mermaid_queen.chr"
-    .res $20 * kSizeofChr
-    .assert * - :- = (kTileIdObjChildFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/child.chr"
+    .res $18 * kSizeofChr
+    .assert * - :- = (kTileIdObjChildSwimFirst - $80) * kSizeofChr, error
+    .incbin "out/tiles/child_swim.chr"
+    .assert * - :- = (kTileIdObjChildStandFirst - $80) * kSizeofChr, error
+    .incbin "out/tiles/child_stand.chr"
     .assert * - :- = kSizeofChr * $80, error
 .ENDPROC
 

@@ -33,6 +33,8 @@
     AlexKneeling
     AlexLooking
     AlexStanding
+    AlexSwimming1
+    AlexSwimming2
     AlexWalking1
     AlexWalking2
     BrunoStanding
@@ -54,6 +56,7 @@
 ;;;=========================================================================;;;
 
 ;;; Tile IDs for drawing child NPC actors.
-kTileIdObjChildFirst = $e0
+kTileIdObjChildSwimFirst  = $d8
+kTileIdObjChildStandFirst = $e0
 
 ;;;=========================================================================;;;

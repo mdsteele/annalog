@@ -22,6 +22,7 @@
 .INCLUDE "../actors/townsfolk.inc"
 .INCLUDE "../charmap.inc"
 .INCLUDE "../cpu.inc"
+.INCLUDE "../cutscene.inc"
 .INCLUDE "../device.inc"
 .INCLUDE "../dialog.inc"
 .INCLUDE "../flag.inc"
@@ -30,6 +31,7 @@
 .INCLUDE "../room.inc"
 
 .IMPORT DataA_Room_Mermaid_sTileset
+.IMPORT Data_Empty_sDialog
 .IMPORT FuncA_Dialog_AddQuestMarker
 .IMPORT Func_Noop
 .IMPORT Func_SetFlag
@@ -37,20 +39,27 @@
 .IMPORT Ram_ActorType_eActor_arr
 .IMPORT Ram_DeviceType_eDevice_arr
 .IMPORT Sram_ProgressFlags_arr
+.IMPORTZP Zp_Next_eCutscene
 
 ;;;=========================================================================;;;
 
+;;; The actor index for Alex in this room.
+kAlexActorIndex = 0
+;;; The talk device indices for Alex in this room.
+kAlexDeviceIndexLeft = 1
+kAlexDeviceIndexRight = 0
+
 ;;; The actor index for Corra in this room.
-kCorraActorIndex = 2
+kCorraActorIndex = 3
 ;;; The talk device indices for Corra in this room.
-kCorraDeviceIndexLeft = 5
-kCorraDeviceIndexRight = 4
+kCorraDeviceIndexLeft = 7
+kCorraDeviceIndexRight = 6
 
 ;;; The actor index for Bruno in this room.
-kBrunoActorIndex = 3
+kBrunoActorIndex = 4
 ;;; The talk device indices for Bruno in this room.
-kBrunoDeviceIndexLeft = 7
-kBrunoDeviceIndexRight = 6
+kBrunoDeviceIndexLeft = 9
+kBrunoDeviceIndexRight = 8
 
 ;;;=========================================================================;;;
 
@@ -153,7 +162,14 @@ _Platforms_sPlatform_arr:
     .assert * - :- <= kMaxPlatforms * .sizeof(sPlatform), error
     .byte ePlatform::None
 _Actors_sActor_arr:
-:   D_STRUCT sActor
+:   .assert * - :- = kAlexActorIndex * .sizeof(sActor), error
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::NpcChild
+    d_word PosX_i16, $0160
+    d_word PosY_i16, $0094
+    d_byte Param_byte, eNpcChild::AlexSwimming1  ; TODO: animate Alex swimming
+    D_END
+    D_STRUCT sActor
     d_byte Type_eActor, eActor::NpcMermaid
     d_word PosX_i16, $02a0
     d_word PosY_i16, $0088
@@ -182,7 +198,21 @@ _Actors_sActor_arr:
     .assert * - :- <= kMaxActors * .sizeof(sActor), error
     .byte eActor::None
 _Devices_sDevice_arr:
-:   D_STRUCT sDevice
+:   .assert * - :- = kAlexDeviceIndexRight * .sizeof(sDevice), error
+    D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::TalkRight
+    d_byte BlockRow_u8, 9
+    d_byte BlockCol_u8, 21
+    d_byte Target_byte, eDialog::MermaidVillageAlex
+    D_END
+    .assert * - :- = kAlexDeviceIndexLeft * .sizeof(sDevice), error
+    D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::TalkLeft
+    d_byte BlockRow_u8, 9
+    d_byte BlockCol_u8, 22
+    d_byte Target_byte, eDialog::MermaidVillageAlex
+    D_END
+    D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::TalkRight
     d_byte BlockRow_u8, 8
     d_byte BlockCol_u8, 41
@@ -285,6 +315,21 @@ _Passages_sPassage_arr:
 .SEGMENT "PRGA_Room"
 
 .PROC FuncA_Room_MermaidVillage_EnterRoom
+_Alex:
+    ;; Until the kids are rescued, Alex is in PrisonUpper, not here.
+    flag_bit Sram_ProgressFlags_arr, eFlag::PrisonUpperFreedKids
+    beq @removeAlex
+    ;; Once Alex is waiting in the temple, he's no longer here.
+    flag_bit Sram_ProgressFlags_arr, eFlag::TempleNaveAlexWaiting
+    beq @keepAlex
+    @removeAlex:
+    lda #0
+    .assert eActor::None = 0, error
+    sta Ram_ActorType_eActor_arr + kAlexActorIndex
+    .assert eDevice::None = 0, error
+    sta Ram_DeviceType_eDevice_arr + kAlexDeviceIndexLeft
+    sta Ram_DeviceType_eDevice_arr + kAlexDeviceIndexRight
+    @keepAlex:
 _Bruno:
     ;; Until the kids are rescued, Bruno is in PrisonUpper, not here.
     flag_bit Sram_ProgressFlags_arr, eFlag::PrisonUpperFreedKids
@@ -317,12 +362,53 @@ _Corra:
 
 ;;;=========================================================================;;;
 
+.SEGMENT "PRGA_Cutscene"
+
+.EXPORT DataA_Cutscene_MermaidVillageAlexLeave_sCutscene
+.PROC DataA_Cutscene_MermaidVillageAlexLeave_sCutscene
+    act_SwimNpcAlex kAlexActorIndex, $01f8
+    act_CallFunc _RemoveAlex
+    act_ContinueExploring
+_RemoveAlex:
+    lda #0
+    .assert eActor::None = 0, error
+    sta Ram_ActorType_eActor_arr + kAlexActorIndex
+    .assert eDevice::None = 0, error
+    sta Ram_DeviceType_eDevice_arr + kAlexDeviceIndexLeft
+    sta Ram_DeviceType_eDevice_arr + kAlexDeviceIndexRight
+    rts
+.ENDPROC
+
+;;;=========================================================================;;;
+
 .SEGMENT "PRGA_Dialog"
+
+.EXPORT DataA_Dialog_MermaidVillageAlex_sDialog
+.PROC DataA_Dialog_MermaidVillageAlex_sDialog
+    dlg_Text ChildAlex, DataA_Text1_MermaidVillageAlex_Part1_u8_arr
+    dlg_Text ChildAlex, DataA_Text1_MermaidVillageAlex_Part2_u8_arr
+    dlg_Text ChildAlex, DataA_Text1_MermaidVillageAlex_Part3_u8_arr
+    dlg_Text ChildAlex, DataA_Text1_MermaidVillageAlex_Part4_u8_arr
+    dlg_Func _AddQuestMarker
+_AddQuestMarker:
+    ldx #eFlag::TempleNaveAlexWaiting  ; param: flag
+    jsr FuncA_Dialog_AddQuestMarker
+    ldya #_Finish_sDialog
+    rts
+_Finish_sDialog:
+    dlg_Text ChildAlex, DataA_Text1_MermaidVillageAlex_Part5_u8_arr
+    dlg_Func _StartCutscene
+_StartCutscene:
+    lda #eCutscene::MermaidVillageAlexLeave
+    sta Zp_Next_eCutscene
+    ldya #Data_Empty_sDialog
+    rts
+.ENDPROC
 
 .EXPORT DataA_Dialog_MermaidVillageGuard_sDialog
 .PROC DataA_Dialog_MermaidVillageGuard_sDialog
     ;; TODO: Different dialog once temple permission has been given.
-    dlg_Text MermaidAdult, DataA_Text0_MermaidVillageGuard_u8_arr
+    dlg_Text MermaidGuardF, DataA_Text1_MermaidVillageGuard_u8_arr
     dlg_Done
 .ENDPROC
 
@@ -364,12 +450,12 @@ _Quest2Func:
     ldya #_LookingForCorra_sDialog
     rts
 _Farming_sDialog:
-    dlg_Text MermaidFarmer, DataA_Text0_MermaidVillageFarmer_Farming_u8_arr
+    dlg_Text MermaidFarmer, DataA_Text1_MermaidVillageFarmer_Farming_u8_arr
     dlg_Done
 _NeedHelp_sDialog:
-    dlg_Text MermaidFarmer, DataA_Text0_MermaidVillageFarmer_NeedHelp_u8_arr
+    dlg_Text MermaidFarmer, DataA_Text1_MermaidVillageFarmer_NeedHelp_u8_arr
 _Monster_sDialog:
-    dlg_Text MermaidFarmer, DataA_Text0_MermaidVillageFarmer_Monster_u8_arr
+    dlg_Text MermaidFarmer, DataA_Text1_MermaidVillageFarmer_Monster_u8_arr
     dlg_Func _OpenTheWayFunc
 _OpenTheWayFunc:
     ldx #eFlag::GardenTowerCratesPlaced  ; param: flag
@@ -377,19 +463,19 @@ _OpenTheWayFunc:
     ldya #_OpenTheWay_sDialog
     rts
 _OpenTheWay_sDialog:
-    dlg_Text MermaidFarmer, DataA_Text0_MermaidVillageFarmer_OpenTheWay_u8_arr
+    dlg_Text MermaidFarmer, DataA_Text1_MermaidVillageFarmer_OpenTheWay_u8_arr
     dlg_Done
 _ThankYou_sDialog:
-    dlg_Text MermaidFarmer, DataA_Text0_MermaidVillageFarmer_ThankYou_u8_arr
+    dlg_Text MermaidFarmer, DataA_Text1_MermaidVillageFarmer_ThankYou_u8_arr
     dlg_Done
 _LookingForCorra_sDialog:
-    dlg_Text MermaidFarmer, DataA_Text0_MermaidVillageFarmer_LookingFor_u8_arr
+    dlg_Text MermaidFarmer, DataA_Text1_MermaidVillageFarmer_LookingFor_u8_arr
     dlg_Done
 .ENDPROC
 
 .EXPORT DataA_Dialog_MermaidVillageCorra_sDialog
 .PROC DataA_Dialog_MermaidVillageCorra_sDialog
-    dlg_Text MermaidCorra, DataA_Text0_MermaidVillageCorra_u8_arr
+    dlg_Text MermaidCorra, DataA_Text1_MermaidVillageCorra_u8_arr
     ;; TODO: more dialog
     dlg_Done
 .ENDPROC
@@ -398,94 +484,145 @@ _LookingForCorra_sDialog:
 .PROC DataA_Dialog_MermaidVillageBruno_sDialog
     dlg_Func _WhereIsAlexFunc
 _WhereIsAlexFunc:
-    ;; TODO: report other places where Alex can be
-    ;; If Alex has started waiting in the temple, and Anna hasn't yet visited
-    ;; the crypt, report that Alex is still in the temple.
+    ;; If Alex hasn't started waiting in the temple, then report that he's
+    ;; meeting with the mermaid queen.
+    flag_bit Sram_ProgressFlags_arr, eFlag::TempleNaveAlexWaiting
+    bne @notWithQueen
+    ldya #_AlexWithQueen_sDialog
+    rts
+    @notWithQueen:
+    ;; Otherwise, if Anna hasn't yet visited the crypt, then report that Alex
+    ;; is still in the temple.
     flag_bit Sram_ProgressFlags_arr, eFlag::CryptLandingDroppedIn
     bne @notInTemple
-    flag_bit Sram_ProgressFlags_arr, eFlag::TempleNaveAlexWaiting
-    beq @notInTemple
     ldya #_AlexInTemple_sDialog
     rts
     @notInTemple:
+    ;; TODO: report other places where Alex can be
     ;; If all else fails, just report that Alex is off exploring somewhere.
     ldya #_AlexExploring_sDialog
     rts
-_AlexExploring_sDialog:
-    dlg_Text ChildBruno, DataA_Text0_MermaidVillageBruno_AlexExploring_u8_arr
+_AlexWithQueen_sDialog:
+    dlg_Text ChildBruno, DataA_Text1_MermaidVillageBruno_AlexWithQueen_u8_arr
     dlg_Done
 _AlexInTemple_sDialog:
-    dlg_Text ChildBruno, DataA_Text0_MermaidVillageBruno_AlexInTemple_u8_arr
+    dlg_Text ChildBruno, DataA_Text1_MermaidVillageBruno_AlexInTemple_u8_arr
+    dlg_Done
+_AlexExploring_sDialog:
+    dlg_Text ChildBruno, DataA_Text1_MermaidVillageBruno_AlexExploring_u8_arr
     dlg_Done
 .ENDPROC
 
 ;;;=========================================================================;;;
 
-.SEGMENT "PRGA_Text0"
+.SEGMENT "PRGA_Text1"
 
-.PROC DataA_Text0_MermaidVillageGuard_u8_arr
+.PROC DataA_Text1_MermaidVillageAlex_Part1_u8_arr
+    .byte "Anna! Did you SEE that$"
+    .byte "place we went through$"
+    .byte "to get down here? It's$"
+    .byte "right under our town!#"
+.ENDPROC
+
+.PROC DataA_Text1_MermaidVillageAlex_Part2_u8_arr
+    .byte "It must be where that$"
+    .byte "metal thing I found is$"
+    .byte "from! ...And what the$"
+    .byte "orcs came looking for.#"
+.ENDPROC
+
+.PROC DataA_Text1_MermaidVillageAlex_Part3_u8_arr
+    .byte "We need to learn more.$"
+    .byte "But the queen won't$"
+    .byte "help! She's all upset$"
+    .byte "about some temple...#"
+.ENDPROC
+
+.PROC DataA_Text1_MermaidVillageAlex_Part4_u8_arr
+    .byte "Wait...she said humans$"
+    .byte "put machines in the$"
+    .byte "temple? Maybe we could$"
+    .byte "find some clues there.#"
+.ENDPROC
+
+.PROC DataA_Text1_MermaidVillageAlex_Part5_u8_arr
+    .byte "I'm going to go check$"
+    .byte "it out. Meet up with$"
+    .byte "me there later, OK?$"
+    .byte "I'll see you there.#"
+.ENDPROC
+
+.PROC DataA_Text1_MermaidVillageGuard_u8_arr
     .byte "I am guarding this$"
     .byte "village.#"
 .ENDPROC
 
-.PROC DataA_Text0_MermaidVillageFarmer_Farming_u8_arr
+.PROC DataA_Text1_MermaidVillageFarmer_Farming_u8_arr
     .byte "I am farming seaweed.$"
     .byte "The harvest has not$"
     .byte "been good this year,$"
     .byte "though.#"
 .ENDPROC
 
-.PROC DataA_Text0_MermaidVillageFarmer_NeedHelp_u8_arr
+.PROC DataA_Text1_MermaidVillageFarmer_NeedHelp_u8_arr
     .byte "The queen sent you?$"
     .byte "Thank goodness. We$"
     .byte "could use your help.#"
 .ENDPROC
 
-.PROC DataA_Text0_MermaidVillageFarmer_Monster_u8_arr
+.PROC DataA_Text1_MermaidVillageFarmer_Monster_u8_arr
     .byte "West of our village,$"
     .byte "there is a tower in$"
     .byte "the gardens. A monster$"
     .byte "has taken it over.#"
 .ENDPROC
 
-.PROC DataA_Text0_MermaidVillageFarmer_OpenTheWay_u8_arr
+.PROC DataA_Text1_MermaidVillageFarmer_OpenTheWay_u8_arr
     .byte "Perhaps one with your$"
     .byte "ingenuity could get$"
     .byte "rid of it? We'll open$"
     .byte "the way up for you.#"
 .ENDPROC
 
-.PROC DataA_Text0_MermaidVillageFarmer_ThankYou_u8_arr
+.PROC DataA_Text1_MermaidVillageFarmer_ThankYou_u8_arr
     .byte "You did it! Thank you$"
     .byte "for your help. You$"
     .byte "should go see the$"
     .byte "queen.#"
 .ENDPROC
 
-.PROC DataA_Text0_MermaidVillageFarmer_LookingFor_u8_arr
+.PROC DataA_Text1_MermaidVillageFarmer_LookingFor_u8_arr
     .byte "Are you looking for$"
     .byte "Corra? I think she$"
     .byte "went exploring in the$"
     .byte "caves above our vale.#"
 .ENDPROC
 
-.PROC DataA_Text0_MermaidVillageCorra_u8_arr
+.PROC DataA_Text1_MermaidVillageCorra_u8_arr
     .byte "Oh, hi! I met you back$"
     .byte "in the gardens. I'm$"
     .byte "Corra, by the way.#"
 .ENDPROC
 
-.PROC DataA_Text0_MermaidVillageBruno_AlexExploring_u8_arr
+.PROC DataA_Text1_MermaidVillageBruno_AlexWithQueen_u8_arr
+    .byte "If you're looking for$"
+    .byte "Alex, I think he went$"
+    .byte "to go talk with the$"
+    .byte "mermaid queen.#"
+.ENDPROC
+
+.PROC DataA_Text1_MermaidVillageBruno_AlexInTemple_u8_arr
+    .byte "If you're looking for$"
+    .byte "Alex, I think he's$"
+    .byte "waiting for you in the$"
+    .byte "temple.#"
+.ENDPROC
+
+.PROC DataA_Text1_MermaidVillageBruno_AlexExploring_u8_arr
     .byte "I think Alex went off$"
     .byte "exploring somewhere.$"
     .byte "Not sure where he is$"
     .byte "right now.#"
-.ENDPROC
-
-.PROC DataA_Text0_MermaidVillageBruno_AlexInTemple_u8_arr
-    .byte "If you're looking for$"
-    .byte "Alex, he's waiting for$"
-    .byte "you in the temple.#"
 .ENDPROC
 
 ;;;=========================================================================;;;

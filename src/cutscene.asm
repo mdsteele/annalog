@@ -32,6 +32,7 @@
 .IMPORT DataA_Cutscene_CoreBossStartBattle_sCutscene
 .IMPORT DataA_Cutscene_CoreSouthCorraHelping_sCutscene
 .IMPORT DataA_Cutscene_MermaidHut1BreakerGarden_sCutscene
+.IMPORT DataA_Cutscene_MermaidVillageAlexLeave_sCutscene
 .IMPORT DataA_Cutscene_PrisonCellGetThrownIn_sCutscene
 .IMPORT DataA_Cutscene_PrisonUpperBreakerTemple_sCutscene
 .IMPORT DataA_Cutscene_PrisonUpperFreeAlex_sCutscene
@@ -174,6 +175,8 @@ _Finish:
             DataA_Cutscene_CoreSouthCorraHelping_sCutscene
     d_entry table, MermaidHut1BreakerGarden, \
             DataA_Cutscene_MermaidHut1BreakerGarden_sCutscene
+    d_entry table, MermaidVillageAlexLeave, \
+            DataA_Cutscene_MermaidVillageAlexLeave_sCutscene
     d_entry table, PrisonCellGetThrownIn, \
             DataA_Cutscene_PrisonCellGetThrownIn_sCutscene
     d_entry table, PrisonUpperBreakerTemple, \
@@ -321,6 +324,7 @@ _InitMainFork:
     d_entry table, SetCutsceneFlags,  _SetCutsceneFlags
     d_entry table, SetScrollFlags,    _SetScrollFlags
     d_entry table, ShakeRoom,         _ShakeRoom
+    d_entry table, SwimNpcAlex,       _SwimNpcAlex
     d_entry table, WaitFrames,        _WaitFrames
     d_entry table, WaitUntilC,        _WaitUntilC
     d_entry table, WaitUntilZ,        _WaitUntilZ
@@ -595,32 +599,42 @@ _WalkAvatar:
     @reachedGoal:
     ldy #3  ; param: byte offset
     jmp FuncA_Cutscene_AdvanceForkAndExecute
+_MoveNpcReachedGoal:
+    ldy #4  ; param: byte offset
+    jmp FuncA_Cutscene_AdvanceForkAndExecute
+_SwimNpcAlex:
+    jsr _StartMoveNpc  ; returns X, Z, and N
+    beq _MoveNpcReachedGoal
+    jsr FuncA_Cutscene_AnimateNpcAlexSwimming  ; preserves X
+    jsr FuncA_Cutscene_FaceAvatarTowardsActor
+    clc  ; cutscene should continue
+    rts
 _WalkNpcAlex:
-    jsr _StartWalkNpc  ; returns X, Z, and N
-    beq _WalkNpcReachedGoal
+    jsr _StartMoveNpc  ; returns X, Z, and N
+    beq _MoveNpcReachedGoal
     jsr FuncA_Cutscene_AnimateNpcAlexWalking  ; preserves X
     jsr FuncA_Cutscene_FaceAvatarTowardsActor
     clc  ; cutscene should continue
     rts
 _WalkNpcNora:
-    jsr _StartWalkNpc  ; returns X, Z, and N
-    beq _WalkNpcReachedGoal
+    jsr _StartMoveNpc  ; returns X, Z, and N
+    beq _MoveNpcReachedGoal
     jsr FuncA_Cutscene_AnimateNpcNoraWalking
     clc  ; cutscene should continue
     rts
 _WalkNpcOrc:
-    jsr _StartWalkNpc  ; returns X, Z, and N
-    beq _WalkNpcReachedGoal
+    jsr _StartMoveNpc  ; returns X, Z, and N
+    beq _MoveNpcReachedGoal
     jsr FuncA_Cutscene_AnimateNpcOrcWalking
     clc  ; cutscene should continue
     rts
 _WalkNpcToddler:
-    jsr _StartWalkNpc  ; returns X, Z, and N
-    beq _WalkNpcReachedGoal
+    jsr _StartMoveNpc  ; returns X, Z, and N
+    beq _MoveNpcReachedGoal
     jsr FuncA_Cutscene_AnimateNpcToddlerWalking
     clc  ; cutscene should continue
     rts
-_StartWalkNpc:
+_StartMoveNpc:
     lda (T1T0), y
     tax  ; actor index
     iny
@@ -630,9 +644,6 @@ _StartWalkNpc:
     lda (T1T0), y
     sta Zp_PointX_i16 + 1
     jmp FuncA_Cutscene_MoveActorTowardPointX  ; preserves X, returns Z and N
-_WalkNpcReachedGoal:
-    ldy #4  ; param: byte offset
-    jmp FuncA_Cutscene_AdvanceForkAndExecute
 _CallFuncArg:
     lda (T1T0), y
     sta T2
@@ -763,6 +774,30 @@ _AnimatePose:
     lda #eAvatar::Running2
     @setPose:
     sta Zp_AvatarPose_eAvatar
+    rts
+.ENDPROC
+
+;;; Updates the flags and state of the specified Alex NPC actor for a swimming
+;;; animation.
+;;; @param N If set, the actor will face left; otherwise, it will face right.
+;;; @param X The actor index.
+;;; @preserve X, Y, T0+
+.PROC FuncA_Cutscene_AnimateNpcAlexSwimming
+    jsr FuncA_Cutscene_SetActorFlipHFromN  ; preserves X, Y and T0+
+    lda #$ff
+    sta Ram_ActorState2_byte_arr, x
+_AnimatePose:
+    lda Zp_FrameCounter_u8
+    and #$10
+    beq @swim2
+    @swim1:
+    lda #eNpcChild::AlexSwimming1
+    .assert eNpcChild::AlexSwimming1 > 0, error
+    bne @setState  ; unconditional
+    @swim2:
+    lda #eNpcChild::AlexSwimming2
+    @setState:
+    sta Ram_ActorState1_byte_arr, x
     rts
 .ENDPROC
 

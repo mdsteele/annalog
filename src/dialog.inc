@@ -39,11 +39,12 @@
     ChildBruno     = $1413
     ChildMarie     = $1211
     ChildNora      = $0a09  ; same portrait as MermaidPhoebe
-    MermaidAdult   = $0605
+    MermaidDaphne  = $0605  ; same portrait as MermaidGuardF
     MermaidCorra   = $0e0d
     MermaidEirene  = $1c1b
     MermaidFarmer  = $0807  ; same portrait as AdultMan
     MermaidFlorist = $100f
+    MermaidGuardF  = $0605  ; same portrait as MermaidDaphne
     MermaidPhoebe  = $0a09  ; same portrait as ChildNora
     OrcGronta      = $1716
     OrcGrontaShout = $1617
@@ -82,11 +83,12 @@
     MermaidHut1Guard
     MermaidHut1Queen
     MermaidHut2Guard
-    MermaidHut3MermaidAdult
+    MermaidHut3Daphne
     MermaidHut3Phoebe
     MermaidHut4Florist
     MermaidHut5Marie
     MermaidHut5Nora
+    MermaidVillageAlex
     MermaidVillageBruno
     MermaidVillageCorra
     MermaidVillageFarmer

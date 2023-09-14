@@ -43,6 +43,7 @@ kMaxForks = 4
     CoreBossStartBattle
     CoreSouthCorraHelping
     MermaidHut1BreakerGarden
+    MermaidVillageAlexLeave
     PrisonCellGetThrownIn
     PrisonUpperBreakerTemple
     PrisonUpperFreeAlex
@@ -130,6 +131,10 @@ kMaxForks = 4
     ;; Shakes the room by the specified amount, then the current cutscene fork
     ;; immediately continues on to the next action.
     ShakeRoom          ; args: num shake frames
+    ;; Causes the specified actor to swim to the specified room pixel
+    ;; X-position.  Suspends the current cutscene fork until the actor reaches
+    ;; the goal position.
+    SwimNpcAlex        ; args: actor index, goal X-position (2 bytes)
     ;; Suspends the current cutscene fork for the specified number of frames.
     WaitFrames         ; args: number of frames
     ;; Calls the specified function.  If the function clears C/Z, then the
@@ -272,6 +277,11 @@ kMaxForks = 4
 
 .MACRO act_ShakeRoom FRAMES
     .byte eAction::ShakeRoom, FRAMES
+.ENDMACRO
+
+.MACRO act_SwimNpcAlex INDEX, GOALX
+    .byte eAction::SwimNpcAlex, INDEX
+    .word GOALX
 .ENDMACRO
 
 .MACRO act_WaitFrames FRAMES

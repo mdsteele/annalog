@@ -262,7 +262,7 @@ _MaybeRaiseColumn:
 
 .EXPORT DataA_Dialog_TempleEntryMermaid_sDialog
 .PROC DataA_Dialog_TempleEntryMermaid_sDialog
-    dlg_Text MermaidAdult, DataA_Text0_TempleEntryMermaid_Intro_u8_arr
+    dlg_Text MermaidGuardF, DataA_Text0_TempleEntryMermaid_Intro_u8_arr
     dlg_Func _CheckPermissionFunc
 _CheckPermissionFunc:
     flag_bit Sram_ProgressFlags_arr, eFlag::TempleEntryPermission
@@ -270,7 +270,7 @@ _CheckPermissionFunc:
     ldya #_NoPermission_sDialog
     rts
 _NoPermission_sDialog:
-    dlg_Text MermaidAdult, DataA_Text0_TempleEntryMermaid_NoPermission_u8_arr
+    dlg_Text MermaidGuardF, DataA_Text0_TempleEntryMermaid_NoPermission_u8_arr
     dlg_Done
 _RaiseColumnFunc:
     ldx #eFlag::TempleEntryColumnRaised  ; param: flag
@@ -278,7 +278,7 @@ _RaiseColumnFunc:
     ldya #_Enter_sDialog
     rts
 _Enter_sDialog:
-    dlg_Text MermaidAdult, DataA_Text0_TempleEntryMermaid_Enter_u8_arr
+    dlg_Text MermaidGuardF, DataA_Text0_TempleEntryMermaid_Enter_u8_arr
     dlg_Done
 .ENDPROC
 

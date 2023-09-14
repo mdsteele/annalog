@@ -92,37 +92,41 @@ kPaletteObjChild = 1
     rts
 _Head_u8_arr:
     D_ENUM eNpcChild
-    d_byte AlexBoosting,  kTileIdObjChildFirst + $0e
-    d_byte AlexHolding,   kTileIdObjChildFirst + $0a
-    d_byte AlexKneeling,  kTileIdObjChildFirst + $0c
-    d_byte AlexLooking,   kTileIdObjChildFirst + $08
-    d_byte AlexStanding,  kTileIdObjChildFirst + $06
-    d_byte AlexWalking1,  kTileIdObjChildFirst + $06
-    d_byte AlexWalking2,  kTileIdObjChildFirst + $06
-    d_byte BrunoStanding, kTileIdObjChildFirst + $00
-    d_byte BrunoWalking1, kTileIdObjChildFirst + $00
-    d_byte BrunoWalking2, kTileIdObjChildFirst + $00
-    d_byte MarieStanding, kTileIdObjChildFirst + $02
-    d_byte MarieWalking1, kTileIdObjChildFirst + $02
-    d_byte MarieWalking2, kTileIdObjChildFirst + $02
-    d_byte NoraStanding,  kTileIdObjChildFirst + $04
+    d_byte AlexBoosting,  kTileIdObjChildStandFirst + $0e
+    d_byte AlexHolding,   kTileIdObjChildStandFirst + $0a
+    d_byte AlexKneeling,  kTileIdObjChildStandFirst + $0c
+    d_byte AlexLooking,   kTileIdObjChildStandFirst + $08
+    d_byte AlexStanding,  kTileIdObjChildStandFirst + $06
+    d_byte AlexSwimming1, kTileIdObjChildStandFirst + $06
+    d_byte AlexSwimming2, kTileIdObjChildSwimFirst  + $02
+    d_byte AlexWalking1,  kTileIdObjChildStandFirst + $06
+    d_byte AlexWalking2,  kTileIdObjChildStandFirst + $06
+    d_byte BrunoStanding, kTileIdObjChildStandFirst + $00
+    d_byte BrunoWalking1, kTileIdObjChildStandFirst + $00
+    d_byte BrunoWalking2, kTileIdObjChildStandFirst + $00
+    d_byte MarieStanding, kTileIdObjChildStandFirst + $02
+    d_byte MarieWalking1, kTileIdObjChildStandFirst + $02
+    d_byte MarieWalking2, kTileIdObjChildStandFirst + $02
+    d_byte NoraStanding,  kTileIdObjChildStandFirst + $04
     D_END
 _Feet_u8_arr:
     D_ENUM eNpcChild
-    d_byte AlexBoosting,  kTileIdObjChildFirst + $1e
-    d_byte AlexHolding,   kTileIdObjChildFirst + $1a
-    d_byte AlexKneeling,  kTileIdObjChildFirst + $1c
-    d_byte AlexLooking,   kTileIdObjChildFirst + $10
-    d_byte AlexStanding,  kTileIdObjChildFirst + $10
-    d_byte AlexWalking1,  kTileIdObjChildFirst + $16
-    d_byte AlexWalking2,  kTileIdObjChildFirst + $18
-    d_byte BrunoStanding, kTileIdObjChildFirst + $10
-    d_byte BrunoWalking1, kTileIdObjChildFirst + $16
-    d_byte BrunoWalking2, kTileIdObjChildFirst + $18
-    d_byte MarieStanding, kTileIdObjChildFirst + $12
-    d_byte MarieWalking1, kTileIdObjChildFirst + $16
-    d_byte MarieWalking2, kTileIdObjChildFirst + $18
-    d_byte NoraStanding,  kTileIdObjChildFirst + $14
+    d_byte AlexBoosting,  kTileIdObjChildStandFirst + $1e
+    d_byte AlexHolding,   kTileIdObjChildStandFirst + $1a
+    d_byte AlexKneeling,  kTileIdObjChildStandFirst + $1c
+    d_byte AlexLooking,   kTileIdObjChildStandFirst + $10
+    d_byte AlexStanding,  kTileIdObjChildStandFirst + $10
+    d_byte AlexSwimming1, kTileIdObjChildSwimFirst  + $04
+    d_byte AlexSwimming2, kTileIdObjChildSwimFirst  + $06
+    d_byte AlexWalking1,  kTileIdObjChildStandFirst + $16
+    d_byte AlexWalking2,  kTileIdObjChildStandFirst + $18
+    d_byte BrunoStanding, kTileIdObjChildStandFirst + $10
+    d_byte BrunoWalking1, kTileIdObjChildStandFirst + $16
+    d_byte BrunoWalking2, kTileIdObjChildStandFirst + $18
+    d_byte MarieStanding, kTileIdObjChildStandFirst + $12
+    d_byte MarieWalking1, kTileIdObjChildStandFirst + $16
+    d_byte MarieWalking2, kTileIdObjChildStandFirst + $18
+    d_byte NoraStanding,  kTileIdObjChildStandFirst + $14
     D_END
 .ENDPROC
 

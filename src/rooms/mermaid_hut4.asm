@@ -304,7 +304,10 @@ _Two_sDialog:
     dlg_Text MermaidFlorist, DataA_Text1_MermaidHut4Florist_Two3_u8_arr
     dlg_Done
 _Three_sDialog:
-    ;; TODO
+    dlg_Text MermaidFlorist, DataA_Text1_MermaidHut4Florist_Three1_u8_arr
+    dlg_Text MermaidFlorist, DataA_Text1_MermaidHut4Florist_Three2_u8_arr
+    dlg_Text MermaidFlorist, DataA_Text1_MermaidHut4Florist_Three3_u8_arr
+    dlg_Done
 _Four_sDialog:
     dlg_Text MermaidFlorist, DataA_Text1_MermaidHut4Florist_Four1_u8_arr
     dlg_Text MermaidFlorist, DataA_Text1_MermaidHut4Florist_Four2_u8_arr
@@ -450,6 +453,26 @@ _AllDone_sDialog:
     .byte "trouble you to find$"
     .byte "another? I would so$"
     .byte "appreciate it.#"
+.ENDPROC
+
+.PROC DataA_Text1_MermaidHut4Florist_Three1_u8_arr
+    .byte "Humans and mermaids$"
+    .byte "used to be close$"
+    .byte "friends, you know.#"
+.ENDPROC
+
+.PROC DataA_Text1_MermaidHut4Florist_Three2_u8_arr
+    .byte "But humans were never$"
+    .byte "able to shed their$"
+    .byte "violent ways, the way$"
+    .byte "we mermaids have.#"
+.ENDPROC
+
+.PROC DataA_Text1_MermaidHut4Florist_Three3_u8_arr
+    .byte "And not just violence.$"
+    .byte "Shortsightedness in$"
+    .byte "general. Which is why$"
+    .byte "so few humans remain.#"
 .ENDPROC
 
 .PROC DataA_Text1_MermaidHut4Florist_Four1_u8_arr

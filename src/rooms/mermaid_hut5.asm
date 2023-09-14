@@ -179,26 +179,29 @@ _Devices_sDevice_arr:
 .EXPORT DataA_Dialog_MermaidHut5Marie_sDialog
 .PROC DataA_Dialog_MermaidHut5Marie_sDialog
     ;; TODO: Report on what the mermaids are up to throughout the game.
-    dlg_Text ChildMarie, DataA_Text0_MermaidHut5Marie_u8_arr
+    dlg_Text ChildMarie, DataA_Text1_MermaidHut5Marie_u8_arr
     dlg_Done
 .ENDPROC
 
 .EXPORT DataA_Dialog_MermaidHut5Nora_sDialog
 .PROC DataA_Dialog_MermaidHut5Nora_sDialog
     ;; TODO: at some point in the game, change dialog
-    dlg_Text ChildNora, DataA_Text0_MermaidHut5Nora_u8_arr
+    dlg_Text ChildNora, DataA_Text1_MermaidHut5Nora_u8_arr
     dlg_Done
 .ENDPROC
 
 ;;;=========================================================================;;;
 
-.SEGMENT "PRGA_Text0"
+.SEGMENT "PRGA_Text1"
 
-.PROC DataA_Text0_MermaidHut5Marie_u8_arr
-    .byte "Lorem ipsum.#"
+.PROC DataA_Text1_MermaidHut5Marie_u8_arr
+    .byte "The mermaid queen is$"
+    .byte "letting us stay here,$"
+    .byte "but she doesn't seem$"
+    .byte "happy about it.#"
 .ENDPROC
 
-.PROC DataA_Text0_MermaidHut5Nora_u8_arr
+.PROC DataA_Text1_MermaidHut5Nora_u8_arr
     .byte "Well...if we're stuck$"
     .byte "here, I guess I may as$"
     .byte "well potty train my$"

@@ -81,7 +81,7 @@ _Actors_sActor_arr:
     d_byte Type_eActor, eActor::NpcMermaid
     d_word PosX_i16, $0040
     d_word PosY_i16, $00c8
-    d_byte Param_byte, kTileIdMermaidAdultFirst
+    d_byte Param_byte, kTileIdMermaidDaphneFirst
     D_END
     D_STRUCT sActor
     d_byte Type_eActor, eActor::NpcMermaid
@@ -96,13 +96,13 @@ _Devices_sDevice_arr:
     d_byte Type_eDevice, eDevice::TalkRight
     d_byte BlockRow_u8, 12
     d_byte BlockCol_u8, 3
-    d_byte Target_byte, eDialog::MermaidHut3MermaidAdult
+    d_byte Target_byte, eDialog::MermaidHut3Daphne
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::TalkLeft
     d_byte BlockRow_u8, 12
     d_byte BlockCol_u8, 4
-    d_byte Target_byte, eDialog::MermaidHut3MermaidAdult
+    d_byte Target_byte, eDialog::MermaidHut3Daphne
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::TalkRight
@@ -130,9 +130,9 @@ _Devices_sDevice_arr:
 
 .SEGMENT "PRGA_Dialog"
 
-.EXPORT DataA_Dialog_MermaidHut3MermaidAdult_sDialog
-.PROC DataA_Dialog_MermaidHut3MermaidAdult_sDialog
-    dlg_Text MermaidAdult, DataA_Text0_MermaidHut3MermaidAdult_Intro_u8_arr
+.EXPORT DataA_Dialog_MermaidHut3Daphne_sDialog
+.PROC DataA_Dialog_MermaidHut3Daphne_sDialog
+    dlg_Text MermaidDaphne, DataA_Text0_MermaidHut3Daphne_Intro_u8_arr
     dlg_Func _HotSpringFunc
 _HotSpringFunc:
     flag_bit Sram_ProgressFlags_arr, eFlag::MermaidDrainUnplugged
@@ -143,10 +143,10 @@ _HotSpringFunc:
     ldya #_HotSpringClosed_sDialog
     rts
 _HotSpringOpen_sDialog:
-    dlg_Text MermaidAdult, DataA_Text0_MermaidHut3MermaidAdult_Open_u8_arr
+    dlg_Text MermaidDaphne, DataA_Text0_MermaidHut3Daphne_Open_u8_arr
     dlg_Done
 _HotSpringClosed_sDialog:
-    dlg_Text MermaidAdult, DataA_Text0_MermaidHut3MermaidAdult_Closed_u8_arr
+    dlg_Text MermaidDaphne, DataA_Text0_MermaidHut3Daphne_Closed_u8_arr
     dlg_Done
 .ENDPROC
 
@@ -160,20 +160,20 @@ _HotSpringClosed_sDialog:
 
 .SEGMENT "PRGA_Text0"
 
-.PROC DataA_Text0_MermaidHut3MermaidAdult_Intro_u8_arr
+.PROC DataA_Text0_MermaidHut3Daphne_Intro_u8_arr
     .byte "There's a natural hot$"
     .byte "spring just east of$"
     .byte "this village.#"
 .ENDPROC
 
-.PROC DataA_Text0_MermaidHut3MermaidAdult_Open_u8_arr
+.PROC DataA_Text0_MermaidHut3Daphne_Open_u8_arr
     .byte "The water is heated by$"
     .byte "magma flows far below.$"
     .byte "It's a great place to$"
     .byte "relax.#"
 .ENDPROC
 
-.PROC DataA_Text0_MermaidHut3MermaidAdult_Closed_u8_arr
+.PROC DataA_Text0_MermaidHut3Daphne_Closed_u8_arr
     .byte "Unfortunately, all the$"
     .byte "water got drained out$"
     .byte "somehow. So now we$"
