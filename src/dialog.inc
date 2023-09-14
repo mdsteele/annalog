@@ -31,29 +31,30 @@
 ;;; dialog is paused, and the hi byte is the bank number to alternate with the
 ;;; first to animate the portrait while text is being written.
 .ENUM ePortrait
-    Done           = $0000  ; indicates end of dialog
-    AdultMan       = $0807  ; same portrait as MermaidFarmer
-    AdultWoman     = $0201
-    ChildAlex      = $0c0b
-    ChildAlexShout = $0b0c
-    ChildBruno     = $1413
-    ChildMarie     = $1211
-    ChildNora      = $0a09  ; same portrait as MermaidPhoebe
-    MermaidDaphne  = $0605  ; same portrait as MermaidGuardF
-    MermaidCorra   = $0e0d
-    MermaidEirene  = $1c1b
-    MermaidFarmer  = $0807  ; same portrait as AdultMan
-    MermaidFlorist = $100f
-    MermaidGuardF  = $0605  ; same portrait as MermaidDaphne
-    MermaidPhoebe  = $0a09  ; same portrait as ChildNora
-    OrcGronta      = $1716
-    OrcGrontaShout = $1617
-    OrcMale        = $1918
-    OrcMaleShout   = $1819
-    Paper          = $0404
-    Plaque         = $1515
-    Screen         = $1a1a
-    Sign           = $0303
+    Done               = $0000  ; indicates end of dialog
+    AdultMan           = $0807  ; same portrait as MermaidFarmer
+    AdultWoman         = $0201
+    ChildAlex          = $0c0b
+    ChildAlexShout     = $0b0c
+    ChildBruno         = $1413
+    ChildMarie         = $1211
+    ChildNora          = $0a09  ; same portrait as MermaidPhoebe
+    MermaidDaphne      = $0605  ; same portrait as MermaidGuardF
+    MermaidCorra       = $0e0d
+    MermaidEirene      = $1c1b
+    MermaidEireneShout = $1b1c
+    MermaidFarmer      = $0807  ; same portrait as AdultMan
+    MermaidFlorist     = $100f
+    MermaidGuardF      = $0605  ; same portrait as MermaidDaphne
+    MermaidPhoebe      = $0a09  ; same portrait as ChildNora
+    OrcGronta          = $1716
+    OrcGrontaShout     = $1617
+    OrcMale            = $1918
+    OrcMaleShout       = $1819
+    Paper              = $0404
+    Plaque             = $1515
+    Screen             = $1a1a
+    Sign               = $0303
 .ENDENUM
 
 ;;;=========================================================================;;;

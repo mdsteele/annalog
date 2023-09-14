@@ -27,6 +27,7 @@
 .INCLUDE "../dialog.inc"
 .INCLUDE "../flag.inc"
 .INCLUDE "../macros.inc"
+.INCLUDE "../oam.inc"
 .INCLUDE "../platform.inc"
 .INCLUDE "../room.inc"
 
@@ -36,6 +37,7 @@
 .IMPORT Func_SetFlag
 .IMPORT Main_Breaker_FadeBackToBreakerRoom
 .IMPORT Ppu_ChrObjVillage
+.IMPORT Ram_ActorFlags_bObj_arr
 .IMPORT Ram_ActorState2_byte_arr
 .IMPORT Ram_ActorType_eActor_arr
 .IMPORT Sram_ProgressFlags_arr
@@ -47,6 +49,8 @@
 kGuardActorIndex = 0
 ;;; The actor index for Alex in this room.
 kAlexActorIndex = 1
+;;; The actor index for Queen Eirene in this room.
+kEireneActorIndex = 2
 
 ;;;=========================================================================;;;
 
@@ -106,6 +110,7 @@ _Actors_sActor_arr:
     d_word PosY_i16, $00b8
     d_byte Param_byte, eNpcChild::AlexStanding
     D_END
+    .assert * - :- = kEireneActorIndex * .sizeof(sActor), error
     D_STRUCT sActor
     d_byte Type_eActor, eActor::NpcMermaidQueen
     d_word PosX_i16, $00c0
@@ -155,13 +160,17 @@ _Devices_sDevice_arr:
 
 .PROC FuncA_Room_MermaidHut1_EnterRoom
     ;; If a breaker cutscene is playing, make sure that Alex and the mermaid
-    ;; guard both face to the right.  If not, remove Alex.
+    ;; guard both face to the right, and that Eirene faces to the left.  If
+    ;; not, remove Alex.
     lda Zp_Next_eCutscene
     .assert eCutscene::None = 0, error
     beq @removeAlex
     lda #$ff
     sta Ram_ActorState2_byte_arr + kGuardActorIndex
     sta Ram_ActorState2_byte_arr + kAlexActorIndex
+    sta Ram_ActorState2_byte_arr + kEireneActorIndex
+    lda #bObj::FlipH
+    sta Ram_ActorFlags_bObj_arr + kEireneActorIndex
     ;; If this is the Crypt breaker cutscene specifically, Alex should stay;
     ;; otherwise, remove him.
     lda Zp_Next_eCutscene
@@ -193,7 +202,15 @@ _Devices_sDevice_arr:
 .PROC DataA_Cutscene_MermaidHut1BreakerGarden_sCutscene
     act_WaitFrames 60
     act_ShakeRoom 30
-    act_WaitFrames 60
+    act_WaitFrames 20
+    act_SetActorFlags kEireneActorIndex, 0
+    act_WaitFrames 10
+    act_SetActorFlags kGuardActorIndex, bObj::FlipH
+    act_WaitFrames 10
+    act_SetActorFlags kEireneActorIndex, bObj::FlipH
+    act_WaitFrames 10
+    act_SetActorFlags kGuardActorIndex, 0
+    act_WaitFrames 40
     act_RunDialog eDialog::MermaidHut1BreakerGarden
     act_JumpToMain Main_Breaker_FadeBackToBreakerRoom
 .ENDPROC
@@ -317,7 +334,7 @@ _KidsRescued_sDialog:
 
 .EXPORT DataA_Dialog_MermaidHut1BreakerGarden_sDialog
 .PROC DataA_Dialog_MermaidHut1BreakerGarden_sDialog
-    dlg_Text MermaidEirene, DataA_Text0_MermaidHut1BreakerGarden_u8_arr
+    dlg_Text MermaidEireneShout, DataA_Text0_MermaidHut1BreakerGarden_u8_arr
     dlg_Done
 .ENDPROC
 
@@ -477,7 +494,8 @@ _KidsRescued_sDialog:
 
 .PROC DataA_Text0_MermaidHut1BreakerGarden_u8_arr
     .byte "What the...What did$"
-    .byte "that human just do!?#"
+    .byte "that human girl just$"
+    .byte "do!?#"
 .ENDPROC
 
 .PROC DataA_Text0_MermaidHut1BreakerCrypt_Part1_u8_arr
