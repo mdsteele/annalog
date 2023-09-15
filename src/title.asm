@@ -213,6 +213,7 @@ _Flags_eFlag_arr:
     .byte eFlag::PrisonCellBlastedRocks
     .byte eFlag::GardenLandingDroppedIn
     .byte eFlag::UpgradeOpIf
+    .byte eFlag::GardenEastTalkedToCorra
     .byte eFlag::MermaidHut1MetQueen
     .byte eFlag::MermaidHut4MetFlorist
     .byte eFlag::GardenTowerCratesPlaced
