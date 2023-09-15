@@ -38,7 +38,7 @@
 .INCLUDE "../scroll.inc"
 
 .IMPORT DataA_Room_Prison_sTileset
-.IMPORT Data_Empty_sDialog
+.IMPORT FuncA_Dialog_JumpToCutscene
 .IMPORT FuncA_Objects_DrawStepstonePlatform
 .IMPORT FuncC_Prison_DrawGatePlatform
 .IMPORT FuncC_Prison_OpenGateAndFlipLever
@@ -569,10 +569,8 @@ _GetDoorOpen_sDialog:
 _CutsceneFunc:
     ldx #eFlag::PrisonUpperFreedKids  ; param: flag
     jsr Func_SetFlag
-    lda #eCutscene::PrisonUpperFreeKids
-    sta Zp_Next_eCutscene
-    ldya #Data_Empty_sDialog
-    rts
+    ldx #eCutscene::PrisonUpperFreeKids  ; param: cutscene
+    jmp FuncA_Dialog_JumpToCutscene
 .ENDPROC
 
 .EXPORT DataA_Dialog_PrisonUpperAlexLast_sDialog

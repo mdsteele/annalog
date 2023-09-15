@@ -31,15 +31,14 @@
 .INCLUDE "../room.inc"
 
 .IMPORT DataA_Room_Mermaid_sTileset
-.IMPORT Data_Empty_sDialog
 .IMPORT FuncA_Dialog_AddQuestMarker
+.IMPORT FuncA_Dialog_JumpToCutscene
 .IMPORT Func_Noop
 .IMPORT Func_SetFlag
 .IMPORT Ppu_ChrObjVillage
 .IMPORT Ram_ActorType_eActor_arr
 .IMPORT Ram_DeviceType_eDevice_arr
 .IMPORT Sram_ProgressFlags_arr
-.IMPORTZP Zp_Next_eCutscene
 
 ;;;=========================================================================;;;
 
@@ -399,10 +398,8 @@ _Finish_sDialog:
     dlg_Text ChildAlex, DataA_Text1_MermaidVillageAlex_Part5_u8_arr
     dlg_Func _StartCutscene
 _StartCutscene:
-    lda #eCutscene::MermaidVillageAlexLeave
-    sta Zp_Next_eCutscene
-    ldya #Data_Empty_sDialog
-    rts
+    ldx #eCutscene::MermaidVillageAlexLeave  ; param: cutscene
+    jmp FuncA_Dialog_JumpToCutscene
 .ENDPROC
 
 .EXPORT DataA_Dialog_MermaidVillageGuard_sDialog

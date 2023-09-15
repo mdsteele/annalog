@@ -100,6 +100,7 @@
 .IMPORT DataC_Town_TownOutdoorsIvan_sDialog
 .IMPORT DataC_Town_TownOutdoorsSandra_sDialog
 .IMPORT DataC_Town_TownOutdoorsSign_sDialog
+.IMPORT Data_Empty_sDialog
 .IMPORT FuncA_Dialog_PlaySfxQuestMarker
 .IMPORT FuncA_Objects_DrawObjectsForRoom
 .IMPORT FuncA_Terrain_ScrollTowardsAvatar
@@ -124,6 +125,7 @@
 .IMPORTZP Zp_FloatingHud_bHud
 .IMPORTZP Zp_FrameCounter_u8
 .IMPORTZP Zp_Nearby_bDevice
+.IMPORTZP Zp_Next_eCutscene
 .IMPORTZP Zp_P1ButtonsPressed_bJoypad
 .IMPORTZP Zp_PpuTransferLen_u8
 .IMPORTZP Zp_ScrollGoalY_u8
@@ -438,6 +440,17 @@ _UpdateScrolling:
 .PROC FuncA_Dialog_AddQuestMarker
     jsr Func_SetFlag  ; sets C if flag was already set
     jcc FuncA_Dialog_PlaySfxQuestMarker
+    rts
+.ENDPROC
+
+;;; Jump to this from a dynamic dialog function to end dialog and begin the
+;;; specified cutscene.
+;;; @param X The eCutscene value for the cutscene to start.
+;;; @return YA The address of an empty sDialog struct.
+.EXPORT FuncA_Dialog_JumpToCutscene
+.PROC FuncA_Dialog_JumpToCutscene
+    stx Zp_Next_eCutscene
+    ldya #Data_Empty_sDialog
     rts
 .ENDPROC
 

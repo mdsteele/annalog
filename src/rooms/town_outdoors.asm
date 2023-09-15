@@ -38,6 +38,7 @@
 .IMPORT DataA_Room_Outdoors_sTileset
 .IMPORT Data_Empty_sDialog
 .IMPORT Data_Empty_sPlatform_arr
+.IMPORT FuncA_Dialog_JumpToCutscene
 .IMPORT Func_AckIrqAndLatchWindowFromParam3
 .IMPORT Func_AckIrqAndSetLatch
 .IMPORT Func_HarmAvatar
@@ -335,10 +336,8 @@ _DetectAvatarDeath:
     dlg_Text ChildAlex, DataA_Text0_TownOutdoorsAlex1_u8_arr
     dlg_Func _CutsceneFunc
 _CutsceneFunc:
-    lda #eCutscene::TownOutdoorsOrcAttack
-    sta Zp_Next_eCutscene
-    ldya #Data_Empty_sDialog
-    rts
+    ldx #eCutscene::TownOutdoorsOrcAttack  ; param: cutscene
+    jmp FuncA_Dialog_JumpToCutscene
 .ENDPROC
 
 .EXPORT DataC_Town_TownOutdoorsAlex2_sDialog

@@ -31,7 +31,7 @@
 .INCLUDE "core_south.inc"
 
 .IMPORT DataA_Room_Core_sTileset
-.IMPORT Data_Empty_sDialog
+.IMPORT FuncA_Dialog_JumpToCutscene
 .IMPORT FuncA_Objects_Draw1x1Shape
 .IMPORT FuncA_Objects_DrawCratePlatform
 .IMPORT FuncA_Objects_MoveShapeDownByA
@@ -60,7 +60,6 @@
 .IMPORT Sram_ProgressFlags_arr
 .IMPORTZP Zp_AvatarPlatformIndex_u8
 .IMPORTZP Zp_FrameCounter_u8
-.IMPORTZP Zp_Next_eCutscene
 .IMPORTZP Zp_PointY_i16
 .IMPORTZP Zp_RoomState
 
@@ -484,10 +483,8 @@ _HelloAgain_sDialog:
     dlg_Text MermaidCorra, DataA_Text0_CoreSouthCorra1_HelloAgain3_u8_arr
     dlg_Func _HelpFunc
 _HelpFunc:
-    lda #eCutscene::CoreSouthCorraHelping
-    sta Zp_Next_eCutscene
-    ldya #Data_Empty_sDialog
-    rts
+    ldx #eCutscene::CoreSouthCorraHelping  ; param: cutscene
+    jmp FuncA_Dialog_JumpToCutscene
 .ENDPROC
 
 .EXPORT DataA_Dialog_CoreSouthCorra2_sDialog

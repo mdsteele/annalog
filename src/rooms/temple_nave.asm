@@ -36,7 +36,7 @@
 .INCLUDE "../room.inc"
 
 .IMPORT DataA_Room_Temple_sTileset
-.IMPORT Data_Empty_sDialog
+.IMPORT FuncA_Dialog_JumpToCutscene
 .IMPORT FuncA_Machine_CarriageTryMove
 .IMPORT FuncA_Machine_Error
 .IMPORT FuncA_Machine_GenericMoveTowardGoalHorz
@@ -59,7 +59,6 @@
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORT Ram_PlatformType_ePlatform_arr
 .IMPORT Sram_ProgressFlags_arr
-.IMPORTZP Zp_Next_eCutscene
 .IMPORTZP Zp_RoomState
 
 ;;;=========================================================================;;;
@@ -696,10 +695,8 @@ _SetUpBoostingPlatform:
     dlg_Text ChildAlex, DataA_Text0_TempleNaveAlexStand_Part3_u8_arr
     dlg_Func _CutsceneFunc
 _CutsceneFunc:
-    lda #eCutscene::TempleNaveAlexBoosting
-    sta Zp_Next_eCutscene
-    ldya #Data_Empty_sDialog
-    rts
+    ldx #eCutscene::TempleNaveAlexBoosting  ; param: cutscene
+    jmp FuncA_Dialog_JumpToCutscene
 .ENDPROC
 
 .EXPORT DataA_Dialog_TempleNaveAlexBoost1_sDialog
