@@ -315,8 +315,9 @@ _Passages_sPassage_arr:
 
 .PROC FuncA_Room_MermaidVillage_EnterRoom
 _Alex:
-    ;; Until the kids are rescued, Alex is in PrisonUpper, not here.
-    flag_bit Sram_ProgressFlags_arr, eFlag::PrisonUpperFreedKids
+    ;; Until Alex finishes his petition, Alex is in PrisonUpper or MermaidHut1,
+    ;; not here.
+    flag_bit Sram_ProgressFlags_arr, eFlag::MermaidHut1AlexPetition
     beq @removeAlex
     ;; Once Alex is waiting in the temple, he's no longer here.
     flag_bit Sram_ProgressFlags_arr, eFlag::TempleNaveAlexWaiting

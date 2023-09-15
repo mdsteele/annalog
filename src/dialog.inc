@@ -80,6 +80,7 @@
     LavaStationPaper
     MermaidDrainSign
     MermaidEntrySign
+    MermaidHut1AlexPetition
     MermaidHut1BreakerCrypt1
     MermaidHut1BreakerCrypt2
     MermaidHut1BreakerGarden

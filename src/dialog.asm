@@ -51,6 +51,7 @@
 .IMPORT DataA_Dialog_LavaStationPaper_sDialog
 .IMPORT DataA_Dialog_MermaidDrainSign_sDialog
 .IMPORT DataA_Dialog_MermaidEntrySign_sDialog
+.IMPORT DataA_Dialog_MermaidHut1AlexPetition_sDialog
 .IMPORT DataA_Dialog_MermaidHut1BreakerCrypt1_sDialog
 .IMPORT DataA_Dialog_MermaidHut1BreakerCrypt2_sDialog
 .IMPORT DataA_Dialog_MermaidHut1BreakerGarden_sDialog
@@ -376,6 +377,8 @@ _UpdateScrolling:
     d_entry t, LavaStationPaper,     DataA_Dialog_LavaStationPaper_sDialog
     d_entry t, MermaidDrainSign,     DataA_Dialog_MermaidDrainSign_sDialog
     d_entry t, MermaidEntrySign,     DataA_Dialog_MermaidEntrySign_sDialog
+    d_entry t, MermaidHut1AlexPetition, \
+            DataA_Dialog_MermaidHut1AlexPetition_sDialog
     d_entry t, MermaidHut1BreakerCrypt1, \
             DataA_Dialog_MermaidHut1BreakerCrypt1_sDialog
     d_entry t, MermaidHut1BreakerCrypt2, \

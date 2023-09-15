@@ -33,6 +33,7 @@
     AlexKneeling
     AlexLooking
     AlexStanding
+    AlexSwimDoor
     AlexSwimming1
     AlexSwimming2
     AlexWalking1

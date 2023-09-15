@@ -42,6 +42,7 @@ kMaxForks = 4
     CoreBossPowerUpCircuit
     CoreBossStartBattle
     CoreSouthCorraHelping
+    MermaidHut1AlexPetition
     MermaidHut1BreakerCrypt
     MermaidHut1BreakerGarden
     MermaidVillageAlexLeave

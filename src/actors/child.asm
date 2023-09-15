@@ -97,6 +97,7 @@ _Head_u8_arr:
     d_byte AlexKneeling,  kTileIdObjChildStandFirst + $0c
     d_byte AlexLooking,   kTileIdObjChildStandFirst + $08
     d_byte AlexStanding,  kTileIdObjChildStandFirst + $06
+    d_byte AlexSwimDoor,  kTileIdObjChildSwimFirst  + $00
     d_byte AlexSwimming1, kTileIdObjChildStandFirst + $06
     d_byte AlexSwimming2, kTileIdObjChildSwimFirst  + $02
     d_byte AlexWalking1,  kTileIdObjChildStandFirst + $06
@@ -116,6 +117,7 @@ _Feet_u8_arr:
     d_byte AlexKneeling,  kTileIdObjChildStandFirst + $1c
     d_byte AlexLooking,   kTileIdObjChildStandFirst + $10
     d_byte AlexStanding,  kTileIdObjChildStandFirst + $10
+    d_byte AlexSwimDoor,  kTileIdObjChildSwimFirst  + $04
     d_byte AlexSwimming1, kTileIdObjChildSwimFirst  + $04
     d_byte AlexSwimming2, kTileIdObjChildSwimFirst  + $06
     d_byte AlexWalking1,  kTileIdObjChildStandFirst + $16

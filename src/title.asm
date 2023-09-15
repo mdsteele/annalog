@@ -232,10 +232,15 @@ _Flags_eFlag_arr:
     .byte eFlag::FlowerFactory
     .byte eFlag::CoreSouthCorraWaiting
     .byte eFlag::CoreSouthCorraHelped
+    .byte eFlag::PrisonEastEastGateOpen
+    .byte eFlag::PrisonEastLowerGateShut
+    .byte eFlag::PrisonEastWestGateOpen
     .byte eFlag::PrisonUpperFoundAlex
     .byte eFlag::PrisonUpperFreedAlex
+    .byte eFlag::PrisonUpperGateOpen
     .byte eFlag::PrisonUpperFreedKids
     .byte eFlag::FlowerPrison
+    .byte eFlag::MermaidHut1AlexPetition
     .byte eFlag::FlowerCore
     .byte eFlag::TempleNaveAlexWaiting
     .byte eFlag::TempleNaveTalkedToAlex
