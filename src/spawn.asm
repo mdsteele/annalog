@@ -31,6 +31,7 @@
 
 .IMPORT FuncA_Avatar_InitMotionless
 .IMPORT FuncA_Room_InitAllMachines
+.IMPORT Func_TryPushAvatarVert
 .IMPORT Ram_DeviceBlockCol_u8_arr
 .IMPORT Ram_DeviceBlockRow_u8_arr
 .IMPORT Ram_DeviceTarget_byte_arr
@@ -39,6 +40,8 @@
 .IMPORT Sram_LastSafe_eRoom
 .IMPORTZP Zp_AvatarPosX_i16
 .IMPORTZP Zp_AvatarPosY_i16
+.IMPORTZP Zp_AvatarPushDelta_i8
+.IMPORTZP Zp_AvatarState_bAvatar
 .IMPORTZP Zp_Current_eRoom
 .IMPORTZP Zp_Current_sRoom
 .IMPORTZP Zp_Nearby_bDevice
@@ -327,7 +330,25 @@ _FoundMatchingDoor:
     ;; Make the avatar stand still, facing to the right.
     lda #0  ; param: facing direction (0 = right)
     tax  ; param: bAvatar value
-    jmp FuncA_Avatar_InitMotionless
+    jsr FuncA_Avatar_InitMotionless
+_CheckForShallowWater:
+    ;; Check if the avatar has spawned in water, just below the surface.
+    bit Zp_AvatarState_bAvatar
+    .assert bAvatar::Swimming = bProc::Overflow, error
+    bvc @done  ; not in water
+    lda Zp_AvatarState_bAvatar
+    and #bAvatar::DepthMask
+    cmp #kTileHeightPx
+    bge @done  ; deep in the water
+    ;; If the avatar is just below the water's surface, push the avatar up to
+    ;; the surface (by negating the depth and using that as the push delta).
+    eor #$ff
+    tax
+    inx
+    stx Zp_AvatarPushDelta_i8
+    jmp Func_TryPushAvatarVert
+    @done:
+    rts
 _DeviceOffset_u8_arr:
     D_ENUM eDevice
     d_byte None,          $08
