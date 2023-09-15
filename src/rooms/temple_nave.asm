@@ -356,21 +356,21 @@ _Devices_sDevice_arr:
     d_byte Type_eDevice, eDevice::Placeholder  ; becomes TalkRight
     d_byte BlockRow_u8, 21
     d_byte BlockCol_u8, 8
-    d_byte Target_byte, eDialog::TempleNaveAlexStanding
+    d_byte Target_byte, eDialog::TempleNaveAlexStand
     D_END
     .assert * - :- = kAlexStandingDeviceIndexLeft * .sizeof(sDevice), error
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Placeholder  ; becomes TalkLeft
     d_byte BlockRow_u8, 21
     d_byte BlockCol_u8, 9
-    d_byte Target_byte, eDialog::TempleNaveAlexStanding
+    d_byte Target_byte, eDialog::TempleNaveAlexStand
     D_END
     .assert * - :- = kAlexBoostingDeviceIndex * .sizeof(sDevice), error
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Placeholder  ; becomes TalkLeft
     d_byte BlockRow_u8, 21
     d_byte BlockCol_u8, 7
-    d_byte Target_byte, eDialog::TempleNaveAlexBoosting
+    d_byte Target_byte, eDialog::TempleNaveAlexBoost2
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Console
@@ -640,6 +640,15 @@ _MoveToBottomRight:
 
 .EXPORT DataA_Cutscene_TempleNaveAlexBoosting_sCutscene
 .PROC DataA_Cutscene_TempleNaveAlexBoosting_sCutscene
+    ;; Animate Alex and Anna looking towards the machinery as the camera slowly
+    ;; pans.
+    act_SetActorState2 kAlexActorIndex, $ff
+    act_SetActorFlags kAlexActorIndex, 0
+    act_SetAvatarFlags kPaletteObjAvatarNormal
+    act_ScrollSlowX $0074
+    act_WaitFrames 90
+    ;; Make Alex talk more, then walk over to his boosting position.
+    act_RunDialog eDialog::TempleNaveAlexBoost1
     act_WalkNpcAlex kAlexActorIndex, kAlexBoostingPositionX
     ;; Animate Alex turning around, crouching down, and raising his arms to
     ;; give Anna a boost.
@@ -651,7 +660,7 @@ _MoveToBottomRight:
     act_SetActorState1 kAlexActorIndex, eNpcChild::AlexBoosting
     act_WaitFrames 30
     act_CallFunc _SetUpBoostingPlatform
-    act_RunDialog eDialog::TempleNaveAlexBoosting
+    act_RunDialog eDialog::TempleNaveAlexBoost2
     act_ContinueExploring
 _SetUpBoostingPlatform:
     ;; Set up the device/platform for Alex giving Anna a boost.
@@ -680,9 +689,11 @@ _SetUpBoostingPlatform:
 
 .SEGMENT "PRGA_Dialog"
 
-.EXPORT DataA_Dialog_TempleNaveAlexStanding_sDialog
-.PROC DataA_Dialog_TempleNaveAlexStanding_sDialog
-    dlg_Text ChildAlex, DataA_Text0_TempleNaveAlexStanding_u8_arr
+.EXPORT DataA_Dialog_TempleNaveAlexStand_sDialog
+.PROC DataA_Dialog_TempleNaveAlexStand_sDialog
+    dlg_Text ChildAlex, DataA_Text0_TempleNaveAlexStand_Part1_u8_arr
+    dlg_Text ChildAlex, DataA_Text0_TempleNaveAlexStand_Part2_u8_arr
+    dlg_Text ChildAlex, DataA_Text0_TempleNaveAlexStand_Part3_u8_arr
     dlg_Func _CutsceneFunc
 _CutsceneFunc:
     lda #eCutscene::TempleNaveAlexBoosting
@@ -691,9 +702,15 @@ _CutsceneFunc:
     rts
 .ENDPROC
 
-.EXPORT DataA_Dialog_TempleNaveAlexBoosting_sDialog
-.PROC DataA_Dialog_TempleNaveAlexBoosting_sDialog
-    dlg_Text ChildAlex, DataA_Text0_TempleNaveAlexBoosting_u8_arr
+.EXPORT DataA_Dialog_TempleNaveAlexBoost1_sDialog
+.PROC DataA_Dialog_TempleNaveAlexBoost1_sDialog
+    dlg_Text ChildAlex, DataA_Text0_TempleNaveAlexBoost1_u8_arr
+    dlg_Done
+.ENDPROC
+
+.EXPORT DataA_Dialog_TempleNaveAlexBoost2_sDialog
+.PROC DataA_Dialog_TempleNaveAlexBoost2_sDialog
+    dlg_Text ChildAlex, DataA_Text0_TempleNaveAlexBoost2_u8_arr
     dlg_Done
 .ENDPROC
 
@@ -701,14 +718,35 @@ _CutsceneFunc:
 
 .SEGMENT "PRGA_Text0"
 
-.PROC DataA_Text0_TempleNaveAlexStanding_u8_arr
-    .byte "There's something$"
-    .byte "hidden underneath this$"
-    .byte "temple, and we should$"
+.PROC DataA_Text0_TempleNaveAlexStand_Part1_u8_arr
+    .byte "Good to see you, Anna.$"
+    .byte "I've been exploring$"
+    .byte "this temple. Learning$"
+    .byte "a lot.#"
+.ENDPROC
+
+.PROC DataA_Text0_TempleNaveAlexStand_Part2_u8_arr
+    .byte "I guess humans and$"
+    .byte "mermaids used to be$"
+    .byte "friends. They built$"
+    .byte "this place together.#"
+.ENDPROC
+
+.PROC DataA_Text0_TempleNaveAlexStand_Part3_u8_arr
+    .byte "But all this advanced$"
+    .byte "technology...it's from$"
+    .byte "humans. How did we$"
+    .byte "lose that knowledge?#"
+.ENDPROC
+
+.PROC DataA_Text0_TempleNaveAlexBoost1_u8_arr
+    .byte "Anna, I think there's$"
+    .byte "something hidden under$"
+    .byte "this temple. We should$"
     .byte "find out what it is.#"
 .ENDPROC
 
-.PROC DataA_Text0_TempleNaveAlexBoosting_u8_arr
+.PROC DataA_Text0_TempleNaveAlexBoost2_u8_arr
     .byte "Hop on up. I'll give$"
     .byte "you a boost.#"
 .ENDPROC

@@ -81,8 +81,9 @@
 .IMPORT DataA_Dialog_TempleAltarPlaque_sDialog
 .IMPORT DataA_Dialog_TempleEntryMermaid_sDialog
 .IMPORT DataA_Dialog_TempleFoyerPaper_sDialog
-.IMPORT DataA_Dialog_TempleNaveAlexBoosting_sDialog
-.IMPORT DataA_Dialog_TempleNaveAlexStanding_sDialog
+.IMPORT DataA_Dialog_TempleNaveAlexBoost1_sDialog
+.IMPORT DataA_Dialog_TempleNaveAlexBoost2_sDialog
+.IMPORT DataA_Dialog_TempleNaveAlexStand_sDialog
 .IMPORT DataA_Dialog_TemplePitPaper_sDialog
 .IMPORT DataA_Dialog_TownHouse1Nora_sDialog
 .IMPORT DataA_Dialog_TownHouse3Smith_sDialog
@@ -407,10 +408,9 @@ _UpdateScrolling:
     d_entry t, TempleAltarPlaque,    DataA_Dialog_TempleAltarPlaque_sDialog
     d_entry t, TempleEntryMermaid,   DataA_Dialog_TempleEntryMermaid_sDialog
     d_entry t, TempleFoyerPaper,     DataA_Dialog_TempleFoyerPaper_sDialog
-    d_entry t, TempleNaveAlexBoosting, \
-            DataA_Dialog_TempleNaveAlexBoosting_sDialog
-    d_entry t, TempleNaveAlexStanding, \
-            DataA_Dialog_TempleNaveAlexStanding_sDialog
+    d_entry t, TempleNaveAlexBoost1, DataA_Dialog_TempleNaveAlexBoost1_sDialog
+    d_entry t, TempleNaveAlexBoost2, DataA_Dialog_TempleNaveAlexBoost2_sDialog
+    d_entry t, TempleNaveAlexStand,  DataA_Dialog_TempleNaveAlexStand_sDialog
     d_entry t, TemplePitPaper,       DataA_Dialog_TemplePitPaper_sDialog
     d_entry t, TownHouse1Nora,       DataA_Dialog_TownHouse1Nora_sDialog
     d_entry t, TownHouse2Stela,      DataC_Town_TownHouse2Stela_sDialog

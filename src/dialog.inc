@@ -110,8 +110,9 @@
     TempleAltarPlaque
     TempleEntryMermaid
     TempleFoyerPaper
-    TempleNaveAlexBoosting
-    TempleNaveAlexStanding
+    TempleNaveAlexBoost1
+    TempleNaveAlexBoost2
+    TempleNaveAlexStand
     TemplePitPaper
     TownHouse1Nora
     TownHouse2Stela
