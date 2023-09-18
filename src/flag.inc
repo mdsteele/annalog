@@ -101,8 +101,8 @@ kSaveMagicNumber = $b2
     CoreSouthCorraHelped
     CoreSouthCorraWaiting
     CryptLandingDroppedIn
-    CryptSouthWeakFloor
-    CryptTombWeakFloors
+    CryptSouthBrokeFloor
+    CryptTombBrokeFloors
     GardenEastTalkedToCorra
     GardenLandingDroppedIn
     GardenTowerCratesPlaced

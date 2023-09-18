@@ -247,8 +247,8 @@ _Flags_eFlag_arr:
     .byte eFlag::TempleNaveTalkedToAlex
     .byte eFlag::CryptLandingDroppedIn
     .byte eFlag::UpgradeOpGoto
-    .byte eFlag::CryptSouthWeakFloor
-    .byte eFlag::CryptTombWeakFloors
+    .byte eFlag::CryptSouthBrokeFloor
+    .byte eFlag::CryptTombBrokeFloors
     .byte eFlag::BossCrypt
     .byte eFlag::UpgradeOpWait
     .byte eFlag::BreakerCrypt

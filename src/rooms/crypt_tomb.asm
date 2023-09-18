@@ -449,7 +449,7 @@ _MoveVert:
     lda Zp_RoomState + sState::WeakFloorHp_u8_arr2 + 0
     ora Zp_RoomState + sState::WeakFloorHp_u8_arr2 + 1
     bne @notBothBroken
-    ldx #eFlag::CryptTombWeakFloors
+    ldx #eFlag::CryptTombBrokeFloors
     jsr Func_SetFlag
     @notBothBroken:
     ;; Keep falling past where the breakable floor was.
@@ -588,7 +588,7 @@ _SolidFloorZ_u8_arr:
     cmp #bSpawn::Device | kDoorDeviceIndex
     beq FuncA_Room_CryptTomb_RemoveBreakableFloors
     ;; If the weak floors have already been broken, remove them platforms.
-    flag_bit Sram_ProgressFlags_arr, eFlag::CryptTombWeakFloors
+    flag_bit Sram_ProgressFlags_arr, eFlag::CryptTombBrokeFloors
     bne FuncA_Room_CryptTomb_RemoveBreakableFloors
     ;; Otherwise, initialize the floors' HP.
     lda #kNumWinchHitsToBreakFloor

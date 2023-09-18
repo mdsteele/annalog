@@ -30,6 +30,8 @@
 .INCLUDE "../ppu.inc"
 .INCLUDE "../program.inc"
 .INCLUDE "../room.inc"
+.INCLUDE "../scroll.inc"
+.INCLUDE "../spawn.inc"
 
 .IMPORT DataA_Room_Crypt_sTileset
 .IMPORT FuncA_Machine_Error
@@ -63,11 +65,18 @@
 .IMPORT Ram_PlatformType_ePlatform_arr
 .IMPORT Sram_ProgressFlags_arr
 .IMPORTZP Zp_AvatarPlatformIndex_u8
+.IMPORTZP Zp_Camera_bScroll
 .IMPORTZP Zp_PointX_i16
 .IMPORTZP Zp_PointY_i16
+.IMPORTZP Zp_RoomScrollY_u8
 .IMPORTZP Zp_RoomState
 
 ;;;=========================================================================;;;
+
+;;; The device index for the console in the bottom half of this room.
+kLowerConsoleDeviceIndex = 1
+;;; The passage index for the passage in the bottom half of this room.
+kLowerPassageIndex = 2
 
 ;;; The machine index for the CryptSouthWinch machine in this room.
 kWinchMachineIndex = 0
@@ -248,6 +257,7 @@ _Devices_sDevice_arr:
     d_byte BlockCol_u8, 9
     d_byte Target_byte, kWinchMachineIndex
     D_END
+    .assert * - :- = kLowerConsoleDeviceIndex * .sizeof(sDevice), error
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Console
     d_byte BlockRow_u8, 20
@@ -267,6 +277,7 @@ _Passages_sPassage_arr:
     d_byte Destination_eRoom, eRoom::CryptChains
     d_byte SpawnBlock_u8, 3
     D_END
+    .assert * - :- = kLowerPassageIndex * .sizeof(sPassage), error
     D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Western | 1
     d_byte Destination_eRoom, eRoom::CryptTomb
@@ -418,8 +429,10 @@ _MoveVert:
     jsr Func_PlaySfxExplodeFracture
     lda #ePlatform::None
     sta Ram_PlatformType_ePlatform_arr + kWeakFloorPlatformIndex
-    ldx #eFlag::CryptSouthWeakFloor
+    ldx #eFlag::CryptSouthBrokeFloor
     jsr Func_SetFlag
+    lda #0
+    sta Zp_Camera_bScroll
     ;; Keep falling past where the breakable floor was.
     ldy #kWeakFloorGoalX  ; param: goal X
     jsr FuncC_Crypt_GetSouthFloorZ  ; returns A
@@ -515,10 +528,31 @@ _SolidFloor_u8_arr:
 
 .SEGMENT "PRGA_Room"
 
+;;; Called when the player avatar enters the CryptSouth room.
+;;; @param A The bSpawn value for where the avatar is entering the room.
 .PROC FuncA_Room_CryptSouth_EnterRoom
+_Scrolling:
+    ;; If entering from the lower passage or spawning at the lower console,
+    ;; don't lock scrolling (although normally that shouldn't be possible
+    ;; before the weak floor has been broken).
+    cmp #bSpawn::Passage | kLowerPassageIndex
+    beq @done
+    cmp #bSpawn::Device | kLowerConsoleDeviceIndex
+    beq @done
+    ;; If the weak floor has already been broken, don't lock scrolling.
+    flag_bit Sram_ProgressFlags_arr, eFlag::CryptSouthBrokeFloor
+    bne @done
+    ;; Otherwise, lock scrolling to the top half of the room.
+    @lockScrolling:
+    lda #bScroll::LockVert
+    sta Zp_Camera_bScroll
+    lda #0
+    sta Zp_RoomScrollY_u8
+    @done:
+_WeakFloor:
     ;; If the weak floor hasn't been broken yet, initialize its HP.  Otherwise,
     ;; remove its platform.
-    flag_bit Sram_ProgressFlags_arr, eFlag::CryptSouthWeakFloor
+    flag_bit Sram_ProgressFlags_arr, eFlag::CryptSouthBrokeFloor
     bne @floorBroken
     @floorSolid:
     lda #kNumWinchHitsToBreakFloor
