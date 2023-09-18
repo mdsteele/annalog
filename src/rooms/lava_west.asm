@@ -205,7 +205,7 @@ _Devices_sDevice_arr:
 _Passages_sPassage_arr:
 :   D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Top | 0
-    d_byte Destination_eRoom, eRoom::MermaidDrain
+    d_byte Destination_eRoom, eRoom::MermaidSpring
     d_byte SpawnBlock_u8, 7
     D_END
     D_STRUCT sPassage

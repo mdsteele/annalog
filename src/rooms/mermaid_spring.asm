@@ -58,14 +58,14 @@
 
 ;;;=========================================================================;;;
 
-;;; The device index for the MermaidDrainPump console.
+;;; The device index for the MermaidSpringPump console.
 kConsoleDeviceIndex = 1
 ;;; The device index for the lever at the bottom of the hot spring.
 kLeverDeviceIndex = 2
 
-;;; The machine index for the MermaidDrainPump machine.
+;;; The machine index for the MermaidSpringPump machine.
 kPumpMachineIndex = 0
-;;; The platform index for the MermaidDrainPump machine.
+;;; The platform index for the MermaidSpringPump machine.
 kPumpPlatformIndex = 0
 ;;; The platform index for the movable water.
 kWaterPlatformIndex = 1
@@ -95,8 +95,8 @@ kWaterMinPlatformTop = kWaterMaxPlatformTop - kPumpMaxGoalY * kBlockHeightPx
 
 .SEGMENT "PRGC_Mermaid"
 
-.EXPORT DataC_Mermaid_Drain_sRoom
-.PROC DataC_Mermaid_Drain_sRoom
+.EXPORT DataC_Mermaid_Spring_sRoom
+.PROC DataC_Mermaid_Spring_sRoom
     D_STRUCT sRoom
     d_byte MinScrollX_u8, $08
     d_word MaxScrollX_u16, $0008
@@ -116,18 +116,18 @@ _Ext_sRoomExt:
     d_addr Actors_sActor_arr_ptr, _Actors_sActor_arr
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
     d_addr Passages_sPassage_arr_ptr, _Passages_sPassage_arr
-    d_addr Enter_func_ptr, DataC_Mermaid_Drain_EnterRoom
+    d_addr Enter_func_ptr, DataC_Mermaid_Spring_EnterRoom
     d_addr FadeIn_func_ptr, Func_Noop
-    d_addr Tick_func_ptr, DataC_Mermaid_Drain_TickRoom
-    d_addr Draw_func_ptr, DataC_Mermaid_Drain_DrawRoom
+    d_addr Tick_func_ptr, DataC_Mermaid_Spring_TickRoom
+    d_addr Draw_func_ptr, DataC_Mermaid_Spring_DrawRoom
     D_END
 _TerrainData:
-:   .incbin "out/data/mermaid_drain.room"
+:   .incbin "out/data/mermaid_spring.room"
     .assert * - :- = 18 * 24, error
 _Machines_sMachine_arr:
 :   .assert * - :- = kPumpMachineIndex * .sizeof(sMachine), error
     D_STRUCT sMachine
-    d_byte Code_eProgram, eProgram::MermaidDrainPump
+    d_byte Code_eProgram, eProgram::MermaidSpringPump
     d_byte Breaker_eFlag, 0
     d_byte Flags_bMachine, bMachine::MoveV
     d_byte Status_eDiagram, eDiagram::Lift  ; TODO
@@ -135,14 +135,14 @@ _Machines_sMachine_arr:
     d_byte ScrollGoalY_u8, $00
     d_byte RegNames_u8_arr4, 0, 0, 0, "Y"
     d_byte MainPlatform_u8, kPumpPlatformIndex
-    d_addr Init_func_ptr, FuncC_Mermaid_DrainPump_InitReset
-    d_addr ReadReg_func_ptr, FuncC_Mermaid_DrainPump_ReadReg
+    d_addr Init_func_ptr, FuncC_Mermaid_SpringPump_InitReset
+    d_addr ReadReg_func_ptr, FuncC_Mermaid_SpringPump_ReadReg
     d_addr WriteReg_func_ptr, Func_Noop
-    d_addr TryMove_func_ptr, FuncC_Mermaid_DrainPump_TryMove
+    d_addr TryMove_func_ptr, FuncC_Mermaid_SpringPump_TryMove
     d_addr TryAct_func_ptr, FuncA_Machine_Error
-    d_addr Tick_func_ptr, FuncC_Mermaid_DrainPump_Tick
-    d_addr Draw_func_ptr, FuncA_Objects_MermaidDrainPump_Draw
-    d_addr Reset_func_ptr, FuncC_Mermaid_DrainPump_InitReset
+    d_addr Tick_func_ptr, FuncC_Mermaid_SpringPump_Tick
+    d_addr Draw_func_ptr, FuncA_Objects_MermaidSpringPump_Draw
+    d_addr Reset_func_ptr, FuncC_Mermaid_SpringPump_InitReset
     D_END
     .assert * - :- <= kMaxMachines * .sizeof(sMachine), error
 _Platforms_sPlatform_arr:
@@ -180,7 +180,7 @@ _Devices_sDevice_arr:
     d_byte Type_eDevice, eDevice::Sign
     d_byte BlockRow_u8, 6
     d_byte BlockCol_u8, 5
-    d_byte Target_byte, eDialog::MermaidDrainSign
+    d_byte Target_byte, eDialog::MermaidSpringSign
     D_END
     .assert * - :- = kConsoleDeviceIndex * .sizeof(sDevice), error
     D_STRUCT sDevice
@@ -217,9 +217,9 @@ _Passages_sPassage_arr:
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
 .ENDPROC
 
-.PROC DataC_Mermaid_Drain_EnterRoom
+.PROC DataC_Mermaid_Spring_EnterRoom
     ;; TODO: remove console device if Alex hasn't repaired it yet
-    flag_bit Sram_ProgressFlags_arr, eFlag::MermaidDrainUnplugged
+    flag_bit Sram_ProgressFlags_arr, eFlag::MermaidSpringUnplugged
     bne _Drained
 _NotDrained:
     rts
@@ -234,13 +234,13 @@ _Drained:
     rts
 .ENDPROC
 
-.PROC DataC_Mermaid_Drain_TickRoom
+.PROC DataC_Mermaid_Spring_TickRoom
     lda Zp_RoomState + sState::Lever_u8
     beq @done
     lda #ePlatform::Zone
     sta Ram_PlatformType_ePlatform_arr + kWaterPlatformIndex
     sta Ram_PlatformType_ePlatform_arr + kSandPlatformIndex
-    ldx #eFlag::MermaidDrainUnplugged
+    ldx #eFlag::MermaidSpringUnplugged
     jsr Func_SetFlag  ; sets C if flag was already set
     bcs @done
     ;; TODO: start animating disappearing sand and falling water
@@ -248,18 +248,18 @@ _Drained:
     rts
 .ENDPROC
 
-.PROC DataC_Mermaid_Drain_DrawRoom
+.PROC DataC_Mermaid_Spring_DrawRoom
     ;; TODO: draw sand platform (if not yet unplugged)
     rts
 .ENDPROC
 
-.PROC FuncC_Mermaid_DrainPump_InitReset
+.PROC FuncC_Mermaid_SpringPump_InitReset
     lda #kPumpInitGoalY
     sta Ram_MachineGoalVert_u8_arr + kPumpMachineIndex
     rts
 .ENDPROC
 
-.PROC FuncC_Mermaid_DrainPump_ReadReg
+.PROC FuncC_Mermaid_SpringPump_ReadReg
     .assert kWaterMaxPlatformTop + kTileHeightPx >= $100, error
     lda #<(kWaterMaxPlatformTop + kTileHeightPx)
     sub Ram_PlatformTop_i16_0_arr + kWaterPlatformIndex
@@ -268,12 +268,12 @@ _Drained:
     rts
 .ENDPROC
 
-.PROC FuncC_Mermaid_DrainPump_TryMove
+.PROC FuncC_Mermaid_SpringPump_TryMove
     lda #kPumpMaxGoalY  ; param: max vertical goal
     jmp FuncA_Machine_GenericTryMoveY
 .ENDPROC
 
-.PROC FuncC_Mermaid_DrainPump_Tick
+.PROC FuncC_Mermaid_SpringPump_Tick
     ;; Calculate the desired Y-position for the top edge of the water, in
     ;; room-space pixels, storing it in Zp_PointY_i16.
     lda Ram_MachineGoalVert_u8_arr + kPumpMachineIndex
@@ -310,7 +310,7 @@ _Drained:
 
 .SEGMENT "PRGA_Objects"
 
-.PROC FuncA_Objects_MermaidDrainPump_Draw
+.PROC FuncA_Objects_MermaidSpringPump_Draw
     ;; TODO: draw the pump machine itself
 _Water:
     ;; Don't draw the water if it's been drained.
@@ -359,11 +359,11 @@ _WaterWidth_u8_arr:
 
 .SEGMENT "PRGA_Dialog"
 
-.EXPORT DataA_Dialog_MermaidDrainSign_sDialog
-.PROC DataA_Dialog_MermaidDrainSign_sDialog
+.EXPORT DataA_Dialog_MermaidSpringSign_sDialog
+.PROC DataA_Dialog_MermaidSpringSign_sDialog
     dlg_Func _InitialFunc
 _InitialFunc:
-    flag_bit Sram_ProgressFlags_arr, eFlag::MermaidDrainUnplugged
+    flag_bit Sram_ProgressFlags_arr, eFlag::MermaidSpringUnplugged
     bne @unplugged
     ldya #_Open_sDialog
     rts
@@ -371,10 +371,10 @@ _InitialFunc:
     ldya #_Closed_sDialog
     rts
 _Open_sDialog:
-    dlg_Text Sign, DataA_Text0_MermaidDrainSign_Open_u8_arr
+    dlg_Text Sign, DataA_Text0_MermaidSpringSign_Open_u8_arr
     dlg_Done
 _Closed_sDialog:
-    dlg_Text Sign, DataA_Text0_MermaidDrainSign_Closed_u8_arr
+    dlg_Text Sign, DataA_Text0_MermaidSpringSign_Closed_u8_arr
     dlg_Done
 .ENDPROC
 
@@ -382,13 +382,13 @@ _Closed_sDialog:
 
 .SEGMENT "PRGA_Text0"
 
-.PROC DataA_Text0_MermaidDrainSign_Open_u8_arr
+.PROC DataA_Text0_MermaidSpringSign_Open_u8_arr
     .byte "   - Hot Spring -$"
     .byte "Please enjoy a restful$"
     .byte "and relaxing soak.#"
 .ENDPROC
 
-.PROC DataA_Text0_MermaidDrainSign_Closed_u8_arr
+.PROC DataA_Text0_MermaidSpringSign_Closed_u8_arr
     .byte "   - Hot Spring -$"
     .byte "Currently closed for$"
     .byte "maintenance.#"

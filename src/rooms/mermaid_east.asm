@@ -151,7 +151,7 @@ _Passages_sPassage_arr:
     D_END
     D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Western | 1
-    d_byte Destination_eRoom, eRoom::MermaidDrain
+    d_byte Destination_eRoom, eRoom::MermaidSpring
     d_byte SpawnBlock_u8, 18
     D_END
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error

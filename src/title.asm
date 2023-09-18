@@ -255,7 +255,7 @@ _Flags_eFlag_arr:
     .byte eFlag::FlowerCrypt
     .byte eFlag::UpgradeOpSkip
     .byte eFlag::FlowerGarden
-    .byte eFlag::MermaidDrainUnplugged
+    .byte eFlag::MermaidSpringUnplugged
     .byte eFlag::UpgradeOpCopy
     .byte eFlag::BossLava
     .byte eFlag::UpgradeRam3

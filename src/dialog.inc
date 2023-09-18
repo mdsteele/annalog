@@ -79,7 +79,6 @@
     GardenLandingPaper
     GardenShaftPaper
     LavaStationPaper
-    MermaidDrainSign
     MermaidEntrySign
     MermaidHut1AlexPetition
     MermaidHut1BreakerCrypt1
@@ -93,6 +92,7 @@
     MermaidHut4Florist
     MermaidHut5Marie
     MermaidHut5Nora
+    MermaidSpringSign
     MermaidVillageAlex
     MermaidVillageBruno
     MermaidVillageCorra

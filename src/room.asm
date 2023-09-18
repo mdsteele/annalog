@@ -93,7 +93,6 @@
 .IMPORT DataC_Lava_Teleport_sRoom
 .IMPORT DataC_Lava_West_sRoom
 .IMPORT DataC_Mermaid_Cellar_sRoom
-.IMPORT DataC_Mermaid_Drain_sRoom
 .IMPORT DataC_Mermaid_East_sRoom
 .IMPORT DataC_Mermaid_Elevator_sRoom
 .IMPORT DataC_Mermaid_Entry_sRoom
@@ -104,6 +103,7 @@
 .IMPORT DataC_Mermaid_Hut4_sRoom
 .IMPORT DataC_Mermaid_Hut5_sRoom
 .IMPORT DataC_Mermaid_Hut6_sRoom
+.IMPORT DataC_Mermaid_Spring_sRoom
 .IMPORT DataC_Mermaid_Village_sRoom
 .IMPORT DataC_Mine_Collapse_sRoom
 .IMPORT DataC_Mine_Drift_sRoom
@@ -316,7 +316,6 @@ _LoadNewRoom:
     d_entry table, LavaTeleport,    DataC_Lava_Teleport_sRoom
     d_entry table, LavaWest,        DataC_Lava_West_sRoom
     d_entry table, MermaidCellar,   DataC_Mermaid_Cellar_sRoom
-    d_entry table, MermaidDrain,    DataC_Mermaid_Drain_sRoom
     d_entry table, MermaidEast,     DataC_Mermaid_East_sRoom
     d_entry table, MermaidElevator, DataC_Mermaid_Elevator_sRoom
     d_entry table, MermaidEntry,    DataC_Mermaid_Entry_sRoom
@@ -327,6 +326,7 @@ _LoadNewRoom:
     d_entry table, MermaidHut4,     DataC_Mermaid_Hut4_sRoom
     d_entry table, MermaidHut5,     DataC_Mermaid_Hut5_sRoom
     d_entry table, MermaidHut6,     DataC_Mermaid_Hut6_sRoom
+    d_entry table, MermaidSpring,   DataC_Mermaid_Spring_sRoom
     d_entry table, MermaidVillage,  DataC_Mermaid_Village_sRoom
     d_entry table, MineCollapse,    DataC_Mine_Collapse_sRoom
     d_entry table, MineDrift,       DataC_Mine_Drift_sRoom
@@ -452,7 +452,6 @@ _PrisonMusic:
     d_byte LavaTeleport,    eMusic::Silence
     d_byte LavaWest,        eMusic::Silence
     d_byte MermaidCellar,   eMusic::Silence
-    d_byte MermaidDrain,    eMusic::Silence
     d_byte MermaidEast,     eMusic::Silence
     d_byte MermaidElevator, eMusic::Silence
     d_byte MermaidEntry,    eMusic::Silence
@@ -463,6 +462,7 @@ _PrisonMusic:
     d_byte MermaidHut4,     eMusic::Silence
     d_byte MermaidHut5,     eMusic::Silence
     d_byte MermaidHut6,     eMusic::Silence
+    d_byte MermaidSpring,   eMusic::Silence
     d_byte MermaidVillage,  eMusic::Silence
     d_byte MineCollapse,    eMusic::Mine
     d_byte MineDrift,       eMusic::Mine

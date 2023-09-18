@@ -135,7 +135,7 @@ _Devices_sDevice_arr:
     dlg_Text MermaidDaphne, DataA_Text0_MermaidHut3Daphne_Intro_u8_arr
     dlg_Func _HotSpringFunc
 _HotSpringFunc:
-    flag_bit Sram_ProgressFlags_arr, eFlag::MermaidDrainUnplugged
+    flag_bit Sram_ProgressFlags_arr, eFlag::MermaidSpringUnplugged
     bne @unplugged
     ldya #_HotSpringOpen_sDialog
     rts

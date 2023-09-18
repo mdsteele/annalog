@@ -103,7 +103,6 @@ kMaxPassages = 8
     LavaTeleport
     LavaWest
     MermaidCellar
-    MermaidDrain
     MermaidEast
     MermaidElevator
     MermaidEntry
@@ -114,6 +113,7 @@ kMaxPassages = 8
     MermaidHut4
     MermaidHut5
     MermaidHut6
+    MermaidSpring
     MermaidVillage
     MineCollapse
     MineDrift

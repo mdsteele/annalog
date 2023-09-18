@@ -147,8 +147,8 @@
     LavaStationBoiler
     LavaTeleportField
     LavaWestBoiler
-    MermaidDrainPump
     MermaidElevatorJet
+    MermaidSpringPump
     MineCollapseCrane
     MineCollapseTrolley
     MineEastHoist
