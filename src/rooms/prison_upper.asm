@@ -48,6 +48,7 @@
 .IMPORT Func_SetOrClearFlag
 .IMPORT Main_Breaker_FadeBackToBreakerRoom
 .IMPORT Ppu_ChrObjTown
+.IMPORT Ram_ActorFlags_bObj_arr
 .IMPORT Ram_ActorPosX_i16_0_arr
 .IMPORT Ram_ActorPosX_i16_1_arr
 .IMPORT Ram_ActorState2_byte_arr
@@ -62,11 +63,13 @@
 ;;;=========================================================================;;;
 
 ;;; Actor indices for specific NPCs in this room.
-kAlexActorIndex = 0
-kNoraActorIndex = 1
-kNinaActorIndex = 2
-kOrc1ActorIndex = 5
-kOrc2ActorIndex = 6
+kAlexActorIndex  = 0
+kNoraActorIndex  = 1
+kNinaActorIndex  = 2
+kBrunoActorIndex = 3
+kMarieActorIndex = 4
+kOrc1ActorIndex  = 5
+kOrc2ActorIndex  = 6
 
 ;;; Device indices for various talk devices in this room.
 kAlexCellDeviceIndex      = 0
@@ -206,12 +209,14 @@ _Actors_sActor_arr:
     d_word PosY_i16, $0078
     d_byte Param_byte, bNpcToddler::Pri | 17
     D_END
+    .assert * - :- = kBrunoActorIndex * .sizeof(sActor), error
     D_STRUCT sActor
     d_byte Type_eActor, eActor::NpcChild
     d_word PosX_i16, $0160
     d_word PosY_i16, $00b8
     d_byte Param_byte, bNpcChild::Pri | eNpcChild::BrunoStanding
     D_END
+    .assert * - :- = kMarieActorIndex * .sizeof(sActor), error
     D_STRUCT sActor
     d_byte Type_eActor, eActor::NpcChild
     d_word PosX_i16, $0190
@@ -328,6 +333,11 @@ _CheckForBreakerCutscene:
     @initCutscene:
     lda #$ff
     sta Ram_ActorState2_byte_arr + kOrc1ActorIndex
+    sta Ram_ActorState2_byte_arr + kNoraActorIndex
+    sta Ram_ActorState2_byte_arr + kBrunoActorIndex
+    sta Ram_ActorState2_byte_arr + kMarieActorIndex
+    lda #bObj::Pri | bObj::FlipH
+    sta Ram_ActorFlags_bObj_arr + kBrunoActorIndex
     rts
     @noCutscene:
     lda #eActor::None
@@ -432,15 +442,32 @@ _FreeAlex:
 .EXPORT DataA_Cutscene_PrisonUpperBreakerTemple_sCutscene
 .PROC DataA_Cutscene_PrisonUpperBreakerTemple_sCutscene
     act_WaitFrames 60
-    act_ShakeRoom 30
-    act_WaitFrames 60
+    act_ShakeRoom 30  ; TODO: play a sound for the circuit shake
+    act_WaitFrames 20
+    act_SetActorFlags kBrunoActorIndex, bObj::Pri
+    act_SetActorFlags kNoraActorIndex, bObj::Pri | bObj::FlipH
+    act_WaitFrames 10
+    act_SetActorFlags kMarieActorIndex, bObj::Pri | bObj::FlipH
+    act_SetActorFlags kOrc1ActorIndex, bObj::FlipH
+    act_WaitFrames 10
+    act_SetActorFlags kBrunoActorIndex, bObj::Pri | bObj::FlipH
+    act_SetActorFlags kNoraActorIndex, bObj::Pri
+    act_WaitFrames 10
+    act_SetActorFlags kMarieActorIndex, bObj::Pri
+    act_SetActorFlags kOrc1ActorIndex, 0
+    act_WaitFrames 90
+    act_SetActorFlags kBrunoActorIndex, bObj::Pri
     act_WalkNpcOrc kOrc2ActorIndex, $01b6
     act_SetActorState1 kOrc2ActorIndex, eNpcOrc::Running3
-    act_RunDialog eDialog::PrisonUpperBreakerTemple
+    act_RunDialog eDialog::PrisonUpperBreakerTemple1
     act_ForkStart 1, _Orc2Exit_sCutscene
     act_WalkNpcOrc kOrc1ActorIndex, $01ac
     act_SetActorPosY kOrc1ActorIndex, $00b0
     act_WalkNpcOrc kOrc1ActorIndex, $01e8
+    act_WaitFrames 60
+    act_WalkNpcBruno kBrunoActorIndex, $0179
+    act_SetActorState1 kBrunoActorIndex, eNpcChild::BrunoStanding
+    act_RunDialog eDialog::PrisonUpperBreakerTemple2
     act_WaitFrames 60
     act_JumpToMain Main_Breaker_FadeBackToBreakerRoom
 _Orc2Exit_sCutscene:
@@ -538,10 +565,16 @@ _RemoveKids:
 
 .SEGMENT "PRGA_Dialog"
 
-.EXPORT DataA_Dialog_PrisonUpperBreakerTemple_sDialog
-.PROC DataA_Dialog_PrisonUpperBreakerTemple_sDialog
-    dlg_Text OrcMaleShout, DataA_Text0_PrisonUpperBreakerTemple_Come1_u8_arr
-    dlg_Text OrcMaleShout, DataA_Text0_PrisonUpperBreakerTemple_Come2_u8_arr
+.EXPORT DataA_Dialog_PrisonUpperBreakerTemple1_sDialog
+.PROC DataA_Dialog_PrisonUpperBreakerTemple1_sDialog
+    dlg_Text OrcMaleShout, DataA_Text0_PrisonUpperBreakerTemple1_Part1_u8_arr
+    dlg_Text OrcMaleShout, DataA_Text0_PrisonUpperBreakerTemple1_Part2_u8_arr
+    dlg_Done
+.ENDPROC
+
+.EXPORT DataA_Dialog_PrisonUpperBreakerTemple2_sDialog
+.PROC DataA_Dialog_PrisonUpperBreakerTemple2_sDialog
+    dlg_Text ChildBrunoShout, DataA_Text0_PrisonUpperBreakerTemple2_u8_arr
     dlg_Done
 .ENDPROC
 
@@ -618,14 +651,18 @@ _Stepstone_sDialog:
 
 .SEGMENT "PRGA_Text0"
 
-.PROC DataA_Text0_PrisonUpperBreakerTemple_Come1_u8_arr
+.PROC DataA_Text0_PrisonUpperBreakerTemple1_Part1_u8_arr
     .byte "Oktok! Chief Gronta$"
     .byte "say come quick!#"
 .ENDPROC
 
-.PROC DataA_Text0_PrisonUpperBreakerTemple_Come2_u8_arr
+.PROC DataA_Text0_PrisonUpperBreakerTemple1_Part2_u8_arr
     .byte "More machines, they$"
     .byte "are turning on!#"
+.ENDPROC
+
+.PROC DataA_Text0_PrisonUpperBreakerTemple2_u8_arr
+    .byte "...Hey! What about us?#"
 .ENDPROC
 
 .PROC DataA_Text0_PrisonUpperAlexCell_Intro_u8_arr

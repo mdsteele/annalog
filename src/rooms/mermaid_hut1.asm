@@ -228,7 +228,7 @@ _RemoveAlex:
 .PROC DataA_Cutscene_MermaidHut1BreakerCrypt_sCutscene
     act_RunDialog eDialog::MermaidHut1BreakerCrypt1
     act_WaitFrames 30
-    act_ShakeRoom 30
+    act_ShakeRoom 30  ; TODO: play a sound for the circuit shake
     act_WaitFrames 60
     act_SetActorState1 kAlexActorIndex, eNpcChild::AlexHolding
     act_RunDialog eDialog::MermaidHut1BreakerCrypt2
@@ -238,7 +238,7 @@ _RemoveAlex:
 .EXPORT DataA_Cutscene_MermaidHut1BreakerGarden_sCutscene
 .PROC DataA_Cutscene_MermaidHut1BreakerGarden_sCutscene
     act_WaitFrames 60
-    act_ShakeRoom 30
+    act_ShakeRoom 30  ; TODO: play a sound for the circuit shake
     act_WaitFrames 20
     act_SetActorFlags kEireneActorIndex, 0
     act_WaitFrames 10

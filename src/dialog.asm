@@ -74,7 +74,8 @@
 .IMPORT DataA_Dialog_PrisonUpperAlexCell_sDialog
 .IMPORT DataA_Dialog_PrisonUpperAlexFree_sDialog
 .IMPORT DataA_Dialog_PrisonUpperAlexLast_sDialog
-.IMPORT DataA_Dialog_PrisonUpperBreakerTemple_sDialog
+.IMPORT DataA_Dialog_PrisonUpperBreakerTemple1_sDialog
+.IMPORT DataA_Dialog_PrisonUpperBreakerTemple2_sDialog
 .IMPORT DataA_Dialog_PrisonUpperBruno_sDialog
 .IMPORT DataA_Dialog_PrisonUpperMarie_sDialog
 .IMPORT DataA_Dialog_PrisonUpperNora_sDialog
@@ -404,8 +405,10 @@ _UpdateScrolling:
     d_entry t, PrisonUpperAlexCell,  DataA_Dialog_PrisonUpperAlexCell_sDialog
     d_entry t, PrisonUpperAlexFree,  DataA_Dialog_PrisonUpperAlexFree_sDialog
     d_entry t, PrisonUpperAlexLast,  DataA_Dialog_PrisonUpperAlexLast_sDialog
-    d_entry t, PrisonUpperBreakerTemple, \
-            DataA_Dialog_PrisonUpperBreakerTemple_sDialog
+    d_entry t, PrisonUpperBreakerTemple1, \
+            DataA_Dialog_PrisonUpperBreakerTemple1_sDialog
+    d_entry t, PrisonUpperBreakerTemple2, \
+            DataA_Dialog_PrisonUpperBreakerTemple2_sDialog
     d_entry t, PrisonUpperBruno,     DataA_Dialog_PrisonUpperBruno_sDialog
     d_entry t, PrisonUpperMarie,     DataA_Dialog_PrisonUpperMarie_sDialog
     d_entry t, PrisonUpperNora,      DataA_Dialog_PrisonUpperNora_sDialog

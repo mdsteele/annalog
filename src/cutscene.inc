@@ -153,6 +153,7 @@ kMaxForks = 4
     ;; X-position.  Suspends the current cutscene fork until the actor reaches
     ;; the goal position.
     WalkNpcAlex        ; args: actor index, goal X-position (2 bytes)
+    WalkNpcBruno       ; args: actor index, goal X-position (2 bytes)
     WalkNpcNora        ; args: actor index, goal X-position (2 bytes)
     WalkNpcOrc         ; args: actor index, goal X-position (2 bytes)
     WalkNpcToddler     ; args: actor index, goal X-position (2 bytes)
@@ -307,6 +308,11 @@ kMaxForks = 4
 
 .MACRO act_WalkNpcAlex INDEX, GOALX
     .byte eAction::WalkNpcAlex, INDEX
+    .word GOALX
+.ENDMACRO
+
+.MACRO act_WalkNpcBruno INDEX, GOALX
+    .byte eAction::WalkNpcBruno, INDEX
     .word GOALX
 .ENDMACRO
 

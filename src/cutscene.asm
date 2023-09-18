@@ -336,6 +336,7 @@ _InitMainFork:
     d_entry table, WaitUntilZ,        _WaitUntilZ
     d_entry table, WalkAvatar,        _WalkAvatar
     d_entry table, WalkNpcAlex,       _WalkNpcAlex
+    d_entry table, WalkNpcBruno,      _WalkNpcBruno
     d_entry table, WalkNpcNora,       _WalkNpcNora
     d_entry table, WalkNpcOrc,        _WalkNpcOrc
     d_entry table, WalkNpcToddler,    _WalkNpcToddler
@@ -622,6 +623,13 @@ _WalkNpcAlex:
     jsr FuncA_Cutscene_FaceAvatarTowardsActor
     clc  ; cutscene should continue
     rts
+_WalkNpcBruno:
+    jsr _StartMoveNpc  ; returns X, Z, and N
+    beq _MoveNpcReachedGoal
+    jsr FuncA_Cutscene_AnimateNpcBrunoWalking  ; preserves X
+    jsr FuncA_Cutscene_FaceAvatarTowardsActor
+    clc  ; cutscene should continue
+    rts
 _WalkNpcNora:
     jsr _StartMoveNpc  ; returns X, Z, and N
     beq _MoveNpcReachedGoal
@@ -826,6 +834,30 @@ _AnimatePose:
     bne @setState  ; unconditional
     @walk2:
     lda #eNpcChild::AlexWalking2
+    @setState:
+    sta Ram_ActorState1_byte_arr, x
+    rts
+.ENDPROC
+
+;;; Updates the flags and state of the specified Bruno NPC actor for a walking
+;;; animation.
+;;; @param N If set, the actor will face left; otherwise, it will face right.
+;;; @param X The actor index.
+;;; @preserve X, Y, T0+
+.PROC FuncA_Cutscene_AnimateNpcBrunoWalking
+    jsr FuncA_Cutscene_SetActorFlipHFromN  ; preserves X, Y and T0+
+    lda #$ff
+    sta Ram_ActorState2_byte_arr, x
+_AnimatePose:
+    lda Zp_FrameCounter_u8
+    and #$08
+    beq @walk2
+    @walk1:
+    lda #eNpcChild::BrunoWalking1
+    .assert eNpcChild::BrunoWalking1 > 0, error
+    bne @setState  ; unconditional
+    @walk2:
+    lda #eNpcChild::BrunoWalking2
     @setState:
     sta Ram_ActorState1_byte_arr, x
     rts

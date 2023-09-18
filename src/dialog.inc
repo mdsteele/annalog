@@ -37,6 +37,7 @@
     ChildAlex          = $0c0b
     ChildAlexShout     = $0b0c
     ChildBruno         = $1413
+    ChildBrunoShout    = $1314
     ChildMarie         = $1211
     ChildNora          = $0a09  ; same portrait as MermaidPhoebe
     MermaidDaphne      = $0605  ; same portrait as MermaidGuardF
@@ -103,7 +104,8 @@
     PrisonUpperAlexCell
     PrisonUpperAlexFree
     PrisonUpperAlexLast
-    PrisonUpperBreakerTemple
+    PrisonUpperBreakerTemple1
+    PrisonUpperBreakerTemple2
     PrisonUpperBruno
     PrisonUpperMarie
     PrisonUpperNora
