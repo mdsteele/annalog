@@ -36,26 +36,23 @@
 .IMPORT DataA_Room_Mermaid_sTileset
 .IMPORT FuncA_Machine_Error
 .IMPORT FuncA_Machine_GenericTryMoveY
-.IMPORT FuncA_Machine_ReachedGoal
+.IMPORT FuncA_Machine_PumpTick
 .IMPORT FuncA_Objects_Alloc1x1Shape
 .IMPORT FuncA_Objects_DrawPumpMachine
 .IMPORT FuncA_Objects_MoveShapeRightByA
 .IMPORT FuncA_Objects_MoveShapeRightOneTile
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
-.IMPORT Func_MovePlatformTopTowardPointY
 .IMPORT Func_Noop
 .IMPORT Func_SetFlag
 .IMPORT Ppu_ChrObjSewer
 .IMPORT Ram_DeviceType_eDevice_arr
 .IMPORT Ram_MachineGoalVert_u8_arr
-.IMPORT Ram_MachineSlowdown_u8_arr
 .IMPORT Ram_MachineStatus_eMachine_arr
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORT Ram_PlatformType_ePlatform_arr
 .IMPORT Sram_ProgressFlags_arr
 .IMPORTZP Zp_FrameCounter_u8
-.IMPORTZP Zp_PointY_i16
 .IMPORTZP Zp_RoomState
 
 ;;;=========================================================================;;;
@@ -277,38 +274,10 @@ _Sand:
     jmp FuncA_Machine_GenericTryMoveY
 .ENDPROC
 
-;;; TODO: factor out common code with SewerFlower
 .PROC FuncA_Machine_MermaidSpringPump_Tick
-    ;; Calculate the desired Y-position for the top edge of the water, in
-    ;; room-space pixels, storing it in Zp_PointY_i16.
-    lda Ram_MachineGoalVert_u8_arr + kPumpMachineIndex
-    .assert kPumpMaxGoalY * kBlockHeightPx < $100, error
-    mul #kBlockHeightPx
-    sta T0  ; goal delta
-    .assert kWaterMaxPlatformTop >= $100, error
-    lda #<kWaterMaxPlatformTop
-    sub T0  ; goal delta
-    sta Zp_PointY_i16 + 0
-    lda #>kWaterMaxPlatformTop
-    sbc #0
-    sta Zp_PointY_i16 + 1
-    ;; Determine the vertical speed of the water (faster if resetting).
-    lda Ram_MachineStatus_eMachine_arr + kPumpMachineIndex
-    cmp #eMachine::Resetting
-    beq @fullSpeed
-    lda Ram_MachineSlowdown_u8_arr + kPumpMachineIndex
-    beq @canMove
-    rts
-    @canMove:
-    lda #kPumpWaterSlowdown
-    sta Ram_MachineSlowdown_u8_arr + kPumpMachineIndex
-    @fullSpeed:
-    lda #1
-    ;; Move the water vertically, as necessary.
-    ldx #kWaterPlatformIndex  ; param: platform index
-    jsr Func_MovePlatformTopTowardPointY  ; returns Z
-    jeq FuncA_Machine_ReachedGoal
-    rts
+    ldx #kWaterPlatformIndex  ; param: water platform index
+    ldya #kWaterMaxPlatformTop  ; param: max water platform top
+    jmp FuncA_Machine_PumpTick
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -343,7 +312,8 @@ _DrainSpring:
     sta Zp_RoomState + sState::Lever_u8
     lda #eDevice::Placeholder
     sta Ram_DeviceType_eDevice_arr + kConsoleDeviceIndex
-    ;; TODO: Prevent the machine from executing.
+    lda #eMachine::Ended
+    sta Ram_MachineStatus_eMachine_arr + kPumpMachineIndex
     @done:
     rts
 .ENDPROC

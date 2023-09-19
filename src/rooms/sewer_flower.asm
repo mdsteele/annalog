@@ -33,7 +33,7 @@
 .IMPORT DataA_Room_Sewer_sTileset
 .IMPORT FuncA_Machine_Error
 .IMPORT FuncA_Machine_GenericTryMoveY
-.IMPORT FuncA_Machine_ReachedGoal
+.IMPORT FuncA_Machine_PumpTick
 .IMPORT FuncA_Objects_Draw1x1Shape
 .IMPORT FuncA_Objects_DrawPumpMachine
 .IMPORT FuncA_Objects_MoveShapeRightByA
@@ -41,15 +41,11 @@
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
 .IMPORT FuncA_Room_RemoveFlowerDeviceIfCarriedOrDelivered
 .IMPORT FuncA_Room_RespawnFlowerDeviceIfDropped
-.IMPORT Func_MovePlatformTopTowardPointY
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrObjSewer
 .IMPORT Ram_MachineGoalVert_u8_arr
-.IMPORT Ram_MachineSlowdown_u8_arr
-.IMPORT Ram_MachineStatus_eMachine_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORTZP Zp_FrameCounter_u8
-.IMPORTZP Zp_PointY_i16
 
 ;;;=========================================================================;;;
 
@@ -114,14 +110,14 @@ _Machines_sMachine_arr:
     d_byte ScrollGoalY_u8, $48
     d_byte RegNames_u8_arr4, 0, 0, 0, "Y"
     d_byte MainPlatform_u8, kPumpPlatformIndex
-    d_addr Init_func_ptr, FuncC_Sewer_FlowerPump_InitReset
+    d_addr Init_func_ptr, FuncA_Room_SewerFlowerPump_InitReset
     d_addr ReadReg_func_ptr, FuncC_Sewer_FlowerPump_ReadReg
     d_addr WriteReg_func_ptr, Func_Noop
-    d_addr TryMove_func_ptr, FuncC_Sewer_FlowerPump_TryMove
+    d_addr TryMove_func_ptr, FuncA_Machine_SewerFlowerPump_TryMove
     d_addr TryAct_func_ptr, FuncA_Machine_Error
-    d_addr Tick_func_ptr, FuncC_Sewer_FlowerPump_Tick
+    d_addr Tick_func_ptr, FuncA_Machine_SewerFlowerPump_Tick
     d_addr Draw_func_ptr, FuncA_Objects_SewerFlowerPump_Draw
-    d_addr Reset_func_ptr, FuncC_Sewer_FlowerPump_InitReset
+    d_addr Reset_func_ptr, FuncA_Room_SewerFlowerPump_InitReset
     D_END
     .assert * - :- <= kMaxMachines * .sizeof(sMachine), error
 _Platforms_sPlatform_arr:
@@ -186,12 +182,6 @@ _Passages_sPassage_arr:
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
 .ENDPROC
 
-.PROC FuncC_Sewer_FlowerPump_InitReset
-    lda #kPumpInitGoalY
-    sta Ram_MachineGoalVert_u8_arr + kPumpMachineIndex
-    rts
-.ENDPROC
-
 .PROC FuncC_Sewer_FlowerPump_ReadReg
     .assert kWaterMaxPlatformTop + kTileHeightPx < $100, error
     lda #kWaterMaxPlatformTop + kTileHeightPx
@@ -201,41 +191,29 @@ _Passages_sPassage_arr:
     rts
 .ENDPROC
 
-.PROC FuncC_Sewer_FlowerPump_TryMove
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Room"
+
+.PROC FuncA_Room_SewerFlowerPump_InitReset
+    lda #kPumpInitGoalY
+    sta Ram_MachineGoalVert_u8_arr + kPumpMachineIndex
+    rts
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Machine"
+
+.PROC FuncA_Machine_SewerFlowerPump_TryMove
     lda #kPumpMaxGoalY  ; param: max vertical goal
     jmp FuncA_Machine_GenericTryMoveY
 .ENDPROC
 
-.PROC FuncC_Sewer_FlowerPump_Tick
-    ;; Calculate the desired Y-position for the top edge of the water, in
-    ;; room-space pixels, storing it in Zp_PointY_i16.
-    lda Ram_MachineGoalVert_u8_arr + kPumpMachineIndex
-    .assert kPumpMaxGoalY * kBlockHeightPx < $100, error
-    mul #kBlockHeightPx
-    sta T0  ; goal delta
-    .assert kWaterMaxPlatformTop < $100, error
-    lda #kWaterMaxPlatformTop
-    sub T0  ; goal delta
-    sta Zp_PointY_i16 + 0
-    lda #0
-    sta Zp_PointY_i16 + 1
-    ;; Determine the vertical speed of the water (faster if resetting).
-    lda Ram_MachineStatus_eMachine_arr + kPumpMachineIndex
-    cmp #eMachine::Resetting
-    beq @fullSpeed
-    lda Ram_MachineSlowdown_u8_arr + kPumpMachineIndex
-    beq @canMove
-    rts
-    @canMove:
-    lda #kPumpWaterSlowdown
-    sta Ram_MachineSlowdown_u8_arr + kPumpMachineIndex
-    @fullSpeed:
-    lda #1
-    ;; Move the water vertically, as necessary.
-    ldx #kWaterPlatformIndex  ; param: platform index
-    jsr Func_MovePlatformTopTowardPointY  ; returns Z
-    jeq FuncA_Machine_ReachedGoal
-    rts
+.PROC FuncA_Machine_SewerFlowerPump_Tick
+    ldx #kWaterPlatformIndex  ; param: water platform index
+    ldya #kWaterMaxPlatformTop  ; param: max water platform top
+    jmp FuncA_Machine_PumpTick
 .ENDPROC
 
 ;;;=========================================================================;;;

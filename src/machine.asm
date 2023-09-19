@@ -680,7 +680,7 @@ _OpSync:
     .assert * = FuncA_Machine_IncrementPcByX, error, "fallthrough"
 .ENDPROC
 
-;;; Increments the program counter of the current machine by 1.
+;;; Increments the program counter of the current machine by X.
 ;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
 ;;; @prereq Zp_Current_sProgram_ptr is initialized.
 ;;; @param X The number of instructions to increment by (must be nonzero).
