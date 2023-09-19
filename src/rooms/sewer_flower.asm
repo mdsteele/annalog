@@ -35,6 +35,7 @@
 .IMPORT FuncA_Machine_GenericTryMoveY
 .IMPORT FuncA_Machine_ReachedGoal
 .IMPORT FuncA_Objects_Draw1x1Shape
+.IMPORT FuncA_Objects_DrawPumpMachine
 .IMPORT FuncA_Objects_MoveShapeRightByA
 .IMPORT FuncA_Objects_MoveShapeRightOneTile
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
@@ -110,7 +111,7 @@ _Machines_sMachine_arr:
     d_byte Flags_bMachine, bMachine::MoveV
     d_byte Status_eDiagram, eDiagram::Boiler  ; TODO
     d_word ScrollGoalX_u16, $0
-    d_byte ScrollGoalY_u8, $38
+    d_byte ScrollGoalY_u8, $48
     d_byte RegNames_u8_arr4, 0, 0, 0, "Y"
     d_byte MainPlatform_u8, kPumpPlatformIndex
     d_addr Init_func_ptr, FuncC_Sewer_FlowerPump_InitReset
@@ -127,10 +128,10 @@ _Platforms_sPlatform_arr:
 :   .assert * - :- = kPumpPlatformIndex * .sizeof(sPlatform), error
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Zone
-    d_word WidthPx_u16, $10
-    d_byte HeightPx_u8, $14
-    d_word Left_i16,  $0088
-    d_word Top_i16,   $00bc
+    d_word WidthPx_u16, $08
+    d_byte HeightPx_u8, $08
+    d_word Left_i16,  $00a8
+    d_word Top_i16,   $00c0
     D_END
     .assert * - :- = kWaterPlatformIndex * .sizeof(sPlatform), error
     D_STRUCT sPlatform
@@ -242,7 +243,7 @@ _Passages_sPassage_arr:
 .SEGMENT "PRGA_Objects"
 
 .PROC FuncA_Objects_SewerFlowerPump_Draw
-    ;; TODO: draw the pump machine itself
+    jsr FuncA_Objects_DrawPumpMachine
 _WaterLeft:
     ;; Determine the position for the leftmost water object.
     ldx #kWaterPlatformIndex  ; param: platform index

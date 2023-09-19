@@ -92,6 +92,7 @@
     MermaidHut4Florist
     MermaidHut5Marie
     MermaidHut5Nora
+    MermaidSpringAlex
     MermaidSpringSign
     MermaidVillageAlex
     MermaidVillageBruno

@@ -17,14 +17,31 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
-;;; OBJ tile IDs used for drawing many different kinds of machines.
-kTileIdObjMachineCorner      = $3a
-kTileIdObjMachineSurfaceHorz = $3b
-kTileIdObjMachineSurfaceVert = $3c
-kTileIdObjMachineLightOff = $3e
-kTileIdObjMachineLightOn  = $3f
+.INCLUDE "../macros.inc"
+.INCLUDE "pump.inc"
+.INCLUDE "shared.inc"
 
-;;; The OBJ palette number used for the blinking error light on machines.
-kPaletteObjMachineLight = 1
+.IMPORT FuncA_Objects_Draw1x1Shape
+.IMPORT FuncA_Objects_GetMachineLightTileId
+.IMPORT FuncA_Objects_SetShapePosToMachineTopLeft
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Objects"
+
+;;; Draws a pump machine.
+;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
+.EXPORT FuncA_Objects_DrawPumpMachine
+.PROC FuncA_Objects_DrawPumpMachine
+    jsr FuncA_Objects_GetMachineLightTileId  ; returns A
+    cmp #kTileIdObjMachineLightOn
+    bne @done
+    jsr FuncA_Objects_SetShapePosToMachineTopLeft
+    lda #kTileIdObjPumpLight  ; param: tile ID
+    ldy #kPaletteObjMachineLight  ; param: object flags
+    jmp FuncA_Objects_Draw1x1Shape
+    @done:
+    rts
+.ENDPROC
 
 ;;;=========================================================================;;;

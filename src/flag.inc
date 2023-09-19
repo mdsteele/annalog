@@ -111,6 +111,7 @@ kSaveMagicNumber = $b2
     MermaidHut1MetQueen
     MermaidHut4MetFlorist
     MermaidHut4OpenedCellar
+    MermaidSpringConsoleFixed
     MermaidSpringUnplugged
     PrisonCellBlastedRocks
     PrisonCellGateOpen

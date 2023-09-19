@@ -28,7 +28,7 @@
 
 .IMPORT DataA_Room_Mermaid_sTileset
 .IMPORT Func_Noop
-.IMPORT Ppu_ChrObjMermaid
+.IMPORT Ppu_ChrObjSewer
 
 ;;;=========================================================================;;;
 
@@ -45,7 +45,7 @@
     d_addr TerrainData_ptr, _TerrainData
     d_byte NumMachines_u8, 0
     d_addr Machines_sMachine_arr_ptr, 0
-    d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjMermaid)
+    d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjSewer)
     d_addr Ext_sRoomExt_ptr, _Ext_sRoomExt
     D_END
 _Ext_sRoomExt:

@@ -21,6 +21,7 @@
 .INCLUDE "../macros.inc"
 .INCLUDE "../ppu.inc"
 .INCLUDE "../program.inc"
+.INCLUDE "shared.inc"
 
 .IMPORT FuncA_Machine_Error
 .IMPORT FuncA_Machine_StartWorking
@@ -36,12 +37,6 @@
 .IMPORTZP Zp_MachineIndex_u8
 .IMPORTZP Zp_PointX_i16
 .IMPORTZP Zp_PointY_i16
-
-;;;=========================================================================;;;
-
-;;; OBJ tile IDs used for drawing machine status lights.
-kTileIdObjMachineLightOff = $3e
-kTileIdObjMachineLightOn  = $3f
 
 ;;;=========================================================================;;;
 

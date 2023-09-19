@@ -62,6 +62,7 @@
 .IMPORT DataA_Dialog_MermaidHut4Florist_sDialog
 .IMPORT DataA_Dialog_MermaidHut5Marie_sDialog
 .IMPORT DataA_Dialog_MermaidHut5Nora_sDialog
+.IMPORT DataA_Dialog_MermaidSpringAlex_sDialog
 .IMPORT DataA_Dialog_MermaidSpringSign_sDialog
 .IMPORT DataA_Dialog_MermaidVillageAlex_sDialog
 .IMPORT DataA_Dialog_MermaidVillageBruno_sDialog
@@ -393,6 +394,7 @@ _UpdateScrolling:
     d_entry t, MermaidHut4Florist,   DataA_Dialog_MermaidHut4Florist_sDialog
     d_entry t, MermaidHut5Marie,     DataA_Dialog_MermaidHut5Marie_sDialog
     d_entry t, MermaidHut5Nora,      DataA_Dialog_MermaidHut5Nora_sDialog
+    d_entry t, MermaidSpringAlex,    DataA_Dialog_MermaidSpringAlex_sDialog
     d_entry t, MermaidSpringSign,    DataA_Dialog_MermaidSpringSign_sDialog
     d_entry t, MermaidVillageAlex,   DataA_Dialog_MermaidVillageAlex_sDialog
     d_entry t, MermaidVillageBruno,  DataA_Dialog_MermaidVillageBruno_sDialog

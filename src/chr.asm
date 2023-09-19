@@ -790,9 +790,10 @@
 .PROC Ppu_ChrBgMermaid
 :   .incbin "out/tiles/cave.chr"
     .incbin "out/tiles/hut.chr"
-    .res $03 * kSizeofChr
     .incbin "out/tiles/beach.chr"
-    .res $0e * kSizeofChr
+    .res $08 * kSizeofChr
+    .incbin "out/tiles/pump.chr"
+    .res $02 * kSizeofChr
     .incbin "out/tiles/lever_ceil.chr"
     .incbin "out/tiles/sign.chr"
     .incbin "out/tiles/console.chr"
@@ -908,7 +909,9 @@
 .PROC Ppu_ChrBgSewer
 :   .incbin "out/tiles/sewer1.chr"
     .incbin "out/tiles/sewer2.chr"
-    .res $1e * kSizeofChr
+    .res $16 * kSizeofChr
+    .incbin "out/tiles/pump.chr"
+    .res $04 * kSizeofChr
     .incbin "out/tiles/sign.chr"
     .incbin "out/tiles/console.chr"
     .assert * - :- = kSizeofChr * $40, error
@@ -1216,35 +1219,6 @@
 
 ;;;=========================================================================;;;
 
-.SEGMENT "CHR_ObjMermaid"
-
-.EXPORT Ppu_ChrObjMermaid
-.PROC Ppu_ChrObjMermaid
-:   .assert * - :- = (kTileIdObjUpgradeBottomFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/upgrade_bottom.chr"
-    .res $0e * kSizeofChr
-    .assert * - :- = (kTileIdObjUpgradeOpBeepFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/upgrade_opbeep.chr"
-    .res $0a * kSizeofChr
-    .assert * - :- = (kTileIdObjGrubFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/grub.chr"
-    .res $18 * kSizeofChr
-    .assert * - :- = (kTileIdObjBirdFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/bird.chr"
-    .assert * - :- = (kTileIdObjCrabFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/crab.chr"
-    .res $04 * kSizeofChr
-    .assert * - :- = (kTileIdObjFishFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/fish.chr"
-    .res $04 * kSizeofChr
-    .assert * - :- = (kTileIdObjHotSpringFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/hotspring.chr"
-    .res $18 * kSizeofChr
-    .assert * - :- = kSizeofChr * $80, error
-.ENDPROC
-
-;;;=========================================================================;;;
-
 .SEGMENT "CHR_ObjMine"
 
 .EXPORT Ppu_ChrObjMine
@@ -1299,15 +1273,32 @@
     .incbin "out/tiles/upgrade_bottom.chr"
     .assert * - :- = (kTileIdObjMultiplexerFirst - $80) * kSizeofChr, error
     .incbin "out/tiles/multiplexer.chr"
-    .res $09 * kSizeofChr
-    .assert * - :- = (kTileIdObjUpgradeOpAddSubFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/upgrade_opaddsub.chr"
-    .res $0c * kSizeofChr
+    .assert * - :- = (kTileIdObjPumpLight - $80) * kSizeofChr, error
+    .incbin "out/tiles/pump_light.chr"
     .assert * - :- = (kTileIdObjWaterFirst - $80) * kSizeofChr, error
     .incbin "out/tiles/water.chr"
     .assert * - :- = (kTileIdObjJellyFirst - $80) * kSizeofChr, error
     .incbin "out/tiles/jelly.chr"
-    .res $60 * kSizeofChr
+    .res $02 * kSizeofChr
+    .assert * - :- = (kTileIdObjUpgradeOpAddSubFirst - $80) * kSizeofChr, error
+    .incbin "out/tiles/upgrade_opaddsub.chr"
+    .res $02 * kSizeofChr
+    .assert * - :- = (kTileIdObjUpgradeOpBeepFirst - $80) * kSizeofChr, error
+    .incbin "out/tiles/upgrade_opbeep.chr"
+    .res $0a * kSizeofChr
+    .assert * - :- = (kTileIdObjGrubFirst - $80) * kSizeofChr, error
+    .incbin "out/tiles/grub.chr"
+    .res $18 * kSizeofChr
+    .assert * - :- = (kTileIdObjBirdFirst - $80) * kSizeofChr, error
+    .incbin "out/tiles/bird.chr"
+    .assert * - :- = (kTileIdObjCrabFirst - $80) * kSizeofChr, error
+    .incbin "out/tiles/crab.chr"
+    .assert * - :- = (kTileIdObjHotSpringFirst - $80) * kSizeofChr, error
+    .incbin "out/tiles/hotspring.chr"
+    .assert * - :- = (kTileIdObjFishFirst - $80) * kSizeofChr, error
+    .incbin "out/tiles/fish.chr"
+    .assert * - :- = (kTileIdObjChildStandFirst - $80) * kSizeofChr, error
+    .incbin "out/tiles/child_stand.chr"
     .assert * - :- = kSizeofChr * $80, error
 .ENDPROC
 

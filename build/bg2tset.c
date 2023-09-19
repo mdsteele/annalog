@@ -93,6 +93,7 @@ static const struct {
   {0x80, "outdoors"},
   {0xba, "plaque"},
   {0x90, "prison"},
+  {0xb0, "pump"},
   {0x90, "roof"},
   {0xb4, "ropediag"},
   {0xa0, "scaffhold"},

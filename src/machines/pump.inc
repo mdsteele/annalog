@@ -26,8 +26,9 @@
 kPumpWaterSlowdown = 3
 
 ;;; Various OBJ tile IDs used for drawing pump machines.
-kTileIdObjHotSpringFirst = $e4
-kTileIdObjWaterFirst     = $9a
+kTileIdObjHotSpringFirst = $d0
+kTileIdObjWaterFirst     = $84
+kTileIdObjPumpLight      = $83
 
 ;;; OBJ palette numbers used for drawing pump machines.
 kPaletteObjHotSpring = 0
