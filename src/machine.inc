@@ -52,6 +52,7 @@ kMachineRegNameB = $21  ; 'B'
     SemaphoreNormal   = $16
     SemaphoreNoFlags  = $17
     SemaphoreNoSensor = $18
+    Pump              = $19
 .ENDENUM
 
 ;;;=========================================================================;;;

@@ -664,7 +664,8 @@
 
 .PROC Ppu_ChrBgFontLower19
 :   .incbin "out/tiles/font_lower.chr"
-    .res $10 * kSizeofChr
+    .assert .bank(*) = eDiagram::Pump, error
+    .incbin "out/tiles/diagram_pump.chr"
     .assert .bank(*) = >ePortrait::OrcMale, error
     .incbin "out/tiles/portrait_orc_talk.chr"
     .assert * - :- = kSizeofChr * $40, error
