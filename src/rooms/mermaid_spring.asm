@@ -43,11 +43,18 @@
 .IMPORT FuncA_Machine_PumpTick
 .IMPORT FuncA_Objects_Alloc1x1Shape
 .IMPORT FuncA_Objects_DrawPumpMachine
+.IMPORT FuncA_Objects_DrawRocksPlatformHorz
 .IMPORT FuncA_Objects_MoveShapeRightByA
 .IMPORT FuncA_Objects_MoveShapeRightOneTile
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
+.IMPORT Func_FindEmptyActorSlot
+.IMPORT Func_InitActorSmokeExplosion
+.IMPORT Func_MovePointLeftByA
+.IMPORT Func_MovePointRightByA
 .IMPORT Func_Noop
+.IMPORT Func_SetActorCenterToPoint
 .IMPORT Func_SetFlag
+.IMPORT Func_SetPointToPlatformCenter
 .IMPORT Func_ShakeRoom
 .IMPORT Ppu_ChrObjSewer
 .IMPORT Ram_ActorType_eActor_arr
@@ -82,8 +89,8 @@ kPumpMachineIndex = 0
 kPumpPlatformIndex = 0
 ;;; The platform index for the movable water.
 kWaterPlatformIndex = 1
-;;; The platform index for the sand plugging up the bottom of the hot spring.
-kSandPlatformIndex = 2
+;;; The platform index for the rocks plugging up the bottom of the hot spring.
+kRocksPlatformIndex = 2
 
 ;;; The initial and maximum permitted vertical goal values for the pump.
 kPumpInitGoalY = 9
@@ -175,11 +182,11 @@ _Platforms_sPlatform_arr:
     d_word Left_i16,  $0060
     d_word Top_i16, kWaterInitPlatformTop
     D_END
-    .assert * - :- = kSandPlatformIndex * .sizeof(sPlatform), error
+    .assert * - :- = kRocksPlatformIndex * .sizeof(sPlatform), error
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Solid
     d_word WidthPx_u16, $20
-    d_byte HeightPx_u8, $10
+    d_byte HeightPx_u8, $08
     d_word Left_i16,  $0070
     d_word Top_i16,   $0110
     D_END
@@ -256,12 +263,9 @@ _Console:
     beq @done
     ;; TODO: draw console monitor
     @done:
-_Sand:
-    flag_bit Sram_ProgressFlags_arr, eFlag::MermaidSpringUnplugged
-    bne @done
-    ;; TODO: draw sand platform
-    @done:
-    rts
+_Rocks:
+    ldx #kRocksPlatformIndex  ; param: platform index
+    jmp FuncA_Objects_DrawRocksPlatformHorz
 .ENDPROC
 
 .PROC FuncC_Mermaid_SpringPump_ReadReg
@@ -331,7 +335,7 @@ _DrainSpring:
     beq @done
     lda #ePlatform::Zone
     sta Ram_PlatformType_ePlatform_arr + kWaterPlatformIndex
-    sta Ram_PlatformType_ePlatform_arr + kSandPlatformIndex
+    sta Ram_PlatformType_ePlatform_arr + kRocksPlatformIndex
     .assert ePlatform::Zone = 1, error
     sta Zp_RoomState + sState::Lever_u8
     lda #eDevice::Placeholder
@@ -345,19 +349,37 @@ _DrainSpring:
 .PROC DataA_Room_MermaidSpring_TickRoom
     ;; If the lever hasn't been flipped yet, do nothing.
     lda Zp_RoomState + sState::Lever_u8
-    beq _Return
+    beq @return
     ;; Set the flag; if it was already set, do nothing else.
     ldx #eFlag::MermaidSpringUnplugged
     jsr Func_SetFlag  ; sets C if flag was already set
-    bcs _Return
-_RemoveWaterAndSand:
+    bcc @unplug
+    @return:
+    rts
+    @unplug:
+_RemoveRocksAndWater:
     lda #ePlatform::Zone
+    sta Ram_PlatformType_ePlatform_arr + kRocksPlatformIndex
     sta Ram_PlatformType_ePlatform_arr + kWaterPlatformIndex
-    sta Ram_PlatformType_ePlatform_arr + kSandPlatformIndex
+    ;; TODO: play a big explosion sound
     lda #30  ; param: num frames
     jsr Func_ShakeRoom
-    ;; TODO: start animating disappearing sand and falling water
-_Return:
+_AnimateFallingWater:
+    ;; TODO: start animating falling water
+_AnimateExplodingRocks:
+    ldy #kRocksPlatformIndex  ; param: platform index
+    jsr Func_SetPointToPlatformCenter
+    lda #kTileWidthPx
+    jsr Func_MovePointLeftByA
+    jsr _SpawnExplosionAtPoint
+    lda #kTileWidthPx * 2
+    jsr Func_MovePointRightByA
+_SpawnExplosionAtPoint:
+    jsr Func_FindEmptyActorSlot  ; sets C on failure, returns X
+    bcs @done
+    jsr Func_SetActorCenterToPoint  ; preserves X
+    jmp Func_InitActorSmokeExplosion
+    @done:
     rts
 .ENDPROC
 

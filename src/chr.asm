@@ -1286,7 +1286,10 @@
     .res $02 * kSizeofChr
     .assert * - :- = (kTileIdObjUpgradeOpBeepFirst - $80) * kSizeofChr, error
     .incbin "out/tiles/upgrade_opbeep.chr"
-    .res $0a * kSizeofChr
+    .res $06 * kSizeofChr
+    .assert * - :- = (kTileIdObjRocksFirst - $80) * kSizeofChr, error
+    .incbin "out/tiles/rocks.chr"
+    .res $02 * kSizeofChr
     .assert * - :- = (kTileIdObjGrubFirst - $80) * kSizeofChr, error
     .incbin "out/tiles/grub.chr"
     .res $18 * kSizeofChr
