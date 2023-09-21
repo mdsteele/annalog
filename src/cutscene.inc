@@ -45,6 +45,7 @@ kMaxForks = 4
     MermaidHut1AlexPetition
     MermaidHut1BreakerCrypt
     MermaidHut1BreakerGarden
+    MermaidSpringFixConsole
     MermaidVillageAlexLeave
     PrisonCellGetThrownIn
     PrisonUpperBreakerTemple

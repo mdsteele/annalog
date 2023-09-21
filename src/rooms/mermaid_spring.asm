@@ -19,8 +19,10 @@
 
 .INCLUDE "../actor.inc"
 .INCLUDE "../actors/child.inc"
+.INCLUDE "../avatar.inc"
 .INCLUDE "../charmap.inc"
 .INCLUDE "../cpu.inc"
+.INCLUDE "../cutscene.inc"
 .INCLUDE "../device.inc"
 .INCLUDE "../dialog.inc"
 .INCLUDE "../flag.inc"
@@ -32,8 +34,10 @@
 .INCLUDE "../ppu.inc"
 .INCLUDE "../program.inc"
 .INCLUDE "../room.inc"
+.INCLUDE "../scroll.inc"
 
 .IMPORT DataA_Room_Mermaid_sTileset
+.IMPORT FuncA_Dialog_JumpToCutscene
 .IMPORT FuncA_Machine_Error
 .IMPORT FuncA_Machine_GenericTryMoveY
 .IMPORT FuncA_Machine_PumpTick
@@ -44,7 +48,9 @@
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
 .IMPORT Func_Noop
 .IMPORT Func_SetFlag
+.IMPORT Func_ShakeRoom
 .IMPORT Ppu_ChrObjSewer
+.IMPORT Ram_ActorType_eActor_arr
 .IMPORT Ram_DeviceType_eDevice_arr
 .IMPORT Ram_MachineGoalVert_u8_arr
 .IMPORT Ram_MachineStatus_eMachine_arr
@@ -52,7 +58,9 @@
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORT Ram_PlatformType_ePlatform_arr
 .IMPORT Sram_ProgressFlags_arr
+.IMPORTZP Zp_Camera_bScroll
 .IMPORTZP Zp_FrameCounter_u8
+.IMPORTZP Zp_RoomScrollY_u8
 .IMPORTZP Zp_RoomState
 
 ;;;=========================================================================;;;
@@ -212,14 +220,14 @@ _Devices_sDevice_arr:
     d_byte Type_eDevice, eDevice::TalkRight
     d_byte BlockRow_u8, 6
     d_byte BlockCol_u8, 10
-    d_byte Target_byte, eDialog::MermaidSpringAlex
+    d_byte Target_byte, eDialog::MermaidSpringAlex1
     D_END
     .assert * - :- = kAlexDeviceIndexLeft * .sizeof(sDevice), error
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::TalkLeft
     d_byte BlockRow_u8, 6
     d_byte BlockCol_u8, 11
-    d_byte Target_byte, eDialog::MermaidSpringAlex
+    d_byte Target_byte, eDialog::MermaidSpringAlex1
     D_END
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None
@@ -292,13 +300,29 @@ _Sand:
 
 .PROC DataA_Room_MermaidSpring_EnterRoom
 _Alex:
-    ;; TODO: If Alex isn't here yet, or the spring is drained, remove him.
+    ;; If Alex isn't here yet, or the spring is drained, remove him.
+    flag_bit Sram_ProgressFlags_arr, eFlag::BreakerCrypt
+    beq @removeAlex
+    flag_bit Sram_ProgressFlags_arr, eFlag::MermaidSpringUnplugged
+    beq @keepAlex
+    @removeAlex:
+    lda #0
+    .assert eActor::None = 0, error
+    sta Ram_ActorType_eActor_arr + kAlexActorIndex
+    .assert eDevice::None = 0, error
+    sta Ram_DeviceType_eDevice_arr + kAlexDeviceIndexLeft
+    sta Ram_DeviceType_eDevice_arr + kAlexDeviceIndexRight
+    @keepAlex:
 _Console:
-    ;; If the console hasn't been fixed, remove its device.
+    ;; If the console hasn't been fixed, remove its device and lock scrolling.
     flag_bit Sram_ProgressFlags_arr, eFlag::MermaidSpringConsoleFixed
     bne @done
     lda #eDevice::Placeholder
     sta Ram_DeviceType_eDevice_arr + kConsoleDeviceIndex
+    lda #bScroll::LockVert
+    sta Zp_Camera_bScroll
+    lda #0
+    sta Zp_RoomScrollY_u8
     @done:
 _DrainSpring:
     ;; If the spring has already been drained, remove the water and disable the
@@ -319,16 +343,21 @@ _DrainSpring:
 .ENDPROC
 
 .PROC DataA_Room_MermaidSpring_TickRoom
+    ;; If the lever hasn't been flipped yet, do nothing.
     lda Zp_RoomState + sState::Lever_u8
-    beq @done
+    beq _Return
+    ;; Set the flag; if it was already set, do nothing else.
+    ldx #eFlag::MermaidSpringUnplugged
+    jsr Func_SetFlag  ; sets C if flag was already set
+    bcs _Return
+_RemoveWaterAndSand:
     lda #ePlatform::Zone
     sta Ram_PlatformType_ePlatform_arr + kWaterPlatformIndex
     sta Ram_PlatformType_ePlatform_arr + kSandPlatformIndex
-    ldx #eFlag::MermaidSpringUnplugged
-    jsr Func_SetFlag  ; sets C if flag was already set
-    bcs @done
+    lda #30  ; param: num frames
+    jsr Func_ShakeRoom
     ;; TODO: start animating disappearing sand and falling water
-    @done:
+_Return:
     rts
 .ENDPROC
 
@@ -380,15 +409,77 @@ _WaterWidth_u8_arr:
     .byte 4, 6, 4, 6, 6, 6, 4, 6
     .byte 4, 4, 4, 4
 .ENDPROC
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Cutscene"
+
+.EXPORT DataA_Cutscene_MermaidSpringFixConsole_sCutscene
+.PROC DataA_Cutscene_MermaidSpringFixConsole_sCutscene
+    act_ForkStart 1, _WalkAvatar_sCutscene
+    act_WalkNpcAlex kAlexActorIndex, $00ba
+    act_SetActorState1 kAlexActorIndex, eNpcChild::AlexStanding
+    act_WaitFrames 45
+    act_SetActorState1 kAlexActorIndex, eNpcChild::AlexKneeling
+    act_WaitFrames 15
+    act_SetActorState1 kAlexActorIndex, eNpcChild::AlexBoosting
+    act_WaitFrames 60
+    act_SetActorState1 kAlexActorIndex, eNpcChild::AlexKneeling
+    act_WaitFrames 30
+    act_CallFunc _FixConsole
+    act_WaitFrames 45
+    act_SetActorState1 kAlexActorIndex, eNpcChild::AlexStanding
+    act_WaitFrames 45
+    act_WalkNpcAlex kAlexActorIndex, $00b0
+    act_SetActorState1 kAlexActorIndex, eNpcChild::AlexStanding
+    act_SetActorState2 kAlexActorIndex, 0
+    act_RunDialog eDialog::MermaidSpringAlex2
+    act_ContinueExploring
+_WalkAvatar_sCutscene:
+    act_WalkAvatar $00a4
+    act_SetAvatarPose eAvatar::Standing
+    act_SetAvatarFlags kPaletteObjAvatarNormal
+    act_ForkStop $ff
+_FixConsole:
+    lda #0
+    sta Zp_Camera_bScroll
+    ;; TODO: play a sound for the console turning on
+    lda #eDevice::Console
+    sta Ram_DeviceType_eDevice_arr + kConsoleDeviceIndex
+    ldx #eFlag::MermaidSpringConsoleFixed  ; param: flag
+    jmp Func_SetFlag
+.ENDPROC
 
 ;;;=========================================================================;;;
 
 .SEGMENT "PRGA_Dialog"
 
-.EXPORT DataA_Dialog_MermaidSpringAlex_sDialog
-.PROC DataA_Dialog_MermaidSpringAlex_sDialog
-    dlg_Text ChildAlex, DataA_Text0_MermaidSpringAlex_u8_arr
-    ;; TODO: play cutscene
+.EXPORT DataA_Dialog_MermaidSpringAlex1_sDialog
+.PROC DataA_Dialog_MermaidSpringAlex1_sDialog
+    dlg_Func _InitFunc
+_InitFunc:
+    flag_bit Sram_ProgressFlags_arr, eFlag::MermaidSpringConsoleFixed
+    bne @outro
+    @intro:
+    ldya #_Intro_sDialog
+    rts
+    @outro:
+    ldya #DataA_Dialog_MermaidSpringAlex2_sDialog
+    rts
+_Intro_sDialog:
+    dlg_Text ChildAlex, DataA_Text0_MermaidSpringAlex1_Part1_u8_arr
+    dlg_Text ChildAlex, DataA_Text0_MermaidSpringAlex1_Part2_u8_arr
+    dlg_Text ChildAlex, DataA_Text0_MermaidSpringAlex1_Part3_u8_arr
+    dlg_Text ChildAlex, DataA_Text0_MermaidSpringAlex1_Part4_u8_arr
+    dlg_Text ChildAlex, DataA_Text0_MermaidSpringAlex1_Part5_u8_arr
+    dlg_Func _CutsceneFunc
+_CutsceneFunc:
+    ldx #eCutscene::MermaidSpringFixConsole  ; param: cutscene
+    jmp FuncA_Dialog_JumpToCutscene
+.ENDPROC
+
+.EXPORT DataA_Dialog_MermaidSpringAlex2_sDialog
+.PROC DataA_Dialog_MermaidSpringAlex2_sDialog
+    dlg_Text ChildAlex, DataA_Text0_MermaidSpringAlex2_u8_arr
     dlg_Done
 .ENDPROC
 
@@ -415,8 +506,45 @@ _Closed_sDialog:
 
 .SEGMENT "PRGA_Text0"
 
-.PROC DataA_Text0_MermaidSpringAlex_u8_arr
-    .byte "TODO.#"
+.PROC DataA_Text0_MermaidSpringAlex1_Part1_u8_arr
+    .byte "Anna, you're back! I$"
+    .byte "knew you'd do great.$"
+    .byte "What did you find out$"
+    .byte "under the temple?#"
+.ENDPROC
+
+.PROC DataA_Text0_MermaidSpringAlex1_Part2_u8_arr
+    .byte "...Huh? The mermaids$"
+    .byte "were CREATED by$"
+    .byte "humans? But...why?#"
+.ENDPROC
+
+.PROC DataA_Text0_MermaidSpringAlex1_Part3_u8_arr
+    .byte "Anyway, I've been out$"
+    .byte "scouting. New machines$"
+    .byte "keep turning on as you$"
+    .byte "find those breakers.#"
+.ENDPROC
+
+.PROC DataA_Text0_MermaidSpringAlex1_Part4_u8_arr
+    .byte "Let's keep that up.$"
+    .byte "We need to get all$"
+    .byte "this old technology$"
+    .byte "working for us again!#"
+.ENDPROC
+
+.PROC DataA_Text0_MermaidSpringAlex1_Part5_u8_arr
+    .byte "The mermaids aren't$"
+    .byte "helping. But I found$"
+    .byte "something they had$"
+    .byte "stashed away...#"
+.ENDPROC
+
+.PROC DataA_Text0_MermaidSpringAlex2_u8_arr
+    .byte "What do you think? I'd$"
+    .byte "say it's time to start$"
+    .byte "delving deeper around$"
+    .byte "here.#"
 .ENDPROC
 
 .PROC DataA_Text0_MermaidSpringSign_Open_u8_arr

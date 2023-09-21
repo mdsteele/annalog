@@ -34,6 +34,7 @@
 .IMPORT DataA_Cutscene_MermaidHut1AlexPetition_sCutscene
 .IMPORT DataA_Cutscene_MermaidHut1BreakerCrypt_sCutscene
 .IMPORT DataA_Cutscene_MermaidHut1BreakerGarden_sCutscene
+.IMPORT DataA_Cutscene_MermaidSpringFixConsole_sCutscene
 .IMPORT DataA_Cutscene_MermaidVillageAlexLeave_sCutscene
 .IMPORT DataA_Cutscene_PrisonCellGetThrownIn_sCutscene
 .IMPORT DataA_Cutscene_PrisonUpperBreakerTemple_sCutscene
@@ -181,6 +182,8 @@ _Finish:
             DataA_Cutscene_MermaidHut1BreakerCrypt_sCutscene
     d_entry table, MermaidHut1BreakerGarden, \
             DataA_Cutscene_MermaidHut1BreakerGarden_sCutscene
+    d_entry table, MermaidSpringFixConsole, \
+            DataA_Cutscene_MermaidSpringFixConsole_sCutscene
     d_entry table, MermaidVillageAlexLeave, \
             DataA_Cutscene_MermaidVillageAlexLeave_sCutscene
     d_entry table, PrisonCellGetThrownIn, \
