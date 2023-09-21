@@ -65,6 +65,7 @@
 .INCLUDE "platforms/crate.inc"
 .INCLUDE "platforms/force.inc"
 .INCLUDE "platforms/gate.inc"
+.INCLUDE "platforms/monitor.inc"
 .INCLUDE "platforms/rocks.inc"
 .INCLUDE "platforms/stepstone.inc"
 .INCLUDE "rooms/boss_crypt.inc"
@@ -1286,7 +1287,9 @@
     .res $02 * kSizeofChr
     .assert * - :- = (kTileIdObjUpgradeOpBeepFirst - $80) * kSizeofChr, error
     .incbin "out/tiles/upgrade_opbeep.chr"
-    .res $06 * kSizeofChr
+    .res $02 * kSizeofChr
+    .assert * - :- = (kTileIdObjMonitorFirst - $80) * kSizeofChr, error
+    .incbin "out/tiles/monitor.chr"
     .assert * - :- = (kTileIdObjRocksFirst - $80) * kSizeofChr, error
     .incbin "out/tiles/rocks.chr"
     .res $02 * kSizeofChr

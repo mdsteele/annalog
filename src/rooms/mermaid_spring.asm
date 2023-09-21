@@ -42,6 +42,7 @@
 .IMPORT FuncA_Machine_GenericTryMoveY
 .IMPORT FuncA_Machine_PumpTick
 .IMPORT FuncA_Objects_Alloc1x1Shape
+.IMPORT FuncA_Objects_DrawMonitorPlatform
 .IMPORT FuncA_Objects_DrawPumpMachine
 .IMPORT FuncA_Objects_DrawRocksPlatformHorz
 .IMPORT FuncA_Objects_MoveShapeRightByA
@@ -49,6 +50,8 @@
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
 .IMPORT Func_FindEmptyActorSlot
 .IMPORT Func_InitActorSmokeExplosion
+.IMPORT Func_MovePlatformLeftTowardPointX
+.IMPORT Func_MovePlatformTopTowardPointY
 .IMPORT Func_MovePointLeftByA
 .IMPORT Func_MovePointRightByA
 .IMPORT Func_Noop
@@ -62,11 +65,15 @@
 .IMPORT Ram_MachineGoalVert_u8_arr
 .IMPORT Ram_MachineStatus_eMachine_arr
 .IMPORT Ram_Oam_sObj_arr64
+.IMPORT Ram_PlatformLeft_i16_0_arr
+.IMPORT Ram_PlatformLeft_i16_1_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORT Ram_PlatformType_ePlatform_arr
 .IMPORT Sram_ProgressFlags_arr
 .IMPORTZP Zp_Camera_bScroll
 .IMPORTZP Zp_FrameCounter_u8
+.IMPORTZP Zp_PointX_i16
+.IMPORTZP Zp_PointY_i16
 .IMPORTZP Zp_RoomScrollY_u8
 .IMPORTZP Zp_RoomState
 
@@ -77,6 +84,9 @@ kAlexActorIndex = 0
 ;;; The talk device indices for Alex in this room.
 kAlexDeviceIndexLeft = 4
 kAlexDeviceIndexRight = 3
+
+;;; The platform index for the fixable console monitor in this room.
+kMonitorPlatformIndex = 3
 
 ;;; The device index for the MermaidSpringPump console.
 kConsoleDeviceIndex = 1
@@ -190,6 +200,14 @@ _Platforms_sPlatform_arr:
     d_word Left_i16,  $0070
     d_word Top_i16,   $0110
     D_END
+    .assert * - :- = kMonitorPlatformIndex * .sizeof(sPlatform), error
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Zone
+    d_word WidthPx_u16, $10
+    d_byte HeightPx_u8, $10
+    d_word Left_i16,  $00c0
+    d_word Top_i16,   $0060
+    D_END
     .byte ePlatform::None
 _Actors_sActor_arr:
 :   .assert * - :- = kAlexActorIndex * .sizeof(sActor), error
@@ -258,14 +276,10 @@ _Passages_sPassage_arr:
 .ENDPROC
 
 .PROC DataC_Mermaid_Spring_DrawRoom
-_Console:
-    flag_bit Sram_ProgressFlags_arr, eFlag::MermaidSpringConsoleFixed
-    beq @done
-    ;; TODO: draw console monitor
-    @done:
-_Rocks:
     ldx #kRocksPlatformIndex  ; param: platform index
-    jmp FuncA_Objects_DrawRocksPlatformHorz
+    jsr FuncA_Objects_DrawRocksPlatformHorz
+    ldx #kMonitorPlatformIndex  ; param: platform index
+    jmp FuncA_Objects_DrawMonitorPlatform
 .ENDPROC
 
 .PROC FuncC_Mermaid_SpringPump_ReadReg
@@ -323,6 +337,11 @@ _Console:
     bne @done
     lda #eDevice::Placeholder
     sta Ram_DeviceType_eDevice_arr + kConsoleDeviceIndex
+    ;; Hide the monitor platform offscreen.
+    lda #$02
+    sta Ram_PlatformLeft_i16_1_arr + kMonitorPlatformIndex
+    ;; Remove console device.
+    ;; Lock scroll-Y to top of room.
     lda #bScroll::LockVert
     sta Zp_Camera_bScroll
     lda #0
@@ -444,8 +463,11 @@ _WaterWidth_u8_arr:
     act_SetActorState1 kAlexActorIndex, eNpcChild::AlexKneeling
     act_WaitFrames 15
     act_SetActorState1 kAlexActorIndex, eNpcChild::AlexBoosting
+    act_CallFunc _InitMonitorPlatform
+    act_WaitUntilZ _LiftMonitorPlatform
     act_WaitFrames 60
     act_SetActorState1 kAlexActorIndex, eNpcChild::AlexKneeling
+    act_WaitUntilZ _DropMonitorPlatform
     act_WaitFrames 30
     act_CallFunc _FixConsole
     act_WaitFrames 45
@@ -461,6 +483,30 @@ _WalkAvatar_sCutscene:
     act_SetAvatarPose eAvatar::Standing
     act_SetAvatarFlags kPaletteObjAvatarNormal
     act_ForkStop $ff
+_InitMonitorPlatform:
+    lda #$00
+    sta Ram_PlatformLeft_i16_1_arr + kMonitorPlatformIndex
+    lda #$b2
+    sta Ram_PlatformLeft_i16_0_arr + kMonitorPlatformIndex
+    lda #$64
+    sta Ram_PlatformTop_i16_0_arr + kMonitorPlatformIndex
+    rts
+_LiftMonitorPlatform:
+    ldax #$0059
+    stax Zp_PointY_i16
+    ldx #kMonitorPlatformIndex  ; param: platform index
+    lda #2  ; param: max move by
+    jmp Func_MovePlatformTopTowardPointY  ; returns Z
+_DropMonitorPlatform:
+    ldax #$0060
+    stax Zp_PointY_i16
+    ldx #$c0
+    stax Zp_PointX_i16
+    ldx #kMonitorPlatformIndex  ; param: platform index
+    lda #4  ; param: max move by
+    jsr Func_MovePlatformLeftTowardPointX  ; preserves X
+    lda #1  ; param: max move by
+    jmp Func_MovePlatformTopTowardPointY  ; returns Z
 _FixConsole:
     lda #0
     sta Zp_Camera_bScroll
