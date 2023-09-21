@@ -26,6 +26,7 @@
 .IMPORT FuncA_Objects_Draw1x1Shape
 .IMPORT FuncA_Objects_MoveShapeRightByA
 .IMPORT FuncA_Objects_SetShapePosToDeviceTopLeft
+.IMPORT Ram_DeviceAnim_u8_arr
 .IMPORT Ram_DeviceTarget_byte_arr
 .IMPORT Ram_MachineStatus_eMachine_arr
 .IMPORT Ram_Oam_sObj_arr64
@@ -51,6 +52,10 @@ kPaletteObjScreen     = 1
 ;;; @preserve X
 .EXPORT FuncA_Objects_DrawConsoleDevice
 .PROC FuncA_Objects_DrawConsoleDevice
+    lda Ram_DeviceAnim_u8_arr, x
+    and #$04
+    bne @done
+    ;; Allocate the object.
     jsr FuncA_Objects_SetShapePosToDeviceTopLeft  ; preserves X
     lda #4  ; param: offset
     jsr FuncA_Objects_MoveShapeRightByA  ; preserves X

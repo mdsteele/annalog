@@ -24,6 +24,7 @@
 .INCLUDE "../cpu.inc"
 .INCLUDE "../cutscene.inc"
 .INCLUDE "../device.inc"
+.INCLUDE "../devices/console.inc"
 .INCLUDE "../dialog.inc"
 .INCLUDE "../flag.inc"
 .INCLUDE "../machine.inc"
@@ -61,6 +62,7 @@
 .IMPORT Func_ShakeRoom
 .IMPORT Ppu_ChrObjSewer
 .IMPORT Ram_ActorType_eActor_arr
+.IMPORT Ram_DeviceAnim_u8_arr
 .IMPORT Ram_DeviceType_eDevice_arr
 .IMPORT Ram_MachineGoalVert_u8_arr
 .IMPORT Ram_MachineStatus_eMachine_arr
@@ -468,9 +470,9 @@ _WaterWidth_u8_arr:
     act_WaitFrames 60
     act_SetActorState1 kAlexActorIndex, eNpcChild::AlexKneeling
     act_WaitUntilZ _DropMonitorPlatform
-    act_WaitFrames 30
+    act_WaitFrames 15
     act_CallFunc _FixConsole
-    act_WaitFrames 45
+    act_WaitFrames 70
     act_SetActorState1 kAlexActorIndex, eNpcChild::AlexStanding
     act_WaitFrames 45
     act_WalkNpcAlex kAlexActorIndex, $00b0
@@ -513,6 +515,8 @@ _FixConsole:
     ;; TODO: play a sound for the console turning on
     lda #eDevice::Console
     sta Ram_DeviceType_eDevice_arr + kConsoleDeviceIndex
+    lda #kConsoleAnimCountdown
+    sta Ram_DeviceAnim_u8_arr + kConsoleDeviceIndex
     ldx #eFlag::MermaidSpringConsoleFixed  ; param: flag
     jmp Func_SetFlag
 .ENDPROC
