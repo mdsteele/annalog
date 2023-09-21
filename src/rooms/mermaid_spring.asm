@@ -25,6 +25,7 @@
 .INCLUDE "../cutscene.inc"
 .INCLUDE "../device.inc"
 .INCLUDE "../devices/console.inc"
+.INCLUDE "../devices/dialog.inc"
 .INCLUDE "../dialog.inc"
 .INCLUDE "../flag.inc"
 .INCLUDE "../machine.inc"
@@ -481,7 +482,7 @@ _WaterWidth_u8_arr:
     act_RunDialog eDialog::MermaidSpringAlex2
     act_ContinueExploring
 _WalkAvatar_sCutscene:
-    act_WalkAvatar $00a4
+    act_WalkAvatar $00a0 | kTalkRightAvatarOffset
     act_SetAvatarPose eAvatar::Standing
     act_SetAvatarFlags kPaletteObjAvatarNormal
     act_ForkStop $ff

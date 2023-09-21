@@ -22,6 +22,7 @@
 .INCLUDE "cpu.inc"
 .INCLUDE "cursor.inc"
 .INCLUDE "device.inc"
+.INCLUDE "devices/dialog.inc"
 .INCLUDE "dialog.inc"
 .INCLUDE "hud.inc"
 .INCLUDE "joypad.inc"
@@ -112,6 +113,7 @@
 .IMPORT Func_AllocOneObject
 .IMPORT Func_ClearRestOfOamAndProcessFrame
 .IMPORT Func_SetFlag
+.IMPORT Func_TryPushAvatarHorz
 .IMPORT Func_Window_GetRowPpuAddr
 .IMPORT Func_Window_PrepareRowTransfer
 .IMPORT Func_Window_TransferBottomBorder
@@ -123,7 +125,9 @@
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORT Ram_PpuTransfer_arr
 .IMPORTZP Zp_AvatarFlags_bObj
+.IMPORTZP Zp_AvatarPosX_i16
 .IMPORTZP Zp_AvatarPose_eAvatar
+.IMPORTZP Zp_AvatarPushDelta_i8
 .IMPORTZP Zp_AvatarState_bAvatar
 .IMPORTZP Zp_AvatarVelX_i16
 .IMPORTZP Zp_FloatingHud_bHud
@@ -772,6 +776,47 @@ _FullyClosed:
 ;;; this each frame when the window is opening.
 ;;; @return C Set if the window is now fully scrolled in.
 .PROC FuncA_Dialog_ScrollWindowUp
+_AdjustAvatar:
+    ;; Only adjust the player avatar's position if this dialog was started by
+    ;; using a device, rather than from a cutscene.
+    lda Zp_DialogStatus_bDialog
+    .assert bDialog::Cutscene = $01, error
+    lsr a
+    bcs @done
+    ;; Determine the goal X-offset for the player avatar to stand within the
+    ;; device block.
+    lda Zp_AvatarPose_eAvatar
+    cmp #eAvatar::Reading
+    beq @reading
+    bit Zp_AvatarFlags_bObj
+    .assert bObj::FlipH = bProc::Overflow, error
+    bvc @facingRight
+    @facingLeft:
+    lda #kTalkLeftAvatarOffset
+    bpl @setGoal  ; unconditional
+    @facingRight:
+    lda #kTalkRightAvatarOffset
+    bpl @setGoal  ; unconditional
+    @reading:
+    lda #kReadingAvatarOffset
+    @setGoal:
+    sta T0  ; goal X-offset within block
+    ;; Push the player avatar towards the goal position.
+    lda Zp_AvatarPosX_i16 + 0
+    and #$0f
+    cmp T0  ; goal X-offset within block
+    beq @done
+    blt @adjustRight
+    @adjustLeft:
+    lda #<-1
+    bne @pushAvatarByA  ; unconditional
+    @adjustRight:
+    lda #1
+    @pushAvatarByA:
+    sta Zp_AvatarPushDelta_i8
+    jsr Func_TryPushAvatarHorz
+    @done:
+_ScrollWindow:
     lda Zp_WindowTop_u8
     sub #kDialogWindowScrollSpeed
     cmp Zp_WindowTopGoal_u8
@@ -780,6 +825,7 @@ _FullyClosed:
     @notDone:
     sta Zp_WindowTop_u8
     jsr FuncA_Dialog_TransferNextWindowRow
+_CheckIfDone:
     lda Zp_WindowTopGoal_u8
     cmp Zp_WindowTop_u8  ; clears C if Zp_WindowTopGoal_u8 < Zp_WindowTop_u8
     rts
