@@ -887,10 +887,6 @@ _GoalPosX_u8_arr8:
 ;;; Draw function for the BossCrypt room.
 ;;; @prereq PRGA_Objects is loaded.
 .PROC FuncC_Boss_Crypt_DrawRoom
-    ldx #kLeftWallPlatformIndex  ; param: platform index
-    jsr FuncA_Objects_BossCrypt_DrawSideWall
-    ldx #kRightWallPlatformIndex  ; param: platform index
-    jsr FuncA_Objects_BossCrypt_DrawSideWall
     jmp FuncA_Objects_DrawBoss
 .ENDPROC
 
@@ -939,7 +935,12 @@ _DrawBossPupil:
     jsr FuncA_Objects_MoveShapeUpByA
     ldy #kPaletteObjBossPupil  ; param: object flags
     lda #kTileIdObjBossPupil  ; param: tile ID
-    jmp FuncA_Objects_Draw1x1Shape
+    jsr FuncA_Objects_Draw1x1Shape
+_DrawSideWalls:
+    ldx #kLeftWallPlatformIndex  ; param: platform index
+    jsr FuncA_Objects_BossCrypt_DrawSideWall
+    ldx #kRightWallPlatformIndex  ; param: platform index
+    jmp FuncA_Objects_BossCrypt_DrawSideWall
 _EyeOffsetX_u8_arr:
     D_ENUM eEyeDir
     d_byte Left,      6
@@ -1055,9 +1056,13 @@ _EyeOffsetY_u8_arr:
     @loop:
     jsr FuncA_Objects_Alloc1x1Shape  ; preserves X, returns C and Y
     bcs @continue
-    txa
-    and #$01
-    adc #kTileIdObjSideWallFirst  ; carry is already clear
+    lda Zp_ShapePosX_i16
+    eor Zp_ShapePosY_i16
+    .assert kTileWidthPx = kTileHeightPx, error
+    div #kTileWidthPx
+    and #1
+    .assert kTileIdObjSideWallFirst .mod 2 = 0, error
+    ora #kTileIdObjSideWallFirst
     sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
     lda #kPaletteObjSideWall
     sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
