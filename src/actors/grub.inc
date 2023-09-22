@@ -21,7 +21,7 @@
 ;;;   * Param: The initial flags to set (0 or bObj::FlipH).
 ;;;   * Flags: The bObj::FlipH bit is set if the grub is facing left, or
 ;;;     cleared if it is facing right.
-;;;   * State1: Counter that decrements each frame; when it's zero, the grub
+;;;   * State1: A counter that decrements each frame; when it's zero, the grub
 ;;;     starts another movement cycle and resets the counter.
 ;;;   * State2: Unused.
 ;;;   * State3: Unused.

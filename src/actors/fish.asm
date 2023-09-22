@@ -62,7 +62,6 @@ kPaletteObjFish = 0
     sta Ram_ActorFlags_bObj_arr, x
     @continueForward:
 _SetVelocity:
-    ;; TODO: Move fast if player avatar is ahead, move slower otherwise.
     ldya #kFishSpeed  ; param: speed
     jsr FuncA_Actor_SetVelXForward  ; preserves X
     inc Ram_ActorState1_byte_arr, x  ; animation timer

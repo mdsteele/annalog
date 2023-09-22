@@ -18,9 +18,17 @@
 ;;;=========================================================================;;;
 
 ;;; State bytes for child NPCs:
-;;;   * State1: The eNpcChild value.
-;;;   * State2: Boolean; If true ($ff), the NPC uses Ram_ActorFlags_bObj_arr
-;;;     unchanged; if false ($00), the NPC is automatically drawn facing the
+;;;   * Param: The bNpcChild value specifying the child's initial pose.
+;;;   * Flags: Only the FlipH and Pri bits are used.
+;;;       * The FlipH bit is set if the child is facing left, or cleared if
+;;;         they are facing right.  However, if State2 is false ($00), then
+;;;         this bit is ignored and instead the child automatically faces
+;;;         toward the player avatar.
+;;;       * The Pri bit is set if the child should appear behind the
+;;;         background.  Unlike FlipH, this bit is not affected by State2.
+;;;   * State1: The current eNpcChild value.
+;;;   * State2: Boolean; If true ($ff), the child uses Ram_ActorFlags_bObj_arr
+;;;     unchanged; if false ($00), the child is automatically drawn facing the
 ;;;     player avatar.
 ;;;   * State3: Unused.
 
