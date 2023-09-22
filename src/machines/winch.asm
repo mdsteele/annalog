@@ -89,15 +89,15 @@ kWinchChainOverlapPx = 4
 kWinchBreakthroughSpeed = 1
 
 ;;; Various OBJ tile IDs used for drawing winch machines.
-kTileIdObjCrusherUpperLeft   = kTileIdCrusherFirst + 0
-kTileIdObjCrusherUpperRight  = kTileIdCrusherFirst + 2
-kTileIdObjCrusherSpikes      = kTileIdCrusherFirst + 1
-kTileIdObjSpikeballFirst     = kTileIdCrusherFirst + 4
-kTileIdObjWinchChain         = kTileIdCrusherFirst + 3
-kTileIdObjWinchGear1         = kTileIdWinchFirst + 0
-kTileIdObjWinchGear2         = kTileIdWinchFirst + 2
-kTileIdObjWinchCornerBottom1 = kTileIdWinchFirst + 1
-kTileIdObjWinchCornerBottom2 = kTileIdWinchFirst + 3
+kTileIdObjCrusherUpperLeft   = kTileIdObjCrusherFirst + 0
+kTileIdObjCrusherUpperRight  = kTileIdObjCrusherFirst + 2
+kTileIdObjCrusherSpikes      = kTileIdObjCrusherFirst + 1
+kTileIdObjSpikeballFirst     = kTileIdObjCrusherFirst + 4
+kTileIdObjWinchChain         = kTileIdObjCrusherFirst + 3
+kTileIdObjWinchGear1         = kTileIdObjWinchFirst + 0
+kTileIdObjWinchGear2         = kTileIdObjWinchFirst + 2
+kTileIdObjWinchCornerBottom1 = kTileIdObjWinchFirst + 1
+kTileIdObjWinchCornerBottom2 = kTileIdObjWinchFirst + 3
 kTileIdObjWinchCornerTop     = kTileIdObjMachineCorner
 
 ;;; OBJ palette numbers used for various parts of winch machines.
@@ -521,7 +521,7 @@ _Done:
     tya  ; floor HP
     beq @done
     mul #2
-    adc #kTileIdWeakFloorFirst - 2  ; carry bit is already clear
+    adc #kTileIdObjWeakFloorFirst - 2  ; carry bit is already clear
     ldy #0  ; param: object flags
     jmp FuncA_Objects_Draw2x1Shape  ; preserves X
     @done:

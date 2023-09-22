@@ -36,8 +36,8 @@ kNumWinchHitsToBreakFloor = 3
 kWinchBreakableFloorBlinkFrames = 28
 
 ;;; Tile IDs for drawing winch machines.
-kTileIdCrusherFirst   = $e0
-kTileIdWeakFloorFirst = $c0
-kTileIdWinchFirst     = $e8
+kTileIdObjCrusherFirst   = $e0
+kTileIdObjWeakFloorFirst = $c0
+kTileIdObjWinchFirst     = $e8
 
 ;;;=========================================================================;;;

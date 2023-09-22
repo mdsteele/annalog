@@ -55,14 +55,14 @@
 ;;;=========================================================================;;;
 
 ;;; Various OBJ tile IDs used for drawing crane/trolley machine.
-kTileIdObjCraneWheel      = kTileIdCraneFirst + 0
-kTileIdObjCraneRope       = kTileIdCraneFirst + 1
-kTileIdObjCraneClawOpen   = kTileIdCraneFirst + 2
-kTileIdObjCraneClawClosed = kTileIdCraneFirst + 3
-kTileIdObjCraneCorner     = kTileIdCraneFirst + 4
-kTileIdObjTrolleyBlock    = kTileIdCraneFirst + 5
-kTileIdObjRopeDiag        = kTileIdCraneFirst + 6
-kTileIdObjPulley          = kTileIdCraneFirst + 7
+kTileIdObjCraneWheel      = kTileIdObjCraneFirst + 0
+kTileIdObjCraneRope       = kTileIdObjCraneFirst + 1
+kTileIdObjCraneClawOpen   = kTileIdObjCraneFirst + 2
+kTileIdObjCraneClawClosed = kTileIdObjCraneFirst + 3
+kTileIdObjCraneCorner     = kTileIdObjCraneFirst + 4
+kTileIdObjTrolleyBlock    = kTileIdObjCraneFirst + 5
+kTileIdObjRopeDiag        = kTileIdObjCraneFirst + 6
+kTileIdObjPulley          = kTileIdObjCraneFirst + 7
 kTileIdObjTrolleyCorner   = kTileIdObjMachineCorner
 kTileIdObjTrolleyRope     = kTileIdObjCraneRope
 kTileIdObjTrolleyWheel    = kTileIdObjCraneWheel

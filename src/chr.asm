@@ -1045,9 +1045,9 @@
     .res $09 * kSizeofChr
     .assert * - :- = (kTileIdObjMinigunVertFirst - $80) * kSizeofChr, error
     .incbin "out/tiles/minigun_vert.chr"
-    .assert * - :- = (kTileIdCrusherFirst - $80) * kSizeofChr, error
+    .assert * - :- = (kTileIdObjCrusherFirst - $80) * kSizeofChr, error
     .incbin "out/tiles/crusher.chr"
-    .assert * - :- = (kTileIdWinchFirst - $80) * kSizeofChr, error
+    .assert * - :- = (kTileIdObjWinchFirst - $80) * kSizeofChr, error
     .incbin "out/tiles/winch.chr"
     .assert * - :- = (kTileIdObjGrenadeFirst - $80) * kSizeofChr, error
     .incbin "out/tiles/grenade.chr"
@@ -1109,14 +1109,14 @@
     .assert * - :- = (kTileIdObjSpiderFirst - $80) * kSizeofChr, error
     .incbin "out/tiles/spider.chr"
     .res $10 * kSizeofChr
-    .assert * - :- = (kTileIdWeakFloorFirst - $80) * kSizeofChr, error
+    .assert * - :- = (kTileIdObjWeakFloorFirst - $80) * kSizeofChr, error
     .incbin "out/tiles/breakable.chr"
     .res $0e * kSizeofChr
     .assert * - :- = (kTileIdObjFishFirst - $80) * kSizeofChr, error
     .incbin "out/tiles/fish.chr"
-    .assert * - :- = (kTileIdCrusherFirst - $80) * kSizeofChr, error
+    .assert * - :- = (kTileIdObjCrusherFirst - $80) * kSizeofChr, error
     .incbin "out/tiles/crusher.chr"
-    .assert * - :- = (kTileIdWinchFirst - $80) * kSizeofChr, error
+    .assert * - :- = (kTileIdObjWinchFirst - $80) * kSizeofChr, error
     .incbin "out/tiles/winch.chr"
     .res $14 * kSizeofChr
     .assert * - :- = kSizeofChr * $80, error
@@ -1142,7 +1142,7 @@
     .incbin "out/tiles/grub.chr"
     .assert * - :- = (kTileIdObjToadFirst - $80) * kSizeofChr, error
     .incbin "out/tiles/toad.chr"
-    .assert * - :- = (kTileIdCraneFirst - $80) * kSizeofChr, error
+    .assert * - :- = (kTileIdObjCraneFirst - $80) * kSizeofChr, error
     .incbin "out/tiles/crane.chr"
     .res $48 * kSizeofChr
     .assert * - :- = kSizeofChr * $80, error
@@ -1245,7 +1245,7 @@
     .assert * - :- = (kTileIdObjFireflyFirst - $80) * kSizeofChr, error
     .incbin "out/tiles/firefly.chr"
     .res $08 * kSizeofChr
-    .assert * - :- = (kTileIdCraneFirst - $80) * kSizeofChr, error
+    .assert * - :- = (kTileIdObjCraneFirst - $80) * kSizeofChr, error
     .incbin "out/tiles/crane.chr"
     .res $38 * kSizeofChr
     .assert * - :- = (kTileIdObjBreakerFirst - $80) * kSizeofChr, error

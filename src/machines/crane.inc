@@ -26,6 +26,6 @@
 kCraneActCooldown = 8
 
 ;;; Various OBJ tile IDs used for drawing crane machines.
-kTileIdCraneFirst = $b0
+kTileIdObjCraneFirst = $b0
 
 ;;;=========================================================================;;;
