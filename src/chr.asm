@@ -47,6 +47,7 @@
 .INCLUDE "devices/breaker.inc"
 .INCLUDE "dialog.inc"
 .INCLUDE "machine.inc"
+.INCLUDE "machines/blaster.inc"
 .INCLUDE "machines/boiler.inc"
 .INCLUDE "machines/cannon.inc"
 .INCLUDE "machines/crane.inc"
@@ -1018,13 +1019,13 @@
     .res $01 * kSizeofChr
     .assert * - :- = (kTileIdObjCannonFirst - $80) * kSizeofChr, error
     .incbin "out/tiles/cannon.chr"
-    .res $04 * kSizeofChr
     .assert * - :- = (kTileIdObjBulletFirst - $80) * kSizeofChr, error
     .incbin "out/tiles/bullet.chr"
-    .res $02 * kSizeofChr
+    .res $06 * kSizeofChr
     .assert * - :- = (kTileIdObjUpgradeOpWaitFirst - $80) * kSizeofChr, error
     .incbin "out/tiles/upgrade_opwait.chr"
-    .res $02 * kSizeofChr
+    .assert * - :- = (kTileIdObjBlasterFirst - $80) * kSizeofChr, error
+    .incbin "out/tiles/blaster.chr"
     .assert * - :- = (kTileIdObjFireballFirst - $80) * kSizeofChr, error
     .incbin "out/tiles/fireball.chr"
     .assert * - :- = (kTileIdObjOutbreakFirst - $80) * kSizeofChr, error
@@ -1208,7 +1209,9 @@
     .res $04 * kSizeofChr
     .assert * - :- = (kTileIdObjLavaballFirst - $80) * kSizeofChr, error
     .incbin "out/tiles/lavaball.chr"
-    .res $04 * kSizeofChr
+    .assert * - :- = (kTileIdObjBlasterFirst - $80) * kSizeofChr, error
+    .incbin "out/tiles/blaster.chr"
+    .res $02 * kSizeofChr
     .assert * - :- = (kTileIdObjValveFirst - $80) * kSizeofChr, error
     .incbin "out/tiles/valve.chr"
     .assert * - :- = (kTileIdObjHotheadFirst - $80) * kSizeofChr, error
@@ -1343,9 +1346,10 @@
     .incbin "out/tiles/column.chr"
     .assert * - :- = (kTileIdObjUpgradeOpTilFirst - $80) * kSizeofChr, error
     .incbin "out/tiles/upgrade_optil.chr"
-    .res $08 * kSizeofChr
+    .res $04 * kSizeofChr
     .assert * - :- = (kTileIdObjBulletFirst - $80) * kSizeofChr, error
     .incbin "out/tiles/bullet.chr"
+    .res $04 * kSizeofChr
     .assert * - :- = (kTileIdObjCrateFirst - $80) * kSizeofChr, error
     .incbin "out/tiles/crate.chr"
     .res $08 * kSizeofChr

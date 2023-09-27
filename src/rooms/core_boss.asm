@@ -39,16 +39,21 @@
 
 .IMPORT DataA_Room_Core_sTileset
 .IMPORT Data_Empty_sDialog
+.IMPORT FuncA_Machine_BlasterHorzTryAct
 .IMPORT FuncA_Machine_CannonTick
 .IMPORT FuncA_Machine_CannonTryAct
 .IMPORT FuncA_Machine_CannonTryMove
 .IMPORT FuncA_Machine_Error
+.IMPORT FuncA_Machine_GenericMoveTowardGoalVert
+.IMPORT FuncA_Machine_GenericTryMoveY
 .IMPORT FuncA_Machine_GetWinchHorzSpeed
 .IMPORT FuncA_Machine_GetWinchVertSpeed
+.IMPORT FuncA_Machine_ReachedGoal
 .IMPORT FuncA_Machine_StartWorking
 .IMPORT FuncA_Machine_WinchReachedGoal
 .IMPORT FuncA_Machine_WinchStartFalling
 .IMPORT FuncA_Objects_Draw1x1Shape
+.IMPORT FuncA_Objects_DrawBlasterMachineHorz
 .IMPORT FuncA_Objects_DrawCannonMachine
 .IMPORT FuncA_Objects_DrawWinchMachineWithSpikeball
 .IMPORT FuncA_Objects_MoveShapeDownOneTile
@@ -89,20 +94,33 @@
 ;;;=========================================================================;;;
 
 ;;; The machine indices for the machines in this room.
-kWinchMachineIndex  = 0
-kCannonMachineIndex = 1
+kWinchMachineIndex   = 0
+kBlasterMachineIndex = 1
+kCannonMachineIndex  = 2
 ;;; The platform indices for the machines in this room.
 kWinchPlatformIndex     = 0
 kSpikeballPlatformIndex = 1
-kCannonPlatformIndex    = 2
+kBlasterPlatformIndex   = 2
+kCannonPlatformIndex    = 3
 
 ;;; The platform index for the zone that triggers the boss fight cutscene when
 ;;; the player avatar stands in it.
-kCutsceneZonePlatformIndex = 3
+kCutsceneZonePlatformIndex = 4
 
 ;;; The platform index for the wall that blocks the passage during the boss
 ;;; fight.
-kPassageBarrierPlatformIndex = 4
+kPassageBarrierPlatformIndex = 5
+
+;;; The initial and maximum permitted values for the blaster's Y register.
+kBlasterInitGoalY = 2
+kBlasterMaxGoalY  = 2
+
+;;; The maximum and initial Y-positions for the top of the blaster platform.
+.LINECONT +
+kBlasterMaxPlatformTop = $0060
+kBlasterInitPlatformTop = \
+    kBlasterMaxPlatformTop - kBlasterInitGoalY * kBlockHeightPx
+.LINECONT -
 
 ;;; The initial and maximum permitted values for the winch's X and Z registers.
 kWinchInitGoalX = 0
@@ -115,7 +133,7 @@ kWinchMaxGoalZ  = 6
 kWinchMinPlatformLeft = $50
 kWinchInitPlatformLeft = \
     kWinchMinPlatformLeft + kBlockWidthPx * kWinchInitGoalX
-.LINECONT +
+.LINECONT -
 
 ;;; The minimum and initial room pixel position for the top edge of the
 ;;; spikeball.
@@ -123,7 +141,7 @@ kWinchInitPlatformLeft = \
 kSpikeballMinPlatformTop = $22
 kSpikeballInitPlatformTop = \
     kSpikeballMinPlatformTop + kBlockHeightPx * kWinchInitGoalZ
-.LINECONT +
+.LINECONT -
 
 ;;;=========================================================================;;;
 
@@ -151,7 +169,7 @@ kSpikeballInitPlatformTop = \
     d_byte MinimapStartRow_u8, 1
     d_byte MinimapStartCol_u8, 13
     d_addr TerrainData_ptr, _TerrainData
-    d_byte NumMachines_u8, 2
+    d_byte NumMachines_u8, 3
     d_addr Machines_sMachine_arr_ptr, _Machines_sMachine_arr
     d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjBoss1)
     d_addr Ext_sRoomExt_ptr, _Ext_sRoomExt
@@ -191,6 +209,25 @@ _Machines_sMachine_arr:
     d_addr Draw_func_ptr, FuncA_Objects_CoreBossWinch_Draw
     d_addr Reset_func_ptr, FuncA_Room_CoreBossWinch_InitReset
     D_END
+    .assert * - :- = kBlasterMachineIndex * .sizeof(sMachine), error
+    D_STRUCT sMachine
+    d_byte Code_eProgram, eProgram::CoreBossBlaster
+    d_byte Breaker_eFlag, 0
+    d_byte Flags_bMachine, bMachine::FlipH | bMachine::MoveV | bMachine::Act
+    d_byte Status_eDiagram, eDiagram::LauncherLeft  ; TODO
+    d_word ScrollGoalX_u16, $0110
+    d_byte ScrollGoalY_u8, $00
+    d_byte RegNames_u8_arr4, 0, 0, 0, "Y"  ; TODO: mirror(s)
+    d_byte MainPlatform_u8, kBlasterPlatformIndex
+    d_addr Init_func_ptr, FuncA_Room_CoreBossBlaster_InitReset
+    d_addr ReadReg_func_ptr, FuncC_Core_BossBlaster_ReadReg
+    d_addr WriteReg_func_ptr, Func_Noop  ; TODO: mirror(s)
+    d_addr TryMove_func_ptr, FuncA_Machine_CoreBossBlaster_TryMove
+    d_addr TryAct_func_ptr, FuncA_Machine_BlasterHorzTryAct
+    d_addr Tick_func_ptr, FuncA_Machine_CoreBossBlaster_Tick
+    d_addr Draw_func_ptr, FuncA_Objects_CoreBossBlaster_Draw
+    d_addr Reset_func_ptr, FuncA_Room_CoreBossBlaster_InitReset
+    D_END
     .assert * - :- = kCannonMachineIndex * .sizeof(sMachine), error
     D_STRUCT sMachine
     d_byte Code_eProgram, eProgram::CoreBossCannon
@@ -227,6 +264,14 @@ _Platforms_sPlatform_arr:
     d_byte HeightPx_u8, kSpikeballHeightPx
     d_word Left_i16, kWinchInitPlatformLeft + 2
     d_word Top_i16, kSpikeballInitPlatformTop
+    D_END
+    .assert * - :- = kBlasterPlatformIndex * .sizeof(sPlatform), error
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Solid
+    d_word WidthPx_u16, kBlockWidthPx
+    d_byte HeightPx_u8, kBlockHeightPx
+    d_word Left_i16, $01f0
+    d_word Top_i16, kBlasterInitPlatformTop
     D_END
     .assert * - :- = kCannonPlatformIndex * .sizeof(sPlatform), error
     D_STRUCT sPlatform
@@ -288,6 +333,12 @@ _Devices_sDevice_arr:
     d_byte BlockRow_u8, 10
     d_byte BlockCol_u8, 2
     d_byte Target_byte, kWinchMachineIndex
+    D_END
+    D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::Console
+    d_byte BlockRow_u8, 10
+    d_byte BlockCol_u8, 31
+    d_byte Target_byte, kBlasterMachineIndex
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Console
@@ -657,6 +708,15 @@ _Col1:
     .byte $2f, $2f, $2f, $2f
 .ENDPROC
 
+.PROC FuncC_Core_BossBlaster_ReadReg
+    ;; TODO: mirror(s)
+_ReadY:
+    lda #kBlasterMaxPlatformTop + kTileHeightPx
+    sub Ram_PlatformTop_i16_0_arr + kBlasterPlatformIndex
+    div #kBlockHeightPx
+    rts
+.ENDPROC
+
 .PROC FuncC_Core_BossWinch_ReadReg
     cmp #$e
     beq _ReadX
@@ -777,6 +837,18 @@ _Finished:
     .byte 2, 6, 6
 .ENDPROC
 
+.PROC FuncA_Machine_CoreBossBlaster_TryMove
+    lda #kBlasterMaxGoalY  ; param: max goal vert
+    jmp FuncA_Machine_GenericTryMoveY
+.ENDPROC
+
+.PROC FuncA_Machine_CoreBossBlaster_Tick
+    ldax #kBlasterMaxPlatformTop  ; param: max platform top
+    jsr FuncA_Machine_GenericMoveTowardGoalVert  ; returns Z
+    jeq FuncA_Machine_ReachedGoal
+    rts
+.ENDPROC
+
 ;;;=========================================================================;;;
 
 .SEGMENT "PRGA_Room"
@@ -817,6 +889,12 @@ _Return:
     jmp Func_ResetWinchMachineState
 .ENDPROC
 
+.PROC FuncA_Room_CoreBossBlaster_InitReset
+    lda #kBlasterInitGoalY
+    sta Ram_MachineGoalVert_u8_arr + kBlasterMachineIndex
+    rts
+.ENDPROC
+
 ;;;=========================================================================;;;
 
 .SEGMENT "PRGA_Objects"
@@ -851,6 +929,13 @@ _BarrierTileId_u8_arr:
 .PROC FuncA_Objects_CoreBossWinch_Draw
     ldx #kSpikeballPlatformIndex  ; param: spikeball platform index
     jmp FuncA_Objects_DrawWinchMachineWithSpikeball
+.ENDPROC
+
+;;; Draws the CoreBossBlaster machine.
+.PROC FuncA_Objects_CoreBossBlaster_Draw
+    jsr FuncA_Objects_DrawBlasterMachineHorz
+    ;; TODO: draw mirror(s)
+    rts
 .ENDPROC
 
 ;;;=========================================================================;;;

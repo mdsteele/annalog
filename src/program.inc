@@ -118,6 +118,7 @@
     CityCenterSemaphore4
     CityOutskirtsLauncher
     CityPitLift
+    CoreBossBlaster
     CoreBossCannon
     CoreBossWinch
     CoreElevatorJet

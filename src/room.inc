@@ -259,7 +259,7 @@ kMaxPassages = 8
     MinimapStartCol_u8        .byte
     ;; A pointer to the terrain block data for this room, which stores 1 byte
     ;; per block in column-major order.  For "short" rooms, new columns start
-    ;; every 16 bytes; for "tall" rooms, new columns start every 24 bytes.
+    ;; every 15 bytes; for "tall" rooms, new columns start every 24 bytes.
     TerrainData_ptr           .addr
     ;; The number of entries in the Machines_sMachine_arr_ptr array.  This must
     ;; be no greater than kMaxMachines.

@@ -17,14 +17,13 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
-;;; State bytes for bullet projectiles:
-;;;   * State1: Counter that starts at zero and increments every frame; if it
-;;;     wraps back around to zero before the bullet hits anything, then the
-;;;     bullet is removed.
+;;; State bytes for blaster machines:
+;;;   * Slowdown: Unused.
+;;;   * State1: Unused.
 ;;;   * State2: Unused.
 ;;;   * State3: Unused.
 
-;;; OBJ tile IDs for bullet projectile actors:
-kTileIdObjBulletFirst = $8e
+;;; OBJ tile IDs used for drawing blaster machines.
+kTileIdObjBlasterFirst = $98
 
 ;;;=========================================================================;;;
