@@ -83,7 +83,9 @@
 .IMPORT Ram_MachineGoalHorz_u8_arr
 .IMPORT Ram_MachineGoalVert_u8_arr
 .IMPORT Ram_MachineState1_byte_arr
+.IMPORT Ram_MachineState2_byte_arr
 .IMPORT Ram_MachineState3_byte_arr
+.IMPORT Ram_MachineState4_byte_arr
 .IMPORT Ram_PlatformLeft_i16_0_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORT Ram_PlatformType_ePlatform_arr
@@ -105,23 +107,24 @@
 kWinchMachineIndex   = 0
 kBlasterMachineIndex = 1
 kCannonMachineIndex  = 2
+
 ;;; The platform indices for the machines in this room.
 kWinchPlatformIndex     = 0
 kSpikeballPlatformIndex = 1
 kBlasterPlatformIndex   = 2
-kMirrorPlatformIndex    = 3  ; TODO: add a second mirror
-kCannonPlatformIndex    = 4
-
+kMirror1PlatformIndex   = 3
+kMirror2PlatformIndex   = 4
+kCannonPlatformIndex    = 5
 ;;; The platform index for the zone that triggers the boss fight cutscene when
 ;;; the player avatar stands in it.
-kCutsceneZonePlatformIndex = 5
-
+kCutsceneZonePlatformIndex = 6
 ;;; The platform index for the wall that blocks the passage during the boss
 ;;; fight.
-kPassageBarrierPlatformIndex = 6
+kPassageBarrierPlatformIndex = 7
 
-;;; The initial value for the blaster's M register.
+;;; The initial values for the blaster's M/R mirror registers.
 kBlasterInitGoalM = 4
+kBlasterInitGoalR = 4
 ;;; The initial and maximum permitted values for the blaster's Y register.
 kBlasterInitGoalY = 2
 kBlasterMaxGoalY  = 2
@@ -133,9 +136,10 @@ kBlasterInitPlatformTop = \
     kBlasterMaxPlatformTop - kBlasterInitGoalY * kBlockHeightPx
 .LINECONT -
 
-;;; The mirror's offset from relative to absolute angles, in increments of
+;;; The mirrors' offsets from relative to absolute angles, in increments of
 ;;; tau/16.
-kMirrorAngleOffset = 12
+kMirror1AngleOffset = 12
+kMirror2AngleOffset = 8
 
 ;;; The initial and maximum permitted values for the winch's X and Z registers.
 kWinchInitGoalX = 0
@@ -230,12 +234,12 @@ _Machines_sMachine_arr:
     d_byte Breaker_eFlag, 0
     .linecont +
     d_byte Flags_bMachine, bMachine::FlipH | bMachine::MoveV | \
-                           bMachine::Act | bMachine::WriteC
+                           bMachine::Act | bMachine::WriteCD
     .linecont -
     d_byte Status_eDiagram, eDiagram::LauncherLeft  ; TODO
     d_word ScrollGoalX_u16, $0110
     d_byte ScrollGoalY_u8, $00
-    d_byte RegNames_u8_arr4, "M", 0, 0, "Y"
+    d_byte RegNames_u8_arr4, "M", "R", 0, "Y"
     d_byte MainPlatform_u8, kBlasterPlatformIndex
     d_addr Init_func_ptr, FuncA_Room_CoreBossBlaster_Init
     d_addr ReadReg_func_ptr, FuncC_Core_BossBlaster_ReadReg
@@ -291,13 +295,21 @@ _Platforms_sPlatform_arr:
     d_word Left_i16, $01f0
     d_word Top_i16, kBlasterInitPlatformTop
     D_END
-    .assert * - :- = kMirrorPlatformIndex * .sizeof(sPlatform), error
+    .assert * - :- = kMirror1PlatformIndex * .sizeof(sPlatform), error
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Zone
     d_word WidthPx_u16, $08
     d_byte HeightPx_u8, $08
     d_word Left_i16,  $01c4
     d_word Top_i16,   $0064
+    D_END
+    .assert * - :- = kMirror2PlatformIndex * .sizeof(sPlatform), error
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Zone
+    d_word WidthPx_u16, $08
+    d_byte HeightPx_u8, $08
+    d_word Left_i16,  $01c4
+    d_word Top_i16,   $00c4
     D_END
     .assert * - :- = kCannonPlatformIndex * .sizeof(sPlatform), error
     D_STRUCT sPlatform
@@ -908,11 +920,17 @@ _TalkToGronta:
     lda #eCutscene::CoreBossStartBattle
     sta Zp_Next_eCutscene
     @done:
-_Mirrors:
+_Mirror1:
     lda Ram_MachineState3_byte_arr + kBlasterMachineIndex  ; mirror 1 anim
     div #kBlasterMirrorAnimSlowdown
-    add #kMirrorAngleOffset  ; param: absolute mirror angle
-    ldy #kMirrorPlatformIndex  ; param: mirror platform index
+    add #kMirror1AngleOffset  ; param: absolute mirror angle
+    ldy #kMirror1PlatformIndex  ; param: mirror platform index
+    jsr FuncA_Room_ReflectFireballsOffMirror
+_Mirror2:
+    lda Ram_MachineState4_byte_arr + kBlasterMachineIndex  ; mirror 2 anim
+    div #kBlasterMirrorAnimSlowdown
+    add #kMirror2AngleOffset  ; param: absolute mirror angle
+    ldy #kMirror2PlatformIndex  ; param: mirror platform index
     jsr FuncA_Room_ReflectFireballsOffMirror
 _Return:
     rts
@@ -929,12 +947,16 @@ _Return:
 .PROC FuncA_Room_CoreBossBlaster_Init
     lda #kBlasterInitGoalM * kBlasterMirrorAnimSlowdown
     sta Ram_MachineState3_byte_arr + kBlasterMachineIndex  ; mirror 1 anim
+    lda #kBlasterInitGoalR * kBlasterMirrorAnimSlowdown
+    sta Ram_MachineState4_byte_arr + kBlasterMachineIndex  ; mirror 2 anim
     .assert * = FuncA_Room_CoreBossBlaster_Reset, error, "fallthrough"
 .ENDPROC
 
 .PROC FuncA_Room_CoreBossBlaster_Reset
     lda #kBlasterInitGoalM
     sta Ram_MachineState1_byte_arr + kBlasterMachineIndex  ; mirror 1 goal
+    lda #kBlasterInitGoalR
+    sta Ram_MachineState2_byte_arr + kBlasterMachineIndex  ; mirror 2 goal
     lda #kBlasterInitGoalY
     sta Ram_MachineGoalVert_u8_arr + kBlasterMachineIndex
     rts
@@ -979,10 +1001,17 @@ _BarrierTileId_u8_arr:
 ;;; Draws the CoreBossBlaster machine.
 .PROC FuncA_Objects_CoreBossBlaster_Draw
     jsr FuncA_Objects_DrawBlasterMachineHorz
-    ldx #kMirrorPlatformIndex  ; param: mirror platform index
+_Mirror1:
+    ldx #kMirror1PlatformIndex  ; param: mirror platform index
     lda Ram_MachineState3_byte_arr + kBlasterMachineIndex  ; mirror 1 anim
     div #kBlasterMirrorAnimSlowdown
-    add #kMirrorAngleOffset  ; param: absolute mirror angle
+    add #kMirror1AngleOffset  ; param: absolute mirror angle
+    jsr FuncA_Objects_DrawBlasterMirror
+_Mirror2:
+    ldx #kMirror2PlatformIndex  ; param: mirror platform index
+    lda Ram_MachineState4_byte_arr + kBlasterMachineIndex  ; mirror 2 anim
+    div #kBlasterMirrorAnimSlowdown
+    add #kMirror2AngleOffset  ; param: absolute mirror angle
     jmp FuncA_Objects_DrawBlasterMirror
 .ENDPROC
 
