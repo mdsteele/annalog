@@ -22,6 +22,7 @@
 ;;;     kBridgeMaxAngle for all the way up.
 ;;;   * State2: Unused.
 ;;;   * State3: Unused.
+;;;   * State4: Unused.
 
 ;;; The maximum permitted value for the bridge angle (which is stored in
 ;;; State1).

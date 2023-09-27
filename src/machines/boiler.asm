@@ -127,6 +127,7 @@ kPaletteObjValve = 0
 .PROC FuncA_Machine_BoilerTick
     lda #0
     sta T0  ; num valves moved
+    ldx Zp_MachineIndex_u8
 _Valve1:
     lda Ram_MachineGoalVert_u8_arr, x
     mul #kBoilerValveAnimSlowdown

@@ -21,6 +21,7 @@
 ;;;   * State1: Unused.
 ;;;   * State2: Unused.
 ;;;   * State3: Unused.
+;;;   * State4: Unused.
 
 ;;; Various OBJ tile IDs used for drawing multiplexer machines.
 kTileIdObjMultiplexerFirst = $82

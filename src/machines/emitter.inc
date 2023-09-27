@@ -22,6 +22,7 @@
 ;;;   * State1: Unused.
 ;;;   * State2: Unused.
 ;;;   * State3: Unused.
+;;;   * State4: Unused.
 
 ;;; How many frames an emitter machine spends per ACT operation.
 kEmitterActCountdown = 10

@@ -22,6 +22,7 @@
 ;;;     slot number N.
 ;;;   * State2: Unused.
 ;;;   * State3: Unused.
+;;;   * State4: Unused.
 
 ;;; The height of an ammo rack machine's main platform, in pixels.
 kAmmoRackMachineHeightPx = $08

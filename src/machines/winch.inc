@@ -23,6 +23,7 @@
 ;;;   * State2: The lo byte of the current falling speed, measured in subpixels
 ;;;     per frame.
 ;;;   * State3: The hi byte of the current falling speed.
+;;;   * State4: Unused.
 
 ;;; The size of a winch spikeball platform, in pixels.
 kSpikeballWidthPx  = $0d

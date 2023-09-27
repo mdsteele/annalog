@@ -306,7 +306,7 @@
 .PROC Ppu_ChrBgCore
 :   .incbin "out/tiles/core_pipes1.chr"
     .incbin "out/tiles/core_pipes2.chr"
-    .res $08 * kSizeofChr
+    .res $04 * kSizeofChr
     .incbin "out/tiles/fullcore1.chr"
     .incbin "out/tiles/fullcore2.chr"
     .incbin "out/tiles/console.chr"
@@ -1043,7 +1043,10 @@
     .incbin "out/tiles/plant_eye_red.chr"
     .assert * - :- = (kTileIdObjGazerFirst - $80) * kSizeofChr, error
     .incbin "out/tiles/gazer_obj.chr"
-    .res $09 * kSizeofChr
+    .res $01 * kSizeofChr
+    .assert * - :- = (kTileIdObjMirrorFirst - $80) * kSizeofChr, error
+    .incbin "out/tiles/mirror.chr"
+    .res $03 * kSizeofChr
     .assert * - :- = (kTileIdObjMinigunVertFirst - $80) * kSizeofChr, error
     .incbin "out/tiles/minigun_vert.chr"
     .assert * - :- = (kTileIdObjCrusherFirst - $80) * kSizeofChr, error

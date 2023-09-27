@@ -21,6 +21,7 @@
 ;;;   * State1: The current rotation angle for the rotor wheel (0-255).
 ;;;   * State2: Unused.
 ;;;   * State3: Unused.
+;;;   * State4: Unused.
 
 ;;; The size of a rotor machine's main platform, in pixels.
 kRotorMachineWidthPx  = $10

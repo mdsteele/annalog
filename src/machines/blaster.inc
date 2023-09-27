@@ -19,11 +19,18 @@
 
 ;;; State bytes for blaster machines:
 ;;;   * Slowdown: Unused.
-;;;   * State1: Unused.
-;;;   * State2: Unused.
-;;;   * State3: Unused.
+;;;   * State1: The relative goal angle for mirror #1, in increments of tau/16.
+;;;   * State2: The relative goal angle for mirror #2, in increments of tau/16.
+;;;   * State3: The current animation angle for mirror #1, which ticks each
+;;;     frame toward (State1 * kBlasterMirrorAnimSlowdown).
+;;;   * State4: The current animation angle for mirror #2, which ticks each
+;;;     frame toward (State2 * kBlasterMirrorAnimSlowdown).
+
+;;; The number of frames between mirror angles when animating a blaster mirror.
+.DEFINE kBlasterMirrorAnimSlowdown 2
 
 ;;; OBJ tile IDs used for drawing blaster machines.
 kTileIdObjBlasterFirst = $98
+kTileIdObjMirrorFirst  = $d0
 
 ;;;=========================================================================;;;

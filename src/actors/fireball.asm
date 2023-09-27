@@ -25,10 +25,12 @@
 .IMPORT FuncA_Actor_HarmAvatarIfCollision
 .IMPORT FuncA_Objects_Draw1x1Actor
 .IMPORT Func_Cosine
-.IMPORT Func_InitActorDefault
+.IMPORT Func_InitActorWithState1
 .IMPORT Func_SignedMult
 .IMPORT Func_Sine
 .IMPORT Ram_ActorState1_byte_arr
+.IMPORT Ram_ActorState2_byte_arr
+.IMPORT Ram_ActorState3_byte_arr
 .IMPORT Ram_ActorType_eActor_arr
 .IMPORT Ram_ActorVelX_i16_0_arr
 .IMPORT Ram_ActorVelX_i16_1_arr
@@ -54,26 +56,37 @@ kPaletteObjFireball = 1
 ;;; @preserve X, T2+
 .EXPORT Func_InitActorProjFireball
 .PROC Func_InitActorProjFireball
-    pha  ; angle
     ldy #eActor::ProjFireball  ; param: actor type
-    jsr Func_InitActorDefault  ; preserves X and T0+
-    pla  ; angle
+    jsr Func_InitActorWithState1  ; preserves X and T0+
+    .assert * = Func_ReinitActorProjFireballVelocity, error, "fallthrough"
+.ENDPROC
+
+;;; Sets a fireball projectile's velocity from its State1 angle value.
+;;; @param X The actor index.
+;;; @preserve X, Y, T2+
+.EXPORT Func_ReinitActorProjFireballVelocity
+.PROC Func_ReinitActorProjFireballVelocity
+    tya
+    pha  ; old Y value (so we can preserve it)
 _InitVelX:
-    pha  ; angle
+    lda Ram_ActorState1_byte_arr, x  ; fireball angle
     jsr Func_Cosine  ; preserves X and T0+, returns A
     ldy #kFireballSpeed  ; param: multiplier
     jsr Func_SignedMult  ; preserves X and T2+, returns YA
     sta Ram_ActorVelX_i16_0_arr, x
     tya
     sta Ram_ActorVelX_i16_1_arr, x
-    pla  ; angle
 _InitVelY:
+    lda Ram_ActorState1_byte_arr, x  ; fireball angle
     jsr Func_Sine  ; preserves X and T0+, returns A
     ldy #kFireballSpeed  ; param: multiplier
     jsr Func_SignedMult  ; preserves X and T2+, returns YA
     sta Ram_ActorVelY_i16_0_arr, x
     tya
     sta Ram_ActorVelY_i16_1_arr, x
+_RestoreY:
+    pla  ; old Y value (so we can preserve it)
+    tay
     rts
 .ENDPROC
 
@@ -86,15 +99,22 @@ _InitVelY:
 ;;; @preserve X
 .EXPORT FuncA_Actor_TickProjFireball
 .PROC FuncA_Actor_TickProjFireball
-    inc Ram_ActorState1_byte_arr, x
-    beq @expire
+_IncrementAge:
+    inc Ram_ActorState2_byte_arr, x  ; fireball age in frames
+    beq _Expire
+_DecrementReflectionTimer:
+    lda Ram_ActorState3_byte_arr, x  ; reflection timer
+    beq @done
+    dec Ram_ActorState3_byte_arr, x  ; reflection timer
+    @done:
+_HandleCollision:
     jsr FuncA_Actor_HarmAvatarIfCollision  ; preserves X
     jsr FuncA_Actor_CenterHitsTerrain  ; preserves X, returns C
-    bcc @done
-    @expire:
+    bcc _Return
+_Expire:
     lda #eActor::None
     sta Ram_ActorType_eActor_arr, x
-    @done:
+_Return:
     rts
 .ENDPROC
 
@@ -107,7 +127,7 @@ _InitVelY:
 ;;; @preserve X
 .EXPORT FuncA_Objects_DrawActorProjFireball
 .PROC FuncA_Objects_DrawActorProjFireball
-    lda Ram_ActorState1_byte_arr, x
+    lda Ram_ActorState2_byte_arr, x  ; fireball age in frames
     div #2
     and #$01
     add #kTileIdObjFireballFirst  ; param: tile ID

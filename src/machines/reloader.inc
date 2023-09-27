@@ -22,6 +22,7 @@
 ;;;     (0 or 1).
 ;;;   * State2: Unused.
 ;;;   * State3: Unused.
+;;;   * State4: Unused.
 
 ;;; The size of a reloader machine's main platform, in pixels.
 kReloaderMachineWidthPx  = $10

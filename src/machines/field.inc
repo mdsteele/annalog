@@ -22,6 +22,7 @@
 ;;;     since it was last reset or discharged.
 ;;;   * State2: Unused.
 ;;;   * State3: Unused.
+;;;   * State4: Unused.
 
 ;;; The size, in pixels, of a teleport field machine's primary platform.
 kFieldMachineWidth = $10

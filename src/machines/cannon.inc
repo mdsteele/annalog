@@ -22,6 +22,7 @@
 ;;;     way up).
 ;;;   * State2: Unused.
 ;;;   * State3: Unused.
+;;;   * State4: Unused.
 
 ;;; The first tile ID use for drawing cannon machines.
 kTileIdObjCannonFirst = $88

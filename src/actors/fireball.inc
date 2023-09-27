@@ -18,11 +18,15 @@
 ;;;=========================================================================;;;
 
 ;;; State bytes for fireball projectiles:
-;;;   * State1: Counter that starts at zero and increments every frame; if it
-;;;     wraps back around to zero before the fireball hits anything, then the
-;;;     fireball is removed.
-;;;   * State2: Unused.
-;;;   * State3: Unused.
+;;;   * State1: The absolute angle that the fireball was fired/reflected at, in
+;;;     increments of tau/256.
+;;;   * State2: The current age of the fireball, in frames.  This increments
+;;;     each frame, and if it wraps back around to zero before the fireball
+;;;     hits anything, then the fireball is removed.
+;;;   * State3: The number of frames until the fireball can hit a mirror again.
+;;;     This is set to a nonzero value when the fireball hits a mirror (so that
+;;;     it can't immediately hit the same mirror again), and decrements each
+;;;     frame when nonzero.
 
 ;;; The first tile ID for the fireball actor animation.
 kTileIdObjFireballFirst = $9a
