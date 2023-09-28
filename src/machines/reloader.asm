@@ -23,7 +23,7 @@
 .INCLUDE "reloader.inc"
 .INCLUDE "shared.inc"
 
-.IMPORT FuncA_Objects_Alloc2x2Shape
+.IMPORT FuncA_Objects_Alloc2x2MachineShape
 .IMPORT FuncA_Objects_Draw1x1Shape
 .IMPORT FuncA_Objects_GetMachineLightTileId
 .IMPORT FuncA_Objects_MoveShapeDownAndRightOneTile
@@ -60,10 +60,8 @@ _Rocket:
     jsr FuncA_Objects_Draw1x1Shape
     @done:
 _MainPlatform:
-    jsr FuncA_Objects_SetShapePosToMachineTopLeft
-    jsr FuncA_Objects_MoveShapeDownAndRightOneTile
-    lda #kPaletteObjReloader
-    jsr FuncA_Objects_Alloc2x2Shape  ; returns C and Y
+    lda #kPaletteObjReloader  ; param: object flags
+    jsr FuncA_Objects_Alloc2x2MachineShape  ; returns C and Y
     bcs _Done
 _SetFlags:
     lda #kPaletteObjMachineLight

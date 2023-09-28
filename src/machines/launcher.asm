@@ -28,10 +28,8 @@
 
 .IMPORT FuncA_Machine_Error
 .IMPORT FuncA_Machine_StartWaiting
-.IMPORT FuncA_Objects_Alloc2x2Shape
+.IMPORT FuncA_Objects_Alloc2x2MachineShape
 .IMPORT FuncA_Objects_GetMachineLightTileId
-.IMPORT FuncA_Objects_MoveShapeDownAndRightOneTile
-.IMPORT FuncA_Objects_SetShapePosToMachineTopLeft
 .IMPORT Func_FindEmptyActorSlot
 .IMPORT Func_InitActorProjRocket
 .IMPORT Func_MovePointHorz
@@ -137,20 +135,11 @@ _VertAdjust_i8_arr:
 ;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
 .EXPORT FuncA_Objects_DrawLauncherMachineHorz
 .PROC FuncA_Objects_DrawLauncherMachineHorz
-    jsr FuncA_Objects_SetShapePosToMachineTopLeft
-    jsr FuncA_Objects_MoveShapeDownAndRightOneTile
-    ;; Allocate objects.
-    ldy #sMachine::Flags_bMachine
-    lda (Zp_Current_sMachine_ptr), y
-    and #bMachine::FlipH
-    .assert bMachine::FlipH = bObj::FlipH, error
-    .assert kPaletteObjLauncher = 0, error
-    pha  ; param: object flags
-    jsr FuncA_Objects_Alloc2x2Shape  ; returns C and Y
-    pla  ; object flags
+    lda #kPaletteObjLauncher  ; param: object flags
+    jsr FuncA_Objects_Alloc2x2MachineShape  ; returns C, A, and Y
     bcs _Done
 _SetFlags:
-    eor #bObj::FlipH | kPaletteObjMachineLight
+    eor #bObj::FlipH | (kPaletteObjLauncher ^ kPaletteObjMachineLight)
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Flags_bObj, y
     eor #bObj::FlipV
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Flags_bObj, y
@@ -175,10 +164,8 @@ _Done:
 ;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
 .EXPORT FuncA_Objects_DrawLauncherMachineVert
 .PROC FuncA_Objects_DrawLauncherMachineVert
-    jsr FuncA_Objects_SetShapePosToMachineTopLeft
-    jsr FuncA_Objects_MoveShapeDownAndRightOneTile
-    lda #kPaletteObjLauncher
-    jsr FuncA_Objects_Alloc2x2Shape  ; returns C and Y
+    lda #kPaletteObjLauncher  ; param: object flags
+    jsr FuncA_Objects_Alloc2x2MachineShape  ; returns C, A, and Y
     bcs _Done
 _SetFlags:
     lda #bObj::FlipV

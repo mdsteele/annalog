@@ -19,12 +19,15 @@
 
 .INCLUDE "../machine.inc"
 .INCLUDE "../macros.inc"
+.INCLUDE "../oam.inc"
 .INCLUDE "../ppu.inc"
 .INCLUDE "../program.inc"
 .INCLUDE "shared.inc"
 
 .IMPORT FuncA_Machine_Error
 .IMPORT FuncA_Machine_StartWorking
+.IMPORT FuncA_Objects_Alloc2x2Shape
+.IMPORT FuncA_Objects_MoveShapeDownAndRightOneTile
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
 .IMPORT Func_MovePlatformLeftTowardPointX
 .IMPORT Func_MovePlatformTopTowardPointY
@@ -252,6 +255,32 @@
     lda (Zp_Current_sMachine_ptr), y
     tax  ; param: platform index
     jmp FuncA_Objects_SetShapePosToPlatformTopLeft  ; preserves T0+
+.ENDPROC
+
+;;; Allocates a 2x2 grid of objects for the current machine, assuming that that
+;;; machine's platform is 2x2 tiles in size.  If the current machine has the
+;;; bMachine::FlipH bit set, that will be applied to the object flags, along
+;;; with the specified flags/palette.
+;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
+;;; @param A The base object flags to apply.
+;;; @return C Set if no OAM slots were allocated, cleared otherwise.
+;;; @retrun A The actual object flags that were set for the four objects.
+;;; @return Y The OAM byte offset for the first of the four objects.
+;;; @preserve T2+
+.EXPORT FuncA_Objects_Alloc2x2MachineShape
+.PROC FuncA_Objects_Alloc2x2MachineShape
+    sta T0  ; base object flags
+    jsr FuncA_Objects_SetShapePosToMachineTopLeft  ; preserves T0+
+    jsr FuncA_Objects_MoveShapeDownAndRightOneTile  ; preserves T0+
+    ldy #sMachine::Flags_bMachine
+    lda (Zp_Current_sMachine_ptr), y
+    and #bMachine::FlipH
+    .assert bMachine::FlipH = bObj::FlipH, error
+    eor T0  ; base object flags
+    pha  ; param: object flags
+    jsr FuncA_Objects_Alloc2x2Shape  ; preserves T2+, returns C and Y
+    pla  ; object flags
+    rts
 .ENDPROC
 
 ;;;=========================================================================;;;

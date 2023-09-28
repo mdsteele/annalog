@@ -25,14 +25,12 @@
 .INCLUDE "shared.inc"
 
 .IMPORT FuncA_Machine_ReachedGoal
-.IMPORT FuncA_Objects_Alloc2x2Shape
+.IMPORT FuncA_Objects_Alloc2x2MachineShape
 .IMPORT FuncA_Objects_Draw1x1Shape
 .IMPORT FuncA_Objects_GetMachineLightTileId
-.IMPORT FuncA_Objects_MoveShapeDownAndRightOneTile
 .IMPORT FuncA_Objects_MoveShapeHorz
 .IMPORT FuncA_Objects_MoveShapeRightOneTile
 .IMPORT FuncA_Objects_MoveShapeVert
-.IMPORT FuncA_Objects_SetShapePosToMachineTopLeft
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
 .IMPORT Func_Cosine
 .IMPORT Func_MovePlatformLeftTowardPointX
@@ -191,10 +189,8 @@ _ReachedGoal:
 ;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
 .EXPORT FuncA_Objects_DrawRotorMachine
 .PROC FuncA_Objects_DrawRotorMachine
-    jsr FuncA_Objects_SetShapePosToMachineTopLeft
-    jsr FuncA_Objects_MoveShapeDownAndRightOneTile
     lda #kPaletteObjRotor  ; param: object flags
-    jsr FuncA_Objects_Alloc2x2Shape  ; sets C if offscreen; returns Y
+    jsr FuncA_Objects_Alloc2x2MachineShape  ; returns C and Y
     bcs @done
     lda #kPaletteObjMachineLight
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Flags_bObj, y
