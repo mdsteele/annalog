@@ -104,9 +104,9 @@ _TransferOamData:
     sta Hw_OamDma_wo
 _TransferPpuData:
     ;; At this point, X is still zero.
+    .assert >Ram_Oam_sObj_arr64 > 0, error
+    bne @start  ; unconditional
     @entryLoop:
-    lda Ram_PpuTransfer_arr, x  ; control byte
-    beq @done
     sta Hw_PpuCtrl_wo
     inx
     .repeat 2
@@ -122,10 +122,9 @@ _TransferPpuData:
     inx
     dey
     bne @dataLoop
-    beq @entryLoop  ; unconditional
-    @done:
-    ;; Mark the PPU transfer buffer as empty.
-    sta Zp_PpuTransferLen_u8  ; A is zero at this point
+    @start:
+    lda Ram_PpuTransfer_arr, x  ; control byte
+    bne @entryLoop
 _UpdatePpuRegisters:
     ;; Update other PPU registers.  Note that writing to Hw_PpuAddr_w2 (as
     ;; above) can corrupt the scroll position, so we must write Hw_PpuScroll_w2
@@ -153,16 +152,25 @@ _DoneUpdatingPpu:
     stax Zp_NextIrq_int_ptr
     ;; Everything up until this point *must* finish before VBlank ends, while
     ;; everything after this point is safe to extend past the VBlank period.
-_UpdateAudio:
+_AfterVBlank:
+    ;; These updates should only happen this frame if the main thread was ready
+    ;; for this NMI, but unlike the above, they don't need to happen during
+    ;; VBlank.
     bit Zp_NmiReady_bool
-    bpl @doneAudioSync
+    bpl @done
+    ;; Consume audio commands from the main thread.
     jsr Func_AudioSync
-    @doneAudioSync:
-    jsr Func_AudioUpdate
-_Finish:
-    ;; Indicate that we are done updating the PPU and APU.
+    ;; Clear the PPU transfer array.
     lda #0
+    sta Zp_PpuTransferLen_u8
+    ;; Indicate that PPU and APU transfer data was consumed.
     sta Zp_NmiReady_bool
+    @done:
+_Finish:
+    ;; Audio should continue to update even if the main thread wasn't ready for
+    ;; this NMI, so that lag frames (e.g. during screen transitions) won't
+    ;; affect the audio.
+    jsr Func_AudioUpdate
     pla
     tay
     pla
