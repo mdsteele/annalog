@@ -133,14 +133,14 @@ _Machines_sMachine_arr:
     d_byte ScrollGoalY_u8, $00
     d_byte RegNames_u8_arr4, 0, 0, 0, "Z"
     d_byte MainPlatform_u8, kWinchPlatformIndex
-    d_addr Init_func_ptr, FuncC_Crypt_WestWinch_InitReset
+    d_addr Init_func_ptr, FuncA_Room_CryptWestWinch_InitReset
     d_addr ReadReg_func_ptr, FuncC_Crypt_WestWinch_ReadReg
     d_addr WriteReg_func_ptr, Func_Noop
-    d_addr TryMove_func_ptr, FuncC_Crypt_WestWinch_TryMove
-    d_addr TryAct_func_ptr, FuncC_Crypt_WestWinch_TryAct
-    d_addr Tick_func_ptr, FuncC_Crypt_WestWinch_Tick
-    d_addr Draw_func_ptr, FuncA_Objects_CryptWestWinch_Draw
-    d_addr Reset_func_ptr, FuncC_Crypt_WestWinch_InitReset
+    d_addr TryMove_func_ptr, FuncA_Machine_CryptWestWinch_TryMove
+    d_addr TryAct_func_ptr, FuncA_Machine_CryptWestWinch_TryAct
+    d_addr Tick_func_ptr, FuncA_Machine_CryptWestWinch_Tick
+    d_addr Draw_func_ptr, FuncC_Crypt_WestWinch_Draw
+    d_addr Reset_func_ptr, FuncA_Room_CryptWestWinch_InitReset
     D_END
     .assert * - :- <= kMaxMachines * .sizeof(sMachine), error
 _Platforms_sPlatform_arr:
@@ -236,12 +236,6 @@ _Passages_sPassage_arr:
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
 .ENDPROC
 
-.PROC FuncC_Crypt_WestWinch_InitReset
-    lda #kWinchInitGoalZ
-    sta Ram_MachineGoalVert_u8_arr + kWinchMachineIndex
-    jmp Func_ResetWinchMachineState
-.ENDPROC
-
 .PROC FuncC_Crypt_WestWinch_ReadReg
     lda Ram_PlatformTop_i16_0_arr + kSpikeball1PlatformIndex
     sub #kSpikeball1MinPlatformTop - kTileHeightPx
@@ -249,17 +243,60 @@ _Passages_sPassage_arr:
     rts
 .ENDPROC
 
-.PROC FuncC_Crypt_WestWinch_TryMove
+.PROC FuncC_Crypt_WestWinch_Draw
+    lda Ram_PlatformTop_i16_0_arr + kSpikeball1PlatformIndex  ; param: chain
+    jsr FuncA_Objects_DrawWinchMachine
+_Spikeballs:
+    ldx #kSpikeball1PlatformIndex  ; param: platform index
+    @loop:
+    jsr FuncA_Objects_SetShapePosToSpikeballCenter  ; preserves X
+    jsr FuncA_Objects_DrawWinchSpikeball  ; preserves X
+    inx
+    cpx #kSpikeball1PlatformIndex + kNumSpikeballPlatforms
+    blt @loop
+_Chains:
+    jsr FuncA_Objects_MoveShapeUpOneTile
+    jsr FuncA_Objects_MoveShapeLeftHalfTile
+    ldx #kChain34Tiles  ; param: chain length in tiles
+    jsr FuncA_Objects_DrawChainWithLength
+    lda #kBlockHeightPx  ; param: offset
+    jsr FuncA_Objects_MoveShapeUpByA
+    ldx #kChain23Tiles  ; param: chain length in tiles
+    jsr FuncA_Objects_DrawChainWithLength
+    lda #kBlockHeightPx  ; param: offset
+    jsr FuncA_Objects_MoveShapeUpByA
+    ldx #kChain12Tiles  ; param: chain length in tiles
+    jsr FuncA_Objects_DrawChainWithLength
+    lda #kBlockHeightPx  ; param: offset
+    jsr FuncA_Objects_MoveShapeUpByA
+    jmp FuncA_Objects_DrawWinchChain
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Room"
+
+.PROC FuncA_Room_CryptWestWinch_InitReset
+    lda #kWinchInitGoalZ
+    sta Ram_MachineGoalVert_u8_arr + kWinchMachineIndex
+    jmp Func_ResetWinchMachineState
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Machine"
+
+.PROC FuncA_Machine_CryptWestWinch_TryMove
     lda #kWinchMaxGoalZ  ; param: max goal
     jmp FuncA_Machine_GenericTryMoveZ
 .ENDPROC
 
-.PROC FuncC_Crypt_WestWinch_TryAct
+.PROC FuncA_Machine_CryptWestWinch_TryAct
     lda #kWinchMaxGoalZ  ; param: new Z-goal
     jmp FuncA_Machine_WinchStartFalling
 .ENDPROC
 
-.PROC FuncC_Crypt_WestWinch_Tick
+.PROC FuncA_Machine_CryptWestWinch_Tick
     ;; Calculate the desired room-space pixel Y-position for the top edge of
     ;; the uppermost spikeball, storing it in Zp_PointY_i16.
     lda Ram_MachineGoalVert_u8_arr + kWinchMachineIndex
@@ -294,40 +331,6 @@ _Passages_sPassage_arr:
     ;; Otherwise, we're done.
     @reachedGoal:
     jmp FuncA_Machine_WinchReachedGoal
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Objects"
-
-;;; Allocates and populates OAM slots for the CryptWestWinch machine.
-.PROC FuncA_Objects_CryptWestWinch_Draw
-    lda Ram_PlatformTop_i16_0_arr + kSpikeball1PlatformIndex  ; param: chain
-    jsr FuncA_Objects_DrawWinchMachine
-_Spikeballs:
-    ldx #kSpikeball1PlatformIndex  ; param: platform index
-    @loop:
-    jsr FuncA_Objects_SetShapePosToSpikeballCenter  ; preserves X
-    jsr FuncA_Objects_DrawWinchSpikeball  ; preserves X
-    inx
-    cpx #kSpikeball1PlatformIndex + kNumSpikeballPlatforms
-    blt @loop
-_Chains:
-    jsr FuncA_Objects_MoveShapeUpOneTile
-    jsr FuncA_Objects_MoveShapeLeftHalfTile
-    ldx #kChain34Tiles  ; param: chain length in tiles
-    jsr FuncA_Objects_DrawChainWithLength
-    lda #kBlockHeightPx  ; param: offset
-    jsr FuncA_Objects_MoveShapeUpByA
-    ldx #kChain23Tiles  ; param: chain length in tiles
-    jsr FuncA_Objects_DrawChainWithLength
-    lda #kBlockHeightPx  ; param: offset
-    jsr FuncA_Objects_MoveShapeUpByA
-    ldx #kChain12Tiles  ; param: chain length in tiles
-    jsr FuncA_Objects_DrawChainWithLength
-    lda #kBlockHeightPx  ; param: offset
-    jsr FuncA_Objects_MoveShapeUpByA
-    jmp FuncA_Objects_DrawWinchChain
 .ENDPROC
 
 ;;;=========================================================================;;;

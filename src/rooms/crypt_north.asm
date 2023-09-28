@@ -130,14 +130,14 @@ _Machines_sMachine_arr:
     d_byte ScrollGoalY_u8, $00
     d_byte RegNames_u8_arr4, 0, "W", 0, "Z"
     d_byte MainPlatform_u8, kWinchPlatformIndex
-    d_addr Init_func_ptr, FuncC_Crypt_NorthWinch_InitReset
+    d_addr Init_func_ptr, FuncA_Room_CryptNorthWinch_InitReset
     d_addr ReadReg_func_ptr, FuncC_Crypt_NorthWinch_ReadReg
     d_addr WriteReg_func_ptr, Func_Noop
-    d_addr TryMove_func_ptr, FuncC_Crypt_NorthWinch_TryMove
-    d_addr TryAct_func_ptr, FuncC_Crypt_NorthWinch_TryAct
-    d_addr Tick_func_ptr, FuncC_Crypt_NorthWinch_Tick
-    d_addr Draw_func_ptr, FuncA_Objects_CryptNorthWinch_Draw
-    d_addr Reset_func_ptr, FuncC_Crypt_NorthWinch_InitReset
+    d_addr TryMove_func_ptr, FuncA_Machine_CryptNorthWinch_TryMove
+    d_addr TryAct_func_ptr, FuncA_Machine_CryptNorthWinch_TryAct
+    d_addr Tick_func_ptr, FuncA_Machine_CryptNorthWinch_Tick
+    d_addr Draw_func_ptr, FuncC_Crypt_NorthWinch_Draw
+    d_addr Reset_func_ptr, FuncA_Room_CryptNorthWinch_InitReset
     D_END
     .assert * - :- = kLiftMachineIndex * .sizeof(sMachine), error
     D_STRUCT sMachine
@@ -149,14 +149,14 @@ _Machines_sMachine_arr:
     d_byte ScrollGoalY_u8, $c0
     d_byte RegNames_u8_arr4, 0, 0, 0, "Y"
     d_byte MainPlatform_u8, kLiftPlatformIndex
-    d_addr Init_func_ptr, FuncC_Crypt_NorthLift_InitReset
+    d_addr Init_func_ptr, FuncA_Room_CryptNorthLift_InitReset
     d_addr ReadReg_func_ptr, FuncC_Crypt_NorthLift_ReadReg
     d_addr WriteReg_func_ptr, Func_Noop
-    d_addr TryMove_func_ptr, FuncC_Crypt_NorthLift_TryMove
+    d_addr TryMove_func_ptr, FuncA_Machine_CryptNorthLift_TryMove
     d_addr TryAct_func_ptr, FuncA_Machine_Error
-    d_addr Tick_func_ptr, FuncC_Crypt_NorthLift_Tick
+    d_addr Tick_func_ptr, FuncA_Machine_CryptNorthLift_Tick
     d_addr Draw_func_ptr, FuncA_Objects_DrawLiftMachine
-    d_addr Reset_func_ptr, FuncC_Crypt_NorthLift_InitReset
+    d_addr Reset_func_ptr, FuncA_Room_CryptNorthLift_InitReset
     D_END
     .assert * - :- <= kMaxMachines * .sizeof(sMachine), error
 _Platforms_sPlatform_arr:
@@ -239,12 +239,6 @@ _Passages_sPassage_arr:
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
 .ENDPROC
 
-.PROC FuncC_Crypt_NorthWinch_InitReset
-    lda #kWinchInitGoalZ
-    sta Ram_MachineGoalVert_u8_arr + kWinchMachineIndex
-    jmp Func_ResetWinchMachineState
-.ENDPROC
-
 .PROC FuncC_Crypt_NorthWinch_ReadReg
     cmp #$f
     beq _ReadZ
@@ -263,17 +257,59 @@ _ReadZ:
     rts
 .ENDPROC
 
-.PROC FuncC_Crypt_NorthWinch_TryMove
+.PROC FuncC_Crypt_NorthLift_ReadReg
+    .assert kLiftMaxPlatformTop + kTileHeightPx >= $100, error
+    lda #<(kLiftMaxPlatformTop + kTileHeightPx)
+    sub Ram_PlatformTop_i16_0_arr + kLiftPlatformIndex
+    .assert kLiftMaxPlatformTop - kLiftMinPlatformTop < $100, error
+    div #kBlockHeightPx
+    rts
+.ENDPROC
+
+;;; Draws the CryptNorthWinch machine.
+.PROC FuncC_Crypt_NorthWinch_Draw
+    ;; Draw the winch itself.
+    lda Ram_PlatformTop_i16_0_arr + kGirderPlatformIndex  ; param: chain
+    jsr FuncA_Objects_DrawWinchMachine
+    ;; Draw the girder.
+    ldx #kGirderPlatformIndex  ; param: platform index
+    jsr FuncA_Objects_DrawGirderPlatform
+    ;; Draw the chain between the girder and the winch.
+    jsr FuncA_Objects_MoveShapeLeftOneTile
+    jmp FuncA_Objects_DrawWinchChain
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Room"
+
+.PROC FuncA_Room_CryptNorthWinch_InitReset
+    lda #kWinchInitGoalZ
+    sta Ram_MachineGoalVert_u8_arr + kWinchMachineIndex
+    jmp Func_ResetWinchMachineState
+.ENDPROC
+
+.PROC FuncA_Room_CryptNorthLift_InitReset
+    lda #kLiftInitGoalY
+    sta Ram_MachineGoalVert_u8_arr + kLiftMachineIndex
+    rts
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Machine"
+
+.PROC FuncA_Machine_CryptNorthWinch_TryMove
     lda #kWinchMaxGoalZ  ; param: max goal
     jmp FuncA_Machine_GenericTryMoveZ
 .ENDPROC
 
-.PROC FuncC_Crypt_NorthWinch_TryAct
+.PROC FuncA_Machine_CryptNorthWinch_TryAct
     lda #kWinchMaxGoalZ  ; param: new Z-goal
     jmp FuncA_Machine_WinchStartFalling
 .ENDPROC
 
-.PROC FuncC_Crypt_NorthWinch_Tick
+.PROC FuncA_Machine_CryptNorthWinch_Tick
     ;; Calculate the desired room-space pixel Y-position for the top edge of
     ;; the upper girder, storing it in Zp_PointY_i16.
     lda Ram_MachineGoalVert_u8_arr + kWinchMachineIndex
@@ -295,46 +331,14 @@ _ReadZ:
     rts
 .ENDPROC
 
-.PROC FuncC_Crypt_NorthLift_InitReset
-    lda #kLiftInitGoalY
-    sta Ram_MachineGoalVert_u8_arr + kLiftMachineIndex
-    rts
-.ENDPROC
-
-.PROC FuncC_Crypt_NorthLift_ReadReg
-    .assert kLiftMaxPlatformTop + kTileHeightPx >= $100, error
-    lda #<(kLiftMaxPlatformTop + kTileHeightPx)
-    sub Ram_PlatformTop_i16_0_arr + kLiftPlatformIndex
-    .assert kLiftMaxPlatformTop - kLiftMinPlatformTop < $100, error
-    div #kBlockHeightPx
-    rts
-.ENDPROC
-
-.PROC FuncC_Crypt_NorthLift_TryMove
+.PROC FuncA_Machine_CryptNorthLift_TryMove
     lda #kLiftMaxGoalY  ; param: max goal vert
     jmp FuncA_Machine_LiftTryMove
 .ENDPROC
 
-.PROC FuncC_Crypt_NorthLift_Tick
+.PROC FuncA_Machine_CryptNorthLift_Tick
     ldax #kLiftMaxPlatformTop  ; param: max platform top
     jmp FuncA_Machine_LiftTick
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Objects"
-
-;;; Draws the CryptNorthWinch machine.
-.PROC FuncA_Objects_CryptNorthWinch_Draw
-    ;; Draw the winch itself.
-    lda Ram_PlatformTop_i16_0_arr + kGirderPlatformIndex  ; param: chain
-    jsr FuncA_Objects_DrawWinchMachine
-    ;; Draw the girder.
-    ldx #kGirderPlatformIndex  ; param: platform index
-    jsr FuncA_Objects_DrawGirderPlatform
-    ;; Draw the chain between the girder and the winch.
-    jsr FuncA_Objects_MoveShapeLeftOneTile
-    jmp FuncA_Objects_DrawWinchChain
 .ENDPROC
 
 ;;;=========================================================================;;;

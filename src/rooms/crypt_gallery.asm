@@ -146,7 +146,7 @@ _Machines_sMachine_arr:
     d_addr TryMove_func_ptr, FuncA_Machine_CryptGalleryWinch_TryMove
     d_addr TryAct_func_ptr, FuncA_Machine_CryptGalleryWinch_TryAct
     d_addr Tick_func_ptr, FuncA_Machine_CryptGalleryWinch_Tick
-    d_addr Draw_func_ptr, FuncA_Objects_CryptGalleryWinch_Draw
+    d_addr Draw_func_ptr, FuncC_Crypt_GalleryWinch_Draw
     d_addr Reset_func_ptr, FuncA_Room_CryptGalleryWinch_InitReset
     D_END
     .assert * - :- <= kMaxMachines * .sizeof(sMachine), error
@@ -269,6 +269,19 @@ _ReadZ:
     sub #kCrusherMinPlatformTop - kTileHeightPx
     div #kBlockHeightPx
     rts
+.ENDPROC
+
+;;; Draws the CryptGalleryWinch machine.
+.PROC FuncC_Crypt_GalleryWinch_Draw
+    lda Ram_PlatformTop_i16_0_arr + kCrusherUpperPlatformIndex  ; param: chain
+    jsr FuncA_Objects_DrawWinchMachine
+_Crusher:
+    ldx #kCrusherUpperPlatformIndex  ; param: platform index
+    jsr FuncA_Objects_DrawWinchCrusher
+_Chain:
+    jsr FuncA_Objects_MoveShapeUpOneTile
+    jsr FuncA_Objects_MoveShapeLeftHalfTile
+    jmp FuncA_Objects_DrawWinchChain
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -398,23 +411,6 @@ _Finished:
 
 .PROC DataA_Machine_CryptGalleryFloor_u8_arr
     .byte 9, 9, 9, 1, 1, 9, 9, 9
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Objects"
-
-;;; Draws the CryptGalleryWinch machine.
-.PROC FuncA_Objects_CryptGalleryWinch_Draw
-    lda Ram_PlatformTop_i16_0_arr + kCrusherUpperPlatformIndex  ; param: chain
-    jsr FuncA_Objects_DrawWinchMachine
-_Crusher:
-    ldx #kCrusherUpperPlatformIndex  ; param: platform index
-    jsr FuncA_Objects_DrawWinchCrusher
-_Chain:
-    jsr FuncA_Objects_MoveShapeUpOneTile
-    jsr FuncA_Objects_MoveShapeLeftHalfTile
-    jmp FuncA_Objects_DrawWinchChain
 .ENDPROC
 
 ;;;=========================================================================;;;

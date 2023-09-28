@@ -120,14 +120,14 @@ _Machines_sMachine_arr:
     d_byte ScrollGoalY_u8, $0
     d_byte RegNames_u8_arr4, 0, "W", 0, "Z"
     d_byte MainPlatform_u8, kWinchPlatformIndex
-    d_addr Init_func_ptr, FuncC_Crypt_FlowerWinch_InitReset
+    d_addr Init_func_ptr, FuncA_Room_CryptFlowerWinch_InitReset
     d_addr ReadReg_func_ptr, FuncC_Crypt_FlowerWinch_ReadReg
     d_addr WriteReg_func_ptr, Func_Noop
-    d_addr TryMove_func_ptr, FuncC_Crypt_FlowerWinch_TryMove
-    d_addr TryAct_func_ptr, FuncC_Crypt_FlowerWinch_TryAct
-    d_addr Tick_func_ptr, FuncC_Crypt_FlowerWinch_Tick
-    d_addr Draw_func_ptr, FuncA_Objects_CryptFlowerWinch_Draw
-    d_addr Reset_func_ptr, FuncC_Crypt_FlowerWinch_InitReset
+    d_addr TryMove_func_ptr, FuncA_Machine_CryptFlowerWinch_TryMove
+    d_addr TryAct_func_ptr, FuncA_Machine_CryptFlowerWinch_TryAct
+    d_addr Tick_func_ptr, FuncA_Machine_CryptFlowerWinch_Tick
+    d_addr Draw_func_ptr, FuncC_Crypt_FlowerWinch_Draw
+    d_addr Reset_func_ptr, FuncA_Room_CryptFlowerWinch_InitReset
     D_END
     .assert * - :- <= kMaxMachines * .sizeof(sMachine), error
 _Platforms_sPlatform_arr:
@@ -225,11 +225,6 @@ _Passages_sPassage_arr:
     d_byte SpawnBlock_u8, 3
     D_END
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
-_Winch_Init:
-_Winch_Reset:
-    lda #kWinchInitGoalZ
-    sta Ram_MachineGoalVert_u8_arr + kWinchMachineIndex
-    jmp Func_ResetWinchMachineState
 .ENDPROC
 
 .PROC FuncC_Crypt_FlowerWinch_ReadReg
@@ -252,23 +247,50 @@ _ReadZ:
     rts
 .ENDPROC
 
-.PROC FuncC_Crypt_FlowerWinch_InitReset
+;;; Draws the CryptFlowerWinch machine.
+.PROC FuncC_Crypt_FlowerWinch_Draw
+    ;; Draw the winch itself.
+    lda Ram_PlatformTop_i16_0_arr + kUpperGirderPlatformIndex  ; param: chain
+    jsr FuncA_Objects_DrawWinchMachine
+    ;; Draw the two girders.
+    ldx #kUpperGirderPlatformIndex  ; param: platform index
+    jsr FuncA_Objects_DrawGirderPlatform
+    ldx #kLowerGirderPlatformIndex  ; param: platform index
+    jsr FuncA_Objects_DrawGirderPlatform
+    ;; Draw the chain between the two girders.
+    jsr FuncA_Objects_MoveShapeLeftOneTile
+    ldx #4  ; param: chain length in tiles
+    jsr FuncA_Objects_DrawChainWithLength
+    ;; Draw the chain between the top girder and the winch.
+    jsr FuncA_Objects_MoveShapeUpOneTile
+    jmp FuncA_Objects_DrawWinchChain
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Room"
+
+.PROC FuncA_Room_CryptFlowerWinch_InitReset
     lda #kWinchInitGoalZ
     sta Ram_MachineGoalVert_u8_arr + kWinchMachineIndex
     jmp Func_ResetWinchMachineState
 .ENDPROC
 
-.PROC FuncC_Crypt_FlowerWinch_TryMove
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Machine"
+
+.PROC FuncA_Machine_CryptFlowerWinch_TryMove
     lda #kWinchMaxGoalZ  ; param: max goal
     jmp FuncA_Machine_GenericTryMoveZ
 .ENDPROC
 
-.PROC FuncC_Crypt_FlowerWinch_TryAct
+.PROC FuncA_Machine_CryptFlowerWinch_TryAct
     lda #kWinchMaxGoalZ  ; param: new Z-goal
     jmp FuncA_Machine_WinchStartFalling
 .ENDPROC
 
-.PROC FuncC_Crypt_FlowerWinch_Tick
+.PROC FuncA_Machine_CryptFlowerWinch_Tick
     ;; Calculate the desired room-space pixel Y-position for the top edge of
     ;; the upper girder, storing it in Zp_PointY_i16.
     lda Ram_MachineGoalVert_u8_arr + kWinchMachineIndex
@@ -295,29 +317,6 @@ _ReadZ:
     jmp Func_MovePlatformVert
     @reachedGoal:
     jmp FuncA_Machine_WinchReachedGoal
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Objects"
-
-;;; Draws the CryptFlowerWinch machine.
-.PROC FuncA_Objects_CryptFlowerWinch_Draw
-    ;; Draw the winch itself.
-    lda Ram_PlatformTop_i16_0_arr + kUpperGirderPlatformIndex  ; param: chain
-    jsr FuncA_Objects_DrawWinchMachine
-    ;; Draw the two girders.
-    ldx #kUpperGirderPlatformIndex  ; param: platform index
-    jsr FuncA_Objects_DrawGirderPlatform
-    ldx #kLowerGirderPlatformIndex  ; param: platform index
-    jsr FuncA_Objects_DrawGirderPlatform
-    ;; Draw the chain between the two girders.
-    jsr FuncA_Objects_MoveShapeLeftOneTile
-    ldx #4  ; param: chain length in tiles
-    jsr FuncA_Objects_DrawChainWithLength
-    ;; Draw the chain between the top girder and the winch.
-    jsr FuncA_Objects_MoveShapeUpOneTile
-    jmp FuncA_Objects_DrawWinchChain
 .ENDPROC
 
 ;;;=========================================================================;;;
