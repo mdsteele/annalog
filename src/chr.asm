@@ -1214,9 +1214,9 @@
     .incbin "out/tiles/lavaball.chr"
     .assert * - :- = (kTileIdObjBlasterFirst - $80) * kSizeofChr, error
     .incbin "out/tiles/blaster.chr"
-    .res $02 * kSizeofChr
     .assert * - :- = (kTileIdObjValveFirst - $80) * kSizeofChr, error
     .incbin "out/tiles/valve.chr"
+    .res $01 * kSizeofChr
     .assert * - :- = (kTileIdObjHotheadFirst - $80) * kSizeofChr, error
     .incbin "out/tiles/hothead.chr"
     .res $40 * kSizeofChr

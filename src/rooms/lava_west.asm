@@ -21,6 +21,7 @@
 .INCLUDE "../actors/lavaball.inc"
 .INCLUDE "../charmap.inc"
 .INCLUDE "../device.inc"
+.INCLUDE "../dialog.inc"
 .INCLUDE "../machine.inc"
 .INCLUDE "../machines/boiler.inc"
 .INCLUDE "../macros.inc"
@@ -35,18 +36,23 @@
 .IMPORT FuncA_Machine_BoilerWriteReg
 .IMPORT FuncA_Machine_EmitSteamUpFromPipe
 .IMPORT FuncA_Machine_Error
+.IMPORT FuncA_Machine_WriteToLever
 .IMPORT FuncA_Objects_AnimateLavaTerrain
 .IMPORT FuncA_Objects_DrawBoilerMachine
-.IMPORT FuncA_Objects_DrawBoilerValve1
+.IMPORT FuncA_Objects_DrawBoilerValve2
 .IMPORT FuncA_Room_MachineBoilerReset
+.IMPORT FuncA_Room_ResetLever
 .IMPORT FuncA_Terrain_FadeInTallRoomWithLava
 .IMPORT Func_MachineBoilerReadReg
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrObjLava
-.IMPORT Ram_MachineGoalVert_u8_arr
-.IMPORTZP Zp_MachineIndex_u8
+.IMPORT Ram_MachineGoalHorz_u8_arr
+.IMPORTZP Zp_RoomState
 
 ;;;=========================================================================;;;
+
+;;; The device index for the lever in this room.
+kLeverDeviceIndex = 1
 
 ;;; The machine index for the LavaWestBoiler machine in this room.
 kBoilerMachineIndex = 0
@@ -56,6 +62,15 @@ kBoilerPlatformIndex = 0
 kValvePlatformIndex  = 1
 kPipe1PlatformIndex  = 2
 kPipe2PlatformIndex  = 3
+
+;;;=========================================================================;;;
+
+;;; Defines room-specific state data for this particular room.
+.STRUCT sState
+    ;; The current state of the lever in this room.
+    Lever_u8 .byte
+.ENDSTRUCT
+.ASSERT .sizeof(sState) <= kRoomStateSize, error
 
 ;;;=========================================================================;;;
 
@@ -95,20 +110,20 @@ _Machines_sMachine_arr:
     D_STRUCT sMachine
     d_byte Code_eProgram, eProgram::LavaWestBoiler
     d_byte Breaker_eFlag, 0
-    d_byte Flags_bMachine, bMachine::Act | bMachine::WriteC
+    d_byte Flags_bMachine, bMachine::Act | bMachine::WriteCD
     d_byte Status_eDiagram, eDiagram::Boiler
     d_word ScrollGoalX_u16, $108
     d_byte ScrollGoalY_u8, $48
-    d_byte RegNames_u8_arr4, "V", 0, 0, 0
+    d_byte RegNames_u8_arr4, "L", "V", 0, 0
     d_byte MainPlatform_u8, kBoilerPlatformIndex
     d_addr Init_func_ptr, Func_Noop
-    d_addr ReadReg_func_ptr, Func_MachineBoilerReadReg
-    d_addr WriteReg_func_ptr, FuncA_Machine_BoilerWriteReg
+    d_addr ReadReg_func_ptr, FuncC_Lava_WestBoiler_ReadReg
+    d_addr WriteReg_func_ptr, FuncA_Machine_LavaWestBoiler_WriteReg
     d_addr TryMove_func_ptr, FuncA_Machine_Error
-    d_addr TryAct_func_ptr, FuncC_Lava_WestBoiler_TryAct
+    d_addr TryAct_func_ptr, FuncA_Machine_LavaWestBoiler_TryAct
     d_addr Tick_func_ptr, FuncA_Machine_BoilerTick
-    d_addr Draw_func_ptr, FuncA_Objects_LavaWestBoiler_Draw
-    d_addr Reset_func_ptr, FuncA_Room_MachineBoilerReset
+    d_addr Draw_func_ptr, FuncC_Lava_WestBoiler_Draw
+    d_addr Reset_func_ptr, FuncA_Room_LavaWestBoiler_Reset
     D_END
     .assert * - :- <= kMaxMachines * .sizeof(sMachine), error
 _Platforms_sPlatform_arr:
@@ -168,6 +183,12 @@ _Actors_sActor_arr:
     d_byte Param_byte, 0
     D_END
     D_STRUCT sActor
+    d_byte Type_eActor, eActor::BadHotheadVert
+    d_word PosX_i16, $0138
+    d_word PosY_i16, $0038
+    d_byte Param_byte, bObj::FlipH
+    D_END
+    D_STRUCT sActor
     d_byte Type_eActor, eActor::BadHotheadHorz
     d_word PosX_i16, $01c8
     d_word PosY_i16, $0088
@@ -195,6 +216,19 @@ _Actors_sActor_arr:
     .byte eActor::None
 _Devices_sDevice_arr:
 :   D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::Paper
+    d_byte BlockRow_u8, 2
+    d_byte BlockCol_u8, 28
+    d_byte Target_byte, eDialog::LavaWestPaper
+    D_END
+    .assert * - :- = kLeverDeviceIndex * .sizeof(sDevice), error
+    D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::LeverFloor
+    d_byte BlockRow_u8, 6
+    d_byte BlockCol_u8, 20
+    d_byte Target_byte, sState::Lever_u8
+    D_END
+    D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Console
     d_byte BlockRow_u8, 10
     d_byte BlockCol_u8, 24
@@ -226,43 +260,86 @@ _Passages_sPassage_arr:
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
 .ENDPROC
 
+.PROC FuncC_Lava_WestBoiler_ReadReg
+    cmp #$c
+    beq _ReadL
+    jmp Func_MachineBoilerReadReg
+_ReadL:
+    lda Zp_RoomState + sState::Lever_u8
+    rts
+.ENDPROC
+
+.PROC FuncC_Lava_WestBoiler_Draw
+    jsr FuncA_Objects_DrawBoilerMachine
+    ldx #kValvePlatformIndex  ; param: platform index
+    jmp FuncA_Objects_DrawBoilerValve2
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Room"
+
+.PROC FuncA_Room_LavaWestBoiler_Reset
+    ldx #kLeverDeviceIndex  ; param: device index
+    jsr FuncA_Room_ResetLever
+    jmp FuncA_Room_MachineBoilerReset
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Machine"
+
+.PROC FuncA_Machine_LavaWestBoiler_WriteReg
+    cpx #$c
+    beq _WriteL
+    jmp FuncA_Machine_BoilerWriteReg
+_WriteL:
+    ldx #kLeverDeviceIndex  ; param: device index
+    jmp FuncA_Machine_WriteToLever
+.ENDPROC
+
 ;;; TryAct implemention for the LavaWestBoiler machine.
 ;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
 ;;; @prereq PRGA_Machine is loaded.
-.PROC FuncC_Lava_WestBoiler_TryAct
+.PROC FuncA_Machine_LavaWestBoiler_TryAct
     ;; Determine which pipe the steam should exit out of (or fail if both pipes
     ;; are blocked).
-    ldy Zp_MachineIndex_u8
-    ldx Ram_MachineGoalVert_u8_arr, y  ; valve angle (0-9)
-    ldy _ValvePipePlatformIndex_u8_arr10, x  ; pipe platform index
+    lda Ram_MachineGoalHorz_u8_arr + kBoilerMachineIndex  ; valve angle
+    and #$03
+    tax  ; valve angle (in tau/8 units, mod 4)
+    ldy _ValvePipePlatformIndex_u8_arr4, x  ; pipe platform index
     bmi _Failure
     ;; Emit upward steam from the chosen pipe.
     jsr FuncA_Machine_EmitSteamUpFromPipe
     jmp FuncA_Machine_BoilerFinishEmittingSteam
 _Failure:
     jmp FuncA_Machine_Error
-_ValvePipePlatformIndex_u8_arr10:
-:   .byte $ff
+_ValvePipePlatformIndex_u8_arr4:
     .byte $ff
     .byte kPipe1PlatformIndex
     .byte kPipe2PlatformIndex
     .byte kPipe2PlatformIndex
-    .byte $ff
-    .byte $ff
-    .byte $ff
-    .byte kPipe1PlatformIndex
-    .byte kPipe2PlatformIndex
-    .assert * - :- = 10, error
 .ENDPROC
 
 ;;;=========================================================================;;;
 
-.SEGMENT "PRGA_Objects"
+.SEGMENT "PRGA_Dialog"
 
-.PROC FuncA_Objects_LavaWestBoiler_Draw
-    jsr FuncA_Objects_DrawBoilerMachine
-    ldx #kValvePlatformIndex  ; param: platform index
-    jmp FuncA_Objects_DrawBoilerValve1
+.EXPORT DataA_Dialog_LavaWestPaper_sDialog
+.PROC DataA_Dialog_LavaWestPaper_sDialog
+    dlg_Text Paper, DataA_Text0_LavaWestPaper_u8_arr
+    dlg_Done
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Text0"
+
+.PROC DataA_Text0_LavaWestPaper_u8_arr
+    .byte "Day 10: The orcs would$"
+    .byte "rule in our place, if$"
+    .byte "we let them. I doubt$"
+    .byte "that would go well.#"
 .ENDPROC
 
 ;;;=========================================================================;;;

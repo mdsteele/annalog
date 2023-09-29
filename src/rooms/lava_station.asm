@@ -48,7 +48,6 @@
 .IMPORT Ram_DeviceType_eDevice_arr
 .IMPORT Ram_MachineGoalVert_u8_arr
 .IMPORT Sram_ProgressFlags_arr
-.IMPORTZP Zp_MachineIndex_u8
 
 ;;;=========================================================================;;;
 
@@ -200,12 +199,11 @@ _Passages_sPassage_arr:
 ;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
 ;;; @prereq PRGA_Machine is loaded.
 .PROC FuncC_Lava_StationBoiler_TryAct
-    ;; Determine which pipe the steam should exit out of (or fail if both pipes
-    ;; are blocked).
-    ldy Zp_MachineIndex_u8
-    ldx Ram_MachineGoalVert_u8_arr, y  ; valve angle (0-9)
-    ldy _ValvePipePlatformIndex_u8_arr10, x  ; pipe platform index
-    bmi _Failure
+    ;; Determine which pipe the steam should exit out of.
+    lda Ram_MachineGoalVert_u8_arr + kBoilerMachineIndex  ; valve angle
+    and #$03
+    tax  ; valve angle (in tau/8 units, mod 4)
+    ldy _ValvePipePlatformIndex_u8_arr4, x  ; param: pipe platform index
     ;; Emit steam from the chosen pipe.
     cpy #kPipe1PlatformIndex
     beq @steamRight
@@ -215,20 +213,11 @@ _Passages_sPassage_arr:
     @steamRight:
     jsr FuncA_Machine_EmitSteamRightFromPipe
     jmp FuncA_Machine_BoilerFinishEmittingSteam
-_Failure:
-    jmp FuncA_Machine_Error
-_ValvePipePlatformIndex_u8_arr10:
-:   .byte kPipe1PlatformIndex
-    .byte $ff
-    .byte kPipe2PlatformIndex
-    .byte kPipe2PlatformIndex
-    .byte $ff
+_ValvePipePlatformIndex_u8_arr4:
     .byte kPipe1PlatformIndex
+    .byte kPipe2PlatformIndex
+    .byte kPipe2PlatformIndex
     .byte kPipe1PlatformIndex
-    .byte $ff
-    .byte kPipe2PlatformIndex
-    .byte kPipe2PlatformIndex
-    .assert * - :- = 10, error
 .ENDPROC
 
 ;;;=========================================================================;;;

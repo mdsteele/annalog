@@ -47,7 +47,6 @@
 .IMPORT Ppu_ChrObjLava
 .IMPORT Ram_MachineGoalHorz_u8_arr
 .IMPORT Ram_MachineGoalVert_u8_arr
-.IMPORTZP Zp_MachineIndex_u8
 
 ;;;=========================================================================;;;
 
@@ -113,7 +112,7 @@ _Machines_sMachine_arr:
     d_byte Status_eDiagram, eDiagram::Boiler
     d_word ScrollGoalX_u16, $090
     d_byte ScrollGoalY_u8, $20
-    d_byte RegNames_u8_arr4, "V", "U", 0, 0
+    d_byte RegNames_u8_arr4, "V", "E", 0, 0
     d_byte MainPlatform_u8, kUpperBoilerPlatformIndex
     d_addr Init_func_ptr, Func_Noop
     d_addr ReadReg_func_ptr, Func_MachineBoilerReadReg
@@ -132,7 +131,7 @@ _Machines_sMachine_arr:
     d_byte Status_eDiagram, eDiagram::Boiler
     d_word ScrollGoalX_u16, $110
     d_byte ScrollGoalY_u8, $b8
-    d_byte RegNames_u8_arr4, "V", "U", 0, 0
+    d_byte RegNames_u8_arr4, "V", "E", 0, 0
     d_byte MainPlatform_u8, kLowerBoilerPlatformIndex
     d_addr Init_func_ptr, Func_Noop
     d_addr ReadReg_func_ptr, Func_MachineBoilerReadReg
@@ -308,47 +307,31 @@ _Passages_sPassage_arr:
 ;;; @prereq PRGA_Machine is loaded.
 .PROC FuncC_Lava_EastUpperBoiler_TryAct
 _Valve1:
-    ldy Zp_MachineIndex_u8
-    ldx Ram_MachineGoalVert_u8_arr, y  ; valve 1 angle (0-9)
-    ldy _Valve1ExitPlatformIndex_u8_arr10, x  ; platform index
-    bmi _Failure
+    lda Ram_MachineGoalVert_u8_arr + kUpperBoilerMachineIndex  ; valve 1 angle
+    and #$03
+    tax  ; valve 1 angle (in tau/8 units, mod 4)
+    ldy _Valve1ExitPlatformIndex_u8_arr4, x  ; platform index
     cpy #kUpperValve2PlatformIndex
     beq _Valve2
     jsr FuncA_Machine_EmitSteamUpFromPipe
     jmp FuncA_Machine_BoilerFinishEmittingSteam
 _Valve2:
-    ldy Zp_MachineIndex_u8
-    ldx Ram_MachineGoalHorz_u8_arr, y  ; valve 2 angle (0-9)
-    ldy _Valve2ExitPlatformIndex_u8_arr10, x  ; platform index
-    bmi _Failure
+    lda Ram_MachineGoalHorz_u8_arr + kUpperBoilerMachineIndex  ; valve 2 angle
+    and #$03
+    tax  ; valve 2 angle (in tau/8 units, mod 4)
+    ldy _Valve2ExitPlatformIndex_u8_arr4, x  ; platform index
     jsr FuncA_Machine_EmitSteamRightFromPipe
     jmp FuncA_Machine_BoilerFinishEmittingSteam
-_Failure:
-    jmp FuncA_Machine_Error
-_Valve1ExitPlatformIndex_u8_arr10:
-:   .byte kUpperValve2PlatformIndex
-    .byte kUpperValve2PlatformIndex
-    .byte $ff
-    .byte kUpperPipe1PlatformIndex
-    .byte kUpperPipe1PlatformIndex
-    .byte $ff
+_Valve1ExitPlatformIndex_u8_arr4:
     .byte kUpperValve2PlatformIndex
     .byte kUpperValve2PlatformIndex
-    .byte $ff
     .byte kUpperPipe1PlatformIndex
-    .assert * - :- = 10, error
-_Valve2ExitPlatformIndex_u8_arr10:
-:   .byte kUpperPipe3PlatformIndex
-    .byte $ff
-    .byte kUpperPipe2PlatformIndex
-    .byte kUpperPipe2PlatformIndex
-    .byte $ff
+    .byte kUpperPipe1PlatformIndex
+_Valve2ExitPlatformIndex_u8_arr4:
     .byte kUpperPipe3PlatformIndex
+    .byte kUpperPipe2PlatformIndex
+    .byte kUpperPipe2PlatformIndex
     .byte kUpperPipe3PlatformIndex
-    .byte $ff
-    .byte kUpperPipe2PlatformIndex
-    .byte kUpperPipe2PlatformIndex
-    .assert * - :- = 10, error
 .ENDPROC
 
 ;;; TryAct implemention for the LavaEastLowerBoiler machine.
@@ -358,21 +341,24 @@ _Valve2ExitPlatformIndex_u8_arr10:
     lda #0
     sta T0  ; num steams emitted
 _Pipe1:
-    ldy Zp_MachineIndex_u8
-    ldx Ram_MachineGoalHorz_u8_arr, y  ; valve 2 angle (0-9)
-    ldy _Valve2ExitPlatformIndex_u8_arr10, x  ; platform index
+    lda Ram_MachineGoalHorz_u8_arr + kLowerBoilerMachineIndex  ; valve 2 angle
+    and #$03
+    tax  ; valve 2 angle (in tau/8 units, mod 4)
+    ldy _Valve2ExitPlatformIndex_u8_arr4, x  ; platform index
     bmi @done
-    ldy Zp_MachineIndex_u8
-    ldx Ram_MachineGoalVert_u8_arr, y  ; valve 1 angle (0-9)
-    ldy _Valve1PipePlatformIndex1_u8_arr10, x  ; platform index
+    lda Ram_MachineGoalVert_u8_arr + kLowerBoilerMachineIndex  ; valve 1 angle
+    and #$03
+    tax  ; valve 1 angle (in tau/8 units, mod 4)
+    ldy _Valve1PipePlatformIndex1_u8_arr4, x  ; platform index
     bmi @done
     jsr FuncA_Machine_EmitSteamRightFromPipe  ; preserves T0+
     inc T0  ; num steams emitted
     @done:
 _Pipe2:
-    ldy Zp_MachineIndex_u8
-    ldx Ram_MachineGoalVert_u8_arr, y  ; valve 1 angle (0-9)
-    ldy _Valve1PipePlatformIndex2_u8_arr10, x  ; platform index
+    lda Ram_MachineGoalVert_u8_arr + kLowerBoilerMachineIndex  ; valve 1 angle
+    and #$03
+    tax  ; valve 1 angle (in tau/8 units, mod 4)
+    ldy _Valve1PipePlatformIndex2_u8_arr4, x  ; platform index
     bmi @done
     jsr FuncA_Machine_EmitSteamUpFromPipe  ; preserves T0+
     inc T0  ; num steams emitted
@@ -383,42 +369,21 @@ _Finish:
     jmp FuncA_Machine_BoilerFinishEmittingSteam
 _Failure:
     jmp FuncA_Machine_Error
-_Valve1PipePlatformIndex1_u8_arr10:
-:   .byte $ff
+_Valve1PipePlatformIndex1_u8_arr4:
     .byte $ff
     .byte kLowerPipe1PlatformIndex
     .byte kLowerPipe1PlatformIndex
     .byte kLowerPipe1PlatformIndex
-    .byte $ff
-    .byte $ff
-    .byte $ff
+_Valve1PipePlatformIndex2_u8_arr4:
+    .byte kLowerPipe2PlatformIndex
     .byte kLowerPipe1PlatformIndex
-    .byte kLowerPipe1PlatformIndex
-    .assert * - :- = 10, error
-_Valve1PipePlatformIndex2_u8_arr10:
-:   .byte kLowerPipe2PlatformIndex
-    .byte $ff
-    .byte $ff
     .byte kLowerPipe2PlatformIndex
     .byte kLowerPipe2PlatformIndex
-    .byte kLowerPipe2PlatformIndex
-    .byte kLowerPipe2PlatformIndex
-    .byte $ff
-    .byte $ff
-    .byte kLowerPipe2PlatformIndex
-    .assert * - :- = 10, error
-_Valve2ExitPlatformIndex_u8_arr10:
-:   .byte $ff
+_Valve2ExitPlatformIndex_u8_arr4:
     .byte $ff
     .byte kLowerValve1PlatformIndex
     .byte kLowerValve1PlatformIndex
     .byte $ff
-    .byte $ff
-    .byte $ff
-    .byte $ff
-    .byte kLowerValve1PlatformIndex
-    .byte kLowerValve1PlatformIndex
-    .assert * - :- = 10, error
 .ENDPROC
 
 ;;;=========================================================================;;;

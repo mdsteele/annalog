@@ -26,12 +26,12 @@
 ;;;   * State4: Unused.
 
 ;;; The number of frames between valve angles when animating a boiler valve.
-.DEFINE kBoilerValveAnimSlowdown 2
+.DEFINE kBoilerValveAnimSlowdown 4
 
 ;;; How many frames a boiler machine spends for various operations.
 kBoilerActCountdown = 32
 
 ;;; Various OBJ tile IDs used for drawing boiler machines.
-kTileIdObjValveFirst  = $9c
+kTileIdObjValveFirst  = $9a
 
 ;;;=========================================================================;;;

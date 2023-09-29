@@ -79,6 +79,7 @@
     GardenLandingPaper
     GardenShaftPaper
     LavaStationPaper
+    LavaWestPaper
     MermaidEntrySign
     MermaidHut1AlexPetition
     MermaidHut1BreakerCrypt1

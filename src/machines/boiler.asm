@@ -67,6 +67,7 @@ kPaletteObjValve = 0
 ;;; @return A The value of the register (0-9).
 .EXPORT Func_MachineBoilerReadReg
 .PROC Func_MachineBoilerReadReg
+    ;; TODO: use $e and $f for valve registers
     ldx Zp_MachineIndex_u8
     cmp #$0d
     beq @valve2
@@ -285,8 +286,7 @@ _Finish:
 .EXPORT FuncA_Objects_DrawBoilerValve2
 .PROC FuncA_Objects_DrawBoilerValve2
     ldy Zp_MachineIndex_u8
-    lda Ram_MachineState2_byte_arr, y  ; valve 2 angle
-    div #kBoilerValveAnimSlowdown  ; param: valve angle
+    lda Ram_MachineState2_byte_arr, y  ; param: valve angle (in tau/32 units)
     bpl FuncA_Objects_DrawBoilerValve  ; unconditional
 .ENDPROC
 
@@ -296,47 +296,39 @@ _Finish:
 .EXPORT FuncA_Objects_DrawBoilerValve1
 .PROC FuncA_Objects_DrawBoilerValve1
     ldy Zp_MachineIndex_u8
-    lda Ram_MachineState1_byte_arr, y  ; valve 1 angle
-    div #kBoilerValveAnimSlowdown  ; param: valve angle
+    lda Ram_MachineState1_byte_arr, y  ; param: valve angle (in tau/32 units)
     .assert * = FuncA_Objects_DrawBoilerValve, error, "fallthrough"
 .ENDPROC
 
 ;;; Draws a valve for a boiler machine.  The valve platform should be 8x8
 ;;; pixels and centered on the center of the valve.
-;;; @param A The valve angle (0-9).
+;;; @param A The absolute valve angle, in increments of tau/32.
 ;;; @param X The platform index for the valve.
 .PROC FuncA_Objects_DrawBoilerValve
-    pha  ; valve angle
-    jsr FuncA_Objects_SetShapePosToPlatformTopLeft
-    pla  ; valve angle
-    tax  ; valve angle
-    ldy _Flags_bObj_arr10, x  ; param: object flags
-    lda _Tile_u8_arr10, x  ; param: tile ID
+    div #2
+    tay  ; valve angle (in tau/16 units)
+    jsr FuncA_Objects_SetShapePosToPlatformTopLeft  ; preserves Y
+    tya  ; valve angle (in tau/16 units)
+    div #4
+    and #$03
+    tax
+    tya  ; valve angle (in tau/16 units)
+    ldy _Flags_bObj_arr4, x  ; param: object flags
+    and #$07
+    tax  ; valve angle (in tau/16 units, mod 8)
+    lda _TileId_u8_arr8, x  ; param: tile ID
     jmp FuncA_Objects_Draw1x1Shape
-_Tile_u8_arr10:
-:   .byte kTileIdObjValveFirst + 0
-    .byte kTileIdObjValveFirst + 1
-    .byte kTileIdObjValveFirst + 2
-    .byte kTileIdObjValveFirst + 3
-    .byte kTileIdObjValveFirst + 2
-    .byte kTileIdObjValveFirst + 1
+_TileId_u8_arr8:
     .byte kTileIdObjValveFirst + 0
     .byte kTileIdObjValveFirst + 1
     .byte kTileIdObjValveFirst + 2
     .byte kTileIdObjValveFirst + 3
-    .assert * - :- = 10, error
-_Flags_bObj_arr10:
-:   .byte kPaletteObjValve
-    .byte kPaletteObjValve
-    .byte kPaletteObjValve
-    .byte kPaletteObjValve
-    .byte kPaletteObjValve | bObj::FlipV
-    .byte kPaletteObjValve | bObj::FlipV
-    .byte kPaletteObjValve
-    .byte kPaletteObjValve
-    .byte kPaletteObjValve
-    .byte kPaletteObjValve
-    .assert * - :- = 10, error
+    .byte kTileIdObjValveFirst + 4
+    .byte kTileIdObjValveFirst + 3
+    .byte kTileIdObjValveFirst + 2
+    .byte kTileIdObjValveFirst + 1
+_Flags_bObj_arr4:
+    .byte 0, bObj::FlipH, bObj::FlipHV, bObj::FlipV
 .ENDPROC
 
 ;;;=========================================================================;;;
