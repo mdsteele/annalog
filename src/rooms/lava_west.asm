@@ -159,6 +159,28 @@ _Platforms_sPlatform_arr:
     d_word Left_i16,  $0150
     d_word Top_i16,   $00b0
     D_END
+    ;; Spikes:
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Harm
+    d_word WidthPx_u16, $0f
+    d_byte HeightPx_u8, $08
+    d_word Left_i16,  $0140
+    d_word Top_i16,   $007a
+    D_END
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Harm
+    d_word WidthPx_u16, $0e
+    d_byte HeightPx_u8, $08
+    d_word Left_i16,  $0181
+    d_word Top_i16,   $005a
+    D_END
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Harm
+    d_word WidthPx_u16, $20
+    d_byte HeightPx_u8, $08
+    d_word Left_i16,  $01c0
+    d_word Top_i16,   $00be
+    D_END
     ;; Lava:
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Kill

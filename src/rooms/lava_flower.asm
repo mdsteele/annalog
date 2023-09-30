@@ -38,19 +38,25 @@
 .IMPORT FuncA_Machine_BoilerWriteReg
 .IMPORT FuncA_Machine_EmitSteamUpFromPipe
 .IMPORT FuncA_Machine_Error
+.IMPORT FuncA_Machine_WriteToLever
 .IMPORT FuncA_Objects_AnimateLavaTerrain
 .IMPORT FuncA_Objects_DrawBoilerMachine
-.IMPORT FuncA_Objects_DrawBoilerValve1
+.IMPORT FuncA_Objects_DrawBoilerValve2
 .IMPORT FuncA_Room_MachineBoilerReset
 .IMPORT FuncA_Room_RemoveFlowerDeviceIfCarriedOrDelivered
+.IMPORT FuncA_Room_ResetLever
 .IMPORT FuncA_Room_RespawnFlowerDeviceIfDropped
 .IMPORT FuncA_Terrain_FadeInShortRoomWithLava
 .IMPORT Func_MachineBoilerReadReg
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrObjLava
-.IMPORT Ram_MachineGoalVert_u8_arr
+.IMPORT Ram_MachineGoalHorz_u8_arr
+.IMPORTZP Zp_RoomState
 
 ;;;=========================================================================;;;
+
+;;; The device index for the lever in this room.
+kLeverDeviceIndex = 1
 
 ;;; The machine index for the LavaFlowerBoiler machine in this room.
 kBoilerMachineIndex = 0
@@ -60,6 +66,15 @@ kBoilerPlatformIndex = 0
 kValvePlatformIndex  = 1
 kPipe1PlatformIndex  = 2
 kPipe2PlatformIndex  = 3
+
+;;;=========================================================================;;;
+
+;;; Defines room-specific state data for this particular room.
+.STRUCT sState
+    ;; The current state of the lever in this room.
+    Lever_u8 .byte
+.ENDSTRUCT
+.ASSERT .sizeof(sState) <= kRoomStateSize, error
 
 ;;;=========================================================================;;;
 
@@ -99,20 +114,20 @@ _Machines_sMachine_arr:
     D_STRUCT sMachine
     d_byte Code_eProgram, eProgram::LavaFlowerBoiler
     d_byte Breaker_eFlag, 0
-    d_byte Flags_bMachine, bMachine::Act | bMachine::WriteC
+    d_byte Flags_bMachine, bMachine::Act | bMachine::WriteCD
     d_byte Status_eDiagram, eDiagram::Boiler
     d_word ScrollGoalX_u16, $08
     d_byte ScrollGoalY_u8, $00
-    d_byte RegNames_u8_arr4, "V", 0, 0, 0
+    d_byte RegNames_u8_arr4, "L", "V", 0, 0
     d_byte MainPlatform_u8, kBoilerPlatformIndex
     d_addr Init_func_ptr, Func_Noop
-    d_addr ReadReg_func_ptr, Func_MachineBoilerReadReg
-    d_addr WriteReg_func_ptr, FuncA_Machine_BoilerWriteReg
+    d_addr ReadReg_func_ptr, FuncC_Lava_FlowerBoiler_ReadReg
+    d_addr WriteReg_func_ptr, FuncA_Machine_LavaWestBoiler_WriteReg
     d_addr TryMove_func_ptr, FuncA_Machine_Error
-    d_addr TryAct_func_ptr, FuncC_Lava_FlowerBoiler_TryAct
+    d_addr TryAct_func_ptr, FuncA_Machine_LavaFlowerBoiler_TryAct
     d_addr Tick_func_ptr, FuncA_Machine_BoilerTick
-    d_addr Draw_func_ptr, FuncA_Objects_LavaFlowerBoiler_Draw
-    d_addr Reset_func_ptr, FuncA_Room_MachineBoilerReset
+    d_addr Draw_func_ptr, FuncC_Lava_FlowerBoiler_Draw
+    d_addr Reset_func_ptr, FuncA_Room_LavaWestBoiler_Reset
     D_END
     .assert * - :- <= kMaxMachines * .sizeof(sMachine), error
 _Platforms_sPlatform_arr:
@@ -121,7 +136,7 @@ _Platforms_sPlatform_arr:
     d_byte Type_ePlatform, ePlatform::Solid
     d_word WidthPx_u16, $10
     d_byte HeightPx_u8, $10
-    d_word Left_i16,  $00b8
+    d_word Left_i16,  $00a8
     d_word Top_i16,   $0060
     D_END
     .assert * - :- = kValvePlatformIndex * .sizeof(sPlatform), error
@@ -129,7 +144,7 @@ _Platforms_sPlatform_arr:
     d_byte Type_ePlatform, ePlatform::Zone
     d_word WidthPx_u16, $08
     d_byte HeightPx_u8, $08
-    d_word Left_i16,  $00e4
+    d_word Left_i16,  $00d4
     d_word Top_i16,   $0064
     D_END
     .assert * - :- = kPipe1PlatformIndex * .sizeof(sPlatform), error
@@ -137,7 +152,7 @@ _Platforms_sPlatform_arr:
     d_byte Type_ePlatform, ePlatform::Zone
     d_word WidthPx_u16, $08
     d_byte HeightPx_u8, $08
-    d_word Left_i16,  $00e0
+    d_word Left_i16,  $00c0
     d_word Top_i16,   $0050
     D_END
     .assert * - :- = kPipe2PlatformIndex * .sizeof(sPlatform), error
@@ -147,6 +162,21 @@ _Platforms_sPlatform_arr:
     d_byte HeightPx_u8, $08
     d_word Left_i16,  $0070
     d_word Top_i16,   $00c8
+    D_END
+    ;; Spikes:
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Harm
+    d_word WidthPx_u16, $3e
+    d_byte HeightPx_u8, $08
+    d_word Left_i16,  $00b2
+    d_word Top_i16,   $001a
+    D_END
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Harm
+    d_word WidthPx_u16, $0d
+    d_byte HeightPx_u8, $08
+    d_word Left_i16,  $0052
+    d_word Top_i16,   $007a
     D_END
     ;; Lava:
     D_STRUCT sPlatform
@@ -175,10 +205,17 @@ _Devices_sDevice_arr:
     d_byte BlockCol_u8, 13
     d_byte Target_byte, eFlag::FlowerLava
     D_END
+    .assert * - :- = kLeverDeviceIndex * .sizeof(sDevice), error
+    D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::LeverFloor
+    d_byte BlockRow_u8, 4
+    d_byte BlockCol_u8, 10
+    d_byte Target_byte, sState::Lever_u8
+    D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Console
     d_byte BlockRow_u8, 4
-    d_byte BlockCol_u8, 11
+    d_byte BlockCol_u8, 13
     d_byte Target_byte, kBoilerMachineIndex
     D_END
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
@@ -197,33 +234,71 @@ _Passages_sPassage_arr:
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
 .ENDPROC
 
-;;; TryAct implemention for the LavaFlowerBoiler machine.
-;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
-;;; @prereq PRGA_Machine is loaded.
-.PROC FuncC_Lava_FlowerBoiler_TryAct
-    ;; Determine which pipe the steam should exit out of.
-    lda Ram_MachineGoalVert_u8_arr + kBoilerMachineIndex  ; valve angle
-    and #$03
-    tax  ; valve angle (in tau/8 units, mod 4)
-    ldy _ValvePipePlatformIndex_u8_arr4, x  ; param: pipe platform index
-    ;; Emit upward steam from the chosen pipe.
-    jsr FuncA_Machine_EmitSteamUpFromPipe
-    jmp FuncA_Machine_BoilerFinishEmittingSteam
-_ValvePipePlatformIndex_u8_arr4:
-    .byte kPipe1PlatformIndex
-    .byte kPipe1PlatformIndex
-    .byte kPipe2PlatformIndex
-    .byte kPipe2PlatformIndex
+.PROC FuncC_Lava_FlowerBoiler_ReadReg
+    cmp #$c
+    beq _ReadL
+    jmp Func_MachineBoilerReadReg
+_ReadL:
+    lda Zp_RoomState + sState::Lever_u8
+    rts
+.ENDPROC
+
+.PROC FuncC_Lava_FlowerBoiler_Draw
+    jsr FuncA_Objects_DrawBoilerMachine
+    ldx #kValvePlatformIndex  ; param: platform index
+    jmp FuncA_Objects_DrawBoilerValve2
 .ENDPROC
 
 ;;;=========================================================================;;;
 
-.SEGMENT "PRGA_Objects"
+.SEGMENT "PRGA_Room"
 
-.PROC FuncA_Objects_LavaFlowerBoiler_Draw
-    jsr FuncA_Objects_DrawBoilerMachine
-    ldx #kValvePlatformIndex  ; param: platform index
-    jmp FuncA_Objects_DrawBoilerValve1
+.PROC FuncA_Room_LavaWestBoiler_Reset
+    ldx #kLeverDeviceIndex  ; param: device index
+    jsr FuncA_Room_ResetLever
+    jmp FuncA_Room_MachineBoilerReset
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Machine"
+
+.PROC FuncA_Machine_LavaWestBoiler_WriteReg
+    cpx #$c
+    beq _WriteL
+    jmp FuncA_Machine_BoilerWriteReg
+_WriteL:
+    ldx #kLeverDeviceIndex  ; param: device index
+    jmp FuncA_Machine_WriteToLever
+.ENDPROC
+
+;;; TryAct implemention for the LavaFlowerBoiler machine.
+;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
+;;; @prereq PRGA_Machine is loaded.
+.PROC FuncA_Machine_LavaFlowerBoiler_TryAct
+    ;; Determine which pipe(s) the steam should exit out of.
+    lda Ram_MachineGoalHorz_u8_arr + kBoilerMachineIndex  ; valve angle
+    and #$03
+    tax  ; valve angle (in tau/8 units, mod 4)
+    ldy _ValvePipePlatformIndex_u8_arr4, x  ; param: pipe platform index
+    bmi _Failure
+    cpy #kPipe1PlatformIndex
+    beq @pipe1
+    ;; Emit upward steam from the chosen pipe(s).
+    @pipe2:
+    jsr FuncA_Machine_EmitSteamUpFromPipe
+    jsr FuncA_Machine_BoilerFinishEmittingSteam
+    ldy #kPipe1PlatformIndex
+    @pipe1:
+    jsr FuncA_Machine_EmitSteamUpFromPipe
+    jmp FuncA_Machine_BoilerFinishEmittingSteam
+_Failure:
+    jmp FuncA_Machine_Error
+_ValvePipePlatformIndex_u8_arr4:
+    .byte kPipe1PlatformIndex
+    .byte kPipe2PlatformIndex  ; (and also pipe 1)
+    .byte $ff
+    .byte $ff
 .ENDPROC
 
 ;;;=========================================================================;;;

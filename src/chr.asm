@@ -776,8 +776,9 @@
 .EXPORT Ppu_ChrBgLava
 .PROC Ppu_ChrBgLava
 :   .incbin "out/tiles/steam_pipes.chr"
-    .incbin "out/tiles/volcanic.chr"
-    .res $10 * kSizeofChr
+    .incbin "out/tiles/volcanic1.chr"
+    .incbin "out/tiles/volcanic2.chr"
+    .res $0e * kSizeofChr
     .incbin "out/tiles/field_bg.chr"
     .incbin "out/tiles/boiler.chr"
     .incbin "out/tiles/sign.chr"
