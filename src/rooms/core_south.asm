@@ -27,8 +27,8 @@
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
 .INCLUDE "../platform.inc"
+.INCLUDE "../platforms/crate.inc"
 .INCLUDE "../room.inc"
-.INCLUDE "core_south.inc"
 
 .IMPORT DataA_Room_Core_sTileset
 .IMPORT FuncA_Dialog_JumpToCutscene
@@ -344,7 +344,7 @@ _Anchors:
     @loop:
     jsr FuncA_Objects_SetShapePosToPlatformTopLeft  ; preserves X
     ldy #kPaletteObjAnchor  ; param: object flags
-    lda #kTileIdObjAnchorFirst + 2  ; param: tile ID
+    lda #kTileIdObjCrateAnchor  ; param: tile ID
     jsr FuncA_Objects_Draw1x1Shape  ; preserves X
     inx
     cpx #kAnchor3PlatformIndex + 1
@@ -375,11 +375,11 @@ _UpperCrates:
     jsr FuncA_Objects_MoveShapeDownByA  ; preserves X
     ;; Draw the chain.
     ldy #kPaletteObjAnchor  ; param: object flags
-    lda #kTileIdObjAnchorFirst + 0  ; param: tile ID
+    lda #kTileIdObjCrateChainFull  ; param: tile ID
     jsr FuncA_Objects_Draw1x1Shape  ; preserves X
     jsr FuncA_Objects_MoveShapeDownOneTile  ; preserves X
     ldy #kPaletteObjAnchor  ; param: object flags
-    lda #kTileIdObjAnchorFirst + 1  ; param: tile ID
+    lda #kTileIdObjCrateChainHalf  ; param: tile ID
     jsr FuncA_Objects_Draw1x1Shape  ; preserves X
     ;; Draw the crate(s).
     jmp FuncA_Objects_DrawCratePlatform

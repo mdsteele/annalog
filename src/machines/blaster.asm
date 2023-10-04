@@ -34,6 +34,7 @@
 .IMPORT Func_FindEmptyActorSlot
 .IMPORT Func_InitActorProjFireball
 .IMPORT Func_IsPointInPlatform
+.IMPORT Func_MovePointDownByA
 .IMPORT Func_MovePointHorz
 .IMPORT Func_ReinitActorProjFireballVelocity
 .IMPORT Func_SetActorCenterToPoint
@@ -89,12 +90,12 @@ kTileIdObjBlasterBarrelHorz = kTileIdObjBlasterFirst + 1
 
 .SEGMENT "PRGA_Machine"
 
-;;; WriteReg implemention for blaster machines.
+;;; WriteReg implemention for a blaster machine's mirrors.
 ;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
 ;;; @param A The value to write (0-9).
 ;;; @param X The register to write to ($c or $d).
-.EXPORT FuncA_Machine_BlasterWriteReg
-.PROC FuncA_Machine_BlasterWriteReg
+.EXPORT FuncA_Machine_BlasterWriteRegMirrors
+.PROC FuncA_Machine_BlasterWriteRegMirrors
     ldy Zp_MachineIndex_u8
     cpx #$0d
     beq @mirror2
@@ -112,13 +113,24 @@ kTileIdObjBlasterBarrelHorz = kTileIdObjBlasterFirst + 1
     rts
 .ENDPROC
 
+;;; TryAct implemention for vertical blaster machines.
+;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
+.EXPORT FuncA_Machine_BlasterVertTryAct
+.PROC FuncA_Machine_BlasterVertTryAct
+    ldy #sMachine::MainPlatform_u8
+    lda (Zp_Current_sMachine_ptr), y
+    tay  ; param: platform index
+    jsr Func_SetPointToPlatformCenter  ; preserves X
+    lda #kBlasterProjectileOffset  ; param: offset
+    jsr Func_MovePointDownByA  ; preserves X
+    ldy #$40  ; param: projectile angle
+    bne FuncA_Machine_BlasterShootFireball  ; unconditional
+.ENDPROC
+
 ;;; TryAct implemention for horizontal blaster machines.
 ;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
 .EXPORT FuncA_Machine_BlasterHorzTryAct
 .PROC FuncA_Machine_BlasterHorzTryAct
-    jsr Func_FindEmptyActorSlot  ; returns C and X
-    bcs _Finish
-_SetProjectilePosition:
     ldy #sMachine::MainPlatform_u8
     lda (Zp_Current_sMachine_ptr), y
     tay  ; param: platform index
@@ -136,8 +148,19 @@ _SetProjectilePosition:
     lda #kBlasterProjectileOffset  ; param: offset
     @movePoint:
     jsr Func_MovePointHorz  ; preserves X and Y
-    jsr Func_SetActorCenterToPoint  ; preserves X and Y
+    .assert * = FuncA_Machine_BlasterShootFireball, error, "fallthrough"
+.ENDPROC
+
+;;; Shoots a fireball from a blaster machine, and makes the machine starting
+;;; waiting for a bit.
+;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
+;;; @prereq Zp_Point* stores the starting position of the fireball.
+;;; @param Y The angle to fire at, measured in increments of tau/256.
+.PROC FuncA_Machine_BlasterShootFireball
+    jsr Func_FindEmptyActorSlot  ; preserves Y, returns C and X
+    bcs _Finish
 _InitProjectile:
+    jsr Func_SetActorCenterToPoint  ; preserves X and Y
     tya  ; param: projectile angle
     jsr Func_InitActorProjFireball
     ;; If the console is active, then we must be debugging, so immediately
@@ -208,6 +231,7 @@ _Finish:
 ;;; reflects them off of the mirror.
 ;;; @param A The absolute mirror angle, in increments of tau/16.
 ;;; @param Y The platform index for the mirror.
+;;; @preserve Y, T3+
 .EXPORT FuncA_Room_ReflectFireballsOffMirror
 .PROC FuncA_Room_ReflectFireballsOffMirror
     mul #$10
@@ -287,13 +311,37 @@ _Continue:
     rts
 .ENDPROC
 
+;;; Draw implemention for vertical blaster machines.
+;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
+.EXPORT FuncA_Objects_DrawBlasterMachineVert
+.PROC FuncA_Objects_DrawBlasterMachineVert
+    lda #kPaletteObjMachineLight  ; param: object flags
+    jsr FuncA_Objects_Alloc2x2MachineShape  ; returns C, A, and Y
+    bcs @done
+    eor #bObj::FlipH
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Flags_bObj, y
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Flags_bObj, y
+    eor #bObj::FlipV
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Flags_bObj, y
+    lda #kTileIdObjMachineCorner
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Tile_u8, y
+    jsr FuncA_Objects_GetMachineLightTileId  ; preserves Y, returns A
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Tile_u8, y
+    lda #kTileIdObjBlasterBarrelVert
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Tile_u8, y
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Tile_u8, y
+    @done:
+    rts
+.ENDPROC
+
 ;;; Draws a mirror that can reflect blaster machine projectiles.
 ;;; @param A The absolute mirror angle, in increments of tau/16.
 ;;; @param X The platform index for the mirror.
+;;; @preserve T2+
 .EXPORT FuncA_Objects_DrawBlasterMirror
 .PROC FuncA_Objects_DrawBlasterMirror
     tay  ; mirror angle
-    jsr FuncA_Objects_SetShapePosToPlatformTopLeft  ; preserves Y
+    jsr FuncA_Objects_SetShapePosToPlatformTopLeft  ; preserves Y and T0+
     tya  ; mirror angle
     div #4
     and #$03
@@ -303,7 +351,7 @@ _Continue:
     and #$07
     tax  ; mirror angle (mod 8)
     lda _TileId_u8_arr8, x  ; param: tile ID
-    jmp FuncA_Objects_Draw1x1Shape
+    jmp FuncA_Objects_Draw1x1Shape  ; preserves T2+
 _TileId_u8_arr8:
     .byte kTileIdObjMirrorFirst + 0
     .byte kTileIdObjMirrorFirst + 1

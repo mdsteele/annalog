@@ -32,6 +32,6 @@
 kBoilerActCountdown = 32
 
 ;;; Various OBJ tile IDs used for drawing boiler machines.
-kTileIdObjValveFirst  = $9a
+kTileIdObjValveFirst  = $bb
 
 ;;;=========================================================================;;;

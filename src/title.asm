@@ -258,6 +258,9 @@ _Flags_eFlag_arr:
     .byte eFlag::MermaidSpringConsoleFixed
     .byte eFlag::MermaidSpringUnplugged
     .byte eFlag::UpgradeOpCopy
+    .byte eFlag::LavaCenterChain3Broken
+    .byte eFlag::LavaCenterChain1Broken
+    .byte eFlag::LavaCenterChain2Broken
     .byte eFlag::BossLava
     .byte eFlag::UpgradeRam3
     .byte eFlag::BreakerLava

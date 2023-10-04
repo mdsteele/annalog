@@ -51,11 +51,11 @@ kTileIdObjSmokeFirst = $1a
 ;;; Initializes the specified actor as a smoke explosion.
 ;;; @prereq The actor's pixel position has already been initialized.
 ;;; @param X The actor index.
-;;; @preserve X
+;;; @preserve X, T0+
 .EXPORT Func_InitActorSmokeExplosion
 .PROC Func_InitActorSmokeExplosion
     ldy #eActor::SmokeExplosion  ; param: actor type
-    jmp Func_InitActorDefault  ; preserves X
+    jmp Func_InitActorDefault  ; preserves X and T0+
 .ENDPROC
 
 ;;;=========================================================================;;;

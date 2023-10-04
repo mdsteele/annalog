@@ -107,6 +107,9 @@ kSaveMagicNumber = $b2
     GardenLandingDroppedIn
     GardenTowerCratesPlaced
     GardenTowerWallBroken
+    LavaCenterChain1Broken
+    LavaCenterChain2Broken
+    LavaCenterChain3Broken
     MermaidHut1AlexPetition
     MermaidHut1MetQueen
     MermaidHut4MetFlorist

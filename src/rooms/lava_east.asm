@@ -81,7 +81,7 @@ kLowerPipe2PlatformIndex  = 10
     d_word MaxScrollX_u16, $110
     d_byte Flags_bRoom, bRoom::Tall | eArea::Lava
     d_byte MinimapStartRow_u8, 13
-    d_byte MinimapStartCol_u8, 17
+    d_byte MinimapStartCol_u8, 18
     d_addr TerrainData_ptr, _TerrainData
     d_byte NumMachines_u8, 2
     d_addr Machines_sMachine_arr_ptr, _Machines_sMachine_arr
@@ -280,13 +280,13 @@ _Devices_sDevice_arr:
     .byte eDevice::None
 _Passages_sPassage_arr:
 :   D_STRUCT sPassage
-    d_byte Exit_bPassage, ePassage::Western | 0
-    d_byte Destination_eRoom, eRoom::LavaShaft
+    d_byte Exit_bPassage, ePassage::Western | bPassage::SameScreen | 0
+    d_byte Destination_eRoom, eRoom::LavaCenter
     d_byte SpawnBlock_u8, 4
     D_END
     D_STRUCT sPassage
-    d_byte Exit_bPassage, ePassage::Western | 1
-    d_byte Destination_eRoom, eRoom::LavaFlower
+    d_byte Exit_bPassage, ePassage::Western | bPassage::SameScreen | 1
+    d_byte Destination_eRoom, eRoom::LavaCenter
     d_byte SpawnBlock_u8, 15
     D_END
     D_STRUCT sPassage

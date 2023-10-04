@@ -142,6 +142,7 @@
     GardenShaftLowerBridge
     GardenShaftUpperBridge
     GardenTowerCannon
+    LavaCenterBlaster
     LavaEastUpperBoiler
     LavaEastLowerBoiler
     LavaFlowerBoiler

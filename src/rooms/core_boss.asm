@@ -42,7 +42,7 @@
 .IMPORT Data_Empty_sDialog
 .IMPORT FuncA_Machine_BlasterHorzTryAct
 .IMPORT FuncA_Machine_BlasterTickMirrors
-.IMPORT FuncA_Machine_BlasterWriteReg
+.IMPORT FuncA_Machine_BlasterWriteRegMirrors
 .IMPORT FuncA_Machine_CannonTick
 .IMPORT FuncA_Machine_CannonTryAct
 .IMPORT FuncA_Machine_CannonTryMove
@@ -243,7 +243,7 @@ _Machines_sMachine_arr:
     d_byte MainPlatform_u8, kBlasterPlatformIndex
     d_addr Init_func_ptr, FuncA_Room_CoreBossBlaster_Init
     d_addr ReadReg_func_ptr, FuncC_Core_BossBlaster_ReadReg
-    d_addr WriteReg_func_ptr, FuncA_Machine_BlasterWriteReg
+    d_addr WriteReg_func_ptr, FuncA_Machine_BlasterWriteRegMirrors
     d_addr TryMove_func_ptr, FuncA_Machine_CoreBossBlaster_TryMove
     d_addr TryAct_func_ptr, FuncA_Machine_BlasterHorzTryAct
     d_addr Tick_func_ptr, FuncA_Machine_CoreBossBlaster_Tick

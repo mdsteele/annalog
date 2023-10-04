@@ -17,6 +17,12 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
+;;; OBJ tile IDs for drawing anchors/chains for anchored crate platforms.
+kTileIdObjAnchorFirst = $b8
+kTileIdObjCrateChainFull = kTileIdObjAnchorFirst + 0
+kTileIdObjCrateChainHalf = kTileIdObjAnchorFirst + 1
+kTileIdObjCrateAnchor    = kTileIdObjAnchorFirst + 2
+
 ;;; OBJ tile IDs for drawing boulder platforms.
 kTileIdObjBoulderFirst = $9c
 

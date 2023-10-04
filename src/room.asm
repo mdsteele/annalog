@@ -86,6 +86,7 @@
 .IMPORT DataC_Garden_Shrine_sRoom
 .IMPORT DataC_Garden_Tower_sRoom
 .IMPORT DataC_Garden_Tunnel_sRoom
+.IMPORT DataC_Lava_Center_sRoom
 .IMPORT DataC_Lava_East_sRoom
 .IMPORT DataC_Lava_Flower_sRoom
 .IMPORT DataC_Lava_Shaft_sRoom
@@ -309,6 +310,7 @@ _LoadNewRoom:
     d_entry table, GardenShrine,    DataC_Garden_Shrine_sRoom
     d_entry table, GardenTower,     DataC_Garden_Tower_sRoom
     d_entry table, GardenTunnel,    DataC_Garden_Tunnel_sRoom
+    d_entry table, LavaCenter,      DataC_Lava_Center_sRoom
     d_entry table, LavaEast,        DataC_Lava_East_sRoom
     d_entry table, LavaFlower,      DataC_Lava_Flower_sRoom
     d_entry table, LavaShaft,       DataC_Lava_Shaft_sRoom
@@ -445,6 +447,7 @@ _PrisonMusic:
     d_byte GardenShrine,    eMusic::Silence
     d_byte GardenTower,     eMusic::Silence
     d_byte GardenTunnel,    eMusic::Silence
+    d_byte LavaCenter,      eMusic::Silence
     d_byte LavaEast,        eMusic::Silence
     d_byte LavaFlower,      eMusic::Silence
     d_byte LavaShaft,       eMusic::Silence
