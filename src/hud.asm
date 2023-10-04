@@ -33,6 +33,7 @@
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORT Sram_ProgressFlags_arr
 .IMPORTZP Zp_Current_sMachine_ptr
+.IMPORTZP Zp_ShapePosX_i16
 .IMPORTZP Zp_ShapePosY_i16
 .IMPORTZP Zp_WindowTop_u8
 
@@ -48,7 +49,8 @@ kFloatingHudTop = kTileHeightPx * 3
 
 ;;; The screen pixel X-position for the left of the HUD (for both the in-window
 ;;; HUD and the floating HUD).
-kHudLeft = kScreenWidthPx - kTileWidthPx * 4
+kFloatingHudLeft = $12
+kInWindowHudLeft = kScreenWidthPx - $22
 
 ;;; The OBJ palette number to use for the HUD.
 kPaletteObjHud = 1
@@ -79,6 +81,8 @@ Zp_FloatingHud_bHud: .res 1
     ;; Otherwise, calculate the screen position for the top of the HUD.
     adc #kHudWindowMarginTop  ; carry is already clear
     sta Zp_ShapePosY_i16 + 0
+    lda #kInWindowHudLeft
+    sta Zp_ShapePosX_i16 + 0
     lda #0
     sta Zp_ShapePosY_i16 + 1
     jmp FuncA_Objects_DrawHudRegisters
@@ -98,6 +102,10 @@ Zp_FloatingHud_bHud: .res 1
     @done:
     rts
     @draw:
+    ;; Set the X-position of the floating HUD.
+    lda #kFloatingHudLeft
+    sta Zp_ShapePosX_i16 + 0
+    ;; Set the Y-position of the floating HUD.
     lda Zp_FloatingHud_bHud
     and #bHud::IndexMask
     tax  ; param: machine index
@@ -118,7 +126,9 @@ Zp_FloatingHud_bHud: .res 1
 .ENDPROC
 
 ;;; Draws all register name/value pairs for the HUD.  The screen Y-position of
-;;; the top of the HUD is taken from Zp_ShapePosY_i16.
+;;; the top of the HUD is taken from Zp_ShapePosY_i16, and the screen
+;;; X-position of the left of the HUD is taken from the lo byte of
+;;; Zp_ShapePosX_i16 (the hi byte is ignored).
 ;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
 .PROC FuncA_Objects_DrawHudRegisters
 _RegisterA:
@@ -192,9 +202,9 @@ _OtherRegisters:
     pla  ; object Y-position
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::YPos_u8, y
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::YPos_u8, y
-    lda #kHudLeft
+    lda Zp_ShapePosX_i16 + 0
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::XPos_u8, y
-    lda #kHudLeft + kTileWidthPx
+    add #kTileWidthPx
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::XPos_u8, y
     lda #kPaletteObjHud
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Flags_bObj, y
