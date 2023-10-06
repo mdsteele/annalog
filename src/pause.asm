@@ -695,7 +695,7 @@ _CircuitFlags_bObj_arr:
 .PROC DataA_Pause_MinimapItemMarkerTiles_u8_arr
     .byte $80, $b1, '?', $b3, $b2, '?', $b6, '?'
     .byte '?', '?', '?', $b7, '?', '?', '?', $b5
-    .byte '?', '?', '?', '?', '?', '?', $b8, '?'
+    .byte $bf, '?', '?', '?', '?', '?', $b8, '?'
     .byte '?', '?', '?', '?', '?', '?', '?', '?'
     .byte $bd
 .ENDPROC

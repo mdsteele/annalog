@@ -154,7 +154,7 @@ _Done:
 .ENDPROC
 
 .PROC DataA_Pause_CryptAreaName_u8_arr12
-:   .byte " Deep Crypt "
+:   .byte "Hidden Crypt"
     .assert * - :- = 12, error
 .ENDPROC
 
@@ -169,7 +169,7 @@ _Done:
 .ENDPROC
 
 .PROC DataA_Pause_LavaAreaName_u8_arr12
-:   .byte "  Lava Pits "
+:   .byte "Volcanic Pit"
     .assert * - :- = 12, error
 .ENDPROC
 
@@ -524,6 +524,12 @@ _Done:
 .PROC DataA_Pause_Minimap_sMarker_arr
     D_STRUCT sMarker
     d_byte Row_u8, 1
+    d_byte Col_u8, 1  ; room: BossTemple
+    d_byte If_eFlag, 0
+    d_byte Not_eFlag, eFlag::BreakerTemple
+    D_END
+    D_STRUCT sMarker
+    d_byte Row_u8, 1
     d_byte Col_u8, 8  ; room: PrisonFlower
     d_byte If_eFlag, 0
     d_byte Not_eFlag, eFlag::FlowerPrison
@@ -533,6 +539,12 @@ _Done:
     d_byte Col_u8, 20  ; room: CityFlower
     d_byte If_eFlag, 0
     d_byte Not_eFlag, eFlag::FlowerCity
+    D_END
+    D_STRUCT sMarker
+    d_byte Row_u8, 3
+    d_byte Col_u8, 21  ; room: BossCity
+    d_byte If_eFlag, 0
+    d_byte Not_eFlag, eFlag::BreakerCity
     D_END
     D_STRUCT sMarker
     d_byte Row_u8, 4
@@ -613,6 +625,12 @@ _Done:
     d_byte Not_eFlag, eFlag::FlowerMermaid
     D_END
     D_STRUCT sMarker
+    d_byte Row_u8, 9
+    d_byte Col_u8, 18  ; room: BossMine
+    d_byte If_eFlag, 0
+    d_byte Not_eFlag, eFlag::BreakerMine
+    D_END
+    D_STRUCT sMarker
     d_byte Row_u8, 10
     d_byte Col_u8, 4  ; room: CryptGallery
     d_byte If_eFlag, 0
@@ -653,6 +671,12 @@ _Done:
     d_byte Col_u8, 23  ; room: MinePit
     d_byte If_eFlag, 0
     d_byte Not_eFlag, eFlag::UpgradeOpSync
+    D_END
+    D_STRUCT sMarker
+    d_byte Row_u8, 14
+    d_byte Col_u8, 9  ; room: BossShadow
+    d_byte If_eFlag, 0
+    d_byte Not_eFlag, eFlag::BreakerShadow
     D_END
     D_STRUCT sMarker
     d_byte Row_u8, 14

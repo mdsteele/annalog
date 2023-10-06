@@ -205,7 +205,7 @@ kConveyorRightEdge = $30
     d_word MaxScrollX_u16, $0000
     d_byte Flags_bRoom, bRoom::Unsafe | eArea::Mine
     d_byte MinimapStartRow_u8, 9
-    d_byte MinimapStartCol_u8, 19
+    d_byte MinimapStartCol_u8, 18
     d_addr TerrainData_ptr, _TerrainData
     d_byte NumMachines_u8, 2
     d_addr Machines_sMachine_arr_ptr, _Machines_sMachine_arr
