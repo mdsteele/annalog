@@ -17,6 +17,7 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
+.INCLUDE "death.inc"
 .INCLUDE "minimap.inc"
 .INCLUDE "program.inc"
 
@@ -44,7 +45,12 @@ Sram_LastSafe_bSpawn: .res 1
 .EXPORT Sram_CarryingFlower_eFlag
 Sram_CarryingFlower_eFlag: .res 1
 
-.RES $0c
+;;; The number of times the player avatar has died, stored as one decimal digit
+;;; per byte (little-endian).
+.EXPORT Sram_DeathCount_u8_arr
+Sram_DeathCount_u8_arr: .res kNumDeathDigits
+
+.RES $09
 
 ;;; A bit array indicating which minimap cells have been explored.  The array
 ;;; contains one u16 for each minimap column; if the minimap cell at row R and

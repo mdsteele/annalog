@@ -20,6 +20,7 @@
 .INCLUDE "avatar.inc"
 .INCLUDE "charmap.inc"
 .INCLUDE "cpu.inc"
+.INCLUDE "death.inc"
 .INCLUDE "fade.inc"
 .INCLUDE "macros.inc"
 .INCLUDE "mmc3.inc"
@@ -29,18 +30,25 @@
 
 .IMPORT FuncA_Objects_DrawObjectsForRoom
 .IMPORT FuncA_Objects_DrawPlayerAvatar
+.IMPORT Func_AllocObjects
 .IMPORT Func_ClearRestOfOam
 .IMPORT Func_FadeOutToBlackSlowly
 .IMPORT Func_FadeToBlack
 .IMPORT Func_ProcessFrame
 .IMPORT Func_TransferPalettes
 .IMPORT Main_Explore_SpawnInLastSafeRoom
+.IMPORT Ppu_ChrObjPause
+.IMPORT Ram_Oam_sObj_arr64
 .IMPORT Ram_PpuTransfer_arr
+.IMPORT Sram_DeathCount_u8_arr
 .IMPORTZP Zp_AvatarFlags_bObj
 .IMPORTZP Zp_AvatarHarmTimer_u8
 .IMPORTZP Zp_AvatarPosX_i16
+.IMPORTZP Zp_AvatarPosY_i16
 .IMPORTZP Zp_AvatarPose_eAvatar
 .IMPORTZP Zp_PpuTransferLen_u8
+.IMPORTZP Zp_RoomScrollX_u16
+.IMPORTZP Zp_RoomScrollY_u8
 
 ;;;=========================================================================;;;
 
@@ -51,16 +59,29 @@ kDeathStrainingFrames = 60
 kDeathReachingFrames  = 8
 kDeathStumblingFrames = 30
 kDeathSlumpingFrames  = 10
-kDeathSleepingFrames  = 80
+kDeathSleepingFrames  = 100
 .LINECONT +
 kDeathTotalAvatarAnimationFrames = \
     kDeathKneelingFrames + kDeathStrainingFrames + kDeathReachingFrames + \
     kDeathStumblingFrames + kDeathSlumpingFrames + kDeathSleepingFrames
 .LINECONT -
 
+;;; The Zp_DeathTimer_u8 value at which the death counter digits start rolling.
+kRollStartTime = 65
+
 ;;; How many pixels to adjust the player avatar's horizontal position by when
 ;;; transitioning between kneeling and sleeping modes.
 kLieDownOffset = 2
+
+;;; The width of the death counter, in pixels.
+kDeathCountWidthPx = kTileWidthPx * kNumDeathDigits
+;;; The minimum margin, in pixels, between the edge of the screen and the edge
+;;; of the death counter.
+kDeathCountMarginPx = $10
+
+;;; The OBJ tile ID for the solid black squares used to hide rolling death
+;;; counter digits.
+kTileIdObjOpaqueBlack = $06
 
 ;;;=========================================================================;;;
 
@@ -68,6 +89,13 @@ kLieDownOffset = 2
 
 ;;; A frame timer used for the death animation.
 Zp_DeathTimer_u8: .res 1
+
+;;; Stores the number of digits that should roll during the death counter
+;;; increment animation.  Usually this is 1 (if only the one's place changes),
+;;; but can be more if rolling from e.g. 009 -> 010 or 099 -> 100.  If the
+;;; death counter is already at its maximum value, then none of the digits will
+;;; change, so this will be 0.
+Zp_NumRollingDeathDigits_u8: .res 1
 
 ;;;=========================================================================;;;
 
@@ -79,14 +107,9 @@ Zp_DeathTimer_u8: .res 1
 .EXPORT Main_Death
 .PROC Main_Death
     jsr_prga FuncA_Objects_DrawObjectsForRoom
-    jsr Func_ClearRestOfOam
-    jsr Func_FadeToBlack
+    jsr_prga FuncA_Death_InitAndFadeToBlack
 _AnimateAvatar:
-    lda #kDeathTotalAvatarAnimationFrames
-    sta Zp_DeathTimer_u8
-    lda #0
-    sta Zp_AvatarHarmTimer_u8
-    beq @start  ; unconditional
+    jmp @start
     @loop:
     jsr Func_ProcessFrame
     jsr_prga FuncA_Death_AnimateAvatar
@@ -107,6 +130,63 @@ _Respawn:
 ;;;=========================================================================;;;
 
 .SEGMENT "PRGA_Death"
+
+.PROC FuncA_Death_InitAndFadeToBlack
+_CountNinesInDeathCounter:
+    ldy #0
+    @loop:
+    lda Sram_DeathCount_u8_arr, y
+    cmp #9
+    bne @break
+    iny
+    cpy #kNumDeathDigits
+    blt @loop
+    @break:
+_IncrementDeathCounter:
+    ;; If the counter is already at all 9's (the max), don't increment.
+    cpy #kNumDeathDigits
+    bge @done
+    sty T0  ; num consecutive 9's
+    ldx #0
+    ;; Enable writes to SRAM.
+    lda #bMmc3PrgRam::Enable
+    sta Hw_Mmc3PrgRamProtect_wo
+    ;; Roll the 9's (if any) back to 0.
+    txa  ; set A to zero
+    beq @start  ; unconditional
+    @loop:
+    sta Sram_DeathCount_u8_arr, x
+    inx
+    @start:
+    cpx T0  ; num consecutive 9's
+    blt @loop
+    ;; Increment the first non-nine digit.
+    @incrementDigit:
+    inc Sram_DeathCount_u8_arr, x
+    ;; Disable writes to SRAM.
+    lda #bMmc3PrgRam::Enable | bMmc3PrgRam::DenyWrites
+    sta Hw_Mmc3PrgRamProtect_wo
+    @done:
+_InitNumRollingDeathDigits:
+    ;; Store the number of digits that changed.  This is 1 + the number of
+    ;; consecutive 9's, except that if the counter is all 9's (the max), then
+    ;; it doesn't increment, so the number of digits changed should be zero.
+    iny
+    tya  ; num consecutive 9's, plus 1
+    .assert kNumDeathDigits + 1 = 4, error
+    and #$03  ; A = A mod 4
+    sta Zp_NumRollingDeathDigits_u8
+_InitTimers:
+    lda #kDeathTotalAvatarAnimationFrames
+    sta Zp_DeathTimer_u8
+    lda #0
+    sta Zp_AvatarHarmTimer_u8
+_FadeOut:
+    jsr Func_ClearRestOfOam
+    jsr Func_FadeToBlack
+    chr18_bank #<.bank(Ppu_ChrObjPause)
+    rts
+.ENDPROC
 
 ;;; Performs per-frame updates during the player avatar death animation.
 .PROC FuncA_Death_AnimateAvatar
@@ -187,6 +267,139 @@ _SetAvatarPose:
     lda #eAvatar::Sleeping
     @setAvatarPose:
     sta Zp_AvatarPose_eAvatar
+_DrawDeathCounter:
+    lda Zp_DeathTimer_u8
+    cmp #kDeathSleepingFrames
+    blt FuncA_Death_DrawDeathCounter
+    rts
+.ENDPROC
+
+;;; Draws the decimal counter showing how many times the player avatar has
+;;; died.
+.PROC FuncA_Death_DrawDeathCounter
+_SetPosX:
+    ;; Calculate the screen X-position the death counter digits.  This will
+    ;; normally be centered on the player avatar's X-position, but if the
+    ;; avatar dies near or past the edge of the screen, we may need to clamp
+    ;; the counter position so it stays fully visible.
+    lda Zp_AvatarPosX_i16 + 0
+    sub Zp_RoomScrollX_u16 + 0
+    sta T0  ; X-position center
+    lda Zp_AvatarPosX_i16 + 1
+    sbc Zp_RoomScrollX_u16 + 1
+    bmi @clampLeft
+    bne @clampRight
+    lda T0  ; X-position center
+    cmp #kDeathCountMarginPx + kDeathCountWidthPx / 2
+    blt @clampLeft
+    cmp #kScreenWidthPx - kDeathCountMarginPx - kDeathCountWidthPx / 2
+    blt @noClamp
+    @clampRight:
+    lda #kScreenWidthPx - kDeathCountMarginPx - kDeathCountWidthPx
+    bne @setLeftPos  ; unconditional
+    @clampLeft:
+    lda #kDeathCountMarginPx
+    .assert kDeathCountMarginPx > 0, error
+    bne @setLeftPos  ; unconditional
+    @noClamp:
+    sub #kDeathCountWidthPx / 2
+    @setLeftPos:
+    sta T0  ; X-position left
+_SetBasePosY:
+    ;; Calculate the screen Y-position of the top of the visible row of digits.
+    ;; This will normally be just above the player avatar, but place it just
+    ;; below instead if the avatar is near the top of the screen.
+    lda Zp_AvatarPosY_i16 + 0
+    sub Zp_RoomScrollY_u8
+    cmp #kScreenHeightPx / 4
+    blt @placeBelowAvatar
+    @placeAboveAvatar:
+    sub #kTileHeightPx * 2
+    bne @setYPos  ; unconditional
+    @placeBelowAvatar:
+    add #kTileHeightPx * 2
+    @setYPos:
+    sta T1  ; base Y-position
+_SetRollingPosY:
+    ;; Calculate the screen Y-position of the top of the rolling digits.  This
+    ;; starts out as offset from the base Y-position (so that the previous
+    ;; digit(s) are shown), but animates to match the base Y-position:
+    ;;   rollPosY = basePosY + min(max(0, timer - rollEndTime), kTileHeightPx)
+    lda Zp_DeathTimer_u8
+    sub #kRollStartTime - kTileHeightPx
+    blt @rollZero
+    cmp #kTileHeightPx
+    blt @setRoll
+    @rollMax:
+    lda #kTileHeightPx
+    bne @setRoll  ; unconditional
+    @rollZero:
+    lda #0
+    @setRoll:
+    add T1  ; base Y-position
+    sta T2  ; rolling Y-position
+_DrawDigits:
+    ;; Each digit of the counter needs 4 objects: the new digit, the previous
+    ;; digit to roll from, and two "curtain" objects above and below to cover
+    ;; up the rolling digits.
+    lda #kNumDeathDigits * 4  ; param: num objects
+    jsr Func_AllocObjects  ; preserves T0+ returns Y
+    ldx #kNumDeathDigits - 1  ; digit index (starting with highest place)
+    @loop:
+    ;; Set objects' X-position.
+    lda T0  ; X-position
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::XPos_u8, y
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::XPos_u8, y
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::XPos_u8, y
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::XPos_u8, y
+    add #kTileWidthPx
+    sta T0  ; X-position
+    ;; Set curtains' Y-positions.
+    lda T1  ; base Y-position
+    sub #kTileHeightPx
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::YPos_u8, y
+    add #kTileHeightPx * 2
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::YPos_u8, y
+    ;; Set digits' Y-positions.
+    cpx Zp_NumRollingDeathDigits_u8
+    blt @rolling
+    @notRolling:
+    lda T1  ; base Y-position
+    bne @setYPos  ; unconditional
+    @rolling:
+    lda T2  ; rolling Y-position
+    @setYPos:
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::YPos_u8, y
+    sub #kTileHeightPx
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::YPos_u8, y
+    ;; Set objects' flags.
+    lda Zp_AvatarFlags_bObj
+    and #bObj::PaletteMask
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Flags_bObj, y
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Flags_bObj, y
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Flags_bObj, y
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Flags_bObj, y
+    ;; Set curtains' tile ID.
+    lda #kTileIdObjOpaqueBlack
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Tile_u8, y
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Tile_u8, y
+    ;; Set digits' tile IDs.
+    lda Sram_DeathCount_u8_arr, x
+    .assert '0' .mod $10 = 0, error
+    ora #$80 | '0'
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Tile_u8, y
+    sub #1
+    cmp #$80 | '0'
+    bge @noWrap
+    lda #$80 | '9'
+    @noWrap:
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Tile_u8, y
+    ;; Continue to the next-lower digit.
+    tya
+    add #.sizeof(sObj) * 4
+    tay
+    dex
+    bpl @loop
     rts
 .ENDPROC
 

@@ -89,7 +89,7 @@ Ram_Oam_sObj_arr64: .res .sizeof(sObj) * kNumOamSlots
 .PROC Func_AllocObjects
     ldy Zp_OamOffset_u8
     mul #.sizeof(sObj)
-    adc Zp_OamOffset_u8  ; carry will already by clear from the multiply
+    adc Zp_OamOffset_u8  ; carry will already be clear from the multiply
     sta Zp_OamOffset_u8
     rts
 .ENDPROC
