@@ -486,6 +486,7 @@ _Done:
 .PROC DataA_Pause_TempleAreaCells_u8_arr2_arr
     .byte  1,  1
     .byte  2,  1
+    .byte  3,  0
     .byte  3,  1
     .byte  4,  0
     .byte  4,  1

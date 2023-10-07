@@ -85,6 +85,7 @@
 .IMPORT DataA_Dialog_PrisonUpperNora_sDialog
 .IMPORT DataA_Dialog_ShadowTeleportScreen_sDialog
 .IMPORT DataA_Dialog_TempleAltarPlaque_sDialog
+.IMPORT DataA_Dialog_TempleApsePaper_sDialog
 .IMPORT DataA_Dialog_TempleEntryMermaid_sDialog
 .IMPORT DataA_Dialog_TempleFoyerPaper_sDialog
 .IMPORT DataA_Dialog_TempleNaveAlexBoost1_sDialog
@@ -424,6 +425,7 @@ _UpdateScrolling:
     d_entry t, PrisonUpperNora,      DataA_Dialog_PrisonUpperNora_sDialog
     d_entry t, ShadowTeleportScreen, DataA_Dialog_ShadowTeleportScreen_sDialog
     d_entry t, TempleAltarPlaque,    DataA_Dialog_TempleAltarPlaque_sDialog
+    d_entry t, TempleApsePaper,      DataA_Dialog_TempleApsePaper_sDialog
     d_entry t, TempleEntryMermaid,   DataA_Dialog_TempleEntryMermaid_sDialog
     d_entry t, TempleFoyerPaper,     DataA_Dialog_TempleFoyerPaper_sDialog
     d_entry t, TempleNaveAlexBoost1, DataA_Dialog_TempleNaveAlexBoost1_sDialog

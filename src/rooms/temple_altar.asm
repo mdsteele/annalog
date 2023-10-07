@@ -315,6 +315,11 @@ _Passages_sPassage_arr:
     d_byte SpawnBlock_u8, 8
     D_END
     D_STRUCT sPassage
+    d_byte Exit_bPassage, ePassage::Western | 0
+    d_byte Destination_eRoom, eRoom::TempleApse
+    d_byte SpawnBlock_u8, 7
+    D_END
+    D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Western | 1
     d_byte Destination_eRoom, eRoom::TempleWest
     d_byte SpawnBlock_u8, 20

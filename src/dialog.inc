@@ -114,6 +114,7 @@
     PrisonUpperNora
     ShadowTeleportScreen
     TempleAltarPlaque
+    TempleApsePaper
     TempleEntryMermaid
     TempleFoyerPaper
     TempleNaveAlexBoost1
