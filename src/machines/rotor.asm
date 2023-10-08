@@ -21,10 +21,12 @@
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
 .INCLUDE "../ppu.inc"
+.INCLUDE "../program.inc"
 .INCLUDE "rotor.inc"
 .INCLUDE "shared.inc"
 
 .IMPORT FuncA_Machine_ReachedGoal
+.IMPORT FuncA_Machine_StartWorking
 .IMPORT FuncA_Objects_Alloc2x2MachineShape
 .IMPORT FuncA_Objects_Draw1x1Shape
 .IMPORT FuncA_Objects_GetMachineLightTileId
@@ -40,10 +42,12 @@
 .IMPORT Func_SetPointToPlatformCenter
 .IMPORT Func_SignedMult
 .IMPORT Func_Sine
+.IMPORT Ppu_ChrBgWheel
 .IMPORT Ram_MachineGoalHorz_u8_arr
 .IMPORT Ram_MachineState1_byte_arr
 .IMPORT Ram_MachineStatus_eMachine_arr
 .IMPORT Ram_Oam_sObj_arr64
+.IMPORTZP Zp_Chr0cBank_u8
 .IMPORTZP Zp_MachineIndex_u8
 
 ;;;=========================================================================;;;
@@ -107,7 +111,48 @@ kPaletteObjRotor = 0
 
 ;;;=========================================================================;;;
 
+.SEGMENT "PRGA_Room"
+
+;;; Reset implemention for rotor machines.
+;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
+.EXPORT FuncA_Room_MachineRotorReset
+.PROC FuncA_Room_MachineRotorReset
+    ldx Zp_MachineIndex_u8
+    lda #0
+    sta Ram_MachineGoalHorz_u8_arr, x  ; goal position (0-7)
+    rts
+.ENDPROC
+
+;;;=========================================================================;;;
+
 .SEGMENT "PRGA_Machine"
+
+;;; TryMove implemention for rotor machines.
+;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
+;;; @param X The eDir value for the direction to move in.
+.EXPORT FuncA_Machine_RotorTryMove
+.PROC FuncA_Machine_RotorTryMove
+    ldy Zp_MachineIndex_u8
+    lda Ram_MachineGoalHorz_u8_arr, y  ; goal position (0-7)
+    cpx #eDir::Right
+    bne @moveLeft
+    @moveRight:
+    tax
+    inx
+    cpx #8
+    blt @success
+    ldx #0
+    beq @success
+    @moveLeft:
+    tax
+    dex
+    bpl @success
+    ldx #7
+    @success:
+    txa
+    sta Ram_MachineGoalHorz_u8_arr, y  ; goal position (0-7)
+    jmp FuncA_Machine_StartWorking
+.ENDPROC
 
 ;;; Moves a rotor carriage platform to a new position along a large rotor
 ;;; wheel.
@@ -184,6 +229,15 @@ _ReachedGoal:
 ;;;=========================================================================;;;
 
 .SEGMENT "PRGA_Objects"
+
+;;; Sets the necessary CHR0C bank number for the giant factory wheel terrain
+;;; tiles.  This should be called from a room's Draw_func_ptr.
+.EXPORT FuncA_Objects_SetWheelChr0cBank
+.PROC FuncA_Objects_SetWheelChr0cBank
+    lda #<.bank(Ppu_ChrBgWheel)
+    sta Zp_Chr0cBank_u8
+    rts
+.ENDPROC
 
 ;;; Draws the main platform of a rotor machine.
 ;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.

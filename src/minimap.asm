@@ -567,6 +567,12 @@ _Done:
     D_END
     D_STRUCT sMarker
     d_byte Row_u8, 5
+    d_byte Col_u8, 15  ; room: FactoryFlower
+    d_byte If_eFlag, 0
+    d_byte Not_eFlag, eFlag::FlowerFactory
+    D_END
+    D_STRUCT sMarker
+    d_byte Row_u8, 5
     d_byte Col_u8, 18  ; room: SewerFlower
     d_byte If_eFlag, 0
     d_byte Not_eFlag, eFlag::FlowerSewer

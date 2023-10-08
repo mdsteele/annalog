@@ -205,7 +205,7 @@ _Passages_sPassage_arr:
     D_END
     D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Eastern | 0
-    d_byte Destination_eRoom, eRoom::FactoryElevator  ; TODO
+    d_byte Destination_eRoom, eRoom::FactoryFlower
     d_byte SpawnBlock_u8, 8
     D_END
     D_STRUCT sPassage

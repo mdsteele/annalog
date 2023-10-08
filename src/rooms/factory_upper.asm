@@ -31,18 +31,17 @@
 .IMPORT FuncA_Machine_Error
 .IMPORT FuncA_Machine_RotorMoveCarriage
 .IMPORT FuncA_Machine_RotorTick
-.IMPORT FuncA_Machine_StartWorking
+.IMPORT FuncA_Machine_RotorTryMove
 .IMPORT FuncA_Objects_DrawRotorCarriage
 .IMPORT FuncA_Objects_DrawRotorMachine
 .IMPORT FuncA_Objects_DrawRotorWheelLarge
 .IMPORT FuncA_Objects_DrawRotorWheelSmall
+.IMPORT FuncA_Objects_SetWheelChr0cBank
+.IMPORT FuncA_Room_MachineRotorReset
 .IMPORT Func_MachineRotorReadRegT
 .IMPORT Func_Noop
-.IMPORT Ppu_ChrBgWheel
 .IMPORT Ppu_ChrObjFactory
-.IMPORT Ram_MachineGoalHorz_u8_arr
 .IMPORT Ram_MachineState1_byte_arr
-.IMPORTZP Zp_Chr0cBank_u8
 
 ;;;=========================================================================;;;
 
@@ -57,9 +56,6 @@ kTopLgWheelCenterPlatformIndex = 3
 kBotLgWheelCenterPlatformIndex = 4
 kTopRotorCarriagePlatformIndex = 5
 kBotRotorCarriagePlatformIndex = 6
-
-;;; The initial goal position (0-7) for the FactoryUpperRotor machine.
-kRotorInitGoalPosition = 0
 
 ;;;=========================================================================;;;
 
@@ -89,7 +85,7 @@ _Ext_sRoomExt:
     d_addr Enter_func_ptr, Func_Noop
     d_addr FadeIn_func_ptr, Func_Noop
     d_addr Tick_func_ptr, Func_Noop
-    d_addr Draw_func_ptr, FuncC_Factory_Upper_DrawRoom
+    d_addr Draw_func_ptr, FuncA_Objects_SetWheelChr0cBank
     D_END
 _TerrainData:
 :   .incbin "out/data/factory_upper.room"
@@ -105,14 +101,14 @@ _Machines_sMachine_arr:
     d_byte ScrollGoalY_u8, $58
     d_byte RegNames_u8_arr4, 0, 0, "T", 0
     d_byte MainPlatform_u8, kRotorPlatformIndex
-    d_addr Init_func_ptr, FuncC_Factory_UpperRotor_InitReset
+    d_addr Init_func_ptr, Func_Noop
     d_addr ReadReg_func_ptr, Func_MachineRotorReadRegT
     d_addr WriteReg_func_ptr, Func_Noop
-    d_addr TryMove_func_ptr, FuncC_Factory_UpperRotor_TryMove
+    d_addr TryMove_func_ptr, FuncA_Machine_RotorTryMove
     d_addr TryAct_func_ptr, FuncA_Machine_Error
     d_addr Tick_func_ptr, FuncC_Factory_UpperRotor_Tick
     d_addr Draw_func_ptr, FuncC_Factory_UpperRotor_Draw
-    d_addr Reset_func_ptr, FuncC_Factory_UpperRotor_InitReset
+    d_addr Reset_func_ptr, FuncA_Room_MachineRotorReset
     D_END
     .assert * - :- <= kMaxMachines * .sizeof(sMachine), error
 _Platforms_sPlatform_arr:
@@ -221,41 +217,6 @@ _Passages_sPassage_arr:
     d_byte SpawnBlock_u8, 19
     D_END
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
-.ENDPROC
-
-.PROC FuncC_Factory_Upper_DrawRoom
-    lda #<.bank(Ppu_ChrBgWheel)
-    sta Zp_Chr0cBank_u8
-    rts
-.ENDPROC
-
-.PROC FuncC_Factory_UpperRotor_InitReset
-    lda #kRotorInitGoalPosition
-    sta Ram_MachineGoalHorz_u8_arr + kRotorMachineIndex  ; goal position (0-7)
-    rts
-.ENDPROC
-
-;;; @prereq PRGA_Machine is loaded.
-.PROC FuncC_Factory_UpperRotor_TryMove
-    lda Ram_MachineGoalHorz_u8_arr + kRotorMachineIndex  ; goal position (0-7)
-    cpx #eDir::Right
-    bne @moveLeft
-    @moveRight:
-    tax
-    inx
-    cpx #8
-    blt @success
-    ldx #0
-    beq @success
-    @moveLeft:
-    tax
-    dex
-    bpl @success
-    ldx #7
-    @success:
-    txa
-    sta Ram_MachineGoalHorz_u8_arr + kRotorMachineIndex  ; goal position (0-7)
-    jmp FuncA_Machine_StartWorking
 .ENDPROC
 
 .PROC FuncC_Factory_UpperRotor_Tick

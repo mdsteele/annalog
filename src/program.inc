@@ -133,6 +133,8 @@
     CryptTombWinch
     CryptWestWinch
     FactoryAccessRotor
+    FactoryFlowerLowerRotor
+    FactoryFlowerUpperRotor
     FactoryUpperRotor
     FactoryWestCrane
     GardenCrossroadLift
