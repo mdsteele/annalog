@@ -547,16 +547,19 @@ _InitAvatar:
     tax  ; device index
     lda Ram_DeviceType_eDevice_arr, x
     cmp #eDevice::TalkLeft
-    beq @faceLeft
+    beq @talkLeft
     cmp #eDevice::TalkRight
-    beq @faceRight
+    beq @talkRight
     @faceWall:
-    lda #eAvatar::Reading
-    bne @setPose  ; unconditional
-    @faceLeft:
+    ldy #eAvatar::Reading
+    bne @faceRight  ; unconditional
+    @talkLeft:
+    ldy #eAvatar::Standing
     lda Zp_AvatarFlags_bObj
     ora #bObj::FlipH
     bne @setFlags  ; unconditional
+    @talkRight:
+    ldy #eAvatar::Standing
     @faceRight:
     lda Zp_AvatarFlags_bObj
     and #<~bObj::FlipH
@@ -565,9 +568,7 @@ _InitAvatar:
     bit Zp_AvatarState_bAvatar
     .assert bAvatar::Swimming = bProc::Overflow, error
     bvs @done
-    lda #eAvatar::Standing
-    @setPose:
-    sta Zp_AvatarPose_eAvatar
+    sty Zp_AvatarPose_eAvatar
     @done:
 _DeactivateDevice:
     ;; Now that the player avatar is set up, clear Zp_Nearby_bDevice so that
