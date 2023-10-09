@@ -299,6 +299,9 @@ _Done:
 .ENDPROC
 
 .PROC DataA_Pause_FactoryAreaCells_u8_arr2_arr
+    .byte  5,  8
+    .byte  5,  9
+    .byte  5, 10
     .byte  5, 11
     .byte  5, 14
     .byte  5, 15
@@ -441,6 +444,8 @@ _Done:
 .PROC DataA_Pause_SewerAreaCells_u8_arr2_arr
     .byte  3, 22
     .byte  4, 22
+    .byte  5, 16
+    .byte  5, 17
     .byte  5, 18
     .byte  5, 19
     .byte  5, 20
@@ -573,7 +578,7 @@ _Done:
     D_END
     D_STRUCT sMarker
     d_byte Row_u8, 5
-    d_byte Col_u8, 18  ; room: SewerFlower
+    d_byte Col_u8, 23  ; room: SewerFlower
     d_byte If_eFlag, 0
     d_byte Not_eFlag, eFlag::FlowerSewer
     D_END

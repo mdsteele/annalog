@@ -31,6 +31,7 @@
 .INCLUDE "../room.inc"
 
 .IMPORT DataA_Room_Sewer_sTileset
+.IMPORT Data_Empty_sActor_arr
 .IMPORT FuncA_Machine_Error
 .IMPORT FuncA_Machine_GenericTryMoveY
 .IMPORT FuncA_Machine_PumpTick
@@ -73,11 +74,11 @@ kWaterMinPlatformTop = kWaterMaxPlatformTop - kPumpMaxGoalY * kBlockHeightPx
 .EXPORT DataC_Sewer_Flower_sRoom
 .PROC DataC_Sewer_Flower_sRoom
     D_STRUCT sRoom
-    d_byte MinScrollX_u8, $00
-    d_word MaxScrollX_u16, $00
+    d_byte MinScrollX_u8, $10
+    d_word MaxScrollX_u16, $10
     d_byte Flags_bRoom, eArea::Sewer
     d_byte MinimapStartRow_u8, 5
-    d_byte MinimapStartCol_u8, 18
+    d_byte MinimapStartCol_u8, 23
     d_addr TerrainData_ptr, _TerrainData
     d_byte NumMachines_u8, 1
     d_addr Machines_sMachine_arr_ptr, _Machines_sMachine_arr
@@ -88,7 +89,7 @@ _Ext_sRoomExt:
     D_STRUCT sRoomExt
     d_addr Terrain_sTileset_ptr, DataA_Room_Sewer_sTileset
     d_addr Platforms_sPlatform_arr_ptr, _Platforms_sPlatform_arr
-    d_addr Actors_sActor_arr_ptr, _Actors_sActor_arr
+    d_addr Actors_sActor_arr_ptr, Data_Empty_sActor_arr
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
     d_addr Passages_sPassage_arr_ptr, _Passages_sPassage_arr
     d_addr Enter_func_ptr, FuncA_Room_RemoveFlowerDeviceIfCarriedOrDelivered
@@ -106,7 +107,7 @@ _Machines_sMachine_arr:
     d_byte Breaker_eFlag, 0
     d_byte Flags_bMachine, bMachine::MoveV
     d_byte Status_eDiagram, eDiagram::Pump
-    d_word ScrollGoalX_u16, $0
+    d_word ScrollGoalX_u16, $10
     d_byte ScrollGoalY_u8, $48
     d_byte RegNames_u8_arr4, 0, 0, 0, "Y"
     d_byte MainPlatform_u8, kPumpPlatformIndex
@@ -126,7 +127,7 @@ _Platforms_sPlatform_arr:
     d_byte Type_ePlatform, ePlatform::Zone
     d_word WidthPx_u16, $08
     d_byte HeightPx_u8, $08
-    d_word Left_i16,  $00a8
+    d_word Left_i16,  $0068
     d_word Top_i16,   $00c0
     D_END
     .assert * - :- = kWaterPlatformIndex * .sizeof(sPlatform), error
@@ -134,49 +135,45 @@ _Platforms_sPlatform_arr:
     d_byte Type_ePlatform, ePlatform::Water
     d_word WidthPx_u16, $50
     d_byte HeightPx_u8, $70
-    d_word Left_i16,  $0010
+    d_word Left_i16,  $00b0
     d_word Top_i16, kWaterInitPlatformTop
     D_END
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Harm
     d_word WidthPx_u16, $30
     d_byte HeightPx_u8, $08
-    d_word Left_i16,  $0020
+    d_word Left_i16,  $00c0
     d_word Top_i16,   $00de
     D_END
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Harm
     d_word WidthPx_u16, $20
     d_byte HeightPx_u8, $08
-    d_word Left_i16,  $00a0
+    d_word Left_i16,  $0050
     d_word Top_i16,   $008e
     D_END
     .assert * - :- <= kMaxPlatforms * .sizeof(sPlatform), error
     .byte ePlatform::None
-_Actors_sActor_arr:
-:   ;; TODO: add baddies?
-    .assert * - :- <= kMaxActors * .sizeof(sActor), error
-    .byte eActor::None
 _Devices_sDevice_arr:
 :   .assert * - :- = kFlowerDeviceIndex * .sizeof(sDevice), error
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Flower
     d_byte BlockRow_u8, 2
-    d_byte BlockCol_u8, 6
+    d_byte BlockCol_u8, 10
     d_byte Target_byte, eFlag::FlowerSewer
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Console
     d_byte BlockRow_u8, 6
-    d_byte BlockCol_u8, 6
+    d_byte BlockCol_u8, 10
     d_byte Target_byte, kPumpMachineIndex
     D_END
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None
 _Passages_sPassage_arr:
 :   D_STRUCT sPassage
-    d_byte Exit_bPassage, ePassage::Eastern | 0
-    d_byte Destination_eRoom, eRoom::SewerWest
+    d_byte Exit_bPassage, ePassage::Western | 0
+    d_byte Destination_eRoom, eRoom::SewerFlower  ; TODO
     d_byte SpawnBlock_u8, 10
     D_END
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
@@ -266,13 +263,13 @@ _WaterTileIds_u8_arr4:
     .byte kTileIdObjWaterFirst + 2
     .byte kTileIdObjWaterFirst + 1
 _WaterOffsetL_u8_arr:
-    .byte $00, $10, $00, $00, $00, $10, $10
+    .byte $10, $00, $00, $00, $10, $10, $10
 _WaterWidthL_u8_arr:
-    .byte 4, 2, 4, 2, 4, 3, 3
+    .byte 2, 4, 2, 4, 2, 3, 3
 _WaterOffsetR_u8_arr:
     .byte $10, $10, $20, $20, $10, $00, $00
 _WaterWidthR_u8_arr:
-    .byte 2, 4, 2, 4, 2, 3, 3
+    .byte 4, 2, 4, 2, 4, 3, 3
 .ENDPROC
 
 ;;;=========================================================================;;;
