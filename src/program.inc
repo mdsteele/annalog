@@ -135,6 +135,7 @@
     FactoryAccessRotor
     FactoryFlowerLowerRotor
     FactoryFlowerUpperRotor
+    FactoryLockLift
     FactoryUpperRotor
     FactoryWestCrane
     GardenCrossroadLift

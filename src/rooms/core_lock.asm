@@ -111,14 +111,14 @@ _Machines_sMachine_arr:
     d_byte ScrollGoalY_u8, $00
     d_byte RegNames_u8_arr4, 0, 0, 0, "Y"
     d_byte MainPlatform_u8, kLift1PlatformIndex
-    d_addr Init_func_ptr, FuncC_Core_LockLift_InitReset
+    d_addr Init_func_ptr, FuncA_Room_CoreLockLift_InitReset
     d_addr ReadReg_func_ptr, FuncC_Core_LockLift1_ReadReg
     d_addr WriteReg_func_ptr, Func_Noop
-    d_addr TryMove_func_ptr, FuncC_Core_LockLift_TryMove
+    d_addr TryMove_func_ptr, FuncA_Machine_CoreLockLift_TryMove
     d_addr TryAct_func_ptr, FuncA_Machine_Error
-    d_addr Tick_func_ptr, FuncC_Core_LockLift1_Tick
+    d_addr Tick_func_ptr, FuncA_Machine_CoreLockLift1_Tick
     d_addr Draw_func_ptr, FuncA_Objects_DrawLiftMachine
-    d_addr Reset_func_ptr, FuncC_Core_LockLift_InitReset
+    d_addr Reset_func_ptr, FuncA_Room_CoreLockLift_InitReset
     D_END
     .assert * - :- = kLift2MachineIndex * .sizeof(sMachine), error
     D_STRUCT sMachine
@@ -130,14 +130,14 @@ _Machines_sMachine_arr:
     d_byte ScrollGoalY_u8, $00
     d_byte RegNames_u8_arr4, 0, 0, 0, "Y"
     d_byte MainPlatform_u8, kLift2PlatformIndex
-    d_addr Init_func_ptr, FuncC_Core_LockLift_InitReset
+    d_addr Init_func_ptr, FuncA_Room_CoreLockLift_InitReset
     d_addr ReadReg_func_ptr, FuncC_Core_LockLift2_ReadReg
     d_addr WriteReg_func_ptr, Func_Noop
-    d_addr TryMove_func_ptr, FuncC_Core_LockLift_TryMove
+    d_addr TryMove_func_ptr, FuncA_Machine_CoreLockLift_TryMove
     d_addr TryAct_func_ptr, FuncA_Machine_Error
-    d_addr Tick_func_ptr, FuncC_Core_LockLift2_Tick
+    d_addr Tick_func_ptr, FuncA_Machine_CoreLockLift2_Tick
     d_addr Draw_func_ptr, FuncA_Objects_DrawLiftMachine
-    d_addr Reset_func_ptr, FuncC_Core_LockLift_InitReset
+    d_addr Reset_func_ptr, FuncA_Room_CoreLockLift_InitReset
     D_END
     .assert * - :- = kLift3MachineIndex * .sizeof(sMachine), error
     D_STRUCT sMachine
@@ -149,14 +149,14 @@ _Machines_sMachine_arr:
     d_byte ScrollGoalY_u8, $00
     d_byte RegNames_u8_arr4, 0, 0, 0, "Y"
     d_byte MainPlatform_u8, kLift3PlatformIndex
-    d_addr Init_func_ptr, FuncC_Core_LockLift_InitReset
+    d_addr Init_func_ptr, FuncA_Room_CoreLockLift_InitReset
     d_addr ReadReg_func_ptr, FuncC_Core_LockLift3_ReadReg
     d_addr WriteReg_func_ptr, Func_Noop
-    d_addr TryMove_func_ptr, FuncC_Core_LockLift_TryMove
+    d_addr TryMove_func_ptr, FuncA_Machine_CoreLockLift_TryMove
     d_addr TryAct_func_ptr, FuncA_Machine_Error
-    d_addr Tick_func_ptr, FuncC_Core_LockLift3_Tick
+    d_addr Tick_func_ptr, FuncA_Machine_CoreLockLift3_Tick
     d_addr Draw_func_ptr, FuncA_Objects_DrawLiftMachine
-    d_addr Reset_func_ptr, FuncC_Core_LockLift_InitReset
+    d_addr Reset_func_ptr, FuncA_Room_CoreLockLift_InitReset
     D_END
     .assert * - :- <= kMaxMachines * .sizeof(sMachine), error
 _Platforms_sPlatform_arr:
@@ -236,13 +236,6 @@ _Passages_sPassage_arr:
     rts
 .ENDPROC
 
-.PROC FuncC_Core_LockLift_InitReset
-    ldx Zp_MachineIndex_u8
-    lda #kLiftInitGoalY
-    sta Ram_MachineGoalVert_u8_arr, x
-    rts
-.ENDPROC
-
 .PROC FuncC_Core_LockLift1_ReadReg
     lda #kLift1MaxPlatformTop + kTileHeightPx
     bne FuncC_Core_LockLift_ReadReg  ; unconditional
@@ -268,22 +261,37 @@ _Passages_sPassage_arr:
     rts
 .ENDPROC
 
-.PROC FuncC_Core_LockLift_TryMove
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Room"
+
+.PROC FuncA_Room_CoreLockLift_InitReset
+    ldx Zp_MachineIndex_u8
+    lda #kLiftInitGoalY
+    sta Ram_MachineGoalVert_u8_arr, x
+    rts
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Machine"
+
+.PROC FuncA_Machine_CoreLockLift_TryMove
     lda #kLiftMaxGoalY  ; param: max goal vert
     jmp FuncA_Machine_LiftTryMove
 .ENDPROC
 
-.PROC FuncC_Core_LockLift1_Tick
+.PROC FuncA_Machine_CoreLockLift1_Tick
     ldax #kLift1MaxPlatformTop  ; param: max platform top
     jmp FuncA_Machine_LiftTick
 .ENDPROC
 
-.PROC FuncC_Core_LockLift2_Tick
+.PROC FuncA_Machine_CoreLockLift2_Tick
     ldax #kLift2MaxPlatformTop  ; param: max platform top
     jmp FuncA_Machine_LiftTick
 .ENDPROC
 
-.PROC FuncC_Core_LockLift3_Tick
+.PROC FuncA_Machine_CoreLockLift3_Tick
     ldax #kLift3MaxPlatformTop  ; param: max platform top
     jmp FuncA_Machine_LiftTick
 .ENDPROC
