@@ -113,7 +113,7 @@ static const struct {
   {0x90, "volcanic1"},
   {0xa0, "volcanic2"},
   {0xc0, "water_anim0"},
-  {0xce, "waterfall_anim0"},
+  {0xca, "waterfall_anim0"},
   {0xc0, "wheel1"},
   {0xcc, "wheel2"},
   {0xde, "wheel3"},

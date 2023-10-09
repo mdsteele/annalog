@@ -89,8 +89,8 @@
 .PROC Ppu_ChrBgAnimA0
 :   .incbin "out/tiles/water_anim0.chr"
     .incbin "out/tiles/acid_anim0.chr"
-    .res $04 * kSizeofChr
     .incbin "out/tiles/waterfall_anim0.chr"
+    .res $02 * kSizeofChr
     .incbin "out/tiles/thorns_anim0.chr"
     .incbin "out/tiles/sewage_anim0.chr"
     .incbin "out/tiles/circuit_anim0.chr"
@@ -104,8 +104,8 @@
 .PROC Ppu_ChrBgAnimA1
 :   .incbin "out/tiles/water_anim0.chr"
     .incbin "out/tiles/acid_anim1.chr"
-    .res $04 * kSizeofChr
     .incbin "out/tiles/waterfall_anim1.chr"
+    .res $02 * kSizeofChr
     .incbin "out/tiles/thorns_anim1.chr"
     .incbin "out/tiles/sewage_anim1.chr"
     .incbin "out/tiles/circuit_anim1.chr"
@@ -119,8 +119,8 @@
 .PROC Ppu_ChrBgAnimA2
 :   .incbin "out/tiles/water_anim1.chr"
     .incbin "out/tiles/acid_anim2.chr"
-    .res $04 * kSizeofChr
     .incbin "out/tiles/waterfall_anim2.chr"
+    .res $02 * kSizeofChr
     .incbin "out/tiles/thorns_anim2.chr"
     .incbin "out/tiles/sewage_anim2.chr"
     .incbin "out/tiles/circuit_anim2.chr"
@@ -134,8 +134,8 @@
 .PROC Ppu_ChrBgAnimA3
 :   .incbin "out/tiles/water_anim1.chr"
     .incbin "out/tiles/acid_anim3.chr"
-    .res $04 * kSizeofChr
     .incbin "out/tiles/waterfall_anim3.chr"
+    .res $02 * kSizeofChr
     .incbin "out/tiles/thorns_anim3.chr"
     .incbin "out/tiles/sewage_anim3.chr"
     .incbin "out/tiles/circuit_anim3.chr"
@@ -149,8 +149,8 @@
 .PROC Ppu_ChrBgAnimA4
 :   .incbin "out/tiles/water_anim2.chr"
     .incbin "out/tiles/acid_anim4.chr"
-    .res $04 * kSizeofChr
     .incbin "out/tiles/waterfall_anim0.chr"
+    .res $02 * kSizeofChr
     .incbin "out/tiles/thorns_anim4.chr"
     .incbin "out/tiles/sewage_anim0.chr"
     .incbin "out/tiles/circuit_anim4.chr"
@@ -164,8 +164,8 @@
 .PROC Ppu_ChrBgAnimA5
 :   .incbin "out/tiles/water_anim2.chr"
     .incbin "out/tiles/acid_anim5.chr"
-    .res $04 * kSizeofChr
     .incbin "out/tiles/waterfall_anim1.chr"
+    .res $02 * kSizeofChr
     .incbin "out/tiles/thorns_anim5.chr"
     .incbin "out/tiles/sewage_anim1.chr"
     .incbin "out/tiles/circuit_anim5.chr"
@@ -179,8 +179,8 @@
 .PROC Ppu_ChrBgAnimA6
 :   .incbin "out/tiles/water_anim1.chr"
     .incbin "out/tiles/acid_anim6.chr"
-    .res $04 * kSizeofChr
     .incbin "out/tiles/waterfall_anim2.chr"
+    .res $02 * kSizeofChr
     .incbin "out/tiles/thorns_anim6.chr"
     .incbin "out/tiles/sewage_anim2.chr"
     .incbin "out/tiles/circuit_anim6.chr"
@@ -194,8 +194,8 @@
 .PROC Ppu_ChrBgAnimA7
 :   .incbin "out/tiles/water_anim1.chr"
     .incbin "out/tiles/acid_anim7.chr"
-    .res $04 * kSizeofChr
     .incbin "out/tiles/waterfall_anim3.chr"
+    .res $02 * kSizeofChr
     .incbin "out/tiles/thorns_anim7.chr"
     .incbin "out/tiles/sewage_anim3.chr"
     .incbin "out/tiles/circuit_anim7.chr"
