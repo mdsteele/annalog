@@ -169,6 +169,7 @@
     PrisonCellLift
     PrisonEastLift
     PrisonEscapeTrolley
+    SewerBasinMultiplexer
     SewerFlowerPump
     SewerPoolMultiplexer
     SewerWestMultiplexer

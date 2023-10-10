@@ -613,6 +613,12 @@ _Done:
     d_byte Not_eFlag, eFlag::UpgradeOpSkip
     D_END
     D_STRUCT sMarker
+    d_byte Row_u8, 7
+    d_byte Col_u8, 23  ; room: SewerBasin
+    d_byte If_eFlag, 0
+    d_byte Not_eFlag, eFlag::UpgradeOpAddSub
+    D_END
+    D_STRUCT sMarker
     d_byte Row_u8, 8
     d_byte Col_u8, 5  ; room: TempleEntry
     d_byte If_eFlag, eFlag::TempleEntryPermission
