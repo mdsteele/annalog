@@ -77,6 +77,7 @@
 .IMPORT DataC_Factory_Elevator_sRoom
 .IMPORT DataC_Factory_Flower_sRoom
 .IMPORT DataC_Factory_Lock_sRoom
+.IMPORT DataC_Factory_Pass_sRoom
 .IMPORT DataC_Factory_Upper_sRoom
 .IMPORT DataC_Factory_West_sRoom
 .IMPORT DataC_Garden_Crossroad_sRoom
@@ -304,6 +305,7 @@ _LoadNewRoom:
     d_entry table, FactoryElevator, DataC_Factory_Elevator_sRoom
     d_entry table, FactoryFlower,   DataC_Factory_Flower_sRoom
     d_entry table, FactoryLock,     DataC_Factory_Lock_sRoom
+    d_entry table, FactoryPass,     DataC_Factory_Pass_sRoom
     d_entry table, FactoryUpper,    DataC_Factory_Upper_sRoom
     d_entry table, FactoryWest,     DataC_Factory_West_sRoom
     d_entry table, GardenCrossroad, DataC_Garden_Crossroad_sRoom
@@ -444,6 +446,7 @@ _PrisonMusic:
     d_byte FactoryElevator, eMusic::Silence
     d_byte FactoryFlower,   eMusic::Silence
     d_byte FactoryLock,     eMusic::Silence
+    d_byte FactoryPass,     eMusic::Silence
     d_byte FactoryUpper,    eMusic::Silence
     d_byte FactoryWest,     eMusic::Silence
     d_byte GardenCrossroad, eMusic::Silence

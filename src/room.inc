@@ -87,6 +87,7 @@ kMaxPassages = 8
     FactoryElevator
     FactoryFlower
     FactoryLock
+    FactoryPass
     FactoryUpper
     FactoryWest
     GardenCrossroad
