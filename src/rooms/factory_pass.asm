@@ -20,6 +20,7 @@
 .INCLUDE "../actor.inc"
 .INCLUDE "../device.inc"
 .INCLUDE "../macros.inc"
+.INCLUDE "../oam.inc"
 .INCLUDE "../platform.inc"
 .INCLUDE "../room.inc"
 
@@ -76,18 +77,18 @@ _Actors_sActor_arr:
     d_byte Type_eActor, eActor::BadToad
     d_word PosX_i16, $0048
     d_word PosY_i16, $00a0
-    d_byte Param_byte, 0
+    d_byte Param_byte, bObj::FlipH
     D_END
     D_STRUCT sActor
     d_byte Type_eActor, eActor::BadToad
     d_word PosX_i16, $0098
-    d_word PosY_i16, $00a0
+    d_word PosY_i16, $00b0
     d_byte Param_byte, 0
     D_END
     D_STRUCT sActor
     d_byte Type_eActor, eActor::BadToad
     d_word PosX_i16, $00c8
-    d_word PosY_i16, $00a0
+    d_word PosY_i16, $00b0
     d_byte Param_byte, 0
     D_END
     .assert * - :- <= kMaxActors * .sizeof(sActor), error

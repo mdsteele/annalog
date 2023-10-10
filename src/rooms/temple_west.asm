@@ -73,13 +73,13 @@ _Actors_sActor_arr:
     D_STRUCT sActor
     d_byte Type_eActor, eActor::BadToad
     d_word PosX_i16, $0088
-    d_word PosY_i16, $0098
+    d_word PosY_i16, $00a0
     d_byte Param_byte, 0
     D_END
     D_STRUCT sActor
     d_byte Type_eActor, eActor::BadToad
     d_word PosX_i16, $0068
-    d_word PosY_i16, $00d8
+    d_word PosY_i16, $00e0
     d_byte Param_byte, 0
     D_END
     D_STRUCT sActor

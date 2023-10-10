@@ -32,6 +32,7 @@
 .IMPORT FuncA_Objects_MoveShapeUpByA
 .IMPORT FuncA_Objects_SetShapePosToActorCenter
 .IMPORT Func_GetRandomByte
+.IMPORT Func_InitActorWithFlags
 .IMPORT Ram_ActorFlags_bObj_arr
 .IMPORT Ram_ActorPosY_i16_0_arr
 .IMPORT Ram_ActorState1_byte_arr
@@ -52,6 +53,25 @@ kTileIdObjToadAirborne = kTileIdObjToadFirst + 4
 
 ;;; The OBJ palette number to use for drawing toad baddie actors.
 kPaletteObjToad = 0
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Room"
+
+;;; Initializes a toad baddie actor.
+;;; @prereq The actor's pixel position has already been initialized.
+;;; @param A The flags to set.
+;;; @param X The actor index.
+;;; @preserve X
+.EXPORT FuncA_Room_InitActorBadToad
+.PROC FuncA_Room_InitActorBadToad
+    jsr Func_InitActorWithFlags  ; preserves X
+    jsr Func_GetRandomByte  ; preserves X
+    and #$3f
+    add #$20
+    sta Ram_ActorState1_byte_arr, x  ; jump timer
+    rts
+.ENDPROC
 
 ;;;=========================================================================;;;
 

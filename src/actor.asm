@@ -98,6 +98,7 @@
 .IMPORT FuncA_Room_InitActorBadBird
 .IMPORT FuncA_Room_InitActorBadFirefly
 .IMPORT FuncA_Room_InitActorBadLavaball
+.IMPORT FuncA_Room_InitActorBadToad
 .IMPORT FuncA_Room_InitActorBadWasp
 .IMPORT FuncA_Room_InitActorNpcChild
 .IMPORT FuncA_Room_InitActorNpcToddler
@@ -705,7 +706,7 @@ _NoHit:
     d_entry table, BadRhino,        Func_InitActorWithFlags
     d_entry table, BadRodent,       Func_InitActorDefault
     d_entry table, BadSpider,       Func_InitActorDefault
-    d_entry table, BadToad,         Func_InitActorDefault
+    d_entry table, BadToad,         FuncA_Room_InitActorBadToad
     d_entry table, BadVinebug,      Func_InitActorDefault
     d_entry table, BadWasp,         FuncA_Room_InitActorBadWasp
     d_entry table, NpcAdult,        Func_InitActorWithState1

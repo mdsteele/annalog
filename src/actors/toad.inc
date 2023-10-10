@@ -18,8 +18,8 @@
 ;;;=========================================================================;;;
 
 ;;; State bytes for toad baddies:
-;;;   * Param: Unused.
-;;;   * Flags: The bObj::FlipH bit is set if the grub is facing left, or
+;;;   * Param: The initial flags to set (0 or bObj::FlipH).
+;;;   * Flags: The bObj::FlipH bit is set if the toad is facing left, or
 ;;;     cleared if it is facing right.
 ;;;   * State1: How many more frames until the toad jumps.
 ;;;   * State2: 0 if the toad is grounded, or 1 if it's airborne (jumping).

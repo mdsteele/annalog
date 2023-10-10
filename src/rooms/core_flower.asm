@@ -69,6 +69,12 @@ _TerrainData:
 _Actors_sActor_arr:
 :   D_STRUCT sActor
     d_byte Type_eActor, eActor::BadBeetleHorz
+    d_word PosX_i16, $00a0
+    d_word PosY_i16, $0058
+    d_byte Param_byte, bObj::FlipV
+    D_END
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::BadBeetleHorz
     d_word PosX_i16, $0088
     d_word PosY_i16, $0068
     d_byte Param_byte, bObj::FlipH
@@ -76,14 +82,20 @@ _Actors_sActor_arr:
     D_STRUCT sActor
     d_byte Type_eActor, eActor::BadToad
     d_word PosX_i16, $0098
-    d_word PosY_i16, $00a8
+    d_word PosY_i16, $00b0
     d_byte Param_byte, 0
     D_END
     D_STRUCT sActor
     d_byte Type_eActor, eActor::BadToad
     d_word PosX_i16, $0078
-    d_word PosY_i16, $00e8
-    d_byte Param_byte, 0
+    d_word PosY_i16, $00f0
+    d_byte Param_byte, bObj::FlipH
+    D_END
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::BadBeetleHorz
+    d_word PosX_i16, $0080
+    d_word PosY_i16, $0118
+    d_byte Param_byte, bObj::FlipH
     D_END
     D_STRUCT sActor
     d_byte Type_eActor, eActor::BadBeetleHorz

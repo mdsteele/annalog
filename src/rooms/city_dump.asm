@@ -68,7 +68,7 @@ _Actors_sActor_arr:
     d_byte Type_eActor, eActor::BadToad
     d_word PosX_i16, $007c
     d_word PosY_i16, $0060
-    d_byte Param_byte, 0
+    d_byte Param_byte, bObj::FlipH
     D_END
     D_STRUCT sActor
     d_byte Type_eActor, eActor::BadGrub
