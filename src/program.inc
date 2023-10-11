@@ -172,6 +172,7 @@
     SewerBasinMultiplexer
     SewerFlowerPump
     SewerPoolMultiplexer
+    SewerTrapLift
     SewerWestMultiplexer
     ShadowEntryLift
     ShadowTeleportField
