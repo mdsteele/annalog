@@ -53,10 +53,11 @@
 ;;;=========================================================================;;;
 
 ;;; OBJ tile IDs used for drawing various parts of a rotor machine.
-kTileIdObjRotorSpoke    = kTileIdObjRotorFirst + 0
-kTileIdObjRotorNut      = kTileIdObjRotorFirst + 1
-kTileIdObjRotorCarriage = kTileIdObjRotorFirst + 2
-kTileIdObjRotorGear     = kTileIdObjRotorFirst + 3
+kTileIdObjRotorGear0    = kTileIdObjRotorFirst + 0
+kTileIdObjRotorGear1    = kTileIdObjRotorFirst + 1
+kTileIdObjRotorSpoke    = kTileIdObjRotorFirst + 2
+kTileIdObjRotorNut      = kTileIdObjRotorFirst + 3
+kTileIdObjRotorCarriage = kTileIdObjRotorFirst + 4
 
 ;;; The OBJ palette number used for drawing parts of rotor machines.
 kPaletteObjRotor = 0
@@ -256,7 +257,12 @@ _ReachedGoal:
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Tile_u8, y
     lda #kTileIdObjMachineCorner
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Tile_u8, y
-    lda #kTileIdObjRotorGear
+    ldx Zp_MachineIndex_u8
+    lda Ram_MachineState1_byte_arr, x  ; rotation angle (0-255)
+    div #2
+    and #$01
+    .assert kTileIdObjRotorGear0 | 1 = kTileIdObjRotorGear1, error
+    ora #kTileIdObjRotorGear0
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Tile_u8, y
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Tile_u8, y
     @done:

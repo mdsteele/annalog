@@ -1135,9 +1135,9 @@
     .incbin "out/tiles/upgrade_bottom.chr"
     .assert * - :- = (kTileIdObjJetFirst - $80) * kSizeofChr, error
     .incbin "out/tiles/jet.chr"
-    .res $08 * kSizeofChr
     .assert * - :- = (kTileIdObjRotorFirst - $80) * kSizeofChr, error
     .incbin "out/tiles/rotor.chr"
+    .res $07 * kSizeofChr
     .assert * - :- = (kTileIdObjUpgradeOpSkipFirst - $80) * kSizeofChr, error
     .incbin "out/tiles/upgrade_opskip.chr"
     .res $06 * kSizeofChr

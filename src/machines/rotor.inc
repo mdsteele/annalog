@@ -32,6 +32,6 @@ kRotorCarriageWidthPx  = $10
 kRotorCarriageHeightPx = $08
 
 ;;; OBJ tile IDs used for drawing rotor machines.
-kTileIdObjRotorFirst = $90
+kTileIdObjRotorFirst = $88
 
 ;;;=========================================================================;;;
