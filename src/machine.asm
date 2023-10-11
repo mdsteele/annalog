@@ -521,7 +521,7 @@ _ExecInstruction:
     d_entry table, Til,   _OpTil
     d_entry table, Act,   _OpAct
     d_entry table, Move,  _OpMove
-    d_entry table, Wait,  _OpWait
+    d_entry table, Rest,  _OpRest
     d_entry table, Beep,  _OpBeep
     d_entry table, End,   _OpEnd
     d_entry table, Nop,   FuncA_Machine_IncrementPc
@@ -648,7 +648,7 @@ _OpBeep:
     and #$0f  ; param: immediate value or register
     jsr Func_MachineRead  ; returns A
     jsr FuncA_Machine_PlaySfxBeep
-_OpWait:
+_OpRest:
     lda #$10  ; 16 frames = about a quarter second
     jmp FuncA_Machine_StartWaiting
 _OpEnd:

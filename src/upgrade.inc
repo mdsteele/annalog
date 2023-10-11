@@ -29,7 +29,7 @@ kTileIdObjUpgradeOpMulFirst    = $8e
 kTileIdObjUpgradeOpBeepFirst   = $90
 kTileIdObjUpgradeOpGotoFirst   = $92
 kTileIdObjUpgradeOpSkipFirst   = $94
-kTileIdObjUpgradeOpWaitFirst   = $96
+kTileIdObjUpgradeOpRestFirst   = $96
 kTileIdObjUpgradeOpSyncFirst   = $98
 
 ;;;=========================================================================;;;

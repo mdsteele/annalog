@@ -63,7 +63,7 @@ kSaveMagicNumber = $b2
     UpgradeOpBeep
     UpgradeOpGoto
     UpgradeOpSkip
-    UpgradeOpWait
+    UpgradeOpRest
     UpgradeOpSync
     ;; Each of these flags is set when that flower is delivered to the florist:
     FlowerTemple

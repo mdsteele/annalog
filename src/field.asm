@@ -33,7 +33,7 @@
 .LINECONT +
 .DEFINE OpcodeLabels \
     _OpEmpty, _OpCopy, _OpSync, _OpAdd, _OpSub, _OpMul, _OpGoto, _OpSkip, \
-    _OpIf, _OpTil, _OpAct, _OpMove, _OpWait, _OpBeep, _OpEnd, _OpNop
+    _OpIf, _OpTil, _OpAct, _OpMove, _OpRest, _OpBeep, _OpEnd, _OpNop
 .LINECONT -
 
 .MACRO OPCODE_TABLE arg
@@ -68,7 +68,7 @@ _NumFields_u8_arr:
     d_byte Til,   4
     d_byte Act,   1
     d_byte Move,  2
-    d_byte Wait,  1
+    d_byte Rest,  1
     d_byte Beep,  2
     d_byte End,   1
     d_byte Nop,   1
@@ -112,7 +112,7 @@ _OpAct:
 _OpEnd:
     .byte 2
 _OpSync:
-_OpWait:
+_OpRest:
     .byte 3
 .ENDPROC
 
@@ -134,7 +134,7 @@ _OffsetTable_u8_arr:
 _OpEmpty:
 _OpSync:
 _OpAct:
-_OpWait:
+_OpRest:
 _OpEnd:
 _OpNop:
     .byte 0
@@ -174,7 +174,7 @@ _FieldTable_u8_arr:
 _OpEmpty:
 _OpSync:
 _OpAct:
-_OpWait:
+_OpRest:
 _OpEnd:
 _OpNop:
     .byte 0, 0, 0, 0, 0, 0, 0
@@ -212,7 +212,7 @@ _TypeTable_u8_arr:
 _OpEmpty:
 _OpSync:
 _OpAct:
-_OpWait:
+_OpRest:
 _OpEnd:
 _OpNop:
     .byte eField::Opcode
@@ -253,7 +253,7 @@ _SlotTable_u8_arr:
 _OpEmpty:
 _OpSync:
 _OpAct:
-_OpWait:
+_OpRest:
 _OpEnd:
 _OpNop:
     .byte 0
@@ -372,7 +372,7 @@ _SetOpcode:
     d_entry table, Til,   _OpTil
     d_entry table, Act,   _OpAct
     d_entry table, Move,  _OpMove
-    d_entry table, Wait,  _OpWait
+    d_entry table, Rest,  _OpRest
     d_entry table, Beep,  _OpBeep
     d_entry table, End,   _OpEnd
     d_entry table, Nop,   _OpNop
@@ -382,7 +382,7 @@ _OpEmpty:
 _OpSync:
 _OpGoto:
 _OpAct:
-_OpWait:
+_OpRest:
 _OpEnd:
 _OpNop:
     tya  ; new eOpcode value

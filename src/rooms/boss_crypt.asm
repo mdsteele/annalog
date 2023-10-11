@@ -1,3 +1,4 @@
+
 ;;;=========================================================================;;;
 ;;; Copyright 2022 Matthew D. Steele <mdsteele@alum.mit.edu>                ;;;
 ;;;                                                                         ;;;
@@ -371,7 +372,7 @@ _Devices_sDevice_arr:
     d_byte Type_eDevice, eDevice::Placeholder  ; will be an upgrade
     d_byte BlockRow_u8, 11
     d_byte BlockCol_u8, 2
-    d_byte Target_byte, eFlag::UpgradeOpWait
+    d_byte Target_byte, eFlag::UpgradeOpRest
     D_END
     .assert * - :- = kBossBreakerDeviceIndex * .sizeof(sDevice), error
     D_STRUCT sDevice

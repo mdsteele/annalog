@@ -879,7 +879,7 @@
     .incbin "out/tiles/upgrade_opbeep.chr"
     .incbin "out/tiles/upgrade_opgoto.chr"
     .incbin "out/tiles/upgrade_opskip.chr"
-    .incbin "out/tiles/upgrade_opwait.chr"
+    .incbin "out/tiles/upgrade_oprest.chr"
     .incbin "out/tiles/upgrade_opsync.chr"
     .res $06 * kSizeofChr
     .incbin "out/tiles/minicore1.chr"
@@ -1021,8 +1021,8 @@
     .assert * - :- = (kTileIdObjBulletFirst - $80) * kSizeofChr, error
     .incbin "out/tiles/bullet.chr"
     .res $06 * kSizeofChr
-    .assert * - :- = (kTileIdObjUpgradeOpWaitFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/upgrade_opwait.chr"
+    .assert * - :- = (kTileIdObjUpgradeOpRestFirst - $80) * kSizeofChr, error
+    .incbin "out/tiles/upgrade_oprest.chr"
     .assert * - :- = (kTileIdObjBlasterFirst - $80) * kSizeofChr, error
     .incbin "out/tiles/blaster.chr"
     .assert * - :- = (kTileIdObjFireballFirst - $80) * kSizeofChr, error

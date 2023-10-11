@@ -46,7 +46,7 @@ kOpcodeMenuRightCol = 5
 
 ;;; +--------+
 ;;; |BEEP END|
-;;; |WAIT MUL|
+;;; |REST MUL|
 ;;; |SYNC SUB|
 ;;; |COPY ADD|
 ;;; |SKIP TIL|
@@ -72,7 +72,7 @@ kOpcodeMenuRightCol = 5
     d_addr Til,   _LabelTil
     d_addr Act,   _LabelAct
     d_addr Move,  _LabelMove
-    d_addr Wait,  _LabelWait
+    d_addr Rest,  _LabelRest
     d_addr Beep,  _LabelBeep
     d_addr End,   _LabelEnd
     d_addr Nop,   _LabelNop
@@ -94,7 +94,7 @@ _LabelIf:    .byte "IF"
 _LabelTil:   .byte "TIL"
 _LabelAct:   .byte "ACT"
 _LabelMove:  .byte "MOVE"
-_LabelWait:  .byte "WAIT"
+_LabelRest:  .byte "REST"
 _LabelBeep:  .byte "BEEP"
 _LabelEnd:   .byte "END"
 _LabelNop:   .byte "NOP"
@@ -243,12 +243,12 @@ _SetRowsForMenuLeftColumn:
     stx Ram_MenuRows_u8_arr + eOpcode::Beep
     inx
     @noBeepOpcode:
-    ;; Check if the WAIT opcode is unlocked.
-    flag_bit Sram_ProgressFlags_arr, eFlag::UpgradeOpWait
-    beq @noWaitOpcode
-    stx Ram_MenuRows_u8_arr + eOpcode::Wait
+    ;; Check if the REST opcode is unlocked.
+    flag_bit Sram_ProgressFlags_arr, eFlag::UpgradeOpRest
+    beq @noRestOpcode
+    stx Ram_MenuRows_u8_arr + eOpcode::Rest
     inx
-    @noWaitOpcode:
+    @noRestOpcode:
     ;; Check if the SYNC opcode is unlocked.
     flag_bit Sram_ProgressFlags_arr, eFlag::UpgradeOpSync
     beq @noSyncOpcode
@@ -337,7 +337,7 @@ _Columns_u8_arr:
     d_byte Til,   kOpcodeMenuRightCol
     d_byte Act,   kOpcodeMenuRightCol
     d_byte Move,  kOpcodeMenuLeftCol
-    d_byte Wait,  kOpcodeMenuLeftCol
+    d_byte Rest,  kOpcodeMenuLeftCol
     d_byte Beep,  kOpcodeMenuLeftCol
     d_byte End,   kOpcodeMenuRightCol
     d_byte Nop,   kOpcodeMenuRightCol

@@ -268,9 +268,9 @@ OpGoto3_u8_arr:   .byte "specific instruction.", $ff
 OpSkip1_u8_arr:   .byte "     SKIP OPCODE", $ff
 OpSkip2_u8_arr:   .byte "Skips over a variable", $ff
 OpSkip3_u8_arr:   .byte "number of instructions.", $ff
-OpWait1_u8_arr:   .byte "     WAIT OPCODE", $ff
-OpWait2_u8_arr:   .byte "Pauses execution for a", $ff
-OpWait3_u8_arr:   .byte "short time.", $ff
+OpRest1_u8_arr:   .byte "     REST OPCODE", $ff
+OpRest2_u8_arr:   .byte "Pauses execution for a", $ff
+OpRest3_u8_arr:   .byte "short time.", $ff
 OpSync1_u8_arr:   .byte "     SYNC OPCODE", $ff
 OpSync2_u8_arr:   .byte "Pauses execution until", $ff
 OpSync3_u8_arr:   .byte "all machines sync.", $ff
@@ -428,10 +428,10 @@ _DescTable_ptr_arr:
     .addr DataA_Upgrade_Descriptions::OpSkip1_u8_arr
     .addr DataA_Upgrade_Descriptions::OpSkip2_u8_arr
     .addr DataA_Upgrade_Descriptions::OpSkip3_u8_arr
-    .assert * - _DescTable_ptr_arr = 6 * eFlag::UpgradeOpWait, error
-    .addr DataA_Upgrade_Descriptions::OpWait1_u8_arr
-    .addr DataA_Upgrade_Descriptions::OpWait2_u8_arr
-    .addr DataA_Upgrade_Descriptions::OpWait3_u8_arr
+    .assert * - _DescTable_ptr_arr = 6 * eFlag::UpgradeOpRest, error
+    .addr DataA_Upgrade_Descriptions::OpRest1_u8_arr
+    .addr DataA_Upgrade_Descriptions::OpRest2_u8_arr
+    .addr DataA_Upgrade_Descriptions::OpRest3_u8_arr
     .assert * - _DescTable_ptr_arr = 6 * eFlag::UpgradeOpSync, error
     .addr DataA_Upgrade_Descriptions::OpSync1_u8_arr
     .addr DataA_Upgrade_Descriptions::OpSync2_u8_arr

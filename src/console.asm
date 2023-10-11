@@ -743,7 +743,7 @@ _DrawStatus:
     d_entry table, Til,   _OpTil
     d_entry table, Act,   _OpAct
     d_entry table, Move,  _OpMove
-    d_entry table, Wait,  _OpWait
+    d_entry table, Rest,  _OpRest
     d_entry table, Beep,  _OpBeep
     d_entry table, End,   _OpEnd
     d_entry table, Nop,   _OpNop
@@ -838,11 +838,11 @@ _OpMove:
     inx
     jmp _Write1Space
     @string: .byte "MOVE "
-_OpWait:
+_OpRest:
     ldya #@string
     jsr _WriteString5
     jmp _Write2Spaces
-    @string: .byte "WAIT "
+    @string: .byte "REST "
 _OpBeep:
     ldya #@string
     jsr _WriteString5
