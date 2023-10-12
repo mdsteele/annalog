@@ -177,7 +177,7 @@ _Ext_sRoomExt:
     d_addr Draw_func_ptr, FuncC_Lava_Center_DrawRoom
     D_END
 _TerrainData:
-:   .incbin "out/data/lava_center.room"
+:   .incbin "out/rooms/lava_center.room"
     .assert * - :- = 18 * 24, error
 _Machines_sMachine_arr:
 :   .assert * - :- = kBlasterMachineIndex * .sizeof(sMachine), error

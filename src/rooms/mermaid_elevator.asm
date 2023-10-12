@@ -96,7 +96,7 @@ _Ext_sRoomExt:
     d_addr Draw_func_ptr, Func_Noop
     D_END
 _TerrainData:
-:   .incbin "out/data/mermaid_elevator.room"
+:   .incbin "out/rooms/mermaid_elevator.room"
     .assert * - :- = 18 * 24, error
 _Machines_sMachine_arr:
 :   .assert * - :- = kJetMachineIndex * .sizeof(sMachine), error

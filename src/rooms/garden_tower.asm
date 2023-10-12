@@ -157,7 +157,7 @@ _Ext_sRoomExt:
     d_addr Draw_func_ptr, FuncA_Objects_GardenTower_DrawRoom
     D_END
 _TerrainData:
-:   .incbin "out/data/garden_tower.room"
+:   .incbin "out/rooms/garden_tower.room"
     .assert * - :- = 34 * 24, error
 _Machines_sMachine_arr:
 :   .assert * - :- = kCannonMachineIndex * .sizeof(sMachine), error

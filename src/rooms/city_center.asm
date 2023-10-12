@@ -110,8 +110,8 @@ _Ext_sRoomExt:
     d_addr Draw_func_ptr, Func_Noop
     D_END
 _TerrainData:
-:   .incbin "out/data/city_center1.room"
-    .incbin "out/data/city_center2.room"
+:   .incbin "out/rooms/city_center1.room"
+    .incbin "out/rooms/city_center2.room"
     .assert * - :- = 66 * 24, error
 _Machines_sMachine_arr:
 :   .assert * - :- = kSemaphore1MachineIndex * .sizeof(sMachine), error

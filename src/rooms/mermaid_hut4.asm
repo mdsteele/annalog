@@ -102,7 +102,7 @@ _Ext_sRoomExt:
     d_addr Draw_func_ptr, FuncC_Mermaid_Hut4_DrawRoom
     D_END
 _TerrainData:
-:   .incbin "out/data/mermaid_hut4.room"
+:   .incbin "out/rooms/mermaid_hut4.room"
     .assert * - :- = 16 * 15, error
 _Platforms_sPlatform_arr:
 :   D_STRUCT sPlatform

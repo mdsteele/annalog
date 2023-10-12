@@ -61,7 +61,7 @@ _Ext_sRoomExt:
     d_addr Draw_func_ptr, Func_Noop
     D_END
 _TerrainData:
-:   .incbin "out/data/city_dump.room"
+:   .incbin "out/rooms/city_dump.room"
     .assert * - :- = 17 * 15, error
 _Actors_sActor_arr:
 :   D_STRUCT sActor

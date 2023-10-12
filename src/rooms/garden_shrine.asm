@@ -71,7 +71,7 @@ _Ext_sRoomExt:
     d_addr Draw_func_ptr, Func_Noop
     D_END
 _TerrainData:
-:   .incbin "out/data/garden_shrine.room"
+:   .incbin "out/rooms/garden_shrine.room"
     .assert * - :- = 18 * 15, error
 _Devices_sDevice_arr:
 :   .assert * - :- = kUpgradeDeviceIndex * .sizeof(sDevice), error

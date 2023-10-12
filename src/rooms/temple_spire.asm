@@ -59,7 +59,7 @@ _Ext_sRoomExt:
     d_addr Draw_func_ptr, Func_Noop
     D_END
 _TerrainData:
-:   .incbin "out/data/temple_spire.room"
+:   .incbin "out/rooms/temple_spire.room"
     .assert * - :- = 17 * 24, error
 _Actors_sActor_arr:
 :   ;; TODO: add some baddies

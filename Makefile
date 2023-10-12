@@ -20,11 +20,12 @@
 ROMNAME = annalog
 
 OUTDIR = out
-DATADIR = $(OUTDIR)/data
 OBJDIR = $(OUTDIR)/obj
 BUILD_OUT_DIR = $(OUTDIR)/build
+DATA_OUT_DIR = $(OUTDIR)/data
 LIB_OUT_DIR = $(OUTDIR)/lib
 MUSIC_OUT_DIR = $(OUTDIR)/music
+ROOM_OUT_DIR = $(OUTDIR)/rooms
 SIM65_OUT_DIR = $(OUTDIR)/sim65
 SFX_OUT_DIR = $(OUTDIR)/samples
 TILE_OUT_DIR = $(OUTDIR)/tiles
@@ -38,35 +39,40 @@ LABEL2NL = $(BUILD_OUT_DIR)/label2nl
 SNG2ASM = $(BUILD_OUT_DIR)/sng2asm
 WAV2DM = $(BUILD_OUT_DIR)/wav2dm
 
-INC_FILES := $(shell find src -name '*.inc')
+INC_FILES := $(shell find -s src -name '*.inc')
 
-MUSIC_SNG_FILES := $(shell find src/music -name '*.sng')
+MUSIC_SNG_FILES := $(shell find -s src/music -name '*.sng')
 MUSIC_ASM_FILES := \
   $(patsubst src/music/%.sng,$(MUSIC_OUT_DIR)/%.asm,$(MUSIC_SNG_FILES))
 MUSIC_OBJ_FILES := \
   $(patsubst $(MUSIC_OUT_DIR)/%.asm,$(MUSIC_OUT_DIR)/%.o,$(MUSIC_ASM_FILES))
 MUSIC_LIB_FILE = $(LIB_OUT_DIR)/music.lib
 
-ROOM_BG_FILES := $(shell find src/rooms -name '*.bg')
+ROOM_ASM_FILES := $(shell find -s src/rooms -name '*.asm')
+ROOM_OBJ_FILES := \
+  $(patsubst src/rooms/%.asm,$(OBJDIR)/rooms/%.o,$(ROOM_ASM_FILES))
+ROOM_BG_FILES := $(shell find -s src/rooms -name '*.bg')
 ROOM_ROOM_FILES := \
-  $(patsubst src/rooms/%.bg,$(DATADIR)/%.room,$(ROOM_BG_FILES))
+  $(patsubst src/rooms/%.bg,$(ROOM_OUT_DIR)/%.room,$(ROOM_BG_FILES))
+ROOM_LIB_FILE = $(LIB_OUT_DIR)/rooms.lib
 
-SFX_WAV_FILES := $(shell find src/samples -name '*.wav')
+SFX_WAV_FILES := $(shell find -s src/samples -name '*.wav')
 SFX_DM_FILES := \
   $(patsubst src/samples/%.wav,$(SFX_OUT_DIR)/%.dm,$(SFX_WAV_FILES))
 
-TILE_AHI_FILES := $(shell find src/tiles -name '*.ahi')
+TILE_AHI_FILES := $(shell find -s src/tiles -name '*.ahi')
 TILE_CHR_FILES := \
   $(patsubst src/tiles/%.ahi,$(TILE_OUT_DIR)/%.chr,$(TILE_AHI_FILES))
 
-TSET_BG_FILES := $(shell find src/tilesets -name '*.bg')
+TSET_BG_FILES := $(shell find -s src/tilesets -name '*.bg')
 TSET_ASM_FILES := \
   $(patsubst src/tilesets/%.bg,$(TSET_OUT_DIR)/%.asm,$(TSET_BG_FILES))
 TSET_OBJ_FILES := \
   $(patsubst $(TSET_OUT_DIR)/%.asm,$(TSET_OUT_DIR)/%.o,$(TSET_ASM_FILES))
 TSET_LIB_FILE = $(LIB_OUT_DIR)/tilesets.lib
 
-ROM_ASM_FILES := $(shell find src -name '*.asm')
+ROM_ASM_FILES := \
+  $(shell find -s src -name rooms -prune -false -or -name '*.asm')
 ROM_OBJ_FILES := $(patsubst src/%.asm,$(OBJDIR)/%.o,$(ROM_ASM_FILES))
 ROM_CFG_FILE = src/linker.cfg
 ROM_LABEL_FILE = $(OUTDIR)/$(ROMNAME).labels.txt
@@ -78,8 +84,8 @@ NSF_OBJ_FILES := $(OUTDIR)/nsf/nsf.o \
   $(OBJDIR)/audio.o $(OBJDIR)/inst.o $(OBJDIR)/music.o $(OBJDIR)/null.o
 NSF_BIN_FILE = $(OUTDIR)/$(ROMNAME).nsf
 
-SIM65_ASM_FILES := $(shell find tests -name '*.asm')
-SIM65_CFG_FILES := $(shell find tests -name '*.cfg')
+SIM65_ASM_FILES := $(shell find -s tests -name '*.asm')
+SIM65_CFG_FILES := $(shell find -s tests -name '*.cfg')
 SIM65_OBJ_FILES := \
   $(patsubst tests/%.asm,$(SIM65_OUT_DIR)/%.o,$(SIM65_ASM_FILES))
 SIM65_BIN_FILES := \
@@ -163,19 +169,19 @@ $(TILE_OUT_DIR)/%.chr: src/tiles/%.ahi $(AHI2CHR)
 	@$(AHI2CHR) < $< > $@
 .SECONDARY: $(TILE_CHR_FILES)
 
-$(DATADIR)/minimap.map: src/minimap.bg $(BG2MAP)
+$(DATA_OUT_DIR)/minimap.map: src/minimap.bg $(BG2MAP)
 	@echo "Converting $<"
 	@mkdir -p $(@D)
 	@$(BG2MAP) < $< > $@
-.SECONDARY: $(DATADIR)/minimap.map
+.SECONDARY: $(DATA_OUT_DIR)/minimap.map
 
-$(DATADIR)/title.map: src/title.bg $(BG2MAP)
+$(DATA_OUT_DIR)/title.map: src/title.bg $(BG2MAP)
 	@echo "Converting $<"
 	@mkdir -p $(@D)
 	@$(BG2MAP) < $< > $@
-.SECONDARY: $(DATADIR)/title.map
+.SECONDARY: $(DATA_OUT_DIR)/title.map
 
-$(DATADIR)/%.room: src/rooms/%.bg $(BG2ROOM)
+$(ROOM_OUT_DIR)/%.room: src/rooms/%.bg $(BG2ROOM)
 	@echo "Converting $<"
 	@mkdir -p $(@D)
 	@$(BG2ROOM) < $< > $@
@@ -232,37 +238,37 @@ $(SIM65_OUT_DIR)/%: \
 $(OBJDIR)/chr.o: src/chr.asm $(INC_FILES) $(TILE_CHR_FILES)
 	$(compile-asm)
 
-$(OBJDIR)/pause.o: src/pause.asm $(INC_FILES) $(DATADIR)/minimap.map
+$(OBJDIR)/pause.o: src/pause.asm $(INC_FILES) $(DATA_OUT_DIR)/minimap.map
 	$(compile-asm)
 
 $(OBJDIR)/sample.o: src/sample.asm $(INC_FILES) $(SFX_DM_FILES)
 	$(compile-asm)
 
-$(OBJDIR)/title.o: src/title.asm $(INC_FILES) $(DATADIR)/title.map
+$(OBJDIR)/title.o: src/title.asm $(INC_FILES) $(DATA_OUT_DIR)/title.map
 	$(compile-asm)
 
 $(OBJDIR)/rooms/city_center.o: \
   src/rooms/city_center.asm $(INC_FILES) \
-  $(DATADIR)/city_center1.room $(DATADIR)/city_center2.room
+  $(ROOM_OUT_DIR)/city_center1.room $(ROOM_OUT_DIR)/city_center2.room
 	$(compile-asm)
 
 $(OBJDIR)/rooms/garden_hallway.o: \
   src/rooms/garden_hallway.asm $(INC_FILES) \
-  $(DATADIR)/garden_hallway1.room $(DATADIR)/garden_hallway2.room
+  $(ROOM_OUT_DIR)/garden_hallway1.room $(ROOM_OUT_DIR)/garden_hallway2.room
 	$(compile-asm)
 
 $(OBJDIR)/rooms/mermaid_village.o: \
   src/rooms/mermaid_village.asm $(INC_FILES) \
-  $(DATADIR)/mermaid_village1.room $(DATADIR)/mermaid_village2.room
+  $(ROOM_OUT_DIR)/mermaid_village1.room $(ROOM_OUT_DIR)/mermaid_village2.room
 	$(compile-asm)
 
 $(OBJDIR)/rooms/town_outdoors.o: \
   src/rooms/town_outdoors.asm $(INC_FILES) \
-  $(DATADIR)/town_outdoors1.room $(DATADIR)/town_outdoors2.room \
-  $(DATADIR)/town_outdoors3.room
+  $(ROOM_OUT_DIR)/town_outdoors1.room $(ROOM_OUT_DIR)/town_outdoors2.room \
+  $(ROOM_OUT_DIR)/town_outdoors3.room
 	$(compile-asm)
 
-$(OBJDIR)/rooms/%.o: src/rooms/%.asm $(INC_FILES) $(DATADIR)/%.room
+$(OBJDIR)/rooms/%.o: src/rooms/%.asm $(INC_FILES) $(ROOM_OUT_DIR)/%.room
 	$(compile-asm)
 
 $(OBJDIR)/%.o: src/%.asm $(INC_FILES)
@@ -285,6 +291,9 @@ $(OUTDIR)/nsf/nsf.o: nsf/nsf.asm $(INC_FILES)
 $(MUSIC_LIB_FILE): $(MUSIC_OBJ_FILES)
 	$(update-archive)
 
+$(ROOM_LIB_FILE): $(ROOM_OBJ_FILES)
+	$(update-archive)
+
 $(TSET_LIB_FILE): $(TSET_OBJ_FILES)
 	$(update-archive)
 
@@ -293,13 +302,13 @@ $(TSET_LIB_FILE): $(TSET_OBJ_FILES)
 
 $(ROM_BIN_FILE) $(ROM_LABEL_FILE): \
   tests/lint.py $(ROM_CFG_FILE) $(ROM_OBJ_FILES) \
-  $(MUSIC_LIB_FILE) $(TSET_LIB_FILE)
+  $(MUSIC_LIB_FILE) $(ROOM_LIB_FILE) $(TSET_LIB_FILE)
 	python3 tests/lint.py
 	@echo "Linking $@"
 	@mkdir -p $(@D)
 	@ld65 -Ln $(ROM_LABEL_FILE) -m $(ROM_MAP_FILE) -o $@ \
 	      -C $(ROM_CFG_FILE) $(ROM_OBJ_FILES) \
-	      $(MUSIC_LIB_FILE) $(TSET_LIB_FILE)
+	      $(MUSIC_LIB_FILE) $(ROOM_LIB_FILE) $(TSET_LIB_FILE)
 $(ROM_LABEL_FILE): $(ROM_BIN_FILE)
 
 #=============================================================================#

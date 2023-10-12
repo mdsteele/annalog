@@ -91,8 +91,8 @@ _Ext_sRoomExt:
     d_addr Draw_func_ptr, Func_Noop
     D_END
 _TerrainData:
-:   .incbin "out/data/mermaid_village1.room"
-    .incbin "out/data/mermaid_village2.room"
+:   .incbin "out/rooms/mermaid_village1.room"
+    .incbin "out/rooms/mermaid_village2.room"
     .assert * - :- = 50 * 24, error
 _Platforms_sPlatform_arr:
 :   ;; Water for upper-left passage:

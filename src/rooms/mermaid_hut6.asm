@@ -84,7 +84,7 @@ _Ext_sRoomExt:
     d_addr Draw_func_ptr, Func_Noop
     D_END
 _TerrainData:
-:   .incbin "out/data/mermaid_hut6.room"
+:   .incbin "out/rooms/mermaid_hut6.room"
     .assert * - :- = 16 * 15, error
 _Machines_sMachine_arr:
     ;; TODO: replace these with real machines for this room

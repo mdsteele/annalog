@@ -112,7 +112,7 @@ _Ext_sRoomExt:
     d_addr Draw_func_ptr, FuncC_Temple_Entry_DrawRoom
     D_END
 _TerrainData:
-:   .incbin "out/data/temple_entry.room"
+:   .incbin "out/rooms/temple_entry.room"
     .assert * - :- = 18 * 24, error
 _Platforms_sPlatform_arr:
 :   D_STRUCT sPlatform

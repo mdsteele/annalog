@@ -109,7 +109,7 @@ _Ext_sRoomExt:
     d_addr Draw_func_ptr, Func_Noop
     D_END
 _TerrainData:
-:   .incbin "out/data/sewer_pool.room"
+:   .incbin "out/rooms/sewer_pool.room"
     .assert * - :- = 34 * 15, error
 _Machines_sMachine_arr:
 :   .assert * - :- = kMultiplexerMachineIndex * .sizeof(sMachine), error

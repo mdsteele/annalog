@@ -127,7 +127,7 @@ _Ext_sRoomExt:
     d_addr Draw_func_ptr, Func_Noop
     D_END
 _TerrainData:
-:   .incbin "out/data/crypt_gallery.room"
+:   .incbin "out/rooms/crypt_gallery.room"
     .assert * - :- = 33 * 15, error
 _Machines_sMachine_arr:
 :   .assert * - :- = kWinchMachineIndex * .sizeof(sMachine), error

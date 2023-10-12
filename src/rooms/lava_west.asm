@@ -103,7 +103,7 @@ _Ext_sRoomExt:
     d_addr Draw_func_ptr, FuncA_Objects_AnimateLavaTerrain
     D_END
 _TerrainData:
-:   .incbin "out/data/lava_west.room"
+:   .incbin "out/rooms/lava_west.room"
     .assert * - :- = 34 * 24, error
 _Machines_sMachine_arr:
 :   .assert * - :- = kBoilerMachineIndex * .sizeof(sMachine), error

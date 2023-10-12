@@ -155,7 +155,7 @@ _Ext_sRoomExt:
     d_addr Draw_func_ptr, DataC_Mermaid_Spring_DrawRoom
     D_END
 _TerrainData:
-:   .incbin "out/data/mermaid_spring.room"
+:   .incbin "out/rooms/mermaid_spring.room"
     .assert * - :- = 18 * 24, error
 _Machines_sMachine_arr:
 :   .assert * - :- = kPumpMachineIndex * .sizeof(sMachine), error

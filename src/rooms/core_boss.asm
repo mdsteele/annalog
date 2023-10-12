@@ -206,7 +206,7 @@ _Ext_sRoomExt:
     d_addr Draw_func_ptr, FuncA_Objects_CoreBoss_DrawRoom
     D_END
 _TerrainData:
-:   .incbin "out/data/core_boss.room"
+:   .incbin "out/rooms/core_boss.room"
     .assert * - :- = 33 * 24, error
 _Machines_sMachine_arr:
 :   .assert * - :- = kWinchMachineIndex * .sizeof(sMachine), error

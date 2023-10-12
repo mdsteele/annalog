@@ -109,7 +109,7 @@ _Ext_sRoomExt:
     d_addr Draw_func_ptr, FuncC_City_Outskirts_DrawRoom
     D_END
 _TerrainData:
-:   .incbin "out/data/city_outskirts.room"
+:   .incbin "out/rooms/city_outskirts.room"
     .assert * - :- = 34 * 15, error
 _Machines_sMachine_arr:
 :   .assert * - :- = kLauncherMachineIndex * .sizeof(sMachine), error

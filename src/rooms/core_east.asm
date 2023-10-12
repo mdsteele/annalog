@@ -64,7 +64,7 @@ _Ext_sRoomExt:
     d_addr Draw_func_ptr, FuncC_Core_East_DrawRoom
     D_END
 _TerrainData:
-:   .incbin "out/data/core_east.room"
+:   .incbin "out/rooms/core_east.room"
     .assert * - :- = 18 * 24, error
 _Actors_sActor_arr:
 :   ;; TODO: add some baddies

@@ -145,9 +145,9 @@ _Ext_sRoomExt:
     d_addr Draw_func_ptr, FuncC_Town_Outdoors_DrawRoom
     D_END
 _TerrainData:
-:   .incbin "out/data/town_outdoors1.room"
-    .incbin "out/data/town_outdoors2.room"
-    .incbin "out/data/town_outdoors3.room"
+:   .incbin "out/rooms/town_outdoors1.room"
+    .incbin "out/rooms/town_outdoors2.room"
+    .incbin "out/rooms/town_outdoors3.room"
     .assert * - :- = 96 * 15, error
 _Actors_sActor_arr:
 :   .assert * - :- = kAlexActorIndex * .sizeof(sActor), error

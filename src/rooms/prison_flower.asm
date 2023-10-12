@@ -66,7 +66,7 @@ _Ext_sRoomExt:
     d_addr Draw_func_ptr, Func_Noop
     D_END
 _TerrainData:
-:   .incbin "out/data/prison_flower.room"
+:   .incbin "out/rooms/prison_flower.room"
     .assert * - :- = 17 * 15, error
 _Platforms_sPlatform_arr:
 :   D_STRUCT sPlatform

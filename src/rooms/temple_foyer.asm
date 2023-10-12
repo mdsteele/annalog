@@ -136,7 +136,7 @@ _Ext_sRoomExt:
     d_addr Draw_func_ptr, Func_Noop
     D_END
 _TerrainData:
-:   .incbin "out/data/temple_foyer.room"
+:   .incbin "out/rooms/temple_foyer.room"
     .assert * - :- = 34 * 24, error
 _Machines_sMachine_arr:
 :   .assert * - :- = kCarriageMachineIndex * .sizeof(sMachine), error

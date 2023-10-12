@@ -133,7 +133,7 @@ _Ext_sRoomExt:
     d_addr Draw_func_ptr, FuncC_Prison_Upper_DrawRoom
     D_END
 _TerrainData:
-:   .incbin "out/data/prison_upper.room"
+:   .incbin "out/rooms/prison_upper.room"
     .assert * - :- = 33 * 15, error
 _Platforms_sPlatform_arr:
 :   .assert * - :- = kGatePlatformIndex * .sizeof(sPlatform), error

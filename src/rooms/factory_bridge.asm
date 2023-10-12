@@ -60,7 +60,7 @@ _Ext_sRoomExt:
     d_addr Draw_func_ptr, Func_Noop
     D_END
 _TerrainData:
-:   .incbin "out/data/factory_bridge.room"
+:   .incbin "out/rooms/factory_bridge.room"
     .assert * - :- = 18 * 15, error
 _Actors_sActor_arr:
 :   ;; TODO: add some baddies

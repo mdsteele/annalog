@@ -146,7 +146,7 @@ _Ext_sRoomExt:
     d_addr Draw_func_ptr, FuncC_Boss_Shadow_DrawRoom
     D_END
 _TerrainData:
-:   .incbin "out/data/boss_shadow.room"
+:   .incbin "out/rooms/boss_shadow.room"
     .assert * - :- = 16 * 15, error
 _Machines_sMachine_arr:
 :   .assert * - :- = kEmitterXMachineIndex * .sizeof(sMachine), error

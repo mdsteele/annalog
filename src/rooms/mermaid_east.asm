@@ -61,7 +61,7 @@ _Ext_sRoomExt:
     d_addr Draw_func_ptr, Func_Noop
     D_END
 _TerrainData:
-:   .incbin "out/data/mermaid_east.room"
+:   .incbin "out/rooms/mermaid_east.room"
     .assert * - :- = 33 * 24, error
 _Platforms_sPlatform_arr:
 :   D_STRUCT sPlatform

@@ -182,7 +182,7 @@ _Ext_sRoomExt:
     d_addr Draw_func_ptr, FuncC_Temple_Altar_DrawRoom
     D_END
 _TerrainData:
-:   .incbin "out/data/temple_altar.room"
+:   .incbin "out/rooms/temple_altar.room"
     .assert * - :- = 17 * 24, error
 _Machines_sMachine_arr:
 :   .assert * - :- = kUpperMinigunMachineIndex * .sizeof(sMachine), error

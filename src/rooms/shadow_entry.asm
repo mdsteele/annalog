@@ -92,7 +92,7 @@ _Ext_sRoomExt:
     d_addr Draw_func_ptr, Func_Noop
     D_END
 _TerrainData:
-:   .incbin "out/data/shadow_entry.room"
+:   .incbin "out/rooms/shadow_entry.room"
     .assert * - :- = 18 * 24, error
 _Machines_sMachine_arr:
 :   .assert * - :- = kLiftMachineIndex * .sizeof(sMachine), error

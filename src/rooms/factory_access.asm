@@ -86,7 +86,7 @@ _Ext_sRoomExt:
     d_addr Draw_func_ptr, FuncA_Objects_SetWheelChr0cBank
     D_END
 _TerrainData:
-:   .incbin "out/data/factory_access.room"
+:   .incbin "out/rooms/factory_access.room"
     .assert * - :- = 18 * 24, error
 _Machines_sMachine_arr:
 :   .assert * - :- = kRotorMachineIndex * .sizeof(sMachine), error

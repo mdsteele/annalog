@@ -98,7 +98,7 @@ _Ext_sRoomExt:
     d_addr Draw_func_ptr, FuncC_Core_Lock_DrawRoom
     D_END
 _TerrainData:
-:   .incbin "out/data/core_lock.room"
+:   .incbin "out/rooms/core_lock.room"
     .assert * - :- = 18 * 15, error
 _Machines_sMachine_arr:
 :   .assert * - :- = kLift1MachineIndex * .sizeof(sMachine), error

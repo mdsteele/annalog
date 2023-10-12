@@ -151,7 +151,7 @@ _Ext_sRoomExt:
     d_addr Draw_func_ptr, FuncA_Objects_MineWest_DrawRoom
     D_END
 _TerrainData:
-:   .incbin "out/data/mine_west.room"
+:   .incbin "out/rooms/mine_west.room"
     .assert * - :- = 18 * 24, error
 _Machines_sMachine_arr:
 :   .assert * - :- = kCraneMachineIndex * .sizeof(sMachine), error

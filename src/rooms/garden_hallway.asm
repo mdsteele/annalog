@@ -85,8 +85,8 @@ _Ext_sRoomExt:
     d_addr Draw_func_ptr, Func_Noop
     D_END
 _TerrainData:
-:   .incbin "out/data/garden_hallway1.room"
-    .incbin "out/data/garden_hallway2.room"
+:   .incbin "out/rooms/garden_hallway1.room"
+    .incbin "out/rooms/garden_hallway2.room"
     .assert * - :- = 50 * 15, error
 _Machines_sMachine_arr:
 :   .assert * - :- = kLiftMachineIndex * .sizeof(sMachine), error

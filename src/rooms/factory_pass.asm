@@ -60,7 +60,7 @@ _Ext_sRoomExt:
     d_addr Draw_func_ptr, Func_Noop
     D_END
 _TerrainData:
-:   .incbin "out/data/factory_pass.room"
+:   .incbin "out/rooms/factory_pass.room"
     .assert * - :- = 18 * 15, error
 _Platforms_sPlatform_arr:
 :   D_STRUCT sPlatform

@@ -231,7 +231,7 @@ _Ext_sRoomExt:
     d_addr Draw_func_ptr, FuncA_Objects_DrawBoss
     D_END
 _TerrainData:
-:   .incbin "out/data/boss_garden.room"
+:   .incbin "out/rooms/boss_garden.room"
     .assert * - :- = 16 * 24, error
 _Machines_sMachine_arr:
 :   .assert * - :- = kCannonMachineIndex * .sizeof(sMachine), error

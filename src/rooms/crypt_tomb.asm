@@ -164,7 +164,7 @@ _Ext_sRoomExt:
     d_addr Draw_func_ptr, FuncC_Crypt_Tomb_DrawRoom
     D_END
 _TerrainData:
-:   .incbin "out/data/crypt_tomb.room"
+:   .incbin "out/rooms/crypt_tomb.room"
     .assert * - :- = 17 * 24, error
 _Machines_sMachine_arr:
 :   .assert * - :- = kWinchMachineIndex * .sizeof(sMachine), error

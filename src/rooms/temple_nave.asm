@@ -203,7 +203,7 @@ _Ext_sRoomExt:
     d_addr Draw_func_ptr, FuncA_Objects_TempleNave_DrawRoom
     D_END
 _TerrainData:
-:   .incbin "out/data/temple_nave.room"
+:   .incbin "out/rooms/temple_nave.room"
     .assert * - :- = 34 * 24, error
 _Machines_sMachine_arr:
 :   .assert * - :- = kLowerCarriageMachineIndex * .sizeof(sMachine), error

@@ -131,7 +131,7 @@ _Ext_sRoomExt:
     d_addr Draw_func_ptr, FuncC_Core_South_DrawRoom
     D_END
 _TerrainData:
-:   .incbin "out/data/core_south.room"
+:   .incbin "out/rooms/core_south.room"
     .assert * - :- = 17 * 24, error
 _Platforms_sPlatform_arr:
 :   .assert * - :- = kCrate1PlatformIndex * .sizeof(sPlatform), error

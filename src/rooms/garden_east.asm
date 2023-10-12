@@ -139,7 +139,7 @@ _Ext_sRoomExt:
     d_addr Draw_func_ptr, Func_Noop
     D_END
 _TerrainData:
-:   .incbin "out/data/garden_east.room"
+:   .incbin "out/rooms/garden_east.room"
     .assert * - :- = 33 * 24, error
 _Machines_sMachine_arr:
 :   .assert * - :- = kBridgeMachineIndex * .sizeof(sMachine), error

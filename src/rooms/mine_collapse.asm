@@ -118,7 +118,7 @@ _Ext_sRoomExt:
     d_addr Draw_func_ptr, Func_Noop
     D_END
 _TerrainData:
-:   .incbin "out/data/mine_collapse.room"
+:   .incbin "out/rooms/mine_collapse.room"
     .assert * - :- = 33 * 15, error
 _Machines_sMachine_arr:
 :   .assert * - :- = kTrolleyMachineIndex * .sizeof(sMachine), error

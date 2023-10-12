@@ -84,7 +84,7 @@ _Ext_sRoomExt:
     d_addr Draw_func_ptr, FuncC_City_Flower_DrawRoom
     D_END
 _TerrainData:
-:   .incbin "out/data/city_flower.room"
+:   .incbin "out/rooms/city_flower.room"
     .assert * - :- = 16 * 15, error
 _Platforms_sPlatform_arr:
 :   .assert * - :- = kCratePlatformIndex * .sizeof(sPlatform), error
