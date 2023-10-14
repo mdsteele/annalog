@@ -485,7 +485,7 @@ _WriteToPpu:
 .REPEAT 2, table
     D_TABLE_LO table, DataC_Core_Boss_BreakerTransfers_arr_ptr_0_arr
     D_TABLE_HI table, DataC_Core_Boss_BreakerTransfers_arr_ptr_1_arr
-    D_TABLE eBreaker
+    D_TABLE .enum, eBreaker
     d_entry table, Garden, DataC_Core_Boss_CircuitGardenTransfer_arr
     d_entry table, Temple, DataC_Core_Boss_CircuitTempleTransfer_arr
     d_entry table, Crypt,  DataC_Core_Boss_CircuitCryptTransfer_arr

@@ -459,7 +459,7 @@ _Blaster:
 ;;; The "chain broken" flag associated with each crate in this room, indexed by
 ;;; eCrate value.
 .PROC DataA_Room_LavaCenter_CrateFlag_eFlag_arr
-    D_ENUM eCrate
+    D_ARRAY .enum, eCrate
     d_byte Crate1, eFlag::LavaCenterChain1Broken
     d_byte Crate2, eFlag::LavaCenterChain2Broken
     d_byte Crate3, eFlag::LavaCenterChain3Broken
@@ -487,7 +487,7 @@ _Blaster:
 .ENDPROC
 
 .PROC DataA_Room_LavaCenter_ChainPlatform_u8_arr
-    D_ENUM eCrate
+    D_ARRAY .enum, eCrate
     d_byte Crate1, kChain1PlatformIndex
     d_byte Crate2, kChain2PlatformIndex
     d_byte Crate3, kChain3PlatformIndex
@@ -497,14 +497,14 @@ _Blaster:
 ;;; The room pixel Y-position of the bottom of each droppable crate when it's
 ;;; resting on the floor, indexed by eCrate value.
 .PROC DataA_Room_LavaCenter_CrateMaxTop_i16_0_arr
-    D_ENUM eCrate
+    D_ARRAY .enum, eCrate
     d_byte Crate1, <kCrate1MaxTop
     d_byte Crate2, <kCrate2MaxTop
     d_byte Crate3, <kCrate3MaxTop
     D_END
 .ENDPROC
 .PROC DataA_Room_LavaCenter_CrateMaxTop_i16_1_arr
-    D_ENUM eCrate
+    D_ARRAY .enum, eCrate
     d_byte Crate1, >kCrate1MaxTop
     d_byte Crate2, >kCrate2MaxTop
     d_byte Crate3, >kCrate3MaxTop

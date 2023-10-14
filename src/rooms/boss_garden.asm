@@ -430,7 +430,7 @@ _CheckMode:
 .REPEAT 2, table
     D_TABLE_LO table, _JumpTable_ptr_0_arr
     D_TABLE_HI table, _JumpTable_ptr_1_arr
-    D_TABLE eBossMode
+    D_TABLE .enum, eBossMode
     d_entry table, Dead,    Func_Noop
     d_entry table, Waiting, FuncC_Boss_Garden_TickBossWaiting
     d_entry table, Angry,   FuncC_Boss_Garden_TickBossAngry
@@ -608,12 +608,12 @@ _Close:
     @done:
     rts
 _FireballPosX_u8_arr2:
-    D_ENUM eEye
+    D_ARRAY .enum, eEye
     d_byte Left,  kBossLeftEyeCenterX
     d_byte Right, kBossRightEyeCenterX
     D_END
 _FireballPosY_u8_arr2:
-    D_ENUM eEye
+    D_ARRAY .enum, eEye
     d_byte Left,  kBossLeftEyeCenterY
     d_byte Right, kBossRightEyeCenterY
     D_END

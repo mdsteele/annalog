@@ -126,7 +126,7 @@ _Done:
 .REPEAT 2, table
     D_TABLE_LO table, DataA_Pause_AreaNames_u8_arr12_ptr_0_arr
     D_TABLE_HI table, DataA_Pause_AreaNames_u8_arr12_ptr_1_arr
-    D_TABLE eArea
+    D_TABLE .enum, eArea
     d_entry table, City,    DataA_Pause_CityAreaName_u8_arr12
     d_entry table, Core,    DataA_Pause_CoreAreaName_u8_arr12
     d_entry table, Crypt,   DataA_Pause_CryptAreaName_u8_arr12
@@ -213,7 +213,7 @@ _Done:
 .REPEAT 2, table
     D_TABLE_LO table, DataA_Pause_AreaCells_u8_arr2_arr_ptr_0_arr
     D_TABLE_HI table, DataA_Pause_AreaCells_u8_arr2_arr_ptr_1_arr
-    D_TABLE eArea
+    D_TABLE .enum, eArea
     d_entry table, City,    DataA_Pause_CityAreaCells_u8_arr2_arr
     d_entry table, Core,    DataA_Pause_CoreAreaCells_u8_arr2_arr
     d_entry table, Crypt,   DataA_Pause_CryptAreaCells_u8_arr2_arr

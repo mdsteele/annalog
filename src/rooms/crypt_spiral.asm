@@ -21,6 +21,7 @@
 .INCLUDE "../charmap.inc"
 .INCLUDE "../device.inc"
 .INCLUDE "../dialog.inc"
+.INCLUDE "../flag.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../platform.inc"
 .INCLUDE "../program.inc"
@@ -120,7 +121,7 @@ _Devices_sDevice_arr:
     d_byte Type_eDevice, eDevice::Paper
     d_byte BlockRow_u8, 6
     d_byte BlockCol_u8, 8
-    d_byte Target_byte, eDialog::CryptSpiralPaper
+    d_byte Target_byte, eFlag::PaperJerome11
     D_END
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None
@@ -137,10 +138,10 @@ _Passages_sPassage_arr:
 
 .SEGMENT "PRGA_Dialog"
 
-.EXPORT DataA_Dialog_CryptSpiralPaper_sDialog
-.PROC DataA_Dialog_CryptSpiralPaper_sDialog
-    dlg_Text Paper, DataA_Text0_CryptSpiralPaper_Page1_u8_arr
-    dlg_Text Paper, DataA_Text0_CryptSpiralPaper_Page2_u8_arr
+.EXPORT DataA_Dialog_PaperJerome11_sDialog
+.PROC DataA_Dialog_PaperJerome11_sDialog
+    dlg_Text Paper, DataA_Text0_PaperJerome11_Page1_u8_arr
+    dlg_Text Paper, DataA_Text0_PaperJerome11_Page2_u8_arr
     dlg_Done
 .ENDPROC
 
@@ -148,14 +149,14 @@ _Passages_sPassage_arr:
 
 .SEGMENT "PRGA_Text0"
 
-.PROC DataA_Text0_CryptSpiralPaper_Page1_u8_arr
+.PROC DataA_Text0_PaperJerome11_Page1_u8_arr
     .byte "Day 11: And yet, who$"
     .byte "am I to judge? Perhaps$"
     .byte "they would do better$"
     .byte "than we did.#"
 .ENDPROC
 
-.PROC DataA_Text0_CryptSpiralPaper_Page2_u8_arr
+.PROC DataA_Text0_PaperJerome11_Page2_u8_arr
     .byte "It's not as though the$"
     .byte "bar is very high.#"
 .ENDPROC

@@ -50,7 +50,7 @@
 
 ;;; The DMC sample rate (0-$f) to use for each sample.
 .PROC Data_SampleRate_u8_arr
-    D_ENUM eSample
+    D_ARRAY .enum, eSample
     d_byte Harm, $e
     d_byte Jump, $f
     D_END
@@ -58,7 +58,7 @@
 
 ;;; The encoded start address for each sample.
 .PROC Data_SampleStart_u8_arr
-    D_ENUM eSample
+    D_ARRAY .enum, eSample
     d_byte Harm, <(Data_SampleHarm_arr >> 6)
     d_byte Jump, <(Data_SampleJump_arr >> 6)
     D_END
@@ -66,7 +66,7 @@
 
 ;;; The encoded byte length for each sample.
 .PROC Data_SampleLength_u8_arr
-    D_ENUM eSample
+    D_ARRAY .enum, eSample
     d_byte Harm, .sizeof(Data_SampleHarm_arr) >> 4
     d_byte Jump, .sizeof(Data_SampleJump_arr) >> 4
     D_END
@@ -74,7 +74,7 @@
 
 ;;; The number of frames to play each sample for.
 .PROC Data_SampleFrames_u8_arr
-    D_ENUM eSample
+    D_ARRAY .enum, eSample
     d_byte Harm, 5
     d_byte Jump, 9
     D_END

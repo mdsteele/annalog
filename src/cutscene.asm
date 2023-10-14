@@ -166,7 +166,7 @@ _Finish:
 .REPEAT 2, table
     D_TABLE_LO table, DataA_Cutscene_Table_sCutscene_ptr_0_arr
     D_TABLE_HI table, DataA_Cutscene_Table_sCutscene_ptr_1_arr
-    D_TABLE eCutscene
+    D_TABLE .enum, eCutscene
     d_entry table, None, DataA_Cutscene_Null_sCutscene
     d_entry table, CityFlowerOrcAttack, \
             DataA_Cutscene_CityFlowerOrcAttack_sCutscene
@@ -306,7 +306,7 @@ _InitMainFork:
 .REPEAT 2, table
     D_TABLE_LO table, _JumpTable_ptr_0_arr
     D_TABLE_HI table, _JumpTable_ptr_1_arr
-    D_TABLE eAction
+    D_TABLE .enum, eAction
     d_entry table, BranchIfC,         _BranchIfC
     d_entry table, BranchIfZ,         _BranchIfZ
     d_entry table, CallFunc,          _CallFunc

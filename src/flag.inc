@@ -94,6 +94,50 @@ kSaveMagicNumber = $b2
     BreakerMine
     BreakerCity
     BreakerShadow
+    ;; Each of these flags is set when that paper has been collected:
+    PaperJerome01
+    PaperJerome02
+    PaperJerome03
+    PaperJerome04
+    PaperJerome05
+    PaperJerome06
+    PaperJerome07
+    PaperJerome08
+    PaperJerome09
+    PaperJerome10
+    PaperJerome11
+    PaperJerome12
+    PaperJerome13
+    PaperJerome14
+    PaperJerome15
+    PaperJerome16
+    PaperJerome17
+    PaperJerome18
+    PaperJerome19
+    PaperJerome20
+    PaperJerome21
+    PaperJerome22
+    PaperJerome23
+    PaperJerome24
+    PaperJerome25
+    PaperJerome26
+    PaperJerome27
+    PaperJerome28
+    PaperJerome29
+    PaperJerome30
+    PaperJerome31
+    PaperJerome32
+    PaperJerome33
+    PaperJerome34
+    PaperJerome35
+    PaperJerome36
+    PaperManual1
+    PaperManual2
+    PaperManual3
+    PaperManual4
+    PaperManual5
+    PaperManual6
+    PaperManual7
     ;; Flags for persistent room state:
     CityCenterDoorUnlocked
     CityCenterKeygenConnected
@@ -162,5 +206,10 @@ kFirstFlowerFlag = eFlag::FlowerTemple
 kLastFlowerFlag = eFlag::FlowerMine
 kNumFlowerFlags = 12
 .ASSERT kNumFlowerFlags = kLastFlowerFlag + 1 - kFirstFlowerFlag, error
+
+kFirstPaperFlag = eFlag::PaperJerome01
+kLastPaperFlag = eFlag::PaperManual7
+kNumPaperFlags = 43
+.ASSERT kNumPaperFlags = kLastPaperFlag + 1 - kFirstPaperFlag, error
 
 ;;;=========================================================================;;;

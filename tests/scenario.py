@@ -82,6 +82,11 @@ MARKER_COL_RE = re.compile(
 MARKER_IF_RE = re.compile(r'^ *d_byte +If_eFlag, *(?:0|eFlag::([A-Za-z0-9]+))')
 MARKER_NOT_RE = re.compile(r'^ *d_byte +Not_eFlag, *eFlag::([A-Za-z0-9]+)')
 
+PAPER_AREA_RE = re.compile(
+    r'^ *d_byte *eFlag::(Paper[A-Za-z0-9]+), *eArea::([A-Za-z]+) *'
+    r'; *room: *([A-Za-z0-9]+)')
+PAPER_TARGET_RE = re.compile(r'^ *d_byte +Target_byte, *eFlag::([A-Za-z0-9]+)')
+
 MAX_SCROLL_X_RE = re.compile(r'^ *d_word +MaxScrollX_u16,.*\$([0-9a-fA-F]+)')
 ROOM_FLAGS_RE = re.compile(r'^ *d_byte +Flags_bRoom, *(.*)eArea::([A-Za-z]+)$')
 START_ROW_RE = re.compile(r'^ *d_byte +MinimapStartRow_u8, *([0-9]+)')
@@ -151,6 +156,18 @@ def load_minimap():
                     minimap.add((row, col))
     return minimap
 
+def load_papers():
+    papers = {}
+    with open('src/paper.asm') as file:
+        while True:
+            match = try_scan_for_match(file, PAPER_AREA_RE)
+            if not match: break
+            paper_name = match.group(1)
+            area_name = match.group(2)
+            room_name = match.group(3)
+            papers[paper_name] = {'area': area_name, 'room': room_name}
+    return papers
+
 def load_room(filepath, prgc_name):
     file = open(filepath)
     # Determine the set of minimap cells that this room occupies.
@@ -168,6 +185,7 @@ def load_room(filepath, prgc_name):
                       for col in range(start_col, start_col + width))
     # Load the passage data for this room.
     doors = []
+    papers = []
     passages = []
     while True:
         match = try_scan_for_match(file, D_STRUCT_RE)
@@ -175,19 +193,23 @@ def load_room(filepath, prgc_name):
         struct_type = match.group(1)
         if struct_type == 'sDevice':
             device_type = read_match_line(file, DEVICE_TYPE_RE).group(1)
-            if not device_type.startswith('Door'): continue
-            door_number = device_type[4]
-            assert door_number in '123'
-            block_row = read_int_line(file, DEVICE_ROW_RE)
-            block_col = read_int_line(file, DEVICE_COL_RE)
-            door_dest = read_match_line(file, DOOR_TARGET_RE).group(1)
-            cell_row = start_row + (1 if is_tall and block_row >= 12 else 0)
-            cell_col = start_col + block_col // 16
-            doors.append({
-                'door_number': door_number,
-                'cell': (cell_row, cell_col),
-                'dest_room': door_dest,
-            })
+            if device_type.startswith('Door'):
+                door_number = device_type[4]
+                assert door_number in '123'
+                block_row = read_int_line(file, DEVICE_ROW_RE)
+                block_col = read_int_line(file, DEVICE_COL_RE)
+                door_dest = read_match_line(file, DOOR_TARGET_RE).group(1)
+                cell_row = start_row + (1 if is_tall and block_row >= 12
+                                        else 0)
+                cell_col = start_col + block_col // 16
+                doors.append({
+                    'door_number': door_number,
+                    'cell': (cell_row, cell_col),
+                    'dest_room': door_dest,
+                })
+            elif device_type == 'Paper':
+                paper_name = scan_for_match(file, PAPER_TARGET_RE).group(1)
+                papers.append(paper_name)
         elif struct_type == 'sPassage':
             exit_match = read_match_line(file, PASSAGE_EXIT_RE)
             dest_match = read_match_line(file, PASSAGE_DEST_RE)
@@ -215,6 +237,7 @@ def load_room(filepath, prgc_name):
         'area': area_name,
         'cells': cells,
         'doors': doors,
+        'papers': papers,
         'passages': passages,
     }
 
@@ -422,6 +445,37 @@ def test_marker_rooms(areas, markers):
             failed = True
     return failed
 
+def test_paper_rooms(areas, papers):
+    failed = False
+    for paper_name, paper in papers.items():
+        area_name = paper['area']
+        area = areas[area_name]
+        room_name = paper['room']
+        if room_name not in area['rooms']:
+            print('SCENARIO: paper {} is in nonexistant room {}'.format(
+                paper_name, room_name))
+            failed = True
+            continue
+        room = area['rooms'][room_name]
+        if paper_name not in room['papers']:
+            print('SCENARIO: paper {} does not exist in room {}'.format(
+                paper_name, room_name))
+            failed = True
+    for area in areas.values():
+        for room_name, room in area['rooms'].items():
+            for paper_name in room['papers']:
+                if paper_name not in papers:
+                    print('SCENARIO: room {} has unlisted paper {}'.format(
+                        room_name, paper_name))
+                    failed = True
+                    continue
+                paper = papers[paper_name]
+                if room_name != paper['room']:
+                    print('SCENARIO: room {} wrongly has paper {}'.format(
+                        room_name, paper_name))
+                    failed = True
+    return failed
+
 #=============================================================================#
 
 def run_tests():
@@ -435,6 +489,8 @@ def run_tests():
     failed |= test_room_doors(areas)
     failed |= test_room_passages(areas)
     failed |= test_marker_rooms(areas, markers)
+    papers = load_papers()
+    failed |= test_paper_rooms(areas, papers)
     return failed
 
 #=============================================================================#

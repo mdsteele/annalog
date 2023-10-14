@@ -508,7 +508,7 @@ _ExecInstruction:
 .REPEAT 2, table
     D_TABLE_LO table, _JumpTable_ptr_0_arr
     D_TABLE_HI table, _JumpTable_ptr_1_arr
-    D_TABLE eOpcode
+    D_TABLE .enum, eOpcode
     d_entry table, Empty, _OpEmpty
     d_entry table, Copy,  _OpCopy
     d_entry table, Sync,  _OpSync

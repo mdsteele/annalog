@@ -68,6 +68,7 @@
 .IMPORT Main_Cutscene_Start
 .IMPORT Main_Death
 .IMPORT Main_Dialog_UseDevice
+.IMPORT Main_Paper_UseDevice
 .IMPORT Main_Pause
 .IMPORT Main_Upgrade_UseDevice
 .IMPORT Ppu_ChrBgAnimA0
@@ -218,7 +219,7 @@ _CheckForPause:
 .REPEAT 2, table
     D_TABLE_LO table, _JumpTable_ptr_0_arr
     D_TABLE_HI table, _JumpTable_ptr_1_arr
-    D_TABLE eDevice
+    D_TABLE .enum, eDevice
     d_entry table, None,          _DoneWithDevice
     d_entry table, BreakerDone,   _DoneWithDevice
     d_entry table, BreakerRising, _DoneWithDevice
@@ -236,7 +237,7 @@ _CheckForPause:
     d_entry table, Flower,        _DeviceFlower
     d_entry table, LeverCeiling,  _DeviceLever
     d_entry table, LeverFloor,    _DeviceLever
-    d_entry table, Paper,         Main_Dialog_UseDevice
+    d_entry table, Paper,         Main_Paper_UseDevice
     d_entry table, Screen,        Main_Dialog_UseDevice
     d_entry table, Sign,          Main_Dialog_UseDevice
     d_entry table, TalkLeft,      Main_Dialog_UseDevice

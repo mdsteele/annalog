@@ -237,32 +237,49 @@ T7T6 := $06
 
 ;;;=========================================================================;;;
 
-;;; Begins a list data definition, indexed by enum values.
+;;; Begins an array data definition.
 ;;;
-;;; Example:
-;;;     .PROC Data_FoodMapping_u8_arr
-;;;         D_ENUM eFood
+;;; Examples:
+;;;     .PROC Data_FoodEnumMapping_u8_arr
+;;;         D_ARRAY .enum, eFood
 ;;;         d_byte Spam,  kSpamValue
 ;;;         d_byte Eggs,  kEggsValue
 ;;;         d_byte Bacon, kBaconValue
 ;;;         D_END
 ;;;     .ENDPROC
-.MACRO D_ENUM enum, mult
+;;;     .PROC Data_FoodItemMapping_u8_arr
+;;;         D_ARRAY kNumFoodItems, kFirstFoodItem
+;;;         d_byte eItem::FoodSpam,  kSpamValue
+;;;         d_byte eItem::FoodEggs,  kEggsValue
+;;;         d_byte eItem::FoodBacon, kBaconValue
+;;;         D_END
+;;;     .ENDPROC
+.MACRO D_ARRAY count, base, mult
     .scope
-    .if .defined(d_nest)
-    d_nest .set 2
-    .define d_type2 enum
+.IF .xmatch({count}, {.enum})
+_d_count = base::NUM_VALUES
+    .if .defined(_d_nest)
+    _d_nest .set 2
+    .define _d_type2 base
     .else
-    d_nest .set 1
-    .define d_type enum
+    _d_nest .set 1
+    .define _d_type base
     .endif
+.ELSE
+_d_count = count
     .if .paramcount > 1
-d_mult = mult
+_d_offset = base
     .else
-d_mult = 1
+_d_offset = 0
     .endif
-d_total = enum::NUM_VALUES * d_mult
-d_begin:
+.ENDIF
+    .if .paramcount > 2
+_d_mult = mult
+    .else
+_d_mult = 1
+    .endif
+_d_total = _d_count * _d_mult
+_d_begin:
 .ENDMACRO
 
 ;;; Begins a struct data definition.
@@ -279,28 +296,30 @@ d_begin:
 ;;;     .ENDPROC
 .MACRO D_STRUCT struct
     .scope
-    .if .defined(d_nest)
-    d_nest .set 2
-    .define d_type2 struct
+    .if .defined(_d_nest)
+    _d_nest .set 2
+    .define _d_type2 struct
     .else
-    d_nest .set 1
-    .define d_type struct
+    _d_nest .set 1
+    .define _d_type struct
     .endif
-d_mult = 1
-d_total = .sizeof(struct)
-d_begin:
+_d_mult = 1
+_d_total = .sizeof(struct)
+_d_begin:
 .ENDMACRO
 
 ;;; Private helper macro for d_addr/d_byte/d_word below.
 .MACRO _d_field field
-    .if d_nest = 2
-    .assert * - d_begin = d_type2::field * d_mult, error, "wrong offset"
+    .if .defined(_d_offset)
+    .assert * - _d_begin = (field) * _d_mult - _d_offset, error, "wrong offset"
+    .elseif _d_nest = 2
+    .assert * - _d_begin = _d_type2::field * _d_mult, error, "wrong offset"
     .else
-    .assert * - d_begin = d_type::field * d_mult, error, "wrong offset"
+    .assert * - _d_begin = _d_type::field * _d_mult, error, "wrong offset"
     .endif
 .ENDMACRO
 
-;;; Defines one or more addrs within a D_ENUM or D_STRUCT block.
+;;; Defines one or more addrs within a D_ARRAY or D_STRUCT block.
 .MACRO d_addr field, v1
     _d_field field
     .if .paramcount > 1
@@ -308,7 +327,7 @@ d_begin:
     .endif
 .ENDMACRO
 
-;;; Defines one or more bytes within a D_ENUM or D_STRUCT block.
+;;; Defines one or more bytes within a D_ARRAY or D_STRUCT block.
 .MACRO d_byte field, v1, v2, v3, v4
     _d_field field
     .if .paramcount > 1
@@ -325,7 +344,7 @@ d_begin:
     .endif
 .ENDMACRO
 
-;;; Defines one or more words within a D_ENUM or D_STRUCT block.
+;;; Defines one or more words within a D_ARRAY or D_STRUCT block.
 .MACRO d_word field, v1
     _d_field field
     .if .paramcount > 1
@@ -333,13 +352,14 @@ d_begin:
     .endif
 .ENDMACRO
 
-;;; Ends a D_ENUM or D_STRUCT data definition.
+;;; Ends a D_ARRAY, D_STRUCT, or D_TABLE data definition.
 .MACRO D_END
-    .assert * - d_begin = d_total, error, "wrong size"
-    .if d_nest = 2
-    .undefine d_type2
+    .assert * - _d_begin = _d_total, error, "wrong size"
+    .if .defined(_d_offset)
+    .elseif _d_nest = 2
+    .undefine _d_type2
     .else
-    .undefine d_type
+    .undefine _d_type
     .endif
     .endscope
 .ENDMACRO
@@ -348,22 +368,41 @@ d_begin:
 
 ;;; Declares a pointer table.
 ;;;
-;;; Example:
+;;; Examples:
 ;;;     .REPEAT 2, table
 ;;;         D_TABLE_LO table, Data_FoodTable_sFood_ptr_0_arr
 ;;;         D_TABLE_HI table, Data_FoodTable_sFood_ptr_1_arr
-;;;         D_TABLE eFood
+;;;         D_TABLE .enum, eFood
 ;;;         d_entry table, Spam,  Data_Spam_sFood
 ;;;         d_entry table, Eggs,  Data_Eggs_sFood
 ;;;         d_entry table, Bacon, Data_Bacon_sFood
 ;;;         D_END
 ;;;     .ENDREPEAT
-.MACRO D_TABLE enum
+;;;     .REPEAT 2, table
+;;;         D_TABLE_LO table, Data_FoodTable_sFood_ptr_0_arr
+;;;         D_TABLE_HI table, Data_FoodTable_sFood_ptr_1_arr
+;;;         D_TABLE_BANK table, Data_FoodTableBank_u8_arr
+;;;         D_TABLE kNumFoodItems, kFirstFoodItem
+;;;         d_entry table, eItem::FoodSpam,  DataA_Food1_Spam_sFood
+;;;         d_entry table, eItem::FoodEggs,  DataA_Food1_Eggs_sFood
+;;;         d_entry table, eItem::FoodBacon, DataA_Food2_Bacon_sFood
+;;;         D_END
+;;;     .ENDREPEAT
+.MACRO D_TABLE count, base
     .scope
-    .define d_type enum
-d_nest = 1
-d_total = enum::NUM_VALUES
-d_begin:
+.IF .xmatch({count}, {.enum})
+_d_total = base::NUM_VALUES
+    .define _d_type base
+_d_nest = 1
+.ELSE
+_d_total = count
+    .if .paramcount > 1
+_d_offset = base
+    .else
+_d_offset = 0
+    .endif
+.ENDIF
+_d_begin:
 .ENDMACRO
 
 ;;; Declares the lo-byte array in a pointer table.
@@ -389,7 +428,11 @@ label:
 
 ;;; Declares an entry in a pointer table.
 .MACRO d_entry table, field, label
-    .assert * - d_begin = d_type::field, error, "wrong offset"
+    .if .defined(_d_offset)
+    .assert * - _d_begin = (field) - _d_offset, error, "wrong offset"
+    .else
+    .assert * - _d_begin = _d_type::field, error, "wrong offset"
+    .endif
     .if table = 0
     .byte <label
     .elseif table = 1

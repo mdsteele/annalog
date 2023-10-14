@@ -64,22 +64,14 @@
 .ENUM eDialog
     CityBuilding2Screen
     CityBuilding6Screen
-    CityDumpPaper
     CityFlowerOrcAngry
     CityFlowerOrcCalm
     CoreBossGrontaGive
     CoreBossGrontaIntro
     CoreSouthCorra1
     CoreSouthCorra2
-    CryptCenterPaper
-    CryptEscapePaper
-    CryptSpiralPaper
     CryptTombPlaque
     GardenEastCorra
-    GardenLandingPaper
-    GardenShaftPaper
-    LavaStationPaper
-    LavaWestPaper
     MermaidEntrySign
     MermaidHut1AlexPetition
     MermaidHut1BreakerCrypt1
@@ -101,8 +93,19 @@
     MermaidVillageCorra
     MermaidVillageFarmer
     MermaidVillageGuard
-    PrisonCellPaper
-    PrisonEscapePaper
+    PaperJerome08
+    PaperJerome10
+    PaperJerome11
+    PaperJerome12
+    PaperJerome13
+    PaperJerome21
+    PaperJerome28
+    PaperJerome34
+    PaperJerome35
+    PaperJerome36
+    PaperManual2
+    PaperManual3
+    PaperManual4
     PrisonFlowerSign
     PrisonUpperAlexCell
     PrisonUpperAlexFree
@@ -114,13 +117,10 @@
     PrisonUpperNora
     ShadowTeleportScreen
     TempleAltarPlaque
-    TempleApsePaper
     TempleEntryMermaid
-    TempleFoyerPaper
     TempleNaveAlexBoost1
     TempleNaveAlexBoost2
     TempleNaveAlexStand
-    TemplePitPaper
     TownHouse1Nora
     TownHouse2Stela
     TownHouse3Smith

@@ -170,7 +170,7 @@ _BreakerAlreadyDone:
 .REPEAT 2, table
     D_TABLE_LO table, _JumpTable_ptr_0_arr
     D_TABLE_HI table, _JumpTable_ptr_1_arr
-    D_TABLE eBossPhase
+    D_TABLE .enum, eBossPhase
     d_entry table, BossBattle,    _BossBattle
     d_entry table, BossBlinking,  _BossBlinking
     d_entry table, BossExploding, _BossExploding

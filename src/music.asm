@@ -40,7 +40,7 @@
 .REPEAT 2, table
     D_TABLE_LO table, Data_Music_sMusic_ptr_0_arr
     D_TABLE_HI table, Data_Music_sMusic_ptr_1_arr
-    D_TABLE eMusic
+    D_TABLE .enum, eMusic
     d_entry table, Silence, Data_Silence_sMusic
     d_entry table, Boss1,   DataC_Boss_BossPlaceholder_sMusic
     d_entry table, Boss2,   DataC_Core_Boss2_sMusic

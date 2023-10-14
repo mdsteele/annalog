@@ -114,7 +114,7 @@ _Devices_sDevice_arr:
     d_byte Type_eDevice, eDevice::Paper
     d_byte BlockRow_u8, 17
     d_byte BlockCol_u8, 23
-    d_byte Target_byte, eDialog::GardenLandingPaper
+    d_byte Target_byte, eFlag::PaperJerome13
     D_END
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None
@@ -195,10 +195,10 @@ _LockVert:
 
 .SEGMENT "PRGA_Dialog"
 
-.EXPORT DataA_Dialog_GardenLandingPaper_sDialog
-.PROC DataA_Dialog_GardenLandingPaper_sDialog
-    dlg_Text Paper, DataA_Text0_GardenLandingPaper_Page1_u8_arr
-    dlg_Text Paper, DataA_Text0_GardenLandingPaper_Page2_u8_arr
+.EXPORT DataA_Dialog_PaperJerome13_sDialog
+.PROC DataA_Dialog_PaperJerome13_sDialog
+    dlg_Text Paper, DataA_Text0_PaperJerome13_Page1_u8_arr
+    dlg_Text Paper, DataA_Text0_PaperJerome13_Page2_u8_arr
     dlg_Done
 .ENDPROC
 
@@ -206,13 +206,13 @@ _LockVert:
 
 .SEGMENT "PRGA_Text0"
 
-.PROC DataA_Text0_GardenLandingPaper_Page1_u8_arr
+.PROC DataA_Text0_PaperJerome13_Page1_u8_arr
     .byte "Day 13: And now, there$"
     .byte "is nothing left of us$"
     .byte "but our machines.#"
 .ENDPROC
 
-.PROC DataA_Text0_GardenLandingPaper_Page2_u8_arr
+.PROC DataA_Text0_PaperJerome13_Page2_u8_arr
     .byte "I wonder for how long$"
     .byte "those will keep on$"
     .byte "working. A long time.$"

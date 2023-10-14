@@ -59,7 +59,7 @@ kOpcodeMenuRightCol = 5
     d_byte WidthsMinusOne_u8_arr
     .byte 5, 3, 3, 2, 2, 2, 3, 3, 1, 2, 2, 3, 3, 3, 2, 2
     d_addr Labels_u8_arr_ptr_arr
-    D_ENUM eOpcode, kSizeofAddr
+    D_ARRAY .enum, eOpcode, kSizeofAddr
     d_addr Empty, _LabelEmpty
     d_addr Copy,  _LabelCopy
     d_addr Sync,  _LabelSync
@@ -324,7 +324,7 @@ _SetRowsForMenuRightColumn:
     @noActOpcode:
     rts
 _Columns_u8_arr:
-    D_ENUM eOpcode
+    D_ARRAY .enum, eOpcode
     d_byte Empty, kOpcodeMenuLeftCol
     d_byte Copy,  kOpcodeMenuLeftCol
     d_byte Sync,  kOpcodeMenuLeftCol

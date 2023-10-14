@@ -110,7 +110,7 @@ kPaletteObjRodent = 0
 .REPEAT 2, table
     D_TABLE_LO table, _JumpTable_ptr_0_arr
     D_TABLE_HI table, _JumpTable_ptr_1_arr
-    D_TABLE eBadRodent
+    D_TABLE .enum, eBadRodent
     d_entry table, Hiding,    FuncA_Actor_TickBadRodent_Hiding
     d_entry table, Emerging,  FuncA_Actor_TickBadRodent_Emerging
     d_entry table, Running,   FuncA_Actor_TickBadRodent_Running

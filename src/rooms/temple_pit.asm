@@ -22,6 +22,7 @@
 .INCLUDE "../cpu.inc"
 .INCLUDE "../device.inc"
 .INCLUDE "../dialog.inc"
+.INCLUDE "../flag.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../platform.inc"
 .INCLUDE "../room.inc"
@@ -70,7 +71,7 @@ _Devices_sDevice_arr:
     d_byte Type_eDevice, eDevice::Paper
     d_byte BlockRow_u8, 9
     d_byte BlockCol_u8, 5
-    d_byte Target_byte, eDialog::TemplePitPaper
+    d_byte Target_byte, eFlag::PaperJerome34
     D_END
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None
@@ -92,10 +93,10 @@ _Passages_sPassage_arr:
 
 .SEGMENT "PRGA_Dialog"
 
-.EXPORT DataA_Dialog_TemplePitPaper_sDialog
-.PROC DataA_Dialog_TemplePitPaper_sDialog
-    dlg_Text Paper, DataA_Text0_TemplePitPaper_Page1_u8_arr
-    dlg_Text Paper, DataA_Text0_TemplePitPaper_Page2_u8_arr
+.EXPORT DataA_Dialog_PaperJerome34_sDialog
+.PROC DataA_Dialog_PaperJerome34_sDialog
+    dlg_Text Paper, DataA_Text0_PaperJerome34_Page1_u8_arr
+    dlg_Text Paper, DataA_Text0_PaperJerome34_Page2_u8_arr
     dlg_Done
 .ENDPROC
 
@@ -103,14 +104,14 @@ _Passages_sPassage_arr:
 
 .SEGMENT "PRGA_Text0"
 
-.PROC DataA_Text0_TemplePitPaper_Page1_u8_arr
+.PROC DataA_Text0_PaperJerome34_Page1_u8_arr
     .byte "Day 34: Our technology$"
     .byte "is amazing, but don't$"
     .byte "forget, we're all$"
     .byte "still just mortals.#"
 .ENDPROC
 
-.PROC DataA_Text0_TemplePitPaper_Page2_u8_arr
+.PROC DataA_Text0_PaperJerome34_Page2_u8_arr
     .byte "No matter how high we$"
     .byte "build, in the end the$"
     .byte "grave still comes for$"

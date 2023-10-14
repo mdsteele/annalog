@@ -308,7 +308,7 @@ _FadeOut:
 .REPEAT 2, table
     D_TABLE_LO table, _JumpTable_ptr_0_arr
     D_TABLE_HI table, _JumpTable_ptr_1_arr
-    D_TABLE ePhase
+    D_TABLE .enum, ePhase
     d_entry table, Adjust, FuncA_Breaker_TickActivateAdjust
     d_entry table, Reach,  FuncA_Breaker_TickActivateReach
     d_entry table, Strain, FuncA_Breaker_TickActivateStrain
@@ -495,7 +495,7 @@ _AvatarOffsetY_u8_arr:
     ldx _Cutscene_eRoom_arr, y
     rts
 _Cutscene_eRoom_arr:
-    D_ENUM eBreaker
+    D_ARRAY .enum, eBreaker
     d_byte Garden, eRoom::MermaidHut1
     d_byte Temple, eRoom::PrisonUpper
     d_byte Crypt,  eRoom::MermaidHut1
@@ -505,7 +505,7 @@ _Cutscene_eRoom_arr:
     d_byte Shadow, eRoom::MermaidHut1  ; TODO
     D_END
 _Cutscene_eCutscene_arr:
-    D_ENUM eBreaker
+    D_ARRAY .enum, eBreaker
     d_byte Garden, eCutscene::MermaidHut1BreakerGarden
     d_byte Temple, eCutscene::PrisonUpperBreakerTemple
     d_byte Crypt,  eCutscene::MermaidHut1BreakerCrypt
@@ -531,7 +531,7 @@ _Cutscene_eCutscene_arr:
     sta Zp_Camera_bScroll
     rts
 _ScrollX_u16_0_arr:
-    D_ENUM eBreaker
+    D_ARRAY .enum, eBreaker
     d_byte Garden, $00
     d_byte Temple, $d0
     d_byte Crypt,  $00
@@ -541,7 +541,7 @@ _ScrollX_u16_0_arr:
     d_byte Shadow, $00  ; TODO
     D_END
 _ScrollX_u16_1_arr:
-    D_ENUM eBreaker
+    D_ARRAY .enum, eBreaker
     d_byte Garden, $00
     d_byte Temple, $00
     d_byte Crypt,  $00

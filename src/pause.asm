@@ -34,6 +34,7 @@
 .IMPORT DataA_Pause_AreaNames_u8_arr12_ptr_0_arr
 .IMPORT DataA_Pause_AreaNames_u8_arr12_ptr_1_arr
 .IMPORT DataA_Pause_Minimap_sMarker_arr
+.IMPORT DataA_Pause_PaperLocation_eArea_arr
 .IMPORT Data_PowersOfTwo_u8_arr8
 .IMPORT Func_AllocObjects
 .IMPORT Func_AllocOneObject
@@ -118,7 +119,7 @@ Zp_ActivatedBreakers_byte: .res 1
 _GameLoop:
     jsr_prga FuncA_Pause_DrawObjects
     jsr Func_ClearRestOfOamAndProcessFrame
-_CheckForUnause:
+_CheckForUnpause:
     lda Zp_P1ButtonsPressed_bJoypad
     and #bJoypad::Start | bJoypad::BButton | bJoypad::AButton
     beq _GameLoop
@@ -136,11 +137,14 @@ _CheckForUnause:
     .assert * - :- = kMinimapWidth * kMinimapHeight, error
 .ENDPROC
 
-;;; The "Current area:" label that is drawn on the pause screen, along with
-;;; some of the surrounding tiles.
+;;; The "Current area:" label that is drawn on the pause screen.
 .PROC DataA_Pause_CurrentAreaLabel_u8_arr
-    .byte kTileIdBgWindowTopRight, ' '
-    .byte ' ', kTileIdBgWindowVert, " Current area: "
+    .byte "Current area: "
+.ENDPROC
+
+;;; The "Current area:" label that is drawn on the pause screen.
+.PROC DataA_Pause_AreaPaperLabel_u8_arr
+    .byte "Papers found in area: "
 .ENDPROC
 
 ;;; Initializes pause mode, then fades in the screen.
@@ -185,26 +189,14 @@ _FadeIn:
 .PROC FuncA_Pause_DirectDrawBg
     lda #kPpuCtrlFlagsHorz
     sta Hw_PpuCtrl_wo
-    ldax #Ppu_Nametable0_sName + sName::Tiles_u8_arr
     bit Hw_PpuStatus_ro  ; reset the Hw_PpuAddr_w2 write-twice latch
+_BeginUpperNametable:
+    ldax #Ppu_Nametable0_sName + sName::Tiles_u8_arr
     sta Hw_PpuAddr_w2
     stx Hw_PpuAddr_w2
-_ClearTopRows:
-    lda #' '
-    ldx #kScreenWidthTiles * 2 + 1
-    @loop:
-    sta Hw_PpuData_rw
-    dex
-    bne @loop
-_DrawTopBorder:
-    lda #kTileIdBgWindowTopLeft
-    sta Hw_PpuData_rw
-    lda #kTileIdBgWindowHorz
-    ldx #kScreenWidthTiles - 4
-    @loop:
-    sta Hw_PpuData_rw
-    dex
-    bne @loop
+    ldx #kScreenWidthTiles * 2  ; param: num blank tiles to draw
+    jsr _DrawBlankTiles
+    jsr _DrawTopBorder
 _DrawCurrentAreaLabel:
     ldx #0
     @loop:
@@ -265,14 +257,80 @@ _DrawBottomBorder:
     bne @loop
     lda #kTileIdBgWindowBottomRight
     sta Hw_PpuData_rw
-_ClearBottomRows:
+_FinishUpperNametable:
+    ldx #kScreenWidthTiles * 2 + 1  ; param: num blank tiles to draw
+    jsr _DrawBlankTiles
+_BeginLowerNametable:
+    ldax #Ppu_Nametable3_sName + sName::Tiles_u8_arr
+    sta Hw_PpuAddr_w2
+    stx Hw_PpuAddr_w2
+    jsr _DrawTopBorder
+_DrawAreaPaperLabel:
+    ldx #0
+    stx T0  ; num papers found in area
+    stx T1  ; total num papers in area
+    @loop:
+    lda DataA_Pause_AreaPaperLabel_u8_arr, x
+    sta Hw_PpuData_rw
+    inx
+    cpx #.sizeof(DataA_Pause_AreaPaperLabel_u8_arr)
+    blt @loop
+_CountPapers:
+    lda Zp_Current_sRoom + sRoom::Flags_bRoom
+    and #bRoom::AreaMask
+    sta T2  ; current eArea
+    ldx #kNumPaperFlags - 1
+    @loop:
+    lda DataA_Pause_PaperLocation_eArea_arr, x
+    cmp T2  ; current eArea
+    bne @notInArea
+    inc T1  ; total num papers in area
+    txa  ; loop index
+    pha  ; loop index
+    add #kFirstPaperFlag
+    tax  ; param: flag
+    jsr Func_IsFlagSet  ; preserves T0+, sets Z if flag is not set
+    beq @notCollected
+    inc T0  ; num papers found in area
+    @notCollected:
+    pla  ; loop index
+    tax  ; loop index
+    @notInArea:
+    dex
+    .assert kNumPaperFlags <= $80, error
+    bpl @loop
+_DrawAreaPaperCount:
+    lda T0  ; num papers found in area
+    .assert '0' .mod $10 = 0, error
+    ora #'0'
+    sta Hw_PpuData_rw
+    lda #'/'
+    sta Hw_PpuData_rw
+    lda T1  ; total num papers in area
+    .assert '0' .mod $10 = 0, error
+    ora #'0'
+    sta Hw_PpuData_rw
     lda #' '
-    ldx #kScreenWidthTiles * 2 + 1
+    sta Hw_PpuData_rw
+    jsr _DrawLineBreak
+_DrawCollectedPapers:
+    ;; TODO: Draw UI for collected papers
+    rts
+_DrawTopBorder:
+    ldy #' '
+    sty Hw_PpuData_rw
+    lda #kTileIdBgWindowTopLeft
+    sta Hw_PpuData_rw
+    lda #kTileIdBgWindowHorz
+    ldx #kScreenWidthTiles - 4
     @loop:
     sta Hw_PpuData_rw
     dex
     bne @loop
-    rts
+    lda #kTileIdBgWindowTopRight
+    sta Hw_PpuData_rw
+    sty Hw_PpuData_rw
+    bne _DrawStartOrEndOfLine  ; unconditional
 _DrawLineBreak:
     jsr _DrawStartOrEndOfLine
 _DrawStartOrEndOfLine:
@@ -284,12 +342,13 @@ _DrawStartOrEndOfLine:
     rts
 _DrawBlankLine:
     jsr _DrawLineBreak
+    ldx #kScreenWidthTiles - 6  ; param: num blank tiles to draw
+_DrawBlankTiles:
     lda #' '
-    ldy #kScreenWidthTiles - 6
-    @colLoop:
+    @loop:
     sta Hw_PpuData_rw
-    dey
-    bne @colLoop
+    dex
+    bne @loop
     rts
 .ENDPROC
 

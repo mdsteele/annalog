@@ -22,6 +22,7 @@
 .INCLUDE "../cpu.inc"
 .INCLUDE "../device.inc"
 .INCLUDE "../dialog.inc"
+.INCLUDE "../flag.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../platform.inc"
 .INCLUDE "../room.inc"
@@ -129,7 +130,7 @@ _Devices_sDevice_arr:
     d_byte Type_eDevice, eDevice::Paper
     d_byte BlockRow_u8, 7
     d_byte BlockCol_u8, 2
-    d_byte Target_byte, eDialog::TempleApsePaper
+    d_byte Target_byte, eFlag::PaperJerome28
     D_END
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None
@@ -146,10 +147,10 @@ _Passages_sPassage_arr:
 
 .SEGMENT "PRGA_Dialog"
 
-.EXPORT DataA_Dialog_TempleApsePaper_sDialog
-.PROC DataA_Dialog_TempleApsePaper_sDialog
-    dlg_Text Paper, DataA_Text0_TempleApsePaper_Page1_u8_arr
-    dlg_Text Paper, DataA_Text0_TempleApsePaper_Page2_u8_arr
+.EXPORT DataA_Dialog_PaperJerome28_sDialog
+.PROC DataA_Dialog_PaperJerome28_sDialog
+    dlg_Text Paper, DataA_Text0_PaperJerome28_Page1_u8_arr
+    dlg_Text Paper, DataA_Text0_PaperJerome28_Page2_u8_arr
     dlg_Done
 .ENDPROC
 
@@ -157,14 +158,14 @@ _Passages_sPassage_arr:
 
 .SEGMENT "PRGA_Text0"
 
-.PROC DataA_Text0_TempleApsePaper_Page1_u8_arr
+.PROC DataA_Text0_PaperJerome28_Page1_u8_arr
     .byte "Day 28: We tried to$"
     .byte "make peace with them,$"
     .byte "of course. In the end$"
     .byte "it wasn't possible.#"
 .ENDPROC
 
-.PROC DataA_Text0_TempleApsePaper_Page2_u8_arr
+.PROC DataA_Text0_PaperJerome28_Page2_u8_arr
     .byte "But after all, that's$"
     .byte "why we and they were$"
     .byte "different in the first$"

@@ -48,7 +48,7 @@
     d_byte WidthsMinusOne_u8_arr
     .byte 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
     d_addr Labels_u8_arr_ptr_arr
-    D_ENUM eCmp, kSizeofAddr
+    D_ARRAY .enum, eCmp, kSizeofAddr
     d_addr Eq, _LabelEq
     d_addr Ne, _LabelNe
     d_addr Lt, _LabelLt

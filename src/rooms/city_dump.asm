@@ -21,6 +21,7 @@
 .INCLUDE "../charmap.inc"
 .INCLUDE "../device.inc"
 .INCLUDE "../dialog.inc"
+.INCLUDE "../flag.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
 .INCLUDE "../room.inc"
@@ -95,7 +96,7 @@ _Devices_sDevice_arr:
     d_byte Type_eDevice, eDevice::Paper
     d_byte BlockRow_u8, 5
     d_byte BlockCol_u8, 11
-    d_byte Target_byte, eDialog::CityDumpPaper
+    d_byte Target_byte, eFlag::PaperJerome35
     D_END
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None
@@ -112,11 +113,11 @@ _Passages_sPassage_arr:
 
 .SEGMENT "PRGA_Dialog"
 
-.EXPORT DataA_Dialog_CityDumpPaper_sDialog
-.PROC DataA_Dialog_CityDumpPaper_sDialog
-    dlg_Text Paper, DataA_Text0_CityDumpPaper_Page1_u8_arr
-    dlg_Text Paper, DataA_Text0_CityDumpPaper_Page2_u8_arr
-    dlg_Text Paper, DataA_Text0_CityDumpPaper_Page3_u8_arr
+.EXPORT DataA_Dialog_PaperJerome35_sDialog
+.PROC DataA_Dialog_PaperJerome35_sDialog
+    dlg_Text Paper, DataA_Text0_PaperJerome35_Page1_u8_arr
+    dlg_Text Paper, DataA_Text0_PaperJerome35_Page2_u8_arr
+    dlg_Text Paper, DataA_Text0_PaperJerome35_Page3_u8_arr
     dlg_Done
 .ENDPROC
 
@@ -124,21 +125,21 @@ _Passages_sPassage_arr:
 
 .SEGMENT "PRGA_Text0"
 
-.PROC DataA_Text0_CityDumpPaper_Page1_u8_arr
-    .byte "Day 62: I have hidden$"
+.PROC DataA_Text0_PaperJerome35_Page1_u8_arr
+    .byte "Day 35: I have hidden$"
     .byte "the remote. Without it$"
     .byte "the complex can never$"
     .byte "be fully put to use.#"
 .ENDPROC
 
-.PROC DataA_Text0_CityDumpPaper_Page2_u8_arr
+.PROC DataA_Text0_PaperJerome35_Page2_u8_arr
     .byte "I can't bring myself$"
     .byte "to destroy our work.$"
     .byte "Maybe, someday, we'll$"
     .byte "be responsible enough.#"
 .ENDPROC
 
-.PROC DataA_Text0_CityDumpPaper_Page3_u8_arr
+.PROC DataA_Text0_PaperJerome35_Page3_u8_arr
     .byte "Maybe someday...#"
 .ENDPROC
 

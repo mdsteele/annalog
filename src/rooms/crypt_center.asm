@@ -21,6 +21,7 @@
 .INCLUDE "../charmap.inc"
 .INCLUDE "../device.inc"
 .INCLUDE "../dialog.inc"
+.INCLUDE "../flag.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../platform.inc"
 .INCLUDE "../program.inc"
@@ -93,7 +94,7 @@ _Devices_sDevice_arr:
     d_byte Type_eDevice, eDevice::Paper
     d_byte BlockRow_u8, 4
     d_byte BlockCol_u8, 12
-    d_byte Target_byte, eDialog::CryptCenterPaper
+    d_byte Target_byte, eFlag::PaperJerome08
     D_END
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None
@@ -110,11 +111,11 @@ _Passages_sPassage_arr:
 
 .SEGMENT "PRGA_Dialog"
 
-.EXPORT DataA_Dialog_CryptCenterPaper_sDialog
-.PROC DataA_Dialog_CryptCenterPaper_sDialog
-    dlg_Text Paper, DataA_Text0_CryptCenterPaper_Page1_u8_arr
-    dlg_Text Paper, DataA_Text0_CryptCenterPaper_Page2_u8_arr
-    dlg_Text Paper, DataA_Text0_CryptCenterPaper_Page3_u8_arr
+.EXPORT DataA_Dialog_PaperJerome08_sDialog
+.PROC DataA_Dialog_PaperJerome08_sDialog
+    dlg_Text Paper, DataA_Text0_PaperJerome08_Page1_u8_arr
+    dlg_Text Paper, DataA_Text0_PaperJerome08_Page2_u8_arr
+    dlg_Text Paper, DataA_Text0_PaperJerome08_Page3_u8_arr
     dlg_Done
 .ENDPROC
 
@@ -122,21 +123,21 @@ _Passages_sPassage_arr:
 
 .SEGMENT "PRGA_Text0"
 
-.PROC DataA_Text0_CryptCenterPaper_Page1_u8_arr
+.PROC DataA_Text0_PaperJerome08_Page1_u8_arr
     .byte "Day 8: The mermaids$"
     .byte "seek utopia. They say$"
     .byte "they've rid themselves$"
     .byte "of hate and violence.#"
 .ENDPROC
 
-.PROC DataA_Text0_CryptCenterPaper_Page2_u8_arr
+.PROC DataA_Text0_PaperJerome08_Page2_u8_arr
     .byte "Of violence? I admit$"
     .byte "that they seem to have$"
     .byte "succeeded where humans$"
     .byte "have always failed.#"
 .ENDPROC
 
-.PROC DataA_Text0_CryptCenterPaper_Page3_u8_arr
+.PROC DataA_Text0_PaperJerome08_Page3_u8_arr
     .byte "But of hate? Of pride?$"
     .byte "They have only deluded$"
     .byte "themselves.#"

@@ -62,7 +62,7 @@
 .REPEAT 2, table
     D_TABLE_LO table, Data_Instruments_func_ptr_0_arr
     D_TABLE_HI table, Data_Instruments_func_ptr_1_arr
-    D_TABLE eInst
+    D_TABLE .enum, eInst
     d_entry table, Constant,        Func_InstrumentConstant
     d_entry table, PulseBasic,      Func_InstrumentPulseBasic
     d_entry table, RampUp,          Func_InstrumentRampUp

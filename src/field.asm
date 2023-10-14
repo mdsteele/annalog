@@ -55,7 +55,7 @@
     ldx _NumFields_u8_arr, y
     rts
 _NumFields_u8_arr:
-    D_ENUM eOpcode
+    D_ARRAY .enum, eOpcode
     d_byte Empty, 1
     d_byte Copy,  3
     d_byte Sync,  1
@@ -359,7 +359,7 @@ _SetOpcode:
 .REPEAT 2, table
     D_TABLE_LO table, _JumpTable_ptr_0_arr
     D_TABLE_HI table, _JumpTable_ptr_1_arr
-    D_TABLE eOpcode
+    D_TABLE .enum, eOpcode
     d_entry table, Empty, _OpEmpty
     d_entry table, Copy,  _OpCopy
     d_entry table, Sync,  _OpSync

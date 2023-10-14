@@ -127,7 +127,7 @@ Ram_MenuCols_u8_arr: .res kMaxMenuItems
 .REPEAT 2, table
     D_TABLE_LO table, _JumpTable_ptr_0_arr
     D_TABLE_HI table, _JumpTable_ptr_1_arr
-    D_TABLE eField
+    D_TABLE .enum, eField
     d_entry table, Opcode,    FuncA_Console_SetUpOpcodeMenu
     d_entry table, LValue,    FuncA_Console_SetUpLValueMenu
     d_entry table, RValue,    FuncA_Console_SetUpRValueMenu

@@ -385,7 +385,7 @@ _CheckMode:
 .REPEAT 2, table
     D_TABLE_LO table, _JumpTable_ptr_0_arr
     D_TABLE_HI table, _JumpTable_ptr_1_arr
-    D_TABLE eBossMode
+    D_TABLE .enum, eBossMode
     d_entry table, Dead,   Func_Noop
     D_END
 .ENDREPEAT

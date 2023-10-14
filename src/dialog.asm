@@ -35,22 +35,14 @@
 
 .IMPORT DataA_Dialog_CityBuilding2Screen_sDialog
 .IMPORT DataA_Dialog_CityBuilding6Screen_sDialog
-.IMPORT DataA_Dialog_CityDumpPaper_sDialog
 .IMPORT DataA_Dialog_CityFlowerOrcAngry_sDialog
 .IMPORT DataA_Dialog_CityFlowerOrcCalm_sDialog
 .IMPORT DataA_Dialog_CoreBossGrontaGive_sDialog
 .IMPORT DataA_Dialog_CoreBossGrontaIntro_sDialog
 .IMPORT DataA_Dialog_CoreSouthCorra1_sDialog
 .IMPORT DataA_Dialog_CoreSouthCorra2_sDialog
-.IMPORT DataA_Dialog_CryptCenterPaper_sDialog
-.IMPORT DataA_Dialog_CryptEscapePaper_sDialog
-.IMPORT DataA_Dialog_CryptSpiralPaper_sDialog
 .IMPORT DataA_Dialog_CryptTombPlaque_sDialog
 .IMPORT DataA_Dialog_GardenEastCorra_sDialog
-.IMPORT DataA_Dialog_GardenLandingPaper_sDialog
-.IMPORT DataA_Dialog_GardenShaftPaper_sDialog
-.IMPORT DataA_Dialog_LavaStationPaper_sDialog
-.IMPORT DataA_Dialog_LavaWestPaper_sDialog
 .IMPORT DataA_Dialog_MermaidEntrySign_sDialog
 .IMPORT DataA_Dialog_MermaidHut1AlexPetition_sDialog
 .IMPORT DataA_Dialog_MermaidHut1BreakerCrypt1_sDialog
@@ -72,8 +64,19 @@
 .IMPORT DataA_Dialog_MermaidVillageCorra_sDialog
 .IMPORT DataA_Dialog_MermaidVillageFarmer_sDialog
 .IMPORT DataA_Dialog_MermaidVillageGuard_sDialog
-.IMPORT DataA_Dialog_PrisonCellPaper_sDialog
-.IMPORT DataA_Dialog_PrisonEscapePaper_sDialog
+.IMPORT DataA_Dialog_PaperJerome08_sDialog
+.IMPORT DataA_Dialog_PaperJerome10_sDialog
+.IMPORT DataA_Dialog_PaperJerome11_sDialog
+.IMPORT DataA_Dialog_PaperJerome12_sDialog
+.IMPORT DataA_Dialog_PaperJerome13_sDialog
+.IMPORT DataA_Dialog_PaperJerome21_sDialog
+.IMPORT DataA_Dialog_PaperJerome28_sDialog
+.IMPORT DataA_Dialog_PaperJerome34_sDialog
+.IMPORT DataA_Dialog_PaperJerome35_sDialog
+.IMPORT DataA_Dialog_PaperJerome36_sDialog
+.IMPORT DataA_Dialog_PaperManual2_sDialog
+.IMPORT DataA_Dialog_PaperManual3_sDialog
+.IMPORT DataA_Dialog_PaperManual4_sDialog
 .IMPORT DataA_Dialog_PrisonFlowerSign_sDialog
 .IMPORT DataA_Dialog_PrisonUpperAlexCell_sDialog
 .IMPORT DataA_Dialog_PrisonUpperAlexFree_sDialog
@@ -85,13 +88,10 @@
 .IMPORT DataA_Dialog_PrisonUpperNora_sDialog
 .IMPORT DataA_Dialog_ShadowTeleportScreen_sDialog
 .IMPORT DataA_Dialog_TempleAltarPlaque_sDialog
-.IMPORT DataA_Dialog_TempleApsePaper_sDialog
 .IMPORT DataA_Dialog_TempleEntryMermaid_sDialog
-.IMPORT DataA_Dialog_TempleFoyerPaper_sDialog
 .IMPORT DataA_Dialog_TempleNaveAlexBoost1_sDialog
 .IMPORT DataA_Dialog_TempleNaveAlexBoost2_sDialog
 .IMPORT DataA_Dialog_TempleNaveAlexStand_sDialog
-.IMPORT DataA_Dialog_TemplePitPaper_sDialog
 .IMPORT DataA_Dialog_TownHouse1Nora_sDialog
 .IMPORT DataA_Dialog_TownHouse3Smith_sDialog
 .IMPORT DataA_Dialog_TownHouse4Laura_sDialog
@@ -260,6 +260,15 @@ Ram_DialogText_u8_arr: .res (kDialogTextMaxCols + 1) * kDialogNumTextRows
 .EXPORT Main_Dialog_UseDevice
 .PROC Main_Dialog_UseDevice
     ldy Ram_DeviceTarget_byte_arr, x  ; param: eDialog value
+    .assert * = Main_Dialog_WhileExploring, error, "fallthrough"
+.ENDPROC
+
+;;; Mode for beginning dialog within a cutscene.
+;;; @prereq Rendering is enabled.
+;;; @prereq Explore mode is initialized.
+;;; @param Y The eDialog value for the dialog.
+.EXPORT Main_Dialog_WhileExploring
+.PROC Main_Dialog_WhileExploring
     lda #0
     sta Zp_DialogStatus_bDialog
     beq Main_Dialog_OpenWindow  ; unconditional
@@ -267,7 +276,7 @@ Ram_DialogText_u8_arr: .res (kDialogTextMaxCols + 1) * kDialogNumTextRows
 
 ;;; Mode for beginning dialog within a cutscene.
 ;;; @prereq Rendering is enabled.
-;;; @prereq Explore mode is initialized.
+;;; @prereq There is a cutscene in progress.
 ;;; @param Y The eDialog value for the dialog.
 .EXPORT Main_Dialog_WithinCutscene
 .PROC Main_Dialog_WithinCutscene
@@ -366,25 +375,17 @@ _UpdateScrolling:
 .REPEAT 2, t
     D_TABLE_LO t, DataA_Dialog_Table_sDialog_ptr_0_arr
     D_TABLE_HI t, DataA_Dialog_Table_sDialog_ptr_1_arr
-    D_TABLE eDialog
+    D_TABLE .enum, eDialog
     d_entry t, CityBuilding2Screen,  DataA_Dialog_CityBuilding2Screen_sDialog
     d_entry t, CityBuilding6Screen,  DataA_Dialog_CityBuilding6Screen_sDialog
-    d_entry t, CityDumpPaper,        DataA_Dialog_CityDumpPaper_sDialog
     d_entry t, CityFlowerOrcAngry,   DataA_Dialog_CityFlowerOrcAngry_sDialog
     d_entry t, CityFlowerOrcCalm,    DataA_Dialog_CityFlowerOrcCalm_sDialog
     d_entry t, CoreBossGrontaGive,   DataA_Dialog_CoreBossGrontaGive_sDialog
     d_entry t, CoreBossGrontaIntro,  DataA_Dialog_CoreBossGrontaIntro_sDialog
     d_entry t, CoreSouthCorra1,      DataA_Dialog_CoreSouthCorra1_sDialog
     d_entry t, CoreSouthCorra2,      DataA_Dialog_CoreSouthCorra2_sDialog
-    d_entry t, CryptCenterPaper,     DataA_Dialog_CryptCenterPaper_sDialog
-    d_entry t, CryptEscapePaper,     DataA_Dialog_CryptEscapePaper_sDialog
-    d_entry t, CryptSpiralPaper,     DataA_Dialog_CryptSpiralPaper_sDialog
     d_entry t, CryptTombPlaque,      DataA_Dialog_CryptTombPlaque_sDialog
     d_entry t, GardenEastCorra,      DataA_Dialog_GardenEastCorra_sDialog
-    d_entry t, GardenLandingPaper,   DataA_Dialog_GardenLandingPaper_sDialog
-    d_entry t, GardenShaftPaper,     DataA_Dialog_GardenShaftPaper_sDialog
-    d_entry t, LavaStationPaper,     DataA_Dialog_LavaStationPaper_sDialog
-    d_entry t, LavaWestPaper,        DataA_Dialog_LavaWestPaper_sDialog
     d_entry t, MermaidEntrySign,     DataA_Dialog_MermaidEntrySign_sDialog
     d_entry t, MermaidHut1AlexPetition, \
             DataA_Dialog_MermaidHut1AlexPetition_sDialog
@@ -410,8 +411,19 @@ _UpdateScrolling:
     d_entry t, MermaidVillageCorra,  DataA_Dialog_MermaidVillageCorra_sDialog
     d_entry t, MermaidVillageFarmer, DataA_Dialog_MermaidVillageFarmer_sDialog
     d_entry t, MermaidVillageGuard,  DataA_Dialog_MermaidVillageGuard_sDialog
-    d_entry t, PrisonCellPaper,      DataA_Dialog_PrisonCellPaper_sDialog
-    d_entry t, PrisonEscapePaper,    DataA_Dialog_PrisonEscapePaper_sDialog
+    d_entry t, PaperJerome08,        DataA_Dialog_PaperJerome08_sDialog
+    d_entry t, PaperJerome10,        DataA_Dialog_PaperJerome10_sDialog
+    d_entry t, PaperJerome11,        DataA_Dialog_PaperJerome11_sDialog
+    d_entry t, PaperJerome12,        DataA_Dialog_PaperJerome12_sDialog
+    d_entry t, PaperJerome13,        DataA_Dialog_PaperJerome13_sDialog
+    d_entry t, PaperJerome21,        DataA_Dialog_PaperJerome21_sDialog
+    d_entry t, PaperJerome28,        DataA_Dialog_PaperJerome28_sDialog
+    d_entry t, PaperJerome34,        DataA_Dialog_PaperJerome34_sDialog
+    d_entry t, PaperJerome35,        DataA_Dialog_PaperJerome35_sDialog
+    d_entry t, PaperJerome36,        DataA_Dialog_PaperJerome36_sDialog
+    d_entry t, PaperManual2,         DataA_Dialog_PaperManual2_sDialog
+    d_entry t, PaperManual3,         DataA_Dialog_PaperManual3_sDialog
+    d_entry t, PaperManual4,         DataA_Dialog_PaperManual4_sDialog
     d_entry t, PrisonFlowerSign,     DataA_Dialog_PrisonFlowerSign_sDialog
     d_entry t, PrisonUpperAlexCell,  DataA_Dialog_PrisonUpperAlexCell_sDialog
     d_entry t, PrisonUpperAlexFree,  DataA_Dialog_PrisonUpperAlexFree_sDialog
@@ -425,13 +437,10 @@ _UpdateScrolling:
     d_entry t, PrisonUpperNora,      DataA_Dialog_PrisonUpperNora_sDialog
     d_entry t, ShadowTeleportScreen, DataA_Dialog_ShadowTeleportScreen_sDialog
     d_entry t, TempleAltarPlaque,    DataA_Dialog_TempleAltarPlaque_sDialog
-    d_entry t, TempleApsePaper,      DataA_Dialog_TempleApsePaper_sDialog
     d_entry t, TempleEntryMermaid,   DataA_Dialog_TempleEntryMermaid_sDialog
-    d_entry t, TempleFoyerPaper,     DataA_Dialog_TempleFoyerPaper_sDialog
     d_entry t, TempleNaveAlexBoost1, DataA_Dialog_TempleNaveAlexBoost1_sDialog
     d_entry t, TempleNaveAlexBoost2, DataA_Dialog_TempleNaveAlexBoost2_sDialog
     d_entry t, TempleNaveAlexStand,  DataA_Dialog_TempleNaveAlexStand_sDialog
-    d_entry t, TemplePitPaper,       DataA_Dialog_TemplePitPaper_sDialog
     d_entry t, TownHouse1Nora,       DataA_Dialog_TownHouse1Nora_sDialog
     d_entry t, TownHouse2Stela,      DataC_Town_TownHouse2Stela_sDialog
     d_entry t, TownHouse3Smith,      DataA_Dialog_TownHouse3Smith_sDialog

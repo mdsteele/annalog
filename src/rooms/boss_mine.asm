@@ -408,7 +408,7 @@ _CheckMode:
 .REPEAT 2, table
     D_TABLE_LO table, _JumpTable_ptr_0_arr
     D_TABLE_HI table, _JumpTable_ptr_1_arr
-    D_TABLE eBossMode
+    D_TABLE .enum, eBossMode
     d_entry table, Dead,   Func_Noop
     d_entry table, Hiding, _BossHiding
     D_END
@@ -429,7 +429,7 @@ _BossHiding:
 .REPEAT 2, table
     D_TABLE_LO table, _JumpTable_ptr_0_arr
     D_TABLE_HI table, _JumpTable_ptr_1_arr
-    D_TABLE eBoulder
+    D_TABLE .enum, eBoulder
     d_entry table, Absent,     FuncC_Boss_Mine_TickBoulderAbsent
     d_entry table, OnConveyor, FuncC_Boss_Mine_TickBoulderOnConveyor
     d_entry table, OnGround,   FuncC_Boss_Mine_TickBoulderOnGround

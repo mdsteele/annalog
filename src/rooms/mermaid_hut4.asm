@@ -52,25 +52,6 @@
 ;;; The device index for the door leading to the cellar.
 kCellarDoorDeviceIndex = 3
 
-;;; An enum for numbers of flowers that can be collected.  This enum exists
-;;; only for the benefit of a D_TABLE macro below.
-.ENUM eNumFlowers
-    Zero
-    One
-    Two
-    Three
-    Four
-    Five
-    Six
-    Seven
-    Eight
-    Nine
-    Ten
-    Eleven
-    Twelve
-    NUM_VALUES
-.ENDENUM
-
 ;;;=========================================================================;;;
 
 .SEGMENT "PRGC_Mermaid"
@@ -272,20 +253,20 @@ _CountFlowersFunc:
 .REPEAT 2, table
     D_TABLE_LO table, _DialogTable_ptr_0_arr
     D_TABLE_HI table, _DialogTable_ptr_1_arr
-    D_TABLE eNumFlowers
-    d_entry table, Zero,   _Zero_sDialog
-    d_entry table, One,    _One_sDialog
-    d_entry table, Two,    _Two_sDialog
-    d_entry table, Three,  _Three_sDialog
-    d_entry table, Four,   _Four_sDialog
-    d_entry table, Five,   _Five_sDialog
-    d_entry table, Six,    _Six_sDialog
-    d_entry table, Seven,  _Seven_sDialog
-    d_entry table, Eight,  _Eight_sDialog
-    d_entry table, Nine,   _Nine_sDialog
-    d_entry table, Ten,    _Ten_sDialog
-    d_entry table, Eleven, _Eleven_sDialog
-    d_entry table, Twelve, _Twelve_sDialog
+    D_TABLE 13
+    d_entry table, 0,    _Zero_sDialog
+    d_entry table, 1,     _One_sDialog
+    d_entry table, 2,     _Two_sDialog
+    d_entry table, 3,   _Three_sDialog
+    d_entry table, 4,    _Four_sDialog
+    d_entry table, 5,    _Five_sDialog
+    d_entry table, 6,     _Six_sDialog
+    d_entry table, 7,   _Seven_sDialog
+    d_entry table, 8,   _Eight_sDialog
+    d_entry table, 9,    _Nine_sDialog
+    d_entry table, 10,    _Ten_sDialog
+    d_entry table, 11, _Eleven_sDialog
+    d_entry table, 12, _Twelve_sDialog
     D_END
 .ENDREPEAT
 _Zero_sDialog:

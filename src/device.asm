@@ -121,7 +121,7 @@ _Continue:
 .REPEAT 2, table
     D_TABLE_LO table, _JumpTable_ptr_0_arr
     D_TABLE_HI table, _JumpTable_ptr_1_arr
-    D_TABLE eDevice
+    D_TABLE .enum, eDevice
     d_entry table, None,          Func_Noop
     d_entry table, BreakerDone,   FuncA_Objects_DrawBreakerDoneDevice
     d_entry table, BreakerRising, FuncA_Objects_DrawBreakerRisingDevice

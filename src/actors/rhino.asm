@@ -114,7 +114,7 @@ kPaletteObjRhino = 0
 .REPEAT 2, table
     D_TABLE_LO table, _JumpTable_ptr_0_arr
     D_TABLE_HI table, _JumpTable_ptr_1_arr
-    D_TABLE eBadRhino
+    D_TABLE .enum, eBadRhino
     d_entry table, Walking,    FuncA_Actor_TickBadRhino_Walking
     d_entry table, Angered,    FuncA_Actor_TickBadRhino_Angered
     d_entry table, Charging,   FuncA_Actor_TickBadRhino_Charging

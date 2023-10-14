@@ -91,7 +91,7 @@ kPaletteObjChild = 1
     @done:
     rts
 _Head_u8_arr:
-    D_ENUM eNpcChild
+    D_ARRAY .enum, eNpcChild
     d_byte AlexBoosting,  kTileIdObjChildStandFirst + $0e
     d_byte AlexHolding,   kTileIdObjChildStandFirst + $0a
     d_byte AlexKneeling,  kTileIdObjChildStandFirst + $0c
@@ -111,7 +111,7 @@ _Head_u8_arr:
     d_byte NoraStanding,  kTileIdObjChildStandFirst + $04
     D_END
 _Feet_u8_arr:
-    D_ENUM eNpcChild
+    D_ARRAY .enum, eNpcChild
     d_byte AlexBoosting,  kTileIdObjChildStandFirst + $1e
     d_byte AlexHolding,   kTileIdObjChildStandFirst + $1a
     d_byte AlexKneeling,  kTileIdObjChildStandFirst + $1c

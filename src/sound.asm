@@ -58,7 +58,7 @@
 .REPEAT 2, table
     D_TABLE_LO table, Data_Sfx_func_ptr_0_arr
     D_TABLE_HI table, Data_Sfx_func_ptr_1_arr
-    D_TABLE eSound
+    D_TABLE .enum, eSound
     d_entry table, None,     Func_Noop
     d_entry table, Beep,     Func_SfxBeep
     d_entry table, Explode,  Func_SfxExplode

@@ -136,7 +136,7 @@ kPaletteObjGrontaHead = 1
 .REPEAT 2, table
     D_TABLE_LO table, _JumpTable_ptr_0_arr
     D_TABLE_HI table, _JumpTable_ptr_1_arr
-    D_TABLE eBadOrc
+    D_TABLE .enum, eBadOrc
     d_entry table, Standing, FuncA_Actor_TickBadOrc_Standing
     d_entry table, Chasing,  FuncA_Actor_TickBadOrc_Chasing
     d_entry table, Pausing,  FuncA_Actor_TickBadOrc_Pausing
@@ -401,7 +401,7 @@ _CheckForFloor:
     ldy T4  ; param: object flags
     jmp FuncA_Objects_Draw2x2Shape  ; preserves X
 _TileIdHead_u8_arr:
-    D_ENUM eNpcOrc
+    D_ARRAY .enum, eNpcOrc
     d_byte Running1,  kTileIdObjOrcHeadLow
     d_byte Running2,  kTileIdObjOrcHeadHigh
     d_byte Running3,  kTileIdObjOrcHeadLow
@@ -413,7 +413,7 @@ _TileIdHead_u8_arr:
     d_byte GrontaArmsRaised, kTileIdObjOrcGrontaFirst + $04
     D_END
 _TileIdFeet_u8_arr:
-    D_ENUM eNpcOrc
+    D_ARRAY .enum, eNpcOrc
     d_byte Running1,  kTileIdObjOrcFeetRunning1
     d_byte Running2,  kTileIdObjOrcFeetRunning2
     d_byte Running3,  kTileIdObjOrcFeetRunning3

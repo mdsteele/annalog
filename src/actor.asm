@@ -313,7 +313,7 @@ Ram_ActorFlags_bObj_arr: .res kMaxActors
 ;;; How far an actor's bounding box extends in each direction from the actor's
 ;;; position, indexed by eActor value.
 .PROC DataA_Actor_BoundingBoxUp_u8_arr
-    D_ENUM eActor
+    D_ARRAY .enum, eActor
     d_byte None,             0
     d_byte BadBat,           4
     d_byte BadBeetleHorz,    4
@@ -356,7 +356,7 @@ Ram_ActorFlags_bObj_arr: .res kMaxActors
     D_END
 .ENDPROC
 .PROC DataA_Actor_BoundingBoxDown_u8_arr
-    D_ENUM eActor
+    D_ARRAY .enum, eActor
     d_byte None,             0
     d_byte BadBat,           4
     d_byte BadBeetleHorz,    4
@@ -399,7 +399,7 @@ Ram_ActorFlags_bObj_arr: .res kMaxActors
     D_END
 .ENDPROC
 .PROC DataA_Actor_BoundingBoxSide_u8_arr
-    D_ENUM eActor
+    D_ARRAY .enum, eActor
     d_byte None,            0
     d_byte BadBat,          6
     d_byte BadBeetleHorz,   6
@@ -510,7 +510,7 @@ _TypeSpecificTick:
 .REPEAT 2, table
     D_TABLE_LO table, _JumpTable_ptr_0_arr
     D_TABLE_HI table, _JumpTable_ptr_1_arr
-    D_TABLE eActor
+    D_TABLE .enum, eActor
     d_entry table, None,            Func_Noop
     d_entry table, BadBat,          FuncA_Actor_TickBadBat
     d_entry table, BadBeetleHorz,   FuncA_Actor_TickBadBeetleHorz
@@ -688,7 +688,7 @@ _NoHit:
 .REPEAT 2, table
     D_TABLE_LO table, _JumpTable_ptr_0_arr
     D_TABLE_HI table, _JumpTable_ptr_1_arr
-    D_TABLE eActor
+    D_TABLE .enum, eActor
     d_entry table, None,            Func_InitActorDefault
     d_entry table, BadBat,          Func_InitActorWithState1
     d_entry table, BadBeetleHorz,   Func_InitActorWithFlags
@@ -827,7 +827,7 @@ _NoHit:
 .REPEAT 2, table
     D_TABLE_LO table, _JumpTable_ptr_0_arr
     D_TABLE_HI table, _JumpTable_ptr_1_arr
-    D_TABLE eActor
+    D_TABLE .enum, eActor
     d_entry table, None,            Func_Noop
     d_entry table, BadBat,          FuncA_Objects_DrawActorBadBat
     d_entry table, BadBeetleHorz,   FuncA_Objects_DrawActorBadBeetleHorz

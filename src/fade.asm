@@ -81,7 +81,7 @@ kPalettesTransferLen = .sizeof(sPal) * 8
 .REPEAT 2, table
     D_TABLE_LO table, Data_FadePalettes_sPal_arr4_ptr_0_arr
     D_TABLE_HI table, Data_FadePalettes_sPal_arr4_ptr_1_arr
-    D_TABLE eFade
+    D_TABLE .enum, eFade
     d_entry table, Black,  Data_FadePalettes0_sPal_arr4
     d_entry table, Dark,   Data_FadePalettes1_sPal_arr4
     d_entry table, Dim,    Data_FadePalettes2_sPal_arr4

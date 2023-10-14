@@ -376,7 +376,7 @@ _Devices_sDevice_arr:
     d_byte Type_eDevice, eDevice::Paper
     d_byte BlockRow_u8, 12
     d_byte BlockCol_u8, 9
-    d_byte Target_byte, eDialog::PrisonCellPaper
+    d_byte Target_byte, eFlag::PaperJerome36
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Console
@@ -689,11 +689,11 @@ _ParticleAngle_u8_arr:
 
 .SEGMENT "PRGA_Dialog"
 
-.EXPORT DataA_Dialog_PrisonCellPaper_sDialog
-.PROC DataA_Dialog_PrisonCellPaper_sDialog
-    dlg_Text Paper, DataA_Text0_PrisonCellPaper_Page1_u8_arr
-    dlg_Text Paper, DataA_Text0_PrisonCellPaper_Page2_u8_arr
-    dlg_Text Paper, DataA_Text0_PrisonCellPaper_Page3_u8_arr
+.EXPORT DataA_Dialog_PaperJerome36_sDialog
+.PROC DataA_Dialog_PaperJerome36_sDialog
+    dlg_Text Paper, DataA_Text0_PaperJerome36_Page1_u8_arr
+    dlg_Text Paper, DataA_Text0_PaperJerome36_Page2_u8_arr
+    dlg_Text Paper, DataA_Text0_PaperJerome36_Page3_u8_arr
     dlg_Done
 .ENDPROC
 
@@ -701,20 +701,20 @@ _ParticleAngle_u8_arr:
 
 .SEGMENT "PRGA_Text0"
 
-.PROC DataA_Text0_PrisonCellPaper_Page1_u8_arr
-    .byte "Day 87: By now there's$"
+.PROC DataA_Text0_PaperJerome36_Page1_u8_arr
+    .byte "Day 36: By now there's$"
     .byte "probably not much time$"
     .byte "left to finish this.#"
 .ENDPROC
 
-.PROC DataA_Text0_PrisonCellPaper_Page2_u8_arr
+.PROC DataA_Text0_PaperJerome36_Page2_u8_arr
     .byte "I'm going to start$"
     .byte "pinning up all these$"
     .byte "pages. Maybe someday$"
     .byte "someone'll find them.#"
 .ENDPROC
 
-.PROC DataA_Text0_PrisonCellPaper_Page3_u8_arr
+.PROC DataA_Text0_PaperJerome36_Page3_u8_arr
     .byte "By then, I'm sure I'll$"
     .byte "be long gone.#"
 .ENDPROC

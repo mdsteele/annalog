@@ -22,6 +22,7 @@
 .INCLUDE "../cpu.inc"
 .INCLUDE "../device.inc"
 .INCLUDE "../dialog.inc"
+.INCLUDE "../flag.inc"
 .INCLUDE "../machine.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
@@ -166,7 +167,7 @@ _Devices_sDevice_arr:
     d_byte Type_eDevice, eDevice::Paper
     d_byte BlockRow_u8, 11
     d_byte BlockCol_u8, 11
-    d_byte Target_byte, eDialog::PrisonEscapePaper
+    d_byte Target_byte, eFlag::PaperJerome12
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Console
@@ -224,10 +225,10 @@ _Passages_sPassage_arr:
 
 .SEGMENT "PRGA_Dialog"
 
-.EXPORT DataA_Dialog_PrisonEscapePaper_sDialog
-.PROC DataA_Dialog_PrisonEscapePaper_sDialog
-    dlg_Text Paper, DataA_Text0_PrisonEscapePaper_Page1_u8_arr
-    dlg_Text Paper, DataA_Text0_PrisonEscapePaper_Page2_u8_arr
+.EXPORT DataA_Dialog_PaperJerome12_sDialog
+.PROC DataA_Dialog_PaperJerome12_sDialog
+    dlg_Text Paper, DataA_Text0_PaperJerome12_Page1_u8_arr
+    dlg_Text Paper, DataA_Text0_PaperJerome12_Page2_u8_arr
     dlg_Done
 .ENDPROC
 
@@ -235,14 +236,14 @@ _Passages_sPassage_arr:
 
 .SEGMENT "PRGA_Text0"
 
-.PROC DataA_Text0_PrisonEscapePaper_Page1_u8_arr
+.PROC DataA_Text0_PaperJerome12_Page1_u8_arr
     .byte "Day 12: So where do I$"
     .byte "even start? We were a$"
     .byte "great civilization$"
     .byte "once, before the orcs.#"
 .ENDPROC
 
-.PROC DataA_Text0_PrisonEscapePaper_Page2_u8_arr
+.PROC DataA_Text0_PaperJerome12_Page2_u8_arr
     .byte "But we were already$"
     .byte "crumbling long$"
     .byte "before they invaded.#"

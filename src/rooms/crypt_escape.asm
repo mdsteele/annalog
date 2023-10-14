@@ -21,6 +21,7 @@
 .INCLUDE "../charmap.inc"
 .INCLUDE "../device.inc"
 .INCLUDE "../dialog.inc"
+.INCLUDE "../flag.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../platform.inc"
 .INCLUDE "../program.inc"
@@ -125,7 +126,7 @@ _Devices_sDevice_arr:
     d_byte Type_eDevice, eDevice::Paper
     d_byte BlockRow_u8, 15
     d_byte BlockCol_u8, 4
-    d_byte Target_byte, eDialog::CryptEscapePaper
+    d_byte Target_byte, eFlag::PaperJerome21
     D_END
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None
@@ -147,10 +148,10 @@ _Passages_sPassage_arr:
 
 .SEGMENT "PRGA_Dialog"
 
-.EXPORT DataA_Dialog_CryptEscapePaper_sDialog
-.PROC DataA_Dialog_CryptEscapePaper_sDialog
-    dlg_Text Paper, DataA_Text1_CryptEscapePaper_Page1_u8_arr
-    dlg_Text Paper, DataA_Text1_CryptEscapePaper_Page2_u8_arr
+.EXPORT DataA_Dialog_PaperJerome21_sDialog
+.PROC DataA_Dialog_PaperJerome21_sDialog
+    dlg_Text Paper, DataA_Text1_PaperJerome21_Page1_u8_arr
+    dlg_Text Paper, DataA_Text1_PaperJerome21_Page2_u8_arr
     dlg_Done
 .ENDPROC
 
@@ -158,14 +159,14 @@ _Passages_sPassage_arr:
 
 .SEGMENT "PRGA_Text1"
 
-.PROC DataA_Text1_CryptEscapePaper_Page1_u8_arr
+.PROC DataA_Text1_PaperJerome21_Page1_u8_arr
     .byte "Day 21: When Dr. Alda$"
     .byte "created the mermaids,$"
     .byte "she was trying to help$"
     .byte "solve that problem.#"
 .ENDPROC
 
-.PROC DataA_Text1_CryptEscapePaper_Page2_u8_arr
+.PROC DataA_Text1_PaperJerome21_Page2_u8_arr
     .byte "But frankly, I think$"
     .byte "she only made things$"
     .byte "worse. Not that I did$"

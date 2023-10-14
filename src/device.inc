@@ -45,7 +45,7 @@ kMaxDevices = 16
     Flower
     LeverCeiling
     LeverFloor
-    Paper          ; initiates dialogue with the avatar's back to the camera
+    Paper          ; collects the paper, and initiates dialogue for it
     Screen         ; initiates dialogue with the avatar's back to the camera
     Sign           ; initiates dialogue with the avatar's back to the camera
     TalkLeft       ; initiates dialogue with the avatar facing to the left
@@ -90,10 +90,11 @@ kFirstInteractiveDeviceType = eDevice::BreakerReady
     ;;   * For levers, this is the byte offset into Zp_RoomState for the
     ;;     lever's state value (0 or 1).
     ;;   * For mouseholes, this the bMousehole value.
-    ;;   * For paper/screen/sign/talk devices, this is the eDialog value.
+    ;;   * For papers, this is the eFlag::Paper* value.
+    ;;   * For screen/sign/talk devices, this is the eDialog value.
     ;;   * For teleporters, this is the eRoom value for the destination room.
     ;;   * For upgrades, this is the eFlag::Upgrade* value.
-    Target_byte    .byte
+    Target_byte  .byte
 .ENDSTRUCT
 
 ;;;=========================================================================;;;

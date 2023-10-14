@@ -259,7 +259,7 @@ _LoadNewRoom:
     D_TABLE_LO table, DataA_Room_Table_sRoom_ptr_0_arr
     D_TABLE_HI table, DataA_Room_Table_sRoom_ptr_1_arr
     D_TABLE_BANK table, DataA_Room_Banks_u8_arr
-    D_TABLE eRoom
+    D_TABLE .enum, eRoom
     d_entry table, BossCity,        DataC_Boss_City_sRoom
     d_entry table, BossCrypt,       DataC_Boss_Crypt_sRoom
     d_entry table, BossGarden,      DataC_Boss_Garden_sRoom
@@ -402,7 +402,7 @@ _PrisonMusic:
 
 ;;; Maps from eRoom values to the default eMusic to play in each room.
 .PROC DataA_Room_DefaultMusic_eMusic_arr
-    D_ENUM eRoom
+    D_ARRAY .enum, eRoom
     d_byte BossCity,        eMusic::Boss1
     d_byte BossCrypt,       eMusic::Boss1
     d_byte BossGarden,      eMusic::Boss1

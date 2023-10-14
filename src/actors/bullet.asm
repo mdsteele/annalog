@@ -67,14 +67,14 @@ kPaletteObjBullet = 1
     sta Ram_ActorVelY_i16_1_arr, x
     rts
 _VelX_i8_arr:
-    D_ENUM eDir
+    D_ARRAY .enum, eDir
     d_byte Up,   0
     d_byte Right, kProjBulletSpeed
     d_byte Down, 0
     d_byte Left, <-kProjBulletSpeed
     D_END
 _VelY_i8_arr:
-    D_ENUM eDir
+    D_ARRAY .enum, eDir
     d_byte Up, <-kProjBulletSpeed
     d_byte Right, 0
     d_byte Down, kProjBulletSpeed

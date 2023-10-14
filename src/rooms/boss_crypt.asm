@@ -683,7 +683,7 @@ _CheckMode:
 .REPEAT 2, table
     D_TABLE_LO table, _JumpTable_ptr_0_arr
     D_TABLE_HI table, _JumpTable_ptr_1_arr
-    D_TABLE eBossMode
+    D_TABLE .enum, eBossMode
     d_entry table, Dead,     Func_Noop
     d_entry table, Firing, _BossFiring
     d_entry table, Strafing, _BossStrafing
@@ -943,7 +943,7 @@ _DrawSideWalls:
     ldx #kRightWallPlatformIndex  ; param: platform index
     jmp FuncA_Objects_BossCrypt_DrawSideWall
 _EyeOffsetX_u8_arr:
-    D_ENUM eEyeDir
+    D_ARRAY .enum, eEyeDir
     d_byte Left,      6
     d_byte DownLeft,  5
     d_byte Down,      4
@@ -951,7 +951,7 @@ _EyeOffsetX_u8_arr:
     d_byte Right,     2
     D_END
 _EyeOffsetY_u8_arr:
-    D_ENUM eEyeDir
+    D_ARRAY .enum, eEyeDir
     d_byte Left,      4
     d_byte DownLeft,  3
     d_byte Down,      2

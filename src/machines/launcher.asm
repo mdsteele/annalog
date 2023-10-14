@@ -112,14 +112,14 @@ _Finish:
 _Error:
     jmp FuncA_Machine_Error
 _HorzAdjust_i8_arr:
-    D_ENUM eDir
+    D_ARRAY .enum, eDir
     d_byte Up, <-5
     d_byte Right, 4
     d_byte Down, <-5
     d_byte Left, <-4
     D_END
 _VertAdjust_i8_arr:
-    D_ENUM eDir
+    D_ARRAY .enum, eDir
     d_byte Up, <-4
     d_byte Right, 5
     d_byte Down, 4

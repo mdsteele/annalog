@@ -210,6 +210,8 @@ _FadeIn:
     rts
 _Flags_eFlag_arr:
 .IF 0
+    .byte eFlag::PaperJerome36
+    .byte eFlag::PrisonCellReachedTunnel
     .byte eFlag::PrisonCellBlastedRocks
     .byte eFlag::GardenLandingDroppedIn
     .byte eFlag::UpgradeOpIf

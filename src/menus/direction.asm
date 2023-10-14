@@ -50,7 +50,7 @@
     d_byte WidthsMinusOne_u8_arr
     .byte 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
     d_addr Labels_u8_arr_ptr_arr
-    D_ENUM eDir, kSizeofAddr
+    D_ARRAY .enum, eDir, kSizeofAddr
     d_addr Up,    _LabelUp
     d_addr Right, _LabelRight
     d_addr Down,  _LabelDown

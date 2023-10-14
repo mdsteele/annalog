@@ -351,7 +351,7 @@ _CheckForShallowWater:
     @done:
     rts
 _DeviceOffset_u8_arr:
-    D_ENUM eDevice
+    D_ARRAY .enum, eDevice
     d_byte None,          $08
     d_byte BreakerDone,   kBreakerAvatarOffset
     d_byte BreakerRising, kBreakerAvatarOffset

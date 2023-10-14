@@ -22,6 +22,7 @@
 .INCLUDE "../charmap.inc"
 .INCLUDE "../device.inc"
 .INCLUDE "../dialog.inc"
+.INCLUDE "../flag.inc"
 .INCLUDE "../machine.inc"
 .INCLUDE "../machines/boiler.inc"
 .INCLUDE "../macros.inc"
@@ -241,7 +242,7 @@ _Devices_sDevice_arr:
     d_byte Type_eDevice, eDevice::Paper
     d_byte BlockRow_u8, 2
     d_byte BlockCol_u8, 28
-    d_byte Target_byte, eDialog::LavaWestPaper
+    d_byte Target_byte, eFlag::PaperJerome10
     D_END
     .assert * - :- = kLeverDeviceIndex * .sizeof(sDevice), error
     D_STRUCT sDevice
@@ -347,9 +348,9 @@ _ValvePipePlatformIndex_u8_arr4:
 
 .SEGMENT "PRGA_Dialog"
 
-.EXPORT DataA_Dialog_LavaWestPaper_sDialog
-.PROC DataA_Dialog_LavaWestPaper_sDialog
-    dlg_Text Paper, DataA_Text0_LavaWestPaper_u8_arr
+.EXPORT DataA_Dialog_PaperJerome10_sDialog
+.PROC DataA_Dialog_PaperJerome10_sDialog
+    dlg_Text Paper, DataA_Text0_PaperJerome10_u8_arr
     dlg_Done
 .ENDPROC
 
@@ -357,7 +358,7 @@ _ValvePipePlatformIndex_u8_arr4:
 
 .SEGMENT "PRGA_Text0"
 
-.PROC DataA_Text0_LavaWestPaper_u8_arr
+.PROC DataA_Text0_PaperJerome10_u8_arr
     .byte "Day 10: The orcs would$"
     .byte "rule in our place, if$"
     .byte "we let them. I doubt$"
