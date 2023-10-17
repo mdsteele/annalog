@@ -211,23 +211,28 @@ _FadeIn:
 _Flags_eFlag_arr:
 .IF 0
     .byte eFlag::PaperJerome36
+    .byte eFlag::PaperJerome12
     .byte eFlag::PrisonCellReachedTunnel
     .byte eFlag::PrisonCellBlastedRocks
     .byte eFlag::GardenLandingDroppedIn
+    .byte eFlag::PaperJerome13
     .byte eFlag::UpgradeOpIf
     .byte eFlag::GardenEastTalkedToCorra
     .byte eFlag::MermaidHut1MetQueen
     .byte eFlag::MermaidHut4MetFlorist
     .byte eFlag::GardenTowerCratesPlaced
     .byte eFlag::FlowerMermaid
+    .byte eFlag::PaperManual4
     .byte eFlag::GardenTowerWallBroken
     .byte eFlag::BossGarden
     .byte eFlag::UpgradeRam1
     .byte eFlag::BreakerGarden
     .byte eFlag::TempleEntryPermission
     .byte eFlag::TempleEntryColumnRaised
+    .byte eFlag::PaperManual2
     .byte eFlag::UpgradeOpTil
     .byte eFlag::TempleAltarColumnBroken
+    .byte eFlag::PaperJerome28
     .byte eFlag::BossTemple
     .byte eFlag::UpgradeRam2
     .byte eFlag::BreakerTemple
@@ -247,19 +252,25 @@ _Flags_eFlag_arr:
     .byte eFlag::FlowerCore
     .byte eFlag::TempleNaveAlexWaiting
     .byte eFlag::TempleNaveTalkedToAlex
+    .byte eFlag::PaperJerome34
     .byte eFlag::CryptLandingDroppedIn
+    .byte eFlag::PaperJerome08
+    .byte eFlag::PaperJerome11
     .byte eFlag::UpgradeOpGoto
     .byte eFlag::CryptSouthBrokeFloor
     .byte eFlag::CryptTombBrokeFloors
     .byte eFlag::BossCrypt
     .byte eFlag::UpgradeOpRest
     .byte eFlag::BreakerCrypt
+    .byte eFlag::PaperJerome21
     .byte eFlag::FlowerCrypt
     .byte eFlag::UpgradeOpSkip
     .byte eFlag::FlowerGarden
     .byte eFlag::MermaidSpringConsoleFixed
     .byte eFlag::MermaidSpringUnplugged
     .byte eFlag::UpgradeOpCopy
+    .byte eFlag::PaperManual3
+    .byte eFlag::PaperJerome10
     .byte eFlag::LavaCenterChain3Broken
     .byte eFlag::LavaCenterChain1Broken
     .byte eFlag::LavaCenterChain2Broken
@@ -275,6 +286,7 @@ _Flags_eFlag_arr:
     .byte eFlag::FlowerLava
     .byte eFlag::FlowerSewer
     .byte eFlag::CityCenterKeygenConnected
+    .byte eFlag::PaperJerome35
     .byte eFlag::FlowerCity
     .byte eFlag::CityCenterDoorUnlocked
     .byte eFlag::BossCity

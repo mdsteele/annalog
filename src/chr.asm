@@ -885,7 +885,7 @@
     .incbin "out/tiles/minicore1.chr"
     .res $07 * kSizeofChr
     .incbin "out/tiles/minicore2.chr"
-    .res $04 * kSizeofChr
+    .incbin "out/tiles/paper.chr"
     .assert * - :- = kSizeofChr * $40, error
 .ENDPROC
 

@@ -43,6 +43,7 @@
 .IMPORT Func_CountDeliveredFlowers
 .IMPORT Func_FadeInFromBlack
 .IMPORT Func_FadeOutToBlack
+.IMPORT Func_FillLowerAttributeTable
 .IMPORT Func_FillUpperAttributeTable
 .IMPORT Func_IsFlagSet
 .IMPORT Func_Window_Disable
@@ -65,6 +66,13 @@
 
 ;;;=========================================================================;;;
 
+;;; The number of columns and rows in the grid of collected papers on the pause
+;;; screen.
+.DEFINE kPaperGridCols 9
+.DEFINE kPaperGridRows 5
+
+;;;=========================================================================;;;
+
 ;;; The BG tile ID for an unexplored tile on the minimap.
 kTileIdBgMinimapUnexplored = $80
 
@@ -79,6 +87,12 @@ kTileIdBgRamTopLeft        = $c2
 ;;; then add another 1 to get the top-left tile ID for the next upgrade, and so
 ;;; on.
 kTileIdBgRemainingTopLeft  = $c4
+
+;;; The BG tile IDs used for drawing collected papers.
+kTileIdBgPaperTopLeft      = $fc
+kTileIdBgPaperBottomLeft   = $fd
+kTileIdBgPaperTopRight     = $fe
+kTileIdBgPaperBottomRight  = $ff
 
 ;;; The screen pixel positions for the top and left edges of the minimap rect.
 kMinimapTopPx  = $28
@@ -102,6 +116,17 @@ Zp_MinimapMarkerOffset_u8: .res 1
 ;;; Bit N of this is set if breaker number N (starting at 0) is activated.
 .ASSERT kNumBreakerFlags <= 8, error
 Zp_ActivatedBreakers_byte: .res 1
+
+;;;=========================================================================;;;
+
+.SEGMENT "RAM_Pause"
+
+;;; A bit array indicating which papers have been collected.  The array
+;;; contains one u8 for each column of the paper grid; if the paper at row R
+;;; and column C has been collected, then the Rth bit of the Cth u8 in this
+;;; array will be set.
+.ASSERT kPaperGridRows <= 8, error
+Ram_CollectedPapers_u8_arr: .res kPaperGridCols
 
 ;;;=========================================================================;;;
 
@@ -137,12 +162,12 @@ _CheckForUnpause:
     .assert * - :- = kMinimapWidth * kMinimapHeight, error
 .ENDPROC
 
-;;; The "Current area:" label that is drawn on the pause screen.
+;;; The "current area" label that is drawn on the pause screen minimap window.
 .PROC DataA_Pause_CurrentAreaLabel_u8_arr
     .byte "Current area: "
 .ENDPROC
 
-;;; The "Current area:" label that is drawn on the pause screen.
+;;; The "papers found" label that is drawn on the pause screen papers window.
 .PROC DataA_Pause_AreaPaperLabel_u8_arr
     .byte "Papers found in area: "
 .ENDPROC
@@ -168,9 +193,42 @@ _InitActivatedBreakers:
     dex
     cpx #kFirstBreakerFlag
     bge @loop
+_ClearCollectedPapers:
+    ldx #kPaperGridCols - 1
+    lda #0
+    @loop:
+    sta Ram_CollectedPapers_u8_arr, x
+    dex
+    bpl @loop
+_InitCollectedPapers:
+    ldy #0
+    sty T0  ; paper grid col
+    iny  ; now Y is $01
+    sty T1  ; bitmask
+    ldx #kFirstPaperFlag
+    @loop:
+    jsr Func_IsFlagSet  ; preserves X and T0+, clears Z if flag is set
+    beq @advanceCol
+    ldy T0  ; paper grid col
+    lda Ram_CollectedPapers_u8_arr, y
+    ora T1  ; bitmask
+    sta Ram_CollectedPapers_u8_arr, y
+    @advanceCol:
+    ldy T0  ; paper grid col
+    iny
+    cpy #kPaperGridCols
+    blt @setCol
+    asl T1  ; bitmask
+    ldy #0
+    @setCol:
+    sty T0  ; paper grid col
+    inx
+    cpx #kLastPaperFlag + 1
+    blt @loop
 _DrawScreen:
     ldy #$00  ; param: fill byte
-    jsr Func_FillUpperAttributeTable
+    jsr Func_FillUpperAttributeTable  ; preserves Y
+    jsr Func_FillLowerAttributeTable
     jsr Func_Window_Disable
     jsr FuncA_Pause_DirectDrawBg
     jsr FuncA_Pause_DrawObjects
@@ -194,10 +252,11 @@ _BeginUpperNametable:
     ldax #Ppu_Nametable0_sName + sName::Tiles_u8_arr
     sta Hw_PpuAddr_w2
     stx Hw_PpuAddr_w2
-    ldx #kScreenWidthTiles * 2  ; param: num blank tiles to draw
-    jsr _DrawBlankTiles
-    jsr _DrawTopBorder
+    ldy #kScreenWidthTiles * 2  ; param: num blank tiles to draw
+    jsr FuncA_Pause_DirectDrawBlankTiles
+    jsr FuncA_Pause_DirectDrawWindowTopBorder
 _DrawCurrentAreaLabel:
+    jsr FuncA_Pause_DirectDrawWindowLineSide
     ldx #0
     @loop:
     lda DataA_Pause_CurrentAreaLabel_u8_arr, x
@@ -222,50 +281,39 @@ _DrawCurrentAreaName:
     iny
     cpy #12
     blt @loop
+    jsr FuncA_Pause_DirectDrawWindowLineSide
 _DrawMinimap:
-    jsr _DrawBlankLine
+    jsr FuncA_Pause_DirectDrawWindowBlankLine
     ldya #DataA_Pause_Minimap_u8_arr
     stya T1T0  ; param: start of minimap row data
     ldx #0
     stx Zp_MinimapMarkerOffset_u8
     @rowLoop:
-    jsr _DrawLineBreak  ; preserves X and T0+
     jsr FuncA_Pause_DirectDrawMinimapLine  ; preserves X, advances T1T0
     inx
     cpx #kMinimapHeight
     bne @rowLoop
-    jsr _DrawBlankLine
+    jsr FuncA_Pause_DirectDrawWindowBlankLine
 _DrawItems:
     ldx #0
     @rowLoop:
-    jsr _DrawLineBreak  ; preserves X
     jsr FuncA_Pause_DirectDrawItemsLine  ; preserves X
     inx
     cpx #6
     bne @rowLoop
-_DrawBottomBorder:
-    jsr _DrawStartOrEndOfLine
-    lda #' '
-    sta Hw_PpuData_rw
-    lda #kTileIdBgWindowBottomLeft
-    sta Hw_PpuData_rw
-    lda #kTileIdBgWindowHorz
-    ldx #kScreenWidthTiles - 4
-    @loop:
-    sta Hw_PpuData_rw
-    dex
-    bne @loop
-    lda #kTileIdBgWindowBottomRight
-    sta Hw_PpuData_rw
 _FinishUpperNametable:
-    ldx #kScreenWidthTiles * 2 + 1  ; param: num blank tiles to draw
-    jsr _DrawBlankTiles
+    jsr FuncA_Pause_DirectDrawWindowBottomBorder
+    ldy #kScreenWidthTiles * 2  ; param: num blank tiles to draw
+    jsr FuncA_Pause_DirectDrawBlankTiles
 _BeginLowerNametable:
     ldax #Ppu_Nametable3_sName + sName::Tiles_u8_arr
     sta Hw_PpuAddr_w2
     stx Hw_PpuAddr_w2
-    jsr _DrawTopBorder
+    ldy #kScreenWidthTiles  ; param: num blank tiles to draw
+    jsr FuncA_Pause_DirectDrawBlankTiles
+    jsr FuncA_Pause_DirectDrawWindowTopBorder
 _DrawAreaPaperLabel:
+    jsr FuncA_Pause_DirectDrawWindowLineSide
     ldx #0
     stx T0  ; num papers found in area
     stx T1  ; total num papers in area
@@ -312,55 +360,55 @@ _DrawAreaPaperCount:
     sta Hw_PpuData_rw
     lda #' '
     sta Hw_PpuData_rw
-    jsr _DrawLineBreak
+    jsr FuncA_Pause_DirectDrawWindowLineSide
 _DrawCollectedPapers:
-    ;; TODO: Draw UI for collected papers
-    rts
-_DrawTopBorder:
-    ldy #' '
-    sty Hw_PpuData_rw
-    lda #kTileIdBgWindowTopLeft
-    sta Hw_PpuData_rw
-    lda #kTileIdBgWindowHorz
-    ldx #kScreenWidthTiles - 4
+    ldx #0
+    @rowLoop:
+    jsr FuncA_Pause_DirectDrawWindowBlankLine  ; preserves X
+    ldy #kTileIdBgPaperTopLeft  ; param: paper left tile ID
+    jsr FuncA_Pause_DirectDrawPaperLine  ; preserves X
+    ldy #kTileIdBgPaperBottomLeft  ; param: paper left tile ID
+    jsr FuncA_Pause_DirectDrawPaperLine  ; preserves X
+    inx
+    cpx #5
+    bne @rowLoop
+_FinishLowerNametable:
+    jsr FuncA_Pause_DirectDrawWindowBlankLine
+    jsr FuncA_Pause_DirectDrawWindowTopBorder
+    ldx #4
     @loop:
-    sta Hw_PpuData_rw
+    jsr FuncA_Pause_DirectDrawWindowBlankLine  ; preserves X
     dex
     bne @loop
-    lda #kTileIdBgWindowTopRight
-    sta Hw_PpuData_rw
-    sty Hw_PpuData_rw
-    bne _DrawStartOrEndOfLine  ; unconditional
-_DrawLineBreak:
-    jsr _DrawStartOrEndOfLine
-_DrawStartOrEndOfLine:
-    lda #' '
-    sta Hw_PpuData_rw
-    ldy #kTileIdBgWindowVert
-    sty Hw_PpuData_rw
-    sta Hw_PpuData_rw
-    rts
-_DrawBlankLine:
-    jsr _DrawLineBreak
-    ldx #kScreenWidthTiles - 6  ; param: num blank tiles to draw
-_DrawBlankTiles:
+    jsr FuncA_Pause_DirectDrawWindowBottomBorder
+    ldy #kScreenWidthTiles * 5  ; param: num blank tiles to draw
+    .assert * = FuncA_Pause_DirectDrawBlankTiles, error, "fallthrough"
+.ENDPROC
+
+;;; Draws the specified number of blank BG tiles to Hw_PpuData_rw.
+;;; @prereq Rendering is disabled.
+;;; @param Y The number of blank tiles to draw.
+;;; @preserve X, T0+
+.PROC FuncA_Pause_DirectDrawBlankTiles
     lda #' '
     @loop:
     sta Hw_PpuData_rw
-    dex
+    dey
     bne @loop
     rts
 .ENDPROC
 
-;;; Writes BG tile data for one line of the pause screen minimap (not including
-;;; the borders, but including the margin on either side between the border and
-;;; the minimap) directly to the PPU.
+;;; Writes BG tile data for one line of the pause screen minimap directly to
+;;; the PPU.
 ;;; @prereq Rendering is disabled.
+;;; @prereq Hw_PpuCtrl_wo is set to horizontal mode.
+;;; @prereq Hw_PpuAddr_w2 is set to the start of the nametable row.
 ;;; @param T1T0 The start of the minimap tile data row.
 ;;; @param X The minimap row (0-15).
 ;;; @return T1T0 The start of the next minimap tile data row.
 ;;; @preserve X
 .PROC FuncA_Pause_DirectDrawMinimapLine
+    jsr FuncA_Pause_DirectDrawWindowLineSide  ; preserves X and T0+
     ;; Draw left margin.
     lda #' '
     sta Hw_PpuData_rw
@@ -482,15 +530,18 @@ _Finish:
     ;; Draw right margin.
     lda #' '
     sta Hw_PpuData_rw
-    rts
+    jmp FuncA_Pause_DirectDrawWindowLineSide  ; preserves X and T0+
 .ENDPROC
 
 ;;; Writes BG tile data for one line of the items section of the pause screen
-;;; (not including the borders) directly to the PPU.
+;;; directly to the PPU.
 ;;; @prereq Rendering is disabled.
+;;; @prereq Hw_PpuCtrl_wo is set to horizontal mode.
+;;; @prereq Hw_PpuAddr_w2 is set to the start of the nametable row.
 ;;; @param X The item line number (0-5).
 ;;; @preserve X
 .PROC FuncA_Pause_DirectDrawItemsLine
+    jsr FuncA_Pause_DirectDrawWindowLineSide  ; preserves X
     stx T0  ; line number (0-5)
     lda #' '
     sta Hw_PpuData_rw
@@ -574,7 +625,7 @@ _Finish:
     sta Hw_PpuData_rw
 .ENDPROC
     ldx T0  ; restore X register (line number)
-    rts
+    jmp FuncA_Pause_DirectDrawWindowLineSide  ; preserves X
 _CircuitTiles_u8_arr8_arr6:
     .byte "1", $e0, $00, $f0, $f6, $00, $e1, "6"
     .byte $00, $e2, $e8, $f1, $f7, $e8, $e3, $00
@@ -591,7 +642,122 @@ _CircuitBreakers_byte_arr8_arr6:
     .byte $00, $00, $00, $40, $40, $00, $00, $00
 .ENDPROC
 
-;;; Draws objects that should be drawn on the pause screen.
+;;; Writes BG tile data for one line of the papers section of the pause screen
+;;; directly to the PPU.
+;;; @prereq Rendering is disabled.
+;;; @prereq Hw_PpuCtrl_wo is set to horizontal mode.
+;;; @prereq Hw_PpuAddr_w2 is set to the start of the nametable row.
+;;; @param X The paper grid row number (0-4).
+;;; @param Y The BG tile ID for the left side of each paper.
+;;; @preserve X
+.PROC FuncA_Pause_DirectDrawPaperLine
+    stx T0  ; paper grid row
+    sty T1  ; left tile ID
+    lda Data_PowersOfTwo_u8_arr8, x
+    sta T2  ; bitmask
+    jsr FuncA_Pause_DirectDrawWindowLineSide  ; preserves T0+
+    ldx #0  ; paper grid col
+    beq @start  ; unconditional
+    @loop:
+    lda #' '
+    sta Hw_PpuData_rw
+    @start:
+    lda Ram_CollectedPapers_u8_arr, x
+    and T2  ; bitmask
+    beq @paperNotCollected
+    @paperIsCollected:
+    lda T1  ; left tile ID
+    sta Hw_PpuData_rw
+    .assert kTileIdBgPaperTopLeft | 2 = kTileIdBgPaperTopRight, error
+    .assert kTileIdBgPaperBottomLeft | 2 = kTileIdBgPaperBottomRight, error
+    ora #$02
+    sta Hw_PpuData_rw
+    bne @continue  ; unconditional
+    @paperNotCollected:
+    lda #' '
+    sta Hw_PpuData_rw
+    sta Hw_PpuData_rw
+    @continue:
+    inx
+    cpx #kPaperGridCols
+    blt @loop
+    ldx T0  ; paper grid row
+    jmp FuncA_Pause_DirectDrawWindowLineSide  ; preserves X and T0+
+.ENDPROC
+
+;;; Draws a blank line within a pause screen window directly to the PPU.
+;;; @prereq Rendering is disabled.
+;;; @prereq Hw_PpuCtrl_wo is set to horizontal mode.
+;;; @prereq Hw_PpuAddr_w2 is set to the start of the nametable row.
+;;; @preserve X, T0+
+.PROC FuncA_Pause_DirectDrawWindowBlankLine
+    jsr FuncA_Pause_DirectDrawWindowLineSide  ; preserves X and T0+
+    ldy #kScreenWidthTiles - 6  ; param: num blank tiles to draw
+    jsr FuncA_Pause_DirectDrawBlankTiles  ; preserves X and T0+
+    .assert * = FuncA_Pause_DirectDrawWindowLineSide, error, "fallthrough"
+.ENDPROC
+
+;;; Draws the left or right side of one pause window line, including margins;
+;;; that is, a blank tile, a vertical border tile, and another blank tile.
+;;; @prereq Rendering is disabled.
+;;; @prereq Hw_PpuCtrl_wo is set to horizontal mode.
+;;; @preserve X, T0+
+.PROC FuncA_Pause_DirectDrawWindowLineSide
+    lda #' '
+    sta Hw_PpuData_rw
+    ldy #kTileIdBgWindowVert
+    sty Hw_PpuData_rw
+    sta Hw_PpuData_rw
+    rts
+.ENDPROC
+
+;;; Draws one row of nametable tiles, consiting of the top border of a pause
+;;; screen window.
+;;; @prereq Rendering is disabled.
+;;; @prereq Hw_PpuCtrl_wo is set to horizontal mode.
+;;; @prereq Hw_PpuAddr_w2 is set to the start of the nametable row.
+;;; @preserve T0+
+.PROC FuncA_Pause_DirectDrawWindowTopBorder
+    ldy #' '
+    sty Hw_PpuData_rw
+    lda #kTileIdBgWindowTopLeft
+    sta Hw_PpuData_rw
+    lda #kTileIdBgWindowHorz
+    ldx #kScreenWidthTiles - 4
+    @loop:
+    sta Hw_PpuData_rw
+    dex
+    bne @loop
+    lda #kTileIdBgWindowTopRight
+    sta Hw_PpuData_rw
+    sty Hw_PpuData_rw
+    rts
+.ENDPROC
+
+;;; Draws one row of nametable tiles, consiting of the top border of a pause
+;;; screen window.
+;;; @prereq Rendering is disabled.
+;;; @prereq Hw_PpuCtrl_wo is set to horizontal mode.
+;;; @prereq Hw_PpuAddr_w2 is set to the start of the nametable row.
+;;; @preserve T0+
+.PROC FuncA_Pause_DirectDrawWindowBottomBorder
+    ldy #' '
+    sty Hw_PpuData_rw
+    lda #kTileIdBgWindowBottomLeft
+    sta Hw_PpuData_rw
+    lda #kTileIdBgWindowHorz
+    ldx #kScreenWidthTiles - 4
+    @loop:
+    sta Hw_PpuData_rw
+    dex
+    bne @loop
+    lda #kTileIdBgWindowBottomRight
+    sta Hw_PpuData_rw
+    sty Hw_PpuData_rw
+    rts
+.ENDPROC
+
+;;; Draws all objects that should be drawn on the pause screen.
 .PROC FuncA_Pause_DrawObjects
     jsr FuncA_Pause_DrawMinimapObjects
     jsr FuncA_Pause_DrawCircuitObjects

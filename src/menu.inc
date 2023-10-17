@@ -31,17 +31,17 @@ kMenuStartTileColumn = 22
 ;;; Represents static data about a console instruction field editing menu.
 .STRUCT sMenu
     ;; The (width - 1) of each menu item, in tiles.
-    WidthsMinusOne_u8_arr   .res kMaxMenuItems
+    WidthsMinusOne_u8_arr .byte kMaxMenuItems
     ;; Pointers to the label string for each menu item.  Each string must have
     ;; length equal to 1 plus the corresponding value in WidthsMinusOne_u8_arr.
-    Labels_u8_arr_ptr_arr   .res kMaxMenuItems * 2
+    Labels_u8_arr_ptr_arr .addr kMaxMenuItems
     ;; Pointers to the functions to be called when the player presses various
     ;; directions on the D-pad; each function should update Zp_MenuItem_u8
     ;; appropriately based on the menu layout.
-    OnUp_func_ptr           .res 2
-    OnDown_func_ptr         .res 2
-    OnLeft_func_ptr         .res 2
-    OnRight_func_ptr        .res 2
+    OnUp_func_ptr         .addr
+    OnDown_func_ptr       .addr
+    OnLeft_func_ptr       .addr
+    OnRight_func_ptr      .addr
 .ENDSTRUCT
 
 ;;;=========================================================================;;;
