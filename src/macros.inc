@@ -149,6 +149,29 @@ T7T6 := $06
 
 ;;;=========================================================================;;;
 
+;;; RSBC (reverse subtract with borrow)
+;;; Affects flags: N Z C
+;;;
+;;; Subtracts A from the argument, taking the carry flag into account as an SBC
+;;; instruction would.
+.MACRO rsbc ARG1, ARG2
+    eor #$ff
+    .if .blank(ARG2)
+    adc ARG1
+    .else
+    adc ARG1, ARG2
+    .endif
+.ENDMACRO
+
+;;; RSUB (reverse subtract)
+;;; Affects flags: N Z C
+;;;
+;;; Subtracts A from the argument.
+.MACRO rsub ARG1, ARG2
+    sec
+    rsbc ARG1, ARG2
+.ENDMACRO
+
 ;;; DIV (divide A by a constant power of 2)
 ;;; Affects flags: N Z C
 ;;;

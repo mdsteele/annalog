@@ -174,7 +174,7 @@ _Machines_sMachine_arr:
     d_addr TryMove_func_ptr, FuncA_Machine_MermaidSpringPump_TryMove
     d_addr TryAct_func_ptr, FuncA_Machine_Error
     d_addr Tick_func_ptr, FuncA_Machine_MermaidSpringPump_Tick
-    d_addr Draw_func_ptr, FuncA_Objects_MermaidSpringPump_Draw
+    d_addr Draw_func_ptr, FuncC_Mermaid_SpringPump_Draw
     d_addr Reset_func_ptr, FuncA_Room_MermaidSpringPump_InitReset
     D_END
     .assert * - :- <= kMaxMachines * .sizeof(sMachine), error
@@ -294,6 +294,51 @@ _Passages_sPassage_arr:
     rts
 .ENDPROC
 
+.PROC FuncC_Mermaid_SpringPump_Draw
+    jsr FuncA_Objects_DrawPumpMachine
+_Water:
+    ;; Don't draw the water if it's been drained.
+    lda Ram_PlatformType_ePlatform_arr + kWaterPlatformIndex
+    cmp #ePlatform::Water
+    bne @done
+    ;; Determine the position for the leftmost water object.
+    ldx #kWaterPlatformIndex  ; param: platform index
+    jsr FuncA_Objects_SetShapePosToPlatformTopLeft
+    lda Ram_PlatformTop_i16_0_arr + kWaterPlatformIndex
+    sub #kWaterMinPlatformTop & $f8
+    div #kTileHeightPx
+    tay
+    lda _WaterOffset_u8_arr, y  ; param: offset
+    jsr FuncA_Objects_MoveShapeRightByA  ; preserves Y
+    ;; Determine the width of the water in tiles, and draw that many objects.
+    ldx _WaterWidth_u8_arr, y
+    @loop:
+    jsr FuncA_Objects_Alloc1x1Shape  ; preserves X, returns C and Y
+    bcs @continue
+    lda Zp_FrameCounter_u8
+    div #8
+    and #$03
+    .assert kTileIdObjHotSpringFirst & $03 = 0, error
+    ora #kTileIdObjHotSpringFirst
+    sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
+    lda #kPaletteObjHotSpring | bObj::Pri
+    sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
+    @continue:
+    jsr FuncA_Objects_MoveShapeRightOneTile  ; preserves X
+    dex
+    bne @loop
+    @done:
+    rts
+_WaterOffset_u8_arr:
+    .byte $10, $10, $10, $10, $10, $00, $00, $00
+    .byte $00, $00, $10, $10, $10, $10, $20, $10
+    .byte $10, $10, $10, $10
+_WaterWidth_u8_arr:
+    .byte 6, 6, 6, 6, 4, 6, 6, 6
+    .byte 4, 6, 4, 6, 6, 6, 4, 6
+    .byte 4, 4, 4, 4
+.ENDPROC
+
 ;;;=========================================================================;;;
 
 .SEGMENT "PRGA_Machine"
@@ -405,54 +450,6 @@ _SpawnExplosionAtPoint:
     rts
 .ENDPROC
 
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Objects"
-
-.PROC FuncA_Objects_MermaidSpringPump_Draw
-    jsr FuncA_Objects_DrawPumpMachine
-_Water:
-    ;; Don't draw the water if it's been drained.
-    lda Ram_PlatformType_ePlatform_arr + kWaterPlatformIndex
-    cmp #ePlatform::Water
-    bne @done
-    ;; Determine the position for the leftmost water object.
-    ldx #kWaterPlatformIndex  ; param: platform index
-    jsr FuncA_Objects_SetShapePosToPlatformTopLeft
-    lda Ram_PlatformTop_i16_0_arr + kWaterPlatformIndex
-    sub #kWaterMinPlatformTop & $f8
-    div #kTileHeightPx
-    tay
-    lda _WaterOffset_u8_arr, y  ; param: offset
-    jsr FuncA_Objects_MoveShapeRightByA  ; preserves Y
-    ;; Determine the width of the water in tiles, and draw that many objects.
-    ldx _WaterWidth_u8_arr, y
-    @loop:
-    jsr FuncA_Objects_Alloc1x1Shape  ; preserves X, returns C and Y
-    bcs @continue
-    lda Zp_FrameCounter_u8
-    div #8
-    and #$03
-    .assert kTileIdObjHotSpringFirst & $03 = 0, error
-    ora #kTileIdObjHotSpringFirst
-    sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
-    lda #kPaletteObjHotSpring | bObj::Pri
-    sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
-    @continue:
-    jsr FuncA_Objects_MoveShapeRightOneTile  ; preserves X
-    dex
-    bne @loop
-    @done:
-    rts
-_WaterOffset_u8_arr:
-    .byte $10, $10, $10, $10, $10, $00, $00, $00
-    .byte $00, $00, $10, $10, $10, $10, $20, $10
-    .byte $10, $10, $10, $10
-_WaterWidth_u8_arr:
-    .byte 6, 6, 6, 6, 4, 6, 6, 6
-    .byte 4, 6, 4, 6, 6, 6, 4, 6
-    .byte 4, 4, 4, 4
-.ENDPROC
 ;;;=========================================================================;;;
 
 .SEGMENT "PRGA_Cutscene"

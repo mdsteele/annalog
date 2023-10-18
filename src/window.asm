@@ -100,6 +100,38 @@ _Disable:
     rts
 .ENDPROC
 
+;;; Scrolls the window up a bit; call this each frame while the window is
+;;; opening.
+;;; @param A The number of pixels to scroll the window by.
+;;; @return C Set if the window is now fully scrolled in.
+.EXPORT Func_Window_ScrollUp
+.PROC Func_Window_ScrollUp
+    rsub Zp_WindowTop_u8
+    cmp Zp_WindowTopGoal_u8
+    bge @notDone
+    lda Zp_WindowTopGoal_u8
+    @notDone:
+    sta Zp_WindowTop_u8
+    lda Zp_WindowTopGoal_u8
+    cmp Zp_WindowTop_u8  ; clears C if Zp_WindowTopGoal_u8 < Zp_WindowTop_u8
+    rts
+.ENDPROC
+
+;;; Scrolls the window down a bit; call this each frame while the window is
+;;; closing.
+;;; @param A The number of pixels to scroll the window by.
+;;; @return C Set if the window is now fully scrolled out.
+.EXPORT Func_Window_ScrollDown
+.PROC Func_Window_ScrollDown
+    add Zp_WindowTop_u8
+    cmp #kScreenHeightPx
+    blt @notDone
+    lda #$ff
+    @notDone:
+    sta Zp_WindowTop_u8
+    rts
+.ENDPROC
+
 ;;; Draws the top border of the window directly into the nametable.
 ;;; @prereq Rendering is disabled.
 .EXPORT Func_Window_DirectDrawTopBorder

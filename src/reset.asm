@@ -56,8 +56,7 @@ kSharedBgColor = $0f  ; black
     dex  ; now x is $ff
     txs
     ;; Set mapper PRG ROM bank for $a000 and jump to rest of reset code.
-    prga_bank #<.bank(MainA_Reset_Ext)
-    jmp MainA_Reset_Ext
+    jmp_prga MainA_Reset_Ext
 .ENDPROC
 
 ;;;=========================================================================;;;

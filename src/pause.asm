@@ -20,6 +20,7 @@
 .INCLUDE "charmap.inc"
 .INCLUDE "devices/flower.inc"
 .INCLUDE "flag.inc"
+.INCLUDE "irq.inc"
 .INCLUDE "joypad.inc"
 .INCLUDE "macros.inc"
 .INCLUDE "minimap.inc"
@@ -36,7 +37,7 @@
 .IMPORT DataA_Pause_Minimap_sMarker_arr
 .IMPORT DataA_Pause_PaperLocation_eArea_arr
 .IMPORT Data_PowersOfTwo_u8_arr8
-.IMPORT Func_AllocObjects
+.IMPORT Func_AckIrqAndSetLatch
 .IMPORT Func_AllocOneObject
 .IMPORT Func_ClearRestOfOam
 .IMPORT Func_ClearRestOfOamAndProcessFrame
@@ -47,6 +48,9 @@
 .IMPORT Func_FillUpperAttributeTable
 .IMPORT Func_IsFlagSet
 .IMPORT Func_Window_Disable
+.IMPORT Func_Window_ScrollDown
+.IMPORT Func_Window_ScrollUp
+.IMPORT Int_NoopIrq
 .IMPORT Main_Explore_FadeIn
 .IMPORT Ppu_ChrBgMinimap
 .IMPORT Ppu_ChrBgPause
@@ -54,15 +58,19 @@
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORT Sram_Minimap_u16_arr
 .IMPORT Sram_ProgressFlags_arr
+.IMPORTZP Zp_Buffered_sIrq
 .IMPORTZP Zp_CameraMinimapCol_u8
 .IMPORTZP Zp_CameraMinimapRow_u8
 .IMPORTZP Zp_Chr0cBank_u8
 .IMPORTZP Zp_Current_sRoom
 .IMPORTZP Zp_FrameCounter_u8
+.IMPORTZP Zp_NextIrq_int_ptr
 .IMPORTZP Zp_P1ButtonsPressed_bJoypad
 .IMPORTZP Zp_PpuScrollX_u8
 .IMPORTZP Zp_PpuScrollY_u8
 .IMPORTZP Zp_Render_bPpuMask
+.IMPORTZP Zp_WindowTopGoal_u8
+.IMPORTZP Zp_WindowTop_u8
 
 ;;;=========================================================================;;;
 
@@ -70,6 +78,9 @@
 ;;; screen.
 .DEFINE kPaperGridCols 9
 .DEFINE kPaperGridRows 5
+
+;;; How fast the papers window scrolls up/down, in pixels per frame.
+kPapersWindowScrollSpeed = 10
 
 ;;;=========================================================================;;;
 
@@ -132,24 +143,86 @@ Ram_CollectedPapers_u8_arr: .res kPaperGridCols
 
 .SEGMENT "PRG8"
 
-;;; Mode for when the game is paused.
+;;; Mode for fading in the pause screen after pausing the game in explore mode.
 ;;; @prereq Rendering is disabled.
-.EXPORT Main_Pause
-.PROC Main_Pause
+.EXPORT Main_Pause_FadeIn
+.PROC Main_Pause_FadeIn
     chr08_bank #<.bank(Ppu_ChrBgMinimap)
     lda #<.bank(Ppu_ChrBgPause)
     sta Zp_Chr0cBank_u8
     chr18_bank #<.bank(Ppu_ChrObjPause)
-    jsr_prga FuncA_Pause_Init
+    jsr_prga FuncA_Pause_InitAndFadeIn
+    .assert * = Main_Pause_Minimap, error, "fallthrough"
+.ENDPROC
+
+;;; Mode for running the pause screen while the minimap is visible.
+;;; @prereq Rendering is enabled.
+.PROC Main_Pause_Minimap
 _GameLoop:
-    jsr_prga FuncA_Pause_DrawObjects
-    jsr Func_ClearRestOfOamAndProcessFrame
-_CheckForUnpause:
+    jsr FuncM_DrawPauseObjectsAndProcessFrame
+_CheckButtons:
     lda Zp_P1ButtonsPressed_bJoypad
-    and #bJoypad::Start | bJoypad::BButton | bJoypad::AButton
+    and #bJoypad::Down
+    bne Main_Pause_ScrollPapersUp
+    lda Zp_P1ButtonsPressed_bJoypad
+    and #bJoypad::Start | bJoypad::BButton
     beq _GameLoop
+    .assert * = Main_Pause_FadeOut, error, "fallthrough"
+.ENDPROC
+
+;;; Mode for fading out the pause screen and resuming explore mode.
+;;; @prereq Rendering is enabled.
+.PROC Main_Pause_FadeOut
     jsr Func_FadeOutToBlack
     jmp Main_Explore_FadeIn
+.ENDPROC
+
+;;; Mode for scrolling up the papers window, thus making it visible.
+;;; @prereq Rendering is enabled.
+.PROC Main_Pause_ScrollPapersUp
+    lda #kTileHeightPx * 4
+    sta Zp_WindowTopGoal_u8
+    lda #kScreenHeightPx - kPapersWindowScrollSpeed
+    sta Zp_WindowTop_u8
+_GameLoop:
+    jsr FuncM_DrawPauseObjectsAndProcessFrame
+    lda #kPapersWindowScrollSpeed  ; param: scroll by
+    jsr Func_Window_ScrollUp  ; sets C if fully scrolled in
+    bcc _GameLoop
+    .assert * = Main_Pause_Papers, error, "fallthrough"
+.ENDPROC
+
+;;; Mode for running the pause screen while the papers window is visible.
+;;; @prereq Rendering is enabled.
+.PROC Main_Pause_Papers
+_GameLoop:
+    jsr FuncM_DrawPauseObjectsAndProcessFrame
+_CheckButtons:
+    lda Zp_P1ButtonsPressed_bJoypad
+    and #bJoypad::Up | bJoypad::BButton
+    bne Main_Pause_ScrollPapersDown
+    lda Zp_P1ButtonsPressed_bJoypad
+    and #bJoypad::Start
+    beq _GameLoop
+    jmp Main_Pause_FadeOut
+.ENDPROC
+
+;;; Mode for scrolling down the papers window, thus making the minimap visible.
+;;; @prereq Rendering is enabled.
+.PROC Main_Pause_ScrollPapersDown
+_GameLoop:
+    jsr FuncM_DrawPauseObjectsAndProcessFrame
+    lda #kPapersWindowScrollSpeed  ; param: scroll by
+    jsr Func_Window_ScrollDown  ; sets C if fully scrolled out
+    bcc _GameLoop
+    jmp Main_Pause_Minimap
+.ENDPROC
+
+;;; Draws all objects that should be drawn on the pause screen, then calls
+;;; Func_ClearRestOfOamAndProcessFrame.
+.PROC FuncM_DrawPauseObjectsAndProcessFrame
+    jsr_prga FuncA_Pause_DrawObjects
+    jmp Func_ClearRestOfOamAndProcessFrame
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -174,7 +247,7 @@ _CheckForUnpause:
 
 ;;; Initializes pause mode, then fades in the screen.
 ;;; @prereq Rendering is disabled.
-.PROC FuncA_Pause_Init
+.PROC FuncA_Pause_InitAndFadeIn
     ;; Reset the frame counter before drawing any objects so that the
     ;; current-position blink will be in a consistent state as we fade in.
     lda #0
@@ -759,9 +832,29 @@ _CircuitBreakers_byte_arr8_arr6:
 
 ;;; Draws all objects that should be drawn on the pause screen.
 .PROC FuncA_Pause_DrawObjects
+    jsr FuncA_Pause_SetUpIrq
     jsr FuncA_Pause_DrawMinimapObjects
     jsr FuncA_Pause_DrawCircuitObjects
     jmp FuncA_Pause_DrawFlowerCount
+.ENDPROC
+
+;;; Populates Ram_Buffered_sIrq appropriately for the pause screen.
+.PROC FuncA_Pause_SetUpIrq
+    ldy Zp_WindowTop_u8
+    cpy #kScreenHeightPx
+    bge _Disable
+_Enable:
+    dey
+    sty <(Zp_Buffered_sIrq + sIrq::Latch_u8)
+    ldax #Int_PausePapersTopIrq
+    stax <(Zp_Buffered_sIrq + sIrq::FirstIrq_int_ptr)
+    rts
+_Disable:
+    lda #$ff
+    sta <(Zp_Buffered_sIrq + sIrq::Latch_u8)
+    ldax #Int_NoopIrq
+    stax <(Zp_Buffered_sIrq + sIrq::FirstIrq_int_ptr)
+    rts
 .ENDPROC
 
 ;;; Draws objects to mark the current area on the minimap.
@@ -805,19 +898,20 @@ _CircuitBreakers_byte_arr8_arr6:
     sta T4  ; object flags
     ;; Draw an object for this minimap cell.
     sty T5  ; byte offset into AreaCells_u8_arr2_arr_ptr
-    jsr Func_AllocOneObject  ; preserves T0+, returns Y
-    lda T4  ; object flags
-    sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
     lda T2  ; minimap row number
     mul #kTileHeightPx
-    adc #kMinimapTopPx - 1
-    sta Ram_Oam_sObj_arr64 + sObj::YPos_u8, y
+    adc #kMinimapTopPx  ; param: Y-position
+    jsr FuncA_Pause_AllocMinimapObject  ; preserves T0+, returns C and Y
+    bcs @noAlloc
+    lda T4  ; object flags
+    sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
     lda T3  ; minimap col number
     mul #kTileWidthPx
     adc #kMinimapLeftPx
     sta Ram_Oam_sObj_arr64 + sObj::XPos_u8, y
     lda #kTileIdObjMinimapCurrentArea
     sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
+    @noAlloc:
     ldy T5  ; byte offset into AreaCells_u8_arr2_arr_ptr
     ;; Read the minimap row number (or $ff terminator) for the next iteration.
     @continue:
@@ -831,21 +925,21 @@ _CircuitBreakers_byte_arr8_arr6:
     lda Zp_FrameCounter_u8
     div #4
     and #$03
-    sta T0  ; anim offset
+    sta T2  ; anim offset (0-3)
     ldx #14
     @loop:
     lda _CircuitBreakerMask_byte_arr, x
     and Zp_ActivatedBreakers_byte
     beq @continue
-    jsr Func_AllocOneObject  ; preserves X and T0+, returns Y
+    lda _CircuitPosY_u8_arr, x  ; param: Y-position
+    jsr FuncA_Pause_AllocMinimapObject  ; preserves X and T0+, returns C and Y
+    bcs @continue
     lda _CircuitPosX_u8_arr, x
     sta Ram_Oam_sObj_arr64 + sObj::XPos_u8, y
-    lda _CircuitPosY_u8_arr, x
-    sta Ram_Oam_sObj_arr64 + sObj::YPos_u8, y
     lda _CircuitFlags_bObj_arr, x
     sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
-    lda _CircuitFirstTile_u8_arr, x
-    add T0  ; anim offset
+    lda T2  ; anim offset (0-3)
+    ora _CircuitFirstTile_u8_arr, x  ; param: tile ID
     sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
     @continue:
     dex
@@ -862,10 +956,10 @@ _CircuitPosX_u8_arr:
     .byte      $b0, $b8, $c0, $c8
     .byte              $bc
 _CircuitPosY_u8_arr:
-    .byte $ac, $ac, $ac, $ac, $ac, $ac
-    .byte $ba, $ba,           $ba, $ba
-    .byte      $c2, $c2, $c2, $c2
-    .byte              $c9
+    .byte $ad, $ad, $ad, $ad, $ad, $ad
+    .byte $bb, $bb,           $bb, $bb
+    .byte      $c3, $c3, $c3, $c3
+    .byte              $ca
 _CircuitFirstTile_u8_arr:
     .byte $c0, $c4, $c4, $c4, $c4, $c0
     .byte $c0, $c4,           $c4, $c0
@@ -884,34 +978,58 @@ _CircuitFlags_bObj_arr:
     ;; Only display the flower count if at least one flower has been delivered,
     ;; but the BEEP opcode has not been unlocked yet.
     flag_bit Sram_ProgressFlags_arr, eFlag::UpgradeOpBeep
-    bne @noFlowerCount
+    bne _Return
     jsr Func_CountDeliveredFlowers  ; returns Z and A
-    beq @noFlowerCount
+    beq _Return
     sta T0  ; flower count
-    ;; Allocate objects to display the flower count.
-    lda #2  ; param: num objects
-    jsr Func_AllocObjects  ; preserves T0+, returns Y
-    ;; Set object positions.
-    lda #$28
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::XPos_u8, y
+_DrawNumber:
+    lda #$c9  ; param: Y-position
+    jsr FuncA_Pause_AllocMinimapObject  ; preserves T0+, returns C and Y
+    bcs @done
     lda #$1f
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::XPos_u8, y
-    lda #$c8
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::YPos_u8, y
-    lda #$c9
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::YPos_u8, y
-    ;; Set object palettes.
-    lda #kPaletteObjFlowerTop
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Flags_bObj, y
+    sta Ram_Oam_sObj_arr64 + sObj::XPos_u8, y
     lda #0
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Flags_bObj, y
-    ;; Set object tile IDs.
-    lda #kTileIdObjFlowerTop
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Tile_u8, y
+    sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
     lda T0  ; flower count
     ora #$80 | '0'
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Tile_u8, y
-    @noFlowerCount:
+    sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
+    @done:
+_DrawFlowerIcon:
+    lda #$c9  ; param: Y-position
+    jsr FuncA_Pause_AllocMinimapObject  ; preserves T0+, returns C and Y
+    bcs @done
+    lda #$28
+    sta Ram_Oam_sObj_arr64 + sObj::XPos_u8, y
+    lda #kPaletteObjFlowerTop
+    sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
+    lda #kTileIdObjFlowerTop
+    sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
+    @done:
+_Return:
+    rts
+.ENDPROC
+
+;;; Allocates and sets the Y-position for a single object within the pause
+;;; screen minimap window.  If the object would be behind the window, then it
+;;; isn't allocated (and C is cleared).  Otherwise, the caller should use the
+;;; returned OAM byte offset in Y to set the object's X-position, flags, and
+;;; tile ID.
+;;; @param A The screen Y-position for the object.
+;;; @return C Set if no OAM slot was allocated, cleared otherwise.
+;;; @return Y The OAM byte offset for the allocated object.
+;;; @preserve X, T0+
+.PROC FuncA_Pause_AllocMinimapObject
+    cmp Zp_WindowTop_u8
+    bge @notVisible
+    sub #1
+    pha
+    jsr Func_AllocOneObject  ; preserves X and T0+, returns Y
+    pla
+    sta Ram_Oam_sObj_arr64 + sObj::YPos_u8, y
+    clc
+    rts
+    @notVisible:
+    sec
     rts
 .ENDPROC
 
@@ -930,6 +1048,72 @@ _CircuitFlags_bObj_arr:
     .byte '?', '?', '?', '?', '?', $b9, '?', '?'
     .byte $b4, '?', '?', '?', '?', '?', $be, '?'
     .byte '?', $bc, $ba, '?', '?', $bb
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGE_Irq"
+
+;;; HBlank IRQ handler function for the top edge of the pause screen papers
+;;; window.  Sets the PPU scroll so as to display the papers window, and
+;;; disables drawing objects over the window's top border, so that it looks
+;;; like the window is in front of any objects in the minimap window.
+.PROC Int_PausePapersTopIrq
+    ;; Save A and X registers (we won't be using Y).
+    pha
+    txa
+    pha
+    ;; At this point, the first HBlank is already just about over.  Set up the
+    ;; next IRQ.
+    lda #kTileHeightPx - 1  ; param: latch value
+    jsr Func_AckIrqAndSetLatch  ; preserves Y
+    ldax #Int_PausePapersInteriorIrq
+    stax Zp_NextIrq_int_ptr
+    ;; Busy-wait for a bit, that our final writes in this function will occur
+    ;; during the next HBlank.
+    ldx #7  ; This value is hand-tuned to help wait for second HBlank.
+    @busyLoop:
+    dex
+    bne @busyLoop
+    ;; Set the PPU's new scroll-Y and scroll-X values, and also set the upper
+    ;; nametable as the scrolling origin.  All of this takes four writes, and
+    ;; the last two must happen during HBlank (between dots 256 and 320).
+    ;; See https://www.nesdev.org/wiki/PPU_scrolling#Split_X.2FY_scroll
+    lda #$0c  ; nametable number << 2 (so $0c for nametable 3)
+    sta Hw_PpuAddr_w2
+    lda #kTileHeightPx  ; new scroll-Y value
+    sta Hw_PpuScroll_w2
+    and #$38
+    asl a
+    asl a
+    ;; We should now be in the second HBlank (and X is zero).
+    stx Hw_PpuScroll_w2  ; new scroll-X value (zero)
+    sta Hw_PpuAddr_w2    ; ((Y & $38) << 2) | (X >> 3)
+    ;; Disable drawing objects for now.
+    lda #bPpuMask::BgMain
+    sta Hw_PpuMask_wo
+    ;; Restore registers and return.
+    pla
+    tax
+    pla
+    rti
+.ENDPROC
+
+;;; HBlank IRQ handler function for the bottom edge of the pause screen papers
+;;; window's top border (i.e. the top edge of the window interior).  Re-enables
+;;; object rendering, so that objects can be displayed inside the window.
+.PROC Int_PausePapersInteriorIrq
+    ;; Save the A register and update the PPU mask as quickly as possible.
+    pha
+    lda #bPpuMask::BgMain | bPpuMask::ObjMain
+    sta Hw_PpuMask_wo
+    ;; No more IRQs for the rest of this frame.
+    lda #$ff
+    sta Hw_Mmc3IrqLatch_wo
+    sta Hw_Mmc3IrqReload_wo
+    ;; Restore the A register and finish.
+    pla
+    jmp Int_NoopIrq
 .ENDPROC
 
 ;;;=========================================================================;;;

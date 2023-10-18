@@ -118,6 +118,7 @@
 .IMPORT Func_TryPushAvatarHorz
 .IMPORT Func_Window_GetRowPpuAddr
 .IMPORT Func_Window_PrepareRowTransfer
+.IMPORT Func_Window_ScrollUp
 .IMPORT Func_Window_TransferBottomBorder
 .IMPORT Func_Window_TransferClearRow
 .IMPORT Main_Cutscene_Continue
@@ -831,18 +832,9 @@ _AdjustAvatar:
     jsr Func_TryPushAvatarHorz
     @done:
 _ScrollWindow:
-    lda Zp_WindowTop_u8
-    sub #kDialogWindowScrollSpeed
-    cmp Zp_WindowTopGoal_u8
-    bge @notDone
-    lda Zp_WindowTopGoal_u8
-    @notDone:
-    sta Zp_WindowTop_u8
     jsr FuncA_Dialog_TransferNextWindowRow
-_CheckIfDone:
-    lda Zp_WindowTopGoal_u8
-    cmp Zp_WindowTop_u8  ; clears C if Zp_WindowTopGoal_u8 < Zp_WindowTop_u8
-    rts
+    lda #kDialogWindowScrollSpeed  ; param: scroll by
+    jmp Func_Window_ScrollUp  ; sets C if fully scrolled in
 .ENDPROC
 
 ;;; Transfers the next dialog window row (if any) that still needs to be

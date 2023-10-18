@@ -117,7 +117,7 @@ _Machines_sMachine_arr:
     d_addr TryMove_func_ptr, FuncA_Machine_SewerFlowerPump_TryMove
     d_addr TryAct_func_ptr, FuncA_Machine_Error
     d_addr Tick_func_ptr, FuncA_Machine_SewerFlowerPump_Tick
-    d_addr Draw_func_ptr, FuncA_Objects_SewerFlowerPump_Draw
+    d_addr Draw_func_ptr, FuncC_Sewer_FlowerPump_Draw
     d_addr Reset_func_ptr, FuncA_Room_SewerFlowerPump_InitReset
     D_END
     .assert * - :- <= kMaxMachines * .sizeof(sMachine), error
@@ -188,36 +188,7 @@ _Passages_sPassage_arr:
     rts
 .ENDPROC
 
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Room"
-
-.PROC FuncA_Room_SewerFlowerPump_InitReset
-    lda #kPumpInitGoalY
-    sta Ram_MachineGoalVert_u8_arr + kPumpMachineIndex
-    rts
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Machine"
-
-.PROC FuncA_Machine_SewerFlowerPump_TryMove
-    lda #kPumpMaxGoalY  ; param: max vertical goal
-    jmp FuncA_Machine_GenericTryMoveY
-.ENDPROC
-
-.PROC FuncA_Machine_SewerFlowerPump_Tick
-    ldx #kWaterPlatformIndex  ; param: water platform index
-    ldya #kWaterMaxPlatformTop  ; param: max water platform top
-    jmp FuncA_Machine_PumpTick
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Objects"
-
-.PROC FuncA_Objects_SewerFlowerPump_Draw
+.PROC FuncC_Sewer_FlowerPump_Draw
     jsr FuncA_Objects_DrawPumpMachine
 _WaterLeft:
     ;; Determine the position for the leftmost water object.
@@ -270,6 +241,31 @@ _WaterOffsetR_u8_arr:
     .byte $10, $10, $20, $20, $10, $00, $00
 _WaterWidthR_u8_arr:
     .byte 4, 2, 4, 2, 4, 3, 3
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Room"
+
+.PROC FuncA_Room_SewerFlowerPump_InitReset
+    lda #kPumpInitGoalY
+    sta Ram_MachineGoalVert_u8_arr + kPumpMachineIndex
+    rts
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Machine"
+
+.PROC FuncA_Machine_SewerFlowerPump_TryMove
+    lda #kPumpMaxGoalY  ; param: max vertical goal
+    jmp FuncA_Machine_GenericTryMoveY
+.ENDPROC
+
+.PROC FuncA_Machine_SewerFlowerPump_Tick
+    ldx #kWaterPlatformIndex  ; param: water platform index
+    ldya #kWaterMaxPlatformTop  ; param: max water platform top
+    jmp FuncA_Machine_PumpTick
 .ENDPROC
 
 ;;;=========================================================================;;;

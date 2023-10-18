@@ -69,7 +69,7 @@
 .IMPORT Main_Death
 .IMPORT Main_Dialog_UseDevice
 .IMPORT Main_Paper_UseDevice
-.IMPORT Main_Pause
+.IMPORT Main_Pause_FadeIn
 .IMPORT Main_Upgrade_UseDevice
 .IMPORT Ppu_ChrBgAnimA0
 .IMPORT Ram_DeviceBlockCol_u8_arr
@@ -196,7 +196,7 @@ _CheckForPause:
     and #bJoypad::Start
     beq @done
     jsr Func_FadeOutToBlack
-    jmp Main_Pause
+    jmp Main_Pause_FadeIn
     @done:
 .PROC _CheckForActivateDevice
     jsr_prga FuncA_Avatar_FindNearbyDevice

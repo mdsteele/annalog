@@ -146,6 +146,20 @@ kMmc3BankFlags = bMmc3Bank::FourBankChr0000 | bMmc3Bank::SwappablePrgC000
     jsr ARG
 .ENDMACRO
 
+;;; Switches the PRGA bank number to that of the given function, then jumps to
+;;; that function.  This is useful for jumping from a Main to a MainA, or from
+;;; a FuncM to a FuncA.  Note that the A register and the N and Z flags are
+;;; destroyed by the bank-switching process, so this cannot be used for
+;;; functions that take any of those as arguments.
+;;;
+;;; Example:
+;;;     jmp_prga FuncA_Baz_Foobar  ; switches to PRGA_Baz and jumps to function
+.MACRO jmp_prga ARG
+    .assert ARG >= $a000 && ARG < $c000, error
+    prga_bank #<.bank(ARG)
+    jmp ARG
+.ENDMACRO
+
 ;;; Sets the given argument as the PRGC bank number.  The A register and the N
 ;;; and Z flags are destroyed in the process.
 ;;;

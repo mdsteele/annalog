@@ -124,11 +124,11 @@ _Machines_sMachine_arr:
     d_byte MainPlatform_u8, kMultiplexerMainPlatformIndex
     d_addr Init_func_ptr, FuncC_Sewer_PoolMultiplexer_InitReset
     d_addr ReadReg_func_ptr, FuncC_Sewer_PoolMultiplexer_ReadReg
-    d_addr WriteReg_func_ptr, FuncC_Sewer_PoolMultiplexer_WriteReg
+    d_addr WriteReg_func_ptr, FuncA_Machine_SewerPoolMultiplexer_WriteReg
     d_addr TryMove_func_ptr, FuncC_Sewer_PoolMultiplexer_TryMove
     d_addr TryAct_func_ptr, FuncA_Machine_Error
-    d_addr Tick_func_ptr, FuncC_Sewer_PoolMultiplexer_Tick
-    d_addr Draw_func_ptr, FuncA_Objects_SewerPoolMultiplexer_Draw
+    d_addr Tick_func_ptr, FuncA_Machine_SewerPoolMultiplexer_Tick
+    d_addr Draw_func_ptr, FuncC_Sewer_PoolMultiplexer_Draw
     d_addr Reset_func_ptr, FuncC_Sewer_PoolMultiplexer_InitReset
     D_END
     .assert * - :- <= kMaxMachines * .sizeof(sMachine), error
@@ -254,9 +254,9 @@ _ReadY:
     rts
 .ENDPROC
 
-.PROC FuncC_Sewer_PoolMultiplexer_WriteReg
-    sta Ram_MachineGoalHorz_u8_arr + kMultiplexerMachineIndex  ; J register
-    rts
+.PROC FuncC_Sewer_PoolMultiplexer_Draw
+    ldx #kMultiplexerNumPlatforms  ; param: num platforms
+    jmp FuncA_Objects_DrawMultiplexerMachine
 .ENDPROC
 
 .PROC FuncC_Sewer_PoolMultiplexer_TryMove
@@ -282,7 +282,16 @@ _ReadY:
     jmp FuncA_Machine_Error
 .ENDPROC
 
-.PROC FuncC_Sewer_PoolMultiplexer_Tick
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Machine"
+
+.PROC FuncA_Machine_SewerPoolMultiplexer_WriteReg
+    sta Ram_MachineGoalHorz_u8_arr + kMultiplexerMachineIndex  ; J register
+    rts
+.ENDPROC
+
+.PROC FuncA_Machine_SewerPoolMultiplexer_Tick
     lda #0
     pha  ; num platforms done
     ldx #kMultiplexerNumPlatforms - 1
@@ -321,15 +330,6 @@ _Finish:
     jmp FuncA_Machine_ReachedGoal
     @notReachedGoal:
     rts
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Objects"
-
-.PROC FuncA_Objects_SewerPoolMultiplexer_Draw
-    ldx #kMultiplexerNumPlatforms  ; param: num platforms
-    jmp FuncA_Objects_DrawMultiplexerMachine
 .ENDPROC
 
 ;;;=========================================================================;;;

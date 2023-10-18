@@ -54,6 +54,8 @@
 .IMPORT Func_TickAllDevices
 .IMPORT Func_Window_GetRowPpuAddr
 .IMPORT Func_Window_PrepareRowTransfer
+.IMPORT Func_Window_ScrollDown
+.IMPORT Func_Window_ScrollUp
 .IMPORT Func_Window_TransferBottomBorder
 .IMPORT Func_Window_TransferClearRow
 .IMPORT Main_Console_Debug
@@ -220,15 +222,9 @@ _GameLoop:
     jsr_prga FuncA_Objects_DrawHudInWindowAndObjectsForRoom
     jsr Func_ClearRestOfOamAndProcessFrame
 _ScrollWindowDown:
-    lda Zp_WindowTop_u8
-    add #kConsoleWindowScrollSpeed
-    cmp #kScreenHeightPx
-    blt @notDone
-    lda #$ff
-    @notDone:
-    sta Zp_WindowTop_u8
-    cmp #$ff
-    beq _Done
+    lda #kConsoleWindowScrollSpeed  ; param: scroll by
+    jsr Func_Window_ScrollDown  ; sets C if fully scrolled out
+    bcs _Done
 _UpdateScrolling:
     jsr_prga FuncA_Terrain_ScrollTowardsAvatar
     jsr FuncM_ConsoleTick
@@ -315,8 +311,7 @@ _Tick:
     jsr_prga FuncA_Actor_TickAllSmokeActors
     jsr Func_TickAllDevices
     jsr_prga FuncA_Room_CallRoomTick
-    jsr_prga FuncA_Machine_TickAll
-    rts
+    jmp_prga FuncA_Machine_TickAll
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -471,18 +466,9 @@ _AdjustAvatar:
     inc Zp_AvatarPosX_i16 + 0
     @done:
 _ScrollWindow:
-    lda Zp_WindowTop_u8
-    sub #kConsoleWindowScrollSpeed
-    cmp Zp_WindowTopGoal_u8
-    bge @notDone
-    lda Zp_WindowTopGoal_u8
-    @notDone:
-    sta Zp_WindowTop_u8
     jsr FuncA_Console_TransferNextWindowRow
-_CheckIfDone:
-    lda Zp_WindowTopGoal_u8
-    cmp Zp_WindowTop_u8  ; clears C if Zp_WindowTopGoal_u8 < Zp_WindowTop_u8
-    rts
+    lda #kConsoleWindowScrollSpeed  ; param: scroll by
+    jmp Func_Window_ScrollUp  ; sets C if fully scrolled in
 .ENDPROC
 
 ;;; Inserts a new instruction (if there's room) above the current one and
