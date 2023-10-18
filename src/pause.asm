@@ -78,6 +78,7 @@
 ;;; screen.
 .DEFINE kPaperGridCols 9
 .DEFINE kPaperGridRows 5
+.ASSERT kPaperGridCols * kPaperGridRows = kNumPaperFlags, error
 
 ;;; How fast the papers window scrolls up/down, in pixels per frame.
 kPapersWindowScrollSpeed = 10

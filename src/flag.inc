@@ -138,6 +138,8 @@ kSaveMagicNumber = $b2
     PaperManual5
     PaperManual6
     PaperManual7
+    PaperManual8
+    PaperManual9
     ;; Flags for persistent room state:
     CityCenterDoorUnlocked
     CityCenterKeygenConnected
@@ -208,8 +210,8 @@ kNumFlowerFlags = 12
 .ASSERT kNumFlowerFlags = kLastFlowerFlag + 1 - kFirstFlowerFlag, error
 
 kFirstPaperFlag = eFlag::PaperJerome01
-kLastPaperFlag = eFlag::PaperManual7
-kNumPaperFlags = 43
+kLastPaperFlag = eFlag::PaperManual9
+kNumPaperFlags = 45
 .ASSERT kNumPaperFlags = kLastPaperFlag + 1 - kFirstPaperFlag, error
 
 ;;;=========================================================================;;;

@@ -112,6 +112,8 @@
     d_byte eFlag::PaperManual5, 0  ; TODO
     d_byte eFlag::PaperManual6, 0  ; TODO
     d_byte eFlag::PaperManual7, 0  ; TODO
+    d_byte eFlag::PaperManual8, 0  ; TODO
+    d_byte eFlag::PaperManual9, 0  ; TODO
     D_END
 .ENDPROC
 
@@ -166,6 +168,8 @@
     d_byte eFlag::PaperManual5,  $ff  ; TODO
     d_byte eFlag::PaperManual6,  $ff  ; TODO
     d_byte eFlag::PaperManual7,  $ff  ; TODO
+    d_byte eFlag::PaperManual8,  $ff  ; TODO
+    d_byte eFlag::PaperManual9,  $ff  ; TODO
     D_END
 .ENDPROC
 
