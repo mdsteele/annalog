@@ -254,30 +254,30 @@ def load_rooms(areas):
             room = load_room(filepath, prgc_name)
             areas[room['area']]['rooms'][full_name] = room
 
-def load_areas_and_markers():
-    data_re = re.compile(
-        r'^\.PROC DataA_Pause_(Minimap_sMarker|([A-Z][a-z]+)AreaCells)')
+def load_areas():
+    data_re = re.compile(r'^\.PROC DataA_Pause_([A-Z][a-z]+)AreaCells')
     cell_entry_re = re.compile(r'^ *\.byte +([0-9]+), *([0-9]+)$')
     areas = {}
-    file = open('src/minimap.asm')
+    file = open('src/area.asm')
     while True:
         match = try_scan_for_match(file, data_re)
-        assert match
-        if match.group(1).endswith('AreaCells'):
-            area_name = match.group(2)
-            area_cells = []
-            while True:
-                line = file.readline()
-                if '.byte $ff' in line: break
-                match = cell_entry_re.match(line)
-                assert match, line
-                row = int(match.group(1))
-                col = int(match.group(2))
-                area_cells.append((row, col))
-            areas[area_name] = {'cells': area_cells, 'rooms': {}}
-        else:
-            assert match.group(1) == 'Minimap_sMarker'
-            break
+        if not match: break
+        area_name = match.group(1)
+        area_cells = []
+        while True:
+            line = file.readline()
+            if '.byte $ff' in line: break
+            match = cell_entry_re.match(line)
+            assert match, line
+            row = int(match.group(1))
+            col = int(match.group(2))
+            area_cells.append((row, col))
+        areas[area_name] = {'cells': area_cells, 'rooms': {}}
+    load_rooms(areas)
+    return areas
+
+def load_markers():
+    file = open('src/marker.asm')
     markers = []
     while True:
         match = try_scan_for_match(file, D_STRUCT_RE)
@@ -294,8 +294,7 @@ def load_areas_and_markers():
             'name': '{}/{}'.format(if_flag, not_flag),
             'room': room,
         })
-    load_rooms(areas)
-    return areas, markers
+    return markers
 
 #=============================================================================#
 
@@ -480,8 +479,9 @@ def test_paper_rooms(areas, papers):
 
 def run_tests():
     failed = False
-    areas, markers = load_areas_and_markers()
+    areas = load_areas()
     failed |= test_area_cells_sorted(areas)
+    markers = load_markers()
     failed |= test_markers_sorted(markers)
     minimap = load_minimap()
     failed |= test_minimap_coverage(areas, minimap)

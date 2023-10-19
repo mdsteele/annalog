@@ -20,26 +20,49 @@
 .INCLUDE "avatar.inc"
 .INCLUDE "charmap.inc"
 .INCLUDE "cpu.inc"
-.INCLUDE "flag.inc"
 .INCLUDE "macros.inc"
 .INCLUDE "minimap.inc"
 .INCLUDE "mmc3.inc"
+.INCLUDE "oam.inc"
 .INCLUDE "ppu.inc"
 .INCLUDE "room.inc"
 
+.IMPORT DataA_Pause_AreaCells_u8_arr2_arr_ptr_0_arr
+.IMPORT DataA_Pause_AreaCells_u8_arr2_arr_ptr_1_arr
+.IMPORT DataA_Pause_Minimap_sMarker_arr
 .IMPORT Data_PowersOfTwo_u8_arr8
+.IMPORT FuncA_Pause_AllocBaseObject
+.IMPORT FuncA_Pause_DirectDrawWindowLineSide
+.IMPORT Func_IsFlagSet
+.IMPORT Ram_Oam_sObj_arr64
 .IMPORT Sram_Minimap_u16_arr
 .IMPORTZP Zp_AvatarPose_eAvatar
 .IMPORTZP Zp_Current_sRoom
+.IMPORTZP Zp_FrameCounter_u8
 .IMPORTZP Zp_RoomScrollX_u16
 .IMPORTZP Zp_RoomScrollY_u8
+
+;;;=========================================================================;;;
+
+;;; The screen pixel positions for the top and left edges of the minimap rect.
+kMinimapTopPx  = $28
+kMinimapLeftPx = $20
+
+;;; The BG tile ID for an unexplored tile on the minimap.
+kTileIdBgMinimapUnexplored = $80
+
+;;; The OBJ tile ID for marking the current area on the minimap.
+kTileIdObjMinimapCurrentArea = $02
+;;; The OBJ palette numbers for marking the current area and blinking the
+;;; current screen on the minimap.
+kPaletteObjMinimapCurrentArea   = 0
+kPaletteObjMinimapCurrentScreen = 1
 
 ;;;=========================================================================;;;
 
 .ZEROPAGE
 
 ;;; The minimap cell that the room camera is currently looking at.
-.EXPORTZP Zp_CameraMinimapRow_u8, Zp_CameraMinimapCol_u8
 Zp_CameraMinimapRow_u8: .res 1
 Zp_CameraMinimapCol_u8: .res 1
 
@@ -94,7 +117,7 @@ _MarkMinimap:
     ;; Calculate the byte offset into Sram_Minimap_u16_arr and store it in X.
     lda Zp_CameraMinimapCol_u8
     mul #2
-    tax  ; byte index into Sram_Minimap_u16_arr
+    tax  ; byte offset into Sram_Minimap_u16_arr
     cpy #$08
     blt @loByte
     inx
@@ -121,591 +144,246 @@ _Done:
 
 .SEGMENT "PRGA_Pause"
 
-.EXPORT DataA_Pause_AreaNames_u8_arr12_ptr_0_arr
-.EXPORT DataA_Pause_AreaNames_u8_arr12_ptr_1_arr
-.REPEAT 2, table
-    D_TABLE_LO table, DataA_Pause_AreaNames_u8_arr12_ptr_0_arr
-    D_TABLE_HI table, DataA_Pause_AreaNames_u8_arr12_ptr_1_arr
-    D_TABLE .enum, eArea
-    d_entry table, City,    DataA_Pause_CityAreaName_u8_arr12
-    d_entry table, Core,    DataA_Pause_CoreAreaName_u8_arr12
-    d_entry table, Crypt,   DataA_Pause_CryptAreaName_u8_arr12
-    d_entry table, Factory, DataA_Pause_FactoryAreaName_u8_arr12
-    d_entry table, Garden,  DataA_Pause_GardenAreaName_u8_arr12
-    d_entry table, Lava,    DataA_Pause_LavaAreaName_u8_arr12
-    d_entry table, Mermaid, DataA_Pause_MermaidAreaName_u8_arr12
-    d_entry table, Mine,    DataA_Pause_MineAreaName_u8_arr12
-    d_entry table, Prison,  DataA_Pause_PrisonAreaName_u8_arr12
-    d_entry table, Sewer,   DataA_Pause_SewerAreaName_u8_arr12
-    d_entry table, Shadow,  DataA_Pause_ShadowAreaName_u8_arr12
-    d_entry table, Temple,  DataA_Pause_TempleAreaName_u8_arr12
-    d_entry table, Town,    DataA_Pause_TownAreaName_u8_arr12
-    D_END
-.ENDREPEAT
-
-.PROC DataA_Pause_CityAreaName_u8_arr12
-:   .byte "Ancient City"
-    .assert * - :- = 12, error
+;;; Writes BG tile data for the pause screen minimap directly to the PPU.
+;;; @prereq Rendering is disabled.
+;;; @prereq Hw_PpuCtrl_wo is set to horizontal mode.
+;;; @prereq Hw_PpuAddr_w2 is set to the start of a nametable row.
+.EXPORT FuncA_Pause_DirectDrawMinimap
+.PROC FuncA_Pause_DirectDrawMinimap
+    ldya #DataA_Pause_Minimap_u8_arr
+    stya T1T0  ; param: start of minimap row data
+    ldx #0
+    stx T2  ; param: byte offset into DataA_Pause_Minimap_sMarker_arr
+    @rowLoop:
+    jsr FuncA_Pause_DirectDrawMinimapLine  ; preserves X, advances T1T0 and T2
+    inx
+    cpx #kMinimapHeight
+    bne @rowLoop
+    rts
 .ENDPROC
 
-.PROC DataA_Pause_CoreAreaName_u8_arr12
-:   .byte " Power Core "
-    .assert * - :- = 12, error
+;;; Writes BG tile data for one line of the pause screen minimap directly to
+;;; the PPU.
+;;; @prereq Rendering is disabled.
+;;; @prereq Hw_PpuCtrl_wo is set to horizontal mode.
+;;; @prereq Hw_PpuAddr_w2 is set to the start of the nametable row.
+;;; @param T1T0 The start of the minimap tile data row.
+;;; @param T2 The current byte offset into DataA_Pause_Minimap_sMarker_arr.
+;;; @param X The minimap row (0-15).
+;;; @return T1T0 The start of the next minimap tile data row.
+;;; @return T2 The updated byte offset into DataA_Pause_Minimap_sMarker_arr.
+;;; @preserve X
+.PROC FuncA_Pause_DirectDrawMinimapLine
+    jsr FuncA_Pause_DirectDrawWindowLineSide  ; preserves X and T0+
+    ;; Draw left margin.
+    lda #' '
+    sta Hw_PpuData_rw
+    ;; Determine the bitmask we should use for this minimap row, and store it
+    ;; in T7.
+    txa  ; minimap row
+    and #$07
+    tay
+    lda Data_PowersOfTwo_u8_arr8, y
+    sta T7  ; mask
+    ;; Save X in T3 so we can use X for something else and later restore it.
+    stx T3  ; minimap row
+    ;; We'll use X as the byte offset into Sram_Minimap_u16_arr.  If we're in
+    ;; the first eight rows, we'll be checking our bitmask against the low
+    ;; eight bits of each u16; otherwise, we'll be checking against the high
+    ;; eight bits.
+    txa  ; minimap row
+    ldx #0
+    stx T4  ; byte offset into minimap tile data (from pointer in T1T0)
+    cmp #8
+    blt @ready
+    inx  ; now X is 1
+    @ready:
+_ColLoop:
+    ;; Determine the "original" tile ID for this cell of the minimap (without
+    ;; yet taking map markers into account), and store it in T5.
+    lda Sram_Minimap_u16_arr, x
+    and T7  ; mask
+    bne @explored
+    @unexplored:
+    lda #kTileIdBgMinimapUnexplored
+    .assert kTileIdBgMinimapUnexplored > 0, error
+    bne @setOriginalTile  ; unconditional
+    @explored:
+    ldy T4  ; byte offset into minimap tile data (from pointer in T1T0)
+    lda (T1T0), y
+    @setOriginalTile:
+    sta T5  ; original minimap tile ID
+_MarkerLoop:
+    ;; Check the minimap row number for the next map marker.  If it is greater
+    ;; than the current row, then we haven't reached that marker yet, so just
+    ;; draw the original minimap tile.  If it's less than the current row, then
+    ;; skip this marker and check the next one.
+    ldy T2  ; byte offset into DataA_Pause_Minimap_sMarker_arr
+    lda T3  ; minimap row
+    cmp DataA_Pause_Minimap_sMarker_arr + sMarker::Row_u8, y
+    blt _DrawOriginalTile
+    bne @continue
+    ;; Now do the same thing again, for the minimap column number this time.
+    txa  ; byte offset into Sram_Minimap_u16_arr
+    div #2  ; now A is the minimap column number
+    cmp DataA_Pause_Minimap_sMarker_arr + sMarker::Col_u8, y
+    blt _DrawOriginalTile
+    bne @continue
+    ;; At this point, we need to save X so we can use it for Func_IsFlagSet and
+    ;; then restore it later.
+    stx T6  ; byte offset into Sram_Minimap_u16_arr
+    ;; If this map marker's "Not" flag is set, then skip this marker and check
+    ;; the next one.
+    ldx DataA_Pause_Minimap_sMarker_arr + sMarker::Not_eFlag, y  ; param: flag
+    jsr Func_IsFlagSet  ; preserves T0+
+    bne @restoreXAndContinue
+    ;; Check this map marker's "If" flag; if it's zero, this is an item marker
+    ;; (small dot), otherwise it's a quest marker (large dot).
+    ldy T2  ; byte offset into DataA_Pause_Minimap_sMarker_arr
+    ldx DataA_Pause_Minimap_sMarker_arr + sMarker::If_eFlag, y  ; param: flag
+    beq @itemMarker
+    ;; For a quest marker, we need to check if the "If" flag is set, and skip
+    ;; the marker if not.  But if the flag is set, we can compute the new tile
+    ;; ID to use and draw it.
+    @questMarker:
+    jsr Func_IsFlagSet  ; preserves T0+
+    beq @restoreXAndContinue
+    lda T5  ; original minimap tile ID
+    sub #$80
+    tay
+    lda DataA_Pause_MinimapQuestMarkerTiles_u8_arr, y
+    ldx T6  ; byte offset into Sram_Minimap_u16_arr
+    bpl _DrawTileA  ; unconditional
+    ;; For item markers, we can just always draw the marker; if the original
+    ;; tile ID for this minimap cell is unexplored, then that will just map
+    ;; back to the unexplored tile.
+    @itemMarker:
+    lda T5  ; original minimap tile ID
+    sub #$80
+    tay
+    lda DataA_Pause_MinimapItemMarkerTiles_u8_arr, y
+    ldx T6  ; byte offset into Sram_Minimap_u16_arr
+    bpl _DrawTileA  ; unconditional
+    ;; If we had to skip this marker, then increment the byte offset into the
+    ;; marker table and check the next marker.
+    @restoreXAndContinue:
+    ldx T6  ; byte offset into Sram_Minimap_u16_arr
+    @continue:
+    lda T2  ; byte offset into DataA_Pause_Minimap_sMarker_arr
+    add #.sizeof(sMarker)
+    sta T2  ; byte offset into DataA_Pause_Minimap_sMarker_arr
+    bne _MarkerLoop  ; unconditional
+_DrawOriginalTile:
+    lda T5  ; original minimap tile ID
+_DrawTileA:
+    sta Hw_PpuData_rw
+    inc T4  ; byte offset into minimap tile data (from pointer in T1T0)
+    ;; Increment byte offset into Sram_Minimap_u16_arr.
+    inx
+    inx
+    cpx #kMinimapWidth * 2
+    blt _ColLoop
+_Finish:
+    ;; Advance T1T0 to point to the next minimap row.
+    lda T0
+    add T4  ; byte offset into minimap tile data (from pointer in T1T0)
+    sta T0
+    lda T1
+    adc #0
+    sta T1
+    ;; Restore X (since this function needs to preserve it).
+    ldx T3  ; minimap row
+    ;; Draw right margin.
+    lda #' '
+    sta Hw_PpuData_rw
+    jmp FuncA_Pause_DirectDrawWindowLineSide  ; preserves X and T0+
 .ENDPROC
 
-.PROC DataA_Pause_CryptAreaName_u8_arr12
-:   .byte "Hidden Crypt"
-    .assert * - :- = 12, error
+;;; Draws objects to mark the current area on the minimap.
+.EXPORT FuncA_Pause_DrawMinimapObjects
+.PROC FuncA_Pause_DrawMinimapObjects
+    ;; Copy the current area's AreaCells_u8_arr2_arr_ptr into T1T0.
+    lda <(Zp_Current_sRoom + sRoom::Flags_bRoom)
+    and #bRoom::AreaMask
+    tay  ; eArea value
+    lda DataA_Pause_AreaCells_u8_arr2_arr_ptr_0_arr, y
+    sta T0
+    lda DataA_Pause_AreaCells_u8_arr2_arr_ptr_1_arr, y
+    sta T1
+    ;; Draw an object for each minimap cell in the array (objects for any
+    ;; unexplored cells will be hidden behind the minimap BG tiles).
+    ldy #0
+    beq @start  ; unconditional
+    @loop:
+    ;; At this point, A holds the most recently read minimap row number.  Store
+    ;; it in T2 for later.
+    iny
+    sta T2  ; minimap row number
+    ;; Read the minimap column number and store it in X for later.
+    lda (T1T0), y
+    iny
+    tax  ; minimap col number
+    ;; Allocate an object for this minimap cell.
+    sty T3  ; byte offset into AreaCells_u8_arr2_arr_ptr
+    lda T2  ; minimap row number
+    mul #kTileHeightPx
+    adc #kMinimapTopPx  ; param: Y-position
+    jsr FuncA_Pause_AllocBaseObject  ; preserves X and T0+, returns C and Y
+    bcs @noAlloc
+    ;; Set object X-position.
+    txa  ; minimap col number
+    mul #kTileWidthPx
+    adc #kMinimapLeftPx
+    sta Ram_Oam_sObj_arr64 + sObj::XPos_u8, y
+    ;; If this minimap cell is the avatar's current position, blink its color.
+    cpx Zp_CameraMinimapCol_u8
+    bne @noBlink
+    lda T2  ; minimap row number
+    cmp Zp_CameraMinimapRow_u8
+    bne @noBlink
+    lda Zp_FrameCounter_u8
+    and #$10
+    beq @noBlink
+    @blink:
+    lda #bObj::Pri | kPaletteObjMinimapCurrentScreen
+    bne @setFlags  ; unconditional
+    @noBlink:
+    lda #bObj::Pri | kPaletteObjMinimapCurrentArea
+    @setFlags:
+    sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
+    ;; Set object tile ID and restore Y.
+    lda #kTileIdObjMinimapCurrentArea
+    sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
+    @noAlloc:
+    ldy T3  ; byte offset into AreaCells_u8_arr2_arr_ptr
+    ;; Read the minimap row number (or $ff terminator) for the next iteration.
+    @start:
+    lda (T1T0), y
+    bpl @loop
+    rts
 .ENDPROC
 
-.PROC DataA_Pause_FactoryAreaName_u8_arr12
-:   .byte "Rust Factory"
-    .assert * - :- = 12, error
+;;; The tile ID grid for the minimap (stored in row-major order).
+.PROC DataA_Pause_Minimap_u8_arr
+:   .incbin "out/data/minimap.map"
+    .assert * - :- = kMinimapWidth * kMinimapHeight, error
 .ENDPROC
 
-.PROC DataA_Pause_GardenAreaName_u8_arr12
-:   .byte " Vine Garden"
-    .assert * - :- = 12, error
+;;; These two arrays each map from (original minimap tile ID - $80) to the tile
+;;; ID to use if there is an item/quest map marker on that tile.
+.PROC DataA_Pause_MinimapItemMarkerTiles_u8_arr
+    .byte $80, $b1, '?', $b3, $b2, '?', $b6, '?'
+    .byte '?', '?', '?', $b7, '?', '?', '?', $b5
+    .byte $bf, '?', '?', '?', '?', '?', $b8, '?'
+    .byte '?', '?', '?', '?', '?', '?', '?', '?'
+    .byte $bd
 .ENDPROC
-
-.PROC DataA_Pause_LavaAreaName_u8_arr12
-:   .byte "Volcanic Pit"
-    .assert * - :- = 12, error
+.PROC DataA_Pause_MinimapQuestMarkerTiles_u8_arr
+    .byte $b0, '?', '?', '?', '?', '?', '?', '?'
+    .byte '?', '?', '?', '?', '?', '?', '?', '?'
+    .byte '?', '?', '?', '?', '?', $b9, '?', '?'
+    .byte $b4, '?', '?', '?', '?', '?', $be, '?'
+    .byte '?', $bc, $ba, '?', '?', $bb
 .ENDPROC
-
-.PROC DataA_Pause_MermaidAreaName_u8_arr12
-:   .byte "Mermaid Vale"
-    .assert * - :- = 12, error
-.ENDPROC
-
-.PROC DataA_Pause_MineAreaName_u8_arr12
-:   .byte " Salt Mines "
-    .assert * - :- = 12, error
-.ENDPROC
-
-.PROC DataA_Pause_PrisonAreaName_u8_arr12
-:   .byte "Prison Caves"
-    .assert * - :- = 12, error
-.ENDPROC
-
-.PROC DataA_Pause_SewerAreaName_u8_arr12
-:   .byte "Old Waterway"
-    .assert * - :- = 12, error
-.ENDPROC
-
-.PROC DataA_Pause_ShadowAreaName_u8_arr12
-:   .byte " Shadow Labs"
-    .assert * - :- = 12, error
-.ENDPROC
-
-.PROC DataA_Pause_TempleAreaName_u8_arr12
-:   .byte " Lost Temple"
-    .assert * - :- = 12, error
-.ENDPROC
-
-.PROC DataA_Pause_TownAreaName_u8_arr12
-:   .byte " Bartik Town"
-    .assert * - :- = 12, error
-.ENDPROC
-
-.EXPORT DataA_Pause_AreaCells_u8_arr2_arr_ptr_0_arr
-.EXPORT DataA_Pause_AreaCells_u8_arr2_arr_ptr_1_arr
-.REPEAT 2, table
-    D_TABLE_LO table, DataA_Pause_AreaCells_u8_arr2_arr_ptr_0_arr
-    D_TABLE_HI table, DataA_Pause_AreaCells_u8_arr2_arr_ptr_1_arr
-    D_TABLE .enum, eArea
-    d_entry table, City,    DataA_Pause_CityAreaCells_u8_arr2_arr
-    d_entry table, Core,    DataA_Pause_CoreAreaCells_u8_arr2_arr
-    d_entry table, Crypt,   DataA_Pause_CryptAreaCells_u8_arr2_arr
-    d_entry table, Factory, DataA_Pause_FactoryAreaCells_u8_arr2_arr
-    d_entry table, Garden,  DataA_Pause_GardenAreaCells_u8_arr2_arr
-    d_entry table, Lava,    DataA_Pause_LavaAreaCells_u8_arr2_arr
-    d_entry table, Mermaid, DataA_Pause_MermaidAreaCells_u8_arr2_arr
-    d_entry table, Mine,    DataA_Pause_MineAreaCells_u8_arr2_arr
-    d_entry table, Prison,  DataA_Pause_PrisonAreaCells_u8_arr2_arr
-    d_entry table, Sewer,   DataA_Pause_SewerAreaCells_u8_arr2_arr
-    d_entry table, Shadow,  DataA_Pause_ShadowAreaCells_u8_arr2_arr
-    d_entry table, Temple,  DataA_Pause_TempleAreaCells_u8_arr2_arr
-    d_entry table, Town,    DataA_Pause_TownAreaCells_u8_arr2_arr
-    D_END
-.ENDREPEAT
-
-.PROC DataA_Pause_CityAreaCells_u8_arr2_arr
-    .byte  1, 19
-    .byte  1, 20
-    .byte  1, 21
-    .byte  1, 22
-    .byte  2, 16
-    .byte  2, 17
-    .byte  2, 18
-    .byte  2, 19
-    .byte  2, 20
-    .byte  2, 21
-    .byte  2, 22
-    .byte  2, 23
-    .byte  3, 18
-    .byte  3, 19
-    .byte  3, 20
-    .byte  3, 21
-    .byte  3, 23
-    .byte  4, 19
-    .byte $ff
-.ENDPROC
-
-.PROC DataA_Pause_CoreAreaCells_u8_arr2_arr
-    .byte  1, 13
-    .byte  1, 14
-    .byte  2, 10
-    .byte  2, 11
-    .byte  2, 12
-    .byte  2, 13
-    .byte  2, 14
-    .byte  2, 15
-    .byte  3, 11
-    .byte  3, 12
-    .byte  3, 13
-    .byte  3, 14
-    .byte  3, 15
-    .byte  4, 12
-    .byte  4, 13
-    .byte  4, 14
-    .byte  5, 12
-    .byte $ff
-.ENDPROC
-
-.PROC DataA_Pause_CryptAreaCells_u8_arr2_arr
-    .byte  7,  0
-    .byte  7,  2
-    .byte  8,  0
-    .byte  8,  1
-    .byte  8,  2
-    .byte  9,  0
-    .byte  9,  1
-    .byte  9,  2
-    .byte  9,  3
-    .byte 10,  0
-    .byte 10,  1
-    .byte 10,  2
-    .byte 10,  3
-    .byte 10,  4
-    .byte 11,  0
-    .byte 11,  1
-    .byte 11,  2
-    .byte 11,  3
-    .byte 12,  0
-    .byte 12,  1
-    .byte 13,  0
-    .byte $ff
-.ENDPROC
-
-.PROC DataA_Pause_FactoryAreaCells_u8_arr2_arr
-    .byte  5,  8
-    .byte  5,  9
-    .byte  5, 10
-    .byte  5, 11
-    .byte  5, 14
-    .byte  5, 15
-    .byte  6, 10
-    .byte  6, 11
-    .byte  6, 12
-    .byte  6, 13
-    .byte  6, 14
-    .byte  6, 15
-    .byte  6, 16
-    .byte  7, 10
-    .byte  7, 12
-    .byte  7, 13
-    .byte  7, 14
-    .byte  7, 15
-    .byte  7, 16
-    .byte $ff
-.ENDPROC
-
-.PROC DataA_Pause_GardenAreaCells_u8_arr2_arr
-    .byte  6,  6
-    .byte  7,  6
-    .byte  7,  7
-    .byte  7,  8
-    .byte  7,  9
-    .byte  7,  11
-    .byte  8,  6
-    .byte  8,  7
-    .byte  8,  8
-    .byte  8,  9
-    .byte  8, 10
-    .byte  8, 11
-    .byte  9,  6
-    .byte  9,  7
-    .byte  9,  8
-    .byte  9,  9
-    .byte  9, 10
-    .byte  9, 11
-    .byte 10,  6
-    .byte 10,  7
-    .byte 10,  8
-    .byte $ff
-.ENDPROC
-
-.PROC DataA_Pause_LavaAreaCells_u8_arr2_arr
-    .byte 12, 14
-    .byte 12, 16
-    .byte 12, 17
-    .byte 12, 18
-    .byte 12, 19
-    .byte 12, 20
-    .byte 13, 13
-    .byte 13, 14
-    .byte 13, 15
-    .byte 13, 16
-    .byte 13, 17
-    .byte 13, 18
-    .byte 13, 19
-    .byte 13, 20
-    .byte 14, 14
-    .byte 14, 15
-    .byte 14, 16
-    .byte 14, 17
-    .byte 14, 18
-    .byte 14, 19
-    .byte 14, 20
-    .byte 14, 21
-    .byte $ff
-.ENDPROC
-
-.PROC DataA_Pause_MermaidAreaCells_u8_arr2_arr
-    .byte  8, 14
-    .byte  9, 13
-    .byte  9, 14
-    .byte  9, 15
-    .byte  9, 16
-    .byte 10,  9
-    .byte 10, 10
-    .byte 10, 11
-    .byte 10, 12
-    .byte 10, 13
-    .byte 10, 14
-    .byte 10, 15
-    .byte 10, 16
-    .byte 11, 11
-    .byte 11, 12
-    .byte 11, 13
-    .byte 11, 14
-    .byte $ff
-.ENDPROC
-
-.PROC DataA_Pause_MineAreaCells_u8_arr2_arr
-    .byte  9, 18
-    .byte  9, 19
-    .byte  9, 20
-    .byte  9, 21
-    .byte  9, 22
-    .byte  9, 23
-    .byte 10, 18
-    .byte 10, 19
-    .byte 10, 20
-    .byte 10, 21
-    .byte 10, 22
-    .byte 10, 23
-    .byte 11, 19
-    .byte 11, 20
-    .byte 11, 21
-    .byte 11, 22
-    .byte 11, 23
-    .byte 12, 21
-    .byte 12, 22
-    .byte 12, 23
-    .byte 13, 23
-    .byte $ff
-.ENDPROC
-
-.PROC DataA_Pause_PrisonAreaCells_u8_arr2_arr
-    .byte 1, 5
-    .byte 1, 6
-    .byte 1, 7
-    .byte 1, 8
-    .byte 2, 3
-    .byte 2, 4
-    .byte 2, 5
-    .byte 2, 6
-    .byte 2, 7
-    .byte 2, 8
-    .byte 2, 9
-    .byte 3, 3
-    .byte 3, 4
-    .byte 3, 5
-    .byte 3, 6
-    .byte 3, 8
-    .byte 3, 9
-    .byte 4, 6
-    .byte 5, 6
-    .byte $ff
-.ENDPROC
-
-.PROC DataA_Pause_SewerAreaCells_u8_arr2_arr
-    .byte  3, 22
-    .byte  4, 22
-    .byte  5, 16
-    .byte  5, 17
-    .byte  5, 18
-    .byte  5, 19
-    .byte  5, 20
-    .byte  5, 21
-    .byte  5, 22
-    .byte  5, 23
-    .byte  6, 19
-    .byte  6, 22
-    .byte  7, 17
-    .byte  7, 18
-    .byte  7, 19
-    .byte  7, 20
-    .byte  7, 21
-    .byte  7, 22
-    .byte  7, 23
-    .byte  8, 21
-    .byte $ff
-.ENDPROC
-
-.PROC DataA_Pause_ShadowAreaCells_u8_arr2_arr
-    .byte 12, 5
-    .byte 12, 6
-    .byte 12, 7
-    .byte 12, 8
-    .byte 12, 9
-    .byte 13, 3
-    .byte 13, 4
-    .byte 13, 5
-    .byte 13, 6
-    .byte 13, 7
-    .byte 13, 8
-    .byte 13, 9
-    .byte 13, 10
-    .byte 14, 4
-    .byte 14, 5
-    .byte 14, 6
-    .byte 14, 7
-    .byte 14, 8
-    .byte 14, 9
-    .byte $ff
-.ENDPROC
-
-.PROC DataA_Pause_TempleAreaCells_u8_arr2_arr
-    .byte  1,  1
-    .byte  2,  1
-    .byte  3,  0
-    .byte  3,  1
-    .byte  4,  0
-    .byte  4,  1
-    .byte  5,  0
-    .byte  5,  1
-    .byte  5,  2
-    .byte  5,  3
-    .byte  5,  4
-    .byte  6,  0
-    .byte  6,  1
-    .byte  6,  2
-    .byte  6,  3
-    .byte  6,  4
-    .byte  7,  3
-    .byte  7,  4
-    .byte  7,  5
-    .byte  8,  5
-    .byte $ff
-.ENDPROC
-
-.PROC DataA_Pause_TownAreaCells_u8_arr2_arr
-    .byte  0, 11
-    .byte  0, 12
-    .byte  0, 13
-    .byte  0, 14
-    .byte  0, 15
-    .byte  0, 16
-    .byte $ff
-.ENDPROC
-
-;;; An array of all the markers that can appear on the minimap during the game.
-;;; This array is sorted, first by Row_u8 (ascending), then by Col_u8
-;;; (ascending), then by priority (descending).  It is terminated by an entry
-;;; with Row_u8 = $ff.
-.EXPORT DataA_Pause_Minimap_sMarker_arr
-.PROC DataA_Pause_Minimap_sMarker_arr
-    D_STRUCT sMarker
-    d_byte Row_u8, 1
-    d_byte Col_u8, 1  ; room: BossTemple
-    d_byte If_eFlag, 0
-    d_byte Not_eFlag, eFlag::BreakerTemple
-    D_END
-    D_STRUCT sMarker
-    d_byte Row_u8, 1
-    d_byte Col_u8, 8  ; room: PrisonFlower
-    d_byte If_eFlag, 0
-    d_byte Not_eFlag, eFlag::FlowerPrison
-    D_END
-    D_STRUCT sMarker
-    d_byte Row_u8, 3
-    d_byte Col_u8, 20  ; room: CityFlower
-    d_byte If_eFlag, 0
-    d_byte Not_eFlag, eFlag::FlowerCity
-    D_END
-    D_STRUCT sMarker
-    d_byte Row_u8, 3
-    d_byte Col_u8, 21  ; room: BossCity
-    d_byte If_eFlag, 0
-    d_byte Not_eFlag, eFlag::BreakerCity
-    D_END
-    D_STRUCT sMarker
-    d_byte Row_u8, 4
-    d_byte Col_u8, 12  ; room: CoreSouth
-    d_byte If_eFlag, eFlag::CoreSouthCorraWaiting
-    d_byte Not_eFlag, eFlag::CoreSouthCorraHelped
-    D_END
-    D_STRUCT sMarker
-    d_byte Row_u8, 4
-    d_byte Col_u8, 13  ; room: CoreFlower
-    d_byte If_eFlag, 0
-    d_byte Not_eFlag, eFlag::FlowerCore
-    D_END
-    D_STRUCT sMarker
-    d_byte Row_u8, 5
-    d_byte Col_u8, 4  ; room: TempleFlower
-    d_byte If_eFlag, 0
-    d_byte Not_eFlag, eFlag::FlowerTemple
-    D_END
-    D_STRUCT sMarker
-    d_byte Row_u8, 5
-    d_byte Col_u8, 15  ; room: FactoryFlower
-    d_byte If_eFlag, 0
-    d_byte Not_eFlag, eFlag::FlowerFactory
-    D_END
-    D_STRUCT sMarker
-    d_byte Row_u8, 5
-    d_byte Col_u8, 23  ; room: SewerFlower
-    d_byte If_eFlag, 0
-    d_byte Not_eFlag, eFlag::FlowerSewer
-    D_END
-    D_STRUCT sMarker
-    d_byte Row_u8, 6
-    d_byte Col_u8, 1  ; room: TempleNave
-    d_byte If_eFlag, eFlag::TempleNaveAlexWaiting
-    d_byte Not_eFlag, eFlag::CryptLandingDroppedIn
-    D_END
-    D_STRUCT sMarker
-    d_byte Row_u8, 6
-    d_byte Col_u8, 4  ; room: TempleFoyer
-    d_byte If_eFlag, 0
-    d_byte Not_eFlag, eFlag::UpgradeOpTil
-    D_END
-    D_STRUCT sMarker
-    d_byte Row_u8, 7
-    d_byte Col_u8, 8  ; room: GardenShrine
-    d_byte If_eFlag, 0
-    d_byte Not_eFlag, eFlag::UpgradeOpIf
-    D_END
-    D_STRUCT sMarker
-    d_byte Row_u8, 7
-    d_byte Col_u8, 11  ; room: GardenFlower
-    d_byte If_eFlag, 0
-    d_byte Not_eFlag, eFlag::FlowerGarden
-    D_END
-    D_STRUCT sMarker
-    d_byte Row_u8, 7
-    d_byte Col_u8, 13  ; room: FactoryCenter
-    d_byte If_eFlag, 0
-    d_byte Not_eFlag, eFlag::UpgradeOpSkip
-    D_END
-    D_STRUCT sMarker
-    d_byte Row_u8, 7
-    d_byte Col_u8, 23  ; room: SewerBasin
-    d_byte If_eFlag, 0
-    d_byte Not_eFlag, eFlag::UpgradeOpAddSub
-    D_END
-    D_STRUCT sMarker
-    d_byte Row_u8, 8
-    d_byte Col_u8, 5  ; room: TempleEntry
-    d_byte If_eFlag, eFlag::TempleEntryPermission
-    d_byte Not_eFlag, eFlag::TempleEntryColumnRaised
-    D_END
-    D_STRUCT sMarker
-    d_byte Row_u8, 9
-    d_byte Col_u8, 3  ; room: CryptFlower
-    d_byte If_eFlag, 0
-    d_byte Not_eFlag, eFlag::FlowerCrypt
-    D_END
-    D_STRUCT sMarker
-    d_byte Row_u8, 9
-    d_byte Col_u8, 7  ; room: GardenTower
-    d_byte If_eFlag, eFlag::GardenTowerCratesPlaced
-    d_byte Not_eFlag, eFlag::BreakerGarden
-    D_END
-    D_STRUCT sMarker
-    d_byte Row_u8, 9
-    d_byte Col_u8, 13  ; room: MermaidFlower
-    d_byte If_eFlag, 0
-    d_byte Not_eFlag, eFlag::FlowerMermaid
-    D_END
-    D_STRUCT sMarker
-    d_byte Row_u8, 9
-    d_byte Col_u8, 18  ; room: BossMine
-    d_byte If_eFlag, 0
-    d_byte Not_eFlag, eFlag::BreakerMine
-    D_END
-    D_STRUCT sMarker
-    d_byte Row_u8, 10
-    d_byte Col_u8, 4  ; room: CryptGallery
-    d_byte If_eFlag, 0
-    d_byte Not_eFlag, eFlag::UpgradeOpGoto
-    D_END
-    D_STRUCT sMarker
-    d_byte Row_u8, 10
-    d_byte Col_u8, 12  ; room: MermaidHut1
-    d_byte If_eFlag, eFlag::GardenEastTalkedToCorra
-    d_byte Not_eFlag, eFlag::MermaidHut1MetQueen
-    D_END
-    D_STRUCT sMarker
-    d_byte Row_u8, 10
-    d_byte Col_u8, 18  ; room: MineFlower
-    d_byte If_eFlag, 0
-    d_byte Not_eFlag, eFlag::FlowerMine
-    D_END
-    D_STRUCT sMarker
-    d_byte Row_u8, 11
-    d_byte Col_u8, 11  ; room: MermaidVillage
-    d_byte If_eFlag, eFlag::MermaidHut1MetQueen
-    d_byte Not_eFlag, eFlag::GardenTowerCratesPlaced
-    D_END
-    D_STRUCT sMarker
-    d_byte Row_u8, 12
-    d_byte Col_u8, 17  ; room: LavaStation
-    d_byte If_eFlag, 0
-    d_byte Not_eFlag, eFlag::UpgradeOpCopy
-    D_END
-    D_STRUCT sMarker
-    d_byte Row_u8, 13
-    d_byte Col_u8, 0  ; room: BossCrypt
-    d_byte If_eFlag, 0
-    d_byte Not_eFlag, eFlag::BreakerCrypt
-    D_END
-    D_STRUCT sMarker
-    d_byte Row_u8, 13
-    d_byte Col_u8, 23  ; room: MinePit
-    d_byte If_eFlag, 0
-    d_byte Not_eFlag, eFlag::UpgradeOpSync
-    D_END
-    D_STRUCT sMarker
-    d_byte Row_u8, 14
-    d_byte Col_u8, 9  ; room: BossShadow
-    d_byte If_eFlag, 0
-    d_byte Not_eFlag, eFlag::BreakerShadow
-    D_END
-    D_STRUCT sMarker
-    d_byte Row_u8, 14
-    d_byte Col_u8, 16  ; room: LavaFlower
-    d_byte If_eFlag, 0
-    d_byte Not_eFlag, eFlag::FlowerLava
-    D_END
-    .assert sMarker::Row_u8 = 0, error
-    .byte $ff
-.ENDPROC
-;;; Ensure that we can access all bytes of the array with one index register.
-.ASSERT .sizeof(DataA_Pause_Minimap_sMarker_arr) <= $100, error
 
 ;;;=========================================================================;;;

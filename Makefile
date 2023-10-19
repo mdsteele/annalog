@@ -238,7 +238,7 @@ $(SIM65_OUT_DIR)/%: \
 $(OBJDIR)/chr.o: src/chr.asm $(INC_FILES) $(TILE_CHR_FILES)
 	$(compile-asm)
 
-$(OBJDIR)/pause.o: src/pause.asm $(INC_FILES) $(DATA_OUT_DIR)/minimap.map
+$(OBJDIR)/minimap.o: src/minimap.asm $(INC_FILES) $(DATA_OUT_DIR)/minimap.map
 	$(compile-asm)
 
 $(OBJDIR)/sample.o: src/sample.asm $(INC_FILES) $(SFX_DM_FILES)
