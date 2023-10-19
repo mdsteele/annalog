@@ -89,19 +89,19 @@ Ram_CollectedPapers_u8_arr: .res kPaperGridCols
 ;;; @param X The paper device index.
 .EXPORT Main_Paper_UseDevice
 .PROC Main_Paper_UseDevice
-    jsr_prga FuncA_Paper_Init  ; returns Y (param: eDialog value)
-    jmp Main_Dialog_WhileExploring
+    jmp_prga MainA_Pause_UsePaperDevice
 .ENDPROC
 
 ;;;=========================================================================;;;
 
-.SEGMENT "PRGA_Paper"
+.SEGMENT "PRGA_Pause"
 
-;;; Initializes for using a paper device.
+;;; Mode for collecting a paper.
+;;; @prereq Rendering is enabled.
+;;; @prereq Explore mode is initialized.
 ;;; @prereq Zp_Nearby_bDevice holds an active paper device.
 ;;; @param X The paper device index.
-;;; @return Y The eDialog value for the paper.
-.PROC FuncA_Paper_Init
+.PROC MainA_Pause_UsePaperDevice
     lda Ram_DeviceTarget_byte_arr, x
     pha  ; eFlag::Paper* value
     tax  ; param: flag
@@ -112,13 +112,13 @@ Ram_CollectedPapers_u8_arr: .res kPaperGridCols
     pla  ; eFlag::Paper* value
     sub #kFirstPaperFlag
     tax
-    ldy DataA_Paper_Dialogs_eDialog_arr, x
-    rts
+    ldy DataA_Pause_PaperDialogs_eDialog_arr, x  ; param: eDialog value
+    jmp Main_Dialog_WhileExploring
 .ENDPROC
 
 ;;; Maps from eFlag::Paper* values to eDialog::Paper* values.
 ;;; TODO: Once all papers exist, we can remove this and just use arithmetic.
-.PROC DataA_Paper_Dialogs_eDialog_arr
+.PROC DataA_Pause_PaperDialogs_eDialog_arr
     D_ARRAY kNumPaperFlags, kFirstPaperFlag
     d_byte eFlag::PaperJerome01, 0  ; TODO
     d_byte eFlag::PaperJerome02, 0  ; TODO
@@ -167,10 +167,6 @@ Ram_CollectedPapers_u8_arr: .res kPaperGridCols
     d_byte eFlag::PaperManual9, 0  ; TODO
     D_END
 .ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Pause"
 
 ;;; Maps from eFlag::Paper* values to the eArea where each paper is located.
 .EXPORT DataA_Pause_PaperLocation_eArea_arr

@@ -100,99 +100,89 @@ Zp_ActivatedBreakers_byte: .res 1
 
 ;;;=========================================================================;;;
 
-.SEGMENT "PRG8"
+.SEGMENT "PRGA_Pause"
 
 ;;; Mode for fading in the pause screen after pausing the game in explore mode.
 ;;; @prereq Rendering is disabled.
-.EXPORT Main_Pause_FadeIn
-.PROC Main_Pause_FadeIn
+.EXPORT MainA_Pause_FadeIn
+.PROC MainA_Pause_FadeIn
     chr08_bank #<.bank(Ppu_ChrBgMinimap)
     lda #<.bank(Ppu_ChrBgPause)
     sta Zp_Chr0cBank_u8
     chr18_bank #<.bank(Ppu_ChrObjPause)
-    jsr_prga FuncA_Pause_InitAndFadeIn
-    .assert * = Main_Pause_Minimap, error, "fallthrough"
+    jsr FuncA_Pause_InitAndFadeIn
+    .assert * = MainA_Pause_Minimap, error, "fallthrough"
 .ENDPROC
 
 ;;; Mode for running the pause screen while the minimap is visible.
 ;;; @prereq Rendering is enabled.
-.PROC Main_Pause_Minimap
+.PROC MainA_Pause_Minimap
 _GameLoop:
-    jsr FuncM_DrawPauseObjectsAndProcessFrame
+    jsr FuncA_Pause_DrawObjectsAndProcessFrame
 _CheckButtons:
     ;; TODO: only open papers window if any are collected
     lda Zp_P1ButtonsPressed_bJoypad
     and #bJoypad::Down
-    bne Main_Pause_ScrollPapersUp
+    bne MainA_Pause_ScrollPapersUp
     lda Zp_P1ButtonsPressed_bJoypad
     and #bJoypad::Start | bJoypad::BButton
     beq _GameLoop
-    .assert * = Main_Pause_FadeOut, error, "fallthrough"
+    .assert * = MainA_Pause_FadeOut, error, "fallthrough"
 .ENDPROC
 
 ;;; Mode for fading out the pause screen and resuming explore mode.
 ;;; @prereq Rendering is enabled.
-.PROC Main_Pause_FadeOut
+.PROC MainA_Pause_FadeOut
     jsr Func_FadeOutToBlack
     jmp Main_Explore_FadeIn
 .ENDPROC
 
 ;;; Mode for scrolling up the papers window, thus making it visible.
 ;;; @prereq Rendering is enabled.
-.PROC Main_Pause_ScrollPapersUp
+.PROC MainA_Pause_ScrollPapersUp
     lda #kTileHeightPx * 4
     sta Zp_WindowTopGoal_u8
     lda #kScreenHeightPx - kPapersWindowScrollSpeed
     sta Zp_WindowTop_u8
 _GameLoop:
-    jsr FuncM_DrawPauseObjectsAndProcessFrame
+    jsr FuncA_Pause_DrawObjectsAndProcessFrame
     lda #kPapersWindowScrollSpeed  ; param: scroll by
     jsr Func_Window_ScrollUp  ; sets C if fully scrolled in
     bcc _GameLoop
-    .assert * = Main_Pause_Papers, error, "fallthrough"
+    .assert * = MainA_Pause_Papers, error, "fallthrough"
 .ENDPROC
 
 ;;; Mode for running the pause screen while the papers window is visible.
 ;;; @prereq Rendering is enabled.
-.PROC Main_Pause_Papers
+.PROC MainA_Pause_Papers
     jsr FuncA_Pause_MovePaperCursorNext
 _GameLoop:
-    jsr FuncM_DrawPauseObjectsAndProcessFrame
+    jsr FuncA_Pause_DrawObjectsAndProcessFrame
 _CheckButtons:
-    jsr_prga FuncA_Pause_MovePaperCursor
+    jsr FuncA_Pause_MovePaperCursor
     lda Zp_PaperCursorRow_u8
-    bmi Main_Pause_ScrollPapersDown
+    bmi MainA_Pause_ScrollPapersDown
     lda Zp_P1ButtonsPressed_bJoypad
     and #bJoypad::BButton
-    bne Main_Pause_ScrollPapersDown
+    bne MainA_Pause_ScrollPapersDown
     lda Zp_P1ButtonsPressed_bJoypad
     and #bJoypad::Start
     beq _GameLoop
-    bne Main_Pause_FadeOut  ; unconditional
+    bne MainA_Pause_FadeOut  ; unconditional
 .ENDPROC
 
 ;;; Mode for scrolling down the papers window, thus making the minimap visible.
 ;;; @prereq Rendering is enabled.
-.PROC Main_Pause_ScrollPapersDown
+.PROC MainA_Pause_ScrollPapersDown
     lda #$ff
     sta Zp_PaperCursorRow_u8
 _GameLoop:
-    jsr FuncM_DrawPauseObjectsAndProcessFrame
+    jsr FuncA_Pause_DrawObjectsAndProcessFrame
     lda #kPapersWindowScrollSpeed  ; param: scroll by
     jsr Func_Window_ScrollDown  ; sets C if fully scrolled out
     bcc _GameLoop
-    bcs Main_Pause_Minimap  ; unconditional
+    bcs MainA_Pause_Minimap  ; unconditional
 .ENDPROC
-
-;;; Draws all objects that should be drawn on the pause screen, then calls
-;;; Func_ClearRestOfOamAndProcessFrame.
-.PROC FuncM_DrawPauseObjectsAndProcessFrame
-    jmp_prga FuncA_Pause_DrawObjectsAndProcessFrame
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Pause"
 
 ;;; The "current area" label that is drawn on the pause screen minimap window.
 .PROC DataA_Pause_CurrentAreaLabel_u8_arr

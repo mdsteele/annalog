@@ -63,13 +63,13 @@
 .IMPORT Func_Window_DirectDrawTopBorder
 .IMPORT Func_Window_Disable
 .IMPORT Func_Window_SetUpIrq
+.IMPORT MainA_Pause_FadeIn
 .IMPORT Main_Breaker_UseDevice
 .IMPORT Main_Console_UseDevice
 .IMPORT Main_Cutscene_Start
 .IMPORT Main_Death
 .IMPORT Main_Dialog_UseDevice
 .IMPORT Main_Paper_UseDevice
-.IMPORT Main_Pause_FadeIn
 .IMPORT Main_Upgrade_UseDevice
 .IMPORT Ppu_ChrBgAnimA0
 .IMPORT Ram_DeviceBlockCol_u8_arr
@@ -196,7 +196,7 @@ _CheckForPause:
     and #bJoypad::Start
     beq @done
     jsr Func_FadeOutToBlack
-    jmp Main_Pause_FadeIn
+    jmp_prga MainA_Pause_FadeIn
     @done:
 .PROC _CheckForActivateDevice
     jsr_prga FuncA_Avatar_FindNearbyDevice
