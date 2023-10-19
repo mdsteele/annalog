@@ -38,6 +38,7 @@
 .IMPORT DataA_Pause_PaperLocation_eArea_arr
 .IMPORT Data_PowersOfTwo_u8_arr8
 .IMPORT Func_AckIrqAndSetLatch
+.IMPORT Func_AllocObjects
 .IMPORT Func_AllocOneObject
 .IMPORT Func_ClearRestOfOam
 .IMPORT Func_ClearRestOfOamAndProcessFrame
@@ -81,7 +82,7 @@
 .ASSERT kPaperGridCols * kPaperGridRows = kNumPaperFlags, error
 
 ;;; How fast the papers window scrolls up/down, in pixels per frame.
-kPapersWindowScrollSpeed = 10
+kPapersWindowScrollSpeed = 11
 
 ;;;=========================================================================;;;
 
@@ -112,11 +113,15 @@ kMinimapLeftPx = $20
 
 ;;; The OBJ tile ID for marking the current area on the minimap.
 kTileIdObjMinimapCurrentArea = $02
-
 ;;; The OBJ palette numbers for marking the current area and blinking the
 ;;; current screen on the minimap.
 kPaletteObjMinimapCurrentArea   = 0
 kPaletteObjMinimapCurrentScreen = 1
+
+;;; The OBJ tile ID for drawing the papers window cursor.
+kTileIdObjPaperCursor = $cc
+;;; The OBJ palette number for the papers window cursor.
+kPaletteObjPaperCursor = 1
 
 ;;;=========================================================================;;;
 
@@ -128,6 +133,11 @@ Zp_MinimapMarkerOffset_u8: .res 1
 ;;; Bit N of this is set if breaker number N (starting at 0) is activated.
 .ASSERT kNumBreakerFlags <= 8, error
 Zp_ActivatedBreakers_byte: .res 1
+
+;;; The current row and column for the papers window cursor.  When the cursor
+;;; is inactive, the row should be set to $ff.
+Zp_PaperCursorRow_u8: .res 1
+Zp_PaperCursorCol_u8: .res 1
 
 ;;;=========================================================================;;;
 
@@ -162,6 +172,7 @@ Ram_CollectedPapers_u8_arr: .res kPaperGridCols
 _GameLoop:
     jsr FuncM_DrawPauseObjectsAndProcessFrame
 _CheckButtons:
+    ;; TODO: only open papers window if any are collected
     lda Zp_P1ButtonsPressed_bJoypad
     and #bJoypad::Down
     bne Main_Pause_ScrollPapersUp
@@ -196,34 +207,39 @@ _GameLoop:
 ;;; Mode for running the pause screen while the papers window is visible.
 ;;; @prereq Rendering is enabled.
 .PROC Main_Pause_Papers
+    jsr FuncA_Pause_MovePaperCursorNext
 _GameLoop:
     jsr FuncM_DrawPauseObjectsAndProcessFrame
 _CheckButtons:
+    jsr_prga FuncA_Pause_MovePaperCursor
+    lda Zp_PaperCursorRow_u8
+    bmi Main_Pause_ScrollPapersDown
     lda Zp_P1ButtonsPressed_bJoypad
-    and #bJoypad::Up | bJoypad::BButton
+    and #bJoypad::BButton
     bne Main_Pause_ScrollPapersDown
     lda Zp_P1ButtonsPressed_bJoypad
     and #bJoypad::Start
     beq _GameLoop
-    jmp Main_Pause_FadeOut
+    bne Main_Pause_FadeOut  ; unconditional
 .ENDPROC
 
 ;;; Mode for scrolling down the papers window, thus making the minimap visible.
 ;;; @prereq Rendering is enabled.
 .PROC Main_Pause_ScrollPapersDown
+    lda #$ff
+    sta Zp_PaperCursorRow_u8
 _GameLoop:
     jsr FuncM_DrawPauseObjectsAndProcessFrame
     lda #kPapersWindowScrollSpeed  ; param: scroll by
     jsr Func_Window_ScrollDown  ; sets C if fully scrolled out
     bcc _GameLoop
-    jmp Main_Pause_Minimap
+    bcs Main_Pause_Minimap  ; unconditional
 .ENDPROC
 
 ;;; Draws all objects that should be drawn on the pause screen, then calls
 ;;; Func_ClearRestOfOamAndProcessFrame.
 .PROC FuncM_DrawPauseObjectsAndProcessFrame
-    jsr_prga FuncA_Pause_DrawObjects
-    jmp Func_ClearRestOfOamAndProcessFrame
+    jmp_prga FuncA_Pause_DrawObjectsAndProcessFrame
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -243,19 +259,20 @@ _GameLoop:
 
 ;;; The "papers found" label that is drawn on the pause screen papers window.
 .PROC DataA_Pause_AreaPaperLabel_u8_arr
-    .byte "Papers found in area: "
+    .byte " Pages found in area: "
 .ENDPROC
 
 ;;; Initializes pause mode, then fades in the screen.
 ;;; @prereq Rendering is disabled.
 .PROC FuncA_Pause_InitAndFadeIn
+    ldx #$ff
+    stx Zp_PaperCursorRow_u8
     ;; Reset the frame counter before drawing any objects so that the
     ;; current-position blink will be in a consistent state as we fade in.
-    lda #0
-    sta Zp_FrameCounter_u8
+    inx  ; now X is zero
+    stx Zp_FrameCounter_u8
 _InitActivatedBreakers:
-    lda #0
-    sta Zp_ActivatedBreakers_byte
+    stx Zp_ActivatedBreakers_byte  ; X is still zero
     ldx #kLastBreakerFlag
     @loop:
     jsr Func_IsFlagSet  ; preserves X, clears Z if flag is set
@@ -831,12 +848,170 @@ _CircuitBreakers_byte_arr8_arr6:
     rts
 .ENDPROC
 
+;;; Moves the paper grid cursor based on the D-pad buttons.
+.PROC FuncA_Pause_MovePaperCursor
+_Down:
+    lda Zp_P1ButtonsPressed_bJoypad
+    and #bJoypad::Down
+    beq @done
+    jsr FuncA_Pause_MovePaperCursorDown
+    @done:
+_Up:
+    lda Zp_P1ButtonsPressed_bJoypad
+    and #bJoypad::Up
+    beq @done
+    jsr FuncA_Pause_MovePaperCursorUp
+    @done:
+_Left:
+    lda Zp_P1ButtonsPressed_bJoypad
+    and #bJoypad::Left
+    beq @done
+    jsr FuncA_Pause_MovePaperCursorPrev
+    @done:
+_Right:
+    lda Zp_P1ButtonsPressed_bJoypad
+    and #bJoypad::Right
+    beq @done
+    jsr FuncA_Pause_MovePaperCursorNext
+    @done:
+    rts
+.ENDPROC
+
+;;; Moves the paper grid cursor up to the previous row, selecting the nearest
+;;; collected paper on that row.  If there is no collected paper on the
+;;; previous row, keeps going to the row before that.  If there is no collected
+;;; paper on any row above the current row, deactivates the paper grid cursor.
+.PROC FuncA_Pause_MovePaperCursorUp
+    ldy Zp_PaperCursorRow_u8
+    @loop:
+    dey
+    bmi @setRow
+    jsr FuncA_Pause_NearestPaperOnRow  ; preserves Y, returns N and X
+    bmi @loop
+    stx Zp_PaperCursorCol_u8
+    @setRow:
+    sty Zp_PaperCursorRow_u8
+    rts
+.ENDPROC
+
+;;; Moves the paper grid cursor down to the next row, selecting the nearest
+;;; collected paper on that row.  If there is no collected paper on the
+;;; previous row, keeps going to the next row after that.  If there is no
+;;; collected paper on any row below the current row, leaves the cursor
+;;; position unchanged.
+.PROC FuncA_Pause_MovePaperCursorDown
+    ldy Zp_PaperCursorRow_u8
+    @loop:
+    iny
+    cpy #kPaperGridRows
+    bge @return
+    jsr FuncA_Pause_NearestPaperOnRow  ; preserves Y, returns N and X
+    bmi @loop
+    stx Zp_PaperCursorCol_u8
+    sty Zp_PaperCursorRow_u8
+    @return:
+    rts
+.ENDPROC
+
+;;; Helper function for FuncA_Pause_MovePaperCursorUp/Down.  Finds the
+;;; collected paper on the specified row (if any) that is nearest to the
+;;; current cursor column.
+;;; @param Y The paper grid row to consider.
+;;; @return N Set if no paper on the specified row has been collected yet.
+;;; @return X The paper grid column with the closest collected paper, if any.
+;;; @preserve Y
+.PROC FuncA_Pause_NearestPaperOnRow
+    lda #$ff
+    sta T0  ; best dist
+    sta T1  ; best col
+    ldx #kPaperGridCols - 1
+    @loop:
+    lda Data_PowersOfTwo_u8_arr8, y
+    and Ram_CollectedPapers_u8_arr, x
+    beq @continue
+    txa
+    sub Zp_PaperCursorCol_u8
+    bge @noNegate
+    eor #$ff
+    adc #1  ; carry is already clear
+    @noNegate:
+    cmp T0  ; best dist
+    bge @continue
+    sta T0  ; best dist
+    stx T1  ; best col
+    @continue:
+    dex
+    bpl @loop
+    ldx T1  ; best col
+    rts
+.ENDPROC
+
+;;; Moves the paper grid cursor to the previous collected paper, if any.  If
+;;; there is no previous collected paper, leaves the cursor position unchanged.
+.PROC FuncA_Pause_MovePaperCursorPrev
+    ldx Zp_PaperCursorCol_u8
+    ldy Zp_PaperCursorRow_u8
+    @prevCol:
+    dex
+    bpl @checkIfCollected
+    @prevRow:
+    dey
+    bmi @return
+    ldx #kPaperGridCols - 1
+    @checkIfCollected:
+    lda Data_PowersOfTwo_u8_arr8, y
+    and Ram_CollectedPapers_u8_arr, x
+    beq @prevCol
+    @setCursor:
+    stx Zp_PaperCursorCol_u8
+    sty Zp_PaperCursorRow_u8
+    @return:
+    rts
+.ENDPROC
+
+;;; Moves the paper grid cursor to the next collected paper, if any.  If the
+;;; paper grid cursor is currently inactive, sets it to the first collected
+;;; paper, if any.  If there is no next collected paper, leaves the cursor
+;;; position unchanged.
+.PROC FuncA_Pause_MovePaperCursorNext
+    ldx Zp_PaperCursorCol_u8
+    ldy Zp_PaperCursorRow_u8
+    bmi @nextRow
+    @nextCol:
+    inx
+    cpx #kPaperGridCols
+    blt @checkIfCollected
+    @nextRow:
+    cpy #kPaperGridRows - 1
+    beq @return
+    iny
+    ldx #0
+    @checkIfCollected:
+    lda Data_PowersOfTwo_u8_arr8, y
+    and Ram_CollectedPapers_u8_arr, x
+    beq @nextCol
+    @setCursor:
+    stx Zp_PaperCursorCol_u8
+    sty Zp_PaperCursorRow_u8
+    @return:
+    rts
+.ENDPROC
+
+;;; Draws all objects that should be drawn on the pause screen, then calls
+;;; Func_ClearRestOfOamAndProcessFrame.
+.PROC FuncA_Pause_DrawObjectsAndProcessFrame
+    jsr FuncA_Pause_DrawObjects
+    jmp Func_ClearRestOfOamAndProcessFrame
+.ENDPROC
+
 ;;; Draws all objects that should be drawn on the pause screen.
 .PROC FuncA_Pause_DrawObjects
     jsr FuncA_Pause_SetUpIrq
     jsr FuncA_Pause_DrawMinimapObjects
     jsr FuncA_Pause_DrawCircuitObjects
-    jmp FuncA_Pause_DrawFlowerCount
+    jsr FuncA_Pause_DrawFlowerCount
+    ;; TODO: draw down arrow for opening papers window
+    jmp FuncA_Pause_DrawPaperCursor
 .ENDPROC
 
 ;;; Populates Ram_Buffered_sIrq appropriately for the pause screen.
@@ -1031,6 +1206,57 @@ _Return:
     rts
     @notVisible:
     sec
+    rts
+.ENDPROC
+
+;;; Draws objects for the paper grid cursor.
+.PROC FuncA_Pause_DrawPaperCursor
+    ;; If the cursor is inactive, don't draw it.
+    ldx Zp_PaperCursorRow_u8
+    bmi @done
+    ;; Allocate objects.
+    lda #4  ; param: num objects
+    jsr Func_AllocObjects  ; preserves X, returns Y
+    ;; Set Y-positions.
+    txa  ; paper cursor row
+    mul #kTileHeightPx
+    sta T0
+    mul #2
+    adc T0
+    adc #kTileHeightPx * 7 - 1
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::YPos_u8, y
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::YPos_u8, y
+    adc #kTileHeightPx
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::YPos_u8, y
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::YPos_u8, y
+    ;; Set X-positions.
+    lda Zp_PaperCursorCol_u8
+    mul #kTileWidthPx
+    sta T0
+    mul #2
+    adc T0
+    adc #kTileWidthPx * 3
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::XPos_u8, y
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::XPos_u8, y
+    adc #kTileWidthPx
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::XPos_u8, y
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::XPos_u8, y
+    ;; Set tile IDs.
+    lda #kTileIdObjPaperCursor
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Tile_u8, y
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Tile_u8, y
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Tile_u8, y
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Tile_u8, y
+    ;; Set object flags.
+    lda #bObj::Pri | kPaletteObjPaperCursor
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Flags_bObj, y
+    eor #bObj::FlipV
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Flags_bObj, y
+    eor #bObj::FlipH
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Flags_bObj, y
+    eor #bObj::FlipV
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Flags_bObj, y
+    @done:
     rts
 .ENDPROC
 

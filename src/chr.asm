@@ -1274,8 +1274,8 @@
 .EXPORT Ppu_ChrObjPause
 .PROC Ppu_ChrObjPause
 :   .incbin "out/tiles/font_upper.chr"
-    .incbin "out/tiles/miniflow.chr"
-    .res $34 * kSizeofChr
+    .incbin "out/tiles/pause.chr"
+    .res $30 * kSizeofChr
     .assert * - :- = kSizeofChr * $80, error
 .ENDPROC
 
