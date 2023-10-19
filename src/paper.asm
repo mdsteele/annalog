@@ -17,15 +17,66 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
+.INCLUDE "charmap.inc"
 .INCLUDE "dialog.inc"
 .INCLUDE "flag.inc"
+.INCLUDE "joypad.inc"
 .INCLUDE "macros.inc"
 .INCLUDE "mmc3.inc"
+.INCLUDE "oam.inc"
+.INCLUDE "ppu.inc"
 .INCLUDE "room.inc"
 
+.IMPORT Data_PowersOfTwo_u8_arr8
+.IMPORT FuncA_Pause_DirectDrawWindowBlankLine
+.IMPORT FuncA_Pause_DirectDrawWindowLineSide
+.IMPORT Func_AllocObjects
+.IMPORT Func_IsFlagSet
 .IMPORT Func_SetFlag
 .IMPORT Main_Dialog_WhileExploring
 .IMPORT Ram_DeviceTarget_byte_arr
+.IMPORT Ram_Oam_sObj_arr64
+.IMPORTZP Zp_P1ButtonsPressed_bJoypad
+
+;;;=========================================================================;;;
+
+;;; The number of columns and rows in the grid of collected papers on the pause
+;;; screen.
+.DEFINE kPaperGridCols 9
+.DEFINE kPaperGridRows 5
+.ASSERT kPaperGridCols * kPaperGridRows = kNumPaperFlags, error
+
+;;; The BG tile IDs used for drawing collected papers.
+kTileIdBgPaperTopLeft      = $fc
+kTileIdBgPaperBottomLeft   = $fd
+kTileIdBgPaperTopRight     = $fe
+kTileIdBgPaperBottomRight  = $ff
+
+;;; The OBJ tile ID for drawing the papers window cursor.
+kTileIdObjPaperCursor = $cc
+;;; The OBJ palette number for the papers window cursor.
+kPaletteObjPaperCursor = 1
+
+;;;=========================================================================;;;
+
+.ZEROPAGE
+
+;;; The current row and column for the papers window cursor.  When the cursor
+;;; is inactive, the row should be set to $ff.
+.EXPORTZP Zp_PaperCursorRow_u8
+Zp_PaperCursorRow_u8: .res 1
+Zp_PaperCursorCol_u8: .res 1
+
+;;;=========================================================================;;;
+
+.SEGMENT "RAM_Pause"
+
+;;; A bit array indicating which papers have been collected.  The array
+;;; contains one u8 for each column of the paper grid; if the paper at row R
+;;; and column C has been collected, then the Rth bit of the Cth u8 in this
+;;; array will be set.
+.ASSERT kPaperGridRows <= 8, error
+Ram_CollectedPapers_u8_arr: .res kPaperGridCols
 
 ;;;=========================================================================;;;
 
@@ -171,6 +222,311 @@
     d_byte eFlag::PaperManual8,  $ff  ; TODO
     d_byte eFlag::PaperManual9,  $ff  ; TODO
     D_END
+.ENDPROC
+
+;;; Initializes the paper grid and cursor for the pause screen.
+.EXPORT FuncA_Pause_InitPaperGrid
+.PROC FuncA_Pause_InitPaperGrid
+    ldx #$ff
+    stx Zp_PaperCursorRow_u8
+_ClearCollectedPapers:
+    ldx #kPaperGridCols - 1
+    lda #0
+    @loop:
+    sta Ram_CollectedPapers_u8_arr, x
+    dex
+    bpl @loop
+_InitCollectedPapers:
+    ldy #0
+    sty T0  ; paper grid col
+    iny  ; now Y is $01
+    sty T1  ; bitmask
+    ldx #kFirstPaperFlag
+    @loop:
+    jsr Func_IsFlagSet  ; preserves X and T0+, clears Z if flag is set
+    beq @advanceCol
+    ldy T0  ; paper grid col
+    lda Ram_CollectedPapers_u8_arr, y
+    ora T1  ; bitmask
+    sta Ram_CollectedPapers_u8_arr, y
+    @advanceCol:
+    ldy T0  ; paper grid col
+    iny
+    cpy #kPaperGridCols
+    blt @setCol
+    asl T1  ; bitmask
+    ldy #0
+    @setCol:
+    sty T0  ; paper grid col
+    inx
+    cpx #kLastPaperFlag + 1
+    blt @loop
+    rts
+.ENDPROC
+
+;;; Writes BG tile data for the pause screen papers grid directly to the PPU.
+;;; @prereq Rendering is disabled.
+;;; @prereq Hw_PpuCtrl_wo is set to horizontal mode.
+;;; @prereq Hw_PpuAddr_w2 is set to the start of a nametable row.
+.EXPORT FuncA_Pause_DirectDrawPaperGrid
+.PROC FuncA_Pause_DirectDrawPaperGrid
+    ldx #0
+    @rowLoop:
+    jsr FuncA_Pause_DirectDrawWindowBlankLine  ; preserves X
+    ldy #kTileIdBgPaperTopLeft  ; param: paper left tile ID
+    jsr FuncA_Pause_DirectDrawPaperLine  ; preserves X
+    ldy #kTileIdBgPaperBottomLeft  ; param: paper left tile ID
+    jsr FuncA_Pause_DirectDrawPaperLine  ; preserves X
+    inx
+    cpx #kPaperGridRows
+    bne @rowLoop
+    rts
+.ENDPROC
+
+;;; Writes BG tile data for one line of the papers section of the pause screen
+;;; directly to the PPU.
+;;; @prereq Rendering is disabled.
+;;; @prereq Hw_PpuCtrl_wo is set to horizontal mode.
+;;; @prereq Hw_PpuAddr_w2 is set to the start of the nametable row.
+;;; @param X The paper grid row number (0-4).
+;;; @param Y The BG tile ID for the left side of each paper.
+;;; @preserve X
+.PROC FuncA_Pause_DirectDrawPaperLine
+    stx T0  ; paper grid row
+    sty T1  ; left tile ID
+    lda Data_PowersOfTwo_u8_arr8, x
+    sta T2  ; bitmask
+    jsr FuncA_Pause_DirectDrawWindowLineSide  ; preserves T0+
+    ldx #0  ; paper grid col
+    beq @start  ; unconditional
+    @loop:
+    lda #' '
+    sta Hw_PpuData_rw
+    @start:
+    lda Ram_CollectedPapers_u8_arr, x
+    and T2  ; bitmask
+    beq @paperNotCollected
+    @paperIsCollected:
+    lda T1  ; left tile ID
+    sta Hw_PpuData_rw
+    .assert kTileIdBgPaperTopLeft | 2 = kTileIdBgPaperTopRight, error
+    .assert kTileIdBgPaperBottomLeft | 2 = kTileIdBgPaperBottomRight, error
+    ora #$02
+    sta Hw_PpuData_rw
+    bne @continue  ; unconditional
+    @paperNotCollected:
+    lda #' '
+    sta Hw_PpuData_rw
+    sta Hw_PpuData_rw
+    @continue:
+    inx
+    cpx #kPaperGridCols
+    blt @loop
+    ldx T0  ; paper grid row
+    jmp FuncA_Pause_DirectDrawWindowLineSide  ; preserves X and T0+
+.ENDPROC
+
+;;; Draws objects for the paper grid cursor.
+.EXPORT FuncA_Pause_DrawPaperCursor
+.PROC FuncA_Pause_DrawPaperCursor
+    ;; If the cursor is inactive, don't draw it.
+    ldx Zp_PaperCursorRow_u8
+    bmi @done
+    ;; Allocate objects.
+    lda #4  ; param: num objects
+    jsr Func_AllocObjects  ; preserves X, returns Y
+    ;; Set Y-positions.
+    txa  ; paper cursor row
+    mul #kTileHeightPx
+    sta T0
+    mul #2
+    adc T0
+    adc #kTileHeightPx * 7 - 1
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::YPos_u8, y
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::YPos_u8, y
+    adc #kTileHeightPx
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::YPos_u8, y
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::YPos_u8, y
+    ;; Set X-positions.
+    lda Zp_PaperCursorCol_u8
+    mul #kTileWidthPx
+    sta T0
+    mul #2
+    adc T0
+    adc #kTileWidthPx * 3
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::XPos_u8, y
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::XPos_u8, y
+    adc #kTileWidthPx
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::XPos_u8, y
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::XPos_u8, y
+    ;; Set tile IDs.
+    lda #kTileIdObjPaperCursor
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Tile_u8, y
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Tile_u8, y
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Tile_u8, y
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Tile_u8, y
+    ;; Set object flags.
+    lda #bObj::Pri | kPaletteObjPaperCursor
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Flags_bObj, y
+    eor #bObj::FlipV
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Flags_bObj, y
+    eor #bObj::FlipH
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Flags_bObj, y
+    eor #bObj::FlipV
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Flags_bObj, y
+    @done:
+    rts
+.ENDPROC
+
+;;; Moves the paper grid cursor based on the D-pad buttons.
+.EXPORT FuncA_Pause_MovePaperCursor
+.PROC FuncA_Pause_MovePaperCursor
+_Down:
+    lda Zp_P1ButtonsPressed_bJoypad
+    and #bJoypad::Down
+    beq @done
+    jsr FuncA_Pause_MovePaperCursorDown
+    @done:
+_Up:
+    lda Zp_P1ButtonsPressed_bJoypad
+    and #bJoypad::Up
+    beq @done
+    jsr FuncA_Pause_MovePaperCursorUp
+    @done:
+_Left:
+    lda Zp_P1ButtonsPressed_bJoypad
+    and #bJoypad::Left
+    beq @done
+    jsr FuncA_Pause_MovePaperCursorPrev
+    @done:
+_Right:
+    lda Zp_P1ButtonsPressed_bJoypad
+    and #bJoypad::Right
+    beq @done
+    jsr FuncA_Pause_MovePaperCursorNext
+    @done:
+    rts
+.ENDPROC
+
+;;; Moves the paper grid cursor up to the previous row, selecting the nearest
+;;; collected paper on that row.  If there is no collected paper on the
+;;; previous row, keeps going to the row before that.  If there is no collected
+;;; paper on any row above the current row, deactivates the paper grid cursor.
+.PROC FuncA_Pause_MovePaperCursorUp
+    ldy Zp_PaperCursorRow_u8
+    @loop:
+    dey
+    bmi @setRow
+    jsr FuncA_Pause_NearestPaperOnRow  ; preserves Y, returns N and X
+    bmi @loop
+    stx Zp_PaperCursorCol_u8
+    @setRow:
+    sty Zp_PaperCursorRow_u8
+    rts
+.ENDPROC
+
+;;; Moves the paper grid cursor down to the next row, selecting the nearest
+;;; collected paper on that row.  If there is no collected paper on the
+;;; previous row, keeps going to the next row after that.  If there is no
+;;; collected paper on any row below the current row, leaves the cursor
+;;; position unchanged.
+.PROC FuncA_Pause_MovePaperCursorDown
+    ldy Zp_PaperCursorRow_u8
+    @loop:
+    iny
+    cpy #kPaperGridRows
+    bge @return
+    jsr FuncA_Pause_NearestPaperOnRow  ; preserves Y, returns N and X
+    bmi @loop
+    stx Zp_PaperCursorCol_u8
+    sty Zp_PaperCursorRow_u8
+    @return:
+    rts
+.ENDPROC
+
+;;; Helper function for FuncA_Pause_MovePaperCursorUp/Down.  Finds the
+;;; collected paper on the specified row (if any) that is nearest to the
+;;; current cursor column.
+;;; @param Y The paper grid row to consider.
+;;; @return N Set if no paper on the specified row has been collected yet.
+;;; @return X The paper grid column with the closest collected paper, if any.
+;;; @preserve Y
+.PROC FuncA_Pause_NearestPaperOnRow
+    lda #$ff
+    sta T0  ; best dist
+    sta T1  ; best col
+    ldx #kPaperGridCols - 1
+    @loop:
+    lda Data_PowersOfTwo_u8_arr8, y
+    and Ram_CollectedPapers_u8_arr, x
+    beq @continue
+    txa
+    sub Zp_PaperCursorCol_u8
+    bge @noNegate
+    eor #$ff
+    adc #1  ; carry is already clear
+    @noNegate:
+    cmp T0  ; best dist
+    bge @continue
+    sta T0  ; best dist
+    stx T1  ; best col
+    @continue:
+    dex
+    bpl @loop
+    ldx T1  ; best col
+    rts
+.ENDPROC
+
+;;; Moves the paper grid cursor to the previous collected paper, if any.  If
+;;; there is no previous collected paper, leaves the cursor position unchanged.
+.PROC FuncA_Pause_MovePaperCursorPrev
+    ldx Zp_PaperCursorCol_u8
+    ldy Zp_PaperCursorRow_u8
+    @prevCol:
+    dex
+    bpl @checkIfCollected
+    @prevRow:
+    dey
+    bmi @return
+    ldx #kPaperGridCols - 1
+    @checkIfCollected:
+    lda Data_PowersOfTwo_u8_arr8, y
+    and Ram_CollectedPapers_u8_arr, x
+    beq @prevCol
+    @setCursor:
+    stx Zp_PaperCursorCol_u8
+    sty Zp_PaperCursorRow_u8
+    @return:
+    rts
+.ENDPROC
+
+;;; Moves the paper grid cursor to the next collected paper, if any.  If the
+;;; paper grid cursor is currently inactive, sets it to the first collected
+;;; paper, if any.  If there is no next collected paper, leaves the cursor
+;;; position unchanged.
+.EXPORT FuncA_Pause_MovePaperCursorNext
+.PROC FuncA_Pause_MovePaperCursorNext
+    ldx Zp_PaperCursorCol_u8
+    ldy Zp_PaperCursorRow_u8
+    bmi @nextRow
+    @nextCol:
+    inx
+    cpx #kPaperGridCols
+    blt @checkIfCollected
+    @nextRow:
+    cpy #kPaperGridRows - 1
+    beq @return
+    iny
+    ldx #0
+    @checkIfCollected:
+    lda Data_PowersOfTwo_u8_arr8, y
+    and Ram_CollectedPapers_u8_arr, x
+    beq @nextCol
+    @setCursor:
+    stx Zp_PaperCursorCol_u8
+    sty Zp_PaperCursorRow_u8
+    @return:
+    rts
 .ENDPROC
 
 ;;;=========================================================================;;;
