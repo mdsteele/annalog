@@ -31,14 +31,23 @@
 .IMPORT FuncA_Pause_DirectDrawWindowBlankLine
 .IMPORT FuncA_Pause_DirectDrawWindowLineSide
 .IMPORT Func_AllocObjects
+.IMPORT Func_BufferPpuTransfer
 .IMPORT Func_IsFlagSet
 .IMPORT Func_SetFlag
+.IMPORT Func_UnsignedMult
+.IMPORT Main_Dialog_OnPauseScreen
 .IMPORT Main_Dialog_WhileExploring
+.IMPORT Ppu_WindowTopLeft
 .IMPORT Ram_DeviceTarget_byte_arr
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORTZP Zp_P1ButtonsPressed_bJoypad
+.IMPORTZP Zp_WindowTop_u8
 
 ;;;=========================================================================;;;
+
+;;; The PPU address in the lower nametable for the top-left tile of the dialog
+;;; portrait.
+Ppu_PortraitTopLeft := Ppu_WindowTopLeft + kScreenWidthTiles * 1 + 2
 
 ;;; The number of columns and rows in the grid of collected papers on the pause
 ;;; screen.
@@ -114,6 +123,60 @@ Ram_CollectedPapers_u8_arr: .res kPaperGridCols
     tax
     ldy DataA_Pause_PaperDialogs_eDialog_arr, x  ; param: eDialog value
     jmp Main_Dialog_WhileExploring
+.ENDPROC
+
+;;; PPU transfer entries for showing the dialog portrait.
+.PROC DataA_Pause_ShowPortraitTransfer_arr
+    .repeat 4, row
+    .scope
+    .byte kPpuCtrlFlagsHorz      ; control flags
+    .dbyt Ppu_PortraitTopLeft + kScreenWidthTiles * row  ; destination address
+    .byte @dataEnd - @dataStart  ; transfer length
+    @dataStart:
+    .byte $70 + row, $74 + row, $78 + row, $7c + row
+    @dataEnd:
+    .endscope
+    .endrepeat
+.ENDPROC
+
+;;; PPU transfer entries for hiding the dialog portrait.
+.PROC DataA_Pause_HidePortraitTransfer_arr
+    .repeat 4, row
+    .scope
+    .byte kPpuCtrlFlagsHorz      ; control flags
+    .dbyt Ppu_PortraitTopLeft + kScreenWidthTiles * row  ; destination address
+    .byte @dataEnd - @dataStart  ; transfer length
+    @dataStart:
+    .byte 0, 0, 0, 0
+    @dataEnd:
+    .endscope
+    .endrepeat
+.ENDPROC
+
+;;; Buffers a PPU transfer to hide the dialog portrait.
+.EXPORT FuncA_Pause_TransferHidePortrait
+.PROC FuncA_Pause_TransferHidePortrait
+    ldax #DataA_Pause_HidePortraitTransfer_arr  ; param: data pointer
+    ldy #.sizeof(DataA_Pause_HidePortraitTransfer_arr)  ; param: data size
+    jmp Func_BufferPpuTransfer
+.ENDPROC
+
+;;; Mode for reading a paper from the pause screen.
+;;; @prereq Rendering is enabled.
+.EXPORT MainA_Pause_RereadPaper
+.PROC MainA_Pause_RereadPaper
+    ;; Buffer a PPU transfer to show the dialog portrait.
+    ldax #DataA_Pause_ShowPortraitTransfer_arr  ; param: data pointer
+    ldy #.sizeof(DataA_Pause_ShowPortraitTransfer_arr)  ; param: data size
+    jsr Func_BufferPpuTransfer
+    ;; Calculate the eDialog value and start dialog mode.
+    lda Zp_PaperCursorRow_u8  ; param: multiplicand
+    ldy #kPaperGridCols  ; param: multiplier
+    jsr Func_UnsignedMult  ; returns YA
+    add Zp_PaperCursorCol_u8
+    tax
+    ldy DataA_Pause_PaperDialogs_eDialog_arr, x  ; param: eDialog
+    jmp Main_Dialog_OnPauseScreen
 .ENDPROC
 
 ;;; Maps from eFlag::Paper* values to eDialog::Paper* values.
@@ -337,7 +400,8 @@ _InitCollectedPapers:
     sta T0
     mul #2
     adc T0
-    adc #kTileHeightPx * 7 - 1
+    adc Zp_WindowTop_u8
+    adc #kTileHeightPx * 3 - 1
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::YPos_u8, y
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::YPos_u8, y
     adc #kTileHeightPx

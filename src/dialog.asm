@@ -113,6 +113,7 @@
 .IMPORT FuncA_Terrain_ScrollTowardsAvatar
 .IMPORT FuncA_Terrain_ScrollTowardsGoal
 .IMPORT Func_AllocOneObject
+.IMPORT Func_BufferPpuTransfer
 .IMPORT Func_ClearRestOfOamAndProcessFrame
 .IMPORT Func_SetFlag
 .IMPORT Func_TryPushAvatarHorz
@@ -121,6 +122,7 @@
 .IMPORT Func_Window_ScrollUp
 .IMPORT Func_Window_TransferBottomBorder
 .IMPORT Func_Window_TransferClearRow
+.IMPORT MainA_Pause_Papers
 .IMPORT Main_Cutscene_Continue
 .IMPORT Main_Explore_Continue
 .IMPORT Ram_DeviceTarget_byte_arr
@@ -291,14 +293,14 @@ Ram_DialogText_u8_arr: .res (kDialogTextMaxCols + 1) * kDialogNumTextRows
 ;;; @prereq Explore mode is initialized.
 ;;; @param Y The eDialog value for the dialog.
 .PROC Main_Dialog_OpenWindow
-    jsr_prga FuncA_Dialog_Init  ; returns C, T2, and T1T0
+    jsr_prga FuncA_Dialog_InitTextAndAvatar  ; returns C, T2, and T1T0
     bcs Main_Dialog_Finish  ; dialog is empty
     jsr FuncM_CopyDialogText
 _GameLoop:
     jsr_prga FuncA_Objects_DrawObjectsForRoom
     jsr Func_ClearRestOfOamAndProcessFrame
     jsr_prga FuncA_Dialog_ScrollWindowUp  ; sets C if window is now fully open
-    bcs Main_Dialog_Run
+    bcs Main_Dialog_RunWindow
 _UpdateScrolling:
     jsr_prga FuncA_Terrain_ScrollTowardsGoal
     jmp _GameLoop
@@ -335,7 +337,7 @@ _UpdateScrolling:
 ;;; @prereq Rendering is enabled.
 ;;; @prereq The dialog window is fully visible.
 ;;; @prereq Explore mode is initialized.
-.PROC Main_Dialog_Run
+.PROC Main_Dialog_RunWindow
 _GameLoop:
     jsr_prga FuncA_Objects_DrawDialogCursorAndObjectsForRoom
     jsr Func_ClearRestOfOamAndProcessFrame
@@ -348,6 +350,30 @@ _Tick:
 _UpdateScrolling:
     jsr_prga FuncA_Terrain_ScrollTowardsGoal
     jmp _GameLoop
+.ENDPROC
+
+;;; Mode for running dialog on the pause screen.
+;;; @prereq Rendering is enabled.
+;;; @prereq The dialog window is fully visible.
+;;; @param Y The eDialog value for the dialog.
+.EXPORT Main_Dialog_OnPauseScreen
+.PROC Main_Dialog_OnPauseScreen
+    jsr_prga FuncA_Dialog_InitText  ; returns C, T2, and T1T0
+    bcs _Finish  ; dialog is empty
+_CopyText:
+    jsr FuncM_CopyDialogText
+_GameLoop:
+    jsr_prga FuncA_Objects_DrawDialogCursor
+    jsr Func_ClearRestOfOamAndProcessFrame
+    jsr_prga FuncA_Dialog_Tick  ; returns C, Z, T2, and T1T0
+    bcs _Finish
+    beq _GameLoop
+    bne _CopyText  ; unconditional
+_Finish:
+    ;; Pump PPU transfer array once more before returning to the paper grid, so
+    ;; it can tranfser more without overfilling the buffer.
+    jsr Func_ClearRestOfOamAndProcessFrame
+    jmp_prga MainA_Pause_Papers
 .ENDPROC
 
 ;;; Given the bank/pointer returned by FuncA_Dialog_GetNextDialogTextPointer,
@@ -515,6 +541,22 @@ _UpdateScrolling:
     @dataEnd:
 .ENDPROC
 
+;;; Initializes text for dialog mode.  If the dialog is not empty, then the
+;;; caller must subsequently call FuncM_CopyDialogText to load the first pane
+;;; of dialog text from its PRGA bank.
+;;; @param Y The eDialog value for the dialog.
+;;; @return C Set if the dialog is empty, cleared otherwise.
+;;; @return T2 The PRGA bank number that contains the first dialog text.
+;;; @return T1T0 A pointer to the start of the first dialog text.
+.PROC FuncA_Dialog_InitText
+    lda DataA_Dialog_Table_sDialog_ptr_0_arr, y
+    sta Zp_Next_sDialog_ptr + 0
+    lda DataA_Dialog_Table_sDialog_ptr_1_arr, y
+    sta Zp_Next_sDialog_ptr + 1
+    ;; Load the first portrait of the dialog.
+    jmp FuncA_Dialog_GetNextDialogTextPointer  ; returns C, T2, and T1T0
+.ENDPROC
+
 ;;; Initializes dialog mode.  If the dialog is not empty, then the caller must
 ;;; subsequently call FuncM_CopyDialogText to load the first pane of dialog
 ;;; text from its PRGA bank.
@@ -522,13 +564,8 @@ _UpdateScrolling:
 ;;; @return C Set if the dialog is empty, cleared otherwise.
 ;;; @return T2 The PRGA bank number that contains the first dialog text.
 ;;; @return T1T0 A pointer to the start of the first dialog text.
-.PROC FuncA_Dialog_Init
-    lda DataA_Dialog_Table_sDialog_ptr_0_arr, y
-    sta Zp_Next_sDialog_ptr + 0
-    lda DataA_Dialog_Table_sDialog_ptr_1_arr, y
-    sta Zp_Next_sDialog_ptr + 1
-    ;; Load the first portrait of the dialog.
-    jsr FuncA_Dialog_GetNextDialogTextPointer  ; returns C, T2, and T1T0
+.PROC FuncA_Dialog_InitTextAndAvatar
+    jsr FuncA_Dialog_InitText  ; returns C, T2, and T1T0
     bcs _Done
 _HideHud:
     lda Zp_FloatingHud_bHud
@@ -767,16 +804,9 @@ _UpdateDialogPointer:
     blt _StillClosing
 _ResetBgAttributes:
     ;; Buffer PPU transfer to reset nametable attributes for the portrait.
-    ldx Zp_PpuTransferLen_u8
-    ldy #0
-    @loop:
-    lda DataA_Dialog_UndoPortraitAttrTransfer_arr, y
-    sta Ram_PpuTransfer_arr, x
-    inx
-    iny
-    cpy #.sizeof(DataA_Dialog_UndoPortraitAttrTransfer_arr)
-    blt @loop
-    stx Zp_PpuTransferLen_u8
+    ldax #DataA_Dialog_UndoPortraitAttrTransfer_arr  ; param: data pointer
+    ldy #.sizeof(DataA_Dialog_UndoPortraitAttrTransfer_arr)  ; param: length
+    jsr Func_BufferPpuTransfer
 _StillClosing:
     clc
     rts
@@ -854,7 +884,7 @@ _BottomMargin:
 _BottomBorder:
     jmp Func_Window_TransferBottomBorder
 _Interior:
-    jsr Func_Window_PrepareRowTransfer
+    jsr Func_Window_PrepareRowTransfer  ; returns X
     ;; Draw borders and margins:
     lda #' '
     sta Ram_PpuTransfer_arr, x
@@ -885,18 +915,10 @@ _Interior:
     rts
 _BgAttributes:
     inc Zp_WindowNextRowToTransfer_u8
-    ;; Buffer PPU transfer to set nametable attributes for the portrait.
-    ldx Zp_PpuTransferLen_u8
-    ldy #0
-    @loop:
-    lda DataA_Dialog_PortraitAttrTransfer_arr, y
-    sta Ram_PpuTransfer_arr, x
-    inx
-    iny
-    cpy #.sizeof(DataA_Dialog_PortraitAttrTransfer_arr)
-    blt @loop
-    stx Zp_PpuTransferLen_u8
-    rts
+    ;; Buffer PPU transfer to set nametable attributes for the portrait
+    ldax #DataA_Dialog_PortraitAttrTransfer_arr  ; param: data pointer
+    ldy #.sizeof(DataA_Dialog_PortraitAttrTransfer_arr)  ; param: data length
+    jmp Func_BufferPpuTransfer
 .ENDPROC
 
 ;;; Transfers the next character of dialog text (if any) to the PPU.  If an
@@ -970,17 +992,9 @@ _YesNoQuestion:
     lda #$ff
     sta Zp_DialogAnsweredYes_bool
     ;; Buffer a PPU transfer to draw the "yes"/"no" options.
-    ldx Zp_PpuTransferLen_u8
-    ldy #0
-    @loop:
-    lda DataA_Dialog_YesNoTransfer_arr, y
-    sta Ram_PpuTransfer_arr, x
-    inx
-    iny
-    cpy #.sizeof(DataA_Dialog_YesNoTransfer_arr)
-    blt @loop
-    stx Zp_PpuTransferLen_u8
-    rts
+    ldax #DataA_Dialog_YesNoTransfer_arr  ; param: data pointer
+    ldy #.sizeof(DataA_Dialog_YesNoTransfer_arr)  ; param: data length
+    jmp Func_BufferPpuTransfer
 .ENDPROC
 
 ;;; Buffers a PPU transfer to draw all remaining dialog text (if any) until the
@@ -1105,6 +1119,11 @@ _EndOfLine:
 ;;; Draws the dialog cursor/prompt, as well as any objects in the room.
 .PROC FuncA_Objects_DrawDialogCursorAndObjectsForRoom
     jsr FuncA_Objects_DrawObjectsForRoom
+    .assert * = FuncA_Objects_DrawDialogCursor, error, "fallthrough"
+.ENDPROC
+
+;;; Draws the dialog cursor/prompt.
+.PROC FuncA_Objects_DrawDialogCursor
     bit Zp_DialogStatus_bDialog
     .assert bDialog::Paused = bProc::Negative, error
     bmi @paused

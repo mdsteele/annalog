@@ -31,13 +31,13 @@
 .IMPORT FuncA_Objects_DrawHudInWindowAndObjectsForRoom
 .IMPORT FuncA_Room_MachineReset
 .IMPORT FuncM_ConsoleScrollTowardsGoalAndTick
+.IMPORT Func_BufferPpuTransfer
 .IMPORT Func_ClearRestOfOamAndProcessFrame
 .IMPORT Func_SetMachineIndex
 .IMPORT Main_Console_ContinueEditing
 .IMPORT Ram_Console_sProgram
 .IMPORT Ram_MachinePc_u8_arr
 .IMPORT Ram_MachineStatus_eMachine_arr
-.IMPORT Ram_PpuTransfer_arr
 .IMPORTZP Zp_ConsoleFieldNumber_u8
 .IMPORTZP Zp_ConsoleInstNumber_u8
 .IMPORTZP Zp_ConsoleMachineIndex_u8
@@ -45,7 +45,6 @@
 .IMPORTZP Zp_Current_sMachine_ptr
 .IMPORTZP Zp_Current_sProgram_ptr
 .IMPORTZP Zp_P1ButtonsPressed_bJoypad
-.IMPORTZP Zp_PpuTransferLen_u8
 
 ;;;=========================================================================;;;
 
@@ -175,16 +174,9 @@ _SaveProgram:
 _ChangeDiagram:
     chr04_bank #eDiagram::Debugger
 _SetBgAttributes:
-    ldx Zp_PpuTransferLen_u8
-    ldy #0
-    @loop:
-    lda DataA_Console_DebugAttrTransfer_arr, y
-    sta Ram_PpuTransfer_arr, x
-    inx
-    iny
-    cpy #.sizeof(DataA_Console_DebugAttrTransfer_arr)
-    blt @loop
-    stx Zp_PpuTransferLen_u8
+    ldax #DataA_Console_DebugAttrTransfer_arr  ; param: data pointer
+    ldy #.sizeof(DataA_Console_DebugAttrTransfer_arr)  ; param: data size
+    jmp Func_BufferPpuTransfer
 _Return:
     rts
 .ENDPROC
@@ -204,17 +196,9 @@ _ChangeDiagram:
     ldy #sMachine::Status_eDiagram
     chr04_bank (Zp_Current_sMachine_ptr), y
 _ResetBgAttributes:
-    ldx Zp_PpuTransferLen_u8
-    ldy #0
-    @loop:
-    lda DataA_Console_UndoDebugAttrTransfer_arr, y
-    sta Ram_PpuTransfer_arr, x
-    inx
-    iny
-    cpy #.sizeof(DataA_Console_UndoDebugAttrTransfer_arr)
-    blt @loop
-    stx Zp_PpuTransferLen_u8
-    rts
+    ldax #DataA_Console_UndoDebugAttrTransfer_arr  ; param: data pointer
+    ldy #.sizeof(DataA_Console_UndoDebugAttrTransfer_arr)  ; param: data size
+    jmp Func_BufferPpuTransfer
 .ENDPROC
 
 ;;;=========================================================================;;;

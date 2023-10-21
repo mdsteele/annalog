@@ -60,6 +60,7 @@
 .IMPORT FuncA_Room_TickBoss
 .IMPORT Func_AckIrqAndLatchWindowFromParam3
 .IMPORT Func_AckIrqAndSetLatch
+.IMPORT Func_BufferPpuTransfer
 .IMPORT Func_FindEmptyActorSlot
 .IMPORT Func_GetRandomByte
 .IMPORT Func_InitActorProjEmber
@@ -79,7 +80,6 @@
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORT Ram_PlatformLeft_i16_0_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
-.IMPORT Ram_PpuTransfer_arr
 .IMPORTZP Zp_Active_sIrq
 .IMPORTZP Zp_AvatarPosX_i16
 .IMPORTZP Zp_AvatarPosY_i16
@@ -90,7 +90,6 @@
 .IMPORTZP Zp_NextIrq_int_ptr
 .IMPORTZP Zp_PointX_i16
 .IMPORTZP Zp_PointY_i16
-.IMPORTZP Zp_PpuTransferLen_u8
 .IMPORTZP Zp_RoomScrollY_u8
 .IMPORTZP Zp_RoomState
 .IMPORTZP Zp_ShapePosX_i16
@@ -640,17 +639,9 @@ _BossIsDead:
 .ENDPROC
 
 .PROC FuncC_Boss_Crypt_FadeInRoom
-    ldy #0
-    ldx Zp_PpuTransferLen_u8
-    @loop:
-    lda DataC_Boss_CryptInitTransfer_arr, y
-    iny
-    sta Ram_PpuTransfer_arr, x
-    inx
-    cpy #.sizeof(DataC_Boss_CryptInitTransfer_arr)
-    blt @loop
-    stx Zp_PpuTransferLen_u8
-    rts
+    ldax #DataC_Boss_CryptInitTransfer_arr  ; param: data pointer
+    ldy #.sizeof(DataC_Boss_CryptInitTransfer_arr)  ; param: data length
+    jmp Func_BufferPpuTransfer
 .ENDPROC
 
 ;;; Room tick function for the BossCrypt room.

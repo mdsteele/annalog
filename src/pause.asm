@@ -18,6 +18,7 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "charmap.inc"
+.INCLUDE "cpu.inc"
 .INCLUDE "devices/flower.inc"
 .INCLUDE "flag.inc"
 .INCLUDE "irq.inc"
@@ -40,6 +41,7 @@
 .IMPORT FuncA_Pause_InitPaperGrid
 .IMPORT FuncA_Pause_MovePaperCursor
 .IMPORT FuncA_Pause_MovePaperCursorNext
+.IMPORT FuncA_Pause_TransferHidePortrait
 .IMPORT Func_AckIrqAndSetLatch
 .IMPORT Func_AllocOneObject
 .IMPORT Func_ClearRestOfOam
@@ -54,6 +56,7 @@
 .IMPORT Func_Window_ScrollDown
 .IMPORT Func_Window_ScrollUp
 .IMPORT Int_NoopIrq
+.IMPORT MainA_Pause_RereadPaper
 .IMPORT Main_Explore_FadeIn
 .IMPORT Ppu_ChrBgMinimap
 .IMPORT Ppu_ChrBgPause
@@ -75,6 +78,11 @@
 
 ;;;=========================================================================;;;
 
+;;; The goal value for Zp_WindowTop_u8 while scrolling in the papers window.
+.LINECONT +
+kPapersWindowTopGoal = \
+    kScreenHeightPx - ((kTileHeightPx * 24) + kWindowMarginBottomPx)
+.LINECONT -
 ;;; How fast the papers window scrolls up/down, in pixels per frame.
 kPapersWindowScrollSpeed = 11
 
@@ -140,7 +148,7 @@ _CheckButtons:
 ;;; Mode for scrolling up the papers window, thus making it visible.
 ;;; @prereq Rendering is enabled.
 .PROC MainA_Pause_ScrollPapersUp
-    lda #kTileHeightPx * 4
+    lda #kPapersWindowTopGoal
     sta Zp_WindowTopGoal_u8
     lda #kScreenHeightPx - kPapersWindowScrollSpeed
     sta Zp_WindowTop_u8
@@ -149,22 +157,26 @@ _GameLoop:
     lda #kPapersWindowScrollSpeed  ; param: scroll by
     jsr Func_Window_ScrollUp  ; sets C if fully scrolled in
     bcc _GameLoop
+    jsr FuncA_Pause_MovePaperCursorNext
     .assert * = MainA_Pause_Papers, error, "fallthrough"
 .ENDPROC
 
 ;;; Mode for running the pause screen while the papers window is visible.
 ;;; @prereq Rendering is enabled.
+.EXPORT MainA_Pause_Papers
 .PROC MainA_Pause_Papers
-    jsr FuncA_Pause_MovePaperCursorNext
+    jsr FuncA_Pause_TransferHidePortrait
 _GameLoop:
     jsr FuncA_Pause_DrawObjectsAndProcessFrame
 _CheckButtons:
     jsr FuncA_Pause_MovePaperCursor
     lda Zp_PaperCursorRow_u8
     bmi MainA_Pause_ScrollPapersDown
-    lda Zp_P1ButtonsPressed_bJoypad
-    and #bJoypad::BButton
-    bne MainA_Pause_ScrollPapersDown
+    bit Zp_P1ButtonsPressed_bJoypad
+    .assert bJoypad::AButton = bProc::Negative, error
+    jmi MainA_Pause_RereadPaper
+    .assert bJoypad::BButton = bProc::Overflow, error
+    bvs MainA_Pause_ScrollPapersDown
     lda Zp_P1ButtonsPressed_bJoypad
     and #bJoypad::Start
     beq _GameLoop

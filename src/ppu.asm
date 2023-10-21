@@ -20,9 +20,32 @@
 .INCLUDE "macros.inc"
 .INCLUDE "ppu.inc"
 
+.IMPORT Ram_PpuTransfer_arr
+.IMPORTZP Zp_PpuTransferLen_u8
+
 ;;;=========================================================================;;;
 
 .SEGMENT "PRG8"
+
+;;; Copies one or more transfer entries into the PPU transfer buffer.
+;;; @param AX Pointer to the start of the transfer entry(ies) to copy.
+;;; @param Y The number of bytes to buffer (including any transfer headers).
+.EXPORT Func_BufferPpuTransfer
+.PROC Func_BufferPpuTransfer
+    stax T1T0  ; pointer to start of data to copy
+    sty T2  ; total number of bytes to copy
+    ldx Zp_PpuTransferLen_u8
+    ldy #0
+    @loop:
+    lda (T1T0), y
+    sta Ram_PpuTransfer_arr, x
+    inx
+    iny
+    cpy T2  ; total number of bytes to copy
+    blt @loop
+    stx Zp_PpuTransferLen_u8
+    rts
+.ENDPROC
 
 ;;; Fills the lower attribute table with the given byte.
 ;;; @prereq Rendering is disabled.

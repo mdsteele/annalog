@@ -36,8 +36,9 @@
 
 ;;; The PPU address in the lower nametable for the leftmost tile column of the
 ;;; window start row.
+.EXPORT Ppu_WindowTopLeft
 .LINECONT +
-Ppu_WindowTopLeft = Ppu_Nametable3_sName + sName::Tiles_u8_arr + \
+Ppu_WindowTopLeft := Ppu_Nametable3_sName + sName::Tiles_u8_arr + \
     kScreenWidthTiles * kWindowStartRow
 .LINECONT -
 
@@ -165,7 +166,7 @@ _Disable:
 ;;; the next row.
 .EXPORT Func_Window_TransferBottomBorder
 .PROC Func_Window_TransferBottomBorder
-    jsr Func_Window_PrepareRowTransfer
+    jsr Func_Window_PrepareRowTransfer  ; returns X
     lda #' '
     sta Ram_PpuTransfer_arr, x
     inx
@@ -190,7 +191,7 @@ _Disable:
 ;;; Appends a new PPU transfer entry to fully clear the next window row.
 .EXPORT Func_Window_TransferClearRow
 .PROC Func_Window_TransferClearRow
-    jsr Func_Window_PrepareRowTransfer
+    jsr Func_Window_PrepareRowTransfer  ; returns X
     lda #' '
     ldy #kScreenWidthTiles
     @loop:

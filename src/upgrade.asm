@@ -304,7 +304,7 @@ _BottomMargin:
 _BottomBorder:
     jmp Func_Window_TransferBottomBorder
 _Interior:
-    jsr Func_Window_PrepareRowTransfer
+    jsr Func_Window_PrepareRowTransfer  ; returns X
     ;; Draw left-hand border and margin.
     lda #kTileIdBgWindowVert
     sta Ram_PpuTransfer_arr + 1, x

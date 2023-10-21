@@ -558,7 +558,7 @@ _BottomMargin:
 _BottomBorder:
     jmp Func_Window_TransferBottomBorder
 _Interior:
-    jsr Func_Window_PrepareRowTransfer
+    jsr Func_Window_PrepareRowTransfer  ; returns X
     ;; Draw margins, borders, and column separators:
     lda #' '
     sta Ram_PpuTransfer_arr, x
