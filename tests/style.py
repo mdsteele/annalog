@@ -27,6 +27,7 @@ import sys
 
 PATTERNS = [
     ('indented .DIRECTIVE', re.compile(r'^ +\.[A-Z]')),
+    ('mixed-case .directive', re.compile(r'^ *\.([A-Z]+[a-z]|[a-z]+[A-Z])')),
     ('multiple exports per line', re.compile(r'\.EXPORT[^;]*,')),
     ('multiple imports per line', re.compile(r'\.IMPORT[^;]*,')),
     ('over-long line', re.compile(r'^.{80,}\n$')),

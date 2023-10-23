@@ -35,7 +35,7 @@ kQuestEnvPeriod = 4
 
 ;;;=========================================================================;;;
 
-.Segment "PRG8"
+.SEGMENT "PRG8"
 
 ;;; SFX function for the quest marker jingle.  When starting this sound,
 ;;; Timer_u8 and Param1_byte should be initialized to zero.
