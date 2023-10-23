@@ -147,24 +147,29 @@ kSmokeParticleRadius  = 1
 Ram_ActorType_eActor_arr: .res kMaxActors
 
 ;;; The current X/Y positions of each actor in the room, in room-space pixels.
-.EXPORT Ram_ActorPosX_i16_0_arr, Ram_ActorPosX_i16_1_arr
+.EXPORT Ram_ActorPosX_i16_0_arr
 Ram_ActorPosX_i16_0_arr: .res kMaxActors
+.EXPORT Ram_ActorPosX_i16_1_arr
 Ram_ActorPosX_i16_1_arr: .res kMaxActors
-.EXPORT Ram_ActorPosY_i16_0_arr, Ram_ActorPosY_i16_1_arr
+.EXPORT Ram_ActorPosY_i16_0_arr
 Ram_ActorPosY_i16_0_arr: .res kMaxActors
+.EXPORT Ram_ActorPosY_i16_1_arr
 Ram_ActorPosY_i16_1_arr: .res kMaxActors
 
 ;;; The current X/Y subpixel positions of each actor in the room.
-.EXPORT Ram_ActorSubX_u8_arr, Ram_ActorSubY_u8_arr
+.EXPORT Ram_ActorSubX_u8_arr
 Ram_ActorSubX_u8_arr: .res kMaxActors
+.EXPORT Ram_ActorSubY_u8_arr
 Ram_ActorSubY_u8_arr: .res kMaxActors
 
 ;;; The current velocities of each actor in the room, in subpixels per frame.
-.EXPORT Ram_ActorVelX_i16_0_arr, Ram_ActorVelX_i16_1_arr
+.EXPORT Ram_ActorVelX_i16_0_arr
 Ram_ActorVelX_i16_0_arr: .res kMaxActors
+.EXPORT Ram_ActorVelX_i16_1_arr
 Ram_ActorVelX_i16_1_arr: .res kMaxActors
-.EXPORT Ram_ActorVelY_i16_0_arr, Ram_ActorVelY_i16_1_arr
+.EXPORT Ram_ActorVelY_i16_0_arr
 Ram_ActorVelY_i16_0_arr: .res kMaxActors
+.EXPORT Ram_ActorVelY_i16_1_arr
 Ram_ActorVelY_i16_1_arr: .res kMaxActors
 
 ;;; Type-specific state data for each actor in the room.

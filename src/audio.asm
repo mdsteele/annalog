@@ -122,8 +122,9 @@ Zp_CurrentChannel_bApuStatus: .res 1
 
 ;;; Temporary variables that any audio-thread function can use, including
 ;;; custom instrument and SFX functions.
-.EXPORTZP Zp_AudioTmp1_byte, Zp_AudioTmp2_byte
+.EXPORTZP Zp_AudioTmp1_byte
 Zp_AudioTmp1_byte: .res 1
+.EXPORTZP Zp_AudioTmp2_byte
 Zp_AudioTmp2_byte: .res 1
 
 ;;;=========================================================================;;;

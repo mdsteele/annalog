@@ -53,8 +53,9 @@ Zp_Render_bPpuMask: .res 1
 
 ;;; The NMI handler will copy these to Hw_PpuScroll_w2 when Zp_NmiReady_bool is
 ;;; set.
-.EXPORTZP Zp_PpuScrollX_u8, Zp_PpuScrollY_u8
+.EXPORTZP Zp_PpuScrollX_u8
 Zp_PpuScrollX_u8: .res 1
+.EXPORTZP Zp_PpuScrollY_u8
 Zp_PpuScrollY_u8: .res 1
 
 ;;; The current length of Ram_PpuTransfer_arr, in bytes.  When Zp_NmiReady_bool

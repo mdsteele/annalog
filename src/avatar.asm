@@ -81,18 +81,21 @@ kAvatarHealBlinkFrames = 14
 .ZEROPAGE
 
 ;;; The current X/Y positions of the player avatar, in room-space pixels.
-.EXPORTZP Zp_AvatarPosX_i16, Zp_AvatarPosY_i16
+.EXPORTZP Zp_AvatarPosX_i16
 Zp_AvatarPosX_i16: .res 2
+.EXPORTZP Zp_AvatarPosY_i16
 Zp_AvatarPosY_i16: .res 2
 
 ;;; The current X/Y subpixel positions of the player avatar.
-.EXPORTZP Zp_AvatarSubX_u8, Zp_AvatarSubY_u8
+.EXPORTZP Zp_AvatarSubX_u8
 Zp_AvatarSubX_u8: .res 1
+.EXPORTZP Zp_AvatarSubY_u8
 Zp_AvatarSubY_u8: .res 1
 
 ;;; The current velocity of the player avatar, in subpixels per frame.
-.EXPORTZP Zp_AvatarVelX_i16, Zp_AvatarVelY_i16
+.EXPORTZP Zp_AvatarVelX_i16
 Zp_AvatarVelX_i16: .res 2
+.EXPORTZP Zp_AvatarVelY_i16
 Zp_AvatarVelY_i16: .res 2
 
 ;;; The object flags to apply for the player avatar.  In particular, if

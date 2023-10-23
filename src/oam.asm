@@ -33,8 +33,9 @@
 Zp_OamOffset_u8: .res 1
 
 ;;; The screen-space X/Y positions to use for various shape functions below.
-.EXPORTZP Zp_ShapePosX_i16, Zp_ShapePosY_i16
+.EXPORTZP Zp_ShapePosX_i16
 Zp_ShapePosX_i16: .res 2
+.EXPORTZP Zp_ShapePosY_i16
 Zp_ShapePosY_i16: .res 2
 
 ;;;=========================================================================;;;

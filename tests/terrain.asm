@@ -50,8 +50,9 @@ kExpectedStripePtrTallRoom = $8207
 Zp_Current_sRoom: .tag sRoom
 .EXPORTZP Zp_Current_sTileset
 Zp_Current_sTileset: .tag sTileset
-.EXPORTZP Zp_PointX_i16, Zp_PointY_i16
+.EXPORTZP Zp_PointX_i16
 Zp_PointX_i16: .res 2
+.EXPORTZP Zp_PointY_i16
 Zp_PointY_i16: .res 2
 .EXPORTZP Zp_PpuTransferLen_u8
 Zp_PpuTransferLen_u8: .res 1
@@ -66,14 +67,6 @@ Ram_PpuTransfer_arr: .res $80
 ;;;=========================================================================;;;
 
 .SEGMENT "PRGA_Terrain"
-
-.EXPORT DataA_Terrain_UpperLeft_u8_arr, DataA_Terrain_UpperRight_u8_arr
-.EXPORT DataA_Terrain_LowerLeft_u8_arr, DataA_Terrain_LowerRight_u8_arr
-DataA_Terrain_UpperLeft_u8_arr:
-DataA_Terrain_LowerLeft_u8_arr:
-DataA_Terrain_UpperRight_u8_arr:
-DataA_Terrain_LowerRight_u8_arr:
-    .res $100
 
 .PROC FuncA_Terrain_TestColumnForTileIndexInShortRoom
     ;; Setup:

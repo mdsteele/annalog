@@ -58,23 +58,27 @@ Zp_AvatarPlatformIndex_u8: .res 1
 Ram_PlatformType_ePlatform_arr: .res kMaxPlatforms
 
 ;;; The room pixel Y-position of the top edge of each platform.
-.EXPORT Ram_PlatformTop_i16_0_arr, Ram_PlatformTop_i16_1_arr
+.EXPORT Ram_PlatformTop_i16_0_arr
 Ram_PlatformTop_i16_0_arr: .res kMaxPlatforms
+.EXPORT Ram_PlatformTop_i16_1_arr
 Ram_PlatformTop_i16_1_arr: .res kMaxPlatforms
 
 ;;; The room pixel Y-position of the bottom edge of each platform.
-.EXPORT Ram_PlatformBottom_i16_0_arr, Ram_PlatformBottom_i16_1_arr
+.EXPORT Ram_PlatformBottom_i16_0_arr
 Ram_PlatformBottom_i16_0_arr: .res kMaxPlatforms
+.EXPORT Ram_PlatformBottom_i16_1_arr
 Ram_PlatformBottom_i16_1_arr: .res kMaxPlatforms
 
 ;;; The room pixel X-position of the left edge of each platform.
-.EXPORT Ram_PlatformLeft_i16_0_arr, Ram_PlatformLeft_i16_1_arr
+.EXPORT Ram_PlatformLeft_i16_0_arr
 Ram_PlatformLeft_i16_0_arr: .res kMaxPlatforms
+.EXPORT Ram_PlatformLeft_i16_1_arr
 Ram_PlatformLeft_i16_1_arr: .res kMaxPlatforms
 
 ;;; The room pixel X-position of the right edge of each platform.
-.EXPORT Ram_PlatformRight_i16_0_arr, Ram_PlatformRight_i16_1_arr
+.EXPORT Ram_PlatformRight_i16_0_arr
 Ram_PlatformRight_i16_0_arr: .res kMaxPlatforms
+.EXPORT Ram_PlatformRight_i16_1_arr
 Ram_PlatformRight_i16_1_arr: .res kMaxPlatforms
 
 ;;;=========================================================================;;;
