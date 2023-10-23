@@ -589,4 +589,20 @@ _Right:
     rts
 .ENDPROC
 
+;;; Determines whether or not at least one paper has been collected yet.
+;;; @prereq The pause screen has been initialized.
+;;; @return Z Cleared if any papers have been collected, set if none.
+.EXPORT FuncA_Pause_AreAnyPapersCollected
+.PROC FuncA_Pause_AreAnyPapersCollected
+    ldx #kPaperGridCols - 1
+    @loop:
+    lda Ram_CollectedPapers_u8_arr, x
+    bne @return
+    dex
+    bpl @loop
+    inx  ; now X is zero and Z is set
+    @return:
+    rts
+.ENDPROC
+
 ;;;=========================================================================;;;

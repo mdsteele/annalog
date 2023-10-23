@@ -34,6 +34,7 @@
 .IMPORT DataA_Pause_AreaNames_u8_arr12_ptr_0_arr
 .IMPORT DataA_Pause_AreaNames_u8_arr12_ptr_1_arr
 .IMPORT DataA_Pause_PaperLocation_eArea_arr
+.IMPORT FuncA_Pause_AreAnyPapersCollected
 .IMPORT FuncA_Pause_DirectDrawMinimap
 .IMPORT FuncA_Pause_DirectDrawPaperGrid
 .IMPORT FuncA_Pause_DrawMinimapObjects
@@ -43,6 +44,7 @@
 .IMPORT FuncA_Pause_MovePaperCursorNext
 .IMPORT FuncA_Pause_TransferHidePortrait
 .IMPORT Func_AckIrqAndSetLatch
+.IMPORT Func_AllocObjects
 .IMPORT Func_AllocOneObject
 .IMPORT Func_ClearRestOfOam
 .IMPORT Func_ClearRestOfOamAndProcessFrame
@@ -98,6 +100,11 @@ kTileIdBgRamTopLeft        = $c2
 ;;; on.
 kTileIdBgRemainingTopLeft  = $c4
 
+;;; The OBJ tile ID for drawing the cursor for opening the papers window.
+kTileIdObjOpenWindowCursor = $cd
+;;; The OBJ palette number for the cursor for opening the papers window.
+kPaletteObjOpenWindowCursor = 1
+
 ;;;=========================================================================;;;
 
 .ZEROPAGE
@@ -127,11 +134,15 @@ Zp_ActivatedBreakers_byte: .res 1
 .PROC MainA_Pause_Minimap
 _GameLoop:
     jsr FuncA_Pause_DrawObjectsAndProcessFrame
-_CheckButtons:
-    ;; TODO: only open papers window if any are collected
+_CheckForOpenPapersWindow:
     lda Zp_P1ButtonsPressed_bJoypad
     and #bJoypad::Down
+    beq @done
+    ;; Only open papers window if any are collected.
+    jsr FuncA_Pause_AreAnyPapersCollected
     bne MainA_Pause_ScrollPapersUp
+    @done:
+_CheckForUnpause:
     lda Zp_P1ButtonsPressed_bJoypad
     and #bJoypad::Start | bJoypad::BButton
     beq _GameLoop
@@ -579,7 +590,7 @@ _CircuitBreakers_byte_arr8_arr6:
     jsr FuncA_Pause_DrawMinimapObjects
     jsr FuncA_Pause_DrawCircuitObjects
     jsr FuncA_Pause_DrawFlowerCount
-    ;; TODO: draw down arrow for opening papers window
+    jsr FuncA_Pause_DrawOpenWindowCursor
     jmp FuncA_Pause_DrawPaperCursor
 .ENDPROC
 
@@ -689,6 +700,41 @@ _DrawFlowerIcon:
     @done:
 _Return:
     rts
+.ENDPROC
+
+;;; Draws the cursor for opening the papers window.
+.PROC FuncA_Pause_DrawOpenWindowCursor
+    ;; Only draw the cursor if the window is fully closed.
+    lda Zp_WindowTop_u8
+    cmp #kScreenHeightPx
+    blt @done
+    ;; Only draw the cursor if any papers have been collected.
+    jsr FuncA_Pause_AreAnyPapersCollected
+    beq @done
+    lda #2  ; param: num objects
+    jsr Func_AllocObjects  ; returns Y
+    lda Zp_FrameCounter_u8
+    div #8
+    and #$03
+    tax
+    lda _YPos_u8_arr4, x
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::YPos_u8, y
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::YPos_u8, y
+    lda #kScreenWidthPx / 2 - kTileWidthPx
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::XPos_u8, y
+    lda #kScreenWidthPx / 2
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::XPos_u8, y
+    lda #kPaletteObjOpenWindowCursor
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Flags_bObj, y
+    eor #bObj::FlipH
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Flags_bObj, y
+    lda #kTileIdObjOpenWindowCursor
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Tile_u8, y
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Tile_u8, y
+    @done:
+    rts
+_YPos_u8_arr4:
+    .byte $d7, $d8, $d7, $d6
 .ENDPROC
 
 ;;; Allocates and sets the Y-position for a single object within the pause
