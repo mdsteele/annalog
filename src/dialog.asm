@@ -42,6 +42,8 @@
 .IMPORT DataA_Dialog_CoreSouthCorra1_sDialog
 .IMPORT DataA_Dialog_CoreSouthCorra2_sDialog
 .IMPORT DataA_Dialog_CryptTombPlaque_sDialog
+.IMPORT DataA_Dialog_FactoryVaultAlex_sDialog
+.IMPORT DataA_Dialog_FactoryVaultScreen_sDialog
 .IMPORT DataA_Dialog_GardenEastCorra_sDialog
 .IMPORT DataA_Dialog_MermaidEntrySign_sDialog
 .IMPORT DataA_Dialog_MermaidHut1AlexPetition_sDialog
@@ -412,6 +414,8 @@ _Finish:
     d_entry t, CoreSouthCorra1,      DataA_Dialog_CoreSouthCorra1_sDialog
     d_entry t, CoreSouthCorra2,      DataA_Dialog_CoreSouthCorra2_sDialog
     d_entry t, CryptTombPlaque,      DataA_Dialog_CryptTombPlaque_sDialog
+    d_entry t, FactoryVaultAlex,     DataA_Dialog_FactoryVaultAlex_sDialog
+    d_entry t, FactoryVaultScreen,   DataA_Dialog_FactoryVaultScreen_sDialog
     d_entry t, GardenEastCorra,      DataA_Dialog_GardenEastCorra_sDialog
     d_entry t, MermaidEntrySign,     DataA_Dialog_MermaidEntrySign_sDialog
     d_entry t, MermaidHut1AlexPetition, \

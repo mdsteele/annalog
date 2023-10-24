@@ -717,8 +717,9 @@
 .PROC Ppu_ChrBgFactory
 :   .incbin "out/tiles/factory1.chr"
     .incbin "out/tiles/factory2.chr"
-    .res $10 * kSizeofChr
-    .incbin "out/tiles/sign.chr"
+    .res $08 * kSizeofChr
+    .incbin "out/tiles/tank.chr"
+    .res $02 * kSizeofChr
     .incbin "out/tiles/console.chr"
     .assert * - :- = kSizeofChr * $40, error
 .ENDPROC
@@ -777,8 +778,9 @@
 :   .incbin "out/tiles/steam_pipes.chr"
     .incbin "out/tiles/volcanic1.chr"
     .incbin "out/tiles/volcanic2.chr"
-    .res $0c * kSizeofChr
+    .res $08 * kSizeofChr
     .incbin "out/tiles/field_bg.chr"
+    .res $04 * kSizeofChr
     .incbin "out/tiles/boiler.chr"
     .incbin "out/tiles/sign.chr"
     .incbin "out/tiles/console.chr"
@@ -829,7 +831,6 @@
 :   .incbin "out/tiles/minimap1.chr"
     .incbin "out/tiles/minimap2.chr"
     .incbin "out/tiles/minimap3.chr"
-    .res $03 * kSizeofChr
     .incbin "out/tiles/minimap4.chr"
     .assert * - :- = kSizeofChr * $40, error
 .ENDPROC
@@ -927,9 +928,9 @@
 .PROC Ppu_ChrBgShadow
 :   .incbin "out/tiles/shadow1.chr"
     .incbin "out/tiles/shadow2.chr"
-    .res $10 * kSizeofChr
+    .res $0c * kSizeofChr
     .incbin "out/tiles/field_bg.chr"
-    .res $06 * kSizeofChr
+    .incbin "out/tiles/tank.chr"
     .incbin "out/tiles/plaque.chr"
     .incbin "out/tiles/console.chr"
     .assert * - :- = kSizeofChr * $40, error

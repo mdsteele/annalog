@@ -496,8 +496,28 @@ _WhereIsAlexFunc:
     ldya #_AlexInTemple_sDialog
     rts
     @notInTemple:
+    ;; Otherwise, if the crypt breaker hasn't yet been activated, then how did
+    ;; Anna get out of the crypt to talk to Bruno? Whatever, just report that
+    ;; Alex is off exploring somewhere.
+    flag_bit Sram_ProgressFlags_arr, eFlag::BreakerCrypt
+    beq @exploring
+    ;; Otherwise, if Anna hasn't yet met with Alex in the factory vault, then
+    ;; report that Alex is in the factory.
+    flag_bit Sram_ProgressFlags_arr, eFlag::FactoryVaultTalkedToAlex
+    bne @notInFactory
+    ldya #_AlexInFactory_sDialog
+    rts
+    @notInFactory:
+    ;; Otherwise, if the hot spring hasn't been unplugged yet, report that Alex
+    ;; is at the spring.
+    flag_bit Sram_ProgressFlags_arr, eFlag::MermaidSpringUnplugged
+    bne @notAtSpring
+    ldya #_AlexAtSpring_sDialog
+    rts
+    @notAtSpring:
     ;; TODO: report other places where Alex can be
     ;; If all else fails, just report that Alex is off exploring somewhere.
+    @exploring:
     ldya #_AlexExploring_sDialog
     rts
 _AlexWithQueen_sDialog:
@@ -505,6 +525,12 @@ _AlexWithQueen_sDialog:
     dlg_Done
 _AlexInTemple_sDialog:
     dlg_Text ChildBruno, DataA_Text1_MermaidVillageBruno_AlexInTemple_u8_arr
+    dlg_Done
+_AlexInFactory_sDialog:
+    dlg_Text ChildBruno, DataA_Text1_MermaidVillageBruno_AlexInFactory_u8_arr
+    dlg_Done
+_AlexAtSpring_sDialog:
+    dlg_Text ChildBruno, DataA_Text1_MermaidVillageBruno_AlexAtSpring_u8_arr
     dlg_Done
 _AlexExploring_sDialog:
     dlg_Text ChildBruno, DataA_Text1_MermaidVillageBruno_AlexExploring_u8_arr
@@ -614,6 +640,20 @@ _AlexExploring_sDialog:
     .byte "Alex, I think he's$"
     .byte "waiting for you in the$"
     .byte "temple.#"
+.ENDPROC
+
+.PROC DataA_Text1_MermaidVillageBruno_AlexInFactory_u8_arr
+    .byte "If you're looking for$"
+    .byte "Alex, he said to tell$"
+    .byte "you to come find him$"
+    .byte "in the factory.#"
+.ENDPROC
+
+.PROC DataA_Text1_MermaidVillageBruno_AlexAtSpring_u8_arr
+    .byte "If you're looking for$"
+    .byte "Alex, he's waiting for$"
+    .byte "you at the hot spring,$"
+    .byte "east of the village.#"
 .ENDPROC
 
 .PROC DataA_Text1_MermaidVillageBruno_AlexExploring_u8_arr

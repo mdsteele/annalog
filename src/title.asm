@@ -264,6 +264,7 @@ _Flags_eFlag_arr:
     .byte eFlag::BreakerCrypt
     .byte eFlag::PaperJerome21
     .byte eFlag::FlowerCrypt
+    .byte eFlag::FactoryVaultTalkedToAlex
     .byte eFlag::UpgradeOpSkip
     .byte eFlag::FlowerGarden
     .byte eFlag::MermaidSpringConsoleFixed

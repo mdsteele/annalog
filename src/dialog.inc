@@ -71,6 +71,8 @@
     CoreSouthCorra1
     CoreSouthCorra2
     CryptTombPlaque
+    FactoryVaultAlex
+    FactoryVaultScreen
     GardenEastCorra
     MermaidEntrySign
     MermaidHut1AlexPetition

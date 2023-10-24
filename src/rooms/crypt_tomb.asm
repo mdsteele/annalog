@@ -648,7 +648,7 @@ _SolidFloorZ_u8_arr:
 
 .PROC DataA_Text0_CryptTombPlaque_Page1_u8_arr
     .byte "Here lies Dr. Zoe Alda$"
-    .byte "$"
+    .byte "      2192-2275$"
     .byte "Daughter of humans and$"
     .byte "The mother of mermaids#"
 .ENDPROC
@@ -657,7 +657,7 @@ _SolidFloorZ_u8_arr:
     .byte "May we ever remember$"
     .byte "    her service,$"
     .byte "  And never repeat$"
-    .byte "    her mistakes#"
+    .byte "    her mistakes.#"
 .ENDPROC
 
 ;;;=========================================================================;;;
