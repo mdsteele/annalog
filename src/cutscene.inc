@@ -263,12 +263,12 @@ kMaxForks = 4
 
 .MACRO act_SetAvatarVelX VELX
     .byte eAction::SetAvatarVelX
-    .word VELX
+    .word $ffff & (VELX)
 .ENDMACRO
 
 .MACRO act_SetAvatarVelY VELY
     .byte eAction::SetAvatarVelY
-    .word VELY
+    .word $ffff & (VELY)
 .ENDMACRO
 
 .MACRO act_SetCutsceneFlags BCUTSCENE

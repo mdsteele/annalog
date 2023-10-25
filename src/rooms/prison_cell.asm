@@ -770,8 +770,8 @@ _ParticleAngle_u8_arr:
     act_SetActorState1 kOrc1ActorIndex, eNpcOrc::Throwing2
     act_SetAvatarPosX $00f0
     act_SetAvatarPosY $00b0
-    act_SetAvatarVelX $ffff & -365
-    act_SetAvatarVelY $ffff & -580
+    act_SetAvatarVelX -365
+    act_SetAvatarVelY -580
     act_SetCutsceneFlags bCutscene::AvatarRagdoll
     act_WaitFrames 15
     act_SetActorState1 kOrc1ActorIndex, eNpcOrc::Standing
