@@ -219,14 +219,14 @@ _Machines_sMachine_arr:
     d_byte ScrollGoalY_u8, $0
     d_byte RegNames_u8_arr4, 0, 0, 0, "Y"
     d_byte MainPlatform_u8, kLiftPlatformIndex
-    d_addr Init_func_ptr, FuncC_Prison_CellLift_InitReset
+    d_addr Init_func_ptr, FuncA_Room_PrisonCellLift_InitReset
     d_addr ReadReg_func_ptr, FuncC_Prison_CellLift_ReadReg
     d_addr WriteReg_func_ptr, Func_Noop
-    d_addr TryMove_func_ptr, FuncC_Prison_CellLift_TryMove
+    d_addr TryMove_func_ptr, FuncA_Machine_PrisonCellLift_TryMove
     d_addr TryAct_func_ptr, FuncA_Machine_Error
-    d_addr Tick_func_ptr, FuncC_Prison_CellLift_Tick
+    d_addr Tick_func_ptr, FuncA_Machine_PrisonCellLift_Tick
     d_addr Draw_func_ptr, FuncA_Objects_DrawLiftMachine
-    d_addr Reset_func_ptr, FuncC_Prison_CellLift_InitReset
+    d_addr Reset_func_ptr, FuncA_Room_PrisonCellLift_InitReset
     D_END
     .assert * - :- = kLauncherMachineIndex * .sizeof(sMachine), error
     D_STRUCT sMachine
@@ -238,14 +238,14 @@ _Machines_sMachine_arr:
     d_byte ScrollGoalY_u8, $50
     d_byte RegNames_u8_arr4, 0, 0, "X", 0
     d_byte MainPlatform_u8, kLauncherPlatformIndex
-    d_addr Init_func_ptr, FuncC_Prison_CellLauncher_InitReset
+    d_addr Init_func_ptr, FuncA_Room_PrisonCellLauncher_InitReset
     d_addr ReadReg_func_ptr, FuncC_Prison_CellLauncher_ReadReg
     d_addr WriteReg_func_ptr, Func_Noop
-    d_addr TryMove_func_ptr, FuncC_Prison_CellLauncher_TryMove
-    d_addr TryAct_func_ptr, FuncC_Prison_CellLauncher_TryAct
-    d_addr Tick_func_ptr, FuncC_Prison_CellLauncher_Tick
+    d_addr TryMove_func_ptr, FuncA_Machine_PrisonCellLauncher_TryMove
+    d_addr TryAct_func_ptr, FuncA_Machine_PrisonCellLauncher_TryAct
+    d_addr Tick_func_ptr, FuncA_Machine_PrisonCellLauncher_Tick
     d_addr Draw_func_ptr, FuncA_Objects_DrawLauncherMachineVert
-    d_addr Reset_func_ptr, FuncC_Prison_CellLauncher_InitReset
+    d_addr Reset_func_ptr, FuncA_Room_PrisonCellLauncher_InitReset
     D_END
     .assert * - :- <= kMaxMachines * .sizeof(sMachine), error
 _Platforms_sPlatform_arr:
@@ -486,11 +486,11 @@ _InitRocksAndCrate:
     lda #ePlatform::None
     sta Ram_PlatformType_ePlatform_arr + kTrapFloorPlatformIndex
     sta Ram_PlatformType_ePlatform_arr + kEastCeilingPlatformIndex
+    sta Ram_PlatformType_ePlatform_arr + kMidCeilingPlatformIndex
     lda #ePlatform::Solid
     sta Ram_PlatformType_ePlatform_arr + kCratePlatformIndex
     @removeSomeRocks:
     lda #ePlatform::None
-    sta Ram_PlatformType_ePlatform_arr + kMidCeilingPlatformIndex
     sta Ram_PlatformType_ePlatform_arr + kUpperFloor1PlatformIndex
     sta Ram_PlatformType_ePlatform_arr + kUpperFloor2PlatformIndex
     .assert eActor::None = ePlatform::None, error
@@ -521,7 +521,6 @@ _RocketImpact:
     jsr Func_ShakeRoom
     ;; TODO: play a sound
     lda #ePlatform::None
-    sta Ram_PlatformType_ePlatform_arr + kMidCeilingPlatformIndex
     sta Ram_PlatformType_ePlatform_arr + kUpperFloor1PlatformIndex
     sta Ram_PlatformType_ePlatform_arr + kUpperFloor2PlatformIndex
     ldx #eFlag::PrisonCellBlastedRocks
@@ -596,11 +595,20 @@ _ParticleAngle_u8_arr:
 ;;; Draw function for the PrisonCell room.
 ;;; @prereq PRGA_Objects is loaded.
 .PROC FuncC_Prison_Cell_DrawRoom
+    ;; If the floor has been blasted away, don't draw the mid-ceiling, even if
+    ;; it's still solid.  This creates the appearance that the player could
+    ;; jump up through the gap (thus tempting them to walk out over the trap
+    ;; floor), while still preventing them from doing so.
+    lda Ram_PlatformType_ePlatform_arr + kUpperFloor1PlatformIndex
+    cmp #kFirstSolidPlatformType
+    blt @skipMidCeiling
+    ldx #kMidCeilingPlatformIndex  ; param: platform index
+    jsr FuncA_Objects_DrawRocksPlatformHorz
+    @skipMidCeiling:
+    ;; Draw the rest of the platforms (non-solid ones won't be drawn).
     ldx #kCratePlatformIndex  ; param: platform index
     jsr FuncA_Objects_DrawCratePlatform
     ldx #kTrapFloorPlatformIndex  ; param: platform index
-    jsr FuncA_Objects_DrawRocksPlatformHorz
-    ldx #kMidCeilingPlatformIndex  ; param: platform index
     jsr FuncA_Objects_DrawRocksPlatformHorz
     ldx #kEastCeilingPlatformIndex  ; param: platform index
     jsr FuncA_Objects_DrawRocksPlatformHorz
@@ -612,12 +620,6 @@ _ParticleAngle_u8_arr:
     jmp FuncC_Prison_DrawGatePlatform
 .ENDPROC
 
-.PROC FuncC_Prison_CellLift_InitReset
-    lda #kLiftInitGoalY
-    sta Ram_MachineGoalVert_u8_arr + kLiftMachineIndex
-    rts
-.ENDPROC
-
 .PROC FuncC_Prison_CellLift_ReadReg
     lda #kLiftMaxPlatformTop + kTileHeightPx
     sub Ram_PlatformTop_i16_0_arr + kLiftPlatformIndex
@@ -625,47 +627,10 @@ _ParticleAngle_u8_arr:
     rts
 .ENDPROC
 
-.PROC FuncC_Prison_CellLift_TryMove
-    lda #kLiftMaxGoalY  ; param: max goal vert
-    jmp FuncA_Machine_LiftTryMove
-.ENDPROC
-
-.PROC FuncC_Prison_CellLift_Tick
-    ldax #kLiftMaxPlatformTop  ; param: max platform top
-    jmp FuncA_Machine_LiftTick
-.ENDPROC
-
-.PROC FuncC_Prison_CellLauncher_InitReset
-    lda #kLauncherInitGoalX
-    sta Ram_MachineGoalHorz_u8_arr + kLauncherMachineIndex
-    rts
-.ENDPROC
-
 .PROC FuncC_Prison_CellLauncher_ReadReg
     lda Ram_PlatformLeft_i16_0_arr + kLauncherPlatformIndex
     sub #<(kLauncherMinPlatformLeft - kTileWidthPx)
     div #kBlockWidthPx
-    rts
-.ENDPROC
-
-.PROC FuncC_Prison_CellLauncher_TryMove
-    lda #kLauncherMaxGoalX  ; param: max goal horz
-    jmp FuncA_Machine_GenericTryMoveX
-.ENDPROC
-
-.PROC FuncC_Prison_CellLauncher_TryAct
-    ;; If the launcher is blocked, fail.
-    lda Ram_MachineGoalHorz_u8_arr + kLauncherMachineIndex
-    jne FuncA_Machine_Error
-    ;; Otherwise, try to fire a rocket.
-    lda #eDir::Down  ; param: rocket direction
-    jmp FuncA_Machine_LauncherTryAct
-.ENDPROC
-
-.PROC FuncC_Prison_CellLauncher_Tick
-    ldax #kLauncherMinPlatformLeft  ; param: min platform left
-    jsr FuncA_Machine_GenericMoveTowardGoalHorz  ; returns Z
-    jeq FuncA_Machine_ReachedGoal
     rts
 .ENDPROC
 
@@ -683,6 +648,57 @@ _ParticleAngle_u8_arr:
     lda #eCutscene::PrisonCellGetThrownIn
     sta Zp_Next_eCutscene
     jmp Main_Explore_EnterRoom
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Room"
+
+.PROC FuncA_Room_PrisonCellLift_InitReset
+    lda #kLiftInitGoalY
+    sta Ram_MachineGoalVert_u8_arr + kLiftMachineIndex
+    rts
+.ENDPROC
+
+.PROC FuncA_Room_PrisonCellLauncher_InitReset
+    lda #kLauncherInitGoalX
+    sta Ram_MachineGoalHorz_u8_arr + kLauncherMachineIndex
+    rts
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Machine"
+
+.PROC FuncA_Machine_PrisonCellLift_TryMove
+    lda #kLiftMaxGoalY  ; param: max goal vert
+    jmp FuncA_Machine_LiftTryMove
+.ENDPROC
+
+.PROC FuncA_Machine_PrisonCellLift_Tick
+    ldax #kLiftMaxPlatformTop  ; param: max platform top
+    jmp FuncA_Machine_LiftTick
+.ENDPROC
+
+.PROC FuncA_Machine_PrisonCellLauncher_TryMove
+    lda #kLauncherMaxGoalX  ; param: max goal horz
+    jmp FuncA_Machine_GenericTryMoveX
+.ENDPROC
+
+.PROC FuncA_Machine_PrisonCellLauncher_TryAct
+    ;; If the launcher is blocked, fail.
+    lda Ram_MachineGoalHorz_u8_arr + kLauncherMachineIndex
+    jne FuncA_Machine_Error
+    ;; Otherwise, try to fire a rocket.
+    lda #eDir::Down  ; param: rocket direction
+    jmp FuncA_Machine_LauncherTryAct
+.ENDPROC
+
+.PROC FuncA_Machine_PrisonCellLauncher_Tick
+    ldax #kLauncherMinPlatformLeft  ; param: min platform left
+    jsr FuncA_Machine_GenericMoveTowardGoalHorz  ; returns Z
+    jeq FuncA_Machine_ReachedGoal
+    rts
 .ENDPROC
 
 ;;;=========================================================================;;;
