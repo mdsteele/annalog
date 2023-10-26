@@ -119,14 +119,14 @@ _Machines_sMachine_arr:
     d_byte ScrollGoalY_u8, $60
     d_byte RegNames_u8_arr4, "L", 0, 0, "Y"
     d_byte MainPlatform_u8, kLiftPlatformIndex
-    d_addr Init_func_ptr, FuncC_Garden_CrossroadLift_InitReset
+    d_addr Init_func_ptr, FuncA_Room_GardenCrossroadLift_InitReset
     d_addr ReadReg_func_ptr, FuncC_Garden_CrossroadLift_ReadReg
-    d_addr WriteReg_func_ptr, FuncC_Garden_CrossroadLift_WriteReg
-    d_addr TryMove_func_ptr, FuncC_Garden_CrossroadLift_TryMove
+    d_addr WriteReg_func_ptr, FuncA_Machine_GardenCrossroadLift_WriteReg
+    d_addr TryMove_func_ptr, FuncA_Machine_GardenCrossroadLift_TryMove
     d_addr TryAct_func_ptr, FuncA_Machine_Error
-    d_addr Tick_func_ptr, FuncC_Garden_CrossroadLift_Tick
+    d_addr Tick_func_ptr, FuncA_Machine_GardenCrossroadLift_Tick
     d_addr Draw_func_ptr, FuncA_Objects_DrawLiftMachine
-    d_addr Reset_func_ptr, FuncC_Garden_CrossroadLift_InitReset
+    d_addr Reset_func_ptr, FuncA_Room_GardenCrossroadLift_InitReset
     D_END
     .assert * - :- <= kMaxMachines * .sizeof(sMachine), error
 _Platforms_sPlatform_arr:
@@ -204,13 +204,6 @@ _Passages_sPassage_arr:
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
 .ENDPROC
 
-.PROC FuncC_Garden_CrossroadLift_InitReset
-    lda #kLiftInitGoalY
-    sta Ram_MachineGoalVert_u8_arr + kLiftMachineIndex
-    ldx #kLeverDeviceIndex
-    jmp FuncA_Room_ResetLever
-.ENDPROC
-
 .PROC FuncC_Garden_CrossroadLift_ReadReg
     cmp #$c
     beq _ReadL
@@ -225,20 +218,34 @@ _ReadL:
     rts
 .ENDPROC
 
-;;; @prereq PRGA_Machine is loaded.
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Room"
+
+.PROC FuncA_Room_GardenCrossroadLift_InitReset
+    lda #kLiftInitGoalY
+    sta Ram_MachineGoalVert_u8_arr + kLiftMachineIndex
+    ldx #kLeverDeviceIndex
+    jmp FuncA_Room_ResetLever
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Machine"
+
 ;;; @param A The value to write (0-9).
 ;;; @param X The register to write to ($c-$f).
-.PROC FuncC_Garden_CrossroadLift_WriteReg
+.PROC FuncA_Machine_GardenCrossroadLift_WriteReg
     ldx #kLeverDeviceIndex  ; param: device index
     jmp FuncA_Machine_WriteToLever
 .ENDPROC
 
-.PROC FuncC_Garden_CrossroadLift_TryMove
+.PROC FuncA_Machine_GardenCrossroadLift_TryMove
     lda #kLiftMaxGoalY  ; param: max goal vert
     jmp FuncA_Machine_LiftTryMove
 .ENDPROC
 
-.PROC FuncC_Garden_CrossroadLift_Tick
+.PROC FuncA_Machine_GardenCrossroadLift_Tick
     ldax #kLiftMaxPlatformTop  ; param: max platform top
     jsr FuncA_Machine_LiftTick  ; returns N and Z
     ;; If the machine moved downwards, check if the baddie below got squished.

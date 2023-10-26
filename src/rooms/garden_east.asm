@@ -133,9 +133,9 @@ _Ext_sRoomExt:
     d_addr Actors_sActor_arr_ptr, _Actors_sActor_arr
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
     d_addr Passages_sPassage_arr_ptr, _Passages_sPassage_arr
-    d_addr Enter_func_ptr, FuncC_Garden_East_EnterRoom
+    d_addr Enter_func_ptr, FuncA_Room_GardenEast_EnterRoom
     d_addr FadeIn_func_ptr, Func_Noop
-    d_addr Tick_func_ptr, FuncC_Garden_East_TickRoom
+    d_addr Tick_func_ptr, FuncA_Room_GardenEast_TickRoom
     d_addr Draw_func_ptr, Func_Noop
     D_END
 _TerrainData:
@@ -154,12 +154,12 @@ _Machines_sMachine_arr:
     d_byte MainPlatform_u8, kBridgePivotPlatformIndex
     d_addr Init_func_ptr, Func_Noop
     d_addr ReadReg_func_ptr, FuncC_Garden_EastBridge_ReadReg
-    d_addr WriteReg_func_ptr, FuncC_Garden_EastBridge_WriteReg
+    d_addr WriteReg_func_ptr, FuncA_Machine_GardenEastBridge_WriteReg
     d_addr TryMove_func_ptr, FuncA_Machine_BridgeTryMove
     d_addr TryAct_func_ptr, FuncA_Machine_Error
-    d_addr Tick_func_ptr, FuncC_Garden_EastBridge_Tick
+    d_addr Tick_func_ptr, FuncA_Machine_GardenEastBridge_Tick
     d_addr Draw_func_ptr, FuncA_Objects_GardenEastBridge_Draw
-    d_addr Reset_func_ptr, FuncC_Garden_EastBridge_Reset
+    d_addr Reset_func_ptr, FuncA_Room_GardenEastBridge_Reset
     D_END
     .assert * - :- = kCannonMachineIndex * .sizeof(sMachine), error
     D_STRUCT sMachine
@@ -176,12 +176,12 @@ _Machines_sMachine_arr:
     d_byte MainPlatform_u8, kCannonPlatformIndex
     d_addr Init_func_ptr, Func_Noop
     d_addr ReadReg_func_ptr, FuncC_Garden_EastCannon_ReadReg
-    d_addr WriteReg_func_ptr, FuncC_Garden_EastCannon_WriteReg
+    d_addr WriteReg_func_ptr, FuncA_Machine_GardenEastCannon_WriteReg
     d_addr TryMove_func_ptr, FuncA_Machine_CannonTryMove
-    d_addr TryAct_func_ptr, FuncC_Garden_EastCannon_TryAct
+    d_addr TryAct_func_ptr, FuncA_Machine_GardenEastCannon_TryAct
     d_addr Tick_func_ptr, FuncA_Machine_CannonTick
     d_addr Draw_func_ptr, FuncA_Objects_DrawCannonMachine
-    d_addr Reset_func_ptr, FuncC_Garden_EastCannon_Reset
+    d_addr Reset_func_ptr, FuncA_Room_GardenEastCannon_Reset
     D_END
     .assert * - :- <= kMaxMachines * .sizeof(sMachine), error
 _Platforms_sPlatform_arr:
@@ -323,7 +323,31 @@ _Passages_sPassage_arr:
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
 .ENDPROC
 
-.PROC FuncC_Garden_East_EnterRoom
+.PROC FuncC_Garden_EastBridge_ReadReg
+    cmp #$c
+    beq @readL
+    @readY:
+    jmp Func_MachineBridgeReadRegY
+    @readL:
+    lda Zp_RoomState + sState::LeverBridge_u8
+    rts
+.ENDPROC
+
+.PROC FuncC_Garden_EastCannon_ReadReg
+    cmp #$c
+    beq @readL
+    @readY:
+    jmp Func_MachineCannonReadRegY
+    @readL:
+    lda Zp_RoomState + sState::LeverCannon_u8
+    rts
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Room"
+
+.PROC FuncA_Room_GardenEast_EnterRoom
     ;; Remove Corra from this room if the player has already met with the
     ;; mermaid queen.
     flag_bit Sram_ProgressFlags_arr, eFlag::MermaidHut1MetQueen
@@ -339,7 +363,7 @@ _Passages_sPassage_arr:
 .ENDPROC
 
 ;;; @prereq PRGA_Room is loaded.
-.PROC FuncC_Garden_East_TickRoom
+.PROC FuncA_Room_GardenEast_TickRoom
     ;; If the vinebug is already gone, then we're done.
     lda Ram_ActorType_eActor_arr + kKillableVinebugActorIndex
     cmp #eActor::BadVinebug
@@ -365,55 +389,42 @@ _Done:
     rts
 .ENDPROC
 
-.PROC FuncC_Garden_EastBridge_ReadReg
-    cmp #$c
-    beq @readL
-    @readY:
-    jmp Func_MachineBridgeReadRegY
-    @readL:
-    lda Zp_RoomState + sState::LeverBridge_u8
-    rts
-.ENDPROC
-
-;;; @prereq PRGA_Machine is loaded.
-.PROC FuncC_Garden_EastBridge_WriteReg
-    ldx #kLeverBridgeDeviceIndex  ; param: device index
-    jmp FuncA_Machine_WriteToLever
-.ENDPROC
-
-;;; @prereq PRGA_Machine is loaded.
-.PROC FuncC_Garden_EastBridge_Tick
-    lda #kBridgePivotPlatformIndex  ; param: fixed segment platform index
-    ldx #kBridgePivotPlatformIndex + kNumMovableBridgeSegments  ; param: last
-    jmp FuncA_Machine_BridgeTick
-.ENDPROC
-
-;;; @prereq PRGA_Room is loaded.
-.PROC FuncC_Garden_EastBridge_Reset
+.PROC FuncA_Room_GardenEastBridge_Reset
     lda #0
     sta Ram_MachineGoalVert_u8_arr + kBridgeMachineIndex
     ldx #kLeverBridgeDeviceIndex  ; param: device index
     jmp FuncA_Room_ResetLever
 .ENDPROC
 
-.PROC FuncC_Garden_EastCannon_ReadReg
-    cmp #$c
-    beq @readL
-    @readY:
-    jmp Func_MachineCannonReadRegY
-    @readL:
-    lda Zp_RoomState + sState::LeverCannon_u8
-    rts
+.PROC FuncA_Room_GardenEastCannon_Reset
+    ldx #kLeverCannonDeviceIndex  ; param: device index
+    jsr FuncA_Room_ResetLever
+    jmp FuncA_Room_MachineCannonReset
 .ENDPROC
 
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Machine"
+
 ;;; @prereq PRGA_Machine is loaded.
-.PROC FuncC_Garden_EastCannon_WriteReg
-    ldx #kLeverCannonDeviceIndex  ; param: device index
+.PROC FuncA_Machine_GardenEastBridge_WriteReg
+    ldx #kLeverBridgeDeviceIndex  ; param: device index
     jmp FuncA_Machine_WriteToLever
 .ENDPROC
 
 ;;; @prereq PRGA_Machine is loaded.
-.PROC FuncC_Garden_EastCannon_TryAct
+.PROC FuncA_Machine_GardenEastBridge_Tick
+    lda #kBridgePivotPlatformIndex  ; param: fixed segment platform index
+    ldx #kBridgePivotPlatformIndex + kNumMovableBridgeSegments  ; param: last
+    jmp FuncA_Machine_BridgeTick
+.ENDPROC
+
+.PROC FuncA_Machine_GardenEastCannon_WriteReg
+    ldx #kLeverCannonDeviceIndex  ; param: device index
+    jmp FuncA_Machine_WriteToLever
+.ENDPROC
+
+.PROC FuncA_Machine_GardenEastCannon_TryAct
     ;; Make the vinebug try to dodge the grenade.
     lda #1
     sta Ram_ActorState1_byte_arr + kKillableVinebugActorIndex
@@ -431,13 +442,6 @@ _Done:
     sty Ram_ActorVelY_i16_1_arr + kKillableVinebugActorIndex
     ;; Fire a grenade.
     jmp FuncA_Machine_CannonTryAct
-.ENDPROC
-
-;;; @prereq PRGA_Room is loaded.
-.PROC FuncC_Garden_EastCannon_Reset
-    ldx #kLeverCannonDeviceIndex  ; param: device index
-    jsr FuncA_Room_ResetLever
-    jmp FuncA_Room_MachineCannonReset
 .ENDPROC
 
 ;;;=========================================================================;;;
