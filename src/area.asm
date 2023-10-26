@@ -226,6 +226,8 @@
 .ENDPROC
 
 .PROC DataA_Pause_GardenAreaCells_u8_arr2_arr
+    .byte  4,  6
+    .byte  5,  6
     .byte  6,  6
     .byte  7,  6
     .byte  7,  7
@@ -340,8 +342,6 @@
     .byte 3, 6
     .byte 3, 8
     .byte 3, 9
-    .byte 4, 6
-    .byte 5, 6
     .byte $ff
 .ENDPROC
 
