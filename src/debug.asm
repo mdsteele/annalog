@@ -48,12 +48,14 @@
 
 ;;;=========================================================================;;;
 
-;;; The PPU address (within the lower nametable) for the start of the attribute
-;;; bytes that cover the dialog portrait.
+;;; The PPU addresses (within the lower nametable) for the starts of the
+;;; attribute bytes that cover the debug diagram.
 .LINECONT +
 .ASSERT (kWindowStartRow + 1) .mod 4 = 0, error
-Ppu_DebugAttrStart = Ppu_Nametable3_sName + sName::Attrs_u8_arr64 + \
+Ppu_DebugAttrStart1 = Ppu_Nametable3_sName + sName::Attrs_u8_arr64 + \
     ((kWindowStartRow + 1) / 4) * 8 + 5
+Ppu_DebugAttrStart2 = Ppu_Nametable3_sName + sName::Attrs_u8_arr64 + \
+    ((kWindowStartRow + 5) / 4) * 8 + 5
 .LINECONT -
 
 ;;;=========================================================================;;;
@@ -144,22 +146,38 @@ _ContinueDebugging:
 ;;; The PPU transfer entry for setting nametable attributes for the debugger
 ;;; diagram.
 .PROC DataA_Console_DebugAttrTransfer_arr
+_Row1:
     .byte kPpuCtrlFlagsHorz      ; control flags
-    .dbyt Ppu_DebugAttrStart     ; destination address
+    .dbyt Ppu_DebugAttrStart1    ; destination address
     .byte @dataEnd - @dataStart  ; transfer length
     @dataStart:
-    .byte $44, $11
+    .byte $44
+    @dataEnd:
+_Row2:
+    .byte kPpuCtrlFlagsHorz      ; control flags
+    .dbyt Ppu_DebugAttrStart2    ; destination address
+    .byte @dataEnd - @dataStart  ; transfer length
+    @dataStart:
+    .byte $44
     @dataEnd:
 .ENDPROC
 
 ;;; The PPU transfer entry for undoing the nametable attributes changes made by
 ;;; DataA_Console_DebugAttrTransfer_arr above.
 .PROC DataA_Console_UndoDebugAttrTransfer_arr
+_Row1:
     .byte kPpuCtrlFlagsHorz      ; control flags
-    .dbyt Ppu_DebugAttrStart     ; destination address
+    .dbyt Ppu_DebugAttrStart1    ; destination address
     .byte @dataEnd - @dataStart  ; transfer length
     @dataStart:
-    .byte $00, $00
+    .byte $00
+    @dataEnd:
+_Row2:
+    .byte kPpuCtrlFlagsHorz      ; control flags
+    .dbyt Ppu_DebugAttrStart2    ; destination address
+    .byte @dataEnd - @dataStart  ; transfer length
+    @dataStart:
+    .byte $00
     @dataEnd:
 .ENDPROC
 
