@@ -39,32 +39,32 @@ LABEL2NL = $(BUILD_OUT_DIR)/label2nl
 SNG2ASM = $(BUILD_OUT_DIR)/sng2asm
 WAV2DM = $(BUILD_OUT_DIR)/wav2dm
 
-INC_FILES := $(shell find -s src -name '*.inc')
+INC_FILES := $(shell find src -name '*.inc' | sort)
 
-MUSIC_SNG_FILES := $(shell find -s src/music -name '*.sng')
+MUSIC_SNG_FILES := $(shell find src/music -name '*.sng' | sort)
 MUSIC_ASM_FILES := \
   $(patsubst src/music/%.sng,$(MUSIC_OUT_DIR)/%.asm,$(MUSIC_SNG_FILES))
 MUSIC_OBJ_FILES := \
   $(patsubst $(MUSIC_OUT_DIR)/%.asm,$(MUSIC_OUT_DIR)/%.o,$(MUSIC_ASM_FILES))
 MUSIC_LIB_FILE = $(LIB_OUT_DIR)/music.lib
 
-ROOM_ASM_FILES := $(shell find -s src/rooms -name '*.asm')
+ROOM_ASM_FILES := $(shell find src/rooms -name '*.asm' | sort)
 ROOM_OBJ_FILES := \
   $(patsubst src/rooms/%.asm,$(OBJDIR)/rooms/%.o,$(ROOM_ASM_FILES))
-ROOM_BG_FILES := $(shell find -s src/rooms -name '*.bg')
+ROOM_BG_FILES := $(shell find src/rooms -name '*.bg' | sort)
 ROOM_ROOM_FILES := \
   $(patsubst src/rooms/%.bg,$(ROOM_OUT_DIR)/%.room,$(ROOM_BG_FILES))
 ROOM_LIB_FILE = $(LIB_OUT_DIR)/rooms.lib
 
-SFX_WAV_FILES := $(shell find -s src/samples -name '*.wav')
+SFX_WAV_FILES := $(shell find src/samples -name '*.wav' | sort)
 SFX_DM_FILES := \
   $(patsubst src/samples/%.wav,$(SFX_OUT_DIR)/%.dm,$(SFX_WAV_FILES))
 
-TILE_AHI_FILES := $(shell find -s src/tiles -name '*.ahi')
+TILE_AHI_FILES := $(shell find src/tiles -name '*.ahi' | sort)
 TILE_CHR_FILES := \
   $(patsubst src/tiles/%.ahi,$(TILE_OUT_DIR)/%.chr,$(TILE_AHI_FILES))
 
-TSET_BG_FILES := $(shell find -s src/tilesets -name '*.bg')
+TSET_BG_FILES := $(shell find src/tilesets -name '*.bg' | sort)
 TSET_ASM_FILES := \
   $(patsubst src/tilesets/%.bg,$(TSET_OUT_DIR)/%.asm,$(TSET_BG_FILES))
 TSET_OBJ_FILES := \
@@ -72,7 +72,7 @@ TSET_OBJ_FILES := \
 TSET_LIB_FILE = $(LIB_OUT_DIR)/tilesets.lib
 
 ROM_ASM_FILES := \
-  $(shell find -s src -name rooms -prune -false -or -name '*.asm')
+  $(shell find src -name rooms -prune -false -or -name '*.asm' | sort)
 ROM_OBJ_FILES := $(patsubst src/%.asm,$(OBJDIR)/%.o,$(ROM_ASM_FILES))
 ROM_CFG_FILE = src/linker.cfg
 ROM_LABEL_FILE = $(OUTDIR)/$(ROMNAME).labels.txt
@@ -84,12 +84,14 @@ NSF_OBJ_FILES := $(OUTDIR)/nsf/nsf.o \
   $(OBJDIR)/audio.o $(OBJDIR)/inst.o $(OBJDIR)/music.o $(OBJDIR)/null.o
 NSF_BIN_FILE = $(OUTDIR)/$(ROMNAME).nsf
 
-SIM65_ASM_FILES := $(shell find -s tests -name '*.asm')
-SIM65_CFG_FILES := $(shell find -s tests -name '*.cfg')
+SIM65_ASM_FILES := $(shell find tests -name '*.asm' | sort)
+SIM65_CFG_FILES := $(shell find tests -name '*.cfg' | sort)
 SIM65_OBJ_FILES := \
   $(patsubst tests/%.asm,$(SIM65_OUT_DIR)/%.o,$(SIM65_ASM_FILES))
 SIM65_BIN_FILES := \
   $(patsubst tests/%.cfg,$(SIM65_OUT_DIR)/%,$(SIM65_CFG_FILES))
+
+CFLAGS = -std=c99 -pedantic -Wall -Werror
 
 #=============================================================================#
 
@@ -99,10 +101,16 @@ define compile-asm
 	@ca65 --target nes -W1 --debug-info -o $@ $<
 endef
 
-define compile-c
+define compile-c-obj
 	@echo "Compiling $<"
 	@mkdir -p $(@D)
-	@cc -Wall -Werror -o $@ $<
+	@cc $(CFLAGS) -o $@ -c $<
+endef
+
+define compile-c-bin
+	@echo "Compiling $<"
+	@mkdir -p $(@D)
+	@cc $(CFLAGS) -o $@ $^
 endef
 
 define update-archive
@@ -139,26 +147,29 @@ clean:
 #=============================================================================#
 # Build tools:
 
+$(BUILD_OUT_DIR)/util.o: build/util.c build/util.h
+	$(compile-c-obj)
+
 $(AHI2CHR): build/ahi2chr.c
-	$(compile-c)
+	$(compile-c-bin)
 
 $(BG2MAP): build/bg2map.c
-	$(compile-c)
+	$(compile-c-bin)
 
 $(BG2ROOM): build/bg2room.c
-	$(compile-c)
+	$(compile-c-bin)
 
 $(BG2TSET): build/bg2tset.c
-	$(compile-c)
+	$(compile-c-bin)
 
 $(LABEL2NL): build/label2nl.c
-	$(compile-c)
+	$(compile-c-bin)
 
-$(SNG2ASM): build/sng2asm.c
-	$(compile-c)
+$(SNG2ASM): build/sng2asm.c $(BUILD_OUT_DIR)/util.o
+	$(compile-c-bin)
 
 $(WAV2DM): build/wav2dm.c
-	$(compile-c)
+	$(compile-c-bin)
 
 #=============================================================================#
 # Generated files:

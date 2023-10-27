@@ -55,7 +55,7 @@ void expect_tag(const char *tag) {
   }
 }
 
-void expect_eof() {
+void expect_eof(void) {
   int ch = fgetc(stdin);
   if (ch != EOF) {
     ERROR("expected EOF, but found '\\x%02x'\n", ch);

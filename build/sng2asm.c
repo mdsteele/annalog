@@ -23,6 +23,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "util.h"
+
 /*===========================================================================*/
 
 #define HALF_STEPS_PER_OCTAVE 12
@@ -38,7 +40,6 @@
 #define MAX_QUOTED_STRING_CHARS 80
 #define MAX_REPEAT_COUNT 127
 #define MIN_REPEAT_COUNT 2
-#define MAX_SEGMENT_CHARS 80
 #define MAX_SONGS_PER_FILE 20
 
 // Pitch number (in half steps above c0) and frequency (in Hz) of a4:
@@ -203,7 +204,7 @@ typedef enum {
   NUM_CHANNELS
 } sng_channel_t;
 
-static sng_channel_t read_channel() {
+static sng_channel_t read_channel(void) {
   switch (read_char()) {
     case '1': return CH_PULSE1;
     case '2': return CH_PULSE2;
@@ -1170,12 +1171,8 @@ static void parse_input(void) {
   finish_current_song_if_any();
   if (parser.segment == NULL) parser.segment = "PRG8";
   parser.prefix = "Data";
-  int segment_len = strlen(parser.segment);
-  if (segment_len > 3 && parser.segment[3] == 'C') {
-    char *prefix = calloc(segment_len + 2, sizeof(char));
-    strncpy(prefix, "Data", 4);
-    strncpy(prefix + 4, parser.segment + 3, segment_len - 3);
-    parser.prefix = prefix;
+  if (0 == strncmp(parser.segment, "PRGC_", 5)) {
+    parser.prefix = string_printf("DataC_%s", parser.segment + 5);
   }
 }
 
