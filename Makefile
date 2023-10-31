@@ -150,16 +150,16 @@ clean:
 $(BUILD_OUT_DIR)/util.o: build/util.c build/util.h
 	$(compile-c-obj)
 
-$(AHI2CHR): build/ahi2chr.c
+$(AHI2CHR): build/ahi2chr.c $(BUILD_OUT_DIR)/util.o
 	$(compile-c-bin)
 
-$(BG2MAP): build/bg2map.c
+$(BG2MAP): build/bg2map.c $(BUILD_OUT_DIR)/util.o
 	$(compile-c-bin)
 
-$(BG2ROOM): build/bg2room.c
+$(BG2ROOM): build/bg2room.c $(BUILD_OUT_DIR)/util.o
 	$(compile-c-bin)
 
-$(BG2TSET): build/bg2tset.c
+$(BG2TSET): build/bg2tset.c $(BUILD_OUT_DIR)/util.o
 	$(compile-c-bin)
 
 $(LABEL2NL): build/label2nl.c
