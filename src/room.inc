@@ -142,6 +142,7 @@ kMaxPassages = 8
     SewerWest
     ShadowEntry
     ShadowTeleport
+    ShadowTrap
     TempleAltar
     TempleApse
     TempleEntry

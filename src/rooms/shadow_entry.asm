@@ -26,7 +26,6 @@
 .INCLUDE "../machine.inc"
 .INCLUDE "../machines/lift.inc"
 .INCLUDE "../macros.inc"
-.INCLUDE "../oam.inc"
 .INCLUDE "../platform.inc"
 .INCLUDE "../ppu.inc"
 .INCLUDE "../program.inc"

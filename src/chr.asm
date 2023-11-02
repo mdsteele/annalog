@@ -54,6 +54,7 @@
 .INCLUDE "machines/emitter.inc"
 .INCLUDE "machines/hoist.inc"
 .INCLUDE "machines/jet.inc"
+.INCLUDE "machines/laser.inc"
 .INCLUDE "machines/launcher.inc"
 .INCLUDE "machines/minigun.inc"
 .INCLUDE "machines/multiplexer.inc"
@@ -62,6 +63,7 @@
 .INCLUDE "machines/rotor.inc"
 .INCLUDE "machines/semaphore.inc"
 .INCLUDE "machines/winch.inc"
+.INCLUDE "platforms/barrier.inc"
 .INCLUDE "platforms/column.inc"
 .INCLUDE "platforms/crate.inc"
 .INCLUDE "platforms/force.inc"
@@ -1335,7 +1337,11 @@
     .res $0c * kSizeofChr
     .assert * - :- = (kTileIdObjUpgradeOpMulFirst - $80) * kSizeofChr, error
     .incbin "out/tiles/upgrade_opmul.chr"
-    .res $52 * kSizeofChr
+    .res $4c * kSizeofChr
+    .assert * - :- = (kTileIdObjLaserFirst - $80) * kSizeofChr, error
+    .incbin "out/tiles/laser.chr"
+    .assert * - :- = (kTileIdObjBarrierFirst - $80) * kSizeofChr, error
+    .incbin "out/tiles/barrier.chr"
     .assert * - :- = (kTileIdObjEmitterFirst - $80) * kSizeofChr, error
     .incbin "out/tiles/emitter.chr"
     .assert * - :- = (kTileIdObjForcefieldFirst - $80) * kSizeofChr, error

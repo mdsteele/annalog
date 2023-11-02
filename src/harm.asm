@@ -44,7 +44,7 @@ kAvatarStunVelY = $ffff & -350
 .SEGMENT "PRG8"
 
 ;;; Deals damage to the player avatar, stunning them.
-;;; @preserve X
+;;; @preserve X, Y, T0+
 .EXPORT Func_HarmAvatar
 .PROC Func_HarmAvatar
     lda Zp_AvatarHarmTimer_u8
@@ -56,9 +56,9 @@ kAvatarStunVelY = $ffff & -350
     blt Func_KillAvatar
     rts
 _Harm:
-    jsr Func_DropFlower  ; preserves X
+    jsr Func_DropFlower  ; preserves X, Y, and T0+
     lda #eSample::Harm  ; param: eSample to play
-    jsr Func_PlaySfxSample  ; preserves X
+    jsr Func_PlaySfxSample  ; preserves X, Y, and T0+
     ;; Mark the avatar as damaged.
     lda #kAvatarHarmHealFrames
     sta Zp_AvatarHarmTimer_u8
@@ -94,22 +94,21 @@ _SetVelX:
 .ENDPROC
 
 ;;; Kills the player avatar.
-;;; @preserve X
+;;; @preserve X, Y, T0+
 .EXPORT Func_KillAvatar
 .PROC Func_KillAvatar
     lda Zp_AvatarFlags_bObj
     and #<~bObj::PaletteMask
     ora #kPaletteObjAvatarDeath
     sta Zp_AvatarFlags_bObj
-    jsr Func_DropFlower  ; preserves X
     lda #kAvatarHarmDeath
     sta Zp_AvatarHarmTimer_u8
-    rts
+    .assert * = Func_DropFlower, error, "fallthrough"
 .ENDPROC
 
 ;;; If the player avatar is carrying a flower, drops the flower.  Otherwise,
 ;;; does nothing.
-;;; @preserve X
+;;; @preserve X, Y, T0+
 .EXPORT Func_DropFlower
 .PROC Func_DropFlower
     lda Sram_CarryingFlower_eFlag

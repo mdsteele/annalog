@@ -121,7 +121,7 @@ Ram_MachineState4_byte_arr: .res kMaxMachines
 ;;; Sets Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr.
 ;;; @prereq Zp_Current_sRoom is initialized.
 ;;; @param X The machine index to set.
-;;; @preserve X
+;;; @preserve X, Y, T0+
 .EXPORT Func_SetMachineIndex
 .PROC Func_SetMachineIndex
     stx Zp_MachineIndex_u8
