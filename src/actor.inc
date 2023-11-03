@@ -32,6 +32,7 @@ kMaxActors = 16
     BadCrab          ; moves left/right randomly on a floor
     BadFirefly       ; flies up and down, and shoots horizontally
     BadFish          ; swims back and forth in water
+    BadFlydrop       ; flies left/right randomly, and drops acid
     BadGrub          ; crawls left/right on a floor
     BadHotheadHorz   ; crawls around a platform, and can drop fire
     BadHotheadVert   ; crawls around a platform, and can drop fire
@@ -50,6 +51,7 @@ kMaxActors = 16
     NpcMermaidQueen
     NpcOrc
     NpcToddler
+    ProjAcid         ; acid dropped by a flydrop baddie
     ProjBreakball    ; a bouncing ball shot by the temple boss
     ProjBullet       ; shot by minigun machines
     ProjEmber        ; fire dropped by a hothead baddie

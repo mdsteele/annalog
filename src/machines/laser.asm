@@ -43,6 +43,7 @@
 .IMPORT Ram_PlatformLeft_i16_1_arr
 .IMPORT Ram_PlatformRight_i16_0_arr
 .IMPORT Ram_PlatformRight_i16_1_arr
+.IMPORTZP Zp_ConsoleMachineIndex_u8
 .IMPORTZP Zp_Current_sMachine_ptr
 .IMPORTZP Zp_MachineIndex_u8
 .IMPORTZP Zp_PointX_i16
@@ -97,6 +98,10 @@ kTileIdObjLaserBeam3  = kTileIdObjLaserFirst + 3
 ;;; @preserve T2+
 .EXPORT FuncA_Room_IsPointInLaserBeam
 .PROC FuncA_Room_IsPointInLaserBeam
+    ;; If debugging, answer "no".
+    lda Zp_ConsoleMachineIndex_u8
+    bpl _Outside
+    ;; If the laser is not firing, answer "no".
     ldx Zp_MachineIndex_u8
     lda Ram_MachineSlowdown_u8_arr, x  ; laser beam frames remaining
     beq _Outside

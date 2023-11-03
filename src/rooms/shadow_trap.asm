@@ -24,6 +24,7 @@
 .INCLUDE "../machine.inc"
 .INCLUDE "../machines/laser.inc"
 .INCLUDE "../macros.inc"
+.INCLUDE "../oam.inc"
 .INCLUDE "../platform.inc"
 .INCLUDE "../platforms/barrier.inc"
 .INCLUDE "../ppu.inc"
@@ -39,11 +40,11 @@
 .IMPORT FuncA_Machine_ReachedGoal
 .IMPORT FuncA_Objects_DrawLaserMachine
 .IMPORT FuncA_Room_HarmAvatarIfWithinLaserBeam
+.IMPORT FuncA_Room_InitActorBadFlydrop
 .IMPORT FuncA_Room_IsPointInLaserBeam
 .IMPORT FuncC_Shadow_DrawBarrierPlatform
 .IMPORT Func_FindEmptyActorSlot
 .IMPORT Func_InitActorSmokeExplosion
-.IMPORT Func_InitActorWithFlags
 .IMPORT Func_IsPointInPlatform
 .IMPORT Func_MachineLaserReadRegC
 .IMPORT Func_MarkRoomSafe
@@ -75,8 +76,8 @@ kEastBarrierPlatformIndex = 3
 
 ;;; The platform indices for the zones where baddies will be spawned when the
 ;;; trap springs.
-kTrapSpawn1PlatformIndex = 4
-kTrapSpawn2PlatformIndex = 5
+kTrapSpawnEastPlatformIndex = 4
+kTrapSpawnWestPlatformIndex = 5
 
 ;;; The room pixel Y-positions for the tops of the barrier platforms when they
 ;;; are fully open or fully shut.
@@ -84,7 +85,7 @@ kBarrierShutTop = $0090
 kBarrierOpenTop = kBarrierShutTop - kBarrierPlatformHeightPx
 
 ;;; The type of baddie actor that gets spawned when the trap is sprung.
-kTrapBaddieType = eActor::BadFish  ; TODO: BadFlydrop
+kTrapBaddieType = eActor::BadFlydrop
 
 ;;;=========================================================================;;;
 
@@ -201,7 +202,7 @@ _Platforms_sPlatform_arr:
     d_word Left_i16,  $00f2
     d_word Top_i16,   $0090 - kBarrierPlatformHeightPx
     D_END
-    .assert * - :- = kTrapSpawn1PlatformIndex * .sizeof(sPlatform), error
+    .assert * - :- = kTrapSpawnEastPlatformIndex * .sizeof(sPlatform), error
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Zone
     d_word WidthPx_u16, $00
@@ -209,7 +210,7 @@ _Platforms_sPlatform_arr:
     d_word Left_i16,  $00f0
     d_word Top_i16,   $0048
     D_END
-    .assert * - :- = kTrapSpawn2PlatformIndex * .sizeof(sPlatform), error
+    .assert * - :- = kTrapSpawnWestPlatformIndex * .sizeof(sPlatform), error
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Zone
     d_word WidthPx_u16, $00
@@ -340,9 +341,11 @@ _MaybeSpawnBaddies:
     jsr Func_IsPointInPlatform  ; returns C
     bcc @done
     ;; Spawn the baddies.
-    ldy #kTrapSpawn1PlatformIndex  ; param: platform index
+    ldy #kTrapSpawnEastPlatformIndex  ; param: platform index
+    lda #bObj::FlipH  ; param: flags
     jsr FuncA_Room_ShadowTrap_SpawnBaddie
-    ldy #kTrapSpawn2PlatformIndex  ; param: platform index
+    ldy #kTrapSpawnWestPlatformIndex  ; param: platform index
+    lda #0  ; param: flags
     jsr FuncA_Room_ShadowTrap_SpawnBaddie
     ;; TODO: play an alarm sound
     lda #$ff
@@ -372,16 +375,17 @@ _OpenBarriers:
 .ENDPROC
 
 ;;; Spawns a baddie for when the trap springs.
+;;; @param A Zero if the baddie should face right, or bObj::FlipH for left.
 ;;; @param Y The platform index for the zone to spawn the baddie in.
 .PROC FuncA_Room_ShadowTrap_SpawnBaddie
-    jsr Func_FindEmptyActorSlot  ; preserves Y, returns C and X
+    sta T0  ; flags
+    jsr Func_FindEmptyActorSlot  ; preserves Y and T0+, returns C and X
     bcs @done
-    jsr Func_SetPointToPlatformCenter  ; preserves X
-    jsr Func_SetActorCenterToPoint  ; preserves X
-    .assert kTrapBaddieType = eActor::BadFish, error
-    lda #0  ; param: flags
-    ldy #eActor::BadFish  ; param: actor type
-    jmp Func_InitActorWithFlags
+    jsr Func_SetPointToPlatformCenter  ; preserves X and T0+
+    jsr Func_SetActorCenterToPoint  ; preserves X and T0+
+    .assert kTrapBaddieType = eActor::BadFlydrop, error
+    lda T0  ; param: flags
+    jmp FuncA_Room_InitActorBadFlydrop
     @done:
     rts
 .ENDPROC

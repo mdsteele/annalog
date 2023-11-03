@@ -17,6 +17,7 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
+.INCLUDE "actors/acid.inc"
 .INCLUDE "actors/bat.inc"
 .INCLUDE "actors/bird.inc"
 .INCLUDE "actors/breakball.inc"
@@ -29,6 +30,7 @@
 .INCLUDE "actors/firefly.inc"
 .INCLUDE "actors/fish.inc"
 .INCLUDE "actors/flamewave.inc"
+.INCLUDE "actors/flydrop.inc"
 .INCLUDE "actors/grenade.inc"
 .INCLUDE "actors/grub.inc"
 .INCLUDE "actors/jelly.inc"
@@ -1337,7 +1339,12 @@
     .res $0c * kSizeofChr
     .assert * - :- = (kTileIdObjUpgradeOpMulFirst - $80) * kSizeofChr, error
     .incbin "out/tiles/upgrade_opmul.chr"
-    .res $4c * kSizeofChr
+    .res $40 * kSizeofChr
+    .assert * - :- = (kTileIdObjFlydropFirst - $80) * kSizeofChr, error
+    .incbin "out/tiles/flydrop.chr"
+    .assert * - :- = (kTileIdObjAcid - $80) * kSizeofChr, error
+    .incbin "out/tiles/acid.chr"
+    .res $03 * kSizeofChr
     .assert * - :- = (kTileIdObjLaserFirst - $80) * kSizeofChr, error
     .incbin "out/tiles/laser.chr"
     .assert * - :- = (kTileIdObjBarrierFirst - $80) * kSizeofChr, error

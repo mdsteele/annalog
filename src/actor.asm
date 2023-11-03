@@ -31,6 +31,7 @@
 .IMPORT FuncA_Actor_TickBadCrab
 .IMPORT FuncA_Actor_TickBadFirefly
 .IMPORT FuncA_Actor_TickBadFish
+.IMPORT FuncA_Actor_TickBadFlydrop
 .IMPORT FuncA_Actor_TickBadGrub
 .IMPORT FuncA_Actor_TickBadHotheadHorz
 .IMPORT FuncA_Actor_TickBadHotheadVert
@@ -44,6 +45,7 @@
 .IMPORT FuncA_Actor_TickBadVinebug
 .IMPORT FuncA_Actor_TickBadWasp
 .IMPORT FuncA_Actor_TickNpcToddler
+.IMPORT FuncA_Actor_TickProjAcid
 .IMPORT FuncA_Actor_TickProjBreakball
 .IMPORT FuncA_Actor_TickProjBullet
 .IMPORT FuncA_Actor_TickProjEmber
@@ -64,6 +66,7 @@
 .IMPORT FuncA_Objects_DrawActorBadCrab
 .IMPORT FuncA_Objects_DrawActorBadFirefly
 .IMPORT FuncA_Objects_DrawActorBadFish
+.IMPORT FuncA_Objects_DrawActorBadFlydrop
 .IMPORT FuncA_Objects_DrawActorBadGrub
 .IMPORT FuncA_Objects_DrawActorBadHotheadHorz
 .IMPORT FuncA_Objects_DrawActorBadHotheadVert
@@ -82,6 +85,7 @@
 .IMPORT FuncA_Objects_DrawActorNpcMermaidQueen
 .IMPORT FuncA_Objects_DrawActorNpcOrc
 .IMPORT FuncA_Objects_DrawActorNpcToddler
+.IMPORT FuncA_Objects_DrawActorProjAcid
 .IMPORT FuncA_Objects_DrawActorProjBreakball
 .IMPORT FuncA_Objects_DrawActorProjBullet
 .IMPORT FuncA_Objects_DrawActorProjEmber
@@ -97,6 +101,7 @@
 .IMPORT FuncA_Objects_DrawActorSmokeParticle
 .IMPORT FuncA_Room_InitActorBadBird
 .IMPORT FuncA_Room_InitActorBadFirefly
+.IMPORT FuncA_Room_InitActorBadFlydrop
 .IMPORT FuncA_Room_InitActorBadLavaball
 .IMPORT FuncA_Room_InitActorBadToad
 .IMPORT FuncA_Room_InitActorBadWasp
@@ -105,6 +110,7 @@
 .IMPORT FuncA_Room_InitActorProjBreakball
 .IMPORT Func_InitActorBadOrc
 .IMPORT Func_InitActorNpcOrc
+.IMPORT Func_InitActorProjAcid
 .IMPORT Func_InitActorProjBullet
 .IMPORT Func_InitActorProjEmber
 .IMPORT Func_InitActorProjFireball
@@ -327,6 +333,7 @@ Ram_ActorFlags_bObj_arr: .res kMaxActors
     d_byte BadCrab,          6
     d_byte BadFirefly,       6
     d_byte BadFish,          6
+    d_byte BadFlydrop,       6
     d_byte BadGrub,          0
     d_byte BadHotheadHorz,   6
     d_byte BadHotheadVert,   6
@@ -345,6 +352,7 @@ Ram_ActorFlags_bObj_arr: .res kMaxActors
     d_byte NpcMermaidQueen,  2
     d_byte NpcOrc,          kOrcBoundingBoxUp
     d_byte NpcToddler,       4
+    d_byte ProjAcid,         1
     d_byte ProjBreakball,   kProjBreakballRadius
     d_byte ProjBullet,      kProjBulletRadius
     d_byte ProjEmber,        1
@@ -370,6 +378,7 @@ Ram_ActorFlags_bObj_arr: .res kMaxActors
     d_byte BadCrab,          8
     d_byte BadFirefly,       8
     d_byte BadFish,          4
+    d_byte BadFlydrop,       6
     d_byte BadGrub,          8
     d_byte BadHotheadHorz,   6
     d_byte BadHotheadVert,   6
@@ -388,6 +397,7 @@ Ram_ActorFlags_bObj_arr: .res kMaxActors
     d_byte NpcMermaidQueen, 24
     d_byte NpcOrc,          kOrcBoundingBoxDown
     d_byte NpcToddler,       8
+    d_byte ProjAcid,         3
     d_byte ProjBreakball,   kProjBreakballRadius
     d_byte ProjBullet,      kProjBulletRadius
     d_byte ProjEmber,        3
@@ -413,6 +423,7 @@ Ram_ActorFlags_bObj_arr: .res kMaxActors
     d_byte BadCrab,         7
     d_byte BadFirefly,      6
     d_byte BadFish,         6
+    d_byte BadFlydrop,      6
     d_byte BadGrub,         7
     d_byte BadHotheadHorz,  6
     d_byte BadHotheadVert,  6
@@ -431,6 +442,7 @@ Ram_ActorFlags_bObj_arr: .res kMaxActors
     d_byte NpcMermaidQueen, 5
     d_byte NpcOrc,          kOrcBoundingBoxSide
     d_byte NpcToddler,      3
+    d_byte ProjAcid,        2
     d_byte ProjBreakball,   kProjBreakballRadius
     d_byte ProjBullet,      kProjBulletRadius
     d_byte ProjEmber,       2
@@ -524,6 +536,7 @@ _TypeSpecificTick:
     d_entry table, BadCrab,         FuncA_Actor_TickBadCrab
     d_entry table, BadFirefly,      FuncA_Actor_TickBadFirefly
     d_entry table, BadFish,         FuncA_Actor_TickBadFish
+    d_entry table, BadFlydrop,      FuncA_Actor_TickBadFlydrop
     d_entry table, BadGrub,         FuncA_Actor_TickBadGrub
     d_entry table, BadHotheadHorz,  FuncA_Actor_TickBadHotheadHorz
     d_entry table, BadHotheadVert,  FuncA_Actor_TickBadHotheadVert
@@ -542,6 +555,7 @@ _TypeSpecificTick:
     d_entry table, NpcMermaidQueen, Func_Noop
     d_entry table, NpcOrc,          Func_Noop
     d_entry table, NpcToddler,      FuncA_Actor_TickNpcToddler
+    d_entry table, ProjAcid,        FuncA_Actor_TickProjAcid
     d_entry table, ProjBreakball,   FuncA_Actor_TickProjBreakball
     d_entry table, ProjBullet,      FuncA_Actor_TickProjBullet
     d_entry table, ProjEmber,       FuncA_Actor_TickProjEmber
@@ -702,6 +716,7 @@ _NoHit:
     d_entry table, BadCrab,         Func_InitActorDefault
     d_entry table, BadFirefly,      FuncA_Room_InitActorBadFirefly
     d_entry table, BadFish,         Func_InitActorWithFlags
+    d_entry table, BadFlydrop,      FuncA_Room_InitActorBadFlydrop
     d_entry table, BadGrub,         Func_InitActorWithFlags
     d_entry table, BadHotheadHorz,  Func_InitActorWithFlags
     d_entry table, BadHotheadVert,  Func_InitActorWithFlags
@@ -720,6 +735,7 @@ _NoHit:
     d_entry table, NpcMermaidQueen, Func_InitActorDefault
     d_entry table, NpcOrc,          Func_InitActorNpcOrc
     d_entry table, NpcToddler,      FuncA_Room_InitActorNpcToddler
+    d_entry table, ProjAcid,        Func_InitActorProjAcid
     d_entry table, ProjBreakball,   FuncA_Room_InitActorProjBreakball
     d_entry table, ProjBullet,      Func_InitActorProjBullet
     d_entry table, ProjEmber,       Func_InitActorProjEmber
@@ -841,6 +857,7 @@ _NoHit:
     d_entry table, BadCrab,         FuncA_Objects_DrawActorBadCrab
     d_entry table, BadFirefly,      FuncA_Objects_DrawActorBadFirefly
     d_entry table, BadFish,         FuncA_Objects_DrawActorBadFish
+    d_entry table, BadFlydrop,      FuncA_Objects_DrawActorBadFlydrop
     d_entry table, BadGrub,         FuncA_Objects_DrawActorBadGrub
     d_entry table, BadHotheadHorz,  FuncA_Objects_DrawActorBadHotheadHorz
     d_entry table, BadHotheadVert,  FuncA_Objects_DrawActorBadHotheadVert
@@ -859,6 +876,7 @@ _NoHit:
     d_entry table, NpcMermaidQueen, FuncA_Objects_DrawActorNpcMermaidQueen
     d_entry table, NpcOrc,          FuncA_Objects_DrawActorNpcOrc
     d_entry table, NpcToddler,      FuncA_Objects_DrawActorNpcToddler
+    d_entry table, ProjAcid,        FuncA_Objects_DrawActorProjAcid
     d_entry table, ProjBreakball,   FuncA_Objects_DrawActorProjBreakball
     d_entry table, ProjBullet,      FuncA_Objects_DrawActorProjBullet
     d_entry table, ProjEmber,       FuncA_Objects_DrawActorProjEmber

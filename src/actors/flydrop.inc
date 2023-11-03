@@ -17,16 +17,16 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
-;;; State bytes for ember projectiles:
-;;;   * Flags: Toggles automatically between bObj::FlipH and zero to animate
-;;;     the projectile.
-;;;   * State1: Counter that starts at zero and increments every frame; if it
-;;;     wraps back around to zero before the ember hits anything, then the
-;;;     ember is removed.
-;;;   * State2: Unused.
+;;; State bytes for firefly baddies:
+;;;   * Param: The initial flags to set (0 or bObj::FlipH).
+;;;   * Flags: The bObj::FlipH bit is set if the flydrop is facing left, or
+;;;     cleared if it is facing right.
+;;;   * State1: The number of cooldown frames before the flydrop can drop acid.
+;;;   * State2: The number of cooldown frames before the flydrop can randomly
+;;;     turn around again.
 ;;;   * State3: Unused.
 
-;;; The OBJ tile ID for ember projectile actors.
-kTileIdObjEmber = $86
+;;; Tile IDs for drawing flydrop baddie actors.
+kTileIdObjFlydropFirst = $d0
 
 ;;;=========================================================================;;;

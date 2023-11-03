@@ -17,16 +17,54 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
-;;; State bytes for ember projectiles:
-;;;   * Flags: Toggles automatically between bObj::FlipH and zero to animate
-;;;     the projectile.
-;;;   * State1: Counter that starts at zero and increments every frame; if it
-;;;     wraps back around to zero before the ember hits anything, then the
-;;;     ember is removed.
-;;;   * State2: Unused.
-;;;   * State3: Unused.
+.INCLUDE "../actor.inc"
+.INCLUDE "../macros.inc"
+.INCLUDE "acid.inc"
 
-;;; The OBJ tile ID for ember projectile actors.
-kTileIdObjEmber = $86
+.IMPORT FuncA_Actor_TickProjEmber
+.IMPORT FuncA_Objects_Draw1x1Actor
+.IMPORT Func_InitActorDefault
+
+;;;=========================================================================;;;
+
+;;; The OBJ palette number used for acid projectile actors.
+kPaletteObjAcid = 2
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRG8"
+
+;;; Initializes the specified actor as an acid projectile.
+;;; @prereq The actor's pixel position has already been initialized.
+;;; @param X The actor index.
+;;; @preserve X, T0+
+.EXPORT Func_InitActorProjAcid
+.PROC Func_InitActorProjAcid
+    ldy #eActor::ProjAcid  ; param: actor type
+    jmp Func_InitActorDefault  ; preserves X and T0+
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Actor"
+
+;;; Performs per-frame updates for an acid projectile actor.
+;;; @param X The actor index.
+;;; @preserve X
+.EXPORT FuncA_Actor_TickProjAcid := FuncA_Actor_TickProjEmber
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Objects"
+
+;;; Draws an acid projectile actor.
+;;; @param X The actor index.
+;;; @preserve X
+.EXPORT FuncA_Objects_DrawActorProjAcid
+.PROC FuncA_Objects_DrawActorProjAcid
+    lda #kTileIdObjAcid  ; param: tile ID
+    ldy #kPaletteObjAcid  ; param: palette
+    jmp FuncA_Objects_Draw1x1Actor  ; preserves X
+.ENDPROC
 
 ;;;=========================================================================;;;

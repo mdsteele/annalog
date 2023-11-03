@@ -72,7 +72,7 @@ kPaletteObjFirefly = 0
     beq @noFlip
     lda #bObj::FlipH
     @noFlip:
-    ldy #eActor::BadFirefly
+    ldy #eActor::BadFirefly  ; param: actor type
     jsr Func_InitActorWithFlags  ; preserves X
     pla  ; bBadFirefly param
     and #bBadFirefly::ThetaMask
