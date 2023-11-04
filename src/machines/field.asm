@@ -62,11 +62,11 @@ kFieldActCooldown = $20
 
 .SEGMENT "PRG8"
 
-;;; Reads the "T" register for a teleport field machine.
+;;; Reads the "P" register for a teleport field machine.
 ;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
 ;;; @return A The value of the machine's "T" register (0-9).
-.EXPORT Func_MachineFieldReadRegT
-.PROC Func_MachineFieldReadRegT
+.EXPORT Func_MachineFieldReadRegP
+.PROC Func_MachineFieldReadRegP
     ldx Zp_MachineIndex_u8
     lda Ram_MachineState1_byte_arr, x  ; charge frames
     div #kFieldFramesPerChargePoint
