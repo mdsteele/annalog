@@ -85,20 +85,52 @@
 
 .DEFINE kSizeofChr 16
 
+.MACRO CHR_BANK FIRST, SIZE
+    .scope
+    _chr_first .set FIRST
+    _chr_count .set SIZE
+_chr_begin:
+.ENDMACRO
+
+.MACRO CHR1_BANK FIRST
+    CHR_BANK FIRST, $40
+.ENDMACRO
+
+.MACRO CHR2_BANK FIRST
+    CHR_BANK FIRST, $80
+.ENDMACRO
+
+.MACRO END_CHR_BANK
+    .assert * - _chr_begin = kSizeofChr * _chr_count, error
+    .endscope
+.ENDMACRO
+
+.MACRO chr_inc NAME, FIRST
+    .ifnblank FIRST
+    .assert * - _chr_begin = ((FIRST) - _chr_first) * kSizeofChr, error
+    .endif
+    .incbin .sprintf("out/tiles/%s.chr", NAME)
+.ENDMACRO
+
+.MACRO chr_res COUNT
+    .res kSizeofChr * (COUNT)
+.ENDMACRO
+
 ;;;=========================================================================;;;
 
 .SEGMENT "CHR_BgAnimA0"
 
 .EXPORT Ppu_ChrBgAnimA0
 .PROC Ppu_ChrBgAnimA0
-:   .incbin "out/tiles/water_anim0.chr"
-    .incbin "out/tiles/acid_anim0.chr"
-    .incbin "out/tiles/waterfall_anim0.chr"
-    .res $02 * kSizeofChr
-    .incbin "out/tiles/thorns_anim0.chr"
-    .incbin "out/tiles/sewage_anim0.chr"
-    .incbin "out/tiles/circuit_anim0.chr"
-    .assert * - :- = kSizeofChr * $40, error
+    CHR1_BANK $c0
+    chr_inc "water_anim0"
+    chr_inc "acid_anim0"
+    chr_inc "waterfall_anim0"
+    chr_res $02
+    chr_inc "thorns_anim0"
+    chr_inc "sewage_anim0"
+    chr_inc "circuit_anim0"
+    END_CHR_BANK
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -106,14 +138,15 @@
 .SEGMENT "CHR_BgAnimA1"
 
 .PROC Ppu_ChrBgAnimA1
-:   .incbin "out/tiles/water_anim0.chr"
-    .incbin "out/tiles/acid_anim1.chr"
-    .incbin "out/tiles/waterfall_anim1.chr"
-    .res $02 * kSizeofChr
-    .incbin "out/tiles/thorns_anim1.chr"
-    .incbin "out/tiles/sewage_anim1.chr"
-    .incbin "out/tiles/circuit_anim1.chr"
-    .assert * - :- = kSizeofChr * $40, error
+    CHR1_BANK $c0
+    chr_inc "water_anim0"
+    chr_inc "acid_anim1"
+    chr_inc "waterfall_anim1"
+    chr_res $02
+    chr_inc "thorns_anim1"
+    chr_inc "sewage_anim1"
+    chr_inc "circuit_anim1"
+    END_CHR_BANK
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -121,14 +154,15 @@
 .SEGMENT "CHR_BgAnimA2"
 
 .PROC Ppu_ChrBgAnimA2
-:   .incbin "out/tiles/water_anim1.chr"
-    .incbin "out/tiles/acid_anim2.chr"
-    .incbin "out/tiles/waterfall_anim2.chr"
-    .res $02 * kSizeofChr
-    .incbin "out/tiles/thorns_anim2.chr"
-    .incbin "out/tiles/sewage_anim2.chr"
-    .incbin "out/tiles/circuit_anim2.chr"
-    .assert * - :- = kSizeofChr * $40, error
+    CHR1_BANK $c0
+    chr_inc "water_anim1"
+    chr_inc "acid_anim2"
+    chr_inc "waterfall_anim2"
+    chr_res $02
+    chr_inc "thorns_anim2"
+    chr_inc "sewage_anim2"
+    chr_inc "circuit_anim2"
+    END_CHR_BANK
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -136,14 +170,15 @@
 .SEGMENT "CHR_BgAnimA3"
 
 .PROC Ppu_ChrBgAnimA3
-:   .incbin "out/tiles/water_anim1.chr"
-    .incbin "out/tiles/acid_anim3.chr"
-    .incbin "out/tiles/waterfall_anim3.chr"
-    .res $02 * kSizeofChr
-    .incbin "out/tiles/thorns_anim3.chr"
-    .incbin "out/tiles/sewage_anim3.chr"
-    .incbin "out/tiles/circuit_anim3.chr"
-    .assert * - :- = kSizeofChr * $40, error
+    CHR1_BANK $c0
+    chr_inc "water_anim1"
+    chr_inc "acid_anim3"
+    chr_inc "waterfall_anim3"
+    chr_res $02
+    chr_inc "thorns_anim3"
+    chr_inc "sewage_anim3"
+    chr_inc "circuit_anim3"
+    END_CHR_BANK
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -151,14 +186,15 @@
 .SEGMENT "CHR_BgAnimA4"
 
 .PROC Ppu_ChrBgAnimA4
-:   .incbin "out/tiles/water_anim2.chr"
-    .incbin "out/tiles/acid_anim4.chr"
-    .incbin "out/tiles/waterfall_anim0.chr"
-    .res $02 * kSizeofChr
-    .incbin "out/tiles/thorns_anim4.chr"
-    .incbin "out/tiles/sewage_anim0.chr"
-    .incbin "out/tiles/circuit_anim4.chr"
-    .assert * - :- = kSizeofChr * $40, error
+    CHR1_BANK $c0
+    chr_inc "water_anim2"
+    chr_inc "acid_anim4"
+    chr_inc "waterfall_anim0"
+    chr_res $02
+    chr_inc "thorns_anim4"
+    chr_inc "sewage_anim0"
+    chr_inc "circuit_anim4"
+    END_CHR_BANK
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -166,14 +202,15 @@
 .SEGMENT "CHR_BgAnimA5"
 
 .PROC Ppu_ChrBgAnimA5
-:   .incbin "out/tiles/water_anim2.chr"
-    .incbin "out/tiles/acid_anim5.chr"
-    .incbin "out/tiles/waterfall_anim1.chr"
-    .res $02 * kSizeofChr
-    .incbin "out/tiles/thorns_anim5.chr"
-    .incbin "out/tiles/sewage_anim1.chr"
-    .incbin "out/tiles/circuit_anim5.chr"
-    .assert * - :- = kSizeofChr * $40, error
+    CHR1_BANK $c0
+    chr_inc "water_anim2"
+    chr_inc "acid_anim5"
+    chr_inc "waterfall_anim1"
+    chr_res $02
+    chr_inc "thorns_anim5"
+    chr_inc "sewage_anim1"
+    chr_inc "circuit_anim5"
+    END_CHR_BANK
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -181,14 +218,15 @@
 .SEGMENT "CHR_BgAnimA6"
 
 .PROC Ppu_ChrBgAnimA6
-:   .incbin "out/tiles/water_anim1.chr"
-    .incbin "out/tiles/acid_anim6.chr"
-    .incbin "out/tiles/waterfall_anim2.chr"
-    .res $02 * kSizeofChr
-    .incbin "out/tiles/thorns_anim6.chr"
-    .incbin "out/tiles/sewage_anim2.chr"
-    .incbin "out/tiles/circuit_anim6.chr"
-    .assert * - :- = kSizeofChr * $40, error
+    CHR1_BANK $c0
+    chr_inc "water_anim1"
+    chr_inc "acid_anim6"
+    chr_inc "waterfall_anim2"
+    chr_res $02
+    chr_inc "thorns_anim6"
+    chr_inc "sewage_anim2"
+    chr_inc "circuit_anim6"
+    END_CHR_BANK
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -196,14 +234,15 @@
 .SEGMENT "CHR_BgAnimA7"
 
 .PROC Ppu_ChrBgAnimA7
-:   .incbin "out/tiles/water_anim1.chr"
-    .incbin "out/tiles/acid_anim7.chr"
-    .incbin "out/tiles/waterfall_anim3.chr"
-    .res $02 * kSizeofChr
-    .incbin "out/tiles/thorns_anim7.chr"
-    .incbin "out/tiles/sewage_anim3.chr"
-    .incbin "out/tiles/circuit_anim7.chr"
-    .assert * - :- = kSizeofChr * $40, error
+    CHR1_BANK $c0
+    chr_inc "water_anim1"
+    chr_inc "acid_anim7"
+    chr_inc "waterfall_anim3"
+    chr_res $02
+    chr_inc "thorns_anim7"
+    chr_inc "sewage_anim3"
+    chr_inc "circuit_anim7"
+    END_CHR_BANK
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -212,12 +251,13 @@
 
 .EXPORT Ppu_ChrBgAnimB0
 .PROC Ppu_ChrBgAnimB0
-:   .incbin "out/tiles/lava_anim0.chr"
-    .res $06 * kSizeofChr
-    .incbin "out/tiles/conveyor_anim0.chr"
-    .res $1e * kSizeofChr
-    .incbin "out/tiles/gazer_anim0.chr"
-    .assert * - :- = kSizeofChr * $40, error
+    CHR1_BANK $c0
+    chr_inc "lava_anim0"
+    chr_res $06
+    chr_inc "conveyor_anim0"
+    chr_res $1e
+    chr_inc "gazer_anim0"
+    END_CHR_BANK
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -225,12 +265,13 @@
 .SEGMENT "CHR_BgAnimB1"
 
 .PROC Ppu_ChrBgAnimB1
-:   .incbin "out/tiles/lava_anim1.chr"
-    .res $06 * kSizeofChr
-    .incbin "out/tiles/conveyor_anim1.chr"
-    .res $1e * kSizeofChr
-    .incbin "out/tiles/gazer_anim1.chr"
-    .assert * - :- = kSizeofChr * $40, error
+    CHR1_BANK $c0
+    chr_inc "lava_anim1"
+    chr_res $06
+    chr_inc "conveyor_anim1"
+    chr_res $1e
+    chr_inc "gazer_anim1"
+    END_CHR_BANK
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -238,12 +279,13 @@
 .SEGMENT "CHR_BgAnimB2"
 
 .PROC Ppu_ChrBgAnimB2
-:   .incbin "out/tiles/lava_anim2.chr"
-    .res $06 * kSizeofChr
-    .incbin "out/tiles/conveyor_anim2.chr"
-    .res $1e * kSizeofChr
-    .incbin "out/tiles/gazer_anim2.chr"
-    .assert * - :- = kSizeofChr * $40, error
+    CHR1_BANK $c0
+    chr_inc "lava_anim2"
+    chr_res $06
+    chr_inc "conveyor_anim2"
+    chr_res $1e
+    chr_inc "gazer_anim2"
+    END_CHR_BANK
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -251,12 +293,13 @@
 .SEGMENT "CHR_BgAnimB3"
 
 .PROC Ppu_ChrBgAnimB3
-:   .incbin "out/tiles/lava_anim3.chr"
-    .res $06 * kSizeofChr
-    .incbin "out/tiles/conveyor_anim3.chr"
-    .res $1e * kSizeofChr
-    .incbin "out/tiles/gazer_anim3.chr"
-    .assert * - :- = kSizeofChr * $40, error
+    CHR1_BANK $c0
+    chr_inc "lava_anim3"
+    chr_res $06
+    chr_inc "conveyor_anim3"
+    chr_res $1e
+    chr_inc "gazer_anim3"
+    END_CHR_BANK
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -265,11 +308,12 @@
 
 .EXPORT Ppu_ChrBgAnimStatic
 .PROC Ppu_ChrBgAnimStatic
-:   .res $10 * kSizeofChr
-    .incbin "out/tiles/thorns_anim_static.chr"
-    .res $0a * kSizeofChr
-    .incbin "out/tiles/circuit_anim_static.chr"
-    .assert * - :- = kSizeofChr * $40, error
+    CHR1_BANK $c0
+    chr_res $10
+    chr_inc "thorns_anim_static"
+    chr_res $0a
+    chr_inc "circuit_anim_static"
+    END_CHR_BANK
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -278,13 +322,14 @@
 
 .EXPORT Ppu_ChrBgBuilding
 .PROC Ppu_ChrBgBuilding
-:   .incbin "out/tiles/building1.chr"
-    .incbin "out/tiles/building2.chr"
-    .incbin "out/tiles/building3.chr"
-    .incbin "out/tiles/building4.chr"
-    .res $0a * kSizeofChr
-    .incbin "out/tiles/console.chr"
-    .assert * - :- = kSizeofChr * $40, error
+    CHR1_BANK $80
+    chr_inc "building1"
+    chr_inc "building2"
+    chr_inc "building3"
+    chr_inc "building4"
+    chr_res $0a
+    chr_inc "console"
+    END_CHR_BANK
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -293,12 +338,13 @@
 
 .EXPORT Ppu_ChrBgCity
 .PROC Ppu_ChrBgCity
-:   .incbin "out/tiles/city1.chr"
-    .incbin "out/tiles/city2.chr"
-    .incbin "out/tiles/city3.chr"
-    .res $0c * kSizeofChr
-    .incbin "out/tiles/console.chr"
-    .assert * - :- = kSizeofChr * $40, error
+    CHR1_BANK $80
+    chr_inc "city1"
+    chr_inc "city2"
+    chr_inc "city3"
+    chr_res $0c
+    chr_inc "console"
+    END_CHR_BANK
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -307,13 +353,14 @@
 
 .EXPORT Ppu_ChrBgCore
 .PROC Ppu_ChrBgCore
-:   .incbin "out/tiles/core_pipes1.chr"
-    .incbin "out/tiles/core_pipes2.chr"
-    .res $04 * kSizeofChr
-    .incbin "out/tiles/fullcore1.chr"
-    .incbin "out/tiles/fullcore2.chr"
-    .incbin "out/tiles/console.chr"
-    .assert * - :- = kSizeofChr * $40, error
+    CHR1_BANK $80
+    chr_inc "core_pipes1"
+    chr_inc "core_pipes2"
+    chr_res $04
+    chr_inc "fullcore1"
+    chr_inc "fullcore2"
+    chr_inc "console"
+    END_CHR_BANK
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -322,17 +369,18 @@
 
 .EXPORT Ppu_ChrBgCrypt
 .PROC Ppu_ChrBgCrypt
-:   .incbin "out/tiles/crypt.chr"
-    .res $02 * kSizeofChr
-    .incbin "out/tiles/cobweb.chr"
-    .res $08 * kSizeofChr
-    .incbin "out/tiles/gazer_eye.chr"
-    .res $04 * kSizeofChr
-    .incbin "out/tiles/arch.chr"
-    .res $06 * kSizeofChr
-    .incbin "out/tiles/plaque.chr"
-    .incbin "out/tiles/console.chr"
-    .assert * - :- = kSizeofChr * $40, error
+    CHR1_BANK $80
+    chr_inc "crypt"
+    chr_res $02
+    chr_inc "cobweb"
+    chr_res $08
+    chr_inc "gazer_eye"
+    chr_res $04
+    chr_inc "arch"
+    chr_res $06
+    chr_inc "plaque"
+    chr_inc "console"
+    END_CHR_BANK
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -341,8 +389,9 @@
 
 .EXPORT Ppu_ChrBgFontUpper
 .PROC Ppu_ChrBgFontUpper
-:   .incbin "out/tiles/font_upper.chr"
-    .assert * - :- = kSizeofChr * $40, error
+    CHR1_BANK $00
+    chr_inc "font_upper"
+    END_CHR_BANK
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -351,12 +400,13 @@
 
 .EXPORT Ppu_ChrBgFontLower01
 .PROC Ppu_ChrBgFontLower01
-:   .incbin "out/tiles/font_lower.chr"
+    CHR1_BANK $40
+    chr_inc "font_lower"
     .assert .bank(*) = eDiagram::Lift, error
-    .incbin "out/tiles/diagram_lift.chr"
+    chr_inc "diagram_lift"
     .assert .bank(*) = <ePortrait::AdultWoman, error
-    .incbin "out/tiles/portrait_woman_rest.chr"
-    .assert * - :- = kSizeofChr * $40, error
+    chr_inc "portrait_woman_rest"
+    END_CHR_BANK
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -364,12 +414,13 @@
 .SEGMENT "CHR_BgFontLower02"
 
 .PROC Ppu_ChrBgFontLower02
-:   .incbin "out/tiles/font_lower.chr"
+    CHR1_BANK $40
+    chr_inc "font_lower"
     .assert .bank(*) = eDiagram::Trolley, error
-    .incbin "out/tiles/diagram_trolley.chr"
+    chr_inc "diagram_trolley"
     .assert .bank(*) = >ePortrait::AdultWoman, error
-    .incbin "out/tiles/portrait_woman_talk.chr"
-    .assert * - :- = kSizeofChr * $40, error
+    chr_inc "portrait_woman_talk"
+    END_CHR_BANK
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -377,13 +428,14 @@
 .SEGMENT "CHR_BgFontLower03"
 
 .PROC Ppu_ChrBgFontLower03
-:   .incbin "out/tiles/font_lower.chr"
+    CHR1_BANK $40
+    chr_inc "font_lower"
     .assert .bank(*) = eDiagram::Winch, error
-    .incbin "out/tiles/diagram_winch.chr"
+    chr_inc "diagram_winch"
     .assert .bank(*) = <ePortrait::Sign, error
     .assert .bank(*) = >ePortrait::Sign, error
-    .incbin "out/tiles/portrait_sign.chr"
-    .assert * - :- = kSizeofChr * $40, error
+    chr_inc "portrait_sign"
+    END_CHR_BANK
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -391,13 +443,14 @@
 .SEGMENT "CHR_BgFontLower04"
 
 .PROC Ppu_ChrBgFontLower04
-:   .incbin "out/tiles/font_lower.chr"
+    CHR1_BANK $40
+    chr_inc "font_lower"
     .assert .bank(*) = eDiagram::Boiler, error
-    .incbin "out/tiles/diagram_boiler.chr"
+    chr_inc "diagram_boiler"
     .assert .bank(*) = <ePortrait::Paper, error
     .assert .bank(*) = >ePortrait::Paper, error
-    .incbin "out/tiles/portrait_paper.chr"
-    .assert * - :- = kSizeofChr * $40, error
+    chr_inc "portrait_paper"
+    END_CHR_BANK
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -405,13 +458,14 @@
 .SEGMENT "CHR_BgFontLower05"
 
 .PROC Ppu_ChrBgFontLower05
-:   .incbin "out/tiles/font_lower.chr"
+    CHR1_BANK $40
+    chr_inc "font_lower"
     .assert .bank(*) = eDiagram::Field, error
-    .incbin "out/tiles/diagram_field.chr"
+    chr_inc "diagram_field"
     .assert .bank(*) = <ePortrait::MermaidDaphne, error
     .assert .bank(*) = <ePortrait::MermaidGuardF, error
-    .incbin "out/tiles/portrait_mermaid_rest.chr"
-    .assert * - :- = kSizeofChr * $40, error
+    chr_inc "portrait_mermaid_rest"
+    END_CHR_BANK
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -419,13 +473,14 @@
 .SEGMENT "CHR_BgFontLower06"
 
 .PROC Ppu_ChrBgFontLower06
-:   .incbin "out/tiles/font_lower.chr"
+    CHR1_BANK $40
+    chr_inc "font_lower"
     .assert .bank(*) = eDiagram::Jet, error
-    .incbin "out/tiles/diagram_jet.chr"
+    chr_inc "diagram_jet"
     .assert .bank(*) = >ePortrait::MermaidDaphne, error
     .assert .bank(*) = >ePortrait::MermaidGuardF, error
-    .incbin "out/tiles/portrait_mermaid_talk.chr"
-    .assert * - :- = kSizeofChr * $40, error
+    chr_inc "portrait_mermaid_talk"
+    END_CHR_BANK
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -433,12 +488,13 @@
 .SEGMENT "CHR_BgFontLower07"
 
 .PROC Ppu_ChrBgFontLower07
-:   .incbin "out/tiles/font_lower.chr"
+    CHR1_BANK $40
+    chr_inc "font_lower"
     .assert .bank(*) = eDiagram::Carriage, error
-    .incbin "out/tiles/diagram_carriage.chr"
+    chr_inc "diagram_carriage"
     .assert .bank(*) = <ePortrait::AdultMan, error
-    .incbin "out/tiles/portrait_man_rest.chr"
-    .assert * - :- = kSizeofChr * $40, error
+    chr_inc "portrait_man_rest"
+    END_CHR_BANK
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -446,12 +502,13 @@
 .SEGMENT "CHR_BgFontLower08"
 
 .PROC Ppu_ChrBgFontLower08
-:   .incbin "out/tiles/font_lower.chr"
+    CHR1_BANK $40
+    chr_inc "font_lower"
     .assert .bank(*) = eDiagram::CannonRight, error
-    .incbin "out/tiles/diagram_cannon_right.chr"
+    chr_inc "diagram_cannon_right"
     .assert .bank(*) = >ePortrait::AdultMan, error
-    .incbin "out/tiles/portrait_man_talk.chr"
-    .assert * - :- = kSizeofChr * $40, error
+    chr_inc "portrait_man_talk"
+    END_CHR_BANK
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -459,12 +516,13 @@
 .SEGMENT "CHR_BgFontLower09"
 
 .PROC Ppu_ChrBgFontLower09
-:   .incbin "out/tiles/font_lower.chr"
+    CHR1_BANK $40
+    chr_inc "font_lower"
     .assert .bank(*) = eDiagram::CannonLeft, error
-    .incbin "out/tiles/diagram_cannon_left.chr"
+    chr_inc "diagram_cannon_left"
     .assert .bank(*) = <ePortrait::ChildNora, error
-    .incbin "out/tiles/portrait_nora_rest.chr"
-    .assert * - :- = kSizeofChr * $40, error
+    chr_inc "portrait_nora_rest"
+    END_CHR_BANK
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -472,12 +530,13 @@
 .SEGMENT "CHR_BgFontLower0A"
 
 .PROC Ppu_ChrBgFontLower0A
-:   .incbin "out/tiles/font_lower.chr"
+    CHR1_BANK $40
+    chr_inc "font_lower"
     .assert .bank(*) = eDiagram::BridgeRight, error
-    .incbin "out/tiles/diagram_bridge_right.chr"
+    chr_inc "diagram_bridge_right"
     .assert .bank(*) = >ePortrait::ChildNora, error
-    .incbin "out/tiles/portrait_nora_talk.chr"
-    .assert * - :- = kSizeofChr * $40, error
+    chr_inc "portrait_nora_talk"
+    END_CHR_BANK
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -485,12 +544,13 @@
 .SEGMENT "CHR_BgFontLower0B"
 
 .PROC Ppu_ChrBgFontLower0B
-:   .incbin "out/tiles/font_lower.chr"
+    CHR1_BANK $40
+    chr_inc "font_lower"
     .assert .bank(*) = eDiagram::BridgeLeft, error
-    .incbin "out/tiles/diagram_bridge_left.chr"
+    chr_inc "diagram_bridge_left"
     .assert .bank(*) = <ePortrait::ChildAlex, error
-    .incbin "out/tiles/portrait_alex_rest.chr"
-    .assert * - :- = kSizeofChr * $40, error
+    chr_inc "portrait_alex_rest"
+    END_CHR_BANK
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -498,12 +558,13 @@
 .SEGMENT "CHR_BgFontLower0C"
 
 .PROC Ppu_ChrBgFontLower0C
-:   .incbin "out/tiles/font_lower.chr"
+    CHR1_BANK $40
+    chr_inc "font_lower"
     .assert .bank(*) = eDiagram::Crane, error
-    .incbin "out/tiles/diagram_crane.chr"
+    chr_inc "diagram_crane"
     .assert .bank(*) = >ePortrait::ChildAlex, error
-    .incbin "out/tiles/portrait_alex_talk.chr"
-    .assert * - :- = kSizeofChr * $40, error
+    chr_inc "portrait_alex_talk"
+    END_CHR_BANK
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -511,12 +572,13 @@
 .SEGMENT "CHR_BgFontLower0D"
 
 .PROC Ppu_ChrBgFontLower0D
-:   .incbin "out/tiles/font_lower.chr"
+    CHR1_BANK $40
+    chr_inc "font_lower"
     .assert .bank(*) = eDiagram::Multiplexer, error
-    .incbin "out/tiles/diagram_multiplexer.chr"
+    chr_inc "diagram_multiplexer"
     .assert .bank(*) = <ePortrait::MermaidCorra, error
-    .incbin "out/tiles/portrait_corra_rest.chr"
-    .assert * - :- = kSizeofChr * $40, error
+    chr_inc "portrait_corra_rest"
+    END_CHR_BANK
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -524,12 +586,13 @@
 .SEGMENT "CHR_BgFontLower0E"
 
 .PROC Ppu_ChrBgFontLower0E
-:   .incbin "out/tiles/font_lower.chr"
+    CHR1_BANK $40
+    chr_inc "font_lower"
     .assert .bank(*) = eDiagram::Debugger, error
-    .incbin "out/tiles/diagram_debugger.chr"
+    chr_inc "diagram_debugger"
     .assert .bank(*) = >ePortrait::MermaidCorra, error
-    .incbin "out/tiles/portrait_corra_talk.chr"
-    .assert * - :- = kSizeofChr * $40, error
+    chr_inc "portrait_corra_talk"
+    END_CHR_BANK
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -537,12 +600,13 @@
 .SEGMENT "CHR_BgFontLower0F"
 
 .PROC Ppu_ChrBgFontLower0F
-:   .incbin "out/tiles/font_lower.chr"
+    CHR1_BANK $40
+    chr_inc "font_lower"
     .assert .bank(*) = eDiagram::HoistRight, error
-    .incbin "out/tiles/diagram_hoist_right.chr"
+    chr_inc "diagram_hoist_right"
     .assert .bank(*) = <ePortrait::MermaidFlorist, error
-    .incbin "out/tiles/portrait_florist_rest.chr"
-    .assert * - :- = kSizeofChr * $40, error
+    chr_inc "portrait_florist_rest"
+    END_CHR_BANK
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -550,12 +614,13 @@
 .SEGMENT "CHR_BgFontLower10"
 
 .PROC Ppu_ChrBgFontLower10
-:   .incbin "out/tiles/font_lower.chr"
+    CHR1_BANK $40
+    chr_inc "font_lower"
     .assert .bank(*) = eDiagram::HoistLeft, error
-    .incbin "out/tiles/diagram_hoist_left.chr"
+    chr_inc "diagram_hoist_left"
     .assert .bank(*) = >ePortrait::MermaidFlorist, error
-    .incbin "out/tiles/portrait_florist_talk.chr"
-    .assert * - :- = kSizeofChr * $40, error
+    chr_inc "portrait_florist_talk"
+    END_CHR_BANK
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -563,12 +628,13 @@
 .SEGMENT "CHR_BgFontLower11"
 
 .PROC Ppu_ChrBgFontLower11
-:   .incbin "out/tiles/font_lower.chr"
+    CHR1_BANK $40
+    chr_inc "font_lower"
     .assert .bank(*) = eDiagram::LauncherDown, error
-    .incbin "out/tiles/diagram_launcher_down.chr"
+    chr_inc "diagram_launcher_down"
     .assert .bank(*) = <ePortrait::ChildMarie, error
-    .incbin "out/tiles/portrait_marie_rest.chr"
-    .assert * - :- = kSizeofChr * $40, error
+    chr_inc "portrait_marie_rest"
+    END_CHR_BANK
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -576,12 +642,13 @@
 .SEGMENT "CHR_BgFontLower12"
 
 .PROC Ppu_ChrBgFontLower12
-:   .incbin "out/tiles/font_lower.chr"
+    CHR1_BANK $40
+    chr_inc "font_lower"
     .assert .bank(*) = eDiagram::MinigunDown, error
-    .incbin "out/tiles/diagram_minigun_down.chr"
+    chr_inc "diagram_minigun_down"
     .assert .bank(*) = >ePortrait::ChildMarie, error
-    .incbin "out/tiles/portrait_marie_talk.chr"
-    .assert * - :- = kSizeofChr * $40, error
+    chr_inc "portrait_marie_talk"
+    END_CHR_BANK
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -589,12 +656,13 @@
 .SEGMENT "CHR_BgFontLower13"
 
 .PROC Ppu_ChrBgFontLower13
-:   .incbin "out/tiles/font_lower.chr"
+    CHR1_BANK $40
+    chr_inc "font_lower"
     .assert .bank(*) = eDiagram::MinigunLeft, error
-    .incbin "out/tiles/diagram_minigun_left.chr"
+    chr_inc "diagram_minigun_left"
     .assert .bank(*) = <ePortrait::ChildBruno, error
-    .incbin "out/tiles/portrait_bruno_rest.chr"
-    .assert * - :- = kSizeofChr * $40, error
+    chr_inc "portrait_bruno_rest"
+    END_CHR_BANK
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -602,12 +670,13 @@
 .SEGMENT "CHR_BgFontLower14"
 
 .PROC Ppu_ChrBgFontLower14
-:   .incbin "out/tiles/font_lower.chr"
+    CHR1_BANK $40
+    chr_inc "font_lower"
     .assert .bank(*) = eDiagram::MinigunUp, error
-    .incbin "out/tiles/diagram_minigun_up.chr"
+    chr_inc "diagram_minigun_up"
     .assert .bank(*) = >ePortrait::ChildBruno, error
-    .incbin "out/tiles/portrait_bruno_talk.chr"
-    .assert * - :- = kSizeofChr * $40, error
+    chr_inc "portrait_bruno_talk"
+    END_CHR_BANK
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -615,13 +684,14 @@
 .SEGMENT "CHR_BgFontLower15"
 
 .PROC Ppu_ChrBgFontLower15
-:   .incbin "out/tiles/font_lower.chr"
+    CHR1_BANK $40
+    chr_inc "font_lower"
     .assert .bank(*) = eDiagram::LauncherLeft, error
-    .incbin "out/tiles/diagram_launcher_left.chr"
+    chr_inc "diagram_launcher_left"
     .assert .bank(*) = <ePortrait::Plaque, error
     .assert .bank(*) = >ePortrait::Plaque, error
-    .incbin "out/tiles/portrait_plaque.chr"
-    .assert * - :- = kSizeofChr * $40, error
+    chr_inc "portrait_plaque"
+    END_CHR_BANK
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -629,12 +699,13 @@
 .SEGMENT "CHR_BgFontLower16"
 
 .PROC Ppu_ChrBgFontLower16
-:   .incbin "out/tiles/font_lower.chr"
+    CHR1_BANK $40
+    chr_inc "font_lower"
     .assert .bank(*) = eDiagram::SemaphoreNormal, error
-    .incbin "out/tiles/diagram_semaphore_normal.chr"
+    chr_inc "diagram_semaphore_normal"
     .assert .bank(*) = <ePortrait::OrcGronta, error
-    .incbin "out/tiles/portrait_gronta_rest.chr"
-    .assert * - :- = kSizeofChr * $40, error
+    chr_inc "portrait_gronta_rest"
+    END_CHR_BANK
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -642,12 +713,13 @@
 .SEGMENT "CHR_BgFontLower17"
 
 .PROC Ppu_ChrBgFontLower17
-:   .incbin "out/tiles/font_lower.chr"
+    CHR1_BANK $40
+    chr_inc "font_lower"
     .assert .bank(*) = eDiagram::SemaphoreNoFlags, error
-    .incbin "out/tiles/diagram_semaphore_no_flags.chr"
+    chr_inc "diagram_semaphore_no_flags"
     .assert .bank(*) = >ePortrait::OrcGronta, error
-    .incbin "out/tiles/portrait_gronta_talk.chr"
-    .assert * - :- = kSizeofChr * $40, error
+    chr_inc "portrait_gronta_talk"
+    END_CHR_BANK
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -655,12 +727,13 @@
 .SEGMENT "CHR_BgFontLower18"
 
 .PROC Ppu_ChrBgFontLower18
-:   .incbin "out/tiles/font_lower.chr"
+    CHR1_BANK $40
+    chr_inc "font_lower"
     .assert .bank(*) = eDiagram::SemaphoreNoSensor, error
-    .incbin "out/tiles/diagram_semaphore_no_sensor.chr"
+    chr_inc "diagram_semaphore_no_sensor"
     .assert .bank(*) = <ePortrait::OrcMale, error
-    .incbin "out/tiles/portrait_orc_rest.chr"
-    .assert * - :- = kSizeofChr * $40, error
+    chr_inc "portrait_orc_rest"
+    END_CHR_BANK
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -668,12 +741,13 @@
 .SEGMENT "CHR_BgFontLower19"
 
 .PROC Ppu_ChrBgFontLower19
-:   .incbin "out/tiles/font_lower.chr"
+    CHR1_BANK $40
+    chr_inc "font_lower"
     .assert .bank(*) = eDiagram::Pump, error
-    .incbin "out/tiles/diagram_pump.chr"
+    chr_inc "diagram_pump"
     .assert .bank(*) = >ePortrait::OrcMale, error
-    .incbin "out/tiles/portrait_orc_talk.chr"
-    .assert * - :- = kSizeofChr * $40, error
+    chr_inc "portrait_orc_talk"
+    END_CHR_BANK
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -681,12 +755,13 @@
 .SEGMENT "CHR_BgFontLower1A"
 
 .PROC Ppu_ChrBgFontLower1A
-:   .incbin "out/tiles/font_lower.chr"
-    .res $10 * kSizeofChr
+    CHR1_BANK $40
+    chr_inc "font_lower"
+    chr_res $10
     .assert .bank(*) = <ePortrait::Screen, error
     .assert .bank(*) = >ePortrait::Screen, error
-    .incbin "out/tiles/portrait_screen.chr"
-    .assert * - :- = kSizeofChr * $40, error
+    chr_inc "portrait_screen"
+    END_CHR_BANK
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -694,11 +769,12 @@
 .SEGMENT "CHR_BgFontLower1B"
 
 .PROC Ppu_ChrBgFontLower1B
-:   .incbin "out/tiles/font_lower.chr"
-    .res $10 * kSizeofChr
+    CHR1_BANK $40
+    chr_inc "font_lower"
+    chr_res $10
     .assert .bank(*) = <ePortrait::MermaidEirene, error
-    .incbin "out/tiles/portrait_eirene_rest.chr"
-    .assert * - :- = kSizeofChr * $40, error
+    chr_inc "portrait_eirene_rest"
+    END_CHR_BANK
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -706,11 +782,12 @@
 .SEGMENT "CHR_BgFontLower1C"
 
 .PROC Ppu_ChrBgFontLower1C
-:   .incbin "out/tiles/font_lower.chr"
-    .res $10 * kSizeofChr
+    CHR1_BANK $40
+    chr_inc "font_lower"
+    chr_res $10
     .assert .bank(*) = >ePortrait::MermaidEirene, error
-    .incbin "out/tiles/portrait_eirene_talk.chr"
-    .assert * - :- = kSizeofChr * $40, error
+    chr_inc "portrait_eirene_talk"
+    END_CHR_BANK
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -719,13 +796,14 @@
 
 .EXPORT Ppu_ChrBgFactory
 .PROC Ppu_ChrBgFactory
-:   .incbin "out/tiles/factory1.chr"
-    .incbin "out/tiles/factory2.chr"
-    .res $08 * kSizeofChr
-    .incbin "out/tiles/tank.chr"
-    .res $02 * kSizeofChr
-    .incbin "out/tiles/console.chr"
-    .assert * - :- = kSizeofChr * $40, error
+    CHR1_BANK $80
+    chr_inc "factory1"
+    chr_inc "factory2"
+    chr_res $08
+    chr_inc "tank"
+    chr_res $02
+    chr_inc "console"
+    END_CHR_BANK
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -734,15 +812,16 @@
 
 .EXPORT Ppu_ChrBgGarden
 .PROC Ppu_ChrBgGarden
-:   .incbin "out/tiles/jungle1.chr"
-    .incbin "out/tiles/jungle2.chr"
-    .incbin "out/tiles/jungle3.chr"
-    .incbin "out/tiles/arch.chr"
-    .incbin "out/tiles/drawbridge.chr"
-    .res $02 * kSizeofChr
-    .incbin "out/tiles/sign.chr"
-    .incbin "out/tiles/console.chr"
-    .assert * - :- = kSizeofChr * $40, error
+    CHR1_BANK $80
+    chr_inc "jungle1"
+    chr_inc "jungle2"
+    chr_inc "jungle3"
+    chr_inc "arch"
+    chr_inc "drawbridge"
+    chr_res $02
+    chr_inc "sign"
+    chr_inc "console"
+    END_CHR_BANK
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -751,12 +830,13 @@
 
 .EXPORT Ppu_ChrBgHouse
 .PROC Ppu_ChrBgHouse
-:   .incbin "out/tiles/indoors.chr"
-    .res $07 * kSizeofChr
-    .incbin "out/tiles/window.chr"
-    .incbin "out/tiles/furniture.chr"
-    .res $14 * kSizeofChr
-    .assert * - :- = kSizeofChr * $40, error
+    CHR1_BANK $80
+    chr_inc "indoors"
+    chr_res $07
+    chr_inc "window"
+    chr_inc "furniture"
+    chr_res $14
+    END_CHR_BANK
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -765,12 +845,13 @@
 
 .EXPORT Ppu_ChrBgHut
 .PROC Ppu_ChrBgHut
-:   .incbin "out/tiles/hut1.chr"
-    .incbin "out/tiles/hut2.chr"
-    .res $1e * kSizeofChr
-    .incbin "out/tiles/sign.chr"
-    .incbin "out/tiles/console.chr"
-    .assert * - :- = kSizeofChr * $40, error
+    CHR1_BANK $80
+    chr_inc "hut1"
+    chr_inc "hut2"
+    chr_res $1e
+    chr_inc "sign"
+    chr_inc "console"
+    END_CHR_BANK
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -779,16 +860,17 @@
 
 .EXPORT Ppu_ChrBgLava
 .PROC Ppu_ChrBgLava
-:   .incbin "out/tiles/steam_pipes.chr"
-    .incbin "out/tiles/volcanic1.chr"
-    .incbin "out/tiles/volcanic2.chr"
-    .res $08 * kSizeofChr
-    .incbin "out/tiles/field_bg.chr"
-    .res $04 * kSizeofChr
-    .incbin "out/tiles/boiler.chr"
-    .incbin "out/tiles/sign.chr"
-    .incbin "out/tiles/console.chr"
-    .assert * - :- = kSizeofChr * $40, error
+    CHR1_BANK $80
+    chr_inc "steam_pipes"
+    chr_inc "volcanic1"
+    chr_inc "volcanic2"
+    chr_res $08
+    chr_inc "field_bg"
+    chr_res $04
+    chr_inc "boiler"
+    chr_inc "sign"
+    chr_inc "console"
+    END_CHR_BANK
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -797,16 +879,17 @@
 
 .EXPORT Ppu_ChrBgMermaid
 .PROC Ppu_ChrBgMermaid
-:   .incbin "out/tiles/cave.chr"
-    .incbin "out/tiles/hut.chr"
-    .incbin "out/tiles/beach.chr"
-    .res $08 * kSizeofChr
-    .incbin "out/tiles/pump.chr"
-    .res $02 * kSizeofChr
-    .incbin "out/tiles/lever_ceil.chr"
-    .incbin "out/tiles/sign.chr"
-    .incbin "out/tiles/console.chr"
-    .assert * - :- = kSizeofChr * $40, error
+    CHR1_BANK $80
+    chr_inc "cave"
+    chr_inc "hut"
+    chr_inc "beach"
+    chr_res $08
+    chr_inc "pump"
+    chr_res $02
+    chr_inc "lever_ceil"
+    chr_inc "sign"
+    chr_inc "console"
+    END_CHR_BANK
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -815,15 +898,16 @@
 
 .EXPORT Ppu_ChrBgMine
 .PROC Ppu_ChrBgMine
-:   .incbin "out/tiles/crystal.chr"
-    .res $04 * kSizeofChr
-    .incbin "out/tiles/minecart.chr"
-    .incbin "out/tiles/scaffhold.chr"
-    .incbin "out/tiles/mine_door.chr"
-    .incbin "out/tiles/hoist_bg.chr"
-    .incbin "out/tiles/sign.chr"
-    .incbin "out/tiles/console.chr"
-    .assert * - :- = kSizeofChr * $40, error
+    CHR1_BANK $80
+    chr_inc "crystal"
+    chr_res $04
+    chr_inc "minecart"
+    chr_inc "scaffhold"
+    chr_inc "mine_door"
+    chr_inc "hoist_bg"
+    chr_inc "sign"
+    chr_inc "console"
+    END_CHR_BANK
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -832,11 +916,12 @@
 
 .EXPORT Ppu_ChrBgMinimap
 .PROC Ppu_ChrBgMinimap
-:   .incbin "out/tiles/minimap1.chr"
-    .incbin "out/tiles/minimap2.chr"
-    .incbin "out/tiles/minimap3.chr"
-    .incbin "out/tiles/minimap4.chr"
-    .assert * - :- = kSizeofChr * $40, error
+    CHR1_BANK $80
+    chr_inc "minimap1"
+    chr_inc "minimap2"
+    chr_inc "minimap3"
+    chr_inc "minimap4"
+    END_CHR_BANK
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -845,9 +930,10 @@
 
 .EXPORT Ppu_ChrBgOutbreak
 .PROC Ppu_ChrBgOutbreak
-:   .incbin "out/tiles/outbreak_bg.chr"
-    .res $18 * kSizeofChr
-    .assert * - :- = kSizeofChr * $40, error
+    CHR1_BANK $c0
+    chr_inc "outbreak_bg"
+    chr_res $18
+    END_CHR_BANK
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -856,15 +942,16 @@
 
 .EXPORT Ppu_ChrBgOutdoors
 .PROC Ppu_ChrBgOutdoors
-:   .incbin "out/tiles/outdoors.chr"
-    .incbin "out/tiles/roof.chr"
-    .incbin "out/tiles/window.chr"
-    .incbin "out/tiles/house.chr"
-    .incbin "out/tiles/tree.chr"
-    .res $02 * kSizeofChr
-    .incbin "out/tiles/sign.chr"
-    .incbin "out/tiles/hill.chr"
-    .assert * - :- = kSizeofChr * $40, error
+    CHR1_BANK $80
+    chr_inc "outdoors"
+    chr_inc "roof"
+    chr_inc "window"
+    chr_inc "house"
+    chr_inc "tree"
+    chr_res $02
+    chr_inc "sign"
+    chr_inc "hill"
+    END_CHR_BANK
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -873,25 +960,26 @@
 
 .EXPORT Ppu_ChrBgPause
 .PROC Ppu_ChrBgPause
-:   .incbin "out/tiles/upgrade_bottom.chr"
-    .incbin "out/tiles/upgrade_ram.chr"
-    .incbin "out/tiles/upgrade_bremote.chr"
-    .incbin "out/tiles/upgrade_opif.chr"
-    .incbin "out/tiles/upgrade_optil.chr"
-    .incbin "out/tiles/upgrade_opcopy.chr"
-    .incbin "out/tiles/upgrade_opaddsub.chr"
-    .incbin "out/tiles/upgrade_opmul.chr"
-    .incbin "out/tiles/upgrade_opbeep.chr"
-    .incbin "out/tiles/upgrade_opgoto.chr"
-    .incbin "out/tiles/upgrade_opskip.chr"
-    .incbin "out/tiles/upgrade_oprest.chr"
-    .incbin "out/tiles/upgrade_opsync.chr"
-    .res $06 * kSizeofChr
-    .incbin "out/tiles/minicore1.chr"
-    .res $07 * kSizeofChr
-    .incbin "out/tiles/minicore2.chr"
-    .incbin "out/tiles/paper.chr"
-    .assert * - :- = kSizeofChr * $40, error
+    CHR1_BANK $c0
+    chr_inc "upgrade_bottom"
+    chr_inc "upgrade_ram"
+    chr_inc "upgrade_bremote"
+    chr_inc "upgrade_opif"
+    chr_inc "upgrade_optil"
+    chr_inc "upgrade_opcopy"
+    chr_inc "upgrade_opaddsub"
+    chr_inc "upgrade_opmul"
+    chr_inc "upgrade_opbeep"
+    chr_inc "upgrade_opgoto"
+    chr_inc "upgrade_opskip"
+    chr_inc "upgrade_oprest"
+    chr_inc "upgrade_opsync"
+    chr_res $06
+    chr_inc "minicore1"
+    chr_res $07
+    chr_inc "minicore2"
+    chr_inc "paper"
+    END_CHR_BANK
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -900,12 +988,13 @@
 
 .EXPORT Ppu_ChrBgPrison
 .PROC Ppu_ChrBgPrison
-:   .incbin "out/tiles/cave.chr"
-    .incbin "out/tiles/prison.chr"
-    .res $18 * kSizeofChr
-    .incbin "out/tiles/sign.chr"
-    .incbin "out/tiles/console.chr"
-    .assert * - :- = kSizeofChr * $40, error
+    CHR1_BANK $80
+    chr_inc "cave"
+    chr_inc "prison"
+    chr_res $18
+    chr_inc "sign"
+    chr_inc "console"
+    END_CHR_BANK
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -914,14 +1003,15 @@
 
 .EXPORT Ppu_ChrBgSewer
 .PROC Ppu_ChrBgSewer
-:   .incbin "out/tiles/sewer1.chr"
-    .incbin "out/tiles/sewer2.chr"
-    .res $16 * kSizeofChr
-    .incbin "out/tiles/pump.chr"
-    .res $04 * kSizeofChr
-    .incbin "out/tiles/sign.chr"
-    .incbin "out/tiles/console.chr"
-    .assert * - :- = kSizeofChr * $40, error
+    CHR1_BANK $80
+    chr_inc "sewer1"
+    chr_inc "sewer2"
+    chr_res $16
+    chr_inc "pump"
+    chr_res $04
+    chr_inc "sign"
+    chr_inc "console"
+    END_CHR_BANK
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -930,14 +1020,15 @@
 
 .EXPORT Ppu_ChrBgShadow
 .PROC Ppu_ChrBgShadow
-:   .incbin "out/tiles/shadow1.chr"
-    .incbin "out/tiles/shadow2.chr"
-    .res $0c * kSizeofChr
-    .incbin "out/tiles/field_bg.chr"
-    .incbin "out/tiles/tank.chr"
-    .incbin "out/tiles/plaque.chr"
-    .incbin "out/tiles/console.chr"
-    .assert * - :- = kSizeofChr * $40, error
+    CHR1_BANK $80
+    chr_inc "shadow1"
+    chr_inc "shadow2"
+    chr_res $0c
+    chr_inc "field_bg"
+    chr_inc "tank"
+    chr_inc "plaque"
+    chr_inc "console"
+    END_CHR_BANK
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -946,13 +1037,14 @@
 
 .EXPORT Ppu_ChrBgTemple
 .PROC Ppu_ChrBgTemple
-:   .incbin "out/tiles/temple1.chr"
-    .incbin "out/tiles/temple2.chr"
-    .incbin "out/tiles/temple3.chr"
-    .incbin "out/tiles/temple4.chr"
-    .incbin "out/tiles/plaque.chr"
-    .incbin "out/tiles/console.chr"
-    .assert * - :- = kSizeofChr * $40, error
+    CHR1_BANK $80
+    chr_inc "temple1"
+    chr_inc "temple2"
+    chr_inc "temple3"
+    chr_inc "temple4"
+    chr_inc "plaque"
+    chr_inc "console"
+    END_CHR_BANK
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -961,11 +1053,12 @@
 
 .EXPORT Ppu_ChrBgTitle
 .PROC Ppu_ChrBgTitle
-:   .incbin "out/tiles/title1.chr"
-    .incbin "out/tiles/title2.chr"
-    .incbin "out/tiles/title3.chr"
-    .res $1b * kSizeofChr
-    .assert * - :- = kSizeofChr * $40, error
+    CHR1_BANK $80
+    chr_inc "title1"
+    chr_inc "title2"
+    chr_inc "title3"
+    chr_res $1b
+    END_CHR_BANK
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -974,12 +1067,13 @@
 
 .EXPORT Ppu_ChrBgWheel
 .PROC Ppu_ChrBgWheel
-:   .incbin "out/tiles/wheel1.chr"
-    .incbin "out/tiles/wheel2.chr"
-    .incbin "out/tiles/wheel3.chr"
-    .incbin "out/tiles/wheel4.chr"
-    .res $05 * kSizeofChr
-    .assert * - :- = kSizeofChr * $40, error
+    CHR1_BANK $c0
+    chr_inc "wheel1"
+    chr_inc "wheel2"
+    chr_inc "wheel3"
+    chr_inc "wheel4"
+    chr_res $05
+    END_CHR_BANK
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -988,10 +1082,10 @@
 
 .EXPORT Ppu_ChrObjAnnaFlower
 .PROC Ppu_ChrObjAnnaFlower
-:   .incbin "out/tiles/font_hilight.chr"
-    .assert * - :- = kSizeofChr * eAvatar::Standing, error
-    .incbin "out/tiles/player_flower.chr"
-    .assert * - :- = kSizeofChr * $80, error
+    CHR2_BANK $00
+    chr_inc "font_hilight"
+    chr_inc "player_flower", eAvatar::Standing
+    END_CHR_BANK
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -1000,10 +1094,10 @@
 
 .EXPORT Ppu_ChrObjAnnaNormal
 .PROC Ppu_ChrObjAnnaNormal
-:   .incbin "out/tiles/font_hilight.chr"
-    .assert * - :- = kSizeofChr * eAvatar::Standing, error
-    .incbin "out/tiles/player_normal.chr"
-    .assert * - :- = kSizeofChr * $80, error
+    CHR2_BANK $00
+    chr_inc "font_hilight"
+    chr_inc "player_normal", eAvatar::Standing
+    END_CHR_BANK
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -1012,56 +1106,36 @@
 
 .EXPORT Ppu_ChrObjBoss1
 .PROC Ppu_ChrObjBoss1
-:   .assert * - :- = (kTileIdObjUpgradeBottomFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/upgrade_bottom.chr"
-    .assert * - :- = (kTileIdObjUpgradeRamFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/upgrade_ram.chr"
-    .assert * - :- = (kTileIdObjBreakballFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/breakball.chr"
-    .assert * - :- = (kTileIdObjEmber - $80) * kSizeofChr, error
-    .incbin "out/tiles/ember.chr"
-    .res $01 * kSizeofChr
-    .assert * - :- = (kTileIdObjCannonFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/cannon.chr"
-    .assert * - :- = (kTileIdObjBulletFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/bullet.chr"
-    .res $06 * kSizeofChr
-    .assert * - :- = (kTileIdObjUpgradeOpRestFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/upgrade_oprest.chr"
-    .assert * - :- = (kTileIdObjBlasterFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/blaster.chr"
-    .assert * - :- = (kTileIdObjFireballFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/fireball.chr"
-    .assert * - :- = (kTileIdObjOutbreakFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/outbreak_obj.chr"
-    .res $08 * kSizeofChr
-    .assert * - :- = (kTileIdObjSpike - $80) * kSizeofChr, error
-    .incbin "out/tiles/spike.chr"
-    .assert * - :- = (kTileIdObjFlamewaveFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/flamewave.chr"
-    .res $02 * kSizeofChr
-    .assert * - :- = (kTileIdObjPlantEyeFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/plant_eye.chr"
-    .res $04 * kSizeofChr
-    .assert * - :- = (kTileIdObjPlantEyeRedFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/plant_eye_red.chr"
-    .assert * - :- = (kTileIdObjGazerFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/gazer_obj.chr"
-    .res $01 * kSizeofChr
-    .assert * - :- = (kTileIdObjMirrorFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/mirror.chr"
-    .res $03 * kSizeofChr
-    .assert * - :- = (kTileIdObjMinigunVertFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/minigun_vert.chr"
-    .assert * - :- = (kTileIdObjCrusherFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/crusher.chr"
-    .assert * - :- = (kTileIdObjWinchFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/winch.chr"
-    .assert * - :- = (kTileIdObjGrenadeFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/grenade.chr"
-    .assert * - :- = (kTileIdObjBreakerFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/breaker.chr"
-    .assert * - :- = kSizeofChr * $80, error
+    CHR2_BANK $80
+    chr_inc "upgrade_bottom", kTileIdObjUpgradeBottomFirst
+    chr_inc "upgrade_ram",    kTileIdObjUpgradeRamFirst
+    chr_inc "breakball",      kTileIdObjBreakballFirst
+    chr_inc "ember",          kTileIdObjEmber
+    chr_res $01
+    chr_inc "cannon",         kTileIdObjCannonFirst
+    chr_inc "bullet",         kTileIdObjBulletFirst
+    chr_res $06
+    chr_inc "upgrade_oprest", kTileIdObjUpgradeOpRestFirst
+    chr_inc "blaster",        kTileIdObjBlasterFirst
+    chr_inc "fireball",       kTileIdObjFireballFirst
+    chr_inc "outbreak_obj",   kTileIdObjOutbreakFirst
+    chr_res $08
+    chr_inc "spike",          kTileIdObjSpike
+    chr_inc "flamewave",      kTileIdObjFlamewaveFirst
+    chr_res $02
+    chr_inc "plant_eye",      kTileIdObjPlantEyeFirst
+    chr_res $04
+    chr_inc "plant_eye_red",  kTileIdObjPlantEyeRedFirst
+    chr_inc "gazer_obj",      kTileIdObjGazerFirst
+    chr_res $01
+    chr_inc "mirror",         kTileIdObjMirrorFirst
+    chr_res $03
+    chr_inc "minigun_vert",   kTileIdObjMinigunVertFirst
+    chr_inc "crusher",        kTileIdObjCrusherFirst
+    chr_inc "winch",          kTileIdObjWinchFirst
+    chr_inc "grenade",        kTileIdObjGrenadeFirst
+    chr_inc "breaker",        kTileIdObjBreakerFirst
+    END_CHR_BANK
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -1070,34 +1144,24 @@
 
 .EXPORT Ppu_ChrObjCity
 .PROC Ppu_ChrObjCity
-:   .assert * - :- = (kTileIdObjUpgradeBottomFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/upgrade_bottom.chr"
-    .res $02 * kSizeofChr
-    .assert * - :- = (kTileIdObjUpgradeBRemoteFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/upgrade_bremote.chr"
-    .assert * - :- = (kTileIdObjReloaderFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/reloader.chr"
-    .res $07 * kSizeofChr
-    .assert * - :- = (kTileIdObjLauncherVertFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/launcher_vert.chr"
-    .assert * - :- = (kTileIdObjLauncherHorzFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/launcher_horz.chr"
-    .assert * - :- = (kTileIdObjRocksFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/rocks.chr"
-    .res $02 * kSizeofChr
-    .assert * - :- = (kTileIdObjComboFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/combo.chr"
-    .assert * - :- = (kTileIdObjRodentFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/rodent.chr"
-    .res $07 * kSizeofChr
-    .assert * - :- = (kTileIdObjRhinoFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/rhino.chr"
-    .assert * - :- = (kTileIdObjSemaphoreFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/semaphore.chr"
-    .res $28 * kSizeofChr
-    .assert * - :- = (kTileIdObjBreakerFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/breaker.chr"
-    .assert * - :- = kSizeofChr * $80, error
+    CHR2_BANK $80
+    chr_inc "upgrade_bottom",  kTileIdObjUpgradeBottomFirst
+    chr_res $02
+    chr_inc "upgrade_bremote", kTileIdObjUpgradeBRemoteFirst
+    chr_inc "reloader",        kTileIdObjReloaderFirst
+    chr_res $07
+    chr_inc "launcher_vert",   kTileIdObjLauncherVertFirst
+    chr_inc "launcher_horz",   kTileIdObjLauncherHorzFirst
+    chr_inc "rocks",           kTileIdObjRocksFirst
+    chr_res $02
+    chr_inc "combo",           kTileIdObjComboFirst
+    chr_inc "rodent",          kTileIdObjRodentFirst
+    chr_res $07
+    chr_inc "rhino",           kTileIdObjRhinoFirst
+    chr_inc "semaphore",       kTileIdObjSemaphoreFirst
+    chr_res $28
+    chr_inc "breaker",         kTileIdObjBreakerFirst
+    END_CHR_BANK
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -1106,28 +1170,21 @@
 
 .EXPORT Ppu_ChrObjCrypt
 .PROC Ppu_ChrObjCrypt
-:   .assert * - :- = (kTileIdObjUpgradeBottomFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/upgrade_bottom.chr"
-    .res $10 * kSizeofChr
-    .assert * - :- = (kTileIdObjUpgradeOpGotoFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/upgrade_opgoto.chr"
-    .res $08 * kSizeofChr
-    .assert * - :- = (kTileIdObjBatFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/bat.chr"
-    .assert * - :- = (kTileIdObjSpiderFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/spider.chr"
-    .res $10 * kSizeofChr
-    .assert * - :- = (kTileIdObjWeakFloorFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/breakable.chr"
-    .res $0e * kSizeofChr
-    .assert * - :- = (kTileIdObjFishFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/fish.chr"
-    .assert * - :- = (kTileIdObjCrusherFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/crusher.chr"
-    .assert * - :- = (kTileIdObjWinchFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/winch.chr"
-    .res $14 * kSizeofChr
-    .assert * - :- = kSizeofChr * $80, error
+    CHR2_BANK $80
+    chr_inc "upgrade_bottom", kTileIdObjUpgradeBottomFirst
+    chr_res $10
+    chr_inc "upgrade_opgoto", kTileIdObjUpgradeOpGotoFirst
+    chr_res $08
+    chr_inc "bat",            kTileIdObjBatFirst
+    chr_inc "spider",         kTileIdObjSpiderFirst
+    chr_res $10
+    chr_inc "breakable",      kTileIdObjWeakFloorFirst
+    chr_res $0e
+    chr_inc "fish",           kTileIdObjFishFirst
+    chr_inc "crusher",        kTileIdObjCrusherFirst
+    chr_inc "winch",          kTileIdObjWinchFirst
+    chr_res $14
+    END_CHR_BANK
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -1136,24 +1193,18 @@
 
 .EXPORT Ppu_ChrObjFactory
 .PROC Ppu_ChrObjFactory
-:   .assert * - :- = (kTileIdObjUpgradeBottomFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/upgrade_bottom.chr"
-    .assert * - :- = (kTileIdObjJetFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/jet.chr"
-    .assert * - :- = (kTileIdObjRotorFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/rotor.chr"
-    .res $07 * kSizeofChr
-    .assert * - :- = (kTileIdObjUpgradeOpSkipFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/upgrade_opskip.chr"
-    .res $06 * kSizeofChr
-    .assert * - :- = (kTileIdObjGrubFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/grub.chr"
-    .assert * - :- = (kTileIdObjToadFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/toad.chr"
-    .assert * - :- = (kTileIdObjCraneFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/crane.chr"
-    .res $48 * kSizeofChr
-    .assert * - :- = kSizeofChr * $80, error
+    CHR2_BANK $80
+    chr_inc "upgrade_bottom", kTileIdObjUpgradeBottomFirst
+    chr_inc "jet",            kTileIdObjJetFirst
+    chr_inc "rotor",          kTileIdObjRotorFirst
+    chr_res $07
+    chr_inc "upgrade_opskip", kTileIdObjUpgradeOpSkipFirst
+    chr_res $06
+    chr_inc "grub",           kTileIdObjGrubFirst
+    chr_inc "toad",           kTileIdObjToadFirst
+    chr_inc "crane",          kTileIdObjCraneFirst
+    chr_res $48
+    END_CHR_BANK
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -1162,39 +1213,27 @@
 
 .EXPORT Ppu_ChrObjGarden
 .PROC Ppu_ChrObjGarden
-:   .assert * - :- = (kTileIdObjUpgradeBottomFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/upgrade_bottom.chr"
-    .res $04 * kSizeofChr
-    .assert * - :- = (kTileIdObjUpgradeOpIfFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/upgrade_opif.chr"
-    .assert * - :- = (kTileIdObjCannonFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/cannon.chr"
-    .assert * - :- = (kTileIdMermaidCorraFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/mermaid_corra.chr"
-    .assert * - :- = (kTileIdObjCrateFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/crate.chr"
-    .res $04 * kSizeofChr
-    .assert * - :- = (kTileIdObjGrubFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/grub.chr"
-    .res $02 * kSizeofChr
-    .assert * - :- = (kTileIdObjGardenBricksFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/garden_bricks.chr"
-    .assert * - :- = (kTileIdObjVinebugFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/vinebug.chr"
-    .assert * - :- = (kTileIdObjAnchorFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/anchor.chr"
-    .res $05 * kSizeofChr
-    .assert * - :- = (kTileIdObjBeetleFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/beetle.chr"
-    .res $04 * kSizeofChr
-    .assert * - :- = (kTileIdObjFishFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/fish.chr"
-    .assert * - :- = (kTileIdCorraSwimmingDownFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/corra_swimming_down.chr"
-    .assert * - :- = (kTileIdObjGrenadeFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/grenade.chr"
-    .assert * - :- = (kTileIdCorraSwimmingUpFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/corra_swimming_up.chr"
+    CHR2_BANK $80
+    chr_inc "upgrade_bottom",      kTileIdObjUpgradeBottomFirst
+    chr_res $04
+    chr_inc "upgrade_opif",        kTileIdObjUpgradeOpIfFirst
+    chr_inc "cannon",              kTileIdObjCannonFirst
+    chr_inc "mermaid_corra",       kTileIdMermaidCorraFirst
+    chr_inc "crate",               kTileIdObjCrateFirst
+    chr_res $04
+    chr_inc "grub",                kTileIdObjGrubFirst
+    chr_res $02
+    chr_inc "garden_bricks",       kTileIdObjGardenBricksFirst
+    chr_inc "vinebug",             kTileIdObjVinebugFirst
+    chr_inc "anchor",              kTileIdObjAnchorFirst
+    chr_res $05
+    chr_inc "beetle",              kTileIdObjBeetleFirst
+    chr_res $04
+    chr_inc "fish",                kTileIdObjFishFirst
+    chr_inc "corra_swimming_down", kTileIdCorraSwimmingDownFirst
+    chr_inc "grenade",             kTileIdObjGrenadeFirst
+    chr_inc "corra_swimming_up",   kTileIdCorraSwimmingUpFirst
+    END_CHR_BANK
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -1203,39 +1242,27 @@
 
 .EXPORT Ppu_ChrObjLava
 .PROC Ppu_ChrObjLava
-:   .assert * - :- = (kTileIdObjUpgradeBottomFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/upgrade_bottom.chr"
-    .assert * - :- = (kTileIdObjUpgradeRamFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/upgrade_ram.chr"
-    .res $02 * kSizeofChr
-    .assert * - :- = (kTileIdObjEmber - $80) * kSizeofChr, error
-    .incbin "out/tiles/ember.chr"
-    .res $03 * kSizeofChr
-    .assert * - :- = (kTileIdObjUpgradeOpCopyFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/upgrade_opcopy.chr"
-    .res $08 * kSizeofChr
-    .assert * - :- = (kTileIdObjCrateFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/crate.chr"
-    .assert * - :- = (kTileIdObjBlasterFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/blaster.chr"
-    .assert * - :- = (kTileIdObjFireballFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/fireball.chr"
-    .res $04 * kSizeofChr
-    .assert * - :- = (kTileIdObjHotheadFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/hothead.chr"
-    .assert * - :- = (kTileIdObjLavaballFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/lavaball.chr"
-    .assert * - :- = (kTileIdObjAnchorFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/anchor.chr"
-    .assert * - :- = (kTileIdObjValveFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/valve.chr"
-    .res $10 * kSizeofChr
-    .assert * - :- = (kTileIdObjMirrorFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/mirror.chr"
-    .res $1b * kSizeofChr
-    .assert * - :- = (kTileIdObjBreakerFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/breaker.chr"
-    .assert * - :- = kSizeofChr * $80, error
+    CHR2_BANK $80
+    chr_inc "upgrade_bottom", kTileIdObjUpgradeBottomFirst
+    chr_inc "upgrade_ram",    kTileIdObjUpgradeRamFirst
+    chr_res $02
+    chr_inc "ember",          kTileIdObjEmber
+    chr_res $03
+    chr_inc "upgrade_opcopy", kTileIdObjUpgradeOpCopyFirst
+    chr_res $08
+    chr_inc "crate",          kTileIdObjCrateFirst
+    chr_inc "blaster",        kTileIdObjBlasterFirst
+    chr_inc "fireball",       kTileIdObjFireballFirst
+    chr_res $04
+    chr_inc "hothead",        kTileIdObjHotheadFirst
+    chr_inc "lavaball",       kTileIdObjLavaballFirst
+    chr_inc "anchor",         kTileIdObjAnchorFirst
+    chr_inc "valve",          kTileIdObjValveFirst
+    chr_res $10
+    chr_inc "mirror",         kTileIdObjMirrorFirst
+    chr_res $1b
+    chr_inc "breaker",        kTileIdObjBreakerFirst
+    END_CHR_BANK
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -1244,32 +1271,22 @@
 
 .EXPORT Ppu_ChrObjMine
 .PROC Ppu_ChrObjMine
-:   .assert * - :- = (kTileIdObjUpgradeBottomFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/upgrade_bottom.chr"
-    .assert * - :- = (kTileIdObjUpgradeRamFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/upgrade_ram.chr"
-    .assert * - :- = (kTileIdObjHoistFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/hoist_obj.chr"
-    .assert * - :- = (kTileIdObjMineCageFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/mine_cage.chr"
-    .res $06 * kSizeofChr
-    .assert * - :- = (kTileIdObjWaspFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/wasp.chr"
-    .assert * - :- = (kTileIdObjUpgradeOpSyncFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/upgrade_opsync.chr"
-    .assert * - :- = (kTileIdObjFireballFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/fireball.chr"
-    .assert * - :- = (kTileIdObjBoulderFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/boulder.chr"
-    .assert * - :- = (kTileIdObjFireflyFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/firefly.chr"
-    .res $08 * kSizeofChr
-    .assert * - :- = (kTileIdObjCraneFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/crane.chr"
-    .res $38 * kSizeofChr
-    .assert * - :- = (kTileIdObjBreakerFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/breaker.chr"
-    .assert * - :- = kSizeofChr * $80, error
+    CHR2_BANK $80
+    chr_inc "upgrade_bottom", kTileIdObjUpgradeBottomFirst
+    chr_inc "upgrade_ram",    kTileIdObjUpgradeRamFirst
+    chr_inc "hoist_obj",      kTileIdObjHoistFirst
+    chr_inc "mine_cage",      kTileIdObjMineCageFirst
+    chr_res $06
+    chr_inc "wasp",           kTileIdObjWaspFirst
+    chr_inc "upgrade_opsync", kTileIdObjUpgradeOpSyncFirst
+    chr_inc "fireball",       kTileIdObjFireballFirst
+    chr_inc "boulder",        kTileIdObjBoulderFirst
+    chr_inc "firefly",        kTileIdObjFireflyFirst
+    chr_res $08
+    chr_inc "crane",          kTileIdObjCraneFirst
+    chr_res $38
+    chr_inc "breaker",        kTileIdObjBreakerFirst
+    END_CHR_BANK
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -1278,10 +1295,11 @@
 
 .EXPORT Ppu_ChrObjPause
 .PROC Ppu_ChrObjPause
-:   .incbin "out/tiles/font_upper.chr"
-    .incbin "out/tiles/pause.chr"
-    .res $30 * kSizeofChr
-    .assert * - :- = kSizeofChr * $80, error
+    CHR2_BANK $80
+    chr_inc "font_upper"
+    chr_inc "pause"
+    chr_res $30
+    END_CHR_BANK
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -1290,42 +1308,28 @@
 
 .EXPORT Ppu_ChrObjSewer
 .PROC Ppu_ChrObjSewer
-:   .assert * - :- = (kTileIdObjUpgradeBottomFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/upgrade_bottom.chr"
-    .assert * - :- = (kTileIdObjMultiplexerFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/multiplexer.chr"
-    .assert * - :- = (kTileIdObjPumpLight - $80) * kSizeofChr, error
-    .incbin "out/tiles/pump_light.chr"
-    .assert * - :- = (kTileIdObjWaterFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/water.chr"
-    .assert * - :- = (kTileIdObjJellyFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/jelly.chr"
-    .res $02 * kSizeofChr
-    .assert * - :- = (kTileIdObjUpgradeOpAddSubFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/upgrade_opaddsub.chr"
-    .res $02 * kSizeofChr
-    .assert * - :- = (kTileIdObjUpgradeOpBeepFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/upgrade_opbeep.chr"
-    .res $02 * kSizeofChr
-    .assert * - :- = (kTileIdObjMonitorFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/monitor.chr"
-    .assert * - :- = (kTileIdObjRocksFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/rocks.chr"
-    .res $02 * kSizeofChr
-    .assert * - :- = (kTileIdObjGrubFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/grub.chr"
-    .res $18 * kSizeofChr
-    .assert * - :- = (kTileIdObjBirdFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/bird.chr"
-    .assert * - :- = (kTileIdObjCrabFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/crab.chr"
-    .assert * - :- = (kTileIdObjHotSpringFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/hotspring.chr"
-    .assert * - :- = (kTileIdObjFishFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/fish.chr"
-    .assert * - :- = (kTileIdObjChildStandFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/child_stand.chr"
-    .assert * - :- = kSizeofChr * $80, error
+    CHR2_BANK $80
+    chr_inc "upgrade_bottom",   kTileIdObjUpgradeBottomFirst
+    chr_inc "multiplexer",      kTileIdObjMultiplexerFirst
+    chr_inc "pump_light",       kTileIdObjPumpLight
+    chr_inc "water",            kTileIdObjWaterFirst
+    chr_inc "jelly",            kTileIdObjJellyFirst
+    chr_res $02
+    chr_inc "upgrade_opaddsub", kTileIdObjUpgradeOpAddSubFirst
+    chr_res $02
+    chr_inc "upgrade_opbeep",   kTileIdObjUpgradeOpBeepFirst
+    chr_res $02
+    chr_inc "monitor",          kTileIdObjMonitorFirst
+    chr_inc "rocks",            kTileIdObjRocksFirst
+    chr_res $02
+    chr_inc "grub",             kTileIdObjGrubFirst
+    chr_res $18
+    chr_inc "bird",             kTileIdObjBirdFirst
+    chr_inc "crab",             kTileIdObjCrabFirst
+    chr_inc "hotspring",        kTileIdObjHotSpringFirst
+    chr_inc "fish",             kTileIdObjFishFirst
+    chr_inc "child_stand",      kTileIdObjChildStandFirst
+    END_CHR_BANK
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -1334,28 +1338,20 @@
 
 .EXPORT Ppu_ChrObjShadow
 .PROC Ppu_ChrObjShadow
-:   .assert * - :- = (kTileIdObjUpgradeBottomFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/upgrade_bottom.chr"
-    .res $0c * kSizeofChr
-    .assert * - :- = (kTileIdObjUpgradeOpMulFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/upgrade_opmul.chr"
-    .res $40 * kSizeofChr
-    .assert * - :- = (kTileIdObjFlydropFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/flydrop.chr"
-    .assert * - :- = (kTileIdObjAcid - $80) * kSizeofChr, error
-    .incbin "out/tiles/acid.chr"
-    .res $03 * kSizeofChr
-    .assert * - :- = (kTileIdObjLaserFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/laser.chr"
-    .assert * - :- = (kTileIdObjBarrierFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/barrier.chr"
-    .assert * - :- = (kTileIdObjEmitterFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/emitter.chr"
-    .assert * - :- = (kTileIdObjForcefieldFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/forcefield.chr"
-    .assert * - :- = (kTileIdObjBreakerFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/breaker.chr"
-    .assert * - :- = kSizeofChr * $80, error
+    CHR2_BANK $80
+    chr_inc "upgrade_bottom", kTileIdObjUpgradeBottomFirst
+    chr_res $0c
+    chr_inc "upgrade_opmul",  kTileIdObjUpgradeOpMulFirst
+    chr_res $40
+    chr_inc "flydrop",        kTileIdObjFlydropFirst
+    chr_inc "acid",           kTileIdObjAcid
+    chr_res $03
+    chr_inc "laser",          kTileIdObjLaserFirst
+    chr_inc "barrier",        kTileIdObjBarrierFirst
+    chr_inc "emitter",        kTileIdObjEmitterFirst
+    chr_inc "forcefield",     kTileIdObjForcefieldFirst
+    chr_inc "breaker",        kTileIdObjBreakerFirst
+    END_CHR_BANK
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -1364,36 +1360,26 @@
 
 .EXPORT Ppu_ChrObjTemple
 .PROC Ppu_ChrObjTemple
-:   .assert * - :- = (kTileIdObjUpgradeBottomFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/upgrade_bottom.chr"
-    .res $04 * kSizeofChr
-    .assert * - :- = (kTileIdObjColumnFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/column.chr"
-    .assert * - :- = (kTileIdObjUpgradeOpTilFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/upgrade_optil.chr"
-    .res $04 * kSizeofChr
-    .assert * - :- = (kTileIdObjBulletFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/bullet.chr"
-    .res $04 * kSizeofChr
-    .assert * - :- = (kTileIdObjCrateFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/crate.chr"
-    .res $08 * kSizeofChr
-    .assert * - :- = (kTileIdMermaidGuardFFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/mermaid_guardf.chr"
-    .res $02 * kSizeofChr
-    .assert * - :- = (kTileIdObjToadFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/toad.chr"
-    .assert * - :- = (kTileIdObjColumnCrackedFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/column_cracked.chr"
-    .res $08 * kSizeofChr
-    .assert * - :- = (kTileIdObjBeetleFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/beetle.chr"
-    .assert * - :- = (kTileIdObjMinigunHorzFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/minigun_horz.chr"
-    .assert * - :- = (kTileIdObjMinigunVertFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/minigun_vert.chr"
-    .assert * - :- = (kTileIdObjChildStandFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/child_stand.chr"
+    CHR2_BANK $80
+    chr_inc "upgrade_bottom", kTileIdObjUpgradeBottomFirst
+    chr_res $04
+    chr_inc "column",         kTileIdObjColumnFirst
+    chr_inc "upgrade_optil",  kTileIdObjUpgradeOpTilFirst
+    chr_res $04
+    chr_inc "bullet",         kTileIdObjBulletFirst
+    chr_res $04
+    chr_inc "crate",          kTileIdObjCrateFirst
+    chr_res $08
+    chr_inc "mermaid_guardf", kTileIdMermaidGuardFFirst
+    chr_res $02
+    chr_inc "toad",           kTileIdObjToadFirst
+    chr_inc "column_cracked", kTileIdObjColumnCrackedFirst
+    chr_res $08
+    chr_inc "beetle",         kTileIdObjBeetleFirst
+    chr_inc "minigun_horz",   kTileIdObjMinigunHorzFirst
+    chr_inc "minigun_vert",   kTileIdObjMinigunVertFirst
+    chr_inc "child_stand",    kTileIdObjChildStandFirst
+    END_CHR_BANK
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -1402,35 +1388,23 @@
 
 .EXPORT Ppu_ChrObjTown
 .PROC Ppu_ChrObjTown
-:   .assert * - :- = (kTileIdObjToddlerFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/toddler.chr"
-    .assert * - :- = (kTileIdObjStepstone - $80) * kSizeofChr, error
-    .incbin "out/tiles/stepstone.chr"
-    .assert * - :- = (kTileIdObjGateFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/gate.chr"
-    .assert * - :- = (kTileIdObjOrcStandingFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/orc_standing.chr"
-    .assert * - :- = (kTileIdObjLauncherVertFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/launcher_vert.chr"
-    .assert * - :- = (kTileIdObjCrateFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/crate.chr"
-    .assert * - :- = (kTileIdObjRocksFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/rocks.chr"
-    .res $06 * kSizeofChr
-    .assert * - :- = (kTileIdObjOrcGrontaFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/orc_gronta.chr"
-    .assert * - :- = (kTileIdObjOrcRunningFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/orc_running.chr"
-    .assert * - :- = (kTileIdObjOrcThrowingFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/orc_throwing.chr"
-    .assert * - :- = (kTileIdAdultWomanFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/adult_woman.chr"
-    .assert * - :- = (kTileIdAdultManFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/adult_man.chr"
-    .res $04 * kSizeofChr
-    .assert * - :- = (kTileIdObjChildStandFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/child_stand.chr"
-    .assert * - :- = kSizeofChr * $80, error
+    CHR2_BANK $80
+    chr_inc "toddler",       kTileIdObjToddlerFirst
+    chr_inc "stepstone",     kTileIdObjStepstone
+    chr_inc "gate",          kTileIdObjGateFirst
+    chr_inc "orc_standing",  kTileIdObjOrcStandingFirst
+    chr_inc "launcher_vert", kTileIdObjLauncherVertFirst
+    chr_inc "crate",         kTileIdObjCrateFirst
+    chr_inc "rocks",         kTileIdObjRocksFirst
+    chr_res $06
+    chr_inc "orc_gronta",    kTileIdObjOrcGrontaFirst
+    chr_inc "orc_running",   kTileIdObjOrcRunningFirst
+    chr_inc "orc_throwing",  kTileIdObjOrcThrowingFirst
+    chr_inc "adult_woman",   kTileIdAdultWomanFirst
+    chr_inc "adult_man",     kTileIdAdultManFirst
+    chr_res $04
+    chr_inc "child_stand",   kTileIdObjChildStandFirst
+    END_CHR_BANK
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -1439,29 +1413,20 @@
 
 .EXPORT Ppu_ChrObjVillage
 .PROC Ppu_ChrObjVillage
-:   .res $0e * kSizeofChr
-    .assert * - :- = (kTileIdMermaidCorraFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/mermaid_corra.chr"
-    .assert * - :- = (kTileIdMermaidFloristFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/mermaid_florist.chr"
-    .assert * - :- = (kTileIdMermaidDaphneFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/mermaid_daphne.chr"
-    .assert * - :- = (kTileIdMermaidGuardFFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/mermaid_guardf.chr"
-    .assert * - :- = (kTileIdMermaidGuardMFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/mermaid_guardm.chr"
-    .assert * - :- = (kTileIdMermaidPhoebeFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/mermaid_phoebe.chr"
-    .assert * - :- = (kTileIdMermaidFarmerFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/mermaid_farmer.chr"
-    .assert * - :- = (kTileIdMermaidQueenFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/mermaid_queen.chr"
-    .res $18 * kSizeofChr
-    .assert * - :- = (kTileIdObjChildSwimFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/child_swim.chr"
-    .assert * - :- = (kTileIdObjChildStandFirst - $80) * kSizeofChr, error
-    .incbin "out/tiles/child_stand.chr"
-    .assert * - :- = kSizeofChr * $80, error
+    CHR2_BANK $80
+    chr_res $0e
+    chr_inc "mermaid_corra",   kTileIdMermaidCorraFirst
+    chr_inc "mermaid_florist", kTileIdMermaidFloristFirst
+    chr_inc "mermaid_daphne",  kTileIdMermaidDaphneFirst
+    chr_inc "mermaid_guardf",  kTileIdMermaidGuardFFirst
+    chr_inc "mermaid_guardm",  kTileIdMermaidGuardMFirst
+    chr_inc "mermaid_phoebe",  kTileIdMermaidPhoebeFirst
+    chr_inc "mermaid_farmer",  kTileIdMermaidFarmerFirst
+    chr_inc "mermaid_queen",   kTileIdMermaidQueenFirst
+    chr_res $18
+    chr_inc "child_swim",      kTileIdObjChildSwimFirst
+    chr_inc "child_stand",     kTileIdObjChildStandFirst
+    END_CHR_BANK
 .ENDPROC
 
 ;;;=========================================================================;;;
