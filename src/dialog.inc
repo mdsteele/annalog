@@ -95,6 +95,7 @@
     MermaidVillageCorra
     MermaidVillageFarmer
     MermaidVillageGuard
+    PaperJerome01
     PaperJerome08
     PaperJerome10
     PaperJerome11
@@ -117,6 +118,7 @@
     PrisonUpperBruno
     PrisonUpperMarie
     PrisonUpperNora
+    ShadowGateScreen
     ShadowTeleportScreen
     TempleAltarPlaque
     TempleEntryMermaid

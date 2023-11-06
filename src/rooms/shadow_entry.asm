@@ -169,12 +169,18 @@ _Devices_sDevice_arr:
     d_byte BlockCol_u8, 3
     d_byte Target_byte, kLiftMachineIndex
     D_END
+    D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::Paper
+    d_byte BlockRow_u8, 6
+    d_byte BlockCol_u8, 3
+    d_byte Target_byte, eFlag::PaperJerome01
+    D_END
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None
 _Passages_sPassage_arr:
 :   D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Western | 0
-    d_byte Destination_eRoom, eRoom::ShadowEntry  ; TODO
+    d_byte Destination_eRoom, eRoom::ShadowGate
     d_byte SpawnBlock_u8, 6
     D_END
     D_STRUCT sPassage
@@ -237,6 +243,32 @@ _Rows:
 .PROC FuncC_Shadow_EntryLift_Tick
     ldax #kLiftMaxPlatformTop  ; param: max platform top
     jmp FuncA_Machine_LiftTick
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Dialog"
+
+.EXPORT DataA_Dialog_PaperJerome01_sDialog
+.PROC DataA_Dialog_PaperJerome01_sDialog
+    dlg_Text Paper, DataA_Text0_PaperJerome01_Page1_u8_arr
+    dlg_Text Paper, DataA_Text0_PaperJerome01_Page2_u8_arr
+    dlg_Done
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Text0"
+
+.PROC DataA_Text0_PaperJerome01_Page1_u8_arr
+    .byte "Day 1: My name is$"
+    .byte "Jerome. It was I who$"
+    .byte "created the orcs.#"
+.ENDPROC
+
+.PROC DataA_Text0_PaperJerome01_Page2_u8_arr
+    .byte "And now, I feel that I$"
+    .byte "must speak out.#"
 .ENDPROC
 
 ;;;=========================================================================;;;

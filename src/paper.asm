@@ -183,7 +183,7 @@ Ram_CollectedPapers_u8_arr: .res kPaperGridCols
 ;;; TODO: Once all papers exist, we can remove this and just use arithmetic.
 .PROC DataA_Pause_PaperDialogs_eDialog_arr
     D_ARRAY kNumPaperFlags, kFirstPaperFlag
-    d_byte eFlag::PaperJerome01, 0  ; TODO
+    d_byte eFlag::PaperJerome01, eDialog::PaperJerome01
     d_byte eFlag::PaperJerome02, 0  ; TODO
     d_byte eFlag::PaperJerome03, 0  ; TODO
     d_byte eFlag::PaperJerome04, 0  ; TODO
@@ -235,7 +235,7 @@ Ram_CollectedPapers_u8_arr: .res kPaperGridCols
 .EXPORT DataA_Pause_PaperLocation_eArea_arr
 .PROC DataA_Pause_PaperLocation_eArea_arr
     D_ARRAY kNumPaperFlags, kFirstPaperFlag
-    d_byte eFlag::PaperJerome01, $ff  ; TODO
+    d_byte eFlag::PaperJerome01, eArea::Shadow   ; room: ShadowEntry
     d_byte eFlag::PaperJerome02, $ff  ; TODO
     d_byte eFlag::PaperJerome03, $ff  ; TODO
     d_byte eFlag::PaperJerome04, $ff  ; TODO

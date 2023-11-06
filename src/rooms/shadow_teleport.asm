@@ -201,7 +201,8 @@ _Row12:
 
 .EXPORT DataA_Dialog_ShadowTeleportScreen_sDialog
 .PROC DataA_Dialog_ShadowTeleportScreen_sDialog
-    dlg_Text Screen, DataA_Text0_ShadowTeleportScreen_u8_arr
+    dlg_Text Screen, DataA_Text0_ShadowTeleportScreen_Page1_u8_arr
+    dlg_Text Screen, DataA_Text0_ShadowTeleportScreen_Page2_u8_arr
     dlg_Done
 .ENDPROC
 
@@ -209,8 +210,17 @@ _Row12:
 
 .SEGMENT "PRGA_Text0"
 
-.PROC DataA_Text0_ShadowTeleportScreen_u8_arr
-    .byte "Lorem ipsum.#"
+.PROC DataA_Text0_ShadowTeleportScreen_Page1_u8_arr
+    .byte "Long have we tried and$"
+    .byte "failed to use modern$"
+    .byte "technology to solve$"
+    .byte "old social problems.#"
+.ENDPROC
+
+.PROC DataA_Text0_ShadowTeleportScreen_Page2_u8_arr
+    .byte "So instead, we can use$"
+    .byte "technology to sidestep$"
+    .byte "those problems.#"
 .ENDPROC
 
 ;;;=========================================================================;;;

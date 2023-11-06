@@ -247,6 +247,7 @@ _Flags_eFlag_arr:
     .byte eFlag::PrisonUpperFreedAlex
     .byte eFlag::PrisonUpperGateOpen
     .byte eFlag::PrisonUpperFreedKids
+    .byte eFlag::PrisonCellGateOpen
     .byte eFlag::FlowerPrison
     .byte eFlag::MermaidHut1AlexPetition
     .byte eFlag::FlowerCore
@@ -293,6 +294,8 @@ _Flags_eFlag_arr:
     .byte eFlag::BossCity
     .byte eFlag::UpgradeBRemote
     .byte eFlag::BreakerCity
+    .byte eFlag::PaperJerome01
+    .byte eFlag::ShadowTrapDisarmed
     .byte eFlag::BossShadow
     .byte eFlag::UpgradeOpMul
     .byte eFlag::BreakerShadow

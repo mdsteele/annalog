@@ -66,6 +66,7 @@
 .IMPORT DataA_Dialog_MermaidVillageCorra_sDialog
 .IMPORT DataA_Dialog_MermaidVillageFarmer_sDialog
 .IMPORT DataA_Dialog_MermaidVillageGuard_sDialog
+.IMPORT DataA_Dialog_PaperJerome01_sDialog
 .IMPORT DataA_Dialog_PaperJerome08_sDialog
 .IMPORT DataA_Dialog_PaperJerome10_sDialog
 .IMPORT DataA_Dialog_PaperJerome11_sDialog
@@ -88,6 +89,7 @@
 .IMPORT DataA_Dialog_PrisonUpperBruno_sDialog
 .IMPORT DataA_Dialog_PrisonUpperMarie_sDialog
 .IMPORT DataA_Dialog_PrisonUpperNora_sDialog
+.IMPORT DataA_Dialog_ShadowGateScreen_sDialog
 .IMPORT DataA_Dialog_ShadowTeleportScreen_sDialog
 .IMPORT DataA_Dialog_TempleAltarPlaque_sDialog
 .IMPORT DataA_Dialog_TempleEntryMermaid_sDialog
@@ -442,6 +444,7 @@ _Finish:
     d_entry t, MermaidVillageCorra,  DataA_Dialog_MermaidVillageCorra_sDialog
     d_entry t, MermaidVillageFarmer, DataA_Dialog_MermaidVillageFarmer_sDialog
     d_entry t, MermaidVillageGuard,  DataA_Dialog_MermaidVillageGuard_sDialog
+    d_entry t, PaperJerome01,        DataA_Dialog_PaperJerome01_sDialog
     d_entry t, PaperJerome08,        DataA_Dialog_PaperJerome08_sDialog
     d_entry t, PaperJerome10,        DataA_Dialog_PaperJerome10_sDialog
     d_entry t, PaperJerome11,        DataA_Dialog_PaperJerome11_sDialog
@@ -466,6 +469,7 @@ _Finish:
     d_entry t, PrisonUpperBruno,     DataA_Dialog_PrisonUpperBruno_sDialog
     d_entry t, PrisonUpperMarie,     DataA_Dialog_PrisonUpperMarie_sDialog
     d_entry t, PrisonUpperNora,      DataA_Dialog_PrisonUpperNora_sDialog
+    d_entry t, ShadowGateScreen,     DataA_Dialog_ShadowGateScreen_sDialog
     d_entry t, ShadowTeleportScreen, DataA_Dialog_ShadowTeleportScreen_sDialog
     d_entry t, TempleAltarPlaque,    DataA_Dialog_TempleAltarPlaque_sDialog
     d_entry t, TempleEntryMermaid,   DataA_Dialog_TempleEntryMermaid_sDialog
