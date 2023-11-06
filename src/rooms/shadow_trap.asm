@@ -176,7 +176,7 @@ _Platforms_sPlatform_arr:
     d_word WidthPx_u16, kLaserMachineWidthPx
     d_byte HeightPx_u8, kLaserMachineHeightPx
     d_word Left_i16, kLaserInitPlatformLeft
-    d_word Top_i16,   $0020
+    d_word Top_i16,   $0010
     D_END
     .assert * - :- = kTrapZonePlatformIndex * .sizeof(sPlatform), error
     D_STRUCT sPlatform
@@ -411,7 +411,7 @@ _OpenBarriers:
     ldy #0                         ; param: laser bottom (hi)
     jmp FuncA_Machine_LaserTryAct
 _LaserBottom_i16_0_arr:
-    .byte $c5, $c5, $c5, $c5, $b0, $b0, $c5, $c5, $c5, $c5
+    .byte $30, $c5, $c5, $c5, $b0, $b0, $c5, $c5, $c5, $30
 .ENDPROC
 
 .PROC FuncA_Machine_ShadowTrapLaser_Tick
