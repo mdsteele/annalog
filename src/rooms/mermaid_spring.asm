@@ -367,7 +367,7 @@ _WaterWidth_u8_arr:
 .PROC DataA_Room_MermaidSpring_EnterRoom
 _Alex:
     ;; If Alex isn't here yet, or the spring is drained, remove him.
-    flag_bit Sram_ProgressFlags_arr, eFlag::FactoryVaultTalkedToAlex
+    flag_bit Sram_ProgressFlags_arr, eFlag::CityOutskirtsTalkedToAlex
     beq @removeAlex
     flag_bit Sram_ProgressFlags_arr, eFlag::MermaidSpringUnplugged
     beq @keepAlex
@@ -576,7 +576,7 @@ _Closed_sDialog:
 
 .SEGMENT "PRGA_Text0"
 
-;;; TODO: update this dialog now that FactoryVault exists.
+;;; TODO: update this dialog now that Alex meets you in CityOutskirts.
 .PROC DataA_Text0_MermaidSpringAlex1_Part1_u8_arr
     .byte "Anna, you're back! I$"
     .byte "knew you'd do great.$"

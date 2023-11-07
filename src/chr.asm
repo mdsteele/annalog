@@ -1149,11 +1149,9 @@ _chr_begin:
     chr_res $02
     chr_inc "upgrade_bremote", kTileIdObjUpgradeBRemoteFirst
     chr_inc "reloader",        kTileIdObjReloaderFirst
-    chr_res $07
-    chr_inc "launcher_vert",   kTileIdObjLauncherVertFirst
+    chr_res $0b
     chr_inc "launcher_horz",   kTileIdObjLauncherHorzFirst
-    chr_inc "rocks",           kTileIdObjRocksFirst
-    chr_res $02
+    chr_res $04
     chr_inc "combo",           kTileIdObjComboFirst
     chr_inc "rodent",          kTileIdObjRodentFirst
     chr_res $07
@@ -1317,9 +1315,8 @@ _chr_begin:
     chr_res $02
     chr_inc "upgrade_opaddsub", kTileIdObjUpgradeOpAddSubFirst
     chr_res $02
-    chr_inc "upgrade_opbeep",   kTileIdObjUpgradeOpBeepFirst
-    chr_res $02
     chr_inc "monitor",          kTileIdObjMonitorFirst
+    chr_inc "launcher_horz",    kTileIdObjLauncherHorzFirst
     chr_inc "rocks",            kTileIdObjRocksFirst
     chr_res $02
     chr_inc "grub",             kTileIdObjGrubFirst
@@ -1367,7 +1364,8 @@ _chr_begin:
     chr_inc "upgrade_optil",  kTileIdObjUpgradeOpTilFirst
     chr_res $04
     chr_inc "bullet",         kTileIdObjBulletFirst
-    chr_res $04
+    chr_inc "upgrade_opbeep", kTileIdObjUpgradeOpBeepFirst
+    chr_res $02
     chr_inc "crate",          kTileIdObjCrateFirst
     chr_res $08
     chr_inc "mermaid_guardf", kTileIdMermaidGuardFFirst

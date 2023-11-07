@@ -140,7 +140,7 @@ _Passages_sPassage_arr:
 .SEGMENT "PRGA_Room"
 
 .PROC FuncA_Room_FactoryVault_EnterRoom
-    flag_bit Sram_ProgressFlags_arr, eFlag::BreakerCrypt
+    flag_bit Sram_ProgressFlags_arr, eFlag::BreakerLava
     beq @removeAlex
     flag_bit Sram_ProgressFlags_arr, eFlag::FactoryVaultTalkedToAlex
     beq @keepAlex
@@ -195,6 +195,7 @@ _MeetAtHotSpring_sDialog:
 
 .SEGMENT "PRGA_Text0"
 
+;;; TODO: update dialog; Alex shouldn't meet you here until after Lava area
 .PROC DataA_Text0_FactoryVaultAlex_Part1_u8_arr
     .byte "Anna, you're back! I$"
     .byte "knew you'd do great.$"

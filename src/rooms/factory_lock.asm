@@ -92,7 +92,7 @@ _Machines_sMachine_arr:
 :   .assert * - :- = kLiftMachineIndex * .sizeof(sMachine), error
     D_STRUCT sMachine
     d_byte Code_eProgram, eProgram::FactoryLockLift
-    d_byte Breaker_eFlag, eFlag::BreakerCrypt
+    d_byte Breaker_eFlag, eFlag::BreakerLava
     d_byte Flags_bMachine, bMachine::MoveV
     d_byte Status_eDiagram, eDiagram::Lift
     d_word ScrollGoalX_u16, $10

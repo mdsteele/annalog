@@ -18,10 +18,14 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "../actor.inc"
+.INCLUDE "../actors/child.inc"
 .INCLUDE "../actors/particle.inc"
 .INCLUDE "../actors/rocket.inc"
+.INCLUDE "../avatar.inc"
 .INCLUDE "../charmap.inc"
+.INCLUDE "../cutscene.inc"
 .INCLUDE "../device.inc"
+.INCLUDE "../dialog.inc"
 .INCLUDE "../flag.inc"
 .INCLUDE "../machine.inc"
 .INCLUDE "../machines/launcher.inc"
@@ -32,7 +36,8 @@
 .INCLUDE "../room.inc"
 
 .IMPORT DataA_Room_City_sTileset
-.IMPORT Data_Empty_sActor_arr
+.IMPORT FuncA_Dialog_AddQuestMarker
+.IMPORT FuncA_Dialog_JumpToCutscene
 .IMPORT FuncA_Machine_Error
 .IMPORT FuncA_Machine_GenericMoveTowardGoalVert
 .IMPORT FuncA_Machine_GenericTryMoveY
@@ -48,13 +53,24 @@
 .IMPORT Func_SetPointToActorCenter
 .IMPORT Func_ShakeRoom
 .IMPORT Ppu_ChrBgAnimStatic
-.IMPORT Ppu_ChrObjCity
+.IMPORT Ppu_ChrObjSewer
+.IMPORT Ram_ActorState2_byte_arr
+.IMPORT Ram_ActorType_eActor_arr
+.IMPORT Ram_DeviceType_eDevice_arr
 .IMPORT Ram_MachineGoalVert_u8_arr
 .IMPORT Ram_MachineState1_byte_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORT Ram_PlatformType_ePlatform_arr
 .IMPORT Sram_ProgressFlags_arr
 .IMPORTZP Zp_Chr0cBank_u8
+
+;;;=========================================================================;;;
+
+;;; The actor index for Alex in this room.
+kAlexActorIndex = 0
+;;; The talk device indices for Alex in this room.
+kAlexDeviceIndexRight = 0
+kAlexDeviceIndexLeft  = 1
 
 ;;;=========================================================================;;;
 
@@ -93,14 +109,14 @@ kLauncherInitPlatformTop = \
     d_addr TerrainData_ptr, _TerrainData
     d_byte NumMachines_u8, 1
     d_addr Machines_sMachine_arr_ptr, _Machines_sMachine_arr
-    d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjCity)
+    d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjSewer)
     d_addr Ext_sRoomExt_ptr, _Ext_sRoomExt
     D_END
 _Ext_sRoomExt:
     D_STRUCT sRoomExt
     d_addr Terrain_sTileset_ptr, DataA_Room_City_sTileset
     d_addr Platforms_sPlatform_arr_ptr, _Platforms_sPlatform_arr
-    d_addr Actors_sActor_arr_ptr, Data_Empty_sActor_arr
+    d_addr Actors_sActor_arr_ptr, _Actors_sActor_arr
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
     d_addr Passages_sPassage_arr_ptr, _Passages_sPassage_arr
     d_addr Enter_func_ptr, FuncA_Room_CityOutskirts_EnterRoom
@@ -151,8 +167,32 @@ _Platforms_sPlatform_arr:
     D_END
     .assert * - :- <= kMaxPlatforms * .sizeof(sPlatform), error
     .byte ePlatform::None
+_Actors_sActor_arr:
+:   .assert * - :- = kAlexActorIndex * .sizeof(sActor), error
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::NpcChild
+    d_word PosX_i16, $00c0
+    d_word PosY_i16, $0088
+    d_byte Param_byte, eNpcChild::AlexStanding
+    D_END
+    .assert * - :- <= kMaxActors * .sizeof(sActor), error
+    .byte eActor::None
 _Devices_sDevice_arr:
-:   D_STRUCT sDevice
+:   .assert * - :- = kAlexDeviceIndexRight * .sizeof(sDevice), error
+    D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::TalkRight
+    d_byte BlockRow_u8, 8
+    d_byte BlockCol_u8, 11
+    d_byte Target_byte, eDialog::CityOutskirtsAlex1
+    D_END
+    .assert * - :- = kAlexDeviceIndexLeft * .sizeof(sDevice), error
+    D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::TalkLeft
+    d_byte BlockRow_u8, 8
+    d_byte BlockCol_u8, 12
+    d_byte Target_byte, eDialog::CityOutskirtsAlex1
+    D_END
+    D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Console
     d_byte BlockRow_u8, 4
     d_byte BlockCol_u8, 23
@@ -212,6 +252,21 @@ _RockWall:
 .SEGMENT "PRGA_Room"
 
 .PROC FuncA_Room_CityOutskirts_EnterRoom
+_Alex:
+    ;; If Alex isn't here yet, or he's done being here, remove him.
+    flag_bit Sram_ProgressFlags_arr, eFlag::BreakerCrypt
+    beq @removeAlex
+    flag_bit Sram_ProgressFlags_arr, eFlag::CityOutskirtsTalkedToAlex
+    beq @keepAlex
+    @removeAlex:
+    lda #0
+    .assert eActor::None = 0, error
+    sta Ram_ActorType_eActor_arr + kAlexActorIndex
+    .assert eDevice::None = 0, error
+    sta Ram_DeviceType_eDevice_arr + kAlexDeviceIndexLeft
+    sta Ram_DeviceType_eDevice_arr + kAlexDeviceIndexRight
+    @keepAlex:
+_Rocks:
     flag_bit Sram_ProgressFlags_arr, eFlag::CityOutskirtsBlastedRocks
     bne @removeRocks
     @loadRocketLauncher:
@@ -278,6 +333,110 @@ _RockWall:
     jsr FuncA_Machine_GenericMoveTowardGoalVert  ; returns Z
     jeq FuncA_Machine_ReachedGoal
     rts
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Cutscene"
+
+.EXPORT DataA_Cutscene_CityOutskirtsLook_sCutscene
+.PROC DataA_Cutscene_CityOutskirtsLook_sCutscene
+    act_SetActorState2 kAlexActorIndex, $ff
+    act_SetActorFlags kAlexActorIndex, 0
+    act_ForkStart 1, _Look_sCutscene
+    act_ScrollSlowX $0090
+    act_WaitFrames 30
+    act_RunDialog eDialog::CityOutskirtsAlex2
+    act_ContinueExploring
+_Look_sCutscene:
+    act_WaitFrames 20
+    act_SetAvatarFlags 0 | kPaletteObjAvatarNormal
+    act_ForkStop $ff
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Dialog"
+
+.EXPORT DataA_Dialog_CityOutskirtsAlex1_sDialog
+.PROC DataA_Dialog_CityOutskirtsAlex1_sDialog
+    dlg_Func _InitFunc
+_InitFunc:
+    flag_bit Sram_ProgressFlags_arr, eFlag::CityOutskirtsTalkedToAlex
+    bne FuncA_Dialog_CityOutskirtsMeetAtHotSpring
+    ldya #_YouMadeIt_sDialog
+    rts
+_YouMadeIt_sDialog:
+    dlg_Text ChildAlex, DataA_Text1_CityOutskirtsAlex_Part1_u8_arr
+    dlg_Text ChildAlex, DataA_Text1_CityOutskirtsAlex_Part2_u8_arr
+    dlg_Func _CutsceneFunc
+_CutsceneFunc:
+    ldx #eCutscene::CityOutskirtsLook  ; param: cutscene
+    jmp FuncA_Dialog_JumpToCutscene
+.ENDPROC
+
+.EXPORT DataA_Dialog_CityOutskirtsAlex2_sDialog
+.PROC DataA_Dialog_CityOutskirtsAlex2_sDialog
+    dlg_Text ChildAlex, DataA_Text1_CityOutskirtsAlex_Part3_u8_arr
+    dlg_Text ChildAlex, DataA_Text1_CityOutskirtsAlex_Part4_u8_arr
+    dlg_Func FuncA_Dialog_CityOutskirtsAddQuestMarkerAndMeetAtHotSpring
+.ENDPROC
+
+.PROC FuncA_Dialog_CityOutskirtsAddQuestMarkerAndMeetAtHotSpring
+    lda #$00
+    sta Ram_ActorState2_byte_arr + kAlexActorIndex
+    ldx #eFlag::CityOutskirtsTalkedToAlex  ; param: flag
+    jsr FuncA_Dialog_AddQuestMarker
+    .assert * = FuncA_Dialog_CityOutskirtsMeetAtHotSpring, error, "fallthrough"
+.ENDPROC
+
+.PROC FuncA_Dialog_CityOutskirtsMeetAtHotSpring
+    ldya #DataA_Dialog_CityOutskirtsMeetAtHotSpring_sDialog
+    rts
+.ENDPROC
+
+.PROC DataA_Dialog_CityOutskirtsMeetAtHotSpring_sDialog
+    dlg_Text ChildAlex, DataA_Text1_CityOutskirtsAlex_Part5_u8_arr
+    dlg_Done
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Text1"
+
+.PROC DataA_Text1_CityOutskirtsAlex_Part1_u8_arr
+    .byte "Anna, you made it! I$"
+    .byte "knew you'd do great.$"
+    .byte "What did you find out$"
+    .byte "under the temple?#"
+.ENDPROC
+
+.PROC DataA_Text1_CityOutskirtsAlex_Part2_u8_arr
+    .byte "Huh? The mermaids were$"
+    .byte "CREATED by humans? But$"
+    .byte "why? There's so much$"
+    .byte "we don't know...#"
+.ENDPROC
+
+.PROC DataA_Text1_CityOutskirtsAlex_Part3_u8_arr
+    .byte "Anna, do you see that?$"
+    .byte "We're on the outskirts$"
+    .byte "of a human city. Lost$"
+    .byte "and buried for years.#"
+.ENDPROC
+
+.PROC DataA_Text1_CityOutskirtsAlex_Part4_u8_arr
+    .byte "At home, we're barely$"
+    .byte "smithing iron. Can you$"
+    .byte "believe what we used$"
+    .byte "to be able to build?#"
+.ENDPROC
+
+.PROC DataA_Text1_CityOutskirtsAlex_Part5_u8_arr
+    .byte "We're going to find a$"
+    .byte "way into that city.$"
+    .byte "Meet me back in the$"
+    .byte "mermaid village, OK?#"
 .ENDPROC
 
 ;;;=========================================================================;;;

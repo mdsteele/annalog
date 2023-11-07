@@ -28,6 +28,7 @@
 .INCLUDE "oam.inc"
 
 .IMPORT DataA_Cutscene_CityFlowerOrcAttack_sCutscene
+.IMPORT DataA_Cutscene_CityOutskirtsLook_sCutscene
 .IMPORT DataA_Cutscene_CoreBossPowerUpCircuit_sCutscene
 .IMPORT DataA_Cutscene_CoreBossStartBattle_sCutscene
 .IMPORT DataA_Cutscene_CoreSouthCorraHelping_sCutscene
@@ -170,6 +171,8 @@ _Finish:
     d_entry table, None, DataA_Cutscene_Null_sCutscene
     d_entry table, CityFlowerOrcAttack, \
             DataA_Cutscene_CityFlowerOrcAttack_sCutscene
+    d_entry table, CityOutskirtsLook, \
+            DataA_Cutscene_CityOutskirtsLook_sCutscene
     d_entry table, CoreBossPowerUpCircuit, \
             DataA_Cutscene_CoreBossPowerUpCircuit_sCutscene
     d_entry table, CoreBossStartBattle, \

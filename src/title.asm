@@ -265,7 +265,7 @@ _Flags_eFlag_arr:
     .byte eFlag::BreakerCrypt
     .byte eFlag::PaperJerome21
     .byte eFlag::FlowerCrypt
-    .byte eFlag::FactoryVaultTalkedToAlex
+    .byte eFlag::CityOutskirtsTalkedToAlex
     .byte eFlag::UpgradeOpSkip
     .byte eFlag::FlowerGarden
     .byte eFlag::MermaidSpringConsoleFixed
@@ -285,8 +285,10 @@ _Flags_eFlag_arr:
     .byte eFlag::BreakerMine
     .byte eFlag::UpgradeOpAddSub
     .byte eFlag::FlowerMine
+    .byte eFlag::FactoryVaultTalkedToAlex
     .byte eFlag::FlowerLava
     .byte eFlag::FlowerSewer
+    .byte eFlag::CityOutskirtsBlastedRocks
     .byte eFlag::CityCenterKeygenConnected
     .byte eFlag::PaperJerome35
     .byte eFlag::FlowerCity

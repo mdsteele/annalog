@@ -39,6 +39,7 @@ kMaxForks = 4
 .ENUM eCutscene
     None
     CityFlowerOrcAttack
+    CityOutskirtsLook
     CoreBossPowerUpCircuit
     CoreBossStartBattle
     CoreSouthCorraHelping

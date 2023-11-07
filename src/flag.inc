@@ -144,6 +144,7 @@ kSaveMagicNumber = $b2
     CityCenterDoorUnlocked
     CityCenterKeygenConnected
     CityOutskirtsBlastedRocks
+    CityOutskirtsTalkedToAlex
     CoreSouthCorraHelped
     CoreSouthCorraWaiting
     CryptLandingDroppedIn

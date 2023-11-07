@@ -66,6 +66,8 @@
     CityBuilding6Screen
     CityFlowerOrcAngry
     CityFlowerOrcCalm
+    CityOutskirtsAlex1
+    CityOutskirtsAlex2
     CoreBossGrontaGive
     CoreBossGrontaIntro
     CoreSouthCorra1

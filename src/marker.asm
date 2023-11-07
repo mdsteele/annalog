@@ -167,7 +167,7 @@
     D_STRUCT sMarker
     d_byte Row_u8, 10
     d_byte Col_u8, 14  ; room: MermaidSpring
-    d_byte If_eFlag, eFlag::FactoryVaultTalkedToAlex
+    d_byte If_eFlag, eFlag::CityOutskirtsTalkedToAlex
     d_byte Not_eFlag, eFlag::MermaidSpringUnplugged
     D_END
     D_STRUCT sMarker
