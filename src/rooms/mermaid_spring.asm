@@ -540,7 +540,6 @@ _Intro_sDialog:
     dlg_Text ChildAlex, DataA_Text0_MermaidSpringAlex1_Part2_u8_arr
     dlg_Text ChildAlex, DataA_Text0_MermaidSpringAlex1_Part3_u8_arr
     dlg_Text ChildAlex, DataA_Text0_MermaidSpringAlex1_Part4_u8_arr
-    dlg_Text ChildAlex, DataA_Text0_MermaidSpringAlex1_Part5_u8_arr
     dlg_Func _CutsceneFunc
 _CutsceneFunc:
     ldx #eCutscene::MermaidSpringFixConsole  ; param: cutscene
@@ -576,35 +575,28 @@ _Closed_sDialog:
 
 .SEGMENT "PRGA_Text0"
 
-;;; TODO: update this dialog now that Alex meets you in CityOutskirts.
 .PROC DataA_Text0_MermaidSpringAlex1_Part1_u8_arr
-    .byte "Anna, you're back! I$"
-    .byte "knew you'd do great.$"
-    .byte "What did you find out$"
-    .byte "under the temple?#"
+    .byte "Thanks for coming. I$"
+    .byte "hate to ask, but...$"
+    .byte "well, you're the best$"
+    .byte "with these machines.#"
 .ENDPROC
 
 .PROC DataA_Text0_MermaidSpringAlex1_Part2_u8_arr
-    .byte "...Huh? The mermaids$"
-    .byte "were CREATED by$"
-    .byte "humans? But...why?#"
+    .byte "I'm convinced we'll$"
+    .byte "find answers in that$"
+    .byte "city, but every way$"
+    .byte "in is blocked off.#"
 .ENDPROC
 
 .PROC DataA_Text0_MermaidSpringAlex1_Part3_u8_arr
-    .byte "Anyway, I've been out$"
-    .byte "scouting. New machines$"
-    .byte "keep turning on as you$"
-    .byte "find those breakers.#"
+    .byte "However, I think we$"
+    .byte "can get there via the$"
+    .byte "caves, by approaching$"
+    .byte "from below.#"
 .ENDPROC
 
 .PROC DataA_Text0_MermaidSpringAlex1_Part4_u8_arr
-    .byte "Let's keep that up.$"
-    .byte "We need to get all$"
-    .byte "this old technology$"
-    .byte "working for us again!#"
-.ENDPROC
-
-.PROC DataA_Text0_MermaidSpringAlex1_Part5_u8_arr
     .byte "The mermaids aren't$"
     .byte "helping. But I found$"
     .byte "something they had$"
