@@ -18,7 +18,7 @@
 ;;;=========================================================================;;;
 
 ;;; OBJ tile IDs for drawing column platforms.
-kTileIdObjColumnFirst        = $86
+kTileIdObjColumnFirst        = $84
 kTileIdObjColumnCrackedFirst = $b0
 
 ;;;=========================================================================;;;

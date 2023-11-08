@@ -123,7 +123,9 @@
     ShadowGateScreen
     ShadowTeleportScreen
     TempleAltarPlaque
-    TempleEntryMermaid
+    TempleEntryCorraHi
+    TempleEntryCorraWait
+    TempleEntryGuard
     TempleNaveAlexBoost1
     TempleNaveAlexBoost2
     TempleNaveAlexStand

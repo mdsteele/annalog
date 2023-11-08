@@ -26,6 +26,6 @@
 ;;;   * State3: Unused.
 
 ;;; Tile IDs for drawing toad baddie actors.
-kTileIdObjToadFirst = $a8
+kTileIdObjToadFirst = $b8
 
 ;;;=========================================================================;;;

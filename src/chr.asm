@@ -1199,9 +1199,10 @@ _chr_begin:
     chr_inc "upgrade_opskip", kTileIdObjUpgradeOpSkipFirst
     chr_res $06
     chr_inc "grub",           kTileIdObjGrubFirst
-    chr_inc "toad",           kTileIdObjToadFirst
+    chr_res $08
     chr_inc "crane",          kTileIdObjCraneFirst
-    chr_res $48
+    chr_inc "toad",           kTileIdObjToadFirst
+    chr_res $40
     END_CHR_BANK
 .ENDPROC
 
@@ -1212,16 +1213,15 @@ _chr_begin:
 .EXPORT Ppu_ChrObjGarden
 .PROC Ppu_ChrObjGarden
     CHR2_BANK $80
-    chr_inc "upgrade_bottom",      kTileIdObjUpgradeBottomFirst
-    chr_res $04
-    chr_inc "upgrade_opif",        kTileIdObjUpgradeOpIfFirst
+    chr_res $02
+    chr_inc "garden_bricks",       kTileIdObjGardenBricksFirst
     chr_inc "cannon",              kTileIdObjCannonFirst
-    chr_inc "mermaid_corra",       kTileIdMermaidCorraFirst
+    chr_res $06
     chr_inc "crate",               kTileIdObjCrateFirst
     chr_res $04
     chr_inc "grub",                kTileIdObjGrubFirst
     chr_res $02
-    chr_inc "garden_bricks",       kTileIdObjGardenBricksFirst
+    chr_inc "mermaid_corra",       kTileIdMermaidCorraFirst
     chr_inc "vinebug",             kTileIdObjVinebugFirst
     chr_inc "anchor",              kTileIdObjAnchorFirst
     chr_res $05
@@ -1359,8 +1359,9 @@ _chr_begin:
 .PROC Ppu_ChrObjTemple
     CHR2_BANK $80
     chr_inc "upgrade_bottom", kTileIdObjUpgradeBottomFirst
-    chr_res $04
+    chr_res $02
     chr_inc "column",         kTileIdObjColumnFirst
+    chr_inc "upgrade_opif",   kTileIdObjUpgradeOpIfFirst
     chr_inc "upgrade_optil",  kTileIdObjUpgradeOpTilFirst
     chr_res $04
     chr_inc "bullet",         kTileIdObjBulletFirst
@@ -1369,10 +1370,10 @@ _chr_begin:
     chr_inc "crate",          kTileIdObjCrateFirst
     chr_res $08
     chr_inc "mermaid_guardf", kTileIdMermaidGuardFFirst
-    chr_res $02
-    chr_inc "toad",           kTileIdObjToadFirst
+    chr_res $04
+    chr_inc "mermaid_corra",  kTileIdMermaidCorraFirst
     chr_inc "column_cracked", kTileIdObjColumnCrackedFirst
-    chr_res $08
+    chr_inc "toad",           kTileIdObjToadFirst
     chr_inc "beetle",         kTileIdObjBeetleFirst
     chr_inc "minigun_horz",   kTileIdObjMinigunHorzFirst
     chr_inc "minigun_vert",   kTileIdObjMinigunVertFirst
@@ -1412,16 +1413,17 @@ _chr_begin:
 .EXPORT Ppu_ChrObjVillage
 .PROC Ppu_ChrObjVillage
     CHR2_BANK $80
-    chr_res $0e
-    chr_inc "mermaid_corra",   kTileIdMermaidCorraFirst
-    chr_inc "mermaid_florist", kTileIdMermaidFloristFirst
-    chr_inc "mermaid_daphne",  kTileIdMermaidDaphneFirst
-    chr_inc "mermaid_guardf",  kTileIdMermaidGuardFFirst
+    chr_res $02
     chr_inc "mermaid_guardm",  kTileIdMermaidGuardMFirst
     chr_inc "mermaid_phoebe",  kTileIdMermaidPhoebeFirst
     chr_inc "mermaid_farmer",  kTileIdMermaidFarmerFirst
+    chr_inc "mermaid_florist", kTileIdMermaidFloristFirst
+    chr_inc "mermaid_daphne",  kTileIdMermaidDaphneFirst
+    chr_inc "mermaid_guardf",  kTileIdMermaidGuardFFirst
+    chr_res $04
+    chr_inc "mermaid_corra",   kTileIdMermaidCorraFirst
     chr_inc "mermaid_queen",   kTileIdMermaidQueenFirst
-    chr_res $18
+    chr_res $20
     chr_inc "child_swim",      kTileIdObjChildSwimFirst
     chr_inc "child_stand",     kTileIdObjChildStandFirst
     END_CHR_BANK

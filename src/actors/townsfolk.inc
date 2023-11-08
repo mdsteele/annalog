@@ -37,14 +37,14 @@ kTileIdCorraSwimmingDown2     = kTileIdCorraSwimmingDownFirst + 6
 kTileIdCorraSwimmingUpFirst   = $f0
 kTileIdCorraSwimmingUp1       = kTileIdCorraSwimmingUpFirst + 0
 kTileIdCorraSwimmingUp2       = kTileIdCorraSwimmingUpFirst + 8
-kTileIdMermaidCorraFirst      = $8e
+kTileIdMermaidCorraFirst      = $aa
 kTileIdMermaidFloristFirst    = $94
 kTileIdMermaidDaphneFirst     = $9a
 kTileIdMermaidGuardFFirst     = $a0
-kTileIdMermaidGuardMFirst     = $a6
-kTileIdMermaidPhoebeFirst     = $ac
-kTileIdMermaidFarmerFirst     = $b2
-kTileIdMermaidQueenFirst      = $b8
+kTileIdMermaidGuardMFirst     = $82
+kTileIdMermaidPhoebeFirst     = $88
+kTileIdMermaidFarmerFirst     = $8e
+kTileIdMermaidQueenFirst      = $b0
 
 ;;; Mermaid first tile IDs of this or more must be drawn 2x4 instead of 2x3.
 kFirst2x4MermaidTileId = kTileIdCorraSwimmingUpFirst

@@ -178,6 +178,7 @@ kSaveMagicNumber = $b2
     TempleAltarColumnBroken
     TempleEntryColumnRaised
     TempleEntryPermission
+    TempleEntryTalkedToCorra
     TempleNaveAlexWaiting
     TempleNaveTalkedToAlex
     NUM_VALUES

@@ -18,6 +18,6 @@
 ;;;=========================================================================;;;
 
 ;;; OBJ tile IDs for drawing the GardenTower room.
-kTileIdObjGardenBricksFirst = $aa
+kTileIdObjGardenBricksFirst = $82
 
 ;;;=========================================================================;;;

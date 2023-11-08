@@ -55,6 +55,7 @@ kMaxForks = 4
     SharedFadeBackToBreakerRoom  ; TODO: get rid of this
     SharedTeleportIn
     SharedTeleportOut
+    TempleEntryWaitUp
     TempleNaveAlexBoosting
     TownHouse2WakeUp
     TownOutdoorsGetCaught

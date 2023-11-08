@@ -379,6 +379,7 @@ _CutsceneFunc:
 .PROC DataA_Dialog_CityOutskirtsAlex2_sDialog
     dlg_Text ChildAlex, DataA_Text1_CityOutskirtsAlex_Part3_u8_arr
     dlg_Text ChildAlex, DataA_Text1_CityOutskirtsAlex_Part4_u8_arr
+    dlg_Text ChildAlex, DataA_Text1_CityOutskirtsAlex_Part5_u8_arr
     dlg_Func FuncA_Dialog_CityOutskirtsAddQuestMarkerAndMeetAtHotSpring
 .ENDPROC
 
@@ -396,7 +397,7 @@ _CutsceneFunc:
 .ENDPROC
 
 .PROC DataA_Dialog_CityOutskirtsMeetAtHotSpring_sDialog
-    dlg_Text ChildAlex, DataA_Text1_CityOutskirtsAlex_Part5_u8_arr
+    dlg_Text ChildAlex, DataA_Text1_CityOutskirtsAlex_Part6_u8_arr
     dlg_Done
 .ENDPROC
 
@@ -414,26 +415,33 @@ _CutsceneFunc:
 .PROC DataA_Text1_CityOutskirtsAlex_Part2_u8_arr
     .byte "Huh? The mermaids were$"
     .byte "CREATED by humans? But$"
-    .byte "why? There's so much$"
-    .byte "we don't know...#"
+    .byte "how? And...why? Argh,$"
+    .byte "we know so little...#"
 .ENDPROC
 
 .PROC DataA_Text1_CityOutskirtsAlex_Part3_u8_arr
-    .byte "Anna, do you see that?$"
+    .byte "I've been out scouting$"
+    .byte "while you were away,$"
+    .byte "but I keep coming back$"
+    .byte "here. I can't help it.#"
+.ENDPROC
+
+.PROC DataA_Text1_CityOutskirtsAlex_Part4_u8_arr
+    .byte "Do you see all that?$"
     .byte "We're on the outskirts$"
     .byte "of a human city. Lost$"
     .byte "and buried for years.#"
 .ENDPROC
 
-.PROC DataA_Text1_CityOutskirtsAlex_Part4_u8_arr
+.PROC DataA_Text1_CityOutskirtsAlex_Part5_u8_arr
     .byte "At home, we're barely$"
     .byte "smithing iron. Can you$"
     .byte "believe what we used$"
     .byte "to be able to build?#"
 .ENDPROC
 
-.PROC DataA_Text1_CityOutskirtsAlex_Part5_u8_arr
-    .byte "We're going to find a$"
+.PROC DataA_Text1_CityOutskirtsAlex_Part6_u8_arr
+    .byte "We've GOT to find a$"
     .byte "way into that city.$"
     .byte "Meet me back in the$"
     .byte "mermaid village, OK?#"

@@ -45,6 +45,12 @@
     d_byte Not_eFlag, eFlag::FlowerPrison
     D_END
     D_STRUCT sMarker
+    d_byte Row_u8, 2
+    d_byte Col_u8, 16  ; room: CityOutskirts
+    d_byte If_eFlag, eFlag::TempleEntryTalkedToCorra
+    d_byte Not_eFlag, eFlag::CityOutskirtsTalkedToAlex
+    D_END
+    D_STRUCT sMarker
     d_byte Row_u8, 3
     d_byte Col_u8, 20  ; room: CityFlower
     d_byte If_eFlag, 0

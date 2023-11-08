@@ -44,6 +44,7 @@
 .IMPORT DataA_Cutscene_SharedFadeBackToBreakerRoom_sCutscene
 .IMPORT DataA_Cutscene_SharedTeleportIn_sCutscene
 .IMPORT DataA_Cutscene_SharedTeleportOut_sCutscene
+.IMPORT DataA_Cutscene_TempleEntryWaitUp_sCutscene
 .IMPORT DataA_Cutscene_TempleNaveAlexBoosting_sCutscene
 .IMPORT DataA_Cutscene_TownHouse2WakeUp_sCutscene
 .IMPORT DataA_Cutscene_TownOutdoorsGetCaught_sCutscene
@@ -203,6 +204,8 @@ _Finish:
             DataA_Cutscene_SharedTeleportIn_sCutscene
     d_entry table, SharedTeleportOut, \
             DataA_Cutscene_SharedTeleportOut_sCutscene
+    d_entry table, TempleEntryWaitUp, \
+            DataA_Cutscene_TempleEntryWaitUp_sCutscene
     d_entry table, TempleNaveAlexBoosting, \
             DataA_Cutscene_TempleNaveAlexBoosting_sCutscene
     d_entry table, TownHouse2WakeUp, \

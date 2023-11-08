@@ -264,6 +264,7 @@ _Flags_eFlag_arr:
     .byte eFlag::UpgradeOpRest
     .byte eFlag::BreakerCrypt
     .byte eFlag::PaperJerome21
+    .byte eFlag::TempleEntryTalkedToCorra
     .byte eFlag::FlowerCrypt
     .byte eFlag::CityOutskirtsTalkedToAlex
     .byte eFlag::UpgradeOpSkip
