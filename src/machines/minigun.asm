@@ -47,6 +47,7 @@
 .IMPORT Ram_PlatformLeft_i16_0_arr
 .IMPORT Ram_PlatformLeft_i16_1_arr
 .IMPORT Ram_PlatformRight_i16_0_arr
+.IMPORT Ram_PlatformRight_i16_1_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORT Ram_PlatformTop_i16_1_arr
 .IMPORTZP Zp_ConsoleMachineIndex_u8
@@ -97,12 +98,22 @@ _SetBulletPosition:
     beq _BulletUp
     cmp #eDir::Down
     beq _BulletDown
+    cmp #eDir::Right
+    beq _BulletRight
 _BulletLeft:
     lda Ram_PlatformLeft_i16_0_arr, y
     sub #kTileWidthPx / 2
     sta Zp_PointX_i16 + 0
     lda Ram_PlatformLeft_i16_1_arr, y
     sbc #0
+    sta Zp_PointX_i16 + 1
+    jmp _BulletHorz
+_BulletRight:
+    lda Ram_PlatformRight_i16_0_arr, y
+    add #kTileWidthPx / 2
+    sta Zp_PointX_i16 + 0
+    lda Ram_PlatformRight_i16_1_arr, y
+    adc #0
     sta Zp_PointX_i16 + 1
 _BulletHorz:
     lda Ram_PlatformBottom_i16_0_arr, y
@@ -183,47 +194,32 @@ _FiringOffset_i8_arr4:
 ;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
 .EXPORT FuncA_Objects_DrawMinigunUpMachine
 .PROC FuncA_Objects_DrawMinigunUpMachine
-    jsr FuncA_Objects_SetShapePosToMachineTopLeft
-_BarrelAnimation:
-    ldx Zp_MachineIndex_u8
-    lda Ram_MachineState2_byte_arr, x  ; barrel rotation counter
-    div #2
-    and #$06
-    tax  ; barrel tile ID offset
 _LeftHalf:
-    ;; Allocate objects.
-    jsr FuncA_Objects_MoveShapeDownAndRightOneTile  ; preserves X
+    jsr FuncA_Objects_SetUpMinigunLeftHalf  ; returns X
     lda #kPaletteObjMinigun  ; param: object flags
-    jsr FuncA_Objects_Alloc2x2Shape  ; preserves X; returns C and Y
-    bcs @done
-    ;; Set flags and tile IDs.
-    lda #kPaletteObjMinigun | bObj::FlipHV
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Flags_bObj, y
-    lda #kPaletteObjMinigun | bObj::FlipH
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Flags_bObj, y
-    lda #kPaletteObjMinigun | bObj::FlipV
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Flags_bObj, y
-    lda #kTileIdObjMinigunCorner
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Tile_u8, y
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Tile_u8, y
-    txa  ; barrel tile ID offset
-    adc #kTileIdObjMinigunVertFirst + 0  ; carry is already clear
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Tile_u8, y
-    lda #kTileIdObjMinigunSurface
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Tile_u8, y
-    @done:
+    jsr FuncA_Objects_DrawMinigunVertCornerHalf  ; preserves X
 _RightHalf:
-    ;; Allocate objects.
     lda #kTileWidthPx * 2  ; param: offset
     jsr FuncA_Objects_MoveShapeRightByA  ; preserves X
     lda #kPaletteObjMinigun  ; param: object flags
-    jsr FuncA_Objects_Alloc2x2Shape  ; preserves X; returns C and Y
+    .assert * = FuncA_Objects_DrawMinigunVertLightHalf, error, "fallthrough"
+.ENDPROC
+
+;;; Draws the half with the machine light of a vertical-facing minigun machine.
+;;; @prereq The shape position is at the center of this half of the machine.
+;;; @param A The object flags.
+;;; @param X The barrel tile ID offset.
+;;; @preserve T2+
+.PROC FuncA_Objects_DrawMinigunVertLightHalf
+    pha  ; object flags
+    jsr FuncA_Objects_Alloc2x2Shape  ; preserves X and T2+; returns C and Y
+    pla  ; object flags
     bcs @done
     ;; Set flags and tile IDs.
-    lda #kPaletteObjMinigun | bObj::FlipV
+    eor #bObj::FlipV
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Flags_bObj, y
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Flags_bObj, y
-    lda #kPaletteObjMachineLight | bObj::FlipHV
+    eor #kPaletteObjMachineLight | bObj::FlipH
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Flags_bObj, y
     txa  ; barrel tile ID offset
     adc #kTileIdObjMinigunVertFirst + 1  ; carry is already clear
@@ -232,7 +228,7 @@ _RightHalf:
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Tile_u8, y
     lda #kTileIdObjMinigunCorner
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Tile_u8, y
-    jsr FuncA_Objects_GetMachineLightTileId  ; preserves Y, returns A
+    jsr FuncA_Objects_GetMachineLightTileId  ; preserves Y and T0+, returns A
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Tile_u8, y
     @done:
     rts
@@ -242,80 +238,75 @@ _RightHalf:
 ;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
 .EXPORT FuncA_Objects_DrawMinigunDownMachine
 .PROC FuncA_Objects_DrawMinigunDownMachine
-    jsr FuncA_Objects_SetShapePosToMachineTopLeft
-_BarrelAnimation:
-    ldx Zp_MachineIndex_u8
-    lda Ram_MachineState2_byte_arr, x  ; barrel rotation counter
-    div #2
-    and #$06
-    tax  ; barrel tile ID offset
 _LeftHalf:
-    ;; Allocate objects.
-    jsr FuncA_Objects_MoveShapeDownAndRightOneTile  ; preserves X
-    lda #kPaletteObjMinigun  ; param: object flags
-    jsr FuncA_Objects_Alloc2x2Shape  ; preserves X; returns C and Y
-    bcs @done
-    ;; Set flags and tile IDs.
-    lda #kPaletteObjMinigun | bObj::FlipHV
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Flags_bObj, y
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Flags_bObj, y
-    lda #kPaletteObjMinigun | bObj::FlipH
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Flags_bObj, y
-    lda #kTileIdObjMinigunCorner
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Tile_u8, y
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Tile_u8, y
-    lda #kTileIdObjMinigunSurface
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Tile_u8, y
-    txa  ; barrel tile ID offset
-    adc #kTileIdObjMinigunVertFirst + 1  ; carry is already clear
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Tile_u8, y
-    @done:
+    jsr FuncA_Objects_SetUpMinigunLeftHalf  ; returns X
+    lda #kPaletteObjMinigun | bObj::FlipV  ; param: object flags
+    jsr FuncA_Objects_DrawMinigunVertCornerHalf  ; preserves X
 _RightHalf:
-    ;; Allocate objects.
     lda #kTileWidthPx * 2  ; param: offset
     jsr FuncA_Objects_MoveShapeRightByA  ; preserves X
-    lda #kPaletteObjMinigun  ; param: object flags
-    jsr FuncA_Objects_Alloc2x2Shape  ; preserves X; returns C and Y
+    lda #kPaletteObjMinigun | bObj::FlipV  ; param: object flags
+    jmp FuncA_Objects_DrawMinigunVertLightHalf
+.ENDPROC
+
+;;; Draws the half without the machine light of a vertical-facing minigun
+;;; machine.
+;;; @prereq The shape position is at the center of this half of the machine.
+;;; @param A The object flags.
+;;; @param X The barrel tile ID offset.
+;;; @preserve X, T2+
+.PROC FuncA_Objects_DrawMinigunVertCornerHalf
+    pha  ; object flags
+    jsr FuncA_Objects_Alloc2x2Shape  ; preserves X and T2+; returns C and Y
+    pla  ; object flags
     bcs @done
     ;; Set flags and tile IDs.
-    lda #kPaletteObjMinigun | bObj::FlipHV
+    eor #bObj::FlipHV
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Flags_bObj, y
+    eor #bObj::FlipV
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Flags_bObj, y
-    lda #kPaletteObjMinigun | bObj::FlipV
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Flags_bObj, y
-    lda #kPaletteObjMachineLight | bObj::FlipHV
+    eor #bObj::FlipHV
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Flags_bObj, y
-    lda #kTileIdObjMinigunSurface
+    lda #kTileIdObjMinigunCorner
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Tile_u8, y
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Tile_u8, y
     txa  ; barrel tile ID offset
     adc #kTileIdObjMinigunVertFirst + 0  ; carry is already clear
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Tile_u8, y
-    lda #kTileIdObjMinigunCorner
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Tile_u8, y
-    jsr FuncA_Objects_GetMachineLightTileId  ; preserves Y, returns A
+    lda #kTileIdObjMinigunSurface
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Tile_u8, y
     @done:
     rts
 .ENDPROC
 
-;;; Draw implemention for side-facing minigun machines.
+;;; Draw implemention for right-facing minigun machines.
 ;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
-.EXPORT FuncA_Objects_DrawMinigunSideMachine
-.PROC FuncA_Objects_DrawMinigunSideMachine
-    jsr FuncA_Objects_SetShapePosToMachineTopLeft
-_BarrelAnimation:
-    ldx Zp_MachineIndex_u8
-    lda Ram_MachineState2_byte_arr, x  ; barrel rotation counter
-    div #2
-    and #$06
-    tax  ; barrel tile ID offset
+.EXPORT FuncA_Objects_DrawMinigunRightMachine
+.PROC FuncA_Objects_DrawMinigunRightMachine
 _LeftHalf:
-    ;; Allocate objects.
-    jsr FuncA_Objects_MoveShapeDownAndRightOneTile  ; preserves X
-    lda #kPaletteObjMinigun  ; param: object flags
+    jsr FuncA_Objects_SetUpMinigunLeftHalf  ; returns X
+    stx T2  ; barrel tile ID offset
+    lda #kPaletteObjMinigun | bObj::FlipH  ; param: object flags
+    jsr FuncA_Objects_DrawMinigunHorzLightHalf  ; preserves T2+
+_RightHalf:
+    lda #kTileWidthPx * 2  ; param: offset
+    jsr FuncA_Objects_MoveShapeRightByA  ; preserves T0+
+    ldx T2  ; param: barrel tile ID offset
+    lda #kPaletteObjMinigun | bObj::FlipH  ; param: object flags
+    .assert * = FuncA_Objects_DrawMinigunHorzBarrelHalf, error, "fallthrough"
+.ENDPROC
+
+;;; Draws the half with the barrel of a side-facing minigun machine.
+;;; @prereq The shape position is at the center of this half of the machine.
+;;; @param A The object flags.
+;;; @param X The barrel tile ID offset.
+.PROC FuncA_Objects_DrawMinigunHorzBarrelHalf
+    pha  ; object flags
     jsr FuncA_Objects_Alloc2x2Shape  ; preserves X; returns C and Y
+    pla  ; object flags
     bcs @done
     ;; Set flags and tile IDs.
-    lda #kPaletteObjMinigun | bObj::FlipV
+    eor #bObj::FlipV
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Flags_bObj, y
     txa  ; barrel tile ID offset
     adc #kTileIdObjMinigunHorzFirst  ; carry is already clear
@@ -326,28 +317,63 @@ _LeftHalf:
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Tile_u8, y
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Tile_u8, y
     @done:
-_RightHalf:
-    ;; Allocate objects.
-    lda #kTileWidthPx * 2  ; param: offset
-    jsr FuncA_Objects_MoveShapeRightByA  ; preserves X
+    rts
+.ENDPROC
+
+;;; Draw implemention for left-facing minigun machines.
+;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
+.EXPORT FuncA_Objects_DrawMinigunLeftMachine
+.PROC FuncA_Objects_DrawMinigunLeftMachine
+_LeftHalf:
+    jsr FuncA_Objects_SetUpMinigunLeftHalf  ; returns X
     lda #kPaletteObjMinigun  ; param: object flags
-    jsr FuncA_Objects_Alloc2x2Shape  ; preserves X; returns C and Y
+    jsr FuncA_Objects_DrawMinigunHorzBarrelHalf
+_RightHalf:
+    lda #kTileWidthPx * 2  ; param: offset
+    jsr FuncA_Objects_MoveShapeRightByA
+    lda #kPaletteObjMinigun  ; param: object flags
+    .assert * = FuncA_Objects_DrawMinigunHorzLightHalf, error, "fallthrough"
+.ENDPROC
+
+;;; Draws the half with the machine light of a side-facing minigun machine.
+;;; @prereq The shape position is at the center of this half of the machine.
+;;; @param A The object flags.
+;;; @preserve T2+
+.PROC FuncA_Objects_DrawMinigunHorzLightHalf
+    pha  ; object flags
+    jsr FuncA_Objects_Alloc2x2Shape  ; preserves T2+; returns C and Y
+    pla  ; object flags
     bcs @done
     ;; Set flags and tile IDs.
-    lda #kPaletteObjMinigun | bObj::FlipV
+    eor #bObj::FlipV
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Flags_bObj, y
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Flags_bObj, y
-    lda #kPaletteObjMachineLight | bObj::FlipHV
+    eor #kPaletteObjMachineLight | bObj::FlipH
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Flags_bObj, y
     lda #kTileIdObjMinigunSurface
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Tile_u8, y
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Tile_u8, y
     lda #kTileIdObjMinigunCorner
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Tile_u8, y
-    jsr FuncA_Objects_GetMachineLightTileId  ; preserves Y, returns A
+    jsr FuncA_Objects_GetMachineLightTileId  ; preserves Y and T0+, returns A
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Tile_u8, y
     @done:
     rts
+.ENDPROC
+
+;;; Helper function for drawing minigun machines; sets the shape position to
+;;; the center of the left half of the machine, and returns the tile ID offset
+;;; for the minigun barrel tiles.
+;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
+;;; @return X The barrel tile ID offset.
+.PROC FuncA_Objects_SetUpMinigunLeftHalf
+    jsr FuncA_Objects_SetShapePosToMachineTopLeft
+    ldx Zp_MachineIndex_u8
+    lda Ram_MachineState2_byte_arr, x  ; barrel rotation counter
+    div #2
+    and #$06
+    tax  ; barrel tile ID offset
+    jmp FuncA_Objects_MoveShapeDownAndRightOneTile  ; preserves X
 .ENDPROC
 
 ;;;=========================================================================;;;

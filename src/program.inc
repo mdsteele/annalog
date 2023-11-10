@@ -175,6 +175,7 @@
     SewerTrapLift
     SewerWestMultiplexer
     ShadowEntryLift
+    ShadowHallMinigun
     ShadowTeleportField
     ShadowTrapLaser
     TempleAltarLowerMinigun

@@ -70,6 +70,7 @@
 .INCLUDE "platforms/crate.inc"
 .INCLUDE "platforms/force.inc"
 .INCLUDE "platforms/gate.inc"
+.INCLUDE "platforms/glass.inc"
 .INCLUDE "platforms/monitor.inc"
 .INCLUDE "platforms/rocks.inc"
 .INCLUDE "platforms/stepstone.inc"
@@ -1368,7 +1369,7 @@ _chr_begin:
     chr_inc "upgrade_opbeep", kTileIdObjUpgradeOpBeepFirst
     chr_res $02
     chr_inc "crate",          kTileIdObjCrateFirst
-    chr_res $08
+    chr_inc "glass",          kTileIdObjGlassFirst
     chr_inc "mermaid_guardf", kTileIdMermaidGuardFFirst
     chr_res $04
     chr_inc "mermaid_corra",  kTileIdMermaidCorraFirst

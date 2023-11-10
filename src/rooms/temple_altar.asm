@@ -43,7 +43,7 @@
 .IMPORT FuncA_Machine_ReachedGoal
 .IMPORT FuncA_Machine_WriteToLever
 .IMPORT FuncA_Objects_DrawMinigunDownMachine
-.IMPORT FuncA_Objects_DrawMinigunSideMachine
+.IMPORT FuncA_Objects_DrawMinigunLeftMachine
 .IMPORT FuncA_Room_AreActorsWithinDistance
 .IMPORT FuncA_Room_RemoveAllBulletsIfConsoleOpen
 .IMPORT FuncA_Room_ResetLever
@@ -208,7 +208,7 @@ _Machines_sMachine_arr:
     D_STRUCT sMachine
     d_byte Code_eProgram, eProgram::TempleAltarLowerMinigun
     d_byte Breaker_eFlag, 0
-    d_byte Flags_bMachine, bMachine::MoveH | bMachine::MoveV | bMachine::Act
+    d_byte Flags_bMachine, bMachine::MoveHV | bMachine::Act
     d_byte Status_eDiagram, eDiagram::MinigunLeft
     d_word ScrollGoalX_u16, $0010
     d_byte ScrollGoalY_u8, $b0
@@ -220,7 +220,7 @@ _Machines_sMachine_arr:
     d_addr TryMove_func_ptr, FuncC_Temple_AltarLowerMinigun_TryMove
     d_addr TryAct_func_ptr, FuncC_Temple_AltarLowerMinigun_TryAct
     d_addr Tick_func_ptr, FuncC_Temple_AltarLowerMinigun_Tick
-    d_addr Draw_func_ptr, FuncA_Objects_DrawMinigunSideMachine
+    d_addr Draw_func_ptr, FuncA_Objects_DrawMinigunLeftMachine
     d_addr Reset_func_ptr, FuncC_Temple_AltarLowerMinigun_Reset
     D_END
     .assert * - :- <= kMaxMachines * .sizeof(sMachine), error

@@ -101,6 +101,7 @@ _Done:
 .ENDPROC
 
 ;;; Draws a cracked column platform.
+;;; @prereq PRGA_Objects is loaded.
 ;;; @param A How many bullets have hit the column (0-5).
 ;;; @param X The platform index.
 .EXPORT FuncC_Temple_DrawColumnCrackedPlatform
@@ -108,7 +109,7 @@ _Done:
     add #kTileIdObjColumnCrackedFirst
     pha  ; cracked tile ID
     ;; Top:
-    jsr FuncA_Objects_SetShapePosToPlatformTopLeft  ; preserves Y
+    jsr FuncA_Objects_SetShapePosToPlatformTopLeft
     ldy #kPaletteObjColumn  ; param: object flags
     lda #kTileIdObjColumnCrackedTop  ; param: tile ID
     jsr FuncA_Objects_Draw1x1Shape
