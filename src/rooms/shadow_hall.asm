@@ -214,6 +214,19 @@ _Devices_sDevice_arr:
     d_byte BlockCol_u8, 20
     d_byte Target_byte, kMinigunMachineIndex
     D_END
+    ;; Placeholder devices for blocking minigun machine from passing pipes:
+    D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::Placeholder
+    d_byte BlockRow_u8, 4
+    d_byte BlockCol_u8, 10
+    d_byte Target_byte, 0  ; unused
+    D_END
+    D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::Placeholder
+    d_byte BlockRow_u8, 7
+    d_byte BlockCol_u8, 13
+    d_byte Target_byte, 0  ; unused
+    D_END
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None
 _Passages_sPassage_arr:

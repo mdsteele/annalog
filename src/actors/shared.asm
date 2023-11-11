@@ -31,6 +31,7 @@
 .IMPORT FuncA_Objects_Draw2x2Shape
 .IMPORT FuncA_Objects_MoveShapeLeftHalfTile
 .IMPORT FuncA_Objects_MoveShapeUpHalfTile
+.IMPORT Func_FindDeviceNearPoint
 .IMPORT Func_HarmAvatar
 .IMPORT Func_MovePointDownByA
 .IMPORT Func_MovePointHorz
@@ -50,9 +51,6 @@
 .IMPORT Ram_ActorVelX_i16_1_arr
 .IMPORT Ram_ActorVelY_i16_0_arr
 .IMPORT Ram_ActorVelY_i16_1_arr
-.IMPORT Ram_DeviceBlockCol_u8_arr
-.IMPORT Ram_DeviceBlockRow_u8_arr
-.IMPORT Ram_DeviceType_eDevice_arr
 .IMPORTZP Zp_AvatarFlags_bObj
 .IMPORTZP Zp_AvatarPosX_i16
 .IMPORTZP Zp_AvatarPosY_i16
@@ -172,40 +170,16 @@
     rts
 .ENDPROC
 
-;;; Returns the index of the device whose block the the actor's center is in,
-;;; if any.
+;;; Returns the index of the device whose block the actor's center is in, if
+;;; any.
 ;;; @param X The actor index.
 ;;; @return N Set if there was no device nearby, cleared otherwise.
 ;;; @return Y The device index of the nearby device, or $ff for none.
 ;;; @preserve X
 .EXPORT FuncA_Actor_FindNearbyDevice
 .PROC FuncA_Actor_FindNearbyDevice
-    jsr FuncA_Actor_GetRoomBlockRow  ; preserves X, returns Y
-    sty T1  ; actor block row
-    ;; Calculate actor's block column, storing it in T0.
-    lda Ram_ActorPosX_i16_0_arr, x
-    sta T0
-    lda Ram_ActorPosX_i16_1_arr, x
-    .assert kBlockWidthPx = (1 << 4), error
-    .repeat 4
-    lsr a
-    ror T0  ; actor block col
-    .endrepeat
-    ;; Find a device in the same room block row/col.
-    ldy #kMaxDevices - 1
-    @loop:
-    lda Ram_DeviceType_eDevice_arr, y
-    lda Ram_DeviceBlockRow_u8_arr, y
-    cmp T1  ; actor block row
-    bne @continue
-    lda Ram_DeviceBlockCol_u8_arr, y
-    cmp T0  ; actor block col
-    beq @done
-    @continue:
-    dey
-    bpl @loop
-    @done:
-    rts
+    jsr Func_SetPointToActorCenter  ; preserves X
+    jmp Func_FindDeviceNearPoint  ; preserves X, returns N and Y
 .ENDPROC
 
 ;;; Returns the room block row index for the actor position.

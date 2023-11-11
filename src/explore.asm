@@ -57,7 +57,9 @@
 .IMPORT Func_ClearRestOfOamAndProcessFrame
 .IMPORT Func_FadeInFromBlack
 .IMPORT Func_FadeOutToBlack
+.IMPORT Func_FindDeviceNearPoint
 .IMPORT Func_SetLastSpawnPointToActiveDevice
+.IMPORT Func_SetPointToAvatarCenter
 .IMPORT Func_TickAllDevices
 .IMPORT Func_ToggleLeverDevice
 .IMPORT Func_Window_DirectDrawTopBorder
@@ -72,8 +74,6 @@
 .IMPORT Main_Paper_UseDevice
 .IMPORT Main_Upgrade_UseDevice
 .IMPORT Ppu_ChrBgAnimA0
-.IMPORT Ram_DeviceBlockCol_u8_arr
-.IMPORT Ram_DeviceBlockRow_u8_arr
 .IMPORT Ram_DeviceTarget_byte_arr
 .IMPORT Ram_DeviceType_eDevice_arr
 .IMPORT Sram_LastSafe_eRoom
@@ -386,41 +386,18 @@ _UpDownPassage:
     bit Zp_AvatarState_bAvatar
     .assert bAvatar::Airborne = bProc::Negative, error
     bmi @noneNearby
-    ;; Calculate the player avatar's room block row and store it in T0.
-    lda Zp_AvatarPosY_i16 + 0
-    sta T0
-    lda Zp_AvatarPosY_i16 + 1
-    .repeat 4
-    lsr a
-    ror T0
-    .endrepeat
-    ;; Calculate the player avatar's room block column and store it in T1.
-    lda Zp_AvatarPosX_i16 + 0
-    sta T1
-    lda Zp_AvatarPosX_i16 + 1
-    .repeat 4
-    lsr a
-    ror T1
-    .endrepeat
-    ;; Find an interactive device with the same block row/col.
-    ldx #kMaxDevices - 1
-    @loop:
-    lda Ram_DeviceType_eDevice_arr, x
+    ;; Check if there's a device nearby.
+    jsr Func_SetPointToAvatarCenter
+    jsr Func_FindDeviceNearPoint  ; returns N and Y
+    bmi @noneNearby
+    ;; Check if the nearby device is interactive.
+    lda Ram_DeviceType_eDevice_arr, y
     cmp #kFirstInteractiveDeviceType
-    blt @continue
-    lda Ram_DeviceBlockCol_u8_arr, x
-    cmp T1  ; player block col
-    bne @continue
-    lda Ram_DeviceBlockRow_u8_arr, x
-    cmp T0  ; player block row
-    beq @done
-    @continue:
-    dex
-    bpl @loop
+    bge @done
     @noneNearby:
-    ldx #bDevice::NoneNearby
+    ldy #bDevice::NoneNearby
     @done:
-    stx Zp_Nearby_bDevice
+    sty Zp_Nearby_bDevice
     rts
 .ENDPROC
 

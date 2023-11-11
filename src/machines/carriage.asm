@@ -32,6 +32,7 @@
 .IMPORT FuncA_Objects_MoveShapeDownAndRightOneTile
 .IMPORT FuncA_Objects_MoveShapeRightByA
 .IMPORT FuncA_Objects_SetShapePosToMachineTopLeft
+.IMPORT Func_FindDeviceNearPoint
 .IMPORT Func_MovePointDownByA
 .IMPORT Func_MovePointLeftByA
 .IMPORT Func_MovePointRightByA
@@ -115,7 +116,7 @@ _TryMoveLeft:
     ;; can't move right.
     lda #kCarriageMachineWidthPx / 2 + kTileWidthPx
     jsr Func_MovePointLeftByA  ; preserves X
-    jsr Func_PointHitsTerrain  ; preserves X, returns C
+    jsr FuncA_Machine_PointHitsTerrainOrDevice  ; preserves X, returns C
     bcs _Error
     ;; Start moving the carriage to the left.
     dec Ram_MachineGoalHorz_u8_arr, x
@@ -129,7 +130,7 @@ _TryMoveRight:
     ;; can't move right.
     lda #kCarriageMachineWidthPx / 2 + kTileWidthPx
     jsr Func_MovePointRightByA  ; preserves X
-    jsr Func_PointHitsTerrain  ; preserves X, returns C
+    jsr FuncA_Machine_PointHitsTerrainOrDevice  ; preserves X, returns C
     bcs _Error
     ;; Start moving the carriage to the right.
     inc Ram_MachineGoalHorz_u8_arr, x
@@ -140,19 +141,34 @@ _TryMoveRight:
 ;;; machine can move vertically.
 ;;; @prereq Zp_Point* is set one block above/below the carriage center.
 ;;; @return C Cleared if the carriage can move, or set if it is blocked.
-;;; @preserve X, T0+
+;;; @preserve X
 .PROC FuncA_Machine_CarriageCanMoveVert
     .assert kCarriageMachineWidthPx = kBlockWidthPx * 2, error
 _CheckLeftSide:
     lda #kTileWidthPx
-    jsr Func_MovePointLeftByA  ; preserves X and T0+
-    jsr Func_PointHitsTerrain  ; preserves X and T0+, returns C
+    jsr Func_MovePointLeftByA  ; preserves X
+    jsr FuncA_Machine_PointHitsTerrainOrDevice  ; preserves X+, returns C
     bcc _CheckRightSide
     rts
 _CheckRightSide:
     lda #kTileWidthPx * 2
-    jsr Func_MovePointRightByA  ; preserves X and T0+
-    jmp Func_PointHitsTerrain  ; preserves X and T0+, returns C
+    jsr Func_MovePointRightByA  ; preserves X
+    jmp FuncA_Machine_PointHitsTerrainOrDevice  ; preserves X, returns C
+.ENDPROC
+
+;;; Determines if the point stored in Zp_PointX_i16 and Zp_PointY_i16 is
+;;; colliding with solid terrain or with a device (including non-interactive
+;;; devices).  It is assumed that both coordinates are nonnegative and within
+;;; the bounds of the room terrain.
+;;; @return C Set if point hits solid terrain or any device, cleared otherwise.
+;;; @preserve X
+.PROC FuncA_Machine_PointHitsTerrainOrDevice
+    jsr Func_FindDeviceNearPoint  ; preserves X, returns N
+    bpl @collision
+    jmp Func_PointHitsTerrain  ; preserves X, returns C
+    @collision:
+    sec
+    rts
 .ENDPROC
 
 ;;;=========================================================================;;;

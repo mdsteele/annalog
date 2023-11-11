@@ -36,6 +36,8 @@
 .IMPORT FuncA_Objects_DrawUnlockedDoorDevice
 .IMPORT FuncA_Objects_DrawUpgradeDevice
 .IMPORT Func_Noop
+.IMPORTZP Zp_PointX_i16
+.IMPORTZP Zp_PointY_i16
 .IMPORTZP Zp_RoomScrollX_u16
 .IMPORTZP Zp_RoomScrollY_u8
 .IMPORTZP Zp_ShapePosX_i16
@@ -90,6 +92,50 @@ _Loop:
 _Continue:
     dex
     bpl _Loop
+    rts
+.ENDPROC
+
+;;; Returns the index of the device whose block the point stored in
+;;; Zp_PointX_i16 and Zp_PointY_i16 is in, if any.
+;;; @return N Set if there was no device nearby, cleared otherwise.
+;;; @return Y The device index of the nearby device, or $ff for none.
+;;; @preserve X, T2+
+.EXPORT Func_FindDeviceNearPoint
+.PROC Func_FindDeviceNearPoint
+    ;; Calculate the point's room block row and store it in T0.
+    lda Zp_PointY_i16 + 0
+    sta T0
+    lda Zp_PointY_i16 + 1
+    .assert kBlockHeightPx = 1 << 4, error
+    .repeat 4
+    lsr a
+    ror T0
+    .endrepeat
+    ;; Calculate the point's room block column and store it in T1.
+    lda Zp_PointX_i16 + 0
+    sta T1
+    lda Zp_PointX_i16 + 1
+    .assert kBlockWidthPx = 1 << 4, error
+    .repeat 4
+    lsr a
+    ror T1
+    .endrepeat
+    ;; Find a device in the same room block row/col.
+    ldy #kMaxDevices - 1
+    @loop:
+    lda Ram_DeviceType_eDevice_arr, y
+    .assert eDevice::None = 0, error
+    beq @continue
+    lda Ram_DeviceBlockRow_u8_arr, y
+    cmp T0  ; point block row
+    bne @continue
+    lda Ram_DeviceBlockCol_u8_arr, y
+    cmp T1  ; point block col
+    beq @done
+    @continue:
+    dey
+    bpl @loop
+    @done:
     rts
 .ENDPROC
 
