@@ -42,6 +42,7 @@ ROOM_PARENTS = {
     'BossCrypt': 'CryptTomb',
     'BossGarden': 'GardenTower',
     'BossMine': 'MineCollapse',
+    'BossShadow': 'ShadowDepths',
     'BossTemple': 'TempleSpire',
     'CityBuilding1': 'CityOutskirts',
     'CityBuilding2': 'CityCenter',

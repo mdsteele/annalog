@@ -273,6 +273,12 @@ $(OBJDIR)/rooms/mermaid_village.o: \
   $(ROOM_OUT_DIR)/mermaid_village1.room $(ROOM_OUT_DIR)/mermaid_village2.room
 	$(compile-asm)
 
+$(OBJDIR)/rooms/shadow_depths.o: \
+  src/rooms/shadow_depths.asm $(INC_FILES) \
+  $(ROOM_OUT_DIR)/shadow_depths1.room $(ROOM_OUT_DIR)/shadow_depths2.room \
+  $(ROOM_OUT_DIR)/shadow_depths3.room
+	$(compile-asm)
+
 $(OBJDIR)/rooms/town_outdoors.o: \
   src/rooms/town_outdoors.asm $(INC_FILES) \
   $(ROOM_OUT_DIR)/town_outdoors1.room $(ROOM_OUT_DIR)/town_outdoors2.room \
