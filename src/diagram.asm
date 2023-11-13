@@ -18,17 +18,37 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "charmap.inc"
+.INCLUDE "machine.inc"
+.INCLUDE "machines/boiler.inc"
+.INCLUDE "machines/bridge.inc"
+.INCLUDE "machines/cannon.inc"
+.INCLUDE "machines/carriage.inc"
+.INCLUDE "machines/crane.inc"
+.INCLUDE "machines/field.inc"
+.INCLUDE "machines/hoist.inc"
+.INCLUDE "machines/jet.inc"
+.INCLUDE "machines/launcher.inc"
+.INCLUDE "machines/lift.inc"
+.INCLUDE "machines/minigun.inc"
+.INCLUDE "machines/multiplexer.inc"
+.INCLUDE "machines/pump.inc"
+.INCLUDE "machines/semaphore.inc"
+.INCLUDE "machines/shared.inc"
+.INCLUDE "machines/winch.inc"
 .INCLUDE "macros.inc"
 .INCLUDE "ppu.inc"
 
+.IMPORT Func_SetMachineIndex
 .IMPORT Func_Window_GetRowPpuAddr
 .IMPORT Ram_PpuTransfer_arr
+.IMPORTZP Zp_ConsoleMachineIndex_u8
 .IMPORTZP Zp_ConsoleNumInstRows_u8
+.IMPORTZP Zp_Current_sMachine_ptr
 .IMPORTZP Zp_PpuTransferLen_u8
 
 ;;;=========================================================================;;;
 
-;;; The height of the console status box diagram, in tiles.
+;;; The height of the console machine diagram, in tiles.
 kNumDiagramRows = 4
 
 ;;; The width of the console status box, in tiles.
@@ -47,9 +67,76 @@ kNoPowerWidthTiles = 19
 
 .SEGMENT "PRGA_Console"
 
+;;; Maps from an eDiagram to the CHR04 bank with that diagram's tiles.
+.EXPORT DataA_Console_DiagramBank_u8_arr
+.PROC DataA_Console_DiagramBank_u8_arr
+    D_ARRAY .enum, eDiagram
+    d_byte Boiler,        kChrBankDiagramBoiler
+    d_byte BridgeLeft,    kChrBankDiagramBridgeLeft
+    d_byte BridgeRight,   kChrBankDiagramBridgeRight
+    d_byte CannonLeft,    kChrBankDiagramCannonLeft
+    d_byte CannonRight,   kChrBankDiagramCannonRight
+    d_byte Carriage,      kChrBankDiagramCarriage
+    d_byte Crane,         kChrBankDiagramCrane
+    d_byte Debugger,      kChrBankDiagramDebugger
+    d_byte Field,         kChrBankDiagramField
+    d_byte HoistLeft,     kChrBankDiagramHoistLeft
+    d_byte HoistRight,    kChrBankDiagramHoistRight
+    d_byte Jet,           kChrBankDiagramJet
+    d_byte LauncherDown,  kChrBankDiagramLauncherDown
+    d_byte LauncherLeft,  kChrBankDiagramLauncherLeft
+    d_byte Lift,          kChrBankDiagramLift
+    d_byte MinigunDown,   kChrBankDiagramMinigunDown
+    d_byte MinigunLeft,   kChrBankDiagramMinigunLeft
+    d_byte MinigunRight,  kChrBankDiagramMinigunRight
+    d_byte MinigunUp,     kChrBankDiagramMinigunUp
+    d_byte Multiplexer,   kChrBankDiagramMultiplexer
+    d_byte Pump,          kChrBankDiagramPump
+    d_byte SemaphoreComm, kChrBankDiagramSemaphoreComm
+    d_byte SemaphoreKey,  kChrBankDiagramSemaphoreKey
+    d_byte SemaphoreLock, kChrBankDiagramSemaphoreLock
+    d_byte Trolley,       kChrBankDiagramTrolley
+    d_byte Winch,         kChrBankDiagramWinch
+    D_END
+.ENDPROC
+
+;;; Maps from an eDiagram to the first BG tile ID for that diagram.
+.PROC DataA_Console_DiagramFirstTileId_u8_arr
+    D_ARRAY .enum, eDiagram
+    d_byte Boiler,        kTileIdBgDiagramBoilerFirst
+    d_byte BridgeLeft,    kTileIdBgDiagramBridgeLeftFirst
+    d_byte BridgeRight,   kTileIdBgDiagramBridgeRightFirst
+    d_byte CannonLeft,    kTileIdBgDiagramCannonLeftFirst
+    d_byte CannonRight,   kTileIdBgDiagramCannonRightFirst
+    d_byte Carriage,      kTileIdBgDiagramCarriageFirst
+    d_byte Crane,         kTileIdBgDiagramCraneFirst
+    d_byte Debugger,      0
+    d_byte Field,         kTileIdBgDiagramFieldFirst
+    d_byte HoistLeft,     kTileIdBgDiagramHoistLeftFirst
+    d_byte HoistRight,    kTileIdBgDiagramHoistRightFirst
+    d_byte Jet,           kTileIdBgDiagramJetFirst
+    d_byte LauncherDown,  kTileIdBgDiagramLauncherDownFirst
+    d_byte LauncherLeft,  kTileIdBgDiagramLauncherLeftFirst
+    d_byte Lift,          kTileIdBgDiagramLiftFirst
+    d_byte MinigunDown,   kTileIdBgDiagramMinigunDownFirst
+    d_byte MinigunLeft,   kTileIdBgDiagramMinigunLeftFirst
+    d_byte MinigunRight,  kTileIdBgDiagramMinigunRightFirst
+    d_byte MinigunUp,     kTileIdBgDiagramMinigunUpFirst
+    d_byte Multiplexer,   kTileIdBgDiagramMultiplexerFirst
+    d_byte Pump,          kTileIdBgDiagramPumpFirst
+    d_byte SemaphoreComm, kTileIdBgDiagramSemaphoreCommFirst
+    d_byte SemaphoreKey,  kTileIdBgDiagramSemaphoreKeyFirst
+    d_byte SemaphoreLock, kTileIdBgDiagramSemaphoreLockFirst
+    d_byte Trolley,       kTileIdBgDiagramTrolleyFirst
+    d_byte Winch,         kTileIdBgDiagramWinchFirst
+    D_END
+.ENDPROC
+
 ;;; Appends PPU transfer entries to redraw all rows in the console status box.
 .EXPORT FuncA_Console_TransferAllStatusRows
 .PROC FuncA_Console_TransferAllStatusRows
+    ldx Zp_ConsoleMachineIndex_u8  ; param: machine index
+    jsr Func_SetMachineIndex
     ldy #0  ; param: status box row
     @loop:
     jsr FuncA_Console_TransferStatusRow  ; preserves Y
@@ -61,6 +148,7 @@ kNoPowerWidthTiles = 19
 
 ;;; Appends a PPU transfer entry to redraw the specified row of the console
 ;;; status box.
+;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
 ;;; @param Y The status box row to transfer (0-7).
 ;;; @preserve Y
 .PROC FuncA_Console_TransferStatusRow
@@ -103,6 +191,7 @@ kNoPowerWidthTiles = 19
 
 ;;; Writes kStatusBoxWidthTiles (eight) bytes into a PPU transfer entry with
 ;;; the tile IDs of the specified row of the console status box.
+;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
 ;;; @param X PPU transfer array index within an entry's data.
 ;;; @param Y The status box row to transfer (0-7).
 ;;; @return X Updated PPU transfer array index.
@@ -124,7 +213,7 @@ kNoPowerWidthTiles = 19
     cmp #kNumDiagramRows
     bge _WriteBlankRow
 _WriteDiagramRow:
-    tay  ; diagram row
+    sta T3  ; diagram row
     ;; Draw the blank margin on either side of the diagram.
     .assert kStatusBoxWidthTiles = 8, error
     lda #' '
@@ -133,8 +222,11 @@ _WriteDiagramRow:
     sta Ram_PpuTransfer_arr + 6, x
     sta Ram_PpuTransfer_arr + 7, x
     ;; Draw the diagram itself.
-    tya  ; diagram row
-    add #$60
+    ldy #sMachine::Status_eDiagram
+    lda (Zp_Current_sMachine_ptr), y
+    tay  ; eDiagram value
+    lda DataA_Console_DiagramFirstTileId_u8_arr, y
+    add T3  ; diagram row
     ldy #kNumDiagramRows
     @loop:
     sta Ram_PpuTransfer_arr + 1, x

@@ -182,27 +182,29 @@ _CheckIfDone:
 
 .SEGMENT "PRGA_Objects"
 
-;;; Draws a semaphore machine that doesn't have a distance sensor.
+;;; Draws a semaphore machine that's connected to the key (and thus doesn't
+;;; have a distance sensor).
 ;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
-.EXPORT FuncA_Objects_DrawSemaphoreMachineNoSensor
-.PROC FuncA_Objects_DrawSemaphoreMachineNoSensor
+.EXPORT FuncA_Objects_DrawSemaphoreKeyMachine
+.PROC FuncA_Objects_DrawSemaphoreKeyMachine
     jsr FuncA_Objects_DrawSemaphoreFlags
     lda #kTileIdObjMachineCorner  ; param: corner tile ID
     bne FuncA_Objects_DrawSemaphoreActuator  ; unconditional
 .ENDPROC
 
-;;; Draws a standard semaphore machine.
+;;; Draws a standard semaphore machine (with both flags and a distance sensor).
 ;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
-.EXPORT FuncA_Objects_DrawSemaphoreMachineNormal
-.PROC FuncA_Objects_DrawSemaphoreMachineNormal
+.EXPORT FuncA_Objects_DrawSemaphoreCommMachine
+.PROC FuncA_Objects_DrawSemaphoreCommMachine
     jsr FuncA_Objects_DrawSemaphoreFlags
-    .assert * = FuncA_Objects_DrawSemaphoreMachineNoFlags, error, "fallthrough"
+    .assert * = FuncA_Objects_DrawSemaphoreLockMachine, error, "fallthrough"
 .ENDPROC
 
-;;; Draws a semaphore machine that doesn't have any flags.
+;;; Draws a semaphore machine that's connected to the lock (and thus doesn't
+;;; have any flags).
 ;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
-.EXPORT FuncA_Objects_DrawSemaphoreMachineNoFlags
-.PROC FuncA_Objects_DrawSemaphoreMachineNoFlags
+.EXPORT FuncA_Objects_DrawSemaphoreLockMachine
+.PROC FuncA_Objects_DrawSemaphoreLockMachine
     lda #kTileIdObjSemaphoreDistSensor  ; param: corner tile ID
     .assert * = FuncA_Objects_DrawSemaphoreActuator, error, "fallthrough"
 .ENDPROC

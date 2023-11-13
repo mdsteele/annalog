@@ -151,7 +151,7 @@ _Machines_sMachine_arr:
     d_byte Code_eProgram, eProgram::ShadowHallMinigun
     d_byte Breaker_eFlag, 0
     d_byte Flags_bMachine, bMachine::FlipH | bMachine::MoveHV | bMachine::Act
-    d_byte Status_eDiagram, eDiagram::MinigunLeft  ; TODO: MinigunRight
+    d_byte Status_eDiagram, eDiagram::MinigunRight
     d_word ScrollGoalX_u16, $0060
     d_byte ScrollGoalY_u8, $28
     d_byte RegNames_u8_arr4, 0, 0, "X", "Y"

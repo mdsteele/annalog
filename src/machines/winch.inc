@@ -36,6 +36,12 @@ kNumWinchHitsToBreakFloor = 3
 ;;; How many frames to blink the breakable floor for when resetting it.
 kWinchBreakableFloorBlinkFrames = 28
 
+;;; The CHR bank number containing the diagram for winch machines.
+kChrBankDiagramWinch = $03
+
+;;; BG tile IDs for winch machine diagrams.
+kTileIdBgDiagramWinchFirst = $60
+
 ;;; Tile IDs for drawing winch machines.
 kTileIdObjCrusherFirst   = $e0
 kTileIdObjWeakFloorFirst = $c0

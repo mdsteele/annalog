@@ -48,22 +48,26 @@
 .INCLUDE "avatar.inc"
 .INCLUDE "devices/breaker.inc"
 .INCLUDE "dialog.inc"
-.INCLUDE "machine.inc"
 .INCLUDE "machines/blaster.inc"
 .INCLUDE "machines/boiler.inc"
+.INCLUDE "machines/bridge.inc"
 .INCLUDE "machines/cannon.inc"
+.INCLUDE "machines/carriage.inc"
 .INCLUDE "machines/crane.inc"
 .INCLUDE "machines/emitter.inc"
+.INCLUDE "machines/field.inc"
 .INCLUDE "machines/hoist.inc"
 .INCLUDE "machines/jet.inc"
 .INCLUDE "machines/laser.inc"
 .INCLUDE "machines/launcher.inc"
+.INCLUDE "machines/lift.inc"
 .INCLUDE "machines/minigun.inc"
 .INCLUDE "machines/multiplexer.inc"
 .INCLUDE "machines/pump.inc"
 .INCLUDE "machines/reloader.inc"
 .INCLUDE "machines/rotor.inc"
 .INCLUDE "machines/semaphore.inc"
+.INCLUDE "machines/shared.inc"
 .INCLUDE "machines/winch.inc"
 .INCLUDE "platforms/barrier.inc"
 .INCLUDE "platforms/column.inc"
@@ -403,8 +407,8 @@ _chr_begin:
 .PROC Ppu_ChrBgFontLower01
     CHR1_BANK $40
     chr_inc "font_lower"
-    .assert .bank(*) = eDiagram::Lift, error
-    chr_inc "diagram_lift"
+    .assert .bank(*) = kChrBankDiagramLift, error
+    chr_inc "diagram_lift", kTileIdBgDiagramLiftFirst
     .assert .bank(*) = <ePortrait::AdultWoman, error
     chr_inc "portrait_woman_rest"
     END_CHR_BANK
@@ -417,8 +421,8 @@ _chr_begin:
 .PROC Ppu_ChrBgFontLower02
     CHR1_BANK $40
     chr_inc "font_lower"
-    .assert .bank(*) = eDiagram::Trolley, error
-    chr_inc "diagram_trolley"
+    .assert .bank(*) = kChrBankDiagramTrolley, error
+    chr_inc "diagram_trolley", kTileIdBgDiagramTrolleyFirst
     .assert .bank(*) = >ePortrait::AdultWoman, error
     chr_inc "portrait_woman_talk"
     END_CHR_BANK
@@ -431,8 +435,8 @@ _chr_begin:
 .PROC Ppu_ChrBgFontLower03
     CHR1_BANK $40
     chr_inc "font_lower"
-    .assert .bank(*) = eDiagram::Winch, error
-    chr_inc "diagram_winch"
+    .assert .bank(*) = kChrBankDiagramWinch, error
+    chr_inc "diagram_winch", kTileIdBgDiagramWinchFirst
     .assert .bank(*) = <ePortrait::Sign, error
     .assert .bank(*) = >ePortrait::Sign, error
     chr_inc "portrait_sign"
@@ -446,8 +450,8 @@ _chr_begin:
 .PROC Ppu_ChrBgFontLower04
     CHR1_BANK $40
     chr_inc "font_lower"
-    .assert .bank(*) = eDiagram::Boiler, error
-    chr_inc "diagram_boiler"
+    .assert .bank(*) = kChrBankDiagramBoiler, error
+    chr_inc "diagram_boiler", kTileIdBgDiagramBoilerFirst
     .assert .bank(*) = <ePortrait::Paper, error
     .assert .bank(*) = >ePortrait::Paper, error
     chr_inc "portrait_paper"
@@ -461,8 +465,8 @@ _chr_begin:
 .PROC Ppu_ChrBgFontLower05
     CHR1_BANK $40
     chr_inc "font_lower"
-    .assert .bank(*) = eDiagram::Field, error
-    chr_inc "diagram_field"
+    .assert .bank(*) = kChrBankDiagramField, error
+    chr_inc "diagram_field", kTileIdBgDiagramFieldFirst
     .assert .bank(*) = <ePortrait::MermaidDaphne, error
     .assert .bank(*) = <ePortrait::MermaidGuardF, error
     chr_inc "portrait_mermaid_rest"
@@ -476,8 +480,8 @@ _chr_begin:
 .PROC Ppu_ChrBgFontLower06
     CHR1_BANK $40
     chr_inc "font_lower"
-    .assert .bank(*) = eDiagram::Jet, error
-    chr_inc "diagram_jet"
+    .assert .bank(*) = kChrBankDiagramJet, error
+    chr_inc "diagram_jet", kTileIdBgDiagramJetFirst
     .assert .bank(*) = >ePortrait::MermaidDaphne, error
     .assert .bank(*) = >ePortrait::MermaidGuardF, error
     chr_inc "portrait_mermaid_talk"
@@ -491,8 +495,8 @@ _chr_begin:
 .PROC Ppu_ChrBgFontLower07
     CHR1_BANK $40
     chr_inc "font_lower"
-    .assert .bank(*) = eDiagram::Carriage, error
-    chr_inc "diagram_carriage"
+    .assert .bank(*) = kChrBankDiagramCarriage, error
+    chr_inc "diagram_carriage", kTileIdBgDiagramCarriageFirst
     .assert .bank(*) = <ePortrait::AdultMan, error
     chr_inc "portrait_man_rest"
     END_CHR_BANK
@@ -505,8 +509,8 @@ _chr_begin:
 .PROC Ppu_ChrBgFontLower08
     CHR1_BANK $40
     chr_inc "font_lower"
-    .assert .bank(*) = eDiagram::CannonRight, error
-    chr_inc "diagram_cannon_right"
+    .assert .bank(*) = kChrBankDiagramCannonRight, error
+    chr_inc "diagram_cannon_right", kTileIdBgDiagramCannonRightFirst
     .assert .bank(*) = >ePortrait::AdultMan, error
     chr_inc "portrait_man_talk"
     END_CHR_BANK
@@ -519,8 +523,8 @@ _chr_begin:
 .PROC Ppu_ChrBgFontLower09
     CHR1_BANK $40
     chr_inc "font_lower"
-    .assert .bank(*) = eDiagram::CannonLeft, error
-    chr_inc "diagram_cannon_left"
+    .assert .bank(*) = kChrBankDiagramCannonLeft, error
+    chr_inc "diagram_cannon_left", kTileIdBgDiagramCannonLeftFirst
     .assert .bank(*) = <ePortrait::ChildNora, error
     chr_inc "portrait_nora_rest"
     END_CHR_BANK
@@ -533,8 +537,8 @@ _chr_begin:
 .PROC Ppu_ChrBgFontLower0A
     CHR1_BANK $40
     chr_inc "font_lower"
-    .assert .bank(*) = eDiagram::BridgeRight, error
-    chr_inc "diagram_bridge_right"
+    .assert .bank(*) = kChrBankDiagramBridgeRight, error
+    chr_inc "diagram_bridge_right", kTileIdBgDiagramBridgeRightFirst
     .assert .bank(*) = >ePortrait::ChildNora, error
     chr_inc "portrait_nora_talk"
     END_CHR_BANK
@@ -547,8 +551,8 @@ _chr_begin:
 .PROC Ppu_ChrBgFontLower0B
     CHR1_BANK $40
     chr_inc "font_lower"
-    .assert .bank(*) = eDiagram::BridgeLeft, error
-    chr_inc "diagram_bridge_left"
+    .assert .bank(*) = kChrBankDiagramBridgeLeft, error
+    chr_inc "diagram_bridge_left", kTileIdBgDiagramBridgeLeftFirst
     .assert .bank(*) = <ePortrait::ChildAlex, error
     chr_inc "portrait_alex_rest"
     END_CHR_BANK
@@ -561,8 +565,8 @@ _chr_begin:
 .PROC Ppu_ChrBgFontLower0C
     CHR1_BANK $40
     chr_inc "font_lower"
-    .assert .bank(*) = eDiagram::Crane, error
-    chr_inc "diagram_crane"
+    .assert .bank(*) = kChrBankDiagramCrane, error
+    chr_inc "diagram_crane", kTileIdBgDiagramCraneFirst
     .assert .bank(*) = >ePortrait::ChildAlex, error
     chr_inc "portrait_alex_talk"
     END_CHR_BANK
@@ -575,8 +579,8 @@ _chr_begin:
 .PROC Ppu_ChrBgFontLower0D
     CHR1_BANK $40
     chr_inc "font_lower"
-    .assert .bank(*) = eDiagram::Multiplexer, error
-    chr_inc "diagram_multiplexer"
+    .assert .bank(*) = kChrBankDiagramMultiplexer, error
+    chr_inc "diagram_multiplexer", kTileIdBgDiagramMultiplexerFirst
     .assert .bank(*) = <ePortrait::MermaidCorra, error
     chr_inc "portrait_corra_rest"
     END_CHR_BANK
@@ -589,8 +593,7 @@ _chr_begin:
 .PROC Ppu_ChrBgFontLower0E
     CHR1_BANK $40
     chr_inc "font_lower"
-    .assert .bank(*) = eDiagram::Debugger, error
-    chr_inc "diagram_debugger"
+    chr_res $10
     .assert .bank(*) = >ePortrait::MermaidCorra, error
     chr_inc "portrait_corra_talk"
     END_CHR_BANK
@@ -603,8 +606,8 @@ _chr_begin:
 .PROC Ppu_ChrBgFontLower0F
     CHR1_BANK $40
     chr_inc "font_lower"
-    .assert .bank(*) = eDiagram::HoistRight, error
-    chr_inc "diagram_hoist_right"
+    .assert .bank(*) = kChrBankDiagramHoistRight, error
+    chr_inc "diagram_hoist_right", kTileIdBgDiagramHoistRightFirst
     .assert .bank(*) = <ePortrait::MermaidFlorist, error
     chr_inc "portrait_florist_rest"
     END_CHR_BANK
@@ -617,8 +620,8 @@ _chr_begin:
 .PROC Ppu_ChrBgFontLower10
     CHR1_BANK $40
     chr_inc "font_lower"
-    .assert .bank(*) = eDiagram::HoistLeft, error
-    chr_inc "diagram_hoist_left"
+    .assert .bank(*) = kChrBankDiagramHoistLeft, error
+    chr_inc "diagram_hoist_left", kTileIdBgDiagramHoistLeftFirst
     .assert .bank(*) = >ePortrait::MermaidFlorist, error
     chr_inc "portrait_florist_talk"
     END_CHR_BANK
@@ -631,8 +634,8 @@ _chr_begin:
 .PROC Ppu_ChrBgFontLower11
     CHR1_BANK $40
     chr_inc "font_lower"
-    .assert .bank(*) = eDiagram::LauncherDown, error
-    chr_inc "diagram_launcher_down"
+    .assert .bank(*) = kChrBankDiagramLauncherDown, error
+    chr_inc "diagram_launcher_down", kTileIdBgDiagramLauncherDownFirst
     .assert .bank(*) = <ePortrait::ChildMarie, error
     chr_inc "portrait_marie_rest"
     END_CHR_BANK
@@ -645,8 +648,8 @@ _chr_begin:
 .PROC Ppu_ChrBgFontLower12
     CHR1_BANK $40
     chr_inc "font_lower"
-    .assert .bank(*) = eDiagram::MinigunDown, error
-    chr_inc "diagram_minigun_down"
+    .assert .bank(*) = kChrBankDiagramMinigunDown, error
+    chr_inc "diagram_minigun_down", kTileIdBgDiagramMinigunDownFirst
     .assert .bank(*) = >ePortrait::ChildMarie, error
     chr_inc "portrait_marie_talk"
     END_CHR_BANK
@@ -659,8 +662,8 @@ _chr_begin:
 .PROC Ppu_ChrBgFontLower13
     CHR1_BANK $40
     chr_inc "font_lower"
-    .assert .bank(*) = eDiagram::MinigunLeft, error
-    chr_inc "diagram_minigun_left"
+    .assert .bank(*) = kChrBankDiagramMinigunLeft, error
+    chr_inc "diagram_minigun_left", kTileIdBgDiagramMinigunLeftFirst
     .assert .bank(*) = <ePortrait::ChildBruno, error
     chr_inc "portrait_bruno_rest"
     END_CHR_BANK
@@ -673,8 +676,8 @@ _chr_begin:
 .PROC Ppu_ChrBgFontLower14
     CHR1_BANK $40
     chr_inc "font_lower"
-    .assert .bank(*) = eDiagram::MinigunUp, error
-    chr_inc "diagram_minigun_up"
+    .assert .bank(*) = kChrBankDiagramMinigunUp, error
+    chr_inc "diagram_minigun_up", kTileIdBgDiagramMinigunUpFirst
     .assert .bank(*) = >ePortrait::ChildBruno, error
     chr_inc "portrait_bruno_talk"
     END_CHR_BANK
@@ -687,8 +690,8 @@ _chr_begin:
 .PROC Ppu_ChrBgFontLower15
     CHR1_BANK $40
     chr_inc "font_lower"
-    .assert .bank(*) = eDiagram::LauncherLeft, error
-    chr_inc "diagram_launcher_left"
+    .assert .bank(*) = kChrBankDiagramLauncherLeft, error
+    chr_inc "diagram_launcher_left", kTileIdBgDiagramLauncherLeftFirst
     .assert .bank(*) = <ePortrait::Plaque, error
     .assert .bank(*) = >ePortrait::Plaque, error
     chr_inc "portrait_plaque"
@@ -702,8 +705,8 @@ _chr_begin:
 .PROC Ppu_ChrBgFontLower16
     CHR1_BANK $40
     chr_inc "font_lower"
-    .assert .bank(*) = eDiagram::SemaphoreNormal, error
-    chr_inc "diagram_semaphore_normal"
+    .assert .bank(*) = kChrBankDiagramSemaphoreComm, error
+    chr_inc "diagram_semaphore_comm", kTileIdBgDiagramSemaphoreCommFirst
     .assert .bank(*) = <ePortrait::OrcGronta, error
     chr_inc "portrait_gronta_rest"
     END_CHR_BANK
@@ -716,8 +719,8 @@ _chr_begin:
 .PROC Ppu_ChrBgFontLower17
     CHR1_BANK $40
     chr_inc "font_lower"
-    .assert .bank(*) = eDiagram::SemaphoreNoFlags, error
-    chr_inc "diagram_semaphore_no_flags"
+    .assert .bank(*) = kChrBankDiagramSemaphoreLock, error
+    chr_inc "diagram_semaphore_lock", kTileIdBgDiagramSemaphoreLockFirst
     .assert .bank(*) = >ePortrait::OrcGronta, error
     chr_inc "portrait_gronta_talk"
     END_CHR_BANK
@@ -730,8 +733,8 @@ _chr_begin:
 .PROC Ppu_ChrBgFontLower18
     CHR1_BANK $40
     chr_inc "font_lower"
-    .assert .bank(*) = eDiagram::SemaphoreNoSensor, error
-    chr_inc "diagram_semaphore_no_sensor"
+    .assert .bank(*) = kChrBankDiagramSemaphoreKey, error
+    chr_inc "diagram_semaphore_key", kTileIdBgDiagramSemaphoreKeyFirst
     .assert .bank(*) = <ePortrait::OrcMale, error
     chr_inc "portrait_orc_rest"
     END_CHR_BANK
@@ -744,8 +747,8 @@ _chr_begin:
 .PROC Ppu_ChrBgFontLower19
     CHR1_BANK $40
     chr_inc "font_lower"
-    .assert .bank(*) = eDiagram::Pump, error
-    chr_inc "diagram_pump"
+    .assert .bank(*) = kChrBankDiagramPump, error
+    chr_inc "diagram_pump", kTileIdBgDiagramPumpFirst
     .assert .bank(*) = >ePortrait::OrcMale, error
     chr_inc "portrait_orc_talk"
     END_CHR_BANK
@@ -788,6 +791,32 @@ _chr_begin:
     chr_res $10
     .assert .bank(*) = >ePortrait::MermaidEirene, error
     chr_inc "portrait_eirene_talk"
+    END_CHR_BANK
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "CHR_BgFontLower1D"
+
+.PROC Ppu_ChrBgFontLower1D
+    CHR1_BANK $40
+    chr_inc "font_lower"
+    chr_res $10
+    .assert .bank(*) = kChrBankDiagramMinigunRight, error
+    chr_inc "diagram_minigun_right", kTileIdBgDiagramMinigunRightFirst
+    END_CHR_BANK
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "CHR_BgFontLower1E"
+
+.PROC Ppu_ChrBgFontLower1E
+    CHR1_BANK $40
+    chr_inc "font_lower"
+    .assert .bank(*) = kChrBankDiagramDebugger, error
+    chr_inc "diagram_debugger"
+    chr_inc "diagram_debugger"
     END_CHR_BANK
 .ENDPROC
 

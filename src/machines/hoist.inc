@@ -27,6 +27,14 @@
 kHoistMachineWidthPx  = $10
 kHoistMachineHeightPx = $10
 
+;;; The CHR bank numbers containing the diagrams for hoist machines.
+kChrBankDiagramHoistRight = $0f
+kChrBankDiagramHoistLeft  = $10
+
+;;; BG tile IDs for hoist machine diagrams.
+kTileIdBgDiagramHoistRightFirst = $60
+kTileIdBgDiagramHoistLeftFirst  = $60
+
 ;;; Tile IDs for drawing hoist machines.
 kTileIdObjHoistFirst = $84
 kTileIdObjHoistRopeVert = kTileIdObjHoistFirst + 3

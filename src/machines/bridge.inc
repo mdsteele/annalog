@@ -32,4 +32,12 @@ kBridgeMaxAngle = $10
 kBridgeMoveUpCountdown = kBridgeMaxAngle + $20
 kBridgeMoveDownCountdown = kBridgeMaxAngle / 2
 
+;;; The CHR bank numbers containing the diagrams for bridge machines.
+kChrBankDiagramBridgeRight = $0a
+kChrBankDiagramBridgeLeft  = $0b
+
+;;; BG tile IDs for bridge machine diagrams.
+kTileIdBgDiagramBridgeRightFirst = $60
+kTileIdBgDiagramBridgeLeftFirst  = $60
+
 ;;;=========================================================================;;;

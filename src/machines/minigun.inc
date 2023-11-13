@@ -30,6 +30,18 @@
 kMinigunMachineWidthPx  = $20
 kMinigunMachineHeightPx = $10
 
+;;; The CHR bank numbers containing the diagrams for minigun machines.
+kChrBankDiagramMinigunDown  = $12
+kChrBankDiagramMinigunLeft  = $13
+kChrBankDiagramMinigunRight = $1d
+kChrBankDiagramMinigunUp    = $14
+
+;;; BG tile IDs for minigun machine diagrams.
+kTileIdBgDiagramMinigunDownFirst  = $60
+kTileIdBgDiagramMinigunLeftFirst  = $60
+kTileIdBgDiagramMinigunRightFirst = $70
+kTileIdBgDiagramMinigunUpFirst    = $60
+
 ;;; Various OBJ tile IDs used for drawing minigun machines.
 kTileIdObjMinigunHorzFirst = $d0
 kTileIdObjMinigunVertFirst = $d8

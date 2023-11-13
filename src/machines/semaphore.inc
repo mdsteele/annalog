@@ -30,6 +30,16 @@
 ;;; semaphore.
 .DEFINE kNumSemaphoreKeyDigits 5
 
+;;; The CHR bank numbers containing the diagrams for semaphore machines.
+kChrBankDiagramSemaphoreComm = $16
+kChrBankDiagramSemaphoreKey  = $18
+kChrBankDiagramSemaphoreLock = $17
+
+;;; BG tile IDs for semaphore machine diagrams.
+kTileIdBgDiagramSemaphoreCommFirst = $60
+kTileIdBgDiagramSemaphoreKeyFirst  = $60
+kTileIdBgDiagramSemaphoreLockFirst = $60
+
 ;;; OBJ tile IDs used for drawing semaphore machines.
 kTileIdObjSemaphoreFirst = $c0
 

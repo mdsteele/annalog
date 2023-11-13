@@ -17,6 +17,9 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
+;;; The CHR bank number containing the diagram for the machine debugger.
+kChrBankDiagramDebugger = $1e
+
 ;;; OBJ tile IDs used for drawing many different kinds of machines.
 kTileIdObjMachineCorner      = $3a
 kTileIdObjMachineSurfaceHorz = $3b

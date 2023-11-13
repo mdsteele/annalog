@@ -33,6 +33,7 @@
 .INCLUDE "spawn.inc"
 .INCLUDE "window.inc"
 
+.IMPORT DataA_Console_DiagramBank_u8_arr
 .IMPORT FuncA_Actor_TickAllSmokeActors
 .IMPORT FuncA_Console_DrawFieldCursor
 .IMPORT FuncA_Console_MoveFieldCursor
@@ -345,9 +346,11 @@ _CheckIfPowered:
     sub #kFirstBreakerFlag - 1
     @setNeedsPower:
     sta Zp_ConsoleNeedsPower_u8
-_SetDiagram:
+_SetDiagramBank:
     ldy #sMachine::Status_eDiagram
-    chr04_bank (Zp_Current_sMachine_ptr), y
+    lda (Zp_Current_sMachine_ptr), y
+    tax  ; eDiagram value
+    chr04_bank DataA_Console_DiagramBank_u8_arr, x
 _SetScrollGoal:
     .assert sMachine::ScrollGoalX_u16 = 1 + sMachine::Status_eDiagram, error
     iny  ; now Y is sMachine::ScrollGoalX_u16 + 0
@@ -558,6 +561,8 @@ _BottomMargin:
 _BottomBorder:
     jmp Func_Window_TransferBottomBorder
 _Interior:
+    ldx Zp_ConsoleMachineIndex_u8  ; param: machine index
+    jsr Func_SetMachineIndex
     jsr Func_Window_PrepareRowTransfer  ; returns X
     ;; Draw margins, borders, and column separators:
     lda #' '

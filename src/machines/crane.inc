@@ -26,7 +26,15 @@
 ;;; How many frames the crane machine spends per act operation.
 kCraneActCooldown = 8
 
-;;; Various OBJ tile IDs used for drawing crane machines.
+;;; The CHR bank numbers containing the diagrams for crane/trolley machines.
+kChrBankDiagramCrane   = $0c
+kChrBankDiagramTrolley = $02
+
+;;; BG tile IDs for crane/trolley machine diagrams.
+kTileIdBgDiagramCraneFirst   = $60
+kTileIdBgDiagramTrolleyFirst = $60
+
+;;; Various OBJ tile IDs used for drawing crane/trolley machines.
 kTileIdObjCraneFirst = $b0
 
 ;;;=========================================================================;;;

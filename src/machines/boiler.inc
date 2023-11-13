@@ -31,6 +31,12 @@
 ;;; How many frames a boiler machine spends for various operations.
 kBoilerActCountdown = 32
 
+;;; The CHR bank number containing the diagram for boiler machines.
+kChrBankDiagramBoiler = $04
+
+;;; BG tile IDs for boiler machine diagrams.
+kTileIdBgDiagramBoilerFirst = $60
+
 ;;; Various OBJ tile IDs used for drawing boiler machines.
 kTileIdObjValveFirst  = $bb
 

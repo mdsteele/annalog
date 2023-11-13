@@ -20,11 +20,13 @@
 .INCLUDE "cpu.inc"
 .INCLUDE "joypad.inc"
 .INCLUDE "machine.inc"
+.INCLUDE "machines/shared.inc"
 .INCLUDE "macros.inc"
 .INCLUDE "mmc3.inc"
 .INCLUDE "ppu.inc"
 .INCLUDE "window.inc"
 
+.IMPORT DataA_Console_DiagramBank_u8_arr
 .IMPORT FuncA_Console_DrawDebugCursor
 .IMPORT FuncA_Console_SaveProgram
 .IMPORT FuncA_Machine_ExecuteNext
@@ -188,9 +190,10 @@ _Row2:
     cmp #eMachine::Error
     beq _Return
 _SaveProgram:
+    jsr Func_SetMachineIndex
     jsr FuncA_Console_SaveProgram
 _ChangeDiagram:
-    chr04_bank #eDiagram::Debugger
+    chr04_bank #kChrBankDiagramDebugger
 _SetBgAttributes:
     ldax #DataA_Console_DebugAttrTransfer_arr  ; param: data pointer
     ldy #.sizeof(DataA_Console_DebugAttrTransfer_arr)  ; param: data size
@@ -212,7 +215,9 @@ _Return:
     jsr Func_SetMachineIndex
 _ChangeDiagram:
     ldy #sMachine::Status_eDiagram
-    chr04_bank (Zp_Current_sMachine_ptr), y
+    lda (Zp_Current_sMachine_ptr), y
+    tax  ; eDiagram value
+    chr04_bank DataA_Console_DiagramBank_u8_arr, x
 _ResetBgAttributes:
     ldax #DataA_Console_UndoDebugAttrTransfer_arr  ; param: data pointer
     ldy #.sizeof(DataA_Console_UndoDebugAttrTransfer_arr)  ; param: data size

@@ -26,6 +26,12 @@
 ;;; How many frames it takes a pump machine to pump water up or down one pixel.
 kPumpWaterSlowdown = 3
 
+;;; The CHR bank number containing the diagram for pump machines.
+kChrBankDiagramPump = $19
+
+;;; BG tile IDs for pump machine diagrams.
+kTileIdBgDiagramPumpFirst = $60
+
 ;;; Various OBJ tile IDs used for drawing pump machines.
 kTileIdObjHotSpringFirst = $d0
 kTileIdObjWaterFirst     = $84

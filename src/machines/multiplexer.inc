@@ -23,6 +23,12 @@
 ;;;   * State3: Unused.
 ;;;   * State4: Unused.
 
+;;; The CHR bank number containing the diagram for multiplexer machines.
+kChrBankDiagramMultiplexer = $0d
+
+;;; BG tile IDs for multiplexer machine diagrams.
+kTileIdBgDiagramMultiplexerFirst = $60
+
 ;;; Various OBJ tile IDs used for drawing multiplexer machines.
 kTileIdObjMultiplexerFirst = $82
 

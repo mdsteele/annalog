@@ -33,6 +33,12 @@ kJetPlatformHeightPx = $0b
 ;;; How many pixels a jet machine normally moves per frame.
 kJetMoveSpeed = 3
 
+;;; The CHR bank number containing the diagram for jet machines.
+kChrBankDiagramJet = $06
+
+;;; BG tile IDs for jet machine diagrams.
+kTileIdBgDiagramJetFirst = $60
+
 ;;; The start of OBJ tile IDs used for drawing jet machines.
 kTileIdObjJetFirst = $82
 
