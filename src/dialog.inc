@@ -19,44 +19,53 @@
 
 ;;; A sDialog struct is a variable-length sequence of one or more entries, with
 ;;; each entry consisting of one of the following:
-;;;   * The 2-byte ePortrait::Done constant, indicating the end of the dialog.
-;;;   * Any other 2-byte ePortrait value followed by one window's worth of
-;;;     text, with the text terminated by a kDialogTextEnd byte.
-;;;   * A pointer to a function (which must be within PRG ROM) that will return
-;;;     YA with a pointer to another sDialog struct.
+;;;   * The 1-byte kDialogEntryDone constant, indicating the end of the dialog.
+;;;   * The 1-byte kDialogEntryFunc constant, followed by a pointer to a
+;;;     function that will return YA with a pointer to another sDialog struct.
+;;;   * A 1-byte ePortrait value, followed by a 16-bit word encoding a banked
+;;;     pointer to a pane of dialog text within one of the PRGA_Text? segments.
+;;;     The top 3 bits of the word hold the PRGA bank number (which must be
+;;;     0-7), and the bottom 13 bits of the word hold the bottom 13 bits of the
+;;;     pointer (the top 3 bits of the pointer can be omitted, since they
+;;;     will always be %101 given that the address is within PRGA).
 
 ;;;=========================================================================;;;
 
-;;; A pair of CHR04 bank numbers; the lo byte is the bank number to use when
-;;; dialog is paused, and the hi byte is the bank number to alternate with the
-;;; first to animate the portrait while text is being written.
+;;; Animated dialog portraits for various NPCs and devices.
 .ENUM ePortrait
-    Done               = $0000  ; indicates end of dialog
-    AdultMan           = $0807  ; same portrait as MermaidFarmer
-    AdultWoman         = $0201
-    ChildAlex          = $0c0b
-    ChildAlexShout     = $0b0c
-    ChildBruno         = $1413
-    ChildBrunoShout    = $1314
-    ChildMarie         = $1211
-    ChildNora          = $0a09  ; same portrait as MermaidPhoebe
-    MermaidDaphne      = $0605  ; same portrait as MermaidGuardF
-    MermaidCorra       = $0e0d
-    MermaidEirene      = $1c1b
-    MermaidEireneShout = $1b1c
-    MermaidFarmer      = $0807  ; same portrait as AdultMan
-    MermaidFlorist     = $100f
-    MermaidGuardF      = $0605  ; same portrait as MermaidDaphne
-    MermaidPhoebe      = $0a09  ; same portrait as ChildNora
-    OrcGronta          = $1716
-    OrcGrontaShout     = $1617
-    OrcMale            = $1918
-    OrcMaleShout       = $1819
-    Paper              = $0404
-    Plaque             = $1515
-    Screen             = $1a1a
-    Sign               = $0303
+    AdultMan
+    AdultWoman
+    ChildAlex
+    ChildAlexShout
+    ChildBruno
+    ChildBrunoShout
+    ChildMarie
+    ChildNora
+    MermaidDaphne
+    MermaidCorra
+    MermaidEirene
+    MermaidEireneShout
+    MermaidFarmer
+    MermaidFlorist
+    MermaidGuardF
+    MermaidPhoebe
+    OrcGronta
+    OrcGrontaShout
+    OrcMale
+    OrcMaleShout
+    Paper
+    Plaque
+    Screen
+    Sign
+    NUM_VALUES
 .ENDENUM
+
+;;; Special constants used in place of an ePortrait value to indicate a "Func"
+;;; or "Done" sDialog entry.
+kDialogEntryFunc = $fe
+kDialogEntryDone = $ff  ; indicates end of dialog
+.ASSERT kDialogEntryFunc >= ePortrait::NUM_VALUES, error
+.ASSERT kDialogEntryDone >= ePortrait::NUM_VALUES, error
 
 ;;;=========================================================================;;;
 
@@ -164,20 +173,20 @@ kDialogTextYesNo   = $ff
 .MACRO dlg_Text PORTRAIT, LABEL
     .assert LABEL >= $a000 && LABEL < $c000, error
     .assert .bank(LABEL) < 8, error
-    .word ePortrait::PORTRAIT
+    .byte ePortrait::PORTRAIT
     .byte <LABEL
     .byte (<.bank(LABEL) << 5) | ($1f & >LABEL)
 .ENDMACRO
 
 ;;; Expands to a sDialog entry that calls a dynamic dialog function.
 .MACRO dlg_Func LABEL
-    .assert LABEL >= $8000, error
+    .byte kDialogEntryFunc
     .addr LABEL
 .ENDMACRO
 
 ;;; Expands to a sDialog entry indicating the end of the dialog.
 .MACRO dlg_Done
-    .word ePortrait::Done
+    .byte kDialogEntryDone
 .ENDMACRO
 
 ;;;=========================================================================;;;

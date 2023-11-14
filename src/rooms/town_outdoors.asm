@@ -32,6 +32,7 @@
 .INCLUDE "../mmc3.inc"
 .INCLUDE "../oam.inc"
 .INCLUDE "../platform.inc"
+.INCLUDE "../portrait.inc"
 .INCLUDE "../ppu.inc"
 .INCLUDE "../room.inc"
 
@@ -389,6 +390,7 @@ _AttackFunc:
     ldya #_Attack_sDialog
     rts
 _Attack_sDialog:
+    .assert kTileIdBgPortraitGrontaFirst = kTileIdBgPortraitAlexFirst, error
     dlg_Text OrcGrontaShout, DataA_Text0_TownOutdoorsAlex3_Attack1_u8_arr
     dlg_Text ChildAlexShout, DataA_Text0_TownOutdoorsAlex3_Attack2_u8_arr
     dlg_Func _OrcJumpFunc
@@ -403,6 +405,7 @@ _OrcJumpFunc:
 
 .EXPORT DataC_Town_TownOutdoorsGronta_sDialog
 .PROC DataC_Town_TownOutdoorsGronta_sDialog
+    .assert kTileIdBgPortraitGrontaFirst = kTileIdBgPortraitOrcFirst, error
     dlg_Text OrcGronta, DataA_Text0_TownOutdoorsGronta_Search1_u8_arr
     dlg_Text OrcGronta, DataA_Text0_TownOutdoorsGronta_Search2_u8_arr
     dlg_Text OrcMale, DataA_Text0_TownOutdoorsGronta_YesChief_u8_arr

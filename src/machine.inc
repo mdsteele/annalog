@@ -26,7 +26,7 @@ kMachineRegNameB = $21  ; 'B'
 
 ;;;=========================================================================;;;
 
-;;; CHR04 bank numbers to set for various machine status diagrams.
+;;; Diagrams for various kinds of machines.
 .ENUM eDiagram
     Boiler
     BridgeLeft

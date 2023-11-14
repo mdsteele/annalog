@@ -82,6 +82,9 @@
 .IMPORT DataA_Dialog_PaperManual2_sDialog
 .IMPORT DataA_Dialog_PaperManual3_sDialog
 .IMPORT DataA_Dialog_PaperManual4_sDialog
+.IMPORT DataA_Dialog_PortraitAnimBank_u8_arr
+.IMPORT DataA_Dialog_PortraitFirstTileId_u8_arr
+.IMPORT DataA_Dialog_PortraitRestBank_u8_arr
 .IMPORT DataA_Dialog_PrisonFlowerSign_sDialog
 .IMPORT DataA_Dialog_PrisonUpperAlexCell_sDialog
 .IMPORT DataA_Dialog_PrisonUpperAlexFree_sDialog
@@ -226,12 +229,8 @@ Ppu_PortraitAttrStart = Ppu_Nametable3_sName + sName::Attrs_u8_arr64 + \
 ;;; Status bits for the current dialog.
 Zp_DialogStatus_bDialog: .res 1
 
-;;; The CHR04 bank to set when the dialog portrait is at rest.
-Zp_PortraitRestBank_u8: .res 1
-
-;;; The CHR04 bank to alternate with Zp_PortraitRestBank_u8 when animating the
-;;; dialog portrait.
-Zp_PortraitAnimBank_u8: .res 1
+;;; The portrait for the current pane of dialog text.
+Zp_Current_ePortrait: .res 1
 
 ;;; The index into Ram_DialogText_u8_arr for the next character to draw.
 Zp_DialogTextIndex_u8: .res 1
@@ -689,11 +688,7 @@ _CheckAButton:
     ;; current text, then skip to the end of the current text.
     bit Zp_DialogStatus_bDialog
     .assert bDialog::Paused = bProc::Negative, error
-    bmi @atEndOfText
-    jsr FuncA_Dialog_TransferRestOfText
-    ldx Zp_PortraitRestBank_u8
-    bne _ContinueDialog  ; unconditional
-    @atEndOfText:
+    bpl _TransferRestOfText
     ;; Otherwise, the player pressed the A button when we're already at
     ;; end-of-text, so begin the next page of text.
     jsr FuncA_Dialog_TransferClearText
@@ -706,28 +701,27 @@ _CheckAButton:
 _UpdateText:
     bit Zp_DialogStatus_bDialog
     .assert bDialog::Paused = bProc::Negative, error
-    bpl @notPaused
-    ldx Zp_PortraitRestBank_u8
-    bne _ContinueDialog  ; unconditional
-    @notPaused:
+    bmi _RestPortrait
     jsr FuncA_Dialog_TransferNextCharacter
 _AnimatePortrait:
     lda Zp_FrameCounter_u8
     and #$08
-    beq @rest
-    ldx Zp_PortraitAnimBank_u8
-    bne @done  ; unconditional
-    @rest:
-    ldx Zp_PortraitRestBank_u8
-    @done:
+    beq _RestPortrait
+    ldy Zp_Current_ePortrait
+    ldx DataA_Dialog_PortraitAnimBank_u8_arr, y
+    jmp _ContinueDialog
+_TransferRestOfText:
+    jsr FuncA_Dialog_TransferRestOfText
+_RestPortrait:
+    ldy Zp_Current_ePortrait
+    ldx DataA_Dialog_PortraitRestBank_u8_arr, y
 _ContinueDialog:
     chr04_bank x
     lda #0  ; Set Z to indicate that we shouldn't copy the next pane of text.
     clc  ; Clear C to indicate that dialog should continue.
     rts
 _CloseWindow:
-    ldx Zp_PortraitRestBank_u8
-    jsr _ContinueDialog  ; sets Z
+    jsr _RestPortrait  ; sets Z
     sec  ; Set C to indicate that we should close the dialog window.
     rts
 .ENDPROC
@@ -756,34 +750,32 @@ _CloseWindow:
     lda Zp_DialogStatus_bDialog
     and #<~(bDialog::Paused | bDialog::YesNo)
     sta Zp_DialogStatus_bDialog
-_ReadPortraitWord:
-    ;; Load the first word of the sDialog entry into AX.  If the highest bit is
-    ;; set, then this is a function address in PRG ROM for us to call;
-    ;; otherwise it's an ePortrait value.  If the high byte is zero, then
-    ;; dialog is done (the value must be ePortrait::Done), otherwise we've
-    ;; found our next pane of text.
+_ReadPortraitByte:
     ldy #0
     lda (Zp_Next_sDialog_ptr), y
-    iny
-    tax
-    lda (Zp_Next_sDialog_ptr), y
+    cmp #kDialogEntryDone
     beq _DialogDone
-    bpl _SetPortrait
+    iny
+    cmp #kDialogEntryFunc
+    bne _SetPortrait
 _DynamicDialog:
-    stax T1T0
+    lda (Zp_Next_sDialog_ptr), y
+    sta T0
+    iny
+    lda (Zp_Next_sDialog_ptr), y
+    sta T1
     jsr _CallT1T0  ; returns YA
     stya Zp_Next_sDialog_ptr
-    jmp _ReadPortraitWord
+    jmp _ReadPortraitByte
 _CallT1T0:
     jmp (T1T0)
 _DialogDone:
     sec  ; dialog done
     rts
 _SetPortrait:
-    iny
-    sta Zp_PortraitAnimBank_u8
-    stx Zp_PortraitRestBank_u8
-    chr04_bank x
+    sta Zp_Current_ePortrait
+    tax  ; ePortrait value
+    chr04_bank DataA_Dialog_PortraitRestBank_u8_arr, x
 _ReadTextPointer:
     lda (Zp_Next_sDialog_ptr), y
     iny
@@ -912,7 +904,9 @@ _Interior:
     inx
     ;; Draw portrait:
     lda Zp_WindowNextRowToTransfer_u8
-    add #$6e
+    sub #2
+    ldy Zp_Current_ePortrait
+    add DataA_Dialog_PortraitFirstTileId_u8_arr, y
     ldy #4
     @portraitLoop:
     sta Ram_PpuTransfer_arr, x

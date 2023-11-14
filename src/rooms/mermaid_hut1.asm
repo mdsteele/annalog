@@ -29,6 +29,7 @@
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
 .INCLUDE "../platform.inc"
+.INCLUDE "../portrait.inc"
 .INCLUDE "../room.inc"
 
 .IMPORT DataA_Room_Hut_sTileset
@@ -377,6 +378,7 @@ _KidsRescued_sDialog:
 
 .EXPORT DataA_Dialog_MermaidHut1AlexPetition_sDialog
 .PROC DataA_Dialog_MermaidHut1AlexPetition_sDialog
+    .assert kTileIdBgPortraitAlexFirst = kTileIdBgPortraitEireneFirst, error
     dlg_Text ChildAlex, DataA_Text2_MermaidHut1AlexPetition_Part1_u8_arr
     dlg_Text MermaidEirene, DataA_Text2_MermaidHut1AlexPetition_Part2_u8_arr
     dlg_Text ChildAlex, DataA_Text2_MermaidHut1AlexPetition_Part3_u8_arr
@@ -387,6 +389,7 @@ _KidsRescued_sDialog:
 
 .EXPORT DataA_Dialog_MermaidHut1BreakerCrypt1_sDialog
 .PROC DataA_Dialog_MermaidHut1BreakerCrypt1_sDialog
+    .assert kTileIdBgPortraitAlexFirst = kTileIdBgPortraitEireneFirst, error
     dlg_Text ChildAlex, DataA_Text2_MermaidHut1BreakerCrypt_Part1_u8_arr
     dlg_Text MermaidEirene, DataA_Text2_MermaidHut1BreakerCrypt_Part2_u8_arr
     dlg_Text MermaidEirene, DataA_Text2_MermaidHut1BreakerCrypt_Part3_u8_arr

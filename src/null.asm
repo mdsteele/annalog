@@ -30,41 +30,32 @@
 .EXPORT Data_Empty_sActor_arr
 .PROC Data_Empty_sActor_arr
     .assert eActor::None = 0, error
-    .assert * = Data_Zero_arr2, error, "fallthrough"
+    .assert * = Data_Zero_u8, error, "fallthrough"
 .ENDPROC
 
-;;; A music chain that contains no phrases.
+;;; A music chain that contains nothing but a HALT ($00) item.
 .EXPORT Data_Empty_bChain_arr
 .PROC Data_Empty_bChain_arr
-    .assert * = Data_Zero_arr2, error, "fallthrough"
+    .assert * = Data_Zero_u8, error, "fallthrough"
 .ENDPROC
 
 ;;; An empty sDevice array (that is immediately terminated by eDevice::None).
 .EXPORT Data_Empty_sDevice_arr
 .PROC Data_Empty_sDevice_arr
     .assert eDevice::None = 0, error
-    .assert * = Data_Zero_arr2, error, "fallthrough"
+    .assert * = Data_Zero_u8, error, "fallthrough"
 .ENDPROC
 
-;;; An empty sDialog struct (that just immediately ends the dialog).  This can
-;;; be useful for dynamic dialog functions to set as the next sDialog pointer
-;;; if they want to end the conversation.
-.EXPORT Data_Empty_sDialog
-.PROC Data_Empty_sDialog
-    .assert ePortrait::Done = $0000, error
-    .assert * = Data_Zero_arr2, error, "fallthrough"
-.ENDPROC
-
-;;; A music opcode array that contains nothing but a STOP opcode.
+;;; A music opcode array that contains nothing but a STOP ($00) opcode.
 .EXPORT Data_Empty_bMusic_arr
 .PROC Data_Empty_bMusic_arr
-    .assert * = Data_Zero_arr2, error, "fallthrough"
+    .assert * = Data_Zero_u8, error, "fallthrough"
 .ENDPROC
 
-;;; A sPhrase struct that contains no notes.
+;;; A sPhrase struct that contains nothing but a DONE ($00) note.
 .EXPORT Data_Empty_sPhrase
 .PROC Data_Empty_sPhrase
-    .assert * = Data_Zero_arr2, error, "fallthrough"
+    .assert * = Data_Zero_u8, error, "fallthrough"
 .ENDPROC
 
 ;;; An empty sPlatform array (that is immediately terminated by
@@ -72,13 +63,21 @@
 .EXPORT Data_Empty_sPlatform_arr
 .PROC Data_Empty_sPlatform_arr
     .assert ePlatform::None = 0, error
-    .assert * = Data_Zero_arr2, error, "fallthrough"
+    .assert * = Data_Zero_u8, error, "fallthrough"
 .ENDPROC
 
-;;; An array of bytes that are all zero, long enough to serve as null values
-;;; for all of the above exported symbols.
-.PROC Data_Zero_arr2
-    .byte 0, 0
+;;; A byte that is zero, which can serve as a null value for all of the above
+;;; exported symbols.
+.PROC Data_Zero_u8
+    .byte 0
+.ENDPROC
+
+;;; An empty sDialog struct (that just immediately ends the dialog).  This can
+;;; be useful for dynamic dialog functions to set as the next sDialog pointer
+;;; if they want to end the conversation.
+.EXPORT Data_Empty_sDialog
+.PROC Data_Empty_sDialog
+    dlg_Done
 .ENDPROC
 
 ;;; Does nothing and returns immediately.  Can be used as a null function

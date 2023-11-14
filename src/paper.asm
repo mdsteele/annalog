@@ -24,6 +24,7 @@
 .INCLUDE "macros.inc"
 .INCLUDE "mmc3.inc"
 .INCLUDE "oam.inc"
+.INCLUDE "portrait.inc"
 .INCLUDE "ppu.inc"
 .INCLUDE "room.inc"
 
@@ -133,7 +134,9 @@ Ram_CollectedPapers_u8_arr: .res kPaperGridCols
     .dbyt Ppu_PortraitTopLeft + kScreenWidthTiles * row  ; destination address
     .byte @dataEnd - @dataStart  ; transfer length
     @dataStart:
-    .byte $70 + row, $74 + row, $78 + row, $7c + row
+    .repeat 4, col
+    .byte kTileIdBgPortraitPaperFirst + col * 4 + row
+    .endrepeat
     @dataEnd:
     .endscope
     .endrepeat
