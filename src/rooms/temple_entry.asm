@@ -297,7 +297,12 @@ _MaybeRaiseColumn:
 
 .PROC FuncA_Room_TempleEntry_TickRoom
 _StartCutscene:
-    ;; If Anna has already talked to Corra, don't start the cutscene.
+    ;; If Corra isn't here, or if Anna has already talked to Corra, don't start
+    ;; the cutscene.
+    flag_bit Sram_ProgressFlags_arr, eFlag::BreakerCrypt
+    beq @done  ; Corra isn't here yet
+    flag_bit Sram_ProgressFlags_arr, eFlag::CityOutskirtsTalkedToAlex
+    bne @done  ; Corra is no longer here
     flag_bit Sram_ProgressFlags_arr, eFlag::TempleEntryTalkedToCorra
     bne @done
     ;; If the player avatar isn't standing in the cutscene-starting zone, don't
