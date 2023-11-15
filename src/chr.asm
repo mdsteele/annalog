@@ -557,8 +557,8 @@ _chr_begin:
     chr_inc "window"
     chr_inc "house"
     chr_inc "tree"
-    chr_res $06
     chr_inc "hill"
+    chr_res $08
     END_CHR_BANK
 .ENDPROC
 
@@ -848,7 +848,7 @@ _chr_begin:
     CHR1_BANK $80
     chr_inc "sewer1"
     chr_inc "sewer2"
-    chr_res $16
+    chr_res $18
     chr_inc "pump"
     chr_res $0c
     END_CHR_BANK

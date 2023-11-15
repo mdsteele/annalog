@@ -2,15 +2,16 @@
 >cave
 >prison
 >terrain_shared_0
+>terrain_shared_1
 >water_anim0
 
     CMCN    CICJ                            BP  BOBLBPBL  BL  BL
-    COCPCECFCKCL                        BLBPBP    BPBLBOBOBLABAA
-        AO                                                  DADA
+    COCPCECFCKCL                        BLBPBP    BPBLBOBOBLDBDA
+        AO                                                  EAEA
   AL  AMAN    AJAK
   BLBL    BLBL                  BABEBEBBBCBFBFBDBEBEBGBHBFBFBKBJ
   BLBL    BOBP    BOBP  BLBLBPBOBCBFBFBDBCBFBFBDBFBFBIBJBFBFBMBN
-          AGAG  AC      AG    AG        AA    AB
-  AHAH                ACAHAHAHAH                ABAAAB    AAAPAP
-AEAGAGAGAGAFAEAGAGAGAGAFAA      ACABAAABAAABAAABAA    ABAEAFAAAB
-ABAHAHAHAHAAABAC      AAABAHAHAHAHAAABAC      AAAB    AAABAAABAA
+          AGAG  AC      AG    AG        DA    DB
+  AHAH                ACAHAHAHAH                DBDADB    DAAPAP
+AEAGAGAGAGAFAEAGAGAGAGAFDA      ACDBDADBDADBDADBDA    DBAEAFDADB
+DBAHAHAHAHDADBAC      DADBAHAHAHAHDADBAC      DADB    DADBDADBDA

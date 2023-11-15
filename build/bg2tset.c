@@ -69,7 +69,7 @@ static const struct {
   {0xa0, "fullcore1"},
   {0xb0, "fullcore2"},
   {0xa0, "furniture"},
-  {0xbc, "hill"},
+  {0xb6, "hill"},
   {0xb0, "hoist_bg"},
   {0xa0, "house"},
   {0x90, "hut"},
