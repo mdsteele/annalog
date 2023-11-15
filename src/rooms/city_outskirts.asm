@@ -443,7 +443,7 @@ _CutsceneFunc:
 .PROC DataA_Text1_CityOutskirtsAlex_Part6_u8_arr
     .byte "We've GOT to find a$"
     .byte "way into that city.$"
-    .byte "Meet me back in the$"
+    .byte "Meet me down in the$"
     .byte "mermaid village, OK?#"
 .ENDPROC
 
