@@ -32,10 +32,10 @@
 kBoilerActCountdown = 32
 
 ;;; The CHR bank number containing the diagram for boiler machines.
-kChrBankDiagramBoiler = $04
+kChrBankDiagramBoiler = $0e
 
 ;;; BG tile IDs for boiler machine diagrams.
-kTileIdBgDiagramBoilerFirst = $60
+kTileIdBgDiagramBoilerFirst = $e0
 
 ;;; Various OBJ tile IDs used for drawing boiler machines.
 kTileIdObjValveFirst  = $bb

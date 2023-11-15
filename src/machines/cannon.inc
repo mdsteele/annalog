@@ -25,12 +25,12 @@
 ;;;   * State4: Unused.
 
 ;;; The CHR bank numbers containing the diagrams for cannon machines.
-kChrBankDiagramCannonRight = $08
-kChrBankDiagramCannonLeft  = $09
+kChrBankDiagramCannonLeft  = $04
+kChrBankDiagramCannonRight = $04
 
 ;;; BG tile IDs for cannon machine diagrams.
-kTileIdBgDiagramCannonRightFirst = $60
-kTileIdBgDiagramCannonLeftFirst  = $60
+kTileIdBgDiagramCannonLeftFirst  = $e0
+kTileIdBgDiagramCannonRightFirst = $f0
 
 ;;; The first tile ID use for drawing cannon machines.
 kTileIdObjCannonFirst = $88

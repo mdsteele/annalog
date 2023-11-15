@@ -41,10 +41,10 @@
 ;;; ($00) once the data is transferred.
 Zp_NmiReady_bool: .res 1
 
-;;; The NMI handler will set this as the CHR0C bank number during VBlank when
+;;; The NMI handler will set this as the CHR04 bank number during VBlank when
 ;;; Zp_NmiReady_bool is set.
-.EXPORTZP Zp_Chr0cBank_u8
-Zp_Chr0cBank_u8: .res 1
+.EXPORTZP Zp_Chr04Bank_u8
+Zp_Chr04Bank_u8: .res 1
 
 ;;; The NMI handler will copy this to Hw_PpuMask_wo when Zp_NmiReady_bool is
 ;;; set.
@@ -138,7 +138,7 @@ _UpdatePpuRegisters:
     sta Hw_PpuCtrl_wo
     lda Zp_Render_bPpuMask
     sta Hw_PpuMask_wo
-    chr0c_bank Zp_Chr0cBank_u8
+    chr04_bank Zp_Chr04Bank_u8
 _TransferIrqStruct:
     .repeat .sizeof(sIrq), index
     lda Zp_Buffered_sIrq + index

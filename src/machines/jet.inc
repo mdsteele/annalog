@@ -34,10 +34,10 @@ kJetPlatformHeightPx = $0b
 kJetMoveSpeed = 3
 
 ;;; The CHR bank number containing the diagram for jet machines.
-kChrBankDiagramJet = $06
+kChrBankDiagramJet = $09
 
 ;;; BG tile IDs for jet machine diagrams.
-kTileIdBgDiagramJetFirst = $60
+kTileIdBgDiagramJetFirst = $f0
 
 ;;; The start of OBJ tile IDs used for drawing jet machines.
 kTileIdObjJetFirst = $82

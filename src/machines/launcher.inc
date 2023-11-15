@@ -29,12 +29,12 @@ kLauncherMachineWidthPx  = $10
 kLauncherMachineHeightPx = $10
 
 ;;; The CHR bank numbers containing the diagrams for launcher machines.
-kChrBankDiagramLauncherDown = $11
-kChrBankDiagramLauncherLeft = $15
+kChrBankDiagramLauncherDown = $0c
+kChrBankDiagramLauncherLeft = $0c
 
 ;;; BG tile IDs for launcher machine diagrams.
-kTileIdBgDiagramLauncherDownFirst = $60
-kTileIdBgDiagramLauncherLeftFirst = $60
+kTileIdBgDiagramLauncherDownFirst = $e0
+kTileIdBgDiagramLauncherLeftFirst = $f0
 
 ;;; OBJ tile IDs used for drawing launcher machines.
 kTileIdObjLauncherHorzFirst = $94

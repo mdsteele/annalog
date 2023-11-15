@@ -76,7 +76,7 @@
 .IMPORTZP Zp_AvatarPosX_i16
 .IMPORTZP Zp_Buffered_sIrq
 .IMPORTZP Zp_Camera_bScroll
-.IMPORTZP Zp_Chr0cBank_u8
+.IMPORTZP Zp_Chr04Bank_u8
 .IMPORTZP Zp_FrameCounter_u8
 .IMPORTZP Zp_NextIrq_int_ptr
 .IMPORTZP Zp_RoomScrollY_u8
@@ -813,7 +813,7 @@ _AnimateThorns:
     div #4
     and #$07
     add #<.bank(Ppu_ChrBgAnimA0)
-    sta Zp_Chr0cBank_u8
+    sta Zp_Chr04Bank_u8
 _SetUpIrq:
     ;; Compute the IRQ latch value to set between the bottom of the boss's zone
     ;; and the top of the window (if any), and set that as Param3_byte.

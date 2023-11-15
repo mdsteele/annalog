@@ -21,7 +21,7 @@
 .INCLUDE "../ppu.inc"
 
 .IMPORT Ppu_ChrBgAnimB0
-.IMPORTZP Zp_Chr0cBank_u8
+.IMPORTZP Zp_Chr04Bank_u8
 .IMPORTZP Zp_FrameCounter_u8
 
 ;;;=========================================================================;;;
@@ -84,7 +84,7 @@ _SecondRow:
     div #8
     and #$03
     add #<.bank(Ppu_ChrBgAnimB0)
-    sta Zp_Chr0cBank_u8
+    sta Zp_Chr04Bank_u8
     rts
 .ENDPROC
 

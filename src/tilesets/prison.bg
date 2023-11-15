@@ -1,17 +1,15 @@
 @BG 0 0 0 32x10
 >cave
->console
->font_lower
 >prison
->sign
+>terrain_shared_0
 >water_anim0
 
-    BABC    EAEC                            DP  DODLDPDL  DL  DL
-    BBBDCaCbEBED                        DLDPDP    DPDLDODODLABAA
-        AO                                                  FAFA
+    CMCN    CICJ                            BP  BOBLBPBL  BL  BL
+    COCPCECFCKCL                        BLBPBP    BPBLBOBOBLABAA
+        AO                                                  DADA
   AL  AMAN    AJAK
-  DLDL    DLDL                  DADEDEDBDCDFDFDDDEDEDGDHDFDFDKDJ
-  DLDL    DODP    DODP  DLDLDPDODCDFDFDDDCDFDFDDDFDFDIDJDFDFDMDN
+  BLBL    BLBL                  BABEBEBBBCBFBFBDBEBEBGBHBFBFBKBJ
+  BLBL    BOBP    BOBP  BLBLBPBOBCBFBFBDBCBFBFBDBFBFBIBJBFBFBMBN
           AGAG  AC      AG    AG        AA    AB
   AHAH                ACAHAHAHAH                ABAAAB    AAAPAP
 AEAGAGAGAGAFAEAGAGAGAGAFAA      ACABAAABAAABAAABAA    ABAEAFAAAB

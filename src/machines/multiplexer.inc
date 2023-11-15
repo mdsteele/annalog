@@ -27,7 +27,7 @@
 kChrBankDiagramMultiplexer = $0d
 
 ;;; BG tile IDs for multiplexer machine diagrams.
-kTileIdBgDiagramMultiplexerFirst = $60
+kTileIdBgDiagramMultiplexerFirst = $f0
 
 ;;; Various OBJ tile IDs used for drawing multiplexer machines.
 kTileIdObjMultiplexerFirst = $82

@@ -28,9 +28,9 @@ kLiftMachineWidthPx  = $10
 kLiftMachineHeightPx = $20
 
 ;;; The CHR bank number containing the diagram for lift machines.
-kChrBankDiagramLift = $01
+kChrBankDiagramLift = $02
 
 ;;; BG tile IDs for lift machine diagrams.
-kTileIdBgDiagramLiftFirst = $60
+kTileIdBgDiagramLiftFirst = $e0
 
 ;;;=========================================================================;;;

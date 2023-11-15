@@ -27,10 +27,10 @@
 kPumpWaterSlowdown = 3
 
 ;;; The CHR bank number containing the diagram for pump machines.
-kChrBankDiagramPump = $19
+kChrBankDiagramPump = $0a
 
 ;;; BG tile IDs for pump machine diagrams.
-kTileIdBgDiagramPumpFirst = $60
+kTileIdBgDiagramPumpFirst = $e0
 
 ;;; Various OBJ tile IDs used for drawing pump machines.
 kTileIdObjHotSpringFirst = $d0

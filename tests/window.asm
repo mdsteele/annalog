@@ -52,6 +52,15 @@ Ram_PpuTransfer_arr: .res $80
 
 ;;;=========================================================================;;;
 
+.SEGMENT "CHR_BgFontUpper"
+
+.EXPORT Ppu_ChrBgFontUpper
+.PROC Ppu_ChrBgFontUpper
+    .res $400
+.ENDPROC
+
+;;;=========================================================================;;;
+
 .SEGMENT "MAIN"
     sei
     cld

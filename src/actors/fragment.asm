@@ -19,6 +19,7 @@
 
 .INCLUDE "../actor.inc"
 .INCLUDE "../macros.inc"
+.INCLUDE "smoke.inc"
 
 .IMPORT FuncA_Actor_ApplyGravity
 .IMPORT FuncA_Objects_Draw1x1Actor
@@ -29,7 +30,7 @@
 ;;;=========================================================================;;;
 
 ;;; The OBJ tile ID for smoke fragment actors.
-kTileIdObjFragment = $1f
+kTileIdObjFragment = kTileIdObjSmokeFirst + 5
 
 ;;; The OBJ palette number used for smoke fragment actors.
 kPaletteObjFragment = 0

@@ -69,7 +69,7 @@
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORT Ram_PlatformTop_i16_1_arr
 .IMPORT Ram_PlatformType_ePlatform_arr
-.IMPORTZP Zp_Chr0cBank_u8
+.IMPORTZP Zp_Chr04Bank_u8
 .IMPORTZP Zp_PointX_i16
 .IMPORTZP Zp_PointY_i16
 .IMPORTZP Zp_RoomState
@@ -621,7 +621,7 @@ _AnimateConveyor:
     div #kConveyorSlowdown
     and #$03
     add #<.bank(Ppu_ChrBgAnimB0)
-    sta Zp_Chr0cBank_u8
+    sta Zp_Chr04Bank_u8
 _DrawBoulder:
     ldx #kBoulderPlatformIndex  ; param: platform index
     jsr FuncA_Objects_DrawBoulderPlatform

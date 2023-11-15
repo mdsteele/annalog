@@ -62,7 +62,7 @@
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORT Ram_PlatformType_ePlatform_arr
 .IMPORT Sram_ProgressFlags_arr
-.IMPORTZP Zp_Chr0cBank_u8
+.IMPORTZP Zp_Chr04Bank_u8
 
 ;;;=========================================================================;;;
 
@@ -233,7 +233,7 @@ _BgAnimation:
     flag_bit Sram_ProgressFlags_arr, eFlag::BreakerCity
     bne @done
     lda #<.bank(Ppu_ChrBgAnimStatic)
-    sta Zp_Chr0cBank_u8
+    sta Zp_Chr04Bank_u8
     @done:
 _RockWall:
     ldx #kRockWallPlatformIndex  ; param: platform index

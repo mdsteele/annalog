@@ -84,7 +84,7 @@
 .IMPORTZP Zp_AvatarPosX_i16
 .IMPORTZP Zp_AvatarPosY_i16
 .IMPORTZP Zp_Buffered_sIrq
-.IMPORTZP Zp_Chr0cBank_u8
+.IMPORTZP Zp_Chr04Bank_u8
 .IMPORTZP Zp_FrameCounter_u8
 .IMPORTZP Zp_IrqTmp_byte
 .IMPORTZP Zp_NextIrq_int_ptr
@@ -592,22 +592,22 @@ _Inner:
     .byte kPpuCtrlFlagsHorz
     .dbyt Ppu_BossRow0Start  ; transfer destination
     .byte 6
-    .byte $ec, $ed, $ee, $ef, $f0, $f1
+    .byte $6c, $6d, $6e, $6f, $70, $71
     ;; Row 1:
     .byte kPpuCtrlFlagsHorz
     .dbyt Ppu_BossRow1Start  ; transfer destination
     .byte 6
-    .byte $f2, $f3, $a4, $a6, $f4, $f5
+    .byte $72, $73, $a4, $a6, $74, $75
     ;; Row 2:
     .byte kPpuCtrlFlagsHorz
     .dbyt Ppu_BossRow2Start  ; transfer destination
     .byte 6
-    .byte $fc, $fd, $a5, $a7, $fe, $ff
+    .byte $7c, $7d, $a5, $a7, $7e, $7f
     ;; Row 3:
     .byte kPpuCtrlFlagsHorz
     .dbyt Ppu_BossRow3Start  ; transfer destination
     .byte 6
-    .byte $f6, $f7, $f8, $f9, $fa, $fb
+    .byte $76, $77, $78, $79, $7a, $7b
     ;; Nametable attributes to color eyeball red:
     .byte kPpuCtrlFlagsHorz
     .dbyt Ppu_BossEyeAttrs  ; transfer destination
@@ -890,7 +890,7 @@ _AnimateTentacles:
     div #8
     and #$03
     add #<.bank(Ppu_ChrBgAnimB0)
-    sta Zp_Chr0cBank_u8
+    sta Zp_Chr04Bank_u8
 _SetEyeShapePosition:
     ;; Set the shape position to the center of the boss's eye.
     ldx #kBossBodyPlatformIndex  ; param: platform index

@@ -28,12 +28,12 @@ kHoistMachineWidthPx  = $10
 kHoistMachineHeightPx = $10
 
 ;;; The CHR bank numbers containing the diagrams for hoist machines.
-kChrBankDiagramHoistRight = $0f
-kChrBankDiagramHoistLeft  = $10
+kChrBankDiagramHoistLeft  = $05
+kChrBankDiagramHoistRight = $05
 
 ;;; BG tile IDs for hoist machine diagrams.
-kTileIdBgDiagramHoistRightFirst = $60
-kTileIdBgDiagramHoistLeftFirst  = $60
+kTileIdBgDiagramHoistLeftFirst  = $e0
+kTileIdBgDiagramHoistRightFirst = $f0
 
 ;;; Tile IDs for drawing hoist machines.
 kTileIdObjHoistFirst = $84

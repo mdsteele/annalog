@@ -60,13 +60,14 @@
 .IMPORT Int_NoopIrq
 .IMPORT MainA_Pause_RereadPaper
 .IMPORT Main_Explore_FadeIn
+.IMPORT Ppu_ChrBgFontUpper
 .IMPORT Ppu_ChrBgMinimap
 .IMPORT Ppu_ChrBgPause
 .IMPORT Ppu_ChrObjPause
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORT Sram_ProgressFlags_arr
 .IMPORTZP Zp_Buffered_sIrq
-.IMPORTZP Zp_Chr0cBank_u8
+.IMPORTZP Zp_Chr04Bank_u8
 .IMPORTZP Zp_Current_sRoom
 .IMPORTZP Zp_FrameCounter_u8
 .IMPORTZP Zp_NextIrq_int_ptr
@@ -90,15 +91,15 @@ kPapersWindowScrollSpeed = 11
 
 ;;; The BG tile ID for the bottom-left tile for all upgrade symbols.  Add 1 to
 ;;; this to get the the bottom-right tile ID for those symbols.
-kTileIdBgUpgradeBottomLeft = $c0
+kTileIdBgUpgradeBottomLeft = $80
 ;;; The BG tile ID for the top-left tile of the symbol for RAM upgrades.  Add 1
 ;;; to this to get the the top-right tile ID for that symbol.
-kTileIdBgRamTopLeft        = $c2
+kTileIdBgRamTopLeft        = $82
 ;;; The BG tile ID for the top-left tile for the symbol of the first non-RAM
 ;;; upgrade.  Add 1 to this to get the the top-right tile ID for that symbol,
 ;;; then add another 1 to get the top-left tile ID for the next upgrade, and so
 ;;; on.
-kTileIdBgRemainingTopLeft  = $c4
+kTileIdBgRemainingTopLeft  = $84
 
 ;;; The OBJ tile ID for drawing the cursor for opening the papers window.
 kTileIdObjOpenWindowCursor = $cd
@@ -121,9 +122,10 @@ Zp_ActivatedBreakers_byte: .res 1
 ;;; @prereq Rendering is disabled.
 .EXPORT MainA_Pause_FadeIn
 .PROC MainA_Pause_FadeIn
-    chr08_bank #<.bank(Ppu_ChrBgMinimap)
-    lda #<.bank(Ppu_ChrBgPause)
-    sta Zp_Chr0cBank_u8
+    lda #<.bank(Ppu_ChrBgFontUpper)
+    sta Zp_Chr04Bank_u8
+    chr08_bank #<.bank(Ppu_ChrBgPause)
+    chr0c_bank #<.bank(Ppu_ChrBgMinimap)
     chr18_bank #<.bank(Ppu_ChrObjPause)
     jsr FuncA_Pause_InitAndFadeIn
     .assert * = MainA_Pause_Minimap, error, "fallthrough"
@@ -199,6 +201,9 @@ _CheckButtons:
 .PROC MainA_Pause_ScrollPapersDown
     lda #$ff
     sta Zp_PaperCursorRow_u8
+    ;; Restore CHR0C bank for minimap (in case it was changed by dialog mode
+    ;; for reading any papers).
+    chr0c_bank #<.bank(Ppu_ChrBgMinimap)
 _GameLoop:
     jsr FuncA_Pause_DrawObjectsAndProcessFrame
     lda #kPapersWindowScrollSpeed  ; param: scroll by
@@ -488,12 +493,12 @@ _FinishLowerNametable:
     ldx T0  ; restore X register (line number)
     jmp FuncA_Pause_DirectDrawWindowLineSide  ; preserves X
 _CircuitTiles_u8_arr8_arr6:
-    .byte "1", $e0, $00, $f0, $f6, $00, $e1, "6"
-    .byte $00, $e2, $e8, $f1, $f7, $e8, $e3, $00
-    .byte $00, $e4, $e8, $f2, $f8, $e8, $e5, $00
-    .byte "2", $e6, $e4, $f3, $f9, $e5, $e7, "5"
-    .byte $00, "3", $e6, $f4, $fa, $e7, "4", $00
-    .byte $00, $00, $00, $f5, $fb, $00, $00, $00
+    .byte "1", $a0, " ", $b0, $b6, " ", $a1, "6"
+    .byte " ", $a2, $a8, $b1, $b7, $a8, $a3, " "
+    .byte " ", $a4, $a8, $b2, $b8, $a8, $a5, " "
+    .byte "2", $a6, $a4, $b3, $b9, $a5, $a7, "5"
+    .byte " ", "3", $a6, $b4, $ba, $a7, "4", " "
+    .byte " ", " ", " ", $b5, $bb, " ", " ", " "
 _CircuitBreakers_byte_arr8_arr6:
     .byte $01, $00, $00, $00, $00, $00, $00, $20
     .byte $00, $00, $00, $00, $00, $00, $00, $00

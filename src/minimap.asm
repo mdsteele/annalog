@@ -49,7 +49,7 @@ kMinimapTopPx  = $28
 kMinimapLeftPx = $20
 
 ;;; The BG tile ID for an unexplored tile on the minimap.
-kTileIdBgMinimapUnexplored = $80
+kTileIdBgMinimapUnexplored = $c0
 
 ;;; The OBJ tile ID for marking the current area on the minimap.
 kTileIdObjMinimapCurrentArea = $02
@@ -249,7 +249,7 @@ _MarkerLoop:
     jsr Func_IsFlagSet  ; preserves T0+
     beq @restoreXAndContinue
     lda T5  ; original minimap tile ID
-    sub #$80
+    sub #kTileIdBgMinimapUnexplored
     tay
     lda DataA_Pause_MinimapQuestMarkerTiles_u8_arr, y
     ldx T6  ; byte offset into Sram_Minimap_u16_arr
@@ -259,7 +259,7 @@ _MarkerLoop:
     ;; back to the unexplored tile.
     @itemMarker:
     lda T5  ; original minimap tile ID
-    sub #$80
+    sub #kTileIdBgMinimapUnexplored
     tay
     lda DataA_Pause_MinimapItemMarkerTiles_u8_arr, y
     ldx T6  ; byte offset into Sram_Minimap_u16_arr
@@ -372,18 +372,19 @@ _Finish:
 ;;; These two arrays each map from (original minimap tile ID - $80) to the tile
 ;;; ID to use if there is an item/quest map marker on that tile.
 .PROC DataA_Pause_MinimapItemMarkerTiles_u8_arr
-    .byte $80, $b1, '?', $b3, $b2, '?', $b6, '?'
-    .byte '?', '?', '?', $b7, '?', '?', '?', $b5
-    .byte $bf, '?', '?', '?', '?', '?', $b8, '?'
+    .assert kTileIdBgMinimapUnexplored = $c0, error
+    .byte $c0, $f1, '?', $f3, $f2, '?', $f6, '?'
+    .byte '?', '?', '?', $f7, '?', '?', '?', $f5
+    .byte $ff, '?', '?', '?', '?', '?', $f8, '?'
     .byte '?', '?', '?', '?', '?', '?', '?', '?'
-    .byte $bd
+    .byte $fd
 .ENDPROC
 .PROC DataA_Pause_MinimapQuestMarkerTiles_u8_arr
-    .byte $b0, '?', '?', '?', '?', $ae, '?', '?'
-    .byte '?', '?', '?', '?', '?', $af, '?', '?'
-    .byte '?', '?', '?', '?', '?', $b9, '?', '?'
-    .byte $b4, '?', '?', '?', '?', '?', $be, '?'
-    .byte '?', $bc, $ba, '?', '?', $bb
+    .byte $f0, '?', '?', '?', '?', $ee, '?', '?'
+    .byte '?', '?', '?', '?', '?', $ef, '?', '?'
+    .byte '?', '?', '?', '?', '?', $f9, '?', '?'
+    .byte $f4, '?', '?', '?', '?', '?', $fe, '?'
+    .byte '?', $fc, $fa, '?', '?', $fb
 .ENDPROC
 
 ;;;=========================================================================;;;

@@ -21,6 +21,7 @@
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
 .INCLUDE "../ppu.inc"
+.INCLUDE "smoke.inc"
 
 .IMPORT FuncA_Objects_Alloc1x1Shape
 .IMPORT FuncA_Objects_MoveShapeDownByA
@@ -40,9 +41,6 @@
 
 ;;; How long a smoke actor animates before disappearing, in frames.
 kSmokeNumFrames = 12
-
-;;; The first tile ID for the smoke particle animation.
-kTileIdObjSmokeFirst = $1a
 
 ;;;=========================================================================;;;
 

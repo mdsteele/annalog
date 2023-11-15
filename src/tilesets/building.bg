@@ -3,11 +3,10 @@
 >building2
 >building3
 >building4
->console
->font_lower
+>terrain_shared_0
 
-    EAEC        BCBD            DADBBMBN      CK        BIBIBEBF
-    EBEDBABBFaFbBCBD    EAECBKBL    BMBNCK      BJ    BJBIBIBGBH
+    EMEN        BCBD            DADBBMBN      CK        BIBIBEBF
+    EOEPBABBEEEFBCBD    EMENBKBL    BMBNCK      BJ    BJBIBIBGBH
 CM      CLCLCNCN  CM  CLCL
 COCPCLCLCNCNCNCN  COCPCNCN
 CACECECBCF    CF          CCCD  CF    CFCECE    CH    CFCECG

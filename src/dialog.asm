@@ -716,7 +716,7 @@ _RestPortrait:
     ldy Zp_Current_ePortrait
     ldx DataA_Dialog_PortraitRestBank_u8_arr, y
 _ContinueDialog:
-    chr04_bank x
+    chr0c_bank x
     lda #0  ; Set Z to indicate that we shouldn't copy the next pane of text.
     clc  ; Clear C to indicate that dialog should continue.
     rts
@@ -775,7 +775,7 @@ _DialogDone:
 _SetPortrait:
     sta Zp_Current_ePortrait
     tax  ; ePortrait value
-    chr04_bank DataA_Dialog_PortraitRestBank_u8_arr, x
+    chr0c_bank DataA_Dialog_PortraitRestBank_u8_arr, x
 _ReadTextPointer:
     lda (Zp_Next_sDialog_ptr), y
     iny

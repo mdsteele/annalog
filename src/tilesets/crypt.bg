@@ -1,19 +1,17 @@
 @BG 0 0 0 32x10
 >arch
 >cobweb
->console
 >crypt
->font_lower
->plaque
+>terrain_shared_0
 >water_anim0
 
-    CACC    FAFB    ACAD            BE            BGBF  BDBF  BA
-    CBCDEaEb    AAABACAD          BB      BABH          BE  BBBC
-DCDDDCDDDCDHDCDH  DJDJ    DJDJ    DKDL                      GAGA
-DEDFDGDFDEDFDGDF  DJDJ                    DMDMDNDM
+    DMDN    DCDD    ACAD            BE            BGBF  BDBF  BA
+    DODPDEDF    AAABACAD          BB      BABH          BE  BBBC
+CCCDCCCDCCCHCCCH  CJCJ    CJCJ    CKCL                      EAEA
+CECFCGCFCECFCGCF  CJCJ                    CMCMCNCM
 
 
-                                                        DIDI
-                                                        DADBDIDI
-DBDADBDADB    DADB    DADBDA              DADB  DBDA
-DA    DBDA    DBDADBDADB    DADB  DBDA          DADB
+                                                        CICI
+                                                        CACBCICI
+CBCACBCACB    CACB    CACBCA              CACB  CBCA
+CA    CBCA    CBCACBCACB    CACB  CBCA          CACB

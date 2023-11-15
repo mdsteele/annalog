@@ -57,10 +57,10 @@ Ppu_PortraitTopLeft := Ppu_WindowTopLeft + kScreenWidthTiles * 1 + 2
 .ASSERT kPaperGridCols * kPaperGridRows = kNumPaperFlags, error
 
 ;;; The BG tile IDs used for drawing collected papers.
-kTileIdBgPaperTopLeft      = $fc
-kTileIdBgPaperBottomLeft   = $fd
-kTileIdBgPaperTopRight     = $fe
-kTileIdBgPaperBottomRight  = $ff
+kTileIdBgPaperTopLeft      = $bc
+kTileIdBgPaperBottomLeft   = $bd
+kTileIdBgPaperTopRight     = $be
+kTileIdBgPaperBottomRight  = $bf
 
 ;;; The OBJ tile ID for drawing the papers window cursor.
 kTileIdObjPaperCursor = $cc

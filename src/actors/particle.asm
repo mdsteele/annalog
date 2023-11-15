@@ -22,6 +22,7 @@
 .INCLUDE "../oam.inc"
 .INCLUDE "../ppu.inc"
 .INCLUDE "particle.inc"
+.INCLUDE "smoke.inc"
 
 .IMPORT FuncA_Objects_Draw1x1Actor
 .IMPORT Func_Cosine
@@ -37,13 +38,13 @@
 
 ;;;=========================================================================;;;
 
-;;; The speed of a particle, in half-pixels per frame.
+;;; The speed of a smoke particle, in half-pixels per frame.
 kParticleSpeed = 3
 
-;;; The first tile ID for the particle animation.
-kTileIdObjParticleFirst = $1a
+;;; The first tile ID for the smoke particle animation.
+kTileIdObjParticleFirst = kTileIdObjSmokeFirst
 
-;;; The OBJ palette number used for particle actors.
+;;; The OBJ palette number used for smoke particle actors.
 kPaletteObjParticle = 0
 
 ;;;=========================================================================;;;

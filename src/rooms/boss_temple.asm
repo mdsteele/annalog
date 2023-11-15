@@ -77,7 +77,7 @@
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORTZP Zp_Active_sIrq
 .IMPORTZP Zp_Buffered_sIrq
-.IMPORTZP Zp_Chr0cBank_u8
+.IMPORTZP Zp_Chr04Bank_u8
 .IMPORTZP Zp_NextIrq_int_ptr
 .IMPORTZP Zp_RoomScrollY_u8
 .IMPORTZP Zp_RoomState
@@ -463,7 +463,7 @@ _BossRowStart_ptr_1_arr:
     .endrepeat
 _BossRowFirstTileId_u8_arr:
     .repeat kBossBodyHeightTiles, i
-    .byte $c0 + kBossBodyWidthTiles * i
+    .byte $40 + kBossBodyWidthTiles * i
     .endrepeat
 _ColumnTileId_u8_arr:
     .byte $9a, $9b, $94, $95, $94, $95, $9a, $9b
@@ -708,7 +708,7 @@ _Done:
 ;;; @prereq PRGA_Objects is loaded.
 .PROC FuncC_Boss_Temple_DrawRoom
     lda #<.bank(Ppu_ChrBgOutbreak)
-    sta Zp_Chr0cBank_u8
+    sta Zp_Chr04Bank_u8
     jmp FuncA_Objects_DrawBoss
 .ENDPROC
 

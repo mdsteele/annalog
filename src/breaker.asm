@@ -45,8 +45,7 @@
 .IMPORT Main_Explore_EnterRoom
 .IMPORT Ppu_ChrBgAnimA0
 .IMPORT Ppu_ChrBgAnimStatic
-.IMPORT Ppu_ChrBgFontLower01
-.IMPORT Ppu_ChrBgFontUpper
+.IMPORT Ppu_ChrBgFontLower
 .IMPORT Ram_DeviceAnim_u8_arr
 .IMPORT Ram_DeviceTarget_byte_arr
 .IMPORT Ram_DeviceType_eDevice_arr
@@ -61,7 +60,7 @@
 .IMPORTZP Zp_AvatarVelX_i16
 .IMPORTZP Zp_AvatarVelY_i16
 .IMPORTZP Zp_Camera_bScroll
-.IMPORTZP Zp_Chr0cBank_u8
+.IMPORTZP Zp_Chr04Bank_u8
 .IMPORTZP Zp_Current_eRoom
 .IMPORTZP Zp_FloatingHud_bHud
 .IMPORTZP Zp_FrameCounter_u8
@@ -159,7 +158,7 @@ _GameLoop:
     sta Zp_Camera_bScroll
     ;; Set CHR banks for breaker circuits.
     chr00_bank #<.bank(Ppu_ChrBgAnimStatic)
-    chr04_bank #<.bank(Ppu_ChrBgAnimStatic)
+    chr0c_bank #<.bank(Ppu_ChrBgAnimStatic)
     ;; Start the cutscene.
     lda #eCutscene::CoreBossPowerUpCircuit
     sta Zp_Next_eCutscene
@@ -175,12 +174,12 @@ _GameLoop:
     lda #255
     sta Zp_BreakerTimer_u8
 _GameLoop:
-    ;; Update CHR0C bank (for animated terrain tiles).
+    ;; Update CHR04 bank (for animated terrain tiles).
     lda Zp_FrameCounter_u8
     div #4
     and #$07
     add #<.bank(Ppu_ChrBgAnimA0)
-    sta Zp_Chr0cBank_u8
+    sta Zp_Chr04Bank_u8
     jsr Func_ProcessFrame
 _PowerUpCircuit:
     ;; TODO: split this up into phases
@@ -202,16 +201,14 @@ _PowerUpCircuit:
     .assert <.bank(Ppu_ChrBgAnimStatic) <> 0, error
     bne @setBank  ; unconditional
     @on:
-    ldx Zp_Chr0cBank_u8
+    ldx Zp_Chr04Bank_u8
     @setBank:
-    chr04_bank x
+    chr0c_bank x
     dec Zp_BreakerTimer_u8
     bne _GameLoop
 _FadeOut:
     jsr Func_FadeOutToBlack
-    ;; Restore CHR banks for window text.
-    chr00_bank #<.bank(Ppu_ChrBgFontUpper)
-    chr04_bank #<.bank(Ppu_ChrBgFontLower01)
+    chr00_bank #<.bank(Ppu_ChrBgFontLower)
     .assert * = Main_Breaker_LoadCutsceneRoom, error, "fallthrough"
 .ENDPROC
 

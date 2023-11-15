@@ -28,11 +28,8 @@
 .IMPORT Func_ClearRestOfOam
 .IMPORT Int_NoopIrq
 .IMPORT Main_Title
-.IMPORT Ppu_ChrBgFontLower01
-.IMPORT Ppu_ChrBgFontUpper
-.IMPORT Ppu_ChrBgPause
+.IMPORT Ppu_ChrBgFontLower
 .IMPORT Ppu_ChrObjAnnaNormal
-.IMPORT Ppu_ChrObjPause
 .IMPORTZP Zp_Active_sIrq
 .IMPORTZP Zp_NextIrq_int_ptr
 
@@ -120,12 +117,12 @@ _InitPpuMapping:
     lda #eMmc3Mirror::Horizontal
     sta Hw_Mmc3Mirroring_wo
     ;; Set all CHR ROM banks to a known state.
-    chr00_bank #<.bank(Ppu_ChrBgFontUpper)
-    chr04_bank #<.bank(Ppu_ChrBgFontLower01)
-    chr08_bank #<.bank(Ppu_ChrBgPause)
-    chr0c_bank #<.bank(Ppu_ChrBgPause)
+    chr00_bank #<.bank(Ppu_ChrBgFontLower)
+    chr04_bank #<.bank(Ppu_ChrBgFontLower)
+    chr08_bank #<.bank(Ppu_ChrBgFontLower)
+    chr0c_bank #<.bank(Ppu_ChrBgFontLower)
     chr10_bank #<.bank(Ppu_ChrObjAnnaNormal)
-    chr18_bank #<.bank(Ppu_ChrObjPause)
+    chr18_bank #<.bank(Ppu_ChrObjAnnaNormal)
 _InitAttributeTable0:
     ;; Set all blocks in nametable 0 to use BG palette 0.
     ldax #Ppu_Nametable0_sName + sName::Attrs_u8_arr64

@@ -40,7 +40,7 @@
 .IMPORT Ram_MachineGoalVert_u8_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORT Sram_ProgressFlags_arr
-.IMPORTZP Zp_Chr0cBank_u8
+.IMPORTZP Zp_Chr04Bank_u8
 .IMPORTZP Zp_MachineIndex_u8
 
 ;;;=========================================================================;;;
@@ -231,7 +231,7 @@ _Passages_sPassage_arr:
     flag_bit Sram_ProgressFlags_arr, eFlag::BreakerTemple
     bne @done
     lda #<.bank(Ppu_ChrBgAnimStatic)
-    sta Zp_Chr0cBank_u8
+    sta Zp_Chr04Bank_u8
     @done:
     rts
 .ENDPROC

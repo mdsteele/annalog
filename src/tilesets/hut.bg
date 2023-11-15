@@ -1,16 +1,16 @@
 @BG 0 0 0 32x10
->console
 >hut1
 >hut2
+>terrain_shared_0
 >water_anim0
 
-    AAAC                            BIBJ        DEDFBCBDDEDFBEBF
-    ABAD                            BIBJBEBFBABBBIBJBCBDBGBHBGBH
-CICJCJCJ                                            CACA    DADA
-                                                        CCCD
+    CMCN                            AIAJ        DEDFACADDEDFAEAF
+    COCP                            AIAJAEAFAAABAIAJACADAGAHAGAH
+BIBJBJBJ                                            BABA    DADA
+                                                        BCBD
 
 
 
 
-BM    BNBK    BLBK    BLCACACBCACA      CECFCHCGCECGCHCF
-BK    BLBM    BN            BK          CGCHCGCHCGCHCGCH  CECF
+AM    ANAK    ALAK    ALBABABBBABA      BEBFBHBGBEBGBHBF
+AK    ALAM    AN            AK          BGBHBGBHBGBHBGBH  BEBF

@@ -47,7 +47,7 @@
 .IMPORT Ram_MachineState1_byte_arr
 .IMPORT Ram_MachineStatus_eMachine_arr
 .IMPORT Ram_Oam_sObj_arr64
-.IMPORTZP Zp_Chr0cBank_u8
+.IMPORTZP Zp_Chr04Bank_u8
 .IMPORTZP Zp_MachineIndex_u8
 
 ;;;=========================================================================;;;
@@ -231,12 +231,14 @@ _ReachedGoal:
 
 .SEGMENT "PRGA_Objects"
 
-;;; Sets the necessary CHR0C bank number for the giant factory wheel terrain
-;;; tiles.  This should be called from a room's Draw_func_ptr.
-.EXPORT FuncA_Objects_SetWheelChr0cBank
-.PROC FuncA_Objects_SetWheelChr0cBank
+;;; Sets the CHR04 bank (which is normally used for animated terrain) for the
+;;; giant factory wheel terrain tiles.  This should be called from a room's
+;;; Draw_func_ptr for rooms that feature these wheels (and that don't have any
+;;; animated terrain).
+.EXPORT FuncA_Objects_SetWheelChr04Bank
+.PROC FuncA_Objects_SetWheelChr04Bank
     lda #<.bank(Ppu_ChrBgWheel)
-    sta Zp_Chr0cBank_u8
+    sta Zp_Chr04Bank_u8
     rts
 .ENDPROC
 

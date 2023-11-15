@@ -27,12 +27,12 @@
 kCraneActCooldown = 8
 
 ;;; The CHR bank numbers containing the diagrams for crane/trolley machines.
-kChrBankDiagramCrane   = $0c
-kChrBankDiagramTrolley = $02
+kChrBankDiagramCrane   = $06
+kChrBankDiagramTrolley = $06
 
 ;;; BG tile IDs for crane/trolley machine diagrams.
-kTileIdBgDiagramCraneFirst   = $60
-kTileIdBgDiagramTrolleyFirst = $60
+kTileIdBgDiagramCraneFirst   = $f0
+kTileIdBgDiagramTrolleyFirst = $e0
 
 ;;; Various OBJ tile IDs used for drawing crane/trolley machines.
 kTileIdObjCraneFirst = $b0

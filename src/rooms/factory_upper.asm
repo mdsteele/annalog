@@ -36,7 +36,7 @@
 .IMPORT FuncA_Objects_DrawRotorMachine
 .IMPORT FuncA_Objects_DrawRotorWheelLarge
 .IMPORT FuncA_Objects_DrawRotorWheelSmall
-.IMPORT FuncA_Objects_SetWheelChr0cBank
+.IMPORT FuncA_Objects_SetWheelChr04Bank
 .IMPORT FuncA_Room_MachineRotorReset
 .IMPORT Func_MachineRotorReadRegT
 .IMPORT Func_Noop
@@ -85,7 +85,7 @@ _Ext_sRoomExt:
     d_addr Enter_func_ptr, Func_Noop
     d_addr FadeIn_func_ptr, Func_Noop
     d_addr Tick_func_ptr, Func_Noop
-    d_addr Draw_func_ptr, FuncA_Objects_SetWheelChr0cBank
+    d_addr Draw_func_ptr, FuncA_Objects_SetWheelChr04Bank
     D_END
 _TerrainData:
 :   .incbin "out/rooms/factory_upper.room"

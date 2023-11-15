@@ -60,7 +60,7 @@
 .IMPORT Ram_ActorPosY_i16_1_arr
 .IMPORT Ram_PlatformType_ePlatform_arr
 .IMPORT Sram_ProgressFlags_arr
-.IMPORTZP Zp_Chr0cBank_u8
+.IMPORTZP Zp_Chr04Bank_u8
 .IMPORTZP Zp_RoomState
 
 ;;;=========================================================================;;;
@@ -468,7 +468,7 @@ _Thorns:
     flag_bit Sram_ProgressFlags_arr, eFlag::BossGarden
     beq @done
     lda #<.bank(Ppu_ChrBgAnimStatic)
-    sta Zp_Chr0cBank_u8
+    sta Zp_Chr04Bank_u8
     @done:
     ;; TODO: If thorns present, animate them like in the boss room.
 _BreakableWall:

@@ -27,11 +27,11 @@
 
 static unsigned char get_tile_id(const char *tileset, int tile_index) {
   if (0 == strcmp(tileset, "minimap1")) {
-    return 0x80 + tile_index;
+    return 0xc0 + tile_index;
   } else if (0 == strcmp(tileset, "minimap2")) {
-    return 0x90 + tile_index;
+    return 0xd0 + tile_index;
   } else if (0 == strcmp(tileset, "minimap3")) {
-    return 0xa0 + tile_index;
+    return 0xe0 + tile_index;
   } else if (0 == strcmp(tileset, "title1")) {
     return 0x80 + tile_index;
   } else if (0 == strcmp(tileset, "title2")) {

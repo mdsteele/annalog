@@ -28,9 +28,9 @@ kCarriageMachineWidthPx  = $20
 kCarriageMachineHeightPx = $10
 
 ;;; The CHR bank number containing the diagram for carriage machines.
-kChrBankDiagramCarriage = $07
+kChrBankDiagramCarriage = $02
 
 ;;; BG tile IDs for carriage machine diagrams.
-kTileIdBgDiagramCarriageFirst = $60
+kTileIdBgDiagramCarriageFirst = $f0
 
 ;;;=========================================================================;;;

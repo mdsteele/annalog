@@ -29,10 +29,10 @@ kFieldMachineWidth = $10
 kFieldMachineHeight = $10
 
 ;;; The CHR bank number containing the diagram for field machines.
-kChrBankDiagramField = $05
+kChrBankDiagramField = $09
 
 ;;; BG tile IDs for field machine diagrams.
-kTileIdBgDiagramFieldFirst = $60
+kTileIdBgDiagramFieldFirst = $e0
 
 ;;; The width, in pixels, of a teleport field machine's teleportation field.
 kTeleportFieldWidth = $40

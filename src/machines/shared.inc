@@ -18,14 +18,14 @@
 ;;;=========================================================================;;;
 
 ;;; The CHR bank number containing the diagram for the machine debugger.
-kChrBankDiagramDebugger = $1e
+kChrBankDiagramDebugger = $01
 
 ;;; OBJ tile IDs used for drawing many different kinds of machines.
-kTileIdObjMachineCorner      = $3a
-kTileIdObjMachineSurfaceHorz = $3b
-kTileIdObjMachineSurfaceVert = $3c
-kTileIdObjMachineLightOff = $3e
-kTileIdObjMachineLightOn  = $3f
+kTileIdObjMachineCorner      = $7a
+kTileIdObjMachineSurfaceHorz = $7b
+kTileIdObjMachineSurfaceVert = $7c
+kTileIdObjMachineLightOff    = $7e
+kTileIdObjMachineLightOn     = $7f
 
 ;;; The OBJ palette number used for the blinking error light on machines.
 kPaletteObjMachineLight = 1

@@ -77,22 +77,22 @@ kPaletteObjAvatarDeath  = 3
 ;;; avatar is in that pose.
 .ENUM eAvatar
     Hidden    = $00  ; not drawn (e.g. for cutscenes)
-    Standing  = $40  ; (grounded) standing still on the ground
-    Looking   = $44  ; (grounded) standing still and looking upward
-    Reaching  = $48  ; (grounded) standing still and reaching upward
-    Straining = $4c  ; (grounded) standing still and reaching way upward
-    Kneeling  = $50  ; (grounded) kneeling down on the ground
-    Landing   = $54  ; (grounded) just landed from a jump
-    Reading   = $58  ; (grounded) facing away from camera (e.g. to read a sign)
-    Running1  = $5c  ; (grounded) running along the ground (1st frame)
-    Running2  = $60  ; (grounded) running along the ground (2nd frame)
-    Swimming1 = $64  ; (swimming) swimming in water (1st frame)
-    Swimming2 = $68  ; (swimming) swimming in water (2nd frame)
-    Jumping   = $6c  ; (airborne) jumping up
-    Hovering  = $70  ; (airborne) mid-jump hang time
-    Falling   = $74  ; (airborne) falling down
-    Slumping  = $78  ; (sleeping) falling down unconscious
-    Sleeping  = $7c  ; (sleeping) lying down unconscious
+    Standing  = $10  ; (grounded) standing still on the ground
+    Looking   = $14  ; (grounded) standing still and looking upward
+    Reaching  = $18  ; (grounded) standing still and reaching upward
+    Straining = $1c  ; (grounded) standing still and reaching way upward
+    Kneeling  = $20  ; (grounded) kneeling down on the ground
+    Landing   = $24  ; (grounded) just landed from a jump
+    Reading   = $28  ; (grounded) facing away from camera (e.g. to read a sign)
+    Running1  = $2c  ; (grounded) running along the ground (1st frame)
+    Running2  = $30  ; (grounded) running along the ground (2nd frame)
+    Swimming1 = $34  ; (swimming) swimming in water (1st frame)
+    Swimming2 = $38  ; (swimming) swimming in water (2nd frame)
+    Jumping   = $3c  ; (airborne) jumping up
+    Hovering  = $40  ; (airborne) mid-jump hang time
+    Falling   = $44  ; (airborne) falling down
+    Slumping  = $48  ; (sleeping) falling down unconscious
+    Sleeping  = $4c  ; (sleeping) lying down unconscious
 .ENDENUM
 
 ;;;=========================================================================;;;

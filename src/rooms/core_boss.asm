@@ -411,7 +411,7 @@ _RedrawCircuits:
     lda #$00  ; param: tile ID base
     beq @redraw  ; unconditional
     @currentBreaker:
-    lda #$40  ; param: tile ID base
+    lda #$c0  ; param: tile ID base
     @redraw:
     jsr FuncC_Core_Boss_RedrawCircuit  ; preserves X
     @continue:

@@ -333,8 +333,7 @@ _chr_begin:
     chr_inc "building2"
     chr_inc "building3"
     chr_inc "building4"
-    chr_res $0a
-    chr_inc "console"
+    chr_res $0e
     END_CHR_BANK
 .ENDPROC
 
@@ -348,8 +347,7 @@ _chr_begin:
     chr_inc "city1"
     chr_inc "city2"
     chr_inc "city3"
-    chr_res $0c
-    chr_inc "console"
+    chr_res $10
     END_CHR_BANK
 .ENDPROC
 
@@ -365,7 +363,7 @@ _chr_begin:
     chr_res $04
     chr_inc "fullcore1"
     chr_inc "fullcore2"
-    chr_inc "console"
+    chr_res $04
     END_CHR_BANK
 .ENDPROC
 
@@ -383,435 +381,7 @@ _chr_begin:
     chr_inc "gazer_eye"
     chr_res $04
     chr_inc "arch"
-    chr_res $06
-    chr_inc "plaque"
-    chr_inc "console"
-    END_CHR_BANK
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "CHR_BgFontUpper"
-
-.EXPORT Ppu_ChrBgFontUpper
-.PROC Ppu_ChrBgFontUpper
-    CHR1_BANK $00
-    chr_inc "font_upper"
-    END_CHR_BANK
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "CHR_BgFontLower01"
-
-.EXPORT Ppu_ChrBgFontLower01
-.PROC Ppu_ChrBgFontLower01
-    CHR1_BANK $40
-    chr_inc "font_lower"
-    .assert .bank(*) = kChrBankDiagramLift, error
-    chr_inc "diagram_lift", kTileIdBgDiagramLiftFirst
-    .assert .bank(*) = kChrBankPortraitWomanRest, error
-    chr_inc "portrait_woman_rest", kTileIdBgPortraitWomanFirst
-    END_CHR_BANK
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "CHR_BgFontLower02"
-
-.PROC Ppu_ChrBgFontLower02
-    CHR1_BANK $40
-    chr_inc "font_lower"
-    .assert .bank(*) = kChrBankDiagramTrolley, error
-    chr_inc "diagram_trolley", kTileIdBgDiagramTrolleyFirst
-    .assert .bank(*) = kChrBankPortraitWomanTalk, error
-    chr_inc "portrait_woman_talk", kTileIdBgPortraitWomanFirst
-    END_CHR_BANK
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "CHR_BgFontLower03"
-
-.PROC Ppu_ChrBgFontLower03
-    CHR1_BANK $40
-    chr_inc "font_lower"
-    .assert .bank(*) = kChrBankDiagramWinch, error
-    chr_inc "diagram_winch", kTileIdBgDiagramWinchFirst
-    .assert .bank(*) = kChrBankPortraitSign, error
-    chr_inc "portrait_sign", kTileIdBgPortraitSignFirst
-    END_CHR_BANK
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "CHR_BgFontLower04"
-
-.PROC Ppu_ChrBgFontLower04
-    CHR1_BANK $40
-    chr_inc "font_lower"
-    .assert .bank(*) = kChrBankDiagramBoiler, error
-    chr_inc "diagram_boiler", kTileIdBgDiagramBoilerFirst
-    chr_res $10
-    END_CHR_BANK
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "CHR_BgFontLower05"
-
-.PROC Ppu_ChrBgFontLower05
-    CHR1_BANK $40
-    chr_inc "font_lower"
-    .assert .bank(*) = kChrBankDiagramField, error
-    chr_inc "diagram_field", kTileIdBgDiagramFieldFirst
-    .assert .bank(*) = kChrBankPortraitMermaidRest, error
-    chr_inc "portrait_mermaid_rest", kTileIdBgPortraitMermaidFirst
-    END_CHR_BANK
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "CHR_BgFontLower06"
-
-.PROC Ppu_ChrBgFontLower06
-    CHR1_BANK $40
-    chr_inc "font_lower"
-    .assert .bank(*) = kChrBankDiagramJet, error
-    chr_inc "diagram_jet", kTileIdBgDiagramJetFirst
-    .assert .bank(*) = kChrBankPortraitMermaidTalk, error
-    chr_inc "portrait_mermaid_talk", kTileIdBgPortraitMermaidFirst
-    END_CHR_BANK
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "CHR_BgFontLower07"
-
-.PROC Ppu_ChrBgFontLower07
-    CHR1_BANK $40
-    chr_inc "font_lower"
-    .assert .bank(*) = kChrBankDiagramCarriage, error
-    chr_inc "diagram_carriage", kTileIdBgDiagramCarriageFirst
-    .assert .bank(*) = kChrBankPortraitManRest, error
-    chr_inc "portrait_man_rest", kTileIdBgPortraitManFirst
-    END_CHR_BANK
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "CHR_BgFontLower08"
-
-.PROC Ppu_ChrBgFontLower08
-    CHR1_BANK $40
-    chr_inc "font_lower"
-    .assert .bank(*) = kChrBankDiagramCannonRight, error
-    chr_inc "diagram_cannon_right", kTileIdBgDiagramCannonRightFirst
-    .assert .bank(*) = kChrBankPortraitManTalk, error
-    chr_inc "portrait_man_talk", kTileIdBgPortraitManFirst
-    END_CHR_BANK
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "CHR_BgFontLower09"
-
-.PROC Ppu_ChrBgFontLower09
-    CHR1_BANK $40
-    chr_inc "font_lower"
-    .assert .bank(*) = kChrBankDiagramCannonLeft, error
-    chr_inc "diagram_cannon_left", kTileIdBgDiagramCannonLeftFirst
-    .assert .bank(*) = kChrBankPortraitNoraRest, error
-    chr_inc "portrait_nora_rest", kTileIdBgPortraitNoraFirst
-    END_CHR_BANK
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "CHR_BgFontLower0A"
-
-.PROC Ppu_ChrBgFontLower0A
-    CHR1_BANK $40
-    chr_inc "font_lower"
-    .assert .bank(*) = kChrBankDiagramBridgeRight, error
-    chr_inc "diagram_bridge_right", kTileIdBgDiagramBridgeRightFirst
-    .assert .bank(*) = kChrBankPortraitNoraTalk, error
-    chr_inc "portrait_nora_talk", kTileIdBgPortraitNoraFirst
-    END_CHR_BANK
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "CHR_BgFontLower0B"
-
-.PROC Ppu_ChrBgFontLower0B
-    CHR1_BANK $40
-    chr_inc "font_lower"
-    .assert .bank(*) = kChrBankDiagramBridgeLeft, error
-    chr_inc "diagram_bridge_left", kTileIdBgDiagramBridgeLeftFirst
-    .assert .bank(*) = kChrBankPortraitAlexRest, error
-    chr_inc "portrait_alex_rest", kTileIdBgPortraitAlexFirst
-    END_CHR_BANK
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "CHR_BgFontLower0C"
-
-.PROC Ppu_ChrBgFontLower0C
-    CHR1_BANK $40
-    chr_inc "font_lower"
-    .assert .bank(*) = kChrBankDiagramCrane, error
-    chr_inc "diagram_crane", kTileIdBgDiagramCraneFirst
-    .assert .bank(*) = kChrBankPortraitAlexTalk, error
-    chr_inc "portrait_alex_talk", kTileIdBgPortraitAlexFirst
-    END_CHR_BANK
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "CHR_BgFontLower0D"
-
-.PROC Ppu_ChrBgFontLower0D
-    CHR1_BANK $40
-    chr_inc "font_lower"
-    .assert .bank(*) = kChrBankDiagramMultiplexer, error
-    chr_inc "diagram_multiplexer", kTileIdBgDiagramMultiplexerFirst
-    .assert .bank(*) = kChrBankPortraitCorraRest, error
-    chr_inc "portrait_corra_rest", kTileIdBgPortraitCorraFirst
-    END_CHR_BANK
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "CHR_BgFontLower0E"
-
-.PROC Ppu_ChrBgFontLower0E
-    CHR1_BANK $40
-    chr_inc "font_lower"
-    .assert .bank(*) = kChrBankPortraitPaper, error
-    chr_inc "portrait_paper", kTileIdBgPortraitPaperFirst
-    .assert .bank(*) = kChrBankPortraitCorraTalk, error
-    chr_inc "portrait_corra_talk", kTileIdBgPortraitCorraFirst
-    END_CHR_BANK
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "CHR_BgFontLower0F"
-
-.PROC Ppu_ChrBgFontLower0F
-    CHR1_BANK $40
-    chr_inc "font_lower"
-    .assert .bank(*) = kChrBankDiagramHoistRight, error
-    chr_inc "diagram_hoist_right", kTileIdBgDiagramHoistRightFirst
-    .assert .bank(*) = kChrBankPortraitFloristRest, error
-    chr_inc "portrait_florist_rest", kTileIdBgPortraitFloristFirst
-    END_CHR_BANK
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "CHR_BgFontLower10"
-
-.PROC Ppu_ChrBgFontLower10
-    CHR1_BANK $40
-    chr_inc "font_lower"
-    .assert .bank(*) = kChrBankDiagramHoistLeft, error
-    chr_inc "diagram_hoist_left", kTileIdBgDiagramHoistLeftFirst
-    .assert .bank(*) = kChrBankPortraitFloristTalk, error
-    chr_inc "portrait_florist_talk", kTileIdBgPortraitFloristFirst
-    END_CHR_BANK
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "CHR_BgFontLower11"
-
-.PROC Ppu_ChrBgFontLower11
-    CHR1_BANK $40
-    chr_inc "font_lower"
-    .assert .bank(*) = kChrBankDiagramLauncherDown, error
-    chr_inc "diagram_launcher_down", kTileIdBgDiagramLauncherDownFirst
-    .assert .bank(*) = kChrBankPortraitMarieRest, error
-    chr_inc "portrait_marie_rest", kTileIdBgPortraitMarieFirst
-    END_CHR_BANK
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "CHR_BgFontLower12"
-
-.PROC Ppu_ChrBgFontLower12
-    CHR1_BANK $40
-    chr_inc "font_lower"
-    .assert .bank(*) = kChrBankDiagramMinigunDown, error
-    chr_inc "diagram_minigun_down", kTileIdBgDiagramMinigunDownFirst
-    .assert .bank(*) = kChrBankPortraitMarieTalk, error
-    chr_inc "portrait_marie_talk", kTileIdBgPortraitMarieFirst
-    END_CHR_BANK
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "CHR_BgFontLower13"
-
-.PROC Ppu_ChrBgFontLower13
-    CHR1_BANK $40
-    chr_inc "font_lower"
-    .assert .bank(*) = kChrBankDiagramMinigunLeft, error
-    chr_inc "diagram_minigun_left", kTileIdBgDiagramMinigunLeftFirst
-    .assert .bank(*) = kChrBankPortraitBrunoRest, error
-    chr_inc "portrait_bruno_rest", kTileIdBgPortraitBrunoFirst
-    END_CHR_BANK
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "CHR_BgFontLower14"
-
-.PROC Ppu_ChrBgFontLower14
-    CHR1_BANK $40
-    chr_inc "font_lower"
-    .assert .bank(*) = kChrBankDiagramMinigunUp, error
-    chr_inc "diagram_minigun_up", kTileIdBgDiagramMinigunUpFirst
-    .assert .bank(*) = kChrBankPortraitBrunoTalk, error
-    chr_inc "portrait_bruno_talk", kTileIdBgPortraitBrunoFirst
-    END_CHR_BANK
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "CHR_BgFontLower15"
-
-.PROC Ppu_ChrBgFontLower15
-    CHR1_BANK $40
-    chr_inc "font_lower"
-    .assert .bank(*) = kChrBankDiagramLauncherLeft, error
-    chr_inc "diagram_launcher_left", kTileIdBgDiagramLauncherLeftFirst
-    .assert .bank(*) = kChrBankPortraitPlaque, error
-    chr_inc "portrait_plaque", kTileIdBgPortraitPlaqueFirst
-    END_CHR_BANK
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "CHR_BgFontLower16"
-
-.PROC Ppu_ChrBgFontLower16
-    CHR1_BANK $40
-    chr_inc "font_lower"
-    .assert .bank(*) = kChrBankDiagramSemaphoreComm, error
-    chr_inc "diagram_semaphore_comm", kTileIdBgDiagramSemaphoreCommFirst
-    .assert .bank(*) = kChrBankPortraitGrontaRest, error
-    chr_inc "portrait_gronta_rest", kTileIdBgPortraitGrontaFirst
-    END_CHR_BANK
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "CHR_BgFontLower17"
-
-.PROC Ppu_ChrBgFontLower17
-    CHR1_BANK $40
-    chr_inc "font_lower"
-    .assert .bank(*) = kChrBankDiagramSemaphoreLock, error
-    chr_inc "diagram_semaphore_lock", kTileIdBgDiagramSemaphoreLockFirst
-    .assert .bank(*) = kChrBankPortraitGrontaTalk, error
-    chr_inc "portrait_gronta_talk", kTileIdBgPortraitGrontaFirst
-    END_CHR_BANK
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "CHR_BgFontLower18"
-
-.PROC Ppu_ChrBgFontLower18
-    CHR1_BANK $40
-    chr_inc "font_lower"
-    .assert .bank(*) = kChrBankDiagramSemaphoreKey, error
-    chr_inc "diagram_semaphore_key", kTileIdBgDiagramSemaphoreKeyFirst
-    .assert .bank(*) = kChrBankPortraitOrcRest, error
-    chr_inc "portrait_orc_rest", kTileIdBgPortraitOrcFirst
-    END_CHR_BANK
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "CHR_BgFontLower19"
-
-.PROC Ppu_ChrBgFontLower19
-    CHR1_BANK $40
-    chr_inc "font_lower"
-    .assert .bank(*) = kChrBankDiagramPump, error
-    chr_inc "diagram_pump", kTileIdBgDiagramPumpFirst
-    .assert .bank(*) = kChrBankPortraitOrcTalk, error
-    chr_inc "portrait_orc_talk", kTileIdBgPortraitOrcFirst
-    END_CHR_BANK
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "CHR_BgFontLower1A"
-
-.PROC Ppu_ChrBgFontLower1A
-    CHR1_BANK $40
-    chr_inc "font_lower"
-    chr_res $10
-    .assert .bank(*) = kChrBankPortraitScreen, error
-    chr_inc "portrait_screen", kTileIdBgPortraitScreenFirst
-    END_CHR_BANK
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "CHR_BgFontLower1B"
-
-.PROC Ppu_ChrBgFontLower1B
-    CHR1_BANK $40
-    chr_inc "font_lower"
-    chr_res $10
-    .assert .bank(*) = kChrBankPortraitEireneRest, error
-    chr_inc "portrait_eirene_rest", kTileIdBgPortraitEireneFirst
-    END_CHR_BANK
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "CHR_BgFontLower1C"
-
-.PROC Ppu_ChrBgFontLower1C
-    CHR1_BANK $40
-    chr_inc "font_lower"
-    chr_res $10
-    .assert .bank(*) = kChrBankPortraitEireneTalk, error
-    chr_inc "portrait_eirene_talk", kTileIdBgPortraitEireneFirst
-    END_CHR_BANK
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "CHR_BgFontLower1D"
-
-.PROC Ppu_ChrBgFontLower1D
-    CHR1_BANK $40
-    chr_inc "font_lower"
-    chr_res $10
-    .assert .bank(*) = kChrBankDiagramMinigunRight, error
-    chr_inc "diagram_minigun_right", kTileIdBgDiagramMinigunRightFirst
-    END_CHR_BANK
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "CHR_BgFontLower1E"
-
-.PROC Ppu_ChrBgFontLower1E
-    CHR1_BANK $40
-    chr_inc "font_lower"
-    .assert .bank(*) = kChrBankDiagramDebugger, error
-    chr_inc "diagram_debugger"
-    chr_inc "diagram_debugger"
+    chr_res $0c
     END_CHR_BANK
 .ENDPROC
 
@@ -826,8 +396,31 @@ _chr_begin:
     chr_inc "factory2"
     chr_res $08
     chr_inc "tank"
-    chr_res $02
-    chr_inc "console"
+    chr_res $06
+    END_CHR_BANK
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "CHR_BgFontLower"
+
+.EXPORT Ppu_ChrBgFontLower
+.PROC Ppu_ChrBgFontLower
+    CHR1_BANK $00
+    chr_inc "terrain_shared_0"
+    chr_inc "terrain_shared_1"
+    chr_inc "font_lower"
+    END_CHR_BANK
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "CHR_BgFontUpper"
+
+.EXPORT Ppu_ChrBgFontUpper
+.PROC Ppu_ChrBgFontUpper
+    CHR1_BANK $40
+    chr_inc "font_upper"
     END_CHR_BANK
 .ENDPROC
 
@@ -843,9 +436,7 @@ _chr_begin:
     chr_inc "jungle3"
     chr_inc "arch"
     chr_inc "drawbridge"
-    chr_res $02
-    chr_inc "sign"
-    chr_inc "console"
+    chr_res $0a
     END_CHR_BANK
 .ENDPROC
 
@@ -873,9 +464,7 @@ _chr_begin:
     CHR1_BANK $80
     chr_inc "hut1"
     chr_inc "hut2"
-    chr_res $1e
-    chr_inc "sign"
-    chr_inc "console"
+    chr_res $26
     END_CHR_BANK
 .ENDPROC
 
@@ -893,8 +482,7 @@ _chr_begin:
     chr_inc "field_bg"
     chr_res $04
     chr_inc "boiler"
-    chr_inc "sign"
-    chr_inc "console"
+    chr_res $08
     END_CHR_BANK
 .ENDPROC
 
@@ -910,10 +498,7 @@ _chr_begin:
     chr_inc "beach"
     chr_res $08
     chr_inc "pump"
-    chr_res $02
-    chr_inc "lever_ceil"
-    chr_inc "sign"
-    chr_inc "console"
+    chr_res $0c
     END_CHR_BANK
 .ENDPROC
 
@@ -930,8 +515,7 @@ _chr_begin:
     chr_inc "scaffhold"
     chr_inc "mine_door"
     chr_inc "hoist_bg"
-    chr_inc "sign"
-    chr_inc "console"
+    chr_res $08
     END_CHR_BANK
 .ENDPROC
 
@@ -973,8 +557,7 @@ _chr_begin:
     chr_inc "window"
     chr_inc "house"
     chr_inc "tree"
-    chr_res $02
-    chr_inc "sign"
+    chr_res $06
     chr_inc "hill"
     END_CHR_BANK
 .ENDPROC
@@ -1009,6 +592,242 @@ _chr_begin:
 
 ;;;=========================================================================;;;
 
+.SEGMENT "CHR_BgPortrait01"
+
+.PROC Ppu_ChrBgPortrait01
+    CHR1_BANK $c0
+    .assert .bank(*) = kChrBankPortraitAlexRest, error
+    chr_inc "portrait_alex_rest", kTileIdBgPortraitAlexFirst
+    .assert .bank(*) = kChrBankPortraitPaper, error
+    chr_inc "portrait_paper", kTileIdBgPortraitPaperFirst
+    .assert .bank(*) = kChrBankDiagramDebugger, error
+    chr_inc "diagram_debugger"
+    chr_inc "diagram_debugger"
+    END_CHR_BANK
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "CHR_BgPortrait02"
+
+.PROC Ppu_ChrBgPortrait02
+    CHR1_BANK $c0
+    .assert .bank(*) = kChrBankPortraitAlexTalk, error
+    chr_inc "portrait_alex_talk", kTileIdBgPortraitAlexFirst
+    .assert .bank(*) = kChrBankPortraitPlaque, error
+    chr_inc "portrait_plaque", kTileIdBgPortraitPlaqueFirst
+    .assert .bank(*) = kChrBankDiagramLift, error
+    chr_inc "diagram_lift", kTileIdBgDiagramLiftFirst
+    .assert .bank(*) = kChrBankDiagramCarriage, error
+    chr_inc "diagram_carriage", kTileIdBgDiagramCarriageFirst
+    END_CHR_BANK
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "CHR_BgPortrait03"
+
+.PROC Ppu_ChrBgPortrait03
+    CHR1_BANK $c0
+    .assert .bank(*) = kChrBankPortraitEireneRest, error
+    chr_inc "portrait_eirene_rest", kTileIdBgPortraitEireneFirst
+    .assert .bank(*) = kChrBankPortraitScreen, error
+    chr_inc "portrait_screen", kTileIdBgPortraitScreenFirst
+    .assert .bank(*) = kChrBankDiagramBridgeLeft, error
+    chr_inc "diagram_bridge_left", kTileIdBgDiagramBridgeLeftFirst
+    .assert .bank(*) = kChrBankDiagramBridgeRight, error
+    chr_inc "diagram_bridge_right", kTileIdBgDiagramBridgeRightFirst
+    END_CHR_BANK
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "CHR_BgPortrait04"
+
+.PROC Ppu_ChrBgPortrait04
+    CHR1_BANK $c0
+    .assert .bank(*) = kChrBankPortraitEireneTalk, error
+    chr_inc "portrait_eirene_talk", kTileIdBgPortraitEireneFirst
+    .assert .bank(*) = kChrBankPortraitSign, error
+    chr_inc "portrait_sign", kTileIdBgPortraitSignFirst
+    .assert .bank(*) = kChrBankDiagramCannonLeft, error
+    chr_inc "diagram_cannon_left", kTileIdBgDiagramCannonLeftFirst
+    .assert .bank(*) = kChrBankDiagramCannonRight, error
+    chr_inc "diagram_cannon_right", kTileIdBgDiagramCannonRightFirst
+    END_CHR_BANK
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "CHR_BgPortrait05"
+
+.PROC Ppu_ChrBgPortrait05
+    CHR1_BANK $c0
+    .assert .bank(*) = kChrBankPortraitGrontaRest, error
+    chr_inc "portrait_gronta_rest", kTileIdBgPortraitGrontaFirst
+    .assert .bank(*) = kChrBankPortraitFloristRest, error
+    chr_inc "portrait_florist_rest", kTileIdBgPortraitFloristFirst
+    .assert .bank(*) = kChrBankDiagramHoistLeft, error
+    chr_inc "diagram_hoist_left", kTileIdBgDiagramHoistLeftFirst
+    .assert .bank(*) = kChrBankDiagramHoistRight, error
+    chr_inc "diagram_hoist_right", kTileIdBgDiagramHoistRightFirst
+    END_CHR_BANK
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "CHR_BgPortrait06"
+
+.PROC Ppu_ChrBgPortrait06
+    CHR1_BANK $c0
+    .assert .bank(*) = kChrBankPortraitGrontaTalk, error
+    chr_inc "portrait_gronta_talk", kTileIdBgPortraitGrontaFirst
+    .assert .bank(*) = kChrBankPortraitFloristTalk, error
+    chr_inc "portrait_florist_talk", kTileIdBgPortraitFloristFirst
+    .assert .bank(*) = kChrBankDiagramTrolley, error
+    chr_inc "diagram_trolley", kTileIdBgDiagramTrolleyFirst
+    .assert .bank(*) = kChrBankDiagramCrane, error
+    chr_inc "diagram_crane", kTileIdBgDiagramCraneFirst
+    END_CHR_BANK
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "CHR_BgPortrait07"
+
+.PROC Ppu_ChrBgPortrait07
+    CHR1_BANK $c0
+    .assert .bank(*) = kChrBankPortraitOrcRest, error
+    chr_inc "portrait_orc_rest", kTileIdBgPortraitOrcFirst
+    .assert .bank(*) = kChrBankPortraitMermaidRest, error
+    chr_inc "portrait_mermaid_rest", kTileIdBgPortraitMermaidFirst
+    .assert .bank(*) = kChrBankDiagramMinigunUp, error
+    chr_inc "diagram_minigun_up", kTileIdBgDiagramMinigunUpFirst
+    .assert .bank(*) = kChrBankDiagramMinigunDown, error
+    chr_inc "diagram_minigun_down", kTileIdBgDiagramMinigunDownFirst
+    END_CHR_BANK
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "CHR_BgPortrait08"
+
+.PROC Ppu_ChrBgPortrait08
+    CHR1_BANK $c0
+    .assert .bank(*) = kChrBankPortraitOrcTalk, error
+    chr_inc "portrait_orc_talk", kTileIdBgPortraitOrcFirst
+    .assert .bank(*) = kChrBankPortraitMermaidTalk, error
+    chr_inc "portrait_mermaid_talk", kTileIdBgPortraitMermaidFirst
+    .assert .bank(*) = kChrBankDiagramMinigunLeft, error
+    chr_inc "diagram_minigun_left", kTileIdBgDiagramMinigunLeftFirst
+    .assert .bank(*) = kChrBankDiagramMinigunRight, error
+    chr_inc "diagram_minigun_right", kTileIdBgDiagramMinigunRightFirst
+    END_CHR_BANK
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "CHR_BgPortrait09"
+
+.PROC Ppu_ChrBgPortrait09
+    CHR1_BANK $c0
+    .assert .bank(*) = kChrBankPortraitCorraRest, error
+    chr_inc "portrait_corra_rest", kTileIdBgPortraitCorraFirst
+    .assert .bank(*) = kChrBankPortraitMarieRest, error
+    chr_inc "portrait_marie_rest", kTileIdBgPortraitMarieFirst
+    .assert .bank(*) = kChrBankDiagramField, error
+    chr_inc "diagram_field", kTileIdBgDiagramFieldFirst
+    .assert .bank(*) = kChrBankDiagramJet, error
+    chr_inc "diagram_jet", kTileIdBgDiagramJetFirst
+    END_CHR_BANK
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "CHR_BgPortrait0A"
+
+.PROC Ppu_ChrBgPortrait0A
+    CHR1_BANK $c0
+    .assert .bank(*) = kChrBankPortraitCorraTalk, error
+    chr_inc "portrait_corra_talk", kTileIdBgPortraitCorraFirst
+    .assert .bank(*) = kChrBankPortraitMarieTalk, error
+    chr_inc "portrait_marie_talk", kTileIdBgPortraitMarieFirst
+    .assert .bank(*) = kChrBankDiagramPump, error
+    chr_inc "diagram_pump", kTileIdBgDiagramPumpFirst
+    .assert .bank(*) = kChrBankDiagramSemaphoreComm, error
+    chr_inc "diagram_semaphore_comm", kTileIdBgDiagramSemaphoreCommFirst
+    END_CHR_BANK
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "CHR_BgPortrait0B"
+
+.PROC Ppu_ChrBgPortrait0B
+    CHR1_BANK $c0
+    .assert .bank(*) = kChrBankPortraitBrunoRest, error
+    chr_inc "portrait_bruno_rest", kTileIdBgPortraitBrunoFirst
+    .assert .bank(*) = kChrBankPortraitNoraRest, error
+    chr_inc "portrait_nora_rest", kTileIdBgPortraitNoraFirst
+    .assert .bank(*) = kChrBankDiagramSemaphoreKey, error
+    chr_inc "diagram_semaphore_key", kTileIdBgDiagramSemaphoreKeyFirst
+    .assert .bank(*) = kChrBankDiagramSemaphoreLock, error
+    chr_inc "diagram_semaphore_lock", kTileIdBgDiagramSemaphoreLockFirst
+    END_CHR_BANK
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "CHR_BgPortrait0C"
+
+.PROC Ppu_ChrBgPortrait0C
+    CHR1_BANK $c0
+    .assert .bank(*) = kChrBankPortraitBrunoTalk, error
+    chr_inc "portrait_bruno_talk", kTileIdBgPortraitBrunoFirst
+    .assert .bank(*) = kChrBankPortraitNoraTalk, error
+    chr_inc "portrait_nora_talk", kTileIdBgPortraitNoraFirst
+    .assert .bank(*) = kChrBankDiagramLauncherDown, error
+    chr_inc "diagram_launcher_down", kTileIdBgDiagramLauncherDownFirst
+    .assert .bank(*) = kChrBankDiagramLauncherLeft, error
+    chr_inc "diagram_launcher_left", kTileIdBgDiagramLauncherLeftFirst
+    END_CHR_BANK
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "CHR_BgPortrait0D"
+
+.PROC Ppu_ChrBgPortrait0D
+    CHR1_BANK $c0
+    .assert .bank(*) = kChrBankPortraitWomanRest, error
+    chr_inc "portrait_woman_rest", kTileIdBgPortraitWomanFirst
+    .assert .bank(*) = kChrBankPortraitManRest, error
+    chr_inc "portrait_man_rest", kTileIdBgPortraitManFirst
+    .assert .bank(*) = kChrBankDiagramWinch, error
+    chr_inc "diagram_winch", kTileIdBgDiagramWinchFirst
+    .assert .bank(*) = kChrBankDiagramMultiplexer, error
+    chr_inc "diagram_multiplexer", kTileIdBgDiagramMultiplexerFirst
+    END_CHR_BANK
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "CHR_BgPortrait0E"
+
+.PROC Ppu_ChrBgPortrait0E
+    CHR1_BANK $c0
+    .assert .bank(*) = kChrBankPortraitWomanTalk, error
+    chr_inc "portrait_woman_talk", kTileIdBgPortraitWomanFirst
+    .assert .bank(*) = kChrBankPortraitManTalk, error
+    chr_inc "portrait_man_talk", kTileIdBgPortraitManFirst
+    .assert .bank(*) = kChrBankDiagramBoiler, error
+    chr_inc "diagram_boiler", kTileIdBgDiagramBoilerFirst
+    chr_res $10
+    END_CHR_BANK
+.ENDPROC
+
+;;;=========================================================================;;;
+
 .SEGMENT "CHR_BgPrison"
 
 .EXPORT Ppu_ChrBgPrison
@@ -1016,9 +835,7 @@ _chr_begin:
     CHR1_BANK $80
     chr_inc "cave"
     chr_inc "prison"
-    chr_res $18
-    chr_inc "sign"
-    chr_inc "console"
+    chr_res $20
     END_CHR_BANK
 .ENDPROC
 
@@ -1033,9 +850,7 @@ _chr_begin:
     chr_inc "sewer2"
     chr_res $16
     chr_inc "pump"
-    chr_res $04
-    chr_inc "sign"
-    chr_inc "console"
+    chr_res $0c
     END_CHR_BANK
 .ENDPROC
 
@@ -1051,8 +866,7 @@ _chr_begin:
     chr_res $0c
     chr_inc "field_bg"
     chr_inc "tank"
-    chr_inc "plaque"
-    chr_inc "console"
+    chr_res $06
     END_CHR_BANK
 .ENDPROC
 
@@ -1067,8 +881,7 @@ _chr_begin:
     chr_inc "temple2"
     chr_inc "temple3"
     chr_inc "temple4"
-    chr_inc "plaque"
-    chr_inc "console"
+    chr_res $06
     END_CHR_BANK
 .ENDPROC
 
@@ -1108,8 +921,9 @@ _chr_begin:
 .EXPORT Ppu_ChrObjAnnaFlower
 .PROC Ppu_ChrObjAnnaFlower
     CHR2_BANK $00
-    chr_inc "font_hilight"
+    chr_inc "device"
     chr_inc "player_flower", eAvatar::Standing
+    chr_inc "font_hilight"
     END_CHR_BANK
 .ENDPROC
 
@@ -1120,8 +934,9 @@ _chr_begin:
 .EXPORT Ppu_ChrObjAnnaNormal
 .PROC Ppu_ChrObjAnnaNormal
     CHR2_BANK $00
-    chr_inc "font_hilight"
+    chr_inc "device"
     chr_inc "player_normal", eAvatar::Standing
+    chr_inc "font_hilight"
     END_CHR_BANK
 .ENDPROC
 

@@ -83,7 +83,7 @@
 .IMPORTZP Zp_AvatarPosY_i16
 .IMPORTZP Zp_AvatarPose_eAvatar
 .IMPORTZP Zp_AvatarState_bAvatar
-.IMPORTZP Zp_Chr0cBank_u8
+.IMPORTZP Zp_Chr04Bank_u8
 .IMPORTZP Zp_Current_sRoom
 .IMPORTZP Zp_Current_sTileset
 .IMPORTZP Zp_FloatingHud_bHud
@@ -416,13 +416,13 @@ _UpDownPassage:
     lda Zp_RoomScrollY_u8
     sta Zp_PpuScrollY_u8
     jsr Func_Window_SetUpIrq
-    ;; Update CHR0C bank (for animated terrain).  A room's draw function can
+    ;; Update CHR04 bank (for animated terrain).  A room's draw function can
     ;; optionally override this if it needs its own animation behavior.
     lda Zp_FrameCounter_u8
     div #4
     and #$07
     add #<.bank(Ppu_ChrBgAnimA0)
-    sta Zp_Chr0cBank_u8
+    sta Zp_Chr04Bank_u8
     ;; Draw objects.
     jsr FuncA_Objects_DrawFloatingHud
     jsr FuncA_Objects_DrawPlayerAvatar

@@ -18,53 +18,53 @@
 ;;;=========================================================================;;;
 
 ;;; The CHR bank numbers containing various dialog portrait tiles.
-kChrBankPortraitAlexRest    = $0b
-kChrBankPortraitAlexTalk    = $0c
-kChrBankPortraitBrunoRest   = $13
-kChrBankPortraitBrunoTalk   = $14
-kChrBankPortraitCorraRest   = $0d
-kChrBankPortraitCorraTalk   = $0e
-kChrBankPortraitEireneRest  = $1b
-kChrBankPortraitEireneTalk  = $1c
-kChrBankPortraitFloristRest = $0f
-kChrBankPortraitFloristTalk = $10
-kChrBankPortraitGrontaRest  = $16
-kChrBankPortraitGrontaTalk  = $17
-kChrBankPortraitManRest     = $07
-kChrBankPortraitManTalk     = $08
-kChrBankPortraitMarieRest   = $11
-kChrBankPortraitMarieTalk   = $12
-kChrBankPortraitMermaidRest = $05
-kChrBankPortraitMermaidTalk = $06
-kChrBankPortraitNoraRest    = $09
-kChrBankPortraitNoraTalk    = $0a
-kChrBankPortraitOrcRest     = $18
-kChrBankPortraitOrcTalk     = $19
-kChrBankPortraitPaper       = $0e
-kChrBankPortraitPlaque      = $15
-kChrBankPortraitScreen      = $1a
-kChrBankPortraitSign        = $03
-kChrBankPortraitWomanRest   = $01
-kChrBankPortraitWomanTalk   = $02
+kChrBankPortraitAlexRest    = $01
+kChrBankPortraitAlexTalk    = $02
+kChrBankPortraitBrunoRest   = $0b
+kChrBankPortraitBrunoTalk   = $0c
+kChrBankPortraitCorraRest   = $09
+kChrBankPortraitCorraTalk   = $0a
+kChrBankPortraitEireneRest  = $03
+kChrBankPortraitEireneTalk  = $04
+kChrBankPortraitFloristRest = $05
+kChrBankPortraitFloristTalk = $06
+kChrBankPortraitGrontaRest  = $05
+kChrBankPortraitGrontaTalk  = $06
+kChrBankPortraitManRest     = $0d
+kChrBankPortraitManTalk     = $0e
+kChrBankPortraitMarieRest   = $09
+kChrBankPortraitMarieTalk   = $0a
+kChrBankPortraitMermaidRest = $07
+kChrBankPortraitMermaidTalk = $08
+kChrBankPortraitNoraRest    = $0b
+kChrBankPortraitNoraTalk    = $0c
+kChrBankPortraitOrcRest     = $07
+kChrBankPortraitOrcTalk     = $08
+kChrBankPortraitPaper       = $01
+kChrBankPortraitPlaque      = $02
+kChrBankPortraitScreen      = $03
+kChrBankPortraitSign        = $04
+kChrBankPortraitWomanRest   = $0d
+kChrBankPortraitWomanTalk   = $0e
 
 ;;;=========================================================================;;;
 
 ;;; BG tile IDs for various dialog portraits.
-kTileIdBgPortraitAlexFirst    = $70
-kTileIdBgPortraitBrunoFirst   = $70
-kTileIdBgPortraitCorraFirst   = $70
-kTileIdBgPortraitEireneFirst  = $70
-kTileIdBgPortraitFloristFirst = $70
-kTileIdBgPortraitGrontaFirst  = $70
-kTileIdBgPortraitManFirst     = $70
-kTileIdBgPortraitMarieFirst   = $70
-kTileIdBgPortraitMermaidFirst = $70
-kTileIdBgPortraitNoraFirst    = $70
-kTileIdBgPortraitOrcFirst     = $70
-kTileIdBgPortraitPaperFirst   = $60
-kTileIdBgPortraitPlaqueFirst  = $70
-kTileIdBgPortraitScreenFirst  = $70
-kTileIdBgPortraitSignFirst    = $70
-kTileIdBgPortraitWomanFirst   = $70
+kTileIdBgPortraitAlexFirst    = $c0
+kTileIdBgPortraitBrunoFirst   = $c0
+kTileIdBgPortraitCorraFirst   = $c0
+kTileIdBgPortraitEireneFirst  = $c0
+kTileIdBgPortraitFloristFirst = $d0
+kTileIdBgPortraitGrontaFirst  = $c0
+kTileIdBgPortraitManFirst     = $d0
+kTileIdBgPortraitMarieFirst   = $d0
+kTileIdBgPortraitMermaidFirst = $d0
+kTileIdBgPortraitNoraFirst    = $d0
+kTileIdBgPortraitOrcFirst     = $c0
+kTileIdBgPortraitPaperFirst   = $d0
+kTileIdBgPortraitPlaqueFirst  = $d0
+kTileIdBgPortraitScreenFirst  = $d0
+kTileIdBgPortraitSignFirst    = $d0
+kTileIdBgPortraitWomanFirst   = $c0
 
 ;;;=========================================================================;;;

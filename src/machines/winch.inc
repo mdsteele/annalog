@@ -37,10 +37,10 @@ kNumWinchHitsToBreakFloor = 3
 kWinchBreakableFloorBlinkFrames = 28
 
 ;;; The CHR bank number containing the diagram for winch machines.
-kChrBankDiagramWinch = $03
+kChrBankDiagramWinch = $0d
 
 ;;; BG tile IDs for winch machine diagrams.
-kTileIdBgDiagramWinchFirst = $60
+kTileIdBgDiagramWinchFirst = $e0
 
 ;;; Tile IDs for drawing winch machines.
 kTileIdObjCrusherFirst   = $e0
