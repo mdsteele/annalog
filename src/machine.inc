@@ -21,8 +21,8 @@
 .DEFINE kMaxMachines 4
 
 ;;; The names (i.e. BG/OBJ tile IDs) for registers $a and $b.
-kMachineRegNameA = $20  ; 'A'
-kMachineRegNameB = $21  ; 'B'
+kMachineRegNameA = $60  ; 'A'
+kMachineRegNameB = $61  ; 'B'
 
 ;;;=========================================================================;;;
 

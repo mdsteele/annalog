@@ -93,6 +93,7 @@ static const struct {
   {0x90, "sewer2"},
   {0x80, "shadow1"},
   {0x90, "shadow2"},
+  {0xa0, "shadow3"},
   {0x80, "steam_pipes"},
   {0xb0, "tank"},
   {0x80, "temple1"},

@@ -863,7 +863,7 @@ _chr_begin:
     CHR1_BANK $80
     chr_inc "shadow1"
     chr_inc "shadow2"
-    chr_res $0c
+    chr_inc "shadow3"
     chr_inc "field_bg"
     chr_inc "tank"
     chr_res $06
