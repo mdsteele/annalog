@@ -33,6 +33,7 @@
 .IMPORT DataC_Boss_City_sRoom
 .IMPORT DataC_Boss_Crypt_sRoom
 .IMPORT DataC_Boss_Garden_sRoom
+.IMPORT DataC_Boss_Lava_sRoom
 .IMPORT DataC_Boss_Mine_sRoom
 .IMPORT DataC_Boss_Shadow_sRoom
 .IMPORT DataC_Boss_Temple_sRoom
@@ -269,6 +270,7 @@ _LoadNewRoom:
     d_entry table, BossCity,        DataC_Boss_City_sRoom
     d_entry table, BossCrypt,       DataC_Boss_Crypt_sRoom
     d_entry table, BossGarden,      DataC_Boss_Garden_sRoom
+    d_entry table, BossLava,        DataC_Boss_Lava_sRoom
     d_entry table, BossMine,        DataC_Boss_Mine_sRoom
     d_entry table, BossShadow,      DataC_Boss_Shadow_sRoom
     d_entry table, BossTemple,      DataC_Boss_Temple_sRoom
@@ -418,6 +420,7 @@ _PrisonMusic:
     d_byte BossCity,        eMusic::Boss1
     d_byte BossCrypt,       eMusic::Boss1
     d_byte BossGarden,      eMusic::Boss1
+    d_byte BossLava,        eMusic::Boss1
     d_byte BossMine,        eMusic::Boss1
     d_byte BossShadow,      eMusic::Boss1
     d_byte BossTemple,      eMusic::Boss1

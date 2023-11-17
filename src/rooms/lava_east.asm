@@ -108,11 +108,11 @@ _Machines_sMachine_arr:
     D_STRUCT sMachine
     d_byte Code_eProgram, eProgram::LavaEastUpperBoiler
     d_byte Breaker_eFlag, 0
-    d_byte Flags_bMachine, bMachine::Act | bMachine::WriteCD
+    d_byte Flags_bMachine, bMachine::Act | bMachine::WriteE | bMachine::WriteF
     d_byte Status_eDiagram, eDiagram::Boiler
     d_word ScrollGoalX_u16, $090
     d_byte ScrollGoalY_u8, $20
-    d_byte RegNames_u8_arr4, "V", "E", 0, 0
+    d_byte RegNames_u8_arr4, 0, 0, "V", "E"
     d_byte MainPlatform_u8, kUpperBoilerPlatformIndex
     d_addr Init_func_ptr, Func_Noop
     d_addr ReadReg_func_ptr, Func_MachineBoilerReadReg
@@ -127,11 +127,11 @@ _Machines_sMachine_arr:
     D_STRUCT sMachine
     d_byte Code_eProgram, eProgram::LavaEastLowerBoiler
     d_byte Breaker_eFlag, 0
-    d_byte Flags_bMachine, bMachine::Act | bMachine::WriteCD
+    d_byte Flags_bMachine, bMachine::Act | bMachine::WriteE | bMachine::WriteF
     d_byte Status_eDiagram, eDiagram::Boiler
     d_word ScrollGoalX_u16, $110
     d_byte ScrollGoalY_u8, $b8
-    d_byte RegNames_u8_arr4, "V", "E", 0, 0
+    d_byte RegNames_u8_arr4, 0, 0, "V", "E"
     d_byte MainPlatform_u8, kLowerBoilerPlatformIndex
     d_addr Init_func_ptr, Func_Noop
     d_addr ReadReg_func_ptr, Func_MachineBoilerReadReg
@@ -307,7 +307,7 @@ _Passages_sPassage_arr:
 ;;; @prereq PRGA_Machine is loaded.
 .PROC FuncC_Lava_EastUpperBoiler_TryAct
 _Valve1:
-    lda Ram_MachineGoalVert_u8_arr + kUpperBoilerMachineIndex  ; valve 1 angle
+    lda Ram_MachineGoalHorz_u8_arr + kUpperBoilerMachineIndex  ; valve 1 angle
     and #$03
     tax  ; valve 1 angle (in tau/8 units, mod 4)
     ldy _Valve1ExitPlatformIndex_u8_arr4, x  ; platform index
@@ -316,7 +316,7 @@ _Valve1:
     jsr FuncA_Machine_EmitSteamUpFromPipe
     jmp FuncA_Machine_BoilerFinishEmittingSteam
 _Valve2:
-    lda Ram_MachineGoalHorz_u8_arr + kUpperBoilerMachineIndex  ; valve 2 angle
+    lda Ram_MachineGoalVert_u8_arr + kUpperBoilerMachineIndex  ; valve 2 angle
     and #$03
     tax  ; valve 2 angle (in tau/8 units, mod 4)
     ldy _Valve2ExitPlatformIndex_u8_arr4, x  ; platform index
@@ -341,12 +341,12 @@ _Valve2ExitPlatformIndex_u8_arr4:
     lda #0
     sta T0  ; num steams emitted
 _Pipe1:
-    lda Ram_MachineGoalHorz_u8_arr + kLowerBoilerMachineIndex  ; valve 2 angle
+    lda Ram_MachineGoalVert_u8_arr + kLowerBoilerMachineIndex  ; valve 2 angle
     and #$03
     tax  ; valve 2 angle (in tau/8 units, mod 4)
     ldy _Valve2ExitPlatformIndex_u8_arr4, x  ; platform index
     bmi @done
-    lda Ram_MachineGoalVert_u8_arr + kLowerBoilerMachineIndex  ; valve 1 angle
+    lda Ram_MachineGoalHorz_u8_arr + kLowerBoilerMachineIndex  ; valve 1 angle
     and #$03
     tax  ; valve 1 angle (in tau/8 units, mod 4)
     ldy _Valve1PipePlatformIndex1_u8_arr4, x  ; platform index
@@ -355,7 +355,7 @@ _Pipe1:
     inc T0  ; num steams emitted
     @done:
 _Pipe2:
-    lda Ram_MachineGoalVert_u8_arr + kLowerBoilerMachineIndex  ; valve 1 angle
+    lda Ram_MachineGoalHorz_u8_arr + kLowerBoilerMachineIndex  ; valve 1 angle
     and #$03
     tax  ; valve 1 angle (in tau/8 units, mod 4)
     ldy _Valve1PipePlatformIndex2_u8_arr4, x  ; platform index

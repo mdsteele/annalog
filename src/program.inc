@@ -107,6 +107,8 @@
     BossCityReloader
     BossCryptWinch
     BossGardenCannon
+    BossLavaBlaster
+    BossLavaBoiler
     BossMineCrane
     BossMineTrolley
     BossShadowEmitterX

@@ -67,15 +67,14 @@ kPaletteObjValve = 0
 ;;; @return A The value of the register (0-9).
 .EXPORT Func_MachineBoilerReadReg
 .PROC Func_MachineBoilerReadReg
-    ;; TODO: use $e and $f for valve registers
     ldx Zp_MachineIndex_u8
-    cmp #$0d
+    cmp #$0f
     beq @valve2
     @valve1:
-    lda Ram_MachineGoalVert_u8_arr, x
+    lda Ram_MachineGoalHorz_u8_arr, x
     rts
     @valve2:
-    lda Ram_MachineGoalHorz_u8_arr, x
+    lda Ram_MachineGoalVert_u8_arr, x
     rts
 .ENDPROC
 
@@ -89,8 +88,8 @@ kPaletteObjValve = 0
 .PROC FuncA_Room_MachineBoilerReset
     ldx Zp_MachineIndex_u8
     lda #0
-    sta Ram_MachineGoalVert_u8_arr, x
     sta Ram_MachineGoalHorz_u8_arr, x
+    sta Ram_MachineGoalVert_u8_arr, x
     rts
 .ENDPROC
 
@@ -105,17 +104,17 @@ kPaletteObjValve = 0
 .EXPORT FuncA_Machine_BoilerWriteReg
 .PROC FuncA_Machine_BoilerWriteReg
     ldy Zp_MachineIndex_u8
-    cpx #$0d
+    cpx #$0f
     beq @valve2
     @valve1:
-    cmp Ram_MachineGoalVert_u8_arr, y
-    beq @done
-    sta Ram_MachineGoalVert_u8_arr, y
-    jmp FuncA_Machine_StartWorking
-    @valve2:
     cmp Ram_MachineGoalHorz_u8_arr, y
     beq @done
     sta Ram_MachineGoalHorz_u8_arr, y
+    jmp FuncA_Machine_StartWorking
+    @valve2:
+    cmp Ram_MachineGoalVert_u8_arr, y
+    beq @done
+    sta Ram_MachineGoalVert_u8_arr, y
     jmp FuncA_Machine_StartWorking
     @done:
     rts
@@ -130,7 +129,7 @@ kPaletteObjValve = 0
     sta T0  ; num valves moved
     ldx Zp_MachineIndex_u8
 _Valve1:
-    lda Ram_MachineGoalVert_u8_arr, x
+    lda Ram_MachineGoalHorz_u8_arr, x
     mul #kBoilerValveAnimSlowdown
     cmp Ram_MachineState1_byte_arr, x  ; valve 1 angle
     beq @done
@@ -144,7 +143,7 @@ _Valve1:
     inc T0  ; num valves moved
     @done:
 _Valve2:
-    lda Ram_MachineGoalHorz_u8_arr, x
+    lda Ram_MachineGoalVert_u8_arr, x
     mul #kBoilerValveAnimSlowdown
     cmp Ram_MachineState2_byte_arr, x  ; valve 2 angle
     beq @done

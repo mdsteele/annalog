@@ -26,6 +26,10 @@
 ;;;   * State4: The current animation angle for mirror #2, which ticks each
 ;;;     frame toward (State2 * kBlasterMirrorAnimSlowdown).
 
+;;; The size of a blaster machine's main platform, in pixels.
+kBlasterMachineWidthPx  = $10
+kBlasterMachineHeightPx = $10
+
 ;;; The number of frames between mirror angles when animating a blaster mirror.
 .DEFINE kBlasterMirrorAnimSlowdown 2
 

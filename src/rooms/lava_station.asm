@@ -46,7 +46,7 @@
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrObjLava
 .IMPORT Ram_DeviceType_eDevice_arr
-.IMPORT Ram_MachineGoalVert_u8_arr
+.IMPORT Ram_MachineGoalHorz_u8_arr
 .IMPORT Sram_ProgressFlags_arr
 
 ;;;=========================================================================;;;
@@ -104,11 +104,11 @@ _Machines_sMachine_arr:
     D_STRUCT sMachine
     d_byte Code_eProgram, eProgram::LavaStationBoiler
     d_byte Breaker_eFlag, 0
-    d_byte Flags_bMachine, bMachine::Act | bMachine::WriteC
+    d_byte Flags_bMachine, bMachine::Act | bMachine::WriteE
     d_byte Status_eDiagram, eDiagram::Boiler
     d_word ScrollGoalX_u16, $10
     d_byte ScrollGoalY_u8, $40
-    d_byte RegNames_u8_arr4, "V", 0, 0, 0
+    d_byte RegNames_u8_arr4, 0, 0, "V", 0
     d_byte MainPlatform_u8, kBoilerPlatformIndex
     d_addr Init_func_ptr, Func_Noop
     d_addr ReadReg_func_ptr, Func_MachineBoilerReadReg
@@ -200,7 +200,7 @@ _Passages_sPassage_arr:
 ;;; @prereq PRGA_Machine is loaded.
 .PROC FuncC_Lava_StationBoiler_TryAct
     ;; Determine which pipe the steam should exit out of.
-    lda Ram_MachineGoalVert_u8_arr + kBoilerMachineIndex  ; valve angle
+    lda Ram_MachineGoalHorz_u8_arr + kBoilerMachineIndex  ; valve 1 angle
     and #$03
     tax  ; valve angle (in tau/8 units, mod 4)
     ldy _ValvePipePlatformIndex_u8_arr4, x  ; param: pipe platform index

@@ -6,13 +6,14 @@
 >volcanic2
 >lava_anim0
 >boiler
+>arch
 
     CMCN    CICJ        DPDODODPGAGBGBDC  GAGB  AB    AA
     COCPCECFCKCLECED            GCGDGDDD  GCGD  AD    ACDNDMDMDN
-DI    DIDI    DI        DJDLDLDJDJ    DJ  DLDL              FAFB
-DKDIDIDKDK    DK  DIDI  DL    DLDL    DL                    FBFA
-
-
+DI    DIDI    DI        DJDLDLDJDJ    DJ  DLDL          HCHDFAFB
+DKDIDIDKDK    DK  DIDI  DL    DLDL    DL        HAHB    HCHDFBFA
+DDDCDDDCEADCDDEB
+        DL    DL
 BABA    BB    BB          BGBH  BGBABABH
     BABABB    BB  BEBF                  BEBABABF            BJ
 DADBDBDADDDC    DEDFDFDEDEDFDFDEDDDCDDDCDADBDADBDDDCDADB    BMBN

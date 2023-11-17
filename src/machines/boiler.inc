@@ -19,9 +19,9 @@
 
 ;;; State bytes for boiler machines:
 ;;;   * State1: The current angle of valve #1, which tends toward
-;;;     MachineGoalVert * kBoilerValveAnimSlowdown.
-;;;   * State2: The current angle of valve #2, which tends toward
 ;;;     MachineGoalHorz * kBoilerValveAnimSlowdown.
+;;;   * State2: The current angle of valve #2, which tends toward
+;;;     MachineGoalVert * kBoilerValveAnimSlowdown.
 ;;;   * State3: Unused.
 ;;;   * State4: Unused.
 

@@ -40,7 +40,7 @@
 .IMPORT FuncA_Machine_WriteToLever
 .IMPORT FuncA_Objects_AnimateLavaTerrain
 .IMPORT FuncA_Objects_DrawBoilerMachine
-.IMPORT FuncA_Objects_DrawBoilerValve2
+.IMPORT FuncA_Objects_DrawBoilerValve1
 .IMPORT FuncA_Room_MachineBoilerReset
 .IMPORT FuncA_Room_ResetLever
 .IMPORT FuncA_Terrain_FadeInTallRoomWithLava
@@ -111,11 +111,11 @@ _Machines_sMachine_arr:
     D_STRUCT sMachine
     d_byte Code_eProgram, eProgram::LavaWestBoiler
     d_byte Breaker_eFlag, 0
-    d_byte Flags_bMachine, bMachine::Act | bMachine::WriteCD
+    d_byte Flags_bMachine, bMachine::Act | bMachine::WriteC | bMachine::WriteE
     d_byte Status_eDiagram, eDiagram::Boiler
     d_word ScrollGoalX_u16, $108
     d_byte ScrollGoalY_u8, $48
-    d_byte RegNames_u8_arr4, "L", "V", 0, 0
+    d_byte RegNames_u8_arr4, "L", 0, "V", 0
     d_byte MainPlatform_u8, kBoilerPlatformIndex
     d_addr Init_func_ptr, Func_Noop
     d_addr ReadReg_func_ptr, FuncC_Lava_WestBoiler_ReadReg
@@ -295,7 +295,7 @@ _ReadL:
 .PROC FuncC_Lava_WestBoiler_Draw
     jsr FuncA_Objects_DrawBoilerMachine
     ldx #kValvePlatformIndex  ; param: platform index
-    jmp FuncA_Objects_DrawBoilerValve2
+    jmp FuncA_Objects_DrawBoilerValve1
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -327,7 +327,7 @@ _WriteL:
 .PROC FuncA_Machine_LavaWestBoiler_TryAct
     ;; Determine which pipe the steam should exit out of (or fail if both pipes
     ;; are blocked).
-    lda Ram_MachineGoalHorz_u8_arr + kBoilerMachineIndex  ; valve angle
+    lda Ram_MachineGoalHorz_u8_arr + kBoilerMachineIndex  ; valve 1 angle
     and #$03
     tax  ; valve angle (in tau/8 units, mod 4)
     ldy _ValvePipePlatformIndex_u8_arr4, x  ; pipe platform index

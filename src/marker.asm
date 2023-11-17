@@ -218,6 +218,12 @@
     d_byte If_eFlag, 0
     d_byte Not_eFlag, eFlag::FlowerLava
     D_END
+    D_STRUCT sMarker
+    d_byte Row_u8, 14
+    d_byte Col_u8, 21  ; room: BossLava
+    d_byte If_eFlag, 0
+    d_byte Not_eFlag, eFlag::BreakerLava
+    D_END
     .assert sMarker::Row_u8 = 0, error
     .byte $ff
 .ENDPROC

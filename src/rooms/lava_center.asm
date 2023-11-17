@@ -252,8 +252,8 @@ _Platforms_sPlatform_arr:
     .assert * - :- = kBlasterPlatformIndex * .sizeof(sPlatform), error
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Solid
-    d_word WidthPx_u16, kBlockWidthPx
-    d_byte HeightPx_u8, kBlockHeightPx
+    d_word WidthPx_u16, kBlasterMachineWidthPx
+    d_byte HeightPx_u8, kBlasterMachineHeightPx
     d_word Left_i16, kBlasterInitPlatformLeft
     d_word Top_i16, $0010
     D_END

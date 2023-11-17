@@ -43,6 +43,7 @@ kMaxPassages = 8
     BossCity
     BossCrypt
     BossGarden
+    BossLava
     BossMine
     BossShadow
     BossTemple

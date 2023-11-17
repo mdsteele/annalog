@@ -480,7 +480,7 @@ _chr_begin:
     chr_inc "volcanic2"
     chr_res $08
     chr_inc "field_bg"
-    chr_res $04
+    chr_inc "arch"
     chr_inc "boiler"
     chr_res $08
     END_CHR_BANK
