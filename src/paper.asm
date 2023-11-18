@@ -63,7 +63,7 @@ kTileIdBgPaperTopRight     = $be
 kTileIdBgPaperBottomRight  = $bf
 
 ;;; The OBJ tile ID for drawing the papers window cursor.
-kTileIdObjPaperCursor = $cc
+kTileIdObjPaperCursor = $8c
 ;;; The OBJ palette number for the papers window cursor.
 kPaletteObjPaperCursor = 1
 

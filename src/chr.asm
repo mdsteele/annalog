@@ -1134,9 +1134,9 @@ _chr_begin:
 .EXPORT Ppu_ChrObjPause
 .PROC Ppu_ChrObjPause
     CHR2_BANK $80
-    chr_inc "font_upper"
     chr_inc "pause"
     chr_res $30
+    chr_inc "font_upper"
     END_CHR_BANK
 .ENDPROC
 

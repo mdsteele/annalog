@@ -102,7 +102,7 @@ kTileIdBgRamTopLeft        = $82
 kTileIdBgRemainingTopLeft  = $84
 
 ;;; The OBJ tile ID for drawing the cursor for opening the papers window.
-kTileIdObjOpenWindowCursor = $cd
+kTileIdObjOpenWindowCursor = $8d
 ;;; The OBJ palette number for the cursor for opening the papers window.
 kPaletteObjOpenWindowCursor = 1
 
@@ -659,10 +659,10 @@ _CircuitPosY_u8_arr:
     .byte      $c3, $c3, $c3, $c3
     .byte              $ca
 _CircuitFirstTile_u8_arr:
-    .byte $c0, $c4, $c4, $c4, $c4, $c0
-    .byte $c0, $c4,           $c4, $c0
-    .byte      $c0, $c4, $c4, $c0
-    .byte              $c8
+    .byte $80, $84, $84, $84, $84, $80
+    .byte $80, $84,           $84, $80
+    .byte      $80, $84, $84, $80
+    .byte              $88
 _CircuitFlags_bObj_arr:
     .byte 0, 0, bObj::Pri, bObj::Pri | bObj::FlipH, bObj::FlipH, bObj::FlipH
     .byte bObj::FlipV, bObj::FlipV, bObj::FlipHV, bObj::FlipHV
