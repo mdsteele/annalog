@@ -167,7 +167,7 @@ _Devices_sDevice_arr:
     d_byte Type_eDevice, eDevice::Paper
     d_byte BlockRow_u8, 11
     d_byte BlockCol_u8, 11
-    d_byte Target_byte, eFlag::PaperJerome12
+    d_byte Target_byte, eFlag::PaperManual2
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Console
@@ -225,10 +225,10 @@ _Passages_sPassage_arr:
 
 .SEGMENT "PRGA_Dialog"
 
-.EXPORT DataA_Dialog_PaperJerome12_sDialog
-.PROC DataA_Dialog_PaperJerome12_sDialog
-    dlg_Text Paper, DataA_Text0_PaperJerome12_Page1_u8_arr
-    dlg_Text Paper, DataA_Text0_PaperJerome12_Page2_u8_arr
+.EXPORT DataA_Dialog_PaperManual2_sDialog
+.PROC DataA_Dialog_PaperManual2_sDialog
+    dlg_Text Paper, DataA_Text0_PaperManual2_Page1_u8_arr
+    dlg_Text Paper, DataA_Text0_PaperManual2_Page2_u8_arr
     dlg_Done
 .ENDPROC
 
@@ -236,17 +236,18 @@ _Passages_sPassage_arr:
 
 .SEGMENT "PRGA_Text0"
 
-.PROC DataA_Text0_PaperJerome12_Page1_u8_arr
-    .byte "Day 12: So where do I$"
-    .byte "even start? We were a$"
-    .byte "great civilization$"
-    .byte "once, before the orcs.#"
+.PROC DataA_Text0_PaperManual2_Page1_u8_arr
+    .byte "CPU FIELD MANUAL p.2:$"
+    .byte "Programs are saved$"
+    .byte "automatically when$"
+    .byte "a console is closed.#"
 .ENDPROC
 
-.PROC DataA_Text0_PaperJerome12_Page2_u8_arr
-    .byte "But we were already$"
-    .byte "crumbling long$"
-    .byte "before they invaded.#"
+.PROC DataA_Text0_PaperManual2_Page2_u8_arr
+    .byte "Progress is also saved$"
+    .byte "automatically whenever$"
+    .byte "entering or leaving a$"
+    .byte "room.#"
 .ENDPROC
 
 ;;;=========================================================================;;;

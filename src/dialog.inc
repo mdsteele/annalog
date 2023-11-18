@@ -112,14 +112,18 @@ kDialogEntryDone = $ff  ; indicates end of dialog
     PaperJerome11
     PaperJerome12
     PaperJerome13
+    PaperJerome14
     PaperJerome21
+    PaperJerome23
     PaperJerome28
     PaperJerome34
     PaperJerome35
     PaperJerome36
+    PaperManual1
     PaperManual2
     PaperManual3
     PaperManual4
+    PaperManual5
     PrisonFlowerSign
     PrisonUpperAlexCell
     PrisonUpperAlexFree

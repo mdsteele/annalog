@@ -211,25 +211,26 @@ _FadeIn:
 _Flags_eFlag_arr:
 .IF 0
     .byte eFlag::PaperJerome36
-    .byte eFlag::PaperJerome12
+    .byte eFlag::PaperManual2
     .byte eFlag::PrisonCellReachedTunnel
     .byte eFlag::PrisonCellBlastedRocks
     .byte eFlag::GardenLandingDroppedIn
     .byte eFlag::PaperJerome13
     .byte eFlag::UpgradeOpIf
+    .byte eFlag::PaperJerome12
     .byte eFlag::GardenEastTalkedToCorra
     .byte eFlag::MermaidHut1MetQueen
     .byte eFlag::MermaidHut4MetFlorist
     .byte eFlag::GardenTowerCratesPlaced
     .byte eFlag::FlowerMermaid
-    .byte eFlag::PaperManual4
+    .byte eFlag::PaperManual5
     .byte eFlag::GardenTowerWallBroken
     .byte eFlag::BossGarden
     .byte eFlag::UpgradeRam1
     .byte eFlag::BreakerGarden
     .byte eFlag::TempleEntryPermission
     .byte eFlag::TempleEntryColumnRaised
-    .byte eFlag::PaperManual2
+    .byte eFlag::PaperManual1
     .byte eFlag::UpgradeOpTil
     .byte eFlag::TempleAltarColumnBroken
     .byte eFlag::PaperJerome28
@@ -239,6 +240,7 @@ _Flags_eFlag_arr:
     .byte eFlag::FlowerTemple
     .byte eFlag::FlowerFactory
     .byte eFlag::CoreSouthCorraWaiting
+    .byte eFlag::PaperManual4
     .byte eFlag::CoreSouthCorraHelped
     .byte eFlag::PrisonEastEastGateOpen
     .byte eFlag::PrisonEastLowerGateShut
@@ -268,6 +270,7 @@ _Flags_eFlag_arr:
     .byte eFlag::FlowerCrypt
     .byte eFlag::CityOutskirtsTalkedToAlex
     .byte eFlag::UpgradeOpSkip
+    .byte eFlag::PaperJerome14
     .byte eFlag::FlowerGarden
     .byte eFlag::MermaidSpringConsoleFixed
     .byte eFlag::MermaidSpringUnplugged
@@ -285,6 +288,7 @@ _Flags_eFlag_arr:
     .byte eFlag::UpgradeRam4
     .byte eFlag::BreakerMine
     .byte eFlag::UpgradeOpAddSub
+    .byte eFlag::PaperJerome23
     .byte eFlag::FlowerMine
     .byte eFlag::FactoryVaultTalkedToAlex
     .byte eFlag::FlowerLava

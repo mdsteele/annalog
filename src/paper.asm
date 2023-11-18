@@ -199,7 +199,7 @@ Ram_CollectedPapers_u8_arr: .res kPaperGridCols
     d_byte eFlag::PaperJerome11, eDialog::PaperJerome11
     d_byte eFlag::PaperJerome12, eDialog::PaperJerome12
     d_byte eFlag::PaperJerome13, eDialog::PaperJerome13
-    d_byte eFlag::PaperJerome14, 0  ; TODO
+    d_byte eFlag::PaperJerome14, eDialog::PaperJerome14
     d_byte eFlag::PaperJerome15, 0  ; TODO
     d_byte eFlag::PaperJerome16, 0  ; TODO
     d_byte eFlag::PaperJerome17, 0  ; TODO
@@ -208,7 +208,7 @@ Ram_CollectedPapers_u8_arr: .res kPaperGridCols
     d_byte eFlag::PaperJerome20, 0  ; TODO
     d_byte eFlag::PaperJerome21, eDialog::PaperJerome21
     d_byte eFlag::PaperJerome22, 0  ; TODO
-    d_byte eFlag::PaperJerome23, 0  ; TODO
+    d_byte eFlag::PaperJerome23, eDialog::PaperJerome23
     d_byte eFlag::PaperJerome24, 0  ; TODO
     d_byte eFlag::PaperJerome25, 0  ; TODO
     d_byte eFlag::PaperJerome26, 0  ; TODO
@@ -222,11 +222,11 @@ Ram_CollectedPapers_u8_arr: .res kPaperGridCols
     d_byte eFlag::PaperJerome34, eDialog::PaperJerome34
     d_byte eFlag::PaperJerome35, eDialog::PaperJerome35
     d_byte eFlag::PaperJerome36, eDialog::PaperJerome36
-    d_byte eFlag::PaperManual1, 0  ; TODO
+    d_byte eFlag::PaperManual1, eDialog::PaperManual1
     d_byte eFlag::PaperManual2, eDialog::PaperManual2
     d_byte eFlag::PaperManual3, eDialog::PaperManual3
     d_byte eFlag::PaperManual4, eDialog::PaperManual4
-    d_byte eFlag::PaperManual5, 0  ; TODO
+    d_byte eFlag::PaperManual5, eDialog::PaperManual5
     d_byte eFlag::PaperManual6, 0  ; TODO
     d_byte eFlag::PaperManual7, 0  ; TODO
     d_byte eFlag::PaperManual8, 0  ; TODO
@@ -249,9 +249,9 @@ Ram_CollectedPapers_u8_arr: .res kPaperGridCols
     d_byte eFlag::PaperJerome09, $ff  ; TODO
     d_byte eFlag::PaperJerome10, eArea::Lava     ; room: LavaWest
     d_byte eFlag::PaperJerome11, eArea::Crypt    ; room: CryptSpiral
-    d_byte eFlag::PaperJerome12, eArea::Prison   ; room: PrisonEscape
+    d_byte eFlag::PaperJerome12, eArea::Garden   ; room: GardenHallway
     d_byte eFlag::PaperJerome13, eArea::Garden   ; room: GardenLanding
-    d_byte eFlag::PaperJerome14, $ff  ; TODO
+    d_byte eFlag::PaperJerome14, eArea::Garden   ; room: GardenFlower
     d_byte eFlag::PaperJerome15, $ff  ; TODO
     d_byte eFlag::PaperJerome16, $ff  ; TODO
     d_byte eFlag::PaperJerome17, $ff  ; TODO
@@ -260,7 +260,7 @@ Ram_CollectedPapers_u8_arr: .res kPaperGridCols
     d_byte eFlag::PaperJerome20, $ff  ; TODO
     d_byte eFlag::PaperJerome21, eArea::Crypt   ; room: CryptEscape
     d_byte eFlag::PaperJerome22, $ff  ; TODO
-    d_byte eFlag::PaperJerome23, $ff  ; TODO
+    d_byte eFlag::PaperJerome23, eArea::Core    ; room: CoreLock
     d_byte eFlag::PaperJerome24, $ff  ; TODO
     d_byte eFlag::PaperJerome25, $ff  ; TODO
     d_byte eFlag::PaperJerome26, $ff  ; TODO
@@ -274,11 +274,11 @@ Ram_CollectedPapers_u8_arr: .res kPaperGridCols
     d_byte eFlag::PaperJerome34, eArea::Temple   ; room: TemplePit
     d_byte eFlag::PaperJerome35, eArea::City     ; room: CityDump
     d_byte eFlag::PaperJerome36, eArea::Prison   ; room: PrisonCell
-    d_byte eFlag::PaperManual1,  $ff  ; TODO
-    d_byte eFlag::PaperManual2,  eArea::Temple   ; room: TempleFoyer
+    d_byte eFlag::PaperManual1,  eArea::Temple   ; room: TempleFoyer
+    d_byte eFlag::PaperManual2,  eArea::Prison   ; room: PrisonEscape
     d_byte eFlag::PaperManual3,  eArea::Lava     ; room: LavaStation
-    d_byte eFlag::PaperManual4,  eArea::Garden   ; room: GardenShaft
-    d_byte eFlag::PaperManual5,  $ff  ; TODO
+    d_byte eFlag::PaperManual4,  eArea::Factory  ; room: FactoryUpper
+    d_byte eFlag::PaperManual5,  eArea::Garden   ; room: GardenShaft
     d_byte eFlag::PaperManual6,  $ff  ; TODO
     d_byte eFlag::PaperManual7,  $ff  ; TODO
     d_byte eFlag::PaperManual8,  $ff  ; TODO

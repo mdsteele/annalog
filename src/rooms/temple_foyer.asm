@@ -202,7 +202,7 @@ _Devices_sDevice_arr:
     d_byte Type_eDevice, eDevice::Paper
     d_byte BlockRow_u8, 21
     d_byte BlockCol_u8, 12
-    d_byte Target_byte, eFlag::PaperManual2
+    d_byte Target_byte, eFlag::PaperManual1
     D_END
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None
@@ -316,10 +316,10 @@ _MoveToBottomRight:
 
 .SEGMENT "PRGA_Dialog"
 
-.EXPORT DataA_Dialog_PaperManual2_sDialog
-.PROC DataA_Dialog_PaperManual2_sDialog
-    dlg_Text Paper, DataA_Text0_PaperManual2_Page1_u8_arr
-    dlg_Text Paper, DataA_Text0_PaperManual2_Page2_u8_arr
+.EXPORT DataA_Dialog_PaperManual1_sDialog
+.PROC DataA_Dialog_PaperManual1_sDialog
+    dlg_Text Paper, DataA_Text0_PaperManual1_Page1_u8_arr
+    dlg_Text Paper, DataA_Text0_PaperManual1_Page2_u8_arr
     dlg_Done
 .ENDPROC
 
@@ -327,14 +327,14 @@ _MoveToBottomRight:
 
 .SEGMENT "PRGA_Text0"
 
-.PROC DataA_Text0_PaperManual2_Page1_u8_arr
-    .byte "CPU FIELD MANUAL p.2:$"
+.PROC DataA_Text0_PaperManual1_Page1_u8_arr
+    .byte "CPU FIELD MANUAL p.1:$"
     .byte "Basic console control:$"
     .byte " A: confirm$"
     .byte " B: cancel/exit#"
 .ENDPROC
 
-.PROC DataA_Text0_PaperManual2_Page2_u8_arr
+.PROC DataA_Text0_PaperManual1_Page2_u8_arr
     .byte " SELECT: insert new$"
     .byte "   instruction$"
     .byte " START: activate$"

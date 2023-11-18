@@ -20,6 +20,8 @@
 .INCLUDE "../actor.inc"
 .INCLUDE "../charmap.inc"
 .INCLUDE "../device.inc"
+.INCLUDE "../dialog.inc"
+.INCLUDE "../flag.inc"
 .INCLUDE "../machine.inc"
 .INCLUDE "../machines/rotor.inc"
 .INCLUDE "../macros.inc"
@@ -198,6 +200,12 @@ _Devices_sDevice_arr:
     d_byte BlockCol_u8, 14
     d_byte Target_byte, kRotorMachineIndex
     D_END
+    D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::Paper
+    d_byte BlockRow_u8, 21
+    d_byte BlockCol_u8, 8
+    d_byte Target_byte, eFlag::PaperManual4
+    D_END
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None
 _Passages_sPassage_arr:
@@ -270,6 +278,42 @@ _BottomSmallWheel:
     mul #2  ; param: rotation angle
     ldx #kBotSmWheelCenterPlatformIndex  ; param: center platform index
     jmp FuncA_Objects_DrawRotorWheelSmall
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Dialog"
+
+.EXPORT DataA_Dialog_PaperManual4_sDialog
+.PROC DataA_Dialog_PaperManual4_sDialog
+    dlg_Text Paper, DataA_Text1_PaperManual4_Page1_u8_arr
+    dlg_Text Paper, DataA_Text1_PaperManual4_Page2_u8_arr
+    dlg_Text Paper, DataA_Text1_PaperManual4_Page3_u8_arr
+    dlg_Done
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Text1"
+
+.PROC DataA_Text1_PaperManual4_Page1_u8_arr
+    .byte "CPU FIELD MANUAL p.4:$"
+    .byte "Common register names:$"
+    .byte " F:flag    D:distance$"
+    .byte " J:index   K:key/lock#"
+.ENDPROC
+
+.PROC DataA_Text1_PaperManual4_Page2_u8_arr
+    .byte "L/R:lever  M:mirror$"
+    .byte "  P:power  S:sensor$"
+    .byte "  T:turn   U:upper$"
+    .byte "V/E:valve  W:weight#"
+.ENDPROC
+
+.PROC DataA_Text1_PaperManual4_Page3_u8_arr
+    .byte " X:horzizontal offset$"
+    .byte " Y:vertical ascent$"
+    .byte " Z:vertical descent#"
 .ENDPROC
 
 ;;;=========================================================================;;;

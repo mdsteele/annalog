@@ -74,14 +74,18 @@
 .IMPORT DataA_Dialog_PaperJerome11_sDialog
 .IMPORT DataA_Dialog_PaperJerome12_sDialog
 .IMPORT DataA_Dialog_PaperJerome13_sDialog
+.IMPORT DataA_Dialog_PaperJerome14_sDialog
 .IMPORT DataA_Dialog_PaperJerome21_sDialog
+.IMPORT DataA_Dialog_PaperJerome23_sDialog
 .IMPORT DataA_Dialog_PaperJerome28_sDialog
 .IMPORT DataA_Dialog_PaperJerome34_sDialog
 .IMPORT DataA_Dialog_PaperJerome35_sDialog
 .IMPORT DataA_Dialog_PaperJerome36_sDialog
+.IMPORT DataA_Dialog_PaperManual1_sDialog
 .IMPORT DataA_Dialog_PaperManual2_sDialog
 .IMPORT DataA_Dialog_PaperManual3_sDialog
 .IMPORT DataA_Dialog_PaperManual4_sDialog
+.IMPORT DataA_Dialog_PaperManual5_sDialog
 .IMPORT DataA_Dialog_PortraitAnimBank_u8_arr
 .IMPORT DataA_Dialog_PortraitFirstTileId_u8_arr
 .IMPORT DataA_Dialog_PortraitRestBank_u8_arr
@@ -455,14 +459,18 @@ _Finish:
     d_entry t, PaperJerome11,        DataA_Dialog_PaperJerome11_sDialog
     d_entry t, PaperJerome12,        DataA_Dialog_PaperJerome12_sDialog
     d_entry t, PaperJerome13,        DataA_Dialog_PaperJerome13_sDialog
+    d_entry t, PaperJerome14,        DataA_Dialog_PaperJerome14_sDialog
     d_entry t, PaperJerome21,        DataA_Dialog_PaperJerome21_sDialog
+    d_entry t, PaperJerome23,        DataA_Dialog_PaperJerome23_sDialog
     d_entry t, PaperJerome28,        DataA_Dialog_PaperJerome28_sDialog
     d_entry t, PaperJerome34,        DataA_Dialog_PaperJerome34_sDialog
     d_entry t, PaperJerome35,        DataA_Dialog_PaperJerome35_sDialog
     d_entry t, PaperJerome36,        DataA_Dialog_PaperJerome36_sDialog
+    d_entry t, PaperManual1,         DataA_Dialog_PaperManual1_sDialog
     d_entry t, PaperManual2,         DataA_Dialog_PaperManual2_sDialog
     d_entry t, PaperManual3,         DataA_Dialog_PaperManual3_sDialog
     d_entry t, PaperManual4,         DataA_Dialog_PaperManual4_sDialog
+    d_entry t, PaperManual5,         DataA_Dialog_PaperManual5_sDialog
     d_entry t, PrisonFlowerSign,     DataA_Dialog_PrisonFlowerSign_sDialog
     d_entry t, PrisonUpperAlexCell,  DataA_Dialog_PrisonUpperAlexCell_sDialog
     d_entry t, PrisonUpperAlexFree,  DataA_Dialog_PrisonUpperAlexFree_sDialog

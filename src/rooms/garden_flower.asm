@@ -18,8 +18,10 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "../actor.inc"
+.INCLUDE "../charmap.inc"
 .INCLUDE "../device.inc"
 .INCLUDE "../devices/flower.inc"
+.INCLUDE "../dialog.inc"
 .INCLUDE "../flag.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../platform.inc"
@@ -100,6 +102,12 @@ _Devices_sDevice_arr:
     d_byte BlockCol_u8, 11
     d_byte Target_byte, eFlag::FlowerGarden
     D_END
+    D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::Paper
+    d_byte BlockRow_u8, 12
+    d_byte BlockCol_u8, 2
+    d_byte Target_byte, eFlag::PaperJerome14
+    D_END
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None
 _Passages_sPassage_arr:
@@ -114,6 +122,35 @@ _Passages_sPassage_arr:
     d_byte SpawnBlock_u8, 6
     D_END
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Dialog"
+
+.EXPORT DataA_Dialog_PaperJerome14_sDialog
+.PROC DataA_Dialog_PaperJerome14_sDialog
+    dlg_Text Paper, DataA_Text0_PaperJerome14_Page1_u8_arr
+    dlg_Text Paper, DataA_Text0_PaperJerome14_Page2_u8_arr
+    dlg_Done
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Text0"
+
+.PROC DataA_Text0_PaperJerome14_Page1_u8_arr
+    .byte "Day 14: It saddens me$"
+    .byte "that we couldn't build$"
+    .byte "a society as robust as$"
+    .byte "our technology.#"
+.ENDPROC
+
+.PROC DataA_Text0_PaperJerome14_Page2_u8_arr
+    .byte "We had the knowledge,$"
+    .byte "but not the wisdom$"
+    .byte "necessary. Nor the$"
+    .byte "humility we needed.#"
 .ENDPROC
 
 ;;;=========================================================================;;;

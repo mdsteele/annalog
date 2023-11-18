@@ -20,6 +20,7 @@
 .INCLUDE "../actor.inc"
 .INCLUDE "../charmap.inc"
 .INCLUDE "../device.inc"
+.INCLUDE "../dialog.inc"
 .INCLUDE "../flag.inc"
 .INCLUDE "../machine.inc"
 .INCLUDE "../machines/lift.inc"
@@ -209,6 +210,12 @@ _Devices_sDevice_arr:
     d_byte BlockCol_u8, 10
     d_byte Target_byte, kLift3MachineIndex
     D_END
+    D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::Paper
+    d_byte BlockRow_u8, 9
+    d_byte BlockCol_u8, 11
+    d_byte Target_byte, eFlag::PaperJerome23
+    D_END
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None
 _Passages_sPassage_arr:
@@ -294,6 +301,32 @@ _Passages_sPassage_arr:
 .PROC FuncA_Machine_CoreLockLift3_Tick
     ldax #kLift3MaxPlatformTop  ; param: max platform top
     jmp FuncA_Machine_LiftTick
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Dialog"
+
+.EXPORT DataA_Dialog_PaperJerome23_sDialog
+.PROC DataA_Dialog_PaperJerome23_sDialog
+    dlg_Text Paper, DataA_Text1_PaperJerome23_Page1_u8_arr
+    dlg_Text Paper, DataA_Text1_PaperJerome23_Page2_u8_arr
+    dlg_Done
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Text1"
+
+.PROC DataA_Text1_PaperJerome23_Page1_u8_arr
+    .byte "Day 23: But human$"
+    .byte "nature was still$"
+    .byte "there. The mermaids$"
+    .byte "proved this, I think.#"
+.ENDPROC
+
+.PROC DataA_Text1_PaperJerome23_Page2_u8_arr
+    .byte "The orcs, more so.#"
 .ENDPROC
 
 ;;;=========================================================================;;;
