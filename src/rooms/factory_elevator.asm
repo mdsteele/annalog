@@ -19,8 +19,10 @@
 
 .INCLUDE "../actor.inc"
 .INCLUDE "../charmap.inc"
+.INCLUDE "../cpu.inc"
 .INCLUDE "../device.inc"
 .INCLUDE "../flag.inc"
+.INCLUDE "../hud.inc"
 .INCLUDE "../machine.inc"
 .INCLUDE "../machines/jet.inc"
 .INCLUDE "../macros.inc"
@@ -54,6 +56,7 @@
 .IMPORT Ram_PlatformTop_i16_1_arr
 .IMPORTZP Zp_AvatarPosY_i16
 .IMPORTZP Zp_Current_sMachine_ptr
+.IMPORTZP Zp_FloatingHud_bHud
 .IMPORTZP Zp_Previous_eRoom
 .IMPORTZP Zp_RoomState
 
@@ -349,6 +352,23 @@ _LowerShaft:
     sta Zp_RoomState + sElevatorState::PrevJetWait_u8
     lda Ram_MachineGoalVert_u8_arr, x
     sta Zp_RoomState + sElevatorState::PrevJetGoalVert_u8
+_Hud:
+    bit Zp_FloatingHud_bHud
+    .assert bHud::NoMachine = bProc::Overflow, error
+    bvs @noHud
+    lda Zp_FloatingHud_bHud
+    and #bHud::IndexMask
+    sta T0  ; floating HUD machine index
+    cpx T0  ; floating HUD machine index
+    beq @yesHud
+    @noHud:
+    lda #bHud::NoMachine
+    bne @setHud  ; unconditional
+    @yesHud:
+    lda Zp_FloatingHud_bHud
+    and #bHud::Hidden
+    @setHud:
+    sta Zp_RoomState + sElevatorState::PrevJetHud_bHud
     rts
 .ENDPROC
 
@@ -388,6 +408,10 @@ _LowerShaft:
     sta Ram_MachineWait_u8_arr, x
     lda Zp_RoomState + sElevatorState::PrevJetGoalVert_u8
     sta Ram_MachineGoalVert_u8_arr, x
+    ;; Init HUD state from previous room.
+    txa
+    ora Zp_RoomState + sElevatorState::PrevJetHud_bHud
+    sta Zp_FloatingHud_bHud
     rts
 .ENDPROC
 

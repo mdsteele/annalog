@@ -25,13 +25,17 @@
     UpperJetLowerLever_u8  .byte
     LowerJetUpperLever_u8  .byte
     LowerJetLowerLever_u8  .byte
-    ;; State data for the jet machine from the previous elevaor room:
+    ;; State data for the jet machine from the previous elevator room:
     PrevJetPlatformTop_i16 .word
     PrevJetStatus_eMachine .byte
     PrevJetPc_u8           .byte
     PrevJetRegA_u8         .byte
     PrevJetWait_u8         .byte
     PrevJetGoalVert_u8     .byte
+    ;; Indicates if the jet machine's HUD is/was active (even if hidden); if
+    ;; not, bHud::NoMachine will be set, otherwise this will be 0 or
+    ;; bHud::Hidden.
+    PrevJetHud_bHud        .byte
 .ENDSTRUCT
 
 ;;;=========================================================================;;;
