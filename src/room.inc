@@ -191,9 +191,10 @@ kMaxPassages = 8
 
 ;;; Flag bits for a room.
 .SCOPE bRoom
-    Unsafe   = %10000000  ; while set, this room will not be set as spawn point
-    Tall     = %01000000  ; if set, room is kTallRoomHeightBlocks blocks tall
-    AreaMask = %00001111  ; mask for this room's eArea value
+    Unsafe     = %10000000  ; while set, this room won't be set as spawn point
+    Tall       = %01000000  ; if set, room is kTallRoomHeightBlocks blocks tall
+    ShareState = %00100000  ; don't zero room state between two rooms with this
+    AreaMask   = %00001111  ; mask for this room's eArea value
 .ENDSCOPE
 
 ;;; Assert that an eArea value will fit into the AreaMask.

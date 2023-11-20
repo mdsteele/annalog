@@ -27,20 +27,34 @@
 .INCLUDE "../platform.inc"
 .INCLUDE "../program.inc"
 .INCLUDE "../room.inc"
+.INCLUDE "../spawn.inc"
+.INCLUDE "elevator.inc"
 
 .IMPORT DataA_Room_Core_sTileset
 .IMPORT Data_Empty_sActor_arr
 .IMPORT FuncA_Machine_Error
 .IMPORT FuncA_Machine_GenericTryMoveY
 .IMPORT FuncA_Machine_JetTick
+.IMPORT FuncA_Machine_WriteToLever
+.IMPORT FuncA_Machine_WriteToPhantomLever
 .IMPORT FuncA_Objects_DrawJetMachine
+.IMPORT FuncA_Room_InitElevatorJetState
+.IMPORT FuncA_Room_ResetLever
+.IMPORT FuncA_Room_StoreElevatorJetState
 .IMPORT Func_MachineJetReadRegY
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrObjFactory
 .IMPORT Ram_MachineGoalVert_u8_arr
+.IMPORTZP Zp_Previous_eRoom
 .IMPORTZP Zp_RoomState
 
 ;;;=========================================================================;;;
+
+;;; The index of the vertical passage at the bottom of the room.
+kLowerShaftPassageIndex = 2
+
+;;; The device index for the lever in this room.
+kUpperJetUpperLeverDeviceIndex = 1
 
 ;;; The machine index for the CoreElevatorJet machine in this room.
 kJetMachineIndex = 0
@@ -49,7 +63,7 @@ kJetMachineIndex = 0
 kJetPlatformIndex = 0
 
 ;;; The initial and maximum permitted values for the jet's Y-goal.
-kJetInitGoalY = 0
+kJetInitGoalY = 9
 kJetMaxGoalY = 9
 
 ;;; The maximum and initial Y-positions for the top of the jet platform.
@@ -57,14 +71,7 @@ kJetMinPlatformTop = $0060
 kJetMaxPlatformTop = kJetMinPlatformTop + kJetMaxGoalY * kJetMoveInterval
 kJetInitPlatformTop = kJetMaxPlatformTop - kJetInitGoalY * kJetMoveInterval
 
-;;;=========================================================================;;;
-
-;;; Defines room-specific state data for this particular room.
-.STRUCT sState
-    ;; The current state of the lever in this room.
-    JetUpperLever_u8 .byte
-.ENDSTRUCT
-.ASSERT .sizeof(sState) <= kRoomStateSize, error
+.ASSERT .sizeof(sElevatorState) <= kRoomStateSize, error
 
 ;;;=========================================================================;;;
 
@@ -75,7 +82,7 @@ kJetInitPlatformTop = kJetMaxPlatformTop - kJetInitGoalY * kJetMoveInterval
     D_STRUCT sRoom
     d_byte MinScrollX_u8, $10
     d_word MaxScrollX_u16, $0010
-    d_byte Flags_bRoom, bRoom::Tall | eArea::Core
+    d_byte Flags_bRoom, bRoom::Tall | bRoom::ShareState | eArea::Core
     d_byte MinimapStartRow_u8, 3
     d_byte MinimapStartCol_u8, 14
     d_addr TerrainData_ptr, _TerrainData
@@ -91,9 +98,9 @@ _Ext_sRoomExt:
     d_addr Actors_sActor_arr_ptr, Data_Empty_sActor_arr
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
     d_addr Passages_sPassage_arr_ptr, _Passages_sPassage_arr
-    d_addr Enter_func_ptr, Func_Noop
+    d_addr Enter_func_ptr, FuncA_Room_CoreElevator_EnterRoom
     d_addr FadeIn_func_ptr, Func_Noop
-    d_addr Tick_func_ptr, Func_Noop
+    d_addr Tick_func_ptr, FuncA_Room_CoreElevator_TickRoom
     d_addr Draw_func_ptr, Func_Noop
     D_END
 _TerrainData:
@@ -104,20 +111,20 @@ _Machines_sMachine_arr:
     D_STRUCT sMachine
     d_byte Code_eProgram, eProgram::CoreElevatorJet
     d_byte Breaker_eFlag, eFlag::BreakerCrypt
-    d_byte Flags_bMachine, bMachine::MoveV
+    d_byte Flags_bMachine, bMachine::MoveV | bMachine::WriteCE
     d_byte Status_eDiagram, eDiagram::Jet
     d_word ScrollGoalX_u16, $10
     d_byte ScrollGoalY_u8, $10
     d_byte RegNames_u8_arr4, "U", 0, "L", "Y"
     d_byte MainPlatform_u8, kJetPlatformIndex
-    d_addr Init_func_ptr, FuncC_Core_ElevatorJet_InitReset
+    d_addr Init_func_ptr, FuncA_Room_CoreElevatorJet_Init
     d_addr ReadReg_func_ptr, FuncC_Core_ElevatorJet_ReadReg
-    d_addr WriteReg_func_ptr, Func_Noop  ; TODO
-    d_addr TryMove_func_ptr, FuncC_Core_ElevatorJet_TryMove
+    d_addr WriteReg_func_ptr, FuncA_Machine_CoreElevatorJet_WriteReg
+    d_addr TryMove_func_ptr, FuncA_Machine_CoreElevatorJet_TryMove
     d_addr TryAct_func_ptr, FuncA_Machine_Error
-    d_addr Tick_func_ptr, FuncC_Core_ElevatorJet_Tick
+    d_addr Tick_func_ptr, FuncA_Machine_CoreElevatorJet_Tick
     d_addr Draw_func_ptr, FuncA_Objects_DrawJetMachine
-    d_addr Reset_func_ptr, FuncC_Core_ElevatorJet_InitReset
+    d_addr Reset_func_ptr, FuncA_Room_CoreElevatorJet_Reset
     D_END
     .assert * - :- <= kMaxMachines * .sizeof(sMachine), error
 _Platforms_sPlatform_arr:
@@ -138,11 +145,12 @@ _Devices_sDevice_arr:
     d_byte BlockCol_u8, 12
     d_byte Target_byte, kJetMachineIndex
     D_END
+    .assert * - :- = kUpperJetUpperLeverDeviceIndex * .sizeof(sDevice), error
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::LeverFloor
     d_byte BlockRow_u8, 5
     d_byte BlockCol_u8, 7
-    d_byte Target_byte, sState::JetUpperLever_u8
+    d_byte Target_byte, sElevatorState::UpperJetUpperLever_u8
     D_END
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None
@@ -157,20 +165,13 @@ _Passages_sPassage_arr:
     d_byte Destination_eRoom, eRoom::CoreEast
     d_byte SpawnBlock_u8, 5
     D_END
+    .assert * - :- = kLowerShaftPassageIndex * .sizeof(sPassage), error
     D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Bottom | 0
     d_byte Destination_eRoom, eRoom::FactoryElevator
     d_byte SpawnBlock_u8, 9
     D_END
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
-.ENDPROC
-
-.PROC FuncC_Core_ElevatorJet_InitReset
-    ;; TODO: Reset upper lever
-    ;; TODO: Reset lower lever (in room below)
-    lda #kJetInitGoalY
-    sta Ram_MachineGoalVert_u8_arr + kJetMachineIndex
-    rts
 .ENDPROC
 
 .PROC FuncC_Core_ElevatorJet_ReadReg
@@ -182,19 +183,76 @@ _Passages_sPassage_arr:
     ldax #kJetMaxPlatformTop  ; param: max platform top
     jmp Func_MachineJetReadRegY  ; returns A
     @readU:
-    lda Zp_RoomState + sState::JetUpperLever_u8
+    lda Zp_RoomState + sElevatorState::UpperJetUpperLever_u8
     rts
     @readL:
-    lda #0  ; TODO read lower lever (in room below)
+    lda Zp_RoomState + sElevatorState::UpperJetLowerLever_u8
     rts
 .ENDPROC
 
-.PROC FuncC_Core_ElevatorJet_TryMove
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Room"
+
+;;; Called when the player avatar enters the MermaidElevator room.
+;;; @param A The bSpawn value for where the avatar is entering the room.
+.PROC FuncA_Room_CoreElevator_EnterRoom
+    ;; If the player avatar didn't enter from the lower shaft, do nothing.
+    cmp #bSpawn::Passage | kLowerShaftPassageIndex
+    bne @done
+    ;; If the player avatar didn't actually come from the FactoryElevator room
+    ;; (e.g. due to respawning from the lower shaft after saving), do nothing.
+    lda Zp_Previous_eRoom
+    cmp #eRoom::FactoryElevator
+    bne @done
+    ;; Initialize the jet machine from its state in the previous room.
+    ldx #kJetMachineIndex  ; param: machine index
+    ldya #$0172  ; param: vertical offset
+    jmp FuncA_Room_InitElevatorJetState
+    @done:
+    rts
+.ENDPROC
+
+.PROC FuncA_Room_CoreElevator_TickRoom
+    ldx #kJetMachineIndex  ; param: machine index
+    jmp FuncA_Room_StoreElevatorJetState
+.ENDPROC
+
+.PROC FuncA_Room_CoreElevatorJet_Reset
+    ldx #kUpperJetUpperLeverDeviceIndex  ; param: device index
+    jsr FuncA_Room_ResetLever
+    lda #0
+    sta Zp_RoomState + sElevatorState::UpperJetLowerLever_u8
+    .assert * = FuncA_Room_CoreElevatorJet_Init, error, "fallthrough"
+.ENDPROC
+
+.PROC FuncA_Room_CoreElevatorJet_Init
+    lda #kJetInitGoalY
+    sta Ram_MachineGoalVert_u8_arr + kJetMachineIndex
+    rts
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Machine"
+
+.PROC FuncA_Machine_CoreElevatorJet_WriteReg
+    cpx #$e
+    beq _WriteL
+_WriteU:
+    ldx #kUpperJetUpperLeverDeviceIndex  ; param: device index
+    jmp FuncA_Machine_WriteToLever
+_WriteL:
+    ldy #sElevatorState::UpperJetLowerLever_u8  ; param: phantom lever target
+    jmp FuncA_Machine_WriteToPhantomLever
+.ENDPROC
+
+.PROC FuncA_Machine_CoreElevatorJet_TryMove
     lda #kJetMaxGoalY  ; param: max goal vert
     jmp FuncA_Machine_GenericTryMoveY
 .ENDPROC
 
-.PROC FuncC_Core_ElevatorJet_Tick
+.PROC FuncA_Machine_CoreElevatorJet_Tick
     ldax #kJetMaxPlatformTop  ; param: max platform top
     jmp FuncA_Machine_JetTick
 .ENDPROC

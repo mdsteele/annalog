@@ -105,6 +105,32 @@ _NoAnimate:
     rts
 .ENDPROC
 
+;;; Writes a value to a register that represents a lever, where the lever
+;;; device isn't actually in this room.  This should be called from a machine's
+;;; WriteReg_func_ptr implementation.
+;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
+;;; @param Y The byte offset into Zp_RoomState for the lever's state value.
+;;; @param A The value to write (0-9).
+.EXPORT FuncA_Machine_WriteToPhantomLever
+.PROC FuncA_Machine_WriteToPhantomLever
+    sta T0  ; value to write
+    lda Zp_RoomState, y
+    beq _CurrentlyZero
+_CurrentlyNonzero:
+    lda T0  ; value to write
+    sta Zp_RoomState, y
+    bne _NoAnimate
+_Animate:
+    lda #kLeverAnimCountdown  ; param: num frames
+    jmp FuncA_Machine_StartWaiting
+_CurrentlyZero:
+    lda T0  ; value to write
+    sta Zp_RoomState, y
+    bne _Animate
+_NoAnimate:
+    rts
+.ENDPROC
+
 ;;;=========================================================================;;;
 
 .SEGMENT "PRGA_Room"

@@ -550,6 +550,8 @@ _PrisonMusic:
 .PROC FuncA_Room_Load
     lda Zp_Current_eRoom
     sta Zp_Previous_eRoom
+    lda Zp_Current_sRoom + sRoom::Flags_bRoom
+    sta T2  ; previous room's flags
     stx Zp_Current_eRoom
 _CopyRoomStruct:
     ;; Get a pointer to the sRoom struct and store it in T1T0.
@@ -582,12 +584,20 @@ _CopyTilesetStruct:
     .assert .sizeof(sTileset) <= $80, error
     bpl @loop
 _ClearRoomState:
+    ;; If the previous room and the new room both have the ShareState flag bit
+    ;; set, then don't clear Zp_RoomState between those rooms.
+    lda Zp_Current_sRoom + sRoom::Flags_bRoom
+    and T2  ; previous room's flags
+    and #bRoom::ShareState
+    bne @done
+    ;; Otherwise, zero Zp_RoomState.
     lda #0
     ldx #kRoomStateSize
     @loop:
     dex
     sta Zp_RoomState, x
     bne @loop
+    @done:
 _LoadPlatforms:
     ;; Copy the current room's Platforms_sPlatform_arr_ptr into T1T0.
     ldy #sRoomExt::Platforms_sPlatform_arr_ptr

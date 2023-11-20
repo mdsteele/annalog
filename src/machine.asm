@@ -79,9 +79,11 @@ Ram_MachinePc_u8_arr: .res kMaxMachines
 
 ;;; The value of the $a register for each machine in the room, indexed by
 ;;; Zp_MachineIndex_u8.
+.EXPORT Ram_MachineRegA_u8_arr
 Ram_MachineRegA_u8_arr: .res kMaxMachines
 
 ;;; How many more frames until each machine is done with Waiting mode.
+.EXPORT Ram_MachineWait_u8_arr
 Ram_MachineWait_u8_arr: .res kMaxMachines
 
 ;;; A generic counter that decrements on every call to FuncA_Machine_Tick.

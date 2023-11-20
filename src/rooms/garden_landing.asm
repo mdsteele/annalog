@@ -189,9 +189,7 @@ _SetUpIrq:
 
 .SEGMENT "PRGA_Room"
 
-;;; Called when the player avatar enters the GardenLanding room.  If the avatar
-;;; enters the room from the vertical shaft at the top, sets the rest of the
-;;; shaft as explored on the minimap.
+;;; Called when the player avatar enters the GardenLanding room.
 ;;; @param A The bSpawn value for where the avatar is entering the room.
 .PROC FuncA_Room_GardenLanding_EnterRoom
     cmp #bSpawn::Passage | kShaftPassageIndex

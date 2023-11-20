@@ -100,7 +100,7 @@
 
 ;;; The list of programs in the save file.  Each machine in the game uses one
 ;;; of these programs, although in a few cases, multiple machines may share the
-;;; same program.
+;;; same program (e.g. jet machines).
 .ENUM eProgram
     BossCityAmmoRack
     BossCityLauncher

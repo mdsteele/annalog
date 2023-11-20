@@ -111,7 +111,7 @@ _Machines_sMachine_arr:
     D_STRUCT sMachine
     d_byte Code_eProgram, eProgram::LavaWestBoiler
     d_byte Breaker_eFlag, 0
-    d_byte Flags_bMachine, bMachine::Act | bMachine::WriteC | bMachine::WriteE
+    d_byte Flags_bMachine, bMachine::Act | bMachine::WriteCE
     d_byte Status_eDiagram, eDiagram::Boiler
     d_word ScrollGoalX_u16, $108
     d_byte ScrollGoalY_u8, $48
