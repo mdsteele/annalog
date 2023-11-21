@@ -1122,7 +1122,9 @@ _chr_begin:
     chr_inc "firefly",        kTileIdObjFireflyFirst
     chr_res $08
     chr_inc "crane",          kTileIdObjCraneFirst
-    chr_res $38
+    chr_res $1c
+    chr_inc "fish",           kTileIdObjFishFirst
+    chr_res $10
     chr_inc "breaker",        kTileIdObjBreakerFirst
     END_CHR_BANK
 .ENDPROC
