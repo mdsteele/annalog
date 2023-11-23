@@ -117,6 +117,7 @@
 .IMPORT DataC_Mine_East_sRoom
 .IMPORT DataC_Mine_Entry_sRoom
 .IMPORT DataC_Mine_Flower_sRoom
+.IMPORT DataC_Mine_North_sRoom
 .IMPORT DataC_Mine_Pit_sRoom
 .IMPORT DataC_Mine_South_sRoom
 .IMPORT DataC_Mine_West_sRoom
@@ -355,6 +356,7 @@ _LoadNewRoom:
     d_entry table, MineEast,        DataC_Mine_East_sRoom
     d_entry table, MineEntry,       DataC_Mine_Entry_sRoom
     d_entry table, MineFlower,      DataC_Mine_Flower_sRoom
+    d_entry table, MineNorth,       DataC_Mine_North_sRoom
     d_entry table, MinePit,         DataC_Mine_Pit_sRoom
     d_entry table, MineSouth,       DataC_Mine_South_sRoom
     d_entry table, MineWest,        DataC_Mine_West_sRoom
@@ -506,6 +508,7 @@ _PrisonMusic:
     d_byte MineEast,        eMusic::Mine
     d_byte MineEntry,       eMusic::Mine
     d_byte MineFlower,      eMusic::Mine
+    d_byte MineNorth,       eMusic::Mine
     d_byte MinePit,         eMusic::Mine
     d_byte MineSouth,       eMusic::Mine
     d_byte MineWest,        eMusic::Mine

@@ -255,12 +255,12 @@ _Devices_sDevice_arr:
 _Passages_sPassage_arr:
 :   D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Western | bPassage::SameScreen | 0
-    d_byte Destination_eRoom, eRoom::MineEast  ; TODO MineNorth
+    d_byte Destination_eRoom, eRoom::MineNorth
     d_byte SpawnBlock_u8, 5
     D_END
     D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Western | bPassage::SameScreen | 1
-    d_byte Destination_eRoom, eRoom::MineEast  ; TODO MineNorth
+    d_byte Destination_eRoom, eRoom::MineNorth
     d_byte SpawnBlock_u8, 20
     D_END
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error

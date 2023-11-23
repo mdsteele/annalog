@@ -127,6 +127,7 @@ kMaxPassages = 8
     MineEast
     MineEntry
     MineFlower
+    MineNorth
     MinePit
     MineSouth
     MineWest

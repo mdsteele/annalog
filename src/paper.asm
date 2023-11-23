@@ -194,7 +194,7 @@ Ram_CollectedPapers_u8_arr: .res kPaperGridCols
     d_byte eFlag::PaperJerome06, 0  ; TODO
     d_byte eFlag::PaperJerome07, 0  ; TODO
     d_byte eFlag::PaperJerome08, eDialog::PaperJerome08
-    d_byte eFlag::PaperJerome09, 0  ; TODO
+    d_byte eFlag::PaperJerome09, eDialog::PaperJerome09
     d_byte eFlag::PaperJerome10, eDialog::PaperJerome10
     d_byte eFlag::PaperJerome11, eDialog::PaperJerome11
     d_byte eFlag::PaperJerome12, eDialog::PaperJerome12
@@ -246,7 +246,7 @@ Ram_CollectedPapers_u8_arr: .res kPaperGridCols
     d_byte eFlag::PaperJerome06, $ff  ; TODO
     d_byte eFlag::PaperJerome07, $ff  ; TODO
     d_byte eFlag::PaperJerome08, eArea::Crypt    ; room: CryptCenter
-    d_byte eFlag::PaperJerome09, $ff  ; TODO
+    d_byte eFlag::PaperJerome09, eArea::Mine     ; room: MineNorth
     d_byte eFlag::PaperJerome10, eArea::Lava     ; room: LavaWest
     d_byte eFlag::PaperJerome11, eArea::Crypt    ; room: CryptSpiral
     d_byte eFlag::PaperJerome12, eArea::Garden   ; room: GardenHallway

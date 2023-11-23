@@ -510,7 +510,6 @@ _chr_begin:
 .PROC Ppu_ChrBgMine
     CHR1_BANK $80
     chr_inc "crystal"
-    chr_res $04
     chr_inc "minecart"
     chr_inc "scaffhold"
     chr_inc "mine_door"

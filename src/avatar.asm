@@ -67,7 +67,7 @@ kAvatarHorzDecelFast = 70
 
 ;;; The horizontal deceleration applied to the player avatar when holding the
 ;;; left/right arrows while moving too fast, in subpixels per frame per frame.
-kAvatarHorzDecelSlow = 25
+kAvatarHorzDecelSlow = 8
 
 ;;; The (signed, 16-bit) initial Y-velocity of the player avatar when jumping,
 ;;; in subpixels per frame.

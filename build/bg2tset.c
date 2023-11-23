@@ -80,7 +80,7 @@ static const struct {
   {0x90, "jungle2"},
   {0xa0, "jungle3"},
   {0x40, "lava_anim0"},
-  {0x98, "minecart"},
+  {0x94, "minecart"},
   {0xac, "mine_door"},
   {0x80, "outdoors"},
   {0x90, "prison"},

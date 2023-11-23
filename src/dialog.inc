@@ -108,6 +108,7 @@ kDialogEntryDone = $ff  ; indicates end of dialog
     MermaidVillageGuard
     PaperJerome01
     PaperJerome08
+    PaperJerome09
     PaperJerome10
     PaperJerome11
     PaperJerome12

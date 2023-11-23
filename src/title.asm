@@ -284,6 +284,7 @@ _Flags_eFlag_arr:
     .byte eFlag::UpgradeRam3
     .byte eFlag::BreakerLava
     .byte eFlag::UpgradeOpSync
+    .byte eFlag::PaperJerome09
     .byte eFlag::BossMine
     .byte eFlag::UpgradeRam4
     .byte eFlag::BreakerMine

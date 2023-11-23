@@ -184,7 +184,7 @@ _Passages_sPassage_arr:
     D_END
     D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Bottom | 0
-    d_byte Destination_eRoom, eRoom::SewerTrap  ; TODO MineNorth
+    d_byte Destination_eRoom, eRoom::MineNorth
     d_byte SpawnBlock_u8, 12
     D_END
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error

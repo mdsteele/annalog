@@ -162,6 +162,7 @@
     MineEastLift
     MineFlowerHoistEast
     MineFlowerHoistWest
+    MineNorthConveyor
     MinePitHoistEast
     MinePitHoistWest
     MineSouthHoist
