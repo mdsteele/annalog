@@ -30,6 +30,12 @@
 kLaserMachineWidthPx  = $10
 kLaserMachineHeightPx = $0f
 
+;;; The CHR bank number containing the diagram for laser machines.
+kChrBankDiagramLaser = $0e
+
+;;; BG tile IDs for laser machine diagrams.
+kTileIdBgDiagramLaserFirst = $f0
+
 ;;; The first tile ID use for drawing laser machines.
 kTileIdObjLaserFirst = $dc
 

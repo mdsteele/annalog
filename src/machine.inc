@@ -40,6 +40,7 @@ kMachineRegNameB = $61  ; 'B'
     HoistLeft
     HoistRight
     Jet
+    Laser
     LauncherDown
     LauncherLeft
     Lift

@@ -821,7 +821,8 @@ _chr_begin:
     chr_inc "portrait_man_talk", kTileIdBgPortraitManFirst
     .assert .bank(*) = kChrBankDiagramBoiler, error
     chr_inc "diagram_boiler", kTileIdBgDiagramBoilerFirst
-    chr_res $10
+    .assert .bank(*) = kChrBankDiagramLaser, error
+    chr_inc "diagram_laser", kTileIdBgDiagramLaserFirst
     END_CHR_BANK
 .ENDPROC
 

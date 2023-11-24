@@ -27,6 +27,7 @@
 .INCLUDE "machines/field.inc"
 .INCLUDE "machines/hoist.inc"
 .INCLUDE "machines/jet.inc"
+.INCLUDE "machines/laser.inc"
 .INCLUDE "machines/launcher.inc"
 .INCLUDE "machines/lift.inc"
 .INCLUDE "machines/minigun.inc"
@@ -83,6 +84,7 @@ kNoPowerWidthTiles = 19
     d_byte HoistLeft,     kChrBankDiagramHoistLeft
     d_byte HoistRight,    kChrBankDiagramHoistRight
     d_byte Jet,           kChrBankDiagramJet
+    d_byte Laser,         kChrBankDiagramLaser
     d_byte LauncherDown,  kChrBankDiagramLauncherDown
     d_byte LauncherLeft,  kChrBankDiagramLauncherLeft
     d_byte Lift,          kChrBankDiagramLift
@@ -115,6 +117,7 @@ kNoPowerWidthTiles = 19
     d_byte HoistLeft,     kTileIdBgDiagramHoistLeftFirst
     d_byte HoistRight,    kTileIdBgDiagramHoistRightFirst
     d_byte Jet,           kTileIdBgDiagramJetFirst
+    d_byte Laser,         kTileIdBgDiagramLaserFirst
     d_byte LauncherDown,  kTileIdBgDiagramLauncherDownFirst
     d_byte LauncherLeft,  kTileIdBgDiagramLauncherLeftFirst
     d_byte Lift,          kTileIdBgDiagramLiftFirst
