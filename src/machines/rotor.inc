@@ -31,6 +31,12 @@ kRotorMachineHeightPx = $0d
 kRotorCarriageWidthPx  = $10
 kRotorCarriageHeightPx = $08
 
+;;; The CHR bank number containing the diagram for rotor machines.
+kChrBankDiagramRotor = $0f
+
+;;; BG tile IDs for rotor machine diagrams.
+kTileIdBgDiagramRotorFirst = $e0
+
 ;;; OBJ tile IDs used for drawing rotor machines.
 kTileIdObjRotorFirst = $88
 

@@ -33,6 +33,7 @@
 .INCLUDE "machines/minigun.inc"
 .INCLUDE "machines/multiplexer.inc"
 .INCLUDE "machines/pump.inc"
+.INCLUDE "machines/rotor.inc"
 .INCLUDE "machines/semaphore.inc"
 .INCLUDE "machines/shared.inc"
 .INCLUDE "machines/winch.inc"
@@ -94,6 +95,7 @@ kNoPowerWidthTiles = 19
     d_byte MinigunUp,     kChrBankDiagramMinigunUp
     d_byte Multiplexer,   kChrBankDiagramMultiplexer
     d_byte Pump,          kChrBankDiagramPump
+    d_byte Rotor,         kChrBankDiagramRotor
     d_byte SemaphoreComm, kChrBankDiagramSemaphoreComm
     d_byte SemaphoreKey,  kChrBankDiagramSemaphoreKey
     d_byte SemaphoreLock, kChrBankDiagramSemaphoreLock
@@ -127,6 +129,7 @@ kNoPowerWidthTiles = 19
     d_byte MinigunUp,     kTileIdBgDiagramMinigunUpFirst
     d_byte Multiplexer,   kTileIdBgDiagramMultiplexerFirst
     d_byte Pump,          kTileIdBgDiagramPumpFirst
+    d_byte Rotor,         kTileIdBgDiagramRotorFirst
     d_byte SemaphoreComm, kTileIdBgDiagramSemaphoreCommFirst
     d_byte SemaphoreKey,  kTileIdBgDiagramSemaphoreKeyFirst
     d_byte SemaphoreLock, kTileIdBgDiagramSemaphoreLockFirst

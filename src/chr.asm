@@ -828,6 +828,19 @@ _chr_begin:
 
 ;;;=========================================================================;;;
 
+.SEGMENT "CHR_BgPortrait0F"
+
+.PROC Ppu_ChrBgPortrait0F
+    CHR1_BANK $c0
+    chr_res $20
+    .assert .bank(*) = kChrBankDiagramRotor, error
+    chr_inc "diagram_rotor", kTileIdBgDiagramRotorFirst
+    chr_res $10
+    END_CHR_BANK
+.ENDPROC
+
+;;;=========================================================================;;;
+
 .SEGMENT "CHR_BgPrison"
 
 .EXPORT Ppu_ChrBgPrison

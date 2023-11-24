@@ -50,6 +50,7 @@ kMachineRegNameB = $61  ; 'B'
     MinigunUp
     Multiplexer
     Pump
+    Rotor
     SemaphoreComm
     SemaphoreKey
     SemaphoreLock

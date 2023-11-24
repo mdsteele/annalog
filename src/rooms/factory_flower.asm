@@ -103,7 +103,7 @@ _Machines_sMachine_arr:
     d_byte Code_eProgram, eProgram::FactoryFlowerLowerRotor
     d_byte Breaker_eFlag, eFlag::BreakerTemple
     d_byte Flags_bMachine, bMachine::MoveH
-    d_byte Status_eDiagram, eDiagram::Winch  ; TODO
+    d_byte Status_eDiagram, eDiagram::Rotor
     d_word ScrollGoalX_u16, $10
     d_byte ScrollGoalY_u8, $a8
     d_byte RegNames_u8_arr4, 0, 0, "T", 0
@@ -122,7 +122,7 @@ _Machines_sMachine_arr:
     d_byte Code_eProgram, eProgram::FactoryFlowerUpperRotor
     d_byte Breaker_eFlag, eFlag::BreakerTemple
     d_byte Flags_bMachine, bMachine::MoveH
-    d_byte Status_eDiagram, eDiagram::Winch  ; TODO
+    d_byte Status_eDiagram, eDiagram::Rotor
     d_word ScrollGoalX_u16, $10
     d_byte ScrollGoalY_u8, $58
     d_byte RegNames_u8_arr4, 0, 0, "T", 0
