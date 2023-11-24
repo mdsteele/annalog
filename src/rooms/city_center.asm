@@ -179,7 +179,7 @@ _Machines_sMachine_arr:
     d_byte Status_eDiagram, eDiagram::SemaphoreLock
     d_word ScrollGoalX_u16, $310
     d_byte ScrollGoalY_u8, $0d
-    d_byte RegNames_u8_arr4, "J", "L", "S", "Y"
+    d_byte RegNames_u8_arr4, "J", "K", "S", "Y"
     d_byte MainPlatform_u8, kSemaphore4PlatformIndex
     d_addr Init_func_ptr, Func_Noop
     d_addr ReadReg_func_ptr, FuncC_City_CenterSemaphore_ReadReg
@@ -373,11 +373,11 @@ _Passages_sPassage_arr:
     beq @regE
     @regD:
     cpy #kSemaphore4MachineIndex
-    beq _ReadRegL
+    beq _ReadRegLock
     bne _ReadRegF  ; unconditional
     @regE:
     tya
-    beq _ReadRegK
+    beq _ReadRegKey
 _ReadRegS:
     jsr _ReadRegY  ; returns A (param: flag number)
     dey  ; now Y is the machine index for the next semaphore to the left
@@ -400,14 +400,14 @@ _ReadFlagNumberA:
 _ReadRegJ:
     lda Ram_MachineGoalHorz_u8_arr, y  ; combination array index
     rts
-_ReadRegK:
+_ReadRegKey:
     flag_bit Sram_ProgressFlags_arr, eFlag::CityCenterKeygenConnected
     beq @done
     jsr FuncC_City_GetSemaphoreArrayIndex  ; returns X
     lda Zp_RoomState + sState::Key_u8_arr, x
     @done:
     rts
-_ReadRegL:
+_ReadRegLock:
     jsr FuncC_City_GetSemaphoreArrayIndex  ; returns X
     lda Zp_RoomState + sState::Lock_u8_arr, x
     rts
@@ -425,11 +425,11 @@ _ReadRegY:
 .PROC FuncC_City_CenterSemaphore_WriteReg
     ldy Zp_MachineIndex_u8
     cpx #$c
-    bne _WriteRegL
+    bne _WriteRegLock
 _WriteRegJ:
     sta Ram_MachineGoalHorz_u8_arr, y  ; combination array index
     rts
-_WriteRegL:
+_WriteRegLock:
     pha  ; value to write
     jsr FuncC_City_GetSemaphoreArrayIndex  ; returns X
     pla  ; value to write

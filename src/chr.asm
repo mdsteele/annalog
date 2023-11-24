@@ -347,7 +347,7 @@ _chr_begin:
     chr_inc "city1"
     chr_inc "city2"
     chr_inc "city3"
-    chr_res $10
+    chr_inc "city4"
     END_CHR_BANK
 .ENDPROC
 

@@ -56,6 +56,7 @@ static const struct {
   {0x80, "city1"},
   {0x90, "city2"},
   {0xa0, "city3"},
+  {0xb0, "city4"},
   {0x90, "cobweb"},
   {0x48, "conveyor_anim0"},
   {0x80, "core_pipes1"},
