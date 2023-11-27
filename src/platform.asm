@@ -119,24 +119,6 @@ Ram_PlatformRight_i16_1_arr: .res kMaxPlatforms
 ;;; @preserve X, Y, T0+
 .EXPORT Func_IsPointInPlatform
 .PROC Func_IsPointInPlatform
-_CheckPlatformLeft:
-    lda Zp_PointX_i16 + 0
-    cmp Ram_PlatformLeft_i16_0_arr, y
-    lda Zp_PointX_i16 + 1
-    sbc Ram_PlatformLeft_i16_1_arr, y
-    bvc @noOverflow  ; N eor V
-    eor #$80
-    @noOverflow:
-    bmi _Outside
-_CheckPlatformRight:
-    lda Zp_PointX_i16 + 0
-    cmp Ram_PlatformRight_i16_0_arr, y
-    lda Zp_PointX_i16 + 1
-    sbc Ram_PlatformRight_i16_1_arr, y
-    bvc @noOverflow  ; N eor V
-    eor #$80
-    @noOverflow:
-    bpl _Outside
 _CheckPlatformTop:
     lda Zp_PointY_i16 + 0
     cmp Ram_PlatformTop_i16_0_arr, y
@@ -145,7 +127,7 @@ _CheckPlatformTop:
     bvc @noOverflow  ; N eor V
     eor #$80
     @noOverflow:
-    bmi _Outside
+    bmi Func_ClearCForPointOutsidePlatform  ; preserves X, Y, T0+; returns C
 _CheckPlatformBottom:
     lda Zp_PointY_i16 + 0
     cmp Ram_PlatformBottom_i16_0_arr, y
@@ -154,11 +136,46 @@ _CheckPlatformBottom:
     bvc @noOverflow  ; N eor V
     eor #$80
     @noOverflow:
-    bpl _Outside
+    bpl Func_ClearCForPointOutsidePlatform  ; preserves X, Y, T0+; returns C
+_CheckPlatformHorz:
+    .assert * = Func_IsPointInPlatformHorz, error, "fallthrough"
+.ENDPROC
+
+;;; Checks if the horizontal point position in Zp_PointX_i16 is within the
+;;; left/right sides of the platform (ignoring the top and bottom).
+;;; @param Y The platform index.
+;;; @return C Set if the point is horizontally within the platform.
+;;; @preserve X, Y, T0+
+.EXPORT Func_IsPointInPlatformHorz
+.PROC Func_IsPointInPlatformHorz
+_CheckPlatformLeft:
+    lda Zp_PointX_i16 + 0
+    cmp Ram_PlatformLeft_i16_0_arr, y
+    lda Zp_PointX_i16 + 1
+    sbc Ram_PlatformLeft_i16_1_arr, y
+    bvc @noOverflow  ; N eor V
+    eor #$80
+    @noOverflow:
+    bmi Func_ClearCForPointOutsidePlatform  ; preserves X, Y, T0+; returns C
+_CheckPlatformRight:
+    lda Zp_PointX_i16 + 0
+    cmp Ram_PlatformRight_i16_0_arr, y
+    lda Zp_PointX_i16 + 1
+    sbc Ram_PlatformRight_i16_1_arr, y
+    bvc @noOverflow  ; N eor V
+    eor #$80
+    @noOverflow:
+    bpl Func_ClearCForPointOutsidePlatform  ; preserves X, Y, T0+; returns C
 _Inside:
     sec
     rts
-_Outside:
+.ENDPROC
+
+;;; Helper function for Func_IsPointInPlatform and Func_IsPointInPlatformHorz;
+;;; clears the C flag to indicate that the point is not in the platform.
+;;; @return C Always cleared.
+;;; @preserve X, Y, T0+
+.PROC Func_ClearCForPointOutsidePlatform
     clc
     rts
 .ENDPROC

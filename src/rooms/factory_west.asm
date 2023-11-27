@@ -24,6 +24,7 @@
 .INCLUDE "../machine.inc"
 .INCLUDE "../machines/crane.inc"
 .INCLUDE "../macros.inc"
+.INCLUDE "../oam.inc"
 .INCLUDE "../platform.inc"
 .INCLUDE "../ppu.inc"
 .INCLUDE "../program.inc"
@@ -36,13 +37,21 @@
 .IMPORT FuncA_Machine_StartWaiting
 .IMPORT FuncA_Objects_DrawCraneMachine
 .IMPORT FuncA_Objects_DrawCranePulleyAndRope
+.IMPORT Func_DistanceSensorDownDetectPoint
+.IMPORT Func_MovePointUpByA
 .IMPORT Func_Noop
+.IMPORT Func_SetPointToActorCenter
+.IMPORT Func_SetPointToAvatarTop
 .IMPORT Ppu_ChrObjFactory
 .IMPORT Ram_MachineGoalHorz_u8_arr
 .IMPORT Ram_MachineGoalVert_u8_arr
+.IMPORT Ram_PlatformBottom_i16_0_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
 
 ;;;=========================================================================;;;
+
+;;; The actor index for the grub baddie in this room.
+kGrubActorIndex = 0
 
 ;;; The machine index for the FactoryWestCrane machine in this room.
 kCraneMachineIndex = 0
@@ -59,6 +68,9 @@ kCraneMaxGoalZ = 9
 ;;; The minimum and initial Y-positions for the top of the crane platform.
 kCraneMinPlatformTop = $00a8
 kCraneInitPlatformTop = kCraneMinPlatformTop + kCraneInitGoalZ * kBlockHeightPx
+
+;;; The room pixel Y-position for the surface of the floor under the crane.
+kCraneFloorPosY = $0160
 
 ;;;=========================================================================;;;
 
@@ -134,7 +146,14 @@ _Platforms_sPlatform_arr:
     .assert * - :- <= kMaxPlatforms * .sizeof(sPlatform), error
     .byte ePlatform::None
 _Actors_sActor_arr:
-:   ;; TODO: add some baddies
+:   .assert * - :- = kGrubActorIndex * .sizeof(sActor), error
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::BadGrub
+    d_word PosX_i16, $00a8
+    d_word PosY_i16, $0158
+    d_byte Param_byte, bObj::FlipH
+    D_END
+    ;; TODO: add more baddies
     .assert * - :- <= kMaxActors * .sizeof(sActor), error
     .byte eActor::None
 _Devices_sDevice_arr:
@@ -143,6 +162,12 @@ _Devices_sDevice_arr:
     d_byte BlockRow_u8, 20
     d_byte BlockCol_u8, 13
     d_byte Target_byte, kCraneMachineIndex
+    D_END
+    D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::Placeholder  ; TODO: Paper
+    d_byte BlockRow_u8, 3
+    d_byte BlockCol_u8, 2
+    d_byte Target_byte, 0  ; TODO: eFlag::Paper???
     D_END
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None
@@ -172,7 +197,21 @@ _Passages_sPassage_arr:
     cmp #$f
     beq _ReadZ
 _ReadD:
-    lda #0  ; TODO
+    lda #<kCraneFloorPosY
+    sub Ram_PlatformBottom_i16_0_arr + kCranePlatformIndex
+    sta T0  ; param: minimum distance so far, in pixels
+    ldy #kCranePlatformIndex  ; param: distance sensor platform index
+    ;; Check the player avatar with the distance sensor.
+    jsr Func_SetPointToAvatarTop  ; preserves Y, T0+
+    jsr Func_DistanceSensorDownDetectPoint  ; preserves Y, returns T0
+    ;; Check the grub baddie with the distance sensor.
+    ldx #kGrubActorIndex  ; param: actor index
+    jsr Func_SetPointToActorCenter  ; preserves Y, T0+
+    lda #2  ; param: offset
+    jsr Func_MovePointUpByA  ; preserves Y, T0+
+    jsr Func_DistanceSensorDownDetectPoint  ; returns T0
+    lda T0  ; minimum distance so far, in pixels
+    div #kBlockHeightPx
     rts
 _ReadZ:
     lda Ram_PlatformTop_i16_0_arr + kCranePlatformIndex

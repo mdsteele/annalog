@@ -29,17 +29,56 @@
 .IMPORT FuncA_Objects_Alloc2x2Shape
 .IMPORT FuncA_Objects_MoveShapeDownAndRightOneTile
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
+.IMPORT Func_IsPointInPlatformHorz
 .IMPORT Func_MovePlatformLeftTowardPointX
 .IMPORT Func_MovePlatformTopTowardPointY
 .IMPORT Ram_MachineGoalHorz_u8_arr
 .IMPORT Ram_MachineGoalVert_u8_arr
 .IMPORT Ram_MachineStatus_eMachine_arr
+.IMPORT Ram_PlatformBottom_i16_0_arr
+.IMPORT Ram_PlatformBottom_i16_1_arr
 .IMPORTZP Zp_ConsoleMachineIndex_u8
 .IMPORTZP Zp_Current_sMachine_ptr
 .IMPORTZP Zp_FrameCounter_u8
 .IMPORTZP Zp_MachineIndex_u8
 .IMPORTZP Zp_PointX_i16
 .IMPORTZP Zp_PointY_i16
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRG8"
+
+;;; Checks if the position stored in Zp_Point*_i16 is detected by the
+;;; downward-facing distance sensor with the specified platform index.  If the
+;;; point is in view of the sensor, and closer than the current minimum
+;;; distance stored in T0, then T0 is updated with the new minimum distance.
+;;; @param Y The platform index for the distance sensor.
+;;; @param T0 The minimum distance detected so far, in pixels.
+;;; @return T0 The new minimum distance detected so far, in pixels.
+;;; @preserve Y, T1+
+.EXPORT Func_DistanceSensorDownDetectPoint
+.PROC Func_DistanceSensorDownDetectPoint
+    ;; If the point is not horizontally lined up with the distance sensor, then
+    ;; we won't detect it, so the minimum distance so far will remain
+    ;; unchanged.
+    jsr Func_IsPointInPlatformHorz  ; preserves Y and T0+, returns C
+    bcc @done
+    ;; Calculate the distance from the bottom of the sensor to the point, in
+    ;; pixels.
+    lda Zp_PointY_i16 + 0
+    sub Ram_PlatformBottom_i16_0_arr, y
+    tax  ; distance (lo)
+    lda Zp_PointY_i16 + 1
+    sbc Ram_PlatformBottom_i16_1_arr, y
+    bne @done  ; distance is either negative or too far away to detect
+    ;; If the distance to the point is less than the minimum distance so far,
+    ;; update the minimum distance.
+    cpx T0  ; minimum distance so far, in pixels
+    bge @done
+    stx T0  ; minimum distance so far, in pixels
+    @done:
+    rts
+.ENDPROC
 
 ;;;=========================================================================;;;
 

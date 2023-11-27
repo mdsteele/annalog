@@ -45,8 +45,10 @@
 .IMPORT FuncA_Objects_MoveShapeLeftOneTile
 .IMPORT FuncA_Objects_MoveShapeUpOneTile
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
+.IMPORT Func_DistanceSensorDownDetectPoint
 .IMPORT Func_MovePlatformVert
 .IMPORT Func_Noop
+.IMPORT Func_SetPointToAvatarTop
 .IMPORT Func_ShakeRoom
 .IMPORT Ppu_ChrObjMine
 .IMPORT Ram_MachineGoalHorz_u8_arr
@@ -164,14 +166,14 @@ _Machines_sMachine_arr:
     d_byte ScrollGoalY_u8, $00
     d_byte RegNames_u8_arr4, "D", 0, 0, "Z"
     d_byte MainPlatform_u8, kCranePlatformIndex
-    d_addr Init_func_ptr, FuncC_Mine_WestCrane_InitReset
+    d_addr Init_func_ptr, FuncA_Room_MineWestCrane_InitReset
     d_addr ReadReg_func_ptr, FuncC_Mine_WestCrane_ReadReg
     d_addr WriteReg_func_ptr, Func_Noop
-    d_addr TryMove_func_ptr, FuncC_Mine_WestCrane_TryMove
-    d_addr TryAct_func_ptr, FuncC_Mine_WestCrane_TryAct
+    d_addr TryMove_func_ptr, FuncA_Machine_MineWestCrane_TryMove
+    d_addr TryAct_func_ptr, FuncA_Machine_MineWestCrane_TryAct
     d_addr Tick_func_ptr, FuncC_Mine_WestCrane_Tick
     d_addr Draw_func_ptr, FuncA_Objects_MineWestCrane_Draw
-    d_addr Reset_func_ptr, FuncC_Mine_WestCrane_InitReset
+    d_addr Reset_func_ptr, FuncA_Room_MineWestCrane_InitReset
     D_END
     .assert * - :- <= kMaxMachines * .sizeof(sMachine), error
 _Platforms_sPlatform_arr:
@@ -253,21 +255,17 @@ _Passages_sPassage_arr:
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
 .ENDPROC
 
-.PROC FuncC_Mine_WestCrane_InitReset
-    lda #0
-    sta Ram_MachineGoalHorz_u8_arr + kCraneMachineIndex  ; is closed
-    sta Zp_RoomState + sState::CageIsGrasped_bool
-    lda #kCraneInitGoalZ
-    sta Ram_MachineGoalVert_u8_arr + kCraneMachineIndex
-    rts
-.ENDPROC
-
 .PROC FuncC_Mine_WestCrane_ReadReg
     cmp #$f
     beq _ReadZ
 _ReadD:
     lda Ram_PlatformTop_i16_0_arr + kCageUpperPlatformIndex
     sub Ram_PlatformBottom_i16_0_arr + kCranePlatformIndex
+    sta T0  ; param: minimum distance so far, in pixels
+    ldy #kCranePlatformIndex  ; param: distance sensor platform index
+    jsr Func_SetPointToAvatarTop  ; preserves Y, T0+
+    jsr Func_DistanceSensorDownDetectPoint  ; returns T0
+    lda T0  ; minimum distance so far, in pixels
     div #kBlockHeightPx
     rts
 _ReadZ:
@@ -275,29 +273,6 @@ _ReadZ:
     sub #kCraneMinPlatformTop - kTileHeightPx
     div #kBlockHeightPx
     rts
-.ENDPROC
-
-.PROC FuncC_Mine_WestCrane_TryMove
-    lda #kCraneMaxGoalZ  ; param: max goal vert
-    jmp FuncA_Machine_GenericTryMoveZ
-.ENDPROC
-
-.PROC FuncC_Mine_WestCrane_TryAct
-    lda Ram_MachineGoalHorz_u8_arr + kCraneMachineIndex  ; is closed
-    eor #$ff
-    sta Ram_MachineGoalHorz_u8_arr + kCraneMachineIndex  ; is closed
-    bne _TryGrasp
-    sta Zp_RoomState + sState::CageIsGrasped_bool
-    beq _Finish  ; unconditional
-_TryGrasp:
-    lda Ram_MachineGoalVert_u8_arr + kCraneMachineIndex
-    cmp #kCraneMaxGoalZ
-    blt _Finish
-    lda #$ff
-    sta Zp_RoomState + sState::CageIsGrasped_bool
-_Finish:
-    lda #kCraneActCooldown  ; param: num frames
-    jmp FuncA_Machine_StartWaiting
 .ENDPROC
 
 .PROC FuncC_Mine_WestCrane_Tick
@@ -369,6 +344,46 @@ _MoveCagePlatforms:
     jmp Func_MovePlatformVert
 _Done:
     rts
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Room"
+
+.PROC FuncA_Room_MineWestCrane_InitReset
+    lda #0
+    sta Ram_MachineGoalHorz_u8_arr + kCraneMachineIndex  ; is closed
+    sta Zp_RoomState + sState::CageIsGrasped_bool
+    lda #kCraneInitGoalZ
+    sta Ram_MachineGoalVert_u8_arr + kCraneMachineIndex
+    rts
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Machine"
+
+.PROC FuncA_Machine_MineWestCrane_TryMove
+    lda #kCraneMaxGoalZ  ; param: max goal vert
+    jmp FuncA_Machine_GenericTryMoveZ
+.ENDPROC
+
+.PROC FuncA_Machine_MineWestCrane_TryAct
+    lda Ram_MachineGoalHorz_u8_arr + kCraneMachineIndex  ; is closed
+    eor #$ff
+    sta Ram_MachineGoalHorz_u8_arr + kCraneMachineIndex  ; is closed
+    bne _TryGrasp
+    sta Zp_RoomState + sState::CageIsGrasped_bool
+    beq _Finish  ; unconditional
+_TryGrasp:
+    lda Ram_MachineGoalVert_u8_arr + kCraneMachineIndex
+    cmp #kCraneMaxGoalZ
+    blt _Finish
+    lda #$ff
+    sta Zp_RoomState + sState::CageIsGrasped_bool
+_Finish:
+    lda #kCraneActCooldown  ; param: num frames
+    jmp FuncA_Machine_StartWaiting
 .ENDPROC
 
 ;;;=========================================================================;;;

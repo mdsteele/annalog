@@ -31,6 +31,7 @@
 
 .IMPORT FuncA_Avatar_UpdateWaterDepth
 .IMPORT FuncA_Objects_Draw2x2Shape
+.IMPORT Func_MovePointUpByA
 .IMPORT Func_PlaySfxSample
 .IMPORT Func_TryPushAvatarHorz
 .IMPORT Func_TryPushAvatarVert
@@ -683,6 +684,16 @@ _Done:
 ;;;=========================================================================;;;
 
 .SEGMENT "PRG8"
+
+;;; Stores the room pixel position of the top center of the player avatar in
+;;; Zp_Point*_i16.
+;;; @preserve X, Y, T0+
+.EXPORT Func_SetPointToAvatarTop
+.PROC Func_SetPointToAvatarTop
+    jsr Func_SetPointToAvatarCenter  ; preserves X, Y, and T0+
+    lda #kAvatarBoundingBoxUp  ; param: offset
+    jmp Func_MovePointUpByA  ; preserves X, Y, and T0+
+.ENDPROC
 
 ;;; Stores the player avatar's room pixel position in Zp_Point*_i16.
 ;;; @preserve X, Y, T0+
