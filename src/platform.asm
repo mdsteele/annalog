@@ -119,26 +119,9 @@ Ram_PlatformRight_i16_1_arr: .res kMaxPlatforms
 ;;; @preserve X, Y, T0+
 .EXPORT Func_IsPointInPlatform
 .PROC Func_IsPointInPlatform
-_CheckPlatformTop:
-    lda Zp_PointY_i16 + 0
-    cmp Ram_PlatformTop_i16_0_arr, y
-    lda Zp_PointY_i16 + 1
-    sbc Ram_PlatformTop_i16_1_arr, y
-    bvc @noOverflow  ; N eor V
-    eor #$80
-    @noOverflow:
-    bmi Func_ClearCForPointOutsidePlatform  ; preserves X, Y, T0+; returns C
-_CheckPlatformBottom:
-    lda Zp_PointY_i16 + 0
-    cmp Ram_PlatformBottom_i16_0_arr, y
-    lda Zp_PointY_i16 + 1
-    sbc Ram_PlatformBottom_i16_1_arr, y
-    bvc @noOverflow  ; N eor V
-    eor #$80
-    @noOverflow:
-    bpl Func_ClearCForPointOutsidePlatform  ; preserves X, Y, T0+; returns C
-_CheckPlatformHorz:
-    .assert * = Func_IsPointInPlatformHorz, error, "fallthrough"
+    jsr Func_IsPointInPlatformVert  ; preserves X, Y, and T0+; returns C
+    bcs Func_IsPointInPlatformHorz  ; preserves X, Y, and T0+; returns C
+    rts
 .ENDPROC
 
 ;;; Checks if the horizontal point position in Zp_PointX_i16 is within the
@@ -162,6 +145,36 @@ _CheckPlatformRight:
     cmp Ram_PlatformRight_i16_0_arr, y
     lda Zp_PointX_i16 + 1
     sbc Ram_PlatformRight_i16_1_arr, y
+    bvc @noOverflow  ; N eor V
+    eor #$80
+    @noOverflow:
+    bpl Func_ClearCForPointOutsidePlatform  ; preserves X, Y, T0+; returns C
+_Inside:
+    sec
+    rts
+.ENDPROC
+
+;;; Checks if the vertical point position in Zp_PointY_i16 is within the
+;;; top/bottom sides of the platform (ignoring the left and right).
+;;; @param Y The platform index.
+;;; @return C Set if the point is vertically within the platform.
+;;; @preserve X, Y, T0+
+.EXPORT Func_IsPointInPlatformVert
+.PROC Func_IsPointInPlatformVert
+_CheckPlatformTop:
+    lda Zp_PointY_i16 + 0
+    cmp Ram_PlatformTop_i16_0_arr, y
+    lda Zp_PointY_i16 + 1
+    sbc Ram_PlatformTop_i16_1_arr, y
+    bvc @noOverflow  ; N eor V
+    eor #$80
+    @noOverflow:
+    bmi Func_ClearCForPointOutsidePlatform  ; preserves X, Y, T0+; returns C
+_CheckPlatformBottom:
+    lda Zp_PointY_i16 + 0
+    cmp Ram_PlatformBottom_i16_0_arr, y
+    lda Zp_PointY_i16 + 1
+    sbc Ram_PlatformBottom_i16_1_arr, y
     bvc @noOverflow  ; N eor V
     eor #$80
     @noOverflow:

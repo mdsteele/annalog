@@ -46,13 +46,17 @@
 .IMPORT FuncA_Objects_DrawBoilerMachine
 .IMPORT FuncA_Objects_DrawBoilerValve1
 .IMPORT FuncA_Objects_DrawBoss
+.IMPORT FuncA_Objects_DrawPlatformVolcanicVert
 .IMPORT FuncA_Room_InitBoss
 .IMPORT FuncA_Room_MachineBoilerReset
 .IMPORT FuncA_Room_ResetLever
 .IMPORT FuncA_Room_TickBoss
 .IMPORT FuncA_Terrain_FadeInShortRoomWithLava
+.IMPORT Func_DistanceSensorRightDetectPoint
 .IMPORT Func_MachineBoilerReadReg
+.IMPORT Func_MovePointLeftByA
 .IMPORT Func_Noop
+.IMPORT Func_SetPointToAvatarCenter
 .IMPORT Ppu_ChrObjLava
 .IMPORT Ram_MachineGoalHorz_u8_arr
 .IMPORT Ram_PlatformLeft_i16_0_arr
@@ -70,10 +74,15 @@ kBoilerMachineIndex  = 1
 
 ;;; Platform indices for the machines in this room.
 kBlasterPlatformIndex = 0
-kBoilerPlatformIndex  = 1
-kValvePlatformIndex   = 2
-kPipe1PlatformIndex   = 3
-kPipe2PlatformIndex   = 4
+kSensorPlatformIndex  = 1
+kBoilerPlatformIndex  = 2
+kValvePlatformIndex   = 3
+kPipe1PlatformIndex   = 4
+kPipe2PlatformIndex   = 5
+
+;;; The platform indices for the side walls.
+kLeftWallPlatformIndex  = 6
+kRightWallPlatformIndex = 7
 
 ;;; The initial and maximum permitted values for the blaster's X register.
 kBlasterInitGoalX = 0
@@ -104,7 +113,7 @@ kBossInitHealth = 8
 kBossInitCooldown = 120
 
 ;;; The platform index for the boss's body.
-kBossBodyPlatformIndex = 5
+kBossBodyPlatformIndex = 8
 
 ;;;=========================================================================;;;
 
@@ -165,7 +174,7 @@ _Machines_sMachine_arr:
     d_byte Status_eDiagram, eDiagram::LauncherDown  ; TODO
     d_word ScrollGoalX_u16, $00
     d_byte ScrollGoalY_u8, $00
-    d_byte RegNames_u8_arr4, "L", "R", "X", 0  ; TODO: add "D" register
+    d_byte RegNames_u8_arr4, "L", "R", "X", "D"
     d_byte MainPlatform_u8, kBlasterPlatformIndex
     d_addr Init_func_ptr, FuncA_Room_BossLavaBlaster_InitReset
     d_addr ReadReg_func_ptr, FuncC_Boss_LavaBlaster_ReadReg
@@ -205,6 +214,14 @@ _Platforms_sPlatform_arr:
     d_word Left_i16, kBlasterInitPlatformLeft
     d_word Top_i16,   $0010
     D_END
+    .assert * - :- = kSensorPlatformIndex * .sizeof(sPlatform), error
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Zone
+    d_word WidthPx_u16, $08
+    d_byte HeightPx_u8, $10
+    d_word Left_i16,  $0008
+    d_word Top_i16,   $0090
+    D_END
     .assert * - :- = kBoilerPlatformIndex * .sizeof(sPlatform), error
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Solid
@@ -236,6 +253,22 @@ _Platforms_sPlatform_arr:
     d_byte HeightPx_u8, $08
     d_word Left_i16,  $00a0
     d_word Top_i16,   $00a0
+    D_END
+    .assert * - :- = kLeftWallPlatformIndex * .sizeof(sPlatform), error
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Solid
+    d_word WidthPx_u16, $08
+    d_byte HeightPx_u8, $50
+    d_word Left_i16,  $0008
+    d_word Top_i16,   $0030
+    D_END
+    .assert * - :- = kRightWallPlatformIndex * .sizeof(sPlatform), error
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Solid
+    d_word WidthPx_u16, $08
+    d_byte HeightPx_u8, $50
+    d_word Left_i16,  $00f0
+    d_word Top_i16,   $0030
     D_END
     .assert * - :- = kBossBodyPlatformIndex * .sizeof(sPlatform), error
     D_STRUCT sPlatform
@@ -367,7 +400,11 @@ _DrawBoss:
 ;;; @prereq PRGA_Objects is loaded.
 .PROC FuncC_Boss_Lava_DrawBoss
     ;; TODO: draw the boss
-    rts
+_DrawSideWalls:
+    ldx #kLeftWallPlatformIndex  ; param: platform index
+    jsr FuncA_Objects_DrawPlatformVolcanicVert
+    ldx #kRightWallPlatformIndex  ; param: platform index
+    jmp FuncA_Objects_DrawPlatformVolcanicVert
 .ENDPROC
 
 ;;; ReadReg implementation for the BossLavaBlaster machine.
@@ -376,6 +413,21 @@ _DrawBoss:
 .PROC FuncC_Boss_LavaBlaster_ReadReg
     cmp #$e
     blt FuncC_Boss_Lava_ReadRegLR
+    beq _RegX
+_RegD:
+    lda #kBlockWidthPx * 11
+    sta T0  ; param: minimum distance so far, in pixels
+    ldy #kSensorPlatformIndex  ; param: distance sensor platform index
+    jsr Func_SetPointToAvatarCenter  ; preserves Y, T0+
+    jsr Func_MovePointLeftByA  ; preserves Y, T0+
+    jsr Func_DistanceSensorRightDetectPoint  ; returns T0
+    lda T0  ; minimum distance so far, in pixels
+    sub #kBlockWidthPx * 2
+    bge @noClamp
+    lda #0
+    @noClamp:
+    div #kBlockWidthPx
+    rts
 _RegX:
     lda Ram_PlatformLeft_i16_0_arr + kBlasterPlatformIndex
     sub #kBlasterMinPlatformLeft - kTileWidthPx

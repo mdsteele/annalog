@@ -17,7 +17,9 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
-;;; OBJ tile IDs for drawing rocks platforms.
-kTileIdObjRocksFirst = $98
+;;; OBJ tile IDs for drawing various checkerboarded platforms.
+kTileIdObjPlatformCryptBricksFirst = $cc
+kTileIdObjPlatformRocksFirst       = $98
+kTileIdObjPlatformVolcanicFirst    = $84
 
 ;;;=========================================================================;;;

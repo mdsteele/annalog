@@ -70,13 +70,13 @@
 .INCLUDE "machines/shared.inc"
 .INCLUDE "machines/winch.inc"
 .INCLUDE "platforms/barrier.inc"
+.INCLUDE "platforms/chex.inc"
 .INCLUDE "platforms/column.inc"
 .INCLUDE "platforms/crate.inc"
 .INCLUDE "platforms/force.inc"
 .INCLUDE "platforms/gate.inc"
 .INCLUDE "platforms/glass.inc"
 .INCLUDE "platforms/monitor.inc"
-.INCLUDE "platforms/rocks.inc"
 .INCLUDE "platforms/stepstone.inc"
 .INCLUDE "portrait.inc"
 .INCLUDE "rooms/boss_crypt.inc"
@@ -478,7 +478,7 @@ _chr_begin:
     chr_inc "steam_pipes"
     chr_inc "volcanic1"
     chr_inc "volcanic2"
-    chr_res $08
+    chr_res $06
     chr_inc "field_bg"
     chr_inc "arch"
     chr_inc "boiler"
@@ -960,34 +960,35 @@ _chr_begin:
 .EXPORT Ppu_ChrObjBoss1
 .PROC Ppu_ChrObjBoss1
     CHR2_BANK $80
-    chr_inc "upgrade_bottom", kTileIdObjUpgradeBottomFirst
-    chr_inc "upgrade_ram",    kTileIdObjUpgradeRamFirst
-    chr_inc "breakball",      kTileIdObjBreakballFirst
-    chr_inc "ember",          kTileIdObjEmber
+    chr_inc "upgrade_bottom",        kTileIdObjUpgradeBottomFirst
+    chr_inc "upgrade_ram",           kTileIdObjUpgradeRamFirst
+    chr_inc "breakball",             kTileIdObjBreakballFirst
+    chr_inc "ember",                 kTileIdObjEmber
     chr_res $01
-    chr_inc "cannon",         kTileIdObjCannonFirst
-    chr_inc "bullet",         kTileIdObjBulletFirst
+    chr_inc "cannon",                kTileIdObjCannonFirst
+    chr_inc "bullet",                kTileIdObjBulletFirst
     chr_res $06
-    chr_inc "upgrade_oprest", kTileIdObjUpgradeOpRestFirst
-    chr_inc "blaster",        kTileIdObjBlasterFirst
-    chr_inc "fireball",       kTileIdObjFireballFirst
-    chr_inc "outbreak_obj",   kTileIdObjOutbreakFirst
+    chr_inc "upgrade_oprest",        kTileIdObjUpgradeOpRestFirst
+    chr_inc "blaster",               kTileIdObjBlasterFirst
+    chr_inc "fireball",              kTileIdObjFireballFirst
+    chr_inc "outbreak_obj",          kTileIdObjOutbreakFirst
     chr_res $08
-    chr_inc "spike",          kTileIdObjSpike
-    chr_inc "flamewave",      kTileIdObjFlamewaveFirst
+    chr_inc "spike",                 kTileIdObjSpike
+    chr_inc "flamewave",             kTileIdObjFlamewaveFirst
     chr_res $02
-    chr_inc "plant_eye",      kTileIdObjPlantEyeFirst
+    chr_inc "plant_eye",             kTileIdObjPlantEyeFirst
     chr_res $04
-    chr_inc "plant_eye_red",  kTileIdObjPlantEyeRedFirst
-    chr_inc "gazer_obj",      kTileIdObjGazerFirst
+    chr_inc "plant_eye_red",         kTileIdObjPlantEyeRedFirst
+    chr_inc "platform_crypt_bricks", kTileIdObjPlatformCryptBricksFirst
+    chr_inc "gazer_obj",             kTileIdObjGazerFirst
     chr_res $01
-    chr_inc "mirror",         kTileIdObjMirrorFirst
+    chr_inc "mirror",                kTileIdObjMirrorFirst
     chr_res $03
-    chr_inc "minigun_vert",   kTileIdObjMinigunVertFirst
-    chr_inc "crusher",        kTileIdObjCrusherFirst
-    chr_inc "winch",          kTileIdObjWinchFirst
-    chr_inc "grenade",        kTileIdObjGrenadeFirst
-    chr_inc "breaker",        kTileIdObjBreakerFirst
+    chr_inc "minigun_vert",          kTileIdObjMinigunVertFirst
+    chr_inc "crusher",               kTileIdObjCrusherFirst
+    chr_inc "winch",                 kTileIdObjWinchFirst
+    chr_inc "grenade",               kTileIdObjGrenadeFirst
+    chr_inc "breaker",               kTileIdObjBreakerFirst
     END_CHR_BANK
 .ENDPROC
 
@@ -1094,25 +1095,25 @@ _chr_begin:
 .EXPORT Ppu_ChrObjLava
 .PROC Ppu_ChrObjLava
     CHR2_BANK $80
-    chr_inc "upgrade_bottom", kTileIdObjUpgradeBottomFirst
-    chr_inc "upgrade_ram",    kTileIdObjUpgradeRamFirst
-    chr_res $02
-    chr_inc "ember",          kTileIdObjEmber
+    chr_inc "upgrade_bottom",    kTileIdObjUpgradeBottomFirst
+    chr_inc "upgrade_ram",       kTileIdObjUpgradeRamFirst
+    chr_inc "platform_volcanic", kTileIdObjPlatformVolcanicFirst
+    chr_inc "ember",             kTileIdObjEmber
     chr_res $03
-    chr_inc "upgrade_opcopy", kTileIdObjUpgradeOpCopyFirst
+    chr_inc "upgrade_opcopy",    kTileIdObjUpgradeOpCopyFirst
     chr_res $08
-    chr_inc "crate",          kTileIdObjCrateFirst
-    chr_inc "blaster",        kTileIdObjBlasterFirst
-    chr_inc "fireball",       kTileIdObjFireballFirst
+    chr_inc "crate",             kTileIdObjCrateFirst
+    chr_inc "blaster",           kTileIdObjBlasterFirst
+    chr_inc "fireball",          kTileIdObjFireballFirst
     chr_res $04
-    chr_inc "hothead",        kTileIdObjHotheadFirst
-    chr_inc "lavaball",       kTileIdObjLavaballFirst
-    chr_inc "anchor",         kTileIdObjAnchorFirst
-    chr_inc "valve",          kTileIdObjValveFirst
+    chr_inc "hothead",           kTileIdObjHotheadFirst
+    chr_inc "lavaball",          kTileIdObjLavaballFirst
+    chr_inc "anchor",            kTileIdObjAnchorFirst
+    chr_inc "valve",             kTileIdObjValveFirst
     chr_res $10
-    chr_inc "mirror",         kTileIdObjMirrorFirst
+    chr_inc "mirror",            kTileIdObjMirrorFirst
     chr_res $1b
-    chr_inc "breaker",        kTileIdObjBreakerFirst
+    chr_inc "breaker",           kTileIdObjBreakerFirst
     END_CHR_BANK
 .ENDPROC
 
@@ -1172,7 +1173,7 @@ _chr_begin:
     chr_res $02
     chr_inc "monitor",          kTileIdObjMonitorFirst
     chr_inc "launcher_horz",    kTileIdObjLauncherHorzFirst
-    chr_inc "rocks",            kTileIdObjRocksFirst
+    chr_inc "platform_rocks",   kTileIdObjPlatformRocksFirst
     chr_res $02
     chr_inc "grub",             kTileIdObjGrubFirst
     chr_res $18
@@ -1243,21 +1244,21 @@ _chr_begin:
 .EXPORT Ppu_ChrObjTown
 .PROC Ppu_ChrObjTown
     CHR2_BANK $80
-    chr_inc "toddler",       kTileIdObjToddlerFirst
-    chr_inc "stepstone",     kTileIdObjStepstone
-    chr_inc "gate",          kTileIdObjGateFirst
-    chr_inc "orc_standing",  kTileIdObjOrcStandingFirst
-    chr_inc "launcher_vert", kTileIdObjLauncherVertFirst
-    chr_inc "crate",         kTileIdObjCrateFirst
-    chr_inc "rocks",         kTileIdObjRocksFirst
+    chr_inc "toddler",        kTileIdObjToddlerFirst
+    chr_inc "stepstone",      kTileIdObjStepstone
+    chr_inc "gate",           kTileIdObjGateFirst
+    chr_inc "orc_standing",   kTileIdObjOrcStandingFirst
+    chr_inc "launcher_vert",  kTileIdObjLauncherVertFirst
+    chr_inc "crate",          kTileIdObjCrateFirst
+    chr_inc "platform_rocks", kTileIdObjPlatformRocksFirst
     chr_res $06
-    chr_inc "orc_gronta",    kTileIdObjOrcGrontaFirst
-    chr_inc "orc_running",   kTileIdObjOrcRunningFirst
-    chr_inc "orc_throwing",  kTileIdObjOrcThrowingFirst
-    chr_inc "adult_woman",   kTileIdAdultWomanFirst
-    chr_inc "adult_man",     kTileIdAdultManFirst
+    chr_inc "orc_gronta",     kTileIdObjOrcGrontaFirst
+    chr_inc "orc_running",    kTileIdObjOrcRunningFirst
+    chr_inc "orc_throwing",   kTileIdObjOrcThrowingFirst
+    chr_inc "adult_woman",    kTileIdAdultWomanFirst
+    chr_inc "adult_man",      kTileIdAdultManFirst
     chr_res $04
-    chr_inc "child_stand",   kTileIdObjChildStandFirst
+    chr_inc "child_stand",    kTileIdObjChildStandFirst
     END_CHR_BANK
 .ENDPROC
 

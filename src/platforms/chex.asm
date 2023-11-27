@@ -21,7 +21,7 @@
 .INCLUDE "../oam.inc"
 .INCLUDE "../platform.inc"
 .INCLUDE "../ppu.inc"
-.INCLUDE "rocks.inc"
+.INCLUDE "chex.inc"
 
 .IMPORT FuncA_Objects_Draw1x1Shape
 .IMPORT FuncA_Objects_MoveShapeDownOneTile
@@ -35,8 +35,8 @@
 
 ;;;=========================================================================;;;
 
-;;; The OBJ palette number used for rocks platforms.
-kPaletteObjRocks = 0
+;;; The OBJ palette number used for checkerboarded platforms.
+kPaletteObjPlatformChex = 0
 
 ;;;=========================================================================;;;
 
@@ -48,7 +48,18 @@ kPaletteObjRocks = 0
 ;;; @param X The platform index.
 .EXPORT FuncA_Objects_DrawRocksPlatformHorz
 .PROC FuncA_Objects_DrawRocksPlatformHorz
-    jsr FuncA_Objects_StartDrawRocksPlatform  ; preserves X, returns C and T2
+    .assert kTileIdObjPlatformRocksFirst .mod 2 = 0, error
+    ldy #kTileIdObjPlatformRocksFirst  ; param: first tile ID (0 mod 2)
+    .assert * = FuncA_Objects_DrawPlatformChexHorz, error, "fallthrough"
+.ENDPROC
+
+;;; Draws a horizontal (Nx1) checkerboarded platform.  The platform is assumed
+;;; to be an integer number of tiles wide (from 1 to at most 8) and one tile
+;;; high.  If the platform type is non-solid, draws nothing.
+;;; @param X The platform index.
+;;; @param Y The first of the two checkerboard tile IDs (must be 0 mod 2).
+.PROC FuncA_Objects_DrawPlatformChexHorz
+    jsr FuncA_Objects_StartDrawPlatformChex  ; preserves X, returns C and T2
     bcc @done
     ;; Determine how many tiles wide the platform is.
     lda Ram_PlatformRight_i16_0_arr, x
@@ -62,10 +73,34 @@ kPaletteObjRocks = 0
     @loop:
     jsr FuncA_Objects_MoveShapeRightOneTile  ; preserves X and T0+
     @startLoop:
-    jsr FuncA_Objects_DrawRocksPlatformTile  ; preserves X and T2+
+    jsr FuncA_Objects_DrawChexTile  ; preserves X and T2+
     dex
     bne @loop
     rts
+.ENDPROC
+
+;;; Draws a vertical (1xN) crypt bricks platform.  The platform is assumed to
+;;; be an integer number of tiles high and one tile wide.  If the platform type
+;;; is non-solid, draws nothing.
+;;; @param X The platform index.
+.EXPORT FuncA_Objects_DrawPlatformCryptBricksVert
+.PROC FuncA_Objects_DrawPlatformCryptBricksVert
+    .assert kTileIdObjPlatformCryptBricksFirst .mod 2 = 0, error
+    ldy #kTileIdObjPlatformCryptBricksFirst  ; param: first tile ID (0 mod 2)
+    .assert kTileIdObjPlatformCryptBricksFirst > 0, error
+    bne FuncA_Objects_DrawPlatformChexVert  ; unconditional
+.ENDPROC
+
+;;; Draws a vertical (1xN) volcanic platform.  The platform is assumed to be an
+;;; integer number of tiles high and one tile wide.  If the platform type is
+;;; non-solid, draws nothing.
+;;; @param X The platform index.
+.EXPORT FuncA_Objects_DrawPlatformVolcanicVert
+.PROC FuncA_Objects_DrawPlatformVolcanicVert
+    .assert kTileIdObjPlatformRocksFirst .mod 2 = 0, error
+    ldy #kTileIdObjPlatformVolcanicFirst  ; param: first tile ID (0 mod 2)
+    .assert kTileIdObjPlatformVolcanicFirst > 0, error
+    bne FuncA_Objects_DrawPlatformChexVert  ; unconditional
 .ENDPROC
 
 ;;; Draws a vertical (1xN) rocks platform.  The platform is assumed to be an
@@ -74,8 +109,19 @@ kPaletteObjRocks = 0
 ;;; @param X The platform index.
 .EXPORT FuncA_Objects_DrawRocksPlatformVert
 .PROC FuncA_Objects_DrawRocksPlatformVert
-    jsr FuncA_Objects_StartDrawRocksPlatform  ; preserves X, returns C and T2
-    bcc @done
+    .assert kTileIdObjPlatformRocksFirst .mod 2 = 0, error
+    ldy #kTileIdObjPlatformRocksFirst  ; param: first tile ID (0 mod 2)
+    .assert * = FuncA_Objects_DrawPlatformChexVert, error, "fallthrough"
+.ENDPROC
+
+;;; Draws a vertical (1xN) checkerboarded platform.  The platform is assumed to
+;;; be an integer number of tiles high and one tile wide.  If the platform type
+;;; is non-solid, draws nothing.
+;;; @param X The platform index.
+;;; @param Y The first of the two checkerboard tile IDs (must be 0 mod 2).
+.PROC FuncA_Objects_DrawPlatformChexVert
+    jsr FuncA_Objects_StartDrawPlatformChex  ; preserves X, returns C and T2
+    bcc @done  ; platform is not solid, so don't draw
     ;; Determine how many tiles tall the platform is.
     lda Ram_PlatformBottom_i16_0_arr, x
     sub Ram_PlatformTop_i16_0_arr, x
@@ -88,49 +134,50 @@ kPaletteObjRocks = 0
     @loop:
     jsr FuncA_Objects_MoveShapeDownOneTile  ; preserves X and T0+
     @startLoop:
-    jsr FuncA_Objects_DrawRocksPlatformTile  ; preserves X and T2+
+    jsr FuncA_Objects_DrawChexTile  ; preserves X and T2+
     dex
     bne @loop
     rts
 .ENDPROC
 
-;;; Determines if a rocks platform should be drawn, and if so, sets the shape
-;;; position to the top-left corner of the platform, and returns the starting
-;;; tile ID for the rocks.
+;;; Determines if the specified platform should be drawn, and if so, sets the
+;;; shape position to the top-left corner of the platform, and returns the
+;;; starting tile ID for a checkerboard pattern.
 ;;; @param X The platform index.
+;;; @param Y The first of the two checkerboard tile IDs (must be 0 mod 2).
 ;;; @return C Set if the platform should be drawn.
 ;;; @return T2 The starting tile ID.
 ;;; @preserve X
-.PROC FuncA_Objects_StartDrawRocksPlatform
+.PROC FuncA_Objects_StartDrawPlatformChex
     ;; If the platform isn't solid, we're done.
     lda Ram_PlatformType_ePlatform_arr, x
     cmp #kFirstSolidPlatformType
     blt @return
     ;; Position the shape.
-    jsr FuncA_Objects_SetShapePosToPlatformTopLeft  ; preserves X
-    ;; Determine which rocks tile to start with.
+    jsr FuncA_Objects_SetShapePosToPlatformTopLeft  ; preserves X and Y
+    ;; Determine which checkerboard tile to start with.
     lda Ram_PlatformLeft_i16_0_arr, x
     eor Ram_PlatformTop_i16_0_arr, x
     .assert kTileWidthPx = kTileHeightPx, error
     div #kTileWidthPx
     and #$01
-    .assert kTileIdObjRocksFirst .mod 2 = 0, error
-    ora #kTileIdObjRocksFirst
+    sty T2  ; first tile ID
+    ora T2
     sta T2  ; starting tile ID
     sec  ; set C to indicate that the platform should be drawn
     @return:
     rts
 .ENDPROC
 
-;;; Draws one tile of a rocks platform, at the current shape position.
-;;; @param X The index of this rock tile within the platform.
+;;; Draws one tile of a checkerboarded pattern, at the current shape position.
+;;; @param X The index of this tile within the platform.
 ;;; @param T2 The starting tile ID.
 ;;; @preserve X, T2+
-.PROC FuncA_Objects_DrawRocksPlatformTile
+.PROC FuncA_Objects_DrawChexTile
     txa  ; rock index
     and #$01
     eor T2  ; starting tile ID
-    ldy #kPaletteObjRocks  ; param: objects flags
+    ldy #kPaletteObjPlatformChex  ; param: objects flags
     jmp FuncA_Objects_Draw1x1Shape  ; preserves X and T2+
 .ENDPROC
 

@@ -29,7 +29,6 @@
 .INCLUDE "../machines/winch.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../mmc3.inc"
-.INCLUDE "../oam.inc"
 .INCLUDE "../platform.inc"
 .INCLUDE "../ppu.inc"
 .INCLUDE "../program.inc"
@@ -45,12 +44,11 @@
 .IMPORT FuncA_Machine_WinchReachedGoal
 .IMPORT FuncA_Machine_WinchStartFalling
 .IMPORT FuncA_Machine_WriteToLever
-.IMPORT FuncA_Objects_Alloc1x1Shape
 .IMPORT FuncA_Objects_Draw1x1Shape
 .IMPORT FuncA_Objects_DrawBoss
+.IMPORT FuncA_Objects_DrawPlatformCryptBricksVert
 .IMPORT FuncA_Objects_DrawWinchMachineWithSpikeball
 .IMPORT FuncA_Objects_MoveShapeDownByA
-.IMPORT FuncA_Objects_MoveShapeDownOneTile
 .IMPORT FuncA_Objects_MoveShapeLeftByA
 .IMPORT FuncA_Objects_MoveShapeRightByA
 .IMPORT FuncA_Objects_MoveShapeUpByA
@@ -77,7 +75,6 @@
 .IMPORT Ppu_ChrObjBoss1
 .IMPORT Ram_MachineGoalHorz_u8_arr
 .IMPORT Ram_MachineGoalVert_u8_arr
-.IMPORT Ram_Oam_sObj_arr64
 .IMPORT Ram_PlatformLeft_i16_0_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORTZP Zp_Active_sIrq
@@ -188,12 +185,8 @@ kBossHurtMoveDistPx = 60
 
 ;;;=========================================================================;;;
 
-;;; The OBJ tile ID for the first of the two side wall tiles.
-kTileIdObjSideWallFirst = kTileIdObjGazerFirst + 0
-;;; The OBJ palette number to use for the side walls.
-kPaletteObjSideWall = 0
 ;;; The OBJ tile ID for the pupil of the boss's eye.
-kTileIdObjBossPupil = kTileIdObjGazerFirst + 2
+kTileIdObjBossPupil = kTileIdObjGazerFirst + 0
 ;;; The OBJ palette number to use for the pupil of the boss's eye.
 kPaletteObjBossPupil = 0
 
@@ -281,7 +274,7 @@ _Ext_sRoomExt:
     d_addr Enter_func_ptr, FuncC_Boss_Crypt_EnterRoom
     d_addr FadeIn_func_ptr, FuncC_Boss_Crypt_FadeInRoom
     d_addr Tick_func_ptr, FuncC_Boss_Crypt_TickRoom
-    d_addr Draw_func_ptr, FuncC_Boss_Crypt_DrawRoom
+    d_addr Draw_func_ptr, FuncA_Objects_DrawBoss
     D_END
 _TerrainData:
 :   .incbin "out/rooms/boss_crypt.room"
@@ -369,8 +362,8 @@ _Devices_sDevice_arr:
     .assert * - :- = kBossUpgradeDeviceIndex * .sizeof(sDevice), error
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Placeholder  ; will be an upgrade
-    d_byte BlockRow_u8, 11
-    d_byte BlockCol_u8, 2
+    d_byte BlockRow_u8, 12
+    d_byte BlockCol_u8, 8
     d_byte Target_byte, eFlag::UpgradeOpRest
     D_END
     .assert * - :- = kBossBreakerDeviceIndex * .sizeof(sDevice), error
@@ -876,12 +869,6 @@ _GoalPosX_u8_arr8:
     rts
 .ENDPROC
 
-;;; Draw function for the BossCrypt room.
-;;; @prereq PRGA_Objects is loaded.
-.PROC FuncC_Boss_Crypt_DrawRoom
-    jmp FuncA_Objects_DrawBoss
-.ENDPROC
-
 ;;; Draw function for the crypt boss.
 ;;; @prereq PRGA_Objects is loaded.
 .PROC FuncC_Boss_Crypt_DrawBoss
@@ -930,9 +917,9 @@ _DrawBossPupil:
     jsr FuncA_Objects_Draw1x1Shape
 _DrawSideWalls:
     ldx #kLeftWallPlatformIndex  ; param: platform index
-    jsr FuncA_Objects_BossCrypt_DrawSideWall
+    jsr FuncA_Objects_DrawPlatformCryptBricksVert
     ldx #kRightWallPlatformIndex  ; param: platform index
-    jmp FuncA_Objects_BossCrypt_DrawSideWall
+    jmp FuncA_Objects_DrawPlatformCryptBricksVert
 _EyeOffsetX_u8_arr:
     D_ARRAY .enum, eEyeDir
     d_byte Left,      6
@@ -1039,31 +1026,6 @@ _EyeOffsetY_u8_arr:
 ;;;=========================================================================;;;
 
 .SEGMENT "PRGA_Objects"
-
-;;; Allocates and populates OAM slots for one of the two side walls.
-;;; @param X The platform index for the side wall to draw.
-.PROC FuncA_Objects_BossCrypt_DrawSideWall
-    jsr FuncA_Objects_SetShapePosToPlatformTopLeft
-    ldx #6
-    @loop:
-    jsr FuncA_Objects_Alloc1x1Shape  ; preserves X, returns C and Y
-    bcs @continue
-    lda Zp_ShapePosX_i16
-    eor Zp_ShapePosY_i16
-    .assert kTileWidthPx = kTileHeightPx, error
-    div #kTileWidthPx
-    and #1
-    .assert kTileIdObjSideWallFirst .mod 2 = 0, error
-    ora #kTileIdObjSideWallFirst
-    sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
-    lda #kPaletteObjSideWall
-    sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
-    @continue:
-    jsr FuncA_Objects_MoveShapeDownOneTile  ; preserves X
-    dex
-    bne @loop
-    rts
-.ENDPROC
 
 ;;; Draws the BossCryptWinch machine.
 .PROC FuncA_Objects_BossCryptWinch_Draw
