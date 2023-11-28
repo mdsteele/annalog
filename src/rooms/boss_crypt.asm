@@ -905,6 +905,7 @@ _SetUpIrq:
     sta <(Zp_Buffered_sIrq + sIrq::Param1_byte)  ; boss scroll-X
     lda #kBossStartRow * kTileHeightPx + kBossHeightPx / 2 + kBossZoneTopY
     sub Zp_ShapePosY_i16 + 0
+    sub Zp_RoomScrollY_u8
     sta <(Zp_Buffered_sIrq + sIrq::Param2_byte)  ; boss scroll-Y
 _DrawBossPupil:
     ldx Zp_RoomState + sState::Boss_eEyeDir

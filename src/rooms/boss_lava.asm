@@ -21,6 +21,7 @@
 .INCLUDE "../charmap.inc"
 .INCLUDE "../device.inc"
 .INCLUDE "../flag.inc"
+.INCLUDE "../irq.inc"
 .INCLUDE "../machine.inc"
 .INCLUDE "../machines/blaster.inc"
 .INCLUDE "../macros.inc"
@@ -47,11 +48,17 @@
 .IMPORT FuncA_Objects_DrawBoilerValve1
 .IMPORT FuncA_Objects_DrawBoss
 .IMPORT FuncA_Objects_DrawPlatformVolcanicVert
+.IMPORT FuncA_Objects_MoveShapeDownByA
+.IMPORT FuncA_Objects_MoveShapeRightByA
+.IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
 .IMPORT FuncA_Room_InitBoss
 .IMPORT FuncA_Room_MachineBoilerReset
 .IMPORT FuncA_Room_ResetLever
 .IMPORT FuncA_Room_TickBoss
 .IMPORT FuncA_Terrain_FadeInShortRoomWithLava
+.IMPORT Func_AckIrqAndLatchWindowFromParam3
+.IMPORT Func_AckIrqAndSetLatch
+.IMPORT Func_BufferPpuTransfer
 .IMPORT Func_DistanceSensorRightDetectPoint
 .IMPORT Func_MachineBoilerReadReg
 .IMPORT Func_MovePointLeftByA
@@ -60,7 +67,14 @@
 .IMPORT Ppu_ChrObjLava
 .IMPORT Ram_MachineGoalHorz_u8_arr
 .IMPORT Ram_PlatformLeft_i16_0_arr
+.IMPORTZP Zp_Active_sIrq
+.IMPORTZP Zp_Buffered_sIrq
+.IMPORTZP Zp_IrqTmp_byte
+.IMPORTZP Zp_NextIrq_int_ptr
+.IMPORTZP Zp_RoomScrollY_u8
 .IMPORTZP Zp_RoomState
+.IMPORTZP Zp_ShapePosX_i16
+.IMPORTZP Zp_ShapePosY_i16
 
 ;;;=========================================================================;;;
 
@@ -96,6 +110,36 @@ kBlasterInitPlatformLeft = \
 .LINECONT -
 
 ;;;=========================================================================;;;
+
+;;; The room pixel Y-positions for the top and bottom of the zone that the boss
+;;; can move within.
+kBossZoneTopY    = $30
+kBossZoneBottomY = $80
+
+;;; The tile row/col in the lower nametable for the top-left corner of the
+;;; boss's BG tiles.
+kBossStartRow = 7
+kBossStartCol = 0
+
+;;; The width and height of the boss's BG tile grid.
+kBossWidthTiles = 8
+kBossHeightTiles = 5
+kBossWidthPx = kBossWidthTiles * kTileWidthPx
+kBossHeightPx = kBossHeightTiles * kTileHeightPx
+
+;;; The PPU addresses for the start (left) of each row of the boss's BG tiles.
+.LINECONT +
+Ppu_BossRow0Start = Ppu_Nametable3_sName + sName::Tiles_u8_arr + \
+    kScreenWidthTiles * (kBossStartRow + 0) + kBossStartCol
+Ppu_BossRow1Start = Ppu_Nametable3_sName + sName::Tiles_u8_arr + \
+    kScreenWidthTiles * (kBossStartRow + 1) + kBossStartCol
+Ppu_BossRow2Start = Ppu_Nametable3_sName + sName::Tiles_u8_arr + \
+    kScreenWidthTiles * (kBossStartRow + 2) + kBossStartCol
+Ppu_BossRow3Start = Ppu_Nametable3_sName + sName::Tiles_u8_arr + \
+    kScreenWidthTiles * (kBossStartRow + 3) + kBossStartCol
+Ppu_BossRow4Start = Ppu_Nametable3_sName + sName::Tiles_u8_arr + \
+    kScreenWidthTiles * (kBossStartRow + 4) + kBossStartCol
+.LINECONT -
 
 ;;; Modes that the boss in this room can be in.
 .ENUM eBossMode
@@ -158,7 +202,7 @@ _Ext_sRoomExt:
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
     d_addr Passages_sPassage_arr_ptr, 0
     d_addr Enter_func_ptr, FuncA_Room_BossLava_EnterRoom
-    d_addr FadeIn_func_ptr, FuncA_Terrain_FadeInShortRoomWithLava
+    d_addr FadeIn_func_ptr, FuncC_Boss_Lava_FadeInRoom
     d_addr Tick_func_ptr, FuncC_Boss_Lava_TickRoom
     d_addr Draw_func_ptr, FuncC_Boss_Lava_DrawRoom
     D_END
@@ -192,7 +236,7 @@ _Machines_sMachine_arr:
     d_byte Flags_bMachine, bMachine::Act | bMachine::WriteCD | bMachine::WriteE
     d_byte Status_eDiagram, eDiagram::Boiler
     d_word ScrollGoalX_u16, $00
-    d_byte ScrollGoalY_u8, $30
+    d_byte ScrollGoalY_u8, $24
     d_byte RegNames_u8_arr4, "L", "R", "V", 0
     d_byte MainPlatform_u8, kBoilerPlatformIndex
     d_addr Init_func_ptr, Func_Noop
@@ -272,10 +316,10 @@ _Platforms_sPlatform_arr:
     D_END
     .assert * - :- = kBossBodyPlatformIndex * .sizeof(sPlatform), error
     D_STRUCT sPlatform
-    d_byte Type_ePlatform, ePlatform::Zone
-    d_word WidthPx_u16, $30
-    d_byte HeightPx_u8, $20
-    d_word Left_i16,  $0070
+    d_byte Type_ePlatform, ePlatform::Harm
+    d_word WidthPx_u16, kBossWidthPx
+    d_byte HeightPx_u8, kBossHeightPx
+    d_word Left_i16,  $0060
     d_word Top_i16,   $0040
     D_END
     ;; Lava:
@@ -349,6 +393,43 @@ _Devices_sDevice_arr:
     D_END
 .ENDPROC
 
+.PROC DataC_Boss_LavaInitTransfer_arr
+    .assert kBossWidthTiles = 8, error
+    .assert kBossHeightTiles = 5, error
+    ;; Row 0:
+    .byte kPpuCtrlFlagsHorz
+    .dbyt Ppu_BossRow0Start  ; transfer destination
+    .byte 8
+    .byte $49, $49, $49, $49, $49, $49, $49, $49
+    ;; Row 1:
+    .byte kPpuCtrlFlagsHorz
+    .dbyt Ppu_BossRow1Start  ; transfer destination
+    .byte 8
+    .byte $49, $49, $49, $49, $49, $49, $49, $49
+    ;; Row 2:
+    .byte kPpuCtrlFlagsHorz
+    .dbyt Ppu_BossRow2Start  ; transfer destination
+    .byte 8
+    .byte $49, $49, $49, $49, $49, $49, $49, $49
+    ;; Row 3:
+    .byte kPpuCtrlFlagsHorz
+    .dbyt Ppu_BossRow3Start  ; transfer destination
+    .byte 8
+    .byte $49, $49, $49, $49, $49, $49, $49, $49
+    ;; Row 4:
+    .byte kPpuCtrlFlagsHorz
+    .dbyt Ppu_BossRow4Start  ; transfer destination
+    .byte 8
+    .byte $49, $49, $49, $49, $49, $49, $49, $49
+.ENDPROC
+
+.PROC FuncC_Boss_Lava_FadeInRoom
+    ldax #DataC_Boss_LavaInitTransfer_arr  ; param: data pointer
+    ldy #.sizeof(DataC_Boss_LavaInitTransfer_arr)  ; param: data length
+    jsr Func_BufferPpuTransfer
+    jmp FuncA_Terrain_FadeInShortRoomWithLava
+.ENDPROC
+
 ;;; Room tick function for the BossLava room.
 ;;; @prereq PRGA_Room is loaded.
 .PROC FuncC_Boss_Lava_TickRoom
@@ -390,16 +471,42 @@ _BossShooting:
 ;;; Draw function for the BossLava room.
 ;;; @prereq PRGA_Objects is loaded.
 .PROC FuncC_Boss_Lava_DrawRoom
-_AnimateLava:
     jsr FuncA_Objects_AnimateLavaTerrain
-_DrawBoss:
     jmp FuncA_Objects_DrawBoss
 .ENDPROC
 
 ;;; Draw function for the lava boss.
 ;;; @prereq PRGA_Objects is loaded.
 .PROC FuncC_Boss_Lava_DrawBoss
-    ;; TODO: draw the boss
+_SetShapePosition:
+    ;; Set the shape position to the center of the boss's body.
+    ldx #kBossBodyPlatformIndex  ; param: platform index
+    jsr FuncA_Objects_SetShapePosToPlatformTopLeft
+    lda #kBossWidthPx / 2  ; param: offset
+    jsr FuncA_Objects_MoveShapeRightByA
+    lda #kBossHeightPx / 2  ; param: offset
+    jsr FuncA_Objects_MoveShapeDownByA
+_SetUpIrq:
+    ;; Compute the IRQ latch value to set between the bottom of the boss's zone
+    ;; and the top of the window (if any), and set that as Param3_byte.
+    lda <(Zp_Buffered_sIrq + sIrq::Latch_u8)
+    sub #kBossZoneBottomY
+    add Zp_RoomScrollY_u8
+    sta <(Zp_Buffered_sIrq + sIrq::Param3_byte)  ; window latch
+    ;; Set up our own sIrq struct to handle boss movement.
+    lda #kBossZoneTopY - 1
+    sub Zp_RoomScrollY_u8
+    sta <(Zp_Buffered_sIrq + sIrq::Latch_u8)
+    ldax #Int_BossLavaZoneTopIrq
+    stax <(Zp_Buffered_sIrq + sIrq::FirstIrq_int_ptr)
+    ;; Compute PPU scroll values for the boss zone.
+    lda #kBossStartCol * kTileWidthPx + kBossWidthPx / 2
+    sub Zp_ShapePosX_i16 + 0
+    sta <(Zp_Buffered_sIrq + sIrq::Param1_byte)  ; boss scroll-X
+    lda #kBossStartRow * kTileHeightPx + kBossHeightPx / 2 + kBossZoneTopY
+    sub Zp_ShapePosY_i16 + 0
+    sub Zp_RoomScrollY_u8
+    sta <(Zp_Buffered_sIrq + sIrq::Param2_byte)  ; boss scroll-Y
 _DrawSideWalls:
     ldx #kLeftWallPlatformIndex  ; param: platform index
     jsr FuncA_Objects_DrawPlatformVolcanicVert
@@ -552,6 +659,91 @@ _ValvePipePlatformIndex_u8_arr4:
     .byte kPipe2PlatformIndex
     .byte kPipe2PlatformIndex
     .byte kPipe1PlatformIndex
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGE_Irq"
+
+;;; HBlank IRQ handler function for the top of the boss's zone in the BossLava
+;;; room.  Sets the horizontal and vertical scroll so as to make the boss's BG
+;;; tiles appear to move.
+.PROC Int_BossLavaZoneTopIrq
+    ;; Save A and X registers (we won't be using Y).
+    pha
+    txa
+    pha
+    ;; At this point, the first HBlank is already just about over.  Set up the
+    ;; next IRQ.
+    lda #kBossZoneBottomY - kBossZoneTopY - 1  ; param: latch value
+    jsr Func_AckIrqAndSetLatch  ; preserves Y
+    ldax #Int_BossLavaZoneBottomIrq
+    stax Zp_NextIrq_int_ptr
+    ;; Busy-wait for a bit, that our final writes in this function will occur
+    ;; during the next HBlank.
+    ldx #2  ; This value is hand-tuned to help wait for second HBlank.
+    @busyLoop:
+    dex
+    bne @busyLoop
+    ;; Set the PPU's new scroll-Y and scroll-X values, and also set the lower
+    ;; nametable as the scrolling origin.  All of this takes four writes, and
+    ;; the last two must happen during HBlank (between dots 256 and 320).
+    ;; See https://www.nesdev.org/wiki/PPU_scrolling#Split_X.2FY_scroll
+    lda #3 << 2  ; nametable number << 2
+    sta Hw_PpuAddr_w2
+    lda <(Zp_Active_sIrq + sIrq::Param2_byte)  ; boss scroll-Y
+    sta Hw_PpuScroll_w2
+    and #$38
+    mul #4
+    sta Zp_IrqTmp_byte  ; ((Y & $38) << 2)
+    lda <(Zp_Active_sIrq + sIrq::Param1_byte)  ; boss scroll-X
+    tax  ; new scroll-X value
+    div #8
+    ora Zp_IrqTmp_byte
+    ;; We should now be in the second HBlank.
+    stx Hw_PpuScroll_w2
+    sta Hw_PpuAddr_w2  ; ((Y & $38) << 2) | (X >> 3)
+    ;; Restore registers and return.
+    pla
+    tax
+    pla
+    rti
+.ENDPROC
+
+;;; HBlank IRQ handler function for the bottom of the boss's zone in the
+;;; BossLava room.  Sets the horizontal and vertical scroll so as to make the
+;;; bottom of the room look normal.
+.PROC Int_BossLavaZoneBottomIrq
+    ;; Save A and X registers (we won't be using Y).
+    pha
+    txa
+    pha
+    ;; At this point, the first HBlank is already just about over.  Ack the
+    ;; current IRQ and prepare for the next one.
+    jsr Func_AckIrqAndLatchWindowFromParam3  ; preserves Y
+    ;; Busy-wait for a bit, that our final writes in this function will occur
+    ;; during the next HBlank.
+    ldx #7  ; This value is hand-tuned to help wait for second HBlank.
+    @busyLoop:
+    dex
+    bne @busyLoop
+    ;; Set the PPU's new scroll-Y and scroll-X values, and also set the upper
+    ;; nametable as the scrolling origin.  All of this takes four writes, and
+    ;; the last two must happen during HBlank (between dots 256 and 320).
+    ;; See https://www.nesdev.org/wiki/PPU_scrolling#Split_X.2FY_scroll
+    lda #0 << 2  ; nametable number << 2
+    sta Hw_PpuAddr_w2
+    lda #kBossZoneBottomY  ; new scroll-Y value
+    sta Hw_PpuScroll_w2
+    lda #(kBossZoneBottomY & $38) << 2
+    ;; We should now be in the second HBlank (and X is zero).
+    stx Hw_PpuScroll_w2  ; new scroll-X value (zero)
+    sta Hw_PpuAddr_w2    ; ((Y & $38) << 2) | (X >> 3)
+    ;; Restore registers and return.
+    pla
+    tax
+    pla
+    rti
 .ENDPROC
 
 ;;;=========================================================================;;;
