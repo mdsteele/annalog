@@ -60,7 +60,11 @@
 .IMPORT Func_AckIrqAndSetLatch
 .IMPORT Func_BufferPpuTransfer
 .IMPORT Func_DistanceSensorRightDetectPoint
+.IMPORT Func_DivMod
+.IMPORT Func_GetRandomByte
 .IMPORT Func_MachineBoilerReadReg
+.IMPORT Func_MovePlatformLeftTowardPointX
+.IMPORT Func_MovePlatformTopTowardPointY
 .IMPORT Func_MovePointLeftByA
 .IMPORT Func_Noop
 .IMPORT Func_SetPointToAvatarCenter
@@ -71,6 +75,8 @@
 .IMPORTZP Zp_Buffered_sIrq
 .IMPORTZP Zp_IrqTmp_byte
 .IMPORTZP Zp_NextIrq_int_ptr
+.IMPORTZP Zp_PointX_i16
+.IMPORTZP Zp_PointY_i16
 .IMPORTZP Zp_RoomScrollY_u8
 .IMPORTZP Zp_RoomState
 .IMPORTZP Zp_ShapePosX_i16
@@ -111,40 +117,52 @@ kBlasterInitPlatformLeft = \
 
 ;;;=========================================================================;;;
 
-;;; The room pixel Y-positions for the top and bottom of the zone that the boss
-;;; can move within.
-kBossZoneTopY    = $30
-kBossZoneBottomY = $80
-
-;;; The tile row/col in the lower nametable for the top-left corner of the
-;;; boss's BG tiles.
-kBossStartRow = 7
-kBossStartCol = 0
-
 ;;; The width and height of the boss's BG tile grid.
 kBossWidthTiles = 8
 kBossHeightTiles = 5
 kBossWidthPx = kBossWidthTiles * kTileWidthPx
 kBossHeightPx = kBossHeightTiles * kTileHeightPx
 
+;;; The minimum permitted room pixel X-positions for the center and left of the
+;;; boss's body.
+kBossMinCenterX = $38
+kBossMinLeftX   = kBossMinCenterX - kBossWidthPx / 2
+
+;;; The room pixel Y-positions for the top and bottom of the zone that the boss
+;;; can move within.
+kBossZoneTopY    = $30
+kBossZoneBottomY = $80
+
+;;; The boss's initial and maximum goal positions within its zone, measured in
+;;; blocks.
+kBossInitGoalX = 5
+kBossMaxGoalX  = 9
+kBossInitGoalY = 0
+kBossMaxGoalY  = 2
+
+;;; The tile row/col in the lower nametable for the top-left corner of the
+;;; boss's BG tiles.
+kBossBgStartRow = 7
+kBossBgStartCol = 0
+
 ;;; The PPU addresses for the start (left) of each row of the boss's BG tiles.
 .LINECONT +
 Ppu_BossRow0Start = Ppu_Nametable3_sName + sName::Tiles_u8_arr + \
-    kScreenWidthTiles * (kBossStartRow + 0) + kBossStartCol
+    kScreenWidthTiles * (kBossBgStartRow + 0) + kBossBgStartCol
 Ppu_BossRow1Start = Ppu_Nametable3_sName + sName::Tiles_u8_arr + \
-    kScreenWidthTiles * (kBossStartRow + 1) + kBossStartCol
+    kScreenWidthTiles * (kBossBgStartRow + 1) + kBossBgStartCol
 Ppu_BossRow2Start = Ppu_Nametable3_sName + sName::Tiles_u8_arr + \
-    kScreenWidthTiles * (kBossStartRow + 2) + kBossStartCol
+    kScreenWidthTiles * (kBossBgStartRow + 2) + kBossBgStartCol
 Ppu_BossRow3Start = Ppu_Nametable3_sName + sName::Tiles_u8_arr + \
-    kScreenWidthTiles * (kBossStartRow + 3) + kBossStartCol
+    kScreenWidthTiles * (kBossBgStartRow + 3) + kBossBgStartCol
 Ppu_BossRow4Start = Ppu_Nametable3_sName + sName::Tiles_u8_arr + \
-    kScreenWidthTiles * (kBossStartRow + 4) + kBossStartCol
+    kScreenWidthTiles * (kBossBgStartRow + 4) + kBossBgStartCol
 .LINECONT -
 
 ;;; Modes that the boss in this room can be in.
 .ENUM eBossMode
     Dead
-    Shooting
+    Scuttling  ; moving to the goal position
     ;; TODO: other modes
     NUM_VALUES
 .ENDENUM
@@ -155,6 +173,8 @@ kBossInitHealth = 8
 ;;; How many frames the boss waits, after you first enter the room, before
 ;;; taking action.
 kBossInitCooldown = 120
+;;; How many frames to wait between consecutive scuttle actions.
+kBossScuttleCooldown = 60
 
 ;;; The platform index for the boss's body.
 kBossBodyPlatformIndex = 8
@@ -164,15 +184,18 @@ kBossBodyPlatformIndex = 8
 ;;; Defines room-specific state data for this particular room.
 .STRUCT sState
     ;; The current states of the room's two levers.
-    LeverLeft_u8  .byte
-    LeverRight_u8 .byte
+    LeverLeft_u8      .byte
+    LeverRight_u8     .byte
     ;; What mode the boss is in.
     Current_eBossMode .byte
     ;; How many more blaster hits are needed before the boss dies.
-    BossHealth_u8 .byte
+    BossHealth_u8     .byte
     ;; Timer that ticks down each frame when nonzero.  Used to time transitions
     ;; between boss modes.
-    BossCooldown_u8 .byte
+    BossCooldown_u8   .byte
+    ;; The goal position for the boss within its zone, in blocks.
+    BossGoalX_u8      .byte  ; 0-9
+    BossGoalY_u8      .byte  ; 0-2
 .ENDSTRUCT
 .ASSERT .sizeof(sState) <= kRoomStateSize, error
 
@@ -319,8 +342,8 @@ _Platforms_sPlatform_arr:
     d_byte Type_ePlatform, ePlatform::Harm
     d_word WidthPx_u16, kBossWidthPx
     d_byte HeightPx_u8, kBossHeightPx
-    d_word Left_i16,  $0060
-    d_word Top_i16,   $0040
+    d_word Left_i16, kBossMinLeftX + kBlockWidthPx * kBossInitGoalX
+    d_word Top_i16, kBossZoneTopY + kBlockHeightPx * kBossInitGoalY
     D_END
     ;; Lava:
     D_STRUCT sPlatform
@@ -444,8 +467,9 @@ _Devices_sDevice_arr:
     ;; TODO: check for blaster projectiles hitting boss
 _CoolDown:
     ;; Wait for cooldown to expire.
-    dec Zp_RoomState + sState::BossCooldown_u8
+    lda Zp_RoomState + sState::BossCooldown_u8
     beq _CheckMode
+    dec Zp_RoomState + sState::BossCooldown_u8
     rts
 _CheckMode:
     ;; Branch based on the current boss mode.
@@ -459,12 +483,48 @@ _CheckMode:
     D_TABLE_LO table, _JumpTable_ptr_0_arr
     D_TABLE_HI table, _JumpTable_ptr_1_arr
     D_TABLE .enum, eBossMode
-    d_entry table, Dead,     Func_Noop
-    d_entry table, Shooting, _BossShooting
+    d_entry table, Dead,      Func_Noop
+    d_entry table, Scuttling, _BossScuttling
     D_END
 .ENDREPEAT
-_BossShooting:
-    ;; TODO: implement real behavior
+_BossScuttling:
+    ;; Compute the goal top-left position for the boss's body platform, storing
+    ;; it in Zp_Point*_i16.
+    lda Zp_RoomState + sState::BossGoalX_u8
+    mul #kBlockWidthPx  ; this will clear the carry
+    adc #kBossMinLeftX
+    sta Zp_PointX_i16 + 0
+    lda Zp_RoomState + sState::BossGoalY_u8
+    mul #kBlockHeightPx  ; this will clear the carry
+    adc #kBossZoneTopY
+    sta Zp_PointY_i16 + 0
+    lda #0
+    sta Zp_PointX_i16 + 1
+    sta Zp_PointY_i16 + 1
+    ;; Move the boss's body towards the goal position.
+    ldx #kBossBodyPlatformIndex  ; param: platform index
+    lda #1  ; param: max move by
+    jsr Func_MovePlatformLeftTowardPointX  ; preserves X, returns A
+    pha     ; horz move delta
+    lda #1  ; param: max move by
+    jsr Func_MovePlatformTopTowardPointY  ; returns A
+    sta T0  ; vert move delta
+    pla     ; horz move delta
+    ora T0  ; vert move delta
+    bne @done  ; not at goal yet
+    ;; Once the goal position is reached, pick a new goal position.
+    jsr Func_GetRandomByte  ; returns A (param: dividend)
+    ldy #kBossMaxGoalX + 1  ; param: divisor
+    jsr Func_DivMod  ; returns remainder in A
+    sta Zp_RoomState + sState::BossGoalX_u8
+    jsr Func_GetRandomByte  ; returns A (param: dividend)
+    ldy #kBossMaxGoalY + 1  ; param: divisor
+    jsr Func_DivMod  ; returns remainder in A
+    sta Zp_RoomState + sState::BossGoalY_u8
+    ;; Set a cooldown before proceeding to the next goal position.
+    lda #kBossScuttleCooldown
+    sta Zp_RoomState + sState::BossCooldown_u8
+    @done:
     rts
 .ENDPROC
 
@@ -500,10 +560,10 @@ _SetUpIrq:
     ldax #Int_BossLavaZoneTopIrq
     stax <(Zp_Buffered_sIrq + sIrq::FirstIrq_int_ptr)
     ;; Compute PPU scroll values for the boss zone.
-    lda #kBossStartCol * kTileWidthPx + kBossWidthPx / 2
+    lda #kBossBgStartCol * kTileWidthPx + kBossWidthPx / 2
     sub Zp_ShapePosX_i16 + 0
     sta <(Zp_Buffered_sIrq + sIrq::Param1_byte)  ; boss scroll-X
-    lda #kBossStartRow * kTileHeightPx + kBossHeightPx / 2 + kBossZoneTopY
+    lda #kBossBgStartRow * kTileHeightPx + kBossHeightPx / 2 + kBossZoneTopY
     sub Zp_ShapePosY_i16 + 0
     sub Zp_RoomScrollY_u8
     sta <(Zp_Buffered_sIrq + sIrq::Param2_byte)  ; boss scroll-Y
@@ -587,8 +647,12 @@ _BossIsAlive:
     sta Zp_RoomState + sState::BossHealth_u8
     lda #kBossInitCooldown
     sta Zp_RoomState + sState::BossCooldown_u8
-    lda #eBossMode::Shooting
+    lda #eBossMode::Scuttling
     sta Zp_RoomState + sState::Current_eBossMode
+    .assert kBossInitGoalX <> 0, error
+    lda #kBossInitGoalX
+    sta Zp_RoomState + sState::BossGoalX_u8
+    .assert kBossInitGoalY = 0, error
 _BossIsDead:
     rts
 .ENDPROC
