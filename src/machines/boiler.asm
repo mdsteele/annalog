@@ -17,6 +17,7 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
+.INCLUDE "../actors/steam.inc"
 .INCLUDE "../machine.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
@@ -52,6 +53,9 @@
 .IMPORTZP Zp_MachineIndex_u8
 
 ;;;=========================================================================;;;
+
+;;; How many frames a boiler machine spends per ACT operation.
+kBoilerActCooldown = kSteamNumFrames + 16
 
 ;;; OBJ palette numbers used for boiler machines and valves.
 kPaletteObjBoiler = 0
@@ -257,7 +261,7 @@ _Finish:
 .EXPORT FuncA_Machine_BoilerFinishEmittingSteam
 .PROC FuncA_Machine_BoilerFinishEmittingSteam
     ;; TODO play a sound
-    lda #kBoilerActCountdown  ; param: num frames
+    lda #kBoilerActCooldown  ; param: num frames
     jmp FuncA_Machine_StartWaiting
 .ENDPROC
 

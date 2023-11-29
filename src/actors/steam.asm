@@ -21,8 +21,10 @@
 .INCLUDE "../avatar.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
+.INCLUDE "steam.inc"
 
 .IMPORT FuncA_Actor_IsCollidingWithAvatar
+.IMPORT FuncA_Objects_Draw1x2Actor
 .IMPORT FuncA_Objects_Draw2x2Actor
 .IMPORT Func_InitActorDefault
 .IMPORT Ram_ActorFlags_bObj_arr
@@ -34,12 +36,15 @@
 
 ;;;=========================================================================;;;
 
-;;; The acceleration applied to the player avatar when being pushed by steam,
-;;; in subpixels per frame per frame.
-kSteamAccel = 220
+;;; The maximum acceleration applied to the player avatar when being pushed by
+;;; steam, in subpixels per frame per frame.
+kSteamMaxAccel = 220
 
-;;; How long a steam actor animates before disappearing, in frames.
-kSteamNumFrames = 32
+;;; The number of distinct animation shapes a steam projectile has.
+kSteamNumAnimShapes = 8
+
+;;; The number of VBlank frames per steam animation shape.
+.DEFINE kSteamAnimSlowdown 4
 
 ;;; The OBJ palette number to use for drawing steam projectile actors.
 kPaletteObjSteam = 0
@@ -85,23 +90,24 @@ kPaletteObjSteam = 0
     ;; If the player avatar is in the steam, push them sideways.
     jsr FuncA_Actor_IsCollidingWithAvatar  ; preserves X, returns C
     bcc @noPush
+    jsr FuncA_Actor_GetSteamAccel  ; preserves X, returns T0
     lda Ram_ActorFlags_bObj_arr, x
     and #bObj::FlipH
     beq @pushRight
     @pushLeft:
     lda Zp_AvatarVelX_i16 + 0
-    sub #<kSteamAccel
+    sub T0  ; accel
     sta Zp_AvatarVelX_i16 + 0
     lda Zp_AvatarVelX_i16 + 1
-    sbc #>kSteamAccel
+    sbc #0
     sta Zp_AvatarVelX_i16 + 1
     jmp FuncA_Actor_IncrementSteamAge  ; preserves X
     @pushRight:
     lda Zp_AvatarVelX_i16 + 0
-    add #<kSteamAccel
+    add T0  ; accel
     sta Zp_AvatarVelX_i16 + 0
     lda Zp_AvatarVelX_i16 + 1
-    adc #>kSteamAccel
+    adc #0
     sta Zp_AvatarVelX_i16 + 1
     @noPush:
     jmp FuncA_Actor_IncrementSteamAge  ; preserves X
@@ -118,11 +124,12 @@ kPaletteObjSteam = 0
     lda Zp_AvatarState_bAvatar
     and #<~bAvatar::Jumping
     sta Zp_AvatarState_bAvatar
+    jsr FuncA_Actor_GetSteamAccel  ; preserves X, returns T0
     lda Zp_AvatarVelY_i16 + 0
-    sub #<kSteamAccel
+    sub T0  ; accel
     sta Zp_AvatarVelY_i16 + 0
     lda Zp_AvatarVelY_i16 + 1
-    sbc #>kSteamAccel
+    sbc #0
     ;; Clamp upward velocity.
     bpl @noClamp
     .assert <kAvatarMaxAirSpeedVert = 0, error
@@ -142,13 +149,35 @@ kPaletteObjSteam = 0
 ;;; @param X The actor index.
 ;;; @preserve X
 .PROC FuncA_Actor_IncrementSteamAge
-    inc Ram_ActorState1_byte_arr, x
-    lda Ram_ActorState1_byte_arr, x
+    inc Ram_ActorState1_byte_arr, x  ; steam age in frames
+    lda Ram_ActorState1_byte_arr, x  ; steam age in frames
     cmp #kSteamNumFrames
     blt @done
     lda #eActor::None
     sta Ram_ActorType_eActor_arr, x
     @done:
+    rts
+.ENDPROC
+
+;;; Determines the acceleration that the specified steam actor should apply to
+;;; the player avatar, based on its age.
+;;; @param X The actor index.
+;;; @return T0 The steam's acceleration, in subpixels per frame per frame.
+;;; @preserve X
+.PROC FuncA_Actor_GetSteamAccel
+    ldy Ram_ActorState1_byte_arr, x  ; steam age in frames
+    lda #kSteamMaxAccel
+    cpy #kSteamNumFrames / 4
+    blt @finish
+    div #2
+    cpy #kSteamNumFrames / 2
+    blt @finish
+    div #2
+    cpy #kSteamNumFrames * 3 / 4
+    blt @finish
+    div #2
+    @finish:
+    sta T0
     rts
 .ENDPROC
 
@@ -172,10 +201,14 @@ kPaletteObjSteam = 0
 ;;; @preserve X
 .EXPORT FuncA_Objects_DrawActorProjSteamUp
 .PROC FuncA_Objects_DrawActorProjSteamUp
-    ;; TODO: set the actual correct first tile ID
-    lda #$40  ; param: first tile ID
+    lda Ram_ActorState1_byte_arr, x  ; steam age in frames
+    .assert kSteamNumFrames = kSteamNumAnimShapes * kSteamAnimSlowdown, error
+    div #kSteamAnimSlowdown
+    mul #2
+    .assert kTileIdObjSteamVertFirst .mod 16 = 0, error
+    ora #kTileIdObjSteamVertFirst  ; param: first tile ID
     ldy #kPaletteObjSteam  ; param: palette
-    jmp FuncA_Objects_Draw2x2Actor  ; preserves X
+    jmp FuncA_Objects_Draw1x2Actor  ; preserves X
 .ENDPROC
 
 ;;;=========================================================================;;;

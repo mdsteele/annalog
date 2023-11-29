@@ -17,24 +17,19 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
-;;; State bytes for boiler machines:
-;;;   * State1: The current angle of valve #1, which tends toward
-;;;     MachineGoalHorz * kBoilerValveAnimSlowdown.
-;;;   * State2: The current angle of valve #2, which tends toward
-;;;     MachineGoalVert * kBoilerValveAnimSlowdown.
+;;; State bytes for steam projectiles:
+;;;   * Flags: For horizontal steam, the bObj::FlipH bit is set if the steam is
+;;;     aimed leftward, or cleared if it is aimed rightward.  Unused for upward
+;;;     steam.
+;;;   * State1: Counter that starts at zero and increments every frame; when it
+;;;     reaches kSteamNumFrames, then the steam is removed.
+;;;   * State2: Unused.
 ;;;   * State3: Unused.
-;;;   * State4: Unused.
 
-;;; The number of frames between valve angles when animating a boiler valve.
-.DEFINE kBoilerValveAnimSlowdown 4
+;;; How long a steam actor animates before disappearing, in frames.
+kSteamNumFrames = 32
 
-;;; The CHR bank number containing the diagram for boiler machines.
-kChrBankDiagramBoiler = $0e
-
-;;; BG tile IDs for boiler machine diagrams.
-kTileIdBgDiagramBoilerFirst = $e0
-
-;;; Various OBJ tile IDs used for drawing boiler machines.
-kTileIdObjValveFirst  = $bb
+;;; Tile IDs for drawing steam projectile actors.
+kTileIdObjSteamVertFirst = $e0
 
 ;;;=========================================================================;;;

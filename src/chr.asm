@@ -40,6 +40,7 @@
 .INCLUDE "actors/rodent.inc"
 .INCLUDE "actors/spider.inc"
 .INCLUDE "actors/spike.inc"
+.INCLUDE "actors/steam.inc"
 .INCLUDE "actors/toad.inc"
 .INCLUDE "actors/toddler.inc"
 .INCLUDE "actors/townsfolk.inc"
@@ -1112,7 +1113,8 @@ _chr_begin:
     chr_inc "valve",             kTileIdObjValveFirst
     chr_res $10
     chr_inc "mirror",            kTileIdObjMirrorFirst
-    chr_res $1b
+    chr_res $0b
+    chr_inc "steam_vert",        kTileIdObjSteamVertFirst
     chr_inc "breaker",           kTileIdObjBreakerFirst
     END_CHR_BANK
 .ENDPROC
