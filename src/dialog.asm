@@ -394,7 +394,7 @@ _Finish:
 ;;; @param T2 The PRGA bank that contains the dialog text.
 ;;; @param T1T0 A pointer to the start of the dialog text.
 .PROC FuncM_CopyDialogText
-    prga_bank T2
+    main_prga T2
     ldy #$ff
     @loop:
     iny
@@ -726,7 +726,7 @@ _RestPortrait:
     ldy Zp_Current_ePortrait
     ldx DataA_Dialog_PortraitRestBank_u8_arr, y
 _ContinueDialog:
-    chr0c_bank x
+    main_chr0c x
     lda #0  ; Set Z to indicate that we shouldn't copy the next pane of text.
     clc  ; Clear C to indicate that dialog should continue.
     rts
@@ -785,7 +785,7 @@ _DialogDone:
 _SetPortrait:
     sta Zp_Current_ePortrait
     tax  ; ePortrait value
-    chr0c_bank DataA_Dialog_PortraitRestBank_u8_arr, x
+    main_chr0c DataA_Dialog_PortraitRestBank_u8_arr, x
 _ReadTextPointer:
     lda (Zp_Next_sDialog_ptr), y
     iny

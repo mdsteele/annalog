@@ -17,70 +17,43 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
-.INCLUDE "../src/irq.inc"
-.INCLUDE "../src/macros.inc"
-
-.IMPORT Exit_Success
-.IMPORT Func_ExpectAEqualsY
-.IMPORT Func_Window_GetRowPpuAddr
-
-;;;=========================================================================;;;
-
-kExpectedPpuAddr = $2f80
+.INCLUDE "mmc3.inc"
 
 ;;;=========================================================================;;;
 
 .ZEROPAGE
 
-Zp_WindowRowPpuAddr_ptr: .res 2
-
-.EXPORTZP Zp_Active_sIrq
-Zp_Active_sIrq: .tag sIrq
-.EXPORTZP Zp_Buffered_sIrq
-Zp_Buffered_sIrq: .tag sIrq
-.EXPORTZP Zp_NextIrq_int_ptr
-Zp_NextIrq_int_ptr: .res 2
-.EXPORTZP Zp_PpuTransferLen_u8
-Zp_PpuTransferLen_u8: .res 1
-
-.GLOBALZP Zp_MainSelect_bMmc3Bank
+;;; Stores the most recent kSelect* value that the main thread wants stored in
+;;; Hw_Mmc3BankSelect_wo.  The main thread must write to this variable before
+;;; writing to Hw_Mmc3BankSelect_wo, and the IRQ thread must copy this variable
+;;; back to Hw_Mmc3BankSelect_wo after completing a bank switch; this ensures
+;;; that even if an IRQ fires in the middle of a main thread bank switch, it
+;;; will not disrupt it.
 Zp_MainSelect_bMmc3Bank: .res 1
 
 ;;;=========================================================================;;;
 
-.BSS
+.SEGMENT "PRGE_Reset"
 
-.EXPORT Ram_PpuTransfer_arr
-Ram_PpuTransfer_arr: .res $80
-
-;;;=========================================================================;;;
-
-.SEGMENT "CHR_BgFontUpper"
-
-.EXPORT Ppu_ChrBgFontUpper
-.PROC Ppu_ChrBgFontUpper
-    .res $400
+;;; Switches PRGA banks to the given bank number.  This is called by the
+;;; main_prga macro in mmc3.inc.  Putting these few loads and stores in a
+;;; function rather than inline in the macro saves seven bytes per PRGA bank
+;;; switch; because there are so many PRGA bank switches within PRG8 code, this
+;;; adds up to a significant space savings.  (PRGC and CHR bank switches are
+;;; less common, so we don't bother for those.)
+;;;
+;;; This function must be in PRGE rather than PRG8, so that it can be used in
+;;; Main_Reset to initialize the MMC3 (PRG8 can't be used until the MMC3 has
+;;; been initialized).
+;;;
+;;; @param A The PRGA bank number to switch to.
+;;; @preserve X, Y, T0+
+.PROC FuncM_SwitchPrgaBank
+    pha  ; PRGA bank number
+    _main_bank_select kSelectPrga
+    pla  ; PRGA bank number
+    sta Hw_Mmc3BankData_wo
+    rts
 .ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "MAIN"
-    sei
-    cld
-    ldx #$ff
-    txs
-Test:
-    lda #9
-    jsr Func_Window_GetRowPpuAddr
-    stxy Zp_WindowRowPpuAddr_ptr
-Verify:
-    lda Zp_WindowRowPpuAddr_ptr + 0
-    ldy #<kExpectedPpuAddr
-    jsr Func_ExpectAEqualsY
-    lda Zp_WindowRowPpuAddr_ptr + 1
-    ldy #>kExpectedPpuAddr
-    jsr Func_ExpectAEqualsY
-Success:
-    jmp Exit_Success
 
 ;;;=========================================================================;;;

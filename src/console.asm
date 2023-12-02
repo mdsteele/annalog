@@ -350,7 +350,7 @@ _SetDiagramBank:
     ldy #sMachine::Status_eDiagram
     lda (Zp_Current_sMachine_ptr), y
     tax  ; eDiagram value
-    chr0c_bank DataA_Console_DiagramBank_u8_arr, x
+    main_chr0c DataA_Console_DiagramBank_u8_arr, x
 _SetScrollGoal:
     .assert sMachine::ScrollGoalX_u16 = 1 + sMachine::Status_eDiagram, error
     iny  ; now Y is sMachine::ScrollGoalX_u16 + 0

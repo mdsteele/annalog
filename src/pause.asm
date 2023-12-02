@@ -124,9 +124,9 @@ Zp_ActivatedBreakers_byte: .res 1
 .PROC MainA_Pause_FadeIn
     lda #<.bank(Ppu_ChrBgFontUpper)
     sta Zp_Chr04Bank_u8
-    chr08_bank #<.bank(Ppu_ChrBgPause)
-    chr0c_bank #<.bank(Ppu_ChrBgMinimap)
-    chr18_bank #<.bank(Ppu_ChrObjPause)
+    main_chr08_bank Ppu_ChrBgPause
+    main_chr0c_bank Ppu_ChrBgMinimap
+    main_chr18_bank Ppu_ChrObjPause
     jsr FuncA_Pause_InitAndFadeIn
     .assert * = MainA_Pause_Minimap, error, "fallthrough"
 .ENDPROC
@@ -203,7 +203,7 @@ _CheckButtons:
     sta Zp_PaperCursorRow_u8
     ;; Restore CHR0C bank for minimap (in case it was changed by dialog mode
     ;; for reading any papers).
-    chr0c_bank #<.bank(Ppu_ChrBgMinimap)
+    main_chr0c_bank Ppu_ChrBgMinimap
 _GameLoop:
     jsr FuncA_Pause_DrawObjectsAndProcessFrame
     lda #kPapersWindowScrollSpeed  ; param: scroll by

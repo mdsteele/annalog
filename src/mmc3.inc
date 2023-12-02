@@ -18,6 +18,11 @@
 ;;;=========================================================================;;;
 
 ;;; See https://wiki.nesdev.org/w/index.php/MMC3
+;;;
+;;; This file has two main sections: the first half defines constants and
+;;; hardware registers that are intrinsic to the MMC3 hardware, while the
+;;; second half defines constants and macros related to how this specific game
+;;; uses the MMC3.
 
 ;;;=========================================================================;;;
 
@@ -103,12 +108,78 @@ Hw_Mmc3IrqEnable_wo = $e001
 
 ;;;=========================================================================;;;
 
+;;; From here to the end of this file are constants and macros that are
+;;; specific to how this game uses the MMC3, rather than intrinsic to the MMC3
+;;; hardware itself.
+;;;
+;;; For PRG ROM banks, this game always leaves PRG8 fixed and PRGC swappable
+;;; (so as to make it possible to store DMC sample data in swappable PRG banks,
+;;; since the APU can only read sample data from PRGC or PRGE).  For CHR ROM
+;;; banks, this game always divides the CHR0 pattern table (which it uses for
+;;; BG tiles) into four swappable segments, and the CHR1 pattern table (which
+;;; it uses for OBJ tiles) into two swappable segments.
+;;;
+;;; This game only ever switches PRG banks from the main thread (that is, never
+;;; from NMI or IRQ handlers), and so main thread code never has to worry about
+;;; PRG banks switching out from under it.
+;;;
+;;; CHR banks, on the other hand, can be switched by any thread in this game,
+;;; which creates a potential race condition.  For example: (1) the main thread
+;;; sets MMC3 bank select for PRGA, (2) an interrupt occurs and changes some
+;;; CHR bank, thus setting the MMC3 bank select for that CHR bank, (3) the main
+;;; thread resumes and sets MMC3 bank data, but now this is setting a CHR bank
+;;; instead of PRGA, and finally (4) the main thread jumps to PRGA code without
+;;; the bank being properly set, and crashes.  This kind of conflict could
+;;; potentially happen between any pair of threads (main, IRQ, and NMI), so we
+;;; must take steps to avoid it.
+;;;
+;;; To avoid bank switch conflicts like this between the main thread and the
+;;; IRQ thread, the main thread always writes the bank select value to
+;;; Zp_MainSelect_bMmc3Bank just before writing to Hw_Mmc3BankSelect_wo, and
+;;; the IRQ thread always copies Zp_MainSelect_bMmc3Bank back to
+;;; Hw_Mmc3BankSelect_wo after completing a bank switch.  Thus, regardless of
+;;; where the main thread gets interrupted, the intended bank select value will
+;;; always be set when the main thread's bank data write occurs.
+;;;
+;;; To avoid bank switch conflicts between the main thread and the NMI thread,
+;;; the NMI thread only ever changes a CHR bank when instructed to by the main
+;;; thread via Func_ProcessFrame.  Thus, the main thread cannot be in the
+;;; middle of a bank switch when the NMI thread switches banks, as it will be
+;;; blocked within Func_ProcessFrame.
+;;;
+;;; There is no formal mechanism to prevent bank switch conflicts between the
+;;; IRQ thread and the NMI thread (which can interrupt the IRQ thread, though
+;;; not the other way around); instead, this game simply tries to manage its
+;;; IRQs carefully so as to avoid ever being in the middle of one when an NMI
+;;; occurs.  In addition, since the IRQ thread only ever switches CHR banks
+;;; (not PRG), if a conflict does occur, it will most likely cause a one-frame
+;;; graphical glitch, rather than a crash.
+
 ;;; MMC3 bank settings for this particular game:
 kMmc3BankFlags = bMmc3Bank::FourBankChr0000 | bMmc3Bank::SwappablePrgC000
+kSelectChr00 = kMmc3BankFlags | eMmc3Bank::ChrBank0Of4
+kSelectChr04 = kMmc3BankFlags | eMmc3Bank::ChrBank1Of4
+kSelectChr08 = kMmc3BankFlags | eMmc3Bank::ChrBank2Of4
+kSelectChr0c = kMmc3BankFlags | eMmc3Bank::ChrBank3Of4
+kSelectChr10 = kMmc3BankFlags | eMmc3Bank::ChrBank0Of2
+kSelectChr18 = kMmc3BankFlags | eMmc3Bank::ChrBank1Of2
+kSelectPrga  = kMmc3BankFlags | eMmc3Bank::PrgBankA000
+kSelectPrgc  = kMmc3BankFlags | eMmc3Bank::PrgBank8OrC
 
-.MACRO _set_bank REG, ARG1, ARG2
-    lda #kMmc3BankFlags | (REG)
+.GLOBAL FuncM_SwitchPrgaBank
+.GLOBALZP Zp_MainSelect_bMmc3Bank
+
+;;; Sets Hw_Mmc3BankSelect_wo to the given kSelect* constant from within the
+;;; main thread.
+.MACRO _main_bank_select SELECT
+    lda #SELECT
+    sta Zp_MainSelect_bMmc3Bank
     sta Hw_Mmc3BankSelect_wo
+.ENDMACRO
+
+;;; Sets Hw_Mmc3BankData_wo from the given arguments.  Use this only if the
+;;; current value of Hw_Mmc3BankSelect_wo is known.
+.MACRO _bank_data ARG1, ARG2
     .if .not .blank(ARG2)
     lda ARG1, ARG2
     sta Hw_Mmc3BankData_wo
@@ -120,100 +191,176 @@ kMmc3BankFlags = bMmc3Bank::FourBankChr0000 | bMmc3Bank::SwappablePrgC000
     .endif
 .ENDMACRO
 
-;;; Sets the given argument as the PRGA bank number.  The A register and the N
-;;; and Z flags are destroyed in the process.
+;;; Switches PRGA banks on the main thread, setting it from the given value.
+;;; The A register and the N and Z flags are destroyed in the process.
 ;;;
 ;;; Examples:
-;;;     prga_bank #<.bank(DataC_Foo)        ; uses immediate value bank number
-;;;     prga_bank Zp_BankNumber_u8          ; gets bank number from variable
-;;;     prga_bank Data_Banks_u8_arr, x      ; gets bank number from array
-;;;     prga_bank (Zp_Banks_u8_arr_ptr), y  ; gets bank number from indirection
-;;;     prga_bank x                         ; uses X as the bank number
-.MACRO prga_bank ARG1, ARG2
-    _set_bank eMmc3Bank::PrgBankA000, ARG1, ARG2
+;;;     main_prga Zp_BankNumber_u8          ; gets bank number from variable
+;;;     main_prga Data_Banks_u8_arr, x      ; gets bank number from array
+;;;     main_prga (Zp_Banks_u8_arr_ptr), y  ; gets bank number from indirection
+;;;     main_prga x                         ; uses X as the bank number
+.MACRO main_prga ARG1, ARG2
+    .if .not .blank(ARG2)
+    lda ARG1, ARG2
+    .else
+    lda ARG1
+    .endif
+    jsr FuncM_SwitchPrgaBank
+.ENDMACRO
+
+;;; Switches PRGA banks on the main thread, setting it to the bank number of
+;;; the given PRGA symbol.  The A register and the N and Z flags are destroyed
+;;; in the process.
+;;;
+;;; Examples:
+;;;     main_prga_bank DataA_Foo_Bar_u8_arr
+.MACRO main_prga_bank ARG
+    .assert ARG >= $a000 && ARG < $c000, error
+    main_prga #<.bank(ARG)
 .ENDMACRO
 
 ;;; Switches the PRGA bank number to that of the given function, then calls
-;;; that function.  Note that the A register and the N and Z flags are
-;;; destroyed by the bank-switching process, so this cannot be used for
-;;; functions that take any of those as arguments.
+;;; that function.  Use this only on the main thread.  Note that the A register
+;;; and the N and Z flags are destroyed by the bank-switching process, so this
+;;; cannot be used for functions that take any of those as arguments.
 ;;;
 ;;; Example:
 ;;;     jsr_prga FuncA_Baz_Foobar  ; switches to PRGA_Baz and calls function
 .MACRO jsr_prga ARG
-    .assert ARG >= $a000 && ARG < $c000, error
-    prga_bank #<.bank(ARG)
+    main_prga_bank ARG
     jsr ARG
 .ENDMACRO
 
 ;;; Switches the PRGA bank number to that of the given function, then jumps to
-;;; that function.  This is useful for jumping from a Main to a MainA, or from
-;;; a FuncM to a FuncA.  Note that the A register and the N and Z flags are
-;;; destroyed by the bank-switching process, so this cannot be used for
-;;; functions that take any of those as arguments.
+;;; that function; this is useful for jumping from a Main to a MainA, or from a
+;;; FuncM to a FuncA.  Use this only on the main thread.  Note that the A
+;;; register and the N and Z flags are destroyed by the bank-switching process,
+;;; so this cannot be used for functions that take any of those as arguments.
 ;;;
 ;;; Example:
 ;;;     jmp_prga FuncA_Baz_Foobar  ; switches to PRGA_Baz and jumps to function
 .MACRO jmp_prga ARG
-    .assert ARG >= $a000 && ARG < $c000, error
-    prga_bank #<.bank(ARG)
+    main_prga_bank ARG
     jmp ARG
 .ENDMACRO
 
-;;; Sets the given argument as the PRGC bank number.  The A register and the N
+;;; Switches PRGC banks on the main thread, setting it from the given value.
+;;; The A register and the N and Z flags are destroyed in the process.
+;;;
+;;; This operation accepts the same arguments as main_prga.
+.MACRO main_prgc ARG1, ARG2
+    _main_bank_select kSelectPrgc
+    _bank_data ARG1, ARG2
+.ENDMACRO
+
+;;; Switches CHR00 banks on the main thread, setting it from the given value.
+;;; The A register and the N and Z flags are destroyed in the process.
+;;;
+;;; This operation accepts the same arguments as main_prga.
+.MACRO main_chr00 ARG1, ARG2
+    _main_bank_select kSelectChr00
+    _bank_data ARG1, ARG2
+.ENDMACRO
+
+;;; Switches CHR00 banks on the main thread, setting it to the bank number of
+;;; the given Ppu_ChrBgj* symbol.  The A register and the N and Z flags are
+;;; destroyed in the process.
+.MACRO main_chr00_bank ARG
+    main_chr00 #<.bank(ARG)
+.ENDMACRO
+
+;;; Switches CHR04 banks on the main thread, setting it from the given value.
+;;; The A register and the N and Z flags are destroyed in the process.
+;;;
+;;; This operation accepts the same arguments as main_prga.
+.MACRO main_chr04 ARG1, ARG2
+    _main_bank_select kSelectChr04
+    _bank_data ARG1, ARG2
+.ENDMACRO
+
+;;; Switches CHR04 banks on the main thread, setting it to the bank number of
+;;; the given Ppu_ChrBgj* symbol.  The A register and the N and Z flags are
+;;; destroyed in the process.
+.MACRO main_chr04_bank ARG
+    main_chr04 #<.bank(ARG)
+.ENDMACRO
+
+;;; Switches CHR08 banks on the main thread, setting it from the given value.
+;;; The A register and the N and Z flags are destroyed in the process.
+;;;
+;;; This operation accepts the same arguments as main_prga.
+.MACRO main_chr08 ARG1, ARG2
+    _main_bank_select kSelectChr08
+    _bank_data ARG1, ARG2
+.ENDMACRO
+
+;;; Switches CHR08 banks on the main thread, setting it to the bank number of
+;;; the given Ppu_ChrBgj* symbol.  The A register and the N and Z flags are
+;;; destroyed in the process.
+.MACRO main_chr08_bank ARG
+    main_chr08 #<.bank(ARG)
+.ENDMACRO
+
+;;; Switches CHR0C banks on the main thread, setting it from the given value.
+;;; The A register and the N and Z flags are destroyed in the process.
+;;;
+;;; This operation accepts the same arguments as main_prga.
+.MACRO main_chr0c ARG1, ARG2
+    _main_bank_select kSelectChr0c
+    _bank_data ARG1, ARG2
+.ENDMACRO
+
+;;; Switches CHR0C banks on the main thread, setting it to the bank number of
+;;; the given Ppu_ChrBgj* symbol.  The A register and the N and Z flags are
+;;; destroyed in the process.
+.MACRO main_chr0c_bank ARG
+    main_chr0c #<.bank(ARG)
+.ENDMACRO
+
+;;; Switches CHR10 banks on the main thread, setting it from the given value.
+;;; The A register and the N and Z flags are destroyed in the process.
+;;;
+;;; This operation accepts the same arguments as main_prga.
+.MACRO main_chr10 ARG1, ARG2
+    _main_bank_select kSelectChr10
+    _bank_data ARG1, ARG2
+.ENDMACRO
+
+;;; Switches CHR10 banks on the main thread, setting it to the bank number of
+;;; the given Ppu_ChrObj* symbol.  The A register and the N and Z flags are
+;;; destroyed in the process.
+.MACRO main_chr10_bank ARG
+    .assert .bank(ARG) .mod 2 = 0, error
+    main_chr10 #<.bank(ARG)
+.ENDMACRO
+
+;;; Switches CHR18 banks on the main thread, setting it from the given value.
+;;; The A register and the N and Z flags are destroyed in the process.
+;;;
+;;; This operation accepts the same arguments as main_prga.
+.MACRO main_chr18 ARG1, ARG2
+    _main_bank_select kSelectChr18
+    _bank_data ARG1, ARG2
+.ENDMACRO
+
+;;; Switches CHR18 banks on the main thread, setting it to the bank number of
+;;; the given Ppu_ChrObj* symbol.  The A register and the N and Z flags are
+;;; destroyed in the process.
+.MACRO main_chr18_bank ARG
+    .assert .bank(ARG) .mod 2 = 0, error
+    main_chr18 #<.bank(ARG)
+.ENDMACRO
+
+;;; Switches CHR04 banks on the IRQ thread, setting it to the bank number of
+;;; the given Ppu_ChrBg* symbol.  This will automatically restore the main
+;;; thread's Hw_Mmc3BankSelect_wo value afterwards.  The A register and the N
 ;;; and Z flags are destroyed in the process.
-;;;
-;;; This operation accepts the same arguments as prga_bank.
-.MACRO prgc_bank ARG1, ARG2
-    _set_bank eMmc3Bank::PrgBank8OrC, ARG1, ARG2
-.ENDMACRO
-
-;;; Sets the given argument as the bank number for CHR $0000-$03ff.  The A
-;;; register and the N and Z flags are destroyed in the process.
-;;;
-;;; This operation accepts the same arguments as prga_bank.
-.MACRO chr00_bank ARG1, ARG2
-    _set_bank eMmc3Bank::ChrBank0Of4, ARG1, ARG2
-.ENDMACRO
-
-;;; Sets the given argument as the bank number for CHR $0400-$07ff.  The A
-;;; register and the N and Z flags are destroyed in the process.
-;;;
-;;; This operation accepts the same arguments as prga_bank.
-.MACRO chr04_bank ARG1, ARG2
-    _set_bank eMmc3Bank::ChrBank1Of4, ARG1, ARG2
-.ENDMACRO
-
-;;; Sets the given argument as the bank number for CHR $0800-$0bff.  The A
-;;; register and the N and Z flags are destroyed in the process.
-;;;
-;;; This operation accepts the same arguments as prga_bank.
-.MACRO chr08_bank ARG1, ARG2
-    _set_bank eMmc3Bank::ChrBank2Of4, ARG1, ARG2
-.ENDMACRO
-
-;;; Sets the given argument as the bank number for CHR $0c00-$0fff.  The A
-;;; register and the N and Z flags are destroyed in the process.
-;;;
-;;; This operation accepts the same arguments as prga_bank.
-.MACRO chr0c_bank ARG1, ARG2
-    _set_bank eMmc3Bank::ChrBank3Of4, ARG1, ARG2
-.ENDMACRO
-
-;;; Sets the given argument as the bank number for CHR $1000-$17ff.  The A
-;;; register and the N and Z flags are destroyed in the process.
-;;;
-;;; This operation accepts the same arguments as prga_bank.
-.MACRO chr10_bank ARG1, ARG2
-    _set_bank eMmc3Bank::ChrBank0Of2, ARG1, ARG2
-.ENDMACRO
-
-;;; Sets the given argument as the bank number for CHR $1800-$1fff.  The A
-;;; register and the N and Z flags are destroyed in the process.
-;;;
-;;; This operation accepts the same arguments as prga_bank.
-.MACRO chr18_bank ARG1, ARG2
-    _set_bank eMmc3Bank::ChrBank1Of2, ARG1, ARG2
+.MACRO irq_chr04_bank ARG
+    lda #kSelectChr04
+    sta Hw_Mmc3BankSelect_wo
+    _bank_data #<.bank(ARG)
+    lda Zp_MainSelect_bMmc3Bank
+    sta Hw_Mmc3BankSelect_wo
 .ENDMACRO
 
 ;;;=========================================================================;;;

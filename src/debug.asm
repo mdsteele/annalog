@@ -193,7 +193,7 @@ _SaveProgram:
     jsr Func_SetMachineIndex
     jsr FuncA_Console_SaveProgram
 _ChangeDiagram:
-    chr0c_bank #kChrBankDiagramDebugger
+    main_chr0c #kChrBankDiagramDebugger
 _SetBgAttributes:
     ldax #DataA_Console_DebugAttrTransfer_arr  ; param: data pointer
     ldy #.sizeof(DataA_Console_DebugAttrTransfer_arr)  ; param: data size
@@ -217,7 +217,7 @@ _ChangeDiagram:
     ldy #sMachine::Status_eDiagram
     lda (Zp_Current_sMachine_ptr), y
     tax  ; eDiagram value
-    chr0c_bank DataA_Console_DiagramBank_u8_arr, x
+    main_chr0c DataA_Console_DiagramBank_u8_arr, x
 _ResetBgAttributes:
     ldax #DataA_Console_UndoDebugAttrTransfer_arr  ; param: data pointer
     ldy #.sizeof(DataA_Console_UndoDebugAttrTransfer_arr)  ; param: data size

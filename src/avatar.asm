@@ -177,7 +177,7 @@ _InitChr10Bank:
     beq @setBank
     ldx #<.bank(Ppu_ChrObjAnnaFlower)
     @setBank:
-    chr10_bank x
+    main_chr10 x
     rts
 .ENDPROC
 

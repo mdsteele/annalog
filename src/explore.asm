@@ -150,8 +150,8 @@ Zp_Next_eCutscene: .res 1
 .PROC Main_Explore_FadeIn
     jsr Func_Window_Disable
     jsr Func_Window_DirectDrawTopBorder
-    chr08_bank <(Zp_Current_sTileset + sTileset::Chr08Bank_u8)
-    chr18_bank <(Zp_Current_sRoom + sRoom::Chr18Bank_u8)
+    main_chr08 Zp_Current_sTileset + sTileset::Chr08Bank_u8
+    main_chr18 Zp_Current_sRoom + sRoom::Chr18Bank_u8
     jsr_prga FuncA_Terrain_InitRoomScrollAndNametables
     jsr_prga FuncA_Avatar_FindNearbyDevice
     jsr_prga FuncA_Objects_DrawObjectsForRoom

@@ -138,7 +138,16 @@ _UpdatePpuRegisters:
     sta Hw_PpuCtrl_wo
     lda Zp_Render_bPpuMask
     sta Hw_PpuMask_wo
-    chr04_bank Zp_Chr04Bank_u8
+    ;; Switch CHR04 banks (for animated terrain).  Since this is done only with
+    ;; the cooperation of the main thread (that is, the NMI thread won't be
+    ;; executing this bit of code unless the main thread is waiting within
+    ;; Func_ProcessFrame), we don't have to worry about interrupting a bank
+    ;; switch on the main thread, and therefore we don't have to restore the
+    ;; main thread's Hw_Mmc3BankSelect_wo value.
+    lda #kSelectChr04
+    sta Hw_Mmc3BankSelect_wo
+    lda Zp_Chr04Bank_u8
+    sta Hw_Mmc3BankData_wo
 _TransferIrqStruct:
     .repeat .sizeof(sIrq), index
     lda Zp_Buffered_sIrq + index

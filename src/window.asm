@@ -363,12 +363,12 @@ _Disable:
     lda #>Int_WindowBottomIrq
     sta Zp_NextIrq_int_ptr + 1
     ;; Set the CHR04 bank (which is normally used for animated terrain) to
-    ;; instead hold font tiles only needed within the window).  That bank
-    ;; setting will be restored for the next frame during VBlank.
-    chr04_bank #<.bank(Ppu_ChrBgFontUpper)
+    ;; instead hold font tiles that are only needed within the window.  That
+    ;; bank setting will be restored for the next frame during VBlank.
+    irq_chr04_bank Ppu_ChrBgFontUpper
     ;; Busy-wait for a bit, so that our final write in this function will occur
     ;; during the next HBlank (between dots 256 and 320).
-    lda #6  ; This value is hand-tuned to help wait for second HBlank.
+    lda #5  ; This value is hand-tuned to help wait for second HBlank.
     @busyLoop:
     sub #1
     bne @busyLoop

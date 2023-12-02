@@ -184,7 +184,7 @@ _InitTimers:
 _FadeOut:
     jsr Func_ClearRestOfOam
     jsr Func_FadeToBlack
-    chr18_bank #<.bank(Ppu_ChrObjPause)
+    main_chr18_bank Ppu_ChrObjPause
     rts
 .ENDPROC
 

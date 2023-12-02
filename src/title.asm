@@ -111,7 +111,7 @@ _StartGame:
 ;;; @prereq Rendering is disabled.
 .PROC FuncA_Title_Init
     jsr Func_Window_Disable
-    chr08_bank #<.bank(Ppu_ChrBgTitle)
+    main_chr08_bank Ppu_ChrBgTitle
 _StartMusic:
     lda #$ff
     sta Zp_Next_sAudioCtrl + sAudioCtrl::Enable_bool

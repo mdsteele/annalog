@@ -105,19 +105,16 @@ def run_tests():
                     else:
                         includes.append(include)
                 continue
-            # Collect imports within each ASM file.
+            # Collect imports within each file.
             match = IMPORT_PATTERN.match(line)
             if match:
-                if not filepath.endswith('.asm'):
-                    add_error('.IMPORT in non-ASM file')
+                identifier = match.group(1)
+                # Check that nothing is imported twice.
+                if identifier in imports:
+                    add_error('repeated .IMPORT')
                 else:
-                    identifier = match.group(1)
-                    # Check that nothing is imported twice.
-                    if identifier in imports:
-                        add_error('repeated .IMPORT')
-                    else:
-                        imports.append(identifier)
-                        all_imports.add(identifier)
+                    imports.append(identifier)
+                    all_imports.add(identifier)
                 continue
             # Collect exports within each ASM file.
             match = EXPORT_PATTERN.match(line)

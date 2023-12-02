@@ -157,8 +157,8 @@ _GameLoop:
     lda #bScroll::LockHorz | bScroll::LockVert
     sta Zp_Camera_bScroll
     ;; Set CHR banks for breaker circuits.
-    chr00_bank #<.bank(Ppu_ChrBgAnimStatic)
-    chr0c_bank #<.bank(Ppu_ChrBgAnimStatic)
+    main_chr00_bank Ppu_ChrBgAnimStatic
+    main_chr0c_bank Ppu_ChrBgAnimStatic
     ;; Start the cutscene.
     lda #eCutscene::CoreBossPowerUpCircuit
     sta Zp_Next_eCutscene
@@ -203,12 +203,12 @@ _PowerUpCircuit:
     @on:
     ldx Zp_Chr04Bank_u8
     @setBank:
-    chr0c_bank x
+    main_chr0c x
     dec Zp_BreakerTimer_u8
     bne _GameLoop
 _FadeOut:
     jsr Func_FadeOutToBlack
-    chr00_bank #<.bank(Ppu_ChrBgFontLower)
+    main_chr00_bank Ppu_ChrBgFontLower
     .assert * = Main_Breaker_LoadCutsceneRoom, error, "fallthrough"
 .ENDPROC
 

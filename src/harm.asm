@@ -113,7 +113,7 @@ _SetVelX:
 .PROC Func_DropFlower
     lda Sram_CarryingFlower_eFlag
     beq @done
-    chr10_bank #<.bank(Ppu_ChrObjAnnaNormal)
+    main_chr10_bank Ppu_ChrObjAnnaNormal
     ;; Enable writes to SRAM.
     lda #bMmc3PrgRam::Enable
     sta Hw_Mmc3PrgRamProtect_wo

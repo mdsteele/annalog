@@ -117,12 +117,12 @@ _InitPpuMapping:
     lda #eMmc3Mirror::Horizontal
     sta Hw_Mmc3Mirroring_wo
     ;; Set all CHR ROM banks to a known state.
-    chr00_bank #<.bank(Ppu_ChrBgFontLower)
-    chr04_bank #<.bank(Ppu_ChrBgFontLower)
-    chr08_bank #<.bank(Ppu_ChrBgFontLower)
-    chr0c_bank #<.bank(Ppu_ChrBgFontLower)
-    chr10_bank #<.bank(Ppu_ChrObjAnnaNormal)
-    chr18_bank #<.bank(Ppu_ChrObjAnnaNormal)
+    main_chr00_bank Ppu_ChrBgFontLower
+    main_chr04_bank Ppu_ChrBgFontLower
+    main_chr08_bank Ppu_ChrBgFontLower
+    main_chr0c_bank Ppu_ChrBgFontLower
+    main_chr10_bank Ppu_ChrObjAnnaNormal
+    main_chr18_bank Ppu_ChrObjAnnaNormal
 _InitAttributeTable0:
     ;; Set all blocks in nametable 0 to use BG palette 0.
     ldax #Ppu_Nametable0_sName + sName::Attrs_u8_arr64

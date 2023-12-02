@@ -48,7 +48,7 @@ kFlowerAnimCountdown = 48
 ;;; @param X The device index for the flower.
 .EXPORT FuncA_Room_PickUpFlowerDevice
 .PROC FuncA_Room_PickUpFlowerDevice
-    chr10_bank #<.bank(Ppu_ChrObjAnnaFlower)
+    main_chr10_bank Ppu_ChrObjAnnaFlower
     lda Ram_DeviceTarget_byte_arr, x
     ;; Enable writes to SRAM.
     ldy #bMmc3PrgRam::Enable

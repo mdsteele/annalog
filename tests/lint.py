@@ -50,7 +50,12 @@ BAD_CODE_PATTERNS = [
 
 SEGMENT_DECL_PATTERN = re.compile(r'^\.SEGMENT +"([a-zA-Z0-9_]*)"')
 PROC_DECL_PATTERN = re.compile(r'^\.PROC +([a-zA-Z0-9_]+)')
-BANK_SWITCH_PATTERN = re.compile(r'^ *((?:prga|prgc)_bank|(?:jsr|jmp)_prga) ')
+PRG_BANK_SWITCH_PATTERN = re.compile(
+    r'^ *((?:jsr|jmp|main)_prga) ')
+MAIN_CHR_BANK_SWITCH_PATTERN = re.compile(
+    r'^ *(main_chr[01][048c](?:_bank)?) ')
+IRQ_CHR_BANK_SWITCH_PATTERN = re.compile(
+    r'^ *(irq_chr[01][048c](?:_bank)?) ')
 JUMP_PATTERN = re.compile(
     r'^ *([jb](?:mp|sr|cc|cs|eq|ne|mi|pl|vc|vs|le|lt|ge|gt)) +'
     r'([A-Za-z0-9_]+)')
@@ -192,14 +197,29 @@ def run_tests():
                     elif not is_end_of_dialog_text(dialog_text_lines[-1]):
                         fail('unterminated dialog text block')
             if proc_stack:
-                # Check that bank-switches only happen in Main or FuncM procs.
-                match = BANK_SWITCH_PATTERN.match(line)
+                # Check that PRG bank-switches only happen in Main or FuncM
+                # procs.
+                match = PRG_BANK_SWITCH_PATTERN.match(line)
                 if match:
                     kind = match.group(1)
                     if not (proc_stack[0].startswith('Main_') or
                             proc_stack[0].startswith('FuncM_') or
                             (proc_stack[0].startswith('MainC_') and
                              'prga' in kind)):
+                        fail('{} in {}'.format(kind, proc_stack[0]))
+                # Check that main-thread CHR bank-switches don't happen within
+                # interrupts.
+                match = MAIN_CHR_BANK_SWITCH_PATTERN.match(line)
+                if match:
+                    kind = match.group(1)
+                    if proc_stack[0].startswith('Int'):
+                        fail('{} in {}'.format(kind, proc_stack[0]))
+                # Check that IRQ-thread CHR bank-switches only happen within
+                # interrupts.
+                match = IRQ_CHR_BANK_SWITCH_PATTERN.match(line)
+                if match:
+                    kind = match.group(1)
+                    if not proc_stack[0].startswith('Int'):
                         fail('{} in {}'.format(kind, proc_stack[0]))
                 # Check that procs don't jump incorrectly to other procs.
                 match = JUMP_PATTERN.match(line)

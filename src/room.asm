@@ -253,8 +253,8 @@ _ChangeMusicIfNeeded:
     tax  ; eRoom to load
     @done:
 _LoadNewRoom:
-    prga_bank #<.bank(DataA_Room_Banks_u8_arr)
-    prgc_bank DataA_Room_Banks_u8_arr, x
+    main_prga_bank DataA_Room_Banks_u8_arr
+    main_prgc DataA_Room_Banks_u8_arr, x
     jmp FuncA_Room_Load
 .ENDPROC
 
