@@ -82,6 +82,7 @@
 .INCLUDE "portrait.inc"
 .INCLUDE "rooms/boss_crypt.inc"
 .INCLUDE "rooms/boss_garden.inc"
+.INCLUDE "rooms/boss_lava.inc"
 .INCLUDE "rooms/boss_temple.inc"
 .INCLUDE "rooms/city_building2.inc"
 .INCLUDE "rooms/garden_tower.inc"
@@ -129,7 +130,7 @@ _chr_begin:
 
 .EXPORT Ppu_ChrBgAnimA0
 .PROC Ppu_ChrBgAnimA0
-    CHR1_BANK $c0
+    CHR1_BANK $40
     chr_inc "water_anim0"
     chr_inc "acid_anim0"
     chr_inc "waterfall_anim0"
@@ -145,7 +146,7 @@ _chr_begin:
 .SEGMENT "CHR_BgAnimA1"
 
 .PROC Ppu_ChrBgAnimA1
-    CHR1_BANK $c0
+    CHR1_BANK $40
     chr_inc "water_anim0"
     chr_inc "acid_anim1"
     chr_inc "waterfall_anim1"
@@ -161,7 +162,7 @@ _chr_begin:
 .SEGMENT "CHR_BgAnimA2"
 
 .PROC Ppu_ChrBgAnimA2
-    CHR1_BANK $c0
+    CHR1_BANK $40
     chr_inc "water_anim1"
     chr_inc "acid_anim2"
     chr_inc "waterfall_anim2"
@@ -177,7 +178,7 @@ _chr_begin:
 .SEGMENT "CHR_BgAnimA3"
 
 .PROC Ppu_ChrBgAnimA3
-    CHR1_BANK $c0
+    CHR1_BANK $40
     chr_inc "water_anim1"
     chr_inc "acid_anim3"
     chr_inc "waterfall_anim3"
@@ -193,7 +194,7 @@ _chr_begin:
 .SEGMENT "CHR_BgAnimA4"
 
 .PROC Ppu_ChrBgAnimA4
-    CHR1_BANK $c0
+    CHR1_BANK $40
     chr_inc "water_anim2"
     chr_inc "acid_anim4"
     chr_inc "waterfall_anim0"
@@ -209,7 +210,7 @@ _chr_begin:
 .SEGMENT "CHR_BgAnimA5"
 
 .PROC Ppu_ChrBgAnimA5
-    CHR1_BANK $c0
+    CHR1_BANK $40
     chr_inc "water_anim2"
     chr_inc "acid_anim5"
     chr_inc "waterfall_anim1"
@@ -225,7 +226,7 @@ _chr_begin:
 .SEGMENT "CHR_BgAnimA6"
 
 .PROC Ppu_ChrBgAnimA6
-    CHR1_BANK $c0
+    CHR1_BANK $40
     chr_inc "water_anim1"
     chr_inc "acid_anim6"
     chr_inc "waterfall_anim2"
@@ -241,7 +242,7 @@ _chr_begin:
 .SEGMENT "CHR_BgAnimA7"
 
 .PROC Ppu_ChrBgAnimA7
-    CHR1_BANK $c0
+    CHR1_BANK $40
     chr_inc "water_anim1"
     chr_inc "acid_anim7"
     chr_inc "waterfall_anim3"
@@ -258,11 +259,13 @@ _chr_begin:
 
 .EXPORT Ppu_ChrBgAnimB0
 .PROC Ppu_ChrBgAnimB0
-    CHR1_BANK $c0
+    CHR1_BANK $40
     chr_inc "lava_anim0"
     chr_res $06
     chr_inc "conveyor_anim0"
-    chr_res $1e
+    chr_res $02
+    chr_inc "anim_boss_lava_2"
+    chr_res $04
     chr_inc "gazer_anim0"
     END_CHR_BANK
 .ENDPROC
@@ -272,11 +275,13 @@ _chr_begin:
 .SEGMENT "CHR_BgAnimB1"
 
 .PROC Ppu_ChrBgAnimB1
-    CHR1_BANK $c0
+    CHR1_BANK $40
     chr_inc "lava_anim1"
     chr_res $06
     chr_inc "conveyor_anim1"
-    chr_res $1e
+    chr_res $02
+    chr_inc "anim_boss_lava_1"
+    chr_res $04
     chr_inc "gazer_anim1"
     END_CHR_BANK
 .ENDPROC
@@ -286,11 +291,13 @@ _chr_begin:
 .SEGMENT "CHR_BgAnimB2"
 
 .PROC Ppu_ChrBgAnimB2
-    CHR1_BANK $c0
+    CHR1_BANK $40
     chr_inc "lava_anim2"
     chr_res $06
     chr_inc "conveyor_anim2"
-    chr_res $1e
+    chr_res $02
+    chr_inc "anim_boss_lava_2"
+    chr_res $04
     chr_inc "gazer_anim2"
     END_CHR_BANK
 .ENDPROC
@@ -300,11 +307,13 @@ _chr_begin:
 .SEGMENT "CHR_BgAnimB3"
 
 .PROC Ppu_ChrBgAnimB3
-    CHR1_BANK $c0
+    CHR1_BANK $40
     chr_inc "lava_anim3"
     chr_res $06
     chr_inc "conveyor_anim3"
-    chr_res $1e
+    chr_res $02
+    chr_inc "anim_boss_lava_3", kTileIdBgAnimBossLavaFirst
+    chr_res $04
     chr_inc "gazer_anim3"
     END_CHR_BANK
 .ENDPROC
@@ -315,7 +324,7 @@ _chr_begin:
 
 .EXPORT Ppu_ChrBgAnimStatic
 .PROC Ppu_ChrBgAnimStatic
-    CHR1_BANK $c0
+    CHR1_BANK $40
     chr_res $10
     chr_inc "thorns_anim_static"
     chr_res $0a
@@ -483,7 +492,7 @@ _chr_begin:
     chr_inc "field_bg"
     chr_inc "arch"
     chr_inc "boiler"
-    chr_res $08
+    chr_inc "terrain_boss_lava"
     END_CHR_BANK
 .ENDPROC
 
@@ -525,7 +534,7 @@ _chr_begin:
 
 .EXPORT Ppu_ChrBgMinimap
 .PROC Ppu_ChrBgMinimap
-    CHR1_BANK $80
+    CHR1_BANK $c0
     chr_inc "minimap1"
     chr_inc "minimap2"
     chr_inc "minimap3"
@@ -539,7 +548,7 @@ _chr_begin:
 
 .EXPORT Ppu_ChrBgOutbreak
 .PROC Ppu_ChrBgOutbreak
-    CHR1_BANK $c0
+    CHR1_BANK $40
     chr_inc "outbreak_bg"
     chr_res $18
     END_CHR_BANK
@@ -568,7 +577,7 @@ _chr_begin:
 
 .EXPORT Ppu_ChrBgPause
 .PROC Ppu_ChrBgPause
-    CHR1_BANK $c0
+    CHR1_BANK $80
     chr_inc "upgrade_bottom"
     chr_inc "upgrade_ram"
     chr_inc "upgrade_bremote"
@@ -1113,7 +1122,9 @@ _chr_begin:
     chr_inc "valve",             kTileIdObjValveFirst
     chr_res $10
     chr_inc "mirror",            kTileIdObjMirrorFirst
-    chr_res $0b
+    chr_res $03
+    chr_inc "boss_lava_jaws",    kTileIdObjBossLavaJawsFirst
+    chr_res $02
     chr_inc "steam_vert",        kTileIdObjSteamVertFirst
     chr_inc "breaker",           kTileIdObjBreakerFirst
     END_CHR_BANK

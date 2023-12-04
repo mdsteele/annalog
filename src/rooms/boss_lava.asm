@@ -25,10 +25,12 @@
 .INCLUDE "../machine.inc"
 .INCLUDE "../machines/blaster.inc"
 .INCLUDE "../macros.inc"
+.INCLUDE "../oam.inc"
 .INCLUDE "../platform.inc"
 .INCLUDE "../ppu.inc"
 .INCLUDE "../program.inc"
 .INCLUDE "../room.inc"
+.INCLUDE "boss_lava.inc"
 
 .IMPORT DataA_Room_Lava_sTileset
 .IMPORT Data_Empty_sActor_arr
@@ -42,6 +44,7 @@
 .IMPORT FuncA_Machine_GenericTryMoveX
 .IMPORT FuncA_Machine_ReachedGoal
 .IMPORT FuncA_Machine_WriteToLever
+.IMPORT FuncA_Objects_Alloc2x1Shape
 .IMPORT FuncA_Objects_AnimateLavaTerrain
 .IMPORT FuncA_Objects_DrawBlasterMachineVert
 .IMPORT FuncA_Objects_DrawBoilerMachine
@@ -50,6 +53,7 @@
 .IMPORT FuncA_Objects_DrawPlatformVolcanicVert
 .IMPORT FuncA_Objects_MoveShapeDownByA
 .IMPORT FuncA_Objects_MoveShapeRightByA
+.IMPORT FuncA_Objects_MoveShapeUpByA
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
 .IMPORT FuncA_Room_InitBoss
 .IMPORT FuncA_Room_MachineBoilerReset
@@ -70,6 +74,7 @@
 .IMPORT Func_SetPointToAvatarCenter
 .IMPORT Ppu_ChrObjLava
 .IMPORT Ram_MachineGoalHorz_u8_arr
+.IMPORT Ram_Oam_sObj_arr64
 .IMPORT Ram_PlatformLeft_i16_0_arr
 .IMPORTZP Zp_Active_sIrq
 .IMPORTZP Zp_Buffered_sIrq
@@ -119,7 +124,7 @@ kBlasterInitPlatformLeft = \
 
 ;;; The width and height of the boss's BG tile grid.
 kBossWidthTiles = 8
-kBossHeightTiles = 5
+kBossHeightTiles = 4
 kBossWidthPx = kBossWidthTiles * kTileWidthPx
 kBossHeightPx = kBossHeightTiles * kTileHeightPx
 
@@ -138,7 +143,7 @@ kBossZoneBottomY = $80
 kBossInitGoalX = 5
 kBossMaxGoalX  = 9
 kBossInitGoalY = 0
-kBossMaxGoalY  = 2
+kBossMaxGoalY  = 3
 
 ;;; The tile row/col in the lower nametable for the top-left corner of the
 ;;; boss's BG tiles.
@@ -179,6 +184,12 @@ kBossScuttleCooldown = 60
 ;;; The platform index for the boss's body.
 kBossBodyPlatformIndex = 8
 
+;;; How long it takes the boss's jaws to open or close, in frames.
+kBossJawsOpenFrames = 16
+
+;;; The OBJ palette number to use for the boss's jaws and tail.
+kPaletteObjBossLava = 1
+
 ;;;=========================================================================;;;
 
 ;;; Defines room-specific state data for this particular room.
@@ -195,7 +206,10 @@ kBossBodyPlatformIndex = 8
     BossCooldown_u8   .byte
     ;; The goal position for the boss within its zone, in blocks.
     BossGoalX_u8      .byte  ; 0-9
-    BossGoalY_u8      .byte  ; 0-2
+    BossGoalY_u8      .byte  ; 0-3
+    ;; How open the boss's jaws are (0 = fully closed, kBossJawsOpenFrames =
+    ;; fully open).
+    BossJawsOpen_u8   .byte
 .ENDSTRUCT
 .ASSERT .sizeof(sState) <= kRoomStateSize, error
 
@@ -418,32 +432,28 @@ _Devices_sDevice_arr:
 
 .PROC DataC_Boss_LavaInitTransfer_arr
     .assert kBossWidthTiles = 8, error
-    .assert kBossHeightTiles = 5, error
+    .assert kBossHeightTiles = 4, error
+    .assert kTileIdBgAnimBossLavaFirst = $50, error
     ;; Row 0:
     .byte kPpuCtrlFlagsHorz
     .dbyt Ppu_BossRow0Start  ; transfer destination
     .byte 8
-    .byte $49, $49, $49, $49, $49, $49, $49, $49
+    .byte $50, $54, $58, $b8, $b9, $5c, $60, $64
     ;; Row 1:
     .byte kPpuCtrlFlagsHorz
     .dbyt Ppu_BossRow1Start  ; transfer destination
     .byte 8
-    .byte $49, $49, $49, $49, $49, $49, $49, $49
+    .byte $51, $55, $59, $ba, $bb, $5d, $61, $65
     ;; Row 2:
     .byte kPpuCtrlFlagsHorz
     .dbyt Ppu_BossRow2Start  ; transfer destination
     .byte 8
-    .byte $49, $49, $49, $49, $49, $49, $49, $49
+    .byte $52, $56, $5a, $bc, $bd, $5e, $62, $66
     ;; Row 3:
     .byte kPpuCtrlFlagsHorz
     .dbyt Ppu_BossRow3Start  ; transfer destination
     .byte 8
-    .byte $49, $49, $49, $49, $49, $49, $49, $49
-    ;; Row 4:
-    .byte kPpuCtrlFlagsHorz
-    .dbyt Ppu_BossRow4Start  ; transfer destination
-    .byte 8
-    .byte $49, $49, $49, $49, $49, $49, $49, $49
+    .byte $53, $57, $5b, $be, $bf, $5f, $63, $67
 .ENDPROC
 
 .PROC FuncC_Boss_Lava_FadeInRoom
@@ -470,6 +480,12 @@ _CoolDown:
     lda Zp_RoomState + sState::BossCooldown_u8
     beq _CheckMode
     dec Zp_RoomState + sState::BossCooldown_u8
+    ;; Open jaws during cooldown.
+    lda Zp_RoomState + sState::BossJawsOpen_u8
+    cmp #kBossJawsOpenFrames
+    beq @done
+    inc Zp_RoomState + sState::BossJawsOpen_u8
+    @done:
     rts
 _CheckMode:
     ;; Branch based on the current boss mode.
@@ -488,6 +504,11 @@ _CheckMode:
     D_END
 .ENDREPEAT
 _BossScuttling:
+    ;; Close jaws while scuttling.
+    lda Zp_RoomState + sState::BossJawsOpen_u8
+    beq @doneJaws
+    dec Zp_RoomState + sState::BossJawsOpen_u8
+    @doneJaws:
     ;; Compute the goal top-left position for the boss's body platform, storing
     ;; it in Zp_Point*_i16.
     lda Zp_RoomState + sState::BossGoalX_u8
@@ -538,6 +559,11 @@ _BossScuttling:
 ;;; Draw function for the lava boss.
 ;;; @prereq PRGA_Objects is loaded.
 .PROC FuncC_Boss_Lava_DrawBoss
+_DrawSideWalls:
+    ldx #kLeftWallPlatformIndex  ; param: platform index
+    jsr FuncA_Objects_DrawPlatformVolcanicVert
+    ldx #kRightWallPlatformIndex  ; param: platform index
+    jsr FuncA_Objects_DrawPlatformVolcanicVert
 _SetShapePosition:
     ;; Set the shape position to the center of the boss's body.
     ldx #kBossBodyPlatformIndex  ; param: platform index
@@ -567,11 +593,39 @@ _SetUpIrq:
     sub Zp_ShapePosY_i16 + 0
     sub Zp_RoomScrollY_u8
     sta <(Zp_Buffered_sIrq + sIrq::Param2_byte)  ; boss scroll-Y
-_DrawSideWalls:
-    ldx #kLeftWallPlatformIndex  ; param: platform index
-    jsr FuncA_Objects_DrawPlatformVolcanicVert
-    ldx #kRightWallPlatformIndex  ; param: platform index
-    jmp FuncA_Objects_DrawPlatformVolcanicVert
+_DrawBossJawsAndTail:
+    lda #kTileHeightPx * 3  ; param: offset
+    jsr FuncA_Objects_MoveShapeUpByA
+    ldy #0
+    lda Zp_RoomState + sState::BossJawsOpen_u8
+    beq @pickTileId
+    iny
+    cmp #kBossJawsOpenFrames
+    blt @pickTileId
+    iny
+    @pickTileId:
+    tya
+    mul #2  ; clears carry bit
+    adc #kTileIdObjBossLavaJawsFirst
+    pha  ; tile ID for tail
+    jsr _DrawBossJawsOrTail
+    lda #kTileHeightPx * 5  ; param: offset
+    jsr FuncA_Objects_MoveShapeDownByA
+    pla  ; tile ID for tail
+    .assert kTileIdObjBossLavaJawsFirst .mod 2 = 0, error
+    ora #1  ; tile ID for head
+_DrawBossJawsOrTail:
+    pha  ; tile ID
+    lda #kPaletteObjBossLava   ; param: object flags
+    jsr FuncA_Objects_Alloc2x1Shape  ; returns C and Y
+    pla  ; tile ID
+    bcs @done
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Tile_u8, y
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Tile_u8, y
+    lda #kPaletteObjBossLava | bObj::FlipH
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Flags_bObj, y
+    @done:
+    rts
 .ENDPROC
 
 ;;; ReadReg implementation for the BossLavaBlaster machine.
