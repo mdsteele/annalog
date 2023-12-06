@@ -410,7 +410,8 @@ _WritePaletteData:
 .EXPORT Func_FadeToBlack
 .PROC Func_FadeToBlack
     ldx #kFramesPerFadeStepNormal  ; param: num frames between fade steps
-    .assert * = Func_FadeToBlackWithSlowdown, error, "fallthrough"
+    jsr Func_FadeToBlackWithSlowdown
+    jmp Func_ProcessFrame  ; flush the final palette transfer
 .ENDPROC
 
 ;;; Fades out the screen over a number of frames (as specified by the given
