@@ -27,6 +27,7 @@
 .IMPORT DataA_Room_Sewer_sTileset
 .IMPORT Data_Empty_sDevice_arr
 .IMPORT Data_Empty_sPlatform_arr
+.IMPORT FuncA_Room_SewagePushAvatar
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrObjSewer
 
@@ -57,7 +58,7 @@ _Ext_sRoomExt:
     d_addr Passages_sPassage_arr_ptr, _Passages_sPassage_arr
     d_addr Enter_func_ptr, Func_Noop
     d_addr FadeIn_func_ptr, Func_Noop
-    d_addr Tick_func_ptr, Func_Noop
+    d_addr Tick_func_ptr, FuncA_Room_SewagePushAvatar
     d_addr Draw_func_ptr, Func_Noop
     D_END
 _TerrainData:
