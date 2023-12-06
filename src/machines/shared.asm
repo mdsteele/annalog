@@ -17,6 +17,8 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
+.INCLUDE "../actor.inc"
+.INCLUDE "../actors/particle.inc"
 .INCLUDE "../machine.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
@@ -33,6 +35,8 @@
 .IMPORT Func_IsPointInPlatformVert
 .IMPORT Func_MovePlatformLeftTowardPointX
 .IMPORT Func_MovePlatformTopTowardPointY
+.IMPORT Ram_ActorState1_byte_arr
+.IMPORT Ram_ActorType_eActor_arr
 .IMPORT Ram_MachineGoalHorz_u8_arr
 .IMPORT Ram_MachineGoalVert_u8_arr
 .IMPORT Ram_MachineStatus_eMachine_arr
@@ -292,6 +296,37 @@
     ;; Move the machine vertically, as necessary.
     ldx T1  ; param: platform index
     jmp Func_MovePlatformTopTowardPointY  ; returns Z, N, and A
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Room"
+
+;;; Turns all projectile actors of the specified type into smoke particles.
+;;; This should be called from the Reset function of machines that shoot
+;;; projectiles.
+;;; @param A The eActor::Proj* value.
+.EXPORT FuncA_Room_TurnProjectilesToSmoke
+.PROC FuncA_Room_TurnProjectilesToSmoke
+    sta T0  ; projectile type
+    ;; If there are any fireballs in flight, remove them.
+    ldx #kMaxActors - 1
+    @loop:
+    lda Ram_ActorType_eActor_arr, x
+    cmp T0  ; projectile type
+    bne @continue
+    ;; Replace the projectile with a smoke particle, keeping the same position
+    ;; and velocity as the projectile, and setting the particle's age counter
+    ;; such that the particle starts at half size and decays from there.
+    lda #eActor::SmokeParticle
+    sta Ram_ActorType_eActor_arr, x
+    lda #kSmokeParticleNumFrames / 2
+    sta Ram_ActorState1_byte_arr, x  ; particle age in frames
+    @continue:
+    dex
+    .assert kMaxActors <= $80, error
+    bpl @loop
+    rts
 .ENDPROC
 
 ;;;=========================================================================;;;

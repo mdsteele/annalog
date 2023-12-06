@@ -49,6 +49,7 @@
 .IMPORT FuncA_Objects_MoveShapeDownOneTile
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
 .IMPORT FuncA_Room_AreActorsWithinDistance
+.IMPORT FuncA_Room_MachineBlasterReset
 .IMPORT FuncA_Room_ReflectFireballsOffMirror
 .IMPORT FuncA_Room_ResetLever
 .IMPORT FuncA_Terrain_FadeInTallRoomWithLava
@@ -676,6 +677,7 @@ _Return:
 .ENDPROC
 
 .PROC FuncA_Room_LavaCenterBlaster_Reset
+    jsr FuncA_Room_MachineBlasterReset
     lda #kBlasterInitGoalM
     sta Ram_MachineState1_byte_arr + kBlasterMachineIndex  ; mirror goal
     lda #kBlasterInitGoalX

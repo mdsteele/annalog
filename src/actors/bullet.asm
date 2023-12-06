@@ -26,6 +26,7 @@
 .IMPORT FuncA_Actor_CenterHitsTerrain
 .IMPORT FuncA_Actor_HarmAvatarIfCollision
 .IMPORT FuncA_Objects_Draw1x1Actor
+.IMPORT FuncA_Room_TurnProjectilesToSmoke
 .IMPORT Func_InitActorDefault
 .IMPORT Ram_ActorState1_byte_arr
 .IMPORT Ram_ActorType_eActor_arr
@@ -115,18 +116,8 @@ _Done:
 .PROC FuncA_Room_RemoveAllBulletsIfConsoleOpen
     lda Zp_ConsoleMachineIndex_u8
     bmi @done
-    ldx #kMaxActors - 1
-    @loop:
-    lda Ram_ActorType_eActor_arr, x
-    cmp #eActor::ProjBullet
-    bne @continue
-    lda #eActor::SmokeParticle
-    sta Ram_ActorType_eActor_arr, x
-    lda #kSmokeParticleNumFrames / 2
-    sta Ram_ActorState1_byte_arr, x  ; particle age in frames
-    @continue:
-    dex
-    bpl @loop
+    lda #eActor::ProjBullet  ; param: projectile type
+    jmp FuncA_Room_TurnProjectilesToSmoke
     @done:
     rts
 .ENDPROC

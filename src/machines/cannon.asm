@@ -32,7 +32,7 @@
 .IMPORT FuncA_Machine_StartWaiting
 .IMPORT FuncA_Objects_Alloc2x2MachineShape
 .IMPORT FuncA_Objects_GetMachineLightTileId
-.IMPORT FuncA_Room_FindGrenadeActor
+.IMPORT FuncA_Room_TurnProjectilesToSmoke
 .IMPORT Func_FindEmptyActorSlot
 .IMPORT Func_InitActorProjGrenade
 .IMPORT Ram_ActorPosX_i16_0_arr
@@ -93,19 +93,8 @@ kTileIdObjCannonBarrelLow  = kTileIdObjCannonFirst + $04
     ldx Zp_MachineIndex_u8
     lda #0
     sta Ram_MachineGoalVert_u8_arr, x
-    ;; If there's a grenade in flight, remove it.
-    jsr FuncA_Room_FindGrenadeActor  ; returns C and X
-    bcs @done
-    ;; Replace the grenade with a smoke particle, keeping the same position and
-    ;; velocity as the grenade, and setting the particle's age counter such
-    ;; that the particle starts at half size (about the size of a grenade) and
-    ;; decays from there.
-    lda #eActor::SmokeParticle
-    sta Ram_ActorType_eActor_arr, x
-    lda #kSmokeParticleNumFrames / 2
-    sta Ram_ActorState1_byte_arr, x  ; particle age in frames
-    @done:
-    rts
+    lda #eActor::ProjGrenade  ; param: projectile type
+    jmp FuncA_Room_TurnProjectilesToSmoke
 .ENDPROC
 
 ;;;=========================================================================;;;

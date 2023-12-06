@@ -17,6 +17,7 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
+.INCLUDE "../actor.inc"
 .INCLUDE "../boss.inc"
 .INCLUDE "../charmap.inc"
 .INCLUDE "../device.inc"
@@ -56,6 +57,7 @@
 .IMPORT FuncA_Objects_MoveShapeUpByA
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
 .IMPORT FuncA_Room_InitBoss
+.IMPORT FuncA_Room_MachineBlasterReset
 .IMPORT FuncA_Room_MachineBoilerReset
 .IMPORT FuncA_Room_ResetLever
 .IMPORT FuncA_Room_TickBoss
@@ -65,14 +67,20 @@
 .IMPORT Func_BufferPpuTransfer
 .IMPORT Func_DistanceSensorRightDetectPoint
 .IMPORT Func_DivMod
+.IMPORT Func_FindActorWithType
 .IMPORT Func_GetRandomByte
+.IMPORT Func_IsPointInPlatform
 .IMPORT Func_MachineBoilerReadReg
+.IMPORT Func_MovePlatformHorz
 .IMPORT Func_MovePlatformLeftTowardPointX
 .IMPORT Func_MovePlatformTopTowardPointY
+.IMPORT Func_MovePlatformVert
 .IMPORT Func_MovePointLeftByA
 .IMPORT Func_Noop
+.IMPORT Func_SetPointToActorCenter
 .IMPORT Func_SetPointToAvatarCenter
 .IMPORT Ppu_ChrObjLava
+.IMPORT Ram_ActorType_eActor_arr
 .IMPORT Ram_MachineGoalHorz_u8_arr
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORT Ram_PlatformLeft_i16_0_arr
@@ -123,15 +131,20 @@ kBlasterInitPlatformLeft = \
 ;;;=========================================================================;;;
 
 ;;; The width and height of the boss's BG tile grid.
-kBossWidthTiles = 8
+kBossFullWidthTiles = 8
 kBossHeightTiles = 4
-kBossWidthPx = kBossWidthTiles * kTileWidthPx
+kBossFullWidthPx = kBossFullWidthTiles * kTileWidthPx
 kBossHeightPx = kBossHeightTiles * kTileHeightPx
+;;; The width of the boss's body's hitbox.
+kBossBodyWidthPx  = $30
+;;; The width and height of the boss's tail's hitbox.
+kBossTailWidthPx  = $08
+kBossTailHeightPx = $04
 
 ;;; The minimum permitted room pixel X-positions for the center and left of the
 ;;; boss's body.
-kBossMinCenterX = $38
-kBossMinLeftX   = kBossMinCenterX - kBossWidthPx / 2
+kBossBodyMinCenterX = $38
+kBossBodyMinLeftX   = kBossBodyMinCenterX - kBossBodyWidthPx / 2
 
 ;;; The room pixel Y-positions for the top and bottom of the zone that the boss
 ;;; can move within.
@@ -144,6 +157,10 @@ kBossInitGoalX = 5
 kBossMaxGoalX  = 9
 kBossInitGoalY = 0
 kBossMaxGoalY  = 3
+
+;;; The initial room pixel position for the top center of the boss's body.
+kBossBodyInitCenterX = kBossBodyMinCenterX + kBlockWidthPx * kBossInitGoalX
+kBossBodyInitTopY = kBossZoneTopY + kBlockHeightPx * kBossInitGoalY
 
 ;;; The tile row/col in the lower nametable for the top-left corner of the
 ;;; boss's BG tiles.
@@ -181,8 +198,9 @@ kBossInitCooldown = 120
 ;;; How many frames to wait between consecutive scuttle actions.
 kBossScuttleCooldown = 60
 
-;;; The platform index for the boss's body.
+;;; The platform indices for the boss's body and tail.
 kBossBodyPlatformIndex = 8
+kBossTailPlatformIndex = 9
 
 ;;; How long it takes the boss's jaws to open or close, in frames.
 kBossJawsOpenFrames = 16
@@ -257,14 +275,14 @@ _Machines_sMachine_arr:
     d_byte ScrollGoalY_u8, $00
     d_byte RegNames_u8_arr4, "L", "R", "X", "D"
     d_byte MainPlatform_u8, kBlasterPlatformIndex
-    d_addr Init_func_ptr, FuncA_Room_BossLavaBlaster_InitReset
+    d_addr Init_func_ptr, FuncA_Room_BossLavaBlaster_Init
     d_addr ReadReg_func_ptr, FuncC_Boss_LavaBlaster_ReadReg
     d_addr WriteReg_func_ptr, FuncA_Machine_BossLava_WriteRegLR
     d_addr TryMove_func_ptr, FuncA_Machine_BossLavaBlaster_TryMove
     d_addr TryAct_func_ptr, FuncA_Machine_BlasterVertTryAct
     d_addr Tick_func_ptr, FuncA_Machine_BossLavaBlaster_Tick
     d_addr Draw_func_ptr, FuncA_Objects_DrawBlasterMachineVert
-    d_addr Reset_func_ptr, FuncA_Room_BossLavaBlaster_InitReset
+    d_addr Reset_func_ptr, FuncA_Room_BossLavaBlaster_Reset
     D_END
     .assert * - :- = kBoilerMachineIndex * .sizeof(sMachine), error
     D_STRUCT sMachine
@@ -354,10 +372,18 @@ _Platforms_sPlatform_arr:
     .assert * - :- = kBossBodyPlatformIndex * .sizeof(sPlatform), error
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Harm
-    d_word WidthPx_u16, kBossWidthPx
+    d_word WidthPx_u16, kBossBodyWidthPx
     d_byte HeightPx_u8, kBossHeightPx
-    d_word Left_i16, kBossMinLeftX + kBlockWidthPx * kBossInitGoalX
-    d_word Top_i16, kBossZoneTopY + kBlockHeightPx * kBossInitGoalY
+    d_word Left_i16, kBossBodyInitCenterX - kBossBodyWidthPx / 2
+    d_word Top_i16, kBossBodyInitTopY
+    D_END
+    .assert * - :- = kBossTailPlatformIndex * .sizeof(sPlatform), error
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Zone
+    d_word WidthPx_u16, kBossTailWidthPx
+    d_byte HeightPx_u8, kBossTailHeightPx
+    d_word Left_i16, kBossBodyInitCenterX - kBossTailWidthPx / 2
+    d_word Top_i16, kBossBodyInitTopY - kBossTailHeightPx
     D_END
     ;; Lava:
     D_STRUCT sPlatform
@@ -431,7 +457,7 @@ _Devices_sDevice_arr:
 .ENDPROC
 
 .PROC DataC_Boss_LavaInitTransfer_arr
-    .assert kBossWidthTiles = 8, error
+    .assert kBossFullWidthTiles = 8, error
     .assert kBossHeightTiles = 4, error
     .assert kTileIdBgAnimBossLavaFirst = $50, error
     ;; Row 0:
@@ -474,7 +500,35 @@ _Devices_sDevice_arr:
 ;;; Performs per-frame upates for the boss in this room.
 ;;; @prereq PRGA_Room is loaded.
 .PROC FuncC_Boss_Lava_TickBoss
-    ;; TODO: check for blaster projectiles hitting boss
+_CheckForHitTail:
+    ;; Fireballs can only hit the boss's tail if its jaws/tail are fully open.
+    lda Zp_RoomState + sState::BossJawsOpen_u8
+    cmp #kBossJawsOpenFrames
+    blt @done  ; tail covering is not fully open
+    ;; Check for a fireball (in this room, it's not possible for there to be
+    ;; more than one on screen at once).
+    lda #eActor::ProjFireball  ; param: actor type
+    jsr Func_FindActorWithType  ; returns C and X
+    bcs @done  ; no fireball found
+    ;; Check if the fireball has hit the tail.
+    jsr Func_SetPointToActorCenter  ; preserves X
+    ldy #kBossTailPlatformIndex  ; param: platform index
+    jsr Func_IsPointInPlatform  ; preserves X, returns C
+    bcc @done  ; fireball has not hit tail
+    ;; The fireball has hit the tail, so remove the fireball.
+    lda #eActor::None
+    sta Ram_ActorType_eActor_arr, x
+    ;; Make the boss react to getting hit.
+    ;; TODO: set a hurt mode for rapidly closing jaws and vibrating horz a bit
+    ;; TODO: Play a sound for the boss getting hurt.
+    ;; Damage the boss.  If its health is now zero, kill the boss.
+    dec Zp_RoomState + sState::BossHealth_u8
+    bne @done  ; boss is not dead yet
+    lda #0
+    sta Zp_RoomState + sState::BossCooldown_u8
+    .assert eBossMode::Dead = 0, error
+    sta Zp_RoomState + sState::Current_eBossMode
+    @done:
 _CoolDown:
     ;; Wait for cooldown to expire.
     lda Zp_RoomState + sState::BossCooldown_u8
@@ -513,7 +567,7 @@ _BossScuttling:
     ;; it in Zp_Point*_i16.
     lda Zp_RoomState + sState::BossGoalX_u8
     mul #kBlockWidthPx  ; this will clear the carry
-    adc #kBossMinLeftX
+    adc #kBossBodyMinLeftX
     sta Zp_PointX_i16 + 0
     lda Zp_RoomState + sState::BossGoalY_u8
     mul #kBlockHeightPx  ; this will clear the carry
@@ -522,17 +576,20 @@ _BossScuttling:
     lda #0
     sta Zp_PointX_i16 + 1
     sta Zp_PointY_i16 + 1
-    ;; Move the boss's body towards the goal position.
+    ;; Move the boss's body towards the goal position, and the tail with it.
     ldx #kBossBodyPlatformIndex  ; param: platform index
     lda #1  ; param: max move by
-    jsr Func_MovePlatformLeftTowardPointX  ; preserves X, returns A
-    pha     ; horz move delta
+    jsr Func_MovePlatformLeftTowardPointX  ; preserves X, returns A and Z
+    beq @reachedGoalHorz
+    ldx #kBossTailPlatformIndex  ; param: platform index
+    jmp Func_MovePlatformHorz
+    @reachedGoalHorz:
     lda #1  ; param: max move by
-    jsr Func_MovePlatformTopTowardPointY  ; returns A
-    sta T0  ; vert move delta
-    pla     ; horz move delta
-    ora T0  ; vert move delta
-    bne @done  ; not at goal yet
+    jsr Func_MovePlatformTopTowardPointY  ; returns A and Z
+    beq @reachedGoalVert
+    ldx #kBossTailPlatformIndex  ; param: platform index
+    jmp Func_MovePlatformVert
+    @reachedGoalVert:
     ;; Once the goal position is reached, pick a new goal position.
     jsr Func_GetRandomByte  ; returns A (param: dividend)
     ldy #kBossMaxGoalX + 1  ; param: divisor
@@ -568,7 +625,7 @@ _SetShapePosition:
     ;; Set the shape position to the center of the boss's body.
     ldx #kBossBodyPlatformIndex  ; param: platform index
     jsr FuncA_Objects_SetShapePosToPlatformTopLeft
-    lda #kBossWidthPx / 2  ; param: offset
+    lda #kBossBodyWidthPx / 2  ; param: offset
     jsr FuncA_Objects_MoveShapeRightByA
     lda #kBossHeightPx / 2  ; param: offset
     jsr FuncA_Objects_MoveShapeDownByA
@@ -586,7 +643,7 @@ _SetUpIrq:
     ldax #Int_BossLavaZoneTopIrq
     stax <(Zp_Buffered_sIrq + sIrq::FirstIrq_int_ptr)
     ;; Compute PPU scroll values for the boss zone.
-    lda #kBossBgStartCol * kTileWidthPx + kBossWidthPx / 2
+    lda #kBossBgStartCol * kTileWidthPx + kBossFullWidthPx / 2
     sub Zp_ShapePosX_i16 + 0
     sta <(Zp_Buffered_sIrq + sIrq::Param1_byte)  ; boss scroll-X
     lda #kBossBgStartRow * kTileHeightPx + kBossHeightPx / 2 + kBossZoneTopY
@@ -711,7 +768,12 @@ _BossIsDead:
     rts
 .ENDPROC
 
-.PROC FuncA_Room_BossLavaBlaster_InitReset
+.PROC FuncA_Room_BossLavaBlaster_Reset
+    jsr FuncA_Room_MachineBlasterReset
+    .assert * = FuncA_Room_BossLavaBlaster_Init, error, "fallthrough"
+.ENDPROC
+
+.PROC FuncA_Room_BossLavaBlaster_Init
     lda #kBlasterInitGoalX
     sta Ram_MachineGoalHorz_u8_arr + kBlasterMachineIndex
     .assert kBlasterInitGoalX < $80, error

@@ -62,6 +62,7 @@
 .IMPORT FuncA_Objects_DrawWinchMachineWithSpikeball
 .IMPORT FuncA_Objects_MoveShapeDownOneTile
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
+.IMPORT FuncA_Room_MachineBlasterReset
 .IMPORT FuncA_Room_MachineCannonReset
 .IMPORT FuncA_Room_ReflectFireballsOffMirror
 .IMPORT Func_FindEmptyActorSlot
@@ -953,6 +954,7 @@ _Return:
 .ENDPROC
 
 .PROC FuncA_Room_CoreBossBlaster_Reset
+    jsr FuncA_Room_MachineBlasterReset
     lda #kBlasterInitGoalM
     sta Ram_MachineState1_byte_arr + kBlasterMachineIndex  ; mirror 1 goal
     lda #kBlasterInitGoalR
