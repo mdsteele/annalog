@@ -184,6 +184,7 @@ Ppu_BossRow4Start = Ppu_Nametable3_sName + sName::Tiles_u8_arr + \
 ;;; Modes that the boss in this room can be in.
 .ENUM eBossMode
     Dead
+    Hurt       ; closing jaws, vibrating in place
     Scuttling  ; moving to the goal position
     ;; TODO: other modes
     NUM_VALUES
@@ -195,6 +196,8 @@ kBossInitHealth = 8
 ;;; How many frames the boss waits, after you first enter the room, before
 ;;; taking action.
 kBossInitCooldown = 120
+;;; How many frames to vibrate in place when hurt.
+kBossHurtCooldown = 60
 ;;; How many frames to wait between consecutive scuttle actions.
 kBossScuttleCooldown = 60
 
@@ -519,28 +522,17 @@ _CheckForHitTail:
     lda #eActor::None
     sta Ram_ActorType_eActor_arr, x
     ;; Make the boss react to getting hit.
-    ;; TODO: set a hurt mode for rapidly closing jaws and vibrating horz a bit
-    ;; TODO: Play a sound for the boss getting hurt.
-    ;; Damage the boss.  If its health is now zero, kill the boss.
-    dec Zp_RoomState + sState::BossHealth_u8
-    bne @done  ; boss is not dead yet
-    lda #0
-    sta Zp_RoomState + sState::BossCooldown_u8
-    .assert eBossMode::Dead = 0, error
+    lda #eBossMode::Hurt
     sta Zp_RoomState + sState::Current_eBossMode
+    lda #kBossHurtCooldown
+    sta Zp_RoomState + sState::BossCooldown_u8
+    ;; TODO: Play a sound for the boss getting hurt.
     @done:
 _CoolDown:
-    ;; Wait for cooldown to expire.
     lda Zp_RoomState + sState::BossCooldown_u8
-    beq _CheckMode
-    dec Zp_RoomState + sState::BossCooldown_u8
-    ;; Open jaws during cooldown.
-    lda Zp_RoomState + sState::BossJawsOpen_u8
-    cmp #kBossJawsOpenFrames
     beq @done
-    inc Zp_RoomState + sState::BossJawsOpen_u8
+    dec Zp_RoomState + sState::BossCooldown_u8
     @done:
-    rts
 _CheckMode:
     ;; Branch based on the current boss mode.
     ldy Zp_RoomState + sState::Current_eBossMode
@@ -554,15 +546,58 @@ _CheckMode:
     D_TABLE_HI table, _JumpTable_ptr_1_arr
     D_TABLE .enum, eBossMode
     d_entry table, Dead,      Func_Noop
+    d_entry table, Hurt,      _BossHurt
     d_entry table, Scuttling, _BossScuttling
     D_END
 .ENDREPEAT
+_BossHurt:
+    ;; Close jaws quickly.
+    lda #2  ; param: speedup
+    jsr FuncC_Boss_Lava_BossCloseJaws
+    ;; Vibrate in place until the cooldown expires.
+    lda Zp_RoomState + sState::BossCooldown_u8
+    beq @doneVibrate
+    div #2
+    and #1    ; param: signed delta
+    bne @vibrate
+    lda #<-1  ; param: signed delta
+    @vibrate:
+    ldx #kBossBodyPlatformIndex  ; param: platform index
+    pha  ; signed delta
+    jsr Func_MovePlatformHorz  ; preserves X
+    pla  ; param: signed delta
+    ldx #kBossTailPlatformIndex  ; param: platform index
+    jmp Func_MovePlatformHorz  ; preserves X
+    @doneVibrate:
+    ;; At the end of the hurt animation, decrement the boss's health.  If its
+    ;; health is now zero, kill the boss.  Otherwise, start scuttling.
+    dec Zp_RoomState + sState::BossHealth_u8
+    bne _StartScuttling  ; boss is not dead yet
+    lda #eBossMode::Dead
+    sta Zp_RoomState + sState::Current_eBossMode
+    @done:
+    rts
+_StartScuttling:
+    lda #eBossMode::Scuttling
+    sta Zp_RoomState + sState::Current_eBossMode
+    ;; Pick a new goal position.
+    jsr Func_GetRandomByte  ; returns A (param: dividend)
+    ldy #kBossMaxGoalX + 1  ; param: divisor
+    jsr Func_DivMod  ; returns remainder in A
+    sta Zp_RoomState + sState::BossGoalX_u8
+    jsr Func_GetRandomByte  ; returns A (param: dividend)
+    ldy #kBossMaxGoalY + 1  ; param: divisor
+    jsr Func_DivMod  ; returns remainder in A
+    sta Zp_RoomState + sState::BossGoalY_u8
+_Return:
+    rts
 _BossScuttling:
+    ;; Wait for cooldown.
+    lda Zp_RoomState + sState::BossCooldown_u8
+    bne FuncC_Boss_Lava_BossOpenJaws
     ;; Close jaws while scuttling.
-    lda Zp_RoomState + sState::BossJawsOpen_u8
-    beq @doneJaws
-    dec Zp_RoomState + sState::BossJawsOpen_u8
-    @doneJaws:
+    lda #1  ; param: speedup
+    jsr FuncC_Boss_Lava_BossCloseJaws
     ;; Compute the goal top-left position for the boss's body platform, storing
     ;; it in Zp_Point*_i16.
     lda Zp_RoomState + sState::BossGoalX_u8
@@ -590,19 +625,33 @@ _BossScuttling:
     ldx #kBossTailPlatformIndex  ; param: platform index
     jmp Func_MovePlatformVert
     @reachedGoalVert:
-    ;; Once the goal position is reached, pick a new goal position.
-    jsr Func_GetRandomByte  ; returns A (param: dividend)
-    ldy #kBossMaxGoalX + 1  ; param: divisor
-    jsr Func_DivMod  ; returns remainder in A
-    sta Zp_RoomState + sState::BossGoalX_u8
-    jsr Func_GetRandomByte  ; returns A (param: dividend)
-    ldy #kBossMaxGoalY + 1  ; param: divisor
-    jsr Func_DivMod  ; returns remainder in A
-    sta Zp_RoomState + sState::BossGoalY_u8
     ;; Set a cooldown before proceeding to the next goal position.
     lda #kBossScuttleCooldown
     sta Zp_RoomState + sState::BossCooldown_u8
+    .assert kBossScuttleCooldown > 0, error
+    bne _StartScuttling  ; unconditional
+.ENDPROC
+
+;;; Opens the boss's jaws and tail by one step, up until they're fully open.
+.PROC FuncC_Boss_Lava_BossOpenJaws
+    lda Zp_RoomState + sState::BossJawsOpen_u8
+    cmp #kBossJawsOpenFrames
+    beq @done
+    inc Zp_RoomState + sState::BossJawsOpen_u8
     @done:
+    rts
+.ENDPROC
+
+;;; Closes the boss's jaws and tail by the given number of steps, down until
+;;; they're fully closed.
+;;; @param A The speedup factor.
+.PROC FuncC_Boss_Lava_BossCloseJaws
+    rsub Zp_RoomState + sState::BossJawsOpen_u8
+    .assert kBossJawsOpenFrames < $80, error
+    bpl @setJaws
+    lda #0
+    @setJaws:
+    sta Zp_RoomState + sState::BossJawsOpen_u8
     rts
 .ENDPROC
 
