@@ -515,9 +515,7 @@ _BossWaiting:
     lda Ram_ActorType_eActor_arr, x
     cmp #eActor::ProjBreakball
     beq @done
-    cmp #eActor::ProjFlamewave
-    beq @done
-    cmp #eActor::ProjFireball
+    cmp #eActor::ProjBreakfire
     beq @done
     dex
     bpl @loop

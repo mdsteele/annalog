@@ -21,6 +21,7 @@
 .INCLUDE "actors/bat.inc"
 .INCLUDE "actors/bird.inc"
 .INCLUDE "actors/breakball.inc"
+.INCLUDE "actors/breakfire.inc"
 .INCLUDE "actors/bullet.inc"
 .INCLUDE "actors/child.inc"
 .INCLUDE "actors/crab.inc"
@@ -29,7 +30,6 @@
 .INCLUDE "actors/fireball.inc"
 .INCLUDE "actors/firefly.inc"
 .INCLUDE "actors/fish.inc"
-.INCLUDE "actors/flamewave.inc"
 .INCLUDE "actors/flydrop.inc"
 .INCLUDE "actors/grenade.inc"
 .INCLUDE "actors/grub.inc"
@@ -984,7 +984,7 @@ _chr_begin:
     chr_inc "outbreak_obj",          kTileIdObjOutbreakFirst
     chr_res $08
     chr_inc "spike",                 kTileIdObjSpike
-    chr_inc "flamewave",             kTileIdObjFlamewaveFirst
+    chr_inc "breakfire",             kTileIdObjBreakfireFirst
     chr_res $02
     chr_inc "plant_eye",             kTileIdObjPlantEyeFirst
     chr_res $04

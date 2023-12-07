@@ -53,10 +53,10 @@ kMaxActors = 16
     NpcToddler
     ProjAcid         ; acid dropped by a flydrop baddie
     ProjBreakball    ; a bouncing ball shot by the temple boss
+    ProjBreakfire    ; sweeps out horizontally from an exploding breakball
     ProjBullet       ; shot by minigun machines
     ProjEmber        ; fire dropped by a hothead baddie
     ProjFireball     ; shot from the garden boss's eyes
-    ProjFlamewave    ; sweeps out horizontally from an exploding breakball
     ProjGrenade      ; shot by cannon machines
     ProjRocket       ; shot by launcher machines
     ProjSpike        ; a falling spike dropped by the garden boss

@@ -34,7 +34,7 @@
 .IMPORT FuncA_Objects_SetShapePosToActorCenter
 .IMPORT Func_FindEmptyActorSlot
 .IMPORT Func_InitActorDefault
-.IMPORT Func_InitActorProjFlamewave
+.IMPORT Func_InitActorProjBreakfire
 .IMPORT Func_IsPointInAnySolidPlatform
 .IMPORT Func_MovePointDownByA
 .IMPORT Func_MovePointUpByA
@@ -175,21 +175,21 @@ _Explode:
     and #$f0
     ora #$08
     sta Ram_ActorPosY_i16_0_arr, x
-    ;; Turn the breakball into two flamewave projetiles moving in opposite
+    ;; Turn the breakball into two breakfire projetiles moving in opposite
     ;; directions.
     txa  ; breakball actor index
     pha  ; breakball actor index
     jsr Func_SetPointToActorCenter  ; preserves X
     jsr Func_FindEmptyActorSlot  ; returns C and X
-    bcs @doneFirstFlamewave
+    bcs @doneFirstBreakfire
     jsr Func_SetActorCenterToPoint  ; preserves X
     lda #0  ; param: direction (0 = right)
-    jsr Func_InitActorProjFlamewave
-    @doneFirstFlamewave:
+    jsr Func_InitActorProjBreakfire
+    @doneFirstBreakfire:
     pla  ; breakball actor index
     tax  ; param: actor index
     lda #bObj::FlipH  ; param: direction (FlipH = left)
-    jmp Func_InitActorProjFlamewave  ; preserves X
+    jmp Func_InitActorProjBreakfire  ; preserves X
 .ENDPROC
 
 ;;;=========================================================================;;;

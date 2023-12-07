@@ -22,7 +22,7 @@
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
 .INCLUDE "../ppu.inc"
-.INCLUDE "flamewave.inc"
+.INCLUDE "breakfire.inc"
 
 .IMPORT FuncA_Actor_CenterHitsTerrain
 .IMPORT FuncA_Actor_HarmAvatarIfCollision
@@ -42,46 +42,46 @@
 
 ;;;=========================================================================;;;
 
-;;; The OBJ palette number used for flamewave projectile actors.
-kPaletteObjFlamewave = 1
+;;; The OBJ palette number used for breakfire projectile actors.
+kPaletteObjBreakfire = 1
 
-;;; How many VBlank frames between flamewave animation frames.
-.DEFINE kProjFlamewaveAnimSlowdown 2
+;;; How many VBlank frames between breakfire animation frames.
+.DEFINE kProjBreakfireAnimSlowdown 2
 
-;;; How fast a flamewave moves horizontally, in subpixels/frame.
-kProjFlamewaveSpeed = $01c0
+;;; How fast a breakfire moves horizontally, in subpixels/frame.
+kProjBreakfireSpeed = $01c0
 
-;;; How many times a flamewave can bounce off a wall without expiring.
-kProjFlamewaveMaxBounces = 1
+;;; How many times a breakfire can bounce off a wall without expiring.
+kProjBreakfireMaxBounces = 1
 
 ;;;=========================================================================;;;
 
 .SEGMENT "PRG8"
 
-;;; Initializes the specified actor as a flamewave projectile.
+;;; Initializes the specified actor as a breakfire projectile.
 ;;; @prereq The actor's pixel position has already been initialized.
-;;; @param A Zero if the flamewave should move right, or bObj::FlipH for left.
+;;; @param A Zero if the breakfire should move right, or bObj::FlipH for left.
 ;;; @param X The actor index.
 ;;; @preserve X
-.EXPORT Func_InitActorProjFlamewave
-.PROC Func_InitActorProjFlamewave
+.EXPORT Func_InitActorProjBreakfire
+.PROC Func_InitActorProjBreakfire
     sta T0  ; horz flag
-    ldy #eActor::ProjFlamewave  ; param: actor type
+    ldy #eActor::ProjBreakfire  ; param: actor type
     jsr Func_InitActorDefault  ; preserves X and T0+
 _InitVelX:
     bit T0  ; horz flag
     .assert bObj::FlipH = bProc::Overflow, error
     bvs _Left
 _Right:
-    lda #<kProjFlamewaveSpeed
+    lda #<kProjBreakfireSpeed
     sta Ram_ActorVelX_i16_0_arr, x
-    lda #>kProjFlamewaveSpeed
+    lda #>kProjBreakfireSpeed
     sta Ram_ActorVelX_i16_1_arr, x
     rts
 _Left:
-    lda #<-kProjFlamewaveSpeed
+    lda #<-kProjBreakfireSpeed
     sta Ram_ActorVelX_i16_0_arr, x
-    lda #>-kProjFlamewaveSpeed
+    lda #>-kProjBreakfireSpeed
     sta Ram_ActorVelX_i16_1_arr, x
     rts
 .ENDPROC
@@ -90,23 +90,23 @@ _Left:
 
 .SEGMENT "PRGA_Actor"
 
-;;; Performs per-frame updates for a flamewave projectile actor.
+;;; Performs per-frame updates for a breakfire projectile actor.
 ;;; @param X The actor index.
 ;;; @preserve X
-.EXPORT FuncA_Actor_TickProjFlamewave
-.PROC FuncA_Actor_TickProjFlamewave
-    ;; If the flamewave somehow goes for too long without hitting a wall,
+.EXPORT FuncA_Actor_TickProjBreakfire
+.PROC FuncA_Actor_TickProjBreakfire
+    ;; If the breakfire somehow goes for too long without hitting a wall,
     ;; expire it.
     inc Ram_ActorState1_byte_arr, x  ; expiration timer
     beq _Expire
 _CheckIfHitsWall:
-    ;; Check if the flamewave has hit a wall.  If not, we're done.
+    ;; Check if the breakfire has hit a wall.  If not, we're done.
     jsr FuncA_Actor_CenterHitsTerrain  ; preserves X, returns C
     bcc _Finish
-    ;; Check if the flamewave has already bounced the maximum number of times;
+    ;; Check if the breakfire has already bounced the maximum number of times;
     ;; if so, expire it.
     lda Ram_ActorState2_byte_arr, x  ; num bounces so far
-    cmp #kProjFlamewaveMaxBounces
+    cmp #kProjBreakfireMaxBounces
     bge _Expire
     ;; Otherwise, increment the bounce count, then bounce off the wall.
     inc Ram_ActorState2_byte_arr, x  ; num bounces so far
@@ -125,34 +125,34 @@ _Expire:
 
 .SEGMENT "PRGA_Objects"
 
-;;; Draws a flamewave projectile actor.
+;;; Draws a breakfire projectile actor.
 ;;; @param X The actor index.
 ;;; @preserve X
-.EXPORT FuncA_Objects_DrawActorProjFlamewave
-.PROC FuncA_Objects_DrawActorProjFlamewave
+.EXPORT FuncA_Objects_DrawActorProjBreakfire
+.PROC FuncA_Objects_DrawActorProjBreakfire
     jsr FuncA_Objects_SetShapePosToActorCenter  ; preserves X
     jsr FuncA_Objects_MoveShapeLeftHalfTile  ; preserves X
     lda Zp_FrameCounter_u8
-    div #kProjFlamewaveAnimSlowdown
+    div #kProjBreakfireAnimSlowdown
     lsr a
     bcs _Tall
 _Short:
     lda #2
     sta T0  ; num tiles
-    lda #kTileIdObjFlamewaveFirst + 4
+    lda #kTileIdObjBreakfireFirst + 4
     sta T1  ; first tile ID
     bne _Loop  ; unconditional
 _Tall:
     lda #3
     sta T0  ; num tiles
-    lda #kTileIdObjFlamewaveFirst + 2
+    lda #kTileIdObjBreakfireFirst + 2
     sta T1  ; first tile ID
 _Loop:
     jsr FuncA_Objects_Alloc1x1Shape  ; preserves X and T0+, returns C and Y
     bcs @continue
     lda T1  ; tile ID
     sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
-    lda #kPaletteObjFlamewave
+    lda #kPaletteObjBreakfire
     sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
     @continue:
     jsr FuncA_Objects_MoveShapeUpOneTile  ; preserves X and T0+

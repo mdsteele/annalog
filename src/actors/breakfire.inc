@@ -17,14 +17,14 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
-;;; State bytes for flamewave projectiles:
+;;; State bytes for breakfire projectiles:
 ;;;   * State1: Counter that starts at zero and increments every frame; if it
-;;;     wraps back around to zero before the flamewave hits a wall, then the
-;;;     flamewave is removed.
-;;;   * State2: How many times the flamewave has bounced off a wall.
+;;;     wraps back around to zero before the breakfire hits a wall, then the
+;;;     breakfire is removed.
+;;;   * State2: How many times the breakfire has bounced off a wall.
 ;;;   * State3: Unused.
 
-;;; The first tile ID for drawing flamewave projectile actors.
-kTileIdObjFlamewaveFirst = $a9
+;;; The first tile ID for drawing breakfire projectile actors.
+kTileIdObjBreakfireFirst = $a9
 
 ;;;=========================================================================;;;
