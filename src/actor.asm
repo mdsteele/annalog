@@ -51,6 +51,7 @@
 .IMPORT FuncA_Actor_TickProjBullet
 .IMPORT FuncA_Actor_TickProjEmber
 .IMPORT FuncA_Actor_TickProjFireball
+.IMPORT FuncA_Actor_TickProjFlamestrike
 .IMPORT FuncA_Actor_TickProjGrenade
 .IMPORT FuncA_Actor_TickProjRocket
 .IMPORT FuncA_Actor_TickProjSpike
@@ -91,6 +92,7 @@
 .IMPORT FuncA_Objects_DrawActorProjBullet
 .IMPORT FuncA_Objects_DrawActorProjEmber
 .IMPORT FuncA_Objects_DrawActorProjFireball
+.IMPORT FuncA_Objects_DrawActorProjFlamestrike
 .IMPORT FuncA_Objects_DrawActorProjGrenade
 .IMPORT FuncA_Objects_DrawActorProjRocket
 .IMPORT FuncA_Objects_DrawActorProjSpike
@@ -108,6 +110,7 @@
 .IMPORT FuncA_Room_InitActorNpcChild
 .IMPORT FuncA_Room_InitActorNpcToddler
 .IMPORT FuncA_Room_InitActorProjBreakball
+.IMPORT FuncA_Room_InitActorProjFlamestrike
 .IMPORT Func_InitActorBadOrc
 .IMPORT Func_InitActorNpcOrc
 .IMPORT Func_InitActorProjAcid
@@ -358,6 +361,7 @@ Ram_ActorFlags_bObj_arr: .res kMaxActors
     d_byte ProjBullet,      kProjBulletRadius
     d_byte ProjEmber,        1
     d_byte ProjFireball,    kProjFireballRadius
+    d_byte ProjFlamestrike, 44
     d_byte ProjGrenade,     kProjGrenadeRadius
     d_byte ProjRocket,      kProjRocketRadius
     d_byte ProjSpike,       kProjSpikeRadius
@@ -403,6 +407,7 @@ Ram_ActorFlags_bObj_arr: .res kMaxActors
     d_byte ProjBullet,      kProjBulletRadius
     d_byte ProjEmber,        3
     d_byte ProjFireball,    kProjFireballRadius
+    d_byte ProjFlamestrike,  4
     d_byte ProjGrenade,     kProjGrenadeRadius
     d_byte ProjRocket,      kProjRocketRadius
     d_byte ProjSpike,       kProjSpikeRadius
@@ -415,39 +420,40 @@ Ram_ActorFlags_bObj_arr: .res kMaxActors
 .ENDPROC
 .PROC DataA_Actor_BoundingBoxSide_u8_arr
     D_ARRAY .enum, eActor
-    d_byte None,            0
-    d_byte BadBat,          6
-    d_byte BadBeetleHorz,   6
-    d_byte BadBeetleVert,   4
-    d_byte BadBird,         7
-    d_byte BadCrab,         7
-    d_byte BadFirefly,      6
-    d_byte BadFish,         6
-    d_byte BadFlydrop,      6
-    d_byte BadGrub,         7
-    d_byte BadHotheadHorz,  6
-    d_byte BadHotheadVert,  6
+    d_byte None,             0
+    d_byte BadBat,           6
+    d_byte BadBeetleHorz,    6
+    d_byte BadBeetleVert,    4
+    d_byte BadBird,          7
+    d_byte BadCrab,          7
+    d_byte BadFirefly,       6
+    d_byte BadFish,          6
+    d_byte BadFlydrop,       6
+    d_byte BadGrub,          7
+    d_byte BadHotheadHorz,   6
+    d_byte BadHotheadVert,   6
     d_byte BadJelly,        kBadJellyRadius
-    d_byte BadLavaball,     6
+    d_byte BadLavaball,      6
     d_byte BadOrc,          kOrcBoundingBoxSide
     d_byte BadRhino,        10
-    d_byte BadRodent,       2
-    d_byte BadSpider,       6
-    d_byte BadToad,         7
-    d_byte BadVinebug,      5
-    d_byte BadWasp,         6
-    d_byte NpcAdult,        5
-    d_byte NpcChild,        5
-    d_byte NpcMermaid,      5
-    d_byte NpcMermaidQueen, 5
+    d_byte BadRodent,        2
+    d_byte BadSpider,        6
+    d_byte BadToad,          7
+    d_byte BadVinebug,       5
+    d_byte BadWasp,          6
+    d_byte NpcAdult,         5
+    d_byte NpcChild,         5
+    d_byte NpcMermaid,       5
+    d_byte NpcMermaidQueen,  5
     d_byte NpcOrc,          kOrcBoundingBoxSide
-    d_byte NpcToddler,      3
-    d_byte ProjAcid,        2
+    d_byte NpcToddler,       3
+    d_byte ProjAcid,         2
     d_byte ProjBreakball,   kProjBreakballRadius
-    d_byte ProjBreakfire,   3
+    d_byte ProjBreakfire,    3
     d_byte ProjBullet,      kProjBulletRadius
-    d_byte ProjEmber,       2
+    d_byte ProjEmber,        2
     d_byte ProjFireball,    kProjFireballRadius
+    d_byte ProjFlamestrike,  3
     d_byte ProjGrenade,     kProjGrenadeRadius
     d_byte ProjRocket,      kProjRocketRadius
     d_byte ProjSpike,       kProjSpikeRadius
@@ -561,6 +567,7 @@ _TypeSpecificTick:
     d_entry table, ProjBullet,      FuncA_Actor_TickProjBullet
     d_entry table, ProjEmber,       FuncA_Actor_TickProjEmber
     d_entry table, ProjFireball,    FuncA_Actor_TickProjFireball
+    d_entry table, ProjFlamestrike, FuncA_Actor_TickProjFlamestrike
     d_entry table, ProjGrenade,     FuncA_Actor_TickProjGrenade
     d_entry table, ProjRocket,      FuncA_Actor_TickProjRocket
     d_entry table, ProjSpike,       FuncA_Actor_TickProjSpike
@@ -741,6 +748,7 @@ _NoHit:
     d_entry table, ProjBullet,      Func_InitActorProjBullet
     d_entry table, ProjEmber,       Func_InitActorProjEmber
     d_entry table, ProjFireball,    Func_InitActorProjFireball
+    d_entry table, ProjFlamestrike, FuncA_Room_InitActorProjFlamestrike
     d_entry table, ProjGrenade,     Func_InitActorProjGrenade
     d_entry table, ProjRocket,      Func_InitActorProjRocket
     d_entry table, ProjSpike,       Func_InitActorProjSpike
@@ -882,6 +890,7 @@ _NoHit:
     d_entry table, ProjBullet,      FuncA_Objects_DrawActorProjBullet
     d_entry table, ProjEmber,       FuncA_Objects_DrawActorProjEmber
     d_entry table, ProjFireball,    FuncA_Objects_DrawActorProjFireball
+    d_entry table, ProjFlamestrike, FuncA_Objects_DrawActorProjFlamestrike
     d_entry table, ProjGrenade,     FuncA_Objects_DrawActorProjGrenade
     d_entry table, ProjRocket,      FuncA_Objects_DrawActorProjRocket
     d_entry table, ProjSpike,       FuncA_Objects_DrawActorProjSpike

@@ -30,6 +30,7 @@
 .INCLUDE "actors/fireball.inc"
 .INCLUDE "actors/firefly.inc"
 .INCLUDE "actors/fish.inc"
+.INCLUDE "actors/flamestrike.inc"
 .INCLUDE "actors/flydrop.inc"
 .INCLUDE "actors/grenade.inc"
 .INCLUDE "actors/grub.inc"
@@ -1124,7 +1125,7 @@ _chr_begin:
     chr_inc "mirror",            kTileIdObjMirrorFirst
     chr_res $03
     chr_inc "boss_lava_jaws",    kTileIdObjBossLavaJawsFirst
-    chr_res $02
+    chr_inc "flamestrike",       kTileIdObjFlamestrikeFirst
     chr_inc "steam_vert",        kTileIdObjSteamVertFirst
     chr_inc "breaker",           kTileIdObjBreakerFirst
     END_CHR_BANK

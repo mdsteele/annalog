@@ -57,6 +57,7 @@ kMaxActors = 16
     ProjBullet       ; shot by minigun machines
     ProjEmber        ; fire dropped by a hothead baddie
     ProjFireball     ; shot from the garden boss's eyes
+    ProjFlamestrike  ; shot by lava boss; comes down, then sweeps sideways
     ProjGrenade      ; shot by cannon machines
     ProjRocket       ; shot by launcher machines
     ProjSpike        ; a falling spike dropped by the garden boss

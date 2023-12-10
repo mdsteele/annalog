@@ -56,6 +56,7 @@
 .IMPORT FuncA_Objects_MoveShapeRightByA
 .IMPORT FuncA_Objects_MoveShapeUpByA
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
+.IMPORT FuncA_Room_InitActorProjFlamestrike
 .IMPORT FuncA_Room_InitBoss
 .IMPORT FuncA_Room_MachineBlasterReset
 .IMPORT FuncA_Room_MachineBoilerReset
@@ -68,6 +69,7 @@
 .IMPORT Func_DistanceSensorRightDetectPoint
 .IMPORT Func_DivMod
 .IMPORT Func_FindActorWithType
+.IMPORT Func_FindEmptyActorSlot
 .IMPORT Func_GetRandomByte
 .IMPORT Func_IsPointInPlatform
 .IMPORT Func_MachineBoilerReadReg
@@ -75,10 +77,13 @@
 .IMPORT Func_MovePlatformLeftTowardPointX
 .IMPORT Func_MovePlatformTopTowardPointY
 .IMPORT Func_MovePlatformVert
+.IMPORT Func_MovePointDownByA
 .IMPORT Func_MovePointLeftByA
 .IMPORT Func_Noop
+.IMPORT Func_SetActorCenterToPoint
 .IMPORT Func_SetPointToActorCenter
 .IMPORT Func_SetPointToAvatarCenter
+.IMPORT Func_SetPointToPlatformCenter
 .IMPORT Ppu_ChrObjLava
 .IMPORT Ram_ActorType_eActor_arr
 .IMPORT Ram_MachineGoalHorz_u8_arr
@@ -184,9 +189,13 @@ Ppu_BossRow4Start = Ppu_Nametable3_sName + sName::Tiles_u8_arr + \
 ;;; Modes that the boss in this room can be in.
 .ENUM eBossMode
     Dead
-    Hurt       ; closing jaws, vibrating in place
-    Scuttling  ; moving to the goal position
-    ;; TODO: other modes
+    FlamestrikePrepare  ; move into position to shoot a flamestrike projectile
+    FlamestrikeShoot    ; open jaws and shoot the flamestrike
+    FlamestrikeDescend  ; stay in place while the flamestrike descends
+    FlamestrikeRetreat  ; move upwards while the flamestrike is paused
+    Hurt                ; closing jaws, vibrating in place
+    Scuttling           ; moving around randomly
+    ;; TODO: mode for fireball spray
     NUM_VALUES
 .ENDENUM
 
@@ -353,7 +362,7 @@ _Platforms_sPlatform_arr:
     d_byte Type_ePlatform, ePlatform::Zone
     d_word WidthPx_u16, $08
     d_byte HeightPx_u8, $08
-    d_word Left_i16,  $00a0
+    d_word Left_i16,  $00a8
     d_word Top_i16,   $00a0
     D_END
     .assert * - :- = kLeftWallPlatformIndex * .sizeof(sPlatform), error
@@ -545,15 +554,88 @@ _CheckMode:
     D_TABLE_LO table, _JumpTable_ptr_0_arr
     D_TABLE_HI table, _JumpTable_ptr_1_arr
     D_TABLE .enum, eBossMode
-    d_entry table, Dead,      Func_Noop
-    d_entry table, Hurt,      _BossHurt
-    d_entry table, Scuttling, _BossScuttling
+    d_entry table, Dead,               Func_Noop
+    d_entry table, FlamestrikePrepare, _BossFlamestrikePrepare
+    d_entry table, FlamestrikeShoot,   _BossFlamestrikeShoot
+    d_entry table, FlamestrikeDescend, _BossFlamestrikeDescend
+    d_entry table, FlamestrikeRetreat, _BossFlamestrikeRetreat
+    d_entry table, Hurt,               _BossHurt
+    d_entry table, Scuttling,          _BossScuttling
     D_END
 .ENDREPEAT
+_BossFlamestrikePrepare:
+    jsr FuncC_Boss_Lava_BossCloseJaws
+    ;; Wait until the boss is in position.
+    jsr FuncC_Boss_Lava_BossMoveTowardGoal  ; sets C when goal is reached
+    bcc @done
+    ;; Shoot the flamestrike.
+    lda #eBossMode::FlamestrikeShoot
+    sta Zp_RoomState + sState::Current_eBossMode
+    @done:
+    rts
+_BossFlamestrikeShoot:
+    ;; Wait until the boss's jaws are fully open.
+    jsr FuncC_Boss_Lava_BossOpenJaws  ; sets Z when jaws are fully open
+    bne @done
+    ;; Change modes to wait while the flamestrike descends.
+    lda #eBossMode::FlamestrikeDescend
+    sta Zp_RoomState + sState::Current_eBossMode
+    lda #70
+    sta Zp_RoomState + sState::BossCooldown_u8
+    ;; Shoot a flamestrike projectile.
+    ldy #kBossBodyPlatformIndex  ; param: platform index
+    jsr Func_SetPointToPlatformCenter
+    lda #kBossHeightPx / 2 - 1  ; param: offset
+    jsr Func_MovePointDownByA
+    jsr Func_FindEmptyActorSlot  ; returns C and X
+    bcs @done
+    jsr Func_SetActorCenterToPoint  ; preserves X
+    lda #0  ; param: FlipH flag
+    jsr FuncA_Room_InitActorProjFlamestrike
+    jsr Func_FindEmptyActorSlot  ; returns C and X
+    bcs @done
+    jsr Func_SetActorCenterToPoint  ; preserves X
+    lda #bObj::FlipH  ; param: FlipH flag
+    jmp FuncA_Room_InitActorProjFlamestrike
+    @done:
+    rts
+_BossFlamestrikeDescend:
+    jsr FuncC_Boss_Lava_BossOpenJaws
+    ;; Wait for the cooldown to expire.
+    lda Zp_RoomState + sState::BossCooldown_u8
+    bne @done
+    ;; Change modes to retreat while the flamestrike is paused.
+    lda #0
+    sta Zp_RoomState + sState::BossGoalY_u8
+    lda #eBossMode::FlamestrikeRetreat
+    sta Zp_RoomState + sState::Current_eBossMode
+    lda #110
+    sta Zp_RoomState + sState::BossCooldown_u8
+    @done:
+    rts
+_BossFlamestrikeRetreat:
+    jsr FuncC_Boss_Lava_BossCloseJaws
+    jsr FuncC_Boss_Lava_BossMoveTowardGoal
+    ;; Wait for the cooldown to expire.
+    lda Zp_RoomState + sState::BossCooldown_u8
+    beq _StartScuttling  ; TODO: instead, move then shoot fireballs
+    rts
+_StartFlamestrike:
+    ;; Choose a random valid position for firing a flamestrike.
+    jsr Func_GetRandomByte  ; returns A
+    and #$03
+    add #3
+    sta Zp_RoomState + sState::BossGoalX_u8
+    lda #2
+    sta Zp_RoomState + sState::BossGoalY_u8
+    ;; Change modes to move to the firing position and shoot a flamestrike.
+    lda #eBossMode::FlamestrikePrepare
+    sta Zp_RoomState + sState::Current_eBossMode
+    rts
 _BossHurt:
     ;; Close jaws quickly.
     lda #2  ; param: speedup
-    jsr FuncC_Boss_Lava_BossCloseJaws
+    jsr FuncC_Boss_Lava_BossCloseJawsWithSpeedup
     ;; Vibrate in place until the cooldown expires.
     lda Zp_RoomState + sState::BossCooldown_u8
     beq @doneVibrate
@@ -575,7 +657,6 @@ _BossHurt:
     bne _StartScuttling  ; boss is not dead yet
     lda #eBossMode::Dead
     sta Zp_RoomState + sState::Current_eBossMode
-    @done:
     rts
 _StartScuttling:
     lda #eBossMode::Scuttling
@@ -596,8 +677,23 @@ _BossScuttling:
     lda Zp_RoomState + sState::BossCooldown_u8
     bne FuncC_Boss_Lava_BossOpenJaws
     ;; Close jaws while scuttling.
-    lda #1  ; param: speedup
     jsr FuncC_Boss_Lava_BossCloseJaws
+    ;; Move towards the goal.
+    jsr FuncC_Boss_Lava_BossMoveTowardGoal  ; sets C when goal is reached
+    bcc @done  ; hasn't reached goal yet
+    ;; Set a cooldown before proceeding to the next goal position.
+    lda #kBossScuttleCooldown
+    sta Zp_RoomState + sState::BossCooldown_u8
+    .assert kBossScuttleCooldown > 0, error
+    bne _StartFlamestrike  ; unconditional  TODO: only flamestrike sometimes
+    @done:
+    rts
+.ENDPROC
+
+;;; Moves the boss towards its goal position (as specified by BossGoalX_u8 and
+;;; BossGoalY_u8), if it's not already there.
+;;; @return C Set if the boss is at its goal.
+.PROC FuncC_Boss_Lava_BossMoveTowardGoal
     ;; Compute the goal top-left position for the boss's body platform, storing
     ;; it in Zp_Point*_i16.
     lda Zp_RoomState + sState::BossGoalX_u8
@@ -617,22 +713,24 @@ _BossScuttling:
     jsr Func_MovePlatformLeftTowardPointX  ; preserves X, returns A and Z
     beq @reachedGoalHorz
     ldx #kBossTailPlatformIndex  ; param: platform index
-    jmp Func_MovePlatformHorz
+    jsr Func_MovePlatformHorz
+    clc  ; hasn't reached goal yet
+    rts
     @reachedGoalHorz:
     lda #1  ; param: max move by
     jsr Func_MovePlatformTopTowardPointY  ; returns A and Z
     beq @reachedGoalVert
     ldx #kBossTailPlatformIndex  ; param: platform index
-    jmp Func_MovePlatformVert
+    jsr Func_MovePlatformVert
+    clc  ; hasn't reached goal yet
+    rts
     @reachedGoalVert:
-    ;; Set a cooldown before proceeding to the next goal position.
-    lda #kBossScuttleCooldown
-    sta Zp_RoomState + sState::BossCooldown_u8
-    .assert kBossScuttleCooldown > 0, error
-    bne _StartScuttling  ; unconditional
+    sec  ; has reached goal
+    rts
 .ENDPROC
 
 ;;; Opens the boss's jaws and tail by one step, up until they're fully open.
+;;; @return Z Set if the jaws are already fully open.
 .PROC FuncC_Boss_Lava_BossOpenJaws
     lda Zp_RoomState + sState::BossJawsOpen_u8
     cmp #kBossJawsOpenFrames
@@ -642,10 +740,17 @@ _BossScuttling:
     rts
 .ENDPROC
 
+;;; Closes the boss's jaws and tail by one step, down until they're fully
+;;; closed.
+.PROC FuncC_Boss_Lava_BossCloseJaws
+    lda #1  ; param: speedup
+    .assert * = FuncC_Boss_Lava_BossCloseJawsWithSpeedup, error, "fallthrough"
+.ENDPROC
+
 ;;; Closes the boss's jaws and tail by the given number of steps, down until
 ;;; they're fully closed.
 ;;; @param A The speedup factor.
-.PROC FuncC_Boss_Lava_BossCloseJaws
+.PROC FuncC_Boss_Lava_BossCloseJawsWithSpeedup
     rsub Zp_RoomState + sState::BossJawsOpen_u8
     .assert kBossJawsOpenFrames < $80, error
     bpl @setJaws
