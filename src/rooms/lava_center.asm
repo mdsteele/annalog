@@ -50,7 +50,7 @@
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
 .IMPORT FuncA_Room_AreActorsWithinDistance
 .IMPORT FuncA_Room_MachineBlasterReset
-.IMPORT FuncA_Room_ReflectFireballsOffMirror
+.IMPORT FuncA_Room_ReflectFireblastsOffMirror
 .IMPORT FuncA_Room_ResetLever
 .IMPORT FuncA_Terrain_FadeInTallRoomWithLava
 .IMPORT Func_InitActorSmokeExplosion
@@ -538,26 +538,26 @@ _Crates:
     dex
     .assert eCrate::NUM_VALUES <= $80, error
     bpl @loop
-_CheckIfFireballHitsHothead:
+_CheckIfFireblastHitsHothead:
     ;; If the hothead is already gone, then we're done.
     lda Ram_ActorType_eActor_arr + kHotheadActorIndex
     cmp #eActor::BadHotheadHorz
-    beq @checkFireballs
+    beq @checkFireblasts
     cmp #eActor::BadHotheadVert
     bne @done
-    ;; Check each fireball in the room to see if it has hit the hothead.
-    @checkFireballs:
+    ;; Check each fireblast in the room to see if it has hit the hothead.
+    @checkFireblasts:
     ldx #kMaxActors - 1
     @loop:
     lda Ram_ActorType_eActor_arr, x
-    cmp #eActor::ProjFireball
+    cmp #eActor::ProjFireblast
     bne @continue
     jsr Func_SetPointToActorCenter  ; preserves X
     ldy #kHotheadActorIndex  ; param: other actor index
     lda #6  ; param: distance
     jsr FuncA_Room_AreActorsWithinDistance  ; preserves X, returns C
     bcc @continue
-    ;; Remove the fireball and destroy the hothead.
+    ;; Remove the fireblast and destroy the hothead.
     lda #eActor::None
     sta Ram_ActorType_eActor_arr, x
     ldx #kHotheadActorIndex  ; param: actor index
@@ -577,7 +577,7 @@ _Mirrors:
     ldy #kMirror3PlatformIndex
     @loop:
     lda T3  ; param: absolute mirror angle (in tau/16 units)
-    jsr FuncA_Room_ReflectFireballsOffMirror  ; preserves Y and T3+
+    jsr FuncA_Room_ReflectFireblastsOffMirror  ; preserves Y and T3+
     dey
     cpy #kMirror1PlatformIndex
     bge @loop
@@ -602,9 +602,9 @@ _Mirrors:
     ldx #kMaxActors - 1
     @loop:
     lda Ram_ActorType_eActor_arr, x
-    cmp #eActor::ProjFireball
+    cmp #eActor::ProjFireblast
     bne @continue
-    ;; Check if the fireball hits the chain:
+    ;; Check if the fireblast hits the chain:
     jsr Func_SetPointToActorCenter  ; preserves X and T0+
     ldy T0  ; eCrate value (i.e. platform index)
     lda DataA_Room_LavaCenter_ChainPlatform_u8_arr, y

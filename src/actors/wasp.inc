@@ -29,7 +29,7 @@
 ;;;   * State3: Unused.
 
 ;;; Tile IDs for drawing wasp baddie actors.
-kTileIdObjWaspFirst = $90
+kTileIdObjWaspFirst = $a8
 
 ;;;=========================================================================;;;
 

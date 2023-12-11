@@ -33,6 +33,7 @@
 .IMPORT FuncA_Objects_MoveShapeUpHalfTile
 .IMPORT Func_FindDeviceNearPoint
 .IMPORT Func_HarmAvatar
+.IMPORT Func_IsPointInAnySolidPlatform
 .IMPORT Func_MovePointDownByA
 .IMPORT Func_MovePointHorz
 .IMPORT Func_MovePointLeftByA
@@ -208,6 +209,21 @@
 .PROC FuncA_Actor_CenterHitsTerrain
     jsr Func_SetPointToActorCenter  ; preserves X and T0+
     jmp Func_PointHitsTerrain  ; preserves X and T0+, returns C
+.ENDPROC
+
+;;; Checks if the actor's center position is colliding with solid terrain or a
+;;; solid platform.
+;;; @param X The actor index.
+;;; @return C Set if a collision occurred, cleared otherwise.
+;;; @preserve X, T0+
+.EXPORT FuncA_Actor_CenterHitsTerrainOrSolidPlatform
+.PROC FuncA_Actor_CenterHitsTerrainOrSolidPlatform
+    jsr Func_SetPointToActorCenter  ; preserves X and T0+
+    jsr Func_PointHitsTerrain  ; preserves X and T0+, returns C
+    bcs @return
+    jmp Func_IsPointInAnySolidPlatform  ; preserves X and T0+, returns C
+    @return:
+    rts
 .ENDPROC
 
 ;;; Sets Zp_PointY_i16 to the vertical center of the actor, and sets
@@ -457,7 +473,7 @@
     jsr FuncA_Objects_MoveShapeUpHalfTile  ; preserves X and Y
     ;; Draw object.
     tya
-    ora Ram_ActorFlags_bObj_arr, x
+    eor Ram_ActorFlags_bObj_arr, x
     tay  ; param: object flags
     pla  ; param: tile ID
     jmp FuncA_Objects_Draw1x1Shape  ; preserves X
@@ -492,7 +508,7 @@
     pha  ; first tile ID
     jsr FuncA_Objects_SetShapePosToActorCenter  ; preserves X and Y
     tya
-    ora Ram_ActorFlags_bObj_arr, x
+    eor Ram_ActorFlags_bObj_arr, x
     tay  ; param: object flags
     pla  ; param: first tile ID
     jmp FuncA_Objects_Draw2x2Shape  ; preserves X, returns C and Y

@@ -56,7 +56,8 @@ kMaxActors = 16
     ProjBreakfire    ; sweeps out horizontally from an exploding breakball
     ProjBullet       ; shot by minigun machines
     ProjEmber        ; fire dropped by a hothead baddie
-    ProjFireball     ; shot from the garden boss's eyes
+    ProjFireball     ; shot by various bosses
+    ProjFireblast    ; shot by firefly baddies and blaster machines
     ProjFlamestrike  ; shot by lava boss; comes down, then sweeps sideways
     ProjGrenade      ; shot by cannon machines
     ProjRocket       ; shot by launcher machines

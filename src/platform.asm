@@ -211,6 +211,9 @@ _Inside:
     dey
     .assert kMaxPlatforms <= $80, error
     bpl @loop
+    ;; At this point, the C flag will be clear, either from the cmp (if
+    ;; platform #0 is not solid) or from Func_IsPointInPlatform (if the point
+    ;; isn't in platform #0).
     @return:
     rts
 .ENDPROC

@@ -17,18 +17,20 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
-;;; State bytes for fireball projectiles:
-;;;   * State1: The absolute angle that the fireball was fired/reflected at, in
-;;;     increments of tau/256.
-;;;   * State2: The current age of the fireball, in frames.  This increments
-;;;     each frame, and if it wraps back around to zero before the fireball
-;;;     hits anything, then the fireball is removed.
-;;;   * State3: The number of frames until the fireball can hit a mirror again.
-;;;     This is set to a nonzero value when the fireball hits a mirror (so that
-;;;     it can't immediately hit the same mirror again), and decrements each
-;;;     frame when nonzero.
+;;; State bytes for fireball/fireblast projectiles:
+;;;   * Flags: Unused.
+;;;   * State1: The absolute angle that the projectile was fired/reflected at,
+;;;     in increments of tau/256.
+;;;   * State2: The current age of the projectile, in frames.  This increments
+;;;     each frame, and if it wraps back around to zero before the projectile
+;;;     hits anything, then the projectile will turn to smoke.
+;;;   * State3: For fireblasts only, the number of frames until the projectile
+;;;     can hit a mirror again.  This is set to a nonzero value when the
+;;;     fireblast hits a mirror (so that it can't immediately hit the same
+;;;     mirror again), and decrements each frame when nonzero.
 
-;;; The first tile ID for the fireball actor animation.
-kTileIdObjFireballFirst = $9a
+;;; Tile IDs for drawing fireball/fireblast projectile actors.
+kTileIdObjFireballFirst  = $90
+kTileIdObjFireblastFirst = $9a
 
 ;;;=========================================================================;;;

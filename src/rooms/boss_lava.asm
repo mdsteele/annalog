@@ -513,21 +513,21 @@ _Devices_sDevice_arr:
 ;;; @prereq PRGA_Room is loaded.
 .PROC FuncC_Boss_Lava_TickBoss
 _CheckForHitTail:
-    ;; Fireballs can only hit the boss's tail if its jaws/tail are fully open.
+    ;; Fireblasts can only hit the boss's tail if its jaws/tail are fully open.
     lda Zp_RoomState + sState::BossJawsOpen_u8
     cmp #kBossJawsOpenFrames
     blt @done  ; tail covering is not fully open
-    ;; Check for a fireball (in this room, it's not possible for there to be
+    ;; Check for a fireblast (in this room, it's not possible for there to be
     ;; more than one on screen at once).
-    lda #eActor::ProjFireball  ; param: actor type
+    lda #eActor::ProjFireblast  ; param: actor type
     jsr Func_FindActorWithType  ; returns C and X
-    bcs @done  ; no fireball found
-    ;; Check if the fireball has hit the tail.
+    bcs @done  ; no fireblast found
+    ;; Check if the fireblast has hit the tail.
     jsr Func_SetPointToActorCenter  ; preserves X
     ldy #kBossTailPlatformIndex  ; param: platform index
     jsr Func_IsPointInPlatform  ; preserves X, returns C
-    bcc @done  ; fireball has not hit tail
-    ;; The fireball has hit the tail, so remove the fireball.
+    bcc @done  ; fireblast has not hit tail
+    ;; The fireblast has hit the tail, so remove the fireblast.
     lda #eActor::None
     sta Ram_ActorType_eActor_arr, x
     ;; Make the boss react to getting hit.

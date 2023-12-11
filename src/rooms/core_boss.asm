@@ -64,7 +64,7 @@
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
 .IMPORT FuncA_Room_MachineBlasterReset
 .IMPORT FuncA_Room_MachineCannonReset
-.IMPORT FuncA_Room_ReflectFireballsOffMirror
+.IMPORT FuncA_Room_ReflectFireblastsOffMirror
 .IMPORT Func_FindEmptyActorSlot
 .IMPORT Func_InitActorSmokeFragment
 .IMPORT Func_IsFlagSet
@@ -926,13 +926,13 @@ _Mirror1:
     div #kBlasterMirrorAnimSlowdown
     add #kMirror1AngleOffset  ; param: absolute mirror angle
     ldy #kMirror1PlatformIndex  ; param: mirror platform index
-    jsr FuncA_Room_ReflectFireballsOffMirror
+    jsr FuncA_Room_ReflectFireblastsOffMirror
 _Mirror2:
     lda Ram_MachineState4_byte_arr + kBlasterMachineIndex  ; mirror 2 anim
     div #kBlasterMirrorAnimSlowdown
     add #kMirror2AngleOffset  ; param: absolute mirror angle
     ldy #kMirror2PlatformIndex  ; param: mirror platform index
-    jsr FuncA_Room_ReflectFireballsOffMirror
+    jsr FuncA_Room_ReflectFireblastsOffMirror
 _Return:
     rts
 .ENDPROC

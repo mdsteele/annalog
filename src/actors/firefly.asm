@@ -31,7 +31,7 @@
 .IMPORT FuncA_Objects_Draw2x2Actor
 .IMPORT Func_Cosine
 .IMPORT Func_FindEmptyActorSlot
-.IMPORT Func_InitActorProjFireball
+.IMPORT Func_InitActorProjFireblast
 .IMPORT Func_InitActorWithFlags
 .IMPORT Func_SetActorCenterToPoint
 .IMPORT Ram_ActorFlags_bObj_arr
@@ -50,8 +50,8 @@ kFireflyCooldownFrames = 20
 ;;; in order for the firefly to shoot.
 kFireflyVertProximity = 15
 
-;;; How many pixels in front of the firefly actor center to spawn a fireball.
-kFireflyFireballHorzOffset = 8
+;;; How many pixels in front of the firefly actor center to spawn a fireblast.
+kFireflyFireblastHorzOffset = 8
 
 ;;; The OBJ palette number to use for drawing firefly baddie actors.
 kPaletteObjFirefly = 0
@@ -123,23 +123,23 @@ _ReturnIfAvatarNotVerticallyNearby:
 _ReturnIfAvatarNotInFront:
     jsr FuncA_Actor_IsFacingAvatar  ; preserves X, returns C
     bcc _Return
-_ShootFireball:
-    lda #kFireflyFireballHorzOffset  ; param: offset
+_ShootFireblast:
+    lda #kFireflyFireblastHorzOffset  ; param: offset
     jsr FuncA_Actor_SetPointInFrontOfActor  ; preserves X and T0+
-    ;; Set the fireball aim angle depending on which way the firefly is facing.
+    ;; Set the fireblast aim angle based on which way the firefly is facing.
     lda Ram_ActorFlags_bObj_arr, x
     and #bObj::FlipH
     .assert bObj::FlipH = $40, error
     asl a
     sta T0  ; aim angle ($00 for right, or $80 for left)
-    ;; Allocate the fireball.
+    ;; Allocate the fireblast.
     stx T2  ; firefly actor index
     jsr Func_FindEmptyActorSlot  ; preserves T0+, returns C and X
     bcs @done
-    ;; Set the fireball position just in front of the firefly actor.
+    ;; Set the fireblast position just in front of the firefly actor.
     jsr Func_SetActorCenterToPoint  ; preserves X and T0+
     lda T0  ; param: aim angle ($00 for right, or $80 for left)
-    jsr Func_InitActorProjFireball  ; preserves T2+
+    jsr Func_InitActorProjFireblast  ; preserves T2+
     ;; Set the firefly cooldown angle and restore the X register.
     ldx T2  ; firefly actor index
     lda #kFireflyCooldownFrames

@@ -124,7 +124,7 @@ _Ext_sRoomExt:
     d_addr Passages_sPassage_arr_ptr, _Passages_sPassage_arr
     d_addr Enter_func_ptr, Func_Noop
     d_addr FadeIn_func_ptr, Func_Noop
-    d_addr Tick_func_ptr, FuncC_Mine_East_TickRoom
+    d_addr Tick_func_ptr, Func_Noop
     d_addr Draw_func_ptr, Func_Noop
     D_END
 _TerrainData:
@@ -264,25 +264,6 @@ _Passages_sPassage_arr:
     d_byte SpawnBlock_u8, 20
     D_END
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
-.ENDPROC
-
-.PROC FuncC_Mine_East_TickRoom
-    ;; Remove any fireballs that hit the lift platform.
-    ldy #kLiftPlatformIndex
-    ldx #kMaxActors - 1
-    @loop:
-    lda Ram_ActorType_eActor_arr, x
-    cmp #eActor::ProjFireball
-    bne @continue
-    jsr Func_SetPointToActorCenter  ; preserves X and Y
-    jsr Func_IsPointInPlatform  ; preserves X and Y, returns C
-    bcc @continue
-    lda #eActor::None
-    sta Ram_ActorType_eActor_arr, x
-    @continue:
-    dex
-    bpl @loop
-    rts
 .ENDPROC
 
 .PROC FuncC_Mine_EastHoist_InitReset

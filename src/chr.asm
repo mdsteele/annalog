@@ -978,10 +978,11 @@ _chr_begin:
     chr_res $01
     chr_inc "cannon",                kTileIdObjCannonFirst
     chr_inc "bullet",                kTileIdObjBulletFirst
-    chr_res $06
+    chr_inc "fireball",              kTileIdObjFireballFirst
+    chr_res $02
     chr_inc "upgrade_oprest",        kTileIdObjUpgradeOpRestFirst
     chr_inc "blaster",               kTileIdObjBlasterFirst
-    chr_inc "fireball",              kTileIdObjFireballFirst
+    chr_inc "fireblast",             kTileIdObjFireblastFirst
     chr_inc "outbreak_obj",          kTileIdObjOutbreakFirst
     chr_res $08
     chr_inc "spike",                 kTileIdObjSpike
@@ -1112,10 +1113,11 @@ _chr_begin:
     chr_inc "ember",             kTileIdObjEmber
     chr_res $03
     chr_inc "upgrade_opcopy",    kTileIdObjUpgradeOpCopyFirst
-    chr_res $08
+    chr_res $04
+    chr_inc "fireball",          kTileIdObjFireballFirst
     chr_inc "crate",             kTileIdObjCrateFirst
     chr_inc "blaster",           kTileIdObjBlasterFirst
-    chr_inc "fireball",          kTileIdObjFireballFirst
+    chr_inc "fireblast",         kTileIdObjFireblastFirst
     chr_res $04
     chr_inc "hothead",           kTileIdObjHotheadFirst
     chr_inc "lavaball",          kTileIdObjLavaballFirst
@@ -1142,13 +1144,12 @@ _chr_begin:
     chr_inc "upgrade_ram",    kTileIdObjUpgradeRamFirst
     chr_inc "hoist_obj",      kTileIdObjHoistFirst
     chr_inc "mine_cage",      kTileIdObjMineCageFirst
-    chr_res $06
-    chr_inc "wasp",           kTileIdObjWaspFirst
+    chr_res $0e
     chr_inc "upgrade_opsync", kTileIdObjUpgradeOpSyncFirst
-    chr_inc "fireball",       kTileIdObjFireballFirst
+    chr_inc "fireblast",      kTileIdObjFireblastFirst
     chr_inc "boulder",        kTileIdObjBoulderFirst
     chr_inc "firefly",        kTileIdObjFireflyFirst
-    chr_res $08
+    chr_inc "wasp",           kTileIdObjWaspFirst
     chr_inc "crane",          kTileIdObjCraneFirst
     chr_res $1c
     chr_inc "fish",           kTileIdObjFishFirst

@@ -33,11 +33,11 @@
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
 .IMPORT FuncA_Room_TurnProjectilesToSmoke
 .IMPORT Func_FindEmptyActorSlot
-.IMPORT Func_InitActorProjFireball
+.IMPORT Func_InitActorProjFireblast
 .IMPORT Func_IsPointInPlatform
 .IMPORT Func_MovePointDownByA
 .IMPORT Func_MovePointHorz
-.IMPORT Func_ReinitActorProjFireballVelocity
+.IMPORT Func_ReinitActorProjFireblastVelocity
 .IMPORT Func_SetActorCenterToPoint
 .IMPORT Func_SetPointToActorCenter
 .IMPORT Func_SetPointToPlatformCenter
@@ -125,7 +125,7 @@ kTileIdObjBlasterBarrelHorz = kTileIdObjBlasterFirst + 1
     lda #kBlasterProjectileOffset  ; param: offset
     jsr Func_MovePointDownByA  ; preserves X
     ldy #$40  ; param: projectile angle
-    bne FuncA_Machine_BlasterShootFireball  ; unconditional
+    bne FuncA_Machine_BlasterShootFireblast  ; unconditional
 .ENDPROC
 
 ;;; TryAct implemention for horizontal blaster machines.
@@ -149,23 +149,23 @@ kTileIdObjBlasterBarrelHorz = kTileIdObjBlasterFirst + 1
     lda #kBlasterProjectileOffset  ; param: offset
     @movePoint:
     jsr Func_MovePointHorz  ; preserves X and Y
-    .assert * = FuncA_Machine_BlasterShootFireball, error, "fallthrough"
+    .assert * = FuncA_Machine_BlasterShootFireblast, error, "fallthrough"
 .ENDPROC
 
-;;; Shoots a fireball from a blaster machine, and makes the machine starting
+;;; Shoots a fireblast from a blaster machine, and makes the machine starting
 ;;; waiting for a bit.
 ;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
-;;; @prereq Zp_Point* stores the starting position of the fireball.
+;;; @prereq Zp_Point* stores the starting position of the fireblast.
 ;;; @param Y The angle to fire at, measured in increments of tau/256.
-.PROC FuncA_Machine_BlasterShootFireball
+.PROC FuncA_Machine_BlasterShootFireblast
     jsr Func_FindEmptyActorSlot  ; preserves Y, returns C and X
     bcs _Finish
 _InitProjectile:
     jsr Func_SetActorCenterToPoint  ; preserves X and Y
     tya  ; param: projectile angle
-    jsr Func_InitActorProjFireball
+    jsr Func_InitActorProjFireblast
     ;; If the console is active, then we must be debugging, so immediately
-    ;; replace the fireball with a smoke particle (so as to dry-fire the
+    ;; replace the fireblast with a smoke particle (so as to dry-fire the
     ;; blaster).
     lda Zp_ConsoleMachineIndex_u8
     bmi @done
@@ -232,54 +232,54 @@ _Finish:
 ;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
 .EXPORT FuncA_Room_MachineBlasterReset
 .PROC FuncA_Room_MachineBlasterReset
-    lda #eActor::ProjFireball  ; param: projectile type
+    lda #eActor::ProjFireblast  ; param: projectile type
     jmp FuncA_Room_TurnProjectilesToSmoke
 .ENDPROC
 
-;;; Checks if any fireballs are hitting the specified mirror, and if so,
+;;; Checks if any fireblasts are hitting the specified mirror, and if so,
 ;;; reflects them off of the mirror.
 ;;; @param A The absolute mirror angle, in increments of tau/16.
 ;;; @param Y The platform index for the mirror.
 ;;; @preserve Y, T3+
-.EXPORT FuncA_Room_ReflectFireballsOffMirror
-.PROC FuncA_Room_ReflectFireballsOffMirror
+.EXPORT FuncA_Room_ReflectFireblastsOffMirror
+.PROC FuncA_Room_ReflectFireblastsOffMirror
     mul #$10
     sta T2  ; absolute mirror angle (in tau/256 units)
     ldx #kMaxActors - 1
 _Loop:
-    ;; If this actor isn't a fireball projectile, skip it.
+    ;; If this actor isn't a fireblast projectile, skip it.
     lda Ram_ActorType_eActor_arr, x
-    cmp #eActor::ProjFireball
+    cmp #eActor::ProjFireblast
     bne _Continue
-    ;; If the fireball was recently reflected off of a mirror (probably this
+    ;; If the fireblast was recently reflected off of a mirror (probably this
     ;; one), skip it.
-    lda Ram_ActorState3_byte_arr, x  ; fireball reflection timer
+    lda Ram_ActorState3_byte_arr, x  ; fireblast reflection timer
     bne _Continue
-    ;; If the fireball isn't hitting this mirror this frame, skip it.
+    ;; If the fireblast isn't hitting this mirror this frame, skip it.
     jsr Func_SetPointToActorCenter  ; preserves X, Y, and T0+
     jsr Func_IsPointInPlatform  ; preserves X, Y, and T0+; returns C
     bcc _Continue
-    ;; Compute the reversed fireball angle relative to the mirror angle.
-    lda Ram_ActorState1_byte_arr, x  ; fireball angle (in tau/256 units)
+    ;; Compute the reversed fireblast angle relative to the mirror angle.
+    lda Ram_ActorState1_byte_arr, x  ; fireblast angle (in tau/256 units)
     eor #$80
     sub T2  ; absolute mirror angle (in tau/256 units)
-    ;; If the fireball hits the back of the mirror, remove the fireball.
+    ;; If the fireblast hits the back of the mirror, remove the fireblast.
     cmp #$c1
     bge _Reflect
     cmp #$40
     bge _Remove
 _Reflect:
-    ;; Negate the fireball's relative angle, and add it to the mirror's
-    ;; absolute angle to get a new absolute angle for the fireball.
+    ;; Negate the fireblast's relative angle, and add it to the mirror's
+    ;; absolute angle to get a new absolute angle for the fireblast.
     eor #$ff
     add #1
     add T2  ; absolute mirror angle (in tau/256 units)
-    sta Ram_ActorState1_byte_arr, x  ; fireball angle (in tau/256 units)
-    jsr Func_ReinitActorProjFireballVelocity  ; preserves X, Y, and T2+
-    ;; Snap the fireball to the center of the mirror.
+    sta Ram_ActorState1_byte_arr, x  ; fireblast angle (in tau/256 units)
+    jsr Func_ReinitActorProjFireblastVelocity  ; preserves X, Y, and T2+
+    ;; Snap the fireblast to the center of the mirror.
     jsr Func_SetPointToPlatformCenter  ; preserves X, Y, and T0+
     jsr Func_SetActorCenterToPoint  ; preserves X, Y, and T0+
-    ;; Set the fireball's reflection timer, so that it won't immediately hit
+    ;; Set the fireblast's reflection timer, so that it won't immediately hit
     ;; this mirror again.
     lda #3
     sta Ram_ActorState3_byte_arr, x  ; reflection timer
