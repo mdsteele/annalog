@@ -47,12 +47,9 @@
 .IMPORT FuncA_Objects_DrawLiftMachine
 .IMPORT FuncA_Objects_MoveShapeLeftHalfTile
 .IMPORT FuncA_Objects_MoveShapeUpOneTile
-.IMPORT Func_IsPointInPlatform
 .IMPORT Func_MovePlatformVert
 .IMPORT Func_Noop
-.IMPORT Func_SetPointToActorCenter
 .IMPORT Ppu_ChrObjMine
-.IMPORT Ram_ActorType_eActor_arr
 .IMPORT Ram_MachineGoalVert_u8_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
 

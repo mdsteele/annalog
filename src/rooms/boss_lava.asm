@@ -71,6 +71,7 @@
 .IMPORT Func_FindActorWithType
 .IMPORT Func_FindEmptyActorSlot
 .IMPORT Func_GetRandomByte
+.IMPORT Func_InitActorProjFireball
 .IMPORT Func_IsPointInPlatform
 .IMPORT Func_MachineBoilerReadReg
 .IMPORT Func_MovePlatformHorz
@@ -189,13 +190,15 @@ Ppu_BossRow4Start = Ppu_Nametable3_sName + sName::Tiles_u8_arr + \
 ;;; Modes that the boss in this room can be in.
 .ENUM eBossMode
     Dead
+    FiresprayPrepare    ; move into position to shoot a spray of fireballs
+    FiresprayWindup     ; open jaws before shooting a spray of fireballs
+    FiresprayShoot      ; shoot a spray of fireballs
     FlamestrikePrepare  ; move into position to shoot a flamestrike projectile
     FlamestrikeShoot    ; open jaws and shoot the flamestrike
     FlamestrikeDescend  ; stay in place while the flamestrike descends
     FlamestrikeRetreat  ; move upwards while the flamestrike is paused
     Hurt                ; closing jaws, vibrating in place
     Scuttling           ; moving around randomly
-    ;; TODO: mode for fireball spray
     NUM_VALUES
 .ENDENUM
 
@@ -555,6 +558,9 @@ _CheckMode:
     D_TABLE_HI table, _JumpTable_ptr_1_arr
     D_TABLE .enum, eBossMode
     d_entry table, Dead,               Func_Noop
+    d_entry table, FiresprayPrepare,   _BossFiresprayPrepare
+    d_entry table, FiresprayWindup,    _BossFiresprayWindup
+    d_entry table, FiresprayShoot,     _BossFiresprayShoot
     d_entry table, FlamestrikePrepare, _BossFlamestrikePrepare
     d_entry table, FlamestrikeShoot,   _BossFlamestrikeShoot
     d_entry table, FlamestrikeDescend, _BossFlamestrikeDescend
@@ -563,12 +569,37 @@ _CheckMode:
     d_entry table, Scuttling,          _BossScuttling
     D_END
 .ENDREPEAT
+_BossFiresprayPrepare:
+    jsr FuncC_Boss_Lava_BossCloseJaws
+    ;; Wait until the boss is in position.
+    jsr FuncC_Boss_Lava_BossMoveTowardGoal  ; sets C when goal is reached
+    bcc @done
+    ;; Change modes to wind up for the spray of fireballs.
+    lda #eBossMode::FiresprayWindup
+    sta Zp_RoomState + sState::Current_eBossMode
+    lda #70
+    sta Zp_RoomState + sState::BossCooldown_u8
+    ;; TODO: play a sound for the windup
+    @done:
+    rts
+_BossFiresprayWindup:
+    jsr FuncC_Boss_Lava_BossOpenJaws
+    ;; Wait for the cooldown to expire.
+    lda Zp_RoomState + sState::BossCooldown_u8
+    bne @done
+    ;; Change modes to shoot the spray of fireballs.
+    lda #eBossMode::FiresprayShoot
+    sta Zp_RoomState + sState::Current_eBossMode
+    lda #$31
+    sta Zp_RoomState + sState::BossCooldown_u8
+    @done:
+    rts
 _BossFlamestrikePrepare:
     jsr FuncC_Boss_Lava_BossCloseJaws
     ;; Wait until the boss is in position.
     jsr FuncC_Boss_Lava_BossMoveTowardGoal  ; sets C when goal is reached
     bcc @done
-    ;; Shoot the flamestrike.
+    ;; Change modes to shoot the flamestrike.
     lda #eBossMode::FlamestrikeShoot
     sta Zp_RoomState + sState::Current_eBossMode
     @done:
@@ -600,7 +631,6 @@ _BossFlamestrikeShoot:
     @done:
     rts
 _BossFlamestrikeDescend:
-    jsr FuncC_Boss_Lava_BossOpenJaws
     ;; Wait for the cooldown to expire.
     lda Zp_RoomState + sState::BossCooldown_u8
     bne @done
@@ -618,7 +648,7 @@ _BossFlamestrikeRetreat:
     jsr FuncC_Boss_Lava_BossMoveTowardGoal
     ;; Wait for the cooldown to expire.
     lda Zp_RoomState + sState::BossCooldown_u8
-    beq _StartScuttling  ; TODO: instead, move then shoot fireballs
+    beq _StartFirespray
     rts
 _StartFlamestrike:
     ;; Choose a random valid position for firing a flamestrike.
@@ -672,6 +702,18 @@ _StartScuttling:
     sta Zp_RoomState + sState::BossGoalY_u8
 _Return:
     rts
+_StartFirespray:
+    ;; Choose a random valid position for shooting a fireball spray.
+    jsr Func_GetRandomByte  ; returns A
+    and #$07
+    add #1
+    sta Zp_RoomState + sState::BossGoalX_u8
+    lda #1
+    sta Zp_RoomState + sState::BossGoalY_u8
+    ;; Change modes to move to the firing position and shoot a fireball spray.
+    lda #eBossMode::FiresprayPrepare
+    sta Zp_RoomState + sState::Current_eBossMode
+    rts
 _BossScuttling:
     ;; Wait for cooldown.
     lda Zp_RoomState + sState::BossCooldown_u8
@@ -686,6 +728,28 @@ _BossScuttling:
     sta Zp_RoomState + sState::BossCooldown_u8
     .assert kBossScuttleCooldown > 0, error
     bne _StartFlamestrike  ; unconditional  TODO: only flamestrike sometimes
+    @done:
+    rts
+_BossFiresprayShoot:
+    ;; Only shoot every eight frames.
+    lda Zp_RoomState + sState::BossCooldown_u8
+    and #$07
+    bne @done
+    ;; Shoot a fireball.
+    ldy #kBossBodyPlatformIndex  ; param: platform index
+    jsr Func_SetPointToPlatformCenter
+    lda #kBossHeightPx / 2 + kTileHeightPx / 2  ; param: offset
+    jsr Func_MovePointDownByA
+    jsr Func_FindEmptyActorSlot  ; returns C and X
+    bcs @done
+    jsr Func_SetActorCenterToPoint  ; preserves X
+    lda Zp_RoomState + sState::BossCooldown_u8
+    mul #2  ; clears the carry bit
+    adc #$10  ; param: aim angle
+    jsr Func_InitActorProjFireball
+    ;; When the last fireball is fired, change modes.
+    lda Zp_RoomState + sState::BossCooldown_u8
+    beq _StartScuttling
     @done:
     rts
 .ENDPROC
