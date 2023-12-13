@@ -164,72 +164,140 @@ _SpawnAtPassage:
 ;;; @prereq The room is loaded.
 ;;; @param A The passage index in the current room.
 .PROC FuncA_Avatar_SpawnAtPassage
-    sta T2  ; passage index
-    jsr FuncA_Avatar_GetRoomPassages  ; preserves T2+, returns T1T0
+    pha  ; passage index
+    jsr FuncA_Avatar_GetRoomPassages  ; returns T1T0
     ;; Compute the byte offset into Passages_sPassage_arr_ptr.
-    .assert .sizeof(sPassage) = 3, error
-    lda T2  ; passage index
-    mul #2  ; this will clear the carry flag, since passage index is < $80
-    adc T2  ; passage index
-    tay
+    pla  ; passage index
+    mul #.sizeof(sPassage)
+    tay  ; passage byte offset
     ;; Read fields out of the sPassage struct.
     .assert sPassage::Exit_bPassage = 0, error
     lda (T1T0), y
     and #bPassage::SideMask
-    sta T3  ; ePassage value
-    iny
-    iny
+    sta T4  ; ePassage value
+    iny  ; now Y % .sizeof(sPassage) is 1
+    iny  ; now Y % .sizeof(sPassage) is 2
     .assert sPassage::SpawnBlock_u8 = 2, error
     lda (T1T0), y  ; spawn block
     ;; Convert the spawn block row/col to a 16-bit room pixel position, storing
-    ;; it in YA.
-    ldy #0
-    sty T4  ; spawn pixel position (hi)
+    ;; it in T3T2.
+    ldx #0  ; set X to zero for later (and also for initializing T3)
+    stx T3  ; spawn pixel position (hi)
     .assert kMaxRoomWidthBlocks <= $80, error
     .assert kTallRoomHeightBlocks <= $20, error
     asl a      ; A room block row/col fits in at most seven bits, so the first
     .repeat 3  ; ASL won't set the carry bit, so we only need to ROL the high
     asl a      ; byte after the second ASL.
-    rol T4
+    rol T3  ; spawn pixel position (hi)
     .endrepeat
-    ldy T4  ; spawn pixel position (hi)
+    sta T2  ; spawn pixel position (lo)
     ;; Check what kind of passage this is.
-    bit T3  ; ePassage value
+    bit T4  ; ePassage value
     .assert bPassage::EastWest = bProc::Negative, error
     bmi _EastWest
 _UpDown:
-    ora #kTileWidthPx
-    stya Zp_AvatarPosX_i16
-    lda T3  ; ePassage value
+    ;; At this point, X is still zero.
+    iny  ; now Y % .sizeof(sPassage) is 3
+    .assert sPassage::SpawnAdjust_byte = 3, error
+    lda (T1T0), y  ; spawn adjust
+    and #$f0  ; high nibble holds signed horz offset in tiles (-7 to 7)
+    cmp #$80  ; copy bit 7 into C
+    .assert kTileWidthPx = 8, error
+    ror a  ; now A holds signed horz offset in pixels, and C is clear
+    adc #kTileWidthPx
+    bpl @nonneg
+    dex  ; now X is $ff
+    @nonneg:
+    add T2  ; spawn pixel position (lo)
+    sta Zp_AvatarPosX_i16 + 0
+    txa
+    adc T3  ; spawn pixel position (hi)
+    sta Zp_AvatarPosX_i16 + 1
+    lda T4  ; ePassage value
     cmp #ePassage::Bottom
     beq _BottomEdge
 _TopEdge:
-    lda #kTileHeightPx + 1
-    sta Zp_AvatarPosY_i16 + 0
     lda #0
     sta Zp_AvatarPosY_i16 + 1
+    ;; If the bottom three bits of SpawnAdjust_byte have nonzero value N, then
+    ;; make the player avatar stand in terrain block row N of the room.  If
+    ;; they are zero, place the avatar in midair in row zero.
+    lda (T1T0), y  ; spawn adjust
+    and #$07
+    beq @airborne
+    @standing:
+    mul #kBlockHeightPx  ; clears the carry bit
+    adc #kBlockHeightPx - kAvatarBoundingBoxDown
+    sta Zp_AvatarPosY_i16 + 0
+    ldx #0  ; param: bAvatar value
+    beq _SetFaceDirForTopOrBottomPassage  ; unconditional
+    @airborne:
+    lda #kTileHeightPx + 1
+    sta Zp_AvatarPosY_i16 + 0
     ldx #bAvatar::Airborne  ; param: bAvatar value
-    lda #0  ; param: facing direction (0 = right)
-    beq _Finish  ; unconditional
+    bne _SetFaceDirForTopOrBottomPassage  ; unconditional
 _BottomEdge:
+    ;; Get the height of the room in pixels, storing the lo byte in X and the
+    ;; high byte in (Zp_AvatarPosY_i16 + 1).
     bit <(Zp_Current_sRoom + sRoom::Flags_bRoom)
     .assert bRoom::Tall = bProc::Overflow, error
     bvs @tall
     @short:
-    ldx #kScreenHeightPx - kPassageSpawnMargin
-    lda #0
-    beq @finishBottom  ; unconditional
+    ldax #kScreenHeightPx
+    bpl @finishBottom  ; unconditional
     @tall:
-    ldax #kTallRoomHeightBlocks * kBlockHeightPx - kPassageSpawnMargin
+    ldax #kTallRoomHeightBlocks * kBlockHeightPx
     @finishBottom:
-    stax Zp_AvatarPosY_i16
+    sta Zp_AvatarPosY_i16 + 1  ; room height (hi)
+    ;; If the bottom three bits of SpawnAdjust_byte have nonzero value N, then
+    ;; make the player avatar stand on top of the bottom N blocks rows of the
+    ;; room.  If those bits are zero, place the avatar in midair near the
+    ;; bottom of the room.
+    lda (T1T0), y  ; spawn adjust
+    and #$07
+    beq @airborne
+    @standing:
+    mul #kBlockHeightPx  ; clears the carry bit
+    adc #kAvatarBoundingBoxDown
+    sta T4  ; upward adjustment in pixels
+    txa  ; room height (lo)
+    sub T4  ; upward adjustment in pixels
+    sta Zp_AvatarPosY_i16 + 0
+    lda Zp_AvatarPosY_i16 + 1  ; room height (hi)
+    sbc #0
+    sta Zp_AvatarPosY_i16 + 1
+    ldx #0  ; param: bAvatar value
+    beq _SetFaceDirForTopOrBottomPassage  ; unconditional
+    ;; When spawning the player avatar in mid-air near the bottom edge of the
+    ;; room, subtract a small margin from the room height to get the avatar's
+    ;; Y-position.
+    @airborne:
+    txa  ; room height (lo)
+    sub #kPassageSpawnMargin
+    sta Zp_AvatarPosY_i16 + 0
+    ;; The hi byte of the room height is already in (Zp_AvatarPosY_i16 + 1),
+    ;; and it's still correct post-subtraction (enforced by below assertions).
+    .linecont +
+    .assert >(kScreenHeightPx - kPassageSpawnMargin) = >kScreenHeightPx, error
+    .assert >(kTallRoomHeightBlocks * kBlockHeightPx - kPassageSpawnMargin) = \
+            >(kTallRoomHeightBlocks * kBlockHeightPx), error
+    .linecont -
     ldx #bAvatar::Airborne  ; param: bAvatar value
-    lda #0  ; param: facing direction (0 = right)
-    beq _Finish  ; unconditional
+_SetFaceDirForTopOrBottomPassage:
+    ;; If bit 3 of SpawnAdjust_byte is set, make the player avatar face left;
+    ;; otherwise, make the player avatar face right.
+    lda (T1T0), y  ; spawn adjust
+    and #$08  ; bit 3 determines the facing direction
+    .assert bObj::FlipH = $40, error
+    mul #8  ; param: facing direction
+    bpl _Finish  ; unconditional
 _EastWest:
+    lda T2  ; spawn pixel position (lo)
     ora #kBlockHeightPx - kAvatarBoundingBoxDown
-    stya Zp_AvatarPosY_i16
-    lda T3  ; ePassage value
+    sta Zp_AvatarPosY_i16 + 0
+    lda T3  ; spawn pixel position (hi)
+    sta Zp_AvatarPosY_i16 + 1
+    lda T4  ; ePassage value
     cmp #ePassage::Western
     beq _WestEdge
 _EastEdge:
@@ -466,7 +534,8 @@ _FindDestinationPassage:
     ;; destination passage.
     @doesNotMatch:
     iny  ; now Y % .sizeof(sPassage) is 3
-    .assert .sizeof(sPassage) = 3, error
+    .assert .sizeof(sPassage) = 4, error
+    iny  ; now Y % .sizeof(sPassage) is 0
     inc T4  ; passage index
     bne @loop  ; unconditional
     @foundMatch:

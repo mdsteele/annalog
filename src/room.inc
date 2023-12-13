@@ -243,9 +243,27 @@ kMaxPassages = 8
     Exit_bPassage      .byte
     ;; The room number that this passage leads to.
     Destination_eRoom  .byte
-    ;; The room block row (for horizontal passages) or column (for vertical
-    ;; passages) where the player avatar should spawn after a game over.
+    ;; Indicates the position of the passage along the side of the room, for
+    ;; lining up connected passages in different rooms.  For east/west
+    ;; passages, this must be the room block row index of the bottom-most empty
+    ;; block in the passage (i.e. it's the block row that the player avatar
+    ;; will spawn in).  For up/down passages, this should be the room block
+    ;; column index for the center block of the passage (or right-of-center, if
+    ;; the passage is an even number of blocks wide).
     SpawnBlock_u8      .byte
+    ;; Specifies a position adjustment to apply to the player avatar when
+    ;; spawning at this passage (but not when travelling through the passage).
+    ;;     * For east/west passages, this field is ignored.
+    ;;     * For up/down passages, bits 4-7 (the top four bits) are a signed
+    ;;       horizontal offset, measured in tiles; and bit 3 indicates whether
+    ;;       the avatar should face right (0) or left (1).
+    ;;     * For top passages, bits 0-2 (the bottom three bits) are an unsigned
+    ;;       downward ofset, measured in blocks; for bottom passages, those
+    ;;       bits are an unsigned *upward* offset, measured in blocks.  In
+    ;;       either case, if these bits are zero, the avatar will start out
+    ;;       airborne; otherwise, it's assumed that the avatar is standing on
+    ;;       solid ground.
+    SpawnAdjust_byte   .byte
 .ENDSTRUCT
 
 ;;;=========================================================================;;;

@@ -227,11 +227,13 @@ _Passages_sPassage_arr:
     d_byte Exit_bPassage, ePassage::Top | 0
     d_byte Destination_eRoom, eRoom::CryptNest
     d_byte SpawnBlock_u8, 12
+    d_byte SpawnAdjust_byte, $f9
     D_END
     D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Eastern | 1
     d_byte Destination_eRoom, eRoom::CryptSouth
     d_byte SpawnBlock_u8, 20
+    d_byte SpawnAdjust_byte, 0
     D_END
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
 .ENDPROC

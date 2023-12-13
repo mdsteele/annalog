@@ -404,23 +404,27 @@ _Passages_sPassage_arr:
     d_byte Exit_bPassage, ePassage::Western | bPassage::SameScreen | 0
     d_byte Destination_eRoom, eRoom::PrisonEscape
     d_byte SpawnBlock_u8, 9
+    d_byte SpawnAdjust_byte, 0
     D_END
     .assert * - :- = kTunnelPassageIndex * .sizeof(sPassage), error
     D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Western | bPassage::SameScreen | 1
     d_byte Destination_eRoom, eRoom::PrisonEscape
     d_byte SpawnBlock_u8, 20
+    d_byte SpawnAdjust_byte, 0
     D_END
     .assert * - :- = kEasternPassageIndex * .sizeof(sPassage), error
     D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Eastern | 0
     d_byte Destination_eRoom, eRoom::PrisonCrossroad
     d_byte SpawnBlock_u8, 11
+    d_byte SpawnAdjust_byte, 0
     D_END
     D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Bottom | 1
     d_byte Destination_eRoom, eRoom::GardenLanding
     d_byte SpawnBlock_u8, 25
+    d_byte SpawnAdjust_byte, $f0
     D_END
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
 .ENDPROC

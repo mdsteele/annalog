@@ -79,6 +79,7 @@ _Passages_sPassage_arr:
     d_byte Exit_bPassage, ePassage::Bottom | 0
     d_byte Destination_eRoom, eRoom::TempleAltar
     d_byte SpawnBlock_u8, 8
+    d_byte SpawnAdjust_byte, $49
     D_END
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
 .ENDPROC

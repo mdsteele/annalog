@@ -91,11 +91,13 @@ _Passages_sPassage_arr:
     d_byte Exit_bPassage, ePassage::Western | 0
     d_byte Destination_eRoom, eRoom::MineEntry  ; TODO
     d_byte SpawnBlock_u8, 11
+    d_byte SpawnAdjust_byte, 0
     D_END
     D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Eastern | 0
     d_byte Destination_eRoom, eRoom::MineSouth
     d_byte SpawnBlock_u8, 5
+    d_byte SpawnAdjust_byte, 0
     D_END
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
 .ENDPROC

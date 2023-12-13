@@ -261,16 +261,19 @@ _Passages_sPassage_arr:
     d_byte Exit_bPassage, ePassage::Western | 0
     d_byte Destination_eRoom, eRoom::MineDrift
     d_byte SpawnBlock_u8, 4
+    d_byte SpawnAdjust_byte, 0
     D_END
     D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Western | 1
     d_byte Destination_eRoom, eRoom::MineEntry
     d_byte SpawnBlock_u8, 20
+    d_byte SpawnAdjust_byte, 0
     D_END
     D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Bottom | 1
     d_byte Destination_eRoom, eRoom::MinePit
     d_byte SpawnBlock_u8, 25
+    d_byte SpawnAdjust_byte, $c1
     D_END
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
 .ENDPROC

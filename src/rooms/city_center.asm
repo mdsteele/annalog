@@ -345,16 +345,19 @@ _Passages_sPassage_arr:
     d_byte Exit_bPassage, ePassage::Western | 1
     d_byte Destination_eRoom, eRoom::CityWest
     d_byte SpawnBlock_u8, 21
+    d_byte SpawnAdjust_byte, 0
     D_END
     D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Eastern | 1
     d_byte Destination_eRoom, eRoom::CityEast
     d_byte SpawnBlock_u8, 21
+    d_byte SpawnAdjust_byte, 0
     D_END
     D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Bottom | 2
     d_byte Destination_eRoom, eRoom::CityPit
     d_byte SpawnBlock_u8, 42
+    d_byte SpawnAdjust_byte, $c1
     D_END
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
 .ENDPROC

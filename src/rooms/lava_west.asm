@@ -263,22 +263,26 @@ _Passages_sPassage_arr:
 :   D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Top | 0
     d_byte Destination_eRoom, eRoom::MermaidSpring
-    d_byte SpawnBlock_u8, 7
+    d_byte SpawnBlock_u8, 8
+    d_byte SpawnAdjust_byte, $f5
     D_END
     D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Western | 0
     d_byte Destination_eRoom, eRoom::LavaTeleport
     d_byte SpawnBlock_u8, 9
+    d_byte SpawnAdjust_byte, 0
     D_END
     D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Eastern | 0
     d_byte Destination_eRoom, eRoom::LavaShaft
     d_byte SpawnBlock_u8, 4
+    d_byte SpawnAdjust_byte, 0
     D_END
     D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Eastern | 1
     d_byte Destination_eRoom, eRoom::LavaFlower
     d_byte SpawnBlock_u8, 15
+    d_byte SpawnAdjust_byte, 0
     D_END
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
 .ENDPROC

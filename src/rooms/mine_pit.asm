@@ -238,6 +238,7 @@ _Passages_sPassage_arr:
     d_byte Exit_bPassage, ePassage::Top | 0
     d_byte Destination_eRoom, eRoom::MineSouth
     d_byte SpawnBlock_u8, 8
+    d_byte SpawnAdjust_byte, $f0
     D_END
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
 .ENDPROC

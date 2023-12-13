@@ -224,33 +224,39 @@ _Passages_sPassage_arr:
     d_byte Exit_bPassage, ePassage::Western | 0
     d_byte Destination_eRoom, eRoom::FactoryBridge
     d_byte SpawnBlock_u8, 8
+    d_byte SpawnAdjust_byte, 0
     D_END
     D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Eastern | 0
     d_byte Destination_eRoom, eRoom::FactoryFlower
     d_byte SpawnBlock_u8, 8
+    d_byte SpawnAdjust_byte, 0
     D_END
     D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Western | 1
     d_byte Destination_eRoom, eRoom::FactoryCenter
     d_byte SpawnBlock_u8, 19
+    d_byte SpawnAdjust_byte, 0
     D_END
     D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Eastern | 1
     d_byte Destination_eRoom, eRoom::FactoryPass
     d_byte SpawnBlock_u8, 19
+    d_byte SpawnAdjust_byte, 0
     D_END
     .assert * - :- = kUpperShaftPassageIndex * .sizeof(sPassage), error
     D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Top | 0
     d_byte Destination_eRoom, eRoom::CoreElevator
     d_byte SpawnBlock_u8, 9
+    d_byte SpawnAdjust_byte, $f0
     D_END
     .assert * - :- = kLowerShaftPassageIndex * .sizeof(sPassage), error
     D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Bottom | 0
     d_byte Destination_eRoom, eRoom::MermaidElevator
     d_byte SpawnBlock_u8, 9
+    d_byte SpawnAdjust_byte, $2f
     D_END
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
 .ENDPROC
