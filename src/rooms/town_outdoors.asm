@@ -40,7 +40,7 @@
 .IMPORT Data_Empty_sDialog
 .IMPORT Data_Empty_sPlatform_arr
 .IMPORT FuncA_Dialog_JumpToCutscene
-.IMPORT Func_AckIrqAndLatchWindowFromParam3
+.IMPORT Func_AckIrqAndLatchWindowFromParam4
 .IMPORT Func_AckIrqAndSetLatch
 .IMPORT Func_HarmAvatar
 .IMPORT Func_InitActorBadOrc
@@ -289,11 +289,11 @@ _DetectAvatarDeath:
     lda #0
     sta Zp_PpuScrollX_u8
     ;; Compute the IRQ latch value to set between the bottom of the treeline
-    ;; and the top of the window (if any), and set that as Param3_byte.
+    ;; and the top of the window (if any), and set that as Param4_byte.
     lda <(Zp_Buffered_sIrq + sIrq::Latch_u8)
     sub #kTreelineBottomY
     add Zp_RoomScrollY_u8
-    sta <(Zp_Buffered_sIrq + sIrq::Param3_byte)  ; window latch
+    sta <(Zp_Buffered_sIrq + sIrq::Param4_byte)  ; window latch
     ;; Set up our own sIrq struct to handle parallax scrolling.
     lda #kTreelineTopY - 1
     sub Zp_RoomScrollY_u8
@@ -703,7 +703,7 @@ _SetHarmTimer:
     pha
     ;; At this point, the first HBlank is already just about over.  Ack the
     ;; current IRQ and prepare for the next one.
-    jsr Func_AckIrqAndLatchWindowFromParam3  ; preserves Y
+    jsr Func_AckIrqAndLatchWindowFromParam4  ; preserves Y
     ;; Busy-wait for a bit, that our final writes in this function will occur
     ;; during the next HBlank.
     ldx #5  ; This value is hand-tuned to help wait for second HBlank.

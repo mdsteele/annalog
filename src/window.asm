@@ -82,23 +82,24 @@ Zp_WindowNextRowToTransfer_u8: .res 1
 .EXPORT Func_Window_SetUpIrq
 .PROC Func_Window_SetUpIrq
     lda #0
-    sta <(Zp_Buffered_sIrq + sIrq::Param1_byte)
-    sta <(Zp_Buffered_sIrq + sIrq::Param2_byte)
-    sta <(Zp_Buffered_sIrq + sIrq::Param3_byte)
+    sta Zp_Buffered_sIrq + sIrq::Param1_byte
+    sta Zp_Buffered_sIrq + sIrq::Param2_byte
+    sta Zp_Buffered_sIrq + sIrq::Param3_byte
+    sta Zp_Buffered_sIrq + sIrq::Param4_byte
     ldy Zp_WindowTop_u8
     cpy #kScreenHeightPx
     bge _Disable
 _Enable:
     dey
-    sty <(Zp_Buffered_sIrq + sIrq::Latch_u8)
+    sty Zp_Buffered_sIrq + sIrq::Latch_u8
     ldax #Int_WindowTopIrq
-    stax <(Zp_Buffered_sIrq + sIrq::FirstIrq_int_ptr)
+    stax Zp_Buffered_sIrq + sIrq::FirstIrq_int_ptr
     rts
 _Disable:
     lda #$ff
-    sta <(Zp_Buffered_sIrq + sIrq::Latch_u8)
+    sta Zp_Buffered_sIrq + sIrq::Latch_u8
     ldax #Int_NoopIrq
-    stax <(Zp_Buffered_sIrq + sIrq::FirstIrq_int_ptr)
+    stax Zp_Buffered_sIrq + sIrq::FirstIrq_int_ptr
     rts
 .ENDPROC
 
@@ -273,18 +274,18 @@ _Disable:
 .SEGMENT "PRGE_Irq"
 
 ;;; Acks the current HBlank IRQ, and sets up the next IRQ for the top of the
-;;; window, using Param3_byte from Zp_Active_sIrq as the latch value.  This
+;;; window, using Param4_byte from Zp_Active_sIrq as the latch value.  This
 ;;; should only be called from within an IRQ handler.
 ;;; @preserve X, Y
-.EXPORT Func_AckIrqAndLatchWindowFromParam3
-.PROC Func_AckIrqAndLatchWindowFromParam3
+.EXPORT Func_AckIrqAndLatchWindowFromParam4
+.PROC Func_AckIrqAndLatchWindowFromParam4
     ;; Update Zp_NextIrq_int_ptr for the next IRQ.
     lda #<Int_WindowTopIrq
     sta Zp_NextIrq_int_ptr + 0
     lda #>Int_WindowTopIrq
     sta Zp_NextIrq_int_ptr + 1
     ;; Ack and set latch for the window.
-    lda <(Zp_Active_sIrq + sIrq::Param3_byte)  ; window latch
+    lda Zp_Active_sIrq + sIrq::Param4_byte  ; window latch
     .assert * = Func_AckIrqAndSetLatch, error, "fallthrough"
 .ENDPROC
 

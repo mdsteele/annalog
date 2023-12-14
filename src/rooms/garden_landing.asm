@@ -34,7 +34,7 @@
 
 .IMPORT DataA_Room_Garden_sTileset
 .IMPORT Data_Empty_sActor_arr
-.IMPORT Func_AckIrqAndLatchWindowFromParam3
+.IMPORT Func_AckIrqAndLatchWindowFromParam4
 .IMPORT Func_Noop
 .IMPORT Func_SetFlag
 .IMPORT Ppu_ChrObjGarden
@@ -172,10 +172,10 @@ _SetUpIrq:
     lda Zp_RoomState + sState::RemainingTeleports_u8
     beq @done
     ;; Compute the IRQ latch value to set between the IRQ seam and the top of
-    ;; the window (if any), and set that as Param3_byte.
+    ;; the window (if any), and set that as Param4_byte.
     lda <(Zp_Buffered_sIrq + sIrq::Latch_u8)
     sub #kFallingIrqSeamY
-    sta <(Zp_Buffered_sIrq + sIrq::Param3_byte)  ; window latch
+    sta <(Zp_Buffered_sIrq + sIrq::Param4_byte)  ; window latch
     ;; Set up our own sIrq struct.
     lda #kFallingIrqSeamY
     sta <(Zp_Buffered_sIrq + sIrq::Latch_u8)
@@ -338,7 +338,7 @@ _TeleportUp:
     pha
     ;; At this point, the first HBlank is already just about over.  Ack the
     ;; current IRQ and prepare for the next one.
-    jsr Func_AckIrqAndLatchWindowFromParam3  ; preserves Y
+    jsr Func_AckIrqAndLatchWindowFromParam4  ; preserves Y
     ;; Busy-wait for a bit, that our final writes in this function will occur
     ;; during the next HBlank.
     ldx #5  ; This value is hand-tuned to help wait for second HBlank.

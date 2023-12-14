@@ -26,6 +26,7 @@
 .INCLUDE "../machine.inc"
 .INCLUDE "../machines/blaster.inc"
 .INCLUDE "../macros.inc"
+.INCLUDE "../mmc3.inc"
 .INCLUDE "../oam.inc"
 .INCLUDE "../platform.inc"
 .INCLUDE "../ppu.inc"
@@ -63,7 +64,7 @@
 .IMPORT FuncA_Room_ResetLever
 .IMPORT FuncA_Room_TickBoss
 .IMPORT FuncA_Terrain_FadeInShortRoomWithLava
-.IMPORT Func_AckIrqAndLatchWindowFromParam3
+.IMPORT Func_AckIrqAndLatchWindowFromParam4
 .IMPORT Func_AckIrqAndSetLatch
 .IMPORT Func_BufferPpuTransfer
 .IMPORT Func_DistanceSensorRightDetectPoint
@@ -85,6 +86,7 @@
 .IMPORT Func_SetPointToActorCenter
 .IMPORT Func_SetPointToAvatarCenter
 .IMPORT Func_SetPointToPlatformCenter
+.IMPORT Ppu_ChrBgAnimB0
 .IMPORT Ppu_ChrObjLava
 .IMPORT Ram_ActorType_eActor_arr
 .IMPORT Ram_MachineGoalHorz_u8_arr
@@ -92,6 +94,7 @@
 .IMPORT Ram_PlatformLeft_i16_0_arr
 .IMPORTZP Zp_Active_sIrq
 .IMPORTZP Zp_Buffered_sIrq
+.IMPORTZP Zp_Chr04Bank_u8
 .IMPORTZP Zp_IrqTmp_byte
 .IMPORTZP Zp_NextIrq_int_ptr
 .IMPORTZP Zp_PointX_i16
@@ -849,25 +852,36 @@ _SetShapePosition:
     jsr FuncA_Objects_MoveShapeDownByA
 _SetUpIrq:
     ;; Compute the IRQ latch value to set between the bottom of the boss's zone
-    ;; and the top of the window (if any), and set that as Param3_byte.
-    lda <(Zp_Buffered_sIrq + sIrq::Latch_u8)
+    ;; and the top of the window (if any), and set that as Param4_byte.
+    lda Zp_Buffered_sIrq + sIrq::Latch_u8
     sub #kBossZoneBottomY
     add Zp_RoomScrollY_u8
-    sta <(Zp_Buffered_sIrq + sIrq::Param3_byte)  ; window latch
+    sta Zp_Buffered_sIrq + sIrq::Param4_byte  ; window latch
     ;; Set up our own sIrq struct to handle boss movement.
     lda #kBossZoneTopY - 1
     sub Zp_RoomScrollY_u8
-    sta <(Zp_Buffered_sIrq + sIrq::Latch_u8)
+    sta Zp_Buffered_sIrq + sIrq::Latch_u8
     ldax #Int_BossLavaZoneTopIrq
-    stax <(Zp_Buffered_sIrq + sIrq::FirstIrq_int_ptr)
+    stax Zp_Buffered_sIrq + sIrq::FirstIrq_int_ptr
+    ;; Store next frame's CHR04 bank for the lava animation so that the IRQ for
+    ;; the bottom of the boss's zone can restore it.
+    lda Zp_Chr04Bank_u8
+    sta Zp_Buffered_sIrq + sIrq::Param3_byte  ; terrain CHR04 bank
     ;; Compute PPU scroll values for the boss zone.
     lda #kBossBgStartCol * kTileWidthPx + kBossFullWidthPx / 2
     sub Zp_ShapePosX_i16 + 0
-    sta <(Zp_Buffered_sIrq + sIrq::Param1_byte)  ; boss scroll-X
+    sta Zp_Buffered_sIrq + sIrq::Param1_byte  ; boss scroll-X
     lda #kBossBgStartRow * kTileHeightPx + kBossHeightPx / 2 + kBossZoneTopY
     sub Zp_ShapePosY_i16 + 0
     sub Zp_RoomScrollY_u8
-    sta <(Zp_Buffered_sIrq + sIrq::Param2_byte)  ; boss scroll-Y
+    sta Zp_Buffered_sIrq + sIrq::Param2_byte  ; boss scroll-Y
+    ;; Set up the CHR04 bank to animate the boss's legs.
+    eor Zp_Buffered_sIrq + sIrq::Param1_byte  ; boss scroll-X
+    div #4
+    and #$03
+    .assert .bank(Ppu_ChrBgAnimB0) .mod 4 = 0, error
+    ora #<.bank(Ppu_ChrBgAnimB0)
+    sta Zp_Chr04Bank_u8
 _DrawBossJawsAndTail:
     lda #kTileHeightPx * 3  ; param: offset
     jsr FuncA_Objects_MoveShapeUpByA
@@ -1089,12 +1103,12 @@ _ValvePipePlatformIndex_u8_arr4:
     ;; See https://www.nesdev.org/wiki/PPU_scrolling#Split_X.2FY_scroll
     lda #3 << 2  ; nametable number << 2
     sta Hw_PpuAddr_w2
-    lda <(Zp_Active_sIrq + sIrq::Param2_byte)  ; boss scroll-Y
+    lda Zp_Active_sIrq + sIrq::Param2_byte  ; boss scroll-Y
     sta Hw_PpuScroll_w2
     and #$38
     mul #4
     sta Zp_IrqTmp_byte  ; ((Y & $38) << 2)
-    lda <(Zp_Active_sIrq + sIrq::Param1_byte)  ; boss scroll-X
+    lda Zp_Active_sIrq + sIrq::Param1_byte  ; boss scroll-X
     tax  ; new scroll-X value
     div #8
     ora Zp_IrqTmp_byte
@@ -1118,7 +1132,7 @@ _ValvePipePlatformIndex_u8_arr4:
     pha
     ;; At this point, the first HBlank is already just about over.  Ack the
     ;; current IRQ and prepare for the next one.
-    jsr Func_AckIrqAndLatchWindowFromParam3  ; preserves Y
+    jsr Func_AckIrqAndLatchWindowFromParam4  ; preserves Y
     ;; Busy-wait for a bit, that our final writes in this function will occur
     ;; during the next HBlank.
     ldx #7  ; This value is hand-tuned to help wait for second HBlank.
@@ -1137,6 +1151,8 @@ _ValvePipePlatformIndex_u8_arr4:
     ;; We should now be in the second HBlank (and X is zero).
     stx Hw_PpuScroll_w2  ; new scroll-X value (zero)
     sta Hw_PpuAddr_w2    ; ((Y & $38) << 2) | (X >> 3)
+    ;; Restore the CHR04 bank needed for the animated lava terrain.
+    irq_chr04 Zp_Active_sIrq + sIrq::Param3_byte  ; terrain CHR04 bank
     ;; Restore registers and return.
     pla
     tax

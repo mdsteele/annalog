@@ -138,14 +138,10 @@ _UpdatePpuRegisters:
     sta Hw_PpuCtrl_wo
     lda Zp_Render_bPpuMask
     sta Hw_PpuMask_wo
-    ;; Switch CHR04 banks (for animated terrain).  Since this is done only with
-    ;; the cooperation of the main thread (that is, the NMI thread won't be
-    ;; executing this bit of code unless the main thread is waiting within
-    ;; Func_ProcessFrame), we don't have to worry about interrupting a bank
-    ;; switch on the main thread, and therefore we don't have to restore the
-    ;; main thread's Hw_Mmc3BankSelect_wo value.
-    lda #kSelectChr04
-    sta Hw_Mmc3BankSelect_wo
+    ;; Switch CHR04 banks (for animated terrain).  Note that the NMI thread
+    ;; will only be executing this code if the main thread is currently blocked
+    ;; in Func_ProcessFrame, and has already set up Hw_Mmc3BankSelect_wo for
+    ;; CHR04.
     lda Zp_Chr04Bank_u8
     sta Hw_Mmc3BankData_wo
 _TransferIrqStruct:
@@ -213,6 +209,11 @@ _Finish:
     ldx Zp_PpuTransferLen_u8
     lda #0
     sta Ram_PpuTransfer_arr, x
+    ;; Set up bank select value to be used by the NMI thread.  Note that any
+    ;; IRQs that switch CHR banks while the main thread is blocked on the
+    ;; Zp_NmiReady_bool loop below will ensure that this bank select value gets
+    ;; restored before the next NMI occurs.
+    main_bank_select kSelectChr04
     ;; Tell the NMI handler that we are ready for it to transfer data, then
     ;; wait until it finishes.
     dec Zp_NmiReady_bool  ; change from false ($00) to true ($ff)

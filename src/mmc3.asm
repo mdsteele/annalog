@@ -50,7 +50,7 @@ Zp_MainSelect_bMmc3Bank: .res 1
 ;;; @preserve X, Y, T0+
 .PROC FuncM_SwitchPrgaBank
     pha  ; PRGA bank number
-    _main_bank_select kSelectPrga
+    main_bank_select kSelectPrga
     pla  ; PRGA bank number
     sta Hw_Mmc3BankData_wo
     rts

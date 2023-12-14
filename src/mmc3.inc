@@ -171,7 +171,7 @@ kSelectPrgc  = kMmc3BankFlags | eMmc3Bank::PrgBank8OrC
 
 ;;; Sets Hw_Mmc3BankSelect_wo to the given kSelect* constant from within the
 ;;; main thread.
-.MACRO _main_bank_select SELECT
+.MACRO main_bank_select SELECT
     lda #SELECT
     sta Zp_MainSelect_bMmc3Bank
     sta Hw_Mmc3BankSelect_wo
@@ -249,7 +249,7 @@ kSelectPrgc  = kMmc3BankFlags | eMmc3Bank::PrgBank8OrC
 ;;;
 ;;; This operation accepts the same arguments as main_prga.
 .MACRO main_prgc ARG1, ARG2
-    _main_bank_select kSelectPrgc
+    main_bank_select kSelectPrgc
     _bank_data ARG1, ARG2
 .ENDMACRO
 
@@ -258,7 +258,7 @@ kSelectPrgc  = kMmc3BankFlags | eMmc3Bank::PrgBank8OrC
 ;;;
 ;;; This operation accepts the same arguments as main_prga.
 .MACRO main_chr00 ARG1, ARG2
-    _main_bank_select kSelectChr00
+    main_bank_select kSelectChr00
     _bank_data ARG1, ARG2
 .ENDMACRO
 
@@ -274,7 +274,7 @@ kSelectPrgc  = kMmc3BankFlags | eMmc3Bank::PrgBank8OrC
 ;;;
 ;;; This operation accepts the same arguments as main_prga.
 .MACRO main_chr04 ARG1, ARG2
-    _main_bank_select kSelectChr04
+    main_bank_select kSelectChr04
     _bank_data ARG1, ARG2
 .ENDMACRO
 
@@ -290,7 +290,7 @@ kSelectPrgc  = kMmc3BankFlags | eMmc3Bank::PrgBank8OrC
 ;;;
 ;;; This operation accepts the same arguments as main_prga.
 .MACRO main_chr08 ARG1, ARG2
-    _main_bank_select kSelectChr08
+    main_bank_select kSelectChr08
     _bank_data ARG1, ARG2
 .ENDMACRO
 
@@ -306,7 +306,7 @@ kSelectPrgc  = kMmc3BankFlags | eMmc3Bank::PrgBank8OrC
 ;;;
 ;;; This operation accepts the same arguments as main_prga.
 .MACRO main_chr0c ARG1, ARG2
-    _main_bank_select kSelectChr0c
+    main_bank_select kSelectChr0c
     _bank_data ARG1, ARG2
 .ENDMACRO
 
@@ -322,7 +322,7 @@ kSelectPrgc  = kMmc3BankFlags | eMmc3Bank::PrgBank8OrC
 ;;;
 ;;; This operation accepts the same arguments as main_prga.
 .MACRO main_chr10 ARG1, ARG2
-    _main_bank_select kSelectChr10
+    main_bank_select kSelectChr10
     _bank_data ARG1, ARG2
 .ENDMACRO
 
@@ -339,7 +339,7 @@ kSelectPrgc  = kMmc3BankFlags | eMmc3Bank::PrgBank8OrC
 ;;;
 ;;; This operation accepts the same arguments as main_prga.
 .MACRO main_chr18 ARG1, ARG2
-    _main_bank_select kSelectChr18
+    main_bank_select kSelectChr18
     _bank_data ARG1, ARG2
 .ENDMACRO
 
@@ -351,16 +351,24 @@ kSelectPrgc  = kMmc3BankFlags | eMmc3Bank::PrgBank8OrC
     main_chr18 #<.bank(ARG)
 .ENDMACRO
 
+;;; Switches CHR04 banks on the IRQ thread, setting it from the given value.
+;;; This will automatically restore the main thread's Hw_Mmc3BankSelect_wo
+;;; value afterwards.  The A register and the N and Z flags are destroyed in
+;;; the process.
+.MACRO irq_chr04 ARG1, ARG2
+    lda #kSelectChr04
+    sta Hw_Mmc3BankSelect_wo
+    _bank_data ARG1, ARG2
+    lda Zp_MainSelect_bMmc3Bank
+    sta Hw_Mmc3BankSelect_wo
+.ENDMACRO
+
 ;;; Switches CHR04 banks on the IRQ thread, setting it to the bank number of
 ;;; the given Ppu_ChrBg* symbol.  This will automatically restore the main
 ;;; thread's Hw_Mmc3BankSelect_wo value afterwards.  The A register and the N
 ;;; and Z flags are destroyed in the process.
 .MACRO irq_chr04_bank ARG
-    lda #kSelectChr04
-    sta Hw_Mmc3BankSelect_wo
-    _bank_data #<.bank(ARG)
-    lda Zp_MainSelect_bMmc3Bank
-    sta Hw_Mmc3BankSelect_wo
+    irq_chr04 #<.bank(ARG)
 .ENDMACRO
 
 ;;;=========================================================================;;;

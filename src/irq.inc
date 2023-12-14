@@ -38,6 +38,7 @@
     Param1_byte      .byte
     Param2_byte      .byte
     Param3_byte      .byte
+    Param4_byte      .byte
 .ENDSTRUCT
 
 ;;;=========================================================================;;;
