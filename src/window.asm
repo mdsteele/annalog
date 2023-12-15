@@ -276,7 +276,7 @@ _Disable:
 ;;; Acks the current HBlank IRQ, and sets up the next IRQ for the top of the
 ;;; window, using Param4_byte from Zp_Active_sIrq as the latch value.  This
 ;;; should only be called from within an IRQ handler.
-;;; @preserve X, Y
+;;; @preserve X, Y, T0+
 .EXPORT Func_AckIrqAndLatchWindowFromParam4
 .PROC Func_AckIrqAndLatchWindowFromParam4
     ;; Update Zp_NextIrq_int_ptr for the next IRQ.
@@ -292,7 +292,7 @@ _Disable:
 ;;; Acks the current HBlank IRQ, writes a new latch value, and then immediately
 ;;; reloads the latch.
 ;;; @param A The value to write to Hw_Mmc3IrqLatch_wo.
-;;; @preserve X, Y
+;;; @preserve X, Y, T0+
 .EXPORT Func_AckIrqAndSetLatch
 .PROC Func_AckIrqAndSetLatch
     ;; Ack the current IRQ.

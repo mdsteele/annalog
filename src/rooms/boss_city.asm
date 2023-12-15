@@ -23,6 +23,7 @@
 .INCLUDE "../charmap.inc"
 .INCLUDE "../device.inc"
 .INCLUDE "../flag.inc"
+.INCLUDE "../irq.inc"
 .INCLUDE "../machine.inc"
 .INCLUDE "../machines/ammorack.inc"
 .INCLUDE "../machines/launcher.inc"
@@ -50,16 +51,31 @@
 .IMPORT FuncA_Objects_DrawBoss
 .IMPORT FuncA_Objects_DrawLauncherMachineHorz
 .IMPORT FuncA_Objects_DrawReloaderMachine
+.IMPORT FuncA_Objects_MoveShapeDownByA
+.IMPORT FuncA_Objects_MoveShapeRightByA
+.IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
 .IMPORT FuncA_Room_InitBoss
 .IMPORT FuncA_Room_TickBoss
+.IMPORT Func_AckIrqAndLatchWindowFromParam4
+.IMPORT Func_AckIrqAndSetLatch
+.IMPORT Func_BufferPpuTransfer
 .IMPORT Func_Noop
+.IMPORT Ppu_ChrBgBossCity
 .IMPORT Ppu_ChrObjCity
 .IMPORT Ram_MachineGoalHorz_u8_arr
 .IMPORT Ram_MachineGoalVert_u8_arr
 .IMPORT Ram_MachineState1_byte_arr
 .IMPORT Ram_PlatformLeft_i16_0_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
+.IMPORTZP Zp_Active_sIrq
+.IMPORTZP Zp_Buffered_sIrq
+.IMPORTZP Zp_Chr04Bank_u8
+.IMPORTZP Zp_IrqTmp_byte
+.IMPORTZP Zp_NextIrq_int_ptr
+.IMPORTZP Zp_RoomScrollY_u8
 .IMPORTZP Zp_RoomState
+.IMPORTZP Zp_ShapePosX_i16
+.IMPORTZP Zp_ShapePosY_i16
 
 ;;;=========================================================================;;;
 
@@ -71,11 +87,11 @@ kReloaderMachineIndex = 1
 kAmmoRackMachineIndex = 2
 
 ;;; The platform index for the BossCityLauncher machine.
-kLauncherPlatformIndex = 1
+kLauncherPlatformIndex = 4
 ;;; The platform index for the BossCityReloader machine.
-kReloaderPlatformIndex = 2
+kReloaderPlatformIndex = 5
 ;;; The platform index for the BossCityAmmoRack machine.
-kAmmoRackPlatformIndex = 3
+kAmmoRackPlatformIndex = 6
 
 ;;; The initial and maximum permitted vertical goal values for the launcher.
 kLauncherInitGoalY = 1
@@ -110,9 +126,58 @@ kLeverRightDeviceIndex = 4
 
 ;;;=========================================================================;;;
 
+;;; The width and height of the boss's BG tile grid.
+kBossBgWidthTiles  = 8
+kBossBgHeightTiles = 6
+kBossBgWidthPx  = kBossBgWidthTiles * kTileWidthPx
+kBossBgHeightPx = kBossBgHeightTiles * kTileHeightPx
+
+;;; The tile row/col in the lower nametable for the top-left corner of the
+;;; boss's BG tiles.
+kBossBgStartRow = 7
+kBossBgStartCol = 1
+
+;;; The PPU addresses for the start (left) of each row of the boss's BG tiles.
+.LINECONT +
+Ppu_BossRow0Start = Ppu_Nametable3_sName + sName::Tiles_u8_arr + \
+    kScreenWidthTiles * (kBossBgStartRow + 0) + kBossBgStartCol
+Ppu_BossRow1Start = Ppu_Nametable3_sName + sName::Tiles_u8_arr + \
+    kScreenWidthTiles * (kBossBgStartRow + 1) + kBossBgStartCol
+Ppu_BossRow2Start = Ppu_Nametable3_sName + sName::Tiles_u8_arr + \
+    kScreenWidthTiles * (kBossBgStartRow + 2) + kBossBgStartCol
+Ppu_BossRow3Start = Ppu_Nametable3_sName + sName::Tiles_u8_arr + \
+    kScreenWidthTiles * (kBossBgStartRow + 3) + kBossBgStartCol
+Ppu_BossRow4Start = Ppu_Nametable3_sName + sName::Tiles_u8_arr + \
+    kScreenWidthTiles * (kBossBgStartRow + 4) + kBossBgStartCol
+Ppu_BossRow5Start = Ppu_Nametable3_sName + sName::Tiles_u8_arr + \
+    kScreenWidthTiles * (kBossBgStartRow + 5) + kBossBgStartCol
+.ASSERT (kBossBgStartRow + 1) .mod 4 = 0, error
+.ASSERT (kBossBgStartCol + 3) .mod 4 = 0, error
+Ppu_BossCoreAttrs = Ppu_Nametable3_sName + sName::Attrs_u8_arr64 + \
+    ((kBossBgStartRow + 1) / 4) * 8 + ((kBossBgStartCol + 3) / 4)
+.LINECONT -
+
+;;; The room pixel Y-positions for the top and bottom of the zone that the boss
+;;; can move within.
+kBossZoneTopY    = $30
+kBossZoneBottomY = $80
+
+;;; The sizes of various parts of the boss, in pixels.
+kBossShellWidthPx  = $38
+kBossShellHeightPx = $10
+kBossCoreWidthPx   = $0c
+kBossCoreHeightPx  = $10
+kBossBodyWidthPx   = kBossShellWidthPx
+kBossBodyHeightPx  = kBossShellHeightPx * 2 + kBossCoreHeightPx
+
+;;; The initial room pixel position for the center of the boss.
+kBossInitCenterX = $60
+kBossInitCenterY = $58
+
 ;;; Modes that the boss in this room can be in.
 .ENUM eBossMode
     Dead
+    Alive  ; TODO: replace this with a real mode
     ;; TODO: other modes
     NUM_VALUES
 .ENDENUM
@@ -124,8 +189,11 @@ kBossInitHealth = 8
 ;;; taking action.
 kBossInitCooldown = 120
 
-;;; The platform index for the boss's body.
-kBossBodyPlatformIndex = 0
+;;; Platform indices for various parts of the boss.
+kBossBodyPlatformIndex       = 0
+kBossCorePlatformIndex       = 1
+kBossShellUpperPlatformIndex = 2
+kBossShellLowerPlatformIndex = 3
 
 ;;;=========================================================================;;;
 
@@ -141,6 +209,9 @@ kBossBodyPlatformIndex = 0
     ;; Timer that ticks down each frame when nonzero.  Used to time transitions
     ;; between boss modes.
     BossCooldown_u8 .byte
+    ;; The current distance between the center of the boss and the edge of each
+    ;; shell, in pixels.
+    BossShellOpen_u8 .byte
 .ENDSTRUCT
 .ASSERT .sizeof(sState) <= kRoomStateSize, error
 
@@ -169,10 +240,10 @@ _Ext_sRoomExt:
     d_addr Actors_sActor_arr_ptr, Data_Empty_sActor_arr
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
     d_addr Passages_sPassage_arr_ptr, 0
-    d_addr Enter_func_ptr, FuncC_Boss_City_EnterRoom
-    d_addr FadeIn_func_ptr, Func_Noop
+    d_addr Enter_func_ptr, FuncA_Room_BossCity_EnterRoom
+    d_addr FadeIn_func_ptr, FuncC_Boss_City_FadeInRoom
     d_addr Tick_func_ptr, FuncC_Boss_City_TickRoom
-    d_addr Draw_func_ptr, FuncC_Boss_City_DrawRoom
+    d_addr Draw_func_ptr, FuncA_Objects_DrawBoss
     D_END
 _TerrainData:
 :   .incbin "out/rooms/boss_city.room"
@@ -196,7 +267,7 @@ _Machines_sMachine_arr:
     d_addr WriteReg_func_ptr, FuncC_Boss_City_WriteReg
     d_addr TryMove_func_ptr, FuncC_Boss_CityLauncher_TryMove
     d_addr TryAct_func_ptr, FuncC_Boss_CityLauncher_TryAct
-    d_addr Tick_func_ptr, FuncC_Boss_CityLauncher_Tick
+    d_addr Tick_func_ptr, FuncA_Machine_BossCityLauncher_Tick
     d_addr Draw_func_ptr, FuncA_Objects_DrawLauncherMachineHorz
     d_addr Reset_func_ptr, FuncC_Boss_CityLauncher_InitReset
     D_END
@@ -215,7 +286,7 @@ _Machines_sMachine_arr:
     d_addr WriteReg_func_ptr, FuncC_Boss_City_WriteReg
     d_addr TryMove_func_ptr, FuncC_Boss_CityReloader_TryMove
     d_addr TryAct_func_ptr, FuncC_Boss_CityReloader_TryAct
-    d_addr Tick_func_ptr, FuncC_Boss_CityReloader_Tick
+    d_addr Tick_func_ptr, FuncA_Machine_BossCityReloader_Tick
     d_addr Draw_func_ptr, FuncA_Objects_DrawReloaderMachine
     d_addr Reset_func_ptr, FuncC_Boss_CityReloader_InitReset
     D_END
@@ -233,7 +304,7 @@ _Machines_sMachine_arr:
     d_addr ReadReg_func_ptr, FuncC_Boss_City_ReadRegLR
     d_addr WriteReg_func_ptr, FuncC_Boss_City_WriteReg
     d_addr TryMove_func_ptr, FuncA_Machine_Error
-    d_addr TryAct_func_ptr, FuncC_Boss_CityAmmoRack_TryAct
+    d_addr TryAct_func_ptr, FuncA_Machine_BossCityAmmoRack_TryAct
     d_addr Tick_func_ptr, FuncA_Machine_ReachedGoal
     d_addr Draw_func_ptr, FuncA_Objects_DrawAmmoRackMachine
     d_addr Reset_func_ptr, Func_Noop
@@ -243,10 +314,34 @@ _Platforms_sPlatform_arr:
 :   .assert * - :- = kBossBodyPlatformIndex * .sizeof(sPlatform), error
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Zone
-    d_word WidthPx_u16, $40
-    d_byte HeightPx_u8, $30
-    d_word Left_i16,  $0040
-    d_word Top_i16,   $0050
+    d_word WidthPx_u16, kBossBodyWidthPx
+    d_byte HeightPx_u8, kBossBodyHeightPx
+    d_word Left_i16, kBossInitCenterX - kBossBodyWidthPx / 2
+    d_word Top_i16, kBossInitCenterY - kBossBodyHeightPx / 2
+    D_END
+    .assert * - :- = kBossCorePlatformIndex * .sizeof(sPlatform), error
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Zone
+    d_word WidthPx_u16, kBossCoreWidthPx
+    d_byte HeightPx_u8, kBossCoreHeightPx
+    d_word Left_i16, kBossInitCenterX - kBossCoreWidthPx / 2
+    d_word Top_i16, kBossInitCenterY - kBossCoreHeightPx / 2
+    D_END
+    .assert * - :- = kBossShellUpperPlatformIndex * .sizeof(sPlatform), error
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Harm
+    d_word WidthPx_u16, kBossShellWidthPx
+    d_byte HeightPx_u8, kBossShellHeightPx
+    d_word Left_i16, kBossInitCenterX - kBossShellWidthPx / 2
+    d_word Top_i16, kBossInitCenterY - kBossShellHeightPx
+    D_END
+    .assert * - :- = kBossShellLowerPlatformIndex * .sizeof(sPlatform), error
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Harm
+    d_word WidthPx_u16, kBossShellWidthPx
+    d_byte HeightPx_u8, kBossShellHeightPx
+    d_word Left_i16, kBossInitCenterX - kBossShellWidthPx / 2
+    d_word Top_i16, kBossInitCenterY
     D_END
     .assert * - :- = kLauncherPlatformIndex * .sizeof(sPlatform), error
     D_STRUCT sPlatform
@@ -341,21 +436,50 @@ _Devices_sDevice_arr:
     D_END
 .ENDPROC
 
-;;; Room init function for the BossCity room.
-;;; @prereq PRGA_Room is loaded.
-.PROC FuncC_Boss_City_EnterRoom
-    ldax #FuncC_Boss_City_sBoss  ; param: sBoss ptr
-    jsr FuncA_Room_InitBoss  ; sets Z if boss is alive
-    bne _BossIsDead
-_BossIsAlive:
-    lda #kBossInitHealth
-    sta Zp_RoomState + sState::BossHealth_u8
-    lda #kBossInitCooldown
-    sta Zp_RoomState + sState::BossCooldown_u8
-    lda #eBossMode::Dead  ; TODO
-    sta Zp_RoomState + sState::Current_eBossMode
-_BossIsDead:
-    rts
+.PROC DataC_Boss_CityTransfer_arr
+    .assert kBossBgWidthTiles = 8, error
+    .assert kBossBgHeightTiles = 6, error
+    ;; Row 0:
+    .byte kPpuCtrlFlagsHorz
+    .dbyt Ppu_BossRow0Start + 1  ; transfer destination
+    .byte 6
+    .byte $4c, $4d, $4e, $4f, $50, $51
+    ;; Row 1:
+    .byte kPpuCtrlFlagsHorz
+    .dbyt Ppu_BossRow1Start  ; transfer destination
+    .byte 8
+    .byte $52, $53, $54, $55, $56, $57, $58, $59
+    ;; Row 2:
+    .byte kPpuCtrlFlagsHorz
+    .dbyt Ppu_BossRow2Start + 1  ; transfer destination
+    .byte 6
+    .byte $40, $41, $42, $43, $44, $45
+    ;; Row 3:
+    .byte kPpuCtrlFlagsHorz
+    .dbyt Ppu_BossRow3Start + 1  ; transfer destination
+    .byte 6
+    .byte $46, $47, $48, $49, $4a, $4b
+    ;; Row 4:
+    .byte kPpuCtrlFlagsHorz
+    .dbyt Ppu_BossRow4Start  ; transfer destination
+    .byte 8
+    .byte $5a, $5b, $5c, $5d, $5e, $5f, $60, $61
+    ;; Row 5:
+    .byte kPpuCtrlFlagsHorz
+    .dbyt Ppu_BossRow5Start + 1  ; transfer destination
+    .byte 6
+    .byte $62, $63, $64, $65, $66, $67
+    ;; Attributes:
+    .byte kPpuCtrlFlagsHorz
+    .dbyt Ppu_BossCoreAttrs  ; transfer destination
+    .byte 1
+    .byte $11
+.ENDPROC
+
+.PROC FuncC_Boss_City_FadeInRoom
+    ldax #DataC_Boss_CityTransfer_arr  ; param: data pointer
+    ldy #.sizeof(DataC_Boss_CityTransfer_arr)  ; param: data length
+    jmp Func_BufferPpuTransfer
 .ENDPROC
 
 ;;; Room tick function for the BossCity room.
@@ -387,22 +511,55 @@ _CheckMode:
     D_TABLE_HI table, _JumpTable_ptr_1_arr
     D_TABLE .enum, eBossMode
     d_entry table, Dead,   Func_Noop
+    d_entry table, Alive,  Func_Noop
     D_END
 .ENDREPEAT
-.ENDPROC
-
-;;; Draw function for the BossCity room.
-;;; @prereq PRGA_Objects is loaded.
-.PROC FuncC_Boss_City_DrawRoom
-    ;; TODO: draw side walls
-_DrawBoss:
-    jmp FuncA_Objects_DrawBoss
 .ENDPROC
 
 ;;; Draw function for the city boss.
 ;;; @prereq PRGA_Objects is loaded.
 .PROC FuncC_Boss_City_DrawBoss
-    ;; TODO: draw the boss
+    lda #<.bank(Ppu_ChrBgBossCity)
+    sta Zp_Chr04Bank_u8
+_DrawSideWalls:
+    ;; TODO: draw side walls
+_SetShapePosition:
+    ;; Set the shape position to the center of the boss's body.
+    ldx #kBossBodyPlatformIndex  ; param: platform index
+    jsr FuncA_Objects_SetShapePosToPlatformTopLeft
+    lda #kBossBodyWidthPx / 2  ; param: offset
+    jsr FuncA_Objects_MoveShapeRightByA
+    lda #kBossBodyHeightPx / 2  ; param: offset
+    jsr FuncA_Objects_MoveShapeDownByA
+_SetUpIrq:
+    ;; Compute the IRQ latch value to set between the bottom of the boss's zone
+    ;; and the top of the window (if any), and set that as Param4_byte.
+    lda Zp_Buffered_sIrq + sIrq::Latch_u8
+    sub #kBossZoneBottomY
+    add Zp_RoomScrollY_u8
+    sta Zp_Buffered_sIrq + sIrq::Param4_byte  ; window latch
+    ;; Set up our own sIrq struct to handle boss movement.
+    lda #kBossZoneTopY - 1
+    sub Zp_RoomScrollY_u8
+    sta Zp_Buffered_sIrq + sIrq::Latch_u8
+    ldax #Int_BossCityZoneTopIrq
+    stax Zp_Buffered_sIrq + sIrq::FirstIrq_int_ptr
+    ;; Compute the PPU scroll-X value for the boss zone.
+    lda #kBossBgStartCol * kTileWidthPx + kBossBgWidthPx / 2
+    sub Zp_ShapePosX_i16 + 0
+    sta Zp_Buffered_sIrq + sIrq::Param1_byte  ; boss scroll-X
+    ;; Compute the PPU scroll-Y value for the bottom part of the boss's zone.
+    lda #kBossBgStartRow * kTileHeightPx + kBossBgHeightPx - kBossShellHeightPx
+    sub Zp_RoomState + sState::BossShellOpen_u8
+    sta Zp_Buffered_sIrq + sIrq::Param2_byte  ; boss lower scroll-Y
+    ;; Compute the latch value to use between the top and middle boss zone
+    ;; IRQs.
+    lda Zp_ShapePosY_i16 + 0
+    sub #kBossZoneTopY + 1
+    add Zp_RoomScrollY_u8
+    sta Zp_Buffered_sIrq + sIrq::Param3_byte  ; top-to-middle latch
+_DrawBackgroundTerrainObjects:
+    ;; TODO: draw background objects
     rts
 .ENDPROC
 
@@ -521,7 +678,31 @@ _Error:
     jmp FuncA_Machine_Error
 .ENDPROC
 
-.PROC FuncC_Boss_CityAmmoRack_TryAct
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Room"
+
+;;; Room init function for the BossCity room.
+.PROC FuncA_Room_BossCity_EnterRoom
+    ldax #FuncC_Boss_City_sBoss  ; param: sBoss ptr
+    jsr FuncA_Room_InitBoss  ; sets Z if boss is alive
+    bne _BossIsDead
+_BossIsAlive:
+    lda #kBossInitHealth
+    sta Zp_RoomState + sState::BossHealth_u8
+    lda #kBossInitCooldown
+    sta Zp_RoomState + sState::BossCooldown_u8
+    lda #eBossMode::Alive
+    sta Zp_RoomState + sState::Current_eBossMode
+_BossIsDead:
+    rts
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Machine"
+
+.PROC FuncA_Machine_BossCityAmmoRack_TryAct
     ;; Can't refill the ammo rack if it's not empty.
     lda Ram_MachineState1_byte_arr + kAmmoRackMachineIndex  ; ammo slot bits
     jne FuncA_Machine_Error
@@ -533,18 +714,146 @@ _Error:
     jmp FuncA_Machine_StartWaiting
 .ENDPROC
 
-.PROC FuncC_Boss_CityLauncher_Tick
+.PROC FuncA_Machine_BossCityLauncher_Tick
     ldax #kLauncherMaxPlatformTop  ; param: max platform top
     jsr FuncA_Machine_GenericMoveTowardGoalVert  ; returns Z
     jeq FuncA_Machine_ReachedGoal
     rts
 .ENDPROC
 
-.PROC FuncC_Boss_CityReloader_Tick
+.PROC FuncA_Machine_BossCityReloader_Tick
     ldax #kReloaderMinPlatformLeft  ; param: min platform left
     jsr FuncA_Machine_GenericMoveTowardGoalHorz  ; returns Z
     jeq FuncA_Machine_ReachedGoal
     rts
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGE_Irq"
+
+;;; HBlank IRQ handler function for the top of the boss's zone in the BossCity
+;;; room.  Sets the horizontal and vertical scroll so as to make the boss's
+;;; upper shell BG tiles appear to move.
+.PROC Int_BossCityZoneTopIrq
+    ;; Save A and X registers (we won't be using Y).
+    pha
+    txa
+    pha
+    ;; At this point, the first HBlank is already just about over.  Set up the
+    ;; next IRQ.
+    lda Zp_Active_sIrq + sIrq::Param3_byte  ; top-to-middle latch
+    jsr Func_AckIrqAndSetLatch  ; preserves Y
+    ldax #Int_BossCityZoneMiddleIrq
+    stax Zp_NextIrq_int_ptr
+    ;; Set the PPU's new scroll-Y and scroll-X values, and also set the lower
+    ;; nametable as the scrolling origin.  All of this takes four writes, and
+    ;; the last two must happen during HBlank (between dots 256 and 320).
+    ;; See https://www.nesdev.org/wiki/PPU_scrolling#Split_X.2FY_scroll
+    lda #3 << 2  ; nametable number << 2
+    sta Hw_PpuAddr_w2
+    lda #kBossBgStartRow * kTileHeightPx * 2 + kBossBgHeightPx - 1
+    sub Zp_Active_sIrq + sIrq::Param2_byte  ; boss lower scroll-Y
+    sub Zp_Active_sIrq + sIrq::Param3_byte  ; top-to-middle latch
+    sta Hw_PpuScroll_w2
+    and #$38
+    mul #4
+    sta Zp_IrqTmp_byte  ; ((Y & $38) << 2)
+    lda Zp_Active_sIrq + sIrq::Param1_byte  ; boss scroll-X
+    tax  ; new scroll-X value
+    div #8
+    ora Zp_IrqTmp_byte
+    ;; We should now be in the second HBlank.
+    stx Hw_PpuScroll_w2
+    sta Hw_PpuAddr_w2  ; ((Y & $38) << 2) | (X >> 3)
+    ;; Restore registers and return.
+    pla
+    tax
+    pla
+    rti
+.ENDPROC
+
+;;; HBlank IRQ handler function for the middle of the boss's zone in the
+;;; BossCity room.  Sets the horizontal and vertical scroll so as to make the
+;;; boss's lower shell BG tiles appear to move.
+.PROC Int_BossCityZoneMiddleIrq
+    ;; Save A and X registers (we won't be using Y).
+    pha
+    txa
+    pha
+    ;; At this point, the first HBlank is already just about over.  Set up the
+    ;; next IRQ.  Note that we have to compute the middle-to-bottom latch value
+    ;; from the top-to-middle latch value (since we don't have enough params to
+    ;; store both directly).
+    lda #kBossZoneBottomY - kBossZoneTopY - 2
+    sub Zp_Active_sIrq + sIrq::Param3_byte  ; top-to-middle latch
+    jsr Func_AckIrqAndSetLatch  ; preserves Y
+    ldax #Int_BossCityZoneBottomIrq
+    stax Zp_NextIrq_int_ptr
+    ;; Busy-wait for a bit, that our final writes in this function will occur
+    ;; during the next HBlank.
+    .repeat 3  ; This value is hand-tuned to help wait for second HBlank.
+    nop
+    .endrepeat
+    ;; Set the PPU's new scroll-Y and scroll-X values, and also set the lower
+    ;; nametable as the scrolling origin.  All of this takes four writes, and
+    ;; the last two must happen during HBlank (between dots 256 and 320).
+    ;; See https://www.nesdev.org/wiki/PPU_scrolling#Split_X.2FY_scroll
+    lda #3 << 2  ; nametable number << 2
+    sta Hw_PpuAddr_w2
+    lda Zp_Active_sIrq + sIrq::Param2_byte  ; boss lower scroll-Y
+    sta Hw_PpuScroll_w2
+    and #$38
+    mul #4
+    sta Zp_IrqTmp_byte  ; ((Y & $38) << 2)
+    lda Zp_Active_sIrq + sIrq::Param1_byte  ; boss scroll-X
+    tax  ; new scroll-X value
+    div #8
+    ora Zp_IrqTmp_byte
+    ;; We should now be in the second HBlank.
+    stx Hw_PpuScroll_w2
+    sta Hw_PpuAddr_w2  ; ((Y & $38) << 2) | (X >> 3)
+    ;; Restore registers and return.
+    pla
+    tax
+    pla
+    rti
+.ENDPROC
+
+;;; HBlank IRQ handler function for the bottom of the boss's zone in the
+;;; BossCity room.  Sets the horizontal and vertical scroll so as to make the
+;;; bottom of the room look normal.
+.PROC Int_BossCityZoneBottomIrq
+    ;; Save A and X registers (we won't be using Y).
+    pha
+    txa
+    pha
+    ;; At this point, the first HBlank is already just about over.  Ack the
+    ;; current IRQ and prepare for the next one.
+    jsr Func_AckIrqAndLatchWindowFromParam4  ; preserves Y
+    ;; Busy-wait for a bit, that our final writes in this function will occur
+    ;; during the next HBlank.
+    ldx #7  ; This value is hand-tuned to help wait for second HBlank.
+    @busyLoop:
+    dex
+    bne @busyLoop
+    ;; Set the PPU's new scroll-Y and scroll-X values, and also set the upper
+    ;; nametable as the scrolling origin.  All of this takes four writes, and
+    ;; the last two must happen during HBlank (between dots 256 and 320).
+    ;; See https://www.nesdev.org/wiki/PPU_scrolling#Split_X.2FY_scroll
+    lda #0 << 2  ; nametable number << 2
+    sta Hw_PpuAddr_w2
+    lda #kBossZoneBottomY  ; new scroll-Y value
+    sta Hw_PpuScroll_w2
+    lda #(kBossZoneBottomY & $38) << 2
+    ;; We should now be in the second HBlank (and X is zero).
+    stx Hw_PpuScroll_w2  ; new scroll-X value (zero)
+    sta Hw_PpuAddr_w2    ; ((Y & $38) << 2) | (X >> 3)
+    ;; Restore registers and return.
+    pla
+    tax
+    pla
+    rti
 .ENDPROC
 
 ;;;=========================================================================;;;

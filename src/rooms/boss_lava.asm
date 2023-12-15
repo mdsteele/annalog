@@ -186,8 +186,6 @@ Ppu_BossRow2Start = Ppu_Nametable3_sName + sName::Tiles_u8_arr + \
     kScreenWidthTiles * (kBossBgStartRow + 2) + kBossBgStartCol
 Ppu_BossRow3Start = Ppu_Nametable3_sName + sName::Tiles_u8_arr + \
     kScreenWidthTiles * (kBossBgStartRow + 3) + kBossBgStartCol
-Ppu_BossRow4Start = Ppu_Nametable3_sName + sName::Tiles_u8_arr + \
-    kScreenWidthTiles * (kBossBgStartRow + 4) + kBossBgStartCol
 .LINECONT -
 
 ;;; Modes that the boss in this room can be in.

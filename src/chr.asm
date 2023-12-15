@@ -335,6 +335,18 @@ _chr_begin:
 
 ;;;=========================================================================;;;
 
+.SEGMENT "CHR_BgBossCity"
+
+.EXPORT Ppu_ChrBgBossCity
+.PROC Ppu_ChrBgBossCity
+    CHR1_BANK $40
+    chr_inc "boss_city"
+    chr_res $18
+    END_CHR_BANK
+.ENDPROC
+
+;;;=========================================================================;;;
+
 .SEGMENT "CHR_BgBuilding"
 
 .EXPORT Ppu_ChrBgBuilding
