@@ -217,7 +217,7 @@ kBossInitHealth = 8
 ;;; taking action.
 kBossInitCooldown = 120
 ;;; How many frames to wait in place when hurt.
-kBossHurtCooldown = 30
+kBossHurtCooldown = 45
 
 ;;; Platform indices for various parts of the boss.
 kBossBodyPlatformIndex       = 0
@@ -519,7 +519,7 @@ _Devices_sDevice_arr:
     .byte 0, 1, 1, 1, 2, 2, 2, 3, 3, 4, 5, 6, 6, 7, 7, 8, 8, 8, 9, 9, 9, 9, 8
 .ENDPROC
 
-.PROC DataC_Boss_CityTransfer_arr
+.PROC DataC_Boss_CityInitTransfer_arr
     .assert kBossBgWidthTiles = 8, error
     .assert kBossBgHeightTiles = 6, error
     ;; Row 0:
@@ -559,9 +559,35 @@ _Devices_sDevice_arr:
     .byte $11
 .ENDPROC
 
+.PROC DataC_Boss_CityBlinkTransfer_arr
+    ;; Row 2:
+    .byte kPpuCtrlFlagsHorz
+    .dbyt Ppu_BossRow2Start + 3  ; transfer destination
+    .byte 2
+    .byte $68, $69
+    ;; Row 3:
+    .byte kPpuCtrlFlagsHorz
+    .dbyt Ppu_BossRow3Start + 3  ; transfer destination
+    .byte 2
+    .byte $6a, $6b
+.ENDPROC
+
+.PROC DataC_Boss_CityUnblinkTransfer_arr
+    ;; Row 2:
+    .byte kPpuCtrlFlagsHorz
+    .dbyt Ppu_BossRow2Start + 3  ; transfer destination
+    .byte 2
+    .byte $42, $43
+    ;; Row 3:
+    .byte kPpuCtrlFlagsHorz
+    .dbyt Ppu_BossRow3Start + 3  ; transfer destination
+    .byte 2
+    .byte $48, $49
+.ENDPROC
+
 .PROC FuncC_Boss_City_FadeInRoom
-    ldax #DataC_Boss_CityTransfer_arr  ; param: data pointer
-    ldy #.sizeof(DataC_Boss_CityTransfer_arr)  ; param: data length
+    ldax #DataC_Boss_CityInitTransfer_arr  ; param: data pointer
+    ldy #.sizeof(DataC_Boss_CityInitTransfer_arr)  ; param: data length
     jmp Func_BufferPpuTransfer
 .ENDPROC
 
@@ -643,8 +669,24 @@ _CheckMode:
     D_END
 .ENDREPEAT
 _BossHurt:
-    jsr FuncC_Boss_City_CloseShell
-    ;; TODO: blink boss core
+    jsr FuncC_Boss_City_OpenShell
+    ;; Blink the boss core.
+    lda Zp_RoomState + sState::BossCooldown_u8
+    and #$02
+    beq @unblink
+    @blink:
+    ldax #DataC_Boss_CityBlinkTransfer_arr  ; param: data pointer
+    .assert DataC_Boss_CityBlinkTransfer_arr >= $8000, error
+    bmi @doTransfer  ; unconditional
+    @unblink:
+    ldax #DataC_Boss_CityUnblinkTransfer_arr  ; param: data pointer
+    @doTransfer:
+    ldy #.sizeof(DataC_Boss_CityBlinkTransfer_arr)  ; param: data length
+    .linecont +
+    .assert .sizeof(DataC_Boss_CityUnblinkTransfer_arr) = \
+            .sizeof(DataC_Boss_CityBlinkTransfer_arr), error
+    .linecont -
+    jsr Func_BufferPpuTransfer
     ;; Wait for the cooldown to expire.
     lda Zp_RoomState + sState::BossCooldown_u8
     bne @done

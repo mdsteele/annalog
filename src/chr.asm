@@ -342,7 +342,7 @@ _chr_begin:
 .PROC Ppu_ChrBgBossCity
     CHR1_BANK $40
     chr_inc "boss_city"
-    chr_res $18
+    chr_res $14
     END_CHR_BANK
 .ENDPROC
 
