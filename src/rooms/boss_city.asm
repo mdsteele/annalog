@@ -18,6 +18,7 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "../actor.inc"
+.INCLUDE "../actors/rocket.inc"
 .INCLUDE "../avatar.inc"
 .INCLUDE "../boss.inc"
 .INCLUDE "../charmap.inc"
@@ -34,6 +35,7 @@
 .INCLUDE "../ppu.inc"
 .INCLUDE "../program.inc"
 .INCLUDE "../room.inc"
+.INCLUDE "boss_city.inc"
 
 .IMPORT DataA_Room_Building_sTileset
 .IMPORT Data_Empty_sActor_arr
@@ -47,11 +49,13 @@
 .IMPORT FuncA_Machine_ReachedGoal
 .IMPORT FuncA_Machine_StartWaiting
 .IMPORT FuncA_Machine_WriteToLever
+.IMPORT FuncA_Objects_Draw1x1Shape
 .IMPORT FuncA_Objects_DrawAmmoRackMachine
 .IMPORT FuncA_Objects_DrawBoss
 .IMPORT FuncA_Objects_DrawLauncherMachineHorz
 .IMPORT FuncA_Objects_DrawReloaderMachine
 .IMPORT FuncA_Objects_MoveShapeDownByA
+.IMPORT FuncA_Objects_MoveShapeDownOneTile
 .IMPORT FuncA_Objects_MoveShapeRightByA
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
 .IMPORT FuncA_Room_InitBoss
@@ -68,13 +72,16 @@
 .IMPORT Func_Noop
 .IMPORT Func_SetPointToActorCenter
 .IMPORT Func_SetPointToPlatformCenter
+.IMPORT Func_ShakeRoom
 .IMPORT Ppu_ChrBgBossCity
 .IMPORT Ppu_ChrObjCity
+.IMPORT Ram_ActorPosY_i16_0_arr
 .IMPORT Ram_MachineGoalHorz_u8_arr
 .IMPORT Ram_MachineGoalVert_u8_arr
 .IMPORT Ram_MachineState1_byte_arr
 .IMPORT Ram_PlatformLeft_i16_0_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
+.IMPORT Ram_PlatformType_ePlatform_arr
 .IMPORTZP Zp_Active_sIrq
 .IMPORTZP Zp_Buffered_sIrq
 .IMPORTZP Zp_Chr04Bank_u8
@@ -131,6 +138,17 @@ kNumAmmoRackSlots = 3
 ;;; The device indices for the levers in this room.
 kLeverLeftDeviceIndex = 3
 kLeverRightDeviceIndex = 4
+
+;;;=========================================================================;;;
+
+;;; The platform indices for the side walls.
+kLeftWallPlatformIndex  = 7
+kRightWallPlatformIndex = 8
+
+;;; The platform indices for the background bricks.
+kBricks1PlatformIndex = 9
+kBricks2PlatformIndex = 10
+kBricks3PlatformIndex = 11
 
 ;;;=========================================================================;;;
 
@@ -214,6 +232,10 @@ kBossShellLowerPlatformIndex = 3
     ;; The current states of the room's two levers.
     LeverLeft_u8  .byte
     LeverRight_u8 .byte
+    ;; The bit pattern for the damage that the left wall has taken from rockets
+    ;; so far.  If bit N is set, that means that the Nth block down (starting
+    ;; from zero) has been damaged.
+    LeftWallDamage_u8 .byte
     ;; What mode the boss is in.
     Current_eBossMode .byte
     ;; How many more rocket hits are needed before the boss dies.
@@ -255,7 +277,7 @@ _Ext_sRoomExt:
     d_addr Enter_func_ptr, FuncA_Room_BossCity_EnterRoom
     d_addr FadeIn_func_ptr, FuncC_Boss_City_FadeInRoom
     d_addr Tick_func_ptr, FuncC_Boss_City_TickRoom
-    d_addr Draw_func_ptr, FuncA_Objects_DrawBoss
+    d_addr Draw_func_ptr, FuncC_Boss_City_DrawRoom
     D_END
 _TerrainData:
 :   .incbin "out/rooms/boss_city.room"
@@ -355,6 +377,7 @@ _Platforms_sPlatform_arr:
     d_word Left_i16, kBossInitCenterX - kBossShellWidthPx / 2
     d_word Top_i16, kBossInitCenterY
     D_END
+    ;; Machines:
     .assert * - :- = kLauncherPlatformIndex * .sizeof(sPlatform), error
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Solid
@@ -378,6 +401,48 @@ _Platforms_sPlatform_arr:
     d_byte HeightPx_u8, kAmmoRackMachineHeightPx
     d_word Left_i16,  $0030
     d_word Top_i16,   $0018
+    D_END
+    ;; Side walls:
+    .assert * - :- = kLeftWallPlatformIndex * .sizeof(sPlatform), error
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Solid
+    d_word WidthPx_u16, $08
+    d_byte HeightPx_u8, kBossZoneBottomY - kBossZoneTopY
+    d_word Left_i16,  $0008
+    d_word Top_i16, kBossZoneTopY
+    D_END
+    .assert * - :- = kRightWallPlatformIndex * .sizeof(sPlatform), error
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Zone
+    d_word WidthPx_u16, $08
+    d_byte HeightPx_u8, kBossZoneBottomY - kBossZoneTopY
+    d_word Left_i16,  $00e0
+    d_word Top_i16, kBossZoneTopY
+    D_END
+    ;; Background bricks:
+    .assert * - :- = kBricks1PlatformIndex * .sizeof(sPlatform), error
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Zone
+    d_word WidthPx_u16, $08
+    d_byte HeightPx_u8, $08
+    d_word Left_i16,  $0040
+    d_word Top_i16,   $0058
+    D_END
+    .assert * - :- = kBricks2PlatformIndex * .sizeof(sPlatform), error
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Zone
+    d_word WidthPx_u16, $08
+    d_byte HeightPx_u8, $08
+    d_word Left_i16,  $0088
+    d_word Top_i16,   $0070
+    D_END
+    .assert * - :- = kBricks3PlatformIndex * .sizeof(sPlatform), error
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Zone
+    d_word WidthPx_u16, $08
+    d_byte HeightPx_u8, $08
+    d_word Left_i16,  $00a8
+    d_word Top_i16,   $0040
     D_END
     .assert * - :- <= kMaxPlatforms * .sizeof(sPlatform), error
     .byte ePlatform::None
@@ -503,14 +568,6 @@ _Devices_sDevice_arr:
 ;;; Room tick function for the BossCity room.
 ;;; @prereq PRGA_Room is loaded.
 .PROC FuncC_Boss_City_TickRoom
-    .assert eBossMode::Dead = 0, error
-    lda Zp_RoomState + sState::Current_eBossMode  ; param: zero if boss dead
-    jmp FuncA_Room_TickBoss
-.ENDPROC
-
-;;; Performs per-frame upates for the boss in this room.
-;;; @prereq PRGA_Room is loaded.
-.PROC FuncC_Boss_City_TickBoss
     ;; Check for a rocket (in this room, it's not possible for there to be more
     ;; than one on screen at once).
     lda #eActor::ProjRocket  ; param: actor type
@@ -522,21 +579,46 @@ _Devices_sDevice_arr:
     bcc @done  ; no collision
     cpy #kLauncherPlatformIndex
     beq @done  ; still exiting launcher
-    ;; If the rocket hits anything other than the boss's core, skip to
-    ;; exploding the rocket without damaging the boss.
+    ;; If the rocket hits the reloader, explode the rocket and shake the room.
+    cpy #kReloaderPlatformIndex
+    beq @shakeRoom
+    ;; If the rocket hits the boss's core, make the boss react to getting hit.
     cpy #kBossCorePlatformIndex
-    bne @explodeRocket  ; didn't hit boss's core
-    ;; Make the boss react to getting hit.
+    bne @notBossCore
+    ;; TODO: play a sound for hurting the boss
     lda #eBossMode::Hurt
     sta Zp_RoomState + sState::Current_eBossMode
     lda #kBossHurtCooldown
     sta Zp_RoomState + sState::BossCooldown_u8
-    ;; TODO: play a sound for hurting the boss
-    ;; Explode the rocket.
+    .assert kBossHurtCooldown > 0, error
+    bne @explodeRocket  ; unconditional
+    @notBossCore:
+    ;; If the rocket hits the left wall, damage the wall.
+    cpy #kLeftWallPlatformIndex
+    bne @explodeRocket
+    lda Ram_ActorPosY_i16_0_arr, x
+    sbc #kBossZoneTopY  ; carry bit is already set from the CPY
+    div #kBlockHeightPx
+    tay  ; damage bit index
+    lda Data_PowersOfTwo_u8_arr8, y
+    ora Zp_RoomState + sState::LeftWallDamage_u8
+    sta Zp_RoomState + sState::LeftWallDamage_u8
+    @shakeRoom:
+    lda #kRocketShakeFrames  ; param: num frames
+    jsr Func_ShakeRoom  ; preserves X
     @explodeRocket:
-    jsr Func_InitActorSmokeExplosion  ; preserves X
+    jsr Func_InitActorSmokeExplosion
     ;; TODO: play a sound for the rocket exploding
     @done:
+_TickBoss:
+    .assert eBossMode::Dead = 0, error
+    lda Zp_RoomState + sState::Current_eBossMode  ; param: zero if boss dead
+    jmp FuncA_Room_TickBoss
+.ENDPROC
+
+;;; Performs per-frame upates for the boss in this room.
+;;; @prereq PRGA_Room is loaded.
+.PROC FuncC_Boss_City_TickBoss
 _CoolDown:
     lda Zp_RoomState + sState::BossCooldown_u8
     beq @done
@@ -567,12 +649,12 @@ _BossHurt:
     lda Zp_RoomState + sState::BossCooldown_u8
     bne @done
     ;; At the end of the hurt animation, decrement the boss's health.  If its
-    ;; health is now zero, kill the boss.  Otherwise, start scuttling.
+    ;; health is now zero, kill the boss.
     dec Zp_RoomState + sState::BossHealth_u8
     bne @resume  ; boss is not dead yet
     lda #eBossMode::Dead
     sta Zp_RoomState + sState::Current_eBossMode
-    rts
+    jmp FuncA_Room_BossCity_DesolidifyBossPlatforms
     @resume:
     lda #eBossMode::Open
     sta Zp_RoomState + sState::Current_eBossMode
@@ -600,13 +682,48 @@ _BossClose:
     rts
 .ENDPROC
 
+.PROC FuncC_Boss_City_DrawRoom
+    jsr FuncA_Objects_DrawBoss
+    ldx #kLeftWallPlatformIndex  ; param: platform index
+    ldy Zp_RoomState + sState::LeftWallDamage_u8  ; param: damage pattern
+    lda #kTileIdObjPlatformCityWalls + 2  ; param: first tile ID
+    .assert * = FuncC_Boss_City_DrawSideWall, error, "fallthrough"
+.ENDPROC
+
+;;; Draws one of the side walls in this room, using the given damage pattern.
+;;; If bit N of Y is set, that means that the Nth block down (starting from
+;;; zero) has been damaged.
+;;; @param A The first tile ID to use.
+;;; @param X The platform index for the side wall.
+;;; @param Y The bit pattern to use for wall damage.
+.PROC FuncC_Boss_City_DrawSideWall
+    sta T3  ; first tile ID
+    sty T2  ; damage pattern
+    jsr FuncA_Objects_SetShapePosToPlatformTopLeft  ; preserves T0+
+    ldx #(kBossZoneBottomY - kBossZoneTopY) / kBlockHeightPx
+    @loop:
+    ldy #0  ; param: object flags
+    lda T3  ; param: tile ID
+    jsr FuncA_Objects_Draw1x1Shape  ; preserves X and T2+
+    jsr FuncA_Objects_MoveShapeDownOneTile  ; preserves X and T0+
+    ldy #0  ; param: object flags
+    lda T3  ; param: tile ID
+    lsr T2  ; damage pattern
+    bcc @noDamage
+    ora #$01
+    @noDamage:
+    jsr FuncA_Objects_Draw1x1Shape  ; preserves X and T2+
+    jsr FuncA_Objects_MoveShapeDownOneTile  ; preserves X and T0+
+    dex
+    bne @loop
+    rts
+.ENDPROC
+
 ;;; Draw function for the city boss.
 ;;; @prereq PRGA_Objects is loaded.
 .PROC FuncC_Boss_City_DrawBoss
     lda #<.bank(Ppu_ChrBgBossCity)
     sta Zp_Chr04Bank_u8
-_DrawSideWalls:
-    ;; TODO: draw side walls
 _SetShapePosition:
     ;; Set the shape position to the center of the boss's body.
     ldx #kBossBodyPlatformIndex  ; param: platform index
@@ -643,8 +760,22 @@ _SetUpIrq:
     sub #kBossZoneTopY + 1
     add Zp_RoomScrollY_u8
     sta Zp_Buffered_sIrq + sIrq::Param3_byte  ; top-to-middle latch
+_DrawRightWall:
+    ldx #kRightWallPlatformIndex  ; param: platform index
+    ldy #%01001  ; param: damage pattern
+    lda #kTileIdObjPlatformCityWalls + 0  ; param: first tile ID
+    jsr FuncC_Boss_City_DrawSideWall
 _DrawBackgroundTerrainObjects:
-    ;; TODO: draw background objects
+    ldx #kBricks3PlatformIndex
+    @loop:
+    jsr FuncA_Objects_SetShapePosToPlatformTopLeft  ; preserves X
+    ldy #bObj::Pri  ; param: object flags
+    lda #kTileIdObjPlatformCityBricks  ; param: tile ID
+    jsr FuncA_Objects_Draw1x1Shape  ; preserves X
+    dex
+    cpx #kBricks1PlatformIndex
+    .assert kBricks1PlatformIndex > 0, error
+    bge @loop
     rts
 .ENDPROC
 
@@ -775,7 +906,7 @@ _Error:
 .PROC FuncA_Room_BossCity_EnterRoom
     ldax #DataC_Boss_City_sBoss  ; param: sBoss ptr
     jsr FuncA_Room_InitBoss  ; sets Z if boss is alive
-    bne _BossIsDead
+    bne FuncA_Room_BossCity_DesolidifyBossPlatforms  ; boss is dead
 _BossIsAlive:
     lda #kBossInitHealth
     sta Zp_RoomState + sState::BossHealth_u8
@@ -783,7 +914,16 @@ _BossIsAlive:
     sta Zp_RoomState + sState::BossCooldown_u8
     lda #eBossMode::Close
     sta Zp_RoomState + sState::Current_eBossMode
-_BossIsDead:
+    rts
+.ENDPROC
+
+;;; Changes the boss's shell/core platforms' types from Harm to Zone.  Call
+;;; this when the boss is dead.
+.PROC FuncA_Room_BossCity_DesolidifyBossPlatforms
+    lda #ePlatform::Zone
+    sta Ram_PlatformType_ePlatform_arr + kBossCorePlatformIndex
+    sta Ram_PlatformType_ePlatform_arr + kBossShellUpperPlatformIndex
+    sta Ram_PlatformType_ePlatform_arr + kBossShellLowerPlatformIndex
     rts
 .ENDPROC
 

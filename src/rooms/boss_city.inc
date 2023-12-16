@@ -17,18 +17,8 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
-.INCLUDE "../charmap.inc"
-.INCLUDE "../menu.inc"
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Console"
-
-;;; BG tile IDs for numbers, from 0 through 15.
-.EXPORT DataA_Console_NumberLabels_u8_arr
-.PROC DataA_Console_NumberLabels_u8_arr
-    .byte "0123456789", $5a, $5b, $5c, $5d, $5e, $5f
-.ENDPROC
-.ASSERT .sizeof(DataA_Console_NumberLabels_u8_arr) = kMaxMenuItems, error
+;;; OBJ tile IDs for drawing terrain in BossCity.
+kTileIdObjPlatformCityBricks = $89
+kTileIdObjPlatformCityWalls  = $90
 
 ;;;=========================================================================;;;

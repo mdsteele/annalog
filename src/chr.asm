@@ -81,6 +81,7 @@
 .INCLUDE "platforms/monitor.inc"
 .INCLUDE "platforms/stepstone.inc"
 .INCLUDE "portrait.inc"
+.INCLUDE "rooms/boss_city.inc"
 .INCLUDE "rooms/boss_crypt.inc"
 .INCLUDE "rooms/boss_garden.inc"
 .INCLUDE "rooms/boss_lava.inc"
@@ -1023,20 +1024,22 @@ _chr_begin:
 .EXPORT Ppu_ChrObjCity
 .PROC Ppu_ChrObjCity
     CHR2_BANK $80
-    chr_inc "upgrade_bottom",  kTileIdObjUpgradeBottomFirst
+    chr_inc "upgrade_bottom",       kTileIdObjUpgradeBottomFirst
     chr_res $02
-    chr_inc "upgrade_bremote", kTileIdObjUpgradeBRemoteFirst
-    chr_inc "reloader",        kTileIdObjReloaderFirst
-    chr_res $0b
-    chr_inc "launcher_horz",   kTileIdObjLauncherHorzFirst
+    chr_inc "upgrade_bremote",      kTileIdObjUpgradeBRemoteFirst
+    chr_inc "reloader",             kTileIdObjReloaderFirst
+    chr_inc "platform_city_bricks", kTileIdObjPlatformCityBricks
+    chr_res $06
+    chr_inc "platform_city_walls",  kTileIdObjPlatformCityWalls
+    chr_inc "launcher_horz",        kTileIdObjLauncherHorzFirst
     chr_res $04
-    chr_inc "combo",           kTileIdObjComboFirst
-    chr_inc "rodent",          kTileIdObjRodentFirst
+    chr_inc "combo",                kTileIdObjComboFirst
+    chr_inc "rodent",               kTileIdObjRodentFirst
     chr_res $07
-    chr_inc "rhino",           kTileIdObjRhinoFirst
-    chr_inc "semaphore",       kTileIdObjSemaphoreFirst
+    chr_inc "rhino",                kTileIdObjRhinoFirst
+    chr_inc "semaphore",            kTileIdObjSemaphoreFirst
     chr_res $28
-    chr_inc "breaker",         kTileIdObjBreakerFirst
+    chr_inc "breaker",              kTileIdObjBreakerFirst
     END_CHR_BANK
 .ENDPROC
 
