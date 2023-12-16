@@ -59,10 +59,14 @@
 .IMPORT Func_AckIrqAndLatchWindowFromParam4
 .IMPORT Func_AckIrqAndSetLatch
 .IMPORT Func_BufferPpuTransfer
+.IMPORT Func_FindActorWithType
+.IMPORT Func_InitActorSmokeExplosion
+.IMPORT Func_IsPointInAnySolidPlatform
 .IMPORT Func_MovePlatformTopTowardPointY
 .IMPORT Func_MovePointDownByA
 .IMPORT Func_MovePointUpByA
 .IMPORT Func_Noop
+.IMPORT Func_SetPointToActorCenter
 .IMPORT Func_SetPointToPlatformCenter
 .IMPORT Ppu_ChrBgBossCity
 .IMPORT Ppu_ChrObjCity
@@ -181,6 +185,7 @@ kBossInitCenterY = $67
 ;;; Modes that the boss in this room can be in.
 .ENUM eBossMode
     Dead
+    Hurt
     Open   ; TODO: replace this with a real mode
     Close  ; TODO: replace this with a real mode
     ;; TODO: other modes
@@ -193,6 +198,8 @@ kBossInitHealth = 8
 ;;; How many frames the boss waits, after you first enter the room, before
 ;;; taking action.
 kBossInitCooldown = 120
+;;; How many frames to wait in place when hurt.
+kBossHurtCooldown = 30
 
 ;;; Platform indices for various parts of the boss.
 kBossBodyPlatformIndex       = 0
@@ -326,7 +333,7 @@ _Platforms_sPlatform_arr:
     D_END
     .assert * - :- = kBossCorePlatformIndex * .sizeof(sPlatform), error
     D_STRUCT sPlatform
-    d_byte Type_ePlatform, ePlatform::Zone
+    d_byte Type_ePlatform, ePlatform::Harm
     d_word WidthPx_u16, kBossCoreWidthPx
     d_byte HeightPx_u8, kBossCoreHeightPx
     d_word Left_i16, kBossInitCenterX - kBossCoreWidthPx / 2
@@ -504,7 +511,32 @@ _Devices_sDevice_arr:
 ;;; Performs per-frame upates for the boss in this room.
 ;;; @prereq PRGA_Room is loaded.
 .PROC FuncC_Boss_City_TickBoss
-    ;; TODO check for rocket impact
+    ;; Check for a rocket (in this room, it's not possible for there to be more
+    ;; than one on screen at once).
+    lda #eActor::ProjRocket  ; param: actor type
+    jsr Func_FindActorWithType  ; returns C and X
+    bcs @done  ; no rocket found
+    ;; Check if the rocket has hit a platform (other than its launcher).
+    jsr Func_SetPointToActorCenter  ; preserves X
+    jsr Func_IsPointInAnySolidPlatform  ; preserves X, returns C and Y
+    bcc @done  ; no collision
+    cpy #kLauncherPlatformIndex
+    beq @done  ; still exiting launcher
+    ;; If the rocket hits anything other than the boss's core, skip to
+    ;; exploding the rocket without damaging the boss.
+    cpy #kBossCorePlatformIndex
+    bne @explodeRocket  ; didn't hit boss's core
+    ;; Make the boss react to getting hit.
+    lda #eBossMode::Hurt
+    sta Zp_RoomState + sState::Current_eBossMode
+    lda #kBossHurtCooldown
+    sta Zp_RoomState + sState::BossCooldown_u8
+    ;; TODO: play a sound for hurting the boss
+    ;; Explode the rocket.
+    @explodeRocket:
+    jsr Func_InitActorSmokeExplosion  ; preserves X
+    ;; TODO: play a sound for the rocket exploding
+    @done:
 _CoolDown:
     lda Zp_RoomState + sState::BossCooldown_u8
     beq @done
@@ -523,10 +555,29 @@ _CheckMode:
     D_TABLE_HI table, _JumpTable_ptr_1_arr
     D_TABLE .enum, eBossMode
     d_entry table, Dead,  Func_Noop
+    d_entry table, Hurt,  _BossHurt
     d_entry table, Open,  _BossOpen
     d_entry table, Close, _BossClose
     D_END
 .ENDREPEAT
+_BossHurt:
+    jsr FuncC_Boss_City_CloseShell
+    ;; TODO: blink boss core
+    ;; Wait for the cooldown to expire.
+    lda Zp_RoomState + sState::BossCooldown_u8
+    bne @done
+    ;; At the end of the hurt animation, decrement the boss's health.  If its
+    ;; health is now zero, kill the boss.  Otherwise, start scuttling.
+    dec Zp_RoomState + sState::BossHealth_u8
+    bne @resume  ; boss is not dead yet
+    lda #eBossMode::Dead
+    sta Zp_RoomState + sState::Current_eBossMode
+    rts
+    @resume:
+    lda #eBossMode::Open
+    sta Zp_RoomState + sState::Current_eBossMode
+    @done:
+    rts
 _BossOpen:
     jsr FuncC_Boss_City_OpenShell
     lda Zp_RoomState + sState::BossCooldown_u8
