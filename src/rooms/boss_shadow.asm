@@ -269,7 +269,7 @@ _Devices_sDevice_arr:
     .byte eDevice::None
 .ENDPROC
 
-.PROC FuncC_Boss_Shadow_sBoss
+.PROC DataC_Boss_Shadow_sBoss
     D_STRUCT sBoss
     d_byte Boss_eFlag, eFlag::BossShadow
     d_byte BodyPlatform_u8, kBossBodyPlatformIndex
@@ -281,7 +281,7 @@ _Devices_sDevice_arr:
 ;;; Room init function for the BossShadow room.
 ;;; @prereq PRGA_Room is loaded.
 .PROC FuncC_Boss_Shadow_EnterRoom
-    ldax #FuncC_Boss_Shadow_sBoss  ; param: sBoss ptr
+    ldax #DataC_Boss_Shadow_sBoss  ; param: sBoss ptr
     jsr FuncA_Room_InitBoss  ; sets Z if boss is alive
     bne _BossIsDead
 _BossIsAlive:

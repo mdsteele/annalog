@@ -59,7 +59,11 @@
 .IMPORT Func_AckIrqAndLatchWindowFromParam4
 .IMPORT Func_AckIrqAndSetLatch
 .IMPORT Func_BufferPpuTransfer
+.IMPORT Func_MovePlatformTopTowardPointY
+.IMPORT Func_MovePointDownByA
+.IMPORT Func_MovePointUpByA
 .IMPORT Func_Noop
+.IMPORT Func_SetPointToPlatformCenter
 .IMPORT Ppu_ChrBgBossCity
 .IMPORT Ppu_ChrObjCity
 .IMPORT Ram_MachineGoalHorz_u8_arr
@@ -163,7 +167,7 @@ kBossZoneTopY    = $30
 kBossZoneBottomY = $80
 
 ;;; The sizes of various parts of the boss, in pixels.
-kBossShellWidthPx  = $38
+kBossShellWidthPx  = $2c
 kBossShellHeightPx = $10
 kBossCoreWidthPx   = $0c
 kBossCoreHeightPx  = $10
@@ -172,12 +176,13 @@ kBossBodyHeightPx  = kBossShellHeightPx * 2 + kBossCoreHeightPx
 
 ;;; The initial room pixel position for the center of the boss.
 kBossInitCenterX = $60
-kBossInitCenterY = $58
+kBossInitCenterY = $67
 
 ;;; Modes that the boss in this room can be in.
 .ENUM eBossMode
     Dead
-    Alive  ; TODO: replace this with a real mode
+    Open   ; TODO: replace this with a real mode
+    Close  ; TODO: replace this with a real mode
     ;; TODO: other modes
     NUM_VALUES
 .ENDENUM
@@ -209,8 +214,8 @@ kBossShellLowerPlatformIndex = 3
     ;; Timer that ticks down each frame when nonzero.  Used to time transitions
     ;; between boss modes.
     BossCooldown_u8 .byte
-    ;; The current distance between the center of the boss and the edge of each
-    ;; shell, in pixels.
+    ;; How open the boss's shell is.  This is used as in index into
+    ;; DataC_Boss_City_ShellOffset_u8_arr.
     BossShellOpen_u8 .byte
 .ENDSTRUCT
 .ASSERT .sizeof(sState) <= kRoomStateSize, error
@@ -262,14 +267,14 @@ _Machines_sMachine_arr:
     d_byte ScrollGoalY_u8, $00
     d_byte RegNames_u8_arr4, "L", "R", 0, "Y"
     d_byte MainPlatform_u8, kLauncherPlatformIndex
-    d_addr Init_func_ptr, FuncC_Boss_CityLauncher_InitReset
+    d_addr Init_func_ptr, FuncA_Room_BossCityLauncher_InitReset
     d_addr ReadReg_func_ptr, FuncC_Boss_CityLauncher_ReadReg
-    d_addr WriteReg_func_ptr, FuncC_Boss_City_WriteReg
-    d_addr TryMove_func_ptr, FuncC_Boss_CityLauncher_TryMove
-    d_addr TryAct_func_ptr, FuncC_Boss_CityLauncher_TryAct
+    d_addr WriteReg_func_ptr, FuncA_Machine_BossCity_WriteReg
+    d_addr TryMove_func_ptr, FuncA_Machine_BossCityLauncher_TryMove
+    d_addr TryAct_func_ptr, FuncA_Machine_BossCityLauncher_TryAct
     d_addr Tick_func_ptr, FuncA_Machine_BossCityLauncher_Tick
     d_addr Draw_func_ptr, FuncA_Objects_DrawLauncherMachineHorz
-    d_addr Reset_func_ptr, FuncC_Boss_CityLauncher_InitReset
+    d_addr Reset_func_ptr, FuncA_Room_BossCityLauncher_InitReset
     D_END
     .assert * - :- = kReloaderMachineIndex * .sizeof(sMachine), error
     D_STRUCT sMachine
@@ -281,14 +286,14 @@ _Machines_sMachine_arr:
     d_byte ScrollGoalY_u8, $00
     d_byte RegNames_u8_arr4, "L", "R", "X", 0
     d_byte MainPlatform_u8, kReloaderPlatformIndex
-    d_addr Init_func_ptr, FuncC_Boss_CityReloader_InitReset
+    d_addr Init_func_ptr, FuncA_Room_BossCityReloader_InitReset
     d_addr ReadReg_func_ptr, FuncC_Boss_CityReloader_ReadReg
-    d_addr WriteReg_func_ptr, FuncC_Boss_City_WriteReg
-    d_addr TryMove_func_ptr, FuncC_Boss_CityReloader_TryMove
+    d_addr WriteReg_func_ptr, FuncA_Machine_BossCity_WriteReg
+    d_addr TryMove_func_ptr, FuncA_Machine_BossCityReloader_TryMove
     d_addr TryAct_func_ptr, FuncC_Boss_CityReloader_TryAct
     d_addr Tick_func_ptr, FuncA_Machine_BossCityReloader_Tick
     d_addr Draw_func_ptr, FuncA_Objects_DrawReloaderMachine
-    d_addr Reset_func_ptr, FuncC_Boss_CityReloader_InitReset
+    d_addr Reset_func_ptr, FuncA_Room_BossCityReloader_InitReset
     D_END
     .assert * - :- = kAmmoRackMachineIndex * .sizeof(sMachine), error
     D_STRUCT sMachine
@@ -302,7 +307,7 @@ _Machines_sMachine_arr:
     d_byte MainPlatform_u8, kAmmoRackPlatformIndex
     d_addr Init_func_ptr, Func_Noop
     d_addr ReadReg_func_ptr, FuncC_Boss_City_ReadRegLR
-    d_addr WriteReg_func_ptr, FuncC_Boss_City_WriteReg
+    d_addr WriteReg_func_ptr, FuncA_Machine_BossCity_WriteReg
     d_addr TryMove_func_ptr, FuncA_Machine_Error
     d_addr TryAct_func_ptr, FuncA_Machine_BossCityAmmoRack_TryAct
     d_addr Tick_func_ptr, FuncA_Machine_ReachedGoal
@@ -427,13 +432,19 @@ _Devices_sDevice_arr:
     .byte eDevice::None
 .ENDPROC
 
-.PROC FuncC_Boss_City_sBoss
+.PROC DataC_Boss_City_sBoss
     D_STRUCT sBoss
     d_byte Boss_eFlag, eFlag::BossCity
     d_byte BodyPlatform_u8, kBossBodyPlatformIndex
     d_addr Tick_func_ptr, FuncC_Boss_City_TickBoss
     d_addr Draw_func_ptr, FuncC_Boss_City_DrawBoss
     D_END
+.ENDPROC
+
+;;; Maps from sState::BossShellOpen_u8 values to the distance between the
+;;; center of the boss and the edge of each shell, in pixels.
+.PROC DataC_Boss_City_ShellOffset_u8_arr
+    .byte 0, 1, 1, 1, 2, 2, 2, 3, 3, 4, 5, 6, 6, 7, 7, 8, 8, 8, 9, 9, 9, 9, 8
 .ENDPROC
 
 .PROC DataC_Boss_CityTransfer_arr
@@ -493,11 +504,12 @@ _Devices_sDevice_arr:
 ;;; Performs per-frame upates for the boss in this room.
 ;;; @prereq PRGA_Room is loaded.
 .PROC FuncC_Boss_City_TickBoss
+    ;; TODO check for rocket impact
 _CoolDown:
-    ;; Wait for cooldown to expire.
+    lda Zp_RoomState + sState::BossCooldown_u8
+    beq @done
     dec Zp_RoomState + sState::BossCooldown_u8
-    beq _CheckMode
-    rts
+    @done:
 _CheckMode:
     ;; Branch based on the current boss mode.
     ldy Zp_RoomState + sState::Current_eBossMode
@@ -510,10 +522,31 @@ _CheckMode:
     D_TABLE_LO table, _JumpTable_ptr_0_arr
     D_TABLE_HI table, _JumpTable_ptr_1_arr
     D_TABLE .enum, eBossMode
-    d_entry table, Dead,   Func_Noop
-    d_entry table, Alive,  Func_Noop
+    d_entry table, Dead,  Func_Noop
+    d_entry table, Open,  _BossOpen
+    d_entry table, Close, _BossClose
     D_END
 .ENDREPEAT
+_BossOpen:
+    jsr FuncC_Boss_City_OpenShell
+    lda Zp_RoomState + sState::BossCooldown_u8
+    bne @done
+    lda #eBossMode::Close
+    sta Zp_RoomState + sState::Current_eBossMode
+    lda #120
+    sta Zp_RoomState + sState::BossCooldown_u8
+    @done:
+    rts
+_BossClose:
+    jsr FuncC_Boss_City_CloseShell
+    lda Zp_RoomState + sState::BossCooldown_u8
+    bne @done
+    lda #eBossMode::Open
+    sta Zp_RoomState + sState::Current_eBossMode
+    lda #90
+    sta Zp_RoomState + sState::BossCooldown_u8
+    @done:
+    rts
 .ENDPROC
 
 ;;; Draw function for the city boss.
@@ -550,7 +583,8 @@ _SetUpIrq:
     sta Zp_Buffered_sIrq + sIrq::Param1_byte  ; boss scroll-X
     ;; Compute the PPU scroll-Y value for the bottom part of the boss's zone.
     lda #kBossBgStartRow * kTileHeightPx + kBossBgHeightPx - kBossShellHeightPx
-    sub Zp_RoomState + sState::BossShellOpen_u8
+    ldx Zp_RoomState + sState::BossShellOpen_u8
+    sub DataC_Boss_City_ShellOffset_u8_arr, x
     sta Zp_Buffered_sIrq + sIrq::Param2_byte  ; boss lower scroll-Y
     ;; Compute the latch value to use between the top and middle boss zone
     ;; IRQs.
@@ -563,16 +597,52 @@ _DrawBackgroundTerrainObjects:
     rts
 .ENDPROC
 
-.PROC FuncC_Boss_CityLauncher_InitReset
-    lda #kLauncherInitGoalY
-    sta Ram_MachineGoalVert_u8_arr + kLauncherMachineIndex
+;;; Opens the boss's shell by one step.
+.PROC FuncC_Boss_City_OpenShell
+    lda Zp_RoomState + sState::BossShellOpen_u8
+    cmp #.sizeof(DataC_Boss_City_ShellOffset_u8_arr) - 1
+    bge @done
+    inc Zp_RoomState + sState::BossShellOpen_u8
+    bne FuncC_Boss_City_AdjustShellPlatformsVert  ; unconditional
+    @done:
     rts
 .ENDPROC
 
-.PROC FuncC_Boss_CityReloader_InitReset
-    lda #kReloaderInitGoalX
-    sta Ram_MachineGoalHorz_u8_arr + kReloaderMachineIndex
+;;; Closes the boss's shell by one step.
+.PROC FuncC_Boss_City_CloseShell
+    lda Zp_RoomState + sState::BossShellOpen_u8
+    bne @open
     rts
+    @open:
+    dec Zp_RoomState + sState::BossShellOpen_u8
+    .assert * = FuncC_Boss_City_AdjustShellPlatformsVert, error, "fallthrough"
+.ENDPROC
+
+;;; Adjusts the boss's two shell platforms to their correct vertical position,
+;;; based on the boss's vertical position and on BossShellOpen_u8.
+.PROC FuncC_Boss_City_AdjustShellPlatformsVert
+    jsr FuncC_Boss_City_SetPointToBossCenter
+    ldx Zp_RoomState + sState::BossShellOpen_u8
+    lda DataC_Boss_City_ShellOffset_u8_arr, x  ; param: offset
+    pha  ; shell offset
+    jsr Func_MovePointDownByA
+    ldx #kBossShellLowerPlatformIndex  ; param: platform index
+    lda #127  ; param: max move by
+    jsr Func_MovePlatformTopTowardPointY
+    pla  ; shell offset
+    mul #2  ; clears carry bit
+    adc #kBossShellHeightPx
+    jsr Func_MovePointUpByA
+    ldx #kBossShellUpperPlatformIndex  ; param: platform index
+    lda #127  ; param: max move by
+    jmp Func_MovePlatformTopTowardPointY
+.ENDPROC
+
+;;; Stores the room pixel position of the center of the boss in Zp_Point*_i16.
+;;; @preserve X, T0+
+.PROC FuncC_Boss_City_SetPointToBossCenter
+    ldy #kBossBodyPlatformIndex  ; param: platform index
+    jmp Func_SetPointToPlatformCenter  ; preserves X and T0+
 .ENDPROC
 
 .PROC FuncC_Boss_CityLauncher_ReadReg
@@ -608,38 +678,6 @@ _RegL:
 _RegR:
     lda Zp_RoomState + sState::LeverRight_u8
     rts
-.ENDPROC
-
-;;; Shared WriteReg implementation for the BossCityLauncher and
-;;; BossCityReloader machines.
-;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
-;;; @prereq PRGA_Machine is loaded.
-;;; @param A The value to write (0-9).
-;;; @param X The register to write to ($c-$f).
-.PROC FuncC_Boss_City_WriteReg
-    cpx #$d
-    beq _WriteR
-_WriteL:
-    ldx #kLeverLeftDeviceIndex  ; param: device index
-    jmp FuncA_Machine_WriteToLever
-_WriteR:
-    ldx #kLeverRightDeviceIndex  ; param: device index
-    jmp FuncA_Machine_WriteToLever
-.ENDPROC
-
-.PROC FuncC_Boss_CityLauncher_TryMove
-    lda #kLauncherMaxGoalY  ; param: max goal vert
-    jmp FuncA_Machine_GenericTryMoveY
-.ENDPROC
-
-.PROC FuncC_Boss_CityReloader_TryMove
-    lda #kReloaderMaxGoalX  ; param: max goal horz
-    jmp FuncA_Machine_GenericTryMoveX
-.ENDPROC
-
-.PROC FuncC_Boss_CityLauncher_TryAct
-    lda #eDir::Left  ; param: rocket direction
-    jmp FuncA_Machine_LauncherTryAct
 .ENDPROC
 
 .PROC FuncC_Boss_CityReloader_TryAct
@@ -684,7 +722,7 @@ _Error:
 
 ;;; Room init function for the BossCity room.
 .PROC FuncA_Room_BossCity_EnterRoom
-    ldax #FuncC_Boss_City_sBoss  ; param: sBoss ptr
+    ldax #DataC_Boss_City_sBoss  ; param: sBoss ptr
     jsr FuncA_Room_InitBoss  ; sets Z if boss is alive
     bne _BossIsDead
 _BossIsAlive:
@@ -692,15 +730,58 @@ _BossIsAlive:
     sta Zp_RoomState + sState::BossHealth_u8
     lda #kBossInitCooldown
     sta Zp_RoomState + sState::BossCooldown_u8
-    lda #eBossMode::Alive
+    lda #eBossMode::Close
     sta Zp_RoomState + sState::Current_eBossMode
 _BossIsDead:
+    rts
+.ENDPROC
+
+.PROC FuncA_Room_BossCityLauncher_InitReset
+    lda #kLauncherInitGoalY
+    sta Ram_MachineGoalVert_u8_arr + kLauncherMachineIndex
+    rts
+.ENDPROC
+
+.PROC FuncA_Room_BossCityReloader_InitReset
+    lda #kReloaderInitGoalX
+    sta Ram_MachineGoalHorz_u8_arr + kReloaderMachineIndex
     rts
 .ENDPROC
 
 ;;;=========================================================================;;;
 
 .SEGMENT "PRGA_Machine"
+
+;;; Shared WriteReg implementation for the BossCityLauncher, BossCityReloader,
+;;; and BossCityAmmoRack machines.
+;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
+;;; @param A The value to write (0-9).
+;;; @param X The register to write to ($c-$f).
+.PROC FuncA_Machine_BossCity_WriteReg
+    cpx #$d
+    beq _WriteR
+_WriteL:
+    ldx #kLeverLeftDeviceIndex  ; param: device index
+    jmp FuncA_Machine_WriteToLever
+_WriteR:
+    ldx #kLeverRightDeviceIndex  ; param: device index
+    jmp FuncA_Machine_WriteToLever
+.ENDPROC
+
+.PROC FuncA_Machine_BossCityLauncher_TryMove
+    lda #kLauncherMaxGoalY  ; param: max goal vert
+    jmp FuncA_Machine_GenericTryMoveY
+.ENDPROC
+
+.PROC FuncA_Machine_BossCityReloader_TryMove
+    lda #kReloaderMaxGoalX  ; param: max goal horz
+    jmp FuncA_Machine_GenericTryMoveX
+.ENDPROC
+
+.PROC FuncA_Machine_BossCityLauncher_TryAct
+    lda #eDir::Left  ; param: rocket direction
+    jmp FuncA_Machine_LauncherTryAct
+.ENDPROC
 
 .PROC FuncA_Machine_BossCityAmmoRack_TryAct
     ;; Can't refill the ammo rack if it's not empty.

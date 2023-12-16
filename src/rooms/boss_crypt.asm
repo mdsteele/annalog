@@ -397,7 +397,7 @@ _Devices_sDevice_arr:
     .byte eDevice::None
 .ENDPROC
 
-.PROC FuncC_Boss_Crypt_sBoss
+.PROC DataC_Boss_Crypt_sBoss
     D_STRUCT sBoss
     d_byte Boss_eFlag, eFlag::BossCrypt
     d_byte BodyPlatform_u8, kBossBodyPlatformIndex
@@ -613,7 +613,7 @@ _Inner:
 .PROC FuncC_Boss_Crypt_EnterRoom
     jsr FuncC_Boss_Crypt_SetBossEyeDir
 _InitBoss:
-    ldax #FuncC_Boss_Crypt_sBoss  ; param: sBoss ptr
+    ldax #DataC_Boss_Crypt_sBoss  ; param: sBoss ptr
     jsr FuncA_Room_InitBoss  ; sets Z if boss is alive
     bne _BossIsDead
 _BossIsAlive:

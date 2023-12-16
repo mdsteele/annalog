@@ -343,7 +343,7 @@ _Devices_sDevice_arr:
     .byte eDevice::None
 .ENDPROC
 
-.PROC FuncC_Boss_Garden_sBoss
+.PROC DataC_Boss_Garden_sBoss
     D_STRUCT sBoss
     d_byte Boss_eFlag, eFlag::BossGarden
     d_byte BodyPlatform_u8, kBossBodyPlatformIndex
@@ -359,7 +359,7 @@ _LockScrolling:
     lda #bScroll::LockVert
     sta Zp_Camera_bScroll
 _InitBoss:
-    ldax #FuncC_Boss_Garden_sBoss  ; param: sBoss ptr
+    ldax #DataC_Boss_Garden_sBoss  ; param: sBoss ptr
     jsr FuncA_Room_InitBoss  ; sets Z if boss is alive
     beq _BossIsAlive
 _BossIsDead:

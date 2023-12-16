@@ -354,7 +354,7 @@ _Devices_sDevice_arr:
     .byte eDevice::None
 .ENDPROC
 
-.PROC FuncC_Boss_Mine_sBoss
+.PROC DataC_Boss_Mine_sBoss
     D_STRUCT sBoss
     d_byte Boss_eFlag, eFlag::BossMine
     d_byte BodyPlatform_u8, kBossBodyPlatformIndex
@@ -366,7 +366,7 @@ _Devices_sDevice_arr:
 ;;; Room init function for the BossMine room.
 ;;; @prereq PRGA_Room is loaded.
 .PROC FuncC_Boss_Mine_EnterRoom
-    ldax #FuncC_Boss_Mine_sBoss  ; param: sBoss ptr
+    ldax #DataC_Boss_Mine_sBoss  ; param: sBoss ptr
     jsr FuncA_Room_InitBoss  ; sets Z if boss is alive
     bne _BossIsDead
 _BossIsAlive:

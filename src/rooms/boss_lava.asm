@@ -463,7 +463,7 @@ _Devices_sDevice_arr:
     .byte eDevice::None
 .ENDPROC
 
-.PROC FuncC_Boss_Lava_sBoss
+.PROC DataC_Boss_Lava_sBoss
     D_STRUCT sBoss
     d_byte Boss_eFlag, eFlag::BossLava
     d_byte BodyPlatform_u8, kBossBodyPlatformIndex
@@ -980,7 +980,7 @@ _RegR:
 ;;; Room init function for the BossLava room.
 ;;; @prereq PRGA_Room is loaded.
 .PROC FuncA_Room_BossLava_EnterRoom
-    ldax #FuncC_Boss_Lava_sBoss  ; param: sBoss ptr
+    ldax #DataC_Boss_Lava_sBoss  ; param: sBoss ptr
     jsr FuncA_Room_InitBoss  ; sets Z if boss is alive
     bne _BossIsDead
 _BossIsAlive:
