@@ -58,18 +58,21 @@
 .IMPORT FuncA_Objects_MoveShapeDownOneTile
 .IMPORT FuncA_Objects_MoveShapeRightByA
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
+.IMPORT FuncA_Room_InitActorProjBreakbomb
 .IMPORT FuncA_Room_InitBoss
 .IMPORT FuncA_Room_TickBoss
 .IMPORT Func_AckIrqAndLatchWindowFromParam4
 .IMPORT Func_AckIrqAndSetLatch
 .IMPORT Func_BufferPpuTransfer
 .IMPORT Func_FindActorWithType
+.IMPORT Func_FindEmptyActorSlot
 .IMPORT Func_InitActorSmokeExplosion
 .IMPORT Func_IsPointInAnySolidPlatform
 .IMPORT Func_MovePlatformTopTowardPointY
 .IMPORT Func_MovePointDownByA
 .IMPORT Func_MovePointUpByA
 .IMPORT Func_Noop
+.IMPORT Func_SetActorCenterToPoint
 .IMPORT Func_SetPointToActorCenter
 .IMPORT Func_SetPointToPlatformCenter
 .IMPORT Func_ShakeRoom
@@ -706,6 +709,20 @@ _BossOpen:
     jsr FuncC_Boss_City_OpenShell
     lda Zp_RoomState + sState::BossCooldown_u8
     bne @done
+    ;; Shoot a pair of breakbombs.
+    jsr FuncC_Boss_City_SetPointToBossCenter
+    jsr Func_FindEmptyActorSlot  ; returns C and X
+    bcs @doneBreakbombs
+    jsr Func_SetActorCenterToPoint  ; preserves X
+    lda #0  ; param: flags
+    jsr FuncA_Room_InitActorProjBreakbomb
+    jsr Func_FindEmptyActorSlot  ; returns C and X
+    bcs @doneBreakbombs
+    jsr Func_SetActorCenterToPoint  ; preserves X
+    lda #bObj::FlipH  ; param: flags
+    jsr FuncA_Room_InitActorProjBreakbomb
+    @doneBreakbombs:
+    ;; Change modes to close the shell.
     lda #eBossMode::Close
     sta Zp_RoomState + sState::Current_eBossMode
     lda #120

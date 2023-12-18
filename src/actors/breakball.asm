@@ -41,6 +41,7 @@
 .IMPORT Func_PointHitsTerrain
 .IMPORT Func_SetActorCenterToPoint
 .IMPORT Func_SetPointToActorCenter
+.IMPORT Func_ShakeRoom
 .IMPORT Ram_ActorPosY_i16_0_arr
 .IMPORT Ram_ActorType_eActor_arr
 .IMPORT Ram_ActorVelX_i16_0_arr
@@ -61,6 +62,9 @@ kPaletteObjBreakball = 1
 ;;; How fast a breakball moves horizontally/vertically, in subpixels/frame.
 kProjBreakballSpeedHorz = $e0
 kProjBreakballSpeedVert = $60
+
+;;; How many frames the room shakes for when a breakball hits the ground.
+kBreakballShakeFrames = 15
 
 ;;;=========================================================================;;;
 
@@ -177,6 +181,8 @@ _Explode:
     sta Ram_ActorPosY_i16_0_arr, x
     ;; Turn the breakball into two breakfire projetiles moving in opposite
     ;; directions.
+    lda #kBreakballShakeFrames  ; param: num frames
+    jsr Func_ShakeRoom  ; preserves X
     txa  ; breakball actor index
     pha  ; breakball actor index
     jsr Func_SetPointToActorCenter  ; preserves X

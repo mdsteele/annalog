@@ -17,17 +17,15 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
-;;; State bytes for breakfire projectiles:
+;;; State bytes for breakbomb projectiles:
 ;;;   * Flags: Unused.
-;;;   * State1: Counter that decrements every frame until it reaches zero.  If
-;;;     the breakfire would bounce after this has reached zero, it expires
-;;;     instead.
-;;;   * State2: Counter that starts at zero and increments every frame.  If it
-;;;     somehow wraps back around to zero without the breakfire bouncing, then
-;;;     the breakfire will expire.  Resets to zero when the breakfire bounces.
+;;;   * State1: Counter that starts at zero and increments every frame; if it
+;;;     wraps back around to zero before the breakbomb hits anything, then the
+;;;     breakbomb expires.
+;;;   * State2: Unused.
 ;;;   * State3: Unused.
 
-;;; The first tile ID for drawing breakfire projectile actors.
-kTileIdObjBreakfireFirst = $a9
+;;; The first tile ID for drawing breakbomb projectile actors.
+kTileIdObjBreakbombFirst = $82
 
 ;;;=========================================================================;;;

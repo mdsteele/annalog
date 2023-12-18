@@ -21,6 +21,7 @@
 .INCLUDE "actors/bat.inc"
 .INCLUDE "actors/bird.inc"
 .INCLUDE "actors/breakball.inc"
+.INCLUDE "actors/breakbomb.inc"
 .INCLUDE "actors/breakfire.inc"
 .INCLUDE "actors/bullet.inc"
 .INCLUDE "actors/child.inc"
@@ -1025,7 +1026,7 @@ _chr_begin:
 .PROC Ppu_ChrObjCity
     CHR2_BANK $80
     chr_inc "upgrade_bottom",       kTileIdObjUpgradeBottomFirst
-    chr_res $02
+    chr_inc "breakbomb",            kTileIdObjBreakbombFirst
     chr_inc "upgrade_bremote",      kTileIdObjUpgradeBRemoteFirst
     chr_inc "reloader",             kTileIdObjReloaderFirst
     chr_inc "platform_city_bricks", kTileIdObjPlatformCityBricks
@@ -1035,7 +1036,8 @@ _chr_begin:
     chr_res $04
     chr_inc "combo",                kTileIdObjComboFirst
     chr_inc "rodent",               kTileIdObjRodentFirst
-    chr_res $07
+    chr_inc "breakfire",            kTileIdObjBreakfireFirst
+    chr_res $02
     chr_inc "rhino",                kTileIdObjRhinoFirst
     chr_inc "semaphore",            kTileIdObjSemaphoreFirst
     chr_res $28

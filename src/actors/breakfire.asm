@@ -31,10 +31,12 @@
 .IMPORT FuncA_Objects_MoveShapeLeftHalfTile
 .IMPORT FuncA_Objects_MoveShapeUpOneTile
 .IMPORT FuncA_Objects_SetShapePosToActorCenter
-.IMPORT Func_InitActorDefault
+.IMPORT Func_InitActorSmokeParticle
+.IMPORT Func_InitActorWithState1
+.IMPORT Func_MovePointDownByA
+.IMPORT Func_PointHitsTerrain
 .IMPORT Ram_ActorState1_byte_arr
 .IMPORT Ram_ActorState2_byte_arr
-.IMPORT Ram_ActorType_eActor_arr
 .IMPORT Ram_ActorVelX_i16_0_arr
 .IMPORT Ram_ActorVelX_i16_1_arr
 .IMPORT Ram_Oam_sObj_arr64
@@ -51,8 +53,9 @@ kPaletteObjBreakfire = 1
 ;;; How fast a breakfire moves horizontally, in subpixels/frame.
 kProjBreakfireSpeed = $01c0
 
-;;; How many times a breakfire can bounce off a wall without expiring.
-kProjBreakfireMaxBounces = 1
+;;; The mimimum amount of time a breakfire should persist for before expiring,
+;;; in frames.
+kProjBreakfireMinLifetime = kBlockWidthPx * 12 * $100 / kProjBreakfireSpeed
 
 ;;;=========================================================================;;;
 
@@ -67,21 +70,20 @@ kProjBreakfireMaxBounces = 1
 .PROC Func_InitActorProjBreakfire
     sta T0  ; horz flag
     ldy #eActor::ProjBreakfire  ; param: actor type
-    jsr Func_InitActorDefault  ; preserves X and T0+
+    lda #kProjBreakfireMinLifetime  ; param: min time remaining
+    jsr Func_InitActorWithState1  ; preserves X and T0+
 _InitVelX:
     bit T0  ; horz flag
     .assert bObj::FlipH = bProc::Overflow, error
-    bvs _Left
-_Right:
-    lda #<kProjBreakfireSpeed
+    bvc @right
+    @left:
+    ldya #$ffff & -kProjBreakfireSpeed
+    bmi @finish  ; unconditional
+    @right:
+    ldya #kProjBreakfireSpeed
+    @finish:
     sta Ram_ActorVelX_i16_0_arr, x
-    lda #>kProjBreakfireSpeed
-    sta Ram_ActorVelX_i16_1_arr, x
-    rts
-_Left:
-    lda #<-kProjBreakfireSpeed
-    sta Ram_ActorVelX_i16_0_arr, x
-    lda #>-kProjBreakfireSpeed
+    tya
     sta Ram_ActorVelX_i16_1_arr, x
     rts
 .ENDPROC
@@ -95,30 +97,39 @@ _Left:
 ;;; @preserve X
 .EXPORT FuncA_Actor_TickProjBreakfire
 .PROC FuncA_Actor_TickProjBreakfire
-    ;; If the breakfire somehow goes for too long without hitting a wall,
-    ;; expire it.
-    inc Ram_ActorState1_byte_arr, x  ; expiration timer
+    ;; If the breakfire somehow goes for too long without bouncing, expire it.
+    inc Ram_ActorState2_byte_arr, x  ; expiration timer
     beq _Expire
+    ;; Decrement the time-remaining counter until it reaches zero.
+    lda Ram_ActorState1_byte_arr, x  ; min time remaining
+    beq @done
+    dec Ram_ActorState1_byte_arr, x  ; min time remaining
+    @done:
 _CheckIfHitsWall:
-    ;; Check if the breakfire has hit a wall.  If not, we're done.
+    ;; Check if the breakfire has hit a wall; if so, bounce off the wall.
     jsr FuncA_Actor_CenterHitsTerrain  ; preserves X, returns C
-    bcc _Finish
-    ;; Check if the breakfire has already bounced the maximum number of times;
-    ;; if so, expire it.
-    lda Ram_ActorState2_byte_arr, x  ; num bounces so far
-    cmp #kProjBreakfireMaxBounces
-    bge _Expire
-    ;; Otherwise, increment the bounce count, then bounce off the wall.
-    inc Ram_ActorState2_byte_arr, x  ; num bounces so far
+    bcs _Bounce
+_CheckIfNotOverFloor:
+    ;; Check if the breakfire has gone beyond the edge of the floor it's on; if
+    ;; so, bounce off the edge.
+    lda #kTileHeightPx + 1  ; param: offset
+    jsr Func_MovePointDownByA  ; preserves X
+    jsr Func_PointHitsTerrain  ; preserves X, returns C
+    bcs _Finish
+_Bounce:
+    ;; If the breakfire has already lasted at least its minimum duration,
+    ;; expire it.
+    lda Ram_ActorState1_byte_arr, x  ; min time remaining
+    beq _Expire
+    ;; Otherwise, bounce off the wall.
     lda #0
-    sta Ram_ActorState1_byte_arr, x  ; expiration timer
+    sta Ram_ActorState2_byte_arr, x  ; expiration timer
     jsr FuncA_Actor_NegateVelX  ; preserves X
 _Finish:
     jmp FuncA_Actor_HarmAvatarIfCollision  ; preserves X
 _Expire:
-    lda #eActor::None
-    sta Ram_ActorType_eActor_arr, x
-    rts
+    lda #$c0  ; param: angle ($c0 = up)
+    jmp Func_InitActorSmokeParticle  ; preserves X
 .ENDPROC
 
 ;;;=========================================================================;;;

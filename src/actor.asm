@@ -47,6 +47,7 @@
 .IMPORT FuncA_Actor_TickNpcToddler
 .IMPORT FuncA_Actor_TickProjAcid
 .IMPORT FuncA_Actor_TickProjBreakball
+.IMPORT FuncA_Actor_TickProjBreakbomb
 .IMPORT FuncA_Actor_TickProjBreakfire
 .IMPORT FuncA_Actor_TickProjBullet
 .IMPORT FuncA_Actor_TickProjEmber
@@ -89,6 +90,7 @@
 .IMPORT FuncA_Objects_DrawActorNpcToddler
 .IMPORT FuncA_Objects_DrawActorProjAcid
 .IMPORT FuncA_Objects_DrawActorProjBreakball
+.IMPORT FuncA_Objects_DrawActorProjBreakbomb
 .IMPORT FuncA_Objects_DrawActorProjBreakfire
 .IMPORT FuncA_Objects_DrawActorProjBullet
 .IMPORT FuncA_Objects_DrawActorProjEmber
@@ -112,6 +114,7 @@
 .IMPORT FuncA_Room_InitActorNpcChild
 .IMPORT FuncA_Room_InitActorNpcToddler
 .IMPORT FuncA_Room_InitActorProjBreakball
+.IMPORT FuncA_Room_InitActorProjBreakbomb
 .IMPORT FuncA_Room_InitActorProjFlamestrike
 .IMPORT Func_InitActorBadOrc
 .IMPORT Func_InitActorNpcOrc
@@ -139,6 +142,7 @@
 
 ;;; The hit radius of various actors, in pixels.
 kBadJellyRadius       = 5
+kProjBreakbombRadius  = 3
 kProjBulletRadius     = 1
 kProjFireballRadius   = 3
 kProjFireblastRadius  = 3
@@ -361,6 +365,7 @@ Ram_ActorFlags_bObj_arr: .res kMaxActors
     d_byte NpcToddler,       4
     d_byte ProjAcid,         1
     d_byte ProjBreakball,   kProjBreakballRadius
+    d_byte ProjBreakbomb,   kProjBreakbombRadius
     d_byte ProjBreakfire,   12
     d_byte ProjBullet,      kProjBulletRadius
     d_byte ProjEmber,        1
@@ -408,6 +413,7 @@ Ram_ActorFlags_bObj_arr: .res kMaxActors
     d_byte NpcToddler,       8
     d_byte ProjAcid,         3
     d_byte ProjBreakball,   kProjBreakballRadius
+    d_byte ProjBreakbomb,   kProjBreakbombRadius
     d_byte ProjBreakfire,    8
     d_byte ProjBullet,      kProjBulletRadius
     d_byte ProjEmber,        3
@@ -455,6 +461,7 @@ Ram_ActorFlags_bObj_arr: .res kMaxActors
     d_byte NpcToddler,       3
     d_byte ProjAcid,         2
     d_byte ProjBreakball,   kProjBreakballRadius
+    d_byte ProjBreakbomb,   kProjBreakbombRadius
     d_byte ProjBreakfire,    3
     d_byte ProjBullet,      kProjBulletRadius
     d_byte ProjEmber,        2
@@ -570,6 +577,7 @@ _TypeSpecificTick:
     d_entry table, NpcToddler,      FuncA_Actor_TickNpcToddler
     d_entry table, ProjAcid,        FuncA_Actor_TickProjAcid
     d_entry table, ProjBreakball,   FuncA_Actor_TickProjBreakball
+    d_entry table, ProjBreakbomb,   FuncA_Actor_TickProjBreakbomb
     d_entry table, ProjBreakfire,   FuncA_Actor_TickProjBreakfire
     d_entry table, ProjBullet,      FuncA_Actor_TickProjBullet
     d_entry table, ProjEmber,       FuncA_Actor_TickProjEmber
@@ -752,6 +760,7 @@ _NoHit:
     d_entry table, NpcToddler,      FuncA_Room_InitActorNpcToddler
     d_entry table, ProjAcid,        Func_InitActorProjAcid
     d_entry table, ProjBreakball,   FuncA_Room_InitActorProjBreakball
+    d_entry table, ProjBreakbomb,   FuncA_Room_InitActorProjBreakbomb
     d_entry table, ProjBreakfire,   Func_InitActorProjBreakfire
     d_entry table, ProjBullet,      Func_InitActorProjBullet
     d_entry table, ProjEmber,       Func_InitActorProjEmber
@@ -895,6 +904,7 @@ _NoHit:
     d_entry table, NpcToddler,      FuncA_Objects_DrawActorNpcToddler
     d_entry table, ProjAcid,        FuncA_Objects_DrawActorProjAcid
     d_entry table, ProjBreakball,   FuncA_Objects_DrawActorProjBreakball
+    d_entry table, ProjBreakbomb,   FuncA_Objects_DrawActorProjBreakbomb
     d_entry table, ProjBreakfire,   FuncA_Objects_DrawActorProjBreakfire
     d_entry table, ProjBullet,      FuncA_Objects_DrawActorProjBullet
     d_entry table, ProjEmber,       FuncA_Objects_DrawActorProjEmber
