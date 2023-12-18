@@ -57,6 +57,7 @@
 .IMPORT FuncA_Actor_TickProjGrenade
 .IMPORT FuncA_Actor_TickProjRocket
 .IMPORT FuncA_Actor_TickProjSpike
+.IMPORT FuncA_Actor_TickProjSpine
 .IMPORT FuncA_Actor_TickProjSteamHorz
 .IMPORT FuncA_Actor_TickProjSteamUp
 .IMPORT FuncA_Actor_TickSmokeExplosion
@@ -100,6 +101,7 @@
 .IMPORT FuncA_Objects_DrawActorProjGrenade
 .IMPORT FuncA_Objects_DrawActorProjRocket
 .IMPORT FuncA_Objects_DrawActorProjSpike
+.IMPORT FuncA_Objects_DrawActorProjSpine
 .IMPORT FuncA_Objects_DrawActorProjSteamHorz
 .IMPORT FuncA_Objects_DrawActorProjSteamUp
 .IMPORT FuncA_Objects_DrawActorSmokeExplosion
@@ -116,6 +118,7 @@
 .IMPORT FuncA_Room_InitActorProjBreakball
 .IMPORT FuncA_Room_InitActorProjBreakbomb
 .IMPORT FuncA_Room_InitActorProjFlamestrike
+.IMPORT FuncA_Room_InitActorProjSpine
 .IMPORT Func_InitActorBadOrc
 .IMPORT Func_InitActorNpcOrc
 .IMPORT Func_InitActorProjAcid
@@ -149,6 +152,7 @@ kProjFireblastRadius  = 3
 kProjGrenadeRadius    = 2
 kProjRocketRadius     = 2
 kProjSpikeRadius      = 3
+kProjSpineRadius      = 1
 kProjSteamMajorRadius = 8
 kProjSteamMinorRadius = 3
 kSmokeExplosionRadius = 6
@@ -375,6 +379,7 @@ Ram_ActorFlags_bObj_arr: .res kMaxActors
     d_byte ProjGrenade,     kProjGrenadeRadius
     d_byte ProjRocket,      kProjRocketRadius
     d_byte ProjSpike,       kProjSpikeRadius
+    d_byte ProjSpine,       kProjSpineRadius
     d_byte ProjSteamHorz,   kProjSteamMinorRadius
     d_byte ProjSteamUp,     kProjSteamMajorRadius
     d_byte SmokeExplosion,  kSmokeExplosionRadius
@@ -423,6 +428,7 @@ Ram_ActorFlags_bObj_arr: .res kMaxActors
     d_byte ProjGrenade,     kProjGrenadeRadius
     d_byte ProjRocket,      kProjRocketRadius
     d_byte ProjSpike,       kProjSpikeRadius
+    d_byte ProjSpine,       kProjSpineRadius
     d_byte ProjSteamHorz,   kProjSteamMinorRadius
     d_byte ProjSteamUp,     kProjSteamMajorRadius
     d_byte SmokeExplosion,  kSmokeExplosionRadius
@@ -471,6 +477,7 @@ Ram_ActorFlags_bObj_arr: .res kMaxActors
     d_byte ProjGrenade,     kProjGrenadeRadius
     d_byte ProjRocket,      kProjRocketRadius
     d_byte ProjSpike,       kProjSpikeRadius
+    d_byte ProjSpine,       kProjSpineRadius
     d_byte ProjSteamHorz,   kProjSteamMajorRadius
     d_byte ProjSteamUp,     kProjSteamMinorRadius
     d_byte SmokeExplosion,  kSmokeExplosionRadius
@@ -587,6 +594,7 @@ _TypeSpecificTick:
     d_entry table, ProjGrenade,     FuncA_Actor_TickProjGrenade
     d_entry table, ProjRocket,      FuncA_Actor_TickProjRocket
     d_entry table, ProjSpike,       FuncA_Actor_TickProjSpike
+    d_entry table, ProjSpine,       FuncA_Actor_TickProjSpine
     d_entry table, ProjSteamHorz,   FuncA_Actor_TickProjSteamHorz
     d_entry table, ProjSteamUp,     FuncA_Actor_TickProjSteamUp
     d_entry table, SmokeExplosion,  FuncA_Actor_TickSmokeExplosion
@@ -770,6 +778,7 @@ _NoHit:
     d_entry table, ProjGrenade,     Func_InitActorProjGrenade
     d_entry table, ProjRocket,      Func_InitActorProjRocket
     d_entry table, ProjSpike,       Func_InitActorProjSpike
+    d_entry table, ProjSpine,       FuncA_Room_InitActorProjSpine
     d_entry table, ProjSteamHorz,   Func_InitActorProjSteamHorz
     d_entry table, ProjSteamUp,     Func_InitActorProjSteamUp
     d_entry table, SmokeExplosion,  Func_InitActorSmokeExplosion
@@ -914,6 +923,7 @@ _NoHit:
     d_entry table, ProjGrenade,     FuncA_Objects_DrawActorProjGrenade
     d_entry table, ProjRocket,      FuncA_Objects_DrawActorProjRocket
     d_entry table, ProjSpike,       FuncA_Objects_DrawActorProjSpike
+    d_entry table, ProjSpine,       FuncA_Objects_DrawActorProjSpine
     d_entry table, ProjSteamHorz,   FuncA_Objects_DrawActorProjSteamHorz
     d_entry table, ProjSteamUp,     FuncA_Objects_DrawActorProjSteamUp
     d_entry table, SmokeExplosion,  FuncA_Objects_DrawActorSmokeExplosion

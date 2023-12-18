@@ -59,6 +59,7 @@
 .IMPORT FuncA_Objects_MoveShapeRightByA
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
 .IMPORT FuncA_Room_InitActorProjBreakbomb
+.IMPORT FuncA_Room_InitActorProjSpine
 .IMPORT FuncA_Room_InitBoss
 .IMPORT FuncA_Room_TickBoss
 .IMPORT Func_AckIrqAndLatchWindowFromParam4
@@ -66,10 +67,12 @@
 .IMPORT Func_BufferPpuTransfer
 .IMPORT Func_FindActorWithType
 .IMPORT Func_FindEmptyActorSlot
+.IMPORT Func_GetRandomByte
 .IMPORT Func_InitActorSmokeExplosion
 .IMPORT Func_IsPointInAnySolidPlatform
 .IMPORT Func_MovePlatformTopTowardPointY
 .IMPORT Func_MovePointDownByA
+.IMPORT Func_MovePointHorz
 .IMPORT Func_MovePointUpByA
 .IMPORT Func_Noop
 .IMPORT Func_SetActorCenterToPoint
@@ -209,6 +212,7 @@ kBossInitCenterY = $67
     Hurt
     Open   ; TODO: replace this with a real mode
     Close  ; TODO: replace this with a real mode
+    ShootSpines
     ;; TODO: other modes
     NUM_VALUES
 .ENDENUM
@@ -665,10 +669,11 @@ _CheckMode:
     D_TABLE_LO table, _JumpTable_ptr_0_arr
     D_TABLE_HI table, _JumpTable_ptr_1_arr
     D_TABLE .enum, eBossMode
-    d_entry table, Dead,  Func_Noop
-    d_entry table, Hurt,  _BossHurt
-    d_entry table, Open,  _BossOpen
-    d_entry table, Close, _BossClose
+    d_entry table, Dead,        Func_Noop
+    d_entry table, Hurt,        _BossHurt
+    d_entry table, Open,        _BossOpen
+    d_entry table, Close,       _BossClose
+    d_entry table, ShootSpines, _BossShootSpines
     D_END
 .ENDREPEAT
 _BossHurt:
@@ -709,6 +714,14 @@ _BossOpen:
     jsr FuncC_Boss_City_OpenShell
     lda Zp_RoomState + sState::BossCooldown_u8
     bne @done
+    jsr Func_GetRandomByte  ; returns N
+    bmi _ShootBreakbombs
+    @startShootingSpines:
+    lda #eBossMode::ShootSpines
+    sta Zp_RoomState + sState::Current_eBossMode
+    @done:
+    rts
+_ShootBreakbombs:
     ;; Shoot a pair of breakbombs.
     jsr FuncC_Boss_City_SetPointToBossCenter
     jsr Func_FindEmptyActorSlot  ; returns C and X
@@ -725,7 +738,7 @@ _BossOpen:
     ;; Change modes to close the shell.
     lda #eBossMode::Close
     sta Zp_RoomState + sState::Current_eBossMode
-    lda #120
+    lda #240
     sta Zp_RoomState + sState::BossCooldown_u8
     @done:
     rts
@@ -739,6 +752,40 @@ _BossClose:
     sta Zp_RoomState + sState::BossCooldown_u8
     @done:
     rts
+_BossShootSpines:
+    jsr FuncC_Boss_City_CloseShell
+    ;; Wait for the shell to be fully closed.
+    lda Zp_RoomState + sState::BossShellOpen_u8
+    bne @done
+    ;; Fire spines.
+    lda #4
+    sta T2  ; spine index
+    @spineLoop:
+    jsr Func_FindEmptyActorSlot  ; preserves T0+, returns C and X
+    bcs @doneSpines
+    jsr FuncC_Boss_City_SetPointToBossCenter  ; preserves X and T0+
+    ldy T2  ; spine index
+    lda _SpineOffsetX_i8_arr5, y
+    jsr Func_MovePointHorz  ; preserves X, Y, and T0+
+    lda #14
+    jsr Func_MovePointDownByA  ; preserves X, Y, and T0+
+    jsr Func_SetActorCenterToPoint  ; preserves X, Y, and T0+
+    lda _SpineAngle_u8_arr5, y  ; param: spine angle
+    jsr FuncA_Room_InitActorProjSpine  ; preserves X and T2+
+    dec T2  ; spine index
+    bpl @spineLoop
+    @doneSpines:
+    ;; Chamge modes to stay closed for a bit.
+    lda #eBossMode::Close
+    sta Zp_RoomState + sState::Current_eBossMode
+    lda #90
+    sta Zp_RoomState + sState::BossCooldown_u8
+    @done:
+    rts
+_SpineOffsetX_i8_arr5:
+    .byte <-21, <-11, 0, 11, 21
+_SpineAngle_u8_arr5:
+    .byte $60, $57, $40, $29, $20
 .ENDPROC
 
 .PROC FuncC_Boss_City_DrawRoom

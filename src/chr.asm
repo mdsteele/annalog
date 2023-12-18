@@ -42,6 +42,7 @@
 .INCLUDE "actors/rodent.inc"
 .INCLUDE "actors/spider.inc"
 .INCLUDE "actors/spike.inc"
+.INCLUDE "actors/spine.inc"
 .INCLUDE "actors/steam.inc"
 .INCLUDE "actors/toad.inc"
 .INCLUDE "actors/toddler.inc"
@@ -1030,7 +1031,8 @@ _chr_begin:
     chr_inc "upgrade_bremote",      kTileIdObjUpgradeBRemoteFirst
     chr_inc "reloader",             kTileIdObjReloaderFirst
     chr_inc "platform_city_bricks", kTileIdObjPlatformCityBricks
-    chr_res $06
+    chr_inc "proj_spine",           kTileIdObjProjSpineFirst
+    chr_res $03
     chr_inc "platform_city_walls",  kTileIdObjPlatformCityWalls
     chr_inc "launcher_horz",        kTileIdObjLauncherHorzFirst
     chr_res $04

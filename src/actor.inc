@@ -63,6 +63,7 @@ kMaxActors = 16
     ProjGrenade      ; shot by cannon machines
     ProjRocket       ; shot by launcher machines
     ProjSpike        ; a falling spike dropped by the garden boss
+    ProjSpine        ; a spine shot by the city boss
     ProjSteamHorz    ; emitted horizontally from boiler machine pipes
     ProjSteamUp      ; emitted vertically from boiler machine pipes
     SmokeExplosion   ; a puff of smoke for when something explodes
