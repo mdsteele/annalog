@@ -22,6 +22,7 @@
 .INCLUDE "../avatar.inc"
 .INCLUDE "../boss.inc"
 .INCLUDE "../charmap.inc"
+.INCLUDE "../cpu.inc"
 .INCLUDE "../device.inc"
 .INCLUDE "../flag.inc"
 .INCLUDE "../irq.inc"
@@ -70,7 +71,10 @@
 .IMPORT Func_GetRandomByte
 .IMPORT Func_InitActorSmokeExplosion
 .IMPORT Func_IsPointInAnySolidPlatform
+.IMPORT Func_MovePlatformHorz
+.IMPORT Func_MovePlatformLeftTowardPointX
 .IMPORT Func_MovePlatformTopTowardPointY
+.IMPORT Func_MovePlatformVert
 .IMPORT Func_MovePointDownByA
 .IMPORT Func_MovePointHorz
 .IMPORT Func_MovePointUpByA
@@ -79,6 +83,8 @@
 .IMPORT Func_SetPointToActorCenter
 .IMPORT Func_SetPointToPlatformCenter
 .IMPORT Func_ShakeRoom
+.IMPORT Func_SignedMult
+.IMPORT Func_Sine
 .IMPORT Ppu_ChrBgBossCity
 .IMPORT Ppu_ChrObjCity
 .IMPORT Ram_ActorPosY_i16_0_arr
@@ -93,6 +99,8 @@
 .IMPORTZP Zp_Chr04Bank_u8
 .IMPORTZP Zp_IrqTmp_byte
 .IMPORTZP Zp_NextIrq_int_ptr
+.IMPORTZP Zp_PointX_i16
+.IMPORTZP Zp_PointY_i16
 .IMPORTZP Zp_RoomScrollY_u8
 .IMPORTZP Zp_RoomState
 .IMPORTZP Zp_ShapePosX_i16
@@ -203,8 +211,24 @@ kBossBodyWidthPx   = kBossShellWidthPx
 kBossBodyHeightPx  = kBossShellHeightPx * 2 + kBossCoreHeightPx
 
 ;;; The initial room pixel position for the center of the boss.
-kBossInitCenterX = $60
-kBossInitCenterY = $67
+kBossInitCenterX = $74
+kBossInitCenterY = (kBossZoneTopY + kBossZoneBottomY) / 2
+
+;;; The room pixel X-positions past which the boss must turn around.
+kBossMinCenterX = $28
+kBossMaxCenterX = $90
+
+;;; The room pixel Y-positions past which the boss cannot open its shell.
+kBossMinCenterOpenY = kBossZoneTopY + kBossBodyHeightPx / 2 + 2
+kBossMaxCenterOpenY = kBossZoneBottomY - kBossBodyHeightPx / 2 - 2
+
+;;; The amplitude of the boss's horizontal and vertical sinusoidal movement, in
+;;; half-pixels.
+.LINECONT +
+kBossHorzAmplitude = $6a
+kBossVertAmplitude = \
+    kBossZoneBottomY - kBossZoneTopY - kBossShellHeightPx * 2 - 10
+.LINECONT -
 
 ;;; Modes that the boss in this room can be in.
 .ENUM eBossMode
@@ -213,7 +237,7 @@ kBossInitCenterY = $67
     Open   ; TODO: replace this with a real mode
     Close  ; TODO: replace this with a real mode
     ShootSpines
-    ;; TODO: other modes
+    Weaving
     NUM_VALUES
 .ENDENUM
 
@@ -253,6 +277,10 @@ kBossShellLowerPlatformIndex = 3
     ;; How open the boss's shell is.  This is used as in index into
     ;; DataC_Boss_City_ShellOffset_u8_arr.
     BossShellOpen_u8 .byte
+    ;; The current theta angles for the boss's horizontal and vertical
+    ;; sinusoidal movement.
+    BossHorzTheta_u8 .byte
+    BossVertTheta_u8 .byte
 .ENDSTRUCT
 .ASSERT .sizeof(sState) <= kRoomStateSize, error
 
@@ -674,6 +702,7 @@ _CheckMode:
     d_entry table, Open,        _BossOpen
     d_entry table, Close,       _BossClose
     d_entry table, ShootSpines, _BossShootSpines
+    d_entry table, Weaving,     _BossWeaving
     D_END
 .ENDREPEAT
 _BossHurt:
@@ -738,14 +767,41 @@ _ShootBreakbombs:
     ;; Change modes to close the shell.
     lda #eBossMode::Close
     sta Zp_RoomState + sState::Current_eBossMode
-    lda #240
+    lda #60
     sta Zp_RoomState + sState::BossCooldown_u8
     @done:
     rts
 _BossClose:
     jsr FuncC_Boss_City_CloseShell
+    ;; Wait for the cooldown to expire.
     lda Zp_RoomState + sState::BossCooldown_u8
     bne @done
+    ;; Move around the room for a random amount of time (between about 1 and 3
+    ;; seconds).
+    lda #eBossMode::Weaving
+    sta Zp_RoomState + sState::Current_eBossMode
+    jsr Func_GetRandomByte  ; returns A
+    and #$7f
+    add #60
+    sta Zp_RoomState + sState::BossCooldown_u8
+    @done:
+    rts
+_BossWeaving:
+    jsr FuncC_Boss_City_CloseShell
+    jsr FuncC_Boss_City_MoveBossHorz
+    jsr FuncC_Boss_City_MoveBossVert
+    ;; TODO: Move vertically, sinusoidally.
+    ;; Wait for the cooldown to expire.
+    lda Zp_RoomState + sState::BossCooldown_u8
+    bne @done
+    ;; Wait for the boss's vertical position to be valid for opening its shell.
+    jsr FuncC_Boss_City_SetPointToBossCenter
+    lda Zp_PointY_i16 + 0
+    cmp #kBossMinCenterOpenY
+    blt @done
+    cmp #kBossMaxCenterOpenY + 1
+    bge @done
+    ;; Change modes to open the shell.
     lda #eBossMode::Open
     sta Zp_RoomState + sState::Current_eBossMode
     lda #90
@@ -924,6 +980,70 @@ _DrawBackgroundTerrainObjects:
     ldx #kBossShellUpperPlatformIndex  ; param: platform index
     lda #127  ; param: max move by
     jmp Func_MovePlatformTopTowardPointY
+.ENDPROC
+
+;;; Moves the boss horizontally, with sinusoidal motion.
+.PROC FuncC_Boss_City_MoveBossHorz
+    inc Zp_RoomState + sState::BossHorzTheta_u8
+    ;; Store the horizontal goal position for the left of the boss's body
+    ;; platform in Zp_PointX_i16.
+    lda Zp_RoomState + sState::BossHorzTheta_u8
+    jsr Func_Sine  ; returns A (param: signed multiplicand)
+    ldy #kBossHorzAmplitude  ; param: unsigned multiplier
+    jsr Func_SignedMult  ; returns YA
+    tya
+    add #kBossInitCenterX - kBossBodyWidthPx / 2
+    sta Zp_PointX_i16 + 0
+    lda #0
+    sta Zp_PointX_i16 + 1
+_MovePlatforms:
+    ldx #kBossBodyPlatformIndex  ; param: platform index
+    lda #127  ; param: max move by
+    jsr Func_MovePlatformLeftTowardPointX  ; returns A
+    pha  ; move delta
+    ldx #kBossCorePlatformIndex  ; param: platform index
+    jsr Func_MovePlatformHorz
+    pla  ; param: move delta
+    pha  ; move delta
+    ldx #kBossShellUpperPlatformIndex  ; param: platform index
+    jsr Func_MovePlatformHorz
+    pla  ; param: move delta
+    ldx #kBossShellLowerPlatformIndex  ; param: platform index
+    jmp Func_MovePlatformHorz
+.ENDPROC
+
+;;; Moves the boss vertically, with sinusoidal motion.
+.PROC FuncC_Boss_City_MoveBossVert
+    ;; Increase vertical speed as the boss takes damage.
+    lda #kBossInitHealth + 4
+    sub Zp_RoomState + sState::BossHealth_u8
+    div #2
+    add Zp_RoomState + sState::BossVertTheta_u8
+    sta Zp_RoomState + sState::BossVertTheta_u8
+    ;; Store the vertical goal position for the top of the boss's body platform
+    ;; in Zp_PointY_i16.
+    jsr Func_Sine  ; returns A (param: signed multiplicand)
+    ldy #kBossVertAmplitude  ; param: unsigned multiplier
+    jsr Func_SignedMult  ; returns YA
+    tya
+    add #kBossInitCenterY - kBossBodyHeightPx / 2
+    sta Zp_PointY_i16 + 0
+    lda #0
+    sta Zp_PointY_i16 + 1
+_MovePlatforms:
+    ldx #kBossBodyPlatformIndex  ; param: platform index
+    lda #127  ; param: max move by
+    jsr Func_MovePlatformTopTowardPointY  ; returns A
+    pha  ; move delta
+    ldx #kBossCorePlatformIndex  ; param: platform index
+    jsr Func_MovePlatformVert
+    pla  ; param: move delta
+    pha  ; move delta
+    ldx #kBossShellUpperPlatformIndex  ; param: platform index
+    jsr Func_MovePlatformVert
+    pla  ; param: move delta
+    ldx #kBossShellLowerPlatformIndex  ; param: platform index
+    jmp Func_MovePlatformVert
 .ENDPROC
 
 ;;; Stores the room pixel position of the center of the boss in Zp_Point*_i16.
