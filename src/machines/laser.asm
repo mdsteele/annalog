@@ -24,6 +24,7 @@
 .INCLUDE "laser.inc"
 .INCLUDE "shared.inc"
 
+.IMPORT FuncA_Machine_PlaySfxLaser
 .IMPORT FuncA_Machine_StartWaiting
 .IMPORT FuncA_Objects_Alloc2x2MachineShape
 .IMPORT FuncA_Objects_Draw1x1Shape
@@ -202,6 +203,7 @@ _Outside:
     sta Ram_MachineState3_byte_arr, x  ; laser beam bottom (hi)
     lda #kLaserBeamDurationFrames
     sta Ram_MachineSlowdown_u8_arr, x  ; laser beam frames remaining
+    jsr FuncA_Machine_PlaySfxLaser
     lda #kLaserActFrames  ; param: num frames
     jmp FuncA_Machine_StartWaiting
 .ENDPROC

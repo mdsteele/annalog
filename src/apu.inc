@@ -68,6 +68,18 @@ Hw_Channels_sChanRegs_arr5 = $4000
 
 ;;;=========================================================================;;;
 
+;;; Constructs a frequency sweep byte for a pulse channel from a shift value
+;;; (which must range from -7 to 7) and a period value (which must range from 0
+;;; to 7).
+.LINECONT +
+.DEFINE pulse_sweep(SHIFT, PERIOD) (((SHIFT) <> 0) * \
+    ($80 | ((PERIOD) << 4) | \
+     (((SHIFT) < 0) * ($0f & (SHIFT)) + \
+      ((SHIFT) > 0) * (8 - (SHIFT)))))
+.LINECONT -
+
+;;;=========================================================================;;;
+
 ;;; Volume envelope control for the noise channel.
 Hw_NoiseEnvelope_wo = $400c
 

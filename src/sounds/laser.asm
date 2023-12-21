@@ -28,33 +28,28 @@
 
 .SEGMENT "PRG8"
 
-;;; SFX sequence data for the "bounce" sound effect.
-.PROC Data_Bounce_sSfxSeq_arr
+;;; SFX sequence data for the "laser" sound effect.
+.PROC Data_Laser_sSfxSeq_arr
     D_STRUCT sSfxSeq
-    d_byte Duration_u8, 6
-    d_byte Env_bEnvelope, bEnvelope::Duty18 | bEnvelope::NoLength | 3
-    d_byte Sweep_byte, pulse_sweep +5, 0
-    d_word Timer_u16, $0180
+    d_byte Duration_u8, 30
+    d_byte Env_bEnvelope, bEnvelope::Duty14 | bEnvelope::NoLength | 12
+    d_byte Sweep_byte, pulse_sweep +5, 1
+    d_word Timer_u16, $0020
     D_END
     .byte 0
 .ENDPROC
 
 ;;;=========================================================================;;;
 
-.SEGMENT "PRGA_Actor"
+.SEGMENT "PRGA_Machine"
 
-;;; Starts playing the sound for when an actor bounces off of something.
-;;; @preserve X, T0+
-.EXPORT FuncA_Actor_PlaySfxBounce
-.PROC FuncA_Actor_PlaySfxBounce
-    txa
-    pha
+;;; Starts playing the sound for when a laser machine fires.
+;;; @preserve T0+
+.EXPORT FuncA_Machine_PlaySfxLaser
+.PROC FuncA_Machine_PlaySfxLaser
     ldx #eChan::Pulse2
-    ldya #Data_Bounce_sSfxSeq_arr
-    jsr Func_PlaySfxSequence  ; preserves T0+
-    pla
-    tax
-    rts
+    ldya #Data_Laser_sSfxSeq_arr
+    jmp Func_PlaySfxSequence  ; preserves T0+
 .ENDPROC
 
 ;;;=========================================================================;;;
