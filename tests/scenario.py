@@ -46,6 +46,7 @@ ROOM_PARENTS = {
     'BossTemple': 'TempleSpire',
     'CityBuilding1': 'CityOutskirts',
     'CityBuilding2': 'CityCenter',
+    'CityBuilding3': 'CityCenter',
     'CityBuilding4': 'CityCenter',
     'CityBuilding5': 'CityCenter',
     'CityBuilding6': 'CityCenter',
@@ -202,7 +203,7 @@ def load_room(filepath, prgc_name):
                 door_dest = read_match_line(file, DOOR_TARGET_RE).group(1)
                 cell_row = start_row + (1 if is_tall and block_row >= 12
                                         else 0)
-                cell_col = start_col + block_col // 16
+                cell_col = start_col + (block_col - 1) // 16
                 doors.append({
                     'door_number': door_number,
                     'cell': (cell_row, cell_col),

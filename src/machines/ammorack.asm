@@ -20,9 +20,12 @@
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
 .INCLUDE "../ppu.inc"
+.INCLUDE "ammorack.inc"
 .INCLUDE "reloader.inc"
 .INCLUDE "shared.inc"
 
+.IMPORT FuncA_Machine_Error
+.IMPORT FuncA_Machine_StartWaiting
 .IMPORT FuncA_Objects_Draw1x1Shape
 .IMPORT FuncA_Objects_GetMachineLightTileId
 .IMPORT FuncA_Objects_MoveShapeRightByA
@@ -33,8 +36,28 @@
 
 ;;;=========================================================================;;;
 
-;;; The OBJ palette number used for drawing reloader machines.
+;;; The OBJ palette number used for drawing rockets in an ammo rack machine.
 kPaletteObjRocket = 0
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Machine"
+
+;;; TryAct implemention for ammo rack machines.
+;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
+.EXPORT FuncA_Machine_AmmoRack_TryAct
+.PROC FuncA_Machine_AmmoRack_TryAct
+    ldx Zp_MachineIndex_u8
+    ;; Can't refill the ammo rack if it's not empty.
+    lda Ram_MachineState1_byte_arr, x  ; ammo slot bits
+    jne FuncA_Machine_Error
+    ;; Refill all ammo slots.
+    lda #(1 << kNumAmmoRackSlots) - 1
+    sta Ram_MachineState1_byte_arr, x  ; ammo slot bits
+    ;; TODO: play a sound
+    lda #kAmmoRackActCountdown  ; param: num frames
+    jmp FuncA_Machine_StartWaiting
+.ENDPROC
 
 ;;;=========================================================================;;;
 

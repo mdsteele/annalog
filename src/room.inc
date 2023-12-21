@@ -49,6 +49,7 @@ kMaxPassages = 8
     BossTemple
     CityBuilding1
     CityBuilding2
+    CityBuilding3
     CityBuilding4
     CityBuilding5
     CityBuilding6

@@ -114,6 +114,9 @@
     BossShadowEmitterX
     BossShadowEmitterY
     BossTempleMinigun
+    CityBuilding3AmmoRack
+    CityBuilding3Launcher
+    CityBuilding3Reloader
     CityCenterSemaphore1
     CityCenterSemaphore2
     CityCenterSemaphore3

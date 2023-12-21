@@ -37,7 +37,7 @@ kTileIdBgDiagramLauncherDownFirst = $e0
 kTileIdBgDiagramLauncherLeftFirst = $f0
 
 ;;; OBJ tile IDs used for drawing launcher machines.
-kTileIdObjLauncherHorzFirst = $94
+kTileIdObjLauncherHorzFirst = $90
 kTileIdObjLauncherVertFirst = $90
 
 ;;;=========================================================================;;;

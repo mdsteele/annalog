@@ -24,7 +24,11 @@
 ;;;   * State3: Unused.
 ;;;   * State4: Unused.
 
-;;; The height of an ammo rack machine's main platform, in pixels.
+;;; How many ammo slots are in an ammo rack machine.
+kNumAmmoRackSlots = 3
+
+;;; The size of an ammo rack machine's main platform, in pixels.
+kAmmoRackMachineWidthPx  = $10 * kNumAmmoRackSlots
 kAmmoRackMachineHeightPx = $08
 
 ;;; How many frames an ammo rack machine spends per ACT operation.

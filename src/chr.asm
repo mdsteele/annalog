@@ -1033,9 +1033,9 @@ _chr_begin:
     chr_inc "platform_city_bricks", kTileIdObjPlatformCityBricks
     chr_inc "proj_spine",           kTileIdObjProjSpineFirst
     chr_res $03
-    chr_inc "platform_city_walls",  kTileIdObjPlatformCityWalls
     chr_inc "launcher_horz",        kTileIdObjLauncherHorzFirst
-    chr_res $04
+    chr_inc "crate",                kTileIdObjCrateFirst
+    chr_inc "platform_city_walls",  kTileIdObjPlatformCityWalls
     chr_inc "combo",                kTileIdObjComboFirst
     chr_inc "rodent",               kTileIdObjRodentFirst
     chr_inc "breakfire",            kTileIdObjBreakfireFirst
@@ -1205,8 +1205,8 @@ _chr_begin:
     chr_res $02
     chr_inc "upgrade_opaddsub", kTileIdObjUpgradeOpAddSubFirst
     chr_res $02
-    chr_inc "monitor",          kTileIdObjMonitorFirst
     chr_inc "launcher_horz",    kTileIdObjLauncherHorzFirst
+    chr_inc "monitor",          kTileIdObjMonitorFirst
     chr_inc "platform_rocks",   kTileIdObjPlatformRocksFirst
     chr_res $02
     chr_inc "grub",             kTileIdObjGrubFirst

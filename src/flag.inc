@@ -141,6 +141,7 @@ kSaveMagicNumber = $b2
     PaperManual8
     PaperManual9
     ;; Flags for persistent room state:
+    CityBuilding3BlastedCrates
     CityCenterDoorUnlocked
     CityCenterKeygenConnected
     CityOutskirtsBlastedRocks

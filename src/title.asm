@@ -298,6 +298,7 @@ _Flags_eFlag_arr:
     .byte eFlag::CityCenterKeygenConnected
     .byte eFlag::PaperJerome35
     .byte eFlag::FlowerCity
+    .byte eFlag::CityBuilding3BlastedCrates
     .byte eFlag::CityCenterDoorUnlocked
     .byte eFlag::BossCity
     .byte eFlag::UpgradeBRemote

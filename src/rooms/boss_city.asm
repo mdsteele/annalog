@@ -41,6 +41,7 @@
 .IMPORT DataA_Room_Building_sTileset
 .IMPORT Data_Empty_sActor_arr
 .IMPORT Data_PowersOfTwo_u8_arr8
+.IMPORT FuncA_Machine_AmmoRack_TryAct
 .IMPORT FuncA_Machine_Error
 .IMPORT FuncA_Machine_GenericMoveTowardGoalHorz
 .IMPORT FuncA_Machine_GenericMoveTowardGoalVert
@@ -145,9 +146,6 @@ kReloaderMinPlatformLeft = $0030
 kReloaderInitPlatformLeft = \
     kReloaderMinPlatformLeft + kReloaderInitGoalX * kBlockWidthPx
 .LINECONT -
-
-;;; How many slots are in the ammo rack.
-kNumAmmoRackSlots = 3
 
 ;;; The device indices for the levers in this room.
 kLeverLeftDeviceIndex = 3
@@ -373,7 +371,7 @@ _Machines_sMachine_arr:
     d_addr ReadReg_func_ptr, FuncC_Boss_City_ReadRegLR
     d_addr WriteReg_func_ptr, FuncA_Machine_BossCity_WriteReg
     d_addr TryMove_func_ptr, FuncA_Machine_Error
-    d_addr TryAct_func_ptr, FuncA_Machine_BossCityAmmoRack_TryAct
+    d_addr TryAct_func_ptr, FuncA_Machine_AmmoRack_TryAct
     d_addr Tick_func_ptr, FuncA_Machine_ReachedGoal
     d_addr Draw_func_ptr, FuncA_Objects_DrawAmmoRackMachine
     d_addr Reset_func_ptr, Func_Noop
@@ -432,7 +430,7 @@ _Platforms_sPlatform_arr:
     .assert * - :- = kAmmoRackPlatformIndex * .sizeof(sPlatform), error
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Solid
-    d_word WidthPx_u16, $30
+    d_word WidthPx_u16, kAmmoRackMachineWidthPx
     d_byte HeightPx_u8, kAmmoRackMachineHeightPx
     d_word Left_i16,  $0030
     d_word Top_i16,   $0018
@@ -1198,18 +1196,6 @@ _WriteR:
 .PROC FuncA_Machine_BossCityLauncher_TryAct
     lda #eDir::Left  ; param: rocket direction
     jmp FuncA_Machine_LauncherTryAct
-.ENDPROC
-
-.PROC FuncA_Machine_BossCityAmmoRack_TryAct
-    ;; Can't refill the ammo rack if it's not empty.
-    lda Ram_MachineState1_byte_arr + kAmmoRackMachineIndex  ; ammo slot bits
-    jne FuncA_Machine_Error
-    ;; Refill all ammo slots.
-    lda #(1 << kNumAmmoRackSlots) - 1
-    sta Ram_MachineState1_byte_arr + kAmmoRackMachineIndex  ; ammo slot bits
-    ;; TODO: play a sound
-    lda #kAmmoRackActCountdown  ; param: num frames
-    jmp FuncA_Machine_StartWaiting
 .ENDPROC
 
 .PROC FuncA_Machine_BossCityLauncher_Tick

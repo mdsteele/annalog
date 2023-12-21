@@ -39,6 +39,7 @@
 .IMPORT DataC_Boss_Temple_sRoom
 .IMPORT DataC_City_Building1_sRoom
 .IMPORT DataC_City_Building2_sRoom
+.IMPORT DataC_City_Building3_sRoom
 .IMPORT DataC_City_Building4_sRoom
 .IMPORT DataC_City_Building5_sRoom
 .IMPORT DataC_City_Building6_sRoom
@@ -278,6 +279,7 @@ _LoadNewRoom:
     d_entry table, BossTemple,      DataC_Boss_Temple_sRoom
     d_entry table, CityBuilding1,   DataC_City_Building1_sRoom
     d_entry table, CityBuilding2,   DataC_City_Building2_sRoom
+    d_entry table, CityBuilding3,   DataC_City_Building3_sRoom
     d_entry table, CityBuilding4,   DataC_City_Building4_sRoom
     d_entry table, CityBuilding5,   DataC_City_Building5_sRoom
     d_entry table, CityBuilding6,   DataC_City_Building6_sRoom
@@ -430,6 +432,7 @@ _PrisonMusic:
     d_byte BossTemple,      eMusic::Boss1
     d_byte CityBuilding1,   eMusic::Silence
     d_byte CityBuilding2,   eMusic::Silence
+    d_byte CityBuilding3,   eMusic::Silence
     d_byte CityBuilding4,   eMusic::Silence
     d_byte CityBuilding5,   eMusic::Silence
     d_byte CityBuilding6,   eMusic::Silence

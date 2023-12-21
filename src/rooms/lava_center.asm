@@ -657,7 +657,7 @@ _ApplyVelocity:
     adc Zp_RoomState + sState::CrateVelY_i16_1_arr, x
 _MaybeHitFloor:
     ;; If the number of pixels to move this frame is >= the distance above the
-    ;; floor, then the cage is hitting the floor this frame.
+    ;; floor, then the crate is hitting the floor this frame.
     cmp T0  ; crate dist above floor
     blt @noHit
     ;; TODO: play a sound for the crate hitting the floor

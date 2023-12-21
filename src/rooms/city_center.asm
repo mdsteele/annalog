@@ -302,18 +302,18 @@ _Devices_sDevice_arr:
     d_byte BlockCol_u8, 9
     d_byte Target_byte, eRoom::CityBuilding2
     D_END
-    ;; D_STRUCT sDevice
-    ;; d_byte Type_eDevice, eDevice::Door1Open
-    ;; d_byte BlockRow_u8, 14
-    ;; d_byte BlockCol_u8, 16
-    ;; d_byte Target_byte, eRoom::CityCenter  ; TODO: CityBuilding3
-    ;; D_END
-    ;; D_STRUCT sDevice
-    ;; d_byte Type_eDevice, eDevice::Door2Open
-    ;; d_byte BlockRow_u8, 21
-    ;; d_byte BlockCol_u8, 16
-    ;; d_byte Target_byte, eRoom::CityCenter  ; TODO: CityBuilding3
-    ;; D_END
+    D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::Door1Open
+    d_byte BlockRow_u8, 14
+    d_byte BlockCol_u8, 16
+    d_byte Target_byte, eRoom::CityBuilding3
+    D_END
+    D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::Door2Open
+    d_byte BlockRow_u8, 21
+    d_byte BlockCol_u8, 16
+    d_byte Target_byte, eRoom::CityBuilding3
+    D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Door1Open
     d_byte BlockRow_u8, 8
