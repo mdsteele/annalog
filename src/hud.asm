@@ -32,6 +32,7 @@
 .IMPORT Func_SetMachineIndex
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORT Sram_ProgressFlags_arr
+.IMPORTZP Zp_ConsoleNumInstRows_u8
 .IMPORTZP Zp_Current_sMachine_ptr
 .IMPORTZP Zp_ShapePosX_i16
 .IMPORTZP Zp_ShapePosY_i16
@@ -74,18 +75,49 @@ Zp_FloatingHud_bHud: .res 1
 ;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
 .EXPORT FuncA_Objects_DrawHudInWindow
 .PROC FuncA_Objects_DrawHudInWindow
+_CalculateMargin:
+    ;; Count the number of blank rows in the status box that aren't taken up by
+    ;; a HUD register.
+    ldx Zp_ConsoleNumInstRows_u8
+    ;; Only show register A if it is unlocked (by the COPY upgrade).
+    flag_bit Sram_ProgressFlags_arr, eFlag::UpgradeOpCopy
+    beq @noRegA
+    dex
+    @noRegA:
+    ;; Only show register B if it is unlocked.
+    flag_bit Sram_ProgressFlags_arr, eFlag::UpgradeBRemote
+    beq @noRegB
+    dex
+    @noRegB:
+    ;; Only show other registers if the machine has them.
+    ldy #sMachine::RegNames_u8_arr4
+    @loop:
+    lda (Zp_Current_sMachine_ptr), y  ; param: register name
+    beq @continue
+    dex
+    @continue:
+    iny
+    cpy #sMachine::RegNames_u8_arr4 + 4
+    blt @loop
+    ;; Calculate the margin in pixels.  If the in-window HUD would be
+    ;; completely offscreen, we're done.
+    txa  ; num blank rows
+    .assert kTileHeightPx .mod 2 = 0, error
+    mul #kTileHeightPx / 2  ; now A is margin between window border and HUD
+    adc #kTileHeightPx  ; now A is margin between window top and HUD
+    adc Zp_WindowTop_u8  ; now A is screen Y-pos of top of HUD
     ;; If the in-window HUD would be completely offscreen, we're done.
-    lda Zp_WindowTop_u8
-    cmp #kScreenHeightPx - kHudWindowMarginTop
-    bge @done
+    bcs @done  ; top of HUD is >= $100
+    cmp #kScreenHeightPx
+    bge @done  ; top of HUD is >= kScreenHeightPx
     ;; Otherwise, calculate the screen position for the top of the HUD.
-    adc #kHudWindowMarginTop  ; carry is already clear
     sta Zp_ShapePosY_i16 + 0
     lda #kInWindowHudLeft
     sta Zp_ShapePosX_i16 + 0
     lda #0
+    sta Zp_ShapePosX_i16 + 1
     sta Zp_ShapePosY_i16 + 1
-    jmp FuncA_Objects_DrawHudRegisters
+    beq FuncA_Objects_DrawHudRegisters  ; unconditional
     @done:
     rts
 .ENDPROC
@@ -183,6 +215,7 @@ _OtherRegisters:
     lda Zp_ShapePosY_i16 + 0
     cmp #kScreenHeightPx
     bge @skip
+    sbc #0  ; carry bit is clear, so this subtracts 1
     pha  ; object Y-position
     tya  ; register name tile ID
     pha  ; register name tile ID
