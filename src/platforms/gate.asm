@@ -28,8 +28,10 @@
 .IMPORT FuncA_Objects_MoveShapeRightOneTile
 .IMPORT FuncA_Objects_MoveShapeUpOneTile
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
+.IMPORT FuncC_Prison_PlaySfxPrisonGate
 .IMPORT Func_MovePlatformTopTowardPointY
 .IMPORT Func_MovePlatformVert
+.IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORTZP Zp_PointY_i16
 .IMPORTZP Zp_RoomState
 
@@ -59,7 +61,7 @@ kGateObjFlags = kPaletteObjGate | bObj::Pri
 
 ;;; Moves a gate platform from its fully shut position to its fully open
 ;;; position, and sets the specified lever's value to 1.  This should be called
-;;; from a room's Init or Enter function.
+;;; from a room's Enter function.
 ;;; @param X The gate platform index.
 ;;; @param Y The byte offset into Zp_RoomState for the gate's lever target.
 .EXPORT FuncC_Prison_OpenGateAndFlipLever
@@ -94,7 +96,8 @@ kGateObjFlags = kPaletteObjGate | bObj::Pri
     bne _Open
 _Shut:
     lda #kGateShutSpeed  ; param: move speed
-    jmp Func_MovePlatformTopTowardPointY  ; returns Z
+    .assert kGateShutSpeed > 0, error
+    bne _Move  ; unconditional
 _Open:
     lda Zp_PointY_i16 + 0
     sub #kGateRiseDistancePx
@@ -103,7 +106,17 @@ _Open:
     sbc #0
     sta Zp_PointY_i16 + 1
     lda #kGateOpenSpeed  ; param: move speed
-    jmp Func_MovePlatformTopTowardPointY  ; returns Z
+_Move:
+    jsr Func_MovePlatformTopTowardPointY  ; preserves X, returns Z
+    php
+    beq @noSound
+    lda Ram_PlatformTop_i16_0_arr, x
+    and #$04
+    bne @noSound
+    jsr FuncC_Prison_PlaySfxPrisonGate
+    @noSound:
+    plp
+    rts
 .ENDPROC
 
 ;;; Draws a prison gate.
