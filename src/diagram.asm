@@ -19,6 +19,7 @@
 
 .INCLUDE "charmap.inc"
 .INCLUDE "machine.inc"
+.INCLUDE "machines/ammorack.inc"
 .INCLUDE "machines/boiler.inc"
 .INCLUDE "machines/bridge.inc"
 .INCLUDE "machines/cannon.inc"
@@ -33,6 +34,7 @@
 .INCLUDE "machines/minigun.inc"
 .INCLUDE "machines/multiplexer.inc"
 .INCLUDE "machines/pump.inc"
+.INCLUDE "machines/reloader.inc"
 .INCLUDE "machines/rotor.inc"
 .INCLUDE "machines/semaphore.inc"
 .INCLUDE "machines/shared.inc"
@@ -73,6 +75,7 @@ kNoPowerWidthTiles = 19
 .EXPORT DataA_Console_DiagramBank_u8_arr
 .PROC DataA_Console_DiagramBank_u8_arr
     D_ARRAY .enum, eDiagram
+    d_byte AmmoRack,      kChrBankDiagramAmmoRack
     d_byte Boiler,        kChrBankDiagramBoiler
     d_byte BridgeLeft,    kChrBankDiagramBridgeLeft
     d_byte BridgeRight,   kChrBankDiagramBridgeRight
@@ -95,6 +98,7 @@ kNoPowerWidthTiles = 19
     d_byte MinigunUp,     kChrBankDiagramMinigunUp
     d_byte Multiplexer,   kChrBankDiagramMultiplexer
     d_byte Pump,          kChrBankDiagramPump
+    d_byte Reloader,      kChrBankDiagramReloader
     d_byte Rotor,         kChrBankDiagramRotor
     d_byte SemaphoreComm, kChrBankDiagramSemaphoreComm
     d_byte SemaphoreKey,  kChrBankDiagramSemaphoreKey
@@ -107,6 +111,7 @@ kNoPowerWidthTiles = 19
 ;;; Maps from an eDiagram to the first BG tile ID for that diagram.
 .PROC DataA_Console_DiagramFirstTileId_u8_arr
     D_ARRAY .enum, eDiagram
+    d_byte AmmoRack,      kTileIdBgDiagramAmmoRackFirst
     d_byte Boiler,        kTileIdBgDiagramBoilerFirst
     d_byte BridgeLeft,    kTileIdBgDiagramBridgeLeftFirst
     d_byte BridgeRight,   kTileIdBgDiagramBridgeRightFirst
@@ -129,6 +134,7 @@ kNoPowerWidthTiles = 19
     d_byte MinigunUp,     kTileIdBgDiagramMinigunUpFirst
     d_byte Multiplexer,   kTileIdBgDiagramMultiplexerFirst
     d_byte Pump,          kTileIdBgDiagramPumpFirst
+    d_byte Reloader,      kTileIdBgDiagramReloaderFirst
     d_byte Rotor,         kTileIdBgDiagramRotorFirst
     d_byte SemaphoreComm, kTileIdBgDiagramSemaphoreCommFirst
     d_byte SemaphoreKey,  kTileIdBgDiagramSemaphoreKeyFirst

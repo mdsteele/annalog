@@ -31,6 +31,12 @@ kReloaderMachineHeightPx = $10
 ;;; How many frames a realoder machine spends per ACT operation.
 kReloaderActCountdown = 16
 
+;;; The CHR bank number containing the diagram for reloader machines.
+kChrBankDiagramReloader = $10
+
+;;; BG tile IDs for reloader machine diagrams.
+kTileIdBgDiagramReloaderFirst = $f0
+
 ;;; OBJ tile IDs used for drawing reloader machines.
 kTileIdObjReloaderFirst = $86
 kTileIdObjReloaderRocketVert = kTileIdObjReloaderFirst + 2

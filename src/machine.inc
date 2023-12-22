@@ -28,6 +28,7 @@ kMachineRegNameB = $61  ; 'B'
 
 ;;; Diagrams for various kinds of machines.
 .ENUM eDiagram
+    AmmoRack
     Boiler
     BridgeLeft
     BridgeRight
@@ -50,6 +51,7 @@ kMachineRegNameB = $61  ; 'B'
     MinigunUp
     Multiplexer
     Pump
+    Reloader
     Rotor
     SemaphoreComm
     SemaphoreKey

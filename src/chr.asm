@@ -52,6 +52,7 @@
 .INCLUDE "avatar.inc"
 .INCLUDE "devices/breaker.inc"
 .INCLUDE "dialog.inc"
+.INCLUDE "machines/ammorack.inc"
 .INCLUDE "machines/blaster.inc"
 .INCLUDE "machines/boiler.inc"
 .INCLUDE "machines/bridge.inc"
@@ -862,6 +863,20 @@ _chr_begin:
     .assert .bank(*) = kChrBankDiagramRotor, error
     chr_inc "diagram_rotor", kTileIdBgDiagramRotorFirst
     chr_res $10
+    END_CHR_BANK
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "CHR_BgPortrait10"
+
+.PROC Ppu_ChrBgPortrait10
+    CHR1_BANK $c0
+    chr_res $20
+    .assert .bank(*) = kChrBankDiagramAmmoRack, error
+    chr_inc "diagram_ammo_rack", kTileIdBgDiagramAmmoRackFirst
+    .assert .bank(*) = kChrBankDiagramReloader, error
+    chr_inc "diagram_reloader", kTileIdBgDiagramReloaderFirst
     END_CHR_BANK
 .ENDPROC
 

@@ -34,4 +34,10 @@ kAmmoRackMachineHeightPx = $08
 ;;; How many frames an ammo rack machine spends per ACT operation.
 kAmmoRackActCountdown = 8
 
+;;; The CHR bank number containing the diagram for ammorack machines.
+kChrBankDiagramAmmoRack = $10
+
+;;; BG tile IDs for ammorack machine diagrams.
+kTileIdBgDiagramAmmoRackFirst = $e0
+
 ;;;=========================================================================;;;
