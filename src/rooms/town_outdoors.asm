@@ -92,12 +92,6 @@ kGrontaActorIndex = 3
 ;;; down to pick up the metal thing he found.
 kAlexPickupPositionX = $0590
 
-;;; CutsceneTimer_u8 values for various phases of the cutscene.
-kCutsceneTimerKneeling = 60
-kCutsceneTimerStanding = 20 + kCutsceneTimerKneeling
-kCutsceneTimerTurning  = 20 + kCutsceneTimerStanding
-kCutsceneTimerHolding  = 30 + kCutsceneTimerTurning
-
 ;;; Initial room pixel positions for the orc actors.
 kOrcInitPosY    = $0098
 kGrontaInitPosX = $05d7
@@ -108,8 +102,6 @@ kOrc2InitPosX   = $05f9
 
 ;;; Defines room-specific state data for this particular room.
 .STRUCT sState
-    ;; A timer used for animating cutscenes in this room.
-    CutsceneTimer_u8 .byte
     ;; Timer for making the second orc jump.
     OrcJumpTimer_u8  .byte
 .ENDSTRUCT
