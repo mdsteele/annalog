@@ -21,6 +21,7 @@
 .ENUM eInst
     Constant
     PulseBasic
+    PulseVibrato
     RampUp  ; TODO: get rid of this
     Staccato
     TriangleDrum

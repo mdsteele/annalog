@@ -65,6 +65,7 @@
     D_TABLE .enum, eInst
     d_entry table, Constant,        Func_InstrumentConstant
     d_entry table, PulseBasic,      Func_InstrumentPulseBasic
+    d_entry table, PulseVibrato,    Func_InstrumentPulseVibrato
     d_entry table, RampUp,          Func_InstrumentRampUp
     d_entry table, Staccato,        Func_InstrumentStaccato
     d_entry table, TriangleDrum,    Func_InstrumentTriangleDrum
@@ -81,6 +82,30 @@
 .PROC Func_InstrumentConstant
     lda Ram_Music_sChanInst_arr + sChanInst::Param_byte, x
     rts
+.ENDPROC
+
+;;; An instrument for the pulse channels that applies vibrato, as well as the
+;;; same duty/envelope characteristics as the PulseBasic instrument.  The
+;;; instrument param works the same as for PulseBasic.
+;;; @param X The channel number (0-4) times four (so, 0, 4, 8, 12, or 16).
+;;; @return A The duty/envelope byte to use.
+;;; @preserve X
+.PROC Func_InstrumentPulseVibrato
+_Vibrato:
+    lda Ram_Music_sChanNote_arr + sChanNote::ElapsedFrames_u8, x
+    and #$07
+    tay
+    lda Ram_Music_sChanNote_arr + sChanNote::TimerLo_byte, x
+    add Data_VibratoDelta_16_0_arr8, y
+    sta Hw_Channels_sChanRegs_arr5 + sChanRegs::TimerLo_wo, x
+    ;; Note that we intentionally *don't* carry the addition over into TimerHi
+    ;; here, because for pulse channels, writing to the TimerHi register resets
+    ;; the pulse phase, which adds an undesirable clicking noise (see
+    ;; https://www.nesdev.org/wiki/APU).  As long as we avoid using this
+    ;; instrument for pitches right next to a TimerLo carry boundary, then
+    ;; TimerHi wouldn't change anyway, and everything will sound fine.
+_Envelope:
+    .assert * = Func_InstrumentPulseBasic, error, "fallthrough"
 .ENDPROC
 
 ;;; A basic instrument for the pulse channels.  The bottom four bits of the
@@ -190,24 +215,34 @@ _Vibrato:
     .assert * = Func_InstrumentTriangleVibrato, error, "fallthrough"
 .ENDPROC
 
+;;; An instrument for the triangle channel that applies vibrato.  The
+;;; instrument param is ignored.
+;;; @param X The channel number (0-4) times four (so, 0, 4, 8, 12, or 16).
+;;; @return A The duty/envelope byte to use.
+;;; @preserve X
 .PROC Func_InstrumentTriangleVibrato
 _Vibrato:
     lda Ram_Music_sChanNote_arr + sChanNote::ElapsedFrames_u8, x
     and #$07
     tay
     lda Ram_Music_sChanNote_arr + sChanNote::TimerLo_byte, x
-    add _Delta_i16_0_arr8, y
+    add Data_VibratoDelta_16_0_arr8, y
     sta Hw_Channels_sChanRegs_arr5 + sChanRegs::TimerLo_wo, x
     lda Ram_Music_sChanNote_arr + sChanNote::TimerHi_byte, x
-    adc _Delta_i16_1_arr8, y
+    adc Data_VibratoDelta_16_1_arr8, y
     and #$07
     sta Hw_Channels_sChanRegs_arr5 + sChanRegs::TimerHi_wo, x
 _Envelope:
     lda #$ff
     rts
-_Delta_i16_0_arr8:
+.ENDPROC
+
+;;; A table of timer deltas to apply to instruments with vibrato, looped over
+;;; an eight-frame period.
+.PROC Data_VibratoDelta_16_0_arr8
     .byte <0, <2, <3, <2, <0, <-2, <-3, <-2
-_Delta_i16_1_arr8:
+.ENDPROC
+.PROC Data_VibratoDelta_16_1_arr8
     .byte >0, >2, >3, >2, >0, >-2, >-3, >-2
 .ENDPROC
 

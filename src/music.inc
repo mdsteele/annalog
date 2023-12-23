@@ -22,6 +22,7 @@
     Silence
     Boss1
     Boss2
+    Credits
     Crypt
     Mine
     Prison1

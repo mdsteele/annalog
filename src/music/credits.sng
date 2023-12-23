@@ -1,0 +1,39 @@
+@PRG8
+
+!SONG Credits "A|B"
+
+=tempo q24
+=key 3b  % c minor
+
+!INST 1V PulseVibrato $09 d1/4
+!INST 2B PulseBasic   $08 d3/4  % bass
+!INST TK TriangleDrum $20       % kick drum
+!INST ND Staccato $0b           % drum
+
+!PART A
+
+2| p(iB c3e cs c)1C :16 |
+T| p(iK rq ' c4e re)TA :8 |
+N| p(iD x1e x2s x2 ' xAe x2s x2)NA :8 |
+
+!PART B
+
+1| iV c4w+ | +h ' dq ' eq |
+ | d4w+ | +h ' eq ' fq |
+ | a4q. ee ' eh+ | +h ' eq ' fq |
+ | g4h.. ae | gh. gq |
+ | a4q. ee ' eh+ | +h ' fq ' aq |
+ | g4q. de ' dh+ | +h ' eq ' fq |
+ | g4h.. ae | g4h.. ae |
+ | g4q. ae ' g4q. ae | ge a ' g a ' gq ' g |
+2| p1C :8 |
+ | p(d3e ds d)1D :8 |
+ | p(e3e es e)1E :8 |
+ | p1D :8 |
+ | p1E :8 |
+ | p1D :8 |
+ | p(g3e gs g)1G :16 |
+T| pTA :30 |
+ | c4e re :4 |
+N| pNA :30 |
+ | xAe x2s x2 :2 ' xAq :2 |
