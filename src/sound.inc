@@ -22,6 +22,7 @@
     None
     Beep
     Explode
+    Launch
     Quest
     Sample
     Sequence

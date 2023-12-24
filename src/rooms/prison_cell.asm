@@ -68,6 +68,7 @@
 .IMPORT Func_MovePointLeftByA
 .IMPORT Func_MovePointRightByA
 .IMPORT Func_Noop
+.IMPORT Func_PlaySfxExplodeFracture
 .IMPORT Func_SetActorCenterToPoint
 .IMPORT Func_SetFlag
 .IMPORT Func_SetLastSpawnPoint
@@ -523,7 +524,7 @@ _RocketImpact:
     ;; TODO: more smoke/particles
     lda #kRocketShakeFrames  ; param: shake frames
     jsr Func_ShakeRoom
-    ;; TODO: play a sound
+    jsr Func_PlaySfxExplodeFracture
     lda #ePlatform::None
     sta Ram_PlatformType_ePlatform_arr + kUpperFloor1PlatformIndex
     sta Ram_PlatformType_ePlatform_arr + kUpperFloor2PlatformIndex
@@ -573,7 +574,7 @@ _TrapFloor:
     @continue:
     dey
     bpl @loop
-    ;; TODO: Play a sound.
+    jsr Func_PlaySfxExplodeFracture
     @done:
 _Gate:
     ;; Update the flag from the lever.

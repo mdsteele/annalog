@@ -17,57 +17,65 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
-.INCLUDE "macros.inc"
-.INCLUDE "sound.inc"
+.INCLUDE "../apu.inc"
+.INCLUDE "../audio.inc"
+.INCLUDE "../macros.inc"
+.INCLUDE "../sound.inc"
 
-.IMPORT Func_Noop
-.IMPORT Func_SfxBeep
-.IMPORT Func_SfxExplode
-.IMPORT Func_SfxLaunch
-.IMPORT Func_SfxQuest
-.IMPORT Func_SfxSample
-.IMPORT Func_SfxSequence
-.IMPORTZP Zp_AudioTmp1_byte
-.IMPORTZP Zp_AudioTmp2_byte
+.IMPORT Ram_Sound_sChanSfx_arr
+.IMPORTZP Zp_Next_sChanSfx_arr
+
+;;;=========================================================================;;;
+
+;;; The duration of the rocket launch sound, in frames.
+kSfxLaunchDurationFrames = $1c
 
 ;;;=========================================================================;;;
 
 .SEGMENT "PRG8"
 
-;;; Calls the SFX function for the specified sound on the specified APU
-;;; channel.
+;;; SFX function for a rocket launch sound.
 ;;; @param X The channel number (0-4) times four (so, 0, 4, 8, 12, or 16).
-;;; @param Y The eSound value for the SFX function to call.
 ;;; @return C Set if the sound is finished, cleared otherwise.
 ;;; @preserve X, T0+
-.EXPORT Func_AudioCallSfx
-.PROC Func_AudioCallSfx
-    lda Data_Sfx_func_ptr_0_arr, y
-    sta Zp_AudioTmp1_byte
-    lda Data_Sfx_func_ptr_1_arr, y
-    sta Zp_AudioTmp2_byte
-    .assert Zp_AudioTmp1_byte + 1 = Zp_AudioTmp2_byte, error
-    jmp (Zp_AudioTmp1_byte)
+.EXPORT Func_SfxLaunch
+.PROC Func_SfxLaunch
+    lda Ram_Sound_sChanSfx_arr + eChan::Noise + sChanSfx::Timer_u8
+    bne _Continue
+    sec  ; set C to indicate that the sound is finished
+    rts
+_Continue:
+    pha
+    div #2
+    ora #bEnvelope::NoLength | bEnvelope::ConstVol
+    sta Hw_NoiseEnvelope_wo
+    pla
+    rsub #kSfxLaunchDurationFrames
+    cmp #$0f
+    blt @setPeriod
+    lda #$0f
+    @setPeriod:
+    sta Hw_NoisePeriod_wo
+    lda #0
+    sta Hw_NoiseLength_wo
+    dec Ram_Sound_sChanSfx_arr + eChan::Noise + sChanSfx::Timer_u8
+    clc  ; clear C to indicate that the sound is still going
+    rts
 .ENDPROC
 
-;;; Maps from eSound enum values to SFX function pointers.  An SFX function is
-;;; called each frame that the sound effect is active to update the channel's
-;;; APU registers.
-;;; @param X The channel number (0-4) times four (so, 0, 4, 8, 12, or 16).
-;;; @return C Set if the sound is finished, cleared otherwise.
-;;; @preserve X, T0+
-.REPEAT 2, table
-    D_TABLE_LO table, Data_Sfx_func_ptr_0_arr
-    D_TABLE_HI table, Data_Sfx_func_ptr_1_arr
-    D_TABLE .enum, eSound
-    d_entry table, None,     Func_Noop
-    d_entry table, Beep,     Func_SfxBeep
-    d_entry table, Explode,  Func_SfxExplode
-    d_entry table, Launch,   Func_SfxLaunch
-    d_entry table, Quest,    Func_SfxQuest
-    d_entry table, Sample,   Func_SfxSample
-    d_entry table, Sequence, Func_SfxSequence
-    D_END
-.ENDREPEAT
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Machine"
+
+;;; Starts playing a rocket launch sound.
+;;; @preserve X, Y, T0+
+.EXPORT FuncA_Machine_PlaySfxLaunch
+.PROC FuncA_Machine_PlaySfxLaunch
+    lda #kSfxLaunchDurationFrames
+    sta Zp_Next_sChanSfx_arr + eChan::Noise + sChanSfx::Timer_u8
+    lda #eSound::Launch
+    sta Zp_Next_sChanSfx_arr + eChan::Noise + sChanSfx::Sfx_eSound
+    rts
+.ENDPROC
 
 ;;;=========================================================================;;;

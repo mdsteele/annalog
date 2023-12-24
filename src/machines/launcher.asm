@@ -27,6 +27,7 @@
 .INCLUDE "shared.inc"
 
 .IMPORT FuncA_Machine_Error
+.IMPORT FuncA_Machine_PlaySfxLaunch
 .IMPORT FuncA_Machine_StartWaiting
 .IMPORT FuncA_Objects_Alloc2x2MachineShape
 .IMPORT FuncA_Objects_GetMachineLightTileId
@@ -99,14 +100,13 @@ _DryFire:
     sta Ram_ActorState1_byte_arr, x  ; particle age in frames
     lda #eActor::SmokeParticle
     sta Ram_ActorType_eActor_arr, x
-    ;; TODO: play a sound?
     .assert eActor::SmokeParticle <> 0, error
     bne _Finish  ; unconditional
 _DecrementAmmo:
     ldx Zp_MachineIndex_u8
     dec Ram_MachineState1_byte_arr, x  ; ammo count
-    ;; TODO: play a sound
 _Finish:
+    jsr FuncA_Machine_PlaySfxLaunch
     lda #kLauncherActFrames  ; param: wait frames
     jmp FuncA_Machine_StartWaiting
 _Error:
