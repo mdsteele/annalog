@@ -63,6 +63,7 @@
 .IMPORT Func_IsPointInPlatform
 .IMPORT Func_MachineCannonReadRegY
 .IMPORT Func_Noop
+.IMPORT Func_PlaySfxExplodeSmall
 .IMPORT Func_SetPointToActorCenter
 .IMPORT Func_ShakeRoom
 .IMPORT Ppu_ChrBgAnimA0
@@ -746,7 +747,7 @@ _HitOpenEye:
 _ExplodeGrenade:
     ;; At this point, X is still the grenade actor index.
     jsr Func_InitActorSmokeExplosion
-    ;; TODO: play a sound for hitting the eye
+    jsr Func_PlaySfxExplodeSmall
 _Done:
     rts
 .ENDPROC

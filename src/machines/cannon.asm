@@ -28,6 +28,7 @@
 .INCLUDE "shared.inc"
 
 .IMPORT FuncA_Machine_Error
+.IMPORT FuncA_Machine_PlaySfxCannonFire
 .IMPORT FuncA_Machine_ReachedGoal
 .IMPORT FuncA_Machine_StartWaiting
 .IMPORT FuncA_Objects_Alloc2x2MachineShape
@@ -166,13 +167,15 @@ kTileIdObjCannonBarrelLow  = kTileIdObjCannonFirst + $04
     ;; replace the grenade with a smoke particle (so as to dry-fire the
     ;; cannon).
     lda Zp_ConsoleMachineIndex_u8
-    bmi @doneGrenade
+    bmi @noDryFire
     lda #eActor::SmokeParticle
     sta Ram_ActorType_eActor_arr, x
     lda #kSmokeParticleNumFrames / 2
     sta Ram_ActorState1_byte_arr, x  ; particle age in frames
-    ;; Set the cooldown for the ACT instruction.
+    @noDryFire:
+    jsr FuncA_Machine_PlaySfxCannonFire
     @doneGrenade:
+    ;; Set the cooldown for the ACT instruction.
     lda #kCannonActCountdown  ; param: wait frames
     jmp FuncA_Machine_StartWaiting
 .ENDPROC
