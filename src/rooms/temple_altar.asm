@@ -45,12 +45,14 @@
 .IMPORT FuncA_Objects_DrawMinigunDownMachine
 .IMPORT FuncA_Objects_DrawMinigunLeftMachine
 .IMPORT FuncA_Room_AreActorsWithinDistance
+.IMPORT FuncA_Room_PlaySfxCrack
 .IMPORT FuncA_Room_RemoveAllBulletsIfConsoleOpen
 .IMPORT FuncA_Room_ResetLever
 .IMPORT FuncC_Temple_DrawColumnCrackedPlatform
 .IMPORT Func_InitActorSmokeExplosion
 .IMPORT Func_IsPointInPlatform
 .IMPORT Func_Noop
+.IMPORT Func_PlaySfxExplodeFracture
 .IMPORT Func_SetFlag
 .IMPORT Func_SetPointToActorCenter
 .IMPORT Ppu_ChrObjTemple
@@ -392,17 +394,18 @@ _HitColumn:
     sta Ram_ActorType_eActor_arr, x
     ;; Hit the breakable column.
     inc Zp_RoomState + sState::BreakableColumnHits_u8
-    ;; TODO: play a sound
     ;; If the column is now broken, remove it.
     lda Zp_RoomState + sState::BreakableColumnHits_u8
     cmp #kNumHitsToBreakColumn
-    blt @done
+    bge @broken
+    jmp FuncA_Room_PlaySfxCrack
+    @broken:
     lda #ePlatform::None
     sta Ram_PlatformType_ePlatform_arr + kColumnPlatformIndex
     ldx #eFlag::TempleAltarColumnBroken  ; param: flag
-    jmp Func_SetFlag
-    @done:
-    rts
+    jsr Func_SetFlag
+    jmp Func_PlaySfxExplodeFracture
+    ;; TODO: Add smoke particles
 _HitBeetle:
     ;; Expire the bullet.
     lda #eActor::None
@@ -413,7 +416,7 @@ _HitBeetle:
     tya  ; beetle actor index
     tax  ; param: actor index
     jsr Func_InitActorSmokeExplosion
-    ;; TODO: play a sound
+    ;; TODO: play a sound for the beetle dying
     ;; Restore the bullet actor index (so this function can preserve X).
     pla  ; bullet actor index
     tax  ; bullet actor index

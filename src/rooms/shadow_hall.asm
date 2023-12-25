@@ -41,10 +41,12 @@
 .IMPORT FuncA_Machine_MinigunTryAct
 .IMPORT FuncA_Machine_ReachedGoal
 .IMPORT FuncA_Objects_DrawMinigunRightMachine
+.IMPORT FuncA_Room_PlaySfxCrack
 .IMPORT FuncA_Room_RemoveAllBulletsIfConsoleOpen
 .IMPORT FuncC_Shadow_DrawGlassPlatform
 .IMPORT Func_IsPointInPlatform
 .IMPORT Func_Noop
+.IMPORT Func_PlaySfxExplodeFracture
 .IMPORT Func_SetFlag
 .IMPORT Func_SetPointToActorCenter
 .IMPORT Ppu_ChrObjTemple
@@ -425,31 +427,37 @@ _BreakableGlass:
     ;; If the breakable glass is already destroyed, we're done.
     lda Ram_PlatformType_ePlatform_arr, y
     .assert ePlatform::None = 0, error
-    beq @done
+    beq _Return
     ;; If this bullet isn't hitting the glass, we're done.
     jsr Func_SetPointToActorCenter  ; preserves X
     jsr Func_IsPointInPlatform  ; preserves X and Y, returns C
-    bcc @done
+    bcc _Return
     ;; Expire the bullet.
     lda #eActor::None
     sta Ram_ActorType_eActor_arr, x
-    ;; TODO: play a sound
     ;; Hit the breakable glass.
     stx T0  ; bullet actor index
     ldx Zp_RoomState + sState::BreakableGlassHits_u8_arr, y
     inx
     txa
     sta Zp_RoomState + sState::BreakableGlassHits_u8_arr, y
-    ;; If the glass is now broken, remove it.
+    ;; Check if the glass is broken yet.
     cmp #kNumHitsToBreakGlass
-    blt @done
+    bge _Broken
+_NotBroken:
+    jsr FuncA_Room_PlaySfxCrack  ; preserves T0+
+    ldx T0  ; bullet actor index
+    rts
+_Broken:
     lda #ePlatform::None
     sta Ram_PlatformType_ePlatform_arr, y
     ;; TODO: either two separate flags, or only set flag once both are broken
     ldx #eFlag::ShadowHallGlassBroken  ; param: flag
     jsr Func_SetFlag  ; preserves T0+
+    jsr Func_PlaySfxExplodeFracture  ; preserves T0+
+    ;; TODO: Add smoke particles
     ldx T0  ; bullet actor index
-    @done:
+_Return:
     rts
 .ENDPROC
 
