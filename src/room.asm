@@ -157,7 +157,9 @@
 .IMPORT DataC_Town_House5_sRoom
 .IMPORT DataC_Town_House6_sRoom
 .IMPORT DataC_Town_Outdoors_sRoom
+.IMPORT Data_PowersOfTwo_u8_arr8
 .IMPORT FuncA_Room_InitActor
+.IMPORT Func_IsFlagSet
 .IMPORT Func_ProcessFrame
 .IMPORT Ram_ActorPosX_i16_0_arr
 .IMPORT Ram_ActorPosX_i16_1_arr
@@ -214,6 +216,18 @@ Zp_Current_sTileset: .tag sTileset
 ;;; Enter_func_ptr functions and/or machine Init_func_ptr functions.
 .EXPORTZP Zp_RoomState
 Zp_RoomState: .res kRoomStateSize
+
+;;;=========================================================================;;;
+
+;;; A bitfield that defines what music should play by default in a given room.
+.SCOPE bRoomMusic
+    Boss        = %10000000  ; if set, this is a boss room
+    Prison      = %01000000  ; if set, this is a Prison area room
+    BreakerMask = %00000111  ; bits used for the eBreaker when Boss bit is set
+    MusicMask   = %00011111  ; bits used for the eMusic when Boss/Prison unset
+.ENDSCOPE
+.ASSERT bRoomMusic::BreakerMask + 1 >= eBreaker::NUM_VALUES, error
+.ASSERT bRoomMusic::MusicMask + 1 >= eMusic::NUM_VALUES, error
 
 ;;;=========================================================================;;;
 
@@ -407,29 +421,57 @@ _LoadNewRoom:
 ;;; @return Y The eMusic value for the music to play in the specified room.
 ;;; @preserve X
 .PROC FuncA_Room_ChooseMusicForRoom
-    ldy DataA_Room_DefaultMusic_eMusic_arr, x
+    lda DataA_Room_Music_bRoomMusic_arr, x
+    ;; If the bRoomMusic::Boss bit is set, then this is a boss room.
+    .assert bRoomMusic::Boss = $80, error
+    bmi _BossMusic
+    .assert bRoomMusic::Prison = (1 << 6), error
+    ;; If the bRoomMusic::Prison bit is set, then this is a prison room.
+    bit Data_PowersOfTwo_u8_arr8 + 6
+    bne _PrisonMusic
+    ;; Otherwise, this room just uses a fixed music.
+    and #bRoomMusic::MusicMask
+    tay  ; eMusic value
+    rts
+_BossMusic:
+    ;; Check if this boss has been defeated yet.  If not, play the boss music;
+    ;; if so, play calm music.
+    and #bRoomMusic::BreakerMask
+    add #kFirstBossFlag
+    stx T0  ; eRoom value
+    tax  ; param: eFlag::Boss* value
+    jsr Func_IsFlagSet  ; preserves T0+, returns Z
+    bne @bossDead
+    @bossAlive:
+    ldy #eMusic::Boss1
+    .assert eMusic::Boss1 > 0, error
+    bne @setMusic  ; unconditional
+    @bossDead:
+    ldy #eMusic::Calm
+    @setMusic:
+    ldx T0  ; eRoom value (to preserve X)
+    rts
 _PrisonMusic:
-    ;; When returning to the Prison Caves after escaping, play the Prison2
-    ;; music instead of Prison1.
-    cpy #eMusic::Prison1
-    bne @done
+    ;; Play calm music in the Prison Caves until Anna first escapes; then play
+    ;; the prison break music when she returns thereafter.
+    ldy #eMusic::Calm
     flag_bit Sram_ProgressFlags_arr, eFlag::GardenLandingDroppedIn
     beq @done
-    ldy #eMusic::Prison2
+    ldy #eMusic::Prison
     @done:
     rts
 .ENDPROC
 
 ;;; Maps from eRoom values to the default eMusic to play in each room.
-.PROC DataA_Room_DefaultMusic_eMusic_arr
+.PROC DataA_Room_Music_bRoomMusic_arr
     D_ARRAY .enum, eRoom
-    d_byte BossCity,        eMusic::Boss1
-    d_byte BossCrypt,       eMusic::Boss1
-    d_byte BossGarden,      eMusic::Boss1
-    d_byte BossLava,        eMusic::Boss1
-    d_byte BossMine,        eMusic::Boss1
-    d_byte BossShadow,      eMusic::Boss1
-    d_byte BossTemple,      eMusic::Boss1
+    d_byte BossCity,        bRoomMusic::Boss | eBreaker::City
+    d_byte BossCrypt,       bRoomMusic::Boss | eBreaker::Crypt
+    d_byte BossGarden,      bRoomMusic::Boss | eBreaker::Garden
+    d_byte BossLava,        bRoomMusic::Boss | eBreaker::Lava
+    d_byte BossMine,        bRoomMusic::Boss | eBreaker::Mine
+    d_byte BossShadow,      bRoomMusic::Boss | eBreaker::Shadow
+    d_byte BossTemple,      bRoomMusic::Boss | eBreaker::Temple
     d_byte CityBuilding1,   eMusic::Silence
     d_byte CityBuilding2,   eMusic::Silence
     d_byte CityBuilding3,   eMusic::Silence
@@ -515,12 +557,12 @@ _PrisonMusic:
     d_byte MinePit,         eMusic::Mine
     d_byte MineSouth,       eMusic::Mine
     d_byte MineWest,        eMusic::Mine
-    d_byte PrisonCell,      eMusic::Prison1
-    d_byte PrisonCrossroad, eMusic::Prison2
-    d_byte PrisonEast,      eMusic::Prison2
-    d_byte PrisonEscape,    eMusic::Prison1
-    d_byte PrisonFlower,    eMusic::Prison2
-    d_byte PrisonUpper,     eMusic::Prison2
+    d_byte PrisonCell,      bRoomMusic::Prison
+    d_byte PrisonCrossroad, bRoomMusic::Prison
+    d_byte PrisonEast,      bRoomMusic::Prison
+    d_byte PrisonEscape,    bRoomMusic::Prison
+    d_byte PrisonFlower,    bRoomMusic::Prison
+    d_byte PrisonUpper,     bRoomMusic::Prison
     d_byte SewerAscent,     eMusic::Silence
     d_byte SewerBasin,      eMusic::Silence
     d_byte SewerFlower,     eMusic::Silence

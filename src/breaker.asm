@@ -29,6 +29,7 @@
 .INCLUDE "music.inc"
 .INCLUDE "oam.inc"
 .INCLUDE "room.inc"
+.INCLUDE "sample.inc"
 .INCLUDE "scroll.inc"
 .INCLUDE "spawn.inc"
 .INCLUDE "tileset.inc"
@@ -37,6 +38,7 @@
 .IMPORT FuncM_SwitchPrgcAndLoadRoom
 .IMPORT FuncM_SwitchPrgcAndLoadRoomWithMusic
 .IMPORT Func_FadeOutToBlack
+.IMPORT Func_PlaySfxSample
 .IMPORT Func_ProcessFrame
 .IMPORT Func_SetFlag
 .IMPORT Func_SetLastSpawnPointToActiveDevice
@@ -299,7 +301,8 @@ _FlipBreakerDevice:
     sta Ram_DeviceType_eDevice_arr, x
     lda #kBreakerDoneDeviceAnimStart
     sta Ram_DeviceAnim_u8_arr, x
-    rts
+    lda #eSample::Jump  ; param: eSample to play
+    jmp Func_PlaySfxSample
 _AnimateAvatarFlippingBreaker:
     ;; Animate the avatar to match the flipping breaker.
     lda Zp_Nearby_bDevice

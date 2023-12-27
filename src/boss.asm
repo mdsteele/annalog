@@ -17,10 +17,12 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
+.INCLUDE "audio.inc"
 .INCLUDE "boss.inc"
 .INCLUDE "device.inc"
 .INCLUDE "fade.inc"
 .INCLUDE "macros.inc"
+.INCLUDE "music.inc"
 .INCLUDE "room.inc"
 
 .IMPORT FuncA_Room_HaltAllMachines
@@ -34,6 +36,7 @@
 .IMPORT Func_LockDoorDevice
 .IMPORT Func_MarkRoomSafe
 .IMPORT Func_Noop
+.IMPORT Func_PlaySfxExplodeBig
 .IMPORT Func_SetActorCenterToPoint
 .IMPORT Func_SetFlag
 .IMPORT Func_TransferPalettes
@@ -47,6 +50,7 @@
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORT Ram_PlatformTop_i16_1_arr
 .IMPORTZP Zp_ConsoleMachineIndex_u8
+.IMPORTZP Zp_Next_sAudioCtrl
 .IMPORTZP Zp_PointX_i16
 .IMPORTZP Zp_PointY_i16
 
@@ -155,13 +159,17 @@ _BreakerAlreadyDone:
 ;;; @param A Zero if the boss is dead, nonzero otherwise.
 .EXPORT FuncA_Room_TickBoss
 .PROC FuncA_Room_TickBoss
-    ;; Don't tick the boss if a machine console is open.
-    ;; TODO: unless the eBossPhase is FlashWhite
+    ldy Zp_Boss_eBossPhase
+    ;; Don't tick the boss if a machine console is open, unless the eBossPhase
+    ;; is FlashWhite (since we don't want the screen to stay stuck on solid
+    ;; white while the console is open, to avoid confusing the player).
+    cpy #eBossPhase::FlashWhite
+    beq @done
     bit Zp_ConsoleMachineIndex_u8
     bpl _Return
-    ;; Handle the current boss phase.
+    @done:
+_HandleCurrentBossPhase:
     sta T2  ; zero if boss is dead
-    ldy Zp_Boss_eBossPhase
     lda _JumpTable_ptr_0_arr, y
     sta T0
     lda _JumpTable_ptr_1_arr, y
@@ -214,6 +222,9 @@ _BossBlinking:
     ;; Wait for the phase timer to reach zero.
     dec Zp_BossPhaseTimer_u8
     bne @done
+    ;; Turn off the boss music.
+    lda #eMusic::Silence
+    sta Zp_Next_sAudioCtrl + sAudioCtrl::Music_eMusic
     ;; Reinitialize the timer and proceed to the next phase.
     lda #kFramesPerExplosion * kBossNumExplosions
     sta Zp_BossPhaseTimer_u8
@@ -238,7 +249,7 @@ _BossExploding:
     bcs @noExplosion
     jsr Func_SetActorCenterToPoint  ; preserves X
     jsr Func_InitActorSmokeExplosion
-    ;; TODO: play a sound
+    jsr Func_PlaySfxExplodeBig
     @noExplosion:
     ;; Wait for the phase timer to reach zero.
     dec Zp_BossPhaseTimer_u8
@@ -246,7 +257,7 @@ _BossExploding:
     ;; Flash the screen to white.
     ldy #eFade::White  ; param: eFade value
     jsr Func_TransferPalettes
-    ;; TODO: play a sound
+    jsr Func_PlaySfxExplodeBig
     ;; Reinitialize the timer and proceed to the next phase.
     lda #kFlashWhiteFramesPerStep * kFlashWhiteNumFadeSteps
     sta Zp_BossPhaseTimer_u8
@@ -269,6 +280,9 @@ _FlashWhite:
     ;; Wait for the phase timer to reach zero.
     dec Zp_BossPhaseTimer_u8
     bne @done
+    ;; Start playing calm music.
+    lda #eMusic::Calm
+    sta Zp_Next_sAudioCtrl + sAudioCtrl::Music_eMusic
     ;; Reinitialize the timer and proceed to the next phase.
     lda #105  ; 1.75 seconds
     sta Zp_BossPhaseTimer_u8

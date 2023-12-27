@@ -199,6 +199,8 @@ kFirstRamUpgradeFlag = eFlag::UpgradeRam1
 kLastRamUpgradeFlag = eFlag::UpgradeRam4
 .ASSERT kNumRamUpgrades = kLastRamUpgradeFlag + 1 - kFirstRamUpgradeFlag, error
 
+;;; Check that the eFlag::Breaker* values line up one-to-one with eBreaker
+;;; values.
 kFirstBreakerFlag = eFlag::BreakerGarden
 kLastBreakerFlag = eFlag::BreakerShadow
 kNumBreakerFlags = eBreaker::NUM_VALUES
@@ -210,6 +212,17 @@ kNumBreakerFlags = eBreaker::NUM_VALUES
 .ASSERT eFlag::BreakerMine - kFirstBreakerFlag = eBreaker::Mine, error
 .ASSERT eFlag::BreakerCity - kFirstBreakerFlag = eBreaker::City, error
 .ASSERT eFlag::BreakerShadow - kFirstBreakerFlag = eBreaker::Shadow, error
+
+;;; Check that the eFlag::Boss* values also line up one-to-one with eBreaker
+;;; values.
+kFirstBossFlag = eFlag::BossGarden
+.ASSERT eFlag::BossGarden - kFirstBossFlag = eBreaker::Garden, error
+.ASSERT eFlag::BossTemple - kFirstBossFlag = eBreaker::Temple, error
+.ASSERT eFlag::BossCrypt - kFirstBossFlag = eBreaker::Crypt, error
+.ASSERT eFlag::BossLava - kFirstBossFlag = eBreaker::Lava, error
+.ASSERT eFlag::BossMine - kFirstBossFlag = eBreaker::Mine, error
+.ASSERT eFlag::BossCity - kFirstBossFlag = eBreaker::City, error
+.ASSERT eFlag::BossShadow - kFirstBossFlag = eBreaker::Shadow, error
 
 kFirstFlowerFlag = eFlag::FlowerTemple
 kLastFlowerFlag = eFlag::FlowerMine

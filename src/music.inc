@@ -22,11 +22,11 @@
     Silence
     Boss1
     Boss2
+    Calm
     Credits
     Crypt
     Mine
-    Prison1
-    Prison2
+    Prison
     Temple
     Title
     NUM_VALUES
