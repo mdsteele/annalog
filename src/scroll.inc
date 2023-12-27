@@ -23,4 +23,8 @@
     LockVert = %01000000  ; if set, vertical scrolling is locked
 .ENDSCOPE
 
+;;; If the room shake has at least this many frames left, the shake amplitude
+;;; is increased.
+kBigShakeFrames = 17
+
 ;;;=========================================================================;;;

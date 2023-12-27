@@ -28,7 +28,6 @@
 .IMPORT FuncA_Objects_MoveShapeRightOneTile
 .IMPORT FuncA_Objects_SetShapePosToDeviceTopLeft
 .IMPORT Ram_DeviceAnim_u8_arr
-.IMPORT Ram_DeviceType_eDevice_arr
 .IMPORT Ram_Oam_sObj_arr64
 
 ;;;=========================================================================;;;
@@ -38,25 +37,6 @@
 
 ;;; The OBJ palette number used for drawing breaker devices.
 kPaletteObjBreaker = 0
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Room"
-
-;;; Spawns a rising breaker device at the given device index (which should be a
-;;; Placeholder device with the breaker's eFlag as its target).  Also plays a
-;;; sound effect for the rising breaker.
-;;; @param X The device index.
-.EXPORT FuncA_Room_SpawnBreakerDevice
-.PROC FuncA_Room_SpawnBreakerDevice
-    lda #eDevice::BreakerRising
-    sta Ram_DeviceType_eDevice_arr, x
-    lda #kBreakerRisingDeviceAnimStart
-    sta Ram_DeviceAnim_u8_arr, x
-_PlaySound:
-    ;; TODO: play a sound
-    rts
-.ENDPROC
 
 ;;;=========================================================================;;;
 

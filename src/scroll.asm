@@ -297,7 +297,7 @@ _ShakeScrollY:
     lda Zp_RoomShake_u8
     beq @done
     dec Zp_RoomShake_u8
-    cmp #17
+    cmp #kBigShakeFrames
     bge @bigShake
     @smallShake:
     ;; Replace bit 0 of Zp_RoomScrollY_u8 with bit 1 of Zp_RoomShake_u8.

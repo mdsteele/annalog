@@ -20,13 +20,14 @@
 .INCLUDE "audio.inc"
 .INCLUDE "boss.inc"
 .INCLUDE "device.inc"
+.INCLUDE "devices/breaker.inc"
 .INCLUDE "fade.inc"
 .INCLUDE "macros.inc"
 .INCLUDE "music.inc"
 .INCLUDE "room.inc"
 
 .IMPORT FuncA_Room_HaltAllMachines
-.IMPORT FuncA_Room_SpawnBreakerDevice
+.IMPORT FuncA_Room_PlaySfxBreakerRising
 .IMPORT FuncA_Room_SpawnUpgradeDevice
 .IMPORT Func_DivMod
 .IMPORT Func_FindEmptyActorSlot
@@ -39,8 +40,10 @@
 .IMPORT Func_PlaySfxExplodeBig
 .IMPORT Func_SetActorCenterToPoint
 .IMPORT Func_SetFlag
+.IMPORT Func_ShakeRoom
 .IMPORT Func_TransferPalettes
 .IMPORT Func_UnlockDoorDevice
+.IMPORT Ram_DeviceAnim_u8_arr
 .IMPORT Ram_DeviceTarget_byte_arr
 .IMPORT Ram_DeviceType_eDevice_arr
 .IMPORT Ram_PlatformBottom_i16_0_arr
@@ -318,17 +321,29 @@ _SpawnBreaker:
     ;; Wait for the phase timer to reach zero.
     dec Zp_BossPhaseTimer_u8
     bne @done
-    ;; Show the breaker.
-    ldx #kBossBreakerDeviceIndex
-    jsr FuncA_Room_SpawnBreakerDevice
+    ;; Spawn the breaker.
+    lda #eDevice::BreakerRising
+    sta Ram_DeviceType_eDevice_arr + kBossBreakerDeviceIndex
+    lda #kBreakerRisingDeviceAnimStart
+    sta Ram_DeviceAnim_u8_arr + kBossBreakerDeviceIndex
+    jsr FuncA_Room_PlaySfxBreakerRising
     ;; Proceed to the next phase.
     lda #eBossPhase::FlipBreaker
     sta Zp_Boss_eBossPhase
     @done:
     rts
 _FlipBreaker:
-    ;; Wait until the player has activated the breaker.
+    ;; Shake the room continuously until the breaker finishes rising.
     lda Ram_DeviceType_eDevice_arr + kBossBreakerDeviceIndex
+    cmp #eDevice::BreakerRising
+    bne @finishedRising
+    lda Ram_DeviceAnim_u8_arr + kBossBreakerDeviceIndex
+    and #$03
+    bne @done
+    lda #6  ; param: num frames
+    jmp Func_ShakeRoom
+    @finishedRising:
+    ;; Wait until the player has activated the breaker.
     cmp #eDevice::BreakerDone
     bne @done
     ;; Unlock the door.

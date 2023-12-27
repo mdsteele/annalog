@@ -19,6 +19,7 @@
 
 .INCLUDE "../apu.inc"
 .INCLUDE "../audio.inc"
+.INCLUDE "../devices/breaker.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../sound.inc"
 
@@ -45,6 +46,17 @@
     .byte 0
 .ENDPROC
 
+;;; SFX sequence data for the "breaker rising" sound effect.
+.PROC Data_BreakerRising_sSfxSeq_arr
+    D_STRUCT sSfxSeq
+    d_byte Duration_u8, kBreakerRisingDeviceAnimStart
+    d_byte Env_bEnvelope, bEnvelope::NoLength | 0
+    d_byte Sweep_byte, 0
+    d_word Timer_u16, $008e
+    D_END
+    .byte 0
+.ENDPROC
+
 ;;;=========================================================================;;;
 
 .SEGMENT "PRGA_Cutscene"
@@ -55,6 +67,19 @@
 .PROC FuncA_Cutscene_PlaySfxFlipBreaker
     ldx #eChan::Noise
     ldya #Data_FlipBreaker_sSfxSeq_arr
+    jmp Func_PlaySfxSequence  ; preserves T0+
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Room"
+
+;;; Starts playing the sound for when a breaker device rises from the floor.
+;;; @preserve T0+
+.EXPORT FuncA_Room_PlaySfxBreakerRising
+.PROC FuncA_Room_PlaySfxBreakerRising
+    ldx #eChan::Noise
+    ldya #Data_BreakerRising_sSfxSeq_arr
     jmp Func_PlaySfxSequence  ; preserves T0+
 .ENDPROC
 

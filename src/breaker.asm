@@ -256,6 +256,8 @@ _FadeOut:
 _PlayBreakerSound_sCutscene:
     act_WaitFrames 4
     act_CallFunc FuncA_Cutscene_PlaySfxFlipBreaker
+    act_WaitFrames 12
+    act_ShakeRoom 16
     act_ForkStop $ff
 _AdjustAvatarOffset:
     lda #0
