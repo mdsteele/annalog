@@ -42,6 +42,7 @@
 .IMPORT DataA_Cutscene_PrisonUpperFreeAlex_sCutscene
 .IMPORT DataA_Cutscene_PrisonUpperFreeKids_sCutscene
 .IMPORT DataA_Cutscene_SharedFadeBackToBreakerRoom_sCutscene
+.IMPORT DataA_Cutscene_SharedFlipBreaker_sCutscene
 .IMPORT DataA_Cutscene_SharedTeleportIn_sCutscene
 .IMPORT DataA_Cutscene_SharedTeleportOut_sCutscene
 .IMPORT DataA_Cutscene_TempleEntryWaitUp_sCutscene
@@ -200,6 +201,8 @@ _Finish:
             DataA_Cutscene_PrisonUpperFreeKids_sCutscene
     d_entry table, SharedFadeBackToBreakerRoom, \
             DataA_Cutscene_SharedFadeBackToBreakerRoom_sCutscene
+    d_entry table, SharedFlipBreaker, \
+            DataA_Cutscene_SharedFlipBreaker_sCutscene
     d_entry table, SharedTeleportIn, \
             DataA_Cutscene_SharedTeleportIn_sCutscene
     d_entry table, SharedTeleportOut, \

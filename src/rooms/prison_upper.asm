@@ -44,6 +44,7 @@
 .IMPORT FuncC_Prison_OpenGateAndFlipLever
 .IMPORT FuncC_Prison_TickGatePlatform
 .IMPORT Func_Noop
+.IMPORT Func_PlaySfxExplodeBig
 .IMPORT Func_SetFlag
 .IMPORT Func_SetOrClearFlag
 .IMPORT Main_Breaker_FadeBackToBreakerRoom
@@ -443,7 +444,8 @@ _FreeAlex:
 .EXPORT DataA_Cutscene_PrisonUpperBreakerTemple_sCutscene
 .PROC DataA_Cutscene_PrisonUpperBreakerTemple_sCutscene
     act_WaitFrames 60
-    act_ShakeRoom 30  ; TODO: play a sound for the circuit shake
+    act_CallFunc Func_PlaySfxExplodeBig
+    act_ShakeRoom 30
     act_WaitFrames 20
     act_SetActorFlags kBrunoActorIndex, bObj::Pri
     act_SetActorFlags kNoraActorIndex, bObj::Pri | bObj::FlipH

@@ -53,6 +53,7 @@ kMaxForks = 4
     PrisonUpperFreeAlex
     PrisonUpperFreeKids
     SharedFadeBackToBreakerRoom  ; TODO: get rid of this
+    SharedFlipBreaker
     SharedTeleportIn
     SharedTeleportOut
     TempleEntryWaitUp

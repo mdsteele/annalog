@@ -35,6 +35,7 @@
 .IMPORT DataA_Room_Hut_sTileset
 .IMPORT FuncA_Dialog_AddQuestMarker
 .IMPORT Func_Noop
+.IMPORT Func_PlaySfxExplodeBig
 .IMPORT Func_SetFlag
 .IMPORT Main_Breaker_FadeBackToBreakerRoom
 .IMPORT Ppu_ChrObjVillage
@@ -229,7 +230,8 @@ _RemoveAlex:
 .PROC DataA_Cutscene_MermaidHut1BreakerCrypt_sCutscene
     act_RunDialog eDialog::MermaidHut1BreakerCrypt1
     act_WaitFrames 30
-    act_ShakeRoom 30  ; TODO: play a sound for the circuit shake
+    act_CallFunc Func_PlaySfxExplodeBig
+    act_ShakeRoom 30
     act_WaitFrames 60
     act_SetActorState1 kAlexActorIndex, eNpcChild::AlexHolding
     act_RunDialog eDialog::MermaidHut1BreakerCrypt2
@@ -239,7 +241,8 @@ _RemoveAlex:
 .EXPORT DataA_Cutscene_MermaidHut1BreakerGarden_sCutscene
 .PROC DataA_Cutscene_MermaidHut1BreakerGarden_sCutscene
     act_WaitFrames 60
-    act_ShakeRoom 30  ; TODO: play a sound for the circuit shake
+    act_CallFunc Func_PlaySfxExplodeBig
+    act_ShakeRoom 30
     act_WaitFrames 20
     act_SetActorFlags kEireneActorIndex, 0
     act_WaitFrames 10
