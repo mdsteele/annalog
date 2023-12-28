@@ -33,6 +33,7 @@
 .INCLUDE "../ppu.inc"
 .INCLUDE "../program.inc"
 .INCLUDE "../room.inc"
+.INCLUDE "../sample.inc"
 .INCLUDE "../scroll.inc"
 .INCLUDE "boss_garden.inc"
 
@@ -64,6 +65,7 @@
 .IMPORT Func_MachineCannonReadRegY
 .IMPORT Func_Noop
 .IMPORT Func_PlaySfxExplodeSmall
+.IMPORT Func_PlaySfxSample
 .IMPORT Func_SetPointToActorCenter
 .IMPORT Func_ShakeRoom
 .IMPORT Ppu_ChrBgAnimA0
@@ -726,6 +728,8 @@ _HitOpenEye:
     beq @doneDamage
     sub #1
     sta Zp_RoomState + sState::BossEyeHealth_u8_arr2, y
+    lda #eSample::BossHurtF  ; param: eSample to play
+    jsr Func_PlaySfxSample  ; preserves X and Y
     @doneDamage:
     ;; If the boss's total health is now zero, mark the boss as dead.
     lda Zp_RoomState + sState::BossEyeHealth_u8_arr2 + 0

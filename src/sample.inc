@@ -19,8 +19,20 @@
 
 ;;; Samples that can be played on the DMC as sound effects.
 .ENUM eSample
-    Harm  ; when Anna gets hurt
-    Jump  ; when Anna jumps
+    BossRoar0  ; a boss roar (deepest)
+    BossRoar1  ; a boss roar
+    BossRoar2  ; a boss roar
+    BossRoar3  ; a boss roar
+    BossRoar4  ; a boss roar
+    BossRoar5  ; a boss roar
+    BossRoar6  ; a boss roar
+    BossRoar7  ; a boss roar
+    BossRoar8  ; a boss roar (highest)
+    BossHurtD  ; a boss gets hurt (deepest)
+    BossHurtE  ; a boss gets hurt (medium)
+    BossHurtF  ; a boss gets hurt (highest)
+    Harm       ; when Anna gets hurt
+    Jump       ; when Anna jumps
     NUM_VALUES
 .ENDENUM
 

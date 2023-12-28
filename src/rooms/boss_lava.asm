@@ -32,6 +32,7 @@
 .INCLUDE "../ppu.inc"
 .INCLUDE "../program.inc"
 .INCLUDE "../room.inc"
+.INCLUDE "../sample.inc"
 .INCLUDE "boss_lava.inc"
 
 .IMPORT DataA_Room_Lava_sTileset
@@ -82,6 +83,7 @@
 .IMPORT Func_MovePointDownByA
 .IMPORT Func_MovePointLeftByA
 .IMPORT Func_Noop
+.IMPORT Func_PlaySfxSample
 .IMPORT Func_SetActorCenterToPoint
 .IMPORT Func_SetPointToActorCenter
 .IMPORT Func_SetPointToAvatarCenter
@@ -539,7 +541,8 @@ _CheckForHitTail:
     sta Zp_RoomState + sState::Current_eBossMode
     lda #kBossHurtCooldown
     sta Zp_RoomState + sState::BossCooldown_u8
-    ;; TODO: Play a sound for the boss getting hurt.
+    lda #eSample::BossHurtE  ; param: eSample to play
+    jsr Func_PlaySfxSample
     @done:
 _CoolDown:
     lda Zp_RoomState + sState::BossCooldown_u8

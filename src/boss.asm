@@ -25,6 +25,7 @@
 .INCLUDE "macros.inc"
 .INCLUDE "music.inc"
 .INCLUDE "room.inc"
+.INCLUDE "sample.inc"
 
 .IMPORT FuncA_Room_HaltAllMachines
 .IMPORT FuncA_Room_PlaySfxBreakerRising
@@ -38,6 +39,7 @@
 .IMPORT Func_MarkRoomSafe
 .IMPORT Func_Noop
 .IMPORT Func_PlaySfxExplodeBig
+.IMPORT Func_PlaySfxSample
 .IMPORT Func_SetActorCenterToPoint
 .IMPORT Func_SetFlag
 .IMPORT Func_ShakeRoom
@@ -63,7 +65,7 @@
 kFramesPerExplosion = 12
 
 ;;; How many explosions to make during the BossExploding phase.
-kBossNumExplosions = 12
+kBossNumExplosions = 16
 
 ;;; How many frames to wait between fade steps during the FlashWhite phase.
 kFlashWhiteFramesPerStep = 7
@@ -214,6 +216,11 @@ _BossBattle:
     jsr Func_SetFlag
     jsr Func_MarkRoomSafe
     jsr FuncA_Room_HaltAllMachines
+    ;; Turn off the boss music.
+    lda #eMusic::Silence
+    sta Zp_Next_sAudioCtrl + sAudioCtrl::Music_eMusic
+    lda #eSample::BossRoar7  ; param: eSample to play
+    jsr Func_PlaySfxSample
     ;; Reinitialize the timer and proceed to the next phase.
     lda #45  ; 0.75 seconds
     sta Zp_BossPhaseTimer_u8
@@ -225,9 +232,6 @@ _BossBlinking:
     ;; Wait for the phase timer to reach zero.
     dec Zp_BossPhaseTimer_u8
     bne @done
-    ;; Turn off the boss music.
-    lda #eMusic::Silence
-    sta Zp_Next_sAudioCtrl + sAudioCtrl::Music_eMusic
     ;; Reinitialize the timer and proceed to the next phase.
     lda #kFramesPerExplosion * kBossNumExplosions
     sta Zp_BossPhaseTimer_u8
