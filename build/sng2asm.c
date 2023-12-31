@@ -307,6 +307,7 @@ static struct {
   int current_phrase_for_channel[NUM_CHANNELS];
   int is_defining_phrase;  // 0 or 1
   int sample_index; // -1 = non-sample, otherwise index into parser.samples
+  int sample_max_frames; // max sample length in frames
   int noise_period; // -1 = non-noise, otherwise 0x0-0xF
   int named_pitch; // -1 = rest, 0 = C, 1 = C#, ..., 11 = B
   int base_pitch; // initially, named_pitch with current_key applied
@@ -373,6 +374,7 @@ static void start_note(void) {
   }
   parser.noise_period = -1;
   parser.sample_index = -1;
+  parser.sample_max_frames = 0;
   parser.named_pitch = -1;
   parser.base_pitch = -1;
   parser.pitch_adjust = 0;
@@ -422,6 +424,7 @@ static void start_sample(void) {
     ERROR("no such DPCM sample: '%c'\n", letter);
   }
   parser.sample_index = sample_index;
+  parser.sample_max_frames = read_unsigned_decimal_int();
   parser.state = BEGIN_DURATION;
 }
 
@@ -549,7 +552,11 @@ static void emit_noise(int noise_period, int num_frames) {
 }
 
 static void emit_sample(int sample_index, int num_frames) {
-  if (num_frames > 255) {
+  int sample_frames = num_frames;
+  if (parser.sample_max_frames < sample_frames) {
+    sample_frames = parser.sample_max_frames;
+  }
+  if (sample_frames > 255) {
     ERROR("can't emit DPCM sample with duration of %d (max is 255)\n",
           num_frames);
   }
@@ -558,7 +565,8 @@ static void emit_sample(int sample_index, int num_frames) {
   note->kind = NT_DPCM;
   note->id = sample->id;
   note->param = sample->length_param;
-  note->duration = num_frames;
+  note->duration = sample_frames;
+  emit_rest(num_frames - sample_frames);
 }
 
 static void finish_note(void) {

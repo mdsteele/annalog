@@ -28,32 +28,19 @@
 
 ;;;=========================================================================;;;
 
-.SEGMENT "PRGE_Sample"
+.SEGMENT "PRGE_SfxSample"
 
 ;;; Delta modulated sample data for eSample::Boss*.
-.ALIGN kDmcSampleAlign
 .PROC Data_SampleBoss_arr
-:   .incbin "out/samples/boss.dm"
+:   .assert * .mod kDmcSampleAlign = 0, error
+    .incbin "out/samples/sfx_boss.dm"
     .assert (* - :-) .mod 16 = 1, error
 .ENDPROC
 
-;;; Delta modulated sample data for eSample::Harm.
-.ALIGN kDmcSampleAlign
-.PROC Data_SampleHarm_arr
-:   .incbin "out/samples/harm.dm"
-    .assert (* - :-) .mod 16 = 1, error
-.ENDPROC
-
-;;; Delta modulated sample data for eSample::Jump.
-.ALIGN kDmcSampleAlign
-.PROC Data_SampleJump_arr
-:   .incbin "out/samples/jump.dm"
-    .assert (* - :-) .mod 16 = 1, error
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRG8"
+;;; We have some space before the next sample can begin, room enough for some
+;;; other data.
+SampleGap1:
+kSampleGap1Size = kDmcSampleAlign - (* .mod kDmcSampleAlign)
 
 ;;; The DMC sample rate (0-$f) to use for each sample.
 .PROC Data_SampleRate_u8_arr
@@ -94,6 +81,50 @@
     d_byte Jump,      <(Data_SampleJump_arr >> 6)
     D_END
 .ENDPROC
+
+;;; Align to the next sample, and make sure we didn't overshoot the gap.
+.ALIGN kDmcSampleAlign
+.ASSERT * - SampleGap1 = kSampleGap1Size, error
+
+;;; Delta modulated sample data for eSample::Harm.
+.PROC Data_SampleHarm_arr
+:   .assert * .mod kDmcSampleAlign = 0, error
+    .incbin "out/samples/sfx_harm.dm"
+    .assert (* - :-) .mod 16 = 1, error
+.ENDPROC
+
+;;; We have some space before the next sample can begin, room enough for a
+;;; function.
+SampleGap2:
+kSampleGap2Size = kDmcSampleAlign - (* .mod kDmcSampleAlign)
+
+;;; Starts playing a delta modulated sample sound effect on the DMC.
+;;; @param A The eSample value for the sample to play.
+;;; @preserve X, Y, T0+
+.EXPORT Func_PlaySfxSample
+.PROC Func_PlaySfxSample
+    sta Zp_Next_sChanSfx_arr + eChan::Dmc + sChanSfx::Param1_byte
+    lda #0
+    sta Zp_Next_sChanSfx_arr + eChan::Dmc + sChanSfx::Timer_u8
+    lda #eSound::Sample
+    sta Zp_Next_sChanSfx_arr + eChan::Dmc + sChanSfx::Sfx_eSound
+    rts
+.ENDPROC
+
+;;; Align to the next sample, and make sure we didn't overshoot the gap.
+.ALIGN kDmcSampleAlign
+.ASSERT * - SampleGap2 = kSampleGap2Size, error
+
+;;; Delta modulated sample data for eSample::Jump.
+.PROC Data_SampleJump_arr
+:   .assert * .mod kDmcSampleAlign = 0, error
+    .incbin "out/samples/sfx_jump.dm"
+    .assert (* - :-) .mod 16 = 1, error
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRG8"
 
 ;;; The encoded byte length for each sample.
 .PROC Data_SampleLength_u8_arr
@@ -162,19 +193,6 @@ _Initialize:
 _Continue:
     inc Ram_Sound_sChanSfx_arr + sChanSfx::Timer_u8, x
     clc  ; clear C to indicate that the sound is still going
-    rts
-.ENDPROC
-
-;;; Starts playing a delta modulated sample sound effect on the DMC.
-;;; @param A The eSample value for the sample to play.
-;;; @preserve X, Y, T0+
-.EXPORT Func_PlaySfxSample
-.PROC Func_PlaySfxSample
-    sta Zp_Next_sChanSfx_arr + eChan::Dmc + sChanSfx::Param1_byte
-    lda #0
-    sta Zp_Next_sChanSfx_arr + eChan::Dmc + sChanSfx::Timer_u8
-    lda #eSound::Sample
-    sta Zp_Next_sChanSfx_arr + eChan::Dmc + sChanSfx::Sfx_eSound
     rts
 .ENDPROC
 

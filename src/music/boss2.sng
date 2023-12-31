@@ -1,19 +1,23 @@
 @PRGC_Core
 
+!DPCM K Data_SampleKickDrum_arr657 657
+
 !SONG Boss2 "N|AABCEEGHIJ"
 
 =tempo q24
 =key 3b  % c minor
 
-!INST 1H PulseBasic $08 d1/2
-!INST 1Q PulseBasic $08 d1/4
-!INST 1E PulseBasic $08 d1/8
-!INST 2E Staccato   $0a d1/8
-!INST 2L PulseBasic $09 d3/4
-!INST 2S Staccato   $0a d3/4
-!INST TB Constant $ff         % bass
-!INST TK TriangleDrum $20     % kick drum
-!INST ND Staccato $0b         % drum
+!INST 1H PulseBasic   $08 d1/2
+!INST 1Q PulseBasic   $08 d1/4
+!INST 1E PulseBasic   $08 d1/8
+!INST 2E Staccato     $0a d1/8
+!INST 2L PulseBasic   $09 d3/4
+!INST 2S Staccato     $0a d3/4
+!INST TB Constant     $ff       % bass
+!INST TK TriangleDrum $20       % kick drum
+!INST ND Staccato     $0b       % drum
+!INST DK Constant     $4e       % kick drum
+!INST DO Constant     $4a       % orch hit
 
 !PART N
 
@@ -27,6 +31,8 @@ T| rw+w |
  | iK c4e re ' c4e re ' e4e e4e ' g4s g4s g4s g4s |
 N| iD rq ' x7q :4 |
  | x7q ' x7 ' x7e x7 ' x7s x7 x7 x7 |
+D| iO sK25w :2 |
+ | sK25q :4 |
 
 !PART A
 
@@ -34,6 +40,7 @@ N| iD rq ' x7q :4 |
 T| iB re c5e ' iK c4e iB c5e ' rq ' iK c4e re :4 |
 N| p(iD xAq ' x7q ' re x6e ' x7q)NA :3 |
  | xAq ' x7q ' x5s x6 x8e ' x7q |
+D| iO sK50w :4 |
 
 !PART B
 
@@ -47,6 +54,7 @@ N| p(iD xAq ' x7q ' re x6e ' x7q)NA :3 |
  | iS f3s f iL fe ' ae as iS fe fs iL fe ' ae a |
 T| p(iK rq ' c4e re+ ' +q ' iK c4e re)TB :4 |
 N=:AN
+D| p(iK sK13w)DS :4 |
 
 !PART C
 
@@ -57,6 +65,7 @@ N=:AN
 2=:B2
 T=:BT
 N=:BN
+D=:BD
 
 !PART E
 
@@ -70,6 +79,7 @@ T| iB c4q ' iK c4e re :2 |
  | iB e4q ' iK c4e re :2 |
  | iB f4q ' iK c4e re ' iB f4e g ' iK c4e iB b4e |
 N=:BN
+D| p(iK sK13h)DQ :8 |
 
 !PART G
 1| p(iQ c5s bv a g ' ae   f    ' cs d e f ' ge  e    |
@@ -79,12 +89,14 @@ N=:BN
 2=:B2
 T=:BT
 N=:BN
+D=:ED
 
 !PART H
 1| p1G | c4s d e g ' c^ av f d :3 ' c4e. ee. ce |
 2=:G2
 T| pTB :3 | iK c4e re ' c4e re ' e4e
 N| pNA :3 | x7q ' x7 ' x7e
+D=:ED
 
 !PART I
 
@@ -98,6 +110,7 @@ N| pNA :3 | x7q ' x7 ' x7e
  | a3q+e be+q ' p(iS b3s b iL be)IB |
 T=:BT
 N=:AN
+D| pDS :3 pDQ :2 |
 
 !PART J
 
@@ -111,3 +124,4 @@ N=:AN
  | c3h ' pIC :2 |
 T=:IT
 N=:IN
+D| pDS :2 pDQ :4 |

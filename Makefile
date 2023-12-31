@@ -23,11 +23,11 @@ OUTDIR = out
 OBJDIR = $(OUTDIR)/obj
 BUILD_OUT_DIR = $(OUTDIR)/build
 DATA_OUT_DIR = $(OUTDIR)/data
+DM_OUT_DIR = $(OUTDIR)/samples
 LIB_OUT_DIR = $(OUTDIR)/lib
 MUSIC_OUT_DIR = $(OUTDIR)/music
 ROOM_OUT_DIR = $(OUTDIR)/rooms
 SIM65_OUT_DIR = $(OUTDIR)/sim65
-SFX_OUT_DIR = $(OUTDIR)/samples
 TILE_OUT_DIR = $(OUTDIR)/tiles
 TSET_OUT_DIR = $(OUTDIR)/tilesets
 
@@ -40,6 +40,13 @@ SNG2ASM = $(BUILD_OUT_DIR)/sng2asm
 WAV2DM = $(BUILD_OUT_DIR)/wav2dm
 
 INC_FILES := $(shell find src -name '*.inc' | sort)
+
+INST_WAV_FILES := $(shell find src/samples -name 'inst_*.wav' | sort)
+INST_DM_FILES := \
+  $(patsubst src/samples/%.wav,$(DM_OUT_DIR)/%.dm,$(INST_WAV_FILES))
+SFX_WAV_FILES := $(shell find src/samples -name 'sfx_*.wav' | sort)
+SFX_DM_FILES := \
+  $(patsubst src/samples/%.wav,$(DM_OUT_DIR)/%.dm,$(SFX_WAV_FILES))
 
 MUSIC_SNG_FILES := $(shell find src/music -name '*.sng' | sort)
 MUSIC_ASM_FILES := \
@@ -55,10 +62,6 @@ ROOM_BG_FILES := $(shell find src/rooms -name '*.bg' | sort)
 ROOM_ROOM_FILES := \
   $(patsubst src/rooms/%.bg,$(ROOM_OUT_DIR)/%.room,$(ROOM_BG_FILES))
 ROOM_LIB_FILE = $(LIB_OUT_DIR)/rooms.lib
-
-SFX_WAV_FILES := $(shell find src/samples -name '*.wav' | sort)
-SFX_DM_FILES := \
-  $(patsubst src/samples/%.wav,$(SFX_OUT_DIR)/%.dm,$(SFX_WAV_FILES))
 
 TILE_AHI_FILES := $(shell find src/tiles -name '*.ahi' | sort)
 TILE_CHR_FILES := \
@@ -211,11 +214,11 @@ $(TSET_OUT_DIR)/%.asm: src/tilesets/%.bg $(BG2TSET) $(TILE_AHI_FILES)
 	@$(BG2TSET) $* < $< > $@
 .SECONDARY: $(TSET_ASM_FILES)
 
-$(SFX_OUT_DIR)/%.dm: src/samples/%.wav $(WAV2DM)
+$(DM_OUT_DIR)/%.dm: src/samples/%.wav $(WAV2DM)
 	@echo "Converting $<"
 	@mkdir -p $(@D)
 	@$(WAV2DM) < $< > $@
-.SECONDARY: $(SFX_DM_FILES)
+.SECONDARY: $(INST_DM_FILES) $(SFX_DM_FILES)
 
 $(ROM_BIN_FILE).ram.nl: $(ROM_LABEL_FILE) $(LABEL2NL)
 	@echo "Generating $@"
@@ -247,6 +250,9 @@ $(SIM65_OUT_DIR)/%: \
 # OBJ files:
 
 $(OBJDIR)/chr.o: src/chr.asm $(INC_FILES) $(TILE_CHR_FILES)
+	$(compile-asm)
+
+$(OBJDIR)/inst.o: src/inst.asm $(INC_FILES) $(INST_DM_FILES)
 	$(compile-asm)
 
 $(OBJDIR)/minimap.o: src/minimap.asm $(INC_FILES) $(DATA_OUT_DIR)/minimap.map

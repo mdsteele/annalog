@@ -236,11 +236,7 @@ _StartSfx:
     sta Zp_Next_sChanSfx_arr + sChanSfx::Sfx_eSound, x
     ;; Disable the channel that the sound is about to play on, so as to reset
     ;; its state (it'll get enabled again when we call the SFX function).
-    lda Zp_CurrentChannel_bApuStatus
-    eor #$ff
-    and Zp_ActiveChannels_bApuStatus
-    sta Zp_ActiveChannels_bApuStatus
-    sta Hw_ApuStatus_rw
+    jsr Func_DisableCurrentChannel  ; preserves X
     ;; Continue to the next channel.
     @continue:
     .repeat .sizeof(sChanSfx)
@@ -528,15 +524,22 @@ _NoteTone:
     lda Ram_Sound_sChanSfx_arr + sChanSfx::Sfx_eSound, x
     .assert eSound::None = 0, error
     bne _SkipTone
-    ;; Enable the channel.
-    lda Zp_CurrentChannel_bApuStatus
-    ora Zp_ActiveChannels_bApuStatus
-    sta Zp_ActiveChannels_bApuStatus
-    sta Hw_ApuStatus_rw
-    ;; Reset sweep and note frames.
+    sta Ram_Music_sChanNote_arr + sChanNote::ElapsedFrames_u8, x  ; A is zero
+    ;; For non-DMC channels, we need to enable the channel *before* writing the
+    ;; registers (because otherwise the writes won't take effect), and we want
+    ;; to reset sweep to zero by default.  For the DMC channel, the sweep
+    ;; register is used for setting the DMC level directly, and we want to
+    ;; reset it back to the mid-level value of $40 out of $7f.
+    cpx #eChan::Dmc
+    bne @notDmc
+    @isDmc:
+    lda #$40
+    bne @setSweep  ; unconditional
+    @notDmc:
+    jsr Func_EnableCurrentChannel  ; preserves X and Zp_AudioTmp*_byte
     lda #0
+    @setSweep:
     sta Hw_Channels_sChanRegs_arr5 + sChanRegs::Sweep_wo, x
-    sta Ram_Music_sChanNote_arr + sChanNote::ElapsedFrames_u8, x
     ;; Read the second byte of the TONE note and use it as the TimerLo value.
     lda (Zp_Music_sChanNext_arr + sChanNext::PhraseNext_ptr, x)
     sta Ram_Music_sChanNote_arr + sChanNote::TimerLo_byte, x
@@ -546,6 +549,12 @@ _NoteTone:
     and #bNote::ToneMask
     sta Ram_Music_sChanNote_arr + sChanNote::TimerHi_byte, x
     sta Hw_Channels_sChanRegs_arr5 + sChanRegs::TimerHi_wo, x
+    ;; For the DMC channel, we need to enable the channel *after* updating the
+    ;; registers (because otherwise it will restart the previous sample).
+    cpx #eChan::Dmc
+    bne @enableDone
+    jsr Func_EnableCurrentChannel  ; preserves X
+    @enableDone:
     ;; Increment the channel's PhraseNext_ptr a second time.
     inc Zp_Music_sChanNext_arr + sChanNext::PhraseNext_ptr + 0, x
     bne @incDone2
@@ -602,14 +611,7 @@ _DisableChannelUnlessSfx:
     ;; Disable this channel unless it's playing SFX.
     lda Ram_Sound_sChanSfx_arr + sChanSfx::Sfx_eSound, x
     .assert eSound::None = 0, error
-    bne _Return
-_DisableChannel:
-    lda Zp_CurrentChannel_bApuStatus
-    eor #$ff
-    and Zp_ActiveChannels_bApuStatus
-    sta Zp_ActiveChannels_bApuStatus
-    sta Hw_ApuStatus_rw
-_Return:
+    beq Func_DisableCurrentChannel  ; preserves C and X
     rts
 .ENDPROC
 
@@ -643,7 +645,7 @@ _Return:
     ;; SFX function (because otherwise the register writes won't take effect).
     cpx #eChan::Dmc
     beq @callSfx
-    jsr _EnableChannel
+    jsr Func_EnableCurrentChannel  ; preserves X
     @callSfx:
     ;; Call the SFX function and check if the sound is now finished.
     jsr Func_AudioCallSfx  ; preserves X, sets C if sound is done
@@ -651,22 +653,33 @@ _Return:
     ;; For the DMC channel, we need to enable the channel *after* calling the
     ;; SFX function (because otherwise it will restart the previous sample).
     cpx #eChan::Dmc
-    beq _EnableChannel
+    beq Func_EnableCurrentChannel  ; preserves X
 _Return:
     rts
 _SoundFinished:
+    ;; Halt the SFX.
+    lda #eSound::None
+    sta Ram_Sound_sChanSfx_arr + sChanSfx::Sfx_eSound, x
     ;; Disable the channel.
+    .assert * = Func_DisableCurrentChannel, error, "fallthrough"
+.ENDPROC
+
+;;; Disables the current APU channel.
+;;; @prereq Zp_CurrentChannel_bApuStatus is initialized.
+;;; @preserve C, X, Y, Zp_AudioTmp*_byte
+.PROC Func_DisableCurrentChannel
     lda Zp_CurrentChannel_bApuStatus
     eor #$ff
     and Zp_ActiveChannels_bApuStatus
     sta Zp_ActiveChannels_bApuStatus
     sta Hw_ApuStatus_rw
-    ;; Halt the SFX.
-    lda #eSound::None
-    sta Ram_Sound_sChanSfx_arr + sChanSfx::Sfx_eSound, x
-    @done:
     rts
-_EnableChannel:
+.ENDPROC
+
+;;; Enables the current APU channel.
+;;; @prereq Zp_CurrentChannel_bApuStatus is initialized.
+;;; @preserve C, X, Y, Zp_AudioTmp*_byte
+.PROC Func_EnableCurrentChannel
     lda Zp_CurrentChannel_bApuStatus
     ora Zp_ActiveChannels_bApuStatus
     sta Zp_ActiveChannels_bApuStatus

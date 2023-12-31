@@ -247,3 +247,15 @@ _Envelope:
 .ENDPROC
 
 ;;;=========================================================================;;;
+
+.SEGMENT "PRGE_InstSample"
+
+.GLOBAL Data_SampleKickDrum_arr657
+.PROC Data_SampleKickDrum_arr657
+:   .assert * .mod kDmcSampleAlign = 0, error
+    .incbin "out/samples/inst_kick.dm"
+    .assert (* - :-) .mod 16 = 1, error
+.ENDPROC
+.ASSERT .sizeof(Data_SampleKickDrum_arr657) = 657, error
+
+;;;=========================================================================;;;
