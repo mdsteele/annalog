@@ -65,6 +65,7 @@
     D_TABLE .enum, eInst
     d_entry table, Constant,        Func_InstrumentConstant
     d_entry table, PulseBasic,      Func_InstrumentPulseBasic
+    d_entry table, PulsePluck,      Func_InstrumentPulsePluck
     d_entry table, PulseVibrato,    Func_InstrumentPulseVibrato
     d_entry table, RampUp,          Func_InstrumentRampUp
     d_entry table, Staccato,        Func_InstrumentStaccato
@@ -136,6 +137,46 @@ _Envelope:
     rts
 .ENDPROC
 
+;;; An instrument for the pulse channels that makes a plucking sound.  The
+;;; bottom four bits of the instrument param specify the max volume, which
+;;; fades out over time.  The top two bits of the instrument param specify the
+;;; pulse duty after the initial pluck.
+;;; @param X The channel number (0-4) times four (so, 0, 4, 8, 12, or 16).
+;;; @return A The duty/envelope byte to use.
+;;; @preserve X
+.PROC Func_InstrumentPulsePluck
+    lda Ram_Music_sChanInst_arr + sChanInst::Param_byte, x
+    and #bEnvelope::VolMask
+    sta Zp_AudioTmp1_byte  ; max volume
+    lda Ram_Music_sChanNote_arr + sChanNote::ElapsedFrames_u8, x
+    cmp #2
+    bge _Decay
+_Pluck:
+    lda Zp_AudioTmp1_byte  ; max volume
+    ora #bEnvelope::Duty12 | bEnvelope::NoLength | bEnvelope::ConstVol
+    rts
+_Decay:
+    div #2
+    rsub Zp_AudioTmp1_byte  ; max volume
+    blt Func_InstrumentSilent
+    .assert * = Func_CombineVolumeWithDuty, error, "fallthrough"
+.ENDPROC
+
+;;; Combines the given volume value with the pulse duty bits from the
+;;; instrument param to produce a final duty/envelope byte.
+;;; @param A The volume value (0-15).
+;;; @param X The channel number (0-4) times four (so, 0, 4, 8, 12, or 16).
+;;; @return A The duty/envelope byte to use.
+;;; @preserve X
+.PROC Func_CombineVolumeWithDuty
+    sta Zp_AudioTmp1_byte  ; volume
+    lda Ram_Music_sChanInst_arr + sChanInst::Param_byte, x
+    and #bEnvelope::DutyMask
+    ora #bEnvelope::NoLength | bEnvelope::ConstVol
+    ora Zp_AudioTmp1_byte  ; volume
+    rts
+.ENDPROC
+
 .PROC Func_InstrumentRampUp
     lda Ram_Music_sChanNote_arr + sChanNote::ElapsedFrames_u8, x
     cmp #$0f
@@ -154,20 +195,19 @@ _Envelope:
 ;;; @return A The duty/envelope byte to use.
 ;;; @preserve X
 .PROC Func_InstrumentStaccato
-    ldy Ram_Music_sChanInst_arr + sChanInst::Param_byte, x
-    ;; Calculate volume:
-    tya  ; instrument param
+    lda Ram_Music_sChanInst_arr + sChanInst::Param_byte, x
     and #bEnvelope::VolMask
     sub Ram_Music_sChanNote_arr + sChanNote::ElapsedFrames_u8, x
-    bge @setVolume
-    lda #$00
-    @setVolume:
-    sta Zp_AudioTmp1_byte  ; volume
-    ;; Combine volume with other envelope bits:
-    tya  ; instrument param
-    and #bEnvelope::DutyMask
-    ora #bEnvelope::NoLength | bEnvelope::ConstVol
-    ora Zp_AudioTmp1_byte  ; volume
+    bge Func_CombineVolumeWithDuty
+    .assert * = Func_InstrumentSilent, error, "fallthrough"
+.ENDPROC
+
+;;; An instrument for the pulse and noise channels that silences the channel.
+;;; @param X The channel number (0-4) times four (so, 0, 4, 8, 12, or 16).
+;;; @return A The duty/envelope byte to use.
+;;; @preserve X
+.PROC Func_InstrumentSilent
+    lda #bEnvelope::NoLength | bEnvelope::ConstVol
     rts
 .ENDPROC
 

@@ -21,6 +21,7 @@
 .ENUM eInst
     Constant
     PulseBasic
+    PulsePluck
     PulseVibrato
     RampUp  ; TODO: get rid of this
     Staccato

@@ -7,10 +7,10 @@
 
 !INST 1A PulseBasic $07 d1/8
 !INST 2B Staccato   $08 d1/2
-!INST 2C Staccato   $0c d1/4
-!INST 2D Staccato   $0c d1/4
+!INST 2C PulsePluck $08 d1/4
+!INST 2D PulsePluck $08 d1/4
 !INST TS TriangleSlide
-!INST ND Staccato $0a         % drum
+!INST ND Staccato   $0a       % drum
 
 !PART A
 
