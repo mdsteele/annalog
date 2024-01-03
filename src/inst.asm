@@ -65,6 +65,7 @@
     D_TABLE .enum, eInst
     d_entry table, Constant,        Func_InstrumentConstant
     d_entry table, PulseBasic,      Func_InstrumentPulseBasic
+    d_entry table, PulseEcho,       Func_InstrumentPulseEcho
     d_entry table, PulsePluck,      Func_InstrumentPulsePluck
     d_entry table, PulseVibrato,    Func_InstrumentPulseVibrato
     d_entry table, RampUp,          Func_InstrumentRampUp
@@ -116,9 +117,7 @@ _Envelope:
 ;;; @return A The duty/envelope byte to use.
 ;;; @preserve X
 .PROC Func_InstrumentPulseBasic
-    ldy Ram_Music_sChanInst_arr + sChanInst::Param_byte, x
-    ;; Calculate volume:
-    tya  ; instrument param
+    lda Ram_Music_sChanInst_arr + sChanInst::Param_byte, x
     and #bEnvelope::VolMask
     sta Zp_AudioTmp1_byte  ; max volume
     lda Ram_Music_sChanNote_arr + sChanNote::DurationFrames_u8, x
@@ -126,15 +125,37 @@ _Envelope:
     mul #2
     bcs @useMaxVolume
     cmp Zp_AudioTmp1_byte  ; max volume
-    bge @useMaxVolume
-    sta Zp_AudioTmp1_byte  ; volume
+    blt Func_CombineVolumeWithDuty
     @useMaxVolume:
-    ;; Combine volume with other envelope bits:
-    tya  ; instrument param
-    and #bEnvelope::DutyMask
-    ora #bEnvelope::NoLength | bEnvelope::ConstVol
-    ora Zp_AudioTmp1_byte  ; volume
-    rts
+    lda Zp_AudioTmp1_byte  ; max volume
+    bpl Func_CombineVolumeWithDuty  ; unconditional
+.ENDPROC
+
+;;; An instrument for the pulse channels that plays briefly at full volume,
+;;; then cuts to half volume for the rest of the note.  The bottom four bits of
+;;; the instrument param specify the initial volume.  The top two bits of the
+;;; instrument param specify the pulse duty.  Bits 4 and 5 control the duration
+;;; of the full-volume portion of the note.
+;;; @param X The channel number (0-4) times four (so, 0, 4, 8, 12, or 16).
+;;; @return A The duty/envelope byte to use.
+;;; @preserve X
+.PROC Func_InstrumentPulseEcho
+    lda Ram_Music_sChanInst_arr + sChanInst::Param_byte, x
+    and #bEnvelope::VolMask
+    tay  ; max volume
+    lda Ram_Music_sChanInst_arr + sChanInst::Param_byte, x
+    and #%00110000
+    ora #%00001100
+    div #4
+    cmp Ram_Music_sChanNote_arr + sChanNote::ElapsedFrames_u8, x
+    blt _Quiet
+_Loud:
+    tya  ; max volume
+    bpl Func_CombineVolumeWithDuty  ; unconditional
+_Quiet:
+    tya  ; max volume
+    div #2
+    bpl Func_CombineVolumeWithDuty  ; unconditional
 .ENDPROC
 
 ;;; An instrument for the pulse channels that makes a plucking sound.  The

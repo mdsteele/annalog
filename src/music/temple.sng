@@ -1,17 +1,25 @@
 @PRGC_Temple
 
-!SONG TemplePlaceholder "|A"
+!SONG TemplePlaceholder "|aA ?1a BB"
 
 =tempo q32
 =key 1b  % D minor
 
-!INST 1A PulseBasic $0c d1/8
-!INST TA TriangleVibrato
+!INST 1L PulseEcho  $2a d1/8
+!INST 1S PulseEcho  $0a d1/8
+!INST 1B PulsePluck $08 d1/4
+!INST TV TriangleVibrato
 
 !PART A
 
-1| p(iA d4q ave a^e+q gq)1A | d4w |
-T| p(iA d3h avh | c^h gvh)TA |
+1| p(iL d4q ave a^e+q gq)1A | d4w |
+T| p(iV d3h avh | c^h gvh)TA |
 
-1| p1A | b4h.. gs a |
+1| p1A | b4h.. iS gs a |
 T| pTA |
+
+!PART B
+
+1| iB d4e de+ ' +e ds d ' d4e de+ ' +q |
+ |    d4e de+ ' +e ds d ' d4e de ' ds cs+e :2 |
+T=:AT

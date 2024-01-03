@@ -18,6 +18,7 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "../actor.inc"
+.INCLUDE "../audio.inc"
 .INCLUDE "../charmap.inc"
 .INCLUDE "../device.inc"
 .INCLUDE "../dialog.inc"
@@ -25,6 +26,7 @@
 .INCLUDE "../machine.inc"
 .INCLUDE "../machines/carriage.inc"
 .INCLUDE "../macros.inc"
+.INCLUDE "../music.inc"
 .INCLUDE "../oam.inc"
 .INCLUDE "../platform.inc"
 .INCLUDE "../ppu.inc"
@@ -46,6 +48,7 @@
 .IMPORT Ram_PlatformLeft_i16_0_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORT Sram_ProgressFlags_arr
+.IMPORTZP Zp_Next_sAudioCtrl
 .IMPORTZP Zp_RoomState
 
 ;;;=========================================================================;;;
@@ -229,6 +232,10 @@ _Passages_sPassage_arr:
 .ENDPROC
 
 .PROC FuncC_Temple_Foyer_EnterRoom
+    ;; Clear the music flag.
+    lda #bMusic::UsesFlag
+    sta Zp_Next_sAudioCtrl + sAudioCtrl::MusicFlag_bMusic
+    ;; Remove the upgrade if it's already been collected.
     flag_bit Sram_ProgressFlags_arr, kUpgradeFlag
     beq @done
     lda #eDevice::None

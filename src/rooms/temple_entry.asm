@@ -19,6 +19,7 @@
 
 .INCLUDE "../actor.inc"
 .INCLUDE "../actors/townsfolk.inc"
+.INCLUDE "../audio.inc"
 .INCLUDE "../avatar.inc"
 .INCLUDE "../charmap.inc"
 .INCLUDE "../cpu.inc"
@@ -27,10 +28,12 @@
 .INCLUDE "../dialog.inc"
 .INCLUDE "../flag.inc"
 .INCLUDE "../macros.inc"
+.INCLUDE "../music.inc"
 .INCLUDE "../oam.inc"
 .INCLUDE "../platform.inc"
 .INCLUDE "../ppu.inc"
 .INCLUDE "../room.inc"
+.INCLUDE "../spawn.inc"
 
 .IMPORT DataA_Room_Temple_sTileset
 .IMPORT FuncA_Dialog_AddQuestMarker
@@ -50,10 +53,14 @@
 .IMPORTZP Zp_AvatarState_bAvatar
 .IMPORTZP Zp_DialogAnsweredYes_bool
 .IMPORTZP Zp_Next_eCutscene
+.IMPORTZP Zp_Next_sAudioCtrl
 .IMPORTZP Zp_PointY_i16
 .IMPORTZP Zp_RoomState
 
 ;;;=========================================================================;;;
+
+;;; The index of the passage on the western side of the room.
+kWesternPassageIndex = 0
 
 ;;; The actor index for the mermaid guard in this room.
 kGuardActorIndex = 0
@@ -231,7 +238,8 @@ _Devices_sDevice_arr:
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None
 _Passages_sPassage_arr:
-:   D_STRUCT sPassage
+:   .assert * - :- = kWesternPassageIndex * .sizeof(sPassage), error
+    D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Western | 0
     d_byte Destination_eRoom, eRoom::TempleFoyer
     d_byte SpawnBlock_u8, 6
@@ -257,7 +265,14 @@ _Passages_sPassage_arr:
 
 .SEGMENT "PRGA_Room"
 
+;;; @param A The bSpawn value for where the avatar is entering the room.
 .PROC FuncA_Room_TempleEntry_EnterRoom
+    ;; Set the music flag, unless entering this room from the temple foyer.
+    cmp #bSpawn::Passage | kWesternPassageIndex
+    beq @done
+    lda #bMusic::UsesFlag | bMusic::FlagMask
+    sta Zp_Next_sAudioCtrl + sAudioCtrl::MusicFlag_bMusic
+    @done:
 _MaybeRemoveCorra:
     flag_bit Sram_ProgressFlags_arr, eFlag::BreakerCrypt
     beq @removeCorra
