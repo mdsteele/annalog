@@ -29,6 +29,7 @@
     Prison
     Temple
     Title
+    Upgrade
     NUM_VALUES
 .ENDENUM
 

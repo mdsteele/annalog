@@ -17,6 +17,8 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
+.INCLUDE "audio.inc"
+.INCLUDE "avatar.inc"
 .INCLUDE "charmap.inc"
 .INCLUDE "cpu.inc"
 .INCLUDE "device.inc"
@@ -25,6 +27,7 @@
 .INCLUDE "joypad.inc"
 .INCLUDE "macros.inc"
 .INCLUDE "mmc3.inc"
+.INCLUDE "music.inc"
 .INCLUDE "oam.inc"
 .INCLUDE "ppu.inc"
 .INCLUDE "program.inc"
@@ -49,10 +52,14 @@
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORT Ram_PpuTransfer_arr
 .IMPORT Sram_ProgressFlags_arr
+.IMPORTZP Zp_AvatarHarmTimer_u8
+.IMPORTZP Zp_AvatarPose_eAvatar
+.IMPORTZP Zp_AvatarState_bAvatar
 .IMPORTZP Zp_FloatingHud_bHud
 .IMPORTZP Zp_FrameCounter_u8
 .IMPORTZP Zp_MachineMaxInstructions_u8
 .IMPORTZP Zp_Nearby_bDevice
+.IMPORTZP Zp_Next_sAudioCtrl
 .IMPORTZP Zp_P1ButtonsPressed_bJoypad
 .IMPORTZP Zp_PpuTransferLen_u8
 .IMPORTZP Zp_ScrollGoalY_u8
@@ -101,6 +108,9 @@ kTileIdObjRemainingTopLeft   = kTileIdObjUpgradeBRemoteFirst + 0
 ;;; The eFlag value for the upgrade that is currently being collected.
 Zp_CurrentUpgrade_eFlag: .res 1
 
+;;; The music that was playing just before the upgrade was collected.
+Zp_UpgradePrev_eMusic: .res 1
+
 ;;;=========================================================================;;;
 
 .SEGMENT "PRG8"
@@ -132,10 +142,14 @@ _GameLoop:
 _UpdateWindow:
     lda #kUpgradeWindowScrollSpeed  ; param: scroll by
     jsr Func_Window_ScrollDown  ; sets C if fully scrolled out
-    jcs Main_Explore_Continue
+    bcs _ResumeExploring
 _UpdateScrolling:
     jsr_prga FuncA_Terrain_ScrollTowardsAvatar
     jmp _GameLoop
+_ResumeExploring:
+    lda Zp_UpgradePrev_eMusic
+    sta Zp_Next_sAudioCtrl + sAudioCtrl::Music_eMusic
+    jmp Main_Explore_Continue
 .ENDPROC
 
 ;;; Mode for running the upgrade window.
@@ -169,7 +183,11 @@ _UpdateScrolling:
 ;;; Initializes upgrade mode.
 ;;; @prereq Zp_Nearby_bDevice holds an active upgrade device.
 .PROC FuncA_Upgrade_Init
-    jsr FuncA_Upgrade_Collect
+    lda #0
+    sta Zp_AvatarState_bAvatar
+    sta Zp_AvatarHarmTimer_u8
+    lda #eAvatar::Reaching
+    sta Zp_AvatarPose_eAvatar
 _HideHud:
     lda Zp_FloatingHud_bHud
     ora #bHud::Hidden
@@ -185,14 +203,12 @@ _InitWindow:
     sta Zp_WindowNextRowToTransfer_u8
     lda #kUpgradeWindowTopGoal
     sta Zp_WindowTopGoal_u8
-    rts
-.ENDPROC
-
-;;; Removes the specified upgrade device from the room, sets that upgrade's
-;;; flag in SRAM as collected (updating Zp_MachineMaxInstructions_u8 as
-;;; needed), and stores the upgrade's eFlag value in Zp_CurrentUpgrade_eFlag.
-;;; @prereq Zp_Nearby_bDevice holds an active upgrade device.
-.PROC FuncA_Upgrade_Collect
+_StartMusic:
+    lda Zp_Next_sAudioCtrl + sAudioCtrl::Music_eMusic
+    sta Zp_UpgradePrev_eMusic
+    lda #eMusic::Upgrade
+    sta Zp_Next_sAudioCtrl + sAudioCtrl::Music_eMusic
+_CollectUpgrade:
     jsr Func_SetLastSpawnPointToActiveDevice
     lda Zp_Nearby_bDevice
     and #bDevice::IndexMask

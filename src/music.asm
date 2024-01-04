@@ -30,6 +30,7 @@
 .IMPORT Data_Credits_sMusic
 .IMPORT Data_Empty_bMusic_arr
 .IMPORT Data_Title_Placeholder_sMusic
+.IMPORT Data_Upgrade_sMusic
 
 ;;;=========================================================================;;;
 
@@ -52,6 +53,7 @@
     d_entry table, Prison,  DataC_Prison_Prison_sMusic
     d_entry table, Temple,  DataC_Temple_TemplePlaceholder_sMusic
     d_entry table, Title,   Data_Title_Placeholder_sMusic
+    d_entry table, Upgrade, Data_Upgrade_sMusic
     D_END
 .ENDREPEAT
 

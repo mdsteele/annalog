@@ -1,0 +1,42 @@
+@PRG8
+
+!DPCM K Data_SampleKickDrum_arr657 657
+
+!SONG Upgrade "AB"
+
+=tempo q24
+=key 3#  % F# minor
+
+!INST 1A PulseBasic $08 d1/4
+!INST 2A PulseBasic $08 d1/8
+!INST TB TriangleVibrato      % bass
+!INST ND Staccato   $0b       % drum
+!INST DK Constant   $4e       % kick drum
+
+!INST NR Staccato   $01       % drum roll 1
+!INST NS Staccato   $03       % drum roll 2
+!INST NT Staccato   $05       % drum roll 3
+!INST NU Staccato   $07       % drum roll 4
+!INST NV Staccato   $09       % drum roll 5
+!INST NW Staccato   $0b       % drum roll 6
+!INST NX Staccato   $0d       % drum roll 7
+!INST NY Staccato   $0f       % drum roll 8
+
+!PART A
+
+N| iR x4t iS x4t iT x4t iU p(x4t)NA |
+ | p(iV)NV pNA p(iW)NW pNA p(iX)NX pNA p(iY)NY pNA |
+
+!PART B
+
+1| iA f4e fs f ' ae c^      ' es e gvs g ' ae b     |
+2| iA a3q      ' c          ' a          ' f        |
+T| iB f2h                   ' a                     |
+N| iD x6q      ' x4e x4s x4 ' x6q        ' ; x4s :4 |
+D| rw |
+
+1| f5h.  |
+2| a#4h. |
+T| f2h.  |
+N| pNV p(x4t x4 x4 x4)NB pNW pNB ' pNX pNB pNY pNB ' x6q |
+D| p(iK sK13h)DK :2 |

@@ -1157,6 +1157,7 @@ static void parse_input(void) {
       } break;
       case DONE_NOTE: {
         switch (ch) {
+          case ')': finish_defining_phrase(); break;
           case '%': parser.state = LINE_COMMENT; break;
           case ' ': case '|': case '\'': parser.state = NEW_NOTE; break;
           case '\n': break;
