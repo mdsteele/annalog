@@ -55,6 +55,7 @@
 .IMPORT Func_SetPointToActorCenter
 .IMPORT Func_SetPointToAvatarCenter
 .IMPORT Func_SetPointToPlatformCenter
+.IMPORT Func_WriteToUpperAttributeTable
 .IMPORT Ppu_ChrObjShadow
 .IMPORT Ram_ActorType_eActor_arr
 .IMPORT Ram_MachineGoalHorz_u8_arr
@@ -141,7 +142,7 @@ _Ext_sRoomExt:
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
     d_addr Passages_sPassage_arr_ptr, _Passages_sPassage_arr
     d_addr Enter_func_ptr, FuncA_Room_ShadowTrap_EnterRoom
-    d_addr FadeIn_func_ptr, FuncC_Shadow_Trap_FadeInRoom
+    d_addr FadeIn_func_ptr, FuncA_Terrain_ShadowTrap_FadeInRoom
     d_addr Tick_func_ptr, FuncA_Room_ShadowTrap_TickRoom
     d_addr Draw_func_ptr, FuncC_Shadow_Trap_DrawRoom
     D_END
@@ -251,23 +252,6 @@ _Passages_sPassage_arr:
     d_byte SpawnAdjust_byte, 0
     D_END
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
-.ENDPROC
-
-;;; Sets two block rows of the upper nametable to use BG palette 2.
-;;; @prereq Rendering is disabled.
-.PROC FuncC_Shadow_Trap_FadeInRoom
-    lda #kPpuCtrlFlagsHorz
-    sta Hw_PpuCtrl_wo
-    ldax #Ppu_Nametable0_sName + sName::Attrs_u8_arr64 + $30
-    sta Hw_PpuAddr_w2
-    stx Hw_PpuAddr_w2
-    lda #$aa
-    ldx #8
-    @loop:
-    sta Hw_PpuData_rw
-    dex
-    bne @loop
-    rts
 .ENDPROC
 
 .PROC FuncC_Shadow_Trap_DrawRoom
@@ -421,6 +405,19 @@ _LaserBottom_i16_0_arr:
     jsr FuncA_Machine_GenericMoveTowardGoalHorz  ; returns Z
     jeq FuncA_Machine_ReachedGoal
     rts
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Terrain"
+
+;;; Sets two block rows of the upper nametable to use BG palette 2.
+;;; @prereq Rendering is disabled.
+.PROC FuncA_Terrain_ShadowTrap_FadeInRoom
+    ldx #5    ; param: num bytes to write
+    ldy #$aa  ; param: attribute value
+    lda #$32  ; param: initial byte offset
+    jmp Func_WriteToUpperAttributeTable
 .ENDPROC
 
 ;;;=========================================================================;;;

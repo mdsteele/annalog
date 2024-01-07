@@ -29,6 +29,7 @@
 .IMPORT Data_Empty_sDevice_arr
 .IMPORT Func_Noop
 .IMPORT Func_SetFlag
+.IMPORT Func_WriteToLowerAttributeTable
 .IMPORT Ppu_ChrObjCrypt
 
 ;;;=========================================================================;;;
@@ -62,7 +63,7 @@ _Ext_sRoomExt:
     d_addr Devices_sDevice_arr_ptr, Data_Empty_sDevice_arr
     d_addr Passages_sPassage_arr_ptr, _Passages_sPassage_arr
     d_addr Enter_func_ptr, FuncA_Room_CryptLanding_EnterRoom
-    d_addr FadeIn_func_ptr, Func_Noop
+    d_addr FadeIn_func_ptr, FuncA_Terrain_CryptLanding_FadeInRoom
     d_addr Tick_func_ptr, Func_Noop
     d_addr Draw_func_ptr, Func_Noop
     D_END
@@ -136,6 +137,27 @@ _Passages_sPassage_arr:
     jsr Func_SetFlag
     @done:
     rts
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Terrain"
+
+.PROC FuncA_Terrain_CryptLanding_FadeInRoom
+    ldx #1    ; param: num bytes to write
+    ldy #$55  ; param: attribute value
+    lda #$11  ; param: initial byte offset
+    jsr Func_WriteToLowerAttributeTable  ; preserves Y
+    ldx #5    ; param: num bytes to write
+    lda #$16  ; param: initial byte offset
+    jsr Func_WriteToLowerAttributeTable  ; preserves Y
+    ldx #1    ; param: num bytes to write
+    lda #$1d  ; param: initial byte offset
+    jsr Func_WriteToLowerAttributeTable
+    ldx #1    ; param: num bytes to write
+    ldy #$01  ; param: attribute value
+    lda #$1b  ; param: initial byte offset
+    jmp Func_WriteToLowerAttributeTable
 .ENDPROC
 
 ;;;=========================================================================;;;

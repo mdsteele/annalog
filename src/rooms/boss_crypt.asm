@@ -71,6 +71,7 @@
 .IMPORT Func_ResetWinchMachineState
 .IMPORT Func_SetActorCenterToPoint
 .IMPORT Func_SetPointToPlatformCenter
+.IMPORT Func_WriteToUpperAttributeTable
 .IMPORT Ppu_ChrBgAnimB0
 .IMPORT Ppu_ChrObjBoss1
 .IMPORT Ram_MachineGoalHorz_u8_arr
@@ -632,6 +633,10 @@ _BossIsDead:
 .ENDPROC
 
 .PROC FuncC_Boss_Crypt_FadeInRoom
+    ldx #4    ; param: num bytes to write
+    ldy #$50  ; param: attribute value
+    lda #$32  ; param: initial byte offset
+    jsr Func_WriteToUpperAttributeTable
     ldax #DataC_Boss_CryptInitTransfer_arr  ; param: data pointer
     ldy #.sizeof(DataC_Boss_CryptInitTransfer_arr)  ; param: data length
     jmp Func_BufferPpuTransfer

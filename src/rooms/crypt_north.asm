@@ -46,6 +46,7 @@
 .IMPORT Func_MovePlatformTopTowardPointY
 .IMPORT Func_Noop
 .IMPORT Func_ResetWinchMachineState
+.IMPORT Func_WriteToLowerAttributeTable
 .IMPORT Ppu_ChrObjCrypt
 .IMPORT Ram_MachineGoalVert_u8_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
@@ -75,7 +76,7 @@ kLiftMaxGoalY = 9
 
 ;;; The minimum and initial room pixel position for the top edge of the girder.
 .LINECONT +
-kGirderMinPlatformTop = $0070
+kGirderMinPlatformTop = $0072
 kGirderInitPlatformTop = \
     kGirderMinPlatformTop + kBlockHeightPx * kWinchInitGoalZ
 .LINECONT +
@@ -112,7 +113,7 @@ _Ext_sRoomExt:
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
     d_addr Passages_sPassage_arr_ptr, _Passages_sPassage_arr
     d_addr Enter_func_ptr, Func_Noop
-    d_addr FadeIn_func_ptr, Func_Noop
+    d_addr FadeIn_func_ptr, FuncA_Terrain_CryptNorth_FadeInRoom
     d_addr Tick_func_ptr, Func_Noop
     d_addr Draw_func_ptr, Func_Noop
     D_END
@@ -342,6 +343,21 @@ _ReadZ:
 .PROC FuncA_Machine_CryptNorthLift_Tick
     ldax #kLiftMaxPlatformTop  ; param: max platform top
     jmp FuncA_Machine_LiftTick
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Terrain"
+
+.PROC FuncA_Terrain_CryptNorth_FadeInRoom
+    ldx #2    ; param: num bytes to write
+    ldy #$10  ; param: attribute value
+    lda #$02  ; param: initial byte offset
+    jsr Func_WriteToLowerAttributeTable
+    ldx #3    ; param: num bytes to write
+    ldy #$05  ; param: attribute value
+    lda #$1b  ; param: initial byte offset
+    jmp Func_WriteToLowerAttributeTable
 .ENDPROC
 
 ;;;=========================================================================;;;

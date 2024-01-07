@@ -48,6 +48,7 @@
 .IMPORT Func_MovePlatformVert
 .IMPORT Func_Noop
 .IMPORT Func_ResetWinchMachineState
+.IMPORT Func_WriteToUpperAttributeTable
 .IMPORT Ppu_ChrObjCrypt
 .IMPORT Ram_DeviceType_eDevice_arr
 .IMPORT Ram_MachineGoalHorz_u8_arr
@@ -122,7 +123,7 @@ _Ext_sRoomExt:
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
     d_addr Passages_sPassage_arr_ptr, _Passages_sPassage_arr
     d_addr Enter_func_ptr, FuncA_Room_CryptGallery_EnterRoom
-    d_addr FadeIn_func_ptr, Func_Noop
+    d_addr FadeIn_func_ptr, FuncA_Terrain_CryptGallery_FadeInRoom
     d_addr Tick_func_ptr, Func_Noop
     d_addr Draw_func_ptr, Func_Noop
     D_END
@@ -412,6 +413,27 @@ _Finished:
 
 .PROC DataA_Machine_CryptGalleryFloor_u8_arr
     .byte 9, 9, 9, 1, 1, 9, 9, 9
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Terrain"
+
+.PROC FuncA_Terrain_CryptGallery_FadeInRoom
+    ldx #3    ; param: num bytes to write
+    ldy #$50  ; param: attribute value
+    lda #$2b  ; param: initial byte offset
+    jsr Func_WriteToUpperAttributeTable
+    ldx #2    ; param: num bytes to write
+    ldy #$05  ; param: attribute value
+    lda #$10  ; param: initial byte offset
+    jsr Func_WriteToUpperAttributeTable  ; preserves Y
+    ldx #3    ; param: num bytes to write
+    lda #$30  ; param: initial byte offset
+    jsr Func_WriteToUpperAttributeTable  ; preserves Y
+    ldx #1    ; param: num bytes to write
+    lda #$37  ; param: initial byte offset
+    jmp Func_WriteToUpperAttributeTable
 .ENDPROC
 
 ;;;=========================================================================;;;

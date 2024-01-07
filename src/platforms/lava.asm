@@ -20,6 +20,8 @@
 .INCLUDE "../macros.inc"
 .INCLUDE "../ppu.inc"
 
+.IMPORT Func_WriteToLowerAttributeTable
+.IMPORT Func_WriteToUpperAttributeTable
 .IMPORT Ppu_ChrBgAnimB0
 .IMPORTZP Zp_Chr04Bank_u8
 .IMPORTZP Zp_FrameCounter_u8
@@ -33,8 +35,14 @@
 ;;; @prereq Rendering is disabled.
 .EXPORT FuncA_Terrain_FadeInShortRoomWithLava
 .PROC FuncA_Terrain_FadeInShortRoomWithLava
-    ldax #Ppu_Nametable0_sName + sName::Attrs_u8_arr64 + $30
-    jmp FuncA_Terrain_FadeInRoomWithLava
+    ldx #8    ; param: num bytes to write
+    ldy #$50  ; param: attribute value
+    lda #$30  ; param: initial byte offset
+    jsr Func_WriteToUpperAttributeTable
+    ldx #8    ; param: num bytes to write
+    ldy #$05  ; param: attribute value
+    lda #$38  ; param: initial byte offset
+    jmp Func_WriteToUpperAttributeTable
 .ENDPROC
 
 ;;; Sets two block rows of the lower nametable to use BG palette 1.  This
@@ -42,34 +50,14 @@
 ;;; @prereq Rendering is disabled.
 .EXPORT FuncA_Terrain_FadeInTallRoomWithLava
 .PROC FuncA_Terrain_FadeInTallRoomWithLava
-    ldax #Ppu_Nametable3_sName + sName::Attrs_u8_arr64 + $18
-    .assert * = FuncA_Terrain_FadeInRoomWithLava, error, "fallthrough"
-.ENDPROC
-
-;;; Sets two block rows of a PPU nametable to use BG palette 1.
-;;; @prereq Rendering is disabled.
-;;; @param AX The PPU address to start writing at.
-.PROC FuncA_Terrain_FadeInRoomWithLava
-    bit Hw_PpuStatus_ro  ; reset the Hw_PpuAddr_w2 write-twice latch
-    sta Hw_PpuAddr_w2
-    stx Hw_PpuAddr_w2
-    lda #kPpuCtrlFlagsHorz
-    sta Hw_PpuCtrl_wo
-_FirstRow:
-    lda #$50
-    ldx #8
-    @loop:
-    sta Hw_PpuData_rw
-    dex
-    bne @loop
-_SecondRow:
-    lda #$05
-    ldx #8
-    @loop:
-    sta Hw_PpuData_rw
-    dex
-    bne @loop
-    rts
+    ldx #8    ; param: num bytes to write
+    ldy #$50  ; param: attribute value
+    lda #$18  ; param: initial byte offset
+    jsr Func_WriteToLowerAttributeTable
+    ldx #8    ; param: num bytes to write
+    ldy #$05  ; param: attribute value
+    lda #$20  ; param: initial byte offset
+    jmp Func_WriteToLowerAttributeTable
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -83,7 +71,8 @@ _SecondRow:
     lda Zp_FrameCounter_u8
     div #8
     and #$03
-    add #<.bank(Ppu_ChrBgAnimB0)
+    .assert .bank(Ppu_ChrBgAnimB0) .mod 4 = 0, error
+    ora #<.bank(Ppu_ChrBgAnimB0)
     sta Zp_Chr04Bank_u8
     rts
 .ENDPROC

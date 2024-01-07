@@ -38,6 +38,7 @@
 .IMPORT FuncA_Machine_LiftTryMove
 .IMPORT FuncA_Objects_DrawLiftMachine
 .IMPORT Func_Noop
+.IMPORT Func_WriteToLowerAttributeTable
 .IMPORT Ppu_ChrObjMine
 .IMPORT Ram_MachineGoalVert_u8_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
@@ -86,7 +87,7 @@ _Ext_sRoomExt:
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
     d_addr Passages_sPassage_arr_ptr, _Passages_sPassage_arr
     d_addr Enter_func_ptr, Func_Noop
-    d_addr FadeIn_func_ptr, FuncC_Shadow_Entry_FadeInRoom
+    d_addr FadeIn_func_ptr, FuncA_Terrain_ShadowEntry_FadeInRoom
     d_addr Tick_func_ptr, Func_Noop
     d_addr Draw_func_ptr, Func_Noop
     D_END
@@ -104,14 +105,14 @@ _Machines_sMachine_arr:
     d_byte ScrollGoalY_u8, $d0
     d_byte RegNames_u8_arr4, 0, 0, 0, "Y"
     d_byte MainPlatform_u8, kLiftPlatformIndex
-    d_addr Init_func_ptr, FuncC_Shadow_EntryLift_InitReset
+    d_addr Init_func_ptr, FuncA_Room_ShadowEntryLift_InitReset
     d_addr ReadReg_func_ptr, FuncC_Shadow_EntryLift_ReadReg
     d_addr WriteReg_func_ptr, Func_Noop
-    d_addr TryMove_func_ptr, FuncC_Shadow_EntryLift_TryMove
+    d_addr TryMove_func_ptr, FuncA_Machine_ShadowEntryLift_TryMove
     d_addr TryAct_func_ptr, FuncA_Machine_Error
-    d_addr Tick_func_ptr, FuncC_Shadow_EntryLift_Tick
+    d_addr Tick_func_ptr, FuncA_Machine_ShadowEntryLift_Tick
     d_addr Draw_func_ptr, FuncA_Objects_DrawLiftMachine
-    d_addr Reset_func_ptr, FuncC_Shadow_EntryLift_InitReset
+    d_addr Reset_func_ptr, FuncA_Room_ShadowEntryLift_InitReset
     D_END
     .assert * - :- <= kMaxMachines * .sizeof(sMachine), error
 _Platforms_sPlatform_arr:
@@ -193,31 +194,6 @@ _Passages_sPassage_arr:
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
 .ENDPROC
 
-;;; Sets two block rows of the lower nametable to use BG palette 2.
-;;; @prereq Rendering is disabled.
-.PROC FuncC_Shadow_Entry_FadeInRoom
-    lda #kPpuCtrlFlagsHorz
-    sta Hw_PpuCtrl_wo
-    ldax #Ppu_Nametable3_sName + sName::Attrs_u8_arr64 + $18
-    bit Hw_PpuStatus_ro  ; reset the Hw_PpuAddr_w2 write-twice latch
-    sta Hw_PpuAddr_w2
-    stx Hw_PpuAddr_w2
-_Rows:
-    lda #$aa
-    ldx #8
-    @loop:
-    sta Hw_PpuData_rw
-    dex
-    bne @loop
-    rts
-.ENDPROC
-
-.PROC FuncC_Shadow_EntryLift_InitReset
-    lda #kLiftInitGoalY
-    sta Ram_MachineGoalVert_u8_arr + kLiftMachineIndex
-    rts
-.ENDPROC
-
 .PROC FuncC_Shadow_EntryLift_ReadReg
     lda #<(kLiftMaxPlatformTop + kTileHeightPx)
     sub Ram_PlatformTop_i16_0_arr + kLiftPlatformIndex
@@ -237,14 +213,41 @@ _Rows:
     rts
 .ENDPROC
 
-.PROC FuncC_Shadow_EntryLift_TryMove
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Room"
+
+.PROC FuncA_Room_ShadowEntryLift_InitReset
+    lda #kLiftInitGoalY
+    sta Ram_MachineGoalVert_u8_arr + kLiftMachineIndex
+    rts
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Machine"
+
+.PROC FuncA_Machine_ShadowEntryLift_TryMove
     lda #kLiftMaxGoalY  ; param: max goal vert
     jmp FuncA_Machine_LiftTryMove
 .ENDPROC
 
-.PROC FuncC_Shadow_EntryLift_Tick
+.PROC FuncA_Machine_ShadowEntryLift_Tick
     ldax #kLiftMaxPlatformTop  ; param: max platform top
     jmp FuncA_Machine_LiftTick
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Terrain"
+
+;;; Sets two block rows of the lower nametable to use BG palette 2.
+;;; @prereq Rendering is disabled.
+.PROC FuncA_Terrain_ShadowEntry_FadeInRoom
+    ldx #7    ; param: num bytes to write
+    ldy #$aa  ; param: attribute value
+    lda #$19  ; param: initial byte offset
+    jmp Func_WriteToLowerAttributeTable
 .ENDPROC
 
 ;;;=========================================================================;;;

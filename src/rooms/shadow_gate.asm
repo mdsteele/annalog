@@ -28,6 +28,7 @@
 
 .IMPORT DataA_Room_Shadow_sTileset
 .IMPORT Func_Noop
+.IMPORT Func_WriteToUpperAttributeTable
 .IMPORT Ppu_ChrObjShadow
 
 ;;;=========================================================================;;;
@@ -56,7 +57,7 @@ _Ext_sRoomExt:
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
     d_addr Passages_sPassage_arr_ptr, _Passages_sPassage_arr
     d_addr Enter_func_ptr, Func_Noop
-    d_addr FadeIn_func_ptr, FuncC_Shadow_Gate_FadeInRoom
+    d_addr FadeIn_func_ptr, FuncA_Terrain_ShadowGate_FadeInRoom
     d_addr Tick_func_ptr, Func_Noop
     d_addr Draw_func_ptr, Func_Noop
     D_END
@@ -108,21 +109,17 @@ _Passages_sPassage_arr:
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
 .ENDPROC
 
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Terrain"
+
 ;;; Sets two block rows of the upper nametable to use BG palette 2.
 ;;; @prereq Rendering is disabled.
-.PROC FuncC_Shadow_Gate_FadeInRoom
-    lda #kPpuCtrlFlagsHorz
-    sta Hw_PpuCtrl_wo
-    ldax #Ppu_Nametable0_sName + sName::Attrs_u8_arr64 + $30
-    sta Hw_PpuAddr_w2
-    stx Hw_PpuAddr_w2
-    lda #$aa
-    ldx #8
-    @loop:
-    sta Hw_PpuData_rw
-    dex
-    bne @loop
-    rts
+.PROC FuncA_Terrain_ShadowGate_FadeInRoom
+    ldx #5    ; param: num bytes to write
+    ldy #$aa  ; param: attribute value
+    lda #$32  ; param: initial byte offset
+    jmp Func_WriteToUpperAttributeTable
 .ENDPROC
 
 ;;;=========================================================================;;;

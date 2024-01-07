@@ -276,7 +276,7 @@ _Platforms_sPlatform_arr:
     d_word WidthPx_u16, $10
     d_byte HeightPx_u8, $10
     d_word Left_i16,  $0067
-    d_word Top_i16,   $0151
+    d_word Top_i16,   $0150
     D_END
     ;; Upward spikes near upper carriage area:
     D_STRUCT sPlatform

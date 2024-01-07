@@ -29,6 +29,7 @@
 
 .IMPORT DataA_Room_Crypt_sTileset
 .IMPORT Func_Noop
+.IMPORT Func_WriteToUpperAttributeTable
 .IMPORT Ppu_ChrObjCrypt
 
 ;;;=========================================================================;;;
@@ -57,7 +58,7 @@ _Ext_sRoomExt:
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
     d_addr Passages_sPassage_arr_ptr, _Passages_sPassage_arr
     d_addr Enter_func_ptr, Func_Noop
-    d_addr FadeIn_func_ptr, Func_Noop
+    d_addr FadeIn_func_ptr, FuncA_Terrain_CryptCenter_FadeInRoom
     d_addr Tick_func_ptr, Func_Noop
     d_addr Draw_func_ptr, Func_Noop
     D_END
@@ -106,6 +107,17 @@ _Passages_sPassage_arr:
     d_byte SpawnAdjust_byte, 0
     D_END
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Terrain"
+
+.PROC FuncA_Terrain_CryptCenter_FadeInRoom
+    ldx #1    ; param: num bytes to write
+    ldy #$05  ; param: attribute value
+    lda #$34  ; param: initial byte offset
+    jmp Func_WriteToUpperAttributeTable
 .ENDPROC
 
 ;;;=========================================================================;;;

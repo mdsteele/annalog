@@ -53,8 +53,23 @@
 ;;; @preserve Y
 .EXPORT Func_FillLowerAttributeTable
 .PROC Func_FillLowerAttributeTable
-    ldax #Ppu_Nametable3_sName + sName::Attrs_u8_arr64  ; param: table addr
-    jmp Func_FillAttributeTable  ; preserves Y
+    ldx #64  ; param: num bytes to write
+    lda #0   ; param: initial byte offset
+    fall Func_WriteToLowerAttributeTable  ; preserves Y
+.ENDPROC
+
+;;; Writes the specified byte to a portion of the lower attribute table.
+;;; @prereq Rendering is disabled.
+;;; @param A The initial byte offset into the upper nametable's attributes.
+;;; @param X The number of bytes to write (1-64).
+;;; @param Y The attribute byte value to write.
+;;; @preserve Y
+.EXPORT Func_WriteToLowerAttributeTable
+.PROC Func_WriteToLowerAttributeTable
+    sta T0  ; param: initial byte offset
+    lda #>(Ppu_Nametable3_sName + sName::Attrs_u8_arr64)  ; param: dest (hi)
+    .assert >(Ppu_Nametable3_sName + sName::Attrs_u8_arr64) > 0, error
+    bne Func_WriteToAttributeTable  ; unconditional, preserves Y
 .ENDPROC
 
 ;;; Fills the upper attribute table with the given byte.
@@ -63,22 +78,42 @@
 ;;; @preserve Y
 .EXPORT Func_FillUpperAttributeTable
 .PROC Func_FillUpperAttributeTable
-    ldax #Ppu_Nametable0_sName + sName::Attrs_u8_arr64  ; param: table addr
-    .assert * = Func_FillAttributeTable, error, "fallthrough"
+    ldx #64  ; param: num bytes to write
+    lda #0   ; param: initial byte offset
+    fall Func_WriteToUpperAttributeTable  ; preserves Y
 .ENDPROC
 
-;;; Fills the specified attribute table with the given byte.
+;;; Writes the specified byte to a portion of the upper attribute table.
 ;;; @prereq Rendering is disabled.
-;;; @param AX The PPU address for the attribute table to fill.
-;;; @param Y The attribute byte to set.
+;;; @param A The initial byte offset into the upper nametable's attributes.
+;;; @param X The number of bytes to write (1-64).
+;;; @param Y The attribute byte value to write.
 ;;; @preserve Y
-.PROC Func_FillAttributeTable
+.EXPORT Func_WriteToUpperAttributeTable
+.PROC Func_WriteToUpperAttributeTable
+    sta T0  ; param: initial byte offset
+    lda #>(Ppu_Nametable0_sName + sName::Attrs_u8_arr64)  ; param: dest (hi)
+    fall Func_WriteToAttributeTable
+.ENDPROC
+
+;;; Writes the specified byte to a portion of the specified attribute table.
+;;; @prereq Rendering is disabled.
+;;; @param A The hi byte of the PPU address for the attribute table.
+;;; @param T0 The initial byte offset into the attribute table.
+;;; @param X The number of bytes to write (1-64).
+;;; @param Y The attribute byte value to write.
+;;; @preserve Y
+.PROC Func_WriteToAttributeTable
     bit Hw_PpuStatus_ro  ; reset the Hw_PpuAddr_w2 write-twice latch
     sta Hw_PpuAddr_w2
-    stx Hw_PpuAddr_w2
+    lda T0  ; byte offset
+    .assert <Ppu_Nametable0_sName .mod $100 = 0, error
+    .assert <Ppu_Nametable3_sName .mod $100 = 0, error
+    .assert <sName::Attrs_u8_arr64 .mod 64 = 0, error
+    ora #<sName::Attrs_u8_arr64
+    sta Hw_PpuAddr_w2
     lda #kPpuCtrlFlagsHorz
     sta Hw_PpuCtrl_wo
-    ldx #64
     @loop:
     sty Hw_PpuData_rw
     dex

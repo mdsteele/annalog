@@ -48,6 +48,7 @@
 .IMPORT Func_MovePlatformVert
 .IMPORT Func_Noop
 .IMPORT Func_ResetWinchMachineState
+.IMPORT Func_WriteToUpperAttributeTable
 .IMPORT Ppu_ChrObjCrypt
 .IMPORT Ram_MachineGoalVert_u8_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
@@ -71,7 +72,7 @@ kWinchMaxGoalZ  = 5
 ;;; The minimum and initial room pixel position for the top edge of the upper
 ;;; girder.
 .LINECONT +
-kUpperGirderMinPlatformTop = $48
+kUpperGirderMinPlatformTop = $4a
 kUpperGirderInitPlatformTop = \
     kUpperGirderMinPlatformTop + kBlockHeightPx * kWinchInitGoalZ
 .LINECONT +
@@ -102,7 +103,7 @@ _Ext_sRoomExt:
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
     d_addr Passages_sPassage_arr_ptr, _Passages_sPassage_arr
     d_addr Enter_func_ptr, FuncA_Room_RemoveFlowerDeviceIfCarriedOrDelivered
-    d_addr FadeIn_func_ptr, Func_Noop
+    d_addr FadeIn_func_ptr, FuncA_Terrain_CryptFlower_FadeInRoom
     d_addr Tick_func_ptr, FuncA_Room_RespawnFlowerDeviceIfDropped
     d_addr Draw_func_ptr, Func_Noop
     D_END
@@ -318,6 +319,21 @@ _ReadZ:
     jmp Func_MovePlatformVert
     @reachedGoal:
     jmp FuncA_Machine_WinchReachedGoal
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Terrain"
+
+.PROC FuncA_Terrain_CryptFlower_FadeInRoom
+    ldx #4    ; param: num bytes to write
+    ldy #$50  ; param: attribute value
+    lda #$12  ; param: initial byte offset
+    jsr Func_WriteToUpperAttributeTable
+    ldx #7    ; param: num bytes to write
+    ldy #$05  ; param: attribute value
+    lda #$31  ; param: initial byte offset
+    jmp Func_WriteToUpperAttributeTable
 .ENDPROC
 
 ;;;=========================================================================;;;

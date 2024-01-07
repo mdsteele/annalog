@@ -260,6 +260,14 @@ T7T6 := $06
 
 ;;;=========================================================================;;;
 
+;;; Falls through to the specified function, asserting that that function's
+;;; address starts here.
+.MACRO fall FUNC
+    .assert * = FUNC, error, "fallthrough"
+.ENDMACRO
+
+;;;=========================================================================;;;
+
 ;;; Begins an array data definition.
 ;;;
 ;;; Examples:

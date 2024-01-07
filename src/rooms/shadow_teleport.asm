@@ -27,7 +27,6 @@
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
 .INCLUDE "../platform.inc"
-.INCLUDE "../ppu.inc"
 .INCLUDE "../program.inc"
 .INCLUDE "../room.inc"
 .INCLUDE "../teleport.inc"
@@ -41,6 +40,7 @@
 .IMPORT FuncA_Room_MachineFieldReset
 .IMPORT Func_MachineFieldReadRegP
 .IMPORT Func_Noop
+.IMPORT Func_WriteToUpperAttributeTable
 .IMPORT Ppu_ChrObjLava
 
 ;;;=========================================================================;;;
@@ -85,7 +85,7 @@ _Ext_sRoomExt:
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
     d_addr Passages_sPassage_arr_ptr, _Passages_sPassage_arr
     d_addr Enter_func_ptr, Func_Noop
-    d_addr FadeIn_func_ptr, FuncC_Shadow_Teleport_FadeInRoom
+    d_addr FadeIn_func_ptr, FuncA_Terrain_ShadowTeleport_FadeInRoom
     d_addr Tick_func_ptr, Func_Noop
     d_addr Draw_func_ptr, Func_Noop
     D_END
@@ -171,29 +171,21 @@ _Passages_sPassage_arr:
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
 .ENDPROC
 
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Terrain"
+
 ;;; Sets two block rows of the upper nametable to use BG palette 2.
 ;;; @prereq Rendering is disabled.
-.PROC FuncC_Shadow_Teleport_FadeInRoom
-    lda #kPpuCtrlFlagsHorz
-    sta Hw_PpuCtrl_wo
-    ldax #Ppu_Nametable0_sName + sName::Attrs_u8_arr64 + $28
-    sta Hw_PpuAddr_w2
-    stx Hw_PpuAddr_w2
-_Row11:
-    lda #$a0
-    ldx #8
-    @loop:
-    sta Hw_PpuData_rw
-    dex
-    bne @loop
-_Row12:
-    lda #$0a
-    ldx #8
-    @loop:
-    sta Hw_PpuData_rw
-    dex
-    bne @loop
-    rts
+.PROC FuncA_Terrain_ShadowTeleport_FadeInRoom
+    ldx #7    ; param: num bytes to write
+    ldy #$a0  ; param: attribute value
+    lda #$29  ; param: initial byte offset
+    jsr Func_WriteToUpperAttributeTable
+    ldx #3    ; param: num bytes to write
+    ldy #$0a  ; param: attribute value
+    lda #$33  ; param: initial byte offset
+    jmp Func_WriteToUpperAttributeTable
 .ENDPROC
 
 ;;;=========================================================================;;;

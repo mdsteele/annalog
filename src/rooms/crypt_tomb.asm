@@ -48,10 +48,11 @@
 .IMPORT Func_MovePlatformHorz
 .IMPORT Func_MovePlatformLeftTowardPointX
 .IMPORT Func_MovePlatformTopTowardPointY
-.IMPORT Func_Noop
 .IMPORT Func_PlaySfxExplodeFracture
 .IMPORT Func_ResetWinchMachineState
 .IMPORT Func_SetFlag
+.IMPORT Func_WriteToLowerAttributeTable
+.IMPORT Func_WriteToUpperAttributeTable
 .IMPORT Ppu_ChrObjCrypt
 .IMPORT Ram_MachineGoalHorz_u8_arr
 .IMPORT Ram_MachineGoalVert_u8_arr
@@ -159,7 +160,7 @@ _Ext_sRoomExt:
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
     d_addr Passages_sPassage_arr_ptr, _Passages_sPassage_arr
     d_addr Enter_func_ptr, FuncA_Room_CryptTomb_EnterRoom
-    d_addr FadeIn_func_ptr, Func_Noop
+    d_addr FadeIn_func_ptr, FuncA_Terrain_CryptTomb_FadeInRoom
     d_addr Tick_func_ptr, FuncA_Room_CryptTomb_TickRoom
     d_addr Draw_func_ptr, FuncC_Crypt_Tomb_DrawRoom
     D_END
@@ -630,6 +631,21 @@ _SolidFloorZ_u8_arr:
 .PROC FuncA_Objects_CryptTombWinch_Draw
     ldx #kSpikeballPlatformIndex  ; param: spikeball platform index
     jmp FuncA_Objects_DrawWinchMachineWithSpikeball
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Terrain"
+
+.PROC FuncA_Terrain_CryptTomb_FadeInRoom
+    ldx #7    ; param: num bytes to write
+    ldy #$04  ; param: attribute value
+    lda #$28  ; param: initial byte offset
+    jsr Func_WriteToUpperAttributeTable
+    ldx #3    ; param: num bytes to write
+    ldy #$40  ; param: attribute value
+    lda #$1a  ; param: initial byte offset
+    jmp Func_WriteToLowerAttributeTable
 .ENDPROC
 
 ;;;=========================================================================;;;
