@@ -25,6 +25,7 @@
     Calm
     Credits
     Crypt
+    Garden
     Mine
     Prison
     Temple

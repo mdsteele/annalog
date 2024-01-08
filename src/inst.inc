@@ -22,6 +22,7 @@
     Constant
     PulseBasic
     PulseEcho
+    PulsePiano
     PulsePluck
     PulseVibrato
     RampUp  ; TODO: get rid of this

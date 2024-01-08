@@ -518,15 +518,15 @@ _PrisonMusic:
     d_byte FactoryUpper,    eMusic::Silence
     d_byte FactoryVault,    eMusic::Silence
     d_byte FactoryWest,     eMusic::Silence
-    d_byte GardenCrossroad, eMusic::Silence
-    d_byte GardenEast,      eMusic::Silence
-    d_byte GardenFlower,    eMusic::Silence
-    d_byte GardenHallway,   eMusic::Silence
-    d_byte GardenLanding,   eMusic::Silence
-    d_byte GardenShaft,     eMusic::Silence
-    d_byte GardenShrine,    eMusic::Silence
-    d_byte GardenTower,     eMusic::Silence
-    d_byte GardenTunnel,    eMusic::Silence
+    d_byte GardenCrossroad, eMusic::Garden
+    d_byte GardenEast,      eMusic::Garden
+    d_byte GardenFlower,    eMusic::Garden
+    d_byte GardenHallway,   eMusic::Garden
+    d_byte GardenLanding,   eMusic::Garden
+    d_byte GardenShaft,     eMusic::Garden
+    d_byte GardenShrine,    eMusic::Garden
+    d_byte GardenTower,     eMusic::Garden
+    d_byte GardenTunnel,    eMusic::Garden
     d_byte LavaCenter,      eMusic::Silence
     d_byte LavaEast,        eMusic::Silence
     d_byte LavaFlower,      eMusic::Silence

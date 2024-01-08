@@ -604,6 +604,8 @@ _DisableChannelUnlessSfx:
     beq Func_DisableCurrentChannel  ; preserves C and X
     rts
 _SkipToneOrSame:
+    lda #1
+    sta Ram_Music_sChanNote_arr + sChanNote::ElapsedFrames_u8, x
     ;; Increment the channel's PhraseNext_ptr a second time.
     inc Zp_Music_sChanNext_arr + sChanNext::PhraseNext_ptr + 0, x
     bne @incDone2
@@ -617,8 +619,6 @@ _SkipToneOrSame:
     ;; Read the third byte of the TONE note and use it as the note duration.
     lda (Zp_Music_sChanNext_arr + sChanNext::PhraseNext_ptr, x)
     sta Ram_Music_sChanNote_arr + sChanNote::DurationFrames_u8, x
-    lda #1
-    sta Ram_Music_sChanNote_arr + sChanNote::ElapsedFrames_u8, x
     ;; Increment the channel's PhraseNext_ptr a third time.
     inc Zp_Music_sChanNext_arr + sChanNext::PhraseNext_ptr + 0, x
     bne @incDone3

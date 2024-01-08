@@ -66,6 +66,7 @@
     d_entry table, Constant,        Func_InstrumentConstant
     d_entry table, PulseBasic,      Func_InstrumentPulseBasic
     d_entry table, PulseEcho,       Func_InstrumentPulseEcho
+    d_entry table, PulsePiano,      Func_InstrumentPulsePiano
     d_entry table, PulsePluck,      Func_InstrumentPulsePluck
     d_entry table, PulseVibrato,    Func_InstrumentPulseVibrato
     d_entry table, RampUp,          Func_InstrumentRampUp
@@ -98,7 +99,7 @@ _Vibrato:
     and #$07
     tay
     lda Ram_Music_sChanNote_arr + sChanNote::TimerLo_byte, x
-    add Data_VibratoDelta_16_0_arr8, y
+    add Data_VibratoDelta_i16_0_arr8, y
     sta Hw_Channels_sChanRegs_arr5 + sChanRegs::TimerLo_wo, x
     ;; Note that we intentionally *don't* carry the addition over into TimerHi
     ;; here, because for pulse channels, writing to the TimerHi register resets
@@ -107,7 +108,7 @@ _Vibrato:
     ;; instrument for pitches right next to a TimerLo carry boundary, then
     ;; TimerHi wouldn't change anyway, and everything will sound fine.
 _Envelope:
-    .assert * = Func_InstrumentPulseBasic, error, "fallthrough"
+    fall Func_InstrumentPulseBasic
 .ENDPROC
 
 ;;; A basic instrument for the pulse channels.  The bottom four bits of the
@@ -180,7 +181,7 @@ _Decay:
     div #2
     rsub Zp_AudioTmp1_byte  ; max volume
     blt Func_InstrumentSilent
-    .assert * = Func_CombineVolumeWithDuty, error, "fallthrough"
+    fall Func_CombineVolumeWithDuty
 .ENDPROC
 
 ;;; Combines the given volume value with the pulse duty bits from the
@@ -196,6 +197,46 @@ _Decay:
     ora #bEnvelope::NoLength | bEnvelope::ConstVol
     ora Zp_AudioTmp1_byte  ; volume
     rts
+.ENDPROC
+
+;;; An instrument that ramps up volume quickly, then decays slowly, all with
+;;; slight vibrato.
+;;; @param X The channel number (0-4) times four (so, 0, 4, 8, 12, or 16).
+;;; @return A The duty/envelope byte to use.
+;;; @preserve X
+.PROC Func_InstrumentPulsePiano
+_Vibrato:
+    lda Ram_Music_sChanNote_arr + sChanNote::ElapsedFrames_u8, x
+    and #$03
+    tay
+    lda Ram_Music_sChanNote_arr + sChanNote::TimerLo_byte, x
+    add _VibratoDelta_i8_arr4, y
+    sta Hw_Channels_sChanRegs_arr5 + sChanRegs::TimerLo_wo, x
+    ;; Note that we intentionally *don't* carry the addition over into TimerHi
+    ;; here, because for pulse channels, writing to the TimerHi register resets
+    ;; the pulse phase, which adds an undesirable clicking noise (see
+    ;; https://www.nesdev.org/wiki/APU).  As long as we avoid using this
+    ;; instrument for pitches right next to a TimerLo carry boundary, then
+    ;; TimerHi wouldn't change anyway, and everything will sound fine.
+_Envelope:
+    lda Ram_Music_sChanInst_arr + sChanInst::Param_byte, x
+    and #bEnvelope::VolMask
+    sta Zp_AudioTmp1_byte  ; max volume
+    div #2
+    rsub Ram_Music_sChanNote_arr + sChanNote::ElapsedFrames_u8, x
+    bge @decay
+    @attack:
+    lda Ram_Music_sChanNote_arr + sChanNote::ElapsedFrames_u8, x
+    sec
+    rol a
+    bne Func_CombineVolumeWithDuty  ; unconditional
+    @decay:
+    div #8
+    rsub Zp_AudioTmp1_byte  ; max volume
+    blt Func_InstrumentSilent
+    bge Func_CombineVolumeWithDuty  ; unconditional
+_VibratoDelta_i8_arr4:
+    .byte <0, <1, <0, <-1
 .ENDPROC
 
 .PROC Func_InstrumentRampUp
@@ -220,7 +261,7 @@ _Decay:
     and #bEnvelope::VolMask
     sub Ram_Music_sChanNote_arr + sChanNote::ElapsedFrames_u8, x
     bge Func_CombineVolumeWithDuty
-    .assert * = Func_InstrumentSilent, error, "fallthrough"
+    fall Func_InstrumentSilent
 .ENDPROC
 
 ;;; An instrument for the pulse and noise channels that silences the channel.
@@ -273,7 +314,7 @@ _Slide:
     sta Ram_Music_sChanNote_arr + sChanNote::TimerHi_byte, x
     @done:
 _Vibrato:
-    .assert * = Func_InstrumentTriangleVibrato, error, "fallthrough"
+    fall Func_InstrumentTriangleVibrato
 .ENDPROC
 
 ;;; An instrument for the triangle channel that applies vibrato.  The
@@ -287,10 +328,10 @@ _Vibrato:
     and #$07
     tay
     lda Ram_Music_sChanNote_arr + sChanNote::TimerLo_byte, x
-    add Data_VibratoDelta_16_0_arr8, y
+    add Data_VibratoDelta_i16_0_arr8, y
     sta Hw_Channels_sChanRegs_arr5 + sChanRegs::TimerLo_wo, x
     lda Ram_Music_sChanNote_arr + sChanNote::TimerHi_byte, x
-    adc Data_VibratoDelta_16_1_arr8, y
+    adc Data_VibratoDelta_i16_1_arr8, y
     and #$07
     sta Hw_Channels_sChanRegs_arr5 + sChanRegs::TimerHi_wo, x
 _Envelope:
@@ -300,10 +341,10 @@ _Envelope:
 
 ;;; A table of timer deltas to apply to instruments with vibrato, looped over
 ;;; an eight-frame period.
-.PROC Data_VibratoDelta_16_0_arr8
+.PROC Data_VibratoDelta_i16_0_arr8
     .byte <0, <2, <3, <2, <0, <-2, <-3, <-2
 .ENDPROC
-.PROC Data_VibratoDelta_16_1_arr8
+.PROC Data_VibratoDelta_i16_1_arr8
     .byte >0, >2, >3, >2, >0, >-2, >-3, >-2
 .ENDPROC
 
