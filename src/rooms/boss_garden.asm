@@ -249,7 +249,7 @@ _Machines_sMachine_arr:
     d_byte MainPlatform_u8, kCannonPlatformIndex
     d_addr Init_func_ptr, Func_Noop
     d_addr ReadReg_func_ptr, FuncC_Boss_GardenCannon_ReadReg
-    d_addr WriteReg_func_ptr, FuncC_Boss_GardenCannon_WriteReg
+    d_addr WriteReg_func_ptr, FuncA_Machine_BossGardenCannon_WriteReg
     d_addr TryMove_func_ptr, FuncA_Machine_CannonTryMove
     d_addr TryAct_func_ptr, FuncA_Machine_CannonTryAct
     d_addr Tick_func_ptr, FuncA_Machine_CannonTick
@@ -771,17 +771,6 @@ _Done:
     rts
 .ENDPROC
 
-.PROC FuncC_Boss_GardenCannon_WriteReg
-    cpx #$d
-    beq _WriteR
-_WriteL:
-    ldx #kLeverLeftDeviceIndex  ; param: device index
-    jmp FuncA_Machine_WriteToLever
-_WriteR:
-    ldx #kLeverRightDeviceIndex  ; param: device index
-    jmp FuncA_Machine_WriteToLever
-.ENDPROC
-
 ;;; @prereq PRGA_Room is loaded.
 .PROC FuncC_Boss_GardenCannon_Reset
     ldx #kLeverLeftDeviceIndex  ; param: device index
@@ -799,6 +788,21 @@ _WriteR:
     jmp FuncC_Boss_Garden_StartWaiting
     @done:
     rts
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Machine"
+
+.PROC FuncA_Machine_BossGardenCannon_WriteReg
+    cpx #$d
+    beq _WriteR
+_WriteL:
+    ldx #kLeverLeftDeviceIndex  ; param: device index
+    jmp FuncA_Machine_WriteToLever
+_WriteR:
+    ldx #kLeverRightDeviceIndex  ; param: device index
+    jmp FuncA_Machine_WriteToLever
 .ENDPROC
 
 ;;;=========================================================================;;;

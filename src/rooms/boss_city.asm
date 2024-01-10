@@ -352,7 +352,7 @@ _Machines_sMachine_arr:
     d_addr ReadReg_func_ptr, FuncC_Boss_CityReloader_ReadReg
     d_addr WriteReg_func_ptr, FuncA_Machine_BossCity_WriteReg
     d_addr TryMove_func_ptr, FuncA_Machine_BossCityReloader_TryMove
-    d_addr TryAct_func_ptr, FuncC_Boss_CityReloader_TryAct
+    d_addr TryAct_func_ptr, FuncA_Machine_BossCityReloader_TryAct
     d_addr Tick_func_ptr, FuncA_Machine_BossCityReloader_Tick
     d_addr Draw_func_ptr, FuncA_Objects_DrawReloaderMachine
     d_addr Reset_func_ptr, FuncA_Room_BossCityReloader_InitReset
@@ -1086,42 +1086,6 @@ _RegR:
     rts
 .ENDPROC
 
-.PROC FuncC_Boss_CityReloader_TryAct
-    ldx Ram_MachineGoalHorz_u8_arr + kReloaderMachineIndex
-    lda Ram_MachineState1_byte_arr + kReloaderMachineIndex  ; ammo count
-    beq _TryPickUpAmmo
-_TryDropOffAmmo:
-    ;; Error unless the reloader and launcher machines are lined up.
-    cpx #kReloaderMaxGoalX
-    blt _Error
-    lda Ram_PlatformTop_i16_0_arr + kLauncherPlatformIndex
-    cmp #<kLauncherMinPlatformTop
-    bne _Error
-    ;; Error if the launcher machine already has a rocket loaded.
-    lda Ram_MachineState1_byte_arr + kLauncherMachineIndex  ; ammo count
-    bne _Error
-    ;; TODO: play a sound
-    dec Ram_MachineState1_byte_arr + kReloaderMachineIndex  ; ammo count
-    inc Ram_MachineState1_byte_arr + kLauncherMachineIndex  ; ammo count
-    bne _StartWaiting  ; unconditional
-_TryPickUpAmmo:
-    cpx #kNumAmmoRackSlots
-    bge _Error
-    lda Data_PowersOfTwo_u8_arr8, x
-    bit Ram_MachineState1_byte_arr + kAmmoRackMachineIndex  ; ammo slot bits
-    beq _Error
-    eor #$ff
-    and Ram_MachineState1_byte_arr + kAmmoRackMachineIndex  ; ammo slot bits
-    sta Ram_MachineState1_byte_arr + kAmmoRackMachineIndex  ; ammo slot bits
-    inc Ram_MachineState1_byte_arr + kReloaderMachineIndex  ; ammo count
-    ;; TODO: play a sound
-_StartWaiting:
-    lda #kReloaderActCountdown  ; param: num frames
-    jmp FuncA_Machine_StartWaiting
-_Error:
-    jmp FuncA_Machine_Error
-.ENDPROC
-
 ;;;=========================================================================;;;
 
 .SEGMENT "PRGA_Room"
@@ -1196,6 +1160,42 @@ _WriteR:
 .PROC FuncA_Machine_BossCityLauncher_TryAct
     lda #eDir::Left  ; param: rocket direction
     jmp FuncA_Machine_LauncherTryAct
+.ENDPROC
+
+.PROC FuncA_Machine_BossCityReloader_TryAct
+    ldx Ram_MachineGoalHorz_u8_arr + kReloaderMachineIndex
+    lda Ram_MachineState1_byte_arr + kReloaderMachineIndex  ; ammo count
+    beq _TryPickUpAmmo
+_TryDropOffAmmo:
+    ;; Error unless the reloader and launcher machines are lined up.
+    cpx #kReloaderMaxGoalX
+    blt _Error
+    lda Ram_PlatformTop_i16_0_arr + kLauncherPlatformIndex
+    cmp #<kLauncherMinPlatformTop
+    bne _Error
+    ;; Error if the launcher machine already has a rocket loaded.
+    lda Ram_MachineState1_byte_arr + kLauncherMachineIndex  ; ammo count
+    bne _Error
+    ;; TODO: play a sound
+    dec Ram_MachineState1_byte_arr + kReloaderMachineIndex  ; ammo count
+    inc Ram_MachineState1_byte_arr + kLauncherMachineIndex  ; ammo count
+    bne _StartWaiting  ; unconditional
+_TryPickUpAmmo:
+    cpx #kNumAmmoRackSlots
+    bge _Error
+    lda Data_PowersOfTwo_u8_arr8, x
+    bit Ram_MachineState1_byte_arr + kAmmoRackMachineIndex  ; ammo slot bits
+    beq _Error
+    eor #$ff
+    and Ram_MachineState1_byte_arr + kAmmoRackMachineIndex  ; ammo slot bits
+    sta Ram_MachineState1_byte_arr + kAmmoRackMachineIndex  ; ammo slot bits
+    inc Ram_MachineState1_byte_arr + kReloaderMachineIndex  ; ammo count
+    ;; TODO: play a sound
+_StartWaiting:
+    lda #kReloaderActCountdown  ; param: num frames
+    jmp FuncA_Machine_StartWaiting
+_Error:
+    jmp FuncA_Machine_Error
 .ENDPROC
 
 .PROC FuncA_Machine_BossCityLauncher_Tick

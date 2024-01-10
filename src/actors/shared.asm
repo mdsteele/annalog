@@ -30,6 +30,7 @@
 .IMPORT FuncA_Objects_Draw1x2Shape
 .IMPORT FuncA_Objects_Draw2x2Shape
 .IMPORT FuncA_Objects_MoveShapeLeftHalfTile
+.IMPORT FuncA_Objects_MoveShapeUpByA
 .IMPORT FuncA_Objects_MoveShapeUpHalfTile
 .IMPORT Func_FindDeviceNearPoint
 .IMPORT Func_HarmAvatar
@@ -55,6 +56,7 @@
 .IMPORTZP Zp_AvatarFlags_bObj
 .IMPORTZP Zp_AvatarPosX_i16
 .IMPORTZP Zp_AvatarPosY_i16
+.IMPORTZP Zp_FrameCounter_u8
 .IMPORTZP Zp_RoomScrollX_u16
 .IMPORTZP Zp_RoomScrollY_u8
 .IMPORTZP Zp_ShapePosX_i16
@@ -426,6 +428,24 @@
     sbc Zp_RoomScrollX_u16 + 1
     sta Zp_ShapePosX_i16 + 1
     rts
+.ENDPROC
+
+;;; Adjusts Zp_ShapePosY_i16 to make the actor appear to bob up and down e.g.
+;;; in water.
+;;; @param X The actor index.
+;;; @preserve X, T1+
+.EXPORT FuncA_Objects_BobActorShapePosUpAndDown
+.PROC FuncA_Objects_BobActorShapePosUpAndDown
+    stx T0  ; actor index
+    lda Zp_FrameCounter_u8
+    div #8
+    add T0  ; actor index
+    and #$07
+    tay
+    lda _VertOffset_u8_arr8, y  ; param: offset
+    jmp FuncA_Objects_MoveShapeUpByA  ; preserves X and T0+
+_VertOffset_u8_arr8:
+    .byte 0, 0, 0, 1, 2, 2, 2, 1
 .ENDPROC
 
 ;;; Returns the object flags to use for drawing the specified NPC actor.

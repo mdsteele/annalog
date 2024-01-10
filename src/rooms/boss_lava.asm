@@ -29,6 +29,7 @@
 .INCLUDE "../mmc3.inc"
 .INCLUDE "../oam.inc"
 .INCLUDE "../platform.inc"
+.INCLUDE "../platforms/lava.inc"
 .INCLUDE "../ppu.inc"
 .INCLUDE "../program.inc"
 .INCLUDE "../room.inc"
@@ -276,7 +277,7 @@ _Ext_sRoomExt:
     d_addr Passages_sPassage_arr_ptr, 0
     d_addr Enter_func_ptr, FuncA_Room_BossLava_EnterRoom
     d_addr FadeIn_func_ptr, FuncC_Boss_Lava_FadeInRoom
-    d_addr Tick_func_ptr, FuncC_Boss_Lava_TickRoom
+    d_addr Tick_func_ptr, FuncA_Room_BossLava_TickRoom
     d_addr Draw_func_ptr, FuncC_Boss_Lava_DrawRoom
     D_END
 _TerrainData:
@@ -407,9 +408,9 @@ _Platforms_sPlatform_arr:
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Kill
     d_word WidthPx_u16, $100
-    d_byte HeightPx_u8,  $20
+    d_byte HeightPx_u8, kLavaPlatformHeightPx
     d_word Left_i16,   $0000
-    d_word Top_i16,    $00d3
+    d_word Top_i16, kLavaPlatformTopShortRoom
     D_END
     .assert * - :- <= kMaxPlatforms * .sizeof(sPlatform), error
     .byte ePlatform::None
@@ -505,14 +506,6 @@ _Devices_sDevice_arr:
     ldy #.sizeof(DataC_Boss_LavaInitTransfer_arr)  ; param: data length
     jsr Func_BufferPpuTransfer
     jmp FuncA_Terrain_FadeInShortRoomWithLava
-.ENDPROC
-
-;;; Room tick function for the BossLava room.
-;;; @prereq PRGA_Room is loaded.
-.PROC FuncC_Boss_Lava_TickRoom
-    .assert eBossMode::Dead = 0, error
-    lda Zp_RoomState + sState::Current_eBossMode  ; param: zero if boss dead
-    jmp FuncA_Room_TickBoss
 .ENDPROC
 
 ;;; Performs per-frame upates for the boss in this room.
@@ -999,6 +992,13 @@ _BossIsAlive:
     .assert kBossInitGoalY = 0, error
 _BossIsDead:
     rts
+.ENDPROC
+
+;;; Room tick function for the BossLava room.
+.PROC FuncA_Room_BossLava_TickRoom
+    .assert eBossMode::Dead = 0, error
+    lda Zp_RoomState + sState::Current_eBossMode  ; param: zero if boss dead
+    jmp FuncA_Room_TickBoss
 .ENDPROC
 
 .PROC FuncA_Room_BossLavaBlaster_Reset

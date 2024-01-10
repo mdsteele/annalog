@@ -274,7 +274,7 @@ _Ext_sRoomExt:
     d_addr Passages_sPassage_arr_ptr, 0
     d_addr Enter_func_ptr, FuncC_Boss_Crypt_EnterRoom
     d_addr FadeIn_func_ptr, FuncC_Boss_Crypt_FadeInRoom
-    d_addr Tick_func_ptr, FuncC_Boss_Crypt_TickRoom
+    d_addr Tick_func_ptr, FuncA_Room_BossCrypt_TickRoom
     d_addr Draw_func_ptr, FuncA_Objects_DrawBoss
     D_END
 _TerrainData:
@@ -293,9 +293,9 @@ _Machines_sMachine_arr:
     d_byte MainPlatform_u8, kWinchPlatformIndex
     d_addr Init_func_ptr, FuncC_Boss_CryptWinch_Init
     d_addr ReadReg_func_ptr, FuncC_Boss_CryptWinch_ReadReg
-    d_addr WriteReg_func_ptr, FuncC_Boss_CryptWinch_WriteReg
-    d_addr TryMove_func_ptr, FuncC_Boss_CryptWinch_TryMove
-    d_addr TryAct_func_ptr, FuncC_Boss_CryptWinch_TryAct
+    d_addr WriteReg_func_ptr, FuncA_Machine_BossCryptWinch_WriteReg
+    d_addr TryMove_func_ptr, FuncA_Machine_BossCryptWinch_TryMove
+    d_addr TryAct_func_ptr, FuncA_Machine_BossCryptWinch_TryAct
     d_addr Tick_func_ptr, FuncC_Boss_CryptWinch_Tick
     d_addr Draw_func_ptr, FuncA_Objects_BossCryptWinch_Draw
     d_addr Reset_func_ptr, FuncC_Boss_CryptWinch_Reset
@@ -432,63 +432,6 @@ _ReadR:
     rts
 .ENDPROC
 
-.PROC FuncC_Boss_CryptWinch_WriteReg
-    cpx #$d
-    beq _WriteR
-_WriteL:
-    ldx #kLeverLeftDeviceIndex  ; param: device index
-    jmp FuncA_Machine_WriteToLever
-_WriteR:
-    ldx #kLeverRightDeviceIndex  ; param: device index
-    jmp FuncA_Machine_WriteToLever
-.ENDPROC
-
-.PROC FuncC_Boss_CryptWinch_TryMove
-    ldy Ram_MachineGoalHorz_u8_arr + kWinchMachineIndex
-    .assert eDir::Up = 0, error
-    txa
-    beq _MoveUp
-    cpx #eDir::Down
-    beq _MoveDown
-_MoveHorz:
-    cpx #eDir::Left
-    beq @moveLeft
-    @moveRight:
-    cpy #kWinchMaxGoalX
-    bge _Error
-    iny
-    bne @checkFloor  ; unconditional
-    @moveLeft:
-    tya
-    beq _Error
-    dey
-    @checkFloor:
-    lda DataC_Boss_CryptFloor_u8_arr, y
-    cmp Ram_MachineGoalVert_u8_arr + kWinchMachineIndex
-    blt _Error
-    sty Ram_MachineGoalHorz_u8_arr + kWinchMachineIndex
-    jmp FuncA_Machine_StartWorking
-_MoveUp:
-    lda Ram_MachineGoalVert_u8_arr + kWinchMachineIndex
-    beq _Error
-    dec Ram_MachineGoalVert_u8_arr + kWinchMachineIndex
-    jmp FuncA_Machine_StartWorking
-_MoveDown:
-    lda Ram_MachineGoalVert_u8_arr + kWinchMachineIndex
-    cmp DataC_Boss_CryptFloor_u8_arr, y
-    bge _Error
-    inc Ram_MachineGoalVert_u8_arr + kWinchMachineIndex
-    jmp FuncA_Machine_StartWorking
-_Error:
-    jmp FuncA_Machine_Error
-.ENDPROC
-
-.PROC FuncC_Boss_CryptWinch_TryAct
-    ldy Ram_MachineGoalHorz_u8_arr + kWinchMachineIndex
-    lda DataC_Boss_CryptFloor_u8_arr, y  ; param: new Z-goal
-    jmp FuncA_Machine_WinchStartFalling
-.ENDPROC
-
 .PROC FuncC_Boss_CryptWinch_Tick
 _MoveVert:
     ;; Calculate the desired room-space pixel Y-position for the top edge of
@@ -575,10 +518,6 @@ _Inner:
     rts
 .ENDPROC
 
-.PROC DataC_Boss_CryptFloor_u8_arr
-    .byte 8, 8, 1, 9, 9, 9, 5, 1, 9, 9
-.ENDPROC
-
 .PROC DataC_Boss_CryptInitTransfer_arr
     .assert kBossWidthTiles = 6, error
     .assert kBossHeightTiles = 4, error
@@ -640,14 +579,6 @@ _BossIsDead:
     ldax #DataC_Boss_CryptInitTransfer_arr  ; param: data pointer
     ldy #.sizeof(DataC_Boss_CryptInitTransfer_arr)  ; param: data length
     jmp Func_BufferPpuTransfer
-.ENDPROC
-
-;;; Room tick function for the BossCrypt room.
-;;; @prereq PRGA_Room is loaded.
-.PROC FuncC_Boss_Crypt_TickRoom
-    .assert eBossMode::Dead = 0, error
-    lda Zp_RoomState + sState::Current_eBossMode  ; param: zero if boss dead
-    jmp FuncA_Room_TickBoss
 .ENDPROC
 
 ;;; Performs per-frame upates for the boss in this room.
@@ -942,6 +873,82 @@ _EyeOffsetY_u8_arr:
     d_byte DownRight, 3
     d_byte Right,     4
     D_END
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Room"
+
+;;; Room tick function for the BossCrypt room.
+.PROC FuncA_Room_BossCrypt_TickRoom
+    .assert eBossMode::Dead = 0, error
+    lda Zp_RoomState + sState::Current_eBossMode  ; param: zero if boss dead
+    jmp FuncA_Room_TickBoss
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Machine"
+
+.PROC FuncA_Machine_BossCryptWinch_WriteReg
+    cpx #$d
+    beq _WriteR
+_WriteL:
+    ldx #kLeverLeftDeviceIndex  ; param: device index
+    jmp FuncA_Machine_WriteToLever
+_WriteR:
+    ldx #kLeverRightDeviceIndex  ; param: device index
+    jmp FuncA_Machine_WriteToLever
+.ENDPROC
+
+.PROC FuncA_Machine_BossCryptWinch_TryMove
+    ldy Ram_MachineGoalHorz_u8_arr + kWinchMachineIndex
+    .assert eDir::Up = 0, error
+    txa
+    beq _MoveUp
+    cpx #eDir::Down
+    beq _MoveDown
+_MoveHorz:
+    cpx #eDir::Left
+    beq @moveLeft
+    @moveRight:
+    cpy #kWinchMaxGoalX
+    bge _Error
+    iny
+    bne @checkFloor  ; unconditional
+    @moveLeft:
+    tya
+    beq _Error
+    dey
+    @checkFloor:
+    lda DataA_Machine_BossCryptFloor_u8_arr, y
+    cmp Ram_MachineGoalVert_u8_arr + kWinchMachineIndex
+    blt _Error
+    sty Ram_MachineGoalHorz_u8_arr + kWinchMachineIndex
+    jmp FuncA_Machine_StartWorking
+_MoveUp:
+    lda Ram_MachineGoalVert_u8_arr + kWinchMachineIndex
+    beq _Error
+    dec Ram_MachineGoalVert_u8_arr + kWinchMachineIndex
+    jmp FuncA_Machine_StartWorking
+_MoveDown:
+    lda Ram_MachineGoalVert_u8_arr + kWinchMachineIndex
+    cmp DataA_Machine_BossCryptFloor_u8_arr, y
+    bge _Error
+    inc Ram_MachineGoalVert_u8_arr + kWinchMachineIndex
+    jmp FuncA_Machine_StartWorking
+_Error:
+    jmp FuncA_Machine_Error
+.ENDPROC
+
+.PROC FuncA_Machine_BossCryptWinch_TryAct
+    ldy Ram_MachineGoalHorz_u8_arr + kWinchMachineIndex
+    lda DataA_Machine_BossCryptFloor_u8_arr, y  ; param: new Z-goal
+    jmp FuncA_Machine_WinchStartFalling
+.ENDPROC
+
+.PROC DataA_Machine_BossCryptFloor_u8_arr
+    .byte 8, 8, 1, 9, 9, 9, 5, 1, 9, 9
 .ENDPROC
 
 ;;;=========================================================================;;;

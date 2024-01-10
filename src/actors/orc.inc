@@ -51,6 +51,7 @@
     Standing
     Throwing1
     Throwing2
+    GhostStanding
     GrontaStanding
     GrontaArmsRaised
     NUM_VALUES
@@ -71,6 +72,7 @@ kOrcMaxFallSpeed = $0500
 kOrcJumpVelocity = $ffff & -600
 
 ;;; Tile IDs for drawing orc baddie actors.
+kTileIdObjOrcGhostFirst    = $b0
 kTileIdObjOrcGrontaFirst   = $a0
 kTileIdObjOrcRunningFirst  = $b0
 kTileIdObjOrcStandingFirst = $88

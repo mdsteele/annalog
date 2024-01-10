@@ -33,6 +33,7 @@
 .IMPORT FuncA_Actor_MovePointTowardVelXDir
 .IMPORT FuncA_Actor_ZeroVelX
 .IMPORT FuncA_Actor_ZeroVelY
+.IMPORT FuncA_Objects_BobActorShapePosUpAndDown
 .IMPORT FuncA_Objects_Draw2x2Shape
 .IMPORT FuncA_Objects_GetNpcActorFlags
 .IMPORT FuncA_Objects_MoveShapeUpByA
@@ -388,6 +389,11 @@ _CheckForFloor:
     @notGronta:
     sty T4  ; head object flags
     jsr FuncA_Objects_SetShapePosToActorCenter  ; preserves X and T0+
+    lda T2  ; pose index
+    cmp #eNpcOrc::GhostStanding
+    bne @notGhost
+    jsr FuncA_Objects_BobActorShapePosUpAndDown  ; preserves X and T1+
+    @notGhost:
     ;; Draw feet:
     ldy T2  ; pose index
     lda _TileIdFeet_u8_arr, y  ; param: first tile ID
@@ -409,6 +415,7 @@ _TileIdHead_u8_arr:
     d_byte Standing,  kTileIdObjOrcHeadHigh
     d_byte Throwing1, kTileIdObjOrcThrowingFirst + $00
     d_byte Throwing2, kTileIdObjOrcThrowingFirst + $08
+    d_byte GhostStanding,    kTileIdObjOrcGhostFirst  + $00
     d_byte GrontaStanding,   kTileIdObjOrcGrontaFirst + $00
     d_byte GrontaArmsRaised, kTileIdObjOrcGrontaFirst + $04
     D_END
@@ -421,6 +428,7 @@ _TileIdFeet_u8_arr:
     d_byte Standing,  kTileIdObjOrcFeetStanding
     d_byte Throwing1, kTileIdObjOrcThrowingFirst + $04
     d_byte Throwing2, kTileIdObjOrcThrowingFirst + $0c
+    d_byte GhostStanding,    kTileIdObjOrcGhostFirst  + $04
     d_byte GrontaStanding,   kTileIdObjOrcGrontaFirst + $08
     d_byte GrontaArmsRaised, kTileIdObjOrcGrontaFirst + $0c
     D_END

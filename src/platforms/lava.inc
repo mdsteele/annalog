@@ -17,37 +17,21 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
-;;; State bytes for adult/mermaid NPCs:
-;;;   * State1: The first tile ID for the actor.
-;;;   * State2: Boolean; if true ($ff), the NPC uses Ram_ActorFlags_bObj_arr
-;;;     unchanged; if false ($00), the NPC is automatically drawn facing the
-;;;     player avatar.
-;;;   * State3: Unused.
+;;; The gap between the top of the lava terrain and the top of the lava
+;;; platform, in pixels.
+kLavaPlatformOffsetPx = 3
 
-;;;=========================================================================;;;
+;;; The room pixel position for the top of the lava terrain in short/tall rooms
+;;; with lava.
+kLavaTerrainTopShortRoom = $d0
+kLavaTerrainTopTallRoom = $160
 
-;;; The first tile IDs for various adults.
-kTileIdAdultWomanFirst = $d0
-kTileIdAdultManFirst   = $d6
+;;; The room pixel position for the top of the lava platform in short/tall
+;;; rooms with lava.
+kLavaPlatformTopShortRoom = kLavaTerrainTopShortRoom + kLavaPlatformOffsetPx
+kLavaPlatformTopTallRoom  = kLavaTerrainTopTallRoom  + kLavaPlatformOffsetPx
 
-;;; The first tile IDs for various mermaids.
-kTileIdCorraSwimmingDownFirst = $e0
-kTileIdCorraSwimmingDown1     = kTileIdCorraSwimmingDownFirst + 0
-kTileIdCorraSwimmingDown2     = kTileIdCorraSwimmingDownFirst + 6
-kTileIdCorraSwimmingUpFirst   = $f0
-kTileIdCorraSwimmingUp1       = kTileIdCorraSwimmingUpFirst + 0
-kTileIdCorraSwimmingUp2       = kTileIdCorraSwimmingUpFirst + 8
-kTileIdMermaidCorraFirst      = $aa
-kTileIdMermaidFloristFirst    = $94
-kTileIdMermaidDaphneFirst     = $9a
-kTileIdMermaidGhostFirst      = $c0
-kTileIdMermaidGuardFFirst     = $a0
-kTileIdMermaidGuardMFirst     = $82
-kTileIdMermaidPhoebeFirst     = $88
-kTileIdMermaidFarmerFirst     = $8e
-kTileIdMermaidQueenFirst      = $b0
-
-;;; Mermaid first tile IDs of this or more must be drawn 2x4 instead of 2x3.
-kFirst2x4MermaidTileId = kTileIdCorraSwimmingUpFirst
+;;; The height of a lava platform, in pixels.
+kLavaPlatformHeightPx = $20
 
 ;;;=========================================================================;;;

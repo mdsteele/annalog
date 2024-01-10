@@ -262,9 +262,9 @@ _Ext_sRoomExt:
     d_addr Actors_sActor_arr_ptr, Data_Empty_sActor_arr
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
     d_addr Passages_sPassage_arr_ptr, 0
-    d_addr Enter_func_ptr, FuncC_Boss_Temple_EnterRoom
+    d_addr Enter_func_ptr, FuncA_Room_BossTemple_EnterRoom
     d_addr FadeIn_func_ptr, FuncC_Boss_Temple_FadeInRoom
-    d_addr Tick_func_ptr, FuncC_Boss_Temple_TickRoom
+    d_addr Tick_func_ptr, FuncA_Room_BossTemple_TickRoom
     d_addr Draw_func_ptr, FuncC_Boss_Temple_DrawRoom
     D_END
 _TerrainData:
@@ -281,14 +281,14 @@ _Machines_sMachine_arr:
     d_byte ScrollGoalY_u8, $16
     d_byte RegNames_u8_arr4, "L", "R", "X", 0
     d_byte MainPlatform_u8, kMinigunPlatformIndex
-    d_addr Init_func_ptr, FuncC_Boss_TempleMinigun_InitReset
+    d_addr Init_func_ptr, FuncA_Room_BossTempleMinigun_InitReset
     d_addr ReadReg_func_ptr, FuncC_Boss_TempleMinigun_ReadReg
-    d_addr WriteReg_func_ptr, FuncC_Boss_TempleMinigun_WriteReg
-    d_addr TryMove_func_ptr, FuncC_Boss_TempleMinigun_TryMove
-    d_addr TryAct_func_ptr, FuncC_Boss_TempleMinigun_TryAct
-    d_addr Tick_func_ptr, FuncC_Boss_TempleMinigun_Tick
+    d_addr WriteReg_func_ptr, FuncA_Machine_BossTempleMinigun_WriteReg
+    d_addr TryMove_func_ptr, FuncA_Machine_BossTempleMinigun_TryMove
+    d_addr TryAct_func_ptr, FuncA_Machine_BossTempleMinigun_TryAct
+    d_addr Tick_func_ptr, FuncA_Machine_BossTempleMinigun_Tick
     d_addr Draw_func_ptr, FuncA_Objects_DrawMinigunUpMachine
-    d_addr Reset_func_ptr, FuncC_Boss_TempleMinigun_InitReset
+    d_addr Reset_func_ptr, FuncA_Room_BossTempleMinigun_InitReset
     D_END
     .assert * - :- <= kMaxMachines * .sizeof(sMachine), error
 _Platforms_sPlatform_arr:
@@ -389,19 +389,6 @@ _Devices_sDevice_arr:
     D_END
 .ENDPROC
 
-;;; Room init function for the BossTemple room.
-;;; @prereq PRGA_Room is loaded.
-.PROC FuncC_Boss_Temple_EnterRoom
-    ldax #DataC_Boss_Temple_sBoss  ; param: sBoss ptr
-    jsr FuncA_Room_InitBoss  ; sets Z if boss is alive
-    bne _BossIsDead
-_BossIsAlive:
-    lda #eBossMode::Waiting
-    sta Zp_RoomState + sState::Current_eBossMode
-_BossIsDead:
-    rts
-.ENDPROC
-
 ;;; Room fade in function for the BossTemple room.
 ;;; @prereq Rendering is disabled.
 .PROC FuncC_Boss_Temple_FadeInRoom
@@ -469,15 +456,6 @@ _ColumnTileId_u8_arr:
     .byte $9a, $9b, $94, $95, $94, $95, $9a, $9b
 _ColumnTileCol_u8_arr:
     .byte   3,   4,   9,  10,  21,  22,  27,  28
-.ENDPROC
-
-;;; Room tick function for the BossTemple room.
-;;; @prereq PRGA_Room is loaded.
-.PROC FuncC_Boss_Temple_TickRoom
-    jsr FuncA_Room_RemoveAllBulletsIfConsoleOpen
-    .assert eBossMode::Dead = 0, error
-    lda Zp_RoomState + sState::Current_eBossMode  ; param: zero if boss dead
-    jmp FuncA_Room_TickBoss
 .ENDPROC
 
 ;;; Performs per-frame upates for the boss in this room.
@@ -827,15 +805,6 @@ _Offset_u8_arr2:
     rts
 .ENDPROC
 
-.PROC FuncC_Boss_TempleMinigun_InitReset
-    lda #kMinigunInitGoalX
-    sta Ram_MachineGoalHorz_u8_arr + kMinigunMachineIndex
-    ldx #kLeverLeftDeviceIndex  ; param: device index
-    jsr FuncA_Room_ResetLever
-    ldx #kLeverRightDeviceIndex  ; param: device index
-    jmp FuncA_Room_ResetLever
-.ENDPROC
-
 .PROC FuncC_Boss_TempleMinigun_ReadReg
     cmp #$c
     beq @readL
@@ -854,7 +823,44 @@ _Offset_u8_arr2:
     rts
 .ENDPROC
 
-.PROC FuncC_Boss_TempleMinigun_WriteReg
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Room"
+
+;;; Room init function for the BossTemple room.
+.PROC FuncA_Room_BossTemple_EnterRoom
+    ldax #DataC_Boss_Temple_sBoss  ; param: sBoss ptr
+    jsr FuncA_Room_InitBoss  ; sets Z if boss is alive
+    bne _BossIsDead
+_BossIsAlive:
+    lda #eBossMode::Waiting
+    sta Zp_RoomState + sState::Current_eBossMode
+_BossIsDead:
+    rts
+.ENDPROC
+
+;;; Room tick function for the BossTemple room.
+.PROC FuncA_Room_BossTemple_TickRoom
+    jsr FuncA_Room_RemoveAllBulletsIfConsoleOpen
+    .assert eBossMode::Dead = 0, error
+    lda Zp_RoomState + sState::Current_eBossMode  ; param: zero if boss dead
+    jmp FuncA_Room_TickBoss
+.ENDPROC
+
+.PROC FuncA_Room_BossTempleMinigun_InitReset
+    lda #kMinigunInitGoalX
+    sta Ram_MachineGoalHorz_u8_arr + kMinigunMachineIndex
+    ldx #kLeverLeftDeviceIndex  ; param: device index
+    jsr FuncA_Room_ResetLever
+    ldx #kLeverRightDeviceIndex  ; param: device index
+    jmp FuncA_Room_ResetLever
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Machine"
+
+.PROC FuncA_Machine_BossTempleMinigun_WriteReg
     cpx #$d
     beq _WriteR
 _WriteL:
@@ -865,17 +871,17 @@ _WriteR:
     jmp FuncA_Machine_WriteToLever
 .ENDPROC
 
-.PROC FuncC_Boss_TempleMinigun_TryMove
+.PROC FuncA_Machine_BossTempleMinigun_TryMove
     lda #kMinigunMaxGoalX  ; param: max goal
     jmp FuncA_Machine_GenericTryMoveX
 .ENDPROC
 
-.PROC FuncC_Boss_TempleMinigun_TryAct
+.PROC FuncA_Machine_BossTempleMinigun_TryAct
     ldy #eDir::Up  ; param: bullet direction
     jmp FuncA_Machine_MinigunTryAct
 .ENDPROC
 
-.PROC FuncC_Boss_TempleMinigun_Tick
+.PROC FuncA_Machine_BossTempleMinigun_Tick
     jsr FuncA_Machine_MinigunRotateBarrel
     ldax #kMinigunMinPlatformLeft  ; param: min platform left
     jsr FuncA_Machine_GenericMoveTowardGoalHorz  ; returns Z

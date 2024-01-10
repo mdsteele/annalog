@@ -17,13 +17,16 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
+.INCLUDE "../actor.inc"
+.INCLUDE "../actors/orc.inc"
+.INCLUDE "../actors/townsfolk.inc"
 .INCLUDE "../device.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../platform.inc"
+.INCLUDE "../platforms/lava.inc"
 .INCLUDE "../room.inc"
 
 .IMPORT DataA_Room_Shadow_sTileset
-.IMPORT Data_Empty_sActor_arr
 .IMPORT FuncA_Objects_AnimateLavaTerrain
 .IMPORT FuncA_Terrain_FadeInShortRoomWithLava
 .IMPORT Func_Noop
@@ -51,7 +54,7 @@ _Ext_sRoomExt:
     D_STRUCT sRoomExt
     d_addr Terrain_sTileset_ptr, DataA_Room_Shadow_sTileset
     d_addr Platforms_sPlatform_arr_ptr, _Platforms_sPlatform_arr
-    d_addr Actors_sActor_arr_ptr, Data_Empty_sActor_arr
+    d_addr Actors_sActor_arr_ptr, _Actors_sActor_arr
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
     d_addr Passages_sPassage_arr_ptr, _Passages_sPassage_arr
     d_addr Enter_func_ptr, Func_Noop
@@ -69,12 +72,27 @@ _Platforms_sPlatform_arr:
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Kill
     d_word WidthPx_u16, $510
-    d_byte HeightPx_u8,  $20
+    d_byte HeightPx_u8, kLavaPlatformHeightPx
     d_word Left_i16,   $0000
-    d_word Top_i16,    $00d3
+    d_word Top_i16, kLavaPlatformTopShortRoom
     D_END
     .assert * - :- <= kMaxPlatforms * .sizeof(sPlatform), error
     .byte ePlatform::None
+_Actors_sActor_arr:
+:   D_STRUCT sActor
+    d_byte Type_eActor, eActor::NpcOrc
+    d_word PosX_i16, $0304
+    d_word PosY_i16, $0063
+    d_byte Param_byte, eNpcOrc::GhostStanding
+    D_END
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::NpcMermaid
+    d_word PosX_i16, $0384
+    d_word PosY_i16, $00b1
+    d_byte Param_byte, kTileIdMermaidGhostFirst
+    D_END
+    .assert * - :- <= kMaxActors * .sizeof(sActor), error
+    .byte eActor::None
 _Devices_sDevice_arr:
 :   D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Door1Unlocked

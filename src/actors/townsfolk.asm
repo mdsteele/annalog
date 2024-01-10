@@ -25,15 +25,14 @@
 
 .IMPORT FuncA_Objects_Alloc2x1Shape
 .IMPORT FuncA_Objects_Alloc2x2Shape
+.IMPORT FuncA_Objects_BobActorShapePosUpAndDown
 .IMPORT FuncA_Objects_Draw2x2Shape
 .IMPORT FuncA_Objects_GetNpcActorFlags
 .IMPORT FuncA_Objects_MoveShapeDownByA
-.IMPORT FuncA_Objects_MoveShapeUpByA
 .IMPORT FuncA_Objects_MoveShapeUpOneTile
 .IMPORT FuncA_Objects_SetShapePosToActorCenter
 .IMPORT Ram_ActorState1_byte_arr
 .IMPORT Ram_Oam_sObj_arr64
-.IMPORTZP Zp_FrameCounter_u8
 
 ;;;=========================================================================;;;
 
@@ -66,15 +65,7 @@ kPaletteObjMermaidQueenHead = 1
 .EXPORT FuncA_Objects_DrawActorNpcMermaid
 .PROC FuncA_Objects_DrawActorNpcMermaid
     jsr FuncA_Objects_SetShapePosToActorCenter  ; preserves X
-    ;; Adjust vertical position (to make the mermaid bob in the water).
-    stx T0  ; actor index
-    lda Zp_FrameCounter_u8
-    div #8
-    add T0  ; actor index
-    and #$07
-    tay
-    lda _VertOffset_u8_arr8, y  ; param: offset
-    jsr FuncA_Objects_MoveShapeUpByA
+    jsr FuncA_Objects_BobActorShapePosUpAndDown  ; preserves X
     ;; Draw the actor.
     jsr FuncA_Objects_GetNpcActorFlags  ; preserves X, returns A
     .assert kPaletteObjMermaid = 0, error

@@ -29,6 +29,7 @@
 .INCLUDE "../oam.inc"
 .INCLUDE "../platform.inc"
 .INCLUDE "../platforms/crate.inc"
+.INCLUDE "../platforms/lava.inc"
 .INCLUDE "../ppu.inc"
 .INCLUDE "../program.inc"
 .INCLUDE "../room.inc"
@@ -286,9 +287,9 @@ _Platforms_sPlatform_arr:
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Kill
     d_word WidthPx_u16, $120
-    d_byte HeightPx_u8,  $20
+    d_byte HeightPx_u8, kLavaPlatformHeightPx
     d_word Left_i16,   $0000
-    d_word Top_i16,    $0163
+    d_word Top_i16, kLavaPlatformTopTallRoom
     D_END
     .assert * - :- <= kMaxPlatforms * .sizeof(sPlatform), error
     .byte ePlatform::None

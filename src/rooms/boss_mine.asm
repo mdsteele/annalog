@@ -219,9 +219,9 @@ _Ext_sRoomExt:
     d_addr Actors_sActor_arr_ptr, Data_Empty_sActor_arr
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
     d_addr Passages_sPassage_arr_ptr, 0
-    d_addr Enter_func_ptr, FuncC_Boss_Mine_EnterRoom
+    d_addr Enter_func_ptr, FuncA_Room_BossMine_EnterRoom
     d_addr FadeIn_func_ptr, Func_Noop
-    d_addr Tick_func_ptr, FuncC_Boss_Mine_TickRoom
+    d_addr Tick_func_ptr, FuncA_Room_BossMine_TickRoom
     d_addr Draw_func_ptr, FuncC_Boss_Mine_DrawRoom
     D_END
 _TerrainData:
@@ -240,7 +240,7 @@ _Machines_sMachine_arr:
     d_byte MainPlatform_u8, kTrolleyPlatformIndex
     d_addr Init_func_ptr, FuncC_Boss_MineTrolley_InitReset
     d_addr ReadReg_func_ptr, FuncC_Boss_MineTrolley_ReadReg
-    d_addr WriteReg_func_ptr, FuncC_Boss_Mine_WriteReg
+    d_addr WriteReg_func_ptr, FuncA_Machine_BossMine_WriteReg
     d_addr TryMove_func_ptr, FuncC_Boss_MineTrolley_TryMove
     d_addr TryAct_func_ptr, FuncA_Machine_Error
     d_addr Tick_func_ptr, FuncC_Boss_MineTrolley_Tick
@@ -259,7 +259,7 @@ _Machines_sMachine_arr:
     d_byte MainPlatform_u8, kCranePlatformIndex
     d_addr Init_func_ptr, FuncC_Boss_MineCrane_InitReset
     d_addr ReadReg_func_ptr, FuncC_Boss_MineCrane_ReadReg
-    d_addr WriteReg_func_ptr, FuncC_Boss_Mine_WriteReg
+    d_addr WriteReg_func_ptr, FuncA_Machine_BossMine_WriteReg
     d_addr TryMove_func_ptr, FuncC_Boss_MineCrane_TryMove
     d_addr TryAct_func_ptr, FuncC_Boss_MineCrane_TryAct
     d_addr Tick_func_ptr, FuncC_Boss_MineCrane_Tick
@@ -361,31 +361,6 @@ _Devices_sDevice_arr:
     d_addr Tick_func_ptr, FuncC_Boss_Mine_TickBoss
     d_addr Draw_func_ptr, FuncC_Boss_Mine_DrawBoss
     D_END
-.ENDPROC
-
-;;; Room init function for the BossMine room.
-;;; @prereq PRGA_Room is loaded.
-.PROC FuncC_Boss_Mine_EnterRoom
-    ldax #DataC_Boss_Mine_sBoss  ; param: sBoss ptr
-    jsr FuncA_Room_InitBoss  ; sets Z if boss is alive
-    bne _BossIsDead
-_BossIsAlive:
-    lda #kBossInitHealth
-    sta Zp_RoomState + sState::BossHealth_u8
-    lda #kBossInitCooldown
-    sta Zp_RoomState + sState::BossCooldown_u8
-    lda #eBossMode::Hiding
-    sta Zp_RoomState + sState::Current_eBossMode
-_BossIsDead:
-    rts
-.ENDPROC
-
-;;; Room tick function for the BossMine room.
-;;; @prereq PRGA_Room is loaded.
-.PROC FuncC_Boss_Mine_TickRoom
-    .assert eBossMode::Dead = 0, error
-    lda Zp_RoomState + sState::Current_eBossMode  ; param: zero if boss dead
-    jmp FuncA_Room_TickBoss
 .ENDPROC
 
 ;;; Performs per-frame upates for the boss in this room.
@@ -705,23 +680,6 @@ _RegR:
     rts
 .ENDPROC
 
-;;; Shared WriteReg implementation for the BossMineTrolley and BossMineCrane
-;;; machines.
-;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
-;;; @prereq PRGA_Machine is loaded.
-;;; @param A The value to write (0-9).
-;;; @param X The register to write to ($c-$f).
-.PROC FuncC_Boss_Mine_WriteReg
-    cpx #$d
-    beq _WriteR
-_WriteL:
-    ldx #kLeverLeftDeviceIndex  ; param: device index
-    jmp FuncA_Machine_WriteToLever
-_WriteR:
-    ldx #kLeverRightDeviceIndex  ; param: device index
-    jmp FuncA_Machine_WriteToLever
-.ENDPROC
-
 .PROC FuncC_Boss_MineTrolley_TryMove
     cpx #eDir::Left
     beq @moveLeft
@@ -856,6 +814,53 @@ _StartWaiting:
     rts
     @done:
     jmp FuncA_Machine_ReachedGoal
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Room"
+
+;;; Room init function for the BossMine room.
+.PROC FuncA_Room_BossMine_EnterRoom
+    ldax #DataC_Boss_Mine_sBoss  ; param: sBoss ptr
+    jsr FuncA_Room_InitBoss  ; sets Z if boss is alive
+    bne _BossIsDead
+_BossIsAlive:
+    lda #kBossInitHealth
+    sta Zp_RoomState + sState::BossHealth_u8
+    lda #kBossInitCooldown
+    sta Zp_RoomState + sState::BossCooldown_u8
+    lda #eBossMode::Hiding
+    sta Zp_RoomState + sState::Current_eBossMode
+_BossIsDead:
+    rts
+.ENDPROC
+
+;;; Room tick function for the BossMine room.
+.PROC FuncA_Room_BossMine_TickRoom
+    .assert eBossMode::Dead = 0, error
+    lda Zp_RoomState + sState::Current_eBossMode  ; param: zero if boss dead
+    jmp FuncA_Room_TickBoss
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Machine"
+
+;;; Shared WriteReg implementation for the BossMineTrolley and BossMineCrane
+;;; machines.
+;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
+;;; @param A The value to write (0-9).
+;;; @param X The register to write to ($c-$f).
+.PROC FuncA_Machine_BossMine_WriteReg
+    cpx #$d
+    beq _WriteR
+_WriteL:
+    ldx #kLeverLeftDeviceIndex  ; param: device index
+    jmp FuncA_Machine_WriteToLever
+_WriteR:
+    ldx #kLeverRightDeviceIndex  ; param: device index
+    jmp FuncA_Machine_WriteToLever
 .ENDPROC
 
 ;;;=========================================================================;;;

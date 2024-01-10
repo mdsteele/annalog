@@ -1244,7 +1244,11 @@ _chr_begin:
     chr_inc "upgrade_bottom", kTileIdObjUpgradeBottomFirst
     chr_res $0c
     chr_inc "upgrade_opmul",  kTileIdObjUpgradeOpMulFirst
-    chr_res $40
+    chr_res $20
+    chr_inc "orc_ghost",      kTileIdObjOrcGhostFirst
+    chr_res $08
+    chr_inc "mermaid_ghost",  kTileIdMermaidGhostFirst
+    chr_res $0a
     chr_inc "flydrop",        kTileIdObjFlydropFirst
     chr_inc "acid",           kTileIdObjAcid
     chr_res $03
