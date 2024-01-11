@@ -303,7 +303,7 @@ _FlipBreakerDevice:
     sta Ram_DeviceType_eDevice_arr, x
     lda #kBreakerDoneDeviceAnimStart
     sta Ram_DeviceAnim_u8_arr, x
-    lda #eSample::Jump  ; param: eSample to play
+    lda #eSample::JumpAnna  ; param: eSample to play
     jmp Func_PlaySfxSample
 _AnimateAvatarFlippingBreaker:
     ;; Animate the avatar to match the flipping breaker.
@@ -402,7 +402,7 @@ _Cutscene_eRoom_arr:
     d_byte Lava,   eRoom::MermaidHut1  ; TODO
     d_byte Mine,   eRoom::MermaidHut1  ; TODO
     d_byte City,   eRoom::MermaidHut1  ; TODO
-    d_byte Shadow, eRoom::MermaidHut1  ; TODO
+    d_byte Shadow, eRoom::CoreLock
     D_END
 _Cutscene_eCutscene_arr:
     D_ARRAY .enum, eBreaker
@@ -412,7 +412,7 @@ _Cutscene_eCutscene_arr:
     d_byte Lava,   eCutscene::SharedFadeBackToBreakerRoom  ; TODO
     d_byte Mine,   eCutscene::SharedFadeBackToBreakerRoom  ; TODO
     d_byte City,   eCutscene::SharedFadeBackToBreakerRoom  ; TODO
-    d_byte Shadow, eCutscene::SharedFadeBackToBreakerRoom  ; TODO
+    d_byte Shadow, eCutscene::CoreLockBreakerShadow
     D_END
 .ENDPROC
 
@@ -438,7 +438,7 @@ _ScrollX_u16_0_arr:
     d_byte Lava,   $00  ; TODO
     d_byte Mine,   $00  ; TODO
     d_byte City,   $00  ; TODO
-    d_byte Shadow, $00  ; TODO
+    d_byte Shadow, $10
     D_END
 _ScrollX_u16_1_arr:
     D_ARRAY .enum, eBreaker
@@ -448,7 +448,7 @@ _ScrollX_u16_1_arr:
     d_byte Lava,   $00  ; TODO
     d_byte Mine,   $00  ; TODO
     d_byte City,   $00  ; TODO
-    d_byte Shadow, $00  ; TODO
+    d_byte Shadow, $00
     D_END
 .ENDPROC
 

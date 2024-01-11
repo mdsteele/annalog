@@ -577,7 +577,7 @@ _Grounded:
     bit Zp_P1ButtonsPressed_bJoypad
     .assert bJoypad::AButton = bProc::Negative, error
     bpl @noJump
-    lda #eSample::Jump  ; param: eSample to play
+    lda #eSample::JumpAnna  ; param: eSample to play
     jsr Func_PlaySfxSample
     ldax #kAvatarJumpVelocity
     stax Zp_AvatarVelY_i16

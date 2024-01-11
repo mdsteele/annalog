@@ -45,40 +45,42 @@ kSampleGap1Size = kDmcSampleAlign - (* .mod kDmcSampleAlign)
 ;;; The DMC sample rate (0-$f) to use for each sample.
 .PROC Data_SampleRate_u8_arr
     D_ARRAY .enum, eSample
-    d_byte BossRoar0, $0
-    d_byte BossRoar1, $1
-    d_byte BossRoar2, $2
-    d_byte BossRoar3, $3
-    d_byte BossRoar4, $4
-    d_byte BossRoar5, $5
-    d_byte BossRoar6, $6
-    d_byte BossRoar7, $7
-    d_byte BossRoar8, $8
-    d_byte BossHurtD, $d
-    d_byte BossHurtE, $e
-    d_byte BossHurtF, $f
-    d_byte Harm,      $e
-    d_byte Jump,      $f
+    d_byte BossRoar0,  $0
+    d_byte BossRoar1,  $1
+    d_byte BossRoar2,  $2
+    d_byte BossRoar3,  $3
+    d_byte BossRoar4,  $4
+    d_byte BossRoar5,  $5
+    d_byte BossRoar6,  $6
+    d_byte BossRoar7,  $7
+    d_byte BossRoar8,  $8
+    d_byte BossHurtD,  $d
+    d_byte BossHurtE,  $e
+    d_byte BossHurtF,  $f
+    d_byte Harm,       $e
+    d_byte JumpAnna,   $f
+    d_byte JumpGronta, $e
     D_END
 .ENDPROC
 
 ;;; The encoded start address for each sample.
 .PROC Data_SampleStart_u8_arr
     D_ARRAY .enum, eSample
-    d_byte BossRoar0, <(Data_SampleBoss_arr >> 6)
-    d_byte BossRoar1, <(Data_SampleBoss_arr >> 6)
-    d_byte BossRoar2, <(Data_SampleBoss_arr >> 6)
-    d_byte BossRoar3, <(Data_SampleBoss_arr >> 6)
-    d_byte BossRoar4, <(Data_SampleBoss_arr >> 6)
-    d_byte BossRoar5, <(Data_SampleBoss_arr >> 6)
-    d_byte BossRoar6, <(Data_SampleBoss_arr >> 6)
-    d_byte BossRoar7, <(Data_SampleBoss_arr >> 6)
-    d_byte BossRoar8, <(Data_SampleBoss_arr >> 6)
-    d_byte BossHurtD, <(Data_SampleBoss_arr >> 6)
-    d_byte BossHurtE, <(Data_SampleBoss_arr >> 6)
-    d_byte BossHurtF, <(Data_SampleBoss_arr >> 6)
-    d_byte Harm,      <(Data_SampleHarm_arr >> 6)
-    d_byte Jump,      <(Data_SampleJump_arr >> 6)
+    d_byte BossRoar0,  <(Data_SampleBoss_arr >> 6)
+    d_byte BossRoar1,  <(Data_SampleBoss_arr >> 6)
+    d_byte BossRoar2,  <(Data_SampleBoss_arr >> 6)
+    d_byte BossRoar3,  <(Data_SampleBoss_arr >> 6)
+    d_byte BossRoar4,  <(Data_SampleBoss_arr >> 6)
+    d_byte BossRoar5,  <(Data_SampleBoss_arr >> 6)
+    d_byte BossRoar6,  <(Data_SampleBoss_arr >> 6)
+    d_byte BossRoar7,  <(Data_SampleBoss_arr >> 6)
+    d_byte BossRoar8,  <(Data_SampleBoss_arr >> 6)
+    d_byte BossHurtD,  <(Data_SampleBoss_arr >> 6)
+    d_byte BossHurtE,  <(Data_SampleBoss_arr >> 6)
+    d_byte BossHurtF,  <(Data_SampleBoss_arr >> 6)
+    d_byte Harm,       <(Data_SampleHarm_arr >> 6)
+    d_byte JumpAnna,   <(Data_SampleJump_arr >> 6)
+    d_byte JumpGronta, <(Data_SampleJump_arr >> 6)
     D_END
 .ENDPROC
 
@@ -129,20 +131,21 @@ kSampleGap2Size = kDmcSampleAlign - (* .mod kDmcSampleAlign)
 ;;; The encoded byte length for each sample.
 .PROC Data_SampleLength_u8_arr
     D_ARRAY .enum, eSample
-    d_byte BossRoar0, .sizeof(Data_SampleBoss_arr) >> 4
-    d_byte BossRoar1, .sizeof(Data_SampleBoss_arr) >> 4
-    d_byte BossRoar2, .sizeof(Data_SampleBoss_arr) >> 4
-    d_byte BossRoar3, .sizeof(Data_SampleBoss_arr) >> 4
-    d_byte BossRoar4, .sizeof(Data_SampleBoss_arr) >> 4
-    d_byte BossRoar5, .sizeof(Data_SampleBoss_arr) >> 4
-    d_byte BossRoar6, .sizeof(Data_SampleBoss_arr) >> 4
-    d_byte BossRoar7, .sizeof(Data_SampleBoss_arr) >> 4
-    d_byte BossRoar8, .sizeof(Data_SampleBoss_arr) >> 4
-    d_byte BossHurtD, .sizeof(Data_SampleBoss_arr) >> 4
-    d_byte BossHurtE, .sizeof(Data_SampleBoss_arr) >> 4
-    d_byte BossHurtF, .sizeof(Data_SampleBoss_arr) >> 4
-    d_byte Harm,      .sizeof(Data_SampleHarm_arr) >> 4
-    d_byte Jump,      .sizeof(Data_SampleJump_arr) >> 4
+    d_byte BossRoar0,  .sizeof(Data_SampleBoss_arr) >> 4
+    d_byte BossRoar1,  .sizeof(Data_SampleBoss_arr) >> 4
+    d_byte BossRoar2,  .sizeof(Data_SampleBoss_arr) >> 4
+    d_byte BossRoar3,  .sizeof(Data_SampleBoss_arr) >> 4
+    d_byte BossRoar4,  .sizeof(Data_SampleBoss_arr) >> 4
+    d_byte BossRoar5,  .sizeof(Data_SampleBoss_arr) >> 4
+    d_byte BossRoar6,  .sizeof(Data_SampleBoss_arr) >> 4
+    d_byte BossRoar7,  .sizeof(Data_SampleBoss_arr) >> 4
+    d_byte BossRoar8,  .sizeof(Data_SampleBoss_arr) >> 4
+    d_byte BossHurtD,  .sizeof(Data_SampleBoss_arr) >> 4
+    d_byte BossHurtE,  .sizeof(Data_SampleBoss_arr) >> 4
+    d_byte BossHurtF,  .sizeof(Data_SampleBoss_arr) >> 4
+    d_byte Harm,       .sizeof(Data_SampleHarm_arr) >> 4
+    d_byte JumpAnna,   .sizeof(Data_SampleJump_arr) >> 4
+    d_byte JumpGronta, .sizeof(Data_SampleJump_arr) >> 4
     D_END
 .ENDPROC
 
@@ -162,7 +165,8 @@ kSampleGap2Size = kDmcSampleAlign - (* .mod kDmcSampleAlign)
     d_byte BossHurtE,  24
     d_byte BossHurtF,  19
     d_byte Harm,        5
-    d_byte Jump,        9
+    d_byte JumpAnna,    9
+    d_byte JumpGronta, 12
     D_END
 .ENDPROC
 

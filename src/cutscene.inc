@@ -42,6 +42,7 @@ kMaxForks = 4
     CityOutskirtsLook
     CoreBossPowerUpCircuit
     CoreBossStartBattle
+    CoreLockBreakerShadow
     CoreSouthCorraHelping
     MermaidHut1AlexPetition
     MermaidHut1BreakerCrypt
@@ -70,6 +71,7 @@ kMaxForks = 4
 .SCOPE bCutscene
     RoomTick      = %10000000  ; if set, room's Tick_func_ptr gets called
     AvatarRagdoll = %01000000  ; if set, player avatar uses ragdoll physics
+    TickAllActors = %00100000  ; if set, tick all actors, not just smoke
 .ENDSCOPE
 
 ;;; Actions that can be executed during a cutscene.
@@ -119,6 +121,8 @@ kMaxForks = 4
     SetActorPosY       ; args: actor index, new Y-position (2 bytes)
     SetActorState1     ; args: actor index, new byte value
     SetActorState2     ; args: actor index, new byte value
+    SetActorVelX       ; args: actor index, new X-velocity (2 bytes)
+    SetActorVelY       ; args: actor index, new Y-velocity (2 bytes)
     ;; Sets a field on the player avatar to the specified value, then the
     ;; current cutscene fork immediately continues on to the next action.
     SetAvatarFlags     ; args: new bObj value
@@ -158,6 +162,7 @@ kMaxForks = 4
     ;; the goal position.
     WalkNpcAlex        ; args: actor index, goal X-position (2 bytes)
     WalkNpcBruno       ; args: actor index, goal X-position (2 bytes)
+    WalkNpcGronta      ; args: actor index, goal X-position (2 bytes)
     WalkNpcNora        ; args: actor index, goal X-position (2 bytes)
     WalkNpcOrc         ; args: actor index, goal X-position (2 bytes)
     WalkNpcToddler     ; args: actor index, goal X-position (2 bytes)
@@ -242,6 +247,16 @@ kMaxForks = 4
     .byte eAction::SetActorState2, INDEX, BYTE
 .ENDMACRO
 
+.MACRO act_SetActorVelX INDEX, VELX
+    .byte eAction::SetActorVelX, INDEX
+    .word $ffff & (VELX)
+.ENDMACRO
+
+.MACRO act_SetActorVelY INDEX, VELY
+    .byte eAction::SetActorVelY, INDEX
+    .word $ffff & (VELY)
+.ENDMACRO
+
 .MACRO act_SetAvatarFlags BOBJ
     .byte eAction::SetAvatarFlags, BOBJ
 .ENDMACRO
@@ -317,6 +332,11 @@ kMaxForks = 4
 
 .MACRO act_WalkNpcBruno INDEX, GOALX
     .byte eAction::WalkNpcBruno, INDEX
+    .word GOALX
+.ENDMACRO
+
+.MACRO act_WalkNpcGronta INDEX, GOALX
+    .byte eAction::WalkNpcGronta, INDEX
     .word GOALX
 .ENDMACRO
 

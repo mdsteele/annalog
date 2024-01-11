@@ -229,14 +229,14 @@ _Actors_sActor_arr:
     d_byte Type_eActor, eActor::NpcOrc
     d_word PosX_i16, $0136
     d_word PosY_i16, $00b8
-    d_byte Param_byte, eNpcOrc::Standing
+    d_byte Param_byte, eNpcOrc::GruntStanding
     D_END
     .assert * - :- = kOrc2ActorIndex * .sizeof(sActor), error
     D_STRUCT sActor
     d_byte Type_eActor, eActor::NpcOrc
     d_word PosX_i16, $01e8
     d_word PosY_i16, $00b0
-    d_byte Param_byte, eNpcOrc::Standing
+    d_byte Param_byte, eNpcOrc::GruntStanding
     D_END
     .assert * - :- <= kMaxActors * .sizeof(sActor), error
     .byte eActor::None
@@ -461,7 +461,7 @@ _FreeAlex:
     act_WaitFrames 90
     act_SetActorFlags kBrunoActorIndex, bObj::Pri
     act_WalkNpcOrc kOrc2ActorIndex, $01b6
-    act_SetActorState1 kOrc2ActorIndex, eNpcOrc::Running3
+    act_SetActorState1 kOrc2ActorIndex, eNpcOrc::GruntRunning3
     act_RunDialog eDialog::PrisonUpperBreakerTemple1
     act_ForkStart 1, _Orc2Exit_sCutscene
     act_WalkNpcOrc kOrc1ActorIndex, $01ac

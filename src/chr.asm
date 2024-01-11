@@ -1036,6 +1036,34 @@ _chr_begin:
 
 ;;;=========================================================================;;;
 
+.SEGMENT "CHR_ObjBoss2"
+
+.EXPORT Ppu_ChrObjBoss2
+.PROC Ppu_ChrObjBoss2
+    CHR2_BANK $80
+    chr_res $08
+    chr_inc "cannon",              kTileIdObjCannonFirst
+    chr_res $0a
+    chr_inc "blaster",             kTileIdObjBlasterFirst
+    chr_inc "fireblast",           kTileIdObjFireblastFirst
+    chr_res $04
+    chr_inc "orc_gronta_standing", kTileIdObjOrcGrontaStandingFirst
+    chr_inc "orc_gronta_running",  kTileIdObjOrcGrontaRunningFirst
+    chr_inc "orc_gronta_throwing", kTileIdObjOrcGrontaThrowingFirst
+    chr_inc "orc_gronta_jumping",  kTileIdObjOrcGrontaJumpingFirst
+    chr_res $08
+    chr_inc "mirror",              kTileIdObjMirrorFirst
+    chr_res $07
+    chr_inc "laser",               kTileIdObjLaserFirst
+    chr_inc "crusher",             kTileIdObjCrusherFirst
+    chr_inc "winch",               kTileIdObjWinchFirst
+    chr_inc "grenade",             kTileIdObjGrenadeFirst
+    chr_res $10
+    END_CHR_BANK
+.ENDPROC
+
+;;;=========================================================================;;;
+
 .SEGMENT "CHR_ObjCity"
 
 .EXPORT Ppu_ChrObjCity
@@ -1297,21 +1325,21 @@ _chr_begin:
 .EXPORT Ppu_ChrObjTown
 .PROC Ppu_ChrObjTown
     CHR2_BANK $80
-    chr_inc "toddler",        kTileIdObjToddlerFirst
-    chr_inc "stepstone",      kTileIdObjStepstone
-    chr_inc "gate",           kTileIdObjGateFirst
-    chr_inc "orc_standing",   kTileIdObjOrcStandingFirst
-    chr_inc "launcher_vert",  kTileIdObjLauncherVertFirst
-    chr_inc "crate",          kTileIdObjCrateFirst
-    chr_inc "platform_rocks", kTileIdObjPlatformRocksFirst
+    chr_inc "toddler",             kTileIdObjToddlerFirst
+    chr_inc "stepstone",           kTileIdObjStepstone
+    chr_inc "gate",                kTileIdObjGateFirst
+    chr_inc "orc_grunt_standing",  kTileIdObjOrcGruntStandingFirst
+    chr_inc "launcher_vert",       kTileIdObjLauncherVertFirst
+    chr_inc "crate",               kTileIdObjCrateFirst
+    chr_inc "platform_rocks",      kTileIdObjPlatformRocksFirst
     chr_res $06
-    chr_inc "orc_gronta",     kTileIdObjOrcGrontaFirst
-    chr_inc "orc_running",    kTileIdObjOrcRunningFirst
-    chr_inc "orc_throwing",   kTileIdObjOrcThrowingFirst
-    chr_inc "adult_woman",    kTileIdAdultWomanFirst
-    chr_inc "adult_man",      kTileIdAdultManFirst
+    chr_inc "orc_gronta_standing", kTileIdObjOrcGrontaStandingFirst
+    chr_inc "orc_grunt_running",   kTileIdObjOrcGruntRunningFirst
+    chr_inc "orc_grunt_throwing",  kTileIdObjOrcGruntThrowingFirst
+    chr_inc "adult_woman",         kTileIdAdultWomanFirst
+    chr_inc "adult_man",           kTileIdAdultManFirst
     chr_res $04
-    chr_inc "child_stand",    kTileIdObjChildStandFirst
+    chr_inc "child_stand",         kTileIdObjChildStandFirst
     END_CHR_BANK
 .ENDPROC
 

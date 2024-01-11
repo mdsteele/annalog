@@ -103,7 +103,7 @@ _Actors_sActor_arr:
     d_byte Type_eActor, eActor::NpcOrc
     d_word PosX_i16, $0080
     d_word PosY_i16, $00c8
-    d_byte Param_byte, eNpcOrc::Standing
+    d_byte Param_byte, eNpcOrc::GruntStanding
     D_END
     .assert * - :- <= kMaxActors * .sizeof(sActor), error
     .byte eActor::None
@@ -173,7 +173,7 @@ _RespawnFlower:
 
 .EXPORT DataA_Cutscene_CityFlowerOrcAttack_sCutscene
 .PROC DataA_Cutscene_CityFlowerOrcAttack_sCutscene
-    act_SetActorState1 kOrcActorIndex, eNpcOrc::Throwing1
+    act_SetActorState1 kOrcActorIndex, eNpcOrc::GruntThrowing1
     act_RunDialog eDialog::CityFlowerOrcAngry
     act_CallFunc _MakeOrcAttack
     act_ContinueExploring

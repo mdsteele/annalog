@@ -31,6 +31,7 @@
 .IMPORT DataA_Cutscene_CityOutskirtsLook_sCutscene
 .IMPORT DataA_Cutscene_CoreBossPowerUpCircuit_sCutscene
 .IMPORT DataA_Cutscene_CoreBossStartBattle_sCutscene
+.IMPORT DataA_Cutscene_CoreLockBreakerShadow_sCutscene
 .IMPORT DataA_Cutscene_CoreSouthCorraHelping_sCutscene
 .IMPORT DataA_Cutscene_MermaidHut1AlexPetition_sCutscene
 .IMPORT DataA_Cutscene_MermaidHut1BreakerCrypt_sCutscene
@@ -50,6 +51,7 @@
 .IMPORT DataA_Cutscene_TownHouse2WakeUp_sCutscene
 .IMPORT DataA_Cutscene_TownOutdoorsGetCaught_sCutscene
 .IMPORT DataA_Cutscene_TownOutdoorsOrcAttack_sCutscene
+.IMPORT FuncA_Actor_TickAllActors
 .IMPORT FuncA_Actor_TickAllSmokeActors
 .IMPORT FuncA_Avatar_RagdollMove
 .IMPORT FuncA_Objects_DrawObjectsForRoom
@@ -67,6 +69,10 @@
 .IMPORT Ram_ActorPosY_i16_1_arr
 .IMPORT Ram_ActorState1_byte_arr
 .IMPORT Ram_ActorState2_byte_arr
+.IMPORT Ram_ActorVelX_i16_0_arr
+.IMPORT Ram_ActorVelX_i16_1_arr
+.IMPORT Ram_ActorVelY_i16_0_arr
+.IMPORT Ram_ActorVelY_i16_1_arr
 .IMPORTZP Zp_AvatarFlags_bObj
 .IMPORTZP Zp_AvatarPosX_i16
 .IMPORTZP Zp_AvatarPosY_i16
@@ -136,7 +142,7 @@ _GameLoop:
     jsr_prga FuncA_Cutscene_ExecuteAllForks  ; returns C, T1T0, and Y
     bcs _Finish
     jsr_prga FuncA_Terrain_ScrollTowardsGoal
-    jsr_prga FuncA_Actor_TickAllSmokeActors
+    jsr_prga FuncA_Actor_TickCutsceneActors
     jsr Func_TickAllDevices
 _MaybeTickRoom:
     bit Zp_CutsceneFlags_bCutscene
@@ -153,6 +159,19 @@ _MaybeAvatarRagdoll:
     jmp _GameLoop
 _Finish:
     jmp (T1T0)
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Actor"
+
+;;; Ticks all actors if bCutscene::TickAllActors is set; otherwise, ticks smoke
+;;; actors only.
+.PROC FuncA_Actor_TickCutsceneActors
+    lda Zp_CutsceneFlags_bCutscene
+    and #bCutscene::TickAllActors
+    jeq FuncA_Actor_TickAllSmokeActors
+    jmp FuncA_Actor_TickAllActors
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -179,6 +198,8 @@ _Finish:
             DataA_Cutscene_CoreBossPowerUpCircuit_sCutscene
     d_entry table, CoreBossStartBattle, \
             DataA_Cutscene_CoreBossStartBattle_sCutscene
+    d_entry table, CoreLockBreakerShadow, \
+            DataA_Cutscene_CoreLockBreakerShadow_sCutscene
     d_entry table, CoreSouthCorraHelping, \
             DataA_Cutscene_CoreSouthCorraHelping_sCutscene
     d_entry table, MermaidHut1AlexPetition, \
@@ -332,6 +353,8 @@ _InitMainFork:
     d_entry table, SetActorPosY,      _SetActorPosY
     d_entry table, SetActorState1,    _SetActorState1
     d_entry table, SetActorState2,    _SetActorState2
+    d_entry table, SetActorVelX,      _SetActorVelX
+    d_entry table, SetActorVelY,      _SetActorVelY
     d_entry table, SetAvatarFlags,    _SetAvatarFlags
     d_entry table, SetAvatarPosX,     _SetAvatarPosX
     d_entry table, SetAvatarPosY,     _SetAvatarPosY
@@ -349,6 +372,7 @@ _InitMainFork:
     d_entry table, WalkAvatar,        _WalkAvatar
     d_entry table, WalkNpcAlex,       _WalkNpcAlex
     d_entry table, WalkNpcBruno,      _WalkNpcBruno
+    d_entry table, WalkNpcGronta,     _WalkNpcGronta
     d_entry table, WalkNpcNora,       _WalkNpcNora
     d_entry table, WalkNpcOrc,        _WalkNpcOrc
     d_entry table, WalkNpcToddler,    _WalkNpcToddler
@@ -517,6 +541,28 @@ _SetActorState2:
     sta Ram_ActorState2_byte_arr, x
     iny
     jmp FuncA_Cutscene_AdvanceForkAndExecute
+_SetActorVelX:
+    lda (T1T0), y
+    tax  ; actor index
+    iny
+    lda (T1T0), y
+    sta Ram_ActorVelX_i16_0_arr, x
+    iny
+    lda (T1T0), y
+    sta Ram_ActorVelX_i16_1_arr, x
+    iny
+    jmp FuncA_Cutscene_AdvanceForkAndExecute
+_SetActorVelY:
+    lda (T1T0), y
+    tax  ; actor index
+    iny
+    lda (T1T0), y
+    sta Ram_ActorVelY_i16_0_arr, x
+    iny
+    lda (T1T0), y
+    sta Ram_ActorVelY_i16_1_arr, x
+    iny
+    jmp FuncA_Cutscene_AdvanceForkAndExecute
 _SetAvatarFlags:
     lda (T1T0), y
     sta Zp_AvatarFlags_bObj
@@ -640,6 +686,12 @@ _WalkNpcBruno:
     beq _MoveNpcReachedGoal
     jsr FuncA_Cutscene_AnimateNpcBrunoWalking  ; preserves X
     jsr FuncA_Cutscene_FaceAvatarTowardsActor
+    clc  ; cutscene should continue
+    rts
+_WalkNpcGronta:
+    jsr _StartMoveNpc  ; returns X, Z, and N
+    beq _MoveNpcReachedGoal
+    jsr FuncA_Cutscene_AnimateNpcGrontaWalking
     clc  ; cutscene should continue
     rts
 _WalkNpcNora:
@@ -875,6 +927,26 @@ _AnimatePose:
     rts
 .ENDPROC
 
+;;; Updates the flags and state of the specified Gronta NPC actor for a walking
+;;; animation.
+;;; @param N If set, the actor will face left; otherwise, it will face right.
+;;; @param X The actor index.
+;;; @preserve X, Y, T0+
+.PROC FuncA_Cutscene_AnimateNpcGrontaWalking
+    jsr FuncA_Cutscene_SetActorFlipHFromN  ; preserves X, Y and T0+
+    lda #$ff
+    sta Ram_ActorState2_byte_arr, x
+_AnimatePose:
+    lda Zp_FrameCounter_u8
+    div #08
+    and #$03
+    .assert eNpcOrc::GrontaRunning1 > 0, error
+    .assert eNpcOrc::GrontaRunning1 .mod 4 = 0, error
+    ora #eNpcOrc::GrontaRunning1
+    sta Ram_ActorState1_byte_arr, x
+    rts
+.ENDPROC
+
 ;;; Updates the flags and state of the specified Nora NPC actor for a walking
 ;;; animation.
 ;;; @param N If set, the actor will face left; otherwise, it will face right.
@@ -899,8 +971,8 @@ _AnimatePose:
 _AnimatePose:
     lda Zp_FrameCounter_u8
     div #08
-    and #$03  ; param: pose
-    .assert eNpcOrc::Running1 = 0, error
+    and #$03
+    .assert eNpcOrc::GruntRunning1 = 0, error
     sta Ram_ActorState1_byte_arr, x
     rts
 .ENDPROC

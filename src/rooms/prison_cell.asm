@@ -354,14 +354,14 @@ _Actors_sActor_arr:
     d_byte Type_eActor, eActor::NpcOrc
     d_word PosX_i16, $0175
     d_word PosY_i16, $00b8
-    d_byte Param_byte, eNpcOrc::Standing
+    d_byte Param_byte, eNpcOrc::GruntStanding
     D_END
     .assert * - :- = kOrc2ActorIndex * .sizeof(sActor), error
     D_STRUCT sActor
     d_byte Type_eActor, eActor::NpcOrc
     d_word PosX_i16, $01a2
     d_word PosY_i16, $00b8
-    d_byte Param_byte, eNpcOrc::Standing
+    d_byte Param_byte, eNpcOrc::GruntStanding
     D_END
     .assert * - :- <= kMaxActors * .sizeof(sActor), error
     .byte eActor::None
@@ -767,19 +767,19 @@ _ParticleAngle_u8_arr:
     ;; Animate the orc walking in.
     act_SetActorPosX kOrc1ActorIndex, $0118
     act_WalkNpcOrc kOrc1ActorIndex, $00f8
-    act_SetActorState1 kOrc1ActorIndex, eNpcOrc::Standing
+    act_SetActorState1 kOrc1ActorIndex, eNpcOrc::GruntStanding
     act_WaitFrames 30
     ;; Animate Anna getting thrown into the cell.
-    act_SetActorState1 kOrc1ActorIndex, eNpcOrc::Throwing1
+    act_SetActorState1 kOrc1ActorIndex, eNpcOrc::GruntThrowing1
     act_WaitFrames 6
-    act_SetActorState1 kOrc1ActorIndex, eNpcOrc::Throwing2
+    act_SetActorState1 kOrc1ActorIndex, eNpcOrc::GruntThrowing2
     act_SetAvatarPosX $00f0
     act_SetAvatarPosY $00b0
     act_SetAvatarVelX -365
     act_SetAvatarVelY -580
     act_SetCutsceneFlags bCutscene::AvatarRagdoll
     act_WaitFrames 15
-    act_SetActorState1 kOrc1ActorIndex, eNpcOrc::Standing
+    act_SetActorState1 kOrc1ActorIndex, eNpcOrc::GruntStanding
     act_WaitUntilZ _AnnaHasLanded
     act_SetCutsceneFlags 0
     act_SetAvatarFlags bObj::FlipH | kPaletteObjAvatarNormal

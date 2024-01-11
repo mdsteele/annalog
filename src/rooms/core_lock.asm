@@ -18,7 +18,10 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "../actor.inc"
+.INCLUDE "../actors/orc.inc"
+.INCLUDE "../avatar.inc"
 .INCLUDE "../charmap.inc"
+.INCLUDE "../cutscene.inc"
 .INCLUDE "../device.inc"
 .INCLUDE "../dialog.inc"
 .INCLUDE "../flag.inc"
@@ -29,22 +32,36 @@
 .INCLUDE "../ppu.inc"
 .INCLUDE "../program.inc"
 .INCLUDE "../room.inc"
+.INCLUDE "../sample.inc"
 
 .IMPORT DataA_Room_Core_sTileset
 .IMPORT FuncA_Machine_Error
 .IMPORT FuncA_Machine_LiftTick
 .IMPORT FuncA_Machine_LiftTryMove
 .IMPORT FuncA_Objects_DrawLiftMachine
+.IMPORT Func_MovePlatformVert
 .IMPORT Func_Noop
+.IMPORT Func_PlaySfxExplodeBig
+.IMPORT Func_PlaySfxSample
+.IMPORT Main_Breaker_FadeBackToBreakerRoom
 .IMPORT Ppu_ChrBgAnimStatic
-.IMPORT Ppu_ChrObjTown
+.IMPORT Ppu_ChrObjBoss2
+.IMPORT Ram_ActorState2_byte_arr
+.IMPORT Ram_ActorType_eActor_arr
+.IMPORT Ram_ActorVelY_i16_0_arr
+.IMPORT Ram_ActorVelY_i16_1_arr
 .IMPORT Ram_MachineGoalVert_u8_arr
+.IMPORT Ram_MachineStatus_eMachine_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORT Sram_ProgressFlags_arr
 .IMPORTZP Zp_Chr04Bank_u8
 .IMPORTZP Zp_MachineIndex_u8
+.IMPORTZP Zp_Next_eCutscene
 
 ;;;=========================================================================;;;
+
+;;; The actor index for the Gronta NPC in this room.
+kGrontaActorIndex = 0
 
 ;;; The machine indices for the CoreLockLift* machines in this room.
 kLift1MachineIndex = 0
@@ -83,7 +100,7 @@ kLift3InitPlatformTop = kLift3MaxPlatformTop - kLiftInitGoalY * kBlockHeightPx
     d_addr TerrainData_ptr, _TerrainData
     d_byte NumMachines_u8, 3
     d_addr Machines_sMachine_arr_ptr, _Machines_sMachine_arr
-    d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjTown)
+    d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjBoss2)
     d_addr Ext_sRoomExt_ptr, _Ext_sRoomExt
     D_END
 _Ext_sRoomExt:
@@ -93,7 +110,7 @@ _Ext_sRoomExt:
     d_addr Actors_sActor_arr_ptr, _Actors_sActor_arr
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
     d_addr Passages_sPassage_arr_ptr, _Passages_sPassage_arr
-    d_addr Enter_func_ptr, Func_Noop
+    d_addr Enter_func_ptr, FuncA_Room_CoreLock_EnterRoom
     d_addr FadeIn_func_ptr, Func_Noop
     d_addr Tick_func_ptr, Func_Noop
     d_addr Draw_func_ptr, FuncC_Core_Lock_DrawRoom
@@ -188,7 +205,13 @@ _Platforms_sPlatform_arr:
     .assert * - :- <= kMaxPlatforms * .sizeof(sPlatform), error
     .byte ePlatform::None
 _Actors_sActor_arr:
-:   ;; TODO: add Gronta actor for cutscene
+:   .assert * - :- = kGrontaActorIndex * .sizeof(sActor), error
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::NpcOrc
+    d_word PosX_i16, $00a0
+    d_word PosY_i16, $0068
+    d_byte Param_byte, eNpcOrc::GrontaStanding
+    D_END
     .assert * - :- <= kMaxActors * .sizeof(sActor), error
     .byte eActor::None
 _Devices_sDevice_arr:
@@ -274,6 +297,31 @@ _Passages_sPassage_arr:
 
 .SEGMENT "PRGA_Room"
 
+.PROC FuncA_Room_CoreLock_EnterRoom
+    ;; If the shadow breaker cutscene is playing, initialize it.  Otherwise,
+    ;; remove the Gronta NPC (which only appears in the cutscene).
+    lda Zp_Next_eCutscene
+    cmp #eCutscene::CoreLockBreakerShadow
+    bne @noCutscene
+    @initCutscene:
+    lda #$ff
+    sta Ram_ActorState2_byte_arr + kGrontaActorIndex
+    lda #eMachine::Ended
+    sta Ram_MachineStatus_eMachine_arr + kLift1MachineIndex
+    sta Ram_MachineStatus_eMachine_arr + kLift2MachineIndex
+    sta Ram_MachineStatus_eMachine_arr + kLift3MachineIndex
+    ldx #kLift1PlatformIndex  ; param: platform index
+    lda #<(kBlockHeightPx * -2)  ; param: move delta
+    jsr Func_MovePlatformVert
+    ldx #kLift2PlatformIndex  ; param: platform index
+    lda #<(kBlockHeightPx * -2)  ; param: move delta
+    jmp Func_MovePlatformVert
+    @noCutscene:
+    lda #eActor::None
+    sta Ram_ActorType_eActor_arr + kGrontaActorIndex
+    rts
+.ENDPROC
+
 .PROC FuncA_Room_CoreLockLift_InitReset
     ldx Zp_MachineIndex_u8
     lda #kLiftInitGoalY
@@ -307,12 +355,68 @@ _Passages_sPassage_arr:
 
 ;;;=========================================================================;;;
 
+.SEGMENT "PRGA_Cutscene"
+
+.EXPORT DataA_Cutscene_CoreLockBreakerShadow_sCutscene
+.PROC DataA_Cutscene_CoreLockBreakerShadow_sCutscene
+    act_WaitFrames 60
+    act_CallFunc Func_PlaySfxExplodeBig
+    act_ShakeRoom 30
+    act_WaitFrames 50
+    act_RepeatFunc kBlockHeightPx * 2, _RaiseLift3
+    act_SetActorState1 kGrontaActorIndex, eNpcOrc::GrontaArmsRaised
+    act_WaitFrames 10
+    act_RunDialog eDialog::CoreLockBreakerShadow
+    act_SetActorState1 kGrontaActorIndex, eNpcOrc::GrontaStanding
+    act_WaitFrames 30
+    ;; Make Gronta jump up to the next ledge.
+    act_CallFunc _PlaySfxJumpGronta
+    act_SetActorState1 kGrontaActorIndex, eNpcOrc::GrontaJumping
+    act_SetActorVelX  kGrontaActorIndex, $98
+    act_SetActorVelY  kGrontaActorIndex, -$330
+    act_SetCutsceneFlags bCutscene::TickAllActors
+    act_RepeatFunc 24, _ApplyGrontaGravity
+    act_SetCutsceneFlags 0
+    act_SetActorState1 kGrontaActorIndex, eNpcOrc::GrontaStanding
+    act_SetActorVelX  kGrontaActorIndex, 0
+    act_SetActorVelY  kGrontaActorIndex, 0
+    ;; Make Gronta run through the eastern passage.
+    act_WaitFrames 20
+    act_WalkNpcGronta kGrontaActorIndex, $0118
+    act_WaitFrames 90
+    act_JumpToMain Main_Breaker_FadeBackToBreakerRoom
+_RaiseLift3:
+    ldx #kLift3PlatformIndex  ; param: platform index
+    lda #<-1  ; param: move delta
+    jmp Func_MovePlatformVert
+_PlaySfxJumpGronta:
+    lda #eSample::JumpGronta  ; param: eSample to play
+    jmp Func_PlaySfxSample
+_ApplyGrontaGravity:
+    lda #kAvatarGravity
+    add Ram_ActorVelY_i16_0_arr + kGrontaActorIndex
+    sta Ram_ActorVelY_i16_0_arr + kGrontaActorIndex
+    lda #0
+    adc Ram_ActorVelY_i16_1_arr + kGrontaActorIndex
+    sta Ram_ActorVelY_i16_1_arr + kGrontaActorIndex
+    rts
+.ENDPROC
+
+;;;=========================================================================;;;
+
 .SEGMENT "PRGA_Dialog"
 
 .EXPORT DataA_Dialog_PaperJerome23_sDialog
 .PROC DataA_Dialog_PaperJerome23_sDialog
     dlg_Text Paper, DataA_Text1_PaperJerome23_Page1_u8_arr
     dlg_Text Paper, DataA_Text1_PaperJerome23_Page2_u8_arr
+    dlg_Done
+.ENDPROC
+
+.EXPORT DataA_Dialog_CoreLockBreakerShadow_sDialog
+.PROC DataA_Dialog_CoreLockBreakerShadow_sDialog
+    dlg_Text OrcGrontaShout, DataA_Text1_CoreLockBreakerShadow_Part1_u8_arr
+    dlg_Text OrcGronta, DataA_Text1_CoreLockBreakerShadow_Part2_u8_arr
     dlg_Done
 .ENDPROC
 
@@ -329,6 +433,19 @@ _Passages_sPassage_arr:
 
 .PROC DataA_Text1_PaperJerome23_Page2_u8_arr
     .byte "The orcs, more so.#"
+.ENDPROC
+
+.PROC DataA_Text1_CoreLockBreakerShadow_Part1_u8_arr
+    .byte "At last! The way to$"
+    .byte "the core has been$"
+    .byte "opened!#"
+.ENDPROC
+
+.PROC DataA_Text1_CoreLockBreakerShadow_Part2_u8_arr
+    .byte "The humans have had$"
+    .byte "their chance with this$"
+    .byte "technology. Now it's$"
+    .byte "OUR turn.#"
 .ENDPROC
 
 ;;;=========================================================================;;;

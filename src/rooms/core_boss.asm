@@ -78,7 +78,7 @@
 .IMPORT Func_ResetWinchMachineState
 .IMPORT Func_SetActorCenterToPoint
 .IMPORT Func_SetPointToAvatarCenter
-.IMPORT Ppu_ChrObjBoss1
+.IMPORT Ppu_ChrObjBoss2
 .IMPORT Ram_ActorVelX_i16_1_arr
 .IMPORT Ram_ActorVelY_i16_1_arr
 .IMPORT Ram_MachineGoalHorz_u8_arr
@@ -191,7 +191,7 @@ kSpikeballInitPlatformTop = \
     d_addr TerrainData_ptr, _TerrainData
     d_byte NumMachines_u8, 3
     d_addr Machines_sMachine_arr_ptr, _Machines_sMachine_arr
-    d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjBoss1)
+    d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjBoss2)
     d_addr Ext_sRoomExt_ptr, _Ext_sRoomExt
     D_END
 _Ext_sRoomExt:

@@ -44,18 +44,29 @@
 
 ;;; Possible values for an orc NPC actor's State1 byte.
 .ENUM eNpcOrc
-    Running1
-    Running2
-    Running3
-    Running4
-    Standing
-    Throwing1
-    Throwing2
+    ;; Non-Gronta (gray palette for head):
+    GruntRunning1
+    GruntRunning2
+    GruntRunning3
+    GruntRunning4
+    GruntStanding
+    GruntThrowing1
+    GruntThrowing2
     GhostStanding
-    GrontaStanding
+    ;; Gronta (red palette for head):
+    GrontaRunning1
+    GrontaRunning2
+    GrontaRunning3
+    GrontaRunning4
     GrontaArmsRaised
+    GrontaJumping
+    GrontaStanding
+    GrontaThrowing
     NUM_VALUES
 .ENDENUM
+
+;;; eNpcOrc values greater than or equal to this are Gronta.
+kNpcOrcFirstGronta = eNpcOrc::GrontaRunning1
 
 ;;; How far an orc actor's bounding box extends in each direction from the
 ;;; actor's center position.
@@ -71,11 +82,14 @@ kOrcMaxFallSpeed = $0500
 ;;; subpixels per frame.
 kOrcJumpVelocity = $ffff & -600
 
-;;; Tile IDs for drawing orc baddie actors.
-kTileIdObjOrcGhostFirst    = $b0
-kTileIdObjOrcGrontaFirst   = $a0
-kTileIdObjOrcRunningFirst  = $b0
-kTileIdObjOrcStandingFirst = $88
-kTileIdObjOrcThrowingFirst = $c0
+;;; Tile IDs for drawing orc baddie/NPC actors.
+kTileIdObjOrcGhostFirst          = $b0
+kTileIdObjOrcGrontaJumpingFirst  = $c4
+kTileIdObjOrcGrontaRunningFirst  = $b0
+kTileIdObjOrcGrontaStandingFirst = $a0
+kTileIdObjOrcGrontaThrowingFirst = $c0
+kTileIdObjOrcGruntRunningFirst   = $b0
+kTileIdObjOrcGruntStandingFirst  = $88
+kTileIdObjOrcGruntThrowingFirst  = $c0
 
 ;;;=========================================================================;;;

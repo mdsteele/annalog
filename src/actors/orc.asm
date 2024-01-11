@@ -71,13 +71,18 @@ kOrcChasingHorzAccel = 40
 ;;; How many frames the orc should pause for after catching the player avatar.
 kOrcPauseFrames = 20
 
-;;; OBJ tile IDs for drawing orc baddie actors.
-kTileIdObjOrcHeadHigh     = kTileIdObjOrcStandingFirst +  0
-kTileIdObjOrcHeadLow      = kTileIdObjOrcRunningFirst  +  0
-kTileIdObjOrcFeetStanding = kTileIdObjOrcStandingFirst +  4
-kTileIdObjOrcFeetRunning1 = kTileIdObjOrcRunningFirst  +  4
-kTileIdObjOrcFeetRunning2 = kTileIdObjOrcRunningFirst  +  8
-kTileIdObjOrcFeetRunning3 = kTileIdObjOrcRunningFirst  + 12
+;;; OBJ tile IDs for drawing orc baddie/NPC actors.
+kTileIdObjOrcGrontaHeadHigh     = kTileIdObjOrcGrontaStandingFirst +  0
+kTileIdObjOrcGrontaHeadLow      = kTileIdObjOrcGrontaRunningFirst  +  0
+kTileIdObjOrcGrontaFeetRunning1 = kTileIdObjOrcGrontaRunningFirst  +  4
+kTileIdObjOrcGrontaFeetRunning2 = kTileIdObjOrcGrontaRunningFirst  +  8
+kTileIdObjOrcGrontaFeetRunning3 = kTileIdObjOrcGrontaRunningFirst  + 12
+kTileIdObjOrcGruntHeadHigh      = kTileIdObjOrcGruntStandingFirst  +  0
+kTileIdObjOrcGruntHeadLow       = kTileIdObjOrcGruntRunningFirst   +  0
+kTileIdObjOrcGruntFeetStanding  = kTileIdObjOrcGruntStandingFirst  +  4
+kTileIdObjOrcGruntFeetRunning1  = kTileIdObjOrcGruntRunningFirst   +  4
+kTileIdObjOrcGruntFeetRunning2  = kTileIdObjOrcGruntRunningFirst   +  8
+kTileIdObjOrcGruntFeetRunning3  = kTileIdObjOrcGruntRunningFirst   + 12
 
 ;;; The OBJ palette number to use for Gronta's head.
 kPaletteObjGrontaHead = 1
@@ -346,19 +351,19 @@ _CheckForFloor:
     cmp #eBadOrc::Pausing
     beq @pausing
     @jumping:
-    lda #eNpcOrc::Running3  ; param: pose
+    lda #eNpcOrc::GruntRunning3  ; param: pose
     bpl FuncA_Objects_DrawActorOrcInPose  ; unconditional
     @pausing:
-    lda #eNpcOrc::Throwing1  ; param: pose
+    lda #eNpcOrc::GruntThrowing1  ; param: pose
     bpl FuncA_Objects_DrawActorOrcInPose  ; unconditional
     @standing:
-    lda #eNpcOrc::Standing  ; param: pose
+    lda #eNpcOrc::GruntStanding  ; param: pose
     bpl FuncA_Objects_DrawActorOrcInPose  ; unconditional
     @chasing:
     lda Ram_ActorState3_byte_arr, x  ; animation counter
     div #8
     and #$03  ; param: pose
-    .assert eNpcOrc::Running1 = 0, error
+    .assert eNpcOrc::GruntRunning1 = 0, error
     bpl FuncA_Objects_DrawActorOrcInPose  ; unconditional
 .ENDPROC
 
@@ -381,7 +386,7 @@ _CheckForFloor:
 .PROC FuncA_Objects_DrawActorOrcInPose
     sta T2  ; pose index
     sty T3  ; feet object flags
-    cmp #eNpcOrc::GrontaStanding
+    cmp #kNpcOrcFirstGronta
     blt @notGronta
     tya
     ora #kPaletteObjGrontaHead
@@ -408,29 +413,41 @@ _CheckForFloor:
     jmp FuncA_Objects_Draw2x2Shape  ; preserves X
 _TileIdHead_u8_arr:
     D_ARRAY .enum, eNpcOrc
-    d_byte Running1,  kTileIdObjOrcHeadLow
-    d_byte Running2,  kTileIdObjOrcHeadHigh
-    d_byte Running3,  kTileIdObjOrcHeadLow
-    d_byte Running4,  kTileIdObjOrcHeadHigh
-    d_byte Standing,  kTileIdObjOrcHeadHigh
-    d_byte Throwing1, kTileIdObjOrcThrowingFirst + $00
-    d_byte Throwing2, kTileIdObjOrcThrowingFirst + $08
-    d_byte GhostStanding,    kTileIdObjOrcGhostFirst  + $00
-    d_byte GrontaStanding,   kTileIdObjOrcGrontaFirst + $00
-    d_byte GrontaArmsRaised, kTileIdObjOrcGrontaFirst + $04
+    d_byte GruntRunning1,    kTileIdObjOrcGruntHeadLow
+    d_byte GruntRunning2,    kTileIdObjOrcGruntHeadHigh
+    d_byte GruntRunning3,    kTileIdObjOrcGruntHeadLow
+    d_byte GruntRunning4,    kTileIdObjOrcGruntHeadHigh
+    d_byte GruntStanding,    kTileIdObjOrcGruntHeadHigh
+    d_byte GruntThrowing1,   kTileIdObjOrcGruntThrowingFirst  + $00
+    d_byte GruntThrowing2,   kTileIdObjOrcGruntThrowingFirst  + $08
+    d_byte GhostStanding,    kTileIdObjOrcGhostFirst          + $00
+    d_byte GrontaRunning1,   kTileIdObjOrcGrontaHeadLow
+    d_byte GrontaRunning2,   kTileIdObjOrcGrontaHeadHigh
+    d_byte GrontaRunning3,   kTileIdObjOrcGrontaHeadLow
+    d_byte GrontaRunning4,   kTileIdObjOrcGrontaHeadHigh
+    d_byte GrontaArmsRaised, kTileIdObjOrcGrontaStandingFirst + $04
+    d_byte GrontaJumping,    kTileIdObjOrcGrontaStandingFirst + $04
+    d_byte GrontaStanding,   kTileIdObjOrcGrontaHeadHigh
+    d_byte GrontaThrowing,   kTileIdObjOrcGrontaHeadLow
     D_END
 _TileIdFeet_u8_arr:
     D_ARRAY .enum, eNpcOrc
-    d_byte Running1,  kTileIdObjOrcFeetRunning1
-    d_byte Running2,  kTileIdObjOrcFeetRunning2
-    d_byte Running3,  kTileIdObjOrcFeetRunning3
-    d_byte Running4,  kTileIdObjOrcFeetRunning2
-    d_byte Standing,  kTileIdObjOrcFeetStanding
-    d_byte Throwing1, kTileIdObjOrcThrowingFirst + $04
-    d_byte Throwing2, kTileIdObjOrcThrowingFirst + $0c
-    d_byte GhostStanding,    kTileIdObjOrcGhostFirst  + $04
-    d_byte GrontaStanding,   kTileIdObjOrcGrontaFirst + $08
-    d_byte GrontaArmsRaised, kTileIdObjOrcGrontaFirst + $0c
+    d_byte GruntRunning1,    kTileIdObjOrcGruntFeetRunning1
+    d_byte GruntRunning2,    kTileIdObjOrcGruntFeetRunning2
+    d_byte GruntRunning3,    kTileIdObjOrcGruntFeetRunning3
+    d_byte GruntRunning4,    kTileIdObjOrcGruntFeetRunning2
+    d_byte GruntStanding,    kTileIdObjOrcGruntFeetStanding
+    d_byte GruntThrowing1,   kTileIdObjOrcGruntThrowingFirst  + $04
+    d_byte GruntThrowing2,   kTileIdObjOrcGruntThrowingFirst  + $0c
+    d_byte GhostStanding,    kTileIdObjOrcGhostFirst          + $04
+    d_byte GrontaRunning1,   kTileIdObjOrcGrontaFeetRunning1
+    d_byte GrontaRunning2,   kTileIdObjOrcGrontaFeetRunning2
+    d_byte GrontaRunning3,   kTileIdObjOrcGrontaFeetRunning3
+    d_byte GrontaRunning4,   kTileIdObjOrcGrontaFeetRunning2
+    d_byte GrontaArmsRaised, kTileIdObjOrcGrontaStandingFirst + $0c
+    d_byte GrontaJumping,    kTileIdObjOrcGrontaJumpingFirst
+    d_byte GrontaStanding,   kTileIdObjOrcGrontaStandingFirst + $08
+    d_byte GrontaThrowing,   kTileIdObjOrcGrontaThrowingFirst
     D_END
 .ENDPROC
 

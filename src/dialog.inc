@@ -79,6 +79,7 @@ kDialogEntryDone = $ff  ; indicates end of dialog
     CityOutskirtsAlex2
     CoreBossGrontaGive
     CoreBossGrontaIntro
+    CoreLockBreakerShadow
     CoreSouthCorra1
     CoreSouthCorra2
     CryptTombPlaque
