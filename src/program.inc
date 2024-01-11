@@ -125,6 +125,7 @@
     CityPitLift
     CoreBossBlaster
     CoreBossCannon
+    CoreBossLaser
     CoreBossWinch
     CoreElevatorJet
     CoreLockLift1

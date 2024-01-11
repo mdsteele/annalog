@@ -27,6 +27,7 @@
 .INCLUDE "../flag.inc"
 .INCLUDE "../machine.inc"
 .INCLUDE "../machines/blaster.inc"
+.INCLUDE "../machines/laser.inc"
 .INCLUDE "../machines/shared.inc"
 .INCLUDE "../machines/winch.inc"
 .INCLUDE "../macros.inc"
@@ -47,10 +48,14 @@
 .IMPORT FuncA_Machine_CannonTryAct
 .IMPORT FuncA_Machine_CannonTryMove
 .IMPORT FuncA_Machine_Error
+.IMPORT FuncA_Machine_GenericMoveTowardGoalHorz
 .IMPORT FuncA_Machine_GenericMoveTowardGoalVert
+.IMPORT FuncA_Machine_GenericTryMoveX
 .IMPORT FuncA_Machine_GenericTryMoveY
 .IMPORT FuncA_Machine_GetWinchHorzSpeed
 .IMPORT FuncA_Machine_GetWinchVertSpeed
+.IMPORT FuncA_Machine_LaserTryAct
+.IMPORT FuncA_Machine_LaserWriteReg
 .IMPORT FuncA_Machine_ReachedGoal
 .IMPORT FuncA_Machine_StartWorking
 .IMPORT FuncA_Machine_WinchReachedGoal
@@ -59,9 +64,11 @@
 .IMPORT FuncA_Objects_DrawBlasterMachineHorz
 .IMPORT FuncA_Objects_DrawBlasterMirror
 .IMPORT FuncA_Objects_DrawCannonMachine
+.IMPORT FuncA_Objects_DrawLaserMachine
 .IMPORT FuncA_Objects_DrawWinchMachineWithSpikeball
 .IMPORT FuncA_Objects_MoveShapeDownOneTile
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
+.IMPORT FuncA_Room_HarmAvatarIfWithinLaserBeam
 .IMPORT FuncA_Room_MachineBlasterReset
 .IMPORT FuncA_Room_MachineCannonReset
 .IMPORT FuncA_Room_ReflectFireblastsOffMirror
@@ -71,12 +78,14 @@
 .IMPORT Func_IsPointInPlatform
 .IMPORT Func_MachineBlasterReadRegMirrors
 .IMPORT Func_MachineCannonReadRegY
+.IMPORT Func_MachineLaserReadRegC
 .IMPORT Func_MovePlatformHorz
 .IMPORT Func_MovePlatformLeftTowardPointX
 .IMPORT Func_MovePlatformTopTowardPointY
 .IMPORT Func_Noop
 .IMPORT Func_ResetWinchMachineState
 .IMPORT Func_SetActorCenterToPoint
+.IMPORT Func_SetMachineIndex
 .IMPORT Func_SetPointToAvatarCenter
 .IMPORT Ppu_ChrObjBoss2
 .IMPORT Ram_ActorVelX_i16_1_arr
@@ -107,7 +116,8 @@
 ;;; The machine indices for the machines in this room.
 kWinchMachineIndex   = 0
 kBlasterMachineIndex = 1
-kCannonMachineIndex  = 2
+kLaserMachineIndex   = 2
+kCannonMachineIndex  = 3
 
 ;;; The platform indices for the machines in this room.
 kWinchPlatformIndex     = 0
@@ -115,13 +125,14 @@ kSpikeballPlatformIndex = 1
 kBlasterPlatformIndex   = 2
 kMirror1PlatformIndex   = 3
 kMirror2PlatformIndex   = 4
-kCannonPlatformIndex    = 5
+kLaserPlatformIndex     = 5
+kCannonPlatformIndex    = 6
 ;;; The platform index for the zone that triggers the boss fight cutscene when
 ;;; the player avatar stands in it.
-kCutsceneZonePlatformIndex = 6
+kCutsceneZonePlatformIndex = 7
 ;;; The platform index for the wall that blocks the passage during the boss
 ;;; fight.
-kPassageBarrierPlatformIndex = 7
+kPassageBarrierPlatformIndex = 8
 
 ;;; The initial values for the blaster's M/R mirror registers.
 kBlasterInitGoalM = 4
@@ -141,6 +152,17 @@ kBlasterInitPlatformTop = \
 ;;; tau/16.
 kMirror1AngleOffset = 12
 kMirror2AngleOffset = 8
+
+;;; The initial and maximum permitted horizontal goal values for the laser.
+kLaserInitGoalX = 0
+kLaserMaxGoalX = 4
+
+;;; The maximum and initial X-positions for the left of the laser platform.
+.LINECONT +
+kLaserMinPlatformLeft = $0020
+kLaserInitPlatformLeft = \
+    kLaserMinPlatformLeft + kLaserInitGoalX * kBlockWidthPx
+.LINECONT -
 
 ;;; The initial and maximum permitted values for the winch's X and Z registers.
 kWinchInitGoalX = 0
@@ -189,7 +211,7 @@ kSpikeballInitPlatformTop = \
     d_byte MinimapStartRow_u8, 1
     d_byte MinimapStartCol_u8, 13
     d_addr TerrainData_ptr, _TerrainData
-    d_byte NumMachines_u8, 3
+    d_byte NumMachines_u8, 4
     d_addr Machines_sMachine_arr_ptr, _Machines_sMachine_arr
     d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjBoss2)
     d_addr Ext_sRoomExt_ptr, _Ext_sRoomExt
@@ -251,6 +273,25 @@ _Machines_sMachine_arr:
     d_addr Draw_func_ptr, FuncA_Objects_CoreBossBlaster_Draw
     d_addr Reset_func_ptr, FuncA_Room_CoreBossBlaster_Reset
     D_END
+    .assert * - :- = kLaserMachineIndex * .sizeof(sMachine), error
+    D_STRUCT sMachine
+    d_byte Code_eProgram, eProgram::CoreBossLaser
+    d_byte Breaker_eFlag, 0
+    d_byte Flags_bMachine, bMachine::MoveH | bMachine::Act | bMachine::WriteC
+    d_byte Status_eDiagram, eDiagram::Laser
+    d_word ScrollGoalX_u16, $010
+    d_byte ScrollGoalY_u8, $a0
+    d_byte RegNames_u8_arr4, "C", 0, "X", 0
+    d_byte MainPlatform_u8, kLaserPlatformIndex
+    d_addr Init_func_ptr, FuncA_Room_CoreBossLaser_InitReset
+    d_addr ReadReg_func_ptr, FuncC_Core_BossLaser_ReadReg
+    d_addr WriteReg_func_ptr, FuncA_Machine_LaserWriteReg
+    d_addr TryMove_func_ptr, FuncA_Machine_CoreBossLaser_TryMove
+    d_addr TryAct_func_ptr, FuncA_Machine_CoreBossLaser_TryAct
+    d_addr Tick_func_ptr, FuncA_Machine_CoreBossLaser_Tick
+    d_addr Draw_func_ptr, FuncA_Objects_DrawLaserMachine
+    d_addr Reset_func_ptr, FuncA_Room_CoreBossLaser_InitReset
+    D_END
     .assert * - :- = kCannonMachineIndex * .sizeof(sMachine), error
     D_STRUCT sMachine
     d_byte Code_eProgram, eProgram::CoreBossCannon
@@ -311,6 +352,14 @@ _Platforms_sPlatform_arr:
     d_byte HeightPx_u8, $08
     d_word Left_i16,  $01c4
     d_word Top_i16,   $00c4
+    D_END
+    .assert * - :- = kLaserPlatformIndex * .sizeof(sPlatform), error
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Solid
+    d_word WidthPx_u16, kLaserMachineWidthPx
+    d_byte HeightPx_u8, kLaserMachineHeightPx
+    d_word Left_i16, kLaserInitPlatformLeft
+    d_word Top_i16,   $00e0
     D_END
     .assert * - :- = kCannonPlatformIndex * .sizeof(sPlatform), error
     D_STRUCT sPlatform
@@ -378,6 +427,12 @@ _Devices_sDevice_arr:
     d_byte BlockRow_u8, 10
     d_byte BlockCol_u8, 31
     d_byte Target_byte, kBlasterMachineIndex
+    D_END
+    D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::Console
+    d_byte BlockRow_u8, 20
+    d_byte BlockCol_u8, 6
+    d_byte Target_byte, kLaserMachineIndex
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Console
@@ -759,6 +814,18 @@ _ReadY:
     rts
 .ENDPROC
 
+.PROC FuncC_Core_BossLaser_ReadReg
+    cmp #$e
+    beq _ReadX
+_ReadC:
+    jmp Func_MachineLaserReadRegC
+_ReadX:
+    lda Ram_PlatformLeft_i16_0_arr + kLaserPlatformIndex
+    sub #kLaserMinPlatformLeft - kTileHeightPx
+    div #kBlockWidthPx
+    rts
+.ENDPROC
+
 .PROC FuncC_Core_BossWinch_ReadReg
     cmp #$e
     beq _ReadX
@@ -777,6 +844,31 @@ _ReadX:
 ;;;=========================================================================;;;
 
 .SEGMENT "PRGA_Machine"
+
+.PROC FuncA_Machine_CoreBossLaser_TryMove
+    lda #kLaserMaxGoalX  ; param: max goal horz
+    jmp FuncA_Machine_GenericTryMoveX
+.ENDPROC
+
+.PROC FuncA_Machine_CoreBossLaser_TryAct
+    ldx Ram_MachineGoalHorz_u8_arr + kLaserMachineIndex
+    lda _LaserBottom_i16_0_arr, x  ; param: laser bottom (lo)
+    ldy _LaserBottom_i16_1_arr, x  ; param: laser bottom (hi)
+    jmp FuncA_Machine_LaserTryAct
+_LaserBottom_i16_0_arr:
+:   .byte $f0, $60, $60, $50, $10
+    .assert * - :- = kLaserMaxGoalX + 1, error
+_LaserBottom_i16_1_arr:
+:   .byte $00, $01, $01, $01, $01
+    .assert * - :- = kLaserMaxGoalX + 1, error
+.ENDPROC
+
+.PROC FuncA_Machine_CoreBossLaser_Tick
+    ldax #kLaserMinPlatformLeft  ; param: min platform left
+    jsr FuncA_Machine_GenericMoveTowardGoalHorz  ; returns Z
+    jeq FuncA_Machine_ReachedGoal
+    rts
+.ENDPROC
 
 .PROC FuncA_Machine_CoreBossWinch_TryMove
     ldy Ram_MachineGoalHorz_u8_arr + kWinchMachineIndex
@@ -934,6 +1026,11 @@ _Mirror2:
     add #kMirror2AngleOffset  ; param: absolute mirror angle
     ldy #kMirror2PlatformIndex  ; param: mirror platform index
     jsr FuncA_Room_ReflectFireblastsOffMirror
+_Laser:
+    ldx #kLaserMachineIndex
+    jsr Func_SetMachineIndex
+    jsr FuncA_Room_HarmAvatarIfWithinLaserBeam
+    ;; TODO: hurt Gronta if the laser hits her
 _Return:
     rts
 .ENDPROC
@@ -962,6 +1059,12 @@ _Return:
     sta Ram_MachineState2_byte_arr + kBlasterMachineIndex  ; mirror 2 goal
     lda #kBlasterInitGoalY
     sta Ram_MachineGoalVert_u8_arr + kBlasterMachineIndex
+    rts
+.ENDPROC
+
+.PROC FuncA_Room_CoreBossLaser_InitReset
+    lda #kLaserInitGoalX
+    sta Ram_MachineGoalHorz_u8_arr + kLaserMachineIndex
     rts
 .ENDPROC
 

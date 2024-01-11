@@ -397,7 +397,8 @@ _OpenBarriers:
     ldy #0                         ; param: laser bottom (hi)
     jmp FuncA_Machine_LaserTryAct
 _LaserBottom_i16_0_arr:
-    .byte $30, $c5, $c5, $c5, $b0, $b0, $c5, $c5, $c5, $30
+:   .byte $30, $c5, $c5, $c5, $b0, $b0, $c5, $c5, $c5, $30
+    .assert * - :- = kLaserMaxGoalX + 1, error
 .ENDPROC
 
 .PROC FuncA_Machine_ShadowTrapLaser_Tick

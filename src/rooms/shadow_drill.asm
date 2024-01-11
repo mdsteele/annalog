@@ -205,9 +205,11 @@ _ReadX:
     ldy _LaserBottom_i16_1_arr, x  ; param: laser bottom (hi)
     jmp FuncA_Machine_LaserTryAct
 _LaserBottom_i16_0_arr:
-    .byte $00, $40, $60, $c0, $80, $e0, $60, $00, $80, $80
+:   .byte $00, $40, $60, $c0, $80, $e0, $60, $00, $80, $80
+    .assert * - :- = kLaserMaxGoalX + 1, error
 _LaserBottom_i16_1_arr:
-    .byte $01, $00, $00, $00, $00, $00, $00, $01, $00, $00
+:   .byte $01, $00, $00, $00, $00, $00, $00, $01, $00, $00
+    .assert * - :- = kLaserMaxGoalX + 1, error
 .ENDPROC
 
 .PROC FuncA_Machine_ShadowDrillLaser_Tick
