@@ -102,9 +102,10 @@ kMaxForks = 4
     ;; Ends the cutscene immediately, jumping to the specified main, even if
     ;; other cutscene forks are still executing.
     JumpToMain         ; args: main ptr (2 bytes)
-    ;; Queues up the specified music to play next, then the current cutscene
-    ;; fork immediately continues on to the next action.
+    ;; Queues up the specified music/SFX to play next, then the current
+    ;; cutscene fork immediately continues on to the next action.
     PlayMusic          ; args: eMusic value
+    PlaySfxSample      ; args: eSample value
     ;; Suspends the current cutscene fork for the specified number of frames,
     ;; calling the specified function once each frame.
     RepeatFunc         ; args: number of frames, func ptr (2 bytes)
@@ -209,6 +210,11 @@ kMaxForks = 4
 .MACRO act_PlayMusic EMUSIC
     .byte eAction::PlayMusic
     .byte EMUSIC
+.ENDMACRO
+
+.MACRO act_PlaySfxSample ESAMPLE
+    .byte eAction::PlaySfxSample
+    .byte ESAMPLE
 .ENDMACRO
 
 .MACRO act_RepeatFunc FRAMES, FUNC

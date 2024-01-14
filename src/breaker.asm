@@ -38,7 +38,6 @@
 .IMPORT FuncM_SwitchPrgcAndLoadRoom
 .IMPORT FuncM_SwitchPrgcAndLoadRoomWithMusic
 .IMPORT Func_FadeOutToBlack
-.IMPORT Func_PlaySfxSample
 .IMPORT Func_ProcessFrame
 .IMPORT Func_SetFlag
 .IMPORT Func_SetLastSpawnPointToActiveDevice
@@ -250,6 +249,7 @@ _FadeOut:
     ;; down.
     act_ForkStart 1, _PlayBreakerSound_sCutscene
     act_CallFunc _FlipBreakerDevice
+    act_PlaySfxSample eSample::JumpAnna
     act_WaitUntilZ _AnimateAvatarFlippingBreaker
     act_WaitFrames 60
     act_JumpToMain Main_Breaker_TraceCircuit
@@ -303,8 +303,7 @@ _FlipBreakerDevice:
     sta Ram_DeviceType_eDevice_arr, x
     lda #kBreakerDoneDeviceAnimStart
     sta Ram_DeviceAnim_u8_arr, x
-    lda #eSample::JumpAnna  ; param: eSample to play
-    jmp Func_PlaySfxSample
+    rts
 _AnimateAvatarFlippingBreaker:
     ;; Animate the avatar to match the flipping breaker.
     lda Zp_Nearby_bDevice

@@ -42,7 +42,6 @@
 .IMPORT Func_MovePlatformVert
 .IMPORT Func_Noop
 .IMPORT Func_PlaySfxExplodeBig
-.IMPORT Func_PlaySfxSample
 .IMPORT Main_Breaker_FadeBackToBreakerRoom
 .IMPORT Ppu_ChrBgAnimStatic
 .IMPORT Ppu_ChrObjBoss2
@@ -370,7 +369,7 @@ _Passages_sPassage_arr:
     act_SetActorState1 kGrontaActorIndex, eNpcOrc::GrontaStanding
     act_WaitFrames 30
     ;; Make Gronta jump up to the next ledge.
-    act_CallFunc _PlaySfxJumpGronta
+    act_PlaySfxSample eSample::JumpGronta
     act_SetActorState1 kGrontaActorIndex, eNpcOrc::GrontaJumping
     act_SetActorVelX  kGrontaActorIndex, $98
     act_SetActorVelY  kGrontaActorIndex, -$330
@@ -389,9 +388,6 @@ _RaiseLift3:
     ldx #kLift3PlatformIndex  ; param: platform index
     lda #<-1  ; param: move delta
     jmp Func_MovePlatformVert
-_PlaySfxJumpGronta:
-    lda #eSample::JumpGronta  ; param: eSample to play
-    jmp Func_PlaySfxSample
 _ApplyGrontaGravity:
     lda #kAvatarGravity
     add Ram_ActorVelY_i16_0_arr + kGrontaActorIndex

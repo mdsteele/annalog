@@ -58,6 +58,7 @@
 .IMPORT FuncA_Room_CallRoomTick
 .IMPORT FuncA_Terrain_ScrollTowardsGoal
 .IMPORT Func_ClearRestOfOamAndProcessFrame
+.IMPORT Func_PlaySfxSample
 .IMPORT Func_ShakeRoom
 .IMPORT Func_TickAllDevices
 .IMPORT Main_Dialog_WithinCutscene
@@ -345,6 +346,7 @@ _InitMainFork:
     d_entry table, ForkStop,          _ForkStop
     d_entry table, JumpToMain,        _JumpToMain
     d_entry table, PlayMusic,         _PlayMusic
+    d_entry table, PlaySfxSample,     _PlaySfxSample
     d_entry table, RepeatFunc,        _RepeatFunc
     d_entry table, RunDialog,         _RunDialog
     d_entry table, ScrollSlowX,       _ScrollSlowX
@@ -455,6 +457,11 @@ _JumpToMain:
 _PlayMusic:
     lda (T1T0), y
     sta Zp_Next_sAudioCtrl + sAudioCtrl::Music_eMusic
+    iny
+    jmp FuncA_Cutscene_AdvanceForkAndExecute
+_PlaySfxSample:
+    lda (T1T0), y  ; param: eSample to play
+    jsr Func_PlaySfxSample  ; preserves Y
     iny
     jmp FuncA_Cutscene_AdvanceForkAndExecute
 _RepeatFunc:
