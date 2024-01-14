@@ -49,6 +49,7 @@
 .IMPORT Func_PointHitsTerrain
 .IMPORT Func_SetActorCenterToPoint
 .IMPORT Func_SetPointToActorCenter
+.IMPORT Func_SignedAtan2
 .IMPORT Ram_ActorFlags_bObj_arr
 .IMPORT Ram_ActorPosY_i16_0_arr
 .IMPORT Ram_ActorPosY_i16_1_arr
@@ -59,7 +60,10 @@
 .IMPORT Ram_ActorVelX_i16_1_arr
 .IMPORT Ram_ActorVelY_i16_0_arr
 .IMPORT Ram_ActorVelY_i16_1_arr
+.IMPORTZP Zp_AvatarPosX_i16
+.IMPORTZP Zp_AvatarPosY_i16
 .IMPORTZP Zp_Current_sTileset
+.IMPORTZP Zp_PointX_i16
 .IMPORTZP Zp_PointY_i16
 .IMPORTZP Zp_TerrainColumn_u8_arr_ptr
 
@@ -172,35 +176,53 @@ kPaletteObjGrontaHead = 1
 ;;; @param X The actor index.
 ;;; @preserve X
 .PROC FuncA_Actor_TickBadGronta_ThrowWindup
+    jsr FuncA_Actor_FaceTowardsAvatar  ; preserves X
     dec Ram_ActorState2_byte_arr, x  ; timer
-    bne @done
+    bne _Done
     lda #kGrontaThrowOffset  ; param: offset
     jsr FuncA_Actor_SetPointInFrontOfActor  ; preserves X
-    stx T3  ; Gronta actor index
-    lda Ram_ActorFlags_bObj_arr, x
-    sta T0   ; actor flags
+    stx T5  ; Gronta actor index
     jsr Func_FindEmptyActorSlot  ; preserves T0+, returns C and X
-    bcc @initAxe
-    @noAxe:
-    ldx T3  ; Gronta actor index
+    bcc _InitAxe
+_NoAxe:
+    ldx T5  ; Gronta actor index
     lda #eBadGronta::Standing
     .assert eBadGronta::Standing = 0, error
-    beq @setMode  ; unconditional
-    @initAxe:
+    beq _SetGrontaMode  ; unconditional
+_InitAxe:
     jsr Func_SetActorCenterToPoint  ; preserves X and T0+
-    ;; TODO: Instead of always throwing forward, throw towards player avatar,
-    ;; and set Gronta's flags to face throw angle.
-    lda T0  ; Gronta actor flags
-    .assert bObj::FlipH = $40, error
-    asl a  ; param: angle
+    stx T4  ; axe actor index
+    ;; TODO: factor this out (from here to the Func_SignedAtan2 call)
+    lda Zp_AvatarPosX_i16 + 0
+    sub Zp_PointX_i16 + 0
+    sta T0  ; horz delta from axe to avatar (lo)
+    lda Zp_AvatarPosX_i16 + 1
+    sbc Zp_PointX_i16 + 1
+    .repeat 3
+    lsr a
+    ror T0  ; horz delta from axe to avatar (lo)
+    .endrepeat
+    lda Zp_AvatarPosY_i16 + 0
+    sub Zp_PointY_i16 + 0
+    sta T1  ; vert delta from axe to avatar (lo)
+    lda Zp_AvatarPosY_i16 + 1
+    sbc Zp_PointY_i16 + 1
+    .repeat 3
+    lsr a
+    ror T1  ; vert delta from axe to avatar (lo)
+    .endrepeat
+    ldx T0  ; param: horz delta (signed)
+    ldy T1  ; param: vert delta (signed)
+    jsr Func_SignedAtan2  ; preserves T4+, returns A (param: axe angle)
+    ldx T4  ; param: axe actor index
     jsr Func_InitActorProjAxe  ; preserves T3+
-    ldx T3  ; Gronta actor index
+    ldx T5  ; Gronta actor index
     lda #kGrontaCatchFrames
     sta Ram_ActorState2_byte_arr, x  ; timer
     lda #eBadGronta::ThrowWaiting
-    @setMode:
+_SetGrontaMode:
     sta Ram_ActorState1_byte_arr, x  ; current mode
-    @done:
+_Done:
     rts
 .ENDPROC
 
