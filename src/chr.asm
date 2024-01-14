@@ -18,6 +18,7 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "actors/acid.inc"
+.INCLUDE "actors/axe.inc"
 .INCLUDE "actors/bat.inc"
 .INCLUDE "actors/bird.inc"
 .INCLUDE "actors/breakball.inc"
@@ -1053,7 +1054,8 @@ _chr_begin:
     chr_inc "orc_gronta_jumping",  kTileIdObjOrcGrontaJumpingFirst
     chr_res $08
     chr_inc "mirror",              kTileIdObjMirrorFirst
-    chr_res $07
+    chr_res $03
+    chr_inc "proj_axe",            kTileIdObjProjAxeFirst
     chr_inc "laser",               kTileIdObjLaserFirst
     chr_inc "crusher",             kTileIdObjCrusherFirst
     chr_inc "winch",               kTileIdObjWinchFirst

@@ -33,6 +33,7 @@ kMaxActors = 16
     BadFirefly       ; flies up and down, and shoots horizontally
     BadFish          ; swims back and forth in water
     BadFlydrop       ; flies left/right randomly, and drops acid
+    BadGronta
     BadGrub          ; crawls left/right on a floor
     BadHotheadHorz   ; crawls around a platform, and can drop fire
     BadHotheadVert   ; crawls around a platform, and can drop fire
@@ -52,6 +53,7 @@ kMaxActors = 16
     NpcOrc
     NpcToddler
     ProjAcid         ; acid dropped by a flydrop baddie
+    ProjAxe          ; a spinning axe thrown by Gronta
     ProjBreakball    ; a bouncing ball shot by the temple boss
     ProjBreakbomb    ; a falling bomb shot by the city boss
     ProjBreakfire    ; sweeps out horizontally from an exploding breakball

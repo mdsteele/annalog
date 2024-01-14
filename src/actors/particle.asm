@@ -25,16 +25,10 @@
 .INCLUDE "smoke.inc"
 
 .IMPORT FuncA_Objects_Draw1x1Actor
-.IMPORT Func_Cosine
 .IMPORT Func_InitActorDefault
-.IMPORT Func_SignedMult
-.IMPORT Func_Sine
+.IMPORT Func_SetActorVelocityPolar
 .IMPORT Ram_ActorState1_byte_arr
 .IMPORT Ram_ActorType_eActor_arr
-.IMPORT Ram_ActorVelX_i16_0_arr
-.IMPORT Ram_ActorVelX_i16_1_arr
-.IMPORT Ram_ActorVelY_i16_0_arr
-.IMPORT Ram_ActorVelY_i16_1_arr
 
 ;;;=========================================================================;;;
 
@@ -61,24 +55,9 @@ kPaletteObjParticle = 0
     pha  ; angle
     ldy #eActor::SmokeParticle  ; param: actor type
     jsr Func_InitActorDefault  ; preserves X
-    pla  ; angle
-_InitVelX:
-    pha  ; angle
-    jsr Func_Cosine  ; preserves X, returns A
-    ldy #kParticleSpeed  ; param: multiplier
-    jsr Func_SignedMult  ; preserves X, returns YA
-    sta Ram_ActorVelX_i16_0_arr, x
-    tya
-    sta Ram_ActorVelX_i16_1_arr, x
-    pla  ; angle
-_InitVelY:
-    jsr Func_Sine  ; preserves X, returns A
-    ldy #kParticleSpeed  ; param: multiplier
-    jsr Func_SignedMult  ; preserves X, returns YA
-    sta Ram_ActorVelY_i16_0_arr, x
-    tya
-    sta Ram_ActorVelY_i16_1_arr, x
-    rts
+    ldy #kParticleSpeed  ; param: speed
+    pla  ; param: angle
+    jmp Func_SetActorVelocityPolar  ; preserves X
 .ENDPROC
 
 ;;;=========================================================================;;;

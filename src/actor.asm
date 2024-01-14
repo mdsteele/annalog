@@ -32,6 +32,7 @@
 .IMPORT FuncA_Actor_TickBadFirefly
 .IMPORT FuncA_Actor_TickBadFish
 .IMPORT FuncA_Actor_TickBadFlydrop
+.IMPORT FuncA_Actor_TickBadGronta
 .IMPORT FuncA_Actor_TickBadGrub
 .IMPORT FuncA_Actor_TickBadHotheadHorz
 .IMPORT FuncA_Actor_TickBadHotheadVert
@@ -46,6 +47,7 @@
 .IMPORT FuncA_Actor_TickBadWasp
 .IMPORT FuncA_Actor_TickNpcToddler
 .IMPORT FuncA_Actor_TickProjAcid
+.IMPORT FuncA_Actor_TickProjAxe
 .IMPORT FuncA_Actor_TickProjBreakball
 .IMPORT FuncA_Actor_TickProjBreakbomb
 .IMPORT FuncA_Actor_TickProjBreakfire
@@ -71,6 +73,7 @@
 .IMPORT FuncA_Objects_DrawActorBadFirefly
 .IMPORT FuncA_Objects_DrawActorBadFish
 .IMPORT FuncA_Objects_DrawActorBadFlydrop
+.IMPORT FuncA_Objects_DrawActorBadGronta
 .IMPORT FuncA_Objects_DrawActorBadGrub
 .IMPORT FuncA_Objects_DrawActorBadHotheadHorz
 .IMPORT FuncA_Objects_DrawActorBadHotheadVert
@@ -90,6 +93,7 @@
 .IMPORT FuncA_Objects_DrawActorNpcOrc
 .IMPORT FuncA_Objects_DrawActorNpcToddler
 .IMPORT FuncA_Objects_DrawActorProjAcid
+.IMPORT FuncA_Objects_DrawActorProjAxe
 .IMPORT FuncA_Objects_DrawActorProjBreakball
 .IMPORT FuncA_Objects_DrawActorProjBreakbomb
 .IMPORT FuncA_Objects_DrawActorProjBreakfire
@@ -119,9 +123,11 @@
 .IMPORT FuncA_Room_InitActorProjBreakbomb
 .IMPORT FuncA_Room_InitActorProjFlamestrike
 .IMPORT FuncA_Room_InitActorProjSpine
+.IMPORT Func_InitActorBadGronta
 .IMPORT Func_InitActorBadOrc
 .IMPORT Func_InitActorNpcOrc
 .IMPORT Func_InitActorProjAcid
+.IMPORT Func_InitActorProjAxe
 .IMPORT Func_InitActorProjBreakfire
 .IMPORT Func_InitActorProjBullet
 .IMPORT Func_InitActorProjEmber
@@ -145,6 +151,7 @@
 
 ;;; The hit radius of various actors, in pixels.
 kBadJellyRadius       = 5
+kProjAxeRadius        = 5
 kProjBreakbombRadius  = 3
 kProjBulletRadius     = 1
 kProjFireballRadius   = 3
@@ -349,6 +356,7 @@ Ram_ActorFlags_bObj_arr: .res kMaxActors
     d_byte BadFirefly,       6
     d_byte BadFish,          6
     d_byte BadFlydrop,       6
+    d_byte BadGronta,       kOrcBoundingBoxUp
     d_byte BadGrub,          0
     d_byte BadHotheadHorz,   6
     d_byte BadHotheadVert,   6
@@ -368,6 +376,7 @@ Ram_ActorFlags_bObj_arr: .res kMaxActors
     d_byte NpcOrc,          kOrcBoundingBoxUp
     d_byte NpcToddler,       4
     d_byte ProjAcid,         1
+    d_byte ProjAxe,         kProjAxeRadius
     d_byte ProjBreakball,   kProjBreakballRadius
     d_byte ProjBreakbomb,   kProjBreakbombRadius
     d_byte ProjBreakfire,   12
@@ -398,6 +407,7 @@ Ram_ActorFlags_bObj_arr: .res kMaxActors
     d_byte BadFirefly,       8
     d_byte BadFish,          4
     d_byte BadFlydrop,       6
+    d_byte BadGronta,       kOrcBoundingBoxDown
     d_byte BadGrub,          8
     d_byte BadHotheadHorz,   6
     d_byte BadHotheadVert,   6
@@ -417,6 +427,7 @@ Ram_ActorFlags_bObj_arr: .res kMaxActors
     d_byte NpcOrc,          kOrcBoundingBoxDown
     d_byte NpcToddler,       8
     d_byte ProjAcid,         3
+    d_byte ProjAxe,         kProjAxeRadius
     d_byte ProjBreakball,   kProjBreakballRadius
     d_byte ProjBreakbomb,   kProjBreakbombRadius
     d_byte ProjBreakfire,    8
@@ -447,6 +458,7 @@ Ram_ActorFlags_bObj_arr: .res kMaxActors
     d_byte BadFirefly,       6
     d_byte BadFish,          6
     d_byte BadFlydrop,       6
+    d_byte BadGronta,       kOrcBoundingBoxSide
     d_byte BadGrub,          7
     d_byte BadHotheadHorz,   6
     d_byte BadHotheadVert,   6
@@ -466,6 +478,7 @@ Ram_ActorFlags_bObj_arr: .res kMaxActors
     d_byte NpcOrc,          kOrcBoundingBoxSide
     d_byte NpcToddler,       3
     d_byte ProjAcid,         2
+    d_byte ProjAxe,         kProjAxeRadius
     d_byte ProjBreakball,   kProjBreakballRadius
     d_byte ProjBreakbomb,   kProjBreakbombRadius
     d_byte ProjBreakfire,    3
@@ -564,6 +577,7 @@ _TypeSpecificTick:
     d_entry table, BadFirefly,      FuncA_Actor_TickBadFirefly
     d_entry table, BadFish,         FuncA_Actor_TickBadFish
     d_entry table, BadFlydrop,      FuncA_Actor_TickBadFlydrop
+    d_entry table, BadGronta,       FuncA_Actor_TickBadGronta
     d_entry table, BadGrub,         FuncA_Actor_TickBadGrub
     d_entry table, BadHotheadHorz,  FuncA_Actor_TickBadHotheadHorz
     d_entry table, BadHotheadVert,  FuncA_Actor_TickBadHotheadVert
@@ -583,6 +597,7 @@ _TypeSpecificTick:
     d_entry table, NpcOrc,          Func_Noop
     d_entry table, NpcToddler,      FuncA_Actor_TickNpcToddler
     d_entry table, ProjAcid,        FuncA_Actor_TickProjAcid
+    d_entry table, ProjAxe,         FuncA_Actor_TickProjAxe
     d_entry table, ProjBreakball,   FuncA_Actor_TickProjBreakball
     d_entry table, ProjBreakbomb,   FuncA_Actor_TickProjBreakbomb
     d_entry table, ProjBreakfire,   FuncA_Actor_TickProjBreakfire
@@ -748,6 +763,7 @@ _NoHit:
     d_entry table, BadFirefly,      FuncA_Room_InitActorBadFirefly
     d_entry table, BadFish,         Func_InitActorWithFlags
     d_entry table, BadFlydrop,      FuncA_Room_InitActorBadFlydrop
+    d_entry table, BadGronta,       Func_InitActorBadGronta
     d_entry table, BadGrub,         Func_InitActorWithFlags
     d_entry table, BadHotheadHorz,  Func_InitActorWithFlags
     d_entry table, BadHotheadVert,  Func_InitActorWithFlags
@@ -767,6 +783,7 @@ _NoHit:
     d_entry table, NpcOrc,          Func_InitActorNpcOrc
     d_entry table, NpcToddler,      FuncA_Room_InitActorNpcToddler
     d_entry table, ProjAcid,        Func_InitActorProjAcid
+    d_entry table, ProjAxe,         Func_InitActorProjAxe
     d_entry table, ProjBreakball,   FuncA_Room_InitActorProjBreakball
     d_entry table, ProjBreakbomb,   FuncA_Room_InitActorProjBreakbomb
     d_entry table, ProjBreakfire,   Func_InitActorProjBreakfire
@@ -893,6 +910,7 @@ _NoHit:
     d_entry table, BadFirefly,      FuncA_Objects_DrawActorBadFirefly
     d_entry table, BadFish,         FuncA_Objects_DrawActorBadFish
     d_entry table, BadFlydrop,      FuncA_Objects_DrawActorBadFlydrop
+    d_entry table, BadGronta,       FuncA_Objects_DrawActorBadGronta
     d_entry table, BadGrub,         FuncA_Objects_DrawActorBadGrub
     d_entry table, BadHotheadHorz,  FuncA_Objects_DrawActorBadHotheadHorz
     d_entry table, BadHotheadVert,  FuncA_Objects_DrawActorBadHotheadVert
@@ -912,6 +930,7 @@ _NoHit:
     d_entry table, NpcOrc,          FuncA_Objects_DrawActorNpcOrc
     d_entry table, NpcToddler,      FuncA_Objects_DrawActorNpcToddler
     d_entry table, ProjAcid,        FuncA_Objects_DrawActorProjAcid
+    d_entry table, ProjAxe,         FuncA_Objects_DrawActorProjAxe
     d_entry table, ProjBreakball,   FuncA_Objects_DrawActorProjBreakball
     d_entry table, ProjBreakbomb,   FuncA_Objects_DrawActorProjBreakbomb
     d_entry table, ProjBreakfire,   FuncA_Objects_DrawActorProjBreakfire

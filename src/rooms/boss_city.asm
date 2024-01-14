@@ -813,20 +813,20 @@ _BossShootSpines:
     bne @done
     ;; Fire spines.
     lda #4
-    sta T2  ; spine index
+    sta T3  ; spine index
     @spineLoop:
     jsr Func_FindEmptyActorSlot  ; preserves T0+, returns C and X
     bcs @doneSpines
     jsr FuncC_Boss_City_SetPointToBossCenter  ; preserves X and T0+
-    ldy T2  ; spine index
+    ldy T3  ; spine index
     lda _SpineOffsetX_i8_arr5, y
     jsr Func_MovePointHorz  ; preserves X, Y, and T0+
     lda #14
     jsr Func_MovePointDownByA  ; preserves X, Y, and T0+
     jsr Func_SetActorCenterToPoint  ; preserves X, Y, and T0+
     lda _SpineAngle_u8_arr5, y  ; param: spine angle
-    jsr FuncA_Room_InitActorProjSpine  ; preserves X and T2+
-    dec T2  ; spine index
+    jsr FuncA_Room_InitActorProjSpine  ; preserves X and T3+
+    dec T3  ; spine index
     bpl @spineLoop
     @doneSpines:
     ;; Chamge modes to stay closed for a bit.

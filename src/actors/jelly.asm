@@ -27,8 +27,7 @@
 
 .IMPORT FuncA_Actor_HarmAvatarIfCollision
 .IMPORT FuncA_Actor_SetPointInDirFromActor
-.IMPORT FuncA_Actor_ZeroVelX
-.IMPORT FuncA_Actor_ZeroVelY
+.IMPORT FuncA_Actor_ZeroVel
 .IMPORT FuncA_Objects_Alloc2x2Shape
 .IMPORT FuncA_Objects_SetShapePosToActorCenter
 .IMPORT Func_PointHitsTerrain
@@ -122,8 +121,7 @@ _ContinueForward:
     jsr _SetVelocity  ; preserves X
     jmp FuncA_Actor_HarmAvatarIfCollision  ; preserves X
 _SetVelocity:
-    jsr FuncA_Actor_ZeroVelX  ; preserves X
-    jsr FuncA_Actor_ZeroVelY  ; preserves X
+    jsr FuncA_Actor_ZeroVel  ; preserves X
     lda Ram_ActorState1_byte_arr, x  ; bBadJelly value
     and #bBadJelly::DirMask
     .assert eDir::Up = 0, error

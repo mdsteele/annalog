@@ -17,6 +17,11 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
+;;; State bytes for Gronta baddies:
+;;;   * State1: The eBadGronta value for Gronta's current behavior mode.
+;;;   * State2: Unused.
+;;;   * State3: Unused.
+
 ;;; State bytes for orc baddies:
 ;;;   * State1: The eBadOrc value for the orc's current behavior mode.
 ;;;   * State2: A timer for the current mode that decrements each frame when
@@ -25,6 +30,7 @@
 ;;;     around after 255).
 
 ;;; State bytes for orc NPCs:
+;;;   * Param: The initial eNpcOrc value to use.
 ;;;   * State1: The eNpcOrc value for the orc's current pose.
 ;;;   * State2: Boolean; If true ($ff), the NPC uses Ram_ActorFlags_bObj_arr
 ;;;     unchanged; if false ($00), the NPC is automatically drawn facing the
@@ -32,6 +38,15 @@
 ;;;   * State3: Unused.
 
 ;;;=========================================================================;;;
+
+;;; Possible values for a Gronta baddie actor's State1 byte.
+.ENUM eBadGronta
+    Standing      ; standing, waiting for a new mode to be set
+    ThrowWindup   ; winding up an axe throw
+    ThrowWaiting  ; waiting for the axe to return
+    ThrowCatch    ; catching a returned axe
+    NUM_VALUES
+.ENDENUM
 
 ;;; Possible values for an orc baddie actor's State1 byte.
 .ENUM eBadOrc

@@ -578,11 +578,11 @@ _Mirrors:
     lda Ram_MachineState3_byte_arr + kBlasterMachineIndex  ; mirror anim
     div #kBlasterMirrorAnimSlowdown
     add #kMirrorAngleOffset
-    sta T3  ; absolute mirror angle (in tau/16 units)
+    sta T5  ; absolute mirror angle (in tau/16 units)
     ldy #kMirror3PlatformIndex
     @loop:
-    lda T3  ; param: absolute mirror angle (in tau/16 units)
-    jsr FuncA_Room_ReflectFireblastsOffMirror  ; preserves Y and T3+
+    lda T5  ; param: absolute mirror angle (in tau/16 units)
+    jsr FuncA_Room_ReflectFireblastsOffMirror  ; preserves Y and T5+
     dey
     cpy #kMirror1PlatformIndex
     bge @loop

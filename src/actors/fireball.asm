@@ -26,18 +26,12 @@
 .IMPORT FuncA_Actor_CenterHitsTerrainOrSolidPlatform
 .IMPORT FuncA_Actor_HarmAvatarIfCollision
 .IMPORT FuncA_Objects_Draw1x1Actor
-.IMPORT Func_Cosine
 .IMPORT Func_InitActorDefault
 .IMPORT Func_InitActorWithState1
-.IMPORT Func_SignedMult
-.IMPORT Func_Sine
+.IMPORT Func_SetActorVelocityPolar
 .IMPORT Ram_ActorState1_byte_arr
 .IMPORT Ram_ActorState2_byte_arr
 .IMPORT Ram_ActorState3_byte_arr
-.IMPORT Ram_ActorVelX_i16_0_arr
-.IMPORT Ram_ActorVelX_i16_1_arr
-.IMPORT Ram_ActorVelY_i16_0_arr
-.IMPORT Ram_ActorVelY_i16_1_arr
 .IMPORTZP Zp_FrameCounter_u8
 
 ;;;=========================================================================;;;
@@ -57,7 +51,7 @@ kPaletteObjFireblast = 1
 ;;; @prereq The actor's pixel position has already been initialized.
 ;;; @param A The angle to fire at, measured in increments of tau/256.
 ;;; @param X The actor index.
-;;; @preserve X, T2+
+;;; @preserve X, T3+
 .EXPORT Func_InitActorProjFireblast
 .PROC Func_InitActorProjFireblast
     ldy #eActor::ProjFireblast  ; param: actor type
@@ -69,7 +63,7 @@ kPaletteObjFireblast = 1
 ;;; @prereq The actor's pixel position has already been initialized.
 ;;; @param A The angle to fire at, measured in increments of tau/256.
 ;;; @param X The actor index.
-;;; @preserve X, T2+
+;;; @preserve X, T3+
 .EXPORT Func_InitActorProjFireball
 .PROC Func_InitActorProjFireball
     ldy #eActor::ProjFireball  ; param: actor type
@@ -80,7 +74,7 @@ kPaletteObjFireblast = 1
 ;;; @prereq The actor's pixel position has already been initialized.
 ;;; @param A The angle to fire at, measured in increments of tau/256.
 ;;; @param X The actor index.
-;;; @preserve X, T2+
+;;; @preserve X, T3+
 .PROC Func_InitActorProjFireballOrFireblast
     jsr Func_InitActorWithState1  ; preserves X and T0+
     .assert * = Func_ReinitActorProjFireblastVelocity, error, "fallthrough"
@@ -88,31 +82,12 @@ kPaletteObjFireblast = 1
 
 ;;; Sets a fireball projectile's velocity from its State1 angle value.
 ;;; @param X The actor index.
-;;; @preserve X, Y, T2+
+;;; @preserve X, T3+
 .EXPORT Func_ReinitActorProjFireblastVelocity
 .PROC Func_ReinitActorProjFireblastVelocity
-    tya
-    pha  ; old Y value (so we can preserve it)
-_InitVelX:
-    lda Ram_ActorState1_byte_arr, x  ; fireball angle
-    jsr Func_Cosine  ; preserves X and T0+, returns A
-    ldy #kFireballSpeed  ; param: multiplier
-    jsr Func_SignedMult  ; preserves X and T2+, returns YA
-    sta Ram_ActorVelX_i16_0_arr, x
-    tya
-    sta Ram_ActorVelX_i16_1_arr, x
-_InitVelY:
-    lda Ram_ActorState1_byte_arr, x  ; fireball angle
-    jsr Func_Sine  ; preserves X and T0+, returns A
-    ldy #kFireballSpeed  ; param: multiplier
-    jsr Func_SignedMult  ; preserves X and T2+, returns YA
-    sta Ram_ActorVelY_i16_0_arr, x
-    tya
-    sta Ram_ActorVelY_i16_1_arr, x
-_RestoreY:
-    pla  ; old Y value (so we can preserve it)
-    tay
-    rts
+    ldy #kFireballSpeed  ; param: speed
+    lda Ram_ActorState1_byte_arr, x  ; param: angle
+    jmp Func_SetActorVelocityPolar  ; preserves X and T3+
 .ENDPROC
 
 ;;;=========================================================================;;;

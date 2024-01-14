@@ -60,7 +60,7 @@
 
 ;;;=========================================================================;;;
 
-;;; The actor index for the Gronta NPC in this room.
+;;; The actor index for Gronta in this room.
 kGrontaActorIndex = 0
 
 ;;; The machine indices for the CoreLockLift* machines in this room.

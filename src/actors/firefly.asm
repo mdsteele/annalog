@@ -133,19 +133,19 @@ _ShootFireblast:
     asl a
     sta T0  ; aim angle ($00 for right, or $80 for left)
     ;; Allocate the fireblast.
-    stx T2  ; firefly actor index
+    stx T3  ; firefly actor index
     jsr Func_FindEmptyActorSlot  ; preserves T0+, returns C and X
     bcs @done
     ;; Set the fireblast position just in front of the firefly actor.
     jsr Func_SetActorCenterToPoint  ; preserves X and T0+
     lda T0  ; param: aim angle ($00 for right, or $80 for left)
-    jsr Func_InitActorProjFireblast  ; preserves T2+
+    jsr Func_InitActorProjFireblast  ; preserves T3+
     ;; Set the firefly cooldown angle and restore the X register.
-    ldx T2  ; firefly actor index
+    ldx T3  ; firefly actor index
     lda #kFireflyCooldownFrames
     sta Ram_ActorState1_byte_arr, x  ; cooldown
     @done:
-    ldx T2  ; firefly actor index
+    ldx T3  ; firefly actor index
 _Return:
     rts
 .ENDPROC

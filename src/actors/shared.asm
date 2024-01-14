@@ -32,6 +32,7 @@
 .IMPORT FuncA_Objects_MoveShapeLeftHalfTile
 .IMPORT FuncA_Objects_MoveShapeUpByA
 .IMPORT FuncA_Objects_MoveShapeUpHalfTile
+.IMPORT Func_Cosine
 .IMPORT Func_FindDeviceNearPoint
 .IMPORT Func_HarmAvatar
 .IMPORT Func_IsPointInAnySolidPlatform
@@ -43,6 +44,8 @@
 .IMPORT Func_MovePointVert
 .IMPORT Func_PointHitsTerrain
 .IMPORT Func_SetPointToActorCenter
+.IMPORT Func_SignedMult
+.IMPORT Func_Sine
 .IMPORT Ram_ActorFlags_bObj_arr
 .IMPORT Ram_ActorPosX_i16_0_arr
 .IMPORT Ram_ActorPosX_i16_1_arr
@@ -61,6 +64,35 @@
 .IMPORTZP Zp_RoomScrollY_u8
 .IMPORTZP Zp_ShapePosX_i16
 .IMPORTZP Zp_ShapePosY_i16
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRG8"
+
+;;; Sets an actor's velocity using polar coordinates.
+;;; @param A The angle, measured in increments of tau/256.
+;;; @param X The actor index.
+;;; @param Y The speed, in half-pixels per frame.
+;;; @preserve X, T3+
+.EXPORT Func_SetActorVelocityPolar
+.PROC Func_SetActorVelocityPolar
+    sty T2  ; speed
+    pha  ; angle
+    jsr Func_Cosine  ; preserves X and T0+, returns A
+    ldy T2  ; param: speed multiplier
+    jsr Func_SignedMult  ; preserves X and T2+, returns YA
+    sta Ram_ActorVelX_i16_0_arr, x
+    tya
+    sta Ram_ActorVelX_i16_1_arr, x
+    pla  ; param: angle
+    jsr Func_Sine  ; preserves X and T0+, returns A
+    ldy T2  ; param: speed multiplier
+    jsr Func_SignedMult  ; preserves X and T2+, returns YA
+    sta Ram_ActorVelY_i16_0_arr, x
+    tya
+    sta Ram_ActorVelY_i16_1_arr, x
+    rts
+.ENDPROC
 
 ;;;=========================================================================;;;
 
@@ -367,6 +399,15 @@
     rts
 .ENDPROC
 
+;;; Sets the actor's X- and Y-velocities to zero.
+;;; @param X The actor index.
+;;; @preserve X, Y, T0+
+.EXPORT FuncA_Actor_ZeroVel
+.PROC FuncA_Actor_ZeroVel
+    jsr FuncA_Actor_ZeroVelY  ; preserves X, Y, and T0+
+    fall FuncA_Actor_ZeroVelX  ; preserves X, Y, and T0+
+.ENDPROC
+
 ;;; Sets the actor's X-velocity to zero.
 ;;; @param X The actor index.
 ;;; @preserve X, Y, T0+
@@ -522,16 +563,16 @@ _VertOffset_u8_arr8:
 ;;; @param Y The OBJ palette to use when drawing the actor.
 ;;; @return C Set if no OAM slots were allocated, cleared otherwise.
 ;;; @return Y The OAM byte offset for the first of the four objects.
-;;; @preserve X
+;;; @preserve X, T2+
 .EXPORT FuncA_Objects_Draw2x2Actor
 .PROC FuncA_Objects_Draw2x2Actor
     pha  ; first tile ID
-    jsr FuncA_Objects_SetShapePosToActorCenter  ; preserves X and Y
+    jsr FuncA_Objects_SetShapePosToActorCenter  ; preserves X, Y, and T0+
     tya
     eor Ram_ActorFlags_bObj_arr, x
     tay  ; param: object flags
     pla  ; param: first tile ID
-    jmp FuncA_Objects_Draw2x2Shape  ; preserves X, returns C and Y
+    jmp FuncA_Objects_Draw2x2Shape  ; preserves X and T2+, returns C and Y
 .ENDPROC
 
 ;;;=========================================================================;;;

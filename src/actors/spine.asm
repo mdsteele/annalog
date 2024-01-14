@@ -25,18 +25,12 @@
 .IMPORT FuncA_Actor_CenterHitsTerrain
 .IMPORT FuncA_Actor_HarmAvatarIfCollision
 .IMPORT FuncA_Objects_Draw1x1Actor
-.IMPORT Func_Cosine
 .IMPORT Func_InitActorWithState1
-.IMPORT Func_SignedMult
-.IMPORT Func_Sine
+.IMPORT Func_SetActorVelocityPolar
 .IMPORT Ram_ActorFlags_bObj_arr
 .IMPORT Ram_ActorState1_byte_arr
 .IMPORT Ram_ActorState2_byte_arr
 .IMPORT Ram_ActorType_eActor_arr
-.IMPORT Ram_ActorVelX_i16_0_arr
-.IMPORT Ram_ActorVelX_i16_1_arr
-.IMPORT Ram_ActorVelY_i16_0_arr
-.IMPORT Ram_ActorVelY_i16_1_arr
 
 ;;;=========================================================================;;;
 
@@ -54,7 +48,7 @@ kPaletteObjSpine = 0
 ;;; @prereq The actor's pixel position has already been initialized.
 ;;; @param A The angle to fire at, measured in increments of tau/256.
 ;;; @param X The actor index.
-;;; @preserve X, T2+
+;;; @preserve X, T3+
 .EXPORT FuncA_Room_InitActorProjSpine
 .PROC FuncA_Room_InitActorProjSpine
     ldy #eActor::ProjSpine  ; param: actor type
@@ -69,23 +63,10 @@ _InitFlags:
     tay
     lda _Flags_bObj_arr4, y
     sta Ram_ActorFlags_bObj_arr, x
-_InitVelX:
-    lda Ram_ActorState1_byte_arr, x  ; spine angle
-    jsr Func_Cosine  ; preserves X and T0+, returns A
-    ldy #kSpineSpeed  ; param: multiplier
-    jsr Func_SignedMult  ; preserves X and T2+, returns YA
-    sta Ram_ActorVelX_i16_0_arr, x
-    tya
-    sta Ram_ActorVelX_i16_1_arr, x
-_InitVelY:
-    lda Ram_ActorState1_byte_arr, x  ; spine angle
-    jsr Func_Sine  ; preserves X and T0+, returns A
-    ldy #kSpineSpeed  ; param: multiplier
-    jsr Func_SignedMult  ; preserves X and T2+, returns YA
-    sta Ram_ActorVelY_i16_0_arr, x
-    tya
-    sta Ram_ActorVelY_i16_1_arr, x
-    rts
+_InitVel:
+    ldy #kSpineSpeed  ; param: speed
+    lda Ram_ActorState1_byte_arr, x  ; param: spine angle
+    jmp Func_SetActorVelocityPolar  ; preserves X and T3+
 _Flags_bObj_arr4:
     .byte 0, bObj::FlipH, bObj::FlipHV, bObj::FlipV
 .ENDPROC

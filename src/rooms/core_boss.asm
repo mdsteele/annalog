@@ -18,6 +18,7 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "../actor.inc"
+.INCLUDE "../actors/orc.inc"
 .INCLUDE "../avatar.inc"
 .INCLUDE "../charmap.inc"
 .INCLUDE "../cpu.inc"
@@ -73,6 +74,7 @@
 .IMPORT FuncA_Room_MachineCannonReset
 .IMPORT FuncA_Room_ReflectFireblastsOffMirror
 .IMPORT Func_FindEmptyActorSlot
+.IMPORT Func_InitActorBadGronta
 .IMPORT Func_InitActorSmokeFragment
 .IMPORT Func_IsFlagSet
 .IMPORT Func_IsPointInPlatform
@@ -88,6 +90,8 @@
 .IMPORT Func_SetMachineIndex
 .IMPORT Func_SetPointToAvatarCenter
 .IMPORT Ppu_ChrObjBoss2
+.IMPORT Ram_ActorFlags_bObj_arr
+.IMPORT Ram_ActorType_eActor_arr
 .IMPORT Ram_ActorVelX_i16_1_arr
 .IMPORT Ram_ActorVelY_i16_1_arr
 .IMPORT Ram_MachineGoalHorz_u8_arr
@@ -112,6 +116,9 @@
 .IMPORTZP Zp_ScrollGoalX_u16
 
 ;;;=========================================================================;;;
+
+;;; The actor index for Gronta in this room.
+kGrontaActorIndex = 0
 
 ;;; The machine indices for the machines in this room.
 kWinchMachineIndex   = 0
@@ -223,7 +230,7 @@ _Ext_sRoomExt:
     d_addr Actors_sActor_arr_ptr, _Actors_sActor_arr
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
     d_addr Passages_sPassage_arr_ptr, _Passages_sPassage_arr
-    d_addr Enter_func_ptr, Func_Noop
+    d_addr Enter_func_ptr, FuncA_Room_CoreBoss_EnterRoom
     d_addr FadeIn_func_ptr, FuncC_Core_Boss_FadeInRoom
     d_addr Tick_func_ptr, FuncA_Room_CoreBoss_TickRoom
     d_addr Draw_func_ptr, FuncA_Objects_CoreBoss_DrawRoom
@@ -412,7 +419,13 @@ _Platforms_sPlatform_arr:
     .assert * - :- <= kMaxPlatforms * .sizeof(sPlatform), error
     .byte ePlatform::None
 _Actors_sActor_arr:
-:   ;; TODO: add Gronta actor?
+:   .assert * - :- = kGrontaActorIndex * .sizeof(sActor), error
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::NpcOrc
+    d_word PosX_i16, $0110
+    d_word PosY_i16, $0068
+    d_byte Param_byte, eNpcOrc::GrontaStanding
+    D_END
     .assert * - :- <= kMaxActors * .sizeof(sActor), error
     .byte eActor::None
 _Devices_sDevice_arr:
@@ -990,6 +1003,16 @@ _Finished:
 
 .SEGMENT "PRGA_Room"
 
+.PROC FuncA_Room_CoreBoss_EnterRoom
+    lda Zp_Next_eCutscene
+    .assert eCutscene::None = 0, error
+    beq @done
+    lda #eActor::None
+    sta Ram_ActorType_eActor_arr + kGrontaActorIndex
+    @done:
+    rts
+.ENDPROC
+
 .PROC FuncA_Room_CoreBoss_TickRoom
     ;; If the avatar is hidden for a circuit activation cutscene, we're done.
     lda Zp_AvatarPose_eAvatar
@@ -1130,12 +1153,14 @@ _Mirror2:
     act_CallFunc _SetupFunc
     act_SetAvatarState 0
     act_SetAvatarVelX 0
+    act_SetActorState2 kGrontaActorIndex, $ff
     act_BranchIfZ _GetHorzScreen, _LeftSide_sCutscene
 _RightSide_sCutscene:
     act_WalkAvatar $0168
     act_SetAvatarFlags kPaletteObjAvatarNormal | bObj::FlipH
     act_ForkStart 0, _IntroDialog_sCutscene
 _LeftSide_sCutscene:
+    act_SetActorFlags kGrontaActorIndex, bObj::FlipH
     act_WalkAvatar $00b8
     act_SetAvatarFlags kPaletteObjAvatarNormal
 _IntroDialog_sCutscene:
@@ -1160,6 +1185,10 @@ _BeginFight_sCutscene:
     act_PlayMusic eMusic::Boss2
     act_WaitFrames 210  ; TODO: animate Gronta getting ready to fight
     act_SetScrollFlags 0
+    act_CallFunc _ChangeGrontaFromNpcToBad
+    ;; TODO: Handle Gronta's mode-setting in TickRoom rather than here.
+    act_SetActorState1 kGrontaActorIndex, eBadGronta::ThrowWindup
+    act_SetActorState2 kGrontaActorIndex, 60
     act_ContinueExploring
 _SetupFunc:
     lda #ePlatform::Solid
@@ -1193,6 +1222,10 @@ _SpawnActorForRemote:
     sta Ram_ActorVelX_i16_1_arr, x
     @done:
     rts
+_ChangeGrontaFromNpcToBad:
+    ldx #kGrontaActorIndex  ; param: actor index
+    lda Ram_ActorFlags_bObj_arr + kGrontaActorIndex  ; param: flags
+    jmp Func_InitActorBadGronta
 .ENDPROC
 
 ;;;=========================================================================;;;

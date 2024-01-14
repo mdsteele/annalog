@@ -240,11 +240,11 @@ _Finish:
 ;;; reflects them off of the mirror.
 ;;; @param A The absolute mirror angle, in increments of tau/16.
 ;;; @param Y The platform index for the mirror.
-;;; @preserve Y, T3+
+;;; @preserve Y, T5+
 .EXPORT FuncA_Room_ReflectFireblastsOffMirror
 .PROC FuncA_Room_ReflectFireblastsOffMirror
     mul #$10
-    sta T2  ; absolute mirror angle (in tau/256 units)
+    sta T4  ; absolute mirror angle (in tau/256 units)
     ldx #kMaxActors - 1
 _Loop:
     ;; If this actor isn't a fireblast projectile, skip it.
@@ -262,21 +262,21 @@ _Loop:
     ;; Compute the reversed fireblast angle relative to the mirror angle.
     lda Ram_ActorState1_byte_arr, x  ; fireblast angle (in tau/256 units)
     eor #$80
-    sub T2  ; absolute mirror angle (in tau/256 units)
+    sub T4  ; absolute mirror angle (in tau/256 units)
     ;; If the fireblast hits the back of the mirror, remove the fireblast.
     cmp #$c1
     bge _Reflect
     cmp #$40
     bge _Remove
 _Reflect:
-    ;; Negate the fireblast's relative angle, and add it to the mirror's
-    ;; absolute angle to get a new absolute angle for the fireblast.
-    eor #$ff
-    add #1
-    add T2  ; absolute mirror angle (in tau/256 units)
+    ;; Subtract the fireblast's relative angle from the mirror's absolute angle
+    ;; to get a new absolute angle for the fireblast.
+    rsub T4  ; absolute mirror angle (in tau/256 units)
     sta Ram_ActorState1_byte_arr, x  ; fireblast angle (in tau/256 units)
-    jsr Func_ReinitActorProjFireblastVelocity  ; preserves X, Y, and T2+
+    sty T3  ; mirror platform index
+    jsr Func_ReinitActorProjFireblastVelocity  ; preserves X and T3+
     ;; Snap the fireblast to the center of the mirror.
+    ldy T3  ; param: mirror platform index
     jsr Func_SetPointToPlatformCenter  ; preserves X, Y, and T0+
     jsr Func_SetActorCenterToPoint  ; preserves X, Y, and T0+
     ;; Set the fireblast's reflection timer, so that it won't immediately hit

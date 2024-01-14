@@ -31,6 +31,7 @@
 .IMPORT FuncA_Actor_IsAvatarWithinHorzDistance
 .IMPORT FuncA_Actor_IsAvatarWithinVertDistances
 .IMPORT FuncA_Actor_MovePointTowardVelXDir
+.IMPORT FuncA_Actor_SetPointInFrontOfActor
 .IMPORT FuncA_Actor_ZeroVelX
 .IMPORT FuncA_Actor_ZeroVelY
 .IMPORT FuncA_Objects_BobActorShapePosUpAndDown
@@ -38,11 +39,15 @@
 .IMPORT FuncA_Objects_GetNpcActorFlags
 .IMPORT FuncA_Objects_MoveShapeUpByA
 .IMPORT FuncA_Objects_SetShapePosToActorCenter
+.IMPORT Func_FindEmptyActorSlot
 .IMPORT Func_GetTerrainColumnPtrForPointX
+.IMPORT Func_InitActorProjAxe
 .IMPORT Func_InitActorWithFlags
 .IMPORT Func_InitActorWithState1
 .IMPORT Func_MovePointDownByA
+.IMPORT Func_Noop
 .IMPORT Func_PointHitsTerrain
+.IMPORT Func_SetActorCenterToPoint
 .IMPORT Func_SetPointToActorCenter
 .IMPORT Ram_ActorFlags_bObj_arr
 .IMPORT Ram_ActorPosY_i16_0_arr
@@ -59,6 +64,12 @@
 .IMPORTZP Zp_TerrainColumn_u8_arr_ptr
 
 ;;;=========================================================================;;;
+
+;;; How many pixels in front of Gronta to spawn the axe actor when throwing.
+kGrontaThrowOffset = 8
+
+;;; How many frames it takes Gronta to catch a returned axe projectile.
+kGrontaCatchFrames = 15
 
 ;;; How many pixels in front of its center an orc baddie actor checks for solid
 ;;; terrain to see if it needs to stop.
@@ -91,6 +102,17 @@ kPaletteObjGrontaHead = 1
 
 .SEGMENT "PRG8"
 
+;;; Initializes a Gronta baddie actor.
+;;; @prereq The actor's pixel position has already been initialized.
+;;; @param A The flags to set.
+;;; @param X The actor index.
+;;; @preserve X, T0+
+.EXPORT Func_InitActorBadGronta
+.PROC Func_InitActorBadGronta
+    ldy #eActor::BadGronta  ; param: actor type
+    jmp Func_InitActorWithFlags
+.ENDPROC
+
 ;;; Initializes an orc baddie actor.
 ;;; @prereq The actor's pixel position has already been initialized.
 ;;; @param A The flags to set.
@@ -116,6 +138,85 @@ kPaletteObjGrontaHead = 1
 ;;;=========================================================================;;;
 
 .SEGMENT "PRGA_Actor"
+
+;;; Performs per-frame updates for an orc baddie actor.
+;;; @param X The actor index.
+;;; @preserve X
+.EXPORT FuncA_Actor_TickBadGronta
+.PROC FuncA_Actor_TickBadGronta
+    ;; Check for collision with player avatar.  The jump targets below can make
+    ;; use of the returned C value.
+    jsr FuncA_Actor_HarmAvatarIfCollision  ; preserves X, returns C
+    ;; Execute mode-specific behavior.
+    ldy Ram_ActorState1_byte_arr, x  ; current mode
+    lda _JumpTable_ptr_0_arr, y
+    sta T0
+    lda _JumpTable_ptr_1_arr, y
+    sta T1
+    jmp (T1T0)
+.REPEAT 2, table
+    D_TABLE_LO table, _JumpTable_ptr_0_arr
+    D_TABLE_HI table, _JumpTable_ptr_1_arr
+    D_TABLE .enum, eBadGronta
+    d_entry table, Standing,     Func_Noop
+    d_entry table, ThrowWindup,  FuncA_Actor_TickBadGronta_ThrowWindup
+    d_entry table, ThrowWaiting, Func_Noop
+    d_entry table, ThrowCatch,   FuncA_Actor_TickBadGronta_ThrowCatch
+    D_END
+.ENDREPEAT
+.ENDPROC
+
+;;; Performs per-frame updates for a Gronta baddie actor that's in ThrowWindup
+;;; mode.
+;;; @param C Set if Gronta just collided with the player avatar.
+;;; @param X The actor index.
+;;; @preserve X
+.PROC FuncA_Actor_TickBadGronta_ThrowWindup
+    dec Ram_ActorState2_byte_arr, x  ; timer
+    bne @done
+    lda #kGrontaThrowOffset  ; param: offset
+    jsr FuncA_Actor_SetPointInFrontOfActor  ; preserves X
+    stx T3  ; Gronta actor index
+    lda Ram_ActorFlags_bObj_arr, x
+    sta T0   ; actor flags
+    jsr Func_FindEmptyActorSlot  ; preserves T0+, returns C and X
+    bcc @initAxe
+    @noAxe:
+    ldx T3  ; Gronta actor index
+    lda #eBadGronta::Standing
+    .assert eBadGronta::Standing = 0, error
+    beq @setMode  ; unconditional
+    @initAxe:
+    jsr Func_SetActorCenterToPoint  ; preserves X and T0+
+    ;; TODO: Instead of always throwing forward, throw towards player avatar,
+    ;; and set Gronta's flags to face throw angle.
+    lda T0  ; Gronta actor flags
+    .assert bObj::FlipH = $40, error
+    asl a  ; param: angle
+    jsr Func_InitActorProjAxe  ; preserves T3+
+    ldx T3  ; Gronta actor index
+    lda #kGrontaCatchFrames
+    sta Ram_ActorState2_byte_arr, x  ; timer
+    lda #eBadGronta::ThrowWaiting
+    @setMode:
+    sta Ram_ActorState1_byte_arr, x  ; current mode
+    @done:
+    rts
+.ENDPROC
+
+;;; Performs per-frame updates for a Gronta baddie actor that's in ThrowCatch
+;;; mode.
+;;; @param C Set if Gronta just collided with the player avatar.
+;;; @param X The actor index.
+;;; @preserve X
+.PROC FuncA_Actor_TickBadGronta_ThrowCatch
+    dec Ram_ActorState2_byte_arr, x  ; timer
+    bne @done
+    lda #eBadGronta::Standing
+    sta Ram_ActorState1_byte_arr, x  ; current mode
+    @done:
+    rts
+.ENDPROC
 
 ;;; Performs per-frame updates for an orc baddie actor.
 ;;; @param X The actor index.
@@ -336,6 +437,28 @@ _CheckForFloor:
 ;;;=========================================================================;;;
 
 .SEGMENT "PRGA_Objects"
+
+;;; Draws a Gronta baddie actor.
+;;; @param X The actor index.
+;;; @preserve X
+.EXPORT FuncA_Objects_DrawActorBadGronta
+.PROC FuncA_Objects_DrawActorBadGronta
+    ldy Ram_ActorFlags_bObj_arr, x  ; param: object flags
+    lda Ram_ActorState1_byte_arr, x  ; current mode
+    .assert eBadGronta::Standing = 0, error
+    beq @standing
+    cmp #eBadGronta::ThrowWaiting
+    beq @throwing
+    @armsRaised:
+    lda #eNpcOrc::GrontaArmsRaised  ; param: pose
+    bpl FuncA_Objects_DrawActorOrcInPose  ; unconditional
+    @throwing:
+    lda #eNpcOrc::GrontaThrowing  ; param: pose
+    bpl FuncA_Objects_DrawActorOrcInPose  ; unconditional
+    @standing:
+    lda #eNpcOrc::GrontaStanding  ; param: pose
+    bpl FuncA_Objects_DrawActorOrcInPose  ; unconditional
+.ENDPROC
 
 ;;; Draws an orc baddie actor.
 ;;; @param X The actor index.
