@@ -44,12 +44,12 @@
 .IMPORT FuncA_Machine_WriteToLever
 .IMPORT FuncA_Objects_DrawMinigunDownMachine
 .IMPORT FuncA_Objects_DrawMinigunLeftMachine
-.IMPORT FuncA_Room_AreActorsWithinDistance
 .IMPORT FuncA_Room_PlaySfxCrack
 .IMPORT FuncA_Room_RemoveAllBulletsIfConsoleOpen
 .IMPORT FuncA_Room_ResetLever
 .IMPORT FuncC_Temple_DrawColumnCrackedPlatform
 .IMPORT Func_InitActorSmokeExplosion
+.IMPORT Func_IsActorWithinDistanceOfPoint
 .IMPORT Func_IsPointInPlatform
 .IMPORT Func_Noop
 .IMPORT Func_PlaySfxExplodeFracture
@@ -199,10 +199,10 @@ _Machines_sMachine_arr:
     d_byte MainPlatform_u8, kUpperMinigunPlatformIndex
     d_addr Init_func_ptr, FuncC_Temple_AltarUpperMinigun_InitReset
     d_addr ReadReg_func_ptr, FuncC_Temple_AltarUpperMinigun_ReadReg
-    d_addr WriteReg_func_ptr, FuncC_Temple_AltarUpperMinigun_WriteReg
-    d_addr TryMove_func_ptr, FuncC_Temple_AltarUpperMinigun_TryMove
-    d_addr TryAct_func_ptr, FuncC_Temple_AltarUpperMinigun_TryAct
-    d_addr Tick_func_ptr, FuncC_Temple_AltarUpperMinigun_Tick
+    d_addr WriteReg_func_ptr, FuncA_Machine_TempleAltarUpperMinigun_WriteReg
+    d_addr TryMove_func_ptr, FuncA_Machine_TempleAltarUpperMinigun_TryMove
+    d_addr TryAct_func_ptr, FuncA_Machine_TempleAltarUpperMinigun_TryAct
+    d_addr Tick_func_ptr, FuncA_Machine_TempleAltarUpperMinigun_Tick
     d_addr Draw_func_ptr, FuncA_Objects_DrawMinigunDownMachine
     d_addr Reset_func_ptr, FuncC_Temple_AltarUpperMinigun_InitReset
     D_END
@@ -219,8 +219,8 @@ _Machines_sMachine_arr:
     d_addr Init_func_ptr, FuncC_Temple_AltarLowerMinigun_Init
     d_addr ReadReg_func_ptr, FuncC_Temple_AltarLowerMinigun_ReadReg
     d_addr WriteReg_func_ptr, Func_Noop
-    d_addr TryMove_func_ptr, FuncC_Temple_AltarLowerMinigun_TryMove
-    d_addr TryAct_func_ptr, FuncC_Temple_AltarLowerMinigun_TryAct
+    d_addr TryMove_func_ptr, FuncA_Machine_TempleAltarLowerMinigun_TryMove
+    d_addr TryAct_func_ptr, FuncA_Machine_TempleAltarLowerMinigun_TryAct
     d_addr Tick_func_ptr, FuncC_Temple_AltarLowerMinigun_Tick
     d_addr Draw_func_ptr, FuncA_Objects_DrawMinigunLeftMachine
     d_addr Reset_func_ptr, FuncC_Temple_AltarLowerMinigun_Reset
@@ -350,7 +350,11 @@ _Passages_sPassage_arr:
     lda Ram_ActorType_eActor_arr, x
     cmp #eActor::ProjBullet
     bne @continue
-    jsr FuncC_Temple_Altar_CheckForBulletHit  ; preserves X
+    txa
+    pha
+    jsr FuncC_Temple_Altar_CheckForBulletHit
+    pla
+    tax
     @continue:
     dex
     bpl @loop
@@ -361,7 +365,6 @@ _Passages_sPassage_arr:
 ;;; in this room; if so, handles the collision.
 ;;; @prereq PRGA_Room is loaded.
 ;;; @param X The bullet actor index.
-;;; @preserve X
 .PROC FuncC_Temple_Altar_CheckForBulletHit
     jsr Func_SetPointToActorCenter  ; preserves X
 _CheckIfHitColumn:
@@ -369,23 +372,24 @@ _CheckIfHitColumn:
     .assert ePlatform::None = 0, error
     beq @noHitColumn
     ldy #kColumnPlatformIndex  ; param: platform index
-    jsr Func_IsPointInPlatform  ; preserves X and Y, returns C
+    jsr Func_IsPointInPlatform  ; preserves X, returns C
     bcs _HitColumn
     @noHitColumn:
 _CheckIfHitBeetle:
-    ldy #kLastBeetleActorIndex
+    stx T2  ; bullet actor index
+    ldx #kLastBeetleActorIndex
     @loop:
-    lda Ram_ActorType_eActor_arr, y
+    lda Ram_ActorType_eActor_arr, x
     cmp #eActor::BadBeetleVert
     beq @checkIfHit
     cmp #eActor::BadBeetleHorz
     bne @continue
     @checkIfHit:
     lda #6  ; param: distance
-    jsr FuncA_Room_AreActorsWithinDistance  ; preserves X and Y, returns C
+    jsr Func_IsActorWithinDistanceOfPoint  ; preserves X and T2+, returns C
     bcs _HitBeetle
     @continue:
-    dey
+    dex
     bpl @loop
     rts
 _HitColumn:
@@ -407,19 +411,13 @@ _HitColumn:
     jmp Func_PlaySfxExplodeFracture
     ;; TODO: Add smoke particles
 _HitBeetle:
-    ;; Expire the bullet.
+    ;; Kill the beetle.
+    jsr Func_InitActorSmokeExplosion  ; preserves T0+
+    ;; TODO: play a sound for the beetle dying
+    ;; Remove the bullet.
+    ldx T2  ; bullet actor index
     lda #eActor::None
     sta Ram_ActorType_eActor_arr, x
-    txa  ; bullet actor index
-    pha  ; bullet actor index
-    ;; Kill the beetle.
-    tya  ; beetle actor index
-    tax  ; param: actor index
-    jsr Func_InitActorSmokeExplosion
-    ;; TODO: play a sound for the beetle dying
-    ;; Restore the bullet actor index (so this function can preserve X).
-    pla  ; bullet actor index
-    tax  ; bullet actor index
     rts
 .ENDPROC
 
@@ -462,35 +460,6 @@ _ReadX:
     rts
 .ENDPROC
 
-.PROC FuncC_Temple_AltarUpperMinigun_WriteReg
-    cpx #$d
-    beq _WriteR
-_WriteL:
-    ldx #kLeverLeftDeviceIndex  ; param: device index
-    jmp FuncA_Machine_WriteToLever
-_WriteR:
-    ldx #kLeverRightDeviceIndex  ; param: device index
-    jmp FuncA_Machine_WriteToLever
-.ENDPROC
-
-.PROC FuncC_Temple_AltarUpperMinigun_TryMove
-    lda #kUpperMinigunMaxGoalX  ; param: max goal
-    jmp FuncA_Machine_GenericTryMoveX
-.ENDPROC
-
-.PROC FuncC_Temple_AltarUpperMinigun_TryAct
-    ldy #eDir::Down  ; param: bullet direction
-    jmp FuncA_Machine_MinigunTryAct
-.ENDPROC
-
-.PROC FuncC_Temple_AltarUpperMinigun_Tick
-    jsr FuncA_Machine_MinigunRotateBarrel
-    ldax #kUpperMinigunMinPlatformLeft  ; param: min platform left
-    jsr FuncA_Machine_GenericMoveTowardGoalHorz  ; returns Z
-    jeq FuncA_Machine_ReachedGoal
-    rts
-.ENDPROC
-
 .PROC FuncC_Temple_AltarLowerMinigun_ReadReg
     cmp #$f
     beq _ReadY
@@ -504,17 +473,6 @@ _ReadY:
     sub Ram_PlatformTop_i16_0_arr + kLowerMinigunPlatformIndex
     div #kBlockWidthPx
     rts
-.ENDPROC
-
-.PROC FuncC_Temple_AltarLowerMinigun_TryMove
-    lda #kLowerMinigunMaxGoalX  ; param: max goal horz
-    ldy #kLowerMinigunMaxGoalY  ; param: max goal vert
-    jmp FuncA_Machine_CarriageTryMove
-.ENDPROC
-
-.PROC FuncC_Temple_AltarLowerMinigun_TryAct
-    ldy #eDir::Left  ; param: bullet direction
-    jmp FuncA_Machine_MinigunTryAct
 .ENDPROC
 
 .PROC FuncC_Temple_AltarLowerMinigun_Tick
@@ -575,6 +533,50 @@ _MoveToLowerRight:
     lda #kLowerMinigunInitGoalY
     sta Ram_MachineGoalVert_u8_arr + kLowerMinigunMachineIndex
     rts
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Machine"
+
+.PROC FuncA_Machine_TempleAltarUpperMinigun_WriteReg
+    cpx #$d
+    beq _WriteR
+_WriteL:
+    ldx #kLeverLeftDeviceIndex  ; param: device index
+    jmp FuncA_Machine_WriteToLever
+_WriteR:
+    ldx #kLeverRightDeviceIndex  ; param: device index
+    jmp FuncA_Machine_WriteToLever
+.ENDPROC
+
+.PROC FuncA_Machine_TempleAltarUpperMinigun_TryMove
+    lda #kUpperMinigunMaxGoalX  ; param: max goal
+    jmp FuncA_Machine_GenericTryMoveX
+.ENDPROC
+
+.PROC FuncA_Machine_TempleAltarUpperMinigun_TryAct
+    ldy #eDir::Down  ; param: bullet direction
+    jmp FuncA_Machine_MinigunTryAct
+.ENDPROC
+
+.PROC FuncA_Machine_TempleAltarUpperMinigun_Tick
+    jsr FuncA_Machine_MinigunRotateBarrel
+    ldax #kUpperMinigunMinPlatformLeft  ; param: min platform left
+    jsr FuncA_Machine_GenericMoveTowardGoalHorz  ; returns Z
+    jeq FuncA_Machine_ReachedGoal
+    rts
+.ENDPROC
+
+.PROC FuncA_Machine_TempleAltarLowerMinigun_TryMove
+    lda #kLowerMinigunMaxGoalX  ; param: max goal horz
+    ldy #kLowerMinigunMaxGoalY  ; param: max goal vert
+    jmp FuncA_Machine_CarriageTryMove
+.ENDPROC
+
+.PROC FuncA_Machine_TempleAltarLowerMinigun_TryAct
+    ldy #eDir::Left  ; param: bullet direction
+    jmp FuncA_Machine_MinigunTryAct
 .ENDPROC
 
 ;;;=========================================================================;;;

@@ -49,12 +49,12 @@
 .IMPORT FuncA_Objects_DrawCratePlatform
 .IMPORT FuncA_Objects_MoveShapeDownOneTile
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
-.IMPORT FuncA_Room_AreActorsWithinDistance
 .IMPORT FuncA_Room_MachineBlasterReset
 .IMPORT FuncA_Room_ReflectFireblastsOffMirror
 .IMPORT FuncA_Room_ResetLever
 .IMPORT FuncA_Terrain_FadeInTallRoomWithLava
 .IMPORT Func_InitActorSmokeExplosion
+.IMPORT Func_IsActorWithinDistanceOfPoint
 .IMPORT Func_IsFlagSet
 .IMPORT Func_IsPointInPlatform
 .IMPORT Func_MachineBlasterReadRegMirrors
@@ -552,15 +552,15 @@ _CheckIfFireblastHitsHothead:
     bne @done
     ;; Check each fireblast in the room to see if it has hit the hothead.
     @checkFireblasts:
+    ldx #kHotheadActorIndex  ; param: actor index
+    jsr Func_SetPointToActorCenter
     ldx #kMaxActors - 1
     @loop:
     lda Ram_ActorType_eActor_arr, x
     cmp #eActor::ProjFireblast
     bne @continue
-    jsr Func_SetPointToActorCenter  ; preserves X
-    ldy #kHotheadActorIndex  ; param: other actor index
     lda #6  ; param: distance
-    jsr FuncA_Room_AreActorsWithinDistance  ; preserves X, returns C
+    jsr Func_IsActorWithinDistanceOfPoint  ; preserves X, returns C
     bcc @continue
     ;; Remove the fireblast and destroy the hothead.
     lda #eActor::None

@@ -142,8 +142,7 @@
 .IMPORT Func_InitActorSmokeFragment
 .IMPORT Func_InitActorSmokeParticle
 .IMPORT Func_Noop
-.IMPORTZP Zp_AvatarPosX_i16
-.IMPORTZP Zp_AvatarPosY_i16
+.IMPORT Func_SetPointToAvatarCenter
 .IMPORTZP Zp_PointX_i16
 .IMPORTZP Zp_PointY_i16
 
@@ -282,6 +281,108 @@ Ram_ActorFlags_bObj_arr: .res kMaxActors
     sta Ram_ActorPosY_i16_0_arr, x
     lda Zp_PointY_i16 + 1
     sta Ram_ActorPosY_i16_1_arr, x
+    rts
+.ENDPROC
+
+;;; Checks if the horizontal and vertical distances between the center of the
+;;; actor and the position stored in Zp_Point*_i16 are both less than or equal
+;;; to the given distance.
+;;; @param A The distance to check for.
+;;; @param X The actor index.
+;;; @return C Set if a collision occurred, cleared otherwise.
+;;; @preserve X, T2+
+.EXPORT Func_IsActorWithinDistanceOfPoint
+.PROC Func_IsActorWithinDistanceOfPoint
+    pha  ; distance
+    jsr Func_IsActorWithinHorzDistanceOfPoint  ; preserves X, T2+; returns C
+    pla  ; distance
+    bcs @checkVert
+    rts
+    @checkVert:
+    tay  ; param: distance below
+    fall Func_IsActorWithinVertDistancesOfPoint  ; preserves X, T2+; returns C
+.ENDPROC
+
+;;; Checks if the distance between the vertical center of the actor and
+;;; Zp_PointY_i16 is within the given up/down distances.
+;;; @param A The distance above the point to check for.
+;;; @param Y The distance below the point to check for.
+;;; @param X The actor index.
+;;; @return C Set if a collision occurred, cleared otherwise.
+;;; @preserve X, T2+
+.EXPORT Func_IsActorWithinVertDistancesOfPoint
+.PROC Func_IsActorWithinVertDistancesOfPoint
+    sty T0  ; distance below point
+    ;; Check bottom side of actor.
+    add Ram_ActorPosY_i16_0_arr, x
+    sta T1
+    lda Ram_ActorPosY_i16_1_arr, x
+    adc #0
+    cmp Zp_PointY_i16 + 1
+    blt _NoHit
+    bne @hitBottom
+    lda T1
+    cmp Zp_PointY_i16 + 0
+    ble _NoHit
+    @hitBottom:
+    ;; Check top side of actor.
+    lda Ram_ActorPosY_i16_0_arr, x
+    sub T0  ; distance below point
+    sta T1
+    lda Ram_ActorPosY_i16_1_arr, x
+    sbc #0
+    cmp Zp_PointY_i16 + 1
+    blt @hitTop
+    bne _NoHit
+    lda T1
+    cmp Zp_PointY_i16 + 0
+    bge _NoHit
+    @hitTop:
+_Hit:
+    sec
+    rts
+_NoHit:
+    clc
+    rts
+.ENDPROC
+
+;;; Checks if the distance between the horizontal center of the actor and
+;;; Zp_PointX_i16 is within the given distance.
+;;; @param A The distance to check for.
+;;; @param X The actor index.
+;;; @return C Set if a collision occurred, cleared otherwise.
+;;; @preserve X, T2+
+.EXPORT Func_IsActorWithinHorzDistanceOfPoint
+.PROC Func_IsActorWithinHorzDistanceOfPoint
+    tay  ; distance
+    ;; Check actor-left-of-point.
+    add Ram_ActorPosX_i16_0_arr, x
+    sta T0  ; x-pos (lo)
+    lda #0
+    adc Ram_ActorPosX_i16_1_arr, x
+    sta T1  ; x-pos (hi)
+    lda T0  ; x-pos (lo)
+    cmp Zp_PointX_i16 + 0
+    lda T1  ; x-pos (hi)
+    sbc Zp_PointX_i16 + 1
+    bmi _NoHit
+    ;; Check point-left-of-actor.
+    tya  ; distance
+    add Zp_PointX_i16 + 0
+    sta T0  ; x-pos (lo)
+    lda #0
+    adc Zp_PointX_i16 + 1
+    sta T1  ; x-pos (hi)
+    lda T0  ; x-pos (lo)
+    cmp Ram_ActorPosX_i16_0_arr, x
+    lda T1  ; x-pos (hi)
+    sbc Ram_ActorPosX_i16_1_arr, x
+    bmi _NoHit
+_Hit:
+    sec
+    rts
+_NoHit:
+    clc
     rts
 .ENDPROC
 
@@ -625,16 +726,18 @@ _TypeSpecificTick:
 ;;; @preserve X
 .EXPORT FuncA_Actor_IsCollidingWithAvatar
 .PROC FuncA_Actor_IsCollidingWithAvatar
-    ldy Ram_ActorType_eActor_arr, x
+    jsr Func_SetPointToAvatarCenter  ; preserves X
 _CheckHorz:
+    ldy Ram_ActorType_eActor_arr, x
     lda DataA_Actor_BoundingBoxSide_u8_arr, y
     add #kAvatarBoundingBoxLeft  ; param: distance
     .assert kAvatarBoundingBoxLeft = kAvatarBoundingBoxRight, error
-    jsr FuncA_Actor_IsAvatarWithinHorzDistance  ; preserves X, Y; returns C
+    jsr Func_IsActorWithinHorzDistanceOfPoint  ; preserves X, returns C
     bcs @hitHorz
     rts
     @hitHorz:
 _CheckVert:
+    ldy Ram_ActorType_eActor_arr, x
     lda DataA_Actor_BoundingBoxDown_u8_arr, y
     add #kAvatarBoundingBoxUp
     pha  ; distance above avatar
@@ -642,91 +745,7 @@ _CheckVert:
     add #kAvatarBoundingBoxDown
     tay  ; param: distance below avatar
     pla  ; param: distance above avatar
-    .assert * = FuncA_Actor_IsAvatarWithinVertDistances, error, "fallthrough"
-.ENDPROC
-
-;;; Checks if the vertical distance between the centers of the actor and the
-;;; player avatar is within the given up/down distances.
-;;; @param A The distance above the avatar to check for.
-;;; @param Y The distance below the avatar to check for.
-;;; @param X The actor index.
-;;; @return C Set if a collision occurred, cleared otherwise.
-;;; @preserve X, T2+
-.EXPORT FuncA_Actor_IsAvatarWithinVertDistances
-.PROC FuncA_Actor_IsAvatarWithinVertDistances
-    sty T0  ; distance below avatar
-    ;; Check bottom side of actor.
-    add Ram_ActorPosY_i16_0_arr, x
-    sta T1
-    lda Ram_ActorPosY_i16_1_arr, x
-    adc #0
-    cmp Zp_AvatarPosY_i16 + 1
-    blt _NoHit
-    bne @hitBottom
-    lda T1
-    cmp Zp_AvatarPosY_i16 + 0
-    ble _NoHit
-    @hitBottom:
-    ;; Check top side of actor.
-    lda Ram_ActorPosY_i16_0_arr, x
-    sub T0  ; distance below avatar
-    sta T1
-    lda Ram_ActorPosY_i16_1_arr, x
-    sbc #0
-    cmp Zp_AvatarPosY_i16 + 1
-    blt @hitTop
-    bne _NoHit
-    lda T1
-    cmp Zp_AvatarPosY_i16 + 0
-    bge _NoHit
-    @hitTop:
-_Hit:
-    sec
-    rts
-_NoHit:
-    clc
-    rts
-.ENDPROC
-
-;;; Checks if the horizontal distance between the centers of the actor and the
-;;; player avatar is within the given distance.
-;;; @param A The distance to check for.
-;;; @param X The actor index.
-;;; @return C Set if a collision occurred, cleared otherwise.
-;;; @preserve X, Y
-.EXPORT FuncA_Actor_IsAvatarWithinHorzDistance
-.PROC FuncA_Actor_IsAvatarWithinHorzDistance
-    sta T0  ; distance
-    ;; Check actor-left-of-avatar.
-    lda Ram_ActorPosX_i16_0_arr, x
-    add T0  ; distance
-    sta T1  ; x-pos (lo)
-    lda Ram_ActorPosX_i16_1_arr, x
-    adc #0
-    sta T2  ; x-pos (hi)
-    lda T1  ; x-pos (lo)
-    sub Zp_AvatarPosX_i16 + 0
-    lda T2  ; x-pos (hi)
-    sbc Zp_AvatarPosX_i16 + 1
-    blt _NoHit
-    ;; Check avatar-left-of-actor.
-    lda Zp_AvatarPosX_i16 + 0
-    add T0  ; distance
-    sta T1  ; x-pos (lo)
-    lda Zp_AvatarPosX_i16 + 1
-    adc #0
-    sta T2  ; x-pos (hi)
-    lda T1  ; x-pos (lo)
-    sub Ram_ActorPosX_i16_0_arr, x
-    lda T2  ; x-pos (hi)
-    sbc Ram_ActorPosX_i16_1_arr, x
-    blt _NoHit
-_Hit:
-    sec
-    rts
-_NoHit:
-    clc
-    rts
+    jmp Func_IsActorWithinVertDistancesOfPoint  ; preserves X, returns C
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -803,72 +822,6 @@ _NoHit:
     d_entry table, SmokeParticle,   Func_InitActorSmokeParticle
     D_END
 .ENDREPEAT
-.ENDPROC
-
-;;; Checks if the horizontal and vertical distances between the centers of the
-;;; two actors are both less than or equal to the given distance.
-;;; @param A The distance to check for.
-;;; @param X The first actor index.
-;;; @param Y The second actor index.
-;;; @return C Set if a collision occurred, cleared otherwise.
-;;; @preserve X, Y
-.EXPORT FuncA_Room_AreActorsWithinDistance
-.PROC FuncA_Room_AreActorsWithinDistance
-    sta T0  ; distance
-    ;; Check first-left-of-second.
-    lda Ram_ActorPosX_i16_0_arr, x
-    add T0  ; distance
-    sta T1  ; x-pos (lo)
-    lda Ram_ActorPosX_i16_1_arr, x
-    adc #0
-    sta T2  ; x-pos (hi)
-    lda T1  ; x-pos (lo)
-    sub Ram_ActorPosX_i16_0_arr, y
-    lda T2  ; x-pos (hi)
-    sbc Ram_ActorPosX_i16_1_arr, y
-    blt _NoHit
-    ;; Check second-left-of-first.
-    lda Ram_ActorPosX_i16_0_arr, y
-    add T0  ; distance
-    sta T1  ; x-pos (lo)
-    lda Ram_ActorPosX_i16_1_arr, y
-    adc #0
-    sta T2  ; x-pos (hi)
-    lda T1  ; x-pos (lo)
-    sub Ram_ActorPosX_i16_0_arr, x
-    lda T2  ; x-pos (hi)
-    sbc Ram_ActorPosX_i16_1_arr, x
-    blt _NoHit
-    ;; Check first-above-of-second.
-    lda Ram_ActorPosY_i16_0_arr, x
-    add T0  ; distance
-    sta T1  ; y-pos (lo)
-    lda Ram_ActorPosY_i16_1_arr, x
-    adc #0
-    sta T2  ; y-pos (hi)
-    lda T1  ; y-pos (lo)
-    sub Ram_ActorPosY_i16_0_arr, y
-    lda T2  ; y-pos (hi)
-    sbc Ram_ActorPosY_i16_1_arr, y
-    blt _NoHit
-    ;; Check second-above-of-first.
-    lda Ram_ActorPosY_i16_0_arr, y
-    add T0  ; distance
-    sta T1  ; y-pos (lo)
-    lda Ram_ActorPosY_i16_1_arr, y
-    adc #0
-    sta T2  ; y-pos (hi)
-    lda T1  ; y-pos (lo)
-    sub Ram_ActorPosY_i16_0_arr, x
-    lda T2  ; y-pos (hi)
-    sbc Ram_ActorPosY_i16_1_arr, x
-    blt _NoHit
-_Hit:
-    sec
-    rts
-_NoHit:
-    clc
-    rts
 .ENDPROC
 
 ;;;=========================================================================;;;

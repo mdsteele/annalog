@@ -45,15 +45,16 @@
 .IMPORT FuncA_Machine_WriteToLever
 .IMPORT FuncA_Objects_DrawBridgeMachine
 .IMPORT FuncA_Objects_DrawCannonMachine
-.IMPORT FuncA_Room_AreActorsWithinDistance
 .IMPORT FuncA_Room_FindGrenadeActor
 .IMPORT FuncA_Room_MachineCannonReset
 .IMPORT FuncA_Room_ResetLever
 .IMPORT Func_InitActorSmokeExplosion
+.IMPORT Func_IsActorWithinDistanceOfPoint
 .IMPORT Func_MachineBridgeReadRegY
 .IMPORT Func_MachineCannonReadRegY
 .IMPORT Func_Noop
 .IMPORT Func_PlaySfxExplodeSmall
+.IMPORT Func_SetPointToActorCenter
 .IMPORT Ppu_ChrObjGarden
 .IMPORT Ram_ActorState1_byte_arr
 .IMPORT Ram_ActorType_eActor_arr
@@ -371,15 +372,16 @@ _Passages_sPassage_arr:
     lda Ram_ActorType_eActor_arr + kKillableVinebugActorIndex
     cmp #eActor::BadVinebug
     bne _Done
+    ldx #kKillableVinebugActorIndex  ; param: actor index
+    jsr Func_SetPointToActorCenter
 _FindGrenade:
     ;; Find the actor index for the grenade in flight (if any).  If we don't
     ;; find one, then we're done.
     jsr FuncA_Room_FindGrenadeActor  ; returns C and X
     bcs _Done
 _CheckForCollision:
-    ldy #kKillableVinebugActorIndex  ; param: other actor index
     lda #6  ; param: distance
-    jsr FuncA_Room_AreActorsWithinDistance  ; preserves X, returns C
+    jsr Func_IsActorWithinDistanceOfPoint  ; preserves X, returns C
     bcc _Done
     ;; Explode the grenade.
     jsr Func_InitActorSmokeExplosion

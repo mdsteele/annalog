@@ -23,12 +23,15 @@
 .INCLUDE "../oam.inc"
 .INCLUDE "axe.inc"
 
+.IMPORT FuncA_Actor_GetAngleToPoint
 .IMPORT FuncA_Actor_HarmAvatarIfCollision
 .IMPORT FuncA_Actor_ZeroVel
 .IMPORT FuncA_Objects_Draw2x2Actor
 .IMPORT Func_FindActorWithType
 .IMPORT Func_InitActorWithFlags
+.IMPORT Func_IsActorWithinDistanceOfPoint
 .IMPORT Func_SetActorVelocityPolar
+.IMPORT Func_SetPointToActorCenter
 .IMPORT Ram_ActorState1_byte_arr
 .IMPORT Ram_ActorType_eActor_arr
 .IMPORT Ram_Oam_sObj_arr64
@@ -45,6 +48,10 @@ kAxeAwayFrames = 60
 
 ;;; Once an axe projectile has paused for this many frames, return to Gronta.
 kAxePauseFrames = 30
+
+;;; How close an axe projectile must be to Gronta for her to catch in, in
+;;; pixels.
+kAxeCatchDistance = 8
 
 ;;; As an axe projectile spins, it spends (1 << kAxeAnimShift) frames in each
 ;;; spin position.
@@ -87,15 +94,19 @@ kPaletteObjAxe = 0
 .PROC FuncA_Actor_TickProjAxe
     jsr FuncA_Actor_HarmAvatarIfCollision  ; preserves X
 _FindGronta:
-    ;; Find the actor index for Gronta, storing it in Y.  If for some reason
-    ;; there's no Gronta actor in this room, then remove the axe actor.
+    ;; Find the Gronta actor, and set the point to Gronta's position.  If for
+    ;; some reason there's no Gronta actor in this room, then remove the axe
+    ;; actor.
     stx T0  ; axe actor index
     lda #eActor::BadGronta  ; param: actor type to find
     jsr Func_FindActorWithType  ; preserves T0+, returns C and X
-    txa  ; Gronta actor index (if any)
-    tay  ; Gronta actor index (if any)
+    bcc @foundGronta
     ldx T0  ; axe actor index
-    bcs _RemoveAxe
+    bcs _RemoveAxe  ; unconditional
+    @foundGronta:
+    jsr Func_SetPointToActorCenter  ; preserves X and T0+
+    stx T4  ; Gronta actor index
+    ldx T0  ; axe actor index
 _TickTimer:
     ;; Increment the axe's timer, then take action based on its new value.
     inc Ram_ActorState1_byte_arr, x  ; axe age in frames
@@ -108,9 +119,16 @@ _TickTimer:
 _PauseAxe:
     jmp FuncA_Actor_ZeroVel
 _MoveTowardsGronta:
-    ;; TODO: Set velocity to move towards Gronta.
-    ;; TODO: If near Gronta, catch axe.
+    ;; Set velocity to move towards Gronta.
+    jsr FuncA_Actor_GetAngleToPoint  ; preserves X and T4+, returns A
+    ldy #kProjAxeSpeed  ; param: speed
+    jsr Func_SetActorVelocityPolar  ; preserves X and T3+
+    ;; If the axe is near Gronta, have her catch it.
+    lda #kAxeCatchDistance  ; param: distance
+    jsr Func_IsActorWithinDistanceOfPoint  ; preserves X and T2+, returns C
+    bcc _Done
 _CatchAxe:
+    ldy T4  ; Gronta actor index
     lda #eBadGronta::ThrowCatch
     sta Ram_ActorState1_byte_arr, y  ; current Gronta mode
 _RemoveAxe:

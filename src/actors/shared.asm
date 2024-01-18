@@ -35,6 +35,8 @@
 .IMPORT Func_Cosine
 .IMPORT Func_FindDeviceNearPoint
 .IMPORT Func_HarmAvatar
+.IMPORT Func_IsActorWithinHorzDistanceOfPoint
+.IMPORT Func_IsActorWithinVertDistancesOfPoint
 .IMPORT Func_IsPointInAnySolidPlatform
 .IMPORT Func_MovePointDownByA
 .IMPORT Func_MovePointHorz
@@ -44,6 +46,8 @@
 .IMPORT Func_MovePointVert
 .IMPORT Func_PointHitsTerrain
 .IMPORT Func_SetPointToActorCenter
+.IMPORT Func_SetPointToAvatarCenter
+.IMPORT Func_SignedAtan2
 .IMPORT Func_SignedMult
 .IMPORT Func_Sine
 .IMPORT Ram_ActorFlags_bObj_arr
@@ -60,6 +64,8 @@
 .IMPORTZP Zp_AvatarPosX_i16
 .IMPORTZP Zp_AvatarPosY_i16
 .IMPORTZP Zp_FrameCounter_u8
+.IMPORTZP Zp_PointX_i16
+.IMPORTZP Zp_PointY_i16
 .IMPORTZP Zp_RoomScrollX_u16
 .IMPORTZP Zp_RoomScrollY_u8
 .IMPORTZP Zp_ShapePosX_i16
@@ -203,6 +209,35 @@
     @setFlags:
     sta Ram_ActorFlags_bObj_arr, x
     rts
+.ENDPROC
+
+;;; Checks if the horizontal distance between the centers of the actor and the
+;;; player avatar is within the given distance.
+;;; @param A The distance to check for.
+;;; @param X The actor index.
+;;; @return C Set if a collision occurred, cleared otherwise.
+;;; @preserve X
+.EXPORT FuncA_Actor_IsAvatarWithinHorzDistance
+.PROC FuncA_Actor_IsAvatarWithinHorzDistance
+    pha  ; distance
+    jsr Func_SetPointToAvatarCenter  ; preserves X
+    pla  ; param: distance
+    jmp Func_IsActorWithinHorzDistanceOfPoint  ; preserves X, returns C
+.ENDPROC
+
+;;; Checks if the vertical distance between the centers of the actor and the
+;;; player avatar is within the given up/down distances.
+;;; @param A The distance above the avatar to check for.
+;;; @param Y The distance below the avatar to check for.
+;;; @param X The actor index.
+;;; @return C Set if a collision occurred, cleared otherwise.
+;;; @preserve X
+.EXPORT FuncA_Actor_IsAvatarWithinVertDistances
+.PROC FuncA_Actor_IsAvatarWithinVertDistances
+    pha  ; distance above avatar
+    jsr Func_SetPointToAvatarCenter  ; preserves X and Y
+    pla  ; param: distance above avatar
+    jmp Func_IsActorWithinVertDistancesOfPoint  ; preserves X, returns C
 .ENDPROC
 
 ;;; Returns the index of the device whose block the actor's center is in, if
@@ -442,6 +477,39 @@
     adc Ram_ActorVelY_i16_1_arr, x
     sta Ram_ActorVelY_i16_1_arr, x
     rts
+.ENDPROC
+
+;;; Calculates the angle from the center of the actor to the position stored in
+;;; Zp_Point*_i16.
+;;; @param X The actor index.
+;;; @return A The angle, measured in increments of tau/256.
+;;; @preserve X, T4+
+.EXPORT FuncA_Actor_GetAngleToPoint
+.PROC FuncA_Actor_GetAngleToPoint
+_HorzDelta:
+    lda Zp_PointX_i16 + 0
+    sub Ram_ActorPosX_i16_0_arr, x
+    sta T0  ; horz delta from actor to point (lo)
+    lda Zp_PointX_i16 + 1
+    sbc Ram_ActorPosX_i16_1_arr, x
+    .repeat 3
+    lsr a
+    ror T0  ; horz delta from actor to point (lo)
+    .endrepeat
+_VertDelta:
+    lda Zp_PointY_i16 + 0
+    sub Ram_ActorPosY_i16_0_arr, x
+    sta T1  ; vert delta from actor to point (lo)
+    lda Zp_PointY_i16 + 1
+    sbc Ram_ActorPosY_i16_1_arr, x
+    .repeat 3
+    lsr a
+    ror T1  ; vert delta from actor to point (lo)
+    .endrepeat
+_Atan2:
+    lda T0  ; param: horz delta (signed)
+    ldy T1  ; param: vert delta (signed)
+    jmp Func_SignedAtan2  ; preserves X and T4+, returns A
 .ENDPROC
 
 ;;;=========================================================================;;;

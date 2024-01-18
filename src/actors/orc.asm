@@ -211,7 +211,7 @@ _InitAxe:
     lsr a
     ror T1  ; vert delta from axe to avatar (lo)
     .endrepeat
-    ldx T0  ; param: horz delta (signed)
+    lda T0  ; param: horz delta (signed)
     ldy T1  ; param: vert delta (signed)
     jsr Func_SignedAtan2  ; preserves T4+, returns A (param: axe angle)
     ldx T4  ; param: axe actor index
