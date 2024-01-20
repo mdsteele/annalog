@@ -26,12 +26,14 @@
 .INCLUDE "orc.inc"
 
 .IMPORT FuncA_Actor_FaceTowardsAvatar
+.IMPORT FuncA_Actor_FaceTowardsPoint
 .IMPORT FuncA_Actor_GetRoomBlockRow
 .IMPORT FuncA_Actor_HarmAvatarIfCollision
 .IMPORT FuncA_Actor_IsAvatarWithinHorzDistance
 .IMPORT FuncA_Actor_IsAvatarWithinVertDistances
 .IMPORT FuncA_Actor_MovePointTowardVelXDir
 .IMPORT FuncA_Actor_SetPointInFrontOfActor
+.IMPORT FuncA_Actor_SetVelXForward
 .IMPORT FuncA_Actor_ZeroVelX
 .IMPORT FuncA_Actor_ZeroVelY
 .IMPORT FuncA_Objects_BobActorShapePosUpAndDown
@@ -44,6 +46,7 @@
 .IMPORT Func_InitActorProjAxe
 .IMPORT Func_InitActorWithFlags
 .IMPORT Func_InitActorWithState1
+.IMPORT Func_IsActorWithinHorzDistanceOfPoint
 .IMPORT Func_MovePointDownByA
 .IMPORT Func_Noop
 .IMPORT Func_PointHitsTerrain
@@ -163,11 +166,45 @@ kPaletteObjGrontaHead = 1
     D_TABLE_HI table, _JumpTable_ptr_1_arr
     D_TABLE .enum, eBadGronta
     d_entry table, Standing,     Func_Noop
+    d_entry table, Running,      FuncA_Actor_TickBadGronta_Running
     d_entry table, ThrowWindup,  FuncA_Actor_TickBadGronta_ThrowWindup
     d_entry table, ThrowWaiting, Func_Noop
     d_entry table, ThrowCatch,   FuncA_Actor_TickBadGronta_ThrowCatch
     D_END
 .ENDREPEAT
+.ENDPROC
+
+;;; Performs per-frame updates for a Gronta baddie actor that's in Running
+;;; mode.
+;;; @param C Set if Gronta just collided with the player avatar.
+;;; @param X The actor index.
+;;; @preserve X
+.PROC FuncA_Actor_TickBadGronta_Running
+    inc Ram_ActorState2_byte_arr, x  ; timer
+    ;; Store the goal X-position in Zp_PointX_i16.
+    lda #0
+    sta Zp_PointX_i16 + 1
+    lda Ram_ActorState3_byte_arr, x  ; goal tile horz
+    .assert kTileWidthPx = (1 << 3), error
+    .repeat 3
+    asl a
+    rol Zp_PointX_i16 + 1
+    .endrepeat
+    sta Zp_PointX_i16 + 0
+    ;; Check if Gronta has reached the goal yet.
+    .assert <kOrcMaxRunSpeed > 0, error
+    lda #>kOrcMaxRunSpeed + 1  ; param: distance
+    jsr Func_IsActorWithinHorzDistanceOfPoint  ; preserves X, returns C
+    bcs @reachedGoal
+    ;; If not, make Gronta run toward the point.
+    jsr FuncA_Actor_FaceTowardsPoint  ; preserves X
+    ldya #kOrcMaxRunSpeed  ; param: speed
+    jmp FuncA_Actor_SetVelXForward  ; preserves X
+    ;; Once the goal has been reached, make Gronta stand there.
+    @reachedGoal:
+    lda #eBadGronta::Standing
+    sta Ram_ActorState1_byte_arr, x  ; current mode
+    jmp FuncA_Actor_ZeroVelX  ; preserves X
 .ENDPROC
 
 ;;; Performs per-frame updates for a Gronta baddie actor that's in ThrowWindup
@@ -469,6 +506,8 @@ _CheckForFloor:
     lda Ram_ActorState1_byte_arr, x  ; current mode
     .assert eBadGronta::Standing = 0, error
     beq @standing
+    cmp #eBadGronta::Running
+    beq @running
     cmp #eBadGronta::ThrowWaiting
     beq @throwing
     @armsRaised:
@@ -480,6 +519,14 @@ _CheckForFloor:
     @standing:
     lda #eNpcOrc::GrontaStanding  ; param: pose
     bpl FuncA_Objects_DrawActorOrcInPose  ; unconditional
+    @running:
+    lda Ram_ActorState2_byte_arr, x  ; timer
+    div #8
+    and #$03
+    .assert eNpcOrc::GrontaRunning1 .mod 4 = 0, error
+    ora #eNpcOrc::GrontaRunning1  ; param: pose
+    .assert eNpcOrc::GrontaRunning1 > 0, error
+    bne FuncA_Objects_DrawActorOrcInPose  ; unconditional
 .ENDPROC
 
 ;;; Draws an orc baddie actor.

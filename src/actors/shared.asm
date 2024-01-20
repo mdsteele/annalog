@@ -158,6 +158,19 @@
     rts
 .ENDPROC
 
+;;; Determines if the X-position stored in Zp_PointX_i16 is to the left of the
+;;; actor or to the right.
+;;; @param X The actor index.
+;;; @return N Set if the point is to the left, cleared if it's to the right.
+;;; @preserve X, Y, T0+
+.PROC FuncA_Actor_IsPointToLeftOrRight
+    lda Zp_PointX_i16 + 0
+    cmp Ram_ActorPosX_i16_0_arr, x
+    lda Zp_PointX_i16 + 1
+    sbc Ram_ActorPosX_i16_1_arr, x
+    rts
+.ENDPROC
+
 ;;; Determines if the player avatar is to the left of the actor or to the
 ;;; right.
 ;;; @param X The actor index.
@@ -168,9 +181,6 @@
     cmp Ram_ActorPosX_i16_0_arr, x
     lda Zp_AvatarPosX_i16 + 1
     sbc Ram_ActorPosX_i16_1_arr, x
-    bvc @noOverflow  ; N eor V
-    eor #$80
-    @noOverflow:
     rts
 .ENDPROC
 
@@ -184,10 +194,18 @@
     cmp Ram_ActorPosY_i16_0_arr, x
     lda Zp_AvatarPosY_i16 + 1
     sbc Ram_ActorPosY_i16_1_arr, x
-    bvc @noOverflow  ; N eor V
-    eor #$80
-    @noOverflow:
     rts
+.ENDPROC
+
+;;; Sets or clears bObj::FlipH in the actor's flags so as to face the actor
+;;; horizontally towards the X-position stored in Zp_PointX_i16.
+;;; @param X The actor index.
+;;; @return A The new bObj value that was set for the actor.
+;;; @preserve X, Y, T0+
+.EXPORT FuncA_Actor_FaceTowardsPoint
+.PROC FuncA_Actor_FaceTowardsPoint
+    jsr FuncA_Actor_IsPointToLeftOrRight  ; preserves X, Y, T0+; returns N
+    jmp FuncA_Actor_FaceTowardsN  ; preserves X, Y, T0+; returns A
 .ENDPROC
 
 ;;; Sets or clears bObj::FlipH in the actor's flags so as to face the actor
@@ -198,6 +216,17 @@
 .EXPORT FuncA_Actor_FaceTowardsAvatar
 .PROC FuncA_Actor_FaceTowardsAvatar
     jsr FuncA_Actor_IsAvatarToLeftOrRight  ; preserves X, Y, T0+; returns N
+    fall FuncA_Actor_FaceTowardsN  ; preserves X, Y, T0+; returns A
+.ENDPROC
+
+;;; If N is set, sets bObj::FlipH in the actor's flags (to make it face left);
+;;; if N is clear, clears bObj::FlipH in the actor's flags (to make it face
+;;; right).
+;;; @param N Set if the actor should face left, cleared to face right.
+;;; @param X The actor index.
+;;; @return A The new bObj value that was set for the actor.
+;;; @preserve X, Y, T0+
+.PROC FuncA_Actor_FaceTowardsN
     bpl @faceRight
     @faceLeft:
     lda Ram_ActorFlags_bObj_arr, x
@@ -575,9 +604,6 @@ _VertOffset_u8_arr8:
     cmp Ram_ActorPosX_i16_0_arr, x
     lda Zp_AvatarPosX_i16 + 1
     sbc Ram_ActorPosX_i16_1_arr, x
-    bvc @noOverflow  ; N eor V
-    eor #$80
-    @noOverflow:
     bpl @faceRight
     @faceLeft:
     lda #bObj::FlipH

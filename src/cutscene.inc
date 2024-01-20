@@ -122,6 +122,8 @@ kMaxForks = 4
     SetActorPosY       ; args: actor index, new Y-position (2 bytes)
     SetActorState1     ; args: actor index, new byte value
     SetActorState2     ; args: actor index, new byte value
+    SetActorState3     ; args: actor index, new byte value
+    SetActorState4     ; args: actor index, new byte value
     SetActorVelX       ; args: actor index, new X-velocity (2 bytes)
     SetActorVelY       ; args: actor index, new Y-velocity (2 bytes)
     ;; Sets a field on the player avatar to the specified value, then the
@@ -251,6 +253,14 @@ kMaxForks = 4
 
 .MACRO act_SetActorState2 INDEX, BYTE
     .byte eAction::SetActorState2, INDEX, BYTE
+.ENDMACRO
+
+.MACRO act_SetActorState3 INDEX, BYTE
+    .byte eAction::SetActorState3, INDEX, BYTE
+.ENDMACRO
+
+.MACRO act_SetActorState4 INDEX, BYTE
+    .byte eAction::SetActorState4, INDEX, BYTE
 .ENDMACRO
 
 .MACRO act_SetActorVelX INDEX, VELX

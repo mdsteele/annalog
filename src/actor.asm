@@ -173,6 +173,18 @@ kSmokeParticleRadius  = 1
 .EXPORT Ram_ActorType_eActor_arr
 Ram_ActorType_eActor_arr: .res kMaxActors
 
+;;; The object flags to apply for each actor in the room.  In particular, if
+;;; bObj::FlipH is set, then the actor will face left instead of right, and if
+;;; bObj::FlipV is set, then the actor will be upside-down.
+.EXPORT Ram_ActorFlags_bObj_arr
+Ram_ActorFlags_bObj_arr: .res kMaxActors
+
+;;; The current X/Y subpixel positions of each actor in the room.
+.EXPORT Ram_ActorSubX_u8_arr
+Ram_ActorSubX_u8_arr: .res kMaxActors
+.EXPORT Ram_ActorSubY_u8_arr
+Ram_ActorSubY_u8_arr: .res kMaxActors
+
 ;;; The current X/Y positions of each actor in the room, in room-space pixels.
 .EXPORT Ram_ActorPosX_i16_0_arr
 Ram_ActorPosX_i16_0_arr: .res kMaxActors
@@ -182,12 +194,6 @@ Ram_ActorPosX_i16_1_arr: .res kMaxActors
 Ram_ActorPosY_i16_0_arr: .res kMaxActors
 .EXPORT Ram_ActorPosY_i16_1_arr
 Ram_ActorPosY_i16_1_arr: .res kMaxActors
-
-;;; The current X/Y subpixel positions of each actor in the room.
-.EXPORT Ram_ActorSubX_u8_arr
-Ram_ActorSubX_u8_arr: .res kMaxActors
-.EXPORT Ram_ActorSubY_u8_arr
-Ram_ActorSubY_u8_arr: .res kMaxActors
 
 ;;; The current velocities of each actor in the room, in subpixels per frame.
 .EXPORT Ram_ActorVelX_i16_0_arr
@@ -206,12 +212,8 @@ Ram_ActorState1_byte_arr: .res kMaxActors
 Ram_ActorState2_byte_arr: .res kMaxActors
 .EXPORT Ram_ActorState3_byte_arr
 Ram_ActorState3_byte_arr: .res kMaxActors
-
-;;; The object flags to apply for each actor in the room.  In particular, if
-;;; bObj::FlipH is set, then the actor will face left instead of right, and if
-;;; bObj::FlipV is set, then the actor will be upside-down.
-.EXPORT Ram_ActorFlags_bObj_arr
-Ram_ActorFlags_bObj_arr: .res kMaxActors
+.EXPORT Ram_ActorState4_byte_arr
+Ram_ActorState4_byte_arr: .res kMaxActors
 
 ;;;=========================================================================;;;
 
@@ -428,6 +430,7 @@ _NoHit:
     tya  ; actor type
     sta Ram_ActorType_eActor_arr, x
     lda #0
+    sta Ram_ActorFlags_bObj_arr, x
     sta Ram_ActorSubX_u8_arr, x
     sta Ram_ActorSubY_u8_arr, x
     sta Ram_ActorVelX_i16_0_arr, x
@@ -436,7 +439,7 @@ _NoHit:
     sta Ram_ActorVelY_i16_1_arr, x
     sta Ram_ActorState2_byte_arr, x
     sta Ram_ActorState3_byte_arr, x
-    sta Ram_ActorFlags_bObj_arr, x
+    sta Ram_ActorState4_byte_arr, x
     rts
 .ENDPROC
 

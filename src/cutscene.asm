@@ -70,6 +70,8 @@
 .IMPORT Ram_ActorPosY_i16_1_arr
 .IMPORT Ram_ActorState1_byte_arr
 .IMPORT Ram_ActorState2_byte_arr
+.IMPORT Ram_ActorState3_byte_arr
+.IMPORT Ram_ActorState4_byte_arr
 .IMPORT Ram_ActorVelX_i16_0_arr
 .IMPORT Ram_ActorVelX_i16_1_arr
 .IMPORT Ram_ActorVelY_i16_0_arr
@@ -355,6 +357,8 @@ _InitMainFork:
     d_entry table, SetActorPosY,      _SetActorPosY
     d_entry table, SetActorState1,    _SetActorState1
     d_entry table, SetActorState2,    _SetActorState2
+    d_entry table, SetActorState3,    _SetActorState3
+    d_entry table, SetActorState4,    _SetActorState4
     d_entry table, SetActorVelX,      _SetActorVelX
     d_entry table, SetActorVelY,      _SetActorVelY
     d_entry table, SetAvatarFlags,    _SetAvatarFlags
@@ -546,6 +550,22 @@ _SetActorState2:
     iny
     lda (T1T0), y
     sta Ram_ActorState2_byte_arr, x
+    iny
+    jmp FuncA_Cutscene_AdvanceForkAndExecute
+_SetActorState3:
+    lda (T1T0), y
+    tax  ; actor index
+    iny
+    lda (T1T0), y
+    sta Ram_ActorState3_byte_arr, x
+    iny
+    jmp FuncA_Cutscene_AdvanceForkAndExecute
+_SetActorState4:
+    lda (T1T0), y
+    tax  ; actor index
+    iny
+    lda (T1T0), y
+    sta Ram_ActorState4_byte_arr, x
     iny
     jmp FuncA_Cutscene_AdvanceForkAndExecute
 _SetActorVelX:

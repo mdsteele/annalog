@@ -19,8 +19,12 @@
 
 ;;; State bytes for Gronta baddies:
 ;;;   * State1: The eBadGronta value for Gronta's current behavior mode.
-;;;   * State2: Unused.
-;;;   * State3: Unused.
+;;;   * State2: A timer for the current mode that increments or decrements each
+;;;     frame, depending on the mode.
+;;;   * State3: For Running mode, this is the goal X-position, measured in room
+;;;     tiles.
+;;;   * State4: An invincibility timer; when nonzero, Gronta cannot be harmed,
+;;;     and the timer decrements each frame.
 
 ;;; State bytes for orc baddies:
 ;;;   * State1: The eBadOrc value for the orc's current behavior mode.
@@ -28,6 +32,7 @@
 ;;;     nonzero.
 ;;;   * State3: An animation counter that increments each frame (wrapping
 ;;;     around after 255).
+;;;   * State4: Unused.
 
 ;;; State bytes for orc NPCs:
 ;;;   * Param: The initial eNpcOrc value to use.
@@ -36,12 +41,14 @@
 ;;;     unchanged; if false ($00), the NPC is automatically drawn facing the
 ;;;     player avatar.
 ;;;   * State3: Unused.
+;;;   * State4: Unused.
 
 ;;;=========================================================================;;;
 
 ;;; Possible values for a Gronta baddie actor's State1 byte.
 .ENUM eBadGronta
     Standing      ; standing, waiting for a new mode to be set
+    Running       ; running towards a goal position
     ThrowWindup   ; winding up an axe throw
     ThrowWaiting  ; waiting for the axe to return
     ThrowCatch    ; catching a returned axe
