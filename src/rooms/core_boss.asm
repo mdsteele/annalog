@@ -42,6 +42,7 @@
 
 .IMPORT DataA_Room_Core_sTileset
 .IMPORT Data_Empty_sDialog
+.IMPORT FuncA_Cutscene_BadGrontaBeginJump
 .IMPORT FuncA_Machine_BlasterHorzTryAct
 .IMPORT FuncA_Machine_BlasterTickMirrors
 .IMPORT FuncA_Machine_BlasterWriteRegMirrors
@@ -93,6 +94,7 @@
 .IMPORT Ram_ActorFlags_bObj_arr
 .IMPORT Ram_ActorType_eActor_arr
 .IMPORT Ram_ActorVelX_i16_1_arr
+.IMPORT Ram_ActorVelY_i16_0_arr
 .IMPORT Ram_ActorVelY_i16_1_arr
 .IMPORT Ram_MachineGoalHorz_u8_arr
 .IMPORT Ram_MachineGoalVert_u8_arr
@@ -1176,8 +1178,11 @@ _GiveUpRemote_sCutscene:
     act_CallFunc _SpawnActorForRemote
     act_WaitFrames 20
     act_SetAvatarPose eAvatar::Standing
-    ;; TODO: animate Gronta catching the remote
-    act_WaitFrames 60
+    act_WaitFrames 5
+    act_SetActorState1 kGrontaActorIndex, eNpcOrc::GrontaArmsRaised
+    act_WaitFrames 65
+    act_SetActorState1 kGrontaActorIndex, eNpcOrc::GrontaStanding
+    act_WaitFrames 10
     act_RunDialog eDialog::CoreBossGrontaGive
     ;; TODO: animate core activating
     act_ContinueExploring
@@ -1187,8 +1192,7 @@ _BeginFight_sCutscene:
     act_SetScrollFlags 0
     act_CallFunc _ChangeGrontaFromNpcToBad
     ;; TODO: Handle Gronta's mode-setting in TickRoom rather than here.
-    act_SetActorState1 kGrontaActorIndex, eBadGronta::ThrowWindup
-    act_SetActorState2 kGrontaActorIndex, 60
+    act_CallFunc _JumpGronta
     act_ContinueExploring
 _SetupFunc:
     lda #ePlatform::Solid
@@ -1207,10 +1211,12 @@ _SpawnActorForRemote:
     bcs @done
     jsr Func_SetPointToAvatarCenter  ; preserves X
     jsr Func_SetActorCenterToPoint  ; preserves X
-    lda #40  ; param: frames until expire
+    lda #41  ; param: frames until expire
     jsr Func_InitActorSmokeFragment  ; preserves X
-    lda #<-3
+    lda #<-4
     sta Ram_ActorVelY_i16_1_arr, x
+    lda #$d0
+    sta Ram_ActorVelY_i16_0_arr, x
     lda Zp_AvatarPosX_i16 + 1
     bne @rightSide
     @leftSide:
@@ -1226,6 +1232,12 @@ _ChangeGrontaFromNpcToBad:
     ldx #kGrontaActorIndex  ; param: actor index
     lda Ram_ActorFlags_bObj_arr + kGrontaActorIndex  ; param: flags
     jmp Func_InitActorBadGronta
+;;; TODO: remove _JumpGronta
+_JumpGronta:
+    lda #5  ; param: signed horz offset in blocks
+    ldy #0  ; param: signed vert offset in blocks
+    ldx #kGrontaActorIndex  ; param: actor index
+    jmp FuncA_Cutscene_BadGrontaBeginJump
 .ENDPROC
 
 ;;;=========================================================================;;;

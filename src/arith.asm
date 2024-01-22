@@ -31,7 +31,7 @@
     .endrepeat
 .ENDPROC
 
-;;; Computes A * Y for unsigned A and Y.
+;;; Computes (A * Y) for unsigned A and Y.
 ;;; @param A The 8-bit unsigned multiplicand.
 ;;; @param Y The 8-bit unsigned multiplier.
 ;;; @return YA The 16-bit unsigned product.
@@ -57,7 +57,7 @@
     rts
 .ENDPROC
 
-;;; Computes A * Y for signed A and unsigned Y.
+;;; Computes (A * Y) for signed A and unsigned Y.
 ;;; @param A The 8-bit signed multiplicand.
 ;;; @param Y The 8-bit unsigned multiplier.
 ;;; @return YA The 16-bit signed product.
@@ -69,6 +69,14 @@
     eor #$ff
     add #1
     jsr Func_UnsignedMult  ; preserves X and T2+, returns YA
+    fall Func_NegateYA  ; preserves X and T0+, returns YA
+.ENDPROC
+
+;;; Negates a 16-bit value stored in YA.
+;;; @param YA The 16-bit signed value.
+;;; @return YA The negation of the value.
+;;; @preserve X, T0+
+.PROC Func_NegateYA
     eor #$ff
     add #1
     pha  ; signed product (lo)
@@ -103,6 +111,61 @@ L2: rol T0  ; dividend/quotient
     bne L1
     ldy T0  ; quotient
     rts
+.ENDPROC
+
+;;; Computes (A / Y) for unsigned inputs.
+;;; @param A The 8-bit unsigned dividend.
+;;; @param Y The 8-bit unsigned divisor (must be nonzero).
+;;; @return Y The integer part of the quotient.
+;;; @return A The fractional part of the quotient.
+;;; @preserve X, T4+
+.EXPORT Func_UnsignedDivFrac
+.PROC Func_UnsignedDivFrac
+    ;; This code is adapted from https://www.nesdev.org/wiki/8-bit_Divide (with
+    ;; some bugs fixed from the 2014 revision).
+    sta T3   ; dividend
+    sty T2   ; divisor
+    ;; Initialize A to zero and result in T1T0 to $0001.  Each loop iteration
+    ;; will shift this 16-bit result left by one bit; when the 1 gets shifted
+    ;; out, we're done.
+    lda #0
+    sta T1  ; result (hi)
+    ldy #1
+    sty T0  ; result (lo)
+_Loop:
+    asl T3  ; dividend
+    rol a   ; shift in dividend
+    bcs _Subtract  ; CA is now >= $100, and therefore > divisor
+    cmp T2  ; divisor
+    bcc _ShiftResult
+_Subtract:
+    ;; Subtract divisor from A (at this point, C is always set).
+    sbc T2   ; divisor
+    sec  ; this `sec` is needed when the `bcs _Subtract` is taken above
+_ShiftResult:
+    ;; At this point, C will be set iff subtraction was performed.
+    rol T0  ; result (lo)
+    rol T1  ; result (hi)
+    bcc _Loop
+_Finish:
+    ldya T1T0  ; result
+    rts
+.ENDPROC
+
+;;; Computes (A / Y) for signed A and unsigned Y.
+;;; @param A The 8-bit signed dividend.
+;;; @param Y The 8-bit unsigned divisor (must be nonzero).
+;;; @return Y The (signed) integer part of the quotient.
+;;; @return A The fractional part of the quotient.
+;;; @preserve X, T4+
+.EXPORT Func_SignedDivFrac
+.PROC Func_SignedDivFrac
+    ora #0
+    bpl Func_UnsignedDivFrac  ; preserves X and T4+, returns YA
+    eor #$ff
+    add #1
+    jsr Func_UnsignedDivFrac  ; preserves X and T4+, returns YA
+    jmp Func_NegateYA
 .ENDPROC
 
 ;;;=========================================================================;;;

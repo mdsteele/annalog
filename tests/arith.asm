@@ -22,7 +22,9 @@
 .IMPORT Exit_Success
 .IMPORT Func_DivMod
 .IMPORT Func_ExpectAEqualsY
+.IMPORT Func_SignedDivFrac
 .IMPORT Func_SignedMult
+.IMPORT Func_UnsignedDivFrac
 .IMPORT Func_UnsignedMult
 
 ;;;=========================================================================;;;
@@ -110,6 +112,60 @@ _Remainders_u8_arr:
     .byte 1,   6, 237,   0,  0,  0
 .ENDPROC
 
+.PROC Func_TestUnsignedDivFrac
+    ldx #0
+_Loop:
+    lda _Dividends_u8_arr, x
+    ldy _Divisors_u8_arr, x
+    jsr Func_UnsignedDivFrac  ; preserves X, returns YA
+    pha  ; actual quotient (lo)
+    tya  ; actual quotient (hi)
+    ldy _Quotients_u16_1_arr, x
+    jsr Func_ExpectAEqualsY  ; preserves X
+    pla  ; actual quotient (lo)
+    ldy _Quotients_u16_0_arr, x
+    jsr Func_ExpectAEqualsY  ; preserves X
+    inx
+    cpx #_Divisors_u8_arr - _Dividends_u8_arr
+    blt _Loop
+    rts
+_Dividends_u8_arr:
+    .byte   7, 237,   3, 127, 255, 237, 255, 17, 99
+_Divisors_u8_arr:
+    .byte   3,   7,  10, 113, 237, 255,  51, 17,  1
+_Quotients_u16_1_arr:
+    .byte   2,  33,   0,   1,   1,   0,   5,  1, 99
+_Quotients_u16_0_arr:
+    .byte $55, $db, $4c, $1f, $13, $ed,   0,  0,  0
+.ENDPROC
+
+.PROC Func_TestSignedDivFrac
+    ldx #0
+_Loop:
+    lda _Dividends_i8_arr, x
+    ldy _Divisors_u8_arr, x
+    jsr Func_SignedDivFrac  ; preserves X, returns YA
+    pha  ; actual quotient (lo)
+    tya  ; actual quotient (hi)
+    ldy _Quotients_i16_1_arr, x
+    jsr Func_ExpectAEqualsY  ; preserves X
+    pla  ; actual quotient (lo)
+    ldy _Quotients_i16_0_arr, x
+    jsr Func_ExpectAEqualsY  ; preserves X
+    inx
+    cpx #_Divisors_u8_arr - _Dividends_i8_arr
+    blt _Loop
+    rts
+_Dividends_i8_arr:
+    .byte   7, <-7,   3, 127, <-127, <-127
+_Divisors_u8_arr:
+    .byte   3,   3,  10, 113,   113,   127
+_Quotients_i16_1_arr:
+    .byte $02, $fd,   0,   1,   $fe,   <-1
+_Quotients_i16_0_arr:
+    .byte $55, $ab, $4c, $1f,   $e1,     0
+.ENDPROC
+
 ;;;=========================================================================;;;
 
 .SEGMENT "MAIN"
@@ -121,6 +177,8 @@ RunTests:
     jsr Func_TestUnsignedMult
     jsr Func_TestSignedMult
     jsr Func_TestDivMod
+    jsr Func_TestUnsignedDivFrac
+    jsr Func_TestSignedDivFrac
 Success:
     jmp Exit_Success
 
