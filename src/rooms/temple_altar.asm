@@ -386,7 +386,7 @@ _CheckIfHitBeetle:
     bne @continue
     @checkIfHit:
     lda #6  ; param: distance
-    jsr Func_IsActorWithinDistanceOfPoint  ; preserves X and T2+, returns C
+    jsr Func_IsActorWithinDistanceOfPoint  ; preserves X and T1+, returns C
     bcs _HitBeetle
     @continue:
     dex

@@ -42,7 +42,6 @@
 
 .IMPORT DataA_Room_Core_sTileset
 .IMPORT Data_Empty_sDialog
-.IMPORT FuncA_Cutscene_BadGrontaBeginJump
 .IMPORT FuncA_Machine_BlasterHorzTryAct
 .IMPORT FuncA_Machine_BlasterTickMirrors
 .IMPORT FuncA_Machine_BlasterWriteRegMirrors
@@ -70,13 +69,21 @@
 .IMPORT FuncA_Objects_DrawWinchMachineWithSpikeball
 .IMPORT FuncA_Objects_MoveShapeDownOneTile
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
+.IMPORT FuncA_Room_BadGrontaBeginJumping
+.IMPORT FuncA_Room_BadGrontaBeginRunning
+.IMPORT FuncA_Room_BadGrontaBeginThrowing
 .IMPORT FuncA_Room_HarmAvatarIfWithinLaserBeam
 .IMPORT FuncA_Room_MachineBlasterReset
 .IMPORT FuncA_Room_MachineCannonReset
 .IMPORT FuncA_Room_ReflectFireblastsOffMirror
 .IMPORT Func_FindEmptyActorSlot
+.IMPORT Func_GetAngleFromPointToActor
+.IMPORT Func_GetAngleFromPointToAvatar
+.IMPORT Func_GetRandomByte
 .IMPORT Func_InitActorBadGronta
 .IMPORT Func_InitActorSmokeFragment
+.IMPORT Func_IsActorWithinHorzDistanceOfPoint
+.IMPORT Func_IsActorWithinVertDistancesOfPoint
 .IMPORT Func_IsFlagSet
 .IMPORT Func_IsPointInPlatform
 .IMPORT Func_MachineBlasterReadRegMirrors
@@ -92,6 +99,11 @@
 .IMPORT Func_SetPointToAvatarCenter
 .IMPORT Ppu_ChrObjBoss2
 .IMPORT Ram_ActorFlags_bObj_arr
+.IMPORT Ram_ActorPosX_i16_0_arr
+.IMPORT Ram_ActorPosX_i16_1_arr
+.IMPORT Ram_ActorPosY_i16_0_arr
+.IMPORT Ram_ActorPosY_i16_1_arr
+.IMPORT Ram_ActorState1_byte_arr
 .IMPORT Ram_ActorType_eActor_arr
 .IMPORT Ram_ActorVelX_i16_1_arr
 .IMPORT Ram_ActorVelY_i16_0_arr
@@ -196,6 +208,33 @@ kSpikeballInitPlatformTop = \
 
 ;;;=========================================================================;;;
 
+;;; The room block column index of the leftmost nodes.
+kFirstNodeColumn = 2
+
+;;; Describes a chasing action Gronta can take when standing at a node.
+.SCOPE bNode
+    IsRun        = %10000000  ; if set, run; if cleared, jump
+    RunGoalMask  = %01111111  ; bits used for the running goal position
+    JumpVertMask = %01110000  ; bits used for the jump's vertical offset
+    JumpHorzMask = %00001111  ; bits used for the jump's horizontal offset
+.ENDSCOPE
+
+;;; Describes a node that Gronta can stand at.
+.STRUCT sNode
+    ;; The room block row index for this node.
+    BlockRow_u8    .byte
+    ;; The actions Gronta should take if she wants to chase the player avatar
+    ;; clockwise/counterclockwise around the room from this node.
+    ChaseCw_bNode  .byte
+    ChaseCcw_bNode .byte
+.ENDSTRUCT
+
+;;; Macros for defining bNode actions.
+.DEFINE node_run(GOAL_BLOCK) (bNode::IsRun | ((GOAL_BLOCK) * 2 + 1))
+.DEFINE node_jump(XOFF, YOFF) ((((YOFF) + 2) << 4) | ((XOFF) & $0f))
+
+;;;=========================================================================;;;
+
 ;;; Defines room-specific state data for this particular room.
 .STRUCT sState
     ;; True ($ff) if the Gronta cutscene has already been started; false ($00)
@@ -233,8 +272,8 @@ _Ext_sRoomExt:
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
     d_addr Passages_sPassage_arr_ptr, _Passages_sPassage_arr
     d_addr Enter_func_ptr, FuncA_Room_CoreBoss_EnterRoom
-    d_addr FadeIn_func_ptr, FuncC_Core_Boss_FadeInRoom
-    d_addr Tick_func_ptr, FuncA_Room_CoreBoss_TickRoom
+    d_addr FadeIn_func_ptr, FuncA_Terrain_CoreBoss_FadeInRoom
+    d_addr Tick_func_ptr, FuncC_Core_Boss_TickRoom
     d_addr Draw_func_ptr, FuncA_Objects_CoreBoss_DrawRoom
     D_END
 _TerrainData:
@@ -467,357 +506,6 @@ _Passages_sPassage_arr:
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
 .ENDPROC
 
-.PROC FuncC_Core_Boss_FadeInRoom
-    ;; Only redraw circuits if the circuit activation cutscene is playing (in
-    ;; this room, the player avatar will be hidden iff that's the case).
-    lda Zp_AvatarPose_eAvatar
-    .assert eAvatar::Hidden = 0, error
-    bne _Return
-_RedrawCircuits:
-    ldx #kLastBreakerFlag
-    @loop:
-    cpx Zp_BreakerBeingActivated_eFlag
-    beq @currentBreaker
-    jsr Func_IsFlagSet  ; preserves X, returns Z
-    bne @continue
-    lda #$00  ; param: tile ID base
-    beq @redraw  ; unconditional
-    @currentBreaker:
-    lda #$c0  ; param: tile ID base
-    @redraw:
-    jsr FuncC_Core_Boss_RedrawCircuit  ; preserves X
-    @continue:
-    dex
-    cpx #kFirstBreakerFlag
-    bge @loop
-_Return:
-    rts
-.ENDPROC
-
-;;; Redraws tiles for a breaker circuit for the circuit activation cutscene.
-;;; @prereq Rendering is disabled.
-;;; @param A The tile ID base to use.
-;;; @param X The eFlag::Breaker* value for the circuit to redraw.
-;;; @preserve X
-.PROC FuncC_Core_Boss_RedrawCircuit
-    sta T2  ; tile ID base
-    stx T3  ; eFlag::Breaker* value
-_GetTransferEntries:
-    txa  ; eFlag::Breaker* value
-    sub #kFirstBreakerFlag
-    tay  ; eBreaker value
-    lda DataC_Core_Boss_BreakerTransfers_arr_ptr_0_arr, y
-    sta T0  ; transfer ptr (lo)
-    lda DataC_Core_Boss_BreakerTransfers_arr_ptr_1_arr, y
-    sta T1  ; transfer ptr (hi)
-_ReadHeader:
-    ldy #0
-    lda (T1T0), y  ; PPU control byte
-    sta Hw_PpuCtrl_wo
-    iny
-    lda (T1T0), y  ; PPU destination address (lo)
-    sta T4         ; PPU destination address (lo)
-    iny
-    lda (T1T0), y  ; PPU destination address (hi)
-    iny
-_WriteToPpu:
-    bne @entryBegin  ; unconditional
-    @entryLoop:
-    iny
-    ;; At this point, A holds the PPU address offset.
-    add T4  ; PPU destination address (lo)
-    sta T4  ; PPU destination address (lo)
-    lda #0
-    adc T5  ; PPU destination address (hi)
-    @entryBegin:
-    sta T5  ; PPU destination address (hi)
-    sta Hw_PpuAddr_w2
-    lda T4  ; PPU destination address (lo)
-    sta Hw_PpuAddr_w2
-    lda (T1T0), y  ; tile ID index
-    iny
-    tax  ; tile ID index
-    lda (T1T0), y  ; transfer length
-    iny
-    sta T6  ; transfer length
-    @dataLoop:
-    lda DataC_Core_Boss_CircuitTiles_u8_arr, x
-    ora T2  ; tile ID base
-    sta Hw_PpuData_rw
-    inx
-    dec T6  ; transfer length
-    bne @dataLoop
-    lda (T1T0), y  ; PPU address offset
-    bne @entryLoop
-    ldx T3  ; eFlag::Breaker* value (to preserve X)
-    rts
-.ENDPROC
-
-;;; Maps from eBreaker enum values to PPU transfer arrays.
-.REPEAT 2, table
-    D_TABLE_LO table, DataC_Core_Boss_BreakerTransfers_arr_ptr_0_arr
-    D_TABLE_HI table, DataC_Core_Boss_BreakerTransfers_arr_ptr_1_arr
-    D_TABLE .enum, eBreaker
-    d_entry table, Garden, DataC_Core_Boss_CircuitGardenTransfer_arr
-    d_entry table, Temple, DataC_Core_Boss_CircuitTempleTransfer_arr
-    d_entry table, Crypt,  DataC_Core_Boss_CircuitCryptTransfer_arr
-    d_entry table, Lava,   DataC_Core_Boss_CircuitLavaTransfer_arr
-    d_entry table, Mine,   DataC_Core_Boss_CircuitMineTransfer_arr
-    d_entry table, City,   DataC_Core_Boss_CircuitCityTransfer_arr
-    d_entry table, Shadow, DataC_Core_Boss_CircuitShadowTransfer_arr
-    D_END
-.ENDREPEAT
-
-.PROC DataC_Core_Boss_CircuitGardenTransfer_arr
-    .byte kPpuCtrlFlagsHorz  ; control flags
-    .addr $21d3              ; destination address
-_Row0:
-    .byte $03  ; tile ID offset
-    .byte 1    ; transfer length
-    .byte $20  ; address offset
-_Row1:
-    .byte $02  ; tile ID offset
-    .byte 2    ; transfer length
-    .byte $20  ; address offset
-_Row2:
-    .byte $01  ; tile ID offset
-    .byte 3    ; transfer length
-    .byte $20  ; address offset
-_Row3:
-    .byte $00  ; tile ID offset
-    .byte 4    ; transfer length
-    .byte $21  ; address offset
-_Row4:
-    .byte $40  ; tile ID offset
-    .byte 10   ; transfer length
-    .byte $21  ; address offset
-_Row5:
-    .byte $27  ; tile ID offset
-    .byte 9    ; transfer length
-    .byte 0    ; address offset (0 = stop)
-.ENDPROC
-
-.PROC DataC_Core_Boss_CircuitTempleTransfer_arr
-    .byte kPpuCtrlFlagsHorz  ; control flags
-    .addr $2716              ; destination address
-_Row0:
-    .byte $20  ; tile ID offset
-    .byte 7    ; transfer length
-    .byte $1f  ; address offset
-_Row1:
-    .byte $10  ; tile ID offset
-    .byte 8    ; transfer length
-    .byte $1f  ; address offset
-_Row2:
-    .byte $04  ; tile ID offset
-    .byte 4    ; transfer length
-    .byte $1f  ; address offset
-_Row3:
-    .byte $04  ; tile ID offset
-    .byte 4    ; transfer length
-    .byte $20  ; address offset
-_Row4:
-    .byte $05  ; tile ID offset
-    .byte 3    ; transfer length
-    .byte $20  ; address offset
-_Row5:
-    .byte $06  ; tile ID offset
-    .byte 2    ; transfer length
-    .byte $60  ; address offset
-_Row6:
-    .byte $07  ; tile ID offset
-    .byte 1    ; transfer length
-    .byte 0    ; address offset (0 = stop)
-.ENDPROC
-
-.PROC DataC_Core_Boss_CircuitCryptTransfer_arr
-    .byte kPpuCtrlFlagsHorz  ; control flags
-    .addr $2c1a              ; destination address
-_Row0:
-    .byte $20  ; tile ID offset
-    .byte 4    ; transfer length
-    .byte $1f  ; address offset
-_Row1:
-    .byte $10  ; tile ID offset
-    .byte 5    ; transfer length
-    .byte $1f  ; address offset
-_Row2:
-    .byte $04  ; tile ID offset
-    .byte 4    ; transfer length
-    .byte $1f  ; address offset
-_Row3:
-    .byte $04  ; tile ID offset
-    .byte 4    ; transfer length
-    .byte $1f  ; address offset
-_Row4:
-    .byte $04  ; tile ID offset
-    .byte 4    ; transfer length
-    .byte $1f  ; address offset
-_Row5:
-    .byte $04  ; tile ID offset
-    .byte 4    ; transfer length
-    .byte $1f  ; address offset
-_Row6:
-    .byte $04  ; tile ID offset
-    .byte 4    ; transfer length
-    .byte $1f  ; address offset
-_Row7:
-    .byte $04  ; tile ID offset
-    .byte 4    ; transfer length
-    .byte $20  ; address offset
-_Row8:
-    .byte $05  ; tile ID offset
-    .byte 3    ; transfer length
-    .byte 0    ; address offset (0 = stop)
-.ENDPROC
-
-.PROC DataC_Core_Boss_CircuitLavaTransfer_arr
-    .byte kPpuCtrlFlagsHorz  ; control flags
-    .addr $2c06              ; destination address
-_Row0:
-    .byte $33  ; tile ID offset
-    .byte 4    ; transfer length
-    .byte $20  ; address offset
-_Row1:
-    .byte $1b  ; tile ID offset
-    .byte 5    ; transfer length
-    .byte $22  ; address offset
-_Row2:
-    .byte $08  ; tile ID offset
-    .byte 4    ; transfer length
-    .byte $21  ; address offset
-_Row3:
-    .byte $08  ; tile ID offset
-    .byte 4    ; transfer length
-    .byte $21  ; address offset
-_Row4:
-    .byte $08  ; tile ID offset
-    .byte 4    ; transfer length
-    .byte $21  ; address offset
-_Row5:
-    .byte $08  ; tile ID offset
-    .byte 4    ; transfer length
-    .byte $21  ; address offset
-_Row6:
-    .byte $08  ; tile ID offset
-    .byte 4    ; transfer length
-    .byte $21  ; address offset
-_Row7:
-    .byte $08  ; tile ID offset
-    .byte 4    ; transfer length
-    .byte $21  ; address offset
-_Row8:
-    .byte $08  ; tile ID offset
-    .byte 4    ; transfer length
-    .byte 0    ; address offset (0 = stop)
-.ENDPROC
-
-.PROC DataC_Core_Boss_CircuitMineTransfer_arr
-    .byte kPpuCtrlFlagsHorz  ; control flags
-    .addr $2707              ; destination address
-_Row0:
-    .byte $30  ; tile ID offset
-    .byte 7    ; transfer length
-    .byte $20  ; address offset
-_Row1:
-    .byte $18  ; tile ID offset
-    .byte 8    ; transfer length
-    .byte $25  ; address offset
-_Row2:
-    .byte $08  ; tile ID offset
-    .byte 4    ; transfer length
-    .byte $21  ; address offset
-_Row3:
-    .byte $08  ; tile ID offset
-    .byte 4    ; transfer length
-    .byte $21  ; address offset
-_Row4:
-    .byte $08  ; tile ID offset
-    .byte 4    ; transfer length
-    .byte $21  ; address offset
-_Row5:
-    .byte $08  ; tile ID offset
-    .byte 3    ; transfer length
-    .byte $61  ; address offset
-_Row6:
-    .byte $08  ; tile ID offset
-    .byte 2    ; transfer length
-    .byte $21  ; address offset
-_Row7:
-    .byte $08  ; tile ID offset
-    .byte 1    ; transfer length
-    .byte 0    ; address offset (0 = stop)
-.ENDPROC
-
-.PROC DataC_Core_Boss_CircuitCityTransfer_arr
-    .byte kPpuCtrlFlagsHorz ; control flags
-    .addr $21b1             ; destination address
-_Row0:
-    .byte $0c  ; tile ID offset
-    .byte 1    ; transfer length
-    .byte $1f  ; address offset
-_Row1:
-    .byte $0c  ; tile ID offset
-    .byte 2    ; transfer length
-    .byte $1f  ; address offset
-_Row2:
-    .byte $0c  ; tile ID offset
-    .byte 3    ; transfer length
-    .byte $1f  ; address offset
-_Row3:
-    .byte $0c  ; tile ID offset
-    .byte 4    ; transfer length
-    .byte $1f  ; address offset
-_Row4:
-    .byte $0c  ; tile ID offset
-    .byte 4    ; transfer length
-    .byte $19  ; address offset
-_Row5:
-    .byte $4a  ; tile ID offset
-    .byte 10   ; transfer length
-    .byte $20  ; address offset
-_Row6:
-    .byte $37  ; tile ID offset
-    .byte 9    ; transfer length
-    .byte 0    ; address offset (0 = stop)
-.ENDPROC
-
-.PROC DataC_Core_Boss_CircuitShadowTransfer_arr
-    .byte kPpuCtrlFlagsVert  ; control flags
-    .addr $2ca1              ; destination address
-_Col0:
-    .byte $54  ; tile ID offset
-    .byte 4    ; transfer length
-    .byte $01  ; address offset
-_Col1:
-    .byte $58  ; tile ID offset
-    .byte 4    ; transfer length
-    .byte 0    ; address offset (0 = stop)
-.ENDPROC
-
-.PROC DataC_Core_Boss_CircuitTiles_u8_arr
-    ;; $00
-    .byte $33, $32, $31, $30
-    .byte $34, $35, $36, $37
-    .byte $3b, $3a, $39, $38
-    .byte $3c, $3d, $3e, $3f
-    ;; $10
-    .byte $34, $35, $36, $2b, $2b, $2b, $2b, $2b
-    .byte $2d, $2d, $2d, $2d, $2d, $3a, $39, $38
-    ;; $20
-    .byte $34, $2a, $2a, $2a, $2a, $2a, $2a
-    .byte $33, $2b, $2b, $2b, $2b, $2b, $2b, $2b, $2b
-    ;; $30
-    .byte $2c, $2c, $2c, $2c, $2c, $2c, $38
-    .byte $2d, $2d, $2d, $2d, $2d, $2d, $2d, $2d, $3f
-    ;; $40
-    .byte $33, $32, $31, $2a, $2a, $2a, $2a, $2a, $2a, $2a
-    .byte $2c, $2c, $2c, $2c, $2c, $2c, $2c, $3d, $3e, $3f
-    ;; $54
-    .byte $2e, $2e, $2e, $2e
-    .byte $2f, $2f, $2f, $2f
-.ENDPROC
-
 .PROC FuncC_Core_BossBlaster_ReadReg
     cmp #$f
     beq _ReadY
@@ -854,6 +542,575 @@ _ReadX:
     sub #kWinchMinPlatformLeft - kTileWidthPx
     div #kBlockWidthPx
     rts
+.ENDPROC
+
+.PROC FuncC_Core_Boss_TickRoom
+    ;; If the avatar is hidden for a circuit activation cutscene, we're done.
+    lda Zp_AvatarPose_eAvatar
+    .assert eAvatar::Hidden = 0, error
+    beq _Return
+_TalkToGronta:
+    ;; If the Gronta cutscene has already played, no need to start it.
+    bit Zp_RoomState + sState::TalkedToGronta_bool
+    bmi @done
+    ;; If the player avatar isn't standing in the cutscene-starting zone, don't
+    ;; start it yet.
+    bit Zp_AvatarState_bAvatar
+    .assert bAvatar::Airborne = bProc::Negative, error
+    bmi @done
+    jsr Func_SetPointToAvatarCenter
+    ldy #kCutsceneZonePlatformIndex  ; param: platform index
+    jsr Func_IsPointInPlatform  ; returns C
+    bcc @done
+    ;; Start the cutscene.
+    lda #$ff
+    sta Zp_RoomState + sState::TalkedToGronta_bool
+    lda #eCutscene::CoreBossStartBattle
+    sta Zp_Next_eCutscene
+    @done:
+_FightGronta:
+    lda Ram_ActorType_eActor_arr + kGrontaActorIndex
+    cmp #eActor::BadGronta
+    bne @done
+    jsr FuncC_Core_Boss_TickGrontaFight
+    @done:
+_Mirror1:
+    lda Ram_MachineState3_byte_arr + kBlasterMachineIndex  ; mirror 1 anim
+    div #kBlasterMirrorAnimSlowdown
+    add #kMirror1AngleOffset  ; param: absolute mirror angle
+    ldy #kMirror1PlatformIndex  ; param: mirror platform index
+    jsr FuncA_Room_ReflectFireblastsOffMirror
+_Mirror2:
+    lda Ram_MachineState4_byte_arr + kBlasterMachineIndex  ; mirror 2 anim
+    div #kBlasterMirrorAnimSlowdown
+    add #kMirror2AngleOffset  ; param: absolute mirror angle
+    ldy #kMirror2PlatformIndex  ; param: mirror platform index
+    jsr FuncA_Room_ReflectFireblastsOffMirror
+_Laser:
+    ldx #kLaserMachineIndex
+    jsr Func_SetMachineIndex
+    jsr FuncA_Room_HarmAvatarIfWithinLaserBeam
+    ;; TODO: hurt Gronta if the laser hits her
+_Return:
+    rts
+.ENDPROC
+
+;;; Tick function to call each frame while fighting Gronta.
+;;; @prereq PRGA_Room is loaded.
+.PROC FuncC_Core_Boss_TickGrontaFight
+    ;; Wait for Gronta to be idle.
+    lda Ram_ActorState1_byte_arr + kGrontaActorIndex  ; current mode
+    .assert eBadGronta::Idle = 0, error
+    beq @idle
+    rts
+    @idle:
+_MaybeThrowAxe:
+    ;; Only throw an axe 25% of the time.
+    jsr Func_GetRandomByte  ; returns A
+    and #$03
+    bne @doNotThrow
+    ;; Check if the player avatar is nearby.  If so, throw an axe.
+    jsr Func_SetPointToAvatarCenter
+    ldx #kGrontaActorIndex  ; param: actor index
+    lda #kBlockWidthPx * 6  ; param: distance
+    jsr Func_IsActorWithinHorzDistanceOfPoint  ; preserves X, returns C
+    bcc @doNotThrow
+    lda #kBlockHeightPx * 5  ; param: distance above point
+    ldy #kBlockHeightPx * 7  ; param: distance below point
+    jsr Func_IsActorWithinVertDistancesOfPoint  ; preserves X, returns C
+    bcc @doNotThrow
+    jmp FuncA_Room_BadGrontaBeginThrowing
+    @doNotThrow:
+_ChaseAvatar:
+    ;; Set the point to the center of the room.
+    ldya #$0110
+    stya Zp_PointX_i16
+    lda #$c0
+    dey  ; now YA is $00c0
+    stya Zp_PointY_i16
+    ;; If the player avatar is father clockwise around the room than Gronta,
+    ;; chase clockwise; otherwise, chaes counterclockwise.
+    ldx #kGrontaActorIndex  ; param: actor index
+    jsr Func_GetAngleFromPointToActor  ; returns A
+    sta T4  ; angle from room center to Gronta
+    jsr Func_GetAngleFromPointToAvatar  ; preserves T4+, returns A
+    ldx #0  ; param: 0 = chase clockwise
+    sub T4  ; angle from room center to Gronta
+    bpl FuncC_Core_BossPerformChaseAction
+    inx  ; param: 1 = chase counterclockwise
+    fall FuncC_Core_BossPerformChaseAction
+.ENDPROC
+
+;;; Makes Gronta perform the specified chase action for her current node.
+;;; @prereq PRGA_Room is loaded.
+;;; @param X Either 0 to chase clockwise, or 1 to chase counterclockwise.
+.PROC FuncC_Core_BossPerformChaseAction
+    ;; Calculate Gronta's current room block column, storing it in A.
+    lda Ram_ActorPosX_i16_1_arr + kGrontaActorIndex
+    sta T2  ; Gronta X-pos (hi)
+    lda Ram_ActorPosX_i16_0_arr + kGrontaActorIndex
+    .assert kBlockWidthPx = (1 << 4), error
+    .repeat 4
+    lsr T2  ; Gronta X-pos (hi)
+    ror a
+    .endrepeat
+    ;; Get the pointer to this column's sNode array, storing it in T1T0.
+    sub #kFirstNodeColumn
+    tay  ; node column index
+    lda DataC_Core_BossNodes_sNode_arr_ptr_0_arr, y
+    sta T0
+    lda DataC_Core_BossNodes_sNode_arr_ptr_1_arr, y
+    sta T1
+    ;; Calculate Gronta's current room block row, storing it in A.
+    lda Ram_ActorPosY_i16_1_arr + kGrontaActorIndex
+    sta T2  ; Gronta X-pos (hi)
+    lda Ram_ActorPosY_i16_0_arr + kGrontaActorIndex
+    .assert kBlockHeightPx = (1 << 4), error
+    .repeat 4
+    lsr T2  ; Gronta X-pos (hi)
+    ror a
+    .endrepeat
+    ;; Search the sNode array for the entry for Gronta's room block column.
+    ldy #0
+    beq @start  ; unconditional
+    @loop:
+    .repeat .sizeof(sNode)
+    iny
+    .endrepeat
+    @start:
+    .assert sNode::BlockRow_u8 = 0, error
+    cmp (T1T0), y
+    bne @loop
+    ;; Load the CW or CCW bNode (depending on X), storing it in A.
+    iny  ; now Y mod .sizeof(sNode) is 1
+    .assert sNode::ChaseCw_bNode = 1, error
+    txa
+    beq @notCcw
+    iny  ; now Y mod .sizeof(sNode) is 2
+    .assert sNode::ChaseCcw_bNode = 2, error
+    @notCcw:
+    ldx #kGrontaActorIndex  ; param: actor index
+    lda (T1T0), y  ; bNode value
+    ;; Decode the action.
+    .assert bNode::IsRun = $80, error
+    bmi _DoRun
+_DoJump:
+    pha  ; bNode value
+    .assert bNode::JumpVertMask = $70, error
+    div #$10
+    sub #kBadGrontaMaxJumpUpBlocks
+    tay  ; param: signed vert offset in blocks
+    pla  ; bNode value
+    and #bNode::JumpHorzMask  ; param: signed horz offset in blocks
+    .assert bNode::JumpHorzMask = $0f, error
+    cmp #$08
+    blt @nonnegative
+    ora #$f0  ; sign-extend to eight bits
+    @nonnegative:
+    jmp FuncA_Room_BadGrontaBeginJumping
+_DoRun:
+    and #bNode::RunGoalMask  ; param: goal tile horz
+    jmp FuncA_Room_BadGrontaBeginRunning
+.ENDPROC
+
+.REPEAT 2, table
+    D_TABLE_LO table, DataC_Core_BossNodes_sNode_arr_ptr_0_arr
+    D_TABLE_HI table, DataC_Core_BossNodes_sNode_arr_ptr_1_arr
+    D_TABLE 30, kFirstNodeColumn
+    d_entry table,  2, DataC_Core_BossNodesCol02_sNode_arr
+    d_entry table,  3, DataC_Core_BossNodesCol03_sNode_arr
+    d_entry table,  4, DataC_Core_BossNodesCol04_sNode_arr
+    d_entry table,  5, DataC_Core_BossNodesCol05_sNode_arr
+    d_entry table,  6, DataC_Core_BossNodesCol06_sNode_arr
+    d_entry table,  7, DataC_Core_BossNodesCol07_sNode_arr
+    d_entry table,  8, DataC_Core_BossNodesCol08_sNode_arr
+    d_entry table,  9, DataC_Core_BossNodesCol09_sNode_arr
+    d_entry table, 10, DataC_Core_BossNodesCol10_sNode_arr
+    d_entry table, 11, DataC_Core_BossNodesCol11_sNode_arr
+    d_entry table, 12, DataC_Core_BossNodesCol12_sNode_arr
+    d_entry table, 13, DataC_Core_BossNodesCol13_sNode_arr
+    d_entry table, 14, DataC_Core_BossNodesCol14_sNode_arr
+    d_entry table, 15, DataC_Core_BossNodesCol15_sNode_arr
+    d_entry table, 16, DataC_Core_BossNodesCol16_sNode_arr
+    d_entry table, 17, DataC_Core_BossNodesCol17_sNode_arr
+    d_entry table, 18, DataC_Core_BossNodesCol18_sNode_arr
+    d_entry table, 19, DataC_Core_BossNodesCol19_sNode_arr
+    d_entry table, 20, DataC_Core_BossNodesCol20_sNode_arr
+    d_entry table, 21, DataC_Core_BossNodesCol21_sNode_arr
+    d_entry table, 22, DataC_Core_BossNodesCol22_sNode_arr
+    d_entry table, 23, DataC_Core_BossNodesCol23_sNode_arr
+    d_entry table, 24, DataC_Core_BossNodesCol24_sNode_arr
+    d_entry table, 25, DataC_Core_BossNodesCol25_sNode_arr
+    d_entry table, 26, DataC_Core_BossNodesCol26_sNode_arr
+    d_entry table, 27, DataC_Core_BossNodesCol27_sNode_arr
+    d_entry table, 28, DataC_Core_BossNodesCol28_sNode_arr
+    d_entry table, 29, DataC_Core_BossNodesCol29_sNode_arr
+    d_entry table, 30, DataC_Core_BossNodesCol30_sNode_arr
+    d_entry table, 31, DataC_Core_BossNodesCol31_sNode_arr
+    D_END
+.ENDREPEAT
+
+.PROC DataC_Core_BossNodesCol02_sNode_arr
+    D_STRUCT sNode
+    d_byte BlockRow_u8, 6
+    d_byte ChaseCw_bNode,  node_jump(3, -2)
+    d_byte ChaseCcw_bNode, node_jump(3, -2)
+    D_END
+    D_STRUCT sNode
+    d_byte BlockRow_u8, 10
+    d_byte ChaseCw_bNode,  node_jump(4, -2)
+    d_byte ChaseCcw_bNode, node_jump(3, 2)
+    D_END
+    D_STRUCT sNode
+    d_byte BlockRow_u8, 14
+    d_byte ChaseCw_bNode,  node_jump(3, -2)
+    d_byte ChaseCcw_bNode, node_jump(3, -2)
+    D_END
+    D_STRUCT sNode
+    d_byte BlockRow_u8, 18
+    d_byte ChaseCw_bNode,  node_jump(4, -2)
+    d_byte ChaseCcw_bNode, node_jump(3, 2)
+    D_END
+    ;; Row 21 sNode is the same as below.
+    fall DataC_Core_BossNodesCol03_sNode_arr
+.ENDPROC
+
+.PROC DataC_Core_BossNodesCol03_sNode_arr
+    D_STRUCT sNode
+    d_byte BlockRow_u8, 21
+    d_byte ChaseCw_bNode,  node_run(4)
+    d_byte ChaseCcw_bNode, node_run(4)
+    D_END
+.ENDPROC
+
+.PROC DataC_Core_BossNodesCol04_sNode_arr
+    D_STRUCT sNode
+    d_byte BlockRow_u8, 21
+    d_byte ChaseCw_bNode,  node_jump(1, -1)
+    d_byte ChaseCcw_bNode, node_jump(1, -1)
+    D_END
+.ENDPROC
+
+.PROC DataC_Core_BossNodesCol05_sNode_arr
+    D_STRUCT sNode
+    d_byte BlockRow_u8, 4
+    d_byte ChaseCw_bNode,  node_jump(1, 4)
+    d_byte ChaseCcw_bNode, node_jump(1, 4)
+    D_END
+    D_STRUCT sNode
+    d_byte BlockRow_u8, 12
+    d_byte ChaseCw_bNode,  node_jump(-3, -2)
+    d_byte ChaseCcw_bNode, node_run(6)
+    D_END
+    D_STRUCT sNode
+    d_byte BlockRow_u8, 20
+    d_byte ChaseCw_bNode,  node_jump(-3, -2)
+    d_byte ChaseCcw_bNode, node_run(6)
+    D_END
+.ENDPROC
+
+.PROC DataC_Core_BossNodesCol06_sNode_arr
+    D_STRUCT sNode
+    d_byte BlockRow_u8, 8
+    d_byte ChaseCw_bNode,  node_run(7)
+    d_byte ChaseCcw_bNode, node_jump(-1, 4)
+    D_END
+    D_STRUCT sNode
+    d_byte BlockRow_u8, 12
+    d_byte ChaseCw_bNode,  node_run(5)
+    d_byte ChaseCcw_bNode, node_jump(4, 2)
+    D_END
+    D_STRUCT sNode
+    d_byte BlockRow_u8, 16
+    d_byte ChaseCw_bNode,  node_run(7)
+    d_byte ChaseCcw_bNode, node_run(7)
+    D_END
+    D_STRUCT sNode
+    d_byte BlockRow_u8, 20
+    d_byte ChaseCw_bNode,  node_run(5)
+    d_byte ChaseCcw_bNode, node_jump(2, 1)
+    D_END
+.ENDPROC
+
+.PROC DataC_Core_BossNodesCol07_sNode_arr
+    D_STRUCT sNode
+    d_byte BlockRow_u8, 8
+    d_byte ChaseCw_bNode,  node_jump(4, -2)
+    d_byte ChaseCcw_bNode, node_run(6)
+    D_END
+    D_STRUCT sNode
+    d_byte BlockRow_u8, 16
+    d_byte ChaseCw_bNode,  node_jump(3, -2)
+    d_byte ChaseCcw_bNode, node_jump(2, 5)
+    D_END
+    D_STRUCT sNode
+    d_byte BlockRow_u8, 21
+    d_byte ChaseCw_bNode,  node_run(8)
+    d_byte ChaseCcw_bNode, node_run(11)
+    D_END
+.ENDPROC
+
+.PROC DataC_Core_BossNodesCol08_sNode_arr
+    D_STRUCT sNode
+    d_byte BlockRow_u8, 21
+    d_byte ChaseCw_bNode,  node_jump(-2, -1)
+    d_byte ChaseCcw_bNode, node_run(11)
+    D_END
+.ENDPROC
+
+.PROC DataC_Core_BossNodesCol10_sNode_arr
+    D_STRUCT sNode
+    d_byte BlockRow_u8, 14
+    d_byte ChaseCw_bNode,  node_jump(-4, -2)
+    d_byte ChaseCcw_bNode, node_jump(3, 5)
+    D_END
+    ;; Row 21 sNode is the same as below.
+    fall DataC_Core_BossNodesCol12_sNode_arr
+.ENDPROC
+
+.PROC DataC_Core_BossNodesCol09_sNode_arr
+    fall DataC_Core_BossNodesCol12_sNode_arr
+.ENDPROC
+
+.PROC DataC_Core_BossNodesCol12_sNode_arr
+    D_STRUCT sNode
+    d_byte BlockRow_u8, 21
+    d_byte ChaseCw_bNode,  node_run(8)
+    d_byte ChaseCcw_bNode, node_run(11)
+    D_END
+.ENDPROC
+
+.PROC DataC_Core_BossNodesCol11_sNode_arr
+    D_STRUCT sNode
+    d_byte BlockRow_u8, 6
+    d_byte ChaseCw_bNode,  node_jump(5, 0)
+    d_byte ChaseCcw_bNode, node_jump(-4, 2)
+    D_END
+    D_STRUCT sNode
+    d_byte BlockRow_u8, 10
+    d_byte ChaseCw_bNode,  node_jump(-4, -2)
+    d_byte ChaseCcw_bNode, node_jump(-1, 4)
+    D_END
+    D_STRUCT sNode
+    d_byte BlockRow_u8, 21
+    d_byte ChaseCw_bNode,  node_run(8)
+    d_byte ChaseCcw_bNode, node_jump(2, -2)
+    D_END
+.ENDPROC
+
+.PROC DataC_Core_BossNodesCol13_sNode_arr
+    D_STRUCT sNode
+    d_byte BlockRow_u8, 19
+    d_byte ChaseCw_bNode,  node_jump(-3, 2)
+    d_byte ChaseCcw_bNode, node_run(14)
+    D_END
+.ENDPROC
+
+.PROC DataC_Core_BossNodesCol14_sNode_arr
+    D_STRUCT sNode
+    d_byte BlockRow_u8, 19
+    d_byte ChaseCw_bNode,  node_run(13)
+    d_byte ChaseCcw_bNode, node_jump(2, 2)
+    D_END
+.ENDPROC
+
+.PROC DataC_Core_BossNodesCol15_sNode_arr
+    D_STRUCT sNode
+    d_byte BlockRow_u8, 21
+    d_byte ChaseCw_bNode,  node_run(16)
+    d_byte ChaseCcw_bNode, node_run(17)
+    D_END
+.ENDPROC
+
+.PROC DataC_Core_BossNodesCol16_sNode_arr
+    D_STRUCT sNode
+    d_byte BlockRow_u8, 6
+    d_byte ChaseCw_bNode,  node_run(17)
+    d_byte ChaseCcw_bNode, node_jump(-5, 0)
+    D_END
+    D_STRUCT sNode
+    d_byte BlockRow_u8, 21
+    d_byte ChaseCw_bNode,  node_jump(-2, -2)
+    d_byte ChaseCcw_bNode, node_run(17)
+    D_END
+.ENDPROC
+
+.PROC DataC_Core_BossNodesCol17_sNode_arr
+    D_STRUCT sNode
+    d_byte BlockRow_u8, 6
+    d_byte ChaseCw_bNode,  node_jump(5, 0)
+    d_byte ChaseCcw_bNode, node_run(16)
+    D_END
+    D_STRUCT sNode
+    d_byte BlockRow_u8, 21
+    d_byte ChaseCw_bNode,  node_run(16)
+    d_byte ChaseCcw_bNode, node_jump(2, -2)
+    D_END
+.ENDPROC
+
+.PROC DataC_Core_BossNodesCol18_sNode_arr
+    D_STRUCT sNode
+    d_byte BlockRow_u8, 21
+    d_byte ChaseCw_bNode,  node_run(16)
+    d_byte ChaseCcw_bNode, node_run(17)
+    D_END
+.ENDPROC
+
+.PROC DataC_Core_BossNodesCol19_sNode_arr
+    D_STRUCT sNode
+    d_byte BlockRow_u8, 19
+    d_byte ChaseCw_bNode,  node_jump(-2, 2)
+    d_byte ChaseCcw_bNode, node_run(20)
+    D_END
+.ENDPROC
+
+.PROC DataC_Core_BossNodesCol20_sNode_arr
+    D_STRUCT sNode
+    d_byte BlockRow_u8, 19
+    d_byte ChaseCw_bNode,  node_run(19)
+    d_byte ChaseCcw_bNode, node_jump(3, 2)
+    D_END
+.ENDPROC
+
+.PROC DataC_Core_BossNodesCol22_sNode_arr
+    D_STRUCT sNode
+    d_byte BlockRow_u8, 6
+    d_byte ChaseCw_bNode,  node_jump(4, 2)
+    d_byte ChaseCcw_bNode, node_jump(-5, 0)
+    D_END
+    D_STRUCT sNode
+    d_byte BlockRow_u8, 10
+    d_byte ChaseCw_bNode,  node_jump(1, 4)
+    d_byte ChaseCcw_bNode, node_jump(4, -2)
+    D_END
+    D_STRUCT sNode
+    d_byte BlockRow_u8, 21
+    d_byte ChaseCw_bNode,  node_jump(-2, -2)
+    d_byte ChaseCcw_bNode, node_run(25)
+    D_END
+.ENDPROC
+
+.PROC DataC_Core_BossNodesCol23_sNode_arr
+    D_STRUCT sNode
+    d_byte BlockRow_u8, 14
+    d_byte ChaseCw_bNode,  node_jump(-3, 5)
+    d_byte ChaseCcw_bNode, node_jump(4, -2)
+    D_END
+    ;; Row 21 sNode is the same as below.
+    fall DataC_Core_BossNodesCol24_sNode_arr
+.ENDPROC
+
+.PROC DataC_Core_BossNodesCol21_sNode_arr
+    fall DataC_Core_BossNodesCol24_sNode_arr
+.ENDPROC
+
+.PROC DataC_Core_BossNodesCol24_sNode_arr
+    D_STRUCT sNode
+    d_byte BlockRow_u8, 21
+    d_byte ChaseCw_bNode,  node_run(22)
+    d_byte ChaseCcw_bNode, node_run(25)
+    D_END
+.ENDPROC
+
+.PROC DataC_Core_BossNodesCol25_sNode_arr
+    D_STRUCT sNode
+    d_byte BlockRow_u8, 21
+    d_byte ChaseCw_bNode,  node_run(22)
+    d_byte ChaseCcw_bNode, node_jump(2, -1)
+    D_END
+.ENDPROC
+
+.PROC DataC_Core_BossNodesCol26_sNode_arr
+    D_STRUCT sNode
+    d_byte BlockRow_u8, 8
+    d_byte ChaseCw_bNode,  node_jump(-4, 2)
+    d_byte ChaseCcw_bNode, node_jump(-4, -2)
+    D_END
+    D_STRUCT sNode
+    d_byte BlockRow_u8, 21
+    d_byte ChaseCw_bNode,  node_run(22)
+    d_byte ChaseCcw_bNode, node_run(25)
+    D_END
+.ENDPROC
+
+.PROC DataC_Core_BossNodesCol27_sNode_arr
+    D_STRUCT sNode
+    d_byte BlockRow_u8, 4
+    d_byte ChaseCw_bNode,  node_jump(-1, 4)
+    d_byte ChaseCcw_bNode, node_jump(-5, 2)
+    D_END
+    D_STRUCT sNode
+    d_byte BlockRow_u8, 8
+    d_byte ChaseCw_bNode,  node_jump(1, 4)
+    d_byte ChaseCcw_bNode, node_run(26)
+    D_END
+    D_STRUCT sNode
+    d_byte BlockRow_u8, 12
+    d_byte ChaseCw_bNode,  node_jump(-4, 2)
+    d_byte ChaseCcw_bNode, node_run(28)
+    D_END
+    D_STRUCT sNode
+    d_byte BlockRow_u8, 16
+    d_byte ChaseCw_bNode,  node_jump(-3, 5)
+    d_byte ChaseCcw_bNode, node_jump(-4, -2)
+    D_END
+    D_STRUCT sNode
+    d_byte BlockRow_u8, 20
+    d_byte ChaseCw_bNode,  node_jump(-3, 1)
+    d_byte ChaseCcw_bNode, node_run(28)
+    D_END
+.ENDPROC
+
+.PROC DataC_Core_BossNodesCol28_sNode_arr
+    D_STRUCT sNode
+    d_byte BlockRow_u8, 12
+    d_byte ChaseCw_bNode,  node_run(27)
+    d_byte ChaseCcw_bNode, node_jump(3, -2)
+    D_END
+    D_STRUCT sNode
+    d_byte BlockRow_u8, 20
+    d_byte ChaseCw_bNode,  node_run(27)
+    d_byte ChaseCcw_bNode, node_jump(3, -2)
+    D_END
+.ENDPROC
+
+.PROC DataC_Core_BossNodesCol29_sNode_arr
+    D_STRUCT sNode
+    d_byte BlockRow_u8, 21
+    d_byte ChaseCw_bNode,  node_run(30)
+    d_byte ChaseCcw_bNode, node_run(30)
+    D_END
+.ENDPROC
+
+.PROC DataC_Core_BossNodesCol30_sNode_arr
+    D_STRUCT sNode
+    d_byte BlockRow_u8, 21
+    d_byte ChaseCw_bNode,  node_jump(-2, -1)
+    d_byte ChaseCcw_bNode, node_jump(-2, -1)
+    D_END
+.ENDPROC
+
+.PROC DataC_Core_BossNodesCol31_sNode_arr
+    D_STRUCT sNode
+    d_byte BlockRow_u8, 6
+    d_byte ChaseCw_bNode,  node_jump(-4, -2)
+    d_byte ChaseCcw_bNode, node_jump(-4, -2)
+    D_END
+    D_STRUCT sNode
+    d_byte BlockRow_u8, 10
+    d_byte ChaseCw_bNode,  node_jump(-3, 2)
+    d_byte ChaseCcw_bNode, node_jump(-4, -2)
+    D_END
+    D_STRUCT sNode
+    d_byte BlockRow_u8, 14
+    d_byte ChaseCw_bNode,  node_jump(-3, -2)
+    d_byte ChaseCcw_bNode, node_jump(-3, -2)
+    D_END
+    D_STRUCT sNode
+    d_byte BlockRow_u8, 18
+    d_byte ChaseCw_bNode,  node_jump(-3, 2)
+    d_byte ChaseCcw_bNode, node_jump(-4, -2)
+    D_END
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -1006,57 +1263,13 @@ _Finished:
 .SEGMENT "PRGA_Room"
 
 .PROC FuncA_Room_CoreBoss_EnterRoom
+    ;; If a circuit activation cutscene is playing, remove the Gronta actor.
     lda Zp_Next_eCutscene
     .assert eCutscene::None = 0, error
     beq @done
     lda #eActor::None
     sta Ram_ActorType_eActor_arr + kGrontaActorIndex
     @done:
-    rts
-.ENDPROC
-
-.PROC FuncA_Room_CoreBoss_TickRoom
-    ;; If the avatar is hidden for a circuit activation cutscene, we're done.
-    lda Zp_AvatarPose_eAvatar
-    .assert eAvatar::Hidden = 0, error
-    beq _Return
-_TalkToGronta:
-    ;; If the Gronta cutscene has already played, no need to start it.
-    bit Zp_RoomState + sState::TalkedToGronta_bool
-    bmi @done
-    ;; If the player avatar isn't standing in the cutscene-starting zone, don't
-    ;; start it yet.
-    bit Zp_AvatarState_bAvatar
-    .assert bAvatar::Airborne = bProc::Negative, error
-    bmi @done
-    jsr Func_SetPointToAvatarCenter
-    ldy #kCutsceneZonePlatformIndex  ; param: platform index
-    jsr Func_IsPointInPlatform  ; returns C
-    bcc @done
-    ;; Start the cutscene.
-    lda #$ff
-    sta Zp_RoomState + sState::TalkedToGronta_bool
-    lda #eCutscene::CoreBossStartBattle
-    sta Zp_Next_eCutscene
-    @done:
-_Mirror1:
-    lda Ram_MachineState3_byte_arr + kBlasterMachineIndex  ; mirror 1 anim
-    div #kBlasterMirrorAnimSlowdown
-    add #kMirror1AngleOffset  ; param: absolute mirror angle
-    ldy #kMirror1PlatformIndex  ; param: mirror platform index
-    jsr FuncA_Room_ReflectFireblastsOffMirror
-_Mirror2:
-    lda Ram_MachineState4_byte_arr + kBlasterMachineIndex  ; mirror 2 anim
-    div #kBlasterMirrorAnimSlowdown
-    add #kMirror2AngleOffset  ; param: absolute mirror angle
-    ldy #kMirror2PlatformIndex  ; param: mirror platform index
-    jsr FuncA_Room_ReflectFireblastsOffMirror
-_Laser:
-    ldx #kLaserMachineIndex
-    jsr Func_SetMachineIndex
-    jsr FuncA_Room_HarmAvatarIfWithinLaserBeam
-    ;; TODO: hurt Gronta if the laser hits her
-_Return:
     rts
 .ENDPROC
 
@@ -1091,6 +1304,361 @@ _Return:
     lda #kLaserInitGoalX
     sta Ram_MachineGoalHorz_u8_arr + kLaserMachineIndex
     rts
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Terrain"
+
+.PROC FuncA_Terrain_CoreBoss_FadeInRoom
+    ;; Only redraw circuits if the circuit activation cutscene is playing (in
+    ;; this room, the player avatar will be hidden iff that's the case).
+    lda Zp_AvatarPose_eAvatar
+    .assert eAvatar::Hidden = 0, error
+    bne _Return
+_RedrawCircuits:
+    ldx #kLastBreakerFlag
+    @loop:
+    cpx Zp_BreakerBeingActivated_eFlag
+    beq @currentBreaker
+    jsr Func_IsFlagSet  ; preserves X, returns Z
+    bne @continue
+    lda #$00  ; param: tile ID base
+    beq @redraw  ; unconditional
+    @currentBreaker:
+    lda #$c0  ; param: tile ID base
+    @redraw:
+    jsr FuncA_Terrain_CoreBoss_RedrawCircuit  ; preserves X
+    @continue:
+    dex
+    cpx #kFirstBreakerFlag
+    bge @loop
+_Return:
+    rts
+.ENDPROC
+
+;;; Redraws tiles for a breaker circuit for the circuit activation cutscene.
+;;; @prereq Rendering is disabled.
+;;; @param A The tile ID base to use.
+;;; @param X The eFlag::Breaker* value for the circuit to redraw.
+;;; @preserve X
+.PROC FuncA_Terrain_CoreBoss_RedrawCircuit
+    sta T2  ; tile ID base
+    stx T3  ; eFlag::Breaker* value
+_GetTransferEntries:
+    txa  ; eFlag::Breaker* value
+    sub #kFirstBreakerFlag
+    tay  ; eBreaker value
+    lda DataA_Terrain_CoreBoss_BreakerTransfers_arr_ptr_0_arr, y
+    sta T0  ; transfer ptr (lo)
+    lda DataA_Terrain_CoreBoss_BreakerTransfers_arr_ptr_1_arr, y
+    sta T1  ; transfer ptr (hi)
+_ReadHeader:
+    ldy #0
+    lda (T1T0), y  ; PPU control byte
+    sta Hw_PpuCtrl_wo
+    iny
+    lda (T1T0), y  ; PPU destination address (lo)
+    sta T4         ; PPU destination address (lo)
+    iny
+    lda (T1T0), y  ; PPU destination address (hi)
+    iny
+_WriteToPpu:
+    bne @entryBegin  ; unconditional
+    @entryLoop:
+    iny
+    ;; At this point, A holds the PPU address offset.
+    add T4  ; PPU destination address (lo)
+    sta T4  ; PPU destination address (lo)
+    lda #0
+    adc T5  ; PPU destination address (hi)
+    @entryBegin:
+    sta T5  ; PPU destination address (hi)
+    sta Hw_PpuAddr_w2
+    lda T4  ; PPU destination address (lo)
+    sta Hw_PpuAddr_w2
+    lda (T1T0), y  ; tile ID index
+    iny
+    tax  ; tile ID index
+    lda (T1T0), y  ; transfer length
+    iny
+    sta T6  ; transfer length
+    @dataLoop:
+    lda DataA_Terrain_CoreBoss_CircuitTiles_u8_arr, x
+    ora T2  ; tile ID base
+    sta Hw_PpuData_rw
+    inx
+    dec T6  ; transfer length
+    bne @dataLoop
+    lda (T1T0), y  ; PPU address offset
+    bne @entryLoop
+    ldx T3  ; eFlag::Breaker* value (to preserve X)
+    rts
+.ENDPROC
+
+;;; Maps from eBreaker enum values to PPU transfer arrays.
+.REPEAT 2, table
+    D_TABLE_LO table, DataA_Terrain_CoreBoss_BreakerTransfers_arr_ptr_0_arr
+    D_TABLE_HI table, DataA_Terrain_CoreBoss_BreakerTransfers_arr_ptr_1_arr
+    D_TABLE .enum, eBreaker
+    d_entry table, Garden, DataA_Terrain_CoreBoss_CircuitGardenTransfer_arr
+    d_entry table, Temple, DataA_Terrain_CoreBoss_CircuitTempleTransfer_arr
+    d_entry table, Crypt,  DataA_Terrain_CoreBoss_CircuitCryptTransfer_arr
+    d_entry table, Lava,   DataA_Terrain_CoreBoss_CircuitLavaTransfer_arr
+    d_entry table, Mine,   DataA_Terrain_CoreBoss_CircuitMineTransfer_arr
+    d_entry table, City,   DataA_Terrain_CoreBoss_CircuitCityTransfer_arr
+    d_entry table, Shadow, DataA_Terrain_CoreBoss_CircuitShadowTransfer_arr
+    D_END
+.ENDREPEAT
+
+.PROC DataA_Terrain_CoreBoss_CircuitGardenTransfer_arr
+    .byte kPpuCtrlFlagsHorz  ; control flags
+    .addr $21d3              ; destination address
+_Row0:
+    .byte $03  ; tile ID offset
+    .byte 1    ; transfer length
+    .byte $20  ; address offset
+_Row1:
+    .byte $02  ; tile ID offset
+    .byte 2    ; transfer length
+    .byte $20  ; address offset
+_Row2:
+    .byte $01  ; tile ID offset
+    .byte 3    ; transfer length
+    .byte $20  ; address offset
+_Row3:
+    .byte $00  ; tile ID offset
+    .byte 4    ; transfer length
+    .byte $21  ; address offset
+_Row4:
+    .byte $40  ; tile ID offset
+    .byte 10   ; transfer length
+    .byte $21  ; address offset
+_Row5:
+    .byte $27  ; tile ID offset
+    .byte 9    ; transfer length
+    .byte 0    ; address offset (0 = stop)
+.ENDPROC
+
+.PROC DataA_Terrain_CoreBoss_CircuitTempleTransfer_arr
+    .byte kPpuCtrlFlagsHorz  ; control flags
+    .addr $2716              ; destination address
+_Row0:
+    .byte $20  ; tile ID offset
+    .byte 7    ; transfer length
+    .byte $1f  ; address offset
+_Row1:
+    .byte $10  ; tile ID offset
+    .byte 8    ; transfer length
+    .byte $1f  ; address offset
+_Row2:
+    .byte $04  ; tile ID offset
+    .byte 4    ; transfer length
+    .byte $1f  ; address offset
+_Row3:
+    .byte $04  ; tile ID offset
+    .byte 4    ; transfer length
+    .byte $20  ; address offset
+_Row4:
+    .byte $05  ; tile ID offset
+    .byte 3    ; transfer length
+    .byte $20  ; address offset
+_Row5:
+    .byte $06  ; tile ID offset
+    .byte 2    ; transfer length
+    .byte $60  ; address offset
+_Row6:
+    .byte $07  ; tile ID offset
+    .byte 1    ; transfer length
+    .byte 0    ; address offset (0 = stop)
+.ENDPROC
+
+.PROC DataA_Terrain_CoreBoss_CircuitCryptTransfer_arr
+    .byte kPpuCtrlFlagsHorz  ; control flags
+    .addr $2c1a              ; destination address
+_Row0:
+    .byte $20  ; tile ID offset
+    .byte 4    ; transfer length
+    .byte $1f  ; address offset
+_Row1:
+    .byte $10  ; tile ID offset
+    .byte 5    ; transfer length
+    .byte $1f  ; address offset
+_Row2:
+    .byte $04  ; tile ID offset
+    .byte 4    ; transfer length
+    .byte $1f  ; address offset
+_Row3:
+    .byte $04  ; tile ID offset
+    .byte 4    ; transfer length
+    .byte $1f  ; address offset
+_Row4:
+    .byte $04  ; tile ID offset
+    .byte 4    ; transfer length
+    .byte $1f  ; address offset
+_Row5:
+    .byte $04  ; tile ID offset
+    .byte 4    ; transfer length
+    .byte $1f  ; address offset
+_Row6:
+    .byte $04  ; tile ID offset
+    .byte 4    ; transfer length
+    .byte $1f  ; address offset
+_Row7:
+    .byte $04  ; tile ID offset
+    .byte 4    ; transfer length
+    .byte $20  ; address offset
+_Row8:
+    .byte $05  ; tile ID offset
+    .byte 3    ; transfer length
+    .byte 0    ; address offset (0 = stop)
+.ENDPROC
+
+.PROC DataA_Terrain_CoreBoss_CircuitLavaTransfer_arr
+    .byte kPpuCtrlFlagsHorz  ; control flags
+    .addr $2c06              ; destination address
+_Row0:
+    .byte $33  ; tile ID offset
+    .byte 4    ; transfer length
+    .byte $20  ; address offset
+_Row1:
+    .byte $1b  ; tile ID offset
+    .byte 5    ; transfer length
+    .byte $22  ; address offset
+_Row2:
+    .byte $08  ; tile ID offset
+    .byte 4    ; transfer length
+    .byte $21  ; address offset
+_Row3:
+    .byte $08  ; tile ID offset
+    .byte 4    ; transfer length
+    .byte $21  ; address offset
+_Row4:
+    .byte $08  ; tile ID offset
+    .byte 4    ; transfer length
+    .byte $21  ; address offset
+_Row5:
+    .byte $08  ; tile ID offset
+    .byte 4    ; transfer length
+    .byte $21  ; address offset
+_Row6:
+    .byte $08  ; tile ID offset
+    .byte 4    ; transfer length
+    .byte $21  ; address offset
+_Row7:
+    .byte $08  ; tile ID offset
+    .byte 4    ; transfer length
+    .byte $21  ; address offset
+_Row8:
+    .byte $08  ; tile ID offset
+    .byte 4    ; transfer length
+    .byte 0    ; address offset (0 = stop)
+.ENDPROC
+
+.PROC DataA_Terrain_CoreBoss_CircuitMineTransfer_arr
+    .byte kPpuCtrlFlagsHorz  ; control flags
+    .addr $2707              ; destination address
+_Row0:
+    .byte $30  ; tile ID offset
+    .byte 7    ; transfer length
+    .byte $20  ; address offset
+_Row1:
+    .byte $18  ; tile ID offset
+    .byte 8    ; transfer length
+    .byte $25  ; address offset
+_Row2:
+    .byte $08  ; tile ID offset
+    .byte 4    ; transfer length
+    .byte $21  ; address offset
+_Row3:
+    .byte $08  ; tile ID offset
+    .byte 4    ; transfer length
+    .byte $21  ; address offset
+_Row4:
+    .byte $08  ; tile ID offset
+    .byte 4    ; transfer length
+    .byte $21  ; address offset
+_Row5:
+    .byte $08  ; tile ID offset
+    .byte 3    ; transfer length
+    .byte $61  ; address offset
+_Row6:
+    .byte $08  ; tile ID offset
+    .byte 2    ; transfer length
+    .byte $21  ; address offset
+_Row7:
+    .byte $08  ; tile ID offset
+    .byte 1    ; transfer length
+    .byte 0    ; address offset (0 = stop)
+.ENDPROC
+
+.PROC DataA_Terrain_CoreBoss_CircuitCityTransfer_arr
+    .byte kPpuCtrlFlagsHorz ; control flags
+    .addr $21b1             ; destination address
+_Row0:
+    .byte $0c  ; tile ID offset
+    .byte 1    ; transfer length
+    .byte $1f  ; address offset
+_Row1:
+    .byte $0c  ; tile ID offset
+    .byte 2    ; transfer length
+    .byte $1f  ; address offset
+_Row2:
+    .byte $0c  ; tile ID offset
+    .byte 3    ; transfer length
+    .byte $1f  ; address offset
+_Row3:
+    .byte $0c  ; tile ID offset
+    .byte 4    ; transfer length
+    .byte $1f  ; address offset
+_Row4:
+    .byte $0c  ; tile ID offset
+    .byte 4    ; transfer length
+    .byte $19  ; address offset
+_Row5:
+    .byte $4a  ; tile ID offset
+    .byte 10   ; transfer length
+    .byte $20  ; address offset
+_Row6:
+    .byte $37  ; tile ID offset
+    .byte 9    ; transfer length
+    .byte 0    ; address offset (0 = stop)
+.ENDPROC
+
+.PROC DataA_Terrain_CoreBoss_CircuitShadowTransfer_arr
+    .byte kPpuCtrlFlagsVert  ; control flags
+    .addr $2ca1              ; destination address
+_Col0:
+    .byte $54  ; tile ID offset
+    .byte 4    ; transfer length
+    .byte $01  ; address offset
+_Col1:
+    .byte $58  ; tile ID offset
+    .byte 4    ; transfer length
+    .byte 0    ; address offset (0 = stop)
+.ENDPROC
+
+.PROC DataA_Terrain_CoreBoss_CircuitTiles_u8_arr
+    ;; $00
+    .byte $33, $32, $31, $30
+    .byte $34, $35, $36, $37
+    .byte $3b, $3a, $39, $38
+    .byte $3c, $3d, $3e, $3f
+    ;; $10
+    .byte $34, $35, $36, $2b, $2b, $2b, $2b, $2b
+    .byte $2d, $2d, $2d, $2d, $2d, $3a, $39, $38
+    ;; $20
+    .byte $34, $2a, $2a, $2a, $2a, $2a, $2a
+    .byte $33, $2b, $2b, $2b, $2b, $2b, $2b, $2b, $2b
+    ;; $30
+    .byte $2c, $2c, $2c, $2c, $2c, $2c, $38
+    .byte $2d, $2d, $2d, $2d, $2d, $2d, $2d, $2d, $3f
+    ;; $40
+    .byte $33, $32, $31, $2a, $2a, $2a, $2a, $2a, $2a, $2a
+    .byte $2c, $2c, $2c, $2c, $2c, $2c, $2c, $3d, $3e, $3f
+    ;; $54
+    .byte $2e, $2e, $2e, $2e
+    .byte $2f, $2f, $2f, $2f
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -1171,6 +1739,7 @@ _IntroDialog_sCutscene:
     act_BranchIfZ _ShouldGiveUpRemoteFunc, _BeginFight_sCutscene
 _GiveUpRemote_sCutscene:
     act_PlayMusic eMusic::Silence
+    ;; Animate Anna tossing the remote to Gronta.
     act_WaitFrames 20
     act_SetAvatarPose eAvatar::Kneeling
     act_WaitFrames 20
@@ -1178,6 +1747,7 @@ _GiveUpRemote_sCutscene:
     act_CallFunc _SpawnActorForRemote
     act_WaitFrames 20
     act_SetAvatarPose eAvatar::Standing
+    ;; Animate Gronta catching the remote.
     act_WaitFrames 5
     act_SetActorState1 kGrontaActorIndex, eNpcOrc::GrontaArmsRaised
     act_WaitFrames 65
@@ -1191,8 +1761,6 @@ _BeginFight_sCutscene:
     act_WaitFrames 210  ; TODO: animate Gronta getting ready to fight
     act_SetScrollFlags 0
     act_CallFunc _ChangeGrontaFromNpcToBad
-    ;; TODO: Handle Gronta's mode-setting in TickRoom rather than here.
-    act_CallFunc _JumpGronta
     act_ContinueExploring
 _SetupFunc:
     lda #ePlatform::Solid
@@ -1232,12 +1800,6 @@ _ChangeGrontaFromNpcToBad:
     ldx #kGrontaActorIndex  ; param: actor index
     lda Ram_ActorFlags_bObj_arr + kGrontaActorIndex  ; param: flags
     jmp Func_InitActorBadGronta
-;;; TODO: remove _JumpGronta
-_JumpGronta:
-    lda #5  ; param: signed horz offset in blocks
-    ldy #0  ; param: signed vert offset in blocks
-    ldx #kGrontaActorIndex  ; param: actor index
-    jmp FuncA_Cutscene_BadGrontaBeginJump
 .ENDPROC
 
 ;;;=========================================================================;;;

@@ -100,6 +100,39 @@
     rts
 .ENDPROC
 
+;;; Calculates the angle from the position stored in Zp_Point*_i16 to the
+;;; center of the actor.
+;;; @param X The actor index.
+;;; @return A The angle, measured in increments of tau/256.
+;;; @preserve X, T4+
+.EXPORT Func_GetAngleFromPointToActor
+.PROC Func_GetAngleFromPointToActor
+_HorzDelta:
+    lda Ram_ActorPosX_i16_0_arr, x
+    sub Zp_PointX_i16 + 0
+    sta T0  ; horz delta from actor to point (lo)
+    lda Ram_ActorPosX_i16_1_arr, x
+    sbc Zp_PointX_i16 + 1
+    .repeat 3
+    lsr a
+    ror T0  ; horz delta from actor to point (lo)
+    .endrepeat
+_VertDelta:
+    lda Ram_ActorPosY_i16_0_arr, x
+    sub Zp_PointY_i16 + 0
+    sta T1  ; vert delta from actor to point (lo)
+    lda Ram_ActorPosY_i16_1_arr, x
+    sbc Zp_PointY_i16 + 1
+    .repeat 3
+    lsr a
+    ror T1  ; vert delta from actor to point (lo)
+    .endrepeat
+_Atan2:
+    lda T0  ; param: horz delta (signed)
+    ldy T1  ; param: vert delta (signed)
+    jmp Func_SignedAtan2  ; preserves X and T4+, returns A
+.ENDPROC
+
 ;;;=========================================================================;;;
 
 .SEGMENT "PRGA_Actor"
@@ -506,39 +539,6 @@
     adc Ram_ActorVelY_i16_1_arr, x
     sta Ram_ActorVelY_i16_1_arr, x
     rts
-.ENDPROC
-
-;;; Calculates the angle from the center of the actor to the position stored in
-;;; Zp_Point*_i16.
-;;; @param X The actor index.
-;;; @return A The angle, measured in increments of tau/256.
-;;; @preserve X, T4+
-.EXPORT FuncA_Actor_GetAngleToPoint
-.PROC FuncA_Actor_GetAngleToPoint
-_HorzDelta:
-    lda Zp_PointX_i16 + 0
-    sub Ram_ActorPosX_i16_0_arr, x
-    sta T0  ; horz delta from actor to point (lo)
-    lda Zp_PointX_i16 + 1
-    sbc Ram_ActorPosX_i16_1_arr, x
-    .repeat 3
-    lsr a
-    ror T0  ; horz delta from actor to point (lo)
-    .endrepeat
-_VertDelta:
-    lda Zp_PointY_i16 + 0
-    sub Ram_ActorPosY_i16_0_arr, x
-    sta T1  ; vert delta from actor to point (lo)
-    lda Zp_PointY_i16 + 1
-    sbc Ram_ActorPosY_i16_1_arr, x
-    .repeat 3
-    lsr a
-    ror T1  ; vert delta from actor to point (lo)
-    .endrepeat
-_Atan2:
-    lda T0  ; param: horz delta (signed)
-    ldy T1  ; param: vert delta (signed)
-    jmp Func_SignedAtan2  ; preserves X and T4+, returns A
 .ENDPROC
 
 ;;;=========================================================================;;;

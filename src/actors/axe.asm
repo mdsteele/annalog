@@ -23,11 +23,11 @@
 .INCLUDE "../oam.inc"
 .INCLUDE "axe.inc"
 
-.IMPORT FuncA_Actor_GetAngleToPoint
 .IMPORT FuncA_Actor_HarmAvatarIfCollision
 .IMPORT FuncA_Actor_ZeroVel
 .IMPORT FuncA_Objects_Draw2x2Actor
 .IMPORT Func_FindActorWithType
+.IMPORT Func_GetAngleFromPointToActor
 .IMPORT Func_InitActorWithFlags
 .IMPORT Func_IsActorWithinDistanceOfPoint
 .IMPORT Func_SetActorVelocityPolar
@@ -40,14 +40,14 @@
 ;;;=========================================================================;;;
 
 ;;; The speed of an axe projectile, in half-pixels per frame.
-kProjAxeSpeed = 6
+kProjAxeSpeed = 7
 
 ;;; Once an axe projectile has flown away from Gronta for this many frames,
 ;;; stop it in place.
-kAxeAwayFrames = 60
+kAxeAwayFrames = 50
 
 ;;; Once an axe projectile has paused for this many frames, return to Gronta.
-kAxePauseFrames = 30
+kAxePauseFrames = 20
 
 ;;; How close an axe projectile must be to Gronta for her to catch in, in
 ;;; pixels.
@@ -120,12 +120,13 @@ _PauseAxe:
     jmp FuncA_Actor_ZeroVel
 _MoveTowardsGronta:
     ;; Set velocity to move towards Gronta.
-    jsr FuncA_Actor_GetAngleToPoint  ; preserves X and T4+, returns A
+    jsr Func_GetAngleFromPointToActor  ; preserves X and T4+, returns A
+    eor #$80  ; param: angle
     ldy #kProjAxeSpeed  ; param: speed
     jsr Func_SetActorVelocityPolar  ; preserves X and T3+
     ;; If the axe is near Gronta, have her catch it.
     lda #kAxeCatchDistance  ; param: distance
-    jsr Func_IsActorWithinDistanceOfPoint  ; preserves X and T2+, returns C
+    jsr Func_IsActorWithinDistanceOfPoint  ; preserves X and T1+, returns C
     bcc _Done
 _CatchAxe:
     ldy T4  ; Gronta actor index

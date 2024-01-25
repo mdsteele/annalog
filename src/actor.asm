@@ -292,17 +292,17 @@ Ram_ActorState4_byte_arr: .res kMaxActors
 ;;; @param A The distance to check for.
 ;;; @param X The actor index.
 ;;; @return C Set if a collision occurred, cleared otherwise.
-;;; @preserve X, T2+
+;;; @preserve X, T1+
 .EXPORT Func_IsActorWithinDistanceOfPoint
 .PROC Func_IsActorWithinDistanceOfPoint
     pha  ; distance
-    jsr Func_IsActorWithinHorzDistanceOfPoint  ; preserves X, T2+; returns C
+    jsr Func_IsActorWithinHorzDistanceOfPoint  ; preserves X, T1+; returns C
     pla  ; distance
     bcs @checkVert
     rts
     @checkVert:
     tay  ; param: distance below
-    fall Func_IsActorWithinVertDistancesOfPoint  ; preserves X, T2+; returns C
+    fall Func_IsActorWithinVertDistancesOfPoint  ; preserves X, T1+; returns C
 .ENDPROC
 
 ;;; Checks if the distance between the vertical center of the actor and
@@ -311,35 +311,32 @@ Ram_ActorState4_byte_arr: .res kMaxActors
 ;;; @param Y The distance below the point to check for.
 ;;; @param X The actor index.
 ;;; @return C Set if a collision occurred, cleared otherwise.
-;;; @preserve X, T2+
+;;; @preserve X, T1+
 .EXPORT Func_IsActorWithinVertDistancesOfPoint
 .PROC Func_IsActorWithinVertDistancesOfPoint
-    sty T0  ; distance below point
     ;; Check bottom side of actor.
     add Ram_ActorPosY_i16_0_arr, x
-    sta T1
-    lda Ram_ActorPosY_i16_1_arr, x
-    adc #0
-    cmp Zp_PointY_i16 + 1
-    blt _NoHit
-    bne @hitBottom
-    lda T1
+    pha     ; y-pos (lo)
+    lda #0
+    adc Ram_ActorPosY_i16_1_arr, x
+    sta T0  ; y-pos (hi)
+    pla     ; y-pos (lo)
     cmp Zp_PointY_i16 + 0
-    ble _NoHit
-    @hitBottom:
+    lda T0  ; y-pos (hi)
+    sbc Zp_PointY_i16 + 1
+    bmi _NoHit
     ;; Check top side of actor.
-    lda Ram_ActorPosY_i16_0_arr, x
-    sub T0  ; distance below point
-    sta T1
-    lda Ram_ActorPosY_i16_1_arr, x
-    sbc #0
-    cmp Zp_PointY_i16 + 1
-    blt @hitTop
-    bne _NoHit
-    lda T1
-    cmp Zp_PointY_i16 + 0
-    bge _NoHit
-    @hitTop:
+    tya  ; distance below point
+    add Zp_PointY_i16 + 0
+    pha     ; y-pos (lo)
+    lda #0
+    adc Zp_PointY_i16 + 1
+    sta T0  ; y-pos (hi)
+    pla     ; y-pos (lo)
+    cmp Ram_ActorPosY_i16_0_arr, x
+    lda T0  ; y-pos (hi)
+    sbc Ram_ActorPosY_i16_1_arr, x
+    bmi _NoHit
 _Hit:
     sec
     rts
@@ -353,31 +350,31 @@ _NoHit:
 ;;; @param A The distance to check for.
 ;;; @param X The actor index.
 ;;; @return C Set if a collision occurred, cleared otherwise.
-;;; @preserve X, T2+
+;;; @preserve X, T1+
 .EXPORT Func_IsActorWithinHorzDistanceOfPoint
 .PROC Func_IsActorWithinHorzDistanceOfPoint
     tay  ; distance
     ;; Check actor-left-of-point.
     add Ram_ActorPosX_i16_0_arr, x
-    sta T0  ; x-pos (lo)
+    pha     ; x-pos (lo)
     lda #0
     adc Ram_ActorPosX_i16_1_arr, x
-    sta T1  ; x-pos (hi)
-    lda T0  ; x-pos (lo)
+    sta T0  ; x-pos (hi)
+    pla     ; x-pos (lo)
     cmp Zp_PointX_i16 + 0
-    lda T1  ; x-pos (hi)
+    lda T0  ; x-pos (hi)
     sbc Zp_PointX_i16 + 1
     bmi _NoHit
     ;; Check point-left-of-actor.
     tya  ; distance
     add Zp_PointX_i16 + 0
-    sta T0  ; x-pos (lo)
+    pha     ; x-pos (lo)
     lda #0
     adc Zp_PointX_i16 + 1
-    sta T1  ; x-pos (hi)
-    lda T0  ; x-pos (lo)
+    sta T0  ; x-pos (hi)
+    pla     ; x-pos (lo)
     cmp Ram_ActorPosX_i16_0_arr, x
-    lda T1  ; x-pos (hi)
+    lda T0  ; x-pos (hi)
     sbc Ram_ActorPosX_i16_1_arr, x
     bmi _NoHit
 _Hit:

@@ -33,6 +33,7 @@
 .IMPORT FuncA_Objects_Draw2x2Shape
 .IMPORT Func_MovePointUpByA
 .IMPORT Func_PlaySfxSample
+.IMPORT Func_SignedAtan2
 .IMPORT Func_TryPushAvatarHorz
 .IMPORT Func_TryPushAvatarVert
 .IMPORT Ppu_ChrObjAnnaFlower
@@ -708,6 +709,35 @@ _Done:
     lda Zp_AvatarPosY_i16 + 1
     sta Zp_PointY_i16 + 1
     rts
+.ENDPROC
+
+;;; Calculates the angle from the position stored in Zp_Point*_i16 to the
+;;; center of the player avatar.
+;;; @return A The angle, measured in increments of tau/256.
+;;; @preserve X, T4+
+.EXPORT Func_GetAngleFromPointToAvatar
+.PROC Func_GetAngleFromPointToAvatar
+    lda Zp_AvatarPosX_i16 + 0
+    sub Zp_PointX_i16 + 0
+    sta T0  ; horz delta from point to avatar (lo)
+    lda Zp_AvatarPosX_i16 + 1
+    sbc Zp_PointX_i16 + 1
+    .repeat 3
+    lsr a
+    ror T0  ; horz delta from point to avatar (lo)
+    .endrepeat
+    lda Zp_AvatarPosY_i16 + 0
+    sub Zp_PointY_i16 + 0
+    sta T1  ; vert delta from point to avatar (lo)
+    lda Zp_AvatarPosY_i16 + 1
+    sbc Zp_PointY_i16 + 1
+    .repeat 3
+    lsr a
+    ror T1  ; vert delta from point to avatar (lo)
+    .endrepeat
+    lda T0  ; param: horz delta (signed)
+    ldy T1  ; param: vert delta (signed)
+    jmp Func_SignedAtan2  ; preserves X and T4+, returns A
 .ENDPROC
 
 ;;;=========================================================================;;;

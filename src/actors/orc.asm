@@ -43,6 +43,7 @@
 .IMPORT FuncA_Objects_MoveShapeUpByA
 .IMPORT FuncA_Objects_SetShapePosToActorCenter
 .IMPORT Func_FindEmptyActorSlot
+.IMPORT Func_GetAngleFromPointToAvatar
 .IMPORT Func_GetTerrainColumnPtrForPointX
 .IMPORT Func_InitActorProjAxe
 .IMPORT Func_InitActorWithFlags
@@ -54,7 +55,6 @@
 .IMPORT Func_PointHitsTerrain
 .IMPORT Func_SetActorCenterToPoint
 .IMPORT Func_SetPointToActorCenter
-.IMPORT Func_SignedAtan2
 .IMPORT Func_SignedDivFrac
 .IMPORT Ram_ActorFlags_bObj_arr
 .IMPORT Ram_ActorPosY_i16_0_arr
@@ -66,8 +66,6 @@
 .IMPORT Ram_ActorVelX_i16_1_arr
 .IMPORT Ram_ActorVelY_i16_0_arr
 .IMPORT Ram_ActorVelY_i16_1_arr
-.IMPORTZP Zp_AvatarPosX_i16
-.IMPORTZP Zp_AvatarPosY_i16
 .IMPORTZP Zp_Current_sTileset
 .IMPORTZP Zp_PointX_i16
 .IMPORTZP Zp_PointY_i16
@@ -78,6 +76,8 @@
 ;;; How many pixels in front of Gronta to spawn the axe actor when throwing.
 kGrontaThrowOffset = 8
 
+;;; How many frames it takes Gronta wind up for an axe throw.
+kGrontaWindupFrames = 15
 ;;; How many frames it takes Gronta to catch a returned axe projectile.
 kGrontaCatchFrames = 15
 
@@ -147,20 +147,19 @@ kPaletteObjGrontaHead = 1
 
 ;;;=========================================================================;;;
 
-.SEGMENT "PRGA_Cutscene"
+.SEGMENT "PRGA_Room"
 
-;;; TODO: move this to PRGA_Room
 ;;; Makes a Gronta actor begin a jump to the specified destination offset.
 ;;; @param A The (signed) horizontal offset, in blocks.
-;;; @param Y The (signed) vertical offset, in blocks (-4 to 2).
+;;; @param Y The (signed) vertical offset, in blocks (-2 to 5).
 ;;; @param X The actor index.
 ;;; @preserve X
-.EXPORT FuncA_Cutscene_BadGrontaBeginJump
-.PROC FuncA_Cutscene_BadGrontaBeginJump
+.EXPORT FuncA_Room_BadGrontaBeginJumping
+.PROC FuncA_Room_BadGrontaBeginJumping
     pha  ; signed horz offset in blocks
     ;; Set Gronta's initial vertical velocity.
     tya  ; signed vert offset in blocks
-    add #4  ; The minimum vertical offset is -4.
+    add #kBadGrontaMaxJumpUpBlocks
     tay  ; vertical offset index
     lda _JumpVelY_i16_0_arr, y
     sta Ram_ActorVelY_i16_0_arr, x
@@ -188,15 +187,41 @@ kPaletteObjGrontaHead = 1
     sta Ram_ActorState1_byte_arr, x  ; current mode
     lda #eSample::JumpGronta  ; param: eSample to play
     jmp Func_PlaySfxSample  ; preserves X
-_JumpVelY_i16_0_arr:
-    .byte <-300, <-350, <-400, <-550, <-650, <-800, <-850
-_JumpVelY_i16_1_arr:
-    .byte >-300, >-350, >-400, >-550, >-650, >-800, >-850
 _JumpFrames_u8_arr:
     .assert kAvatarGravity = 38, error
     .assert kBlockHeightPx = 16, error
-    ;; round((v0 + sqrt(v0**2 - 2 * 38 * dy * 16 * 256)) / 38)
-    .byte 38, 36, 34, 35, 34, 36, 31
+    ;; round((v0 + sqrt(v0**2 + 2 * 38 * dy * 16 * 256)) / 38)
+    .byte    31,    36,    34,    35,    34,    36,    38,    42
+_JumpVelY_i16_0_arr:
+    .byte <-850, <-800, <-650, <-550, <-400, <-350, <-300, <-300
+_JumpVelY_i16_1_arr:
+    .byte >-850, >-800, >-650, >-550, >-400, >-350, >-300, >-300
+.ENDPROC
+
+;;; Makes a Gronta actor begin running towards the specified position.
+;;; @param A The goal X-position, measured in room tiles.
+;;; @param X The actor index.
+;;; @preserve X
+.EXPORT FuncA_Room_BadGrontaBeginRunning
+.PROC FuncA_Room_BadGrontaBeginRunning
+    sta Ram_ActorState3_byte_arr, x  ; goal tile horz
+    lda #0
+    sta Ram_ActorState2_byte_arr, x  ; timer
+    lda #eBadGronta::Running
+    sta Ram_ActorState1_byte_arr, x  ; current mode
+    rts
+.ENDPROC
+
+;;; Makes a Gronta actor begin winding up to throw her axe.
+;;; @param X The actor index.
+;;; @preserve X
+.EXPORT FuncA_Room_BadGrontaBeginThrowing
+.PROC FuncA_Room_BadGrontaBeginThrowing
+    lda #kGrontaWindupFrames
+    sta Ram_ActorState2_byte_arr, x  ; timer
+    lda #eBadGronta::ThrowWindup
+    sta Ram_ActorState1_byte_arr, x  ; current mode
+    rts
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -222,7 +247,7 @@ _JumpFrames_u8_arr:
     D_TABLE_LO table, _JumpTable_ptr_0_arr
     D_TABLE_HI table, _JumpTable_ptr_1_arr
     D_TABLE .enum, eBadGronta
-    d_entry table, Standing,     FuncA_Actor_FaceTowardsAvatar
+    d_entry table, Idle,         FuncA_Actor_FaceTowardsAvatar
     d_entry table, Running,      FuncA_Actor_TickBadGronta_Running
     d_entry table, Jumping,      FuncA_Actor_TickBadGronta_Jumping
     d_entry table, ThrowWindup,  FuncA_Actor_TickBadGronta_ThrowWindup
@@ -251,7 +276,7 @@ _JumpFrames_u8_arr:
     sta Zp_PointX_i16 + 0
     ;; Check if Gronta has reached the goal yet.
     .assert <kOrcMaxRunSpeed > 0, error
-    lda #>kOrcMaxRunSpeed + 1  ; param: distance
+    lda #1 + >(kOrcMaxRunSpeed / 2)  ; param: distance
     jsr Func_IsActorWithinHorzDistanceOfPoint  ; preserves X, returns C
     bcs FuncA_Actor_TickBadGronta_ReachedGoal  ; preserves X
     ;; If not, make Gronta run toward the point.
@@ -261,11 +286,11 @@ _JumpFrames_u8_arr:
 .ENDPROC
 
 ;;; Helper function for Gronta tick modes; zeroes her X-velocity and puts her
-;;; into Standing mode.
+;;; into Idle mode.
 ;;; @param X The actor index.
 ;;; @preserve X
 .PROC FuncA_Actor_TickBadGronta_ReachedGoal
-    lda #eBadGronta::Standing
+    lda #eBadGronta::Idle
     sta Ram_ActorState1_byte_arr, x  ; current mode
     jmp FuncA_Actor_ZeroVelX  ; preserves X
 .ENDPROC
@@ -276,6 +301,7 @@ _JumpFrames_u8_arr:
 ;;; @param X The actor index.
 ;;; @preserve X
 .PROC FuncA_Actor_TickBadGronta_Jumping
+    ;; TODO: Check for side collisions with walls
     jsr FuncA_Actor_TickOrcAirborne  ; preserves X, returns C
     bcs FuncA_Actor_TickBadGronta_ReachedGoal  ; preserves X
     rts
@@ -303,42 +329,19 @@ _JumpFrames_u8_arr:
     bne _Done
     lda #kGrontaThrowOffset  ; param: offset
     jsr FuncA_Actor_SetPointInFrontOfActor  ; preserves X
-    stx T5  ; Gronta actor index
+    stx T4  ; Gronta actor index
     jsr Func_FindEmptyActorSlot  ; preserves T0+, returns C and X
     bcc _InitAxe
 _NoAxe:
-    ldx T5  ; Gronta actor index
-    lda #eBadGronta::Standing
-    .assert eBadGronta::Standing = 0, error
+    ldx T4  ; Gronta actor index
+    lda #eBadGronta::Idle
+    .assert eBadGronta::Idle = 0, error
     beq _SetGrontaMode  ; unconditional
 _InitAxe:
     jsr Func_SetActorCenterToPoint  ; preserves X and T0+
-    stx T4  ; axe actor index
-    ;; TODO: factor this out (from here to the Func_SignedAtan2 call)
-    lda Zp_AvatarPosX_i16 + 0
-    sub Zp_PointX_i16 + 0
-    sta T0  ; horz delta from axe to avatar (lo)
-    lda Zp_AvatarPosX_i16 + 1
-    sbc Zp_PointX_i16 + 1
-    .repeat 3
-    lsr a
-    ror T0  ; horz delta from axe to avatar (lo)
-    .endrepeat
-    lda Zp_AvatarPosY_i16 + 0
-    sub Zp_PointY_i16 + 0
-    sta T1  ; vert delta from axe to avatar (lo)
-    lda Zp_AvatarPosY_i16 + 1
-    sbc Zp_PointY_i16 + 1
-    .repeat 3
-    lsr a
-    ror T1  ; vert delta from axe to avatar (lo)
-    .endrepeat
-    lda T0  ; param: horz delta (signed)
-    ldy T1  ; param: vert delta (signed)
-    jsr Func_SignedAtan2  ; preserves T4+, returns A (param: axe angle)
-    ldx T4  ; param: axe actor index
+    jsr Func_GetAngleFromPointToAvatar  ; preserves X and T4+, returns A
     jsr Func_InitActorProjAxe  ; preserves T3+
-    ldx T5  ; Gronta actor index
+    ldx T4  ; Gronta actor index
     lda #kGrontaCatchFrames
     sta Ram_ActorState2_byte_arr, x  ; timer
     lda #eSample::JumpGronta  ; param: eSample to play
@@ -586,7 +589,7 @@ _CheckForFloor:
 .PROC FuncA_Objects_DrawActorBadGronta
     ldy Ram_ActorFlags_bObj_arr, x  ; param: object flags
     lda Ram_ActorState1_byte_arr, x  ; current mode
-    .assert eBadGronta::Standing = 0, error
+    .assert eBadGronta::Idle = 0, error
     beq @standing
     cmp #eBadGronta::Jumping
     beq @jumping
@@ -605,7 +608,13 @@ _CheckForFloor:
     lda #eNpcOrc::GrontaStanding  ; param: pose
     bpl FuncA_Objects_DrawActorOrcInPose  ; unconditional
     @jumping:
+    lda Ram_ActorVelY_i16_1_arr, x
+    bmi @jumpRising
+    @jumpFalling:
     lda #eNpcOrc::GrontaJumping  ; param: pose
+    bpl FuncA_Objects_DrawActorOrcInPose  ; unconditional
+    @jumpRising:
+    lda #eNpcOrc::GrontaRunning3  ; param: pose
     bpl FuncA_Objects_DrawActorOrcInPose  ; unconditional
     @running:
     lda Ram_ActorState2_byte_arr, x  ; timer

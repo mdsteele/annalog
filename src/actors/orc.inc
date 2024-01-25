@@ -45,9 +45,12 @@
 
 ;;;=========================================================================;;;
 
+;;; The maximum number of blocks that a Gronta baddie actor can jump up by.
+kBadGrontaMaxJumpUpBlocks = 2
+
 ;;; Possible values for a Gronta baddie actor's State1 byte.
 .ENUM eBadGronta
-    Standing      ; standing, waiting for a new mode to be set
+    Idle          ; standing, waiting for a new mode to be set
     Running       ; running towards a goal position
     Jumping       ; airborne while jumping
     ThrowWindup   ; winding up an axe throw
