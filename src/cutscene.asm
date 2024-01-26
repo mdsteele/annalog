@@ -54,10 +54,9 @@
 .IMPORT FuncA_Actor_TickAllActors
 .IMPORT FuncA_Actor_TickAllSmokeActors
 .IMPORT FuncA_Avatar_RagdollMove
-.IMPORT FuncA_Objects_DrawObjectsForRoom
 .IMPORT FuncA_Room_CallRoomTick
-.IMPORT FuncA_Terrain_ScrollTowardsGoal
-.IMPORT Func_ClearRestOfOamAndProcessFrame
+.IMPORT FuncM_DrawObjectsForRoomAndProcessFrame
+.IMPORT FuncM_ScrollTowardsGoal
 .IMPORT Func_PlaySfxSample
 .IMPORT Func_ShakeRoom
 .IMPORT Func_TickAllDevices
@@ -85,6 +84,7 @@
 .IMPORTZP Zp_AvatarVelY_i16
 .IMPORTZP Zp_Camera_bScroll
 .IMPORTZP Zp_FrameCounter_u8
+.IMPORTZP Zp_Next_eCutscene
 .IMPORTZP Zp_Next_sAudioCtrl
 .IMPORTZP Zp_PointX_i16
 .IMPORTZP Zp_ScrollGoalX_u16
@@ -140,11 +140,10 @@ Ram_Next_sCutscene_ptr_1_arr: .res kMaxForks
 .EXPORT Main_Cutscene_Continue
 .PROC Main_Cutscene_Continue
 _GameLoop:
-    jsr_prga FuncA_Objects_DrawObjectsForRoom
-    jsr Func_ClearRestOfOamAndProcessFrame
+    jsr FuncM_DrawObjectsForRoomAndProcessFrame
     jsr_prga FuncA_Cutscene_ExecuteAllForks  ; returns C, T1T0, and Y
     bcs _Finish
-    jsr_prga FuncA_Terrain_ScrollTowardsGoal
+    jsr FuncM_ScrollTowardsGoal
     jsr_prga FuncA_Actor_TickCutsceneActors
     jsr Func_TickAllDevices
 _MaybeTickRoom:
@@ -248,6 +247,8 @@ _Finish:
 ;;; Initializes variables for a new cutscene.
 ;;; @param X The eCutscene value for the cutscene to play.
 .PROC FuncA_Cutscene_Init
+    lda #eCutscene::None
+    sta Zp_Next_eCutscene
 _InitSecondaryForks:
     ldy #kMaxForks - 1
     @loop:

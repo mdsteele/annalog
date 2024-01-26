@@ -19,6 +19,7 @@
 
 .INCLUDE "cpu.inc"
 .INCLUDE "macros.inc"
+.INCLUDE "mmc3.inc"
 .INCLUDE "ppu.inc"
 .INCLUDE "room.inc"
 .INCLUDE "scroll.inc"
@@ -105,6 +106,22 @@ Zp_RoomShake_u8: .res 1
     sta Zp_RoomShake_u8
     @done:
     rts
+.ENDPROC
+
+;;; Sets the scroll goal from the player avatar's position, then updates the
+;;; scroll position for next frame to move closer to that goal, transferring
+;;; nametable updates for the current room as necessary.
+.EXPORT FuncM_ScrollTowardsAvatar
+.PROC FuncM_ScrollTowardsAvatar
+    jmp_prga FuncA_Terrain_ScrollTowardsAvatar
+.ENDPROC
+
+;;; Updates the scroll position for next frame to move closer to
+;;; Zp_ScrollGoalX_u16 and Zp_ScrollGoalY_u8, transferring nametable updates
+;;; for the current room as necessary.
+.EXPORT FuncM_ScrollTowardsGoal
+.PROC FuncM_ScrollTowardsGoal
+    jmp_prga FuncA_Terrain_ScrollTowardsGoal
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -217,16 +234,14 @@ _SetScrollGoalX:
 ;;; Sets the scroll goal from the player avatar's position, then updates the
 ;;; scroll position for next frame to move closer to that goal, transferring
 ;;; nametable updates for the current room as necessary.
-.EXPORT FuncA_Terrain_ScrollTowardsAvatar
 .PROC FuncA_Terrain_ScrollTowardsAvatar
     jsr FuncA_Terrain_SetScrollGoalFromAvatar
-    .assert * = FuncA_Terrain_ScrollTowardsGoal, error, "fallthrough"
+    fall FuncA_Terrain_ScrollTowardsGoal
 .ENDPROC
 
 ;;; Updates the scroll position for next frame to move closer to
 ;;; Zp_ScrollGoalX_u16 and Zp_ScrollGoalY_u8, transferring nametable updates
 ;;; for the current room as necessary.
-.EXPORT FuncA_Terrain_ScrollTowardsGoal
 .PROC FuncA_Terrain_ScrollTowardsGoal
     ;; If scrolling is vertically locked, don't scroll vertically (but still
     ;; allow camera shake to work).

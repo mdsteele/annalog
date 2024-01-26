@@ -52,13 +52,13 @@ kLeverAnimCountdown = kLeverNumAnimFrames * kLeverAnimSlowdown - 1
 
 ;;;=========================================================================;;;
 
-.SEGMENT "PRG8"
+.SEGMENT "PRGA_Avatar"
 
 ;;; Toggles a lever device to the other position, changing its state and
 ;;; initializing its animation.
 ;;; @param X The device index for the lever.
-.EXPORT Func_ToggleLeverDevice
-.PROC Func_ToggleLeverDevice
+.EXPORT FuncA_Avatar_ToggleLeverDevice
+.PROC FuncA_Avatar_ToggleLeverDevice
     lda #kLeverAnimCountdown
     sta Ram_DeviceAnim_u8_arr, x
     ldy Ram_DeviceTarget_byte_arr, x

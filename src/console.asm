@@ -44,8 +44,9 @@
 .IMPORT FuncA_Objects_DrawObjectsForRoom
 .IMPORT FuncA_Room_CallRoomTick
 .IMPORT FuncA_Room_MachineReset
-.IMPORT FuncA_Terrain_ScrollTowardsAvatar
-.IMPORT FuncA_Terrain_ScrollTowardsGoal
+.IMPORT FuncM_DrawObjectsForRoomAndProcessFrame
+.IMPORT FuncM_ScrollTowardsAvatar
+.IMPORT FuncM_ScrollTowardsGoal
 .IMPORT Func_ClearRestOfOamAndProcessFrame
 .IMPORT Func_GetMachineProgram
 .IMPORT Func_IsFlagSet
@@ -197,8 +198,7 @@ _StartInteraction:
 ;;; @prereq Explore mode is initialized.
 .PROC Main_Console_NoPower
 _GameLoop:
-    jsr_prga FuncA_Objects_DrawObjectsForRoom
-    jsr Func_ClearRestOfOamAndProcessFrame
+    jsr FuncM_DrawObjectsForRoomAndProcessFrame
 _CheckButtons:
     lda Zp_P1ButtonsPressed_bJoypad
     and #bJoypad::AButton | bJoypad::BButton
@@ -227,7 +227,7 @@ _ScrollWindowDown:
     jsr Func_Window_ScrollDown  ; sets C if fully scrolled out
     bcs _Done
 _UpdateScrolling:
-    jsr_prga FuncA_Terrain_ScrollTowardsAvatar
+    jsr FuncM_ScrollTowardsAvatar
     jsr FuncM_ConsoleTick
     jmp _GameLoop
 _Done:
@@ -260,40 +260,10 @@ _GameLoop:
     jsr_prga FuncA_Console_DrawFieldCursor
     jsr Func_ClearRestOfOamAndProcessFrame
 _CheckButtons:
-    ;; B button (exit console):
-    bit Zp_P1ButtonsPressed_bJoypad
-    .assert bJoypad::BButton = bProc::Overflow, error
-    bvc @noClose
-    jsr_prga FuncA_Console_SaveProgram
-    jmp Main_Console_CloseWindow
-    @noClose:
-    ;; Start button (start debugging):
-    lda Zp_P1ButtonsPressed_bJoypad
-    and #bJoypad::Start
-    beq @noDebug
-    ;; Don't start debugging if the program is empty.
-    lda Ram_Console_sProgram + sProgram::Code_sIns_arr + sIns::Op_byte
-    and #$f0
-    .assert eOpcode::Empty = 0, error
-    beq @noDebug
-    jmp Main_Console_Debug
-    @noDebug:
-    ;; Select button (insert instruction):
-    lda Zp_P1ButtonsPressed_bJoypad
-    and #bJoypad::Select
-    beq @noInsert
-    jsr_prga FuncA_Console_TryInsertInstruction  ; sets C on success
-    bcs @edit
-    @noInsert:
-    ;; A button (edit field):
-    bit Zp_P1ButtonsPressed_bJoypad
-    .assert bJoypad::AButton = bProc::Negative, error
-    bpl @noEdit
-    @edit:
-    jmp Main_Menu_EditSelectedField
-    @noEdit:
-    ;; D-pad:
-    jsr_prga FuncA_Console_MoveFieldCursor
+    jsr_prga FuncA_Console_CheckEditingButtons  ; returns C and T1T0
+    bcs @continueConsole
+    jmp (T1T0)
+    @continueConsole:
 _Tick:
     jsr FuncM_ConsoleScrollTowardsGoalAndTick
     jmp _GameLoop
@@ -302,7 +272,7 @@ _Tick:
 ;;; Calls FuncA_Terrain_ScrollTowardsGoal and then FuncM_ConsoleTick.
 .EXPORT FuncM_ConsoleScrollTowardsGoalAndTick
 .PROC FuncM_ConsoleScrollTowardsGoalAndTick
-    jsr_prga FuncA_Terrain_ScrollTowardsGoal
+    jsr FuncM_ScrollTowardsGoal
     .assert * = FuncM_ConsoleTick, error, "fallthrough"
 .ENDPROC
 
@@ -472,6 +442,56 @@ _ScrollWindow:
     jsr FuncA_Console_TransferNextWindowRow
     lda #kConsoleWindowScrollSpeed  ; param: scroll by
     jmp Func_Window_ScrollUp  ; sets C if fully scrolled in
+.ENDPROC
+
+;;; Handle joypad button presses in console editing mode, and return the next
+;;; main to jump to, if any.
+;;; @return C If cleared, T1T0 holds a pointer to the next main to jump to.
+;;; @return T1T0 The next main to jump to, if any.
+.PROC FuncA_Console_CheckEditingButtons
+    ;; B button (exit console):
+    bit Zp_P1ButtonsPressed_bJoypad
+    .assert bJoypad::BButton = bProc::Overflow, error
+    bvc @noClose
+    jsr FuncA_Console_SaveProgram
+    ldya #Main_Console_CloseWindow
+    bmi _ReturnYA  ; unconditional
+    @noClose:
+    ;; Start button (start debugging):
+    lda Zp_P1ButtonsPressed_bJoypad
+    and #bJoypad::Start
+    beq @noDebug
+    ;; Don't start debugging if the program is empty.
+    lda Ram_Console_sProgram + sProgram::Code_sIns_arr + sIns::Op_byte
+    and #$f0
+    .assert eOpcode::Empty = 0, error
+    beq @noDebug
+    ldya #Main_Console_Debug
+    bmi _ReturnYA  ; unconditional
+    @noDebug:
+    ;; Select button (insert instruction):
+    lda Zp_P1ButtonsPressed_bJoypad
+    and #bJoypad::Select
+    beq @noInsert
+    jsr FuncA_Console_TryInsertInstruction  ; sets C on success
+    bcs @edit
+    @noInsert:
+    ;; A button (edit field):
+    bit Zp_P1ButtonsPressed_bJoypad
+    .assert bJoypad::AButton = bProc::Negative, error
+    bpl @noEdit
+    @edit:
+    ldya #Main_Menu_EditSelectedField
+    bmi _ReturnYA  ; unconditional
+    @noEdit:
+    ;; D-pad:
+    jsr FuncA_Console_MoveFieldCursor
+    sec  ; set C to indicate that console mode should continue
+    rts
+_ReturnYA:
+    stya T1T0
+    clc  ; clear C to indicate that T1T0 points to the main to jump to
+    rts
 .ENDPROC
 
 ;;; Inserts a new instruction (if there's room) above the current one and

@@ -39,9 +39,8 @@
 .IMPORT FuncA_Console_TransferAllInstructions
 .IMPORT FuncA_Console_TransferAllStatusRows
 .IMPORT FuncA_Console_TransferInstruction
-.IMPORT FuncA_Objects_DrawObjectsForRoom
 .IMPORT FuncM_ConsoleScrollTowardsGoalAndTick
-.IMPORT Func_ClearRestOfOamAndProcessFrame
+.IMPORT FuncM_DrawObjectsForRoomAndProcessFrame
 .IMPORT Func_SetMachineIndex
 .IMPORT Func_Window_GetRowPpuAddr
 .IMPORT Main_Console_ContinueEditing
@@ -396,10 +395,9 @@ _ExitMenu:
 .PROC Main_Menu_EditSelectedField
     jsr_prga FuncA_Console_InitMenu
 _GameLoop:
-    jsr_prga FuncA_Objects_DrawObjectsForRoom
     jsr_prga FuncA_Console_DrawMenuCursor
-    jsr Func_ClearRestOfOamAndProcessFrame
-    jsr FuncA_Console_MenuHandleJoypad  ; returns C
+    jsr FuncM_DrawObjectsForRoomAndProcessFrame
+    jsr_prga FuncA_Console_MenuHandleJoypad  ; returns C
     jcs Main_Console_ContinueEditing
 _Tick:
     jsr FuncM_ConsoleScrollTowardsGoalAndTick

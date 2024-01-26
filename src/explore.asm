@@ -36,7 +36,9 @@
 .IMPORT FuncA_Avatar_EnterRoomViaPassage
 .IMPORT FuncA_Avatar_ExitRoomViaPassage
 .IMPORT FuncA_Avatar_ExploreMove
+.IMPORT FuncA_Avatar_PickUpFlowerDevice
 .IMPORT FuncA_Avatar_SpawnAtLastSafePoint
+.IMPORT FuncA_Avatar_ToggleLeverDevice
 .IMPORT FuncA_Machine_ExecuteAll
 .IMPORT FuncA_Objects_Draw1x1Shape
 .IMPORT FuncA_Objects_DrawAllActors
@@ -49,29 +51,27 @@
 .IMPORT FuncA_Objects_SetShapePosToAvatarCenter
 .IMPORT FuncA_Room_CallRoomTick
 .IMPORT FuncA_Room_InitAllMachinesAndCallRoomEnter
-.IMPORT FuncA_Room_PickUpFlowerDevice
+.IMPORT FuncA_Terrain_DirectDrawWindowTopBorder
 .IMPORT FuncA_Terrain_InitRoomScrollAndNametables
-.IMPORT FuncA_Terrain_ScrollTowardsAvatar
+.IMPORT FuncM_DrawObjectsForRoomAndProcessFrame
+.IMPORT FuncM_ScrollTowardsAvatar
 .IMPORT FuncM_SwitchPrgcAndLoadRoom
 .IMPORT Func_ClearRestOfOam
-.IMPORT Func_ClearRestOfOamAndProcessFrame
 .IMPORT Func_FadeInFromBlack
 .IMPORT Func_FadeOutToBlack
 .IMPORT Func_FindDeviceNearPoint
 .IMPORT Func_SetLastSpawnPointToActiveDevice
 .IMPORT Func_SetPointToAvatarCenter
 .IMPORT Func_TickAllDevices
-.IMPORT Func_ToggleLeverDevice
-.IMPORT Func_Window_DirectDrawTopBorder
 .IMPORT Func_Window_Disable
 .IMPORT Func_Window_SetUpIrq
-.IMPORT MainA_Pause_FadeIn
 .IMPORT Main_Breaker_UseDevice
 .IMPORT Main_Console_UseDevice
 .IMPORT Main_Cutscene_Start
 .IMPORT Main_Death
 .IMPORT Main_Dialog_UseDevice
 .IMPORT Main_Paper_UseDevice
+.IMPORT Main_Pause_FadeIn
 .IMPORT Main_Upgrade_UseDevice
 .IMPORT Ppu_ChrBgAnimA0
 .IMPORT Ram_DeviceTarget_byte_arr
@@ -149,12 +149,9 @@ Zp_Next_eCutscene: .res 1
 .EXPORT Main_Explore_FadeIn
 .PROC Main_Explore_FadeIn
     jsr Func_Window_Disable
-    jsr Func_Window_DirectDrawTopBorder
-    main_chr08 Zp_Current_sTileset + sTileset::Chr08Bank_u8
-    main_chr18 Zp_Current_sRoom + sRoom::Chr18Bank_u8
-    jsr_prga FuncA_Terrain_InitRoomScrollAndNametables
+    jsr_prga FuncA_Terrain_SetUpExploreBackground
     jsr_prga FuncA_Avatar_FindNearbyDevice
-    jsr_prga FuncA_Objects_DrawObjectsForRoom
+    jsr FuncM_DrawObjectsForRoom
     jsr Func_ClearRestOfOam
     ;; Zp_Render_bPpuMask will be set by FuncA_Objects_DrawObjectsForRoom.
     jsr Func_FadeInFromBlack
@@ -169,93 +166,18 @@ Zp_Next_eCutscene: .res 1
 .PROC Main_Explore_Continue
 _GameLoop:
     ;; Check if we need to start a cutscene:
-    lda Zp_Next_eCutscene
+    ldx Zp_Next_eCutscene  ; param: eCutscene value
     .assert eCutscene::None = 0, error
-    beq @noCutscene
-    tax  ; param: eCutscene value
-    lda #eCutscene::None
-    sta Zp_Next_eCutscene
-    jmp Main_Cutscene_Start
-    @noCutscene:
+    jne Main_Cutscene_Start
     ;; Draw this frame:
-    jsr_prga FuncA_Objects_DrawObjectsForRoom
-    jsr Func_ClearRestOfOamAndProcessFrame
-_CheckForToggleHud:
-    lda Zp_P1ButtonsPressed_bJoypad
-    and #bJoypad::Select
-    beq @done
-    bit Zp_FloatingHud_bHud
-    .assert bHud::NoMachine = bProc::Overflow, error
-    bvs @done
-    lda Zp_FloatingHud_bHud
-    eor #bHud::Hidden
-    sta Zp_FloatingHud_bHud
-    @done:
-_CheckForPause:
-    lda Zp_P1ButtonsPressed_bJoypad
-    and #bJoypad::Start
-    beq @done
-    jsr Func_FadeOutToBlack
-    jmp_prga MainA_Pause_FadeIn
-    @done:
-.PROC _CheckForActivateDevice
-    jsr_prga FuncA_Avatar_FindNearbyDevice
-    bit Zp_P1ButtonsPressed_bJoypad
-    .assert bJoypad::BButton = bProc::Overflow, error
-    bvc _DoneWithDevice
-    lda Zp_Nearby_bDevice
-    .assert bDevice::NoneNearby = bProc::Negative, error
-    bmi _DoneWithDevice  ; no nearby device
-    ora #bDevice::Active
-    sta Zp_Nearby_bDevice
-    and #bDevice::IndexMask
-    tax  ; param: device index
-    ldy Ram_DeviceType_eDevice_arr, x
-    lda _JumpTable_ptr_0_arr, y
-    sta T0
-    lda _JumpTable_ptr_1_arr, y
-    sta T1
+    jsr FuncM_DrawObjectsForRoomAndProcessFrame
+_CheckButtons:
+    jsr_prga FuncA_Avatar_ExploreCheckButtons  ; returns C, X, and T1T0
+    bcs @continueExploring
     jmp (T1T0)
-.REPEAT 2, table
-    D_TABLE_LO table, _JumpTable_ptr_0_arr
-    D_TABLE_HI table, _JumpTable_ptr_1_arr
-    D_TABLE .enum, eDevice
-    d_entry table, None,          _DoneWithDevice
-    d_entry table, BreakerDone,   _DoneWithDevice
-    d_entry table, BreakerRising, _DoneWithDevice
-    d_entry table, Door1Locked,   _DoneWithDevice
-    d_entry table, FlowerInert,   _DoneWithDevice
-    d_entry table, Mousehole,     _DoneWithDevice
-    d_entry table, Placeholder,   _DoneWithDevice
-    d_entry table, Teleporter,    _DoneWithDevice
-    d_entry table, BreakerReady,  Main_Breaker_UseDevice
-    d_entry table, Console,       Main_Console_UseDevice
-    d_entry table, Door1Open,     Main_Explore_GoThroughDoor
-    d_entry table, Door1Unlocked, Main_Explore_GoThroughDoor
-    d_entry table, Door2Open,     Main_Explore_GoThroughDoor
-    d_entry table, Door3Open,     Main_Explore_GoThroughDoor
-    d_entry table, Flower,        _DeviceFlower
-    d_entry table, LeverCeiling,  _DeviceLever
-    d_entry table, LeverFloor,    _DeviceLever
-    d_entry table, Paper,         Main_Paper_UseDevice
-    d_entry table, Screen,        Main_Dialog_UseDevice
-    d_entry table, Sign,          Main_Dialog_UseDevice
-    d_entry table, TalkLeft,      Main_Dialog_UseDevice
-    d_entry table, TalkRight,     Main_Dialog_UseDevice
-    d_entry table, Upgrade,       Main_Upgrade_UseDevice
-    D_END
-.ENDREPEAT
-_DeviceFlower:
-    jsr_prga FuncA_Room_PickUpFlowerDevice
-    jmp _DoneWithDevice
-_DeviceLever:
-    stx Zp_Nearby_bDevice  ; clear bDevice::Active
-    jsr Func_ToggleLeverDevice
-_DoneWithDevice:
-.ENDPROC
-_UpdateScrolling:
-    jsr_prga FuncA_Terrain_ScrollTowardsAvatar
+    @continueExploring:
 _Tick:
+    jsr FuncM_ScrollTowardsAvatar
     jsr_prga FuncA_Actor_TickAllActors
     jsr Func_TickAllDevices
     jsr_prga FuncA_Machine_ExecuteAll
@@ -268,7 +190,7 @@ _Tick:
     jsr_prga FuncA_Avatar_ExploreMove
     lda Zp_AvatarExit_ePassage
     .assert ePassage::None = 0, error
-    jeq _GameLoop
+    beq _GameLoop
     .assert * = Main_Explore_GoThroughPassage, error, "fallthrough"
 .ENDPROC
 
@@ -280,7 +202,7 @@ _Tick:
 .PROC Main_Explore_GoThroughPassage
 _FadeOut:
     pha  ; ePassage value
-    jsr_prga FuncA_Objects_DrawObjectsForRoom
+    jsr FuncM_DrawObjectsForRoom
     jsr Func_ClearRestOfOam
     jsr Func_FadeOutToBlack
     pla  ; ePassage value
@@ -307,15 +229,8 @@ _FadeIn:
 ;;; @prereq Explore mode is already initialized.
 ;;; @prereq Zp_Nearby_bDevice holds an active door device.
 .PROC Main_Explore_GoThroughDoor
-    lda #eAvatar::Reading
-    sta Zp_AvatarPose_eAvatar
-_SetSpawnPoint:
-    ;; We'll soon be setting the entrance door in the destination room as the
-    ;; spawn point, but first we set the exit door in the current room as the
-    ;; spawn point, in case this room is safe and the destination room is not.
-    jsr Func_SetLastSpawnPointToActiveDevice
 _FadeOut:
-    jsr_prga FuncA_Objects_DrawObjectsForRoom
+    jsr FuncM_DrawObjectsForRoom
     jsr Func_ClearRestOfOam
     jsr Func_FadeOutToBlack
 _LoadNextRoom:
@@ -333,9 +248,129 @@ _FadeIn:
     jmp Main_Explore_EnterRoom
 .ENDPROC
 
+;;; Draws objects in the current room that should always be visible, such as
+;;; the player avatar, machines, enemies, and devices.
+.EXPORT FuncM_DrawObjectsForRoom
+.PROC FuncM_DrawObjectsForRoom
+    jmp_prga FuncA_Objects_DrawObjectsForRoom
+.ENDPROC
+
 ;;;=========================================================================;;;
 
 .SEGMENT "PRGA_Avatar"
+
+;;; Handles non-movement button presses (B/Select/Start) for explore mode.
+;;; @prereq Rendering is enabled.
+;;; @prereq Explore mode is already initialized.
+;;; @return C If cleared, T1T0 holds a pointer to the next main to jump to.
+;;; @return T1T0 The next main to jump to, if any.
+;;; @return X An argument for the new mode, if any.
+.PROC FuncA_Avatar_ExploreCheckButtons
+_CheckForToggleHud:
+    lda Zp_P1ButtonsPressed_bJoypad
+    and #bJoypad::Select
+    beq @done
+    bit Zp_FloatingHud_bHud
+    .assert bHud::NoMachine = bProc::Overflow, error
+    bvs @done
+    lda Zp_FloatingHud_bHud
+    eor #bHud::Hidden
+    sta Zp_FloatingHud_bHud
+    @done:
+_CheckForPause:
+    lda Zp_P1ButtonsPressed_bJoypad
+    and #bJoypad::Start
+    beq @done
+    jsr Func_FadeOutToBlack
+    ldya #Main_Pause_FadeIn
+    bmi _ReturnYA  ; unconditional
+    @done:
+_CheckForActivateDevice:
+    jsr FuncA_Avatar_FindNearbyDevice
+    bit Zp_P1ButtonsPressed_bJoypad
+    .assert bJoypad::BButton = bProc::Overflow, error
+    bvc _ContinueExploring  ; B button not pressed
+    lda Zp_Nearby_bDevice
+    .assert bDevice::NoneNearby = bProc::Negative, error
+    bmi _ContinueExploring  ; no nearby device
+    ora #bDevice::Active
+    sta Zp_Nearby_bDevice
+    and #bDevice::IndexMask
+    tax  ; param: device index
+    ldy Ram_DeviceType_eDevice_arr, x
+    lda _JumpTable_ptr_0_arr, y
+    sta T0
+    lda _JumpTable_ptr_1_arr, y
+    sta T1
+    jmp (T1T0)
+.REPEAT 2, table
+    D_TABLE_LO table, _JumpTable_ptr_0_arr
+    D_TABLE_HI table, _JumpTable_ptr_1_arr
+    D_TABLE .enum, eDevice
+    d_entry table, None,          _ContinueExploring
+    d_entry table, BreakerDone,   _ContinueExploring
+    d_entry table, BreakerRising, _ContinueExploring
+    d_entry table, Door1Locked,   _ContinueExploring
+    d_entry table, FlowerInert,   _ContinueExploring
+    d_entry table, Mousehole,     _ContinueExploring
+    d_entry table, Placeholder,   _ContinueExploring
+    d_entry table, Teleporter,    _ContinueExploring
+    d_entry table, BreakerReady,  _DeviceBreaker
+    d_entry table, Console,       _DeviceConsole
+    d_entry table, Door1Open,     _DeviceDoor
+    d_entry table, Door1Unlocked, _DeviceDoor
+    d_entry table, Door2Open,     _DeviceDoor
+    d_entry table, Door3Open,     _DeviceDoor
+    d_entry table, Flower,        _DeviceFlower
+    d_entry table, LeverCeiling,  _DeviceLever
+    d_entry table, LeverFloor,    _DeviceLever
+    d_entry table, Paper,         _DevicePaper
+    d_entry table, Screen,        _DeviceDialog
+    d_entry table, Sign,          _DeviceDialog
+    d_entry table, TalkLeft,      _DeviceDialog
+    d_entry table, TalkRight,     _DeviceDialog
+    d_entry table, Upgrade,       _DeviceUpgrade
+    D_END
+.ENDREPEAT
+_DeviceBreaker:
+    ldya #Main_Breaker_UseDevice
+_ReturnYA:
+    stya T1T0
+    clc  ; clear C to indicate that T1T0 points to the main to jump to
+    rts
+_DeviceFlower:
+    jsr FuncA_Avatar_PickUpFlowerDevice
+_ContinueExploring:
+    sec  ; set C to indicate that explore mode should continue
+    rts
+_DeviceConsole:
+    ldya #Main_Console_UseDevice
+    bmi _ReturnYA  ; unconditional
+_DeviceDoor:
+    lda #eAvatar::Reading
+    sta Zp_AvatarPose_eAvatar
+_SetSpawnPoint:
+    ;; We'll soon be setting the entrance door in the destination room as the
+    ;; spawn point, but first we set the exit door in the current room as the
+    ;; spawn point, in case this room is safe and the destination room is not.
+    jsr Func_SetLastSpawnPointToActiveDevice
+    ldya #Main_Explore_GoThroughDoor
+    bmi _ReturnYA  ; unconditional
+_DevicePaper:
+    ldya #Main_Paper_UseDevice
+    bmi _ReturnYA  ; unconditional
+_DeviceDialog:
+    ldya #Main_Dialog_UseDevice
+    bmi _ReturnYA  ; unconditional
+_DeviceUpgrade:
+    ldya #Main_Upgrade_UseDevice
+    bmi _ReturnYA  ; unconditional
+_DeviceLever:
+    stx Zp_Nearby_bDevice  ; clear bDevice::Active
+    jsr FuncA_Avatar_ToggleLeverDevice
+    sec  ; set C to indicate that explore mode should continue
+    rts
+.ENDPROC
 
 ;;; Calculates a bPassage value from an ePassage and the avatar's position.
 ;;; @param Y The ePassage value for the side of the room the player hit.
@@ -403,10 +438,27 @@ _UpDownPassage:
 
 ;;;=========================================================================;;;
 
+.SEGMENT "PRGA_Terrain"
+
+;;; Sets CHR banks and draws all background tiles necessary for fading in
+;;; explore mode, including drawing room terrain at the initial scroll
+;;; position, drawing the top border of the window, and calling the room's
+;;; FadeIn function.
+;;; @prereq Rendering is disabled.
+;;; @prereq Room is loaded and avatar is positioned.
+.PROC FuncA_Terrain_SetUpExploreBackground
+    main_chr08 Zp_Current_sTileset + sTileset::Chr08Bank_u8
+    main_chr18 Zp_Current_sRoom + sRoom::Chr18Bank_u8
+    jsr FuncA_Terrain_InitRoomScrollAndNametables
+    jmp FuncA_Terrain_DirectDrawWindowTopBorder
+.ENDPROC
+
+;;;=========================================================================;;;
+
 .SEGMENT "PRGA_Objects"
 
-;;; Allocates and populates OAM slots for everything in the room that should
-;;; always be visible: the player avatar, machines, enemies, and devices.
+;;; Draws objects in the current room that should always be visible, such as
+;;; the player avatar, machines, enemies, and devices.
 .EXPORT FuncA_Objects_DrawObjectsForRoom
 .PROC FuncA_Objects_DrawObjectsForRoom
     ;; Set up PPU scrolling and IRQ.  A room's draw function can optionally

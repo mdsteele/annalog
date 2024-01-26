@@ -1,6 +1,6 @@
-@PRG8
+@PRGC_Title
 
-!SONG Title_Placeholder "|A"
+!SONG Title "|A"
 
 =tempo q30
 =key 2#  % D major

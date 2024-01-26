@@ -192,16 +192,9 @@ _FadeOut:
 ;;; @prereq Rendering is disabled.
 ;;; @prereq Explore mode is initialized.
 .PROC Main_Breaker_LoadCutsceneRoom
-    ;; Load the room where the cutscene takes place.
-    jsr_prga FuncA_Breaker_GetCutsceneRoom  ; returns X
-    ldy #eMusic::Silence  ; param: music to play
+    jsr_prga FuncA_Breaker_GetCutsceneRoomAndMusic  ; returns X and Y
     jsr FuncM_SwitchPrgcAndLoadRoomWithMusic
-    ;; Hide the player avatar.
-    lda #eAvatar::Hidden
-    sta Zp_AvatarPose_eAvatar
-    ;; Set up the room scroll and fade in.
-    jsr_prga FuncA_Breaker_InitCutsceneScroll
-    jmp Main_Explore_EnterRoom
+    jmp_prga MainA_Breaker_EnterCutsceneRoom
 .ENDPROC
 
 ;;; Mode for fading to black from a breaker cutscene and switching back to
@@ -381,7 +374,8 @@ _AvatarFlipOffsetY_u8_arr:
 ;;; Sets up the cutscene pointer and returns the room that the cutscene takes
 ;;; place in.
 ;;; @return X The eRoom value for the cutscene room.
-.PROC FuncA_Breaker_GetCutsceneRoom
+;;; @return Y The eMusic value for the music to play in the cutscene room.
+.PROC FuncA_Breaker_GetCutsceneRoomAndMusic
     ;; Set Y to the eBreaker value for the breaker that just got activated.
     lda Zp_BreakerBeingActivated_eFlag
     .assert kFirstBreakerFlag > 0, error
@@ -392,6 +386,7 @@ _AvatarFlipOffsetY_u8_arr:
     sta Zp_Next_eCutscene
     ;; Return the eRoom value for the room the cutscene takes place in.
     ldx _Cutscene_eRoom_arr, y
+    ldy #eMusic::Silence
     rts
 _Cutscene_eRoom_arr:
     D_ARRAY .enum, eBreaker
@@ -415,7 +410,13 @@ _Cutscene_eCutscene_arr:
     D_END
 .ENDPROC
 
-.PROC FuncA_Breaker_InitCutsceneScroll
+;;; Sets up the avatar and room scrolling for the current breaker's cutscene,
+;;; then jumps to Main_Explore_EnterRoom.
+;;; @prereq Rendering is disabled.
+.PROC MainA_Breaker_EnterCutsceneRoom
+    ;; Hide the player avatar.
+    lda #eAvatar::Hidden
+    sta Zp_AvatarPose_eAvatar
     ;; Set Y to the eBreaker value for the breaker that just got activated.
     lda Zp_BreakerBeingActivated_eFlag
     .assert kFirstBreakerFlag > 0, error
@@ -428,7 +429,7 @@ _Cutscene_eCutscene_arr:
     sta Zp_RoomScrollX_u16 + 1
     lda #bScroll::LockHorz
     sta Zp_Camera_bScroll
-    rts
+    jmp Main_Explore_EnterRoom
 _ScrollX_u16_0_arr:
     D_ARRAY .enum, eBreaker
     d_byte Garden, $00

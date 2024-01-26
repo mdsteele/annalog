@@ -23,6 +23,7 @@
 .INCLUDE "oam.inc"
 .INCLUDE "ppu.inc"
 
+.IMPORT FuncM_DrawObjectsForRoom
 .IMPORT Func_AudioSync
 .IMPORT Func_AudioUpdate
 .IMPORT Func_ClearRestOfOam
@@ -185,11 +186,18 @@ _Finish:
     rti
 .ENDPROC
 
+;;; Calls FuncM_DrawObjectsForRoom and then Func_ClearRestOfOamAndProcessFrame.
+.EXPORT FuncM_DrawObjectsForRoomAndProcessFrame
+.PROC FuncM_DrawObjectsForRoomAndProcessFrame
+    jsr FuncM_DrawObjectsForRoom
+    fall Func_ClearRestOfOamAndProcessFrame
+.ENDPROC
+
 ;;; Calls Func_ClearRestOfOam and then Func_ProcessFrame.
 .EXPORT Func_ClearRestOfOamAndProcessFrame
 .PROC Func_ClearRestOfOamAndProcessFrame
     jsr Func_ClearRestOfOam
-    .assert * = Func_ProcessFrame, error, "fallthrough"
+    fall Func_ProcessFrame
 .ENDPROC
 
 ;;; Signals that shadow OAM/PPU data is ready to be transferred, then waits for

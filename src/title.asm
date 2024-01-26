@@ -28,6 +28,7 @@
 .INCLUDE "room.inc"
 .INCLUDE "spawn.inc"
 
+.IMPORT DataC_Title_Title_sMusic
 .IMPORT FuncA_Upgrade_ComputeMaxInstructions
 .IMPORT Func_ClearRestOfOamAndProcessFrame
 .IMPORT Func_FadeInFromBlack
@@ -73,6 +74,7 @@ Ppu_TitleTopLeft = Ppu_Nametable0_sName + sName::Tiles_u8_arr + \
 ;;; @prereq Rendering is disabled.
 .EXPORT Main_Title
 .PROC Main_Title
+    main_prgc #<.bank(DataC_Title_Title_sMusic)
     jsr_prga FuncA_Title_Init
 _GameLoop:
     ;; TODO: For testing, allow triggering sound effects (remove this later).

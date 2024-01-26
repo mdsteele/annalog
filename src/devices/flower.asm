@@ -41,13 +41,13 @@ kFlowerAnimCountdown = 48
 
 ;;;=========================================================================;;;
 
-.SEGMENT "PRGA_Room"
+.SEGMENT "PRGA_Avatar"
 
 ;;; Removes a flower device, and marks the player avatar as carrying that
 ;;; flower.
 ;;; @param X The device index for the flower.
-.EXPORT FuncA_Room_PickUpFlowerDevice
-.PROC FuncA_Room_PickUpFlowerDevice
+.EXPORT FuncA_Avatar_PickUpFlowerDevice
+.PROC FuncA_Avatar_PickUpFlowerDevice
     main_chr10_bank Ppu_ChrObjAnnaFlower
     lda Ram_DeviceTarget_byte_arr, x
     ;; Enable writes to SRAM.
@@ -63,6 +63,10 @@ kFlowerAnimCountdown = 48
     sta Ram_DeviceType_eDevice_arr, x
     rts
 .ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Room"
 
 ;;; If the specified flower device's flower is currently being carried or has
 ;;; already been delivered, then changes the device into a placeholder.  This

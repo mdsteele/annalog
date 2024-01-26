@@ -135,35 +135,6 @@ _Disable:
     rts
 .ENDPROC
 
-;;; Draws the top border of the window directly into the nametable.
-;;; @prereq Rendering is disabled.
-.EXPORT Func_Window_DirectDrawTopBorder
-.PROC Func_Window_DirectDrawTopBorder
-    lda #kPpuCtrlFlagsHorz
-    sta Hw_PpuCtrl_wo
-    ldax #Ppu_WindowTopLeft
-    bit Hw_PpuStatus_ro  ; reset the Hw_PpuAddr_w2 write-twice latch
-    sta Hw_PpuAddr_w2
-    stx Hw_PpuAddr_w2
-    lda #' '
-    sta Hw_PpuData_rw
-    lda #kTileIdBgWindowTopLeft
-    sta Hw_PpuData_rw
-    lda #kTileIdBgWindowHorz
-    ldx #kScreenWidthTiles - 4
-    @loop:
-    sta Hw_PpuData_rw
-    dex
-    bne @loop
-    lda #kTileIdBgWindowTopRight
-    sta Hw_PpuData_rw
-    ;; At this point, X is zero (from exiting the loop), which conveniently
-    ;; just happens to be the tile ID we want to draw next.
-    .assert ' ' = 0, error
-    stx Hw_PpuData_rw
-    rts
-.ENDPROC
-
 ;;; Appends a new PPU transfer entry to draw the bottom border of the window at
 ;;; the next row.
 .EXPORT Func_Window_TransferBottomBorder
@@ -266,6 +237,39 @@ _Disable:
     lda T0
     adc #>Ppu_WindowTopLeft
     tax  ; return value (hi)
+    rts
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Terrain"
+
+;;; Draws the top border of the window directly into the nametable.
+;;; @prereq Rendering is disabled.
+.EXPORT FuncA_Terrain_DirectDrawWindowTopBorder
+.PROC FuncA_Terrain_DirectDrawWindowTopBorder
+    lda #kPpuCtrlFlagsHorz
+    sta Hw_PpuCtrl_wo
+    ldax #Ppu_WindowTopLeft
+    bit Hw_PpuStatus_ro  ; reset the Hw_PpuAddr_w2 write-twice latch
+    sta Hw_PpuAddr_w2
+    stx Hw_PpuAddr_w2
+    lda #' '
+    sta Hw_PpuData_rw
+    lda #kTileIdBgWindowTopLeft
+    sta Hw_PpuData_rw
+    lda #kTileIdBgWindowHorz
+    ldx #kScreenWidthTiles - 4
+    @loop:
+    sta Hw_PpuData_rw
+    dex
+    bne @loop
+    lda #kTileIdBgWindowTopRight
+    sta Hw_PpuData_rw
+    ;; At this point, X is zero (from exiting the loop), which conveniently
+    ;; just happens to be the tile ID we want to draw next.
+    .assert ' ' = 0, error
+    stx Hw_PpuData_rw
     rts
 .ENDPROC
 

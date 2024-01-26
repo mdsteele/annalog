@@ -51,7 +51,7 @@ BAD_CODE_PATTERNS = [
 SEGMENT_DECL_PATTERN = re.compile(r'^\.SEGMENT +"([a-zA-Z0-9_]*)"')
 PROC_DECL_PATTERN = re.compile(r'^\.PROC +([a-zA-Z0-9_]+)')
 PRG_BANK_SWITCH_PATTERN = re.compile(
-    r'^ *((?:jsr|jmp|main)_prga) ')
+    r'^ *((?:jsr|jmp|main)_prg[ac]) ')
 MAIN_CHR_BANK_SWITCH_PATTERN = re.compile(
     r'^ *(main_chr[01][048c](?:_bank)?) ')
 IRQ_CHR_BANK_SWITCH_PATTERN = re.compile(

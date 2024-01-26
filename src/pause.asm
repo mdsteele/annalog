@@ -116,11 +116,21 @@ Zp_ActivatedBreakers_byte: .res 1
 
 ;;;=========================================================================;;;
 
+.SEGMENT "PRG8"
+
+;;; Mode for fading in the pause screen after pausing the game in explore mode.
+;;; @prereq Rendering is disabled.
+.EXPORT Main_Pause_FadeIn
+.PROC Main_Pause_FadeIn
+    jmp_prga MainA_Pause_FadeIn
+.ENDPROC
+
+;;;=========================================================================;;;
+
 .SEGMENT "PRGA_Pause"
 
 ;;; Mode for fading in the pause screen after pausing the game in explore mode.
 ;;; @prereq Rendering is disabled.
-.EXPORT MainA_Pause_FadeIn
 .PROC MainA_Pause_FadeIn
     lda #<.bank(Ppu_ChrBgFontUpper)
     sta Zp_Chr04Bank_u8

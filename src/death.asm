@@ -28,8 +28,8 @@
 .INCLUDE "ppu.inc"
 .INCLUDE "room.inc"
 
-.IMPORT FuncA_Objects_DrawObjectsForRoom
 .IMPORT FuncA_Objects_DrawPlayerAvatar
+.IMPORT FuncM_DrawObjectsForRoom
 .IMPORT Func_AllocObjects
 .IMPORT Func_ClearRestOfOam
 .IMPORT Func_FadeOutToBlackSlowly
@@ -106,7 +106,7 @@ Zp_NumRollingDeathDigits_u8: .res 1
 ;;; @prereq Explore mode is already initialized.
 .EXPORT Main_Death
 .PROC Main_Death
-    jsr_prga FuncA_Objects_DrawObjectsForRoom
+    jsr FuncM_DrawObjectsForRoom
     jsr_prga FuncA_Death_InitAndFadeToBlack
 _AnimateAvatar:
     jmp @start

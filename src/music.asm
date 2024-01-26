@@ -26,10 +26,10 @@
 .IMPORT DataC_Mine_MinePlaceholder_sMusic
 .IMPORT DataC_Prison_Prison_sMusic
 .IMPORT DataC_Temple_TemplePlaceholder_sMusic
+.IMPORT DataC_Title_Credits_sMusic
+.IMPORT DataC_Title_Title_sMusic
 .IMPORT Data_Calm_sMusic
-.IMPORT Data_Credits_sMusic
 .IMPORT Data_Empty_bMusic_arr
-.IMPORT Data_Title_Placeholder_sMusic
 .IMPORT Data_Upgrade_sMusic
 
 ;;;=========================================================================;;;
@@ -47,12 +47,12 @@
     d_entry table, Boss1,   DataC_Boss_BossPlaceholder_sMusic
     d_entry table, Boss2,   DataC_Core_Boss2_sMusic
     d_entry table, Calm,    Data_Calm_sMusic
-    d_entry table, Credits, Data_Credits_sMusic
+    d_entry table, Credits, DataC_Title_Credits_sMusic
     d_entry table, Crypt,   DataC_Crypt_Crypt_sMusic
     d_entry table, Mine,    DataC_Mine_MinePlaceholder_sMusic
     d_entry table, Prison,  DataC_Prison_Prison_sMusic
     d_entry table, Temple,  DataC_Temple_TemplePlaceholder_sMusic
-    d_entry table, Title,   Data_Title_Placeholder_sMusic
+    d_entry table, Title,   DataC_Title_Title_sMusic
     d_entry table, Upgrade, Data_Upgrade_sMusic
     D_END
 .ENDREPEAT

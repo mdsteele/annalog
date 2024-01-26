@@ -127,8 +127,9 @@
 .IMPORT Data_Empty_sDialog
 .IMPORT FuncA_Dialog_PlaySfxQuestMarker
 .IMPORT FuncA_Objects_DrawObjectsForRoom
-.IMPORT FuncA_Terrain_ScrollTowardsAvatar
-.IMPORT FuncA_Terrain_ScrollTowardsGoal
+.IMPORT FuncM_DrawObjectsForRoomAndProcessFrame
+.IMPORT FuncM_ScrollTowardsAvatar
+.IMPORT FuncM_ScrollTowardsGoal
 .IMPORT Func_AllocOneObject
 .IMPORT Func_BufferPpuTransfer
 .IMPORT Func_ClearRestOfOamAndProcessFrame
@@ -310,12 +311,11 @@ Ram_DialogText_u8_arr: .res (kDialogTextMaxCols + 1) * kDialogNumTextRows
     bcs Main_Dialog_Finish  ; dialog is empty
     jsr FuncM_CopyDialogText
 _GameLoop:
-    jsr_prga FuncA_Objects_DrawObjectsForRoom
-    jsr Func_ClearRestOfOamAndProcessFrame
+    jsr FuncM_DrawObjectsForRoomAndProcessFrame
     jsr_prga FuncA_Dialog_ScrollWindowUp  ; sets C if window is now fully open
     bcs Main_Dialog_RunWindow
 _UpdateScrolling:
-    jsr_prga FuncA_Terrain_ScrollTowardsGoal
+    jsr FuncM_ScrollTowardsGoal
     jmp _GameLoop
 .ENDPROC
 
@@ -337,12 +337,11 @@ _UpdateScrolling:
 ;;; @prereq Explore mode is initialized.
 .PROC Main_Dialog_CloseWindow
 _GameLoop:
-    jsr_prga FuncA_Objects_DrawObjectsForRoom
-    jsr Func_ClearRestOfOamAndProcessFrame
+    jsr FuncM_DrawObjectsForRoomAndProcessFrame
     jsr_prga FuncA_Dialog_ScrollWindowDown  ; sets C if window is now closed
     bcs Main_Dialog_Finish
 _UpdateScrolling:
-    jsr_prga FuncA_Terrain_ScrollTowardsAvatar
+    jsr FuncM_ScrollTowardsAvatar
     jmp _GameLoop
 .ENDPROC
 
@@ -361,7 +360,7 @@ _Tick:
     jsr FuncM_CopyDialogText
     @done:
 _UpdateScrolling:
-    jsr_prga FuncA_Terrain_ScrollTowardsGoal
+    jsr FuncM_ScrollTowardsGoal
     jmp _GameLoop
 .ENDPROC
 

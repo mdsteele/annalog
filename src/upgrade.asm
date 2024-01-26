@@ -34,11 +34,10 @@
 .INCLUDE "upgrade.inc"
 .INCLUDE "window.inc"
 
-.IMPORT FuncA_Objects_DrawObjectsForRoom
-.IMPORT FuncA_Terrain_ScrollTowardsAvatar
-.IMPORT FuncA_Terrain_ScrollTowardsGoal
+.IMPORT FuncM_DrawObjectsForRoomAndProcessFrame
+.IMPORT FuncM_ScrollTowardsAvatar
+.IMPORT FuncM_ScrollTowardsGoal
 .IMPORT Func_AllocObjects
-.IMPORT Func_ClearRestOfOamAndProcessFrame
 .IMPORT Func_SetFlag
 .IMPORT Func_SetLastSpawnPointToActiveDevice
 .IMPORT Func_Window_PrepareRowTransfer
@@ -128,7 +127,7 @@ _UpdateWindow:
     jsr_prga FuncA_Upgrade_ScrollWindowUp  ; returns C
     bcs Main_Upgrade_RunWindow
 _UpdateScrolling:
-    jsr_prga FuncA_Terrain_ScrollTowardsGoal
+    jsr FuncM_ScrollTowardsGoal
     jmp _GameLoop
 .ENDPROC
 
@@ -144,7 +143,7 @@ _UpdateWindow:
     jsr Func_Window_ScrollDown  ; sets C if fully scrolled out
     bcs _ResumeExploring
 _UpdateScrolling:
-    jsr_prga FuncA_Terrain_ScrollTowardsAvatar
+    jsr FuncM_ScrollTowardsAvatar
     jmp _GameLoop
 _ResumeExploring:
     lda Zp_UpgradePrev_eMusic
@@ -164,16 +163,15 @@ _CheckButtons:
     and #bJoypad::AButton | bJoypad::BButton
     bne Main_Upgrade_CloseWindow
 _UpdateScrolling:
-    jsr_prga FuncA_Terrain_ScrollTowardsGoal
+    jsr FuncM_ScrollTowardsGoal
     jmp _GameLoop
 .ENDPROC
 
 ;;; Draws all objects that should be drawn in upgrade mode, then calls
 ;;; Func_ClearRestOfOamAndProcessFrame.
 .PROC FuncM_DrawUpgradeObjectsAndProcessFrame
-    jsr_prga FuncA_Objects_DrawObjectsForRoom
-    jsr FuncA_Objects_DrawUpgradeSymbol
-    jmp Func_ClearRestOfOamAndProcessFrame
+    jsr_prga FuncA_Objects_DrawUpgradeSymbol
+    jmp FuncM_DrawObjectsForRoomAndProcessFrame
 .ENDPROC
 
 ;;;=========================================================================;;;
