@@ -48,7 +48,7 @@ kAvatarHarmHealFrames = 240
 kAvatarHarmStunFrames = 20
 
 ;;; How long the player avatar stays invincible after taking damage, in frames.
-kAvatarHarmInvincibileFrames = 60
+kAvatarHarmInvincibleFrames = 60
 
 ;;; If Zp_AvatarHarmTimer_u8 is set to this, then the avatar has been killed
 ;;; and we should go to death mode.

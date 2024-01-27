@@ -632,7 +632,7 @@ _AnnaHasLanded:
     and #bAvatar::Airborne
     rts
 _SetHarmTimer:
-    lda #kAvatarHarmHealFrames - kAvatarHarmInvincibileFrames - 1
+    lda #kAvatarHarmHealFrames - kAvatarHarmInvincibleFrames - 1
     sta Zp_AvatarHarmTimer_u8
     rts
 .ENDPROC

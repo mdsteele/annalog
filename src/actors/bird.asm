@@ -57,7 +57,7 @@ kBirdLandDistance = 8
 
 ;;; How many frames a bird baddie actor must wait after landing before it can
 ;;; fly again.
-kBirdCooldown = kAvatarHarmInvincibileFrames
+kBirdCooldown = kAvatarHarmInvincibleFrames
 
 ;;; The OBJ palette number to use for drawing bird baddie actors.
 kPaletteObjBird = 0

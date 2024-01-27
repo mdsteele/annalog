@@ -72,7 +72,10 @@
 .IMPORT FuncA_Room_BadGrontaBeginJumping
 .IMPORT FuncA_Room_BadGrontaBeginRunning
 .IMPORT FuncA_Room_BadGrontaBeginThrowing
+.IMPORT FuncA_Room_FindGrenadeActor
 .IMPORT FuncA_Room_HarmAvatarIfWithinLaserBeam
+.IMPORT FuncA_Room_HarmBadGronta
+.IMPORT FuncA_Room_IsPointInLaserBeam
 .IMPORT FuncA_Room_MachineBlasterReset
 .IMPORT FuncA_Room_MachineCannonReset
 .IMPORT FuncA_Room_ReflectFireblastsOffMirror
@@ -81,6 +84,8 @@
 .IMPORT Func_GetAngleFromPointToAvatar
 .IMPORT Func_GetRandomByte
 .IMPORT Func_InitActorBadGronta
+.IMPORT Func_InitActorDefault
+.IMPORT Func_InitActorSmokeExplosion
 .IMPORT Func_InitActorSmokeFragment
 .IMPORT Func_IsActorWithinHorzDistanceOfPoint
 .IMPORT Func_IsActorWithinVertDistancesOfPoint
@@ -93,10 +98,13 @@
 .IMPORT Func_MovePlatformLeftTowardPointX
 .IMPORT Func_MovePlatformTopTowardPointY
 .IMPORT Func_Noop
+.IMPORT Func_PlaySfxExplodeSmall
 .IMPORT Func_ResetWinchMachineState
 .IMPORT Func_SetActorCenterToPoint
 .IMPORT Func_SetMachineIndex
+.IMPORT Func_SetPointToActorCenter
 .IMPORT Func_SetPointToAvatarCenter
+.IMPORT Func_SetPointToPlatformCenter
 .IMPORT Ppu_ChrObjBoss2
 .IMPORT Ram_ActorFlags_bObj_arr
 .IMPORT Ram_ActorPosX_i16_0_arr
@@ -104,6 +112,7 @@
 .IMPORT Ram_ActorPosY_i16_0_arr
 .IMPORT Ram_ActorPosY_i16_1_arr
 .IMPORT Ram_ActorState1_byte_arr
+.IMPORT Ram_ActorState4_byte_arr
 .IMPORT Ram_ActorType_eActor_arr
 .IMPORT Ram_ActorVelX_i16_1_arr
 .IMPORT Ram_ActorVelY_i16_0_arr
@@ -131,14 +140,13 @@
 
 ;;;=========================================================================;;;
 
-;;; The actor index for Gronta in this room.
-kGrontaActorIndex = 0
-
 ;;; The machine indices for the machines in this room.
 kWinchMachineIndex   = 0
 kBlasterMachineIndex = 1
 kLaserMachineIndex   = 2
 kCannonMachineIndex  = 3
+;;; The number of machines in this room.
+.DEFINE kNumMachines 4
 
 ;;; The platform indices for the machines in this room.
 kWinchPlatformIndex     = 0
@@ -208,6 +216,14 @@ kSpikeballInitPlatformTop = \
 
 ;;;=========================================================================;;;
 
+;;; The actor index for Gronta in this room.
+kGrontaActorIndex = 0
+
+;;; How many times each machine must hit Gronta before she is defeated.
+kGrontaHitsPerMachine = 2
+
+;;;=========================================================================;;;
+
 ;;; The room block column index of the leftmost nodes.
 kFirstNodeColumn = 2
 
@@ -243,6 +259,9 @@ kFirstNodeColumn = 2
     ;; True ($ff) if the player chose to give the B-Remote to Gronta; false
     ;; ($00) otherwise.
     GaveUpRemote_bool .byte
+    ;; How many times Gronta has been hurt by each machine, indexed by machine
+    ;; index.
+    MachineHits_u8_arr .byte kNumMachines
 .ENDSTRUCT
 .ASSERT .sizeof(sState) <= kRoomStateSize, error
 
@@ -259,7 +278,7 @@ kFirstNodeColumn = 2
     d_byte MinimapStartRow_u8, 1
     d_byte MinimapStartCol_u8, 13
     d_addr TerrainData_ptr, _TerrainData
-    d_byte NumMachines_u8, 4
+    d_byte NumMachines_u8, kNumMachines
     d_addr Machines_sMachine_arr_ptr, _Machines_sMachine_arr
     d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjBoss2)
     d_addr Ext_sRoomExt_ptr, _Ext_sRoomExt
@@ -359,6 +378,7 @@ _Machines_sMachine_arr:
     d_addr Draw_func_ptr, FuncA_Objects_DrawCannonMachine
     d_addr Reset_func_ptr, FuncA_Room_MachineCannonReset
     D_END
+    .assert * - :- = kNumMachines * .sizeof(sMachine), error
     .assert * - :- <= kMaxMachines * .sizeof(sMachine), error
 _Platforms_sPlatform_arr:
 :   .assert * - :- = kWinchPlatformIndex * .sizeof(sPlatform), error
@@ -544,11 +564,26 @@ _ReadX:
     rts
 .ENDPROC
 
+;;; @prereq PRGA_Room is loaded.
 .PROC FuncC_Core_Boss_TickRoom
     ;; If the avatar is hidden for a circuit activation cutscene, we're done.
     lda Zp_AvatarPose_eAvatar
     .assert eAvatar::Hidden = 0, error
-    beq _Return
+    bne @noCutscene
+    rts
+    @noCutscene:
+_Mirror1:
+    lda Ram_MachineState3_byte_arr + kBlasterMachineIndex  ; mirror 1 anim
+    div #kBlasterMirrorAnimSlowdown
+    add #kMirror1AngleOffset  ; param: absolute mirror angle
+    ldy #kMirror1PlatformIndex  ; param: mirror platform index
+    jsr FuncA_Room_ReflectFireblastsOffMirror
+_Mirror2:
+    lda Ram_MachineState4_byte_arr + kBlasterMachineIndex  ; mirror 2 anim
+    div #kBlasterMirrorAnimSlowdown
+    add #kMirror2AngleOffset  ; param: absolute mirror angle
+    ldy #kMirror2PlatformIndex  ; param: mirror platform index
+    jsr FuncA_Room_ReflectFireblastsOffMirror
 _TalkToGronta:
     ;; If the Gronta cutscene has already played, no need to start it.
     bit Zp_RoomState + sState::TalkedToGronta_bool
@@ -574,24 +609,107 @@ _FightGronta:
     bne @done
     jsr FuncC_Core_Boss_TickGrontaFight
     @done:
-_Mirror1:
-    lda Ram_MachineState3_byte_arr + kBlasterMachineIndex  ; mirror 1 anim
-    div #kBlasterMirrorAnimSlowdown
-    add #kMirror1AngleOffset  ; param: absolute mirror angle
-    ldy #kMirror1PlatformIndex  ; param: mirror platform index
-    jsr FuncA_Room_ReflectFireblastsOffMirror
-_Mirror2:
-    lda Ram_MachineState4_byte_arr + kBlasterMachineIndex  ; mirror 2 anim
-    div #kBlasterMirrorAnimSlowdown
-    add #kMirror2AngleOffset  ; param: absolute mirror angle
-    ldy #kMirror2PlatformIndex  ; param: mirror platform index
-    jsr FuncA_Room_ReflectFireblastsOffMirror
-_Laser:
+_MachineHits:
+    ;; Check if the laser hits the player avatar.
     ldx #kLaserMachineIndex
     jsr Func_SetMachineIndex
     jsr FuncA_Room_HarmAvatarIfWithinLaserBeam
-    ;; TODO: hurt Gronta if the laser hits her
+    ;; Now we'll check on machines hitting Gronta.  If she's currently
+    ;; invincible, we're done.
+    lda Ram_ActorState4_byte_arr + kGrontaActorIndex  ; invincibility frames
+    bne _Return  ; Gronta is still invincible
+    ldx #kGrontaActorIndex  ; param: actor index
+    jsr Func_SetPointToActorCenter
+    ;; Check if the laser hits Gronta.
+    jsr FuncA_Room_IsPointInLaserBeam  ; returns C
+    bcc @noLaserHit
+    ldx #kLaserMachineIndex  ; param: machine index
+    jmp FuncC_Core_Boss_MachineHitGronta
+    @noLaserHit:
+    ;; Check if a fireblast hits Gronta.
+    ldx #kMaxActors - 1
+    @fireblastLoop:
+    lda Ram_ActorType_eActor_arr, x
+    cmp #eActor::ProjFireblast
+    bne @continueFireblastLoop
+    jsr FuncC_Core_Boss_DoesProjectileHitGrontaPoint  ; preserves X, returns C
+    bcc @continueFireblastLoop
+    ldy #eActor::SmokeParticle  ; param: actor type
+    jsr Func_InitActorDefault
+    ldx #kBlasterMachineIndex  ; param: machine index
+    jmp FuncC_Core_Boss_MachineHitGronta
+    @continueFireblastLoop:
+    dex
+    .assert kMaxActors <= $80, error
+    bpl @fireblastLoop
+    ;; Check if a grenade hits Gronta.
+    jsr FuncA_Room_FindGrenadeActor  ; returns C and X
+    bcs @noGrenadeHit  ; no grenade found
+    jsr FuncC_Core_Boss_DoesProjectileHitGrontaPoint  ; preserves X, returns C
+    bcc @noGrenadeHit
+    jsr Func_PlaySfxExplodeSmall  ; preserves X
+    jsr Func_InitActorSmokeExplosion
+    ldx #kCannonMachineIndex  ; param: machine index
+    jmp FuncC_Core_Boss_MachineHitGronta
+    @noGrenadeHit:
+    ;; Check if the winch spikeball hits Gronta.
+    bit Ram_MachineState1_byte_arr + kWinchMachineIndex  ; falling bool
+    bpl @noSpikeballHit  ; spikeball is not falling
+    ldy #kSpikeballPlatformIndex  ; param: platform index
+    jsr Func_SetPointToPlatformCenter
+    ldx #kGrontaActorIndex
+    lda #kOrcBoundingBoxSide + kSpikeballWidthPx / 2  ; param: distance
+    jsr Func_IsActorWithinHorzDistanceOfPoint  ; preserves X, returns C
+    bcc @noSpikeballHit
+    ldy #kOrcBoundingBoxUp + kSpikeballHeightPx / 2  ; param: dist below point
+    lda #kOrcBoundingBoxDown + kSpikeballHeightPx / 2  ; param: dist above pt
+    jsr Func_IsActorWithinVertDistancesOfPoint  ; preserves X, returns C
+    bcc @noSpikeballHit
+    ldx #kWinchMachineIndex  ; param: machine index
+    jmp FuncC_Core_Boss_MachineHitGronta
+    @noSpikeballHit:
 _Return:
+    rts
+.ENDPROC
+
+;;; Checks if the specified projectile actor is within Gronta's bounding box.
+;;; @prereq Zp_Point*_i16 is set to Gronta's center position.
+;;; @param X The projectile actor index.
+;;; @return C Set if a collision occurred, cleared otherwise.
+;;; @preserve X
+.PROC FuncC_Core_Boss_DoesProjectileHitGrontaPoint
+    lda #kOrcBoundingBoxSide  ; param: distance
+    jsr Func_IsActorWithinHorzDistanceOfPoint  ; preserves X, returns C
+    bcs @checkVert
+    rts
+    @checkVert:
+    ldy #kOrcBoundingBoxDown  ; param: distance below point
+    lda #kOrcBoundingBoxUp    ; param: distance above point
+    jmp Func_IsActorWithinVertDistancesOfPoint  ; preserves X, returns C
+.ENDPROC
+
+;;; Called when a machine hits Gronta.  Scores the hit and marks the Gronta
+;;; actor as hurt.
+;;; @prereq PRGA_Room is loaded.
+;;; @param X The machine index of the machine that hit Gronta.
+.PROC FuncC_Core_Boss_MachineHitGronta
+    inc Zp_RoomState + sState::MachineHits_u8_arr, x
+    lda Zp_RoomState + sState::MachineHits_u8_arr, x
+    ldx #kGrontaActorIndex  ; param: actor index
+    cmp #kGrontaHitsPerMachine  ; param: set C if enough hits from this machine
+    jsr FuncA_Room_HarmBadGronta
+    ;; Check if Gronta has been defeated.
+    ldx #kNumMachines - 4
+    lda #kGrontaHitsPerMachine - 1
+    @loop:
+    cmp Zp_RoomState + sState::MachineHits_u8_arr, x
+    bge @notDefeated
+    dex
+    .assert kNumMachines <= $80, error
+    bpl @loop
+    @defeated:
+    ;; TODO: Handle Gronta being defeated.
+    @notDefeated:
     rts
 .ENDPROC
 

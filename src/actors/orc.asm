@@ -62,6 +62,7 @@
 .IMPORT Ram_ActorState1_byte_arr
 .IMPORT Ram_ActorState2_byte_arr
 .IMPORT Ram_ActorState3_byte_arr
+.IMPORT Ram_ActorState4_byte_arr
 .IMPORT Ram_ActorVelX_i16_0_arr
 .IMPORT Ram_ActorVelX_i16_1_arr
 .IMPORT Ram_ActorVelY_i16_0_arr
@@ -224,6 +225,21 @@ _JumpVelY_i16_1_arr:
     rts
 .ENDPROC
 
+;;; Makes a Gronta actor get hurt.
+;;; @param C If set, invincibility lasts longer.
+;;; @param X The actor index.
+;;; @preserve X
+.EXPORT FuncA_Room_HarmBadGronta
+.PROC FuncA_Room_HarmBadGronta
+    lda #60  ; TODO: constant
+    bcc @setIframes
+    lda #$ff  ; TODO: constant
+    @setIframes:
+    sta Ram_ActorState4_byte_arr, x  ; invincibility frames
+    ;; TODO: change current mode as needed
+    rts
+.ENDPROC
+
 ;;;=========================================================================;;;
 
 .SEGMENT "PRGA_Actor"
@@ -233,6 +249,11 @@ _JumpVelY_i16_1_arr:
 ;;; @preserve X
 .EXPORT FuncA_Actor_TickBadGronta
 .PROC FuncA_Actor_TickBadGronta
+    ;; Decrement Gronta's temporary invincibility frames (if nonzero).
+    lda Ram_ActorState4_byte_arr, x  ; invincibility frames
+    beq @notInvincible
+    dec Ram_ActorState4_byte_arr, x  ; invincibility frames
+    @notInvincible:
     ;; Check for collision with player avatar.  The jump targets below can make
     ;; use of the returned C value.
     jsr FuncA_Actor_HarmAvatarIfCollision  ; preserves X, returns C
@@ -587,6 +608,13 @@ _CheckForFloor:
 ;;; @preserve X
 .EXPORT FuncA_Objects_DrawActorBadGronta
 .PROC FuncA_Objects_DrawActorBadGronta
+    ;; If Gronta is temporarily invincible, blink the objects.
+    lda Ram_ActorState4_byte_arr, x  ; invincibility frames
+    and #$02
+    beq @visible
+    rts
+    @visible:
+_ChoosePose:
     ldy Ram_ActorFlags_bObj_arr, x  ; param: object flags
     lda Ram_ActorState1_byte_arr, x  ; current mode
     .assert eBadGronta::Idle = 0, error

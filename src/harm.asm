@@ -52,7 +52,7 @@ kAvatarStunVelY = $ffff & -350
     beq _Harm
     ;; Otherwise, if the player avatar is no longer still invincible from the
     ;; last time they took damage, kill them.
-    cmp #kAvatarHarmHealFrames - kAvatarHarmInvincibileFrames
+    cmp #kAvatarHarmHealFrames - kAvatarHarmInvincibleFrames
     blt Func_KillAvatar
     rts
 _Harm:

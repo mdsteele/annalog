@@ -762,11 +762,11 @@ _Done:
     lda #bPpuMask::BgMain | bPpuMask::ObjMain
     @setRender:
     sta Zp_Render_bPpuMask
-    ;; If the avatar is temporarily invinvible, blink the objects.
+    ;; If the avatar is temporarily invincible, blink the objects.
     lda Zp_AvatarHarmTimer_u8
     cmp #kAvatarHarmDeath
     beq @notInvincible
-    cmp #kAvatarHarmHealFrames - kAvatarHarmInvincibileFrames
+    cmp #kAvatarHarmHealFrames - kAvatarHarmInvincibleFrames
     blt @notInvincible
     lda Zp_FrameCounter_u8
     and #$02
