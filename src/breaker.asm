@@ -38,12 +38,10 @@
 .IMPORT FuncM_SwitchPrgcAndLoadRoom
 .IMPORT FuncM_SwitchPrgcAndLoadRoomWithMusic
 .IMPORT Func_FadeOutToBlack
-.IMPORT Func_ProcessFrame
 .IMPORT Func_SetFlag
 .IMPORT Func_SetLastSpawnPointToActiveDevice
 .IMPORT Main_Explore_Continue
 .IMPORT Main_Explore_EnterRoom
-.IMPORT Ppu_ChrBgAnimA0
 .IMPORT Ppu_ChrBgAnimStatic
 .IMPORT Ppu_ChrBgFontLower
 .IMPORT Ram_DeviceAnim_u8_arr
@@ -63,7 +61,6 @@
 .IMPORTZP Zp_Chr04Bank_u8
 .IMPORTZP Zp_Current_eRoom
 .IMPORTZP Zp_FloatingHud_bHud
-.IMPORTZP Zp_FrameCounter_u8
 .IMPORTZP Zp_Nearby_bDevice
 .IMPORTZP Zp_Next_eCutscene
 .IMPORTZP Zp_RoomScrollX_u16
@@ -87,9 +84,6 @@ Zp_Breaker_eRoom: .res 1
 .EXPORTZP Zp_BreakerBeingActivated_eFlag
 Zp_BreakerBeingActivated_eFlag: .res 1
 
-;;; The number of remaining frames in the current breaker activation phase.
-Zp_BreakerTimer_u8: .res 1
-
 ;;;=========================================================================;;;
 
 .SEGMENT "PRG8"
@@ -109,7 +103,7 @@ Zp_BreakerTimer_u8: .res 1
 .PROC Main_Breaker_TraceCircuit
     jsr Func_FadeOutToBlack
     ;; TODO: implement this
-    .assert * = Main_Breaker_LoadCoreRoom, error, "fallthrough"
+    fall Main_Breaker_LoadCoreRoom
 .ENDPROC
 
 ;;; Mode to load the room for the power core cutscene that plays when
@@ -117,81 +111,19 @@ Zp_BreakerTimer_u8: .res 1
 ;;; @prereq Rendering is disabled.
 ;;; @prereq Explore mode is initialized.
 .PROC Main_Breaker_LoadCoreRoom
-    ;; Load the core room.
     ldx #eRoom::CoreBoss  ; param: room to load
     ldy #eMusic::Silence  ; param: music to play
     jsr FuncM_SwitchPrgcAndLoadRoomWithMusic
-    ;; Hide the player avatar.
-    lda #eAvatar::Hidden
-    sta Zp_AvatarPose_eAvatar
-    ;; Set room scroll and lock scrolling.
-    lda #$48
-    sta Zp_RoomScrollY_u8
-    ldax #$0090
-    stax Zp_RoomScrollX_u16
-    lda #bScroll::LockHorz | bScroll::LockVert
-    sta Zp_Camera_bScroll
-    ;; Set CHR banks for breaker circuits.
-    main_chr00_bank Ppu_ChrBgAnimStatic
-    main_chr0c_bank Ppu_ChrBgAnimStatic
-    ;; Start the cutscene.
-    lda #eCutscene::CoreBossPowerUpCircuit
-    sta Zp_Next_eCutscene
-    jmp Main_Explore_EnterRoom
+    jmp_prga MainA_Breaker_EnterCoreRoom
 .ENDPROC
 
-;;; Explore mode cutscene for showing the power core after a breaker is
-;;; activated.
+;;; Mode to fade out from the "power up circuit" cutscene and transition to the
+;;; breaker-specific story cutscene.
 ;;; @prereq Rendering is enabled.
 ;;; @prereq Explore mode is initialized.
-.PROC Main_Breaker_PowerCoreCutscene
-    ;; TODO: move some/all of this into the cutscene
-    lda #255
-    sta Zp_BreakerTimer_u8
-_GameLoop:
-    ;; Update CHR04 bank (for animated terrain tiles).
-    lda Zp_FrameCounter_u8
-    div #4
-    and #$07
-    add #<.bank(Ppu_ChrBgAnimA0)
-    sta Zp_Chr04Bank_u8
-    jsr Func_ProcessFrame
-_PowerUpCircuit:
-    ;; TODO: split this up into phases
-    lda Zp_BreakerTimer_u8
-    sub #130
-    blt @on
-    cmp #64
-    bge @off
-    sta T1  ; 0-63
-    and #$03
-    sta T0  ; 0-3
-    lda #63
-    sub T1  ; 0-63
-    div #16
-    cmp T0  ; 0-3
-    bge @on
-    @off:
-    ldx #<.bank(Ppu_ChrBgAnimStatic)
-    .assert <.bank(Ppu_ChrBgAnimStatic) <> 0, error
-    bne @setBank  ; unconditional
-    @on:
-    ldx Zp_Chr04Bank_u8
-    @setBank:
-    main_chr0c x
-    dec Zp_BreakerTimer_u8
-    bne _GameLoop
-_FadeOut:
+.PROC Main_Breaker_TransitionToBreakerCutscene
     jsr Func_FadeOutToBlack
     main_chr00_bank Ppu_ChrBgFontLower
-    .assert * = Main_Breaker_LoadCutsceneRoom, error, "fallthrough"
-.ENDPROC
-
-;;; Mode to load the room for the breaker-specific cutscene that plays after
-;;; activating a breaker.
-;;; @prereq Rendering is disabled.
-;;; @prereq Explore mode is initialized.
-.PROC Main_Breaker_LoadCutsceneRoom
     jsr_prga FuncA_Breaker_GetCutsceneRoomAndMusic  ; returns X and Y
     jsr FuncM_SwitchPrgcAndLoadRoomWithMusic
     jmp_prga MainA_Breaker_EnterCutsceneRoom
@@ -273,7 +205,7 @@ _AdjustAvatarOffset:
     @return:
     rts
 _WobbleAvatarOffset:
-    lda Zp_FrameCounter_u8
+    txa  ; timer
     and #$04
     bne _FixAvatarOffset
     lda #kBreakerAvatarOffset - 1
@@ -328,7 +260,28 @@ _AvatarFlipOffsetY_u8_arr:
 
 .EXPORT DataA_Cutscene_CoreBossPowerUpCircuit_sCutscene
 .PROC DataA_Cutscene_CoreBossPowerUpCircuit_sCutscene
-    act_JumpToMain Main_Breaker_PowerCoreCutscene
+    act_WaitFrames 61
+    act_RepeatFunc 194, _BlinkCircuit
+    act_JumpToMain Main_Breaker_TransitionToBreakerCutscene
+_BlinkCircuit:
+    cpx #64
+    bge @on
+    txa  ; timer (0-63 ascending)
+    and #$03
+    sta T0  ; timer mod 4
+    txa  ; timer (0-63 ascending)
+    div #16
+    cmp T0  ; timer mod 4
+    bge @on
+    @off:
+    ldx #<.bank(Ppu_ChrBgAnimStatic)
+    .assert <.bank(Ppu_ChrBgAnimStatic) <> 0, error
+    bne @setBank  ; unconditional
+    @on:
+    ldx Zp_Chr04Bank_u8
+    @setBank:
+    main_chr0c x
+    rts
 .ENDPROC
 
 .EXPORT DataA_Cutscene_SharedFadeBackToBreakerRoom_sCutscene
@@ -369,6 +322,29 @@ _AvatarFlipOffsetY_u8_arr:
     lda #eCutscene::SharedFlipBreaker
     sta Zp_Next_eCutscene
     jmp Main_Explore_Continue
+.ENDPROC
+
+;;; Sets up the CoreBossPowerUpCircuit cutscene, then jumps to
+;;; Main_Explore_EnterRoom.
+;;; @prereq Rendering is disabled.
+.PROC MainA_Breaker_EnterCoreRoom
+    ;; Hide the player avatar.
+    lda #eAvatar::Hidden
+    sta Zp_AvatarPose_eAvatar
+    ;; Set room scroll and lock scrolling.
+    lda #$48
+    sta Zp_RoomScrollY_u8
+    ldax #$0090
+    stax Zp_RoomScrollX_u16
+    lda #bScroll::LockHorz | bScroll::LockVert
+    sta Zp_Camera_bScroll
+    ;; Set CHR banks for breaker circuits.
+    main_chr00_bank Ppu_ChrBgAnimStatic
+    main_chr0c_bank Ppu_ChrBgAnimStatic
+    ;; Start the cutscene.
+    lda #eCutscene::CoreBossPowerUpCircuit
+    sta Zp_Next_eCutscene
+    jmp Main_Explore_EnterRoom
 .ENDPROC
 
 ;;; Sets up the cutscene pointer and returns the room that the cutscene takes

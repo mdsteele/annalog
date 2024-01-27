@@ -107,7 +107,9 @@ kMaxForks = 4
     PlayMusic          ; args: eMusic value
     PlaySfxSample      ; args: eSample value
     ;; Suspends the current cutscene fork for the specified number of frames,
-    ;; calling the specified function once each frame.
+    ;; calling the specified function once each frame, with X set to the number
+    ;; of times the function has already been called (so, ranging from zero
+    ;; inclusive to num_frames exclusive).
     RepeatFunc         ; args: number of frames, func ptr (2 bytes)
     ;; Starts the specified dialog, and suspends *all* cutscene forks while the
     ;; dialog runs.  The cutscene will continue once the dialog is done.

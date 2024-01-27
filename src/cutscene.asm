@@ -479,8 +479,10 @@ _RepeatFunc:
     ldy #4  ; param: byte offset
     jmp FuncA_Cutscene_AdvanceForkAndExecute
     @stillWaiting:
-    inc Ram_CutsceneTimer_u8_arr, x
     iny
+    lda Ram_CutsceneTimer_u8_arr, x
+    inc Ram_CutsceneTimer_u8_arr, x
+    tax  ; param: old timer value
     jsr _CallFuncArg
     clc  ; cutscene should continue
     rts
