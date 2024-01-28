@@ -57,12 +57,15 @@
 .IMPORT Func_SetPointToActorCenter
 .IMPORT Func_SignedDivFrac
 .IMPORT Ram_ActorFlags_bObj_arr
+.IMPORT Ram_ActorPosX_i16_0_arr
 .IMPORT Ram_ActorPosY_i16_0_arr
 .IMPORT Ram_ActorPosY_i16_1_arr
 .IMPORT Ram_ActorState1_byte_arr
 .IMPORT Ram_ActorState2_byte_arr
 .IMPORT Ram_ActorState3_byte_arr
 .IMPORT Ram_ActorState4_byte_arr
+.IMPORT Ram_ActorSubX_u8_arr
+.IMPORT Ram_ActorSubY_u8_arr
 .IMPORT Ram_ActorVelX_i16_0_arr
 .IMPORT Ram_ActorVelX_i16_1_arr
 .IMPORT Ram_ActorVelY_i16_0_arr
@@ -192,11 +195,11 @@ _JumpFrames_u8_arr:
     .assert kAvatarGravity = 38, error
     .assert kBlockHeightPx = 16, error
     ;; round((v0 + sqrt(v0**2 + 2 * 38 * dy * 16 * 256)) / 38)
-    .byte    31,    36,    34,    35,    34,    36,    38,    42
+    .byte    31,    36,    34,    35,    34,    38,    42,    45
 _JumpVelY_i16_0_arr:
-    .byte <-850, <-800, <-650, <-550, <-400, <-350, <-300, <-300
+    .byte <-850, <-800, <-650, <-550, <-400, <-400, <-400, <-400
 _JumpVelY_i16_1_arr:
-    .byte >-850, >-800, >-650, >-550, >-400, >-350, >-300, >-300
+    .byte >-850, >-800, >-650, >-550, >-400, >-400, >-400, >-400
 .ENDPROC
 
 ;;; Makes a Gronta actor begin running towards the specified position.
@@ -306,13 +309,22 @@ _JumpVelY_i16_1_arr:
     jmp FuncA_Actor_SetVelXForward  ; preserves X
 .ENDPROC
 
-;;; Helper function for Gronta tick modes; zeroes her X-velocity and puts her
-;;; into Idle mode.
+;;; Helper function for Gronta tick modes; stops her on the center of her
+;;; current block and puts her into Idle mode.
 ;;; @param X The actor index.
 ;;; @preserve X
 .PROC FuncA_Actor_TickBadGronta_ReachedGoal
+    ;; Make Gronta idle.
     lda #eBadGronta::Idle
     sta Ram_ActorState1_byte_arr, x  ; current mode
+    ;; Adjust Gronta to be centered on her current block.
+    lda #0
+    sta Ram_ActorSubX_u8_arr, x
+    lda Ram_ActorPosX_i16_0_arr, x
+    .assert kBlockWidthPx = $10, error
+    and #$f0
+    ora #$08
+    sta Ram_ActorPosX_i16_0_arr, x
     jmp FuncA_Actor_ZeroVelX  ; preserves X
 .ENDPROC
 
@@ -335,7 +347,10 @@ _JumpVelY_i16_1_arr:
 ;;; @preserve X
 .PROC FuncA_Actor_TickBadGronta_ThrowCatch
     dec Ram_ActorState2_byte_arr, x  ; timer
-    beq FuncA_Actor_TickBadGronta_ReachedGoal
+    bne @done
+    lda #eBadGronta::Idle
+    sta Ram_ActorState1_byte_arr, x  ; current mode
+    @done:
     rts
 .ENDPROC
 
@@ -586,6 +601,8 @@ _CheckForFloor:
     jsr Func_PointHitsTerrain  ; preserves X, returns C
     bcc @noCollision
     ;; Move the orc upwards to be on top of the floor.
+    lda #0
+    sta Ram_ActorSubY_u8_arr
     lda Zp_PointY_i16 + 0
     and #$f0
     sub #kOrcBoundingBoxDown
