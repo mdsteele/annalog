@@ -49,6 +49,7 @@
 .IMPORT DataA_Cutscene_TempleEntryWaitUp_sCutscene
 .IMPORT DataA_Cutscene_TempleNaveAlexBoosting_sCutscene
 .IMPORT DataA_Cutscene_TownHouse2WakeUp_sCutscene
+.IMPORT DataA_Cutscene_TownHouse4BreakerLava_sCutscene
 .IMPORT DataA_Cutscene_TownOutdoorsGetCaught_sCutscene
 .IMPORT DataA_Cutscene_TownOutdoorsOrcAttack_sCutscene
 .IMPORT FuncA_Actor_TickAllActors
@@ -236,6 +237,8 @@ _Finish:
             DataA_Cutscene_TempleNaveAlexBoosting_sCutscene
     d_entry table, TownHouse2WakeUp, \
             DataA_Cutscene_TownHouse2WakeUp_sCutscene
+    d_entry table, TownHouse4BreakerLava, \
+            DataA_Cutscene_TownHouse4BreakerLava_sCutscene
     d_entry table, TownOutdoorsGetCaught, \
             DataA_Cutscene_TownOutdoorsGetCaught_sCutscene
     d_entry table, TownOutdoorsOrcAttack, \

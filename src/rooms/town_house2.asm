@@ -138,8 +138,27 @@ _Devices_sDevice_arr:
     rts
 .ENDPROC
 
-.EXPORT DataC_Town_TownHouse2Stela_sDialog
-.PROC DataC_Town_TownHouse2Stela_sDialog
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Cutscene"
+
+.EXPORT DataA_Cutscene_TownHouse2WakeUp_sCutscene
+.PROC DataA_Cutscene_TownHouse2WakeUp_sCutscene
+    act_WaitFrames 150
+    act_SetAvatarPose eAvatar::Slumping
+    act_WaitFrames 60
+    act_SetAvatarPose eAvatar::Kneeling
+    act_WaitFrames 15
+    act_SetAvatarVelY $ff00
+    act_ContinueExploring
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Dialog"
+
+.EXPORT DataA_Dialog_TownHouse2Stela_sDialog
+.PROC DataA_Dialog_TownHouse2Stela_sDialog
     dlg_Text AdultWoman, DataA_Text0_TownHouse2Stela_Page1_u8_arr
     dlg_Text AdultWoman, DataA_Text0_TownHouse2Stela_Page2_u8_arr
     dlg_Text AdultWoman, DataA_Text0_TownHouse2Stela_Page3_u8_arr
@@ -163,21 +182,6 @@ _Devices_sDevice_arr:
     .byte "I think he went$"
     .byte "outside somewhere. Why$"
     .byte "don't you go find him?#"
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Cutscene"
-
-.EXPORT DataA_Cutscene_TownHouse2WakeUp_sCutscene
-.PROC DataA_Cutscene_TownHouse2WakeUp_sCutscene
-    act_WaitFrames 150
-    act_SetAvatarPose eAvatar::Slumping
-    act_WaitFrames 60
-    act_SetAvatarPose eAvatar::Kneeling
-    act_WaitFrames 15
-    act_SetAvatarVelY $ff00
-    act_ContinueExploring
 .ENDPROC
 
 ;;;=========================================================================;;;

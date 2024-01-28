@@ -369,7 +369,7 @@ _Cutscene_eRoom_arr:
     d_byte Garden, eRoom::MermaidHut1
     d_byte Temple, eRoom::PrisonUpper
     d_byte Crypt,  eRoom::MermaidHut1
-    d_byte Lava,   eRoom::MermaidHut1  ; TODO
+    d_byte Lava,   eRoom::TownHouse4
     d_byte Mine,   eRoom::MermaidHut1  ; TODO
     d_byte City,   eRoom::MermaidHut1  ; TODO
     d_byte Shadow, eRoom::CoreLock
@@ -379,7 +379,7 @@ _Cutscene_eCutscene_arr:
     d_byte Garden, eCutscene::MermaidHut1BreakerGarden
     d_byte Temple, eCutscene::PrisonUpperBreakerTemple
     d_byte Crypt,  eCutscene::MermaidHut1BreakerCrypt
-    d_byte Lava,   eCutscene::SharedFadeBackToBreakerRoom  ; TODO
+    d_byte Lava,   eCutscene::TownHouse4BreakerLava
     d_byte Mine,   eCutscene::SharedFadeBackToBreakerRoom  ; TODO
     d_byte City,   eCutscene::SharedFadeBackToBreakerRoom  ; TODO
     d_byte Shadow, eCutscene::CoreLockBreakerShadow
@@ -411,7 +411,7 @@ _ScrollX_u16_0_arr:
     d_byte Garden, $00
     d_byte Temple, $d0
     d_byte Crypt,  $00
-    d_byte Lava,   $00  ; TODO
+    d_byte Lava,   $00
     d_byte Mine,   $00  ; TODO
     d_byte City,   $00  ; TODO
     d_byte Shadow, $10
@@ -421,7 +421,7 @@ _ScrollX_u16_1_arr:
     d_byte Garden, $00
     d_byte Temple, $00
     d_byte Crypt,  $00
-    d_byte Lava,   $00  ; TODO
+    d_byte Lava,   $00
     d_byte Mine,   $00  ; TODO
     d_byte City,   $00  ; TODO
     d_byte Shadow, $00

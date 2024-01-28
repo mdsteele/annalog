@@ -147,6 +147,9 @@ kDialogEntryDone = $ff  ; indicates end of dialog
     TownHouse1Nora
     TownHouse2Stela
     TownHouse3Smith
+    TownHouse4BreakerLava1
+    TownHouse4BreakerLava2
+    TownHouse4BreakerLava3
     TownHouse4Laura
     TownHouse4Martin
     TownHouse5Bruno

@@ -110,13 +110,16 @@
 .IMPORT DataA_Dialog_TempleNaveAlexBoost2_sDialog
 .IMPORT DataA_Dialog_TempleNaveAlexStand_sDialog
 .IMPORT DataA_Dialog_TownHouse1Nora_sDialog
+.IMPORT DataA_Dialog_TownHouse2Stela_sDialog
 .IMPORT DataA_Dialog_TownHouse3Smith_sDialog
+.IMPORT DataA_Dialog_TownHouse4BreakerLava1_sDialog
+.IMPORT DataA_Dialog_TownHouse4BreakerLava2_sDialog
+.IMPORT DataA_Dialog_TownHouse4BreakerLava3_sDialog
 .IMPORT DataA_Dialog_TownHouse4Laura_sDialog
 .IMPORT DataA_Dialog_TownHouse4Martin_sDialog
 .IMPORT DataA_Dialog_TownHouse5Bruno_sDialog
 .IMPORT DataA_Dialog_TownHouse5Marie_sDialog
 .IMPORT DataA_Dialog_TownHouse6Elder_sDialog
-.IMPORT DataC_Town_TownHouse2Stela_sDialog
 .IMPORT DataC_Town_TownOutdoorsAlex1_sDialog
 .IMPORT DataC_Town_TownOutdoorsAlex2_sDialog
 .IMPORT DataC_Town_TownOutdoorsAlex3_sDialog
@@ -496,8 +499,14 @@ _Finish:
     d_entry t, TempleNaveAlexBoost2, DataA_Dialog_TempleNaveAlexBoost2_sDialog
     d_entry t, TempleNaveAlexStand,  DataA_Dialog_TempleNaveAlexStand_sDialog
     d_entry t, TownHouse1Nora,       DataA_Dialog_TownHouse1Nora_sDialog
-    d_entry t, TownHouse2Stela,      DataC_Town_TownHouse2Stela_sDialog
+    d_entry t, TownHouse2Stela,      DataA_Dialog_TownHouse2Stela_sDialog
     d_entry t, TownHouse3Smith,      DataA_Dialog_TownHouse3Smith_sDialog
+    d_entry t, TownHouse4BreakerLava1, \
+            DataA_Dialog_TownHouse4BreakerLava1_sDialog
+    d_entry t, TownHouse4BreakerLava2, \
+            DataA_Dialog_TownHouse4BreakerLava2_sDialog
+    d_entry t, TownHouse4BreakerLava3, \
+            DataA_Dialog_TownHouse4BreakerLava3_sDialog
     d_entry t, TownHouse4Laura,      DataA_Dialog_TownHouse4Laura_sDialog
     d_entry t, TownHouse4Martin,     DataA_Dialog_TownHouse4Martin_sDialog
     d_entry t, TownHouse5Bruno,      DataA_Dialog_TownHouse5Bruno_sDialog

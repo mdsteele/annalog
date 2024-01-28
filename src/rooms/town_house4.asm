@@ -18,19 +18,39 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "../actor.inc"
+.INCLUDE "../actors/orc.inc"
 .INCLUDE "../actors/townsfolk.inc"
 .INCLUDE "../charmap.inc"
 .INCLUDE "../cpu.inc"
+.INCLUDE "../cutscene.inc"
 .INCLUDE "../device.inc"
 .INCLUDE "../dialog.inc"
 .INCLUDE "../macros.inc"
+.INCLUDE "../oam.inc"
 .INCLUDE "../platform.inc"
+.INCLUDE "../portrait.inc"
 .INCLUDE "../room.inc"
 
 .IMPORT DataA_Room_House_sTileset
 .IMPORT Data_Empty_sPlatform_arr
 .IMPORT Func_Noop
+.IMPORT Func_PlaySfxExplodeBig
+.IMPORT Main_Breaker_FadeBackToBreakerRoom
 .IMPORT Ppu_ChrObjTown
+.IMPORT Ram_ActorFlags_bObj_arr
+.IMPORT Ram_ActorPosX_i16_0_arr
+.IMPORT Ram_ActorState1_byte_arr
+.IMPORT Ram_ActorState2_byte_arr
+.IMPORT Ram_ActorType_eActor_arr
+.IMPORTZP Zp_Next_eCutscene
+
+;;;=========================================================================;;;
+
+;;; Actor indices for specific NPCs in this room.
+kLauraActorIndex  = 0
+kMartinActorIndex = 1
+kThurgActorIndex  = 2
+kHobokActorIndex  = 3
 
 ;;;=========================================================================;;;
 
@@ -57,7 +77,7 @@ _Ext_sRoomExt:
     d_addr Actors_sActor_arr_ptr, _Actors_sActor_arr
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
     d_addr Passages_sPassage_arr_ptr, 0
-    d_addr Enter_func_ptr, Func_Noop
+    d_addr Enter_func_ptr, FuncC_Town_House4_EnterRoom
     d_addr FadeIn_func_ptr, Func_Noop
     d_addr Tick_func_ptr, Func_Noop
     d_addr Draw_func_ptr, Func_Noop
@@ -66,17 +86,33 @@ _TerrainData:
 :   .incbin "out/rooms/town_house4.room"
     .assert * - :- = 16 * 15, error
 _Actors_sActor_arr:
-:   D_STRUCT sActor
+:   .assert * - :- = kLauraActorIndex * .sizeof(sActor), error
+    D_STRUCT sActor
     d_byte Type_eActor, eActor::NpcAdult
     d_word PosX_i16, $0050
     d_word PosY_i16, $00c8
     d_byte Param_byte, kTileIdAdultWomanFirst
     D_END
+    .assert * - :- = kMartinActorIndex * .sizeof(sActor), error
     D_STRUCT sActor
     d_byte Type_eActor, eActor::NpcAdult
     d_word PosX_i16, $00b0
     d_word PosY_i16, $00c8
     d_byte Param_byte, kTileIdAdultManFirst
+    D_END
+    .assert * - :- = kThurgActorIndex * .sizeof(sActor), error
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::NpcOrc
+    d_word PosX_i16, $0076
+    d_word PosY_i16, $00c8
+    d_byte Param_byte, eNpcOrc::GruntStanding
+    D_END
+    .assert * - :- = kHobokActorIndex * .sizeof(sActor), error
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::NpcOrc
+    d_word PosX_i16, $00a0
+    d_word PosY_i16, $00c8
+    d_byte Param_byte, eNpcOrc::GruntStanding
     D_END
     .assert * - :- <= kMaxActors * .sizeof(sActor), error
     .byte eActor::None
@@ -115,44 +151,198 @@ _Devices_sDevice_arr:
     .byte eDevice::None
 .ENDPROC
 
+.PROC FuncC_Town_House4_EnterRoom
+    ;; If the lava breaker cutscene is playing, initialize it.  Otherwise,
+    ;; remove the orc NPCs (which only appear in the cutscene).
+    lda Zp_Next_eCutscene
+    cmp #eCutscene::TownHouse4BreakerLava
+    bne @noCutscene
+    @initCutscene:
+    lda #$ff
+    sta Ram_ActorState2_byte_arr + kLauraActorIndex
+    sta Ram_ActorState2_byte_arr + kMartinActorIndex
+    sta Ram_ActorState2_byte_arr + kThurgActorIndex
+    sta Ram_ActorState2_byte_arr + kHobokActorIndex
+    lda #bObj::FlipH
+    sta Ram_ActorFlags_bObj_arr + kMartinActorIndex
+    sta Ram_ActorFlags_bObj_arr + kThurgActorIndex
+    sta Ram_ActorFlags_bObj_arr + kHobokActorIndex
+    lda #$c0
+    sta Ram_ActorPosX_i16_0_arr + kMartinActorIndex
+    rts
+    @noCutscene:
+    lda #eActor::None
+    sta Ram_ActorType_eActor_arr + kThurgActorIndex
+    sta Ram_ActorType_eActor_arr + kHobokActorIndex
+    rts
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Cutscene"
+
+.EXPORT DataA_Cutscene_TownHouse4BreakerLava_sCutscene
+.PROC DataA_Cutscene_TownHouse4BreakerLava_sCutscene
+    act_WaitFrames 30
+    act_WalkNpcOrc kThurgActorIndex, $0060
+    act_SetActorState1 kThurgActorIndex, eNpcOrc::GruntStanding
+    act_RunDialog eDialog::TownHouse4BreakerLava1
+    act_SetActorState1 kThurgActorIndex, eNpcOrc::GruntThrowing1
+    ;; TODO: play a sound for Thurg punching Laura
+    act_RepeatFunc 9, _LauraKnockback
+    ;; TODO: make Martin react
+    act_RunDialog eDialog::TownHouse4BreakerLava2
+    act_WaitFrames 60
+    act_CallFunc Func_PlaySfxExplodeBig
+    act_ShakeRoom 30
+    act_WaitFrames 60
+    act_SetActorFlags kThurgActorIndex, 0
+    act_WaitFrames 10
+    act_SetActorFlags kHobokActorIndex, 0
+    act_WaitFrames 10
+    act_SetActorFlags kThurgActorIndex, bObj::FlipH
+    act_WaitFrames 10
+    act_SetActorFlags kHobokActorIndex, bObj::FlipH
+    act_WaitFrames 70
+    act_SetActorFlags kThurgActorIndex, 0
+    act_WaitFrames 30
+    act_WalkNpcOrc kThurgActorIndex, $0070
+    act_SetActorState1 kThurgActorIndex, eNpcOrc::GruntStanding
+    act_WaitFrames 30
+    act_RunDialog eDialog::TownHouse4BreakerLava3
+    act_WalkNpcOrc kThurgActorIndex, $0088
+    act_CallFunc _RemoveThurg
+    act_WaitFrames 30
+    act_WalkNpcOrc kHobokActorIndex, $0050
+    act_SetActorState1 kHobokActorIndex, eNpcOrc::GruntStanding
+    act_WaitFrames 60
+    act_JumpToMain Main_Breaker_FadeBackToBreakerRoom
+_LauraKnockback:
+    lda Ram_ActorPosX_i16_0_arr + kLauraActorIndex
+    sub #3
+    sta Ram_ActorPosX_i16_0_arr + kLauraActorIndex
+    rts
+_RemoveThurg:
+    lda #eActor::None
+    sta Ram_ActorType_eActor_arr + kThurgActorIndex
+    rts
+.ENDPROC
+
 ;;;=========================================================================;;;
 
 .SEGMENT "PRGA_Dialog"
 
 .EXPORT DataA_Dialog_TownHouse4Laura_sDialog
 .PROC DataA_Dialog_TownHouse4Laura_sDialog
-    dlg_Text AdultWoman, DataA_Text0_TownHouse4Laura_Waiting1_u8_arr
-    dlg_Text AdultWoman, DataA_Text0_TownHouse4Laura_Waiting2_u8_arr
+    dlg_Text AdultWoman, DataA_Text2_TownHouse4Laura_Waiting1_u8_arr
+    dlg_Text AdultWoman, DataA_Text2_TownHouse4Laura_Waiting2_u8_arr
     dlg_Done
 .ENDPROC
 
 .EXPORT DataA_Dialog_TownHouse4Martin_sDialog
 .PROC DataA_Dialog_TownHouse4Martin_sDialog
-    dlg_Text AdultMan, DataA_Text0_TownHouse4Martin_u8_arr
+    dlg_Text AdultMan, DataA_Text2_TownHouse4Martin_u8_arr
+    dlg_Done
+.ENDPROC
+
+.EXPORT DataA_Dialog_TownHouse4BreakerLava1_sDialog
+.PROC DataA_Dialog_TownHouse4BreakerLava1_sDialog
+    .assert kTileIdBgPortraitOrcFirst = kTileIdBgPortraitWomanFirst, error
+    dlg_Text OrcMale, DataA_Text2_TownHouse4BreakerLava1_Part1_u8_arr
+    dlg_Text AdultWoman, DataA_Text2_TownHouse4BreakerLava1_Part2_u8_arr
+    dlg_Text OrcMale, DataA_Text2_TownHouse4BreakerLava1_Part3_u8_arr
+    dlg_Text AdultWoman, DataA_Text2_TownHouse4BreakerLava1_Part4_u8_arr
+    dlg_Done
+.ENDPROC
+
+.EXPORT DataA_Dialog_TownHouse4BreakerLava2_sDialog
+.PROC DataA_Dialog_TownHouse4BreakerLava2_sDialog
+    dlg_Text OrcMaleShout, DataA_Text2_TownHouse4BreakerLava2_Part1_u8_arr
+    dlg_Func _ThurgStandingFunc
+_ThurgStandingFunc:
+    lda #eNpcOrc::GruntStanding
+    sta Ram_ActorState1_byte_arr + kThurgActorIndex
+    ldya #_Part2_sDialog
+    rts
+_Part2_sDialog:
+    dlg_Text OrcMale, DataA_Text2_TownHouse4BreakerLava2_Part2_u8_arr
+    dlg_Done
+.ENDPROC
+
+.EXPORT DataA_Dialog_TownHouse4BreakerLava3_sDialog
+.PROC DataA_Dialog_TownHouse4BreakerLava3_sDialog
+    dlg_Text OrcMale, DataA_Text2_TownHouse4BreakerLava3_u8_arr
     dlg_Done
 .ENDPROC
 
 ;;;=========================================================================;;;
 
-.SEGMENT "PRGA_Text0"
+.SEGMENT "PRGA_Text2"
 
-.PROC DataA_Text0_TownHouse4Laura_Waiting1_u8_arr
+.PROC DataA_Text2_TownHouse4Laura_Waiting1_u8_arr
     .byte "Your Uncle Martin and$"
     .byte "I are waiting here for$"
     .byte "Elder Roman to meet$"
     .byte "with us.#"
 .ENDPROC
 
-.PROC DataA_Text0_TownHouse4Laura_Waiting2_u8_arr
+.PROC DataA_Text2_TownHouse4Laura_Waiting2_u8_arr
     .byte "I wonder what's taking$"
     .byte "him so long?#"
 .ENDPROC
 
-.PROC DataA_Text0_TownHouse4Martin_u8_arr
+.PROC DataA_Text2_TownHouse4Martin_u8_arr
     .byte "I hope Nora is taking$"
     .byte "good care of her baby$"
     .byte "sister Nina back at$"
     .byte "home...#"
+.ENDPROC
+
+.PROC DataA_Text2_TownHouse4BreakerLava1_Part1_u8_arr
+    .byte "I ask only one more$"
+    .byte "time: where is the$"
+    .byte "B-Remote?#"
+.ENDPROC
+
+.PROC DataA_Text2_TownHouse4BreakerLava1_Part2_u8_arr
+    .byte "What's a bee-re-moat?$"
+    .byte "I don't know what$"
+    .byte "you're talking about!#"
+.ENDPROC
+
+.PROC DataA_Text2_TownHouse4BreakerLava1_Part3_u8_arr
+    .byte "You cannot hide it$"
+    .byte "from me! We orcs WILL$"
+    .byte "take over control of$"
+    .byte "all your machines!#"
+.ENDPROC
+
+.PROC DataA_Text2_TownHouse4BreakerLava1_Part4_u8_arr
+    .byte "What machines? All we$"
+    .byte "humans have is farming$"
+    .byte "and smithing. The same$"
+    .byte "as you brutes!#"
+.ENDPROC
+
+.PROC DataA_Text2_TownHouse4BreakerLava2_Part1_u8_arr
+    .byte "How dare talk back to$"
+    .byte "me? I am Thurg, son of$"
+    .byte "Gurg! Lieutenent of$"
+    .byte "great Chief Gronta!#"
+.ENDPROC
+
+.PROC DataA_Text2_TownHouse4BreakerLava2_Part2_u8_arr
+    .byte "Humans aren't fit to$"
+    .byte "wield even their own$"
+    .byte "inventions. Now is OUR$"
+    .byte "turn to show you how.#"
+.ENDPROC
+
+.PROC DataA_Text2_TownHouse4BreakerLava3_u8_arr
+    .byte "Grunt Hobok! Continue$"
+    .byte "the interrogation. I$"
+    .byte "go now to report to$"
+    .byte "the Chief.#"
 .ENDPROC
 
 ;;;=========================================================================;;;

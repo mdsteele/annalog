@@ -60,6 +60,7 @@ kMaxForks = 4
     TempleEntryWaitUp
     TempleNaveAlexBoosting
     TownHouse2WakeUp
+    TownHouse4BreakerLava
     TownOutdoorsGetCaught
     TownOutdoorsOrcAttack
     NUM_VALUES
