@@ -38,7 +38,6 @@
 .INCLUDE "../scroll.inc"
 
 .IMPORT DataA_Room_Prison_sTileset
-.IMPORT FuncA_Dialog_JumpToCutscene
 .IMPORT FuncA_Objects_DrawStepstonePlatform
 .IMPORT FuncC_Prison_DrawGatePlatform
 .IMPORT FuncC_Prison_OpenGateAndFlipLever
@@ -584,29 +583,25 @@ _RemoveKids:
 .EXPORT DataA_Dialog_PrisonUpperAlexCell_sDialog
 .PROC DataA_Dialog_PrisonUpperAlexCell_sDialog
     dlg_Text ChildAlex, DataA_Text0_PrisonUpperAlexCell_Intro_u8_arr
-    dlg_Func _SetFlagFunc
-_SetFlagFunc:
+    dlg_Call _SetFlag
+    dlg_Text ChildAlex, DataA_Text0_PrisonUpperAlexCell_GetDoorOpen_u8_arr
+    dlg_Done
+_SetFlag:
     lda #ePlatform::Solid
     sta Ram_PlatformType_ePlatform_arr + kStepstonePlatformIndex
     ldx #eFlag::PrisonUpperFoundAlex  ; param: flag
-    jsr Func_SetFlag
-    ldya #_GetDoorOpen_sDialog
-    rts
-_GetDoorOpen_sDialog:
-    dlg_Text ChildAlex, DataA_Text0_PrisonUpperAlexCell_GetDoorOpen_u8_arr
-    dlg_Done
+    jmp Func_SetFlag
 .ENDPROC
 
 .EXPORT DataA_Dialog_PrisonUpperAlexFree_sDialog
 .PROC DataA_Dialog_PrisonUpperAlexFree_sDialog
     dlg_Text ChildAlex, DataA_Text0_PrisonUpperAlexFree_Part1_u8_arr
     dlg_Text ChildAlex, DataA_Text0_PrisonUpperAlexFree_Part2_u8_arr
-    dlg_Func _CutsceneFunc
-_CutsceneFunc:
+    dlg_Call _SetFlag
+    dlg_Cutscene eCutscene::PrisonUpperFreeKids
+_SetFlag:
     ldx #eFlag::PrisonUpperFreedKids  ; param: flag
-    jsr Func_SetFlag
-    ldx #eCutscene::PrisonUpperFreeKids  ; param: cutscene
-    jmp FuncA_Dialog_JumpToCutscene
+    jmp Func_SetFlag
 .ENDPROC
 
 .EXPORT DataA_Dialog_PrisonUpperAlexLast_sDialog
@@ -626,8 +621,8 @@ _CutsceneFunc:
 
 .EXPORT DataA_Dialog_PrisonUpperMarie_sDialog
 .PROC DataA_Dialog_PrisonUpperMarie_sDialog
-    dlg_Func _InitialFunc
-_InitialFunc:
+    dlg_Func @func
+    @func:
     flag_bit Sram_ProgressFlags_arr, eFlag::PrisonUpperFoundAlex
     bne @stepstone
     ldya #_GoTalkToAlex_sDialog

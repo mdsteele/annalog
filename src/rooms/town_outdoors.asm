@@ -37,9 +37,7 @@
 .INCLUDE "../room.inc"
 
 .IMPORT DataA_Room_Outdoors_sTileset
-.IMPORT Data_Empty_sDialog
 .IMPORT Data_Empty_sPlatform_arr
-.IMPORT FuncA_Dialog_JumpToCutscene
 .IMPORT Func_AckIrqAndLatchWindowFromParam4
 .IMPORT Func_AckIrqAndSetLatch
 .IMPORT Func_HarmAvatar
@@ -327,42 +325,41 @@ _DetectAvatarDeath:
 .EXPORT DataC_Town_TownOutdoorsAlex1_sDialog
 .PROC DataC_Town_TownOutdoorsAlex1_sDialog
     dlg_Text ChildAlex, DataA_Text0_TownOutdoorsAlex1_u8_arr
-    dlg_Func _CutsceneFunc
-_CutsceneFunc:
-    ldx #eCutscene::TownOutdoorsOrcAttack  ; param: cutscene
-    jmp FuncA_Dialog_JumpToCutscene
+    dlg_Cutscene eCutscene::TownOutdoorsOrcAttack
 .ENDPROC
 
 .EXPORT DataC_Town_TownOutdoorsAlex2_sDialog
 .PROC DataC_Town_TownOutdoorsAlex2_sDialog
     dlg_Text ChildAlex, DataA_Text0_TownOutdoorsAlex2_Part1_u8_arr
     dlg_Text ChildAlex, DataA_Text0_TownOutdoorsAlex2_Part2_u8_arr
-    dlg_Func _StandingFunc
-_StandingFunc:
-    lda #eNpcChild::AlexStanding
-    sta Ram_ActorState1_byte_arr + kAlexActorIndex
-    ldya #_IWonder_sDialog
-    rts
-_IWonder_sDialog:
+    dlg_Call _AlexStanding
     dlg_Text ChildAlex, DataA_Text0_TownOutdoorsAlex2_Part3_u8_arr
     dlg_Done
+_AlexStanding:
+    lda #eNpcChild::AlexStanding
+    sta Ram_ActorState1_byte_arr + kAlexActorIndex
+    rts
 .ENDPROC
 
 .EXPORT DataC_Town_TownOutdoorsAlex3_sDialog
 .PROC DataC_Town_TownOutdoorsAlex3_sDialog
+    .assert kTileIdBgPortraitGrontaFirst = kTileIdBgPortraitAlexFirst, error
     dlg_Text ChildAlex, DataA_Text0_TownOutdoorsAlex3_Explore1_u8_arr
     dlg_Text ChildAlex, DataA_Text0_TownOutdoorsAlex3_Explore2_u8_arr
-    dlg_Func _ScrollFunc
-_ScrollFunc:
-    ;; Scroll the orcs into view.
+    dlg_Call _ScrollOrcsIntoView
+    dlg_Text OrcGronta, DataA_Text0_TownOutdoorsAlex3_HandleThis_u8_arr
+    dlg_Call _TurnKidsAround
+    dlg_Text ChildAlex, DataA_Text0_TownOutdoorsAlex3_WhaWhat_u8_arr
+    dlg_Call _RaiseGrontaArms
+    dlg_Text OrcGrontaShout, DataA_Text0_TownOutdoorsAlex3_Attack1_u8_arr
+    dlg_Text ChildAlexShout, DataA_Text0_TownOutdoorsAlex3_Attack2_u8_arr
+    dlg_Call _MakeOrcGruntsJump
+    dlg_Done
+_ScrollOrcsIntoView:
     ldax #$0500
     stax Zp_ScrollGoalX_u16
-    ldya #_HandleThis_sDialog
     rts
-_HandleThis_sDialog:
-    dlg_Text OrcGronta, DataA_Text0_TownOutdoorsAlex3_HandleThis_u8_arr
-    dlg_Func _TurnAroundFunc
-_TurnAroundFunc:
+_TurnKidsAround:
     ;; Make Anna turn to face the orcs.
     lda #kPaletteObjAvatarNormal
     sta Zp_AvatarFlags_bObj
@@ -371,28 +368,16 @@ _TurnAroundFunc:
     sta Ram_ActorState1_byte_arr + kAlexActorIndex
     lda #0
     sta Ram_ActorFlags_bObj_arr + kAlexActorIndex
-    ldya #_WhaWhat_sDialog
     rts
-_WhaWhat_sDialog:
-    dlg_Text ChildAlex, DataA_Text0_TownOutdoorsAlex3_WhaWhat_u8_arr
-    dlg_Func _AttackFunc
-_AttackFunc:
+_RaiseGrontaArms:
     lda #eNpcOrc::GrontaArmsRaised
     sta Ram_ActorState1_byte_arr + kGrontaActorIndex
-    ldya #_Attack_sDialog
     rts
-_Attack_sDialog:
-    .assert kTileIdBgPortraitGrontaFirst = kTileIdBgPortraitAlexFirst, error
-    dlg_Text OrcGrontaShout, DataA_Text0_TownOutdoorsAlex3_Attack1_u8_arr
-    dlg_Text ChildAlexShout, DataA_Text0_TownOutdoorsAlex3_Attack2_u8_arr
-    dlg_Func _OrcJumpFunc
-_OrcJumpFunc:
-    ldx #kOrc1ActorIndex
-    jsr FuncC_Town_Outdoors_MakeOrcJump
+_MakeOrcGruntsJump:
     lda #30
     sta Zp_RoomState + sState::OrcJumpTimer_u8
-    ldya #Data_Empty_sDialog
-    rts
+    ldx #kOrc1ActorIndex
+    jmp FuncC_Town_Outdoors_MakeOrcJump
 .ENDPROC
 
 .EXPORT DataC_Town_TownOutdoorsGronta_sDialog

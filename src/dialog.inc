@@ -60,12 +60,15 @@
     NUM_VALUES
 .ENDENUM
 
-;;; Special constants used in place of an ePortrait value to indicate a "Func"
-;;; or "Done" sDialog entry.
-kDialogEntryFunc = $fe
-kDialogEntryDone = $ff  ; indicates end of dialog
-.ASSERT kDialogEntryFunc >= ePortrait::NUM_VALUES, error
-.ASSERT kDialogEntryDone >= ePortrait::NUM_VALUES, error
+;;; Special constants used in place of an ePortrait value for doing dialog
+;;; control flow.
+.ASSERT $fa >= ePortrait::NUM_VALUES, error
+kDialogEntryCall     = $fa  ; calls a function, then continues the sDialog
+kDialogEntryFunc     = $fb  ; calls a function that returns next sDialog in YA
+kDialogEntryGoto     = $fc  ; jumps to the specified sDialog
+kDialogEntryQuest    = $fd  ; adds a quest marker, then continues the sDialog
+kDialogEntryDone     = $fe  ; ends the dialog
+kDialogEntryCutscene = $ff  ; ends the dialog and starts a new cutscene
 
 ;;;=========================================================================;;;
 
@@ -187,15 +190,42 @@ kDialogTextYesNo   = $ff
     .byte (<.bank(LABEL) << 5) | ($1f & >LABEL)
 .ENDMACRO
 
+;;; Expands to a sDialog entry that calls a function before continuing.
+.MACRO dlg_Call LABEL
+    .assert LABEL >= $8000, error
+    .byte kDialogEntryCall
+    .addr LABEL
+.ENDMACRO
+
 ;;; Expands to a sDialog entry that calls a dynamic dialog function.
 .MACRO dlg_Func LABEL
+    .assert LABEL >= $8000, error
     .byte kDialogEntryFunc
     .addr LABEL
+.ENDMACRO
+
+;;; Expands to a sDialog entry that jumps to another sDialog entry.
+.MACRO dlg_Goto LABEL
+    .assert LABEL >= $8000, error
+    .byte kDialogEntryGoto
+    .addr LABEL
+.ENDMACRO
+
+;;; Expands to a sDialog entry that adds a quest marker before continuing.
+.MACRO dlg_Quest FLAG
+    .byte kDialogEntryQuest
+    .byte FLAG
 .ENDMACRO
 
 ;;; Expands to a sDialog entry indicating the end of the dialog.
 .MACRO dlg_Done
     .byte kDialogEntryDone
+.ENDMACRO
+
+;;; Expands to a sDialog entry that ends dialog and starts a new cutscene.
+.MACRO dlg_Cutscene CUTSCENE
+    .byte kDialogEntryCutscene
+    .byte CUTSCENE
 .ENDMACRO
 
 ;;;=========================================================================;;;

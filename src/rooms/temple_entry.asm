@@ -36,7 +36,6 @@
 .INCLUDE "../spawn.inc"
 
 .IMPORT DataA_Room_Temple_sTileset
-.IMPORT FuncA_Dialog_AddQuestMarker
 .IMPORT FuncC_Temple_DrawColumnPlatform
 .IMPORT Func_IsPointInPlatform
 .IMPORT Func_MovePlatformTopTowardPointY
@@ -413,22 +412,13 @@ _Question_sDialog:
 _NoAnswer_sDialog:
     dlg_Text MermaidCorra, DataA_Text2_TempleEntryCorra_No_u8_arr
     dlg_Text MermaidCorra, DataA_Text2_TempleEntryCorra_Taught_u8_arr
-    dlg_Func @func
-    @func:
-    ldya #_AlexAsked_sDialog
-    rts
+    dlg_Goto _AlexAsked_sDialog
 _YesAnswer_sDialog:
     dlg_Text MermaidCorra, DataA_Text2_TempleEntryCorra_Yes_u8_arr
     dlg_Text MermaidCorra, DataA_Text2_TempleEntryCorra_Whom_u8_arr
 _AlexAsked_sDialog:
     dlg_Text MermaidCorra, DataA_Text2_TempleEntryCorra_AlexAsked_u8_arr
-    dlg_Func @func
-    @func:
-    ldx #eFlag::TempleEntryTalkedToCorra  ; param: flag
-    jsr FuncA_Dialog_AddQuestMarker
-    ldya #_MarkMap_sDialog
-    rts
-_MarkMap_sDialog:
+    dlg_Quest eFlag::TempleEntryTalkedToCorra
     dlg_Text MermaidCorra, DataA_Text2_TempleEntryCorra_MarkMap_u8_arr
     dlg_Done
 .ENDPROC

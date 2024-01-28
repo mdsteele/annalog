@@ -127,7 +127,6 @@
 .IMPORT DataC_Town_TownOutdoorsIvan_sDialog
 .IMPORT DataC_Town_TownOutdoorsSandra_sDialog
 .IMPORT DataC_Town_TownOutdoorsSign_sDialog
-.IMPORT Data_Empty_sDialog
 .IMPORT FuncA_Dialog_PlaySfxQuestMarker
 .IMPORT FuncA_Objects_DrawObjectsForRoom
 .IMPORT FuncM_DrawObjectsForRoomAndProcessFrame
@@ -523,27 +522,6 @@ _Finish:
 .ENDREPEAT
 .LINECONT -
 
-;;; If the specified flag isn't already set to true, then sets it and plays the
-;;; sound effect for a newly-added quest marker.
-;;; @param X The eFlag value to set.
-.EXPORT FuncA_Dialog_AddQuestMarker
-.PROC FuncA_Dialog_AddQuestMarker
-    jsr Func_SetFlag  ; sets C if flag was already set
-    jcc FuncA_Dialog_PlaySfxQuestMarker
-    rts
-.ENDPROC
-
-;;; Jump to this from a dynamic dialog function to end dialog and begin the
-;;; specified cutscene.
-;;; @param X The eCutscene value for the cutscene to start.
-;;; @return YA The address of an empty sDialog struct.
-.EXPORT FuncA_Dialog_JumpToCutscene
-.PROC FuncA_Dialog_JumpToCutscene
-    stx Zp_Next_eCutscene
-    ldya #Data_Empty_sDialog
-    rts
-.ENDPROC
-
 ;;; The PPU transfer entry for setting nametable attributes for the dialog
 ;;; portrait.
 .PROC DataA_Dialog_PortraitAttrTransfer_arr
@@ -777,22 +755,53 @@ _ReadPortraitByte:
     cmp #kDialogEntryDone
     beq _DialogDone
     iny
-    cmp #kDialogEntryFunc
-    bne _SetPortrait
-_DynamicDialog:
+    cmp #kDialogEntryCutscene
+    beq _StartCutscene
+    cmp #kDialogEntryQuest
+    beq _AddQuestMarker
+    cmp #ePortrait::NUM_VALUES
+    blt _SetPortrait
+_DialogFunction:
+    tax  ; entry kind (kDialogEntryCall or kDialogEntryFunc)
     lda (Zp_Next_sDialog_ptr), y
     sta T0
     iny
     lda (Zp_Next_sDialog_ptr), y
     sta T1
+    iny
+    cpx #kDialogEntryGoto
+    beq @entryGoto
+    cpx #kDialogEntryFunc
+    beq @entryFunc
+    @entryCall:
+    jsr _UpdateDialogPointer
+    jsr _CallT1T0
+    jmp _ReadPortraitByte
+    @entryGoto:
+    ldya T1T0
+    bmi @setNext  ; unconditional (enforced by dlg_Goto macro)
+    @entryFunc:
     jsr _CallT1T0  ; returns YA
+    @setNext:
     stya Zp_Next_sDialog_ptr
     jmp _ReadPortraitByte
 _CallT1T0:
     jmp (T1T0)
+_StartCutscene:
+    lda (Zp_Next_sDialog_ptr), y
+    sta Zp_Next_eCutscene
 _DialogDone:
     sec  ; dialog done
     rts
+_AddQuestMarker:
+    lda (Zp_Next_sDialog_ptr), y
+    tax  ; eFlag value for quest marker
+    iny
+    jsr _UpdateDialogPointer  ; preserves X
+    jsr Func_SetFlag  ; sets C if flag was already set
+    bcs _ReadPortraitByte
+    jsr FuncA_Dialog_PlaySfxQuestMarker
+    jmp _ReadPortraitByte
 _SetPortrait:
     sta Zp_Current_ePortrait
     tax  ; ePortrait value

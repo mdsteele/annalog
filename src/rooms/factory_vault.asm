@@ -29,7 +29,6 @@
 .INCLUDE "../room.inc"
 
 .IMPORT DataA_Room_Factory_sTileset
-.IMPORT FuncA_Dialog_AddQuestMarker
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrObjVillage
 .IMPORT Ram_ActorType_eActor_arr
@@ -162,23 +161,21 @@ _Passages_sPassage_arr:
 
 .EXPORT DataA_Dialog_FactoryVaultAlex_sDialog
 .PROC DataA_Dialog_FactoryVaultAlex_sDialog
-    dlg_Func _InitFunc
-_InitFunc:
+    dlg_Func @func
+    @func:
     flag_bit Sram_ProgressFlags_arr, eFlag::FactoryVaultTalkedToAlex
-    bne _MeetAtHotSpringFunc
+    bne @meetAtHotSpring
     ldya #_WhatDidYouFindOut_sDialog
+    rts
+    @meetAtHotSpring:
+    ldya #_MeetAtHotSpring_sDialog
     rts
 _WhatDidYouFindOut_sDialog:
     dlg_Text ChildAlex, DataA_Text0_FactoryVaultAlex_Part1_u8_arr
     dlg_Text ChildAlex, DataA_Text0_FactoryVaultAlex_Part2_u8_arr
     dlg_Text ChildAlex, DataA_Text0_FactoryVaultAlex_Part3_u8_arr
     dlg_Text ChildAlex, DataA_Text0_FactoryVaultAlex_Part4_u8_arr
-    dlg_Func _MeetAtHotSpringFunc
-_MeetAtHotSpringFunc:
-    ldx #eFlag::FactoryVaultTalkedToAlex  ; param: flag
-    jsr FuncA_Dialog_AddQuestMarker
-    ldya #_MeetAtHotSpring_sDialog
-    rts
+    dlg_Quest eFlag::FactoryVaultTalkedToAlex
 _MeetAtHotSpring_sDialog:
     dlg_Text ChildAlex, DataA_Text0_FactoryVaultAlex_Part5_u8_arr
     dlg_Done

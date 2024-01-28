@@ -31,8 +31,6 @@
 .INCLUDE "../room.inc"
 
 .IMPORT DataA_Room_Mermaid_sTileset
-.IMPORT FuncA_Dialog_AddQuestMarker
-.IMPORT FuncA_Dialog_JumpToCutscene
 .IMPORT Func_Noop
 .IMPORT Func_SetFlag
 .IMPORT Ppu_ChrObjVillage
@@ -391,18 +389,9 @@ _RemoveAlex:
     dlg_Text ChildAlex, DataA_Text1_MermaidVillageAlex_Part2_u8_arr
     dlg_Text ChildAlex, DataA_Text1_MermaidVillageAlex_Part3_u8_arr
     dlg_Text ChildAlex, DataA_Text1_MermaidVillageAlex_Part4_u8_arr
-    dlg_Func _AddQuestMarker
-_AddQuestMarker:
-    ldx #eFlag::TempleNaveAlexWaiting  ; param: flag
-    jsr FuncA_Dialog_AddQuestMarker
-    ldya #_Finish_sDialog
-    rts
-_Finish_sDialog:
+    dlg_Quest eFlag::TempleNaveAlexWaiting
     dlg_Text ChildAlex, DataA_Text1_MermaidVillageAlex_Part5_u8_arr
-    dlg_Func _StartCutscene
-_StartCutscene:
-    ldx #eCutscene::MermaidVillageAlexLeave  ; param: cutscene
-    jmp FuncA_Dialog_JumpToCutscene
+    dlg_Cutscene eCutscene::MermaidVillageAlexLeave
 .ENDPROC
 
 .EXPORT DataA_Dialog_MermaidVillageGuard_sDialog
@@ -456,13 +445,7 @@ _NeedHelp_sDialog:
     dlg_Text MermaidFarmer, DataA_Text1_MermaidVillageFarmer_NeedHelp_u8_arr
 _Monster_sDialog:
     dlg_Text MermaidFarmer, DataA_Text1_MermaidVillageFarmer_Monster_u8_arr
-    dlg_Func _OpenTheWayFunc
-_OpenTheWayFunc:
-    ldx #eFlag::GardenTowerCratesPlaced  ; param: flag
-    jsr FuncA_Dialog_AddQuestMarker
-    ldya #_OpenTheWay_sDialog
-    rts
-_OpenTheWay_sDialog:
+    dlg_Quest eFlag::GardenTowerCratesPlaced
     dlg_Text MermaidFarmer, DataA_Text1_MermaidVillageFarmer_OpenTheWay_u8_arr
     dlg_Done
 _ThankYou_sDialog:

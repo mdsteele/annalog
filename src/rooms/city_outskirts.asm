@@ -36,8 +36,6 @@
 .INCLUDE "../room.inc"
 
 .IMPORT DataA_Room_City_sTileset
-.IMPORT FuncA_Dialog_AddQuestMarker
-.IMPORT FuncA_Dialog_JumpToCutscene
 .IMPORT FuncA_Machine_Error
 .IMPORT FuncA_Machine_GenericMoveTowardGoalVert
 .IMPORT FuncA_Machine_GenericTryMoveY
@@ -362,19 +360,19 @@ _Look_sCutscene:
 
 .EXPORT DataA_Dialog_CityOutskirtsAlex1_sDialog
 .PROC DataA_Dialog_CityOutskirtsAlex1_sDialog
-    dlg_Func _InitFunc
-_InitFunc:
+    dlg_Func @func
+    @func:
     flag_bit Sram_ProgressFlags_arr, eFlag::CityOutskirtsTalkedToAlex
-    bne FuncA_Dialog_CityOutskirtsMeetAtHotSpring
+    bne @meetAtHotSpring
     ldya #_YouMadeIt_sDialog
+    rts
+    @meetAtHotSpring:
+    ldya #DataA_Dialog_CityOutskirtsMeetAtHotSpring_sDialog
     rts
 _YouMadeIt_sDialog:
     dlg_Text ChildAlex, DataA_Text1_CityOutskirtsAlex_Part1_u8_arr
     dlg_Text ChildAlex, DataA_Text1_CityOutskirtsAlex_Part2_u8_arr
-    dlg_Func _CutsceneFunc
-_CutsceneFunc:
-    ldx #eCutscene::CityOutskirtsLook  ; param: cutscene
-    jmp FuncA_Dialog_JumpToCutscene
+    dlg_Cutscene eCutscene::CityOutskirtsLook
 .ENDPROC
 
 .EXPORT DataA_Dialog_CityOutskirtsAlex2_sDialog
@@ -382,19 +380,12 @@ _CutsceneFunc:
     dlg_Text ChildAlex, DataA_Text1_CityOutskirtsAlex_Part3_u8_arr
     dlg_Text ChildAlex, DataA_Text1_CityOutskirtsAlex_Part4_u8_arr
     dlg_Text ChildAlex, DataA_Text1_CityOutskirtsAlex_Part5_u8_arr
-    dlg_Func FuncA_Dialog_CityOutskirtsAddQuestMarkerAndMeetAtHotSpring
-.ENDPROC
-
-.PROC FuncA_Dialog_CityOutskirtsAddQuestMarkerAndMeetAtHotSpring
+    dlg_Call _MakeAlexFaceAnna
+    dlg_Quest eFlag::CityOutskirtsTalkedToAlex
+    dlg_Goto DataA_Dialog_CityOutskirtsMeetAtHotSpring_sDialog
+_MakeAlexFaceAnna:
     lda #$00
     sta Ram_ActorState2_byte_arr + kAlexActorIndex
-    ldx #eFlag::CityOutskirtsTalkedToAlex  ; param: flag
-    jsr FuncA_Dialog_AddQuestMarker
-    .assert * = FuncA_Dialog_CityOutskirtsMeetAtHotSpring, error, "fallthrough"
-.ENDPROC
-
-.PROC FuncA_Dialog_CityOutskirtsMeetAtHotSpring
-    ldya #DataA_Dialog_CityOutskirtsMeetAtHotSpring_sDialog
     rts
 .ENDPROC
 

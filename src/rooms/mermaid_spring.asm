@@ -39,7 +39,6 @@
 .INCLUDE "../scroll.inc"
 
 .IMPORT DataA_Room_Mermaid_sTileset
-.IMPORT FuncA_Dialog_JumpToCutscene
 .IMPORT FuncA_Machine_Error
 .IMPORT FuncA_Machine_GenericTryMoveY
 .IMPORT FuncA_Machine_PumpTick
@@ -528,8 +527,8 @@ _FixConsole:
 
 .EXPORT DataA_Dialog_MermaidSpringAlex1_sDialog
 .PROC DataA_Dialog_MermaidSpringAlex1_sDialog
-    dlg_Func _InitFunc
-_InitFunc:
+    dlg_Func @func
+    @func:
     flag_bit Sram_ProgressFlags_arr, eFlag::MermaidSpringConsoleFixed
     bne @outro
     @intro:
@@ -543,10 +542,7 @@ _Intro_sDialog:
     dlg_Text ChildAlex, DataA_Text0_MermaidSpringAlex1_Part2_u8_arr
     dlg_Text ChildAlex, DataA_Text0_MermaidSpringAlex1_Part3_u8_arr
     dlg_Text ChildAlex, DataA_Text0_MermaidSpringAlex1_Part4_u8_arr
-    dlg_Func _CutsceneFunc
-_CutsceneFunc:
-    ldx #eCutscene::MermaidSpringFixConsole  ; param: cutscene
-    jmp FuncA_Dialog_JumpToCutscene
+    dlg_Cutscene eCutscene::MermaidSpringFixConsole
 .ENDPROC
 
 .EXPORT DataA_Dialog_MermaidSpringAlex2_sDialog

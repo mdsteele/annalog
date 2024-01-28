@@ -36,7 +36,6 @@
 .INCLUDE "../room.inc"
 
 .IMPORT DataA_Room_Temple_sTileset
-.IMPORT FuncA_Dialog_JumpToCutscene
 .IMPORT FuncA_Machine_CarriageTryMove
 .IMPORT FuncA_Machine_Error
 .IMPORT FuncA_Machine_GenericMoveTowardGoalHorz
@@ -697,10 +696,7 @@ _SetUpBoostingPlatform:
     dlg_Text ChildAlex, DataA_Text0_TempleNaveAlexStand_Part1_u8_arr
     dlg_Text ChildAlex, DataA_Text0_TempleNaveAlexStand_Part2_u8_arr
     dlg_Text ChildAlex, DataA_Text0_TempleNaveAlexStand_Part3_u8_arr
-    dlg_Func _CutsceneFunc
-_CutsceneFunc:
-    ldx #eCutscene::TempleNaveAlexBoosting  ; param: cutscene
-    jmp FuncA_Dialog_JumpToCutscene
+    dlg_Cutscene eCutscene::TempleNaveAlexBoosting
 .ENDPROC
 
 .EXPORT DataA_Dialog_TempleNaveAlexBoost1_sDialog

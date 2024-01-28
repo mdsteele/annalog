@@ -33,7 +33,6 @@
 .INCLUDE "../room.inc"
 
 .IMPORT DataA_Room_Hut_sTileset
-.IMPORT FuncA_Dialog_AddQuestMarker
 .IMPORT Func_Noop
 .IMPORT Func_PlaySfxExplodeBig
 .IMPORT Func_SetFlag
@@ -322,18 +321,11 @@ _Quest3Func:
 _FirstMeeting_sDialog:
     dlg_Text MermaidEirene, DataA_Text2_MermaidHut1Queen_FirstMeeting1_u8_arr
     dlg_Text MermaidEirene, DataA_Text2_MermaidHut1Queen_FirstMeeting2_u8_arr
-    ;; TODO: use a dialog function to fade to black and back
     dlg_Text MermaidEirene, DataA_Text2_MermaidHut1Queen_FirstMeeting3_u8_arr
     dlg_Text MermaidEirene, DataA_Text2_MermaidHut1Queen_FirstMeeting4_u8_arr
 _GrantAsylum_sDialog:
     dlg_Text MermaidEirene, DataA_Text2_MermaidHut1Queen_GrantAsylum_u8_arr
-    dlg_Func _HelpFramersFunc
-_HelpFramersFunc:
-    ldx #eFlag::MermaidHut1MetQueen  ; param: flag
-    jsr FuncA_Dialog_AddQuestMarker
-    ldya #_HelpFarmers_sDialog
-    rts
-_HelpFarmers_sDialog:
+    dlg_Quest eFlag::MermaidHut1MetQueen
     dlg_Text MermaidEirene, DataA_Text2_MermaidHut1Queen_HelpFarmers_u8_arr
     dlg_Done
 _GardenBossDead_sDialog:
@@ -341,13 +333,7 @@ _GardenBossDead_sDialog:
     dlg_Text MermaidEirene, DataA_Text2_MermaidHut1Queen_GardenBossDead2_u8_arr
 _TempleProblem_sDialog:
     dlg_Text MermaidEirene, DataA_Text2_MermaidHut1Queen_TempleProblem_u8_arr
-    dlg_Func _TempleEntryFunc
-_TempleEntryFunc:
-    ldx #eFlag::TempleEntryPermission  ; param: flag
-    jsr FuncA_Dialog_AddQuestMarker
-    ldya #_TempleEntry_sDialog
-    rts
-_TempleEntry_sDialog:
+    dlg_Quest eFlag::TempleEntryPermission
     dlg_Text MermaidEirene, DataA_Text2_MermaidHut1Queen_TempleEntry_u8_arr
     dlg_Done
 _TempleBossDead_sDialog:
@@ -358,13 +344,7 @@ _TempleBossDead_sDialog:
     dlg_Text MermaidEirene, DataA_Text2_MermaidHut1Queen_TempleBossDead5_u8_arr
 _OtherRuins_sDialog:
     dlg_Text MermaidEirene, DataA_Text2_MermaidHut1Queen_OtherRuins_u8_arr
-    dlg_Func _FindYourFriendsFunc
-_FindYourFriendsFunc:
-    ldx #eFlag::CoreSouthCorraWaiting  ; param: flag
-    jsr FuncA_Dialog_AddQuestMarker
-    ldya #_FindYourFriends_sDialog
-    rts
-_FindYourFriends_sDialog:
+    dlg_Quest eFlag::CoreSouthCorraWaiting
     dlg_Text MermaidEirene, DataA_Text2_MermaidHut1Queen_FindYourFriends_u8_arr
     dlg_Done
 _KidsRescued_sDialog:

@@ -35,7 +35,6 @@
 .INCLUDE "../room.inc"
 
 .IMPORT DataA_Room_Garden_sTileset
-.IMPORT FuncA_Dialog_AddQuestMarker
 .IMPORT FuncA_Machine_BridgeTick
 .IMPORT FuncA_Machine_BridgeTryMove
 .IMPORT FuncA_Machine_CannonTick
@@ -466,8 +465,8 @@ _Done:
 
 .EXPORT DataA_Dialog_GardenEastCorra_sDialog
 .PROC DataA_Dialog_GardenEastCorra_sDialog
-    dlg_Func _InitialFunc
-_InitialFunc:
+    dlg_Func @func
+    @func:
     flag_bit Sram_ProgressFlags_arr, eFlag::GardenEastTalkedToCorra
     bne @alreadyTalked
     ldya #_Question_sDialog
@@ -477,8 +476,8 @@ _InitialFunc:
     rts
 _Question_sDialog:
     dlg_Text MermaidCorra, DataA_Text0_GardenEastCorra_Question_u8_arr
-    dlg_Func _QuestionFunc
-_QuestionFunc:
+    dlg_Func @func
+    @func:
     bit Zp_DialogAnsweredYes_bool
     bmi @yes
     @no:
@@ -493,13 +492,7 @@ _YesAnswer_sDialog:
     dlg_Text MermaidCorra, DataA_Text0_GardenEastCorra_Yes_u8_arr
 _Later_sDialog:
     dlg_Text MermaidCorra, DataA_Text0_GardenEastCorra_MeetQueen_u8_arr
-    dlg_Func _SetFlagFunc
-_SetFlagFunc:
-    ldx #eFlag::GardenEastTalkedToCorra  ; param: flag
-    jsr FuncA_Dialog_AddQuestMarker
-    ldya #_MarkMap_sDialog
-    rts
-_MarkMap_sDialog:
+    dlg_Quest eFlag::GardenEastTalkedToCorra
     dlg_Text MermaidCorra, DataA_Text0_GardenEastCorra_MarkMap_u8_arr
     dlg_Done
 .ENDPROC

@@ -258,15 +258,13 @@ _RemoveThurg:
 .EXPORT DataA_Dialog_TownHouse4BreakerLava2_sDialog
 .PROC DataA_Dialog_TownHouse4BreakerLava2_sDialog
     dlg_Text OrcMaleShout, DataA_Text2_TownHouse4BreakerLava2_Part1_u8_arr
-    dlg_Func _ThurgStandingFunc
-_ThurgStandingFunc:
-    lda #eNpcOrc::GruntStanding
-    sta Ram_ActorState1_byte_arr + kThurgActorIndex
-    ldya #_Part2_sDialog
-    rts
-_Part2_sDialog:
+    dlg_Call _ThurgStanding
     dlg_Text OrcMale, DataA_Text2_TownHouse4BreakerLava2_Part2_u8_arr
     dlg_Done
+_ThurgStanding:
+    lda #eNpcOrc::GruntStanding
+    sta Ram_ActorState1_byte_arr + kThurgActorIndex
+    rts
 .ENDPROC
 
 .EXPORT DataA_Dialog_TownHouse4BreakerLava3_sDialog

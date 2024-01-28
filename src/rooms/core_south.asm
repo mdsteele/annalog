@@ -31,7 +31,6 @@
 .INCLUDE "../room.inc"
 
 .IMPORT DataA_Room_Core_sTileset
-.IMPORT FuncA_Dialog_JumpToCutscene
 .IMPORT FuncA_Objects_Draw1x1Shape
 .IMPORT FuncA_Objects_DrawCratePlatform
 .IMPORT FuncA_Objects_MoveShapeDownByA
@@ -469,24 +468,21 @@ _AnimateSwimmingUpFunc:
 
 .EXPORT DataA_Dialog_CoreSouthCorra1_sDialog
 .PROC DataA_Dialog_CoreSouthCorra1_sDialog
-    dlg_Func _CheckIfHelpedFunc
-_CheckIfHelpedFunc:
+    dlg_Func @func
+    @func:
     flag_bit Sram_ProgressFlags_arr, eFlag::CoreSouthCorraHelped
-    beq _HelloAgainFunc
-_AlreadyHelpedFunc:
+    beq @helloAgain
+    @alreadyHelped:
     ldya #DataA_Dialog_CoreSouthCorra2_sDialog
     rts
-_HelloAgainFunc:
+    @helloAgain:
     ldya #_HelloAgain_sDialog
     rts
 _HelloAgain_sDialog:
     dlg_Text MermaidCorra, DataA_Text0_CoreSouthCorra1_HelloAgain1_u8_arr
     dlg_Text MermaidCorra, DataA_Text0_CoreSouthCorra1_HelloAgain2_u8_arr
     dlg_Text MermaidCorra, DataA_Text0_CoreSouthCorra1_HelloAgain3_u8_arr
-    dlg_Func _HelpFunc
-_HelpFunc:
-    ldx #eCutscene::CoreSouthCorraHelping  ; param: cutscene
-    jmp FuncA_Dialog_JumpToCutscene
+    dlg_Cutscene eCutscene::CoreSouthCorraHelping
 .ENDPROC
 
 .EXPORT DataA_Dialog_CoreSouthCorra2_sDialog
