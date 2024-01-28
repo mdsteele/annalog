@@ -37,14 +37,14 @@
 
 ;;; Each note in a phrase is one or more bytes, using the following encoding:
 ;;;   * DONE (1 byte) [%00000000].  This marks the end of the phrase.
-;;;   * REST (1 byte) [%0xxxxxxx].  Silences this channel for 1 + %0xxxxxxx
-;;;     frames (0-127).  Multiple REST notes in a row can be used to silence
-;;;     the channel for longer durations.
-;;;   * INST (2 bytes) [%10xxxxxx %yyyyyyyy].  Sets this channel to use the
+;;;   * REST (1 byte) [%00xxxxxx].  Silences this channel for %00xxxxxx frames
+;;;     (1-63).  Multiple REST notes in a row can be used to silence the
+;;;     channel for longer durations.
+;;;   * INST (2 bytes) [%01xxxxxx %yyyyyyyy].  Sets this channel to use the
 ;;;     instrument with eInst value %00xxxxxx (0-63), and sets %yyyyyyyy as the
 ;;;     instrument-specific parameter byte.  The chosen instrument will persist
 ;;;     across phrases and parts, until the next INST note is executed.
-;;;   * TONE (3 bytes) [%11qqqwww %xxxxyyyy %zzzzzzzz].  Plays a sound for
+;;;   * TONE (3 bytes) [%10qqqwww %xxxxyyyy %zzzzzzzz].  Plays a sound for
 ;;;     %zzzzzzzz frames (1-255), with attributes depending on the channel:
 ;;;       * On the pulse and triangle channels, the tone will have a frequency
 ;;;         value of %00000www.xxxxyyyy (0-2047), and the %qqq bits must be 0.
@@ -55,12 +55,16 @@
 ;;;         and has a length of %000000qq.qwww0001 bytes.
 ;;;     Other characteristics of the sound (such as volume, duty cycle, and/or
 ;;;     sample rate) will be controlled by the current instrument.
+;;;   * SAME (2 bytes) [%11qqqwww %xxxxyyyy].  Like TONE, but reuses the
+;;;     previous duration value on this channel (from the most recent TONE or
+;;;     REST note).
 .SCOPE bNote
-    NotRest  = %10000000  ; this bit is set for all notes other than REST/DONE
-    RestMask = %01111111  ; mask for duration of a REST note
-    IsTone   = %01000000  ; on non-REST notes, this bit is set only for TONE
-    InstMask = %00111111  ; mask for instrument number of an INST note
-    ToneMask = %00111111  ; mask for data for first byte of a TONE note
+    IsToneOrSame = %10000000  ; this bit is set only for TONE/SAME notes
+    IsInst       = %01000000  ; if set (and IsTone clear), this is an INST note
+    IsSame       = %01000000  ; if set (and IsTone set), this is a SAME note
+    RestMask     = %00111111  ; mask for duration of a REST note
+    InstMask     = %00111111  ; mask for instrument number of an INST note
+    ToneSameMask = %00111111  ; data mask for first byte of a TONE/SAME note
 .ENDSCOPE
 
 ;;; A variable-length sequence of notes, terminated by a $00 byte (i.e. a DONE

@@ -40,6 +40,7 @@
 #define MAX_QUOTED_STRING_CHARS 80
 #define MAX_REPEAT_COUNT 127
 #define MIN_REPEAT_COUNT 2
+#define MAX_REST_FRAMES 63
 #define MAX_SONGS_PER_FILE 20
 
 // Pitch number (in half steps above c0) and frequency (in Hz) of a4:
@@ -518,7 +519,8 @@ static void change_instrument(void) {
 // very long, this may produce multiple separate rest notes.
 static void emit_rest(int num_frames) {
   while (num_frames > 0) {
-    unsigned char duration = num_frames > 127 ? 127 : num_frames;
+    unsigned char duration =
+      num_frames > MAX_REST_FRAMES ? MAX_REST_FRAMES : num_frames;
     sng_note_t *note = new_note();
     note->kind = NT_REST;
     note->duration = duration;
@@ -1196,30 +1198,50 @@ static void write_separator(void) {
 static int write_notes(const sng_phrase_t *phrase) {
   int num_bytes = 0;
   assert(phrase->num_notes > 0);
+  unsigned char prev_duration = 0;
   for (int n = 0; n < phrase->num_notes; ++n) {
     const sng_note_t *note = &phrase->notes[n];
     switch (note->kind) {
       case NT_REST: {
+        assert(note->duration > 0);
+        assert(note->duration <= MAX_REST_FRAMES);
         num_bytes += 1;
-        assert(note->duration <= 127);
         fprintf(stdout, "    .byte $%02x            ; REST %d\n",
                 note->duration, note->duration);
+        prev_duration = note->duration;
       } break;
       case NT_INST: {
         num_bytes += 2;
-        fprintf(stdout, "    .byte $80 | eInst::%s, $%02x\n",
+        fprintf(stdout, "    .byte $40 | eInst::%s, $%02x\n",
                 note->id, note->param);
       } break;
       case NT_TONE: {
-        num_bytes += 3;
-        fprintf(stdout, "    .byte $%02x, $%02x, $%02x  ; TONE %d, %d\n",
-                0xc0 | (note->param >> 8), note->param & 0xff,
-                note->duration, note->param, note->duration);
+        assert(note->duration > 0);
+        if (note->duration == prev_duration) {
+          num_bytes += 2;
+          fprintf(stdout, "    .byte $%02x, $%02x       ; SAME %d (%d)\n",
+                  0xc0 | (note->param >> 8), note->param & 0xff,
+                  note->param, prev_duration);
+        } else {
+          num_bytes += 3;
+          fprintf(stdout, "    .byte $%02x, $%02x, $%02x  ; TONE %d, %d\n",
+                  0x80 | (note->param >> 8), note->param & 0xff,
+                  note->duration, note->param, note->duration);
+          prev_duration = note->duration;
+        }
       } break;
       case NT_DPCM: {
-        num_bytes += 3;
-        fprintf(stdout, "    .byte $%02x, <(%s >> 6), $%02x\n",
-                0xc0 | (note->param & 0xff), note->id, note->duration);
+        assert(note->duration > 0);
+        if (note->duration == prev_duration) {
+          num_bytes += 2;
+          fprintf(stdout, "    .byte $%02x, <(%s >> 6)\n",
+                  0x80 | (note->param & 0xff), note->id);
+        } else {
+          num_bytes += 3;
+          fprintf(stdout, "    .byte $%02x, <(%s >> 6), $%02x\n",
+                  0x80 | (note->param & 0xff), note->id, note->duration);
+          prev_duration = note->duration;
+        }
       } break;
     }
   }

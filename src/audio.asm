@@ -515,15 +515,13 @@ _StartNextNote:
     @incDone:
     ;; Determine what kind of note this is.
     bit Zp_AudioTmp1_byte  ; first note byte
-    .assert bNote::NotRest = bProc::Negative, error
-    bpl _NoteRest
-    .assert bNote::IsTone = bProc::Overflow, error
-    bvc _NoteInst
-_NoteTone:
+    .assert bNote::IsToneOrSame = bProc::Negative, error
+    bpl _NoteInstOrRest
+_NoteToneOrSame:
     ;; If this channel is playing SFX, skip this tone.
     lda Ram_Sound_sChanSfx_arr + sChanSfx::Sfx_eSound, x
     .assert eSound::None = 0, error
-    bne _SkipTone
+    bne _SkipToneOrSame
     sta Ram_Music_sChanNote_arr + sChanNote::ElapsedFrames_u8, x  ; A is zero
     ;; For non-DMC channels, we need to enable the channel *before* writing the
     ;; registers (because otherwise the writes won't take effect), and we want
@@ -540,26 +538,33 @@ _NoteTone:
     lda #0
     @setSweep:
     sta Hw_Channels_sChanRegs_arr5 + sChanRegs::Sweep_wo, x
-    ;; Read the second byte of the TONE note and use it as the TimerLo value.
+    ;; Read the second byte of the TONE/SAME note and use it as the TimerLo
+    ;; value.
     lda (Zp_Music_sChanNext_arr + sChanNext::PhraseNext_ptr, x)
     sta Ram_Music_sChanNote_arr + sChanNote::TimerLo_byte, x
     sta Hw_Channels_sChanRegs_arr5 + sChanRegs::TimerLo_wo, x
-    ;; Mask the first byte of the TONE note and use it as the TimerHi value.
+    ;; Mask the first byte of the TONE/SAME note and use it as the TimerHi
+    ;; value.
     lda Zp_AudioTmp1_byte  ; first note byte
-    and #bNote::ToneMask
+    and #bNote::ToneSameMask
     sta Ram_Music_sChanNote_arr + sChanNote::TimerHi_byte, x
     sta Hw_Channels_sChanRegs_arr5 + sChanRegs::TimerHi_wo, x
     ;; For the DMC channel, we need to enable the channel *after* updating the
     ;; registers (because otherwise it will restart the previous sample).
     cpx #eChan::Dmc
     bne @enableDone
-    jsr Func_EnableCurrentChannel  ; preserves X
+    jsr Func_EnableCurrentChannel  ; preserves X and Zp_AudioTmp*_byte
     @enableDone:
     ;; Increment the channel's PhraseNext_ptr a second time.
     inc Zp_Music_sChanNext_arr + sChanNext::PhraseNext_ptr + 0, x
     bne @incDone2
     inc Zp_Music_sChanNext_arr + sChanNext::PhraseNext_ptr + 1, x
     @incDone2:
+    ;; If this is a SAME note, there's no third byte; we just reuse the
+    ;; previous duration value.
+    bit Zp_AudioTmp1_byte  ; first note byte
+    .assert bNote::IsSame = bProc::Overflow, error
+    bvs _ContinueTone
     ;; Read the third byte of the TONE note and use it as the note duration.
     lda (Zp_Music_sChanNext_arr + sChanNext::PhraseNext_ptr, x)
     sta Ram_Music_sChanNote_arr + sChanNote::DurationFrames_u8, x
@@ -568,24 +573,9 @@ _NoteTone:
     bne _ContinueTone
     inc Zp_Music_sChanNext_arr + sChanNext::PhraseNext_ptr + 1, x
     bne _ContinueTone  ; unconditional
-_SkipTone:
-    ;; Increment the channel's PhraseNext_ptr a second time.
-    inc Zp_Music_sChanNext_arr + sChanNext::PhraseNext_ptr + 0, x
-    bne @incDone2
-    inc Zp_Music_sChanNext_arr + sChanNext::PhraseNext_ptr + 1, x
-    @incDone2:
-    ;; Read the third byte of the TONE note and use it as the note duration.
-    lda (Zp_Music_sChanNext_arr + sChanNext::PhraseNext_ptr, x)
-    sta Ram_Music_sChanNote_arr + sChanNote::DurationFrames_u8, x
-    lda #1
-    sta Ram_Music_sChanNote_arr + sChanNote::ElapsedFrames_u8, x
-    ;; Increment the channel's PhraseNext_ptr a third time.
-    inc Zp_Music_sChanNext_arr + sChanNext::PhraseNext_ptr + 0, x
-    bne @incDone3
-    inc Zp_Music_sChanNext_arr + sChanNext::PhraseNext_ptr + 1, x
-    @incDone3:
-    clc  ; clear C to indicate that the phrase is still going
-    rts
+_NoteInstOrRest:
+    .assert bNote::IsInst = bProc::Overflow, error
+    bvc _NoteRest
 _NoteInst:
     and #bNote::InstMask
     sta Ram_Music_sChanInst_arr + sChanInst::Instrument_eInst, x
@@ -612,6 +602,29 @@ _DisableChannelUnlessSfx:
     lda Ram_Sound_sChanSfx_arr + sChanSfx::Sfx_eSound, x
     .assert eSound::None = 0, error
     beq Func_DisableCurrentChannel  ; preserves C and X
+    rts
+_SkipToneOrSame:
+    ;; Increment the channel's PhraseNext_ptr a second time.
+    inc Zp_Music_sChanNext_arr + sChanNext::PhraseNext_ptr + 0, x
+    bne @incDone2
+    inc Zp_Music_sChanNext_arr + sChanNext::PhraseNext_ptr + 1, x
+    @incDone2:
+    ;; If this is a SAME note, there's no third byte; we just reuse the
+    ;; previous duration value.
+    bit Zp_AudioTmp1_byte  ; first note byte
+    .assert bNote::IsSame = bProc::Overflow, error
+    bvs @incDone3
+    ;; Read the third byte of the TONE note and use it as the note duration.
+    lda (Zp_Music_sChanNext_arr + sChanNext::PhraseNext_ptr, x)
+    sta Ram_Music_sChanNote_arr + sChanNote::DurationFrames_u8, x
+    lda #1
+    sta Ram_Music_sChanNote_arr + sChanNote::ElapsedFrames_u8, x
+    ;; Increment the channel's PhraseNext_ptr a third time.
+    inc Zp_Music_sChanNext_arr + sChanNext::PhraseNext_ptr + 0, x
+    bne @incDone3
+    inc Zp_Music_sChanNext_arr + sChanNext::PhraseNext_ptr + 1, x
+    @incDone3:
+    clc  ; clear C to indicate that the phrase is still going
     rts
 .ENDPROC
 
