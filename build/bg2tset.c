@@ -126,9 +126,9 @@ typedef struct {
 
 void create_tileset(tileset_t *tileset, const char *name) {
   tileset->name = name;
-  char *path = string_printf("src/tiles/%s.ahi", name);
+  char *path = ag_strprintf("src/tiles/%s.ahi", name);
   FILE *file = fopen(path, "r");
-  if (file == NULL) error_fatal("could not open %s", path);
+  if (file == NULL) ag_fatal("could not open %s", path);
   free(path);
   input_t input;
   input_init(&input, file);
@@ -183,9 +183,9 @@ int from_base64(int ch) {
 /*===========================================================================*/
 
 FILE *new_blockset_file(const char *area_name, int block_row) {
-  char *path = string_printf("out/blocks/%s_%x.ahi", area_name, block_row);
+  char *path = ag_strprintf("out/blocks/%s_%x.ahi", area_name, block_row);
   FILE *file = fopen(path, "w");
-  if (file == NULL) error_fatal("could not open %s", path);
+  if (file == NULL) ag_fatal("could not open %s", path);
   free(path);
   return file;
 }
@@ -202,7 +202,7 @@ char get_tile_id(const char *tileset, int tile_index) {
       return tile_files[i].start + tile_index;
     }
   }
-  error_fatal("unknown tileset: %s", tileset);
+  ag_fatal("unknown tileset: %s", tileset);
 }
 
 /*===========================================================================*/
@@ -256,7 +256,7 @@ int main(int argc, char **argv) {
   bg_background_t *background = bg_parse_background(&input);
   if (background->width != 2 * NUM_BLOCK_COLS || background->height % 2 != 0 ||
       background->height > 2 * MAX_BLOCK_ROWS) {
-    error_fatal("invalid size: %dx%d", background->width, background->height);
+    ag_fatal("invalid size: %dx%d", background->width, background->height);
   }
   const int num_block_rows = background->height / 2;
 
@@ -277,8 +277,8 @@ int main(int argc, char **argv) {
         if (!tile->present) continue;
         const tileset_t *tileset = &tilesets[tile->tileset_index];
         if (tile->tile_index >= tileset->tiles->num_images) {
-          error_fatal("tile index %d out of range for tileset '%s'",
-                      tile->tile_index, tileset->name);
+          ag_fatal("tile index %d out of range for tileset '%s'",
+                   tile->tile_index, tileset->name);
         }
         const int array_index = 2 * NUM_BLOCK_COLS * tile_row + tile_col;
         tiles[array_index] = tileset->tiles->images[tile->tile_index];
@@ -295,8 +295,8 @@ int main(int argc, char **argv) {
     }
     // Write AHI file for this row of blocks.
     ahi_collection_t *blocks = ahi_new_collection(1, NUM_BLOCK_COLS);
-    blocks->palettes[0] = strdup("000B;0;54;ECEEEC;FF0;FF0;FF0;FF0;"
-                                 "FF0;FF0;FF0;FF0;FF0;FF0;FF0;FF0");
+    blocks->palettes[0] = ag_strdup("000B;0;54;ECEEEC;FF0;FF0;FF0;FF0;"
+                                    "FF0;FF0;FF0;FF0;FF0;FF0;FF0;FF0");
     for (int block_col = 0; block_col < NUM_BLOCK_COLS; ++block_col) {
       ahi_image_t *block = ahi_new_image(BLOCK_WIDTH, BLOCK_HEIGHT);
       blit_tile_to_block(block, 0, 0, tiles[2 * block_col]);

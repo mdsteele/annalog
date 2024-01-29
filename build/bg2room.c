@@ -41,16 +41,16 @@ static unsigned char from_hex(int ch) {
   } else if (ch >= 'A' && ch <= 'F') {
     return ch - 'A' + 0xA;
   } else {
-    error_fatal("invalid hex digit character: '%c'", ch);
+    ag_fatal("invalid hex digit character: '%c'", ch);
   }
 }
 
 static unsigned char get_block_id(const char *tileset_name, int tile_index) {
   if (tile_index < 0 || tile_index >= 0x10) {
-    error_fatal("invalid tile index: %d", tile_index);
+    ag_fatal("invalid tile index: %d", tile_index);
   }
   const size_t size = strlen(tileset_name);
-  if (size < 1) error_fatal("empty tileset name");
+  if (size < 1) ag_fatal("empty tileset name");
   const int row_index = from_hex(tileset_name[size - 1]);
   return 0x10 * row_index + tile_index;
 }
@@ -65,7 +65,7 @@ int main(int argc, char **argv) {
   if (background->width < MIN_WIDTH || background->width > MAX_WIDTH ||
       (background->height != HEIGHT_SHORT &&
        background->height != HEIGHT_TALL)) {
-    error_fatal("invalid size: %dx%d", background->width, background->height);
+    ag_fatal("invalid size: %dx%d", background->width, background->height);
   }
 
   // Read the BG grid, which appears in row-major order, and store the output

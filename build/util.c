@@ -34,13 +34,35 @@
 
 /*===========================================================================*/
 
-void error_fatal(const char *format, ...) {
+void ag_fatal(const char *format, ...) {
   va_list args;
   va_start(args, format);
   fprintf(stderr, "error: ");
   vfprintf(stderr, format, args);
   fprintf(stderr, "\n");
   exit(EXIT_FAILURE);
+}
+
+char *ag_strdup(const char *str) {
+  if (str == NULL) return NULL;
+  const size_t length = strlen(str);
+  char *copy = calloc(length + 1, sizeof(char)); // add 1 for trailing '\0'
+  if (copy == NULL) ag_fatal("calloc failed in ag_strdup");
+  strcpy(copy, str);
+  return copy;
+}
+
+char *ag_strprintf(const char *format, ...) {
+  va_list args;
+  va_start(args, format);
+  const size_t size = vsnprintf(NULL, 0, format, args);
+  va_end(args);
+  char *out = calloc(size + 1, sizeof(char)); // add 1 for trailing '\0'
+  if (out == NULL) ag_fatal("calloc failed in ag_strprintf");
+  va_start(args, format);
+  vsnprintf(out, size + 1, format, args);
+  va_end(args);
+  return out;
 }
 
 /*===========================================================================*/
@@ -207,7 +229,7 @@ static ahi_collection_t *ahi_parse_data(
         buffer[index++] = ch;
       }
       buffer[index] = '\0';
-      collection->palettes[p] = strdup(buffer);
+      collection->palettes[p] = ag_strdup(buffer);
     }
   }
 
@@ -292,7 +314,7 @@ ahi_collection_t *ahi_parse_collection(input_t *input) {
 void ahi_write_collection(FILE *file, const ahi_collection_t* collection) {
   for (int i = 0; i < collection->num_images; ++i) {
     if (collection->images[i] == NULL) {
-      error_fatal("collection image #%d is still NULL", i);
+      ag_fatal("collection image #%d is still NULL", i);
     }
   }
 
@@ -307,7 +329,7 @@ void ahi_write_collection(FILE *file, const ahi_collection_t* collection) {
   for (int i = 0; i < collection->num_images; ++i) {
     ahi_image_t *image = collection->images[i];
     if (image->width != width || image->height != height) {
-      error_fatal("collection image sizes are not all the same");
+      ag_fatal("collection image sizes are not all the same");
     }
   }
 
@@ -437,22 +459,6 @@ void bg_delete_background(bg_background_t *background) {
   free(background->tilesets);
   free(background->tiles);
   free(background);
-}
-
-/*===========================================================================*/
-
-char *string_printf(const char *format, ...) {
-  va_list args;
-  va_start(args, format);
-  const size_t size = vsnprintf(NULL, 0, format, args);
-  va_end(args);
-  char *out = calloc(size + 1, sizeof(char)); // add 1 for trailing '\0'
-  if (out != NULL) {
-    va_start(args, format);
-    vsnprintf(out, size + 1, format, args);
-    va_end(args);
-  }
-  return out;
 }
 
 /*===========================================================================*/

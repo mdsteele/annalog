@@ -26,7 +26,7 @@
 
 static void convert_image_to_chr(const ahi_image_t *image) {
   if (image->width % 8 != 0 || image->height % 8 != 0) {
-    error_fatal("invalid size: %dx%d", image->width, image->height);
+    ag_fatal("invalid size: %dx%d", image->width, image->height);
   }
   const int horz_tiles = image->width / 8;
   const int vert_tiles = image->height / 8;

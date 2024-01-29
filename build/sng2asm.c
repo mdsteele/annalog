@@ -127,7 +127,7 @@ static char *read_identifier(void) {
     } else break;
   }
   buffer[num_chars] = '\0';
-  return strdup(buffer);
+  return ag_strdup(buffer);
 }
 
 static char *read_quoted_string(void) {
@@ -144,7 +144,7 @@ static char *read_quoted_string(void) {
     buffer[num_chars++] = input.last_char;
   }
   buffer[num_chars] = '\0';
-  return strdup(buffer);
+  return ag_strdup(buffer);
 }
 
 static int read_unsigned_decimal_int(void) {
@@ -539,7 +539,7 @@ static void emit_tone(int absolute_pitch, int num_frames) {
   const double value = NTSC_CPU_FREQ / (multiplier * frequency) - 1.0;
   sng_note_t *note = new_note();
   note->kind = NT_TONE;
-  note->param = round(fmin(fmax(0.0, value), 2047.0));
+  note->param = (unsigned short)round(fmin(fmax(0.0, value), 2047.0));
   note->duration = num_frames;
 }
 
@@ -1183,7 +1183,7 @@ static void parse_input(void) {
   if (parser.segment == NULL) parser.segment = "PRG8";
   parser.prefix = "Data";
   if (0 == strncmp(parser.segment, "PRGC_", 5)) {
-    parser.prefix = string_printf("DataC_%s", parser.segment + 5);
+    parser.prefix = ag_strprintf("DataC_%s", parser.segment + 5);
   }
 }
 

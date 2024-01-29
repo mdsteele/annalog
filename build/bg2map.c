@@ -39,7 +39,7 @@ static unsigned char get_tile_id(const char *tileset, int tile_index) {
   } else if (0 == strcmp(tileset, "title3")) {
     return 0xa0 + tile_index;
   } else {
-    error_fatal("unknown tileset: '%s'", tileset);
+    ag_fatal("unknown tileset: '%s'", tileset);
   }
 }
 

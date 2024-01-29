@@ -24,8 +24,19 @@
 /*===========================================================================*/
 
 // Reports an error and exits the program.
-void error_fatal(const char *format, ...)
+void ag_fatal(const char *format, ...)
   __attribute__((__noreturn__, __format__(__printf__, 1, 2)));
+
+// Allocates and returns a copy of the given NUL-terminated string.  If memory
+// allocation fails, this will signal a fatal error and exit the program.
+// Returns NULL if the argument is NULL.
+char *ag_strdup(const char *str)
+  __attribute__((__malloc__));
+
+// Allocates a new string with the same text that would be produced by a call
+// to printf with the same format and arguments.
+char *ag_strprintf(const char *format, ...)
+  __attribute__((__malloc__, __format__(__printf__, 1, 2)));
 
 /*===========================================================================*/
 
@@ -109,12 +120,5 @@ bg_background_t *bg_new_background(int width, int height, int num_tilesets)
 bg_background_t *bg_parse_background(input_t *input)
   __attribute__((__malloc__));
 void bg_delete_background(bg_background_t *background);
-
-/*===========================================================================*/
-
-// Allocates a new string with the same text that would be produced by a call
-// to printf with the same format and arguments.
-char *string_printf(const char *format, ...)
-  __attribute__((__malloc__, __format__(__printf__, 1, 2)));
 
 /*===========================================================================*/

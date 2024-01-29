@@ -113,7 +113,7 @@ endef
 define compile-c-bin
 	@echo "Compiling $<"
 	@mkdir -p $(@D)
-	@cc $(CFLAGS) -o $@ $^
+	@cc $(CFLAGS) -lm -o $@ $^
 endef
 
 define update-archive
