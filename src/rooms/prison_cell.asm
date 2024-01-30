@@ -799,6 +799,16 @@ _ParticleAngle_u8_arr:
     act_WaitFrames 30
     act_SetAvatarPose eAvatar::Kneeling
     act_WaitFrames 20
+    act_SetAvatarPose eAvatar::Standing
+    act_WaitFrames 15
+    ;; Animate Anna shaking her head.
+    act_SetAvatarFlags kPaletteObjAvatarNormal
+    act_WaitFrames 3
+    act_SetAvatarFlags bObj::FlipH | kPaletteObjAvatarNormal
+    act_WaitFrames 3
+    act_SetAvatarFlags kPaletteObjAvatarNormal
+    act_WaitFrames 3
+    act_SetAvatarFlags bObj::FlipH | kPaletteObjAvatarNormal
     act_ContinueExploring
 _OpenGate:
     ldy #1  ; param: zero for shut

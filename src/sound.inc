@@ -21,6 +21,7 @@
 .ENUM eSound
     None
     Beep
+    DialogText
     Explode
     Launch
     Quest

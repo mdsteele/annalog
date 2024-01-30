@@ -127,6 +127,7 @@
 .IMPORT DataC_Town_TownOutdoorsIvan_sDialog
 .IMPORT DataC_Town_TownOutdoorsSandra_sDialog
 .IMPORT DataC_Town_TownOutdoorsSign_sDialog
+.IMPORT FuncA_Dialog_PlaySfxDialogText
 .IMPORT FuncA_Dialog_PlaySfxQuestMarker
 .IMPORT FuncA_Objects_DrawObjectsForRoom
 .IMPORT FuncM_DrawObjectsForRoomAndProcessFrame
@@ -257,7 +258,7 @@ Zp_DialogTextCol_u8: .res 1
 Zp_DialogAnsweredYes_bool: .res 1
 
 ;;; A pointer to the next sDialog entry to execute.
-Zp_Next_sDialog_ptr: .res 2
+Zp_Next_sDialog_ptr: .res kSizeofAddr
 
 ;;;=========================================================================;;;
 
@@ -965,14 +966,19 @@ _BgAttributes:
 ;;; end-of-line/text marker is reached, updates dialog variables accordingly.
 ;;; @prereq bDialog::Paused is cleared and Zp_DialogText_ptr points to text.
 .PROC FuncA_Dialog_TransferNextCharacter
+    ;; Play a sound every fourth character.
+    lda Zp_DialogTextIndex_u8
+    and #$03
+    bne @noSfx
+    ldy Zp_Current_ePortrait  ; param: ePortrait value
+    jsr FuncA_Dialog_PlaySfxDialogText
+    @noSfx:
     ;; Read the next character, then advance past it.
     ldx Zp_DialogTextIndex_u8
+    inc Zp_DialogTextIndex_u8
     lda Ram_DialogText_u8_arr, x
-    inx
-    stx Zp_DialogTextIndex_u8
     ;; If the character is printable, then perform a PPU transfer to draw it to
     ;; the screen.
-    tax
     bpl _TransferCharacter
     ;; Or, if the character is an end-of-line marker, then get ready for the
     ;; next line of text.

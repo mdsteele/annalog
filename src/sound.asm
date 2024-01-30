@@ -22,6 +22,7 @@
 
 .IMPORT Func_Noop
 .IMPORT Func_SfxBeep
+.IMPORT Func_SfxDialogText
 .IMPORT Func_SfxExplode
 .IMPORT Func_SfxLaunch
 .IMPORT Func_SfxQuest
@@ -60,13 +61,14 @@
     D_TABLE_LO table, Data_Sfx_func_ptr_0_arr
     D_TABLE_HI table, Data_Sfx_func_ptr_1_arr
     D_TABLE .enum, eSound
-    d_entry table, None,     Func_Noop
-    d_entry table, Beep,     Func_SfxBeep
-    d_entry table, Explode,  Func_SfxExplode
-    d_entry table, Launch,   Func_SfxLaunch
-    d_entry table, Quest,    Func_SfxQuest
-    d_entry table, Sample,   Func_SfxSample
-    d_entry table, Sequence, Func_SfxSequence
+    d_entry table, None,       Func_Noop
+    d_entry table, Beep,       Func_SfxBeep
+    d_entry table, DialogText, Func_SfxDialogText
+    d_entry table, Explode,    Func_SfxExplode
+    d_entry table, Launch,     Func_SfxLaunch
+    d_entry table, Quest,      Func_SfxQuest
+    d_entry table, Sample,     Func_SfxSample
+    d_entry table, Sequence,   Func_SfxSequence
     D_END
 .ENDREPEAT
 
