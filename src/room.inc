@@ -142,6 +142,7 @@ kMaxPassages = 8
     SewerBasin
     SewerFlower
     SewerPool
+    SewerSouth
     SewerTrap
     SewerWest
     ShadowDepths

@@ -48,23 +48,23 @@
 
 ;;;=========================================================================;;;
 
-;;; The number of movable platforms for the SewerPoolMultiplexer machine.
+;;; The number of movable platforms for the SewerSouthMultiplexer machine.
 .DEFINE kMultiplexerNumPlatforms 5
 
-;;; The machine index for the SewerPoolMultiplexer machine.
+;;; The machine index for the SewerSouthMultiplexer machine.
 kMultiplexerMachineIndex = 0
-;;; The main platform index for the SewerPoolMultiplexer machine.
+;;; The main platform index for the SewerSouthMultiplexer machine.
 kMultiplexerMainPlatformIndex = kMultiplexerNumPlatforms
 
 ;;; The initial and maximum vertical goal value for the multiplexer's movable
 ;;; platforms.
-kMultiplexerInitGoalY = 5
+kMultiplexerInitGoalY = 4
 kMultiplexerMaxGoalY = 9
 
 ;;; The maximum and initial room pixel Y-positions for the top of the
 ;;; multiplexer's movable platforms.
 .LINECONT +
-kMultiplexerMaxPlatformTop = $00b0
+kMultiplexerMaxPlatformTop = $00a0
 kMultiplexerInitPlatformTop = \
     kMultiplexerMaxPlatformTop - kMultiplexerInitGoalY * kBlockHeightPx
 .LINECONT -
@@ -75,7 +75,7 @@ kMultiplexerInitPlatformTop = \
 .STRUCT sState
     ;; The vertical goal value for each movable platform of the multiplexer
     ;; machine, by platform index.
-    MultiplexerGoalVert_u8_arr .res kMultiplexerNumPlatforms
+    MultiplexerGoalVert_u8_arr .byte kMultiplexerNumPlatforms
 .ENDSTRUCT
 .ASSERT .sizeof(sState) <= kRoomStateSize, error
 
@@ -83,14 +83,14 @@ kMultiplexerInitPlatformTop = \
 
 .SEGMENT "PRGC_Sewer"
 
-.EXPORT DataC_Sewer_Pool_sRoom
-.PROC DataC_Sewer_Pool_sRoom
+.EXPORT DataC_Sewer_South_sRoom
+.PROC DataC_Sewer_South_sRoom
     D_STRUCT sRoom
     d_byte MinScrollX_u8, $10
     d_word MaxScrollX_u16, $0110
     d_byte Flags_bRoom, eArea::Sewer
     d_byte MinimapStartRow_u8, 7
-    d_byte MinimapStartCol_u8, 17
+    d_byte MinimapStartCol_u8, 19
     d_addr TerrainData_ptr, _TerrainData
     d_byte NumMachines_u8, 1
     d_addr Machines_sMachine_arr_ptr, _Machines_sMachine_arr
@@ -110,27 +110,27 @@ _Ext_sRoomExt:
     d_addr Draw_func_ptr, Func_Noop
     D_END
 _TerrainData:
-:   .incbin "out/rooms/sewer_pool.room"
+:   .incbin "out/rooms/sewer_south.room"
     .assert * - :- = 34 * 15, error
 _Machines_sMachine_arr:
 :   .assert * - :- = kMultiplexerMachineIndex * .sizeof(sMachine), error
     D_STRUCT sMachine
-    d_byte Code_eProgram, eProgram::SewerPoolMultiplexer
+    d_byte Code_eProgram, eProgram::SewerSouthMultiplexer
     d_byte Breaker_eFlag, 0
     d_byte Flags_bMachine, bMachine::MoveV | bMachine::WriteC
     d_byte Status_eDiagram, eDiagram::Multiplexer
-    d_word ScrollGoalX_u16, $0110
+    d_word ScrollGoalX_u16, $00dc
     d_byte ScrollGoalY_u8, $00
     d_byte RegNames_u8_arr4, "J", 0, 0, "Y"
     d_byte MainPlatform_u8, kMultiplexerMainPlatformIndex
-    d_addr Init_func_ptr, FuncC_Sewer_PoolMultiplexer_InitReset
-    d_addr ReadReg_func_ptr, FuncC_Sewer_PoolMultiplexer_ReadReg
-    d_addr WriteReg_func_ptr, FuncA_Machine_SewerPoolMultiplexer_WriteReg
-    d_addr TryMove_func_ptr, FuncC_Sewer_PoolMultiplexer_TryMove
+    d_addr Init_func_ptr, FuncC_Sewer_SouthMultiplexer_InitReset
+    d_addr ReadReg_func_ptr, FuncC_Sewer_SouthMultiplexer_ReadReg
+    d_addr WriteReg_func_ptr, FuncA_Machine_SewerSouthMultiplexer_WriteReg
+    d_addr TryMove_func_ptr, FuncC_Sewer_SouthMultiplexer_TryMove
     d_addr TryAct_func_ptr, FuncA_Machine_Error
-    d_addr Tick_func_ptr, FuncA_Machine_SewerPoolMultiplexer_Tick
-    d_addr Draw_func_ptr, FuncC_Sewer_PoolMultiplexer_Draw
-    d_addr Reset_func_ptr, FuncC_Sewer_PoolMultiplexer_InitReset
+    d_addr Tick_func_ptr, FuncA_Machine_SewerSouthMultiplexer_Tick
+    d_addr Draw_func_ptr, FuncC_Sewer_SouthMultiplexer_Draw
+    d_addr Reset_func_ptr, FuncC_Sewer_SouthMultiplexer_InitReset
     D_END
     .assert * - :- <= kMaxMachines * .sizeof(sMachine), error
 _Platforms_sPlatform_arr:
@@ -139,7 +139,7 @@ _Platforms_sPlatform_arr:
     d_byte Type_ePlatform, ePlatform::Solid
     d_word WidthPx_u16, $08
     d_byte HeightPx_u8, $10
-    d_word Left_i16, $0170 + $10 * index
+    d_word Left_i16, $0110 + $20 * index
     d_word Top_i16, kMultiplexerInitPlatformTop
     D_END
     .endrepeat
@@ -148,56 +148,50 @@ _Platforms_sPlatform_arr:
     d_byte Type_ePlatform, ePlatform::Solid
     d_word WidthPx_u16, $10
     d_byte HeightPx_u8, $10
-    d_word Left_i16,  $01c0
+    d_word Left_i16,  $01a0
     d_word Top_i16,   $0060
     D_END
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Water
-    d_word WidthPx_u16, $190
-    d_byte HeightPx_u8,  $20
-    d_word Left_i16,   $0040
-    d_word Top_i16,    $00c4
-    D_END
-    ;; Terrain spikes:
-    D_STRUCT sPlatform
-    d_byte Type_ePlatform, ePlatform::Harm
-    d_word WidthPx_u16, $190
-    d_byte HeightPx_u8,  $08
-    d_word Left_i16,   $0040
-    d_word Top_i16,    $00de
-    D_END
-    D_STRUCT sPlatform
-    d_byte Type_ePlatform, ePlatform::Harm
-    d_word WidthPx_u16, $20
-    d_byte HeightPx_u8, $10
-    d_word Left_i16,  $0040
-    d_word Top_i16,   $00d6
-    D_END
-    D_STRUCT sPlatform
-    d_byte Type_ePlatform, ePlatform::Harm
-    d_word WidthPx_u16, $20
-    d_byte HeightPx_u8, $10
-    d_word Left_i16,  $00a0
-    d_word Top_i16,   $00d6
-    D_END
-    D_STRUCT sPlatform
-    d_byte Type_ePlatform, ePlatform::Harm
-    d_word WidthPx_u16, $20
-    d_byte HeightPx_u8, $10
-    d_word Left_i16,  $0130
-    d_word Top_i16,   $00d6
+    d_word WidthPx_u16, $1d0
+    d_byte HeightPx_u8,  $30
+    d_word Left_i16,   $0020
+    d_word Top_i16,    $00b4
     D_END
     .assert * - :- <= kMaxPlatforms * .sizeof(sPlatform), error
     .byte ePlatform::None
 _Actors_sActor_arr:
-:   ;; TODO: add some baddies
+:   D_STRUCT sActor
+    d_byte Type_eActor, eActor::BadGrub
+    d_word PosX_i16, $0088
+    d_word PosY_i16, $0048
+    d_byte Param_byte, bObj::FlipH
+    D_END
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::BadGrub
+    d_word PosX_i16, $0090
+    d_word PosY_i16, $0078
+    d_byte Param_byte, 0
+    D_END
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::BadFish
+    d_word PosX_i16, $00b8
+    d_word PosY_i16, $00c0
+    d_byte Param_byte, bObj::FlipH
+    D_END
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::BadFish
+    d_word PosX_i16, $0130
+    d_word PosY_i16, $00c0
+    d_byte Param_byte, 0
+    D_END
     .assert * - :- <= kMaxActors * .sizeof(sActor), error
     .byte eActor::None
 _Devices_sDevice_arr:
 :   D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Console
-    d_byte BlockRow_u8, 5
-    d_byte BlockCol_u8, 29
+    d_byte BlockRow_u8, 10
+    d_byte BlockCol_u8, 31
     d_byte Target_byte, kMultiplexerMachineIndex
     D_END
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
@@ -205,33 +199,41 @@ _Devices_sDevice_arr:
 _Passages_sPassage_arr:
 :   D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Western | 0
-    d_byte Destination_eRoom, eRoom::SewerPool  ; TODO FactoryEast
-    d_byte SpawnBlock_u8, 8
+    d_byte Destination_eRoom, eRoom::SewerPool
+    d_byte SpawnBlock_u8, 10
     d_byte SpawnAdjust_byte, 0
     D_END
     D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Eastern | 0
-    d_byte Destination_eRoom, eRoom::SewerSouth
-    d_byte SpawnBlock_u8, 4
+    d_byte Destination_eRoom, eRoom::SewerTrap
+    d_byte SpawnBlock_u8, 6
     d_byte SpawnAdjust_byte, 0
+    D_END
+    D_STRUCT sPassage
+    d_byte Exit_bPassage, ePassage::Top | 0
+    d_byte Destination_eRoom, eRoom::SewerWest
+    d_byte SpawnBlock_u8, 9
+    d_byte SpawnAdjust_byte, $f1
     D_END
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
 .ENDPROC
 
 ;;; Returns the platform index currently selected by the J register of the
-;;; SewerPoolMultiplexer machine.
+;;; SewerSouthMultiplexer machine.
 ;;; @return Y The platform index.
-.PROC FuncC_Sewer_PoolMultiplexer_GetPlatformIndex
+.PROC FuncC_Sewer_SouthMultiplexer_GetPlatformIndex
     lda Ram_MachineGoalHorz_u8_arr + kMultiplexerMachineIndex  ; J register
+    .assert 9 >= kMultiplexerNumPlatforms, error
     cmp #kMultiplexerNumPlatforms
     blt @setIndex
     sbc #kMultiplexerNumPlatforms  ; carry is already set
+    .assert 9 - kMultiplexerNumPlatforms < kMultiplexerNumPlatforms, error
     @setIndex:
     tay
     rts
 .ENDPROC
 
-.PROC FuncC_Sewer_PoolMultiplexer_InitReset
+.PROC FuncC_Sewer_SouthMultiplexer_InitReset
     lda #kMultiplexerInitGoalY
     ldx #kMultiplexerNumPlatforms - 1
     @loop:
@@ -243,39 +245,40 @@ _Passages_sPassage_arr:
     rts
 .ENDPROC
 
-.PROC FuncC_Sewer_PoolMultiplexer_ReadReg
+.PROC FuncC_Sewer_SouthMultiplexer_ReadReg
     cmp #$f
     beq _ReadY
 _ReadJ:
     lda Ram_MachineGoalHorz_u8_arr + kMultiplexerMachineIndex  ; J register
     rts
 _ReadY:
-    jsr FuncC_Sewer_PoolMultiplexer_GetPlatformIndex  ; returns Y
+    jsr FuncC_Sewer_SouthMultiplexer_GetPlatformIndex  ; returns Y
     lda #kMultiplexerMaxPlatformTop + kTileHeightPx
     sub Ram_PlatformTop_i16_0_arr, y
     div #kBlockHeightPx
     rts
 .ENDPROC
 
-.PROC FuncC_Sewer_PoolMultiplexer_Draw
+.PROC FuncC_Sewer_SouthMultiplexer_Draw
     ldx #kMultiplexerNumPlatforms  ; param: num platforms
     jmp FuncA_Objects_DrawMultiplexerMachine
 .ENDPROC
 
-.PROC FuncC_Sewer_PoolMultiplexer_TryMove
-    jsr FuncC_Sewer_PoolMultiplexer_GetPlatformIndex  ; returns Y
+.PROC FuncC_Sewer_SouthMultiplexer_TryMove
+    jsr FuncC_Sewer_SouthMultiplexer_GetPlatformIndex  ; returns Y
     lda Zp_RoomState + sState::MultiplexerGoalVert_u8_arr, y
     cpx #eDir::Down
     beq @moveDown
     @moveUp:
-    cmp #kMultiplexerMaxGoalY
+    cmp _MaxGoalY_u8_arr, y
     bge @error
     tax  ; goal vert
     inx
     bne @success  ; unconditional
     @moveDown:
-    tax  ; goal vert
+    cmp _MinGoalY_u8_arr, y
     beq @error
+    tax  ; goal vert
     dex
     @success:
     txa
@@ -283,18 +286,22 @@ _ReadY:
     jmp FuncA_Machine_StartWorking
     @error:
     jmp FuncA_Machine_Error
+_MinGoalY_u8_arr:
+    .byte 0, 1, 1, 1, 1
+_MaxGoalY_u8_arr:
+    .byte 9, 9, 8, 7, 8
 .ENDPROC
 
 ;;;=========================================================================;;;
 
 .SEGMENT "PRGA_Machine"
 
-.PROC FuncA_Machine_SewerPoolMultiplexer_WriteReg
+.PROC FuncA_Machine_SewerSouthMultiplexer_WriteReg
     sta Ram_MachineGoalHorz_u8_arr + kMultiplexerMachineIndex  ; J register
     rts
 .ENDPROC
 
-.PROC FuncA_Machine_SewerPoolMultiplexer_Tick
+.PROC FuncA_Machine_SewerSouthMultiplexer_Tick
     lda #0
     pha  ; num platforms done
     ldx #kMultiplexerNumPlatforms - 1

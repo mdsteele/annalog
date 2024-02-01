@@ -132,6 +132,7 @@
 .IMPORT DataC_Sewer_Basin_sRoom
 .IMPORT DataC_Sewer_Flower_sRoom
 .IMPORT DataC_Sewer_Pool_sRoom
+.IMPORT DataC_Sewer_South_sRoom
 .IMPORT DataC_Sewer_Trap_sRoom
 .IMPORT DataC_Sewer_West_sRoom
 .IMPORT DataC_Shadow_Depths_sRoom
@@ -386,6 +387,7 @@ _LoadNewRoom:
     d_entry table, SewerBasin,      DataC_Sewer_Basin_sRoom
     d_entry table, SewerFlower,     DataC_Sewer_Flower_sRoom
     d_entry table, SewerPool,       DataC_Sewer_Pool_sRoom
+    d_entry table, SewerSouth,      DataC_Sewer_South_sRoom
     d_entry table, SewerTrap,       DataC_Sewer_Trap_sRoom
     d_entry table, SewerWest,       DataC_Sewer_West_sRoom
     d_entry table, ShadowDepths,    DataC_Shadow_Depths_sRoom
@@ -567,6 +569,7 @@ _PrisonMusic:
     d_byte SewerBasin,      eMusic::Silence
     d_byte SewerFlower,     eMusic::Silence
     d_byte SewerPool,       eMusic::Silence
+    d_byte SewerSouth,      eMusic::Silence
     d_byte SewerTrap,       eMusic::Silence
     d_byte SewerWest,       eMusic::Silence
     d_byte ShadowDepths,    eMusic::Silence

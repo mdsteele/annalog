@@ -179,6 +179,7 @@
     SewerBasinMultiplexer
     SewerFlowerPump
     SewerPoolMultiplexer
+    SewerSouthMultiplexer
     SewerTrapLift
     SewerWestMultiplexer
     ShadowDrillLaser

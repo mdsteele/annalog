@@ -174,7 +174,7 @@ _Devices_sDevice_arr:
 _Passages_sPassage_arr:
 :   D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Western | 0
-    d_byte Destination_eRoom, eRoom::SewerTrap  ; TODO SewerSouth
+    d_byte Destination_eRoom, eRoom::SewerSouth
     d_byte SpawnBlock_u8, 6
     d_byte SpawnAdjust_byte, 0
     D_END

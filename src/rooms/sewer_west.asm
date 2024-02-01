@@ -185,7 +185,7 @@ _Passages_sPassage_arr:
     D_END
     D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Bottom | 0
-    d_byte Destination_eRoom, eRoom::SewerWest  ; TODO SewerSouth
+    d_byte Destination_eRoom, eRoom::SewerSouth
     d_byte SpawnBlock_u8, 9
     d_byte SpawnAdjust_byte, $6b
     D_END
