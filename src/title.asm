@@ -291,6 +291,7 @@ _Flags_eFlag_arr:
     .byte eFlag::UpgradeRam4
     .byte eFlag::BreakerMine
     .byte eFlag::UpgradeOpAddSub
+    .byte eFlag::FactoryPassLoweredRocks
     .byte eFlag::PaperJerome23
     .byte eFlag::FlowerMine
     .byte eFlag::FactoryVaultTalkedToAlex

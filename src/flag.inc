@@ -151,6 +151,7 @@ kSaveMagicNumber = $b2
     CryptLandingDroppedIn
     CryptSouthBrokeFloor
     CryptTombBrokeFloors
+    FactoryPassLoweredRocks
     FactoryVaultTalkedToAlex
     GardenEastTalkedToCorra
     GardenLandingDroppedIn

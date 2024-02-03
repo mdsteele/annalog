@@ -68,7 +68,7 @@
 .IMPORT Func_SetActorCenterToPoint
 .IMPORT Func_SetPointToActorCenter
 .IMPORT Func_SetPointToPlatformCenter
-.IMPORT Ppu_ChrBgOutbreak
+.IMPORT Ppu_ChrBgAnimB4
 .IMPORT Ppu_ChrObjBoss1
 .IMPORT Ram_ActorType_eActor_arr
 .IMPORT Ram_ActorVelY_i16_1_arr
@@ -683,7 +683,8 @@ _Done:
 ;;; Draw function for the BossTemple room.
 ;;; @prereq PRGA_Objects is loaded.
 .PROC FuncC_Boss_Temple_DrawRoom
-    lda #<.bank(Ppu_ChrBgOutbreak)
+    ;; TODO: Animate the CHR04 bank.
+    lda #<.bank(Ppu_ChrBgAnimB4)
     sta Zp_Chr04Bank_u8
     jmp FuncA_Objects_DrawBoss
 .ENDPROC

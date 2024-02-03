@@ -118,7 +118,7 @@ kWaterMinPlatformTop = kWaterMaxPlatformTop - kPumpMaxGoalY * kBlockHeightPx
 
 ;;; Defines room-specific state data for this particular room.
 .STRUCT sState
-    ;; The current states of the lever at the bottom of the hot spring.
+    ;; The current state of the lever at the bottom of the hot spring.
     Lever_u8 .byte
 .ENDSTRUCT
 .ASSERT .sizeof(sState) <= kRoomStateSize, error

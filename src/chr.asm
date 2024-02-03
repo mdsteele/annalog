@@ -270,8 +270,8 @@ _chr_begin:
     chr_res $06
     chr_inc "conveyor_anim0"
     chr_res $02
-    chr_inc "anim_boss_lava_2"
-    chr_res $04
+    chr_inc "anim_boss_lava_2", kTileIdBgAnimBossLavaFirst
+    chr_inc "anim_rocks_fall_0"
     chr_inc "gazer_anim0"
     END_CHR_BANK
 .ENDPROC
@@ -286,8 +286,8 @@ _chr_begin:
     chr_res $06
     chr_inc "conveyor_anim1"
     chr_res $02
-    chr_inc "anim_boss_lava_1"
-    chr_res $04
+    chr_inc "anim_boss_lava_1", kTileIdBgAnimBossLavaFirst
+    chr_inc "anim_rocks_fall_1"
     chr_inc "gazer_anim1"
     END_CHR_BANK
 .ENDPROC
@@ -302,8 +302,8 @@ _chr_begin:
     chr_res $06
     chr_inc "conveyor_anim2"
     chr_res $02
-    chr_inc "anim_boss_lava_2"
-    chr_res $04
+    chr_inc "anim_boss_lava_2", kTileIdBgAnimBossLavaFirst
+    chr_inc "anim_rocks_fall_2"
     chr_inc "gazer_anim2"
     END_CHR_BANK
 .ENDPROC
@@ -319,8 +319,57 @@ _chr_begin:
     chr_inc "conveyor_anim3"
     chr_res $02
     chr_inc "anim_boss_lava_3", kTileIdBgAnimBossLavaFirst
-    chr_res $04
+    chr_inc "anim_rocks_fall_3"
     chr_inc "gazer_anim3"
+    END_CHR_BANK
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "CHR_BgAnimB4"
+
+.EXPORT Ppu_ChrBgAnimB4
+.PROC Ppu_ChrBgAnimB4
+    CHR1_BANK $40
+    chr_inc "outbreak_bg"  ; TODO: animate
+    chr_inc "anim_rocks_fall_4"
+    chr_res $14
+    END_CHR_BANK
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "CHR_BgAnimB5"
+
+.PROC Ppu_ChrBgAnimB5
+    CHR1_BANK $40
+    chr_inc "outbreak_bg"  ; TODO: animate
+    chr_inc "anim_rocks_fall_5"
+    chr_res $14
+    END_CHR_BANK
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "CHR_BgAnimB6"
+
+.PROC Ppu_ChrBgAnimB6
+    CHR1_BANK $40
+    chr_inc "outbreak_bg"  ; TODO: animate
+    chr_inc "anim_rocks_fall_6"
+    chr_res $14
+    END_CHR_BANK
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "CHR_BgAnimB7"
+
+.PROC Ppu_ChrBgAnimB7
+    CHR1_BANK $40
+    chr_inc "outbreak_bg"  ; TODO: animate
+    chr_inc "anim_rocks_fall_7"
+    chr_res $14
     END_CHR_BANK
 .ENDPROC
 
@@ -557,18 +606,6 @@ _chr_begin:
     chr_inc "minimap2"
     chr_inc "minimap3"
     chr_inc "minimap4"
-    END_CHR_BANK
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "CHR_BgOutbreak"
-
-.EXPORT Ppu_ChrBgOutbreak
-.PROC Ppu_ChrBgOutbreak
-    CHR1_BANK $40
-    chr_inc "outbreak_bg"
-    chr_res $18
     END_CHR_BANK
 .ENDPROC
 
