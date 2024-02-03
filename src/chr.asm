@@ -1079,12 +1079,15 @@ _chr_begin:
 .EXPORT Ppu_ChrObjBoss2
 .PROC Ppu_ChrObjBoss2
     CHR2_BANK $80
-    chr_res $08
+    chr_inc "upgrade_bottom",      kTileIdObjUpgradeBottomFirst
+    chr_res $04
+    chr_inc "upgrade_opif",        kTileIdObjUpgradeOpIfFirst
     chr_inc "cannon",              kTileIdObjCannonFirst
-    chr_res $0a
+    chr_res $02
+    chr_inc "eirene_parley",       kTileIdObjEireneParleyFirst
     chr_inc "blaster",             kTileIdObjBlasterFirst
     chr_inc "fireblast",           kTileIdObjFireblastFirst
-    chr_res $04
+    chr_inc "orc_gronta_parley",   kTileIdObjOrcGrontaParleyFirst
     chr_inc "orc_gronta_standing", kTileIdObjOrcGrontaStandingFirst
     chr_inc "orc_gronta_running",  kTileIdObjOrcGrontaRunningFirst
     chr_inc "orc_gronta_throwing", kTileIdObjOrcGrontaThrowingFirst
@@ -1337,7 +1340,7 @@ _chr_begin:
     chr_inc "upgrade_bottom", kTileIdObjUpgradeBottomFirst
     chr_res $02
     chr_inc "column",         kTileIdObjColumnFirst
-    chr_inc "upgrade_opif",   kTileIdObjUpgradeOpIfFirst
+    chr_res $02
     chr_inc "upgrade_optil",  kTileIdObjUpgradeOpTilFirst
     chr_res $04
     chr_inc "bullet",         kTileIdObjBulletFirst

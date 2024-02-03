@@ -89,6 +89,8 @@ kDialogEntryCutscene = $ff  ; ends the dialog and starts a new cutscene
     FactoryVaultAlex
     FactoryVaultScreen
     GardenEastCorra
+    GardenShrineBreakerMine1
+    GardenShrineBreakerMine2
     MermaidEntrySign
     MermaidHut1AlexPetition
     MermaidHut1BreakerCrypt1

@@ -761,8 +761,10 @@ _TileIdHead_u8_arr:
     d_byte GrontaRunning4,   kTileIdObjOrcGrontaHeadHigh
     d_byte GrontaArmsRaised, kTileIdObjOrcGrontaStandingFirst + $04
     d_byte GrontaJumping,    kTileIdObjOrcGrontaStandingFirst + $04
+    d_byte GrontaParley,     kTileIdObjOrcGrontaHeadHigh
     d_byte GrontaStanding,   kTileIdObjOrcGrontaHeadHigh
     d_byte GrontaThrowing,   kTileIdObjOrcGrontaHeadLow
+    d_byte EireneParley,     kTileIdObjEireneParleyFirst      + $00
     D_END
 _TileIdFeet_u8_arr:
     D_ARRAY .enum, eNpcOrc
@@ -780,8 +782,10 @@ _TileIdFeet_u8_arr:
     d_byte GrontaRunning4,   kTileIdObjOrcGrontaFeetRunning2
     d_byte GrontaArmsRaised, kTileIdObjOrcGrontaStandingFirst + $0c
     d_byte GrontaJumping,    kTileIdObjOrcGrontaJumpingFirst
+    d_byte GrontaParley,     kTileIdObjOrcGrontaParleyFirst
     d_byte GrontaStanding,   kTileIdObjOrcGrontaStandingFirst + $08
     d_byte GrontaThrowing,   kTileIdObjOrcGrontaThrowingFirst
+    d_byte EireneParley,     kTileIdObjEireneParleyFirst      + $04
     D_END
 .ENDPROC
 

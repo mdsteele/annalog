@@ -86,8 +86,10 @@ kBadGrontaMaxJumpUpBlocks = 2
     GrontaRunning4
     GrontaArmsRaised
     GrontaJumping
+    GrontaParley
     GrontaStanding
     GrontaThrowing
+    EireneParley
     NUM_VALUES
 .ENDENUM
 
@@ -111,11 +113,13 @@ kOrcJumpVelocity = $ffff & -600
 ;;; Tile IDs for drawing orc baddie/NPC actors.
 kTileIdObjOrcGhostFirst          = $b0
 kTileIdObjOrcGrontaJumpingFirst  = $c4
+kTileIdObjOrcGrontaParleyFirst   = $9c
 kTileIdObjOrcGrontaRunningFirst  = $b0
 kTileIdObjOrcGrontaStandingFirst = $a0
 kTileIdObjOrcGrontaThrowingFirst = $c0
 kTileIdObjOrcGruntRunningFirst   = $b0
 kTileIdObjOrcGruntStandingFirst  = $88
 kTileIdObjOrcGruntThrowingFirst  = $c0
+kTileIdObjEireneParleyFirst      = $90
 
 ;;;=========================================================================;;;

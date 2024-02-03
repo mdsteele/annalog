@@ -48,6 +48,8 @@
 .IMPORT DataA_Dialog_FactoryVaultAlex_sDialog
 .IMPORT DataA_Dialog_FactoryVaultScreen_sDialog
 .IMPORT DataA_Dialog_GardenEastCorra_sDialog
+.IMPORT DataA_Dialog_GardenShrineBreakerMine1_sDialog
+.IMPORT DataA_Dialog_GardenShrineBreakerMine2_sDialog
 .IMPORT DataA_Dialog_MermaidEntrySign_sDialog
 .IMPORT DataA_Dialog_MermaidHut1AlexPetition_sDialog
 .IMPORT DataA_Dialog_MermaidHut1BreakerCrypt1_sDialog
@@ -434,6 +436,10 @@ _Finish:
     d_entry t, FactoryVaultAlex,     DataA_Dialog_FactoryVaultAlex_sDialog
     d_entry t, FactoryVaultScreen,   DataA_Dialog_FactoryVaultScreen_sDialog
     d_entry t, GardenEastCorra,      DataA_Dialog_GardenEastCorra_sDialog
+    d_entry t, GardenShrineBreakerMine1, \
+            DataA_Dialog_GardenShrineBreakerMine1_sDialog
+    d_entry t, GardenShrineBreakerMine2, \
+            DataA_Dialog_GardenShrineBreakerMine2_sDialog
     d_entry t, MermaidEntrySign,     DataA_Dialog_MermaidEntrySign_sDialog
     d_entry t, MermaidHut1AlexPetition, \
             DataA_Dialog_MermaidHut1AlexPetition_sDialog
