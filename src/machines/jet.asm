@@ -24,6 +24,7 @@
 .INCLUDE "jet.inc"
 .INCLUDE "shared.inc"
 
+.IMPORT FuncA_Machine_DoubleIfResetting
 .IMPORT FuncA_Machine_ReachedGoal
 .IMPORT FuncA_Objects_Alloc2x2Shape
 .IMPORT FuncA_Objects_GetMachineLightTileId
@@ -33,7 +34,6 @@
 .IMPORT Func_DivMod
 .IMPORT Func_MovePlatformTopTowardPointY
 .IMPORT Ram_MachineGoalVert_u8_arr
-.IMPORT Ram_MachineStatus_eMachine_arr
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORT Ram_PlatformTop_i16_1_arr
@@ -135,12 +135,8 @@ kTileIdObjJetLowerMiddleFirst = kTileIdObjJetFirst + 1
     sbc T3  ; goal delta (hi)
     sta Zp_PointY_i16 + 1
     ;; Determine the vertical speed of the jet (faster if resetting).
-    ldx Ram_MachineStatus_eMachine_arr, y
     lda #kJetMoveSpeed
-    cpx #eMachine::Resetting
-    bne @slow
-    mul #2
-    @slow:
+    jsr FuncA_Machine_DoubleIfResetting  ; preserves T0+, returns A
     ;; Move the jet vertically, as necessary.
     ldx T1  ; param: platform index
     jsr Func_MovePlatformTopTowardPointY  ; returns Z

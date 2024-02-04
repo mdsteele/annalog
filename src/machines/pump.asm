@@ -60,8 +60,8 @@
     sta Zp_PointY_i16 + 1
     ;; Determine the vertical speed of the water (faster if resetting).
     lda Ram_MachineStatus_eMachine_arr, y
-    cmp #eMachine::Resetting
-    beq @fullSpeed
+    cmp #kFirstResetStatus
+    bge @fullSpeed
     lda Ram_MachineSlowdown_u8_arr, y
     beq @canMove
     rts

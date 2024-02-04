@@ -22,11 +22,27 @@
 .INCLUDE "multiplexer.inc"
 .INCLUDE "shared.inc"
 
+.IMPORT FuncA_Machine_DoubleIfResetting
 .IMPORT FuncA_Objects_Draw1x1Shape
 .IMPORT FuncA_Objects_GetMachineLightTileId
 .IMPORT FuncA_Objects_MoveShapeDownOneTile
 .IMPORT FuncA_Objects_SetShapePosToMachineTopLeft
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Machine"
+
+;;; Returns the speed at which the current multiplexer machine should move, in
+;;; pixels per frame.
+;;; @prereq Zp_MachineIndex_u8 is initialized.
+;;; @return A The speed the machine should move at.
+;;; @preserve X, Y, T0+
+.EXPORT FuncA_Machine_GetMultiplexerMoveSpeed
+.PROC FuncA_Machine_GetMultiplexerMoveSpeed
+    lda #2  ; param: base value
+    jmp FuncA_Machine_DoubleIfResetting  ; preserves X, Y, and T0+; returns A
+.ENDPROC
 
 ;;;=========================================================================;;;
 

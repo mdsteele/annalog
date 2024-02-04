@@ -84,13 +84,18 @@ kMachineRegNameB = $61  ; 'B'
 ;;; States that a given machine can be in.
 .ENUM eMachine
     Running    ; The machine is executing its program.
-    Resetting  ; The machine is resetting to its original position.
     Working    ; Execution is blocked until the machine reaches its goal.
     Syncing    ; Execution is blocked on a SYNC instruction.
     Waiting    ; Execution is blocked for a set number of frames.
     Ended      ; An END instruction was reached.
     Error      ; The machine tried to do something it couldn't do.
+    ResetRun   ; The machine is resetting (then will resume running).
+    ;; TODO: add ResetEnd
 .ENDENUM
+
+;;; eMachine values greater than or equal to this represent a status where the
+;;; machine is resetting.
+kFirstResetStatus = eMachine::ResetRun
 
 ;;; Static data about a particular machine.
 .STRUCT sMachine

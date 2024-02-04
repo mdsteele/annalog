@@ -34,6 +34,7 @@
 
 .IMPORT DataA_Room_Sewer_sTileset
 .IMPORT FuncA_Machine_Error
+.IMPORT FuncA_Machine_GetMultiplexerMoveSpeed
 .IMPORT FuncA_Machine_ReachedGoal
 .IMPORT FuncA_Machine_StartWorking
 .IMPORT FuncA_Objects_DrawMultiplexerMachine
@@ -43,7 +44,6 @@
 .IMPORT Ppu_ChrObjSewer
 .IMPORT Ram_DeviceType_eDevice_arr
 .IMPORT Ram_MachineGoalHorz_u8_arr
-.IMPORT Ram_MachineStatus_eMachine_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORT Sram_ProgressFlags_arr
 .IMPORTZP Zp_PointY_i16
@@ -316,14 +316,8 @@ _Loop:
     lda #>kMultiplexerMaxPlatformTop
     sbc #0
     sta Zp_PointY_i16 + 1
-    ;; Determine the vertical speed of the machine (faster if resetting).
-    ldy Ram_MachineStatus_eMachine_arr + kMultiplexerMachineIndex
-    lda #2
-    cpy #eMachine::Resetting
-    bne @slow
-    mul #2
-    @slow:
     ;; Move the machine vertically, as necessary.
+    jsr FuncA_Machine_GetMultiplexerMoveSpeed  ; preserves X, returns A
     jsr Func_MovePlatformTopTowardPointY  ; preserves X; returns Z
     bne @moved
     pla  ; num platforms done

@@ -24,6 +24,7 @@
 .INCLUDE "crane.inc"
 .INCLUDE "shared.inc"
 
+.IMPORT FuncA_Machine_GetGenericMoveSpeed
 .IMPORT FuncA_Objects_Alloc1x1Shape
 .IMPORT FuncA_Objects_Alloc2x2Shape
 .IMPORT FuncA_Objects_Draw1x1Shape
@@ -42,7 +43,6 @@
 .IMPORT Func_MovePlatformTopTowardPointY
 .IMPORT Ram_MachineGoalHorz_u8_arr
 .IMPORT Ram_MachineGoalVert_u8_arr
-.IMPORT Ram_MachineStatus_eMachine_arr
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORT Ram_PlatformBottom_i16_0_arr
 .IMPORT Ram_PlatformBottom_i16_1_arr
@@ -98,17 +98,8 @@ kPaletteObjRope   = 0
     lda #0
     adc T1  ; min platform top (hi)
     sta Zp_PointY_i16 + 1
-    ;; Determine the vertical speed of the crane (faster if resetting).
-    lda Ram_MachineStatus_eMachine_arr, y
-    cmp #eMachine::Resetting
-    beq @fast
-    @slow:
-    lda #1
-    bne @move  ; unconditional
-     @fast:
-    lda #2
-    @move:
     ;; Move the load platform vertically, as necessary.
+    jsr FuncA_Machine_GetGenericMoveSpeed  ; preserves X, returns A
     jmp Func_MovePlatformTopTowardPointY  ; returns Z, N, and A
 .ENDPROC
 

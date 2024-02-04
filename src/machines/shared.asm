@@ -127,6 +127,40 @@
 
 .SEGMENT "PRGA_Machine"
 
+;;; Returns the speed at which the current machine should move, in pixels per
+;;; frame.  If the machine is resetting, returns 2; otherwise, returns 1.
+;;; @prereq Zp_MachineIndex_u8 is initialized.
+;;; @return A The speed the machine should move at.
+;;; @preserve X, Y, T0+
+.EXPORT FuncA_Machine_GetGenericMoveSpeed
+.PROC FuncA_Machine_GetGenericMoveSpeed
+    lda #1  ; param: base value
+    fall FuncA_Machine_DoubleIfResetting  ; preserves X, Y, and T0+; returns A
+.ENDPROC
+
+;;; If the current machine is resetting, doubles the given value; otherwise,
+;;; returns it unchanged.
+;;; @prereq Zp_MachineIndex_u8 is initialized.
+;;; @param A The base value to possibly double.
+;;; @return A The possibly-doubled value.
+;;; @preserve X, Y, T0+
+.EXPORT FuncA_Machine_DoubleIfResetting
+.PROC FuncA_Machine_DoubleIfResetting
+    pha  ; base value
+    txa  ; X (to preserve)
+    pha  ; X (to preserve)
+    ldx Zp_MachineIndex_u8
+    lda Ram_MachineStatus_eMachine_arr, x
+    cmp #kFirstResetStatus  ; sets C if machine is resetting
+    pla  ; X (to preserve)
+    tax  ; X (to preserve)
+    pla  ; base value
+    bcc @done
+    mul #2
+    @done:
+    rts
+.ENDPROC
+
 ;;; Tries to move the current machine's horizontal goal value, where goal
 ;;; position zero is the leftmost position, and the only constraint is that the
 ;;; horizontal goal value must be between zero and the given max, inclusive.
@@ -243,15 +277,9 @@
     lda T0  ; max platform left (hi)
     adc #0
     sta Zp_PointX_i16 + 1
-    ;; Determine the horizontal speed of the machine (faster if resetting).
-    ldx Ram_MachineStatus_eMachine_arr, y
-    lda #1
-    cpx #eMachine::Resetting
-    bne @slow
-    mul #2
-    @slow:
     ;; Move the machine horizontally, as necessary.
     ldx T1  ; param: platform index
+    jsr FuncA_Machine_GetGenericMoveSpeed  ; preserves X, returns A
     jmp Func_MovePlatformLeftTowardPointX  ; returns Z, N, and A
 .ENDPROC
 
@@ -286,15 +314,9 @@
     lda T0  ; max platform top (hi)
     sbc T3  ; goal delta (hi)
     sta Zp_PointY_i16 + 1
-    ;; Determine the vertical speed of the machine (faster if resetting).
-    ldx Ram_MachineStatus_eMachine_arr, y
-    lda #1
-    cpx #eMachine::Resetting
-    bne @slow
-    mul #2
-    @slow:
     ;; Move the machine vertically, as necessary.
     ldx T1  ; param: platform index
+    jsr FuncA_Machine_GetGenericMoveSpeed  ; preserves X, returns A
     jmp Func_MovePlatformTopTowardPointY  ; returns Z, N, and A
 .ENDPROC
 

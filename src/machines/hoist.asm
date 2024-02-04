@@ -97,8 +97,8 @@ kTileIdObjHoistRopeDiag = kTileIdObjHoistFirst + 2
 _DetermineSpeed:
     ;; Determine the vertical speed of the hoist (faster if resetting).
     lda Ram_MachineStatus_eMachine_arr, y
-    cmp #eMachine::Resetting
-    beq @fast
+    cmp #kFirstResetStatus
+    bge @fast
     lda Ram_MachineSlowdown_u8_arr, y
     bne _DoNotMove
     lda Zp_PointY_i16 + 0

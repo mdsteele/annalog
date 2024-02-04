@@ -376,8 +376,8 @@ _ObjectLoop:
     beq _DrawSolid
     cmp #eMachine::Error
     beq _Error
-    cmp #eMachine::Resetting
-    beq _Resetting
+    cmp #kFirstResetStatus
+    bge _Resetting
     cmp #eMachine::Ended
     bne _DrawDim
 _Ended:

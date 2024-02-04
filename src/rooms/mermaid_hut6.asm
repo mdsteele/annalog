@@ -30,13 +30,13 @@
 .IMPORT DataA_Room_Hut_sTileset
 .IMPORT Data_Empty_sActor_arr
 .IMPORT FuncA_Machine_Error
+.IMPORT FuncA_Machine_GetGenericMoveSpeed
 .IMPORT FuncA_Machine_ReachedGoal
 .IMPORT FuncA_Machine_StartWorking
 .IMPORT FuncA_Objects_DrawGirderPlatform
 .IMPORT Func_MovePlatformTopTowardPointY
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrObjVillage
-.IMPORT Ram_MachineStatus_eMachine_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORTZP Zp_MachineIndex_u8
 .IMPORTZP Zp_PointY_i16
@@ -210,14 +210,8 @@ _Devices_sDevice_arr:
     sta Zp_PointY_i16 + 0
     lda #0
     sta Zp_PointY_i16 + 1
-    ;; Determine the vertical speed of the lift (faster if resetting).
-    lda #1
-    ldy Ram_MachineStatus_eMachine_arr, x
-    cpy #eMachine::Resetting
-    bne @slow
-    mul #2
-    @slow:
     ;; Move the lift vertically, as necessary.
+    jsr FuncA_Machine_GetGenericMoveSpeed  ; returns A
     jsr Func_MovePlatformTopTowardPointY  ; returns Z and A
     beq @done
     rts

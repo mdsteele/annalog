@@ -35,6 +35,7 @@
 .IMPORT DataA_Room_Mine_sTileset
 .IMPORT Data_Empty_sActor_arr
 .IMPORT FuncA_Machine_Error
+.IMPORT FuncA_Machine_GetGenericMoveSpeed
 .IMPORT FuncA_Machine_ReachedGoal
 .IMPORT FuncA_Machine_StartWaiting
 .IMPORT FuncA_Machine_StartWorking
@@ -59,7 +60,6 @@
 .IMPORT Ppu_ChrObjMine
 .IMPORT Ram_MachineGoalHorz_u8_arr
 .IMPORT Ram_MachineGoalVert_u8_arr
-.IMPORT Ram_MachineStatus_eMachine_arr
 .IMPORT Ram_PlatformBottom_i16_0_arr
 .IMPORT Ram_PlatformBottom_i16_1_arr
 .IMPORT Ram_PlatformLeft_i16_0_arr
@@ -756,14 +756,8 @@ _StartWaiting:
     lda #0
     adc #>kTrolleyMinPlatformLeft
     sta Zp_PointX_i16 + 1
-    ;; Determine the horizontal speed of the trolley (faster if resetting).
-    lda #1
-    ldy Ram_MachineStatus_eMachine_arr + kTrolleyMachineIndex
-    cpy #eMachine::Resetting
-    bne @slow
-    mul #2
-    @slow:
     ;; Move the trolley horizontally, as necessary.
+    jsr FuncA_Machine_GetGenericMoveSpeed  ; returns A
     ldx #kTrolleyPlatformIndex  ; param: platform index
     jsr Func_MovePlatformLeftTowardPointX  ; returns Z and A
     beq @done
@@ -793,14 +787,8 @@ _StartWaiting:
     sta Zp_PointY_i16 + 0
     lda #0
     sta Zp_PointY_i16 + 1
-    ;; Determine the vertical speed of the crane (faster if resetting).
-    lda #1
-    ldy Ram_MachineStatus_eMachine_arr + kCraneMachineIndex
-    cpy #eMachine::Resetting
-    bne @slow
-    mul #2
-    @slow:
     ;; Move the crane vertically, as necessary.
+    jsr FuncA_Machine_GetGenericMoveSpeed  ; returns A
     ldx #kCranePlatformIndex  ; param: platform index
     jsr Func_MovePlatformTopTowardPointY  ; returns Z and A
     beq @done

@@ -266,7 +266,7 @@ _ReadRegB:
 .EXPORT FuncA_Room_MachineReset
 .PROC FuncA_Room_MachineReset
     ldx Zp_MachineIndex_u8  ; param: machine index
-    lda #eMachine::Resetting  ; param: machine status
+    lda #eMachine::ResetRun  ; param: machine status
     cmp Ram_MachineStatus_eMachine_arr, x
     beq @done
     jsr FuncA_Room_ZeroMachineVarsAndSetStatus
@@ -383,8 +383,8 @@ _ReadRegB:
 .PROC FuncA_Machine_ReachedGoal
     ldx Zp_MachineIndex_u8
     lda Ram_MachineStatus_eMachine_arr, x
-    cmp #eMachine::Resetting
-    beq _StartRunning
+    cmp #kFirstResetStatus
+    bge _StartRunning
     cmp #eMachine::Working
     bne _Return
 _FinishWorking:

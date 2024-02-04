@@ -25,6 +25,7 @@
 .INCLUDE "rotor.inc"
 .INCLUDE "shared.inc"
 
+.IMPORT FuncA_Machine_GetGenericMoveSpeed
 .IMPORT FuncA_Machine_ReachedGoal
 .IMPORT FuncA_Machine_StartWorking
 .IMPORT FuncA_Objects_Alloc2x2MachineShape
@@ -45,7 +46,6 @@
 .IMPORT Ppu_ChrBgWheel
 .IMPORT Ram_MachineGoalHorz_u8_arr
 .IMPORT Ram_MachineState1_byte_arr
-.IMPORT Ram_MachineStatus_eMachine_arr
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORTZP Zp_Chr04Bank_u8
 .IMPORTZP Zp_MachineIndex_u8
@@ -189,16 +189,11 @@ kPaletteObjRotor = 0
 ;;; @prereq Zp_Current_sProgram_ptr is initialized.
 .EXPORT FuncA_Machine_RotorTick
 .PROC FuncA_Machine_RotorTick
-    ldx Zp_MachineIndex_u8
 _PickTurnSpeed:
-    ldy #1
-    lda Ram_MachineStatus_eMachine_arr, x
-    cmp #eMachine::Resetting
-    bne @notResetting
-    iny
-    @notResetting:
-    sty T0  ; turn speed
+    jsr FuncA_Machine_GetGenericMoveSpeed  ; returns A
+    sta T0  ; turn speed
 _MoveTowardsGoal:
+    ldx Zp_MachineIndex_u8
     lda Ram_MachineGoalHorz_u8_arr, x  ; goal position (0-7)
     mul #$20
     sta T1  ; goal angle (0-255)

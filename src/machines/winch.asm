@@ -25,6 +25,7 @@
 .INCLUDE "shared.inc"
 .INCLUDE "winch.inc"
 
+.IMPORT FuncA_Machine_GetGenericMoveSpeed
 .IMPORT FuncA_Machine_ReachedGoal
 .IMPORT FuncA_Machine_StartWaiting
 .IMPORT FuncA_Machine_StartWorking
@@ -132,21 +133,8 @@ kPaletteObjWinchGear  = 0
 ;;; horizontally this frame.
 ;;; @prereq Zp_MachineIndex_u8 is initialized.
 ;;; @return A The max distance to move by, in pixels (0-127).
-;;; @preserve X
-.EXPORT FuncA_Machine_GetWinchHorzSpeed
-.PROC FuncA_Machine_GetWinchHorzSpeed
-    ldy Zp_MachineIndex_u8
-    lda Ram_MachineStatus_eMachine_arr, y
-    cmp #eMachine::Resetting
-    bne @notResetting
-    @resetting:
-    .assert eMachine::Resetting <> 2, error
-    lda #2
-    rts
-    @notResetting:
-    lda #1
-    rts
-.ENDPROC
+;;; @preserve X, Y, T0+
+.EXPORT FuncA_Machine_GetWinchHorzSpeed := FuncA_Machine_GetGenericMoveSpeed
 
 ;;; Returns the speed that the current winch machine should use when moving
 ;;; vertically this frame.
@@ -160,8 +148,9 @@ kPaletteObjWinchGear  = 0
 .PROC FuncA_Machine_GetWinchVertSpeed
     ldy Zp_MachineIndex_u8
     lda Ram_MachineStatus_eMachine_arr, y
-    cmp #eMachine::Resetting
-    bne _NotResetting
+    cmp #kFirstResetStatus
+    blt _NotResetting
+_Resetting:
     lda #2
     rts
 _NotResetting:
