@@ -87,10 +87,10 @@ kMachineRegNameB = $61  ; 'B'
     Working    ; Execution is blocked until the machine reaches its goal.
     Syncing    ; Execution is blocked on a SYNC instruction.
     Waiting    ; Execution is blocked for a set number of frames.
-    Ended      ; An END instruction was reached.
+    Halted     ; Execution is halted until the machine is reset.
     Error      ; The machine tried to do something it couldn't do.
     ResetRun   ; The machine is resetting (then will resume running).
-    ;; TODO: add ResetEnd
+    ResetHalt  ; The machine is resetting (then will halt execution).
 .ENDENUM
 
 ;;; eMachine values greater than or equal to this represent a status where the

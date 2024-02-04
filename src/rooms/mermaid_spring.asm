@@ -409,7 +409,7 @@ _DrainSpring:
     sta Zp_RoomState + sState::Lever_u8
     lda #eDevice::Placeholder
     sta Ram_DeviceType_eDevice_arr + kConsoleDeviceIndex
-    lda #eMachine::Ended
+    lda #eMachine::Halted
     sta Ram_MachineStatus_eMachine_arr + kPumpMachineIndex
     @done:
     rts

@@ -36,12 +36,14 @@
 .IMPORT FuncA_Machine_LiftTick
 .IMPORT FuncA_Machine_LiftTryMove
 .IMPORT FuncA_Objects_DrawLiftMachine
+.IMPORT FuncA_Room_MachineResetHalt
 .IMPORT FuncC_Prison_DrawGatePlatform
 .IMPORT FuncC_Prison_OpenGateAndFlipLever
 .IMPORT FuncC_Prison_TickGatePlatform
 .IMPORT Func_ClearFlag
 .IMPORT Func_Noop
 .IMPORT Func_SetFlag
+.IMPORT Func_SetMachineIndex
 .IMPORT Func_SetOrClearFlag
 .IMPORT Ppu_ChrObjTown
 .IMPORT Ram_ActorPosX_i16_0_arr
@@ -285,7 +287,7 @@ _InitOrc:
     flag_bit Sram_ProgressFlags_arr, eFlag::PrisonEastOrcTrapped
     bne @orcIsTrapped
     @disableLift:
-    lda #eMachine::Ended
+    lda #eMachine::Halted
     sta Ram_MachineStatus_eMachine_arr + kLiftMachineIndex
     lda #eDevice::Placeholder
     sta Ram_DeviceType_eDevice_arr + kConsoleDeviceIndex
@@ -366,6 +368,12 @@ _WestGate:
     ldx #kWestGatePlatformIndex  ; param: gate platform index
     lda #kWestGateBlockRow  ; param: block row
     jsr FuncC_Prison_TickGatePlatform
+_CheckIfOrcIsGone:
+    ;; Once the kids have been rescued, the orc is gone from this room, so we
+    ;; don't need to check for whether it's trapped, and the lift machine just
+    ;; stays enabled regardless of the state of the lower prison gate.
+    flag_bit Sram_ProgressFlags_arr, eFlag::PrisonUpperFreedKids
+    bne _Return  ; orc is gone
 _CheckIfOrcIsTrapped:
     ldx #eFlag::PrisonEastOrcTrapped  ; param: flag
     ;; If the lower gate is open, mark the orc as not trapped.
@@ -383,21 +391,26 @@ _OrcIsTrapped:
     ;; If the console is disabled, enable it.
     lda Ram_DeviceType_eDevice_arr + kConsoleDeviceIndex
     cmp #eDevice::Console
-    beq @done  ; console is already enabled
+    beq _Return  ; console is already enabled
     lda Zp_RoomState + sState::ConsoleDelay_u8
-    bne @done  ; console is already about to be enabled
+    bne _Return  ; console is already about to be enabled
     lda #30
     sta Zp_RoomState + sState::ConsoleDelay_u8
-    @done:
+_Return:
     rts
 _OrcIsNotTrapped:
     jsr Func_ClearFlag
-    ;; TODO: Reset and disable the lift machine.
+    ;; If the console is currently enabled, disable it and reset/halt the lift
+    ;; machine.
     lda #eDevice::Placeholder
+    cmp Ram_DeviceType_eDevice_arr + kConsoleDeviceIndex
+    beq _Return
     sta Ram_DeviceType_eDevice_arr + kConsoleDeviceIndex
-    lda #0
-    sta Zp_RoomState + sState::ConsoleDelay_u8
-    rts
+    ldx #kLiftMachineIndex  ; param: machine index
+    .assert kLiftMachineIndex = 0, error
+    stx Zp_RoomState + sState::ConsoleDelay_u8
+    jsr Func_SetMachineIndex
+    jmp FuncA_Room_MachineResetHalt
 .ENDPROC
 
 ;;; Draw function for the PrisonEast room.

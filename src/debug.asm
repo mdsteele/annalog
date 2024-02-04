@@ -31,7 +31,7 @@
 .IMPORT FuncA_Console_SaveProgram
 .IMPORT FuncA_Machine_ExecuteNext
 .IMPORT FuncA_Objects_DrawHudInWindowAndObjectsForRoom
-.IMPORT FuncA_Room_MachineReset
+.IMPORT FuncA_Room_MachineResetRun
 .IMPORT FuncM_ConsoleScrollTowardsGoalAndTick
 .IMPORT Func_BufferPpuTransfer
 .IMPORT Func_ClearRestOfOamAndProcessFrame
@@ -81,7 +81,7 @@ _GameLoop:
     jmp _GameLoop
 _ResumeEditing:
     jsr_prga FuncA_Console_FinishDebuggingMachine
-    jsr_prga FuncA_Room_MachineReset
+    jsr_prga FuncA_Room_MachineResetRun
     jmp Main_Console_ContinueEditing
 .ENDPROC
 
@@ -100,7 +100,7 @@ _HandleBButton:
     bit Zp_P1ButtonsPressed_bJoypad
     .assert bJoypad::BButton = bProc::Overflow, error
     bvc @done
-    ;; If the machine is Ended or Error, pressing B exits debug mode (in
+    ;; If the machine is Halted or Error, pressing B exits debug mode (in
     ;; particular so that a novice player can easily dismiss a machine error
     ;; report by mashing buttons).  Otherwise, ignore the B button (so that it
     ;; can be used to control the B-Remote during debugging).
@@ -108,7 +108,7 @@ _HandleBButton:
     lda Ram_MachineStatus_eMachine_arr, x
     cmp #eMachine::Error
     beq _StopDebugging
-    cmp #eMachine::Ended
+    cmp #eMachine::Halted
     beq _StopDebugging
     @done:
 _HandleAButton:
@@ -121,10 +121,10 @@ _HandleAButton:
     .assert eMachine::Running = 0, error
     beq _ExecuteNext
     ;; TODO: If status is Syncing, skip past the SYNC instruction.
-    ;; If the machine status is Ended or Error, stop debugging.  Otherwise, the
+    ;; If the machine is Halted or Error, stop debugging.  Otherwise, the
     ;; machine is either resetting or still blocked on the current instruction;
     ;; in either case the debugger can't advance yet, so we do nothing.
-    cmp #eMachine::Ended
+    cmp #eMachine::Halted
     beq _StopDebugging
     cmp #eMachine::Error
     bne _ContinueDebugging

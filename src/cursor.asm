@@ -378,9 +378,9 @@ _ObjectLoop:
     beq _Error
     cmp #kFirstResetStatus
     bge _Resetting
-    cmp #eMachine::Ended
+    cmp #eMachine::Halted
     bne _DrawDim
-_Ended:
+_Halted:
     lda Zp_FrameCounter_u8
     and #$04
     bne _DrawSolid

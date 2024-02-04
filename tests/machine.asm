@@ -275,7 +275,7 @@ ExecuteInstructions:
     jsr Func_ExpectAEqualsY
     ;; Verify that the machine hit an END instruction.
     lda Ram_MachineStatus_eMachine_arr + kTestMachineIndex
-    ldy #eMachine::Ended
+    ldy #eMachine::Halted
     jsr Func_ExpectAEqualsY
     jmp Exit_Success
 

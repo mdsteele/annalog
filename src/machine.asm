@@ -243,7 +243,7 @@ _ReadRegB:
 .SEGMENT "PRGA_Room"
 
 ;;; Sets the specified machine's status to the specified eMachine value, and
-;;; zeroes all other non-goal/param variables for that machine.
+;;; zeroes all other non-Goal/State variables for that machine.
 ;;; @param A The eMachine value to set for the machine's status.
 ;;; @param X The machine index.
 ;;; @return A Always zero.
@@ -258,23 +258,46 @@ _ReadRegB:
     rts
 .ENDPROC
 
-;;; If the current machine isn't already resetting, zeroes its variables and
-;;; puts it into resetting mode.  A resetting machine will move back to its
-;;; original position and state (over some period of time) without executing
-;;; instructions, and once fully reset, will start running again.
+;;; Puts the current machine into resetting mode (if it isn't already
+;;; resetting), and sets it to halt execution once the reset sequence is
+;;; complete.
 ;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
-.EXPORT FuncA_Room_MachineReset
+.EXPORT FuncA_Room_MachineResetHalt
+.PROC FuncA_Room_MachineResetHalt
+    lda #eMachine::ResetHalt  ; param: new machine status
+    .assert eMachine::ResetHalt > 0, error
+    bne FuncA_Room_MachineReset  ; unconditional
+.ENDPROC
+
+;;; Puts the current machine into resetting mode (if it isn't already
+;;; resetting), and sets it to resume running again once the reset sequence is
+;;; complete.
+;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
+.EXPORT FuncA_Room_MachineResetRun
+.PROC FuncA_Room_MachineResetRun
+    lda #eMachine::ResetRun  ; param: new machine status
+    fall FuncA_Room_MachineReset
+.ENDPROC
+
+;;; Puts the current machine into resetting mode (if it isn't already
+;;; resetting), and uses the given eMachine::Reset* value to set what the
+;;; machine should do once the reset sequence is complete.
+;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
+;;; @param A The eMachine::Reset* value to set as the new machine status.
 .PROC FuncA_Room_MachineReset
+    ;; If the machine is already resetting, just change its status (in case
+    ;; we're changing from one kind of reset to another).
     ldx Zp_MachineIndex_u8  ; param: machine index
-    lda #eMachine::ResetRun  ; param: machine status
-    cmp Ram_MachineStatus_eMachine_arr, x
-    beq @done
+    ldy Ram_MachineStatus_eMachine_arr, x
+    cpy #kFirstResetStatus
+    blt @beginReset
+    sta Ram_MachineStatus_eMachine_arr, x
+    rts
+    ;; Otherwise, begin the machine's reset process.
+    @beginReset:
     jsr FuncA_Room_ZeroMachineVarsAndSetStatus
-    ;; Start resetting the machine.
     ldy #sMachine::Reset_func_ptr  ; param: function pointer offset
     jmp Func_MachineCall
-    @done:
-    rts
 .ENDPROC
 
 ;;; Initializes state for all machines in the room.
@@ -309,7 +332,7 @@ _ReadRegB:
 ;;; resetting will continue doing so until they finish their current operation.
 .EXPORT FuncA_Room_HaltAllMachines
 .PROC FuncA_Room_HaltAllMachines
-    lda #eMachine::Ended
+    lda #eMachine::Halted
     ldx #0
     beq @while  ; unconditional
     @loop:
@@ -371,11 +394,12 @@ _ReadRegB:
 
 ;;; This should be called from a machine's Tick function when its goal position
 ;;; has been reached.
-;;;   * If the machine is in Resetting mode, this will put it back into Running
-;;;     mode so it can start executing its program.
 ;;;   * If the machine is in Working mode, this will increment its PC and put
 ;;;     it back into Running mode, so that it is ready to execute the next
 ;;;     instruction.
+;;;   * If the machine is in ResetRun mode, this will put it back into Running
+;;;     mode so it can start executing its program.
+;;;   * If the machine is in ResetHalt mode, this will put it into Halted mode.
 ;;;   * If the machine is in any other mode, this will do nothing.
 ;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
 ;;; @prereq Zp_Current_sProgram_ptr is initialized.
@@ -383,14 +407,22 @@ _ReadRegB:
 .PROC FuncA_Machine_ReachedGoal
     ldx Zp_MachineIndex_u8
     lda Ram_MachineStatus_eMachine_arr, x
-    cmp #kFirstResetStatus
-    bge _StartRunning
+    .assert eMachine::ResetRun = kFirstResetStatus, error
+    cmp #eMachine::ResetRun
+    beq _StartRunning
+    .assert eMachine::ResetHalt > eMachine::ResetRun, error
+    bge _Halt
     cmp #eMachine::Working
     bne _Return
 _FinishWorking:
-    jsr FuncA_Machine_IncrementPc
+    jsr FuncA_Machine_IncrementPc  ; returns current machine index in X
 _StartRunning:
     lda #eMachine::Running
+    .assert eMachine::Running = 0, error
+    beq _SetStatus  ; unconditional
+_Halt:
+    lda #eMachine::Halted
+_SetStatus:
     sta Ram_MachineStatus_eMachine_arr, x
 _Return:
     rts
@@ -654,7 +686,7 @@ _OpRest:
     lda #$10  ; 16 frames = about a quarter second
     jmp FuncA_Machine_StartWaiting
 _OpEnd:
-    lda #eMachine::Ended
+    lda #eMachine::Halted
     sta Ram_MachineStatus_eMachine_arr, x
 _OpEmpty:
     rts
@@ -669,26 +701,29 @@ _OpSync:
 ;;; instruction), does nothing.
 ;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
 ;;; @prereq Zp_Current_sProgram_ptr is initialized.
+;;; @return X The current machine index.
 .PROC FuncA_Machine_IncrementPcIfRunning
     ldx Zp_MachineIndex_u8
     lda Ram_MachineStatus_eMachine_arr, x
     .assert eMachine::Running = 0, error
-    beq FuncA_Machine_IncrementPc
+    beq FuncA_Machine_IncrementPc  ; returns current machine index in X
     rts
 .ENDPROC
 
 ;;; Increments the program counter of the current machine by 1.
 ;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
 ;;; @prereq Zp_Current_sProgram_ptr is initialized.
+;;; @return X The current machine index.
 .PROC FuncA_Machine_IncrementPc
     ldx #1  ; param: num instructions
-    .assert * = FuncA_Machine_IncrementPcByX, error, "fallthrough"
+    fall FuncA_Machine_IncrementPcByX  ; returns current machine index in X
 .ENDPROC
 
 ;;; Increments the program counter of the current machine by X.
 ;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
 ;;; @prereq Zp_Current_sProgram_ptr is initialized.
 ;;; @param X The number of instructions to increment by (must be nonzero).
+;;; @return X The current machine index.
 .PROC FuncA_Machine_IncrementPcByX
     lda Zp_MachineMaxInstructions_u8
     mul #.sizeof(sIns)
@@ -752,7 +787,7 @@ _DecrementWaitTimer:
     ;; Return the machine to Running mode when the timer reaches zero.
     lda #eMachine::Running
     sta Ram_MachineStatus_eMachine_arr, x
-    jsr FuncA_Machine_IncrementPc
+    jsr FuncA_Machine_IncrementPc  ; returns current machine index in X
     @done:
 _DecrementSlowdownTimer:
     ;; Decrement the machine's slowdown value if it's not zero.
@@ -826,8 +861,7 @@ _UnblockSync:
     sta Ram_MachineStatus_eMachine_arr, x
     jsr Func_SetMachineIndex
     jsr Func_GetMachineProgram
-    jsr FuncA_Machine_IncrementPc
-    ldx Zp_MachineIndex_u8
+    jsr FuncA_Machine_IncrementPc  ; returns current machine index in X
     inx
     cpx <(Zp_Current_sRoom + sRoom::NumMachines_u8)
     blt @loop

@@ -43,7 +43,7 @@
 .IMPORT FuncA_Objects_DrawHudInWindow
 .IMPORT FuncA_Objects_DrawObjectsForRoom
 .IMPORT FuncA_Room_CallRoomTick
-.IMPORT FuncA_Room_MachineReset
+.IMPORT FuncA_Room_MachineResetRun
 .IMPORT FuncM_DrawObjectsForRoomAndProcessFrame
 .IMPORT FuncM_ScrollTowardsAvatar
 .IMPORT FuncM_ScrollTowardsGoal
@@ -169,7 +169,7 @@ _OpenConsoleWindow:
     lda Ram_MachineStatus_eMachine_arr, x
     cmp #eMachine::Error
     beq @noReset
-    jsr_prga FuncA_Room_MachineReset
+    jsr_prga FuncA_Room_MachineResetRun
     @noReset:
     jsr_prga FuncA_Console_Init
 _GameLoop:

@@ -305,7 +305,7 @@ _Passages_sPassage_arr:
     @initCutscene:
     lda #$ff
     sta Ram_ActorState2_byte_arr + kGrontaActorIndex
-    lda #eMachine::Ended
+    lda #eMachine::Halted
     sta Ram_MachineStatus_eMachine_arr + kLift1MachineIndex
     sta Ram_MachineStatus_eMachine_arr + kLift2MachineIndex
     sta Ram_MachineStatus_eMachine_arr + kLift3MachineIndex
