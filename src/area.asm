@@ -233,7 +233,7 @@
     .byte  7,  7
     .byte  7,  8
     .byte  7,  9
-    .byte  7,  11
+    .byte  7, 11
     .byte  8,  6
     .byte  8,  7
     .byte  8,  8
@@ -340,6 +340,7 @@
     .byte 3, 4
     .byte 3, 5
     .byte 3, 6
+    .byte 3, 7
     .byte 3, 8
     .byte 3, 9
     .byte $ff

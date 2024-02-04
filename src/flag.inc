@@ -171,6 +171,7 @@ kSaveMagicNumber = $b2
     PrisonCellReachedTunnel
     PrisonEastEastGateOpen
     PrisonEastLowerGateShut
+    PrisonEastOrcTrapped
     PrisonEastWestGateOpen
     PrisonUpperFoundAlex
     PrisonUpperFreedAlex

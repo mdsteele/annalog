@@ -28,7 +28,7 @@
 ;;;=========================================================================;;;
 
 ;;; The eChan value for the channel that Quest Marker sounds play on.
-kChannel = eChan::Pulse2
+kChannel = eChan::Pulse1
 
 ;;; How slowly the envelope volume decreases (0-15).
 kQuestEnvPeriod = 4

@@ -20,13 +20,13 @@
 .INCLUDE "../actor.inc"
 .INCLUDE "../charmap.inc"
 .INCLUDE "../device.inc"
+.INCLUDE "../devices/console.inc"
 .INCLUDE "../flag.inc"
 .INCLUDE "../machine.inc"
 .INCLUDE "../machines/lift.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../platform.inc"
 .INCLUDE "../platforms/gate.inc"
-.INCLUDE "../platforms/stepstone.inc"
 .INCLUDE "../ppu.inc"
 .INCLUDE "../program.inc"
 .INCLUDE "../room.inc"
@@ -36,15 +36,21 @@
 .IMPORT FuncA_Machine_LiftTick
 .IMPORT FuncA_Machine_LiftTryMove
 .IMPORT FuncA_Objects_DrawLiftMachine
-.IMPORT FuncA_Objects_DrawStepstonePlatform
 .IMPORT FuncC_Prison_DrawGatePlatform
 .IMPORT FuncC_Prison_OpenGateAndFlipLever
 .IMPORT FuncC_Prison_TickGatePlatform
+.IMPORT Func_ClearFlag
 .IMPORT Func_Noop
+.IMPORT Func_SetFlag
 .IMPORT Func_SetOrClearFlag
 .IMPORT Ppu_ChrObjTown
+.IMPORT Ram_ActorPosX_i16_0_arr
+.IMPORT Ram_ActorPosX_i16_1_arr
 .IMPORT Ram_ActorType_eActor_arr
+.IMPORT Ram_DeviceAnim_u8_arr
+.IMPORT Ram_DeviceType_eDevice_arr
 .IMPORT Ram_MachineGoalVert_u8_arr
+.IMPORT Ram_MachineStatus_eMachine_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORT Sram_ProgressFlags_arr
 .IMPORTZP Zp_RoomState
@@ -54,6 +60,9 @@
 ;;; The actor index for the orc in this room.
 kOrcActorIndex = 0
 
+;;; The device index for the console in this room.
+kConsoleDeviceIndex = 3
+
 ;;; The machine index for the PrisonEastLift machine in this room.
 kLiftMachineIndex = 0
 
@@ -61,11 +70,11 @@ kLiftMachineIndex = 0
 kLiftPlatformIndex = 0
 
 ;;; The initial and maximum permitted vertical goal values for the lift.
-kLiftInitGoalY = 5
-kLiftMaxGoalY = 6
+kLiftInitGoalY = 4
+kLiftMaxGoalY = 5
 
 ;;; The maximum and initial Y-positions for the top of the lift platform.
-kLiftMaxPlatformTop = $00e0
+kLiftMaxPlatformTop = $00d0
 kLiftInitPlatformTop = kLiftMaxPlatformTop - kLiftInitGoalY * kBlockHeightPx
 
 ;;; The platform indices for the prison gates in this room.
@@ -78,8 +87,8 @@ kEastGateBlockRow = 9
 kLowerGateBlockRow = 14
 kWestGateBlockRow = 6
 
-;;; The platform index for the stepstone in the bottom-center of the room.
-kStepstonePlatformIndex = 4
+;;; The room pixel X-position for the left side of the lower gate.
+kLowerGateLeft = $00cd
 
 ;;;=========================================================================;;;
 
@@ -89,6 +98,9 @@ kStepstonePlatformIndex = 4
     EastGateLever_u8  .byte
     LowerGateLever_u8 .byte
     WestGateLever_u8  .byte
+    ;; Timer that decrements each frame when nonzero.  When it decrements from
+    ;; one to zero, it turns on the lift machine console.
+    ConsoleDelay_u8   .byte
 .ENDSTRUCT
 .ASSERT .sizeof(sState) <= kRoomStateSize, error
 
@@ -139,9 +151,9 @@ _Machines_sMachine_arr:
     d_addr Init_func_ptr, FuncC_Prison_EastLift_InitReset
     d_addr ReadReg_func_ptr, FuncC_Prison_EastLift_ReadReg
     d_addr WriteReg_func_ptr, Func_Noop
-    d_addr TryMove_func_ptr, FuncC_Prison_EastLift_TryMove
+    d_addr TryMove_func_ptr, FuncA_Machine_PrisonEastLift_TryMove
     d_addr TryAct_func_ptr, FuncA_Machine_Error
-    d_addr Tick_func_ptr, FuncC_Prison_EastLift_Tick
+    d_addr Tick_func_ptr, FuncA_Machine_PrisonEastLift_Tick
     d_addr Draw_func_ptr, FuncA_Objects_DrawLiftMachine
     d_addr Reset_func_ptr, FuncC_Prison_EastLift_InitReset
     D_END
@@ -168,7 +180,7 @@ _Platforms_sPlatform_arr:
     d_byte Type_ePlatform, ePlatform::Solid
     d_word WidthPx_u16, kGatePlatformWidthPx
     d_byte HeightPx_u8, kGatePlatformHeightPx
-    d_word Left_i16, $00cd
+    d_word Left_i16, kLowerGateLeft
     d_word Top_i16, kLowerGateBlockRow * kBlockHeightPx
     D_END
     .assert * - :- = kWestGatePlatformIndex * .sizeof(sPlatform), error
@@ -179,21 +191,20 @@ _Platforms_sPlatform_arr:
     d_word Left_i16, $0070
     d_word Top_i16, kWestGateBlockRow * kBlockHeightPx
     D_END
-    ;; Stepping stone on left side of bottom-center prison cell:
-    .assert * - :- = kStepstonePlatformIndex * .sizeof(sPlatform), error
+    ;; Half-height block near lift machine:
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Solid
-    d_word WidthPx_u16, kStepstonePlatformWidthPx
-    d_byte HeightPx_u8, kStepstonePlatformHeightPx
-    d_word Left_i16, $0099
-    d_word Top_i16,  $012c
+    d_word WidthPx_u16, $10
+    d_byte HeightPx_u8, $08
+    d_word Left_i16,  $00f0
+    d_word Top_i16,   $00a0
     D_END
     ;; Terrain spikes:
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Harm
-    d_word WidthPx_u16, $60
+    d_word WidthPx_u16, $50
     d_byte HeightPx_u8, $08
-    d_word Left_i16,  $0020
+    d_word Left_i16,  $0030
     d_word Top_i16,   $015e
     D_END
     .assert * - :- <= kMaxPlatforms * .sizeof(sPlatform), error
@@ -218,7 +229,7 @@ _Devices_sDevice_arr:
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::LeverFloor
     d_byte BlockRow_u8, 17
-    d_byte BlockCol_u8, 11
+    d_byte BlockCol_u8, 12
     d_byte Target_byte, sState::LowerGateLever_u8
     D_END
     D_STRUCT sDevice
@@ -227,6 +238,7 @@ _Devices_sDevice_arr:
     d_byte BlockCol_u8, 13
     d_byte Target_byte, sState::WestGateLever_u8
     D_END
+    .assert * - :- = kConsoleDeviceIndex * .sizeof(sDevice), error
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Console
     d_byte BlockRow_u8, 15
@@ -248,16 +260,42 @@ _Passages_sPassage_arr:
     d_byte SpawnBlock_u8, 7
     d_byte SpawnAdjust_byte, 0
     D_END
+    D_STRUCT sPassage
+    d_byte Exit_bPassage, ePassage::Western | 1
+    d_byte Destination_eRoom, eRoom::PrisonEast  ; TODO: PrisonLower
+    d_byte SpawnBlock_u8, 20
+    d_byte SpawnAdjust_byte, 0
+    D_END
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
 .ENDPROC
 
 ;;; Enter function for the PrisonEast room.
 .PROC FuncC_Prison_East_EnterRoom
+_InitOrc:
     ;; Once the kids have been rescued, remove the orc from this room.
     flag_bit Sram_ProgressFlags_arr, eFlag::PrisonUpperFreedKids
-    beq @done
+    beq @keepOrc
     lda #eActor::None
     sta Ram_ActorType_eActor_arr + kOrcActorIndex
+    .assert eActor::None = 0, error
+    beq @done  ; unconditional
+    @keepOrc:
+    ;; If the orc is trapped, move it inside the cell.  Otherwise, disable the
+    ;; lift machine until the orc gets trapped.
+    flag_bit Sram_ProgressFlags_arr, eFlag::PrisonEastOrcTrapped
+    bne @orcIsTrapped
+    @disableLift:
+    lda #eMachine::Ended
+    sta Ram_MachineStatus_eMachine_arr + kLiftMachineIndex
+    lda #eDevice::Placeholder
+    sta Ram_DeviceType_eDevice_arr + kConsoleDeviceIndex
+    .assert eDevice::Placeholder > 0, error
+    bne @done  ; unconditional
+    @orcIsTrapped:
+    ldya #$00c0
+    sta Ram_ActorPosX_i16_0_arr + kOrcActorIndex
+    sty Ram_ActorPosX_i16_1_arr + kOrcActorIndex
+    ;; TODO: Set the orc's mode to make it pound on the prison gate.
     @done:
 _EastGate:
     flag_bit Sram_ProgressFlags_arr, eFlag::PrisonEastEastGateOpen
@@ -286,6 +324,17 @@ _WestGate:
 ;;; Tick function for the PrisonEast room.
 ;;; @prereq PRGA_Room is loaded.
 .PROC FuncC_Prison_East_TickRoom
+_ConsoleDelay:
+    lda Zp_RoomState + sState::ConsoleDelay_u8
+    beq @done
+    dec Zp_RoomState + sState::ConsoleDelay_u8
+    bne @done
+    ;; TODO: play a sound for the console turning on
+    lda #eDevice::Console
+    sta Ram_DeviceType_eDevice_arr + kConsoleDeviceIndex
+    lda #kConsoleAnimCountdown
+    sta Ram_DeviceAnim_u8_arr + kConsoleDeviceIndex
+    @done:
 _EastGate:
     ;; Update the flag from the lever.
     ldx #eFlag::PrisonEastEastGateOpen  ; param: flag
@@ -316,14 +365,44 @@ _WestGate:
     ldy Zp_RoomState + sState::WestGateLever_u8  ; param: zero for shut
     ldx #kWestGatePlatformIndex  ; param: gate platform index
     lda #kWestGateBlockRow  ; param: block row
-    jmp FuncC_Prison_TickGatePlatform
+    jsr FuncC_Prison_TickGatePlatform
+_CheckIfOrcIsTrapped:
+    ldx #eFlag::PrisonEastOrcTrapped  ; param: flag
+    ;; If the lower gate is open, mark the orc as not trapped.
+    flag_bit Sram_ProgressFlags_arr, eFlag::PrisonEastLowerGateShut
+    beq _OrcIsNotTrapped
+    ;; Otherwise, if the orc is to the right of the gate, it's not trapped.
+    lda #<kLowerGateLeft
+    cmp Ram_ActorPosX_i16_0_arr + kOrcActorIndex
+    lda #>kLowerGateLeft
+    sbc Ram_ActorPosX_i16_1_arr + kOrcActorIndex
+    bmi _OrcIsNotTrapped
+_OrcIsTrapped:
+    jsr Func_SetFlag
+    ;; TODO: Set the orc's mode to make it pound on the prison gate.
+    ;; If the console is disabled, enable it.
+    lda Ram_DeviceType_eDevice_arr + kConsoleDeviceIndex
+    cmp #eDevice::Console
+    beq @done  ; console is already enabled
+    lda Zp_RoomState + sState::ConsoleDelay_u8
+    bne @done  ; console is already about to be enabled
+    lda #30
+    sta Zp_RoomState + sState::ConsoleDelay_u8
+    @done:
+    rts
+_OrcIsNotTrapped:
+    jsr Func_ClearFlag
+    ;; TODO: Reset and disable the lift machine.
+    lda #eDevice::Placeholder
+    sta Ram_DeviceType_eDevice_arr + kConsoleDeviceIndex
+    lda #0
+    sta Zp_RoomState + sState::ConsoleDelay_u8
+    rts
 .ENDPROC
 
 ;;; Draw function for the PrisonEast room.
 ;;; @prereq PRGA_Objects is loaded.
 .PROC FuncC_Prison_East_DrawRoom
-    ldx #kStepstonePlatformIndex  ; param: platform index
-    jsr FuncA_Objects_DrawStepstonePlatform
     ldx #kEastGatePlatformIndex  ; param: platform index
     jsr FuncC_Prison_DrawGatePlatform
     ldx #kLowerGatePlatformIndex  ; param: platform index
@@ -345,12 +424,16 @@ _WestGate:
     rts
 .ENDPROC
 
-.PROC FuncC_Prison_EastLift_TryMove
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Machine"
+
+.PROC FuncA_Machine_PrisonEastLift_TryMove
     lda #kLiftMaxGoalY  ; param: max goal vert
     jmp FuncA_Machine_LiftTryMove
 .ENDPROC
 
-.PROC FuncC_Prison_EastLift_Tick
+.PROC FuncA_Machine_PrisonEastLift_Tick
     ldax #kLiftMaxPlatformTop  ; param: max platform top
     jmp FuncA_Machine_LiftTick
 .ENDPROC

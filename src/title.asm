@@ -246,6 +246,7 @@ _Flags_eFlag_arr:
     .byte eFlag::CoreSouthCorraHelped
     .byte eFlag::PrisonEastEastGateOpen
     .byte eFlag::PrisonEastLowerGateShut
+    .byte eFlag::PrisonEastOrcTrapped
     .byte eFlag::PrisonEastWestGateOpen
     .byte eFlag::PrisonUpperFoundAlex
     .byte eFlag::PrisonUpperFreedAlex
