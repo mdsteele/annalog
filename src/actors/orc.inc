@@ -21,8 +21,8 @@
 ;;;   * State1: The eBadGronta value for Gronta's current behavior mode.
 ;;;   * State2: A timer for the current mode that increments or decrements each
 ;;;     frame, depending on the mode.
-;;;   * State3: For Running mode, this is the goal X-position, measured in room
-;;;     tiles.
+;;;   * State3: For JumpWindup and Running mode, this stores a bBadGronta value
+;;;     encoding the goal delta or position.  For other modes, this is unused.
 ;;;   * State4: An invincibility timer; when nonzero, Gronta cannot be harmed,
 ;;;     and the timer decrements each frame.
 
@@ -51,13 +51,22 @@ kBadGrontaMaxJumpUpBlocks = 2
 ;;; Possible values for a Gronta baddie actor's State1 byte.
 .ENUM eBadGronta
     Idle          ; standing, waiting for a new mode to be set
+    JumpWindup    ; getting ready to jump
+    JumpAirborne  ; airborne while jumping
     Running       ; running towards a goal position
-    Jumping       ; airborne while jumping
     ThrowWindup   ; winding up an axe throw
     ThrowWaiting  ; waiting for the axe to return
     ThrowCatch    ; catching a returned axe
     NUM_VALUES
 .ENDENUM
+
+;;; Describes a chasing action Gronta can perform.
+.SCOPE bBadGronta
+    IsRun        = %10000000  ; if set, run; if cleared, jump
+    RunGoalMask  = %01111111  ; bits used for the running goal position
+    JumpVertMask = %01110000  ; bits used for the jump's vertical offset
+    JumpHorzMask = %00001111  ; bits used for the jump's horizontal offset
+.ENDSCOPE
 
 ;;; Possible values for an orc baddie actor's State1 byte.
 .ENUM eBadOrc
@@ -85,7 +94,9 @@ kBadGrontaMaxJumpUpBlocks = 2
     GrontaRunning3
     GrontaRunning4
     GrontaArmsRaised
+    GrontaCrouching
     GrontaJumping
+    GrontaKneeling
     GrontaParley
     GrontaStanding
     GrontaThrowing
@@ -112,6 +123,7 @@ kOrcJumpVelocity = $ffff & -600
 
 ;;; Tile IDs for drawing orc baddie/NPC actors.
 kTileIdObjOrcGhostFirst          = $b0
+kTileIdObjOrcGrontaCrouchFirst   = $f0
 kTileIdObjOrcGrontaJumpingFirst  = $c4
 kTileIdObjOrcGrontaParleyFirst   = $9c
 kTileIdObjOrcGrontaRunningFirst  = $b0

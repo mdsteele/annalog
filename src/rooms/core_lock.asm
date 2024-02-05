@@ -369,8 +369,12 @@ _Passages_sPassage_arr:
     act_SetActorState1 kGrontaActorIndex, eNpcOrc::GrontaStanding
     act_WaitFrames 30
     ;; Make Gronta jump up to the next ledge.
+    act_SetActorState1 kGrontaActorIndex, eNpcOrc::GrontaCrouching
+    act_WaitFrames 10
+    act_SetActorState1 kGrontaActorIndex, eNpcOrc::GrontaStanding
+    act_WaitFrames 2
     act_PlaySfxSample eSample::JumpGronta
-    act_SetActorState1 kGrontaActorIndex, eNpcOrc::GrontaJumping
+    act_SetActorState1 kGrontaActorIndex, eNpcOrc::GrontaRunning3
     act_SetActorVelX  kGrontaActorIndex, $98
     act_SetActorVelY  kGrontaActorIndex, -$330
     act_SetCutsceneFlags bCutscene::TickAllActors

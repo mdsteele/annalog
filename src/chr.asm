@@ -1100,7 +1100,8 @@ _chr_begin:
     chr_inc "crusher",             kTileIdObjCrusherFirst
     chr_inc "winch",               kTileIdObjWinchFirst
     chr_inc "grenade",             kTileIdObjGrenadeFirst
-    chr_res $10
+    chr_inc "orc_gronta_crouch",   kTileIdObjOrcGrontaCrouchFirst
+    chr_res $04
     END_CHR_BANK
 .ENDPROC
 

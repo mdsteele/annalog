@@ -69,8 +69,7 @@
 .IMPORT FuncA_Objects_DrawWinchMachineWithSpikeball
 .IMPORT FuncA_Objects_MoveShapeDownOneTile
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
-.IMPORT FuncA_Room_BadGrontaBeginJumping
-.IMPORT FuncA_Room_BadGrontaBeginRunning
+.IMPORT FuncA_Room_BadGrontaBeginChasing
 .IMPORT FuncA_Room_BadGrontaBeginThrowing
 .IMPORT FuncA_Room_FindGrenadeActor
 .IMPORT FuncA_Room_HarmAvatarIfWithinLaserBeam
@@ -227,26 +226,18 @@ kGrontaHitsPerMachine = 2
 ;;; The room block column index of the leftmost nodes.
 kFirstNodeColumn = 2
 
-;;; Describes a chasing action Gronta can take when standing at a node.
-.SCOPE bNode
-    IsRun        = %10000000  ; if set, run; if cleared, jump
-    RunGoalMask  = %01111111  ; bits used for the running goal position
-    JumpVertMask = %01110000  ; bits used for the jump's vertical offset
-    JumpHorzMask = %00001111  ; bits used for the jump's horizontal offset
-.ENDSCOPE
-
 ;;; Describes a node that Gronta can stand at.
 .STRUCT sNode
     ;; The room block row index for this node.
     BlockRow_u8    .byte
     ;; The actions Gronta should take if she wants to chase the player avatar
     ;; clockwise/counterclockwise around the room from this node.
-    ChaseCw_bNode  .byte
-    ChaseCcw_bNode .byte
+    Cw_bBadGronta  .byte
+    Ccw_bBadGronta .byte
 .ENDSTRUCT
 
-;;; Macros for defining bNode actions.
-.DEFINE node_run(GOAL_BLOCK) (bNode::IsRun | ((GOAL_BLOCK) * 2 + 1))
+;;; Macros for defining bBadGronta actions.
+.DEFINE node_run(GOAL_BLOCK) (bBadGronta::IsRun | ((GOAL_BLOCK) * 2 + 1))
 .DEFINE node_jump(XOFF, YOFF) ((((YOFF) + 2) << 4) | ((XOFF) & $0f))
 
 ;;;=========================================================================;;;
@@ -799,36 +790,18 @@ _ChaseAvatar:
     .assert sNode::BlockRow_u8 = 0, error
     cmp (T1T0), y
     bne @loop
-    ;; Load the CW or CCW bNode (depending on X), storing it in A.
+    ;; Get the CW or CCW bBadGronta value (depending on X).
     iny  ; now Y mod .sizeof(sNode) is 1
-    .assert sNode::ChaseCw_bNode = 1, error
+    .assert sNode::Cw_bBadGronta = 1, error
     txa
     beq @notCcw
     iny  ; now Y mod .sizeof(sNode) is 2
-    .assert sNode::ChaseCcw_bNode = 2, error
+    .assert sNode::Ccw_bBadGronta = 2, error
     @notCcw:
+    lda (T1T0), y  ; param: bBadGronta value
+    ;; Perform the action.
     ldx #kGrontaActorIndex  ; param: actor index
-    lda (T1T0), y  ; bNode value
-    ;; Decode the action.
-    .assert bNode::IsRun = $80, error
-    bmi _DoRun
-_DoJump:
-    pha  ; bNode value
-    .assert bNode::JumpVertMask = $70, error
-    div #$10
-    sub #kBadGrontaMaxJumpUpBlocks
-    tay  ; param: signed vert offset in blocks
-    pla  ; bNode value
-    and #bNode::JumpHorzMask  ; param: signed horz offset in blocks
-    .assert bNode::JumpHorzMask = $0f, error
-    cmp #$08
-    blt @nonnegative
-    ora #$f0  ; sign-extend to eight bits
-    @nonnegative:
-    jmp FuncA_Room_BadGrontaBeginJumping
-_DoRun:
-    and #bNode::RunGoalMask  ; param: goal tile horz
-    jmp FuncA_Room_BadGrontaBeginRunning
+    jmp FuncA_Room_BadGrontaBeginChasing
 .ENDPROC
 
 .REPEAT 2, table
@@ -871,23 +844,23 @@ _DoRun:
 .PROC DataC_Core_BossNodesCol02_sNode_arr
     D_STRUCT sNode
     d_byte BlockRow_u8, 6
-    d_byte ChaseCw_bNode,  node_jump(3, -2)
-    d_byte ChaseCcw_bNode, node_jump(3, -2)
+    d_byte Cw_bBadGronta,  node_jump(3, -2)
+    d_byte Ccw_bBadGronta, node_jump(3, -2)
     D_END
     D_STRUCT sNode
     d_byte BlockRow_u8, 10
-    d_byte ChaseCw_bNode,  node_jump(4, -2)
-    d_byte ChaseCcw_bNode, node_jump(3, 2)
+    d_byte Cw_bBadGronta,  node_jump(4, -2)
+    d_byte Ccw_bBadGronta, node_jump(3, 2)
     D_END
     D_STRUCT sNode
     d_byte BlockRow_u8, 14
-    d_byte ChaseCw_bNode,  node_jump(3, -2)
-    d_byte ChaseCcw_bNode, node_jump(3, -2)
+    d_byte Cw_bBadGronta,  node_jump(3, -2)
+    d_byte Ccw_bBadGronta, node_jump(3, -2)
     D_END
     D_STRUCT sNode
     d_byte BlockRow_u8, 18
-    d_byte ChaseCw_bNode,  node_jump(4, -2)
-    d_byte ChaseCcw_bNode, node_jump(3, 2)
+    d_byte Cw_bBadGronta,  node_jump(4, -2)
+    d_byte Ccw_bBadGronta, node_jump(3, 2)
     D_END
     ;; Row 21 sNode is the same as below.
     fall DataC_Core_BossNodesCol03_sNode_arr
@@ -896,91 +869,91 @@ _DoRun:
 .PROC DataC_Core_BossNodesCol03_sNode_arr
     D_STRUCT sNode
     d_byte BlockRow_u8, 21
-    d_byte ChaseCw_bNode,  node_run(4)
-    d_byte ChaseCcw_bNode, node_run(4)
+    d_byte Cw_bBadGronta,  node_run(4)
+    d_byte Ccw_bBadGronta, node_run(4)
     D_END
 .ENDPROC
 
 .PROC DataC_Core_BossNodesCol04_sNode_arr
     D_STRUCT sNode
     d_byte BlockRow_u8, 21
-    d_byte ChaseCw_bNode,  node_jump(1, -1)
-    d_byte ChaseCcw_bNode, node_jump(1, -1)
+    d_byte Cw_bBadGronta,  node_jump(1, -1)
+    d_byte Ccw_bBadGronta, node_jump(1, -1)
     D_END
 .ENDPROC
 
 .PROC DataC_Core_BossNodesCol05_sNode_arr
     D_STRUCT sNode
     d_byte BlockRow_u8, 4
-    d_byte ChaseCw_bNode,  node_jump(1, 4)
-    d_byte ChaseCcw_bNode, node_jump(1, 4)
+    d_byte Cw_bBadGronta,  node_jump(1, 4)
+    d_byte Ccw_bBadGronta, node_jump(1, 4)
     D_END
     D_STRUCT sNode
     d_byte BlockRow_u8, 12
-    d_byte ChaseCw_bNode,  node_jump(-3, -2)
-    d_byte ChaseCcw_bNode, node_run(6)
+    d_byte Cw_bBadGronta,  node_jump(-3, -2)
+    d_byte Ccw_bBadGronta, node_run(6)
     D_END
     D_STRUCT sNode
     d_byte BlockRow_u8, 20
-    d_byte ChaseCw_bNode,  node_jump(-3, -2)
-    d_byte ChaseCcw_bNode, node_run(6)
+    d_byte Cw_bBadGronta,  node_jump(-3, -2)
+    d_byte Ccw_bBadGronta, node_run(6)
     D_END
 .ENDPROC
 
 .PROC DataC_Core_BossNodesCol06_sNode_arr
     D_STRUCT sNode
     d_byte BlockRow_u8, 8
-    d_byte ChaseCw_bNode,  node_run(7)
-    d_byte ChaseCcw_bNode, node_jump(-1, 4)
+    d_byte Cw_bBadGronta,  node_run(7)
+    d_byte Ccw_bBadGronta, node_jump(-1, 4)
     D_END
     D_STRUCT sNode
     d_byte BlockRow_u8, 12
-    d_byte ChaseCw_bNode,  node_run(5)
-    d_byte ChaseCcw_bNode, node_jump(4, 2)
+    d_byte Cw_bBadGronta,  node_run(5)
+    d_byte Ccw_bBadGronta, node_jump(4, 2)
     D_END
     D_STRUCT sNode
     d_byte BlockRow_u8, 16
-    d_byte ChaseCw_bNode,  node_run(7)
-    d_byte ChaseCcw_bNode, node_run(7)
+    d_byte Cw_bBadGronta,  node_run(7)
+    d_byte Ccw_bBadGronta, node_run(7)
     D_END
     D_STRUCT sNode
     d_byte BlockRow_u8, 20
-    d_byte ChaseCw_bNode,  node_run(5)
-    d_byte ChaseCcw_bNode, node_jump(2, 1)
+    d_byte Cw_bBadGronta,  node_run(5)
+    d_byte Ccw_bBadGronta, node_jump(2, 1)
     D_END
 .ENDPROC
 
 .PROC DataC_Core_BossNodesCol07_sNode_arr
     D_STRUCT sNode
     d_byte BlockRow_u8, 8
-    d_byte ChaseCw_bNode,  node_jump(4, -2)
-    d_byte ChaseCcw_bNode, node_run(6)
+    d_byte Cw_bBadGronta,  node_jump(4, -2)
+    d_byte Ccw_bBadGronta, node_run(6)
     D_END
     D_STRUCT sNode
     d_byte BlockRow_u8, 16
-    d_byte ChaseCw_bNode,  node_jump(3, -2)
-    d_byte ChaseCcw_bNode, node_jump(2, 5)
+    d_byte Cw_bBadGronta,  node_jump(3, -2)
+    d_byte Ccw_bBadGronta, node_jump(2, 5)
     D_END
     D_STRUCT sNode
     d_byte BlockRow_u8, 21
-    d_byte ChaseCw_bNode,  node_run(8)
-    d_byte ChaseCcw_bNode, node_run(11)
+    d_byte Cw_bBadGronta,  node_run(8)
+    d_byte Ccw_bBadGronta, node_run(11)
     D_END
 .ENDPROC
 
 .PROC DataC_Core_BossNodesCol08_sNode_arr
     D_STRUCT sNode
     d_byte BlockRow_u8, 21
-    d_byte ChaseCw_bNode,  node_jump(-2, -1)
-    d_byte ChaseCcw_bNode, node_run(11)
+    d_byte Cw_bBadGronta,  node_jump(-2, -1)
+    d_byte Ccw_bBadGronta, node_run(11)
     D_END
 .ENDPROC
 
 .PROC DataC_Core_BossNodesCol10_sNode_arr
     D_STRUCT sNode
     d_byte BlockRow_u8, 14
-    d_byte ChaseCw_bNode,  node_jump(-4, -2)
-    d_byte ChaseCcw_bNode, node_jump(3, 5)
+    d_byte Cw_bBadGronta,  node_jump(-4, -2)
+    d_byte Ccw_bBadGronta, node_jump(3, 5)
     D_END
     ;; Row 21 sNode is the same as below.
     fall DataC_Core_BossNodesCol12_sNode_arr
@@ -993,126 +966,126 @@ _DoRun:
 .PROC DataC_Core_BossNodesCol12_sNode_arr
     D_STRUCT sNode
     d_byte BlockRow_u8, 21
-    d_byte ChaseCw_bNode,  node_run(8)
-    d_byte ChaseCcw_bNode, node_run(11)
+    d_byte Cw_bBadGronta,  node_run(8)
+    d_byte Ccw_bBadGronta, node_run(11)
     D_END
 .ENDPROC
 
 .PROC DataC_Core_BossNodesCol11_sNode_arr
     D_STRUCT sNode
     d_byte BlockRow_u8, 6
-    d_byte ChaseCw_bNode,  node_jump(5, 0)
-    d_byte ChaseCcw_bNode, node_jump(-4, 2)
+    d_byte Cw_bBadGronta,  node_jump(5, 0)
+    d_byte Ccw_bBadGronta, node_jump(-4, 2)
     D_END
     D_STRUCT sNode
     d_byte BlockRow_u8, 10
-    d_byte ChaseCw_bNode,  node_jump(-4, -2)
-    d_byte ChaseCcw_bNode, node_jump(-1, 4)
+    d_byte Cw_bBadGronta,  node_jump(-4, -2)
+    d_byte Ccw_bBadGronta, node_jump(-1, 4)
     D_END
     D_STRUCT sNode
     d_byte BlockRow_u8, 21
-    d_byte ChaseCw_bNode,  node_run(8)
-    d_byte ChaseCcw_bNode, node_jump(2, -2)
+    d_byte Cw_bBadGronta,  node_run(8)
+    d_byte Ccw_bBadGronta, node_jump(2, -2)
     D_END
 .ENDPROC
 
 .PROC DataC_Core_BossNodesCol13_sNode_arr
     D_STRUCT sNode
     d_byte BlockRow_u8, 19
-    d_byte ChaseCw_bNode,  node_jump(-3, 2)
-    d_byte ChaseCcw_bNode, node_run(14)
+    d_byte Cw_bBadGronta,  node_jump(-3, 2)
+    d_byte Ccw_bBadGronta, node_run(14)
     D_END
 .ENDPROC
 
 .PROC DataC_Core_BossNodesCol14_sNode_arr
     D_STRUCT sNode
     d_byte BlockRow_u8, 19
-    d_byte ChaseCw_bNode,  node_run(13)
-    d_byte ChaseCcw_bNode, node_jump(2, 2)
+    d_byte Cw_bBadGronta,  node_run(13)
+    d_byte Ccw_bBadGronta, node_jump(2, 2)
     D_END
 .ENDPROC
 
 .PROC DataC_Core_BossNodesCol15_sNode_arr
     D_STRUCT sNode
     d_byte BlockRow_u8, 21
-    d_byte ChaseCw_bNode,  node_run(16)
-    d_byte ChaseCcw_bNode, node_run(17)
+    d_byte Cw_bBadGronta,  node_run(16)
+    d_byte Ccw_bBadGronta, node_run(17)
     D_END
 .ENDPROC
 
 .PROC DataC_Core_BossNodesCol16_sNode_arr
     D_STRUCT sNode
     d_byte BlockRow_u8, 6
-    d_byte ChaseCw_bNode,  node_run(17)
-    d_byte ChaseCcw_bNode, node_jump(-5, 0)
+    d_byte Cw_bBadGronta,  node_run(17)
+    d_byte Ccw_bBadGronta, node_jump(-5, 0)
     D_END
     D_STRUCT sNode
     d_byte BlockRow_u8, 21
-    d_byte ChaseCw_bNode,  node_jump(-2, -2)
-    d_byte ChaseCcw_bNode, node_run(17)
+    d_byte Cw_bBadGronta,  node_jump(-2, -2)
+    d_byte Ccw_bBadGronta, node_run(17)
     D_END
 .ENDPROC
 
 .PROC DataC_Core_BossNodesCol17_sNode_arr
     D_STRUCT sNode
     d_byte BlockRow_u8, 6
-    d_byte ChaseCw_bNode,  node_jump(5, 0)
-    d_byte ChaseCcw_bNode, node_run(16)
+    d_byte Cw_bBadGronta,  node_jump(5, 0)
+    d_byte Ccw_bBadGronta, node_run(16)
     D_END
     D_STRUCT sNode
     d_byte BlockRow_u8, 21
-    d_byte ChaseCw_bNode,  node_run(16)
-    d_byte ChaseCcw_bNode, node_jump(2, -2)
+    d_byte Cw_bBadGronta,  node_run(16)
+    d_byte Ccw_bBadGronta, node_jump(2, -2)
     D_END
 .ENDPROC
 
 .PROC DataC_Core_BossNodesCol18_sNode_arr
     D_STRUCT sNode
     d_byte BlockRow_u8, 21
-    d_byte ChaseCw_bNode,  node_run(16)
-    d_byte ChaseCcw_bNode, node_run(17)
+    d_byte Cw_bBadGronta,  node_run(16)
+    d_byte Ccw_bBadGronta, node_run(17)
     D_END
 .ENDPROC
 
 .PROC DataC_Core_BossNodesCol19_sNode_arr
     D_STRUCT sNode
     d_byte BlockRow_u8, 19
-    d_byte ChaseCw_bNode,  node_jump(-2, 2)
-    d_byte ChaseCcw_bNode, node_run(20)
+    d_byte Cw_bBadGronta,  node_jump(-2, 2)
+    d_byte Ccw_bBadGronta, node_run(20)
     D_END
 .ENDPROC
 
 .PROC DataC_Core_BossNodesCol20_sNode_arr
     D_STRUCT sNode
     d_byte BlockRow_u8, 19
-    d_byte ChaseCw_bNode,  node_run(19)
-    d_byte ChaseCcw_bNode, node_jump(3, 2)
+    d_byte Cw_bBadGronta,  node_run(19)
+    d_byte Ccw_bBadGronta, node_jump(3, 2)
     D_END
 .ENDPROC
 
 .PROC DataC_Core_BossNodesCol22_sNode_arr
     D_STRUCT sNode
     d_byte BlockRow_u8, 6
-    d_byte ChaseCw_bNode,  node_jump(4, 2)
-    d_byte ChaseCcw_bNode, node_jump(-5, 0)
+    d_byte Cw_bBadGronta,  node_jump(4, 2)
+    d_byte Ccw_bBadGronta, node_jump(-5, 0)
     D_END
     D_STRUCT sNode
     d_byte BlockRow_u8, 10
-    d_byte ChaseCw_bNode,  node_jump(1, 4)
-    d_byte ChaseCcw_bNode, node_jump(4, -2)
+    d_byte Cw_bBadGronta,  node_jump(1, 4)
+    d_byte Ccw_bBadGronta, node_jump(4, -2)
     D_END
     D_STRUCT sNode
     d_byte BlockRow_u8, 21
-    d_byte ChaseCw_bNode,  node_jump(-2, -2)
-    d_byte ChaseCcw_bNode, node_run(25)
+    d_byte Cw_bBadGronta,  node_jump(-2, -2)
+    d_byte Ccw_bBadGronta, node_run(25)
     D_END
 .ENDPROC
 
 .PROC DataC_Core_BossNodesCol23_sNode_arr
     D_STRUCT sNode
     d_byte BlockRow_u8, 14
-    d_byte ChaseCw_bNode,  node_jump(-3, 5)
-    d_byte ChaseCcw_bNode, node_jump(4, -2)
+    d_byte Cw_bBadGronta,  node_jump(-3, 5)
+    d_byte Ccw_bBadGronta, node_jump(4, -2)
     D_END
     ;; Row 21 sNode is the same as below.
     fall DataC_Core_BossNodesCol24_sNode_arr
@@ -1125,109 +1098,109 @@ _DoRun:
 .PROC DataC_Core_BossNodesCol24_sNode_arr
     D_STRUCT sNode
     d_byte BlockRow_u8, 21
-    d_byte ChaseCw_bNode,  node_run(22)
-    d_byte ChaseCcw_bNode, node_run(25)
+    d_byte Cw_bBadGronta,  node_run(22)
+    d_byte Ccw_bBadGronta, node_run(25)
     D_END
 .ENDPROC
 
 .PROC DataC_Core_BossNodesCol25_sNode_arr
     D_STRUCT sNode
     d_byte BlockRow_u8, 21
-    d_byte ChaseCw_bNode,  node_run(22)
-    d_byte ChaseCcw_bNode, node_jump(2, -1)
+    d_byte Cw_bBadGronta,  node_run(22)
+    d_byte Ccw_bBadGronta, node_jump(2, -1)
     D_END
 .ENDPROC
 
 .PROC DataC_Core_BossNodesCol26_sNode_arr
     D_STRUCT sNode
     d_byte BlockRow_u8, 8
-    d_byte ChaseCw_bNode,  node_jump(-4, 2)
-    d_byte ChaseCcw_bNode, node_jump(-4, -2)
+    d_byte Cw_bBadGronta,  node_jump(-4, 2)
+    d_byte Ccw_bBadGronta, node_jump(-4, -2)
     D_END
     D_STRUCT sNode
     d_byte BlockRow_u8, 21
-    d_byte ChaseCw_bNode,  node_run(22)
-    d_byte ChaseCcw_bNode, node_run(25)
+    d_byte Cw_bBadGronta,  node_run(22)
+    d_byte Ccw_bBadGronta, node_run(25)
     D_END
 .ENDPROC
 
 .PROC DataC_Core_BossNodesCol27_sNode_arr
     D_STRUCT sNode
     d_byte BlockRow_u8, 4
-    d_byte ChaseCw_bNode,  node_jump(-1, 4)
-    d_byte ChaseCcw_bNode, node_jump(-5, 2)
+    d_byte Cw_bBadGronta,  node_jump(-1, 4)
+    d_byte Ccw_bBadGronta, node_jump(-5, 2)
     D_END
     D_STRUCT sNode
     d_byte BlockRow_u8, 8
-    d_byte ChaseCw_bNode,  node_jump(1, 4)
-    d_byte ChaseCcw_bNode, node_run(26)
+    d_byte Cw_bBadGronta,  node_jump(1, 4)
+    d_byte Ccw_bBadGronta, node_run(26)
     D_END
     D_STRUCT sNode
     d_byte BlockRow_u8, 12
-    d_byte ChaseCw_bNode,  node_jump(-4, 2)
-    d_byte ChaseCcw_bNode, node_run(28)
+    d_byte Cw_bBadGronta,  node_jump(-4, 2)
+    d_byte Ccw_bBadGronta, node_run(28)
     D_END
     D_STRUCT sNode
     d_byte BlockRow_u8, 16
-    d_byte ChaseCw_bNode,  node_jump(-3, 5)
-    d_byte ChaseCcw_bNode, node_jump(-4, -2)
+    d_byte Cw_bBadGronta,  node_jump(-3, 5)
+    d_byte Ccw_bBadGronta, node_jump(-4, -2)
     D_END
     D_STRUCT sNode
     d_byte BlockRow_u8, 20
-    d_byte ChaseCw_bNode,  node_jump(-3, 1)
-    d_byte ChaseCcw_bNode, node_run(28)
+    d_byte Cw_bBadGronta,  node_jump(-3, 1)
+    d_byte Ccw_bBadGronta, node_run(28)
     D_END
 .ENDPROC
 
 .PROC DataC_Core_BossNodesCol28_sNode_arr
     D_STRUCT sNode
     d_byte BlockRow_u8, 12
-    d_byte ChaseCw_bNode,  node_run(27)
-    d_byte ChaseCcw_bNode, node_jump(3, -2)
+    d_byte Cw_bBadGronta,  node_run(27)
+    d_byte Ccw_bBadGronta, node_jump(3, -2)
     D_END
     D_STRUCT sNode
     d_byte BlockRow_u8, 20
-    d_byte ChaseCw_bNode,  node_run(27)
-    d_byte ChaseCcw_bNode, node_jump(3, -2)
+    d_byte Cw_bBadGronta,  node_run(27)
+    d_byte Ccw_bBadGronta, node_jump(3, -2)
     D_END
 .ENDPROC
 
 .PROC DataC_Core_BossNodesCol29_sNode_arr
     D_STRUCT sNode
     d_byte BlockRow_u8, 21
-    d_byte ChaseCw_bNode,  node_run(30)
-    d_byte ChaseCcw_bNode, node_run(30)
+    d_byte Cw_bBadGronta,  node_run(30)
+    d_byte Ccw_bBadGronta, node_run(30)
     D_END
 .ENDPROC
 
 .PROC DataC_Core_BossNodesCol30_sNode_arr
     D_STRUCT sNode
     d_byte BlockRow_u8, 21
-    d_byte ChaseCw_bNode,  node_jump(-2, -1)
-    d_byte ChaseCcw_bNode, node_jump(-2, -1)
+    d_byte Cw_bBadGronta,  node_jump(-2, -1)
+    d_byte Ccw_bBadGronta, node_jump(-2, -1)
     D_END
 .ENDPROC
 
 .PROC DataC_Core_BossNodesCol31_sNode_arr
     D_STRUCT sNode
     d_byte BlockRow_u8, 6
-    d_byte ChaseCw_bNode,  node_jump(-4, -2)
-    d_byte ChaseCcw_bNode, node_jump(-4, -2)
+    d_byte Cw_bBadGronta,  node_jump(-4, -2)
+    d_byte Ccw_bBadGronta, node_jump(-4, -2)
     D_END
     D_STRUCT sNode
     d_byte BlockRow_u8, 10
-    d_byte ChaseCw_bNode,  node_jump(-3, 2)
-    d_byte ChaseCcw_bNode, node_jump(-4, -2)
+    d_byte Cw_bBadGronta,  node_jump(-3, 2)
+    d_byte Ccw_bBadGronta, node_jump(-4, -2)
     D_END
     D_STRUCT sNode
     d_byte BlockRow_u8, 14
-    d_byte ChaseCw_bNode,  node_jump(-3, -2)
-    d_byte ChaseCcw_bNode, node_jump(-3, -2)
+    d_byte Cw_bBadGronta,  node_jump(-3, -2)
+    d_byte Ccw_bBadGronta, node_jump(-3, -2)
     D_END
     D_STRUCT sNode
     d_byte BlockRow_u8, 18
-    d_byte ChaseCw_bNode,  node_jump(-3, 2)
-    d_byte ChaseCcw_bNode, node_jump(-4, -2)
+    d_byte Cw_bBadGronta,  node_jump(-3, 2)
+    d_byte Ccw_bBadGronta, node_jump(-4, -2)
     D_END
 .ENDPROC
 
