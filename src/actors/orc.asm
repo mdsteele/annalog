@@ -42,6 +42,7 @@
 .IMPORT FuncA_Objects_GetNpcActorFlags
 .IMPORT FuncA_Objects_MoveShapeUpByA
 .IMPORT FuncA_Objects_SetShapePosToActorCenter
+.IMPORT FuncA_Room_TurnProjectilesToSmoke
 .IMPORT Func_FindEmptyActorSlot
 .IMPORT Func_GetAngleFromPointToAvatar
 .IMPORT Func_GetTerrainColumnPtrForPointX
@@ -80,6 +81,8 @@
 ;;; How many pixels in front of Gronta to spawn the axe actor when throwing.
 kGrontaThrowOffset = 8
 
+;;; How many frames Gronta should pause for, kneeling, after getting hit.
+kGrontaInjuredFrames = 30
 ;;; How many frames it takes Gronta wind up for a jump.
 kGrontaJumpWindupFrames = 8
 ;;; How many frames it takes Gronta wind up for an axe throw.
@@ -205,12 +208,38 @@ _BeginRunning:
 ;;; @preserve X
 .EXPORT FuncA_Room_HarmBadGronta
 .PROC FuncA_Room_HarmBadGronta
-    lda #60  ; TODO: constant
+_SetIFrames:
+    lda #90  ; TODO: constant
     bcc @setIframes
     lda #$ff  ; TODO: constant
     @setIframes:
     sta Ram_ActorState4_byte_arr, x  ; invincibility frames
-    ;; TODO: change current eBadGronta mode as needed
+_SetMode:
+    ldy Ram_ActorState1_byte_arr, x  ; current eBadGronta mode
+    cpy #eBadGronta::JumpAirborne
+    beq _Airborne
+    cpy #eBadGronta::ThrowWaiting
+    bne _Injured
+_ThrowWaiting:
+    ;; Remove the axe actor before switching Gronta to Injured mode.
+    lda #eActor::ProjAxe  ; param: projectile type
+    jsr FuncA_Room_TurnProjectilesToSmoke  ; preserves X
+_Injured:
+    lda #kGrontaInjuredFrames
+    sta Ram_ActorState2_byte_arr, x  ; timer
+    lda #eBadGronta::Injured
+    sta Ram_ActorState1_byte_arr, x  ; current eBadGronta mode
+    lda #0
+    sta Ram_ActorVelX_i16_0_arr, x
+    sta Ram_ActorVelX_i16_1_arr, x
+    rts
+_Airborne:
+    ;; Gronta is airborne, so we can't put her in Injured mode yet.  Instead
+    ;; make her face backwards for the rest of the jump, and she'll be put in
+    ;; Injured mode when she lands.
+    lda Ram_ActorFlags_bObj_arr, x
+    eor #bObj::FlipH
+    sta Ram_ActorFlags_bObj_arr, x
     rts
 .ENDPROC
 
@@ -243,6 +272,7 @@ _BeginRunning:
     D_TABLE_HI table, _JumpTable_ptr_1_arr
     D_TABLE .enum, eBadGronta
     d_entry table, Idle,         FuncA_Actor_FaceTowardsAvatar
+    d_entry table, Injured,      FuncA_Actor_TickBadGronta_Injured
     d_entry table, JumpWindup,   FuncA_Actor_TickBadGronta_JumpWindup
     d_entry table, JumpAirborne, FuncA_Actor_TickBadGronta_JumpAirborne
     d_entry table, Running,      FuncA_Actor_TickBadGronta_Running
@@ -251,6 +281,21 @@ _BeginRunning:
     d_entry table, ThrowCatch,   FuncA_Actor_TickBadGronta_ThrowCatch
     D_END
 .ENDREPEAT
+.ENDPROC
+
+;;; Performs per-frame updates for a Gronta baddie actor that's in Injured
+;;; mode.
+;;; @param C Set if Gronta just collided with the player avatar.
+;;; @param X The actor index.
+;;; @preserve X
+.PROC FuncA_Actor_TickBadGronta_Injured
+    dec Ram_ActorState2_byte_arr, x  ; timer
+    bne @done
+    ;; TODO: check if Gronta needs to smash a machine
+    lda #eBadGronta::Idle
+    sta Ram_ActorState1_byte_arr, x  ; current eBadGronta mode
+    @done:
+    rts
 .ENDPROC
 
 ;;; Performs per-frame updates for a Gronta baddie actor that's in Running
@@ -287,8 +332,15 @@ _BeginRunning:
 ;;; @param X The actor index.
 ;;; @preserve X
 .PROC FuncA_Actor_TickBadGronta_ReachedGoal
-    ;; Make Gronta idle.
-    lda #eBadGronta::Idle
+    ;; If Gronta got hit while in midair, switch to Injured mode; otherwise
+    ;; switch to Idle mode.
+    lda Ram_ActorState4_byte_arr, x  ; invincibility frames
+    .assert eBadGronta::Idle = 0, error
+    beq @setMode
+    lda #kGrontaInjuredFrames
+    sta Ram_ActorState2_byte_arr, x  ; timer
+    lda #eBadGronta::Injured
+    @setMode:
     sta Ram_ActorState1_byte_arr, x  ; current eBadGronta mode
     ;; Adjust Gronta to be centered on her current block.
     lda #0
@@ -694,6 +746,7 @@ _SetPose:
 _Poses_eNpcOrc_arr:
     D_ARRAY .enum, eBadGronta
     d_byte Idle,         eNpcOrc::GrontaStanding
+    d_byte Injured,      eNpcOrc::GrontaKneeling
     d_byte JumpWindup,   eNpcOrc::GrontaStanding
     d_byte JumpAirborne, eNpcOrc::GrontaJumping
     d_byte Running,      eNpcOrc::GrontaRunning1

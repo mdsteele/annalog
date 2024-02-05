@@ -51,6 +51,7 @@ kBadGrontaMaxJumpUpBlocks = 2
 ;;; Possible values for a Gronta baddie actor's State1 byte.
 .ENUM eBadGronta
     Idle          ; standing, waiting for a new mode to be set
+    Injured       ; pausing briefly after getting hit
     JumpWindup    ; getting ready to jump
     JumpAirborne  ; airborne while jumping
     Running       ; running towards a goal position

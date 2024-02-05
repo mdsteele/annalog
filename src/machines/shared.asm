@@ -328,24 +328,24 @@
 ;;; This should be called from the Reset function of machines that shoot
 ;;; projectiles.
 ;;; @param A The eActor::Proj* value.
+;;; @preserve X
 .EXPORT FuncA_Room_TurnProjectilesToSmoke
 .PROC FuncA_Room_TurnProjectilesToSmoke
     sta T0  ; projectile type
-    ;; If there are any fireballs in flight, remove them.
-    ldx #kMaxActors - 1
+    ldy #kMaxActors - 1
     @loop:
-    lda Ram_ActorType_eActor_arr, x
+    lda Ram_ActorType_eActor_arr, y
     cmp T0  ; projectile type
     bne @continue
     ;; Replace the projectile with a smoke particle, keeping the same position
     ;; and velocity as the projectile, and setting the particle's age counter
     ;; such that the particle starts at half size and decays from there.
     lda #eActor::SmokeParticle
-    sta Ram_ActorType_eActor_arr, x
+    sta Ram_ActorType_eActor_arr, y
     lda #kSmokeParticleNumFrames / 2
-    sta Ram_ActorState1_byte_arr, x  ; particle age in frames
+    sta Ram_ActorState1_byte_arr, y  ; particle age in frames
     @continue:
-    dex
+    dey
     .assert kMaxActors <= $80, error
     bpl @loop
     rts
