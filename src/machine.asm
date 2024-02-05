@@ -327,23 +327,6 @@ _ReadRegB:
     rts
 .ENDPROC
 
-;;; Halts execution for all machines in the room (as though each one had
-;;; executed an END opcode).  Machines that are in the middle of moving or
-;;; resetting will continue doing so until they finish their current operation.
-.EXPORT FuncA_Room_HaltAllMachines
-.PROC FuncA_Room_HaltAllMachines
-    lda #eMachine::Halted
-    ldx #0
-    beq @while  ; unconditional
-    @loop:
-    sta Ram_MachineStatus_eMachine_arr, x
-    inx
-    @while:
-    cpx <(Zp_Current_sRoom + sRoom::NumMachines_u8)
-    blt @loop
-    rts
-.ENDPROC
-
 ;;;=========================================================================;;;
 
 .SEGMENT "PRGA_Machine"

@@ -22,12 +22,13 @@
 .INCLUDE "device.inc"
 .INCLUDE "devices/breaker.inc"
 .INCLUDE "fade.inc"
+.INCLUDE "machine.inc"
 .INCLUDE "macros.inc"
 .INCLUDE "music.inc"
 .INCLUDE "room.inc"
 .INCLUDE "sample.inc"
 
-.IMPORT FuncA_Room_HaltAllMachines
+.IMPORT FuncA_Room_MachineResetHalt
 .IMPORT FuncA_Room_PlaySfxBreakerRising
 .IMPORT FuncA_Room_SpawnUpgradeDevice
 .IMPORT Func_DivMod
@@ -42,12 +43,14 @@
 .IMPORT Func_PlaySfxSample
 .IMPORT Func_SetActorCenterToPoint
 .IMPORT Func_SetFlag
+.IMPORT Func_SetMachineIndex
 .IMPORT Func_ShakeRoom
 .IMPORT Func_TransferPalettes
 .IMPORT Func_UnlockDoorDevice
 .IMPORT Ram_DeviceAnim_u8_arr
 .IMPORT Ram_DeviceTarget_byte_arr
 .IMPORT Ram_DeviceType_eDevice_arr
+.IMPORT Ram_MachineStatus_eMachine_arr
 .IMPORT Ram_PlatformBottom_i16_0_arr
 .IMPORT Ram_PlatformLeft_i16_0_arr
 .IMPORT Ram_PlatformLeft_i16_1_arr
@@ -55,6 +58,8 @@
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORT Ram_PlatformTop_i16_1_arr
 .IMPORTZP Zp_ConsoleMachineIndex_u8
+.IMPORTZP Zp_Current_sRoom
+.IMPORTZP Zp_MachineIndex_u8
 .IMPORTZP Zp_Next_sAudioCtrl
 .IMPORTZP Zp_PointX_i16
 .IMPORTZP Zp_PointY_i16
@@ -118,6 +123,7 @@ Zp_BossPhaseTimer_u8: .res 1
     rts
 _BossAlreadyDefeated:
     jsr Func_MarkRoomSafe
+    jsr FuncA_Room_DisableAllMachinesAndConsoles
     ;; Check if the upgrade has been collected yet.
     ldx Ram_DeviceTarget_byte_arr + kBossUpgradeDeviceIndex  ; param: flag
     jsr Func_IsFlagSet  ; returns Z
@@ -215,7 +221,7 @@ _BossBattle:
     tax  ; param: boss flag
     jsr Func_SetFlag
     jsr Func_MarkRoomSafe
-    jsr FuncA_Room_HaltAllMachines
+    jsr FuncA_Room_DisableAllMachinesAndConsoles
     ;; Turn off the boss music.
     lda #eMusic::Silence
     sta Zp_Next_sAudioCtrl + sAudioCtrl::Music_eMusic
@@ -265,6 +271,7 @@ _BossExploding:
     ldy #eFade::White  ; param: eFade value
     jsr Func_TransferPalettes
     jsr Func_PlaySfxExplodeBig
+    jsr FuncA_Room_ResetHaltAllMachines
     ;; Reinitialize the timer and proceed to the next phase.
     lda #kFlashWhiteFramesPerStep * kFlashWhiteNumFadeSteps
     sta Zp_BossPhaseTimer_u8
@@ -386,6 +393,48 @@ _PointY:
     lda #0
     adc Ram_PlatformTop_i16_1_arr, x
     sta Zp_PointY_i16 + 1
+    rts
+.ENDPROC
+
+;;; Halts all machines in the room, and disables all console devices.
+.PROC FuncA_Room_DisableAllMachinesAndConsoles
+_DisableMachines:
+    lda #eMachine::Halted
+    ldx #0
+    beq @while  ; unconditional
+    @loop:
+    sta Ram_MachineStatus_eMachine_arr, x
+    inx
+    @while:
+    cpx <(Zp_Current_sRoom + sRoom::NumMachines_u8)
+    blt @loop
+_DisableConsoles:
+    ldx #kMaxDevices - 1
+    @loop:
+    lda Ram_DeviceType_eDevice_arr, x
+    cmp #eDevice::Console
+    bne @continue
+    lda #eDevice::Placeholder
+    sta Ram_DeviceType_eDevice_arr, x
+    @continue:
+    dex
+    .assert kMaxDevices <= $80, error
+    bpl @loop
+    rts
+.ENDPROC
+
+;;; Calls FuncA_Room_MachineResetHalt for each machine in the room.
+.PROC FuncA_Room_ResetHaltAllMachines
+    ldx #0
+    beq @while  ; unconditional
+    @loop:
+    jsr Func_SetMachineIndex
+    jsr FuncA_Room_MachineResetHalt
+    ldx Zp_MachineIndex_u8
+    inx
+    @while:
+    cpx <(Zp_Current_sRoom + sRoom::NumMachines_u8)
+    blt @loop
     rts
 .ENDPROC
 
