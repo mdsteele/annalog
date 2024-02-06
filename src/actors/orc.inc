@@ -22,9 +22,14 @@
 ;;;   * State2: A timer for the current mode that increments or decrements each
 ;;;     frame, depending on the mode.
 ;;;   * State3: For JumpWindup and Running mode, this stores a bBadGronta value
-;;;     encoding the goal delta or position.  For other modes, this is unused.
-;;;   * State4: An invincibility timer; when nonzero, Gronta cannot be harmed,
-;;;     and the timer decrements each frame.
+;;;     encoding the goal delta or position.  For Injured, JumpAirborne,
+;;;     SmashWindup, and SmashWaiting, this stores the machine index of the
+;;;     machine to smash, or $ff for none.  For all other modes, this is
+;;;     unused.
+;;;   * State4: An signed invincibility timer.  When nonzero, Gronta cannot be
+;;;     harmed.  When strictly positive, decrements each frame; when negative,
+;;;     stays unchanged (keeping Gronta invincible indefinitely, until one of
+;;;     her modes changes the value).
 
 ;;; State bytes for orc baddies:
 ;;;   * State1: The eBadOrc value for the orc's current behavior mode.
@@ -55,7 +60,9 @@ kBadGrontaMaxJumpUpBlocks = 2
     JumpWindup    ; getting ready to jump
     JumpAirborne  ; airborne while jumping
     Running       ; running towards a goal position
-    ThrowWindup   ; winding up an axe throw
+    SmashWindup   ; getting ready to throw an axe at a machine
+    SmashWaiting  ; waiting for the axe to destroy the machine
+    ThrowWindup   ; getting ready to throw an axe at the player avatar
     ThrowWaiting  ; waiting for the axe to return
     ThrowCatch    ; catching a returned axe
     NUM_VALUES

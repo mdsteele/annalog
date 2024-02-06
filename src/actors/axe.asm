@@ -28,11 +28,18 @@
 .IMPORT FuncA_Objects_Draw2x2Actor
 .IMPORT Func_FindActorWithType
 .IMPORT Func_GetAngleFromPointToActor
+.IMPORT Func_InitActorSmokeExplosion
 .IMPORT Func_InitActorWithFlags
 .IMPORT Func_IsActorWithinDistanceOfPoint
+.IMPORT Func_PlaySfxExplodeFracture
+.IMPORT Func_SetActorCenterToPoint
 .IMPORT Func_SetActorVelocityPolar
 .IMPORT Func_SetPointToActorCenter
+.IMPORT Func_SetPointToPlatformCenter
+.IMPORT Func_ShakeRoom
 .IMPORT Ram_ActorState1_byte_arr
+.IMPORT Ram_ActorState2_byte_arr
+.IMPORT Ram_ActorState4_byte_arr
 .IMPORT Ram_ActorType_eActor_arr
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORTZP Zp_FrameCounter_u8
@@ -68,6 +75,7 @@ kPaletteObjAxe = 0
 ;;; @prereq The actor's pixel position has already been initialized.
 ;;; @param A The angle to throw at, measured in increments of tau/256.
 ;;; @param X The actor index.
+;;; @param Y The actor type to set (ProjAxeBoomer or ProjAxeSmash).
 ;;; @preserve X, T3+
 .EXPORT Func_InitActorProjAxe
 .PROC Func_InitActorProjAxe
@@ -76,7 +84,6 @@ kPaletteObjAxe = 0
     and #$80
     .assert bObj::FlipH = $40, error
     div #2  ; param: flags
-    ldy #eActor::ProjAxe  ; param: actor type
     jsr Func_InitActorWithFlags  ; preserves X and T0+
     pla  ; param: angle
     ldy #kProjAxeSpeed  ; param: speed
@@ -87,11 +94,11 @@ kPaletteObjAxe = 0
 
 .SEGMENT "PRGA_Actor"
 
-;;; Performs per-frame updates for an axe projectile actor.
+;;; Performs per-frame updates for a boomerang axe projectile actor.
 ;;; @param X The actor index.
 ;;; @preserve X
-.EXPORT FuncA_Actor_TickProjAxe
-.PROC FuncA_Actor_TickProjAxe
+.EXPORT FuncA_Actor_TickProjAxeBoomer
+.PROC FuncA_Actor_TickProjAxeBoomer
     jsr FuncA_Actor_HarmAvatarIfCollision  ; preserves X
 _FindGronta:
     ;; Find the Gronta actor, and set the point to Gronta's position.  If for
@@ -135,6 +142,45 @@ _CatchAxe:
 _RemoveAxe:
     lda #eActor::None
     sta Ram_ActorType_eActor_arr, x
+_Done:
+    rts
+.ENDPROC
+
+;;; Performs per-frame updates for a machine-smashing axe projectile actor.
+;;; @param X The actor index.
+;;; @preserve X
+.EXPORT FuncA_Actor_TickProjAxeSmash
+.PROC FuncA_Actor_TickProjAxeSmash
+    jsr FuncA_Actor_HarmAvatarIfCollision  ; preserves X
+    ;; Set velocity to move towards the goal platform.
+    ldy Ram_ActorState2_byte_arr, x  ; param: goal platform index
+    jsr Func_SetPointToPlatformCenter  ; preserves X
+    jsr Func_GetAngleFromPointToActor  ; preserves X, returns A
+    eor #$80  ; param: angle
+    ldy #kProjAxeSpeed  ; param: speed
+    jsr Func_SetActorVelocityPolar  ; preserves X
+    ;; Check if the axe has hit the platform.
+    lda #8  ; param: distance
+    jsr Func_IsActorWithinDistanceOfPoint  ; preserves X, returns C
+    bcc _Done  ; no collision
+    ;; The axe has hit the platform, so turn the axe into smoke.
+    jsr Func_SetActorCenterToPoint  ; preserves X
+    jsr Func_PlaySfxExplodeFracture  ; preserves X
+    jsr Func_InitActorSmokeExplosion  ; preserves X
+    lda #30  ; param: num frames
+    jsr Func_ShakeRoom  ; preserves X
+_MakeGrontaIdle:
+    ;; Find Gronta, and put her into Idle mode.
+    stx T0  ; axe actor index
+    lda #eActor::BadGronta  ; param: actor type to find
+    jsr Func_FindActorWithType  ; preserves T0+, returns C and X
+    bcs @doneGronta  ; Gronta not found
+    lda #eBadGronta::Idle
+    sta Ram_ActorState1_byte_arr, x  ; current eBadGronta mode
+    .assert eBadGronta::Idle = 0, error
+    sta Ram_ActorState4_byte_arr, x  ; invincibility frames
+    @doneGronta:
+    ldx T0  ; axe actor index
 _Done:
     rts
 .ENDPROC

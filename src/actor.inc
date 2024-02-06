@@ -53,7 +53,8 @@ kMaxActors = 16
     NpcOrc
     NpcToddler
     ProjAcid         ; acid dropped by a flydrop baddie
-    ProjAxe          ; a spinning axe thrown by Gronta
+    ProjAxeBoomer    ; a boomerang axe thrown by Gronta
+    ProjAxeSmash     ; a machine-smashing axe thrown by Gronta
     ProjBreakball    ; a bouncing ball shot by the temple boss
     ProjBreakbomb    ; a falling bomb shot by the city boss
     ProjBreakfire    ; sweeps out horizontally from an exploding breakball

@@ -18,6 +18,7 @@
 ;;;=========================================================================;;;
 
 ;;; State bytes for cannon machines:
+;;;   * Slowdown: Unused.
 ;;;   * State1: The current aim angle (0 for all the way down, 255 for all the
 ;;;     way up).
 ;;;   * State2: Unused.

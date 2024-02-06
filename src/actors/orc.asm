@@ -19,6 +19,7 @@
 
 .INCLUDE "../actor.inc"
 .INCLUDE "../avatar.inc"
+.INCLUDE "../machine.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
 .INCLUDE "../ppu.inc"
@@ -44,6 +45,7 @@
 .IMPORT FuncA_Objects_SetShapePosToActorCenter
 .IMPORT FuncA_Room_TurnProjectilesToSmoke
 .IMPORT Func_FindEmptyActorSlot
+.IMPORT Func_GetAngleFromPointToActor
 .IMPORT Func_GetAngleFromPointToAvatar
 .IMPORT Func_GetTerrainColumnPtrForPointX
 .IMPORT Func_InitActorProjAxe
@@ -55,7 +57,9 @@
 .IMPORT Func_PlaySfxSample
 .IMPORT Func_PointHitsTerrain
 .IMPORT Func_SetActorCenterToPoint
+.IMPORT Func_SetMachineIndex
 .IMPORT Func_SetPointToActorCenter
+.IMPORT Func_SetPointToPlatformCenter
 .IMPORT Func_SignedDivFrac
 .IMPORT Ram_ActorFlags_bObj_arr
 .IMPORT Ram_ActorPosX_i16_0_arr
@@ -71,7 +75,9 @@
 .IMPORT Ram_ActorVelX_i16_1_arr
 .IMPORT Ram_ActorVelY_i16_0_arr
 .IMPORT Ram_ActorVelY_i16_1_arr
+.IMPORTZP Zp_Current_sMachine_ptr
 .IMPORTZP Zp_Current_sTileset
+.IMPORTZP Zp_FrameCounter_u8
 .IMPORTZP Zp_PointX_i16
 .IMPORTZP Zp_PointY_i16
 .IMPORTZP Zp_TerrainColumn_u8_arr_ptr
@@ -83,8 +89,13 @@ kGrontaThrowOffset = 8
 
 ;;; How many frames Gronta should pause for, kneeling, after getting hit.
 kGrontaInjuredFrames = 30
+;;; How many frames Gronta should stay invincible for after completing Injured
+;;; or SmashWaiting mode.
+kGrontaInvincibleFrames = 30
 ;;; How many frames it takes Gronta wind up for a jump.
 kGrontaJumpWindupFrames = 8
+;;; How many frames it takes Gronta wind up to smash a machine.
+kGrontaSmashWindupFrames = 50
 ;;; How many frames it takes Gronta wind up for an axe throw.
 kGrontaThrowWindupFrames = 15
 ;;; How many frames it takes Gronta to catch a returned axe projectile.
@@ -164,7 +175,7 @@ kPaletteObjGrontaHead = 1
 ;;; @preserve X
 .EXPORT FuncA_Room_BadGrontaBeginChasing
 .PROC FuncA_Room_BadGrontaBeginChasing
-    sta Ram_ActorState3_byte_arr, x  ; bBadGronta value
+    sta Ram_ActorState3_byte_arr, x  ; goal (bBadGronta value)
     tay  ; bBadGronta value
     .assert bBadGronta::IsRun = $80, error
     bmi _BeginRunning
@@ -203,16 +214,13 @@ _BeginRunning:
 .ENDPROC
 
 ;;; Makes a Gronta actor get hurt.
-;;; @param C If set, invincibility lasts longer.
 ;;; @param X The actor index.
+;;; @param A The machine index that Gronta should smash, or $ff for none.
 ;;; @preserve X
 .EXPORT FuncA_Room_HarmBadGronta
 .PROC FuncA_Room_HarmBadGronta
-_SetIFrames:
-    lda #90  ; TODO: constant
-    bcc @setIframes
-    lda #$ff  ; TODO: constant
-    @setIframes:
+    sta Ram_ActorState3_byte_arr, x  ; goal (machine index to smash)
+    lda #$ff  ; negative = indefinitely invincible
     sta Ram_ActorState4_byte_arr, x  ; invincibility frames
 _SetMode:
     ldy Ram_ActorState1_byte_arr, x  ; current eBadGronta mode
@@ -222,7 +230,7 @@ _SetMode:
     bne _Injured
 _ThrowWaiting:
     ;; Remove the axe actor before switching Gronta to Injured mode.
-    lda #eActor::ProjAxe  ; param: projectile type
+    lda #eActor::ProjAxeBoomer  ; param: projectile type
     jsr FuncA_Room_TurnProjectilesToSmoke  ; preserves X
 _Injured:
     lda #kGrontaInjuredFrames
@@ -252,11 +260,13 @@ _Airborne:
 ;;; @preserve X
 .EXPORT FuncA_Actor_TickBadGronta
 .PROC FuncA_Actor_TickBadGronta
-    ;; Decrement Gronta's temporary invincibility frames (if nonzero).
+    ;; Decrement Gronta's temporary invincibility frames (if > 0).
     lda Ram_ActorState4_byte_arr, x  ; invincibility frames
-    beq @notInvincible
+    beq @done  ; not invincible
+    bmi @done  ; indefinitely invincible
     dec Ram_ActorState4_byte_arr, x  ; invincibility frames
-    @notInvincible:
+    @done:
+_ExecMode:
     ;; Check for collision with player avatar.  The jump targets below can make
     ;; use of the returned C value.
     jsr FuncA_Actor_HarmAvatarIfCollision  ; preserves X, returns C
@@ -276,6 +286,8 @@ _Airborne:
     d_entry table, JumpWindup,   FuncA_Actor_TickBadGronta_JumpWindup
     d_entry table, JumpAirborne, FuncA_Actor_TickBadGronta_JumpAirborne
     d_entry table, Running,      FuncA_Actor_TickBadGronta_Running
+    d_entry table, SmashWindup,  FuncA_Actor_TickBadGronta_SmashWindup
+    d_entry table, SmashWaiting, Func_Noop
     d_entry table, ThrowWindup,  FuncA_Actor_TickBadGronta_ThrowWindup
     d_entry table, ThrowWaiting, Func_Noop
     d_entry table, ThrowCatch,   FuncA_Actor_TickBadGronta_ThrowCatch
@@ -289,11 +301,24 @@ _Airborne:
 ;;; @param X The actor index.
 ;;; @preserve X
 .PROC FuncA_Actor_TickBadGronta_Injured
+    ;; Wait for the injured timer to expire.
     dec Ram_ActorState2_byte_arr, x  ; timer
     bne @done
-    ;; TODO: check if Gronta needs to smash a machine
+    ;; If Gronta is supposed to smash the machine that injured her, switch to
+    ;; SmashWindup mode; otherwise, switch to Idle mode.
+    lda Ram_ActorState3_byte_arr, x  ; goal (machine index to smash)
+    bmi @makeIdle  ; no machine to smash
+    @smashMachine:
+    lda #eBadGronta::SmashWindup
+    sta Ram_ActorState1_byte_arr, x  ; current eBadGronta mode
+    lda #kGrontaSmashWindupFrames
+    sta Ram_ActorState2_byte_arr, x  ; timer
+    rts
+    @makeIdle:
     lda #eBadGronta::Idle
     sta Ram_ActorState1_byte_arr, x  ; current eBadGronta mode
+    lda #kGrontaInvincibleFrames
+    sta Ram_ActorState4_byte_arr, x  ; invincibility frames
     @done:
     rts
 .ENDPROC
@@ -308,7 +333,7 @@ _Airborne:
     ;; Store the goal X-position in Zp_PointX_i16.
     lda #0
     sta Zp_PointX_i16 + 1
-    lda Ram_ActorState3_byte_arr, x  ; bBadGronta value
+    lda Ram_ActorState3_byte_arr, x  ; goal (bBadGronta value)
     and #bBadGronta::RunGoalMask  ; goal tile horz
     .assert kTileWidthPx = (1 << 3), error
     .repeat 3
@@ -332,16 +357,22 @@ _Airborne:
 ;;; @param X The actor index.
 ;;; @preserve X
 .PROC FuncA_Actor_TickBadGronta_ReachedGoal
-    ;; If Gronta got hit while in midair, switch to Injured mode; otherwise
-    ;; switch to Idle mode.
+    ;; If Gronta got hit while in midair and is now indefinitely invincible,
+    ;; switch to Injured mode; otherwise switch to Idle mode.
     lda Ram_ActorState4_byte_arr, x  ; invincibility frames
     .assert eBadGronta::Idle = 0, error
-    beq @setMode
+    bmi @makeInjured  ; indefinitely invincible
+    @makeIdle:
+    lda #eBadGronta::Idle
+    .assert eBadGronta::Idle = 0, error
+    beq @setMode  ; unconditional
+    @makeInjured:
     lda #kGrontaInjuredFrames
     sta Ram_ActorState2_byte_arr, x  ; timer
     lda #eBadGronta::Injured
     @setMode:
     sta Ram_ActorState1_byte_arr, x  ; current eBadGronta mode
+_AdjustPosition:
     ;; Adjust Gronta to be centered on her current block.
     lda #0
     sta Ram_ActorSubX_u8_arr, x
@@ -351,6 +382,18 @@ _Airborne:
     ora #$08
     sta Ram_ActorPosX_i16_0_arr, x
     jmp FuncA_Actor_ZeroVelX  ; preserves X
+.ENDPROC
+
+;;; Performs per-frame updates for a Gronta baddie actor that's in JumpAirborne
+;;; mode.
+;;; @param C Set if Gronta just collided with the player avatar.
+;;; @param X The actor index.
+;;; @preserve X
+.PROC FuncA_Actor_TickBadGronta_JumpAirborne
+    ;; TODO: Check for side collisions with walls
+    jsr FuncA_Actor_TickOrcAirborne  ; preserves X, returns C
+    bcs FuncA_Actor_TickBadGronta_ReachedGoal  ; preserves X
+    rts
 .ENDPROC
 
 ;;; Performs per-frame updates for a Gronta baddie actor that's in JumpWindup
@@ -363,7 +406,7 @@ _Airborne:
     dec Ram_ActorState2_byte_arr, x  ; timer
     bne _Done
     ;; Set Gronta's initial vertical velocity.
-    lda Ram_ActorState3_byte_arr, x  ; bBadGronta value
+    lda Ram_ActorState3_byte_arr, x  ; goal (bBadGronta value)
     .assert bBadGronta::JumpVertMask = $70, error
     div #$10
     tay  ; vertical offset index
@@ -375,7 +418,7 @@ _Airborne:
     ;; desired horizontal offset by the time she lands.
     lda _JumpFrames_u8_arr8, y
     tay  ; param: divisor
-    lda Ram_ActorState3_byte_arr, x  ; bBadGronta value
+    lda Ram_ActorState3_byte_arr, x  ; goal (bBadGronta value)
     and #bBadGronta::JumpHorzMask  ; param: signed horz offset in blocks
     .assert bBadGronta::JumpHorzMask = $0f, error
     cmp #$08
@@ -390,6 +433,8 @@ _Airborne:
     ;; Begin the jump.
     lda #eBadGronta::JumpAirborne
     sta Ram_ActorState1_byte_arr, x  ; current eBadGronta mode
+    lda #$ff
+    sta Ram_ActorState3_byte_arr, x  ; goal (machine index to smash)
     lda #eSample::JumpGronta  ; param: eSample to play
     jmp Func_PlaySfxSample  ; preserves X
 _Done:
@@ -405,15 +450,52 @@ _JumpVelY_i16_1_arr8:
     .byte >-850, >-800, >-650, >-550, >-400, >-400, >-400, >-400
 .ENDPROC
 
-;;; Performs per-frame updates for a Gronta baddie actor that's in JumpAirborne
+;;; Performs per-frame updates for a Gronta baddie actor that's in SmashWindup
 ;;; mode.
 ;;; @param C Set if Gronta just collided with the player avatar.
 ;;; @param X The actor index.
 ;;; @preserve X
-.PROC FuncA_Actor_TickBadGronta_JumpAirborne
-    ;; TODO: Check for side collisions with walls
-    jsr FuncA_Actor_TickOrcAirborne  ; preserves X, returns C
-    bcs FuncA_Actor_TickBadGronta_ReachedGoal  ; preserves X
+.PROC FuncA_Actor_TickBadGronta_SmashWindup
+    ;; Face towards the machine that is to be smashed.
+    stx T4  ; Gronta actor index
+    lda Ram_ActorState3_byte_arr, x  ; goal (machine index to smash)
+    tax  ; param: machine index
+    jsr Func_SetMachineIndex  ; preserves T0+
+    ldy #sMachine::MainPlatform_u8
+    lda (Zp_Current_sMachine_ptr), y
+    sta T5  ; machine platform index
+    tay  ; param: platform index
+    jsr Func_SetPointToPlatformCenter  ; preserves T0+
+    ldx T4  ; Gronta actor index
+    jsr FuncA_Actor_FaceTowardsPoint  ; preserves X and T0+
+    ;; Wait for the timer to expire.
+    dec Ram_ActorState2_byte_arr, x  ; timer
+    bne _Done
+    ;; Try to place a new axe projectile in front of Gronta.
+    lda #kGrontaThrowOffset  ; param: offset
+    jsr FuncA_Actor_SetPointInFrontOfActor  ; preserves X and T0+
+    jsr Func_FindEmptyActorSlot  ; preserves T0+, returns C and X
+    bcc _InitAxe
+_NoAxe:
+    ldx T4  ; Gronta actor index
+    .assert kMaxActors <= $80, error
+    bpl _Done  ; unconditional
+_InitAxe:
+    jsr Func_SetActorCenterToPoint  ; preserves X and T0+
+    ldy T5  ; param: machine platform index
+    jsr Func_SetPointToPlatformCenter  ; preserves X and T0+
+    jsr Func_GetAngleFromPointToActor  ; preserves X and T4+, returns A
+    eor #$80  ; param: angle
+    ldy #eActor::ProjAxeSmash  ; param: actor type
+    jsr Func_InitActorProjAxe  ; preserves X and T3+
+    lda T5  ; machine platform index
+    sta Ram_ActorState2_byte_arr, x  ; goal platform index for axe
+    ldx T4  ; Gronta actor index
+    lda #eSample::JumpGronta  ; param: eSample to play
+    jsr Func_PlaySfxSample  ; preserves X
+    lda #eBadGronta::SmashWaiting
+    sta Ram_ActorState1_byte_arr, x  ; current eBadGronta mode
+_Done:
     rts
 .ENDPROC
 
@@ -438,8 +520,10 @@ _JumpVelY_i16_1_arr8:
 ;;; @preserve X
 .PROC FuncA_Actor_TickBadGronta_ThrowWindup
     jsr FuncA_Actor_FaceTowardsAvatar  ; preserves X
+    ;; Wait for the timer to expire.
     dec Ram_ActorState2_byte_arr, x  ; timer
     bne _Done
+    ;; Try to place a new axe projectile in front of Gronta.
     lda #kGrontaThrowOffset  ; param: offset
     jsr FuncA_Actor_SetPointInFrontOfActor  ; preserves X
     stx T4  ; Gronta actor index
@@ -453,6 +537,7 @@ _NoAxe:
 _InitAxe:
     jsr Func_SetActorCenterToPoint  ; preserves X and T0+
     jsr Func_GetAngleFromPointToAvatar  ; preserves X and T4+, returns A
+    ldy #eActor::ProjAxeBoomer  ; param: actor type
     jsr Func_InitActorProjAxe  ; preserves T3+
     ldx T4  ; Gronta actor index
     lda #kGrontaThrowCatchFrames
@@ -704,6 +789,8 @@ _CheckForFloor:
 .PROC FuncA_Objects_DrawActorBadGronta
     ;; If Gronta is temporarily invincible, blink the objects.
     lda Ram_ActorState4_byte_arr, x  ; invincibility frames
+    beq @visible  ; not invincible
+    lda Zp_FrameCounter_u8
     and #$02
     beq @visible
     rts
@@ -750,6 +837,8 @@ _Poses_eNpcOrc_arr:
     d_byte JumpWindup,   eNpcOrc::GrontaStanding
     d_byte JumpAirborne, eNpcOrc::GrontaJumping
     d_byte Running,      eNpcOrc::GrontaRunning1
+    d_byte SmashWindup,  eNpcOrc::GrontaArmsRaised
+    d_byte SmashWaiting, eNpcOrc::GrontaThrowing
     d_byte ThrowWindup,  eNpcOrc::GrontaArmsRaised
     d_byte ThrowWaiting, eNpcOrc::GrontaThrowing
     d_byte ThrowCatch,   eNpcOrc::GrontaArmsRaised

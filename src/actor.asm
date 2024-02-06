@@ -47,7 +47,8 @@
 .IMPORT FuncA_Actor_TickBadWasp
 .IMPORT FuncA_Actor_TickNpcToddler
 .IMPORT FuncA_Actor_TickProjAcid
-.IMPORT FuncA_Actor_TickProjAxe
+.IMPORT FuncA_Actor_TickProjAxeBoomer
+.IMPORT FuncA_Actor_TickProjAxeSmash
 .IMPORT FuncA_Actor_TickProjBreakball
 .IMPORT FuncA_Actor_TickProjBreakbomb
 .IMPORT FuncA_Actor_TickProjBreakfire
@@ -477,7 +478,8 @@ _NoHit:
     d_byte NpcOrc,          kOrcBoundingBoxUp
     d_byte NpcToddler,       4
     d_byte ProjAcid,         1
-    d_byte ProjAxe,         kProjAxeRadius
+    d_byte ProjAxeBoomer,   kProjAxeRadius
+    d_byte ProjAxeSmash,    kProjAxeRadius
     d_byte ProjBreakball,   kProjBreakballRadius
     d_byte ProjBreakbomb,   kProjBreakbombRadius
     d_byte ProjBreakfire,   12
@@ -528,7 +530,8 @@ _NoHit:
     d_byte NpcOrc,          kOrcBoundingBoxDown
     d_byte NpcToddler,       8
     d_byte ProjAcid,         3
-    d_byte ProjAxe,         kProjAxeRadius
+    d_byte ProjAxeBoomer,   kProjAxeRadius
+    d_byte ProjAxeSmash,    kProjAxeRadius
     d_byte ProjBreakball,   kProjBreakballRadius
     d_byte ProjBreakbomb,   kProjBreakbombRadius
     d_byte ProjBreakfire,    8
@@ -579,7 +582,8 @@ _NoHit:
     d_byte NpcOrc,          kOrcBoundingBoxSide
     d_byte NpcToddler,       3
     d_byte ProjAcid,         2
-    d_byte ProjAxe,         kProjAxeRadius
+    d_byte ProjAxeBoomer,   kProjAxeRadius
+    d_byte ProjAxeSmash,    kProjAxeRadius
     d_byte ProjBreakball,   kProjBreakballRadius
     d_byte ProjBreakbomb,   kProjBreakbombRadius
     d_byte ProjBreakfire,    3
@@ -698,7 +702,8 @@ _TypeSpecificTick:
     d_entry table, NpcOrc,          Func_Noop
     d_entry table, NpcToddler,      FuncA_Actor_TickNpcToddler
     d_entry table, ProjAcid,        FuncA_Actor_TickProjAcid
-    d_entry table, ProjAxe,         FuncA_Actor_TickProjAxe
+    d_entry table, ProjAxeBoomer,   FuncA_Actor_TickProjAxeBoomer
+    d_entry table, ProjAxeSmash,    FuncA_Actor_TickProjAxeSmash
     d_entry table, ProjBreakball,   FuncA_Actor_TickProjBreakball
     d_entry table, ProjBreakbomb,   FuncA_Actor_TickProjBreakbomb
     d_entry table, ProjBreakfire,   FuncA_Actor_TickProjBreakfire
@@ -802,7 +807,8 @@ _CheckVert:
     d_entry table, NpcOrc,          Func_InitActorNpcOrc
     d_entry table, NpcToddler,      FuncA_Room_InitActorNpcToddler
     d_entry table, ProjAcid,        Func_InitActorProjAcid
-    d_entry table, ProjAxe,         Func_InitActorProjAxe
+    d_entry table, ProjAxeBoomer,   Func_InitActorProjAxe
+    d_entry table, ProjAxeSmash,    Func_InitActorProjAxe
     d_entry table, ProjBreakball,   FuncA_Room_InitActorProjBreakball
     d_entry table, ProjBreakbomb,   FuncA_Room_InitActorProjBreakbomb
     d_entry table, ProjBreakfire,   Func_InitActorProjBreakfire
@@ -883,7 +889,8 @@ _CheckVert:
     d_entry table, NpcOrc,          FuncA_Objects_DrawActorNpcOrc
     d_entry table, NpcToddler,      FuncA_Objects_DrawActorNpcToddler
     d_entry table, ProjAcid,        FuncA_Objects_DrawActorProjAcid
-    d_entry table, ProjAxe,         FuncA_Objects_DrawActorProjAxe
+    d_entry table, ProjAxeBoomer,   FuncA_Objects_DrawActorProjAxe
+    d_entry table, ProjAxeSmash,    FuncA_Objects_DrawActorProjAxe
     d_entry table, ProjBreakball,   FuncA_Objects_DrawActorProjBreakball
     d_entry table, ProjBreakbomb,   FuncA_Objects_DrawActorProjBreakbomb
     d_entry table, ProjBreakfire,   FuncA_Objects_DrawActorProjBreakfire

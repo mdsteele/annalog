@@ -116,12 +116,15 @@
 .IMPORT Ram_ActorVelX_i16_1_arr
 .IMPORT Ram_ActorVelY_i16_0_arr
 .IMPORT Ram_ActorVelY_i16_1_arr
+.IMPORT Ram_DeviceType_eDevice_arr
 .IMPORT Ram_MachineGoalHorz_u8_arr
 .IMPORT Ram_MachineGoalVert_u8_arr
+.IMPORT Ram_MachineSlowdown_u8_arr
 .IMPORT Ram_MachineState1_byte_arr
 .IMPORT Ram_MachineState2_byte_arr
 .IMPORT Ram_MachineState3_byte_arr
 .IMPORT Ram_MachineState4_byte_arr
+.IMPORT Ram_MachineStatus_eMachine_arr
 .IMPORT Ram_PlatformLeft_i16_0_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORT Ram_PlatformType_ePlatform_arr
@@ -130,6 +133,7 @@
 .IMPORTZP Zp_AvatarState_bAvatar
 .IMPORTZP Zp_BreakerBeingActivated_eFlag
 .IMPORTZP Zp_Camera_bScroll
+.IMPORTZP Zp_Current_sMachine_ptr
 .IMPORTZP Zp_DialogAnsweredYes_bool
 .IMPORTZP Zp_Next_eCutscene
 .IMPORTZP Zp_PointX_i16
@@ -145,7 +149,13 @@ kBlasterMachineIndex = 1
 kLaserMachineIndex   = 2
 kCannonMachineIndex  = 3
 ;;; The number of machines in this room.
-.DEFINE kNumMachines 4
+.DEFINE kNumCoreBossMachines 4
+
+;;; The device index for each machine's console.
+kWinchConsoleDeviceIndex   = 0
+kBlasterConsoleDeviceIndex = 1
+kLaserConsoleDeviceIndex   = 2
+kCannonConsoleDeviceIndex  = 3
 
 ;;; The platform indices for the machines in this room.
 kWinchPlatformIndex     = 0
@@ -251,8 +261,8 @@ kFirstNodeColumn = 2
     ;; ($00) otherwise.
     GaveUpRemote_bool .byte
     ;; How many times Gronta has been hurt by each machine, indexed by machine
-    ;; index.
-    MachineHits_u8_arr .byte kNumMachines
+    ;; index.  If negative, then the machine has been smashed.
+    MachineHits_i8_arr .byte kNumCoreBossMachines
 .ENDSTRUCT
 .ASSERT .sizeof(sState) <= kRoomStateSize, error
 
@@ -269,7 +279,7 @@ kFirstNodeColumn = 2
     d_byte MinimapStartRow_u8, 1
     d_byte MinimapStartCol_u8, 13
     d_addr TerrainData_ptr, _TerrainData
-    d_byte NumMachines_u8, kNumMachines
+    d_byte NumMachines_u8, kNumCoreBossMachines
     d_addr Machines_sMachine_arr_ptr, _Machines_sMachine_arr
     d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjBoss2)
     d_addr Ext_sRoomExt_ptr, _Ext_sRoomExt
@@ -347,7 +357,7 @@ _Machines_sMachine_arr:
     d_addr TryMove_func_ptr, FuncA_Machine_CoreBossLaser_TryMove
     d_addr TryAct_func_ptr, FuncA_Machine_CoreBossLaser_TryAct
     d_addr Tick_func_ptr, FuncA_Machine_CoreBossLaser_Tick
-    d_addr Draw_func_ptr, FuncA_Objects_DrawLaserMachine
+    d_addr Draw_func_ptr, FuncA_Objects_CoreBossLaser_Draw
     d_addr Reset_func_ptr, FuncA_Room_CoreBossLaser_InitReset
     D_END
     .assert * - :- = kCannonMachineIndex * .sizeof(sMachine), error
@@ -366,10 +376,10 @@ _Machines_sMachine_arr:
     d_addr TryMove_func_ptr, FuncA_Machine_CannonTryMove
     d_addr TryAct_func_ptr, FuncA_Machine_CannonTryAct
     d_addr Tick_func_ptr, FuncA_Machine_CannonTick
-    d_addr Draw_func_ptr, FuncA_Objects_DrawCannonMachine
+    d_addr Draw_func_ptr, FuncA_Objects_CoreBossCannon_Draw
     d_addr Reset_func_ptr, FuncA_Room_MachineCannonReset
     D_END
-    .assert * - :- = kNumMachines * .sizeof(sMachine), error
+    .assert * - :- = kNumCoreBossMachines * .sizeof(sMachine), error
     .assert * - :- <= kMaxMachines * .sizeof(sMachine), error
 _Platforms_sPlatform_arr:
 :   .assert * - :- = kWinchPlatformIndex * .sizeof(sPlatform), error
@@ -481,24 +491,28 @@ _Actors_sActor_arr:
     .assert * - :- <= kMaxActors * .sizeof(sActor), error
     .byte eActor::None
 _Devices_sDevice_arr:
-:   D_STRUCT sDevice
+:   .assert * - :- = kWinchConsoleDeviceIndex * .sizeof(sDevice), error
+    D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Console
     d_byte BlockRow_u8, 10
     d_byte BlockCol_u8, 2
     d_byte Target_byte, kWinchMachineIndex
     D_END
+    .assert * - :- = kBlasterConsoleDeviceIndex * .sizeof(sDevice), error
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Console
     d_byte BlockRow_u8, 10
     d_byte BlockCol_u8, 31
     d_byte Target_byte, kBlasterMachineIndex
     D_END
+    .assert * - :- = kLaserConsoleDeviceIndex * .sizeof(sDevice), error
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Console
     d_byte BlockRow_u8, 20
     d_byte BlockCol_u8, 6
     d_byte Target_byte, kLaserMachineIndex
     D_END
+    .assert * - :- = kCannonConsoleDeviceIndex * .sizeof(sDevice), error
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Console
     d_byte BlockRow_u8, 20
@@ -684,23 +698,62 @@ _Return:
 ;;; @prereq PRGA_Room is loaded.
 ;;; @param X The machine index of the machine that hit Gronta.
 .PROC FuncC_Core_Boss_MachineHitGronta
-    inc Zp_RoomState + sState::MachineHits_u8_arr, x
-    lda Zp_RoomState + sState::MachineHits_u8_arr, x
+    lda Zp_RoomState + sState::MachineHits_i8_arr, x
+    bmi @done  ; machine is already smashed
+    inc Zp_RoomState + sState::MachineHits_i8_arr, x
+    cmp #kGrontaHitsPerMachine - 1
+    bge @doSmash
+    @noSmash:
+    lda #$ff  ; param: machine index to smash ($ff = none)
+    bmi @harm  ; unconditional
+    @doSmash:
+    txa  ; param: machine index to smash
+    @harm:
     ldx #kGrontaActorIndex  ; param: actor index
-    cmp #kGrontaHitsPerMachine  ; param: set C if enough hits from this machine
-    jsr FuncA_Room_HarmBadGronta
-    ;; Check if Gronta has been defeated.
-    ldx #kNumMachines - 4
-    lda #kGrontaHitsPerMachine - 1
-    @loop:
-    cmp Zp_RoomState + sState::MachineHits_u8_arr, x
-    bge @notDefeated
-    dex
-    .assert kNumMachines <= $80, error
-    bpl @loop
-    @defeated:
-    ;; TODO: Handle Gronta being defeated.
-    @notDefeated:
+    jmp FuncA_Room_HarmBadGronta
+    @done:
+    rts
+.ENDPROC
+
+;;; Destroys the specified machine (halting its execution and preventing
+;;; further meaningful action, removing its platforms, and disabling its
+;;; console).
+;;; @prereq PRGA_Room is loaded.
+;;; @param X The machine index for the machine to destroy.
+;;; @preserve X
+.PROC FuncC_Core_Boss_DestroyMachine
+    lda #eMachine::Halted
+    sta Ram_MachineStatus_eMachine_arr, x
+    ;; Disable the machine's console device.
+    lda #eDevice::Placeholder
+    .assert   kWinchConsoleDeviceIndex =   kWinchMachineIndex, error
+    .assert kBlasterConsoleDeviceIndex = kBlasterMachineIndex, error
+    .assert   kLaserConsoleDeviceIndex =   kLaserMachineIndex, error
+    .assert  kCannonConsoleDeviceIndex =  kCannonMachineIndex, error
+    sta Ram_DeviceType_eDevice_arr, x
+    ;; Remove the machine's main platform.
+    jsr Func_SetMachineIndex  ; preserves X
+    ldy #sMachine::MainPlatform_u8
+    lda (Zp_Current_sMachine_ptr), y
+    tay  ; machine main platform index
+    lda #ePlatform::Zone
+    sta Ram_PlatformType_ePlatform_arr, y
+    ;; For the winch machine, we must also remove the spikeball platform, and
+    ;; turn off falling mode by zeroing State1.  (But we don't want to zero
+    ;; State1 for the blaster machine, because that would move its mirror.)
+    cpx #kWinchMachineIndex
+    bne @notWinch
+    sta Ram_PlatformType_ePlatform_arr + kSpikeballPlatformIndex
+    lda #0
+    sta Ram_MachineState1_byte_arr, y  ; falling bool
+    @notWinch:
+    ;; Zero the machine slowdown.  For the laser machine, this will turn off
+    ;; the laser beam; for the other machines, it is irrelevant.
+    lda #0
+    sta Ram_MachineSlowdown_u8_arr, x
+    ;; Mark the machine as smashed.
+    lda #$ff
+    sta Zp_RoomState + sState::MachineHits_i8_arr, x
     rts
 .ENDPROC
 
@@ -713,6 +766,30 @@ _Return:
     beq @idle
     rts
     @idle:
+_CheckForSmashedMachine:
+    ldx #kNumCoreBossMachines - 1
+    @loop:
+    lda Zp_RoomState + sState::MachineHits_i8_arr, x
+    bmi @continue  ; machine is already smashed
+    cmp #kGrontaHitsPerMachine
+    blt @continue  ; Gronta didn't just smash this machine
+    jsr FuncC_Core_Boss_DestroyMachine  ; preserves X
+    @continue:
+    dex
+    .assert kNumCoreBossMachines <= $80, error
+    bpl @loop
+_CheckIfGrontaDefeated:
+    ;; Gronta is defeated when all machines have been smashed.
+    ldx #kNumCoreBossMachines - 1
+    @loop:
+    lda Zp_RoomState + sState::MachineHits_i8_arr, x
+    bpl @notDefeated  ; this machine hasn't been smashed yet
+    dex
+    .assert kNumCoreBossMachines <= $80, error
+    bpl @loop
+    @defeated:
+    ;; TODO: Handle Gronta being defeated.
+    @notDefeated:
 _MaybeThrowAxe:
     ;; Only throw an axe 25% of the time.
     jsr Func_GetRandomByte  ; returns A
@@ -1784,13 +1861,14 @@ _BarrierTileId_u8_arr:
 
 ;;; Draws the CoreBossWinch machine.
 .PROC FuncA_Objects_CoreBossWinch_Draw
+    lda Zp_RoomState + sState::MachineHits_i8_arr + kWinchMachineIndex
+    bmi FuncA_Objects_CoreBoss_DoNotDraw  ; machine is smashed
     ldx #kSpikeballPlatformIndex  ; param: spikeball platform index
     jmp FuncA_Objects_DrawWinchMachineWithSpikeball
 .ENDPROC
 
 ;;; Draws the CoreBossBlaster machine.
 .PROC FuncA_Objects_CoreBossBlaster_Draw
-    jsr FuncA_Objects_DrawBlasterMachineHorz
 _Mirror1:
     ldx #kMirror1PlatformIndex  ; param: mirror platform index
     lda Ram_MachineState3_byte_arr + kBlasterMachineIndex  ; mirror 1 anim
@@ -1802,7 +1880,31 @@ _Mirror2:
     lda Ram_MachineState4_byte_arr + kBlasterMachineIndex  ; mirror 2 anim
     div #kBlasterMirrorAnimSlowdown
     add #kMirror2AngleOffset  ; param: absolute mirror angle
-    jmp FuncA_Objects_DrawBlasterMirror
+    jsr FuncA_Objects_DrawBlasterMirror
+_Blaster:
+    lda Zp_RoomState + sState::MachineHits_i8_arr + kBlasterMachineIndex
+    bmi FuncA_Objects_CoreBoss_DoNotDraw  ; machine is smashed
+    jmp FuncA_Objects_DrawBlasterMachineHorz
+.ENDPROC
+
+;;; A no-op drawing function that the machine draw functions in this file can
+;;; branch to.
+.PROC FuncA_Objects_CoreBoss_DoNotDraw
+    rts
+.ENDPROC
+
+;;; Draws the CoreBossLaser machine.
+.PROC FuncA_Objects_CoreBossLaser_Draw
+    lda Zp_RoomState + sState::MachineHits_i8_arr + kLaserMachineIndex
+    bmi FuncA_Objects_CoreBoss_DoNotDraw  ; machine is smashed
+    jmp FuncA_Objects_DrawLaserMachine
+.ENDPROC
+
+;;; Draws the CoreBossCannon machine.
+.PROC FuncA_Objects_CoreBossCannon_Draw
+    lda Zp_RoomState + sState::MachineHits_i8_arr + kCannonMachineIndex
+    bmi FuncA_Objects_CoreBoss_DoNotDraw  ; machine is smashed
+    jmp FuncA_Objects_DrawCannonMachine
 .ENDPROC
 
 ;;;=========================================================================;;;

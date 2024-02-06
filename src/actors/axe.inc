@@ -20,9 +20,12 @@
 ;;; State bytes for axe projectiles:
 ;;;   * Flags: The bObj::FlipH bit is set if the axe is spinning
 ;;;     counterclockwise, or cleared if it is spinning clockwise.
-;;;   * State1: The current age of the projectile, in frames.
-;;;   * State2: Unused.
+;;;   * State1: For AxeBoomer, this is the current age of the projectile, in
+;;;     frames.  For AxeSmash, this is unused.
+;;;   * State2: For AxeBoomer, this is unused.  For AxeSmash, this is the
+;;;     platform index to home in on.
 ;;;   * State3: Unused.
+;;;   * State4: Unused.
 
 ;;; The first tile ID for drawing axe projectile actors.
 kTileIdObjProjAxeFirst = $d8
