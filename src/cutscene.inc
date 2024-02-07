@@ -40,6 +40,9 @@ kMaxForks = 4
     None
     CityFlowerOrcAttack
     CityOutskirtsLook
+    CoreBossFinaleReactivate
+    CoreBossFinaleSelfDestruct
+    CoreBossGrontaDefeated
     CoreBossPowerUpCircuit
     CoreBossStartBattle
     CoreLockBreakerShadow

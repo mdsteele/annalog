@@ -38,6 +38,7 @@
 .INCLUDE "../ppu.inc"
 .INCLUDE "../program.inc"
 .INCLUDE "../room.inc"
+.INCLUDE "../sample.inc"
 .INCLUDE "../scroll.inc"
 
 .IMPORT DataA_Room_Core_sTileset
@@ -84,6 +85,7 @@
 .IMPORT Func_GetRandomByte
 .IMPORT Func_InitActorBadGronta
 .IMPORT Func_InitActorDefault
+.IMPORT Func_InitActorNpcOrc
 .IMPORT Func_InitActorSmokeExplosion
 .IMPORT Func_InitActorSmokeFragment
 .IMPORT Func_IsActorWithinHorzDistanceOfPoint
@@ -104,6 +106,7 @@
 .IMPORT Func_SetPointToActorCenter
 .IMPORT Func_SetPointToAvatarCenter
 .IMPORT Func_SetPointToPlatformCenter
+.IMPORT Func_SetScrollGoalFromPoint
 .IMPORT Ppu_ChrObjBoss2
 .IMPORT Ram_ActorFlags_bObj_arr
 .IMPORT Ram_ActorPosX_i16_0_arr
@@ -135,11 +138,13 @@
 .IMPORTZP Zp_Camera_bScroll
 .IMPORTZP Zp_Current_sMachine_ptr
 .IMPORTZP Zp_DialogAnsweredYes_bool
+.IMPORTZP Zp_FrameCounter_u8
 .IMPORTZP Zp_Next_eCutscene
 .IMPORTZP Zp_PointX_i16
 .IMPORTZP Zp_PointY_i16
 .IMPORTZP Zp_RoomState
 .IMPORTZP Zp_ScrollGoalX_u16
+.IMPORTZP Zp_ScrollGoalY_u8
 
 ;;;=========================================================================;;;
 
@@ -151,11 +156,12 @@ kCannonMachineIndex  = 3
 ;;; The number of machines in this room.
 .DEFINE kNumCoreBossMachines 4
 
-;;; The device index for each machine's console.
+;;; The device indices for the consoles in this room.
 kWinchConsoleDeviceIndex   = 0
 kBlasterConsoleDeviceIndex = 1
 kLaserConsoleDeviceIndex   = 2
 kCannonConsoleDeviceIndex  = 3
+kFinalTerminalDeviceIndex  = 4
 
 ;;; The platform indices for the machines in this room.
 kWinchPlatformIndex     = 0
@@ -252,14 +258,19 @@ kFirstNodeColumn = 2
 
 ;;;=========================================================================;;;
 
+;;; Phases of interaction that Gronta can be in.
+.ENUM eGrontaPhase
+    WaitingToTalk
+    Talking
+    GettingRemote
+    Fighting
+    Defeated
+.ENDENUM
+
 ;;; Defines room-specific state data for this particular room.
 .STRUCT sState
-    ;; True ($ff) if the Gronta cutscene has already been started; false ($00)
-    ;; otherwise.
-    TalkedToGronta_bool .byte
-    ;; True ($ff) if the player chose to give the B-Remote to Gronta; false
-    ;; ($00) otherwise.
-    GaveUpRemote_bool .byte
+    ;; Gronta's current phase of interaction.
+    Current_eGrontaPhase .byte
     ;; How many times Gronta has been hurt by each machine, indexed by machine
     ;; index.  If negative, then the machine has been smashed.
     MachineHits_i8_arr .byte kNumCoreBossMachines
@@ -519,6 +530,13 @@ _Devices_sDevice_arr:
     d_byte BlockCol_u8, 28
     d_byte Target_byte, kCannonMachineIndex
     D_END
+    .assert * - :- = kFinalTerminalDeviceIndex * .sizeof(sDevice), error
+    D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::Placeholder  ; will be a screen
+    d_byte BlockRow_u8, 6
+    d_byte BlockCol_u8, 17
+    d_byte Target_byte, eDialog::CoreBossScreen
+    D_END
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None
 _Passages_sPassage_arr:
@@ -590,9 +608,9 @@ _Mirror2:
     ldy #kMirror2PlatformIndex  ; param: mirror platform index
     jsr FuncA_Room_ReflectFireblastsOffMirror
 _TalkToGronta:
-    ;; If the Gronta cutscene has already played, no need to start it.
-    bit Zp_RoomState + sState::TalkedToGronta_bool
-    bmi @done
+    lda Zp_RoomState + sState::Current_eGrontaPhase
+    cmp #eGrontaPhase::WaitingToTalk
+    bne @done
     ;; If the player avatar isn't standing in the cutscene-starting zone, don't
     ;; start it yet.
     bit Zp_AvatarState_bAvatar
@@ -603,14 +621,14 @@ _TalkToGronta:
     jsr Func_IsPointInPlatform  ; returns C
     bcc @done
     ;; Start the cutscene.
-    lda #$ff
-    sta Zp_RoomState + sState::TalkedToGronta_bool
+    .assert eGrontaPhase::Talking = 1 + eGrontaPhase::WaitingToTalk, error
+    inc Zp_RoomState + sState::Current_eGrontaPhase
     lda #eCutscene::CoreBossStartBattle
     sta Zp_Next_eCutscene
     @done:
 _FightGronta:
-    lda Ram_ActorType_eActor_arr + kGrontaActorIndex
-    cmp #eActor::BadGronta
+    lda Zp_RoomState + sState::Current_eGrontaPhase
+    cmp #eGrontaPhase::Fighting
     bne @done
     jsr FuncC_Core_Boss_TickGrontaFight
     @done:
@@ -788,7 +806,9 @@ _CheckIfGrontaDefeated:
     .assert kNumCoreBossMachines <= $80, error
     bpl @loop
     @defeated:
-    ;; TODO: Handle Gronta being defeated.
+    lda #eCutscene::CoreBossGrontaDefeated
+    sta Zp_Next_eCutscene
+    rts
     @notDefeated:
 _MaybeThrowAxe:
     ;; Only throw an axe 25% of the time.
@@ -1929,7 +1949,13 @@ _LeftSide_sCutscene:
 _IntroDialog_sCutscene:
     act_SetAvatarPose eAvatar::Standing
     act_RunDialog eDialog::CoreBossGrontaIntro
-    act_BranchIfZ _ShouldGiveUpRemoteFunc, _BeginFight_sCutscene
+    act_BranchIfZ _ShouldGiveUpRemoteFunc, _GiveUpRemote_sCutscene
+_BeginFight_sCutscene:
+    act_PlayMusic eMusic::Boss2
+    act_WaitFrames 210  ; TODO: animate Gronta getting ready to fight
+    act_SetScrollFlags 0
+    act_CallFunc _ChangeGrontaFromNpcToBad
+    act_ContinueExploring
 _GiveUpRemote_sCutscene:
     act_PlayMusic eMusic::Silence
     ;; Animate Anna tossing the remote to Gronta.
@@ -1949,12 +1975,6 @@ _GiveUpRemote_sCutscene:
     act_RunDialog eDialog::CoreBossGrontaGive
     ;; TODO: animate core activating
     act_ContinueExploring
-_BeginFight_sCutscene:
-    act_PlayMusic eMusic::Boss2
-    act_WaitFrames 210  ; TODO: animate Gronta getting ready to fight
-    act_SetScrollFlags 0
-    act_CallFunc _ChangeGrontaFromNpcToBad
-    act_ContinueExploring
 _SetupFunc:
     lda #ePlatform::Solid
     sta Ram_PlatformType_ePlatform_arr + kPassageBarrierPlatformIndex
@@ -1965,7 +1985,8 @@ _GetHorzScreen:
     lda Zp_AvatarPosX_i16 + 1
     rts
 _ShouldGiveUpRemoteFunc:
-    lda Zp_RoomState + sState::GaveUpRemote_bool
+    lda Zp_RoomState + sState::Current_eGrontaPhase
+    cmp #eGrontaPhase::GettingRemote  ; sets Z if should give up remote
     rts
 _SpawnActorForRemote:
     jsr Func_FindEmptyActorSlot  ; returns C and X
@@ -1990,9 +2011,76 @@ _SpawnActorForRemote:
     @done:
     rts
 _ChangeGrontaFromNpcToBad:
+    lda #eGrontaPhase::Fighting
+    sta Zp_RoomState + sState::Current_eGrontaPhase
     ldx #kGrontaActorIndex  ; param: actor index
     lda Ram_ActorFlags_bObj_arr + kGrontaActorIndex  ; param: flags
     jmp Func_InitActorBadGronta
+.ENDPROC
+
+.EXPORT DataA_Cutscene_CoreBossGrontaDefeated_sCutscene
+.PROC DataA_Cutscene_CoreBossGrontaDefeated_sCutscene
+    act_CallFunc _MakeGrontaDefeated
+    act_WaitFrames 60
+    act_PlayMusic eMusic::Silence
+    act_CallFunc _LookAtGronta
+    act_WaitFrames 60
+    act_SetScrollFlags bScroll::LockHorz | bScroll::LockVert
+    act_RunDialog eDialog::CoreBossGrontaDying
+    act_PlaySfxSample eSample::BossRoar8
+    act_RepeatFunc 60, _BlinkGrontaActor
+    act_CallFunc _RemoveGrontaActor
+    act_WaitFrames 60
+    act_PlayMusic eMusic::Calm
+    act_SetScrollFlags 0
+    act_CallFunc _LookAtTopOfCore
+    act_WaitFrames 60
+    act_CallFunc _MakeFinalTerminalAppear
+    act_WaitFrames 60
+    act_ContinueExploring
+_MakeGrontaDefeated:
+    lda #eGrontaPhase::Defeated
+    sta Zp_RoomState + sState::Current_eGrontaPhase
+    ldx #kGrontaActorIndex  ; param: actor index
+    lda #eNpcOrc::GrontaKneeling  ; param: eNpcOrc value
+    jmp Func_InitActorNpcOrc
+_LookAtGronta:
+    ldx #kGrontaActorIndex  ; param: actor index
+    jsr Func_SetPointToActorCenter
+    jmp Func_SetScrollGoalFromPoint
+_BlinkGrontaActor:
+    lda Zp_FrameCounter_u8
+    and #$02
+    sta T0
+    lda Ram_ActorPosY_i16_1_arr + kGrontaActorIndex
+    and #$01
+    ora T0
+    sta Ram_ActorPosY_i16_1_arr + kGrontaActorIndex
+    rts
+_RemoveGrontaActor:
+    lda #eActor::None
+    sta Ram_ActorType_eActor_arr + kGrontaActorIndex
+    rts
+_LookAtTopOfCore:
+    ldax #$0090
+    stax Zp_ScrollGoalX_u16
+    sta Zp_ScrollGoalY_u8
+    rts
+_MakeFinalTerminalAppear:
+    ;; TODO: animate the terminal rising from the core
+    lda #eDevice::Screen
+    sta Ram_DeviceType_eDevice_arr + kFinalTerminalDeviceIndex
+    rts
+.ENDPROC
+
+.EXPORT DataA_Cutscene_CoreBossFinaleReactivate_sCutscene
+.PROC DataA_Cutscene_CoreBossFinaleReactivate_sCutscene
+    act_ContinueExploring  ; TODO: implement CoreBossFinaleReactivate cutscene
+.ENDPROC
+
+.EXPORT DataA_Cutscene_CoreBossFinaleSelfDestruct_sCutscene
+.PROC DataA_Cutscene_CoreBossFinaleSelfDestruct_sCutscene
+    act_ContinueExploring  ; TODO: implement CoreBossFinaleReactivate cutscene
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -2024,8 +2112,8 @@ _HandItOverFunc:
     ldya #_PreparedToFight_sDialog
     rts
     @yes:
-    lda #$ff
-    sta Zp_RoomState + sState::GaveUpRemote_bool
+    lda #eGrontaPhase::GettingRemote
+    sta Zp_RoomState + sState::Current_eGrontaPhase
     bne _EndDialogFunc  ; unconditional
 _PreparedToFight_sDialog:
     dlg_Text OrcGronta, DataA_Text1_CoreBossGrontaIntro_PreparedToFight_u8_arr
@@ -2049,6 +2137,47 @@ _EndDialogFunc:
     dlg_Text OrcGrontaShout, DataA_Text1_CoreBossGrontaGive_Part1_u8_arr
     dlg_Text OrcGronta, DataA_Text1_CoreBossGrontaGive_Part2_u8_arr
     dlg_Done
+.ENDPROC
+
+.EXPORT DataA_Dialog_CoreBossGrontaDying_sDialog
+.PROC DataA_Dialog_CoreBossGrontaDying_sDialog
+    dlg_Text OrcGronta, DataA_Text1_CoreBossGrontaDying_Part1_u8_arr
+    dlg_Text OrcGronta, DataA_Text1_CoreBossGrontaDying_Part2_u8_arr
+    dlg_Text OrcGronta, DataA_Text1_CoreBossGrontaDying_Part3_u8_arr
+    dlg_Done
+.ENDPROC
+
+.EXPORT DataA_Dialog_CoreBossScreen_sDialog
+.PROC DataA_Dialog_CoreBossScreen_sDialog
+    dlg_Text Screen, DataA_Text1_CoreBossScreen_Intro_u8_arr
+_ReactivateQuestion_sDialog:
+    dlg_Text Screen, DataA_Text1_CoreBossScreen_Reactivate_u8_arr
+    dlg_Func @func
+    @func:
+    bit Zp_DialogAnsweredYes_bool
+    bmi @yes
+    @no:
+    ldya #_SelfDestructQuestion_sDialog
+    rts
+    @yes:
+    ldya #_ReactivateCutscene_sDialog
+    rts
+_SelfDestructQuestion_sDialog:
+    dlg_Text Screen, DataA_Text1_CoreBossScreen_SelfDestruct_u8_arr
+    dlg_Func @func
+    @func:
+    bit Zp_DialogAnsweredYes_bool
+    bmi @yes
+    @no:
+    ldya #_ReactivateQuestion_sDialog
+    rts
+    @yes:
+    ldya #_SelfDestructCutscene_sDialog
+    rts
+_ReactivateCutscene_sDialog:
+    dlg_Cutscene eCutscene::CoreBossFinaleReactivate
+_SelfDestructCutscene_sDialog:
+    dlg_Cutscene eCutscene::CoreBossFinaleSelfDestruct
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -2092,6 +2221,44 @@ _EndDialogFunc:
     .byte "Now we orcs shall take$"
     .byte "our rightful place as$"
     .byte "masters of this world!#"
+.ENDPROC
+
+.PROC DataA_Text1_CoreBossGrontaDying_Part1_u8_arr
+    .byte "Argh...defeated by a$"
+    .byte "child!? Technology$"
+    .byte "gives you so much$"
+    .byte "power...#"
+.ENDPROC
+
+.PROC DataA_Text1_CoreBossGrontaDying_Part2_u8_arr
+    .byte "But human civilization$"
+    .byte "will just fail again!$"
+    .byte "You'd be better off$"
+    .byte "with orcs in charge...#"
+.ENDPROC
+
+.PROC DataA_Text1_CoreBossGrontaDying_Part3_u8_arr
+    .byte "Maybe...after you've$"
+    .byte "destroyed yourselves$"
+    .byte "a second time...we'll$"
+    .byte "get our chance...#"
+.ENDPROC
+
+.PROC DataA_Text1_CoreBossScreen_Intro_u8_arr
+    .byte "B-REMOTE RECOGNIZED.$"
+    .byte "CORE IS ONLINE AND$"
+    .byte "AWAITING COMMANDS.$"
+    .byte ">>>#"
+.ENDPROC
+
+.PROC DataA_Text1_CoreBossScreen_Reactivate_u8_arr
+    .byte "REACTIVATE COMPLEX?$"
+    .byte ">>>%"
+.ENDPROC
+
+.PROC DataA_Text1_CoreBossScreen_SelfDestruct_u8_arr
+    .byte "BEGIN SELF-DESTRUCT?$"
+    .byte ">>>%"
 .ENDPROC
 
 ;;;=========================================================================;;;

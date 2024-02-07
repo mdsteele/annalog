@@ -29,6 +29,9 @@
 
 .IMPORT DataA_Cutscene_CityFlowerOrcAttack_sCutscene
 .IMPORT DataA_Cutscene_CityOutskirtsLook_sCutscene
+.IMPORT DataA_Cutscene_CoreBossFinaleReactivate_sCutscene
+.IMPORT DataA_Cutscene_CoreBossFinaleSelfDestruct_sCutscene
+.IMPORT DataA_Cutscene_CoreBossGrontaDefeated_sCutscene
 .IMPORT DataA_Cutscene_CoreBossPowerUpCircuit_sCutscene
 .IMPORT DataA_Cutscene_CoreBossStartBattle_sCutscene
 .IMPORT DataA_Cutscene_CoreLockBreakerShadow_sCutscene
@@ -198,6 +201,12 @@ _Finish:
             DataA_Cutscene_CityFlowerOrcAttack_sCutscene
     d_entry table, CityOutskirtsLook, \
             DataA_Cutscene_CityOutskirtsLook_sCutscene
+    d_entry table, CoreBossFinaleReactivate, \
+            DataA_Cutscene_CoreBossFinaleReactivate_sCutscene
+    d_entry table, CoreBossFinaleSelfDestruct, \
+            DataA_Cutscene_CoreBossFinaleSelfDestruct_sCutscene
+    d_entry table, CoreBossGrontaDefeated, \
+            DataA_Cutscene_CoreBossGrontaDefeated_sCutscene
     d_entry table, CoreBossPowerUpCircuit, \
             DataA_Cutscene_CoreBossPowerUpCircuit_sCutscene
     d_entry table, CoreBossStartBattle, \

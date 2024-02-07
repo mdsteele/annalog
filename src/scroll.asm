@@ -30,9 +30,10 @@
 .IMPORT FuncA_Terrain_UpdateAndMarkMinimap
 .IMPORT Func_FillLowerAttributeTable
 .IMPORT Func_FillUpperAttributeTable
-.IMPORTZP Zp_AvatarPosX_i16
-.IMPORTZP Zp_AvatarPosY_i16
+.IMPORT Func_SetPointToAvatarCenter
 .IMPORTZP Zp_Current_sRoom
+.IMPORTZP Zp_PointX_i16
+.IMPORTZP Zp_PointY_i16
 .IMPORTZP Zp_PpuTransferLen_u8
 .IMPORTZP Zp_WindowTop_u8
 
@@ -124,14 +125,12 @@ Zp_RoomShake_u8: .res 1
     jmp_prga FuncA_Terrain_ScrollTowardsGoal
 .ENDPROC
 
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Terrain"
-
-;;; Sets Zp_ScrollGoalX_u16 and Zp_ScrollGoalY_u8 such that the player avatar
-;;; would be as close to the center of the screen as possible, while still
-;;; keeping the scroll goal within the valid range for the current room.
-.PROC FuncA_Terrain_SetScrollGoalFromAvatar
+;;; Sets Zp_ScrollGoalX_u16 and Zp_ScrollGoalY_u8 such that the position stored
+;;; in Zp_Point*_i16 would be as close to the center of the screen as possible,
+;;; while still keeping the scroll goal within the valid range for the current
+;;; room.
+.EXPORT Func_SetScrollGoalFromPoint
+.PROC Func_SetScrollGoalFromPoint
 _SetScrollGoalY:
     ;; Calculate the maximum permitted scroll-Y and store it in T0.
     lda #0
@@ -141,32 +140,33 @@ _SetScrollGoalY:
     lda #kTallRoomHeightBlocks * kBlockHeightPx - kScreenHeightPx
     @shortRoom:
     sta T0  ; max scroll-Y
-    ;; Subtract half the screen height from the player avatar's Y-position,
-    ;; storing the result in AX.
-    lda Zp_AvatarPosY_i16 + 0
+    ;; Subtract half the screen height from the point's Y-position, storing the
+    ;; result in AX.
+    lda Zp_PointY_i16 + 0
     sub #kScreenHeightPx / 2
     tax
-    lda Zp_AvatarPosY_i16 + 1
+    lda Zp_PointY_i16 + 1
     sbc #0
     ;; Clamp the result to within the permitted scroll-Y range.
-    bmi @minGoal
+    bpl @notMinGoal
+    @minGoal:
+    lda #0
+    beq @setGoalToA  ; unconditional
+    @notMinGoal:
     bne @maxGoal
     txa
     cmp T0  ; max scroll-Y
     blt @setGoalToA
     @maxGoal:
     lda T0  ; max scroll-Y
-    jmp @setGoalToA
-    @minGoal:
-    lda #0
     @setGoalToA:
     sta Zp_ScrollGoalY_u8
 _SetScrollGoalX:
     ;; Compute the signed 16-bit horizontal scroll goal, storing it in AX.
-    lda Zp_AvatarPosX_i16 + 0
+    lda Zp_PointX_i16 + 0
     sub #kScreenWidthPx / 2
     tax
-    lda Zp_AvatarPosX_i16 + 1
+    lda Zp_PointX_i16 + 1
     sbc #0
     ;; Check AX against the current room's MinScrollX_u8, and clamp if needed.
     bmi @minGoal  ; if AX is negative, clamp to min scroll value
@@ -189,6 +189,18 @@ _SetScrollGoalX:
     @setGoalToAX:
     stax Zp_ScrollGoalX_u16
     rts
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Terrain"
+
+;;; Sets Zp_ScrollGoalX_u16 and Zp_ScrollGoalY_u8 such that the player avatar
+;;; would be as close to the center of the screen as possible, while still
+;;; keeping the scroll goal within the valid range for the current room.
+.PROC FuncA_Terrain_SetScrollGoalFromAvatar
+    jsr Func_SetPointToAvatarCenter
+    jmp Func_SetScrollGoalFromPoint
 .ENDPROC
 
 ;;; Sets up room scrolling and populates nametables for explore mode.  Called
