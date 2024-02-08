@@ -32,6 +32,7 @@
 .INCLUDE "../ppu.inc"
 .INCLUDE "../program.inc"
 .INCLUDE "../room.inc"
+.INCLUDE "../sample.inc"
 .INCLUDE "../window.inc"
 .INCLUDE "boss_temple.inc"
 
@@ -62,9 +63,11 @@
 .IMPORT Func_DivMod
 .IMPORT Func_FindEmptyActorSlot
 .IMPORT Func_GetRandomByte
+.IMPORT Func_InitActorSmokeExplosion
 .IMPORT Func_IsPointInPlatform
 .IMPORT Func_MovePlatformVert
 .IMPORT Func_Noop
+.IMPORT Func_PlaySfxSample
 .IMPORT Func_SetActorCenterToPoint
 .IMPORT Func_SetPointToActorCenter
 .IMPORT Func_SetPointToPlatformCenter
@@ -99,7 +102,7 @@ kMinigunMachineIndex = 0
 kMinigunPlatformIndex = 4
 
 ;;; The initial and maximum permitted horizontal goal values for the minigun.
-kMinigunInitGoalX = 4
+kMinigunInitGoalX = 8
 kMinigunMaxGoalX = 8
 
 ;;; The maximum and initial X-positions for the left of the minigun platform.
@@ -172,18 +175,28 @@ kBossMaxTopY = kBossZoneBottomY - kBossBodyHeightPx
 kBossInitTopY = kBossMaxTopY
 kBossInitBottomY = kBossInitTopY + kBossBodyHeightPx
 
+;;; How many frames the boss waits, after you first enter the room, before
+;;; taking action.
+kBossInitCooldown = 120
 ;;; How many frames it takes for an eye to fully open or close.
-kBossEyeOpenFrames = 12
-;;; How many frames the boss stays stunned for when hit with a breakball.
-kBossStunFrames = 250
+.DEFINE kBossEyeOpenFrames 15
+;;; How many frames the boss pauses for between all boss projectiles expiring
+;;; and firing again.
+kBossPauseFrames = 60
+
+;;; How many stun cycles the boss stays stunned for when hit with a breakball.
+kBossStunCyclesPerHit = 10
+;;; How many frames the boss stays stunned for per stun cycle.
+kBossStunCycleFrames = 50
+;;; How many frames the boss wobbles for at first when stunned.
+kBossStunAnimFrames = 24
 
 ;;;=========================================================================;;;
 
 ;;; OBJ tile IDs used for drawing the boss.
-kTileIdObjOutbreakBrain     = kTileIdObjOutbreakFirst + 0
-kTileIdObjOutbreakClaw      = kTileIdObjOutbreakFirst + 1
-kTileIdObjOutbreakEyeOpen   = kTileIdObjOutbreakFirst + 2
-kTileIdObjOutbreakEyeClosed = kTileIdObjOutbreakFirst + 3
+kTileIdObjOutbreakBrainFirst = kTileIdObjOutbreakFirst + 0
+kTileIdObjOutbreakClaw       = kTileIdObjOutbreakFirst + 3
+kTileIdObjOutbreakEyeFirst   = kTileIdObjOutbreakFirst + 4
 
 ;;; OBJ palette numbers used for drawing the boss.
 kPaletteObjOutbreakBrain = 1
@@ -195,11 +208,16 @@ kPaletteObjOutbreakEye   = 1
 ;;; Modes that the boss in this room can be in.
 .ENUM eBossMode
     Dead
+    Paused      ; eyes closed; will shoot a breakball when cooldown expires
     Waiting     ; eyes closed; waiting for projectiles to finish
     Stunned     ; active eye open; can shoot it to make boss crawl up
     ShootBreak  ; shooting a breakball from active eye
     NUM_VALUES
 .ENDENUM
+
+;;; For boss modes greater than or equal to this, the boss's active eye should
+;;; open up.
+kFirstBossModeWithOpenEye = eBossMode::Stunned
 
 ;;; Eyes of the boss.
 .ENUM eBossEye
@@ -222,18 +240,31 @@ kBossBodyPlatformIndex = 3
 ;;; Defines room-specific state data for this particular room.
 .STRUCT sState
     ;; The current states of the room's two levers.
-    LeverLeft_u8        .byte
-    LeverRight_u8       .byte
+    LeverLeft_u8         .byte
+    LeverRight_u8        .byte
     ;; What mode the boss is in.
-    Current_eBossMode   .byte
+    Current_eBossMode    .byte
     ;; Which eye is "active".
-    Active_eBossEye     .byte
+    Active_eBossEye      .byte
     ;; Timer that ticks down each frame when nonzero.  Used to time transitions
     ;; between boss modes.
-    BossCooldown_u8     .byte
+    BossCooldown_u8      .byte
+    ;; How many boss stun cycles are still to be completed before the boss
+    ;; stops being stunned.  Each cycle lasts for kBossStunCycleFrames. The
+    ;; stun cycle count is also decremented each time the boss gets hurt by a
+    ;; bullet (to limit how many hits the boss can take before the boss stops
+    ;; being stunned).
+    BossStunCycles_u8    .byte
+    ;; A counter that counts up each frame (wrapping around), faster during the
+    ;; initial stun animation, and otherwise slower while stunned.  This
+    ;; counter is used to drive the boss's pulsating animation.
+    BossAnimCounter_u8   .byte
+    ;; A timer for the boss's initial stun animation, during which the boss
+    ;; pulsates rapidly.
+    BossStunAnimTimer_u8 .byte
     ;; How open each of the eyes are, from 0 (closed) to kBossEyeOpenFrames
     ;; (open), indexed by eBossEye.
-    BossEyeOpen_u8_arr3 .res 3
+    BossEyeOpen_u8_arr3  .byte eBossEye::NUM_VALUES
 .ENDSTRUCT
 .ASSERT .sizeof(sState) <= kRoomStateSize, error
 
@@ -263,7 +294,7 @@ _Ext_sRoomExt:
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
     d_addr Passages_sPassage_arr_ptr, 0
     d_addr Enter_func_ptr, FuncA_Room_BossTemple_EnterRoom
-    d_addr FadeIn_func_ptr, FuncC_Boss_Temple_FadeInRoom
+    d_addr FadeIn_func_ptr, FuncA_Terrain_BossTemple_FadeInRoom
     d_addr Tick_func_ptr, FuncA_Room_BossTemple_TickRoom
     d_addr Draw_func_ptr, FuncC_Boss_Temple_DrawRoom
     D_END
@@ -306,7 +337,7 @@ _Platforms_sPlatform_arr:
     d_word WidthPx_u16, $08
     d_byte HeightPx_u8, $08
     d_word Left_i16, kBossCenterX - $04
-    d_word Top_i16,  kBossInitBottomY
+    d_word Top_i16,  kBossInitBottomY - 2
     D_END
     .assert * - :- = kBossEyeRightPlatformIndex * .sizeof(sPlatform), error
     D_STRUCT sPlatform
@@ -389,9 +420,515 @@ _Devices_sDevice_arr:
     D_END
 .ENDPROC
 
-;;; Room fade in function for the BossTemple room.
+;;; Performs per-frame upates for the boss in this room.
+.PROC FuncC_Boss_Temple_TickBoss
+    jsr FuncC_Boss_Temple_CheckForBulletHit
+    jsr FuncC_Boss_Temple_CheckForBreakballHit
+_TickAnimation:
+    lda Zp_RoomState + sState::Current_eBossMode
+    cmp #eBossMode::Stunned
+    bne @normalAnim
+    lda Zp_RoomState + sState::BossStunAnimTimer_u8
+    beq @slowAnim
+    @stunAnim:
+    dec Zp_RoomState + sState::BossStunAnimTimer_u8
+    inc Zp_RoomState + sState::BossAnimCounter_u8
+    inc Zp_RoomState + sState::BossAnimCounter_u8
+    inc Zp_RoomState + sState::BossAnimCounter_u8
+    inc Zp_RoomState + sState::BossAnimCounter_u8
+    @normalAnim:
+    inc Zp_RoomState + sState::BossAnimCounter_u8
+    @slowAnim:
+    inc Zp_RoomState + sState::BossAnimCounter_u8
+_TickEyes:
+    ldx #eBossEye::NUM_VALUES - 1
+    @loop:
+    jsr FuncC_Boss_Temple_TickBossEye  ; preserves X
+    dex
+    bpl @loop
+_CoolDown:
+    lda Zp_RoomState + sState::BossCooldown_u8
+    beq @done
+    dec Zp_RoomState + sState::BossCooldown_u8
+    @done:
+_CheckMode:
+    ;; Branch based on the current boss mode.
+    ldy Zp_RoomState + sState::Current_eBossMode
+    lda _JumpTable_ptr_0_arr, y
+    sta T0
+    lda _JumpTable_ptr_1_arr, y
+    sta T1
+    jmp (T1T0)
+.REPEAT 2, table
+    D_TABLE_LO table, _JumpTable_ptr_0_arr
+    D_TABLE_HI table, _JumpTable_ptr_1_arr
+    D_TABLE .enum, eBossMode
+    d_entry table, Dead,       Func_Noop
+    d_entry table, Paused,     _BossPaused
+    d_entry table, Waiting,    _BossWaiting
+    d_entry table, Stunned,    _BossStunned
+    d_entry table, ShootBreak, _BossShootBreak
+    D_END
+.ENDREPEAT
+_BossPaused:
+    ;; Wait for the cooldown to expire.
+    lda Zp_RoomState + sState::BossCooldown_u8
+    bne _Return
+    ;; Switch modes to fire a breakball.
+    lda #eBossMode::ShootBreak
+    sta Zp_RoomState + sState::Current_eBossMode
+    jmp FuncC_Boss_Temple_ChooseActiveEye
+_BossWaiting:
+    ;; Wait for all boss projetiles to expire.
+    ldx #kMaxActors - 1
+    @loop:
+    lda Ram_ActorType_eActor_arr, x
+    cmp #eActor::ProjBreakball
+    beq _Return
+    cmp #eActor::ProjBreakfire
+    beq _Return
+    dex
+    bpl @loop
+    ;; Pause briefly before shooting the next breakball.
+    lda #eBossMode::Paused
+    sta Zp_RoomState + sState::Current_eBossMode
+    lda #kBossPauseFrames
+    sta Zp_RoomState + sState::BossCooldown_u8
+_Return:
+    rts
+_BossStunned:
+    ;; Wait for the cooldown to expire.
+    lda Zp_RoomState + sState::BossCooldown_u8
+    bne @done
+    ;; If there are any stun cycles left, wait for another cycle.
+    lda Zp_RoomState + sState::BossStunCycles_u8
+    beq @unstun
+    dec Zp_RoomState + sState::BossStunCycles_u8
+    lda #kBossStunCycleFrames
+    sta Zp_RoomState + sState::BossCooldown_u8
+    rts
+    ;; Otherwise, the boss is done being stunned.
+    @unstun:
+    lda #eBossMode::Waiting
+    sta Zp_RoomState + sState::Current_eBossMode
+    @done:
+    rts
+_BossShootBreak:
+    ;; Wait for the active eye to be fully open.
+    ldy Zp_RoomState + sState::Active_eBossEye  ; param: platform index
+    lda Zp_RoomState + sState::BossEyeOpen_u8_arr3, y
+    cmp #kBossEyeOpenFrames
+    blt @done
+    ;; Spawn a breakball projetile.
+    jsr Func_SetPointToPlatformCenter
+    jsr Func_FindEmptyActorSlot  ; sets C on failure, returns X
+    bcs @done
+    jsr Func_SetActorCenterToPoint  ; preserves X
+    jsr Func_GetRandomByte  ; preserves X, returns A
+    and #bObj::FlipH  ; param: horz direction
+    jsr FuncA_Room_InitActorProjBreakball
+    ;; Switch to waiting mode.
+    lda #eBossMode::Waiting
+    sta Zp_RoomState + sState::Current_eBossMode
+    @done:
+    rts
+.ENDPROC
+
+;;; Sets Active_eBossEye to a random eBossEye value.
+.PROC FuncC_Boss_Temple_ChooseActiveEye
+    jsr Func_GetRandomByte  ; returns A (param: dividend)
+    ldy #eBossEye::NUM_VALUES  ; param: divisor
+    jsr Func_DivMod  ; returns remainder in A
+    sta Zp_RoomState + sState::Active_eBossEye
+    rts
+.ENDPROC
+
+;;; Performs per-frame upates for one of the boss's eyes.
+;;; @param X The eBossEye value for the eye.
+.PROC FuncC_Boss_Temple_TickBossEye
+_CheckIfOpenOrClosed:
+    lda Zp_RoomState + sState::Current_eBossMode
+    cmp #kFirstBossModeWithOpenEye
+    blt _Close
+    cpx Zp_RoomState + sState::Active_eBossEye
+    bne _Close
+_Open:
+    lda Zp_RoomState + sState::BossEyeOpen_u8_arr3, x
+    cmp #kBossEyeOpenFrames
+    bge @done
+    inc Zp_RoomState + sState::BossEyeOpen_u8_arr3, x
+    @done:
+    rts
+_Close:
+    lda Zp_RoomState + sState::BossEyeOpen_u8_arr3, x
+    beq @done
+    dec Zp_RoomState + sState::BossEyeOpen_u8_arr3, x
+    @done:
+    rts
+.ENDPROC
+
+;;; Checks if a breakball has hit the boss's body; if so, expires the breakball
+;;; and stuns the boss.
+;;; @prereq PRGA_Room is loaded.
+.PROC FuncC_Boss_Temple_CheckForBreakballHit
+    ;; Find the breakball actor (if any).
+    ldx #kMaxActors - 1
+    @loop:
+    lda Ram_ActorType_eActor_arr, x
+    cmp #eActor::ProjBreakball
+    beq _FoundBreakball
+    dex
+    bpl @loop
+_Done:
+    rts
+_FoundBreakball:
+    ;; Ignore the breakball if it's moving downward.
+    lda Ram_ActorVelY_i16_1_arr, x
+    bpl _Done
+    ;; Check if the breakball has hit the boss's body.
+    jsr Func_SetPointToActorCenter  ; preserves X
+    ldy #kBossBodyPlatformIndex  ; param: platform index
+    jsr Func_IsPointInPlatform  ; preserves X, returns C
+    bcc _Done
+_StunBoss:
+    ;; Expire the breakball.
+    jsr Func_InitActorSmokeExplosion
+    ;; Stun the boss.
+    lda #eBossMode::Stunned
+    sta Zp_RoomState + sState::Current_eBossMode
+    lda #kBossStunCyclesPerHit
+    sta Zp_RoomState + sState::BossStunCycles_u8
+    lda #0
+    sta Zp_RoomState + sState::BossCooldown_u8
+    lda #kBossStunAnimFrames
+    sta Zp_RoomState + sState::BossStunAnimTimer_u8
+    ldx Zp_RoomState + sState::Active_eBossEye
+    lda #kBossEyeOpenFrames / 2
+    sta Zp_RoomState + sState::BossEyeOpen_u8_arr3, x
+    lda #eSample::BossHurtE  ; param: eSample to play
+    jmp Func_PlaySfxSample
+.ENDPROC
+
+;;; Checks if a bullet has hit a boss eye; if so, expires the bullet and makes
+;;; the boss react accordingly.
+;;; @prereq PRGA_Room is loaded.
+.PROC FuncC_Boss_Temple_CheckForBulletHit
+    ;; Loop over all actors, skipping over non-bullets.
+    ldx #kMaxActors - 1
+    @actorLoop:
+    lda Ram_ActorType_eActor_arr, x
+    cmp #eActor::ProjBullet
+    bne @actorContinue
+    jsr Func_SetPointToActorCenter  ; preserves X
+    ;; For each bullet, loop over the boss eyes, check if the bullet hits them.
+    ldy #eBossEye::NUM_VALUES - 1
+    @eyeLoop:
+    .assert eBossEye::Left = kBossEyeLeftPlatformIndex, error
+    .assert eBossEye::Center = kBossEyeCenterPlatformIndex, error
+    .assert eBossEye::Right = kBossEyeRightPlatformIndex, error
+    jsr Func_IsPointInPlatform  ; preserves X and Y; returns C
+    ;; In practice, only one bullet/eye impact should be able to happen in a
+    ;; given frame, so if an impact happens, we can just break out of both
+    ;; loops (which saves us the trouble of preserving the loop variables).
+    bcs FuncC_Boss_Temple_BulletHitsEye
+    dey
+    bpl @eyeLoop
+    @actorContinue:
+    dex
+    bpl @actorLoop
+    rts
+.ENDPROC
+
+;;; Called when a bullet hits one of the boss's eyes.
+;;; @prereq PRGA_Room is loaded.
+;;; @param X The actor index for the bullet.
+;;; @param Y The eBossEye value for the eye that was hit.
+.PROC FuncC_Boss_Temple_BulletHitsEye
+    ;; Expire the bullet.
+    lda #eActor::None
+    sta Ram_ActorType_eActor_arr, x
+    ;; Check if the eye is open.
+    lda Zp_RoomState + sState::BossEyeOpen_u8_arr3, y
+    .assert (kBossEyeOpenFrames + 1) .mod 4 = 0, error
+    cmp #(kBossEyeOpenFrames + 1) * 3 / 4
+    bge _EyeIsOpen
+_EyeIsClosed:
+    ;; TODO: play a sound
+    rts
+_EyeIsOpen:
+    lda #eSample::BossHurtF  ; param: eSample to play
+    jsr Func_PlaySfxSample
+    ;; Decrement the number of stun cycles if nonzero.
+    lda Zp_RoomState + sState::BossStunCycles_u8
+    beq @done
+    dec Zp_RoomState + sState::BossStunCycles_u8
+    @done:
+    fall FuncC_Boss_Temple_CrawlUp
+.ENDPROC
+
+;;; Moves the boss upwards by one pixel, and checks if it has hit the spikes at
+;;; the top of the room.
+;;; @prereq PRGA_Room is loaded.
+.PROC FuncC_Boss_Temple_CrawlUp
+    ;; Move the boss's body.
+    ldx #kBossBodyPlatformIndex  ; param: platform index
+    lda #<-1  ; param: move delta
+    jsr Func_MovePlatformVert
+    ;; Move the boss's eye zones.
+    ldx #eBossEye::NUM_VALUES - 1
+    @loop:
+    .assert eBossEye::Left = kBossEyeLeftPlatformIndex, error
+    .assert eBossEye::Center = kBossEyeCenterPlatformIndex, error
+    .assert eBossEye::Right = kBossEyeRightPlatformIndex, error
+    lda #<-1  ; param: move delta
+    jsr Func_MovePlatformVert  ; preserves X
+    dex
+    bpl @loop
+_CheckForSpikes:
+    ;; If the top of the boss's body <= kBossMinTopY, kill the boss.
+    lda #kBossMinTopY
+    cmp Ram_PlatformTop_i16_0_arr + kBossBodyPlatformIndex
+    blt _Done
+    ;; Kill the boss.
+    lda #eBossMode::Dead
+    sta Zp_RoomState + sState::Current_eBossMode
+_Done:
+    rts
+.ENDPROC
+
+;;; Draw function for the BossTemple room.
+;;; @prereq PRGA_Objects is loaded.
+.PROC FuncC_Boss_Temple_DrawRoom
+    jsr FuncC_Boss_Temple_GetPulsationIndex  ; returns A (0-2)
+    .assert .bank(Ppu_ChrBgAnimB4) .mod 4 = 0, error
+    ora #<.bank(Ppu_ChrBgAnimB4)
+    sta Zp_Chr04Bank_u8
+    jmp FuncA_Objects_DrawBoss
+.ENDPROC
+
+;;; Draw function for the temple boss.
+;;; @prereq PRGA_Objects is loaded.
+.PROC FuncC_Boss_Temple_DrawBoss
+_DrawBossClaws:
+    jsr FuncC_Boss_Temple_SetShapePosToBossMidTop
+    lda #$24  ; param: offset
+    jsr FuncA_Objects_MoveShapeRightByA
+    lda #0  ; param: horz flip
+    jsr FuncC_Boss_Temple_DrawClawPair
+    jsr FuncC_Boss_Temple_SetShapePosToBossMidTop
+    lda #$2c  ; param: offset
+    jsr FuncA_Objects_MoveShapeLeftByA
+    lda #bObj::FlipH  ; param: horz flip
+    jsr FuncC_Boss_Temple_DrawClawPair
+_DrawBossEyes:
+    ldx #eBossEye::NUM_VALUES - 1
+    @loop:
+    jsr FuncC_Boss_Temple_DrawEye
+    dex
+    bpl @loop
+_DrawBossBrain:
+    jsr FuncC_Boss_Temple_SetShapePosToBossMidTop
+    jsr FuncA_Objects_MoveShapeUpOneTile
+    jsr FuncC_Boss_Temple_GetPulsationIndex  ; returns A (0-2)
+    .assert kTileIdObjOutbreakBrainFirst .mod 4 = 0, error
+    ora #kTileIdObjOutbreakBrainFirst  ; param: tile ID
+    pha  ; tile ID
+    ldy #kPaletteObjOutbreakBrain | bObj::FlipH  ; param: object flags
+    jsr FuncA_Objects_Draw1x1Shape
+    jsr FuncA_Objects_MoveShapeLeftOneTile
+    ldy #kPaletteObjOutbreakBrain  ; param: object flags
+    pla  ; param: tile ID
+    jsr FuncA_Objects_Draw1x1Shape
+_SetUpIrq:
+    ;; Compute the IRQ latch value to set between the bottom of the boss's zone
+    ;; and the top of the window (if any), and set that as Param4_byte.
+    lda <(Zp_Buffered_sIrq + sIrq::Latch_u8)
+    sub #kBossZoneBottomY
+    add Zp_RoomScrollY_u8
+    sta <(Zp_Buffered_sIrq + sIrq::Param4_byte)  ; window latch
+    ;; Set up our own sIrq struct to handle boss movement.
+    lda #kBossZoneTopY - 1
+    sub Zp_RoomScrollY_u8
+    sta <(Zp_Buffered_sIrq + sIrq::Latch_u8)
+    ldax #Int_BossTempleZoneTopIrq
+    stax <(Zp_Buffered_sIrq + sIrq::FirstIrq_int_ptr)
+    ;; Compute PPU scroll values for the boss zone.
+    lda #kBossBodyStartRow * kTileHeightPx + kBossZoneTopY
+    sub Ram_PlatformTop_i16_0_arr + kBossBodyPlatformIndex
+    sta <(Zp_Buffered_sIrq + sIrq::Param2_byte)  ; boss scroll-Y
+    rts
+.ENDPROC
+
+;;; Returns the index to use for the boss's pulsating animation, following the
+;;; pattern 0, 1, 2, 1.
+;;; @return A The pulsatation index (0-2).
+.PROC FuncC_Boss_Temple_GetPulsationIndex
+    lda Zp_RoomState + sState::BossAnimCounter_u8
+    div #16
+    and #$03
+    cmp #$03
+    bne @noWrap
+    lda #$01
+    @noWrap:
+    rts
+.ENDPROC
+
+;;; Draws two claws on one side of the temple boss.
+;;; @prereq The shape position is set to the top left of the claw pair.
+;;; @param A Either 0 for eastern claws, or bObj::FlipH for western claws.
+.PROC FuncC_Boss_Temple_DrawClawPair
+    pha  ; horz flip
+    .assert kPaletteObjOutbreakClaw = 0, error
+    tay  ; param: object flags
+    lda Ram_PlatformTop_i16_0_arr + kBossBodyPlatformIndex
+    and #$01
+    cpy #0
+    beq @noEor
+    eor #$01
+    @noEor:
+    tax  ; 1 if claws are close together, 0 otherwise
+    jsr FuncA_Objects_MoveShapeDownByA  ; preserves X and Y
+    lda #kTileIdObjOutbreakClaw  ; param: tile ID
+    jsr FuncA_Objects_Draw1x1Shape  ; preserves X
+    lda _Offset_u8_arr2, x  ; param: offset
+    jsr FuncA_Objects_MoveShapeDownByA
+    pla  ; horz flip
+    eor #bObj::FlipV
+    tay  ; param: object flags
+    lda #kTileIdObjOutbreakClaw  ; param: tile ID
+    jmp FuncA_Objects_Draw1x1Shape
+_Offset_u8_arr2:
+    .byte kTileHeightPx * 3
+    .byte kTileHeightPx * 3 - 2
+.ENDPROC
+
+;;; Draws one eye for the temple boss.
+;;; @param X The eBossEye value for the eye to draw.
+;;; @preserve X
+.PROC FuncC_Boss_Temple_DrawEye
+    .assert eBossEye::Left = kBossEyeLeftPlatformIndex, error
+    .assert eBossEye::Center = kBossEyeCenterPlatformIndex, error
+    .assert eBossEye::Right = kBossEyeRightPlatformIndex, error
+    jsr FuncA_Objects_SetShapePosToPlatformTopLeft  ; preserves X
+    ;; Determine tile ID.
+    lda Zp_RoomState + sState::BossEyeOpen_u8_arr3, x
+    .assert (kBossEyeOpenFrames + 1) .mod 4 = 0, error
+    div #(kBossEyeOpenFrames + 1) / 4
+    .assert kTileIdObjOutbreakEyeFirst .mod 4 = 0, error
+    ora #kTileIdObjOutbreakEyeFirst  ; param: tile ID
+    ;; Draw the shape.
+    ldy #kPaletteObjOutbreakEye  ; param: object flags
+    jmp FuncA_Objects_Draw1x1Shape  ; preserves X
+.ENDPROC
+
+;;; Sets Zp_ShapePosX_i16 and Zp_ShapePosY_i16 to the screen-space position of
+;;; the top-center of the boss's body.
+;;; @preserve X, Y, T0+
+.PROC FuncC_Boss_Temple_SetShapePosToBossMidTop
+    lda #kScreenWidthPx / 2
+    sta Zp_ShapePosX_i16 + 0
+    lda Ram_PlatformTop_i16_0_arr + kBossBodyPlatformIndex
+    sub Zp_RoomScrollY_u8
+    sta Zp_ShapePosY_i16 + 0
+    lda #0
+    sta Zp_ShapePosX_i16 + 1
+    sta Zp_ShapePosY_i16 + 1
+    rts
+.ENDPROC
+
+.PROC FuncC_Boss_TempleMinigun_ReadReg
+    cmp #$c
+    beq @readL
+    cmp #$d
+    beq @readR
+    @readX:
+    lda Ram_PlatformLeft_i16_0_arr + kMinigunPlatformIndex
+    sub #kMinigunMinPlatformLeft - kTileWidthPx
+    div #kBlockWidthPx
+    rts
+    @readL:
+    lda Zp_RoomState + sState::LeverLeft_u8
+    rts
+    @readR:
+    lda Zp_RoomState + sState::LeverRight_u8
+    rts
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Room"
+
+;;; Room init function for the BossTemple room.
+.PROC FuncA_Room_BossTemple_EnterRoom
+    ldax #DataC_Boss_Temple_sBoss  ; param: sBoss ptr
+    jsr FuncA_Room_InitBoss  ; sets Z if boss is alive
+    bne _BossIsDead
+_BossIsAlive:
+    lda #eBossMode::Paused
+    sta Zp_RoomState + sState::Current_eBossMode
+    lda #kBossInitCooldown
+    sta Zp_RoomState + sState::BossCooldown_u8
+_BossIsDead:
+    rts
+.ENDPROC
+
+;;; Room tick function for the BossTemple room.
+.PROC FuncA_Room_BossTemple_TickRoom
+    jsr FuncA_Room_RemoveAllBulletsIfConsoleOpen
+    .assert eBossMode::Dead = 0, error
+    lda Zp_RoomState + sState::Current_eBossMode  ; param: zero if boss dead
+    jmp FuncA_Room_TickBoss
+.ENDPROC
+
+.PROC FuncA_Room_BossTempleMinigun_InitReset
+    lda #kMinigunInitGoalX
+    sta Ram_MachineGoalHorz_u8_arr + kMinigunMachineIndex
+    ldx #kLeverLeftDeviceIndex  ; param: device index
+    jsr FuncA_Room_ResetLever
+    ldx #kLeverRightDeviceIndex  ; param: device index
+    jmp FuncA_Room_ResetLever
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Machine"
+
+.PROC FuncA_Machine_BossTempleMinigun_WriteReg
+    cpx #$d
+    beq _WriteR
+_WriteL:
+    ldx #kLeverLeftDeviceIndex  ; param: device index
+    jmp FuncA_Machine_WriteToLever
+_WriteR:
+    ldx #kLeverRightDeviceIndex  ; param: device index
+    jmp FuncA_Machine_WriteToLever
+.ENDPROC
+
+.PROC FuncA_Machine_BossTempleMinigun_TryMove
+    lda #kMinigunMaxGoalX  ; param: max goal
+    jmp FuncA_Machine_GenericTryMoveX
+.ENDPROC
+
+.PROC FuncA_Machine_BossTempleMinigun_TryAct
+    ldy #eDir::Up  ; param: bullet direction
+    jmp FuncA_Machine_MinigunTryAct
+.ENDPROC
+
+.PROC FuncA_Machine_BossTempleMinigun_Tick
+    jsr FuncA_Machine_MinigunRotateBarrel
+    ldax #kMinigunMinPlatformLeft  ; param: min platform left
+    jsr FuncA_Machine_GenericMoveTowardGoalHorz  ; returns Z
+    jeq FuncA_Machine_ReachedGoal
+    rts
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Terrain"
+
+;;; Room fade-in function for the BossTemple room.
 ;;; @prereq Rendering is disabled.
-.PROC FuncC_Boss_Temple_FadeInRoom
+.PROC FuncA_Terrain_BossTemple_FadeInRoom
 _DrawBoss:
     lda #kPpuCtrlFlagsHorz
     sta Hw_PpuCtrl_wo
@@ -456,438 +993,6 @@ _ColumnTileId_u8_arr:
     .byte $9a, $9b, $94, $95, $94, $95, $9a, $9b
 _ColumnTileCol_u8_arr:
     .byte   3,   4,   9,  10,  21,  22,  27,  28
-.ENDPROC
-
-;;; Performs per-frame upates for the boss in this room.
-.PROC FuncC_Boss_Temple_TickBoss
-    jsr FuncC_Boss_Temple_CheckForBulletHit
-    jsr FuncC_Boss_Temple_CheckForBreakballHit
-    ;; Tick eyes.
-    ldx #eBossEye::NUM_VALUES - 1
-    @loop:
-    jsr FuncC_Boss_Temple_TickBossEye  ; preserves X
-    dex
-    bpl @loop
-_CheckMode:
-    ;; Branch based on the current boss mode.
-    ldy Zp_RoomState + sState::Current_eBossMode
-    lda _JumpTable_ptr_0_arr, y
-    sta T0
-    lda _JumpTable_ptr_1_arr, y
-    sta T1
-    jmp (T1T0)
-.REPEAT 2, table
-    D_TABLE_LO table, _JumpTable_ptr_0_arr
-    D_TABLE_HI table, _JumpTable_ptr_1_arr
-    D_TABLE .enum, eBossMode
-    d_entry table, Dead,       Func_Noop
-    d_entry table, Waiting,    _BossWaiting
-    d_entry table, Stunned,    _BossStunned
-    d_entry table, ShootBreak, _BossShootBreak
-    D_END
-.ENDREPEAT
-_BossWaiting:
-    ;; Wait for all boss projetiles to expire.
-    ldx #kMaxActors - 1
-    @loop:
-    lda Ram_ActorType_eActor_arr, x
-    cmp #eActor::ProjBreakball
-    beq @done
-    cmp #eActor::ProjBreakfire
-    beq @done
-    dex
-    bpl @loop
-    ;; Switch modes to fire a breakball.
-    lda #eBossMode::ShootBreak
-    sta Zp_RoomState + sState::Current_eBossMode
-    jmp FuncC_Boss_Temple_ChooseActiveEye
-    @done:
-    rts
-_BossStunned:
-    dec Zp_RoomState + sState::BossCooldown_u8
-    bne @done
-    lda #eBossMode::Waiting
-    sta Zp_RoomState + sState::Current_eBossMode
-    @done:
-    rts
-_BossShootBreak:
-    ;; Wait for the active eye to be fully open.
-    ldy Zp_RoomState + sState::Active_eBossEye  ; param: platform index
-    lda Zp_RoomState + sState::BossEyeOpen_u8_arr3, y
-    cmp #kBossEyeOpenFrames
-    blt @done
-    ;; Spawn a breakball projetile.
-    jsr Func_SetPointToPlatformCenter
-    jsr Func_FindEmptyActorSlot  ; sets C on failure, returns X
-    bcs @done
-    jsr Func_SetActorCenterToPoint  ; preserves X
-    jsr Func_GetRandomByte  ; preserves X, returns A
-    and #bObj::FlipH  ; param: horz direction
-    jsr FuncA_Room_InitActorProjBreakball
-    ;; Switch to waiting mode.
-    lda #eBossMode::Waiting
-    sta Zp_RoomState + sState::Current_eBossMode
-    @done:
-    rts
-.ENDPROC
-
-;;; Sets Active_eBossEye to a random eBossEye value.
-.PROC FuncC_Boss_Temple_ChooseActiveEye
-    jsr Func_GetRandomByte  ; returns A (param: dividend)
-    ldy #eBossEye::NUM_VALUES  ; param: divisor
-    jsr Func_DivMod  ; returns remainder in A
-    sta Zp_RoomState + sState::Active_eBossEye
-    rts
-.ENDPROC
-
-;;; Performs per-frame upates for one of the boss's eyes.
-;;; @param X The eBossEye value for the eye.
-.PROC FuncC_Boss_Temple_TickBossEye
-_CheckIfOpenOrClosed:
-    lda Zp_RoomState + sState::Current_eBossMode
-    cmp #eBossMode::Waiting
-    beq _Close
-    cpx Zp_RoomState + sState::Active_eBossEye
-    bne _Close
-_Open:
-    lda Zp_RoomState + sState::BossEyeOpen_u8_arr3, x
-    cmp #kBossEyeOpenFrames
-    bge @done
-    inc Zp_RoomState + sState::BossEyeOpen_u8_arr3, x
-    @done:
-    rts
-_Close:
-    lda Zp_RoomState + sState::BossEyeOpen_u8_arr3, x
-    beq @done
-    dec Zp_RoomState + sState::BossEyeOpen_u8_arr3, x
-    @done:
-    rts
-.ENDPROC
-
-;;; Checks if a breakball has hit the boss's body; if so, expires the breakball
-;;; and stuns the boss.
-;;; @prereq PRGA_Room is loaded.
-.PROC FuncC_Boss_Temple_CheckForBreakballHit
-    ;; Find the breakball actor (if any).
-    ldx #kMaxActors - 1
-    @loop:
-    lda Ram_ActorType_eActor_arr, x
-    cmp #eActor::ProjBreakball
-    beq _FoundBreakball
-    dex
-    bpl @loop
-_Done:
-    rts
-_FoundBreakball:
-    ;; Ignore the breakball if it's moving downward.
-    lda Ram_ActorVelY_i16_1_arr, x
-    bpl _Done
-    ;; Check if the breakball has hit the boss's body.
-    jsr Func_SetPointToActorCenter  ; preserves X
-    ldy #kBossBodyPlatformIndex  ; param: platform index
-    jsr Func_IsPointInPlatform  ; preserves X, returns C
-    bcc _Done
-_StunBoss:
-    ;; Expire the breakball.
-    lda #eActor::None
-    sta Ram_ActorType_eActor_arr, x
-    ;; TODO: play sound
-    ;; Stun the boss.
-    lda #eBossMode::Stunned
-    sta Zp_RoomState + sState::Current_eBossMode
-    lda #kBossStunFrames
-    sta Zp_RoomState + sState::BossCooldown_u8
-    rts
-.ENDPROC
-
-;;; Checks if a bullet has hit a boss eye; if so, expires the bullet and makes
-;;; the boss react accordingly.
-;;; @prereq PRGA_Room is loaded.
-.PROC FuncC_Boss_Temple_CheckForBulletHit
-    ;; Loop over all actors, skipping over non-bullets.
-    ldx #kMaxActors - 1
-    @actorLoop:
-    lda Ram_ActorType_eActor_arr, x
-    cmp #eActor::ProjBullet
-    bne @actorContinue
-    jsr Func_SetPointToActorCenter  ; preserves X
-    ;; For each bullet, loop over the boss eyes, check if the bullet hits them.
-    ldy #eBossEye::NUM_VALUES - 1
-    @eyeLoop:
-    .assert eBossEye::Left = kBossEyeLeftPlatformIndex, error
-    .assert eBossEye::Center = kBossEyeCenterPlatformIndex, error
-    .assert eBossEye::Right = kBossEyeRightPlatformIndex, error
-    jsr Func_IsPointInPlatform  ; preserves X and Y; returns C
-    ;; In practice, only one bullet/eye impact should be able to happen in a
-    ;; given frame, so if an impact happens, we can just break out of both
-    ;; loops (which saves us the trouble of preserving the loop variables).
-    bcs FuncC_Boss_Temple_BulletHitsEye
-    dey
-    bpl @eyeLoop
-    @actorContinue:
-    dex
-    bpl @actorLoop
-    rts
-.ENDPROC
-
-;;; Called when a bullet hits one of the boss's eyes.
-;;; @prereq PRGA_Room is loaded.
-;;; @param X The actor index for the bullet.
-;;; @param Y The eBossEye value for the eye that was hit.
-.PROC FuncC_Boss_Temple_BulletHitsEye
-    ;; Expire the bullet.
-    lda #eActor::None
-    sta Ram_ActorType_eActor_arr, x
-    ;; Check if the eye is open.
-    lda Zp_RoomState + sState::BossEyeOpen_u8_arr3, y
-    cmp #kBossEyeOpenFrames / 2
-    bge _EyeIsOpen
-_EyeIsClosed:
-    ;; TODO: play a sound
-    rts
-_EyeIsOpen:
-    ;; TODO: play a sound
-    .assert * = FuncC_Boss_Temple_CrawlUp, error, "fallthrough"
-.ENDPROC
-
-;;; Moves the boss upwards by one pixel, and checks if it has hit the spikes at
-;;; the top of the room.
-;;; @prereq PRGA_Room is loaded.
-.PROC FuncC_Boss_Temple_CrawlUp
-    ;; Move the boss's body.
-    ldx #kBossBodyPlatformIndex  ; param: platform index
-    lda #<-1  ; param: move delta
-    jsr Func_MovePlatformVert
-    ;; Move the boss's eye zones.
-    ldx #eBossEye::NUM_VALUES - 1
-    @loop:
-    .assert eBossEye::Left = kBossEyeLeftPlatformIndex, error
-    .assert eBossEye::Center = kBossEyeCenterPlatformIndex, error
-    .assert eBossEye::Right = kBossEyeRightPlatformIndex, error
-    lda #<-1  ; param: move delta
-    jsr Func_MovePlatformVert  ; preserves X
-    dex
-    bpl @loop
-_CheckForSpikes:
-    ;; If the top of the boss's body <= kBossMinTopY, kill the boss.
-    lda #kBossMinTopY
-    cmp Ram_PlatformTop_i16_0_arr + kBossBodyPlatformIndex
-    blt _Done
-    ;; Kill the boss.
-    lda #eBossMode::Dead
-    sta Zp_RoomState + sState::Current_eBossMode
-_Done:
-    rts
-.ENDPROC
-
-;;; Draw function for the BossTemple room.
-;;; @prereq PRGA_Objects is loaded.
-.PROC FuncC_Boss_Temple_DrawRoom
-    ;; TODO: Animate the CHR04 bank.
-    lda #<.bank(Ppu_ChrBgAnimB4)
-    sta Zp_Chr04Bank_u8
-    jmp FuncA_Objects_DrawBoss
-.ENDPROC
-
-;;; Draw function for the temple boss.
-;;; @prereq PRGA_Objects is loaded.
-.PROC FuncC_Boss_Temple_DrawBoss
-_DrawBossClaws:
-    jsr FuncC_Boss_Temple_SetShapePosToBossMidTop
-    lda #$24  ; param: offset
-    jsr FuncA_Objects_MoveShapeRightByA
-    lda #0  ; param: horz flip
-    jsr FuncC_Boss_Temple_DrawClawPair
-    jsr FuncC_Boss_Temple_SetShapePosToBossMidTop
-    lda #$2c  ; param: offset
-    jsr FuncA_Objects_MoveShapeLeftByA
-    lda #bObj::FlipH  ; param: horz flip
-    jsr FuncC_Boss_Temple_DrawClawPair
-_DrawBossEyes:
-    ldx #eBossEye::NUM_VALUES - 1
-    @loop:
-    jsr FuncC_Boss_Temple_DrawEye
-    dex
-    bpl @loop
-_DrawBossBrain:
-    jsr FuncC_Boss_Temple_SetShapePosToBossMidTop
-    jsr FuncA_Objects_MoveShapeUpOneTile
-    ldy #kPaletteObjOutbreakBrain | bObj::FlipH  ; param: object flags
-    lda #kTileIdObjOutbreakBrain  ; param: tile ID
-    jsr FuncA_Objects_Draw1x1Shape
-    jsr FuncA_Objects_MoveShapeLeftOneTile
-    ldy #kPaletteObjOutbreakBrain  ; param: object flags
-    lda #kTileIdObjOutbreakBrain  ; param: tile ID
-    jsr FuncA_Objects_Draw1x1Shape
-_SetUpIrq:
-    ;; Compute the IRQ latch value to set between the bottom of the boss's zone
-    ;; and the top of the window (if any), and set that as Param4_byte.
-    lda <(Zp_Buffered_sIrq + sIrq::Latch_u8)
-    sub #kBossZoneBottomY
-    add Zp_RoomScrollY_u8
-    sta <(Zp_Buffered_sIrq + sIrq::Param4_byte)  ; window latch
-    ;; Set up our own sIrq struct to handle boss movement.
-    lda #kBossZoneTopY - 1
-    sub Zp_RoomScrollY_u8
-    sta <(Zp_Buffered_sIrq + sIrq::Latch_u8)
-    ldax #Int_BossTempleZoneTopIrq
-    stax <(Zp_Buffered_sIrq + sIrq::FirstIrq_int_ptr)
-    ;; Compute PPU scroll values for the boss zone.
-    lda #kBossBodyStartRow * kTileHeightPx + kBossZoneTopY
-    sub Ram_PlatformTop_i16_0_arr + kBossBodyPlatformIndex
-    sta <(Zp_Buffered_sIrq + sIrq::Param2_byte)  ; boss scroll-Y
-    rts
-.ENDPROC
-
-;;; Draws two claws on one side of the temple boss.
-;;; @prereq The shape position is set to the top left of the claw pair.
-;;; @param A Either 0 for eastern claws, or bObj::FlipH for western claws.
-.PROC FuncC_Boss_Temple_DrawClawPair
-    pha  ; horz flip
-    .assert kPaletteObjOutbreakClaw = 0, error
-    tay  ; param: object flags
-    lda Ram_PlatformTop_i16_0_arr + kBossBodyPlatformIndex
-    and #$01
-    cpy #0
-    beq @noEor
-    eor #$01
-    @noEor:
-    tax  ; 1 if claws are close together, 0 otherwise
-    jsr FuncA_Objects_MoveShapeDownByA  ; preserves X and Y
-    lda #kTileIdObjOutbreakClaw  ; param: tile ID
-    jsr FuncA_Objects_Draw1x1Shape  ; preserves X
-    lda _Offset_u8_arr2, x  ; param: offset
-    jsr FuncA_Objects_MoveShapeDownByA
-    pla  ; horz flip
-    eor #bObj::FlipV
-    tay  ; param: object flags
-    lda #kTileIdObjOutbreakClaw  ; param: tile ID
-    jmp FuncA_Objects_Draw1x1Shape
-_Offset_u8_arr2:
-    .byte kTileHeightPx * 3
-    .byte kTileHeightPx * 3 - 2
-.ENDPROC
-
-;;; Draws one eye for the temple boss.
-;;; @param X The eBossEye value for the eye to draw.
-;;; @preserve X
-.PROC FuncC_Boss_Temple_DrawEye
-    .assert eBossEye::Left = kBossEyeLeftPlatformIndex, error
-    .assert eBossEye::Center = kBossEyeCenterPlatformIndex, error
-    .assert eBossEye::Right = kBossEyeRightPlatformIndex, error
-    jsr FuncA_Objects_SetShapePosToPlatformTopLeft  ; preserves X
-    ;; Determine tile ID.
-    lda Zp_RoomState + sState::BossEyeOpen_u8_arr3, x
-    cmp #kBossEyeOpenFrames / 2
-    blt @closed
-    @open:
-    lda #kTileIdObjOutbreakEyeOpen  ; param: tile ID
-    bne @draw  ; unconditional
-    @closed:
-    lda #kTileIdObjOutbreakEyeClosed  ; param: tile ID
-    @draw:
-    ;; Draw the shape.
-    ldy #kPaletteObjOutbreakEye  ; param: object flags
-    jmp FuncA_Objects_Draw1x1Shape  ; preserves X
-.ENDPROC
-
-;;; Sets Zp_ShapePosX_i16 and Zp_ShapePosY_i16 to the screen-space position of
-;;; the top-center of the boss's body.
-;;; @preserve X, Y, T0+
-.PROC FuncC_Boss_Temple_SetShapePosToBossMidTop
-    lda #kScreenWidthPx / 2
-    sta Zp_ShapePosX_i16 + 0
-    lda Ram_PlatformTop_i16_0_arr + kBossBodyPlatformIndex
-    sub Zp_RoomScrollY_u8
-    sta Zp_ShapePosY_i16 + 0
-    lda #0
-    sta Zp_ShapePosX_i16 + 1
-    sta Zp_ShapePosY_i16 + 1
-    rts
-.ENDPROC
-
-.PROC FuncC_Boss_TempleMinigun_ReadReg
-    cmp #$c
-    beq @readL
-    cmp #$d
-    beq @readR
-    @readX:
-    lda Ram_PlatformLeft_i16_0_arr + kMinigunPlatformIndex
-    sub #kMinigunMinPlatformLeft - kTileWidthPx
-    div #kBlockWidthPx
-    rts
-    @readL:
-    lda Zp_RoomState + sState::LeverLeft_u8
-    rts
-    @readR:
-    lda Zp_RoomState + sState::LeverRight_u8
-    rts
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Room"
-
-;;; Room init function for the BossTemple room.
-.PROC FuncA_Room_BossTemple_EnterRoom
-    ldax #DataC_Boss_Temple_sBoss  ; param: sBoss ptr
-    jsr FuncA_Room_InitBoss  ; sets Z if boss is alive
-    bne _BossIsDead
-_BossIsAlive:
-    lda #eBossMode::Waiting
-    sta Zp_RoomState + sState::Current_eBossMode
-_BossIsDead:
-    rts
-.ENDPROC
-
-;;; Room tick function for the BossTemple room.
-.PROC FuncA_Room_BossTemple_TickRoom
-    jsr FuncA_Room_RemoveAllBulletsIfConsoleOpen
-    .assert eBossMode::Dead = 0, error
-    lda Zp_RoomState + sState::Current_eBossMode  ; param: zero if boss dead
-    jmp FuncA_Room_TickBoss
-.ENDPROC
-
-.PROC FuncA_Room_BossTempleMinigun_InitReset
-    lda #kMinigunInitGoalX
-    sta Ram_MachineGoalHorz_u8_arr + kMinigunMachineIndex
-    ldx #kLeverLeftDeviceIndex  ; param: device index
-    jsr FuncA_Room_ResetLever
-    ldx #kLeverRightDeviceIndex  ; param: device index
-    jmp FuncA_Room_ResetLever
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Machine"
-
-.PROC FuncA_Machine_BossTempleMinigun_WriteReg
-    cpx #$d
-    beq _WriteR
-_WriteL:
-    ldx #kLeverLeftDeviceIndex  ; param: device index
-    jmp FuncA_Machine_WriteToLever
-_WriteR:
-    ldx #kLeverRightDeviceIndex  ; param: device index
-    jmp FuncA_Machine_WriteToLever
-.ENDPROC
-
-.PROC FuncA_Machine_BossTempleMinigun_TryMove
-    lda #kMinigunMaxGoalX  ; param: max goal
-    jmp FuncA_Machine_GenericTryMoveX
-.ENDPROC
-
-.PROC FuncA_Machine_BossTempleMinigun_TryAct
-    ldy #eDir::Up  ; param: bullet direction
-    jmp FuncA_Machine_MinigunTryAct
-.ENDPROC
-
-.PROC FuncA_Machine_BossTempleMinigun_Tick
-    jsr FuncA_Machine_MinigunRotateBarrel
-    ldax #kMinigunMinPlatformLeft  ; param: min platform left
-    jsr FuncA_Machine_GenericMoveTowardGoalHorz  ; returns Z
-    jeq FuncA_Machine_ReachedGoal
-    rts
 .ENDPROC
 
 ;;;=========================================================================;;;

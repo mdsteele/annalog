@@ -18,6 +18,6 @@
 ;;;=========================================================================;;;
 
 ;;; OBJ tile IDs for drawing the temple boss.
-kTileIdObjOutbreakFirst = $9c
+kTileIdObjOutbreakFirst = $a0
 
 ;;;=========================================================================;;;

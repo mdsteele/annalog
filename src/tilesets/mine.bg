@@ -1,5 +1,5 @@
 @BG 0 0 0 32x14
->conveyor_anim0
+>anim_conveyor_0
 >crystal
 >hoist_bg
 >minecart

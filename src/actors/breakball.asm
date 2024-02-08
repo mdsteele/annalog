@@ -35,15 +35,16 @@
 .IMPORT Func_FindEmptyActorSlot
 .IMPORT Func_InitActorDefault
 .IMPORT Func_InitActorProjBreakfire
+.IMPORT Func_InitActorSmokeExplosion
 .IMPORT Func_IsPointInAnySolidPlatform
 .IMPORT Func_MovePointDownByA
 .IMPORT Func_MovePointUpByA
+.IMPORT Func_PlaySfxExplodeBig
 .IMPORT Func_PointHitsTerrain
 .IMPORT Func_SetActorCenterToPoint
 .IMPORT Func_SetPointToActorCenter
 .IMPORT Func_ShakeRoom
 .IMPORT Ram_ActorPosY_i16_0_arr
-.IMPORT Ram_ActorType_eActor_arr
 .IMPORT Ram_ActorVelX_i16_0_arr
 .IMPORT Ram_ActorVelX_i16_1_arr
 .IMPORT Ram_ActorVelY_i16_0_arr
@@ -153,11 +154,8 @@ _MovingUp:
     jsr Func_MovePointUpByA  ; preserves X
     ;; If the terrain is solid, expire the breakball.
     jsr Func_PointHitsTerrain  ; preserves X, returns C
-    bcc @done
-    lda #eActor::None
-    sta Ram_ActorType_eActor_arr, x
-    @done:
-    rts
+    bcc _Return
+    jmp Func_InitActorSmokeExplosion  ; preserves X
 _MovingDown:
     ;; Set the point to the bottom of the breakball.
     lda #kProjBreakballRadius  ; param: offset
@@ -171,8 +169,10 @@ _MovingDown:
     jsr FuncA_Actor_PlaySfxBounce  ; preserves X
     jmp FuncA_Actor_NegateVelY  ; preserves X
     @noBounce:
+_Return:
     rts
 _Explode:
+    jsr Func_PlaySfxExplodeBig  ; preserves X
     ;; Adjust the breakball's position to 8 pixels above the floor.
     lda Ram_ActorPosY_i16_0_arr, x
     .assert kBlockHeightPx = $10, error

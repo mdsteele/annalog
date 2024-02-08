@@ -268,8 +268,8 @@ _chr_begin:
     CHR1_BANK $40
     chr_inc "lava_anim0"
     chr_res $06
-    chr_inc "conveyor_anim0"
-    chr_res $02
+    chr_inc "anim_conveyor_0"
+    chr_res $05
     chr_inc "anim_boss_lava_2", kTileIdBgAnimBossLavaFirst
     chr_inc "anim_rocks_fall_0"
     chr_inc "gazer_anim0"
@@ -284,8 +284,8 @@ _chr_begin:
     CHR1_BANK $40
     chr_inc "lava_anim1"
     chr_res $06
-    chr_inc "conveyor_anim1"
-    chr_res $02
+    chr_inc "anim_conveyor_1"
+    chr_res $05
     chr_inc "anim_boss_lava_1", kTileIdBgAnimBossLavaFirst
     chr_inc "anim_rocks_fall_1"
     chr_inc "gazer_anim1"
@@ -300,8 +300,8 @@ _chr_begin:
     CHR1_BANK $40
     chr_inc "lava_anim2"
     chr_res $06
-    chr_inc "conveyor_anim2"
-    chr_res $02
+    chr_inc "anim_conveyor_2"
+    chr_res $05
     chr_inc "anim_boss_lava_2", kTileIdBgAnimBossLavaFirst
     chr_inc "anim_rocks_fall_2"
     chr_inc "gazer_anim2"
@@ -316,8 +316,8 @@ _chr_begin:
     CHR1_BANK $40
     chr_inc "lava_anim3"
     chr_res $06
-    chr_inc "conveyor_anim3"
-    chr_res $02
+    chr_inc "anim_conveyor_3"
+    chr_res $05
     chr_inc "anim_boss_lava_3", kTileIdBgAnimBossLavaFirst
     chr_inc "anim_rocks_fall_3"
     chr_inc "gazer_anim3"
@@ -331,7 +331,7 @@ _chr_begin:
 .EXPORT Ppu_ChrBgAnimB4
 .PROC Ppu_ChrBgAnimB4
     CHR1_BANK $40
-    chr_inc "outbreak_bg"  ; TODO: animate
+    chr_inc "anim_outbreak_0"
     chr_inc "anim_rocks_fall_4"
     chr_res $14
     END_CHR_BANK
@@ -343,7 +343,7 @@ _chr_begin:
 
 .PROC Ppu_ChrBgAnimB5
     CHR1_BANK $40
-    chr_inc "outbreak_bg"  ; TODO: animate
+    chr_inc "anim_outbreak_1"
     chr_inc "anim_rocks_fall_5"
     chr_res $14
     END_CHR_BANK
@@ -355,7 +355,7 @@ _chr_begin:
 
 .PROC Ppu_ChrBgAnimB6
     CHR1_BANK $40
-    chr_inc "outbreak_bg"  ; TODO: animate
+    chr_inc "anim_outbreak_2"
     chr_inc "anim_rocks_fall_6"
     chr_res $14
     END_CHR_BANK
@@ -367,7 +367,7 @@ _chr_begin:
 
 .PROC Ppu_ChrBgAnimB7
     CHR1_BANK $40
-    chr_inc "outbreak_bg"  ; TODO: animate
+    chr_res $28
     chr_inc "anim_rocks_fall_7"
     chr_res $14
     END_CHR_BANK
@@ -1051,8 +1051,8 @@ _chr_begin:
     chr_inc "upgrade_oprest",        kTileIdObjUpgradeOpRestFirst
     chr_inc "blaster",               kTileIdObjBlasterFirst
     chr_inc "fireblast",             kTileIdObjFireblastFirst
+    chr_res $04
     chr_inc "outbreak_obj",          kTileIdObjOutbreakFirst
-    chr_res $08
     chr_inc "spike",                 kTileIdObjSpike
     chr_inc "breakfire",             kTileIdObjBreakfireFirst
     chr_res $02
