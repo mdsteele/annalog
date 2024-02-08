@@ -28,7 +28,8 @@
 
 void process_line(const char *line, int num_ranges, const int *min,
                   const int *max) {
-  int addr, count;
+  unsigned int addr;
+  int count;
   char ignored;
   if (sscanf(line, "al %x .%n%c", &addr, &count, &ignored) != 2) return;
   for (int i = 0; i < num_ranges; ++i) {

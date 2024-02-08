@@ -40,7 +40,7 @@
 /*===========================================================================*/
 
 static const struct {
-  char start;
+  unsigned char start;
   const char* name;
 } tile_files[] = {
   {0x48, "acid_anim0"},
