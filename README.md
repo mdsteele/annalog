@@ -1,5 +1,7 @@
 # Annalog
 
+[![Build Status](https://github.com/mdsteele/annalog/actions/workflows/tests.yml/badge.svg)](https://github.com/mdsteele/annalog/actions/workflows/tests.yml)
+
 A homebrew programming metroidvania for the NES (still a work in progress).
 
 ## Building
