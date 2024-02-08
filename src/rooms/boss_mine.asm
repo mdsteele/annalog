@@ -46,6 +46,7 @@
 .IMPORT FuncA_Objects_DrawCraneRopeToPulley
 .IMPORT FuncA_Objects_DrawTrolleyMachine
 .IMPORT FuncA_Room_InitBoss
+.IMPORT FuncA_Room_MachineResetRun
 .IMPORT FuncA_Room_TickBoss
 .IMPORT Func_FindEmptyActorSlot
 .IMPORT Func_InitActorSmokeExplosion
@@ -55,11 +56,13 @@
 .IMPORT Func_MovePlatformVert
 .IMPORT Func_Noop
 .IMPORT Func_SetActorCenterToPoint
+.IMPORT Func_SetMachineIndex
 .IMPORT Func_SetPointToPlatformCenter
 .IMPORT Ppu_ChrBgAnimB0
 .IMPORT Ppu_ChrObjMine
 .IMPORT Ram_MachineGoalHorz_u8_arr
 .IMPORT Ram_MachineGoalVert_u8_arr
+.IMPORT Ram_MachineStatus_eMachine_arr
 .IMPORT Ram_PlatformBottom_i16_0_arr
 .IMPORT Ram_PlatformBottom_i16_1_arr
 .IMPORT Ram_PlatformLeft_i16_0_arr
@@ -238,14 +241,14 @@ _Machines_sMachine_arr:
     d_byte ScrollGoalY_u8, $10
     d_byte RegNames_u8_arr4, "L", "R", "X", 0
     d_byte MainPlatform_u8, kTrolleyPlatformIndex
-    d_addr Init_func_ptr, FuncC_Boss_MineTrolley_InitReset
+    d_addr Init_func_ptr, FuncC_Boss_MineTrolley_Init
     d_addr ReadReg_func_ptr, FuncC_Boss_MineTrolley_ReadReg
     d_addr WriteReg_func_ptr, FuncA_Machine_BossMine_WriteReg
-    d_addr TryMove_func_ptr, FuncC_Boss_MineTrolley_TryMove
+    d_addr TryMove_func_ptr, FuncA_Machine_BossMineTrolley_TryMove
     d_addr TryAct_func_ptr, FuncA_Machine_Error
-    d_addr Tick_func_ptr, FuncC_Boss_MineTrolley_Tick
+    d_addr Tick_func_ptr, FuncA_Machine_BossMineTrolley_Tick
     d_addr Draw_func_ptr, FuncA_Objects_DrawTrolleyMachine
-    d_addr Reset_func_ptr, FuncC_Boss_MineTrolley_InitReset
+    d_addr Reset_func_ptr, FuncC_Boss_MineTrolley_Reset
     D_END
     .assert * - :- = kCraneMachineIndex * .sizeof(sMachine), error
     D_STRUCT sMachine
@@ -260,9 +263,9 @@ _Machines_sMachine_arr:
     d_addr Init_func_ptr, FuncC_Boss_MineCrane_InitReset
     d_addr ReadReg_func_ptr, FuncC_Boss_MineCrane_ReadReg
     d_addr WriteReg_func_ptr, FuncA_Machine_BossMine_WriteReg
-    d_addr TryMove_func_ptr, FuncC_Boss_MineCrane_TryMove
+    d_addr TryMove_func_ptr, FuncA_Machine_BossMineCrane_TryMove
     d_addr TryAct_func_ptr, FuncC_Boss_MineCrane_TryAct
-    d_addr Tick_func_ptr, FuncC_Boss_MineCrane_Tick
+    d_addr Tick_func_ptr, FuncA_Machine_BossMineCrane_Tick
     d_addr Draw_func_ptr, FuncA_Objects_BossMineCrane_Draw
     d_addr Reset_func_ptr, FuncC_Boss_MineCrane_InitReset
     D_END
@@ -366,7 +369,6 @@ _Devices_sDevice_arr:
 ;;; Performs per-frame upates for the boss in this room.
 ;;; @prereq PRGA_Room is loaded.
 .PROC FuncC_Boss_Mine_TickBoss
-    jsr FuncC_Boss_Mine_TickBoulder
 _CoolDown:
     ;; Wait for cooldown to expire.
     dec Zp_RoomState + sState::BossCooldown_u8
@@ -393,8 +395,170 @@ _BossHiding:
     rts
 .ENDPROC
 
+;;; Draw function for the BossMine room.
+;;; @prereq PRGA_Objects is loaded.
+.PROC FuncC_Boss_Mine_DrawRoom
+_AnimateConveyor:
+    lda Zp_RoomState + sState::ConveyorMotion_u8
+    div #kConveyorSlowdown
+    and #$03
+    add #<.bank(Ppu_ChrBgAnimB0)
+    sta Zp_Chr04Bank_u8
+_DrawBoulder:
+    ldx #kBoulderPlatformIndex  ; param: platform index
+    jsr FuncA_Objects_DrawBoulderPlatform
+_DrawBoss:
+    jmp FuncA_Objects_DrawBoss
+.ENDPROC
+
+;;; Draw function for the mine boss.
+;;; @prereq PRGA_Objects is loaded.
+.PROC FuncC_Boss_Mine_DrawBoss
+    ;; TODO: draw the boss
+    rts
+.ENDPROC
+
+;;; @prereq PRGA_Room is loaded.
+.PROC FuncC_Boss_MineTrolley_Reset
+    ;; Reset the crane machine (if it's not already resetting).
+    lda Ram_MachineStatus_eMachine_arr + kCraneMachineIndex
+    cmp #kFirstResetStatus
+    bge @alreadyResetting
+    ldx #kCraneMachineIndex  ; param: machine index
+    jsr Func_SetMachineIndex
+    jsr FuncA_Room_MachineResetRun
+    ldx #kTrolleyMachineIndex  ; param: machine index
+    jsr Func_SetMachineIndex
+    @alreadyResetting:
+    ;; Now reset the trolley machine itself.
+    fall FuncC_Boss_MineTrolley_Init
+.ENDPROC
+
+.PROC FuncC_Boss_MineTrolley_Init
+    lda #kTrolleyInitGoalX
+    sta Ram_MachineGoalHorz_u8_arr + kTrolleyMachineIndex
+    rts
+.ENDPROC
+
+.PROC FuncC_Boss_MineCrane_InitReset
+    lda #0
+    sta Ram_MachineGoalHorz_u8_arr + kCraneMachineIndex  ; is closed
+    .assert kCraneInitGoalZ = 0, error
+    sta Ram_MachineGoalVert_u8_arr + kCraneMachineIndex
+    fall FuncC_Boss_Mine_DropBoulder
+.ENDPROC
+
+;;; If the boulder is currently grasped by the crane, makes it start falling.
+;;; Otherwise, does nothing.
+.PROC FuncC_Boss_Mine_DropBoulder
+    lda Zp_RoomState + sState::BoulderState_eBoulder
+    cmp #eBoulder::Grasped
+    bne @done
+    lda #eBoulder::Falling
+    sta Zp_RoomState + sState::BoulderState_eBoulder
+    @done:
+    rts
+.ENDPROC
+
+;;; ReadReg implementation for the BossMineTrolley machine.
+;;; @param A The register to read ($c-$f).
+;;; @return A The value of the register (0-9).
+.PROC FuncC_Boss_MineTrolley_ReadReg
+    cmp #$e
+    bne FuncC_Boss_Mine_ReadRegLR
+_RegX:
+    .assert kTrolleyMaxPlatformLeft < $100, error
+    lda Ram_PlatformLeft_i16_0_arr + kTrolleyPlatformIndex
+    sub #kTrolleyMinPlatformLeft - kTileWidthPx
+    div #kBlockWidthPx
+    rts
+.ENDPROC
+
+;;; ReadReg implementation for the BossMineCrane machine.
+;;; @param A The register to read ($c-$f).
+;;; @return A The value of the register (0-9).
+.PROC FuncC_Boss_MineCrane_ReadReg
+    cmp #$f
+    bne FuncC_Boss_Mine_ReadRegLR
+_RegZ:
+    .assert kCraneMaxPlatformTop < $100, error
+    lda Ram_PlatformTop_i16_0_arr + kCranePlatformIndex
+    sub #kCraneMinPlatformTop - kTileHeightPx
+    div #kBlockHeightPx
+    rts
+.ENDPROC
+
+;;; Reads the shared "L" or "R" lever register for the BossMineTrolley and
+;;; BossMineCrane machines.
+;;; @param A The register to read ($c or $d).
+;;; @return A The value of the register (0-9).
+.PROC FuncC_Boss_Mine_ReadRegLR
+    cmp #$d
+    beq _RegR
+_RegL:
+    lda Zp_RoomState + sState::LeverLeft_u8
+    rts
+_RegR:
+    lda Zp_RoomState + sState::LeverRight_u8
+    rts
+.ENDPROC
+
+.PROC FuncC_Boss_MineCrane_TryAct
+    lda Ram_MachineGoalHorz_u8_arr + kCraneMachineIndex  ; is closed
+    eor #$ff
+    sta Ram_MachineGoalHorz_u8_arr + kCraneMachineIndex  ; is closed
+    bpl _LetGo
+_TryGrasp:
+    lda Zp_RoomState + sState::BoulderState_eBoulder
+    cmp #eBoulder::OnGround
+    bne _StartWaiting
+    lda Ram_PlatformLeft_i16_0_arr + kCranePlatformIndex
+    cmp Ram_PlatformLeft_i16_0_arr + kBoulderPlatformIndex
+    bne _StartWaiting
+    lda Ram_PlatformBottom_i16_0_arr + kCranePlatformIndex
+    cmp Ram_PlatformTop_i16_0_arr + kBoulderPlatformIndex
+    bne _StartWaiting
+    lda #eBoulder::Grasped
+    sta Zp_RoomState + sState::BoulderState_eBoulder
+    .assert eBoulder::Grasped <> 0, error
+    bne _StartWaiting  ; unconditional
+_LetGo:
+    jsr FuncC_Boss_Mine_DropBoulder
+_StartWaiting:
+    lda #kCraneActCooldown  ; param: num frames
+    jmp FuncA_Machine_StartWaiting
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Room"
+
+;;; Room init function for the BossMine room.
+.PROC FuncA_Room_BossMine_EnterRoom
+    ldax #DataC_Boss_Mine_sBoss  ; param: sBoss ptr
+    jsr FuncA_Room_InitBoss  ; sets Z if boss is alive
+    bne _BossIsDead
+_BossIsAlive:
+    lda #kBossInitHealth
+    sta Zp_RoomState + sState::BossHealth_u8
+    lda #kBossInitCooldown
+    sta Zp_RoomState + sState::BossCooldown_u8
+    lda #eBossMode::Hiding
+    sta Zp_RoomState + sState::Current_eBossMode
+_BossIsDead:
+    rts
+.ENDPROC
+
+;;; Room tick function for the BossMine room.
+.PROC FuncA_Room_BossMine_TickRoom
+    jsr FuncA_Room_BossMine_TickBoulder
+    .assert eBossMode::Dead = 0, error
+    lda Zp_RoomState + sState::Current_eBossMode  ; param: zero if boss dead
+    jmp FuncA_Room_TickBoss
+.ENDPROC
+
 ;;; Performs per-frame upates for the boulder.
-.PROC FuncC_Boss_Mine_TickBoulder
+.PROC FuncA_Room_BossMine_TickBoulder
     ldy Zp_RoomState + sState::BoulderState_eBoulder
     lda _JumpTable_ptr_0_arr, y
     sta T0
@@ -405,18 +569,18 @@ _BossHiding:
     D_TABLE_LO table, _JumpTable_ptr_0_arr
     D_TABLE_HI table, _JumpTable_ptr_1_arr
     D_TABLE .enum, eBoulder
-    d_entry table, Absent,     FuncC_Boss_Mine_TickBoulderAbsent
-    d_entry table, OnConveyor, FuncC_Boss_Mine_TickBoulderOnConveyor
-    d_entry table, OnGround,   FuncC_Boss_Mine_TickBoulderOnGround
+    d_entry table, Absent,     FuncA_Room_BossMine_TickBoulderAbsent
+    d_entry table, OnConveyor, FuncA_Room_BossMine_TickBoulderOnConveyor
+    d_entry table, OnGround,   FuncA_Room_BossMine_TickBoulderOnGround
     d_entry table, Grasped,    Func_Noop
-    d_entry table, Falling,    FuncC_Boss_Mine_TickBoulderFalling
+    d_entry table, Falling,    FuncA_Room_BossMine_TickBoulderFalling
     D_END
 .ENDREPEAT
 .ENDPROC
 
 ;;; Performs per-frame upates for the boulder when it's on the conveyor.
 ;;; @prereq BoulderState_eBoulder is eBoulder::Absent.
-.PROC FuncC_Boss_Mine_TickBoulderAbsent
+.PROC FuncA_Room_BossMine_TickBoulderAbsent
     ;; Spawn a new boulder.
     lda #<kBoulderSpawnLeft
     sta Ram_PlatformLeft_i16_0_arr + kBoulderPlatformIndex
@@ -447,7 +611,7 @@ _BossHiding:
 
 ;;; Performs per-frame upates for the boulder when it's on the conveyor.
 ;;; @prereq BoulderState_eBoulder is eBoulder::OnConveyor.
-.PROC FuncC_Boss_Mine_TickBoulderOnConveyor
+.PROC FuncA_Room_BossMine_TickBoulderOnConveyor
     ;; Make the conveyor move the boulder.
     inc Zp_RoomState + sState::ConveyorMotion_u8
     lda Zp_RoomState + sState::ConveyorMotion_u8
@@ -469,7 +633,7 @@ _BossHiding:
 
 ;;; Performs per-frame upates for the boulder when it's on the ground.
 ;;; @prereq BoulderState_eBoulder is eBoulder::OnGround.
-.PROC FuncC_Boss_Mine_TickBoulderOnGround
+.PROC FuncA_Room_BossMine_TickBoulderOnGround
     ;; If the boulder is not aligned to the block grid, slide it into place.
     lda Ram_PlatformLeft_i16_0_arr + kBoulderPlatformIndex
     .assert kBlockWidthPx = $10, error
@@ -487,7 +651,7 @@ _BossHiding:
     jsr Func_MovePlatformHorz
     ;; If the boulder has slid off a cliff and is now above the ground, make
     ;; it start falling.
-    jsr FuncC_Boss_Mine_GetBoulderDistAboveFloor  ; returns Z
+    jsr FuncA_Room_BossMine_GetBoulderDistAboveFloor  ; returns Z
     beq @done
     lda #eBoulder::Falling
     sta Zp_RoomState + sState::BoulderState_eBoulder
@@ -497,8 +661,8 @@ _BossHiding:
 
 ;;; Performs per-frame upates for the boulder when it's falling.
 ;;; @prereq BoulderState_eBoulder is eBoulder::Falling.
-.PROC FuncC_Boss_Mine_TickBoulderFalling
-    jsr FuncC_Boss_Mine_GetBoulderDistAboveFloor  ; returns A
+.PROC FuncA_Room_BossMine_TickBoulderFalling
+    jsr FuncA_Room_BossMine_GetBoulderDistAboveFloor  ; returns A
     sta T0  ; boulder dist above floor
     ;; Apply gravity.
     lda Zp_RoomState + sState::BoulderVelY_i16 + 0
@@ -564,7 +728,7 @@ _BossHiding:
 ;;; @prereq The boulder is not absent.
 ;;; @return A The distance to the floor, in pixels.
 ;;; @return Z Set if the boulder is exactly on the floor.
-.PROC FuncC_Boss_Mine_GetBoulderDistAboveFloor
+.PROC FuncA_Room_BossMine_GetBoulderDistAboveFloor
     lda Ram_PlatformRight_i16_0_arr + kBoulderPlatformIndex
     cmp #$60
     bge @floorLowest
@@ -588,164 +752,85 @@ _BossHiding:
     rts
 .ENDPROC
 
-;;; Draw function for the BossMine room.
-;;; @prereq PRGA_Objects is loaded.
-.PROC FuncC_Boss_Mine_DrawRoom
-_AnimateConveyor:
-    lda Zp_RoomState + sState::ConveyorMotion_u8
-    div #kConveyorSlowdown
-    and #$03
-    add #<.bank(Ppu_ChrBgAnimB0)
-    sta Zp_Chr04Bank_u8
-_DrawBoulder:
-    ldx #kBoulderPlatformIndex  ; param: platform index
-    jsr FuncA_Objects_DrawBoulderPlatform
-_DrawBoss:
-    jmp FuncA_Objects_DrawBoss
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Machine"
+
+;;; Shared WriteReg implementation for the BossMineTrolley and BossMineCrane
+;;; machines.
+;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
+;;; @param A The value to write (0-9).
+;;; @param X The register to write to ($c-$f).
+.PROC FuncA_Machine_BossMine_WriteReg
+    cpx #$d
+    beq _WriteR
+_WriteL:
+    ldx #kLeverLeftDeviceIndex  ; param: device index
+    jmp FuncA_Machine_WriteToLever
+_WriteR:
+    ldx #kLeverRightDeviceIndex  ; param: device index
+    jmp FuncA_Machine_WriteToLever
 .ENDPROC
 
-;;; Draw function for the mine boss.
-;;; @prereq PRGA_Objects is loaded.
-.PROC FuncC_Boss_Mine_DrawBoss
-    ;; TODO: draw the boss
-    rts
-.ENDPROC
-
-.PROC FuncC_Boss_MineTrolley_InitReset
-    lda #kTrolleyInitGoalX
-    sta Ram_MachineGoalHorz_u8_arr + kTrolleyMachineIndex
-    rts
-.ENDPROC
-
-.PROC FuncC_Boss_MineCrane_InitReset
-    lda #0
-    sta Ram_MachineGoalHorz_u8_arr + kCraneMachineIndex  ; is closed
-    .assert kCraneInitGoalZ = 0, error
-    sta Ram_MachineGoalVert_u8_arr + kCraneMachineIndex
-    .assert * = FuncC_Boss_Mine_DropBoulder, error, "fallthrough"
-.ENDPROC
-
-;;; If the boulder is currently grasped by the crane, makes it start falling.
-;;; Otherwise, does nothing.
-.PROC FuncC_Boss_Mine_DropBoulder
-    lda Zp_RoomState + sState::BoulderState_eBoulder
-    cmp #eBoulder::Grasped
-    bne @done
-    lda #eBoulder::Falling
-    sta Zp_RoomState + sState::BoulderState_eBoulder
-    @done:
-    rts
-.ENDPROC
-
-;;; ReadReg implementation for the BossMineTrolley machine.
-;;; @param A The register to read ($c-$f).
-;;; @return A The value of the register (0-9).
-.PROC FuncC_Boss_MineTrolley_ReadReg
-    cmp #$e
-    bne FuncC_Boss_Mine_ReadRegLR
-_RegX:
-    .assert kTrolleyMaxPlatformLeft < $100, error
-    lda Ram_PlatformLeft_i16_0_arr + kTrolleyPlatformIndex
-    sub #kTrolleyMinPlatformLeft - kTileWidthPx
-    div #kBlockWidthPx
-    rts
-.ENDPROC
-
-;;; ReadReg implementation for the BossMineCrane machine.
-;;; @param A The register to read ($c-$f).
-;;; @return A The value of the register (0-9).
-.PROC FuncC_Boss_MineCrane_ReadReg
-    cmp #$f
-    bne FuncC_Boss_Mine_ReadRegLR
-_RegZ:
-    .assert kCraneMaxPlatformTop < $100, error
-    lda Ram_PlatformTop_i16_0_arr + kCranePlatformIndex
-    sub #kCraneMinPlatformTop - kTileHeightPx
-    div #kBlockHeightPx
-    rts
-.ENDPROC
-
-;;; Reads the shared "L" or "R" lever register for the BossMineTrolley and
-;;; BossMineCrane machines.
-;;; @param A The register to read ($c or $d).
-;;; @return A The value of the register (0-9).
-.PROC FuncC_Boss_Mine_ReadRegLR
-    cmp #$d
-    beq _RegR
-_RegL:
-    lda Zp_RoomState + sState::LeverLeft_u8
-    rts
-_RegR:
-    lda Zp_RoomState + sState::LeverRight_u8
-    rts
-.ENDPROC
-
-.PROC FuncC_Boss_MineTrolley_TryMove
+.PROC FuncA_Machine_BossMineTrolley_TryMove
     cpx #eDir::Left
-    beq @moveLeft
-    @moveRight:
+    beq _MoveLeft
+_MoveRight:
     lda Ram_MachineGoalHorz_u8_arr + kTrolleyMachineIndex
     cmp #kTrolleyMaxGoalX
-    bge @error
+    bge _Error
+    tay
+    bne @move
+    lda Ram_MachineGoalVert_u8_arr + kCraneMachineIndex
+    bne _Error
+    @move:
     inc Ram_MachineGoalHorz_u8_arr + kTrolleyMachineIndex
-    bne @success  ; unconditional
-    @moveLeft:
+    bne _Success  ; unconditional
+_MoveLeft:
     lda Ram_MachineGoalHorz_u8_arr + kTrolleyMachineIndex
-    beq @error
+    beq _Error
+    cmp #2
+    bne @move
+    lda Ram_MachineGoalVert_u8_arr + kCraneMachineIndex
+    bne _Error
+    @move:
     dec Ram_MachineGoalHorz_u8_arr + kTrolleyMachineIndex
-    @success:
+_Success:
     jmp FuncA_Machine_StartWorking
-    @error:
+_Error:
     jmp FuncA_Machine_Error
 .ENDPROC
 
-.PROC FuncC_Boss_MineCrane_TryMove
+.PROC FuncA_Machine_BossMineCrane_TryMove
     .assert eDir::Up = 0, error
-    txa
-    beq @moveUp
-    @moveDown:
+    txa  ; eDir value
+    beq _MoveUp
+_MoveDown:
+    lda Ram_MachineGoalHorz_u8_arr + kTrolleyMachineIndex
+    cmp #1
+    beq _Error
     lda Ram_MachineGoalVert_u8_arr + kCraneMachineIndex
     cmp #kCraneMaxGoalZ
-    bge @error
+    bge _Error
     inc Ram_MachineGoalVert_u8_arr + kCraneMachineIndex
-    bne @success  ; unconditional
-    @moveUp:
+    bne _Success  ; unconditional
+_MoveUp:
     lda Ram_MachineGoalVert_u8_arr + kCraneMachineIndex
-    beq @error
+    beq _Error
     dec Ram_MachineGoalVert_u8_arr + kCraneMachineIndex
-    @success:
+_Success:
     jmp FuncA_Machine_StartWorking
-    @error:
+_Error:
     jmp FuncA_Machine_Error
 .ENDPROC
 
-.PROC FuncC_Boss_MineCrane_TryAct
-    lda Ram_MachineGoalHorz_u8_arr + kCraneMachineIndex  ; is closed
-    eor #$ff
-    sta Ram_MachineGoalHorz_u8_arr + kCraneMachineIndex  ; is closed
-    bpl _LetGo
-_TryGrasp:
-    lda Zp_RoomState + sState::BoulderState_eBoulder
-    cmp #eBoulder::OnGround
-    bne _StartWaiting
-    lda Ram_PlatformLeft_i16_0_arr + kCranePlatformIndex
-    cmp Ram_PlatformLeft_i16_0_arr + kBoulderPlatformIndex
-    bne _StartWaiting
-    lda Ram_PlatformBottom_i16_0_arr + kCranePlatformIndex
-    cmp Ram_PlatformTop_i16_0_arr + kBoulderPlatformIndex
-    bne _StartWaiting
-    lda #eBoulder::Grasped
-    sta Zp_RoomState + sState::BoulderState_eBoulder
-    .assert eBoulder::Grasped <> 0, error
-    bne _StartWaiting  ; unconditional
-_LetGo:
-    jsr FuncC_Boss_Mine_DropBoulder
-_StartWaiting:
-    lda #kCraneActCooldown  ; param: num frames
-    jmp FuncA_Machine_StartWaiting
-.ENDPROC
-
-.PROC FuncC_Boss_MineTrolley_Tick
+.PROC FuncA_Machine_BossMineTrolley_Tick
+    ;; If the crane is resetting, wait until it's done.
+    lda Ram_MachineStatus_eMachine_arr + kCraneMachineIndex
+    cmp #kFirstResetStatus
+    blt @craneDoneResetting
+    rts
+    @craneDoneResetting:
     ;; Calculate the desired X-position for the left edge of the trolley, in
     ;; room-space pixels, storing it in Zp_PointX_i16.
     lda Ram_MachineGoalHorz_u8_arr + kTrolleyMachineIndex
@@ -777,7 +862,7 @@ _StartWaiting:
     jmp FuncA_Machine_ReachedGoal
 .ENDPROC
 
-.PROC FuncC_Boss_MineCrane_Tick
+.PROC FuncA_Machine_BossMineCrane_Tick
     ;; Calculate the desired Y-position for the top edge of the crane, in
     ;; room-space pixels, storing it in Zp_PointY_i16.
     lda Ram_MachineGoalVert_u8_arr + kCraneMachineIndex
@@ -802,53 +887,6 @@ _StartWaiting:
     rts
     @done:
     jmp FuncA_Machine_ReachedGoal
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Room"
-
-;;; Room init function for the BossMine room.
-.PROC FuncA_Room_BossMine_EnterRoom
-    ldax #DataC_Boss_Mine_sBoss  ; param: sBoss ptr
-    jsr FuncA_Room_InitBoss  ; sets Z if boss is alive
-    bne _BossIsDead
-_BossIsAlive:
-    lda #kBossInitHealth
-    sta Zp_RoomState + sState::BossHealth_u8
-    lda #kBossInitCooldown
-    sta Zp_RoomState + sState::BossCooldown_u8
-    lda #eBossMode::Hiding
-    sta Zp_RoomState + sState::Current_eBossMode
-_BossIsDead:
-    rts
-.ENDPROC
-
-;;; Room tick function for the BossMine room.
-.PROC FuncA_Room_BossMine_TickRoom
-    .assert eBossMode::Dead = 0, error
-    lda Zp_RoomState + sState::Current_eBossMode  ; param: zero if boss dead
-    jmp FuncA_Room_TickBoss
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Machine"
-
-;;; Shared WriteReg implementation for the BossMineTrolley and BossMineCrane
-;;; machines.
-;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
-;;; @param A The value to write (0-9).
-;;; @param X The register to write to ($c-$f).
-.PROC FuncA_Machine_BossMine_WriteReg
-    cpx #$d
-    beq _WriteR
-_WriteL:
-    ldx #kLeverLeftDeviceIndex  ; param: device index
-    jmp FuncA_Machine_WriteToLever
-_WriteR:
-    ldx #kLeverRightDeviceIndex  ; param: device index
-    jmp FuncA_Machine_WriteToLever
 .ENDPROC
 
 ;;;=========================================================================;;;
