@@ -89,6 +89,7 @@
 .INCLUDE "rooms/boss_crypt.inc"
 .INCLUDE "rooms/boss_garden.inc"
 .INCLUDE "rooms/boss_lava.inc"
+.INCLUDE "rooms/boss_mine.inc"
 .INCLUDE "rooms/boss_temple.inc"
 .INCLUDE "rooms/city_building2.inc"
 .INCLUDE "rooms/garden_tower.inc"
@@ -333,7 +334,8 @@ _chr_begin:
     CHR1_BANK $40
     chr_inc "anim_outbreak_0"
     chr_inc "anim_rocks_fall_4"
-    chr_res $14
+    chr_res $04
+    chr_inc "anim_wyrm_0", kTileIdBgAnimWyrmFirst
     END_CHR_BANK
 .ENDPROC
 
@@ -345,7 +347,8 @@ _chr_begin:
     CHR1_BANK $40
     chr_inc "anim_outbreak_1"
     chr_inc "anim_rocks_fall_5"
-    chr_res $14
+    chr_res $04
+    chr_inc "anim_wyrm_1", kTileIdBgAnimWyrmFirst
     END_CHR_BANK
 .ENDPROC
 
@@ -357,7 +360,8 @@ _chr_begin:
     CHR1_BANK $40
     chr_inc "anim_outbreak_2"
     chr_inc "anim_rocks_fall_6"
-    chr_res $14
+    chr_res $04
+    chr_inc "anim_wyrm_2", kTileIdBgAnimWyrmFirst
     END_CHR_BANK
 .ENDPROC
 
@@ -369,7 +373,8 @@ _chr_begin:
     CHR1_BANK $40
     chr_res $28
     chr_inc "anim_rocks_fall_7"
-    chr_res $14
+    chr_res $04
+    chr_inc "anim_wyrm_3", kTileIdBgAnimWyrmFirst
     END_CHR_BANK
 .ENDPROC
 
@@ -484,8 +489,8 @@ _chr_begin:
 .EXPORT Ppu_ChrBgFontLower
 .PROC Ppu_ChrBgFontLower
     CHR1_BANK $00
-    chr_inc "terrain_shared_0"
-    chr_inc "terrain_shared_1"
+    chr_inc "terrain_shared_0", $00
+    chr_inc "terrain_shared_1", $10
     chr_inc "font_lower"
     END_CHR_BANK
 .ENDPROC
@@ -590,8 +595,8 @@ _chr_begin:
     chr_inc "minecart"
     chr_inc "scaffhold"
     chr_inc "mine_door"
-    chr_inc "hoist_bg"
-    chr_res $08
+    chr_inc "terrain_hoist"
+    chr_inc "terrain_conveyor", kTileIdBgTerrainConveyorFirst
     END_CHR_BANK
 .ENDPROC
 
@@ -1256,7 +1261,8 @@ _chr_begin:
     chr_inc "firefly",        kTileIdObjFireflyFirst
     chr_inc "wasp",           kTileIdObjWaspFirst
     chr_inc "crane",          kTileIdObjCraneFirst
-    chr_res $1c
+    chr_res $18
+    chr_inc "boss_mine_eye",  kTileIdObjBossMineEyeFirst
     chr_inc "fish",           kTileIdObjFishFirst
     chr_res $10
     chr_inc "breaker",        kTileIdObjBreakerFirst

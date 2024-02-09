@@ -31,6 +31,7 @@
 .INCLUDE "../ppu.inc"
 .INCLUDE "../program.inc"
 .INCLUDE "../room.inc"
+.INCLUDE "boss_mine.inc"
 
 .IMPORT DataA_Room_Mine_sTileset
 .IMPORT Data_Empty_sActor_arr
@@ -49,6 +50,7 @@
 .IMPORT FuncA_Room_MachineResetRun
 .IMPORT FuncA_Room_TickBoss
 .IMPORT Func_FindEmptyActorSlot
+.IMPORT Func_GetRandomByte
 .IMPORT Func_InitActorSmokeExplosion
 .IMPORT Func_MovePlatformHorz
 .IMPORT Func_MovePlatformLeftTowardPointX
@@ -58,7 +60,7 @@
 .IMPORT Func_SetActorCenterToPoint
 .IMPORT Func_SetMachineIndex
 .IMPORT Func_SetPointToPlatformCenter
-.IMPORT Ppu_ChrBgAnimB0
+.IMPORT Ppu_ChrBgAnimB4
 .IMPORT Ppu_ChrObjMine
 .IMPORT Ram_MachineGoalHorz_u8_arr
 .IMPORT Ram_MachineGoalVert_u8_arr
@@ -72,9 +74,11 @@
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORT Ram_PlatformTop_i16_1_arr
 .IMPORT Ram_PlatformType_ePlatform_arr
+.IMPORT Ram_PpuTransfer_arr
 .IMPORTZP Zp_Chr04Bank_u8
 .IMPORTZP Zp_PointX_i16
 .IMPORTZP Zp_PointY_i16
+.IMPORTZP Zp_PpuTransferLen_u8
 .IMPORTZP Zp_RoomState
 
 ;;;=========================================================================;;;
@@ -130,26 +134,6 @@ kBoulderSpawnBottom = kBoulderSpawnTop + kBoulderHeightPx
 kBoulderSpawnLeft   = $ffff & -$18
 kBoulderSpawnRight  = kBoulderSpawnLeft + kBoulderWidthPx
 
-;;;=========================================================================;;;
-
-;;; Modes that the boss in this room can be in.
-.ENUM eBossMode
-    Dead
-    Hiding  ; within the walls
-    ;; TODO: other modes
-    NUM_VALUES
-.ENDENUM
-
-;;; How many boulder hits are needed to defeat the boss.
-kBossInitHealth = 8
-
-;;; How many frames the boss waits, after you first enter the room, before
-;;; taking action.
-kBossInitCooldown = 120
-
-;;; The platform index for the boss's body.
-kBossBodyPlatformIndex = 2
-
 ;;; States that the boulder in this room can be in.
 .ENUM eBoulder
     Absent      ; not present in the room
@@ -166,11 +150,82 @@ kBoulderPlatformIndex = 3
 ;;; How fast the boulder must be moving to break when it hits the floor.
 kBoulderBreakSpeed = 4
 
+;;;=========================================================================;;;
+
 ;;; How many frames it takes for the conveyor to move one pixel.
 .DEFINE kConveyorSlowdown 8
 
 ;;; The room pixel X-position of the right edge of the conveyor belt.
 kConveyorRightEdge = $30
+
+;;; The PPU address in the upper nametable for the leftmost tile of the
+;;; conveyor belt.
+.LINECONT +
+Ppu_BossMineConveyorStart = \
+    Ppu_Nametable0_sName + sName::Tiles_u8_arr + kScreenWidthTiles * 14 + 1
+.LINECONT -
+
+;;;=========================================================================;;;
+
+;;; Modes that the boss in this room can be in.
+.ENUM eBossMode
+    Dead
+    Hiding  ; within the walls
+    ;; TODO: making the room shake just before emerging
+    Emerging  ; emerging from the wall
+    ;; TODO: firing projectiles
+    Retreating  ; retreating back into the wall
+    NUM_VALUES
+.ENDENUM
+
+;;; Locations that the boss in this room can be in.
+.ENUM eBossLoc
+    Hidden
+    Exit1
+    Exit2
+    Exit3
+    Exit4
+.ENDENUM
+
+;;; The size of each one of the boss's exit locations, in tiles.
+kBossExitWidthTiles  = 4
+kBossExitHeightTiles = 4
+
+;;; The room tile row for the top of each of the boss's exit locations.
+kBossExit1TileRow = 11
+kBossExit2TileRow =  9
+kBossExit3TileRow = 15
+kBossExit4TileRow = 11
+;;; The room tile column for the left of each of the boss's exit locations.
+kBossExit1TileCol =  9
+kBossExit2TileCol = 15
+kBossExit3TileCol = 17
+kBossExit4TileCol = 23
+
+;;; The PPU address in the upper nametable for the top-left tile of each of the
+;;; boss's four exit locations.
+.LINECONT +
+Ppu_BossMineExit1Start = Ppu_Nametable0_sName + sName::Tiles_u8_arr + \
+    kScreenWidthTiles * kBossExit1TileRow + kBossExit1TileCol
+Ppu_BossMineExit2Start = Ppu_Nametable0_sName + sName::Tiles_u8_arr + \
+    kScreenWidthTiles * kBossExit2TileRow + kBossExit2TileCol
+Ppu_BossMineExit3Start = Ppu_Nametable0_sName + sName::Tiles_u8_arr + \
+    kScreenWidthTiles * kBossExit3TileRow + kBossExit3TileCol
+Ppu_BossMineExit4Start = Ppu_Nametable0_sName + sName::Tiles_u8_arr + \
+    kScreenWidthTiles * kBossExit4TileRow + kBossExit4TileCol
+.LINECONT -
+
+;;; The platform index for the boss's body.
+kBossBodyPlatformIndex = 2
+
+;;; How many boulder hits are needed to defeat the boss.
+kBossInitHealth = 8
+
+;;; How many frames it takes the boss to emerge from the wall.
+.DEFINE kBossEmergeFrames 31
+;;; How many frames the boss waits, after you first enter the room, before
+;;; taking action.
+kBossInitCooldown = 120
 
 ;;;=========================================================================;;;
 
@@ -181,11 +236,16 @@ kConveyorRightEdge = $30
     LeverRight_u8 .byte
     ;; What mode the boss is in.
     Current_eBossMode .byte
+    ;; The boss's current location.
+    Current_eBossLoc .byte
     ;; How many more boulder hits are needed before the boss dies.
     BossHealth_u8 .byte
     ;; Timer that ticks down each frame when nonzero.  Used to time transitions
     ;; between boss modes.
     BossCooldown_u8 .byte
+    ;; How emerged from the wall the boss is, from 0 (not at all) to
+    ;; kBossEmergeFrames (completely).
+    BossEmerge_u8 .byte
     ;; What state the boulder is in.
     BoulderState_eBoulder .byte
     ;; The current Y subpixel position of the boulder.
@@ -223,7 +283,7 @@ _Ext_sRoomExt:
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
     d_addr Passages_sPassage_arr_ptr, 0
     d_addr Enter_func_ptr, FuncA_Room_BossMine_EnterRoom
-    d_addr FadeIn_func_ptr, Func_Noop
+    d_addr FadeIn_func_ptr, FuncC_Boss_Mine_FadeInRoom
     d_addr Tick_func_ptr, FuncA_Room_BossMine_TickRoom
     d_addr Draw_func_ptr, FuncC_Boss_Mine_DrawRoom
     D_END
@@ -292,8 +352,8 @@ _Platforms_sPlatform_arr:
     d_byte Type_ePlatform, ePlatform::Zone
     d_word WidthPx_u16, $20
     d_byte HeightPx_u8, $20
-    d_word Left_i16,  $004c
-    d_word Top_i16,   $005c
+    d_word Left_i16,  $0088
+    d_word Top_i16,   $0078
     D_END
     .assert * - :- = kBoulderPlatformIndex * .sizeof(sPlatform), error
     D_STRUCT sPlatform
@@ -369,11 +429,13 @@ _Devices_sDevice_arr:
 ;;; Performs per-frame upates for the boss in this room.
 ;;; @prereq PRGA_Room is loaded.
 .PROC FuncC_Boss_Mine_TickBoss
+    ;; TODO: if player avatar is in boss body platform while boss location is
+    ;; not Hidden, harm avatar
 _CoolDown:
-    ;; Wait for cooldown to expire.
+    lda Zp_RoomState + sState::BossCooldown_u8
+    beq @done
     dec Zp_RoomState + sState::BossCooldown_u8
-    beq _CheckMode
-    rts
+    @done:
 _CheckMode:
     ;; Branch based on the current boss mode.
     ldy Zp_RoomState + sState::Current_eBossMode
@@ -386,24 +448,196 @@ _CheckMode:
     D_TABLE_LO table, _JumpTable_ptr_0_arr
     D_TABLE_HI table, _JumpTable_ptr_1_arr
     D_TABLE .enum, eBossMode
-    d_entry table, Dead,   Func_Noop
-    d_entry table, Hiding, _BossHiding
+    d_entry table, Dead,       Func_Noop
+    d_entry table, Hiding,     _BossHiding
+    d_entry table, Emerging,   _BossEmerging
+    d_entry table, Retreating, _BossRetreating
     D_END
 .ENDREPEAT
 _BossHiding:
-    ;; TODO: implement real behavior
+    ;; Wait for the cooldown to expire.
+    lda Zp_RoomState + sState::BossCooldown_u8
+    bne @done
+    ;; Pick a random exit to emerge from.
+    jsr Func_GetRandomByte
+    and #$03
+    tax
+    lda _ExitLeft_u8_arr, x
+    sta Ram_PlatformLeft_i16_0_arr + kBossBodyPlatformIndex
+    lda _ExitTop_u8_arr, x
+    sta Ram_PlatformTop_i16_0_arr + kBossBodyPlatformIndex
+    inx  ; param: eBossLoc::Exit* value
+    stx Zp_RoomState + sState::Current_eBossLoc
+    jsr FuncC_Boss_MineTransferExitEmerge
+    ;; Switch modes.
+    ;; TODO: instead of emerging immediately, make the room shake first
+    lda #eBossMode::Emerging
+    sta Zp_RoomState + sState::Current_eBossMode
+    @done:
     rts
+_BossEmerging:
+    lda Zp_RoomState + sState::BossEmerge_u8
+    cmp #kBossEmergeFrames
+    bge @retreat
+    inc Zp_RoomState + sState::BossEmerge_u8
+    rts
+    ;; TODO: instead of retreating right away, stick around and shoot stuff
+    @retreat:
+    lda #eBossMode::Retreating
+    sta Zp_RoomState + sState::Current_eBossMode
+    rts
+_BossRetreating:
+    lda Zp_RoomState + sState::BossEmerge_u8
+    beq @hide
+    dec Zp_RoomState + sState::BossEmerge_u8
+    rts
+    @hide:
+    ldx Zp_RoomState + sState::Current_eBossLoc  ; param: eBossLoc::Exit* value
+    jsr FuncC_Boss_MineTransferExitHide
+    lda #eBossMode::Hiding
+    sta Zp_RoomState + sState::Current_eBossMode
+    lda #eBossLoc::Hidden
+    sta Zp_RoomState + sState::Current_eBossLoc
+    lda #90  ; TODO: make this a constant
+    sta Zp_RoomState + sState::BossCooldown_u8
+    rts
+_ExitLeft_u8_arr:
+    .byte kTileWidthPx * kBossExit1TileCol
+    .byte kTileWidthPx * kBossExit2TileCol
+    .byte kTileWidthPx * kBossExit3TileCol
+    .byte kTileWidthPx * kBossExit4TileCol
+_ExitTop_u8_arr:
+    .byte kTileHeightPx * kBossExit1TileRow
+    .byte kTileHeightPx * kBossExit2TileRow
+    .byte kTileHeightPx * kBossExit3TileRow
+    .byte kTileHeightPx * kBossExit4TileRow
+.ENDPROC
+
+.PROC FuncC_Boss_Mine_FadeInRoom
+    ldx Zp_RoomState + sState::Current_eBossLoc  ; param: eBossLoc value
+    .assert eBossLoc::Hidden = 0, error
+    bne FuncC_Boss_MineTransferExitEmerge
+    rts
+.ENDPROC
+
+;;; Buffers a PPU transfer to restore the original BG tiles for an exit
+;;; location after the boss has retreated.
+;;; @param X The eBossLoc::Exit* value.
+.PROC FuncC_Boss_MineTransferExitHide
+    ldy #0  ; tile ID index
+    beq FuncC_Boss_MineTransferExit  ; unconditional
+.ENDPROC
+
+;;; Buffers a PPU transfer to draw the BG tiles for the boss emerging from the
+;;; specified exit location.
+;;; @param X The eBossLoc::Exit* value.
+.PROC FuncC_Boss_MineTransferExitEmerge
+    ldy #kTileIdBgAnimWyrmFirst  ; tile ID
+    fall FuncC_Boss_MineTransferExit
+.ENDPROC
+
+;;; Buffers a PPU transfer to set the BG tiles for one of the boss's exit
+;;; locations.
+;;; @param X The eBossLoc::Exit* value.
+;;; @param Y Either kTileIdBgAnimWyrmFirst to emerge, or 0 to hide.
+.PROC FuncC_Boss_MineTransferExit
+    dex
+    lda _ExitPpuDest_ptr_0_arr, x
+    sta T2  ; PPU dest addr (lo)
+    ;; Buffer one transfer entry for each tile column of the exit.
+    lda #kBossExitWidthTiles
+    sta T1  ; outer loop counter
+    ldx Zp_PpuTransferLen_u8
+_OuterLoop:
+    lda #kPpuCtrlFlagsVert
+    sta Ram_PpuTransfer_arr, x
+    inx
+    lda #>Ppu_BossMineExit1Start
+    .assert >Ppu_BossMineExit2Start = >Ppu_BossMineExit1Start, error
+    .assert >Ppu_BossMineExit3Start = >Ppu_BossMineExit1Start, error
+    .assert >Ppu_BossMineExit4Start = >Ppu_BossMineExit1Start, error
+    sta Ram_PpuTransfer_arr, x
+    inx
+    lda T2  ; PPU dest addr (lo)
+    sta Ram_PpuTransfer_arr, x
+    inx
+    lda #kBossExitHeightTiles  ; transfer length
+    sta Ram_PpuTransfer_arr, x
+    inx
+    ;; Populate the transfer entry payload, one byte for each tile row of the
+    ;; exit.
+    sta T0  ; inner loop counter
+    @innerLoop:
+    ;; Y is either a tile ID, or an index into _ExitPpuDest_ptr_0_arr.
+    tya  ; tile ID or index
+    cmp #kTileIdBgAnimWyrmFirst
+    .linecont +
+    .assert kTileIdBgAnimWyrmFirst >= \
+            kBossExitWidthTiles * kBossExitHeightTiles, error
+    .linecont -
+    bge @write
+    lda _TileId_u8_arr, y
+    @write:
+    sta Ram_PpuTransfer_arr, x
+    iny  ; tile ID or index
+    inx
+    dec T0  ; inner loop counter
+    bne @innerLoop
+    ;; Proceed to the next transfer entry, for the next tile column.
+    inc T2  ; PPU dest addr (lo)
+    dec T1  ; outer loop counter
+    bne _OuterLoop
+    ;; Finish the transfer.
+    stx Zp_PpuTransferLen_u8
+    rts
+_ExitPpuDest_ptr_0_arr:
+    .byte <Ppu_BossMineExit1Start
+    .byte <Ppu_BossMineExit2Start
+    .byte <Ppu_BossMineExit3Start
+    .byte <Ppu_BossMineExit4Start
+_TileId_u8_arr:
+:   .byte $00, $ab, $ab, $00, $ab, $aa, $aa, $ab
+    .byte $ab, $aa, $aa, $ab, $00, $ab, $ab, $00
+    .assert * - :- = kBossExitWidthTiles * kBossExitHeightTiles, error
 .ENDPROC
 
 ;;; Draw function for the BossMine room.
 ;;; @prereq PRGA_Objects is loaded.
 .PROC FuncC_Boss_Mine_DrawRoom
 _AnimateConveyor:
+    ;; Prepare a PPU transfer entry.
+    ldx Zp_PpuTransferLen_u8
+    lda #kPpuCtrlFlagsHorz
+    sta Ram_PpuTransfer_arr, x
+    inx
+    lda #>Ppu_BossMineConveyorStart
+    sta Ram_PpuTransfer_arr, x
+    inx
+    lda #<Ppu_BossMineConveyorStart
+    sta Ram_PpuTransfer_arr, x
+    inx
+    lda #5
+    sta Ram_PpuTransfer_arr, x
+    inx
+    ;; Compute the tile ID to use for the center of the conveyor belt.
     lda Zp_RoomState + sState::ConveyorMotion_u8
     div #kConveyorSlowdown
     and #$03
-    add #<.bank(Ppu_ChrBgAnimB0)
-    sta Zp_Chr04Bank_u8
+    .assert kTileIdBgTerrainConveyorFirst .mod 4 = 0, error
+    ora #kTileIdBgTerrainConveyorFirst
+    ;; Fill the first 4 of 5 payload bytes of the transfer entry.
+    ldy #4
+    @loop:
+    sta Ram_PpuTransfer_arr, x
+    inx
+    dey
+    bne @loop
+    ;; The last payload byte is the tile ID for the end of the conveyor.
+    .assert kTileIdBgTerrainConveyorFirst .mod 8 = 0, error
+    ora #$04
+    sta Ram_PpuTransfer_arr, x
+    inx
+    stx Zp_PpuTransferLen_u8
 _DrawBoulder:
     ldx #kBoulderPlatformIndex  ; param: platform index
     jsr FuncA_Objects_DrawBoulderPlatform
@@ -414,7 +648,15 @@ _DrawBoss:
 ;;; Draw function for the mine boss.
 ;;; @prereq PRGA_Objects is loaded.
 .PROC FuncC_Boss_Mine_DrawBoss
-    ;; TODO: draw the boss
+_AnimateEmerge:
+    lda Zp_RoomState + sState::BossEmerge_u8
+    .assert (kBossEmergeFrames + 1) .mod 4 = 0, error
+    div #(kBossEmergeFrames + 1) / 4
+    .assert .bank(Ppu_ChrBgAnimB4) .mod 4 = 0, error
+    ora #<.bank(Ppu_ChrBgAnimB4)
+    sta Zp_Chr04Bank_u8
+_DrawEye:
+    ;; TODO: if partially emerged, draw the boss's eye objects
     rts
 .ENDPROC
 
