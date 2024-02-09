@@ -27,6 +27,7 @@
 .INCLUDE "minimap.inc"
 .INCLUDE "mmc3.inc"
 .INCLUDE "oam.inc"
+.INCLUDE "pause.inc"
 .INCLUDE "ppu.inc"
 .INCLUDE "room.inc"
 .INCLUDE "window.inc"
@@ -89,12 +90,6 @@ kPapersWindowTopGoal = \
 ;;; How fast the papers window scrolls up/down, in pixels per frame.
 kPapersWindowScrollSpeed = 11
 
-;;; The BG tile ID for the bottom-left tile for all upgrade symbols.  Add 1 to
-;;; this to get the the bottom-right tile ID for those symbols.
-kTileIdBgUpgradeBottomLeft = $80
-;;; The BG tile ID for the top-left tile of the symbol for RAM upgrades.  Add 1
-;;; to this to get the the top-right tile ID for that symbol.
-kTileIdBgRamTopLeft        = $82
 ;;; The BG tile ID for the top-left tile for the symbol of the first non-RAM
 ;;; upgrade.  Add 1 to this to get the the top-right tile ID for that symbol,
 ;;; then add another 1 to get the top-left tile ID for the next upgrade, and so
@@ -453,8 +448,8 @@ _FinishLowerNametable:
     and #$01
     beq @top
     @bottom:
-    lda #kTileIdBgUpgradeBottomLeft
-    .assert kTileIdBgUpgradeBottomLeft > 0, error
+    lda #kTileIdBgUpgradeBottomFirst
+    .assert kTileIdBgUpgradeBottomFirst > 0, error
     bne @draw  ; unconditional
     @top:
     txa  ; upgrade eFlag
@@ -464,7 +459,7 @@ _FinishLowerNametable:
     add #kTileIdBgRemainingTopLeft
     bcc @draw  ; unconditional
     @isRamUpgrade:
-    lda #kTileIdBgRamTopLeft
+    lda #kTileIdBgUpgradeRamFirst
     @draw:
     ;; Draw the upgrade.
     sta Hw_PpuData_rw

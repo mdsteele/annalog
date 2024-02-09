@@ -196,7 +196,7 @@ kDialogWindowScrollSpeed = 4
 ;;; The OBJ palette number and tile ID used for the visual prompt that appears
 ;;; when dialog is paused.
 kPaletteObjDialogPrompt = 1
-kTileIdObjDialogPrompt = $08
+kTileIdObjDialogPrompt = 'I'
 
 ;;; The tile row/col within the window where the "yes"/"no" options start.
 kDialogYesNoWindowRow = 4

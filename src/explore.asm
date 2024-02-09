@@ -18,6 +18,7 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "avatar.inc"
+.INCLUDE "charmap.inc"
 .INCLUDE "cpu.inc"
 .INCLUDE "cutscene.inc"
 .INCLUDE "device.inc"
@@ -99,7 +100,7 @@
 ;;; The OBJ palette number and tile ID used for the visual prompt that appears
 ;;; when the player avatar is near a device.
 kPaletteObjDevicePrompt = 1
-kTileIdObjDevicePrompt = $09
+kTileIdObjDevicePrompt = 'O'
 
 ;;;=========================================================================;;;
 

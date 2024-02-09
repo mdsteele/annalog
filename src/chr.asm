@@ -75,6 +75,7 @@
 .INCLUDE "machines/semaphore.inc"
 .INCLUDE "machines/shared.inc"
 .INCLUDE "machines/winch.inc"
+.INCLUDE "pause.inc"
 .INCLUDE "platforms/barrier.inc"
 .INCLUDE "platforms/chex.inc"
 .INCLUDE "platforms/column.inc"
@@ -638,8 +639,8 @@ _chr_begin:
 .EXPORT Ppu_ChrBgPause
 .PROC Ppu_ChrBgPause
     CHR1_BANK $80
-    chr_inc "upgrade_bottom"
-    chr_inc "upgrade_ram"
+    chr_inc "upgrade_bottom",  kTileIdBgUpgradeBottomFirst
+    chr_inc "upgrade_ram",     kTileIdBgUpgradeRamFirst
     chr_inc "upgrade_bremote"
     chr_inc "upgrade_opif"
     chr_inc "upgrade_optil"
@@ -1019,7 +1020,8 @@ _chr_begin:
 .PROC Ppu_ChrObjAnnaFlower
     CHR2_BANK $00
     chr_inc "device"
-    chr_inc "player_flower", eAvatar::Standing
+    chr_inc "upgrade_bottom", kTileIdObjUpgradeBottomFirst
+    chr_inc "player_flower",  eAvatar::Standing
     chr_inc "font_hilight"
     END_CHR_BANK
 .ENDPROC
@@ -1032,7 +1034,8 @@ _chr_begin:
 .PROC Ppu_ChrObjAnnaNormal
     CHR2_BANK $00
     chr_inc "device"
-    chr_inc "player_normal", eAvatar::Standing
+    chr_inc "upgrade_bottom", kTileIdObjUpgradeBottomFirst
+    chr_inc "player_normal",  eAvatar::Standing
     chr_inc "font_hilight"
     END_CHR_BANK
 .ENDPROC
@@ -1044,7 +1047,7 @@ _chr_begin:
 .EXPORT Ppu_ChrObjBoss1
 .PROC Ppu_ChrObjBoss1
     CHR2_BANK $80
-    chr_inc "upgrade_bottom",        kTileIdObjUpgradeBottomFirst
+    chr_res $02
     chr_inc "upgrade_ram",           kTileIdObjUpgradeRamFirst
     chr_inc "breakball",             kTileIdObjBreakballFirst
     chr_inc "ember",                 kTileIdObjEmber
@@ -1084,8 +1087,7 @@ _chr_begin:
 .EXPORT Ppu_ChrObjBoss2
 .PROC Ppu_ChrObjBoss2
     CHR2_BANK $80
-    chr_inc "upgrade_bottom",      kTileIdObjUpgradeBottomFirst
-    chr_res $04
+    chr_res $06
     chr_inc "upgrade_opif",        kTileIdObjUpgradeOpIfFirst
     chr_inc "cannon",              kTileIdObjCannonFirst
     chr_res $02
@@ -1117,7 +1119,7 @@ _chr_begin:
 .EXPORT Ppu_ChrObjCity
 .PROC Ppu_ChrObjCity
     CHR2_BANK $80
-    chr_inc "upgrade_bottom",       kTileIdObjUpgradeBottomFirst
+    chr_res $02
     chr_inc "breakbomb",            kTileIdObjBreakbombFirst
     chr_inc "upgrade_bremote",      kTileIdObjUpgradeBRemoteFirst
     chr_inc "reloader",             kTileIdObjReloaderFirst
@@ -1145,8 +1147,7 @@ _chr_begin:
 .EXPORT Ppu_ChrObjCrypt
 .PROC Ppu_ChrObjCrypt
     CHR2_BANK $80
-    chr_inc "upgrade_bottom", kTileIdObjUpgradeBottomFirst
-    chr_res $10
+    chr_res $12
     chr_inc "upgrade_opgoto", kTileIdObjUpgradeOpGotoFirst
     chr_res $08
     chr_inc "bat",            kTileIdObjBatFirst
@@ -1168,7 +1169,7 @@ _chr_begin:
 .EXPORT Ppu_ChrObjFactory
 .PROC Ppu_ChrObjFactory
     CHR2_BANK $80
-    chr_inc "upgrade_bottom", kTileIdObjUpgradeBottomFirst
+    chr_res $02
     chr_inc "jet",            kTileIdObjJetFirst
     chr_inc "rotor",          kTileIdObjRotorFirst
     chr_res $07
@@ -1217,7 +1218,7 @@ _chr_begin:
 .EXPORT Ppu_ChrObjLava
 .PROC Ppu_ChrObjLava
     CHR2_BANK $80
-    chr_inc "upgrade_bottom",    kTileIdObjUpgradeBottomFirst
+    chr_res $02
     chr_inc "upgrade_ram",       kTileIdObjUpgradeRamFirst
     chr_inc "platform_volcanic", kTileIdObjPlatformVolcanicFirst
     chr_inc "ember",             kTileIdObjEmber
@@ -1250,7 +1251,7 @@ _chr_begin:
 .EXPORT Ppu_ChrObjMine
 .PROC Ppu_ChrObjMine
     CHR2_BANK $80
-    chr_inc "upgrade_bottom", kTileIdObjUpgradeBottomFirst
+    chr_res $02
     chr_inc "upgrade_ram",    kTileIdObjUpgradeRamFirst
     chr_inc "hoist_obj",      kTileIdObjHoistFirst
     chr_inc "mine_cage",      kTileIdObjMineCageFirst
@@ -1289,7 +1290,7 @@ _chr_begin:
 .EXPORT Ppu_ChrObjSewer
 .PROC Ppu_ChrObjSewer
     CHR2_BANK $80
-    chr_inc "upgrade_bottom",   kTileIdObjUpgradeBottomFirst
+    chr_res $02
     chr_inc "multiplexer",      kTileIdObjMultiplexerFirst
     chr_inc "pump_light",       kTileIdObjPumpLight
     chr_inc "water",            kTileIdObjWaterFirst
@@ -1318,8 +1319,7 @@ _chr_begin:
 .EXPORT Ppu_ChrObjShadow
 .PROC Ppu_ChrObjShadow
     CHR2_BANK $80
-    chr_inc "upgrade_bottom", kTileIdObjUpgradeBottomFirst
-    chr_res $0c
+    chr_res $0e
     chr_inc "upgrade_opmul",  kTileIdObjUpgradeOpMulFirst
     chr_res $20
     chr_inc "orc_ghost",      kTileIdObjOrcGhostFirst
@@ -1344,8 +1344,7 @@ _chr_begin:
 .EXPORT Ppu_ChrObjTemple
 .PROC Ppu_ChrObjTemple
     CHR2_BANK $80
-    chr_inc "upgrade_bottom", kTileIdObjUpgradeBottomFirst
-    chr_res $02
+    chr_res $04
     chr_inc "column",         kTileIdObjColumnFirst
     chr_res $02
     chr_inc "upgrade_optil",  kTileIdObjUpgradeOpTilFirst

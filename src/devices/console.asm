@@ -34,8 +34,8 @@
 ;;;=========================================================================;;;
 
 ;;; OBJ tile IDs used for drawing console devices.
-kTileIdObjConsoleOk  = $0a
-kTileIdObjConsoleErr = $0b
+kTileIdObjConsoleOk  = $08
+kTileIdObjConsoleErr = $09
 kTileIdObjScreen     = kTileIdObjConsoleOk
 
 ;;; OBJ palette numbers used for drawing console/screen devices.

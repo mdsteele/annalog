@@ -17,15 +17,8 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
-;;; The device index for the flower in a flower room.
-kFlowerDeviceIndex = 0
-
-;;; OBJ tile IDs used for drawing flower devices.
-kTileIdObjFlowerTop    = $0a
-kTileIdObjFlowerBottom = $0b
-
-;;; OBJ palette numbers used for drawing flower devices.
-kPaletteObjFlowerTop    = 1
-kPaletteObjFlowerBottom = 2
+;;; Various BG tile IDs used for drawing upgrades on the pause screen.
+kTileIdBgUpgradeBottomFirst = $80
+kTileIdBgUpgradeRamFirst    = $82
 
 ;;;=========================================================================;;;
