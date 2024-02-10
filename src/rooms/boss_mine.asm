@@ -41,11 +41,15 @@
 .IMPORT FuncA_Machine_StartWaiting
 .IMPORT FuncA_Machine_StartWorking
 .IMPORT FuncA_Machine_WriteToLever
+.IMPORT FuncA_Objects_Draw2x2Shape
 .IMPORT FuncA_Objects_DrawBoss
 .IMPORT FuncA_Objects_DrawBoulderPlatform
 .IMPORT FuncA_Objects_DrawCraneMachine
 .IMPORT FuncA_Objects_DrawCraneRopeToPulley
 .IMPORT FuncA_Objects_DrawTrolleyMachine
+.IMPORT FuncA_Objects_MoveShapeDownByA
+.IMPORT FuncA_Objects_MoveShapeRightByA
+.IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
 .IMPORT FuncA_Room_InitBoss
 .IMPORT FuncA_Room_MachineResetRun
 .IMPORT FuncA_Room_TickBoss
@@ -60,6 +64,7 @@
 .IMPORT Func_SetActorCenterToPoint
 .IMPORT Func_SetMachineIndex
 .IMPORT Func_SetPointToPlatformCenter
+.IMPORT Func_ShakeRoom
 .IMPORT Ppu_ChrBgAnimB4
 .IMPORT Ppu_ChrObjMine
 .IMPORT Ram_MachineGoalHorz_u8_arr
@@ -170,9 +175,9 @@ Ppu_BossMineConveyorStart = \
 ;;; Modes that the boss in this room can be in.
 .ENUM eBossMode
     Dead
-    Hiding  ; within the walls
-    ;; TODO: making the room shake just before emerging
-    Emerging  ; emerging from the wall
+    Hiding      ; within the walls
+    Burrowing   ; making the room shake just before emerging
+    Emerging    ; emerging from the wall
     ;; TODO: firing projectiles
     Retreating  ; retreating back into the wall
     NUM_VALUES
@@ -221,6 +226,8 @@ kBossBodyPlatformIndex = 2
 ;;; How many boulder hits are needed to defeat the boss.
 kBossInitHealth = 8
 
+;;; How many frames the boss spends burrowing before emerging from an exit.
+kBossBurrowFrames = 50
 ;;; How many frames it takes the boss to emerge from the wall.
 .DEFINE kBossEmergeFrames 31
 ;;; How many frames the boss waits, after you first enter the room, before
@@ -450,6 +457,7 @@ _CheckMode:
     D_TABLE .enum, eBossMode
     d_entry table, Dead,       Func_Noop
     d_entry table, Hiding,     _BossHiding
+    d_entry table, Burrowing,  _BossBurrowing
     d_entry table, Emerging,   _BossEmerging
     d_entry table, Retreating, _BossRetreating
     D_END
@@ -457,7 +465,26 @@ _CheckMode:
 _BossHiding:
     ;; Wait for the cooldown to expire.
     lda Zp_RoomState + sState::BossCooldown_u8
-    bne @done
+    bne _Return
+    ;; Start burrowing out of an exit.
+    lda #eBossMode::Burrowing
+    sta Zp_RoomState + sState::Current_eBossMode
+    lda #kBossBurrowFrames
+    sta Zp_RoomState + sState::BossCooldown_u8
+_Return:
+    rts
+_BossBurrowing:
+    ;; Shake the room.
+    lda Zp_RoomState + sState::BossCooldown_u8
+    and #$03
+    bne @noShake
+    lda #2  ; param: num frames
+    jsr Func_ShakeRoom
+    ;; TODO: play a sound
+    @noShake:
+    ;; Wait for the cooldown to expire.
+    lda Zp_RoomState + sState::BossCooldown_u8
+    bne _Return
     ;; Pick a random exit to emerge from.
     jsr Func_GetRandomByte
     and #$03
@@ -469,12 +496,12 @@ _BossHiding:
     inx  ; param: eBossLoc::Exit* value
     stx Zp_RoomState + sState::Current_eBossLoc
     jsr FuncC_Boss_MineTransferExitEmerge
-    ;; Switch modes.
-    ;; TODO: instead of emerging immediately, make the room shake first
+    ;; Start emering from that exit.
+    ;; TODO: play a sound
     lda #eBossMode::Emerging
     sta Zp_RoomState + sState::Current_eBossMode
-    @done:
-    rts
+    lda #kBossEmergeFrames  ; param: num frames
+    jmp Func_ShakeRoom
 _BossEmerging:
     lda Zp_RoomState + sState::BossEmerge_u8
     cmp #kBossEmergeFrames
@@ -656,7 +683,20 @@ _AnimateEmerge:
     ora #<.bank(Ppu_ChrBgAnimB4)
     sta Zp_Chr04Bank_u8
 _DrawEye:
-    ;; TODO: if partially emerged, draw the boss's eye objects
+    lda Zp_RoomState + sState::BossEmerge_u8
+    cmp #(kBossEmergeFrames + 1) / 2
+    blt @done
+    ldx #kBossBodyPlatformIndex  ; param: platform index
+    jsr FuncA_Objects_SetShapePosToPlatformTopLeft
+    ;; TODO: adjust offset to look towards player avatar
+    lda #$10  ; param: offset
+    jsr FuncA_Objects_MoveShapeRightByA
+    lda #$12  ; param: offset
+    jsr FuncA_Objects_MoveShapeDownByA
+    ldy #bObj::Pri | kPaletteObjBossMineEye  ; param: object flags
+    lda #kTileIdObjBossMineEyeFirst  ; param: first tile ID
+    jmp FuncA_Objects_Draw2x2Shape
+    @done:
     rts
 .ENDPROC
 

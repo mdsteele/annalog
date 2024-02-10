@@ -25,4 +25,7 @@ kTileIdBgTerrainConveyorFirst = $b8
 ;;; OBJ tile IDs for drawing the mine boss.
 kTileIdObjBossMineEyeFirst = $d0
 
+;;; The OBJ palette number to use for drawing the mine boss's eye.
+kPaletteObjBossMineEye = 1
+
 ;;;=========================================================================;;;
