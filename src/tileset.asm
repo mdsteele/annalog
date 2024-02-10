@@ -185,7 +185,7 @@
     d_addr UpperRight_u8_arr_ptr, DataA_Terrain_HouseUpperRight_u8_arr
     d_addr LowerRight_u8_arr_ptr, DataA_Terrain_HouseLowerRight_u8_arr
     d_byte Chr08Bank_u8, <.bank(Ppu_ChrBgHouse)
-    d_byte FirstSolidTerrainType_u8, $40
+    d_byte FirstSolidTerrainType_u8, $20
     D_END
 .ENDPROC
 
@@ -245,7 +245,7 @@
     d_addr UpperRight_u8_arr_ptr, DataA_Terrain_OutdoorsUpperRight_u8_arr
     d_addr LowerRight_u8_arr_ptr, DataA_Terrain_OutdoorsLowerRight_u8_arr
     d_byte Chr08Bank_u8, <.bank(Ppu_ChrBgOutdoors)
-    d_byte FirstSolidTerrainType_u8, $40
+    d_byte FirstSolidTerrainType_u8, $30
     D_END
 .ENDPROC
 

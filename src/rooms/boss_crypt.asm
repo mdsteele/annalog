@@ -273,7 +273,7 @@ _Ext_sRoomExt:
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
     d_addr Passages_sPassage_arr_ptr, 0
     d_addr Enter_func_ptr, FuncC_Boss_Crypt_EnterRoom
-    d_addr FadeIn_func_ptr, FuncC_Boss_Crypt_FadeInRoom
+    d_addr FadeIn_func_ptr, FuncA_Terrain_BossCrypt_FadeInRoom
     d_addr Tick_func_ptr, FuncA_Room_BossCrypt_TickRoom
     d_addr Draw_func_ptr, FuncA_Objects_DrawBoss
     D_END
@@ -518,36 +518,6 @@ _Inner:
     rts
 .ENDPROC
 
-.PROC DataC_Boss_CryptInitTransfer_arr
-    .assert kBossWidthTiles = 6, error
-    .assert kBossHeightTiles = 4, error
-    ;; Row 0:
-    .byte kPpuCtrlFlagsHorz
-    .dbyt Ppu_BossRow0Start  ; transfer destination
-    .byte 6
-    .byte $6c, $6d, $6e, $6f, $70, $71
-    ;; Row 1:
-    .byte kPpuCtrlFlagsHorz
-    .dbyt Ppu_BossRow1Start  ; transfer destination
-    .byte 6
-    .byte $72, $73, $a4, $a6, $74, $75
-    ;; Row 2:
-    .byte kPpuCtrlFlagsHorz
-    .dbyt Ppu_BossRow2Start  ; transfer destination
-    .byte 6
-    .byte $7c, $7d, $a5, $a7, $7e, $7f
-    ;; Row 3:
-    .byte kPpuCtrlFlagsHorz
-    .dbyt Ppu_BossRow3Start  ; transfer destination
-    .byte 6
-    .byte $76, $77, $78, $79, $7a, $7b
-    ;; Nametable attributes to color eyeball red:
-    .byte kPpuCtrlFlagsHorz
-    .dbyt Ppu_BossEyeAttrs  ; transfer destination
-    .byte 1
-    .byte $04
-.ENDPROC
-
 ;;; Room init function for the BossCrypt room.
 ;;; @prereq PRGA_Room is loaded.
 .PROC FuncC_Boss_Crypt_EnterRoom
@@ -569,16 +539,6 @@ _BossIsAlive:
     sta Zp_RoomState + sState::BossGoalPosY_u8
 _BossIsDead:
     rts
-.ENDPROC
-
-.PROC FuncC_Boss_Crypt_FadeInRoom
-    ldx #4    ; param: num bytes to write
-    ldy #$50  ; param: attribute value
-    lda #$32  ; param: initial byte offset
-    jsr Func_WriteToUpperAttributeTable
-    ldax #DataC_Boss_CryptInitTransfer_arr  ; param: data pointer
-    ldy #.sizeof(DataC_Boss_CryptInitTransfer_arr)  ; param: data length
-    jmp Func_BufferPpuTransfer
 .ENDPROC
 
 ;;; Performs per-frame upates for the boss in this room.
@@ -953,6 +913,60 @@ _Error:
 
 ;;;=========================================================================;;;
 
+.SEGMENT "PRGA_Terrain"
+
+.PROC DataA_Terrain_BossCryptInitTransfer_arr
+    .assert kBossWidthTiles = 6, error
+    .assert kBossHeightTiles = 4, error
+    ;; Row 0:
+    .byte kPpuCtrlFlagsHorz
+    .dbyt Ppu_BossRow0Start  ; transfer destination
+    .byte 6
+    .byte $6c, $6d, $6e, $6f, $70, $71
+    ;; Row 1:
+    .byte kPpuCtrlFlagsHorz
+    .dbyt Ppu_BossRow1Start  ; transfer destination
+    .byte 6
+    .byte $72, $73, $a4, $a6, $74, $75
+    ;; Row 2:
+    .byte kPpuCtrlFlagsHorz
+    .dbyt Ppu_BossRow2Start  ; transfer destination
+    .byte 6
+    .byte $7c, $7d, $a5, $a7, $7e, $7f
+    ;; Row 3:
+    .byte kPpuCtrlFlagsHorz
+    .dbyt Ppu_BossRow3Start  ; transfer destination
+    .byte 6
+    .byte $76, $77, $78, $79, $7a, $7b
+    ;; Nametable attributes to color eyeball red:
+    .byte kPpuCtrlFlagsHorz
+    .dbyt Ppu_BossEyeAttrs  ; transfer destination
+    .byte 1
+    .byte $04
+.ENDPROC
+
+.PROC FuncA_Terrain_BossCrypt_FadeInRoom
+    ldx #4    ; param: num bytes to write
+    ldy #$50  ; param: attribute value
+    lda #$32  ; param: initial byte offset
+    jsr Func_WriteToUpperAttributeTable
+    ldax #DataA_Terrain_BossCryptInitTransfer_arr  ; param: data pointer
+    ldy #.sizeof(DataA_Terrain_BossCryptInitTransfer_arr)  ; param: data length
+    jmp Func_BufferPpuTransfer
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Objects"
+
+;;; Draws the BossCryptWinch machine.
+.PROC FuncA_Objects_BossCryptWinch_Draw
+    ldx #kSpikeballPlatformIndex  ; param: spikeball platform index
+    jmp FuncA_Objects_DrawWinchMachineWithSpikeball
+.ENDPROC
+
+;;;=========================================================================;;;
+
 .SEGMENT "PRGE_Irq"
 
 ;;; HBlank IRQ handler function for the top of the boss's zone in the BossCrypt
@@ -1034,16 +1048,6 @@ _Error:
     tax
     pla
     rti
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Objects"
-
-;;; Draws the BossCryptWinch machine.
-.PROC FuncA_Objects_BossCryptWinch_Draw
-    ldx #kSpikeballPlatformIndex  ; param: spikeball platform index
-    jmp FuncA_Objects_DrawWinchMachineWithSpikeball
 .ENDPROC
 
 ;;;=========================================================================;;;

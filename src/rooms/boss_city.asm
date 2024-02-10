@@ -308,7 +308,7 @@ _Ext_sRoomExt:
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
     d_addr Passages_sPassage_arr_ptr, 0
     d_addr Enter_func_ptr, FuncA_Room_BossCity_EnterRoom
-    d_addr FadeIn_func_ptr, FuncC_Boss_City_FadeInRoom
+    d_addr FadeIn_func_ptr, FuncA_Terrain_BossCity_FadeInRoom
     d_addr Tick_func_ptr, FuncC_Boss_City_TickRoom
     d_addr Draw_func_ptr, FuncC_Boss_City_DrawRoom
     D_END
@@ -552,46 +552,6 @@ _Devices_sDevice_arr:
     .byte 0, 1, 1, 1, 2, 2, 2, 3, 3, 4, 5, 6, 6, 7, 7, 8, 8, 8, 9, 9, 9, 9, 8
 .ENDPROC
 
-.PROC DataC_Boss_CityInitTransfer_arr
-    .assert kBossBgWidthTiles = 8, error
-    .assert kBossBgHeightTiles = 6, error
-    ;; Row 0:
-    .byte kPpuCtrlFlagsHorz
-    .dbyt Ppu_BossRow0Start + 1  ; transfer destination
-    .byte 6
-    .byte $4c, $4d, $4e, $4f, $50, $51
-    ;; Row 1:
-    .byte kPpuCtrlFlagsHorz
-    .dbyt Ppu_BossRow1Start  ; transfer destination
-    .byte 8
-    .byte $52, $53, $54, $55, $56, $57, $58, $59
-    ;; Row 2:
-    .byte kPpuCtrlFlagsHorz
-    .dbyt Ppu_BossRow2Start + 1  ; transfer destination
-    .byte 6
-    .byte $40, $41, $42, $43, $44, $45
-    ;; Row 3:
-    .byte kPpuCtrlFlagsHorz
-    .dbyt Ppu_BossRow3Start + 1  ; transfer destination
-    .byte 6
-    .byte $46, $47, $48, $49, $4a, $4b
-    ;; Row 4:
-    .byte kPpuCtrlFlagsHorz
-    .dbyt Ppu_BossRow4Start  ; transfer destination
-    .byte 8
-    .byte $5a, $5b, $5c, $5d, $5e, $5f, $60, $61
-    ;; Row 5:
-    .byte kPpuCtrlFlagsHorz
-    .dbyt Ppu_BossRow5Start + 1  ; transfer destination
-    .byte 6
-    .byte $62, $63, $64, $65, $66, $67
-    ;; Attributes:
-    .byte kPpuCtrlFlagsHorz
-    .dbyt Ppu_BossCoreAttrs  ; transfer destination
-    .byte 1
-    .byte $11
-.ENDPROC
-
 .PROC DataC_Boss_CityBlinkTransfer_arr
     ;; Row 2:
     .byte kPpuCtrlFlagsHorz
@@ -616,12 +576,6 @@ _Devices_sDevice_arr:
     .dbyt Ppu_BossRow3Start + 3  ; transfer destination
     .byte 2
     .byte $48, $49
-.ENDPROC
-
-.PROC FuncC_Boss_City_FadeInRoom
-    ldax #DataC_Boss_CityInitTransfer_arr  ; param: data pointer
-    ldy #.sizeof(DataC_Boss_CityInitTransfer_arr)  ; param: data length
-    jmp Func_BufferPpuTransfer
 .ENDPROC
 
 ;;; Room tick function for the BossCity room.
@@ -1210,6 +1164,56 @@ _Error:
     jsr FuncA_Machine_GenericMoveTowardGoalHorz  ; returns Z
     jeq FuncA_Machine_ReachedGoal
     rts
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Terrain"
+
+.PROC DataA_Terrain_BossCityInitTransfer_arr
+    .assert kBossBgWidthTiles = 8, error
+    .assert kBossBgHeightTiles = 6, error
+    ;; Row 0:
+    .byte kPpuCtrlFlagsHorz
+    .dbyt Ppu_BossRow0Start + 1  ; transfer destination
+    .byte 6
+    .byte $4c, $4d, $4e, $4f, $50, $51
+    ;; Row 1:
+    .byte kPpuCtrlFlagsHorz
+    .dbyt Ppu_BossRow1Start  ; transfer destination
+    .byte 8
+    .byte $52, $53, $54, $55, $56, $57, $58, $59
+    ;; Row 2:
+    .byte kPpuCtrlFlagsHorz
+    .dbyt Ppu_BossRow2Start + 1  ; transfer destination
+    .byte 6
+    .byte $40, $41, $42, $43, $44, $45
+    ;; Row 3:
+    .byte kPpuCtrlFlagsHorz
+    .dbyt Ppu_BossRow3Start + 1  ; transfer destination
+    .byte 6
+    .byte $46, $47, $48, $49, $4a, $4b
+    ;; Row 4:
+    .byte kPpuCtrlFlagsHorz
+    .dbyt Ppu_BossRow4Start  ; transfer destination
+    .byte 8
+    .byte $5a, $5b, $5c, $5d, $5e, $5f, $60, $61
+    ;; Row 5:
+    .byte kPpuCtrlFlagsHorz
+    .dbyt Ppu_BossRow5Start + 1  ; transfer destination
+    .byte 6
+    .byte $62, $63, $64, $65, $66, $67
+    ;; Attributes:
+    .byte kPpuCtrlFlagsHorz
+    .dbyt Ppu_BossCoreAttrs  ; transfer destination
+    .byte 1
+    .byte $11
+.ENDPROC
+
+.PROC FuncA_Terrain_BossCity_FadeInRoom
+    ldax #DataA_Terrain_BossCityInitTransfer_arr  ; param: data pointer
+    ldy #.sizeof(DataA_Terrain_BossCityInitTransfer_arr)  ; param: data length
+    jmp Func_BufferPpuTransfer
 .ENDPROC
 
 ;;;=========================================================================;;;

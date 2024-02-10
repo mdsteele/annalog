@@ -276,7 +276,7 @@ _Ext_sRoomExt:
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
     d_addr Passages_sPassage_arr_ptr, 0
     d_addr Enter_func_ptr, FuncA_Room_BossLava_EnterRoom
-    d_addr FadeIn_func_ptr, FuncC_Boss_Lava_FadeInRoom
+    d_addr FadeIn_func_ptr, FuncA_Terrain_BossLava_FadeInRoom
     d_addr Tick_func_ptr, FuncA_Room_BossLava_TickRoom
     d_addr Draw_func_ptr, FuncC_Boss_Lava_DrawRoom
     D_END
@@ -473,39 +473,6 @@ _Devices_sDevice_arr:
     d_addr Tick_func_ptr, FuncC_Boss_Lava_TickBoss
     d_addr Draw_func_ptr, FuncC_Boss_Lava_DrawBoss
     D_END
-.ENDPROC
-
-.PROC DataC_Boss_LavaInitTransfer_arr
-    .assert kBossFullWidthTiles = 8, error
-    .assert kBossHeightTiles = 4, error
-    .assert kTileIdBgAnimBossLavaFirst = $50, error
-    ;; Row 0:
-    .byte kPpuCtrlFlagsHorz
-    .dbyt Ppu_BossRow0Start  ; transfer destination
-    .byte 8
-    .byte $50, $54, $58, $b8, $b9, $5c, $60, $64
-    ;; Row 1:
-    .byte kPpuCtrlFlagsHorz
-    .dbyt Ppu_BossRow1Start  ; transfer destination
-    .byte 8
-    .byte $51, $55, $59, $ba, $bb, $5d, $61, $65
-    ;; Row 2:
-    .byte kPpuCtrlFlagsHorz
-    .dbyt Ppu_BossRow2Start  ; transfer destination
-    .byte 8
-    .byte $52, $56, $5a, $bc, $bd, $5e, $62, $66
-    ;; Row 3:
-    .byte kPpuCtrlFlagsHorz
-    .dbyt Ppu_BossRow3Start  ; transfer destination
-    .byte 8
-    .byte $53, $57, $5b, $be, $bf, $5f, $63, $67
-.ENDPROC
-
-.PROC FuncC_Boss_Lava_FadeInRoom
-    ldax #DataC_Boss_LavaInitTransfer_arr  ; param: data pointer
-    ldy #.sizeof(DataC_Boss_LavaInitTransfer_arr)  ; param: data length
-    jsr Func_BufferPpuTransfer
-    jmp FuncA_Terrain_FadeInShortRoomWithLava
 .ENDPROC
 
 ;;; Performs per-frame upates for the boss in this room.
@@ -1072,6 +1039,43 @@ _ValvePipePlatformIndex_u8_arr4:
     .byte kPipe2PlatformIndex
     .byte kPipe2PlatformIndex
     .byte kPipe1PlatformIndex
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Terrain"
+
+.PROC DataA_Terrain_BossLavaInitTransfer_arr
+    .assert kBossFullWidthTiles = 8, error
+    .assert kBossHeightTiles = 4, error
+    .assert kTileIdBgAnimBossLavaFirst = $50, error
+    ;; Row 0:
+    .byte kPpuCtrlFlagsHorz
+    .dbyt Ppu_BossRow0Start  ; transfer destination
+    .byte 8
+    .byte $50, $54, $58, $b8, $b9, $5c, $60, $64
+    ;; Row 1:
+    .byte kPpuCtrlFlagsHorz
+    .dbyt Ppu_BossRow1Start  ; transfer destination
+    .byte 8
+    .byte $51, $55, $59, $ba, $bb, $5d, $61, $65
+    ;; Row 2:
+    .byte kPpuCtrlFlagsHorz
+    .dbyt Ppu_BossRow2Start  ; transfer destination
+    .byte 8
+    .byte $52, $56, $5a, $bc, $bd, $5e, $62, $66
+    ;; Row 3:
+    .byte kPpuCtrlFlagsHorz
+    .dbyt Ppu_BossRow3Start  ; transfer destination
+    .byte 8
+    .byte $53, $57, $5b, $be, $bf, $5f, $63, $67
+.ENDPROC
+
+.PROC FuncA_Terrain_BossLava_FadeInRoom
+    ldax #DataA_Terrain_BossLavaInitTransfer_arr  ; param: data pointer
+    ldy #.sizeof(DataA_Terrain_BossLavaInitTransfer_arr)  ; param: data length
+    jsr Func_BufferPpuTransfer
+    jmp FuncA_Terrain_FadeInShortRoomWithLava
 .ENDPROC
 
 ;;;=========================================================================;;;
