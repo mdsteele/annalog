@@ -56,8 +56,10 @@
 .IMPORT Func_FindEmptyActorSlot
 .IMPORT Func_GetAngleFromPointToAvatar
 .IMPORT Func_GetRandomByte
+.IMPORT Func_HarmAvatar
 .IMPORT Func_InitActorProjFireball
 .IMPORT Func_InitActorSmokeExplosion
+.IMPORT Func_IsPointInPlatform
 .IMPORT Func_MovePlatformHorz
 .IMPORT Func_MovePlatformLeftTowardPointX
 .IMPORT Func_MovePlatformTopTowardPointY
@@ -65,6 +67,7 @@
 .IMPORT Func_Noop
 .IMPORT Func_SetActorCenterToPoint
 .IMPORT Func_SetMachineIndex
+.IMPORT Func_SetPointToAvatarCenter
 .IMPORT Func_SetPointToPlatformCenter
 .IMPORT Func_ShakeRoom
 .IMPORT Ppu_ChrBgAnimB4
@@ -451,8 +454,16 @@ _Devices_sDevice_arr:
 ;;; Performs per-frame upates for the boss in this room.
 ;;; @prereq PRGA_Room is loaded.
 .PROC FuncC_Boss_Mine_TickBoss
-    ;; TODO: if player avatar is in boss body platform while boss location is
-    ;; not Hidden, harm avatar
+_HarmAvatarIfCollision:
+    lda Zp_RoomState + sState::Current_eBossLoc
+    .assert eBossLoc::Hidden = 0, error
+    beq @done
+    jsr Func_SetPointToAvatarCenter
+    ldy #kBossBodyPlatformIndex  ; param: platform index
+    jsr Func_IsPointInPlatform  ; returns C
+    bcc @done  ; no collision
+    jsr Func_HarmAvatar
+    @done:
 _CoolDown:
     lda Zp_RoomState + sState::BossCooldown_u8
     beq @done
