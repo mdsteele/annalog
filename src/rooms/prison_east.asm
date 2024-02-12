@@ -37,6 +37,7 @@
 .IMPORT FuncA_Machine_LiftTryMove
 .IMPORT FuncA_Objects_DrawLiftMachine
 .IMPORT FuncA_Room_MachineResetHalt
+.IMPORT FuncA_Room_MachineResetRun
 .IMPORT FuncC_Prison_DrawGatePlatform
 .IMPORT FuncC_Prison_OpenGateAndFlipLever
 .IMPORT FuncC_Prison_TickGatePlatform
@@ -336,6 +337,10 @@ _ConsoleDelay:
     sta Ram_DeviceType_eDevice_arr + kConsoleDeviceIndex
     lda #kConsoleAnimCountdown
     sta Ram_DeviceAnim_u8_arr + kConsoleDeviceIndex
+    ;; Let the machine run again.
+    ldx #kLiftMachineIndex  ; param: machine index
+    jsr Func_SetMachineIndex
+    jsr FuncA_Room_MachineResetRun
     @done:
 _EastGate:
     ;; Update the flag from the lever.
