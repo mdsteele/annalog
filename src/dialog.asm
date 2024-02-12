@@ -81,6 +81,7 @@
 .IMPORT DataA_Dialog_PaperJerome12_sDialog
 .IMPORT DataA_Dialog_PaperJerome13_sDialog
 .IMPORT DataA_Dialog_PaperJerome14_sDialog
+.IMPORT DataA_Dialog_PaperJerome15_sDialog
 .IMPORT DataA_Dialog_PaperJerome21_sDialog
 .IMPORT DataA_Dialog_PaperJerome23_sDialog
 .IMPORT DataA_Dialog_PaperJerome28_sDialog
@@ -477,6 +478,7 @@ _Finish:
     d_entry t, PaperJerome12,        DataA_Dialog_PaperJerome12_sDialog
     d_entry t, PaperJerome13,        DataA_Dialog_PaperJerome13_sDialog
     d_entry t, PaperJerome14,        DataA_Dialog_PaperJerome14_sDialog
+    d_entry t, PaperJerome15,        DataA_Dialog_PaperJerome15_sDialog
     d_entry t, PaperJerome21,        DataA_Dialog_PaperJerome21_sDialog
     d_entry t, PaperJerome23,        DataA_Dialog_PaperJerome23_sDialog
     d_entry t, PaperJerome28,        DataA_Dialog_PaperJerome28_sDialog

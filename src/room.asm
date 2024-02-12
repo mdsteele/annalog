@@ -127,6 +127,7 @@
 .IMPORT DataC_Prison_East_sRoom
 .IMPORT DataC_Prison_Escape_sRoom
 .IMPORT DataC_Prison_Flower_sRoom
+.IMPORT DataC_Prison_Lower_sRoom
 .IMPORT DataC_Prison_Upper_sRoom
 .IMPORT DataC_Sewer_Ascent_sRoom
 .IMPORT DataC_Sewer_Basin_sRoom
@@ -382,6 +383,7 @@ _LoadNewRoom:
     d_entry table, PrisonEast,      DataC_Prison_East_sRoom
     d_entry table, PrisonEscape,    DataC_Prison_Escape_sRoom
     d_entry table, PrisonFlower,    DataC_Prison_Flower_sRoom
+    d_entry table, PrisonLower,     DataC_Prison_Lower_sRoom
     d_entry table, PrisonUpper,     DataC_Prison_Upper_sRoom
     d_entry table, SewerAscent,     DataC_Sewer_Ascent_sRoom
     d_entry table, SewerBasin,      DataC_Sewer_Basin_sRoom
@@ -564,6 +566,7 @@ _PrisonMusic:
     d_byte PrisonEast,      bRoomMusic::Prison
     d_byte PrisonEscape,    bRoomMusic::Prison
     d_byte PrisonFlower,    bRoomMusic::Prison
+    d_byte PrisonLower,     bRoomMusic::Prison
     d_byte PrisonUpper,     bRoomMusic::Prison
     d_byte SewerAscent,     eMusic::Silence
     d_byte SewerBasin,      eMusic::Silence

@@ -200,7 +200,7 @@ Ram_CollectedPapers_u8_arr: .res kPaperGridCols
     d_byte eFlag::PaperJerome12, eDialog::PaperJerome12
     d_byte eFlag::PaperJerome13, eDialog::PaperJerome13
     d_byte eFlag::PaperJerome14, eDialog::PaperJerome14
-    d_byte eFlag::PaperJerome15, 0  ; TODO
+    d_byte eFlag::PaperJerome15, eDialog::PaperJerome15
     d_byte eFlag::PaperJerome16, 0  ; TODO
     d_byte eFlag::PaperJerome17, 0  ; TODO
     d_byte eFlag::PaperJerome18, 0  ; TODO
@@ -252,7 +252,7 @@ Ram_CollectedPapers_u8_arr: .res kPaperGridCols
     d_byte eFlag::PaperJerome12, eArea::Garden   ; room: GardenHallway
     d_byte eFlag::PaperJerome13, eArea::Garden   ; room: GardenLanding
     d_byte eFlag::PaperJerome14, eArea::Garden   ; room: GardenFlower
-    d_byte eFlag::PaperJerome15, $ff  ; TODO
+    d_byte eFlag::PaperJerome15, eArea::Prison   ; room: PrisonLower
     d_byte eFlag::PaperJerome16, $ff  ; TODO
     d_byte eFlag::PaperJerome17, $ff  ; TODO
     d_byte eFlag::PaperJerome18, $ff  ; TODO

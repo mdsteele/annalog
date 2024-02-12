@@ -205,7 +205,7 @@ _Platforms_sPlatform_arr:
     ;; Terrain spikes:
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Harm
-    d_word WidthPx_u16, $50
+    d_word WidthPx_u16, $60
     d_byte HeightPx_u8, $08
     d_word Left_i16,  $0030
     d_word Top_i16,   $015e
@@ -265,7 +265,7 @@ _Passages_sPassage_arr:
     D_END
     D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Western | 1
-    d_byte Destination_eRoom, eRoom::PrisonEast  ; TODO: PrisonLower
+    d_byte Destination_eRoom, eRoom::PrisonLower
     d_byte SpawnBlock_u8, 20
     d_byte SpawnAdjust_byte, 0
     D_END
