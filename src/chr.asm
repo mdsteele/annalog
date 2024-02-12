@@ -1255,7 +1255,9 @@ _chr_begin:
     chr_inc "upgrade_ram",    kTileIdObjUpgradeRamFirst
     chr_inc "hoist_obj",      kTileIdObjHoistFirst
     chr_inc "mine_cage",      kTileIdObjMineCageFirst
-    chr_res $0e
+    chr_res $06
+    chr_inc "fireball",       kTileIdObjFireballFirst
+    chr_res $04
     chr_inc "upgrade_opsync", kTileIdObjUpgradeOpSyncFirst
     chr_inc "fireblast",      kTileIdObjFireblastFirst
     chr_inc "boulder",        kTileIdObjBoulderFirst

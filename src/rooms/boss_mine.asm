@@ -54,7 +54,9 @@
 .IMPORT FuncA_Room_MachineResetRun
 .IMPORT FuncA_Room_TickBoss
 .IMPORT Func_FindEmptyActorSlot
+.IMPORT Func_GetAngleFromPointToAvatar
 .IMPORT Func_GetRandomByte
+.IMPORT Func_InitActorProjFireball
 .IMPORT Func_InitActorSmokeExplosion
 .IMPORT Func_MovePlatformHorz
 .IMPORT Func_MovePlatformLeftTowardPointX
@@ -178,18 +180,18 @@ Ppu_BossMineConveyorStart = \
     Hiding      ; within the walls
     Burrowing   ; making the room shake just before emerging
     Emerging    ; emerging from the wall
-    ;; TODO: firing projectiles
+    Shooting    ; firing projectiles
     Retreating  ; retreating back into the wall
     NUM_VALUES
 .ENDENUM
 
 ;;; Locations that the boss in this room can be in.
 .ENUM eBossLoc
-    Hidden
-    Exit1
+    Hidden  ; not currently emerging/retreating from any exit
+    Exit1   ; the leftmost exit
     Exit2
     Exit3
-    Exit4
+    Exit4   ; the rightmost exit
 .ENDENUM
 
 ;;; The size of each one of the boss's exit locations, in tiles.
@@ -205,7 +207,7 @@ kBossExit4TileRow = 11
 kBossExit1TileCol =  9
 kBossExit2TileCol = 15
 kBossExit3TileCol = 17
-kBossExit4TileCol = 23
+kBossExit4TileCol = 21
 
 ;;; The PPU address in the upper nametable for the top-left tile of each of the
 ;;; boss's four exit locations.
@@ -226,6 +228,12 @@ kBossBodyPlatformIndex = 2
 ;;; How many boulder hits are needed to defeat the boss.
 kBossInitHealth = 8
 
+;;; How many waves of fireballs to shoot after emerging.
+kBossNumFireballWaves = 6
+;;; When shooting a fireball pair, this is the angle each fireball is off from
+;;; center, measured in increments of tau/256.
+kBossFireballSplitAngle = 12
+
 ;;; How many frames the boss spends burrowing before emerging from an exit.
 kBossBurrowFrames = 50
 ;;; How many frames it takes the boss to emerge from the wall.
@@ -233,6 +241,11 @@ kBossBurrowFrames = 50
 ;;; How many frames the boss waits, after you first enter the room, before
 ;;; taking action.
 kBossInitCooldown = 120
+;;; How many frames to pause between emerging and shooting the first fireball
+;;; wave.
+kBossFirstShootCooldown = 60
+;;; How many frames to pause between subsequent fireball waves.
+kBossSubsequentShootCooldown = 45
 
 ;;;=========================================================================;;;
 
@@ -250,6 +263,8 @@ kBossInitCooldown = 120
     ;; Timer that ticks down each frame when nonzero.  Used to time transitions
     ;; between boss modes.
     BossCooldown_u8 .byte
+    ;; How many more projectile waves to fire before changing modes.
+    BossFireCount_u8 .byte
     ;; How emerged from the wall the boss is, from 0 (not at all) to
     ;; kBossEmergeFrames (completely).
     BossEmerge_u8 .byte
@@ -459,6 +474,7 @@ _CheckMode:
     d_entry table, Hiding,     _BossHiding
     d_entry table, Burrowing,  _BossBurrowing
     d_entry table, Emerging,   _BossEmerging
+    d_entry table, Shooting,   _BossShooting
     d_entry table, Retreating, _BossRetreating
     D_END
 .ENDREPEAT
@@ -491,8 +507,12 @@ _BossBurrowing:
     tax
     lda _ExitLeft_u8_arr, x
     sta Ram_PlatformLeft_i16_0_arr + kBossBodyPlatformIndex
+    add #kTileWidthPx * kBossExitWidthTiles
+    sta Ram_PlatformRight_i16_0_arr + kBossBodyPlatformIndex
     lda _ExitTop_u8_arr, x
     sta Ram_PlatformTop_i16_0_arr + kBossBodyPlatformIndex
+    adc #kTileHeightPx * kBossExitHeightTiles  ; carry is already clear
+    sta Ram_PlatformBottom_i16_0_arr + kBossBodyPlatformIndex
     inx  ; param: eBossLoc::Exit* value
     stx Zp_RoomState + sState::Current_eBossLoc
     jsr FuncC_Boss_MineTransferExitEmerge
@@ -505,20 +525,54 @@ _BossBurrowing:
 _BossEmerging:
     lda Zp_RoomState + sState::BossEmerge_u8
     cmp #kBossEmergeFrames
-    bge @retreat
+    bge @fullyEmerged
     inc Zp_RoomState + sState::BossEmerge_u8
     rts
-    ;; TODO: instead of retreating right away, stick around and shoot stuff
-    @retreat:
+    @fullyEmerged:
+    lda #eBossMode::Shooting
+    sta Zp_RoomState + sState::Current_eBossMode
+    lda #kBossNumFireballWaves
+    sta Zp_RoomState + sState::BossFireCount_u8
+    lda #kBossFirstShootCooldown
+    sta Zp_RoomState + sState::BossCooldown_u8
+    rts
+_BossShooting:
+    ;; Wait for the cooldown to expire.
+    lda Zp_RoomState + sState::BossCooldown_u8
+    bne _Return
+    ;; If there are no more projectiles to fire, retreat.
+    lda Zp_RoomState + sState::BossFireCount_u8
+    bne @shoot
     lda #eBossMode::Retreating
     sta Zp_RoomState + sState::Current_eBossMode
-    rts
+    lda #kBossEmergeFrames  ; param: num frames
+    jmp Func_ShakeRoom
+    ;; Otherwise, shoot a fireball.
+    @shoot:
+    dec Zp_RoomState + sState::BossFireCount_u8
+    lda #kBossSubsequentShootCooldown
+    sta Zp_RoomState + sState::BossCooldown_u8
+    ldy #kBossBodyPlatformIndex  ; param: platform index
+    jsr Func_SetPointToPlatformCenter
+    jsr Func_GetAngleFromPointToAvatar  ; returns A
+    tay  ; angle to avatar
+    jsr Func_GetRandomByte  ; preserves Y, returns A
+    lsr a  ; shift bottom bit into C
+    tya  ; angle to avatar
+    bcc @fireOne
+    pha  ; angle to avatar
+    add #kBossFireballSplitAngle
+    jsr FuncC_Boss_MineShootFireball
+    pla  ; angle to avatar
+    sub #kBossFireballSplitAngle
+    @fireOne:
+    jmp FuncC_Boss_MineShootFireball
 _BossRetreating:
     lda Zp_RoomState + sState::BossEmerge_u8
-    beq @hide
+    beq @fullyRetreated
     dec Zp_RoomState + sState::BossEmerge_u8
     rts
-    @hide:
+    @fullyRetreated:
     ldx Zp_RoomState + sState::Current_eBossLoc  ; param: eBossLoc::Exit* value
     jsr FuncC_Boss_MineTransferExitHide
     lda #eBossMode::Hiding
@@ -538,6 +592,21 @@ _ExitTop_u8_arr:
     .byte kTileHeightPx * kBossExit2TileRow
     .byte kTileHeightPx * kBossExit3TileRow
     .byte kTileHeightPx * kBossExit4TileRow
+.ENDPROC
+
+;;; Shoots a single fireball from the boss's eye.
+;;; @prereq Zp_Point*_i16 is set to the center of the boss's body.
+;;; @param A The angle to fire at, measured in increments of tau/256.
+.PROC FuncC_Boss_MineShootFireball
+    sta T0  ; angle to fire at
+    jsr Func_FindEmptyActorSlot  ; preserves T0+, returns C and X
+    bcs @done
+    jsr Func_SetActorCenterToPoint  ; preserves T0+
+    lda T0  ; param: angle to fire at
+    jsr Func_InitActorProjFireball
+    ;; TODO: play a sound
+    @done:
+    rts
 .ENDPROC
 
 .PROC FuncC_Boss_Mine_FadeInRoom
