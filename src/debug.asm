@@ -185,9 +185,14 @@ _Row2:
 
 ;;; Initializes debug mode.
 .PROC FuncA_Console_InitDebugger
+    ;; If we started the debugger because the machine was already Halted or
+    ;; Error when we opened the console, don't change the diagram (and there is
+    ;; no need to save the program).
     ldx Zp_ConsoleMachineIndex_u8
     lda Ram_MachineStatus_eMachine_arr, x
     cmp #eMachine::Error
+    beq _Return
+    cmp #eMachine::Halted
     beq _Return
 _SaveProgram:
     jsr Func_SetMachineIndex

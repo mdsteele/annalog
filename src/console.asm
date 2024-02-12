@@ -157,20 +157,7 @@ Ram_ConsoleRegNames_u8_arr6: .res 6
 ;;; @param X The console device index.
 .EXPORT Main_Console_UseDevice
 .PROC Main_Console_UseDevice
-_SetSpawnPoint:
-    txa  ; console device index
-    ora #bSpawn::Device  ; param: bSpawn value
-    jsr Func_SetLastSpawnPoint  ; preserves X
-_OpenConsoleWindow:
-    lda Ram_DeviceTarget_byte_arr, x
-    tax  ; machine index
-    stx Zp_ConsoleMachineIndex_u8
-    jsr Func_SetMachineIndex  ; preserves X
-    lda Ram_MachineStatus_eMachine_arr, x
-    cmp #eMachine::Error
-    beq @noReset
-    jsr_prga FuncA_Room_MachineResetRun
-    @noReset:
+    jsr_prga FuncA_Room_BeginUsingConsoleDevice
     jsr_prga FuncA_Console_Init
 _GameLoop:
     jsr_prga FuncA_Objects_DrawHudInWindowAndObjectsForRoom
@@ -184,10 +171,14 @@ _StartInteraction:
     sta Zp_FloatingHud_bHud
     lda Zp_ConsoleNeedsPower_u8
     bne Main_Console_NoPower
+    ;; If the machine is Halted or Error, start in debugging mode.
     ldx Zp_ConsoleMachineIndex_u8
     lda Ram_MachineStatus_eMachine_arr, x
     cmp #eMachine::Error
+    beq @debug
+    cmp #eMachine::Halted
     bne Main_Console_StartEditing
+    @debug:
     jmp Main_Console_Debug
 .ENDPROC
 
@@ -283,6 +274,35 @@ _Tick:
     jsr Func_TickAllDevices
     jsr_prga FuncA_Room_CallRoomTick
     jmp_prga FuncA_Machine_TickAll
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Room"
+
+;;; Sets the last spawn point to the console device, initializes
+;;; Zp_ConsoleMachineIndex_u8, Zp_MachineIndex_u8, and Zp_Current_sMachine_ptr,
+;;; and resets the machine if it's not Halted/Error.
+;;; @param X The console device index.
+.PROC FuncA_Room_BeginUsingConsoleDevice
+_SetSpawnPoint:
+    txa  ; console device index
+    ora #bSpawn::Device  ; param: bSpawn value
+    jsr Func_SetLastSpawnPoint  ; preserves X
+_SetMachineIndex:
+    lda Ram_DeviceTarget_byte_arr, x
+    tax  ; machine index
+    stx Zp_ConsoleMachineIndex_u8
+    jsr Func_SetMachineIndex  ; preserves X
+_MaybeResetMachine:
+    lda Ram_MachineStatus_eMachine_arr, x
+    cmp #eMachine::Error
+    beq @noReset
+    cmp #eMachine::Halted
+    beq @noReset
+    jmp FuncA_Room_MachineResetRun
+    @noReset:
+    rts
 .ENDPROC
 
 ;;;=========================================================================;;;
