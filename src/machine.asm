@@ -25,6 +25,7 @@
 .INCLUDE "room.inc"
 
 .IMPORT FuncA_Machine_PlaySfxBeep
+.IMPORT FuncA_Machine_PlaySfxEnd
 .IMPORT FuncA_Machine_PlaySfxError
 .IMPORT FuncA_Machine_PlaySfxSync
 .IMPORT Sram_Programs_sProgram_arr
@@ -671,11 +672,11 @@ _OpRest:
 _OpEnd:
     lda #eMachine::Halted
     sta Ram_MachineStatus_eMachine_arr, x
-_OpEmpty:
-    rts
+    jmp FuncA_Machine_PlaySfxEnd
 _OpSync:
     lda #eMachine::Syncing
     sta Ram_MachineStatus_eMachine_arr, x
+_OpEmpty:
     rts
 .ENDPROC
 

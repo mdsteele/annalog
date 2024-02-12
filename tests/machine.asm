@@ -29,6 +29,7 @@
 .IMPORT FuncA_Room_InitAllMachines
 .IMPORT Func_ExpectAEqualsY
 .IMPORT Func_GetMachineProgram
+.IMPORT Func_Noop
 .IMPORT Func_SetMachineIndex
 .IMPORT Ram_MachinePc_u8_arr
 .IMPORT Ram_MachineStatus_eMachine_arr
@@ -178,23 +179,11 @@ _Draw:
 
 .SEGMENT "PRGA_Machine"
 
-;;; Stub implementation.
-.EXPORT FuncA_Machine_PlaySfxBeep
-.PROC FuncA_Machine_PlaySfxBeep
-    rts
-.ENDPROC
-
-;;; Stub implementation.
-.EXPORT FuncA_Machine_PlaySfxError
-.PROC FuncA_Machine_PlaySfxError
-    rts
-.ENDPROC
-
-;;; Stub implementation.
-.EXPORT FuncA_Machine_PlaySfxSync
-.PROC FuncA_Machine_PlaySfxSync
-    rts
-.ENDPROC
+;;; Stub implementations.
+.EXPORT FuncA_Machine_PlaySfxBeep  := Func_Noop
+.EXPORT FuncA_Machine_PlaySfxEnd   := Func_Noop
+.EXPORT FuncA_Machine_PlaySfxError := Func_Noop
+.EXPORT FuncA_Machine_PlaySfxSync  := Func_Noop
 
 ;;;=========================================================================;;;
 

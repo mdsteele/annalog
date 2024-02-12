@@ -28,6 +28,46 @@
 
 .SEGMENT "PRG8"
 
+;;; SFX sequence data for the "machine end" sound effect.
+.PROC Data_MachineEnd_sSfxSeq_arr
+    D_STRUCT sSfxSeq
+    d_byte Duration_u8, 8
+    d_byte Env_bEnvelope, bEnvelope::Duty12 | bEnvelope::NoLength | 3
+    d_byte Sweep_byte, 0
+    d_word Timer_u16, $0120
+    D_END
+    D_STRUCT sSfxSeq
+    d_byte Duration_u8, 16
+    d_byte Env_bEnvelope, bEnvelope::Duty12 | bEnvelope::NoLength | 3
+    d_byte Sweep_byte, 0
+    d_word Timer_u16, $0120
+    D_END
+    .byte 0
+.ENDPROC
+
+;;; SFX sequence data for the "machine error" sound effect.
+.PROC Data_MachineError_sSfxSeq_arr
+    D_STRUCT sSfxSeq
+    d_byte Duration_u8, 8
+    d_byte Env_bEnvelope, bEnvelope::Duty14 | bEnvelope::NoLength | 4
+    d_byte Sweep_byte, 0
+    d_word Timer_u16, $0340
+    D_END
+    D_STRUCT sSfxSeq
+    d_byte Duration_u8, 8
+    d_byte Env_bEnvelope, bEnvelope::Duty18 | bEnvelope::NoLength | 4
+    d_byte Sweep_byte, 0
+    d_word Timer_u16, $0340
+    D_END
+    D_STRUCT sSfxSeq
+    d_byte Duration_u8, 8
+    d_byte Env_bEnvelope, bEnvelope::Duty14 | bEnvelope::NoLength | 4
+    d_byte Sweep_byte, 0
+    d_word Timer_u16, $0340
+    D_END
+    .byte 0
+.ENDPROC
+
 ;;; SFX sequence data for the "machine sync" sound effect.
 .PROC Data_MachineSync_sSfxSeq_arr
     D_STRUCT sSfxSeq
@@ -48,6 +88,24 @@
 ;;;=========================================================================;;;
 
 .SEGMENT "PRGA_Machine"
+
+;;; Starts playing the sound for when a machine executes an END instruction.
+;;; @preserve T0+
+.EXPORT FuncA_Machine_PlaySfxEnd
+.PROC FuncA_Machine_PlaySfxEnd
+    ldx #eChan::Pulse2
+    ldya #Data_MachineEnd_sSfxSeq_arr
+    jmp Func_PlaySfxSequence  ; preserves T0+
+.ENDPROC
+
+;;; Starts playing the sound for when a machine encounters an error.
+;;; @preserve T0+
+.EXPORT FuncA_Machine_PlaySfxError
+.PROC FuncA_Machine_PlaySfxError
+    ldx #eChan::Pulse2
+    ldya #Data_MachineError_sSfxSeq_arr
+    jmp Func_PlaySfxSequence  ; preserves T0+
+.ENDPROC
 
 ;;; Starts playing the sound for when all machines SYNC up.
 ;;; @preserve T0+
