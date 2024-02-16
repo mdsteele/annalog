@@ -214,6 +214,10 @@ _ReadD:
     jsr Func_DistanceSensorDownDetectPoint  ; returns T0
     lda T0  ; minimum distance so far, in pixels
     div #kBlockHeightPx
+    cmp #10
+    blt @done
+    lda #9
+    @done:
     rts
 _ReadZ:
     lda Ram_PlatformTop_i16_0_arr + kCranePlatformIndex
