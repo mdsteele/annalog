@@ -54,6 +54,7 @@
 .IMPORT Func_SetFlag
 .IMPORT Func_SetPointToActorCenter
 .IMPORT Func_ShakeRoom
+.IMPORT Ppu_ChrBgAnimA0
 .IMPORT Ppu_ChrBgAnimStatic
 .IMPORT Ppu_ChrObjGarden
 .IMPORT Ram_ActorPosY_i16_0_arr
@@ -71,13 +72,30 @@ kLeverRightDeviceIndex = 1
 ;;; The device index for the door that leads to the boss room.
 kDoorDeviceIndex = 3
 
-;;; The index of the passage that is sometimes blocked by crates.
-kCratePassageIndex = 1
-
 ;;; The machine index for the GardenTowerCannon machine.
 kCannonMachineIndex = 0
 ;;; The platform index for the GardenTowerCannon machine.
 kCannonPlatformIndex = 0
+
+;;; The platform indexx for the first thorns platform.
+kThornsFirstPlatformIndex = 4
+;;; The number of thorns platforms.
+kThornsNumPlatforms = 5
+
+;;;=========================================================================;;;
+
+;;; The index of the passage that is sometimes blocked by crates.
+kCratePassageIndex = 1
+
+;;; The platform indices for the positions the crates can be in.
+kWallCratePlatformIndex = 1
+kFloorCratePlatformIndex = 2
+
+;;; OBJ palette numbers used for drawing certain platforms in this room.
+kPaletteObjCrate       = 0
+kPaletteObjGardenBrick = 0
+
+;;;=========================================================================;;;
 
 ;;; The platform index for the breakable tower wall.
 kBreakableWallPlatformIndex = 3
@@ -103,14 +121,6 @@ kBreakableWallHitsToDestroy = 2
 ;;; How many frames to blink the breakable wall for when resetting it.
 kBreakableWallBlinkFrames = 28
 
-;;; The platform indices for the positions the crates can be in.
-kWallCratePlatformIndex = 1
-kFloorCratePlatformIndex = 2
-
-;;; OBJ palette numbers used for drawing certain platforms in this room.
-kPaletteObjCrate       = 0
-kPaletteObjGardenBrick = 0
-
 ;;;=========================================================================;;;
 
 ;;; Defines room-specific state data for this particular room.
@@ -123,6 +133,13 @@ kPaletteObjGardenBrick = 0
     BreakableWallLowerHits_u8 .byte
     ;; How many more frames to blink the breakable wall for.
     BreakableWallBlink_u8 .byte
+    ;; Counter used for setting BG animation bank (instead of
+    ;; Zp_FrameCounter_u8).  This gets incremented/decremented in the TickRoom
+    ;; function.
+    ThornCounter_u8 .byte
+    ;; Timer that counts down in the TickRoom function to make the thorns
+    ;; periodically move.
+    ThornTimer_u8 .byte
 .ENDSTRUCT
 .ASSERT .sizeof(sState) <= kRoomStateSize, error
 
@@ -213,7 +230,47 @@ _Platforms_sPlatform_arr:
     d_word Left_i16,    kBreakableWallPlatformLeft
     d_word Top_i16,     kBreakableWallPlatformTop
     D_END
-    ;; TODO: add Harm platforms for thorns (removed when boss is defeated)
+    ;; Thorns:
+    .assert * - :- = kThornsFirstPlatformIndex * .sizeof(sPlatform), error
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Harm
+    d_word WidthPx_u16, $0e
+    d_byte HeightPx_u8, $0e
+    d_word Left_i16,  $00c8
+    d_word Top_i16,   $0060
+    D_END
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Harm
+    d_word WidthPx_u16, $0e
+    d_byte HeightPx_u8, $0e
+    d_word Left_i16,  $00e2
+    d_word Top_i16,   $0058
+    D_END
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Harm
+    d_word WidthPx_u16, $0e
+    d_byte HeightPx_u8, $0e
+    d_word Left_i16,  $00f2
+    d_word Top_i16,   $0060
+    D_END
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Harm
+    d_word WidthPx_u16, $0e
+    d_byte HeightPx_u8, $0e
+    d_word Left_i16,  $0102
+    d_word Top_i16,   $0068
+    D_END
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Harm
+    d_word WidthPx_u16, $0e
+    d_byte HeightPx_u8, $0e
+    d_word Left_i16,  $0112
+    d_word Top_i16,   $0070
+    D_END
+    .linecont +
+    .assert * - :- = (kThornsFirstPlatformIndex + kThornsNumPlatforms) * \
+            .sizeof(sPlatform), error
+    .linecont -
     .assert * - :- <= kMaxPlatforms * .sizeof(sPlatform), error
     .byte ePlatform::None
 _Actors_sActor_arr:
@@ -306,6 +363,18 @@ _Passages_sPassage_arr:
 ;;; @param A The bSpawn value for where the avatar is entering the room.
 .PROC FuncC_Garden_Tower_EnterRoom
     sta T0  ; bSpawn value
+_Thorns:
+    ;; If the garden boss has been defeated, remove the thorns platforms.
+    flag_bit Sram_ProgressFlags_arr, eFlag::BossGarden
+    beq @done
+    lda #ePlatform::None
+    ldx #kThornsFirstPlatformIndex
+    @loop:
+    sta Ram_PlatformType_ePlatform_arr, x
+    inx
+    cpx #kThornsFirstPlatformIndex + kThornsNumPlatforms
+    blt @loop
+    @done:
 _BreakableWall:
     ;; If entering from the boss room door, remove the breakable wall, so the
     ;; player won't be trapped.  (In normal gameplay, it should be impossible
@@ -345,6 +414,19 @@ _Crates:
 ;;; Room tick function for the GardenTower room.
 ;;; @prereq PRGA_Room is loaded.
 .PROC FuncC_Garden_Tower_TickRoom
+_Thorns:
+    ;; Periodically move thorns:
+    dec Zp_RoomState + sState::ThornTimer_u8
+    bpl @noWrap
+    lda #$20
+    sta Zp_RoomState + sState::ThornTimer_u8
+    @noWrap:
+    lda Zp_RoomState + sState::ThornTimer_u8
+    cmp #$18
+    bge @done
+    inc Zp_RoomState + sState::ThornCounter_u8
+    @done:
+_RepairBreakableWall:
     lda Zp_RoomState + sState::BreakableWallBlink_u8
     beq @done
     dec Zp_RoomState + sState::BreakableWallBlink_u8
@@ -467,14 +549,23 @@ _ResetMachine:
 
 ;;; Allocates and populates OAM slots for this room.
 .PROC FuncA_Objects_GardenTower_DrawRoom
-_Thorns:
-    ;; If the garden boss has been defeated, disable the BG thorns animation.
+_AnimateThorns:
     flag_bit Sram_ProgressFlags_arr, eFlag::BossGarden
-    beq @done
+    beq @bossAlive
+    ;; If the garden boss has been defeated, disable the BG thorns animation.
+    @bossDead:
     lda #<.bank(Ppu_ChrBgAnimStatic)
     sta Zp_Chr04Bank_u8
+    .assert <.bank(Ppu_ChrBgAnimStatic) > 0, error
+    bne @done  ; unconditional
+    ;; If the garden boss hasn't been defeated, animate the thorns.
+    @bossAlive:
+    lda Zp_RoomState + sState::ThornCounter_u8
+    div #4
+    and #$07
+    add #<.bank(Ppu_ChrBgAnimA0)
+    sta Zp_Chr04Bank_u8
     @done:
-    ;; TODO: If thorns present, animate them like in the boss room.
 _BreakableWall:
     ;; If the breakble wall platform is completely destroyed, we're done.
     lda Ram_PlatformType_ePlatform_arr + kBreakableWallPlatformIndex
