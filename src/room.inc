@@ -86,6 +86,7 @@ kMaxPassages = 8
     FactoryAccess
     FactoryBridge
     FactoryCenter
+    FactoryEast
     FactoryElevator
     FactoryFlower
     FactoryLock
