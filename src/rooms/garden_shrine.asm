@@ -196,8 +196,8 @@ _Passages_sPassage_arr:
 .EXPORT DataA_Dialog_GardenShrineBreakerMine2_sDialog
 .PROC DataA_Dialog_GardenShrineBreakerMine2_sDialog
     .assert kTileIdBgPortraitEireneFirst = kTileIdBgPortraitGrontaFirst, error
-    dlg_Text MermaidEirene, DataA_Text2_GardenShrineBreakerMine1_Part8_u8_arr
-    dlg_Text OrcGronta, DataA_Text2_GardenShrineBreakerMine1_Part9_u8_arr
+    dlg_Text MermaidEirene, DataA_Text2_GardenShrineBreakerMine2_Part1_u8_arr
+    dlg_Text OrcGronta, DataA_Text2_GardenShrineBreakerMine2_Part2_u8_arr
     dlg_Done
 .ENDPROC
 
@@ -252,13 +252,13 @@ _Passages_sPassage_arr:
     .byte "lead the way forward.#"
 .ENDPROC
 
-.PROC DataA_Text2_GardenShrineBreakerMine1_Part8_u8_arr
+.PROC DataA_Text2_GardenShrineBreakerMine2_Part1_u8_arr
     .byte "Oh? And will you$"
     .byte "destroy yourselves, as$"
     .byte "the humans did?#"
 .ENDPROC
 
-.PROC DataA_Text2_GardenShrineBreakerMine1_Part9_u8_arr
+.PROC DataA_Text2_GardenShrineBreakerMine2_Part2_u8_arr
     .byte "Better death than to$"
     .byte "rot down here, as you$"
     .byte "have apparently chosen$"

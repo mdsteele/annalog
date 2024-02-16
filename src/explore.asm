@@ -136,6 +136,7 @@ Zp_Next_eCutscene: .res 1
 ;;; been loaded and the player avatar positioned within the room, but the
 ;;; room's Enter_func_ptr has not yet been called.
 ;;; @prereq Rendering is disabled.
+;;; @prereq Static room data is loaded and avatar is positioned.
 .EXPORT Main_Explore_EnterRoom
 .PROC Main_Explore_EnterRoom
     jsr_prga FuncA_Room_InitAllMachinesAndCallRoomEnter
@@ -418,6 +419,10 @@ _UpDownPassage:
 ;;; player avatar is near (if any), or sets bDevice::NoneNearby if the avatar
 ;;; is not near an interactive device.
 .PROC FuncA_Avatar_FindNearbyDevice
+    ;; If the player avatar is hidden, treat them as not near any device.
+    lda Zp_AvatarPose_eAvatar
+    .assert eAvatar::Hidden = 0, error
+    beq @noneNearby
     ;; If the player avatar is airborne, treat them as not near any device.
     bit Zp_AvatarState_bAvatar
     .assert bAvatar::Airborne = bProc::Negative, error

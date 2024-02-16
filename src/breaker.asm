@@ -18,6 +18,7 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "avatar.inc"
+.INCLUDE "boss.inc"
 .INCLUDE "cpu.inc"
 .INCLUDE "cutscene.inc"
 .INCLUDE "device.inc"
@@ -28,12 +29,14 @@
 .INCLUDE "mmc3.inc"
 .INCLUDE "music.inc"
 .INCLUDE "oam.inc"
+.INCLUDE "ppu.inc"
 .INCLUDE "room.inc"
 .INCLUDE "sample.inc"
 .INCLUDE "scroll.inc"
 .INCLUDE "spawn.inc"
 .INCLUDE "tileset.inc"
 
+.IMPORT FuncA_Avatar_SpawnAtDevice
 .IMPORT FuncA_Cutscene_PlaySfxFlipBreaker
 .IMPORT FuncM_SwitchPrgcAndLoadRoom
 .IMPORT FuncM_SwitchPrgcAndLoadRoomWithMusic
@@ -135,13 +138,10 @@ Zp_BreakerBeingActivated_eFlag: .res 1
 .EXPORT Main_Breaker_FadeBackToBreakerRoom
 .PROC Main_Breaker_FadeBackToBreakerRoom
     jsr Func_FadeOutToBlack
-    ;; Un-hide the player avatar.
-    lda #eAvatar::Kneeling
-    sta Zp_AvatarPose_eAvatar
     ;; Reload the room that the breaker was in.
     ldx Zp_Breaker_eRoom  ; param: room to load
     jsr FuncM_SwitchPrgcAndLoadRoom
-    jmp Main_Explore_EnterRoom
+    jmp_prga MainA_Avatar_EnterBossRoomAfterBreaker
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -284,11 +284,6 @@ _BlinkCircuit:
     rts
 .ENDPROC
 
-.EXPORT DataA_Cutscene_SharedFadeBackToBreakerRoom_sCutscene
-.PROC DataA_Cutscene_SharedFadeBackToBreakerRoom_sCutscene
-    act_JumpToMain Main_Breaker_FadeBackToBreakerRoom
-.ENDPROC
-
 ;;;=========================================================================;;;
 
 .SEGMENT "PRGA_Breaker"
@@ -371,7 +366,7 @@ _Cutscene_eRoom_arr:
     d_byte Crypt,  eRoom::MermaidHut1
     d_byte Lava,   eRoom::TownHouse4
     d_byte Mine,   eRoom::GardenShrine
-    d_byte City,   eRoom::MermaidHut1  ; TODO
+    d_byte City,   eRoom::CityCenter
     d_byte Shadow, eRoom::CoreLock
     D_END
 _Cutscene_eCutscene_arr:
@@ -381,7 +376,7 @@ _Cutscene_eCutscene_arr:
     d_byte Crypt,  eCutscene::MermaidHut1BreakerCrypt
     d_byte Lava,   eCutscene::TownHouse4BreakerLava
     d_byte Mine,   eCutscene::GardenShrineBreakerMine
-    d_byte City,   eCutscene::SharedFadeBackToBreakerRoom  ; TODO
+    d_byte City,   eCutscene::CityCenterBreakerCity
     d_byte Shadow, eCutscene::CoreLockBreakerShadow
     D_END
 .ENDPROC
@@ -389,6 +384,7 @@ _Cutscene_eCutscene_arr:
 ;;; Sets up the avatar and room scrolling for the current breaker's cutscene,
 ;;; then jumps to Main_Explore_EnterRoom.
 ;;; @prereq Rendering is disabled.
+;;; @prereq Static room data is loaded.
 .PROC MainA_Breaker_EnterCutsceneRoom
     ;; Hide the player avatar.
     lda #eAvatar::Hidden
@@ -398,34 +394,88 @@ _Cutscene_eCutscene_arr:
     .assert kFirstBreakerFlag > 0, error
     sub #kFirstBreakerFlag
     tay  ; eBreaker value
-    ;; Set room scroll and lock scrolling.
-    lda _ScrollX_u16_0_arr, y
-    sta Zp_RoomScrollX_u16 + 0
-    lda _ScrollX_u16_1_arr, y
-    sta Zp_RoomScrollX_u16 + 1
-    lda #bScroll::LockHorz
-    sta Zp_Camera_bScroll
+    ;; Position the (hidden) player avatar so as to make the room scroll
+    ;; position be what we want.  (We don't want to do this by locking
+    ;; scrolling, because we want e.g. the vertical scroll to be able to shift
+    ;; while the dialog window is open.)
+    lda _AvatarPosX_i16_0_arr, y
+    sta Zp_AvatarPosX_i16 + 0
+    lda _AvatarPosX_i16_1_arr, y
+    sta Zp_AvatarPosX_i16 + 1
+    lda _AvatarPosY_i16_0_arr, y
+    sta Zp_AvatarPosY_i16 + 0
+    lda _AvatarPosY_i16_1_arr, y
+    sta Zp_AvatarPosY_i16 + 1
     jmp Main_Explore_EnterRoom
-_ScrollX_u16_0_arr:
+_AvatarPosX_i16_0_arr:
+    D_ARRAY .enum, eBreaker
+    d_byte Garden, $a8
+    d_byte Temple, $50
+    d_byte Crypt,  $a8
+    d_byte Lava,   $80
+    d_byte Mine,   $88
+    d_byte City,   $f0
+    d_byte Shadow, $90
+    D_END
+_AvatarPosX_i16_1_arr:
     D_ARRAY .enum, eBreaker
     d_byte Garden, $00
-    d_byte Temple, $d0
+    d_byte Temple, $01
     d_byte Crypt,  $00
     d_byte Lava,   $00
-    d_byte Mine,   $08
-    d_byte City,   $00  ; TODO
-    d_byte Shadow, $10
+    d_byte Mine,   $00
+    d_byte City,   $03
+    d_byte Shadow, $00
     D_END
-_ScrollX_u16_1_arr:
+_AvatarPosY_i16_0_arr:
+    D_ARRAY .enum, eBreaker
+    d_byte Garden, $b8
+    d_byte Temple, $b8
+    d_byte Crypt,  $b8
+    d_byte Lava,   $c8
+    d_byte Mine,   $88
+    d_byte City,   $58
+    d_byte Shadow, $c8
+    D_END
+_AvatarPosY_i16_1_arr:
     D_ARRAY .enum, eBreaker
     d_byte Garden, $00
     d_byte Temple, $00
     d_byte Crypt,  $00
     d_byte Lava,   $00
     d_byte Mine,   $00
-    d_byte City,   $00  ; TODO
+    d_byte City,   $01
     d_byte Shadow, $00
     D_END
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Avatar"
+
+;;; Sets the avatar position and pose within the boss room for after a breaker
+;;; cutscene, then jumps to Main_Explore_EnterRoom.
+;;; @prereq Rendering is disabled.
+;;; @prereq Static room data is loaded.
+.PROC MainA_Avatar_EnterBossRoomAfterBreaker
+    ;; Position the player avatar at the breaker device.
+    ldx #kBossBreakerDeviceIndex  ; param: device index
+    jsr FuncA_Avatar_SpawnAtDevice
+    ;; Since the room's Enter function hasn't been called yet, the breaker
+    ;; device is actually still a Placeholder device, which has a different
+    ;; spawn offset than a breaker.  So correct the avatar's X-position within
+    ;; the block.
+    lda Zp_AvatarPosX_i16 + 0
+    .assert kBlockWidthPx = $10, error
+    and #$f0
+    ora #kBreakerAvatarOffset
+    sta Zp_AvatarPosX_i16 + 0
+    ;; Make the player avatar start out kneeling as the room fades in (since
+    ;; that was the pose the avatar was last in when the boss room faded out
+    ;; for the breaker cutscene).
+    lda #eAvatar::Kneeling
+    sta Zp_AvatarPose_eAvatar
+    jmp Main_Explore_EnterRoom
 .ENDPROC
 
 ;;;=========================================================================;;;

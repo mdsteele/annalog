@@ -249,7 +249,7 @@ _ValvePipePlatformIndex_u8_arr4:
 .PROC DataA_Text0_PaperManual3_Page1_u8_arr
     .byte "CPU FIELD MANUAL p.3:$"
     .byte "Every machine has an$"
-    .byte "'A' register that you$"
+    .byte "`A' register that you$"
     .byte "can COPY values into.#"
 .ENDPROC
 

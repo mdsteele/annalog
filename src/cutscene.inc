@@ -38,6 +38,7 @@ kMaxForks = 4
 ;;; The list of cutscenes in the game.
 .ENUM eCutscene
     None
+    CityCenterBreakerCity
     CityFlowerOrcAttack
     CityOutskirtsLook
     CoreBossFinaleReactivate
@@ -57,7 +58,6 @@ kMaxForks = 4
     PrisonUpperBreakerTemple
     PrisonUpperFreeAlex
     PrisonUpperFreeKids
-    SharedFadeBackToBreakerRoom  ; TODO: get rid of this
     SharedFlipBreaker
     SharedTeleportIn
     SharedTeleportOut

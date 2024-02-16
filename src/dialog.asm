@@ -35,6 +35,7 @@
 
 .IMPORT DataA_Dialog_CityBuilding2Screen_sDialog
 .IMPORT DataA_Dialog_CityBuilding6Screen_sDialog
+.IMPORT DataA_Dialog_CityCenterBreakerCity1_sDialog
 .IMPORT DataA_Dialog_CityFlowerOrcAngry_sDialog
 .IMPORT DataA_Dialog_CityFlowerOrcCalm_sDialog
 .IMPORT DataA_Dialog_CityOutskirtsAlex1_sDialog
@@ -425,6 +426,8 @@ _Finish:
     D_TABLE .enum, eDialog
     d_entry t, CityBuilding2Screen,  DataA_Dialog_CityBuilding2Screen_sDialog
     d_entry t, CityBuilding6Screen,  DataA_Dialog_CityBuilding6Screen_sDialog
+    d_entry t, CityCenterBreakerCity1, \
+            DataA_Dialog_CityCenterBreakerCity1_sDialog
     d_entry t, CityFlowerOrcAngry,   DataA_Dialog_CityFlowerOrcAngry_sDialog
     d_entry t, CityFlowerOrcCalm,    DataA_Dialog_CityFlowerOrcCalm_sDialog
     d_entry t, CityOutskirtsAlex1,   DataA_Dialog_CityOutskirtsAlex1_sDialog

@@ -19,12 +19,15 @@
 
 .INCLUDE "../actor.inc"
 .INCLUDE "../charmap.inc"
+.INCLUDE "../cutscene.inc"
 .INCLUDE "../device.inc"
+.INCLUDE "../dialog.inc"
 .INCLUDE "../flag.inc"
 .INCLUDE "../machine.inc"
 .INCLUDE "../machines/semaphore.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../platform.inc"
+.INCLUDE "../portrait.inc"
 .INCLUDE "../ppu.inc"
 .INCLUDE "../program.inc"
 .INCLUDE "../room.inc"
@@ -39,8 +42,10 @@
 .IMPORT FuncA_Room_MachineSemaphoreReset
 .IMPORT Func_GetRandomByte
 .IMPORT Func_Noop
+.IMPORT Func_PlaySfxExplodeBig
 .IMPORT Func_SetFlag
 .IMPORT Func_UnlockDoorDevice
+.IMPORT Main_Breaker_FadeBackToBreakerRoom
 .IMPORT Ppu_ChrObjCity
 .IMPORT Ram_DeviceType_eDevice_arr
 .IMPORT Ram_MachineGoalHorz_u8_arr
@@ -250,6 +255,7 @@ _Platforms_sPlatform_arr:
     .byte ePlatform::None
 _Actors_sActor_arr:
 :   ;; TODO: add some baddies
+    ;; TODO: add Alex/Gronta NPCs for cutscene
     .assert * - :- <= kMaxActors * .sizeof(sActor), error
     .byte eActor::None
 _Devices_sDevice_arr:
@@ -499,6 +505,99 @@ _GenerateKey:
     jsr Func_UnlockDoorDevice
     @done:
     rts
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Cutscene"
+
+.EXPORT DataA_Cutscene_CityCenterBreakerCity_sCutscene
+.PROC DataA_Cutscene_CityCenterBreakerCity_sCutscene
+    act_WaitFrames 60
+    act_RunDialog eDialog::CityCenterBreakerCity1
+    act_WaitFrames 60
+    act_CallFunc Func_PlaySfxExplodeBig
+    act_ShakeRoom 30
+    act_WaitFrames 110
+    act_JumpToMain Main_Breaker_FadeBackToBreakerRoom
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Dialog"
+
+.EXPORT DataA_Dialog_CityCenterBreakerCity1_sDialog
+.PROC DataA_Dialog_CityCenterBreakerCity1_sDialog
+    .assert kTileIdBgPortraitGrontaFirst = kTileIdBgPortraitAlexFirst, error
+    dlg_Text OrcGronta, DataA_Text2_CityCenterBreakerCity_Part1_u8_arr
+    dlg_Text ChildAlex, DataA_Text2_CityCenterBreakerCity_Part2_u8_arr
+    dlg_Text OrcGronta, DataA_Text2_CityCenterBreakerCity_Part3_u8_arr
+    dlg_Text OrcGronta, DataA_Text2_CityCenterBreakerCity_Part4_u8_arr
+    dlg_Text OrcGronta, DataA_Text2_CityCenterBreakerCity_Part5_u8_arr
+    dlg_Text OrcGronta, DataA_Text2_CityCenterBreakerCity_Part6_u8_arr
+    dlg_Text ChildAlex, DataA_Text2_CityCenterBreakerCity_Part7_u8_arr
+    dlg_Text OrcGrontaShout, DataA_Text2_CityCenterBreakerCity_Part8_u8_arr
+    dlg_Done
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Text2"
+
+.PROC DataA_Text2_CityCenterBreakerCity_Part1_u8_arr
+    .byte "Pfagh, you again? If$"
+    .byte "you value your life,$"
+    .byte "boy, you should leave$"
+    .byte "these ruins to us.#"
+.ENDPROC
+
+.PROC DataA_Text2_CityCenterBreakerCity_Part2_u8_arr
+    .byte "You're the ones who'd$"
+    .byte "better leave! This$"
+    .byte "is a human city. It$"
+    .byte "belongs to us!#"
+.ENDPROC
+
+.PROC DataA_Text2_CityCenterBreakerCity_Part3_u8_arr
+    .byte "Oh? And did YOU build$"
+    .byte "these buildings? Did$"
+    .byte "your townsfolk create$"
+    .byte "these machines?#"
+.ENDPROC
+
+.PROC DataA_Text2_CityCenterBreakerCity_Part4_u8_arr
+    .byte "Of course you didn't.$"
+    .byte "The people who did$"
+    .byte "have all been dead$"
+    .byte "for centuries.#"
+.ENDPROC
+
+.PROC DataA_Text2_CityCenterBreakerCity_Part5_u8_arr
+    .byte "Those humans couldn't$"
+    .byte "handle the power they$"
+    .byte "created. And now you$"
+    .byte "think YOU deserve it?#"
+.ENDPROC
+
+.PROC DataA_Text2_CityCenterBreakerCity_Part6_u8_arr
+    .byte "You have less claim$"
+    .byte "than we do. At least$"
+    .byte "orcs never collapsed$"
+    .byte "advanced civilization.#"
+.ENDPROC
+
+.PROC DataA_Text2_CityCenterBreakerCity_Part7_u8_arr
+    .byte "You never created it,$"
+    .byte "either. Humans can$"
+    .byte "learn. And next time,$"
+    .byte "we'll do it right!#"
+.ENDPROC
+
+.PROC DataA_Text2_CityCenterBreakerCity_Part8_u8_arr
+    .byte "`Next time?' There$"
+    .byte "will be a `next time'$"
+    .byte "for humans in charge$"
+    .byte "over my dead body!#"
 .ENDPROC
 
 ;;;=========================================================================;;;

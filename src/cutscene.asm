@@ -27,6 +27,7 @@
 .INCLUDE "mmc3.inc"
 .INCLUDE "oam.inc"
 
+.IMPORT DataA_Cutscene_CityCenterBreakerCity_sCutscene
 .IMPORT DataA_Cutscene_CityFlowerOrcAttack_sCutscene
 .IMPORT DataA_Cutscene_CityOutskirtsLook_sCutscene
 .IMPORT DataA_Cutscene_CoreBossFinaleReactivate_sCutscene
@@ -46,7 +47,6 @@
 .IMPORT DataA_Cutscene_PrisonUpperBreakerTemple_sCutscene
 .IMPORT DataA_Cutscene_PrisonUpperFreeAlex_sCutscene
 .IMPORT DataA_Cutscene_PrisonUpperFreeKids_sCutscene
-.IMPORT DataA_Cutscene_SharedFadeBackToBreakerRoom_sCutscene
 .IMPORT DataA_Cutscene_SharedFlipBreaker_sCutscene
 .IMPORT DataA_Cutscene_SharedTeleportIn_sCutscene
 .IMPORT DataA_Cutscene_SharedTeleportOut_sCutscene
@@ -197,6 +197,8 @@ _Finish:
     D_TABLE_HI table, DataA_Cutscene_Table_sCutscene_ptr_1_arr
     D_TABLE .enum, eCutscene
     d_entry table, None, DataA_Cutscene_Null_sCutscene
+    d_entry table, CityCenterBreakerCity, \
+            DataA_Cutscene_CityCenterBreakerCity_sCutscene
     d_entry table, CityFlowerOrcAttack, \
             DataA_Cutscene_CityFlowerOrcAttack_sCutscene
     d_entry table, CityOutskirtsLook, \
@@ -235,8 +237,6 @@ _Finish:
             DataA_Cutscene_PrisonUpperFreeAlex_sCutscene
     d_entry table, PrisonUpperFreeKids, \
             DataA_Cutscene_PrisonUpperFreeKids_sCutscene
-    d_entry table, SharedFadeBackToBreakerRoom, \
-            DataA_Cutscene_SharedFadeBackToBreakerRoom_sCutscene
     d_entry table, SharedFlipBreaker, \
             DataA_Cutscene_SharedFlipBreaker_sCutscene
     d_entry table, SharedTeleportIn, \

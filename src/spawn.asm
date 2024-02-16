@@ -642,6 +642,7 @@ _EastWest:
 
 ;;; Initializes state for all machines in the current room, then calls the
 ;;; current room's Enter_func_ptr with the last spawn point as an argument.
+;;; @prereq Static room data is loaded and avatar is positioned.
 .EXPORT FuncA_Room_InitAllMachinesAndCallRoomEnter
 .PROC FuncA_Room_InitAllMachinesAndCallRoomEnter
     jsr FuncA_Room_InitAllMachines
