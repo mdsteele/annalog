@@ -231,7 +231,15 @@ _RemoveAlex:
     act_WaitFrames 30
     act_CallFunc Func_PlaySfxExplodeBig
     act_ShakeRoom 30
-    act_WaitFrames 60
+    act_WaitFrames 20
+    act_SetActorFlags kEireneActorIndex, 0
+    act_WaitFrames 10
+    act_SetActorFlags kGuardActorIndex, bObj::FlipH
+    act_WaitFrames 10
+    act_SetActorFlags kEireneActorIndex, bObj::FlipH
+    act_WaitFrames 10
+    act_SetActorFlags kGuardActorIndex, 0
+    act_WaitFrames 40
     act_SetActorState1 kAlexActorIndex, eNpcChild::AlexHolding
     act_RunDialog eDialog::MermaidHut1BreakerCrypt2
     act_JumpToMain Main_Breaker_FadeBackToBreakerRoom
