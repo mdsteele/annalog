@@ -443,6 +443,8 @@ _FreeAlex:
 .EXPORT DataA_Cutscene_PrisonUpperBreakerTemple_sCutscene
 .PROC DataA_Cutscene_PrisonUpperBreakerTemple_sCutscene
     act_WaitFrames 60
+    ;; Shake the room, and make the kids and the guard orc look around in
+    ;; confusion.
     act_CallFunc Func_PlaySfxExplodeBig
     act_ShakeRoom 30
     act_WaitFrames 20
@@ -459,20 +461,25 @@ _FreeAlex:
     act_SetActorFlags kOrc1ActorIndex, 0
     act_WaitFrames 90
     act_SetActorFlags kBrunoActorIndex, bObj::Pri
+    ;; Make a second orc run into the room and deliver a message to the first.
     act_WalkNpcOrc kOrc2ActorIndex, $01b6
-    act_SetActorState1 kOrc2ActorIndex, eNpcOrc::GruntRunning3
+    act_SetActorState1 kOrc2ActorIndex, eNpcOrc::GruntThrowing1
     act_RunDialog eDialog::PrisonUpperBreakerTemple1
+    ;; Make the two orcs exit the room.
     act_ForkStart 1, _Orc2Exit_sCutscene
     act_WalkNpcOrc kOrc1ActorIndex, $01ac
     act_SetActorPosY kOrc1ActorIndex, $00b0
     act_WalkNpcOrc kOrc1ActorIndex, $01e8
     act_WaitFrames 60
+    ;; Make Bruno call out after the guards.
     act_WalkNpcBruno kBrunoActorIndex, $0179
     act_SetActorState1 kBrunoActorIndex, eNpcChild::BrunoStanding
     act_RunDialog eDialog::PrisonUpperBreakerTemple2
     act_WaitFrames 60
     act_JumpToMain Main_Breaker_FadeBackToBreakerRoom
 _Orc2Exit_sCutscene:
+    act_SetActorState1 kOrc2ActorIndex, eNpcOrc::GruntStanding
+    act_WaitFrames 20
     act_WalkNpcOrc kOrc2ActorIndex, $01e8
     act_ForkStop $ff
 .ENDPROC
