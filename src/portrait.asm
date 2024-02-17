@@ -31,6 +31,7 @@
 .PROC DataA_Dialog_PortraitRestBank_u8_arr
     D_ARRAY .enum, ePortrait
     d_byte AdultMan,           kChrBankPortraitManRest
+    d_byte AdultSmith,         kChrBankPortraitManRest
     d_byte AdultWoman,         kChrBankPortraitWomanRest
     d_byte ChildAlex,          kChrBankPortraitAlexRest
     d_byte ChildAlexShout,     kChrBankPortraitAlexTalk
@@ -63,6 +64,7 @@
 .PROC DataA_Dialog_PortraitAnimBank_u8_arr
     D_ARRAY .enum, ePortrait
     d_byte AdultMan,           kChrBankPortraitManTalk
+    d_byte AdultSmith,         kChrBankPortraitManTalk
     d_byte AdultWoman,         kChrBankPortraitWomanTalk
     d_byte ChildAlex,          kChrBankPortraitAlexTalk
     d_byte ChildAlexShout,     kChrBankPortraitAlexRest
@@ -94,6 +96,7 @@
 .PROC DataA_Dialog_PortraitFirstTileId_u8_arr
     D_ARRAY .enum, ePortrait
     d_byte AdultMan,           kTileIdBgPortraitManFirst
+    d_byte AdultSmith,         kTileIdBgPortraitManFirst
     d_byte AdultWoman,         kTileIdBgPortraitWomanFirst
     d_byte ChildAlex,          kTileIdBgPortraitAlexFirst
     d_byte ChildAlexShout,     kTileIdBgPortraitAlexFirst

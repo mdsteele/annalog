@@ -34,6 +34,7 @@
 ;;; Animated dialog portraits for various NPCs and devices.
 .ENUM ePortrait
     AdultMan
+    AdultSmith
     AdultWoman
     ChildAlex
     ChildAlexShout

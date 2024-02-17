@@ -118,6 +118,7 @@ _Continue:
 .PROC DataA_Dialog_SfxDialogTextParam2_bSfxDialog_arr
     D_ARRAY .enum, ePortrait
     d_byte AdultMan,           bSfxDialog::TypePulse14 | (6 << 3) | $2
+    d_byte AdultSmith,         bSfxDialog::TypePulse14 | (6 << 3) | $2
     d_byte AdultWoman,         bSfxDialog::TypePulse14 | (5 << 3) | $2
     d_byte ChildAlex,          bSfxDialog::TypePulse14 | (5 << 3) | $1
     d_byte ChildAlexShout,     bSfxDialog::TypePulse14 | (5 << 3) | $1
@@ -149,6 +150,7 @@ _Continue:
 .PROC DataA_Dialog_SfxDialogTextParam1_u8_arr
     D_ARRAY .enum, ePortrait
     d_byte AdultMan,           $a0
+    d_byte AdultSmith,         $b0
     d_byte AdultWoman,         $00
     d_byte ChildAlex,          $60
     d_byte ChildAlexShout,     $60

@@ -17,14 +17,45 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
-;;; How many bullets must hit a breakable glass tank platform to destroy it.
-kNumHitsToBreakGlass = 4
+.INCLUDE "../apu.inc"
+.INCLUDE "../audio.inc"
+.INCLUDE "../macros.inc"
+.INCLUDE "../sound.inc"
 
-;;; The size of a glass tank platform, in pixels.
-kGlassPlatformWidthPx  = $08
-kGlassPlatformHeightPx = $10
+.IMPORT Func_PlaySfxSequence
 
-;;; OBJ tile IDs for drawing glass tank platforms.
-kTileIdObjGlassFirst = $80
+;;;=========================================================================;;;
+
+.SEGMENT "PRG8"
+
+;;; SFX sequence data for the "metallic ding" sound effect.
+.PROC Data_MetallicDing_sSfxSeq_arr
+    D_STRUCT sSfxSeq
+    d_byte Duration_u8, 4
+    d_byte Env_bEnvelope, bEnvelope::Duty18 | bEnvelope::NoLength | 7
+    d_byte Sweep_byte, pulse_sweep +0, 0
+    d_word Timer_u16, $00f7
+    D_END
+    D_STRUCT sSfxSeq
+    d_byte Duration_u8, 40
+    d_byte Env_bEnvelope, bEnvelope::Duty14 | bEnvelope::NoLength | 9
+    d_byte Sweep_byte, pulse_sweep +0, 0
+    d_word Timer_u16, $00f5
+    D_END
+    .byte 0
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Room"
+
+;;; Starts playing a metallic "ding" sound.
+;;; @preserve T0+
+.EXPORT FuncA_Room_PlaySfxMetallicDing
+.PROC FuncA_Room_PlaySfxMetallicDing
+    ldx #eChan::Pulse2
+    ldya #Data_MetallicDing_sSfxSeq_arr
+    jmp Func_PlaySfxSequence  ; preserves T0+
+.ENDPROC
 
 ;;;=========================================================================;;;

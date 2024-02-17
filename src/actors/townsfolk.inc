@@ -29,6 +29,9 @@
 ;;; The first tile IDs for various adults.
 kTileIdAdultWomanFirst = $d0
 kTileIdAdultManFirst   = $d6
+kTileIdAdultSmithFirst = $b8
+kTileIdAdultSmith1     = kTileIdAdultSmithFirst + 0
+kTileIdAdultSmith2     = kTileIdAdultSmithFirst + 6
 
 ;;; The first tile IDs for various mermaids.
 kTileIdCorraSwimmingDownFirst = $e0
@@ -38,13 +41,13 @@ kTileIdCorraSwimmingUpFirst   = $f0
 kTileIdCorraSwimmingUp1       = kTileIdCorraSwimmingUpFirst + 0
 kTileIdCorraSwimmingUp2       = kTileIdCorraSwimmingUpFirst + 8
 kTileIdMermaidCorraFirst      = $aa
-kTileIdMermaidFloristFirst    = $94
-kTileIdMermaidDaphneFirst     = $9a
+kTileIdMermaidFloristFirst    = $92
+kTileIdMermaidDaphneFirst     = $98
 kTileIdMermaidGhostFirst      = $c0
-kTileIdMermaidGuardFFirst     = $a0
-kTileIdMermaidGuardMFirst     = $82
-kTileIdMermaidPhoebeFirst     = $88
-kTileIdMermaidFarmerFirst     = $8e
+kTileIdMermaidGuardFFirst     = $9e
+kTileIdMermaidGuardMFirst     = $80
+kTileIdMermaidPhoebeFirst     = $86
+kTileIdMermaidFarmerFirst     = $8c
 kTileIdMermaidQueenFirst      = $b0
 
 ;;; Mermaid first tile IDs of this or more must be drawn 2x4 instead of 2x3.

@@ -35,6 +35,7 @@
 .INCLUDE "../portrait.inc"
 .INCLUDE "../ppu.inc"
 .INCLUDE "../room.inc"
+.INCLUDE "../scroll.inc"
 
 .IMPORT DataA_Room_Outdoors_sTileset
 .IMPORT Data_Empty_sPlatform_arr
@@ -63,6 +64,7 @@
 .IMPORTZP Zp_AvatarHarmTimer_u8
 .IMPORTZP Zp_AvatarState_bAvatar
 .IMPORTZP Zp_Buffered_sIrq
+.IMPORTZP Zp_Camera_bScroll
 .IMPORTZP Zp_NextIrq_int_ptr
 .IMPORTZP Zp_Next_eCutscene
 .IMPORTZP Zp_PpuScrollX_u8
@@ -346,7 +348,7 @@ _AlexStanding:
     .assert kTileIdBgPortraitGrontaFirst = kTileIdBgPortraitAlexFirst, error
     dlg_Text ChildAlex, DataA_Text0_TownOutdoorsAlex3_Explore1_u8_arr
     dlg_Text ChildAlex, DataA_Text0_TownOutdoorsAlex3_Explore2_u8_arr
-    dlg_Call _ScrollOrcsIntoView
+    dlg_Call DataC_Town_OutdoorsScrollOrcsIntoView
     dlg_Text OrcGronta, DataA_Text0_TownOutdoorsAlex3_HandleThis_u8_arr
     dlg_Call _TurnKidsAround
     dlg_Text ChildAlex, DataA_Text0_TownOutdoorsAlex3_WhaWhat_u8_arr
@@ -355,10 +357,6 @@ _AlexStanding:
     dlg_Text ChildAlexShout, DataA_Text0_TownOutdoorsAlex3_Attack2_u8_arr
     dlg_Call _MakeOrcGruntsJump
     dlg_Done
-_ScrollOrcsIntoView:
-    ldax #$0500
-    stax Zp_ScrollGoalX_u16
-    rts
 _TurnKidsAround:
     ;; Make Anna turn to face the orcs.
     lda #kPaletteObjAvatarNormal
@@ -383,10 +381,16 @@ _MakeOrcGruntsJump:
 .EXPORT DataC_Town_TownOutdoorsGronta_sDialog
 .PROC DataC_Town_TownOutdoorsGronta_sDialog
     .assert kTileIdBgPortraitGrontaFirst = kTileIdBgPortraitOrcFirst, error
+    dlg_Call DataC_Town_OutdoorsScrollOrcsIntoView
     dlg_Text OrcGronta, DataA_Text0_TownOutdoorsGronta_Search1_u8_arr
     dlg_Text OrcGronta, DataA_Text0_TownOutdoorsGronta_Search2_u8_arr
     dlg_Text OrcMale, DataA_Text0_TownOutdoorsGronta_YesChief_u8_arr
+    dlg_Call _LockScrolling
     dlg_Done
+_LockScrolling:
+    lda #bScroll::LockHorz
+    sta Zp_Camera_bScroll
+    rts
 .ENDPROC
 
 .EXPORT DataC_Town_TownOutdoorsIvan_sDialog
@@ -407,6 +411,13 @@ _MakeOrcGruntsJump:
 .PROC DataC_Town_TownOutdoorsSign_sDialog
     dlg_Text Sign, DataA_Text0_TownOutdoorsSign_u8_arr
     dlg_Done
+.ENDPROC
+
+;;; Sets Zp_ScrollGoalX_u16 to make Gronta (and the orcs next to her) visible.
+.PROC DataC_Town_OutdoorsScrollOrcsIntoView
+    ldax #$0500
+    stax Zp_ScrollGoalX_u16
+    rts
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -609,7 +620,6 @@ _InitOrcs:
     act_WaitFrames 4
     act_SetAvatarPose eAvatar::Sleeping
     act_WaitFrames 120
-    ;; TODO: make Chief Gronta walk onscreen
     act_RunDialog eDialog::TownOutdoorsGronta
     act_JumpToMain Main_LoadPrisonCellAndStartCutscene
 _AnnaHasLanded:
@@ -617,6 +627,10 @@ _AnnaHasLanded:
     and #bAvatar::Airborne
     rts
 _SetHarmTimer:
+    lda #kAvatarHarmHealFrames - kAvatarHarmInvincibleFrames - 1
+    sta Zp_AvatarHarmTimer_u8
+    rts
+_ScrollToGronta:
     lda #kAvatarHarmHealFrames - kAvatarHarmInvincibleFrames - 1
     sta Zp_AvatarHarmTimer_u8
     rts
