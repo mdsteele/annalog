@@ -1,21 +1,22 @@
-@BG 0 0 0 33x15
+@BG 0 0 0 17x15
 >mine_0
 >mine_1
 >mine_4
 >mine_5
+>mine_6
 
-CMCMCMCMCMCMCMCMCMCMCMCMCMCMCMCMCMCMCMCMCMCMCMCMCMCMCMCMCMCMCMCMCM
-CMCMCMCICFCFCFCFCFCFCFCFCJCICFCFCFCFCFCFCFCFCFCFCFCFCFCFCFCFCFCJCM
-CICFCFCDAFAFAFAFAFAFAFAFCCCD                                  CGCM
-CH                                                            CGCM
-CH                                                            CGCM
-CKDADBDBDH                                                    CGCM
-CMCMCOCPCH                                                    CGCM
-CMCNCMCMCH                                                    CGCM
-CMCMCMCPCH                                                    CGCM
-CICFCFCFCD                                                    CCCF
-CH      CC
-CH  AE                  ABAB
-CH  AG                CACECECB                            CACECECE
-CKCECECECECECECECECECECLCMCMCKCECECECECECECECECECECECECECECLCMCMCM
-CMCMCMCMCMCMCMCMCMCMCMCMCMCMCMCMCMCMCMCMCMCMCMCMCMCMCMCMCMCMCMCMCM
+CMCMCMCMCMCMCNCMCMCMCMCMCMCMCMCMCM
+CMCMCICFCFCFCFCFCFCCCFCFCJCMCMCMCM
+CMCMCDAFAFAFAFAFAFAFAFAFCCCFCJCNCM
+CMCPCH        AM            CGCMCM
+CFCFCD                      CCCOCM
+        DM        AO        CGCPCM
+DBDBDBDCCH              AM  CCCFCF
+CMCMCOCMCH
+CMCMCMCPCHAN
+CMCICFCFCD                  AN
+CMCH  AE          AN
+CMCH  AG      AP        ABABCACECE
+CMCKEFEGEEEB          EAEGEFCLCMCM
+CMCMCNCMCOCKCECECECECECLCOCMCOCMCM
+CMCMCMCMCMCMCMCMCMCOCMCMCMCMCMCMCM

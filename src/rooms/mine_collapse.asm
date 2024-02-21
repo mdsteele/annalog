@@ -43,11 +43,13 @@
 .IMPORT Func_MovePlatformLeftTowardPointX
 .IMPORT Func_MovePlatformTopTowardPointY
 .IMPORT Func_Noop
+.IMPORT Ppu_ChrBgAnimB0
 .IMPORT Ppu_ChrObjMine
 .IMPORT Ram_MachineGoalHorz_u8_arr
 .IMPORT Ram_MachineGoalVert_u8_arr
 .IMPORT Ram_PlatformLeft_i16_0_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
+.IMPORTZP Zp_Chr04Bank_u8
 .IMPORTZP Zp_PointX_i16
 .IMPORTZP Zp_PointY_i16
 
@@ -95,7 +97,7 @@ kTrolleyMaxPlatformLeft = \
 .PROC DataC_Mine_Collapse_sRoom
     D_STRUCT sRoom
     d_byte MinScrollX_u8, $00
-    d_word MaxScrollX_u16, $100
+    d_word MaxScrollX_u16, $0000
     d_byte Flags_bRoom, eArea::Mine
     d_byte MinimapStartRow_u8, 9
     d_byte MinimapStartCol_u8, 18
@@ -115,11 +117,11 @@ _Ext_sRoomExt:
     d_addr Enter_func_ptr, Func_Noop
     d_addr FadeIn_func_ptr, Func_Noop
     d_addr Tick_func_ptr, Func_Noop
-    d_addr Draw_func_ptr, Func_Noop
+    d_addr Draw_func_ptr, DataC_Mine_Collapse_DrawRoom
     D_END
 _TerrainData:
 :   .incbin "out/rooms/mine_collapse.room"
-    .assert * - :- = 33 * 15, error
+    .assert * - :- = 17 * 15, error
 _Machines_sMachine_arr:
 :   .assert * - :- = kTrolleyMachineIndex * .sizeof(sMachine), error
     D_STRUCT sMachine
@@ -194,8 +196,8 @@ _Devices_sDevice_arr:
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Door1Unlocked
-    d_byte BlockRow_u8, 12
-    d_byte BlockCol_u8, 2
+    d_byte BlockRow_u8, 11
+    d_byte BlockCol_u8, 3
     d_byte Target_byte, eRoom::BossMine
     D_END
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
@@ -203,11 +205,17 @@ _Devices_sDevice_arr:
 _Passages_sPassage_arr:
 :   D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Eastern | 0
-    d_byte Destination_eRoom, eRoom::MineCollapse  ; TODO
-    d_byte SpawnBlock_u8, 11
+    d_byte Destination_eRoom, eRoom::MineTunnel
+    d_byte SpawnBlock_u8, 10
     d_byte SpawnAdjust_byte, 0
     D_END
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
+.ENDPROC
+
+.PROC DataC_Mine_Collapse_DrawRoom
+    lda #<.bank(Ppu_ChrBgAnimB0)
+    sta Zp_Chr04Bank_u8
+    rts
 .ENDPROC
 
 .PROC FuncC_Mine_CollapseTrolley_InitReset

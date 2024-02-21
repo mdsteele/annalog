@@ -132,6 +132,7 @@ kMaxPassages = 8
     MineNorth
     MinePit
     MineSouth
+    MineTunnel
     MineWest
     PrisonCell
     PrisonCrossroad
