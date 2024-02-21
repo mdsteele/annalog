@@ -34,6 +34,7 @@
 .IMPORT DataC_Title_Title_sMusic
 .IMPORT Func_AckIrqAndSetLatch
 .IMPORT Func_AllocOneObject
+.IMPORT Func_BufferPpuTransfer
 .IMPORT Func_ClearRestOfOamAndProcessFrame
 .IMPORT Func_FadeInFromBlack
 .IMPORT Func_FadeOutToBlack
@@ -45,6 +46,7 @@
 .IMPORT Func_Sine
 .IMPORT Func_Window_Disable
 .IMPORT Main_Explore_SpawnInLastSafeRoom
+.IMPORT Ppu_ChrBgFontUpper
 .IMPORT Ppu_ChrBgTitle
 .IMPORT Ppu_ChrObjPause
 .IMPORT Ram_Oam_sObj_arr64
@@ -53,6 +55,7 @@
 .IMPORT Sram_MagicNumber_u8
 .IMPORT Sram_Minimap_u16_arr
 .IMPORTZP Zp_Buffered_sIrq
+.IMPORTZP Zp_Chr04Bank_u8
 .IMPORTZP Zp_FrameCounter_u8
 .IMPORTZP Zp_Next_sAudioCtrl
 .IMPORTZP Zp_P1ButtonsPressed_bJoypad
@@ -101,6 +104,16 @@ kTileIdBgTitleMenuLine = $a5
 
 ;;; The OBJ palette number used for title screen menu items.
 kPaletteObjTitleMenuItem = 0
+
+;;; The length of the confirmation message for deleting a saved game, in tiles.
+.DEFINE kAreYouSureLength 26
+
+;;; The PPU address in the upper nametable for the start of the confirmation
+;;; message for deleting a saved game.
+.LINECONT +
+Ppu_TitleAreYouSureStart = Ppu_Nametable0_sName + sName::Tiles_u8_arr + \
+    kScreenWidthTiles * 20 + (kScreenWidthTiles - kAreYouSureLength) / 2
+.LINECONT -
 
 ;;; Title screen menu items that can be selected.
 .ENUM eTitle
@@ -220,6 +233,25 @@ Ram_TitleLetterOffset_i8_arr: .res .sizeof(DataA_Title_Letters_u8_arr)
     .assert * - :- = kScreenWidthTiles * 3, error
 .ENDPROC
 
+;;; The PPU transfer entry for displaying the confirmation message for deleting
+;;; a saved game.
+.PROC DataA_Title_AreYouSureTransfer_arr
+    .byte kPpuCtrlFlagsHorz
+    .dbyt Ppu_TitleAreYouSureStart  ; transfer destination
+    .byte kAreYouSureLength         ; transfer length
+:   .byte "DELETE EXISTING SAVE DATA?"
+    .assert * - :- = kAreYouSureLength, error
+.ENDPROC
+
+;;; The PPU transfer entry for hiding the confirmation message for deleting a
+;;; saved game.
+.PROC DataA_Title_DoneConfirmTransfer_arr
+    .byte kPpuCtrlFlagsHorz
+    .dbyt Ppu_TitleAreYouSureStart  ; transfer destination
+    .byte kAreYouSureLength         ; transfer length
+    .res kAreYouSureLength, ' '
+.ENDPROC
+
 ;;; Mode for displaying the title screen.
 ;;; @prereq PRGC_Title is loaded.
 ;;; @prereq Rendering is disabled.
@@ -228,6 +260,7 @@ Ram_TitleLetterOffset_i8_arr: .res .sizeof(DataA_Title_Letters_u8_arr)
 _GameLoop:
     jsr FuncA_Title_DrawMenu
     jsr Func_ClearRestOfOamAndProcessFrame
+    jsr Func_GetRandomByte  ; tick the RNG (and discard the result)
     jsr FuncA_Title_TickMenu
     ;; Check Up button.
     lda Zp_P1ButtonsPressed_bJoypad
@@ -252,9 +285,7 @@ _GameLoop:
     ;; Check START button.
     lda Zp_P1ButtonsPressed_bJoypad
     and #bJoypad::Start
-    bne _HandleMenuItem
-    jsr Func_GetRandomByte  ; tick the RNG (and discard the result)
-    jmp _GameLoop
+    beq _GameLoop
 _HandleMenuItem:
     ldy Zp_Current_eTitle
     lda _JumpTable_ptr_0_arr, y
@@ -279,6 +310,9 @@ _MenuItemNewGame:
     cmp #kSaveMagicNumber
     bne _BeginNewGame
     ;; Otherwise, ask for confirmation before erasing the saved game.
+    ldax #DataA_Title_AreYouSureTransfer_arr  ; param: data pointer
+    ldy #.sizeof(DataA_Title_AreYouSureTransfer_arr)  ; param: data length
+    jsr Func_BufferPpuTransfer
     lda #eTitle::NewCancel
     sta Zp_Current_eTitle
     sta Zp_First_eTitle
@@ -302,6 +336,9 @@ _MenuItemDelete:
     sty Hw_Mmc3PrgRamProtect_wo
     ;; TODO: play a sound
 _MenuItemCancel:
+    ldax #DataA_Title_DoneConfirmTransfer_arr  ; param: data pointer
+    ldy #.sizeof(DataA_Title_DoneConfirmTransfer_arr)  ; param: data length
+    jsr Func_BufferPpuTransfer
     ldx #eTitle::TopCredits
     stx Zp_Last_eTitle
     .assert eTitle::TopNew = eTitle::TopCredits - 1, error
@@ -329,6 +366,8 @@ _MenuItemContinue:
     jsr Func_Window_Disable
     main_chr08_bank Ppu_ChrBgTitle
     main_chr10_bank Ppu_ChrObjPause
+    lda #<.bank(Ppu_ChrBgFontUpper)
+    sta Zp_Chr04Bank_u8
 _StartMusic:
     lda #$ff
     sta Zp_Next_sAudioCtrl + sAudioCtrl::Enable_bool
