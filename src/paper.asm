@@ -24,6 +24,7 @@
 .INCLUDE "macros.inc"
 .INCLUDE "mmc3.inc"
 .INCLUDE "oam.inc"
+.INCLUDE "pause.inc"
 .INCLUDE "portrait.inc"
 .INCLUDE "ppu.inc"
 .INCLUDE "room.inc"
@@ -63,7 +64,7 @@ kTileIdBgPaperTopRight     = $be
 kTileIdBgPaperBottomRight  = $bf
 
 ;;; The OBJ tile ID for drawing the papers window cursor.
-kTileIdObjPaperCursor = $8c
+kTileIdObjPaperCursor = kTileIdObjPauseFirst + $0c
 ;;; The OBJ palette number for the papers window cursor.
 kPaletteObjPaperCursor = 1
 

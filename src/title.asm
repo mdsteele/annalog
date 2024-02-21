@@ -18,42 +18,57 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "audio.inc"
+.INCLUDE "charmap.inc"
 .INCLUDE "flag.inc"
+.INCLUDE "irq.inc"
 .INCLUDE "joypad.inc"
 .INCLUDE "macros.inc"
 .INCLUDE "mmc3.inc"
 .INCLUDE "music.inc"
+.INCLUDE "oam.inc"
 .INCLUDE "ppu.inc"
 .INCLUDE "program.inc"
 .INCLUDE "room.inc"
 .INCLUDE "spawn.inc"
 
 .IMPORT DataC_Title_Title_sMusic
-.IMPORT FuncA_Upgrade_ComputeMaxInstructions
+.IMPORT Func_AckIrqAndSetLatch
+.IMPORT Func_AllocOneObject
 .IMPORT Func_ClearRestOfOamAndProcessFrame
 .IMPORT Func_FadeInFromBlack
 .IMPORT Func_FadeOutToBlack
+.IMPORT Func_FillLowerAttributeTable
 .IMPORT Func_FillUpperAttributeTable
 .IMPORT Func_GetRandomByte
 .IMPORT Func_SetFlag
+.IMPORT Func_SignedDivFrac
+.IMPORT Func_Sine
 .IMPORT Func_Window_Disable
 .IMPORT Main_Explore_SpawnInLastSafeRoom
 .IMPORT Ppu_ChrBgTitle
+.IMPORT Ppu_ChrObjPause
+.IMPORT Ram_Oam_sObj_arr64
 .IMPORT Sram_LastSafe_bSpawn
 .IMPORT Sram_LastSafe_eRoom
 .IMPORT Sram_MagicNumber_u8
 .IMPORT Sram_Minimap_u16_arr
+.IMPORTZP Zp_Buffered_sIrq
+.IMPORTZP Zp_FrameCounter_u8
 .IMPORTZP Zp_Next_sAudioCtrl
 .IMPORTZP Zp_P1ButtonsPressed_bJoypad
 .IMPORTZP Zp_PpuScrollX_u8
 .IMPORTZP Zp_PpuScrollY_u8
 .IMPORTZP Zp_Render_bPpuMask
+.IMPORT __SRAM_SIZE__
+.IMPORT __SRAM_START__
 
 ;;;=========================================================================;;;
 
 ;;; The starting location for a new game.
 kStartingRoom = eRoom::TownHouse2
 kStartingSpawn = bSpawn::Device | 0
+
+;;;=========================================================================;;;
 
 ;;; The nametable tile row (of the upper nametable) that the game title starts
 ;;; on.
@@ -68,6 +83,123 @@ Ppu_TitleTopLeft = Ppu_Nametable0_sName + sName::Tiles_u8_arr + \
 
 ;;;=========================================================================;;;
 
+;;; The higher the number, the more slowly the tile screen menu line tracks
+;;; towards the currently-selected menu item.
+.DEFINE kMenuLineYSlowdown 2
+
+;;; The base screen Y-position for the topmost title screen menu item.
+kTitleMenuFirstItemY = $98
+
+;;; The stride height, in pixels, between adjacent menu items.
+kTitleMenuItemStridePx = 16
+
+;;; The gap width, in tiles, in the middle of the title menu line.
+kTitleMenuLineGapTiles = 8
+
+;;; The BG tile ID used for drawing the title screen menu line.
+kTileIdBgTitleMenuLine = $a5
+
+;;; The OBJ palette number used for title screen menu items.
+kPaletteObjTitleMenuItem = 0
+
+;;; Title screen menu items that can be selected.
+.ENUM eTitle
+    TopContinue
+    TopNew
+    TopCredits
+    NewCancel
+    NewDelete
+    NUM_VALUES
+.ENDENUM
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Title"
+
+;;; The concatenated string data for all title screen menu items.
+.PROC DataA_Title_Letters_u8_arr
+.PROC Continue
+    .byte "CONTINUE"
+.ENDPROC
+.PROC NewGame
+    .byte "NEW GAME"
+.ENDPROC
+.PROC Credits
+    .byte "CREDITS"
+.ENDPROC
+.PROC Cancel
+    .byte "CANCEL"
+.ENDPROC
+.PROC Delete
+    .byte "DELETE"
+.ENDPROC
+.ENDPROC
+
+;;; Maps from eTitle values to byte offsets into DataA_Title_Letters_u8_arr and
+;;; Ram_TitleLetterOffset_i8_arr for each menu item.
+.PROC DataA_Title_MenuItemOffset_u8_arr
+    .linecont +
+    D_ARRAY .enum, eTitle
+    d_byte TopContinue, \
+           DataA_Title_Letters_u8_arr::Continue - DataA_Title_Letters_u8_arr
+    d_byte TopNew, \
+           DataA_Title_Letters_u8_arr::NewGame  - DataA_Title_Letters_u8_arr
+    d_byte TopCredits, \
+           DataA_Title_Letters_u8_arr::Credits  - DataA_Title_Letters_u8_arr
+    d_byte NewCancel, \
+           DataA_Title_Letters_u8_arr::Cancel   - DataA_Title_Letters_u8_arr
+    d_byte NewDelete, \
+           DataA_Title_Letters_u8_arr::Delete   - DataA_Title_Letters_u8_arr
+    D_END
+    .linecont -
+.ENDPROC
+
+;;; Maps from eTitle values to string lengths in bytes for each menu item.
+.PROC DataA_Title_MenuItemLength_u8_arr
+    D_ARRAY .enum, eTitle
+    d_byte TopContinue, .sizeof(DataA_Title_Letters_u8_arr::Continue)
+    d_byte TopNew,      .sizeof(DataA_Title_Letters_u8_arr::NewGame)
+    d_byte TopCredits,  .sizeof(DataA_Title_Letters_u8_arr::Credits)
+    d_byte NewCancel,   .sizeof(DataA_Title_Letters_u8_arr::Cancel)
+    d_byte NewDelete,   .sizeof(DataA_Title_Letters_u8_arr::Delete)
+    D_END
+.ENDPROC
+
+;;; Maps from eTitle values to the base screen Y-position for each menu item.
+.PROC DataA_Title_MenuItemPosY_u8_arr
+    D_ARRAY .enum, eTitle
+    d_byte TopContinue, 0 * kTitleMenuItemStridePx + kTitleMenuFirstItemY
+    d_byte TopNew,      1 * kTitleMenuItemStridePx + kTitleMenuFirstItemY
+    d_byte TopCredits,  2 * kTitleMenuItemStridePx + kTitleMenuFirstItemY
+    d_byte NewCancel,   2 * kTitleMenuItemStridePx + kTitleMenuFirstItemY
+    d_byte NewDelete,   3 * kTitleMenuItemStridePx + kTitleMenuFirstItemY
+    D_END
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.ZEROPAGE
+
+;;; The first and last menu items currently selectable on the title screen.
+Zp_First_eTitle: .res 1
+Zp_Last_eTitle: .res 1
+
+;;; The currently-selected title screen menu item.
+Zp_Current_eTitle: .res 1
+
+;;; The current Y-position for the title screen menu line.
+Zp_TitleMenuLinePosY_u8: .res 1
+
+;;;=========================================================================;;;
+
+.SEGMENT "RAM_Title"
+
+;;; The current vertical offset, in pixels, from the base Y-position for each
+;;; letter of each title menu item.
+Ram_TitleLetterOffset_i8_arr: .res .sizeof(DataA_Title_Letters_u8_arr)
+
+;;;=========================================================================;;;
+
 .SEGMENT "PRG8"
 
 ;;; Mode for displaying the title screen.
@@ -75,28 +207,7 @@ Ppu_TitleTopLeft = Ppu_Nametable0_sName + sName::Tiles_u8_arr + \
 .EXPORT Main_Title
 .PROC Main_Title
     main_prgc #<.bank(DataC_Title_Title_sMusic)
-    jsr_prga FuncA_Title_Init
-_GameLoop:
-    ;; TODO: For testing, allow triggering sound effects (remove this later).
-.IF 0
-    lda Zp_P1ButtonsPressed_bJoypad
-    and #bJoypad::AButton
-    beq @noSound
-    jsr_prga FuncA_Actor_PlaySfxBounce
-    @noSound:
-.ENDIF
-    ;; Check START button.
-    lda Zp_P1ButtonsPressed_bJoypad
-    and #bJoypad::Start
-    bne _StartGame
-    jsr Func_ClearRestOfOamAndProcessFrame
-    jsr Func_GetRandomByte  ; tick the RNG (and discard the result)
-    jmp _GameLoop
-_StartGame:
-    jsr Func_FadeOutToBlack
-    jsr_prga FuncA_Title_ResetSramForNewGame
-    jsr_prga FuncA_Upgrade_ComputeMaxInstructions
-    jmp Main_Explore_SpawnInLastSafeRoom
+    jmp_prga MainA_Title_Menu
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -109,37 +220,130 @@ _StartGame:
     .assert * - :- = kScreenWidthTiles * 3, error
 .ENDPROC
 
-;;; Initializes title mode, then fades in the screen.
+;;; Mode for displaying the title screen.
+;;; @prereq PRGC_Title is loaded.
 ;;; @prereq Rendering is disabled.
-.PROC FuncA_Title_Init
+.PROC MainA_Title_Menu
+    jsr FuncA_Title_InitAndFadeIn
+_GameLoop:
+    jsr FuncA_Title_DrawMenu
+    jsr Func_ClearRestOfOamAndProcessFrame
+    jsr FuncA_Title_TickMenu
+    ;; Check Up button.
+    lda Zp_P1ButtonsPressed_bJoypad
+    and #bJoypad::Up
+    beq @noUp
+    lda Zp_Current_eTitle
+    cmp Zp_First_eTitle
+    beq @noUp
+    dec Zp_Current_eTitle
+    ;; TODO: play a sound
+    @noUp:
+    ;; Check Down button.
+    lda Zp_P1ButtonsPressed_bJoypad
+    and #bJoypad::Down
+    beq @noDown
+    lda Zp_Current_eTitle
+    cmp Zp_Last_eTitle
+    beq @noDown
+    inc Zp_Current_eTitle
+    ;; TODO: play a sound
+    @noDown:
+    ;; Check START button.
+    lda Zp_P1ButtonsPressed_bJoypad
+    and #bJoypad::Start
+    bne _HandleMenuItem
+    jsr Func_GetRandomByte  ; tick the RNG (and discard the result)
+    jmp _GameLoop
+_HandleMenuItem:
+    ldy Zp_Current_eTitle
+    lda _JumpTable_ptr_0_arr, y
+    sta T0
+    lda _JumpTable_ptr_1_arr, y
+    sta T1
+    jmp (T1T0)
+.REPEAT 2, table
+    D_TABLE_LO table, _JumpTable_ptr_0_arr
+    D_TABLE_HI table, _JumpTable_ptr_1_arr
+    D_TABLE .enum, eTitle
+    d_entry table, TopContinue, _MenuItemContinue
+    d_entry table, TopNew,      _MenuItemNewGame
+    d_entry table, TopCredits,  _GameLoop  ; TODO
+    d_entry table, NewCancel,   _MenuItemCancel
+    d_entry table, NewDelete,   _MenuItemDelete
+    D_END
+.ENDREPEAT
+_MenuItemNewGame:
+    ;; If no save file exists, go ahead and start a new game.
+    lda Sram_MagicNumber_u8
+    cmp #kSaveMagicNumber
+    bne _BeginNewGame
+    ;; Otherwise, ask for confirmation before erasing the saved game.
+    lda #eTitle::NewCancel
+    sta Zp_Current_eTitle
+    sta Zp_First_eTitle
+    lda #eTitle::NewDelete
+    sta Zp_Last_eTitle
+    .assert eTitle::NewDelete > 0, error
+    bne _GameLoop  ; unconditional
+_BeginNewGame:
+    jsr Func_FadeOutToBlack
+    jsr FuncA_Title_ResetSramForNewGame
+    jmp Main_Explore_SpawnInLastSafeRoom
+_MenuItemDelete:
+    lda #<~kSaveMagicNumber
+    ;; Enable writes to SRAM.
+    ldy #bMmc3PrgRam::Enable
+    sty Hw_Mmc3PrgRamProtect_wo
+    ;; Erase the saved game.
+    sta Sram_MagicNumber_u8
+    ;; Disable writes to SRAM.
+    ldy #bMmc3PrgRam::Enable | bMmc3PrgRam::DenyWrites
+    sty Hw_Mmc3PrgRamProtect_wo
+    ;; TODO: play a sound
+_MenuItemCancel:
+    ldx #eTitle::TopCredits
+    stx Zp_Last_eTitle
+    .assert eTitle::TopNew = eTitle::TopCredits - 1, error
+    dex  ; now X is eTitle::TopNew
+    stx Zp_Current_eTitle
+    lda Sram_MagicNumber_u8
+    cmp #kSaveMagicNumber
+    bne @setFirstItem  ; no save file exists
+    .assert eTitle::TopContinue = eTitle::TopNew - 1, error
+    dex  ; now X is eTitle::TopContinue
+    @setFirstItem:
+    stx Zp_First_eTitle
+    .assert eTitle::NUM_VALUES <= $80, error
+    jmp _GameLoop
+_MenuItemContinue:
+    ;; TODO: play a sound
+    jsr Func_FadeOutToBlack
+    jmp Main_Explore_SpawnInLastSafeRoom
+.ENDPROC
+
+;;; Initializes title mode, then fades in the screen.
+;;; @prereq PRGC_Title is loaded.
+;;; @prereq Rendering is disabled.
+.PROC FuncA_Title_InitAndFadeIn
     jsr Func_Window_Disable
     main_chr08_bank Ppu_ChrBgTitle
+    main_chr10_bank Ppu_ChrObjPause
 _StartMusic:
     lda #$ff
     sta Zp_Next_sAudioCtrl + sAudioCtrl::Enable_bool
     sta Zp_Next_sAudioCtrl + sAudioCtrl::MasterVolume_u8
     lda #eMusic::Title
     sta Zp_Next_sAudioCtrl + sAudioCtrl::Music_eMusic
-_ClearUpperNametable:
-    lda #kPpuCtrlFlagsHorz
-    sta Hw_PpuCtrl_wo
-    ldax #Ppu_Nametable0_sName + sName::Tiles_u8_arr
-    bit Hw_PpuStatus_ro  ; reset the Hw_PpuAddr_w2 write-twice latch
-    sta Hw_PpuAddr_w2
-    stx Hw_PpuAddr_w2
-    lda #0
-    ldxy #kScreenWidthTiles * kScreenHeightTiles
-    @loop:
-    sta Hw_PpuData_rw
-    dey
-    bne @loop
-    dex
-    bpl @loop
-_DrawTitle:
+_ClearNametables:
+    ldxy #Ppu_Nametable0_sName  ; param: nametable addr
+    jsr FuncA_Title_ClearNametableTiles
+    ldxy #Ppu_Nametable3_sName  ; param: nametable addr
+    jsr FuncA_Title_ClearNametableTiles
+_DrawTitleLogoBgTiles:
     lda #kPpuCtrlFlagsHorz
     sta Hw_PpuCtrl_wo
     ldax #Ppu_TitleTopLeft
-    bit Hw_PpuStatus_ro  ; reset the Hw_PpuAddr_w2 write-twice latch
     sta Hw_PpuAddr_w2
     stx Hw_PpuAddr_w2
     ldy #.sizeof(DataA_Title_Map_u8_arr)
@@ -150,16 +354,221 @@ _DrawTitle:
     inx
     dey
     bne @loop
-_InitAttributeTable:
+_DrawMenuLineBgTiles:
+    lda #kPpuCtrlFlagsHorz
+    sta Hw_PpuCtrl_wo
+    ldax #Ppu_Nametable3_sName + sName::Tiles_u8_arr
+    sta Hw_PpuAddr_w2
+    stx Hw_PpuAddr_w2
+    lda #kTileIdBgTitleMenuLine
+    .assert kTitleMenuLineGapTiles .mod 2 = 0, error
+    ldx #(kScreenWidthTiles - kTitleMenuLineGapTiles) / 2
+    @loop1:
+    sta Hw_PpuData_rw
+    dex
+    bne @loop1
+    lda #' '
+    ldx #kTitleMenuLineGapTiles
+    @loop2:
+    sta Hw_PpuData_rw
+    dex
+    bne @loop2
+    lda #kTileIdBgTitleMenuLine
+    ldx #(kScreenWidthTiles - kTitleMenuLineGapTiles) / 2
+    @loop3:
+    sta Hw_PpuData_rw
+    dex
+    bne @loop3
+_InitAttributeTables:
     ldy #$55  ; param: attribute byte
-    jsr Func_FillUpperAttributeTable
+    jsr Func_FillUpperAttributeTable  ; preserves Y
+    jsr Func_FillLowerAttributeTable
+_InitMenu:
+    ldx #eTitle::TopCredits
+    stx Zp_Last_eTitle
+    .assert eTitle::TopNew = eTitle::TopCredits - 1, error
+    dex  ; now X is eTitle::TopNew
+    lda Sram_MagicNumber_u8
+    cmp #kSaveMagicNumber
+    bne @setFirstItem  ; no save file exists
+    .assert eTitle::TopContinue = eTitle::TopNew - 1, error
+    dex  ; now X is eTitle::TopContinue
+    @setFirstItem:
+    stx Zp_First_eTitle
+    stx Zp_Current_eTitle
+    lda DataA_Title_MenuItemPosY_u8_arr, x
+    sta Zp_TitleMenuLinePosY_u8
 _FadeIn:
+    jsr FuncA_Title_DrawMenu
     lda #bPpuMask::BgMain | bPpuMask::ObjMain
     sta Zp_Render_bPpuMask
     lda #0
     sta Zp_PpuScrollX_u8
     sta Zp_PpuScrollY_u8
     jmp Func_FadeInFromBlack
+.ENDPROC
+
+;;; Fills the specified nametable with blank BG tiles.
+;;; @prereq Rendering is disabled.
+;;; @param XY The PPU address for the nametable to clear.
+.PROC FuncA_Title_ClearNametableTiles
+    lda #kPpuCtrlFlagsHorz
+    sta Hw_PpuCtrl_wo
+    bit Hw_PpuStatus_ro  ; reset the Hw_PpuAddr_w2 write-twice latch
+    .assert sName::Tiles_u8_arr = 0, error
+    stx Hw_PpuAddr_w2
+    sty Hw_PpuAddr_w2
+    lda #' '
+    ldxy #kScreenWidthTiles * kScreenHeightTiles
+    @loop:
+    sta Hw_PpuData_rw
+    dey
+    bne @loop
+    dex
+    bpl @loop
+    rts
+.ENDPROC
+
+;;; Performs per-frame updates for the title screen menu.
+.PROC FuncA_Title_TickMenu
+_TickMenuLine:
+    ;; Get the goal Y-position for the menu line.
+    ldx Zp_Current_eTitle
+    lda DataA_Title_MenuItemPosY_u8_arr, x
+    ;; Compute the delta from the current menu line Y-position to the goal
+    ;; position, storing it in A.  If the delta is zero, we're done.
+    sub Zp_TitleMenuLinePosY_u8
+    beq @done
+    blt @goalLessThanCurr
+    ;; If the delta is positive, then we need to move down.  Divide the delta
+    ;; by (1 << kMenuLineYSlowdown) to get the amount we'll move by this frame,
+    ;; but always move by at least one pixel.
+    @goalMoreThanCurr:
+    .repeat kMenuLineYSlowdown
+    lsr a
+    .endrepeat
+    bne @moveByA
+    lda #1
+    bne @moveByA  ; unconditional
+    ;; If the delta is negative, then we need to move up.  Divide the
+    ;; (negative) delta by (1 << kMenuLineYSlowdown), roughly, to get the
+    ;; amount we'll move by this frame.
+    @goalLessThanCurr:
+    .repeat kMenuLineYSlowdown
+    sec
+    ror a
+    .endrepeat
+    ;; Add A to the current scroll-Y position.
+    @moveByA:
+    add Zp_TitleMenuLinePosY_u8
+    sta Zp_TitleMenuLinePosY_u8
+    @done:
+_TickMenuItems:
+    ;; To slow things down, only move menu item letters once every four frames.
+    lda Zp_FrameCounter_u8
+    and #$03
+    bne @done
+    ;; Loop over all menu items.
+    ldy #eTitle::NUM_VALUES - 1
+    @loop:
+    jsr FuncA_Title_TickMenuItem  ; preserves Y
+    dey
+    .assert eTitle::NUM_VALUES <= $80, error
+    bpl @loop
+    @done:
+    rts
+.ENDPROC
+
+;;; Performs per-frame updates for the specified title screen menu item.
+;;; @param Y The eTitle value for the menu item to tick.
+;;; @preserve Y
+.PROC FuncA_Title_TickMenuItem
+    lda DataA_Title_MenuItemLength_u8_arr, y
+    sta T5  ; num letters remaining
+    ldx DataA_Title_MenuItemOffset_u8_arr, y
+_Loop:
+    cpy Zp_Current_eTitle
+    beq @active
+    @inactive:
+    lda #0  ; goal offset (signed)
+    beq @moveTowardsA  ; unconditional
+    @active:
+    sty T4  ; eTitle value
+    txa
+    mul #4
+    add Zp_FrameCounter_u8
+    mul #8  ; param: angle
+    jsr Func_Sine  ; preserves X and T0+, returns A (param: signed dividend)
+    ldy #60  ; param: unsigned divisor
+    jsr Func_SignedDivFrac  ; preserves X and T4+, returns Y
+    tya  ; goal offset (signed)
+    ldy T4  ; eTitle value
+    @moveTowardsA:
+    cmp Ram_TitleLetterOffset_i8_arr, x
+    beq @continue
+    bpl @increase
+    @decrease:
+    dec Ram_TitleLetterOffset_i8_arr, x
+    jmp @continue
+    @increase:
+    inc Ram_TitleLetterOffset_i8_arr, x
+    @continue:
+    inx
+    dec T5  ; num letters remaining
+    bne _Loop
+    rts
+.ENDPROC
+
+;;; Draws objects and sets up IRQ for the title screen menu.
+.PROC FuncA_Title_DrawMenu
+_SetUpIrq:
+    lda Zp_TitleMenuLinePosY_u8
+    sta <(Zp_Buffered_sIrq + sIrq::Latch_u8)
+    ldax #Int_TitleMenuIrq
+    stax <(Zp_Buffered_sIrq + sIrq::FirstIrq_int_ptr)
+_DrawMenuWords:
+    ldx Zp_First_eTitle
+    @loop:
+    jsr FuncA_Title_DrawMenuItem  ; preserves X
+    inx
+    cpx Zp_Last_eTitle
+    blt @loop
+    beq @loop
+    rts
+.ENDPROC
+
+;;; Draws objects for the specified title screen menu item.
+;;; @param X The eTitle value for the menu item to draw.
+;;; @preserve X
+.PROC FuncA_Title_DrawMenuItem
+    stx T3  ; eTitle value
+    lda DataA_Title_MenuItemLength_u8_arr, x
+    sta T2  ; num letters remaining
+    mul #kTileWidthPx / 2
+    rsub #kScreenWidthPx / 2
+    sta T1  ; current X pos
+    lda DataA_Title_MenuItemPosY_u8_arr, x
+    sta T0  ; base Y pos
+    lda DataA_Title_MenuItemOffset_u8_arr, x
+    tax
+_Loop:
+    jsr Func_AllocOneObject  ; preserves X and T0+, returns Y
+    lda T0  ; base Y pos
+    add Ram_TitleLetterOffset_i8_arr, x
+    sta Ram_Oam_sObj_arr64 + sObj::YPos_u8, y
+    lda T1  ; current X pos
+    sta Ram_Oam_sObj_arr64 + sObj::XPos_u8, y
+    add #kTileWidthPx
+    sta T1  ; current X pos
+    lda DataA_Title_Letters_u8_arr, x
+    sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
+    lda #kPaletteObjTitleMenuItem
+    sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
+    inx
+    dec T2  ; num letters remaining
+    bne _Loop
+    ldx T3  ; eTitle value
+    rts
 .ENDPROC
 
 ;;; Erases all of SRAM and creates a save file for a new game.
@@ -171,8 +580,9 @@ _FadeIn:
     lda #0
     tax
     @loop:
+    .assert $20 * $100 = __SRAM_SIZE__, error
     .repeat $20, index
-    sta $6000 + $100 * index, x
+    sta __SRAM_START__ + $100 * index, x
     .endrepeat
     inx
     bne @loop
@@ -317,6 +727,40 @@ _Flags_eFlag_arr:
     .byte eFlag::UpgradeOpBeep
 .ENDIF
     .byte eFlag::None
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGE_Irq"
+
+;;; HBlank IRQ handler function for the title screen menu.  Sets the vertical
+;;; scroll so as to make the menu selection line appear to move.
+.PROC Int_TitleMenuIrq
+    ;; Save the A register (we won't be using X or Y).
+    pha
+    ;; No more IRQs for the rest of this frame.
+    lda #$ff  ; param: latch value
+    jsr Func_AckIrqAndSetLatch
+    ;; Busy-wait for a bit, that our final writes in this function will occur
+    ;; during the next HBlank.
+    lda #7  ; This value is hand-tuned to help wait for second HBlank.
+    @busyLoop:
+    sub #1
+    bne @busyLoop
+    ;; Set the PPU's new scroll-Y and scroll-X values, and also set the lower
+    ;; nametable as the scrolling origin.  All of this takes four writes, and
+    ;; the last two must happen during HBlank (between dots 256 and 320).
+    ;; See https://www.nesdev.org/wiki/PPU_scrolling#Split_X.2FY_scroll
+    lda #3 << 2  ; nametable number << 2
+    sta Hw_PpuAddr_w2
+    lda #0
+    sta Hw_PpuScroll_w2  ; new scroll-Y value (zero)
+    ;; We should now be in the second HBlank.
+    sta Hw_PpuScroll_w2  ; new scroll-X value (zero)
+    sta Hw_PpuAddr_w2    ; ((Y & $38) << 2) | (X >> 3)
+    ;; Restore the A register and return.
+    pla
+    rti
 .ENDPROC
 
 ;;;=========================================================================;;;

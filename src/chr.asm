@@ -993,7 +993,7 @@ _chr_begin:
     chr_inc "title1"
     chr_inc "title2"
     chr_inc "title3"
-    chr_res $1b
+    chr_res $1a
     END_CHR_BANK
 .ENDPROC
 
@@ -1279,8 +1279,8 @@ _chr_begin:
 .EXPORT Ppu_ChrObjPause
 .PROC Ppu_ChrObjPause
     CHR2_BANK $80
-    chr_inc "pause"
     chr_res $30
+    chr_inc "pause",      kTileIdObjPauseFirst
     chr_inc "font_upper"
     END_CHR_BANK
 .ENDPROC

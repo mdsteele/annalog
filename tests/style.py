@@ -46,7 +46,7 @@ IMPORT_PATTERN = re.compile(r'^\.IMPORT(?:ZP)? +([A-Za-z0-9_]+)(?: *;.*)?$')
 
 INCLUDE_PATTERN = re.compile(r'^\.INCLUDE +"([^"]+)"')
 
-USE_PATTERN = re.compile(r'[^.A-Za-z0-9_]([A-Z][A-Za-z0-9_]+)')
+USE_PATTERN = re.compile(r'[^.A-Za-z0-9_]((?:__)?[A-Z][A-Za-z0-9_]+)')
 
 #=============================================================================#
 

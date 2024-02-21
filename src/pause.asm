@@ -94,10 +94,10 @@ kPapersWindowScrollSpeed = 11
 ;;; upgrade.  Add 1 to this to get the the top-right tile ID for that symbol,
 ;;; then add another 1 to get the top-left tile ID for the next upgrade, and so
 ;;; on.
-kTileIdBgRemainingTopLeft  = $84
+kTileIdBgRemainingTopLeft = $84
 
 ;;; The OBJ tile ID for drawing the cursor for opening the papers window.
-kTileIdObjOpenWindowCursor = $8d
+kTileIdObjOpenWindowCursor = kTileIdObjPauseFirst + $0d
 ;;; The OBJ palette number for the cursor for opening the papers window.
 kPaletteObjOpenWindowCursor = 1
 
@@ -664,10 +664,11 @@ _CircuitPosY_u8_arr:
     .byte      $c3, $c3, $c3, $c3
     .byte              $ca
 _CircuitFirstTile_u8_arr:
-    .byte $80, $84, $84, $84, $84, $80
-    .byte $80, $84,           $84, $80
-    .byte      $80, $84, $84, $80
-    .byte              $88
+    .assert kTileIdObjPauseFirst = $b0, error
+    .byte $b0, $b4, $b4, $b4, $b4, $b0
+    .byte $b0, $b4,           $b4, $b0
+    .byte      $b0, $b4, $b4, $b0
+    .byte              $b8
 _CircuitFlags_bObj_arr:
     .byte 0, 0, bObj::Pri, bObj::Pri | bObj::FlipH, bObj::FlipH, bObj::FlipH
     .byte bObj::FlipV, bObj::FlipV, bObj::FlipHV, bObj::FlipHV

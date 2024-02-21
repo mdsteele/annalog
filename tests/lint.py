@@ -182,12 +182,12 @@ def run_tests():
             match = PROC_DECL_PATTERN.match(line)
             if match:
                 proc = match.group(1)
-                # Check that procs are named correctly for their segment.
-                if not is_valid_proc_name_for_segment(proc, segment):
-                    fail('misnamed proc for segment {}'.format(segment))
-                # Keep track of which top-level proc we're in.
                 if not proc_stack:
                     dialog_text_lines = []
+                    # Check that top-level procs are named correctly for their
+                    # segment.
+                    if not is_valid_proc_name_for_segment(proc, segment):
+                        fail('misnamed proc for segment {}'.format(segment))
                 proc_stack.append(proc)
             if line.startswith('.ENDPROC'):
                 proc_stack.pop()

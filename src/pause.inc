@@ -21,4 +21,7 @@
 kTileIdBgUpgradeBottomFirst = $80
 kTileIdBgUpgradeRamFirst    = $82
 
+;;; OBJ tile IDs for drawing the pause screen.
+kTileIdObjPauseFirst = $b0
+
 ;;;=========================================================================;;;

@@ -17,9 +17,7 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
-;;; The NES 2.0 header.  See https://www.nesdev.org/wiki/NES_2.0.  This is used
-;;; for constructing the iNES-format ROM container file, and is used by
-;;; emulators, but does not appear on a real NES cartridge.
+.IMPORT __SRAM_SIZE__
 
 ;;;=========================================================================;;;
 
@@ -42,6 +40,7 @@ kPrgRomSize  = 32  ; number of 16k PRG ROM chunks (should be a power of 2)
 kChrRomSize  = 16  ; number of 8k CHR ROM chunks (should be a power of 2)
 kPrgRamShift =  0  ; if nonzero, there are (64 << this) bytes of PRG RAM
 kSramShift   =  7  ; if nonzero, there are (64 << this) bytes of SRAM
+.ASSERT (64 << kSramShift) = __SRAM_SIZE__, error
 kChrRamShift =  0  ; if nonzero, there are (64 << this) bytes of CHR RAM
 kChrNvShift  =  0  ; if nonzero, there are (64 << this) bytes of CHR NVRAM
 kNumMiscRoms =  0  ; unused for most consoles/mappers
@@ -50,6 +49,9 @@ kFlags       = bFlags::HasSram
 
 ;;;=========================================================================;;;
 
+;;; The NES 2.0 header.  See https://www.nesdev.org/wiki/NES_2.0.  This is used
+;;; for constructing the iNES-format ROM container file, and is used by
+;;; emulators, but does not appear on a real NES cartridge.
 .SEGMENT "HEADER"
     .byte "NES", $1a  ; magic number
     .byte (kPrgRomSize & $0ff)
