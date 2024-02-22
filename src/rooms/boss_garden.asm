@@ -44,15 +44,19 @@
 .IMPORT FuncA_Machine_CannonTryMove
 .IMPORT FuncA_Machine_WriteToLever
 .IMPORT FuncA_Objects_Alloc2x2Shape
+.IMPORT FuncA_Objects_Draw1x1Shape
 .IMPORT FuncA_Objects_DrawBoss
 .IMPORT FuncA_Objects_DrawCannonMachine
 .IMPORT FuncA_Objects_MoveShapeDownAndRightOneTile
+.IMPORT FuncA_Objects_MoveShapeHorz
+.IMPORT FuncA_Objects_MoveShapeVert
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
 .IMPORT FuncA_Room_FindGrenadeActor
 .IMPORT FuncA_Room_InitBoss
 .IMPORT FuncA_Room_MachineCannonReset
 .IMPORT FuncA_Room_ResetLever
 .IMPORT FuncA_Room_TickBoss
+.IMPORT FuncA_Room_TurnProjectilesToSmoke
 .IMPORT Func_AckIrqAndLatchWindowFromParam4
 .IMPORT Func_AckIrqAndSetLatch
 .IMPORT Func_DivMod
@@ -121,7 +125,7 @@ kBossAngryNumSpikes = 3
 kBossEyeOpenFrames = 20
 
 ;;; The platform indices for the boss's two eyes.
-kLeftEyePlatformIndex = 0
+kLeftEyePlatformIndex  = 0
 kRightEyePlatformIndex = 1
 ;;; The platform index for the boss's thorny vines.
 kThornsPlatformIndex = 3
@@ -735,6 +739,10 @@ _HitOpenEye:
     lda Zp_RoomState + sState::BossEyeHealth_u8_arr2 + 0
     ora Zp_RoomState + sState::BossEyeHealth_u8_arr2 + 1
     bne @bossIsStillAlive
+    lda #eActor::ProjFireball
+    jsr FuncA_Room_TurnProjectilesToSmoke  ; preserves X
+    lda #eActor::ProjSpike
+    jsr FuncA_Room_TurnProjectilesToSmoke  ; preserves X
     lda #ePlatform::Zone
     sta Ram_PlatformType_ePlatform_arr + kThornsPlatformIndex
     lda #eBossMode::Dead
@@ -811,12 +819,6 @@ _WriteR:
 
 ;;; Draws the boss.
 .PROC FuncA_Objects_BossGarden_DrawBoss
-_DrawBossEyes:
-    ldx #eEye::Left  ; param: eye
-    jsr FuncA_Objects_BossGarden_DrawEye  ; preserves X
-    .assert eEye::Right = 1 + eEye::Left, error
-    inx  ; param: eye
-    jsr FuncA_Objects_BossGarden_DrawEye
 _AnimateThorns:
     lda Zp_RoomState + sState::BossThornCounter_u8
     div #4
@@ -836,7 +838,95 @@ _SetUpIrq:
     sta <(Zp_Buffered_sIrq + sIrq::Latch_u8)
     ldax #Int_BossGardenZoneTopIrq
     stax <(Zp_Buffered_sIrq + sIrq::FirstIrq_int_ptr)
-    rts
+_DrawBossLeftMiniEyes:
+    ldx #kLeftEyePlatformIndex
+    jsr FuncA_Objects_SetShapePosToPlatformTopLeft
+    ldx #4 - 1
+    @loop:
+    lda _LeftMiniEyeHorzShift_i8_arr4, x  ; param: signed offset
+    jsr FuncA_Objects_MoveShapeHorz  ; preserves X
+    lda _LeftMiniEyeVertShift_i8_arr4, x  ; param: signed offset
+    jsr FuncA_Objects_MoveShapeVert  ; preserves X
+    cpx Zp_RoomState + sState::BossEyeHealth_u8_arr2 + eEye::Left  ; param: C
+    jsr FuncA_Objects_BossGarden_DrawMiniEyeShape  ; preserves X
+    dex
+    bpl @loop
+_DrawBossRightMiniEyes:
+    ldx #kRightEyePlatformIndex
+    jsr FuncA_Objects_SetShapePosToPlatformTopLeft
+    ldx #4 - 1
+    @loop:
+    lda _RightMiniEyeHorzShift_i8_arr4, x  ; param: signed offset
+    jsr FuncA_Objects_MoveShapeHorz  ; preserves X
+    lda _RightMiniEyeVertShift_i8_arr4, x  ; param: signed offset
+    jsr FuncA_Objects_MoveShapeVert  ; preserves X
+    lda #kTileIdObjBossGardenEyeMiniFirst + 0  ; param: tile ID
+    cpx Zp_RoomState + sState::BossEyeHealth_u8_arr2 + eEye::Right  ; param: C
+    jsr FuncA_Objects_BossGarden_DrawMiniEyeShape  ; preserves X
+    dex
+    bpl @loop
+_DrawBossEyes:
+    ldx #eEye::Left  ; param: eye
+    jsr FuncA_Objects_BossGarden_DrawEye  ; preserves X
+    .assert eEye::Right = 1 + eEye::Left, error
+    inx  ; param: eye
+    jmp FuncA_Objects_BossGarden_DrawEye
+_LeftMiniEyeHorzShift_i8_arr4:
+    .byte 16, <-24, 48, <-8
+_LeftMiniEyeVertShift_i8_arr4:
+    .byte 32, <-16, 8, <-24
+_RightMiniEyeHorzShift_i8_arr4:
+    .byte <-8, <-8, 40, 8
+_RightMiniEyeVertShift_i8_arr4:
+    .byte 16, <-40, 16, <-16
+.ENDPROC
+
+;;; Draws a single mini-eye for the garden boss.
+;;; @prereq Zp_ShapePos*_i16 is set to the top-left corner of the mini-eye.
+;;; @param C Set if the eye is potentially open.
+;;; @param X The index of the mini eye.
+;;; @preserve X
+.PROC FuncA_Objects_BossGarden_DrawMiniEyeShape
+    ;; If the C paramters is cleared, the eye is definitely closed.
+    bcc _EyeIsClosed
+    ;; Otherwise, the eye is still closed if the boss is dropping spikes.
+    lda Zp_RoomState + sState::Current_eBossMode
+    cmp #eBossMode::Angry
+    bne _EyeIsOpen
+_EyeIsClosed:
+    lda #kTileIdObjBossGardenEyeMiniFirst + 0  ; param: tile ID
+    .assert kTileIdObjBossGardenEyeMiniFirst > 0, error
+    bne _DrawEye  ; unconditional
+_EyeIsOpen:
+    txa
+    mul #2
+    sta T0
+    lda Zp_FrameCounter_u8
+    div #8
+    add T0
+    and #$0f
+    tay
+    lda _OpenEyeTileId_u8_arr16, y  ; param: tile ID
+_DrawEye:
+    ldy #kPaletteObjBossEye  ; param: objects flags
+    jmp FuncA_Objects_Draw1x1Shape  ; preserves X
+_OpenEyeTileId_u8_arr16:
+    .byte kTileIdObjBossGardenEyeMiniFirst + 2
+    .byte kTileIdObjBossGardenEyeMiniFirst + 2
+    .byte kTileIdObjBossGardenEyeMiniFirst + 1
+    .byte kTileIdObjBossGardenEyeMiniFirst + 1
+    .byte kTileIdObjBossGardenEyeMiniFirst + 1
+    .byte kTileIdObjBossGardenEyeMiniFirst + 2
+    .byte kTileIdObjBossGardenEyeMiniFirst + 2
+    .byte kTileIdObjBossGardenEyeMiniFirst + 3
+    .byte kTileIdObjBossGardenEyeMiniFirst + 3
+    .byte kTileIdObjBossGardenEyeMiniFirst + 3
+    .byte kTileIdObjBossGardenEyeMiniFirst + 2
+    .byte kTileIdObjBossGardenEyeMiniFirst + 2
+    .byte kTileIdObjBossGardenEyeMiniFirst + 3
+    .byte kTileIdObjBossGardenEyeMiniFirst + 2
+    .byte kTileIdObjBossGardenEyeMiniFirst + 2
+    .byte kTileIdObjBossGardenEyeMiniFirst + 1
 .ENDPROC
 
 ;;; Allocates and populates OAM slots for one of the boss's eyes.
@@ -859,13 +949,17 @@ _SetUpIrq:
     beq @noFlash
     lda #$10
     @noFlash:
-    sta T0  ; flash bit
+    sta T0  ; flash bit (0 or $10)
     ;; Compute the first tile ID based on the current eye openness.
     lda Zp_RoomState + sState::BossEyeOpen_u8_arr2, x
     div #2
     and #$fe
-    ora T0  ; flash bit
-    add #kTileIdObjPlantEyeFirst
+    ora T0  ; flash bit (0 or $10)
+    .linecont +
+    .assert kTileIdObjBossGardenEyeWhiteFirst + $10 = \
+            kTileIdObjBossGardenEyeRedFirst, error
+    .linecont -
+    add #kTileIdObjBossGardenEyeWhiteFirst
     ;; Set tile IDs:
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Tile_u8, y
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Tile_u8, y

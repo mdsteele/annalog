@@ -1057,21 +1057,17 @@ _chr_begin:
     chr_inc "fireball",              kTileIdObjFireballFirst
     chr_res $02
     chr_inc "upgrade_oprest",        kTileIdObjUpgradeOpRestFirst
-    chr_inc "blaster",               kTileIdObjBlasterFirst
-    chr_inc "fireblast",             kTileIdObjFireblastFirst
-    chr_res $04
+    chr_res $08
     chr_inc "outbreak_obj",          kTileIdObjOutbreakFirst
     chr_inc "spike",                 kTileIdObjSpike
     chr_inc "breakfire",             kTileIdObjBreakfireFirst
     chr_res $02
-    chr_inc "plant_eye",             kTileIdObjPlantEyeFirst
-    chr_res $04
-    chr_inc "plant_eye_red",         kTileIdObjPlantEyeRedFirst
+    chr_inc "boss_garden_eye_white", kTileIdObjBossGardenEyeWhiteFirst
+    chr_inc "boss_garden_eye_mini",  kTileIdObjBossGardenEyeMiniFirst
+    chr_inc "boss_garden_eye_red",   kTileIdObjBossGardenEyeRedFirst
     chr_inc "platform_crypt_bricks", kTileIdObjPlatformCryptBricksFirst
     chr_inc "gazer_obj",             kTileIdObjGazerFirst
-    chr_res $01
-    chr_inc "mirror",                kTileIdObjMirrorFirst
-    chr_res $03
+    chr_res $09
     chr_inc "minigun_vert",          kTileIdObjMinigunVertFirst
     chr_inc "crusher",               kTileIdObjCrusherFirst
     chr_inc "winch",                 kTileIdObjWinchFirst
