@@ -70,7 +70,9 @@
 .IMPORT Func_Noop
 .IMPORT Func_PlaySfxExplodeSmall
 .IMPORT Func_PlaySfxSample
+.IMPORT Func_SetActorCenterToPoint
 .IMPORT Func_SetPointToActorCenter
+.IMPORT Func_SetPointToPlatformCenter
 .IMPORT Func_ShakeRoom
 .IMPORT Ppu_ChrBgAnimA0
 .IMPORT Ppu_ChrObjBoss1
@@ -117,6 +119,9 @@ kBossAngrySpikeCooldown = 15
 kBossShootFireballCooldown = 60
 ;;; How many frames to wait between fireballs when the boss is in Spray mode.
 kBossSprayFireballCooldown = 15
+;;; How many frames the boss stays in SprayWindup mode before starting to shoot
+;;; the spray.
+kBossSprayWindupCooldown = 60
 
 ;;; How many spikes to drop when the boss is in Angry mode.
 kBossAngryNumSpikes = 3
@@ -151,14 +156,19 @@ kBossZoneBottomY = $88
 ;;; Modes that the boss in this room can be in.
 .ENUM eBossMode
     Dead
-    Waiting  ; eyes closed
-    Angry    ; eyes closed, dropping spikes
-    Shoot    ; active eye open, shooting fireballs one at a time
-    Spray    ; active eye open, shooting a wave of fireballs
+    Waiting      ; eyes closed
+    Angry        ; eyes closed, dropping spikes
+    Shoot        ; active eye open, shooting fireballs one at a time
+    SprayWindup  ; active eye open, about to shoot a wave of fireballs
+    SprayFire    ; active eye open, shooting a wave of fireballs
     NUM_VALUES
 .ENDENUM
 
-;;; Eyes of the boss.
+;;; For eBossMode values greater than or equal to this, the boss's active eye
+;;; is open.
+kFirstOpenEyeMode = eBossMode::Shoot
+
+;;; Large eyes of the boss.
 .ENUM eEye
     Left
     Right
@@ -438,18 +448,27 @@ _CheckMode:
     D_TABLE_LO table, _JumpTable_ptr_0_arr
     D_TABLE_HI table, _JumpTable_ptr_1_arr
     D_TABLE .enum, eBossMode
-    d_entry table, Dead,    Func_Noop
-    d_entry table, Waiting, FuncC_Boss_Garden_TickBossWaiting
-    d_entry table, Angry,   FuncC_Boss_Garden_TickBossAngry
-    d_entry table, Shoot,   FuncC_Boss_Garden_TickBossShoot
-    d_entry table, Spray,   FuncC_Boss_Garden_TickBossSpray
+    d_entry table, Dead,        Func_Noop
+    d_entry table, Waiting,     FuncC_Boss_Garden_TickBossWaiting
+    d_entry table, Angry,       FuncC_Boss_Garden_TickBossAngry
+    d_entry table, Shoot,       FuncC_Boss_Garden_TickBossShoot
+    d_entry table, SprayWindup, FuncC_Boss_Garden_TickBossSprayWindup
+    d_entry table, SprayFire,   FuncC_Boss_Garden_TickBossSprayFire
     D_END
 .ENDREPEAT
 .ENDPROC
 
-;;; Performs a state transition for the boss when it's in Spray mode and the
-;;; cooldown has expired.
-.PROC FuncC_Boss_Garden_TickBossSpray
+;;; Performs a state transition for the boss when it's in SprayWindup mode and
+;;; the cooldown has expired.
+.PROC FuncC_Boss_Garden_TickBossSprayWindup
+    lda #eBossMode::SprayFire
+    sta Zp_RoomState + sState::Current_eBossMode
+    fall FuncC_Boss_Garden_TickBossSprayFire
+.ENDPROC
+
+;;; Performs a state transition for the boss when it's in SprayFire mode and
+;;; the cooldown has expired.
+.PROC FuncC_Boss_Garden_TickBossSprayFire
     jsr Func_GetRandomByte  ; returns A
     ldy #11  ; param: divisor
     jsr Func_DivMod  ; returns remainder in A
@@ -530,23 +549,24 @@ _StartSprayMode:
     ;; Set BossShootsUntilNextSpray_u8 to a random value from 2-3.
     jsr Func_GetRandomByte  ; returns A
     and #$01
-    add #2
+    ora #$02
     sta Zp_RoomState + sState::BossShootsUntilNextSpray_u8
-    lda #eBossMode::Spray
-    .assert eBossMode::Spray <> 0, error
-    bne _SetBossMode  ; unconditional
+    lda #kBossSprayWindupCooldown
+    sta Zp_RoomState + sState::BossCooldown_u8
+    lda #eBossMode::SprayWindup
+    sta Zp_RoomState + sState::Current_eBossMode
+    ;; TODO: play a sound
+    rts
 _StartShootMode:
     ;; Choose a random number of fireballs to shoot, from 4-7.
     jsr Func_GetRandomByte  ; returns A
     and #$03
     add #4
     sta Zp_RoomState + sState::BossProjCount_u8
-    lda #eBossMode::Shoot
-_SetBossMode:
-    sta Zp_RoomState + sState::Current_eBossMode
-    ;; Initialize the cooldown.
     lda #kBossEyeOpenFrames
     sta Zp_RoomState + sState::BossCooldown_u8
+    lda #eBossMode::Shoot
+    sta Zp_RoomState + sState::Current_eBossMode
     rts
 .ENDPROC
 
@@ -559,8 +579,7 @@ _SetBossMode:
     @noFlash:
 _CheckIfOpenOrClosed:
     lda Zp_RoomState + sState::Current_eBossMode
-    cmp #eBossMode::Shoot
-    .assert eBossMode::Spray > eBossMode::Shoot, error
+    cmp #kFirstOpenEyeMode
     blt _Close
     cpx Zp_RoomState + sState::BossActive_eEye
     bne _Close
@@ -583,8 +602,8 @@ _Close:
 ;;; @param Y Which eEye to shoot from.
 .PROC FuncC_Boss_Garden_ShootFireballAtAvatar
     lda Zp_AvatarPosX_i16 + 0
-    div #kBlockWidthPx
-    .assert * = FuncC_Boss_Garden_ShootFireballAtColumn, error, "fallthrough"
+    div #kBlockWidthPx  ; param: column to shoot at
+    fall FuncC_Boss_Garden_ShootFireballAtColumn
 .ENDPROC
 
 ;;; Shoots a fireball from the specified eye, towards the specified room block
@@ -596,14 +615,12 @@ _Close:
     ;; Shoot a fireball.
     jsr Func_FindEmptyActorSlot  ; preserves Y and T0+, returns C and X
     bcs @done
-    ;; Initialize fireball position based on which eye we're shooting from.
-    lda #0
-    sta Ram_ActorPosX_i16_1_arr, x
-    sta Ram_ActorPosY_i16_1_arr, x
-    lda _FireballPosY_u8_arr2, y
-    sta Ram_ActorPosY_i16_0_arr, x
-    lda _FireballPosX_u8_arr2, y
-    sta Ram_ActorPosX_i16_0_arr, x
+    ;; Assert that we can use the eEye value as a platform index.
+    .assert kLeftEyePlatformIndex = eEye::Left, error
+    .assert kRightEyePlatformIndex = eEye::Right, error
+    ;; Init fireball position to the center of the eye we're shooting from.
+    jsr Func_SetPointToPlatformCenter  ; preserves X and T0+
+    jsr Func_SetActorCenterToPoint  ; preserves X and T0+
     ;; Choose fireball angle based on target column.
     lda T0  ; room block column
     mul #2
@@ -614,16 +631,6 @@ _Close:
     ;; TODO: play a sound
     @done:
     rts
-_FireballPosX_u8_arr2:
-    D_ARRAY .enum, eEye
-    d_byte Left,  kBossLeftEyeCenterX
-    d_byte Right, kBossRightEyeCenterX
-    D_END
-_FireballPosY_u8_arr2:
-    D_ARRAY .enum, eEye
-    d_byte Left,  kBossLeftEyeCenterY
-    d_byte Right, kBossRightEyeCenterY
-    D_END
 _FireballAngle_u8_arr2_arr:
     ;; Each pair has angles for left eye and right eye.
     ;; There is one pair for each room block column.
@@ -790,8 +797,7 @@ _Done:
     ;; avoid the player cheesing by reprogramming the machine every time the
     ;; boss opens an eye).
     lda Zp_RoomState + sState::Current_eBossMode
-    cmp #eBossMode::Shoot
-    .assert eBossMode::Spray > eBossMode::Shoot, error
+    cmp #kFirstOpenEyeMode
     blt @done
     jmp FuncC_Boss_Garden_StartWaiting
     @done:
