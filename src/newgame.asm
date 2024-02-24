@@ -109,6 +109,7 @@ _SetFlags:
     d_byte Nave,     "  NAVE  "
     d_byte Tomb,     "  TOMB  "
     d_byte Breaker3, "BREAKER3"
+    d_byte Volcanic, "VOLCANIC"
     d_byte Breaker4, "BREAKER4"
     d_byte Collapse, "  MINE  "
     d_byte Breaker5, "BREAKER5"
@@ -134,6 +135,7 @@ _SetFlags:
     d_byte Nave,     eRoom::TempleNave
     d_byte Tomb,     eRoom::CryptTomb
     d_byte Breaker3, eRoom::BossCrypt
+    d_byte Volcanic, eRoom::BossLava  ; TODO start just outside
     d_byte Breaker4, eRoom::BossLava
     d_byte Collapse, eRoom::MineCollapse
     d_byte Breaker5, eRoom::BossMine
@@ -159,6 +161,7 @@ _SetFlags:
     d_byte Nave,     bSpawn::Passage | 3
     d_byte Tomb,     bSpawn::Device | 3  ; TODO: use a constant
     d_byte Breaker3, bSpawn::Device | kBossDoorDeviceIndex
+    d_byte Volcanic, bSpawn::Device | kBossDoorDeviceIndex  ; TODO
     d_byte Breaker4, bSpawn::Device | kBossDoorDeviceIndex
     d_byte Collapse, bSpawn::Device | 2  ; TODO: use a constant
     d_byte Breaker5, bSpawn::Device | kBossDoorDeviceIndex
@@ -184,6 +187,7 @@ _SetFlags:
     d_byte Nave,     eFlag::TempleNaveTalkedToAlex
     d_byte Tomb,     eFlag::BossCrypt
     d_byte Breaker3, eFlag::BreakerCrypt
+    d_byte Volcanic, eFlag::BossLava
     d_byte Breaker4, eFlag::BreakerLava
     d_byte Collapse, eFlag::BossMine
     d_byte Breaker5, eFlag::BreakerMine

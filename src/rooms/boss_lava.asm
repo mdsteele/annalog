@@ -63,6 +63,8 @@
 .IMPORT FuncA_Room_InitBoss
 .IMPORT FuncA_Room_MachineBlasterReset
 .IMPORT FuncA_Room_MachineBoilerReset
+.IMPORT FuncA_Room_PlaySfxShootFireball
+.IMPORT FuncA_Room_PlaySfxWindup
 .IMPORT FuncA_Room_ResetLever
 .IMPORT FuncA_Room_TickBoss
 .IMPORT FuncA_Terrain_FadeInShortRoomWithLava
@@ -543,7 +545,7 @@ _BossFiresprayPrepare:
     sta Zp_RoomState + sState::Current_eBossMode
     lda #70
     sta Zp_RoomState + sState::BossCooldown_u8
-    ;; TODO: play a sound for the windup
+    jmp FuncA_Room_PlaySfxWindup
     @done:
     rts
 _BossFiresprayWindup:
@@ -711,6 +713,7 @@ _BossFiresprayShoot:
     mul #2  ; clears the carry bit
     adc #$10  ; param: aim angle
     jsr Func_InitActorProjFireball
+    jsr FuncA_Room_PlaySfxShootFireball
     ;; When the last fireball is fired, change modes.
     lda Zp_RoomState + sState::BossCooldown_u8
     beq _StartScuttling

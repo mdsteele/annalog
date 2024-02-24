@@ -54,6 +54,8 @@
 .IMPORT FuncA_Room_FindGrenadeActor
 .IMPORT FuncA_Room_InitBoss
 .IMPORT FuncA_Room_MachineCannonReset
+.IMPORT FuncA_Room_PlaySfxShootFireball
+.IMPORT FuncA_Room_PlaySfxWindup
 .IMPORT FuncA_Room_ResetLever
 .IMPORT FuncA_Room_TickBoss
 .IMPORT FuncA_Room_TurnProjectilesToSmoke
@@ -121,7 +123,7 @@ kBossShootFireballCooldown = 60
 kBossSprayFireballCooldown = 15
 ;;; How many frames the boss stays in SprayWindup mode before starting to shoot
 ;;; the spray.
-kBossSprayWindupCooldown = 60
+kBossSprayWindupCooldown = 80
 
 ;;; How many spikes to drop when the boss is in Angry mode.
 kBossAngryNumSpikes = 3
@@ -555,8 +557,7 @@ _StartSprayMode:
     sta Zp_RoomState + sState::BossCooldown_u8
     lda #eBossMode::SprayWindup
     sta Zp_RoomState + sState::Current_eBossMode
-    ;; TODO: play a sound
-    rts
+    jmp FuncA_Room_PlaySfxWindup
 _StartShootMode:
     ;; Choose a random number of fireballs to shoot, from 4-7.
     jsr Func_GetRandomByte  ; returns A
@@ -628,7 +629,7 @@ _Close:
     tay
     lda _FireballAngle_u8_arr2_arr, y  ; param: aim angle
     jsr Func_InitActorProjFireball
-    ;; TODO: play a sound
+    jmp FuncA_Room_PlaySfxShootFireball
     @done:
     rts
 _FireballAngle_u8_arr2_arr:
@@ -723,6 +724,7 @@ _HitEye:
 _HitClosedEye:
     ;; If the hit eye is closed, shake the room and switch the boss to Angry
     ;; mode.
+    ;; TODO: Perhaps only if not in spray mode?
     lda #kBossAngrySpikeCooldown * kBossAngryNumSpikes  ; param: num frames
     jsr Func_ShakeRoom  ; preserves X
     lda #eBossMode::Angry

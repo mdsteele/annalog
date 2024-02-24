@@ -17,29 +17,42 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
-;;; Places that a new game can start, if using the debug cheat code.
-.ENUM eNewGame
-    Town      ; start at the start, for a normal new game
-    Prison    ; start locked in the prison cell
-    Tower     ; start just outside the garden boss room
-    Breaker1  ; start in the garden boss room, just after defeating it
-    Spire     ; start just outside the temple boss room
-    Breaker2  ; start in the temple boss room, just after defeating it
-    Rescue    ; start just inside the prison caves, on the way to rescue Alex
-    Nave      ; start in the temple nave, when Alex is waiting there
-    Tomb      ; start just outside the crypt boss room
-    Breaker3  ; start in the crypt boss room, just after defeating it
-    Volcanic  ; start just outside the lava boss room
-    Breaker4  ; start in the lava boss room, just after defeating it
-    Collapse  ; start just outside the mine boss room
-    Breaker5  ; start in the mine boss room, just after defeating it
-    Sinkhole  ; start just outside the city boss room
-    Breaker6  ; start in the city boss room, just after defeating it
-    Shadow    ; start at the entrance to the Shadow Labs
-    Depths    ; start just outside the shadow boss room
-    Breaker7  ; start in the shadow boss room, just after defeating it
-    Core      ; start just outside the final boss room
-    NUM_VALUES
-.ENDENUM
+.INCLUDE "../apu.inc"
+.INCLUDE "../audio.inc"
+.INCLUDE "../macros.inc"
+.INCLUDE "../sound.inc"
+
+.IMPORT Func_PlaySfxSequence
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRG8"
+
+;;; SFX sequence data for the "windup" sound effect.
+.PROC Data_Windup_sSfxSeq_arr
+    .linecont +
+    D_STRUCT sSfxSeq
+    d_byte Duration_u8, 85
+    d_byte Env_bEnvelope, \
+           bEnvelope::Duty18 | bEnvelope::NoLength | bEnvelope::ConstVol | 15
+    d_byte Sweep_byte, pulse_sweep -2, 1
+    d_word Timer_u16, $0280
+    D_END
+    .byte 0
+    .linecont -
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Room"
+
+;;; Starts playing the sound for when a boss winds up a big attack.
+;;; @preserve T0+
+.EXPORT FuncA_Room_PlaySfxWindup
+.PROC FuncA_Room_PlaySfxWindup
+    ldx #eChan::Pulse2
+    ldya #Data_Windup_sSfxSeq_arr
+    jmp Func_PlaySfxSequence  ; preserves T0+
+.ENDPROC
 
 ;;;=========================================================================;;;
