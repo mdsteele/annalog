@@ -25,14 +25,17 @@
 .INCLUDE "macros.inc"
 .INCLUDE "mmc3.inc"
 .INCLUDE "music.inc"
+.INCLUDE "newgame.inc"
 .INCLUDE "oam.inc"
+.INCLUDE "pause.inc"
 .INCLUDE "ppu.inc"
 .INCLUDE "program.inc"
-.INCLUDE "room.inc"
-.INCLUDE "spawn.inc"
 
+.IMPORT DataA_Title_NewGameName_u8_arr8_arr
 .IMPORT DataC_Title_Title_sMusic
+.IMPORT FuncA_Title_ResetSramForNewGame
 .IMPORT Func_AckIrqAndSetLatch
+.IMPORT Func_AllocObjects
 .IMPORT Func_AllocOneObject
 .IMPORT Func_BufferPpuTransfer
 .IMPORT Func_ClearRestOfOamAndProcessFrame
@@ -41,7 +44,6 @@
 .IMPORT Func_FillLowerAttributeTable
 .IMPORT Func_FillUpperAttributeTable
 .IMPORT Func_GetRandomByte
-.IMPORT Func_SetFlag
 .IMPORT Func_SignedDivFrac
 .IMPORT Func_Sine
 .IMPORT Func_Window_Disable
@@ -50,10 +52,7 @@
 .IMPORT Ppu_ChrBgTitle
 .IMPORT Ppu_ChrObjPause
 .IMPORT Ram_Oam_sObj_arr64
-.IMPORT Sram_LastSafe_bSpawn
-.IMPORT Sram_LastSafe_eRoom
 .IMPORT Sram_MagicNumber_u8
-.IMPORT Sram_Minimap_u16_arr
 .IMPORTZP Zp_Buffered_sIrq
 .IMPORTZP Zp_Chr04Bank_u8
 .IMPORTZP Zp_FrameCounter_u8
@@ -62,14 +61,6 @@
 .IMPORTZP Zp_PpuScrollX_u8
 .IMPORTZP Zp_PpuScrollY_u8
 .IMPORTZP Zp_Render_bPpuMask
-.IMPORT __SRAM_SIZE__
-.IMPORT __SRAM_START__
-
-;;;=========================================================================;;;
-
-;;; The starting location for a new game.
-kStartingRoom = eRoom::TownHouse2
-kStartingSpawn = bSpawn::Device | 0
 
 ;;;=========================================================================;;;
 
@@ -99,11 +90,24 @@ kTitleMenuItemStridePx = 16
 ;;; The gap width, in tiles, in the middle of the title menu line.
 kTitleMenuLineGapTiles = 8
 
+;;; The screen pixel Y-position for the New Game cheat code menu item.
+kCheatMenuYPos = $b0
+
+;;; The vertical offset, in pixels, from the New Game cheat code menu item at
+;;; which to draw the arrows.
+kCheatMenuArrowOffsetPx = 14
+
 ;;; The BG tile ID used for drawing the title screen menu line.
 kTileIdBgTitleMenuLine = $a5
 
+;;; The OBJ tile ID used for drawing the arrows for the New Game cheat code
+;;; menu.
+kTileIdObjCheatMenuArrows = kTileIdObjArrowCursor & $7f
+
 ;;; The OBJ palette number used for title screen menu items.
 kPaletteObjTitleMenuItem = 0
+;;; The OBJ palette number used for the cheat code menu arrows.
+kPaletteObjCheatMenuArrows = 1
 
 ;;; The length of the confirmation message for deleting a saved game, in tiles.
 .DEFINE kAreYouSureLength 26
@@ -203,6 +207,13 @@ Zp_Current_eTitle: .res 1
 ;;; The current Y-position for the title screen menu line.
 Zp_TitleMenuLinePosY_u8: .res 1
 
+;;; The index into DataA_Title_CheatSequence_bJoypad_arr for the next button to
+;;; press for the cheat code.
+Zp_CheatSequenceIndex_u8: .res 1
+
+;;; The currently-selected item on the cheat menu.
+Zp_Cheat_eNewGame: .res 1
+
 ;;;=========================================================================;;;
 
 .SEGMENT "RAM_Title"
@@ -252,6 +263,18 @@ Ram_TitleLetterOffset_i8_arr: .res .sizeof(DataA_Title_Letters_u8_arr)
     .res kAreYouSureLength, ' '
 .ENDPROC
 
+;;; The sequence of button presses need for the New Game cheat code.
+.PROC DataA_Title_CheatSequence_bJoypad_arr
+    .byte bJoypad::Down     ;   Down
+    .byte bJoypad::Left     ;  lEft
+    .byte bJoypad::BButton  ;   B
+    .byte bJoypad::Up       ;   Up
+    .byte bJoypad::Right    ; riGht
+    .byte bJoypad::Right    ; riGht
+    .byte bJoypad::Left     ;  lEft
+    .byte bJoypad::Right    ;   Right
+.ENDPROC
+
 ;;; Mode for displaying the title screen.
 ;;; @prereq PRGC_Title is loaded.
 ;;; @prereq Rendering is disabled.
@@ -262,6 +285,29 @@ _GameLoop:
     jsr Func_ClearRestOfOamAndProcessFrame
     jsr Func_GetRandomByte  ; tick the RNG (and discard the result)
     jsr FuncA_Title_TickMenu
+_CheckForCheatInput:
+    ;; Only allow the New Game cheat if there's no saved game data.
+    lda Sram_MagicNumber_u8
+    cmp #kSaveMagicNumber
+    beq @resetCheatIndex  ; a saved game exists
+    ;; If a button was pressed, check whether it's the next input in the cheat
+    ;; sequence.  If not, reset the sequence.
+    lda Zp_P1ButtonsPressed_bJoypad
+    beq @done  ; no button pressed
+    ldx Zp_CheatSequenceIndex_u8
+    cmp DataA_Title_CheatSequence_bJoypad_arr, x
+    bne @resetCheatIndex  ; incorrect cheat sequence
+    ;; If the cheat sequence has been fully entered, switch to the cheat menu.
+    inx
+    cpx #.sizeof(DataA_Title_CheatSequence_bJoypad_arr)
+    blt @setCheatIndex  ; cheat sequence still in progress
+    jmp MainA_Title_CheatMenu
+    @resetCheatIndex:
+    ldx #0
+    @setCheatIndex:
+    stx Zp_CheatSequenceIndex_u8
+    @done:
+_CheckForMenuInput:
     ;; Check Up button.
     lda Zp_P1ButtonsPressed_bJoypad
     and #bJoypad::Up
@@ -297,7 +343,7 @@ _HandleMenuItem:
     D_TABLE_LO table, _JumpTable_ptr_0_arr
     D_TABLE_HI table, _JumpTable_ptr_1_arr
     D_TABLE .enum, eTitle
-    d_entry table, TopContinue, _MenuItemContinue
+    d_entry table, TopContinue, MainA_Title_BeginGame
     d_entry table, TopNew,      _MenuItemNewGame
     d_entry table, TopCredits,  _GameLoop  ; TODO
     d_entry table, NewCancel,   _MenuItemCancel
@@ -318,12 +364,10 @@ _MenuItemNewGame:
     sta Zp_First_eTitle
     lda #eTitle::NewDelete
     sta Zp_Last_eTitle
-    .assert eTitle::NewDelete > 0, error
-    bne _GameLoop  ; unconditional
+    jmp _GameLoop
 _BeginNewGame:
-    jsr Func_FadeOutToBlack
-    jsr FuncA_Title_ResetSramForNewGame
-    jmp Main_Explore_SpawnInLastSafeRoom
+    lda #eNewGame::Town  ; param: eNewGame value
+    jmp MainA_Title_BeginGame
 _MenuItemDelete:
     lda #<~kSaveMagicNumber
     ;; Enable writes to SRAM.
@@ -353,9 +397,61 @@ _MenuItemCancel:
     stx Zp_First_eTitle
     .assert eTitle::NUM_VALUES <= $80, error
     jmp _GameLoop
-_MenuItemContinue:
+.ENDPROC
+
+;;; Mode for using the New Game cheat code menu.
+;;; @prereq Rendering is enabled.
+.PROC MainA_Title_CheatMenu
+    jsr Func_Window_Disable
+    lda #eNewGame::Town
+    sta Zp_Cheat_eNewGame
+_GameLoop:
+    jsr FuncA_Title_DrawCheatMenu
+    jsr Func_ClearRestOfOamAndProcessFrame
+_CheckForMenuInput:
+    ;; Check Up button.
+    lda Zp_P1ButtonsPressed_bJoypad
+    and #bJoypad::Up
+    beq @noUp
+    lda Zp_Cheat_eNewGame
+    beq @noUp
+    dec Zp_Cheat_eNewGame
+    ;; TODO: play a sound
+    @noUp:
+    ;; Check Down button.
+    lda Zp_P1ButtonsPressed_bJoypad
+    and #bJoypad::Down
+    beq @noDown
+    lda Zp_Cheat_eNewGame
+    cmp #eNewGame::NUM_VALUES - 1
+    bge @noDown
+    inc Zp_Cheat_eNewGame
+    ;; TODO: play a sound
+    @noDown:
+    ;; Check START button.
+    lda Zp_P1ButtonsPressed_bJoypad
+    and #bJoypad::Start
+    beq _GameLoop
+_BeginNewGame:
+    lda Zp_Cheat_eNewGame  ; param: eNewGame value
+    fall MainA_Title_BeginGame
+.ENDPROC
+
+;;; Mode for starting the game, either continuing from existing save data (if
+;;; any), or for a new game.
+;;; @prereq Rendering is enabled.
+;;; @param A The eNewGame value (ignored if save data exists).
+.PROC MainA_Title_BeginGame
+    pha  ; eNewGame value
     ;; TODO: play a sound
     jsr Func_FadeOutToBlack
+    pla  ; eNewGame value
+    ldx Sram_MagicNumber_u8
+    cpx #kSaveMagicNumber
+    beq @spawn
+    tay  ; param: eNewGame value
+    jsr FuncA_Title_ResetSramForNewGame
+    @spawn:
     jmp Main_Explore_SpawnInLastSafeRoom
 .ENDPROC
 
@@ -437,6 +533,8 @@ _InitMenu:
     stx Zp_Current_eTitle
     lda DataA_Title_MenuItemPosY_u8_arr, x
     sta Zp_TitleMenuLinePosY_u8
+    lda #0
+    sta Zp_CheatSequenceIndex_u8
 _FadeIn:
     jsr FuncA_Title_DrawMenu
     lda #bPpuMask::BgMain | bPpuMask::ObjMain
@@ -610,162 +708,88 @@ _Loop:
     rts
 .ENDPROC
 
-;;; Erases all of SRAM and creates a save file for a new game.
-.PROC FuncA_Title_ResetSramForNewGame
-    ;; Enable writes to SRAM.
-    lda #bMmc3PrgRam::Enable
-    sta Hw_Mmc3PrgRamProtect_wo
-    ;; Zero all of SRAM.
-    lda #0
-    tax
-    @loop:
-    .assert $20 * $100 = __SRAM_SIZE__, error
-    .repeat $20, index
-    sta __SRAM_START__ + $100 * index, x
-    .endrepeat
-    inx
-    bne @loop
-    ;; TODO: For testing, reveal whole minimap (remove this later).
-.IF 0
+;;; Draws objects for the New Game cheat code menu.
+.PROC FuncA_Title_DrawCheatMenu
+_DrawArrows:
+    lda #4  ; param: num objects
+    jsr Func_AllocObjects  ; returns Y
+    ;; Set Y-positions.
+    lda Zp_FrameCounter_u8
+    div #8
+    and #$03
+    cmp #$03
+    bne @noZigZag
+    lda #$01
+    @noZigZag:
+    sta T0  ; zig-zag offset
+    ldx Zp_Cheat_eNewGame
+    bne @drawTopArrow
+    @noTopArrow:
     lda #$ff
-    ldx #0
-    @minimapLoop:
-    sta Sram_Minimap_u16_arr, x
+    bne @setTopArrowY  ; unconditional
+    @drawTopArrow:
+    add #kCheatMenuYPos - kCheatMenuArrowOffsetPx
+    @setTopArrowY:
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::YPos_u8, y
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::YPos_u8, y
+    cpx #eNewGame::NUM_VALUES - 1
+    blt @drawBottomArrow
+    @noBottomArrow:
+    lda #$ff
+    bne @setBottomArrowY
+    @drawBottomArrow:
+    lda #kCheatMenuYPos + kCheatMenuArrowOffsetPx
+    sub T0  ; zig-zag offset
+    @setBottomArrowY:
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::YPos_u8, y
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::YPos_u8, y
+    ;; Set X-positions.
+    lda #kScreenWidthPx / 2 - kTileWidthPx
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::XPos_u8, y
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::XPos_u8, y
+    lda #kScreenWidthPx / 2
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::XPos_u8, y
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::XPos_u8, y
+    ;; Set tile IDs.
+    lda #kTileIdObjCheatMenuArrows
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Tile_u8, y
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Tile_u8, y
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Tile_u8, y
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Tile_u8, y
+    ;; Set flags.
+    lda #kPaletteObjCheatMenuArrows
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Flags_bObj, y
+    eor #bObj::FlipH
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Flags_bObj, y
+    eor #bObj::FlipHV
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Flags_bObj, y
+    eor #bObj::FlipH
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Flags_bObj, y
+_DrawMenuItem:
+    lda Zp_Cheat_eNewGame
+    .assert eNewGame::NUM_VALUES * 8 < $100, error
+    mul #8
+    tax  ; index into DataA_Title_NewGameName_u8_arr8_arr
+    adc #8
+    sta T1  ; index limit
+    lda #(kScreenWidthPx - kTileWidthPx * 8) / 2
+    sta T0  ; current X pos
+    @loop:
+    jsr Func_AllocOneObject  ; preserves X and T0+, returns Y
+    lda #kCheatMenuYPos
+    sta Ram_Oam_sObj_arr64 + sObj::YPos_u8, y
+    lda T0  ; current X pos
+    sta Ram_Oam_sObj_arr64 + sObj::XPos_u8, y
+    add #kTileWidthPx
+    sta T0  ; current X pos
+    lda DataA_Title_NewGameName_u8_arr8_arr, x
+    sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
+    lda #kPaletteObjTitleMenuItem
+    sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
     inx
-    cpx #$30
-    blt @minimapLoop
-.ENDIF
-    ;; Set starting location.
-    lda #kStartingRoom
-    sta Sram_LastSafe_eRoom
-    lda #kStartingSpawn
-    sta Sram_LastSafe_bSpawn
-    ;; Mark the save file as present.
-    lda #kSaveMagicNumber
-    sta Sram_MagicNumber_u8
-    ;; Disable writes to SRAM.
-    lda #bMmc3PrgRam::Enable | bMmc3PrgRam::DenyWrites
-    sta Hw_Mmc3PrgRamProtect_wo
-    ;; TODO: For testing, set some flags (remove this later).
-    ldy #0
-    @flagLoop:
-    ldx _Flags_eFlag_arr, y  ; param: flag to set
-    .assert eFlag::None = 0, error
-    beq @doneFlags
-    sty T0  ; index into _Flags_eFlag_arr
-    jsr Func_SetFlag  ; preserves T0+
-    ldy T0  ; index into _Flags_eFlag_arr
-    iny
-    bne @flagLoop  ; unconditional
-    @doneFlags:
+    cpx T1  ; index limit
+    blt @loop
     rts
-_Flags_eFlag_arr:
-.IF 0
-    .byte eFlag::PaperJerome36
-    .byte eFlag::PaperManual2
-    .byte eFlag::PrisonCellReachedTunnel
-    .byte eFlag::PrisonCellBlastedRocks
-    .byte eFlag::GardenLandingDroppedIn
-    .byte eFlag::PaperJerome13
-    .byte eFlag::UpgradeOpIf
-    .byte eFlag::PaperJerome12
-    .byte eFlag::GardenEastTalkedToCorra
-    .byte eFlag::MermaidHut1MetQueen
-    .byte eFlag::MermaidHut4MetFlorist
-    .byte eFlag::GardenTowerCratesPlaced
-    .byte eFlag::FlowerMermaid
-    .byte eFlag::PaperManual5
-    .byte eFlag::GardenTowerWallBroken
-    .byte eFlag::BossGarden
-    .byte eFlag::UpgradeRam1
-    .byte eFlag::BreakerGarden
-    .byte eFlag::TempleEntryPermission
-    .byte eFlag::TempleEntryColumnRaised
-    .byte eFlag::PaperManual1
-    .byte eFlag::UpgradeOpTil
-    .byte eFlag::TempleAltarColumnBroken
-    .byte eFlag::PaperJerome28
-    .byte eFlag::BossTemple
-    .byte eFlag::UpgradeRam2
-    .byte eFlag::BreakerTemple
-    .byte eFlag::FlowerTemple
-    .byte eFlag::FlowerFactory
-    .byte eFlag::CoreSouthCorraWaiting
-    .byte eFlag::PaperManual4
-    .byte eFlag::CoreSouthCorraHelped
-    .byte eFlag::PrisonEastEastGateOpen
-    .byte eFlag::PrisonEastLowerGateShut
-    .byte eFlag::PrisonEastOrcTrapped
-    .byte eFlag::PrisonEastWestGateOpen
-    .byte eFlag::PrisonUpperFoundAlex
-    .byte eFlag::PrisonUpperFreedAlex
-    .byte eFlag::PrisonUpperGateOpen
-    .byte eFlag::PrisonUpperFreedKids
-    .byte eFlag::PrisonCellGateOpen
-    .byte eFlag::FlowerPrison
-    .byte eFlag::MermaidHut1AlexPetition
-    .byte eFlag::FlowerCore
-    .byte eFlag::TempleNaveAlexWaiting
-    .byte eFlag::TempleNaveTalkedToAlex
-    .byte eFlag::PaperJerome34
-    .byte eFlag::CryptLandingDroppedIn
-    .byte eFlag::PaperJerome08
-    .byte eFlag::PaperJerome11
-    .byte eFlag::UpgradeOpGoto
-    .byte eFlag::CryptSouthBrokeFloor
-    .byte eFlag::CryptTombBrokeFloors
-    .byte eFlag::BossCrypt
-    .byte eFlag::UpgradeOpRest
-    .byte eFlag::BreakerCrypt
-    .byte eFlag::PaperJerome21
-    .byte eFlag::TempleEntryTalkedToCorra
-    .byte eFlag::FlowerCrypt
-    .byte eFlag::CityOutskirtsTalkedToAlex
-    .byte eFlag::UpgradeOpSkip
-    .byte eFlag::PaperJerome14
-    .byte eFlag::FlowerGarden
-    .byte eFlag::MermaidSpringConsoleFixed
-    .byte eFlag::MermaidSpringUnplugged
-    .byte eFlag::UpgradeOpCopy
-    .byte eFlag::PaperManual3
-    .byte eFlag::PaperJerome10
-    .byte eFlag::LavaCenterChain3Broken
-    .byte eFlag::LavaCenterChain1Broken
-    .byte eFlag::LavaCenterChain2Broken
-    .byte eFlag::BossLava
-    .byte eFlag::UpgradeRam3
-    .byte eFlag::BreakerLava
-    .byte eFlag::UpgradeOpSync
-    .byte eFlag::PaperJerome09
-    .byte eFlag::BossMine
-    .byte eFlag::UpgradeRam4
-    .byte eFlag::BreakerMine
-    .byte eFlag::UpgradeOpAddSub
-    .byte eFlag::FactoryPassLoweredRocks
-    .byte eFlag::PaperJerome23
-    .byte eFlag::FlowerMine
-    .byte eFlag::FactoryVaultTalkedToAlex
-    .byte eFlag::FlowerLava
-    .byte eFlag::FlowerSewer
-    .byte eFlag::CityOutskirtsBlastedRocks
-    .byte eFlag::CityCenterKeygenConnected
-    .byte eFlag::PaperJerome35
-    .byte eFlag::FlowerCity
-    .byte eFlag::CityBuilding3BlastedCrates
-    .byte eFlag::CityCenterDoorUnlocked
-    .byte eFlag::BossCity
-    .byte eFlag::UpgradeBRemote
-    .byte eFlag::BreakerCity
-    .byte eFlag::PaperJerome01
-    .byte eFlag::ShadowTrapDisarmed
-    .byte eFlag::BossShadow
-    .byte eFlag::UpgradeOpMul
-    .byte eFlag::BreakerShadow
-    .byte eFlag::FlowerShadow
-    .byte eFlag::MermaidHut4OpenedCellar
-    .byte eFlag::UpgradeOpBeep
-.ENDIF
-    .byte eFlag::None
 .ENDPROC
 
 ;;;=========================================================================;;;

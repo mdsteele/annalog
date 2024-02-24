@@ -96,8 +96,6 @@ kPapersWindowScrollSpeed = 11
 ;;; on.
 kTileIdBgRemainingTopLeft = $84
 
-;;; The OBJ tile ID for drawing the cursor for opening the papers window.
-kTileIdObjOpenWindowCursor = kTileIdObjPauseFirst + $0d
 ;;; The OBJ palette number for the cursor for opening the papers window.
 kPaletteObjOpenWindowCursor = 1
 
@@ -739,7 +737,7 @@ _Return:
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Flags_bObj, y
     eor #bObj::FlipH
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Flags_bObj, y
-    lda #kTileIdObjOpenWindowCursor
+    lda #kTileIdObjArrowCursor
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Tile_u8, y
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Tile_u8, y
     @done:
