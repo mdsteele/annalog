@@ -76,8 +76,11 @@
 .IMPORT Main_Pause_FadeIn
 .IMPORT Main_Upgrade_UseDevice
 .IMPORT Ppu_ChrBgAnimA0
+.IMPORT Ppu_ChrObjAnnaFlower
+.IMPORT Ppu_ChrObjAnnaNormal
 .IMPORT Ram_DeviceTarget_byte_arr
 .IMPORT Ram_DeviceType_eDevice_arr
+.IMPORT Sram_CarryingFlower_eFlag
 .IMPORT Sram_LastSafe_eRoom
 .IMPORTZP Zp_AvatarExit_ePassage
 .IMPORTZP Zp_AvatarHarmTimer_u8
@@ -131,7 +134,7 @@ Zp_Next_eCutscene: .res 1
     ldx Sram_LastSafe_eRoom  ; param: room to load
     jsr FuncM_SwitchPrgcAndLoadRoom
     jsr_prga FuncA_Avatar_SpawnAtLastSafePoint
-    .assert * = Main_Explore_EnterRoom, error, "fallthrough"
+    fall Main_Explore_EnterRoom
 .ENDPROC
 
 ;;; Mode for exploring and platforming within a room, for when the room has
@@ -142,7 +145,7 @@ Zp_Next_eCutscene: .res 1
 .EXPORT Main_Explore_EnterRoom
 .PROC Main_Explore_EnterRoom
     jsr_prga FuncA_Room_InitAllMachinesAndCallRoomEnter
-    .assert * = Main_Explore_FadeIn, error, "fallthrough"
+    fall Main_Explore_FadeIn
 .ENDPROC
 
 ;;; Mode for exploring and platforming within a room, when continuing after
@@ -154,12 +157,12 @@ Zp_Next_eCutscene: .res 1
 .PROC Main_Explore_FadeIn
     jsr Func_Window_Disable
     jsr_prga FuncA_Terrain_SetUpExploreBackground
-    jsr_prga FuncA_Avatar_FindNearbyDevice
+    jsr_prga FuncA_Avatar_FadeIn
     jsr FuncM_DrawObjectsForRoom
     jsr Func_ClearRestOfOam
     ;; Zp_Render_bPpuMask will be set by FuncA_Objects_DrawObjectsForRoom.
     jsr Func_FadeInFromBlack
-    .assert * = Main_Explore_Continue, error, "fallthrough"
+    fall Main_Explore_Continue
 .ENDPROC
 
 ;;; Mode for exploring and platforming within a room, when continuing after
@@ -195,7 +198,7 @@ _Tick:
     lda Zp_AvatarExit_ePassage
     .assert ePassage::None = 0, error
     beq _GameLoop
-    .assert * = Main_Explore_GoThroughPassage, error, "fallthrough"
+    fall Main_Explore_GoThroughPassage
 .ENDPROC
 
 ;;; Mode for leaving the current room through a passage and entering the next
@@ -415,6 +418,18 @@ _UpDownPassage:
     sty T0  ; ePassage value
     ora T0
     rts
+.ENDPROC
+
+;;; Sets up the player avatar for when fading in the screen for explore mode,
+;;; e.g. when first entering a room or when unpausing.
+.PROC FuncA_Avatar_FadeIn
+    ldx #<.bank(Ppu_ChrObjAnnaNormal)
+    lda Sram_CarryingFlower_eFlag
+    beq @setBank
+    ldx #<.bank(Ppu_ChrObjAnnaFlower)
+    @setBank:
+    main_chr10 x
+    fall FuncA_Avatar_FindNearbyDevice
 .ENDPROC
 
 ;;; Sets Zp_Nearby_bDevice with the index of the (interactive) device that the

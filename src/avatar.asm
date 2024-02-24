@@ -22,7 +22,6 @@
 .INCLUDE "device.inc"
 .INCLUDE "joypad.inc"
 .INCLUDE "macros.inc"
-.INCLUDE "mmc3.inc"
 .INCLUDE "oam.inc"
 .INCLUDE "platform.inc"
 .INCLUDE "ppu.inc"
@@ -36,9 +35,6 @@
 .IMPORT Func_SignedAtan2
 .IMPORT Func_TryPushAvatarHorz
 .IMPORT Func_TryPushAvatarVert
-.IMPORT Ppu_ChrObjAnnaFlower
-.IMPORT Ppu_ChrObjAnnaNormal
-.IMPORT Sram_CarryingFlower_eFlag
 .IMPORTZP Zp_AvatarCollided_ePlatform
 .IMPORTZP Zp_AvatarExit_ePassage
 .IMPORTZP Zp_AvatarPushDelta_i8
@@ -172,13 +168,6 @@ _SetAvatarPose:
     lda #eAvatar::Swimming1
     @setPose:
     sta Zp_AvatarPose_eAvatar
-_InitChr10Bank:
-    ldx #<.bank(Ppu_ChrObjAnnaNormal)
-    lda Sram_CarryingFlower_eFlag
-    beq @setBank
-    ldx #<.bank(Ppu_ChrObjAnnaFlower)
-    @setBank:
-    main_chr10 x
     rts
 .ENDPROC
 
