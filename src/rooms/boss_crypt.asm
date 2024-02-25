@@ -33,6 +33,7 @@
 .INCLUDE "../ppu.inc"
 .INCLUDE "../program.inc"
 .INCLUDE "../room.inc"
+.INCLUDE "../sample.inc"
 .INCLUDE "boss_crypt.inc"
 
 .IMPORT DataA_Room_Crypt_sTileset
@@ -60,6 +61,7 @@
 .IMPORT Func_AckIrqAndSetLatch
 .IMPORT Func_BufferPpuTransfer
 .IMPORT Func_FindEmptyActorSlot
+.IMPORT Func_GetAngleFromPointToAvatar
 .IMPORT Func_GetRandomByte
 .IMPORT Func_InitActorProjEmber
 .IMPORT Func_InitActorProjFireball
@@ -68,6 +70,7 @@
 .IMPORT Func_MovePlatformLeftTowardPointX
 .IMPORT Func_MovePlatformTopTowardPointY
 .IMPORT Func_Noop
+.IMPORT Func_PlaySfxSample
 .IMPORT Func_ResetWinchMachineState
 .IMPORT Func_SetActorCenterToPoint
 .IMPORT Func_SetPointToPlatformCenter
@@ -76,11 +79,10 @@
 .IMPORT Ppu_ChrObjBoss1
 .IMPORT Ram_MachineGoalHorz_u8_arr
 .IMPORT Ram_MachineGoalVert_u8_arr
+.IMPORT Ram_MachineState1_byte_arr
 .IMPORT Ram_PlatformLeft_i16_0_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORTZP Zp_Active_sIrq
-.IMPORTZP Zp_AvatarPosX_i16
-.IMPORTZP Zp_AvatarPosY_i16
 .IMPORTZP Zp_Buffered_sIrq
 .IMPORTZP Zp_Chr04Bank_u8
 .IMPORTZP Zp_FrameCounter_u8
@@ -408,9 +410,8 @@ _Devices_sDevice_arr:
 .ENDPROC
 
 .PROC FuncC_Boss_CryptWinch_ReadReg
-    cmp #$c
-    beq _ReadL
     cmp #$d
+    blt _ReadL
     beq _ReadR
     cmp #$e
     beq _ReadX
@@ -432,63 +433,30 @@ _ReadR:
     rts
 .ENDPROC
 
+;;; @prereq PRGA_Machine is loaded.
 .PROC FuncC_Boss_CryptWinch_Tick
-_MoveVert:
-    ;; Calculate the desired room-space pixel Y-position for the top edge of
-    ;; the spikeball, storing it in Zp_PointY_i16.
-    lda Ram_MachineGoalVert_u8_arr + kWinchMachineIndex
-    mul #kBlockHeightPx
-    add #kSpikeballMinPlatformTop
-    .linecont +
-    .assert kWinchMaxGoalZ * kBlockHeightPx + \
-            kSpikeballMinPlatformTop < $100, error
-    .linecont -
-    sta Zp_PointY_i16 + 0
-    lda #0
-    sta Zp_PointY_i16 + 1
-    ;; Determine how fast we should move toward the goal.
-    ldx #kSpikeballPlatformIndex  ; param: platform index
-    jsr FuncA_Machine_GetWinchVertSpeed  ; preserves X, returns Z and A
-    bne @move
-    rts
-    @move:
-    ;; Move the spikeball vertically, as necessary.
-    jsr Func_MovePlatformTopTowardPointY  ; returns Z
+    jsr FuncA_Machine_BossCryptWinch_TickMove  ; returns Z
     beq @reachedGoal
     rts
     @reachedGoal:
-_MoveHorz:
-    ;; Calculate the desired X-position for the left edge of the winch, in
-    ;; room-space pixels, storing it in Zp_PointX_i16.
-    lda Ram_MachineGoalHorz_u8_arr + kWinchMachineIndex
-    mul #kBlockWidthPx
-    add #kWinchMinPlatformLeft
-    sta Zp_PointX_i16 + 0
-    lda #0
-    sta Zp_PointX_i16 + 1
-    ;; Move the winch horizontally, if necessary.
-    jsr FuncA_Machine_GetWinchHorzSpeed  ; returns A
-    ldx #kWinchPlatformIndex  ; param: platform index
-    jsr Func_MovePlatformLeftTowardPointX  ; returns Z and A
-    beq @reachedGoal
-    ;; If the winch moved, move the spikeball platform too.
-    ldx #kSpikeballPlatformIndex  ; param: platform index
-    jmp Func_MovePlatformHorz
-    @reachedGoal:
-_Finished:
     lda Zp_RoomState + sState::Winch_eResetSeq
     bne FuncC_Boss_CryptWinch_ContinueResetting
     jmp FuncA_Machine_WinchReachedGoal
 .ENDPROC
 
+;;; Reset function for the BossCryptWinch machine.
+;;; @prereq PRGA_Room is loaded.
 .PROC FuncC_Boss_CryptWinch_Reset
     ldx #kLeverLeftDeviceIndex  ; param: device index
     jsr FuncA_Room_ResetLever
     ldx #kLeverRightDeviceIndex  ; param: device index
     jsr FuncA_Room_ResetLever
-    .assert * = FuncC_Boss_CryptWinch_ContinueResetting, error, "fallthrough"
+    fall FuncC_Boss_CryptWinch_ContinueResetting
 .ENDPROC
 
+;;; Shared helper function for FuncC_Boss_CryptWinch_Tick and
+;;; FuncC_Boss_CryptWinch_Reset.  Note that no particular PRGA bank is
+;;; guaranteed to be loaded when this is called.
 .PROC FuncC_Boss_CryptWinch_ContinueResetting
     jsr Func_ResetWinchMachineState
     lda Ram_MachineGoalHorz_u8_arr + kWinchMachineIndex
@@ -505,9 +473,12 @@ _Outer:
     sta Zp_RoomState + sState::Winch_eResetSeq
     rts
 _Inner:
-    .assert * = FuncC_Boss_CryptWinch_Init, error, "fallthrough"
+    fall FuncC_Boss_CryptWinch_Init
 .ENDPROC
 
+;;; Reset function for the BossCryptWinch machine.  Note that no particular
+;;; PRGA bank is guaranteed to be loaded when this is called, since this is
+;;; also transitively called from FuncC_Boss_CryptWinch_Tick.
 .PROC FuncC_Boss_CryptWinch_Init
     lda #kWinchInitGoalX
     sta Ram_MachineGoalHorz_u8_arr + kWinchMachineIndex
@@ -565,7 +536,7 @@ _CheckMode:
     D_TABLE_HI table, _JumpTable_ptr_1_arr
     D_TABLE .enum, eBossMode
     d_entry table, Dead,     Func_Noop
-    d_entry table, Firing, _BossFiring
+    d_entry table, Firing,   _BossFiring
     d_entry table, Strafing, _BossStrafing
     d_entry table, Hurt,     _BossHurt
     D_END
@@ -658,7 +629,10 @@ _GoalPosX_u8_arr8:
     ;; If the boss got hit recently, don't check for another hit yet.
     lda Zp_RoomState + sState::Current_eBossMode
     cmp #eBossMode::Hurt
-    beq @done
+    beq @done  ; boss still has temporary invincibility
+    ;; Check if the spikeball is falling.
+    bit Ram_MachineState1_byte_arr + kWinchMachineIndex  ; falling bool
+    bpl @done  ; spikeball is not falling
     ;; Check if the spikeball has hit the center of the boss's eye.
     ldy #kBossBodyPlatformIndex  ; param: platform index
     jsr Func_SetPointToPlatformCenter
@@ -666,6 +640,8 @@ _GoalPosX_u8_arr8:
     jsr Func_IsPointInPlatform  ; returns C
     bcc @done
     ;; Damage the boss.
+    lda #eSample::BossHurtF  ; param: eSample to play
+    jsr Func_PlaySfxSample
     lda #eBossMode::Hurt
     sta Zp_RoomState + sState::Current_eBossMode
     dec Zp_RoomState + sState::BossHealth_u8
@@ -682,7 +658,6 @@ _GoalPosX_u8_arr8:
     sbc #kBossHurtMoveDistPx  ; carry is already set
     @setGoal:
     sta Zp_RoomState + sState::BossGoalPosX_u8
-    ;; TODO: play a sound
     @done:
     rts
 .ENDPROC
@@ -712,57 +687,16 @@ _GoalPosX_u8_arr8:
 .PROC FuncC_Boss_Crypt_SetBossEyeDir
     ldy #kBossBodyPlatformIndex  ; param: platform index
     jsr Func_SetPointToPlatformCenter
-    ;; Compute the avatar's Y-position relative to the boss.
-    lda Zp_AvatarPosY_i16 + 0
-    sub Zp_PointY_i16 + 0
-    bge @setYOffset
-    lda #0
-    @setYOffset:
-    sta T0  ; avatar Y-offset
-    ;; Compute the avatar's X-position relative to the boss.
-    lda Zp_AvatarPosX_i16 + 0
-    sub Zp_PointX_i16 + 0
-    blt @avatarToTheLeft
-    @avatarToTheRight:
-    sta T1  ; avatar X-offset
-    div #2
-    cmp T0  ; avatar Y-offset
-    bge @lookRight
-    lda T0  ; avatar Y-offset
-    div #2
-    cmp T1  ; avatar X-offset
-    bge @lookDown
-    @lookDownRight:
-    ldx #eEyeDir::DownRight
-    .assert eEyeDir::DownRight <> 0, error
-    bne @setEyeDir  ; unconditional
-    @lookRight:
-    ldx #eEyeDir::Right
-    .assert eEyeDir::Right <> 0, error
-    bne @setEyeDir  ; unconditional
-    @lookDown:
-    ldx #eEyeDir::Down
-    .assert eEyeDir::Down <> 0, error
-    bne @setEyeDir  ; unconditional
-    @avatarToTheLeft:
-    eor #$ff  ; negate (off by one, but close enough)
-    sta T1  ; avatar X-offset
-    div #2
-    cmp T0  ; avatar Y-offset
-    bge @lookLeft
-    lda T0  ; avatar Y-offset
-    div #2
-    cmp T1  ; avatar X-offset
-    bge @lookDown
-    @lookDownLeft:
-    ldx #eEyeDir::DownLeft
-    .assert eEyeDir::DownLeft <> 0, error
-    bne @setEyeDir  ; unconditional
-    @lookLeft:
-    ldx #eEyeDir::Left
-    @setEyeDir:
-    stx Zp_RoomState + sState::Boss_eEyeDir
+    jsr Func_GetAngleFromPointToAvatar  ; returns A
+    add #$50
+    div #$20
+    tax
+    lda _Dir_eEyeDir_arr8, x
+    sta Zp_RoomState + sState::Boss_eEyeDir
     rts
+_Dir_eEyeDir_arr8:
+    .byte eEyeDir::Down, eEyeDir::Right,    eEyeDir::Right, eEyeDir::DownRight
+    .byte eEyeDir::Down, eEyeDir::DownLeft, eEyeDir::Left,  eEyeDir::Left
 .ENDPROC
 
 ;;; Draw function for the crypt boss.
@@ -899,6 +833,53 @@ _MoveDown:
     jmp FuncA_Machine_StartWorking
 _Error:
     jmp FuncA_Machine_Error
+.ENDPROC
+
+;;; Helper function for FuncC_Boss_CryptWinch_Tick; moves the the
+;;; BossCryptWinch machine towards its goal position.
+;;; @return Z Set if the winch has reached its goal position.
+.PROC FuncA_Machine_BossCryptWinch_TickMove
+_MoveVert:
+    ;; Calculate the desired room-space pixel Y-position for the top edge of
+    ;; the spikeball, storing it in Zp_PointY_i16.
+    lda Ram_MachineGoalVert_u8_arr + kWinchMachineIndex
+    mul #kBlockHeightPx
+    add #kSpikeballMinPlatformTop
+    .linecont +
+    .assert kWinchMaxGoalZ * kBlockHeightPx + \
+            kSpikeballMinPlatformTop < $100, error
+    .linecont -
+    sta Zp_PointY_i16 + 0
+    lda #0
+    sta Zp_PointY_i16 + 1
+    ;; Determine how fast we should move toward the goal.
+    ldx #kSpikeballPlatformIndex  ; param: platform index
+    jsr FuncA_Machine_GetWinchVertSpeed  ; preserves X, returns Z and A
+    beq _StillMoving
+    ;; Move the spikeball vertically, as necessary.
+    jsr Func_MovePlatformTopTowardPointY  ; returns Z
+    bne _Return  ; still moving
+_MoveHorz:
+    ;; Calculate the desired X-position for the left edge of the winch, in
+    ;; room-space pixels, storing it in Zp_PointX_i16.
+    lda Ram_MachineGoalHorz_u8_arr + kWinchMachineIndex
+    mul #kBlockWidthPx
+    add #kWinchMinPlatformLeft
+    sta Zp_PointX_i16 + 0
+    lda #0
+    sta Zp_PointX_i16 + 1
+    ;; Move the winch horizontally, if necessary.
+    jsr FuncA_Machine_GetWinchHorzSpeed  ; returns A
+    ldx #kWinchPlatformIndex  ; param: platform index
+    jsr Func_MovePlatformLeftTowardPointX  ; returns Z and A
+    beq _Return  ; reached goal
+    ;; If the winch moved, move the spikeball platform too.
+    ldx #kSpikeballPlatformIndex  ; param: platform index
+    jsr Func_MovePlatformHorz  ; preserves X
+_StillMoving:
+    lda #1  ; clear Z to indicate that the winch hasn't yet reached its goal
+_Return:
+    rts
 .ENDPROC
 
 .PROC FuncA_Machine_BossCryptWinch_TryAct
