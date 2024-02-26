@@ -17,7 +17,12 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
+;;; BG tile IDs for drawing the crypt boss.
+kTileIdBgAnimBossCryptFirst     = $6c
+kTileIdBgBossCryptEyeRedFirst   = $b4
+kTileIdBgBossCryptEyeWhiteFirst = $a4
+
 ;;; OBJ tile IDs for drawing the crypt boss.
-kTileIdObjGazerFirst = $ce
+kTileIdObjBossCryptPupilFirst = $ce
 
 ;;;=========================================================================;;;

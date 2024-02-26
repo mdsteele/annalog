@@ -30,6 +30,7 @@
 ;;; Copies one or more transfer entries into the PPU transfer buffer.
 ;;; @param AX Pointer to the start of the transfer entry(ies) to copy.
 ;;; @param Y The number of bytes to buffer (including any transfer headers).
+;;; @preserve T3+
 .EXPORT Func_BufferPpuTransfer
 .PROC Func_BufferPpuTransfer
     stax T1T0  ; pointer to start of data to copy

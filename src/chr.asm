@@ -272,9 +272,9 @@ _chr_begin:
     chr_res $06
     chr_inc "anim_conveyor_0"
     chr_res $05
-    chr_inc "anim_boss_lava_2", kTileIdBgAnimBossLavaFirst
+    chr_inc "anim_boss_lava_2",  kTileIdBgAnimBossLavaFirst
     chr_inc "anim_rocks_fall_0"
-    chr_inc "gazer_anim0"
+    chr_inc "anim_boss_crypt_0", kTileIdBgAnimBossCryptFirst
     END_CHR_BANK
 .ENDPROC
 
@@ -288,9 +288,9 @@ _chr_begin:
     chr_res $06
     chr_inc "anim_conveyor_1"
     chr_res $05
-    chr_inc "anim_boss_lava_1", kTileIdBgAnimBossLavaFirst
+    chr_inc "anim_boss_lava_1",  kTileIdBgAnimBossLavaFirst
     chr_inc "anim_rocks_fall_1"
-    chr_inc "gazer_anim1"
+    chr_inc "anim_boss_crypt_1", kTileIdBgAnimBossCryptFirst
     END_CHR_BANK
 .ENDPROC
 
@@ -304,9 +304,9 @@ _chr_begin:
     chr_res $06
     chr_inc "anim_conveyor_2"
     chr_res $05
-    chr_inc "anim_boss_lava_2", kTileIdBgAnimBossLavaFirst
+    chr_inc "anim_boss_lava_2",  kTileIdBgAnimBossLavaFirst
     chr_inc "anim_rocks_fall_2"
-    chr_inc "gazer_anim2"
+    chr_inc "anim_boss_crypt_2", kTileIdBgAnimBossCryptFirst
     END_CHR_BANK
 .ENDPROC
 
@@ -320,9 +320,9 @@ _chr_begin:
     chr_res $06
     chr_inc "anim_conveyor_3"
     chr_res $05
-    chr_inc "anim_boss_lava_3", kTileIdBgAnimBossLavaFirst
+    chr_inc "anim_boss_lava_3",  kTileIdBgAnimBossLavaFirst
     chr_inc "anim_rocks_fall_3"
-    chr_inc "gazer_anim3"
+    chr_inc "anim_boss_crypt_3", kTileIdBgAnimBossCryptFirst
     END_CHR_BANK
 .ENDPROC
 
@@ -460,11 +460,10 @@ _chr_begin:
     chr_inc "crypt"
     chr_res $02
     chr_inc "cobweb"
-    chr_res $08
-    chr_inc "gazer_eye"
-    chr_res $04
-    chr_inc "arch"
     chr_res $0c
+    chr_inc "boss_crypt_eye_white", kTileIdBgBossCryptEyeWhiteFirst
+    chr_inc "arch"
+    chr_inc "boss_crypt_eye_red",   kTileIdBgBossCryptEyeRedFirst
     END_CHR_BANK
 .ENDPROC
 
@@ -1066,8 +1065,8 @@ _chr_begin:
     chr_inc "boss_garden_eye_mini",  kTileIdObjBossGardenEyeMiniFirst
     chr_inc "boss_garden_eye_red",   kTileIdObjBossGardenEyeRedFirst
     chr_inc "platform_crypt_bricks", kTileIdObjPlatformCryptBricksFirst
-    chr_inc "gazer_obj",             kTileIdObjGazerFirst
-    chr_res $09
+    chr_inc "boss_crypt_pupil",      kTileIdObjBossCryptPupilFirst
+    chr_res $08
     chr_inc "minigun_vert",          kTileIdObjMinigunVertFirst
     chr_inc "crusher",               kTileIdObjCrusherFirst
     chr_inc "winch",                 kTileIdObjWinchFirst

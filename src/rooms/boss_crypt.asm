@@ -82,6 +82,7 @@
 .IMPORT Ram_MachineState1_byte_arr
 .IMPORT Ram_PlatformLeft_i16_0_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
+.IMPORT Ram_PpuTransfer_arr
 .IMPORTZP Zp_Active_sIrq
 .IMPORTZP Zp_Buffered_sIrq
 .IMPORTZP Zp_Chr04Bank_u8
@@ -90,6 +91,7 @@
 .IMPORTZP Zp_NextIrq_int_ptr
 .IMPORTZP Zp_PointX_i16
 .IMPORTZP Zp_PointY_i16
+.IMPORTZP Zp_PpuTransferLen_u8
 .IMPORTZP Zp_RoomScrollY_u8
 .IMPORTZP Zp_RoomState
 .IMPORTZP Zp_ShapePosX_i16
@@ -188,10 +190,8 @@ kBossHurtMoveDistPx = 60
 
 ;;;=========================================================================;;;
 
-;;; The OBJ tile ID for the pupil of the boss's eye.
-kTileIdObjBossPupil = kTileIdObjGazerFirst + 0
 ;;; The OBJ palette number to use for the pupil of the boss's eye.
-kPaletteObjBossPupil = 0
+kPaletteObjBossPupil = 1
 
 ;;;=========================================================================;;;
 
@@ -699,6 +699,23 @@ _Dir_eEyeDir_arr8:
     .byte eEyeDir::Down, eEyeDir::DownLeft, eEyeDir::Left,  eEyeDir::Left
 .ENDPROC
 
+;;; A template (with unset payload bytes) for a pair of PPU transfer entries
+;;; for changing the BG tiles of the boss's eye.
+.PROC DataC_Boss_CryptEyeTransferTemplate_arr
+    .assert kBossWidthTiles = 6, error
+    .assert kBossHeightTiles = 4, error
+    ;; Column 2:
+    .byte kPpuCtrlFlagsVert
+    .dbyt Ppu_BossRow1Start + 2  ; transfer destination
+    .byte 2                      ; transfer length
+    .res 2
+    ;; Column 3:
+    .byte kPpuCtrlFlagsVert
+    .dbyt Ppu_BossRow1Start + 3  ; transfer destination
+    .byte 2                      ; transfer length
+    .res 2
+.ENDPROC
+
 ;;; Draw function for the crypt boss.
 ;;; @prereq PRGA_Objects is loaded.
 .PROC FuncC_Boss_Crypt_DrawBoss
@@ -737,15 +754,64 @@ _SetUpIrq:
     sub Zp_ShapePosY_i16 + 0
     sub Zp_RoomScrollY_u8
     sta <(Zp_Buffered_sIrq + sIrq::Param2_byte)  ; boss scroll-Y
+_CalculateBossEyeLean:
+    lda #0  ; TODO: calculate eye lean offset from X-velocity
+    sta T4  ; eye lean offset (-2, 0, or 2)
+_CalculateBossEyeFlash:
+    ;; If the boss is hurt, make its eye flash.
+    ldx #0
+    lda Zp_RoomState + sState::Current_eBossMode
+    cmp #eBossMode::Hurt
+    bne @noFlash
+    lda Zp_FrameCounter_u8
+    and #$02
+    beq @noFlash
+    ldx #$10
+    @noFlash:
+    stx T3  ; flash bit (0 or $10)
 _DrawBossPupil:
+    ;; Adjust the shape position to the top left of the boss's 1x1 pupil shape.
     ldx Zp_RoomState + sState::Boss_eEyeDir
     lda _EyeOffsetX_u8_arr, x  ; param: offset
+    sub T4  ; eye lean offset (-2, 0, or 2)
     jsr FuncA_Objects_MoveShapeLeftByA  ; preserves X
     lda _EyeOffsetY_u8_arr, x  ; param: offset
     jsr FuncA_Objects_MoveShapeUpByA
+    ;; Draw the pupil white or red, depending on the flash bit.
+    lda T3  ; flash bit (0 or $10)
+    div #$10
+    .assert kTileIdObjBossCryptPupilFirst .mod 2 = 0, error
+    ora #kTileIdObjBossCryptPupilFirst  ; param: tile ID
     ldy #kPaletteObjBossPupil  ; param: object flags
-    lda #kTileIdObjBossPupil  ; param: tile ID
-    jsr FuncA_Objects_Draw1x1Shape
+    jsr FuncA_Objects_Draw1x1Shape  ; preserves T2+
+_TransferBossEye:
+    ;; We're going to buffer a PPU transfer to update the BG tiles for the
+    ;; boss's eye.  Start by copying the transfer template into the buffer,
+    ;; leaving X as the index for the start of the transfer entries.
+    lda Zp_PpuTransferLen_u8
+    pha     ; transfer start
+    ldax #DataC_Boss_CryptEyeTransferTemplate_arr  ; param: data pointer
+    ldy #.sizeof(DataC_Boss_CryptEyeTransferTemplate_arr)  ; param: data length
+    jsr Func_BufferPpuTransfer  ; preserves T3+
+    pla     ; transfer start
+    tax     ; transfer start
+    ;; Fill in the payloads of the two transfer entries with the BG tile IDs to
+    ;; set, taking the eye lean offset and flash bit into account.
+    lda T4  ; eye lean offset (-2, 0, or 2)
+    mul #2
+    add #kTileIdBgBossCryptEyeWhiteFirst + 4
+    .linecont +
+    .assert kTileIdBgBossCryptEyeWhiteFirst | $10 = \
+            kTileIdBgBossCryptEyeRedFirst, error
+    ora T3  ; flash bit (0 or $10)
+    sta Ram_PpuTransfer_arr + 4 + 0, x
+    add #1
+    sta Ram_PpuTransfer_arr + 4 + 1, x
+    adc #1
+    sta Ram_PpuTransfer_arr + 4 + 2 + 4 + 0, x
+    adc #1
+    sta Ram_PpuTransfer_arr + 4 + 2 + 4 + 1, x
+    .linecont -
 _DrawSideWalls:
     ldx #kLeftWallPlatformIndex  ; param: platform index
     jsr FuncA_Objects_DrawPlatformCryptBricksVert
@@ -903,17 +969,20 @@ _Return:
     .byte kPpuCtrlFlagsHorz
     .dbyt Ppu_BossRow0Start  ; transfer destination
     .byte 6
+    .assert kTileIdBgAnimBossCryptFirst = $6c, error
     .byte $6c, $6d, $6e, $6f, $70, $71
     ;; Row 1:
     .byte kPpuCtrlFlagsHorz
     .dbyt Ppu_BossRow1Start  ; transfer destination
     .byte 6
-    .byte $72, $73, $a4, $a6, $74, $75
+    .assert kTileIdBgBossCryptEyeWhiteFirst = $a4, error
+    .byte $72, $73, $a8, $aa, $74, $75
     ;; Row 2:
     .byte kPpuCtrlFlagsHorz
     .dbyt Ppu_BossRow2Start  ; transfer destination
     .byte 6
-    .byte $7c, $7d, $a5, $a7, $7e, $7f
+    .assert kTileIdBgBossCryptEyeWhiteFirst = $a4, error
+    .byte $7c, $7d, $a9, $ab, $7e, $7f
     ;; Row 3:
     .byte kPpuCtrlFlagsHorz
     .dbyt Ppu_BossRow3Start  ; transfer destination
