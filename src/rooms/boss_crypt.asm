@@ -1,4 +1,3 @@
-
 ;;;=========================================================================;;;
 ;;; Copyright 2022 Matthew D. Steele <mdsteele@alum.mit.edu>                ;;;
 ;;;                                                                         ;;;
@@ -55,6 +54,7 @@
 .IMPORT FuncA_Objects_MoveShapeUpByA
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
 .IMPORT FuncA_Room_InitBoss
+.IMPORT FuncA_Room_PlaySfxShootFireball
 .IMPORT FuncA_Room_ResetLever
 .IMPORT FuncA_Room_TickBoss
 .IMPORT Func_AckIrqAndLatchWindowFromParam4
@@ -176,14 +176,13 @@ kBossInitPosY = $78
 
 ;;;=========================================================================;;;
 
-;;; The higher the number, the more slowly the boss tracks towards its goal
-;;; position.
-.DEFINE kBossMoveXSlowdown 2
-.DEFINE kBossMoveYSlowdown 2
+;;; The maximum speed of the boss, in pixels per frame.
+kBossMaxSpeedX = 2
+kBossMaxSpeedY = 2
 
-;;; The maximum speed that the boss is allowed to move, in pixels per frame.
-kBossMaxXSpeed = 1
-kBossMaxYSpeed = 1
+;;; If the boss's horizontal speed is at least this many subpixels per frame,
+;;; the the boss's eye will lean in that direction.
+kBossLeanSpeed = $40
 
 ;;; How far the boss should move horizontally when hurt, in pixels.
 kBossHurtMoveDistPx = 60
@@ -246,6 +245,12 @@ kBossBodyPlatformIndex = 4
     ;; The room pixel position where the boss wants to move its center.
     BossGoalPosX_u8   .byte
     BossGoalPosY_u8   .byte
+    ;; The boss's current subpixel position.
+    BossSubX_u8       .byte
+    BossSubY_u8       .byte
+    ;; The boss's current velocity, in subpixels per frame.
+    BossVelX_i16      .word
+    BossVelY_i16      .word
 .ENDSTRUCT
 .ASSERT .sizeof(sState) <= kRoomStateSize, error
 
@@ -517,7 +522,6 @@ _BossIsDead:
 .PROC FuncC_Boss_Crypt_TickBoss
     jsr FuncC_Boss_Crypt_CheckForSpikeballHit
     jsr FuncC_Boss_Crypt_MoveBossTowardGoal
-    ;; TODO: redraw eye tiles as needed
     jsr FuncC_Boss_Crypt_SetBossEyeDir
 _CoolDown:
     lda Zp_RoomState + sState::BossCooldown_u8
@@ -562,6 +566,7 @@ _BossFiring:
     lda #60  ; 1.0 seconds
     sta Zp_RoomState + sState::BossCooldown_u8
     dec Zp_RoomState + sState::BossFireCount_u8
+    jmp FuncA_Room_PlaySfxShootFireball
     @done:
     rts
 _BossStrafing:
@@ -607,8 +612,9 @@ _PickNewGoal:
     sta Zp_RoomState + sState::BossGoalPosX_u8
     ;; Pick a new random vertical goal position.
     jsr Func_GetRandomByte  ; returns A
-    and #$0f
-    add #kBossZoneTopY + kBossHeightPx / 2
+    and #$03
+    tax
+    lda _GoalPosY_u8_arr4, x
     sta Zp_RoomState + sState::BossGoalPosY_u8
     ;; Commence firing.
     lda #eBossMode::Firing
@@ -619,7 +625,9 @@ _PickNewGoal:
     sta Zp_RoomState + sState::BossFireCount_u8
     rts
 _GoalPosX_u8_arr8:
-    .byte $38, $48, $68, $78, $88, $98, $b8, $c8
+    .byte $48, $58, $68, $78, $88, $98, $a8, $b8
+_GoalPosY_u8_arr4:
+    .byte $74, $77, $7a, $7c
 .ENDPROC
 
 ;;; Checks if the winch spikeball is falling and has hit the boss's eye; if so,
@@ -665,20 +673,138 @@ _GoalPosX_u8_arr8:
 ;;; Moves the center of the boss closer to the boss's goal position by one
 ;;; frame tick.
 .PROC FuncC_Boss_Crypt_MoveBossTowardGoal
-    lda Zp_RoomState + sState::BossGoalPosX_u8
-    sub #kBossWidthPx / 2
+    ldx #kBossBodyPlatformIndex  ; param: platform index
+_ApplyVelocityX:
+    lda Zp_RoomState + sState::BossSubX_u8
+    add Zp_RoomState + sState::BossVelX_i16 + 0
+    sta Zp_RoomState + sState::BossSubX_u8
+    lda Ram_PlatformLeft_i16_0_arr + kBossBodyPlatformIndex
+    adc Zp_RoomState + sState::BossVelX_i16 + 1
     sta Zp_PointX_i16 + 0
-    lda Zp_RoomState + sState::BossGoalPosY_u8
-    sub #kBossHeightPx / 2
-    sta Zp_PointY_i16 + 0
     lda #0
     sta Zp_PointX_i16 + 1
-    sta Zp_PointY_i16 + 1
-    ldx #kBossBodyPlatformIndex  ; param: platform index
-    lda #kBossMaxXSpeed  ; param: max move by
+    lda #127  ; param: max move by
     jsr Func_MovePlatformLeftTowardPointX  ; preserves X
-    lda #kBossMaxYSpeed  ; param: max move by
-    jmp Func_MovePlatformTopTowardPointY
+_ApplyVelocityY:
+    lda Zp_RoomState + sState::BossSubY_u8
+    add Zp_RoomState + sState::BossVelY_i16 + 0
+    sta Zp_RoomState + sState::BossSubY_u8
+    lda Ram_PlatformTop_i16_0_arr + kBossBodyPlatformIndex
+    adc Zp_RoomState + sState::BossVelY_i16 + 1
+    sta Zp_PointY_i16 + 0
+    lda #0
+    sta Zp_PointY_i16 + 1
+    lda #127  ; param: max move by
+    jsr Func_MovePlatformTopTowardPointY
+_AccelerateTowardGoalX:
+    ;; Compute the (signed) delta from the boss's current X-position to its
+    ;; goal X-position, in pixels, storing it in YA.
+    ldy #0
+    lda Zp_RoomState + sState::BossGoalPosX_u8
+    sub #kBossWidthPx / 2
+    sub Ram_PlatformLeft_i16_0_arr + kBossBodyPlatformIndex
+    bge @nonneg
+    dey  ; now Y is $ff
+    @nonneg:
+    ;; Use the position delta in pixels as an acceleration in subpixels per
+    ;; frame, adding it to the boss's current velocity, storing the updated
+    ;; velocity in T1X.
+    add Zp_RoomState + sState::BossVelX_i16 + 0
+    tax     ; new X-velocity (lo)
+    tya     ; acceleration (hi)
+    adc Zp_RoomState + sState::BossVelX_i16 + 1
+    sta T1  ; new X-velocity (hi)
+_ApplyDragX:
+    ;; Divide the updated velocity by 16 to get a (negative) drag force,
+    ;; storing it in YA.  We do this signed division by multiplying by 16, then
+    ;; chopping off the last byte to divide by 256.
+    ldy #0
+    stx T0  ; new X-velocity (lo)
+    .repeat 4
+    asl T0
+    rol a
+    .endrepeat
+    bpl @nonneg
+    dey  ; now Y is $ff
+    @nonneg:
+    ;; Subtract the (negative) drag force in YA from the new velocity in T1X,
+    ;; storing the resulting velocity in AX.
+    sta T0   ; negative drag force (lo)
+    txa      ; new X-velocity (lo)
+    sub T0   ; negative drag force (lo)
+    tax      ; new X-velocity (lo)
+    tya      ; negative drag force (hi)
+    rsbc T1  ; new X-velocity (hi)
+    ;; Clamp the new velocity to +/- kBossMaxSpeedX.
+    bpl @movingRight
+    @movingLeft:
+    cmp #<-kBossMaxSpeedX
+    bge @setVelToAX
+    lda #<-kBossMaxSpeedX
+    ldx #0
+    beq @setVelToAX  ; unconditional
+    @movingRight:
+    cmp #kBossMaxSpeedX
+    blt @setVelToAX
+    lda #kBossMaxSpeedX
+    ldx #0
+    @setVelToAX:
+    stax Zp_RoomState + sState::BossVelX_i16
+_AccelerateTowardGoalY:
+    ;; Compute the (signed) delta from the boss's current Y-position to its
+    ;; goal Y-position, in pixels, storing it in YA.
+    ldy #0
+    lda Zp_RoomState + sState::BossGoalPosY_u8
+    sub #kBossHeightPx / 2
+    sub Ram_PlatformTop_i16_0_arr + kBossBodyPlatformIndex
+    bge @nonneg
+    dey  ; now Y is $ff
+    @nonneg:
+    ;; Use the position delta in pixels as an acceleration in subpixels per
+    ;; frame, adding it to the boss's current velocity, storing the updated
+    ;; velocity in T1X.
+    add Zp_RoomState + sState::BossVelY_i16 + 0
+    tax     ; new Y-velocity (lo)
+    tya     ; acceleration (hi)
+    adc Zp_RoomState + sState::BossVelY_i16 + 1
+    sta T1  ; new Y-velocity (hi)
+_ApplyDragY:
+    ;; Divide the updated velocity by 64 to get a (negative) drag force,
+    ;; storing it in YA.  We do this signed division by multiplying by 4, then
+    ;; chopping off the last byte to divide by 256.
+    ldy #0
+    stx T0  ; new Y-velocity (lo)
+    .repeat 2
+    asl T0
+    rol a
+    .endrepeat
+    bpl @nonneg
+    dey  ; now Y is $ff
+    @nonneg:
+    ;; Subtract the (negative) drag force in YA from the new velocity in T1X,
+    ;; storing the resulting velocity in AX.
+    sta T0   ; negative drag force (lo)
+    txa      ; new Y-velocity (lo)
+    sub T0   ; negative drag force (lo)
+    tax      ; new Y-velocity (lo)
+    tya      ; negative drag force (hi)
+    rsbc T1  ; new Y-velocity (hi)
+    ;; Clamp the new velocity to +/- kBossMaxSpeedY.
+    bpl @movingDown
+    @movingUp:
+    cmp #<-kBossMaxSpeedY
+    bge @setVelToAX
+    lda #<-kBossMaxSpeedY
+    ldx #0
+    beq @setVelToAX  ; unconditional
+    @movingDown:
+    cmp #kBossMaxSpeedY
+    blt @setVelToAX
+    lda #kBossMaxSpeedY
+    ldx #0
+    @setVelToAX:
+    stax Zp_RoomState + sState::BossVelY_i16
+    rts
 .ENDPROC
 
 ;;; Sets Boss_eEyeDir so that the boss's eye is looking at the player avatar.
@@ -755,7 +881,27 @@ _SetUpIrq:
     sub Zp_RoomScrollY_u8
     sta <(Zp_Buffered_sIrq + sIrq::Param2_byte)  ; boss scroll-Y
 _CalculateBossEyeLean:
-    lda #0  ; TODO: calculate eye lean offset from X-velocity
+    ldx Zp_RoomState + sState::BossVelX_i16 + 0
+    lda Zp_RoomState + sState::BossVelX_i16 + 1
+    bmi @movingLeft
+    @movingRight:
+    bne @leanRight
+    cpx #kBossLeanSpeed
+    blt @leanCenter
+    @leanRight:
+    lda #2
+    bne @setEyeLeanOffset  ; unconditional
+    @movingLeft:
+    cmp #$ff
+    blt @leanLeft
+    cpx #$100 - kBossLeanSpeed
+    blt @leanLeft
+    @leanCenter:
+    lda #0
+    beq @setEyeLeanOffset  ; unconditional
+    @leanLeft:
+    lda #<-2
+    @setEyeLeanOffset:
     sta T4  ; eye lean offset (-2, 0, or 2)
 _CalculateBossEyeFlash:
     ;; If the boss is hurt, make its eye flash.
@@ -774,9 +920,9 @@ _DrawBossPupil:
     ldx Zp_RoomState + sState::Boss_eEyeDir
     lda _EyeOffsetX_u8_arr, x  ; param: offset
     sub T4  ; eye lean offset (-2, 0, or 2)
-    jsr FuncA_Objects_MoveShapeLeftByA  ; preserves X
+    jsr FuncA_Objects_MoveShapeLeftByA  ; preserves X and T0+
     lda _EyeOffsetY_u8_arr, x  ; param: offset
-    jsr FuncA_Objects_MoveShapeUpByA
+    jsr FuncA_Objects_MoveShapeUpByA  ; preserves T0+
     ;; Draw the pupil white or red, depending on the flash bit.
     lda T3  ; flash bit (0 or $10)
     div #$10
