@@ -114,7 +114,7 @@ kLeftWallPlatformIndex   = 2
 kRightWallPlatformIndex  = 3
 
 ;;; The initial and maximum permitted values for the winch's X-goal.
-kWinchInitGoalX = 4
+kWinchInitGoalX = 5
 kWinchMaxGoalX  = 9
 
 ;;; The initial and maximum permitted values for the winch's Z-goal.
@@ -135,6 +135,13 @@ kSpikeballMinPlatformTop = $32
 kSpikeballInitPlatformTop = \
     kSpikeballMinPlatformTop + kBlockHeightPx * kWinchInitGoalZ
 .LINECONT +
+
+;;; Enum for the steps of the CryptTombWinch machine's reset sequence (listed
+;;; in reverse order).
+.ENUM eResetSeq
+    Middle = 0  ; last step: move to mid-center position
+    TopCenter   ; move up to top, then move horizontally to center
+.ENDENUM
 
 ;;;=========================================================================;;;
 
@@ -174,7 +181,8 @@ Ppu_BossEyeAttrs = Ppu_Nametable3_sName + sName::Attrs_u8_arr64 + \
 kBossInitPosX = $a8
 kBossInitPosY = $78
 
-;;;=========================================================================;;;
+;;; How many spikeball hits are needed to defeat the boss.
+kBossInitHealth = 4
 
 ;;; The maximum speed of the boss, in pixels per frame.
 kBossMaxSpeedX = 2
@@ -187,19 +195,12 @@ kBossLeanSpeed = $40
 ;;; How far the boss should move horizontally when hurt, in pixels.
 kBossHurtMoveDistPx = 60
 
-;;;=========================================================================;;;
-
-;;; The OBJ palette number to use for the pupil of the boss's eye.
-kPaletteObjBossPupil = 1
-
-;;;=========================================================================;;;
-
 ;;; Modes that the boss in this room can be in.
 .ENUM eBossMode
     Dead
     Firing    ; moving to goal position, shooting fireballs
     Strafing  ; moving from one side of the room to the other, dropping embers
-    Hurt      ; just got hit, moving away and eye blinking
+    Hurt      ; just got hit, moving away and eye flashing
     NUM_VALUES
 .ENDENUM
 
@@ -216,14 +217,10 @@ kPaletteObjBossPupil = 1
 ;;; The platform index for the boss's body.
 kBossBodyPlatformIndex = 4
 
-;;;=========================================================================;;;
+;;; The OBJ palette number to use for the pupil of the boss's eye.
+kPaletteObjBossPupil = 1
 
-;;; Enum for the steps of the CryptTombWinch machine's reset sequence (listed
-;;; in reverse order).
-.ENUM eResetSeq
-    Middle = 0  ; last step: move to mid-center position
-    TopCenter   ; move up to top, then move horizontally to center
-.ENDENUM
+;;;=========================================================================;;;
 
 ;;; Defines room-specific state data for this particular room.
 .STRUCT sState
@@ -452,6 +449,7 @@ _ReadR:
 ;;; Reset function for the BossCryptWinch machine.
 ;;; @prereq PRGA_Room is loaded.
 .PROC FuncC_Boss_CryptWinch_Reset
+    ;; TODO: If not hurt/strafing, make boss change its goal position
     ldx #kLeverLeftDeviceIndex  ; param: device index
     jsr FuncA_Room_ResetLever
     ldx #kLeverRightDeviceIndex  ; param: device index
@@ -505,7 +503,7 @@ _InitBoss:
 _BossIsAlive:
     lda #eBossMode::Firing
     sta Zp_RoomState + sState::Current_eBossMode
-    lda #3
+    lda #kBossInitHealth
     sta Zp_RoomState + sState::BossHealth_u8
     lda #120  ; 2 seconds
     sta Zp_RoomState + sState::BossCooldown_u8
@@ -554,18 +552,22 @@ _BossFiring:
     lda Zp_RoomState + sState::BossFireCount_u8
     beq _PickNewGoal
     ;; Otherwise, shoot some fireballs.
-    ;; TODO: shoot a spray of three fireballs, not just one
     jsr Func_FindEmptyActorSlot  ; returns C and X
     bcs @done
     ldy #kBossBodyPlatformIndex  ; param: platform index
     jsr Func_SetPointToPlatformCenter  ; preserves X
     jsr Func_SetActorCenterToPoint  ; preserves X
-    ;; TODO: Aim fireball at player avatar.
-    lda #64  ; param: aim angle
+    jsr Func_GetAngleFromPointToAvatar  ; preserves X, returns A (param: angle)
     jsr Func_InitActorProjFireball
-    lda #60  ; 1.0 seconds
-    sta Zp_RoomState + sState::BossCooldown_u8
     dec Zp_RoomState + sState::BossFireCount_u8
+    beq @longWait
+    @shortWait:
+    lda #30
+    bne @setCooldown  ; unconditional
+    @longWait:
+    lda #240
+    @setCooldown:
+    sta Zp_RoomState + sState::BossCooldown_u8
     jmp FuncA_Room_PlaySfxShootFireball
     @done:
     rts
@@ -593,11 +595,19 @@ _BossHurt:
     ;; If the boss is still cooling down, we're done.
     lda Zp_RoomState + sState::BossCooldown_u8
     bne @done
-    ;; If the boss is at zero health, it dies.  Otherwise, pick a new goal
-    ;; position.
+    ;; If the boss is at zero health, it dies.  Otherwise, get ready to pick a
+    ;; new goal position.
     lda Zp_RoomState + sState::BossHealth_u8
-    bne _PickNewGoal
+    bne @moveSoon
     .assert eBossMode::Dead = 0, error
+    sta Zp_RoomState + sState::Current_eBossMode
+    beq @done  ; unconditional
+    @moveSoon:
+    lda #0
+    sta Zp_RoomState + sState::BossFireCount_u8
+    lda #60
+    sta Zp_RoomState + sState::BossCooldown_u8
+    lda #eBossMode::Firing
     sta Zp_RoomState + sState::Current_eBossMode
     @done:
     rts
@@ -621,7 +631,10 @@ _PickNewGoal:
     sta Zp_RoomState + sState::Current_eBossMode
     lda #60  ; 1.0 seconds
     sta Zp_RoomState + sState::BossCooldown_u8
-    lda #3
+    ;; Randomly shoot either 3 or 4 fireballs.
+    jsr Func_GetRandomByte  ; returns A
+    and #$01
+    add #3
     sta Zp_RoomState + sState::BossFireCount_u8
     rts
 _GoalPosX_u8_arr8:
@@ -653,7 +666,7 @@ _GoalPosY_u8_arr4:
     lda #eBossMode::Hurt
     sta Zp_RoomState + sState::Current_eBossMode
     dec Zp_RoomState + sState::BossHealth_u8
-    lda #45  ; 0.75 seconds
+    lda #120
     sta Zp_RoomState + sState::BossCooldown_u8
     ;; Move horizontally away from the spikeball.
     lda Zp_PointX_i16 + 0
