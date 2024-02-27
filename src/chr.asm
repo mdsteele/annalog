@@ -21,6 +21,7 @@
 .INCLUDE "actors/axe.inc"
 .INCLUDE "actors/bat.inc"
 .INCLUDE "actors/bird.inc"
+.INCLUDE "actors/blood.inc"
 .INCLUDE "actors/breakball.inc"
 .INCLUDE "actors/breakbomb.inc"
 .INCLUDE "actors/breakfire.inc"
@@ -1050,7 +1051,7 @@ _chr_begin:
     chr_inc "upgrade_ram",           kTileIdObjUpgradeRamFirst
     chr_inc "breakball",             kTileIdObjBreakballFirst
     chr_inc "ember",                 kTileIdObjEmber
-    chr_res $01
+    chr_inc "spike",                 kTileIdObjSpike
     chr_inc "cannon",                kTileIdObjCannonFirst
     chr_inc "bullet",                kTileIdObjBulletFirst
     chr_inc "fireball",              kTileIdObjFireballFirst
@@ -1058,9 +1059,8 @@ _chr_begin:
     chr_inc "upgrade_oprest",        kTileIdObjUpgradeOpRestFirst
     chr_res $08
     chr_inc "outbreak_obj",          kTileIdObjOutbreakFirst
-    chr_inc "spike",                 kTileIdObjSpike
+    chr_inc "blood",                 kTileIdObjBloodFirst
     chr_inc "breakfire",             kTileIdObjBreakfireFirst
-    chr_res $02
     chr_inc "boss_garden_eye_white", kTileIdObjBossGardenEyeWhiteFirst
     chr_inc "boss_garden_eye_mini",  kTileIdObjBossGardenEyeMiniFirst
     chr_inc "boss_garden_eye_red",   kTileIdObjBossGardenEyeRedFirst
@@ -1126,8 +1126,8 @@ _chr_begin:
     chr_inc "platform_city_walls",  kTileIdObjPlatformCityWalls
     chr_inc "combo",                kTileIdObjComboFirst
     chr_inc "rodent",               kTileIdObjRodentFirst
-    chr_inc "breakfire",            kTileIdObjBreakfireFirst
     chr_res $02
+    chr_inc "breakfire",            kTileIdObjBreakfireFirst
     chr_inc "rhino",                kTileIdObjRhinoFirst
     chr_inc "semaphore",            kTileIdObjSemaphoreFirst
     chr_res $28

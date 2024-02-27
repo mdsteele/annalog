@@ -18,6 +18,8 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "../actor.inc"
+.INCLUDE "../actors/blood.inc"
+.INCLUDE "../audio.inc"
 .INCLUDE "../boss.inc"
 .INCLUDE "../charmap.inc"
 .INCLUDE "../device.inc"
@@ -27,6 +29,7 @@
 .INCLUDE "../machines/minigun.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../mmc3.inc"
+.INCLUDE "../music.inc"
 .INCLUDE "../oam.inc"
 .INCLUDE "../platform.inc"
 .INCLUDE "../ppu.inc"
@@ -54,6 +57,7 @@
 .IMPORT FuncA_Objects_MoveShapeUpOneTile
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
 .IMPORT FuncA_Room_InitActorProjBreakball
+.IMPORT FuncA_Room_InitActorSmokeBlood
 .IMPORT FuncA_Room_InitBoss
 .IMPORT FuncA_Room_RemoveAllBulletsIfConsoleOpen
 .IMPORT FuncA_Room_ResetLever
@@ -61,6 +65,7 @@
 .IMPORT Func_AckIrqAndLatchWindowFromParam4
 .IMPORT Func_AckIrqAndSetLatch
 .IMPORT Func_DivMod
+.IMPORT Func_FindActorWithType
 .IMPORT Func_FindEmptyActorSlot
 .IMPORT Func_GetRandomByte
 .IMPORT Func_InitActorSmokeExplosion
@@ -74,6 +79,9 @@
 .IMPORT Ppu_ChrBgAnimB4
 .IMPORT Ppu_ChrObjBoss1
 .IMPORT Ram_ActorType_eActor_arr
+.IMPORT Ram_ActorVelX_i16_0_arr
+.IMPORT Ram_ActorVelX_i16_1_arr
+.IMPORT Ram_ActorVelY_i16_0_arr
 .IMPORT Ram_ActorVelY_i16_1_arr
 .IMPORT Ram_MachineGoalHorz_u8_arr
 .IMPORT Ram_PlatformLeft_i16_0_arr
@@ -82,6 +90,9 @@
 .IMPORTZP Zp_Buffered_sIrq
 .IMPORTZP Zp_Chr04Bank_u8
 .IMPORTZP Zp_NextIrq_int_ptr
+.IMPORTZP Zp_Next_sAudioCtrl
+.IMPORTZP Zp_PointX_i16
+.IMPORTZP Zp_PointY_i16
 .IMPORTZP Zp_RoomScrollY_u8
 .IMPORTZP Zp_RoomState
 .IMPORTZP Zp_ShapePosX_i16
@@ -183,6 +194,9 @@ kBossInitCooldown = 120
 ;;; How many frames the boss pauses for between all boss projectiles expiring
 ;;; and firing again.
 kBossPauseFrames = 60
+;;; How many frames the boss spends dying after hitting the spikes before it
+;;; finally dies.
+kBossDyingFrames = 45
 
 ;;; How many stun cycles the boss stays stunned for when hit with a breakball.
 kBossStunCyclesPerHit = 10
@@ -195,8 +209,8 @@ kBossStunAnimFrames = 24
 
 ;;; OBJ tile IDs used for drawing the boss.
 kTileIdObjOutbreakBrainFirst = kTileIdObjOutbreakFirst + 0
-kTileIdObjOutbreakClaw       = kTileIdObjOutbreakFirst + 3
 kTileIdObjOutbreakEyeFirst   = kTileIdObjOutbreakFirst + 4
+kTileIdObjOutbreakClaw       = kTileIdObjOutbreakFirst + 8
 
 ;;; OBJ palette numbers used for drawing the boss.
 kPaletteObjOutbreakBrain = 1
@@ -208,6 +222,7 @@ kPaletteObjOutbreakEye   = 1
 ;;; Modes that the boss in this room can be in.
 .ENUM eBossMode
     Dead
+    Dying       ; impaled on spikes; will die when cooldown expires
     Paused      ; eyes closed; will shoot a breakball when cooldown expires
     Waiting     ; eyes closed; waiting for projectiles to finish
     Stunned     ; active eye open; can shoot it to make boss crawl up
@@ -215,6 +230,8 @@ kPaletteObjOutbreakEye   = 1
     NUM_VALUES
 .ENDENUM
 
+;;; For boss modes less than this, the boss is dead or dying.
+kFirstHealthyBossMode = eBossMode::Paused
 ;;; For boss modes greater than or equal to this, the boss's active eye should
 ;;; open up.
 kFirstBossModeWithOpenEye = eBossMode::Stunned
@@ -421,11 +438,15 @@ _Devices_sDevice_arr:
 .ENDPROC
 
 ;;; Performs per-frame upates for the boss in this room.
+;;; @prereq PRGA_Room is loaded.
 .PROC FuncC_Boss_Temple_TickBoss
-    jsr FuncC_Boss_Temple_CheckForBulletHit
+    lda Zp_RoomState + sState::Current_eBossMode
+    cmp #kFirstHealthyBossMode
+    blt _TickEyes
+_CheckForHits:
+    jsr FuncA_Room_BossTemple_CheckForBulletHit
     jsr FuncC_Boss_Temple_CheckForBreakballHit
 _TickAnimation:
-    lda Zp_RoomState + sState::Current_eBossMode
     cmp #eBossMode::Stunned
     bne @normalAnim
     lda Zp_RoomState + sState::BossStunAnimTimer_u8
@@ -464,12 +485,22 @@ _CheckMode:
     D_TABLE_HI table, _JumpTable_ptr_1_arr
     D_TABLE .enum, eBossMode
     d_entry table, Dead,       Func_Noop
+    d_entry table, Dying,      _BossDying
     d_entry table, Paused,     _BossPaused
     d_entry table, Waiting,    _BossWaiting
     d_entry table, Stunned,    _BossStunned
     d_entry table, ShootBreak, _BossShootBreak
     D_END
 .ENDREPEAT
+_BossDying:
+    ;; Wait for the cooldown to expire.
+    lda Zp_RoomState + sState::BossCooldown_u8
+    bne @done
+    ;; Kill the boss.
+    lda #eBossMode::Dead
+    sta Zp_RoomState + sState::Current_eBossMode
+    @done:
+    rts
 _BossPaused:
     ;; Wait for the cooldown to expire.
     lda Zp_RoomState + sState::BossCooldown_u8
@@ -548,6 +579,8 @@ _BossShootBreak:
 .PROC FuncC_Boss_Temple_TickBossEye
 _CheckIfOpenOrClosed:
     lda Zp_RoomState + sState::Current_eBossMode
+    cmp #kFirstHealthyBossMode
+    blt _Open
     cmp #kFirstBossModeWithOpenEye
     blt _Close
     cpx Zp_RoomState + sState::Active_eBossEye
@@ -609,93 +642,6 @@ _StunBoss:
     jmp Func_PlaySfxSample
 .ENDPROC
 
-;;; Checks if a bullet has hit a boss eye; if so, expires the bullet and makes
-;;; the boss react accordingly.
-;;; @prereq PRGA_Room is loaded.
-.PROC FuncC_Boss_Temple_CheckForBulletHit
-    ;; Loop over all actors, skipping over non-bullets.
-    ldx #kMaxActors - 1
-    @actorLoop:
-    lda Ram_ActorType_eActor_arr, x
-    cmp #eActor::ProjBullet
-    bne @actorContinue
-    jsr Func_SetPointToActorCenter  ; preserves X
-    ;; For each bullet, loop over the boss eyes, check if the bullet hits them.
-    ldy #eBossEye::NUM_VALUES - 1
-    @eyeLoop:
-    .assert eBossEye::Left = kBossEyeLeftPlatformIndex, error
-    .assert eBossEye::Center = kBossEyeCenterPlatformIndex, error
-    .assert eBossEye::Right = kBossEyeRightPlatformIndex, error
-    jsr Func_IsPointInPlatform  ; preserves X and Y; returns C
-    ;; In practice, only one bullet/eye impact should be able to happen in a
-    ;; given frame, so if an impact happens, we can just break out of both
-    ;; loops (which saves us the trouble of preserving the loop variables).
-    bcs FuncC_Boss_Temple_BulletHitsEye
-    dey
-    bpl @eyeLoop
-    @actorContinue:
-    dex
-    bpl @actorLoop
-    rts
-.ENDPROC
-
-;;; Called when a bullet hits one of the boss's eyes.
-;;; @prereq PRGA_Room is loaded.
-;;; @param X The actor index for the bullet.
-;;; @param Y The eBossEye value for the eye that was hit.
-.PROC FuncC_Boss_Temple_BulletHitsEye
-    ;; Expire the bullet.
-    lda #eActor::None
-    sta Ram_ActorType_eActor_arr, x
-    ;; Check if the eye is open.
-    lda Zp_RoomState + sState::BossEyeOpen_u8_arr3, y
-    .assert (kBossEyeOpenFrames + 1) .mod 4 = 0, error
-    cmp #(kBossEyeOpenFrames + 1) * 3 / 4
-    bge _EyeIsOpen
-_EyeIsClosed:
-    ;; TODO: play a sound
-    rts
-_EyeIsOpen:
-    lda #eSample::BossHurtF  ; param: eSample to play
-    jsr Func_PlaySfxSample
-    ;; Decrement the number of stun cycles if nonzero.
-    lda Zp_RoomState + sState::BossStunCycles_u8
-    beq @done
-    dec Zp_RoomState + sState::BossStunCycles_u8
-    @done:
-    fall FuncC_Boss_Temple_CrawlUp
-.ENDPROC
-
-;;; Moves the boss upwards by one pixel, and checks if it has hit the spikes at
-;;; the top of the room.
-;;; @prereq PRGA_Room is loaded.
-.PROC FuncC_Boss_Temple_CrawlUp
-    ;; Move the boss's body.
-    ldx #kBossBodyPlatformIndex  ; param: platform index
-    lda #<-1  ; param: move delta
-    jsr Func_MovePlatformVert
-    ;; Move the boss's eye zones.
-    ldx #eBossEye::NUM_VALUES - 1
-    @loop:
-    .assert eBossEye::Left = kBossEyeLeftPlatformIndex, error
-    .assert eBossEye::Center = kBossEyeCenterPlatformIndex, error
-    .assert eBossEye::Right = kBossEyeRightPlatformIndex, error
-    lda #<-1  ; param: move delta
-    jsr Func_MovePlatformVert  ; preserves X
-    dex
-    bpl @loop
-_CheckForSpikes:
-    ;; If the top of the boss's body <= kBossMinTopY, kill the boss.
-    lda #kBossMinTopY
-    cmp Ram_PlatformTop_i16_0_arr + kBossBodyPlatformIndex
-    blt _Done
-    ;; Kill the boss.
-    lda #eBossMode::Dead
-    sta Zp_RoomState + sState::Current_eBossMode
-_Done:
-    rts
-.ENDPROC
-
 ;;; Draw function for the BossTemple room.
 ;;; @prereq PRGA_Objects is loaded.
 .PROC FuncC_Boss_Temple_DrawRoom
@@ -729,9 +675,16 @@ _DrawBossEyes:
 _DrawBossBrain:
     jsr FuncC_Boss_Temple_SetShapePosToBossMidTop
     jsr FuncA_Objects_MoveShapeUpOneTile
+    lda Zp_RoomState + sState::Current_eBossMode
+    cmp #kFirstHealthyBossMode
+    bge @pulsate
+    lda #kTileIdObjOutbreakBrainFirst + 3  ; param: tile ID
+    bne @drawTiles  ; unconditional
+    @pulsate:
     jsr FuncC_Boss_Temple_GetPulsationIndex  ; returns A (0-2)
     .assert kTileIdObjOutbreakBrainFirst .mod 4 = 0, error
     ora #kTileIdObjOutbreakBrainFirst  ; param: tile ID
+    @drawTiles:
     pha  ; tile ID
     ldy #kPaletteObjOutbreakBrain | bObj::FlipH  ; param: object flags
     jsr FuncA_Objects_Draw1x1Shape
@@ -887,6 +840,152 @@ _BossIsDead:
     jsr FuncA_Room_ResetLever
     ldx #kLeverRightDeviceIndex  ; param: device index
     jmp FuncA_Room_ResetLever
+.ENDPROC
+
+;;; Checks if a bullet has hit a boss eye; if so, expires the bullet and makes
+;;; the boss react accordingly.
+.PROC FuncA_Room_BossTemple_CheckForBulletHit
+    ;; Loop over all actors, skipping over non-bullets.
+    ldx #kMaxActors - 1
+    @actorLoop:
+    lda Ram_ActorType_eActor_arr, x
+    cmp #eActor::ProjBullet
+    bne @actorContinue
+    jsr Func_SetPointToActorCenter  ; preserves X
+    ;; For each bullet, loop over the boss eyes, check if the bullet hits them.
+    ldy #eBossEye::NUM_VALUES - 1
+    @eyeLoop:
+    .assert eBossEye::Left = kBossEyeLeftPlatformIndex, error
+    .assert eBossEye::Center = kBossEyeCenterPlatformIndex, error
+    .assert eBossEye::Right = kBossEyeRightPlatformIndex, error
+    jsr Func_IsPointInPlatform  ; preserves X and Y; returns C
+    ;; In practice, only one bullet/eye impact should be able to happen in a
+    ;; given frame, so if an impact happens, we can just break out of both
+    ;; loops (which saves us the trouble of preserving the loop variables).
+    bcs FuncA_Room_BossTemple_BulletHitsEye
+    dey
+    bpl @eyeLoop
+    @actorContinue:
+    dex
+    bpl @actorLoop
+    rts
+.ENDPROC
+
+;;; Called when a bullet hits one of the boss's eyes.
+;;; @param X The actor index for the bullet.
+;;; @param Y The eBossEye value for the eye that was hit.
+.PROC FuncA_Room_BossTemple_BulletHitsEye
+    ;; Expire the bullet.
+    lda #eActor::None
+    sta Ram_ActorType_eActor_arr, x
+    ;; Check if the eye is open.
+    lda Zp_RoomState + sState::BossEyeOpen_u8_arr3, y
+    .assert (kBossEyeOpenFrames + 1) .mod 4 = 0, error
+    cmp #(kBossEyeOpenFrames + 1) * 3 / 4
+    bge _EyeIsOpen
+_EyeIsClosed:
+    ;; TODO: play a sound
+    rts
+_EyeIsOpen:
+    lda #eSample::BossHurtF  ; param: eSample to play
+    jsr Func_PlaySfxSample
+    ;; Decrement the number of stun cycles if nonzero.
+    lda Zp_RoomState + sState::BossStunCycles_u8
+    beq @done
+    dec Zp_RoomState + sState::BossStunCycles_u8
+    @done:
+    fall FuncA_Room_BossTemple_CrawlUp
+.ENDPROC
+
+;;; Moves the boss upwards by one pixel, and checks if it has hit the spikes at
+;;; the top of the room.
+.PROC FuncA_Room_BossTemple_CrawlUp
+    ;; Move the boss's body.
+    ldx #kBossBodyPlatformIndex  ; param: platform index
+    lda #<-1  ; param: move delta
+    jsr Func_MovePlatformVert
+    ;; Move the boss's eye zones.
+    ldx #eBossEye::NUM_VALUES - 1
+    @loop:
+    .assert eBossEye::Left = kBossEyeLeftPlatformIndex, error
+    .assert eBossEye::Center = kBossEyeCenterPlatformIndex, error
+    .assert eBossEye::Right = kBossEyeRightPlatformIndex, error
+    lda #<-1  ; param: move delta
+    jsr Func_MovePlatformVert  ; preserves X
+    dex
+    bpl @loop
+_CheckForSpikes:
+    ;; If the top of the boss's body <= kBossMinTopY, the boss dies.
+    lda #kBossMinTopY
+    cmp Ram_PlatformTop_i16_0_arr + kBossBodyPlatformIndex
+    bge _KillBoss
+    rts
+_KillBoss:
+    ;; The boss has hits the spikes, so make it start dying.
+    lda #eBossMode::Dying
+    sta Zp_RoomState + sState::Current_eBossMode
+    lda #kBossDyingFrames
+    sta Zp_RoomState + sState::BossCooldown_u8
+    ;; Silence the music.
+    lda #eMusic::Silence
+    sta Zp_Next_sAudioCtrl + sAudioCtrl::Music_eMusic
+    ;; Expire the breakball projectile, if any; it's possible for there to be
+    ;; one if the last bullet hit comes just as the boss is firing a breakball.
+    lda #eActor::ProjBreakball  ; param: actor type
+    jsr Func_FindActorWithType  ; returns C and X
+    bcs @noBreakball  ; no breakball found
+    jsr Func_InitActorSmokeExplosion
+    @noBreakball:
+    fall FuncA_Room_BossTemple_SpurtBlood
+.ENDPROC
+
+;;; Spawns blood smoke actors out of the boss's brain.
+.PROC FuncA_Room_BossTemple_SpurtBlood
+    ;; Make blood spurt out of the boss where it hit the spikes.
+    lda #kBossMinTopY
+    sta Zp_PointY_i16 + 0
+    lda #0
+    sta Zp_PointX_i16 + 1
+    sta Zp_PointY_i16 + 1
+    ldy #4 - 1
+    @loop:
+    jsr Func_FindEmptyActorSlot  ; preserves Y and T0+, returns C and X
+    bcs @break  ; no more empty actor slots
+    lda _BloodPosX_u8_arr4, y
+    sta Zp_PointX_i16 + 0
+    jsr Func_SetActorCenterToPoint  ; preserves X and Y
+    lda _BloodTile_u8_arr4, y  ; param: tile ID
+    sty T0  ; loop counter
+    jsr FuncA_Room_InitActorSmokeBlood  ; preserves X and T0+
+    ldy T0  ; loop counter
+    lda _BloodVelX_i16_0_arr4, y
+    sta Ram_ActorVelX_i16_0_arr, x
+    lda _BloodVelX_i16_1_arr4, y
+    sta Ram_ActorVelX_i16_1_arr, x
+    lda _BloodVelY_i16_0_arr4, y
+    sta Ram_ActorVelY_i16_0_arr, x
+    lda _BloodVelY_i16_1_arr4, y
+    sta Ram_ActorVelY_i16_1_arr, x
+    dey
+    bpl @loop
+    @break:
+    ;; TODO: play a sound
+    rts
+_BloodTile_u8_arr4:
+    .byte kTileIdObjBloodFirst + 1
+    .byte kTileIdObjBloodFirst + 0
+    .byte kTileIdObjBloodFirst + 1
+    .byte kTileIdObjBloodFirst + 0
+_BloodPosX_u8_arr4:
+    .byte $84, $87, $89, $8c
+_BloodVelX_i16_0_arr4:
+    .byte <-280, <-50, <200, <230
+_BloodVelX_i16_1_arr4:
+    .byte >-280, >-50, >200, >230
+_BloodVelY_i16_0_arr4:
+    .byte <-550, <-200, <-700, <-400
+_BloodVelY_i16_1_arr4:
+    .byte >-550, >-200, >-700, >-400
 .ENDPROC
 
 ;;;=========================================================================;;;

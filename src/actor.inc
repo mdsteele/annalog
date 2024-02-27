@@ -69,6 +69,7 @@ kMaxActors = 16
     ProjSpine        ; a spine shot by the city boss
     ProjSteamHorz    ; emitted horizontally from boiler machine pipes
     ProjSteamUp      ; emitted vertically from boiler machine pipes
+    SmokeBlood       ; a glob of blood from the temple boss
     SmokeExplosion   ; a puff of smoke for when something explodes
     SmokeFragment    ; a fragment that falls under gravity
     SmokeParticle    ; a single particle of smoke
@@ -77,7 +78,7 @@ kMaxActors = 16
 
 ;;; eActor values greater than or equal to this are "smoke" actors; that is,
 ;;; they are decorative animations that don't affect game physics.
-kFirstSmokeActorType = eActor::SmokeExplosion
+kFirstSmokeActorType = eActor::SmokeBlood
 
 ;;;=========================================================================;;;
 

@@ -28,6 +28,6 @@
 ;;;   * State3: Unused.
 
 ;;; The first tile ID for drawing breakfire projectile actors.
-kTileIdObjBreakfireFirst = $a9
+kTileIdObjBreakfireFirst = $ab
 
 ;;;=========================================================================;;;

@@ -17,14 +17,16 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
-;;; State bytes for spike projectiles:
-;;;   * State1: Counter that starts at zero and increments every frame; if it
-;;;     wraps back around to zero before the spike hits anything, then the
-;;;     spike is removed.
-;;;   * State2: Unused.
+;;; State bytes for blood smoke:
+;;;   * Flags: Unused.
+;;;   * State1: The OBJ tile ID for the blood.
+;;;   * State2: Counter that starts at zero and increments every frame; if it
+;;;     wraps back around to zero before the blood hits the floor, then the
+;;;     blood is removed.
 ;;;   * State3: Unused.
+;;;   * State4: Unused.
 
-;;; The OBJ tile ID for spike projectile actors.
-kTileIdObjSpike = $87
+;;; Tile IDs for drawing blood smoke actors.
+kTileIdObjBloodFirst = $a9
 
 ;;;=========================================================================;;;
