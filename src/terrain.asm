@@ -22,6 +22,7 @@
 .INCLUDE "ppu.inc"
 .INCLUDE "room.inc"
 .INCLUDE "tileset.inc"
+.INCLUDE "window.inc"
 
 .IMPORT Ram_PpuTransfer_arr
 .IMPORTZP Zp_Current_sRoom
@@ -330,6 +331,16 @@ _ShortRoom:
     cpy #kTallRoomHeightBlocks
     bne @tileLoop
 _Continue:
+    ;; There's a one-tile-high buffer row between the terrain tiles and the top
+    ;; border of the window.  It's normally hidden, but can become visible via
+    ;; e.g. some boss rooms' IRQs, so make sure we blank it out.
+    .linecont +
+    .assert kTallRoomHeightTiles - kScreenHeightTiles + 1 = kWindowStartRow, \
+            error
+    .linecont -
+    lda #0
+    sta Hw_PpuData_rw  ; tile row just above the window top border
+    ;; Proceed to the next column.
     lda T0  ; current room tile column index
     cmp T1  ; final room tile column index
     beq _Done
