@@ -231,7 +231,7 @@ Ram_CollectedPapers_u8_arr: .res kPaperGridCols
     d_byte eFlag::PaperManual6, 0  ; TODO
     d_byte eFlag::PaperManual7, 0  ; TODO
     d_byte eFlag::PaperManual8, 0  ; TODO
-    d_byte eFlag::PaperManual9, 0  ; TODO
+    d_byte eFlag::PaperManual9, eDialog::PaperManual9
     D_END
 .ENDPROC
 
@@ -266,7 +266,7 @@ Ram_CollectedPapers_u8_arr: .res kPaperGridCols
     d_byte eFlag::PaperJerome25, $ff  ; TODO
     d_byte eFlag::PaperJerome26, $ff  ; TODO
     d_byte eFlag::PaperJerome27, $ff  ; TODO
-    d_byte eFlag::PaperJerome28, eArea::Temple   ; room: TempleApse
+    d_byte eFlag::PaperJerome28, eArea::Temple   ; room: TempleChevet
     d_byte eFlag::PaperJerome29, $ff  ; TODO
     d_byte eFlag::PaperJerome30, $ff  ; TODO
     d_byte eFlag::PaperJerome31, $ff  ; TODO
@@ -283,7 +283,7 @@ Ram_CollectedPapers_u8_arr: .res kPaperGridCols
     d_byte eFlag::PaperManual6,  $ff  ; TODO
     d_byte eFlag::PaperManual7,  $ff  ; TODO
     d_byte eFlag::PaperManual8,  $ff  ; TODO
-    d_byte eFlag::PaperManual9,  $ff  ; TODO
+    d_byte eFlag::PaperManual9,  eArea::Temple   ; room: TempleApse
     D_END
 .ENDPROC
 

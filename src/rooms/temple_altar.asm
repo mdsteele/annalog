@@ -185,7 +185,7 @@ _Ext_sRoomExt:
     D_END
 _TerrainData:
 :   .incbin "out/rooms/temple_altar.room"
-    .assert * - :- = 17 * 24, error
+    .assert * - :- = 18 * 24, error
 _Machines_sMachine_arr:
 :   .assert * - :- = kUpperMinigunMachineIndex * .sizeof(sMachine), error
     D_STRUCT sMachine
@@ -327,6 +327,12 @@ _Passages_sPassage_arr:
     d_byte Exit_bPassage, ePassage::Western | 1
     d_byte Destination_eRoom, eRoom::TempleWest
     d_byte SpawnBlock_u8, 20
+    d_byte SpawnAdjust_byte, 0
+    D_END
+    D_STRUCT sPassage
+    d_byte Exit_bPassage, ePassage::Eastern | 1
+    d_byte Destination_eRoom, eRoom::TempleChevet
+    d_byte SpawnBlock_u8, 16
     d_byte SpawnAdjust_byte, 0
     D_END
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error

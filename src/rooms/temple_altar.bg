@@ -1,30 +1,30 @@
-@BG 0 0 0 17x24
+@BG 0 0 0 18x24
 >temple_0
 >temple_1
 >temple_2
 >temple_4
 
-DBDCDBDCDGDCDD      DADBDCDBDCDBDC
-DCDBDCDD    AK      AK    DADGDCDB
-DNDN        DADFDFDFDD          DN
-DODOCGCICHCHCHCHCHCHCHCHCHCJCGCGDO
-DPDP                            DO
-DCDDCKCKDE                      DO
-            DE      DE          DO
-    AB      AN      AN          DP
-DBDCDD      AO      AO        DADB
-DNDN        AP  AD  AP          DN
-DODO    AC  DADFDFDFDD  AC      DO
-DODO    DADFDBDCDFDGDCDFDD      DO
-DODO      CO  CE  CF  DN        DO
-DPDPDM    AL  CE  CF  DP    DM  DP
-DCDBDCDGDCDD  DE  CF  DADGDCDDCKDA
-DMDM      AN  CE  CF  CN        DN
-DCDBDCDD  CO  CE  CF            DO
-DMDM          CE  DADD          DO
-DBDCDD        CE  CF            DO
-              CCCHCD            DO
-                              ABDP
-DBDCDD    DM          DM      DADB
-DNDNDADBDCDBDCDBDCDGDCDBDCDGDCDDDN
-DODO      DN          DN        DO
+DBDCDBDCDGDCDD      DADBDCDBDCDBDCDB
+DCDBDCDD    AK      AK    DADGDCDBDC
+DNDN        DADFDFDFDD          DNDN
+DODOCGCICHCHCHCHCHCHCHCHCHCJCGCGDODO
+DPDP                            DODO
+DCDDCKCKDE                      DODO
+            DE      DE          DODO
+    AB      AN      AN          DPDP
+DBDCDD      AO      AO        DADBDC
+DNDN        AP  AD  AP          DNDN
+DODO    AC  DADFDFDFDD  AC      DODO
+DODO    DADFDBDCDFDGDCDFDD      DODO
+DODO      CO  CE  CF  DN        DODO
+DPDPDM    AL  CE  CF  DP    DM  DPDP
+DCDBDCDGDCDD  DE  CF  DADGDCDDCKDADB
+DMDM      AN  CE  CF  CN
+DCDBDCDD  CO  CE  CF
+DMDM          CE  DADD        DADGDC
+DBDCDD        CE  CF            DNDN
+              CCCHCD            DODO
+                              ABDPDP
+DBDCDD    DM          DM      DADBDC
+DNDNDADBDCDBDCDBDCDGDCDBDCDGDCDDDNDN
+DODO      DN          DN        DODO

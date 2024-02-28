@@ -157,6 +157,7 @@ kMaxPassages = 8
     ShadowTrap
     TempleAltar
     TempleApse
+    TempleChevet
     TempleEntry
     TempleFlower
     TempleFoyer

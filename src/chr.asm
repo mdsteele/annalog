@@ -979,7 +979,7 @@ _chr_begin:
     chr_inc "temple2"
     chr_inc "temple3"
     chr_inc "temple4"
-    chr_res $06
+    chr_res $04
     END_CHR_BANK
 .ENDPROC
 

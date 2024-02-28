@@ -147,6 +147,7 @@
 .IMPORT DataC_Shadow_Trap_sRoom
 .IMPORT DataC_Temple_Altar_sRoom
 .IMPORT DataC_Temple_Apse_sRoom
+.IMPORT DataC_Temple_Chevet_sRoom
 .IMPORT DataC_Temple_Entry_sRoom
 .IMPORT DataC_Temple_Flower_sRoom
 .IMPORT DataC_Temple_Foyer_sRoom
@@ -405,6 +406,7 @@ _LoadNewRoom:
     d_entry table, ShadowTrap,      DataC_Shadow_Trap_sRoom
     d_entry table, TempleAltar,     DataC_Temple_Altar_sRoom
     d_entry table, TempleApse,      DataC_Temple_Apse_sRoom
+    d_entry table, TempleChevet,    DataC_Temple_Chevet_sRoom
     d_entry table, TempleEntry,     DataC_Temple_Entry_sRoom
     d_entry table, TempleFlower,    DataC_Temple_Flower_sRoom
     d_entry table, TempleFoyer,     DataC_Temple_Foyer_sRoom
@@ -590,6 +592,7 @@ _PrisonMusic:
     d_byte ShadowTrap,      eMusic::Silence
     d_byte TempleAltar,     eMusic::Temple
     d_byte TempleApse,      eMusic::Temple
+    d_byte TempleChevet,    eMusic::Temple
     d_byte TempleEntry,     eMusic::Temple
     d_byte TempleFlower,    eMusic::Temple
     d_byte TempleFoyer,     eMusic::Temple

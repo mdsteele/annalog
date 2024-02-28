@@ -94,6 +94,7 @@
 .IMPORT DataA_Dialog_PaperManual3_sDialog
 .IMPORT DataA_Dialog_PaperManual4_sDialog
 .IMPORT DataA_Dialog_PaperManual5_sDialog
+.IMPORT DataA_Dialog_PaperManual9_sDialog
 .IMPORT DataA_Dialog_PortraitAnimBank_u8_arr
 .IMPORT DataA_Dialog_PortraitFirstTileId_u8_arr
 .IMPORT DataA_Dialog_PortraitRestBank_u8_arr
@@ -493,6 +494,7 @@ _Finish:
     d_entry t, PaperManual3,         DataA_Dialog_PaperManual3_sDialog
     d_entry t, PaperManual4,         DataA_Dialog_PaperManual4_sDialog
     d_entry t, PaperManual5,         DataA_Dialog_PaperManual5_sDialog
+    d_entry t, PaperManual9,         DataA_Dialog_PaperManual9_sDialog
     d_entry t, PrisonFlowerSign,     DataA_Dialog_PrisonFlowerSign_sDialog
     d_entry t, PrisonUpperAlexCell,  DataA_Dialog_PrisonUpperAlexCell_sDialog
     d_entry t, PrisonUpperAlexFree,  DataA_Dialog_PrisonUpperAlexFree_sDialog

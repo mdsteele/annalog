@@ -9,9 +9,9 @@ DPDP              DP          AP        AP                    DPDPDP
 DCDBDCDGDCDGDCDBDCDBDCDGDCDBDCDBDCDGDCDBDCDGDCDBDCDBDCDGDCDBDCDBDCDB
 DMDM              DN          AN        AN                    DNDNDN
 DCDFDD            DO          AO        AO                    DODODO
-            BI    DO          AO        AP                    DODODO
-            BJ    DO          AO      DADFDD          DADFDD  DODODO
-DCDBDCDD    BH    DO          AP        AN      DM      DM    DPDODO
+            BF    DO    BB    AO        AP                    DODODO
+            BD    DO    BC    AO      DADFDD          DADFDD  DODODO
+DCDBDCDD          DO          AP        AN      DM      DM    DPDODO
 DNDN              DP        DADFDD      AO      DADGDCDBDCDBDCDDDODO
 DODO            DADFDD                  AP                    DNDODO
 DODO              DM      CACGCGCGCGCGDADFDDCGCB              DODODO

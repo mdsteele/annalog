@@ -75,45 +75,10 @@ _Platforms_sPlatform_arr:
     ;; Terrain spikes:
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Harm
-    d_word WidthPx_u16, $50
-    d_byte HeightPx_u8, $08
-    d_word Left_i16,  $0050
-    d_word Top_i16,   $00de
-    D_END
-    D_STRUCT sPlatform
-    d_byte Type_ePlatform, ePlatform::Harm
-    d_word WidthPx_u16, $30
-    d_byte HeightPx_u8, $08
-    d_word Left_i16,  $00b0
-    d_word Top_i16,   $00de
-    D_END
-    D_STRUCT sPlatform
-    d_byte Type_ePlatform, ePlatform::Harm
-    d_word WidthPx_u16, $30
-    d_byte HeightPx_u8, $08
-    d_word Left_i16,  $00f0
-    d_word Top_i16,   $00de
-    D_END
-    D_STRUCT sPlatform
-    d_byte Type_ePlatform, ePlatform::Harm
-    d_word WidthPx_u16, $50
-    d_byte HeightPx_u8, $08
-    d_word Left_i16,  $0130
-    d_word Top_i16,   $00de
-    D_END
-    D_STRUCT sPlatform
-    d_byte Type_ePlatform, ePlatform::Harm
-    d_word WidthPx_u16, $40
-    d_byte HeightPx_u8, $08
-    d_word Left_i16,  $0190
-    d_word Top_i16,   $00de
-    D_END
-    D_STRUCT sPlatform
-    d_byte Type_ePlatform, ePlatform::Harm
-    d_word WidthPx_u16, $20
-    d_byte HeightPx_u8, $08
-    d_word Left_i16,  $01e0
-    d_word Top_i16,   $00de
+    d_word WidthPx_u16, $1b0
+    d_byte HeightPx_u8,  $08
+    d_word Left_i16,   $0050
+    d_word Top_i16,    $00de
     D_END
     .assert * - :- <= kMaxPlatforms * .sizeof(sPlatform), error
     .byte ePlatform::None
