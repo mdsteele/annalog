@@ -50,7 +50,7 @@
 .IMPORT DataC_City_East_sRoom
 .IMPORT DataC_City_Flower_sRoom
 .IMPORT DataC_City_Outskirts_sRoom
-.IMPORT DataC_City_Pit_sRoom
+.IMPORT DataC_City_Sinkhole_sRoom
 .IMPORT DataC_City_West_sRoom
 .IMPORT DataC_Core_Boss_sRoom
 .IMPORT DataC_Core_East_sRoom
@@ -309,7 +309,7 @@ _LoadNewRoom:
     d_entry table, CityEast,        DataC_City_East_sRoom
     d_entry table, CityFlower,      DataC_City_Flower_sRoom
     d_entry table, CityOutskirts,   DataC_City_Outskirts_sRoom
-    d_entry table, CityPit,         DataC_City_Pit_sRoom
+    d_entry table, CitySinkhole,    DataC_City_Sinkhole_sRoom
     d_entry table, CityWest,        DataC_City_West_sRoom
     d_entry table, CoreBoss,        DataC_Core_Boss_sRoom
     d_entry table, CoreEast,        DataC_Core_East_sRoom
@@ -495,7 +495,7 @@ _PrisonMusic:
     d_byte CityEast,        eMusic::Silence
     d_byte CityFlower,      eMusic::Silence
     d_byte CityOutskirts,   eMusic::Silence
-    d_byte CityPit,         eMusic::Silence
+    d_byte CitySinkhole,    eMusic::Silence
     d_byte CityWest,        eMusic::Silence
     d_byte CoreBoss,        eMusic::Silence
     d_byte CoreEast,        eMusic::Silence

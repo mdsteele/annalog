@@ -40,10 +40,10 @@
 
 ;;;=========================================================================;;;
 
-;;; The machine index for the CityPitLift machine in this room.
+;;; The machine index for the CitySinkholeLift machine in this room.
 kLiftMachineIndex = 0
 
-;;; The platform index for the CityPitLift machine.
+;;; The platform index for the CitySinkholeLift machine.
 kLiftPlatformIndex = 0
 
 ;;; The initial and maximum permitted vertical goal values for the lift.
@@ -58,8 +58,8 @@ kLiftInitPlatformTop = kLiftMaxPlatformTop - kLiftInitGoalY * kBlockHeightPx
 
 .SEGMENT "PRGC_City"
 
-.EXPORT DataC_City_Pit_sRoom
-.PROC DataC_City_Pit_sRoom
+.EXPORT DataC_City_Sinkhole_sRoom
+.PROC DataC_City_Sinkhole_sRoom
     D_STRUCT sRoom
     d_byte MinScrollX_u8, $00
     d_word MaxScrollX_u16, $00
@@ -85,12 +85,12 @@ _Ext_sRoomExt:
     d_addr Draw_func_ptr, Func_Noop
     D_END
 _TerrainData:
-:   .incbin "out/rooms/city_pit.room"
+:   .incbin "out/rooms/city_sinkhole.room"
     .assert * - :- = 16 * 15, error
 _Machines_sMachine_arr:
 :   .assert * - :- = kLiftMachineIndex * .sizeof(sMachine), error
     D_STRUCT sMachine
-    d_byte Code_eProgram, eProgram::CityPitLift
+    d_byte Code_eProgram, eProgram::CitySinkholeLift
     d_byte Breaker_eFlag, 0
     d_byte Flags_bMachine, bMachine::MoveV
     d_byte Status_eDiagram, eDiagram::Lift
@@ -98,14 +98,14 @@ _Machines_sMachine_arr:
     d_byte ScrollGoalY_u8, $00
     d_byte RegNames_u8_arr4, 0, 0, 0, "Y"
     d_byte MainPlatform_u8, kLiftPlatformIndex
-    d_addr Init_func_ptr, FuncA_Room_CityPitLift_InitReset
-    d_addr ReadReg_func_ptr, FuncC_City_PitLift_ReadReg
+    d_addr Init_func_ptr, FuncA_Room_CitySinkholeLift_InitReset
+    d_addr ReadReg_func_ptr, FuncC_City_SinkholeLift_ReadReg
     d_addr WriteReg_func_ptr, Func_Noop
-    d_addr TryMove_func_ptr, FuncA_Machine_CityPitLift_TryMove
+    d_addr TryMove_func_ptr, FuncA_Machine_CitySinkholeLift_TryMove
     d_addr TryAct_func_ptr, FuncA_Machine_Error
-    d_addr Tick_func_ptr, FuncA_Machine_CityPitLift_Tick
+    d_addr Tick_func_ptr, FuncA_Machine_CitySinkholeLift_Tick
     d_addr Draw_func_ptr, FuncA_Objects_DrawLiftMachine
-    d_addr Reset_func_ptr, FuncA_Room_CityPitLift_InitReset
+    d_addr Reset_func_ptr, FuncA_Room_CitySinkholeLift_InitReset
     D_END
     .assert * - :- <= kMaxMachines * .sizeof(sMachine), error
 _Platforms_sPlatform_arr:
@@ -148,7 +148,7 @@ _Passages_sPassage_arr:
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
 .ENDPROC
 
-.PROC FuncC_City_PitLift_ReadReg
+.PROC FuncC_City_SinkholeLift_ReadReg
     lda #kLiftMaxPlatformTop + kTileHeightPx
     sub Ram_PlatformTop_i16_0_arr + kLiftPlatformIndex
     div #kBlockHeightPx
@@ -159,7 +159,7 @@ _Passages_sPassage_arr:
 
 .SEGMENT "PRGA_Room"
 
-.PROC FuncA_Room_CityPitLift_InitReset
+.PROC FuncA_Room_CitySinkholeLift_InitReset
     lda #kLiftInitGoalY
     sta Ram_MachineGoalVert_u8_arr + kLiftMachineIndex
     rts
@@ -169,12 +169,12 @@ _Passages_sPassage_arr:
 
 .SEGMENT "PRGA_Machine"
 
-.PROC FuncA_Machine_CityPitLift_TryMove
+.PROC FuncA_Machine_CitySinkholeLift_TryMove
     lda #kLiftMaxGoalY  ; param: max goal vert
     jmp FuncA_Machine_LiftTryMove
 .ENDPROC
 
-.PROC FuncA_Machine_CityPitLift_Tick
+.PROC FuncA_Machine_CitySinkholeLift_Tick
     ldax #kLiftMaxPlatformTop  ; param: max platform top
     jmp FuncA_Machine_LiftTick
 .ENDPROC

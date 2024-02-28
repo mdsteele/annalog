@@ -122,7 +122,7 @@
     CityCenterSemaphore3
     CityCenterSemaphore4
     CityOutskirtsLauncher
-    CityPitLift
+    CitySinkholeLift
     CoreBossBlaster
     CoreBossCannon
     CoreBossLaser

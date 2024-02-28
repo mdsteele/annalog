@@ -113,7 +113,7 @@ _SetFlags:
     d_byte Breaker4, "BREAKER4"
     d_byte Collapse, "  MINE  "
     d_byte Breaker5, "BREAKER5"
-    d_byte Sinkhole, "  CITY  "
+    d_byte Sinkhole, "SINKHOLE"
     d_byte Breaker6, "BREAKER6"
     d_byte Shadow,   " SHADOW "
     d_byte Depths,   " DEPTHS "
@@ -139,7 +139,7 @@ _SetFlags:
     d_byte Breaker4, eRoom::BossLava
     d_byte Collapse, eRoom::MineCollapse
     d_byte Breaker5, eRoom::BossMine
-    d_byte Sinkhole, eRoom::CityPit
+    d_byte Sinkhole, eRoom::CitySinkhole
     d_byte Breaker6, eRoom::BossCity
     d_byte Shadow,   eRoom::ShadowTeleport
     d_byte Depths,   eRoom::ShadowDepths
