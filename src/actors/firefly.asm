@@ -161,8 +161,8 @@ _Return:
 .PROC FuncA_Objects_DrawActorBadFirefly
     lda Zp_FrameCounter_u8
     and #$04
-    .assert kTileIdObjFireflyFirst .mod $08 = 0, error
-    ora #kTileIdObjFireflyFirst  ; param: first tile ID
+    .assert kTileIdObjBadFireflyFirst .mod $08 = 0, error
+    ora #kTileIdObjBadFireflyFirst  ; param: first tile ID
     ldy #kPaletteObjFirefly  ; param: palette
     jmp FuncA_Objects_Draw2x2Actor  ; preserves X
 .ENDPROC

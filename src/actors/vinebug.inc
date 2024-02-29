@@ -26,8 +26,9 @@
 ;;;     also to periodically randomly change the vinebug's velocity (when
 ;;;     State1 is zero).
 ;;;   * State3: Unused.
+;;;   * State4: Unused.
 
 ;;; Tile IDs for drawing vinebug baddie actors.
-kTileIdObjVinebugFirst = $b0
+kTileIdObjBadVinebugFirst = $b0
 
 ;;;=========================================================================;;;

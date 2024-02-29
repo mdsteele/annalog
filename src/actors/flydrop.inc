@@ -25,8 +25,9 @@
 ;;;   * State2: The number of cooldown frames before the flydrop can randomly
 ;;;     turn around again.
 ;;;   * State3: Unused.
+;;;   * State4: Unused.
 
 ;;; Tile IDs for drawing flydrop baddie actors.
-kTileIdObjFlydropFirst = $d0
+kTileIdObjBadFlydropFirst = $d0
 
 ;;;=========================================================================;;;

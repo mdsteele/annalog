@@ -72,10 +72,10 @@ kRodentRunSpeed = $250
 kRodentVanishFrames = 16
 
 ;;; Various OBJ tile IDs for drawing rodent baddies:
-kTileIdObjRodentEmergingFirst    = kTileIdObjRodentFirst + 6
-kTileIdObjRodentRunningHorzFirst = kTileIdObjRodentFirst + 0
-kTileIdObjRodentRunningVertFirst = kTileIdObjRodentFirst + 2
-kTileIdObjRodentVanishingFirst   = kTileIdObjRodentFirst + 4
+kTileIdObjBadRodentEmergingFirst    = kTileIdObjBadRodentFirst + 6
+kTileIdObjBadRodentRunningHorzFirst = kTileIdObjBadRodentFirst + 0
+kTileIdObjBadRodentRunningVertFirst = kTileIdObjBadRodentFirst + 2
+kTileIdObjBadRodentVanishingFirst   = kTileIdObjBadRodentFirst + 4
 
 ;;; The OBJ palette number used for rodent baddie actors.
 kPaletteObjRodent = 0
@@ -422,10 +422,10 @@ _Vanishing:
     cmp #kRodentVanishFrames / 2 + 1
     blt @secondFrame
     @firstFrame:
-    lda #kTileIdObjRodentVanishingFirst + 0
+    lda #kTileIdObjBadRodentVanishingFirst + 0
     bne _Draw  ; unconditional
     @secondFrame:
-    lda #kTileIdObjRodentVanishingFirst + 1
+    lda #kTileIdObjBadRodentVanishingFirst + 1
     bne _Draw  ; unconditional
 _Running:
     lda Ram_ActorState3_byte_arr, x  ; animation timer
@@ -436,12 +436,12 @@ _Running:
     .assert >kRodentRunSpeed > 0, error
     beq @horz
     @vert:
-    .assert kTileIdObjRodentRunningVertFirst .mod 2 = 0, error
-    ora #kTileIdObjRodentRunningVertFirst
+    .assert kTileIdObjBadRodentRunningVertFirst .mod 2 = 0, error
+    ora #kTileIdObjBadRodentRunningVertFirst
     bne _Draw  ; unconditional
     @horz:
-    .assert kTileIdObjRodentRunningHorzFirst .mod 2 = 0, error
-    ora #kTileIdObjRodentRunningHorzFirst
+    .assert kTileIdObjBadRodentRunningHorzFirst .mod 2 = 0, error
+    ora #kTileIdObjBadRodentRunningHorzFirst
     bne _Draw  ; unconditional
 _Emerging:
     lda Ram_ActorState2_byte_arr, x  ; mode timer
@@ -450,13 +450,13 @@ _Emerging:
     cmp #kRodentEmergeFrames / 2
     bge @secondFrame
     @firstFrame:
-    lda #kTileIdObjRodentEmergingFirst + 0
+    lda #kTileIdObjBadRodentEmergingFirst + 0
     bne _Draw  ; unconditional
     @secondFrame:
-    lda #kTileIdObjRodentEmergingFirst + 1
+    lda #kTileIdObjBadRodentEmergingFirst + 1
     bne _Draw  ; unconditional
     @thirdFrame:
-    lda #kTileIdObjRodentEmergingFirst + 2
+    lda #kTileIdObjBadRodentEmergingFirst + 2
 _Draw:
     ldy #kPaletteObjRodent  ; param: palette
     jmp FuncA_Objects_Draw1x1Actor  ; preserves X

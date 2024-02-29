@@ -155,8 +155,8 @@ _StopJumping:
     ;; Tile IDs:
     lda Ram_ActorState3_byte_arr, x  ; animation counter
     and #$06
-    .assert kTileIdObjLavaballFirst .mod $08 = 0, error
-    ora #kTileIdObjLavaballFirst
+    .assert kTileIdObjBadLavaballFirst .mod $08 = 0, error
+    ora #kTileIdObjBadLavaballFirst
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Tile_u8, y
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Tile_u8, y
     adc #1  ; carry is already clear

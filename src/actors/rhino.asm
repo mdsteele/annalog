@@ -79,7 +79,7 @@ kRhinoAngeredBehindFrames = 12
 kRhinoRecoveryFrames = 60
 
 ;;; Tile IDs for drawing rhino baddie actors.
-kTileIdObjRhinoHeadFirst = kTileIdObjRhinoFirst + 12
+kTileIdObjBadRhinoHeadFirst = kTileIdObjBadRhinoFirst + 12
 
 ;;; The OBJ palette number to use for drawing rhino baddie actors.
 kPaletteObjRhino = 0
@@ -283,15 +283,15 @@ _DrawHead:
     lda T2  ; animation frame
     and #$01
     mul #2
-    .assert kTileIdObjRhinoHeadFirst .mod 4 = 0, error
-    ora #kTileIdObjRhinoHeadFirst | 0  ; param: first tile ID
+    .assert kTileIdObjBadRhinoHeadFirst .mod 4 = 0, error
+    ora #kTileIdObjBadRhinoHeadFirst | 0  ; param: first tile ID
     ldy Ram_ActorFlags_bObj_arr, x  ; param: object flags
     jmp FuncA_Objects_Draw1x2Shape  ; preserves X
 _TileIdObjRhinoBodyFirst_u8_arr:
-    .byte kTileIdObjRhinoFirst + 0
-    .byte kTileIdObjRhinoFirst + 4
-    .byte kTileIdObjRhinoFirst + 8
-    .byte kTileIdObjRhinoFirst + 4
+    .byte kTileIdObjBadRhinoFirst + 0
+    .byte kTileIdObjBadRhinoFirst + 4
+    .byte kTileIdObjBadRhinoFirst + 8
+    .byte kTileIdObjBadRhinoFirst + 4
 .ENDPROC
 
 ;;;=========================================================================;;;

@@ -18,16 +18,19 @@
 ;;;=========================================================================;;;
 
 ;;; State bytes for lavaball baddies:
+;;;   * Param: Controls the jump height (1-9).
+;;;   * Flags: Unused.
 ;;;   * State1: Controls the jump height (1-9).
 ;;;   * State2: The number of frames until the next time the lavaball jumps, or
 ;;;     zero if the lavaball is currently jumping.
 ;;;   * State3: An animation counter that increments each frame.
+;;;   * State4: Unused.
 
 ;;; The starting Y-position of a lavaball baddie in short/tall rooms.
 kLavaballStartYShort = $d4
 kLavaballStartYTall = $164
 
 ;;; Tile IDs for drawing lavaball baddie actors.
-kTileIdObjLavaballFirst = $b0
+kTileIdObjBadLavaballFirst = $b0
 
 ;;;=========================================================================;;;

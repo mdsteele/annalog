@@ -27,9 +27,10 @@
 ;;;     frame.
 ;;;   * State2: The wasp's current angle around the circle it flies in.
 ;;;   * State3: Unused.
+;;;   * State4: Unused.
 
 ;;; Tile IDs for drawing wasp baddie actors.
-kTileIdObjWaspFirst = $a8
+kTileIdObjBadWaspFirst = $a8
 
 ;;;=========================================================================;;;
 

@@ -29,8 +29,9 @@
 ;;;     thread is never longer than 255 pixels, subtracting this from the low
 ;;;     byte of the spider's Y position gives the length of the thread.
 ;;;   * State3: Unused.
+;;;   * State4: Unused.
 
 ;;; Tile IDs for drawing spider baddie actors.
-kTileIdObjSpiderFirst = $a8
+kTileIdObjBadSpiderFirst = $a8
 
 ;;;=========================================================================;;;

@@ -28,9 +28,10 @@
 ;;;     (decremented each frame) until it can fly again.  If the bird is
 ;;;     flying, this is an animation counter (incremented each from).
 ;;;   * State3: Unused.
+;;;   * State4: Unused.
 
 ;;; Tile IDs for drawing bird baddie actors.
-kTileIdObjBirdFirst = $c0
+kTileIdObjBadBirdFirst = $c0
 
 ;;;=========================================================================;;;
 

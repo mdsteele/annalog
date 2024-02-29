@@ -18,14 +18,20 @@
 ;;;=========================================================================;;;
 
 ;;; State bytes for firefly baddies:
+;;;   * Param: The bBadFirefly value specifying the firefly's initial position
+;;;     (angle) within its flight path, and its initial facing direction.
+;;;     direction and max look-ahead distance.
+;;;   * Flags: The bObj::FlipH bit is set if the firefly is facing left, or
+;;;     cleared if it is facing right.
 ;;;   * State1: The number of cooldown frames before the firefly can shoot
 ;;;     another fireball.
 ;;;   * State2: The firefly's current angle within its sinusoidal flight
 ;;;     pattern.
 ;;;   * State3: Unused.
+;;;   * State4: Unused.
 
 ;;; Tile IDs for drawing firefly baddie actors.
-kTileIdObjFireflyFirst = $a0
+kTileIdObjBadFireflyFirst = $a0
 
 ;;;=========================================================================;;;
 

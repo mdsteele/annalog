@@ -77,7 +77,7 @@ kSpiderDropFrames = 75
 kSpiderDropSpeed = $01a0
 
 ;;; Tile IDs for drawing spider baddie actors.
-kTileIdObjSpiderThread = kTileIdObjSpiderFirst + 6
+kTileIdObjBadSpiderThread = kTileIdObjBadSpiderFirst + 6
 
 ;;; The OBJ palette number used for drawing spider baddies.
 kPaletteObjSpider = 0
@@ -216,7 +216,7 @@ _HangingFromThread:
     @loop:
     jsr FuncA_Objects_MoveShapeUpOneTile  ; preserves X and T0+
     ldy #kPaletteObjSpider | bObj::Pri  ; param: object flags
-    lda #kTileIdObjSpiderThread  ; param: tile ID
+    lda #kTileIdObjBadSpiderThread  ; param: tile ID
     jsr FuncA_Objects_Draw1x1Shape  ; preserves X and T2+
     dec T2  ; num thread tiles
     bne @loop
@@ -231,8 +231,8 @@ _NotOnThread:
     and #$02
 _DrawSpider:
     ;; At this point, A holds the spider tile ID offset (0, 2, or 4).
-    .assert kTileIdObjSpiderFirst .mod 8 = 0, error
-    ora #kTileIdObjSpiderFirst | 1
+    .assert kTileIdObjBadSpiderFirst .mod 8 = 0, error
+    ora #kTileIdObjBadSpiderFirst | 1
     sta T2  ; param: tile ID
     ldy #kPaletteObjSpider | bObj::FlipH  ; param: object flags
     jsr FuncA_Objects_Draw1x1Shape  ; preserves X and T2+

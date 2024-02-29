@@ -189,10 +189,10 @@ _SetVelocity:
     @done:
     rts
 _TileId_arr4:
-    .byte kTileIdObjJellyFirst + 0
-    .byte kTileIdObjJellyFirst + 1
-    .byte kTileIdObjJellyFirst + 2
-    .byte kTileIdObjJellyFirst + 1
+    .byte kTileIdObjBadJellyFirst + 0
+    .byte kTileIdObjBadJellyFirst + 1
+    .byte kTileIdObjBadJellyFirst + 2
+    .byte kTileIdObjBadJellyFirst + 1
 .ENDPROC
 
 ;;;=========================================================================;;;

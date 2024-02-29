@@ -27,6 +27,6 @@
 ;;;   * State3: Unused.
 
 ;;; Tile IDs for drawing grub baddie actors.
-kTileIdObjGrubFirst = $9c
+kTileIdObjBadGrubFirst = $9c
 
 ;;;=========================================================================;;;

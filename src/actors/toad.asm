@@ -48,8 +48,8 @@
 kToadJumpVelocity = $ffff & -850
 
 ;;; OBJ tile IDs for drawing toad baddie actors.
-kTileIdObjToadGrounded = kTileIdObjToadFirst + 0
-kTileIdObjToadAirborne = kTileIdObjToadFirst + 4
+kTileIdObjToadGrounded = kTileIdObjBadToadFirst + 0
+kTileIdObjToadAirborne = kTileIdObjBadToadFirst + 4
 
 ;;; The OBJ palette number to use for drawing toad baddie actors.
 kPaletteObjToad = 0

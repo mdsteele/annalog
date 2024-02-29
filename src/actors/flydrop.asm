@@ -186,8 +186,8 @@ _SetVelocity:
 .PROC FuncA_Objects_DrawActorBadFlydrop
     lda Zp_FrameCounter_u8
     and #$04
-    .assert kTileIdObjFlydropFirst .mod $08 = 0, error
-    ora #kTileIdObjFlydropFirst  ; param: first tile ID
+    .assert kTileIdObjBadFlydropFirst .mod $08 = 0, error
+    ora #kTileIdObjBadFlydropFirst  ; param: first tile ID
     ldy #kPaletteObjFlydrop  ; param: palette
     jmp FuncA_Objects_Draw2x2Actor  ; preserves X
 .ENDPROC

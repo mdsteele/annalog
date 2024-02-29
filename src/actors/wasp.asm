@@ -119,8 +119,8 @@ _UpdateAngle:
 .PROC FuncA_Objects_DrawActorBadWasp
     lda Zp_FrameCounter_u8
     and #$04
-    .assert kTileIdObjWaspFirst .mod $08 = 0, error
-    ora #kTileIdObjWaspFirst  ; param: first tile ID
+    .assert kTileIdObjBadWaspFirst .mod $08 = 0, error
+    ora #kTileIdObjBadWaspFirst  ; param: first tile ID
     ldy #kPaletteObjWasp  ; param: palette
     jmp FuncA_Objects_Draw2x2Actor  ; preserves X
 .ENDPROC

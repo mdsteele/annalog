@@ -24,8 +24,9 @@
 ;;;   * State1: The eDir value for the bat's current flying direction.
 ;;;   * State2: An animation timer that ticks up each frame.
 ;;;   * State3: Unused.
+;;;   * State4: Unused.
 
 ;;; Tile IDs for drawing bat baddie actors.
-kTileIdObjBatFirst = $9c
+kTileIdObjBadBatFirst = $9c
 
 ;;;=========================================================================;;;

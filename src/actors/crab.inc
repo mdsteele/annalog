@@ -25,8 +25,9 @@
 ;;;     starts another movement cycle and resets the counter.
 ;;;   * State2: Unused.
 ;;;   * State3: Unused.
+;;;   * State4: Unused.
 
 ;;; Tile IDs for drawing crab baddie actors.
-kTileIdObjCrabFirst = $c8
+kTileIdObjBadCrabFirst = $c8
 
 ;;;=========================================================================;;;

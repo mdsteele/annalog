@@ -85,10 +85,10 @@ _SetVelocity:
     ldy #kPaletteObjFish  ; param: palette
     jmp FuncA_Objects_Draw2x2Actor  ; preserves X
 _TileIds_u8_arr4:
-    .byte kTileIdObjFishFirst + 0
-    .byte kTileIdObjFishFirst + 4
-    .byte kTileIdObjFishFirst + 8
-    .byte kTileIdObjFishFirst + 4
+    .byte kTileIdObjBadFishFirst + 0
+    .byte kTileIdObjBadFishFirst + 4
+    .byte kTileIdObjBadFishFirst + 8
+    .byte kTileIdObjBadFishFirst + 4
 .ENDPROC
 
 ;;;=========================================================================;;;

@@ -117,8 +117,8 @@ _StartMove:
     ldy #kPaletteObjCrab  ; param: palette
     jmp FuncA_Objects_Draw2x2Actor  ; preserves X
 _TileIds_u8_arr2:
-    .byte kTileIdObjCrabFirst + 0
-    .byte kTileIdObjCrabFirst + 4
+    .byte kTileIdObjBadCrabFirst + 0
+    .byte kTileIdObjBadCrabFirst + 4
 .ENDPROC
 
 ;;;=========================================================================;;;

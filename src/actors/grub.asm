@@ -112,10 +112,10 @@ _StartMove:
     ldy #kPaletteObjGrub  ; param: palette
     jmp FuncA_Objects_Draw2x2Actor  ; preserves X
 _TileIds_u8_arr4:
-    .byte kTileIdObjGrubFirst + $00
-    .byte kTileIdObjGrubFirst + $04
-    .byte kTileIdObjGrubFirst + $08
-    .byte kTileIdObjGrubFirst + $04
+    .byte kTileIdObjBadGrubFirst + $00
+    .byte kTileIdObjBadGrubFirst + $04
+    .byte kTileIdObjBadGrubFirst + $08
+    .byte kTileIdObjBadGrubFirst + $04
 .ENDPROC
 
 ;;;=========================================================================;;;

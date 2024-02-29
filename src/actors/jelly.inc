@@ -18,12 +18,15 @@
 ;;;=========================================================================;;;
 
 ;;; State bytes for jelly baddies:
-;;;   * State1: The current eBadJelly value.
+;;;   * Param: The initial bBadJelly value.
+;;;   * Flags: Unused.
+;;;   * State1: The current bBadJelly value.
 ;;;   * State2: An animation timer that ticks up each frame.
 ;;;   * State3: Unused.
+;;;   * State4: Unused.
 
 ;;; Tile IDs for drawing bird baddie actors.
-kTileIdObjJellyFirst = $87
+kTileIdObjBadJellyFirst = $87
 
 ;;;=========================================================================;;;
 

@@ -22,8 +22,9 @@
 ;;;   * State2: A timer that counts up/down each frame, depending on the
 ;;;     current eBadRhino value.
 ;;;   * State3: An animation timer that ticks up each frame (in some modes).
+;;;   * State4: Unused.
 
 ;;; Tile IDs for drawing rhino baddie actors.
-kTileIdObjRhinoFirst = $b0
+kTileIdObjBadRhinoFirst = $b0
 
 ;;;=========================================================================;;;

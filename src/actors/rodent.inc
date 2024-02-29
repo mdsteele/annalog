@@ -23,8 +23,9 @@
 ;;;   * State2: A timer that counts up/down each frame, depending on the
 ;;;     current eBadRodent value.
 ;;;   * State3: An animation timer that ticks up each frame.
+;;;   * State4: Unused.
 
 ;;; Tile IDs for drawing rodent baddie actors.
-kTileIdObjRodentFirst = $a0
+kTileIdObjBadRodentFirst = $a0
 
 ;;;=========================================================================;;;

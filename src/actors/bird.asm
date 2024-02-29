@@ -234,8 +234,8 @@ _StartFlying:
     ldy #kPaletteObjBird  ; param: palette
     jmp FuncA_Objects_Draw2x2Actor  ; preserves X
 _TileIds_u8_arr2:
-    .byte kTileIdObjBirdFirst + 0
-    .byte kTileIdObjBirdFirst + 4
+    .byte kTileIdObjBadBirdFirst + 0
+    .byte kTileIdObjBadBirdFirst + 4
 .ENDPROC
 
 ;;;=========================================================================;;;

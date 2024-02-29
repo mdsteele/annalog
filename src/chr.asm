@@ -1127,10 +1127,10 @@ _chr_begin:
     chr_inc "crate",                kTileIdObjCrateFirst
     chr_inc "platform_city_walls",  kTileIdObjPlatformCityWalls
     chr_inc "combo",                kTileIdObjComboFirst
-    chr_inc "rodent",               kTileIdObjRodentFirst
+    chr_inc "bad_rodent",           kTileIdObjBadRodentFirst
     chr_res $02
     chr_inc "breakfire",            kTileIdObjBreakfireFirst
-    chr_inc "rhino",                kTileIdObjRhinoFirst
+    chr_inc "bad_rhino",            kTileIdObjBadRhinoFirst
     chr_inc "semaphore",            kTileIdObjSemaphoreFirst
     chr_res $28
     chr_inc "breaker",              kTileIdObjBreakerFirst
@@ -1147,12 +1147,12 @@ _chr_begin:
     chr_res $12
     chr_inc "upgrade_opgoto", kTileIdObjUpgradeOpGotoFirst
     chr_res $08
-    chr_inc "bat",            kTileIdObjBatFirst
-    chr_inc "spider",         kTileIdObjSpiderFirst
+    chr_inc "bad_bat",        kTileIdObjBadBatFirst
+    chr_inc "bad_spider",     kTileIdObjBadSpiderFirst
     chr_res $10
     chr_inc "breakable",      kTileIdObjWeakFloorFirst
     chr_res $0e
-    chr_inc "fish",           kTileIdObjFishFirst
+    chr_inc "bad_fish",       kTileIdObjBadFishFirst
     chr_inc "crusher",        kTileIdObjCrusherFirst
     chr_inc "winch",          kTileIdObjWinchFirst
     chr_res $14
@@ -1172,10 +1172,10 @@ _chr_begin:
     chr_res $07
     chr_inc "upgrade_opskip", kTileIdObjUpgradeOpSkipFirst
     chr_res $06
-    chr_inc "grub",           kTileIdObjGrubFirst
+    chr_inc "bad_grub",       kTileIdObjBadGrubFirst
     chr_res $08
     chr_inc "crane",          kTileIdObjCraneFirst
-    chr_inc "toad",           kTileIdObjToadFirst
+    chr_inc "bad_toad",       kTileIdObjBadToadFirst
     chr_res $40
     END_CHR_BANK
 .ENDPROC
@@ -1193,15 +1193,15 @@ _chr_begin:
     chr_res $06
     chr_inc "crate",               kTileIdObjCrateFirst
     chr_res $04
-    chr_inc "grub",                kTileIdObjGrubFirst
+    chr_inc "bad_grub",            kTileIdObjBadGrubFirst
     chr_res $02
     chr_inc "mermaid_corra",       kTileIdMermaidCorraFirst
-    chr_inc "vinebug",             kTileIdObjVinebugFirst
+    chr_inc "bad_vinebug",         kTileIdObjBadVinebugFirst
     chr_inc "anchor",              kTileIdObjAnchorFirst
     chr_res $05
-    chr_inc "beetle",              kTileIdObjBeetleFirst
+    chr_inc "bad_beetle",          kTileIdObjBadBeetleFirst
     chr_res $04
-    chr_inc "fish",                kTileIdObjFishFirst
+    chr_inc "bad_fish",            kTileIdObjBadFishFirst
     chr_inc "corra_swimming_down", kTileIdCorraSwimmingDownFirst
     chr_inc "grenade",             kTileIdObjGrenadeFirst
     chr_inc "corra_swimming_up",   kTileIdCorraSwimmingUpFirst
@@ -1227,8 +1227,8 @@ _chr_begin:
     chr_inc "blaster",           kTileIdObjBlasterFirst
     chr_inc "fireblast",         kTileIdObjFireblastFirst
     chr_res $04
-    chr_inc "hothead",           kTileIdObjHotheadFirst
-    chr_inc "lavaball",          kTileIdObjLavaballFirst
+    chr_inc "bad_hothead",       kTileIdObjBadHotheadFirst
+    chr_inc "bad_lavaball",      kTileIdObjBadLavaballFirst
     chr_inc "anchor",            kTileIdObjAnchorFirst
     chr_inc "valve",             kTileIdObjValveFirst
     chr_res $10
@@ -1258,12 +1258,12 @@ _chr_begin:
     chr_inc "upgrade_opsync", kTileIdObjUpgradeOpSyncFirst
     chr_inc "fireblast",      kTileIdObjFireblastFirst
     chr_inc "boulder",        kTileIdObjBoulderFirst
-    chr_inc "firefly",        kTileIdObjFireflyFirst
-    chr_inc "wasp",           kTileIdObjWaspFirst
+    chr_inc "bad_firefly",    kTileIdObjBadFireflyFirst
+    chr_inc "bad_wasp",       kTileIdObjBadWaspFirst
     chr_inc "crane",          kTileIdObjCraneFirst
     chr_res $18
     chr_inc "boss_mine_eye",  kTileIdObjBossMineEyeFirst
-    chr_inc "fish",           kTileIdObjFishFirst
+    chr_inc "bad_fish",       kTileIdObjBadFishFirst
     chr_res $10
     chr_inc "breaker",        kTileIdObjBreakerFirst
     END_CHR_BANK
@@ -1294,7 +1294,7 @@ _chr_begin:
     chr_inc "multiplexer",      kTileIdObjMultiplexerFirst
     chr_inc "pump_light",       kTileIdObjPumpLight
     chr_inc "water",            kTileIdObjWaterFirst
-    chr_inc "jelly",            kTileIdObjJellyFirst
+    chr_inc "bad_jelly",        kTileIdObjBadJellyFirst
     chr_res $02
     chr_inc "upgrade_opaddsub", kTileIdObjUpgradeOpAddSubFirst
     chr_res $02
@@ -1302,13 +1302,13 @@ _chr_begin:
     chr_inc "monitor",          kTileIdObjMonitorFirst
     chr_inc "platform_rocks",   kTileIdObjPlatformRocksFirst
     chr_res $02
-    chr_inc "grub",             kTileIdObjGrubFirst
+    chr_inc "bad_grub",         kTileIdObjBadGrubFirst
     chr_inc "bad_slime",        kTileIdObjBadSlimeFirst
     chr_res $12
-    chr_inc "bird",             kTileIdObjBirdFirst
-    chr_inc "crab",             kTileIdObjCrabFirst
+    chr_inc "bad_bird",         kTileIdObjBadBirdFirst
+    chr_inc "bad_crab",         kTileIdObjBadCrabFirst
     chr_inc "hotspring",        kTileIdObjHotSpringFirst
-    chr_inc "fish",             kTileIdObjFishFirst
+    chr_inc "bad_fish",         kTileIdObjBadFishFirst
     chr_inc "child_stand",      kTileIdObjChildStandFirst
     END_CHR_BANK
 .ENDPROC
@@ -1327,7 +1327,7 @@ _chr_begin:
     chr_res $08
     chr_inc "mermaid_ghost",  kTileIdMermaidGhostFirst
     chr_res $0a
-    chr_inc "flydrop",        kTileIdObjFlydropFirst
+    chr_inc "bad_flydrop",    kTileIdObjBadFlydropFirst
     chr_inc "acid",           kTileIdObjAcid
     chr_res $03
     chr_inc "laser",          kTileIdObjLaserFirst
@@ -1357,8 +1357,8 @@ _chr_begin:
     chr_res $06
     chr_inc "mermaid_corra",  kTileIdMermaidCorraFirst
     chr_inc "column_cracked", kTileIdObjColumnCrackedFirst
-    chr_inc "toad",           kTileIdObjToadFirst
-    chr_inc "beetle",         kTileIdObjBeetleFirst
+    chr_inc "bad_toad",       kTileIdObjBadToadFirst
+    chr_inc "bad_beetle",     kTileIdObjBadBeetleFirst
     chr_inc "minigun_horz",   kTileIdObjMinigunHorzFirst
     chr_inc "minigun_vert",   kTileIdObjMinigunVertFirst
     chr_inc "child_stand",    kTileIdObjChildStandFirst

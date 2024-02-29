@@ -24,8 +24,9 @@
 ;;;   * State1: An animation timer that ticks up each frame.
 ;;;   * State2: Unused.
 ;;;   * State3: Unused.
+;;;   * State4: Unused.
 
 ;;; Tile IDs for drawing fish baddie actors.
-kTileIdObjFishFirst = $d4
+kTileIdObjBadFishFirst = $d4
 
 ;;;=========================================================================;;;

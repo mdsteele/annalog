@@ -210,7 +210,7 @@ _AccelRight:
     .assert kBadBatAnimSlowdown .mod 4 = 0, error
     div #kBadBatAnimSlowdown
     mul #4
-    adc #kTileIdObjBatFirst  ; param: first tile ID
+    adc #kTileIdObjBadBatFirst  ; param: first tile ID
     ldy #kPaletteObjBat  ; param: palette
     jmp FuncA_Objects_Draw2x2Actor  ; preserves X
 .ENDPROC

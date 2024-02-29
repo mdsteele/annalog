@@ -23,15 +23,16 @@
 ;;;   * State2: Unused for beetles; for hotheads, this is the number of
 ;;;     cooldown frames before it can drop another ember.
 ;;;   * State3: Unused.
+;;;   * State4: Unused.
 
 ;;; Tile IDs for drawing beetle actors.
-kTileIdObjBeetleFirst = $c0
-kTileIdObjBeetleHorzFirst = kTileIdObjBeetleFirst + $00
-kTileIdObjBeetleVertFirst = kTileIdObjBeetleFirst + $08
+kTileIdObjBadBeetleFirst = $c0
+kTileIdObjBadBeetleHorzFirst = kTileIdObjBadBeetleFirst + $00
+kTileIdObjBadBeetleVertFirst = kTileIdObjBadBeetleFirst + $08
 
 ;;; Tile IDs for drawing hothead actors.
-kTileIdObjHotheadFirst = $a0
-kTileIdObjHotheadHorzFirst = kTileIdObjHotheadFirst + $00
-kTileIdObjHotheadVertFirst = kTileIdObjHotheadFirst + $08
+kTileIdObjBadHotheadFirst = $a0
+kTileIdObjBadHotheadHorzFirst = kTileIdObjBadHotheadFirst + $00
+kTileIdObjBadHotheadVertFirst = kTileIdObjBadHotheadFirst + $08
 
 ;;;=========================================================================;;;

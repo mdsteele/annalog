@@ -419,7 +419,7 @@ _TurnAtOuterCorner:
 ;;; @preserve X
 .EXPORT FuncA_Objects_DrawActorBadBeetleHorz
 .PROC FuncA_Objects_DrawActorBadBeetleHorz
-    lda #kTileIdObjBeetleHorzFirst  ; param: first tile ID
+    lda #kTileIdObjBadBeetleHorzFirst  ; param: first tile ID
     jmp FuncA_Objects_DrawActorBadCrawlerShape  ; preserves X
 .ENDPROC
 
@@ -428,7 +428,7 @@ _TurnAtOuterCorner:
 ;;; @preserve X
 .EXPORT FuncA_Objects_DrawActorBadBeetleVert
 .PROC FuncA_Objects_DrawActorBadBeetleVert
-    lda #kTileIdObjBeetleVertFirst  ; param: first tile ID
+    lda #kTileIdObjBadBeetleVertFirst  ; param: first tile ID
     jmp FuncA_Objects_DrawActorBadCrawlerShape  ; preserves X
 .ENDPROC
 
@@ -437,7 +437,7 @@ _TurnAtOuterCorner:
 ;;; @preserve X
 .EXPORT FuncA_Objects_DrawActorBadHotheadHorz
 .PROC FuncA_Objects_DrawActorBadHotheadHorz
-    lda #kTileIdObjHotheadHorzFirst  ; param: first tile ID
+    lda #kTileIdObjBadHotheadHorzFirst  ; param: first tile ID
     jsr FuncA_Objects_DrawActorBadCrawlerShape  ; preserves X, returns C and Y
     bcs @done
     ;; As part of the animation cycle, sometimes flip the flames horizontally.
@@ -463,7 +463,7 @@ _TurnAtOuterCorner:
 ;;; @preserve X
 .EXPORT FuncA_Objects_DrawActorBadHotheadVert
 .PROC FuncA_Objects_DrawActorBadHotheadVert
-    lda #kTileIdObjHotheadVertFirst  ; param: first tile ID
+    lda #kTileIdObjBadHotheadVertFirst  ; param: first tile ID
     jsr FuncA_Objects_DrawActorBadCrawlerShape  ; preserves X, returns C and Y
     bcs @done
     ;; As part of the animation cycle, sometimes flip the flames vertically.
@@ -495,10 +495,10 @@ _TurnAtOuterCorner:
     lda Zp_FrameCounter_u8
     and #$08
     lsr a
-    .assert kTileIdObjBeetleHorzFirst .mod $08 = 0, error
-    .assert kTileIdObjBeetleVertFirst .mod $08 = 0, error
-    .assert kTileIdObjHotheadHorzFirst .mod $08 = 0, error
-    .assert kTileIdObjHotheadVertFirst .mod $08 = 0, error
+    .assert kTileIdObjBadBeetleHorzFirst .mod $08 = 0, error
+    .assert kTileIdObjBadBeetleVertFirst .mod $08 = 0, error
+    .assert kTileIdObjBadHotheadHorzFirst .mod $08 = 0, error
+    .assert kTileIdObjBadHotheadVertFirst .mod $08 = 0, error
     ora T0  ; first tile ID
     ldy #kPaletteObjCrawler  ; param: palette
     jmp FuncA_Objects_Draw2x2Actor  ; preserves X, returns C and Y
