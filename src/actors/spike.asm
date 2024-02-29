@@ -21,7 +21,7 @@
 .INCLUDE "../macros.inc"
 .INCLUDE "spike.inc"
 
-.IMPORT FuncA_Actor_ApplyGravity
+.IMPORT FuncA_Actor_ApplyGravityWithTerminalVelocity
 .IMPORT FuncA_Actor_CenterHitsTerrain
 .IMPORT FuncA_Actor_HarmAvatarIfCollision
 .IMPORT FuncA_Objects_Draw1x1Actor
@@ -31,8 +31,9 @@
 
 ;;;=========================================================================;;;
 
-;;; The OBJ palette number used for spike projectile actors.
-kPaletteObjSpike = 0
+;;; The maximum downward speed of a falling spike projectile, in pixels per
+;;; frame.
+kSpikeTerminalVelocity = 6
 
 ;;;=========================================================================;;;
 
@@ -41,11 +42,11 @@ kPaletteObjSpike = 0
 ;;; Initializes the specified actor as a spike projectile.
 ;;; @prereq The actor's pixel position has already been initialized.
 ;;; @param X The actor index.
-;;; @preserve X
+;;; @preserve X, T0+
 .EXPORT Func_InitActorProjSpike
 .PROC Func_InitActorProjSpike
     ldy #eActor::ProjSpike  ; param: actor type
-    jmp Func_InitActorDefault
+    jmp Func_InitActorDefault  ; preserves X and T0+
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -63,7 +64,8 @@ kPaletteObjSpike = 0
     bcs _Expire
     jsr FuncA_Actor_CenterHitsTerrain  ; preserves X, returns C
     bcs _Expire
-    jmp FuncA_Actor_ApplyGravity  ; preserves X
+    lda #kSpikeTerminalVelocity  ; param: terminal velocity
+    jmp FuncA_Actor_ApplyGravityWithTerminalVelocity  ; preserves X
 _Expire:
     lda #eActor::None
     sta Ram_ActorType_eActor_arr, x

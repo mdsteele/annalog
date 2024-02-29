@@ -42,6 +42,7 @@ kMaxActors = 16
     BadOrc           ; chases after player avatar
     BadRhino         ; walks back and forth, and charges at the player avatar
     BadRodent        ; runs in/out of mouseholes and along walls
+    BadSlime         ; crawls back and forth on ceiling, and drops spikes
     BadSpider        ; crawls randomly on ceiling, and drops down on a thread
     BadToad          ; jumps in place
     BadVinebug       ; moves vertically on a vine

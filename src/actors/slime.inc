@@ -17,19 +17,18 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
-;;; State bytes for spike projectiles:
-;;;   * Flags: Unused.
-;;;   * State1: Counter that starts at zero and increments every frame; if it
-;;;     wraps back around to zero before the spike hits anything, then the
-;;;     spike is removed.
-;;;   * State2: Unused.
+;;; State bytes for slime baddies:
+;;;   * Param: The initial flags to set (0 or bObj::FlipH).
+;;;   * Flags: The bObj::FlipH bit is set if the slime is moving left, or
+;;;     cleared if it is moving right.
+;;;   * State1: A cooldown timer that decrements each frame when nonzero.  When
+;;;     zero, the slime can drop a spike.
+;;;   * State2: A counter that increments each frame, to drive the slime's
+;;;     animation.
 ;;;   * State3: Unused.
 ;;;   * State4: Unused.
 
-;;; The OBJ tile ID for spike projectile actors.
-kTileIdObjSpike = $80
-
-;;; The OBJ palette number used for spike projectile actors.
-kPaletteObjSpike = 0
+;;; Tile IDs for drawing slime baddie actors.
+kTileIdObjBadSlimeFirst = $a8
 
 ;;;=========================================================================;;;

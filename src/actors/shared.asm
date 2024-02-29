@@ -527,16 +527,35 @@ _Atan2:
     rts
 .ENDPROC
 
-;;; Accelerates the actor downward.
+;;; Accelerates the actor downward, with (effectively) no terminal velocity.
 ;;; @param X The actor index.
-;;; @preserve X, Y, T0+
+;;; @preserve X, Y
 .EXPORT FuncA_Actor_ApplyGravity
 .PROC FuncA_Actor_ApplyGravity
+    lda #127  ; param: terminal velocity
+    fall FuncA_Actor_ApplyGravityWithTerminalVelocity  ; preserves X and Y
+.ENDPROC
+
+;;; Accelerates the actor downward, clamping its downward speed to the given
+;;; maximum.
+;;; @param A The maximum downward speed, in pixels per frame (0-127).
+;;; @param X The actor index.
+;;; @preserve X, Y
+.EXPORT FuncA_Actor_ApplyGravityWithTerminalVelocity
+.PROC FuncA_Actor_ApplyGravityWithTerminalVelocity
+    sta T0  ; terminal velocity
     lda #kAvatarGravity
     add Ram_ActorVelY_i16_0_arr, x
     sta Ram_ActorVelY_i16_0_arr, x
     lda #0
     adc Ram_ActorVelY_i16_1_arr, x
+    bmi @setVelHi  ; moving upwards
+    cmp T0  ; terminal velocity
+    blt @setVelHi
+    lda #0
+    sta Ram_ActorVelY_i16_0_arr, x
+    lda T0  ; terminal velocity
+    @setVelHi:
     sta Ram_ActorVelY_i16_1_arr, x
     rts
 .ENDPROC

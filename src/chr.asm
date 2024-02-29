@@ -42,6 +42,7 @@
 .INCLUDE "actors/orc.inc"
 .INCLUDE "actors/rhino.inc"
 .INCLUDE "actors/rodent.inc"
+.INCLUDE "actors/slime.inc"
 .INCLUDE "actors/spider.inc"
 .INCLUDE "actors/spike.inc"
 .INCLUDE "actors/spine.inc"
@@ -1047,11 +1048,12 @@ _chr_begin:
 .EXPORT Ppu_ChrObjBoss1
 .PROC Ppu_ChrObjBoss1
     CHR2_BANK $80
-    chr_res $02
+    chr_inc "spike",                 kTileIdObjSpike
+    chr_res $01
     chr_inc "upgrade_ram",           kTileIdObjUpgradeRamFirst
     chr_inc "breakball",             kTileIdObjBreakballFirst
     chr_inc "ember",                 kTileIdObjEmber
-    chr_inc "spike",                 kTileIdObjSpike
+    chr_res $01
     chr_inc "cannon",                kTileIdObjCannonFirst
     chr_inc "bullet",                kTileIdObjBulletFirst
     chr_inc "fireball",              kTileIdObjFireballFirst
@@ -1287,7 +1289,8 @@ _chr_begin:
 .EXPORT Ppu_ChrObjSewer
 .PROC Ppu_ChrObjSewer
     CHR2_BANK $80
-    chr_res $02
+    chr_inc "spike",            kTileIdObjSpike
+    chr_res $01
     chr_inc "multiplexer",      kTileIdObjMultiplexerFirst
     chr_inc "pump_light",       kTileIdObjPumpLight
     chr_inc "water",            kTileIdObjWaterFirst
@@ -1300,7 +1303,8 @@ _chr_begin:
     chr_inc "platform_rocks",   kTileIdObjPlatformRocksFirst
     chr_res $02
     chr_inc "grub",             kTileIdObjGrubFirst
-    chr_res $18
+    chr_inc "bad_slime",        kTileIdObjBadSlimeFirst
+    chr_res $12
     chr_inc "bird",             kTileIdObjBirdFirst
     chr_inc "crab",             kTileIdObjCrabFirst
     chr_inc "hotspring",        kTileIdObjHotSpringFirst

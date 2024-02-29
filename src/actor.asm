@@ -41,6 +41,7 @@
 .IMPORT FuncA_Actor_TickBadOrc
 .IMPORT FuncA_Actor_TickBadRhino
 .IMPORT FuncA_Actor_TickBadRodent
+.IMPORT FuncA_Actor_TickBadSlime
 .IMPORT FuncA_Actor_TickBadSpider
 .IMPORT FuncA_Actor_TickBadToad
 .IMPORT FuncA_Actor_TickBadVinebug
@@ -84,6 +85,7 @@
 .IMPORT FuncA_Objects_DrawActorBadOrc
 .IMPORT FuncA_Objects_DrawActorBadRhino
 .IMPORT FuncA_Objects_DrawActorBadRodent
+.IMPORT FuncA_Objects_DrawActorBadSlime
 .IMPORT FuncA_Objects_DrawActorBadSpider
 .IMPORT FuncA_Objects_DrawActorBadToad
 .IMPORT FuncA_Objects_DrawActorBadVinebug
@@ -471,6 +473,7 @@ _NoHit:
     d_byte BadOrc,          kOrcBoundingBoxUp
     d_byte BadRhino,         4
     d_byte BadRodent,        2
+    d_byte BadSlime,         4
     d_byte BadSpider,        8
     d_byte BadToad,          9
     d_byte BadVinebug,       7
@@ -524,6 +527,7 @@ _NoHit:
     d_byte BadOrc,          kOrcBoundingBoxDown
     d_byte BadRhino,         8
     d_byte BadRodent,        2
+    d_byte BadSlime,         2
     d_byte BadSpider,        2
     d_byte BadToad,          0
     d_byte BadVinebug,       7
@@ -577,6 +581,7 @@ _NoHit:
     d_byte BadOrc,          kOrcBoundingBoxSide
     d_byte BadRhino,        10
     d_byte BadRodent,        2
+    d_byte BadSlime,         6
     d_byte BadSpider,        6
     d_byte BadToad,          7
     d_byte BadVinebug,       5
@@ -698,6 +703,7 @@ _TypeSpecificTick:
     d_entry table, BadOrc,          FuncA_Actor_TickBadOrc
     d_entry table, BadRhino,        FuncA_Actor_TickBadRhino
     d_entry table, BadRodent,       FuncA_Actor_TickBadRodent
+    d_entry table, BadSlime,        FuncA_Actor_TickBadSlime
     d_entry table, BadSpider,       FuncA_Actor_TickBadSpider
     d_entry table, BadToad,         FuncA_Actor_TickBadToad
     d_entry table, BadVinebug,      FuncA_Actor_TickBadVinebug
@@ -804,6 +810,7 @@ _CheckVert:
     d_entry table, BadOrc,          Func_InitActorBadOrc
     d_entry table, BadRhino,        Func_InitActorWithFlags
     d_entry table, BadRodent,       Func_InitActorDefault
+    d_entry table, BadSlime,        Func_InitActorWithFlags
     d_entry table, BadSpider,       Func_InitActorDefault
     d_entry table, BadToad,         FuncA_Room_InitActorBadToad
     d_entry table, BadVinebug,      Func_InitActorDefault
@@ -887,6 +894,7 @@ _CheckVert:
     d_entry table, BadOrc,          FuncA_Objects_DrawActorBadOrc
     d_entry table, BadRhino,        FuncA_Objects_DrawActorBadRhino
     d_entry table, BadRodent,       FuncA_Objects_DrawActorBadRodent
+    d_entry table, BadSlime,        FuncA_Objects_DrawActorBadSlime
     d_entry table, BadSpider,       FuncA_Objects_DrawActorBadSpider
     d_entry table, BadToad,         FuncA_Objects_DrawActorBadToad
     d_entry table, BadVinebug,      FuncA_Objects_DrawActorBadVinebug

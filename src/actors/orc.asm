@@ -27,6 +27,7 @@
 .INCLUDE "../tileset.inc"
 .INCLUDE "orc.inc"
 
+.IMPORT FuncA_Actor_ApplyGravityWithTerminalVelocity
 .IMPORT FuncA_Actor_FaceTowardsAvatar
 .IMPORT FuncA_Actor_FaceTowardsPoint
 .IMPORT FuncA_Actor_GetRoomBlockRow
@@ -739,22 +740,9 @@ _MaybeJump:
 ;;; @preserve X
 .PROC FuncA_Actor_TickOrcAirborne
 _ApplyGravity:
-    ;; Accelerate the actor downwards.
-    lda #kAvatarGravity
-    add Ram_ActorVelY_i16_0_arr, x
-    sta Ram_ActorVelY_i16_0_arr, x
-    lda #0
-    adc Ram_ActorVelY_i16_1_arr, x
-    ;; If moving downward, check for terminal velocity:
-    bmi @setVelYHi
     .assert <kOrcMaxFallSpeed = 0, error
-    cmp #>kOrcMaxFallSpeed
-    blt @setVelYHi
-    lda #0
-    sta Ram_ActorVelY_i16_0_arr, x
-    lda #>kOrcMaxFallSpeed
-    @setVelYHi:
-    sta Ram_ActorVelY_i16_1_arr, x
+    lda #>kOrcMaxFallSpeed  ; param: terminal velocity
+    jsr FuncA_Actor_ApplyGravityWithTerminalVelocity  ; preserves X
 _CheckForFloor:
     ;; Check if the orc has hit the floor.
     jsr Func_SetPointToActorCenter  ; preserves X
