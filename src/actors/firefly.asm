@@ -33,6 +33,7 @@
 .IMPORT Func_FindEmptyActorSlot
 .IMPORT Func_InitActorProjFireblast
 .IMPORT Func_InitActorWithFlags
+.IMPORT Func_PlaySfxShootFire
 .IMPORT Func_SetActorCenterToPoint
 .IMPORT Ram_ActorFlags_bObj_arr
 .IMPORT Ram_ActorState1_byte_arr
@@ -144,6 +145,7 @@ _ShootFireblast:
     ldx T3  ; firefly actor index
     lda #kFireflyCooldownFrames
     sta Ram_ActorState1_byte_arr, x  ; cooldown
+    jmp Func_PlaySfxShootFire  ; preserves X
     @done:
     ldx T3  ; firefly actor index
 _Return:

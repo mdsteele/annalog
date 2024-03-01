@@ -28,8 +28,8 @@
 
 .SEGMENT "PRG8"
 
-;;; SFX sequence data for the "shoot fireball" sound effect.
-.PROC Data_ShootFireball_sSfxSeq_arr
+;;; SFX sequence data for the "shoot fire" sound effect.
+.PROC Data_ShootFire_sSfxSeq_arr
     D_STRUCT sSfxSeq
     d_byte Duration_u8, 3
     d_byte Env_bEnvelope, bEnvelope::NoLength | bEnvelope::ConstVol | 4
@@ -63,17 +63,18 @@
     .byte 0
 .ENDPROC
 
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Room"
-
-;;; Starts playing the sound for when a boss shoots a fireball.
-;;; @preserve T0+
-.EXPORT FuncA_Room_PlaySfxShootFireball
-.PROC FuncA_Room_PlaySfxShootFireball
+;;; Starts playing the sound for when something shoots a firey projectile.
+;;; @preserve X, T0+
+.EXPORT Func_PlaySfxShootFire
+.PROC Func_PlaySfxShootFire
+    txa
+    pha
     ldx #eChan::Noise
-    ldya #Data_ShootFireball_sSfxSeq_arr
-    jmp Func_PlaySfxSequence  ; preserves T0+
+    ldya #Data_ShootFire_sSfxSeq_arr
+    jsr Func_PlaySfxSequence  ; preserves T0+
+    pla
+    tax
+    rts
 .ENDPROC
 
 ;;;=========================================================================;;;

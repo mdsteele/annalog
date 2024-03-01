@@ -335,7 +335,7 @@ _Passages_sPassage_arr:
 :   D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Western | 0
     d_byte Destination_eRoom, eRoom::LavaShaft
-    d_byte SpawnBlock_u8, 5
+    d_byte SpawnBlock_u8, 6
     d_byte SpawnAdjust_byte, 0
     D_END
     D_STRUCT sPassage

@@ -54,7 +54,6 @@
 .IMPORT FuncA_Room_FindGrenadeActor
 .IMPORT FuncA_Room_InitBoss
 .IMPORT FuncA_Room_MachineCannonReset
-.IMPORT FuncA_Room_PlaySfxShootFireball
 .IMPORT FuncA_Room_PlaySfxWindup
 .IMPORT FuncA_Room_ResetLever
 .IMPORT FuncA_Room_TickBoss
@@ -72,6 +71,7 @@
 .IMPORT Func_Noop
 .IMPORT Func_PlaySfxExplodeSmall
 .IMPORT Func_PlaySfxSample
+.IMPORT Func_PlaySfxShootFire
 .IMPORT Func_SetActorCenterToPoint
 .IMPORT Func_SetPointToActorCenter
 .IMPORT Func_SetPointToPlatformCenter
@@ -629,7 +629,7 @@ _Close:
     tay
     lda _FireballAngle_u8_arr2_arr, y  ; param: aim angle
     jsr Func_InitActorProjFireball
-    jmp FuncA_Room_PlaySfxShootFireball
+    jmp Func_PlaySfxShootFire
     @done:
     rts
 _FireballAngle_u8_arr2_arr:

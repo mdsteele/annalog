@@ -29,6 +29,7 @@
     Nave      ; start in the temple nave, when Alex is waiting there
     Tomb      ; start just outside the crypt boss room
     Breaker3  ; start in the crypt boss room, just after defeating it
+    Spring    ; start at the hot spring, with Alex waiting there to help
     Volcanic  ; start just outside the lava boss room
     Breaker4  ; start in the lava boss room, just after defeating it
     Collapse  ; start just outside the mine boss room

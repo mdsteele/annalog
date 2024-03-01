@@ -22,7 +22,7 @@
 .INCLUDE "../oam.inc"
 .INCLUDE "ember.inc"
 
-.IMPORT FuncA_Actor_ApplyGravity
+.IMPORT FuncA_Actor_ApplyGravityWithTerminalVelocity
 .IMPORT FuncA_Actor_CenterHitsTerrain
 .IMPORT FuncA_Actor_HarmAvatarIfCollision
 .IMPORT FuncA_Objects_Draw1x1Actor
@@ -32,6 +32,10 @@
 .IMPORT Ram_ActorType_eActor_arr
 
 ;;;=========================================================================;;;
+
+;;; The maximum downward speed of a falling ember projectile, in pixels per
+;;; frame.
+kEmberTerminalVelocity = 5
 
 ;;; The OBJ palette number used for ember projectile actors.
 kPaletteObjEmber = 1
@@ -71,7 +75,8 @@ _FlipHorz:
     and #bObj::FlipH
     sta Ram_ActorFlags_bObj_arr, x
 _ApplyGravity:
-    jmp FuncA_Actor_ApplyGravity  ; preserves X
+    lda #kEmberTerminalVelocity  ; param: terminal velocity
+    jmp FuncA_Actor_ApplyGravityWithTerminalVelocity  ; preserves X
 _Expire:
     lda #eActor::None
     sta Ram_ActorType_eActor_arr, x

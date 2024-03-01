@@ -37,6 +37,7 @@
 .IMPORT Func_IsPointInPlatform
 .IMPORT Func_MovePointDownByA
 .IMPORT Func_MovePointHorz
+.IMPORT Func_PlaySfxShootFire
 .IMPORT Func_ReinitActorProjFireblastVelocity
 .IMPORT Func_SetActorCenterToPoint
 .IMPORT Func_SetPointToActorCenter
@@ -175,7 +176,7 @@ _InitProjectile:
     sta Ram_ActorState1_byte_arr, x  ; particle age in frames
     @done:
 _PlaySound:
-    ;; TODO: Play a sound for firing the blaster.
+    jsr Func_PlaySfxShootFire
 _Finish:
     lda #kBlasterActCountdown  ; param: wait frames
     jmp FuncA_Machine_StartWaiting

@@ -63,7 +63,6 @@
 .IMPORT FuncA_Room_InitBoss
 .IMPORT FuncA_Room_MachineBlasterReset
 .IMPORT FuncA_Room_MachineBoilerReset
-.IMPORT FuncA_Room_PlaySfxShootFireball
 .IMPORT FuncA_Room_PlaySfxWindup
 .IMPORT FuncA_Room_ResetLever
 .IMPORT FuncA_Room_TickBoss
@@ -87,6 +86,7 @@
 .IMPORT Func_MovePointLeftByA
 .IMPORT Func_Noop
 .IMPORT Func_PlaySfxSample
+.IMPORT Func_PlaySfxShootFire
 .IMPORT Func_SetActorCenterToPoint
 .IMPORT Func_SetPointToActorCenter
 .IMPORT Func_SetPointToAvatarCenter
@@ -713,7 +713,7 @@ _BossFiresprayShoot:
     mul #2  ; clears the carry bit
     adc #$10  ; param: aim angle
     jsr Func_InitActorProjFireball
-    jsr FuncA_Room_PlaySfxShootFireball
+    jsr Func_PlaySfxShootFire
     ;; When the last fireball is fired, change modes.
     lda Zp_RoomState + sState::BossCooldown_u8
     beq _StartScuttling

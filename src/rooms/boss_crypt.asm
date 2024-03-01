@@ -54,7 +54,6 @@
 .IMPORT FuncA_Objects_MoveShapeUpByA
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
 .IMPORT FuncA_Room_InitBoss
-.IMPORT FuncA_Room_PlaySfxShootFireball
 .IMPORT FuncA_Room_ResetLever
 .IMPORT FuncA_Room_TickBoss
 .IMPORT Func_AckIrqAndLatchWindowFromParam4
@@ -71,6 +70,7 @@
 .IMPORT Func_MovePlatformTopTowardPointY
 .IMPORT Func_Noop
 .IMPORT Func_PlaySfxSample
+.IMPORT Func_PlaySfxShootFire
 .IMPORT Func_ResetWinchMachineState
 .IMPORT Func_SetActorCenterToPoint
 .IMPORT Func_SetPointToPlatformCenter
@@ -568,7 +568,7 @@ _BossFiring:
     lda #240
     @setCooldown:
     sta Zp_RoomState + sState::BossCooldown_u8
-    jmp FuncA_Room_PlaySfxShootFireball
+    jmp Func_PlaySfxShootFire
     @done:
     rts
 _BossStrafing:

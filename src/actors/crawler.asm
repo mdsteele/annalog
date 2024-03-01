@@ -37,6 +37,7 @@
 .IMPORT Func_MovePointDownByA
 .IMPORT Func_MovePointLeftByA
 .IMPORT Func_MovePointRightByA
+.IMPORT Func_PlaySfxShootFire
 .IMPORT Func_SetActorCenterToPoint
 .IMPORT Func_SetPointToActorCenter
 .IMPORT Ram_ActorFlags_bObj_arr
@@ -47,6 +48,7 @@
 .IMPORT Ram_ActorState1_byte_arr
 .IMPORT Ram_ActorState2_byte_arr
 .IMPORT Ram_ActorType_eActor_arr
+.IMPORT Ram_ActorVelY_i16_1_arr
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORTZP Zp_Current_sTileset
 .IMPORTZP Zp_FrameCounter_u8
@@ -56,6 +58,9 @@
 
 ;;; The minimum time between embers for hothead baddie actors.
 kHotheadEmberCooldownFrames = 32
+
+;;; The initial downward speed of a dropped ember, in pixels per frame.
+kHotheadEmberInitSpeed = 1
 
 ;;; The OBJ palette number used for beetle/hothead baddie actors.
 kPaletteObjCrawler = 1
@@ -162,9 +167,12 @@ _Crawl:
     bcs @noEmber
     jsr Func_SetActorCenterToPoint  ; preserves X and T0+
     jsr Func_InitActorProjEmber  ; preserves X and T0+
+    lda #kHotheadEmberInitSpeed
+    sta Ram_ActorVelY_i16_1_arr, x
     ldx T0  ; hothead actor index
     lda #kHotheadEmberCooldownFrames
     sta Ram_ActorState2_byte_arr, x  ; ember cooldown
+    jmp Func_PlaySfxShootFire  ; preserves X
     @noEmber:
     ldx T0  ; hothead actor index
     @done:
