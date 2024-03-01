@@ -27,6 +27,7 @@
 .IMPORT FuncA_Actor_CenterHitsTerrain
 .IMPORT FuncA_Actor_FaceTowardsAvatar
 .IMPORT FuncA_Actor_HarmAvatarIfCollision
+.IMPORT FuncA_Actor_PlaySfxToadJump
 .IMPORT FuncA_Actor_ZeroVelY
 .IMPORT FuncA_Objects_Draw2x2Shape
 .IMPORT FuncA_Objects_MoveShapeUpByA
@@ -111,8 +112,8 @@ _IsGrounded:
     dec Ram_ActorState1_byte_arr, x  ; jump timer
     jmp FuncA_Actor_HarmAvatarIfCollision  ; preserves X
 _StartJump:
-    ;; TODO: play a sound
-    jsr FuncA_Actor_FaceTowardsAvatar
+    jsr FuncA_Actor_PlaySfxToadJump  ; preserves X
+    jsr FuncA_Actor_FaceTowardsAvatar  ; preserves X
     ;; Set Y-velocity.
     lda #<kToadJumpVelocity
     sta Ram_ActorVelY_i16_0_arr, x

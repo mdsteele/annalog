@@ -27,6 +27,7 @@
 .IMPORT FuncA_Objects_MoveShapeRightOneTile
 .IMPORT FuncA_Objects_SetShapePosToDeviceTopLeft
 .IMPORT FuncA_Objects_SetUpgradeTileIds
+.IMPORT FuncA_Room_PlaySfxSpawnUpgrade
 .IMPORT Func_FindEmptyActorSlot
 .IMPORT Func_InitActorSmokeExplosion
 .IMPORT Ram_ActorPosX_i16_0_arr
@@ -93,8 +94,7 @@ _SmokePuff:
     jsr Func_InitActorSmokeExplosion
     @done:
 _PlaySound:
-    ;; TODO: play a sound
-    rts
+    jmp FuncA_Room_PlaySfxSpawnUpgrade
 .ENDPROC
 
 ;;;=========================================================================;;;

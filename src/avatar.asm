@@ -187,7 +187,7 @@ _SetAvatarPose:
     jsr FuncA_Avatar_ApplyDpad
     jsr FuncA_Avatar_ApplyJump
     @doneJoypad:
-    .assert * = FuncA_Avatar_RagdollMove, error, "fallthrough"
+    fall FuncA_Avatar_RagdollMove
 .ENDPROC
 
 ;;; Updates the player avatar state without healing or applying the joypad.
@@ -380,7 +380,7 @@ _NowAirborne:
     jmp FuncA_Avatar_ApplyDpadRight
     @noRight:
 _NeitherLeftNorRight:
-    .assert * = FuncA_Avatar_DecelerateHorz, error, "fallthrough"
+    fall FuncA_Avatar_DecelerateHorz
 .ENDPROC
 
 ;;; Decelerates the player avatar's X-velocity toward zero.
@@ -579,7 +579,6 @@ _Airborne:
     ;; If the player stops holding the jump button while jumping, cap the
     ;; upward speed to kAvatarStopJumpSpeed (that is, the Y velocity will be
     ;; greater than or equal to -kAvatarStopJumpSpeed).
-    ;; TODO: This interacts poorly with being pushed up by e.g. steam.
     lda Zp_AvatarState_bAvatar
     and #bAvatar::Jumping
     beq _Return  ; avatar is airborne, but is not jumping
