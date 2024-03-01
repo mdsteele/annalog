@@ -45,6 +45,7 @@
 .IMPORT Func_InitActorBadOrc
 .IMPORT Func_InitActorNpcOrc
 .IMPORT Func_Noop
+.IMPORT Func_PlaySfxFlopDown
 .IMPORT Main_LoadPrisonCellAndStartCutscene
 .IMPORT Ppu_ChrObjTown
 .IMPORT Ram_ActorFlags_bObj_arr
@@ -618,6 +619,7 @@ _InitOrcs:
     act_SetAvatarFlags kPaletteObjAvatarNormal | bObj::FlipH
     act_SetAvatarPose eAvatar::Slumping
     act_WaitFrames 4
+    act_CallFunc Func_PlaySfxFlopDown
     act_SetAvatarPose eAvatar::Sleeping
     act_WaitFrames 120
     act_RunDialog eDialog::TownOutdoorsGronta
