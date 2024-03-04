@@ -171,7 +171,7 @@ _Ext_sRoomExt:
     d_addr Enter_func_ptr, FuncC_Garden_Tower_EnterRoom
     d_addr FadeIn_func_ptr, Func_Noop
     d_addr Tick_func_ptr, FuncC_Garden_Tower_TickRoom
-    d_addr Draw_func_ptr, FuncA_Objects_GardenTower_DrawRoom
+    d_addr Draw_func_ptr, FuncC_Garden_Tower_DrawRoom
     D_END
 _TerrainData:
 :   .incbin "out/rooms/garden_tower.room"
@@ -189,7 +189,7 @@ _Machines_sMachine_arr:
     d_byte MainPlatform_u8, kCannonPlatformIndex
     d_addr Init_func_ptr, Func_Noop
     d_addr ReadReg_func_ptr, FuncC_Garden_TowerCannon_ReadReg
-    d_addr WriteReg_func_ptr, FuncC_Garden_TowerCannon_WriteReg
+    d_addr WriteReg_func_ptr, FuncA_Machine_GardenTowerCannon_WriteReg
     d_addr TryMove_func_ptr, FuncA_Machine_CannonTryMove
     d_addr TryAct_func_ptr, FuncA_Machine_CannonTryAct
     d_addr Tick_func_ptr, FuncA_Machine_CannonTick
@@ -515,17 +515,6 @@ _Done:
     rts
 .ENDPROC
 
-.PROC FuncC_Garden_TowerCannon_WriteReg
-    cpx #$d
-    beq _WriteR
-_WriteL:
-    ldx #kLeverLeftDeviceIndex  ; param: device index
-    jmp FuncA_Machine_WriteToLever
-_WriteR:
-    ldx #kLeverRightDeviceIndex  ; param: device index
-    jmp FuncA_Machine_WriteToLever
-.ENDPROC
-
 ;;; @prereq PRGA_Room is loaded.
 .PROC FuncC_Garden_TowerCannon_Reset
     ldx #kLeverLeftDeviceIndex  ; param: device index
@@ -543,12 +532,8 @@ _ResetMachine:
     jmp FuncA_Room_MachineCannonReset
 .ENDPROC
 
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Objects"
-
 ;;; Allocates and populates OAM slots for this room.
-.PROC FuncA_Objects_GardenTower_DrawRoom
+.PROC FuncC_Garden_Tower_DrawRoom
 _AnimateThorns:
     flag_bit Sram_ProgressFlags_arr, eFlag::BossGarden
     beq @bossAlive
@@ -591,14 +576,14 @@ _BreakableWall:
     jsr FuncA_Objects_SetShapePosToPlatformTopLeft
     ldx T2  ; virtual num upper hits
     lda _Brick0TileId_u8, x  ; param: tile ID
-    jsr FuncA_Objects_DrawGardenBrick  ; preserves X and T2+
+    jsr FuncC_Garden_DrawTowerBrick  ; preserves X and T2+
     lda _Brick1TileId_u8, x  ; param: tile ID
-    jsr FuncA_Objects_DrawGardenBrick  ; preserves X and T2+
+    jsr FuncC_Garden_DrawTowerBrick  ; preserves X and T2+
     ldx T3  ; virtual num lower hits
     lda _Brick2TileId_u8, x  ; param: tile ID
-    jsr FuncA_Objects_DrawGardenBrick  ; preserves X
+    jsr FuncC_Garden_DrawTowerBrick  ; preserves X
     lda _Brick3TileId_u8, x  ; param: tile ID
-    jsr FuncA_Objects_DrawGardenBrick
+    jsr FuncC_Garden_DrawTowerBrick
     @done:
 _Crates:
     ldx #kWallCratePlatformIndex  ; param: platform index
@@ -627,10 +612,25 @@ _Brick3TileId_u8:
 ;;; then moves the shape position down by one tile.
 ;;; @param A The tile ID.
 ;;; @preserve X, T2+
-.PROC FuncA_Objects_DrawGardenBrick
+.PROC FuncC_Garden_DrawTowerBrick
     ldy #kPaletteObjGardenBrick  ; param: object flags
     jsr FuncA_Objects_Draw1x1Shape  ; preserves X and T2+
     jmp FuncA_Objects_MoveShapeDownOneTile  ; preserves X and T2+
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Machine"
+
+.PROC FuncA_Machine_GardenTowerCannon_WriteReg
+    cpx #$d
+    beq _WriteR
+_WriteL:
+    ldx #kLeverLeftDeviceIndex  ; param: device index
+    jmp FuncA_Machine_WriteToLever
+_WriteR:
+    ldx #kLeverRightDeviceIndex  ; param: device index
+    jmp FuncA_Machine_WriteToLever
 .ENDPROC
 
 ;;;=========================================================================;;;

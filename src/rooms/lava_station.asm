@@ -114,9 +114,9 @@ _Machines_sMachine_arr:
     d_addr ReadReg_func_ptr, Func_MachineBoilerReadReg
     d_addr WriteReg_func_ptr, FuncA_Machine_BoilerWriteReg
     d_addr TryMove_func_ptr, FuncA_Machine_Error
-    d_addr TryAct_func_ptr, FuncC_Lava_StationBoiler_TryAct
+    d_addr TryAct_func_ptr, FuncA_Machine_LavaStationBoiler_TryAct
     d_addr Tick_func_ptr, FuncA_Machine_BoilerTick
-    d_addr Draw_func_ptr, FuncA_Objects_LavaStationBoiler_Draw
+    d_addr Draw_func_ptr, FuncC_Lava_StationBoiler_Draw
     d_addr Reset_func_ptr, FuncA_Room_MachineBoilerReset
     D_END
     .assert * - :- <= kMaxMachines * .sizeof(sMachine), error
@@ -196,10 +196,19 @@ _Passages_sPassage_arr:
     rts
 .ENDPROC
 
+.PROC FuncC_Lava_StationBoiler_Draw
+    jsr FuncA_Objects_DrawBoilerMachine
+    ldx #kValvePlatformIndex  ; param: platform index
+    jmp FuncA_Objects_DrawBoilerValve1
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Machine"
+
 ;;; TryAct implemention for the LavaStationBoiler machine.
 ;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
-;;; @prereq PRGA_Machine is loaded.
-.PROC FuncC_Lava_StationBoiler_TryAct
+.PROC FuncA_Machine_LavaStationBoiler_TryAct
     ;; Determine which pipe the steam should exit out of.
     lda Ram_MachineGoalHorz_u8_arr + kBoilerMachineIndex  ; valve 1 angle
     and #$03
@@ -219,16 +228,6 @@ _ValvePipePlatformIndex_u8_arr4:
     .byte kPipe2PlatformIndex
     .byte kPipe2PlatformIndex
     .byte kPipe1PlatformIndex
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Objects"
-
-.PROC FuncA_Objects_LavaStationBoiler_Draw
-    jsr FuncA_Objects_DrawBoilerMachine
-    ldx #kValvePlatformIndex  ; param: platform index
-    jmp FuncA_Objects_DrawBoilerValve1
 .ENDPROC
 
 ;;;=========================================================================;;;

@@ -112,10 +112,10 @@ _Machines_sMachine_arr:
     d_addr Init_func_ptr, FuncC_Prison_EscapeTrolley_InitReset
     d_addr ReadReg_func_ptr, FuncC_Prison_EscapeTrolley_ReadReg
     d_addr WriteReg_func_ptr, Func_Noop
-    d_addr TryMove_func_ptr, FuncC_Prison_EscapeTrolley_TryMove
+    d_addr TryMove_func_ptr, FuncA_Machine_PrisonEscapeTrolley_TryMove
     d_addr TryAct_func_ptr, FuncA_Machine_Error
-    d_addr Tick_func_ptr, FuncC_Prison_EscapeTrolley_Tick
-    d_addr Draw_func_ptr, FuncA_Objects_PrisonEscapeTrolley_Draw
+    d_addr Tick_func_ptr, FuncA_Machine_PrisonEscapeTrolley_Tick
+    d_addr Draw_func_ptr, FuncC_Prison_EscapeTrolley_Draw
     d_addr Reset_func_ptr, FuncC_Prison_EscapeTrolley_InitReset
     D_END
     .assert * - :- <= kMaxMachines * .sizeof(sMachine), error
@@ -206,12 +206,24 @@ _Passages_sPassage_arr:
     rts
 .ENDPROC
 
-.PROC FuncC_Prison_EscapeTrolley_TryMove
+.PROC FuncC_Prison_EscapeTrolley_Draw
+    jsr FuncA_Objects_DrawTrolleyMachine
+    ldx #7  ; param: num rope tiles
+    jsr FuncA_Objects_DrawTrolleyRopeWithLength
+    ldx #kGirderPlatformIndex  ; param: platform index
+    jmp FuncA_Objects_DrawTrolleyGirder
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Machine"
+
+.PROC FuncA_Machine_PrisonEscapeTrolley_TryMove
     lda #kTrolleyMaxGoalX  ; param: max goal
     jmp FuncA_Machine_GenericTryMoveX
 .ENDPROC
 
-.PROC FuncC_Prison_EscapeTrolley_Tick
+.PROC FuncA_Machine_PrisonEscapeTrolley_Tick
     ;; Move the trolley horizontally, as necessary.
     ldax #kTrolleyMinPlatformLeft  ; param: min platform left
     jsr FuncA_Machine_GenericMoveTowardGoalHorz  ; returns Z and A
@@ -250,20 +262,6 @@ _Passages_sPassage_arr:
     .byte "automatically whenever$"
     .byte "entering or leaving a$"
     .byte "room.#"
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Objects"
-
-;;; Allocates and populates OAM slots for the PrisonEscapeTrolley machine.
-;;; @prereq Zp_MachineIndex_u8 is initialized.
-.PROC FuncA_Objects_PrisonEscapeTrolley_Draw
-    jsr FuncA_Objects_DrawTrolleyMachine
-    ldx #7  ; param: num rope tiles
-    jsr FuncA_Objects_DrawTrolleyRopeWithLength
-    ldx #kGirderPlatformIndex  ; param: platform index
-    jmp FuncA_Objects_DrawTrolleyGirder
 .ENDPROC
 
 ;;;=========================================================================;;;

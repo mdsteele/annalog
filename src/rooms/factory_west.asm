@@ -119,10 +119,10 @@ _Machines_sMachine_arr:
     d_addr Init_func_ptr, FuncC_Factory_WestCrane_InitReset
     d_addr ReadReg_func_ptr, FuncC_Factory_WestCrane_ReadReg
     d_addr WriteReg_func_ptr, Func_Noop
-    d_addr TryMove_func_ptr, FuncC_Factory_WestCrane_TryMove
-    d_addr TryAct_func_ptr, FuncC_Factory_WestCrane_TryAct
-    d_addr Tick_func_ptr, FuncC_Factory_WestCrane_Tick
-    d_addr Draw_func_ptr, FuncA_Objects_FactoryWestCrypt_Draw
+    d_addr TryMove_func_ptr, FuncA_Machine_FactoryWestCrane_TryMove
+    d_addr TryAct_func_ptr, FuncA_Machine_FactoryWestCrane_TryAct
+    d_addr Tick_func_ptr, FuncA_Machine_FactoryWestCrane_Tick
+    d_addr Draw_func_ptr, FuncC_Factory_WestCrane_Draw
     d_addr Reset_func_ptr, FuncC_Factory_WestCrane_InitReset
     D_END
     .assert * - :- <= kMaxMachines * .sizeof(sMachine), error
@@ -226,12 +226,22 @@ _ReadZ:
     rts
 .ENDPROC
 
-.PROC FuncC_Factory_WestCrane_TryMove
+.PROC FuncC_Factory_WestCrane_Draw
+    jsr FuncA_Objects_DrawCraneMachine
+    ldx #kPulleyPlatformIndex  ; param: platform index
+    jmp FuncA_Objects_DrawCranePulleyAndRope
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Machine"
+
+.PROC FuncA_Machine_FactoryWestCrane_TryMove
     lda #kCraneMaxGoalZ  ; param: max goal vert
     jmp FuncA_Machine_GenericTryMoveZ
 .ENDPROC
 
-.PROC FuncC_Factory_WestCrane_TryAct
+.PROC FuncA_Machine_FactoryWestCrane_TryAct
     lda Ram_MachineGoalHorz_u8_arr + kCraneMachineIndex  ; is closed
     eor #$ff
     sta Ram_MachineGoalHorz_u8_arr + kCraneMachineIndex  ; is closed
@@ -239,22 +249,11 @@ _ReadZ:
     jmp FuncA_Machine_StartWaiting
 .ENDPROC
 
-.PROC FuncC_Factory_WestCrane_Tick
+.PROC FuncA_Machine_FactoryWestCrane_Tick
     ldya #kCraneMinPlatformTop  ; param: min platform top
     jsr FuncA_Machine_CraneMoveTowardGoal  ; returns Z
     jeq FuncA_Machine_ReachedGoal
     rts
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Objects"
-
-;;; Draws the BossCryptWinch machine.
-.PROC FuncA_Objects_FactoryWestCrypt_Draw
-    jsr FuncA_Objects_DrawCraneMachine
-    ldx #kPulleyPlatformIndex  ; param: platform index
-    jmp FuncA_Objects_DrawCranePulleyAndRope
 .ENDPROC
 
 ;;;=========================================================================;;;

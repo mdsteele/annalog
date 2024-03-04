@@ -119,9 +119,9 @@ _Machines_sMachine_arr:
     d_addr ReadReg_func_ptr, Func_MachineBoilerReadReg
     d_addr WriteReg_func_ptr, FuncA_Machine_BoilerWriteReg
     d_addr TryMove_func_ptr, FuncA_Machine_Error
-    d_addr TryAct_func_ptr, FuncC_Lava_EastUpperBoiler_TryAct
+    d_addr TryAct_func_ptr, FuncA_Machine_LavaEastUpperBoiler_TryAct
     d_addr Tick_func_ptr, FuncA_Machine_BoilerTick
-    d_addr Draw_func_ptr, FuncA_Objects_LavaEastUpperBoiler_Draw
+    d_addr Draw_func_ptr, FuncC_Lava_EastUpperBoiler_Draw
     d_addr Reset_func_ptr, FuncA_Room_MachineBoilerReset
     D_END
     .assert * - :- = kLowerBoilerMachineIndex * .sizeof(sMachine), error
@@ -138,9 +138,9 @@ _Machines_sMachine_arr:
     d_addr ReadReg_func_ptr, Func_MachineBoilerReadReg
     d_addr WriteReg_func_ptr, FuncA_Machine_BoilerWriteReg
     d_addr TryMove_func_ptr, FuncA_Machine_Error
-    d_addr TryAct_func_ptr, FuncC_Lava_EastLowerBoiler_TryAct
+    d_addr TryAct_func_ptr, FuncA_Machine_LavaEastLowerBoiler_TryAct
     d_addr Tick_func_ptr, FuncA_Machine_BoilerTick
-    d_addr Draw_func_ptr, FuncA_Objects_LavaEastLowerBoiler_Draw
+    d_addr Draw_func_ptr, FuncC_Lava_EastLowerBoiler_Draw
     d_addr Reset_func_ptr, FuncA_Room_MachineBoilerReset
     D_END
     .assert * - :- <= kMaxMachines * .sizeof(sMachine), error
@@ -307,10 +307,29 @@ _Passages_sPassage_arr:
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
 .ENDPROC
 
+.PROC FuncC_Lava_EastUpperBoiler_Draw
+    jsr FuncA_Objects_DrawBoilerMachine
+    ldx #kUpperValve1PlatformIndex  ; param: platform index
+    jsr FuncA_Objects_DrawBoilerValve1
+    ldx #kUpperValve2PlatformIndex  ; param: platform index
+    jmp FuncA_Objects_DrawBoilerValve2
+.ENDPROC
+
+.PROC FuncC_Lava_EastLowerBoiler_Draw
+    jsr FuncA_Objects_DrawBoilerMachine
+    ldx #kLowerValve1PlatformIndex  ; param: platform index
+    jsr FuncA_Objects_DrawBoilerValve1
+    ldx #kLowerValve2PlatformIndex  ; param: platform index
+    jmp FuncA_Objects_DrawBoilerValve2
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Machine"
+
 ;;; TryAct implemention for the LavaEastUpperBoiler machine.
 ;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
-;;; @prereq PRGA_Machine is loaded.
-.PROC FuncC_Lava_EastUpperBoiler_TryAct
+.PROC FuncA_Machine_LavaEastUpperBoiler_TryAct
 _Valve1:
     lda Ram_MachineGoalHorz_u8_arr + kUpperBoilerMachineIndex  ; valve 1 angle
     and #$03
@@ -341,8 +360,7 @@ _Valve2ExitPlatformIndex_u8_arr4:
 
 ;;; TryAct implemention for the LavaEastLowerBoiler machine.
 ;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
-;;; @prereq PRGA_Machine is loaded.
-.PROC FuncC_Lava_EastLowerBoiler_TryAct
+.PROC FuncA_Machine_LavaEastLowerBoiler_TryAct
     lda #0
     sta T0  ; num steams emitted
 _Pipe1:
@@ -389,26 +407,6 @@ _Valve2ExitPlatformIndex_u8_arr4:
     .byte kLowerValve1PlatformIndex
     .byte kLowerValve1PlatformIndex
     .byte $ff
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Objects"
-
-.PROC FuncA_Objects_LavaEastUpperBoiler_Draw
-    jsr FuncA_Objects_DrawBoilerMachine
-    ldx #kUpperValve1PlatformIndex  ; param: platform index
-    jsr FuncA_Objects_DrawBoilerValve1
-    ldx #kUpperValve2PlatformIndex  ; param: platform index
-    jmp FuncA_Objects_DrawBoilerValve2
-.ENDPROC
-
-.PROC FuncA_Objects_LavaEastLowerBoiler_Draw
-    jsr FuncA_Objects_DrawBoilerMachine
-    ldx #kLowerValve1PlatformIndex  ; param: platform index
-    jsr FuncA_Objects_DrawBoilerValve1
-    ldx #kLowerValve2PlatformIndex  ; param: platform index
-    jmp FuncA_Objects_DrawBoilerValve2
 .ENDPROC
 
 ;;;=========================================================================;;;

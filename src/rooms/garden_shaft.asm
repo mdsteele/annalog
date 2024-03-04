@@ -127,11 +127,11 @@ _Machines_sMachine_arr:
     d_byte MainPlatform_u8, kLowerBridgePivotPlatformIndex
     d_addr Init_func_ptr, FuncC_Garden_ShaftBridge_Init
     d_addr ReadReg_func_ptr, FuncC_Garden_ShaftBridge_ReadReg
-    d_addr WriteReg_func_ptr, FuncC_Garden_ShaftBridge_WriteReg
+    d_addr WriteReg_func_ptr, FuncA_Machine_GardenShaftBridge_WriteReg
     d_addr TryMove_func_ptr, FuncA_Machine_BridgeTryMove
     d_addr TryAct_func_ptr, FuncA_Machine_Error
-    d_addr Tick_func_ptr, FuncC_Garden_ShaftLowerBridge_Tick
-    d_addr Draw_func_ptr, FuncA_Objects_GardenShaftLowerBridge_Draw
+    d_addr Tick_func_ptr, FuncA_Machine_GardenShaftLowerBridge_Tick
+    d_addr Draw_func_ptr, FuncC_Garden_ShaftLowerBridge_Draw
     d_addr Reset_func_ptr, FuncC_Garden_ShaftBridge_Reset
     D_END
     .assert * - :- = kUpperBridgeMachineIndex * .sizeof(sMachine), error
@@ -146,11 +146,11 @@ _Machines_sMachine_arr:
     d_byte MainPlatform_u8, kUpperBridgePivotPlatformIndex
     d_addr Init_func_ptr, FuncC_Garden_ShaftBridge_Init
     d_addr ReadReg_func_ptr, FuncC_Garden_ShaftBridge_ReadReg
-    d_addr WriteReg_func_ptr, FuncC_Garden_ShaftBridge_WriteReg
+    d_addr WriteReg_func_ptr, FuncA_Machine_GardenShaftBridge_WriteReg
     d_addr TryMove_func_ptr, FuncA_Machine_BridgeTryMove
     d_addr TryAct_func_ptr, FuncA_Machine_Error
-    d_addr Tick_func_ptr, FuncC_Garden_ShaftUpperBridge_Tick
-    d_addr Draw_func_ptr, FuncA_Objects_GardenShaftUpperBridge_Draw
+    d_addr Tick_func_ptr, FuncA_Machine_GardenShaftUpperBridge_Tick
+    d_addr Draw_func_ptr, FuncC_Garden_ShaftUpperBridge_Draw
     d_addr Reset_func_ptr, FuncC_Garden_ShaftBridge_Reset
     D_END
     .assert * - :- <= kMaxMachines * .sizeof(sMachine), error
@@ -248,25 +248,6 @@ _Passages_sPassage_arr:
     rts
 .ENDPROC
 
-.PROC FuncC_Garden_ShaftBridge_WriteReg
-    .assert kLeverLowerDeviceIndex = kLowerBridgeMachineIndex, error
-    .assert kLeverUpperDeviceIndex = kUpperBridgeMachineIndex, error
-    ldx Zp_MachineIndex_u8  ; param: device index
-    jmp FuncA_Machine_WriteToLever
-.ENDPROC
-
-.PROC FuncC_Garden_ShaftLowerBridge_Tick
-    lda #kLowerBridgePivotPlatformIndex  ; param: fixed segment platform index
-    ldx #kLowerBridgePivotPlatformIndex + kNumMovableLowerBridgeSegments
-    jmp FuncA_Machine_BridgeTick
-.ENDPROC
-
-.PROC FuncC_Garden_ShaftUpperBridge_Tick
-    lda #kUpperBridgePivotPlatformIndex  ; param: fixed segment platform index
-    ldx #kUpperBridgePivotPlatformIndex + kNumMovableUpperBridgeSegments
-    jmp FuncA_Machine_BridgeTick
-.ENDPROC
-
 .PROC FuncC_Garden_ShaftBridge_Init
     ldx Zp_MachineIndex_u8
     lda #kBridgeMaxAngle
@@ -281,22 +262,37 @@ _Passages_sPassage_arr:
     jmp FuncA_Room_ResetLever
 .ENDPROC
 
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Objects"
-
-;;; Allocates and populates OAM slots for the GardenShaftLowerBridge machine.
-;;; @prereq Zp_MachineIndex_u8 is initialized.
-.PROC FuncA_Objects_GardenShaftLowerBridge_Draw
+.PROC FuncC_Garden_ShaftLowerBridge_Draw
     ldx #kLowerBridgePivotPlatformIndex + kNumMovableLowerBridgeSegments
     jmp FuncA_Objects_DrawBridgeMachine
 .ENDPROC
 
-;;; Allocates and populates OAM slots for the GardenShaftLowerBridge machine.
-;;; @prereq Zp_MachineIndex_u8 is initialized.
-.PROC FuncA_Objects_GardenShaftUpperBridge_Draw
+.PROC FuncC_Garden_ShaftUpperBridge_Draw
     ldx #kUpperBridgePivotPlatformIndex + kNumMovableUpperBridgeSegments
     jmp FuncA_Objects_DrawBridgeMachine
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Machine"
+
+.PROC FuncA_Machine_GardenShaftBridge_WriteReg
+    .assert kLeverLowerDeviceIndex = kLowerBridgeMachineIndex, error
+    .assert kLeverUpperDeviceIndex = kUpperBridgeMachineIndex, error
+    ldx Zp_MachineIndex_u8  ; param: device index
+    jmp FuncA_Machine_WriteToLever
+.ENDPROC
+
+.PROC FuncA_Machine_GardenShaftLowerBridge_Tick
+    lda #kLowerBridgePivotPlatformIndex  ; param: fixed segment platform index
+    ldx #kLowerBridgePivotPlatformIndex + kNumMovableLowerBridgeSegments
+    jmp FuncA_Machine_BridgeTick
+.ENDPROC
+
+.PROC FuncA_Machine_GardenShaftUpperBridge_Tick
+    lda #kUpperBridgePivotPlatformIndex  ; param: fixed segment platform index
+    ldx #kUpperBridgePivotPlatformIndex + kNumMovableUpperBridgeSegments
+    jmp FuncA_Machine_BridgeTick
 .ENDPROC
 
 ;;;=========================================================================;;;

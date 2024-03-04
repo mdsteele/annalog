@@ -199,7 +199,7 @@ _Ext_sRoomExt:
     d_addr Enter_func_ptr, FuncC_Temple_Nave_EnterRoom
     d_addr FadeIn_func_ptr, Func_Noop
     d_addr Tick_func_ptr, Func_Noop
-    d_addr Draw_func_ptr, FuncA_Objects_TempleNave_DrawRoom
+    d_addr Draw_func_ptr, FuncC_Temple_Nave_DrawRoom
     D_END
 _TerrainData:
 :   .incbin "out/rooms/temple_nave.room"
@@ -218,7 +218,7 @@ _Machines_sMachine_arr:
     d_addr Init_func_ptr, FuncC_Temple_NaveLowerCarriage_Init
     d_addr ReadReg_func_ptr, FuncC_Temple_NaveLowerCarriage_ReadReg
     d_addr WriteReg_func_ptr, Func_Noop
-    d_addr TryMove_func_ptr, FuncC_Temple_NaveLowerCarriage_TryMove
+    d_addr TryMove_func_ptr, FuncA_Machine_TempleNaveLowerCarriage_TryMove
     d_addr TryAct_func_ptr, FuncA_Machine_Error
     d_addr Tick_func_ptr, FuncC_Temple_NaveLowerCarriage_Tick
     d_addr Draw_func_ptr, FuncA_Objects_DrawCarriageMachine
@@ -237,7 +237,7 @@ _Machines_sMachine_arr:
     d_addr Init_func_ptr, FuncC_Temple_NaveUpperCarriage_Init
     d_addr ReadReg_func_ptr, FuncC_Temple_NaveUpperCarriage_ReadReg
     d_addr WriteReg_func_ptr, Func_Noop
-    d_addr TryMove_func_ptr, FuncC_Temple_NaveUpperCarriage_TryMove
+    d_addr TryMove_func_ptr, FuncA_Machine_TempleNaveUpperCarriage_TryMove
     d_addr TryAct_func_ptr, FuncA_Machine_Error
     d_addr Tick_func_ptr, FuncC_Temple_NaveUpperCarriage_Tick
     d_addr Draw_func_ptr, FuncA_Objects_DrawCarriageMachine
@@ -455,6 +455,11 @@ _RemoveAlex:
     rts
 .ENDPROC
 
+.PROC FuncC_Temple_Nave_DrawRoom
+    ldx #kCratePlatformIndex
+    jmp FuncA_Objects_DrawCratePlatform
+.ENDPROC
+
 ;;; @param A The register to read ($c-$f).
 ;;; @return A The value of the register (0-9).
 .PROC FuncC_Temple_NaveLowerCarriage_ReadReg
@@ -480,12 +485,6 @@ _ReadY:
     .linecont -
     div #kBlockWidthPx
     rts
-.ENDPROC
-
-.PROC FuncC_Temple_NaveLowerCarriage_TryMove
-    lda #kLowerCarriageMaxGoalX  ; param: max goal horz
-    ldy #kLowerCarriageMaxGoalY  ; param: max goal vert
-    jmp FuncA_Machine_CarriageTryMove
 .ENDPROC
 
 .PROC FuncC_Temple_NaveLowerCarriage_Tick
@@ -537,7 +536,7 @@ _MoveToTopLeftish:
 _MoveToBottomLeft:
     lda #eLowerResetSeq::BottomLeft
     sta Zp_RoomState + sState::LowerCarriageReset_eLowerResetSeq
-    .assert * = FuncC_Temple_NaveLowerCarriage_Init, error, "fallthrough"
+    fall FuncC_Temple_NaveLowerCarriage_Init
 .ENDPROC
 
 .PROC FuncC_Temple_NaveLowerCarriage_Init
@@ -573,12 +572,6 @@ _ReadY:
     .linecont -
     div #kBlockWidthPx
     rts
-.ENDPROC
-
-.PROC FuncC_Temple_NaveUpperCarriage_TryMove
-    lda #kUpperCarriageMaxGoalX  ; param: max goal horz
-    ldy #kUpperCarriageMaxGoalY  ; param: max goal vert
-    jmp FuncA_Machine_CarriageTryMove
 .ENDPROC
 
 .PROC FuncC_Temple_NaveUpperCarriage_Tick
@@ -625,7 +618,7 @@ _MoveToUpperLeft:
 _MoveToBottomRight:
     lda #eUpperResetSeq::BottomRight
     sta Zp_RoomState + sState::UpperCarriageReset_eUpperResetSeq
-    .assert * = FuncC_Temple_NaveUpperCarriage_Init, error, "fallthrough"
+    fall FuncC_Temple_NaveUpperCarriage_Init
 .ENDPROC
 
 .PROC FuncC_Temple_NaveUpperCarriage_Init
@@ -634,6 +627,22 @@ _MoveToBottomRight:
     lda #kUpperCarriageInitGoalY
     sta Ram_MachineGoalVert_u8_arr + kUpperCarriageMachineIndex
     rts
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Machine"
+
+.PROC FuncA_Machine_TempleNaveLowerCarriage_TryMove
+    lda #kLowerCarriageMaxGoalX  ; param: max goal horz
+    ldy #kLowerCarriageMaxGoalY  ; param: max goal vert
+    jmp FuncA_Machine_CarriageTryMove
+.ENDPROC
+
+.PROC FuncA_Machine_TempleNaveUpperCarriage_TryMove
+    lda #kUpperCarriageMaxGoalX  ; param: max goal horz
+    ldy #kUpperCarriageMaxGoalY  ; param: max goal vert
+    jmp FuncA_Machine_CarriageTryMove
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -676,15 +685,6 @@ _SetUpBoostingPlatform:
     ;; Set the flag indicating that Alex is now in the boosting position.
     ldx #eFlag::TempleNaveTalkedToAlex  ; param: flag
     jmp Func_SetFlag
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Objects"
-
-.PROC FuncA_Objects_TempleNave_DrawRoom
-    ldx #kCratePlatformIndex
-    jmp FuncA_Objects_DrawCratePlatform
 .ENDPROC
 
 ;;;=========================================================================;;;

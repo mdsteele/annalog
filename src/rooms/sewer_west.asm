@@ -123,11 +123,11 @@ _Machines_sMachine_arr:
     d_byte MainPlatform_u8, kMultiplexerMainPlatformIndex
     d_addr Init_func_ptr, FuncC_Sewer_WestMultiplexer_InitReset
     d_addr ReadReg_func_ptr, FuncC_Sewer_WestMultiplexer_ReadReg
-    d_addr WriteReg_func_ptr, FuncC_Sewer_WestMultiplexer_WriteReg
-    d_addr TryMove_func_ptr, FuncC_Sewer_WestMultiplexer_TryMove
+    d_addr WriteReg_func_ptr, FuncA_Machine_SewerWestMultiplexer_WriteReg
+    d_addr TryMove_func_ptr, FuncA_Machine_SewerWestMultiplexer_TryMove
     d_addr TryAct_func_ptr, FuncA_Machine_Error
-    d_addr Tick_func_ptr, FuncC_Sewer_WestMultiplexer_Tick
-    d_addr Draw_func_ptr, FuncA_Objects_SewerWestMultiplexer_Draw
+    d_addr Tick_func_ptr, FuncA_Machine_SewerWestMultiplexer_Tick
+    d_addr Draw_func_ptr, FuncC_Sewer_WestMultiplexer_Draw
     d_addr Reset_func_ptr, FuncC_Sewer_WestMultiplexer_InitReset
     D_END
     .assert * - :- <= kMaxMachines * .sizeof(sMachine), error
@@ -218,14 +218,23 @@ _ReadX:
     rts
 .ENDPROC
 
+.PROC FuncC_Sewer_WestMultiplexer_Draw
+    ldx #kMultiplexerNumPlatforms  ; param: num platforms
+    jmp FuncA_Objects_DrawMultiplexerMachine
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Machine"
+
 ;;; @param A The value to write (0-9).
 ;;; @param X The register to write to ($c-$f).
-.PROC FuncC_Sewer_WestMultiplexer_WriteReg
+.PROC FuncA_Machine_SewerWestMultiplexer_WriteReg
     sta Ram_MachineGoalVert_u8_arr + kMultiplexerMachineIndex  ; J register
     rts
 .ENDPROC
 
-.PROC FuncC_Sewer_WestMultiplexer_TryMove
+.PROC FuncA_Machine_SewerWestMultiplexer_TryMove
     ldy Ram_MachineGoalVert_u8_arr + kMultiplexerMachineIndex  ; J register
     lda Zp_RoomState + sState::MultiplexerGoalHorz_u8_arr, y
     cpx #eDir::Right
@@ -251,7 +260,7 @@ _MaxGoalX_u8_arr:
     .assert * - :- = kMultiplexerNumPlatforms, error
 .ENDPROC
 
-.PROC FuncC_Sewer_WestMultiplexer_Tick
+.PROC FuncA_Machine_SewerWestMultiplexer_Tick
     lda #0
     pha  ; num platforms done
     ldx #kMultiplexerNumPlatforms - 1
@@ -282,15 +291,6 @@ _Finish:
     jmp FuncA_Machine_ReachedGoal
     @notReachedGoal:
     rts
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Objects"
-
-.PROC FuncA_Objects_SewerWestMultiplexer_Draw
-    ldx #kMultiplexerNumPlatforms  ; param: num platforms
-    jmp FuncA_Objects_DrawMultiplexerMachine
 .ENDPROC
 
 ;;;=========================================================================;;;

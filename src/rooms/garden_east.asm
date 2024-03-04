@@ -158,7 +158,7 @@ _Machines_sMachine_arr:
     d_addr TryMove_func_ptr, FuncA_Machine_BridgeTryMove
     d_addr TryAct_func_ptr, FuncA_Machine_Error
     d_addr Tick_func_ptr, FuncA_Machine_GardenEastBridge_Tick
-    d_addr Draw_func_ptr, FuncA_Objects_GardenEastBridge_Draw
+    d_addr Draw_func_ptr, FuncC_Garden_EastBridge_Draw
     d_addr Reset_func_ptr, FuncA_Room_GardenEastBridge_Reset
     D_END
     .assert * - :- = kCannonMachineIndex * .sizeof(sMachine), error
@@ -346,6 +346,11 @@ _Passages_sPassage_arr:
     rts
 .ENDPROC
 
+.PROC FuncC_Garden_EastBridge_Draw
+    ldx #kBridgePivotPlatformIndex + kNumMovableBridgeSegments  ; param: last
+    jmp FuncA_Objects_DrawBridgeMachine
+.ENDPROC
+
 ;;;=========================================================================;;;
 
 .SEGMENT "PRGA_Room"
@@ -446,17 +451,6 @@ _Done:
     sty Ram_ActorVelY_i16_1_arr + kKillableVinebugActorIndex
     ;; Fire a grenade.
     jmp FuncA_Machine_CannonTryAct
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Objects"
-
-;;; Allocates and populates OAM slots for the GardenEastBridge machine.
-;;; @prereq Zp_MachineIndex_u8 is initialized.
-.PROC FuncA_Objects_GardenEastBridge_Draw
-    ldx #kBridgePivotPlatformIndex + kNumMovableBridgeSegments  ; param: last
-    jmp FuncA_Objects_DrawBridgeMachine
 .ENDPROC
 
 ;;;=========================================================================;;;

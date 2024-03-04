@@ -187,7 +187,7 @@ _Machines_sMachine_arr:
     d_addr TryMove_func_ptr, FuncC_Crypt_SouthWinch_TryMove
     d_addr TryAct_func_ptr, FuncC_Crypt_SouthWinch_TryAct
     d_addr Tick_func_ptr, FuncC_Crypt_SouthWinch_Tick
-    d_addr Draw_func_ptr, FuncA_Objects_CryptSouthWinch_Draw
+    d_addr Draw_func_ptr, FuncC_Crypt_SouthWinch_Draw
     d_addr Reset_func_ptr, FuncC_Crypt_SouthWinch_Reset
     D_END
     .assert * - :- <= kMaxMachines * .sizeof(sMachine), error
@@ -511,6 +511,20 @@ _ResetMachine:
     rts
 .ENDPROC
 
+;;; Draws the CryptSouthWinch machine.
+.PROC FuncC_Crypt_SouthWinch_Draw
+    ;; Draw winch:
+    lda Ram_PlatformTop_i16_0_arr + kCrusherUpperPlatformIndex  ; param: chain
+    jsr FuncA_Objects_DrawWinchMachine
+    ;; Draw crusher:
+    ldx #kCrusherUpperPlatformIndex  ; param: platform index
+    jsr FuncA_Objects_DrawWinchCrusher
+    ;; Draw chain:
+    jsr FuncA_Objects_MoveShapeUpOneTile
+    jsr FuncA_Objects_MoveShapeLeftHalfTile
+    jmp FuncA_Objects_DrawWinchChain
+.ENDPROC
+
 ;;; Returns the CryptSouthWinch machine's goal Z value for resting on the floor
 ;;; for a given goal X, taking the breakable floor into account.
 ;;; @param Y The goal X value.
@@ -578,24 +592,6 @@ _WeakFloor:
     sta Zp_RoomState + sState::WeakFloorHp_u8
     @done:
     rts
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Objects"
-
-;;; Draws the CryptSouthWinch machine.
-.PROC FuncA_Objects_CryptSouthWinch_Draw
-    ;; Draw winch:
-    lda Ram_PlatformTop_i16_0_arr + kCrusherUpperPlatformIndex  ; param: chain
-    jsr FuncA_Objects_DrawWinchMachine
-    ;; Draw crusher:
-    ldx #kCrusherUpperPlatformIndex  ; param: platform index
-    jsr FuncA_Objects_DrawWinchCrusher
-    ;; Draw chain:
-    jsr FuncA_Objects_MoveShapeUpOneTile
-    jsr FuncA_Objects_MoveShapeLeftHalfTile
-    jmp FuncA_Objects_DrawWinchChain
 .ENDPROC
 
 ;;;=========================================================================;;;

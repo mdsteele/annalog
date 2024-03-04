@@ -184,7 +184,7 @@ _Machines_sMachine_arr:
     d_addr TryMove_func_ptr, FuncC_Crypt_TombWinch_TryMove
     d_addr TryAct_func_ptr, FuncC_Crypt_TombWinch_TryAct
     d_addr Tick_func_ptr, FuncC_Crypt_TombWinch_Tick
-    d_addr Draw_func_ptr, FuncA_Objects_CryptTombWinch_Draw
+    d_addr Draw_func_ptr, FuncC_Crypt_TombWinch_Draw
     d_addr Reset_func_ptr, FuncC_Crypt_TombWinch_Reset
     D_END
     .assert * - :- <= kMaxMachines * .sizeof(sMachine), error
@@ -534,6 +534,12 @@ _Inner:
     rts
 .ENDPROC
 
+;;; Draws the CryptTombWinch machine.
+.PROC FuncC_Crypt_TombWinch_Draw
+    ldx #kSpikeballPlatformIndex  ; param: spikeball platform index
+    jmp FuncA_Objects_DrawWinchMachineWithSpikeball
+.ENDPROC
+
 ;;; Returns the CryptTombWinch machine's goal Z value for resting on the floor
 ;;; for a given goal X, taking the breakable floors into account.
 ;;; @param Y The goal X value.
@@ -621,16 +627,6 @@ _SolidFloorZ_u8_arr:
     sta Zp_RoomState + sState::WeakFloorHp_u8_arr2 + 1
     @done:
     rts
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Objects"
-
-;;; Draws the CryptTombWinch machine.
-.PROC FuncA_Objects_CryptTombWinch_Draw
-    ldx #kSpikeballPlatformIndex  ; param: spikeball platform index
-    jmp FuncA_Objects_DrawWinchMachineWithSpikeball
 .ENDPROC
 
 ;;;=========================================================================;;;
