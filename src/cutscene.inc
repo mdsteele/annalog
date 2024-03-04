@@ -145,6 +145,9 @@ kMaxForks = 4
     ;; Sets the cutscene tick flags to the specified value, then the current
     ;; cutscene fork immediately continues on to the next action.
     SetCutsceneFlags   ; args: bCutscene value
+    ;; Sets a field on the specified device to the specified value, then the
+    ;; current cutscene fork immediately continues on to the next action.
+    SetDeviceAnim      ; args: device index, new anim value
     ;; Sets the camera scroll flags, then the current cutscene fork immediately
     ;; continues on to the next action.
     SetScrollFlags     ; args: bScroll value
@@ -310,6 +313,10 @@ kMaxForks = 4
 .MACRO act_SetAvatarVelY VELY
     .byte eAction::SetAvatarVelY
     .word $ffff & (VELY)
+.ENDMACRO
+
+.MACRO act_SetDeviceAnim INDEX, ANIM
+    .byte eAction::SetDeviceAnim, INDEX, ANIM
 .ENDMACRO
 
 .MACRO act_SetCutsceneFlags BCUTSCENE

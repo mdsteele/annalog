@@ -1,6 +1,6 @@
 @BG 0 0 0 32x12
 >acid_anim0
->field_bg
+>terrain_teleport
 >lava_anim0
 >shadow1
 >shadow2

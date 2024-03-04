@@ -30,7 +30,6 @@
 .INCLUDE "../ppu.inc"
 .INCLUDE "../program.inc"
 .INCLUDE "../room.inc"
-.INCLUDE "../teleport.inc"
 
 .IMPORT DataA_Room_Shadow_sTileset
 .IMPORT FuncA_Machine_Error

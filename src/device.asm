@@ -33,6 +33,7 @@
 .IMPORT FuncA_Objects_DrawLockedDoorDevice
 .IMPORT FuncA_Objects_DrawPaperDevice
 .IMPORT FuncA_Objects_DrawScreenDevice
+.IMPORT FuncA_Objects_DrawTeleporterDevice
 .IMPORT FuncA_Objects_DrawUnlockedDoorDevice
 .IMPORT FuncA_Objects_DrawUpgradeDevice
 .IMPORT Func_Noop
@@ -175,7 +176,7 @@ _Continue:
     d_entry table, FlowerInert,   FuncA_Objects_DrawFlowerDevice
     d_entry table, Mousehole,     Func_Noop
     d_entry table, Placeholder,   Func_Noop
-    d_entry table, Teleporter,    Func_Noop
+    d_entry table, Teleporter,    FuncA_Objects_DrawTeleporterDevice
     d_entry table, BreakerReady,  FuncA_Objects_DrawBreakerReadyDevice
     d_entry table, Console,       FuncA_Objects_DrawConsoleDevice
     d_entry table, Door1Open,     Func_Noop

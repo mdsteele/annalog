@@ -20,6 +20,7 @@
 .INCLUDE "../actor.inc"
 .INCLUDE "../charmap.inc"
 .INCLUDE "../device.inc"
+.INCLUDE "../devices/teleporter.inc"
 .INCLUDE "../dialog.inc"
 .INCLUDE "../flag.inc"
 .INCLUDE "../machine.inc"
@@ -29,7 +30,6 @@
 .INCLUDE "../platform.inc"
 .INCLUDE "../program.inc"
 .INCLUDE "../room.inc"
-.INCLUDE "../teleport.inc"
 
 .IMPORT DataA_Room_Shadow_sTileset
 .IMPORT Data_Empty_sActor_arr

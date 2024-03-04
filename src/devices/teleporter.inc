@@ -21,4 +21,19 @@
 ;;; player avatar should spawn when teleporting into the room.
 kTeleporterDeviceIndex = 0
 
+;;; How many frames the room shakes for during a full-power teleport zap.
+kTeleportShakeFrames = 20
+
+;;; The number of VBlank frames per animation shape of the teleporter zap
+;;; effect.
+.DEFINE kTeleportZapSlowdown 4
+
+;;; The number of distinct animation shapes in the teleporter zap effect.
+kTeleportZapNumAnimShapes = 6
+
+;;; The number of VBlank frames to animate a teleporter zap, for either a full
+;;; or partial zap.
+kTeleporterAnimFull    = kTeleportZapSlowdown * kTeleportZapNumAnimShapes - 1
+kTeleporterAnimPartial = kTeleportZapSlowdown * 4 - 1
+
 ;;;=========================================================================;;;

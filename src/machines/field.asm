@@ -18,6 +18,7 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "../cutscene.inc"
+.INCLUDE "../devices/teleporter.inc"
 .INCLUDE "../machine.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
@@ -29,10 +30,9 @@
 .IMPORT FuncA_Machine_StartWaiting
 .IMPORT FuncA_Objects_Draw1x1Shape
 .IMPORT FuncA_Objects_GetMachineLightTileId
-.IMPORT FuncA_Objects_MoveShapeDownOneTile
-.IMPORT FuncA_Objects_MoveShapeRightByA
-.IMPORT FuncA_Objects_MoveShapeUpOneTile
 .IMPORT FuncA_Objects_SetShapePosToMachineTopLeft
+.IMPORT Func_ShakeRoom
+.IMPORT Ram_DeviceAnim_u8_arr
 .IMPORT Ram_MachineState1_byte_arr
 .IMPORT Ram_PlatformBottom_i16_0_arr
 .IMPORT Ram_PlatformBottom_i16_1_arr
@@ -104,10 +104,17 @@ kFieldActCooldown = $20
     cmp #kFieldMaxChargePoints * kFieldFramesPerChargePoint
     bge _IsCharged
 _NotCharged:
-    ;; TODO: small smoke puff
-    jmp _Cooldown
+    lda #kTeleporterAnimPartial
+    sta Ram_DeviceAnim_u8_arr + kTeleporterDeviceIndex
+    .assert kTeleporterAnimPartial > 0, error
+    bne _Cooldown  ; unconditional
 _IsCharged:
-    ;; TODO: large smoke puff
+    ;; TODO: Instead of immediately doing the teleport zap, animate energy
+    ;; balls for a few frames first.
+    lda #kTeleportShakeFrames
+    jsr Func_ShakeRoom
+    lda #kTeleporterAnimFull
+    sta Ram_DeviceAnim_u8_arr + kTeleporterDeviceIndex
 _TryTeleport:
     ;; Get the platform index for the machine's primary platform.
     ldy #sMachine::MainPlatform_u8
@@ -198,24 +205,8 @@ _Light:
     jsr FuncA_Objects_GetMachineLightTileId  ; returns A (param: tile ID)
     ldy #kPaletteObjMachineLight  ; param: object flags
     jsr FuncA_Objects_Draw1x1Shape
-_BottomLeftCorner:
-    jsr FuncA_Objects_MoveShapeDownOneTile
-    ldy #bObj::FlipH | kPaletteObjMachineLight  ; param: object flags
-    lda #kTileIdObjMachineCorner  ; param: tile ID
-    jsr FuncA_Objects_Draw1x1Shape
-_BottomRightCorner:
-    lda #kFieldMachineWidth + kTeleportFieldWidth + kTileWidthPx
-    jsr FuncA_Objects_MoveShapeRightByA
-    ldy #kPaletteObjMachineLight  ; param: object flags
-    lda #kTileIdObjMachineCorner  ; param: tile ID
-    jsr FuncA_Objects_Draw1x1Shape
-_TopRightCorner:
-    jsr FuncA_Objects_MoveShapeUpOneTile
-    ldy #bObj::FlipV | kPaletteObjMachineLight  ; param: object flags
-    lda #kTileIdObjMachineCorner  ; param: tile ID
-    jsr FuncA_Objects_Draw1x1Shape
 _Zap:
-    ;; TODO: draw teleportation effect
+    ;; TODO: draw energy balls
     rts
 .ENDPROC
 

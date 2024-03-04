@@ -80,6 +80,7 @@
 .IMPORT Ram_ActorVelX_i16_1_arr
 .IMPORT Ram_ActorVelY_i16_0_arr
 .IMPORT Ram_ActorVelY_i16_1_arr
+.IMPORT Ram_DeviceAnim_u8_arr
 .IMPORTZP Zp_AvatarFlags_bObj
 .IMPORTZP Zp_AvatarPosX_i16
 .IMPORTZP Zp_AvatarPosY_i16
@@ -385,6 +386,7 @@ _InitMainFork:
     d_entry table, SetAvatarVelX,     _SetAvatarVelX
     d_entry table, SetAvatarVelY,     _SetAvatarVelY
     d_entry table, SetCutsceneFlags,  _SetCutsceneFlags
+    d_entry table, SetDeviceAnim,     _SetDeviceAnim
     d_entry table, SetScrollFlags,    _SetScrollFlags
     d_entry table, ShakeRoom,         _ShakeRoom
     d_entry table, SwimNpcAlex,       _SwimNpcAlex
@@ -653,6 +655,14 @@ _SetAvatarVelY:
     iny
     lda (T1T0), y
     sta Zp_AvatarVelY_i16 + 1
+    iny
+    jmp FuncA_Cutscene_AdvanceForkAndExecute
+_SetDeviceAnim:
+    lda (T1T0), y
+    tax  ; device index
+    iny
+    lda (T1T0), y
+    sta Ram_DeviceAnim_u8_arr, x
     iny
     jmp FuncA_Cutscene_AdvanceForkAndExecute
 _SetCutsceneFlags:

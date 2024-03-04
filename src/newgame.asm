@@ -19,13 +19,13 @@
 
 .INCLUDE "boss.inc"
 .INCLUDE "charmap.inc"
+.INCLUDE "devices/teleporter.inc"
 .INCLUDE "flag.inc"
 .INCLUDE "macros.inc"
 .INCLUDE "mmc3.inc"
 .INCLUDE "newgame.inc"
 .INCLUDE "room.inc"
 .INCLUDE "spawn.inc"
-.INCLUDE "teleport.inc"
 
 .IMPORT Func_SetFlag
 .IMPORT Sram_LastSafe_bSpawn

@@ -562,8 +562,7 @@ _chr_begin:
     chr_inc "steam_pipes"
     chr_inc "volcanic1"
     chr_inc "volcanic2"
-    chr_res $06
-    chr_inc "field_bg"
+    chr_res $0a
     chr_inc "arch"
     chr_inc "boiler"
     chr_inc "terrain_boss_lava"
@@ -963,9 +962,21 @@ _chr_begin:
     chr_inc "shadow1"
     chr_inc "shadow2"
     chr_inc "shadow3"
-    chr_inc "field_bg"
+    chr_res $04
     chr_inc "tank"
     chr_res $06
+    END_CHR_BANK
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "CHR_BgTeleport"
+
+.EXPORT Ppu_ChrBgTeleport
+.PROC Ppu_ChrBgTeleport
+    CHR1_BANK $40
+    chr_inc "terrain_teleport"
+    chr_res $04
     END_CHR_BANK
 .ENDPROC
 
@@ -1004,7 +1015,7 @@ _chr_begin:
 
 .EXPORT Ppu_ChrBgWheel
 .PROC Ppu_ChrBgWheel
-    CHR1_BANK $c0
+    CHR1_BANK $40
     chr_inc "wheel1"
     chr_inc "wheel2"
     chr_inc "wheel3"

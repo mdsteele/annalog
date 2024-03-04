@@ -20,6 +20,7 @@
 .INCLUDE "../actor.inc"
 .INCLUDE "../charmap.inc"
 .INCLUDE "../device.inc"
+.INCLUDE "../devices/teleporter.inc"
 .INCLUDE "../flag.inc"
 .INCLUDE "../machine.inc"
 .INCLUDE "../machines/field.inc"
@@ -29,7 +30,6 @@
 .INCLUDE "../ppu.inc"
 .INCLUDE "../program.inc"
 .INCLUDE "../room.inc"
-.INCLUDE "../teleport.inc"
 
 .IMPORT DataA_Room_Lava_sTileset
 .IMPORT Data_Empty_sActor_arr
@@ -53,7 +53,7 @@ kFieldPlatformIndex = 0
 ;;; The platform positions for the LavaTeleportField machine.
 .LINECONT +
 kFieldPlatformTop  = $70
-kFieldPlatformLeft1 = $48
+kFieldPlatformLeft1 = $68
 kFieldPlatformLeft2 = \
     kFieldPlatformLeft1 + kFieldMachineWidth + kTeleportFieldWidth
 .LINECONT -
@@ -65,8 +65,8 @@ kFieldPlatformLeft2 = \
 .EXPORT DataC_Lava_Teleport_sRoom
 .PROC DataC_Lava_Teleport_sRoom
     D_STRUCT sRoom
-    d_byte MinScrollX_u8, $00
-    d_word MaxScrollX_u16, $0000
+    d_byte MinScrollX_u8, $20
+    d_word MaxScrollX_u16, $0020
     d_byte Flags_bRoom, eArea::Lava
     d_byte MinimapStartRow_u8, 13
     d_byte MinimapStartCol_u8, 13
@@ -90,7 +90,7 @@ _Ext_sRoomExt:
     D_END
 _TerrainData:
 :   .incbin "out/rooms/lava_teleport.room"
-    .assert * - :- = 17 * 15, error
+    .assert * - :- = 19 * 15, error
 _Machines_sMachine_arr:
 :   .assert * - :- = kFieldMachineIndex * .sizeof(sMachine), error
     D_STRUCT sMachine
@@ -133,7 +133,7 @@ _Platforms_sPlatform_arr:
     d_byte Type_ePlatform, ePlatform::Harm
     d_word WidthPx_u16, $50
     d_byte HeightPx_u8, $08
-    d_word Left_i16,  $0050
+    d_word Left_i16,  $0070
     d_word Top_i16,   $00ce
     D_END
     .assert * - :- <= kMaxPlatforms * .sizeof(sPlatform), error
@@ -143,13 +143,13 @@ _Devices_sDevice_arr:
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Teleporter
     d_byte BlockRow_u8, 7
-    d_byte BlockCol_u8, 7
+    d_byte BlockCol_u8, 9
     d_byte Target_byte, eRoom::ShadowTeleport
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Console
     d_byte BlockRow_u8, 10
-    d_byte BlockCol_u8, 11
+    d_byte BlockCol_u8, 13
     d_byte Target_byte, kFieldMachineIndex
     D_END
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
