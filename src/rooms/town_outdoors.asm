@@ -54,6 +54,7 @@
 .IMPORT Ram_ActorPosY_i16_0_arr
 .IMPORT Ram_ActorPosY_i16_1_arr
 .IMPORT Ram_ActorState1_byte_arr
+.IMPORT Ram_ActorState2_byte_arr
 .IMPORT Ram_ActorType_eActor_arr
 .IMPORT Ram_ActorVelX_i16_0_arr
 .IMPORT Ram_ActorVelX_i16_1_arr
@@ -133,7 +134,7 @@ _Ext_sRoomExt:
     d_addr Actors_sActor_arr_ptr, _Actors_sActor_arr
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
     d_addr Passages_sPassage_arr_ptr, 0
-    d_addr Enter_func_ptr, Func_Noop
+    d_addr Enter_func_ptr, FuncC_Town_Outdoors_EnterRoom
     d_addr FadeIn_func_ptr, Func_Noop
     d_addr Tick_func_ptr, FuncC_Town_Outdoors_TickRoom
     d_addr Draw_func_ptr, FuncC_Town_Outdoors_DrawRoom
@@ -248,6 +249,12 @@ _Devices_sDevice_arr:
     D_END
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None
+.ENDPROC
+
+.PROC FuncC_Town_Outdoors_EnterRoom
+    lda #$ff
+    sta Ram_ActorState2_byte_arr + kIvanActorIndex
+    rts
 .ENDPROC
 
 .PROC FuncC_Town_Outdoors_TickRoom
@@ -397,8 +404,18 @@ _LockScrolling:
 .EXPORT DataC_Town_TownOutdoorsIvan_sDialog
 .PROC DataC_Town_TownOutdoorsIvan_sDialog
     dlg_Text AdultMan, DataA_Text0_TownOutdoorsIvan_Part1_u8_arr
+    dlg_Call _FaceAnna
     dlg_Text AdultMan, DataA_Text0_TownOutdoorsIvan_Part2_u8_arr
+    dlg_Call _FaceSandra
     dlg_Done
+_FaceAnna:
+    lda #0
+    beq _SetFace  ; unconditional
+_FaceSandra:
+    lda #$ff
+_SetFace:
+    sta Ram_ActorState2_byte_arr + kIvanActorIndex
+    rts
 .ENDPROC
 
 .EXPORT DataC_Town_TownOutdoorsSandra_sDialog
