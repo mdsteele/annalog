@@ -22,14 +22,13 @@
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
 
-.IMPORT FuncA_Objects_Alloc1x1Shape
 .IMPORT FuncA_Objects_Draw1x1Shape
 .IMPORT FuncA_Objects_MoveShapeRightByA
 .IMPORT FuncA_Objects_SetShapePosToDeviceTopLeft
 .IMPORT Ram_DeviceAnim_u8_arr
 .IMPORT Ram_DeviceTarget_byte_arr
 .IMPORT Ram_MachineStatus_eMachine_arr
-.IMPORT Ram_Oam_sObj_arr64
+.IMPORTZP Zp_FrameCounter_u8
 
 ;;;=========================================================================;;;
 
@@ -55,30 +54,29 @@ kPaletteObjScreen     = 1
     lda Ram_DeviceAnim_u8_arr, x
     and #$04
     bne @done
-    ;; Allocate the object.
+    ;; Position the shape.
     jsr FuncA_Objects_SetShapePosToDeviceTopLeft  ; preserves X
     lda #4  ; param: offset
     jsr FuncA_Objects_MoveShapeRightByA  ; preserves X
-    jsr FuncA_Objects_Alloc1x1Shape  ; preserves X, returns C and Y
-    bcs @done
-    sty T0  ; OAM offset
-    ;; Determine if the machine has an error.
+    ;; Check the machine's status.
     ldy Ram_DeviceTarget_byte_arr, x  ; machine index
     lda Ram_MachineStatus_eMachine_arr, y
-    ldy T0  ; OAM offset
     cmp #eMachine::Error
     beq @machineError
     @machineOk:
-    lda #kPaletteObjConsoleOk
-    sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
-    lda #kTileIdObjConsoleOk
-    sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
-    rts
+    ldy #kPaletteObjConsoleOk  ; param: object flags
+    lda #kTileIdObjConsoleOk  ; param: tile ID
+    .assert kTileIdObjConsoleOk > 0, error
+    bne @drawShape  ; unconditional
+    ;; If the machine has an error, blink the console screen.
     @machineError:
-    lda #kPaletteObjConsoleErr
-    sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
-    lda #kTileIdObjConsoleErr
-    sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
+    lda Zp_FrameCounter_u8
+    and #$08
+    beq @done
+    ldy #kPaletteObjConsoleErr  ; param: object flags
+    lda #kTileIdObjConsoleErr  ; param: tile ID
+    @drawShape:
+    jmp FuncA_Objects_Draw1x1Shape  ; preserves X
     @done:
     rts
 .ENDPROC
