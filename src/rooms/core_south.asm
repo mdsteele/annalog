@@ -35,7 +35,7 @@
 .IMPORT FuncA_Objects_DrawCratePlatform
 .IMPORT FuncA_Objects_MoveShapeDownByA
 .IMPORT FuncA_Objects_MoveShapeDownOneTile
-.IMPORT FuncA_Objects_MoveShapeRightByA
+.IMPORT FuncA_Objects_MoveShapeRightHalfTile
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
 .IMPORT Func_FindEmptyActorSlot
 .IMPORT Func_InitActorSmokeExplosion
@@ -367,8 +367,7 @@ _UpperCrates:
 ;;; @param X The crate platform index.
 .PROC FuncC_Core_South_DrawAnchoredCrate
     jsr FuncA_Objects_SetShapePosToPlatformTopLeft  ; preserves X
-    lda #4  ; param: offset
-    jsr FuncA_Objects_MoveShapeRightByA  ; preserves X
+    jsr FuncA_Objects_MoveShapeRightHalfTile  ; preserves X
     ;; Move shape down by (platform height - 1).
     lda Ram_PlatformBottom_i16_0_arr, x
     clc

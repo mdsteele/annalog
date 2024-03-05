@@ -23,7 +23,7 @@
 .INCLUDE "../oam.inc"
 
 .IMPORT FuncA_Objects_Draw1x1Shape
-.IMPORT FuncA_Objects_MoveShapeRightByA
+.IMPORT FuncA_Objects_MoveShapeRightHalfTile
 .IMPORT FuncA_Objects_SetShapePosToDeviceTopLeft
 .IMPORT Ram_DeviceAnim_u8_arr
 .IMPORT Ram_DeviceTarget_byte_arr
@@ -56,8 +56,7 @@ kPaletteObjScreen     = 1
     bne @done
     ;; Position the shape.
     jsr FuncA_Objects_SetShapePosToDeviceTopLeft  ; preserves X
-    lda #4  ; param: offset
-    jsr FuncA_Objects_MoveShapeRightByA  ; preserves X
+    jsr FuncA_Objects_MoveShapeRightHalfTile  ; preserves X
     ;; Check the machine's status.
     ldy Ram_DeviceTarget_byte_arr, x  ; machine index
     lda Ram_MachineStatus_eMachine_arr, y
@@ -87,8 +86,7 @@ kPaletteObjScreen     = 1
 .EXPORT FuncA_Objects_DrawDeviceScreen
 .PROC FuncA_Objects_DrawDeviceScreen
     jsr FuncA_Objects_SetShapePosToDeviceTopLeft  ; preserves X
-    lda #4  ; param: offset
-    jsr FuncA_Objects_MoveShapeRightByA  ; preserves X
+    jsr FuncA_Objects_MoveShapeRightHalfTile  ; preserves X
     ldy #kPaletteObjScreen  ; param: object flags
     lda #kTileIdObjScreen  ; param: tile ID
     jmp FuncA_Objects_Draw1x1Shape  ; preserves X

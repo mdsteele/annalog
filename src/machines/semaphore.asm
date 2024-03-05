@@ -32,9 +32,10 @@
 .IMPORT FuncA_Objects_GetMachineLightTileId
 .IMPORT FuncA_Objects_MoveShapeDownOneTile
 .IMPORT FuncA_Objects_MoveShapeLeftByA
-.IMPORT FuncA_Objects_MoveShapeRightByA
+.IMPORT FuncA_Objects_MoveShapeRightHalfTile
 .IMPORT FuncA_Objects_MoveShapeRightOneTile
 .IMPORT FuncA_Objects_MoveShapeUpByA
+.IMPORT FuncA_Objects_MoveShapeUpHalfTile
 .IMPORT FuncA_Objects_MoveShapeUpOneTile
 .IMPORT FuncA_Objects_SetShapePosToMachineTopLeft
 .IMPORT Ram_MachineGoalHorz_u8_arr
@@ -266,10 +267,8 @@ _FlagMid:
     ldy #kPaletteObjSemaphoreFlag  ; param: object flags
     lda _MidTiles_u8_arr3, x  ; param: tile ID
     jsr FuncA_Objects_Draw1x1Shape  ; preserves X
-    lda #4  ; param: offset
-    jsr FuncA_Objects_MoveShapeRightByA  ; preserves X
-    lda #4  ; param: offset
-    jsr FuncA_Objects_MoveShapeUpByA  ; preserves X
+    jsr FuncA_Objects_MoveShapeRightHalfTile  ; preserves X
+    jsr FuncA_Objects_MoveShapeUpHalfTile  ; preserves X
     dex
     bpl @loop
     rts

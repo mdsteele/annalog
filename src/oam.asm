@@ -78,7 +78,7 @@ Ram_Oam_sObj_arr64: .res .sizeof(sObj) * kNumOamSlots
 .EXPORT Func_AllocOneObject
 .PROC Func_AllocOneObject
     lda #1  ; param: num objects
-    .assert * = Func_AllocObjects, error, "fallthrough"
+    fall Func_AllocObjects
 .ENDPROC
 
 ;;; Allocates a number of contiguous OAM slots, and returns the byte offset
@@ -111,12 +111,20 @@ Ram_Oam_sObj_arr64: .res .sizeof(sObj) * kNumOamSlots
     bcc FuncA_Objects_MoveShapeHorzNegative  ; unconditional
 .ENDPROC
 
+;;; Moves Zp_ShapePosX_i16 rightwards by half the width of a tile.
+;;; @preserve X, Y, T0+
+.EXPORT FuncA_Objects_MoveShapeRightHalfTile
+.PROC FuncA_Objects_MoveShapeRightHalfTile
+    lda #kTileWidthPx / 2
+    bne FuncA_Objects_MoveShapeRightByA  ; unconditional
+.ENDPROC
+
 ;;; Moves the shape position down and right by the size of one tile.
 ;;; @preserve X, Y, T0+
 .EXPORT FuncA_Objects_MoveShapeDownAndRightOneTile
 .PROC FuncA_Objects_MoveShapeDownAndRightOneTile
     jsr FuncA_Objects_MoveShapeDownOneTile  ; preserves X, Y, and T0+
-    .assert * = FuncA_Objects_MoveShapeRightOneTile, error, "fallthrough"
+    fall FuncA_Objects_MoveShapeRightOneTile
 .ENDPROC
 
 ;;; Moves Zp_ShapePosX_i16 rightwards by the width of one tile.
@@ -124,7 +132,7 @@ Ram_Oam_sObj_arr64: .res .sizeof(sObj) * kNumOamSlots
 .EXPORT FuncA_Objects_MoveShapeRightOneTile
 .PROC FuncA_Objects_MoveShapeRightOneTile
     lda #kTileWidthPx
-    .assert * = FuncA_Objects_MoveShapeRightByA, error, "fallthrough"
+    fall FuncA_Objects_MoveShapeRightByA
 .ENDPROC
 
 ;;; Moves Zp_ShapePosX_i16 rightwards by the given number of pixels.
@@ -153,7 +161,7 @@ Ram_Oam_sObj_arr64: .res .sizeof(sObj) * kNumOamSlots
 .EXPORT FuncA_Objects_MoveShapeLeftOneTile
 .PROC FuncA_Objects_MoveShapeLeftOneTile
     lda #kTileWidthPx
-    .assert * = FuncA_Objects_MoveShapeLeftByA, error, "fallthrough"
+    fall FuncA_Objects_MoveShapeLeftByA
 .ENDPROC
 
 ;;; Moves Zp_ShapePosX_i16 leftwards by the given number of pixels.
@@ -163,7 +171,7 @@ Ram_Oam_sObj_arr64: .res .sizeof(sObj) * kNumOamSlots
 .PROC FuncA_Objects_MoveShapeLeftByA
     eor #$ff  ; param: negative offset
     sec  ; param: carry bit
-    .assert * = FuncA_Objects_MoveShapeHorzNegative, error, "fallthrough"
+    fall FuncA_Objects_MoveShapeHorzNegative
 .ENDPROC
 
 ;;; Helper function for FuncA_Objects_MoveShapeHorz and
@@ -197,7 +205,7 @@ Ram_Oam_sObj_arr64: .res .sizeof(sObj) * kNumOamSlots
 .EXPORT FuncA_Objects_MoveShapeDownOneTile
 .PROC FuncA_Objects_MoveShapeDownOneTile
     lda #kTileHeightPx
-    .assert * = FuncA_Objects_MoveShapeDownByA, error, "fallthrough"
+    fall FuncA_Objects_MoveShapeDownByA
 .ENDPROC
 
 ;;; Moves Zp_ShapePosX_i16 downwards by the given number of pixels.
@@ -226,7 +234,7 @@ Ram_Oam_sObj_arr64: .res .sizeof(sObj) * kNumOamSlots
 .EXPORT FuncA_Objects_MoveShapeUpOneTile
 .PROC FuncA_Objects_MoveShapeUpOneTile
     lda #kTileHeightPx
-    .assert * = FuncA_Objects_MoveShapeUpByA, error, "fallthrough"
+    fall FuncA_Objects_MoveShapeUpByA
 .ENDPROC
 
 ;;; Moves Zp_ShapePosY_i16 upwards by the given number of pixels.
@@ -236,7 +244,7 @@ Ram_Oam_sObj_arr64: .res .sizeof(sObj) * kNumOamSlots
 .PROC FuncA_Objects_MoveShapeUpByA
     eor #$ff
     sec
-    .assert * = FuncA_Objects_MoveShapeVertNegative, error, "fallthrough"
+    fall FuncA_Objects_MoveShapeVertNegative
 .ENDPROC
 
 ;;; Helper function for FuncA_Objects_MoveShapeVert and

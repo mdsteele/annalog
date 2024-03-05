@@ -21,7 +21,7 @@
 .INCLUDE "../oam.inc"
 
 .IMPORT FuncA_Objects_Draw1x1Shape
-.IMPORT FuncA_Objects_MoveShapeRightByA
+.IMPORT FuncA_Objects_MoveShapeRightHalfTile
 .IMPORT FuncA_Objects_SetShapePosToDeviceTopLeft
 
 ;;;=========================================================================;;;
@@ -42,8 +42,7 @@ kPaletteObjPaper = 0
 .EXPORT FuncA_Objects_DrawDevicePaper
 .PROC FuncA_Objects_DrawDevicePaper
     jsr FuncA_Objects_SetShapePosToDeviceTopLeft  ; preserves X
-    lda #4  ; param: offset
-    jsr FuncA_Objects_MoveShapeRightByA  ; preserves X
+    jsr FuncA_Objects_MoveShapeRightHalfTile  ; preserves X
     ldy #kPaletteObjPaper  ; param: object flags
     lda #kTileIdObjPaper  ; param: tile ID
     jmp FuncA_Objects_Draw1x1Shape

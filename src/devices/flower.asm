@@ -25,7 +25,7 @@
 
 .IMPORT FuncA_Objects_Draw1x1Shape
 .IMPORT FuncA_Objects_MoveShapeDownOneTile
-.IMPORT FuncA_Objects_MoveShapeRightByA
+.IMPORT FuncA_Objects_MoveShapeRightHalfTile
 .IMPORT FuncA_Objects_SetShapePosToDeviceTopLeft
 .IMPORT Func_IsFlagSet
 .IMPORT Ppu_ChrObjAnnaFlower
@@ -138,8 +138,7 @@ _KeepFlower:
     and #$02
     bne _Return
     jsr FuncA_Objects_SetShapePosToDeviceTopLeft  ; preserves X
-    lda #4  ; param: offset
-    jsr FuncA_Objects_MoveShapeRightByA  ; preserves X
+    jsr FuncA_Objects_MoveShapeRightHalfTile  ; preserves X
 _AllocateUpperObject:
     ldy #kPaletteObjFlowerTop  ; param: object flags
     lda #kTileIdObjFlowerTop  ; param: tile ID
