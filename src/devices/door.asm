@@ -92,28 +92,28 @@ kPaletteObjDoorway = 0
 ;;; Draws a locked door device.
 ;;; @param X The device index.
 ;;; @preserve X
-.EXPORT FuncA_Objects_DrawLockedDoorDevice
-.PROC FuncA_Objects_DrawLockedDoorDevice
+.EXPORT FuncA_Objects_DrawDeviceLockedDoor
+.PROC FuncA_Objects_DrawDeviceLockedDoor
     lda Ram_DeviceAnim_u8_arr, x
-    bne FuncA_Objects_DrawDoorDevice  ; preserves X
+    bne FuncA_Objects_DrawDeviceDoor  ; preserves X
     rts
 .ENDPROC
 
 ;;; Draws an unlocked door device.
 ;;; @param X The device index.
 ;;; @preserve X
-.EXPORT FuncA_Objects_DrawUnlockedDoorDevice
-.PROC FuncA_Objects_DrawUnlockedDoorDevice
+.EXPORT FuncA_Objects_DrawDeviceUnlockedDoor
+.PROC FuncA_Objects_DrawDeviceUnlockedDoor
     lda #kDoorAnimCountdown
     sub Ram_DeviceAnim_u8_arr, x
-    .assert * = FuncA_Objects_DrawDoorDevice, error, "fallthrough"
+    fall FuncA_Objects_DrawDeviceDoor
 .ENDPROC
 
 ;;; Draws a locked or unlocked door device.
 ;;; @param A The animation value, from 0 (open) to kDoorAnimCountdown (closed).
 ;;; @param X The device index.
 ;;; @preserve X
-.PROC FuncA_Objects_DrawDoorDevice
+.PROC FuncA_Objects_DrawDeviceDoor
     ;; Calculate the door animation frame, from 0 to kDoorNumAnimFrames - 1.
     div #kDoorAnimSlowdown
     beq _Done

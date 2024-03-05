@@ -132,8 +132,8 @@ _KeepFlower:
 ;;; Draws a flower device.
 ;;; @param X The device index.
 ;;; @preserve X
-.EXPORT FuncA_Objects_DrawFlowerDevice
-.PROC FuncA_Objects_DrawFlowerDevice
+.EXPORT FuncA_Objects_DrawDeviceFlower
+.PROC FuncA_Objects_DrawDeviceFlower
     lda Ram_DeviceAnim_u8_arr, x
     and #$02
     bne _Return

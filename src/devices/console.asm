@@ -49,8 +49,8 @@ kPaletteObjScreen     = 1
 ;;; Draws a console device.
 ;;; @param X The device index.
 ;;; @preserve X
-.EXPORT FuncA_Objects_DrawConsoleDevice
-.PROC FuncA_Objects_DrawConsoleDevice
+.EXPORT FuncA_Objects_DrawDeviceConsole
+.PROC FuncA_Objects_DrawDeviceConsole
     lda Ram_DeviceAnim_u8_arr, x
     and #$04
     bne @done
@@ -84,8 +84,8 @@ kPaletteObjScreen     = 1
 ;;; Draws a screen device.
 ;;; @param X The device index.
 ;;; @preserve X
-.EXPORT FuncA_Objects_DrawScreenDevice
-.PROC FuncA_Objects_DrawScreenDevice
+.EXPORT FuncA_Objects_DrawDeviceScreen
+.PROC FuncA_Objects_DrawDeviceScreen
     jsr FuncA_Objects_SetShapePosToDeviceTopLeft  ; preserves X
     lda #4  ; param: offset
     jsr FuncA_Objects_MoveShapeRightByA  ; preserves X

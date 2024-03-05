@@ -104,8 +104,8 @@ _PlaySound:
 ;;; Draws an upgrade device.
 ;;; @param X The device index.
 ;;; @preserve X
-.EXPORT FuncA_Objects_DrawUpgradeDevice
-.PROC FuncA_Objects_DrawUpgradeDevice
+.EXPORT FuncA_Objects_DrawDeviceUpgrade
+.PROC FuncA_Objects_DrawDeviceUpgrade
     jsr FuncA_Objects_SetShapePosToDeviceTopLeft  ; preserves X
 _AdjustPosition:
     jsr FuncA_Objects_MoveShapeRightOneTile  ; preserves X

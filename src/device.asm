@@ -23,19 +23,19 @@
 .INCLUDE "ppu.inc"
 .INCLUDE "room.inc"
 
-.IMPORT FuncA_Objects_DrawBreakerDoneDevice
-.IMPORT FuncA_Objects_DrawBreakerReadyDevice
-.IMPORT FuncA_Objects_DrawBreakerRisingDevice
-.IMPORT FuncA_Objects_DrawConsoleDevice
-.IMPORT FuncA_Objects_DrawFlowerDevice
-.IMPORT FuncA_Objects_DrawLeverCeilingDevice
-.IMPORT FuncA_Objects_DrawLeverFloorDevice
-.IMPORT FuncA_Objects_DrawLockedDoorDevice
-.IMPORT FuncA_Objects_DrawPaperDevice
-.IMPORT FuncA_Objects_DrawScreenDevice
-.IMPORT FuncA_Objects_DrawTeleporterDevice
-.IMPORT FuncA_Objects_DrawUnlockedDoorDevice
-.IMPORT FuncA_Objects_DrawUpgradeDevice
+.IMPORT FuncA_Objects_DrawDeviceBreakerDone
+.IMPORT FuncA_Objects_DrawDeviceBreakerReady
+.IMPORT FuncA_Objects_DrawDeviceBreakerRising
+.IMPORT FuncA_Objects_DrawDeviceConsole
+.IMPORT FuncA_Objects_DrawDeviceFlower
+.IMPORT FuncA_Objects_DrawDeviceLeverCeiling
+.IMPORT FuncA_Objects_DrawDeviceLeverFloor
+.IMPORT FuncA_Objects_DrawDeviceLockedDoor
+.IMPORT FuncA_Objects_DrawDevicePaper
+.IMPORT FuncA_Objects_DrawDeviceScreen
+.IMPORT FuncA_Objects_DrawDeviceTeleporter
+.IMPORT FuncA_Objects_DrawDeviceUnlockedDoor
+.IMPORT FuncA_Objects_DrawDeviceUpgrade
 .IMPORT Func_Noop
 .IMPORTZP Zp_PointX_i16
 .IMPORTZP Zp_PointY_i16
@@ -170,28 +170,28 @@ _Continue:
     D_TABLE_HI table, _JumpTable_ptr_1_arr
     D_TABLE .enum, eDevice
     d_entry table, None,          Func_Noop
-    d_entry table, BreakerDone,   FuncA_Objects_DrawBreakerDoneDevice
-    d_entry table, BreakerRising, FuncA_Objects_DrawBreakerRisingDevice
-    d_entry table, Door1Locked,   FuncA_Objects_DrawLockedDoorDevice
-    d_entry table, FlowerInert,   FuncA_Objects_DrawFlowerDevice
+    d_entry table, BreakerDone,   FuncA_Objects_DrawDeviceBreakerDone
+    d_entry table, BreakerRising, FuncA_Objects_DrawDeviceBreakerRising
+    d_entry table, Door1Locked,   FuncA_Objects_DrawDeviceLockedDoor
+    d_entry table, FlowerInert,   FuncA_Objects_DrawDeviceFlower
     d_entry table, Mousehole,     Func_Noop
     d_entry table, Placeholder,   Func_Noop
-    d_entry table, Teleporter,    FuncA_Objects_DrawTeleporterDevice
-    d_entry table, BreakerReady,  FuncA_Objects_DrawBreakerReadyDevice
-    d_entry table, Console,       FuncA_Objects_DrawConsoleDevice
+    d_entry table, Teleporter,    FuncA_Objects_DrawDeviceTeleporter
+    d_entry table, BreakerReady,  FuncA_Objects_DrawDeviceBreakerReady
+    d_entry table, Console,       FuncA_Objects_DrawDeviceConsole
     d_entry table, Door1Open,     Func_Noop
-    d_entry table, Door1Unlocked, FuncA_Objects_DrawUnlockedDoorDevice
+    d_entry table, Door1Unlocked, FuncA_Objects_DrawDeviceUnlockedDoor
     d_entry table, Door2Open,     Func_Noop
     d_entry table, Door3Open,     Func_Noop
-    d_entry table, Flower,        FuncA_Objects_DrawFlowerDevice
-    d_entry table, LeverCeiling,  FuncA_Objects_DrawLeverCeilingDevice
-    d_entry table, LeverFloor,    FuncA_Objects_DrawLeverFloorDevice
-    d_entry table, Paper,         FuncA_Objects_DrawPaperDevice
-    d_entry table, Screen,        FuncA_Objects_DrawScreenDevice
+    d_entry table, Flower,        FuncA_Objects_DrawDeviceFlower
+    d_entry table, LeverCeiling,  FuncA_Objects_DrawDeviceLeverCeiling
+    d_entry table, LeverFloor,    FuncA_Objects_DrawDeviceLeverFloor
+    d_entry table, Paper,         FuncA_Objects_DrawDevicePaper
+    d_entry table, Screen,        FuncA_Objects_DrawDeviceScreen
     d_entry table, Sign,          Func_Noop
     d_entry table, TalkLeft,      Func_Noop
     d_entry table, TalkRight,     Func_Noop
-    d_entry table, Upgrade,       FuncA_Objects_DrawUpgradeDevice
+    d_entry table, Upgrade,       FuncA_Objects_DrawDeviceUpgrade
     D_END
 .ENDREPEAT
 .ENDPROC

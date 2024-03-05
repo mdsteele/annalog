@@ -46,30 +46,30 @@ kPaletteObjBreaker = 0
 ;;; breaker device.
 ;;; @param X The device index.
 ;;; @preserve X
-.EXPORT FuncA_Objects_DrawBreakerRisingDevice
-.PROC FuncA_Objects_DrawBreakerRisingDevice
+.EXPORT FuncA_Objects_DrawDeviceBreakerRising
+.PROC FuncA_Objects_DrawDeviceBreakerRising
     ldy #kTileIdObjBreakerFirst  ; param: first tile ID
     lda Ram_DeviceAnim_u8_arr, x
     div #kBreakerRisingSlowdown
     add #kTileHeightPx  ; param: vertical offset
-    bne FuncA_Objects_DrawBreakerDevice  ; unconditional
+    bne FuncA_Objects_DrawDeviceBreaker  ; unconditional
 .ENDPROC
 
 ;;; Allocates and populates OAM slots for a ready-to-activate breaker device.
 ;;; @param X The device index.
 ;;; @preserve X
-.EXPORT FuncA_Objects_DrawBreakerReadyDevice
-.PROC FuncA_Objects_DrawBreakerReadyDevice
+.EXPORT FuncA_Objects_DrawDeviceBreakerReady
+.PROC FuncA_Objects_DrawDeviceBreakerReady
     ldy #kTileIdObjBreakerFirst  ; param: first tile ID
     lda #kTileHeightPx  ; param: vertical offset
-    bne FuncA_Objects_DrawBreakerDevice  ; unconditional
+    bne FuncA_Objects_DrawDeviceBreaker  ; unconditional
 .ENDPROC
 
 ;;; Allocates and populates OAM slots for an already-activated breaker device.
 ;;; @param X The device index.
 ;;; @preserve X
-.EXPORT FuncA_Objects_DrawBreakerDoneDevice
-.PROC FuncA_Objects_DrawBreakerDoneDevice
+.EXPORT FuncA_Objects_DrawDeviceBreakerDone
+.PROC FuncA_Objects_DrawDeviceBreakerDone
     lda Ram_DeviceAnim_u8_arr, x
     .assert kBreakerDoneDeviceAnimStart = $1f, error
     lsr a
@@ -79,7 +79,7 @@ kPaletteObjBreaker = 0
     sub T0
     tay  ; param: first tile ID
     lda #kTileHeightPx  ; param: vertical offset
-    .assert * = FuncA_Objects_DrawBreakerDevice, error, "fallthrough"
+    fall FuncA_Objects_DrawDeviceBreaker
 .ENDPROC
 
 ;;; Allocates and populates OAM slots for a breaker device.
@@ -88,7 +88,7 @@ kPaletteObjBreaker = 0
 ;;; @param X The device index.
 ;;; @param Y The first tile ID for the breaker shape to draw.
 ;;; @preserve X
-.PROC FuncA_Objects_DrawBreakerDevice
+.PROC FuncA_Objects_DrawDeviceBreaker
     ;; Position the shape:
     pha  ; vertical offset
     jsr FuncA_Objects_SetShapePosToDeviceTopLeft  ; preserves X and Y

@@ -781,7 +781,7 @@ _CheckVert:
 .EXPORT FuncA_Room_InitActor
 .PROC FuncA_Room_InitActor
     pha  ; initialization parameter
-    ldy Ram_ActorType_eActor_arr, x
+    ldy Ram_ActorType_eActor_arr, x  ; param: actor type
     lda _JumpTable_ptr_0_arr, y
     sta T0
     lda _JumpTable_ptr_1_arr, y
@@ -865,8 +865,7 @@ _CheckVert:
 ;;; @param X The actor index.
 ;;; @preserve X
 .PROC FuncA_Objects_DrawOneActor
-    lda Ram_ActorType_eActor_arr, x
-    tay
+    ldy Ram_ActorType_eActor_arr, x
     lda _JumpTable_ptr_0_arr, y
     sta T0
     lda _JumpTable_ptr_1_arr, y

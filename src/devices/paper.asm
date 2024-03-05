@@ -39,8 +39,8 @@ kPaletteObjPaper = 0
 ;;; Draws a paper device.
 ;;; @param X The device index.
 ;;; @preserve X
-.EXPORT FuncA_Objects_DrawPaperDevice
-.PROC FuncA_Objects_DrawPaperDevice
+.EXPORT FuncA_Objects_DrawDevicePaper
+.PROC FuncA_Objects_DrawDevicePaper
     jsr FuncA_Objects_SetShapePosToDeviceTopLeft  ; preserves X
     lda #4  ; param: offset
     jsr FuncA_Objects_MoveShapeRightByA  ; preserves X

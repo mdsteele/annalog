@@ -160,26 +160,26 @@ _NoAnimate:
 ;;; Draws a ceiling-mounted lever device.
 ;;; @param X The device index.
 ;;; @preserve X
-.EXPORT FuncA_Objects_DrawLeverCeilingDevice
-.PROC FuncA_Objects_DrawLeverCeilingDevice
+.EXPORT FuncA_Objects_DrawDeviceLeverCeiling
+.PROC FuncA_Objects_DrawDeviceLeverCeiling
     ldy #kPaletteObjLeverHandle | bObj::FlipV  ; param: flags
-    bne FuncA_Objects_DrawLeverDevice  ; unconditional
+    bne FuncA_Objects_DrawDeviceLever  ; unconditional
 .ENDPROC
 
 ;;; Draws a floor-mounted lever device.
 ;;; @param X The device index.
 ;;; @preserve X
-.EXPORT FuncA_Objects_DrawLeverFloorDevice
-.PROC FuncA_Objects_DrawLeverFloorDevice
+.EXPORT FuncA_Objects_DrawDeviceLeverFloor
+.PROC FuncA_Objects_DrawDeviceLeverFloor
     ldy #kPaletteObjLeverHandle  ; param: flags
-    .assert * = FuncA_Objects_DrawLeverDevice, error, "fallthrough"
+    fall FuncA_Objects_DrawDeviceLever
 .ENDPROC
 
 ;;; Draws a lever device.
 ;;; @param X The device index.
 ;;; @param Y The base object flags to use (modulo bObj::FlipH).
 ;;; @preserve X
-.PROC FuncA_Objects_DrawLeverDevice
+.PROC FuncA_Objects_DrawDeviceLever
     jsr FuncA_Objects_SetShapePosToDeviceTopLeft  ; preserves X and Y
     sty T1  ; object flags
 _Animation:

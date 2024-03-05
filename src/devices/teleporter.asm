@@ -299,8 +299,8 @@ _InitCutsceneState:
 ;;; Draws a teleporter device.
 ;;; @param X The device index.
 ;;; @preserve X
-.EXPORT FuncA_Objects_DrawTeleporterDevice
-.PROC FuncA_Objects_DrawTeleporterDevice
+.EXPORT FuncA_Objects_DrawDeviceTeleporter
+.PROC FuncA_Objects_DrawDeviceTeleporter
 _SetUpIrq:
     ;; Compute the IRQ latch value to set between the bottom of the teleport
     ;; zone and the top of the window (if any), and set that as Param4_byte.
