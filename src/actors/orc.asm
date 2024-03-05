@@ -30,11 +30,13 @@
 .IMPORT FuncA_Actor_ApplyGravityWithTerminalVelocity
 .IMPORT FuncA_Actor_FaceTowardsAvatar
 .IMPORT FuncA_Actor_FaceTowardsPoint
+.IMPORT FuncA_Actor_FaceTowardsVelXDir
 .IMPORT FuncA_Actor_GetRoomBlockRow
 .IMPORT FuncA_Actor_HarmAvatarIfCollision
 .IMPORT FuncA_Actor_IsAvatarWithinHorzDistance
 .IMPORT FuncA_Actor_IsAvatarWithinVertDistances
 .IMPORT FuncA_Actor_MovePointTowardVelXDir
+.IMPORT FuncA_Actor_NegateVelX
 .IMPORT FuncA_Actor_SetPointInFrontOfActor
 .IMPORT FuncA_Actor_SetVelXForward
 .IMPORT FuncA_Actor_ZeroVelX
@@ -53,7 +55,9 @@
 .IMPORT Func_InitActorWithFlags
 .IMPORT Func_InitActorWithState1
 .IMPORT Func_IsActorWithinHorzDistanceOfPoint
+.IMPORT Func_IsPointInAnySolidPlatform
 .IMPORT Func_MovePointDownByA
+.IMPORT Func_MovePointUpByA
 .IMPORT Func_Noop
 .IMPORT Func_PlaySfxSample
 .IMPORT Func_PointHitsTerrain
@@ -563,7 +567,6 @@ _Done:
     beq @doneTimer
     dec Ram_ActorState2_byte_arr, x  ; mode timer
     @doneTimer:
-    ;; TODO: check for horz collisions with walls, and bounce off
     ;; Check for collision with player avatar.  The jump targets below can make
     ;; use of the returned C value.
     jsr FuncA_Actor_HarmAvatarIfCollision  ; preserves X, returns C
@@ -578,12 +581,38 @@ _Done:
     D_TABLE_LO table, _JumpTable_ptr_0_arr
     D_TABLE_HI table, _JumpTable_ptr_1_arr
     D_TABLE .enum, eBadOrc
-    d_entry table, Standing, FuncA_Actor_TickBadOrc_Standing
-    d_entry table, Chasing,  FuncA_Actor_TickBadOrc_Chasing
-    d_entry table, Pausing,  FuncA_Actor_TickBadOrc_Pausing
-    d_entry table, Jumping,  FuncA_Actor_TickBadOrc_Jumping
+    d_entry table, Standing,   FuncA_Actor_TickBadOrc_Standing
+    d_entry table, Chasing,    FuncA_Actor_TickBadOrc_Chasing
+    d_entry table, Patrolling, FuncA_Actor_TickBadOrc_Patrolling
+    d_entry table, Punching,   FuncA_Actor_TickBadOrc_Punching
+    d_entry table, Jumping,    FuncA_Actor_TickBadOrc_Jumping
     D_END
 .ENDREPEAT
+.ENDPROC
+
+;;; Performs per-frame updates for an orc baddie actor that's in Standing mode.
+;;; @param C Set if the orc just collided with the player avatar.
+;;; @param X The actor index.
+;;; @preserve X
+.PROC FuncA_Actor_TickBadOrc_Standing
+    bcs FuncA_Actor_TickBadOrc_StartChasing  ; preserves X
+    fall FuncA_Actor_TickBadOrc_StartChasingAvatarIfNear  ; preserves X
+.ENDPROC
+
+;;; If the player avatar is nearby the orc baddie actor, put the orc into
+;;; Chasing mode.
+;;; @param X The actor index.
+;;; @preserve X
+.PROC FuncA_Actor_TickBadOrc_StartChasingAvatarIfNear
+    ldy #kTileHeightPx * 3  ; param: distance above actor
+    lda #kTileHeightPx      ; param: distance below actor
+    jsr FuncA_Actor_IsAvatarWithinVertDistances  ; preserves X, returns C
+    bcc @done
+    lda #kBlockWidthPx * 5  ; param: distance
+    jsr FuncA_Actor_IsAvatarWithinHorzDistance  ; preserves X, returns C
+    bcs FuncA_Actor_TickBadOrc_StartChasing  ; preserves X
+    @done:
+    rts
 .ENDPROC
 
 ;;; Puts an orc baddie actor into Chasing mode.
@@ -598,30 +627,13 @@ _Done:
     rts
 .ENDPROC
 
-;;; Performs per-frame updates for an orc baddie actor that's in Standing mode.
+;;; Performs per-frame updates for an orc baddie actor that's in Punching mode.
 ;;; @param C Set if the orc just collided with the player avatar.
 ;;; @param X The actor index.
 ;;; @preserve X
-.PROC FuncA_Actor_TickBadOrc_Standing
-    bcs FuncA_Actor_TickBadOrc_StartChasing
-    ldy #kTileHeightPx * 3  ; param: distance above actor
-    lda #kTileHeightPx      ; param: distance below actor
-    jsr FuncA_Actor_IsAvatarWithinVertDistances  ; preserves X, returns C
-    bcc @done
-    lda #kBlockWidthPx * 5  ; param: distance
-    jsr FuncA_Actor_IsAvatarWithinHorzDistance  ; preserves X, returns C
-    bcs FuncA_Actor_TickBadOrc_StartChasing
-    @done:
-    rts
-.ENDPROC
-
-;;; Performs per-frame updates for an orc baddie actor that's in Standing mode.
-;;; @param C Set if the orc just collided with the player avatar.
-;;; @param X The actor index.
-;;; @preserve X
-.PROC FuncA_Actor_TickBadOrc_Pausing
+.PROC FuncA_Actor_TickBadOrc_Punching
     lda Ram_ActorState2_byte_arr, x  ; mode timer
-    beq FuncA_Actor_TickBadOrc_StartChasing
+    beq FuncA_Actor_TickBadOrc_StartChasing  ; preserves X
     rts
 .ENDPROC
 
@@ -630,8 +642,32 @@ _Done:
 ;;; @preserve X
 .PROC FuncA_Actor_TickBadOrc_Jumping
     jsr FuncA_Actor_TickOrcAirborne  ; preserves X, returns C
-    bcs FuncA_Actor_TickBadOrc_StartChasing
+    bcs FuncA_Actor_TickBadOrc_StartChasing  ; preserves X
     rts
+.ENDPROC
+
+;;; Performs per-frame updates for an orc baddie actor that's in Patrolling
+;;; mode.
+;;; @param C Set if the orc just collided with the player avatar.
+;;; @param X The actor index.
+;;; @preserve X
+.PROC FuncA_Actor_TickBadOrc_Patrolling
+    ;; If done patrolling, return to guarding.
+    lda Ram_ActorState2_byte_arr, x  ; mode timer
+    bne _StillPatrolling
+    lda #eBadOrc::Standing
+    sta Ram_ActorState1_byte_arr, x  ; current eBadOrc mode
+    jmp FuncA_Actor_ZeroVelX  ; preserves X
+_StillPatrolling:
+    jsr FuncA_Actor_TickBadOrc_AccelerateForward  ; preserves X
+    ;; Turn around if blocked.
+    jsr FuncA_Actor_IsOrcBlockedHorz  ; preserves X, returns C
+    bcc @done  ; not blocked
+    jsr FuncA_Actor_NegateVelX  ; preserves X
+    jsr FuncA_Actor_FaceTowardsVelXDir  ; preserves X
+    @done:
+_WatchForAvatar:
+    jmp FuncA_Actor_TickBadOrc_StartChasingAvatarIfNear  ; preserves X
 .ENDPROC
 
 ;;; Performs per-frame updates for an orc baddie actor that's in Chasing mode.
@@ -641,27 +677,84 @@ _Done:
 .PROC FuncA_Actor_TickBadOrc_Chasing
     ;; If the orc catches the player avatar, pause briefly.
     bcc @noCollide
-    jsr FuncA_Actor_ZeroVelX  ; preserves X
-    lda #eBadOrc::Pausing
+    lda #eBadOrc::Punching
     sta Ram_ActorState1_byte_arr, x  ; current eBadOrc mode
     lda #kOrcPauseFrames
     sta Ram_ActorState2_byte_arr, x  ; mode timer
-    rts
+    jmp FuncA_Actor_ZeroVelX  ; preserves X
     @noCollide:
 _StopChasingIfAvatarEscapes:
-    ;; If the player avatar gets far away vertically, stop chasing.
+    ;; If the player avatar gets far away vertically, start patrolling.
     ldy #kTileHeightPx * 5  ; param: distance above actor
     lda #kTileHeightPx * 3  ; param: distance below actor
     jsr FuncA_Actor_IsAvatarWithinVertDistances  ; preserves X, returns C
     bcs _KeepChasing
-    ;; TODO: Don't halt immediately; go into a Patrol mode for a few seconds.
-    ;; TODO: When Patrol timer ends, decelerate into Standing mode.
-    jsr FuncA_Actor_ZeroVelX  ; preserves X
-    lda #eBadOrc::Standing
+    lda #eBadOrc::Patrolling
     sta Ram_ActorState1_byte_arr, x  ; current eBadOrc mode
+    lda #250
+    sta Ram_ActorState2_byte_arr, x  ; mode timer
     rts
 _KeepChasing:
-    jsr FuncA_Actor_FaceTowardsAvatar  ; preserves X, returns A
+    jsr FuncA_Actor_FaceTowardsAvatar  ; preserves X
+    jsr FuncA_Actor_TickBadOrc_AccelerateForward  ; preserves X
+_StopIfBlocked:
+    jsr FuncA_Actor_IsOrcBlockedHorz  ; preserves X, returns C
+    bcc @done
+    jsr FuncA_Actor_ZeroVelX  ; preserves X
+    @done:
+_MaybeJump:
+    ;; TODO: sometimes jump at player avatar
+    rts
+.ENDPROC
+
+;;; Checks whether an orc actor can run forward along the ground in the
+;;; direction of its current horizontal velocity.
+;;; @param X The actor index.
+;;; @param C Set if the orc cannot keep moving along its horizontal velocity.
+;;; @preserve X
+.PROC FuncA_Actor_IsOrcBlockedHorz
+    ;; Place the point in front of the orc's feet.
+    jsr Func_SetPointToActorCenter  ; preserves X
+    lda #kOrcStopDistance  ; param: offset
+    jsr FuncA_Actor_MovePointTowardVelXDir  ; preserves X
+_CheckTerrain:
+    jsr Func_GetTerrainColumnPtrForPointX  ; preserves X
+    jsr FuncA_Actor_GetRoomBlockRow  ; preserves X, returns Y
+    ;; Check the wall in front of the orc's feet.
+    lda (Zp_TerrainColumn_u8_arr_ptr), y
+    cmp Zp_Current_sTileset + sTileset::FirstSolidTerrainType_u8
+    bge _IsBlocked  ; wall is solid
+    ;; Check the wall in front of the orc's head.
+    dey
+    lda (Zp_TerrainColumn_u8_arr_ptr), y
+    cmp Zp_Current_sTileset + sTileset::FirstSolidTerrainType_u8
+    bge _IsBlocked  ; wall is solid
+    ;; Check the floor in front of the orc.
+    iny
+    iny
+    lda (Zp_TerrainColumn_u8_arr_ptr), y
+    cmp Zp_Current_sTileset + sTileset::FirstSolidTerrainType_u8
+    blt _IsBlocked  ; floor is not solid
+_CheckPlatforms:
+    ;; Check for platforms in front of the orc's head.
+    lda #kBlockHeightPx  ; param: offset
+    jsr Func_MovePointUpByA  ; preserves X
+    jsr Func_IsPointInAnySolidPlatform  ; preserves X, returns C
+    bcs _IsBlocked
+_NotBlocked:
+    clc
+    rts
+_IsBlocked:
+    sec
+    rts
+.ENDPROC
+
+;;; Accelerates the orc baddie in its current facing direction, up to its
+;;; maximum running speed.
+;;; @param X The actor index.
+;;; @preserve X
+.PROC FuncA_Actor_TickBadOrc_AccelerateForward
+    lda Ram_ActorFlags_bObj_arr, x
     and #bObj::FlipH
     beq @accelerateRight
     @accelerateLeft:
@@ -704,33 +797,6 @@ _ClampVelocity:
     @setHi:
     sta Ram_ActorVelX_i16_1_arr, x
     @done:
-_StopIfBlockedByTerrain:
-    jsr Func_SetPointToActorCenter  ; preserves X
-    lda #kOrcStopDistance  ; param: offset
-    jsr FuncA_Actor_MovePointTowardVelXDir  ; preserves X
-    ;; TODO: If a prison gate is in front of the orc, switch to Pounding mode.
-    jsr Func_GetTerrainColumnPtrForPointX  ; preserves X
-    jsr FuncA_Actor_GetRoomBlockRow  ; preserves X, returns Y
-    ;; If the wall in front of the orc's feet is solid, stop in place.
-    lda (Zp_TerrainColumn_u8_arr_ptr), y
-    cmp Zp_Current_sTileset + sTileset::FirstSolidTerrainType_u8
-    bge @stop
-    ;; If the wall in front of the orc's head is solid, stop in place.
-    dey
-    lda (Zp_TerrainColumn_u8_arr_ptr), y
-    cmp Zp_Current_sTileset + sTileset::FirstSolidTerrainType_u8
-    bge @stop
-    ;; If the floor in front of the orc is not solid, stop in place.
-    iny
-    iny
-    lda (Zp_TerrainColumn_u8_arr_ptr), y
-    cmp Zp_Current_sTileset + sTileset::FirstSolidTerrainType_u8
-    bge @done
-    @stop:
-    jsr FuncA_Actor_ZeroVelX  ; preserves X
-    @done:
-_MaybeJump:
-    ;; TODO: sometimes jump at player avatar
     rts
 .ENDPROC
 
@@ -842,20 +908,20 @@ _Poses_eNpcOrc_arr:
     lda Ram_ActorState1_byte_arr, x  ; current eBadOrc mode
     .assert eBadOrc::Standing = 0, error
     beq @standing
-    cmp #eBadOrc::Chasing
-    beq @chasing
-    cmp #eBadOrc::Pausing
-    beq @pausing
+    cmp #eBadOrc::Punching
+    beq @punching
+    cmp #eBadOrc::Jumping
+    bne @running
     @jumping:
     lda #eNpcOrc::GruntRunning3  ; param: pose
     bpl FuncA_Objects_DrawActorOrcInPose  ; unconditional
-    @pausing:
+    @punching:
     lda #eNpcOrc::GruntThrowing1  ; param: pose
     bpl FuncA_Objects_DrawActorOrcInPose  ; unconditional
     @standing:
     lda #eNpcOrc::GruntStanding  ; param: pose
     bpl FuncA_Objects_DrawActorOrcInPose  ; unconditional
-    @chasing:
+    @running:
     lda Ram_ActorState3_byte_arr, x  ; animation counter
     div #8
     and #$03  ; param: pose
@@ -871,7 +937,7 @@ _Poses_eNpcOrc_arr:
     jsr FuncA_Objects_GetNpcActorFlags  ; preserves X, returns A
     tay  ; param: object flags
     lda Ram_ActorState1_byte_arr, x  ; param: pose
-    .assert * = FuncA_Objects_DrawActorOrcInPose, error, "fallthrough"
+    fall FuncA_Objects_DrawActorOrcInPose
 .ENDPROC
 
 ;;; Draws an orc actor in the specified pose.

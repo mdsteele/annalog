@@ -231,6 +231,17 @@ _Atan2:
 .ENDPROC
 
 ;;; Sets or clears bObj::FlipH in the actor's flags so as to face the actor
+;;; horizontally towards the direction of the actor's X-velocity.
+;;; @param X The actor index.
+;;; @return A The new bObj value that was set for the actor.
+;;; @preserve X, Y, T0+
+.EXPORT FuncA_Actor_FaceTowardsVelXDir
+.PROC FuncA_Actor_FaceTowardsVelXDir
+    lda Ram_ActorVelX_i16_1_arr, x
+    jmp FuncA_Actor_FaceTowardsN  ; preserves X, Y, T0+; returns A
+.ENDPROC
+
+;;; Sets or clears bObj::FlipH in the actor's flags so as to face the actor
 ;;; horizontally towards the X-position stored in Zp_PointX_i16.
 ;;; @param X The actor index.
 ;;; @return A The new bObj value that was set for the actor.
@@ -470,6 +481,7 @@ _Atan2:
 
 ;;; Negates the actor's X-velocity.
 ;;; @param X The actor index.
+;;; @return N Set if the new X-velocity is negative.
 ;;; @preserve X, Y, T0+
 .EXPORT FuncA_Actor_NegateVelX
 .PROC FuncA_Actor_NegateVelX
@@ -484,6 +496,7 @@ _Atan2:
 
 ;;; Negates the actor's Y-velocity.
 ;;; @param X The actor index.
+;;; @return N Set if the new Y-velocity is negative.
 ;;; @preserve X, Y, T0+
 .EXPORT FuncA_Actor_NegateVelY
 .PROC FuncA_Actor_NegateVelY

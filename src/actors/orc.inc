@@ -18,6 +18,9 @@
 ;;;=========================================================================;;;
 
 ;;; State bytes for Gronta baddies:
+;;;   * Param: The initial flags to set (0 or bObj::FlipH).
+;;;   * Flags: The bObj::FlipH bit is set if Gronta is facing left, or cleared
+;;;     if she is facing right.
 ;;;   * State1: The eBadGronta value for Gronta's current behavior mode.
 ;;;   * State2: A timer for the current mode that increments or decrements each
 ;;;     frame, depending on the mode.
@@ -32,6 +35,9 @@
 ;;;     her modes changes the value).
 
 ;;; State bytes for orc baddies:
+;;;   * Param: The initial flags to set (0 or bObj::FlipH).
+;;;   * Flags: The bObj::FlipH bit is set if the orc is facing left, or cleared
+;;;     if they are facing right.
 ;;;   * State1: The eBadOrc value for the orc's current behavior mode.
 ;;;   * State2: A timer for the current mode that decrements each frame when
 ;;;     nonzero.
@@ -41,6 +47,8 @@
 
 ;;; State bytes for orc NPCs:
 ;;;   * Param: The initial eNpcOrc value to use.
+;;;   * Flags: The bObj::FlipH bit is set if the orc is facing left, or cleared
+;;;     if they are facing right.
 ;;;   * State1: The eNpcOrc value for the orc's current pose.
 ;;;   * State2: Boolean; If true ($ff), the NPC uses Ram_ActorFlags_bObj_arr
 ;;;     unchanged; if false ($00), the NPC is automatically drawn facing the
@@ -78,10 +86,11 @@ kBadGrontaMaxJumpUpBlocks = 2
 
 ;;; Possible values for an orc baddie actor's State1 byte.
 .ENUM eBadOrc
-    Standing  ; standing guard
-    Chasing   ; chasing player avatar
-    Pausing   ; pausing for a short time
-    Jumping   ; jumping towards player avatar
+    Standing     ; standing guard
+    Chasing      ; chasing the player avatar
+    Patrolling   ; running to and fro after losing sight of the player avatar
+    Punching     ; pausing for a short time after hitting the player avatar
+    Jumping      ; jumping towards the player avatar
     NUM_VALUES
 .ENDENUM
 
