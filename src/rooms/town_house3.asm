@@ -29,7 +29,7 @@
 
 .IMPORT DataA_Room_House_sTileset
 .IMPORT Data_Empty_sPlatform_arr
-.IMPORT FuncA_Room_PlaySfxMetallicDing
+.IMPORT FuncA_Room_PlaySfxMetallicClang
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrObjVillage
 .IMPORT Ram_ActorState1_byte_arr
@@ -141,7 +141,7 @@ _Devices_sDevice_arr:
     .assert kTileIdAdultSmith2 > 0, error
     bne @setSmithState  ; unconditional
     @strikeHammer:
-    jsr FuncA_Room_PlaySfxMetallicDing
+    jsr FuncA_Room_PlaySfxMetallicClang
     @lowerHammer:
     lda #0
     sta Zp_RoomState + sState::HammerTimer_u8

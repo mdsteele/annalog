@@ -28,8 +28,8 @@
 
 .SEGMENT "PRG8"
 
-;;; SFX sequence data for the "metallic ding" sound effect.
-.PROC Data_MetallicDing_sSfxSeq_arr
+;;; SFX sequence data for the "metallic clang" sound effect.
+.PROC Data_MetallicClang_sSfxSeq_arr
     D_STRUCT sSfxSeq
     d_byte Duration_u8, 4
     d_byte Env_bEnvelope, bEnvelope::Duty18 | bEnvelope::NoLength | 7
@@ -45,16 +45,41 @@
     .byte 0
 .ENDPROC
 
+;;; SFX sequence data for the "metallic ding" sound effect.
+.PROC Data_MetallicDing_sSfxSeq_arr
+    D_STRUCT sSfxSeq
+    d_byte Duration_u8, 4
+    d_byte Env_bEnvelope, bEnvelope::NoLength | 1
+    d_byte Sweep_byte, 0
+    d_word Timer_u16, $0081
+    D_END
+    .byte 0
+.ENDPROC
+
+;;; Starts playing a metallic "ding" sound.
+;;; @preserve X, T0+
+.EXPORT Func_PlaySfxMetallicDing
+.PROC Func_PlaySfxMetallicDing
+    txa
+    pha
+    ldx #eChan::Noise
+    ldya #Data_MetallicDing_sSfxSeq_arr
+    jsr Func_PlaySfxSequence  ; preserves T0+
+    pla
+    tax
+    rts
+.ENDPROC
+
 ;;;=========================================================================;;;
 
 .SEGMENT "PRGA_Room"
 
-;;; Starts playing a metallic "ding" sound.
+;;; Starts playing a metallic "clang" sound.
 ;;; @preserve T0+
-.EXPORT FuncA_Room_PlaySfxMetallicDing
-.PROC FuncA_Room_PlaySfxMetallicDing
+.EXPORT FuncA_Room_PlaySfxMetallicClang
+.PROC FuncA_Room_PlaySfxMetallicClang
     ldx #eChan::Pulse2
-    ldya #Data_MetallicDing_sSfxSeq_arr
+    ldya #Data_MetallicClang_sSfxSeq_arr
     jmp Func_PlaySfxSequence  ; preserves T0+
 .ENDPROC
 

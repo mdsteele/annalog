@@ -59,6 +59,7 @@
 .IMPORT Func_MovePointDownByA
 .IMPORT Func_MovePointUpByA
 .IMPORT Func_Noop
+.IMPORT Func_PlaySfxMetallicDing
 .IMPORT Func_PlaySfxSample
 .IMPORT Func_PointHitsTerrain
 .IMPORT Func_SetActorCenterToPoint
@@ -581,11 +582,14 @@ _Done:
     D_TABLE_LO table, _JumpTable_ptr_0_arr
     D_TABLE_HI table, _JumpTable_ptr_1_arr
     D_TABLE .enum, eBadOrc
-    d_entry table, Standing,   FuncA_Actor_TickBadOrc_Standing
-    d_entry table, Chasing,    FuncA_Actor_TickBadOrc_Chasing
-    d_entry table, Patrolling, FuncA_Actor_TickBadOrc_Patrolling
-    d_entry table, Punching,   FuncA_Actor_TickBadOrc_Punching
-    d_entry table, Jumping,    FuncA_Actor_TickBadOrc_Jumping
+    d_entry table, Standing,      FuncA_Actor_TickBadOrc_Standing
+    d_entry table, Chasing,       FuncA_Actor_TickBadOrc_Chasing
+    d_entry table, Patrolling,    FuncA_Actor_TickBadOrc_Patrolling
+    d_entry table, Punching,      FuncA_Actor_TickBadOrc_Punching
+    d_entry table, Jumping,       FuncA_Actor_TickBadOrc_Jumping
+    d_entry table, TrapSurprised, FuncA_Actor_TickBadOrc_TrapSurprised
+    d_entry table, TrapRunning,   FuncA_Actor_TickBadOrc_TrapRunning
+    d_entry table, TrapPounding,  FuncA_Actor_TickBadOrc_TrapPounding
     D_END
 .ENDREPEAT
 .ENDPROC
@@ -705,6 +709,47 @@ _StopIfBlocked:
 _MaybeJump:
     ;; TODO: sometimes jump at player avatar
     rts
+.ENDPROC
+
+;;; Performs per-frame updates for an orc baddie actor that's in TrapSurprised
+;;; mode.
+;;; @param X The actor index.
+;;; @preserve X
+.PROC FuncA_Actor_TickBadOrc_TrapSurprised
+    lda Ram_ActorState2_byte_arr, x  ; mode timer
+    bne @finish
+    lda #eBadOrc::TrapRunning
+    sta Ram_ActorState1_byte_arr, x  ; current eBadGronta mode
+    @finish:
+    jmp FuncA_Actor_ZeroVelX  ; preserves X
+.ENDPROC
+
+;;; Performs per-frame updates for an orc baddie actor that's in TrapRunning
+;;; mode.
+;;; @param X The actor index.
+;;; @preserve X
+.PROC FuncA_Actor_TickBadOrc_TrapRunning
+    jsr FuncA_Actor_TickBadOrc_AccelerateForward  ; preserves X
+    jsr FuncA_Actor_IsOrcBlockedHorz  ; preserves X, returns C
+    bcc @done  ; not blocked
+    lda #eBadOrc::TrapPounding
+    sta Ram_ActorState1_byte_arr, x  ; current eBadGronta mode
+    @done:
+    rts
+.ENDPROC
+
+;;; Performs per-frame updates for an orc baddie actor that's in TrapPounding
+;;; mode.
+;;; @param X The actor index.
+;;; @preserve X
+.PROC FuncA_Actor_TickBadOrc_TrapPounding
+    lda Ram_ActorState3_byte_arr, x  ; animation counter
+    and #$1f
+    cmp #$10
+    bne @finish
+    jsr Func_PlaySfxMetallicDing  ; preserves X
+    @finish:
+    jmp FuncA_Actor_ZeroVelX  ; preserves X
 .ENDPROC
 
 ;;; Checks whether an orc actor can run forward along the ground in the
@@ -910,17 +955,30 @@ _Poses_eNpcOrc_arr:
     beq @standing
     cmp #eBadOrc::Punching
     beq @punching
+    cmp #eBadOrc::TrapSurprised
+    beq @surprised
+    cmp #eBadOrc::TrapPounding
+    beq @pounding
     cmp #eBadOrc::Jumping
     bne @running
     @jumping:
     lda #eNpcOrc::GruntRunning3  ; param: pose
     bpl FuncA_Objects_DrawActorOrcInPose  ; unconditional
+    @surprised:
     @punching:
     lda #eNpcOrc::GruntThrowing1  ; param: pose
     bpl FuncA_Objects_DrawActorOrcInPose  ; unconditional
     @standing:
     lda #eNpcOrc::GruntStanding  ; param: pose
     bpl FuncA_Objects_DrawActorOrcInPose  ; unconditional
+    @pounding:
+    lda Ram_ActorState3_byte_arr, x  ; animation counter
+    div #16
+    and #$01  ; param: pose
+    .assert eNpcOrc::GruntThrowing1 .mod 2 = 0, error
+    ora #eNpcOrc::GruntThrowing1
+    .assert eNpcOrc::GruntThrowing1 <> 0, error
+    bne FuncA_Objects_DrawActorOrcInPose  ; unconditional
     @running:
     lda Ram_ActorState3_byte_arr, x  ; animation counter
     div #8
@@ -979,9 +1037,9 @@ _TileIdHead_u8_arr:
     d_byte GruntRunning2,    kTileIdObjOrcGruntHeadHigh
     d_byte GruntRunning3,    kTileIdObjOrcGruntHeadLow
     d_byte GruntRunning4,    kTileIdObjOrcGruntHeadHigh
-    d_byte GruntStanding,    kTileIdObjOrcGruntHeadHigh
     d_byte GruntThrowing1,   kTileIdObjOrcGruntThrowingFirst  + $00
     d_byte GruntThrowing2,   kTileIdObjOrcGruntThrowingFirst  + $08
+    d_byte GruntStanding,    kTileIdObjOrcGruntHeadHigh
     d_byte GhostStanding,    kTileIdObjOrcGhostFirst          + $00
     d_byte GrontaRunning1,   kTileIdObjOrcGrontaHeadLow
     d_byte GrontaRunning2,   kTileIdObjOrcGrontaHeadHigh
@@ -1002,9 +1060,9 @@ _TileIdFeet_u8_arr:
     d_byte GruntRunning2,    kTileIdObjOrcGruntFeetRunning2
     d_byte GruntRunning3,    kTileIdObjOrcGruntFeetRunning3
     d_byte GruntRunning4,    kTileIdObjOrcGruntFeetRunning2
-    d_byte GruntStanding,    kTileIdObjOrcGruntFeetStanding
     d_byte GruntThrowing1,   kTileIdObjOrcGruntThrowingFirst  + $04
     d_byte GruntThrowing2,   kTileIdObjOrcGruntThrowingFirst  + $0c
+    d_byte GruntStanding,    kTileIdObjOrcGruntFeetStanding
     d_byte GhostStanding,    kTileIdObjOrcGhostFirst          + $04
     d_byte GrontaRunning1,   kTileIdObjOrcGrontaFeetRunning1
     d_byte GrontaRunning2,   kTileIdObjOrcGrontaFeetRunning2

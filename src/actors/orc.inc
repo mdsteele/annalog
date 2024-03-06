@@ -86,11 +86,14 @@ kBadGrontaMaxJumpUpBlocks = 2
 
 ;;; Possible values for an orc baddie actor's State1 byte.
 .ENUM eBadOrc
-    Standing     ; standing guard
-    Chasing      ; chasing the player avatar
-    Patrolling   ; running to and fro after losing sight of the player avatar
-    Punching     ; pausing for a short time after hitting the player avatar
-    Jumping      ; jumping towards the player avatar
+    Standing       ; standing guard
+    Chasing        ; chasing the player avatar
+    Patrolling     ; running to and fro after losing sight of the player avatar
+    Punching       ; pausing for a short time after hitting the player avatar
+    Jumping        ; jumping towards the player avatar
+    TrapSurprised  ; surprised after being locked in a prison cell
+    TrapRunning    ; running to the gate after being locked in a prison cell
+    TrapPounding   ; pounding on the gate after being locked in a prison cell
     NUM_VALUES
 .ENDENUM
 
@@ -101,9 +104,9 @@ kBadGrontaMaxJumpUpBlocks = 2
     GruntRunning2
     GruntRunning3
     GruntRunning4
-    GruntStanding
     GruntThrowing1
     GruntThrowing2
+    GruntStanding
     GhostStanding
     ;; Gronta (red palette for head):
     GrontaRunning1

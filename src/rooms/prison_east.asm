@@ -18,6 +18,7 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "../actor.inc"
+.INCLUDE "../actors/orc.inc"
 .INCLUDE "../charmap.inc"
 .INCLUDE "../device.inc"
 .INCLUDE "../devices/console.inc"
@@ -47,8 +48,11 @@
 .IMPORT Func_SetMachineIndex
 .IMPORT Func_SetOrClearFlag
 .IMPORT Ppu_ChrObjTown
+.IMPORT Ram_ActorFlags_bObj_arr
 .IMPORT Ram_ActorPosX_i16_0_arr
 .IMPORT Ram_ActorPosX_i16_1_arr
+.IMPORT Ram_ActorState1_byte_arr
+.IMPORT Ram_ActorState2_byte_arr
 .IMPORT Ram_ActorType_eActor_arr
 .IMPORT Ram_DeviceAnim_u8_arr
 .IMPORT Ram_DeviceType_eDevice_arr
@@ -295,10 +299,11 @@ _InitOrc:
     .assert eDevice::Placeholder > 0, error
     bne @done  ; unconditional
     @orcIsTrapped:
-    ldya #$00c0
+    ldya #kLowerGateLeft - kTileWidthPx
     sta Ram_ActorPosX_i16_0_arr + kOrcActorIndex
     sty Ram_ActorPosX_i16_1_arr + kOrcActorIndex
-    ;; TODO: Set the orc's mode to make it pound on the prison gate.
+    lda #eBadOrc::TrapPounding
+    sta Ram_ActorState1_byte_arr + kOrcActorIndex  ; current eBadOrc mode
     @done:
 _EastGate:
     flag_bit Sram_ProgressFlags_arr, eFlag::PrisonEastEastGateOpen
@@ -391,8 +396,16 @@ _CheckIfOrcIsTrapped:
     sbc Ram_ActorPosX_i16_1_arr + kOrcActorIndex
     bmi _OrcIsNotTrapped
 _OrcIsTrapped:
-    jsr Func_SetFlag
-    ;; TODO: Set the orc's mode to make it pound on the prison gate.
+    jsr Func_SetFlag  ; sets C if flag was already set
+    ;; Set the orc's mode to trapped mode.
+    bcs @doneOrc
+    lda #eBadOrc::TrapSurprised
+    sta Ram_ActorState1_byte_arr + kOrcActorIndex  ; current eBadOrc mode
+    lda #45
+    sta Ram_ActorState2_byte_arr + kOrcActorIndex  ; mode timer
+    lda #0
+    sta Ram_ActorFlags_bObj_arr + kOrcActorIndex
+    @doneOrc:
     ;; If the console is disabled, enable it.
     lda Ram_DeviceType_eDevice_arr + kConsoleDeviceIndex
     cmp #eDevice::Console
@@ -404,7 +417,14 @@ _OrcIsTrapped:
 _Return:
     rts
 _OrcIsNotTrapped:
-    jsr Func_ClearFlag
+    jsr Func_ClearFlag  ; sets C if flag was already cleared
+    ;; Set the orc's mode to start patrolling.
+    bcs @doneOrc
+    lda #eBadOrc::Patrolling
+    sta Ram_ActorState1_byte_arr + kOrcActorIndex  ; current eBadOrc mode
+    lda #120
+    sta Ram_ActorState2_byte_arr + kOrcActorIndex  ; mode timer
+    @doneOrc:
     ;; If the console is currently enabled, disable it and reset/halt the lift
     ;; machine.
     lda #eDevice::Placeholder

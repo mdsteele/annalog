@@ -59,7 +59,7 @@
 .PROC Func_SetOrClearFlag
     tay
     beq Func_ClearFlag
-    .assert * = Func_SetFlag, error, "fallthrough"
+    fall Func_SetFlag
 .ENDPROC
 
 ;;; Sets the specified eFlag to true if it isn't already.
@@ -94,6 +94,7 @@ _AlreadySet:
 
 ;;; Clears the specified eFlag to false if it isn't already.
 ;;; @param X The eFlag value to clear.
+;;; @return C Set if the flag was already set to false, cleared otherwise.
 ;;; @preserve T0+
 .EXPORT Func_ClearFlag
 .PROC Func_ClearFlag
@@ -108,15 +109,16 @@ _AlreadySet:
     txa  ; eFlag value
     div #8
     tax  ; byte offset
-    ;; Check if the flag is already set.
+    ;; Check if the flag is already cleared.
     tya  ; flag bitmask
     and Sram_ProgressFlags_arr, x
     bne _ClearFlag
+    sec
     rts
 _ClearFlag:
     ;; Compute the new value for the byte in Sram_ProgressFlags_arr.
     eor Sram_ProgressFlags_arr, x
-    .assert * = Func_WriteFlag, error, "fallthrough"
+    fall Func_WriteFlag  ; preserves T0+, clears C
 .ENDPROC
 
 ;;; Writes a byte to Sram_ProgressFlags_arr.
