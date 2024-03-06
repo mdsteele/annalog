@@ -26,7 +26,7 @@
 .IMPORT DataA_Room_Temple_sTileset
 .IMPORT Data_Empty_sPlatform_arr
 .IMPORT Func_Noop
-.IMPORT Ppu_ChrObjTemple
+.IMPORT Ppu_ChrObjSewer
 
 ;;;=========================================================================;;;
 
@@ -43,7 +43,7 @@
     d_addr TerrainData_ptr, _TerrainData
     d_byte NumMachines_u8, 0
     d_addr Machines_sMachine_arr_ptr, 0
-    d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjTemple)
+    d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjSewer)
     d_addr Ext_sRoomExt_ptr, _Ext_sRoomExt
     D_END
 _Ext_sRoomExt:
@@ -62,7 +62,12 @@ _TerrainData:
 :   .incbin "out/rooms/temple_spire.room"
     .assert * - :- = 17 * 24, error
 _Actors_sActor_arr:
-:   ;; TODO: add some baddies
+:   D_STRUCT sActor
+    d_byte Type_eActor, eActor::BadSlime
+    d_word PosX_i16, $0048
+    d_word PosY_i16, $00d4
+    d_byte Param_byte, 0
+    D_END
     .assert * - :- <= kMaxActors * .sizeof(sActor), error
     .byte eActor::None
 _Devices_sDevice_arr:
