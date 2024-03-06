@@ -177,6 +177,7 @@ kSaveMagicNumber = $b2
     PrisonUpperFreedAlex
     PrisonUpperFreedKids
     PrisonUpperGateOpen
+    PrisonUpperLoosenedBrick
     ShadowHallGlassBroken
     ShadowHallInitialized
     ShadowTrapDisarmed

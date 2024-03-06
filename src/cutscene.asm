@@ -47,6 +47,7 @@
 .IMPORT DataA_Cutscene_PrisonUpperBreakerTemple_sCutscene
 .IMPORT DataA_Cutscene_PrisonUpperFreeAlex_sCutscene
 .IMPORT DataA_Cutscene_PrisonUpperFreeKids_sCutscene
+.IMPORT DataA_Cutscene_PrisonUpperLoosenBrick_sCutscene
 .IMPORT DataA_Cutscene_SharedFlipBreaker_sCutscene
 .IMPORT DataA_Cutscene_SharedTeleportIn_sCutscene
 .IMPORT DataA_Cutscene_SharedTeleportOut_sCutscene
@@ -238,6 +239,8 @@ _Finish:
             DataA_Cutscene_PrisonUpperFreeAlex_sCutscene
     d_entry table, PrisonUpperFreeKids, \
             DataA_Cutscene_PrisonUpperFreeKids_sCutscene
+    d_entry table, PrisonUpperLoosenBrick, \
+            DataA_Cutscene_PrisonUpperLoosenBrick_sCutscene
     d_entry table, SharedFlipBreaker, \
             DataA_Cutscene_SharedFlipBreaker_sCutscene
     d_entry table, SharedTeleportIn, \
@@ -397,6 +400,7 @@ _InitMainFork:
     d_entry table, WalkNpcAlex,       _WalkNpcAlex
     d_entry table, WalkNpcBruno,      _WalkNpcBruno
     d_entry table, WalkNpcGronta,     _WalkNpcGronta
+    d_entry table, WalkNpcMarie,      _WalkNpcMarie
     d_entry table, WalkNpcNora,       _WalkNpcNora
     d_entry table, WalkNpcOrc,        _WalkNpcOrc
     d_entry table, WalkNpcToddler,    _WalkNpcToddler
@@ -749,6 +753,13 @@ _WalkNpcGronta:
     jsr FuncA_Cutscene_AnimateNpcGrontaWalking
     clc  ; cutscene should continue
     rts
+_WalkNpcMarie:
+    jsr _StartMoveNpc  ; returns X, Z, and N
+    beq _MoveNpcReachedGoal
+    jsr FuncA_Cutscene_AnimateNpcMarieWalking  ; preserves X
+    jsr FuncA_Cutscene_FaceAvatarTowardsActor
+    clc  ; cutscene should continue
+    rts
 _WalkNpcNora:
     jsr _StartMoveNpc  ; returns X, Z, and N
     beq _MoveNpcReachedGoal
@@ -998,6 +1009,30 @@ _AnimatePose:
     .assert eNpcOrc::GrontaRunning1 > 0, error
     .assert eNpcOrc::GrontaRunning1 .mod 4 = 0, error
     ora #eNpcOrc::GrontaRunning1
+    sta Ram_ActorState1_byte_arr, x
+    rts
+.ENDPROC
+
+;;; Updates the flags and state of the specified Marie NPC actor for a walking
+;;; animation.
+;;; @param N If set, the actor will face left; otherwise, it will face right.
+;;; @param X The actor index.
+;;; @preserve X, Y, T0+
+.PROC FuncA_Cutscene_AnimateNpcMarieWalking
+    jsr FuncA_Cutscene_SetActorFlipHFromN  ; preserves X, Y and T0+
+    lda #$ff
+    sta Ram_ActorState2_byte_arr, x
+_AnimatePose:
+    lda Zp_FrameCounter_u8
+    and #$08
+    beq @walk2
+    @walk1:
+    lda #eNpcChild::MarieWalking1
+    .assert eNpcChild::MarieWalking1 > 0, error
+    bne @setState  ; unconditional
+    @walk2:
+    lda #eNpcChild::MarieWalking2
+    @setState:
     sta Ram_ActorState1_byte_arr, x
     rts
 .ENDPROC

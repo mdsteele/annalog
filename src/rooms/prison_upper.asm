@@ -26,6 +26,7 @@
 .INCLUDE "../cpu.inc"
 .INCLUDE "../cutscene.inc"
 .INCLUDE "../device.inc"
+.INCLUDE "../devices/dialog.inc"
 .INCLUDE "../dialog.inc"
 .INCLUDE "../flag.inc"
 .INCLUDE "../macros.inc"
@@ -33,11 +34,13 @@
 .INCLUDE "../platform.inc"
 .INCLUDE "../platforms/gate.inc"
 .INCLUDE "../platforms/stepstone.inc"
+.INCLUDE "../portrait.inc"
 .INCLUDE "../ppu.inc"
 .INCLUDE "../room.inc"
 .INCLUDE "../scroll.inc"
 
 .IMPORT DataA_Room_Prison_sTileset
+.IMPORT Data_Empty_sDialog
 .IMPORT FuncA_Objects_DrawStepstonePlatform
 .IMPORT FuncC_Prison_DrawGatePlatform
 .IMPORT FuncC_Prison_OpenGateAndFlipLever
@@ -53,12 +56,17 @@
 .IMPORT Ram_ActorPosX_i16_1_arr
 .IMPORT Ram_ActorState2_byte_arr
 .IMPORT Ram_ActorType_eActor_arr
+.IMPORT Ram_ActorVelY_i16_0_arr
+.IMPORT Ram_ActorVelY_i16_1_arr
 .IMPORT Ram_DeviceType_eDevice_arr
 .IMPORT Ram_PlatformType_ePlatform_arr
 .IMPORT Sram_ProgressFlags_arr
+.IMPORTZP Zp_AvatarFlags_bObj
+.IMPORTZP Zp_Camera_bScroll
 .IMPORTZP Zp_Nearby_bDevice
 .IMPORTZP Zp_Next_eCutscene
 .IMPORTZP Zp_RoomState
+.IMPORTZP Zp_ScrollGoalX_u16
 
 ;;;=========================================================================;;;
 
@@ -92,6 +100,13 @@ kAlexFreePositionX = $0090
 ;;; The room pixel X-position that NPC actors can walk to during the
 ;;; PrisonUpperFreedKids cutscene to be offscreen.
 kFreeKidsOffscreenPositionX = $0128
+
+;;; The room pixel X-position that the Marie actor should stand in while still
+;;; imprisoned.
+kMarieCellPositionX = $0190
+;;; The room pixel X-position that the Marie actor should be at when jumping to
+;;; loosen the brick.
+kMarieJumpPositionX = $0199
 
 ;;;=========================================================================;;;
 
@@ -150,8 +165,8 @@ _Platforms_sPlatform_arr:
     d_byte Type_ePlatform, ePlatform::Zone
     d_word WidthPx_u16, kStepstonePlatformWidthPx
     d_byte HeightPx_u8, kStepstonePlatformHeightPx
-    d_word Left_i16, $0199
-    d_word Top_i16,  $008c
+    d_word Left_i16, $01a1
+    d_word Top_i16,  $0093
     D_END
     ;; Ledge above Alex's cell:
     D_STRUCT sPlatform
@@ -219,7 +234,7 @@ _Actors_sActor_arr:
     .assert * - :- = kMarieActorIndex * .sizeof(sActor), error
     D_STRUCT sActor
     d_byte Type_eActor, eActor::NpcChild
-    d_word PosX_i16, $0190
+    d_word PosX_i16, kMarieCellPositionX
     d_word PosY_i16, $00b8
     d_byte Param_byte, bNpcChild::Pri | eNpcChild::MarieStanding
     D_END
@@ -355,8 +370,8 @@ _CheckProgressFlags:
     bne _MoveAlex
     lda #$ff
     sta Ram_ActorState2_byte_arr + kAlexActorIndex
-    ;; Otherwise, if Anna has already talked with Alex, place the stepstone.
-    flag_bit Sram_ProgressFlags_arr, eFlag::PrisonUpperFoundAlex
+    ;; Otherwise, if Marie has already loosened the brick, place the stepstone.
+    flag_bit Sram_ProgressFlags_arr, eFlag::PrisonUpperLoosenedBrick
     bne _PlaceStepstone
     rts
 _RemoveKids:
@@ -484,6 +499,56 @@ _Orc2Exit_sCutscene:
     act_ForkStop $ff
 .ENDPROC
 
+.EXPORT DataA_Cutscene_PrisonUpperLoosenBrick_sCutscene
+.PROC DataA_Cutscene_PrisonUpperLoosenBrick_sCutscene
+    act_ForkStart 1, _WalkAvatar_sCutscene
+    ;; Animate Marie walking over to the eastern edge of her cell.
+    act_WalkNpcMarie kMarieActorIndex, kMarieJumpPositionX
+    act_SetActorState1 kMarieActorIndex, eNpcChild::MarieStanding
+    act_WaitFrames 60
+    ;; Animate Marie jumping up to push the brick.
+    act_ForkStart 2, _PushBrick_sCutscene
+    act_SetActorState1 kMarieActorIndex, eNpcChild::MarieWalking1
+    act_SetActorVelY  kMarieActorIndex, -$308
+    act_SetCutsceneFlags bCutscene::TickAllActors
+    act_RepeatFunc 40, _ApplyMarieGravity
+    act_SetCutsceneFlags 0
+    act_SetActorState1 kMarieActorIndex, eNpcChild::MarieStanding
+    act_SetActorVelY  kMarieActorIndex, 0
+    act_SetActorPosY  kMarieActorIndex, $00b8
+    act_WaitFrames 60
+    ;; Animate Marie walking back to her starting place.
+    act_WalkNpcMarie kMarieActorIndex, kMarieCellPositionX
+    act_SetActorState1 kMarieActorIndex, eNpcChild::MarieStanding
+    act_SetActorState2 kMarieActorIndex, 0
+    act_RunDialog eDialog::PrisonUpperMarie
+    act_SetScrollFlags 0  ; unlock scrolling from the previous dialog
+    act_ContinueExploring
+_WalkAvatar_sCutscene:
+    act_WalkAvatar $0180 | kTalkRightAvatarOffset
+    act_SetAvatarPose eAvatar::Standing
+    act_SetAvatarFlags kPaletteObjAvatarNormal
+    act_ForkStop $ff
+_PushBrick_sCutscene:
+    act_WaitFrames 20
+    act_CallFunc _PlaceStepstone
+    act_ForkStop $ff
+_PlaceStepstone:
+    ;; TODO: play a sound for pushing the stepstone
+    lda #ePlatform::Solid
+    sta Ram_PlatformType_ePlatform_arr + kStepstonePlatformIndex
+    ldx #eFlag::PrisonUpperLoosenedBrick  ; param: flag
+    jmp Func_SetFlag
+_ApplyMarieGravity:
+    lda #kAvatarGravity
+    add Ram_ActorVelY_i16_0_arr + kMarieActorIndex
+    sta Ram_ActorVelY_i16_0_arr + kMarieActorIndex
+    lda #0
+    adc Ram_ActorVelY_i16_1_arr + kMarieActorIndex
+    sta Ram_ActorVelY_i16_1_arr + kMarieActorIndex
+    rts
+.ENDPROC
+
 .EXPORT DataA_Cutscene_PrisonUpperFreeAlex_sCutscene
 .PROC DataA_Cutscene_PrisonUpperFreeAlex_sCutscene
     act_SetAvatarPose eAvatar::Standing
@@ -594,8 +659,6 @@ _RemoveKids:
     dlg_Text ChildAlex, DataA_Text0_PrisonUpperAlexCell_GetDoorOpen_u8_arr
     dlg_Done
 _SetFlag:
-    lda #ePlatform::Solid
-    sta Ram_PlatformType_ePlatform_arr + kStepstonePlatformIndex
     ldx #eFlag::PrisonUpperFoundAlex  ; param: flag
     jmp Func_SetFlag
 .ENDPROC
@@ -622,28 +685,71 @@ _SetFlag:
 
 .EXPORT DataA_Dialog_PrisonUpperBruno_sDialog
 .PROC DataA_Dialog_PrisonUpperBruno_sDialog
-    dlg_Text ChildBruno, DataA_Text0_PrisonUpperBruno_u8_arr
+    dlg_Func @func
+    @func:
+    flag_bit Sram_ProgressFlags_arr, eFlag::PrisonUpperFoundAlex
+    bne @climbUp
+    @adults:
+    ldya #_Adults_sDialog
+    rts
+    @climbUp:
+    ldya #_ClimbUp_sDialog
+    rts
+_Adults_sDialog:
+    dlg_Text ChildBruno, DataA_Text0_PrisonUpperBruno_Adults_u8_arr
     dlg_Done
+_ClimbUp_sDialog:
+    dlg_Text ChildBruno, DataA_Text0_PrisonUpperBruno_ClimbUp_u8_arr
+    dlg_Func @func
+    @func:
+    flag_bit Sram_ProgressFlags_arr, eFlag::PrisonUpperLoosenedBrick
+    bne @dialogDone
+    @talkMarie:
+    ldax #$0100
+    stax Zp_ScrollGoalX_u16
+    lda #kPaletteObjAvatarNormal
+    sta Zp_AvatarFlags_bObj
+    .assert kTileIdBgPortraitMarieFirst = kTileIdBgPortraitBrunoFirst, error
+    ldya #DataA_Dialog_PrisonUpperMarie_LooseBrick_sDialog
+    rts
+    @dialogDone:
+    ldya #Data_Empty_sDialog
+    rts
 .ENDPROC
 
 .EXPORT DataA_Dialog_PrisonUpperMarie_sDialog
 .PROC DataA_Dialog_PrisonUpperMarie_sDialog
     dlg_Func @func
     @func:
+    flag_bit Sram_ProgressFlags_arr, eFlag::PrisonUpperLoosenedBrick
+    bne @standCareful
     flag_bit Sram_ProgressFlags_arr, eFlag::PrisonUpperFoundAlex
-    bne @stepstone
+    bne @looseBrick
+    @talkToAlex:
     ldya #_GoTalkToAlex_sDialog
     rts
-    @stepstone:
-    ldya #_Stepstone_sDialog
+    @looseBrick:
+    ldya #DataA_Dialog_PrisonUpperMarie_LooseBrick_sDialog
+    rts
+    @standCareful:
+    ldya #_StandCareful_sDialog
     rts
 _GoTalkToAlex_sDialog:
     dlg_Text ChildMarie, DataA_Text0_PrisonUpperMarie_GoTalkToAlex_u8_arr
     dlg_Done
-_Stepstone_sDialog:
-    dlg_Text ChildMarie, DataA_Text0_PrisonUpperMarie_Stepstone1_u8_arr
-    dlg_Text ChildMarie, DataA_Text0_PrisonUpperMarie_Stepstone2_u8_arr
+_StandCareful_sDialog:
+    dlg_Text ChildMarie, DataA_Text0_PrisonUpperMarie_StandCareful_u8_arr
     dlg_Done
+.ENDPROC
+
+.PROC DataA_Dialog_PrisonUpperMarie_LooseBrick_sDialog
+    dlg_Text ChildMarie, DataA_Text0_PrisonUpperMarie_LooseBrick_u8_arr
+    dlg_Call _LockScrolling
+    dlg_Cutscene eCutscene::PrisonUpperLoosenBrick
+_LockScrolling:
+    lda #bScroll::LockHorz  ; will be unlocked in the cutscene
+    sta Zp_Camera_bScroll
+    rts
 .ENDPROC
 
 .EXPORT DataA_Dialog_PrisonUpperNora_sDialog
@@ -723,8 +829,14 @@ _Stepstone_sDialog:
     .byte "there. See you soon.#"
 .ENDPROC
 
-.PROC DataA_Text0_PrisonUpperBruno_u8_arr
+.PROC DataA_Text0_PrisonUpperBruno_Adults_u8_arr
     .byte "Are the adults OK?#"
+.ENDPROC
+
+.PROC DataA_Text0_PrisonUpperBruno_ClimbUp_u8_arr
+    .byte "I think you're going$"
+    .byte "to have to climb up$"
+    .byte "top.#"
 .ENDPROC
 
 .PROC DataA_Text0_PrisonUpperMarie_GoTalkToAlex_u8_arr
@@ -733,16 +845,17 @@ _Stepstone_sDialog:
     .byte "the cell up ahead.#"
 .ENDPROC
 
-.PROC DataA_Text0_PrisonUpperMarie_Stepstone1_u8_arr
-    .byte "Do you see that one$"
-    .byte "brick sticking out up$"
-    .byte "there?#"
+.PROC DataA_Text0_PrisonUpperMarie_LooseBrick_u8_arr
+    .byte "I can help. There's a$"
+    .byte "loose brick up there.$"
+    .byte "If I push it, I can$"
+    .byte "get you a foothold.#"
 .ENDPROC
 
-.PROC DataA_Text0_PrisonUpperMarie_Stepstone2_u8_arr
-    .byte "I think you could$"
-    .byte "stand on it if you're$"
-    .byte "careful.#"
+.PROC DataA_Text0_PrisonUpperMarie_StandCareful_u8_arr
+    .byte "There! I think you can$"
+    .byte "stand on that brick if$"
+    .byte "you're careful.#"
 .ENDPROC
 
 .PROC DataA_Text0_PrisonUpperNora_u8_arr

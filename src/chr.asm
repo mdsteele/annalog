@@ -835,10 +835,10 @@ _chr_begin:
 
 .PROC Ppu_ChrBgPortrait0B
     CHR1_BANK $c0
-    .assert .bank(*) = kChrBankPortraitBrunoRest, error
-    chr_inc "portrait_bruno_rest", kTileIdBgPortraitBrunoFirst
     .assert .bank(*) = kChrBankPortraitNoraRest, error
     chr_inc "portrait_nora_rest", kTileIdBgPortraitNoraFirst
+    .assert .bank(*) = kChrBankPortraitBrunoRest, error
+    chr_inc "portrait_bruno_rest", kTileIdBgPortraitBrunoFirst
     .assert .bank(*) = kChrBankDiagramSemaphoreKey, error
     chr_inc "diagram_semaphore_key", kTileIdBgDiagramSemaphoreKeyFirst
     .assert .bank(*) = kChrBankDiagramSemaphoreLock, error
@@ -852,10 +852,10 @@ _chr_begin:
 
 .PROC Ppu_ChrBgPortrait0C
     CHR1_BANK $c0
-    .assert .bank(*) = kChrBankPortraitBrunoTalk, error
-    chr_inc "portrait_bruno_talk", kTileIdBgPortraitBrunoFirst
     .assert .bank(*) = kChrBankPortraitNoraTalk, error
     chr_inc "portrait_nora_talk", kTileIdBgPortraitNoraFirst
+    .assert .bank(*) = kChrBankPortraitBrunoTalk, error
+    chr_inc "portrait_bruno_talk", kTileIdBgPortraitBrunoFirst
     .assert .bank(*) = kChrBankDiagramLauncherDown, error
     chr_inc "diagram_launcher_down", kTileIdBgDiagramLauncherDownFirst
     .assert .bank(*) = kChrBankDiagramLauncherLeft, error

@@ -51,7 +51,7 @@ kChrBankPortraitWomanTalk   = $0e
 
 ;;; BG tile IDs for various dialog portraits.
 kTileIdBgPortraitAlexFirst    = $c0
-kTileIdBgPortraitBrunoFirst   = $c0
+kTileIdBgPortraitBrunoFirst   = $d0
 kTileIdBgPortraitCorraFirst   = $c0
 kTileIdBgPortraitEireneFirst  = $c0
 kTileIdBgPortraitFloristFirst = $d0
@@ -59,7 +59,7 @@ kTileIdBgPortraitGrontaFirst  = $c0
 kTileIdBgPortraitManFirst     = $d0
 kTileIdBgPortraitMarieFirst   = $d0
 kTileIdBgPortraitMermaidFirst = $d0
-kTileIdBgPortraitNoraFirst    = $d0
+kTileIdBgPortraitNoraFirst    = $c0
 kTileIdBgPortraitOrcFirst     = $c0
 kTileIdBgPortraitPaperFirst   = $d0
 kTileIdBgPortraitPlaqueFirst  = $d0

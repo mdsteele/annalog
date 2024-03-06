@@ -58,6 +58,7 @@ kMaxForks = 4
     PrisonUpperBreakerTemple
     PrisonUpperFreeAlex
     PrisonUpperFreeKids
+    PrisonUpperLoosenBrick
     SharedFlipBreaker
     SharedTeleportIn
     SharedTeleportOut
@@ -176,6 +177,7 @@ kMaxForks = 4
     WalkNpcAlex        ; args: actor index, goal X-position (2 bytes)
     WalkNpcBruno       ; args: actor index, goal X-position (2 bytes)
     WalkNpcGronta      ; args: actor index, goal X-position (2 bytes)
+    WalkNpcMarie       ; args: actor index, goal X-position (2 bytes)
     WalkNpcNora        ; args: actor index, goal X-position (2 bytes)
     WalkNpcOrc         ; args: actor index, goal X-position (2 bytes)
     WalkNpcToddler     ; args: actor index, goal X-position (2 bytes)
@@ -367,6 +369,11 @@ kMaxForks = 4
 
 .MACRO act_WalkNpcGronta INDEX, GOALX
     .byte eAction::WalkNpcGronta, INDEX
+    .word GOALX
+.ENDMACRO
+
+.MACRO act_WalkNpcMarie INDEX, GOALX
+    .byte eAction::WalkNpcMarie, INDEX
     .word GOALX
 .ENDMACRO
 

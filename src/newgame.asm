@@ -248,6 +248,7 @@ _SetFlags:
     .byte eFlag::PrisonEastOrcTrapped
     .byte eFlag::PrisonEastWestGateOpen
     .byte eFlag::PrisonUpperFoundAlex
+    .byte eFlag::PrisonUpperLoosenedBrick
     .byte eFlag::PrisonUpperFreedAlex
     .byte eFlag::PrisonUpperGateOpen
     .byte eFlag::PrisonUpperFreedKids
