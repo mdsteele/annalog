@@ -22,6 +22,7 @@
 .INCLUDE "../devices/flower.inc"
 .INCLUDE "../flag.inc"
 .INCLUDE "../macros.inc"
+.INCLUDE "../oam.inc"
 .INCLUDE "../platform.inc"
 .INCLUDE "../room.inc"
 
@@ -29,7 +30,7 @@
 .IMPORT FuncA_Room_RemoveFlowerDeviceIfCarriedOrDelivered
 .IMPORT FuncA_Room_RespawnFlowerDeviceIfDropped
 .IMPORT Func_Noop
-.IMPORT Ppu_ChrObjTemple
+.IMPORT Ppu_ChrObjSewer
 
 ;;;=========================================================================;;;
 
@@ -46,7 +47,7 @@
     d_addr TerrainData_ptr, _TerrainData
     d_byte NumMachines_u8, 0
     d_addr Machines_sMachine_arr_ptr, 0
-    d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjTemple)
+    d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjSewer)
     d_addr Ext_sRoomExt_ptr, _Ext_sRoomExt
     D_END
 _Ext_sRoomExt:
@@ -83,7 +84,24 @@ _Platforms_sPlatform_arr:
     .assert * - :- <= kMaxPlatforms * .sizeof(sPlatform), error
     .byte ePlatform::None
 _Actors_sActor_arr:
-:   ;; TODO: add baddies?
+:   D_STRUCT sActor
+    d_byte Type_eActor, eActor::BadSlime
+    d_word PosX_i16, $00bc
+    d_word PosY_i16, $0074
+    d_byte Param_byte, bObj::FlipH
+    D_END
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::BadSlime
+    d_word PosX_i16, $0128
+    d_word PosY_i16, $0054
+    d_byte Param_byte, bObj::FlipH
+    D_END
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::BadSlime
+    d_word PosX_i16, $0188
+    d_word PosY_i16, $0024
+    d_byte Param_byte, bObj::FlipH
+    D_END
     .assert * - :- <= kMaxActors * .sizeof(sActor), error
     .byte eActor::None
 _Devices_sDevice_arr:
