@@ -47,6 +47,7 @@
 .IMPORT FuncC_Prison_TickGatePlatform
 .IMPORT Func_Noop
 .IMPORT Func_PlaySfxExplodeBig
+.IMPORT Func_PlaySfxMetallicDing
 .IMPORT Func_SetFlag
 .IMPORT Func_SetOrClearFlag
 .IMPORT Main_Breaker_FadeBackToBreakerRoom
@@ -590,7 +591,15 @@ _OpenGate:
     act_WalkNpcAlex kAlexActorIndex, kFreeKidsOffscreenPositionX
     ;; Have Alex pick the locks offscreen.  While he does so, Nina leads Nora
     ;; out of the cell.
-    act_WaitFrames 60  ; TODO: play sounds for picking locks
+    act_WaitFrames 30
+    act_CallFunc Func_PlaySfxMetallicDing
+    act_WaitFrames 12
+    act_CallFunc Func_PlaySfxMetallicDing
+    act_WaitFrames 70
+    act_CallFunc Func_PlaySfxMetallicDing
+    act_WaitFrames 12
+    act_CallFunc Func_PlaySfxMetallicDing
+    act_WaitFrames 10
     act_ForkStart 2, _NinaEscape_sCutscene
     act_WaitFrames 31
     act_WalkNpcNora kNoraActorIndex, kFreeKidsOffscreenPositionX
