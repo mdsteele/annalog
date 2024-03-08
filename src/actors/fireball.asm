@@ -25,6 +25,7 @@
 .IMPORT FuncA_Actor_CenterHitsTerrain
 .IMPORT FuncA_Actor_CenterHitsTerrainOrSolidPlatform
 .IMPORT FuncA_Actor_HarmAvatarIfCollision
+.IMPORT FuncA_Actor_IsInRoomBounds
 .IMPORT FuncA_Objects_Draw1x1Actor
 .IMPORT Func_InitActorDefault
 .IMPORT Func_InitActorWithState1
@@ -32,6 +33,7 @@
 .IMPORT Ram_ActorState1_byte_arr
 .IMPORT Ram_ActorState2_byte_arr
 .IMPORT Ram_ActorState3_byte_arr
+.IMPORT Ram_ActorType_eActor_arr
 .IMPORTZP Zp_FrameCounter_u8
 
 ;;;=========================================================================;;;
@@ -101,11 +103,13 @@ kPaletteObjFireblast = 1
 .PROC FuncA_Actor_TickProjFireball
 _IncrementAge:
     inc Ram_ActorState2_byte_arr, x  ; projectile age in frames
-    beq FuncA_Actor_ExpireProjFireballOrFireblast
+    beq FuncA_Actor_ExpireProjFireballOrFireblast  ; preserves X
 _HandleCollision:
     jsr FuncA_Actor_HarmAvatarIfCollision  ; preserves X
+    jsr FuncA_Actor_IsInRoomBounds  ; preserves X, returns C
+    bcc FuncA_Actor_RemoveProjFireballOrFireblast  ; preserves X
     jsr FuncA_Actor_CenterHitsTerrain  ; preserves X, returns C
-    bcs FuncA_Actor_ExpireProjFireballOrFireblast
+    bcs FuncA_Actor_ExpireProjFireballOrFireblast  ; preserves X
     rts
 .ENDPROC
 
@@ -116,7 +120,7 @@ _HandleCollision:
 .PROC FuncA_Actor_TickProjFireblast
 _IncrementAge:
     inc Ram_ActorState2_byte_arr, x  ; projectile age in frames
-    beq FuncA_Actor_ExpireProjFireballOrFireblast
+    beq FuncA_Actor_ExpireProjFireballOrFireblast  ; preserves X
 _DecrementReflectionTimer:
     lda Ram_ActorState3_byte_arr, x  ; reflection timer
     beq @done
@@ -124,9 +128,11 @@ _DecrementReflectionTimer:
     @done:
 _HandleCollision:
     jsr FuncA_Actor_HarmAvatarIfCollision  ; preserves X, returns C
-    bcs FuncA_Actor_ExpireProjFireballOrFireblast
+    bcs FuncA_Actor_ExpireProjFireballOrFireblast  ; preserves X
+    jsr FuncA_Actor_IsInRoomBounds  ; preserves X, returns C
+    bcc FuncA_Actor_RemoveProjFireballOrFireblast  ; preserves X
     jsr FuncA_Actor_CenterHitsTerrainOrSolidPlatform  ; preserves X, returns C
-    bcs FuncA_Actor_ExpireProjFireballOrFireblast
+    bcs FuncA_Actor_ExpireProjFireballOrFireblast  ; preserves X
     rts
 .ENDPROC
 
@@ -137,6 +143,16 @@ _HandleCollision:
 .PROC FuncA_Actor_ExpireProjFireballOrFireblast
     ldy #eActor::SmokeParticle  ; param: actor type
     jmp Func_InitActorDefault  ; preserves X
+.ENDPROC
+
+;;; Removes a fireball or fireblast projectile without creating a smoke
+;;; particle.
+;;; @param X The actor index.
+;;; @preserve X
+.PROC FuncA_Actor_RemoveProjFireballOrFireblast
+    lda #eActor::None
+    sta Ram_ActorType_eActor_arr, x
+    rts
 .ENDPROC
 
 ;;;=========================================================================;;;

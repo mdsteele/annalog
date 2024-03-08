@@ -25,6 +25,7 @@
 
 .IMPORT FuncA_Actor_CenterHitsTerrain
 .IMPORT FuncA_Actor_HarmAvatarIfCollision
+.IMPORT FuncA_Actor_IsInRoomBounds
 .IMPORT FuncA_Objects_Draw1x1Actor
 .IMPORT FuncA_Room_TurnProjectilesToSmoke
 .IMPORT Func_InitActorDefault
@@ -96,6 +97,8 @@ _VelY_i8_arr:
     beq _Expire
     jsr FuncA_Actor_HarmAvatarIfCollision  ; preserves X, returns C
     bcs _Expire
+    jsr FuncA_Actor_IsInRoomBounds  ; preserves X, returns C
+    bcc _Expire
     jsr FuncA_Actor_CenterHitsTerrain  ; preserves X, returns C
     bcc _Done
 _Expire:

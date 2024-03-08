@@ -23,8 +23,9 @@
 .INCLUDE "ember.inc"
 
 .IMPORT FuncA_Actor_ApplyGravityWithTerminalVelocity
-.IMPORT FuncA_Actor_CenterHitsTerrain
+.IMPORT FuncA_Actor_CenterHitsTerrainOrSolidPlatform
 .IMPORT FuncA_Actor_HarmAvatarIfCollision
+.IMPORT FuncA_Actor_IsInRoomBounds
 .IMPORT FuncA_Objects_Draw1x1Actor
 .IMPORT Func_InitActorDefault
 .IMPORT Ram_ActorFlags_bObj_arr
@@ -64,11 +65,13 @@ kPaletteObjEmber = 1
 .EXPORT FuncA_Actor_TickProjEmber
 .PROC FuncA_Actor_TickProjEmber
     inc Ram_ActorState1_byte_arr, x
-    beq _Expire
+    beq _TurnToSmoke
     jsr FuncA_Actor_HarmAvatarIfCollision  ; preserves X, returns C
-    bcs _Expire
-    jsr FuncA_Actor_CenterHitsTerrain  ; preserves X, returns C
-    bcs _Expire
+    bcs _TurnToSmoke
+    jsr FuncA_Actor_IsInRoomBounds  ; preserves X, returns C
+    bcc _Remove
+    jsr FuncA_Actor_CenterHitsTerrainOrSolidPlatform  ; preserves X, returns C
+    bcs _TurnToSmoke
 _FlipHorz:
     lda Ram_ActorState1_byte_arr, x
     mul #16
@@ -77,7 +80,10 @@ _FlipHorz:
 _ApplyGravity:
     lda #kEmberTerminalVelocity  ; param: terminal velocity
     jmp FuncA_Actor_ApplyGravityWithTerminalVelocity  ; preserves X
-_Expire:
+_TurnToSmoke:
+    ldy #eActor::SmokeParticle  ; param: actor type
+    jmp Func_InitActorDefault  ; preserves X
+_Remove:
     lda #eActor::None
     sta Ram_ActorType_eActor_arr, x
     rts

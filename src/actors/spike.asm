@@ -24,6 +24,7 @@
 .IMPORT FuncA_Actor_ApplyGravityWithTerminalVelocity
 .IMPORT FuncA_Actor_CenterHitsTerrain
 .IMPORT FuncA_Actor_HarmAvatarIfCollision
+.IMPORT FuncA_Actor_IsInRoomBounds
 .IMPORT FuncA_Objects_Draw1x1Actor
 .IMPORT Func_InitActorDefault
 .IMPORT Ram_ActorState1_byte_arr
@@ -62,6 +63,8 @@ kSpikeTerminalVelocity = 6
     beq _Expire
     jsr FuncA_Actor_HarmAvatarIfCollision  ; preserves X, returns C
     bcs _Expire
+    jsr FuncA_Actor_IsInRoomBounds  ; preserves X, returns C
+    bcc _Expire
     jsr FuncA_Actor_CenterHitsTerrain  ; preserves X, returns C
     bcs _Expire
     lda #kSpikeTerminalVelocity  ; param: terminal velocity

@@ -24,6 +24,7 @@
 
 .IMPORT FuncA_Actor_CenterHitsTerrain
 .IMPORT FuncA_Actor_HarmAvatarIfCollision
+.IMPORT FuncA_Actor_IsInRoomBounds
 .IMPORT FuncA_Objects_Draw1x1Actor
 .IMPORT Func_InitActorWithState1
 .IMPORT Func_SetActorVelocityPolar
@@ -84,6 +85,8 @@ _Flags_bObj_arr4:
     beq _Expire
     jsr FuncA_Actor_HarmAvatarIfCollision  ; preserves X, returns C
     bcs _Expire
+    jsr FuncA_Actor_IsInRoomBounds  ; preserves X, returns C
+    bcc _Expire
     jsr FuncA_Actor_CenterHitsTerrain  ; preserves X, returns C
     bcc _Return
 _Expire:

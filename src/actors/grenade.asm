@@ -24,6 +24,7 @@
 .IMPORT FuncA_Actor_ApplyGravity
 .IMPORT FuncA_Actor_CenterHitsTerrain
 .IMPORT FuncA_Actor_HarmAvatarIfCollision
+.IMPORT FuncA_Actor_IsInRoomBounds
 .IMPORT FuncA_Objects_Draw1x1Actor
 .IMPORT Func_FindActorWithType
 .IMPORT Func_InitActorDefault
@@ -35,6 +36,7 @@
 .IMPORT Ram_ActorPosY_i16_0_arr
 .IMPORT Ram_ActorPosY_i16_1_arr
 .IMPORT Ram_ActorState1_byte_arr
+.IMPORT Ram_ActorType_eActor_arr
 .IMPORT Ram_ActorVelX_i16_1_arr
 .IMPORT Ram_ActorVelY_i16_0_arr
 .IMPORT Ram_ActorVelY_i16_1_arr
@@ -131,6 +133,8 @@ _InitVelY_i16_1_arr:
     beq _Explode
     jsr FuncA_Actor_HarmAvatarIfCollision  ; preserves X, returns C
     bcs _Explode
+    jsr FuncA_Actor_IsInRoomBounds  ; preserves X, returns C
+    bcc _Remove
     jsr FuncA_Actor_CenterHitsTerrain  ; preserves X, returns C
     bcs _ShakeAndExplode
     jmp FuncA_Actor_ApplyGravity  ; preserves X
@@ -140,6 +144,10 @@ _ShakeAndExplode:
 _Explode:
     jsr Func_PlaySfxExplodeSmall  ; preserves X
     jmp Func_InitActorSmokeExplosion  ; preserves X
+_Remove:
+    lda #eActor::None
+    sta Ram_ActorType_eActor_arr, x
+    rts
 .ENDPROC
 
 ;;;=========================================================================;;;
