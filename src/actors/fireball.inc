@@ -30,7 +30,7 @@
 ;;;     mirror again), and decrements each frame when nonzero.
 
 ;;; Tile IDs for drawing fireball/fireblast projectile actors.
-kTileIdObjFireballFirst  = $90
+kTileIdObjFireballFirst  = $c0
 kTileIdObjFireblastFirst = $9a
 
 ;;;=========================================================================;;;

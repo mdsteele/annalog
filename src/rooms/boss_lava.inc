@@ -21,6 +21,6 @@
 kTileIdBgAnimBossLavaFirst = $50
 
 ;;; OBJ tile IDs for drawing the lava boss.
-kTileIdObjBossLavaJawsFirst = $d8
+kTileIdObjBossLavaJawsFirst = $d0
 
 ;;;=========================================================================;;;

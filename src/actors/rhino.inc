@@ -25,6 +25,6 @@
 ;;;   * State4: Unused.
 
 ;;; Tile IDs for drawing rhino baddie actors.
-kTileIdObjBadRhinoFirst = $b0
+kTileIdObjBadRhinoFirst = $d0
 
 ;;;=========================================================================;;;

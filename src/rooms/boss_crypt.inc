@@ -23,6 +23,6 @@ kTileIdBgBossCryptEyeRedFirst   = $b4
 kTileIdBgBossCryptEyeWhiteFirst = $a4
 
 ;;; OBJ tile IDs for drawing the crypt boss.
-kTileIdObjBossCryptPupilFirst = $ce
+kTileIdObjBossCryptPupilFirst = $be
 
 ;;;=========================================================================;;;

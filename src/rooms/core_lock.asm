@@ -44,7 +44,7 @@
 .IMPORT Func_PlaySfxExplodeBig
 .IMPORT Main_Breaker_FadeBackToBreakerRoom
 .IMPORT Ppu_ChrBgAnimStatic
-.IMPORT Ppu_ChrObjBoss2
+.IMPORT Ppu_ChrObjBoss3
 .IMPORT Ram_ActorState2_byte_arr
 .IMPORT Ram_ActorType_eActor_arr
 .IMPORT Ram_ActorVelY_i16_0_arr
@@ -99,7 +99,7 @@ kLift3InitPlatformTop = kLift3MaxPlatformTop - kLiftInitGoalY * kBlockHeightPx
     d_addr TerrainData_ptr, _TerrainData
     d_byte NumMachines_u8, 3
     d_addr Machines_sMachine_arr_ptr, _Machines_sMachine_arr
-    d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjBoss2)
+    d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjBoss3)
     d_addr Ext_sRoomExt_ptr, _Ext_sRoomExt
     D_END
 _Ext_sRoomExt:

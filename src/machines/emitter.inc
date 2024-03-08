@@ -28,6 +28,6 @@
 kEmitterActCountdown = 10
 
 ;;; OBJ tile IDs used for drawing emitter machines.
-kTileIdObjEmitterFirst = $e2
+kTileIdObjEmitterFirst = $90
 
 ;;;=========================================================================;;;

@@ -28,6 +28,6 @@
 ;;;   * State4: Unused.
 
 ;;; Tile IDs for drawing flydrop baddie actors.
-kTileIdObjBadFlydropFirst = $d0
+kTileIdObjBadFlydropFirst = $80
 
 ;;;=========================================================================;;;

@@ -51,7 +51,7 @@
 .IMPORT Func_SetPointToActorCenter
 .IMPORT Func_ShakeRoom
 .IMPORT Ppu_ChrBgAnimStatic
-.IMPORT Ppu_ChrObjSewer
+.IMPORT Ppu_ChrObjCity
 .IMPORT Ram_ActorState2_byte_arr
 .IMPORT Ram_ActorType_eActor_arr
 .IMPORT Ram_DeviceType_eDevice_arr
@@ -107,7 +107,7 @@ kLauncherInitPlatformTop = \
     d_addr TerrainData_ptr, _TerrainData
     d_byte NumMachines_u8, 1
     d_addr Machines_sMachine_arr_ptr, _Machines_sMachine_arr
-    d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjSewer)
+    d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjCity)
     d_addr Ext_sRoomExt_ptr, _Ext_sRoomExt
     D_END
 _Ext_sRoomExt:

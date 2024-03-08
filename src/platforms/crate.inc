@@ -24,7 +24,7 @@ kTileIdObjCrateChainHalf = kTileIdObjAnchorFirst + 1
 kTileIdObjCrateAnchor    = kTileIdObjAnchorFirst + 2
 
 ;;; OBJ tile IDs for drawing boulder platforms.
-kTileIdObjBoulderFirst = $9c
+kTileIdObjBoulderFirst = $c8
 
 ;;; OBJ tile IDs for drawing crate platforms.
 kTileIdObjCrateFirst = $94

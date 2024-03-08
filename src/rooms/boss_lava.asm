@@ -92,7 +92,7 @@
 .IMPORT Func_SetPointToAvatarCenter
 .IMPORT Func_SetPointToPlatformCenter
 .IMPORT Ppu_ChrBgAnimB0
-.IMPORT Ppu_ChrObjLava
+.IMPORT Ppu_ChrObjBoss2
 .IMPORT Ram_ActorType_eActor_arr
 .IMPORT Ram_MachineGoalHorz_u8_arr
 .IMPORT Ram_Oam_sObj_arr64
@@ -267,7 +267,7 @@ kPaletteObjBossLava = 1
     d_addr TerrainData_ptr, _TerrainData
     d_byte NumMachines_u8, 2
     d_addr Machines_sMachine_arr_ptr, _Machines_sMachine_arr
-    d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjLava)
+    d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjBoss2)
     d_addr Ext_sRoomExt_ptr, _Ext_sRoomExt
     D_END
 _Ext_sRoomExt:

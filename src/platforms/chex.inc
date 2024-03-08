@@ -18,8 +18,8 @@
 ;;;=========================================================================;;;
 
 ;;; OBJ tile IDs for drawing various checkerboarded platforms.
-kTileIdObjPlatformCryptBricksFirst = $cc
+kTileIdObjPlatformCryptBricksFirst = $bc
 kTileIdObjPlatformRocksFirst       = $98
-kTileIdObjPlatformVolcanicFirst    = $84
+kTileIdObjPlatformVolcanicFirst    = $c6
 
 ;;;=========================================================================;;;

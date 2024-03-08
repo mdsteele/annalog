@@ -107,7 +107,7 @@
 .IMPORT Func_SetPointToAvatarCenter
 .IMPORT Func_SetPointToPlatformCenter
 .IMPORT Func_SetScrollGoalFromPoint
-.IMPORT Ppu_ChrObjBoss2
+.IMPORT Ppu_ChrObjBoss3
 .IMPORT Ram_ActorFlags_bObj_arr
 .IMPORT Ram_ActorPosX_i16_0_arr
 .IMPORT Ram_ActorPosX_i16_1_arr
@@ -292,7 +292,7 @@ kFirstNodeColumn = 2
     d_addr TerrainData_ptr, _TerrainData
     d_byte NumMachines_u8, kNumCoreBossMachines
     d_addr Machines_sMachine_arr_ptr, _Machines_sMachine_arr
-    d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjBoss2)
+    d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjBoss3)
     d_addr Ext_sRoomExt_ptr, _Ext_sRoomExt
     D_END
 _Ext_sRoomExt:

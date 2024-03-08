@@ -41,7 +41,7 @@ kTileIdBgDiagramSemaphoreKeyFirst  = $e0
 kTileIdBgDiagramSemaphoreLockFirst = $f0
 
 ;;; OBJ tile IDs used for drawing semaphore machines.
-kTileIdObjSemaphoreFirst = $c0
+kTileIdObjSemaphoreFirst = $80
 
 ;;;=========================================================================;;;
 

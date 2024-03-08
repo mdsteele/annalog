@@ -22,6 +22,6 @@ kForcefieldPlatformWidth  = $10
 kForcefieldPlatformHeight = $10
 
 ;;; OBJ tile IDs for drawing forcefield platforms.
-kTileIdObjForcefieldFirst = $e8
+kTileIdObjForcefieldFirst = $98
 
 ;;;=========================================================================;;;

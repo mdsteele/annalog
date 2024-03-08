@@ -19,6 +19,6 @@
 
 ;;; OBJ tile IDs for drawing terrain in BossCity.
 kTileIdObjPlatformCityBricks = $89
-kTileIdObjPlatformCityWalls  = $98
+kTileIdObjPlatformCityWalls  = $9c
 
 ;;;=========================================================================;;;

@@ -146,7 +146,7 @@ kOrcJumpVelocity = $ffff & -600
 kOrcTrappedDistance = 7
 
 ;;; Tile IDs for drawing orc baddie/NPC actors.
-kTileIdObjOrcGhostFirst          = $b0
+kTileIdObjOrcGhostFirst          = $d0
 kTileIdObjOrcGrontaCrouchFirst   = $f0
 kTileIdObjOrcGrontaJumpingFirst  = $c4
 kTileIdObjOrcGrontaParleyFirst   = $9c
