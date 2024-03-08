@@ -141,6 +141,10 @@ kOrcMaxFallSpeed = $0500
 ;;; subpixels per frame.
 kOrcJumpVelocity = $ffff & -600
 
+;;; The gap, in pixels, between the center of an orc baddie and the gate in
+;;; front of it when it is pounding while trapped.
+kOrcTrappedDistance = 7
+
 ;;; Tile IDs for drawing orc baddie/NPC actors.
 kTileIdObjOrcGhostFirst          = $b0
 kTileIdObjOrcGrontaCrouchFirst   = $f0

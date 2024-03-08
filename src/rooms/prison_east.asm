@@ -299,7 +299,7 @@ _InitOrc:
     .assert eDevice::Placeholder > 0, error
     bne @done  ; unconditional
     @orcIsTrapped:
-    ldya #kLowerGateLeft - kTileWidthPx
+    ldya #kLowerGateLeft - kOrcTrappedDistance
     sta Ram_ActorPosX_i16_0_arr + kOrcActorIndex
     sty Ram_ActorPosX_i16_1_arr + kOrcActorIndex
     lda #eBadOrc::TrapPounding

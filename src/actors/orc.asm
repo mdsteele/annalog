@@ -108,8 +108,9 @@ kGrontaThrowWindupFrames = 15
 kGrontaThrowCatchFrames = 15
 
 ;;; How many pixels in front of its center an orc baddie actor checks for solid
-;;; terrain to see if it needs to stop.
-kOrcStopDistance = 10
+;;; terrain to see if it needs to stop, when chasing/patrolling.
+kOrcChaseStopDistance = 10
+kOrcPatrolStopDistance = 20
 
 ;;; The horizontal acceleration applied to an orc baddie actor when it's
 ;;; chasing the player avatar, in subpixels per frame per frame.
@@ -665,7 +666,8 @@ _Done:
 _StillPatrolling:
     jsr FuncA_Actor_TickBadOrc_AccelerateForward  ; preserves X
     ;; Turn around if blocked.
-    jsr FuncA_Actor_IsOrcBlockedHorz  ; preserves X, returns C
+    lda #kOrcPatrolStopDistance  ; param: look-ahead distance
+    jsr FuncA_Actor_IsOrcVelXBlocked  ; preserves X, returns C
     bcc @done  ; not blocked
     jsr FuncA_Actor_NegateVelX  ; preserves X
     jsr FuncA_Actor_FaceTowardsVelXDir  ; preserves X
@@ -702,7 +704,8 @@ _KeepChasing:
     jsr FuncA_Actor_FaceTowardsAvatar  ; preserves X
     jsr FuncA_Actor_TickBadOrc_AccelerateForward  ; preserves X
 _StopIfBlocked:
-    jsr FuncA_Actor_IsOrcBlockedHorz  ; preserves X, returns C
+    lda #kOrcChaseStopDistance  ; param: look-ahead distance
+    jsr FuncA_Actor_IsOrcVelXBlocked  ; preserves X, returns C
     bcc @done
     jsr FuncA_Actor_ZeroVelX  ; preserves X
     @done:
@@ -721,7 +724,7 @@ _MaybeJump:
     lda #eBadOrc::TrapRunning
     sta Ram_ActorState1_byte_arr, x  ; current eBadGronta mode
     @finish:
-    jmp FuncA_Actor_ZeroVelX  ; preserves X
+    jmp FuncA_Actor_BadOrcTrappedStop  ; preserves X
 .ENDPROC
 
 ;;; Performs per-frame updates for an orc baddie actor that's in TrapRunning
@@ -730,10 +733,12 @@ _MaybeJump:
 ;;; @preserve X
 .PROC FuncA_Actor_TickBadOrc_TrapRunning
     jsr FuncA_Actor_TickBadOrc_AccelerateForward  ; preserves X
-    jsr FuncA_Actor_IsOrcBlockedHorz  ; preserves X, returns C
+    lda #kOrcTrappedDistance  ; param: look-ahead distance
+    jsr FuncA_Actor_IsOrcFacingDirBlocked  ; preserves X, returns C
     bcc @done  ; not blocked
     lda #eBadOrc::TrapPounding
     sta Ram_ActorState1_byte_arr, x  ; current eBadGronta mode
+    jmp FuncA_Actor_BadOrcTrappedStop  ; preserves X
     @done:
     rts
 .ENDPROC
@@ -749,19 +754,59 @@ _MaybeJump:
     bne @finish
     jsr Func_PlaySfxMetallicDing  ; preserves X
     @finish:
+    fall FuncA_Actor_BadOrcTrappedStop  ; preserves X
+.ENDPROC
+
+;;; Zeroes the orc's X-velocity, and if the orc is blocked closely in front
+;;; (e.g. by a prison gate platform that it's intersecting), backs the orc up
+;;; by one pixel.
+;;; @param X The actor index.
+;;; @preserve X
+.PROC FuncA_Actor_BadOrcTrappedStop
+    lda #kOrcTrappedDistance  ; param: look-ahead distance
+    jsr FuncA_Actor_IsOrcFacingDirBlocked  ; preserves X, returns C
+    bcc @notBlocked
+    lda #<-1  ; param: offset
+    jsr FuncA_Actor_SetPointInFrontOfActor  ; preserves X
+    jsr Func_SetActorCenterToPoint  ; preserves X
+    @notBlocked:
     jmp FuncA_Actor_ZeroVelX  ; preserves X
 .ENDPROC
 
 ;;; Checks whether an orc actor can run forward along the ground in the
-;;; direction of its current horizontal velocity.
+;;; direction it's facing.
+;;; @param A The look-ahead distance, in pixels.
 ;;; @param X The actor index.
 ;;; @param C Set if the orc cannot keep moving along its horizontal velocity.
 ;;; @preserve X
-.PROC FuncA_Actor_IsOrcBlockedHorz
-    ;; Place the point in front of the orc's feet.
+.PROC FuncA_Actor_IsOrcFacingDirBlocked
+    jsr FuncA_Actor_SetPointInFrontOfActor  ; preserves X
+    jmp FuncA_Actor_IsOrcPointBlocked  ; preserves X, returns C
+.ENDPROC
+
+;;; Checks whether an orc actor can run forward along the ground in the
+;;; direction of its current horizontal velocity.
+;;; @param A The look-ahead distance, in pixels.
+;;; @param X The actor index.
+;;; @param C Set if the orc cannot keep moving along its horizontal velocity.
+;;; @preserve X
+.PROC FuncA_Actor_IsOrcVelXBlocked
+    pha  ; look-ahead distance
     jsr Func_SetPointToActorCenter  ; preserves X
-    lda #kOrcStopDistance  ; param: offset
+    pla  ; param: look-ahead distance
     jsr FuncA_Actor_MovePointTowardVelXDir  ; preserves X
+    fall FuncA_Actor_IsOrcPointBlocked  ; preserves X, returns C
+.ENDPROC
+
+;;; Checks whether an orc actor can run forward along the ground, using the
+;;; currently-set look-ahead point to check terrain.
+;;; @prereq Zp_PointX_i16 is set to one side of the orc.
+;;; @prereq Zp_PointY_i16 is set to the orc actor's Y-position (that is, it is
+;;;     centered on the bottom half of the orc).
+;;; @param X The actor index.
+;;; @param C Set if the orc cannot keep moving along its horizontal velocity.
+;;; @preserve X
+.PROC FuncA_Actor_IsOrcPointBlocked
 _CheckTerrain:
     jsr Func_GetTerrainColumnPtrForPointX  ; preserves X
     jsr FuncA_Actor_GetRoomBlockRow  ; preserves X, returns Y
