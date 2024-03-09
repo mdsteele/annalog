@@ -1,31 +1,32 @@
 @BG 0 0 0 34x24
 >lava_0
 >lava_1
+>lava_2
 >lava_3
 >lava_4
 >lava_5
 
-DCDCDCDCDCDCDJ    DIDJDIDCDCDCDCDCDCDCDCDJDIDJDIDCDCDCDJDIDCDCDJDIDC
-DCDJDIDCBHBK      BKBI  BLDIDCDJ  BL  BLBG  BL    BH    BLDCDCDCDCDC
-DCDCDJDI                  BJ  BL                          DIDJDIDCDC
-DCDCDCDJ                          DADL  DK      DK      DKDJBL  BH
-DCDCDJBK                          DJ    DM      DC      BK    BD
-DCDJDI    BE    BEBC              DI    BK      DM            DADBDA
-DCDCDCBF  DKDBDBDADL              DCBC  AC      AG            DJDIDC
-DCDCDCDL    BL  BG          BFBC  DJDIEPDL            DKDBDL  DIDCDC
-    BLBK                  DKDADL  DCDCEAAH            BK  BG  DCDCDC
-    BEBC                BF  BH    DIDCEA                    DADCDCDC
-DADADBDA              DKDADL      BKDCEABF      ABBEBC      DJDIDCDC
-DCDJDIDJ      DKDL    BJ  BL        DCEIDCEPDCDADBDBDADAAPAODCDJDIDC
-DCDCDCBG        BK                  DIEADIDPEDEDAKAJDCDCDJDIDCDCDCDC
-DCDCDJ      DKDL                    BKCICACHBJBL  BKBJDIDCDCDJDIDCDC
-DCDJBL      BH                                        BH  BLBJBLBI
-DCDC    DN                                                    BE
-DCDC    BK                                                  DKDBDBDA
-DCDCDA                                                      BKDJDIDC
-DCDJDIBF                                                DKDL  DIDCDC
-DCDCDCDA                                                BK    DCDCDC
-DCDCDJDIDADEDFDG      DFDADADE        DEDGDADG    DFDEDHDEDGDEDCDCDC
-DCDCDCDCDC              DJDI              DC                  DCDCDC
+ECECECECECECEJ    EIEJEIECECECECECECECECEJEIEJEIECECECEJEIECECEJEIEC
+ECEJEIECBHBK      BKBI  BLEIECEJ  BL  BLBG  BL    BH    BLECECECECEC
+ECECEJEI                  BJ  BL                          EIEJEIECEC
+ECECECEJ  CP                      EAEL  EK  CO  EK      EKEJBL  BH
+ECECEJBK                CN        EJ    EM      EC      BK    BD
+ECEJEI    BE    BEBC              EI    BK      EM    CM      EAEBEA
+ECECECBF  EKEBEBEAEL              ECBC  AC      AG            EJEIEC
+ECECECEL    BL  BG          BFBC  EJEIFPEL            EKEBEL  EIECEC
+    BLBK                  EKEAEL  ECECFAAH    CM      BK  BG  ECECEC
+    BEBC                BF  BH    EIECFA                    EAECECEC
+EAEAEBEA  CM          EKEAEL      BKECFABF      ABBEBC      EJEIECEC
+ECEJEIEJ      EKEL    BJ  BL        ECFIECFPECEAEBEBEAEAAPAOECEJEIEC
+ECECECBG        BK                  EIFAEIEPFDFDAKAJECECEJEIECECECEC
+ECECEJ      EKEL                    BKDIDADHBJBL  BKBJEIECECEJEIECEC
+ECEJBL      BH      CO                    CO          BH  BLBJBLBI
+ECEC    EN                      CN                            BE
+ECEC    BK                                                  EKEBEBEA
+ECECEA        CN              CP                  CN        BKEJEIEC
+ECEJEIBF                                                EKEL  EIECEC
+ECECECEA                                CM              BK    ECECEC
+ECECEJEIEAEEEFEG      EFEAEAEE        EEEGEAEG    EFEEEHEEEGEEECECEC
+ECECECECEC              EJEI              EC                  ECECEC
 BPBPBPBPBPBPBPBPBPBPBPBPBPBPBPBPBPBPBPBPBPBPBPBPBPBPBPBPBPBPBPBPBPBP
 BPBPBPBPBPBPBPBPBPBPBPBPBPBPBPBPBPBPBPBPBPBPBPBPBPBPBPBPBPBPBPBPBPBP

@@ -30,7 +30,6 @@
 .IMPORT FuncA_Machine_StartWorking
 .IMPORT FuncA_Objects_Draw1x1Shape
 .IMPORT FuncA_Objects_GetMachineLightTileId
-.IMPORT FuncA_Objects_MoveShapeDownOneTile
 .IMPORT FuncA_Objects_SetShapePosToMachineTopLeft
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
 .IMPORT Func_FindEmptyActorSlot
@@ -57,8 +56,7 @@
 ;;; How many frames a boiler machine spends per ACT operation.
 kBoilerActCooldown = kSteamNumFrames + 16
 
-;;; OBJ palette numbers used for boiler machines and valves.
-kPaletteObjBoiler = 0
+;;; The OBJ palette number used for boiler machine valves.
 kPaletteObjValve = 0
 
 ;;;=========================================================================;;;
@@ -276,10 +274,6 @@ _Finish:
     jsr FuncA_Objects_SetShapePosToMachineTopLeft
     jsr FuncA_Objects_GetMachineLightTileId  ; returns A (param: tile ID)
     ldy #kPaletteObjMachineLight  ; param: object flags
-    jsr FuncA_Objects_Draw1x1Shape
-    jsr FuncA_Objects_MoveShapeDownOneTile
-    ldy #bObj::FlipH | kPaletteObjBoiler  ; param: object flags
-    lda #kTileIdObjMachineCorner  ; param: tile ID
     jmp FuncA_Objects_Draw1x1Shape
 .ENDPROC
 

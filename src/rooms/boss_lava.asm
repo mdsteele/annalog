@@ -18,6 +18,7 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "../actor.inc"
+.INCLUDE "../actors/blood.inc"
 .INCLUDE "../boss.inc"
 .INCLUDE "../charmap.inc"
 .INCLUDE "../device.inc"
@@ -50,6 +51,7 @@
 .IMPORT FuncA_Machine_WriteToLever
 .IMPORT FuncA_Objects_Alloc2x1Shape
 .IMPORT FuncA_Objects_AnimateLavaTerrain
+.IMPORT FuncA_Objects_Draw1x1Shape
 .IMPORT FuncA_Objects_DrawBlasterMachineVert
 .IMPORT FuncA_Objects_DrawBoilerMachine
 .IMPORT FuncA_Objects_DrawBoilerValve1
@@ -795,7 +797,24 @@ _BossFiresprayShoot:
 ;;; @prereq PRGA_Objects is loaded.
 .PROC FuncC_Boss_Lava_DrawRoom
     jsr FuncA_Objects_AnimateLavaTerrain
-    jmp FuncA_Objects_DrawBoss
+    jsr FuncA_Objects_DrawBoss
+_DrawBgRocks:
+    ldx #kLeftWallPlatformIndex  ; param: platform index
+    jsr FuncA_Objects_SetShapePosToPlatformTopLeft
+    lda #$50  ; param: offset
+    jsr FuncA_Objects_MoveShapeRightByA
+    lda #$10  ; param: offset
+    jsr FuncA_Objects_MoveShapeDownByA
+    lda #kTileIdObjBloodFirst + 0
+    ldy #bObj::Pri  ; param: object flags
+    jsr FuncA_Objects_Draw1x1Shape
+    lda #$48  ; param: offset
+    jsr FuncA_Objects_MoveShapeRightByA
+    lda #$20  ; param: offset
+    jsr FuncA_Objects_MoveShapeDownByA
+    lda #kTileIdObjBloodFirst + 1
+    ldy #bObj::Pri  ; param: object flags
+    jmp FuncA_Objects_Draw1x1Shape
 .ENDPROC
 
 ;;; Draw function for the lava boss.

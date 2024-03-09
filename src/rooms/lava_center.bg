@@ -1,32 +1,33 @@
 @BG 0 0 0 18x24
 >lava_0
 >lava_1
+>lava_2
 >lava_3
 >lava_4
 >lava_5
 >lava_6
 
-DCDCDCDCDCDCDJDIDCDCDCDCDCDJDIDCDCDC
-DCDCDCDJ  BKBJBLBHAFAFAFAFAFAFDIDCDC
-DCDJDIBL            AE          BL
-DCDCDC              DN
-DCDCDJ      DAAB    BK          DADB
-    BL      DCDA                DCDC
-    BEBC  BFDCDC                DCDC
-DADLDKDBDADBDCDCDEDF          DGDIDC
-DCDCDCDCDIDJ  BH                DCDC
-DCDCDJDIBKBG              DN    DCDC
-DCDCDCDJ                      DADCDC
-DCDCDCBK            DKDL      DIDCDC
-DCDCDJ                BL      BH
-DCDJ      DN                    BF
-  BK      BL        AC          DADB
-    BC            DKDL          DCDC
-DADADA            BLBG          DIDC
-DCDCDCBF                  DN    DCDC
-DCDCDCDA                  BK  DKDCDC
-DCDCDJDIAE                  AEBKDCDC
-DCDCDCDJDK          BF      DADLDIDC
-DCDCDCDCDC        DADA      DJDIDCDC
+ECECECECECECEJEIECECECECECEJEIECECEC
+ECECECEJ  BKBJBLBHAFAFAFAFAFAFEIECEC
+ECEJEIBL            AE          BL
+ECECECCN            EN
+ECECEJ      EAAB    BK          EAEB
+    BL      ECEA                ECEC
+    BEBC  BFECEC      CP        ECEC
+EAELEKEBEAEBECECEEEF          EGEIEC
+ECECECECEIEJ  BH                ECEC
+ECECEJEIBKBG              EN    ECEC
+ECECECEJ    CN                EAECEC
+ECECECBK        CN  EKEL      EIECEC
+ECECEJ                BL      BH
+ECEJ      EN                    BF
+  BK      BL        AC          EAEB
+    BC            EKEL      CM  ECEC
+EAEAEA            BLBG          EIEC
+ECECECBF                  EN    ECEC
+ECECECEA    CM            BK  EKECEC
+ECECEJEIAE            CP    AEBKECEC
+ECECECEJEK          BF      EAELEIEC
+ECECECECEC        EAEA      EJEIECEC
 BPBPBPBPBPBPBPBPBPBPBPBPBPBPBPBPBPBP
 BPBPBPBPBPBPBPBPBPBPBPBPBPBPBPBPBPBP
