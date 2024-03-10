@@ -17,7 +17,7 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
-;;; State bytes for steam projectiles:
+;;; State bytes for steam projectiles/smoke:
 ;;;   * Flags: For horizontal steam, the bObj::FlipH bit is set if the steam is
 ;;;     aimed leftward, or cleared if it is aimed rightward.  Unused for upward
 ;;;     steam.
@@ -25,6 +25,7 @@
 ;;;     reaches kSteamNumFrames, then the steam is removed.
 ;;;   * State2: Unused.
 ;;;   * State3: Unused.
+;;;   * State4: Unused.
 
 ;;; How long a steam actor animates before disappearing, in frames.
 kSteamNumFrames = 32

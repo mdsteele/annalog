@@ -74,6 +74,8 @@ kMaxActors = 16
     SmokeExplosion   ; a puff of smoke for when something explodes
     SmokeFragment    ; a fragment that falls under gravity
     SmokeParticle    ; a single particle of smoke
+    SmokeSteamHorz   ; like ProjSteamHorz, but without any physics interactions
+    SmokeSteamUp     ; like ProjSteamUp, but without any physics interactions
     NUM_VALUES
 .ENDENUM
 

@@ -76,9 +76,10 @@
 .IMPORT FuncA_Room_HarmAvatarIfWithinLaserBeam
 .IMPORT FuncA_Room_HarmBadGronta
 .IMPORT FuncA_Room_IsPointInLaserBeam
-.IMPORT FuncA_Room_MachineBlasterReset
 .IMPORT FuncA_Room_MachineCannonReset
 .IMPORT FuncA_Room_ReflectFireblastsOffMirror
+.IMPORT FuncA_Room_TurnProjectilesToSmoke
+.IMPORT FuncA_Room_TurnProjectilesToSmokeIfConsoleOpen
 .IMPORT Func_FindEmptyActorSlot
 .IMPORT Func_GetAngleFromPointToActor
 .IMPORT Func_GetAngleFromPointToAvatar
@@ -595,6 +596,11 @@ _ReadX:
     bne @noCutscene
     rts
     @noCutscene:
+_MachineProjectiles:
+    lda #eActor::ProjFireblast  ; param: projectile type
+    jsr FuncA_Room_TurnProjectilesToSmokeIfConsoleOpen
+    lda #eActor::ProjGrenade  ; param: projectile type
+    jsr FuncA_Room_TurnProjectilesToSmokeIfConsoleOpen
 _Mirror1:
     lda Ram_MachineState3_byte_arr + kBlasterMachineIndex  ; mirror 1 anim
     div #kBlasterMirrorAnimSlowdown
@@ -623,6 +629,8 @@ _TalkToGronta:
     ;; Start the cutscene.
     .assert eGrontaPhase::Talking = 1 + eGrontaPhase::WaitingToTalk, error
     inc Zp_RoomState + sState::Current_eGrontaPhase
+    lda #eActor::ProjFireblast  ; param: projectile type
+    jsr FuncA_Room_TurnProjectilesToSmoke
     lda #eCutscene::CoreBossStartBattle
     sta Zp_Next_eCutscene
     @done:
@@ -1474,11 +1482,10 @@ _Finished:
     sta Ram_MachineState3_byte_arr + kBlasterMachineIndex  ; mirror 1 anim
     lda #kBlasterInitGoalR * kBlasterMirrorAnimSlowdown
     sta Ram_MachineState4_byte_arr + kBlasterMachineIndex  ; mirror 2 anim
-    .assert * = FuncA_Room_CoreBossBlaster_Reset, error, "fallthrough"
+    fall FuncA_Room_CoreBossBlaster_Reset
 .ENDPROC
 
 .PROC FuncA_Room_CoreBossBlaster_Reset
-    jsr FuncA_Room_MachineBlasterReset
     lda #kBlasterInitGoalM
     sta Ram_MachineState1_byte_arr + kBlasterMachineIndex  ; mirror 1 goal
     lda #kBlasterInitGoalR

@@ -33,7 +33,6 @@
 .IMPORT FuncA_Machine_StartWaiting
 .IMPORT FuncA_Objects_Alloc2x2MachineShape
 .IMPORT FuncA_Objects_GetMachineLightTileId
-.IMPORT FuncA_Room_TurnProjectilesToSmoke
 .IMPORT Func_FindEmptyActorSlot
 .IMPORT Func_InitActorProjGrenade
 .IMPORT Ram_ActorPosX_i16_0_arr
@@ -94,8 +93,7 @@ kTileIdObjCannonBarrelLow  = kTileIdObjCannonFirst + $04
     ldx Zp_MachineIndex_u8
     lda #0
     sta Ram_MachineGoalVert_u8_arr, x
-    lda #eActor::ProjGrenade  ; param: projectile type
-    jmp FuncA_Room_TurnProjectilesToSmoke
+    rts
 .ENDPROC
 
 ;;;=========================================================================;;;

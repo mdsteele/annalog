@@ -42,7 +42,7 @@
 .IMPORT FuncA_Machine_ReachedGoal
 .IMPORT FuncA_Objects_DrawMinigunRightMachine
 .IMPORT FuncA_Room_PlaySfxCrack
-.IMPORT FuncA_Room_RemoveAllBulletsIfConsoleOpen
+.IMPORT FuncA_Room_TurnProjectilesToSmokeIfConsoleOpen
 .IMPORT FuncC_Shadow_DrawGlassPlatform
 .IMPORT Func_IsPointInPlatform
 .IMPORT Func_Noop
@@ -386,7 +386,9 @@ _BreakableGlass:
 .ENDPROC
 
 .PROC FuncA_Room_ShadowHall_TickRoom
-    jsr FuncA_Room_RemoveAllBulletsIfConsoleOpen
+    lda #eActor::ProjBullet  ; param: projectile type
+    jsr FuncA_Room_TurnProjectilesToSmokeIfConsoleOpen
+_CheckForBulletHits:
     ldx #kMaxActors - 1
     @loop:
     lda Ram_ActorType_eActor_arr, x

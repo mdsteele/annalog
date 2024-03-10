@@ -47,6 +47,7 @@
 .IMPORT FuncA_Room_FindGrenadeActor
 .IMPORT FuncA_Room_MachineCannonReset
 .IMPORT FuncA_Room_ResetLever
+.IMPORT FuncA_Room_TurnProjectilesToSmokeIfConsoleOpen
 .IMPORT Func_InitActorSmokeExplosion
 .IMPORT Func_IsActorWithinDistanceOfPoint
 .IMPORT Func_MachineBridgeReadRegY
@@ -370,8 +371,10 @@ _Passages_sPassage_arr:
     rts
 .ENDPROC
 
-;;; @prereq PRGA_Room is loaded.
 .PROC FuncA_Room_GardenEast_TickRoom
+    lda #eActor::ProjGrenade  ; param: projectile type
+    jsr FuncA_Room_TurnProjectilesToSmokeIfConsoleOpen  ; preserves X
+_SetPointToVinebugPosition:
     ;; If the vinebug is already gone, then we're done.
     lda Ram_ActorType_eActor_arr + kKillableVinebugActorIndex
     cmp #eActor::BadVinebug

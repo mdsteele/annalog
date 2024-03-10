@@ -27,13 +27,11 @@
 .IMPORT FuncA_Actor_HarmAvatarIfCollision
 .IMPORT FuncA_Actor_IsInRoomBounds
 .IMPORT FuncA_Objects_Draw1x1Actor
-.IMPORT FuncA_Room_TurnProjectilesToSmoke
 .IMPORT Func_InitActorDefault
 .IMPORT Ram_ActorState1_byte_arr
 .IMPORT Ram_ActorType_eActor_arr
 .IMPORT Ram_ActorVelX_i16_1_arr
 .IMPORT Ram_ActorVelY_i16_1_arr
-.IMPORTZP Zp_ConsoleMachineIndex_u8
 
 ;;;=========================================================================;;;
 
@@ -105,23 +103,6 @@ _Expire:
     lda #eActor::None
     sta Ram_ActorType_eActor_arr, x
 _Done:
-    rts
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Room"
-
-;;; If the console window is open, turns all bullet projectiles into smoke
-;;; particles.  If the console window is closed, does nothing.  This should be
-;;; called from room tick functions in rooms containing minigun machines.
-.EXPORT FuncA_Room_RemoveAllBulletsIfConsoleOpen
-.PROC FuncA_Room_RemoveAllBulletsIfConsoleOpen
-    lda Zp_ConsoleMachineIndex_u8
-    bmi @done
-    lda #eActor::ProjBullet  ; param: projectile type
-    jmp FuncA_Room_TurnProjectilesToSmoke
-    @done:
     rts
 .ENDPROC
 

@@ -44,6 +44,7 @@
 .IMPORT FuncA_Objects_DrawBoilerValve1
 .IMPORT FuncA_Room_MachineBoilerReset
 .IMPORT FuncA_Room_ResetLever
+.IMPORT FuncA_Room_TurnSteamToSmokeIfConsoleOpen
 .IMPORT FuncA_Terrain_FadeInTallRoomWithLava
 .IMPORT Func_MachineBoilerReadReg
 .IMPORT Func_Noop
@@ -101,7 +102,7 @@ _Ext_sRoomExt:
     d_addr Passages_sPassage_arr_ptr, _Passages_sPassage_arr
     d_addr Enter_func_ptr, Func_Noop
     d_addr FadeIn_func_ptr, FuncA_Terrain_FadeInTallRoomWithLava
-    d_addr Tick_func_ptr, Func_Noop
+    d_addr Tick_func_ptr, FuncA_Room_TurnSteamToSmokeIfConsoleOpen
     d_addr Draw_func_ptr, FuncA_Objects_AnimateLavaTerrain
     D_END
 _TerrainData:

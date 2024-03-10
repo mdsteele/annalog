@@ -33,6 +33,7 @@
 .IMPORTZP Zp_AvatarState_bAvatar
 .IMPORTZP Zp_AvatarVelX_i16
 .IMPORTZP Zp_AvatarVelY_i16
+.IMPORTZP Zp_ConsoleMachineIndex_u8
 
 ;;;=========================================================================;;;
 
@@ -76,6 +77,52 @@ kPaletteObjSteam = 0
 .PROC Func_InitActorProjSteamUp
     ldy #eActor::ProjSteamUp  ; param: actor type
     jmp Func_InitActorDefault  ; preserves X and T0+
+.ENDPROC
+
+;;; Initializes the specified actor as a horizontal steam smoke.
+;;; @prereq The actor's pixel position has already been initialized.
+;;; @param A The facing direction (either 0 or bObj::FlipH).
+;;; @param X The actor index.
+;;; @preserve X, T0+
+.EXPORT Func_InitActorSmokeSteamHorz := Func_InitActorProjSteamHorz
+
+;;; Initializes the specified actor as an upward steam smoke.
+;;; @prereq The actor's pixel position has already been initialized.
+;;; @param X The actor index.
+;;; @preserve X, T0+
+.EXPORT Func_InitActorSmokeSteamUp := Func_InitActorProjSteamUp
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Room"
+
+;;; If the console window is open, turns all steam projectiles into steam
+;;; smoke.  If the console window is closed, does nothing.  This should be
+;;; called from room tick functions in rooms containing boiler machines.
+.EXPORT FuncA_Room_TurnSteamToSmokeIfConsoleOpen
+.PROC FuncA_Room_TurnSteamToSmokeIfConsoleOpen
+    lda Zp_ConsoleMachineIndex_u8
+    bmi @done
+    ldx #kMaxActors - 1
+    @loop:
+    lda Ram_ActorType_eActor_arr, x
+    cmp #eActor::ProjSteamHorz
+    beq @change
+    cmp #eActor::ProjSteamUp
+    bne @continue
+    @change:
+    .linecont +
+    .assert eActor::SmokeSteamHorz - eActor::ProjSteamHorz = \
+            eActor::SmokeSteamUp   - eActor::ProjSteamUp, error
+    .linecont -
+    add #eActor::SmokeSteamHorz - eActor::ProjSteamHorz
+    sta Ram_ActorType_eActor_arr, x
+    @continue:
+    dex
+    .assert kMaxActors <= $80, error
+    bpl @loop
+    @done:
+    rts
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -141,7 +188,7 @@ kPaletteObjSteam = 0
     @noClamp:
     sta Zp_AvatarVelY_i16 + 1
     @noPush:
-    .assert * = FuncA_Actor_IncrementSteamAge, error, "fallthrough"
+    fall FuncA_Actor_IncrementSteamAge  ; preserves X
 .ENDPROC
 
 ;;; Increments the state byte for the specified steam actor, and removes the
@@ -181,6 +228,16 @@ kPaletteObjSteam = 0
     rts
 .ENDPROC
 
+;;; Performs per-frame updates for a horizontal steam smoke actor.
+;;; @param X The actor index.
+;;; @preserve X
+.EXPORT FuncA_Actor_TickSmokeSteamHorz := FuncA_Actor_IncrementSteamAge
+
+;;; Performs per-frame updates for an upward steam smoke actor.
+;;; @param X The actor index.
+;;; @preserve X
+.EXPORT FuncA_Actor_TickSmokeSteamUp := FuncA_Actor_IncrementSteamAge
+
 ;;;=========================================================================;;;
 
 .SEGMENT "PRGA_Objects"
@@ -210,5 +267,21 @@ kPaletteObjSteam = 0
     ldy #kPaletteObjSteam  ; param: palette
     jmp FuncA_Objects_Draw1x2Actor  ; preserves X
 .ENDPROC
+
+;;; Draws a horizontal steam smoke actor.
+;;; @param X The actor index.
+;;; @preserve X
+.LINECONT +
+.EXPORT FuncA_Objects_DrawActorSmokeSteamHorz := \
+    FuncA_Objects_DrawActorProjSteamHorz
+.LINECONT -
+
+;;; Draws an upward steam smoke actor.
+;;; @param X The actor index.
+;;; @preserve X
+.LINECONT +
+.EXPORT FuncA_Objects_DrawActorSmokeSteamUp := \
+    FuncA_Objects_DrawActorProjSteamUp
+.LINECONT -
 
 ;;;=========================================================================;;;

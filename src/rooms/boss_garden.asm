@@ -58,6 +58,7 @@
 .IMPORT FuncA_Room_ResetLever
 .IMPORT FuncA_Room_TickBoss
 .IMPORT FuncA_Room_TurnProjectilesToSmoke
+.IMPORT FuncA_Room_TurnProjectilesToSmokeIfConsoleOpen
 .IMPORT Func_AckIrqAndLatchWindowFromParam4
 .IMPORT Func_AckIrqAndSetLatch
 .IMPORT Func_DivMod
@@ -400,6 +401,10 @@ _BossIsAlive:
 ;;; Room tick function for the BossGarden room.
 ;;; @prereq PRGA_Room is loaded.
 .PROC FuncC_Boss_Garden_TickRoom
+_MachineProjectiles:
+    lda #eActor::ProjGrenade  ; param: projectile type
+    jsr FuncA_Room_TurnProjectilesToSmokeIfConsoleOpen  ; preserves X
+_Boss:
     .assert eBossMode::Dead = 0, error
     lda Zp_RoomState + sState::Current_eBossMode  ; param: zero if boss is dead
     jmp FuncA_Room_TickBoss
@@ -748,9 +753,9 @@ _HitOpenEye:
     lda Zp_RoomState + sState::BossEyeHealth_u8_arr2 + 0
     ora Zp_RoomState + sState::BossEyeHealth_u8_arr2 + 1
     bne @bossIsStillAlive
-    lda #eActor::ProjFireball
+    lda #eActor::ProjFireball  ; param: projectile type
     jsr FuncA_Room_TurnProjectilesToSmoke  ; preserves X
-    lda #eActor::ProjSpike
+    lda #eActor::ProjSpike  ; param: projectile type
     jsr FuncA_Room_TurnProjectilesToSmoke  ; preserves X
     lda #ePlatform::Zone
     sta Ram_PlatformType_ePlatform_arr + kThornsPlatformIndex

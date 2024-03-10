@@ -47,6 +47,7 @@
 .IMPORT FuncA_Room_RemoveFlowerDeviceIfCarriedOrDelivered
 .IMPORT FuncA_Room_ResetLever
 .IMPORT FuncA_Room_RespawnFlowerDeviceIfDropped
+.IMPORT FuncA_Room_TurnSteamToSmokeIfConsoleOpen
 .IMPORT FuncA_Terrain_FadeInShortRoomWithLava
 .IMPORT Func_MachineBoilerReadReg
 .IMPORT Func_Noop
@@ -104,7 +105,7 @@ _Ext_sRoomExt:
     d_addr Passages_sPassage_arr_ptr, _Passages_sPassage_arr
     d_addr Enter_func_ptr, FuncA_Room_RemoveFlowerDeviceIfCarriedOrDelivered
     d_addr FadeIn_func_ptr, FuncA_Terrain_FadeInShortRoomWithLava
-    d_addr Tick_func_ptr, FuncA_Room_RespawnFlowerDeviceIfDropped
+    d_addr Tick_func_ptr, FuncA_Room_LavaFlower_TickRoom
     d_addr Draw_func_ptr, FuncA_Objects_AnimateLavaTerrain
     D_END
 _TerrainData:
@@ -123,12 +124,12 @@ _Machines_sMachine_arr:
     d_byte MainPlatform_u8, kBoilerPlatformIndex
     d_addr Init_func_ptr, Func_Noop
     d_addr ReadReg_func_ptr, FuncC_Lava_FlowerBoiler_ReadReg
-    d_addr WriteReg_func_ptr, FuncA_Machine_LavaWestBoiler_WriteReg
+    d_addr WriteReg_func_ptr, FuncA_Machine_LavaFlowerBoiler_WriteReg
     d_addr TryMove_func_ptr, FuncA_Machine_Error
     d_addr TryAct_func_ptr, FuncA_Machine_LavaFlowerBoiler_TryAct
     d_addr Tick_func_ptr, FuncA_Machine_BoilerTick
     d_addr Draw_func_ptr, FuncC_Lava_FlowerBoiler_Draw
-    d_addr Reset_func_ptr, FuncA_Room_LavaWestBoiler_Reset
+    d_addr Reset_func_ptr, FuncA_Room_LavaFlowerBoiler_Reset
     D_END
     .assert * - :- <= kMaxMachines * .sizeof(sMachine), error
 _Platforms_sPlatform_arr:
@@ -256,7 +257,12 @@ _ReadL:
 
 .SEGMENT "PRGA_Room"
 
-.PROC FuncA_Room_LavaWestBoiler_Reset
+.PROC FuncA_Room_LavaFlower_TickRoom
+    jsr FuncA_Room_RespawnFlowerDeviceIfDropped
+    jmp FuncA_Room_TurnSteamToSmokeIfConsoleOpen
+.ENDPROC
+
+.PROC FuncA_Room_LavaFlowerBoiler_Reset
     ldx #kLeverDeviceIndex  ; param: device index
     jsr FuncA_Room_ResetLever
     jmp FuncA_Room_MachineBoilerReset
@@ -266,7 +272,7 @@ _ReadL:
 
 .SEGMENT "PRGA_Machine"
 
-.PROC FuncA_Machine_LavaWestBoiler_WriteReg
+.PROC FuncA_Machine_LavaFlowerBoiler_WriteReg
     cpx #$c
     beq _WriteL
     jmp FuncA_Machine_BoilerWriteReg

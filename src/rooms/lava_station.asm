@@ -42,6 +42,7 @@
 .IMPORT FuncA_Objects_DrawBoilerMachine
 .IMPORT FuncA_Objects_DrawBoilerValve1
 .IMPORT FuncA_Room_MachineBoilerReset
+.IMPORT FuncA_Room_TurnSteamToSmokeIfConsoleOpen
 .IMPORT Func_MachineBoilerReadReg
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrObjLava
@@ -93,7 +94,7 @@ _Ext_sRoomExt:
     d_addr Passages_sPassage_arr_ptr, _Passages_sPassage_arr
     d_addr Enter_func_ptr, FuncC_Lava_Station_EnterRoom
     d_addr FadeIn_func_ptr, Func_Noop
-    d_addr Tick_func_ptr, Func_Noop
+    d_addr Tick_func_ptr, FuncA_Room_TurnSteamToSmokeIfConsoleOpen
     d_addr Draw_func_ptr, Func_Noop
     D_END
 _TerrainData:

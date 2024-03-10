@@ -45,6 +45,7 @@
 .IMPORT FuncA_Room_FindGrenadeActor
 .IMPORT FuncA_Room_MachineCannonReset
 .IMPORT FuncA_Room_ResetLever
+.IMPORT FuncA_Room_TurnProjectilesToSmokeIfConsoleOpen
 .IMPORT Func_InitActorSmokeExplosion
 .IMPORT Func_IsPointInPlatform
 .IMPORT Func_MachineCannonReadRegY
@@ -414,6 +415,8 @@ _Crates:
 ;;; Room tick function for the GardenTower room.
 ;;; @prereq PRGA_Room is loaded.
 .PROC FuncC_Garden_Tower_TickRoom
+    lda #eActor::ProjGrenade  ; param: projectile type
+    jsr FuncA_Room_TurnProjectilesToSmokeIfConsoleOpen  ; preserves X
 _Thorns:
     ;; Periodically move thorns:
     dec Zp_RoomState + sState::ThornTimer_u8

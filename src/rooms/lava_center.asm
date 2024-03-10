@@ -49,9 +49,9 @@
 .IMPORT FuncA_Objects_DrawCratePlatform
 .IMPORT FuncA_Objects_MoveShapeDownOneTile
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
-.IMPORT FuncA_Room_MachineBlasterReset
 .IMPORT FuncA_Room_ReflectFireblastsOffMirror
 .IMPORT FuncA_Room_ResetLever
+.IMPORT FuncA_Room_TurnProjectilesToSmokeIfConsoleOpen
 .IMPORT FuncA_Terrain_FadeInTallRoomWithLava
 .IMPORT Func_InitActorSmokeExplosion
 .IMPORT Func_IsActorWithinDistanceOfPoint
@@ -536,6 +536,8 @@ _Blaster:
 .ENDPROC
 
 .PROC FuncA_Room_LavaCenter_TickRoom
+    lda #eActor::ProjFireblast  ; param: projectile type
+    jsr FuncA_Room_TurnProjectilesToSmokeIfConsoleOpen
 _Crates:
     ldx #eCrate::NUM_VALUES - 1
     @loop:
@@ -678,11 +680,10 @@ _Return:
 .PROC FuncA_Room_LavaCenterBlaster_Init
     lda #kBlasterInitGoalM * kBlasterMirrorAnimSlowdown
     sta Ram_MachineState3_byte_arr + kBlasterMachineIndex  ; mirror anim
-    .assert * = FuncA_Room_LavaCenterBlaster_Reset, error, "fallthrough"
+    fall FuncA_Room_LavaCenterBlaster_Reset
 .ENDPROC
 
 .PROC FuncA_Room_LavaCenterBlaster_Reset
-    jsr FuncA_Room_MachineBlasterReset
     lda #kBlasterInitGoalM
     sta Ram_MachineState1_byte_arr + kBlasterMachineIndex  ; mirror goal
     lda #kBlasterInitGoalX

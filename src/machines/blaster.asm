@@ -31,7 +31,6 @@
 .IMPORT FuncA_Objects_Draw1x1Shape
 .IMPORT FuncA_Objects_GetMachineLightTileId
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
-.IMPORT FuncA_Room_TurnProjectilesToSmoke
 .IMPORT Func_FindEmptyActorSlot
 .IMPORT Func_InitActorProjFireblast
 .IMPORT Func_IsPointInPlatform
@@ -228,14 +227,6 @@ _Finish:
 ;;;=========================================================================;;;
 
 .SEGMENT "PRGA_Room"
-
-;;; Reset implemention for blaster machines.
-;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
-.EXPORT FuncA_Room_MachineBlasterReset
-.PROC FuncA_Room_MachineBlasterReset
-    lda #eActor::ProjFireblast  ; param: projectile type
-    jmp FuncA_Room_TurnProjectilesToSmoke
-.ENDPROC
 
 ;;; Checks if any fireblasts are hitting the specified mirror, and if so,
 ;;; reflects them off of the mirror.

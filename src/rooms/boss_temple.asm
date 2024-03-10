@@ -59,9 +59,9 @@
 .IMPORT FuncA_Room_InitActorProjBreakball
 .IMPORT FuncA_Room_InitActorSmokeBlood
 .IMPORT FuncA_Room_InitBoss
-.IMPORT FuncA_Room_RemoveAllBulletsIfConsoleOpen
 .IMPORT FuncA_Room_ResetLever
 .IMPORT FuncA_Room_TickBoss
+.IMPORT FuncA_Room_TurnProjectilesToSmokeIfConsoleOpen
 .IMPORT Func_AckIrqAndLatchWindowFromParam4
 .IMPORT Func_AckIrqAndSetLatch
 .IMPORT Func_DivMod
@@ -827,7 +827,10 @@ _BossIsDead:
 
 ;;; Room tick function for the BossTemple room.
 .PROC FuncA_Room_BossTemple_TickRoom
-    jsr FuncA_Room_RemoveAllBulletsIfConsoleOpen
+_MachineProjectiles:
+    lda #eActor::ProjBullet  ; param: projectile type
+    jsr FuncA_Room_TurnProjectilesToSmokeIfConsoleOpen
+_Boss:
     .assert eBossMode::Dead = 0, error
     lda Zp_RoomState + sState::Current_eBossMode  ; param: zero if boss dead
     jmp FuncA_Room_TickBoss

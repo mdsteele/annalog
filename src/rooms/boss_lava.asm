@@ -63,11 +63,12 @@
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
 .IMPORT FuncA_Room_InitActorProjFlamestrike
 .IMPORT FuncA_Room_InitBoss
-.IMPORT FuncA_Room_MachineBlasterReset
 .IMPORT FuncA_Room_MachineBoilerReset
 .IMPORT FuncA_Room_PlaySfxWindup
 .IMPORT FuncA_Room_ResetLever
 .IMPORT FuncA_Room_TickBoss
+.IMPORT FuncA_Room_TurnProjectilesToSmokeIfConsoleOpen
+.IMPORT FuncA_Room_TurnSteamToSmokeIfConsoleOpen
 .IMPORT FuncA_Terrain_FadeInShortRoomWithLava
 .IMPORT Func_AckIrqAndLatchWindowFromParam4
 .IMPORT Func_AckIrqAndSetLatch
@@ -298,14 +299,14 @@ _Machines_sMachine_arr:
     d_byte ScrollGoalY_u8, $00
     d_byte RegNames_u8_arr4, "L", "R", "X", "D"
     d_byte MainPlatform_u8, kBlasterPlatformIndex
-    d_addr Init_func_ptr, FuncA_Room_BossLavaBlaster_Init
+    d_addr Init_func_ptr, FuncA_Room_BossLavaBlaster_InitReset
     d_addr ReadReg_func_ptr, FuncC_Boss_LavaBlaster_ReadReg
     d_addr WriteReg_func_ptr, FuncA_Machine_BossLava_WriteRegLR
     d_addr TryMove_func_ptr, FuncA_Machine_BossLavaBlaster_TryMove
     d_addr TryAct_func_ptr, FuncA_Machine_BlasterVertTryAct
     d_addr Tick_func_ptr, FuncA_Machine_BossLavaBlaster_Tick
     d_addr Draw_func_ptr, FuncA_Objects_DrawBlasterMachineVert
-    d_addr Reset_func_ptr, FuncA_Room_BossLavaBlaster_Reset
+    d_addr Reset_func_ptr, FuncA_Room_BossLavaBlaster_InitReset
     D_END
     .assert * - :- = kBoilerMachineIndex * .sizeof(sMachine), error
     D_STRUCT sMachine
@@ -777,7 +778,7 @@ _BossFiresprayShoot:
 ;;; closed.
 .PROC FuncC_Boss_Lava_BossCloseJaws
     lda #1  ; param: speedup
-    .assert * = FuncC_Boss_Lava_BossCloseJawsWithSpeedup, error, "fallthrough"
+    fall FuncC_Boss_Lava_BossCloseJawsWithSpeedup
 .ENDPROC
 
 ;;; Closes the boss's jaws and tail by the given number of steps, down until
@@ -985,17 +986,17 @@ _BossIsDead:
 
 ;;; Room tick function for the BossLava room.
 .PROC FuncA_Room_BossLava_TickRoom
+_MachineProjectiles:
+    jsr FuncA_Room_TurnSteamToSmokeIfConsoleOpen
+    lda #eActor::ProjFireblast  ; param: projectile type
+    jsr FuncA_Room_TurnProjectilesToSmokeIfConsoleOpen
+_Boss:
     .assert eBossMode::Dead = 0, error
     lda Zp_RoomState + sState::Current_eBossMode  ; param: zero if boss dead
     jmp FuncA_Room_TickBoss
 .ENDPROC
 
-.PROC FuncA_Room_BossLavaBlaster_Reset
-    jsr FuncA_Room_MachineBlasterReset
-    .assert * = FuncA_Room_BossLavaBlaster_Init, error, "fallthrough"
-.ENDPROC
-
-.PROC FuncA_Room_BossLavaBlaster_Init
+.PROC FuncA_Room_BossLavaBlaster_InitReset
     lda #kBlasterInitGoalX
     sta Ram_MachineGoalHorz_u8_arr + kBlasterMachineIndex
     .assert kBlasterInitGoalX < $80, error
@@ -1004,7 +1005,7 @@ _BossIsDead:
 
 .PROC FuncA_Room_BossLavaBoiler_Reset
     jsr FuncA_Room_MachineBoilerReset
-    .assert * = FuncA_Room_BossLava_ResetLevers, error, "fallthrough"
+    fall FuncA_Room_BossLava_ResetLevers
 .ENDPROC
 
 .PROC FuncA_Room_BossLava_ResetLevers

@@ -45,8 +45,8 @@
 .IMPORT FuncA_Objects_DrawMinigunDownMachine
 .IMPORT FuncA_Objects_DrawMinigunLeftMachine
 .IMPORT FuncA_Room_PlaySfxCrack
-.IMPORT FuncA_Room_RemoveAllBulletsIfConsoleOpen
 .IMPORT FuncA_Room_ResetLever
+.IMPORT FuncA_Room_TurnProjectilesToSmokeIfConsoleOpen
 .IMPORT FuncC_Temple_DrawColumnCrackedPlatform
 .IMPORT Func_InitActorSmokeExplosion
 .IMPORT Func_IsActorWithinDistanceOfPoint
@@ -350,7 +350,9 @@ _Passages_sPassage_arr:
 
 ;;; @prereq PRGA_Room is loaded.
 .PROC FuncC_Temple_Altar_TickRoom
-    jsr FuncA_Room_RemoveAllBulletsIfConsoleOpen
+    lda #eActor::ProjBullet  ; param: projectile type
+    jsr FuncA_Room_TurnProjectilesToSmokeIfConsoleOpen
+_CheckForBulletHits:
     ldx #kMaxActors - 1
     @loop:
     lda Ram_ActorType_eActor_arr, x

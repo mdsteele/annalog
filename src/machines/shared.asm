@@ -324,9 +324,19 @@
 
 .SEGMENT "PRGA_Room"
 
+;;; If a machine console window is open, turns all projectile actors of the
+;;; specified type into smoke particles.  This should generally be called from
+;;; a room's Tick function.
+;;; @param A The eActor::Proj* value.
+;;; @preserve X
+.EXPORT FuncA_Room_TurnProjectilesToSmokeIfConsoleOpen
+.PROC FuncA_Room_TurnProjectilesToSmokeIfConsoleOpen
+    ldy Zp_ConsoleMachineIndex_u8
+    bpl FuncA_Room_TurnProjectilesToSmoke  ; preserves X
+    rts
+.ENDPROC
+
 ;;; Turns all projectile actors of the specified type into smoke particles.
-;;; This should be called from the Reset function of machines that shoot
-;;; projectiles.
 ;;; @param A The eActor::Proj* value.
 ;;; @preserve X
 .EXPORT FuncA_Room_TurnProjectilesToSmoke
