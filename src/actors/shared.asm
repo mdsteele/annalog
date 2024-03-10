@@ -169,12 +169,22 @@ _Atan2:
     rts
 .ENDPROC
 
-;;; Checks if the center of the actor is within the bounds of the room.
+;;; Checks if the center of the actor is within the bounds of the current room.
 ;;; @param X The actor index.
 ;;; @return C Set if the actor is within the room bounds, cleared otherwise.
 ;;; @preserve X
 .EXPORT FuncA_Actor_IsInRoomBounds
 .PROC FuncA_Actor_IsInRoomBounds
+    jsr Func_SetPointToActorCenter  ; preserves X
+    fall FuncA_Actor_IsPointInRoomBounds  ; preserves X, returns C
+.ENDPROC
+
+;;; Checks if the point stored in Zp_PointX_i16 and Zp_PointY_i16 is within the
+;;; bounds of the current room.
+;;; @return C Set if the actor is within the room bounds, cleared otherwise.
+;;; @preserve X
+.EXPORT FuncA_Actor_IsPointInRoomBounds
+.PROC FuncA_Actor_IsPointInRoomBounds
 _CheckVert:
     bit Zp_Current_sRoom + sRoom::Flags_bRoom
     .assert bRoom::Tall = bProc::Overflow, error
@@ -187,26 +197,26 @@ _CheckVert:
     ldya #kTallRoomHeightBlocks * kBlockHeightPx
     @finishHeight:
     stya T1T0  ; room height in pixels
-    lda Ram_ActorPosY_i16_0_arr, x
+    lda Zp_PointY_i16 + 0
     cmp T0  ; room height in pixels (lo)
-    lda Ram_ActorPosY_i16_1_arr, x
-    bmi _NotInRoom  ; actor is above the top of the room
+    lda Zp_PointY_i16 + 1
+    bmi _NotInRoom  ; point is above the top of the room
     sbc T1  ; room height in pixels (hi)
-    bge _NotInRoom  ; actor is below the bottom of the room
+    bge _NotInRoom  ; point is below the bottom of the room
 _CheckHorz:
     ldy Zp_Current_sRoom + sRoom::MaxScrollX_u16 + 1
     .assert kScreenWidthPx = $100, error
     iny
     sty T0  ; room right side (hi)
-    lda Ram_ActorPosX_i16_0_arr, x
-    ldy Ram_ActorPosX_i16_1_arr, x
+    lda Zp_PointX_i16 + 0
+    ldy Zp_PointX_i16 + 1
     bmi _NotInRoom
     bne @checkRightSide
     cmp Zp_Current_sRoom + sRoom::MinScrollX_u8
     blt _NotInRoom
     @checkRightSide:
     cmp Zp_Current_sRoom + sRoom::MaxScrollX_u16 + 0  ; room right side (lo)
-    tya     ; actor pos X (hi)
+    tya     ; point pos X (hi)
     sbc T0  ; room right side (hi)
     bge _NotInRoom
 _IsInRoom:

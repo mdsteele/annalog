@@ -70,6 +70,9 @@ kAlexActorIndex = 0
 kAlexDeviceIndexRight = 0
 kAlexDeviceIndexLeft  = 1
 
+;;; The actor index for the rhino baddie in this room.
+kRhinoActorIndex = 1
+
 ;;;=========================================================================;;;
 
 ;;; The machine index for the CityOutskirtsLauncher machine.
@@ -173,6 +176,13 @@ _Actors_sActor_arr:
     d_word PosY_i16, $0088
     d_byte Param_byte, eNpcChild::AlexStanding
     D_END
+    .assert * - :- = kRhinoActorIndex * .sizeof(sActor), error
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::BadRhino
+    d_word PosX_i16, $01b8
+    d_word PosY_i16, $00c8
+    d_byte Param_byte, 0
+    D_END
     .assert * - :- <= kMaxActors * .sizeof(sActor), error
     .byte eActor::None
 _Devices_sDevice_arr:
@@ -266,6 +276,13 @@ _Alex:
     sta Ram_DeviceType_eDevice_arr + kAlexDeviceIndexLeft
     sta Ram_DeviceType_eDevice_arr + kAlexDeviceIndexRight
     @keepAlex:
+_Rhino:
+    ;; The rhino baddie doesn't appear until after the lava breaker cutscene.
+    flag_bit Sram_ProgressFlags_arr, eFlag::BreakerLava
+    bne @keepRhino
+    lda #eActor::None
+    sta Ram_ActorType_eActor_arr + kRhinoActorIndex
+    @keepRhino:
 _Rocks:
     flag_bit Sram_ProgressFlags_arr, eFlag::CityOutskirtsBlastedRocks
     bne @removeRocks

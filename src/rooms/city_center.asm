@@ -26,6 +26,7 @@
 .INCLUDE "../machine.inc"
 .INCLUDE "../machines/semaphore.inc"
 .INCLUDE "../macros.inc"
+.INCLUDE "../oam.inc"
 .INCLUDE "../platform.inc"
 .INCLUDE "../portrait.inc"
 .INCLUDE "../ppu.inc"
@@ -254,8 +255,25 @@ _Platforms_sPlatform_arr:
     .assert * - :- <= kMaxPlatforms * .sizeof(sPlatform), error
     .byte ePlatform::None
 _Actors_sActor_arr:
-:   ;; TODO: add some baddies
-    ;; TODO: add Alex/Gronta NPCs for cutscene
+:   ;; TODO: add Alex/Gronta NPCs for cutscene
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::BadRhino
+    d_word PosX_i16, $00b0
+    d_word PosY_i16, $00e8
+    d_byte Param_byte, bObj::FlipH
+    D_END
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::BadOrc
+    d_word PosX_i16, $0170
+    d_word PosY_i16, $0158
+    d_byte Param_byte, 0
+    D_END
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::BadOrc
+    d_word PosX_i16, $0324
+    d_word PosY_i16, $0158
+    d_byte Param_byte, bObj::FlipH
+    D_END
     .assert * - :- <= kMaxActors * .sizeof(sActor), error
     .byte eActor::None
 _Devices_sDevice_arr:
@@ -467,6 +485,8 @@ _WriteRegLock:
 .SEGMENT "PRGA_Room"
 
 .PROC FuncA_Room_CityCenter_EnterRoom
+    ;; TODO: If cutscene, halt machines and remove baddies.
+    ;; TODO: If not cutscene, remove Alex/Gronta actors.
 _UnlockDoor:
     ;; If the door has already been unlocked, unlock it.
     flag_bit Sram_ProgressFlags_arr, eFlag::CityCenterDoorUnlocked

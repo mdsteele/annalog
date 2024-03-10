@@ -35,6 +35,7 @@
 .IMPORT FuncA_Actor_HarmAvatarIfCollision
 .IMPORT FuncA_Actor_IsAvatarWithinHorzDistance
 .IMPORT FuncA_Actor_IsAvatarWithinVertDistances
+.IMPORT FuncA_Actor_IsPointInRoomBounds
 .IMPORT FuncA_Actor_MovePointTowardVelXDir
 .IMPORT FuncA_Actor_NegateVelX
 .IMPORT FuncA_Actor_SetPointInFrontOfActor
@@ -807,6 +808,8 @@ _MaybeJump:
 ;;; @param C Set if the orc cannot keep moving along its horizontal velocity.
 ;;; @preserve X
 .PROC FuncA_Actor_IsOrcPointBlocked
+    jsr FuncA_Actor_IsPointInRoomBounds  ; preserves X, returns C
+    bcc _IsBlocked
 _CheckTerrain:
     jsr Func_GetTerrainColumnPtrForPointX  ; preserves X
     jsr FuncA_Actor_GetRoomBlockRow  ; preserves X, returns Y
