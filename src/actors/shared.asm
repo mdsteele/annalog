@@ -29,6 +29,7 @@
 .IMPORT FuncA_Actor_IsCollidingWithAvatar
 .IMPORT FuncA_Objects_Draw1x1Shape
 .IMPORT FuncA_Objects_Draw1x2Shape
+.IMPORT FuncA_Objects_Draw2x1Shape
 .IMPORT FuncA_Objects_Draw2x2Shape
 .IMPORT FuncA_Objects_MoveShapeLeftHalfTile
 .IMPORT FuncA_Objects_MoveShapeUpByA
@@ -739,6 +740,21 @@ _VertOffset_u8_arr8:
     tya  ; param: first tile ID
     ldy Ram_ActorFlags_bObj_arr, x  ; param: object flags
     jmp FuncA_Objects_Draw1x2Shape  ; preserves X
+.ENDPROC
+
+;;; Allocates and populates OAM slots for the specified actor, using the given
+;;; first tile ID and the subsequent tile ID.
+;;; @param A The first tile ID.
+;;; @param X The actor index.
+;;; @preserve X
+.EXPORT FuncA_Objects_Draw2x1Actor
+.PROC FuncA_Objects_Draw2x1Actor
+    tay  ; first tile ID
+    jsr FuncA_Objects_SetShapePosToActorCenter  ; preserves X and Y
+    jsr FuncA_Objects_MoveShapeUpHalfTile  ; preserves X and Y
+    tya  ; param: first tile ID
+    ldy Ram_ActorFlags_bObj_arr, x  ; param: object flags
+    jmp FuncA_Objects_Draw2x1Shape  ; preserves X
 .ENDPROC
 
 ;;; Allocates and populates OAM slots for the specified actor, using the given

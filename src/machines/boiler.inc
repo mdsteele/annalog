@@ -22,7 +22,7 @@
 ;;;     MachineGoalHorz * kBoilerValveAnimSlowdown.
 ;;;   * State2: The current angle of valve #2, which tends toward
 ;;;     MachineGoalVert * kBoilerValveAnimSlowdown.
-;;;   * State3: Unused.
+;;;   * State3: A cooldown timer for drawing the ignition flame.
 ;;;   * State4: Unused.
 
 ;;; The number of frames between valve angles when animating a boiler valve.
@@ -35,6 +35,7 @@ kChrBankDiagramBoiler = $0e
 kTileIdBgDiagramBoilerFirst = $e0
 
 ;;; Various OBJ tile IDs used for drawing boiler machines.
-kTileIdObjValveFirst  = $bb
+kTileIdObjBoilerFlameFirst = $8c
+kTileIdObjValveFirst       = $bb
 
 ;;;=========================================================================;;;

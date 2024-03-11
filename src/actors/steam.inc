@@ -31,6 +31,7 @@
 kSteamNumFrames = 32
 
 ;;; Tile IDs for drawing steam projectile actors.
+kTileIdObjSteamHorzFirst = $f0
 kTileIdObjSteamVertFirst = $e0
 
 ;;;=========================================================================;;;

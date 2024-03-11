@@ -562,7 +562,7 @@ _chr_begin:
     chr_inc "steam_pipes"
     chr_inc "volcanic1"
     chr_inc "volcanic2"
-    chr_res $07
+    chr_res $06
     chr_inc "arch"
     chr_inc "boiler"
     chr_inc "terrain_boss_lava"
@@ -1099,7 +1099,8 @@ _chr_begin:
     chr_inc "upgrade_bremote",      kTileIdObjUpgradeBRemoteFirst
     chr_inc "reloader",             kTileIdObjReloaderFirst
     chr_inc "platform_city_bricks", kTileIdObjPlatformCityBricks
-    chr_res $04
+    chr_res $02
+    chr_inc "boiler_flame",         kTileIdObjBoilerFlameFirst
     chr_inc "bullet",               kTileIdObjBulletFirst
     chr_inc "launcher_horz",        kTileIdObjLauncherHorzFirst
     chr_inc "crate",                kTileIdObjCrateFirst
@@ -1262,7 +1263,8 @@ _chr_begin:
     chr_inc "ember",             kTileIdObjEmber
     chr_res $03
     chr_inc "upgrade_opcopy",    kTileIdObjUpgradeOpCopyFirst
-    chr_res $08
+    chr_inc "boiler_flame",      kTileIdObjBoilerFlameFirst
+    chr_res $06
     chr_inc "crate",             kTileIdObjCrateFirst
     chr_inc "blaster",           kTileIdObjBlasterFirst
     chr_inc "fireblast",         kTileIdObjFireblastFirst
@@ -1275,7 +1277,7 @@ _chr_begin:
     chr_inc "mirror",            kTileIdObjMirrorFirst
     chr_res $0b
     chr_inc "steam_vert",        kTileIdObjSteamVertFirst
-    chr_res $10
+    chr_inc "steam_horz",        kTileIdObjSteamHorzFirst
     END_CHR_BANK
 .ENDPROC
 

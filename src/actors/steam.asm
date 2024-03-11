@@ -25,7 +25,7 @@
 
 .IMPORT FuncA_Actor_IsCollidingWithAvatar
 .IMPORT FuncA_Objects_Draw1x2Actor
-.IMPORT FuncA_Objects_Draw2x2Actor
+.IMPORT FuncA_Objects_Draw2x1Actor
 .IMPORT Func_InitActorDefault
 .IMPORT Ram_ActorFlags_bObj_arr
 .IMPORT Ram_ActorState1_byte_arr
@@ -247,10 +247,14 @@ kPaletteObjSteam = 0
 ;;; @preserve X
 .EXPORT FuncA_Objects_DrawActorProjSteamHorz
 .PROC FuncA_Objects_DrawActorProjSteamHorz
-    ;; TODO: set the actual correct first tile ID
-    lda #$50  ; param: first tile ID
+    lda Ram_ActorState1_byte_arr, x  ; steam age in frames
+    .assert kSteamNumFrames = kSteamNumAnimShapes * kSteamAnimSlowdown, error
+    div #kSteamAnimSlowdown
+    mul #2
+    .assert kTileIdObjSteamHorzFirst .mod 16 = 0, error
+    ora #kTileIdObjSteamHorzFirst  ; param: first tile ID
     ldy #kPaletteObjSteam  ; param: palette
-    jmp FuncA_Objects_Draw2x2Actor  ; preserves X
+    jmp FuncA_Objects_Draw2x1Actor  ; preserves X
 .ENDPROC
 
 ;;; Draws an upward steam projectile actor.

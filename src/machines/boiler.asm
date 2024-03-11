@@ -30,6 +30,8 @@
 .IMPORT FuncA_Machine_StartWorking
 .IMPORT FuncA_Objects_Draw1x1Shape
 .IMPORT FuncA_Objects_GetMachineLightTileId
+.IMPORT FuncA_Objects_MoveShapeDownByA
+.IMPORT FuncA_Objects_MoveShapeRightOneTile
 .IMPORT FuncA_Objects_SetShapePosToMachineTopLeft
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
 .IMPORT Func_FindEmptyActorSlot
@@ -43,6 +45,7 @@
 .IMPORT Ram_MachineGoalVert_u8_arr
 .IMPORT Ram_MachineState1_byte_arr
 .IMPORT Ram_MachineState2_byte_arr
+.IMPORT Ram_MachineState3_byte_arr
 .IMPORT Ram_PlatformLeft_i16_0_arr
 .IMPORT Ram_PlatformLeft_i16_1_arr
 .IMPORT Ram_PlatformRight_i16_0_arr
@@ -56,8 +59,9 @@
 ;;; How many frames a boiler machine spends per ACT operation.
 kBoilerActCooldown = kSteamNumFrames + 16
 
-;;; The OBJ palette number used for boiler machine valves.
-kPaletteObjValve = 0
+;;; OBJ palette numbers used for drawing boiler machines.
+kPaletteObjBoilerFlame = 1
+kPaletteObjValve       = 0
 
 ;;;=========================================================================;;;
 
@@ -127,9 +131,15 @@ kPaletteObjValve = 0
 ;;; @prereq Zp_Current_sProgram_ptr is initialized.
 .EXPORT FuncA_Machine_BoilerTick
 .PROC FuncA_Machine_BoilerTick
+    ldx Zp_MachineIndex_u8
+_CoolDown:
+    lda Ram_MachineState3_byte_arr, x  ; ignition cooldown
+    beq @done
+    dec Ram_MachineState3_byte_arr, x  ; ignition cooldown
+    @done:
+_MoveValves:
     lda #0
     sta T0  ; num valves moved
-    ldx Zp_MachineIndex_u8
 _Valve1:
     lda Ram_MachineGoalHorz_u8_arr, x
     mul #kBoilerValveAnimSlowdown
@@ -259,6 +269,9 @@ _Finish:
 .EXPORT FuncA_Machine_BoilerFinishEmittingSteam
 .PROC FuncA_Machine_BoilerFinishEmittingSteam
     ;; TODO play a sound
+    ldx Zp_MachineIndex_u8
+    lda #kSteamNumFrames
+    sta Ram_MachineState3_byte_arr, x  ; ignition cooldown
     lda #kBoilerActCooldown  ; param: num frames
     jmp FuncA_Machine_StartWaiting
 .ENDPROC
@@ -271,10 +284,27 @@ _Finish:
 ;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
 .EXPORT FuncA_Objects_DrawBoilerMachine
 .PROC FuncA_Objects_DrawBoilerMachine
+    ;; Draw the machine light.
     jsr FuncA_Objects_SetShapePosToMachineTopLeft
     jsr FuncA_Objects_GetMachineLightTileId  ; returns A (param: tile ID)
     ldy #kPaletteObjMachineLight  ; param: object flags
+    jsr FuncA_Objects_Draw1x1Shape
+    ;; Draw the ignition flame (if active).
+    ldx Zp_MachineIndex_u8
+    ldy Ram_MachineState3_byte_arr, x  ; ignition cooldown
+    beq @done
+    jsr FuncA_Objects_MoveShapeRightOneTile  ; preserves Y
+    lda #9  ; param: offset
+    jsr FuncA_Objects_MoveShapeDownByA  ; preserves Y
+    tya  ; ignition cooldown
+    div #2
+    and #$01
+    .assert kTileIdObjBoilerFlameFirst .mod 2 = 0, error
+    ora #kTileIdObjBoilerFlameFirst  ; param: tile ID
+    ldy #kPaletteObjBoilerFlame  ; param: object flags
     jmp FuncA_Objects_Draw1x1Shape
+    @done:
+    rts
 .ENDPROC
 
 ;;; Draws the second valve for a boiler machine.  The valve platform should be
