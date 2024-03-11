@@ -141,9 +141,9 @@ _Machines_sMachine_arr:
     d_addr Init_func_ptr, FuncC_Mine_EastHoist_InitReset
     d_addr ReadReg_func_ptr, FuncC_Mine_EastHoist_ReadReg
     d_addr WriteReg_func_ptr, Func_Noop
-    d_addr TryMove_func_ptr, FuncC_Mine_EastHoist_TryMove
+    d_addr TryMove_func_ptr, FuncA_Machine_MineEastHoist_TryMove
     d_addr TryAct_func_ptr, FuncA_Machine_Error
-    d_addr Tick_func_ptr, FuncC_Mine_EastHoist_Tick
+    d_addr Tick_func_ptr, FuncA_Machine_MineEastHoist_Tick
     d_addr Draw_func_ptr, FuncA_Objects_MineEastHoist_Draw
     d_addr Reset_func_ptr, FuncC_Mine_EastHoist_InitReset
     D_END
@@ -160,9 +160,9 @@ _Machines_sMachine_arr:
     d_addr Init_func_ptr, FuncC_Mine_EastLift_InitReset
     d_addr ReadReg_func_ptr, FuncC_Mine_EastLift_ReadReg
     d_addr WriteReg_func_ptr, Func_Noop
-    d_addr TryMove_func_ptr, FuncC_Mine_EastLift_TryMove
+    d_addr TryMove_func_ptr, FuncA_Machine_MineEastLift_TryMove
     d_addr TryAct_func_ptr, FuncA_Machine_Error
-    d_addr Tick_func_ptr, FuncC_Mine_EastLift_Tick
+    d_addr Tick_func_ptr, FuncA_Machine_MineEastLift_Tick
     d_addr Draw_func_ptr, FuncA_Objects_DrawLiftMachine
     d_addr Reset_func_ptr, FuncC_Mine_EastLift_InitReset
     D_END
@@ -278,20 +278,6 @@ _Passages_sPassage_arr:
     rts
 .ENDPROC
 
-.PROC FuncC_Mine_EastHoist_TryMove
-    lda #kHoistMaxGoalZ  ; param: max goal vert
-    jmp FuncA_Machine_HoistTryMove
-.ENDPROC
-
-.PROC FuncC_Mine_EastHoist_Tick
-    ldx #kLowerGirderPlatformIndex  ; param: platform index
-    ldya #kLowerGirderMinPlatformTop  ; param: min platform top
-    jsr FuncA_Machine_HoistMoveTowardGoal  ; returns C and A
-    jcs FuncA_Machine_ReachedGoal
-    ldx #kUpperGirderPlatformIndex  ; param: platform index
-    jmp Func_MovePlatformVert
-.ENDPROC
-
 .PROC FuncC_Mine_EastLift_InitReset
     lda #kLiftInitGoalY
     sta Ram_MachineGoalVert_u8_arr + kLiftMachineIndex
@@ -306,12 +292,30 @@ _Passages_sPassage_arr:
     rts
 .ENDPROC
 
-.PROC FuncC_Mine_EastLift_TryMove
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Machine"
+
+.PROC FuncA_Machine_MineEastHoist_TryMove
+    lda #kHoistMaxGoalZ  ; param: max goal vert
+    jmp FuncA_Machine_HoistTryMove
+.ENDPROC
+
+.PROC FuncA_Machine_MineEastHoist_Tick
+    ldx #kLowerGirderPlatformIndex  ; param: platform index
+    ldya #kLowerGirderMinPlatformTop  ; param: min platform top
+    jsr FuncA_Machine_HoistMoveTowardGoal  ; returns C and A
+    jcs FuncA_Machine_ReachedGoal
+    ldx #kUpperGirderPlatformIndex  ; param: platform index
+    jmp Func_MovePlatformVert
+.ENDPROC
+
+.PROC FuncA_Machine_MineEastLift_TryMove
     lda #kLiftMaxGoalY  ; param: max goal vert
     jmp FuncA_Machine_LiftTryMove
 .ENDPROC
 
-.PROC FuncC_Mine_EastLift_Tick
+.PROC FuncA_Machine_MineEastLift_Tick
     ldax #kLiftMaxPlatformTop  ; param: max platform top
     jmp FuncA_Machine_LiftTick
 .ENDPROC

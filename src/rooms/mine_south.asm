@@ -138,9 +138,9 @@ _Machines_sMachine_arr:
     d_addr Init_func_ptr, FuncC_Mine_SouthTrolley_InitReset
     d_addr ReadReg_func_ptr, FuncC_Mine_SouthTrolley_ReadReg
     d_addr WriteReg_func_ptr, Func_Noop
-    d_addr TryMove_func_ptr, FuncC_Mine_SouthTrolley_TryMove
+    d_addr TryMove_func_ptr, FuncA_Machine_MineSouthTrolley_TryMove
     d_addr TryAct_func_ptr, FuncA_Machine_Error
-    d_addr Tick_func_ptr, FuncC_Mine_SouthTrolley_Tick
+    d_addr Tick_func_ptr, FuncA_Machine_MineSouthTrolley_Tick
     d_addr Draw_func_ptr, FuncA_Objects_MineSouthTrolley_Draw
     d_addr Reset_func_ptr, FuncC_Mine_SouthTrolley_InitReset
     D_END
@@ -157,9 +157,9 @@ _Machines_sMachine_arr:
     d_addr Init_func_ptr, FuncC_Mine_SouthHoist_InitReset
     d_addr ReadReg_func_ptr, FuncC_Mine_SouthHoist_ReadReg
     d_addr WriteReg_func_ptr, Func_Noop
-    d_addr TryMove_func_ptr, FuncC_Mine_SouthHoist_TryMove
+    d_addr TryMove_func_ptr, FuncA_Machine_MineSouthHoist_TryMove
     d_addr TryAct_func_ptr, FuncA_Machine_Error
-    d_addr Tick_func_ptr, FuncC_Mine_SouthHoist_Tick
+    d_addr Tick_func_ptr, FuncA_Machine_MineSouthHoist_Tick
     d_addr Draw_func_ptr, FuncA_Objects_MineSouthHoist_Draw
     d_addr Reset_func_ptr, FuncC_Mine_SouthHoist_InitReset
     D_END
@@ -291,23 +291,6 @@ _Passages_sPassage_arr:
     rts
 .ENDPROC
 
-.PROC FuncC_Mine_SouthTrolley_TryMove
-    lda #kTrolleyMaxGoalX  ; param: max goal
-    jmp FuncA_Machine_GenericTryMoveX
-.ENDPROC
-
-.PROC FuncC_Mine_SouthTrolley_Tick
-    ;; Move the trolley horizontally, as necessary.
-    ldax #kTrolleyMinPlatformLeft  ; param: min platform left
-    jsr FuncA_Machine_GenericMoveTowardGoalHorz  ; returns Z and A
-    beq @done
-    ;; If the trolley moved, move the girder platform too.
-    ldx #kTrolleyGirderPlatformIndex  ; param: platform index
-    jmp Func_MovePlatformHorz
-    @done:
-    jmp FuncA_Machine_ReachedGoal
-.ENDPROC
-
 .PROC FuncC_Mine_SouthHoist_InitReset
     lda #kHoistInitGoalZ
     sta Ram_MachineGoalVert_u8_arr + kHoistMachineIndex
@@ -321,12 +304,33 @@ _Passages_sPassage_arr:
     rts
 .ENDPROC
 
-.PROC FuncC_Mine_SouthHoist_TryMove
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Machine"
+
+.PROC FuncA_Machine_MineSouthTrolley_TryMove
+    lda #kTrolleyMaxGoalX  ; param: max goal
+    jmp FuncA_Machine_GenericTryMoveX
+.ENDPROC
+
+.PROC FuncA_Machine_MineSouthTrolley_Tick
+    ;; Move the trolley horizontally, as necessary.
+    ldax #kTrolleyMinPlatformLeft  ; param: min platform left
+    jsr FuncA_Machine_GenericMoveTowardGoalHorz  ; returns Z and A
+    beq @done
+    ;; If the trolley moved, move the girder platform too.
+    ldx #kTrolleyGirderPlatformIndex  ; param: platform index
+    jmp Func_MovePlatformHorz
+    @done:
+    jmp FuncA_Machine_ReachedGoal
+.ENDPROC
+
+.PROC FuncA_Machine_MineSouthHoist_TryMove
     lda #kHoistMaxGoalZ  ; param: max goal vert
     jmp FuncA_Machine_HoistTryMove
 .ENDPROC
 
-.PROC FuncC_Mine_SouthHoist_Tick
+.PROC FuncA_Machine_MineSouthHoist_Tick
     ldx #kHoistGirderPlatformIndex  ; param: platform index
     ldya #kHoistGirderMinPlatformTop  ; param: min platform top
     jsr FuncA_Machine_HoistMoveTowardGoal  ; returns C
