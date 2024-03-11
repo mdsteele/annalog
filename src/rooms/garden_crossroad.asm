@@ -18,6 +18,7 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "../actor.inc"
+.INCLUDE "../actors/grub.inc"
 .INCLUDE "../charmap.inc"
 .INCLUDE "../device.inc"
 .INCLUDE "../flag.inc"
@@ -38,6 +39,8 @@
 .IMPORT FuncA_Room_ResetLever
 .IMPORT Func_InitActorSmokeExplosion
 .IMPORT Func_IsPointInPlatform
+.IMPORT Func_MovePointLeftByA
+.IMPORT Func_MovePointRightByA
 .IMPORT Func_Noop
 .IMPORT Func_SetPointToActorCenter
 .IMPORT Ppu_ChrObjGarden
@@ -145,7 +148,7 @@ _Actors_sActor_arr:
     .assert * - :- = kSquishableActorIndex * .sizeof(sPlatform), error
     D_STRUCT sActor
     d_byte Type_eActor, eActor::BadGrub
-    d_word PosX_i16, $0098
+    d_word PosX_i16, $0088
     d_word PosY_i16, $00f8
     d_byte Param_byte, 0
     D_END
@@ -258,11 +261,21 @@ _ReadL:
     lda Ram_ActorType_eActor_arr + kSquishableActorIndex
     .assert eActor::None = 0, error
     beq @noSquish  ; the actor is already gone
+    ;; Check the upper-left corner of the grub's bounding box.
     ldx #kSquishableActorIndex  ; param: actor index
     jsr Func_SetPointToActorCenter  ; preserves X
+    .assert kBadGrubBoundingBoxUp = 0, error  ; no need to move point up
+    lda #kBadGrubBoundingBoxSide  ; param: offset
+    jsr Func_MovePointLeftByA  ; preserves X
     ldy #kLiftPlatformIndex  ; param: platform index
+    jsr Func_IsPointInPlatform  ; preserves X and Y, returns C
+    bcs @squish
+    ;; Check the upper-right corner of the grub's bounding box.
+    lda #kBadGrubBoundingBoxSide * 2  ; param: offset
+    jsr Func_MovePointRightByA  ; preserves X and Y
     jsr Func_IsPointInPlatform  ; preserves X, returns C
     bcc @noSquish
+    @squish:
     jmp Func_InitActorSmokeExplosion
     @noSquish:
     rts

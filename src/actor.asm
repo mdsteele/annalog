@@ -19,6 +19,7 @@
 
 .INCLUDE "actor.inc"
 .INCLUDE "actors/breakball.inc"
+.INCLUDE "actors/grub.inc"
 .INCLUDE "actors/orc.inc"
 .INCLUDE "avatar.inc"
 .INCLUDE "macros.inc"
@@ -471,7 +472,7 @@ _NoHit:
     d_byte BadFish,          6
     d_byte BadFlydrop,       6
     d_byte BadGronta,       kOrcBoundingBoxUp
-    d_byte BadGrub,          0
+    d_byte BadGrub,         kBadGrubBoundingBoxUp
     d_byte BadHotheadHorz,   6
     d_byte BadHotheadVert,   6
     d_byte BadJelly,        kBadJellyRadius
@@ -527,7 +528,7 @@ _NoHit:
     d_byte BadFish,          4
     d_byte BadFlydrop,       6
     d_byte BadGronta,       kOrcBoundingBoxDown
-    d_byte BadGrub,          8
+    d_byte BadGrub,         kBadGrubBoundingBoxDown
     d_byte BadHotheadHorz,   6
     d_byte BadHotheadVert,   6
     d_byte BadJelly,        kBadJellyRadius
@@ -583,7 +584,7 @@ _NoHit:
     d_byte BadFish,          6
     d_byte BadFlydrop,       6
     d_byte BadGronta,       kOrcBoundingBoxSide
-    d_byte BadGrub,          7
+    d_byte BadGrub,         kBadGrubBoundingBoxSide
     d_byte BadHotheadHorz,   6
     d_byte BadHotheadVert,   6
     d_byte BadJelly,        kBadJellyRadius

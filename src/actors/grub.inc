@@ -26,6 +26,12 @@
 ;;;   * State2: Unused.
 ;;;   * State3: Unused.
 
+;;; How far a grub baddie actor's bounding box extends in each direction from
+;;; the actor's center position.
+kBadGrubBoundingBoxUp   = 0
+kBadGrubBoundingBoxDown = 8
+kBadGrubBoundingBoxSide = 7
+
 ;;; Tile IDs for drawing grub baddie actors.
 kTileIdObjBadGrubFirst = $9c
 

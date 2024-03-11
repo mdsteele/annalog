@@ -147,7 +147,7 @@ _TryMoveRight:
 _CheckLeftSide:
     lda #kTileWidthPx
     jsr Func_MovePointLeftByA  ; preserves X
-    jsr FuncA_Machine_PointHitsTerrainOrDevice  ; preserves X+, returns C
+    jsr FuncA_Machine_PointHitsTerrainOrDevice  ; preserves X, returns C
     bcc _CheckRightSide
     rts
 _CheckRightSide:
