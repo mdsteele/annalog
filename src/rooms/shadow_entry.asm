@@ -196,17 +196,15 @@ _Passages_sPassage_arr:
 .PROC FuncC_Shadow_EntryLift_ReadReg
     lda #<(kLiftMaxPlatformTop + kTileHeightPx)
     sub Ram_PlatformTop_i16_0_arr + kLiftPlatformIndex
-    sta T0
+    tay  ; delta (lo)
     lda #>(kLiftMaxPlatformTop + kTileHeightPx)
     sbc Ram_PlatformTop_i16_1_arr + kLiftPlatformIndex
-    .assert kBlockHeightPx = 1 << 4, error
-    .repeat 4
-    lsr a
-    lsr T0
-    .endrepeat
-    lda T0
+    bne @clamp
+    tya  ; delta(lo)
+    div #kBlockHeightPx
     cmp #10
     blt @done
+    @clamp:
     lda #9
     @done:
     rts
