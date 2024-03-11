@@ -17,6 +17,7 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
+.INCLUDE "../actor.inc"
 .INCLUDE "../cpu.inc"
 .INCLUDE "../device.inc"
 .INCLUDE "../devices/mousehole.inc"
@@ -36,6 +37,7 @@
 .IMPORT FuncA_Actor_ZeroVelY
 .IMPORT FuncA_Objects_Draw1x1Actor
 .IMPORT Func_GetRandomByte
+.IMPORT Func_IsActorWithinDistanceOfPoint
 .IMPORT Func_MovePointDownByA
 .IMPORT Func_MovePointRightByA
 .IMPORT Func_PointHitsTerrain
@@ -48,6 +50,7 @@
 .IMPORT Ram_ActorState3_byte_arr
 .IMPORT Ram_ActorSubX_u8_arr
 .IMPORT Ram_ActorSubY_u8_arr
+.IMPORT Ram_ActorType_eActor_arr
 .IMPORT Ram_ActorVelY_i16_1_arr
 .IMPORT Ram_DeviceBlockCol_u8_arr
 .IMPORT Ram_DeviceBlockRow_u8_arr
@@ -138,11 +141,38 @@ _TryEmerge:
     lda Ram_DeviceType_eDevice_arr, y
     cmp #eDevice::Mousehole
     bne _StayHidden
-_StartEmerging:
-    ;; Make the rodent start emerging from the mousehole.  At this point, the
-    ;; actor's State2 byte is already zero.
-    lda #eBadRodent::Emerging
-    sta Ram_ActorState1_byte_arr, x  ; eBadRodent mode
+    ;; Set the point to the center of the mousehole.
+    jsr FuncA_Actor_SetPointToDeviceTopLeft  ; preserves X and Y
+    lda #kTileHeightPx + kTileHeightPx / 2  ; param: offset
+    jsr Func_MovePointDownByA  ; preserves X and Y
+    lda Ram_DeviceTarget_byte_arr, y  ; bMousehole value
+    .assert bMousehole::OnRight = bProc::Negative, error
+    bpl @onLeft
+    @onRight:
+    lda #kTileWidthPx + kTileWidthPx / 2  ; param: offset
+    bne @movePoint  ; unconditional
+    @onLeft:
+    lda #kTileWidthPx / 2  ; param: offset
+    @movePoint:
+    jsr Func_MovePointRightByA  ; preserves X and Y
+    ;; Check if any other rodents are in the way.  If so, don't emerge this
+    ;; frame.
+    stx T1  ; this rodent's actor index
+    ldx #kMaxActors - 1
+    @loop:
+    lda Ram_ActorType_eActor_arr, x
+    cmp #eActor::BadRodent
+    bne @continue
+    cpx T1  ; this rodent's actor index
+    beq @continue
+    jsr Func_IsActorWithinDistanceOfPoint  ; preserves X and T1+, returns C
+    bcc @continue
+    ldx T1  ; this rodent's actor index
+    rts
+    @continue:
+    dex
+    bpl @loop
+    ldx T1  ; this rodent's actor index
 _SetEmergeDirection:
     ;; Choose a direction for the rodent to run in (left or right).
     lda Ram_DeviceTarget_byte_arr, y  ; bMousehole value
@@ -160,21 +190,11 @@ _SetEmergeDirection:
     lda #0
     @setFlags:
     sta Ram_ActorFlags_bObj_arr, x
-_SetEmergePosition:
-    ;; Position the rodent over the mousehole.
-    jsr FuncA_Actor_SetPointToDeviceTopLeft  ; preserves X and Y
-    lda #kTileHeightPx + kTileHeightPx / 2  ; param: offset
-    jsr Func_MovePointDownByA  ; preserves X and Y
-    lda Ram_DeviceTarget_byte_arr, y  ; bMousehole value
-    .assert bMousehole::OnRight = bProc::Negative, error
-    bpl @onLeft
-    @onRight:
-    lda #kTileWidthPx + kTileWidthPx / 2  ; param: offset
-    bne @movePoint  ; unconditional
-    @onLeft:
-    lda #kTileWidthPx / 2  ; param: offset
-    @movePoint:
-    jsr Func_MovePointRightByA  ; preserves X
+_StartEmerging:
+    ;; Make the rodent start emerging from the mousehole.  At this point, the
+    ;; actor's State2 byte is already zero.
+    lda #eBadRodent::Emerging
+    sta Ram_ActorState1_byte_arr, x  ; eBadRodent mode
     jmp Func_SetActorCenterToPoint  ; preserves X
 .ENDPROC
 
