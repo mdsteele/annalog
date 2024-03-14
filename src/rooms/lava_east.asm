@@ -171,10 +171,7 @@ _Machines_sMachine_arr:
     D_STRUCT sMachine
     d_byte Code_eProgram, eProgram::LavaEastBlaster
     d_byte Breaker_eFlag, 0
-    .linecont +
-    d_byte Flags_bMachine, bMachine::MoveH | bMachine::Act | \
-                           bMachine::WriteCD | bMachine::WriteF
-    .linecont -
+    d_byte Flags_bMachine, bMachine::MoveH | bMachine::Act | bMachine::WriteCDF
     d_byte Status_eDiagram, eDiagram::LauncherDown  ; TODO
     d_word ScrollGoalX_u16, $090
     d_byte ScrollGoalY_u8, $00
@@ -193,7 +190,7 @@ _Machines_sMachine_arr:
     D_STRUCT sMachine
     d_byte Code_eProgram, eProgram::LavaEastUpperBoiler
     d_byte Breaker_eFlag, 0
-    d_byte Flags_bMachine, bMachine::Act | bMachine::WriteCE | bMachine::WriteF
+    d_byte Flags_bMachine, bMachine::Act | bMachine::WriteCEF
     d_byte Status_eDiagram, eDiagram::Boiler
     d_word ScrollGoalX_u16, $010
     d_byte ScrollGoalY_u8, $40

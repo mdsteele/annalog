@@ -65,21 +65,27 @@ kMachineRegNameB = $61  ; 'B'
 
 ;;; Flags indicating features of a given machine.
 .SCOPE bMachine
-    Act     = %10000000  ; The machine supports ACT instructions.
-    FlipH   = %01000000  ; The machine is drawn horizontally flipped.
-    MoveH   = %00100000  ; The machine supports MOVE left/right instructions.
-    MoveV   = %00010000  ; The machine supports MOVE up/down instructions.
-    MoveHV  = %00110000  ; The machine supports 4-way MOVE instructions.
-    WriteC  = %00001000  ; The $c register is writable.
-    WriteD  = %00000100  ; The $d register is writable.
-    WriteE  = %00000010  ; The $e register is writable.
-    WriteF  = %00000001  ; The $f register is writable.
-    WriteCD = %00001100  ; The $c and $d registers are both writable.
-    WriteCE = %00001010  ; The $c and $e registers are both writable.
+    Act       = %10000000  ; The machine supports ACT instructions.
+    FlipH     = %01000000  ; The machine is drawn horizontally flipped.
+    MoveH     = %00100000  ; The machine supports MOVE left/right instructions.
+    MoveV     = %00010000  ; The machine supports MOVE up/down instructions.
+    MoveHV    = MoveH | MoveV
+    WriteC    = %00001000  ; The $c register is writable.
+    WriteD    = %00000100  ; The $d register is writable.
+    WriteE    = %00000010  ; The $e register is writable.
+    WriteF    = %00000001  ; The $f register is writable.
+    WriteCD   = WriteC | WriteD
+    WriteCDE  = WriteC | WriteD | WriteE
+    WriteCDF  = WriteC | WriteD | WriteF
+    WriteCDEF = WriteC | WriteD | WriteE | WriteF
+    WriteCE   = WriteC | WriteE
+    WriteCEF  = WriteC | WriteE | WriteF
+    WriteCF   = WriteC | WriteF
+    WriteDE   = WriteD | WriteE
+    WriteDEF  = WriteD | WriteE | WriteF
+    WriteDF   = WriteD | WriteF
+    WriteEF   = WriteE | WriteF
 .ENDSCOPE
-.ASSERT bMachine::MoveHV = bMachine::MoveH | bMachine::MoveV, error
-.ASSERT bMachine::WriteCD = bMachine::WriteC | bMachine::WriteD, error
-.ASSERT bMachine::WriteCE = bMachine::WriteC | bMachine::WriteE, error
 
 ;;; States that a given machine can be in.
 .ENUM eMachine
