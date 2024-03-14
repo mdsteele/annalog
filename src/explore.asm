@@ -315,6 +315,7 @@ _CheckForActivateDevice:
     D_TABLE_HI table, _JumpTable_ptr_1_arr
     D_TABLE .enum, eDevice
     d_entry table, None,          _ContinueExploring
+    d_entry table, Boiler,        _ContinueExploring
     d_entry table, BreakerDone,   _ContinueExploring
     d_entry table, BreakerRising, _ContinueExploring
     d_entry table, Door1Locked,   _ContinueExploring

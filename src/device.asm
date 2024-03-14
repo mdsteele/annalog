@@ -170,6 +170,7 @@ _Continue:
     D_TABLE_HI table, _JumpTable_ptr_1_arr
     D_TABLE .enum, eDevice
     d_entry table, None,          Func_Noop
+    d_entry table, Boiler,        Func_Noop
     d_entry table, BreakerDone,   FuncA_Objects_DrawDeviceBreakerDone
     d_entry table, BreakerRising, FuncA_Objects_DrawDeviceBreakerRising
     d_entry table, Door1Locked,   FuncA_Objects_DrawDeviceLockedDoor

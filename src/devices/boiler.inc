@@ -17,37 +17,11 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
-;;; The maximum number of platforms that can exist at once in a room.
-kMaxPlatforms = 16
-
-;;;=========================================================================;;;
-
-;;; Types of platform in a room.
-.ENUM ePlatform
-    None
-    Zone   ; no physical interactions, just a region of the room
-    Water  ; can swim in
-    Solid  ; safe to stand on
-    Harm   ; harms the player avatar on contact
-    Kill   ; kills the player avatar on contact
-.ENDENUM
-
-;;; Platform types greater than or equal to this are solid.
-kFirstSolidPlatformType = ePlatform::Solid
-
-;;;=========================================================================;;;
-
-;;; Describes a platform's initial size and position.
-.STRUCT sPlatform
-    Type_ePlatform .byte
-    ;; The width of the platform, in pixels.  Must be nonzero.
-    WidthPx_u16    .word
-    ;; The height of the platform, in pixels.  Must be nonzero.
-    HeightPx_u8    .byte
-    ;; The room pixel X-position of the left edge of the platform.
-    Left_i16       .word
-    ;; The room pixel Y-position of the top edge of the platform.
-    Top_i16        .word
-.ENDSTRUCT
+;;; Flag bits for a boiler device.
+.SCOPE bBoiler
+    SteamUp    = %10000000  ; if set, emit steam upwards
+    SteamRight = %01000000  ; if set, emit steam to the right
+    PipeMask   = %00001111  ; bits used for the pipe platform index
+.ENDSCOPE
 
 ;;;=========================================================================;;;

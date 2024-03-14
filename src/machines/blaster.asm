@@ -277,6 +277,7 @@ _Reflect:
     sta Ram_ActorState3_byte_arr, x  ; reflection timer
     bne _Continue  ; unconditional
 _Remove:
+    ;; TODO: turn to smoke
     lda #eActor::None
     sta Ram_ActorType_eActor_arr, x
 _Continue:

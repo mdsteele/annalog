@@ -21,56 +21,117 @@
 .INCLUDE "../actors/lavaball.inc"
 .INCLUDE "../charmap.inc"
 .INCLUDE "../device.inc"
+.INCLUDE "../devices/boiler.inc"
 .INCLUDE "../machine.inc"
+.INCLUDE "../machines/blaster.inc"
 .INCLUDE "../machines/boiler.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
 .INCLUDE "../platform.inc"
 .INCLUDE "../platforms/lava.inc"
+.INCLUDE "../ppu.inc"
 .INCLUDE "../program.inc"
 .INCLUDE "../room.inc"
 
 .IMPORT DataA_Room_Lava_sTileset
+.IMPORT FuncA_Machine_BlasterTickMirrors
+.IMPORT FuncA_Machine_BlasterVertTryAct
+.IMPORT FuncA_Machine_BlasterWriteRegMirrors
 .IMPORT FuncA_Machine_BoilerFinishEmittingSteam
 .IMPORT FuncA_Machine_BoilerTick
 .IMPORT FuncA_Machine_BoilerWriteReg
-.IMPORT FuncA_Machine_EmitSteamRightFromPipe
-.IMPORT FuncA_Machine_EmitSteamUpFromPipe
 .IMPORT FuncA_Machine_Error
+.IMPORT FuncA_Machine_GenericMoveTowardGoalHorz
+.IMPORT FuncA_Machine_GenericTryMoveX
+.IMPORT FuncA_Machine_ReachedGoal
+.IMPORT FuncA_Machine_WriteToLever
 .IMPORT FuncA_Objects_AnimateLavaTerrain
+.IMPORT FuncA_Objects_DrawBlasterMachineVert
+.IMPORT FuncA_Objects_DrawBlasterMirror
 .IMPORT FuncA_Objects_DrawBoilerMachine
 .IMPORT FuncA_Objects_DrawBoilerValve1
 .IMPORT FuncA_Objects_DrawBoilerValve2
 .IMPORT FuncA_Room_MachineBoilerReset
+.IMPORT FuncA_Room_ReflectFireblastsOffMirror
+.IMPORT FuncA_Room_ResetLever
+.IMPORT FuncA_Room_TurnProjectilesToSmokeIfConsoleOpen
 .IMPORT FuncA_Room_TurnSteamToSmokeIfConsoleOpen
 .IMPORT FuncA_Terrain_FadeInTallRoomWithLava
+.IMPORT Func_EmitSteamRightFromPipe
+.IMPORT Func_EmitSteamUpFromPipe
+.IMPORT Func_MachineBlasterReadRegMirrors
 .IMPORT Func_MachineBoilerReadReg
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrObjLava
 .IMPORT Ram_MachineGoalHorz_u8_arr
 .IMPORT Ram_MachineGoalVert_u8_arr
+.IMPORT Ram_MachineState1_byte_arr
+.IMPORT Ram_MachineState3_byte_arr
+.IMPORT Ram_PlatformLeft_i16_0_arr
+.IMPORTZP Zp_RoomState
 
 ;;;=========================================================================;;;
 
-;;; The machine indices for the LavaEastUpperBoiler and LavaEastLowerBoiler
-;;; machines.
-kUpperBoilerMachineIndex = 0
-kLowerBoilerMachineIndex = 1
+;;; The device indices for the levers in this room.
+kUpperLeverDeviceIndex   = 3
+kMiddleLeverLDeviceIndex = 4
+kMiddleLeverUDeviceIndex = 5
+kLowerLeverDeviceIndex   = 6
 
-;;; Platform indices for various parts of the LavaWestUpperBoiler machine.
-kUpperBoilerPlatformIndex = 0
-kUpperValve1PlatformIndex = 1
-kUpperValve2PlatformIndex = 2
-kUpperPipe1PlatformIndex  = 3
-kUpperPipe2PlatformIndex  = 4
-kUpperPipe3PlatformIndex  = 5
+;;; The machine indices for the machines in this room.
+kBlasterMachineIndex     = 0
+kUpperBoilerMachineIndex = 1
+kLowerBoilerMachineIndex = 2
 
-;;; Platform indices for various parts of the LavaWestLowerBoiler machine.
-kLowerBoilerPlatformIndex = 6
-kLowerValve1PlatformIndex = 7
-kLowerValve2PlatformIndex = 8
-kLowerPipe1PlatformIndex  = 9
-kLowerPipe2PlatformIndex  = 10
+;;; Platform indices for various parts of the LavaEastBlaster machine.
+kBlasterPlatformIndex = 0
+kMirror1PlatformIndex = 1
+kMirror2PlatformIndex = 2
+kMirror3PlatformIndex = 3
+
+;;; Platform indices for various parts of the LavaEastUpperBoiler machine.
+kUpperBoilerPlatformIndex = 4
+kUpperValve1PlatformIndex = 5
+kUpperValve2PlatformIndex = 6
+kUpperPipe1PlatformIndex  = 7
+kUpperPipe2PlatformIndex  = 8
+
+;;; Platform indices for various parts of the LavaEastLowerBoiler machine.
+kLowerBoilerPlatformIndex = 9
+kLowerPipe1PlatformIndex  = 10
+
+;;; Platform indices for pipes attached to "loose" boiler tanks.
+kLoosePipe1PlatformIndex  = 11
+kLoosePipe2PlatformIndex  = 12
+kLoosePipe3PlatformIndex  = 13
+
+;;; The initial value for the blaster's M register.
+kBlasterInitGoalM = 3
+;;; The initial and maximum permitted values for the blaster's X register.
+kBlasterInitGoalX = 5
+kBlasterMaxGoalX  = 9
+
+;;; The minimum and initial X-positions for the left of the blaster platform.
+.LINECONT +
+kBlasterMinPlatformLeft = $00b0
+kBlasterInitPlatformLeft = \
+    kBlasterMinPlatformLeft + kBlasterInitGoalX * kBlockWidthPx
+.LINECONT -
+
+;;; The mirrors' offsets from relative to absolute angles, in increments of
+;;; tau/16.
+kMirrorAngleOffset = 7
+
+;;;=========================================================================;;;
+
+;;; Defines room-specific state data for this particular room.
+.STRUCT sState
+    UpperLever_u8   .byte
+    MiddleLeverL_u8 .byte
+    MiddleLeverU_u8 .byte
+    LowerLever_u8   .byte
+.ENDSTRUCT
+.ASSERT .sizeof(sState) <= kRoomStateSize, error
 
 ;;;=========================================================================;;;
 
@@ -85,7 +146,7 @@ kLowerPipe2PlatformIndex  = 10
     d_byte MinimapStartRow_u8, 13
     d_byte MinimapStartCol_u8, 18
     d_addr TerrainData_ptr, _TerrainData
-    d_byte NumMachines_u8, 2
+    d_byte NumMachines_u8, 3
     d_addr Machines_sMachine_arr_ptr, _Machines_sMachine_arr
     d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjLava)
     d_addr Ext_sRoomExt_ptr, _Ext_sRoomExt
@@ -99,140 +160,186 @@ _Ext_sRoomExt:
     d_addr Passages_sPassage_arr_ptr, _Passages_sPassage_arr
     d_addr Enter_func_ptr, Func_Noop
     d_addr FadeIn_func_ptr, FuncA_Terrain_FadeInTallRoomWithLava
-    d_addr Tick_func_ptr, FuncA_Room_TurnSteamToSmokeIfConsoleOpen
+    d_addr Tick_func_ptr, FuncA_Room_LavaEast_TickRoom
     d_addr Draw_func_ptr, FuncA_Objects_AnimateLavaTerrain
     D_END
 _TerrainData:
 :   .incbin "out/rooms/lava_east.room"
     .assert * - :- = 34 * 24, error
 _Machines_sMachine_arr:
-:   .assert * - :- = kUpperBoilerMachineIndex * .sizeof(sMachine), error
+:   .assert * - :- = kBlasterMachineIndex * .sizeof(sMachine), error
+    D_STRUCT sMachine
+    d_byte Code_eProgram, eProgram::LavaEastBlaster
+    d_byte Breaker_eFlag, 0
+    .linecont +
+    d_byte Flags_bMachine, bMachine::MoveH | bMachine::Act | \
+                           bMachine::WriteCD | bMachine::WriteF
+    .linecont -
+    d_byte Status_eDiagram, eDiagram::LauncherDown  ; TODO
+    d_word ScrollGoalX_u16, $090
+    d_byte ScrollGoalY_u8, $00
+    d_byte RegNames_u8_arr4, "M", "U", "X", "L"
+    d_byte MainPlatform_u8, kBlasterPlatformIndex
+    d_addr Init_func_ptr, FuncA_Room_LavaEastBlaster_Init
+    d_addr ReadReg_func_ptr, FuncC_Lava_EastBlaster_ReadReg
+    d_addr WriteReg_func_ptr, FuncA_Machine_LavaEastBlaster_WriteReg
+    d_addr TryMove_func_ptr, FuncA_Machine_LavaEastBlaster_TryMove
+    d_addr TryAct_func_ptr, FuncA_Machine_BlasterVertTryAct
+    d_addr Tick_func_ptr, FuncA_Machine_LavaEastBlaster_Tick
+    d_addr Draw_func_ptr, FuncC_Lava_EastBlaster_Draw
+    d_addr Reset_func_ptr, FuncA_Room_LavaEastBlaster_Reset
+    D_END
+    .assert * - :- = kUpperBoilerMachineIndex * .sizeof(sMachine), error
     D_STRUCT sMachine
     d_byte Code_eProgram, eProgram::LavaEastUpperBoiler
     d_byte Breaker_eFlag, 0
-    d_byte Flags_bMachine, bMachine::Act | bMachine::WriteE | bMachine::WriteF
+    d_byte Flags_bMachine, bMachine::Act | bMachine::WriteCE | bMachine::WriteF
     d_byte Status_eDiagram, eDiagram::Boiler
-    d_word ScrollGoalX_u16, $090
-    d_byte ScrollGoalY_u8, $20
-    d_byte RegNames_u8_arr4, 0, 0, "V", "E"
+    d_word ScrollGoalX_u16, $010
+    d_byte ScrollGoalY_u8, $40
+    d_byte RegNames_u8_arr4, "L", 0, "V", "E"
     d_byte MainPlatform_u8, kUpperBoilerPlatformIndex
     d_addr Init_func_ptr, Func_Noop
-    d_addr ReadReg_func_ptr, Func_MachineBoilerReadReg
-    d_addr WriteReg_func_ptr, FuncA_Machine_BoilerWriteReg
+    d_addr ReadReg_func_ptr, FuncC_Lava_EastUpperBoiler_ReadReg
+    d_addr WriteReg_func_ptr, FuncA_Machine_LavaEastUpperBoiler_WriteReg
     d_addr TryMove_func_ptr, FuncA_Machine_Error
     d_addr TryAct_func_ptr, FuncA_Machine_LavaEastUpperBoiler_TryAct
     d_addr Tick_func_ptr, FuncA_Machine_BoilerTick
     d_addr Draw_func_ptr, FuncC_Lava_EastUpperBoiler_Draw
-    d_addr Reset_func_ptr, FuncA_Room_MachineBoilerReset
+    d_addr Reset_func_ptr, FuncA_Room_LavaEastUpperBoiler_Reset
     D_END
     .assert * - :- = kLowerBoilerMachineIndex * .sizeof(sMachine), error
     D_STRUCT sMachine
     d_byte Code_eProgram, eProgram::LavaEastLowerBoiler
     d_byte Breaker_eFlag, 0
-    d_byte Flags_bMachine, bMachine::Act | bMachine::WriteE | bMachine::WriteF
+    d_byte Flags_bMachine, bMachine::Act | bMachine::WriteC
     d_byte Status_eDiagram, eDiagram::Boiler
     d_word ScrollGoalX_u16, $110
-    d_byte ScrollGoalY_u8, $b8
-    d_byte RegNames_u8_arr4, 0, 0, "V", "E"
+    d_byte ScrollGoalY_u8, $c0
+    d_byte RegNames_u8_arr4, "L", 0, 0, 0
     d_byte MainPlatform_u8, kLowerBoilerPlatformIndex
     d_addr Init_func_ptr, Func_Noop
-    d_addr ReadReg_func_ptr, Func_MachineBoilerReadReg
-    d_addr WriteReg_func_ptr, FuncA_Machine_BoilerWriteReg
+    d_addr ReadReg_func_ptr, FuncC_Lava_EastLowerBoiler_ReadReg
+    d_addr WriteReg_func_ptr, FuncA_Machine_LavaEastLowerBoiler_WriteReg
     d_addr TryMove_func_ptr, FuncA_Machine_Error
     d_addr TryAct_func_ptr, FuncA_Machine_LavaEastLowerBoiler_TryAct
     d_addr Tick_func_ptr, FuncA_Machine_BoilerTick
-    d_addr Draw_func_ptr, FuncC_Lava_EastLowerBoiler_Draw
-    d_addr Reset_func_ptr, FuncA_Room_MachineBoilerReset
+    d_addr Draw_func_ptr, FuncA_Objects_DrawBoilerMachine
+    d_addr Reset_func_ptr, FuncA_Room_LavaEastLowerBoiler_Reset
     D_END
     .assert * - :- <= kMaxMachines * .sizeof(sMachine), error
 _Platforms_sPlatform_arr:
-:   .assert * - :- = kUpperBoilerPlatformIndex * .sizeof(sPlatform), error
+:   .assert * - :- = kBlasterPlatformIndex * .sizeof(sPlatform), error
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Solid
+    d_word WidthPx_u16, kBlasterMachineWidthPx
+    d_byte HeightPx_u8, kBlasterMachineHeightPx
+    d_word Left_i16, kBlasterInitPlatformLeft
+    d_word Top_i16, $0010
+    D_END
+    .assert * - :- = kMirror1PlatformIndex * .sizeof(sPlatform), error
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Zone
+    d_word WidthPx_u16, $08
+    d_byte HeightPx_u8, $08
+    d_word Left_i16,  $00d4
+    d_word Top_i16,   $0054
+    D_END
+    .assert * - :- = kMirror2PlatformIndex * .sizeof(sPlatform), error
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Zone
+    d_word WidthPx_u16, $08
+    d_byte HeightPx_u8, $08
+    d_word Left_i16,  $01c4
+    d_word Top_i16,   $0054
+    D_END
+    .assert * - :- = kMirror3PlatformIndex * .sizeof(sPlatform), error
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Zone
+    d_word WidthPx_u16, $08
+    d_byte HeightPx_u8, $08
+    d_word Left_i16,  $0164
+    d_word Top_i16,   $00b4
+    D_END
+    .assert * - :- = kUpperBoilerPlatformIndex * .sizeof(sPlatform), error
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Solid
     d_word WidthPx_u16, $18
     d_byte HeightPx_u8, $10
-    d_word Left_i16,  $0120
-    d_word Top_i16,   $00a0
+    d_word Left_i16,  $0080
+    d_word Top_i16,   $0090
     D_END
     .assert * - :- = kUpperValve1PlatformIndex * .sizeof(sPlatform), error
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Zone
     d_word WidthPx_u16, $08
     d_byte HeightPx_u8, $08
-    d_word Left_i16,  $0114
-    d_word Top_i16,   $0094
+    d_word Left_i16,  $0054
+    d_word Top_i16,   $0084
     D_END
     .assert * - :- = kUpperValve2PlatformIndex * .sizeof(sPlatform), error
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Zone
     d_word WidthPx_u16, $08
     d_byte HeightPx_u8, $08
-    d_word Left_i16,  $0134
-    d_word Top_i16,   $0074
+    d_word Left_i16,  $0034
+    d_word Top_i16,   $00b4
     D_END
     .assert * - :- = kUpperPipe1PlatformIndex * .sizeof(sPlatform), error
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Zone
     d_word WidthPx_u16, $08
     d_byte HeightPx_u8, $08
-    d_word Left_i16,  $0110
-    d_word Top_i16,   $0070
+    d_word Left_i16,  $0070
+    d_word Top_i16,   $0060
     D_END
     .assert * - :- = kUpperPipe2PlatformIndex * .sizeof(sPlatform), error
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Zone
     d_word WidthPx_u16, $08
     d_byte HeightPx_u8, $08
-    d_word Left_i16,  $0148
-    d_word Top_i16,   $0050
-    D_END
-    .assert * - :- = kUpperPipe3PlatformIndex * .sizeof(sPlatform), error
-    D_STRUCT sPlatform
-    d_byte Type_ePlatform, ePlatform::Zone
-    d_word WidthPx_u16, $08
-    d_byte HeightPx_u8, $08
-    d_word Left_i16,  $0138
-    d_word Top_i16,   $0088
+    d_word Left_i16,  $0058
+    d_word Top_i16,   $00d0
     D_END
     .assert * - :- = kLowerBoilerPlatformIndex * .sizeof(sPlatform), error
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Solid
     d_word WidthPx_u16, $18
     d_byte HeightPx_u8, $10
-    d_word Left_i16,  $0138
-    d_word Top_i16,   $0120
-    D_END
-    .assert * - :- = kLowerValve1PlatformIndex * .sizeof(sPlatform), error
-    D_STRUCT sPlatform
-    d_byte Type_ePlatform, ePlatform::Zone
-    d_word WidthPx_u16, $08
-    d_byte HeightPx_u8, $08
-    d_word Left_i16,  $0164
-    d_word Top_i16,   $0124
-    D_END
-    .assert * - :- = kLowerValve2PlatformIndex * .sizeof(sPlatform), error
-    D_STRUCT sPlatform
-    d_byte Type_ePlatform, ePlatform::Zone
-    d_word WidthPx_u16, $08
-    d_byte HeightPx_u8, $08
-    d_word Left_i16,  $0154
-    d_word Top_i16,   $0104
+    d_word Left_i16,  $0148
+    d_word Top_i16,   $0140
     D_END
     .assert * - :- = kLowerPipe1PlatformIndex * .sizeof(sPlatform), error
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Zone
     d_word WidthPx_u16, $08
     d_byte HeightPx_u8, $08
-    d_word Left_i16,  $0178
-    d_word Top_i16,   $00e8
+    d_word Left_i16,  $0170
+    d_word Top_i16,   $0140
     D_END
-    .assert * - :- = kLowerPipe2PlatformIndex * .sizeof(sPlatform), error
+    .assert * - :- = kLoosePipe1PlatformIndex * .sizeof(sPlatform), error
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Zone
     d_word WidthPx_u16, $08
     d_byte HeightPx_u8, $08
-    d_word Left_i16,  $0180
-    d_word Top_i16,   $0130
+    d_word Left_i16,  $00a8
+    d_word Top_i16,   $0070
+    D_END
+    .assert * - :- = kLoosePipe2PlatformIndex * .sizeof(sPlatform), error
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Zone
+    d_word WidthPx_u16, $08
+    d_byte HeightPx_u8, $08
+    d_word Left_i16,  $0118
+    d_word Top_i16,   $00b0
+    D_END
+    .assert * - :- = kLoosePipe3PlatformIndex * .sizeof(sPlatform), error
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Zone
+    d_word WidthPx_u16, $08
+    d_byte HeightPx_u8, $08
+    d_word Left_i16,  $0168
+    d_word Top_i16,   $00e8
     D_END
     ;; Lava:
     D_STRUCT sPlatform
@@ -247,19 +354,13 @@ _Platforms_sPlatform_arr:
 _Actors_sActor_arr:
 :   D_STRUCT sActor
     d_byte Type_eActor, eActor::BadLavaball
-    d_word PosX_i16, $0074
+    d_word PosX_i16, $0068
     d_word PosY_i16, kLavaballStartYTall
-    d_byte Param_byte, 6
+    d_byte Param_byte, 5
     D_END
     D_STRUCT sActor
     d_byte Type_eActor, eActor::BadLavaball
-    d_word PosX_i16, $008c
-    d_word PosY_i16, kLavaballStartYTall
-    d_byte Param_byte, 7
-    D_END
-    D_STRUCT sActor
-    d_byte Type_eActor, eActor::BadLavaball
-    d_word PosX_i16, $00d4
+    d_word PosX_i16, $00c4
     d_word PosY_i16, kLavaballStartYTall
     d_byte Param_byte, 5
     D_END
@@ -268,15 +369,73 @@ _Actors_sActor_arr:
 _Devices_sDevice_arr:
 :   D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Console
-    d_byte BlockRow_u8,  4
-    d_byte BlockCol_u8, 12
+    d_byte BlockRow_u8, 15
+    d_byte BlockCol_u8, 10
     d_byte Target_byte, kUpperBoilerMachineIndex
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Console
+    d_byte BlockRow_u8, 10
+    d_byte BlockCol_u8, 16
+    d_byte Target_byte, kBlasterMachineIndex
+    D_END
+    D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::Console
     d_byte BlockRow_u8, 19
-    d_byte BlockCol_u8, 29
+    d_byte BlockCol_u8, 30
     d_byte Target_byte, kLowerBoilerMachineIndex
+    D_END
+    .assert * - :- = kUpperLeverDeviceIndex * .sizeof(sDevice), error
+    D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::LeverFloor
+    d_byte BlockRow_u8, 6
+    d_byte BlockCol_u8, 4
+    d_byte Target_byte, sState::UpperLever_u8
+    D_END
+    .assert * - :- = kMiddleLeverLDeviceIndex * .sizeof(sDevice), error
+    D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::LeverFloor
+    d_byte BlockRow_u8, 10
+    d_byte BlockCol_u8, 18
+    d_byte Target_byte, sState::MiddleLeverL_u8
+    D_END
+    .assert * - :- = kMiddleLeverUDeviceIndex * .sizeof(sDevice), error
+    D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::LeverFloor
+    d_byte BlockRow_u8, 6
+    d_byte BlockCol_u8, 19
+    d_byte Target_byte, sState::MiddleLeverU_u8
+    D_END
+    .assert * - :- = kLowerLeverDeviceIndex * .sizeof(sDevice), error
+    D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::LeverFloor
+    d_byte BlockRow_u8, 19
+    d_byte BlockCol_u8, 22
+    d_byte Target_byte, sState::LowerLever_u8
+    D_END
+    D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::Boiler
+    d_byte BlockRow_u8, 8
+    d_byte BlockCol_u8, 11
+    d_byte Target_byte, bBoiler::SteamUp | kLoosePipe1PlatformIndex
+    D_END
+    D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::Boiler
+    d_byte BlockRow_u8, 11
+    d_byte BlockCol_u8, 18
+    d_byte Target_byte, bBoiler::SteamUp | kLoosePipe2PlatformIndex
+    D_END
+    D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::Boiler
+    d_byte BlockRow_u8, 11
+    d_byte BlockCol_u8, 19
+    d_byte Target_byte, bBoiler::SteamUp | kLoosePipe2PlatformIndex
+    D_END
+    D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::Boiler
+    d_byte BlockRow_u8, 9
+    d_byte BlockCol_u8, 22
+    d_byte Target_byte, bBoiler::SteamRight | kLoosePipe3PlatformIndex
     D_END
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None
@@ -295,17 +454,71 @@ _Passages_sPassage_arr:
     D_END
     D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Eastern | 0
-    d_byte Destination_eRoom, eRoom::LavaEast  ; TODO
+    d_byte Destination_eRoom, eRoom::LavaEast  ; TODO LavaVent
     d_byte SpawnBlock_u8, 4
     d_byte SpawnAdjust_byte, 0
     D_END
     D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Eastern | 1
-    d_byte Destination_eRoom, eRoom::LavaEast  ; TODO
+    d_byte Destination_eRoom, eRoom::LavaEast  ; TODO LavaCavern
     d_byte SpawnBlock_u8, 15
     d_byte SpawnAdjust_byte, 0
     D_END
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
+.ENDPROC
+
+.PROC FuncC_Lava_EastBlaster_ReadReg
+    cmp #$e
+    beq _ReadX
+    bge _ReadL
+    cmp #$d
+    beq _ReadU
+    jmp Func_MachineBlasterReadRegMirrors
+_ReadL:
+    lda Zp_RoomState + sState::MiddleLeverL_u8
+    rts
+_ReadU:
+    lda Zp_RoomState + sState::MiddleLeverU_u8
+    rts
+_ReadX:
+    lda Ram_PlatformLeft_i16_0_arr + kBlasterPlatformIndex
+    sub #kBlasterMinPlatformLeft - kTileHeightPx
+    div #kBlockWidthPx
+    rts
+.ENDPROC
+
+.PROC FuncC_Lava_EastUpperBoiler_ReadReg
+    cmp #$c
+    beq _ReadL
+    jmp Func_MachineBoilerReadReg
+_ReadL:
+    lda Zp_RoomState + sState::UpperLever_u8
+    rts
+.ENDPROC
+
+.PROC FuncC_Lava_EastLowerBoiler_ReadReg
+    lda Zp_RoomState + sState::LowerLever_u8
+    rts
+.ENDPROC
+
+.PROC FuncC_Lava_EastBlaster_Draw
+_Mirrors:
+    lda Ram_MachineState3_byte_arr + kBlasterMachineIndex  ; mirror 1 anim
+    div #kBlasterMirrorAnimSlowdown
+    add #kMirrorAngleOffset
+    sta T2  ; absolute mirror angle
+    ldx #kMirror3PlatformIndex
+    @loop:
+    stx T3  ; platform index
+    lda T2  ; param: absolute mirror angle
+    jsr FuncA_Objects_DrawBlasterMirror  ; preserves T2+
+    ldx T3  ; platform index
+    dex
+    .assert kMirror1PlatformIndex > 0, error
+    cpx #kMirror1PlatformIndex
+    bge @loop
+_Blaster:
+    jmp FuncA_Objects_DrawBlasterMachineVert
 .ENDPROC
 
 .PROC FuncC_Lava_EastUpperBoiler_Draw
@@ -316,17 +529,104 @@ _Passages_sPassage_arr:
     jmp FuncA_Objects_DrawBoilerValve2
 .ENDPROC
 
-.PROC FuncC_Lava_EastLowerBoiler_Draw
-    jsr FuncA_Objects_DrawBoilerMachine
-    ldx #kLowerValve1PlatformIndex  ; param: platform index
-    jsr FuncA_Objects_DrawBoilerValve1
-    ldx #kLowerValve2PlatformIndex  ; param: platform index
-    jmp FuncA_Objects_DrawBoilerValve2
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Room"
+
+.PROC FuncA_Room_LavaEast_TickRoom
+    jsr FuncA_Room_TurnSteamToSmokeIfConsoleOpen
+    lda #eActor::ProjFireblast  ; param: projectile type
+    jsr FuncA_Room_TurnProjectilesToSmokeIfConsoleOpen
+_Mirrors:
+    lda Ram_MachineState3_byte_arr + kBlasterMachineIndex  ; mirror anim
+    div #kBlasterMirrorAnimSlowdown
+    add #kMirrorAngleOffset
+    sta T5  ; absolute mirror angle (in tau/16 units)
+    ldy #kMirror3PlatformIndex
+    @loop:
+    lda T5  ; param: absolute mirror angle (in tau/16 units)
+    jsr FuncA_Room_ReflectFireblastsOffMirror  ; preserves Y and T5+
+    dey
+    .assert kMirror1PlatformIndex > 0, error
+    cpy #kMirror1PlatformIndex
+    bge @loop
+    rts
+.ENDPROC
+
+.PROC FuncA_Room_LavaEastBlaster_Init
+    lda #kBlasterInitGoalM * kBlasterMirrorAnimSlowdown
+    sta Ram_MachineState3_byte_arr + kBlasterMachineIndex  ; mirror anim
+    fall FuncA_Room_LavaEastBlaster_Reset
+.ENDPROC
+
+.PROC FuncA_Room_LavaEastBlaster_Reset
+    lda #kBlasterInitGoalM
+    sta Ram_MachineState1_byte_arr + kBlasterMachineIndex  ; mirror goal
+    lda #kBlasterInitGoalX
+    sta Ram_MachineGoalHorz_u8_arr + kBlasterMachineIndex
+    ldx #kMiddleLeverLDeviceIndex  ; param: device index
+    jsr FuncA_Room_ResetLever
+    ldx #kMiddleLeverUDeviceIndex  ; param: device index
+    jmp FuncA_Room_ResetLever
+.ENDPROC
+
+.PROC FuncA_Room_LavaEastUpperBoiler_Reset
+    jsr FuncA_Room_MachineBoilerReset
+    ldx #kUpperLeverDeviceIndex  ; param: device index
+    jmp FuncA_Room_ResetLever
+.ENDPROC
+
+.PROC FuncA_Room_LavaEastLowerBoiler_Reset
+    jsr FuncA_Room_MachineBoilerReset
+    ldx #kLowerLeverDeviceIndex  ; param: device index
+    jmp FuncA_Room_ResetLever
 .ENDPROC
 
 ;;;=========================================================================;;;
 
 .SEGMENT "PRGA_Machine"
+
+.PROC FuncA_Machine_LavaEastBlaster_WriteReg
+    cpx #$d
+    beq _WriteU
+    bge _WriteL
+    jmp FuncA_Machine_BlasterWriteRegMirrors
+_WriteU:
+    ldx #kMiddleLeverUDeviceIndex  ; param: device index
+    jmp FuncA_Machine_WriteToLever
+_WriteL:
+    ldx #kMiddleLeverLDeviceIndex  ; param: device index
+    jmp FuncA_Machine_WriteToLever
+.ENDPROC
+
+.PROC FuncA_Machine_LavaEastUpperBoiler_WriteReg
+    cpx #$c
+    beq _WriteL
+    jmp FuncA_Machine_BoilerWriteReg
+_WriteL:
+    ldx #kUpperLeverDeviceIndex  ; param: device index
+    jmp FuncA_Machine_WriteToLever
+.ENDPROC
+
+.PROC FuncA_Machine_LavaEastLowerBoiler_WriteReg
+    ldx #kLowerLeverDeviceIndex  ; param: device index
+    jmp FuncA_Machine_WriteToLever
+.ENDPROC
+
+.PROC FuncA_Machine_LavaEastBlaster_TryMove
+    lda #kBlasterMaxGoalX  ; param: max goal horz
+    jmp FuncA_Machine_GenericTryMoveX
+.ENDPROC
+
+.PROC FuncA_Machine_LavaEastBlaster_Tick
+    ldax #kBlasterMinPlatformLeft  ; param: min platform left
+    jsr FuncA_Machine_GenericMoveTowardGoalHorz  ; returns A
+    sta T1  ; nonzero if moved
+    jsr FuncA_Machine_BlasterTickMirrors  ; preserves T1+, returns A
+    ora T1  ; nonzero if moved
+    jeq FuncA_Machine_ReachedGoal
+    rts
+.ENDPROC
 
 ;;; TryAct implemention for the LavaEastUpperBoiler machine.
 ;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
@@ -338,76 +638,36 @@ _Valve1:
     ldy _Valve1ExitPlatformIndex_u8_arr4, x  ; platform index
     cpy #kUpperValve2PlatformIndex
     beq _Valve2
-    jsr FuncA_Machine_EmitSteamUpFromPipe
+    jsr Func_EmitSteamUpFromPipe
     jmp FuncA_Machine_BoilerFinishEmittingSteam
 _Valve2:
     lda Ram_MachineGoalVert_u8_arr + kUpperBoilerMachineIndex  ; valve 2 angle
     and #$03
     tax  ; valve 2 angle (in tau/8 units, mod 4)
     ldy _Valve2ExitPlatformIndex_u8_arr4, x  ; platform index
-    jsr FuncA_Machine_EmitSteamRightFromPipe
+    bmi _Error
+    jsr Func_EmitSteamRightFromPipe
     jmp FuncA_Machine_BoilerFinishEmittingSteam
+_Error:
+    jmp FuncA_Machine_Error
 _Valve1ExitPlatformIndex_u8_arr4:
-    .byte kUpperValve2PlatformIndex
-    .byte kUpperValve2PlatformIndex
     .byte kUpperPipe1PlatformIndex
+    .byte kUpperPipe1PlatformIndex
+    .byte kUpperValve2PlatformIndex
     .byte kUpperPipe1PlatformIndex
 _Valve2ExitPlatformIndex_u8_arr4:
-    .byte kUpperPipe3PlatformIndex
+    .byte $ff
+    .byte $ff
     .byte kUpperPipe2PlatformIndex
     .byte kUpperPipe2PlatformIndex
-    .byte kUpperPipe3PlatformIndex
 .ENDPROC
 
 ;;; TryAct implemention for the LavaEastLowerBoiler machine.
 ;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
 .PROC FuncA_Machine_LavaEastLowerBoiler_TryAct
-    lda #0
-    sta T0  ; num steams emitted
-_Pipe1:
-    lda Ram_MachineGoalVert_u8_arr + kLowerBoilerMachineIndex  ; valve 2 angle
-    and #$03
-    tax  ; valve 2 angle (in tau/8 units, mod 4)
-    ldy _Valve2ExitPlatformIndex_u8_arr4, x  ; platform index
-    bmi @done
-    lda Ram_MachineGoalHorz_u8_arr + kLowerBoilerMachineIndex  ; valve 1 angle
-    and #$03
-    tax  ; valve 1 angle (in tau/8 units, mod 4)
-    ldy _Valve1PipePlatformIndex1_u8_arr4, x  ; platform index
-    bmi @done
-    jsr FuncA_Machine_EmitSteamRightFromPipe  ; preserves T0+
-    inc T0  ; num steams emitted
-    @done:
-_Pipe2:
-    lda Ram_MachineGoalHorz_u8_arr + kLowerBoilerMachineIndex  ; valve 1 angle
-    and #$03
-    tax  ; valve 1 angle (in tau/8 units, mod 4)
-    ldy _Valve1PipePlatformIndex2_u8_arr4, x  ; platform index
-    bmi @done
-    jsr FuncA_Machine_EmitSteamUpFromPipe  ; preserves T0+
-    inc T0  ; num steams emitted
-    @done:
-_Finish:
-    lda T0  ; num steams emitted
-    beq _Failure
+    ldy #kLowerPipe1PlatformIndex  ; param: platform index
+    jsr Func_EmitSteamUpFromPipe
     jmp FuncA_Machine_BoilerFinishEmittingSteam
-_Failure:
-    jmp FuncA_Machine_Error
-_Valve1PipePlatformIndex1_u8_arr4:
-    .byte $ff
-    .byte kLowerPipe1PlatformIndex
-    .byte kLowerPipe1PlatformIndex
-    .byte kLowerPipe1PlatformIndex
-_Valve1PipePlatformIndex2_u8_arr4:
-    .byte kLowerPipe2PlatformIndex
-    .byte kLowerPipe1PlatformIndex
-    .byte kLowerPipe2PlatformIndex
-    .byte kLowerPipe2PlatformIndex
-_Valve2ExitPlatformIndex_u8_arr4:
-    .byte $ff
-    .byte kLowerValve1PlatformIndex
-    .byte kLowerValve1PlatformIndex
-    .byte $ff
 .ENDPROC
 
 ;;;=========================================================================;;;

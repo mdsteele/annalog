@@ -21,7 +21,6 @@
 .INCLUDE "../machine.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
-.INCLUDE "../ppu.inc"
 .INCLUDE "boiler.inc"
 .INCLUDE "shared.inc"
 
@@ -34,24 +33,11 @@
 .IMPORT FuncA_Objects_MoveShapeRightOneTile
 .IMPORT FuncA_Objects_SetShapePosToMachineTopLeft
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
-.IMPORT Func_FindEmptyActorSlot
-.IMPORT Func_InitActorProjSteamHorz
-.IMPORT Func_InitActorProjSteamUp
-.IMPORT Ram_ActorPosX_i16_0_arr
-.IMPORT Ram_ActorPosX_i16_1_arr
-.IMPORT Ram_ActorPosY_i16_0_arr
-.IMPORT Ram_ActorPosY_i16_1_arr
 .IMPORT Ram_MachineGoalHorz_u8_arr
 .IMPORT Ram_MachineGoalVert_u8_arr
 .IMPORT Ram_MachineState1_byte_arr
 .IMPORT Ram_MachineState2_byte_arr
 .IMPORT Ram_MachineState3_byte_arr
-.IMPORT Ram_PlatformLeft_i16_0_arr
-.IMPORT Ram_PlatformLeft_i16_1_arr
-.IMPORT Ram_PlatformRight_i16_0_arr
-.IMPORT Ram_PlatformRight_i16_1_arr
-.IMPORT Ram_PlatformTop_i16_0_arr
-.IMPORT Ram_PlatformTop_i16_1_arr
 .IMPORTZP Zp_MachineIndex_u8
 
 ;;;=========================================================================;;;
@@ -171,95 +157,6 @@ _Valve2:
 _Finish:
     lda T0  ; num valves moved
     jeq FuncA_Machine_ReachedGoal
-    rts
-.ENDPROC
-
-;;; TODO: Nothing uses this yet; should we get rid of it?
-;;; Given an 8x8 pixel platform covering the end tile of a leftward-facing
-;;; pipe, spawns a leftward steam actor emitting from that pipe.
-;;; @param Y The platform index for the pipe.
-;;; @preserve T0+
-.PROC FuncA_Machine_EmitSteamLeftFromPipe
-    ;; Set X to the actor index for the steam.
-    jsr Func_FindEmptyActorSlot  ; preserves Y and T0+, returns C and X
-    bcs @done
-    ;; Calculate the steam's X-position.
-    lda Ram_PlatformLeft_i16_0_arr, y
-    sub #kTileWidthPx
-    sta Ram_ActorPosX_i16_0_arr, x
-    lda Ram_PlatformLeft_i16_1_arr, y
-    sbc #0
-    sta Ram_ActorPosX_i16_1_arr, x
-    ;; Calculate the steam's Y-position.
-    lda Ram_PlatformTop_i16_0_arr, y
-    add #kTileHeightPx / 2
-    sta Ram_ActorPosY_i16_0_arr, x
-    lda Ram_PlatformTop_i16_1_arr, y
-    adc #0
-    sta Ram_ActorPosY_i16_1_arr, x
-    ;; Spawn the steam.
-    lda #bObj::FlipH  ; param: facing dir
-    jmp Func_InitActorProjSteamHorz  ; preserves T0+
-    @done:
-    rts
-.ENDPROC
-
-;;; Given an 8x8 pixel platform covering the end tile of a rightward-facing
-;;; pipe, spawns a rightward steam actor emitting from that pipe.
-;;; @param Y The platform index for the pipe.
-;;; @preserve T0+
-.EXPORT FuncA_Machine_EmitSteamRightFromPipe
-.PROC FuncA_Machine_EmitSteamRightFromPipe
-    ;; Set X to the actor index for the steam.
-    jsr Func_FindEmptyActorSlot  ; preserves Y and T0+, returns C and X
-    bcs @done
-    ;; Calculate the steam's X-position.
-    lda Ram_PlatformRight_i16_0_arr, y
-    add #kTileWidthPx
-    sta Ram_ActorPosX_i16_0_arr, x
-    lda Ram_PlatformRight_i16_1_arr, y
-    adc #0
-    sta Ram_ActorPosX_i16_1_arr, x
-    ;; Calculate the steam's Y-position.
-    lda Ram_PlatformTop_i16_0_arr, y
-    add #kTileHeightPx / 2
-    sta Ram_ActorPosY_i16_0_arr, x
-    lda Ram_PlatformTop_i16_1_arr, y
-    adc #0
-    sta Ram_ActorPosY_i16_1_arr, x
-    ;; Spawn the steam.
-    lda #0  ; param: facing dir
-    jmp Func_InitActorProjSteamHorz  ; preserves T0+
-    @done:
-    rts
-.ENDPROC
-
-;;; Given an 8x8 pixel platform covering the end tile of an upward-facing pipe,
-;;; spawns an upward steam actor emitting from that pipe.
-;;; @param Y The platform index for the pipe.
-;;; @preserve T0+
-.EXPORT FuncA_Machine_EmitSteamUpFromPipe
-.PROC FuncA_Machine_EmitSteamUpFromPipe
-    ;; Set X to the actor index for the steam.
-    jsr Func_FindEmptyActorSlot  ; preserves Y and T0+, returns C and X
-    bcs @done
-    ;; Calculate the steam's X-position.
-    lda Ram_PlatformLeft_i16_0_arr, y
-    add #kTileWidthPx / 2
-    sta Ram_ActorPosX_i16_0_arr, x
-    lda Ram_PlatformLeft_i16_1_arr, y
-    adc #0
-    sta Ram_ActorPosX_i16_1_arr, x
-    ;; Calculate the steam's Y-position.
-    lda Ram_PlatformTop_i16_0_arr, y
-    sub #kTileHeightPx
-    sta Ram_ActorPosY_i16_0_arr, x
-    lda Ram_PlatformTop_i16_1_arr, y
-    sbc #0
-    sta Ram_ActorPosY_i16_1_arr, x
-    ;; Spawn the steam.
-    jmp Func_InitActorProjSteamUp  ; preserves T0+
-    @done:
     rts
 .ENDPROC
 

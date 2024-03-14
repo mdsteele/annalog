@@ -18,15 +18,18 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "../actor.inc"
+.INCLUDE "../device.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
 .INCLUDE "fireball.inc"
 
 .IMPORT FuncA_Actor_CenterHitsTerrain
 .IMPORT FuncA_Actor_CenterHitsTerrainOrSolidPlatform
+.IMPORT FuncA_Actor_FindNearbyDevice
 .IMPORT FuncA_Actor_HarmAvatarIfCollision
 .IMPORT FuncA_Actor_IsInRoomBounds
 .IMPORT FuncA_Objects_Draw1x1Actor
+.IMPORT Func_EmitSteamFromPipe
 .IMPORT Func_InitActorDefault
 .IMPORT Func_InitActorWithState1
 .IMPORT Func_SetActorVelocityPolar
@@ -34,6 +37,8 @@
 .IMPORT Ram_ActorState2_byte_arr
 .IMPORT Ram_ActorState3_byte_arr
 .IMPORT Ram_ActorType_eActor_arr
+.IMPORT Ram_DeviceTarget_byte_arr
+.IMPORT Ram_DeviceType_eDevice_arr
 .IMPORTZP Zp_FrameCounter_u8
 
 ;;;=========================================================================;;;
@@ -69,7 +74,7 @@ kPaletteObjFireblast = 1
 .EXPORT Func_InitActorProjFireball
 .PROC Func_InitActorProjFireball
     ldy #eActor::ProjFireball  ; param: actor type
-    .assert * = Func_InitActorProjFireballOrFireblast, error, "fallthrough"
+    fall Func_InitActorProjFireballOrFireblast  ; preserves X and T3+
 .ENDPROC
 
 ;;; Initializes the specified actor as a fireball or fireblast projectile.
@@ -79,7 +84,7 @@ kPaletteObjFireblast = 1
 ;;; @preserve X, T3+
 .PROC Func_InitActorProjFireballOrFireblast
     jsr Func_InitActorWithState1  ; preserves X and T0+
-    .assert * = Func_ReinitActorProjFireblastVelocity, error, "fallthrough"
+    fall Func_ReinitActorProjFireblastVelocity  ; preserves X and T3+
 .ENDPROC
 
 ;;; Sets a fireball projectile's velocity from its State1 angle value.
@@ -131,10 +136,28 @@ _HandleCollision:
     bcs FuncA_Actor_ExpireProjFireballOrFireblast  ; preserves X
     jsr FuncA_Actor_IsInRoomBounds  ; preserves X, returns C
     bcc FuncA_Actor_RemoveProjFireballOrFireblast  ; preserves X
+    jsr FuncA_Actor_FindNearbyDevice  ; preserves X, returns N and Y
+    bmi @noBoiler
+    lda Ram_DeviceType_eDevice_arr, y
+    cmp #eDevice::Boiler
+    beq FuncA_Actor_FireblastHitBoiler  ; preserves X
+    @noBoiler:
     jsr FuncA_Actor_CenterHitsTerrainOrSolidPlatform  ; preserves X, returns C
     bcs FuncA_Actor_ExpireProjFireballOrFireblast  ; preserves X
     rts
 .ENDPROC
+
+;;; @param X The actor index.
+;;; @param Y The device index for the boiler.
+;;; @preserve X
+.PROC FuncA_Actor_FireblastHitBoiler
+    stx T0  ; fireblast actor index
+    lda Ram_DeviceTarget_byte_arr, y  ; param: bBoiler value
+    jsr Func_EmitSteamFromPipe  ; preserves T0+
+    ldx T0  ; fireblast actor index
+    fall FuncA_Actor_ExpireProjFireballOrFireblast  ; preserves X
+.ENDPROC
+
 
 ;;; Expires a fireball or fireblast projectile, replacing it with a motionless
 ;;; smoke particle.

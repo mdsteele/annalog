@@ -90,9 +90,8 @@ kMirror1PlatformIndex = 7
 kMirror2PlatformIndex = 8
 kMirror3PlatformIndex = 9
 
-;;; The initial values for the blaster's M register.
-kBlasterInitGoalM = 6
-kBlasterInitGoalR = 6
+;;; The initial value for the blaster's M register.
+kBlasterInitGoalM = 7
 ;;; The initial and maximum permitted values for the blaster's X register.
 kBlasterInitGoalX = 4
 kBlasterMaxGoalX  = 5
@@ -106,7 +105,7 @@ kBlasterInitPlatformLeft = \
 
 ;;; The mirrors' offsets from relative to absolute angles, in increments of
 ;;; tau/16.
-kMirrorAngleOffset = 8
+kMirrorAngleOffset = 7
 
 ;;;=========================================================================;;;
 
@@ -452,6 +451,7 @@ _Mirrors:
     jsr FuncA_Objects_DrawBlasterMirror  ; preserves T2+
     ldx T3  ; platform index
     dex
+    .assert kMirror1PlatformIndex > 0, error
     cpx #kMirror1PlatformIndex
     bge @loop
 _Blaster:
@@ -586,6 +586,7 @@ _Mirrors:
     lda T5  ; param: absolute mirror angle (in tau/16 units)
     jsr FuncA_Room_ReflectFireblastsOffMirror  ; preserves Y and T5+
     dey
+    .assert kMirror1PlatformIndex > 0, error
     cpy #kMirror1PlatformIndex
     bge @loop
     rts

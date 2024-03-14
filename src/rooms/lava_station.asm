@@ -36,13 +36,13 @@
 .IMPORT FuncA_Machine_BoilerFinishEmittingSteam
 .IMPORT FuncA_Machine_BoilerTick
 .IMPORT FuncA_Machine_BoilerWriteReg
-.IMPORT FuncA_Machine_EmitSteamRightFromPipe
-.IMPORT FuncA_Machine_EmitSteamUpFromPipe
 .IMPORT FuncA_Machine_Error
 .IMPORT FuncA_Objects_DrawBoilerMachine
 .IMPORT FuncA_Objects_DrawBoilerValve1
 .IMPORT FuncA_Room_MachineBoilerReset
 .IMPORT FuncA_Room_TurnSteamToSmokeIfConsoleOpen
+.IMPORT Func_EmitSteamRightFromPipe
+.IMPORT Func_EmitSteamUpFromPipe
 .IMPORT Func_MachineBoilerReadReg
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrObjLava
@@ -219,10 +219,10 @@ _Passages_sPassage_arr:
     cpy #kPipe1PlatformIndex
     beq @steamRight
     @steamUp:
-    jsr FuncA_Machine_EmitSteamUpFromPipe
+    jsr Func_EmitSteamUpFromPipe
     jmp FuncA_Machine_BoilerFinishEmittingSteam
     @steamRight:
-    jsr FuncA_Machine_EmitSteamRightFromPipe
+    jsr Func_EmitSteamRightFromPipe
     jmp FuncA_Machine_BoilerFinishEmittingSteam
 _ValvePipePlatformIndex_u8_arr4:
     .byte kPipe1PlatformIndex

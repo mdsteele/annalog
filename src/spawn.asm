@@ -421,6 +421,7 @@ _CheckForShallowWater:
 _DeviceOffset_u8_arr:
     D_ARRAY .enum, eDevice
     d_byte None,          $08
+    d_byte Boiler,        $08
     d_byte BreakerDone,   kBreakerAvatarOffset
     d_byte BreakerRising, kBreakerAvatarOffset
     d_byte Door1Locked,   kDoorAvatarOffset

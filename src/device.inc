@@ -27,6 +27,7 @@ kMaxDevices = 16
     ;; Non-interactive device types; these generally act as temporary
     ;; placeholders for interactive devices.
     None           ; empty slot
+    Boiler         ; boiler tank that can be hit by a fireblast
     BreakerDone    ; circuit breaker, after being activated
     BreakerRising  ; circuit breaker, rising out of the ground
     Door1Locked    ; leads to another Door1*; can't be entered until unlocked
@@ -82,6 +83,7 @@ kFirstInteractiveDeviceType = eDevice::BreakerReady
     ;; The room block column for this device.
     BlockCol_u8  .byte
     ;; The "target" for this device, whose meaning depends on the device type:
+    ;;   * For boilers, this is the bBoiler value.
     ;;   * For breakers, this is the eFlag::Breaker* value.
     ;;   * For consoles, this is the machine index (i.e. the index into the
     ;;     current room's sRoom::Machines_sMachine_arr_ptr).
@@ -89,7 +91,7 @@ kFirstInteractiveDeviceType = eDevice::BreakerReady
     ;;   * For flowers, this is the eFlag::Flower* value.
     ;;   * For levers, this is the byte offset into Zp_RoomState for the
     ;;     lever's state value (0 or 1).
-    ;;   * For mouseholes, this the bMousehole value.
+    ;;   * For mouseholes, this is the bMousehole value.
     ;;   * For papers, this is the eFlag::Paper* value.
     ;;   * For screen/sign/talk devices, this is the eDialog value.
     ;;   * For teleporters, this is the eRoom value for the destination room.

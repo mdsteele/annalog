@@ -37,7 +37,6 @@
 .IMPORT FuncA_Machine_BoilerFinishEmittingSteam
 .IMPORT FuncA_Machine_BoilerTick
 .IMPORT FuncA_Machine_BoilerWriteReg
-.IMPORT FuncA_Machine_EmitSteamUpFromPipe
 .IMPORT FuncA_Machine_Error
 .IMPORT FuncA_Machine_WriteToLever
 .IMPORT FuncA_Objects_AnimateLavaTerrain
@@ -49,6 +48,7 @@
 .IMPORT FuncA_Room_RespawnFlowerDeviceIfDropped
 .IMPORT FuncA_Room_TurnSteamToSmokeIfConsoleOpen
 .IMPORT FuncA_Terrain_FadeInShortRoomWithLava
+.IMPORT Func_EmitSteamUpFromPipe
 .IMPORT Func_MachineBoilerReadReg
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrObjLava
@@ -295,11 +295,11 @@ _WriteL:
     beq @pipe1
     ;; Emit upward steam from the chosen pipe(s).
     @pipe2:
-    jsr FuncA_Machine_EmitSteamUpFromPipe
+    jsr Func_EmitSteamUpFromPipe
     jsr FuncA_Machine_BoilerFinishEmittingSteam
     ldy #kPipe1PlatformIndex
     @pipe1:
-    jsr FuncA_Machine_EmitSteamUpFromPipe
+    jsr Func_EmitSteamUpFromPipe
     jmp FuncA_Machine_BoilerFinishEmittingSteam
 _Failure:
     jmp FuncA_Machine_Error

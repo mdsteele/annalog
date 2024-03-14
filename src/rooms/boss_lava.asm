@@ -43,7 +43,6 @@
 .IMPORT FuncA_Machine_BoilerFinishEmittingSteam
 .IMPORT FuncA_Machine_BoilerTick
 .IMPORT FuncA_Machine_BoilerWriteReg
-.IMPORT FuncA_Machine_EmitSteamUpFromPipe
 .IMPORT FuncA_Machine_Error
 .IMPORT FuncA_Machine_GenericMoveTowardGoalHorz
 .IMPORT FuncA_Machine_GenericTryMoveX
@@ -75,6 +74,7 @@
 .IMPORT Func_BufferPpuTransfer
 .IMPORT Func_DistanceSensorRightDetectPoint
 .IMPORT Func_DivMod
+.IMPORT Func_EmitSteamUpFromPipe
 .IMPORT Func_FindActorWithType
 .IMPORT Func_FindEmptyActorSlot
 .IMPORT Func_GetRandomByte
@@ -1055,7 +1055,7 @@ _WriteR:
     tax  ; valve angle (in tau/8 units, mod 4)
     ldy _ValvePipePlatformIndex_u8_arr4, x  ; param: pipe platform index
     ;; Emit upward steam from the chosen pipe(s).
-    jsr FuncA_Machine_EmitSteamUpFromPipe
+    jsr Func_EmitSteamUpFromPipe
     jmp FuncA_Machine_BoilerFinishEmittingSteam
 _ValvePipePlatformIndex_u8_arr4:
     .byte kPipe1PlatformIndex
