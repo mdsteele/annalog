@@ -93,12 +93,15 @@
 .IMPORT DataC_Garden_Shrine_sRoom
 .IMPORT DataC_Garden_Tower_sRoom
 .IMPORT DataC_Garden_Tunnel_sRoom
+.IMPORT DataC_Lava_Cavern_sRoom
 .IMPORT DataC_Lava_Center_sRoom
 .IMPORT DataC_Lava_East_sRoom
 .IMPORT DataC_Lava_Flower_sRoom
 .IMPORT DataC_Lava_Shaft_sRoom
 .IMPORT DataC_Lava_Station_sRoom
 .IMPORT DataC_Lava_Teleport_sRoom
+.IMPORT DataC_Lava_Tunnel_sRoom
+.IMPORT DataC_Lava_Vent_sRoom
 .IMPORT DataC_Lava_West_sRoom
 .IMPORT DataC_Mermaid_Cellar_sRoom
 .IMPORT DataC_Mermaid_East_sRoom
@@ -352,12 +355,15 @@ _LoadNewRoom:
     d_entry table, GardenShrine,    DataC_Garden_Shrine_sRoom
     d_entry table, GardenTower,     DataC_Garden_Tower_sRoom
     d_entry table, GardenTunnel,    DataC_Garden_Tunnel_sRoom
+    d_entry table, LavaCavern,      DataC_Lava_Cavern_sRoom
     d_entry table, LavaCenter,      DataC_Lava_Center_sRoom
     d_entry table, LavaEast,        DataC_Lava_East_sRoom
     d_entry table, LavaFlower,      DataC_Lava_Flower_sRoom
     d_entry table, LavaShaft,       DataC_Lava_Shaft_sRoom
     d_entry table, LavaStation,     DataC_Lava_Station_sRoom
     d_entry table, LavaTeleport,    DataC_Lava_Teleport_sRoom
+    d_entry table, LavaTunnel,      DataC_Lava_Tunnel_sRoom
+    d_entry table, LavaVent,        DataC_Lava_Vent_sRoom
     d_entry table, LavaWest,        DataC_Lava_West_sRoom
     d_entry table, MermaidCellar,   DataC_Mermaid_Cellar_sRoom
     d_entry table, MermaidEast,     DataC_Mermaid_East_sRoom
@@ -538,12 +544,15 @@ _PrisonMusic:
     d_byte GardenShrine,    eMusic::Garden
     d_byte GardenTower,     eMusic::Garden
     d_byte GardenTunnel,    eMusic::Garden
+    d_byte LavaCavern,      eMusic::Silence
     d_byte LavaCenter,      eMusic::Silence
     d_byte LavaEast,        eMusic::Silence
     d_byte LavaFlower,      eMusic::Silence
     d_byte LavaShaft,       eMusic::Silence
     d_byte LavaStation,     eMusic::Silence
     d_byte LavaTeleport,    eMusic::Silence
+    d_byte LavaTunnel,      eMusic::Silence
+    d_byte LavaVent,        eMusic::Silence
     d_byte LavaWest,        eMusic::Silence
     d_byte MermaidCellar,   eMusic::Silence
     d_byte MermaidEast,     eMusic::Silence

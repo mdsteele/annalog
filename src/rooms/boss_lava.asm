@@ -425,7 +425,7 @@ _Devices_sDevice_arr:
     d_byte Type_eDevice, eDevice::Door1Unlocked
     d_byte BlockRow_u8, 9
     d_byte BlockCol_u8, 8
-    d_byte Target_byte, eRoom::BossLava  ; TODO
+    d_byte Target_byte, eRoom::LavaCavern
     D_END
     .assert * - :- = kBossUpgradeDeviceIndex * .sizeof(sDevice), error
     D_STRUCT sDevice

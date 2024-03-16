@@ -103,12 +103,15 @@ kMaxPassages = 8
     GardenShrine
     GardenTower
     GardenTunnel
+    LavaCavern
     LavaCenter
     LavaEast
     LavaFlower
     LavaShaft
     LavaStation
     LavaTeleport
+    LavaTunnel
+    LavaVent
     LavaWest
     MermaidCellar
     MermaidEast
