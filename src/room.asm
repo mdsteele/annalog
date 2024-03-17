@@ -136,7 +136,11 @@
 .IMPORT DataC_Prison_Upper_sRoom
 .IMPORT DataC_Sewer_Ascent_sRoom
 .IMPORT DataC_Sewer_Basin_sRoom
+.IMPORT DataC_Sewer_East_sRoom
+.IMPORT DataC_Sewer_Faucet_sRoom
 .IMPORT DataC_Sewer_Flower_sRoom
+.IMPORT DataC_Sewer_North_sRoom
+.IMPORT DataC_Sewer_Pipe_sRoom
 .IMPORT DataC_Sewer_Pool_sRoom
 .IMPORT DataC_Sewer_South_sRoom
 .IMPORT DataC_Sewer_Trap_sRoom
@@ -398,7 +402,11 @@ _LoadNewRoom:
     d_entry table, PrisonUpper,     DataC_Prison_Upper_sRoom
     d_entry table, SewerAscent,     DataC_Sewer_Ascent_sRoom
     d_entry table, SewerBasin,      DataC_Sewer_Basin_sRoom
+    d_entry table, SewerEast,       DataC_Sewer_East_sRoom
+    d_entry table, SewerFaucet,     DataC_Sewer_Faucet_sRoom
     d_entry table, SewerFlower,     DataC_Sewer_Flower_sRoom
+    d_entry table, SewerNorth,      DataC_Sewer_North_sRoom
+    d_entry table, SewerPipe,       DataC_Sewer_Pipe_sRoom
     d_entry table, SewerPool,       DataC_Sewer_Pool_sRoom
     d_entry table, SewerSouth,      DataC_Sewer_South_sRoom
     d_entry table, SewerTrap,       DataC_Sewer_Trap_sRoom
@@ -587,7 +595,11 @@ _PrisonMusic:
     d_byte PrisonUpper,     bRoomMusic::Prison
     d_byte SewerAscent,     eMusic::Silence
     d_byte SewerBasin,      eMusic::Silence
+    d_byte SewerEast,       eMusic::Silence
+    d_byte SewerFaucet,     eMusic::Silence
     d_byte SewerFlower,     eMusic::Silence
+    d_byte SewerNorth,      eMusic::Silence
+    d_byte SewerPipe,       eMusic::Silence
     d_byte SewerPool,       eMusic::Silence
     d_byte SewerSouth,      eMusic::Silence
     d_byte SewerTrap,       eMusic::Silence

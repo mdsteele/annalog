@@ -146,7 +146,11 @@ kMaxPassages = 8
     PrisonUpper
     SewerAscent
     SewerBasin
+    SewerEast
+    SewerFaucet
     SewerFlower
+    SewerNorth
+    SewerPipe
     SewerPool
     SewerSouth
     SewerTrap
