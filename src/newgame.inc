@@ -34,6 +34,7 @@
     Breaker4  ; start in the lava boss room, just after defeating it
     Collapse  ; start just outside the mine boss room
     Breaker5  ; start in the mine boss room, just after defeating it
+    Pass      ; start at the pass between the sewer and factory
     City      ; start at the eastern edge of the city center
     Sinkhole  ; start just outside the city boss room
     Breaker6  ; start in the city boss room, just after defeating it

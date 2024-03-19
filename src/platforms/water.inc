@@ -17,7 +17,14 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
-;;; OBJ tile IDs for drawing the GardenTower room.
-kTileIdObjGardenBricksFirst = $8e
+;;; OBJ tile IDs used for drawing movable water platforms:
+kTileIdObjPlatformHotSpringFirst = $d0
+kTileIdObjPlatformSewageFirst    = $80
+kTileIdObjPlatformWaterFirst     = $84
+kTileIdObjPlatformWaterfallFirst = $98
+
+;;; OBJ palette numbers used for drawing pump machines.
+kPaletteObjHotSpring = 0
+kPaletteObjWater     = 0
 
 ;;;=========================================================================;;;

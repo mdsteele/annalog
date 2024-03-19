@@ -32,13 +32,7 @@ kChrBankDiagramPump = $0a
 ;;; BG tile IDs for pump machine diagrams.
 kTileIdBgDiagramPumpFirst = $e0
 
-;;; Various OBJ tile IDs used for drawing pump machines.
-kTileIdObjHotSpringFirst = $d0
-kTileIdObjWaterFirst     = $84
-kTileIdObjPumpLight      = $83
-
-;;; OBJ palette numbers used for drawing pump machines.
-kPaletteObjHotSpring = 0
-kPaletteObjWater     = 0
+;;; The OBJ tile ID for the indicator light on a pump machine.
+kTileIdObjPumpLight = $83
 
 ;;;=========================================================================;;;

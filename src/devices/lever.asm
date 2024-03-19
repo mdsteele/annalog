@@ -21,6 +21,7 @@
 .INCLUDE "../device.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
+.INCLUDE "lever.inc"
 
 .IMPORT FuncA_Machine_StartWaiting
 .IMPORT FuncA_Objects_Alloc1x1Shape
@@ -40,15 +41,6 @@ kTileIdObjLeverHandleUp   = $0d
 
 ;;; The OBJ palette number used for drawing lever handles.
 kPaletteObjLeverHandle = 0
-
-;;; The number of animation frames a lever device has (i.e. the number of
-;;; distinct ways of drawing it).
-kLeverNumAnimFrames = 4
-;;; The number of VBlank frames per lever animation frame.
-.DEFINE kLeverAnimSlowdown 4
-;;; The number of VBlank frames for a complete lever animation (i.e. the value
-;;; to store in Ram_DeviceAnim_u8_arr when the lever is flipped).
-kLeverAnimCountdown = kLeverNumAnimFrames * kLeverAnimSlowdown - 1
 
 ;;;=========================================================================;;;
 

@@ -18,23 +18,69 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "../actor.inc"
+.INCLUDE "../actors/townsfolk.inc"
 .INCLUDE "../charmap.inc"
+.INCLUDE "../cutscene.inc"
 .INCLUDE "../device.inc"
+.INCLUDE "../devices/lever.inc"
+.INCLUDE "../dialog.inc"
 .INCLUDE "../flag.inc"
 .INCLUDE "../macros.inc"
+.INCLUDE "../oam.inc"
 .INCLUDE "../platform.inc"
+.INCLUDE "../platforms/water.inc"
 .INCLUDE "../room.inc"
 
 .IMPORT DataA_Room_Factory_sTileset
+.IMPORT FuncA_Objects_Draw1x1Shape
+.IMPORT FuncA_Objects_MoveShapeRightByA
+.IMPORT FuncA_Objects_MoveShapeRightOneTile
+.IMPORT FuncA_Objects_MoveShapeUpHalfTile
+.IMPORT FuncA_Objects_MoveShapeUpOneTile
+.IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
 .IMPORT Func_Noop
+.IMPORT Func_SetFlag
 .IMPORT Ppu_ChrObjGarden
+.IMPORT Ram_ActorPosX_i16_0_arr
+.IMPORT Ram_ActorPosY_i16_0_arr
+.IMPORT Ram_ActorState1_byte_arr
+.IMPORT Ram_ActorSubX_u8_arr
+.IMPORT Ram_ActorSubY_u8_arr
+.IMPORT Ram_ActorType_eActor_arr
+.IMPORT Ram_DeviceAnim_u8_arr
+.IMPORT Ram_DeviceType_eDevice_arr
+.IMPORT Ram_PlatformTop_i16_0_arr
+.IMPORT Sram_ProgressFlags_arr
+.IMPORTZP Zp_FrameCounter_u8
+.IMPORTZP Zp_RoomState
+
+;;;=========================================================================;;;
+
+;;; The actor index for Corra in this room.
+kCorraActorIndex = 0
+;;; The talk device indices for Corra in this room.
+kCorraDeviceIndexLeft = 1
+kCorraDeviceIndexRight = 0
+
+;;; The device index for the underwater lever.
+kLeverDeviceIndex = 2
+
+;;; The platform index for the water that can be raised.
+kMovableWaterPlatformIndex = 1
+
+;;; The initial and minimum room pixel Y-position for the top of the movable
+;;; water platform.
+kInitWaterTop = $00d4
+kMinWaterTop  = $0094
 
 ;;;=========================================================================;;;
 
 ;;; Defines room-specific state data for this particular room.
 .STRUCT sState
     ;; The current state of the underwater lever.
-    Lever_u8 .byte
+    Lever_u8       .byte
+    ;; If true ($ff), draw the waterfall; if false ($00) don't.
+    Waterfall_bool .byte
 .ENDSTRUCT
 .ASSERT .sizeof(sState) <= kRoomStateSize, error
 
@@ -63,10 +109,10 @@ _Ext_sRoomExt:
     d_addr Actors_sActor_arr_ptr, _Actors_sActor_arr
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
     d_addr Passages_sPassage_arr_ptr, _Passages_sPassage_arr
-    d_addr Enter_func_ptr, Func_Noop
+    d_addr Enter_func_ptr, FuncC_Factory_East_EnterRoom
     d_addr FadeIn_func_ptr, Func_Noop
     d_addr Tick_func_ptr, Func_Noop
-    d_addr Draw_func_ptr, Func_Noop
+    d_addr Draw_func_ptr, FuncC_Factory_East_DrawRoom
     D_END
 _TerrainData:
 :   .incbin "out/rooms/factory_east.room"
@@ -79,22 +125,44 @@ _Platforms_sPlatform_arr:
     d_word Left_i16,  $0050
     d_word Top_i16,   $0134
     D_END
+    .assert * - :- = kMovableWaterPlatformIndex * .sizeof(sPlatform), error
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Water
     d_word WidthPx_u16, $30
-    d_byte HeightPx_u8, $60
+    d_byte HeightPx_u8, $20
     d_word Left_i16,  $00c0
-    d_word Top_i16,   $0094
+    d_word Top_i16, kInitWaterTop
     D_END
     .assert * - :- <= kMaxPlatforms * .sizeof(sPlatform), error
     .byte ePlatform::None
 _Actors_sActor_arr:
-:   ;; TODO: Corra NPC
+:   .assert * - :- = kCorraActorIndex * .sizeof(sActor), error
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::NpcMermaid
+    d_word PosX_i16, $0080
+    d_word PosY_i16, $0138
+    d_byte Param_byte, kTileIdMermaidCorraFirst
+    D_END
     ;; TODO: add some baddies
     .assert * - :- <= kMaxActors * .sizeof(sActor), error
     .byte eActor::None
 _Devices_sDevice_arr:
-:   D_STRUCT sDevice
+:   .assert * - :- = kCorraDeviceIndexRight * .sizeof(sDevice), error
+    D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::TalkRight
+    d_byte BlockRow_u8, 19
+    d_byte BlockCol_u8, 7
+    d_byte Target_byte, eDialog::FactoryEastCorra
+    D_END
+    .assert * - :- = kCorraDeviceIndexLeft * .sizeof(sDevice), error
+    D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::TalkLeft
+    d_byte BlockRow_u8, 19
+    d_byte BlockCol_u8, 8
+    d_byte Target_byte, eDialog::FactoryEastCorra
+    D_END
+    .assert * - :- = kLeverDeviceIndex * .sizeof(sDevice), error
+    D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::LeverFloor
     d_byte BlockRow_u8, 21
     d_byte BlockCol_u8, 6
@@ -122,6 +190,224 @@ _Passages_sPassage_arr:
     d_byte SpawnAdjust_byte, $e9
     D_END
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
+.ENDPROC
+
+.PROC FuncC_Factory_East_EnterRoom
+    ;; Corra doesn't appear in this room until you've met up with Alex in
+    ;; FactoryVault.
+    flag_bit Sram_ProgressFlags_arr, eFlag::FactoryVaultTalkedToAlex
+    bne @keepCorra
+    ;; TODO: remove Corra once you reach the city
+    @removeCorra:
+    lda #0
+    .assert eActor::None = 0, error
+    sta Ram_ActorType_eActor_arr + kCorraActorIndex
+    .assert eDevice::None = 0, error
+    sta Ram_DeviceType_eDevice_arr + kCorraDeviceIndexLeft
+    sta Ram_DeviceType_eDevice_arr + kCorraDeviceIndexRight
+    @keepCorra:
+_Lever:
+    flag_bit Sram_ProgressFlags_arr, eFlag::FactoryEastCorraHelped
+    beq @done
+    inc Zp_RoomState + sState::Lever_u8
+    .assert >kMinWaterTop = >kInitWaterTop, error
+    lda #<kMinWaterTop
+    sta Ram_PlatformTop_i16_0_arr + kMovableWaterPlatformIndex
+    @done:
+    rts
+.ENDPROC
+
+;;; @prereq PRGA_Objects is loaded.
+.PROC FuncC_Factory_East_DrawRoom
+_DrawWaterfall:
+    bit Zp_RoomState + sState::Waterfall_bool
+    bpl @done
+    ldx #kMovableWaterPlatformIndex  ; param: platform index
+    jsr FuncA_Objects_SetShapePosToPlatformTopLeft
+    jsr FuncA_Objects_MoveShapeUpHalfTile
+    ;; Determine the waterfall tile ID.
+    lda Zp_FrameCounter_u8
+    div #2
+    and #$03
+    sta T2  ; waterfall animation (0-3)
+    ;; Draw the waterfall object.
+    lda #$14  ; param: offset
+    jsr FuncA_Objects_MoveShapeRightByA
+    ldy #kPaletteObjWater  ; param: object flags
+    lda T2  ; waterfall animation (0-3)
+    .assert kTileIdObjPlatformWaterfallFirst .mod 4 = 0, error
+    ora #kTileIdObjPlatformWaterfallFirst
+    jsr FuncA_Objects_Draw1x1Shape  ; preserves T2+
+    ;; Draw the sewage objects.
+    ldx #9
+    @loop:
+    jsr FuncA_Objects_MoveShapeUpOneTile  ; preserves X and T0+
+    ldy #kPaletteObjWater  ; param: object flags
+    lda T2  ; waterfall animation (0-3)
+    .assert kTileIdObjPlatformSewageFirst .mod 4 = 0, error
+    ora #kTileIdObjPlatformSewageFirst
+    jsr FuncA_Objects_Draw1x1Shape  ; preserves X and T2+
+    dex
+    bne @loop
+    @done:
+_DrawWaterSurface:
+    ldx #kMovableWaterPlatformIndex  ; param: platform index
+    jsr FuncA_Objects_SetShapePosToPlatformTopLeft
+    ;; Determine the water tile ID.
+    lda Zp_FrameCounter_u8
+    div #8
+    and #$03
+    tax
+    lda _WaterTileIds_u8_arr4, x
+    sta T2  ; water tile ID
+    ;; Draw the water objects.
+    ldx #6
+    @loop:
+    ldy #kPaletteObjWater | bObj::Pri  ; param: object flags
+    lda T2  ; param: water tile ID
+    jsr FuncA_Objects_Draw1x1Shape  ; preserves X and T2+
+    jsr FuncA_Objects_MoveShapeRightOneTile  ; preserves X and T0+
+    dex
+    bne @loop
+    rts
+_WaterTileIds_u8_arr4:
+    .byte kTileIdObjPlatformWaterFirst + 0
+    .byte kTileIdObjPlatformWaterFirst + 1
+    .byte kTileIdObjPlatformWaterFirst + 2
+    .byte kTileIdObjPlatformWaterFirst + 1
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Cutscene"
+
+.EXPORT DataA_Cutscene_FactoryEastCorraHelping_sCutscene
+.PROC DataA_Cutscene_FactoryEastCorraHelping_sCutscene
+    act_SetActorState2 kCorraActorIndex, $ff
+    act_SetActorFlags kCorraActorIndex, bObj::FlipH
+    act_RepeatFunc 60, _SwimDownFunc
+    act_RepeatFunc 40, _AnimateSwimmingDownFunc
+    act_CallFunc _FlipLeverFunc
+    act_ForkStart 1, _SwimBackUp_sCutscene
+    act_WaitFrames 15
+    act_CallFunc _TurnOnWaterfallFunc
+    act_WaitFrames 10
+    act_WaitUntilZ _RaiseWaterLevelFunc
+    act_WaitFrames 15
+    act_CallFunc _TurnOffWaterfallFunc
+    act_WaitFrames 15
+    act_RunDialog eDialog::FactoryEastCorra
+    act_ContinueExploring
+_SwimBackUp_sCutscene:
+    act_RepeatFunc 40, _AnimateSwimmingDownFunc
+    act_SetActorFlags kCorraActorIndex, 0
+    act_RepeatFunc 40, _SwimUpFunc
+    act_SetActorState1 kCorraActorIndex, kTileIdMermaidCorraFirst
+    act_WaitFrames 15
+    act_SetActorState2 kCorraActorIndex, 0
+    act_ForkStop $ff
+_SwimDownFunc:
+    lda Ram_ActorSubY_u8_arr + kCorraActorIndex
+    add #$80
+    sta Ram_ActorSubY_u8_arr + kCorraActorIndex
+    lda Ram_ActorPosY_i16_0_arr + kCorraActorIndex
+    adc #0
+    sta Ram_ActorPosY_i16_0_arr + kCorraActorIndex
+    lda Ram_ActorSubX_u8_arr + kCorraActorIndex
+    sub #$50
+    sta Ram_ActorSubX_u8_arr + kCorraActorIndex
+    lda Ram_ActorPosX_i16_0_arr + kCorraActorIndex
+    sbc #0
+    sta Ram_ActorPosX_i16_0_arr + kCorraActorIndex
+_AnimateSwimmingDownFunc:
+    ldy #kTileIdCorraSwimmingDown1
+    lda Zp_FrameCounter_u8
+    and #$08
+    beq @setState1
+    ldy #kTileIdCorraSwimmingDown2
+    @setState1:
+    sty Ram_ActorState1_byte_arr + kCorraActorIndex
+    rts
+_FlipLeverFunc:
+    lda #kLeverAnimCountdown
+    sta Ram_DeviceAnim_u8_arr + kLeverDeviceIndex
+    inc Zp_RoomState + sState::Lever_u8
+    ldx #eFlag::FactoryEastCorraHelped  ; param: flag
+    jmp Func_SetFlag
+_TurnOnWaterfallFunc:
+    dec Zp_RoomState + sState::Waterfall_bool  ; change from $00 to $ff
+    rts
+_RaiseWaterLevelFunc:
+    lda Zp_FrameCounter_u8
+    and #$03
+    bne @done
+    .assert >kMinWaterTop = >kInitWaterTop, error
+    dec Ram_PlatformTop_i16_0_arr + kMovableWaterPlatformIndex
+    lda Ram_PlatformTop_i16_0_arr + kMovableWaterPlatformIndex
+    cmp #<kMinWaterTop
+    @done:
+    rts
+_TurnOffWaterfallFunc:
+    inc Zp_RoomState + sState::Waterfall_bool  ; change from $ff to $00
+    rts
+_SwimUpFunc:
+    lda Ram_ActorSubY_u8_arr + kCorraActorIndex
+    sub #$c0
+    sta Ram_ActorSubY_u8_arr + kCorraActorIndex
+    lda Ram_ActorPosY_i16_0_arr + kCorraActorIndex
+    sbc #0
+    sta Ram_ActorPosY_i16_0_arr + kCorraActorIndex
+    lda Ram_ActorSubX_u8_arr + kCorraActorIndex
+    add #$78
+    sta Ram_ActorSubX_u8_arr + kCorraActorIndex
+    lda Ram_ActorPosX_i16_0_arr + kCorraActorIndex
+    adc #0
+    sta Ram_ActorPosX_i16_0_arr + kCorraActorIndex
+_AnimateSwimmingUpFunc:
+    ldy #kTileIdCorraSwimmingUp1
+    lda Zp_FrameCounter_u8
+    and #$08
+    beq @setState1
+    ldy #kTileIdCorraSwimmingUp2
+    @setState1:
+    sty Ram_ActorState1_byte_arr + kCorraActorIndex
+    rts
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Dialog"
+
+.EXPORT DataA_Dialog_FactoryEastCorra_sDialog
+.PROC DataA_Dialog_FactoryEastCorra_sDialog
+    dlg_Func @func
+    @func:
+    flag_bit Sram_ProgressFlags_arr, eFlag::FactoryEastCorraHelped
+    bne @alreadyHelped
+    @offerHelp:
+    ldya #_OfferHelp_sDialog
+    rts
+    @alreadyHelped:
+    ldya #_AlreadyHelped_sDialog
+    rts
+_OfferHelp_sDialog:
+    dlg_Text MermaidCorra, DataA_Text1_FactoryEastCorra_Part1_u8_arr
+    dlg_Cutscene eCutscene::FactoryEastCorraHelping
+_AlreadyHelped_sDialog:
+    dlg_Text MermaidCorra, DataA_Text1_FactoryEastCorra_Part2_u8_arr
+    dlg_Done
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Text1"
+
+.PROC DataA_Text1_FactoryEastCorra_Part1_u8_arr
+    .byte "TODO: Want help?#"
+.ENDPROC
+
+.PROC DataA_Text1_FactoryEastCorra_Part2_u8_arr
+    .byte "TODO: All set!#"
 .ENDPROC
 
 ;;;=========================================================================;;;

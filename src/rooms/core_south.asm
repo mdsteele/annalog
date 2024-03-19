@@ -231,14 +231,14 @@ _Devices_sDevice_arr:
     d_byte Type_eDevice, eDevice::TalkRight
     d_byte BlockRow_u8, 10
     d_byte BlockCol_u8, 5
-    d_byte Target_byte, eDialog::CoreSouthCorra1
+    d_byte Target_byte, eDialog::CoreSouthCorra
     D_END
     .assert * - :- = kCorraDeviceIndexLeft * .sizeof(sDevice), error
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::TalkLeft
     d_byte BlockRow_u8, 10
     d_byte BlockCol_u8, 6
-    d_byte Target_byte, eDialog::CoreSouthCorra1
+    d_byte Target_byte, eDialog::CoreSouthCorra
     D_END
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None
@@ -403,7 +403,7 @@ _UpperCrates:
     act_WaitFrames 15
     act_SetActorState2 kCorraActorIndex, 0
     act_WaitFrames 15
-    act_RunDialog eDialog::CoreSouthCorra2
+    act_RunDialog eDialog::CoreSouthCorra
     act_ContinueExploring
 _SwimDownFunc:
     lda Ram_ActorSubY_u8_arr + kCorraActorIndex
@@ -465,14 +465,14 @@ _AnimateSwimmingUpFunc:
 
 .SEGMENT "PRGA_Dialog"
 
-.EXPORT DataA_Dialog_CoreSouthCorra1_sDialog
-.PROC DataA_Dialog_CoreSouthCorra1_sDialog
+.EXPORT DataA_Dialog_CoreSouthCorra_sDialog
+.PROC DataA_Dialog_CoreSouthCorra_sDialog
     dlg_Func @func
     @func:
     flag_bit Sram_ProgressFlags_arr, eFlag::CoreSouthCorraHelped
     beq @helloAgain
     @alreadyHelped:
-    ldya #DataA_Dialog_CoreSouthCorra2_sDialog
+    ldya #_AlreadyHelped_sDialog
     rts
     @helloAgain:
     ldya #_HelloAgain_sDialog
@@ -482,10 +482,7 @@ _HelloAgain_sDialog:
     dlg_Text MermaidCorra, DataA_Text0_CoreSouthCorra1_HelloAgain2_u8_arr
     dlg_Text MermaidCorra, DataA_Text0_CoreSouthCorra1_HelloAgain3_u8_arr
     dlg_Cutscene eCutscene::CoreSouthCorraHelping
-.ENDPROC
-
-.EXPORT DataA_Dialog_CoreSouthCorra2_sDialog
-.PROC DataA_Dialog_CoreSouthCorra2_sDialog
+_AlreadyHelped_sDialog:
     dlg_Text MermaidCorra, DataA_Text0_CoreSouthCorra2_u8_arr
     dlg_Done
 .ENDPROC

@@ -33,6 +33,7 @@
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
 .INCLUDE "../platform.inc"
+.INCLUDE "../platforms/water.inc"
 .INCLUDE "../ppu.inc"
 .INCLUDE "../program.inc"
 .INCLUDE "../room.inc"
@@ -319,8 +320,8 @@ _Water:
     lda Zp_FrameCounter_u8
     div #8
     and #$03
-    .assert kTileIdObjHotSpringFirst & $03 = 0, error
-    ora #kTileIdObjHotSpringFirst
+    .assert kTileIdObjPlatformHotSpringFirst & $03 = 0, error
+    ora #kTileIdObjPlatformHotSpringFirst
     sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
     lda #kPaletteObjHotSpring | bObj::Pri
     sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y

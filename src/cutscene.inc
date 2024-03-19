@@ -48,6 +48,7 @@ kMaxForks = 4
     CoreBossStartBattle
     CoreLockBreakerShadow
     CoreSouthCorraHelping
+    FactoryEastCorraHelping
     GardenShrineBreakerMine
     MermaidHut1AlexPetition
     MermaidHut1BreakerCrypt

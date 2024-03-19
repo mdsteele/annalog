@@ -114,6 +114,7 @@ _SetFlags:
     d_byte Breaker4, "BREAKER4"
     d_byte Collapse, "  MINE  "
     d_byte Breaker5, "BREAKER5"
+    d_byte Pass,     "  PASS  "
     d_byte City,     "  CITY  "
     d_byte Sinkhole, "SINKHOLE"
     d_byte Breaker6, "BREAKER6"
@@ -142,6 +143,7 @@ _SetFlags:
     d_byte Breaker4, eRoom::BossLava
     d_byte Collapse, eRoom::MineCollapse
     d_byte Breaker5, eRoom::BossMine
+    d_byte Pass,     eRoom::FactoryPass
     d_byte City,     eRoom::CityCenter
     d_byte Sinkhole, eRoom::CitySinkhole
     d_byte Breaker6, eRoom::BossCity
@@ -170,6 +172,7 @@ _SetFlags:
     d_byte Breaker4, bSpawn::Device | kBossDoorDeviceIndex
     d_byte Collapse, bSpawn::Device | 2  ; TODO: use a constant
     d_byte Breaker5, bSpawn::Device | kBossDoorDeviceIndex
+    d_byte Pass,     bSpawn::Passage | 1
     d_byte City,     bSpawn::Passage | 1
     d_byte Sinkhole, bSpawn::Device | 0  ; TODO: use a constant
     d_byte Breaker6, bSpawn::Device | kBossDoorDeviceIndex
@@ -198,6 +201,7 @@ _SetFlags:
     d_byte Breaker4, eFlag::BreakerLava
     d_byte Collapse, eFlag::BossMine
     d_byte Breaker5, eFlag::BreakerMine
+    d_byte Pass,     eFlag::FactoryPassLoweredRocks
     d_byte City,     eFlag::CityOutskirtsBlastedRocks
     d_byte Sinkhole, eFlag::BossCity
     d_byte Breaker6, eFlag::BreakerCity
@@ -296,6 +300,7 @@ _SetFlags:
     .byte eFlag::PaperJerome23
     .byte eFlag::FlowerMine
     .byte eFlag::FactoryVaultTalkedToAlex
+    .byte eFlag::FactoryEastCorraHelped
     .byte eFlag::FlowerLava
     .byte eFlag::FlowerSewer
     .byte eFlag::CityOutskirtsBlastedRocks

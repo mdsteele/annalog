@@ -26,6 +26,7 @@
 .INCLUDE "../machines/pump.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../platform.inc"
+.INCLUDE "../platforms/water.inc"
 .INCLUDE "../ppu.inc"
 .INCLUDE "../program.inc"
 .INCLUDE "../room.inc"
@@ -230,10 +231,10 @@ _DrawWaterObjects:
     bne @loop
     rts
 _WaterTileIds_u8_arr4:
-    .byte kTileIdObjWaterFirst + 0
-    .byte kTileIdObjWaterFirst + 1
-    .byte kTileIdObjWaterFirst + 2
-    .byte kTileIdObjWaterFirst + 1
+    .byte kTileIdObjPlatformWaterFirst + 0
+    .byte kTileIdObjPlatformWaterFirst + 1
+    .byte kTileIdObjPlatformWaterFirst + 2
+    .byte kTileIdObjPlatformWaterFirst + 1
 _WaterOffsetL_u8_arr:
     .byte $10, $00, $00, $00, $10, $10, $10
 _WaterWidthL_u8_arr:

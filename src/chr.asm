@@ -87,6 +87,7 @@
 .INCLUDE "platforms/glass.inc"
 .INCLUDE "platforms/monitor.inc"
 .INCLUDE "platforms/stepstone.inc"
+.INCLUDE "platforms/water.inc"
 .INCLUDE "portrait.inc"
 .INCLUDE "rooms/boss_city.inc"
 .INCLUDE "rooms/boss_crypt.inc"
@@ -1231,12 +1232,13 @@ _chr_begin:
 .EXPORT Ppu_ChrObjGarden
 .PROC Ppu_ChrObjGarden
     CHR2_BANK $80
-    chr_res $02
-    chr_inc "garden_bricks",       kTileIdObjGardenBricksFirst
+    chr_inc "platform_sewage",     kTileIdObjPlatformSewageFirst
+    chr_inc "platform_water",      kTileIdObjPlatformWaterFirst
+    chr_res $01
     chr_inc "cannon",              kTileIdObjCannonFirst
-    chr_res $06
+    chr_inc "garden_bricks",       kTileIdObjGardenBricksFirst
     chr_inc "crate",               kTileIdObjCrateFirst
-    chr_res $04
+    chr_inc "platform_waterfall",  kTileIdObjPlatformWaterfallFirst
     chr_inc "bad_grub",            kTileIdObjBadGrubFirst
     chr_res $02
     chr_inc "mermaid_corra",       kTileIdMermaidCorraFirst
@@ -1324,26 +1326,26 @@ _chr_begin:
 .EXPORT Ppu_ChrObjSewer
 .PROC Ppu_ChrObjSewer
     CHR2_BANK $80
-    chr_inc "spike",            kTileIdObjSpike
+    chr_inc "spike",              kTileIdObjSpike
     chr_res $01
-    chr_inc "multiplexer",      kTileIdObjMultiplexerFirst
-    chr_inc "pump_light",       kTileIdObjPumpLight
-    chr_inc "water",            kTileIdObjWaterFirst
-    chr_inc "bad_jelly",        kTileIdObjBadJellyFirst
+    chr_inc "multiplexer",        kTileIdObjMultiplexerFirst
+    chr_inc "pump_light",         kTileIdObjPumpLight
+    chr_inc "platform_water",     kTileIdObjPlatformWaterFirst
+    chr_inc "bad_jelly",          kTileIdObjBadJellyFirst
     chr_res $02
-    chr_inc "upgrade_opaddsub", kTileIdObjUpgradeOpAddSubFirst
+    chr_inc "upgrade_opaddsub",   kTileIdObjUpgradeOpAddSubFirst
     chr_res $06
-    chr_inc "monitor",          kTileIdObjMonitorFirst
-    chr_inc "platform_rocks",   kTileIdObjPlatformRocksFirst
+    chr_inc "monitor",            kTileIdObjMonitorFirst
+    chr_inc "platform_rocks",     kTileIdObjPlatformRocksFirst
     chr_res $02
-    chr_inc "bad_grub",         kTileIdObjBadGrubFirst
-    chr_inc "bad_slime",        kTileIdObjBadSlimeFirst
+    chr_inc "bad_grub",           kTileIdObjBadGrubFirst
+    chr_inc "bad_slime",          kTileIdObjBadSlimeFirst
     chr_res $12
-    chr_inc "bad_bird",         kTileIdObjBadBirdFirst
-    chr_inc "bad_crab",         kTileIdObjBadCrabFirst
-    chr_inc "hotspring",        kTileIdObjHotSpringFirst
-    chr_inc "bad_fish",         kTileIdObjBadFishFirst
-    chr_inc "child_stand",      kTileIdObjChildStandFirst
+    chr_inc "bad_bird",           kTileIdObjBadBirdFirst
+    chr_inc "bad_crab",           kTileIdObjBadCrabFirst
+    chr_inc "platform_hotspring", kTileIdObjPlatformHotSpringFirst
+    chr_inc "bad_fish",           kTileIdObjBadFishFirst
+    chr_inc "child_stand",        kTileIdObjChildStandFirst
     END_CHR_BANK
 .ENDPROC
 

@@ -17,7 +17,15 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
-;;; OBJ tile IDs for drawing the GardenTower room.
-kTileIdObjGardenBricksFirst = $8e
+;;; The number of animation frames a lever device has (i.e. the number of
+;;; distinct ways of drawing it).
+kLeverNumAnimFrames = 4
+
+;;; The number of VBlank frames per lever animation frame.
+.DEFINE kLeverAnimSlowdown 4
+
+;;; The number of VBlank frames for a complete lever animation (i.e. the value
+;;; to store in Ram_DeviceAnim_u8_arr when the lever is flipped).
+kLeverAnimCountdown = kLeverNumAnimFrames * kLeverAnimSlowdown - 1
 
 ;;;=========================================================================;;;
