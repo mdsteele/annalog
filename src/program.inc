@@ -193,6 +193,8 @@
     TempleFoyerCarriage
     TempleNaveLowerCarriage
     TempleNaveUpperCarriage
+    ;; TODO: Sort the below within the above once it won't disrupt playtesting.
+    LavaVentLift
     NUM_VALUES
 .ENDENUM
 
