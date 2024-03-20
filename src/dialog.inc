@@ -33,6 +33,7 @@
 
 ;;; Animated dialog portraits for various NPCs and devices.
 .ENUM ePortrait
+    AdultElder
     AdultMan
     AdultSmith
     AdultWoman

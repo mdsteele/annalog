@@ -27,11 +27,14 @@
 ;;;=========================================================================;;;
 
 ;;; The first tile IDs for various adults.
-kTileIdAdultWomanFirst = $d0
+kTileIdAdultElderFirst = $c4
+kTileIdAdultElder1     = kTileIdAdultElderFirst + 0
+kTileIdAdultElder2     = kTileIdAdultElderFirst + 6
 kTileIdAdultManFirst   = $d6
 kTileIdAdultSmithFirst = $b8
 kTileIdAdultSmith1     = kTileIdAdultSmithFirst + 0
 kTileIdAdultSmith2     = kTileIdAdultSmithFirst + 6
+kTileIdAdultWomanFirst = $d0
 
 ;;; The first tile IDs for various mermaids.
 kTileIdCorraSwimmingDownFirst = $e0

@@ -904,7 +904,9 @@ _chr_begin:
 
 .PROC Ppu_ChrBgPortrait0F
     CHR1_BANK $c0
-    chr_res $20
+    .assert .bank(*) = kChrBankPortraitElderRest, error
+    chr_inc "portrait_elder_rest", kTileIdBgPortraitElderFirst
+    chr_res $10
     .assert .bank(*) = kChrBankDiagramRotor, error
     chr_inc "diagram_rotor", kTileIdBgDiagramRotorFirst
     chr_res $10
@@ -917,7 +919,9 @@ _chr_begin:
 
 .PROC Ppu_ChrBgPortrait10
     CHR1_BANK $c0
-    chr_res $20
+    .assert .bank(*) = kChrBankPortraitElderTalk, error
+    chr_inc "portrait_elder_talk", kTileIdBgPortraitElderFirst
+    chr_res $10
     .assert .bank(*) = kChrBankDiagramAmmoRack, error
     chr_inc "diagram_ammo_rack", kTileIdBgDiagramAmmoRackFirst
     .assert .bank(*) = kChrBankDiagramReloader, error
@@ -1443,7 +1447,8 @@ _chr_begin:
     chr_inc "mermaid_corra",   kTileIdMermaidCorraFirst
     chr_inc "mermaid_queen",   kTileIdMermaidQueenFirst
     chr_inc "adult_smith",     kTileIdAdultSmithFirst
-    chr_res $14
+    chr_inc "adult_elder",     kTileIdAdultElderFirst
+    chr_res $08
     chr_inc "child_swim",      kTileIdObjChildSwimFirst
     chr_inc "child_stand",     kTileIdObjChildStandFirst
     END_CHR_BANK
