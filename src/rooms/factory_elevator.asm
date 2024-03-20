@@ -18,9 +18,13 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "../actor.inc"
+.INCLUDE "../actors/child.inc"
+.INCLUDE "../avatar.inc"
 .INCLUDE "../charmap.inc"
 .INCLUDE "../cpu.inc"
+.INCLUDE "../cutscene.inc"
 .INCLUDE "../device.inc"
+.INCLUDE "../dialog.inc"
 .INCLUDE "../flag.inc"
 .INCLUDE "../hud.inc"
 .INCLUDE "../machine.inc"
@@ -33,7 +37,6 @@
 .INCLUDE "elevator.inc"
 
 .IMPORT DataA_Room_Factory_sTileset
-.IMPORT Data_Empty_sActor_arr
 .IMPORT FuncA_Machine_Error
 .IMPORT FuncA_Machine_GenericTryMoveY
 .IMPORT FuncA_Machine_JetTick
@@ -41,10 +44,15 @@
 .IMPORT FuncA_Machine_WriteToPhantomLever
 .IMPORT FuncA_Objects_DrawJetMachine
 .IMPORT FuncA_Room_ResetLever
+.IMPORT Func_IsPointInPlatform
 .IMPORT Func_MachineJetReadRegY
 .IMPORT Func_Noop
+.IMPORT Func_SetFlag
 .IMPORT Func_SetMachineIndex
+.IMPORT Func_SetPointToAvatarCenter
 .IMPORT Ppu_ChrObjFactory
+.IMPORT Ram_ActorType_eActor_arr
+.IMPORT Ram_DeviceType_eDevice_arr
 .IMPORT Ram_MachineGoalVert_u8_arr
 .IMPORT Ram_MachinePc_u8_arr
 .IMPORT Ram_MachineRegA_u8_arr
@@ -54,11 +62,25 @@
 .IMPORT Ram_PlatformBottom_i16_1_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORT Ram_PlatformTop_i16_1_arr
+.IMPORT Sram_ProgressFlags_arr
 .IMPORTZP Zp_AvatarPosY_i16
+.IMPORTZP Zp_AvatarState_bAvatar
 .IMPORTZP Zp_Current_sMachine_ptr
 .IMPORTZP Zp_FloatingHud_bHud
+.IMPORTZP Zp_Next_eCutscene
 .IMPORTZP Zp_Previous_eRoom
 .IMPORTZP Zp_RoomState
+
+;;;=========================================================================;;;
+
+;;; The actor index for Alex in this room.
+kAlexActorIndex = 0
+;;; The talk devices indices for Alex in this room.
+kAlexDeviceIndexLeft = 5
+kAlexDeviceIndexRight = 4
+
+;;; The platform index for the zone where Alex asks you to wait up.
+kWaitUpZonePlatformIndex = 2
 
 ;;;=========================================================================;;;
 
@@ -120,7 +142,7 @@ _Ext_sRoomExt:
     D_STRUCT sRoomExt
     d_addr Terrain_sTileset_ptr, DataA_Room_Factory_sTileset
     d_addr Platforms_sPlatform_arr_ptr, _Platforms_sPlatform_arr
-    d_addr Actors_sActor_arr_ptr, Data_Empty_sActor_arr
+    d_addr Actors_sActor_arr_ptr, _Actors_sActor_arr
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
     d_addr Passages_sPassage_arr_ptr, _Passages_sPassage_arr
     d_addr Enter_func_ptr, FuncA_Room_FactoryElevator_EnterRoom
@@ -188,8 +210,26 @@ _Platforms_sPlatform_arr:
     d_word Left_i16,  $0080
     d_word Top_i16, kLowerJetInitPlatformTop
     D_END
+    .assert * - :- = kWaitUpZonePlatformIndex * .sizeof(sPlatform), error
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Zone
+    d_word WidthPx_u16, $20
+    d_byte HeightPx_u8, $10
+    d_word Left_i16,  $00a0
+    d_word Top_i16,   $0100
+    D_END
     .assert * - :- <= kMaxPlatforms * .sizeof(sPlatform), error
     .byte ePlatform::None
+_Actors_sActor_arr:
+:   .assert * - :- = kAlexActorIndex * .sizeof(sActor), error
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::NpcChild
+    d_word PosX_i16, $00d0
+    d_word PosY_i16, $0128
+    d_byte Param_byte, eNpcChild::AlexStanding
+    D_END
+    .assert * - :- <= kMaxActors * .sizeof(sActor), error
+    .byte eActor::None
 _Devices_sDevice_arr:
 :   D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Console
@@ -216,6 +256,20 @@ _Devices_sDevice_arr:
     d_byte BlockRow_u8, 16
     d_byte BlockCol_u8, 7
     d_byte Target_byte, sElevatorState::LowerJetUpperLever_u8
+    D_END
+    .assert * - :- = kAlexDeviceIndexRight * .sizeof(sDevice), error
+    D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::TalkRight
+    d_byte BlockRow_u8, 18
+    d_byte BlockCol_u8, 12
+    d_byte Target_byte, eDialog::FactoryElevatorAlexHi
+    D_END
+    .assert * - :- = kAlexDeviceIndexLeft * .sizeof(sDevice), error
+    D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::TalkLeft
+    d_byte BlockRow_u8, 18
+    d_byte BlockCol_u8, 13
+    d_byte Target_byte, eDialog::FactoryElevatorAlexHi
     D_END
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None
@@ -297,7 +351,24 @@ _Passages_sPassage_arr:
 
 .SEGMENT "PRGA_Room"
 
+;;; @param A The bSpawn value for where the avatar is entering the room.
 .PROC FuncA_Room_FactoryElevator_EnterRoom
+_MaybeRemoveAlex:
+    pha  ; bSpawn value
+    flag_bit Sram_ProgressFlags_arr, eFlag::FactoryPassLoweredRocks
+    beq @removeAlex  ; Alex isn't here yet
+    flag_bit Sram_ProgressFlags_arr, eFlag::FactoryVaultTalkedToAlex
+    beq @keepAlex  ; Alex is still here
+    @removeAlex:
+    lda #0
+    .assert eActor::None = 0, error
+    sta Ram_ActorType_eActor_arr + kAlexActorIndex
+    .assert eDevice::None = 0, error
+    sta Ram_DeviceType_eDevice_arr + kAlexDeviceIndexLeft
+    sta Ram_DeviceType_eDevice_arr + kAlexDeviceIndexRight
+    @keepAlex:
+    pla  ; bSpawn value
+_CheckPassage:
     ;; Check which vertical shaft the player avatar entered from, if either.
     cmp #bSpawn::Passage | kUpperShaftPassageIndex
     beq _UpperShaft
@@ -328,6 +399,29 @@ _LowerShaft:
 .ENDPROC
 
 .PROC FuncA_Room_FactoryElevator_TickRoom
+_StartCutscene:
+    ;; If Alex isn't here, or if Anna has already talked to Alex, don't start
+    ;; the cutscene.
+    flag_bit Sram_ProgressFlags_arr, eFlag::FactoryPassLoweredRocks
+    beq @done  ; Alex isn't here yet
+    flag_bit Sram_ProgressFlags_arr, eFlag::FactoryVaultTalkedToAlex
+    bne @done  ; Alex is no longer here
+    flag_bit Sram_ProgressFlags_arr, eFlag::FactoryElevatorTalkedToAlex
+    bne @done
+    ;; If the player avatar isn't standing in the cutscene-starting zone, don't
+    ;; start it yet.
+    bit Zp_AvatarState_bAvatar
+    .assert bAvatar::Airborne = bProc::Negative, error
+    bmi @done
+    jsr Func_SetPointToAvatarCenter
+    ldy #kWaitUpZonePlatformIndex  ; param: platform index
+    jsr Func_IsPointInPlatform  ; returns C
+    bcc @done
+    ;; Start the cutscene.
+    lda #eCutscene::FactoryElevatorWaitUp
+    sta Zp_Next_eCutscene
+    @done:
+_StoreElevatorState:
     ldx #kUpperJetMachineIndex  ; param: machine index
     lda Zp_AvatarPosY_i16 + 1
     beq FuncA_Room_StoreElevatorJetState
@@ -493,6 +587,58 @@ _WriteL:
 .PROC FuncA_Machine_FactoryElevatorLowerJet_Tick
     ldax #kLowerJetMaxPlatformTop  ; param: max platform top
     jmp FuncA_Machine_JetTick
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Cutscene"
+
+.EXPORT DataA_Cutscene_FactoryElevatorWaitUp_sCutscene
+.PROC DataA_Cutscene_FactoryElevatorWaitUp_sCutscene
+    act_SetAvatarState 0
+    act_SetAvatarVelX 0
+    act_SetAvatarPose eAvatar::Standing
+    act_SetActorState1 kAlexActorIndex, eNpcChild::AlexLooking
+    act_RunDialog eDialog::FactoryElevatorAlexWait
+    act_WalkAvatar $00ba
+    act_SetAvatarFlags kPaletteObjAvatarNormal | 0
+    act_SetAvatarPose eAvatar::Standing
+    act_WaitFrames 30
+    act_RunDialog eDialog::FactoryElevatorAlexHi
+    act_SetActorState1 kAlexActorIndex, eNpcChild::AlexStanding
+    act_ContinueExploring
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Dialog"
+
+.EXPORT DataA_Dialog_FactoryElevatorAlexWait_sDialog
+.PROC DataA_Dialog_FactoryElevatorAlexWait_sDialog
+    dlg_Text ChildAlex, DataA_Text2_FactoryElevatorAlex_Wait_u8_arr
+    dlg_Done
+.ENDPROC
+
+.EXPORT DataA_Dialog_FactoryElevatorAlexHi_sDialog
+.PROC DataA_Dialog_FactoryElevatorAlexHi_sDialog
+    dlg_Text ChildAlex, DataA_Text2_FactoryElevatorAlex_Hi_u8_arr
+    dlg_Call _SetFlag
+    dlg_Done
+_SetFlag:
+    ldx #eFlag::FactoryElevatorTalkedToAlex  ; param: flag
+    jmp Func_SetFlag
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Text2"
+
+.PROC DataA_Text2_FactoryElevatorAlex_Wait_u8_arr
+    .byte "Hey Anna, wait up!#"
+.ENDPROC
+
+.PROC DataA_Text2_FactoryElevatorAlex_Hi_u8_arr
+    .byte "TODO: Hi!#"
 .ENDPROC
 
 ;;;=========================================================================;;;

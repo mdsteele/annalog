@@ -189,6 +189,7 @@ kSaveMagicNumber = $b2
     TempleNaveTalkedToAlex
     ;; TODO: Sort the below within the above once it won't disrupt playtesting.
     FactoryEastCorraHelped
+    FactoryElevatorTalkedToAlex
     NUM_VALUES
 .ENDENUM
 .ASSERT eFlag::NUM_VALUES <= $100, error

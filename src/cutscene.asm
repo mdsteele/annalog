@@ -38,6 +38,7 @@
 .IMPORT DataA_Cutscene_CoreLockBreakerShadow_sCutscene
 .IMPORT DataA_Cutscene_CoreSouthCorraHelping_sCutscene
 .IMPORT DataA_Cutscene_FactoryEastCorraHelping_sCutscene
+.IMPORT DataA_Cutscene_FactoryElevatorWaitUp_sCutscene
 .IMPORT DataA_Cutscene_GardenShrineBreakerMine_sCutscene
 .IMPORT DataA_Cutscene_MermaidHut1AlexPetition_sCutscene
 .IMPORT DataA_Cutscene_MermaidHut1BreakerCrypt_sCutscene
@@ -222,6 +223,8 @@ _Finish:
             DataA_Cutscene_CoreSouthCorraHelping_sCutscene
     d_entry table, FactoryEastCorraHelping, \
             DataA_Cutscene_FactoryEastCorraHelping_sCutscene
+    d_entry table, FactoryElevatorWaitUp, \
+            DataA_Cutscene_FactoryElevatorWaitUp_sCutscene
     d_entry table, GardenShrineBreakerMine, \
             DataA_Cutscene_GardenShrineBreakerMine_sCutscene
     d_entry table, MermaidHut1AlexPetition, \

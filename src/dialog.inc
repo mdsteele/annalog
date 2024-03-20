@@ -90,6 +90,8 @@ kDialogEntryCutscene = $ff  ; ends the dialog and starts a new cutscene
     CoreSouthCorra
     CryptTombPlaque
     FactoryEastCorra
+    FactoryElevatorAlexHi
+    FactoryElevatorAlexWait
     FactoryVaultAlex
     FactoryVaultScreen
     GardenEastCorra

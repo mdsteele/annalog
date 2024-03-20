@@ -1221,7 +1221,8 @@ _chr_begin:
     chr_res $08
     chr_inc "crane",          kTileIdObjCraneFirst
     chr_inc "bad_toad",       kTileIdObjBadToadFirst
-    chr_res $40
+    chr_res $20
+    chr_inc "child_stand",    kTileIdObjChildStandFirst
     END_CHR_BANK
 .ENDPROC
 

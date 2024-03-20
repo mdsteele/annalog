@@ -49,6 +49,7 @@ kMaxForks = 4
     CoreLockBreakerShadow
     CoreSouthCorraHelping
     FactoryEastCorraHelping
+    FactoryElevatorWaitUp
     GardenShrineBreakerMine
     MermaidHut1AlexPetition
     MermaidHut1BreakerCrypt
