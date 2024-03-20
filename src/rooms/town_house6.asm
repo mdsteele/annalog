@@ -159,7 +159,7 @@ _Devices_sDevice_arr:
 .ENDPROC
 
 .PROC DataA_Text2_TownHouse6Elder_Part2_u8_arr
-    .byte "...ol' Elder Roman has$"
+    .byte "...Old Man Roman has$"
     .byte "been waiting here for$"
     .byte "a long time...zzz...#"
 .ENDPROC

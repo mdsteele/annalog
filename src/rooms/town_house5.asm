@@ -121,26 +121,40 @@ _Devices_sDevice_arr:
 
 .EXPORT DataA_Dialog_TownHouse5Bruno_sDialog
 .PROC DataA_Dialog_TownHouse5Bruno_sDialog
-    dlg_Text ChildBruno, DataA_Text0_TownHouse5Bruno_u8_arr
+    dlg_Text ChildBruno, DataA_Text2_TownHouse5Bruno_u8_arr
     dlg_Done
 .ENDPROC
 
 .EXPORT DataA_Dialog_TownHouse5Marie_sDialog
 .PROC DataA_Dialog_TownHouse5Marie_sDialog
-    dlg_Text ChildMarie, DataA_Text0_TownHouse5Marie_u8_arr
+    dlg_Text ChildMarie, DataA_Text2_TownHouse5Marie_Part1_u8_arr
+    dlg_Text ChildMarie, DataA_Text2_TownHouse5Marie_Part2_u8_arr
     dlg_Done
 .ENDPROC
 
 ;;;=========================================================================;;;
 
-.SEGMENT "PRGA_Text0"
+.SEGMENT "PRGA_Text2"
 
-.PROC DataA_Text0_TownHouse5Bruno_u8_arr
-    .byte "Lorem ipsum?#"
+.PROC DataA_Text2_TownHouse5Bruno_u8_arr
+    .byte "If you're looking for$"
+    .byte "Alex, he wanted to$"
+    .byte "show you something at$"
+    .byte "the east end of town.#"
 .ENDPROC
 
-.PROC DataA_Text0_TownHouse5Marie_u8_arr
-    .byte "Lorem ipsum!#"
+.PROC DataA_Text2_TownHouse5Marie_Part1_u8_arr
+    .byte "They try not to show$"
+    .byte "it, but the adults all$"
+    .byte "seem pretty worried$"
+    .byte "lately.#"
+.ENDPROC
+
+.PROC DataA_Text2_TownHouse5Marie_Part2_u8_arr
+    .byte "What will we do if we$"
+    .byte "don't have enough food$"
+    .byte "to last through the$"
+    .byte "winter?#"
 .ENDPROC
 
 ;;;=========================================================================;;;
