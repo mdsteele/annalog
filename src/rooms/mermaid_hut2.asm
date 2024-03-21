@@ -138,7 +138,7 @@ _Impressed_sDialog:
 
 .PROC DataA_Text2_MermaidHut2Guard_WatchOut1_u8_arr
     .byte "The queen would never$"
-    .byte "allow the orcs in our$"
+    .byte "let the orcs into our$"
     .byte "vale, nor could they$"
     .byte "best us by force.#"
 .ENDPROC

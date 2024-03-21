@@ -396,8 +396,25 @@ _RemoveAlex:
 
 .EXPORT DataA_Dialog_MermaidVillageGuard_sDialog
 .PROC DataA_Dialog_MermaidVillageGuard_sDialog
-    ;; TODO: Different dialog once temple permission has been given.
-    dlg_Text MermaidGuardF, DataA_Text1_MermaidVillageGuard_u8_arr
+    dlg_Func @func
+    @func:
+    flag_bit Sram_ProgressFlags_arr, eFlag::BreakerTemple
+    bne @guarding
+    flag_bit Sram_ProgressFlags_arr, eFlag::TempleEntryPermission
+    bne @temple
+    @guarding:
+    ldya #_Guarding_sDialog
+    rts
+    @temple:
+    ldya #_Temple_sDialog
+    rts
+_Guarding_sDialog:
+    dlg_Text MermaidGuardF, DataA_Text1_MermaidVillageGuard_Guarding_u8_arr
+    dlg_Done
+_Temple_sDialog:
+    dlg_Text MermaidGuardF, DataA_Text1_MermaidVillageGuard_Temple1_u8_arr
+    dlg_Text MermaidGuardF, DataA_Text1_MermaidVillageGuard_Temple2_u8_arr
+    dlg_Text MermaidGuardF, DataA_Text1_MermaidVillageGuard_Temple3_u8_arr
     dlg_Done
 .ENDPROC
 
@@ -571,9 +588,32 @@ _AlexExploring_sDialog:
     .byte "I'll see you there.#"
 .ENDPROC
 
-.PROC DataA_Text1_MermaidVillageGuard_u8_arr
-    .byte "I am guarding this$"
-    .byte "village.#"
+.PROC DataA_Text1_MermaidVillageGuard_Guarding_u8_arr
+    .byte "I am helping to guard$"
+    .byte "this village. See that$"
+    .byte "you behave honorably$"
+    .byte "while you are here.#"
+.ENDPROC
+
+.PROC DataA_Text1_MermaidVillageGuard_Temple1_u8_arr
+    .byte "You'll find the temple$"
+    .byte "entrance just beyond$"
+    .byte "the northwest end of$"
+    .byte "the gardens.#"
+.ENDPROC
+
+.PROC DataA_Text1_MermaidVillageGuard_Temple2_u8_arr
+    .byte "The queen has already$"
+    .byte "sent word to the guard$"
+    .byte "there to allow you to$"
+    .byte "enter.#"
+.ENDPROC
+
+.PROC DataA_Text1_MermaidVillageGuard_Temple3_u8_arr
+    .byte "Just be careful. The$"
+    .byte "temple is not as safe$"
+    .byte "a place as it once$"
+    .byte "was.#"
 .ENDPROC
 
 .PROC DataA_Text1_MermaidVillageFarmer_Farming_u8_arr
