@@ -37,6 +37,7 @@
 .IMPORT FuncA_Objects_SetShapePosToActorCenter
 .IMPORT Func_FindEmptyActorSlot
 .IMPORT Func_InitActorProjSpike
+.IMPORT Func_IsPointInAnySolidPlatform
 .IMPORT Func_MovePointDownByA
 .IMPORT Func_PointHitsTerrain
 .IMPORT Func_SetActorCenterToPoint
@@ -82,6 +83,8 @@ _Move:
     ;; slime has to turn around.
     lda #kTileWidthPx  ; param: offset
     jsr FuncA_Actor_SetPointInFrontOfActor  ; preserves X
+    jsr Func_IsPointInAnySolidPlatform  ; preserves X, returns C
+    bcs @turnAround
     jsr Func_PointHitsTerrain  ; preserves X, returns C and Y
     bcs @turnAround
     ;; Check the ceiling just in front of the slime.  If it's not solid, the

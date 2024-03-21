@@ -143,7 +143,18 @@ _Actors_sActor_arr:
     d_word PosY_i16, $0138
     d_byte Param_byte, kTileIdMermaidCorraFirst
     D_END
-    ;; TODO: add some baddies
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::BadBeetleHorz
+    d_word PosX_i16, $00a8
+    d_word PosY_i16, $0058
+    d_byte Param_byte, bObj::FlipV
+    D_END
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::BadBeetleHorz
+    d_word PosX_i16, $00b8
+    d_word PosY_i16, $0068
+    d_byte Param_byte, 0
+    D_END
     .assert * - :- <= kMaxActors * .sizeof(sActor), error
     .byte eActor::None
 _Devices_sDevice_arr:
