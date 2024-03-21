@@ -20,9 +20,9 @@
 .INCLUDE "../actor.inc"
 .INCLUDE "../actors/townsfolk.inc"
 .INCLUDE "../charmap.inc"
-.INCLUDE "../cpu.inc"
 .INCLUDE "../device.inc"
 .INCLUDE "../dialog.inc"
+.INCLUDE "../flag.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../platform.inc"
 .INCLUDE "../room.inc"
@@ -30,6 +30,7 @@
 .IMPORT DataA_Room_Hut_sTileset
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrObjVillage
+.IMPORT Sram_ProgressFlags_arr
 
 ;;;=========================================================================;;;
 
@@ -112,16 +113,55 @@ _Devices_sDevice_arr:
 
 .EXPORT DataA_Dialog_MermaidHut2Guard_sDialog
 .PROC DataA_Dialog_MermaidHut2Guard_sDialog
-    dlg_Text AdultMan, DataA_Text0_MermaidHut2Guard_u8_arr
+    dlg_Func @func
+    @func:
+    flag_bit Sram_ProgressFlags_arr, eFlag::CityCenterEnteredCity
+    bne @impressed
+    ldya #_WatchOut_sDialog
+    rts
+    @impressed:
+    ldya #_Impressed_sDialog
+    rts
+_WatchOut_sDialog:
+    dlg_Text AdultMan, DataA_Text2_MermaidHut2Guard_WatchOut1_u8_arr
+    dlg_Text AdultMan, DataA_Text2_MermaidHut2Guard_WatchOut2_u8_arr
+    dlg_Done
+_Impressed_sDialog:
+    dlg_Text AdultMan, DataA_Text2_MermaidHut2Guard_Impressed1_u8_arr
+    dlg_Text AdultMan, DataA_Text2_MermaidHut2Guard_Impressed2_u8_arr
     dlg_Done
 .ENDPROC
 
 ;;;=========================================================================;;;
 
-.SEGMENT "PRGA_Text0"
+.SEGMENT "PRGA_Text2"
 
-.PROC DataA_Text0_MermaidHut2Guard_u8_arr
-    .byte "Lorem ipsum.#"  ; TODO
+.PROC DataA_Text2_MermaidHut2Guard_WatchOut1_u8_arr
+    .byte "The queen would never$"
+    .byte "allow the orcs in our$"
+    .byte "vale, nor could they$"
+    .byte "best us by force.#"
+.ENDPROC
+
+.PROC DataA_Text2_MermaidHut2Guard_WatchOut2_u8_arr
+    .byte "Still, be wary if you$"
+    .byte "ever face their war$"
+    .byte "rhinos. They are not$"
+    .byte "to be trifled with.#"
+.ENDPROC
+
+.PROC DataA_Text2_MermaidHut2Guard_Impressed1_u8_arr
+    .byte "I heard that the orcs$"
+    .byte "and their war rhinos$"
+    .byte "have invaded the old$"
+    .byte "human ruins.#"
+.ENDPROC
+
+.PROC DataA_Text2_MermaidHut2Guard_Impressed2_u8_arr
+    .byte "Is it true that you$"
+    .byte "faced them alone, and$"
+    .byte "survived? If so, I am$"
+    .byte "impressed.#"
 .ENDPROC
 
 ;;;=========================================================================;;;

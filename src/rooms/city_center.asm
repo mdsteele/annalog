@@ -505,7 +505,9 @@ _GenerateKey:
     sta Zp_RoomState + sState::Key_u8_arr, x
     dex
     bpl @loop
-    rts
+_SetFlag:
+    ldx #eFlag::CityCenterEnteredCity  ; param: flag
+    jmp Func_SetFlag
 .ENDPROC
 
 .PROC FuncA_Room_CityCenter_TickRoom

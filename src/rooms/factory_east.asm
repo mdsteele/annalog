@@ -207,8 +207,15 @@ _Passages_sPassage_arr:
     ;; Corra doesn't appear in this room until you've met up with Alex in
     ;; FactoryVault.
     flag_bit Sram_ProgressFlags_arr, eFlag::FactoryVaultTalkedToAlex
-    bne @keepCorra
-    ;; TODO: remove Corra once you reach the city
+    beq @removeCorra
+    ;; Once you reach the city, Corra leaves this room.
+    flag_bit Sram_ProgressFlags_arr, eFlag::CityCenterEnteredCity
+    beq @keepCorra
+    ;; To be safe, set the flag for Corra having helped here if you've already
+    ;; reached the city (although normally, it is impossible to reach the city
+    ;; without Corra helping here).
+    ldx #eFlag::FactoryEastCorraHelped  ; param: flag
+    jsr Func_SetFlag
     @removeCorra:
     lda #0
     .assert eActor::None = 0, error
@@ -218,6 +225,8 @@ _Passages_sPassage_arr:
     sta Ram_DeviceType_eDevice_arr + kCorraDeviceIndexRight
     @keepCorra:
 _Lever:
+    ;; If Corra has already helped you in this room, flip the lever and raise
+    ;; the water level.
     flag_bit Sram_ProgressFlags_arr, eFlag::FactoryEastCorraHelped
     beq @done
     inc Zp_RoomState + sState::Lever_u8

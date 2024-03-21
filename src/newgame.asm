@@ -297,12 +297,14 @@ _SetFlags:
     .byte eFlag::BreakerMine
     .byte eFlag::UpgradeOpAddSub
     .byte eFlag::FactoryPassLoweredRocks
+    .byte eFlag::FactoryElevatorTalkedToAlex
     .byte eFlag::PaperJerome23
     .byte eFlag::FlowerMine
     .byte eFlag::FactoryVaultTalkedToAlex
     .byte eFlag::FactoryEastCorraHelped
     .byte eFlag::FlowerLava
     .byte eFlag::FlowerSewer
+    .byte eFlag::CityCenterEnteredCity
     .byte eFlag::CityOutskirtsBlastedRocks
     .byte eFlag::CityCenterKeygenConnected
     .byte eFlag::PaperJerome35
