@@ -112,6 +112,7 @@ _IsGrounded:
     dec Ram_ActorState1_byte_arr, x  ; jump timer
     jmp FuncA_Actor_HarmAvatarIfCollision  ; preserves X
 _StartJump:
+    ;; TODO: only play sound if the toad is on screen (or nearly)
     jsr FuncA_Actor_PlaySfxToadJump  ; preserves X
     jsr FuncA_Actor_FaceTowardsAvatar  ; preserves X
     ;; Set Y-velocity.

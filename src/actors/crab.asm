@@ -27,6 +27,7 @@
 .IMPORT FuncA_Actor_SetPointInFrontOfActor
 .IMPORT FuncA_Objects_Draw2x2Actor
 .IMPORT Func_GetRandomByte
+.IMPORT Func_IsPointInAnySolidPlatform
 .IMPORT Func_PointHitsTerrain
 .IMPORT Ram_ActorFlags_bObj_arr
 .IMPORT Ram_ActorPosX_i16_0_arr
@@ -49,11 +50,12 @@ kPaletteObjCrab = 0
 ;;; @preserve X
 .EXPORT FuncA_Actor_TickBadCrab
 .PROC FuncA_Actor_TickBadCrab
+    jsr FuncA_Actor_HarmAvatarIfCollision  ; preserves X
     lda Ram_ActorState1_byte_arr, x
     beq _StartMove
     dec Ram_ActorState1_byte_arr, x
     cmp #$18
-    blt _DetectCollision
+    blt _Return
     lda Ram_ActorFlags_bObj_arr, x
     and #bObj::FlipH
     bne _MoveLeft
@@ -69,13 +71,15 @@ _MoveLeft:
     dec Ram_ActorPosX_i16_1_arr, x
     @noBorrow:
     dec Ram_ActorPosX_i16_0_arr, x
-_DetectCollision:
-    jmp FuncA_Actor_HarmAvatarIfCollision  ; preserves X
+_Return:
+    rts
 _StartMove:
     ;; Check the terrain block just in front of the crab.  If it's solid, the
     ;; crab has to turn around.
     lda #kTileWidthPx + 1  ; param: offset
     jsr FuncA_Actor_SetPointInFrontOfActor  ; preserves X
+    jsr Func_IsPointInAnySolidPlatform  ; preserves X, returns C
+    bcs @turnAround
     jsr Func_PointHitsTerrain  ; preserves X, returns C and Y
     bcs @turnAround
     ;; Check the floor just in front of the crab.  If it's not solid, the crab

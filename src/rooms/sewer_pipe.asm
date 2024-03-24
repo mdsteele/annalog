@@ -17,13 +17,14 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
+.INCLUDE "../actor.inc"
 .INCLUDE "../macros.inc"
+.INCLUDE "../oam.inc"
+.INCLUDE "../platform.inc"
 .INCLUDE "../room.inc"
 
 .IMPORT DataA_Room_Sewer_sTileset
-.IMPORT Data_Empty_sActor_arr
 .IMPORT Data_Empty_sDevice_arr
-.IMPORT Data_Empty_sPlatform_arr
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrObjSewer
 
@@ -48,8 +49,8 @@
 _Ext_sRoomExt:
     D_STRUCT sRoomExt
     d_addr Terrain_sTileset_ptr, DataA_Room_Sewer_sTileset
-    d_addr Platforms_sPlatform_arr_ptr, Data_Empty_sPlatform_arr
-    d_addr Actors_sActor_arr_ptr, Data_Empty_sActor_arr
+    d_addr Platforms_sPlatform_arr_ptr, _Platforms_sPlatform_arr
+    d_addr Actors_sActor_arr_ptr, _Actors_sActor_arr
     d_addr Devices_sDevice_arr_ptr, Data_Empty_sDevice_arr
     d_addr Passages_sPassage_arr_ptr, _Passages_sPassage_arr
     d_addr Enter_func_ptr, Func_Noop
@@ -60,6 +61,152 @@ _Ext_sRoomExt:
 _TerrainData:
 :   .incbin "out/rooms/sewer_pipe.room"
     .assert * - :- = 34 * 15, error
+_Platforms_sPlatform_arr:
+:   D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Solid
+    d_word WidthPx_u16, $08
+    d_byte HeightPx_u8, $10
+    d_word Left_i16,  $0030
+    d_word Top_i16,   $00a0
+    D_END
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Solid
+    d_word WidthPx_u16, $08
+    d_byte HeightPx_u8, $10
+    d_word Left_i16,  $0080
+    d_word Top_i16,   $0070
+    D_END
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Solid
+    d_word WidthPx_u16, $20
+    d_byte HeightPx_u8, $08
+    d_word Left_i16,  $00b0
+    d_word Top_i16,   $0060
+    D_END
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Solid
+    d_word WidthPx_u16, $20
+    d_byte HeightPx_u8, $08
+    d_word Left_i16,  $00b0
+    d_word Top_i16,   $0088
+    D_END
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Solid
+    d_word WidthPx_u16, $30
+    d_byte HeightPx_u8, $08
+    d_word Left_i16,  $00f8
+    d_word Top_i16,   $00a0
+    D_END
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Solid
+    d_word WidthPx_u16, $20
+    d_byte HeightPx_u8, $08
+    d_word Left_i16,  $0100
+    d_word Top_i16,   $0020
+    D_END
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Solid
+    d_word WidthPx_u16, $20
+    d_byte HeightPx_u8, $08
+    d_word Left_i16,  $0100
+    d_word Top_i16,   $0048
+    D_END
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Solid
+    d_word WidthPx_u16, $08
+    d_byte HeightPx_u8, $10
+    d_word Left_i16,  $0120
+    d_word Top_i16,   $0068
+    D_END
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Solid
+    d_word WidthPx_u16, $20
+    d_byte HeightPx_u8, $08
+    d_word Left_i16,  $0150
+    d_word Top_i16,   $0060
+    D_END
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Solid
+    d_word WidthPx_u16, $20
+    d_byte HeightPx_u8, $08
+    d_word Left_i16,  $0150
+    d_word Top_i16,   $0088
+    D_END
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Solid
+    d_word WidthPx_u16, $30
+    d_byte HeightPx_u8, $08
+    d_word Left_i16,  $0198
+    d_word Top_i16,   $0070
+    D_END
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Solid
+    d_word WidthPx_u16, $20
+    d_byte HeightPx_u8, $08
+    d_word Left_i16,  $01a0
+    d_word Top_i16,   $00a0
+    D_END
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Solid
+    d_word WidthPx_u16, $20
+    d_byte HeightPx_u8, $08
+    d_word Left_i16,  $01a0
+    d_word Top_i16,   $00c8
+    D_END
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Water
+    d_word WidthPx_u16, $1c0
+    d_byte HeightPx_u8,  $20
+    d_word Left_i16,   $0030
+    d_word Top_i16,    $00bc
+    D_END
+    .assert * - :- <= kMaxPlatforms * .sizeof(sPlatform), error
+    .byte ePlatform::None
+_Actors_sActor_arr:
+:   D_STRUCT sActor
+    d_byte Type_eActor, eActor::BadCrab
+    d_word PosX_i16, $00b8
+    d_word PosY_i16, $00c8
+    d_byte Param_byte, 0
+    D_END
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::BadCrab
+    d_word PosX_i16, $0180
+    d_word PosY_i16, $00c8
+    d_byte Param_byte, 0
+    D_END
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::BadCrab
+    d_word PosX_i16, $00e0
+    d_word PosY_i16, $0048
+    d_byte Param_byte, 0
+    D_END
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::BadSlime
+    d_word PosX_i16, $0070
+    d_word PosY_i16, $0024
+    d_byte Param_byte, 0
+    D_END
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::BadSlime
+    d_word PosX_i16, $00f0
+    d_word PosY_i16, $0064
+    d_byte Param_byte, 0
+    D_END
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::BadSlime
+    d_word PosX_i16, $0130
+    d_word PosY_i16, $0024
+    d_byte Param_byte, 0
+    D_END
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::BadToad
+    d_word PosX_i16, $0180
+    d_word PosY_i16, $0090
+    d_byte Param_byte, bObj::FlipH
+    D_END
+    .assert * - :- <= kMaxActors * .sizeof(sActor), error
+    .byte eActor::None
 _Passages_sPassage_arr:
 :   D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Western | 0

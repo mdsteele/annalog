@@ -62,7 +62,7 @@ kMultiplexerInitGoalX = 0
 ;;; The minimum and initial X-positions for the left side of the multiplexer's
 ;;; movable platforms.
 .LINECONT +
-kMultiplexerMinPlatformLeft = $0034
+kMultiplexerMinPlatformLeft = $0044
 kMultiplexerInitPlatformLeft = \
     kMultiplexerMinPlatformLeft + kMultiplexerInitGoalX * kBlockWidthPx
 .LINECONT -
@@ -118,7 +118,7 @@ _Machines_sMachine_arr:
     d_byte Flags_bMachine, bMachine::MoveH | bMachine::WriteC
     d_byte Status_eDiagram, eDiagram::Multiplexer
     d_word ScrollGoalX_u16, $0010
-    d_byte ScrollGoalY_u8, $c0
+    d_byte ScrollGoalY_u8, $c8
     d_byte RegNames_u8_arr4, "J", 0, "X", 0
     d_byte MainPlatform_u8, kMultiplexerMainPlatformIndex
     d_addr Init_func_ptr, FuncC_Sewer_WestMultiplexer_InitReset
@@ -143,11 +143,11 @@ _Platforms_sPlatform_arr:
     .endrepeat
     .assert * - :- = kMultiplexerMainPlatformIndex * .sizeof(sPlatform), error
     D_STRUCT sPlatform
-    d_byte Type_ePlatform, ePlatform::Solid
+    d_byte Type_ePlatform, ePlatform::Zone
     d_word WidthPx_u16, $10
     d_byte HeightPx_u8, $10
-    d_word Left_i16,  $0030
-    d_word Top_i16,   $0140
+    d_word Left_i16,  $0040
+    d_word Top_i16,   $0150
     D_END
     .assert * - :- <= kMaxPlatforms * .sizeof(sPlatform), error
     .byte ePlatform::None
@@ -256,7 +256,7 @@ _ReadX:
     @error:
     jmp FuncA_Machine_Error
 _MaxGoalX_u8_arr:
-:   .byte 9, 9, 9, 9, 9, 3, 9, 9, 9, 9
+:   .byte 9, 9, 9, 9, 9, 2, 9, 9, 9, 9
     .assert * - :- = kMultiplexerNumPlatforms, error
 .ENDPROC
 

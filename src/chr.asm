@@ -1224,8 +1224,7 @@ _chr_begin:
     chr_inc "bad_grub",       kTileIdObjBadGrubFirst
     chr_res $08
     chr_inc "crane",          kTileIdObjCraneFirst
-    chr_inc "bad_toad",       kTileIdObjBadToadFirst
-    chr_res $20
+    chr_res $28
     chr_inc "child_stand",    kTileIdObjChildStandFirst
     END_CHR_BANK
 .ENDPROC
@@ -1345,7 +1344,8 @@ _chr_begin:
     chr_res $02
     chr_inc "bad_grub",           kTileIdObjBadGrubFirst
     chr_inc "bad_slime",          kTileIdObjBadSlimeFirst
-    chr_res $12
+    chr_res $0a
+    chr_inc "bad_toad",           kTileIdObjBadToadFirst
     chr_inc "bad_bird",           kTileIdObjBadBirdFirst
     chr_inc "bad_crab",           kTileIdObjBadCrabFirst
     chr_inc "platform_hotspring", kTileIdObjPlatformHotSpringFirst

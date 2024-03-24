@@ -39,7 +39,7 @@
 .IMPORT Func_SetFlag
 .IMPORT Func_ShakeRoom
 .IMPORT Ppu_ChrBgAnimB0
-.IMPORT Ppu_ChrObjFactory
+.IMPORT Ppu_ChrObjSewer
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORT Sram_ProgressFlags_arr
 .IMPORTZP Zp_Chr04Bank_u8
@@ -101,7 +101,7 @@ Ppu_FactoryPassRocksRow1 = Ppu_Nametable0_sName + sName::Tiles_u8_arr + \
     d_addr TerrainData_ptr, _TerrainData
     d_byte NumMachines_u8, 0
     d_addr Machines_sMachine_arr_ptr, 0
-    d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjFactory)
+    d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjSewer)
     d_addr Ext_sRoomExt_ptr, _Ext_sRoomExt
     D_END
 _Ext_sRoomExt:
