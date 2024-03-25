@@ -230,7 +230,7 @@ _MeetAtHotSpring_sDialog:
 .ENDPROC
 
 .PROC DataA_Text0_FactoryVaultScreen_Page1_u8_arr
-    .byte "ERROR: Transmutation$"
+    .byte "ERROR: Gene mutation$"
     .byte "tank production line$"
     .byte "has been stalled.#"
 .ENDPROC

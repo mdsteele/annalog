@@ -333,7 +333,13 @@ _Alex:
 _Bruno:
     ;; Until the kids are rescued, Bruno is in PrisonUpper, not here.
     flag_bit Sram_ProgressFlags_arr, eFlag::PrisonUpperFreedKids
-    bne @keepBruno
+    beq @removeBruno  ; Bruno is still imprisoned
+    ;; If you've lowered the rocks in the FactoryPass, but not yet met with
+    ;; Alex in FactoryVault, Bruno is in FactoryElevator, not here.
+    flag_bit Sram_ProgressFlags_arr, eFlag::FactoryVaultTalkedToAlex
+    bne @keepBruno  ; Bruno is back again
+    flag_bit Sram_ProgressFlags_arr, eFlag::FactoryPassLoweredRocks
+    beq @keepBruno  ; Bruno is still here
     @removeBruno:
     lda #0
     .assert eActor::None = 0, error
@@ -517,13 +523,6 @@ _WhereIsAlexFunc:
     ldya #_AlexAtSpring_sDialog
     rts
     @notAtSpring:
-    ;; Otherwise, if Anna hasn't yet met with Alex in the factory vault, then
-    ;; report that Alex is in the factory.
-    flag_bit Sram_ProgressFlags_arr, eFlag::FactoryVaultTalkedToAlex
-    bne @notInFactory
-    ldya #_AlexInFactory_sDialog
-    rts
-    @notInFactory:
     ;; TODO: report other places where Alex can be
     ;; If all else fails, just report that Alex is off exploring somewhere.
     @exploring:
@@ -540,9 +539,6 @@ _AlexNearCity_sDialog:
     dlg_Done
 _AlexAtSpring_sDialog:
     dlg_Text ChildBruno, DataA_Text1_MermaidVillageBruno_AlexAtSpring_u8_arr
-    dlg_Done
-_AlexInFactory_sDialog:
-    dlg_Text ChildBruno, DataA_Text1_MermaidVillageBruno_AlexInFactory_u8_arr
     dlg_Done
 _AlexExploring_sDialog:
     dlg_Text ChildBruno, DataA_Text1_MermaidVillageBruno_AlexExploring_u8_arr
@@ -689,13 +685,6 @@ _AlexExploring_sDialog:
     .byte "Alex, he's waiting for$"
     .byte "you at the hot spring,$"
     .byte "east of the village.#"
-.ENDPROC
-
-.PROC DataA_Text1_MermaidVillageBruno_AlexInFactory_u8_arr
-    .byte "If you're looking for$"
-    .byte "Alex, he said to tell$"
-    .byte "you to come find him$"
-    .byte "in the factory.#"
 .ENDPROC
 
 .PROC DataA_Text1_MermaidVillageBruno_AlexExploring_u8_arr

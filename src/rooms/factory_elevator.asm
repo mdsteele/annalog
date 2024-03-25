@@ -47,7 +47,6 @@
 .IMPORT Func_IsPointInPlatform
 .IMPORT Func_MachineJetReadRegY
 .IMPORT Func_Noop
-.IMPORT Func_SetFlag
 .IMPORT Func_SetMachineIndex
 .IMPORT Func_SetPointToAvatarCenter
 .IMPORT Ppu_ChrObjFactory
@@ -73,13 +72,13 @@
 
 ;;;=========================================================================;;;
 
-;;; The actor index for Alex in this room.
-kAlexActorIndex = 0
-;;; The talk devices indices for Alex in this room.
-kAlexDeviceIndexLeft = 5
-kAlexDeviceIndexRight = 4
+;;; The actor index for Bruno in this room.
+kBrunoActorIndex = 0
+;;; The talk devices indices for Bruno in this room.
+kBrunoDeviceIndexLeft = 5
+kBrunoDeviceIndexRight = 4
 
-;;; The platform index for the zone where Alex asks you to wait up.
+;;; The platform index for the zone where Bruno asks you to wait up.
 kWaitUpZonePlatformIndex = 2
 
 ;;;=========================================================================;;;
@@ -221,12 +220,12 @@ _Platforms_sPlatform_arr:
     .assert * - :- <= kMaxPlatforms * .sizeof(sPlatform), error
     .byte ePlatform::None
 _Actors_sActor_arr:
-:   .assert * - :- = kAlexActorIndex * .sizeof(sActor), error
+:   .assert * - :- = kBrunoActorIndex * .sizeof(sActor), error
     D_STRUCT sActor
     d_byte Type_eActor, eActor::NpcChild
     d_word PosX_i16, $00d0
     d_word PosY_i16, $0128
-    d_byte Param_byte, eNpcChild::AlexStanding
+    d_byte Param_byte, eNpcChild::BrunoStanding
     D_END
     .assert * - :- <= kMaxActors * .sizeof(sActor), error
     .byte eActor::None
@@ -257,19 +256,19 @@ _Devices_sDevice_arr:
     d_byte BlockCol_u8, 7
     d_byte Target_byte, sElevatorState::LowerJetUpperLever_u8
     D_END
-    .assert * - :- = kAlexDeviceIndexRight * .sizeof(sDevice), error
+    .assert * - :- = kBrunoDeviceIndexRight * .sizeof(sDevice), error
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::TalkRight
     d_byte BlockRow_u8, 18
     d_byte BlockCol_u8, 12
-    d_byte Target_byte, eDialog::FactoryElevatorAlexHi
+    d_byte Target_byte, eDialog::FactoryElevatorBrunoHi
     D_END
-    .assert * - :- = kAlexDeviceIndexLeft * .sizeof(sDevice), error
+    .assert * - :- = kBrunoDeviceIndexLeft * .sizeof(sDevice), error
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::TalkLeft
     d_byte BlockRow_u8, 18
     d_byte BlockCol_u8, 13
-    d_byte Target_byte, eDialog::FactoryElevatorAlexHi
+    d_byte Target_byte, eDialog::FactoryElevatorBrunoHi
     D_END
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None
@@ -353,20 +352,20 @@ _Passages_sPassage_arr:
 
 ;;; @param A The bSpawn value for where the avatar is entering the room.
 .PROC FuncA_Room_FactoryElevator_EnterRoom
-_MaybeRemoveAlex:
+_MaybeRemoveBruno:
     pha  ; bSpawn value
     flag_bit Sram_ProgressFlags_arr, eFlag::FactoryPassLoweredRocks
-    beq @removeAlex  ; Alex isn't here yet
+    beq @removeBruno  ; Bruno isn't here yet
     flag_bit Sram_ProgressFlags_arr, eFlag::FactoryVaultTalkedToAlex
-    beq @keepAlex  ; Alex is still here
-    @removeAlex:
+    beq @keepBruno  ; Bruno is still here
+    @removeBruno:
     lda #0
     .assert eActor::None = 0, error
-    sta Ram_ActorType_eActor_arr + kAlexActorIndex
+    sta Ram_ActorType_eActor_arr + kBrunoActorIndex
     .assert eDevice::None = 0, error
-    sta Ram_DeviceType_eDevice_arr + kAlexDeviceIndexLeft
-    sta Ram_DeviceType_eDevice_arr + kAlexDeviceIndexRight
-    @keepAlex:
+    sta Ram_DeviceType_eDevice_arr + kBrunoDeviceIndexLeft
+    sta Ram_DeviceType_eDevice_arr + kBrunoDeviceIndexRight
+    @keepBruno:
     pla  ; bSpawn value
 _CheckPassage:
     ;; Check which vertical shaft the player avatar entered from, if either.
@@ -400,13 +399,13 @@ _LowerShaft:
 
 .PROC FuncA_Room_FactoryElevator_TickRoom
 _StartCutscene:
-    ;; If Alex isn't here, or if Anna has already talked to Alex, don't start
+    ;; If Bruno isn't here, or if Anna has already talked to Bruno, don't start
     ;; the cutscene.
     flag_bit Sram_ProgressFlags_arr, eFlag::FactoryPassLoweredRocks
-    beq @done  ; Alex isn't here yet
+    beq @done  ; Bruno isn't here yet
     flag_bit Sram_ProgressFlags_arr, eFlag::FactoryVaultTalkedToAlex
-    bne @done  ; Alex is no longer here
-    flag_bit Sram_ProgressFlags_arr, eFlag::FactoryElevatorTalkedToAlex
+    bne @done  ; Bruno is no longer here
+    flag_bit Sram_ProgressFlags_arr, eFlag::FactoryElevatorTalkedToBruno
     bne @done
     ;; If the player avatar isn't standing in the cutscene-starting zone, don't
     ;; start it yet.
@@ -598,14 +597,12 @@ _WriteL:
     act_SetAvatarState 0
     act_SetAvatarVelX 0
     act_SetAvatarPose eAvatar::Standing
-    act_SetActorState1 kAlexActorIndex, eNpcChild::AlexLooking
-    act_RunDialog eDialog::FactoryElevatorAlexWait
+    act_RunDialog eDialog::FactoryElevatorBrunoWait
     act_WalkAvatar $00ba
     act_SetAvatarFlags kPaletteObjAvatarNormal | 0
     act_SetAvatarPose eAvatar::Standing
     act_WaitFrames 30
-    act_RunDialog eDialog::FactoryElevatorAlexHi
-    act_SetActorState1 kAlexActorIndex, eNpcChild::AlexStanding
+    act_RunDialog eDialog::FactoryElevatorBrunoHi
     act_ContinueExploring
 .ENDPROC
 
@@ -613,32 +610,74 @@ _WriteL:
 
 .SEGMENT "PRGA_Dialog"
 
-.EXPORT DataA_Dialog_FactoryElevatorAlexWait_sDialog
-.PROC DataA_Dialog_FactoryElevatorAlexWait_sDialog
-    dlg_Text ChildAlex, DataA_Text2_FactoryElevatorAlex_Wait_u8_arr
+.EXPORT DataA_Dialog_FactoryElevatorBrunoWait_sDialog
+.PROC DataA_Dialog_FactoryElevatorBrunoWait_sDialog
+    dlg_Text ChildBruno, DataA_Text2_FactoryElevatorBruno_Wait_u8_arr
     dlg_Done
 .ENDPROC
 
-.EXPORT DataA_Dialog_FactoryElevatorAlexHi_sDialog
-.PROC DataA_Dialog_FactoryElevatorAlexHi_sDialog
-    dlg_Text ChildAlex, DataA_Text2_FactoryElevatorAlex_Hi_u8_arr
-    dlg_Call _SetFlag
+.EXPORT DataA_Dialog_FactoryElevatorBrunoHi_sDialog
+.PROC DataA_Dialog_FactoryElevatorBrunoHi_sDialog
+    dlg_Func @func
+    @func:
+    flag_bit Sram_ProgressFlags_arr, eFlag::FactoryElevatorTalkedToBruno
+    bne @aLot
+    @whew:
+    ldya #_Whew_sDialog
+    rts
+    @aLot:
+    ldya #_ALot_sDialog
+    rts
+_Whew_sDialog:
+    dlg_Text ChildBruno, DataA_Text2_FactoryElevatorBruno_Hi1_u8_arr
+_ALot_sDialog:
+    dlg_Text ChildBruno, DataA_Text2_FactoryElevatorBruno_Hi2_u8_arr
+    dlg_Text ChildBruno, DataA_Text2_FactoryElevatorBruno_Hi3_u8_arr
+    dlg_Text ChildBruno, DataA_Text2_FactoryElevatorBruno_Hi4_u8_arr
+    dlg_Quest eFlag::FactoryElevatorTalkedToBruno
+    dlg_Text ChildBruno, DataA_Text2_FactoryElevatorBruno_Hi5_u8_arr
     dlg_Done
-_SetFlag:
-    ldx #eFlag::FactoryElevatorTalkedToAlex  ; param: flag
-    jmp Func_SetFlag
 .ENDPROC
 
 ;;;=========================================================================;;;
 
 .SEGMENT "PRGA_Text2"
 
-.PROC DataA_Text2_FactoryElevatorAlex_Wait_u8_arr
+.PROC DataA_Text2_FactoryElevatorBruno_Wait_u8_arr
     .byte "Hey Anna, wait up!#"
 .ENDPROC
 
-.PROC DataA_Text2_FactoryElevatorAlex_Hi_u8_arr
-    .byte "TODO: Hi!#"
+.PROC DataA_Text2_FactoryElevatorBruno_Hi1_u8_arr
+    .byte "Whew, glad you made it$"
+    .byte "out of there OK, Anna.$"
+    .byte "Alex asked me to keep$"
+    .byte "an eye out for you.#"
+.ENDPROC
+
+.PROC DataA_Text2_FactoryElevatorBruno_Hi2_u8_arr
+    .byte "A lot's been happening$"
+    .byte "while you were gone.$"
+    .byte "Orcs on the move, more$"
+    .byte "machines turning on...#"
+.ENDPROC
+
+.PROC DataA_Text2_FactoryElevatorBruno_Hi3_u8_arr
+    .byte "Queen Eirene seems$"
+    .byte "pretty agitated, but$"
+    .byte "she's still letting us$"
+    .byte "stay for now.#"
+.ENDPROC
+
+.PROC DataA_Text2_FactoryElevatorBruno_Hi4_u8_arr
+    .byte "And, uh...Alex found$"
+    .byte "something weird. He$"
+    .byte "wanted you to meet him$"
+    .byte "when you got back.#"
+.ENDPROC
+
+.PROC DataA_Text2_FactoryElevatorBruno_Hi5_u8_arr
+    .byte "I'll mark it on your$"
+    .byte "map.#"
 .ENDPROC
 
 ;;;=========================================================================;;;

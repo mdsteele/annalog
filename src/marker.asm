@@ -82,6 +82,12 @@
     D_END
     D_STRUCT sMarker
     d_byte Row_u8, 5
+    d_byte Col_u8, 8  ; room: FactoryVault
+    d_byte If_eFlag, eFlag::FactoryElevatorTalkedToBruno
+    d_byte Not_eFlag, eFlag::FactoryVaultTalkedToAlex
+    D_END
+    D_STRUCT sMarker
+    d_byte Row_u8, 5
     d_byte Col_u8, 15  ; room: FactoryFlower
     d_byte If_eFlag, 0
     d_byte Not_eFlag, eFlag::FlowerFactory

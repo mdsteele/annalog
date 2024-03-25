@@ -189,7 +189,7 @@ kSaveMagicNumber = $b2
     TempleNaveTalkedToAlex
     ;; TODO: Sort the below within the above once it won't disrupt playtesting.
     FactoryEastCorraHelped
-    FactoryElevatorTalkedToAlex
+    FactoryElevatorTalkedToBruno
     CityCenterEnteredCity
     NUM_VALUES
 .ENDENUM

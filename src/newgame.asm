@@ -297,7 +297,7 @@ _SetFlags:
     .byte eFlag::BreakerMine
     .byte eFlag::UpgradeOpAddSub
     .byte eFlag::FactoryPassLoweredRocks
-    .byte eFlag::FactoryElevatorTalkedToAlex
+    .byte eFlag::FactoryElevatorTalkedToBruno
     .byte eFlag::PaperJerome23
     .byte eFlag::FlowerMine
     .byte eFlag::FactoryVaultTalkedToAlex

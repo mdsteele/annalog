@@ -48,8 +48,8 @@
 .IMPORT DataA_Dialog_CoreSouthCorra_sDialog
 .IMPORT DataA_Dialog_CryptTombPlaque_sDialog
 .IMPORT DataA_Dialog_FactoryEastCorra_sDialog
-.IMPORT DataA_Dialog_FactoryElevatorAlexHi_sDialog
-.IMPORT DataA_Dialog_FactoryElevatorAlexWait_sDialog
+.IMPORT DataA_Dialog_FactoryElevatorBrunoHi_sDialog
+.IMPORT DataA_Dialog_FactoryElevatorBrunoWait_sDialog
 .IMPORT DataA_Dialog_FactoryVaultAlex_sDialog
 .IMPORT DataA_Dialog_FactoryVaultScreen_sDialog
 .IMPORT DataA_Dialog_GardenEastCorra_sDialog
@@ -445,10 +445,10 @@ _Finish:
     d_entry t, CoreSouthCorra,       DataA_Dialog_CoreSouthCorra_sDialog
     d_entry t, CryptTombPlaque,      DataA_Dialog_CryptTombPlaque_sDialog
     d_entry t, FactoryEastCorra,     DataA_Dialog_FactoryEastCorra_sDialog
-    d_entry t, FactoryElevatorAlexHi, \
-            DataA_Dialog_FactoryElevatorAlexHi_sDialog
-    d_entry t, FactoryElevatorAlexWait, \
-            DataA_Dialog_FactoryElevatorAlexWait_sDialog
+    d_entry t, FactoryElevatorBrunoHi, \
+            DataA_Dialog_FactoryElevatorBrunoHi_sDialog
+    d_entry t, FactoryElevatorBrunoWait, \
+            DataA_Dialog_FactoryElevatorBrunoWait_sDialog
     d_entry t, FactoryVaultAlex,     DataA_Dialog_FactoryVaultAlex_sDialog
     d_entry t, FactoryVaultScreen,   DataA_Dialog_FactoryVaultScreen_sDialog
     d_entry t, GardenEastCorra,      DataA_Dialog_GardenEastCorra_sDialog
