@@ -30,7 +30,6 @@
 .IMPORT DataA_Room_Hut_sTileset
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrObjVillage
-.IMPORT Sram_ProgressFlags_arr
 
 ;;;=========================================================================;;;
 
@@ -113,15 +112,7 @@ _Devices_sDevice_arr:
 
 .EXPORT DataA_Dialog_MermaidHut2Guard_sDialog
 .PROC DataA_Dialog_MermaidHut2Guard_sDialog
-    dlg_Func @func
-    @func:
-    flag_bit Sram_ProgressFlags_arr, eFlag::CityCenterEnteredCity
-    bne @impressed
-    ldya #_WatchOut_sDialog
-    rts
-    @impressed:
-    ldya #_Impressed_sDialog
-    rts
+    dlg_IfSet CityCenterEnteredCity, _Impressed_sDialog
 _WatchOut_sDialog:
     dlg_Text AdultMan, DataA_Text2_MermaidHut2Guard_WatchOut1_u8_arr
     dlg_Text AdultMan, DataA_Text2_MermaidHut2Guard_WatchOut2_u8_arr

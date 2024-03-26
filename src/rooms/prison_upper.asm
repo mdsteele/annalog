@@ -694,55 +694,31 @@ _SetFlag:
 
 .EXPORT DataA_Dialog_PrisonUpperBruno_sDialog
 .PROC DataA_Dialog_PrisonUpperBruno_sDialog
-    dlg_Func @func
-    @func:
-    flag_bit Sram_ProgressFlags_arr, eFlag::PrisonUpperFoundAlex
-    bne @climbUp
-    @adults:
-    ldya #_Adults_sDialog
-    rts
-    @climbUp:
-    ldya #_ClimbUp_sDialog
-    rts
+    dlg_IfSet PrisonUpperFoundAlex, _ClimbUp_sDialog
 _Adults_sDialog:
     dlg_Text ChildBruno, DataA_Text0_PrisonUpperBruno_Adults_u8_arr
     dlg_Done
 _ClimbUp_sDialog:
     dlg_Text ChildBruno, DataA_Text0_PrisonUpperBruno_ClimbUp_u8_arr
-    dlg_Func @func
-    @func:
-    flag_bit Sram_ProgressFlags_arr, eFlag::PrisonUpperLoosenedBrick
-    bne @dialogDone
-    @talkMarie:
+    dlg_IfSet PrisonUpperLoosenedBrick, Data_Empty_sDialog
+    dlg_Call _LookAtMarie
+    .assert kTileIdBgPortraitMarieFirst = kTileIdBgPortraitBrunoFirst, error
+    dlg_Goto DataA_Dialog_PrisonUpperMarie_LooseBrick_sDialog
+_LookAtMarie:
     ldax #$0100
     stax Zp_ScrollGoalX_u16
     lda #kPaletteObjAvatarNormal
     sta Zp_AvatarFlags_bObj
-    .assert kTileIdBgPortraitMarieFirst = kTileIdBgPortraitBrunoFirst, error
-    ldya #DataA_Dialog_PrisonUpperMarie_LooseBrick_sDialog
-    rts
-    @dialogDone:
-    ldya #Data_Empty_sDialog
     rts
 .ENDPROC
 
 .EXPORT DataA_Dialog_PrisonUpperMarie_sDialog
 .PROC DataA_Dialog_PrisonUpperMarie_sDialog
-    dlg_Func @func
-    @func:
-    flag_bit Sram_ProgressFlags_arr, eFlag::PrisonUpperLoosenedBrick
-    bne @standCareful
-    flag_bit Sram_ProgressFlags_arr, eFlag::PrisonUpperFoundAlex
-    bne @looseBrick
-    @talkToAlex:
-    ldya #_GoTalkToAlex_sDialog
-    rts
-    @looseBrick:
-    ldya #DataA_Dialog_PrisonUpperMarie_LooseBrick_sDialog
-    rts
-    @standCareful:
-    ldya #_StandCareful_sDialog
-    rts
+    dlg_IfSet PrisonUpperLoosenedBrick, _StandCareful_sDialog
+    .linecont +
+    dlg_IfSet PrisonUpperFoundAlex, \
+              DataA_Dialog_PrisonUpperMarie_LooseBrick_sDialog
+    .linecont -
 _GoTalkToAlex_sDialog:
     dlg_Text ChildMarie, DataA_Text0_PrisonUpperMarie_GoTalkToAlex_u8_arr
     dlg_Done

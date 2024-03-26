@@ -64,7 +64,8 @@
 
 ;;; Special constants used in place of an ePortrait value for doing dialog
 ;;; control flow.
-.ASSERT $fa >= ePortrait::NUM_VALUES, error
+.ASSERT $f9 >= ePortrait::NUM_VALUES, error
+kDialogEntryBranch   = $f9  ; conditionally jumps to a sDialog, else continues
 kDialogEntryCall     = $fa  ; calls a function, then continues the sDialog
 kDialogEntryFunc     = $fb  ; calls a function that returns next sDialog in YA
 kDialogEntryGoto     = $fc  ; jumps to the specified sDialog
@@ -112,8 +113,7 @@ kDialogEntryCutscene = $ff  ; ends the dialog and starts a new cutscene
     MermaidHut4Florist
     MermaidHut5Marie
     MermaidHut5Nora
-    MermaidSpringAlex1
-    MermaidSpringAlex2
+    MermaidSpringAlex
     MermaidSpringSign
     MermaidVillageAlex
     MermaidVillageBruno
@@ -209,6 +209,25 @@ kDialogTextYesNo   = $ff
     .addr LABEL
 .ENDMACRO
 
+;;; Expands to a sDialog entry that jumps to another sDialog entry if the
+;;; specified flag is set, and otherwise continues to the next entry.
+.MACRO dlg_IfSet FLAG, LABEL
+    .assert LABEL >= $8000, error
+    .byte kDialogEntryBranch
+    .addr LABEL
+    .byte eFlag::FLAG
+.ENDMACRO
+
+;;; Expands to a sDialog entry that jumps to another sDialog entry if the
+;;; player answered "YES" to the previous YES/NO dialog question, and otherwise
+;;; continues to the next entry.
+.MACRO dlg_IfYes LABEL
+    .assert LABEL >= $8000, error
+    .byte kDialogEntryBranch
+    .addr LABEL
+    .byte 0
+.ENDMACRO
+
 ;;; Expands to a sDialog entry that calls a dynamic dialog function.
 .MACRO dlg_Func LABEL
     .assert LABEL >= $8000, error
@@ -226,7 +245,7 @@ kDialogTextYesNo   = $ff
 ;;; Expands to a sDialog entry that adds a quest marker before continuing.
 .MACRO dlg_Quest FLAG
     .byte kDialogEntryQuest
-    .byte FLAG
+    .byte eFlag::FLAG
 .ENDMACRO
 
 ;;; Expands to a sDialog entry indicating the end of the dialog.

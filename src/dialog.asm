@@ -24,6 +24,7 @@
 .INCLUDE "device.inc"
 .INCLUDE "devices/dialog.inc"
 .INCLUDE "dialog.inc"
+.INCLUDE "flag.inc"
 .INCLUDE "hud.inc"
 .INCLUDE "joypad.inc"
 .INCLUDE "macros.inc"
@@ -69,8 +70,7 @@
 .IMPORT DataA_Dialog_MermaidHut4Florist_sDialog
 .IMPORT DataA_Dialog_MermaidHut5Marie_sDialog
 .IMPORT DataA_Dialog_MermaidHut5Nora_sDialog
-.IMPORT DataA_Dialog_MermaidSpringAlex1_sDialog
-.IMPORT DataA_Dialog_MermaidSpringAlex2_sDialog
+.IMPORT DataA_Dialog_MermaidSpringAlex_sDialog
 .IMPORT DataA_Dialog_MermaidSpringSign_sDialog
 .IMPORT DataA_Dialog_MermaidVillageAlex_sDialog
 .IMPORT DataA_Dialog_MermaidVillageBruno_sDialog
@@ -146,6 +146,7 @@
 .IMPORT Func_AllocOneObject
 .IMPORT Func_BufferPpuTransfer
 .IMPORT Func_ClearRestOfOamAndProcessFrame
+.IMPORT Func_IsFlagSet
 .IMPORT Func_SetFlag
 .IMPORT Func_TryPushAvatarHorz
 .IMPORT Func_Window_GetRowPpuAddr
@@ -264,7 +265,6 @@ Zp_DialogTextCol_u8: .res 1
 ;;; dialog question, and is set to false ($00) whenever the player chooses
 ;;; "no".  Dynamic dialog functions can read this variable to react to the
 ;;; player's choice.
-.EXPORTZP Zp_DialogAnsweredYes_bool
 Zp_DialogAnsweredYes_bool: .res 1
 
 ;;; A pointer to the next sDialog entry to execute.
@@ -474,8 +474,7 @@ _Finish:
     d_entry t, MermaidHut4Florist,   DataA_Dialog_MermaidHut4Florist_sDialog
     d_entry t, MermaidHut5Marie,     DataA_Dialog_MermaidHut5Marie_sDialog
     d_entry t, MermaidHut5Nora,      DataA_Dialog_MermaidHut5Nora_sDialog
-    d_entry t, MermaidSpringAlex1,   DataA_Dialog_MermaidSpringAlex1_sDialog
-    d_entry t, MermaidSpringAlex2,   DataA_Dialog_MermaidSpringAlex2_sDialog
+    d_entry t, MermaidSpringAlex,    DataA_Dialog_MermaidSpringAlex_sDialog
     d_entry t, MermaidSpringSign,    DataA_Dialog_MermaidSpringSign_sDialog
     d_entry t, MermaidVillageAlex,   DataA_Dialog_MermaidVillageAlex_sDialog
     d_entry t, MermaidVillageBruno,  DataA_Dialog_MermaidVillageBruno_sDialog
@@ -788,7 +787,7 @@ _ReadPortraitByte:
     cmp #ePortrait::NUM_VALUES
     blt _SetPortrait
 _DialogFunction:
-    tax  ; entry kind (kDialogEntryCall or kDialogEntryFunc)
+    tax  ; entry kind (kDialogEntryBranch/Call/Func/Goto)
     lda (Zp_Next_sDialog_ptr), y
     sta T0
     iny
@@ -799,17 +798,33 @@ _DialogFunction:
     beq @entryGoto
     cpx #kDialogEntryFunc
     beq @entryFunc
-    @entryCall:
-    jsr _UpdateDialogPointer
-    jsr _CallT1T0
-    jmp _ReadPortraitByte
+    cpx #kDialogEntryCall
+    beq @entryCall
+    @entryBranch:
+    lda (Zp_Next_sDialog_ptr), y
+    tax  ; eFlag value to branch on
+    iny
+    jsr _UpdateDialogPointer  ; preserves X and T0+
+    txa  ; eFlag value to branch on
+    .assert eFlag::None = 0, error
+    bne @checkFlag
+    bit Zp_DialogAnsweredYes_bool
+    bmi @entryGoto
+    bpl _ReadPortraitByte  ; unconditional
+    @checkFlag:
+    jsr Func_IsFlagSet  ; preserves T0+, returns Z
+    beq _ReadPortraitByte
     @entryGoto:
     ldya T1T0
-    bmi @setNext  ; unconditional (enforced by dlg_Goto macro)
+    bmi @setNext  ; unconditional (enforced by dlg_Goto/dlg_If* macros)
     @entryFunc:
     jsr _CallT1T0  ; returns YA
     @setNext:
     stya Zp_Next_sDialog_ptr
+    jmp _ReadPortraitByte
+    @entryCall:
+    jsr _UpdateDialogPointer  ; preserves T0+
+    jsr _CallT1T0
     jmp _ReadPortraitByte
 _CallT1T0:
     jmp (T1T0)

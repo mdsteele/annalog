@@ -400,16 +400,7 @@ _AnimateSwimmingUpFunc:
 
 .EXPORT DataA_Dialog_FactoryEastCorra_sDialog
 .PROC DataA_Dialog_FactoryEastCorra_sDialog
-    dlg_Func @func
-    @func:
-    flag_bit Sram_ProgressFlags_arr, eFlag::FactoryEastCorraHelped
-    bne @alreadyHelped
-    @offerHelp:
-    ldya #_OfferHelp_sDialog
-    rts
-    @alreadyHelped:
-    ldya #_AlreadyHelped_sDialog
-    rts
+    dlg_IfSet FactoryEastCorraHelped, _AlreadyHelped_sDialog
 _OfferHelp_sDialog:
     dlg_Text MermaidCorra, DataA_Text1_FactoryEastCorra_Part1_u8_arr
     dlg_Cutscene eCutscene::FactoryEastCorraHelping

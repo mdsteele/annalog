@@ -50,7 +50,6 @@
 .IMPORT Ram_PlatformTop_i16_1_arr
 .IMPORT Sram_ProgressFlags_arr
 .IMPORTZP Zp_AvatarState_bAvatar
-.IMPORTZP Zp_DialogAnsweredYes_bool
 .IMPORTZP Zp_Next_eCutscene
 .IMPORTZP Zp_Next_sAudioCtrl
 .IMPORTZP Zp_PointY_i16
@@ -388,28 +387,10 @@ _MoveColumn:
 
 .EXPORT DataA_Dialog_TempleEntryCorraHi_sDialog
 .PROC DataA_Dialog_TempleEntryCorraHi_sDialog
-    dlg_Func @func
-    @func:
-    flag_bit Sram_ProgressFlags_arr, eFlag::TempleEntryTalkedToCorra
-    bne @alexAsked
-    @question:
-    ldya #_Question_sDialog
-    rts
-    @alexAsked:
-    ldya #_AlexAsked_sDialog
-    rts
+    dlg_IfSet TempleEntryTalkedToCorra, _AlexAsked_sDialog
 _Question_sDialog:
     dlg_Text MermaidCorra, DataA_Text2_TempleEntryCorra_Question_u8_arr
-    dlg_Func @func
-    @func:
-    bit Zp_DialogAnsweredYes_bool
-    bmi @yes
-    @no:
-    ldya #_NoAnswer_sDialog
-    rts
-    @yes:
-    ldya #_YesAnswer_sDialog
-    rts
+    dlg_IfYes _YesAnswer_sDialog
 _NoAnswer_sDialog:
     dlg_Text MermaidCorra, DataA_Text2_TempleEntryCorra_No_u8_arr
     dlg_Text MermaidCorra, DataA_Text2_TempleEntryCorra_Taught_u8_arr
@@ -419,7 +400,7 @@ _YesAnswer_sDialog:
     dlg_Text MermaidCorra, DataA_Text2_TempleEntryCorra_Whom_u8_arr
 _AlexAsked_sDialog:
     dlg_Text MermaidCorra, DataA_Text2_TempleEntryCorra_AlexAsked_u8_arr
-    dlg_Quest eFlag::TempleEntryTalkedToCorra
+    dlg_Quest TempleEntryTalkedToCorra
     dlg_Text MermaidCorra, DataA_Text2_TempleEntryCorra_MarkMap_u8_arr
     dlg_Done
 .ENDPROC
@@ -427,23 +408,17 @@ _AlexAsked_sDialog:
 .EXPORT DataA_Dialog_TempleEntryGuard_sDialog
 .PROC DataA_Dialog_TempleEntryGuard_sDialog
     dlg_Text MermaidGuardF, DataA_Text2_TempleEntryGuard_Intro_u8_arr
-    dlg_Func _CheckPermissionFunc
-_CheckPermissionFunc:
-    flag_bit Sram_ProgressFlags_arr, eFlag::TempleEntryPermission
-    bne _RaiseColumnFunc
-    ldya #_NoPermission_sDialog
-    rts
+    dlg_IfSet TempleEntryPermission, _Enter_sDialog
 _NoPermission_sDialog:
     dlg_Text MermaidGuardF, DataA_Text2_TempleEntryGuard_NoPermission_u8_arr
     dlg_Done
-_RaiseColumnFunc:
-    ldx #eFlag::TempleEntryColumnRaised  ; param: flag
-    jsr Func_SetFlag
-    ldya #_Enter_sDialog
-    rts
 _Enter_sDialog:
+    dlg_Call _RaiseColumn
     dlg_Text MermaidGuardF, DataA_Text2_TempleEntryGuard_Enter_u8_arr
     dlg_Done
+_RaiseColumn:
+    ldx #eFlag::TempleEntryColumnRaised  ; param: flag
+    jmp Func_SetFlag
 .ENDPROC
 
 ;;;=========================================================================;;;

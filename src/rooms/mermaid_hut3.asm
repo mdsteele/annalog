@@ -31,7 +31,6 @@
 .IMPORT DataA_Room_Hut_sTileset
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrObjVillage
-.IMPORT Sram_ProgressFlags_arr
 
 ;;;=========================================================================;;;
 
@@ -133,15 +132,7 @@ _Devices_sDevice_arr:
 .EXPORT DataA_Dialog_MermaidHut3Daphne_sDialog
 .PROC DataA_Dialog_MermaidHut3Daphne_sDialog
     dlg_Text MermaidDaphne, DataA_Text0_MermaidHut3Daphne_Intro_u8_arr
-    dlg_Func _HotSpringFunc
-_HotSpringFunc:
-    flag_bit Sram_ProgressFlags_arr, eFlag::MermaidSpringUnplugged
-    bne @unplugged
-    ldya #_HotSpringOpen_sDialog
-    rts
-    @unplugged:
-    ldya #_HotSpringClosed_sDialog
-    rts
+    dlg_IfSet MermaidSpringUnplugged, _HotSpringClosed_sDialog
 _HotSpringOpen_sDialog:
     dlg_Text MermaidDaphne, DataA_Text0_MermaidHut3Daphne_Open_u8_arr
     dlg_Done

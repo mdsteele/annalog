@@ -42,7 +42,6 @@
 .INCLUDE "../scroll.inc"
 
 .IMPORT DataA_Room_Core_sTileset
-.IMPORT Data_Empty_sDialog
 .IMPORT FuncA_Machine_BlasterHorzTryAct
 .IMPORT FuncA_Machine_BlasterTickMirrors
 .IMPORT FuncA_Machine_BlasterWriteRegMirrors
@@ -138,7 +137,6 @@
 .IMPORTZP Zp_BreakerBeingActivated_eFlag
 .IMPORTZP Zp_Camera_bScroll
 .IMPORTZP Zp_Current_sMachine_ptr
-.IMPORTZP Zp_DialogAnsweredYes_bool
 .IMPORTZP Zp_FrameCounter_u8
 .IMPORTZP Zp_Next_eCutscene
 .IMPORTZP Zp_PointX_i16
@@ -2099,43 +2097,26 @@ _MakeFinalTerminalAppear:
     dlg_Text OrcGronta, DataA_Text1_CoreBossGrontaIntro_Part1_u8_arr
     dlg_Text OrcGronta, DataA_Text1_CoreBossGrontaIntro_Part2_u8_arr
     dlg_Text OrcGronta, DataA_Text1_CoreBossGrontaIntro_Demand_u8_arr
-    dlg_Func _DemandFunc
-_DemandFunc:
-    bit Zp_DialogAnsweredYes_bool
-    bmi @yes
-    @no:
-    ldya #_PreparedToFight_sDialog
-    rts
-    @yes:
-    ldya #_HandItOver_sDialog
-    rts
-_HandItOver_sDialog:
+    dlg_IfYes _HandItOverQuestion_sDialog
+_PreparedToFightQuestion_sDialog:
+    dlg_Text OrcGronta, DataA_Text1_CoreBossGrontaIntro_PreparedToFight_u8_arr
+    dlg_IfYes _BeginFight_sDialog
+_HandItOverQuestion_sDialog:
     dlg_Text OrcGronta, DataA_Text1_CoreBossGrontaIntro_HandItOver_u8_arr
-    dlg_Func _HandItOverFunc
-_HandItOverFunc:
-    bit Zp_DialogAnsweredYes_bool
-    bmi @yes
-    @no:
-    ldya #_PreparedToFight_sDialog
-    rts
-    @yes:
+    dlg_IfYes _TossRemote_sDialog
+    dlg_Goto _PreparedToFightQuestion_sDialog
+_BeginFight_sDialog:
+    dlg_Call _LockScrolling
+    dlg_Done
+_TossRemote_sDialog:
+    dlg_Call _TossRemote
+    dlg_Done
+_TossRemote:
     lda #eGrontaPhase::GettingRemote
     sta Zp_RoomState + sState::Current_eGrontaPhase
-    bne _EndDialogFunc  ; unconditional
-_PreparedToFight_sDialog:
-    dlg_Text OrcGronta, DataA_Text1_CoreBossGrontaIntro_PreparedToFight_u8_arr
-    dlg_Func _PreparedToFightFunc
-_PreparedToFightFunc:
-    bit Zp_DialogAnsweredYes_bool
-    bmi @yes
-    @no:
-    ldya #_HandItOver_sDialog
-    rts
-    @yes:
-_EndDialogFunc:
+_LockScrolling:
     lda #bScroll::LockHorz
     sta Zp_Camera_bScroll
-    ldya #Data_Empty_sDialog
     rts
 .ENDPROC
 
@@ -2159,28 +2140,11 @@ _EndDialogFunc:
     dlg_Text Screen, DataA_Text1_CoreBossScreen_Intro_u8_arr
 _ReactivateQuestion_sDialog:
     dlg_Text Screen, DataA_Text1_CoreBossScreen_Reactivate_u8_arr
-    dlg_Func @func
-    @func:
-    bit Zp_DialogAnsweredYes_bool
-    bmi @yes
-    @no:
-    ldya #_SelfDestructQuestion_sDialog
-    rts
-    @yes:
-    ldya #_ReactivateCutscene_sDialog
-    rts
+    dlg_IfYes _ReactivateCutscene_sDialog
 _SelfDestructQuestion_sDialog:
     dlg_Text Screen, DataA_Text1_CoreBossScreen_SelfDestruct_u8_arr
-    dlg_Func @func
-    @func:
-    bit Zp_DialogAnsweredYes_bool
-    bmi @yes
-    @no:
-    ldya #_ReactivateQuestion_sDialog
-    rts
-    @yes:
-    ldya #_SelfDestructCutscene_sDialog
-    rts
+    dlg_IfYes _SelfDestructCutscene_sDialog
+    dlg_Goto _ReactivateQuestion_sDialog
 _ReactivateCutscene_sDialog:
     dlg_Cutscene eCutscene::CoreBossFinaleReactivate
 _SelfDestructCutscene_sDialog:

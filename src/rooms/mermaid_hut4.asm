@@ -42,7 +42,6 @@
 .IMPORT Ram_DeviceType_eDevice_arr
 .IMPORT Sram_CarryingFlower_eFlag
 .IMPORT Sram_ProgressFlags_arr
-.IMPORTZP Zp_DialogAnsweredYes_bool
 .IMPORTZP Zp_RoomScrollY_u8
 .IMPORTZP Zp_ShapePosX_i16
 .IMPORTZP Zp_ShapePosY_i16
@@ -214,31 +213,19 @@ _PosY_u8_arr:
 _MeetFlorist_sDialog:
     dlg_Text MermaidFlorist, DataA_Text1_MermaidHut4Florist_Meet1_u8_arr
     dlg_Text MermaidFlorist, DataA_Text1_MermaidHut4Florist_Meet2_u8_arr
-    dlg_Func _QuestionFunc
-_QuestionFunc:
-    bit Zp_DialogAnsweredYes_bool
-    bmi @yes
-    @no:
-    ldya #_NeverMind_sDialog
-    rts
-    @yes:
-    ldx #eFlag::MermaidHut4MetFlorist  ; param: flag
-    jsr Func_SetFlag
-    ldya #_Zero_sDialog
-    rts
+    dlg_IfYes _Zero_sDialog
 _NeverMind_sDialog:
     dlg_Text MermaidFlorist, DataA_Text1_MermaidHut4Florist_NeverMind1_u8_arr
     dlg_Text MermaidFlorist, DataA_Text1_MermaidHut4Florist_NeverMind2_u8_arr
     dlg_Done
 _BroughtFlower_sDialog:
     dlg_Text MermaidFlorist, DataA_Text1_MermaidHut4Florist_Brought_u8_arr
-    dlg_Func _DeliverFlowerFunc
-_DeliverFlowerFunc:
     ;; Mark that the player has met the florist (i.e. if the player brings a
     ;; flower before the initial meeting conversation, then we just won't do
     ;; that conversation).
-    ldx #eFlag::MermaidHut4MetFlorist  ; param: flag
-    jsr Func_SetFlag
+    dlg_Call _MetFlorist
+    dlg_Func _DeliverFlowerFunc
+_DeliverFlowerFunc:
     ;; Mark the carried flower as delivered.
     ldx Sram_CarryingFlower_eFlag  ; param: flag
     jsr Func_SetFlag
@@ -269,7 +256,11 @@ _CountFlowersFunc:
     d_entry table, 12, _Twelve_sDialog
     D_END
 .ENDREPEAT
+_MetFlorist:
+    ldx #eFlag::MermaidHut4MetFlorist  ; param: flag
+    jmp Func_SetFlag
 _Zero_sDialog:
+    dlg_Call _MetFlorist
     dlg_Text MermaidFlorist, DataA_Text1_MermaidHut4Florist_Zero1_u8_arr
     dlg_Text MermaidFlorist, DataA_Text1_MermaidHut4Florist_Zero2_u8_arr
     dlg_Text MermaidFlorist, DataA_Text1_MermaidHut4Florist_Zero3_u8_arr

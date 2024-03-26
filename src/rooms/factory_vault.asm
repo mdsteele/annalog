@@ -161,21 +161,13 @@ _Passages_sPassage_arr:
 
 .EXPORT DataA_Dialog_FactoryVaultAlex_sDialog
 .PROC DataA_Dialog_FactoryVaultAlex_sDialog
-    dlg_Func @func
-    @func:
-    flag_bit Sram_ProgressFlags_arr, eFlag::FactoryVaultTalkedToAlex
-    bne @meetAtHotSpring
-    ldya #_WhatDidYouFindOut_sDialog
-    rts
-    @meetAtHotSpring:
-    ldya #_MeetAtHotSpring_sDialog
-    rts
+    dlg_IfSet FactoryVaultTalkedToAlex, _MeetAtHotSpring_sDialog
 _WhatDidYouFindOut_sDialog:
     dlg_Text ChildAlex, DataA_Text0_FactoryVaultAlex_Part1_u8_arr
     dlg_Text ChildAlex, DataA_Text0_FactoryVaultAlex_Part2_u8_arr
     dlg_Text ChildAlex, DataA_Text0_FactoryVaultAlex_Part3_u8_arr
     dlg_Text ChildAlex, DataA_Text0_FactoryVaultAlex_Part4_u8_arr
-    dlg_Quest eFlag::FactoryVaultTalkedToAlex
+    dlg_Quest FactoryVaultTalkedToAlex
 _MeetAtHotSpring_sDialog:
     dlg_Text ChildAlex, DataA_Text0_FactoryVaultAlex_Part5_u8_arr
     dlg_Done

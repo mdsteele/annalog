@@ -377,15 +377,10 @@ _Look_sCutscene:
 
 .EXPORT DataA_Dialog_CityOutskirtsAlex1_sDialog
 .PROC DataA_Dialog_CityOutskirtsAlex1_sDialog
-    dlg_Func @func
-    @func:
-    flag_bit Sram_ProgressFlags_arr, eFlag::CityOutskirtsTalkedToAlex
-    bne @meetAtHotSpring
-    ldya #_YouMadeIt_sDialog
-    rts
-    @meetAtHotSpring:
-    ldya #DataA_Dialog_CityOutskirtsMeetAtHotSpring_sDialog
-    rts
+    .linecont +
+    dlg_IfSet CityOutskirtsTalkedToAlex, \
+              DataA_Dialog_CityOutskirtsMeetAtHotSpring_sDialog
+    .linecont -
 _YouMadeIt_sDialog:
     dlg_Text ChildAlex, DataA_Text1_CityOutskirtsAlex_Part1_u8_arr
     dlg_Text ChildAlex, DataA_Text1_CityOutskirtsAlex_Part2_u8_arr
@@ -398,7 +393,7 @@ _YouMadeIt_sDialog:
     dlg_Text ChildAlex, DataA_Text1_CityOutskirtsAlex_Part4_u8_arr
     dlg_Text ChildAlex, DataA_Text1_CityOutskirtsAlex_Part5_u8_arr
     dlg_Call _MakeAlexFaceAnna
-    dlg_Quest eFlag::CityOutskirtsTalkedToAlex
+    dlg_Quest CityOutskirtsTalkedToAlex
     dlg_Goto DataA_Dialog_CityOutskirtsMeetAtHotSpring_sDialog
 _MakeAlexFaceAnna:
     lda #$00

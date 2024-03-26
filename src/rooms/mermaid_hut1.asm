@@ -333,7 +333,7 @@ _FirstMeeting_sDialog:
     dlg_Text MermaidEirene, DataA_Text2_MermaidHut1Queen_FirstMeeting4_u8_arr
 _GrantAsylum_sDialog:
     dlg_Text MermaidEirene, DataA_Text2_MermaidHut1Queen_GrantAsylum_u8_arr
-    dlg_Quest eFlag::MermaidHut1MetQueen
+    dlg_Quest MermaidHut1MetQueen
     dlg_Text MermaidEirene, DataA_Text2_MermaidHut1Queen_HelpFarmers_u8_arr
     dlg_Done
 _GardenBossDead_sDialog:
@@ -341,7 +341,7 @@ _GardenBossDead_sDialog:
     dlg_Text MermaidEirene, DataA_Text2_MermaidHut1Queen_GardenBossDead2_u8_arr
 _TempleProblem_sDialog:
     dlg_Text MermaidEirene, DataA_Text2_MermaidHut1Queen_TempleProblem_u8_arr
-    dlg_Quest eFlag::TempleEntryPermission
+    dlg_Quest TempleEntryPermission
     dlg_Text MermaidEirene, DataA_Text2_MermaidHut1Queen_TempleEntry_u8_arr
     dlg_Done
 _TempleBossDead_sDialog:
@@ -352,7 +352,7 @@ _TempleBossDead_sDialog:
     dlg_Text MermaidEirene, DataA_Text2_MermaidHut1Queen_TempleBossDead5_u8_arr
 _OtherRuins_sDialog:
     dlg_Text MermaidEirene, DataA_Text2_MermaidHut1Queen_OtherRuins_u8_arr
-    dlg_Quest eFlag::CoreSouthCorraWaiting
+    dlg_Quest CoreSouthCorraWaiting
     dlg_Text MermaidEirene, DataA_Text2_MermaidHut1Queen_FindYourFriends_u8_arr
     dlg_Done
 _KidsRescued_sDialog:

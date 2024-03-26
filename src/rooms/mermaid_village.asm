@@ -395,25 +395,15 @@ _RemoveAlex:
     dlg_Text ChildAlex, DataA_Text1_MermaidVillageAlex_Part2_u8_arr
     dlg_Text ChildAlex, DataA_Text1_MermaidVillageAlex_Part3_u8_arr
     dlg_Text ChildAlex, DataA_Text1_MermaidVillageAlex_Part4_u8_arr
-    dlg_Quest eFlag::TempleNaveAlexWaiting
+    dlg_Quest TempleNaveAlexWaiting
     dlg_Text ChildAlex, DataA_Text1_MermaidVillageAlex_Part5_u8_arr
     dlg_Cutscene eCutscene::MermaidVillageAlexLeave
 .ENDPROC
 
 .EXPORT DataA_Dialog_MermaidVillageGuard_sDialog
 .PROC DataA_Dialog_MermaidVillageGuard_sDialog
-    dlg_Func @func
-    @func:
-    flag_bit Sram_ProgressFlags_arr, eFlag::BreakerTemple
-    bne @guarding
-    flag_bit Sram_ProgressFlags_arr, eFlag::TempleEntryPermission
-    bne @temple
-    @guarding:
-    ldya #_Guarding_sDialog
-    rts
-    @temple:
-    ldya #_Temple_sDialog
-    rts
+    dlg_IfSet BreakerTemple, _Guarding_sDialog
+    dlg_IfSet TempleEntryPermission, _Temple_sDialog
 _Guarding_sDialog:
     dlg_Text MermaidGuardF, DataA_Text1_MermaidVillageGuard_Guarding_u8_arr
     dlg_Done
@@ -468,7 +458,7 @@ _NeedHelp_sDialog:
     dlg_Text MermaidFarmer, DataA_Text1_MermaidVillageFarmer_NeedHelp_u8_arr
 _Monster_sDialog:
     dlg_Text MermaidFarmer, DataA_Text1_MermaidVillageFarmer_Monster_u8_arr
-    dlg_Quest eFlag::GardenTowerCratesPlaced
+    dlg_Quest GardenTowerCratesPlaced
     dlg_Text MermaidFarmer, DataA_Text1_MermaidVillageFarmer_OpenTheWay_u8_arr
     dlg_Done
 _ThankYou_sDialog:

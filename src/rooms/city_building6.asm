@@ -169,16 +169,7 @@ _Devices_sDevice_arr:
 
 .EXPORT DataA_Dialog_CityBuilding6Screen_sDialog
 .PROC DataA_Dialog_CityBuilding6Screen_sDialog
-    dlg_Func _InitialFunc
-_InitialFunc:
-    ;; If the door has already been unlocked, display a message to that effect.
-    flag_bit Sram_ProgressFlags_arr, eFlag::CityCenterDoorUnlocked
-    beq @doorStillLocked
-    ldya #_Unlocked_sDialog
-    rts
-    @doorStillLocked:
-    ldya #_Locked_sDialog
-    rts
+    dlg_IfSet CityCenterDoorUnlocked, _Unlocked_sDialog
 _Locked_sDialog:
     dlg_Text Screen, DataA_Text0_CityBuilding2Screen_Locked_u8_arr
     dlg_Done

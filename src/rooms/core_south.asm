@@ -467,16 +467,7 @@ _AnimateSwimmingUpFunc:
 
 .EXPORT DataA_Dialog_CoreSouthCorra_sDialog
 .PROC DataA_Dialog_CoreSouthCorra_sDialog
-    dlg_Func @func
-    @func:
-    flag_bit Sram_ProgressFlags_arr, eFlag::CoreSouthCorraHelped
-    beq @helloAgain
-    @alreadyHelped:
-    ldya #_AlreadyHelped_sDialog
-    rts
-    @helloAgain:
-    ldya #_HelloAgain_sDialog
-    rts
+    dlg_IfSet CoreSouthCorraHelped, _AlreadyHelped_sDialog
 _HelloAgain_sDialog:
     dlg_Text MermaidCorra, DataA_Text0_CoreSouthCorra1_HelloAgain1_u8_arr
     dlg_Text MermaidCorra, DataA_Text0_CoreSouthCorra1_HelloAgain2_u8_arr

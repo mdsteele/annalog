@@ -618,23 +618,14 @@ _WriteL:
 
 .EXPORT DataA_Dialog_FactoryElevatorBrunoHi_sDialog
 .PROC DataA_Dialog_FactoryElevatorBrunoHi_sDialog
-    dlg_Func @func
-    @func:
-    flag_bit Sram_ProgressFlags_arr, eFlag::FactoryElevatorTalkedToBruno
-    bne @aLot
-    @whew:
-    ldya #_Whew_sDialog
-    rts
-    @aLot:
-    ldya #_ALot_sDialog
-    rts
+    dlg_IfSet FactoryElevatorTalkedToBruno, _ALot_sDialog
 _Whew_sDialog:
     dlg_Text ChildBruno, DataA_Text2_FactoryElevatorBruno_Hi1_u8_arr
 _ALot_sDialog:
     dlg_Text ChildBruno, DataA_Text2_FactoryElevatorBruno_Hi2_u8_arr
     dlg_Text ChildBruno, DataA_Text2_FactoryElevatorBruno_Hi3_u8_arr
     dlg_Text ChildBruno, DataA_Text2_FactoryElevatorBruno_Hi4_u8_arr
-    dlg_Quest eFlag::FactoryElevatorTalkedToBruno
+    dlg_Quest FactoryElevatorTalkedToBruno
     dlg_Text ChildBruno, DataA_Text2_FactoryElevatorBruno_Hi5_u8_arr
     dlg_Done
 .ENDPROC

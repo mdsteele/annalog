@@ -30,7 +30,6 @@
 
 .IMPORT DataA_Room_Building_sTileset
 .IMPORT Data_Empty_sActor_arr
-.IMPORT Data_Empty_sDialog
 .IMPORT FuncA_Objects_Draw1x1Shape
 .IMPORT FuncA_Objects_MoveShapeLeftByA
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
@@ -39,7 +38,6 @@
 .IMPORT Func_SetFlag
 .IMPORT Ppu_ChrObjCity
 .IMPORT Sram_ProgressFlags_arr
-.IMPORTZP Zp_DialogAnsweredYes_bool
 .IMPORTZP Zp_FrameCounter_u8
 .IMPORTZP Zp_RoomState
 
@@ -204,53 +202,27 @@ _Devices_sDevice_arr:
 
 .EXPORT DataA_Dialog_CityBuilding2Screen_sDialog
 .PROC DataA_Dialog_CityBuilding2Screen_sDialog
-    dlg_Func _InitialFunc
-_InitialFunc:
-    ;; If the eastern door in CityCenter has already been unlocked, display a
-    ;; message to that effect.
-    flag_bit Sram_ProgressFlags_arr, eFlag::CityCenterDoorUnlocked
-    beq @doorStillLocked
-    ;; For safety, connect the key generator (even though you shouldn't
-    ;; normally be able to unlock the door without connecting the key generator
-    ;; first).
-    ldx #eFlag::CityCenterKeygenConnected  ; param: flag
-    jsr Func_SetFlag
-    ldya #_Unlocked_sDialog
-    rts
-    @doorStillLocked:
-    ;; Otherwise, if the key generator has already been connected to the
-    ;; western semaphore, display a message to that effect.
-    flag_bit Sram_ProgressFlags_arr, eFlag::CityCenterKeygenConnected
-    beq @notYetConnected
-    ldya #_AlreadyConnected_sDialog
-    rts
-    ;; Otherwise, prompt the player to connect the key generator.
-    @notYetConnected:
-    ldya #_Unconnected_sDialog
-    rts
+    dlg_IfSet CityCenterDoorUnlocked, _Unlocked_sDialog
+    dlg_Text Screen, DataA_Text0_CityBuilding2Screen_Locked_u8_arr
+    dlg_IfSet CityCenterKeygenConnected, _Connected_sDialog
 _Unconnected_sDialog:
-    dlg_Text Screen, DataA_Text0_CityBuilding2Screen_Locked_u8_arr
     dlg_Text Screen, DataA_Text0_CityBuilding2Screen_Question_u8_arr
-    dlg_Func _QuestionFunc
-_QuestionFunc:
-    bit Zp_DialogAnsweredYes_bool
-    bmi @yes
-    @no:
-    ldya #Data_Empty_sDialog
-    rts
-    @yes:
-    ldx #eFlag::CityCenterKeygenConnected  ; param: flag
-    jsr Func_SetFlag
-    ldya #_NowConnected_sDialog
-    rts
-_AlreadyConnected_sDialog:
-    dlg_Text Screen, DataA_Text0_CityBuilding2Screen_Locked_u8_arr
-_NowConnected_sDialog:
+    dlg_IfYes _Connected_sDialog
+    dlg_Done
+_Connected_sDialog:
+    dlg_Call _ConnectKeygen
     dlg_Text Screen, DataA_Text0_CityBuilding2Screen_Connected_u8_arr
     dlg_Done
 _Unlocked_sDialog:
+    ;; For safety, connect the key generator (even though you shouldn't
+    ;; normally be able to unlock the door without connecting the key generator
+    ;; first).
+    dlg_Call _ConnectKeygen
     dlg_Text Screen, DataA_Text0_CityBuilding2Screen_Unlocked_u8_arr
     dlg_Done
+_ConnectKeygen:
+    ldx #eFlag::CityCenterKeygenConnected  ; param: flag
+    jmp Func_SetFlag
 .ENDPROC
 
 ;;;=========================================================================;;;

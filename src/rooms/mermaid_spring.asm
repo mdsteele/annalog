@@ -247,14 +247,14 @@ _Devices_sDevice_arr:
     d_byte Type_eDevice, eDevice::TalkRight
     d_byte BlockRow_u8, 6
     d_byte BlockCol_u8, 10
-    d_byte Target_byte, eDialog::MermaidSpringAlex1
+    d_byte Target_byte, eDialog::MermaidSpringAlex
     D_END
     .assert * - :- = kAlexDeviceIndexLeft * .sizeof(sDevice), error
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::TalkLeft
     d_byte BlockRow_u8, 6
     d_byte BlockCol_u8, 11
-    d_byte Target_byte, eDialog::MermaidSpringAlex1
+    d_byte Target_byte, eDialog::MermaidSpringAlex
     D_END
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None
@@ -480,7 +480,7 @@ _SpawnExplosionAtPoint:
     act_WalkNpcAlex kAlexActorIndex, $00b0
     act_SetActorState1 kAlexActorIndex, eNpcChild::AlexStanding
     act_SetActorState2 kAlexActorIndex, 0
-    act_RunDialog eDialog::MermaidSpringAlex2
+    act_RunDialog eDialog::MermaidSpringAlex
     act_ContinueExploring
 _WalkAvatar_sCutscene:
     act_WalkAvatar $00a0 | kTalkRightAvatarOffset
@@ -523,43 +523,23 @@ _FixConsole:
 
 .SEGMENT "PRGA_Dialog"
 
-.EXPORT DataA_Dialog_MermaidSpringAlex1_sDialog
-.PROC DataA_Dialog_MermaidSpringAlex1_sDialog
-    dlg_Func @func
-    @func:
-    flag_bit Sram_ProgressFlags_arr, eFlag::MermaidSpringConsoleFixed
-    bne @outro
-    @intro:
-    ldya #_Intro_sDialog
-    rts
-    @outro:
-    ldya #DataA_Dialog_MermaidSpringAlex2_sDialog
-    rts
+.EXPORT DataA_Dialog_MermaidSpringAlex_sDialog
+.PROC DataA_Dialog_MermaidSpringAlex_sDialog
+    dlg_IfSet MermaidSpringConsoleFixed, _Fixed_sDialog
 _Intro_sDialog:
-    dlg_Text ChildAlex, DataA_Text0_MermaidSpringAlex1_Part1_u8_arr
-    dlg_Text ChildAlex, DataA_Text0_MermaidSpringAlex1_Part2_u8_arr
-    dlg_Text ChildAlex, DataA_Text0_MermaidSpringAlex1_Part3_u8_arr
-    dlg_Text ChildAlex, DataA_Text0_MermaidSpringAlex1_Part4_u8_arr
+    dlg_Text ChildAlex, DataA_Text0_MermaidSpringAlex_Part1_u8_arr
+    dlg_Text ChildAlex, DataA_Text0_MermaidSpringAlex_Part2_u8_arr
+    dlg_Text ChildAlex, DataA_Text0_MermaidSpringAlex_Part3_u8_arr
+    dlg_Text ChildAlex, DataA_Text0_MermaidSpringAlex_Part4_u8_arr
     dlg_Cutscene eCutscene::MermaidSpringFixConsole
-.ENDPROC
-
-.EXPORT DataA_Dialog_MermaidSpringAlex2_sDialog
-.PROC DataA_Dialog_MermaidSpringAlex2_sDialog
-    dlg_Text ChildAlex, DataA_Text0_MermaidSpringAlex2_u8_arr
+_Fixed_sDialog:
+    dlg_Text ChildAlex, DataA_Text0_MermaidSpringAlex_Part5_u8_arr
     dlg_Done
 .ENDPROC
 
 .EXPORT DataA_Dialog_MermaidSpringSign_sDialog
 .PROC DataA_Dialog_MermaidSpringSign_sDialog
-    dlg_Func _InitialFunc
-_InitialFunc:
-    flag_bit Sram_ProgressFlags_arr, eFlag::MermaidSpringUnplugged
-    bne @unplugged
-    ldya #_Open_sDialog
-    rts
-    @unplugged:
-    ldya #_Closed_sDialog
-    rts
+    dlg_IfSet MermaidSpringUnplugged, _Closed_sDialog
 _Open_sDialog:
     dlg_Text Sign, DataA_Text0_MermaidSpringSign_Open_u8_arr
     dlg_Done
@@ -572,35 +552,35 @@ _Closed_sDialog:
 
 .SEGMENT "PRGA_Text0"
 
-.PROC DataA_Text0_MermaidSpringAlex1_Part1_u8_arr
+.PROC DataA_Text0_MermaidSpringAlex_Part1_u8_arr
     .byte "Thanks for coming. I$"
     .byte "hate to ask, but...$"
     .byte "well, you're the best$"
     .byte "with these machines.#"
 .ENDPROC
 
-.PROC DataA_Text0_MermaidSpringAlex1_Part2_u8_arr
+.PROC DataA_Text0_MermaidSpringAlex_Part2_u8_arr
     .byte "I'm convinced we'll$"
     .byte "find answers in that$"
     .byte "city, but every way$"
     .byte "in is blocked off.#"
 .ENDPROC
 
-.PROC DataA_Text0_MermaidSpringAlex1_Part3_u8_arr
+.PROC DataA_Text0_MermaidSpringAlex_Part3_u8_arr
     .byte "However, I think we$"
     .byte "can get there via the$"
     .byte "caves, by approaching$"
     .byte "from below.#"
 .ENDPROC
 
-.PROC DataA_Text0_MermaidSpringAlex1_Part4_u8_arr
+.PROC DataA_Text0_MermaidSpringAlex_Part4_u8_arr
     .byte "The mermaids aren't$"
     .byte "helping. But I found$"
     .byte "something they had$"
     .byte "stashed away...#"
 .ENDPROC
 
-.PROC DataA_Text0_MermaidSpringAlex2_u8_arr
+.PROC DataA_Text0_MermaidSpringAlex_Part5_u8_arr
     .byte "What do you think? I'd$"
     .byte "say it's time to start$"
     .byte "delving deeper around$"
