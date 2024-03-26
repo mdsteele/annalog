@@ -18,7 +18,7 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "../actor.inc"
-.INCLUDE "../actors/blood.inc"
+.INCLUDE "../actors/dirt.inc"
 .INCLUDE "../boss.inc"
 .INCLUDE "../charmap.inc"
 .INCLUDE "../device.inc"
@@ -806,14 +806,14 @@ _DrawBgRocks:
     jsr FuncA_Objects_MoveShapeRightByA
     lda #$10  ; param: offset
     jsr FuncA_Objects_MoveShapeDownByA
-    lda #kTileIdObjBloodFirst + 0
+    lda #kTileIdObjDirtFirst + 0
     ldy #bObj::Pri  ; param: object flags
     jsr FuncA_Objects_Draw1x1Shape
     lda #$48  ; param: offset
     jsr FuncA_Objects_MoveShapeRightByA
     lda #$20  ; param: offset
     jsr FuncA_Objects_MoveShapeDownByA
-    lda #kTileIdObjBloodFirst + 1
+    lda #kTileIdObjDirtFirst + 1
     ldy #bObj::Pri  ; param: object flags
     jmp FuncA_Objects_Draw1x1Shape
 .ENDPROC

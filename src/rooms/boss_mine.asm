@@ -50,6 +50,7 @@
 .IMPORT FuncA_Objects_MoveShapeDownByA
 .IMPORT FuncA_Objects_MoveShapeRightByA
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
+.IMPORT FuncA_Room_InitActorSmokeDirt
 .IMPORT FuncA_Room_InitBoss
 .IMPORT FuncA_Room_MachineResetRun
 .IMPORT FuncA_Room_TickBoss
@@ -527,12 +528,29 @@ _BossBurrowing:
     inx  ; param: eBossLoc::Exit* value
     stx Zp_RoomState + sState::Current_eBossLoc
     jsr FuncC_Boss_MineTransferExitEmerge
+    ;; Spray dirt from the exit.
+    ldy #kBossBodyPlatformIndex  ; param: platform index
+    jsr Func_SetPointToPlatformCenter
+    lda #2
+    sta T3  ; loop index
+    @dirtLoop:
+    jsr Func_FindEmptyActorSlot  ; preserves T0+, returns C and X
+    bcs @dirtDone
+    jsr Func_SetActorCenterToPoint  ; preserves X and T0+
+    ldy T3  ; loop index
+    lda _DirtAngle_u8_arr3, y  ; param: angle
+    jsr FuncA_Room_InitActorSmokeDirt  ; preserves T3+
+    dec T3  ; loop index
+    bpl @dirtLoop
+    @dirtDone:
     ;; Start emering from that exit.
     ;; TODO: play a sound
     lda #eBossMode::Emerging
     sta Zp_RoomState + sState::Current_eBossMode
     lda #kBossEmergeFrames  ; param: num frames
     jmp Func_ShakeRoom
+_DirtAngle_u8_arr3:
+    .byte $a8, $c4, $d0
 _BossEmerging:
     lda Zp_RoomState + sState::BossEmerge_u8
     cmp #kBossEmergeFrames
@@ -612,7 +630,7 @@ _ExitTop_u8_arr:
     sta T0  ; angle to fire at
     jsr Func_FindEmptyActorSlot  ; preserves T0+, returns C and X
     bcs @done
-    jsr Func_SetActorCenterToPoint  ; preserves T0+
+    jsr Func_SetActorCenterToPoint  ; preserves X and T0+
     lda T0  ; param: angle to fire at
     jsr Func_InitActorProjFireball
     ;; TODO: play a sound

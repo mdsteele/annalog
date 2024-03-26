@@ -24,48 +24,53 @@
 
 .IMPORT FuncA_Actor_ApplyGravity
 .IMPORT FuncA_Objects_Draw1x1Actor
-.IMPORT Func_InitActorWithState1
-.IMPORT Ram_ActorPosY_i16_0_arr
+.IMPORT Func_InitActorDefault
+.IMPORT Func_SetActorVelocityPolar
 .IMPORT Ram_ActorState1_byte_arr
-.IMPORT Ram_ActorState2_byte_arr
 .IMPORT Ram_ActorType_eActor_arr
 
 ;;;=========================================================================;;;
 
-;;; The room pixel Y-position at which blood smoke disappears.
-kBloodFloorY = $d0
+;;; The speed of a dirt smoke, in half-pixels per frame.
+kDirtSpeed = 6
 
-;;; The OBJ palette number used for blood smoke actors.
-kPaletteObjBlood = 1
+;;; How many frames a dirt smoke lasts before being removed.
+kDirtMaxAge = 36
+
+;;; The OBJ palette number used for dirt smoke actors.
+kPaletteObjDirt = 0
 
 ;;;=========================================================================;;;
 
 .SEGMENT "PRGA_Room"
 
-;;; Initializes the specified actor as a blood smoke.
+;;; Initializes the specified actor as a dirt smoke.
 ;;; @prereq The actor's pixel position has already been initialized.
-;;; @param A The OBJ tile ID to use.
+;;; @param A The angle to move at, measured in increments of tau/256.
 ;;; @param X The actor index.
-;;; @preserve X, T0+
-.EXPORT FuncA_Room_InitActorSmokeBlood
-.PROC FuncA_Room_InitActorSmokeBlood
-    ldy #eActor::SmokeBlood  ; param: actor type
-    jmp Func_InitActorWithState1  ; preserves X and T0+
+;;; @preserve X, T3+
+.EXPORT FuncA_Room_InitActorSmokeDirt
+.PROC FuncA_Room_InitActorSmokeDirt
+    pha  ; angle
+    ldy #eActor::SmokeDirt  ; param: actor type
+    jsr Func_InitActorDefault  ; preserves X and T0+
+    ldy #kDirtSpeed  ; param: speed
+    pla  ; param: angle
+    jmp Func_SetActorVelocityPolar  ; preserves X and T3+
 .ENDPROC
 
 ;;;=========================================================================;;;
 
 .SEGMENT "PRGA_Actor"
 
-;;; Performs per-frame updates for a blood smoke actor.
+;;; Performs per-frame updates for a dirt smoke actor.
 ;;; @param X The actor index.
 ;;; @preserve X
-.EXPORT FuncA_Actor_TickSmokeBlood
-.PROC FuncA_Actor_TickSmokeBlood
-    inc Ram_ActorState2_byte_arr, x  ; expiration timer
-    beq _Expire
-    lda Ram_ActorPosY_i16_0_arr, x
-    cmp #kBloodFloorY
+.EXPORT FuncA_Actor_TickSmokeDirt
+.PROC FuncA_Actor_TickSmokeDirt
+    inc Ram_ActorState1_byte_arr, x  ; expiration timer
+    lda Ram_ActorState1_byte_arr, x  ; expiration timer
+    cmp #kDirtMaxAge
     bge _Expire
     jmp FuncA_Actor_ApplyGravity  ; preserves X
 _Expire:
@@ -78,19 +83,28 @@ _Expire:
 
 .SEGMENT "PRGA_Objects"
 
-;;; Draws a blood smoke actor.
+;;; Draws a dirt smoke actor.
 ;;; @param X The actor index.
 ;;; @preserve X
-.EXPORT FuncA_Objects_DrawActorSmokeBlood
-.PROC FuncA_Objects_DrawActorSmokeBlood
-    lda Ram_ActorState2_byte_arr, x  ; expiration timer
+.EXPORT FuncA_Objects_DrawActorSmokeDirt
+.PROC FuncA_Objects_DrawActorSmokeDirt
+    lda Ram_ActorState1_byte_arr, x  ; expiration timer
+    pha  ; expiration timer
     and #$18
     .assert bObj::FlipV = $80, error
     .assert bObj::FlipH = $40, error
     mul #8
-    ora #kPaletteObjBlood
+    ora #kPaletteObjDirt
     tay  ; param: object flags
-    lda Ram_ActorState1_byte_arr, x  ; param: tile ID
+    pla  ; expiration timer
+    cmp #kDirtMaxAge * 2 / 3
+    blt @big
+    @small:
+    lda #kTileIdObjDirtFirst + 1  ; param: tile ID
+    bne @draw  ; unconditional
+    @big:
+    lda #kTileIdObjDirtFirst + 0  ; param: tile ID
+    @draw:
     jmp FuncA_Objects_Draw1x1Actor  ; preserves X
 .ENDPROC
 

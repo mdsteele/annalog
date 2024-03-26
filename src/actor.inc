@@ -71,6 +71,7 @@ kMaxActors = 16
     ProjSteamHorz    ; emitted horizontally from boiler machine pipes
     ProjSteamUp      ; emitted vertically from boiler machine pipes
     SmokeBlood       ; a glob of blood from the temple boss
+    SmokeDirt        ; a clump of dirt from the mine boss
     SmokeExplosion   ; a puff of smoke for when something explodes
     SmokeFragment    ; a fragment that falls under gravity
     SmokeParticle    ; a single particle of smoke

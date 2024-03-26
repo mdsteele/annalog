@@ -18,7 +18,7 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "../actor.inc"
-.INCLUDE "../actors/blood.inc"
+.INCLUDE "../actors/dirt.inc"
 .INCLUDE "../audio.inc"
 .INCLUDE "../boss.inc"
 .INCLUDE "../charmap.inc"
@@ -211,6 +211,7 @@ kBossStunAnimFrames = 24
 kTileIdObjOutbreakBrainFirst = kTileIdObjOutbreakFirst + 0
 kTileIdObjOutbreakEyeFirst   = kTileIdObjOutbreakFirst + 4
 kTileIdObjOutbreakClaw       = kTileIdObjOutbreakFirst + 8
+kTileIdObjBloodFirst         = kTileIdObjDirtFirst
 
 ;;; OBJ palette numbers used for drawing the boss.
 kPaletteObjOutbreakBrain = 1

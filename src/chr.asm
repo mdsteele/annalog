@@ -21,7 +21,6 @@
 .INCLUDE "actors/axe.inc"
 .INCLUDE "actors/bat.inc"
 .INCLUDE "actors/bird.inc"
-.INCLUDE "actors/blood.inc"
 .INCLUDE "actors/breakball.inc"
 .INCLUDE "actors/breakbomb.inc"
 .INCLUDE "actors/breakfire.inc"
@@ -29,6 +28,7 @@
 .INCLUDE "actors/child.inc"
 .INCLUDE "actors/crab.inc"
 .INCLUDE "actors/crawler.inc"
+.INCLUDE "actors/dirt.inc"
 .INCLUDE "actors/ember.inc"
 .INCLUDE "actors/fireball.inc"
 .INCLUDE "actors/firefly.inc"
@@ -1113,7 +1113,7 @@ _chr_begin:
     chr_inc "fireblast",            kTileIdObjFireblastFirst
     chr_inc "platform_city_walls",  kTileIdObjPlatformCityWalls
     chr_inc "outbreak_obj",         kTileIdObjOutbreakFirst
-    chr_inc "blood",                kTileIdObjBloodFirst
+    chr_inc "dirt",                 kTileIdObjDirtFirst
     chr_inc "breakfire",            kTileIdObjBreakfireFirst
     chr_inc "crane",                kTileIdObjCraneFirst
     chr_inc "proj_spine",           kTileIdObjProjSpineFirst

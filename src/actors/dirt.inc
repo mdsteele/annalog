@@ -17,13 +17,15 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
-;;; State bytes for blood smoke:
+;;; State bytes for dirt smoke:
 ;;;   * Flags: Unused.
-;;;   * State1: The OBJ tile ID for the blood.
-;;;   * State2: Counter that starts at zero and increments every frame; if it
-;;;     wraps back around to zero before the blood hits the floor, then the
-;;;     blood is removed.
+;;;   * State1: Counter that starts at zero and increments every frame; once it
+;;;     ticks high enough, the dirt is removed.
+;;;   * State2: Unused.
 ;;;   * State3: Unused.
 ;;;   * State4: Unused.
+
+;;; Tile IDs for drawing dirt smoke actors.
+kTileIdObjDirtFirst = $a9
 
 ;;;=========================================================================;;;
