@@ -212,9 +212,9 @@ _Platforms_sPlatform_arr:
     .assert * - :- = kWaitUpZonePlatformIndex * .sizeof(sPlatform), error
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Zone
-    d_word WidthPx_u16, $20
+    d_word WidthPx_u16, $80
     d_byte HeightPx_u8, $10
-    d_word Left_i16,  $00a0
+    d_word Left_i16,  $0050
     d_word Top_i16,   $0100
     D_END
     .assert * - :- <= kMaxPlatforms * .sizeof(sPlatform), error
