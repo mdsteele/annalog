@@ -170,7 +170,14 @@ _Passages_sPassage_arr:
     act_WaitFrames 30
     act_CallFunc Func_PlaySfxExplodeBig
     act_ShakeRoom 30
-    act_WaitFrames 110
+    act_WaitFrames 20
+    act_SetActorFlags kGrontaActorIndex, 0
+    act_WaitFrames 20
+    act_SetActorFlags kGrontaActorIndex, bObj::FlipH
+    act_WaitFrames 20
+    act_SetActorFlags kGrontaActorIndex, 0
+    act_WaitFrames 60
+    act_SetActorFlags kGrontaActorIndex, bObj::FlipH
     act_RunDialog eDialog::GardenShrineBreakerMine2
     act_WaitFrames 60
     act_JumpToMain Main_Breaker_FadeBackToBreakerRoom
@@ -197,7 +204,7 @@ _Passages_sPassage_arr:
 .PROC DataA_Dialog_GardenShrineBreakerMine2_sDialog
     .assert kTileIdBgPortraitEireneFirst = kTileIdBgPortraitGrontaFirst, error
     dlg_Text MermaidEirene, DataA_Text2_GardenShrineBreakerMine2_Part1_u8_arr
-    dlg_Text OrcGronta, DataA_Text2_GardenShrineBreakerMine2_Part2_u8_arr
+    dlg_Text OrcGrontaShout, DataA_Text2_GardenShrineBreakerMine2_Part2_u8_arr
     dlg_Done
 .ENDPROC
 
@@ -262,7 +269,7 @@ _Passages_sPassage_arr:
     .byte "Better death than to$"
     .byte "rot down here, as you$"
     .byte "have apparently chosen$"
-    .byte "to do.#"
+    .byte "to do!#"
 .ENDPROC
 
 ;;;=========================================================================;;;
