@@ -78,6 +78,7 @@
 .IMPORT DataA_Dialog_MermaidVillageFarmer_sDialog
 .IMPORT DataA_Dialog_MermaidVillageGuard_sDialog
 .IMPORT DataA_Dialog_PaperJerome01_sDialog
+.IMPORT DataA_Dialog_PaperJerome07_sDialog
 .IMPORT DataA_Dialog_PaperJerome08_sDialog
 .IMPORT DataA_Dialog_PaperJerome09_sDialog
 .IMPORT DataA_Dialog_PaperJerome10_sDialog
@@ -482,6 +483,7 @@ _Finish:
     d_entry t, MermaidVillageFarmer, DataA_Dialog_MermaidVillageFarmer_sDialog
     d_entry t, MermaidVillageGuard,  DataA_Dialog_MermaidVillageGuard_sDialog
     d_entry t, PaperJerome01,        DataA_Dialog_PaperJerome01_sDialog
+    d_entry t, PaperJerome07,        DataA_Dialog_PaperJerome07_sDialog
     d_entry t, PaperJerome08,        DataA_Dialog_PaperJerome08_sDialog
     d_entry t, PaperJerome09,        DataA_Dialog_PaperJerome09_sDialog
     d_entry t, PaperJerome10,        DataA_Dialog_PaperJerome10_sDialog

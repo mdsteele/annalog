@@ -24,6 +24,7 @@
 .INCLUDE "../machine.inc"
 .INCLUDE "../machines/rotor.inc"
 .INCLUDE "../macros.inc"
+.INCLUDE "../oam.inc"
 .INCLUDE "../platform.inc"
 .INCLUDE "../program.inc"
 .INCLUDE "../room.inc"
@@ -145,7 +146,18 @@ _Platforms_sPlatform_arr:
     .assert * - :- <= kMaxPlatforms * .sizeof(sPlatform), error
     .byte ePlatform::None
 _Actors_sActor_arr:
-:   ;; TODO: add some baddies
+:   D_STRUCT sActor
+    d_byte Type_eActor, eActor::BadGrub
+    d_word PosX_i16, $00c0
+    d_word PosY_i16, $0108
+    d_byte Param_byte, 0
+    D_END
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::BadGrub
+    d_word PosX_i16, $00d8
+    d_word PosY_i16, $0138
+    d_byte Param_byte, bObj::FlipH
+    D_END
     .assert * - :- <= kMaxActors * .sizeof(sActor), error
     .byte eActor::None
 _Devices_sDevice_arr:

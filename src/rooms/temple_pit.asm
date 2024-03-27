@@ -108,8 +108,8 @@ _Passages_sPassage_arr:
 
 .PROC DataA_Text0_PaperJerome34_Page1_u8_arr
     .byte "Day 34: Our technology$"
-    .byte "is amazing, but don't$"
-    .byte "forget, we're all$"
+    .byte "is amazing, but lest$"
+    .byte "we forget, we're all$"
     .byte "still just mortals.#"
 .ENDPROC
 

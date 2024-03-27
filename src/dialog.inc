@@ -20,14 +20,31 @@
 ;;; A sDialog struct is a variable-length sequence of one or more entries, with
 ;;; each entry consisting of one of the following:
 ;;;   * The 1-byte kDialogEntryDone constant, indicating the end of the dialog.
-;;;   * The 1-byte kDialogEntryFunc constant, followed by a pointer to a
-;;;     function that will return YA with a pointer to another sDialog struct.
+;;;   * The 1-byte kDialogEntryCutscene constant, followed by an eCutscene
+;;;     value, indicating that dialog should end and the specified cutscene
+;;;     should begin.
 ;;;   * A 1-byte ePortrait value, followed by a 16-bit word encoding a banked
 ;;;     pointer to a pane of dialog text within one of the PRGA_Text? segments.
 ;;;     The top 3 bits of the word hold the PRGA bank number (which must be
 ;;;     0-7), and the bottom 13 bits of the word hold the bottom 13 bits of the
 ;;;     pointer (the top 3 bits of the pointer can be omitted, since they
 ;;;     will always be %101 given that the address is within PRGA).
+;;;   * The 1-byte kDialogEntryGoto constant, followed by a pointer to another
+;;;     sDialog struct to jump to.
+;;;   * The 1-byte kDialogEntryFunc constant, followed by a pointer to a
+;;;     function that will return YA with a pointer to another sDialog struct
+;;;     to jump to.
+;;;   * The 1-byte kDialogEntryBranch constant, followed by a pointer to
+;;;     another sDialog struct, and then an eFlag.  If the flag is set, dialog
+;;;     will jump to the other sDialog struct, otherwise it will continue to
+;;;     the next entry.  As a special case, if the eFlag value is 0, the branch
+;;;     will instead be taken if they player answered "YES" to the previous
+;;;     YES/NO dialog question.
+;;;   * The 1-byte kDialogEntryCall constant, followed by a pointer to a
+;;;     function to call before continuing to the next entry.
+;;;   * The 1-byte kDialogEntryQuest constant, followed by an eFlag to set
+;;;     (while playing the "new quest" sound effect, if the flag was previously
+;;;     clear) before continuing to the next entry.
 
 ;;;=========================================================================;;;
 
@@ -121,6 +138,7 @@ kDialogEntryCutscene = $ff  ; ends the dialog and starts a new cutscene
     MermaidVillageFarmer
     MermaidVillageGuard
     PaperJerome01
+    PaperJerome07
     PaperJerome08
     PaperJerome09
     PaperJerome10
