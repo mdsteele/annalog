@@ -198,6 +198,16 @@ Ppu_BossMineConveyorStart = \
     Exit4   ; the rightmost exit
 .ENDENUM
 
+;;; Directions that the boss's eye can be looking towards.
+.ENUM eEyeDir
+    Left
+    DownLeft
+    Down
+    DownRight
+    Right
+    NUM_VALUES
+.ENDENUM
+
 ;;; The size of each one of the boss's exit locations, in tiles.
 kBossExitWidthTiles  = 4
 kBossExitHeightTiles = 4
@@ -256,30 +266,32 @@ kBossSubsequentShootCooldown = 45
 ;;; Defines room-specific state data for this particular room.
 .STRUCT sState
     ;; The current states of the room's two levers.
-    LeverLeft_u8  .byte
-    LeverRight_u8 .byte
+    LeverLeft_u8          .byte
+    LeverRight_u8         .byte
     ;; What mode the boss is in.
-    Current_eBossMode .byte
+    Current_eBossMode     .byte
     ;; The boss's current location.
-    Current_eBossLoc .byte
+    Current_eBossLoc      .byte
+    ;; Which direction the boss's eye is currently looking in.
+    Boss_eEyeDir          .byte
     ;; How many more boulder hits are needed before the boss dies.
-    BossHealth_u8 .byte
+    BossHealth_u8         .byte
     ;; Timer that ticks down each frame when nonzero.  Used to time transitions
     ;; between boss modes.
-    BossCooldown_u8 .byte
+    BossCooldown_u8       .byte
     ;; How many more projectile waves to fire before changing modes.
-    BossFireCount_u8 .byte
+    BossFireCount_u8      .byte
     ;; How emerged from the wall the boss is, from 0 (not at all) to
     ;; kBossEmergeFrames (completely).
-    BossEmerge_u8 .byte
+    BossEmerge_u8         .byte
     ;; What state the boulder is in.
     BoulderState_eBoulder .byte
     ;; The current Y subpixel position of the boulder.
-    BoulderSubY_u8 .byte
+    BoulderSubY_u8        .byte
     ;; The current Y-velocity of the boulder, in subpixels per frame.
-    BoulderVelY_i16 .word
+    BoulderVelY_i16       .word
     ;; A counter that increments each frame that the conveyor moves.
-    ConveyorMotion_u8 .byte
+    ConveyorMotion_u8     .byte
 .ENDSTRUCT
 .ASSERT .sizeof(sState) <= kRoomStateSize, error
 
@@ -455,6 +467,7 @@ _Devices_sDevice_arr:
 ;;; Performs per-frame upates for the boss in this room.
 ;;; @prereq PRGA_Room is loaded.
 .PROC FuncC_Boss_Mine_TickBoss
+    jsr FuncC_Boss_MineSetEyeDir
 _HarmAvatarIfCollision:
     lda Zp_RoomState + sState::Current_eBossLoc
     .assert eBossLoc::Hidden = 0, error
@@ -623,6 +636,22 @@ _ExitTop_u8_arr:
     .byte kTileHeightPx * kBossExit4TileRow
 .ENDPROC
 
+;;; Sets Boss_eEyeDir so that the boss's eye is looking at the player avatar.
+.PROC FuncC_Boss_MineSetEyeDir
+    ldy #kBossBodyPlatformIndex  ; param: platform index
+    jsr Func_SetPointToPlatformCenter
+    jsr Func_GetAngleFromPointToAvatar  ; returns A
+    add #$50
+    div #$20
+    tax
+    lda _Dir_eEyeDir_arr8, x
+    sta Zp_RoomState + sState::Boss_eEyeDir
+    rts
+_Dir_eEyeDir_arr8:
+    .byte eEyeDir::Down, eEyeDir::Right,    eEyeDir::Right, eEyeDir::DownRight
+    .byte eEyeDir::Down, eEyeDir::DownLeft, eEyeDir::Left,  eEyeDir::Left
+.ENDPROC
+
 ;;; Shoots a single fireball from the boss's eye.
 ;;; @prereq Zp_Point*_i16 is set to the center of the boss's body.
 ;;; @param A The angle to fire at, measured in increments of tau/256.
@@ -786,16 +815,32 @@ _DrawEye:
     blt @done
     ldx #kBossBodyPlatformIndex  ; param: platform index
     jsr FuncA_Objects_SetShapePosToPlatformTopLeft
-    ;; TODO: adjust offset to look towards player avatar
-    lda #$10  ; param: offset
-    jsr FuncA_Objects_MoveShapeRightByA
-    lda #$12  ; param: offset
+    ldy Zp_RoomState + sState::Boss_eEyeDir
+    lda _EyeOffsetX_u8_arr, y  ; param: offset
+    jsr FuncA_Objects_MoveShapeRightByA  ; preserves Y
+    lda _EyeOffsetY_u8_arr, y  ; param: offset
     jsr FuncA_Objects_MoveShapeDownByA
     ldy #bObj::Pri | kPaletteObjBossMineEye  ; param: object flags
     lda #kTileIdObjBossMineEyeFirst  ; param: first tile ID
     jmp FuncA_Objects_Draw2x2Shape
     @done:
     rts
+_EyeOffsetX_u8_arr:
+    D_ARRAY .enum, eEyeDir
+    d_byte Left,      14
+    d_byte DownLeft,  14
+    d_byte Down,      15
+    d_byte DownRight, 16
+    d_byte Right,     16
+    D_END
+_EyeOffsetY_u8_arr:
+    D_ARRAY .enum, eEyeDir
+    d_byte Left,      17
+    d_byte DownLeft,  18
+    d_byte Down,      19
+    d_byte DownRight, 18
+    d_byte Right,     17
+    D_END
 .ENDPROC
 
 ;;; @prereq PRGA_Room is loaded.
