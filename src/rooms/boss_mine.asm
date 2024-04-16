@@ -31,6 +31,7 @@
 .INCLUDE "../ppu.inc"
 .INCLUDE "../program.inc"
 .INCLUDE "../room.inc"
+.INCLUDE "../sample.inc"
 .INCLUDE "boss_mine.inc"
 
 .IMPORT DataA_Room_Mine_sTileset
@@ -66,6 +67,7 @@
 .IMPORT Func_MovePlatformTopTowardPointY
 .IMPORT Func_MovePlatformVert
 .IMPORT Func_Noop
+.IMPORT Func_PlaySfxSample
 .IMPORT Func_SetActorCenterToPoint
 .IMPORT Func_SetMachineIndex
 .IMPORT Func_SetPointToAvatarCenter
@@ -87,6 +89,7 @@
 .IMPORT Ram_PlatformType_ePlatform_arr
 .IMPORT Ram_PpuTransfer_arr
 .IMPORTZP Zp_Chr04Bank_u8
+.IMPORTZP Zp_ConsoleMachineIndex_u8
 .IMPORTZP Zp_PointX_i16
 .IMPORTZP Zp_PointY_i16
 .IMPORTZP Zp_PpuTransferLen_u8
@@ -186,6 +189,7 @@ Ppu_BossMineConveyorStart = \
     Emerging    ; emerging from the wall
     Shooting    ; firing projectiles
     Retreating  ; retreating back into the wall
+    Hurt        ; was just hit by a boulder
     NUM_VALUES
 .ENDENUM
 
@@ -240,7 +244,7 @@ Ppu_BossMineExit4Start = Ppu_Nametable0_sName + sName::Tiles_u8_arr + \
 kBossBodyPlatformIndex = 2
 
 ;;; How many boulder hits are needed to defeat the boss.
-kBossInitHealth = 8
+kBossInitHealth = 4
 
 ;;; How many waves of fireballs to shoot after emerging.
 kBossNumFireballWaves = 6
@@ -252,6 +256,8 @@ kBossFireballSplitAngle = 12
 kBossBurrowFrames = 50
 ;;; How many frames it takes the boss to emerge from the wall.
 .DEFINE kBossEmergeFrames 31
+;;; How many frames the boss is stunned for when damaged.
+kBossHurtFrames = 120
 ;;; How many frames the boss waits, after you first enter the room, before
 ;;; taking action.
 kBossInitCooldown = 120
@@ -467,7 +473,6 @@ _Devices_sDevice_arr:
 ;;; Performs per-frame upates for the boss in this room.
 ;;; @prereq PRGA_Room is loaded.
 .PROC FuncC_Boss_Mine_TickBoss
-    jsr FuncC_Boss_MineSetEyeDir
 _HarmAvatarIfCollision:
     lda Zp_RoomState + sState::Current_eBossLoc
     .assert eBossLoc::Hidden = 0, error
@@ -501,6 +506,7 @@ _CheckMode:
     d_entry table, Emerging,   _BossEmerging
     d_entry table, Shooting,   _BossShooting
     d_entry table, Retreating, _BossRetreating
+    d_entry table, Hurt,       _BossHurt
     D_END
 .ENDREPEAT
 _BossHiding:
@@ -565,6 +571,7 @@ _BossBurrowing:
 _DirtAngle_u8_arr3:
     .byte $a8, $c4, $d0
 _BossEmerging:
+    jsr FuncC_Boss_MineSetEyeDir
     lda Zp_RoomState + sState::BossEmerge_u8
     cmp #kBossEmergeFrames
     bge @fullyEmerged
@@ -579,16 +586,13 @@ _BossEmerging:
     sta Zp_RoomState + sState::BossCooldown_u8
     rts
 _BossShooting:
+    jsr FuncC_Boss_MineSetEyeDir
     ;; Wait for the cooldown to expire.
     lda Zp_RoomState + sState::BossCooldown_u8
     bne _Return
     ;; If there are no more projectiles to fire, retreat.
     lda Zp_RoomState + sState::BossFireCount_u8
-    bne @shoot
-    lda #eBossMode::Retreating
-    sta Zp_RoomState + sState::Current_eBossMode
-    lda #kBossEmergeFrames  ; param: num frames
-    jmp Func_ShakeRoom
+    beq _StartRetreating
     ;; Otherwise, shoot a fireball.
     @shoot:
     dec Zp_RoomState + sState::BossFireCount_u8
@@ -609,7 +613,24 @@ _BossShooting:
     sub #kBossFireballSplitAngle
     @fireOne:
     jmp FuncC_Boss_MineShootFireball
+_StartRetreating:
+    lda #eBossMode::Retreating
+    sta Zp_RoomState + sState::Current_eBossMode
+    lda #kBossEmergeFrames  ; param: num frames
+    jmp Func_ShakeRoom
+_BossHurt:
+    ;; Wait for the cooldown to expire.
+    lda Zp_RoomState + sState::BossCooldown_u8
+    bne @done
+    ;; If the boss is at zero health, it dies.  Otherwise, retreat.
+    lda Zp_RoomState + sState::BossHealth_u8
+    bne _StartRetreating
+    .assert eBossMode::Dead = 0, error
+    sta Zp_RoomState + sState::Current_eBossMode
+    @done:
+    rts
 _BossRetreating:
+    jsr FuncC_Boss_MineSetEyeDir
     lda Zp_RoomState + sState::BossEmerge_u8
     beq @fullyRetreated
     dec Zp_RoomState + sState::BossEmerge_u8
@@ -810,6 +831,7 @@ _AnimateEmerge:
     ora #<.bank(Ppu_ChrBgAnimB4)
     sta Zp_Chr04Bank_u8
 _DrawEye:
+    ;; TODO: If the boss is in Hurt mode, flash its eye red.
     lda Zp_RoomState + sState::BossEmerge_u8
     cmp #(kBossEmergeFrames + 1) / 2
     blt @done
@@ -984,12 +1006,18 @@ _BossIsDead:
 
 ;;; Performs per-frame upates for the boulder.
 .PROC FuncA_Room_BossMine_TickBoulder
+    ;; If a machine console is open, do nothing.
+    lda Zp_ConsoleMachineIndex_u8
+    bpl @done  ; console is open
+    ;; Otherwise, branch based on the boulder's current mode.
     ldy Zp_RoomState + sState::BoulderState_eBoulder
     lda _JumpTable_ptr_0_arr, y
     sta T0
     lda _JumpTable_ptr_1_arr, y
     sta T1
     jmp (T1T0)
+    @done:
+    rts
 .REPEAT 2, table
     D_TABLE_LO table, _JumpTable_ptr_0_arr
     D_TABLE_HI table, _JumpTable_ptr_1_arr
@@ -1103,14 +1131,15 @@ _BossIsDead:
     sta Zp_RoomState + sState::BoulderSubY_u8
     lda #0
     adc Zp_RoomState + sState::BoulderVelY_i16 + 1
+_CheckForFloorImpact:
     ;; If the number of pixels to move this frame is >= the distance above the
     ;; floor, then the boulder is hitting the floor this frame.
     cmp T0  ; boulder dist above floor
-    blt @moveBoulder
+    blt _MoveBoulderDownByA  ; not hitting the floor
     ;; If the boulder is moving fast enough, it should break when it hits the
     ;; floor.  Otherwise, it stays on the ground.
-    lda Zp_RoomState + sState::BoulderVelY_i16 + 1
-    cmp #kBoulderBreakSpeed
+    ldy Zp_RoomState + sState::BoulderVelY_i16 + 1
+    cpy #kBoulderBreakSpeed
     blt @landOnGround
     @breakOnGround:
     lda #eBoulder::Absent
@@ -1120,33 +1149,61 @@ _BossIsDead:
     lda #eBoulder::OnGround
     @setState:
     sta Zp_RoomState + sState::BoulderState_eBoulder
+    lda _ShakeFrames_u8_arr, y  ; param: num frames
+    jsr Func_ShakeRoom  ; preserves T0+
     ;; Zero the boulder's velocity, and move it to exactly hit the floor.
     lda #0
     sta Zp_RoomState + sState::BoulderSubY_u8
     sta Zp_RoomState + sState::BoulderVelY_i16 + 0
     sta Zp_RoomState + sState::BoulderVelY_i16 + 1
-    lda T0  ; cage dist above floor
-    ;; Move the boulder platform.
-    @moveBoulder:
+    lda T0  ; boulder dist above floor
+_MoveBoulderDownByA:
     ldx #kBoulderPlatformIndex  ; param: platform index
     jsr Func_MovePlatformVert
-    ;; TODO: check if the boulder has hit the boss
+_CheckForBossImpact:
+    ;; If the boss isn't fully emerged, the boulder can't hit it.
+    lda Zp_RoomState + sState::BossEmerge_u8
+    cmp #kBossEmergeFrames
+    blt @done  ; boss isn't fully emerged
+    ;; Check if the boulder has hit the boss's eye.
+    ldy #kBossBodyPlatformIndex  ; param: platform index
+    jsr Func_SetPointToPlatformCenter
+    ldy #kBoulderPlatformIndex  ; param: platform index
+    jsr Func_IsPointInPlatform  ; returns C
+    bcc @done  ; no collision
+    ;; Damage the boss.
+    lda #eSample::BossHurtF  ; param: eSample to play
+    jsr Func_PlaySfxSample
+    lda #eBossMode::Hurt
+    sta Zp_RoomState + sState::Current_eBossMode
+    dec Zp_RoomState + sState::BossHealth_u8
+    lda #kBossHurtFrames
+    sta Zp_RoomState + sState::BossCooldown_u8
+    ;; Set the boulder's state to broken.
+    lda #eBoulder::Absent
+    sta Zp_RoomState + sState::BoulderState_eBoulder
+    @done:
+_BreakBoulderIfAbsent:
     ;; If the boulder should break (either because it hit the boss, or because
-    ;; it hit the floor going fast enough), animate it breaking.
+    ;; it hit the floor going fast enough), then BoulderState_eBoulder has
+    ;; already been set to eBoulder::Absent.  If that's the case, animate the
+    ;; boulder breaking; otherwise, we're done.
     lda Zp_RoomState + sState::BoulderState_eBoulder
     .assert eBoulder::Absent = 0, error
-    bne @doneBreaking
+    bne @done  ; boulder is not breaking
     ;; TODO: play a sound for the boulder breaking
     lda #ePlatform::Zone
     sta Ram_PlatformType_ePlatform_arr + kBoulderPlatformIndex
     jsr Func_FindEmptyActorSlot  ; returns C and X
-    bcs @doneBreaking
+    bcs @done  ; no empty actor slots are available for the smoke
     ldy #kBoulderPlatformIndex  ; param: platform index
     jsr Func_SetPointToPlatformCenter  ; preserves X
     jsr Func_SetActorCenterToPoint  ; preserves X
-    jsr Func_InitActorSmokeExplosion
-    @doneBreaking:
+    jmp Func_InitActorSmokeExplosion
+    @done:
     rts
+_ShakeFrames_u8_arr:
+    .byte 0, 0, 8, 16, 24, 32, 32, 32
 .ENDPROC
 
 ;;; Returns the distance between the floor and the bottom of the boulder.
