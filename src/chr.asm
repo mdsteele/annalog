@@ -398,13 +398,14 @@ _chr_begin:
 
 ;;;=========================================================================;;;
 
-.SEGMENT "CHR_BgBossCity"
+.SEGMENT "CHR_BgBossStatic"
 
-.EXPORT Ppu_ChrBgBossCity
-.PROC Ppu_ChrBgBossCity
+.EXPORT Ppu_ChrBgBossStatic
+.PROC Ppu_ChrBgBossStatic
     CHR1_BANK $40
     chr_inc "boss_city"
-    chr_res $14
+    chr_res $04
+    chr_inc "anim_wyrm_static"
     END_CHR_BANK
 .ENDPROC
 

@@ -86,7 +86,7 @@
 .IMPORT Func_ShakeRoom
 .IMPORT Func_SignedMult
 .IMPORT Func_Sine
-.IMPORT Ppu_ChrBgBossCity
+.IMPORT Ppu_ChrBgBossStatic
 .IMPORT Ppu_ChrObjBoss2
 .IMPORT Ram_ActorPosY_i16_0_arr
 .IMPORT Ram_MachineGoalHorz_u8_arr
@@ -836,7 +836,7 @@ _SpineAngle_u8_arr5:
 ;;; Draw function for the city boss.
 ;;; @prereq PRGA_Objects is loaded.
 .PROC FuncC_Boss_City_DrawBoss
-    lda #<.bank(Ppu_ChrBgBossCity)
+    lda #<.bank(Ppu_ChrBgBossStatic)
     sta Zp_Chr04Bank_u8
 _SetShapePosition:
     ;; Set the shape position to the center of the boss's body.
