@@ -67,7 +67,10 @@
 .IMPORT Func_MovePlatformTopTowardPointY
 .IMPORT Func_MovePlatformVert
 .IMPORT Func_Noop
+.IMPORT Func_PlaySfxExplodeFracture
+.IMPORT Func_PlaySfxFlopDown
 .IMPORT Func_PlaySfxSample
+.IMPORT Func_PlaySfxShootFire
 .IMPORT Func_SetActorCenterToPoint
 .IMPORT Func_SetMachineIndex
 .IMPORT Func_SetPointToAvatarCenter
@@ -684,7 +687,7 @@ _Dir_eEyeDir_arr8:
     jsr Func_SetActorCenterToPoint  ; preserves X and T0+
     lda T0  ; param: angle to fire at
     jsr Func_InitActorProjFireball
-    ;; TODO: play a sound
+    jmp Func_PlaySfxShootFire
     @done:
     rts
 .ENDPROC
@@ -1154,7 +1157,10 @@ _CheckForFloorImpact:
     @setState:
     sta Zp_RoomState + sState::BoulderState_eBoulder
     lda _ShakeFrames_u8_arr, y  ; param: num frames
+    beq @noShake
     jsr Func_ShakeRoom  ; preserves T0+
+    jsr Func_PlaySfxFlopDown
+    @noShake:
     ;; Zero the boulder's velocity, and move it to exactly hit the floor.
     lda #0
     sta Zp_RoomState + sState::BoulderSubY_u8
@@ -1176,7 +1182,7 @@ _CheckForBossImpact:
     jsr Func_IsPointInPlatform  ; returns C
     bcc @done  ; no collision
     ;; Damage the boss.
-    lda #eSample::BossHurtF  ; param: eSample to play
+    lda #eSample::BossHurtE  ; param: eSample to play
     jsr Func_PlaySfxSample
     lda #eBossMode::Hurt
     sta Zp_RoomState + sState::Current_eBossMode
@@ -1195,7 +1201,7 @@ _BreakBoulderIfAbsent:
     lda Zp_RoomState + sState::BoulderState_eBoulder
     .assert eBoulder::Absent = 0, error
     bne @done  ; boulder is not breaking
-    ;; TODO: play a sound for the boulder breaking
+    jsr Func_PlaySfxExplodeFracture
     lda #ePlatform::Zone
     sta Ram_PlatformType_ePlatform_arr + kBoulderPlatformIndex
     jsr Func_FindEmptyActorSlot  ; returns C and X
