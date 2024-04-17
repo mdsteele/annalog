@@ -94,6 +94,7 @@
 .IMPORT Ram_PpuTransfer_arr
 .IMPORTZP Zp_Chr04Bank_u8
 .IMPORTZP Zp_ConsoleMachineIndex_u8
+.IMPORTZP Zp_FrameCounter_u8
 .IMPORTZP Zp_PointX_i16
 .IMPORTZP Zp_PointY_i16
 .IMPORTZP Zp_PpuTransferLen_u8
@@ -838,7 +839,6 @@ _AnimateEmerge:
     ora #<.bank(Ppu_ChrBgAnimB4)
     sta Zp_Chr04Bank_u8
 _DrawEye:
-    ;; TODO: If the boss is in Hurt mode, flash its eye red.
     lda Zp_RoomState + sState::BossEmerge_u8
     cmp #(kBossEmergeFrames + 1) / 2
     blt @done
@@ -849,8 +849,19 @@ _DrawEye:
     jsr FuncA_Objects_MoveShapeRightByA  ; preserves Y
     lda _EyeOffsetY_u8_arr, y  ; param: offset
     jsr FuncA_Objects_MoveShapeDownByA
+    ;; If the boss is in Hurt mode, flash its eye red.
+    lda #0
+    ldx Zp_RoomState + sState::Current_eBossMode
+    cpx #eBossMode::Hurt
+    bne @noFlash
+    lda Zp_FrameCounter_u8
+    and #$02
+    beq @noFlash
+    asl a  ; now A is 4
+    @noFlash:
+    .assert kTileIdObjBossMineEyeFirst .mod 8 = 0, error
+    ora #kTileIdObjBossMineEyeFirst  ; param: first tile ID
     ldy #bObj::Pri | kPaletteObjBossMineEye  ; param: object flags
-    lda #kTileIdObjBossMineEyeFirst  ; param: first tile ID
     jmp FuncA_Objects_Draw2x2Shape
     @done:
     rts

@@ -1111,7 +1111,7 @@ _chr_begin:
     chr_inc "boiler_flame",         kTileIdObjBoilerFlameFirst
     chr_inc "bullet",               kTileIdObjBulletFirst
     chr_inc "launcher_horz",        kTileIdObjLauncherHorzFirst
-    chr_res $04
+    chr_inc "boulder",              kTileIdObjBoulderFirst
     chr_inc "blaster",              kTileIdObjBlasterFirst
     chr_inc "fireblast",            kTileIdObjFireblastFirst
     chr_inc "platform_city_walls",  kTileIdObjPlatformCityWalls
@@ -1124,7 +1124,6 @@ _chr_begin:
     chr_inc "fireball",             kTileIdObjFireballFirst
     chr_inc "breakball",            kTileIdObjBreakballFirst
     chr_inc "platform_volcanic",    kTileIdObjPlatformVolcanicFirst
-    chr_inc "boulder",              kTileIdObjBoulderFirst
     chr_inc "boss_mine_eye",        kTileIdObjBossMineEyeFirst
     chr_inc "boss_lava_jaws",       kTileIdObjBossLavaJawsFirst
     chr_inc "flamestrike",          kTileIdObjFlamestrikeFirst
