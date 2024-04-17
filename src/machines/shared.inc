@@ -21,11 +21,11 @@
 kChrBankDiagramDebugger = $01
 
 ;;; OBJ tile IDs used for drawing many different kinds of machines.
-kTileIdObjMachineCorner      = $7a
-kTileIdObjMachineSurfaceHorz = $7b
-kTileIdObjMachineSurfaceVert = $7c
-kTileIdObjMachineLightOff    = $7e
-kTileIdObjMachineLightOn     = $7f
+kTileIdObjMachineCorner      = $70
+kTileIdObjMachineSurfaceHorz = $6d
+kTileIdObjMachineSurfaceVert = $6e
+kTileIdObjMachineLightOff    = $7a
+kTileIdObjMachineLightOn     = $7b
 
 ;;; The OBJ palette number used for the blinking error light on machines.
 kPaletteObjMachineLight = 1

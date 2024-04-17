@@ -104,7 +104,7 @@
 ;;; The OBJ palette number and tile ID used for the visual prompt that appears
 ;;; when the player avatar is near a device.
 kPaletteObjDevicePrompt = 1
-kTileIdObjDevicePrompt = 'O'
+kTileIdObjDevicePrompt = 'H'
 
 ;;;=========================================================================;;;
 

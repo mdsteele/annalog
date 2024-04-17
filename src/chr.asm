@@ -1041,6 +1041,7 @@ _chr_begin:
     chr_inc "upgrade_bottom", kTileIdObjUpgradeBottomFirst
     chr_inc "player_flower",  eAvatar::Standing
     chr_inc "font_hilight"
+    chr_inc "crate",          kTileIdObjCrateFirst
     END_CHR_BANK
 .ENDPROC
 
@@ -1055,6 +1056,7 @@ _chr_begin:
     chr_inc "upgrade_bottom", kTileIdObjUpgradeBottomFirst
     chr_inc "player_normal",  eAvatar::Standing
     chr_inc "font_hilight"
+    chr_inc "crate",          kTileIdObjCrateFirst
     END_CHR_BANK
 .ENDPROC
 
@@ -1109,7 +1111,7 @@ _chr_begin:
     chr_inc "boiler_flame",         kTileIdObjBoilerFlameFirst
     chr_inc "bullet",               kTileIdObjBulletFirst
     chr_inc "launcher_horz",        kTileIdObjLauncherHorzFirst
-    chr_inc "crate",                kTileIdObjCrateFirst
+    chr_res $04
     chr_inc "blaster",              kTileIdObjBlasterFirst
     chr_inc "fireblast",            kTileIdObjFireblastFirst
     chr_inc "platform_city_walls",  kTileIdObjPlatformCityWalls
@@ -1242,7 +1244,7 @@ _chr_begin:
     chr_res $01
     chr_inc "cannon",              kTileIdObjCannonFirst
     chr_inc "garden_bricks",       kTileIdObjGardenBricksFirst
-    chr_inc "crate",               kTileIdObjCrateFirst
+    chr_res $04
     chr_inc "platform_waterfall",  kTileIdObjPlatformWaterfallFirst
     chr_inc "bad_grub",            kTileIdObjBadGrubFirst
     chr_res $02
@@ -1271,8 +1273,7 @@ _chr_begin:
     chr_res $03
     chr_inc "upgrade_opcopy",    kTileIdObjUpgradeOpCopyFirst
     chr_inc "boiler_flame",      kTileIdObjBoilerFlameFirst
-    chr_res $06
-    chr_inc "crate",             kTileIdObjCrateFirst
+    chr_res $0a
     chr_inc "blaster",           kTileIdObjBlasterFirst
     chr_inc "fireblast",         kTileIdObjFireblastFirst
     chr_res $04
@@ -1392,8 +1393,7 @@ _chr_begin:
     chr_inc "bullet",         kTileIdObjBulletFirst
     chr_inc "upgrade_opbeep", kTileIdObjUpgradeOpBeepFirst
     chr_inc "column",         kTileIdObjColumnFirst
-    chr_inc "crate",          kTileIdObjCrateFirst
-    chr_res $06
+    chr_res $0a
     chr_inc "mermaid_guardf", kTileIdMermaidGuardFFirst
     chr_res $06
     chr_inc "mermaid_corra",  kTileIdMermaidCorraFirst
@@ -1418,7 +1418,7 @@ _chr_begin:
     chr_inc "gate",                kTileIdObjGateFirst
     chr_inc "orc_grunt_standing",  kTileIdObjOrcGruntStandingFirst
     chr_inc "launcher_vert",       kTileIdObjLauncherVertFirst
-    chr_inc "crate",               kTileIdObjCrateFirst
+    chr_res $04
     chr_inc "platform_rocks",      kTileIdObjPlatformRocksFirst
     chr_res $06
     chr_inc "orc_gronta_standing", kTileIdObjOrcGrontaStandingFirst
