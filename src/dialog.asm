@@ -51,7 +51,9 @@
 .IMPORT DataA_Dialog_FactoryEastCorra_sDialog
 .IMPORT DataA_Dialog_FactoryElevatorBrunoHi_sDialog
 .IMPORT DataA_Dialog_FactoryElevatorBrunoWait_sDialog
-.IMPORT DataA_Dialog_FactoryVaultAlex_sDialog
+.IMPORT DataA_Dialog_FactoryVaultAlex1_sDialog
+.IMPORT DataA_Dialog_FactoryVaultAlex2_sDialog
+.IMPORT DataA_Dialog_FactoryVaultAlex3_sDialog
 .IMPORT DataA_Dialog_FactoryVaultScreen_sDialog
 .IMPORT DataA_Dialog_GardenEastCorra_sDialog
 .IMPORT DataA_Dialog_GardenShrineBreakerMine1_sDialog
@@ -450,7 +452,9 @@ _Finish:
             DataA_Dialog_FactoryElevatorBrunoHi_sDialog
     d_entry t, FactoryElevatorBrunoWait, \
             DataA_Dialog_FactoryElevatorBrunoWait_sDialog
-    d_entry t, FactoryVaultAlex,     DataA_Dialog_FactoryVaultAlex_sDialog
+    d_entry t, FactoryVaultAlex1,    DataA_Dialog_FactoryVaultAlex1_sDialog
+    d_entry t, FactoryVaultAlex2,    DataA_Dialog_FactoryVaultAlex2_sDialog
+    d_entry t, FactoryVaultAlex3,    DataA_Dialog_FactoryVaultAlex3_sDialog
     d_entry t, FactoryVaultScreen,   DataA_Dialog_FactoryVaultScreen_sDialog
     d_entry t, GardenEastCorra,      DataA_Dialog_GardenEastCorra_sDialog
     d_entry t, GardenShrineBreakerMine1, \

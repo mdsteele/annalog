@@ -19,8 +19,11 @@
 
 .INCLUDE "../actor.inc"
 .INCLUDE "../actors/child.inc"
+.INCLUDE "../avatar.inc"
 .INCLUDE "../charmap.inc"
+.INCLUDE "../cutscene.inc"
 .INCLUDE "../device.inc"
+.INCLUDE "../devices/dialog.inc"
 .INCLUDE "../dialog.inc"
 .INCLUDE "../flag.inc"
 .INCLUDE "../macros.inc"
@@ -30,7 +33,10 @@
 
 .IMPORT DataA_Room_Factory_sTileset
 .IMPORT Func_Noop
+.IMPORT Func_SetFlag
 .IMPORT Ppu_ChrObjVillage
+.IMPORT Ram_ActorFlags_bObj_arr
+.IMPORT Ram_ActorState1_byte_arr
 .IMPORT Ram_ActorType_eActor_arr
 .IMPORT Ram_DeviceType_eDevice_arr
 .IMPORT Sram_ProgressFlags_arr
@@ -109,14 +115,14 @@ _Devices_sDevice_arr:
     d_byte Type_eDevice, eDevice::TalkRight
     d_byte BlockRow_u8, 10
     d_byte BlockCol_u8, 5
-    d_byte Target_byte, eDialog::FactoryVaultAlex
+    d_byte Target_byte, eDialog::FactoryVaultAlex1
     D_END
     .assert * - :- = kAlexDeviceIndexLeft * .sizeof(sDevice), error
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::TalkLeft
     d_byte BlockRow_u8, 10
     d_byte BlockCol_u8, 6
-    d_byte Target_byte, eDialog::FactoryVaultAlex
+    d_byte Target_byte, eDialog::FactoryVaultAlex1
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Screen
@@ -154,87 +160,202 @@ _Passages_sPassage_arr:
     @keepAlex:
     rts
 .ENDPROC
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Cutscene"
+
+.EXPORT DataA_Cutscene_FactoryVaultLookAtTank_sCutscene
+.PROC DataA_Cutscene_FactoryVaultLookAtTank_sCutscene
+    ;; Anna steps out of the way to the left.
+    act_ForkStart 1, _WalkAvatar_sCutscene
+    ;; Alex walks over to the big tank and kneels down for a closer look.
+    act_WalkNpcAlex kAlexActorIndex, $007a
+    act_SetActorState1 kAlexActorIndex, eNpcChild::AlexStanding
+    act_WaitFrames 45
+    act_SetActorState1 kAlexActorIndex, eNpcChild::AlexKneeling
+    act_WaitFrames 60
+    ;; Alex reads off the label on the tank.
+    act_RunDialog eDialog::FactoryVaultAlex2
+    ;; Alex walk over and looks at the tank from the right side.
+    act_WalkNpcAlex kAlexActorIndex, $009c
+    act_SetActorState1 kAlexActorIndex, eNpcChild::AlexStanding
+    act_WaitFrames 10
+    act_SetActorFlags kAlexActorIndex, bObj::FlipH
+    act_WaitFrames 10
+    act_SetActorState1 kAlexActorIndex, eNpcChild::AlexLooking
+    act_WaitFrames 90
+    ;; Alex walk over and looks at the tank from the left side.
+    act_WalkNpcAlex kAlexActorIndex, $006c
+    act_SetActorState1 kAlexActorIndex, eNpcChild::AlexStanding
+    act_WaitFrames 10
+    act_SetActorFlags kAlexActorIndex, 0
+    act_WaitFrames 10
+    act_SetActorState1 kAlexActorIndex, eNpcChild::AlexLooking
+    act_WaitFrames 90
+    ;; Alex thinks out loud for a bit.
+    act_RunDialog eDialog::FactoryVaultAlex3
+    ;; Alex walks back to where he was standing before and talks to Anna again.
+    act_WalkNpcAlex kAlexActorIndex, $0060
+    act_SetActorState1 kAlexActorIndex, eNpcChild::AlexStanding
+    act_SetActorState2 kAlexActorIndex, 0
+    act_CallFunc _SetFlag
+    act_RunDialog eDialog::FactoryVaultAlex1
+    act_ContinueExploring
+_WalkAvatar_sCutscene:
+    act_WalkAvatar $0050 | kTalkRightAvatarOffset
+    act_SetAvatarPose eAvatar::Standing
+    act_SetAvatarFlags kPaletteObjAvatarNormal | 0
+    act_ForkStop $ff
+_SetFlag:
+    ldx #eFlag::FactoryVaultTalkedToAlex  ; param: flag
+    jmp Func_SetFlag
+.ENDPROC
 
 ;;;=========================================================================;;;
 
 .SEGMENT "PRGA_Dialog"
 
-.EXPORT DataA_Dialog_FactoryVaultAlex_sDialog
-.PROC DataA_Dialog_FactoryVaultAlex_sDialog
-    dlg_IfSet FactoryVaultTalkedToAlex, _MeetAtHotSpring_sDialog
-_WhatDidYouFindOut_sDialog:
-    dlg_Text ChildAlex, DataA_Text0_FactoryVaultAlex_Part1_u8_arr
-    dlg_Text ChildAlex, DataA_Text0_FactoryVaultAlex_Part2_u8_arr
-    dlg_Text ChildAlex, DataA_Text0_FactoryVaultAlex_Part3_u8_arr
-    dlg_Text ChildAlex, DataA_Text0_FactoryVaultAlex_Part4_u8_arr
-    dlg_Quest FactoryVaultTalkedToAlex
-_MeetAtHotSpring_sDialog:
-    dlg_Text ChildAlex, DataA_Text0_FactoryVaultAlex_Part5_u8_arr
+.EXPORT DataA_Dialog_FactoryVaultAlex1_sDialog
+.PROC DataA_Dialog_FactoryVaultAlex1_sDialog
+    dlg_IfSet FactoryVaultTalkedToAlex, _CityGoal_sDialog
+_LookAtThisPlace_sDialog:
+    dlg_Text ChildAlex, DataA_Text2_FactoryVaultAlex1_Part1_u8_arr
+    dlg_Text ChildAlex, DataA_Text2_FactoryVaultAlex1_Part2_u8_arr
+    dlg_Cutscene eCutscene::FactoryVaultLookAtTank
+_CityGoal_sDialog:
+    dlg_Text ChildAlex, DataA_Text2_FactoryVaultAlex4_Part1_u8_arr
+    dlg_Text ChildAlex, DataA_Text2_FactoryVaultAlex4_Part2_u8_arr
+    dlg_Text ChildAlex, DataA_Text2_FactoryVaultAlex4_Part3_u8_arr
     dlg_Done
+.ENDPROC
+
+.EXPORT DataA_Dialog_FactoryVaultAlex2_sDialog
+.PROC DataA_Dialog_FactoryVaultAlex2_sDialog
+    dlg_Text ChildAlex, DataA_Text2_FactoryVaultAlex2_Part1_u8_arr
+    dlg_Call FuncA_Dialog_FactoryVault_AlexStand
+    dlg_Text ChildAlex, DataA_Text2_FactoryVaultAlex2_Part2_u8_arr
+    dlg_Done
+.ENDPROC
+
+.EXPORT DataA_Dialog_FactoryVaultAlex3_sDialog
+.PROC DataA_Dialog_FactoryVaultAlex3_sDialog
+    dlg_Text ChildAlex, DataA_Text2_FactoryVaultAlex3_Part1_u8_arr
+    dlg_Call FuncA_Dialog_FactoryVault_AlexStand
+    dlg_Text ChildAlex, DataA_Text2_FactoryVaultAlex3_Part2_u8_arr
+    dlg_Call _LookLeft
+    dlg_Text ChildAlex, DataA_Text2_FactoryVaultAlex3_Part3_u8_arr
+    dlg_Text ChildAlex, DataA_Text2_FactoryVaultAlex3_Part4_u8_arr
+    dlg_Done
+_LookLeft:
+    lda #bObj::FlipH
+    sta Ram_ActorFlags_bObj_arr + kAlexActorIndex
+    rts
+.ENDPROC
+
+.PROC FuncA_Dialog_FactoryVault_AlexStand
+    lda #eNpcChild::AlexStanding
+    sta Ram_ActorState1_byte_arr + kAlexActorIndex
+    rts
 .ENDPROC
 
 .EXPORT DataA_Dialog_FactoryVaultScreen_sDialog
 .PROC DataA_Dialog_FactoryVaultScreen_sDialog
-    dlg_Text Screen, DataA_Text0_FactoryVaultScreen_Page1_u8_arr
-    dlg_Text Screen, DataA_Text0_FactoryVaultScreen_Page2_u8_arr
-    dlg_Text Screen, DataA_Text0_FactoryVaultScreen_Page3_u8_arr
+    dlg_Text Screen, DataA_Text2_FactoryVaultScreen_Page1_u8_arr
+    dlg_Text Screen, DataA_Text2_FactoryVaultScreen_Page2_u8_arr
+    dlg_Text Screen, DataA_Text2_FactoryVaultScreen_Page3_u8_arr
     dlg_Done
 .ENDPROC
 
 ;;;=========================================================================;;;
 
-.SEGMENT "PRGA_Text0"
+.SEGMENT "PRGA_Text2"
 
-;;; TODO: update dialog; Alex shouldn't meet you here until after Lava area
-.PROC DataA_Text0_FactoryVaultAlex_Part1_u8_arr
-    .byte "Anna, you're back! I$"
-    .byte "knew you'd do great.$"
-    .byte "What did you find out$"
-    .byte "under the temple?#"
+.PROC DataA_Text2_FactoryVaultAlex1_Part1_u8_arr
+    .byte "Anna, you're back!$"
+    .byte "Would you look at this$"
+    .byte "place? It opened up$"
+    .byte "while you were gone.#"
 .ENDPROC
 
-.PROC DataA_Text0_FactoryVaultAlex_Part2_u8_arr
-    .byte "...Huh? The mermaids$"
-    .byte "were CREATED by$"
-    .byte "humans? But why? Wait$"
-    .byte "a minute...#"
+.PROC DataA_Text2_FactoryVaultAlex1_Part2_u8_arr
+    .byte "I think we finally$"
+    .byte "found what the ancient$"
+    .byte "humans were building$"
+    .byte "in this factory.#"
 .ENDPROC
 
-.PROC DataA_Text0_FactoryVaultAlex_Part3_u8_arr
-    .byte "Anna, did you read the$"
-    .byte "screen over there? I$"
-    .byte "think...mermaids were$"
-    .byte "created FROM humans.#"
+.PROC DataA_Text2_FactoryVaultAlex2_Part1_u8_arr
+    .byte "Hmm, it's got a label.$"
+    .byte "Let's see...$"
+    .byte "`Human Mutation Tank$"
+    .byte " Serial No. 94209382'#"
 .ENDPROC
 
-.PROC DataA_Text0_FactoryVaultAlex_Part4_u8_arr
+.PROC DataA_Text2_FactoryVaultAlex2_Part2_u8_arr
+    .byte "Human...mutation?#"
+.ENDPROC
+
+.PROC DataA_Text2_FactoryVaultAlex3_Part1_u8_arr
+    .byte "Anna...remember how$"
+    .byte "you found out that the$"
+    .byte "first mermaids were$"
+    .byte "created by humans?#"
+.ENDPROC
+
+.PROC DataA_Text2_FactoryVaultAlex3_Part2_u8_arr
+    .byte "If I'm understanding$"
+    .byte "this right...it looks$"
+    .byte "like those mermaids$"
+    .byte "were made FROM humans.#"
+.ENDPROC
+
+.PROC DataA_Text2_FactoryVaultAlex3_Part3_u8_arr
     .byte "This was all centuries$"
     .byte "ago. And now we're two$"
     .byte "different peoples. But$"
     .byte "why do any of that?#"
 .ENDPROC
 
-.PROC DataA_Text0_FactoryVaultAlex_Part5_u8_arr
-    .byte "We need to learn more.$"
-    .byte "I've got a plan. Meet$"
-    .byte "me at the hot spring$"
-    .byte "near the village, OK?#"
+.PROC DataA_Text2_FactoryVaultAlex3_Part4_u8_arr
+    .byte "They had practically$"
+    .byte "unlimited technology$"
+    .byte "and knowledge. So why$"
+    .byte "this? I don't get it.#"
 .ENDPROC
 
-.PROC DataA_Text0_FactoryVaultScreen_Page1_u8_arr
+.PROC DataA_Text2_FactoryVaultAlex4_Part1_u8_arr
+    .byte "Well, if you got the$"
+    .byte "pass into the sewers$"
+    .byte "opened up, then the$"
+    .byte "city is our next goal.#"
+.ENDPROC
+
+.PROC DataA_Text2_FactoryVaultAlex4_Part2_u8_arr
+    .byte "The orcs are already$"
+    .byte "there, looking for$"
+    .byte "something. I'm not$"
+    .byte "exactly sure what.#"
+.ENDPROC
+
+.PROC DataA_Text2_FactoryVaultAlex4_Part3_u8_arr
+    .byte "Whatever it is, we've$"
+    .byte "got to find it first!#"
+.ENDPROC
+
+.PROC DataA_Text2_FactoryVaultScreen_Page1_u8_arr
     .byte "ERROR: Gene mutation$"
     .byte "tank production line$"
     .byte "has been stalled.#"
 .ENDPROC
 
-.PROC DataA_Text0_FactoryVaultScreen_Page2_u8_arr
+.PROC DataA_Text2_FactoryVaultScreen_Page2_u8_arr
     .byte "Current batch: Q6382A$"
     .byte "Designated for:$"
     .byte "  Volunteer group 922$"
     .byte "  <Mermaid Aspect>#"
 .ENDPROC
 
-.PROC DataA_Text0_FactoryVaultScreen_Page3_u8_arr
+.PROC DataA_Text2_FactoryVaultScreen_Page3_u8_arr
     .byte "Due date: 2245 Feb 21$"
     .byte "Overdue by: 495 years$"
     .byte "Report to supervisor$"

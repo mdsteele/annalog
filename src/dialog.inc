@@ -111,7 +111,9 @@ kDialogEntryCutscene = $ff  ; ends the dialog and starts a new cutscene
     FactoryEastCorra
     FactoryElevatorBrunoHi
     FactoryElevatorBrunoWait
-    FactoryVaultAlex
+    FactoryVaultAlex1
+    FactoryVaultAlex2
+    FactoryVaultAlex3
     FactoryVaultScreen
     GardenEastCorra
     GardenShrineBreakerMine1
