@@ -401,24 +401,77 @@ _AnimateSwimmingUpFunc:
 .EXPORT DataA_Dialog_FactoryEastCorra_sDialog
 .PROC DataA_Dialog_FactoryEastCorra_sDialog
     dlg_IfSet FactoryEastCorraHelped, _AlreadyHelped_sDialog
+_Intro_sDialog:
+    dlg_Text MermaidCorra, DataA_Text0_FactoryEastCorra_Intro_u8_arr
+    dlg_Text MermaidCorra, DataA_Text0_FactoryEastCorra_Question_u8_arr
+    dlg_IfYes _Yes_sDialog
+_No_sDialog:
+    dlg_Text MermaidCorra, DataA_Text0_FactoryEastCorra_No_u8_arr
+    dlg_Goto _OfferHelp_sDialog
+_Yes_sDialog:
+    dlg_Text MermaidCorra, DataA_Text0_FactoryEastCorra_Yes_u8_arr
 _OfferHelp_sDialog:
-    dlg_Text MermaidCorra, DataA_Text1_FactoryEastCorra_Part1_u8_arr
+    dlg_Text MermaidCorra, DataA_Text0_FactoryEastCorra_Mid1_u8_arr
+    dlg_Text MermaidCorra, DataA_Text0_FactoryEastCorra_Mid2_u8_arr
+    dlg_Text MermaidCorra, DataA_Text0_FactoryEastCorra_Mid3_u8_arr
     dlg_Cutscene eCutscene::FactoryEastCorraHelping
 _AlreadyHelped_sDialog:
-    dlg_Text MermaidCorra, DataA_Text1_FactoryEastCorra_Part2_u8_arr
+    dlg_Text MermaidCorra, DataA_Text0_FactoryEastCorra_End_u8_arr
     dlg_Done
 .ENDPROC
 
 ;;;=========================================================================;;;
 
-.SEGMENT "PRGA_Text1"
+.SEGMENT "PRGA_Text0"
 
-.PROC DataA_Text1_FactoryEastCorra_Part1_u8_arr
-    .byte "TODO: Want help?#"
+.PROC DataA_Text0_FactoryEastCorra_Intro_u8_arr
+    .byte "Oh, Anna! Your brother$"
+    .byte "told me that mermaids$"
+    .byte "used to be humans.$"
+    .byte "That we're the same.#"
 .ENDPROC
 
-.PROC DataA_Text1_FactoryEastCorra_Part2_u8_arr
-    .byte "TODO: All set!#"
+.PROC DataA_Text0_FactoryEastCorra_Question_u8_arr
+    .byte "But...that can't be$"
+    .byte "true! Is it?%"
+.ENDPROC
+
+.PROC DataA_Text0_FactoryEastCorra_Yes_u8_arr
+    .byte "I can't...I can't$"
+    .byte "believe it...#"
+.ENDPROC
+
+.PROC DataA_Text0_FactoryEastCorra_No_u8_arr
+    .byte "Of course...I knew it$"
+    .byte "couldn't really be$"
+    .byte "true...#"
+.ENDPROC
+
+.PROC DataA_Text0_FactoryEastCorra_Mid1_u8_arr
+    .byte "We mermaids are so$"
+    .byte "different from humans.$"
+    .byte "We live in peace. We$"
+    .byte "don't judge others.#"
+.ENDPROC
+
+.PROC DataA_Text0_FactoryEastCorra_Mid2_u8_arr
+    .byte "...Anna, I don't know$"
+    .byte "what to think. But I$"
+    .byte "want to help you save$"
+    .byte "your people.#"
+.ENDPROC
+
+.PROC DataA_Text0_FactoryEastCorra_Mid3_u8_arr
+    .byte "If you're trying to$"
+    .byte "get into that city$"
+    .byte "above us, I can help$"
+    .byte "you climb up.#"
+.ENDPROC
+
+.PROC DataA_Text0_FactoryEastCorra_End_u8_arr
+    .byte "Good luck, Anna. I$"
+    .byte "hope that I'll meet$"
+    .byte "you again someday.#"
 .ENDPROC
 
 ;;;=========================================================================;;;
