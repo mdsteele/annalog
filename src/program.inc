@@ -195,6 +195,7 @@
     TempleNaveUpperCarriage
     ;; TODO: Sort the below within the above once it won't disrupt playtesting.
     LavaVentLift
+    LavaCavernBoiler
     NUM_VALUES
 .ENDENUM
 

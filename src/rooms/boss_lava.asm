@@ -86,7 +86,6 @@
 .IMPORT Func_MovePlatformTopTowardPointY
 .IMPORT Func_MovePlatformVert
 .IMPORT Func_MovePointDownByA
-.IMPORT Func_MovePointLeftByA
 .IMPORT Func_Noop
 .IMPORT Func_PlaySfxSample
 .IMPORT Func_PlaySfxShootFire
@@ -913,7 +912,6 @@ _RegD:
     sta T0  ; param: minimum distance so far, in pixels
     ldy #kSensorPlatformIndex  ; param: distance sensor platform index
     jsr Func_SetPointToAvatarCenter  ; preserves Y, T0+
-    jsr Func_MovePointLeftByA  ; preserves Y, T0+
     jsr Func_DistanceSensorRightDetectPoint  ; returns T0
     lda T0  ; minimum distance so far, in pixels
     sub #kBlockWidthPx * 2

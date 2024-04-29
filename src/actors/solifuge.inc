@@ -17,21 +17,22 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
-;;; State bytes for spider baddies:
+;;; State bytes for solifuge baddies:
 ;;;   * Param: Unused.
-;;;   * Flags: The FlipV bit is set if the spider is hanging from a thread, or
-;;;     cleared otherwise.  The FlipH bit is set if the spider is moving to the
-;;;     left, or cleared if the spider is moving to the right.
-;;;   * State1: Counter that decrements each frame; when it's zero, the spider
-;;;     starts another movement cycle and resets the counter.
-;;;   * State2: If the spider is hanging from a thread, this stores the low
-;;;     byte of the room pixel Y position for the top of the thread.  Since the
-;;;     thread is never longer than 255 pixels, subtracting this from the low
-;;;     byte of the spider's Y position gives the length of the thread.
-;;;   * State3: Unused.
+;;;   * Flags: The FlipH bit is set if the solifuge is accelerating to the
+;;;     left, or cleared if the solifuge is accelerating to the right.
+;;;   * State1: The current bBadSolifuge value, indicating what mode the
+;;;     solifuge is in.
+;;;   * State2: If the solifuge is jumping, this holds the terrain block row it
+;;;     was in before it jumped.
+;;;   * State3: An animation counter that increments each frame (wrapping
+;;;     around after 255).
 ;;;   * State4: Unused.
 
-;;; Tile IDs for drawing spider baddie actors.
-kTileIdObjBadSpiderFirst = $c8
+;;; State bits for a solifuge baddie actor.
+.SCOPE bBadSolifuge
+    Steamed = %10000000  ; if set, the solifuge got blown upwards by steam
+    Jumping = %01000000  ; if set, the solifuge is jumping
+.ENDSCOPE
 
 ;;;=========================================================================;;;

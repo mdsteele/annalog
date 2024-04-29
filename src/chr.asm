@@ -1199,10 +1199,11 @@ _chr_begin:
     chr_inc "upgrade_opgoto", kTileIdObjUpgradeOpGotoFirst
     chr_res $08
     chr_inc "bad_bat",        kTileIdObjBadBatFirst
-    chr_inc "bad_spider",     kTileIdObjBadSpiderFirst
-    chr_res $10
+    chr_res $18
     chr_inc "breakable",      kTileIdObjWeakFloorFirst
-    chr_res $0e
+    chr_res $02
+    chr_inc "bad_spider",     kTileIdObjBadSpiderFirst
+    chr_res $04
     chr_inc "bad_fish",       kTileIdObjBadFishFirst
     chr_inc "crusher",        kTileIdObjCrusherFirst
     chr_inc "winch",          kTileIdObjWinchFirst
@@ -1280,7 +1281,8 @@ _chr_begin:
     chr_inc "bad_lavaball",      kTileIdObjBadLavaballFirst
     chr_inc "anchor",            kTileIdObjAnchorFirst
     chr_inc "valve",             kTileIdObjValveFirst
-    chr_res $10
+    chr_res $08
+    chr_inc "bad_spider",        kTileIdObjBadSpiderFirst
     chr_inc "mirror",            kTileIdObjMirrorFirst
     chr_res $0b
     chr_inc "steam_vert",        kTileIdObjSteamVertFirst

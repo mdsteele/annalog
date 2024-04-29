@@ -43,6 +43,7 @@
 .IMPORT FuncA_Actor_TickBadRhino
 .IMPORT FuncA_Actor_TickBadRodent
 .IMPORT FuncA_Actor_TickBadSlime
+.IMPORT FuncA_Actor_TickBadSolifuge
 .IMPORT FuncA_Actor_TickBadSpider
 .IMPORT FuncA_Actor_TickBadToad
 .IMPORT FuncA_Actor_TickBadVinebug
@@ -90,6 +91,7 @@
 .IMPORT FuncA_Objects_DrawActorBadRhino
 .IMPORT FuncA_Objects_DrawActorBadRodent
 .IMPORT FuncA_Objects_DrawActorBadSlime
+.IMPORT FuncA_Objects_DrawActorBadSolifuge
 .IMPORT FuncA_Objects_DrawActorBadSpider
 .IMPORT FuncA_Objects_DrawActorBadToad
 .IMPORT FuncA_Objects_DrawActorBadVinebug
@@ -127,6 +129,7 @@
 .IMPORT FuncA_Room_InitActorBadFirefly
 .IMPORT FuncA_Room_InitActorBadFlydrop
 .IMPORT FuncA_Room_InitActorBadLavaball
+.IMPORT FuncA_Room_InitActorBadSolifuge
 .IMPORT FuncA_Room_InitActorBadToad
 .IMPORT FuncA_Room_InitActorBadWasp
 .IMPORT FuncA_Room_InitActorNpcChild
@@ -485,6 +488,7 @@ _NoHit:
     d_byte BadRhino,         4
     d_byte BadRodent,        2
     d_byte BadSlime,         4
+    d_byte BadSolifuge,      2
     d_byte BadSpider,        8
     d_byte BadToad,          9
     d_byte BadVinebug,       7
@@ -542,6 +546,7 @@ _NoHit:
     d_byte BadRhino,         8
     d_byte BadRodent,        2
     d_byte BadSlime,         2
+    d_byte BadSolifuge,      8
     d_byte BadSpider,        2
     d_byte BadToad,          0
     d_byte BadVinebug,       7
@@ -599,6 +604,7 @@ _NoHit:
     d_byte BadRhino,        10
     d_byte BadRodent,        2
     d_byte BadSlime,         6
+    d_byte BadSolifuge,      6
     d_byte BadSpider,        6
     d_byte BadToad,          7
     d_byte BadVinebug,       5
@@ -724,6 +730,7 @@ _TypeSpecificTick:
     d_entry table, BadRhino,        FuncA_Actor_TickBadRhino
     d_entry table, BadRodent,       FuncA_Actor_TickBadRodent
     d_entry table, BadSlime,        FuncA_Actor_TickBadSlime
+    d_entry table, BadSolifuge,     FuncA_Actor_TickBadSolifuge
     d_entry table, BadSpider,       FuncA_Actor_TickBadSpider
     d_entry table, BadToad,         FuncA_Actor_TickBadToad
     d_entry table, BadVinebug,      FuncA_Actor_TickBadVinebug
@@ -765,16 +772,16 @@ _TypeSpecificTick:
 ;;; Checks if the actor is colliding with the player avatar.
 ;;; @param X The actor index.
 ;;; @return C Set if a collision occurred, cleared otherwise.
-;;; @preserve X
+;;; @preserve X, T1+
 .EXPORT FuncA_Actor_IsCollidingWithAvatar
 .PROC FuncA_Actor_IsCollidingWithAvatar
-    jsr Func_SetPointToAvatarCenter  ; preserves X
+    jsr Func_SetPointToAvatarCenter  ; preserves X and T0+
 _CheckHorz:
     ldy Ram_ActorType_eActor_arr, x
     lda DataA_Actor_BoundingBoxSide_u8_arr, y
     add #kAvatarBoundingBoxLeft  ; param: distance
     .assert kAvatarBoundingBoxLeft = kAvatarBoundingBoxRight, error
-    jsr Func_IsActorWithinHorzDistanceOfPoint  ; preserves X, returns C
+    jsr Func_IsActorWithinHorzDistanceOfPoint  ; preserves X, T1+; returns C
     bcs @hitHorz
     rts
     @hitHorz:
@@ -787,7 +794,58 @@ _CheckVert:
     add #kAvatarBoundingBoxDown
     tay  ; param: distance below avatar
     pla  ; param: distance above avatar
-    jmp Func_IsActorWithinVertDistancesOfPoint  ; preserves X, returns C
+    jmp Func_IsActorWithinVertDistancesOfPoint  ; preserves X, T1+; returns C
+.ENDPROC
+
+;;; Checks if the actor is colliding with another actor.
+;;; @param X The actor index.
+;;; @param Y The other actor index.
+;;; @return C Set if a collision occurred, cleared otherwise.
+;;; @preserve X, Y, T3+
+.EXPORT FuncA_Actor_IsCollidingWithOtherActor
+.PROC FuncA_Actor_IsCollidingWithOtherActor
+    jsr FuncA_Actor_SetPointToOtherActorCenter  ; preserves X, Y, and T0+
+    sty T2  ; other actor index
+    lda Ram_ActorType_eActor_arr, y
+    sta T1  ; other actor type
+    tay  ; other actor type
+_CheckHorz:
+    lda DataA_Actor_BoundingBoxSide_u8_arr, y  ; other actor bounding box side
+    ldy Ram_ActorType_eActor_arr, x            ; this actor type
+    add DataA_Actor_BoundingBoxSide_u8_arr, y  ; this actor bounding box side
+    jsr Func_IsActorWithinHorzDistanceOfPoint  ; preserves X, T1+; returns C
+    bcc _Finish  ; no collision
+_CheckVert:
+    ldy T1  ; other actor type
+    lda DataA_Actor_BoundingBoxUp_u8_arr, y    ; other actor bounding box up
+    ldy Ram_ActorType_eActor_arr, x            ; this actor type
+    add DataA_Actor_BoundingBoxDown_u8_arr, y  ; this actor bounding box down
+    pha  ; distance above other actor
+    ldy T1  ; other actor type
+    lda DataA_Actor_BoundingBoxDown_u8_arr, y  ; other actor bounding box down
+    ldy Ram_ActorType_eActor_arr, x            ; this actor type
+    add DataA_Actor_BoundingBoxDown_u8_arr, y  ; this actor bounding box up
+    tay  ; param: distance below other actor
+    pla  ; param: distance above other actor
+    jsr Func_IsActorWithinVertDistancesOfPoint  ; preserves X, T1+; returns C
+_Finish:
+    ldy T2  ; other actor index (to preserve Y)
+    rts
+.ENDPROC
+
+;;; Stores another actor's room pixel position in Zp_Point*_i16.
+;;; @param Y The other actor index.
+;;; @preserve X, Y, T0+
+.PROC FuncA_Actor_SetPointToOtherActorCenter
+    lda Ram_ActorPosX_i16_0_arr, y
+    sta Zp_PointX_i16 + 0
+    lda Ram_ActorPosX_i16_1_arr, y
+    sta Zp_PointX_i16 + 1
+    lda Ram_ActorPosY_i16_0_arr, y
+    sta Zp_PointY_i16 + 0
+    lda Ram_ActorPosY_i16_1_arr, y
+    sta Zp_PointY_i16 + 1
+    rts
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -834,6 +892,7 @@ _CheckVert:
     d_entry table, BadRhino,        Func_InitActorWithFlags
     d_entry table, BadRodent,       Func_InitActorDefault
     d_entry table, BadSlime,        Func_InitActorWithFlags
+    d_entry table, BadSolifuge,     FuncA_Room_InitActorBadSolifuge
     d_entry table, BadSpider,       Func_InitActorDefault
     d_entry table, BadToad,         FuncA_Room_InitActorBadToad
     d_entry table, BadVinebug,      Func_InitActorDefault
@@ -920,6 +979,7 @@ _CheckVert:
     d_entry table, BadRhino,        FuncA_Objects_DrawActorBadRhino
     d_entry table, BadRodent,       FuncA_Objects_DrawActorBadRodent
     d_entry table, BadSlime,        FuncA_Objects_DrawActorBadSlime
+    d_entry table, BadSolifuge,     FuncA_Objects_DrawActorBadSolifuge
     d_entry table, BadSpider,       FuncA_Objects_DrawActorBadSpider
     d_entry table, BadToad,         FuncA_Objects_DrawActorBadToad
     d_entry table, BadVinebug,      FuncA_Objects_DrawActorBadVinebug

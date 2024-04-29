@@ -58,6 +58,7 @@
 .IMPORT Ram_ActorPosY_i16_0_arr
 .IMPORT Ram_ActorPosY_i16_1_arr
 .IMPORT Ram_ActorState2_byte_arr
+.IMPORT Ram_ActorSubY_u8_arr
 .IMPORT Ram_ActorVelX_i16_0_arr
 .IMPORT Ram_ActorVelX_i16_1_arr
 .IMPORT Ram_ActorVelY_i16_0_arr
@@ -524,6 +525,44 @@ _NotInRoom:
     rts
 .ENDPROC
 
+;;; Clamps the actor's horizontal speed (whether to the left or to the right)
+;;; to the specified maximum value.
+;;; @param YA The maximum speed to clamp to (unsigned), in subpixels per frame.
+;;; @param X The actor index.
+;;; @preserve X
+.EXPORT FuncA_Actor_ClampVelX
+.PROC FuncA_Actor_ClampVelX
+    stya T1T0  ; max speed
+    lda Ram_ActorVelX_i16_1_arr, x
+    bpl _Positive
+_Negative:
+    lda Ram_ActorVelX_i16_0_arr, x
+    add T0  ; max speed (lo)
+    lda Ram_ActorVelX_i16_1_arr, x
+    adc T1  ; max speed (hi)
+    bge @done
+    lda #0
+    sub T0  ; max speed (lo)
+    sta Ram_ActorVelX_i16_0_arr, x
+    lda #0
+    sbc T1  ; max speed (hi)
+    sta Ram_ActorVelX_i16_1_arr, x
+    @done:
+    rts
+_Positive:
+    lda Ram_ActorVelX_i16_0_arr, x
+    cmp T0  ; max speed (lo)
+    lda Ram_ActorVelX_i16_1_arr, x
+    sbc T1  ; max speed (hi)
+    blt @done
+    lda T0  ; max speed (lo)
+    sta Ram_ActorVelX_i16_0_arr, x
+    tya     ; max speed (hi)
+    sta Ram_ActorVelX_i16_1_arr, x
+    @done:
+    rts
+.ENDPROC
+
 ;;; If the actor is facing down, sets its Y-velocity to the given speed; if the
 ;;; actor is facing up, sets it to the negative of that speed.
 ;;; @param YA The speed to set (signed), in subpixels per frame.
@@ -601,6 +640,34 @@ _NotInRoom:
     rts
 .ENDPROC
 
+;;; Accelerates the actor horizontally in the direction the actor is facing.
+;;; @param A The change to velocity, in subpixels per frame (unsigned).
+;;; @param X The actor index.
+;;; @preserve X, Y
+.EXPORT FuncA_Actor_AccelerateForward
+.PROC FuncA_Actor_AccelerateForward
+    sta T0  ; acceleration
+    lda Ram_ActorFlags_bObj_arr, x
+    and #bObj::FlipH
+    beq @accelerateRight
+    @accelerateLeft:
+    lda Ram_ActorVelX_i16_0_arr, x
+    sub T0  ; acceleration
+    sta Ram_ActorVelX_i16_0_arr, x
+    lda Ram_ActorVelX_i16_1_arr, x
+    sbc #0
+    jmp @finish
+    @accelerateRight:
+    lda Ram_ActorVelX_i16_0_arr, x
+    add T0  ; acceleration
+    sta Ram_ActorVelX_i16_0_arr, x
+    lda Ram_ActorVelX_i16_1_arr, x
+    adc #0
+    @finish:
+    sta Ram_ActorVelX_i16_1_arr, x
+    rts
+.ENDPROC
+
 ;;; Accelerates the actor downward, with (effectively) no terminal velocity.
 ;;; @param X The actor index.
 ;;; @preserve X, Y
@@ -631,6 +698,36 @@ _NotInRoom:
     lda T0  ; terminal velocity
     @setVelHi:
     sta Ram_ActorVelY_i16_1_arr, x
+    rts
+.ENDPROC
+
+;;; Checks if the actor has landed on solid terrain.  If so, zeroes the actor's
+;;; vertical velocity, and sets its vertical position to be atop the terrain.
+;;; @param A The bounding box distance below the actor's center.
+;;; @param X The actor index.
+;;; @return C Set if the actor landed, cleared otherwise.
+;;; @preserve X
+.EXPORT FuncA_Actor_LandOnTerrain
+.PROC FuncA_Actor_LandOnTerrain
+    sta T0  ; bounding box down
+    jsr Func_SetPointToActorCenter  ; preserves X
+    lda T0  ; param: bounding box down
+    jsr Func_MovePointDownByA  ; preserves X and T0+
+    jsr Func_PointHitsTerrain  ; preserves X and T0+, returns C
+    bcc @noCollision
+    ;; Move the solifuge upwards to be on top of the floor.
+    lda #0
+    sta Ram_ActorSubY_u8_arr
+    lda Zp_PointY_i16 + 0
+    and #$f0
+    sub T0  ; bounding box down
+    sta Ram_ActorPosY_i16_0_arr, x
+    lda Zp_PointY_i16 + 1
+    sbc #0
+    sta Ram_ActorPosY_i16_1_arr, x
+    jsr FuncA_Actor_ZeroVelY  ; preserves X
+    sec  ; set C to indicate that a collision occurred
+    @noCollision:
     rts
 .ENDPROC
 

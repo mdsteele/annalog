@@ -24,21 +24,18 @@
 .INCLUDE "toad.inc"
 
 .IMPORT FuncA_Actor_ApplyGravity
-.IMPORT FuncA_Actor_CenterHitsTerrain
 .IMPORT FuncA_Actor_FaceTowardsAvatar
 .IMPORT FuncA_Actor_HarmAvatarIfCollision
+.IMPORT FuncA_Actor_LandOnTerrain
 .IMPORT FuncA_Actor_PlaySfxToadJump
-.IMPORT FuncA_Actor_ZeroVelY
 .IMPORT FuncA_Objects_Draw2x2Shape
 .IMPORT FuncA_Objects_MoveShapeUpByA
 .IMPORT FuncA_Objects_SetShapePosToActorCenter
 .IMPORT Func_GetRandomByte
 .IMPORT Func_InitActorWithFlags
 .IMPORT Ram_ActorFlags_bObj_arr
-.IMPORT Ram_ActorPosY_i16_0_arr
 .IMPORT Ram_ActorState1_byte_arr
 .IMPORT Ram_ActorState2_byte_arr
-.IMPORT Ram_ActorSubY_u8_arr
 .IMPORT Ram_ActorVelY_i16_0_arr
 .IMPORT Ram_ActorVelY_i16_1_arr
 
@@ -83,34 +80,30 @@ kPaletteObjToad = 0
 ;;; @preserve X
 .EXPORT FuncA_Actor_TickBadToad
 .PROC FuncA_Actor_TickBadToad
+    jsr FuncA_Actor_HarmAvatarIfCollision  ; preserves X
     lda Ram_ActorState2_byte_arr, x  ; 0 if grounded, 1 if airborne
     beq _IsGrounded
 _IsAirborne:
-    jsr FuncA_Actor_CenterHitsTerrain  ; preserves X, returns C
-    bcs _LandOnGround
     jsr FuncA_Actor_ApplyGravity  ; preserves X
-    jmp FuncA_Actor_HarmAvatarIfCollision  ; preserves X
-_LandOnGround:
+    lda #0  ; param: bounding box down
+    jsr FuncA_Actor_LandOnTerrain  ; preserves X, returns C
+    bcc @done  ; still airborne
     ;; Mark the toad as being grounded.
     lda #0
     sta Ram_ActorState2_byte_arr, x  ; 0 if grounded, 1 if airborne
-    jsr FuncA_Actor_ZeroVelY  ; preserves X
-    ;; Position the toad on top of the terrain block it landed on.
-    sta Ram_ActorSubY_u8_arr, x
-    lda Ram_ActorPosY_i16_0_arr, x
-    and #$f0
-    sta Ram_ActorPosY_i16_0_arr, x
     ;; Set the jump timer.
     jsr Func_GetRandomByte  ; preserves X
     and #$3f
     add #$20
     sta Ram_ActorState1_byte_arr, x  ; jump timer
+    @done:
+    rts
 _IsGrounded:
     ;; Decrement jump timer; jump when it's at zero.
     lda Ram_ActorState1_byte_arr, x  ; jump timer
     beq _StartJump
     dec Ram_ActorState1_byte_arr, x  ; jump timer
-    jmp FuncA_Actor_HarmAvatarIfCollision  ; preserves X
+    rts
 _StartJump:
     ;; TODO: only play sound if the toad is on screen (or nearly)
     jsr FuncA_Actor_PlaySfxToadJump  ; preserves X
@@ -123,7 +116,7 @@ _StartJump:
     ;; Mark the toad as being airborne.
     lda #1
     sta Ram_ActorState2_byte_arr, x  ; 0 if grounded, 1 if airborne
-    jmp FuncA_Actor_HarmAvatarIfCollision  ; preserves X
+    rts
 .ENDPROC
 
 ;;;=========================================================================;;;

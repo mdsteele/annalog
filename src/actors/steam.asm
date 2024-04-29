@@ -21,15 +21,21 @@
 .INCLUDE "../avatar.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
+.INCLUDE "solifuge.inc"
 .INCLUDE "steam.inc"
 
 .IMPORT FuncA_Actor_IsCollidingWithAvatar
+.IMPORT FuncA_Actor_IsCollidingWithOtherActor
 .IMPORT FuncA_Objects_Draw1x2Actor
 .IMPORT FuncA_Objects_Draw2x1Actor
 .IMPORT Func_InitActorDefault
 .IMPORT Ram_ActorFlags_bObj_arr
 .IMPORT Ram_ActorState1_byte_arr
 .IMPORT Ram_ActorType_eActor_arr
+.IMPORT Ram_ActorVelX_i16_0_arr
+.IMPORT Ram_ActorVelX_i16_1_arr
+.IMPORT Ram_ActorVelY_i16_0_arr
+.IMPORT Ram_ActorVelY_i16_1_arr
 .IMPORTZP Zp_AvatarState_bAvatar
 .IMPORTZP Zp_AvatarVelX_i16
 .IMPORTZP Zp_AvatarVelY_i16
@@ -137,7 +143,8 @@ kPaletteObjSteam = 0
     ;; If the player avatar is in the steam, push them sideways.
     jsr FuncA_Actor_IsCollidingWithAvatar  ; preserves X, returns C
     bcc @noPush
-    jsr FuncA_Actor_GetSteamAccel  ; preserves X, returns T0
+    jsr FuncA_Actor_GetSteamAccel  ; preserves X, returns A
+    sta T0
     lda Ram_ActorFlags_bObj_arr, x
     and #bObj::FlipH
     beq @pushRight
@@ -165,15 +172,48 @@ kPaletteObjSteam = 0
 ;;; @preserve X
 .EXPORT FuncA_Actor_TickProjSteamUp
 .PROC FuncA_Actor_TickProjSteamUp
+    jsr FuncA_Actor_GetSteamAccel  ; preserves X, returns A
+    sta T3  ; accel
+_PushSolifuges:
+    ldy #kMaxActors - 1
+    @loop:
+    lda Ram_ActorType_eActor_arr, y
+    ;; Check if this other actor is a solifuge and is in the steam.
+    cmp #eActor::BadSolifuge
+    bne @continue
+    jsr FuncA_Actor_IsCollidingWithOtherActor  ; preserves X, Y, T3+; returns C
+    bcc @continue
+    ;; Accelerate the solifuge doubly upwards.
+    lda Ram_ActorVelY_i16_0_arr, y
+    sub T3  ; accel
+    sta Ram_ActorVelY_i16_0_arr, y
+    lda Ram_ActorVelY_i16_1_arr, y
+    sbc #0
+    sta Ram_ActorVelY_i16_1_arr, y
+    lda Ram_ActorVelY_i16_0_arr, y
+    sub T3  ; accel
+    sta Ram_ActorVelY_i16_0_arr, y
+    lda Ram_ActorVelY_i16_1_arr, y
+    sbc #0
+    sta Ram_ActorVelY_i16_1_arr, y
+    lda #bBadSolifuge::Steamed
+    sta Ram_ActorState1_byte_arr, y  ; bBadSolifuge value
+    lda #0
+    sta Ram_ActorVelX_i16_0_arr, y
+    sta Ram_ActorVelX_i16_1_arr, y
+    @continue:
+    dey
+    .assert kMaxActors <= $80, error
+    bpl @loop
+_PushAvatar:
     ;; If the player avatar is in the steam, push them upwards.
-    jsr FuncA_Actor_IsCollidingWithAvatar  ; preserves X, returns C
+    jsr FuncA_Actor_IsCollidingWithAvatar  ; preserves X and T1+, returns C
     bcc @noPush
     lda Zp_AvatarState_bAvatar
     and #<~bAvatar::Jumping
     sta Zp_AvatarState_bAvatar
-    jsr FuncA_Actor_GetSteamAccel  ; preserves X, returns T0
     lda Zp_AvatarVelY_i16 + 0
-    sub T0  ; accel
+    sub T3  ; accel
     sta Zp_AvatarVelY_i16 + 0
     lda Zp_AvatarVelY_i16 + 1
     sbc #0
@@ -209,22 +249,21 @@ kPaletteObjSteam = 0
 ;;; Determines the acceleration that the specified steam actor should apply to
 ;;; the player avatar, based on its age.
 ;;; @param X The actor index.
-;;; @return T0 The steam's acceleration, in subpixels per frame per frame.
+;;; @return A The steam's acceleration, in subpixels per frame per frame.
 ;;; @preserve X
 .PROC FuncA_Actor_GetSteamAccel
     ldy Ram_ActorState1_byte_arr, x  ; steam age in frames
     lda #kSteamMaxAccel
     cpy #kSteamNumFrames / 4
-    blt @finish
+    blt @done
     div #2
     cpy #kSteamNumFrames / 2
-    blt @finish
+    blt @done
     div #2
     cpy #kSteamNumFrames * 3 / 4
-    blt @finish
+    blt @done
     div #2
-    @finish:
-    sta T0
+    @done:
     rts
 .ENDPROC
 

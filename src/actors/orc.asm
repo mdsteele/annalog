@@ -27,7 +27,9 @@
 .INCLUDE "../tileset.inc"
 .INCLUDE "orc.inc"
 
+.IMPORT FuncA_Actor_AccelerateForward
 .IMPORT FuncA_Actor_ApplyGravityWithTerminalVelocity
+.IMPORT FuncA_Actor_ClampVelX
 .IMPORT FuncA_Actor_FaceTowardsAvatar
 .IMPORT FuncA_Actor_FaceTowardsPoint
 .IMPORT FuncA_Actor_FaceTowardsVelXDir
@@ -36,12 +38,12 @@
 .IMPORT FuncA_Actor_IsAvatarWithinHorzDistance
 .IMPORT FuncA_Actor_IsAvatarWithinVertDistances
 .IMPORT FuncA_Actor_IsPointInRoomBounds
+.IMPORT FuncA_Actor_LandOnTerrain
 .IMPORT FuncA_Actor_MovePointTowardVelXDir
 .IMPORT FuncA_Actor_NegateVelX
 .IMPORT FuncA_Actor_SetPointInFrontOfActor
 .IMPORT FuncA_Actor_SetVelXForward
 .IMPORT FuncA_Actor_ZeroVelX
-.IMPORT FuncA_Actor_ZeroVelY
 .IMPORT FuncA_Objects_BobActorShapePosUpAndDown
 .IMPORT FuncA_Objects_Draw2x2Shape
 .IMPORT FuncA_Objects_GetNpcActorFlags
@@ -57,12 +59,10 @@
 .IMPORT Func_InitActorWithState1
 .IMPORT Func_IsActorWithinHorzDistanceOfPoint
 .IMPORT Func_IsPointInAnySolidPlatform
-.IMPORT Func_MovePointDownByA
 .IMPORT Func_MovePointUpByA
 .IMPORT Func_Noop
 .IMPORT Func_PlaySfxMetallicDing
 .IMPORT Func_PlaySfxSample
-.IMPORT Func_PointHitsTerrain
 .IMPORT Func_SetActorCenterToPoint
 .IMPORT Func_SetMachineIndex
 .IMPORT Func_SetPointToActorCenter
@@ -70,14 +70,11 @@
 .IMPORT Func_SignedDivFrac
 .IMPORT Ram_ActorFlags_bObj_arr
 .IMPORT Ram_ActorPosX_i16_0_arr
-.IMPORT Ram_ActorPosY_i16_0_arr
-.IMPORT Ram_ActorPosY_i16_1_arr
 .IMPORT Ram_ActorState1_byte_arr
 .IMPORT Ram_ActorState2_byte_arr
 .IMPORT Ram_ActorState3_byte_arr
 .IMPORT Ram_ActorState4_byte_arr
 .IMPORT Ram_ActorSubX_u8_arr
-.IMPORT Ram_ActorSubY_u8_arr
 .IMPORT Ram_ActorVelX_i16_0_arr
 .IMPORT Ram_ActorVelX_i16_1_arr
 .IMPORT Ram_ActorVelY_i16_0_arr
@@ -86,7 +83,6 @@
 .IMPORTZP Zp_Current_sTileset
 .IMPORTZP Zp_FrameCounter_u8
 .IMPORTZP Zp_PointX_i16
-.IMPORTZP Zp_PointY_i16
 .IMPORTZP Zp_TerrainColumn_u8_arr_ptr
 
 ;;;=========================================================================;;;
@@ -847,50 +843,10 @@ _IsBlocked:
 ;;; @param X The actor index.
 ;;; @preserve X
 .PROC FuncA_Actor_TickBadOrc_AccelerateForward
-    lda Ram_ActorFlags_bObj_arr, x
-    and #bObj::FlipH
-    beq @accelerateRight
-    @accelerateLeft:
-    lda Ram_ActorVelX_i16_0_arr, x
-    sub #<kOrcChasingHorzAccel
-    sta Ram_ActorVelX_i16_0_arr, x
-    lda Ram_ActorVelX_i16_1_arr, x
-    sbc #>kOrcChasingHorzAccel
-    jmp @finish
-    @accelerateRight:
-    lda Ram_ActorVelX_i16_0_arr, x
-    add #<kOrcChasingHorzAccel
-    sta Ram_ActorVelX_i16_0_arr, x
-    lda Ram_ActorVelX_i16_1_arr, x
-    adc #>kOrcChasingHorzAccel
-    @finish:
-    sta Ram_ActorVelX_i16_1_arr, x
-_ClampVelocity:
-    bmi @negative
-    @positive:
-    lda Ram_ActorVelX_i16_0_arr, x
-    cmp #<kOrcMaxRunSpeed
-    lda Ram_ActorVelX_i16_1_arr, x
-    sbc #>kOrcMaxRunSpeed
-    blt @done
-    lda #<kOrcMaxRunSpeed
-    sta Ram_ActorVelX_i16_0_arr, x
-    lda #>kOrcMaxRunSpeed
-    .assert >kOrcMaxRunSpeed > 0, error
-    bne @setHi  ; unconditional
-    @negative:
-    lda Ram_ActorVelX_i16_0_arr, x
-    cmp #<-kOrcMaxRunSpeed
-    lda Ram_ActorVelX_i16_1_arr, x
-    sbc #>-kOrcMaxRunSpeed
-    bge @done
-    lda #<-kOrcMaxRunSpeed
-    sta Ram_ActorVelX_i16_0_arr, x
-    lda #>-kOrcMaxRunSpeed
-    @setHi:
-    sta Ram_ActorVelX_i16_1_arr, x
-    @done:
-    rts
+    lda #kOrcChasingHorzAccel  ; param: acceleration
+    jsr FuncA_Actor_AccelerateForward  ; preserves X
+    ldya #kOrcMaxRunSpeed  ; param: max speed
+    jmp FuncA_Actor_ClampVelX  ; preserves X
 .ENDPROC
 
 ;;; Performs per-frame updates for an orc or Gronta actor that's airborne.
@@ -898,31 +854,11 @@ _ClampVelocity:
 ;;; @return C Set if the actor has landed on the floor.
 ;;; @preserve X
 .PROC FuncA_Actor_TickOrcAirborne
-_ApplyGravity:
     .assert <kOrcMaxFallSpeed = 0, error
     lda #>kOrcMaxFallSpeed  ; param: terminal velocity
     jsr FuncA_Actor_ApplyGravityWithTerminalVelocity  ; preserves X
-_CheckForFloor:
-    ;; Check if the orc has hit the floor.
-    jsr Func_SetPointToActorCenter  ; preserves X
-    lda #kOrcBoundingBoxDown  ; param: offset
-    jsr Func_MovePointDownByA  ; preserves X
-    jsr Func_PointHitsTerrain  ; preserves X, returns C
-    bcc @noCollision
-    ;; Move the orc upwards to be on top of the floor.
-    lda #0
-    sta Ram_ActorSubY_u8_arr
-    lda Zp_PointY_i16 + 0
-    and #$f0
-    sub #kOrcBoundingBoxDown
-    sta Ram_ActorPosY_i16_0_arr, x
-    lda Zp_PointY_i16 + 1
-    sbc #0
-    sta Ram_ActorPosY_i16_1_arr, x
-    jsr FuncA_Actor_ZeroVelY
-    sec  ; set C to indicate that a collision occurred
-    @noCollision:
-    rts
+    lda #kOrcBoundingBoxDown  ; param: bounding box down
+    jmp FuncA_Actor_LandOnTerrain  ; preserves X, returns C
 .ENDPROC
 
 ;;;=========================================================================;;;
