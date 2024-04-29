@@ -29,6 +29,7 @@
 .INCLUDE "../oam.inc"
 .INCLUDE "../platform.inc"
 .INCLUDE "../platforms/lava.inc"
+.INCLUDE "../ppu.inc"
 .INCLUDE "../program.inc"
 .INCLUDE "../room.inc"
 
@@ -45,9 +46,11 @@
 .IMPORT FuncA_Room_ResetLever
 .IMPORT FuncA_Room_TurnSteamToSmokeIfConsoleOpen
 .IMPORT FuncA_Terrain_FadeInTallRoomWithLava
+.IMPORT Func_DistanceSensorRightDetectPoint
 .IMPORT Func_EmitSteamUpFromPipe
 .IMPORT Func_MachineBoilerReadReg
 .IMPORT Func_Noop
+.IMPORT Func_SetPointToAvatarCenter
 .IMPORT Ppu_ChrObjLava
 .IMPORT Ram_MachineGoalHorz_u8_arr
 .IMPORTZP Zp_RoomState
@@ -62,9 +65,10 @@ kBoilerMachineIndex = 0
 
 ;;; Platform indices for various parts of the LavaWestBoiler machine.
 kBoilerPlatformIndex = 0
-kValvePlatformIndex  = 1
-kPipe1PlatformIndex  = 2
-kPipe2PlatformIndex  = 3
+kSensorPlatformIndex = 1
+kValvePlatformIndex  = 2
+kPipe1PlatformIndex  = 3
+kPipe2PlatformIndex  = 4
 
 ;;;=========================================================================;;;
 
@@ -117,7 +121,7 @@ _Machines_sMachine_arr:
     d_byte Status_eDiagram, eDiagram::Boiler
     d_word ScrollGoalX_u16, $108
     d_byte ScrollGoalY_u8, $48
-    d_byte RegNames_u8_arr4, "L", 0, "V", 0
+    d_byte RegNames_u8_arr4, "L", "D", "V", 0
     d_byte MainPlatform_u8, kBoilerPlatformIndex
     d_addr Init_func_ptr, Func_Noop
     d_addr ReadReg_func_ptr, FuncC_Lava_WestBoiler_ReadReg
@@ -137,6 +141,14 @@ _Platforms_sPlatform_arr:
     d_byte HeightPx_u8, $10
     d_word Left_i16,  $0180
     d_word Top_i16,   $00c0
+    D_END
+    .assert * - :- = kSensorPlatformIndex * .sizeof(sPlatform), error
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Zone
+    d_word WidthPx_u16, $08
+    d_byte HeightPx_u8, $10
+    d_word Left_i16,  $0138
+    d_word Top_i16,   $00a0
     D_END
     .assert * - :- = kValvePlatformIndex * .sizeof(sPlatform), error
     D_STRUCT sPlatform
@@ -211,7 +223,7 @@ _Actors_sActor_arr:
     d_byte Type_eActor, eActor::BadHotheadVert
     d_word PosX_i16, $0138
     d_word PosY_i16, $0038
-    d_byte Param_byte, bObj::FlipH
+    d_byte Param_byte, bObj::FlipHV
     D_END
     D_STRUCT sActor
     d_byte Type_eActor, eActor::BadHotheadHorz
@@ -290,11 +302,21 @@ _Passages_sPassage_arr:
 .ENDPROC
 
 .PROC FuncC_Lava_WestBoiler_ReadReg
-    cmp #$c
-    beq _ReadL
+    cmp #$d
+    blt _ReadL
+    beq _ReadD
     jmp Func_MachineBoilerReadReg
 _ReadL:
     lda Zp_RoomState + sState::Lever_u8
+    rts
+_ReadD:
+    lda #kBlockWidthPx * 9
+    sta T0  ; param: minimum distance so far, in pixels
+    ldy #kSensorPlatformIndex  ; param: distance sensor platform index
+    jsr Func_SetPointToAvatarCenter  ; preserves Y and T0+
+    jsr Func_DistanceSensorRightDetectPoint  ; preserves Y, returns T0
+    lda T0  ; minimum distance so far, in pixels
+    div #kBlockWidthPx
     rts
 .ENDPROC
 
