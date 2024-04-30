@@ -35,10 +35,10 @@
 .PROC DataC_Lava_Tunnel_sRoom
     D_STRUCT sRoom
     d_byte MinScrollX_u8, $0
-    d_word MaxScrollX_u16, $100
+    d_word MaxScrollX_u16, $0
     d_byte Flags_bRoom, eArea::Lava
     d_byte MinimapStartRow_u8, 12
-    d_byte MinimapStartCol_u8, 18
+    d_byte MinimapStartCol_u8, 19
     d_addr TerrainData_ptr, _TerrainData
     d_byte NumMachines_u8, 0
     d_addr Machines_sMachine_arr_ptr, 0
@@ -59,7 +59,7 @@ _Ext_sRoomExt:
     D_END
 _TerrainData:
 :   .incbin "out/rooms/lava_tunnel.room"
-    .assert * - :- = 33 * 15, error
+    .assert * - :- = 17 * 15, error
 _Passages_sPassage_arr:
 :   D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Eastern | 0
