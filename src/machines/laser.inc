@@ -24,7 +24,6 @@
 ;;;     will be red; if odd, the laser beam will be green.
 ;;;   * State2: The lo byte of the Y-position for the bottom of the laser beam.
 ;;;   * State3: The hi byte of the Y-position for the bottom of the laser beam.
-;;;   * State4: Unused.
 
 ;;; The size of a laser machine's main platform, in pixels.
 kLaserMachineWidthPx  = $10

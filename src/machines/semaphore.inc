@@ -24,7 +24,6 @@
 ;;;   * State2: The current bSemaphoreFlag state for the upper flag.
 ;;;   * State3: The current upward vertical offset of the movable actuator, in
 ;;;     pixels (0-16).
-;;;   * State4: Unused.
 
 ;;; The number of digits in the combination key that must be transferred by
 ;;; semaphore.

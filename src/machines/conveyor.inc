@@ -26,7 +26,6 @@
 ;;;   * State2: True ($ff) if the player avatar is currently standing on one of
 ;;;     this machine's conveyor belt platforms, false ($00) otherwise.
 ;;;   * State3: Unused.
-;;;   * State4: Unused.
 
 ;;; The size of conveyor machine's main platform, in pixels.
 kConveyorMainPlatformWidthPx  = $08

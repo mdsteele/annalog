@@ -23,7 +23,6 @@
 ;;;     way up).
 ;;;   * State2: Unused.
 ;;;   * State3: Unused.
-;;;   * State4: Unused.
 
 ;;; The CHR bank numbers containing the diagrams for cannon machines.
 kChrBankDiagramCannonLeft  = $04

@@ -114,8 +114,6 @@ Ram_MachineState1_byte_arr: .res kMaxMachines
 Ram_MachineState2_byte_arr: .res kMaxMachines
 .EXPORT Ram_MachineState3_byte_arr
 Ram_MachineState3_byte_arr: .res kMaxMachines
-.EXPORT Ram_MachineState4_byte_arr
-Ram_MachineState4_byte_arr: .res kMaxMachines
 
 ;;;=========================================================================;;;
 
@@ -315,7 +313,6 @@ _ReadRegB:
     sta Ram_MachineState1_byte_arr, x
     sta Ram_MachineState2_byte_arr, x
     sta Ram_MachineState3_byte_arr, x
-    sta Ram_MachineState4_byte_arr, x
     ;; Initialize any machine-specific state.
     ldy #sMachine::Init_func_ptr  ; param: function pointer offset
     jsr Func_MachineCall

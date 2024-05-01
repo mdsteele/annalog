@@ -23,7 +23,6 @@
 ;;;   * State2: The current angle of valve #2, which tends toward
 ;;;     MachineGoalVert * kBoilerValveAnimSlowdown.
 ;;;   * State3: A cooldown timer for drawing the ignition flame.
-;;;   * State4: Unused.
 
 ;;; The number of frames between valve angles when animating a boiler valve.
 .DEFINE kBoilerValveAnimSlowdown 4

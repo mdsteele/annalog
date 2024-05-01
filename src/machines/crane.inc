@@ -21,7 +21,6 @@
 ;;;   * State1: Unused.
 ;;;   * State2: Unused.
 ;;;   * State3: Unused.
-;;;   * State4: Unused.
 
 ;;; How many frames the crane machine spends per act operation.
 kCraneActCooldown = 8

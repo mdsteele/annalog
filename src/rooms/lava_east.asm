@@ -34,19 +34,17 @@
 .INCLUDE "../room.inc"
 
 .IMPORT DataA_Room_Lava_sTileset
-.IMPORT FuncA_Machine_BlasterTickMirrors
-.IMPORT FuncA_Machine_BlasterVertTryAct
-.IMPORT FuncA_Machine_BlasterWriteRegMirrors
+.IMPORT FuncA_Machine_BlasterTick
+.IMPORT FuncA_Machine_BlasterTryAct
+.IMPORT FuncA_Machine_BlasterWriteRegM
 .IMPORT FuncA_Machine_BoilerFinishEmittingSteam
 .IMPORT FuncA_Machine_BoilerTick
 .IMPORT FuncA_Machine_BoilerWriteReg
 .IMPORT FuncA_Machine_Error
-.IMPORT FuncA_Machine_GenericMoveTowardGoalHorz
 .IMPORT FuncA_Machine_GenericTryMoveX
-.IMPORT FuncA_Machine_ReachedGoal
 .IMPORT FuncA_Machine_WriteToLever
 .IMPORT FuncA_Objects_AnimateLavaTerrain
-.IMPORT FuncA_Objects_DrawBlasterMachineVert
+.IMPORT FuncA_Objects_DrawBlasterMachine
 .IMPORT FuncA_Objects_DrawBlasterMirror
 .IMPORT FuncA_Objects_DrawBoilerMachine
 .IMPORT FuncA_Objects_DrawBoilerValve1
@@ -59,7 +57,7 @@
 .IMPORT FuncA_Terrain_FadeInTallRoomWithLava
 .IMPORT Func_EmitSteamRightFromPipe
 .IMPORT Func_EmitSteamUpFromPipe
-.IMPORT Func_MachineBlasterReadRegMirrors
+.IMPORT Func_MachineBlasterReadRegM
 .IMPORT Func_MachineBoilerReadReg
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrObjLava
@@ -117,10 +115,6 @@ kBlasterMinPlatformLeft = $00b0
 kBlasterInitPlatformLeft = \
     kBlasterMinPlatformLeft + kBlasterInitGoalX * kBlockWidthPx
 .LINECONT -
-
-;;; The mirrors' offsets from relative to absolute angles, in increments of
-;;; tau/16.
-kMirrorAngleOffset = 7
 
 ;;;=========================================================================;;;
 
@@ -181,7 +175,7 @@ _Machines_sMachine_arr:
     d_addr ReadReg_func_ptr, FuncC_Lava_EastBlaster_ReadReg
     d_addr WriteReg_func_ptr, FuncA_Machine_LavaEastBlaster_WriteReg
     d_addr TryMove_func_ptr, FuncA_Machine_LavaEastBlaster_TryMove
-    d_addr TryAct_func_ptr, FuncA_Machine_BlasterVertTryAct
+    d_addr TryAct_func_ptr, FuncA_Machine_BlasterTryAct
     d_addr Tick_func_ptr, FuncA_Machine_LavaEastBlaster_Tick
     d_addr Draw_func_ptr, FuncC_Lava_EastBlaster_Draw
     d_addr Reset_func_ptr, FuncA_Room_LavaEastBlaster_Reset
@@ -470,7 +464,7 @@ _Passages_sPassage_arr:
     bge _ReadL
     cmp #$d
     beq _ReadU
-    jmp Func_MachineBlasterReadRegMirrors
+    jmp Func_MachineBlasterReadRegM
 _ReadL:
     lda Zp_RoomState + sState::MiddleLeverL_u8
     rts
@@ -500,22 +494,15 @@ _ReadL:
 
 .PROC FuncC_Lava_EastBlaster_Draw
 _Mirrors:
-    lda Ram_MachineState3_byte_arr + kBlasterMachineIndex  ; mirror 1 anim
-    div #kBlasterMirrorAnimSlowdown
-    add #kMirrorAngleOffset
-    sta T2  ; absolute mirror angle
     ldx #kMirror3PlatformIndex
     @loop:
-    stx T3  ; platform index
-    lda T2  ; param: absolute mirror angle
-    jsr FuncA_Objects_DrawBlasterMirror  ; preserves T2+
-    ldx T3  ; platform index
+    jsr FuncA_Objects_DrawBlasterMirror  ; preserves X
     dex
     .assert kMirror1PlatformIndex > 0, error
     cpx #kMirror1PlatformIndex
     bge @loop
 _Blaster:
-    jmp FuncA_Objects_DrawBlasterMachineVert
+    jmp FuncA_Objects_DrawBlasterMachine
 .ENDPROC
 
 .PROC FuncC_Lava_EastUpperBoiler_Draw
@@ -535,14 +522,10 @@ _Blaster:
     lda #eActor::ProjFireblast  ; param: projectile type
     jsr FuncA_Room_TurnProjectilesToSmokeIfConsoleOpen
 _Mirrors:
-    lda Ram_MachineState3_byte_arr + kBlasterMachineIndex  ; mirror anim
-    div #kBlasterMirrorAnimSlowdown
-    add #kMirrorAngleOffset
-    sta T5  ; absolute mirror angle (in tau/16 units)
-    ldy #kMirror3PlatformIndex
+    ldx #kBlasterMachineIndex  ; param: blaster machine index
+    ldy #kMirror3PlatformIndex  ; param: mirror platform index
     @loop:
-    lda T5  ; param: absolute mirror angle (in tau/16 units)
-    jsr FuncA_Room_ReflectFireblastsOffMirror  ; preserves Y and T5+
+    jsr FuncA_Room_ReflectFireblastsOffMirror  ; preserves X and Y
     dey
     .assert kMirror1PlatformIndex > 0, error
     cpy #kMirror1PlatformIndex
@@ -587,7 +570,7 @@ _Mirrors:
     cpx #$d
     beq _WriteU
     bge _WriteL
-    jmp FuncA_Machine_BlasterWriteRegMirrors
+    jmp FuncA_Machine_BlasterWriteRegM
 _WriteU:
     ldx #kMiddleLeverUDeviceIndex  ; param: device index
     jmp FuncA_Machine_WriteToLever
@@ -617,12 +600,7 @@ _WriteL:
 
 .PROC FuncA_Machine_LavaEastBlaster_Tick
     ldax #kBlasterMinPlatformLeft  ; param: min platform left
-    jsr FuncA_Machine_GenericMoveTowardGoalHorz  ; returns A
-    sta T1  ; nonzero if moved
-    jsr FuncA_Machine_BlasterTickMirrors  ; preserves T1+, returns A
-    ora T1  ; nonzero if moved
-    jeq FuncA_Machine_ReachedGoal
-    rts
+    jmp FuncA_Machine_BlasterTick
 .ENDPROC
 
 ;;; TryAct implemention for the LavaEastUpperBoiler machine.

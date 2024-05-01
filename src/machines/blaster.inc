@@ -19,12 +19,11 @@
 
 ;;; State bytes for blaster machines:
 ;;;   * Slowdown: Unused.
-;;;   * State1: The relative goal angle for mirror #1, in increments of tau/16.
-;;;   * State2: The relative goal angle for mirror #2, in increments of tau/16.
-;;;   * State3: The current animation angle for mirror #1, which ticks each
+;;;   * State1: The relative goal angle for the mirrors, in increments of
+;;;     tau/16.
+;;;   * State2: Unused.
+;;;   * State3: The current animation angle for the mirrors, which ticks each
 ;;;     frame toward (State1 * kBlasterMirrorAnimSlowdown).
-;;;   * State4: The current animation angle for mirror #2, which ticks each
-;;;     frame toward (State2 * kBlasterMirrorAnimSlowdown).
 
 ;;; The size of a blaster machine's main platform, in pixels.
 kBlasterMachineWidthPx  = $10

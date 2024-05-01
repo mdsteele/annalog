@@ -22,7 +22,6 @@
 ;;;     slot number N.
 ;;;   * State2: Unused.
 ;;;   * State3: Unused.
-;;;   * State4: Unused.
 
 ;;; How many ammo slots are in an ammo rack machine.
 kNumAmmoRackSlots = 3

@@ -25,6 +25,8 @@
 .INCLUDE "blaster.inc"
 .INCLUDE "shared.inc"
 
+.IMPORT FuncA_Machine_GenericMoveTowardGoalHorz
+.IMPORT FuncA_Machine_ReachedGoal
 .IMPORT FuncA_Machine_StartWaiting
 .IMPORT FuncA_Machine_StartWorking
 .IMPORT FuncA_Objects_Alloc2x2MachineShape
@@ -35,7 +37,6 @@
 .IMPORT Func_InitActorProjFireblast
 .IMPORT Func_IsPointInPlatform
 .IMPORT Func_MovePointDownByA
-.IMPORT Func_MovePointHorz
 .IMPORT Func_PlaySfxShootFire
 .IMPORT Func_ReinitActorProjFireblastVelocity
 .IMPORT Func_SetActorCenterToPoint
@@ -45,9 +46,7 @@
 .IMPORT Ram_ActorState3_byte_arr
 .IMPORT Ram_ActorType_eActor_arr
 .IMPORT Ram_MachineState1_byte_arr
-.IMPORT Ram_MachineState2_byte_arr
 .IMPORT Ram_MachineState3_byte_arr
-.IMPORT Ram_MachineState4_byte_arr
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORTZP Zp_ConsoleMachineIndex_u8
 .IMPORTZP Zp_Current_sMachine_ptr
@@ -62,28 +61,24 @@ kBlasterProjectileOffset = 9
 ;;; How many frames a blaster machine spends per ACT operation.
 kBlasterActCountdown = $60
 
+;;; The offset from relative to absolute angles for blaster mirrors, in
+;;; increments of tau/16.
+kMirrorAngleOffset = 7
+
 ;;; Various OBJ tile IDs used for drawing blaster machines.
-kTileIdObjBlasterBarrelVert = kTileIdObjBlasterFirst + 0
-kTileIdObjBlasterBarrelHorz = kTileIdObjBlasterFirst + 1
+kTileIdObjBlasterBarrel = kTileIdObjBlasterFirst + 0
 
 ;;;=========================================================================;;;
 
 .SEGMENT "PRG8"
 
-;;; ReadReg implemention for a blaster machine's mirrors.
+;;; ReadReg implemention for a blaster machine's M (mirror) register.
 ;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
-;;; @param A The mirror register to read ($c or $d).
 ;;; @return A The value of the register (0-9).
-.EXPORT Func_MachineBlasterReadRegMirrors
-.PROC Func_MachineBlasterReadRegMirrors
+.EXPORT Func_MachineBlasterReadRegM
+.PROC Func_MachineBlasterReadRegM
     ldx Zp_MachineIndex_u8
-    cmp #$0d
-    beq @mirror2
-    @mirror1:
     lda Ram_MachineState1_byte_arr, x
-    rts
-    @mirror2:
-    lda Ram_MachineState2_byte_arr, x
     rts
 .ENDPROC
 
@@ -91,24 +86,15 @@ kTileIdObjBlasterBarrelHorz = kTileIdObjBlasterFirst + 1
 
 .SEGMENT "PRGA_Machine"
 
-;;; WriteReg implemention for a blaster machine's mirrors.
+;;; WriteReg implemention for a blaster machine's M (mirror) register.
 ;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
 ;;; @param A The value to write (0-9).
-;;; @param X The register to write to ($c or $d).
-.EXPORT FuncA_Machine_BlasterWriteRegMirrors
-.PROC FuncA_Machine_BlasterWriteRegMirrors
+.EXPORT FuncA_Machine_BlasterWriteRegM
+.PROC FuncA_Machine_BlasterWriteRegM
     ldy Zp_MachineIndex_u8
-    cpx #$0d
-    beq @mirror2
-    @mirror1:
     cmp Ram_MachineState1_byte_arr, y
     beq @done
     sta Ram_MachineState1_byte_arr, y
-    jmp FuncA_Machine_StartWorking
-    @mirror2:
-    cmp Ram_MachineState2_byte_arr, y
-    beq @done
-    sta Ram_MachineState2_byte_arr, y
     jmp FuncA_Machine_StartWorking
     @done:
     rts
@@ -116,54 +102,20 @@ kTileIdObjBlasterBarrelHorz = kTileIdObjBlasterFirst + 1
 
 ;;; TryAct implemention for vertical blaster machines.
 ;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
-.EXPORT FuncA_Machine_BlasterVertTryAct
-.PROC FuncA_Machine_BlasterVertTryAct
+.EXPORT FuncA_Machine_BlasterTryAct
+.PROC FuncA_Machine_BlasterTryAct
+    jsr Func_FindEmptyActorSlot  ; returns C and X
+    bcs _Finish
+_InitProjectile:
     ldy #sMachine::MainPlatform_u8
     lda (Zp_Current_sMachine_ptr), y
     tay  ; param: platform index
     jsr Func_SetPointToPlatformCenter  ; preserves X
     lda #kBlasterProjectileOffset  ; param: offset
     jsr Func_MovePointDownByA  ; preserves X
-    ldy #$40  ; param: projectile angle
-    bne FuncA_Machine_BlasterShootFireblast  ; unconditional
-.ENDPROC
-
-;;; TryAct implemention for horizontal blaster machines.
-;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
-.EXPORT FuncA_Machine_BlasterHorzTryAct
-.PROC FuncA_Machine_BlasterHorzTryAct
-    ldy #sMachine::MainPlatform_u8
-    lda (Zp_Current_sMachine_ptr), y
-    tay  ; param: platform index
-    jsr Func_SetPointToPlatformCenter  ; preserves X
-    ldy #sMachine::Flags_bMachine
-    lda (Zp_Current_sMachine_ptr), y
-    and #bMachine::FlipH
-    beq @shootRight
-    @shootLeft:
-    ldy #$80  ; projectile angle
-    lda #<-kBlasterProjectileOffset  ; param: offset
-    bmi @movePoint  ; unconditional
-    @shootRight:
-    ldy #$00  ; projectile angle
-    lda #kBlasterProjectileOffset  ; param: offset
-    @movePoint:
-    jsr Func_MovePointHorz  ; preserves X and Y
-    .assert * = FuncA_Machine_BlasterShootFireblast, error, "fallthrough"
-.ENDPROC
-
-;;; Shoots a fireblast from a blaster machine, and makes the machine starting
-;;; waiting for a bit.
-;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
-;;; @prereq Zp_Point* stores the starting position of the fireblast.
-;;; @param Y The angle to fire at, measured in increments of tau/256.
-.PROC FuncA_Machine_BlasterShootFireblast
-    jsr Func_FindEmptyActorSlot  ; preserves Y, returns C and X
-    bcs _Finish
-_InitProjectile:
-    jsr Func_SetActorCenterToPoint  ; preserves X and Y
-    tya  ; param: projectile angle
-    jsr Func_InitActorProjFireblast
+    jsr Func_SetActorCenterToPoint  ; preserves X
+    lda #$40  ; param: projectile angle
+    jsr Func_InitActorProjFireblast  ; preserves X
     ;; If the console is active, then we must be debugging, so immediately
     ;; replace the fireblast with a smoke particle (so as to dry-fire the
     ;; blaster).
@@ -181,20 +133,18 @@ _Finish:
     jmp FuncA_Machine_StartWaiting
 .ENDPROC
 
-;;; Tick implemention for blaster machine mirrors.
+;;; Tick implemention for vertical blaster machines.
 ;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
-;;; @return A The number of mirrors that moved.
-;;; @return Z Set if no mirrors moved.
-;;; @preserve T1+
-.EXPORT FuncA_Machine_BlasterTickMirrors
-.PROC FuncA_Machine_BlasterTickMirrors
-    lda #0
-    sta T0  ; num mirrors moved
+;;; @param AX The minimum platform left position for the machine.
+.EXPORT FuncA_Machine_BlasterTick
+.PROC FuncA_Machine_BlasterTick
+    jsr FuncA_Machine_GenericMoveTowardGoalHorz  ; returns A
+    sta T0  ; nonzero if moved
+_TickMirrors:
     ldx Zp_MachineIndex_u8
-_Mirror1:
-    lda Ram_MachineState1_byte_arr, x  ; mirror 1 goal
+    lda Ram_MachineState1_byte_arr, x  ; mirror goal
     mul #kBlasterMirrorAnimSlowdown
-    cmp Ram_MachineState3_byte_arr, x  ; mirror 1 animation angle
+    cmp Ram_MachineState3_byte_arr, x  ; mirror animation angle
     beq @done
     blt @decrement
     @increment:
@@ -203,24 +153,11 @@ _Mirror1:
     @decrement:
     dec Ram_MachineState3_byte_arr, x  ; mirror 1 animation angle
     @moved:
-    inc T0  ; num mirrors moved
+    inc T0  ; nonzero if moved
     @done:
-_Mirror2:
-    lda Ram_MachineState2_byte_arr, x  ; mirror 2 goal
-    mul #kBlasterMirrorAnimSlowdown
-    cmp Ram_MachineState4_byte_arr, x  ; mirror 2 animation angle
-    beq @done
-    blt @decrement
-    @increment:
-    inc Ram_MachineState4_byte_arr, x  ; mirror 2 animation angle
-    bne @moved  ; unconditional
-    @decrement:
-    dec Ram_MachineState4_byte_arr, x  ; mirror 2 animation angle
-    @moved:
-    inc T0  ; num mirrors moved
-    @done:
-_Finish:
-    lda T0  ; num mirrors moved
+_CheckIfReachedGoal:
+    lda T0  ; nonzero if moved
+    jeq FuncA_Machine_ReachedGoal
     rts
 .ENDPROC
 
@@ -230,11 +167,15 @@ _Finish:
 
 ;;; Checks if any fireblasts are hitting the specified mirror, and if so,
 ;;; reflects them off of the mirror.
-;;; @param A The absolute mirror angle, in increments of tau/16.
+;;; @param X The machine index for the blaster that controls this mirror.
 ;;; @param Y The platform index for the mirror.
-;;; @preserve Y, T5+
+;;; @preserve X, Y
 .EXPORT FuncA_Room_ReflectFireblastsOffMirror
 .PROC FuncA_Room_ReflectFireblastsOffMirror
+    stx T5  ; blaster machine index
+    lda Ram_MachineState3_byte_arr, x  ; mirror anim
+    div #kBlasterMirrorAnimSlowdown
+    add #kMirrorAngleOffset
     mul #$10
     sta T4  ; absolute mirror angle (in tau/256 units)
     ldx #kMaxActors - 1
@@ -284,6 +225,7 @@ _Continue:
     dex
     .assert kMaxActors <= $80, error
     bpl _Loop
+    ldx T5  ; blaster machine index
     rts
 .ENDPROC
 
@@ -291,32 +233,10 @@ _Continue:
 
 .SEGMENT "PRGA_Objects"
 
-;;; Draw implemention for horizontal blaster machines.
-;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
-.EXPORT FuncA_Objects_DrawBlasterMachineHorz
-.PROC FuncA_Objects_DrawBlasterMachineHorz
-    lda #kPaletteObjMachineLight  ; param: object flags
-    jsr FuncA_Objects_Alloc2x2MachineShape  ; returns C, A, and Y
-    bcs @done
-    eor #bObj::FlipH
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Flags_bObj, y
-    eor #bObj::FlipHV
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Flags_bObj, y
-    jsr FuncA_Objects_GetMachineLightTileId  ; preserves Y, returns A
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Tile_u8, y
-    lda #kTileIdObjMachineCorner
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Tile_u8, y
-    lda #kTileIdObjBlasterBarrelHorz
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Tile_u8, y
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Tile_u8, y
-    @done:
-    rts
-.ENDPROC
-
 ;;; Draw implemention for vertical blaster machines.
 ;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
-.EXPORT FuncA_Objects_DrawBlasterMachineVert
-.PROC FuncA_Objects_DrawBlasterMachineVert
+.EXPORT FuncA_Objects_DrawBlasterMachine
+.PROC FuncA_Objects_DrawBlasterMachine
     lda #kPaletteObjMachineLight  ; param: object flags
     jsr FuncA_Objects_Alloc2x2MachineShape  ; returns C, A, and Y
     bcs @done
@@ -329,7 +249,7 @@ _Continue:
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Tile_u8, y
     jsr FuncA_Objects_GetMachineLightTileId  ; preserves Y, returns A
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Tile_u8, y
-    lda #kTileIdObjBlasterBarrelVert
+    lda #kTileIdObjBlasterBarrel
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Tile_u8, y
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Tile_u8, y
     @done:
@@ -337,23 +257,28 @@ _Continue:
 .ENDPROC
 
 ;;; Draws a mirror that can reflect blaster machine projectiles.
-;;; @param A The absolute mirror angle, in increments of tau/16.
+;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
 ;;; @param X The platform index for the mirror.
-;;; @preserve T2+
+;;; @preserve X, T2+
 .EXPORT FuncA_Objects_DrawBlasterMirror
 .PROC FuncA_Objects_DrawBlasterMirror
-    tay  ; mirror angle
-    jsr FuncA_Objects_SetShapePosToPlatformTopLeft  ; preserves Y and T0+
-    tya  ; mirror angle
+    stx T0  ; mirror platform index
+    jsr FuncA_Objects_SetShapePosToPlatformTopLeft  ; preserves T0+
+    ldy Zp_MachineIndex_u8
+    lda Ram_MachineState3_byte_arr, y  ; mirror anim
+    div #kBlasterMirrorAnimSlowdown
+    add #kMirrorAngleOffset
+    tay  ; absolute mirror angle (in increments of tau/16)
     div #4
     and #$03
     tax
-    tya  ; mirror angle
+    tya  ; absolute mirror angle (in increments of tau/16)
     ldy _Flags_bObj_arr4, x  ; param: object flags
     and #$07
     tax  ; mirror angle (mod 8)
     lda _TileId_u8_arr8, x  ; param: tile ID
-    jmp FuncA_Objects_Draw1x1Shape  ; preserves T2+
+    ldx T0  ; mirror platform index
+    jmp FuncA_Objects_Draw1x1Shape  ; preserves X and T2+
 _TileId_u8_arr8:
     .byte kTileIdObjMirrorFirst + 0
     .byte kTileIdObjMirrorFirst + 1

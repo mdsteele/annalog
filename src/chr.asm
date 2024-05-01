@@ -1113,6 +1113,7 @@ _chr_begin:
     chr_inc "launcher_horz",        kTileIdObjLauncherHorzFirst
     chr_inc "boulder",              kTileIdObjBoulderFirst
     chr_inc "blaster",              kTileIdObjBlasterFirst
+    chr_res $01
     chr_inc "fireblast",            kTileIdObjFireblastFirst
     chr_inc "platform_city_walls",  kTileIdObjPlatformCityWalls
     chr_inc "outbreak_obj",         kTileIdObjOutbreakFirst
@@ -1146,6 +1147,7 @@ _chr_begin:
     chr_res $02
     chr_inc "eirene_parley",       kTileIdObjEireneParleyFirst
     chr_inc "blaster",             kTileIdObjBlasterFirst
+    chr_res $01
     chr_inc "fireblast",           kTileIdObjFireblastFirst
     chr_inc "orc_gronta_parley",   kTileIdObjOrcGrontaParleyFirst
     chr_inc "orc_gronta_standing", kTileIdObjOrcGrontaStandingFirst
@@ -1275,6 +1277,7 @@ _chr_begin:
     chr_inc "boiler_flame",      kTileIdObjBoilerFlameFirst
     chr_res $0a
     chr_inc "blaster",           kTileIdObjBlasterFirst
+    chr_res $01
     chr_inc "fireblast",         kTileIdObjFireblastFirst
     chr_res $04
     chr_inc "bad_hothead",       kTileIdObjBadHotheadFirst

@@ -21,7 +21,6 @@
 ;;;   * State1: Unused.
 ;;;   * State2: Unused.
 ;;;   * State3: Unused.
-;;;   * State4: Unused.
 
 ;;; The CHR bank number containing the diagram for multiplexer machines.
 kChrBankDiagramMultiplexer = $0d

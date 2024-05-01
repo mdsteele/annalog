@@ -24,7 +24,6 @@
 ;;;     minigun fires a shot.  Used to animate the rotation of the minigun
 ;;;     barrel.
 ;;;   * State3: Unused.
-;;;   * State4: Unused.
 
 ;;; The size of a minigun machine's main platform, in pixels.
 kMinigunMachineWidthPx  = $20

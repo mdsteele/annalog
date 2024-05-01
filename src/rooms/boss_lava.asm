@@ -39,19 +39,18 @@
 
 .IMPORT DataA_Room_Lava_sTileset
 .IMPORT Data_Empty_sActor_arr
-.IMPORT FuncA_Machine_BlasterVertTryAct
+.IMPORT FuncA_Machine_BlasterTick
+.IMPORT FuncA_Machine_BlasterTryAct
 .IMPORT FuncA_Machine_BoilerFinishEmittingSteam
 .IMPORT FuncA_Machine_BoilerTick
 .IMPORT FuncA_Machine_BoilerWriteReg
 .IMPORT FuncA_Machine_Error
-.IMPORT FuncA_Machine_GenericMoveTowardGoalHorz
 .IMPORT FuncA_Machine_GenericTryMoveX
-.IMPORT FuncA_Machine_ReachedGoal
 .IMPORT FuncA_Machine_WriteToLever
 .IMPORT FuncA_Objects_Alloc2x1Shape
 .IMPORT FuncA_Objects_AnimateLavaTerrain
 .IMPORT FuncA_Objects_Draw1x1Shape
-.IMPORT FuncA_Objects_DrawBlasterMachineVert
+.IMPORT FuncA_Objects_DrawBlasterMachine
 .IMPORT FuncA_Objects_DrawBoilerMachine
 .IMPORT FuncA_Objects_DrawBoilerValve1
 .IMPORT FuncA_Objects_DrawBoss
@@ -302,9 +301,9 @@ _Machines_sMachine_arr:
     d_addr ReadReg_func_ptr, FuncC_Boss_LavaBlaster_ReadReg
     d_addr WriteReg_func_ptr, FuncA_Machine_BossLava_WriteRegLR
     d_addr TryMove_func_ptr, FuncA_Machine_BossLavaBlaster_TryMove
-    d_addr TryAct_func_ptr, FuncA_Machine_BlasterVertTryAct
+    d_addr TryAct_func_ptr, FuncA_Machine_BlasterTryAct
     d_addr Tick_func_ptr, FuncA_Machine_BossLavaBlaster_Tick
-    d_addr Draw_func_ptr, FuncA_Objects_DrawBlasterMachineVert
+    d_addr Draw_func_ptr, FuncA_Objects_DrawBlasterMachine
     d_addr Reset_func_ptr, FuncA_Room_BossLavaBlaster_InitReset
     D_END
     .assert * - :- = kBoilerMachineIndex * .sizeof(sMachine), error
@@ -1041,9 +1040,7 @@ _WriteR:
 
 .PROC FuncA_Machine_BossLavaBlaster_Tick
     ldax #kBlasterMinPlatformLeft  ; param: min platform left
-    jsr FuncA_Machine_GenericMoveTowardGoalHorz  ; returns A
-    jeq FuncA_Machine_ReachedGoal
-    rts
+    jmp FuncA_Machine_BlasterTick
 .ENDPROC
 
 .PROC FuncA_Machine_BossLavaBoiler_TryAct

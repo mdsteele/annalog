@@ -21,7 +21,6 @@
 ;;;   * State1: Unused.
 ;;;   * State2: Unused.
 ;;;   * State3: Unused.
-;;;   * State4: Unused.
 
 ;;; The size of a jet machine's main platform, in pixels.
 kJetPlatformWidthPx  = $20
