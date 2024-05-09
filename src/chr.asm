@@ -61,6 +61,7 @@
 .INCLUDE "machines/bridge.inc"
 .INCLUDE "machines/cannon.inc"
 .INCLUDE "machines/carriage.inc"
+.INCLUDE "machines/conveyor.inc"
 .INCLUDE "machines/crane.inc"
 .INCLUDE "machines/emitter.inc"
 .INCLUDE "machines/field.inc"
@@ -910,8 +911,8 @@ _chr_begin:
     chr_res $10
     .assert .bank(*) = kChrBankDiagramRotor, error
     chr_inc "diagram_rotor", kTileIdBgDiagramRotorFirst
-    .assert .bank(*) = kChrBankDiagramBlaster, error
-    chr_inc "diagram_blaster", kTileIdBgDiagramBlasterFirst
+    .assert .bank(*) = kChrBankDiagramConveyor, error
+    chr_inc "diagram_conveyor", kTileIdBgDiagramConveyorFirst
     END_CHR_BANK
 .ENDPROC
 
@@ -928,6 +929,19 @@ _chr_begin:
     chr_inc "diagram_ammo_rack", kTileIdBgDiagramAmmoRackFirst
     .assert .bank(*) = kChrBankDiagramReloader, error
     chr_inc "diagram_reloader", kTileIdBgDiagramReloaderFirst
+    END_CHR_BANK
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "CHR_BgPortrait11"
+
+.PROC Ppu_ChrBgPortrait11
+    CHR1_BANK $c0
+    chr_res $20
+    .assert .bank(*) = kChrBankDiagramBlaster, error
+    chr_inc "diagram_blaster", kTileIdBgDiagramBlasterFirst
+    chr_res $10
     END_CHR_BANK
 .ENDPROC
 

@@ -115,7 +115,7 @@ _Machines_sMachine_arr:
     d_byte Code_eProgram, eProgram::MineNorthConveyor
     d_byte Breaker_eFlag, 0
     d_byte Flags_bMachine, bMachine::WriteCDE
-    d_byte Status_eDiagram, eDiagram::HoistRight  ; TODO
+    d_byte Status_eDiagram, eDiagram::Conveyor
     d_word ScrollGoalX_u16, $100
     d_byte ScrollGoalY_u8, $70
     d_byte RegNames_u8_arr4, "U", "G", "L", 0

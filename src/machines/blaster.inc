@@ -33,10 +33,10 @@ kBlasterMachineHeightPx = $10
 .DEFINE kBlasterMirrorAnimSlowdown 2
 
 ;;; The CHR bank number containing the diagram for blaster machines.
-kChrBankDiagramBlaster = $0f
+kChrBankDiagramBlaster = $11
 
 ;;; BG tile IDs for blaster machine diagrams.
-kTileIdBgDiagramBlasterFirst = $f0
+kTileIdBgDiagramBlasterFirst = $e0
 
 ;;; OBJ tile IDs used for drawing blaster machines.
 kTileIdObjBlasterFirst = $98

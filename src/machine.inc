@@ -36,6 +36,7 @@ kMachineRegNameB = $61  ; 'B'
     CannonLeft
     CannonRight
     Carriage
+    Conveyor
     Crane
     Debugger
     Field

@@ -25,6 +25,7 @@
 .INCLUDE "machines/bridge.inc"
 .INCLUDE "machines/cannon.inc"
 .INCLUDE "machines/carriage.inc"
+.INCLUDE "machines/conveyor.inc"
 .INCLUDE "machines/crane.inc"
 .INCLUDE "machines/field.inc"
 .INCLUDE "machines/hoist.inc"
@@ -84,6 +85,7 @@ kNoPowerWidthTiles = 19
     d_byte CannonLeft,    kChrBankDiagramCannonLeft
     d_byte CannonRight,   kChrBankDiagramCannonRight
     d_byte Carriage,      kChrBankDiagramCarriage
+    d_byte Conveyor,      kChrBankDiagramConveyor
     d_byte Crane,         kChrBankDiagramCrane
     d_byte Debugger,      kChrBankDiagramDebugger
     d_byte Field,         kChrBankDiagramField
@@ -121,6 +123,7 @@ kNoPowerWidthTiles = 19
     d_byte CannonLeft,    kTileIdBgDiagramCannonLeftFirst
     d_byte CannonRight,   kTileIdBgDiagramCannonRightFirst
     d_byte Carriage,      kTileIdBgDiagramCarriageFirst
+    d_byte Conveyor,      kTileIdBgDiagramConveyorFirst
     d_byte Crane,         kTileIdBgDiagramCraneFirst
     d_byte Debugger,      0
     d_byte Field,         kTileIdBgDiagramFieldFirst

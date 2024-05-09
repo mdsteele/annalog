@@ -31,4 +31,10 @@
 kConveyorMainPlatformWidthPx  = $08
 kConveyorMainPlatformHeightPx = $08
 
+;;; The CHR bank number containing the diagram for conveyor machines.
+kChrBankDiagramConveyor = $0f
+
+;;; BG tile IDs for conveyor machine diagrams.
+kTileIdBgDiagramConveyorFirst = $f0
+
 ;;;=========================================================================;;;
