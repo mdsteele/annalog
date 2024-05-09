@@ -29,6 +29,7 @@ kMachineRegNameB = $61  ; 'B'
 ;;; Diagrams for various kinds of machines.
 .ENUM eDiagram
     AmmoRack
+    Blaster
     Boiler
     BridgeLeft
     BridgeRight

@@ -910,7 +910,8 @@ _chr_begin:
     chr_res $10
     .assert .bank(*) = kChrBankDiagramRotor, error
     chr_inc "diagram_rotor", kTileIdBgDiagramRotorFirst
-    chr_res $10
+    .assert .bank(*) = kChrBankDiagramBlaster, error
+    chr_inc "diagram_blaster", kTileIdBgDiagramBlasterFirst
     END_CHR_BANK
 .ENDPROC
 

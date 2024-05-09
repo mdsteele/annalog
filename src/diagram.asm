@@ -20,6 +20,7 @@
 .INCLUDE "charmap.inc"
 .INCLUDE "machine.inc"
 .INCLUDE "machines/ammorack.inc"
+.INCLUDE "machines/blaster.inc"
 .INCLUDE "machines/boiler.inc"
 .INCLUDE "machines/bridge.inc"
 .INCLUDE "machines/cannon.inc"
@@ -76,6 +77,7 @@ kNoPowerWidthTiles = 19
 .PROC DataA_Console_DiagramBank_u8_arr
     D_ARRAY .enum, eDiagram
     d_byte AmmoRack,      kChrBankDiagramAmmoRack
+    d_byte Blaster,       kChrBankDiagramBlaster
     d_byte Boiler,        kChrBankDiagramBoiler
     d_byte BridgeLeft,    kChrBankDiagramBridgeLeft
     d_byte BridgeRight,   kChrBankDiagramBridgeRight
@@ -112,6 +114,7 @@ kNoPowerWidthTiles = 19
 .PROC DataA_Console_DiagramFirstTileId_u8_arr
     D_ARRAY .enum, eDiagram
     d_byte AmmoRack,      kTileIdBgDiagramAmmoRackFirst
+    d_byte Blaster,       kTileIdBgDiagramBlasterFirst
     d_byte Boiler,        kTileIdBgDiagramBoilerFirst
     d_byte BridgeLeft,    kTileIdBgDiagramBridgeLeftFirst
     d_byte BridgeRight,   kTileIdBgDiagramBridgeRightFirst

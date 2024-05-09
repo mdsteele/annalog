@@ -32,6 +32,12 @@ kBlasterMachineHeightPx = $10
 ;;; The number of frames between mirror angles when animating a blaster mirror.
 .DEFINE kBlasterMirrorAnimSlowdown 2
 
+;;; The CHR bank number containing the diagram for blaster machines.
+kChrBankDiagramBlaster = $0f
+
+;;; BG tile IDs for blaster machine diagrams.
+kTileIdBgDiagramBlasterFirst = $f0
+
 ;;; OBJ tile IDs used for drawing blaster machines.
 kTileIdObjBlasterFirst = $98
 kTileIdObjMirrorFirst  = $d0

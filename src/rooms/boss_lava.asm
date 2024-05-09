@@ -298,7 +298,7 @@ _Machines_sMachine_arr:
     d_byte Code_eProgram, eProgram::BossLavaBlaster
     d_byte Breaker_eFlag, 0
     d_byte Flags_bMachine, bMachine::MoveH | bMachine::Act | bMachine::WriteCD
-    d_byte Status_eDiagram, eDiagram::LauncherDown  ; TODO
+    d_byte Status_eDiagram, eDiagram::Blaster
     d_word ScrollGoalX_u16, $00
     d_byte ScrollGoalY_u8, $00
     d_byte RegNames_u8_arr4, "L", "R", "X", "D"
