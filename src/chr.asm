@@ -564,10 +564,10 @@ _chr_begin:
     chr_inc "steam_pipes"
     chr_inc "volcanic1"
     chr_inc "volcanic2"
-    chr_res $07
+    chr_inc "terrain_boss_lava",      kTileIdBgTerrainBossLavaFirst
     chr_inc "arch"
     chr_inc "boiler"
-    chr_inc "terrain_boss_lava"
+    chr_inc "terrain_boss_lava_hurt", kTileIdBgTerrainBossLavaHurtFirst
     END_CHR_BANK
 .ENDPROC
 

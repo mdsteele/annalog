@@ -98,6 +98,7 @@
 .IMPORT Ram_MachineGoalHorz_u8_arr
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORT Ram_PlatformLeft_i16_0_arr
+.IMPORT Ram_PpuTransfer_arr
 .IMPORTZP Zp_Active_sIrq
 .IMPORTZP Zp_Buffered_sIrq
 .IMPORTZP Zp_Chr04Bank_u8
@@ -105,6 +106,7 @@
 .IMPORTZP Zp_NextIrq_int_ptr
 .IMPORTZP Zp_PointX_i16
 .IMPORTZP Zp_PointY_i16
+.IMPORTZP Zp_PpuTransferLen_u8
 .IMPORTZP Zp_RoomScrollY_u8
 .IMPORTZP Zp_RoomState
 .IMPORTZP Zp_ShapePosX_i16
@@ -179,8 +181,8 @@ kBossBodyInitTopY = kBossZoneTopY + kBlockHeightPx * kBossInitGoalY
 
 ;;; The tile row/col in the lower nametable for the top-left corner of the
 ;;; boss's BG tiles.
-kBossBgStartRow = 7
-kBossBgStartCol = 0
+kBossBgStartRow = 8
+kBossBgStartCol = 2
 
 ;;; The PPU addresses for the start (left) of each row of the boss's BG tiles.
 .LINECONT +
@@ -192,6 +194,10 @@ Ppu_BossRow2Start = Ppu_Nametable3_sName + sName::Tiles_u8_arr + \
     kScreenWidthTiles * (kBossBgStartRow + 2) + kBossBgStartCol
 Ppu_BossRow3Start = Ppu_Nametable3_sName + sName::Tiles_u8_arr + \
     kScreenWidthTiles * (kBossBgStartRow + 3) + kBossBgStartCol
+.ASSERT kBossBgStartRow .mod 4 = 0, error
+.ASSERT (kBossBgStartCol + 2) .mod 4 = 0, error
+Ppu_BossBodyAttrs = Ppu_Nametable3_sName + sName::Attrs_u8_arr64 + \
+    (kBossBgStartRow / 4) * 8 + ((kBossBgStartCol + 2) / 4)
 .LINECONT -
 
 ;;; Modes that the boss in this room can be in.
@@ -279,7 +285,7 @@ _Ext_sRoomExt:
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
     d_addr Passages_sPassage_arr_ptr, 0
     d_addr Enter_func_ptr, FuncA_Room_BossLava_EnterRoom
-    d_addr FadeIn_func_ptr, FuncA_Terrain_BossLava_FadeInRoom
+    d_addr FadeIn_func_ptr, FuncC_Boss_Lava_FadeInRoom
     d_addr Tick_func_ptr, FuncA_Room_BossLava_TickRoom
     d_addr Draw_func_ptr, FuncC_Boss_Lava_DrawRoom
     D_END
@@ -506,6 +512,11 @@ _CheckForHitTail:
     sta Zp_RoomState + sState::BossCooldown_u8
     lda #eSample::BossHurtE  ; param: eSample to play
     jsr Func_PlaySfxSample
+    ;; Decrement boss health (if nonzero).
+    lda Zp_RoomState + sState::BossHealth_u8
+    beq @done
+    dec Zp_RoomState + sState::BossHealth_u8
+    jsr FuncC_Boss_Lava_TransferBossBodyTiles
     @done:
 _CoolDown:
     lda Zp_RoomState + sState::BossCooldown_u8
@@ -648,11 +659,11 @@ _BossHurt:
     ldx #kBossTailPlatformIndex  ; param: platform index
     jmp Func_MovePlatformHorz  ; preserves X
     @doneVibrate:
-    ;; At the end of the hurt animation, decrement the boss's health.  If its
-    ;; health is now zero, kill the boss.  Otherwise, start scuttling.
-    dec Zp_RoomState + sState::BossHealth_u8
+    ;; At the end of the hurt animation, if boss's health is now zero, kill the
+    ;; boss.  Otherwise, start scuttling.
+    lda Zp_RoomState + sState::BossHealth_u8
     bne _StartScuttling  ; boss is not dead yet
-    lda #eBossMode::Dead
+    .assert eBossMode::Dead = 0, error
     sta Zp_RoomState + sState::Current_eBossMode
     rts
 _StartScuttling:
@@ -1063,37 +1074,101 @@ _ValvePipePlatformIndex_u8_arr4:
 
 .SEGMENT "PRGA_Terrain"
 
-.PROC DataA_Terrain_BossLavaInitTransfer_arr
+.PROC DataA_Terrain_BossLavaLegsTransfer_arr
     .assert kBossFullWidthTiles = 8, error
     .assert kBossHeightTiles = 4, error
     .assert kTileIdBgAnimBossLavaFirst = $50, error
+    ;; Nametable attributes to color body injuries red:
+    .byte kPpuCtrlFlagsHorz
+    .dbyt Ppu_BossBodyAttrs  ; transfer destination
+    .byte 1
+    .byte $55
     ;; Row 0:
     .byte kPpuCtrlFlagsHorz
     .dbyt Ppu_BossRow0Start  ; transfer destination
     .byte 8
-    .byte $50, $54, $58, $b8, $b9, $5c, $60, $64
+    .byte $50, $54, $58, $00, $00, $5c, $60, $64
     ;; Row 1:
     .byte kPpuCtrlFlagsHorz
     .dbyt Ppu_BossRow1Start  ; transfer destination
     .byte 8
-    .byte $51, $55, $59, $ba, $bb, $5d, $61, $65
+    .byte $51, $55, $59, $00, $00, $5d, $61, $65
     ;; Row 2:
     .byte kPpuCtrlFlagsHorz
     .dbyt Ppu_BossRow2Start  ; transfer destination
     .byte 8
-    .byte $52, $56, $5a, $bc, $bd, $5e, $62, $66
+    .byte $52, $56, $5a, $00, $00, $5e, $62, $66
     ;; Row 3:
     .byte kPpuCtrlFlagsHorz
     .dbyt Ppu_BossRow3Start  ; transfer destination
     .byte 8
-    .byte $53, $57, $5b, $be, $bf, $5f, $63, $67
+    .byte $53, $57, $5b, $00, $00, $5f, $63, $67
 .ENDPROC
 
-.PROC FuncA_Terrain_BossLava_FadeInRoom
-    ldax #DataA_Terrain_BossLavaInitTransfer_arr  ; param: data pointer
-    ldy #.sizeof(DataA_Terrain_BossLavaInitTransfer_arr)  ; param: data length
+;;;=========================================================================;;;
+
+.SEGMENT "PRGC_Boss"
+
+.PROC DataC_Boss_BossLavaBodyTransfer_arr
+    .assert kBossFullWidthTiles = 8, error
+    .assert kBossHeightTiles = 4, error
+    .assert kTileIdBgTerrainBossLavaFirst = $a8, error
+    ;; Col 3:
+    .byte kPpuCtrlFlagsVert
+    .dbyt Ppu_BossRow0Start + 3  ; transfer destination
+    .byte 4
+    .byte $a8, $aa, $ac, $ae
+    ;; Col 4:
+    .byte kPpuCtrlFlagsVert
+    .dbyt Ppu_BossRow0Start + 4  ; transfer destination
+    .byte 4
+    .byte $a9, $ab, $ad, $af
+.ENDPROC
+
+;;; @prereq PRGA_Terrain is loaded.
+.PROC FuncC_Boss_Lava_FadeInRoom
+    jsr FuncA_Terrain_FadeInShortRoomWithLava
+    ;; Transfer BG tiles for the boss's legs.
+    ldax #DataA_Terrain_BossLavaLegsTransfer_arr  ; param: data pointer
+    ldy #.sizeof(DataA_Terrain_BossLavaLegsTransfer_arr)  ; param: data length
     jsr Func_BufferPpuTransfer
-    jmp FuncA_Terrain_FadeInShortRoomWithLava
+    ;; Transfer BG tiles for the boss's body.
+    fall FuncC_Boss_Lava_TransferBossBodyTiles
+.ENDPROC
+
+;;; Buffers a PPU transfer to draw the BG tiles for the lava boss's body,
+;;; taking its current health into account. Note that this is called from both
+;;; room fade-in and boss tick functions, so no particular PRGA bank is
+;;; guaranteed to be loaded.
+.PROC FuncC_Boss_Lava_TransferBossBodyTiles
+    ;; Buffer a transfer for the boss's body at full health.
+    ldax #DataC_Boss_BossLavaBodyTransfer_arr  ; param: data pointer
+    ldy #.sizeof(DataC_Boss_BossLavaBodyTransfer_arr)  ; param: data length
+    jsr Func_BufferPpuTransfer
+    ;; For each point of damage on the boss, alter one of the body tiles in the
+    ;; transfer buffer to be injured.
+    lda #kBossInitHealth
+    sub Zp_RoomState + sState::BossHealth_u8
+    tax
+    bpl @continue  ; unconditional
+    @loop:
+    lda Zp_PpuTransferLen_u8
+    sub _OffsetFromEnd_u8_arr, x
+    tay
+    lda Ram_PpuTransfer_arr, y
+    .linecont +
+    .assert kTileIdBgTerrainBossLavaHurtFirst = \
+            kTileIdBgTerrainBossLavaFirst | $10, error
+    ora #$10
+    .linecont -
+    sta Ram_PpuTransfer_arr, y
+    @continue:
+    dex
+    bpl @loop
+    rts
+_OffsetFromEnd_u8_arr:
+:   .byte 4, 10, 1, 12, 2, 11, 3, 9
+    .assert * - :- = kBossInitHealth, error
 .ENDPROC
 
 ;;;=========================================================================;;;

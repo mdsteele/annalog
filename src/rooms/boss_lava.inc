@@ -20,6 +20,10 @@
 ;;; BG tile IDs for animating the lava boss's legs.
 kTileIdBgAnimBossLavaFirst = $50
 
+;;; BG tile IDs for the lava boss's body, with and without injuries.
+kTileIdBgTerrainBossLavaHurtFirst = $b8
+kTileIdBgTerrainBossLavaFirst     = $a8
+
 ;;; OBJ tile IDs for drawing the lava boss.
 kTileIdObjBossLavaJawsFirst = $d0
 
