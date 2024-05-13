@@ -149,7 +149,7 @@ _Passages_sPassage_arr:
     D_END
     D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Western | 1
-    d_byte Destination_eRoom, eRoom::ShadowDrill  ; TODO ShadowDescent
+    d_byte Destination_eRoom, eRoom::ShadowDescent
     d_byte SpawnBlock_u8, 21
     d_byte SpawnAdjust_byte, 0
     D_END

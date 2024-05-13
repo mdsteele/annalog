@@ -247,7 +247,7 @@ _Passages_sPassage_arr:
     D_END
     D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Eastern | 0
-    d_byte Destination_eRoom, eRoom::ShadowTrap  ; TODO ShadowHeart
+    d_byte Destination_eRoom, eRoom::ShadowHeart
     d_byte SpawnBlock_u8, 10
     d_byte SpawnAdjust_byte, 0
     D_END

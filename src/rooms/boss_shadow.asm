@@ -183,7 +183,7 @@ _Machines_sMachine_arr:
     d_byte Code_eProgram, eProgram::BossShadowEmitterX
     d_byte Breaker_eFlag, 0
     d_byte Flags_bMachine, bMachine::Act | bMachine::WriteE
-    d_byte Status_eDiagram, eDiagram::MinigunDown
+    d_byte Status_eDiagram, eDiagram::MinigunDown  ; TODO
     d_word ScrollGoalX_u16, $0
     d_byte ScrollGoalY_u8, $0
     d_byte RegNames_u8_arr4, 0, 0, "X", 0
@@ -202,7 +202,7 @@ _Machines_sMachine_arr:
     d_byte Code_eProgram, eProgram::BossShadowEmitterY
     d_byte Breaker_eFlag, 0
     d_byte Flags_bMachine, bMachine::Act | bMachine::WriteF
-    d_byte Status_eDiagram, eDiagram::MinigunLeft
+    d_byte Status_eDiagram, eDiagram::MinigunLeft  ; TODO
     d_word ScrollGoalX_u16, $0
     d_byte ScrollGoalY_u8, $0
     d_byte RegNames_u8_arr4, 0, 0, 0, "Y"

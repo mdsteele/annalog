@@ -28,7 +28,7 @@
 
 .IMPORT DataA_Room_Shadow_sTileset
 .IMPORT FuncA_Objects_AnimateLavaTerrain
-.IMPORT FuncA_Terrain_FadeInShortRoomWithLava
+.IMPORT FuncA_Terrain_FadeInTallRoomWithLava
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrObjShadow
 
@@ -36,14 +36,14 @@
 
 .SEGMENT "PRGC_Shadow"
 
-.EXPORT DataC_Shadow_Depths_sRoom
-.PROC DataC_Shadow_Depths_sRoom
+.EXPORT DataC_Shadow_Descent_sRoom
+.PROC DataC_Shadow_Descent_sRoom
     D_STRUCT sRoom
     d_byte MinScrollX_u8, $10
-    d_word MaxScrollX_u16, $410
-    d_byte Flags_bRoom, eArea::Shadow
-    d_byte MinimapStartRow_u8, 14
-    d_byte MinimapStartCol_u8, 5
+    d_word MaxScrollX_u16, $0010
+    d_byte Flags_bRoom, bRoom::Tall | eArea::Shadow
+    d_byte MinimapStartRow_u8, 13
+    d_byte MinimapStartCol_u8, 4
     d_addr TerrainData_ptr, _TerrainData
     d_byte NumMachines_u8, 0
     d_addr Machines_sMachine_arr_ptr, 0
@@ -58,55 +58,49 @@ _Ext_sRoomExt:
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
     d_addr Passages_sPassage_arr_ptr, _Passages_sPassage_arr
     d_addr Enter_func_ptr, Func_Noop
-    d_addr FadeIn_func_ptr, FuncA_Terrain_FadeInShortRoomWithLava
+    d_addr FadeIn_func_ptr, FuncA_Terrain_FadeInTallRoomWithLava
     d_addr Tick_func_ptr, Func_Noop
     d_addr Draw_func_ptr, FuncA_Objects_AnimateLavaTerrain
     D_END
 _TerrainData:
-:   .incbin "out/rooms/shadow_depths1.room"
-    .incbin "out/rooms/shadow_depths2.room"
-    .incbin "out/rooms/shadow_depths3.room"
-    .assert * - :- = 81 * 15, error
+:   .incbin "out/rooms/shadow_descent.room"
+    .assert * - :- = 18 * 24, error
 _Platforms_sPlatform_arr:
 :   ;; Lava:
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Kill
-    d_word WidthPx_u16, $510
+    d_word WidthPx_u16, $120
     d_byte HeightPx_u8, kLavaPlatformHeightPx
     d_word Left_i16,   $0000
-    d_word Top_i16, kLavaPlatformTopShortRoom
+    d_word Top_i16, kLavaPlatformTopTallRoom
     D_END
     .assert * - :- <= kMaxPlatforms * .sizeof(sPlatform), error
     .byte ePlatform::None
 _Actors_sActor_arr:
-:   D_STRUCT sActor
-    d_byte Type_eActor, eActor::NpcOrc
-    d_word PosX_i16, $0304
-    d_word PosY_i16, $0063
-    d_byte Param_byte, eNpcOrc::GhostStanding
-    D_END
-    D_STRUCT sActor
-    d_byte Type_eActor, eActor::NpcMermaid
-    d_word PosX_i16, $0384
-    d_word PosY_i16, $00b1
-    d_byte Param_byte, kTileIdMermaidGhostFirst
-    D_END
+:   ;; TODO
     .assert * - :- <= kMaxActors * .sizeof(sActor), error
     .byte eActor::None
 _Devices_sDevice_arr:
-:   D_STRUCT sDevice
-    d_byte Type_eDevice, eDevice::Door1Unlocked
-    d_byte BlockRow_u8, 11
-    d_byte BlockCol_u8, 75
-    d_byte Target_byte, eRoom::BossShadow
-    D_END
+:   ;; TODO
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None
 _Passages_sPassage_arr:
 :   D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Western | 0
-    d_byte Destination_eRoom, eRoom::ShadowDescent
-    d_byte SpawnBlock_u8, 11
+    d_byte Destination_eRoom, eRoom::ShadowFlower
+    d_byte SpawnBlock_u8, 5
+    d_byte SpawnAdjust_byte, 0
+    D_END
+    D_STRUCT sPassage
+    d_byte Exit_bPassage, ePassage::Eastern | 0
+    d_byte Destination_eRoom, eRoom::ShadowDrill
+    d_byte SpawnBlock_u8, 5
+    d_byte SpawnAdjust_byte, 0
+    D_END
+    D_STRUCT sPassage
+    d_byte Exit_bPassage, ePassage::Eastern | 1
+    d_byte Destination_eRoom, eRoom::ShadowDepths
+    d_byte SpawnBlock_u8, 20
     d_byte SpawnAdjust_byte, 0
     D_END
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error

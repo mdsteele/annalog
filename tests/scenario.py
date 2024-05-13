@@ -32,10 +32,16 @@ PERMITTED_DOOR_MISMATCHES = {
     'CityCenter': (1, 21),
 }
 
-PERMITTED_OOB_CELLS = set([
+PERMITTED_OOB_CELLS = frozenset([
     ('CoreWest',      (3, 10)),
     ('GardenLanding', (6,  7)),
 ])
+
+PERMITTED_UNCOVERED_CELLS = {
+    'Factory': frozenset([(5, 14)]),
+    'Garden': frozenset([(4, 6), (5, 6)]),
+    'Lava': frozenset([(12, 14)]),
+}
 
 ROOM_PARENTS = {
     'BossCity': 'CitySinkhole',
@@ -323,7 +329,7 @@ def test_markers_sorted(markers):
 
 def test_minimap_coverage(areas, minimap):
     failed = False
-    all_cells = {}
+    all_cells = {}  # maps from cell to area name it's in
     for area_name, area in areas.items():
         area_cells = area['cells']
         for cell in area_cells:
@@ -368,7 +374,11 @@ def test_room_cells(areas):
                     failed = True
                 else:
                     covered_area_cells[cell] = room_name
-        # TODO: Once all rooms are added, require all area cells to be covered.
+        for cell in area_cells - frozenset(covered_area_cells):
+            if cell not in PERMITTED_UNCOVERED_CELLS.get(area_name, ()):
+                print('SCENARIO: {} cell {} is not covered by any room'.format(
+                    area_name, cell))
+                failed = True
     return failed
 
 def test_room_doors(areas):
@@ -403,8 +413,10 @@ def test_room_passages(areas):
             for passage in room['passages']:
                 dest_area = areas[passage['dest_area']]
                 dest_room_name = passage['dest_room']
-                # TODO: remove this if statement once all rooms are added.
-                if dest_room_name == room_name: continue
+                if dest_room_name == room_name:
+                    print('SCENARIO: {} has a passage to itself'.format(
+                        room_name))
+                    continue
                 dest_room = dest_area['rooms'][dest_room_name]
                 side = passage['side']
                 for dest_passage in dest_room['passages']:
