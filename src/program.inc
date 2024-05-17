@@ -196,6 +196,7 @@
     ;; TODO: Sort the below within the above once it won't disrupt playtesting.
     LavaVentLift
     LavaCavernBoiler
+    ShadowFlowerLaser
     NUM_VALUES
 .ENDENUM
 
