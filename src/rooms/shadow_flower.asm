@@ -40,6 +40,7 @@
 .IMPORT FuncA_Objects_DrawLaserMachine
 .IMPORT FuncA_Room_HarmAvatarIfWithinLaserBeam
 .IMPORT FuncA_Room_KillGooWithLaserBeam
+.IMPORT FuncA_Room_MachineLaserReset
 .IMPORT FuncA_Room_RemoveFlowerDeviceIfCarriedOrDelivered
 .IMPORT FuncA_Room_RespawnFlowerDeviceIfDropped
 .IMPORT Func_MachineLaserReadRegC
@@ -224,7 +225,7 @@ _ReadX:
 .PROC FuncA_Room_ShadowFlowerLaser_InitReset
     lda #kLaserInitGoalX
     sta Ram_MachineGoalHorz_u8_arr + kLaserMachineIndex
-    rts
+    jmp FuncA_Room_MachineLaserReset
 .ENDPROC
 
 ;;;=========================================================================;;;

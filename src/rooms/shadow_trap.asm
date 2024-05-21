@@ -42,6 +42,7 @@
 .IMPORT FuncA_Room_HarmAvatarIfWithinLaserBeam
 .IMPORT FuncA_Room_InitActorBadFlydrop
 .IMPORT FuncA_Room_IsPointInLaserBeam
+.IMPORT FuncA_Room_MachineLaserReset
 .IMPORT FuncC_Shadow_DrawBarrierPlatform
 .IMPORT Func_FindEmptyActorSlot
 .IMPORT Func_InitActorSmokeExplosion
@@ -379,7 +380,7 @@ _OpenBarriers:
 .PROC FuncA_Room_ShadowTrapLaser_InitReset
     lda #kLaserInitGoalX
     sta Ram_MachineGoalHorz_u8_arr + kLaserMachineIndex
-    rts
+    jmp FuncA_Room_MachineLaserReset
 .ENDPROC
 
 ;;;=========================================================================;;;

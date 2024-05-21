@@ -74,6 +74,7 @@
 .IMPORT FuncA_Room_HarmBadGronta
 .IMPORT FuncA_Room_IsPointInLaserBeam
 .IMPORT FuncA_Room_MachineCannonReset
+.IMPORT FuncA_Room_MachineLaserReset
 .IMPORT FuncA_Room_ReflectFireblastsOffMirror
 .IMPORT FuncA_Room_TurnProjectilesToSmoke
 .IMPORT FuncA_Room_TurnProjectilesToSmokeIfConsoleOpen
@@ -1469,7 +1470,7 @@ _Finished:
 .PROC FuncA_Room_CoreBossLaser_InitReset
     lda #kLaserInitGoalX
     sta Ram_MachineGoalHorz_u8_arr + kLaserMachineIndex
-    rts
+    jmp FuncA_Room_MachineLaserReset
 .ENDPROC
 
 ;;;=========================================================================;;;

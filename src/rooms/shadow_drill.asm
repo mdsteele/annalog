@@ -38,6 +38,7 @@
 .IMPORT FuncA_Objects_DrawLaserMachine
 .IMPORT FuncA_Room_HarmAvatarIfWithinLaserBeam
 .IMPORT FuncA_Room_KillGooWithLaserBeam
+.IMPORT FuncA_Room_MachineLaserReset
 .IMPORT Func_MachineLaserReadRegC
 .IMPORT Func_Noop
 .IMPORT Func_SetMachineIndex
@@ -232,7 +233,7 @@ _ReadX:
 .PROC FuncA_Room_ShadowDrillLaser_InitReset
     lda #kLaserInitGoalX
     sta Ram_MachineGoalHorz_u8_arr + kLaserMachineIndex
-    rts
+    jmp FuncA_Room_MachineLaserReset
 .ENDPROC
 
 ;;;=========================================================================;;;

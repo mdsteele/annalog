@@ -23,8 +23,9 @@
 ;;;     cleared if it is facing right.
 ;;;   * State1: A counter that increments each frame, to drive the goo's
 ;;;     animation.
-;;;   * State2: Unused.
-;;;   * State3: Unused.
+;;;   * State2: The room block column for the goo's "home base" (red goo only).
+;;;   * State3: Boolean; true ($ff) if the goo should move this movement cycle,
+;;;     false ($00) if it should stay put (red goo only).
 ;;;   * State4: Unused.
 
 ;;; Tile IDs for drawing goo baddie actors.

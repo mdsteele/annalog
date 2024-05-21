@@ -220,6 +220,16 @@ _Outside:
     rts
 .ENDPROC
 
+;;; Reset implemention for laser machines.
+;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
+.EXPORT FuncA_Room_MachineLaserReset
+.PROC FuncA_Room_MachineLaserReset
+    ldx Zp_MachineIndex_u8
+    lda #0
+    sta Ram_MachineState1_byte_arr, x  ; laser color (even=red, odd=green)
+    rts
+.ENDPROC
+
 ;;;=========================================================================;;;
 
 .SEGMENT "PRGA_Machine"
