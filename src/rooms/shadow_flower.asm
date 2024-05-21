@@ -25,6 +25,7 @@
 .INCLUDE "../machine.inc"
 .INCLUDE "../machines/laser.inc"
 .INCLUDE "../macros.inc"
+.INCLUDE "../oam.inc"
 .INCLUDE "../platform.inc"
 .INCLUDE "../ppu.inc"
 .INCLUDE "../program.inc"
@@ -38,6 +39,7 @@
 .IMPORT FuncA_Machine_ReachedGoal
 .IMPORT FuncA_Objects_DrawLaserMachine
 .IMPORT FuncA_Room_HarmAvatarIfWithinLaserBeam
+.IMPORT FuncA_Room_KillGooWithLaserBeam
 .IMPORT FuncA_Room_RemoveFlowerDeviceIfCarriedOrDelivered
 .IMPORT FuncA_Room_RespawnFlowerDeviceIfDropped
 .IMPORT Func_MachineLaserReadRegC
@@ -143,6 +145,30 @@ _Platforms_sPlatform_arr:
     .byte ePlatform::None
 _Actors_sActor_arr:
 :   ;; TODO: fake flower baddie
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::BadGooGreen
+    d_word PosX_i16, $005a
+    d_word PosY_i16, $0088
+    d_byte Param_byte, bObj::FlipHV
+    D_END
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::BadGooGreen
+    d_word PosX_i16, $0098
+    d_word PosY_i16, $0078
+    d_byte Param_byte, bObj::FlipHV
+    D_END
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::BadGooGreen
+    d_word PosX_i16, $00a8
+    d_word PosY_i16, $00b8
+    d_byte Param_byte, 0
+    D_END
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::BadGooRed
+    d_word PosX_i16, $00b8
+    d_word PosY_i16, $0098
+    d_byte Param_byte, bObj::FlipHV
+    D_END
     .assert * - :- <= kMaxActors * .sizeof(sActor), error
     .byte eActor::None
 _Devices_sDevice_arr:
@@ -191,6 +217,7 @@ _ReadX:
     ldx #kLaserMachineIndex
     jsr Func_SetMachineIndex
     jsr FuncA_Room_HarmAvatarIfWithinLaserBeam
+    jsr FuncA_Room_KillGooWithLaserBeam
     jmp FuncA_Room_RespawnFlowerDeviceIfDropped
 .ENDPROC
 

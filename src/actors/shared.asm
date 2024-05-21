@@ -258,6 +258,7 @@ _NotInRoom:
 ;;; @param X The actor index.
 ;;; @return N Set if the point is to the left, cleared if it's to the right.
 ;;; @preserve X, Y, T0+
+.EXPORT FuncA_Actor_IsPointToLeftOrRight
 .PROC FuncA_Actor_IsPointToLeftOrRight
     lda Zp_PointX_i16 + 0
     cmp Ram_ActorPosX_i16_0_arr, x
@@ -271,6 +272,7 @@ _NotInRoom:
 ;;; @param X The actor index.
 ;;; @return N Set if the avatar is to the left, cleared if it's to the right.
 ;;; @preserve X, Y, T0+
+.EXPORT FuncA_Actor_IsAvatarToLeftOrRight
 .PROC FuncA_Actor_IsAvatarToLeftOrRight
     lda Zp_AvatarPosX_i16 + 0
     cmp Ram_ActorPosX_i16_0_arr, x

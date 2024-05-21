@@ -35,6 +35,7 @@
 .INCLUDE "actors/fish.inc"
 .INCLUDE "actors/flamestrike.inc"
 .INCLUDE "actors/flydrop.inc"
+.INCLUDE "actors/goo.inc"
 .INCLUDE "actors/grenade.inc"
 .INCLUDE "actors/grub.inc"
 .INCLUDE "actors/jelly.inc"
@@ -1387,7 +1388,8 @@ _chr_begin:
     chr_inc "emitter",        kTileIdObjEmitterFirst
     chr_res $02
     chr_inc "forcefield",     kTileIdObjForcefieldFirst
-    chr_res $24
+    chr_inc "bad_goo",        kTileIdObjBadGooFirst
+    chr_res $18
     chr_inc "mermaid_ghost",  kTileIdMermaidGhostFirst
     chr_res $06
     chr_inc "orc_ghost",      kTileIdObjOrcGhostFirst

@@ -17,23 +17,17 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
-;;; State bytes for grub baddies:
+;;; State bytes for goo baddies:
 ;;;   * Param: The initial flags to set (0 or bObj::FlipH).
-;;;   * Flags: The bObj::FlipH bit is set if the grub is facing left, or
+;;;   * Flags: The bObj::FlipHV bits are both set if the goo is facing left, or
 ;;;     cleared if it is facing right.
-;;;   * State1: A counter that decrements each frame; when it's zero, the grub
-;;;     starts another movement cycle and resets the counter.
+;;;   * State1: A counter that increments each frame, to drive the goo's
+;;;     animation.
 ;;;   * State2: Unused.
 ;;;   * State3: Unused.
 ;;;   * State4: Unused.
 
-;;; How far a grub baddie actor's bounding box extends in each direction from
-;;; the actor's center position.
-kBadGrubBoundingBoxUp   = 0
-kBadGrubBoundingBoxDown = 8
-kBadGrubBoundingBoxSide = 7
-
-;;; Tile IDs for drawing grub baddie actors.
-kTileIdObjBadGrubFirst = $9c
+;;; Tile IDs for drawing goo baddie actors.
+kTileIdObjBadGooFirst = $a0
 
 ;;;=========================================================================;;;

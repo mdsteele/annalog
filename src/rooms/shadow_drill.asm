@@ -23,6 +23,7 @@
 .INCLUDE "../machine.inc"
 .INCLUDE "../machines/laser.inc"
 .INCLUDE "../macros.inc"
+.INCLUDE "../oam.inc"
 .INCLUDE "../platform.inc"
 .INCLUDE "../ppu.inc"
 .INCLUDE "../program.inc"
@@ -36,6 +37,7 @@
 .IMPORT FuncA_Machine_ReachedGoal
 .IMPORT FuncA_Objects_DrawLaserMachine
 .IMPORT FuncA_Room_HarmAvatarIfWithinLaserBeam
+.IMPORT FuncA_Room_KillGooWithLaserBeam
 .IMPORT Func_MachineLaserReadRegC
 .IMPORT Func_Noop
 .IMPORT Func_SetMachineIndex
@@ -128,7 +130,42 @@ _Platforms_sPlatform_arr:
     .assert * - :- <= kMaxPlatforms * .sizeof(sPlatform), error
     .byte ePlatform::None
 _Actors_sActor_arr:
-:   ;; TODO: baddies
+:   D_STRUCT sActor
+    d_byte Type_eActor, eActor::BadGooGreen
+    d_word PosX_i16, $0088
+    d_word PosY_i16, $0078
+    d_byte Param_byte, 0
+    D_END
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::BadGooGreen
+    d_word PosX_i16, $00b8
+    d_word PosY_i16, $0098
+    d_byte Param_byte, bObj::FlipHV
+    D_END
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::BadGooRed
+    d_word PosX_i16, $0078
+    d_word PosY_i16, $00b8
+    d_byte Param_byte, 0
+    D_END
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::BadGooRed
+    d_word PosX_i16, $0058
+    d_word PosY_i16, $00d8
+    d_byte Param_byte, bObj::FlipHV
+    D_END
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::BadGooGreen
+    d_word PosX_i16, $0098
+    d_word PosY_i16, $00d8
+    d_byte Param_byte, bObj::FlipHV
+    D_END
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::BadGooRed
+    d_word PosX_i16, $0078
+    d_word PosY_i16, $00f8
+    d_byte Param_byte, 0
+    D_END
     .assert * - :- <= kMaxActors * .sizeof(sActor), error
     .byte eActor::None
 _Devices_sDevice_arr:
@@ -136,6 +173,12 @@ _Devices_sDevice_arr:
     d_byte Type_eDevice, eDevice::Console
     d_byte BlockRow_u8, 6
     d_byte BlockCol_u8, 2
+    d_byte Target_byte, kLaserMachineIndex
+    D_END
+    D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::Console
+    d_byte BlockRow_u8, 18
+    d_byte BlockCol_u8, 12
     d_byte Target_byte, kLaserMachineIndex
     D_END
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
@@ -179,9 +222,11 @@ _ReadX:
 .SEGMENT "PRGA_Room"
 
 .PROC FuncA_Room_ShadowDrill_TickRoom
+    ;; TODO: Once all goos are dead, set a flag to make them not reappear.
     ldx #kLaserMachineIndex
     jsr Func_SetMachineIndex
-    jmp FuncA_Room_HarmAvatarIfWithinLaserBeam
+    jsr FuncA_Room_HarmAvatarIfWithinLaserBeam
+    jmp FuncA_Room_KillGooWithLaserBeam
 .ENDPROC
 
 .PROC FuncA_Room_ShadowDrillLaser_InitReset

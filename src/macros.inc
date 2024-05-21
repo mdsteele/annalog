@@ -46,16 +46,16 @@ T7T6 := $06
 .DEFINE _get_immediate(ARG) .right(.tcount({ARG}) - 1, {ARG})
 
 .MACRO _lo_byte op, ARG
-    .if _is_immediate ARG
-    op #<(_get_immediate ARG)
+    .if _is_immediate{ARG}
+    op #<(_get_immediate{ARG})
     .else
     op ARG
     .endif
 .ENDMACRO
 
 .MACRO _hi_byte op, ARG
-    .if _is_immediate ARG
-    op #>(_get_immediate ARG)
+    .if _is_immediate{ARG}
+    op #>(_get_immediate{ARG})
     .else
     op ARG + 1
     .endif
@@ -182,29 +182,29 @@ T7T6 := $06
 ;;;     div #$10            ; divides A by 16
 ;;;     div #.sizeof(sObj)  ; divides A by .sizeof(sObj)
 .MACRO div ARG
-    .if !_is_immediate ARG
+    .if !_is_immediate{ARG}
     .error "div only supports immediate addressing"
-    .elseif !.const(_get_immediate ARG)
+    .elseif !.const(_get_immediate{ARG})
     .error "div argument must be a constant"
-    .elseif 2 = _get_immediate ARG
+    .elseif 2 = _get_immediate{ARG}
     lsr a
-    .elseif 4 = _get_immediate ARG
-    lsr a
-    lsr a
-    .elseif 8 = _get_immediate ARG
+    .elseif 4 = _get_immediate{ARG}
     lsr a
     lsr a
+    .elseif 8 = _get_immediate{ARG}
     lsr a
-    .elseif 16 = _get_immediate ARG
+    lsr a
+    lsr a
+    .elseif 16 = _get_immediate{ARG}
     .repeat 4
     lsr a
     .endrepeat
-    .elseif 32 = _get_immediate ARG
+    .elseif 32 = _get_immediate{ARG}
     .repeat 5
     lsr a
     .endrepeat
     .else
-    .error .sprintf("unsupported div argument: %d", _get_immediate ARG)
+    .error .sprintf("unsupported div argument: %d", _get_immediate{ARG})
     .endif
 .ENDMACRO
 
@@ -218,29 +218,47 @@ T7T6 := $06
 ;;;     mul #$10            ; multiplies A by 16
 ;;;     mul #.sizeof(sObj)  ; multiplies A by .sizeof(sObj)
 .MACRO mul ARG
-    .if !_is_immediate ARG
+    .if !_is_immediate{ARG}
     .error "mul only supports immediate addressing"
-    .elseif !.const(_get_immediate ARG)
+    .elseif !.const(_get_immediate{ARG})
     .error "mul argument must be a constant"
-    .elseif 2 = _get_immediate ARG
+    .elseif 2 = _get_immediate{ARG}
     asl a
-    .elseif 4 = _get_immediate ARG
-    asl a
-    asl a
-    .elseif 8 = _get_immediate ARG
+    .elseif 4 = _get_immediate{ARG}
     asl a
     asl a
+    .elseif 8 = _get_immediate{ARG}
     asl a
-    .elseif 16 = _get_immediate ARG
+    asl a
+    asl a
+    .elseif 16 = _get_immediate{ARG}
     .repeat 4
     asl a
     .endrepeat
-    .elseif 32 = _get_immediate ARG
+    .elseif 32 = _get_immediate{ARG}
     .repeat 5
     asl a
     .endrepeat
     .else
-    .error .sprintf("unsupported mul argument: %d", _get_immediate ARG)
+    .error .sprintf("unsupported mul argument: %d", _get_immediate{ARG})
+    .endif
+.ENDMACRO
+
+;;; MOD (compute A modulo a constant power of 2)
+;;; Affects flags: N Z
+;;;
+;;; The argument must be a constant immediate value equal to a power of 2.
+;;;
+;;; Examples:
+;;;     mod #$10            ; computes A mod 16
+;;;     mod #.sizeof(sObj)  ; computes A mod .sizeof(sObj)
+.MACRO mod ARG
+    .if !_is_immediate{ARG}
+    .error "mod only supports immediate addressing"
+    .elseif (_get_immediate{ARG}) & ((_get_immediate{ARG}) - 1) <> 0
+    .error "mod argument must be a power of 2"
+    .else
+    and #(_get_immediate{ARG}) - 1
     .endif
 .ENDMACRO
 

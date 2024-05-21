@@ -17,6 +17,7 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
+.INCLUDE "../actor.inc"
 .INCLUDE "../machine.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
@@ -32,7 +33,10 @@
 .IMPORT FuncA_Objects_MoveShapeLeftHalfTile
 .IMPORT FuncA_Objects_MoveShapeUpOneTile
 .IMPORT Func_HarmAvatar
+.IMPORT Func_InitActorSmokeExplosion
+.IMPORT Func_SetPointToActorCenter
 .IMPORT Func_SetPointToAvatarCenter
+.IMPORT Ram_ActorType_eActor_arr
 .IMPORT Ram_MachineSlowdown_u8_arr
 .IMPORT Ram_MachineState1_byte_arr
 .IMPORT Ram_MachineState2_byte_arr
@@ -83,7 +87,7 @@ kTileIdObjLaserBeam3  = kTileIdObjLaserFirst + 3
 .EXPORT Func_MachineLaserReadRegC
 .PROC Func_MachineLaserReadRegC
     ldx Zp_MachineIndex_u8
-    lda Ram_MachineState1_byte_arr, x  ; laser color
+    lda Ram_MachineState1_byte_arr, x  ; laser color (even=red, odd=green)
     rts
 .ENDPROC
 
@@ -178,6 +182,44 @@ _Outside:
     rts
 .ENDPROC
 
+;;; Checks if any goo baddies are being hit by this laser machine's beam, and
+;;; kills any being hit by a beam of the opposite color.
+;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
+.EXPORT FuncA_Room_KillGooWithLaserBeam
+.PROC FuncA_Room_KillGooWithLaserBeam
+    ldx #kMaxActors - 1
+    @loop:
+    ;; If this actor isn't a goo baddie, skip it.
+    lda Ram_ActorType_eActor_arr, x
+    cmp #eActor::BadGooGreen
+    beq @green
+    cmp #eActor::BadGooRed
+    bne @continue
+    ;; If the goo is the same color as the laser, it's immune, so skip it.
+    @red:
+    @green:
+    ldy Zp_MachineIndex_u8
+    eor Ram_MachineState1_byte_arr, y  ; laser color (even=red, odd=green)
+    mod #2
+    .assert eActor::BadGooRed .mod 2 = 0, error
+    .assert eActor::BadGooGreen .mod 2 = 1, error
+    beq @continue  ; goo is same color as laser
+    ;; If the laser isn't hitting this goo baddie, skip it.
+    jsr Func_SetPointToActorCenter  ; preserves X
+    stx T2  ; actor index
+    ;; TODO: Allow hitting any part of the goo, not just the center.
+    jsr FuncA_Room_IsPointInLaserBeam  ; preserves T2+, returns C
+    ldx T2  ; actor index
+    bcc @continue
+    ;; Kill the goo.
+    jsr Func_InitActorSmokeExplosion  ; preserves X
+    @continue:
+    dex
+    .assert kMaxActors <= $80, error
+    bpl @loop
+    rts
+.ENDPROC
+
 ;;;=========================================================================;;;
 
 .SEGMENT "PRGA_Machine"
@@ -188,7 +230,7 @@ _Outside:
 .EXPORT FuncA_Machine_LaserWriteReg
 .PROC FuncA_Machine_LaserWriteReg
     ldy Zp_MachineIndex_u8
-    sta Ram_MachineState1_byte_arr, y  ; laser color
+    sta Ram_MachineState1_byte_arr, y  ; laser color (even=red, odd=green)
     rts
 .ENDPROC
 
@@ -242,7 +284,7 @@ _LaserBeam:
     lda _BeamTileId_u8_arr, y
     sta T2  ; beam tile ID
     ;; Compute the flags to use for the beam objets, storing it in T3.
-    lda Ram_MachineState1_byte_arr, x  ; laser color
+    lda Ram_MachineState1_byte_arr, x  ; laser color (even=red, odd=green)
     and #$01
     tay
     iny

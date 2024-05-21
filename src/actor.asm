@@ -33,6 +33,8 @@
 .IMPORT FuncA_Actor_TickBadFirefly
 .IMPORT FuncA_Actor_TickBadFish
 .IMPORT FuncA_Actor_TickBadFlydrop
+.IMPORT FuncA_Actor_TickBadGooGreen
+.IMPORT FuncA_Actor_TickBadGooRed
 .IMPORT FuncA_Actor_TickBadGronta
 .IMPORT FuncA_Actor_TickBadGrub
 .IMPORT FuncA_Actor_TickBadHotheadHorz
@@ -81,6 +83,8 @@
 .IMPORT FuncA_Objects_DrawActorBadFirefly
 .IMPORT FuncA_Objects_DrawActorBadFish
 .IMPORT FuncA_Objects_DrawActorBadFlydrop
+.IMPORT FuncA_Objects_DrawActorBadGooGreen
+.IMPORT FuncA_Objects_DrawActorBadGooRed
 .IMPORT FuncA_Objects_DrawActorBadGronta
 .IMPORT FuncA_Objects_DrawActorBadGrub
 .IMPORT FuncA_Objects_DrawActorBadHotheadHorz
@@ -128,6 +132,7 @@
 .IMPORT FuncA_Room_InitActorBadBird
 .IMPORT FuncA_Room_InitActorBadFirefly
 .IMPORT FuncA_Room_InitActorBadFlydrop
+.IMPORT FuncA_Room_InitActorBadGooRed
 .IMPORT FuncA_Room_InitActorBadLavaball
 .IMPORT FuncA_Room_InitActorBadSolifuge
 .IMPORT FuncA_Room_InitActorBadToad
@@ -168,6 +173,7 @@
 ;;;=========================================================================;;;
 
 ;;; The hit radius of various actors, in pixels.
+kBadGooRadius         = 6
 kBadJellyRadius       = 5
 kProjAxeRadius        = 5
 kProjBreakbombRadius  = 3
@@ -478,6 +484,8 @@ _NoHit:
     d_byte BadFirefly,       6
     d_byte BadFish,          6
     d_byte BadFlydrop,       6
+    d_byte BadGooGreen,     kBadGooRadius
+    d_byte BadGooRed,       kBadGooRadius
     d_byte BadGronta,       kOrcBoundingBoxUp
     d_byte BadGrub,         kBadGrubBoundingBoxUp
     d_byte BadHotheadHorz,   6
@@ -536,6 +544,8 @@ _NoHit:
     d_byte BadFirefly,       8
     d_byte BadFish,          4
     d_byte BadFlydrop,       6
+    d_byte BadGooGreen,     kBadGooRadius
+    d_byte BadGooRed,       kBadGooRadius
     d_byte BadGronta,       kOrcBoundingBoxDown
     d_byte BadGrub,         kBadGrubBoundingBoxDown
     d_byte BadHotheadHorz,   6
@@ -594,6 +604,8 @@ _NoHit:
     d_byte BadFirefly,       6
     d_byte BadFish,          6
     d_byte BadFlydrop,       6
+    d_byte BadGooGreen,     kBadGooRadius
+    d_byte BadGooRed,       kBadGooRadius
     d_byte BadGronta,       kOrcBoundingBoxSide
     d_byte BadGrub,         kBadGrubBoundingBoxSide
     d_byte BadHotheadHorz,   6
@@ -720,6 +732,8 @@ _TypeSpecificTick:
     d_entry table, BadFirefly,      FuncA_Actor_TickBadFirefly
     d_entry table, BadFish,         FuncA_Actor_TickBadFish
     d_entry table, BadFlydrop,      FuncA_Actor_TickBadFlydrop
+    d_entry table, BadGooGreen,     FuncA_Actor_TickBadGooGreen
+    d_entry table, BadGooRed,       FuncA_Actor_TickBadGooRed
     d_entry table, BadGronta,       FuncA_Actor_TickBadGronta
     d_entry table, BadGrub,         FuncA_Actor_TickBadGrub
     d_entry table, BadHotheadHorz,  FuncA_Actor_TickBadHotheadHorz
@@ -882,6 +896,8 @@ _Finish:
     d_entry table, BadFirefly,      FuncA_Room_InitActorBadFirefly
     d_entry table, BadFish,         Func_InitActorWithFlags
     d_entry table, BadFlydrop,      FuncA_Room_InitActorBadFlydrop
+    d_entry table, BadGooGreen,     Func_InitActorWithFlags
+    d_entry table, BadGooRed,       FuncA_Room_InitActorBadGooRed
     d_entry table, BadGronta,       Func_InitActorBadGronta
     d_entry table, BadGrub,         Func_InitActorWithFlags
     d_entry table, BadHotheadHorz,  Func_InitActorWithFlags
@@ -969,6 +985,8 @@ _Finish:
     d_entry table, BadFirefly,      FuncA_Objects_DrawActorBadFirefly
     d_entry table, BadFish,         FuncA_Objects_DrawActorBadFish
     d_entry table, BadFlydrop,      FuncA_Objects_DrawActorBadFlydrop
+    d_entry table, BadGooGreen,     FuncA_Objects_DrawActorBadGooGreen
+    d_entry table, BadGooRed,       FuncA_Objects_DrawActorBadGooRed
     d_entry table, BadGronta,       FuncA_Objects_DrawActorBadGronta
     d_entry table, BadGrub,         FuncA_Objects_DrawActorBadGrub
     d_entry table, BadHotheadHorz,  FuncA_Objects_DrawActorBadHotheadHorz

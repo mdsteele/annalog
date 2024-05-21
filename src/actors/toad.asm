@@ -17,6 +17,7 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
+.INCLUDE "../actor.inc"
 .INCLUDE "../avatar.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
@@ -63,6 +64,7 @@ kPaletteObjToad = 0
 ;;; @preserve X
 .EXPORT FuncA_Room_InitActorBadToad
 .PROC FuncA_Room_InitActorBadToad
+    ldy #eActor::BadToad  ; param: actor type
     jsr Func_InitActorWithFlags  ; preserves X
     jsr Func_GetRandomByte  ; preserves X
     and #$3f

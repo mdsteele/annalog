@@ -437,7 +437,7 @@ _DescTable_ptr_arr:
     ;; Compute the screen pixel Y-position of the top of the symbol.
     lda Zp_FrameCounter_u8
     div #4
-    and #$0f
+    mod #16
     tax
     lda _YOffsets_u8_arr16, x
     add Zp_WindowTop_u8
