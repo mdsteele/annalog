@@ -205,7 +205,7 @@ _WaterLeft:
     ;; Determine the water tile ID.
     lda Zp_FrameCounter_u8
     div #8
-    and #$03
+    mod #4
     tax
     lda _WaterTileIds_u8_arr4, x
     sta T2  ; water tile ID

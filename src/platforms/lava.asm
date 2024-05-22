@@ -70,7 +70,7 @@
 .PROC FuncA_Objects_AnimateLavaTerrain
     lda Zp_FrameCounter_u8
     div #8
-    and #$03
+    mod #4
     .assert .bank(Ppu_ChrBgAnimB0) .mod 4 = 0, error
     ora #<.bank(Ppu_ChrBgAnimB0)
     sta Zp_Chr04Bank_u8

@@ -220,7 +220,7 @@ _Passages_sPassage_arr:
 .PROC FuncA_Machine_LavaStationBoiler_TryAct
     ;; Determine which pipe the steam should exit out of.
     lda Ram_MachineGoalHorz_u8_arr + kBoilerMachineIndex  ; valve 1 angle
-    and #$03
+    mod #4
     tax  ; valve angle (in tau/8 units, mod 4)
     ldy _ValvePipePlatformIndex_u8_arr4, x  ; param: pipe platform index
     ;; Emit steam from the chosen pipe.

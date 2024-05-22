@@ -328,7 +328,7 @@ _BobInWater:
     txa  ; platform index
     add Zp_RoomState + sState::WaterBobTimer_u8
     div #8
-    and #$07
+    mod #8
     tay  ; water bob index
     lda _WaterBobOffset_i8_arr8, y  ; param: signed offset
     jsr Func_MovePointVert  ; preserves X
