@@ -50,7 +50,7 @@
 .IMPORT Func_ClearRestOfOam
 .IMPORT Func_ClearRestOfOamAndProcessFrame
 .IMPORT Func_CountDeliveredFlowers
-.IMPORT Func_FadeInFromBlack
+.IMPORT Func_FadeInFromBlackToNormal
 .IMPORT Func_FadeOutToBlack
 .IMPORT Func_FillLowerAttributeTable
 .IMPORT Func_FillUpperAttributeTable
@@ -260,7 +260,7 @@ _FadeIn:
     lda #0
     sta Zp_PpuScrollX_u8
     sta Zp_PpuScrollY_u8
-    jmp Func_FadeInFromBlack
+    jmp Func_FadeInFromBlackToNormal
 .ENDPROC
 
 ;;; Directly fills PPU nametable 0 with BG tile data for the pause screen.

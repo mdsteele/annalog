@@ -36,7 +36,7 @@
 .IMPORT Func_FadeToBlack
 .IMPORT Func_PlaySfxFlopDown
 .IMPORT Func_ProcessFrame
-.IMPORT Func_TransferPalettes
+.IMPORT Func_SetAndTransferFade
 .IMPORT Main_Explore_SpawnInLastSafeRoom
 .IMPORT Ppu_ChrObjPause
 .IMPORT Ram_Oam_sObj_arr64
@@ -121,7 +121,7 @@ _AnimateAvatar:
     bne @loop
 _FadeOut:
     ldy #eFade::Normal  ; param: eFade value
-    jsr Func_TransferPalettes
+    jsr Func_SetAndTransferFade
     jsr Func_FadeOutToBlackSlowly
 _Respawn:
     ;; TODO: Show a retry/quit menu, to let player quit to the title screen.

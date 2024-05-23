@@ -22,6 +22,7 @@
 .INCLUDE "cpu.inc"
 .INCLUDE "cutscene.inc"
 .INCLUDE "device.inc"
+.INCLUDE "fade.inc"
 .INCLUDE "hud.inc"
 .INCLUDE "joypad.inc"
 .INCLUDE "macros.inc"
@@ -59,7 +60,7 @@
 .IMPORT FuncM_ScrollTowardsAvatar
 .IMPORT FuncM_SwitchPrgcAndLoadRoom
 .IMPORT Func_ClearRestOfOam
-.IMPORT Func_FadeInFromBlack
+.IMPORT Func_FadeInFromBlackToGoal
 .IMPORT Func_FadeOutToBlack
 .IMPORT Func_FindDeviceNearPoint
 .IMPORT Func_SetLastSpawnPointToActiveDevice
@@ -93,6 +94,8 @@
 .IMPORTZP Zp_Current_sTileset
 .IMPORTZP Zp_FloatingHud_bHud
 .IMPORTZP Zp_FrameCounter_u8
+.IMPORTZP Zp_GoalBg_eFade
+.IMPORTZP Zp_GoalObj_eFade
 .IMPORTZP Zp_P1ButtonsPressed_bJoypad
 .IMPORTZP Zp_PpuScrollX_u8
 .IMPORTZP Zp_PpuScrollY_u8
@@ -156,12 +159,11 @@ Zp_Next_eCutscene: .res 1
 .EXPORT Main_Explore_FadeIn
 .PROC Main_Explore_FadeIn
     jsr Func_Window_Disable
-    jsr_prga FuncA_Terrain_SetUpExploreBackground
+    jsr_prga FuncA_Terrain_SetUpExploreBackground  ; sets Zp_Goal*_eFade
     jsr_prga FuncA_Avatar_FadeIn
-    jsr FuncM_DrawObjectsForRoom
+    jsr FuncM_DrawObjectsForRoom  ; sets Zp_Render_bPpuMask and scrolling
     jsr Func_ClearRestOfOam
-    ;; Zp_Render_bPpuMask will be set by FuncA_Objects_DrawObjectsForRoom.
-    jsr Func_FadeInFromBlack
+    jsr Func_FadeInFromBlackToGoal
     fall Main_Explore_Continue
 .ENDPROC
 
@@ -473,6 +475,11 @@ _UpDownPassage:
 .PROC FuncA_Terrain_SetUpExploreBackground
     main_chr08 Zp_Current_sTileset + sTileset::Chr08Bank_u8
     main_chr18 Zp_Current_sRoom + sRoom::Chr18Bank_u8
+    ;; Fade in to normal brightness by default, but a room's FadeIn function
+    ;; can override this.
+    lda #eFade::Normal
+    sta Zp_GoalBg_eFade
+    sta Zp_GoalObj_eFade
     jsr FuncA_Terrain_InitRoomScrollAndNametables
     jmp FuncA_Terrain_DirectDrawWindowTopBorder
 .ENDPROC

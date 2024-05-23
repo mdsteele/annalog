@@ -102,6 +102,7 @@ Hw_PpuData_rw = $2007
 
 ;;;=========================================================================;;;
 
+;;; A single PPU nametable.
 .STRUCT sName
     Tiles_u8_arr   .byte 960
     Attrs_u8_arr64 .byte 64
@@ -115,6 +116,7 @@ Ppu_Nametable3_sName = $2c00
 
 ;;;=========================================================================;;;
 
+;;; A single PPU palette.
 .STRUCT sPal
     C0_u6 .byte
     C1_u6 .byte
@@ -123,6 +125,8 @@ Ppu_Nametable3_sName = $2c00
 .ENDSTRUCT
 
 ;;; See https://wiki.nesdev.org/w/index.php/PPU_palettes
-Ppu_Palettes_sPal_arr8 = $3f00
+Ppu_AllPalettes_sPal_arr8 = $3f00
+Ppu_BgPalettes_sPal_arr4  = $3f00
+Ppu_ObjPalettes_sPal_arr4 = $3f10
 
 ;;;=========================================================================;;;

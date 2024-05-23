@@ -21,6 +21,7 @@
 .INCLUDE "../charmap.inc"
 .INCLUDE "../device.inc"
 .INCLUDE "../dialog.inc"
+.INCLUDE "../fade.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../platform.inc"
 .INCLUDE "../ppu.inc"
@@ -28,8 +29,21 @@
 
 .IMPORT DataA_Room_Shadow_sTileset
 .IMPORT Func_Noop
+.IMPORT Func_SetAndTransferBgFade
 .IMPORT Func_WriteToUpperAttributeTable
 .IMPORT Ppu_ChrObjShadow
+.IMPORTZP Zp_AvatarPosX_i16
+.IMPORTZP Zp_GoalBg_eFade
+.IMPORTZP Zp_RoomState
+
+;;;=========================================================================;;;
+
+;;; Defines room-specific state data for this particular room.
+.STRUCT sState
+    ;; The current fade level for this room's terrain.
+    Terrain_eFade .byte
+.ENDSTRUCT
+.ASSERT .sizeof(sState) <= kRoomStateSize, error
 
 ;;;=========================================================================;;;
 
@@ -56,9 +70,9 @@ _Ext_sRoomExt:
     d_addr Actors_sActor_arr_ptr, _Actors_sActor_arr
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
     d_addr Passages_sPassage_arr_ptr, _Passages_sPassage_arr
-    d_addr Enter_func_ptr, Func_Noop
+    d_addr Enter_func_ptr, FuncA_Room_ShadowGate_EnterRoom
     d_addr FadeIn_func_ptr, FuncA_Terrain_ShadowGate_FadeInRoom
-    d_addr Tick_func_ptr, Func_Noop
+    d_addr Tick_func_ptr, FuncA_Room_ShadowGate_TickRoom
     d_addr Draw_func_ptr, Func_Noop
     D_END
 _TerrainData:
@@ -111,11 +125,53 @@ _Passages_sPassage_arr:
 
 ;;;=========================================================================;;;
 
+.SEGMENT "PRGA_Room"
+
+.PROC FuncA_Room_ShadowGate_EnterRoom
+    lda #eFade::Normal
+    sta Zp_RoomState + sState::Terrain_eFade
+    rts
+.ENDPROC
+
+.PROC FuncA_Room_ShadowGate_TickRoom
+    lda Zp_AvatarPosX_i16 + 0
+    cmp #$28
+    blt @normal
+    cmp #$b0
+    bge @normal
+    cmp #$2e
+    blt @dim
+    cmp #$aa
+    bge @dim
+    cmp #$34
+    blt @dark
+    cmp #$a4
+    bge @dark
+    @black:
+    ldy #eFade::Black   ; param: eFade value
+    bpl @transfer  ; unconditional
+    @dark:
+    ldy #eFade::Dark    ; param: eFade value
+    bpl @transfer  ; unconditional
+    @dim:
+    ldy #eFade::Dim     ; param: eFade value
+    bpl @transfer  ; unconditional
+    @normal:
+    ldy #eFade::Normal  ; param: eFade value
+    @transfer:
+    sty Zp_RoomState + sState::Terrain_eFade
+    jmp Func_SetAndTransferBgFade
+.ENDPROC
+
+;;;=========================================================================;;;
+
 .SEGMENT "PRGA_Terrain"
 
-;;; Sets two block rows of the upper nametable to use BG palette 2.
 ;;; @prereq Rendering is disabled.
 .PROC FuncA_Terrain_ShadowGate_FadeInRoom
+    lda Zp_RoomState + sState::Terrain_eFade
+    sta Zp_GoalBg_eFade
+    ;; Set two block rows of the upper nametable to use BG palette 2.
     ldx #5    ; param: num bytes to write
     ldy #$aa  ; param: attribute value
     lda #$32  ; param: initial byte offset

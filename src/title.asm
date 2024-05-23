@@ -39,7 +39,7 @@
 .IMPORT Func_AllocOneObject
 .IMPORT Func_BufferPpuTransfer
 .IMPORT Func_ClearRestOfOamAndProcessFrame
-.IMPORT Func_FadeInFromBlack
+.IMPORT Func_FadeInFromBlackToNormal
 .IMPORT Func_FadeOutToBlack
 .IMPORT Func_FillLowerAttributeTable
 .IMPORT Func_FillUpperAttributeTable
@@ -542,7 +542,7 @@ _FadeIn:
     lda #0
     sta Zp_PpuScrollX_u8
     sta Zp_PpuScrollY_u8
-    jmp Func_FadeInFromBlack
+    jmp Func_FadeInFromBlackToNormal
 .ENDPROC
 
 ;;; Fills the specified nametable with blank BG tiles.

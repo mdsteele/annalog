@@ -42,10 +42,10 @@
 .IMPORT Func_PlaySfxExplodeBig
 .IMPORT Func_PlaySfxSample
 .IMPORT Func_SetActorCenterToPoint
+.IMPORT Func_SetAndTransferFade
 .IMPORT Func_SetFlag
 .IMPORT Func_SetMachineIndex
 .IMPORT Func_ShakeRoom
-.IMPORT Func_TransferPalettes
 .IMPORT Func_UnlockDoorDevice
 .IMPORT Ram_DeviceAnim_u8_arr
 .IMPORT Ram_DeviceTarget_byte_arr
@@ -269,7 +269,7 @@ _BossExploding:
     bne @done
     ;; Flash the screen to white.
     ldy #eFade::White  ; param: eFade value
-    jsr Func_TransferPalettes
+    jsr Func_SetAndTransferFade
     jsr Func_PlaySfxExplodeBig
     jsr FuncA_Room_ResetHaltAllMachines
     ;; Reinitialize the timer and proceed to the next phase.
@@ -289,7 +289,7 @@ _FlashWhite:
     tya  ; quotient
     add #eFade::Normal
     tay  ; param: eFade value
-    jsr Func_TransferPalettes
+    jsr Func_SetAndTransferFade
     @noTransfer:
     ;; Wait for the phase timer to reach zero.
     dec Zp_BossPhaseTimer_u8

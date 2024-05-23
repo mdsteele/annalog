@@ -76,6 +76,20 @@ kPalettesTransferLen = .sizeof(sPal) * 8
 
 ;;;=========================================================================;;;
 
+.ZEROPAGE
+
+;;; The current BG/OBJ fade levels.
+Zp_CurrentBg_eFade: .res 1
+Zp_CurrentObj_eFade: .res 1
+
+;;; The BG/OBJ fade levels that the current levels should trend towards.
+.EXPORTZP Zp_GoalBg_eFade
+Zp_GoalBg_eFade: .res 1
+.EXPORTZP Zp_GoalObj_eFade
+Zp_GoalObj_eFade: .res 1
+
+;;;=========================================================================;;;
+
 .SEGMENT "PRG8"
 
 .REPEAT 2, table
@@ -288,14 +302,54 @@ kPalettesTransferLen = .sizeof(sPal) * 8
     D_END
 .ENDPROC
 
-;;; Buffers a PPU transfer to write palette colors for the specified fade
-;;; level.
+;;; Sets the goal fade level, and buffers a PPU transfer to immediately set
+;;; that as the current fade level.
+;;; @param Y The eFade value to set and transfer.
+.EXPORT Func_SetAndTransferFade
+.PROC Func_SetAndTransferFade
+    sty Zp_GoalObj_eFade
+    jsr Func_SetCurrentObjPalettes
+    ldy Zp_GoalObj_eFade  ; param: eFade value
+    fall Func_SetAndTransferBgFade
+.ENDPROC
+
+;;; Sets the goal BG fade level, and buffers a PPU transfer to immediately set
+;;; that as the current BG fade level.
+;;; @param Y The eFade value to set and transfer.
+.EXPORT Func_SetAndTransferBgFade
+.PROC Func_SetAndTransferBgFade
+    sty Zp_GoalBg_eFade
+    fall Func_SetCurrentBgPalettes
+.ENDPROC
+
+;;; Sets the current BG fade level, buffering a PPU transfer to write the new
+;;; BG palette colors.
 ;;; @param Y The eFade value for the palettes to transfer.
-;;; @preserve X, Y
-.EXPORT Func_TransferPalettes
+;;; @preserve X
+.PROC Func_SetCurrentBgPalettes
+    sty Zp_CurrentBg_eFade
+    lda #<Ppu_BgPalettes_sPal_arr4  ; param: destination address (lo)
+    .assert <Ppu_BgPalettes_sPal_arr4 = 0, error
+    beq Func_TransferPalettes  ; unconditional, preserves X
+.ENDPROC
+
+;;; Sets the current OBJ fade level, buffering a PPU transfer to write the new
+;;; OBJ palette colors.
+;;; @param Y The eFade value for the palettes to transfer.
+;;; @preserve X
+.PROC Func_SetCurrentObjPalettes
+    sty Zp_CurrentObj_eFade
+    lda #<Ppu_ObjPalettes_sPal_arr4  ; param: destination address (lo)
+    fall Func_TransferPalettes  ; preserves X
+.ENDPROC
+
+;;; Buffers a PPU transfer to write BG or OBJ palette colors.
+;;; @param A The lo byte of the PPU destination address.
+;;; @param Y The eFade value for the palettes to transfer.
+;;; @preserve X
 .PROC Func_TransferPalettes
-    sty T2  ; fade step
-    stx T3  ; old X register (just to preserve it)
+    pha  ; destination address (lo)
+    stx T2  ; old X register (just to preserve it)
     ;; Make T1T0 point to the palettes array for this fade step.
     lda Data_FadePalettes_sPal_arr4_ptr_0_arr, y
     sta T0  ; palettes array ptr (lo)
@@ -306,24 +360,17 @@ kPalettesTransferLen = .sizeof(sPal) * 8
     lda #kPpuCtrlFlagsHorz
     sta Ram_PpuTransfer_arr, x
     inx
-    lda #>Ppu_Palettes_sPal_arr8
+    .assert >Ppu_BgPalettes_sPal_arr4 = >Ppu_ObjPalettes_sPal_arr4, error
+    lda #>Ppu_BgPalettes_sPal_arr4  ; destination address (hi)
     sta Ram_PpuTransfer_arr, x
     inx
-    lda #<Ppu_Palettes_sPal_arr8
+    pla  ; destination address (lo)
     sta Ram_PpuTransfer_arr, x
     inx
-    lda #.sizeof(sPal) * 8
+    lda #.sizeof(sPal) * 4
     sta Ram_PpuTransfer_arr, x
     inx
     ;; Write the transfer entry data.
-    jsr _WritePaletteData
-    jsr _WritePaletteData
-    ;; Update the PPU transfer array length and restore X and Y.
-    stx Zp_PpuTransferLen_u8
-    ldy T2  ; fade step (just to preserve Y)
-    ldx T3  ; old X register (just to preserve X)
-    rts
-_WritePaletteData:
     ldy #0
     @loop:
     lda (T1T0), y
@@ -332,15 +379,16 @@ _WritePaletteData:
     iny
     cpy #.sizeof(sPal) * 4
     blt @loop
+    ;; Update the PPU transfer array length and restore X and Y.
+    stx Zp_PpuTransferLen_u8
+    ldx T2  ; old X register (just to preserve X)
     rts
 .ENDPROC
 
 ;;; Calls Func_ProcessFrame the specified number of times.
 ;;; @param X The number of frames to wait (must be nonzero).
-;;; @preserve X, Y
+;;; @preserve X
 .PROC Func_WaitXFrames
-    tya
-    pha
     txa
     pha
     @waitLoop:
@@ -351,32 +399,46 @@ _WritePaletteData:
     bne @waitLoop
     pla
     tax
-    pla
-    tay
     rts
 .ENDPROC
 
-;;; Fades in the screen over a number of frames.  Variables such as
+;;; Enables rendering and fades in the screen from black to normal over a
+;;; number of frames.  Variables such as Zp_Render_bPpuMask, scrolling, and
+;;; shadow OAM must be set up before calling this.
+;;; @prereq Rendering is disabled.
+.EXPORT Func_FadeInFromBlackToNormal
+.PROC Func_FadeInFromBlackToNormal
+    lda #eFade::Normal
+    sta Zp_GoalBg_eFade
+    sta Zp_GoalObj_eFade
+    fall Func_FadeInFromBlackToGoal
+.ENDPROC
+
+;;; Enables rendering and fades in the screen from black to the goal fade
+;;; values over a number of frames.  Variables such as Zp_Goal*_eFade,
 ;;; Zp_Render_bPpuMask, scrolling, and shadow OAM must be set up before calling
 ;;; this.
 ;;; @prereq Rendering is disabled.
-.EXPORT Func_FadeInFromBlack
-.PROC Func_FadeInFromBlack
+.EXPORT Func_FadeInFromBlackToGoal
+.PROC Func_FadeInFromBlackToGoal
+_InitBg:
+    ldy Zp_GoalBg_eFade
+    .assert eFade::Black = 0, error
+    beq @set
+    ldy #eFade::Dark  ; param: eFade value
+    @set:
+    jsr Func_SetCurrentBgPalettes
+_InitObj:
+    ldy Zp_GoalObj_eFade
+    .assert eFade::Black = 0, error
+    beq @set
+    ldy #eFade::Dark  ; param: eFade value
+    @set:
+    jsr Func_SetCurrentObjPalettes
+_FadeIn:
     ldx #kFramesPerFadeStepNormal  ; param: num frames to wait
-    ;; Note that even with rendering disabled (as it is now), palette data
-    ;; should only be updated during VBlank, since otherwise we may glitch the
-    ;; background color (see https://www.nesdev.org/wiki/The_frame_and_NMIs).
-    ;; So we always use the PPU transfer array instead of writing palette data
-    ;; directly to the PPU.
-    ldy #eFade::Black
-    @stepLoop:
-    .assert eFade::Normal > eFade::Black, error
-    iny
-    jsr Func_TransferPalettes  ; preserves X and Y
-    jsr Func_WaitXFrames  ; preserves X and Y
-    cpy #eFade::Normal
-    bne @stepLoop
-    rts
+    .assert kFramesPerFadeStepNormal > 0, error
+    bne Func_FadeToGoalWithSlowdown  ; unconditional
 .ENDPROC
 
 ;;; Fades out the screen over a number of frames (using the normal fade speed),
@@ -392,7 +454,7 @@ _WritePaletteData:
 .EXPORT Func_FadeOutToBlackSlowly
 .PROC Func_FadeOutToBlackSlowly
     ldx #kFramesPerFadeStepSlow  ; param: num frames between fade steps
-    .assert * = Func_FadeOutToBlackWithSlowdown, error, "fallthrough"
+    fall Func_FadeOutToBlackWithSlowdown
 .ENDPROC
 
 ;;; Fades out the screen over a number of frames (as specified by the given
@@ -402,7 +464,7 @@ _WritePaletteData:
     jsr Func_FadeToBlackWithSlowdown  ; preserves X
     lda #0
     sta Zp_Render_bPpuMask
-    jmp Func_WaitXFrames
+    beq Func_WaitXFrames  ; unconditional
 .ENDPROC
 
 ;;; Fades out the screen over a number of frames (using the normal fade speed),
@@ -419,15 +481,54 @@ _WritePaletteData:
 ;;; @param X The number of frames to wait between fade steps.
 ;;; @preserve X
 .PROC Func_FadeToBlackWithSlowdown
-    ldy #eFade::Normal
-    @stepLoop:
-    jsr Func_WaitXFrames  ; preserves X and Y
-    .assert eFade::Black < eFade::Normal, error
-    dey
-    jsr Func_TransferPalettes  ; preserves X and Y
-    tya
-    .assert eFade::Black = 0, error
-    bne @stepLoop
+    lda #eFade::Black
+    sta Zp_GoalBg_eFade
+    sta Zp_GoalObj_eFade
+    fall Func_FadeToGoalWithSlowdown  ; preserves X
+.ENDPROC
+
+;;; Fades the screen over a number of frames from its current level to
+;;; Zp_Goal_eFade.
+;;; @prereq Zp_Render_bPpuMask, scrolling, and shadow OAM are set up.
+;;; @param X The number of frames to wait between fade steps (must be nonzero).
+;;; @preserve X
+.PROC Func_FadeToGoalWithSlowdown
+    jmp _Continue
+_Loop:
+    jsr Func_WaitXFrames  ; preserves X
+_UpdateBgFade:
+    ldy Zp_CurrentBg_eFade
+    cpy Zp_GoalBg_eFade
+    beq @done
+    bge @decrement
+    @increment:
+    iny  ; param: new eFade value
+    bne @transfer  ; unconditional
+    @decrement:
+    dey  ; param: new eFade value
+    @transfer:
+    jsr Func_SetCurrentBgPalettes  ; preserves X
+    @done:
+_UpdateObjFade:
+    ldy Zp_CurrentObj_eFade
+    cpy Zp_GoalObj_eFade
+    beq @done
+    bge @decrement
+    @increment:
+    iny  ; param: new eFade value
+    bne @transfer  ; unconditional
+    @decrement:
+    dey  ; param: new eFade value
+    @transfer:
+    jsr Func_SetCurrentObjPalettes  ; preserves X
+    @done:
+_Continue:
+    ldy Zp_CurrentBg_eFade
+    cpy Zp_GoalBg_eFade
+    bne _Loop
+    ldy Zp_CurrentObj_eFade
+    cpy Zp_GoalObj_eFade
+    bne _Loop
     rts
 .ENDPROC
 
