@@ -197,6 +197,8 @@
     LavaVentLift
     LavaCavernBoiler
     ShadowFlowerLaser
+    ShadowHeartEmitterX
+    ShadowHeartEmitterY
     NUM_VALUES
 .ENDENUM
 

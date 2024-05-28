@@ -45,6 +45,7 @@
 .IMPORT Func_Noop
 .IMPORT Func_SetActorCenterToPoint
 .IMPORT Func_SetFlag
+.IMPORT Func_SetPlatformTopToPointY
 .IMPORT Func_SetPointToPlatformCenter
 .IMPORT Ppu_ChrObjGarden
 .IMPORT Ram_ActorPosX_i16_0_arr
@@ -287,9 +288,8 @@ _ReleaseCrates:
     jsr Func_SetFlag
     ldax #kCrate3FloatingPositionY
     stax Zp_PointY_i16
-    ldx #kCrate3PlatformIndex  ; param: platform index
-    lda #127  ; param: max move by
-    jmp Func_MovePlatformTopTowardPointY
+    ldy #kCrate3PlatformIndex  ; param: platform index
+    jmp Func_SetPlatformTopToPointY
 .ENDPROC
 
 .PROC FuncC_Core_South_TickRoom

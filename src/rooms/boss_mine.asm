@@ -73,6 +73,7 @@
 .IMPORT Func_PlaySfxShootFire
 .IMPORT Func_SetActorCenterToPoint
 .IMPORT Func_SetMachineIndex
+.IMPORT Func_SetPlatformTopLeftToPoint
 .IMPORT Func_SetPointToAvatarCenter
 .IMPORT Func_SetPointToPlatformCenter
 .IMPORT Func_ShakeRoom
@@ -83,13 +84,9 @@
 .IMPORT Ram_MachineGoalVert_u8_arr
 .IMPORT Ram_MachineStatus_eMachine_arr
 .IMPORT Ram_PlatformBottom_i16_0_arr
-.IMPORT Ram_PlatformBottom_i16_1_arr
 .IMPORT Ram_PlatformLeft_i16_0_arr
-.IMPORT Ram_PlatformLeft_i16_1_arr
 .IMPORT Ram_PlatformRight_i16_0_arr
-.IMPORT Ram_PlatformRight_i16_1_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
-.IMPORT Ram_PlatformTop_i16_1_arr
 .IMPORT Ram_PlatformType_ePlatform_arr
 .IMPORT Ram_PpuTransfer_arr
 .IMPORTZP Zp_Chr04Bank_u8
@@ -148,10 +145,8 @@ kBoulderHeightPx = kBlockHeightPx
 
 ;;; The room pixel positions for each side of the boulder platform when a new
 ;;; boulder is spawned.
-kBoulderSpawnTop    = $0060
-kBoulderSpawnBottom = kBoulderSpawnTop + kBoulderHeightPx
-kBoulderSpawnLeft   = $ffff & -$18
-kBoulderSpawnRight  = kBoulderSpawnLeft + kBoulderWidthPx
+kBoulderSpawnTop  = $0060
+kBoulderSpawnLeft = $ffff & -$18
 
 ;;; States that the boulder in this room can be in.
 .ENUM eBoulder
@@ -1049,35 +1044,24 @@ _BossIsDead:
 .ENDREPEAT
 .ENDPROC
 
-;;; Performs per-frame upates for the boulder when it's on the conveyor.
+;;; Performs per-frame upates for the boulder when it's absent.
 ;;; @prereq BoulderState_eBoulder is eBoulder::Absent.
 .PROC FuncA_Room_BossMine_TickBoulderAbsent
     ;; Spawn a new boulder.
-    lda #<kBoulderSpawnLeft
-    sta Ram_PlatformLeft_i16_0_arr + kBoulderPlatformIndex
-    lda #<kBoulderSpawnRight
-    sta Ram_PlatformRight_i16_0_arr + kBoulderPlatformIndex
-    lda #>kBoulderSpawnLeft
-    sta Ram_PlatformLeft_i16_1_arr + kBoulderPlatformIndex
-    .assert >kBoulderSpawnRight = >kBoulderSpawnLeft, error
-    sta Ram_PlatformRight_i16_1_arr + kBoulderPlatformIndex
-    lda #<kBoulderSpawnTop
-    sta Ram_PlatformTop_i16_0_arr + kBoulderPlatformIndex
-    lda #<kBoulderSpawnBottom
-    sta Ram_PlatformBottom_i16_0_arr + kBoulderPlatformIndex
-    lda #>kBoulderSpawnTop
-    sta Ram_PlatformTop_i16_1_arr + kBoulderPlatformIndex
-    .assert >kBoulderSpawnBottom = >kBoulderSpawnTop, error
-    sta Ram_PlatformBottom_i16_1_arr + kBoulderPlatformIndex
-    .assert >kBoulderSpawnBottom = 0, error
+    .assert eBoulder::OnConveyor = eBoulder::Absent + 1, error
+    inc Zp_RoomState + sState::BoulderState_eBoulder
+    lda #ePlatform::Solid
+    sta Ram_PlatformType_ePlatform_arr + kBoulderPlatformIndex
+    ldax #kBoulderSpawnLeft
+    stax Zp_PointX_i16
+    ldax #kBoulderSpawnTop
+    stax Zp_PointY_i16
+    .assert >kBoulderSpawnTop = 0, error
     sta Zp_RoomState + sState::BoulderSubY_u8
     sta Zp_RoomState + sState::BoulderVelY_i16 + 0
     sta Zp_RoomState + sState::BoulderVelY_i16 + 1
-    lda #eBoulder::OnConveyor
-    sta Zp_RoomState + sState::BoulderState_eBoulder
-    lda #ePlatform::Solid
-    sta Ram_PlatformType_ePlatform_arr + kBoulderPlatformIndex
-    rts
+    ldy #kBoulderPlatformIndex  ; param: platform index
+    jmp Func_SetPlatformTopLeftToPoint
 .ENDPROC
 
 ;;; Performs per-frame upates for the boulder when it's on the conveyor.

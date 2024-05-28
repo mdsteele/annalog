@@ -85,6 +85,23 @@ Ram_PlatformRight_i16_1_arr: .res kMaxPlatforms
 
 .SEGMENT "PRG8"
 
+;;; Stores the room pixel position of the top-left corner of the platform in
+;;; Zp_Point*_i16.
+;;; @param Y The platform index.
+;;; @preserve X, Y, T0+
+.EXPORT Func_SetPointToPlatformTopLeft
+.PROC Func_SetPointToPlatformTopLeft
+    lda Ram_PlatformLeft_i16_0_arr, y
+    sta Zp_PointX_i16 + 0
+    lda Ram_PlatformLeft_i16_1_arr, y
+    sta Zp_PointX_i16 + 1
+    lda Ram_PlatformTop_i16_0_arr, y
+    sta Zp_PointY_i16 + 0
+    lda Ram_PlatformTop_i16_1_arr, y
+    sta Zp_PointY_i16 + 1
+    rts
+.ENDPROC
+
 ;;; Stores the room pixel position of the center of the platform in
 ;;; Zp_Point*_i16.  The platform's width and height must fit in one byte.
 ;;; @param Y The platform index.
@@ -218,8 +235,75 @@ _Inside:
     rts
 .ENDPROC
 
+;;; Repositions the platform so that its top-left corner is at the point stored
+;;; in Zp_PointX_i16 and Zp_PointY_i16.  This does not affect the player
+;;; avatar.
+;;; @param Y The platform index.
+;;; @preserve X, Y, T2+
+.EXPORT Func_SetPlatformTopLeftToPoint
+.PROC Func_SetPlatformTopLeftToPoint
+    jsr Func_SetPlatformTopToPointY  ; preserves X, Y, and T2+
+    fall Func_SetPlatformLeftToPointX  ; preserves X, Y, and T2+
+.ENDPROC
+
+;;; Repositions the platform so that its left edge is at Zp_PointX_i16.  This
+;;; does not affect the player avatar.
+;;; @param Y The platform index.
+;;; @preserve X, Y, T2+
+.PROC Func_SetPlatformLeftToPointX
+    ;; Calculate the delta from Left to PointX, storing the result in T1T0.
+    lda Zp_PointX_i16 + 0
+    sub Ram_PlatformLeft_i16_0_arr, y
+    sta T0  ; delta (lo)
+    lda Zp_PointX_i16 + 1
+    sbc Ram_PlatformLeft_i16_1_arr, y
+    sta T1  ; delta (hi)
+    ;; Add the delta in T1T0 to Right.
+    lda Ram_PlatformRight_i16_0_arr, y
+    add T0  ; delta (lo)
+    sta Ram_PlatformRight_i16_0_arr, y
+    lda Ram_PlatformRight_i16_1_arr, y
+    adc T1  ; delta (hi)
+    sta Ram_PlatformRight_i16_1_arr, y
+    ;; Copy PointX into Left.
+    lda Zp_PointX_i16 + 0
+    sta Ram_PlatformLeft_i16_0_arr, y
+    lda Zp_PointX_i16 + 1
+    sta Ram_PlatformLeft_i16_1_arr, y
+    rts
+.ENDPROC
+
+;;; Repositions the platform so that its top edge is at Zp_PointY_i16.  This
+;;; does not affect the player avatar.
+;;; @param Y The platform index.
+;;; @preserve X, Y, T2+
+.EXPORT Func_SetPlatformTopToPointY
+.PROC Func_SetPlatformTopToPointY
+    ;; Calculate the delta from Top to PointY, storing the result in T1T0.
+    lda Zp_PointY_i16 + 0
+    sub Ram_PlatformTop_i16_0_arr, y
+    sta T0  ; delta (lo)
+    lda Zp_PointY_i16 + 1
+    sbc Ram_PlatformTop_i16_1_arr, y
+    sta T1  ; delta (hi)
+    ;; Add the delta in T1T0 to Bottom.
+    lda Ram_PlatformBottom_i16_0_arr, y
+    add T0  ; delta (lo)
+    sta Ram_PlatformBottom_i16_0_arr, y
+    lda Ram_PlatformBottom_i16_1_arr, y
+    adc T1  ; delta (hi)
+    sta Ram_PlatformBottom_i16_1_arr, y
+    ;; Copy PointY into Top.
+    lda Zp_PointY_i16 + 0
+    sta Ram_PlatformTop_i16_0_arr, y
+    lda Zp_PointY_i16 + 1
+    sta Ram_PlatformTop_i16_1_arr, y
+    rts
+.ENDPROC
+
 ;;; Move the specified platform horizontally such that its left edge moves
-;;; toward the goal position without overshooting it.
+;;; toward the goal position without overshooting it.  This may push or carry
+;;; the player avatar.
 ;;; @prereq Zp_PointX_i16 is set to the goal room-space pixel X-position.
 ;;; @param A The max distance to move by, in pixels (0-127).
 ;;; @param X The platform index.
@@ -262,8 +346,8 @@ _MoveByA:
     rts
 .ENDPROC
 
-;;; Moves the specified platform right or left by the specified delta.  If the
-;;; player avatar is standing on the platform, it will be moved along with it.
+;;; Moves the specified platform right or left by the specified delta.  This
+;;; may push or carry the player avatar.
 ;;; @param A How many pixels to move the platform by (signed).
 ;;; @param X The platform index.
 ;;; @preserve X
@@ -347,7 +431,8 @@ _Return:
 .ENDPROC
 
 ;;; Move the specified platform vertically such that its top edge moves toward
-;;; the goal position without overshooting it.
+;;; the goal position without overshooting it.  This may push or carry the
+;;; player avatar.
 ;;; @prereq Zp_PointY_i16 is set to the goal room-space pixel Y-position.
 ;;; @param A The max distance to move by, in pixels (0-127).
 ;;; @param X The platform index.
@@ -390,8 +475,8 @@ _MoveByA:
     rts
 .ENDPROC
 
-;;; Moves the specified platform up or down by the specified delta.  If the
-;;; player avatar is standing on the platform, it will be moved along with it.
+;;; Moves the specified platform up or down by the specified delta.  This may
+;;; push or carry the player avatar.
 ;;; @param A How many pixels to move the platform by (signed).
 ;;; @param X The platform index.
 ;;; @preserve X

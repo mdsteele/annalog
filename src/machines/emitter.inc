@@ -19,12 +19,22 @@
 
 ;;; State bytes for emitter machines:
 ;;;   * Slowdown: Nonzero if the emitter beam is currently firing.
-;;;   * State1: Unused.
+;;;   * GoalHorz: For EmitterX machines, this is the column (starting from the
+;;;     left) that the beam will emit from.
+;;;   * GoalVert: For EmitterY machines, this is the row (starting from the
+;;;     top) that the beam will emit from.
+;;;   * State1: The actual value (0-9) stored in the machine's X/Y register.
 ;;;   * State2: Unused.
 ;;;   * State3: Unused.
 
-;;; How many frames an emitter machine spends per ACT operation.
-kEmitterActCountdown = 10
+;;; The machine indices that must be used for emitter machines.
+kEmitterXMachineIndex = 0
+kEmitterYMachineIndex = 1
+
+;;; The platform index for the forcefield created by emitter machines.
+kEmitterForcefieldPlatformIndex = 0
+;;; The platform index for the region that the forcefield can appear in.
+kEmitterRegionPlatformIndex = 1
 
 ;;; OBJ tile IDs used for drawing emitter machines.
 kTileIdObjEmitterFirst = $90

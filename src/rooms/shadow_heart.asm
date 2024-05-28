@@ -18,15 +18,49 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "../actor.inc"
+.INCLUDE "../actors/townsfolk.inc"
+.INCLUDE "../charmap.inc"
 .INCLUDE "../device.inc"
+.INCLUDE "../machine.inc"
+.INCLUDE "../machines/emitter.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../platform.inc"
+.INCLUDE "../platforms/force.inc"
+.INCLUDE "../ppu.inc"
+.INCLUDE "../program.inc"
 .INCLUDE "../room.inc"
 
 .IMPORT DataA_Room_Shadow_sTileset
-.IMPORT Data_Empty_sActor_arr
-.IMPORT Func_Noop
+.IMPORT FuncA_Machine_EmitterTryAct
+.IMPORT FuncA_Machine_EmitterXWriteReg
+.IMPORT FuncA_Machine_EmitterYWriteReg
+.IMPORT FuncA_Machine_Error
+.IMPORT FuncA_Machine_ReachedGoal
+.IMPORT FuncA_Objects_DrawEmitterXMachine
+.IMPORT FuncA_Objects_DrawEmitterYMachine
+.IMPORT FuncA_Objects_DrawForcefieldPlatform
+.IMPORT FuncA_Room_MachineEmitterXInitReset
+.IMPORT FuncA_Room_MachineEmitterYInitReset
+.IMPORT Func_MachineEmitterReadReg
+.IMPORT Func_WriteToUpperAttributeTable
 .IMPORT Ppu_ChrObjShadow
+.IMPORT Ram_MachineGoalHorz_u8_arr
+
+;;;=========================================================================;;;
+
+;;; The platform index for the ShadowHeartEmitterX machine.
+kEmitterXPlatformIndex = 2
+;;; The platform index for the ShadowHeartEmitterY machine.
+kEmitterYPlatformIndex = 3
+
+;;; The initial positions of the emitter beams.
+kEmitterXInitRegX = 4
+kEmitterYInitRegY = 2
+
+;;; The minimum room pixel X/Y-positions for the top-left of the forcefield
+;;; platform.
+kForcefieldMinPlatformLeft = $0040
+kForcefieldMinPlatformTop  = $0030
 
 ;;;=========================================================================;;;
 
@@ -41,8 +75,8 @@
     d_byte MinimapStartRow_u8, 13
     d_byte MinimapStartCol_u8, 7
     d_addr TerrainData_ptr, _TerrainData
-    d_byte NumMachines_u8, 0
-    d_addr Machines_sMachine_arr_ptr, 0
+    d_byte NumMachines_u8, 2
+    d_addr Machines_sMachine_arr_ptr, _Machines_sMachine_arr
     d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjShadow)
     d_addr Ext_sRoomExt_ptr, _Ext_sRoomExt
     D_END
@@ -50,23 +84,126 @@ _Ext_sRoomExt:
     D_STRUCT sRoomExt
     d_addr Terrain_sTileset_ptr, DataA_Room_Shadow_sTileset
     d_addr Platforms_sPlatform_arr_ptr, _Platforms_sPlatform_arr
-    d_addr Actors_sActor_arr_ptr, Data_Empty_sActor_arr
+    d_addr Actors_sActor_arr_ptr, _Actors_sActor_arr
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
     d_addr Passages_sPassage_arr_ptr, _Passages_sPassage_arr
-    d_addr Enter_func_ptr, Func_Noop
-    d_addr FadeIn_func_ptr, Func_Noop
-    d_addr Tick_func_ptr, Func_Noop
-    d_addr Draw_func_ptr, Func_Noop
+    d_addr Enter_func_ptr, FuncA_Room_ShadowHeart_EnterRoom
+    d_addr FadeIn_func_ptr, FuncA_Terrain_ShadowHeart_FadeInRoom
+    d_addr Tick_func_ptr, FuncA_Room_ShadowHeart_TickRoom
+    d_addr Draw_func_ptr, FuncA_Objects_ShadowHeart_DrawRoom
     D_END
 _TerrainData:
 :   .incbin "out/rooms/shadow_heart.room"
     .assert * - :- = 33 * 15, error
+_Machines_sMachine_arr:
+:   .assert * - :- = kEmitterXMachineIndex * .sizeof(sMachine), error
+    D_STRUCT sMachine
+    d_byte Code_eProgram, eProgram::ShadowHeartEmitterX
+    d_byte Breaker_eFlag, 0
+    d_byte Flags_bMachine, bMachine::Act | bMachine::WriteE
+    d_byte Status_eDiagram, eDiagram::MinigunDown  ; TODO
+    d_word ScrollGoalX_u16, $0
+    d_byte ScrollGoalY_u8, $0
+    d_byte RegNames_u8_arr4, 0, 0, "X", 0
+    d_byte MainPlatform_u8, kEmitterXPlatformIndex
+    d_addr Init_func_ptr, FuncA_Room_ShadowHeartEmitterX_InitReset
+    d_addr ReadReg_func_ptr, Func_MachineEmitterReadReg
+    d_addr WriteReg_func_ptr, FuncA_Machine_EmitterXWriteReg
+    d_addr TryMove_func_ptr, FuncA_Machine_Error
+    d_addr TryAct_func_ptr, FuncA_Machine_EmitterTryAct
+    d_addr Tick_func_ptr, FuncA_Machine_ReachedGoal
+    d_addr Draw_func_ptr, FuncA_Objects_ShadowHeartEmitterX_Draw
+    d_addr Reset_func_ptr, FuncA_Room_ShadowHeartEmitterX_InitReset
+    D_END
+    .assert * - :- = kEmitterYMachineIndex * .sizeof(sMachine), error
+    D_STRUCT sMachine
+    d_byte Code_eProgram, eProgram::ShadowHeartEmitterY
+    d_byte Breaker_eFlag, 0
+    d_byte Flags_bMachine, bMachine::Act | bMachine::WriteF
+    d_byte Status_eDiagram, eDiagram::MinigunRight  ; TODO
+    d_word ScrollGoalX_u16, $0
+    d_byte ScrollGoalY_u8, $0
+    d_byte RegNames_u8_arr4, 0, 0, 0, "Y"
+    d_byte MainPlatform_u8, kEmitterYPlatformIndex
+    d_addr Init_func_ptr, FuncA_Room_ShadowHeartEmitterY_InitReset
+    d_addr ReadReg_func_ptr, Func_MachineEmitterReadReg
+    d_addr WriteReg_func_ptr, FuncA_Machine_EmitterYWriteReg
+    d_addr TryMove_func_ptr, FuncA_Machine_Error
+    d_addr TryAct_func_ptr, FuncA_Machine_EmitterTryAct
+    d_addr Tick_func_ptr, FuncA_Machine_ReachedGoal
+    d_addr Draw_func_ptr, FuncA_Objects_ShadowHeartEmitterY_Draw
+    d_addr Reset_func_ptr, FuncA_Room_ShadowHeartEmitterY_InitReset
+    D_END
+    .assert * - :- <= kMaxMachines * .sizeof(sMachine), error
 _Platforms_sPlatform_arr:
-:   ;; TODO
+:   .linecont +
+    .assert * - :- = kEmitterForcefieldPlatformIndex * .sizeof(sPlatform), \
+            error
+    .linecont -
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Zone
+    d_word WidthPx_u16, kForcefieldPlatformWidth
+    d_byte HeightPx_u8, kForcefieldPlatformHeight
+    d_word Left_i16, kForcefieldMinPlatformLeft
+    d_word Top_i16, kForcefieldMinPlatformTop
+    D_END
+    .assert * - :- = kEmitterRegionPlatformIndex * .sizeof(sPlatform), error
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Zone
+    d_word WidthPx_u16, $a0
+    d_byte HeightPx_u8, $60
+    d_word Left_i16, kForcefieldMinPlatformLeft
+    d_word Top_i16, kForcefieldMinPlatformTop
+    D_END
+    .assert * - :- = kEmitterXPlatformIndex * .sizeof(sPlatform), error
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Solid
+    d_word WidthPx_u16, $08
+    d_byte HeightPx_u8, $08
+    d_word Left_i16,  $00d8
+    d_word Top_i16,   $0010
+    D_END
+    .assert * - :- = kEmitterYPlatformIndex * .sizeof(sPlatform), error
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Solid
+    d_word WidthPx_u16, $08
+    d_byte HeightPx_u8, $08
+    d_word Left_i16,  $0028
+    d_word Top_i16,   $0030
+    D_END
+    ;; Acid:
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Kill
+    d_word WidthPx_u16, $1c0
+    d_byte HeightPx_u8,  $20
+    d_word Left_i16,   $0040
+    d_word Top_i16,    $00ca
+    D_END
     .assert * - :- <= kMaxPlatforms * .sizeof(sPlatform), error
     .byte ePlatform::None
+_Actors_sActor_arr:
+:   ;; TODO: add some goo baddies
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::NpcMermaid
+    d_word PosX_i16, $01e4
+    d_word PosY_i16, $0071
+    d_byte Param_byte, kTileIdMermaidGhostFirst
+    D_END
+    .assert * - :- <= kMaxActors * .sizeof(sActor), error
+    .byte eActor::None
 _Devices_sDevice_arr:
-:   ;; TODO
+:   D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::Console
+    d_byte BlockRow_u8, 10
+    d_byte BlockCol_u8, 4
+    d_byte Target_byte, kEmitterYMachineIndex
+    D_END
+    D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::Console
+    d_byte BlockRow_u8, 10
+    d_byte BlockCol_u8, 13
+    d_byte Target_byte, kEmitterXMachineIndex
+    D_END
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None
 _Passages_sPassage_arr:
@@ -77,6 +214,67 @@ _Passages_sPassage_arr:
     d_byte SpawnAdjust_byte, 0
     D_END
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Room"
+
+.PROC FuncA_Room_ShadowHeart_EnterRoom
+    ;; TODO: if flag set, remove mermaid ghost
+    rts
+.ENDPROC
+
+.PROC FuncA_Room_ShadowHeart_TickRoom
+    ;; TODO: set room darkness based on avatar position
+    ;; TODO: if a baddie is in a solid forcefield platform, kill it
+    ;; TODO: if avatar approaches the mermaid ghost, set flag and disappear it
+    rts
+.ENDPROC
+
+.PROC FuncA_Room_ShadowHeartEmitterX_InitReset
+    lda #kEmitterXInitRegX  ; param: X register value
+    jmp FuncA_Room_MachineEmitterXInitReset
+.ENDPROC
+
+.PROC FuncA_Room_ShadowHeartEmitterY_InitReset
+    lda #kEmitterYInitRegY  ; param: X register value
+    jmp FuncA_Room_MachineEmitterYInitReset
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Terrain"
+
+;;; @prereq Rendering is disabled.
+.PROC FuncA_Terrain_ShadowHeart_FadeInRoom
+    ldx #8    ; param: num bytes to write
+    ldy #$aa  ; param: attribute value
+    lda #$30  ; param: initial byte offset
+    jmp Func_WriteToUpperAttributeTable
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Objects"
+
+;;; Draw function for the ShadowHeart room.
+.PROC FuncA_Objects_ShadowHeart_DrawRoom
+    ldx #kEmitterForcefieldPlatformIndex  ; param: platform index
+    jmp FuncA_Objects_DrawForcefieldPlatform
+.ENDPROC
+
+.PROC FuncA_Objects_ShadowHeartEmitterX_Draw
+    ldx Ram_MachineGoalHorz_u8_arr + kEmitterXMachineIndex
+    ldy _BeamLength_u8_arr, x  ; param: beam length in tiles
+    jmp FuncA_Objects_DrawEmitterXMachine
+_BeamLength_u8_arr:
+    .byte 18, 20, 20, 20, 16, 20, 20, 20, 20, 18
+.ENDPROC
+
+.PROC FuncA_Objects_ShadowHeartEmitterY_Draw
+    ldy #24  ; param: beam length in tiles
+    jmp FuncA_Objects_DrawEmitterYMachine
 .ENDPROC
 
 ;;;=========================================================================;;;
