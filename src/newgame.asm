@@ -316,6 +316,7 @@ _SetFlags:
     .byte eFlag::BreakerCity
     .byte eFlag::PaperJerome01
     .byte eFlag::ShadowTrapDisarmed
+    .byte eFlag::ShadowHeartTaggedGhost
     .byte eFlag::BossShadow
     .byte eFlag::UpgradeOpMul
     .byte eFlag::BreakerShadow

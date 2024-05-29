@@ -21,6 +21,8 @@
 .INCLUDE "../actors/townsfolk.inc"
 .INCLUDE "../charmap.inc"
 .INCLUDE "../device.inc"
+.INCLUDE "../fade.inc"
+.INCLUDE "../flag.inc"
 .INCLUDE "../machine.inc"
 .INCLUDE "../machines/emitter.inc"
 .INCLUDE "../macros.inc"
@@ -39,12 +41,35 @@
 .IMPORT FuncA_Objects_DrawEmitterXMachine
 .IMPORT FuncA_Objects_DrawEmitterYMachine
 .IMPORT FuncA_Objects_DrawForcefieldPlatform
+.IMPORT FuncA_Room_GetDarknessZoneFade
 .IMPORT FuncA_Room_MachineEmitterXInitReset
 .IMPORT FuncA_Room_MachineEmitterYInitReset
+.IMPORT Func_IsPointInPlatform
 .IMPORT Func_MachineEmitterReadReg
+.IMPORT Func_SetAndTransferBgFade
+.IMPORT Func_SetFlag
+.IMPORT Func_SetPointToAvatarCenter
 .IMPORT Func_WriteToUpperAttributeTable
 .IMPORT Ppu_ChrObjShadow
+.IMPORT Ram_ActorType_eActor_arr
 .IMPORT Ram_MachineGoalHorz_u8_arr
+.IMPORT Sram_ProgressFlags_arr
+.IMPORTZP Zp_GoalBg_eFade
+.IMPORTZP Zp_RoomState
+
+;;;=========================================================================;;;
+
+;;; The actor index for the ghost in this room.
+kGhostActorIndex = 0
+
+;;; The platform index for the zone that makes the ghost disappear when the
+;;; player avatar enters it.
+kGhostTagZonePlatformIndex = 4
+
+;;; The platform indices for the zones of darkness in this room.
+kDarkZone1PlatformIndex = 5
+kDarkZone2PlatformIndex = 6
+kDarkZone3PlatformIndex = 7
 
 ;;;=========================================================================;;;
 
@@ -61,6 +86,15 @@ kEmitterYInitRegY = 2
 ;;; platform.
 kForcefieldMinPlatformLeft = $0040
 kForcefieldMinPlatformTop  = $0030
+
+;;;=========================================================================;;;
+
+;;; Defines room-specific state data for this particular room.
+.STRUCT sState
+    ;; The current fade level for this room's terrain.
+    Terrain_eFade .byte
+.ENDSTRUCT
+.ASSERT .sizeof(sState) <= kRoomStateSize, error
 
 ;;;=========================================================================;;;
 
@@ -171,6 +205,39 @@ _Platforms_sPlatform_arr:
     d_word Left_i16,  $0028
     d_word Top_i16,   $0030
     D_END
+    .assert * - :- = kGhostTagZonePlatformIndex * .sizeof(sPlatform), error
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Zone
+    d_word WidthPx_u16, $20
+    d_byte HeightPx_u8, $10
+    d_word Left_i16,  $01e0
+    d_word Top_i16,   $0070
+    D_END
+    ;; Darkness:
+    .assert * - :- = kDarkZone1PlatformIndex * .sizeof(sPlatform), error
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Zone
+    d_word WidthPx_u16, $90
+    d_byte HeightPx_u8, $f0
+    d_word Left_i16,  $0130
+    d_word Top_i16,   $0000
+    D_END
+    .assert * - :- = kDarkZone2PlatformIndex * .sizeof(sPlatform), error
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Zone
+    d_word WidthPx_u16, $70
+    d_byte HeightPx_u8, $70
+    d_word Left_i16,  $01a0
+    d_word Top_i16,   $0080
+    D_END
+    .assert * - :- = kDarkZone3PlatformIndex * .sizeof(sPlatform), error
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Zone
+    d_word WidthPx_u16, $60
+    d_byte HeightPx_u8, $f0
+    d_word Left_i16,  $0060
+    d_word Top_i16,   $0000
+    D_END
     ;; Acid:
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Kill
@@ -182,13 +249,14 @@ _Platforms_sPlatform_arr:
     .assert * - :- <= kMaxPlatforms * .sizeof(sPlatform), error
     .byte ePlatform::None
 _Actors_sActor_arr:
-:   ;; TODO: add some goo baddies
+:   .assert * - :- = kGhostActorIndex * .sizeof(sActor), error
     D_STRUCT sActor
     d_byte Type_eActor, eActor::NpcMermaid
     d_word PosX_i16, $01e4
     d_word PosY_i16, $0071
     d_byte Param_byte, kTileIdMermaidGhostFirst
     D_END
+    ;; TODO: add some goo baddies
     .assert * - :- <= kMaxActors * .sizeof(sActor), error
     .byte eActor::None
 _Devices_sDevice_arr:
@@ -221,15 +289,47 @@ _Passages_sPassage_arr:
 .SEGMENT "PRGA_Room"
 
 .PROC FuncA_Room_ShadowHeart_EnterRoom
-    ;; TODO: if flag set, remove mermaid ghost
+    lda #eFade::Normal
+    sta Zp_RoomState + sState::Terrain_eFade
+_MaybeRemoveGhost:
+    flag_bit Sram_ProgressFlags_arr, eFlag::ShadowHeartTaggedGhost
+    beq @done
+    lda #eActor::None
+    sta Ram_ActorType_eActor_arr + kGhostActorIndex
+    @done:
     rts
 .ENDPROC
 
 .PROC FuncA_Room_ShadowHeart_TickRoom
-    ;; TODO: set room darkness based on avatar position
-    ;; TODO: if a baddie is in a solid forcefield platform, kill it
-    ;; TODO: if avatar approaches the mermaid ghost, set flag and disappear it
-    rts
+    ;; TODO: if a goo baddie is in a solid forcefield platform, kill it
+_MaybeTagGhost:
+    ;; If the avatar isn't in the tag zone, don't tag the ghost.
+    jsr Func_SetPointToAvatarCenter
+    ldy #kGhostTagZonePlatformIndex  ; param: platform index
+    jsr Func_IsPointInPlatform  ; returns C
+    bcc @done  ; avatar is not in the tag zone
+    ;; Mark the ghost as tagged; if it already was, then we're done.
+    ldx #eFlag::ShadowHeartTaggedGhost  ; param: flag
+    jsr Func_SetFlag  ; sets C if flag was already set
+    bcs @done  ; ghost was already tagged
+    ;; Make the ghost disappear.
+    ;; TODO: Play a sound
+    ;; TODO: Animate the ghost disappearing.
+    lda #eActor::None
+    sta Ram_ActorType_eActor_arr + kGhostActorIndex
+    @done:
+_SetTerrainFade:
+    ldy #eFade::Normal  ; param: fade level
+    ldx #kDarkZone3PlatformIndex
+    @loop:
+    jsr FuncA_Room_GetDarknessZoneFade  ; preserves X, returns Y
+    dex
+    .assert kDarkZone3PlatformIndex - 1 = kDarkZone2PlatformIndex, error
+    .assert kDarkZone2PlatformIndex - 1 = kDarkZone1PlatformIndex, error
+    cpx #kDarkZone1PlatformIndex
+    bge @loop
+    sty Zp_RoomState + sState::Terrain_eFade
+    jmp Func_SetAndTransferBgFade
 .ENDPROC
 
 .PROC FuncA_Room_ShadowHeartEmitterX_InitReset
@@ -246,8 +346,10 @@ _Passages_sPassage_arr:
 
 .SEGMENT "PRGA_Terrain"
 
-;;; @prereq Rendering is disabled.
 .PROC FuncA_Terrain_ShadowHeart_FadeInRoom
+    lda Zp_RoomState + sState::Terrain_eFade
+    sta Zp_GoalBg_eFade
+    ;; Set two block rows of the upper nametable to use BG palette 2.
     ldx #8    ; param: num bytes to write
     ldy #$aa  ; param: attribute value
     lda #$30  ; param: initial byte offset

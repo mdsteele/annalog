@@ -28,15 +28,18 @@
 .INCLUDE "../room.inc"
 
 .IMPORT DataA_Room_Shadow_sTileset
+.IMPORT FuncA_Room_GetDarknessZoneFade
 .IMPORT Func_Noop
 .IMPORT Func_SetAndTransferBgFade
 .IMPORT Func_WriteToUpperAttributeTable
 .IMPORT Ppu_ChrObjShadow
-.IMPORTZP Zp_AvatarPosX_i16
 .IMPORTZP Zp_GoalBg_eFade
 .IMPORTZP Zp_RoomState
 
 ;;;=========================================================================;;;
+
+;;; The platform index for the zone of darkness in this room.
+kDarknessZonePlatformIndex = 0
 
 ;;; Defines room-specific state data for this particular room.
 .STRUCT sState
@@ -79,7 +82,16 @@ _TerrainData:
 :   .incbin "out/rooms/shadow_gate.room"
     .assert * - :- = 18 * 15, error
 _Platforms_sPlatform_arr:
-:   ;; Acid:
+:   ;; Darkness:
+    .assert * - :- = kDarknessZonePlatformIndex * .sizeof(sPlatform), error
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Zone
+    d_word WidthPx_u16, $7e
+    d_byte HeightPx_u8, $f0
+    d_word Left_i16,  $002d
+    d_word Top_i16,   $0000
+    D_END
+    ;; Acid:
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Kill
     d_word WidthPx_u16, $a0
@@ -134,31 +146,9 @@ _Passages_sPassage_arr:
 .ENDPROC
 
 .PROC FuncA_Room_ShadowGate_TickRoom
-    lda Zp_AvatarPosX_i16 + 0
-    cmp #$28
-    blt @normal
-    cmp #$b0
-    bge @normal
-    cmp #$2e
-    blt @dim
-    cmp #$aa
-    bge @dim
-    cmp #$34
-    blt @dark
-    cmp #$a4
-    bge @dark
-    @black:
-    ldy #eFade::Black   ; param: eFade value
-    bpl @transfer  ; unconditional
-    @dark:
-    ldy #eFade::Dark    ; param: eFade value
-    bpl @transfer  ; unconditional
-    @dim:
-    ldy #eFade::Dim     ; param: eFade value
-    bpl @transfer  ; unconditional
-    @normal:
-    ldy #eFade::Normal  ; param: eFade value
-    @transfer:
+    ldy #eFade::Normal  ; param: fade level
+    ldx #kDarknessZonePlatformIndex
+    jsr FuncA_Room_GetDarknessZoneFade  ; returns Y
     sty Zp_RoomState + sState::Terrain_eFade
     jmp Func_SetAndTransferBgFade
 .ENDPROC

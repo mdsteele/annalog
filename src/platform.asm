@@ -788,7 +788,8 @@ _Return:
 ;;; @param X The platform index.
 ;;; @return A How far to push the avatar vertically to get it out (-127-0).
 ;;; @return Z Set if the avatar is fully above the platform.
-;;; @preserve X
+;;; @preserve X, T2+
+.EXPORT Func_AvatarDepthIntoPlatformTop
 .PROC Func_AvatarDepthIntoPlatformTop
     ;; Calculate the room pixel Y-position of the bottom of the avatar.
     lda Zp_AvatarPosY_i16 + 0
@@ -825,7 +826,8 @@ _NotInPlatform:
 ;;; @param X The platform index.
 ;;; @return A How far to push the avatar vertically to get it out (0-127).
 ;;; @return Z Set if the avatar is fully below the platform.
-;;; @preserve X
+;;; @preserve X, T2+
+.EXPORT Func_AvatarDepthIntoPlatformBottom
 .PROC Func_AvatarDepthIntoPlatformBottom
     ;; Calculate the room pixel Y-position of top of the avatar.
     lda Zp_AvatarPosY_i16 + 0
@@ -873,7 +875,8 @@ _NotInPlatform:
 ;;; @param X The platform index.
 ;;; @return A How far to push the avatar horizontally to get it out (-127-0).
 ;;; @return Z Set if the avatar is fully to the left of the platform.
-;;; @preserve X
+;;; @preserve X, T2+
+.EXPORT Func_AvatarDepthIntoPlatformLeft
 .PROC Func_AvatarDepthIntoPlatformLeft
     ;; Calculate the room pixel X-position of the avatar's right side.
     lda Zp_AvatarPosX_i16 + 0
@@ -910,7 +913,8 @@ _NotInPlatform:
 ;;; @param X The platform index.
 ;;; @return A How far to push the avatar horizontally to get it out (0-127).
 ;;; @return Z Set if the avatar is fully to the right of the platform.
-;;; @preserve X
+;;; @preserve X, T2+
+.EXPORT Func_AvatarDepthIntoPlatformRight
 .PROC Func_AvatarDepthIntoPlatformRight
     ;; Calculate the room pixel X-position of the avatar's left side.
     lda Zp_AvatarPosX_i16 + 0
