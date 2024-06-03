@@ -1084,7 +1084,7 @@ _chr_begin:
 .PROC Ppu_ChrObjBoss1
     CHR2_BANK $80
     chr_inc "spike",                 kTileIdObjSpike
-    chr_res $01
+    chr_inc "emitter_light",         kTileIdObjEmitterLight
     chr_inc "upgrade_ram",           kTileIdObjUpgradeRamFirst
     chr_res $02
     chr_inc "ember",                 kTileIdObjEmber
@@ -1383,8 +1383,10 @@ _chr_begin:
 .EXPORT Ppu_ChrObjShadow
 .PROC Ppu_ChrObjShadow
     CHR2_BANK $80
+    chr_res $01
+    chr_inc "emitter_light",  kTileIdObjEmitterLight
+    chr_res $06
     chr_inc "bad_flydrop",    kTileIdObjBadFlydropFirst
-    chr_res $08
     chr_inc "emitter",        kTileIdObjEmitterFirst
     chr_res $02
     chr_inc "forcefield",     kTileIdObjForcefieldFirst

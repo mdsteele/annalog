@@ -195,7 +195,7 @@ _Platforms_sPlatform_arr:
     d_word WidthPx_u16, $08
     d_byte HeightPx_u8, $08
     d_word Left_i16,  $00d8
-    d_word Top_i16,   $0010
+    d_word Top_i16,   $0018
     D_END
     .assert * - :- = kEmitterYPlatformIndex * .sizeof(sPlatform), error
     D_STRUCT sPlatform

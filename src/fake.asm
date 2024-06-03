@@ -251,14 +251,14 @@ _DrawStatus:
     .addr _Ethical6_u8_arr19
     .addr _Blank_u8_arr19
     d_byte InsufficientData
-    .addr _Blank_u8_arr19
-    .addr _Blank_u8_arr19
-    .addr _Blank_u8_arr19
+    .addr _CoreDump0_u8_arr19
+    .addr _CoreDump1_u8_arr19
+    .addr _CoreDump2_u8_arr19
     .addr _InsufficientData3_u8_arr19
     .addr _InsufficientData4_u8_arr19
     .addr _InsufficientData5_u8_arr19
-    .addr _Blank_u8_arr19
-    .addr _Blank_u8_arr19
+    .addr _CoreDump6_u8_arr19
+    .addr _CoreDump7_u8_arr19
     d_byte NoPower
     .addr _Blank_u8_arr19
     .addr _Blank_u8_arr19

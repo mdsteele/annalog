@@ -203,7 +203,7 @@ _Finish:
 .PROC FuncA_Objects_DrawEmitterXMachine
     sty T0  ; beam length in tiles
     jsr FuncA_Objects_SetShapePosToMachineTopLeft  ; preserves T0+
-    lda #kBlockHeightPx  ; param: offset
+    lda #kTileHeightPx  ; param: offset
     jsr FuncA_Objects_MoveShapeDownByA  ; preserves T0+
     ldx Zp_MachineIndex_u8
     lda #9
@@ -222,7 +222,7 @@ _DrawBeam:
     lda #kTileIdObjEmitterBeamVert  ; param: tile ID
     ldy #kPaletteObjEmitterBeam  ; param: object flags
     jsr FuncA_Objects_Draw1x1Shape
-    jmp FuncA_Objects_DrawEmitterMachine
+    jmp _DrawMachineLight
 _DrawGlow:
     lda Zp_FrameCounter_u8
     div #4
@@ -230,7 +230,9 @@ _DrawGlow:
     add #kTileIdObjEmitterGlowXFirst  ; param: tile ID
     ldy #kPaletteObjEmitterGlow  ; param: object flags
     jsr FuncA_Objects_Draw1x1Shape
-    jmp FuncA_Objects_DrawEmitterMachine
+_DrawMachineLight:
+    ldy #kPaletteObjMachineLight | bObj::FlipHV  ; param: object flags
+    bne FuncA_Objects_DrawEmitterMachineLight  ; unconditional
 .ENDPROC
 
 ;;; Draws a forcefield emitter machine that fires a horizontal beam at various
@@ -258,7 +260,7 @@ _DrawBeam:
     lda #kTileIdObjEmitterBeamHorz  ; param: tile ID
     ldy #kPaletteObjEmitterBeam  ; param: object flags
     jsr FuncA_Objects_Draw1x1Shape
-    jmp FuncA_Objects_DrawEmitterMachine
+    jmp _DrawMachineLight
 _DrawGlow:
     lda Zp_FrameCounter_u8
     div #4
@@ -266,16 +268,25 @@ _DrawGlow:
     add #kTileIdObjEmitterGlowYFirst  ; param: tile ID
     ldy #kPaletteObjEmitterGlow  ; param: object flags
     jsr FuncA_Objects_Draw1x1Shape
-    .assert * = FuncA_Objects_DrawEmitterMachine, error, "fallthrough"
+_DrawMachineLight:
+    ldy #kPaletteObjMachineLight | bObj::FlipH  ; param: object flags
+    fall FuncA_Objects_DrawEmitterMachineLight
 .ENDPROC
 
-;;; Draws a forcefield emitter machine.
+;;; Draws the machine light for a forcefield emitter machine.
 ;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
-.PROC FuncA_Objects_DrawEmitterMachine
-    jsr FuncA_Objects_SetShapePosToMachineTopLeft
-    jsr FuncA_Objects_GetMachineLightTileId  ; returns A (param: tile ID)
-    ldy #kPaletteObjMachineLight | bObj::FlipH  ; param: object flags
+;;; @param Y The object flags to use for the machine light.
+.PROC FuncA_Objects_DrawEmitterMachineLight
+    sty T0  ; object flags
+    jsr FuncA_Objects_GetMachineLightTileId  ; preserves T0+, returns A
+    cmp #kTileIdObjMachineLightOn
+    bne @done
+    jsr FuncA_Objects_SetShapePosToMachineTopLeft  ; preserves T0+
+    ldy T0  ; param: object flags
+    lda #kTileIdObjEmitterLight  ; param: tile ID
     jmp FuncA_Objects_Draw1x1Shape
+    @done:
+    rts
 .ENDPROC
 
 ;;;=========================================================================;;;
