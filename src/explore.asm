@@ -73,6 +73,7 @@
 .IMPORT Main_Cutscene_Start
 .IMPORT Main_Death
 .IMPORT Main_Dialog_UseDevice
+.IMPORT Main_FakeConsole_UseDevice
 .IMPORT Main_Paper_UseDevice
 .IMPORT Main_Pause_FadeIn
 .IMPORT Main_Upgrade_UseDevice
@@ -331,6 +332,7 @@ _CheckForActivateDevice:
     d_entry table, Door1Unlocked, _DeviceDoor
     d_entry table, Door2Open,     _DeviceDoor
     d_entry table, Door3Open,     _DeviceDoor
+    d_entry table, FakeConsole,   _DeviceFakeConsole
     d_entry table, Flower,        _DeviceFlower
     d_entry table, LeverCeiling,  _DeviceLever
     d_entry table, LeverFloor,    _DeviceLever
@@ -355,6 +357,9 @@ _ContinueExploring:
     rts
 _DeviceConsole:
     ldya #Main_Console_UseDevice
+    bmi _ReturnYA  ; unconditional
+_DeviceFakeConsole:
+    ldya #Main_FakeConsole_UseDevice
     bmi _ReturnYA  ; unconditional
 _DeviceDoor:
     lda #eAvatar::Reading

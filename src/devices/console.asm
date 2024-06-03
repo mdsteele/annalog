@@ -51,33 +51,56 @@ kPaletteObjScreen     = 1
 ;;; @preserve X
 .EXPORT FuncA_Objects_DrawDeviceConsole
 .PROC FuncA_Objects_DrawDeviceConsole
+    ;; The the device is animating, blink the console screen quickly.
     lda Ram_DeviceAnim_u8_arr, x
     and #$04
-    bne @done
-    ;; Position the shape.
-    jsr FuncA_Objects_SetShapePosToDeviceTopLeft  ; preserves X
-    jsr FuncA_Objects_MoveShapeRightHalfTile  ; preserves X
+    bne FuncA_Objects_DrawDeviceConsoleBlank  ; preserves X
     ;; Check the machine's status.
     ldy Ram_DeviceTarget_byte_arr, x  ; machine index
     lda Ram_MachineStatus_eMachine_arr, y
     cmp #eMachine::Error
-    beq @machineError
-    @machineOk:
-    ldy #kPaletteObjConsoleOk  ; param: object flags
-    lda #kTileIdObjConsoleOk  ; param: tile ID
-    .assert kTileIdObjConsoleOk > 0, error
-    bne @drawShape  ; unconditional
-    ;; If the machine has an error, blink the console screen.
-    @machineError:
+    bne FuncA_Objects_DrawDeviceConsoleOk  ; preserves X
+    fall FuncA_Objects_DrawDeviceConsoleErr  ; preserves X
+.ENDPROC
+
+;;; Draws a console device for a machine with an error.
+;;; @param X The device index.
+;;; @preserve X
+.PROC FuncA_Objects_DrawDeviceConsoleErr
+    ;; Blink the console screen slowly.
     lda Zp_FrameCounter_u8
     and #$08
-    beq @done
+    beq FuncA_Objects_DrawDeviceConsoleBlank  ; preserves X
+    ;; Draw the error screen.
+    jsr FuncA_Objects_SetShapePosToDeviceTopLeft  ; preserves X
+    jsr FuncA_Objects_MoveShapeRightHalfTile  ; preserves X
     ldy #kPaletteObjConsoleErr  ; param: object flags
     lda #kTileIdObjConsoleErr  ; param: tile ID
-    @drawShape:
     jmp FuncA_Objects_Draw1x1Shape  ; preserves X
-    @done:
+.ENDPROC
+
+;;; Draws a console device whose screen is currently blank.
+;;; @param X The device index.
+;;; @preserve X
+.PROC FuncA_Objects_DrawDeviceConsoleBlank
     rts
+.ENDPROC
+
+;;; Draws a fake console device.
+;;; @param X The device index.
+;;; @preserve X
+.EXPORT FuncA_Objects_DrawDeviceFakeConsole
+.PROC FuncA_Objects_DrawDeviceFakeConsole
+    fall FuncA_Objects_DrawDeviceConsoleOk  ; preserves X
+.ENDPROC
+
+;;; Draws a console device for a machine that doesn't have an error.
+;;; @param X The device index.
+;;; @preserve X
+.PROC FuncA_Objects_DrawDeviceConsoleOk
+    ldy #kPaletteObjConsoleOk  ; param: object flags
+    .assert kPaletteObjConsoleOk <> 0, error
+    bne FuncA_Objects_DrawDeviceConsoleOrScreen  ; unconditional, preserves X
 .ENDPROC
 
 ;;; Draws a screen device.
@@ -85,9 +108,17 @@ kPaletteObjScreen     = 1
 ;;; @preserve X
 .EXPORT FuncA_Objects_DrawDeviceScreen
 .PROC FuncA_Objects_DrawDeviceScreen
-    jsr FuncA_Objects_SetShapePosToDeviceTopLeft  ; preserves X
-    jsr FuncA_Objects_MoveShapeRightHalfTile  ; preserves X
     ldy #kPaletteObjScreen  ; param: object flags
+    fall FuncA_Objects_DrawDeviceConsoleOrScreen
+.ENDPROC
+
+;;; Draws a non-error console or screen device.
+;;; @param X The device index.
+;;; @param Y The bObj value for the object flags.
+;;; @preserve X
+.PROC FuncA_Objects_DrawDeviceConsoleOrScreen
+    jsr FuncA_Objects_SetShapePosToDeviceTopLeft  ; preserves X and Y
+    jsr FuncA_Objects_MoveShapeRightHalfTile  ; preserves X and Y
     lda #kTileIdObjScreen  ; param: tile ID
     jmp FuncA_Objects_Draw1x1Shape  ; preserves X
 .ENDPROC

@@ -163,6 +163,7 @@ kMaxPassages = 8
     ShadowGate
     ShadowHall
     ShadowHeart
+    ShadowOffice
     ShadowTeleport
     ShadowTrap
     TempleAltar

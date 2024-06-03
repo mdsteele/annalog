@@ -435,6 +435,7 @@ _DeviceOffset_u8_arr:
     d_byte Door1Unlocked, kDoorAvatarOffset
     d_byte Door2Open,     kDoorAvatarOffset
     d_byte Door3Open,     kDoorAvatarOffset
+    d_byte FakeConsole,   kConsoleAvatarOffset
     d_byte Flower,        $08
     d_byte LeverCeiling,  $06
     d_byte LeverFloor,    $06

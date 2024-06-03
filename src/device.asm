@@ -27,6 +27,7 @@
 .IMPORT FuncA_Objects_DrawDeviceBreakerReady
 .IMPORT FuncA_Objects_DrawDeviceBreakerRising
 .IMPORT FuncA_Objects_DrawDeviceConsole
+.IMPORT FuncA_Objects_DrawDeviceFakeConsole
 .IMPORT FuncA_Objects_DrawDeviceFlower
 .IMPORT FuncA_Objects_DrawDeviceLeverCeiling
 .IMPORT FuncA_Objects_DrawDeviceLeverFloor
@@ -184,6 +185,7 @@ _Continue:
     d_entry table, Door1Unlocked, FuncA_Objects_DrawDeviceUnlockedDoor
     d_entry table, Door2Open,     Func_Noop
     d_entry table, Door3Open,     Func_Noop
+    d_entry table, FakeConsole,   FuncA_Objects_DrawDeviceFakeConsole
     d_entry table, Flower,        FuncA_Objects_DrawDeviceFlower
     d_entry table, LeverCeiling,  FuncA_Objects_DrawDeviceLeverCeiling
     d_entry table, LeverFloor,    FuncA_Objects_DrawDeviceLeverFloor

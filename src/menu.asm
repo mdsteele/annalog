@@ -36,8 +36,8 @@
 .IMPORT FuncA_Console_SetUpLValueMenu
 .IMPORT FuncA_Console_SetUpOpcodeMenu
 .IMPORT FuncA_Console_SetUpRValueMenu
+.IMPORT FuncA_Console_TransferAllDiagramBoxRows
 .IMPORT FuncA_Console_TransferAllInstructions
-.IMPORT FuncA_Console_TransferAllStatusRows
 .IMPORT FuncA_Console_TransferInstruction
 .IMPORT FuncM_ConsoleScrollTowardsGoalAndTick
 .IMPORT FuncM_DrawObjectsForRoomAndProcessFrame
@@ -378,7 +378,7 @@ _Cancel:
 _SetValue:
     jsr FuncA_Console_MenuSetValue
 _ExitMenu:
-    jsr FuncA_Console_TransferAllStatusRows
+    jsr FuncA_Console_TransferAllDiagramBoxRows
     sec
     rts
 .ENDPROC

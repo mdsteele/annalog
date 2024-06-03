@@ -57,11 +57,11 @@
 ;;; The height of the console machine diagram, in tiles.
 kNumDiagramRows = 4
 
-;;; The width of the console status box, in tiles.
-kStatusBoxWidthTiles = 8
+;;; The width of the console diagram box, in tiles.
+kDiagramBoxWidthTiles = 8
 
-;;; The leftmost nametable tile column in the console status box.
-kStatusBoxStartTileColumn = 22
+;;; The leftmost nametable tile column that is inside the console diagram box.
+kDiagramBoxStartTileColumn = 22
 
 ;;; How many rows the "no power" message takes up, in tiles.
 kNumNoPowerRows = 2
@@ -150,14 +150,16 @@ kNoPowerWidthTiles = 19
     D_END
 .ENDPROC
 
-;;; Appends PPU transfer entries to redraw all rows in the console status box.
-.EXPORT FuncA_Console_TransferAllStatusRows
-.PROC FuncA_Console_TransferAllStatusRows
+;;; Appends PPU transfer entries to redraw all rows in the console window
+;;; diagram box.
+;;; @prereq Zp_ConsoleMachineIndex_u8 is initialized.
+.EXPORT FuncA_Console_TransferAllDiagramBoxRows
+.PROC FuncA_Console_TransferAllDiagramBoxRows
     ldx Zp_ConsoleMachineIndex_u8  ; param: machine index
     jsr Func_SetMachineIndex
-    ldy #0  ; param: status box row
+    ldy #0  ; param: diagram box row
     @loop:
-    jsr FuncA_Console_TransferStatusRow  ; preserves Y
+    jsr FuncA_Console_TransferDiagramBoxRow  ; preserves Y
     iny
     cpy Zp_ConsoleNumInstRows_u8
     blt @loop
@@ -165,11 +167,11 @@ kNoPowerWidthTiles = 19
 .ENDPROC
 
 ;;; Appends a PPU transfer entry to redraw the specified row of the console
-;;; status box.
+;;; window diagram box.
 ;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
-;;; @param Y The status box row to transfer (0-7).
+;;; @param Y The diagram box row to transfer (0-7).
 ;;; @preserve Y
-.PROC FuncA_Console_TransferStatusRow
+.PROC FuncA_Console_TransferDiagramBoxRow
     tya
     pha
     ;; Get the transfer destination address, and store it in T0 (lo) and T1
@@ -178,7 +180,7 @@ kNoPowerWidthTiles = 19
     tya  ; param: window row
     jsr Func_Window_GetRowPpuAddr  ; returns XY
     tya
-    add #kStatusBoxStartTileColumn
+    add #kDiagramBoxStartTileColumn
     sta T0  ; transfer destination (lo)
     txa
     adc #0
@@ -186,7 +188,7 @@ kNoPowerWidthTiles = 19
     ;; Update Zp_PpuTransferLen_u8.
     ldx Zp_PpuTransferLen_u8
     txa
-    add #4 + kStatusBoxWidthTiles
+    add #4 + kDiagramBoxWidthTiles
     sta Zp_PpuTransferLen_u8
     ;; Write the transfer entry header.
     lda #kPpuCtrlFlagsHorz
@@ -198,53 +200,63 @@ kNoPowerWidthTiles = 19
     lda T0  ; transfer destination (lo)
     sta Ram_PpuTransfer_arr, x
     inx
-    lda #kStatusBoxWidthTiles
+    lda #kDiagramBoxWidthTiles
     sta Ram_PpuTransfer_arr, x
     inx
     ;; Write the transfer data.
     pla
-    tay  ; param: status box row
-    .assert * = FuncA_Console_WriteStatusTransferData, error, "fallthrough"
+    tay  ; param: diagram box row
+    fall FuncA_Console_WriteDiagramTransferDataForCurrentMachine  ; preserves Y
 .ENDPROC
 
-;;; Writes kStatusBoxWidthTiles (eight) bytes into a PPU transfer entry with
-;;; the tile IDs of the specified row of the console status box.
+;;; Writes kDiagramBoxWidthTiles (eight) bytes into a PPU transfer entry with
+;;; the tile IDs of the specified row of the console diagram box.
 ;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
 ;;; @param X PPU transfer array index within an entry's data.
-;;; @param Y The status box row to transfer (0-7).
-;;; @return X Updated PPU transfer array index.
+;;; @param Y The diagram box row to transfer (0-7).
 ;;; @preserve Y
-.EXPORT FuncA_Console_WriteStatusTransferData
-.PROC FuncA_Console_WriteStatusTransferData
-    stx T0  ; starting PPU transfer index
-    sty T1  ; status box row
+.EXPORT FuncA_Console_WriteDiagramTransferDataForCurrentMachine
+.PROC FuncA_Console_WriteDiagramTransferDataForCurrentMachine
+    sty T0  ; diagram box row
+    ldy #sMachine::Status_eDiagram
+    lda (Zp_Current_sMachine_ptr), y  ; param: eDiagram value
+    ldy T0  ; diagram box row
+    fall FuncA_Console_WriteDiagramTransferDataForDiagram  ; preserves Y
+.ENDPROC
+
+;;; Writes kDiagramBoxWidthTiles (eight) bytes into a PPU transfer entry with
+;;; the tile IDs of the specified row of the console diagram box.
+;;; @param A The eDiagram value.
+;;; @param X PPU transfer array index within an entry's data.
+;;; @param Y The diagram box row to transfer (0-7).
+;;; @preserve Y
+.EXPORT FuncA_Console_WriteDiagramTransferDataForDiagram
+.PROC FuncA_Console_WriteDiagramTransferDataForDiagram
+    sta T2  ; eDiagram value
+    sty T1  ; diagram box row
     ;; Compute the diagram row and store it in A.
     lda Zp_ConsoleNumInstRows_u8
     sub #kNumDiagramRows
     div #2
-    sta T2  ; num leading blank rows
-    lda T1  ; status box row
-    sub T2  ; num leading blank rows
+    rsub T1  ; diagram box row
     ;; If the diagram row is negative, or more than the number of diagram rows,
     ;; then transfer a blank row.
     bmi _WriteBlankRow
     cmp #kNumDiagramRows
     bge _WriteBlankRow
 _WriteDiagramRow:
-    sta T3  ; diagram row
+    sta T0  ; diagram row
     ;; Draw the blank margin on either side of the diagram.
-    .assert kStatusBoxWidthTiles = 8, error
+    .assert kDiagramBoxWidthTiles = 8, error
     lda #' '
     sta Ram_PpuTransfer_arr + 0, x
     sta Ram_PpuTransfer_arr + 5, x
     sta Ram_PpuTransfer_arr + 6, x
     sta Ram_PpuTransfer_arr + 7, x
     ;; Draw the diagram itself.
-    ldy #sMachine::Status_eDiagram
-    lda (Zp_Current_sMachine_ptr), y
-    tay  ; eDiagram value
+    ldy T2  ; eDiagram value
     lda DataA_Console_DiagramFirstTileId_u8_arr, y
-    add T3  ; diagram row
+    add T0  ; diagram row
     ldy #kNumDiagramRows
     @loop:
     sta Ram_PpuTransfer_arr + 1, x
@@ -255,17 +267,14 @@ _WriteDiagramRow:
     beq _Finish  ; unconditional
 _WriteBlankRow:
     lda #' '
-    ldy #kStatusBoxWidthTiles
+    ldy #kDiagramBoxWidthTiles
     @loop:
     sta Ram_PpuTransfer_arr, x
     inx
     dey
     bne @loop
 _Finish:
-    lda T0  ; starting PPU transfer index
-    add #kStatusBoxWidthTiles
-    tax     ; updated PPU transfer index (return value)
-    ldy T1  ; status box row (just to preserve Y)
+    ldy T1  ; diagram box row (just to preserve Y)
     rts
 .ENDPROC
 

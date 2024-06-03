@@ -43,6 +43,7 @@ kMaxDevices = 16
     Door1Unlocked  ; leads to another Door1*; can be locked by room scripts
     Door2Open      ; leads to another Door2*; is never locked
     Door3Open      ; leads to another Door3*; is never locked
+    FakeConsole    ; opens a console-looking window with an error message
     Flower
     LeverCeiling
     LeverFloor
@@ -85,9 +86,10 @@ kFirstInteractiveDeviceType = eDevice::BreakerReady
     ;; The "target" for this device, whose meaning depends on the device type:
     ;;   * For boilers, this is the bBoiler value.
     ;;   * For breakers, this is the eFlag::Breaker* value.
-    ;;   * For consoles, this is the machine index (i.e. the index into the
-    ;;     current room's sRoom::Machines_sMachine_arr_ptr).
+    ;;   * For (real) consoles, this is the machine index (i.e. the index into
+    ;;     the current room's sRoom::Machines_sMachine_arr_ptr).
     ;;   * For doors, this is the eRoom value for the destination room.
+    ;;   * For fake consoles, this is the eFake value.
     ;;   * For flowers, this is the eFlag::Flower* value.
     ;;   * For levers, this is the byte offset into Zp_RoomState for the
     ;;     lever's state value (0 or 1).

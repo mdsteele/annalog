@@ -97,7 +97,7 @@ _Ext_sRoomExt:
     d_addr Passages_sPassage_arr_ptr, _Passages_sPassage_arr
     d_addr Enter_func_ptr, FuncA_Room_RemoveFlowerDeviceIfCarriedOrDelivered
     d_addr FadeIn_func_ptr, FuncA_Terrain_ShadowFlower_FadeInRoom
-    d_addr Tick_func_ptr, FuncA_Room_ShadowTrap_TickRoom
+    d_addr Tick_func_ptr, FuncA_Room_ShadowFlower_TickRoom
     d_addr Draw_func_ptr, Func_Noop
     D_END
 _TerrainData:
@@ -214,7 +214,7 @@ _ReadX:
 
 .SEGMENT "PRGA_Room"
 
-.PROC FuncA_Room_ShadowTrap_TickRoom
+.PROC FuncA_Room_ShadowFlower_TickRoom
     ldx #kLaserMachineIndex
     jsr Func_SetMachineIndex
     jsr FuncA_Room_HarmAvatarIfWithinLaserBeam

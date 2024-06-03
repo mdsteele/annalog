@@ -19,6 +19,7 @@
 
 .INCLUDE "avatar.inc"
 .INCLUDE "charmap.inc"
+.INCLUDE "console.inc"
 .INCLUDE "cpu.inc"
 .INCLUDE "devices/console.inc"
 .INCLUDE "flag.inc"
@@ -37,8 +38,8 @@
 .IMPORT FuncA_Actor_TickAllSmokeActors
 .IMPORT FuncA_Console_DrawFieldCursor
 .IMPORT FuncA_Console_MoveFieldCursor
+.IMPORT FuncA_Console_WriteDiagramTransferDataForCurrentMachine
 .IMPORT FuncA_Console_WriteNeedsPowerTransferData
-.IMPORT FuncA_Console_WriteStatusTransferData
 .IMPORT FuncA_Machine_TickAll
 .IMPORT FuncA_Objects_DrawHudInWindow
 .IMPORT FuncA_Objects_DrawObjectsForRoom
@@ -86,9 +87,6 @@
 
 ;;;=========================================================================;;;
 
-;;; How fast the console window scrolls up/down, in pixels per frame.
-kConsoleWindowScrollSpeed = 6
-
 ;;; The width of an instruction in the console, in tiles.
 kInstructionWidthTiles = 7
 
@@ -112,6 +110,7 @@ Zp_ConsoleNumInstRows_u8: .res 1
 ;;; If nonzero, then the console is unpowered and cannot be used; in that case,
 ;;; the value is the circuit number (1-7) to display to the player in the error
 ;;; message.
+.EXPORTZP Zp_ConsoleNeedsPower_u8
 Zp_ConsoleNeedsPower_u8: .res 1
 .ASSERT kNumBreakerFlags = 7, error
 
@@ -203,13 +202,8 @@ _UpdateScrolling:
 ;;; the window is fully hidden.
 ;;; @prereq Rendering is enabled.
 ;;; @prereq Explore mode is initialized.
+.EXPORT Main_Console_CloseWindow
 .PROC Main_Console_CloseWindow
-    ;; If the machine is powered, enable the floating HUD.
-    lda Zp_ConsoleNeedsPower_u8
-    bne @done
-    lda Zp_ConsoleMachineIndex_u8
-    sta Zp_FloatingHud_bHud
-    @done:
 _GameLoop:
     jsr_prga FuncA_Objects_DrawHudInWindowAndObjectsForRoom
     jsr Func_ClearRestOfOamAndProcessFrame
@@ -237,7 +231,7 @@ _Done:
     sta Zp_ConsoleInstNumber_u8
     sta Zp_ConsoleFieldNumber_u8
     sta Zp_ConsoleNominalFieldOffset_u8
-    .assert * = Main_Console_ContinueEditing, error, "fallthrough"
+    fall Main_Console_ContinueEditing
 .ENDPROC
 
 ;;; Mode for editing a program in the console window.
@@ -264,7 +258,7 @@ _Tick:
 .EXPORT FuncM_ConsoleScrollTowardsGoalAndTick
 .PROC FuncM_ConsoleScrollTowardsGoalAndTick
     jsr FuncM_ScrollTowardsGoal
-    .assert * = FuncM_ConsoleTick, error, "fallthrough"
+    fall FuncM_ConsoleTick
 .ENDPROC
 
 ;;; Calls per-frame tick functions that should still happen even when the
@@ -378,10 +372,6 @@ _CopyRegNames:
     inx
     cpx #6
     blt @loop
-_InitAvatar:
-    lda #0
-    sta Zp_AvatarVelX_i16 + 0
-    sta Zp_AvatarVelX_i16 + 1
 _InitWindow:
     lda #kScreenHeightPx - kConsoleWindowScrollSpeed
     sta Zp_WindowTop_u8
@@ -390,9 +380,7 @@ _InitWindow:
     ;; Calculate the window top goal from the number of instruction rows.
     lda Zp_ConsoleNumInstRows_u8
     mul #kTileHeightPx
-    sta T0  ; instruction pane height in pixels
-    lda #kScreenHeightPx - (kTileHeightPx * 2 + kWindowMarginBottomPx)
-    sub T0  ; instruction pane height in pixels
+    rsub #kScreenHeightPx - (kTileHeightPx * 2 + kWindowMarginBottomPx)
     sta Zp_WindowTopGoal_u8
     rts
 .ENDPROC
@@ -434,11 +422,10 @@ _InitWindow:
     rts
 .ENDPROC
 
-;;; Scrolls the console window in a bit, and transfers PPU data as needed; call
-;;; this each frame when the window is opening.
-;;; @return C Set if the window is now fully scrolled in.
-.PROC FuncA_Console_ScrollWindowUp
-_AdjustAvatar:
+;;; Puts the player avatar into the correct pose for using a console, and
+;;; adjusts it towards the correct position.
+.EXPORT FuncA_Console_AdjustAvatar
+.PROC FuncA_Console_AdjustAvatar
     lda #eAvatar::Reading
     sta Zp_AvatarPose_eAvatar
     lda Zp_AvatarFlags_bObj
@@ -446,6 +433,8 @@ _AdjustAvatar:
     sta Zp_AvatarFlags_bObj
     ;; Slide the player avatar to stand directly in front of the console.
     lda #0
+    sta Zp_AvatarVelX_i16 + 0
+    sta Zp_AvatarVelX_i16 + 1
     sta Zp_AvatarSubX_u8
     lda Zp_AvatarPosX_i16 + 0
     and #$0f
@@ -458,6 +447,14 @@ _AdjustAvatar:
     @adjustRight:
     inc Zp_AvatarPosX_i16 + 0
     @done:
+    rts
+.ENDPROC
+
+;;; Scrolls the console window in a bit, and transfers PPU data as needed; call
+;;; this each frame when the window is opening.
+;;; @return C Set if the window is now fully scrolled in.
+.PROC FuncA_Console_ScrollWindowUp
+    jsr FuncA_Console_AdjustAvatar
 _ScrollWindow:
     jsr FuncA_Console_TransferNextWindowRow
     lda #kConsoleWindowScrollSpeed  ; param: scroll by
@@ -473,6 +470,8 @@ _ScrollWindow:
     bit Zp_P1ButtonsPressed_bJoypad
     .assert bJoypad::BButton = bProc::Overflow, error
     bvc @noClose
+    lda Zp_ConsoleMachineIndex_u8
+    sta Zp_FloatingHud_bHud
     jsr FuncA_Console_SaveProgram
     ldya #Main_Console_CloseWindow
     bmi _ReturnYA  ; unconditional
@@ -661,7 +660,7 @@ _DrawStatus:
     ldy Zp_WindowNextRowToTransfer_u8
     dey
     dey  ; param: status box row
-    jmp FuncA_Console_WriteStatusTransferData
+    jmp FuncA_Console_WriteDiagramTransferDataForCurrentMachine
 .ENDPROC
 
 ;;; Redraws all instructions (over the course of two frames, since it's too
@@ -731,7 +730,7 @@ _DrawStatus:
     lda #kInstructionWidthTiles
     sta Ram_PpuTransfer_arr, x
     inx
-    .assert * = FuncA_Console_WriteInstTransferData, error, "fallthrough"
+    fall FuncA_Console_WriteInstTransferData
 .ENDPROC
 
 ;;; Writes seven bytes into a PPU transfer entry with the text of instruction
