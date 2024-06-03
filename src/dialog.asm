@@ -22,6 +22,7 @@
 .INCLUDE "cpu.inc"
 .INCLUDE "cursor.inc"
 .INCLUDE "device.inc"
+.INCLUDE "devices/console.inc"
 .INCLUDE "devices/dialog.inc"
 .INCLUDE "dialog.inc"
 .INCLUDE "flag.inc"
@@ -114,6 +115,7 @@
 .IMPORT DataA_Dialog_PrisonUpperMarie_sDialog
 .IMPORT DataA_Dialog_PrisonUpperNora_sDialog
 .IMPORT DataA_Dialog_ShadowGateScreen_sDialog
+.IMPORT DataA_Dialog_ShadowOfficeTeleport_sDialog
 .IMPORT DataA_Dialog_ShadowTeleportScreen_sDialog
 .IMPORT DataA_Dialog_TempleAltarPlaque_sDialog
 .IMPORT DataA_Dialog_TempleEntryCorraHi_sDialog
@@ -520,6 +522,7 @@ _Finish:
     d_entry t, PrisonUpperMarie,     DataA_Dialog_PrisonUpperMarie_sDialog
     d_entry t, PrisonUpperNora,      DataA_Dialog_PrisonUpperNora_sDialog
     d_entry t, ShadowGateScreen,     DataA_Dialog_ShadowGateScreen_sDialog
+    d_entry t, ShadowOfficeTeleport, DataA_Dialog_ShadowOfficeTeleport_sDialog
     d_entry t, ShadowTeleportScreen, DataA_Dialog_ShadowTeleportScreen_sDialog
     d_entry t, TempleAltarPlaque,    DataA_Dialog_TempleAltarPlaque_sDialog
     d_entry t, TempleEntryCorraHi,   DataA_Dialog_TempleEntryCorraHi_sDialog
@@ -928,6 +931,7 @@ _AdjustAvatar:
     lda #kTalkRightAvatarOffset
     bpl @setGoal  ; unconditional
     @reading:
+    .assert kConsoleAvatarOffset = kReadingAvatarOffset, error
     lda #kReadingAvatarOffset
     @setGoal:
     sta T0  ; goal X-offset within block

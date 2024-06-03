@@ -20,6 +20,7 @@
 .INCLUDE "../actor.inc"
 .INCLUDE "../charmap.inc"
 .INCLUDE "../device.inc"
+.INCLUDE "../dialog.inc"
 .INCLUDE "../fake.inc"
 .INCLUDE "../flag.inc"
 .INCLUDE "../macros.inc"
@@ -30,7 +31,13 @@
 .IMPORT DataA_Room_Shadow_sTileset
 .IMPORT FuncA_Objects_AnimateLavaTerrain
 .IMPORT FuncA_Terrain_FadeInShortRoomWithLava
+.IMPORT Func_FindEmptyActorSlot
+.IMPORT Func_InitActorSmokeExplosion
+.IMPORT Func_SetActorCenterToPoint
+.IMPORT Func_SetPointToAvatarCenter
 .IMPORT Ppu_ChrObjShadow
+.IMPORTZP Zp_AvatarPosX_i16
+.IMPORTZP Zp_AvatarPosY_i16
 
 ;;;=========================================================================;;;
 
@@ -124,16 +131,16 @@ _Devices_sDevice_arr:
     d_byte Target_byte, eFake::InsufficientData  ; TODO
     D_END
     D_STRUCT sDevice
-    d_byte Type_eDevice, eDevice::FakeConsole
+    d_byte Type_eDevice, eDevice::ScreenGreen
     d_byte BlockRow_u8, 6
     d_byte BlockCol_u8, 4
-    d_byte Target_byte, eFake::InsufficientData  ; TODO
+    d_byte Target_byte, eDialog::ShadowOfficeTeleport
     D_END
     D_STRUCT sDevice
-    d_byte Type_eDevice, eDevice::FakeConsole
+    d_byte Type_eDevice, eDevice::ScreenGreen
     d_byte BlockRow_u8, 8
     d_byte BlockCol_u8, 12
-    d_byte Target_byte, eFake::InsufficientData  ; TODO
+    d_byte Target_byte, eDialog::ShadowOfficeTeleport
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::FakeConsole
@@ -176,6 +183,40 @@ _Passages_sPassage_arr:
 
 .PROC FuncA_Room_ShadowOffice_TickRoom
     ;; TODO: tag ghost
+    rts
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Dialog"
+
+.EXPORT DataA_Dialog_ShadowOfficeTeleport_sDialog
+.PROC DataA_Dialog_ShadowOfficeTeleport_sDialog
+    dlg_Call _TeleportAvatar
+    dlg_Done
+_TeleportAvatar:
+    jsr _SpawnPoofOnAvatar
+    lda Zp_AvatarPosX_i16 + 0
+    bpl @teleportRight
+    @teleportLeft:
+    ;; TODO: If the player teleports a bunch of times in a row, instead
+    ;; teleport the avatar over the lava.
+    ldx #$48
+    ldy #$58
+    bne @setAvatarPos  ; unconditional
+    @teleportRight:
+    ldx #$c8
+    ldy #$78
+    @setAvatarPos:
+    stx Zp_AvatarPosX_i16 + 0
+    sty Zp_AvatarPosY_i16 + 0
+_SpawnPoofOnAvatar:
+    jsr Func_SetPointToAvatarCenter
+    jsr Func_FindEmptyActorSlot  ; returns C and X
+    bcs @done
+    jsr Func_SetActorCenterToPoint  ; preserves X
+    jmp Func_InitActorSmokeExplosion
+    @done:
     rts
 .ENDPROC
 

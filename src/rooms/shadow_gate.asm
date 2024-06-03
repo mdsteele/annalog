@@ -112,7 +112,7 @@ _Actors_sActor_arr:
     .byte eActor::None
 _Devices_sDevice_arr:
 :   D_STRUCT sDevice
-    d_byte Type_eDevice, eDevice::Screen
+    d_byte Type_eDevice, eDevice::ScreenRed
     d_byte BlockRow_u8, 6
     d_byte BlockCol_u8, 11
     d_byte Target_byte, eDialog::ShadowGateScreen

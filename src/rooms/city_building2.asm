@@ -122,7 +122,7 @@ _Devices_sDevice_arr:
     d_byte Target_byte, eRoom::CityCenter
     D_END
     D_STRUCT sDevice
-    d_byte Type_eDevice, eDevice::Screen
+    d_byte Type_eDevice, eDevice::ScreenRed
     d_byte BlockRow_u8, 8
     d_byte BlockCol_u8, 11
     d_byte Target_byte, eDialog::CityBuilding2Screen

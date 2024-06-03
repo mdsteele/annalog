@@ -171,6 +171,7 @@ kDialogEntryCutscene = $ff  ; ends the dialog and starts a new cutscene
     PrisonUpperMarie
     PrisonUpperNora
     ShadowGateScreen
+    ShadowOfficeTeleport
     ShadowTeleportScreen
     TempleAltarPlaque
     TempleEntryCorraHi

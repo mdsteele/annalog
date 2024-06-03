@@ -254,7 +254,7 @@ Ram_ActorState4_byte_arr: .res kMaxActors
 .EXPORT Func_FindEmptyActorSlot
 .PROC Func_FindEmptyActorSlot
     lda #eActor::None  ; param: actor type to find
-    .assert * = Func_FindActorWithType, error, "fallthrough"
+    fall Func_FindActorWithType  ; preserves Y and T0+, returns C and X
 .ENDPROC
 
 ;;; Finds an actor in the room with the specified type (if any) and returns its
@@ -438,7 +438,7 @@ _NoHit:
 .EXPORT Func_InitActorDefault
 .PROC Func_InitActorDefault
     lda #0  ; param: state byte
-    .assert * = Func_InitActorWithState1, error, "fallthrough"
+    fall Func_InitActorWithState1  ; preserves X and T0+
 .ENDPROC
 
 ;;; Zeroes the velocity and flags for the specified actor, and sets the actor's

@@ -98,25 +98,33 @@ kPaletteObjScreen     = 1
 ;;; @param X The device index.
 ;;; @preserve X
 .PROC FuncA_Objects_DrawDeviceConsoleOk
+    fall FuncA_Objects_DrawDeviceScreenGreen  ; preserves X
+.ENDPROC
+
+;;; Draws a green screen device.
+;;; @param X The device index.
+;;; @preserve X
+.EXPORT FuncA_Objects_DrawDeviceScreenGreen
+.PROC FuncA_Objects_DrawDeviceScreenGreen
     ldy #kPaletteObjConsoleOk  ; param: object flags
     .assert kPaletteObjConsoleOk <> 0, error
-    bne FuncA_Objects_DrawDeviceConsoleOrScreen  ; unconditional, preserves X
+    bne FuncA_Objects_DrawDeviceScreen  ; unconditional, preserves X
+.ENDPROC
+
+;;; Draws a red screen device.
+;;; @param X The device index.
+;;; @preserve X
+.EXPORT FuncA_Objects_DrawDeviceScreenRed
+.PROC FuncA_Objects_DrawDeviceScreenRed
+    ldy #kPaletteObjScreen  ; param: object flags
+    fall FuncA_Objects_DrawDeviceScreen
 .ENDPROC
 
 ;;; Draws a screen device.
 ;;; @param X The device index.
-;;; @preserve X
-.EXPORT FuncA_Objects_DrawDeviceScreen
-.PROC FuncA_Objects_DrawDeviceScreen
-    ldy #kPaletteObjScreen  ; param: object flags
-    fall FuncA_Objects_DrawDeviceConsoleOrScreen
-.ENDPROC
-
-;;; Draws a non-error console or screen device.
-;;; @param X The device index.
 ;;; @param Y The bObj value for the object flags.
 ;;; @preserve X
-.PROC FuncA_Objects_DrawDeviceConsoleOrScreen
+.PROC FuncA_Objects_DrawDeviceScreen
     jsr FuncA_Objects_SetShapePosToDeviceTopLeft  ; preserves X and Y
     jsr FuncA_Objects_MoveShapeRightHalfTile  ; preserves X and Y
     lda #kTileIdObjScreen  ; param: tile ID

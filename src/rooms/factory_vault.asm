@@ -125,7 +125,7 @@ _Devices_sDevice_arr:
     d_byte Target_byte, eDialog::FactoryVaultAlex1
     D_END
     D_STRUCT sDevice
-    d_byte Type_eDevice, eDevice::Screen
+    d_byte Type_eDevice, eDevice::ScreenRed
     d_byte BlockRow_u8, 9
     d_byte BlockCol_u8, 20
     d_byte Target_byte, eDialog::FactoryVaultScreen

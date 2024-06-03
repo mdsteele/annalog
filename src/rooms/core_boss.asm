@@ -2041,7 +2041,7 @@ _LookAtTopOfCore:
     rts
 _MakeFinalTerminalAppear:
     ;; TODO: animate the terminal rising from the core
-    lda #eDevice::Screen
+    lda #eDevice::ScreenRed
     sta Ram_DeviceType_eDevice_arr + kFinalTerminalDeviceIndex
     rts
 .ENDPROC

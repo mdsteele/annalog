@@ -440,7 +440,8 @@ _DeviceOffset_u8_arr:
     d_byte LeverCeiling,  $06
     d_byte LeverFloor,    $06
     d_byte Paper,         kReadingAvatarOffset
-    d_byte Screen,        kConsoleAvatarOffset
+    d_byte ScreenGreen,   kConsoleAvatarOffset
+    d_byte ScreenRed,     kConsoleAvatarOffset
     d_byte Sign,          kReadingAvatarOffset
     d_byte TalkLeft,      $0b
     d_byte TalkRight,     $05
