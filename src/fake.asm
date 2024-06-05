@@ -23,6 +23,9 @@
 .INCLUDE "fake.inc"
 .INCLUDE "joypad.inc"
 .INCLUDE "machine.inc"
+.INCLUDE "machines/emitter.inc"
+.INCLUDE "machines/lift.inc"
+.INCLUDE "machines/shared.inc"
 .INCLUDE "macros.inc"
 .INCLUDE "mmc3.inc"
 .INCLUDE "ppu.inc"
@@ -31,9 +34,9 @@
 
 .IMPORT FuncA_Console_AdjustAvatar
 .IMPORT FuncA_Console_WriteDiagramTransferDataForDiagram
-.IMPORT FuncA_Objects_DrawObjectsForRoom
+.IMPORT FuncA_Objects_Draw1x1Shape
 .IMPORT FuncM_ConsoleScrollTowardsGoalAndTick
-.IMPORT FuncM_DrawObjectsForRoomAndProcessFrame
+.IMPORT FuncM_DrawObjectsForRoom
 .IMPORT Func_ClearRestOfOamAndProcessFrame
 .IMPORT Func_Window_PrepareRowTransfer
 .IMPORT Func_Window_ScrollUp
@@ -45,6 +48,8 @@
 .IMPORTZP Zp_ConsoleNeedsPower_u8
 .IMPORTZP Zp_ConsoleNumInstRows_u8
 .IMPORTZP Zp_P1ButtonsPressed_bJoypad
+.IMPORTZP Zp_ShapePosX_i16
+.IMPORTZP Zp_ShapePosY_i16
 .IMPORTZP Zp_WindowNextRowToTransfer_u8
 .IMPORTZP Zp_WindowTopGoal_u8
 .IMPORTZP Zp_WindowTop_u8
@@ -76,8 +81,7 @@ Zp_Current_eFake: .res 1
 .PROC Main_FakeConsole_UseDevice
     jsr_prga FuncA_Console_InitFakeConsole
 _GameLoop:
-    jsr_prga FuncA_Objects_DrawObjectsForRoom
-    jsr Func_ClearRestOfOamAndProcessFrame
+    jsr FuncM_DrawFakeConsoleObjectsAndProcessFrame
     jsr_prga FuncA_Console_ScrollWindowUpForFakeConsole  ; returns C
     bcs Main_FakeConsole_Message
     jsr FuncM_ConsoleScrollTowardsGoalAndTick
@@ -86,15 +90,25 @@ _GameLoop:
 
 ;;; Mode for when a fake console window is open.
 ;;; @prereq Rendering is enabled.
-;;; @prereq The console window is fully visible.
 ;;; @prereq Explore mode is initialized.
+;;; @prereq Zp_Current_eFake is initialized.
+;;; @prereq The console window is fully visible.
 .PROC Main_FakeConsole_Message
 _GameLoop:
-    jsr FuncM_DrawObjectsForRoomAndProcessFrame
+    jsr FuncM_DrawFakeConsoleObjectsAndProcessFrame
     lda Zp_P1ButtonsPressed_bJoypad
     and #bJoypad::AButton | bJoypad::BButton
     beq _GameLoop
     jmp Main_Console_CloseWindow
+.ENDPROC
+
+;;; Draws all objects that should be drawn in fake console mode, then calls
+;;; Func_ClearRestOfOamAndProcessFrame.
+;;; @prereq Zp_Current_eFake is initialized.
+.PROC FuncM_DrawFakeConsoleObjectsAndProcessFrame
+    jsr FuncM_DrawObjectsForRoom
+    jsr_prga FuncA_Objects_DrawFakeMachineLight
+    jmp Func_ClearRestOfOamAndProcessFrame
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -132,7 +146,7 @@ _Chr0cBank_u8_arr:
     d_byte CoreDump,         $61  ; TODO
     d_byte Ethical,          $60  ; TODO
     d_byte InsufficientData, $50  ; TODO
-    d_byte NoPower,          $66  ; TODO
+    d_byte NoPower,          kChrBankDiagramLift
     D_END
 .ENDPROC
 
@@ -182,13 +196,20 @@ _Message:
     jsr FuncA_Console_WriteFakeConsoleMessageTransferData
     inx
 _DrawStatus:
+    ldy Zp_Current_eFake
+    lda _Fake_eDiagram, y  ; param: eDiagram value
     ;; Draw the status box.
     ldy Zp_WindowNextRowToTransfer_u8
     dey
     dey  ; param: status box row
-    ;; TODO: different diagram for each fake console
-    lda #eDiagram::MinigunDown  ; param: eDiagram value
     jmp FuncA_Console_WriteDiagramTransferDataForDiagram
+_Fake_eDiagram:
+    D_ARRAY .enum, eFake
+    d_byte CoreDump,         eDiagram::MinigunDown  ; TODO
+    d_byte Ethical,          eDiagram::MinigunDown  ; TODO
+    d_byte InsufficientData, eDiagram::MinigunDown  ; TODO
+    d_byte NoPower,          eDiagram::Lift
+    D_END
 .ENDPROC
 
 ;;; Writes kFakeConsoleMessageCols bytes into a PPU transfer entry with the
@@ -248,7 +269,7 @@ _DrawStatus:
     .addr _Ethical3_u8_arr19
     .addr _Ethical4_u8_arr19
     .addr _Ethical5_u8_arr19
-    .addr _Ethical6_u8_arr19
+    .addr _Blank_u8_arr19
     .addr _Blank_u8_arr19
     d_byte InsufficientData
     .addr _CoreDump0_u8_arr19
@@ -300,15 +321,12 @@ _Ethical2_u8_arr19:
 :   .byte "SYNTAX ERROR:      "
     .assert * - :- = kFakeConsoleMessageCols, error
 _Ethical3_u8_arr19:
-:   .byte " `Wait, are we sure"
+:   .byte " `Is this ethical?'"
     .assert * - :- = kFakeConsoleMessageCols, error
 _Ethical4_u8_arr19:
-:   .byte "  this is ethical?'"
-    .assert * - :- = kFakeConsoleMessageCols, error
-_Ethical5_u8_arr19:
 :   .byte "IS NOT A VALID     "
     .assert * - :- = kFakeConsoleMessageCols, error
-_Ethical6_u8_arr19:
+_Ethical5_u8_arr19:
 :   .byte "INSTRUCTION.       "
     .assert * - :- = kFakeConsoleMessageCols, error
 _InsufficientData3_u8_arr19:
@@ -329,6 +347,40 @@ _NoPower4_u8_arr19:
 _NoPower5_u8_arr19:
 :   .byte "9999999999999999999"
     .assert * - :- = kFakeConsoleMessageCols, error
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Objects"
+
+;;; Draws the fake machine light for when a fake console window is open.
+;;; @prereq Zp_Current_eFake is initialized.
+.PROC FuncA_Objects_DrawFakeMachineLight
+    ldx Zp_Current_eFake
+    lda _ShapeX_u8_arr, x
+    sta Zp_ShapePosX_i16 + 0
+    lda _ShapeY_u8_arr, x
+    sta Zp_ShapePosY_i16 + 0
+    lda #0
+    sta Zp_ShapePosX_i16 + 1
+    sta Zp_ShapePosY_i16 + 1
+    ldy #kPaletteObjMachineLight  ; param: objects flags
+    lda #kTileIdObjEmitterLight  ; param: tile ID
+    jmp FuncA_Objects_Draw1x1Shape
+_ShapeX_u8_arr:
+    D_ARRAY .enum, eFake
+    d_byte CoreDump,         $60
+    d_byte Ethical,          $47
+    d_byte InsufficientData, $a0
+    d_byte NoPower,          $77
+    D_END
+_ShapeY_u8_arr:
+    D_ARRAY .enum, eFake
+    d_byte CoreDump,         $80
+    d_byte Ethical,          $a0
+    d_byte InsufficientData, $c0
+    d_byte NoPower,          $67
+    D_END
 .ENDPROC
 
 ;;;=========================================================================;;;
