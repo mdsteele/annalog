@@ -77,7 +77,12 @@ _Platforms_sPlatform_arr:
     .assert * - :- <= kMaxPlatforms * .sizeof(sPlatform), error
     .byte ePlatform::None
 _Actors_sActor_arr:
-:   ;; TODO
+:   D_STRUCT sActor
+    d_byte Type_eActor, eActor::BadFlydrop
+    d_word PosX_i16, $0090
+    d_word PosY_i16, $0039
+    d_byte Param_byte, 0
+    D_END
     .assert * - :- <= kMaxActors * .sizeof(sActor), error
     .byte eActor::None
 _Devices_sDevice_arr:
