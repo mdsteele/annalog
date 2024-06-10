@@ -175,7 +175,7 @@ _InitNumRollingDeathDigits:
     iny
     tya  ; num consecutive 9's, plus 1
     .assert kNumDeathDigits + 1 = 4, error
-    and #$03  ; A = A mod 4
+    mod #4
     sta Zp_NumRollingDeathDigits_u8
 _InitTimers:
     lda #kDeathTotalAvatarAnimationFrames
@@ -191,6 +191,9 @@ _FadeOut:
 
 ;;; Performs per-frame updates during the player avatar death animation.
 .PROC FuncA_Death_AnimateAvatar
+    lda Zp_AvatarFlags_bObj
+    and #<~bObj::FlipV
+    sta Zp_AvatarFlags_bObj
 _DecrementTimer:
     dec Zp_DeathTimer_u8
     bne @done

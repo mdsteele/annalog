@@ -28,6 +28,7 @@
 .IMPORT Func_TryPushAvatarHorz
 .IMPORT Func_TryPushAvatarVert
 .IMPORTZP Zp_AvatarCollided_ePlatform
+.IMPORTZP Zp_AvatarFlags_bObj
 .IMPORTZP Zp_AvatarPosX_i16
 .IMPORTZP Zp_AvatarPosY_i16
 .IMPORTZP Zp_AvatarPushDelta_i8
@@ -695,9 +696,13 @@ _Return:
 .PROC Func_AvatarCollideWithOnePlatformVert
     jsr Func_IsAvatarInPlatformHorz  ; preserves X, returns Z
     beq _Return
-    ;; Check if the player is moving up or down.
-    bit Zp_AvatarPushDelta_i8
-    bpl _MovingDown
+    ;; Check if the player avatar is moving up or down.
+    lda Zp_AvatarPushDelta_i8
+    bmi _MovingUp
+    bne _MovingDown
+    bit Zp_AvatarFlags_bObj
+    .assert bObj::FlipV = bProc::Negative, error
+    bpl _MovingDown  ; normal gravity; treat no vertical movement as "down"
 _MovingUp:
     ;; Check top edge of platform.
     lda Zp_AvatarPosY_i16 + 1
@@ -710,7 +715,7 @@ _MovingUp:
     @topEdgeHit:
     ;; Check bottom edge of platform.
     lda Ram_PlatformBottom_i16_0_arr, x
-    add #kAvatarBoundingBoxUp
+    add #kAvatarBoundingBoxUp  ; TODO: handle reverse gravity
     sta T0  ; platform bottom edge + bbox (lo)
     lda Ram_PlatformBottom_i16_1_arr, x
     adc #0
@@ -728,6 +733,7 @@ _MovingUp:
     sta Zp_AvatarPosY_i16 + 0
     lda T1  ; platform bottom edge + bbox (hi)
     sta Zp_AvatarPosY_i16 + 1
+    ;; TODO: if reverse gravity, set Zp_AvatarPlatformIndex_u8
     jmp _Collided
 _MovingDown:
     ;; Check bottom edge of platform.
@@ -761,7 +767,7 @@ _MovingDown:
     lda T1  ; platform top edge - bbox (hi)
     sta Zp_AvatarPosY_i16 + 1
     ;; Record that the avatar is now riding this platform.
-    stx Zp_AvatarPlatformIndex_u8
+    stx Zp_AvatarPlatformIndex_u8  ; TODO: only for normal gravity
 _Collided:
     lda Ram_PlatformType_ePlatform_arr, x
     sta Zp_AvatarCollided_ePlatform
@@ -780,7 +786,7 @@ _Return:
     bne @checkTop
     rts
     @checkTop:
-    .assert * = Func_AvatarDepthIntoPlatformTop, error, "fallthrough"
+    fall Func_AvatarDepthIntoPlatformTop  ; preserves X, returns Z
 .ENDPROC
 
 ;;; Determines if the bottom of the avatar is below the top of the platform,
@@ -804,20 +810,14 @@ _Return:
     tay  ; depth (lo)
     lda T1  ; bottom of avatar (hi)
     sbc Ram_PlatformTop_i16_1_arr, x
-    bmi _NotInPlatform
-    bne _MaxDepth
+    bmi Func_AvatarNotInPlatform  ; preserves X and T0+, returns A and Z
+    bne Func_AvatarAtMaxPlatformDepth  ; preserves X and T0+, returns A and Z
     cpy #127
-    bge _MaxDepth
+    bge Func_AvatarAtMaxPlatformDepth  ; preserves X and T0+, returns A and Z
     ;; Set A equal to -Y.
     dey
     tya
     eor #$ff
-    rts
-_MaxDepth:
-    lda #<-127
-    rts
-_NotInPlatform:
-    lda #0
     rts
 .ENDPROC
 
@@ -842,16 +842,32 @@ _NotInPlatform:
     tay  ; depth (lo)
     lda Ram_PlatformBottom_i16_1_arr, x
     sbc T1  ; top of avatar (hi)
-    bmi _NotInPlatform
-    bne _MaxDepth
+    bmi Func_AvatarNotInPlatform  ; preserves X and T0+, returns A and Z
+    bne Func_AvatarAtMaxPlatformDepth  ; preserves X and T0+, returns A and Z
     cpy #127
-    bge _MaxDepth
+    bge Func_AvatarAtMaxPlatformDepth  ; preserves X and T0+, returns A and Z
     tya  ; depth (lo)
     rts
-_MaxDepth:
+.ENDPROC
+
+;;; Helper function for Func_AvatarDepthIntoPlatform* functions.  Returns a
+;;; depth of 127, with Z cleared to indicate that the player avatar is within
+;;; the platform along that direction.
+;;; @return A Always 127.
+;;; @return Z Always cleared.
+;;; @preserve X, T0+
+.PROC Func_AvatarAtMaxPlatformDepth
     lda #127
     rts
-_NotInPlatform:
+.ENDPROC
+
+;;; Helper function for Func_AvatarDepthIntoPlatform* functions.  Returns a
+;;; depth of zero, with Z set to indicate that the player avatar is fully
+;;; outside the platform along that direction.
+;;; @return A Always zero.
+;;; @return Z Always set.
+;;; @preserve X, T0+
+.PROC Func_AvatarNotInPlatform
     lda #0
     rts
 .ENDPROC
@@ -867,7 +883,7 @@ _NotInPlatform:
     bne @checkLeft
     rts
     @checkLeft:
-    .assert * = Func_AvatarDepthIntoPlatformLeft, error, "fallthrough"
+    fall Func_AvatarDepthIntoPlatformLeft  ; preserves X, returns Z
 .ENDPROC
 
 ;;; Determines if the avatar's right side is to the right of the platform's
@@ -891,20 +907,14 @@ _NotInPlatform:
     tay  ; depth (lo)
     lda T1  ; avatar's right side (hi)
     sbc Ram_PlatformLeft_i16_1_arr, x
-    bmi _NotInPlatform
-    bne _MaxDepth
+    bmi Func_AvatarNotInPlatform  ; preserves X and T0+, returns A and Z
+    bne Func_AvatarAtMaxPlatformDepth  ; preserves X and T0+, returns A and Z
     cpy #127
-    bge _MaxDepth
+    bge Func_AvatarAtMaxPlatformDepth  ; preserves X and T0+, returns A and Z
     ;; Set A equal to -Y.
     dey
     tya
     eor #$ff
-    rts
-_MaxDepth:
-    lda #<-127
-    rts
-_NotInPlatform:
-    lda #0
     rts
 .ENDPROC
 
@@ -929,17 +939,11 @@ _NotInPlatform:
     tay  ; depth (lo)
     lda Ram_PlatformRight_i16_1_arr, x
     sbc T1  ; avatar's left side (hi)
-    bmi _NotInPlatform
-    bne _MaxDepth
+    bmi Func_AvatarNotInPlatform  ; preserves X and T0+, returns A and Z
+    bne Func_AvatarAtMaxPlatformDepth  ; preserves X and T0+, returns A and Z
     cpy #127
-    bge _MaxDepth
+    bge Func_AvatarAtMaxPlatformDepth  ; preserves X and T0+, returns A and Z
     tya  ; depth (lo)
-    rts
-_MaxDepth:
-    lda #127
-    rts
-_NotInPlatform:
-    lda #0
     rts
 .ENDPROC
 

@@ -30,6 +30,7 @@
 .INCLUDE "../ppu.inc"
 .INCLUDE "../program.inc"
 .INCLUDE "../room.inc"
+.INCLUDE "../spawn.inc"
 
 .IMPORT DataA_Room_Shadow_sTileset
 .IMPORT Data_Empty_sActor_arr
@@ -62,8 +63,19 @@
 .IMPORT Ram_MachineGoalHorz_u8_arr
 .IMPORT Ram_PlatformLeft_i16_0_arr
 .IMPORT Sram_ProgressFlags_arr
+.IMPORTZP Zp_AvatarFlags_bObj
+.IMPORTZP Zp_AvatarPosY_i16
 .IMPORTZP Zp_PointY_i16
 .IMPORTZP Zp_RoomState
+
+;;;=========================================================================;;;
+
+;;; The index of the passage that leads to the ShadowDrill room.
+kDrillPassageIndex = 0
+
+;;; The room pixel Y-position of the center of the passage that leads to the
+;;; ShadowDrill room.
+kDrillPassageCenterY = $00a0
 
 ;;;=========================================================================;;;
 
@@ -240,7 +252,8 @@ _Devices_sDevice_arr:
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None
 _Passages_sPassage_arr:
-:   D_STRUCT sPassage
+:   .assert * - :- = kDrillPassageIndex * .sizeof(sPassage), error
+    D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Western | 0
     d_byte Destination_eRoom, eRoom::ShadowDrill
     d_byte SpawnBlock_u8, 10
@@ -278,7 +291,28 @@ _ReadX:
 
 .SEGMENT "PRGA_Room"
 
+;;; @param A The bSpawn value for where the avatar is entering the room.
 .PROC FuncA_Room_ShadowTrap_EnterRoom
+_FixGravity:
+    ;; If entering from the ShadowDrill room, and gravity is still reversed,
+    ;; un-reverse it.
+    cmp #bSpawn::Passage | kDrillPassageIndex
+    bne @done  ; not entering from ShadowDrill room
+    lda Zp_AvatarFlags_bObj
+    .assert bObj::FlipV = $80, error
+    bpl @done  ; gravity is already normal
+    ;; Restore normal gravity.
+    and #<~bObj::FlipV
+    sta Zp_AvatarFlags_bObj
+    ;; Invert the avatar's Y-position within the passage.
+    lda #<(kDrillPassageCenterY * 2)
+    sub Zp_AvatarPosY_i16 + 0
+    sta Zp_AvatarPosY_i16 + 0
+    lda #>(kDrillPassageCenterY * 2)
+    sbc Zp_AvatarPosY_i16 + 1
+    sta Zp_AvatarPosY_i16 + 1
+    @done:
+_MaybeMarkSafe:
     flag_bit Sram_ProgressFlags_arr, eFlag::ShadowTrapDisarmed
     jne Func_MarkRoomSafe
     rts

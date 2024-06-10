@@ -34,6 +34,7 @@
 .IMPORT Func_GetTerrainColumnPtrForPointX
 .IMPORT Func_HarmAvatar
 .IMPORT Func_KillAvatar
+.IMPORTZP Zp_AvatarFlags_bObj
 .IMPORTZP Zp_AvatarPosX_i16
 .IMPORTZP Zp_AvatarPosY_i16
 .IMPORTZP Zp_AvatarSubX_u8
@@ -389,14 +390,18 @@ _NoHitPassage:
     ;; Get the terrain pointer for the right side of the avatar, storing it in
     ;; Zp_TerrainColumn_u8_arr_ptr.
     jsr Func_GetAvatarRightXAndTerrain  ; preserves T0+
-    ;; Check if the player is moving up or down.
+    ;; Check if the player avatar is moving up or down.
     lda Zp_AvatarPushDelta_i8
-    bpl _MovingDown
+    bmi _MovingUp
+    bne _MovingDown
+    bit Zp_AvatarFlags_bObj
+    .assert bObj::FlipV = bProc::Negative, error
+    bpl _MovingDown  ; normal gravity; treat no vertical movement as "down"
 _MovingUp:
     ;; Calculate the room block row index just above the avatar's head, and
     ;; store it in T2.
     lda Zp_AvatarPosY_i16 + 0
-    sub #kAvatarBoundingBoxUp
+    sub #kAvatarBoundingBoxUp  ; TODO: handle reverse gravity
     sta T2
     lda Zp_AvatarPosY_i16 + 1
     sbc #0
@@ -422,7 +427,7 @@ _MovingUp:
     .endrepeat
     tax
     lda T2
-    add #kBlockHeightPx + kAvatarBoundingBoxUp
+    add #kBlockHeightPx + kAvatarBoundingBoxUp  ; TODO: handle reverse gravity
     sta Zp_AvatarPosY_i16 + 0
     txa
     adc #0

@@ -22,15 +22,28 @@
 .INCLUDE "../actors/townsfolk.inc"
 .INCLUDE "../device.inc"
 .INCLUDE "../macros.inc"
+.INCLUDE "../oam.inc"
 .INCLUDE "../platform.inc"
 .INCLUDE "../platforms/lava.inc"
 .INCLUDE "../room.inc"
+.INCLUDE "../spawn.inc"
 
 .IMPORT DataA_Room_Shadow_sTileset
 .IMPORT FuncA_Objects_AnimateLavaTerrain
 .IMPORT FuncA_Terrain_FadeInTallRoomWithLava
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrObjShadow
+.IMPORTZP Zp_AvatarFlags_bObj
+.IMPORTZP Zp_AvatarPosY_i16
+
+;;;=========================================================================;;;
+
+;;; The index of the passage that leads to the ShadowDrill room.
+kDrillPassageIndex = 1
+
+;;; The room pixel Y-position of the center of the passage that leads to the
+;;; ShadowDrill room.
+kDrillPassageCenterY = $0050
 
 ;;;=========================================================================;;;
 
@@ -57,7 +70,7 @@ _Ext_sRoomExt:
     d_addr Actors_sActor_arr_ptr, _Actors_sActor_arr
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
     d_addr Passages_sPassage_arr_ptr, _Passages_sPassage_arr
-    d_addr Enter_func_ptr, Func_Noop
+    d_addr Enter_func_ptr, FuncA_Room_ShadowDescent_EnterRoom
     d_addr FadeIn_func_ptr, FuncA_Terrain_FadeInTallRoomWithLava
     d_addr Tick_func_ptr, Func_Noop
     d_addr Draw_func_ptr, FuncA_Objects_AnimateLavaTerrain
@@ -96,6 +109,7 @@ _Passages_sPassage_arr:
     d_byte SpawnBlock_u8, 5
     d_byte SpawnAdjust_byte, 0
     D_END
+    .assert * - :- = kDrillPassageIndex * .sizeof(sPassage), error
     D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Eastern | 0
     d_byte Destination_eRoom, eRoom::ShadowDrill
@@ -115,6 +129,33 @@ _Passages_sPassage_arr:
     d_byte SpawnAdjust_byte, 0
     D_END
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Room"
+
+;;; @param A The bSpawn value for where the avatar is entering the room.
+.PROC FuncA_Room_ShadowDescent_EnterRoom
+    ;; If entering from the ShadowDrill room, and gravity is still reversed,
+    ;; un-reverse it.
+    cmp #bSpawn::Passage | kDrillPassageIndex
+    bne @done  ; not entering from ShadowDrill room
+    lda Zp_AvatarFlags_bObj
+    .assert bObj::FlipV = $80, error
+    bpl @done  ; gravity is already normal
+    ;; Restore normal gravity.
+    and #<~bObj::FlipV
+    sta Zp_AvatarFlags_bObj
+    ;; Invert the avatar's Y-position within the passage.
+    lda #<(kDrillPassageCenterY * 2)
+    sub Zp_AvatarPosY_i16 + 0
+    sta Zp_AvatarPosY_i16 + 0
+    lda #>(kDrillPassageCenterY * 2)
+    sbc Zp_AvatarPosY_i16 + 1
+    sta Zp_AvatarPosY_i16 + 1
+    @done:
+    rts
 .ENDPROC
 
 ;;;=========================================================================;;;

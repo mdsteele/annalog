@@ -28,6 +28,7 @@
 .INCLUDE "../ppu.inc"
 .INCLUDE "../program.inc"
 .INCLUDE "../room.inc"
+.INCLUDE "../spawn.inc"
 
 .IMPORT DataA_Room_Shadow_sTileset
 .IMPORT FuncA_Machine_GenericMoveTowardGoalHorz
@@ -42,9 +43,23 @@
 .IMPORT Func_MachineLaserReadRegC
 .IMPORT Func_Noop
 .IMPORT Func_SetMachineIndex
+.IMPORT Func_WriteToLowerAttributeTable
 .IMPORT Ppu_ChrObjShadow
 .IMPORT Ram_MachineGoalHorz_u8_arr
 .IMPORT Ram_PlatformLeft_i16_0_arr
+.IMPORTZP Zp_AvatarFlags_bObj
+.IMPORTZP Zp_AvatarPosY_i16
+
+;;;=========================================================================;;;
+
+;;; The index of the upper passage (which leads to the ShadowHall room).
+kUpperPassageIndex = 0
+
+;;; The room pixel Y-position of the center of the upper passage.
+kUpperPassageCenterY = $0050
+
+;;; The room pixel Y-position of the center of the lower passages.
+kLowerPassageCenterY = $0150
 
 ;;;=========================================================================;;;
 
@@ -90,8 +105,8 @@ _Ext_sRoomExt:
     d_addr Actors_sActor_arr_ptr, _Actors_sActor_arr
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
     d_addr Passages_sPassage_arr_ptr, _Passages_sPassage_arr
-    d_addr Enter_func_ptr, Func_Noop
-    d_addr FadeIn_func_ptr, Func_Noop
+    d_addr Enter_func_ptr, FuncA_Room_ShadowDrill_EnterRoom
+    d_addr FadeIn_func_ptr, FuncA_Terrain_ShadowDrill_FadeInRoom
     d_addr Tick_func_ptr, FuncA_Room_ShadowDrill_TickRoom
     d_addr Draw_func_ptr, Func_Noop
     D_END
@@ -127,6 +142,14 @@ _Platforms_sPlatform_arr:
     d_byte HeightPx_u8, kLaserMachineHeightPx
     d_word Left_i16, kLaserInitPlatformLeft
     d_word Top_i16,   $0020
+    D_END
+    ;; Acid:
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Kill
+    d_word WidthPx_u16, $c0
+    d_byte HeightPx_u8, $10
+    d_word Left_i16,  $0030
+    d_word Top_i16,   $016a
     D_END
     .assert * - :- <= kMaxPlatforms * .sizeof(sPlatform), error
     .byte ePlatform::None
@@ -171,21 +194,22 @@ _Actors_sActor_arr:
     .byte eActor::None
 _Devices_sDevice_arr:
 :   D_STRUCT sDevice
-    d_byte Type_eDevice, eDevice::Console
-    d_byte BlockRow_u8, 6
-    d_byte BlockCol_u8, 2
+    d_byte Type_eDevice, eDevice::Console  ; TODO: ConsoleCeiling
+    d_byte BlockRow_u8, 4
+    d_byte BlockCol_u8, 3
     d_byte Target_byte, kLaserMachineIndex
     D_END
     D_STRUCT sDevice
-    d_byte Type_eDevice, eDevice::Console
-    d_byte BlockRow_u8, 18
+    d_byte Type_eDevice, eDevice::Console  ; TODO: ConsoleCeiling
+    d_byte BlockRow_u8, 17
     d_byte BlockCol_u8, 12
     d_byte Target_byte, kLaserMachineIndex
     D_END
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None
 _Passages_sPassage_arr:
-:   D_STRUCT sPassage
+:   .assert * - :- = kUpperPassageIndex * .sizeof(sPassage), error
+    D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Eastern | 0
     d_byte Destination_eRoom, eRoom::ShadowHall
     d_byte SpawnBlock_u8, 5
@@ -221,6 +245,31 @@ _ReadX:
 ;;;=========================================================================;;;
 
 .SEGMENT "PRGA_Room"
+
+;;; @param A The bSpawn value for where the avatar is entering the room.
+.PROC FuncA_Room_ShadowDrill_EnterRoom
+    cmp #bSpawn::Passage | kUpperPassageIndex
+    beq @upperPassage
+    and #bSpawn::Passage
+    beq @done  ; not spawning from a passage
+    @lowerPassage:
+    ldya #kLowerPassageCenterY * 2
+    bpl @invertPositionY  ; unconditional
+    @upperPassage:
+    ldya #kUpperPassageCenterY * 2
+    @invertPositionY:
+    sub Zp_AvatarPosY_i16 + 0
+    sta Zp_AvatarPosY_i16 + 0
+    tya
+    sbc Zp_AvatarPosY_i16 + 1
+    sta Zp_AvatarPosY_i16 + 1
+    @done:
+_SetGravityReversed:
+    lda Zp_AvatarFlags_bObj
+    ora #bObj::FlipV
+    sta Zp_AvatarFlags_bObj
+    rts
+.ENDPROC
 
 .PROC FuncA_Room_ShadowDrill_TickRoom
     ;; TODO: Once all goos are dead, set a flag to make them not reappear.
@@ -263,6 +312,19 @@ _LaserBottom_i16_1_arr:
     jsr FuncA_Machine_GenericMoveTowardGoalHorz  ; returns Z
     jeq FuncA_Machine_ReachedGoal
     rts
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Terrain"
+
+;;; Sets one block row of the lower nametable to use BG palette 2.
+;;; @prereq Rendering is disabled.
+.PROC FuncA_Terrain_ShadowDrill_FadeInRoom
+    ldx #7    ; param: num bytes to write
+    ldy #$a0  ; param: attribute value
+    lda #$19  ; param: initial byte offset
+    jmp Func_WriteToLowerAttributeTable
 .ENDPROC
 
 ;;;=========================================================================;;;

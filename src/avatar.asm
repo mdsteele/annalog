@@ -96,8 +96,9 @@ Zp_AvatarVelX_i16: .res 2
 .EXPORTZP Zp_AvatarVelY_i16
 Zp_AvatarVelY_i16: .res 2
 
-;;; The object flags to apply for the player avatar.  In particular, if
-;;; bObj::FlipH is set, then the avatar will face left instead of right.
+;;; The object flags to apply for the player avatar.  If bObj::FlipH is set,
+;;; then the avatar will face left instead of right.  If bObj::FlipV is set,
+;;; the avatar is acting under reverse gravity.
 .EXPORTZP Zp_AvatarFlags_bObj
 Zp_AvatarFlags_bObj: .res 1
 
@@ -228,6 +229,13 @@ _SetAvatarPose:
 _SetPoseInAir:
     ;; The player avatar is airborne; set its pose based on its Y-velocity.
     lda Zp_AvatarVelY_i16 + 1
+    bit Zp_AvatarFlags_bObj
+    .assert bObj::FlipV = bProc::Negative, error
+    bpl @normalGravity
+    @reverseGravity:
+    rsub #0
+    @normalGravity:
+    tay
     bmi @jumping
     cmp #2
     blt @hovering
@@ -255,6 +263,7 @@ _SetPoseInWater:
     sta Zp_AvatarPose_eAvatar
     rts
 _SetPoseOnGround:
+    ;; TODO: Invert Up and Down buttons if gravity is reversed.
     lda Zp_AvatarState_bAvatar
     and #bAvatar::LandMask
     beq @standOrRun  ; landing timer is zero
@@ -314,27 +323,42 @@ _SetPoseOnGround:
 ;;; collisions.  Sets Zp_AvatarExit_ePassage if the avatar hits a vertical
 ;;; passage.
 .PROC FuncA_Avatar_ApplyVelY
+    ;; Determine whether the player avatar is moving against gravity.
+    bit Zp_AvatarFlags_bObj
+    .assert bObj::FlipV = bProc::Negative, error
+    bpl @normalGravity
+    @reverseGravity:
+    lda #0
+    sub Zp_AvatarVelY_i16 + 0
+    lda #0
+    sbc Zp_AvatarVelY_i16 + 1
+    jmp @setOldVel
+    @normalGravity:
+    lda Zp_AvatarVelY_i16 + 1
+    @setOldVel:
+    pha  ; old gravity-relative Y-vel (hi); negative if moving against gravity
+_UpdatePosition:
     lda Zp_AvatarVelY_i16 + 0
     add Zp_AvatarSubY_u8
     sta Zp_AvatarSubY_u8
     lda Zp_AvatarVelY_i16 + 1
-    pha  ; old Y-velocity (hi)
     adc #0
     sta Zp_AvatarPushDelta_i8
     jsr Func_TryPushAvatarVert
-    pla  ; old Y-velocity (hi)
-    bmi _NowAirborne  ; avatar is moving up
-    sta T0  ; old Y-velocity (hi)
+_CheckIfAirborne:
+    pla  ; old gravity-relative Y-vel (hi); negative if moving against gravity
+    bmi _NowAirborne  ; avatar is moving against gravity
+    sta T0  ; old vertical speed (hi)
     lda Zp_AvatarCollided_ePlatform
     .assert ePlatform::None = 0, error
-    beq _NowAirborne  ; no downward collision
+    beq _NowAirborne  ; no floor collision
 _NowGrounded:
     bit Zp_AvatarState_bAvatar
     .assert bAvatar::Airborne = bProc::Negative, error
     bpl @done  ; avatar was already grounded
     @wasAirborne:
     lda #0
-    ldy T0  ; old Y-velocity (hi)
+    ldy T0  ; old vertical speed (hi)
     bmi @setState
     lda DataA_Avatar_LandingFrames_u8_arr, y
     @setState:
@@ -425,7 +449,8 @@ _Stop:
 ;;; button is held.
 .PROC FuncA_Avatar_ApplyDpadLeft
     ;; Face the player avatar to the left.
-    lda #bObj::FlipH | kPaletteObjAvatarNormal
+    lda Zp_AvatarFlags_bObj
+    ora #bObj::FlipH
     sta Zp_AvatarFlags_bObj
 _DetermineLimit:
     ;; Determine the (negative) X-velocity limit in pixels/frame, storing it in
@@ -489,7 +514,8 @@ _AccelerateTowardsLimit:
 ;;; button is held.
 .PROC FuncA_Avatar_ApplyDpadRight
     ;; Face the player avatar to the right.
-    lda #kPaletteObjAvatarNormal
+    lda Zp_AvatarFlags_bObj
+    and #<~bObj::FlipH
     sta Zp_AvatarFlags_bObj
 _DetermineLimit:
     ;; Determine the (positive) X-velocity limit in pixels/frame, storing it in
@@ -569,7 +595,15 @@ _Grounded:
     bpl @noJump
     lda #eSample::JumpAnna  ; param: eSample to play
     jsr Func_PlaySfxSample
+    bit Zp_AvatarFlags_bObj
+    .assert bObj::FlipV = bProc::Negative, error
+    bpl @normalGravity
+    @reverseGravity:
+    ldax #$ffff & -kAvatarJumpVelocity
+    bpl @setVelocity  ; unconditional
+    @normalGravity:
     ldax #kAvatarJumpVelocity
+    @setVelocity:
     stax Zp_AvatarVelY_i16
     lda #bAvatar::Airborne | bAvatar::Jumping
     sta Zp_AvatarState_bAvatar
@@ -585,12 +619,25 @@ _Airborne:
     bit Zp_P1ButtonsHeld_bJoypad
     .assert bJoypad::AButton = bProc::Negative, error
     bmi _Return  ; A button is still held, so don't slow the jump
+    bit Zp_AvatarFlags_bObj
+    .assert bObj::FlipV = bProc::Negative, error
+    bpl @normalGravity
+    @reverseGravity:
+    lda Zp_AvatarVelY_i16 + 1
+    bmi _Return  ; avatar is moving upward, not downward
+    cmp #kAvatarStopJumpSpeed
+    blt _Return  ; avatar is already below the downward speed cap
+    lda #kAvatarStopJumpSpeed
+    sta Zp_AvatarVelY_i16 + 1
+    bne @zeroVelLo  ; unconditional
+    @normalGravity:
     lda Zp_AvatarVelY_i16 + 1
     bpl _Return  ; avatar is moving downward, not upward
     cmp #$ff & -kAvatarStopJumpSpeed
     bge _Return  ; avatar is already at or below the upward speed cap
     lda #$ff & -kAvatarStopJumpSpeed
     sta Zp_AvatarVelY_i16 + 1
+    @zeroVelLo:
     lda #$00
     sta Zp_AvatarVelY_i16 + 0
 _Return:
@@ -650,6 +697,10 @@ _InWater:
     @done:
     rts
 _InAir:
+    bit Zp_AvatarFlags_bObj
+    .assert bObj::FlipV = bProc::Negative, error
+    bmi _InAirReverseGravity
+_InAirNormalGravity:
     ;; Accelerate the player avatar downwards.
     lda #kAvatarGravity
     add Zp_AvatarVelY_i16 + 0
@@ -667,6 +718,24 @@ _InAir:
     @setVelYHi:
     sta Zp_AvatarVelY_i16 + 1
 _Done:
+    rts
+_InAirReverseGravity:
+    ;; Accelerate the player avatar upwards.
+    lda Zp_AvatarVelY_i16 + 0
+    sub #kAvatarGravity
+    sta Zp_AvatarVelY_i16 + 0
+    lda Zp_AvatarVelY_i16 + 1
+    sbc #0
+    ;; If moving upward, check for terminal velocity:
+    bpl @setVelYHi
+    .assert <-kAvatarMaxAirSpeedVert = 0, error
+    cmp #>-kAvatarMaxAirSpeedVert
+    bge @setVelYHi
+    lda #0
+    sta Zp_AvatarVelY_i16 + 0
+    lda #>-kAvatarMaxAirSpeedVert
+    @setVelYHi:
+    sta Zp_AvatarVelY_i16 + 1
     rts
 .ENDPROC
 

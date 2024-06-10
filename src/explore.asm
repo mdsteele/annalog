@@ -49,7 +49,7 @@
 .IMPORT FuncA_Objects_DrawFloatingHud
 .IMPORT FuncA_Objects_DrawPlayerAvatar
 .IMPORT FuncA_Objects_MoveShapeLeftHalfTile
-.IMPORT FuncA_Objects_MoveShapeUpByA
+.IMPORT FuncA_Objects_MoveShapeVert
 .IMPORT FuncA_Objects_SetShapePosToAvatarCenter
 .IMPORT FuncA_Room_CallRoomTick
 .IMPORT FuncA_Room_InitAllMachinesAndCallRoomEnter
@@ -85,6 +85,7 @@
 .IMPORT Sram_CarryingFlower_eFlag
 .IMPORT Sram_LastSafe_eRoom
 .IMPORTZP Zp_AvatarExit_ePassage
+.IMPORTZP Zp_AvatarFlags_bObj
 .IMPORTZP Zp_AvatarHarmTimer_u8
 .IMPORTZP Zp_AvatarPosX_i16
 .IMPORTZP Zp_AvatarPosY_i16
@@ -550,8 +551,16 @@ _DrawObject:
     bne @noZigZag
     lda #$01
     @noZigZag:
-    add #3 + kTileWidthPx * 2  ; param: offset
-    jsr FuncA_Objects_MoveShapeUpByA
+    bit Zp_AvatarFlags_bObj
+    .assert bObj::FlipV = bProc::Negative, error
+    bpl @normalGravity
+    @reverseGravity:
+    add #3 + kTileHeightPx
+    bne @moveShape  ; unconditional
+    @normalGravity:
+    sub #5 + kTileHeightPx * 2  ; param: signed offset
+    @moveShape:
+    jsr FuncA_Objects_MoveShapeVert
     ;; Draw the object:
     ldy #kPaletteObjDevicePrompt  ; param: object flags
     lda #kTileIdObjDevicePrompt  ; param: tile ID
