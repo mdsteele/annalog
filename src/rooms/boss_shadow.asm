@@ -74,12 +74,12 @@ kEmitterYPlatformIndex = 4
 
 ;;; The initial positions of the emitter beams.
 kEmitterXInitRegX = 3
-kEmitterYInitRegY = 7
+kEmitterYInitRegY = 5
 
 ;;; The minimum/maximum room pixel X/Y-positions for the top-left of the
 ;;; forcefield platform.
 kForcefieldMinPlatformLeft = $0030
-kForcefieldMinPlatformTop  = $0020
+kForcefieldMinPlatformTop  = $0030
 
 ;;;=========================================================================;;;
 
@@ -224,7 +224,7 @@ _Platforms_sPlatform_arr:
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Zone
     d_word WidthPx_u16, $a0
-    d_byte HeightPx_u8, $a0
+    d_byte HeightPx_u8, $70
     d_word Left_i16, kForcefieldMinPlatformLeft
     d_word Top_i16, kForcefieldMinPlatformTop
     D_END
@@ -250,7 +250,7 @@ _Platforms_sPlatform_arr:
     d_word WidthPx_u16, $08
     d_byte HeightPx_u8, $08
     d_word Left_i16,  $0018
-    d_word Top_i16,   $0020
+    d_word Top_i16,   $0030
     D_END
     .assert * - :- = kLavaPlatformIndex * .sizeof(sPlatform), error
     D_STRUCT sPlatform
