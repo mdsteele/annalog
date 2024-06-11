@@ -143,13 +143,13 @@ _Platforms_sPlatform_arr:
     .byte ePlatform::None
 _Devices_sDevice_arr:
 :   D_STRUCT sDevice
-    d_byte Type_eDevice, eDevice::Console
+    d_byte Type_eDevice, eDevice::ConsoleFloor
     d_byte BlockRow_u8, 11
     d_byte BlockCol_u8, 5
     d_byte Target_byte, 0  ; TODO: use constant
     D_END
     D_STRUCT sDevice
-    d_byte Type_eDevice, eDevice::Console
+    d_byte Type_eDevice, eDevice::ConsoleFloor
     d_byte BlockRow_u8, 11
     d_byte BlockCol_u8, 7
     d_byte Target_byte, 1  ; TODO: use constant

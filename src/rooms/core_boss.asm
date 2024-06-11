@@ -491,28 +491,28 @@ _Actors_sActor_arr:
 _Devices_sDevice_arr:
 :   .assert * - :- = kWinchConsoleDeviceIndex * .sizeof(sDevice), error
     D_STRUCT sDevice
-    d_byte Type_eDevice, eDevice::Console
+    d_byte Type_eDevice, eDevice::ConsoleFloor
     d_byte BlockRow_u8, 6
     d_byte BlockCol_u8, 2
     d_byte Target_byte, kWinchMachineIndex
     D_END
     .assert * - :- = kBlasterConsoleDeviceIndex * .sizeof(sDevice), error
     D_STRUCT sDevice
-    d_byte Type_eDevice, eDevice::Console
+    d_byte Type_eDevice, eDevice::ConsoleFloor
     d_byte BlockRow_u8, 6
     d_byte BlockCol_u8, 31
     d_byte Target_byte, kBlasterMachineIndex
     D_END
     .assert * - :- = kLaserConsoleDeviceIndex * .sizeof(sDevice), error
     D_STRUCT sDevice
-    d_byte Type_eDevice, eDevice::Console
+    d_byte Type_eDevice, eDevice::ConsoleFloor
     d_byte BlockRow_u8, 20
     d_byte BlockCol_u8, 6
     d_byte Target_byte, kLaserMachineIndex
     D_END
     .assert * - :- = kCannonConsoleDeviceIndex * .sizeof(sDevice), error
     D_STRUCT sDevice
-    d_byte Type_eDevice, eDevice::Console
+    d_byte Type_eDevice, eDevice::ConsoleFloor
     d_byte BlockRow_u8, 20
     d_byte BlockCol_u8, 28
     d_byte Target_byte, kCannonMachineIndex

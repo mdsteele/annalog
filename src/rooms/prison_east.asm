@@ -247,7 +247,7 @@ _Devices_sDevice_arr:
     D_END
     .assert * - :- = kConsoleDeviceIndex * .sizeof(sDevice), error
     D_STRUCT sDevice
-    d_byte Type_eDevice, eDevice::Console
+    d_byte Type_eDevice, eDevice::ConsoleFloor
     d_byte BlockRow_u8, 15
     d_byte BlockCol_u8, 18
     d_byte Target_byte, kLiftMachineIndex
@@ -338,7 +338,7 @@ _ConsoleDelay:
     dec Zp_RoomState + sState::ConsoleDelay_u8
     bne @done
     ;; TODO: play a sound for the console turning on
-    lda #eDevice::Console
+    lda #eDevice::ConsoleFloor
     sta Ram_DeviceType_eDevice_arr + kConsoleDeviceIndex
     lda #kConsoleAnimCountdown
     sta Ram_DeviceAnim_u8_arr + kConsoleDeviceIndex
@@ -408,7 +408,7 @@ _OrcIsTrapped:
     @doneOrc:
     ;; If the console is disabled, enable it.
     lda Ram_DeviceType_eDevice_arr + kConsoleDeviceIndex
-    cmp #eDevice::Console
+    cmp #eDevice::ConsoleFloor
     beq _Return  ; console is already enabled
     lda Zp_RoomState + sState::ConsoleDelay_u8
     bne _Return  ; console is already about to be enabled

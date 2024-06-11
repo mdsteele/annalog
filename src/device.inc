@@ -26,34 +26,35 @@ kMaxDevices = 16
 .ENUM eDevice
     ;; Non-interactive device types; these generally act as temporary
     ;; placeholders for interactive devices.
-    None           ; empty slot
-    Boiler         ; boiler tank that can be hit by a fireblast
-    BreakerDone    ; circuit breaker, after being activated
-    BreakerRising  ; circuit breaker, rising out of the ground
-    Door1Locked    ; leads to another Door1*; can't be entered until unlocked
-    FlowerInert    ; a flower that can't be picked
-    Mousehole      ; used by rodent baddies
-    Placeholder    ; invisible and does nothing
-    Teleporter     ; invisible spawn point for teleport field machines
+    None            ; empty slot
+    Boiler          ; boiler tank that can be hit by a fireblast
+    BreakerDone     ; circuit breaker, after being activated
+    BreakerRising   ; circuit breaker, rising out of the ground
+    Door1Locked     ; leads to another Door1*; can't be entered until unlocked
+    FlowerInert     ; a flower that can't be picked
+    Mousehole       ; used by rodent baddies
+    Placeholder     ; invisible and does nothing
+    Teleporter      ; invisible spawn point for teleport field machines
     ;; Interactive device types.  The player can interact with these by
     ;; pressing the B button while standing in front of them.
-    BreakerReady   ; circuit breaker, ready to be activated
-    Console        ; operates a machine
-    Door1Open      ; leads to another Door1*; is never locked
-    Door1Unlocked  ; leads to another Door1*; can be locked by room scripts
-    Door2Open      ; leads to another Door2*; is never locked
-    Door3Open      ; leads to another Door3*; is never locked
-    FakeConsole    ; opens a console-looking window with an error message
+    BreakerReady    ; circuit breaker, ready to be activated
+    ConsoleCeiling  ; operates a machine
+    ConsoleFloor    ; operates a machine
+    Door1Open       ; leads to another Door1*; is never locked
+    Door1Unlocked   ; leads to another Door1*; can be locked by room scripts
+    Door2Open       ; leads to another Door2*; is never locked
+    Door3Open       ; leads to another Door3*; is never locked
+    FakeConsole     ; opens a console-looking window with an error message
     Flower
     LeverCeiling
     LeverFloor
-    Paper          ; collects the paper, and initiates dialogue for it
-    ScreenGreen    ; initiates dialogue with the avatar's back to the camera
-    ScreenRed      ; initiates dialogue with the avatar's back to the camera
-    Sign           ; initiates dialogue with the avatar's back to the camera
-    TalkLeft       ; initiates dialogue with the avatar facing to the left
-    TalkRight      ; initiates dialogue with the avatar facing to the right
-    Upgrade
+    Paper           ; collects the paper, and initiates dialogue for it
+    ScreenGreen     ; initiates dialogue with the avatar's back to the camera
+    ScreenRed       ; initiates dialogue with the avatar's back to the camera
+    Sign            ; initiates dialogue with the avatar's back to the camera
+    TalkLeft        ; initiates dialogue with the avatar facing to the left
+    TalkRight       ; initiates dialogue with the avatar facing to the right
+    Upgrade         ; collects the upgrade
     NUM_VALUES
 .ENDENUM
 
@@ -87,13 +88,12 @@ kFirstInteractiveDeviceType = eDevice::BreakerReady
     ;; The "target" for this device, whose meaning depends on the device type:
     ;;   * For boilers, this is the bBoiler value.
     ;;   * For breakers, this is the eFlag::Breaker* value.
-    ;;   * For (real) consoles, this is the machine index (i.e. the index into
-    ;;     the current room's sRoom::Machines_sMachine_arr_ptr).
+    ;;   * For (real) consoles, this is the machine index.
     ;;   * For doors, this is the eRoom value for the destination room.
     ;;   * For fake consoles, this is the eFake value.
     ;;   * For flowers, this is the eFlag::Flower* value.
     ;;   * For levers, this is the byte offset into Zp_RoomState for the
-    ;;     lever's state value (0 or 1).
+    ;;     lever's state value.
     ;;   * For mouseholes, this is the bMousehole value.
     ;;   * For papers, this is the eFlag::Paper* value.
     ;;   * For screen/sign/talk devices, this is the eDialog value.

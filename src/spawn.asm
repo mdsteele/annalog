@@ -420,32 +420,33 @@ _CheckForShallowWater:
     rts
 _DeviceOffset_u8_arr:
     D_ARRAY .enum, eDevice
-    d_byte None,          $08
-    d_byte Boiler,        $08
-    d_byte BreakerDone,   kBreakerAvatarOffset
-    d_byte BreakerRising, kBreakerAvatarOffset
-    d_byte Door1Locked,   kDoorAvatarOffset
-    d_byte FlowerInert,   $08
-    d_byte Mousehole,     $08
-    d_byte Placeholder,   $08
-    d_byte Teleporter,    $08
-    d_byte BreakerReady,  kBreakerAvatarOffset
-    d_byte Console,       kConsoleAvatarOffset
-    d_byte Door1Open,     kDoorAvatarOffset
-    d_byte Door1Unlocked, kDoorAvatarOffset
-    d_byte Door2Open,     kDoorAvatarOffset
-    d_byte Door3Open,     kDoorAvatarOffset
-    d_byte FakeConsole,   kConsoleAvatarOffset
-    d_byte Flower,        $08
-    d_byte LeverCeiling,  $06
-    d_byte LeverFloor,    $06
-    d_byte Paper,         kReadingAvatarOffset
-    d_byte ScreenGreen,   kConsoleAvatarOffset
-    d_byte ScreenRed,     kConsoleAvatarOffset
-    d_byte Sign,          kReadingAvatarOffset
-    d_byte TalkLeft,      $0b
-    d_byte TalkRight,     $05
-    d_byte Upgrade,       $08
+    d_byte None,           $08
+    d_byte Boiler,         $08
+    d_byte BreakerDone,    kBreakerAvatarOffset
+    d_byte BreakerRising,  kBreakerAvatarOffset
+    d_byte Door1Locked,    kDoorAvatarOffset
+    d_byte FlowerInert,    $08
+    d_byte Mousehole,      $08
+    d_byte Placeholder,    $08
+    d_byte Teleporter,     $08
+    d_byte BreakerReady,   kBreakerAvatarOffset
+    d_byte ConsoleCeiling, kConsoleAvatarOffset
+    d_byte ConsoleFloor,   kConsoleAvatarOffset
+    d_byte Door1Open,      kDoorAvatarOffset
+    d_byte Door1Unlocked,  kDoorAvatarOffset
+    d_byte Door2Open,      kDoorAvatarOffset
+    d_byte Door3Open,      kDoorAvatarOffset
+    d_byte FakeConsole,    kConsoleAvatarOffset
+    d_byte Flower,         $08
+    d_byte LeverCeiling,   $06
+    d_byte LeverFloor,     $06
+    d_byte Paper,          kReadingAvatarOffset
+    d_byte ScreenGreen,    kConsoleAvatarOffset
+    d_byte ScreenRed,      kConsoleAvatarOffset
+    d_byte Sign,           kReadingAvatarOffset
+    d_byte TalkLeft,       $0b
+    d_byte TalkRight,      $05
+    d_byte Upgrade,        $08
     D_END
 .ENDPROC
 

@@ -202,13 +202,13 @@ _Devices_sDevice_arr:
     d_byte Target_byte, sState::Lever_u8_arr + kUpperBridgeMachineIndex
     D_END
     D_STRUCT sDevice
-    d_byte Type_eDevice, eDevice::Console
+    d_byte Type_eDevice, eDevice::ConsoleFloor
     d_byte BlockRow_u8, 11
     d_byte BlockCol_u8, 3
     d_byte Target_byte, kUpperBridgeMachineIndex
     D_END
     D_STRUCT sDevice
-    d_byte Type_eDevice, eDevice::Console
+    d_byte Type_eDevice, eDevice::ConsoleFloor
     d_byte BlockRow_u8, 21
     d_byte BlockCol_u8, 8
     d_byte Target_byte, kLowerBridgeMachineIndex

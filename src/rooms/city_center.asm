@@ -297,25 +297,25 @@ _Devices_sDevice_arr:
     d_byte Target_byte, eRoom::CityBuilding6
     D_END
     D_STRUCT sDevice
-    d_byte Type_eDevice, eDevice::Console
+    d_byte Type_eDevice, eDevice::ConsoleFloor
     d_byte BlockRow_u8, 8
     d_byte BlockCol_u8, 11
     d_byte Target_byte, kSemaphore1MachineIndex
     D_END
     D_STRUCT sDevice
-    d_byte Type_eDevice, eDevice::Console
+    d_byte Type_eDevice, eDevice::ConsoleFloor
     d_byte BlockRow_u8, 8
     d_byte BlockCol_u8, 25
     d_byte Target_byte, kSemaphore2MachineIndex
     D_END
     D_STRUCT sDevice
-    d_byte Type_eDevice, eDevice::Console
+    d_byte Type_eDevice, eDevice::ConsoleFloor
     d_byte BlockRow_u8, 8
     d_byte BlockCol_u8, 42
     d_byte Target_byte, kSemaphore3MachineIndex
     D_END
     D_STRUCT sDevice
-    d_byte Type_eDevice, eDevice::Console
+    d_byte Type_eDevice, eDevice::ConsoleFloor
     d_byte BlockRow_u8, 8
     d_byte BlockCol_u8, 57
     d_byte Target_byte, kSemaphore4MachineIndex

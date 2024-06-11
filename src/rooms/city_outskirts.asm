@@ -201,7 +201,7 @@ _Devices_sDevice_arr:
     d_byte Target_byte, eDialog::CityOutskirtsAlex1
     D_END
     D_STRUCT sDevice
-    d_byte Type_eDevice, eDevice::Console
+    d_byte Type_eDevice, eDevice::ConsoleFloor
     d_byte BlockRow_u8, 4
     d_byte BlockCol_u8, 23
     d_byte Target_byte, kLauncherMachineIndex

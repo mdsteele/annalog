@@ -251,7 +251,7 @@ _Actors_sActor_arr:
     .byte eActor::None
 _Devices_sDevice_arr:
 :   D_STRUCT sDevice
-    d_byte Type_eDevice, eDevice::Console
+    d_byte Type_eDevice, eDevice::ConsoleFloor
     d_byte BlockRow_u8, 7
     d_byte BlockCol_u8, 9
     d_byte Target_byte, kWinchMachineIndex
@@ -278,7 +278,7 @@ _Devices_sDevice_arr:
     d_byte Target_byte, eRoom::BossCrypt
     D_END
     D_STRUCT sDevice
-    d_byte Type_eDevice, eDevice::Console
+    d_byte Type_eDevice, eDevice::ConsoleFloor
     d_byte BlockRow_u8, 16
     d_byte BlockCol_u8, 11
     d_byte Target_byte, kWinchMachineIndex

@@ -516,19 +516,19 @@ _Devices_sDevice_arr:
     d_byte Target_byte, sState::LeverRight_u8
     D_END
     D_STRUCT sDevice
-    d_byte Type_eDevice, eDevice::Console
+    d_byte Type_eDevice, eDevice::ConsoleFloor
     d_byte BlockRow_u8, 12
     d_byte BlockCol_u8, 1
     d_byte Target_byte, kAmmoRackMachineIndex
     D_END
     D_STRUCT sDevice
-    d_byte Type_eDevice, eDevice::Console
+    d_byte Type_eDevice, eDevice::ConsoleFloor
     d_byte BlockRow_u8, 10
     d_byte BlockCol_u8, 13
     d_byte Target_byte, kReloaderMachineIndex
     D_END
     D_STRUCT sDevice
-    d_byte Type_eDevice, eDevice::Console
+    d_byte Type_eDevice, eDevice::ConsoleFloor
     d_byte BlockRow_u8, 12
     d_byte BlockCol_u8, 13
     d_byte Target_byte, kLauncherMachineIndex

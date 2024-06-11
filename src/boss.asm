@@ -412,8 +412,11 @@ _DisableConsoles:
     ldx #kMaxDevices - 1
     @loop:
     lda Ram_DeviceType_eDevice_arr, x
-    cmp #eDevice::Console
+    cmp #eDevice::ConsoleFloor
+    beq @disable
+    cmp #eDevice::ConsoleCeiling
     bne @continue
+    @disable:
     lda #eDevice::Placeholder
     sta Ram_DeviceType_eDevice_arr, x
     @continue:

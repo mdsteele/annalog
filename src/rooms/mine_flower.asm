@@ -251,13 +251,13 @@ _Devices_sDevice_arr:
     d_byte Target_byte, eFlag::FlowerMine
     D_END
     D_STRUCT sDevice
-    d_byte Type_eDevice, eDevice::Console
+    d_byte Type_eDevice, eDevice::ConsoleFloor
     d_byte BlockRow_u8, 12
     d_byte BlockCol_u8, 5
     d_byte Target_byte, kHoistWestMachineIndex
     D_END
     D_STRUCT sDevice
-    d_byte Type_eDevice, eDevice::Console
+    d_byte Type_eDevice, eDevice::ConsoleFloor
     d_byte BlockRow_u8, 12
     d_byte BlockCol_u8, 12
     d_byte Target_byte, kHoistEastMachineIndex

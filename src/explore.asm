@@ -318,32 +318,33 @@ _CheckForActivateDevice:
     D_TABLE_LO table, _JumpTable_ptr_0_arr
     D_TABLE_HI table, _JumpTable_ptr_1_arr
     D_TABLE .enum, eDevice
-    d_entry table, None,          _ContinueExploring
-    d_entry table, Boiler,        _ContinueExploring
-    d_entry table, BreakerDone,   _ContinueExploring
-    d_entry table, BreakerRising, _ContinueExploring
-    d_entry table, Door1Locked,   _ContinueExploring
-    d_entry table, FlowerInert,   _ContinueExploring
-    d_entry table, Mousehole,     _ContinueExploring
-    d_entry table, Placeholder,   _ContinueExploring
-    d_entry table, Teleporter,    _ContinueExploring
-    d_entry table, BreakerReady,  _DeviceBreaker
-    d_entry table, Console,       _DeviceConsole
-    d_entry table, Door1Open,     _DeviceDoor
-    d_entry table, Door1Unlocked, _DeviceDoor
-    d_entry table, Door2Open,     _DeviceDoor
-    d_entry table, Door3Open,     _DeviceDoor
-    d_entry table, FakeConsole,   _DeviceFakeConsole
-    d_entry table, Flower,        _DeviceFlower
-    d_entry table, LeverCeiling,  _DeviceLever
-    d_entry table, LeverFloor,    _DeviceLever
-    d_entry table, Paper,         _DevicePaper
-    d_entry table, ScreenGreen,   _DeviceDialog
-    d_entry table, ScreenRed,     _DeviceDialog
-    d_entry table, Sign,          _DeviceDialog
-    d_entry table, TalkLeft,      _DeviceDialog
-    d_entry table, TalkRight,     _DeviceDialog
-    d_entry table, Upgrade,       _DeviceUpgrade
+    d_entry table, None,           _ContinueExploring
+    d_entry table, Boiler,         _ContinueExploring
+    d_entry table, BreakerDone,    _ContinueExploring
+    d_entry table, BreakerRising,  _ContinueExploring
+    d_entry table, Door1Locked,    _ContinueExploring
+    d_entry table, FlowerInert,    _ContinueExploring
+    d_entry table, Mousehole,      _ContinueExploring
+    d_entry table, Placeholder,    _ContinueExploring
+    d_entry table, Teleporter,     _ContinueExploring
+    d_entry table, BreakerReady,   _DeviceBreaker
+    d_entry table, ConsoleCeiling, _DeviceConsole
+    d_entry table, ConsoleFloor,   _DeviceConsole
+    d_entry table, Door1Open,      _DeviceDoor
+    d_entry table, Door1Unlocked,  _DeviceDoor
+    d_entry table, Door2Open,      _DeviceDoor
+    d_entry table, Door3Open,      _DeviceDoor
+    d_entry table, FakeConsole,    _DeviceFakeConsole
+    d_entry table, Flower,         _DeviceFlower
+    d_entry table, LeverCeiling,   _DeviceLever
+    d_entry table, LeverFloor,     _DeviceLever
+    d_entry table, Paper,          _DevicePaper
+    d_entry table, ScreenGreen,    _DeviceDialog
+    d_entry table, ScreenRed,      _DeviceDialog
+    d_entry table, Sign,           _DeviceDialog
+    d_entry table, TalkLeft,       _DeviceDialog
+    d_entry table, TalkRight,      _DeviceDialog
+    d_entry table, Upgrade,        _DeviceUpgrade
     D_END
 .ENDREPEAT
 _DeviceBreaker:

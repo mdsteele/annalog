@@ -230,7 +230,7 @@ _Devices_sDevice_arr:
     D_END
     .assert * - :- = kConsoleDeviceIndex * .sizeof(sDevice), error
     D_STRUCT sDevice
-    d_byte Type_eDevice, eDevice::Console
+    d_byte Type_eDevice, eDevice::ConsoleFloor
     d_byte BlockRow_u8, 6
     d_byte BlockCol_u8, 12
     d_byte Target_byte, kPumpMachineIndex
@@ -513,7 +513,7 @@ _DropMonitorPlatform:
     jmp Func_MovePlatformTopTowardPointY  ; returns Z
 _FixConsole:
     ;; TODO: play a sound for the console turning on
-    lda #eDevice::Console
+    lda #eDevice::ConsoleFloor
     sta Ram_DeviceType_eDevice_arr + kConsoleDeviceIndex
     ldx #eFlag::MermaidSpringConsoleFixed  ; param: flag
     jmp Func_SetFlag

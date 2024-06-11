@@ -277,7 +277,7 @@ _Devices_sDevice_arr:
     d_byte Target_byte, eDialog::GardenEastCorra
     D_END
     D_STRUCT sDevice
-    d_byte Type_eDevice, eDevice::Console
+    d_byte Type_eDevice, eDevice::ConsoleFloor
     d_byte BlockRow_u8, 7
     d_byte BlockCol_u8, 13
     d_byte Target_byte, kBridgeMachineIndex
@@ -290,7 +290,7 @@ _Devices_sDevice_arr:
     d_byte Target_byte, sState::LeverBridge_u8
     D_END
     D_STRUCT sDevice
-    d_byte Type_eDevice, eDevice::Console
+    d_byte Type_eDevice, eDevice::ConsoleFloor
     d_byte BlockRow_u8, 20
     d_byte BlockCol_u8, 21
     d_byte Target_byte, kCannonMachineIndex

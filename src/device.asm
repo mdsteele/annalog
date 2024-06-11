@@ -26,7 +26,8 @@
 .IMPORT FuncA_Objects_DrawDeviceBreakerDone
 .IMPORT FuncA_Objects_DrawDeviceBreakerReady
 .IMPORT FuncA_Objects_DrawDeviceBreakerRising
-.IMPORT FuncA_Objects_DrawDeviceConsole
+.IMPORT FuncA_Objects_DrawDeviceConsoleCeiling
+.IMPORT FuncA_Objects_DrawDeviceConsoleFloor
 .IMPORT FuncA_Objects_DrawDeviceFakeConsole
 .IMPORT FuncA_Objects_DrawDeviceFlower
 .IMPORT FuncA_Objects_DrawDeviceLeverCeiling
@@ -171,32 +172,33 @@ _Continue:
     D_TABLE_LO table, _JumpTable_ptr_0_arr
     D_TABLE_HI table, _JumpTable_ptr_1_arr
     D_TABLE .enum, eDevice
-    d_entry table, None,          Func_Noop
-    d_entry table, Boiler,        Func_Noop
-    d_entry table, BreakerDone,   FuncA_Objects_DrawDeviceBreakerDone
-    d_entry table, BreakerRising, FuncA_Objects_DrawDeviceBreakerRising
-    d_entry table, Door1Locked,   FuncA_Objects_DrawDeviceLockedDoor
-    d_entry table, FlowerInert,   FuncA_Objects_DrawDeviceFlower
-    d_entry table, Mousehole,     Func_Noop
-    d_entry table, Placeholder,   Func_Noop
-    d_entry table, Teleporter,    FuncA_Objects_DrawDeviceTeleporter
-    d_entry table, BreakerReady,  FuncA_Objects_DrawDeviceBreakerReady
-    d_entry table, Console,       FuncA_Objects_DrawDeviceConsole
-    d_entry table, Door1Open,     Func_Noop
-    d_entry table, Door1Unlocked, FuncA_Objects_DrawDeviceUnlockedDoor
-    d_entry table, Door2Open,     Func_Noop
-    d_entry table, Door3Open,     Func_Noop
-    d_entry table, FakeConsole,   FuncA_Objects_DrawDeviceFakeConsole
-    d_entry table, Flower,        FuncA_Objects_DrawDeviceFlower
-    d_entry table, LeverCeiling,  FuncA_Objects_DrawDeviceLeverCeiling
-    d_entry table, LeverFloor,    FuncA_Objects_DrawDeviceLeverFloor
-    d_entry table, Paper,         FuncA_Objects_DrawDevicePaper
-    d_entry table, ScreenGreen,   FuncA_Objects_DrawDeviceScreenGreen
-    d_entry table, ScreenRed,     FuncA_Objects_DrawDeviceScreenRed
-    d_entry table, Sign,          Func_Noop
-    d_entry table, TalkLeft,      Func_Noop
-    d_entry table, TalkRight,     Func_Noop
-    d_entry table, Upgrade,       FuncA_Objects_DrawDeviceUpgrade
+    d_entry table, None,           Func_Noop
+    d_entry table, Boiler,         Func_Noop
+    d_entry table, BreakerDone,    FuncA_Objects_DrawDeviceBreakerDone
+    d_entry table, BreakerRising,  FuncA_Objects_DrawDeviceBreakerRising
+    d_entry table, Door1Locked,    FuncA_Objects_DrawDeviceLockedDoor
+    d_entry table, FlowerInert,    FuncA_Objects_DrawDeviceFlower
+    d_entry table, Mousehole,      Func_Noop
+    d_entry table, Placeholder,    Func_Noop
+    d_entry table, Teleporter,     FuncA_Objects_DrawDeviceTeleporter
+    d_entry table, BreakerReady,   FuncA_Objects_DrawDeviceBreakerReady
+    d_entry table, ConsoleCeiling, FuncA_Objects_DrawDeviceConsoleCeiling
+    d_entry table, ConsoleFloor,   FuncA_Objects_DrawDeviceConsoleFloor
+    d_entry table, Door1Open,      Func_Noop
+    d_entry table, Door1Unlocked,  FuncA_Objects_DrawDeviceUnlockedDoor
+    d_entry table, Door2Open,      Func_Noop
+    d_entry table, Door3Open,      Func_Noop
+    d_entry table, FakeConsole,    FuncA_Objects_DrawDeviceFakeConsole
+    d_entry table, Flower,         FuncA_Objects_DrawDeviceFlower
+    d_entry table, LeverCeiling,   FuncA_Objects_DrawDeviceLeverCeiling
+    d_entry table, LeverFloor,     FuncA_Objects_DrawDeviceLeverFloor
+    d_entry table, Paper,          FuncA_Objects_DrawDevicePaper
+    d_entry table, ScreenGreen,    FuncA_Objects_DrawDeviceScreenGreen
+    d_entry table, ScreenRed,      FuncA_Objects_DrawDeviceScreenRed
+    d_entry table, Sign,           Func_Noop
+    d_entry table, TalkLeft,       Func_Noop
+    d_entry table, TalkRight,      Func_Noop
+    d_entry table, Upgrade,        FuncA_Objects_DrawDeviceUpgrade
     D_END
 .ENDREPEAT
 .ENDPROC
