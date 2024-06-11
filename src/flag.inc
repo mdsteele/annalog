@@ -192,6 +192,8 @@ kSaveMagicNumber = $b2
     FactoryElevatorTalkedToBruno
     CityCenterEnteredCity
     ShadowHeartTaggedGhost
+    ShadowOfficeRemovedWall
+    ShadowOfficeTaggedGhost
     NUM_VALUES
 .ENDENUM
 .ASSERT eFlag::NUM_VALUES <= $100, error

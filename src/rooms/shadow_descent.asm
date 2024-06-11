@@ -21,18 +21,24 @@
 .INCLUDE "../actors/orc.inc"
 .INCLUDE "../actors/townsfolk.inc"
 .INCLUDE "../device.inc"
+.INCLUDE "../flag.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
 .INCLUDE "../platform.inc"
+.INCLUDE "../platforms/barrier.inc"
 .INCLUDE "../platforms/lava.inc"
 .INCLUDE "../room.inc"
 .INCLUDE "../spawn.inc"
 
 .IMPORT DataA_Room_Shadow_sTileset
+.IMPORT Data_Empty_sDevice_arr
 .IMPORT FuncA_Objects_AnimateLavaTerrain
 .IMPORT FuncA_Terrain_FadeInTallRoomWithLava
+.IMPORT FuncC_Shadow_DrawBarrierPlatform
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrObjShadow
+.IMPORT Ram_PlatformType_ePlatform_arr
+.IMPORT Sram_ProgressFlags_arr
 .IMPORTZP Zp_AvatarFlags_bObj
 .IMPORTZP Zp_AvatarPosY_i16
 
@@ -41,9 +47,22 @@
 ;;; The index of the passage that leads to the ShadowDrill room.
 kDrillPassageIndex = 1
 
+;;; The index of the passage that leads to the ShadowDepths room.
+kDepthsPassageIndex = 3
+
 ;;; The room pixel Y-position of the center of the passage that leads to the
 ;;; ShadowDrill room.
 kDrillPassageCenterY = $0050
+
+;;; The platform indices for the barriers that lock the player avatar out of
+;;; the ShadowDepths until the ghosts are tagged.
+kBarrier1PlatformIndex = 0
+kBarrier2PlatformIndex = 1
+
+;;; The room pixel Y-positions for the tops of the barrier platforms when they
+;;; are fully open or fully shut.
+kBarrierShutTop = $0130
+kBarrierOpenTop = kBarrierShutTop - kBarrierPlatformHeightPx
 
 ;;;=========================================================================;;;
 
@@ -68,18 +87,34 @@ _Ext_sRoomExt:
     d_addr Terrain_sTileset_ptr, DataA_Room_Shadow_sTileset
     d_addr Platforms_sPlatform_arr_ptr, _Platforms_sPlatform_arr
     d_addr Actors_sActor_arr_ptr, _Actors_sActor_arr
-    d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
+    d_addr Devices_sDevice_arr_ptr, Data_Empty_sDevice_arr
     d_addr Passages_sPassage_arr_ptr, _Passages_sPassage_arr
     d_addr Enter_func_ptr, FuncA_Room_ShadowDescent_EnterRoom
     d_addr FadeIn_func_ptr, FuncA_Terrain_FadeInTallRoomWithLava
     d_addr Tick_func_ptr, Func_Noop
-    d_addr Draw_func_ptr, FuncA_Objects_AnimateLavaTerrain
+    d_addr Draw_func_ptr, FuncC_Shadow_Descent_DrawRoom
     D_END
 _TerrainData:
 :   .incbin "out/rooms/shadow_descent.room"
     .assert * - :- = 18 * 24, error
 _Platforms_sPlatform_arr:
-:   ;; Lava:
+:   .assert * - :- = kBarrier1PlatformIndex * .sizeof(sPlatform), error
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Solid
+    d_word WidthPx_u16, kBarrierPlatformWidthPx
+    d_byte HeightPx_u8, kBarrierPlatformHeightPx
+    d_word Left_i16,  $00e0
+    d_word Top_i16, kBarrierShutTop
+    D_END
+    .assert * - :- = kBarrier2PlatformIndex * .sizeof(sPlatform), error
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Solid
+    d_word WidthPx_u16, kBarrierPlatformWidthPx
+    d_byte HeightPx_u8, kBarrierPlatformHeightPx
+    d_word Left_i16,  $00e8
+    d_word Top_i16, kBarrierShutTop
+    D_END
+    ;; Lava:
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Kill
     d_word WidthPx_u16, $120
@@ -98,10 +133,6 @@ _Actors_sActor_arr:
     D_END
     .assert * - :- <= kMaxActors * .sizeof(sActor), error
     .byte eActor::None
-_Devices_sDevice_arr:
-:   ;; TODO
-    .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
-    .byte eDevice::None
 _Passages_sPassage_arr:
 :   D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Western | 0
@@ -122,6 +153,7 @@ _Passages_sPassage_arr:
     d_byte SpawnBlock_u8, 20
     d_byte SpawnAdjust_byte, 0
     D_END
+    .assert * - :- = kDepthsPassageIndex * .sizeof(sPassage), error
     D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Eastern | 1
     d_byte Destination_eRoom, eRoom::ShadowDepths
@@ -131,12 +163,25 @@ _Passages_sPassage_arr:
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
 .ENDPROC
 
+.PROC FuncC_Shadow_Descent_DrawRoom
+    ldx #kBarrier1PlatformIndex
+    jsr FuncC_Shadow_DrawBarrierPlatform
+    ldx #kBarrier2PlatformIndex
+    jsr FuncC_Shadow_DrawBarrierPlatform
+    jmp FuncA_Objects_AnimateLavaTerrain
+.ENDPROC
+
 ;;;=========================================================================;;;
 
 .SEGMENT "PRGA_Room"
 
 ;;; @param A The bSpawn value for where the avatar is entering the room.
 .PROC FuncA_Room_ShadowDescent_EnterRoom
+    ;; If entering from ShadowDepths, raise both barriers.  (Normally, it
+    ;; should be impossible to reach ShadowDepths without first raising both
+    ;; barriers, so this is just a safety measure.)
+    cmp #bSpawn::Passage | kDepthsPassageIndex
+    beq _RaiseBothBarriers
     ;; If entering from the ShadowDrill room, and gravity is still reversed,
     ;; un-reverse it.
     cmp #bSpawn::Passage | kDrillPassageIndex
@@ -155,6 +200,21 @@ _Passages_sPassage_arr:
     sbc Zp_AvatarPosY_i16 + 1
     sta Zp_AvatarPosY_i16 + 1
     @done:
+_MaybeRaiseBarriers:
+    ldy #ePlatform::Zone
+    flag_bit Sram_ProgressFlags_arr, eFlag::ShadowHeartTaggedGhost
+    beq @keepBarrier1
+    sty Ram_PlatformType_ePlatform_arr + kBarrier1PlatformIndex
+    @keepBarrier1:
+    flag_bit Sram_ProgressFlags_arr, eFlag::ShadowOfficeTaggedGhost
+    beq @keepBarrier2
+    sty Ram_PlatformType_ePlatform_arr + kBarrier2PlatformIndex
+    @keepBarrier2:
+    rts
+_RaiseBothBarriers:
+    ldy #ePlatform::Zone
+    sty Ram_PlatformType_ePlatform_arr + kBarrier1PlatformIndex
+    sty Ram_PlatformType_ePlatform_arr + kBarrier2PlatformIndex
     rts
 .ENDPROC
 

@@ -119,6 +119,7 @@ _SetFlags:
     d_byte Sinkhole, "SINKHOLE"
     d_byte Breaker6, "BREAKER6"
     d_byte Shadow,   " SHADOW "
+    d_byte Office,   " OFFICE "
     d_byte Depths,   " DEPTHS "
     d_byte Breaker7, "BREAKER7"
     d_byte Core,     "  CORE  "
@@ -148,6 +149,7 @@ _SetFlags:
     d_byte Sinkhole, eRoom::CitySinkhole
     d_byte Breaker6, eRoom::BossCity
     d_byte Shadow,   eRoom::ShadowTeleport
+    d_byte Office,   eRoom::ShadowOffice
     d_byte Depths,   eRoom::ShadowDepths
     d_byte Breaker7, eRoom::BossShadow
     d_byte Core,     eRoom::CoreLock
@@ -177,6 +179,7 @@ _SetFlags:
     d_byte Sinkhole, bSpawn::Device | 0  ; TODO: use a constant
     d_byte Breaker6, bSpawn::Device | kBossDoorDeviceIndex
     d_byte Shadow,   bSpawn::Device | kTeleporterDeviceIndex
+    d_byte Office,   bSpawn::Passage | 0
     d_byte Depths,   bSpawn::Device | 0  ; TODO: use a constant
     d_byte Breaker7, bSpawn::Device | kBossDoorDeviceIndex
     d_byte Core,     bSpawn::Passage | 1
@@ -206,6 +209,7 @@ _SetFlags:
     d_byte Sinkhole, eFlag::BossCity
     d_byte Breaker6, eFlag::BreakerCity
     d_byte Shadow,   eFlag::PaperJerome01
+    d_byte Office,   eFlag::ShadowTrapDisarmed
     d_byte Depths,   eFlag::BossShadow
     d_byte Breaker7, eFlag::BreakerShadow
     d_byte Core,     eFlag::None
@@ -315,8 +319,12 @@ _SetFlags:
     .byte eFlag::UpgradeBRemote
     .byte eFlag::BreakerCity
     .byte eFlag::PaperJerome01
+    .byte eFlag::ShadowHallInitialized
+    .byte eFlag::ShadowHallGlassBroken
     .byte eFlag::ShadowTrapDisarmed
     .byte eFlag::ShadowHeartTaggedGhost
+    .byte eFlag::ShadowOfficeRemovedWall
+    .byte eFlag::ShadowOfficeTaggedGhost
     .byte eFlag::BossShadow
     .byte eFlag::UpgradeOpMul
     .byte eFlag::BreakerShadow

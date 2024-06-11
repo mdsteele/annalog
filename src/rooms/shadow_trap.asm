@@ -206,7 +206,7 @@ _Platforms_sPlatform_arr:
     d_word WidthPx_u16, kBarrierPlatformWidthPx
     d_byte HeightPx_u8, kBarrierPlatformHeightPx
     d_word Left_i16,  $002e - kBarrierPlatformWidthPx
-    d_word Top_i16,   $0090 - kBarrierPlatformHeightPx
+    d_word Top_i16, kBarrierOpenTop
     D_END
     .assert * - :- = kEastBarrierPlatformIndex * .sizeof(sPlatform), error
     D_STRUCT sPlatform
@@ -214,7 +214,7 @@ _Platforms_sPlatform_arr:
     d_word WidthPx_u16, kBarrierPlatformWidthPx
     d_byte HeightPx_u8, kBarrierPlatformHeightPx
     d_word Left_i16,  $00f2
-    d_word Top_i16,   $0090 - kBarrierPlatformHeightPx
+    d_word Top_i16, kBarrierOpenTop
     D_END
     .assert * - :- = kTrapSpawnEastPlatformIndex * .sizeof(sPlatform), error
     D_STRUCT sPlatform

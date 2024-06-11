@@ -39,6 +39,7 @@
     Sinkhole  ; start just outside the city boss room
     Breaker6  ; start in the city boss room, just after defeating it
     Shadow    ; start at the entrance to the Shadow Labs
+    Office    ; start in ShadowOffice, before tagging either ghost
     Depths    ; start just outside the shadow boss room
     Breaker7  ; start in the shadow boss room, just after defeating it
     Core      ; start just outside the final boss room

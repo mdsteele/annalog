@@ -19,11 +19,13 @@
 
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
+.INCLUDE "../platform.inc"
 .INCLUDE "barrier.inc"
 
 .IMPORT FuncA_Objects_Draw1x1Shape
 .IMPORT FuncA_Objects_MoveShapeDownOneTile
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
+.IMPORT Ram_PlatformType_ePlatform_arr
 
 ;;;=========================================================================;;;
 
@@ -34,11 +36,17 @@ kPaletteObjBarrier = 0
 
 .SEGMENT "PRGC_Shadow"
 
-;;; Draws a laboratory barrier.
+;;; Draws a laboratory barrier.  If the platform type is non-solid, draws
+;;; nothing.
 ;;; @prereq PRGA_Objects is loaded.
 ;;; @param X The barrier platform index.
 .EXPORT FuncC_Shadow_DrawBarrierPlatform
 .PROC FuncC_Shadow_DrawBarrierPlatform
+    ;; If the platform isn't solid, we're done.
+    lda Ram_PlatformType_ePlatform_arr, x
+    cmp #kFirstSolidPlatformType
+    blt @return
+    ;; Draw each object tile in the platform, starting from the top.
     jsr FuncA_Objects_SetShapePosToPlatformTopLeft
     ldx #3
     @loop:
@@ -48,6 +56,7 @@ kPaletteObjBarrier = 0
     jsr FuncA_Objects_MoveShapeDownOneTile
     dex
     bpl @loop
+    @return:
     rts
 _TileIds_u8_arr4:
     .byte kTileIdObjBarrierFirst + 1

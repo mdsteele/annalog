@@ -18,6 +18,7 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "../actor.inc"
+.INCLUDE "../actors/orc.inc"
 .INCLUDE "../charmap.inc"
 .INCLUDE "../device.inc"
 .INCLUDE "../dialog.inc"
@@ -33,11 +34,29 @@
 .IMPORT FuncA_Terrain_FadeInShortRoomWithLava
 .IMPORT Func_FindEmptyActorSlot
 .IMPORT Func_InitActorSmokeExplosion
+.IMPORT Func_IsPointInPlatform
 .IMPORT Func_SetActorCenterToPoint
+.IMPORT Func_SetFlag
 .IMPORT Func_SetPointToAvatarCenter
 .IMPORT Ppu_ChrObjShadow
+.IMPORT Ram_ActorPosY_i16_1_arr
+.IMPORT Ram_ActorType_eActor_arr
+.IMPORT Ram_PlatformType_ePlatform_arr
+.IMPORT Sram_ProgressFlags_arr
 .IMPORTZP Zp_AvatarPosX_i16
 .IMPORTZP Zp_AvatarPosY_i16
+
+;;;=========================================================================;;;
+
+;;; The actor index for the ghost in this room.
+kGhostActorIndex = 0
+
+;;; The platform index for the zone that makes the ghost disappear when the
+;;; player avatar enters it.
+kGhostTagZonePlatformIndex = 0
+
+;;; The platform index for the wall that blocks the ghost tank at first.
+kGhostWallPlatformIndex = 1
 
 ;;;=========================================================================;;;
 
@@ -73,7 +92,23 @@ _TerrainData:
 :   .incbin "out/rooms/shadow_office.room"
     .assert * - :- = 17 * 15, error
 _Platforms_sPlatform_arr:
-:   ;; Lava:
+:   .assert * - :- = kGhostTagZonePlatformIndex * .sizeof(sPlatform), error
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Zone
+    d_word WidthPx_u16, $18
+    d_byte HeightPx_u8, $10
+    d_word Left_i16,  $0068
+    d_word Top_i16,   $00b0
+    D_END
+    .assert * - :- = kGhostWallPlatformIndex * .sizeof(sPlatform), error
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Solid
+    d_word WidthPx_u16, $30
+    d_byte HeightPx_u8, $30
+    d_word Left_i16,  $0060
+    d_word Top_i16,   $0090
+    D_END
+    ;; Lava:
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Kill
     d_word WidthPx_u16, $110
@@ -84,7 +119,13 @@ _Platforms_sPlatform_arr:
     .assert * - :- <= kMaxPlatforms * .sizeof(sPlatform), error
     .byte ePlatform::None
 _Actors_sActor_arr:
-:   ;; TODO: orc ghost
+:   .assert * - :- = kGhostActorIndex * .sizeof(sActor), error
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::NpcOrc
+    d_word PosX_i16, $0074
+    d_word PosY_i16, $01b3
+    d_byte Param_byte, eNpcOrc::GhostStanding
+    D_END
     .assert * - :- <= kMaxActors * .sizeof(sActor), error
     .byte eActor::None
 _Devices_sDevice_arr:
@@ -177,12 +218,41 @@ _Passages_sPassage_arr:
 .SEGMENT "PRGA_Room"
 
 .PROC FuncA_Room_ShadowOffice_EnterRoom
-    ;; TODO: remove ghost if tagged
+_MaybeRemoveWall:
+    flag_bit Sram_ProgressFlags_arr, eFlag::ShadowOfficeRemovedWall
+    beq _Return
+    lda #ePlatform::Zone
+    sta Ram_PlatformType_ePlatform_arr + kGhostWallPlatformIndex
+_MaybeRevealGhost:
+    flag_bit Sram_ProgressFlags_arr, eFlag::ShadowOfficeTaggedGhost
+    bne _RemoveGhost
+    lda #0
+    sta Ram_ActorPosY_i16_1_arr + kGhostActorIndex
+    rts
+_RemoveGhost:
+    lda #eActor::None
+    sta Ram_ActorType_eActor_arr + kGhostActorIndex
+_Return:
     rts
 .ENDPROC
 
 .PROC FuncA_Room_ShadowOffice_TickRoom
-    ;; TODO: tag ghost
+_MaybeTagGhost:
+    ;; If the avatar isn't in the tag zone, don't tag the ghost.
+    jsr Func_SetPointToAvatarCenter
+    ldy #kGhostTagZonePlatformIndex  ; param: platform index
+    jsr Func_IsPointInPlatform  ; returns C
+    bcc @done  ; avatar is not in the tag zone
+    ;; Mark the ghost as tagged; if it already was, then we're done.
+    ldx #eFlag::ShadowOfficeTaggedGhost  ; param: flag
+    jsr Func_SetFlag  ; sets C if flag was already set
+    bcs @done  ; ghost was already tagged
+    ;; Make the ghost disappear.
+    ;; TODO: Play a sound
+    ;; TODO: Animate the ghost disappearing.
+    lda #eActor::None
+    sta Ram_ActorType_eActor_arr + kGhostActorIndex
+    @done:
     rts
 .ENDPROC
 
