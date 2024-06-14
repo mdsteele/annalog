@@ -271,10 +271,10 @@
     lda Ram_MachineGoalHorz_u8_arr, y
     mul #kBlockHeightPx
     sta T2  ; goal delta
-    txa     ; max platform left (lo)
+    txa     ; min platform left (lo)
     add T2  ; goal delta
     sta Zp_PointX_i16 + 0
-    lda T0  ; max platform left (hi)
+    lda T0  ; min platform left (hi)
     adc #0
     sta Zp_PointX_i16 + 1
     ;; Move the machine horizontally, as necessary.

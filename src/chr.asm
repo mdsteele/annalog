@@ -64,6 +64,7 @@
 .INCLUDE "machines/carriage.inc"
 .INCLUDE "machines/conveyor.inc"
 .INCLUDE "machines/crane.inc"
+.INCLUDE "machines/drums.inc"
 .INCLUDE "machines/emitter.inc"
 .INCLUDE "machines/field.inc"
 .INCLUDE "machines/hoist.inc"
@@ -78,6 +79,7 @@
 .INCLUDE "machines/rotor.inc"
 .INCLUDE "machines/semaphore.inc"
 .INCLUDE "machines/shared.inc"
+.INCLUDE "machines/trombone.inc"
 .INCLUDE "machines/winch.inc"
 .INCLUDE "pause.inc"
 .INCLUDE "platforms/barrier.inc"
@@ -550,9 +552,10 @@ _chr_begin:
 .EXPORT Ppu_ChrBgHut
 .PROC Ppu_ChrBgHut
     CHR1_BANK $80
-    chr_inc "hut1"
-    chr_inc "hut2"
-    chr_res $26
+    chr_inc "terrain_hut0"
+    chr_inc "terrain_hut1"
+    chr_inc "terrain_hut2"
+    chr_inc "terrain_hut3"
     END_CHR_BANK
 .ENDPROC
 
@@ -1358,9 +1361,10 @@ _chr_begin:
     chr_inc "pump_light",         kTileIdObjPumpLight
     chr_inc "platform_water",     kTileIdObjPlatformWaterFirst
     chr_inc "bad_jelly",          kTileIdObjBadJellyFirst
-    chr_res $02
+    chr_inc "machine_trombone",   kTileIdObjMachineTromboneFirst
     chr_inc "upgrade_opaddsub",   kTileIdObjUpgradeOpAddSubFirst
-    chr_res $06
+    chr_inc "machine_drums",      kTileIdObjMachineDrumsFirst
+    chr_res $04
     chr_inc "monitor",            kTileIdObjMonitorFirst
     chr_inc "platform_rocks",     kTileIdObjPlatformRocksFirst
     chr_res $02

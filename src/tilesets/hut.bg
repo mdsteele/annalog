@@ -1,13 +1,15 @@
 @BG 0 0 0 32x10
->hut1
->hut2
+>terrain_hut0
+>terrain_hut1
+>terrain_hut2
+>terrain_hut3
 >terrain_shared_0
 >water_anim0
 
-    CMCN                            AIAJ        DEDFACADDEDFAEAF
-    COCP                            AIAJAEAFAAABAIAJACADAGAHAGAH
-BIBJBJBJ                                            BABA    DADA
-                                                        BCBD
+    EMEN        CCCD  CJ            AIAJ        FEFFACADFEFFAEAF
+    EOEPCACBCBCHCECFCGCGCGCI        AIAJAEAFAAABAIAJACADAGAHAGAH
+BIBJBJBJ  DADB      DEDCDCDCDCDA      DHDMDN      BIBABA    FAFA
+          DCDCDADB  DGDDDDDDDDDFDKDLDIDJDODP            BCBD
 
 
 

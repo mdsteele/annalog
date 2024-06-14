@@ -199,6 +199,9 @@
     ShadowFlowerLaser
     ShadowHeartEmitterX
     ShadowHeartEmitterY
+    MermaidHut6Drums
+    MermaidHut6Organ
+    MermaidHut6Trombone
     NUM_VALUES
 .ENDENUM
 

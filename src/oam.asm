@@ -749,4 +749,39 @@ _FinishAllocation:
     rts
 .ENDPROC
 
+;;; Draws a 2x2 shape centered on the current shape position, using the given
+;;; tile ID for all four objects, mirroring each around the shape position.
+;;; The caller can then further modify the objects if needed.
+;;; @param A The tile ID to use for all four objects.
+;;; @param Y The Flags_bObj value to set for the top-left object.  The other
+;;;     three objects will be mirrored from this starting value.
+;;; @return C Set if no OAM slots were allocated, cleared otherwise.
+;;; @return Y The OAM byte offset for the first of the four objects.
+;;; @preserve X
+.EXPORT FuncA_Objects_Draw2x2MirroredShape
+.PROC FuncA_Objects_Draw2x2MirroredShape
+    sty T3  ; object flags
+    sta T2  ; tile ID
+    lda #0  ; param: object flags
+    jsr FuncA_Objects_Alloc2x2Shape  ; preserves X and T2+, returns C and Y
+    bcs @done
+    ;; Set tile IDs.
+    lda T2  ; tile ID
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Tile_u8, y
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Tile_u8, y
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Tile_u8, y
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Tile_u8, y
+    ;; Set object flags.
+    lda T3  ; object flags
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Flags_bObj, y
+    eor #bObj::FlipV
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Flags_bObj, y
+    eor #bObj::FlipHV
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Flags_bObj, y
+    eor #bObj::FlipV
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Flags_bObj, y
+    @done:
+    rts
+.ENDPROC
+
 ;;;=========================================================================;;;

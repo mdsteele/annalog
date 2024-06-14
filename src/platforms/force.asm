@@ -18,15 +18,13 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "../macros.inc"
-.INCLUDE "../oam.inc"
 .INCLUDE "../platform.inc"
 .INCLUDE "../ppu.inc"
 .INCLUDE "force.inc"
 
-.IMPORT FuncA_Objects_Alloc2x2Shape
+.IMPORT FuncA_Objects_Draw2x2MirroredShape
 .IMPORT FuncA_Objects_MoveShapeDownAndRightOneTile
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
-.IMPORT Ram_Oam_sObj_arr64
 .IMPORT Ram_PlatformType_ePlatform_arr
 .IMPORTZP Zp_FrameCounter_u8
 
@@ -55,26 +53,13 @@ kPaletteObjForcefield = 1
     and #$07
     .assert kTileIdObjForcefieldFirst .mod $08 = 0, error
     ora #kTileIdObjForcefieldFirst
-    sta T2  ; tile ID
-    ;; Allocate the objects.
+    ;; Draw the objects.
+    pha  ; tile ID
     jsr FuncA_Objects_SetShapePosToPlatformTopLeft  ; preserves X and T0+
     jsr FuncA_Objects_MoveShapeDownAndRightOneTile  ; preserves X and T0+
-    lda #kPaletteObjForcefield  ; param: object flags
-    jsr FuncA_Objects_Alloc2x2Shape  ; preserves X and T2+, returns C and Y
-    bcs @done
-    ;; Set tile IDs.
-    lda T2  ; tile ID
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Tile_u8, y
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Tile_u8, y
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Tile_u8, y
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Tile_u8, y
-    ;; Set object flags.
-    lda #kPaletteObjForcefield | bObj::FlipV
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Flags_bObj, y
-    lda #kPaletteObjForcefield | bObj::FlipH
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Flags_bObj, y
-    lda #kPaletteObjForcefield | bObj::FlipHV
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Flags_bObj, y
+    pla  ; param: tile ID
+    ldy #kPaletteObjForcefield  ; param: object flags
+    jmp FuncA_Objects_Draw2x2MirroredShape
     @done:
     rts
 .ENDPROC

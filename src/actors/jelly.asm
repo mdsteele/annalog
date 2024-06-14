@@ -20,7 +20,6 @@
 .INCLUDE "../actor.inc"
 .INCLUDE "../cpu.inc"
 .INCLUDE "../macros.inc"
-.INCLUDE "../oam.inc"
 .INCLUDE "../ppu.inc"
 .INCLUDE "../program.inc"
 .INCLUDE "jelly.inc"
@@ -28,7 +27,7 @@
 .IMPORT FuncA_Actor_HarmAvatarIfCollision
 .IMPORT FuncA_Actor_SetPointInDirFromActor
 .IMPORT FuncA_Actor_ZeroVel
-.IMPORT FuncA_Objects_Alloc2x2Shape
+.IMPORT FuncA_Objects_Draw2x2MirroredShape
 .IMPORT FuncA_Objects_SetShapePosToActorCenter
 .IMPORT Func_PointHitsTerrain
 .IMPORT Ram_ActorPosX_i16_0_arr
@@ -41,7 +40,6 @@
 .IMPORT Ram_ActorVelX_i16_1_arr
 .IMPORT Ram_ActorVelY_i16_0_arr
 .IMPORT Ram_ActorVelY_i16_1_arr
-.IMPORT Ram_Oam_sObj_arr64
 
 ;;;=========================================================================;;;
 
@@ -165,29 +163,14 @@ _SetVelocity:
 ;;; @preserve X
 .EXPORT FuncA_Objects_DrawActorBadJelly
 .PROC FuncA_Objects_DrawActorBadJelly
+    jsr FuncA_Objects_SetShapePosToActorCenter  ; preserves X
     lda Ram_ActorState2_byte_arr, x  ; animation counter
     div #kBadJellyAnimSlowdown
     and #$03
     tay
-    lda _TileId_arr4, y
-    pha
-    jsr FuncA_Objects_SetShapePosToActorCenter  ; preserves X
-    lda #kPaletteObjJelly  ; param: object flags
-    jsr FuncA_Objects_Alloc2x2Shape  ; preserves X, returns C and Y
-    pla
-    bcs @done
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Tile_u8, y
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Tile_u8, y
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Tile_u8, y
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Tile_u8, y
-    lda #kPaletteObjJelly | bObj::FlipV
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Flags_bObj, y
-    lda #kPaletteObjJelly | bObj::FlipH
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Flags_bObj, y
-    lda #kPaletteObjJelly | bObj::FlipHV
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Flags_bObj, y
-    @done:
-    rts
+    lda _TileId_arr4, y  ; param: tile ID
+    ldy #kPaletteObjJelly  ; param: object flags
+    jmp FuncA_Objects_Draw2x2MirroredShape
 _TileId_arr4:
     .byte kTileIdObjBadJellyFirst + 0
     .byte kTileIdObjBadJellyFirst + 1

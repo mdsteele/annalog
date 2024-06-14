@@ -30,7 +30,7 @@
 .IMPORT FuncA_Actor_NegateVelX
 .IMPORT FuncA_Actor_NegateVelY
 .IMPORT FuncA_Actor_PlaySfxBounce
-.IMPORT FuncA_Objects_Alloc2x2Shape
+.IMPORT FuncA_Objects_Draw2x2MirroredShape
 .IMPORT FuncA_Objects_SetShapePosToActorCenter
 .IMPORT Func_FindEmptyActorSlot
 .IMPORT Func_InitActorDefault
@@ -49,7 +49,6 @@
 .IMPORT Ram_ActorVelX_i16_1_arr
 .IMPORT Ram_ActorVelY_i16_0_arr
 .IMPORT Ram_ActorVelY_i16_1_arr
-.IMPORT Ram_Oam_sObj_arr64
 .IMPORTZP Zp_FrameCounter_u8
 
 ;;;=========================================================================;;;
@@ -208,25 +207,12 @@ _Explode:
 .EXPORT FuncA_Objects_DrawActorProjBreakball
 .PROC FuncA_Objects_DrawActorProjBreakball
     jsr FuncA_Objects_SetShapePosToActorCenter  ; preserves X
-    lda #kPaletteObjBreakball  ; param: object flags
-    jsr FuncA_Objects_Alloc2x2Shape  ; preserves X, returns C and Y
-    bcs @done
     lda Zp_FrameCounter_u8
     div #kProjBreakballAnimSlowdown
     and #$01
-    add #kTileIdObjBreakballFirst
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Tile_u8, y
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Tile_u8, y
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Tile_u8, y
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Tile_u8, y
-    lda #kPaletteObjBreakball | bObj::FlipV
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Flags_bObj, y
-    lda #kPaletteObjBreakball | bObj::FlipH
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Flags_bObj, y
-    lda #kPaletteObjBreakball | bObj::FlipHV
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Flags_bObj, y
-    @done:
-    rts
+    add #kTileIdObjBreakballFirst  ; param: tile ID
+    ldy #kPaletteObjBreakball  ; param: object flags
+    jmp FuncA_Objects_Draw2x2MirroredShape
 .ENDPROC
 
 ;;;=========================================================================;;;
