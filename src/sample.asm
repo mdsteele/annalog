@@ -23,6 +23,7 @@
 .INCLUDE "sample.inc"
 .INCLUDE "sound.inc"
 
+.IMPORT Data_SampleKickDrum_arr657
 .IMPORT Ram_Sound_sChanSfx_arr
 .IMPORTZP Zp_Next_sChanSfx_arr
 
@@ -45,7 +46,6 @@ kSampleGap1Size = kDmcSampleAlign - (* .mod kDmcSampleAlign)
 ;;; The DMC sample rate (0-$f) to use for each sample.
 .PROC Data_SampleRate_u8_arr
     D_ARRAY .enum, eSample
-    d_byte BossRoar0,  $0
     d_byte BossRoar1,  $1
     d_byte BossRoar2,  $2
     d_byte BossRoar3,  $3
@@ -60,13 +60,13 @@ kSampleGap1Size = kDmcSampleAlign - (* .mod kDmcSampleAlign)
     d_byte Harm,       $e
     d_byte JumpAnna,   $f
     d_byte JumpGronta, $e
+    d_byte KickDrum,   $e
     D_END
 .ENDPROC
 
 ;;; The encoded start address for each sample.
 .PROC Data_SampleStart_u8_arr
     D_ARRAY .enum, eSample
-    d_byte BossRoar0,  <(Data_SampleBoss_arr >> 6)
     d_byte BossRoar1,  <(Data_SampleBoss_arr >> 6)
     d_byte BossRoar2,  <(Data_SampleBoss_arr >> 6)
     d_byte BossRoar3,  <(Data_SampleBoss_arr >> 6)
@@ -81,6 +81,7 @@ kSampleGap1Size = kDmcSampleAlign - (* .mod kDmcSampleAlign)
     d_byte Harm,       <(Data_SampleHarm_arr >> 6)
     d_byte JumpAnna,   <(Data_SampleJump_arr >> 6)
     d_byte JumpGronta, <(Data_SampleJump_arr >> 6)
+    d_byte KickDrum,   <(Data_SampleKickDrum_arr657 >> 6)
     D_END
 .ENDPROC
 
@@ -131,7 +132,6 @@ kSampleGap2Size = kDmcSampleAlign - (* .mod kDmcSampleAlign)
 ;;; The encoded byte length for each sample.
 .PROC Data_SampleLength_u8_arr
     D_ARRAY .enum, eSample
-    d_byte BossRoar0,  .sizeof(Data_SampleBoss_arr) >> 4
     d_byte BossRoar1,  .sizeof(Data_SampleBoss_arr) >> 4
     d_byte BossRoar2,  .sizeof(Data_SampleBoss_arr) >> 4
     d_byte BossRoar3,  .sizeof(Data_SampleBoss_arr) >> 4
@@ -146,13 +146,13 @@ kSampleGap2Size = kDmcSampleAlign - (* .mod kDmcSampleAlign)
     d_byte Harm,       .sizeof(Data_SampleHarm_arr) >> 4
     d_byte JumpAnna,   .sizeof(Data_SampleJump_arr) >> 4
     d_byte JumpGronta, .sizeof(Data_SampleJump_arr) >> 4
+    d_byte KickDrum,   657 >> 4
     D_END
 .ENDPROC
 
 ;;; The number of frames to play each sample for.
 .PROC Data_SampleFrames_u8_arr
     D_ARRAY .enum, eSample
-    d_byte BossRoar0, 132
     d_byte BossRoar1, 127
     d_byte BossRoar2, 117
     d_byte BossRoar3, 110
@@ -167,6 +167,7 @@ kSampleGap2Size = kDmcSampleAlign - (* .mod kDmcSampleAlign)
     d_byte Harm,        5
     d_byte JumpAnna,    9
     d_byte JumpGronta, 12
+    d_byte KickDrum,   13
     D_END
 .ENDPROC
 

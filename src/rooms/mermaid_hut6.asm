@@ -29,6 +29,7 @@
 .INCLUDE "../platform.inc"
 .INCLUDE "../program.inc"
 .INCLUDE "../room.inc"
+.INCLUDE "../sample.inc"
 
 .IMPORT DataA_Room_Hut_sTileset
 .IMPORT Data_Empty_sActor_arr
@@ -50,7 +51,7 @@
 .IMPORT Func_MovePlatformLeftTowardPointX
 .IMPORT Func_MovePlatformTopTowardPointY
 .IMPORT Func_Noop
-.IMPORT Func_PlaySfxFlopDown
+.IMPORT Func_PlaySfxSample
 .IMPORT Ppu_ChrObjSewer
 .IMPORT Ram_MachineGoalHorz_u8_arr
 .IMPORT Ram_MachineGoalVert_u8_arr
@@ -428,7 +429,8 @@ _MachineLight:
 .ENDPROC
 
 .PROC FuncA_Machine_MermaidHut6Drums_TryAct
-    jsr Func_PlaySfxFlopDown  ; TODO: use kick drum sample instead
+    lda #eSample::KickDrum  ; param: eSample to play
+    jsr Func_PlaySfxSample
     lda #$08
     sta Ram_MachineSlowdown_u8_arr + kDrumsMachineIndex
     mul #2  ; param: num frames

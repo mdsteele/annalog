@@ -352,7 +352,7 @@ _Envelope:
 
 .SEGMENT "PRGE_InstSample"
 
-.GLOBAL Data_SampleKickDrum_arr657
+.EXPORT Data_SampleKickDrum_arr657
 .PROC Data_SampleKickDrum_arr657
 :   .assert * .mod kDmcSampleAlign = 0, error
     .incbin "out/samples/inst_kick.dm"

@@ -19,8 +19,7 @@
 
 ;;; Samples that can be played on the DMC as sound effects.
 .ENUM eSample
-    BossRoar0   ; a boss roar (deepest)
-    BossRoar1   ; a boss roar
+    BossRoar1   ; a boss roar (deep)
     BossRoar2   ; a boss roar
     BossRoar3   ; a boss roar
     BossRoar4   ; a boss roar
@@ -34,6 +33,7 @@
     Harm        ; when Anna gets hurt
     JumpAnna    ; when Anna jumps
     JumpGronta  ; when Gronta jumps
+    KickDrum    ; used by game music and by drums machine
     NUM_VALUES
 .ENDENUM
 
