@@ -22,6 +22,12 @@
 ;;;   * State2: Unused.
 ;;;   * State3: Unused.
 
+;;; The CHR bank number containing the diagram for trombone machines.
+kChrBankDiagramTrombone = $12
+
+;;; BG tile IDs for trombone machine diagrams.
+kTileIdBgDiagramTromboneFirst = $f0
+
 ;;; OBJ tile IDs used for drawing trombone machines.
 kTileIdObjMachineTromboneFirst = $8a
 

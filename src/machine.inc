@@ -39,6 +39,7 @@ kMachineRegNameB = $61  ; 'B'
     Conveyor
     Crane
     Debugger
+    Drums
     Field
     HoistLeft
     HoistRight
@@ -52,6 +53,7 @@ kMachineRegNameB = $61  ; 'B'
     MinigunRight
     MinigunUp
     Multiplexer
+    Organ
     Pump
     Reloader
     Rotor
@@ -59,6 +61,7 @@ kMachineRegNameB = $61  ; 'B'
     SemaphoreKey
     SemaphoreLock
     Trolley
+    Trombone
     Winch
     NUM_VALUES
 .ENDENUM

@@ -160,7 +160,7 @@ _Machines_sMachine_arr:
     d_byte Code_eProgram, eProgram::MermaidHut6Trombone
     d_byte Breaker_eFlag, eFlag::BreakerTemple
     d_byte Flags_bMachine, bMachine::MoveH | bMachine::Act
-    d_byte Status_eDiagram, eDiagram::Trolley  ; TODO
+    d_byte Status_eDiagram, eDiagram::Trombone
     d_word ScrollGoalX_u16, $00
     d_byte ScrollGoalY_u8, $30
     d_byte RegNames_u8_arr4, 0, 0, "X", 0
@@ -179,7 +179,7 @@ _Machines_sMachine_arr:
     d_byte Code_eProgram, eProgram::MermaidHut6Drums
     d_byte Breaker_eFlag, eFlag::BreakerGarden
     d_byte Flags_bMachine, bMachine::MoveV | bMachine::Act
-    d_byte Status_eDiagram, eDiagram::Lift  ; TODO
+    d_byte Status_eDiagram, eDiagram::Drums
     d_word ScrollGoalX_u16, $00
     d_byte ScrollGoalY_u8, $30
     d_byte RegNames_u8_arr4, 0, 0, 0, "Y"
@@ -198,7 +198,7 @@ _Machines_sMachine_arr:
     d_byte Code_eProgram, eProgram::MermaidHut6Organ
     d_byte Breaker_eFlag, eFlag::BreakerLava
     d_byte Flags_bMachine, bMachine::WriteC | bMachine::Act
-    d_byte Status_eDiagram, eDiagram::Multiplexer  ; TODO
+    d_byte Status_eDiagram, eDiagram::Organ
     d_word ScrollGoalX_u16, $00
     d_byte ScrollGoalY_u8, $30
     d_byte RegNames_u8_arr4, "J", 0, 0, 0

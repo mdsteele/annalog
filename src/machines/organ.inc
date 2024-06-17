@@ -17,18 +17,15 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
-;;; State bytes for drums machines:
+;;; State bytes for organ machines:
 ;;;   * State1: Unused.
 ;;;   * State2: Unused.
 ;;;   * State3: Unused.
 
-;;; The CHR bank number containing the diagram for drums machines.
-kChrBankDiagramDrums = $11
+;;; The CHR bank number containing the diagram for organ machines.
+kChrBankDiagramOrgan = $12
 
-;;; BG tile IDs for drums machine diagrams.
-kTileIdBgDiagramDrumsFirst = $f0
-
-;;; OBJ tile IDs used for drawing trombone machines.
-kTileIdObjMachineDrumsFirst = $8e
+;;; BG tile IDs for organ machine diagrams.
+kTileIdBgDiagramOrganFirst = $e0
 
 ;;;=========================================================================;;;

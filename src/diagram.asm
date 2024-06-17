@@ -27,6 +27,7 @@
 .INCLUDE "machines/carriage.inc"
 .INCLUDE "machines/conveyor.inc"
 .INCLUDE "machines/crane.inc"
+.INCLUDE "machines/drums.inc"
 .INCLUDE "machines/field.inc"
 .INCLUDE "machines/hoist.inc"
 .INCLUDE "machines/jet.inc"
@@ -35,11 +36,13 @@
 .INCLUDE "machines/lift.inc"
 .INCLUDE "machines/minigun.inc"
 .INCLUDE "machines/multiplexer.inc"
+.INCLUDE "machines/organ.inc"
 .INCLUDE "machines/pump.inc"
 .INCLUDE "machines/reloader.inc"
 .INCLUDE "machines/rotor.inc"
 .INCLUDE "machines/semaphore.inc"
 .INCLUDE "machines/shared.inc"
+.INCLUDE "machines/trombone.inc"
 .INCLUDE "machines/winch.inc"
 .INCLUDE "macros.inc"
 .INCLUDE "ppu.inc"
@@ -88,6 +91,7 @@ kNoPowerWidthTiles = 19
     d_byte Conveyor,      kChrBankDiagramConveyor
     d_byte Crane,         kChrBankDiagramCrane
     d_byte Debugger,      kChrBankDiagramDebugger
+    d_byte Drums,         kChrBankDiagramDrums
     d_byte Field,         kChrBankDiagramField
     d_byte HoistLeft,     kChrBankDiagramHoistLeft
     d_byte HoistRight,    kChrBankDiagramHoistRight
@@ -101,6 +105,7 @@ kNoPowerWidthTiles = 19
     d_byte MinigunRight,  kChrBankDiagramMinigunRight
     d_byte MinigunUp,     kChrBankDiagramMinigunUp
     d_byte Multiplexer,   kChrBankDiagramMultiplexer
+    d_byte Organ,         kChrBankDiagramOrgan
     d_byte Pump,          kChrBankDiagramPump
     d_byte Reloader,      kChrBankDiagramReloader
     d_byte Rotor,         kChrBankDiagramRotor
@@ -108,6 +113,7 @@ kNoPowerWidthTiles = 19
     d_byte SemaphoreKey,  kChrBankDiagramSemaphoreKey
     d_byte SemaphoreLock, kChrBankDiagramSemaphoreLock
     d_byte Trolley,       kChrBankDiagramTrolley
+    d_byte Trombone,      kChrBankDiagramTrombone
     d_byte Winch,         kChrBankDiagramWinch
     D_END
 .ENDPROC
@@ -126,6 +132,7 @@ kNoPowerWidthTiles = 19
     d_byte Conveyor,      kTileIdBgDiagramConveyorFirst
     d_byte Crane,         kTileIdBgDiagramCraneFirst
     d_byte Debugger,      0
+    d_byte Drums,         kTileIdBgDiagramDrumsFirst
     d_byte Field,         kTileIdBgDiagramFieldFirst
     d_byte HoistLeft,     kTileIdBgDiagramHoistLeftFirst
     d_byte HoistRight,    kTileIdBgDiagramHoistRightFirst
@@ -139,6 +146,7 @@ kNoPowerWidthTiles = 19
     d_byte MinigunRight,  kTileIdBgDiagramMinigunRightFirst
     d_byte MinigunUp,     kTileIdBgDiagramMinigunUpFirst
     d_byte Multiplexer,   kTileIdBgDiagramMultiplexerFirst
+    d_byte Organ,         kTileIdBgDiagramOrganFirst
     d_byte Pump,          kTileIdBgDiagramPumpFirst
     d_byte Reloader,      kTileIdBgDiagramReloaderFirst
     d_byte Rotor,         kTileIdBgDiagramRotorFirst
@@ -146,6 +154,7 @@ kNoPowerWidthTiles = 19
     d_byte SemaphoreKey,  kTileIdBgDiagramSemaphoreKeyFirst
     d_byte SemaphoreLock, kTileIdBgDiagramSemaphoreLockFirst
     d_byte Trolley,       kTileIdBgDiagramTrolleyFirst
+    d_byte Trombone,      kTileIdBgDiagramTromboneFirst
     d_byte Winch,         kTileIdBgDiagramWinchFirst
     D_END
 .ENDPROC

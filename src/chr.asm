@@ -74,6 +74,7 @@
 .INCLUDE "machines/lift.inc"
 .INCLUDE "machines/minigun.inc"
 .INCLUDE "machines/multiplexer.inc"
+.INCLUDE "machines/organ.inc"
 .INCLUDE "machines/pump.inc"
 .INCLUDE "machines/reloader.inc"
 .INCLUDE "machines/rotor.inc"
@@ -945,7 +946,22 @@ _chr_begin:
     chr_res $20
     .assert .bank(*) = kChrBankDiagramBlaster, error
     chr_inc "diagram_blaster", kTileIdBgDiagramBlasterFirst
-    chr_res $10
+    .assert .bank(*) = kChrBankDiagramDrums, error
+    chr_inc "diagram_drums", kTileIdBgDiagramDrumsFirst
+    END_CHR_BANK
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "CHR_BgPortrait12"
+
+.PROC Ppu_ChrBgPortrait12
+    CHR1_BANK $c0
+    chr_res $20
+    .assert .bank(*) = kChrBankDiagramOrgan, error
+    chr_inc "diagram_organ", kTileIdBgDiagramOrganFirst
+    .assert .bank(*) = kChrBankDiagramTrombone, error
+    chr_inc "diagram_trombone", kTileIdBgDiagramTromboneFirst
     END_CHR_BANK
 .ENDPROC
 
