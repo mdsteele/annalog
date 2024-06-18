@@ -17,6 +17,7 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
+.INCLUDE "../machine.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
 .INCLUDE "../platform.inc"
@@ -42,6 +43,7 @@
 .IMPORT Ram_MachineGoalVert_u8_arr
 .IMPORT Ram_MachineSlowdown_u8_arr
 .IMPORT Ram_MachineState1_byte_arr
+.IMPORT Ram_MachineStatus_eMachine_arr
 .IMPORT Ram_PlatformBottom_i16_0_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORT Ram_PlatformType_ePlatform_arr
@@ -224,12 +226,8 @@ _DrawBeam:
     jsr FuncA_Objects_Draw1x1Shape
     jmp _DrawMachineLight
 _DrawGlow:
-    lda Zp_FrameCounter_u8
-    div #4
-    and #$01
-    add #kTileIdObjEmitterGlowXFirst  ; param: tile ID
-    ldy #kPaletteObjEmitterGlow  ; param: object flags
-    jsr FuncA_Objects_Draw1x1Shape
+    lda #kTileIdObjEmitterGlowXFirst  ; param: base tile ID
+    jsr FuncA_Objects_DrawEmitterMachineGlow
 _DrawMachineLight:
     ldy #kPaletteObjMachineLight | bObj::FlipHV  ; param: object flags
     bne FuncA_Objects_DrawEmitterMachineLight  ; unconditional
@@ -262,12 +260,8 @@ _DrawBeam:
     jsr FuncA_Objects_Draw1x1Shape
     jmp _DrawMachineLight
 _DrawGlow:
-    lda Zp_FrameCounter_u8
-    div #4
-    and #$01
-    add #kTileIdObjEmitterGlowYFirst  ; param: tile ID
-    ldy #kPaletteObjEmitterGlow  ; param: object flags
-    jsr FuncA_Objects_Draw1x1Shape
+    lda #kTileIdObjEmitterGlowYFirst  ; param: base tile ID
+    jsr FuncA_Objects_DrawEmitterMachineGlow
 _DrawMachineLight:
     ldy #kPaletteObjMachineLight | bObj::FlipH  ; param: object flags
     fall FuncA_Objects_DrawEmitterMachineLight
@@ -284,6 +278,26 @@ _DrawMachineLight:
     jsr FuncA_Objects_SetShapePosToMachineTopLeft  ; preserves T0+
     ldy T0  ; param: object flags
     lda #kTileIdObjEmitterLight  ; param: tile ID
+    jmp FuncA_Objects_Draw1x1Shape
+    @done:
+    rts
+.ENDPROC
+
+;;; Draws the glowing light for an emitter machine's active emitter position.
+;;; @param A The base tile ID for the glow.
+.PROC FuncA_Objects_DrawEmitterMachineGlow
+    ;; Don't draw the glow if the machine is halted.
+    ldx Zp_MachineIndex_u8
+    ldy Ram_MachineStatus_eMachine_arr, x
+    cpy #eMachine::Halted
+    beq @done  ; machine is halted
+    ;; Draw the glow.
+    sta T0  ; base tile ID
+    lda Zp_FrameCounter_u8
+    div #4
+    and #$01
+    add T0  ; param: tile ID
+    ldy #kPaletteObjEmitterGlow  ; param: object flags
     jmp FuncA_Objects_Draw1x1Shape
     @done:
     rts

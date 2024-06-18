@@ -34,6 +34,7 @@
 .INCLUDE "../ppu.inc"
 .INCLUDE "../program.inc"
 .INCLUDE "../room.inc"
+.INCLUDE "boss_shadow.inc"
 
 .IMPORT DataA_Room_Shadow_sTileset
 .IMPORT Data_Empty_sActor_arr
@@ -43,25 +44,34 @@
 .IMPORT FuncA_Machine_Error
 .IMPORT FuncA_Machine_ReachedGoal
 .IMPORT FuncA_Objects_AnimateLavaTerrain
+.IMPORT FuncA_Objects_BobActorShapePosUpAndDown
+.IMPORT FuncA_Objects_Draw2x2Shape
 .IMPORT FuncA_Objects_DrawBoss
 .IMPORT FuncA_Objects_DrawEmitterXMachine
 .IMPORT FuncA_Objects_DrawEmitterYMachine
 .IMPORT FuncA_Objects_DrawForcefieldPlatform
+.IMPORT FuncA_Objects_MoveShapeDownAndRightOneTile
+.IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
 .IMPORT FuncA_Room_InitBoss
 .IMPORT FuncA_Room_MachineEmitterXInitReset
 .IMPORT FuncA_Room_MachineEmitterYInitReset
 .IMPORT FuncA_Room_TickBoss
 .IMPORT FuncA_Terrain_FadeInShortRoomWithLava
 .IMPORT Func_AckIrqAndLatchWindowFromParam4
+.IMPORT Func_IsPointInPlatform
 .IMPORT Func_MachineEmitterReadReg
+.IMPORT Func_MovePlatformHorz
 .IMPORT Func_MovePlatformVert
 .IMPORT Func_Noop
+.IMPORT Func_SetPointToPlatformCenter
 .IMPORT Func_ShakeRoom
 .IMPORT Func_WriteToLowerAttributeTable
 .IMPORT Ppu_ChrObjBoss1
 .IMPORT Ram_MachineGoalHorz_u8_arr
-.IMPORT Ram_MachineGoalVert_u8_arr
+.IMPORT Ram_PlatformLeft_i16_0_arr
+.IMPORT Ram_PlatformType_ePlatform_arr
 .IMPORTZP Zp_Buffered_sIrq
+.IMPORTZP Zp_FrameCounter_u8
 .IMPORTZP Zp_RoomScrollY_u8
 .IMPORTZP Zp_RoomState
 
@@ -103,11 +113,16 @@ kLavaWaitFrames = 90
 ;;; Modes that the boss in this room can be in.
 .ENUM eBossMode
     Dead
+    FinalGhostDying
+    FinalGhostWaiting
     LavaRising
     LavaFalling
     ;; TODO: other modes
     NUM_VALUES
 .ENDENUM
+
+;;; The first eBossMode for which the final ghost is not visible.
+kFirstNonFinalGhostMode = eBossMode::LavaRising
 
 ;;; How many forcefield hits are needed to defeat the boss.
 kBossInitHealth = 8
@@ -118,6 +133,16 @@ kBossInitCooldown = 120
 
 ;;; The platform index for the boss's body.
 kBossBodyPlatformIndex = 2
+
+;;; The maximum speed that the final ghost can move, in pixels per frame.
+kFinalGhostMaxSpeed = 3
+;;; The higher the number, the more slowly the final ghost tracks towards its
+;;; goal position.
+.DEFINE kFinalGhostSlowdown 16
+
+;;; OBJ palette numbers for drawing the final ghost.
+kPaletteObjFinalGhostNormal = 0
+kPaletteObjFinalGhostHurt   = 1
 
 ;;;=========================================================================;;;
 
@@ -231,10 +256,10 @@ _Platforms_sPlatform_arr:
     .assert * - :- = kBossBodyPlatformIndex * .sizeof(sPlatform), error
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Zone
-    d_word WidthPx_u16, $40  ; TODO
-    d_byte HeightPx_u8, $30
-    d_word Left_i16,  $0040
-    d_word Top_i16,   $0050
+    d_word WidthPx_u16, $20
+    d_byte HeightPx_u8, $20
+    d_word Left_i16,  $0058
+    d_word Top_i16,   $0038
     D_END
     .assert * - :- = kEmitterXPlatformIndex * .sizeof(sPlatform), error
     D_STRUCT sPlatform
@@ -320,7 +345,7 @@ _BossIsAlive:
     sta Zp_RoomState + sState::BossHealth_u8
     lda #kBossInitCooldown
     sta Zp_RoomState + sState::BossCooldown_u8
-    lda #eBossMode::LavaRising  ; TODO
+    lda #eBossMode::FinalGhostWaiting  ; TODO
     sta Zp_RoomState + sState::Current_eBossMode
 _BossIsDead:
     rts
@@ -347,11 +372,49 @@ _CheckMode:
     D_TABLE_LO table, _JumpTable_ptr_0_arr
     D_TABLE_HI table, _JumpTable_ptr_1_arr
     D_TABLE .enum, eBossMode
-    d_entry table, Dead,        Func_Noop
-    d_entry table, LavaRising,  _BossLavaRising
-    d_entry table, LavaFalling, _BossLavaFalling
+    d_entry table, Dead,              Func_Noop
+    d_entry table, FinalGhostDying,   _BossFinalGhostDying
+    d_entry table, FinalGhostWaiting, _BossFinalGhostWaiting
+    d_entry table, LavaRising,        _BossLavaRising
+    d_entry table, LavaFalling,       _BossLavaFalling
     D_END
 .ENDREPEAT
+_BossFinalGhostDying:
+    ;; Adjust the ghost towards the center of the room.
+    lda #$70 + (kFinalGhostSlowdown - 1)
+    sub Ram_PlatformLeft_i16_0_arr + kBossBodyPlatformIndex
+    div #kFinalGhostSlowdown
+    cmp #kFinalGhostMaxSpeed
+    blt @moveByA
+    lda #kFinalGhostMaxSpeed
+    @moveByA:
+    ldx #kBossBodyPlatformIndex  ; param: platform index
+    jsr Func_MovePlatformHorz
+    ;; Wait for the cooldown to expire.
+    lda Zp_RoomState + sState::BossCooldown_u8
+    bne @done
+    ;; Kill the final ghost.
+    lda #eBossMode::Dead
+    sta Zp_RoomState + sState::Current_eBossMode
+    @done:
+    rts
+_BossFinalGhostWaiting:
+    ;; Check if the forcefield is hitting the final ghost.
+    lda Ram_PlatformType_ePlatform_arr + kEmitterForcefieldPlatformIndex
+    cmp #kFirstSolidPlatformType
+    blt @done  ; forcefield platform is not solid
+    ldy #kBossBodyPlatformIndex  ; param: platform index
+    jsr Func_SetPointToPlatformCenter
+    ldy #kEmitterForcefieldPlatformIndex  ; param: platform index
+    jsr Func_IsPointInPlatform  ; returns C
+    bcc @done  ; forcefield isn't hitting the final ghost
+    ;; Mortally wound the final ghost.
+    lda #eBossMode::FinalGhostDying
+    sta Zp_RoomState + sState::Current_eBossMode
+    lda #120
+    sta Zp_RoomState + sState::BossCooldown_u8
+    @done:
+    rts
 _BossLavaRising:
     ;; Wait for the cooldown to expire.
     lda Zp_RoomState + sState::BossCooldown_u8
@@ -431,10 +494,35 @@ _DrawBoss:
     jmp FuncA_Objects_DrawBoss
 .ENDPROC
 
-;;; Draw function for the city boss.
+;;; Draw function for the shadow boss.
 ;;; @prereq PRGA_Objects is loaded.
 .PROC FuncC_Boss_Shadow_DrawBoss
-    ;; TODO: draw the boss
+    ;; Check if the final ghost is visible.
+    lda Zp_RoomState + sState::Current_eBossMode
+    cmp #kFirstNonFinalGhostMode
+    bge @done  ; final ghost has not yet appeared
+    ;; Set the shape position to the center of the final ghost.
+    ldx #kBossBodyPlatformIndex  ; param: platform index
+    jsr FuncA_Objects_SetShapePosToPlatformTopLeft
+    jsr FuncA_Objects_MoveShapeDownAndRightOneTile
+    jsr FuncA_Objects_MoveShapeDownAndRightOneTile
+    ldx #0  ; param: (fake) actor index
+    jsr FuncA_Objects_BobActorShapePosUpAndDown
+    ;; Pick the OBJ palette for the final ghost.
+    ldy #kPaletteObjFinalGhostNormal  ; param: object flags
+    lda Zp_RoomState + sState::Current_eBossMode
+    cmp #eBossMode::FinalGhostDying
+    bne @draw
+    lda Zp_FrameCounter_u8
+    and #$02
+    beq @draw
+    .assert kPaletteObjFinalGhostHurt = kPaletteObjFinalGhostNormal + 1, error
+    iny  ; param: object flags
+    ;; Draw the final ghost.
+    @draw:
+    lda #kTileIdObjAnnaGhostFirst  ; param: first tile ID
+    jmp FuncA_Objects_Draw2x2Shape
+    @done:
     rts
 .ENDPROC
 
@@ -511,11 +599,7 @@ _BeamLength_u8_arr:
 .ENDPROC
 
 .PROC FuncA_Objects_BossShadowEmitterY_Draw
-    ldy #2  ; param: beam length in tiles
-    ldx Ram_MachineGoalVert_u8_arr + kEmitterYMachineIndex
-    beq @draw
     ldy #24  ; param: beam length in tiles
-    @draw:
     jmp FuncA_Objects_DrawEmitterYMachine
 .ENDPROC
 

@@ -17,16 +17,7 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
-;;; State bytes for acid projectiles:
-;;;   * Flags: Toggles automatically between bObj::FlipH and zero to animate
-;;;     the projectile.
-;;;   * State1: Counter that starts at zero and increments every frame; if it
-;;;     wraps back around to zero before the acid hits anything, then the acid
-;;;     is removed.
-;;;   * State2: Unused.
-;;;   * State3: Unused.
-
-;;; The OBJ tile ID for acid projectile actors.
-kTileIdObjAcid = $80
+;;; OBJ tile IDs for drawing the shadow boss.
+kTileIdObjAnnaGhostFirst = $dc
 
 ;;;=========================================================================;;;

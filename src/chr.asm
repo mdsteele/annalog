@@ -99,6 +99,7 @@
 .INCLUDE "rooms/boss_garden.inc"
 .INCLUDE "rooms/boss_lava.inc"
 .INCLUDE "rooms/boss_mine.inc"
+.INCLUDE "rooms/boss_shadow.inc"
 .INCLUDE "rooms/boss_temple.inc"
 .INCLUDE "rooms/city_building2.inc"
 .INCLUDE "rooms/garden_tower.inc"
@@ -1120,9 +1121,8 @@ _chr_begin:
     chr_inc "boss_crypt_pupil",      kTileIdObjBossCryptPupilFirst
     chr_inc "fireball",              kTileIdObjFireballFirst
     chr_inc "mermaid_ghost",         kTileIdMermaidGhostFirst
-    chr_res $06
     chr_inc "orc_ghost",             kTileIdObjOrcGhostFirst
-    chr_res $08
+    chr_inc "anna_ghost",            kTileIdObjAnnaGhostFirst
     chr_inc "crusher",               kTileIdObjCrusherFirst
     chr_inc "winch",                 kTileIdObjWinchFirst
     chr_inc "grenade",               kTileIdObjGrenadeFirst
@@ -1403,7 +1403,7 @@ _chr_begin:
 .EXPORT Ppu_ChrObjShadow
 .PROC Ppu_ChrObjShadow
     CHR2_BANK $80
-    chr_res $01
+    chr_inc "acid",           kTileIdObjAcid
     chr_inc "emitter_light",  kTileIdObjEmitterLight
     chr_res $06
     chr_inc "bad_flydrop",    kTileIdObjBadFlydropFirst
@@ -1413,10 +1413,7 @@ _chr_begin:
     chr_inc "bad_goo",        kTileIdObjBadGooFirst
     chr_res $18
     chr_inc "mermaid_ghost",  kTileIdMermaidGhostFirst
-    chr_res $06
     chr_inc "orc_ghost",      kTileIdObjOrcGhostFirst
-    chr_inc "acid",           kTileIdObjAcid
-    chr_res $03
     chr_inc "laser",          kTileIdObjLaserFirst
     chr_inc "barrier",        kTileIdObjBarrierFirst
     chr_res $1e

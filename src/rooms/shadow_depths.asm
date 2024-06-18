@@ -57,7 +57,7 @@ _Ext_sRoomExt:
     d_addr Actors_sActor_arr_ptr, _Actors_sActor_arr
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
     d_addr Passages_sPassage_arr_ptr, _Passages_sPassage_arr
-    d_addr Enter_func_ptr, Func_Noop
+    d_addr Enter_func_ptr, Func_Noop  ; TODO: remove ghosts if boss is dead
     d_addr FadeIn_func_ptr, FuncA_Terrain_FadeInShortRoomWithLava
     d_addr Tick_func_ptr, Func_Noop
     d_addr Draw_func_ptr, FuncA_Objects_AnimateLavaTerrain
