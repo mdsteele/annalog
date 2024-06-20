@@ -74,8 +74,6 @@ kPaletteObjMermaidQueenHead = 1
     cmp #kFirst2x4MermaidTileId
     blt FuncA_Objects_Draw2x3TownsfolkShape  ; preserves X
     jmp FuncA_Objects_Draw2x4TownsfolkShape  ; preserves X
-_VertOffset_u8_arr8:
-    .byte 0, 0, 0, 1, 2, 2, 2, 1
 .ENDPROC
 
 ;;; Draws a mermaid queen NPC actor.
@@ -105,6 +103,7 @@ _BottomHalf:
 ;;; @param A The first tile ID.
 ;;; @param Y The object flags to use.
 ;;; @preserve X
+.EXPORT FuncA_Objects_Draw2x3TownsfolkShape
 .PROC FuncA_Objects_Draw2x3TownsfolkShape
     sta T2  ; first tile ID
     sty T3  ; object flags

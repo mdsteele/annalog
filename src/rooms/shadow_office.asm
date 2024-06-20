@@ -18,6 +18,7 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "../actor.inc"
+.INCLUDE "../actors/ghost.inc"
 .INCLUDE "../actors/orc.inc"
 .INCLUDE "../charmap.inc"
 .INCLUDE "../device.inc"
@@ -31,6 +32,7 @@
 
 .IMPORT DataA_Room_Shadow_sTileset
 .IMPORT FuncA_Objects_AnimateLavaTerrain
+.IMPORT FuncA_Room_MakeNpcGhostDisappear
 .IMPORT FuncA_Terrain_FadeInShortRoomWithLava
 .IMPORT Func_FindEmptyActorSlot
 .IMPORT Func_InitActorSmokeExplosion
@@ -248,10 +250,9 @@ _MaybeTagGhost:
     jsr Func_SetFlag  ; sets C if flag was already set
     bcs @done  ; ghost was already tagged
     ;; Make the ghost disappear.
-    ;; TODO: Play a sound
-    ;; TODO: Animate the ghost disappearing.
-    lda #eActor::None
-    sta Ram_ActorType_eActor_arr + kGhostActorIndex
+    ldx #kGhostActorIndex  ; param: actor index
+    ldy #eActor::BadGhostOrc  ; param: new actor type
+    jmp FuncA_Room_MakeNpcGhostDisappear
     @done:
     rts
 .ENDPROC

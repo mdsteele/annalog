@@ -44,6 +44,7 @@
 .IMPORT FuncA_Room_GetDarknessZoneFade
 .IMPORT FuncA_Room_MachineEmitterXInitReset
 .IMPORT FuncA_Room_MachineEmitterYInitReset
+.IMPORT FuncA_Room_MakeNpcGhostDisappear
 .IMPORT Func_IsPointInPlatform
 .IMPORT Func_MachineEmitterReadReg
 .IMPORT Func_SetAndTransferBgFade
@@ -313,10 +314,9 @@ _MaybeTagGhost:
     jsr Func_SetFlag  ; sets C if flag was already set
     bcs @done  ; ghost was already tagged
     ;; Make the ghost disappear.
-    ;; TODO: Play a sound
-    ;; TODO: Animate the ghost disappearing.
-    lda #eActor::None
-    sta Ram_ActorType_eActor_arr + kGhostActorIndex
+    ldx #kGhostActorIndex  ; param: actor index
+    ldy #eActor::BadGhostMermaid  ; param: new actor type
+    jsr FuncA_Room_MakeNpcGhostDisappear
     @done:
 _SetTerrainFade:
     ldy #eFade::Normal  ; param: fade level

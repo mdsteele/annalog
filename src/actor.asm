@@ -33,6 +33,8 @@
 .IMPORT FuncA_Actor_TickBadFirefly
 .IMPORT FuncA_Actor_TickBadFish
 .IMPORT FuncA_Actor_TickBadFlydrop
+.IMPORT FuncA_Actor_TickBadGhostMermaid
+.IMPORT FuncA_Actor_TickBadGhostOrc
 .IMPORT FuncA_Actor_TickBadGooGreen
 .IMPORT FuncA_Actor_TickBadGooRed
 .IMPORT FuncA_Actor_TickBadGronta
@@ -83,6 +85,8 @@
 .IMPORT FuncA_Objects_DrawActorBadFirefly
 .IMPORT FuncA_Objects_DrawActorBadFish
 .IMPORT FuncA_Objects_DrawActorBadFlydrop
+.IMPORT FuncA_Objects_DrawActorBadGhostMermaid
+.IMPORT FuncA_Objects_DrawActorBadGhostOrc
 .IMPORT FuncA_Objects_DrawActorBadGooGreen
 .IMPORT FuncA_Objects_DrawActorBadGooRed
 .IMPORT FuncA_Objects_DrawActorBadGronta
@@ -484,6 +488,8 @@ _NoHit:
     d_byte BadFirefly,       6
     d_byte BadFish,          6
     d_byte BadFlydrop,       6
+    d_byte BadGhostMermaid, 13
+    d_byte BadGhostOrc,     kOrcBoundingBoxUp
     d_byte BadGooGreen,     kBadGooRadius
     d_byte BadGooRed,       kBadGooRadius
     d_byte BadGronta,       kOrcBoundingBoxUp
@@ -544,6 +550,8 @@ _NoHit:
     d_byte BadFirefly,       8
     d_byte BadFish,          4
     d_byte BadFlydrop,       6
+    d_byte BadGhostMermaid,  7
+    d_byte BadGhostOrc,     kOrcBoundingBoxDown
     d_byte BadGooGreen,     kBadGooRadius
     d_byte BadGooRed,       kBadGooRadius
     d_byte BadGronta,       kOrcBoundingBoxDown
@@ -604,6 +612,8 @@ _NoHit:
     d_byte BadFirefly,       6
     d_byte BadFish,          6
     d_byte BadFlydrop,       6
+    d_byte BadGhostMermaid,  6
+    d_byte BadGhostOrc,     kOrcBoundingBoxSide
     d_byte BadGooGreen,     kBadGooRadius
     d_byte BadGooRed,       kBadGooRadius
     d_byte BadGronta,       kOrcBoundingBoxSide
@@ -732,6 +742,8 @@ _TypeSpecificTick:
     d_entry table, BadFirefly,      FuncA_Actor_TickBadFirefly
     d_entry table, BadFish,         FuncA_Actor_TickBadFish
     d_entry table, BadFlydrop,      FuncA_Actor_TickBadFlydrop
+    d_entry table, BadGhostMermaid, FuncA_Actor_TickBadGhostMermaid
+    d_entry table, BadGhostOrc,     FuncA_Actor_TickBadGhostOrc
     d_entry table, BadGooGreen,     FuncA_Actor_TickBadGooGreen
     d_entry table, BadGooRed,       FuncA_Actor_TickBadGooRed
     d_entry table, BadGronta,       FuncA_Actor_TickBadGronta
@@ -896,6 +908,8 @@ _Finish:
     d_entry table, BadFirefly,      FuncA_Room_InitActorBadFirefly
     d_entry table, BadFish,         Func_InitActorWithFlags
     d_entry table, BadFlydrop,      FuncA_Room_InitActorBadFlydrop
+    d_entry table, BadGhostMermaid, Func_InitActorWithState1
+    d_entry table, BadGhostOrc,     Func_InitActorWithState1
     d_entry table, BadGooGreen,     Func_InitActorWithFlags
     d_entry table, BadGooRed,       FuncA_Room_InitActorBadGooRed
     d_entry table, BadGronta,       Func_InitActorBadGronta
@@ -985,6 +999,8 @@ _Finish:
     d_entry table, BadFirefly,      FuncA_Objects_DrawActorBadFirefly
     d_entry table, BadFish,         FuncA_Objects_DrawActorBadFish
     d_entry table, BadFlydrop,      FuncA_Objects_DrawActorBadFlydrop
+    d_entry table, BadGhostMermaid, FuncA_Objects_DrawActorBadGhostMermaid
+    d_entry table, BadGhostOrc,     FuncA_Objects_DrawActorBadGhostOrc
     d_entry table, BadGooGreen,     FuncA_Objects_DrawActorBadGooGreen
     d_entry table, BadGooRed,       FuncA_Objects_DrawActorBadGooRed
     d_entry table, BadGronta,       FuncA_Objects_DrawActorBadGronta

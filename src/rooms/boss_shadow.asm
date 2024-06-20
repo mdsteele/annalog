@@ -18,6 +18,7 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "../actor.inc"
+.INCLUDE "../actors/ghost.inc"
 .INCLUDE "../avatar.inc"
 .INCLUDE "../boss.inc"
 .INCLUDE "../charmap.inc"
@@ -37,7 +38,6 @@
 .INCLUDE "boss_shadow.inc"
 
 .IMPORT DataA_Room_Shadow_sTileset
-.IMPORT Data_Empty_sActor_arr
 .IMPORT FuncA_Machine_EmitterTryAct
 .IMPORT FuncA_Machine_EmitterXWriteReg
 .IMPORT FuncA_Machine_EmitterYWriteReg
@@ -109,6 +109,10 @@ kLavaFallSlowdown = 4
 kLavaWaitFrames = 90
 
 ;;;=========================================================================;;;
+
+;;; The actor indices for the ghost baddies.
+kGhostMermaidActorIndex = 0
+kGhostOrcActorIndex     = 1
 
 ;;; Modes that the boss in this room can be in.
 .ENUM eBossMode
@@ -182,7 +186,7 @@ _Ext_sRoomExt:
     D_STRUCT sRoomExt
     d_addr Terrain_sTileset_ptr, DataA_Room_Shadow_sTileset
     d_addr Platforms_sPlatform_arr_ptr, _Platforms_sPlatform_arr
-    d_addr Actors_sActor_arr_ptr, Data_Empty_sActor_arr
+    d_addr Actors_sActor_arr_ptr, _Actors_sActor_arr
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
     d_addr Passages_sPassage_arr_ptr, 0
     d_addr Enter_func_ptr, FuncC_Boss_Shadow_EnterRoom
@@ -287,6 +291,23 @@ _Platforms_sPlatform_arr:
     D_END
     .assert * - :- <= kMaxPlatforms * .sizeof(sPlatform), error
     .byte ePlatform::None
+_Actors_sActor_arr:
+:   .assert * - :- = kGhostMermaidActorIndex * .sizeof(sActor), error
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::BadGhostMermaid
+    d_word PosX_i16, $00c8
+    d_word PosY_i16, $0060
+    d_byte Param_byte, eBadGhost::Absent
+    D_END
+    .assert * - :- = kGhostOrcActorIndex * .sizeof(sActor), error
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::BadGhostOrc
+    d_word PosX_i16, $0038
+    d_word PosY_i16, $0064
+    d_byte Param_byte, eBadGhost::Absent
+    D_END
+    .assert * - :- <= kMaxActors * .sizeof(sActor), error
+    .byte eActor::None
 _Devices_sDevice_arr:
 :   .assert * - :- = kBossDoorDeviceIndex * .sizeof(sDevice), error
     D_STRUCT sDevice

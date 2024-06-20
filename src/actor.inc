@@ -33,9 +33,11 @@ kMaxActors = 16
     BadFirefly       ; flies up and down, and shoots horizontally
     BadFish          ; swims back and forth in water
     BadFlydrop       ; flies left/right randomly, and drops acid
+    BadGhostMermaid  ; part of the shadow boss
+    BadGhostOrc      ; part of the shadow boss
     BadGooGreen      ; squishes in place
     BadGooRed        ; squishes back and forth
-    BadGronta
+    BadGronta        ; the final boss
     BadGrub          ; crawls left/right on a floor
     BadHotheadHorz   ; crawls around a platform, and can drop fire
     BadHotheadVert   ; crawls around a platform, and can drop fire
