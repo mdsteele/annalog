@@ -968,6 +968,20 @@ _chr_begin:
 
 ;;;=========================================================================;;;
 
+.SEGMENT "CHR_BgPortrait13"
+
+.PROC Ppu_ChrBgPortrait13
+    CHR1_BANK $c0
+    chr_res $20
+    .assert .bank(*) = kChrBankDiagramEmitterX, error
+    chr_inc "diagram_emitter_x", kTileIdBgDiagramEmitterXFirst
+    .assert .bank(*) = kChrBankDiagramEmitterY, error
+    chr_inc "diagram_emitter_y", kTileIdBgDiagramEmitterYFirst
+    END_CHR_BANK
+.ENDPROC
+
+;;;=========================================================================;;;
+
 .SEGMENT "CHR_BgPrison"
 
 .EXPORT Ppu_ChrBgPrison

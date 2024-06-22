@@ -40,6 +40,8 @@ kMachineRegNameB = $61  ; 'B'
     Crane
     Debugger
     Drums
+    EmitterX
+    EmitterY
     Field
     HoistLeft
     HoistRight

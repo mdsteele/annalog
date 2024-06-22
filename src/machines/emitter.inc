@@ -36,6 +36,14 @@ kEmitterForcefieldPlatformIndex = 0
 ;;; The platform index for the region that the forcefield can appear in.
 kEmitterRegionPlatformIndex = 1
 
+;;; The CHR bank numbers containing the diagrams for emitter machines.
+kChrBankDiagramEmitterX = $13
+kChrBankDiagramEmitterY = $13
+
+;;; BG tile IDs for emitter machine diagrams.
+kTileIdBgDiagramEmitterXFirst = $e0
+kTileIdBgDiagramEmitterYFirst = $f0
+
 ;;; OBJ tile IDs used for drawing emitter machines.
 kTileIdObjEmitterFirst = $90
 
