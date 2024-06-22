@@ -1,7 +1,7 @@
 @BG 0 0 0 16x15
 >hut_0
 >hut_1
->hut_4
+>hut_2
 
 
               COCP
@@ -10,9 +10,9 @@
     COCMCNCMCLCLCLCLCNCMCNCP
   COCMCLCLCLCLCLCLCLCLCLCLCNCP
 COCMCLCLCLCLCLCLCLCLCLCLCLCLCNCP
-CD                            CA
-CB                            CC
-CD                            CA
+CD    AH    AH    AH    AH    CA
+CB    BL    AI    AI    BL    CC
+CD    AI                AI    CA
 CB  AP                    AP  CC
 CB            AK              CA
 CDBPBPBPBPBPBPAMBPBPCHCGCGCGCGCA

@@ -197,7 +197,7 @@
     d_addr UpperRight_u8_arr_ptr, DataA_Terrain_HutUpperRight_u8_arr
     d_addr LowerRight_u8_arr_ptr, DataA_Terrain_HutLowerRight_u8_arr
     d_byte Chr08Bank_u8, <.bank(Ppu_ChrBgHut)
-    d_byte FirstSolidTerrainType_u8, $40
+    d_byte FirstSolidTerrainType_u8, $20
     D_END
 .ENDPROC
 
