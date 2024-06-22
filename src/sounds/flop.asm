@@ -34,7 +34,7 @@
     D_STRUCT sSfxSeq
     d_byte Duration_u8, 6
     d_byte Env_bEnvelope, \
-           bEnvelope::Duty14 | bEnvelope::NoLength | bEnvelope::ConstVol | 9
+           bEnvelope::Duty14 | bEnvelope::NoLength | bEnvelope::ConstVol | 12
     d_byte Sweep_byte, pulse_sweep +6, 0
     d_word Timer_u16, $0120
     D_END
@@ -44,12 +44,17 @@
 
 ;;; Starts playing the sound for when the player avatar flops face down on the
 ;;; ground.
-;;; @preserve T0+
+;;; @preserve X, T0+
 .EXPORT Func_PlaySfxFlopDown
 .PROC Func_PlaySfxFlopDown
+    txa
+    pha
     ldx #eChan::Pulse2
     ldya #Data_FlopDown_sSfxSeq_arr
-    jmp Func_PlaySfxSequence  ; preserves T0+
+    jsr Func_PlaySfxSequence  ; preserves T0+
+    pla
+    tax
+    rts
 .ENDPROC
 
 ;;;=========================================================================;;;

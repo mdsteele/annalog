@@ -35,6 +35,7 @@
 .IMPORT Data_Empty_sPlatform_arr
 .IMPORT Func_Noop
 .IMPORT Func_PlaySfxExplodeBig
+.IMPORT Func_PlaySfxFlopDown
 .IMPORT Main_Breaker_FadeBackToBreakerRoom
 .IMPORT Ppu_ChrObjTown
 .IMPORT Ram_ActorFlags_bObj_arr
@@ -188,7 +189,7 @@ _Devices_sDevice_arr:
     act_SetActorState1 kThurgActorIndex, eNpcOrc::GruntStanding
     act_RunDialog eDialog::TownHouse4BreakerLava1
     act_SetActorState1 kThurgActorIndex, eNpcOrc::GruntThrowing1
-    ;; TODO: play a sound for Thurg punching Laura
+    act_CallFunc Func_PlaySfxFlopDown
     act_RepeatFunc 9, _LauraKnockback
     ;; TODO: make Martin react
     act_RunDialog eDialog::TownHouse4BreakerLava2

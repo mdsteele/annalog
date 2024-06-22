@@ -61,6 +61,7 @@
 .IMPORT Func_IsPointInAnySolidPlatform
 .IMPORT Func_MovePointUpByA
 .IMPORT Func_Noop
+.IMPORT Func_PlaySfxFlopDown
 .IMPORT Func_PlaySfxMetallicDing
 .IMPORT Func_PlaySfxSample
 .IMPORT Func_SetActorCenterToPoint
@@ -680,6 +681,7 @@ _WatchForAvatar:
 .PROC FuncA_Actor_TickBadOrc_Chasing
     ;; If the orc catches the player avatar, pause briefly.
     bcc @noCollide
+    jsr Func_PlaySfxFlopDown  ; preserves X
     lda #eBadOrc::Punching
     sta Ram_ActorState1_byte_arr, x  ; current eBadOrc mode
     lda #kOrcPauseFrames
