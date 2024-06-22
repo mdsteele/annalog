@@ -43,6 +43,7 @@
 .IMPORT FuncA_Machine_MinigunTryAct
 .IMPORT FuncA_Machine_ReachedGoal
 .IMPORT FuncA_Objects_DrawMinigunRightMachine
+.IMPORT FuncA_Room_PlaySfxAlarm
 .IMPORT FuncA_Room_PlaySfxCrack
 .IMPORT FuncA_Room_TurnProjectilesToSmokeIfConsoleOpen
 .IMPORT FuncC_Shadow_DrawGlassPlatform
@@ -388,6 +389,7 @@ _InitProgram:
     ldx #eFlag::ShadowHallInitialized  ; param: flag
     jsr Func_SetFlag  ; returns C
     bcs @done
+    jsr FuncA_Room_PlaySfxAlarm
     ldx #.sizeof(DataA_Room_ShadowHallMinigun_sIns_arr) - 1
     ;; Enable writes to SRAM.
     ldy #bMmc3PrgRam::Enable

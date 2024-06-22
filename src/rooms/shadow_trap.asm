@@ -44,6 +44,7 @@
 .IMPORT FuncA_Room_InitActorBadFlydrop
 .IMPORT FuncA_Room_IsPointInLaserBeam
 .IMPORT FuncA_Room_MachineLaserReset
+.IMPORT FuncA_Room_PlaySfxAlarm
 .IMPORT FuncC_Shadow_DrawBarrierPlatform
 .IMPORT Func_FindEmptyActorSlot
 .IMPORT Func_InitActorSmokeExplosion
@@ -124,8 +125,10 @@ kLaserInitPlatformLeft = \
 
 ;;; Defines room-specific state data for this particular room.
 .STRUCT sState
-    ;; True ($ff) if the baddies have been spawned, false ($00) otherwise.
-    SpawnedBaddies_bool .byte
+    ;; If the alarm is waiting to be tripped, this will have the high bit set;
+    ;; otherwise, the bottom seven bits hold the number of frames until the
+    ;; baddies should spawn.
+    AlarmCountdown_u8 .byte
 .ENDSTRUCT
 .ASSERT .sizeof(sState) <= kRoomStateSize, error
 
@@ -312,9 +315,12 @@ _FixGravity:
     sbc Zp_AvatarPosY_i16 + 1
     sta Zp_AvatarPosY_i16 + 1
     @done:
-_MaybeMarkSafe:
+_InitAlarm:
     flag_bit Sram_ProgressFlags_arr, eFlag::ShadowTrapDisarmed
     jne Func_MarkRoomSafe
+    ;; Mark the alarm as not yet tripped.
+    lda #$ff
+    sta Zp_RoomState + sState::AlarmCountdown_u8
     rts
 .ENDPROC
 
@@ -325,8 +331,9 @@ _MaybeMarkSafe:
 _CheckTrap:
     flag_bit Sram_ProgressFlags_arr, eFlag::ShadowTrapDisarmed
     bne _OpenBarriers
-    bit Zp_RoomState + sState::SpawnedBaddies_bool
-    bpl _MaybeSpawnBaddies
+    lda Zp_RoomState + sState::AlarmCountdown_u8
+    bmi _MaybeTripAlarm
+    bne _MaybeSpawnBaddies
 _CheckIfBaddiesZapped:
     ;; Kill any spawned baddies that get hit by the laser beam.
     lda #0
@@ -355,12 +362,20 @@ _CheckIfBaddiesDefeated:
     jsr Func_SetFlag
     jsr Func_MarkRoomSafe
     jmp _OpenBarriers
-_MaybeSpawnBaddies:
-    ;; If the player avatar isn't in the trap zone, don't spawn baddies yet.
+_MaybeTripAlarm:
+    ;; If the player avatar isn't in the trap zone, don't trip the alarm.
     jsr Func_SetPointToAvatarCenter
     ldy #kTrapZonePlatformIndex  ; param: platform index
     jsr Func_IsPointInPlatform  ; returns C
-    bcc @done
+    bcc _CheckBarriers
+    ;; Trip the alarm.
+    jsr FuncA_Room_PlaySfxAlarm
+    lda #40
+    sta Zp_RoomState + sState::AlarmCountdown_u8
+    bne _CheckBarriers  ; unconditional
+_MaybeSpawnBaddies:
+    dec Zp_RoomState + sState::AlarmCountdown_u8
+    bne _CheckBarriers
     ;; Spawn the baddies.
     ldy #kTrapSpawnEastPlatformIndex  ; param: platform index
     lda #bObj::FlipH  ; param: flags
@@ -368,13 +383,9 @@ _MaybeSpawnBaddies:
     ldy #kTrapSpawnWestPlatformIndex  ; param: platform index
     lda #0  ; param: flags
     jsr FuncA_Room_ShadowTrap_SpawnBaddie
-    ;; TODO: play an alarm sound
-    lda #$ff
-    sta Zp_RoomState + sState::SpawnedBaddies_bool
-    @done:
 _CheckBarriers:
-    bit Zp_RoomState + sState::SpawnedBaddies_bool
-    bpl _OpenBarriers
+    bit Zp_RoomState + sState::AlarmCountdown_u8
+    bmi _OpenBarriers
 _ShutBarriers:
     ldax #kBarrierShutTop
     stax Zp_PointY_i16
