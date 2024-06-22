@@ -20,6 +20,7 @@
 .INCLUDE "../actor.inc"
 .INCLUDE "../device.inc"
 .INCLUDE "../macros.inc"
+.INCLUDE "../oam.inc"
 .INCLUDE "../platform.inc"
 .INCLUDE "../room.inc"
 
@@ -27,7 +28,7 @@
 .IMPORT Data_Empty_sDevice_arr
 .IMPORT Data_Empty_sPlatform_arr
 .IMPORT Func_Noop
-.IMPORT Ppu_ChrObjTemple
+.IMPORT Ppu_ChrObjGarden
 
 ;;;=========================================================================;;;
 
@@ -44,7 +45,7 @@
     d_addr TerrainData_ptr, _TerrainData
     d_byte NumMachines_u8, 0
     d_addr Machines_sMachine_arr_ptr, 0
-    d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjTemple)
+    d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjGarden)
     d_addr Ext_sRoomExt_ptr, _Ext_sRoomExt
     D_END
 _Ext_sRoomExt:
@@ -63,7 +64,24 @@ _TerrainData:
 :   .incbin "out/rooms/core_junction.room"
     .assert * - :- = 18 * 15, error
 _Actors_sActor_arr:
-:   ;; TODO: add some baddies
+:   D_STRUCT sActor
+    d_byte Type_eActor, eActor::BadVinebug
+    d_word PosX_i16, $0094
+    d_word PosY_i16, $0060
+    d_byte Param_byte, 0
+    D_END
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::BadBeetleVert
+    d_word PosX_i16, $00b8
+    d_word PosY_i16, $0064
+    d_byte Param_byte, bObj::FlipHV
+    D_END
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::BadBeetleHorz
+    d_word PosX_i16, $005e
+    d_word PosY_i16, $0088
+    d_byte Param_byte, 0
+    D_END
     .assert * - :- <= kMaxActors * .sizeof(sActor), error
     .byte eActor::None
 _Passages_sPassage_arr:

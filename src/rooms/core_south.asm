@@ -207,6 +207,18 @@ _Actors_sActor_arr:
     d_byte Param_byte, kTileIdMermaidCorraFirst
     D_END
     D_STRUCT sActor
+    d_byte Type_eActor, eActor::BadGrub
+    d_word PosX_i16, $00c0
+    d_word PosY_i16, $0038
+    d_byte Param_byte, 0
+    D_END
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::BadGrub
+    d_word PosX_i16, $0058
+    d_word PosY_i16, $0058
+    d_byte Param_byte, 0
+    D_END
+    D_STRUCT sActor
     d_byte Type_eActor, eActor::BadBeetleHorz
     d_word PosX_i16, $00c8
     d_word PosY_i16, $00f8
