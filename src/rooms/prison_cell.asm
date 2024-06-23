@@ -55,22 +55,20 @@
 .IMPORT FuncA_Objects_DrawLauncherMachineVert
 .IMPORT FuncA_Objects_DrawLiftMachine
 .IMPORT FuncA_Objects_DrawRocksPlatformHorz
+.IMPORT FuncA_Room_SpawnParticleAtPoint
 .IMPORT FuncC_Prison_DrawGatePlatform
 .IMPORT FuncC_Prison_OpenGateAndFlipLever
 .IMPORT FuncC_Prison_TickGatePlatform
 .IMPORT FuncM_SwitchPrgcAndLoadRoom
 .IMPORT Func_FadeOutToBlackSlowly
 .IMPORT Func_FindActorWithType
-.IMPORT Func_FindEmptyActorSlot
 .IMPORT Func_InitActorSmokeExplosion
-.IMPORT Func_InitActorSmokeParticle
 .IMPORT Func_IsPointInPlatform
 .IMPORT Func_MovePointLeftByA
 .IMPORT Func_MovePointRightByA
 .IMPORT Func_Noop
 .IMPORT Func_PlaySfxExplodeFracture
 .IMPORT Func_PlaySfxFlopDown
-.IMPORT Func_SetActorCenterToPoint
 .IMPORT Func_SetFlag
 .IMPORT Func_SetLastSpawnPoint
 .IMPORT Func_SetOrClearFlag
@@ -563,16 +561,8 @@ _TrapFloor:
     @loop:
     lda #kTileWidthPx  ; param: offset
     jsr Func_MovePointRightByA  ; preserves Y
-    jsr Func_FindEmptyActorSlot  ; preserves Y, returns C and X
-    bcs @continue
-    jsr Func_SetActorCenterToPoint  ; preserves X and Y
-    tya
-    pha
     lda _ParticleAngle_u8_arr, y  ; param: angle
-    jsr Func_InitActorSmokeParticle
-    pla
-    tay
-    @continue:
+    jsr FuncA_Room_SpawnParticleAtPoint  ; preserves Y
     dey
     bpl @loop
     jsr Func_PlaySfxExplodeFracture

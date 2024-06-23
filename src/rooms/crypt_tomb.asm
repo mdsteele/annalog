@@ -489,7 +489,7 @@ _Finished:
     jsr FuncA_Room_ResetLever
     ldx #kLeverRightDeviceIndex  ; param: device index
     jsr FuncA_Room_ResetLever
-    .assert * = FuncC_Crypt_TombWinch_ContinueResetting, error, "fallthrough"
+    fall FuncC_Crypt_TombWinch_ContinueResetting
 .ENDPROC
 
 .PROC FuncC_Crypt_TombWinch_ContinueResetting
@@ -503,10 +503,12 @@ _ResetBreakbleFloor:
     bge @done  ; both floors are undamaged
     lda #kWinchBreakableFloorBlinkFrames
     sta Zp_RoomState + sState::WeakFloorBlink_u8
+    lda #ePlatform::Solid
+    sta Ram_PlatformType_ePlatform_arr + kWeakFloor0PlatformIndex
+    sta Ram_PlatformType_ePlatform_arr + kWeakFloor1PlatformIndex
     @done:
 _ResetMachine:
     jsr Func_ResetWinchMachineState
-    ;; TODO: heal breakable floors if not both totally broken
     lda Ram_MachineGoalHorz_u8_arr + kWinchMachineIndex
     cmp #3
     blt _Outer
@@ -521,7 +523,7 @@ _Outer:
     sta Zp_RoomState + sState::WinchReset_eResetSeq
     rts
 _Inner:
-    .assert * = FuncC_Crypt_TombWinch_Init, error, "fallthrough"
+    fall FuncC_Crypt_TombWinch_Init
 .ENDPROC
 
 .PROC FuncC_Crypt_TombWinch_Init

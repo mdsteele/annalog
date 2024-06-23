@@ -211,9 +211,10 @@ _Passages_sPassage_arr:
 .ENDPROC
 
 .PROC DataA_Text0_ShadowTeleportScreen_Page2_u8_arr
-    .byte "So instead, we can use$"
-    .byte "technology to sidestep$"
-    .byte "those problems.#"
+    .byte "And yet, sometimes an$"
+    .byte "advancement can render$"
+    .byte "a seemingly unsolvable$"
+    .byte "problem irrelevant.#"
 .ENDPROC
 
 ;;;=========================================================================;;;

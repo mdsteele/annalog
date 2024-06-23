@@ -45,13 +45,17 @@
 .IMPORT FuncA_Objects_DrawMinigunRightMachine
 .IMPORT FuncA_Room_PlaySfxAlarm
 .IMPORT FuncA_Room_PlaySfxCrack
+.IMPORT FuncA_Room_SpawnParticleAtPoint
 .IMPORT FuncA_Room_TurnProjectilesToSmokeIfConsoleOpen
 .IMPORT FuncC_Shadow_DrawGlassPlatform
 .IMPORT Func_IsPointInPlatform
+.IMPORT Func_MovePointDownByA
+.IMPORT Func_MovePointUpByA
 .IMPORT Func_Noop
 .IMPORT Func_PlaySfxExplodeFracture
 .IMPORT Func_SetFlag
 .IMPORT Func_SetPointToActorCenter
+.IMPORT Func_SetPointToPlatformCenter
 .IMPORT Func_WriteToUpperAttributeTable
 .IMPORT Ppu_ChrObjTemple
 .IMPORT Ram_ActorType_eActor_arr
@@ -123,7 +127,10 @@ kMinigunInitPlatformTop = \
     Minigun_eResetSeq .byte
     ;; How many times each breakable glass platform has been hit, indexed by
     ;; platform index.
-    BreakableGlassHits_u8_arr .res 2
+    BreakableGlassHits_u8_arr2 .res 2
+    ;; How many more frames to blink the breakable glass for (while resetting
+    ;; it).
+    BreakableGlassBlink_u8 .byte
 .ENDSTRUCT
 .ASSERT .sizeof(sState) <= kRoomStateSize, error
 
@@ -266,7 +273,8 @@ _Passages_sPassage_arr:
     jsr _DrawGlass
     ldx #kGlass2PlatformIndex  ; param: platform index
 _DrawGlass:
-    lda Zp_RoomState + sState::BreakableGlassHits_u8_arr, x  ; param: num hits
+    lda Zp_RoomState + sState::BreakableGlassBlink_u8  ; param: blink timer
+    ldy Zp_RoomState + sState::BreakableGlassHits_u8_arr2, x  ; param: num hits
     jmp FuncC_Shadow_DrawGlassPlatform
 .ENDPROC
 
@@ -306,6 +314,21 @@ _ReachedGoal:
 .ENDPROC
 
 .PROC FuncC_Shadow_HallMinigun_Reset
+_ResetGlass:
+    lda Zp_RoomState + sState::BreakableGlassBlink_u8
+    bne @done  ; glass is already blinking
+    lda Zp_RoomState + sState::BreakableGlassHits_u8_arr2 + 0
+    add Zp_RoomState + sState::BreakableGlassHits_u8_arr2 + 1
+    beq @done  ; both glass platforms are undamaged
+    cmp #kNumHitsToBreakGlass * 2
+    bge @done  ; both glass platforms are broken
+    lda #kBreakableGlassBlinkFrames
+    sta Zp_RoomState + sState::BreakableGlassBlink_u8
+    lda #ePlatform::Solid
+    sta Ram_PlatformType_ePlatform_arr + kGlass1PlatformIndex
+    sta Ram_PlatformType_ePlatform_arr + kGlass2PlatformIndex
+    @done:
+_ResetMachine:
     ldy Ram_MachineGoalVert_u8_arr + kMinigunMachineIndex
     beq _MoveToMiddleRight
     ldx Ram_MachineGoalHorz_u8_arr + kMinigunMachineIndex
@@ -412,6 +435,9 @@ _BreakableGlass:
     ;; If the breakable glass has already been broken, remove those platforms.
     flag_bit Sram_ProgressFlags_arr, eFlag::ShadowHallGlassBroken
     beq @done
+    lda #kNumHitsToBreakGlass
+    sta Zp_RoomState + sState::BreakableGlassHits_u8_arr2 + 0
+    sta Zp_RoomState + sState::BreakableGlassHits_u8_arr2 + 1
     lda #ePlatform::None
     sta Ram_PlatformType_ePlatform_arr + kGlass1PlatformIndex
     sta Ram_PlatformType_ePlatform_arr + kGlass2PlatformIndex
@@ -435,6 +461,17 @@ _CheckForBulletHits:
     @continue:
     dex
     bpl @loop
+_BlinkBreakableGlass:
+    ;; If the breakable glass blink timer is active, decrement it.
+    lda Zp_RoomState + sState::BreakableGlassBlink_u8
+    beq @done  ; glass is not currently blinking for reset
+    dec Zp_RoomState + sState::BreakableGlassBlink_u8
+    bne @done  ; glass is not yet done blinking for reset
+    ;; When the blink timer reaches zero, reset the glass hits.
+    lda #0
+    sta Zp_RoomState + sState::BreakableGlassHits_u8_arr2 + 0
+    sta Zp_RoomState + sState::BreakableGlassHits_u8_arr2 + 1
+    @done:
     rts
 .ENDPROC
 
@@ -456,29 +493,44 @@ _CheckForBulletHits:
     lda #eActor::None
     sta Ram_ActorType_eActor_arr, x
     ;; Hit the breakable glass.
-    stx T0  ; bullet actor index
-    ldx Zp_RoomState + sState::BreakableGlassHits_u8_arr, y
+    stx T4  ; bullet actor index
+    ldx Zp_RoomState + sState::BreakableGlassHits_u8_arr2, y
     inx
     txa
-    sta Zp_RoomState + sState::BreakableGlassHits_u8_arr, y
+    sta Zp_RoomState + sState::BreakableGlassHits_u8_arr2, y
     ;; Check if the glass is broken yet.
     cmp #kNumHitsToBreakGlass
     bge _Broken
 _NotBroken:
     jsr FuncA_Room_PlaySfxCrack  ; preserves T0+
-    ldx T0  ; bullet actor index
-    rts
-_Broken:
-    lda #ePlatform::None
-    sta Ram_PlatformType_ePlatform_arr, y
-    ;; TODO: either two separate flags, or only set flag once both are broken
-    ldx #eFlag::ShadowHallGlassBroken  ; param: flag
-    jsr Func_SetFlag  ; preserves T0+
-    jsr Func_PlaySfxExplodeFracture  ; preserves T0+
-    ;; TODO: Add smoke particles
-    ldx T0  ; bullet actor index
+_RestoreX:
+    ldx T4  ; bullet actor index
 _Return:
     rts
+_Broken:
+    jsr Func_SetPointToPlatformCenter  ; preserves Y and T0+
+    ;; Make this glass platform non-solid.
+    lda #ePlatform::None
+    sta Ram_PlatformType_ePlatform_arr, y
+    ;; If both glass platforms have been broken, set the flag.
+    .assert ePlatform::None = 0, error
+    ora Ram_PlatformType_ePlatform_arr + kGlass1PlatformIndex
+    ora Ram_PlatformType_ePlatform_arr + kGlass2PlatformIndex
+    bne @doneFlag  ; the other platform isn't broken yet
+    ldx #eFlag::ShadowHallGlassBroken  ; param: flag
+    jsr Func_SetFlag  ; preserves T0+
+    @doneFlag:
+    ;; Play a sound and add particles for the glass that just broke.
+    jsr Func_PlaySfxExplodeFracture  ; preserves T0+
+    lda #4  ; param: offset
+    jsr Func_MovePointUpByA  ; preserves T0+
+    lda #<-7  ; param: angle
+    jsr FuncA_Room_SpawnParticleAtPoint  ; preserves T4+
+    lda #8  ; param: offset
+    jsr Func_MovePointDownByA  ; preserves T0+
+    lda #9  ; param: angle
+    jsr FuncA_Room_SpawnParticleAtPoint  ; preserves T4+
+    jmp _RestoreX
 .ENDPROC
 
 ;;;=========================================================================;;;

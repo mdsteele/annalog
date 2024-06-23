@@ -20,6 +20,10 @@
 ;;; How many bullets must hit a breakable glass tank platform to destroy it.
 kNumHitsToBreakGlass = 4
 
+;;; How many frames to blink a breakable glass tank platform for when resetting
+;;; it.
+kBreakableGlassBlinkFrames = 28
+
 ;;; The size of a glass tank platform, in pixels.
 kGlassPlatformWidthPx  = $08
 kGlassPlatformHeightPx = $10

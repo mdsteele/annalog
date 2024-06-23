@@ -25,7 +25,6 @@
 .IMPORT FuncA_Objects_Draw1x1Shape
 .IMPORT FuncA_Objects_MoveShapeDownOneTile
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
-.IMPORT Ram_PlatformType_ePlatform_arr
 
 ;;;=========================================================================;;;
 
@@ -38,15 +37,22 @@ kPaletteObjGlass = 0
 
 ;;; Draws a glass tank platform.
 ;;; @prereq PRGA_Objects is loaded.
-;;; @param A How many bullets have hit the glass (0-3).
+;;; @param A The blink timer for the breakable floor.
+;;; @param Y How many bullets have hit the glass (0-3).
 ;;; @param X The platform index.
 .EXPORT FuncC_Shadow_DrawGlassPlatform
 .PROC FuncC_Shadow_DrawGlassPlatform
-    ldy Ram_PlatformType_ePlatform_arr, x
-    cpy #kFirstSolidPlatformType
-    blt @done
-    sta T2  ; num hits
-    jsr FuncA_Objects_SetShapePosToPlatformTopLeft  ; preserves T0+
+    ;; If the glass platform is blinking for reset, alternate between drawing
+    ;; it as it is and drawing it at full health (no hits).
+    and #$04
+    beq @noBlink
+    ldy #0
+    @noBlink:
+    cpy #kNumHitsToBreakGlass
+    bge @done  ; glass is fully broken
+    sty T2  ; num hits
+    ;; Draw the platform.
+    jsr FuncA_Objects_SetShapePosToPlatformTopLeft  ; preserves Y and T0+
     lda T2  ; num hits
     .assert kTileIdObjGlassFirst .mod 4 = 0, error
     ora #kTileIdObjGlassFirst + 0  ; param: tile ID

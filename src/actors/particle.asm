@@ -25,7 +25,9 @@
 .INCLUDE "smoke.inc"
 
 .IMPORT FuncA_Objects_Draw1x1Actor
+.IMPORT Func_FindEmptyActorSlot
 .IMPORT Func_InitActorDefault
+.IMPORT Func_SetActorCenterToPoint
 .IMPORT Func_SetActorVelocityPolar
 .IMPORT Ram_ActorState1_byte_arr
 .IMPORT Ram_ActorType_eActor_arr
@@ -49,15 +51,37 @@ kPaletteObjParticle = 0
 ;;; @prereq The actor's pixel position has already been initialized.
 ;;; @param A The angle to move at, measured in increments of tau/256.
 ;;; @param X The actor index.
-;;; @preserve X
+;;; @preserve X, T3+
 .EXPORT Func_InitActorSmokeParticle
 .PROC Func_InitActorSmokeParticle
     pha  ; angle
     ldy #eActor::SmokeParticle  ; param: actor type
-    jsr Func_InitActorDefault  ; preserves X
+    jsr Func_InitActorDefault  ; preserves X and T0+
     ldy #kParticleSpeed  ; param: speed
     pla  ; param: angle
-    jmp Func_SetActorVelocityPolar  ; preserves X
+    jmp Func_SetActorVelocityPolar  ; preserves X and T3+
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Room"
+
+;;; Spawns a new smoke particle actor (if possible), starting it at the
+;;; room pixel position stored in Zp_PointX_i16 and Zp_PointY_i16.
+;;; @param A The angle for the particle to move at.
+;;; @preserve Y, T4+
+.EXPORT FuncA_Room_SpawnParticleAtPoint
+.PROC FuncA_Room_SpawnParticleAtPoint
+    sta T0  ; angle
+    jsr Func_FindEmptyActorSlot  ; preserves Y and T0+, returns C and X
+    bcs @done
+    jsr Func_SetActorCenterToPoint  ; preserves X, Y, and T0+
+    sty T3  ; old Y value (just to preserve it)
+    lda T0  ; param: angle
+    jsr Func_InitActorSmokeParticle  ; preserves T3+
+    ldy T3  ; old Y value (just to preserve it)
+    @done:
+    rts
 .ENDPROC
 
 ;;;=========================================================================;;;
