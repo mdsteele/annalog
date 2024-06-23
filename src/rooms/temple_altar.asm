@@ -46,15 +46,19 @@
 .IMPORT FuncA_Objects_DrawMinigunLeftMachine
 .IMPORT FuncA_Room_PlaySfxCrack
 .IMPORT FuncA_Room_ResetLever
+.IMPORT FuncA_Room_SpawnParticleAtPoint
 .IMPORT FuncA_Room_TurnProjectilesToSmokeIfConsoleOpen
 .IMPORT FuncC_Temple_DrawColumnCrackedPlatform
 .IMPORT Func_InitActorSmokeExplosion
 .IMPORT Func_IsActorWithinDistanceOfPoint
 .IMPORT Func_IsPointInPlatform
+.IMPORT Func_MovePointDownByA
+.IMPORT Func_MovePointUpByA
 .IMPORT Func_Noop
 .IMPORT Func_PlaySfxExplodeFracture
 .IMPORT Func_SetFlag
 .IMPORT Func_SetPointToActorCenter
+.IMPORT Func_SetPointToPlatformCenter
 .IMPORT Ppu_ChrObjTemple
 .IMPORT Ram_ActorType_eActor_arr
 .IMPORT Ram_MachineGoalHorz_u8_arr
@@ -285,7 +289,7 @@ _Devices_sDevice_arr:
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::ConsoleFloor
     d_byte BlockRow_u8, 7
-    d_byte BlockCol_u8, 2
+    d_byte BlockCol_u8, 15
     d_byte Target_byte, kUpperMinigunMachineIndex
     D_END
     .assert * - :- = kLeverLeftDeviceIndex * .sizeof(sDevice), error
@@ -416,8 +420,20 @@ _HitColumn:
     sta Ram_PlatformType_ePlatform_arr + kColumnPlatformIndex
     ldx #eFlag::TempleAltarColumnBroken  ; param: flag
     jsr Func_SetFlag
+    ;; Add smoke particles.
+    ldy #kColumnPlatformIndex  ; param: platform index
+    jsr Func_SetPointToPlatformCenter
+    lda #kTileHeightPx * 3 / 2  ; param: offset
+    jsr Func_MovePointDownByA
+    ldy #3
+    @loop:
+    lda _ParticleAngle_u8_arr4, y  ; param: angle
+    jsr FuncA_Room_SpawnParticleAtPoint  ; preserves Y
+    lda #kTileHeightPx  ; param: offset
+    jsr Func_MovePointUpByA  ; preserves Y
+    dey
+    bpl @loop
     jmp Func_PlaySfxExplodeFracture
-    ;; TODO: Add smoke particles
 _HitBeetle:
     ;; Kill the beetle.
     jsr Func_InitActorSmokeExplosion  ; preserves T0+
@@ -427,6 +443,8 @@ _HitBeetle:
     lda #eActor::None
     sta Ram_ActorType_eActor_arr, x
     rts
+_ParticleAngle_u8_arr4:
+    .byte $95, $82, $7f, $71
 .ENDPROC
 
 ;;; @prereq PRGA_Objects is loaded.
