@@ -578,7 +578,7 @@ _PrisonMusic:
     d_byte MermaidHut1,     eMusic::Silence
     d_byte MermaidHut2,     eMusic::Silence
     d_byte MermaidHut3,     eMusic::Silence
-    d_byte MermaidHut4,     eMusic::Silence
+    d_byte MermaidHut4,     eMusic::Florist
     d_byte MermaidHut5,     eMusic::Silence
     d_byte MermaidHut6,     eMusic::Silence
     d_byte MermaidSpring,   eMusic::Silence

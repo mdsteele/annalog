@@ -1,0 +1,24 @@
+@PRGC_Mermaid
+
+!SONG Florist "|ABB"
+
+=tempo q36
+=key 3b  % c minor
+
+!INST 1A Staccato $0a d1/8
+!INST TB Constant $ff         % bass
+!INST ND Staccato $07         % drum
+
+!PART A
+
+T| p(iB c3e r ' gv r ' c^ r ' gv r)TA :2 |
+N| p(iD x4q ' x6s x6 x6e ' x4e x6s x6s+ ' +s x6s x6e)NA :2 |
+
+!PART B
+
+1| iA c4e gv ' d^ gv ' e^q ' ee ds cs | bNvq ' d^ ' ch |
+ | c4e gv ' d^ gv ' e^q ' de c | de gv ' d^s e fe ' eh |
+ | c4e gvs g ' d^e gvs g ' e^q ' de c | bNvq ' bNs c^ de ' ch |
+ | g4q ' fe e ' ds e fe ' eq | dq ' bNv ' c^e cv ' cq |
+T| pTA :8 |
+N| pNA :8 |

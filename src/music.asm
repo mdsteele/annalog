@@ -24,6 +24,7 @@
 .IMPORT DataC_Core_Boss2_sMusic
 .IMPORT DataC_Crypt_Crypt_sMusic
 .IMPORT DataC_Garden_Garden_sMusic
+.IMPORT DataC_Mermaid_Florist_sMusic
 .IMPORT DataC_Mine_MinePlaceholder_sMusic
 .IMPORT DataC_Prison_Prison_sMusic
 .IMPORT DataC_Temple_TemplePlaceholder_sMusic
@@ -50,6 +51,7 @@
     d_entry table, Calm,    Data_Calm_sMusic
     d_entry table, Credits, DataC_Title_Credits_sMusic
     d_entry table, Crypt,   DataC_Crypt_Crypt_sMusic
+    d_entry table, Florist, DataC_Mermaid_Florist_sMusic
     d_entry table, Garden,  DataC_Garden_Garden_sMusic
     d_entry table, Mine,    DataC_Mine_MinePlaceholder_sMusic
     d_entry table, Prison,  DataC_Prison_Prison_sMusic

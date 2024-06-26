@@ -25,6 +25,7 @@
     Calm
     Credits
     Crypt
+    Florist
     Garden
     Mine
     Prison
