@@ -20,6 +20,7 @@
 .INCLUDE "../actor.inc"
 .INCLUDE "../charmap.inc"
 .INCLUDE "../device.inc"
+.INCLUDE "../flag.inc"
 .INCLUDE "../machine.inc"
 .INCLUDE "../machines/laser.inc"
 .INCLUDE "../macros.inc"
@@ -42,11 +43,14 @@
 .IMPORT FuncA_Room_MachineLaserReset
 .IMPORT Func_MachineLaserReadRegC
 .IMPORT Func_Noop
+.IMPORT Func_SetFlag
 .IMPORT Func_SetMachineIndex
 .IMPORT Func_WriteToLowerAttributeTable
 .IMPORT Ppu_ChrObjShadow
+.IMPORT Ram_ActorType_eActor_arr
 .IMPORT Ram_MachineGoalHorz_u8_arr
 .IMPORT Ram_PlatformLeft_i16_0_arr
+.IMPORT Sram_ProgressFlags_arr
 .IMPORTZP Zp_AvatarFlags_bObj
 .IMPORTZP Zp_AvatarPosY_i16
 
@@ -248,6 +252,9 @@ _ReadX:
 
 ;;; @param A The bSpawn value for where the avatar is entering the room.
 .PROC FuncA_Room_ShadowDrill_EnterRoom
+    ;; Gravity is reversed in this room.  If the player avatar entered from a
+    ;; passage, invert its Y-position within the passage so that it will be on
+    ;; the ceiling.
     cmp #bSpawn::Passage | kUpperPassageIndex
     beq @upperPassage
     and #bSpawn::Passage
@@ -268,15 +275,41 @@ _SetGravityReversed:
     lda Zp_AvatarFlags_bObj
     ora #bObj::FlipV
     sta Zp_AvatarFlags_bObj
+_MaybeRemoveGoo:
+    ;; If the ShadowDrillClearedGoo flag is set, remove all the goo baddies.
+    ;; Since these are the only actors in the room, we can just remove all
+    ;; actors.
+    flag_bit Sram_ProgressFlags_arr, eFlag::ShadowDrillClearedGoo
+    beq @done
+    lda #eActor::None
+    ldx #kMaxActors - 1
+    @loop:
+    sta Ram_ActorType_eActor_arr, x
+    dex
+    .assert kMaxActors <= $80, error
+    bpl @loop
+    @done:
     rts
 .ENDPROC
 
 .PROC FuncA_Room_ShadowDrill_TickRoom
-    ;; TODO: Once all goos are dead, set a flag to make them not reappear.
     ldx #kLaserMachineIndex
     jsr Func_SetMachineIndex
     jsr FuncA_Room_HarmAvatarIfWithinLaserBeam
-    jmp FuncA_Room_KillGooWithLaserBeam
+    jsr FuncA_Room_KillGooWithLaserBeam
+_SetFlagIfAllGooBaddiesAreDead:
+    ldx #kMaxActors - 1
+    @loop:
+    lda Ram_ActorType_eActor_arr, x
+    .assert eActor::None = 0, error
+    bne @done  ; there's still a goo baddie alive
+    dex
+    .assert kMaxActors <= $80, error
+    bpl @loop
+    ldx #eFlag::ShadowDrillClearedGoo  ; param: flag
+    jmp Func_SetFlag
+    @done:
+    rts
 .ENDPROC
 
 .PROC FuncA_Room_ShadowDrillLaser_InitReset

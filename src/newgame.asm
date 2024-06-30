@@ -323,6 +323,7 @@ _SetFlags:
     .byte eFlag::ShadowHallInitialized
     .byte eFlag::ShadowHallGlassBroken
     .byte eFlag::PaperJerome02
+    .byte eFlag::ShadowDrillClearedGoo
     .byte eFlag::ShadowTrapDisarmed
     .byte eFlag::PaperJerome04
     .byte eFlag::ShadowHeartTaggedGhost

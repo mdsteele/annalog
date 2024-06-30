@@ -194,6 +194,7 @@ kSaveMagicNumber = $b2
     ShadowHeartTaggedGhost
     ShadowOfficeRemovedWall
     ShadowOfficeTaggedGhost
+    ShadowDrillClearedGoo
     NUM_VALUES
 .ENDENUM
 .ASSERT eFlag::NUM_VALUES <= $100, error
