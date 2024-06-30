@@ -140,6 +140,9 @@ kDialogEntryCutscene = $ff  ; ends the dialog and starts a new cutscene
     MermaidVillageFarmer
     MermaidVillageGuard
     PaperJerome01
+    PaperJerome02
+    PaperJerome03
+    PaperJerome04
     PaperJerome07
     PaperJerome08
     PaperJerome09
@@ -149,6 +152,7 @@ kDialogEntryCutscene = $ff  ; ends the dialog and starts a new cutscene
     PaperJerome13
     PaperJerome14
     PaperJerome15
+    PaperJerome20
     PaperJerome21
     PaperJerome23
     PaperJerome28

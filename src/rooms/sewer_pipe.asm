@@ -18,13 +18,16 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "../actor.inc"
+.INCLUDE "../charmap.inc"
+.INCLUDE "../device.inc"
+.INCLUDE "../dialog.inc"
+.INCLUDE "../flag.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
 .INCLUDE "../platform.inc"
 .INCLUDE "../room.inc"
 
 .IMPORT DataA_Room_Sewer_sTileset
-.IMPORT Data_Empty_sDevice_arr
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrObjSewer
 
@@ -51,7 +54,7 @@ _Ext_sRoomExt:
     d_addr Terrain_sTileset_ptr, DataA_Room_Sewer_sTileset
     d_addr Platforms_sPlatform_arr_ptr, _Platforms_sPlatform_arr
     d_addr Actors_sActor_arr_ptr, _Actors_sActor_arr
-    d_addr Devices_sDevice_arr_ptr, Data_Empty_sDevice_arr
+    d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
     d_addr Passages_sPassage_arr_ptr, _Passages_sPassage_arr
     d_addr Enter_func_ptr, Func_Noop
     d_addr FadeIn_func_ptr, Func_Noop
@@ -207,6 +210,15 @@ _Actors_sActor_arr:
     D_END
     .assert * - :- <= kMaxActors * .sizeof(sActor), error
     .byte eActor::None
+_Devices_sDevice_arr:
+:   D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::Paper
+    d_byte BlockRow_u8, 11
+    d_byte BlockCol_u8, 29
+    d_byte Target_byte, eFlag::PaperJerome03
+    D_END
+    .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
+    .byte eDevice::None
 _Passages_sPassage_arr:
 :   D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Western | 0
@@ -221,6 +233,35 @@ _Passages_sPassage_arr:
     d_byte SpawnAdjust_byte, 0
     D_END
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Dialog"
+
+.EXPORT DataA_Dialog_PaperJerome03_sDialog
+.PROC DataA_Dialog_PaperJerome03_sDialog
+    dlg_Text Paper, DataA_Text1_PaperJerome03_Page1_u8_arr
+    dlg_Text Paper, DataA_Text1_PaperJerome03_Page2_u8_arr
+    dlg_Done
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Text1"
+
+.PROC DataA_Text1_PaperJerome03_Page1_u8_arr
+    .byte "Day 3: In 2235 we had$"
+    .byte "the breakthrough that$"
+    .byte "made the creation of$"
+    .byte "the mermaids possible.#"
+.ENDPROC
+
+.PROC DataA_Text1_PaperJerome03_Page2_u8_arr
+    .byte "Dr. Alda envisioned a$"
+    .byte "newfound freedom for$"
+    .byte "anyone who wanted a$"
+    .byte "new life.#"
 .ENDPROC
 
 ;;;=========================================================================;;;

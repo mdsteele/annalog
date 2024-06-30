@@ -269,8 +269,9 @@ _Passages_sPassage_arr:
 .ENDPROC
 
 .PROC DataA_Text0_PaperJerome01_Page2_u8_arr
-    .byte "And now, I feel that I$"
-    .byte "must speak out.#"
+    .byte "In these pages, I feel$"
+    .byte "compelled to make my$"
+    .byte "confession.#"
 .ENDPROC
 
 ;;;=========================================================================;;;

@@ -193,6 +193,7 @@ _Continue:
     d_entry table, LeverCeiling,   FuncA_Objects_DrawDeviceLeverCeiling
     d_entry table, LeverFloor,     FuncA_Objects_DrawDeviceLeverFloor
     d_entry table, Paper,          FuncA_Objects_DrawDevicePaper
+    d_entry table, PaperBg,        Func_Noop
     d_entry table, ScreenGreen,    FuncA_Objects_DrawDeviceScreenGreen
     d_entry table, ScreenRed,      FuncA_Objects_DrawDeviceScreenRed
     d_entry table, Sign,           Func_Noop

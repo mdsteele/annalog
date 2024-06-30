@@ -188,9 +188,9 @@ Ram_CollectedPapers_u8_arr: .res kPaperGridCols
 .PROC DataA_Pause_PaperDialogs_eDialog_arr
     D_ARRAY kNumPaperFlags, kFirstPaperFlag
     d_byte eFlag::PaperJerome01, eDialog::PaperJerome01
-    d_byte eFlag::PaperJerome02, 0  ; TODO
-    d_byte eFlag::PaperJerome03, 0  ; TODO
-    d_byte eFlag::PaperJerome04, 0  ; TODO
+    d_byte eFlag::PaperJerome02, eDialog::PaperJerome02
+    d_byte eFlag::PaperJerome03, eDialog::PaperJerome03
+    d_byte eFlag::PaperJerome04, eDialog::PaperJerome04
     d_byte eFlag::PaperJerome05, 0  ; TODO
     d_byte eFlag::PaperJerome06, 0  ; TODO
     d_byte eFlag::PaperJerome07, eDialog::PaperJerome07
@@ -206,7 +206,7 @@ Ram_CollectedPapers_u8_arr: .res kPaperGridCols
     d_byte eFlag::PaperJerome17, 0  ; TODO
     d_byte eFlag::PaperJerome18, 0  ; TODO
     d_byte eFlag::PaperJerome19, 0  ; TODO
-    d_byte eFlag::PaperJerome20, 0  ; TODO
+    d_byte eFlag::PaperJerome20, eDialog::PaperJerome20
     d_byte eFlag::PaperJerome21, eDialog::PaperJerome21
     d_byte eFlag::PaperJerome22, 0  ; TODO
     d_byte eFlag::PaperJerome23, eDialog::PaperJerome23
@@ -240,9 +240,9 @@ Ram_CollectedPapers_u8_arr: .res kPaperGridCols
 .PROC DataA_Pause_PaperLocation_eArea_arr
     D_ARRAY kNumPaperFlags, kFirstPaperFlag
     d_byte eFlag::PaperJerome01, eArea::Shadow   ; room: ShadowEntry
-    d_byte eFlag::PaperJerome02, $ff  ; TODO
-    d_byte eFlag::PaperJerome03, $ff  ; TODO
-    d_byte eFlag::PaperJerome04, $ff  ; TODO
+    d_byte eFlag::PaperJerome02, eArea::Shadow   ; room: ShadowHall
+    d_byte eFlag::PaperJerome03, eArea::Sewer    ; room: SewerPipe
+    d_byte eFlag::PaperJerome04, eArea::Shadow   ; room: ShadowHeart
     d_byte eFlag::PaperJerome05, $ff  ; TODO
     d_byte eFlag::PaperJerome06, $ff  ; TODO
     d_byte eFlag::PaperJerome07, eArea::Factory  ; room: FactoryBridge
@@ -258,10 +258,10 @@ Ram_CollectedPapers_u8_arr: .res kPaperGridCols
     d_byte eFlag::PaperJerome17, $ff  ; TODO
     d_byte eFlag::PaperJerome18, $ff  ; TODO
     d_byte eFlag::PaperJerome19, $ff  ; TODO
-    d_byte eFlag::PaperJerome20, $ff  ; TODO
-    d_byte eFlag::PaperJerome21, eArea::Crypt   ; room: CryptEscape
+    d_byte eFlag::PaperJerome20, eArea::Shadow   ; room: ShadowDescent
+    d_byte eFlag::PaperJerome21, eArea::Crypt    ; room: CryptEscape
     d_byte eFlag::PaperJerome22, $ff  ; TODO
-    d_byte eFlag::PaperJerome23, eArea::Core    ; room: CoreLock
+    d_byte eFlag::PaperJerome23, eArea::Core     ; room: CoreLock
     d_byte eFlag::PaperJerome24, $ff  ; TODO
     d_byte eFlag::PaperJerome25, $ff  ; TODO
     d_byte eFlag::PaperJerome26, $ff  ; TODO

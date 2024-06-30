@@ -21,6 +21,7 @@
 .INCLUDE "../actors/townsfolk.inc"
 .INCLUDE "../charmap.inc"
 .INCLUDE "../device.inc"
+.INCLUDE "../dialog.inc"
 .INCLUDE "../fade.inc"
 .INCLUDE "../flag.inc"
 .INCLUDE "../machine.inc"
@@ -262,6 +263,12 @@ _Actors_sActor_arr:
     .byte eActor::None
 _Devices_sDevice_arr:
 :   D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::PaperBg
+    d_byte BlockRow_u8, 5
+    d_byte BlockCol_u8, 4
+    d_byte Target_byte, eFlag::PaperJerome04
+    D_END
+    D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::ConsoleFloor
     d_byte BlockRow_u8, 10
     d_byte BlockCol_u8, 4
@@ -377,6 +384,35 @@ _BeamLength_u8_arr:
 .PROC FuncA_Objects_ShadowHeartEmitterY_Draw
     ldy #24  ; param: beam length in tiles
     jmp FuncA_Objects_DrawEmitterYMachine
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Dialog"
+
+.EXPORT DataA_Dialog_PaperJerome04_sDialog
+.PROC DataA_Dialog_PaperJerome04_sDialog
+    dlg_Text Paper, DataA_Text2_PaperJerome04_Page1_u8_arr
+    dlg_Text Paper, DataA_Text2_PaperJerome04_Page2_u8_arr
+    dlg_Done
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Text2"
+
+.PROC DataA_Text2_PaperJerome04_Page1_u8_arr
+    .byte "Day 4: As much as I$"
+    .byte "admired Dr. Alda, I$"
+    .byte "felt that we needed$"
+    .byte "a counterbalance.#"
+.ENDPROC
+
+.PROC DataA_Text2_PaperJerome04_Page2_u8_arr
+    .byte "Surely, not everyone$"
+    .byte "who wanted to change$"
+    .byte "would subscribe to the$"
+    .byte "mermaids' ideals.#"
 .ENDPROC
 
 ;;;=========================================================================;;;

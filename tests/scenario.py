@@ -216,7 +216,7 @@ def load_room(filepath, prgc_name):
                     'cell': (cell_row, cell_col),
                     'dest_room': door_dest,
                 })
-            elif device_type == 'Paper':
+            elif device_type == 'Paper' or device_type == 'PaperBg':
                 paper_name = scan_for_match(file, PAPER_TARGET_RE).group(1)
                 papers.append(paper_name)
         elif struct_type == 'sPassage':

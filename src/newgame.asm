@@ -307,6 +307,7 @@ _SetFlags:
     .byte eFlag::FactoryVaultTalkedToAlex
     .byte eFlag::FactoryEastCorraHelped
     .byte eFlag::FlowerLava
+    .byte eFlag::PaperJerome03
     .byte eFlag::FlowerSewer
     .byte eFlag::CityCenterEnteredCity
     .byte eFlag::CityOutskirtsBlastedRocks
@@ -321,10 +322,13 @@ _SetFlags:
     .byte eFlag::PaperJerome01
     .byte eFlag::ShadowHallInitialized
     .byte eFlag::ShadowHallGlassBroken
+    .byte eFlag::PaperJerome02
     .byte eFlag::ShadowTrapDisarmed
+    .byte eFlag::PaperJerome04
     .byte eFlag::ShadowHeartTaggedGhost
     .byte eFlag::ShadowOfficeRemovedWall
     .byte eFlag::ShadowOfficeTaggedGhost
+    .byte eFlag::PaperJerome20
     .byte eFlag::BossShadow
     .byte eFlag::UpgradeOpMul
     .byte eFlag::BreakerShadow

@@ -20,7 +20,9 @@
 .INCLUDE "../actor.inc"
 .INCLUDE "../actors/orc.inc"
 .INCLUDE "../actors/townsfolk.inc"
+.INCLUDE "../charmap.inc"
 .INCLUDE "../device.inc"
+.INCLUDE "../dialog.inc"
 .INCLUDE "../flag.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
@@ -31,7 +33,6 @@
 .INCLUDE "../spawn.inc"
 
 .IMPORT DataA_Room_Shadow_sTileset
-.IMPORT Data_Empty_sDevice_arr
 .IMPORT FuncA_Objects_AnimateLavaTerrain
 .IMPORT FuncA_Terrain_FadeInTallRoomWithLava
 .IMPORT FuncC_Shadow_DrawBarrierPlatform
@@ -87,7 +88,7 @@ _Ext_sRoomExt:
     d_addr Terrain_sTileset_ptr, DataA_Room_Shadow_sTileset
     d_addr Platforms_sPlatform_arr_ptr, _Platforms_sPlatform_arr
     d_addr Actors_sActor_arr_ptr, _Actors_sActor_arr
-    d_addr Devices_sDevice_arr_ptr, Data_Empty_sDevice_arr
+    d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
     d_addr Passages_sPassage_arr_ptr, _Passages_sPassage_arr
     d_addr Enter_func_ptr, FuncA_Room_ShadowDescent_EnterRoom
     d_addr FadeIn_func_ptr, FuncA_Terrain_FadeInTallRoomWithLava
@@ -133,6 +134,15 @@ _Actors_sActor_arr:
     D_END
     .assert * - :- <= kMaxActors * .sizeof(sActor), error
     .byte eActor::None
+_Devices_sDevice_arr:
+:   D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::Paper
+    d_byte BlockRow_u8, 20
+    d_byte BlockCol_u8, 15
+    d_byte Target_byte, eFlag::PaperJerome20
+    D_END
+    .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
+    .byte eDevice::None
 _Passages_sPassage_arr:
 :   D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Western | 0
@@ -216,6 +226,26 @@ _RaiseBothBarriers:
     sty Ram_PlatformType_ePlatform_arr + kBarrier1PlatformIndex
     sty Ram_PlatformType_ePlatform_arr + kBarrier2PlatformIndex
     rts
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Dialog"
+
+.EXPORT DataA_Dialog_PaperJerome20_sDialog
+.PROC DataA_Dialog_PaperJerome20_sDialog
+    dlg_Text Paper, DataA_Text2_PaperJerome20_Page1_u8_arr
+    dlg_Done
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Text2"
+
+.PROC DataA_Text2_PaperJerome20_Page1_u8_arr
+    .byte "Day 20: In the end,$"
+    .byte "the problem wasn't our$"
+    .byte "technology. It was us.#"
 .ENDPROC
 
 ;;;=========================================================================;;;
