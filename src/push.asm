@@ -398,10 +398,22 @@ _NoHitPassage:
     .assert bObj::FlipV = bProc::Negative, error
     bpl _MovingDown  ; normal gravity; treat no vertical movement as "down"
 _MovingUp:
+    bit Zp_AvatarFlags_bObj
+    .assert bObj::FlipV = bProc::Negative, error
+    bpl @normalGravity
+    @reverseGravity:
+    lda #kAvatarBoundingBoxDown
+    clc  ; subtract an extra 1 below
+    bcc @setBoundingBox  ; unconditional
+    @normalGravity:
+    lda #kAvatarBoundingBoxUp
+    sec  ; perform normal subtraction below
+    @setBoundingBox:
+    sta T3  ; bounding box up
     ;; Calculate the room block row index just above the avatar's head, and
     ;; store it in T2.
     lda Zp_AvatarPosY_i16 + 0
-    sub #kAvatarBoundingBoxUp  ; TODO: handle reverse gravity
+    sbc T3  ; bounding box up
     sta T2
     lda Zp_AvatarPosY_i16 + 1
     sbc #0
@@ -420,16 +432,17 @@ _MovingUp:
     @solid:
     ;; We've hit the ceiling, so set vertical position to just below the
     ;; ceiling we hit.
+    inc T2  ; increment room block row to just below the ceiling
     lda #0
     .repeat 4
-    asl T2  ; room block row index (top of avatar)
+    asl T2  ; room block row index (middle of avatar)
     rol a
     .endrepeat
     tax
-    lda T2
-    add #kBlockHeightPx + kAvatarBoundingBoxUp  ; TODO: handle reverse gravity
+    lda T2  ; bottom of ceiling (lo)
+    adc T3  ; bounding box up (carry is clear from ROL above)
     sta Zp_AvatarPosY_i16 + 0
-    txa
+    txa     ; bottom of ceiling (hi)
     adc #0
     sta Zp_AvatarPosY_i16 + 1
     ;; Indicate that we hit solid terrain.

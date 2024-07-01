@@ -263,13 +263,30 @@ _SetPoseInWater:
     sta Zp_AvatarPose_eAvatar
     rts
 _SetPoseOnGround:
-    ;; TODO: Invert Up and Down buttons if gravity is reversed.
+    ;; If gravity is normal, use Down to kneel and Up to look; if gravity is
+    ;; reversed, use Down to look and Up to kneel.
+    lda Zp_P1ButtonsHeld_bJoypad
+    and #bJoypad::Down
+    tax  ; joypad down bit
+    lda Zp_P1ButtonsHeld_bJoypad
+    and #bJoypad::Up
+    bit Zp_AvatarFlags_bObj
+    .assert bObj::FlipV = bProc::Negative, error
+    bpl @normalGravity
+    @reverseGravity:
+    stx T1  ; joypad look bit
+    sta T0  ; joypad kneel bit
+    bmi @setPose  ; unconditional
+    @normalGravity:
+    sta T1  ; joypad look bit
+    stx T0  ; joypad kneel bit
+    @setPose:
+    ;; Set the avatar's pose based on its state and the joypad.
     lda Zp_AvatarState_bAvatar
     and #bAvatar::LandMask
     beq @standOrRun  ; landing timer is zero
     @landing:
-    lda Zp_P1ButtonsHeld_bJoypad
-    and #bJoypad::Down
+    lda T0  ; joypad kneel bit
     bne @kneeling
     lda #eAvatar::Landing
     bne @setAvatarPose  ; unconditional
@@ -288,11 +305,9 @@ _SetPoseOnGround:
     @standing:
     lda Zp_AvatarHarmTimer_u8
     bne @kneeling
-    lda Zp_P1ButtonsHeld_bJoypad
-    and #bJoypad::Down
+    lda T0  ; joypad kneel bit
     bne @kneeling
-    lda Zp_P1ButtonsHeld_bJoypad
-    and #bJoypad::Up
+    lda T1  ; joypad look bit
     bne @looking
     lda #eAvatar::Standing
     bne @setAvatarPose  ; unconditional

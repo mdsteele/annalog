@@ -714,11 +714,20 @@ _MovingUp:
     blt _Return
     @topEdgeHit:
     ;; Check bottom edge of platform.
-    lda Ram_PlatformBottom_i16_0_arr, x
-    add #kAvatarBoundingBoxUp  ; TODO: handle reverse gravity
+    bit Zp_AvatarFlags_bObj
+    .assert bObj::FlipV = bProc::Negative, error
+    bpl @normalGravity
+    @reverseGravity:
+    lda #kAvatarBoundingBoxDown + 1
+    .assert kAvatarBoundingBoxDown > 0, error
+    bne @doneBoundingBox  ; unconditional
+    @normalGravity:
+    lda #kAvatarBoundingBoxUp
+    @doneBoundingBox:
+    add Ram_PlatformBottom_i16_0_arr, x
     sta T0  ; platform bottom edge + bbox (lo)
-    lda Ram_PlatformBottom_i16_1_arr, x
-    adc #0
+    lda #0
+    adc Ram_PlatformBottom_i16_1_arr, x
     sta T1  ; platform bottom edge + bbox (hi)
     cmp Zp_AvatarPosY_i16 + 1
     blt _Return
@@ -733,8 +742,17 @@ _MovingUp:
     sta Zp_AvatarPosY_i16 + 0
     lda T1  ; platform bottom edge + bbox (hi)
     sta Zp_AvatarPosY_i16 + 1
-    ;; TODO: if reverse gravity, set Zp_AvatarPlatformIndex_u8
-    jmp _Collided
+    ;; If gravity is reversed, the avatar is now riding this platform.
+    bit Zp_AvatarFlags_bObj
+    .assert bObj::FlipV = bProc::Negative, error
+    bpl _Collided  ; gravity is normal, so avatar isn't riding platform above
+_RidingPlatform:
+    stx Zp_AvatarPlatformIndex_u8
+_Collided:
+    lda Ram_PlatformType_ePlatform_arr, x
+    sta Zp_AvatarCollided_ePlatform
+_Return:
+    rts
 _MovingDown:
     ;; Check bottom edge of platform.
     lda Ram_PlatformBottom_i16_1_arr, x
@@ -766,13 +784,11 @@ _MovingDown:
     sta Zp_AvatarPosY_i16 + 0
     lda T1  ; platform top edge - bbox (hi)
     sta Zp_AvatarPosY_i16 + 1
-    ;; Record that the avatar is now riding this platform.
-    stx Zp_AvatarPlatformIndex_u8  ; TODO: only for normal gravity
-_Collided:
-    lda Ram_PlatformType_ePlatform_arr, x
-    sta Zp_AvatarCollided_ePlatform
-_Return:
-    rts
+    ;; If gravity is normal, the avatar is now riding this platform.
+    bit Zp_AvatarFlags_bObj
+    .assert bObj::FlipV = bProc::Negative, error
+    bpl _RidingPlatform
+    bmi _Collided  ; unconditional
 .ENDPROC
 
 ;;; Determines whether both (1) the bottom of the avatar is below the top of
