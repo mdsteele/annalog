@@ -39,6 +39,7 @@ kMaxActors = 16
     BadGooRed        ; squishes back and forth
     BadGronta        ; the final boss
     BadGrub          ; crawls left/right on a floor
+    BadGrubFire      ; like grub, but can also shoot at you
     BadHotheadHorz   ; crawls around a platform, and can drop fire
     BadHotheadVert   ; crawls around a platform, and can drop fire
     BadJelly         ; moves in a straight line, turning when it hits a wall

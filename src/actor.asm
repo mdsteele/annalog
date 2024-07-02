@@ -39,6 +39,7 @@
 .IMPORT FuncA_Actor_TickBadGooRed
 .IMPORT FuncA_Actor_TickBadGronta
 .IMPORT FuncA_Actor_TickBadGrub
+.IMPORT FuncA_Actor_TickBadGrubFire
 .IMPORT FuncA_Actor_TickBadHotheadHorz
 .IMPORT FuncA_Actor_TickBadHotheadVert
 .IMPORT FuncA_Actor_TickBadJelly
@@ -91,6 +92,7 @@
 .IMPORT FuncA_Objects_DrawActorBadGooRed
 .IMPORT FuncA_Objects_DrawActorBadGronta
 .IMPORT FuncA_Objects_DrawActorBadGrub
+.IMPORT FuncA_Objects_DrawActorBadGrubFire
 .IMPORT FuncA_Objects_DrawActorBadHotheadHorz
 .IMPORT FuncA_Objects_DrawActorBadHotheadVert
 .IMPORT FuncA_Objects_DrawActorBadJelly
@@ -494,6 +496,7 @@ _NoHit:
     d_byte BadGooRed,       kBadGooRadius
     d_byte BadGronta,       kOrcBoundingBoxUp
     d_byte BadGrub,         kBadGrubBoundingBoxUp
+    d_byte BadGrubFire,     kBadGrubBoundingBoxUp
     d_byte BadHotheadHorz,   6
     d_byte BadHotheadVert,   6
     d_byte BadJelly,        kBadJellyRadius
@@ -556,6 +559,7 @@ _NoHit:
     d_byte BadGooRed,       kBadGooRadius
     d_byte BadGronta,       kOrcBoundingBoxDown
     d_byte BadGrub,         kBadGrubBoundingBoxDown
+    d_byte BadGrubFire,     kBadGrubBoundingBoxDown
     d_byte BadHotheadHorz,   6
     d_byte BadHotheadVert,   6
     d_byte BadJelly,        kBadJellyRadius
@@ -618,6 +622,7 @@ _NoHit:
     d_byte BadGooRed,       kBadGooRadius
     d_byte BadGronta,       kOrcBoundingBoxSide
     d_byte BadGrub,         kBadGrubBoundingBoxSide
+    d_byte BadGrubFire,     kBadGrubBoundingBoxSide
     d_byte BadHotheadHorz,   6
     d_byte BadHotheadVert,   6
     d_byte BadJelly,        kBadJellyRadius
@@ -748,6 +753,7 @@ _TypeSpecificTick:
     d_entry table, BadGooRed,       FuncA_Actor_TickBadGooRed
     d_entry table, BadGronta,       FuncA_Actor_TickBadGronta
     d_entry table, BadGrub,         FuncA_Actor_TickBadGrub
+    d_entry table, BadGrubFire,     FuncA_Actor_TickBadGrubFire
     d_entry table, BadHotheadHorz,  FuncA_Actor_TickBadHotheadHorz
     d_entry table, BadHotheadVert,  FuncA_Actor_TickBadHotheadVert
     d_entry table, BadJelly,        FuncA_Actor_TickBadJelly
@@ -914,6 +920,7 @@ _Finish:
     d_entry table, BadGooRed,       FuncA_Room_InitActorBadGooRed
     d_entry table, BadGronta,       Func_InitActorBadGronta
     d_entry table, BadGrub,         Func_InitActorWithFlags
+    d_entry table, BadGrubFire,     Func_InitActorWithFlags
     d_entry table, BadHotheadHorz,  Func_InitActorWithFlags
     d_entry table, BadHotheadVert,  Func_InitActorWithFlags
     d_entry table, BadJelly,        Func_InitActorWithState1
@@ -1005,6 +1012,7 @@ _Finish:
     d_entry table, BadGooRed,       FuncA_Objects_DrawActorBadGooRed
     d_entry table, BadGronta,       FuncA_Objects_DrawActorBadGronta
     d_entry table, BadGrub,         FuncA_Objects_DrawActorBadGrub
+    d_entry table, BadGrubFire,     FuncA_Objects_DrawActorBadGrubFire
     d_entry table, BadHotheadHorz,  FuncA_Objects_DrawActorBadHotheadHorz
     d_entry table, BadHotheadVert,  FuncA_Objects_DrawActorBadHotheadVert
     d_entry table, BadJelly,        FuncA_Objects_DrawActorBadJelly

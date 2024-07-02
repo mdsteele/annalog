@@ -29,6 +29,6 @@
 ;;;   * State4: Unused.
 
 ;;; Tile IDs for drawing goo baddie actors.
-kTileIdObjBadGooFirst = $a0
+kTileIdObjBadGooFirst = $90
 
 ;;;=========================================================================;;;

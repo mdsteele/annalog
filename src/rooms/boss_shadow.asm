@@ -66,7 +66,7 @@
 .IMPORT Func_SetPointToPlatformCenter
 .IMPORT Func_ShakeRoom
 .IMPORT Func_WriteToLowerAttributeTable
-.IMPORT Ppu_ChrObjBoss1
+.IMPORT Ppu_ChrObjShadow
 .IMPORT Ram_MachineGoalHorz_u8_arr
 .IMPORT Ram_PlatformLeft_i16_0_arr
 .IMPORT Ram_PlatformType_ePlatform_arr
@@ -179,7 +179,7 @@ kPaletteObjFinalGhostHurt   = 1
     d_addr TerrainData_ptr, _TerrainData
     d_byte NumMachines_u8, 2
     d_addr Machines_sMachine_arr_ptr, _Machines_sMachine_arr
-    d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjBoss1)
+    d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjShadow)
     d_addr Ext_sRoomExt_ptr, _Ext_sRoomExt
     D_END
 _Ext_sRoomExt:

@@ -23,6 +23,7 @@
 ;;;     unchanged; if false ($00), the NPC is automatically drawn facing the
 ;;;     player avatar.
 ;;;   * State3: Unused.
+;;;   * State4: Unused.
 
 ;;;=========================================================================;;;
 
@@ -30,6 +31,7 @@
 kTileIdAdultElderFirst = $c4
 kTileIdAdultElder1     = kTileIdAdultElderFirst + 0
 kTileIdAdultElder2     = kTileIdAdultElderFirst + 6
+kTileIdAdultGhostFirst = $e4
 kTileIdAdultManFirst   = $d6
 kTileIdAdultSmithFirst = $b8
 kTileIdAdultSmith1     = kTileIdAdultSmithFirst + 0

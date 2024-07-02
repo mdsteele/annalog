@@ -25,6 +25,6 @@ kBarrierPlatformHeightPx = $20
 kBarrierPlatformMoveSpeed = 3
 
 ;;; OBJ tile IDs for drawing laboratory barrier platforms.
-kTileIdObjBarrierFirst = $e0
+kTileIdObjBarrierFirst = $8c
 
 ;;;=========================================================================;;;

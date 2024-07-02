@@ -45,7 +45,7 @@ kTileIdBgDiagramEmitterXFirst = $e0
 kTileIdBgDiagramEmitterYFirst = $f0
 
 ;;; OBJ tile IDs used for drawing emitter machines.
-kTileIdObjEmitterFirst = $90
+kTileIdObjEmitterFirst = $82
 
 ;;; The OBJ tile ID for the indicator light on an emitter machine.
 kTileIdObjEmitterLight = $81

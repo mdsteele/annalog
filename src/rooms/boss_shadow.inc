@@ -18,6 +18,6 @@
 ;;;=========================================================================;;;
 
 ;;; OBJ tile IDs for drawing the shadow boss.
-kTileIdObjAnnaGhostFirst = $dc
+kTileIdObjAnnaGhostFirst = $e0
 
 ;;;=========================================================================;;;
