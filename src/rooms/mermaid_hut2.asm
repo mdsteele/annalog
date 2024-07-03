@@ -18,7 +18,7 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "../actor.inc"
-.INCLUDE "../actors/townsfolk.inc"
+.INCLUDE "../actors/adult.inc"
 .INCLUDE "../charmap.inc"
 .INCLUDE "../device.inc"
 .INCLUDE "../dialog.inc"
@@ -76,10 +76,10 @@ _Platforms_sPlatform_arr:
     .byte ePlatform::None
 _Actors_sActor_arr:
 :   D_STRUCT sActor
-    d_byte Type_eActor, eActor::NpcMermaid
+    d_byte Type_eActor, eActor::NpcAdult
     d_word PosX_i16, $0090
     d_word PosY_i16, $00b8
-    d_byte Param_byte, kTileIdMermaidGuardMFirst
+    d_byte Param_byte, eNpcAdult::MermaidGuardM
     D_END
     .assert * - :- <= kMaxActors * .sizeof(sActor), error
     .byte eActor::None

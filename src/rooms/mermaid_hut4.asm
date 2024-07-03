@@ -18,7 +18,7 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "../actor.inc"
-.INCLUDE "../actors/townsfolk.inc"
+.INCLUDE "../actors/adult.inc"
 .INCLUDE "../charmap.inc"
 .INCLUDE "../cpu.inc"
 .INCLUDE "../device.inc"
@@ -99,7 +99,7 @@ _Actors_sActor_arr:
     d_byte Type_eActor, eActor::NpcAdult
     d_word PosX_i16, $0090
     d_word PosY_i16, $00a8
-    d_byte Param_byte, kTileIdMermaidFloristFirst
+    d_byte Param_byte, eNpcAdult::MermaidFlorist
     D_END
     .assert * - :- <= kMaxActors * .sizeof(sActor), error
     .byte eActor::None

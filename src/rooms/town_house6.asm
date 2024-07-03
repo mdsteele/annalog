@@ -18,7 +18,7 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "../actor.inc"
-.INCLUDE "../actors/townsfolk.inc"
+.INCLUDE "../actors/adult.inc"
 .INCLUDE "../charmap.inc"
 .INCLUDE "../cpu.inc"
 .INCLUDE "../device.inc"
@@ -88,7 +88,7 @@ _Actors_sActor_arr:
     d_byte Type_eActor, eActor::NpcAdult
     d_word PosX_i16, $0060
     d_word PosY_i16, $00c8
-    d_byte Param_byte, kTileIdAdultElder1
+    d_byte Param_byte, eNpcAdult::HumanElder1
     D_END
     .assert * - :- <= kMaxActors * .sizeof(sActor), error
     .byte eActor::None
@@ -127,11 +127,11 @@ _Devices_sDevice_arr:
     and #$20
     beq @forth
     @back:
-    lda #kTileIdAdultElder2
-    .assert kTileIdAdultElder2 > 0, error
+    lda #eNpcAdult::HumanElder2
+    .assert eNpcAdult::HumanElder2 > 0, error
     bne @setState
     @forth:
-    lda #kTileIdAdultElder1
+    lda #eNpcAdult::HumanElder1
     @setState:
     sta Ram_ActorState1_byte_arr + kElderActorIndex
     rts

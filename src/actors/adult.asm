@@ -21,7 +21,7 @@
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
 .INCLUDE "../ppu.inc"
-.INCLUDE "townsfolk.inc"
+.INCLUDE "adult.inc"
 
 .IMPORT FuncA_Objects_Alloc2x1Shape
 .IMPORT FuncA_Objects_Alloc2x2Shape
@@ -37,10 +37,8 @@
 ;;;=========================================================================;;;
 
 ;;; OBJ palette numbers to use for drawing various townsfolks NPC actors.
-kPaletteObjAdult            = 0
-kPaletteObjMermaid          = 0
-kPaletteObjMermaidQueenBody = 0
-kPaletteObjMermaidQueenHead = 1
+kPaletteObjAdult   = 0
+kPaletteObjMermaid = 0
 
 ;;;=========================================================================;;;
 
@@ -52,49 +50,46 @@ kPaletteObjMermaidQueenHead = 1
 .EXPORT FuncA_Objects_DrawActorNpcAdult
 .PROC FuncA_Objects_DrawActorNpcAdult
     jsr FuncA_Objects_SetShapePosToActorCenter  ; preserves X
+    ;; Determine the object flags to use when drawing the NPC.
     jsr FuncA_Objects_GetNpcActorFlags  ; preserves X, returns A
     .assert kPaletteObjAdult = 0, error
-    tay  ; param: object flags
-    lda Ram_ActorState1_byte_arr, x  ; param: first tile ID
-    jmp FuncA_Objects_Draw2x3TownsfolkShape  ; preserves X
-.ENDPROC
-
-;;; Draws a mermaid NPC actor.
-;;; @param X The actor index.
-;;; @preserve X
-.EXPORT FuncA_Objects_DrawActorNpcMermaid
-.PROC FuncA_Objects_DrawActorNpcMermaid
-    jsr FuncA_Objects_SetShapePosToActorCenter  ; preserves X
-    jsr FuncA_Objects_BobActorShapePosUpAndDown  ; preserves X
-    ;; Draw the actor.
-    jsr FuncA_Objects_GetNpcActorFlags  ; preserves X, returns A
-    .assert kPaletteObjMermaid = 0, error
-    tay  ; param: object flags
-    lda Ram_ActorState1_byte_arr, x  ; param: first tile ID
-    cmp #kFirst2x4MermaidTileId
+    sta T1  ; object flags
+    ;; If this NPC should float in the water/air, bob its position up and down.
+    ldy Ram_ActorState1_byte_arr, x  ; eNpcAdult value
+    cpy #kFirstFloatingNpcAdult
+    blt @notFloating
+    jsr FuncA_Objects_BobActorShapePosUpAndDown  ; preserves X and T1+
+    @notFloating:
+    ;; Draw the NPC.
+    ldy Ram_ActorState1_byte_arr, x  ; eNpcAdult value
+    lda _FirstTileId_u8_arr, y  ; param: first tile ID
+    cpy #kFirst2x4NpcAdult
+    ldy T1  ; param: object flags
     blt FuncA_Objects_Draw2x3TownsfolkShape  ; preserves X
-    jmp FuncA_Objects_Draw2x4TownsfolkShape  ; preserves X
-.ENDPROC
-
-;;; Draws a mermaid queen NPC actor.
-;;; @param X The actor index.
-;;; @preserve X
-.EXPORT FuncA_Objects_DrawActorNpcMermaidQueen
-.PROC FuncA_Objects_DrawActorNpcMermaidQueen
-    jsr FuncA_Objects_SetShapePosToActorCenter  ; preserves X
-_TopHalf:
-    jsr FuncA_Objects_GetNpcActorFlags  ; preserves X, returns A
-    .assert kPaletteObjMermaidQueenHead <> 0, error
-    ora #kPaletteObjMermaidQueenHead
-    tay  ; param: object flags
-    lda #kTileIdMermaidQueenFirst  ; param: first tile ID
-    jsr FuncA_Objects_Draw2x2Shape  ; preserves X
-_BottomHalf:
-    lda #kTileHeightPx * 2  ; param: offset
-    jsr FuncA_Objects_MoveShapeDownByA
-    ldy #kPaletteObjMermaidQueenBody  ; param: object flags
-    lda #kTileIdMermaidQueenFirst + 4  ; param: first tile ID
-    jmp FuncA_Objects_Draw2x2Shape  ; preserves X
+    bge FuncA_Objects_Draw2x4TownsfolkShape  ; preserves X, unconditional
+_FirstTileId_u8_arr:
+    D_ARRAY .enum, eNpcAdult
+    d_byte HumanElder1,        kTileIdObjAdultElderFirst        + 0
+    d_byte HumanElder2,        kTileIdObjAdultElderFirst        + 6
+    d_byte HumanMan,           kTileIdObjAdultManFirst          + 0
+    d_byte HumanSmith1,        kTileIdObjAdultSmithFirst        + 0
+    d_byte HumanSmith2,        kTileIdObjAdultSmithFirst        + 6
+    d_byte HumanWoman,         kTileIdObjAdultWomanFirst        + 0
+    d_byte MermaidFlorist,     kTileIdObjMermaidFloristFirst    + 0
+    d_byte GhostMan,           kTileIdObjAdultGhostFirst        + 6
+    d_byte GhostWoman,         kTileIdObjAdultGhostFirst        + 0
+    d_byte MermaidCorra,       kTileIdObjMermaidCorraFirst      + 0
+    d_byte MermaidDaphne,      kTileIdObjMermaidDaphneFirst     + 0
+    d_byte MermaidFarmer,      kTileIdObjMermaidFarmerFirst     + 0
+    d_byte MermaidGhost,       kTileIdObjMermaidGhostFirst      + 0
+    d_byte MermaidGuardF,      kTileIdObjMermaidGuardFFirst     + 0
+    d_byte MermaidGuardM,      kTileIdObjMermaidGuardMFirst     + 0
+    d_byte MermaidPhoebe,      kTileIdObjMermaidPhoebeFirst     + 0
+    d_byte CorraSwimmingDown1, kTileIdObjCorraSwimmingDownFirst + 0
+    d_byte CorraSwimmingDown2, kTileIdObjCorraSwimmingDownFirst + 6
+    d_byte CorraSwimmingUp1,   kTileIdObjCorraSwimmingUpFirst   + 0
+    d_byte CorraSwimmingUp2,   kTileIdObjCorraSwimmingUpFirst   + 8
+    D_END
 .ENDPROC
 
 ;;; Draws a 2x3-tile shape, using the given first tile ID and the five

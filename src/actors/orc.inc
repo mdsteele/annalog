@@ -108,7 +108,7 @@ kBadGrontaMaxJumpUpBlocks = 2
     GruntThrowing2
     GruntStanding
     GhostStanding
-    ;; Gronta (red palette for head):
+    ;; Gronta (or Eirene) (red palette for head):
     GrontaRunning1
     GrontaRunning2
     GrontaRunning3
@@ -120,11 +120,11 @@ kBadGrontaMaxJumpUpBlocks = 2
     GrontaParley
     GrontaStanding
     GrontaThrowing
-    EireneParley
+    EireneParley  ; not really an orc, but drawn like Gronta
     NUM_VALUES
 .ENDENUM
 
-;;; eNpcOrc values greater than or equal to this are Gronta.
+;;; eNpcOrc values greater than or equal to this are Gronta (or Queen Eirene).
 kNpcOrcFirstGronta = eNpcOrc::GrontaRunning1
 
 ;;; How far an orc actor's bounding box extends in each direction from the

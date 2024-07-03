@@ -53,12 +53,11 @@ kMaxActors = 16
     BadToad          ; jumps in place
     BadVinebug       ; moves vertically on a vine
     BadWasp          ; flies in a circle
-    NpcAdult
-    NpcChild
-    NpcMermaid
-    NpcMermaidQueen
-    NpcOrc
-    NpcToddler
+    NpcAdult         ; used for human adults and for most mermaids
+    NpcChild         ; used for human children
+    NpcOrc           ; used for orcs, and Queen Eirene when she's standing
+    NpcQueen         ; used for Queen Eirene when she's seated
+    NpcToddler       ; used for baby Nina
     ProjAcid         ; acid dropped by a flydrop baddie
     ProjAxeBoomer    ; a boomerang axe thrown by Gronta
     ProjAxeSmash     ; a machine-smashing axe thrown by Gronta
@@ -106,7 +105,7 @@ kFirstSmokeActorType = eActor::SmokeBlood
     ;;   * For BadBeetle*, this is the actor flip flags to set.
     ;;   * For BadBird, this is a bBadBird value.
     ;;   * For BadHothead*, this is the actor flip flags to set.
-    ;;   * For NpcAdult, this is the first tile ID (of six).
+    ;;   * For NpcAdult, this is an eNpcAdult value.
     ;;   * For NpcChild, this is a bNpcChild value.
     ;;   * For NpcMermaid, this is the first tile ID (of six).
     ;;   * For NpcToddler, this is a bNpcToddler value.

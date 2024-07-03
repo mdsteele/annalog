@@ -18,7 +18,7 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "../actor.inc"
-.INCLUDE "../actors/townsfolk.inc"
+.INCLUDE "../actors/adult.inc"
 .INCLUDE "../audio.inc"
 .INCLUDE "../avatar.inc"
 .INCLUDE "../charmap.inc"
@@ -172,17 +172,17 @@ _Platforms_sPlatform_arr:
 _Actors_sActor_arr:
 :   .assert * - :- = kGuardActorIndex * .sizeof(sActor), error
     D_STRUCT sActor
-    d_byte Type_eActor, eActor::NpcMermaid
+    d_byte Type_eActor, eActor::NpcAdult
     d_word PosX_i16, $0070
     d_word PosY_i16, $0158
-    d_byte Param_byte, kTileIdMermaidGuardFFirst
+    d_byte Param_byte, eNpcAdult::MermaidGuardF
     D_END
     .assert * - :- = kCorraActorIndex * .sizeof(sActor), error
     D_STRUCT sActor
-    d_byte Type_eActor, eActor::NpcMermaid
+    d_byte Type_eActor, eActor::NpcAdult
     d_word PosX_i16, $00b0
     d_word PosY_i16, $0158
-    d_byte Param_byte, kTileIdMermaidCorraFirst
+    d_byte Param_byte, eNpcAdult::MermaidCorra
     D_END
     D_STRUCT sActor
     d_byte Type_eActor, eActor::BadBeetleVert

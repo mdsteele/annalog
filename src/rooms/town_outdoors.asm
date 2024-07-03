@@ -18,9 +18,9 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "../actor.inc"
+.INCLUDE "../actors/adult.inc"
 .INCLUDE "../actors/child.inc"
 .INCLUDE "../actors/orc.inc"
-.INCLUDE "../actors/townsfolk.inc"
 .INCLUDE "../avatar.inc"
 .INCLUDE "../charmap.inc"
 .INCLUDE "../cpu.inc"
@@ -157,14 +157,14 @@ _Actors_sActor_arr:
     d_byte Type_eActor, eActor::NpcAdult
     d_word PosX_i16, $02f0
     d_word PosY_i16, $00c8
-    d_byte Param_byte, kTileIdAdultManFirst
+    d_byte Param_byte, eNpcAdult::HumanMan
     D_END
     .assert * - :- = kSandraActorIndex * .sizeof(sActor), error
     D_STRUCT sActor
     d_byte Type_eActor, eActor::NpcAdult
     d_word PosX_i16, $0350
     d_word PosY_i16, $00c8
-    d_byte Param_byte, kTileIdAdultWomanFirst
+    d_byte Param_byte, eNpcAdult::HumanWoman
     D_END
     .assert * - :- <= kMaxActors * .sizeof(sActor), error
     .byte eActor::None

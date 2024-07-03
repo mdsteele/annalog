@@ -18,8 +18,8 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "../actor.inc"
+.INCLUDE "../actors/adult.inc"
 .INCLUDE "../actors/orc.inc"
-.INCLUDE "../actors/townsfolk.inc"
 .INCLUDE "../device.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../platform.inc"
@@ -80,16 +80,28 @@ _Platforms_sPlatform_arr:
     .byte ePlatform::None
 _Actors_sActor_arr:
 :   D_STRUCT sActor
+    d_byte Type_eActor, eActor::NpcAdult
+    d_word PosX_i16, $0078
+    d_word PosY_i16, $00b5
+    d_byte Param_byte, eNpcAdult::GhostWoman
+    D_END
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::NpcAdult
+    d_word PosX_i16, $00b8
+    d_word PosY_i16, $00b5
+    d_byte Param_byte, eNpcAdult::GhostMan
+    D_END
+    D_STRUCT sActor
     d_byte Type_eActor, eActor::NpcOrc
     d_word PosX_i16, $0304
     d_word PosY_i16, $0063
     d_byte Param_byte, eNpcOrc::GhostStanding
     D_END
     D_STRUCT sActor
-    d_byte Type_eActor, eActor::NpcMermaid
+    d_byte Type_eActor, eActor::NpcAdult
     d_word PosX_i16, $0384
     d_word PosY_i16, $00b1
-    d_byte Param_byte, kTileIdMermaidGhostFirst
+    d_byte Param_byte, eNpcAdult::MermaidGhost
     D_END
     .assert * - :- <= kMaxActors * .sizeof(sActor), error
     .byte eActor::None

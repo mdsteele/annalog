@@ -18,8 +18,8 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "../actor.inc"
+.INCLUDE "../actors/adult.inc"
 .INCLUDE "../actors/child.inc"
-.INCLUDE "../actors/townsfolk.inc"
 .INCLUDE "../charmap.inc"
 .INCLUDE "../cpu.inc"
 .INCLUDE "../cutscene.inc"
@@ -167,23 +167,23 @@ _Actors_sActor_arr:
     d_byte Param_byte, eNpcChild::AlexSwimming1  ; TODO: animate Alex swimming
     D_END
     D_STRUCT sActor
-    d_byte Type_eActor, eActor::NpcMermaid
+    d_byte Type_eActor, eActor::NpcAdult
     d_word PosX_i16, $02a0
     d_word PosY_i16, $0088
-    d_byte Param_byte, kTileIdMermaidGuardFFirst
+    d_byte Param_byte, eNpcAdult::MermaidGuardF
     D_END
     D_STRUCT sActor
-    d_byte Type_eActor, eActor::NpcMermaid
+    d_byte Type_eActor, eActor::NpcAdult
     d_word PosX_i16, $00d0
     d_word PosY_i16, $0158
-    d_byte Param_byte, kTileIdMermaidFarmerFirst
+    d_byte Param_byte, eNpcAdult::MermaidFarmer
     D_END
     .assert * - :- = kCorraActorIndex * .sizeof(sActor), error
     D_STRUCT sActor
-    d_byte Type_eActor, eActor::NpcMermaid
+    d_byte Type_eActor, eActor::NpcAdult
     d_word PosX_i16, $0110
     d_word PosY_i16, $0158
-    d_byte Param_byte, kTileIdMermaidCorraFirst
+    d_byte Param_byte, eNpcAdult::MermaidCorra
     D_END
     .assert * - :- = kBrunoActorIndex * .sizeof(sActor), error
     D_STRUCT sActor

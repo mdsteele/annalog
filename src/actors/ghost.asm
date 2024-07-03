@@ -19,9 +19,9 @@
 
 .INCLUDE "../macros.inc"
 .INCLUDE "../ppu.inc"
+.INCLUDE "adult.inc"
 .INCLUDE "ghost.inc"
 .INCLUDE "orc.inc"
-.INCLUDE "townsfolk.inc"
 
 .IMPORT Data_PowersOfTwo_u8_arr8
 .IMPORT FuncA_Objects_BobActorShapePosUpAndDown
@@ -158,10 +158,10 @@
     jmp FuncA_Objects_Draw2x3TownsfolkShape  ; preserves X
 _FirstTileId_u8_arr:
     D_ARRAY .enum, eBadGhost
-    d_byte Absent,       kTileIdMermaidGhostFirst + 0
-    d_byte Idle,         kTileIdMermaidGhostFirst + 0
-    d_byte Disappearing, kTileIdMermaidGhostFirst + 0
-    d_byte Reappearing,  kTileIdMermaidGhostFirst + 0
+    d_byte Absent,       kTileIdObjMermaidGhostFirst + 0
+    d_byte Idle,         kTileIdObjMermaidGhostFirst + 0
+    d_byte Disappearing, kTileIdObjMermaidGhostFirst + 0
+    d_byte Reappearing,  kTileIdObjMermaidGhostFirst + 0
     D_END
 .ENDPROC
 

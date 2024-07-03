@@ -108,9 +108,8 @@
 .IMPORT FuncA_Objects_DrawActorBadWasp
 .IMPORT FuncA_Objects_DrawActorNpcAdult
 .IMPORT FuncA_Objects_DrawActorNpcChild
-.IMPORT FuncA_Objects_DrawActorNpcMermaid
-.IMPORT FuncA_Objects_DrawActorNpcMermaidQueen
 .IMPORT FuncA_Objects_DrawActorNpcOrc
+.IMPORT FuncA_Objects_DrawActorNpcQueen
 .IMPORT FuncA_Objects_DrawActorNpcToddler
 .IMPORT FuncA_Objects_DrawActorProjAcid
 .IMPORT FuncA_Objects_DrawActorProjAxe
@@ -512,9 +511,8 @@ _NoHit:
     d_byte BadWasp,          5
     d_byte NpcAdult,        13
     d_byte NpcChild,         7
-    d_byte NpcMermaid,      13
-    d_byte NpcMermaidQueen,  2
     d_byte NpcOrc,          kOrcBoundingBoxUp
+    d_byte NpcQueen,         2
     d_byte NpcToddler,       4
     d_byte ProjAcid,         1
     d_byte ProjAxeBoomer,   kProjAxeRadius
@@ -575,9 +573,8 @@ _NoHit:
     d_byte BadWasp,          6
     d_byte NpcAdult,         8
     d_byte NpcChild,         8
-    d_byte NpcMermaid,       8
-    d_byte NpcMermaidQueen, 24
     d_byte NpcOrc,          kOrcBoundingBoxDown
+    d_byte NpcQueen,        24
     d_byte NpcToddler,       8
     d_byte ProjAcid,         3
     d_byte ProjAxeBoomer,   kProjAxeRadius
@@ -638,9 +635,8 @@ _NoHit:
     d_byte BadWasp,          6
     d_byte NpcAdult,         5
     d_byte NpcChild,         5
-    d_byte NpcMermaid,       5
-    d_byte NpcMermaidQueen,  5
     d_byte NpcOrc,          kOrcBoundingBoxSide
+    d_byte NpcQueen,         5
     d_byte NpcToddler,       3
     d_byte ProjAcid,         2
     d_byte ProjAxeBoomer,   kProjAxeRadius
@@ -769,9 +765,8 @@ _TypeSpecificTick:
     d_entry table, BadWasp,         FuncA_Actor_TickBadWasp
     d_entry table, NpcAdult,        Func_Noop
     d_entry table, NpcChild,        Func_Noop
-    d_entry table, NpcMermaid,      Func_Noop
-    d_entry table, NpcMermaidQueen, Func_Noop
     d_entry table, NpcOrc,          Func_Noop
+    d_entry table, NpcQueen,        Func_Noop
     d_entry table, NpcToddler,      FuncA_Actor_TickNpcToddler
     d_entry table, ProjAcid,        FuncA_Actor_TickProjAcid
     d_entry table, ProjAxeBoomer,   FuncA_Actor_TickProjAxeBoomer
@@ -936,9 +931,8 @@ _Finish:
     d_entry table, BadWasp,         FuncA_Room_InitActorBadWasp
     d_entry table, NpcAdult,        Func_InitActorWithState1
     d_entry table, NpcChild,        FuncA_Room_InitActorNpcChild
-    d_entry table, NpcMermaid,      Func_InitActorWithState1
-    d_entry table, NpcMermaidQueen, Func_InitActorDefault
     d_entry table, NpcOrc,          Func_InitActorNpcOrc
+    d_entry table, NpcQueen,        Func_InitActorDefault
     d_entry table, NpcToddler,      FuncA_Room_InitActorNpcToddler
     d_entry table, ProjAcid,        Func_InitActorProjAcid
     d_entry table, ProjAxeBoomer,   Func_InitActorProjAxe
@@ -1028,9 +1022,8 @@ _Finish:
     d_entry table, BadWasp,         FuncA_Objects_DrawActorBadWasp
     d_entry table, NpcAdult,        FuncA_Objects_DrawActorNpcAdult
     d_entry table, NpcChild,        FuncA_Objects_DrawActorNpcChild
-    d_entry table, NpcMermaid,      FuncA_Objects_DrawActorNpcMermaid
-    d_entry table, NpcMermaidQueen, FuncA_Objects_DrawActorNpcMermaidQueen
     d_entry table, NpcOrc,          FuncA_Objects_DrawActorNpcOrc
+    d_entry table, NpcQueen,        FuncA_Objects_DrawActorNpcQueen
     d_entry table, NpcToddler,      FuncA_Objects_DrawActorNpcToddler
     d_entry table, ProjAcid,        FuncA_Objects_DrawActorProjAcid
     d_entry table, ProjAxeBoomer,   FuncA_Objects_DrawActorProjAxe

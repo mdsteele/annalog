@@ -18,8 +18,8 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "../actor.inc"
+.INCLUDE "../actors/adult.inc"
 .INCLUDE "../actors/child.inc"
-.INCLUDE "../actors/townsfolk.inc"
 .INCLUDE "../charmap.inc"
 .INCLUDE "../cpu.inc"
 .INCLUDE "../cutscene.inc"
@@ -99,10 +99,10 @@ _Platforms_sPlatform_arr:
 _Actors_sActor_arr:
 :   .assert * - :- = kGuardActorIndex * .sizeof(sActor), error
     D_STRUCT sActor
-    d_byte Type_eActor, eActor::NpcMermaid
+    d_byte Type_eActor, eActor::NpcAdult
     d_word PosX_i16, $0040
     d_word PosY_i16, $00c8
-    d_byte Param_byte, kTileIdMermaidGuardMFirst
+    d_byte Param_byte, eNpcAdult::MermaidGuardM
     D_END
     .assert * - :- = kAlexActorIndex * .sizeof(sActor), error
     D_STRUCT sActor
@@ -113,7 +113,7 @@ _Actors_sActor_arr:
     D_END
     .assert * - :- = kEireneActorIndex * .sizeof(sActor), error
     D_STRUCT sActor
-    d_byte Type_eActor, eActor::NpcMermaidQueen
+    d_byte Type_eActor, eActor::NpcQueen
     d_word PosX_i16, $00c0
     d_word PosY_i16, $00a8
     d_byte Param_byte, 0

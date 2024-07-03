@@ -18,7 +18,7 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "../actor.inc"
-.INCLUDE "../actors/townsfolk.inc"
+.INCLUDE "../actors/adult.inc"
 .INCLUDE "../charmap.inc"
 .INCLUDE "../cutscene.inc"
 .INCLUDE "../device.inc"
@@ -138,10 +138,10 @@ _Platforms_sPlatform_arr:
 _Actors_sActor_arr:
 :   .assert * - :- = kCorraActorIndex * .sizeof(sActor), error
     D_STRUCT sActor
-    d_byte Type_eActor, eActor::NpcMermaid
+    d_byte Type_eActor, eActor::NpcAdult
     d_word PosX_i16, $0080
     d_word PosY_i16, $0138
-    d_byte Param_byte, kTileIdMermaidCorraFirst
+    d_byte Param_byte, eNpcAdult::MermaidCorra
     D_END
     D_STRUCT sActor
     d_byte Type_eActor, eActor::BadBeetleHorz
@@ -322,7 +322,7 @@ _SwimBackUp_sCutscene:
     act_RepeatFunc 40, _AnimateSwimmingDownFunc
     act_SetActorFlags kCorraActorIndex, 0
     act_RepeatFunc 40, _SwimUpFunc
-    act_SetActorState1 kCorraActorIndex, kTileIdMermaidCorraFirst
+    act_SetActorState1 kCorraActorIndex, eNpcAdult::MermaidCorra
     act_WaitFrames 15
     act_SetActorState2 kCorraActorIndex, 0
     act_ForkStop $ff
@@ -340,11 +340,11 @@ _SwimDownFunc:
     sbc #0
     sta Ram_ActorPosX_i16_0_arr + kCorraActorIndex
 _AnimateSwimmingDownFunc:
-    ldy #kTileIdCorraSwimmingDown1
+    ldy #eNpcAdult::CorraSwimmingDown1
     lda Zp_FrameCounter_u8
     and #$08
     beq @setState1
-    ldy #kTileIdCorraSwimmingDown2
+    ldy #eNpcAdult::CorraSwimmingDown2
     @setState1:
     sty Ram_ActorState1_byte_arr + kCorraActorIndex
     rts
@@ -384,11 +384,11 @@ _SwimUpFunc:
     adc #0
     sta Ram_ActorPosX_i16_0_arr + kCorraActorIndex
 _AnimateSwimmingUpFunc:
-    ldy #kTileIdCorraSwimmingUp1
+    ldy #eNpcAdult::CorraSwimmingUp1
     lda Zp_FrameCounter_u8
     and #$08
     beq @setState1
-    ldy #kTileIdCorraSwimmingUp2
+    ldy #eNpcAdult::CorraSwimmingUp2
     @setState1:
     sty Ram_ActorState1_byte_arr + kCorraActorIndex
     rts

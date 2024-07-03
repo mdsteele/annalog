@@ -18,7 +18,7 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "../actor.inc"
-.INCLUDE "../actors/townsfolk.inc"
+.INCLUDE "../actors/adult.inc"
 .INCLUDE "../charmap.inc"
 .INCLUDE "../cpu.inc"
 .INCLUDE "../device.inc"
@@ -223,10 +223,10 @@ _Platforms_sPlatform_arr:
 _Actors_sActor_arr:
 :   .assert * - :- = kCorraActorIndex * .sizeof(sActor), error
     D_STRUCT sActor
-    d_byte Type_eActor, eActor::NpcMermaid
+    d_byte Type_eActor, eActor::NpcAdult
     d_word PosX_i16, $0080
     d_word PosY_i16, $0098
-    d_byte Param_byte, kTileIdMermaidCorraFirst
+    d_byte Param_byte, eNpcAdult::MermaidCorra
     D_END
     D_STRUCT sActor
     d_byte Type_eActor, eActor::BadVinebug

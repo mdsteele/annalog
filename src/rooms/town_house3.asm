@@ -18,7 +18,7 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "../actor.inc"
-.INCLUDE "../actors/townsfolk.inc"
+.INCLUDE "../actors/adult.inc"
 .INCLUDE "../charmap.inc"
 .INCLUDE "../cpu.inc"
 .INCLUDE "../device.inc"
@@ -89,7 +89,7 @@ _Actors_sActor_arr:
     d_byte Type_eActor, eActor::NpcAdult
     d_word PosX_i16, $00a0
     d_word PosY_i16, $00c8
-    d_byte Param_byte, kTileIdAdultSmith1
+    d_byte Param_byte, eNpcAdult::HumanSmith1
     D_END
     .assert * - :- <= kMaxActors * .sizeof(sActor), error
     .byte eActor::None
@@ -137,15 +137,15 @@ _Devices_sDevice_arr:
     cmp #50
     bne @done
     @raiseHammer:
-    lda #kTileIdAdultSmith2
-    .assert kTileIdAdultSmith2 > 0, error
+    lda #eNpcAdult::HumanSmith2
+    .assert eNpcAdult::HumanSmith2 > 0, error
     bne @setSmithState  ; unconditional
     @strikeHammer:
     jsr FuncA_Room_PlaySfxMetallicClang
     @lowerHammer:
     lda #0
     sta Zp_RoomState + sState::HammerTimer_u8
-    lda #kTileIdAdultSmith1
+    lda #eNpcAdult::HumanSmith1
     @setSmithState:
     sta Ram_ActorState1_byte_arr + kSmithActorIndex
     @done:

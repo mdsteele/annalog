@@ -18,7 +18,7 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "../actor.inc"
-.INCLUDE "../actors/townsfolk.inc"
+.INCLUDE "../actors/adult.inc"
 .INCLUDE "../charmap.inc"
 .INCLUDE "../device.inc"
 .INCLUDE "../dialog.inc"
@@ -253,10 +253,10 @@ _Platforms_sPlatform_arr:
 _Actors_sActor_arr:
 :   .assert * - :- = kGhostActorIndex * .sizeof(sActor), error
     D_STRUCT sActor
-    d_byte Type_eActor, eActor::NpcMermaid
+    d_byte Type_eActor, eActor::NpcAdult
     d_word PosX_i16, $01e4
     d_word PosY_i16, $0071
-    d_byte Param_byte, kTileIdMermaidGhostFirst
+    d_byte Param_byte, eNpcAdult::MermaidGhost
     D_END
     ;; TODO: add some goo baddies
     .assert * - :- <= kMaxActors * .sizeof(sActor), error

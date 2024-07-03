@@ -18,6 +18,7 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "actors/acid.inc"
+.INCLUDE "actors/adult.inc"
 .INCLUDE "actors/axe.inc"
 .INCLUDE "actors/bat.inc"
 .INCLUDE "actors/bird.inc"
@@ -41,6 +42,7 @@
 .INCLUDE "actors/jelly.inc"
 .INCLUDE "actors/lavaball.inc"
 .INCLUDE "actors/orc.inc"
+.INCLUDE "actors/queen.inc"
 .INCLUDE "actors/rhino.inc"
 .INCLUDE "actors/rodent.inc"
 .INCLUDE "actors/slime.inc"
@@ -50,7 +52,6 @@
 .INCLUDE "actors/steam.inc"
 .INCLUDE "actors/toad.inc"
 .INCLUDE "actors/toddler.inc"
-.INCLUDE "actors/townsfolk.inc"
 .INCLUDE "actors/vinebug.inc"
 .INCLUDE "actors/wasp.inc"
 .INCLUDE "avatar.inc"
@@ -1296,16 +1297,16 @@ _chr_begin:
     chr_inc "platform_waterfall",  kTileIdObjPlatformWaterfallFirst
     chr_inc "bad_grub",            kTileIdObjBadGrubFirst
     chr_res $02
-    chr_inc "mermaid_corra",       kTileIdMermaidCorraFirst
+    chr_inc "mermaid_corra",       kTileIdObjMermaidCorraFirst
     chr_inc "bad_vinebug",         kTileIdObjBadVinebugFirst
     chr_inc "anchor",              kTileIdObjAnchorFirst
     chr_res $05
     chr_inc "bad_beetle",          kTileIdObjBadBeetleFirst
     chr_res $04
     chr_inc "bad_fish",            kTileIdObjBadFishFirst
-    chr_inc "corra_swimming_down", kTileIdCorraSwimmingDownFirst
+    chr_inc "corra_swimming_down", kTileIdObjCorraSwimmingDownFirst
     chr_inc "grenade",             kTileIdObjGrenadeFirst
-    chr_inc "corra_swimming_up",   kTileIdCorraSwimmingUpFirst
+    chr_inc "corra_swimming_up",   kTileIdObjCorraSwimmingUpFirst
     END_CHR_BANK
 .ENDPROC
 
@@ -1426,11 +1427,11 @@ _chr_begin:
     chr_inc "bad_flydrop",    kTileIdObjBadFlydropFirst
     chr_inc "forcefield",     kTileIdObjForcefieldFirst
     chr_inc "fireball",       kTileIdObjFireballFirst
-    chr_inc "mermaid_ghost",  kTileIdMermaidGhostFirst
+    chr_inc "mermaid_ghost",  kTileIdObjMermaidGhostFirst
     chr_inc "orc_ghost",      kTileIdObjOrcGhostFirst
     chr_inc "laser",          kTileIdObjLaserFirst
     chr_inc "anna_ghost",     kTileIdObjAnnaGhostFirst
-    chr_inc "adult_ghost",    kTileIdAdultGhostFirst
+    chr_inc "adult_ghost",    kTileIdObjAdultGhostFirst
     chr_inc "breaker",        kTileIdObjBreakerFirst
     END_CHR_BANK
 .ENDPROC
@@ -1449,9 +1450,9 @@ _chr_begin:
     chr_inc "upgrade_opbeep", kTileIdObjUpgradeOpBeepFirst
     chr_inc "column",         kTileIdObjColumnFirst
     chr_res $0a
-    chr_inc "mermaid_guardf", kTileIdMermaidGuardFFirst
+    chr_inc "mermaid_guardf", kTileIdObjMermaidGuardFFirst
     chr_res $06
-    chr_inc "mermaid_corra",  kTileIdMermaidCorraFirst
+    chr_inc "mermaid_corra",  kTileIdObjMermaidCorraFirst
     chr_inc "column_cracked", kTileIdObjColumnCrackedFirst
     chr_inc "bad_toad",       kTileIdObjBadToadFirst
     chr_inc "bad_beetle",     kTileIdObjBadBeetleFirst
@@ -1479,8 +1480,8 @@ _chr_begin:
     chr_inc "orc_gronta_standing", kTileIdObjOrcGrontaStandingFirst
     chr_inc "orc_grunt_running",   kTileIdObjOrcGruntRunningFirst
     chr_inc "orc_grunt_throwing",  kTileIdObjOrcGruntThrowingFirst
-    chr_inc "adult_woman",         kTileIdAdultWomanFirst
-    chr_inc "adult_man",           kTileIdAdultManFirst
+    chr_inc "adult_woman",         kTileIdObjAdultWomanFirst
+    chr_inc "adult_man",           kTileIdObjAdultManFirst
     chr_res $04
     chr_inc "child_stand",         kTileIdObjChildStandFirst
     END_CHR_BANK
@@ -1493,17 +1494,17 @@ _chr_begin:
 .EXPORT Ppu_ChrObjVillage
 .PROC Ppu_ChrObjVillage
     CHR2_BANK $80
-    chr_inc "mermaid_guardm",  kTileIdMermaidGuardMFirst
-    chr_inc "mermaid_phoebe",  kTileIdMermaidPhoebeFirst
-    chr_inc "mermaid_farmer",  kTileIdMermaidFarmerFirst
-    chr_inc "mermaid_florist", kTileIdMermaidFloristFirst
-    chr_inc "mermaid_daphne",  kTileIdMermaidDaphneFirst
-    chr_inc "mermaid_guardf",  kTileIdMermaidGuardFFirst
+    chr_inc "mermaid_guardm",  kTileIdObjMermaidGuardMFirst
+    chr_inc "mermaid_phoebe",  kTileIdObjMermaidPhoebeFirst
+    chr_inc "mermaid_farmer",  kTileIdObjMermaidFarmerFirst
+    chr_inc "mermaid_florist", kTileIdObjMermaidFloristFirst
+    chr_inc "mermaid_daphne",  kTileIdObjMermaidDaphneFirst
+    chr_inc "mermaid_guardf",  kTileIdObjMermaidGuardFFirst
     chr_res $06
-    chr_inc "mermaid_corra",   kTileIdMermaidCorraFirst
-    chr_inc "mermaid_queen",   kTileIdMermaidQueenFirst
-    chr_inc "adult_smith",     kTileIdAdultSmithFirst
-    chr_inc "adult_elder",     kTileIdAdultElderFirst
+    chr_inc "mermaid_corra",   kTileIdObjMermaidCorraFirst
+    chr_inc "mermaid_queen",   kTileIdObjMermaidQueenFirst
+    chr_inc "adult_smith",     kTileIdObjAdultSmithFirst
+    chr_inc "adult_elder",     kTileIdObjAdultElderFirst
     chr_res $08
     chr_inc "child_swim",      kTileIdObjChildSwimFirst
     chr_inc "child_stand",     kTileIdObjChildStandFirst
