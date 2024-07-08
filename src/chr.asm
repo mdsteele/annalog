@@ -1016,10 +1016,9 @@ _chr_begin:
 .EXPORT Ppu_ChrBgShadow
 .PROC Ppu_ChrBgShadow
     CHR1_BANK $80
-    chr_inc "shadow1"
-    chr_inc "shadow2"
-    chr_inc "shadow3"
-    chr_res $04
+    chr_inc "terrain_shadow_0"
+    chr_inc "terrain_shadow_1"
+    chr_inc "terrain_shadow_2"
     chr_inc "tank"
     chr_res $06
     END_CHR_BANK
