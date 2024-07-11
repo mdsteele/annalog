@@ -26,6 +26,7 @@
 .INCLUDE "../cpu.inc"
 .INCLUDE "../cutscene.inc"
 .INCLUDE "../device.inc"
+.INCLUDE "../devices/console.inc"
 .INCLUDE "../dialog.inc"
 .INCLUDE "../flag.inc"
 .INCLUDE "../machine.inc"
@@ -81,6 +82,8 @@
 .IMPORT Ram_ActorFlags_bObj_arr
 .IMPORT Ram_ActorState2_byte_arr
 .IMPORT Ram_ActorType_eActor_arr
+.IMPORT Ram_DeviceAnim_u8_arr
+.IMPORT Ram_DeviceType_eDevice_arr
 .IMPORT Ram_MachineGoalHorz_u8_arr
 .IMPORT Ram_MachineGoalVert_u8_arr
 .IMPORT Ram_MachineState1_byte_arr
@@ -109,6 +112,8 @@ kCutsceneSpawnDeviceIndex = 0
 kTunnelPassageIndex = 1
 ;;; The index of the passage on the eastern side of the room.
 kEasternPassageIndex = 2
+;;; The index of the console device for the PrisonCellLift machine.
+kLiftConsoleDeviceIndex = 2
 ;;; The index of the console device for the PrisonCellLauncher machine.
 kLauncherConsoleDeviceIndex = 3
 
@@ -172,6 +177,9 @@ kGateBlockRow = 10
 .STRUCT sState
     ;; The current state of the lever in this room.
     GateLever_u8 .byte
+    ;; Decrements each frame when nonzero; if reaches zero, activates the lift
+    ;; console.
+    LiftConsoleTimer_u8 .byte
 .ENDSTRUCT
 .ASSERT .sizeof(sState) <= kRoomStateSize, error
 
@@ -378,6 +386,7 @@ _Devices_sDevice_arr:
     d_byte BlockCol_u8, 9
     d_byte Target_byte, eFlag::PaperJerome36
     D_END
+    .assert * - :- = kLiftConsoleDeviceIndex * .sizeof(sDevice), error
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::ConsoleFloor
     d_byte BlockRow_u8, 4
@@ -506,6 +515,17 @@ _InitRocksAndCrate:
 ;;; Tick function for the PrisonCell room.
 ;;; @prereq PRGA_Room is loaded.
 .PROC FuncC_Prison_Cell_TickRoom
+_LiftConsole:
+    lda Zp_RoomState + sState::LiftConsoleTimer_u8
+    beq @done  ; console is already active
+    dec Zp_RoomState + sState::LiftConsoleTimer_u8
+    bne @done  ; don't activate console yet
+    ;; TODO: play a sound for the console turning on
+    lda #eDevice::ConsoleFloor
+    sta Ram_DeviceType_eDevice_arr + kLiftConsoleDeviceIndex
+    lda #kConsoleAnimCountdown
+    sta Ram_DeviceAnim_u8_arr + kLiftConsoleDeviceIndex
+    @done:
 _RocketImpact:
     ;; Find the rocket (if any).  If there isn't one, we're done.
     lda #eActor::ProjRocket  ; param: actor type to find
@@ -635,12 +655,21 @@ _ParticleAngle_u8_arr:
 ;;; @prereq Rendering is disabled.
 ;;; @prereq The PrisonCell room has been loaded.
 .PROC MainC_Prison_Cell_StartCutscene
+    ;; Set the player avatar's spawn point within the prison cell, but make the
+    ;; avatar initially hidden (until the cutscene makes it appear later).
     lda #bSpawn::Device | kCutsceneSpawnDeviceIndex  ; param: bSpawn value
     jsr Func_SetLastSpawnPoint
     ldx #kCutsceneSpawnDeviceIndex  ; param: device index
     jsr_prga FuncA_Avatar_SpawnAtDevice
     lda #eAvatar::Hidden
     sta Zp_AvatarPose_eAvatar
+    ;; Initially disable the lift console, but arrange for it to activate soon
+    ;; after the cutscene is over.
+    lda #eDevice::Placeholder
+    sta Ram_DeviceType_eDevice_arr + kLiftConsoleDeviceIndex
+    lda #120
+    sta Zp_RoomState + sState::LiftConsoleTimer_u8
+    ;; Enter the room and start the cutscene.
     lda #eCutscene::PrisonCellGetThrownIn
     sta Zp_Next_eCutscene
     jmp Main_Explore_EnterRoom

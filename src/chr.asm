@@ -544,7 +544,7 @@ _chr_begin:
     chr_inc "indoors"
     chr_res $07
     chr_inc "window"
-    chr_inc "furniture"
+    chr_inc "terrain_furniture"
     chr_res $12
     END_CHR_BANK
 .ENDPROC
@@ -991,7 +991,8 @@ _chr_begin:
     CHR1_BANK $80
     chr_inc "cave"
     chr_inc "prison"
-    chr_res $20
+    chr_inc "terrain_furniture"
+    chr_res $12
     END_CHR_BANK
 .ENDPROC
 

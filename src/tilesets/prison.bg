@@ -1,17 +1,18 @@
 @BG 0 0 0 32x10
 >cave
 >prison
+>terrain_furniture
 >terrain_shared_0
 >terrain_shared_1
 >water_anim0
 
-    CMCN    CICJDCDD                DADB    BP  BOBLBPBL  BL  BL
-    COCPCECFCKCL                      BLBLBPBP    BPBLBOBOBLDBDA
-        AO                                                  EAEA
-  AL  AMAN    AJAK
+    DMDN    DIDJECED                EAEB    BP  BOBLBPBL  BL  BL
+    DODPDEDFDKDL                      BLBLBPBP    BPBLBOBOBLEBEA
+        AO                                      CH    CHCGCGFAFA
+  AL  AMAN    AJAK                              CICJCKCLCECF
   BLBL    BLBL                  BABEBEBBBCBFBFBDBEBEBGBHBFBFBKBJ
   BLBL    BOBP    BOBP  BLBLBPBOBCBFBFBDBCBFBFBDBFBFBIBJBFBFBMBN
-          AGAG  CB      AG    AG        DA    DB
-  AHAH                CBAHAHAHAH                DBDADB    DAAPAP
-AEAGAGAGAGAFAEAGAGAGAGAFDA      CBDBDADBDADBDADBDA    DBAEAFDADB
-DBAHAHAHAHDADBCB      DADBAHAHAHAHDADBCB      DADB    DADBDADBDA
+          AGAG  DB      AG    AG        EA    EB
+  AHAH                DBAHAHAHAH                EBEAEB    EAAPAP
+AEAGAGAGAGAFAEAGAGAGAGAFEA      DBEBEAEBEAEBEAEBEA    EBAEAFEAEB
+EBAHAHAHAHEAEBDB      EAEBAHAHAHAHEAEBDB      EAEB    EAEBEAEBEA
