@@ -51,6 +51,7 @@
 .IMPORT DataA_Cutscene_PrisonUpperFreeAlex_sCutscene
 .IMPORT DataA_Cutscene_PrisonUpperFreeKids_sCutscene
 .IMPORT DataA_Cutscene_PrisonUpperLoosenBrick_sCutscene
+.IMPORT DataA_Cutscene_SewerPoolFeedDucks_sCutscene
 .IMPORT DataA_Cutscene_SharedFlipBreaker_sCutscene
 .IMPORT DataA_Cutscene_SharedTeleportIn_sCutscene
 .IMPORT DataA_Cutscene_SharedTeleportOut_sCutscene
@@ -250,6 +251,8 @@ _Finish:
             DataA_Cutscene_PrisonUpperFreeKids_sCutscene
     d_entry table, PrisonUpperLoosenBrick, \
             DataA_Cutscene_PrisonUpperLoosenBrick_sCutscene
+    d_entry table, SewerPoolFeedDucks, \
+            DataA_Cutscene_SewerPoolFeedDucks_sCutscene
     d_entry table, SharedFlipBreaker, \
             DataA_Cutscene_SharedFlipBreaker_sCutscene
     d_entry table, SharedTeleportIn, \

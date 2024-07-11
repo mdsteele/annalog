@@ -18,66 +18,29 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "../actor.inc"
+.INCLUDE "../avatar.inc"
 .INCLUDE "../charmap.inc"
+.INCLUDE "../cutscene.inc"
 .INCLUDE "../device.inc"
-.INCLUDE "../flag.inc"
-.INCLUDE "../machine.inc"
-.INCLUDE "../machines/multiplexer.inc"
-.INCLUDE "../machines/shared.inc"
+.INCLUDE "../dialog.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
 .INCLUDE "../platform.inc"
 .INCLUDE "../ppu.inc"
-.INCLUDE "../program.inc"
 .INCLUDE "../room.inc"
 
 .IMPORT DataA_Room_Sewer_sTileset
-.IMPORT FuncA_Machine_Error
-.IMPORT FuncA_Machine_GetMultiplexerMoveSpeed
-.IMPORT FuncA_Machine_ReachedGoal
-.IMPORT FuncA_Machine_StartWorking
-.IMPORT FuncA_Objects_DrawMultiplexerMachine
 .IMPORT FuncA_Room_SewagePushAvatar
-.IMPORT Func_MovePlatformTopTowardPointY
+.IMPORT Func_FindEmptyActorSlot
+.IMPORT Func_GetRandomByte
+.IMPORT Func_InitActorProjFood
 .IMPORT Func_Noop
+.IMPORT Func_SetActorCenterToPoint
+.IMPORT Func_SetPointToAvatarCenter
 .IMPORT Ppu_ChrObjSewer
-.IMPORT Ram_MachineGoalHorz_u8_arr
-.IMPORT Ram_PlatformTop_i16_0_arr
-.IMPORTZP Zp_PointY_i16
-.IMPORTZP Zp_RoomState
-
-;;;=========================================================================;;;
-
-;;; The number of movable platforms for the SewerPoolMultiplexer machine.
-.DEFINE kMultiplexerNumPlatforms 5
-
-;;; The machine index for the SewerPoolMultiplexer machine.
-kMultiplexerMachineIndex = 0
-;;; The main platform index for the SewerPoolMultiplexer machine.
-kMultiplexerMainPlatformIndex = kMultiplexerNumPlatforms
-
-;;; The initial and maximum vertical goal value for the multiplexer's movable
-;;; platforms.
-kMultiplexerInitGoalY = 5
-kMultiplexerMaxGoalY = 9
-
-;;; The maximum and initial room pixel Y-positions for the top of the
-;;; multiplexer's movable platforms.
-.LINECONT +
-kMultiplexerMaxPlatformTop = $00b0
-kMultiplexerInitPlatformTop = \
-    kMultiplexerMaxPlatformTop - kMultiplexerInitGoalY * kBlockHeightPx
-.LINECONT -
-
-;;;=========================================================================;;;
-
-;;; Defines room-specific state data for this particular room.
-.STRUCT sState
-    ;; The vertical goal value for each movable platform of the multiplexer
-    ;; machine, by platform index.
-    MultiplexerGoalVert_u8_arr .res kMultiplexerNumPlatforms
-.ENDSTRUCT
-.ASSERT .sizeof(sState) <= kRoomStateSize, error
+.IMPORT Ram_ActorVelX_i16_0_arr
+.IMPORT Ram_ActorVelX_i16_1_arr
+.IMPORT Ram_ActorVelY_i16_1_arr
 
 ;;;=========================================================================;;;
 
@@ -92,8 +55,8 @@ kMultiplexerInitPlatformTop = \
     d_byte MinimapStartRow_u8, 7
     d_byte MinimapStartCol_u8, 17
     d_addr TerrainData_ptr, _TerrainData
-    d_byte NumMachines_u8, 1
-    d_addr Machines_sMachine_arr_ptr, _Machines_sMachine_arr
+    d_byte NumMachines_u8, 0
+    d_addr Machines_sMachine_arr_ptr, 0
     d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjSewer)
     d_addr Ext_sRoomExt_ptr, _Ext_sRoomExt
     D_END
@@ -112,93 +75,49 @@ _Ext_sRoomExt:
 _TerrainData:
 :   .incbin "out/rooms/sewer_pool.room"
     .assert * - :- = 34 * 15, error
-_Machines_sMachine_arr:
-:   .assert * - :- = kMultiplexerMachineIndex * .sizeof(sMachine), error
-    D_STRUCT sMachine
-    d_byte Code_eProgram, eProgram::SewerPoolMultiplexer
-    d_byte Breaker_eFlag, 0
-    d_byte Flags_bMachine, bMachine::MoveV | bMachine::WriteC
-    d_byte Status_eDiagram, eDiagram::Multiplexer
-    d_word ScrollGoalX_u16, $0110
-    d_byte ScrollGoalY_u8, $00
-    d_byte RegNames_u8_arr4, "J", 0, 0, "Y"
-    d_byte MainPlatform_u8, kMultiplexerMainPlatformIndex
-    d_addr Init_func_ptr, FuncC_Sewer_PoolMultiplexer_InitReset
-    d_addr ReadReg_func_ptr, FuncC_Sewer_PoolMultiplexer_ReadReg
-    d_addr WriteReg_func_ptr, FuncA_Machine_SewerPoolMultiplexer_WriteReg
-    d_addr TryMove_func_ptr, FuncC_Sewer_PoolMultiplexer_TryMove
-    d_addr TryAct_func_ptr, FuncA_Machine_Error
-    d_addr Tick_func_ptr, FuncA_Machine_SewerPoolMultiplexer_Tick
-    d_addr Draw_func_ptr, FuncC_Sewer_PoolMultiplexer_Draw
-    d_addr Reset_func_ptr, FuncC_Sewer_PoolMultiplexer_InitReset
-    D_END
-    .assert * - :- <= kMaxMachines * .sizeof(sMachine), error
 _Platforms_sPlatform_arr:
-:   .repeat kMultiplexerNumPlatforms, index
-    D_STRUCT sPlatform
-    d_byte Type_ePlatform, ePlatform::Solid
-    d_word WidthPx_u16, $08
-    d_byte HeightPx_u8, $10
-    d_word Left_i16, $0170 + $10 * index
-    d_word Top_i16, kMultiplexerInitPlatformTop
-    D_END
-    .endrepeat
-    .assert * - :- = kMultiplexerMainPlatformIndex * .sizeof(sPlatform), error
-    D_STRUCT sPlatform
-    d_byte Type_ePlatform, ePlatform::Solid
-    d_word WidthPx_u16, $10
-    d_byte HeightPx_u8, $10
-    d_word Left_i16,  $01c0
-    d_word Top_i16,   $0060
-    D_END
-    D_STRUCT sPlatform
+:   D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Water
-    d_word WidthPx_u16, $190
-    d_byte HeightPx_u8,  $20
-    d_word Left_i16,   $0040
-    d_word Top_i16,    $00c4
-    D_END
-    ;; Terrain spikes:
-    D_STRUCT sPlatform
-    d_byte Type_ePlatform, ePlatform::Harm
-    d_word WidthPx_u16, $190
-    d_byte HeightPx_u8,  $08
-    d_word Left_i16,   $0040
-    d_word Top_i16,    $00de
-    D_END
-    D_STRUCT sPlatform
-    d_byte Type_ePlatform, ePlatform::Harm
-    d_word WidthPx_u16, $20
-    d_byte HeightPx_u8, $10
-    d_word Left_i16,  $0040
-    d_word Top_i16,   $00d6
-    D_END
-    D_STRUCT sPlatform
-    d_byte Type_ePlatform, ePlatform::Harm
-    d_word WidthPx_u16, $20
-    d_byte HeightPx_u8, $10
-    d_word Left_i16,  $00a0
-    d_word Top_i16,   $00d6
-    D_END
-    D_STRUCT sPlatform
-    d_byte Type_ePlatform, ePlatform::Harm
-    d_word WidthPx_u16, $20
-    d_byte HeightPx_u8, $10
-    d_word Left_i16,  $0130
-    d_word Top_i16,   $00d6
+    d_word WidthPx_u16, $160
+    d_byte HeightPx_u8,  $30
+    d_word Left_i16,   $0070
+    d_word Top_i16,    $00b4
     D_END
     .assert * - :- <= kMaxPlatforms * .sizeof(sPlatform), error
     .byte ePlatform::None
 _Actors_sActor_arr:
-:   ;; TODO: add some baddies
+:   D_STRUCT sActor
+    d_byte Type_eActor, eActor::NpcDuck
+    d_word PosX_i16, $0090
+    d_word PosY_i16, $00b4
+    d_byte Param_byte, bObj::FlipH
+    D_END
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::NpcDuck
+    d_word PosX_i16, $00ac
+    d_word PosY_i16, $00b4
+    d_byte Param_byte, 0
+    D_END
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::NpcDuck
+    d_word PosX_i16, $00e4
+    d_word PosY_i16, $00b4
+    d_byte Param_byte, 0
+    D_END
     .assert * - :- <= kMaxActors * .sizeof(sActor), error
     .byte eActor::None
 _Devices_sDevice_arr:
 :   D_STRUCT sDevice
-    d_byte Type_eDevice, eDevice::ConsoleFloor
-    d_byte BlockRow_u8, 5
-    d_byte BlockCol_u8, 29
-    d_byte Target_byte, kMultiplexerMachineIndex
+    d_byte Type_eDevice, eDevice::TalkLeft
+    d_byte BlockRow_u8, 10
+    d_byte BlockCol_u8, 17
+    d_byte Target_byte, eDialog::SewerPoolFood
+    D_END
+    D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::Sign
+    d_byte BlockRow_u8, 10
+    d_byte BlockCol_u8, 19
+    d_byte Target_byte, eDialog::SewerPoolSign
     D_END
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None
@@ -218,115 +137,69 @@ _Passages_sPassage_arr:
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
 .ENDPROC
 
-;;; Returns the platform index currently selected by the J register of the
-;;; SewerPoolMultiplexer machine.
-;;; @return Y The platform index.
-.PROC FuncC_Sewer_PoolMultiplexer_GetPlatformIndex
-    lda Ram_MachineGoalHorz_u8_arr + kMultiplexerMachineIndex  ; J register
-    cmp #kMultiplexerNumPlatforms
-    blt @setIndex
-    sbc #kMultiplexerNumPlatforms  ; carry is already set
-    @setIndex:
-    tay
-    rts
-.ENDPROC
+;;;=========================================================================;;;
 
-.PROC FuncC_Sewer_PoolMultiplexer_InitReset
-    lda #kMultiplexerInitGoalY
-    ldx #kMultiplexerNumPlatforms - 1
-    @loop:
-    sta Zp_RoomState + sState::MultiplexerGoalVert_u8_arr, x
-    dex
-    bpl @loop
-    inx  ; now X is zero
-    stx Ram_MachineGoalHorz_u8_arr + kMultiplexerMachineIndex  ; J register
-    rts
-.ENDPROC
+.SEGMENT "PRGA_Cutscene"
 
-.PROC FuncC_Sewer_PoolMultiplexer_ReadReg
-    cmp #$f
-    beq _ReadY
-_ReadJ:
-    lda Ram_MachineGoalHorz_u8_arr + kMultiplexerMachineIndex  ; J register
+.EXPORT DataA_Cutscene_SewerPoolFeedDucks_sCutscene
+.PROC DataA_Cutscene_SewerPoolFeedDucks_sCutscene
+    act_SetCutsceneFlags bCutscene::TickAllActors
+    act_SetAvatarState 0
+    act_SetAvatarVelX 0
+    act_WalkAvatar $0116
+    act_SetAvatarFlags kPaletteObjAvatarNormal | bObj::FlipH | bObj::Pri
+    act_SetAvatarPose eAvatar::Kneeling
+    act_WaitFrames 20
+    act_SetAvatarFlags kPaletteObjAvatarNormal | bObj::FlipH
+    act_SetAvatarPose eAvatar::Reaching
+    act_CallFunc _ThrowDuckFood
+    act_WaitFrames 20
+    act_SetAvatarPose eAvatar::Standing
+    act_ContinueExploring
+_ThrowDuckFood:
+    jsr Func_FindEmptyActorSlot  ; returns C and X
+    bcs @done
+    jsr Func_SetPointToAvatarCenter  ; preserves X
+    jsr Func_SetActorCenterToPoint  ; preserves X
+    lda #$ff  ; param: frames until expire
+    jsr Func_InitActorProjFood  ; preserves X
+    lda #<-2
+    sta Ram_ActorVelY_i16_1_arr, x
+    lda #<-2
+    sta Ram_ActorVelX_i16_1_arr, x
+    jsr Func_GetRandomByte  ; preserves X, returns A
+    sta Ram_ActorVelX_i16_0_arr, x
+    lsr a
+    bcc @done
+    dec Ram_ActorVelX_i16_1_arr, x
+    @done:
     rts
-_ReadY:
-    jsr FuncC_Sewer_PoolMultiplexer_GetPlatformIndex  ; returns Y
-    lda #kMultiplexerMaxPlatformTop + kTileHeightPx
-    sub Ram_PlatformTop_i16_0_arr, y
-    div #kBlockHeightPx
-    rts
-.ENDPROC
-
-.PROC FuncC_Sewer_PoolMultiplexer_Draw
-    ldx #kMultiplexerNumPlatforms  ; param: num platforms
-    jmp FuncA_Objects_DrawMultiplexerMachine
-.ENDPROC
-
-.PROC FuncC_Sewer_PoolMultiplexer_TryMove
-    jsr FuncC_Sewer_PoolMultiplexer_GetPlatformIndex  ; returns Y
-    lda Zp_RoomState + sState::MultiplexerGoalVert_u8_arr, y
-    cpx #eDir::Down
-    beq @moveDown
-    @moveUp:
-    cmp #kMultiplexerMaxGoalY
-    bge @error
-    tax  ; goal vert
-    inx
-    bne @success  ; unconditional
-    @moveDown:
-    tax  ; goal vert
-    beq @error
-    dex
-    @success:
-    txa
-    sta Zp_RoomState + sState::MultiplexerGoalVert_u8_arr, y
-    jmp FuncA_Machine_StartWorking
-    @error:
-    jmp FuncA_Machine_Error
 .ENDPROC
 
 ;;;=========================================================================;;;
 
-.SEGMENT "PRGA_Machine"
+.SEGMENT "PRGA_Dialog"
 
-.PROC FuncA_Machine_SewerPoolMultiplexer_WriteReg
-    sta Ram_MachineGoalHorz_u8_arr + kMultiplexerMachineIndex  ; J register
-    rts
+.EXPORT DataA_Dialog_SewerPoolFood_sDialog
+.PROC DataA_Dialog_SewerPoolFood_sDialog
+    dlg_Cutscene eCutscene::SewerPoolFeedDucks
 .ENDPROC
 
-.PROC FuncA_Machine_SewerPoolMultiplexer_Tick
-    lda #0
-    pha  ; num platforms done
-    ldx #kMultiplexerNumPlatforms - 1
-_Loop:
-    ;; Calculate the desired Y-position for the top edge of the platform, in
-    ;; room-space pixels, storing it in Zp_PointY_i16.
-    lda Zp_RoomState + sState::MultiplexerGoalVert_u8_arr, x
-    mul #kBlockHeightPx
-    sta T0  ; goal delta
-    lda #<kMultiplexerMaxPlatformTop
-    sub T0  ; goal delta
-    sta Zp_PointY_i16 + 0
-    lda #>kMultiplexerMaxPlatformTop
-    sbc #0
-    sta Zp_PointY_i16 + 1
-    ;; Move the machine vertically, as necessary.
-    jsr FuncA_Machine_GetMultiplexerMoveSpeed  ; preserves X; returns A
-    jsr Func_MovePlatformTopTowardPointY  ; preserves X; returns Z
-    bne @moved
-    pla  ; num platforms done
-    add #1
-    pha  ; num platforms done
-    @moved:
-    dex
-    bpl _Loop
-_Finish:
-    pla  ; num platforms done
-    cmp #kMultiplexerNumPlatforms
-    bne @notReachedGoal
-    jmp FuncA_Machine_ReachedGoal
-    @notReachedGoal:
-    rts
+.EXPORT DataA_Dialog_SewerPoolSign_sDialog
+.PROC DataA_Dialog_SewerPoolSign_sDialog
+    dlg_Text Sign, DataA_Text1_SewerPoolSign_u8_arr
+    dlg_Done
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Text1"
+
+.PROC DataA_Text1_SewerPoolSign_u8_arr
+    .byte "    - NOTICE -$"
+    .byte "$"
+    .byte "   Please do ", $9d, $9e, $9f, "$"
+    .byte "  feed the ducks.#"
 .ENDPROC
 
 ;;;=========================================================================;;;

@@ -151,6 +151,7 @@
     GardenShaftLowerBridge
     GardenShaftUpperBridge
     GardenTowerCannon
+    LavaCavernBoiler
     LavaCenterBlaster
     LavaEastBlaster
     LavaEastLowerBoiler
@@ -158,8 +159,12 @@
     LavaFlowerBoiler
     LavaStationBoiler
     LavaTeleportField
+    LavaVentLift
     LavaWestBoiler
     MermaidElevatorJet
+    MermaidHut6Drums
+    MermaidHut6Organ
+    MermaidHut6Trombone
     MermaidSpringPump
     MineCollapseCrane
     MineCollapseTrolley
@@ -179,13 +184,15 @@
     PrisonEscapeTrolley
     SewerBasinMultiplexer
     SewerFlowerPump
-    SewerPoolMultiplexer
     SewerSouthMultiplexer
     SewerTrapLift
     SewerWestMultiplexer
     ShadowDrillLaser
     ShadowEntryLift
+    ShadowFlowerLaser
     ShadowHallMinigun
+    ShadowHeartEmitterX
+    ShadowHeartEmitterY
     ShadowTeleportField
     ShadowTrapLaser
     TempleAltarLowerMinigun
@@ -193,15 +200,6 @@
     TempleFoyerCarriage
     TempleNaveLowerCarriage
     TempleNaveUpperCarriage
-    ;; TODO: Sort the below within the above once it won't disrupt playtesting.
-    LavaVentLift
-    LavaCavernBoiler
-    ShadowFlowerLaser
-    ShadowHeartEmitterX
-    ShadowHeartEmitterY
-    MermaidHut6Drums
-    MermaidHut6Organ
-    MermaidHut6Trombone
     NUM_VALUES
 .ENDENUM
 

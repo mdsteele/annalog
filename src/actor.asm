@@ -53,6 +53,7 @@
 .IMPORT FuncA_Actor_TickBadToad
 .IMPORT FuncA_Actor_TickBadVinebug
 .IMPORT FuncA_Actor_TickBadWasp
+.IMPORT FuncA_Actor_TickNpcDuck
 .IMPORT FuncA_Actor_TickNpcToddler
 .IMPORT FuncA_Actor_TickProjAcid
 .IMPORT FuncA_Actor_TickProjAxeBoomer
@@ -65,6 +66,7 @@
 .IMPORT FuncA_Actor_TickProjFireball
 .IMPORT FuncA_Actor_TickProjFireblast
 .IMPORT FuncA_Actor_TickProjFlamestrike
+.IMPORT FuncA_Actor_TickProjFood
 .IMPORT FuncA_Actor_TickProjGrenade
 .IMPORT FuncA_Actor_TickProjRocket
 .IMPORT FuncA_Actor_TickProjSpike
@@ -108,6 +110,7 @@
 .IMPORT FuncA_Objects_DrawActorBadWasp
 .IMPORT FuncA_Objects_DrawActorNpcAdult
 .IMPORT FuncA_Objects_DrawActorNpcChild
+.IMPORT FuncA_Objects_DrawActorNpcDuck
 .IMPORT FuncA_Objects_DrawActorNpcOrc
 .IMPORT FuncA_Objects_DrawActorNpcQueen
 .IMPORT FuncA_Objects_DrawActorNpcToddler
@@ -121,6 +124,7 @@
 .IMPORT FuncA_Objects_DrawActorProjFireball
 .IMPORT FuncA_Objects_DrawActorProjFireblast
 .IMPORT FuncA_Objects_DrawActorProjFlamestrike
+.IMPORT FuncA_Objects_DrawActorProjFood
 .IMPORT FuncA_Objects_DrawActorProjGrenade
 .IMPORT FuncA_Objects_DrawActorProjRocket
 .IMPORT FuncA_Objects_DrawActorProjSpike
@@ -160,6 +164,7 @@
 .IMPORT Func_InitActorProjEmber
 .IMPORT Func_InitActorProjFireball
 .IMPORT Func_InitActorProjFireblast
+.IMPORT Func_InitActorProjFood
 .IMPORT Func_InitActorProjGrenade
 .IMPORT Func_InitActorProjRocket
 .IMPORT Func_InitActorProjSpike
@@ -185,6 +190,7 @@ kProjBreakbombRadius  = 3
 kProjBulletRadius     = 1
 kProjFireballRadius   = 3
 kProjFireblastRadius  = 3
+kProjFoodRadius       = 1
 kProjGrenadeRadius    = 2
 kProjRocketRadius     = 2
 kProjSpikeRadius      = 3
@@ -511,6 +517,7 @@ _NoHit:
     d_byte BadWasp,          5
     d_byte NpcAdult,        13
     d_byte NpcChild,         7
+    d_byte NpcDuck,          1
     d_byte NpcOrc,          kOrcBoundingBoxUp
     d_byte NpcQueen,         2
     d_byte NpcToddler,       4
@@ -525,6 +532,7 @@ _NoHit:
     d_byte ProjFireball,    kProjFireballRadius
     d_byte ProjFireblast,   kProjFireblastRadius
     d_byte ProjFlamestrike, 44
+    d_byte ProjFood,        kProjFoodRadius
     d_byte ProjGrenade,     kProjGrenadeRadius
     d_byte ProjRocket,      kProjRocketRadius
     d_byte ProjSpike,       kProjSpikeRadius
@@ -573,6 +581,7 @@ _NoHit:
     d_byte BadWasp,          6
     d_byte NpcAdult,         8
     d_byte NpcChild,         8
+    d_byte NpcDuck,          3
     d_byte NpcOrc,          kOrcBoundingBoxDown
     d_byte NpcQueen,        24
     d_byte NpcToddler,       8
@@ -587,6 +596,7 @@ _NoHit:
     d_byte ProjFireball,    kProjFireballRadius
     d_byte ProjFireblast,   kProjFireblastRadius
     d_byte ProjFlamestrike,  4
+    d_byte ProjFood,        kProjFoodRadius
     d_byte ProjGrenade,     kProjGrenadeRadius
     d_byte ProjRocket,      kProjRocketRadius
     d_byte ProjSpike,       kProjSpikeRadius
@@ -635,6 +645,7 @@ _NoHit:
     d_byte BadWasp,          6
     d_byte NpcAdult,         5
     d_byte NpcChild,         5
+    d_byte NpcDuck,          3
     d_byte NpcOrc,          kOrcBoundingBoxSide
     d_byte NpcQueen,         5
     d_byte NpcToddler,       3
@@ -649,6 +660,7 @@ _NoHit:
     d_byte ProjFireball,    kProjFireballRadius
     d_byte ProjFireblast,   kProjFireblastRadius
     d_byte ProjFlamestrike,  3
+    d_byte ProjFood,        kProjFoodRadius
     d_byte ProjGrenade,     kProjGrenadeRadius
     d_byte ProjRocket,      kProjRocketRadius
     d_byte ProjSpike,       kProjSpikeRadius
@@ -765,6 +777,7 @@ _TypeSpecificTick:
     d_entry table, BadWasp,         FuncA_Actor_TickBadWasp
     d_entry table, NpcAdult,        Func_Noop
     d_entry table, NpcChild,        Func_Noop
+    d_entry table, NpcDuck,         FuncA_Actor_TickNpcDuck
     d_entry table, NpcOrc,          Func_Noop
     d_entry table, NpcQueen,        Func_Noop
     d_entry table, NpcToddler,      FuncA_Actor_TickNpcToddler
@@ -779,6 +792,7 @@ _TypeSpecificTick:
     d_entry table, ProjFireball,    FuncA_Actor_TickProjFireball
     d_entry table, ProjFireblast,   FuncA_Actor_TickProjFireblast
     d_entry table, ProjFlamestrike, FuncA_Actor_TickProjFlamestrike
+    d_entry table, ProjFood,        FuncA_Actor_TickProjFood
     d_entry table, ProjGrenade,     FuncA_Actor_TickProjGrenade
     d_entry table, ProjRocket,      FuncA_Actor_TickProjRocket
     d_entry table, ProjSpike,       FuncA_Actor_TickProjSpike
@@ -863,6 +877,7 @@ _Finish:
 ;;; Stores another actor's room pixel position in Zp_Point*_i16.
 ;;; @param Y The other actor index.
 ;;; @preserve X, Y, T0+
+.EXPORT FuncA_Actor_SetPointToOtherActorCenter
 .PROC FuncA_Actor_SetPointToOtherActorCenter
     lda Ram_ActorPosX_i16_0_arr, y
     sta Zp_PointX_i16 + 0
@@ -931,6 +946,7 @@ _Finish:
     d_entry table, BadWasp,         FuncA_Room_InitActorBadWasp
     d_entry table, NpcAdult,        Func_InitActorWithState1
     d_entry table, NpcChild,        FuncA_Room_InitActorNpcChild
+    d_entry table, NpcDuck,         Func_InitActorWithFlags
     d_entry table, NpcOrc,          Func_InitActorNpcOrc
     d_entry table, NpcQueen,        Func_InitActorDefault
     d_entry table, NpcToddler,      FuncA_Room_InitActorNpcToddler
@@ -945,6 +961,7 @@ _Finish:
     d_entry table, ProjFireball,    Func_InitActorProjFireball
     d_entry table, ProjFireblast,   Func_InitActorProjFireblast
     d_entry table, ProjFlamestrike, FuncA_Room_InitActorProjFlamestrike
+    d_entry table, ProjFood,        Func_InitActorProjFood
     d_entry table, ProjGrenade,     Func_InitActorProjGrenade
     d_entry table, ProjRocket,      Func_InitActorProjRocket
     d_entry table, ProjSpike,       Func_InitActorProjSpike
@@ -1022,6 +1039,7 @@ _Finish:
     d_entry table, BadWasp,         FuncA_Objects_DrawActorBadWasp
     d_entry table, NpcAdult,        FuncA_Objects_DrawActorNpcAdult
     d_entry table, NpcChild,        FuncA_Objects_DrawActorNpcChild
+    d_entry table, NpcDuck,         FuncA_Objects_DrawActorNpcDuck
     d_entry table, NpcOrc,          FuncA_Objects_DrawActorNpcOrc
     d_entry table, NpcQueen,        FuncA_Objects_DrawActorNpcQueen
     d_entry table, NpcToddler,      FuncA_Objects_DrawActorNpcToddler
@@ -1036,6 +1054,7 @@ _Finish:
     d_entry table, ProjFireball,    FuncA_Objects_DrawActorProjFireball
     d_entry table, ProjFireblast,   FuncA_Objects_DrawActorProjFireblast
     d_entry table, ProjFlamestrike, FuncA_Objects_DrawActorProjFlamestrike
+    d_entry table, ProjFood,        FuncA_Objects_DrawActorProjFood
     d_entry table, ProjGrenade,     FuncA_Objects_DrawActorProjGrenade
     d_entry table, ProjRocket,      FuncA_Objects_DrawActorProjRocket
     d_entry table, ProjSpike,       FuncA_Objects_DrawActorProjSpike

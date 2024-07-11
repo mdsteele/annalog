@@ -30,6 +30,7 @@
 .INCLUDE "actors/crab.inc"
 .INCLUDE "actors/crawler.inc"
 .INCLUDE "actors/dirt.inc"
+.INCLUDE "actors/duck.inc"
 .INCLUDE "actors/ember.inc"
 .INCLUDE "actors/fireball.inc"
 .INCLUDE "actors/firefly.inc"
@@ -1003,7 +1004,7 @@ _chr_begin:
     CHR1_BANK $80
     chr_inc "sewer1"
     chr_inc "sewer2"
-    chr_res $18
+    chr_res $10
     chr_inc "pump"
     chr_res $0c
     END_CHR_BANK
@@ -1391,7 +1392,7 @@ _chr_begin:
     chr_inc "machine_trombone",   kTileIdObjMachineTromboneFirst
     chr_inc "upgrade_opaddsub",   kTileIdObjUpgradeOpAddSubFirst
     chr_inc "machine_drums",      kTileIdObjMachineDrumsFirst
-    chr_res $04
+    chr_inc "npc_duck",           kTileIdObjNpcDuckFirst
     chr_inc "monitor",            kTileIdObjMonitorFirst
     chr_inc "platform_rocks",     kTileIdObjPlatformRocksFirst
     chr_res $02

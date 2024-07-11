@@ -55,6 +55,7 @@ kMaxActors = 16
     BadWasp          ; flies in a circle
     NpcAdult         ; used for human adults and for most mermaids
     NpcChild         ; used for human children
+    NpcDuck          ; used for the ducks in SewerPool
     NpcOrc           ; used for orcs, and Queen Eirene when she's standing
     NpcQueen         ; used for Queen Eirene when she's seated
     NpcToddler       ; used for baby Nina
@@ -69,6 +70,7 @@ kMaxActors = 16
     ProjFireball     ; shot by various bosses
     ProjFireblast    ; shot by firefly baddies and blaster machines
     ProjFlamestrike  ; shot by lava boss; comes down, then sweeps sideways
+    ProjFood         ; food for the ducks
     ProjGrenade      ; shot by cannon machines
     ProjRocket       ; shot by launcher machines
     ProjSpike        ; a falling spike dropped by the garden boss
@@ -101,15 +103,9 @@ kFirstSmokeActorType = eActor::SmokeBlood
     PosX_i16    .word
     ;; The room pixel Y-position for the center of the actor.
     PosY_i16    .word
-    ;; Type-specific initialization parameter.
-    ;;   * For BadBeetle*, this is the actor flip flags to set.
-    ;;   * For BadBird, this is a bBadBird value.
-    ;;   * For BadHothead*, this is the actor flip flags to set.
-    ;;   * For NpcAdult, this is an eNpcAdult value.
-    ;;   * For NpcChild, this is a bNpcChild value.
-    ;;   * For NpcMermaid, this is the first tile ID (of six).
-    ;;   * For NpcToddler, this is a bNpcToddler value.
-    ;;   * For all other baddies and NPCs, this is ignored.
+    ;; Type-specific initialization parameter.  Refer to the documentation in
+    ;; the relevant src/actors/*.inc file for how this is interpreted for a
+    ;; given actor type.
     Param_byte  .byte
 .ENDSTRUCT
 

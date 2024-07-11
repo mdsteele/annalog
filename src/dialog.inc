@@ -24,7 +24,7 @@
 ;;;     value, indicating that dialog should end and the specified cutscene
 ;;;     should begin.
 ;;;   * A 1-byte ePortrait value, followed by a 16-bit word encoding a banked
-;;;     pointer to a pane of dialog text within one of the PRGA_Text? segments.
+;;;     pointer to a pane of dialog text within one of the PRGA_Text* segments.
 ;;;     The top 3 bits of the word hold the PRGA bank number (which must be
 ;;;     0-7), and the bottom 13 bits of the word hold the bottom 13 bits of the
 ;;;     pointer (the top 3 bits of the pointer can be omitted, since they
@@ -45,6 +45,25 @@
 ;;;   * The 1-byte kDialogEntryQuest constant, followed by an eFlag to set
 ;;;     (while playing the "new quest" sound effect, if the flag was previously
 ;;;     clear) before continuing to the next entry.
+
+;;;=========================================================================;;;
+
+;;; A pane of dialog text (within one of the PRGA_Text* segments) consists of
+;;; up to four lines of text, each with at most 22 printable characters.  The
+;;; last line must be terminated by an end-of-text byte, and each other line
+;;; must be terminated by an end-of-line byte.
+;;;
+;;; kDialogTextNewline is the end-of-line byte.  Any value less than that is
+;;; considered a printable character; either of the values greater than that is
+;;; considered an end-of-text byte.  kDialogTextEnd ends the pane of text
+;;; normally, while kDialogTextYesNo ends the pane of text with a yes-or-no
+;;; question.
+kDialogTextNewline = $fd
+kDialogTextEnd     = $fe
+kDialogTextYesNo   = $ff
+.CHARMAP $24, kDialogTextNewline  ; '$'
+.CHARMAP $23, kDialogTextEnd      ; '#'
+.CHARMAP $25, kDialogTextYesNo    ; '%'
 
 ;;;=========================================================================;;;
 
@@ -174,6 +193,8 @@ kDialogEntryCutscene = $ff  ; ends the dialog and starts a new cutscene
     PrisonUpperBruno
     PrisonUpperMarie
     PrisonUpperNora
+    SewerPoolFood
+    SewerPoolSign
     ShadowGateScreen
     ShadowOfficeTeleport
     ShadowTeleportScreen
@@ -204,17 +225,6 @@ kDialogEntryCutscene = $ff  ; ends the dialog and starts a new cutscene
     TownOutdoorsSign
     NUM_VALUES
 .ENDENUM
-
-;;;=========================================================================;;;
-
-;;; Special characters in dialog text indicating linebreaks, end-of-text, and
-;;; end-of-text-with-a-yes-or-no-question.
-kDialogTextNewline = $fd
-kDialogTextEnd     = $fe
-kDialogTextYesNo   = $ff
-.CHARMAP $24, kDialogTextNewline  ; '$'
-.CHARMAP $23, kDialogTextEnd      ; '#'
-.CHARMAP $25, kDialogTextYesNo    ; '%'
 
 ;;;=========================================================================;;;
 

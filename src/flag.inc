@@ -143,6 +143,7 @@ kSaveMagicNumber = $b2
     ;; Flags for persistent room state:
     CityBuilding3BlastedCrates
     CityCenterDoorUnlocked
+    CityCenterEnteredCity
     CityCenterKeygenConnected
     CityOutskirtsBlastedRocks
     CityOutskirtsTalkedToAlex
@@ -151,6 +152,8 @@ kSaveMagicNumber = $b2
     CryptLandingDroppedIn
     CryptSouthBrokeFloor
     CryptTombBrokeFloors
+    FactoryEastCorraHelped
+    FactoryElevatorTalkedToBruno
     FactoryPassLoweredRocks
     FactoryVaultTalkedToAlex
     GardenEastTalkedToCorra
@@ -178,8 +181,12 @@ kSaveMagicNumber = $b2
     PrisonUpperFreedKids
     PrisonUpperGateOpen
     PrisonUpperLoosenedBrick
+    ShadowDrillClearedGoo
     ShadowHallGlassBroken
     ShadowHallInitialized
+    ShadowHeartTaggedGhost
+    ShadowOfficeRemovedWall
+    ShadowOfficeTaggedGhost
     ShadowTrapDisarmed
     TempleAltarColumnBroken
     TempleEntryColumnRaised
@@ -187,14 +194,6 @@ kSaveMagicNumber = $b2
     TempleEntryTalkedToCorra
     TempleNaveAlexWaiting
     TempleNaveTalkedToAlex
-    ;; TODO: Sort the below within the above once it won't disrupt playtesting.
-    FactoryEastCorraHelped
-    FactoryElevatorTalkedToBruno
-    CityCenterEnteredCity
-    ShadowHeartTaggedGhost
-    ShadowOfficeRemovedWall
-    ShadowOfficeTaggedGhost
-    ShadowDrillClearedGoo
     NUM_VALUES
 .ENDENUM
 .ASSERT eFlag::NUM_VALUES <= $100, error

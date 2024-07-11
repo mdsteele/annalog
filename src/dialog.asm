@@ -118,6 +118,8 @@
 .IMPORT DataA_Dialog_PrisonUpperBruno_sDialog
 .IMPORT DataA_Dialog_PrisonUpperMarie_sDialog
 .IMPORT DataA_Dialog_PrisonUpperNora_sDialog
+.IMPORT DataA_Dialog_SewerPoolFood_sDialog
+.IMPORT DataA_Dialog_SewerPoolSign_sDialog
 .IMPORT DataA_Dialog_ShadowGateScreen_sDialog
 .IMPORT DataA_Dialog_ShadowOfficeTeleport_sDialog
 .IMPORT DataA_Dialog_ShadowTeleportScreen_sDialog
@@ -422,9 +424,8 @@ _Finish:
     iny
     lda (T1T0), y
     sta Ram_DialogText_u8_arr, y
-    bpl @loop
-    cmp #kDialogTextNewline
-    beq @loop
+    cmp #kDialogTextNewline + 1
+    blt @loop
     rts
 .ENDPROC
 
@@ -529,6 +530,8 @@ _Finish:
     d_entry t, PrisonUpperBruno,     DataA_Dialog_PrisonUpperBruno_sDialog
     d_entry t, PrisonUpperMarie,     DataA_Dialog_PrisonUpperMarie_sDialog
     d_entry t, PrisonUpperNora,      DataA_Dialog_PrisonUpperNora_sDialog
+    d_entry t, SewerPoolFood,        DataA_Dialog_SewerPoolFood_sDialog
+    d_entry t, SewerPoolSign,        DataA_Dialog_SewerPoolSign_sDialog
     d_entry t, ShadowGateScreen,     DataA_Dialog_ShadowGateScreen_sDialog
     d_entry t, ShadowOfficeTeleport, DataA_Dialog_ShadowOfficeTeleport_sDialog
     d_entry t, ShadowTeleportScreen, DataA_Dialog_ShadowTeleportScreen_sDialog
@@ -1037,10 +1040,10 @@ _BgAttributes:
     lda Ram_DialogText_u8_arr, x
     ;; If the character is printable, then perform a PPU transfer to draw it to
     ;; the screen.
-    bpl _TransferCharacter
+    cmp #kDialogTextNewline
+    blt _TransferCharacter
     ;; Or, if the character is an end-of-line marker, then get ready for the
     ;; next line of text.
-    cmp #kDialogTextNewline
     beq _Newline
     ;; Otherwise, the character is some kind of end-of-text marker.  If it's a
     ;; yes-or-no-question marker, then we need to set that up.
@@ -1111,7 +1114,8 @@ _TransferLine:
     ;; create a transfer entry for this line.
     ldy Zp_DialogTextIndex_u8
     lda Ram_DialogText_u8_arr, y
-    bmi _EndOfLine
+    cmp #kDialogTextNewline
+    bge _EndOfLine
     ;; Write the transfer entry header (except for transfer len) for the rest
     ;; of the current line of text.
     lda Zp_DialogTextRow_u8  ; param: window row
@@ -1134,7 +1138,8 @@ _TransferLine:
     ldy Zp_DialogTextIndex_u8
     @loop:
     lda Ram_DialogText_u8_arr, y
-    bmi @finish
+    cmp #kDialogTextNewline
+    bge @finish
     sta Ram_PpuTransfer_arr, x
     inx
     iny
