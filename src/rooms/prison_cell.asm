@@ -91,6 +91,7 @@
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORT Ram_PlatformType_ePlatform_arr
 .IMPORT Sram_ProgressFlags_arr
+.IMPORTZP Zp_AvatarPosX_i16
 .IMPORTZP Zp_AvatarPose_eAvatar
 .IMPORTZP Zp_AvatarState_bAvatar
 .IMPORTZP Zp_Camera_bScroll
@@ -108,6 +109,8 @@ kMinScrollX = $10
 ;;; enters the room via the get-thrown-in-prison cutscene.
 kCutsceneSpawnDeviceIndex = 0
 
+;;; The index of the passage that leads out of the prison cell.
+kEscapePassageIndex = 0
 ;;; The index of the passage that leads into the tunnel under the prison cell.
 kTunnelPassageIndex = 1
 ;;; The index of the passage on the eastern side of the room.
@@ -152,6 +155,9 @@ kTrapFloorShakeFrames = 4
 ;;; The initial and maximum permitted vertical goal values for the lift.
 kLiftInitGoalY = 0
 kLiftMaxGoalY = 1
+
+;;; The X-position for the left side of the lift platform.
+kLiftPlatformLeft = $0020
 
 ;;; The maximum and initial Y-positions for the top of the lift platform.
 kLiftMaxPlatformTop = $0080
@@ -262,7 +268,7 @@ _Platforms_sPlatform_arr:
     d_byte Type_ePlatform, ePlatform::Solid
     d_word WidthPx_u16, kLiftMachineWidthPx
     d_byte HeightPx_u8, kLiftMachineHeightPx
-    d_word Left_i16, $0020
+    d_word Left_i16, kLiftPlatformLeft
     d_word Top_i16, kLiftInitPlatformTop
     D_END
     .assert * - :- = kLauncherPlatformIndex * .sizeof(sPlatform), error
@@ -409,7 +415,8 @@ _Devices_sDevice_arr:
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None
 _Passages_sPassage_arr:
-:   D_STRUCT sPassage
+:   .assert * - :- = kEscapePassageIndex * .sizeof(sPassage), error
+    D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Western | bPassage::SameScreen | 0
     d_byte Destination_eRoom, eRoom::PrisonEscape
     d_byte SpawnBlock_u8, 9
@@ -448,6 +455,19 @@ _InitOrcs:
     sta Ram_ActorState2_byte_arr + kOrc2ActorIndex
     lda #bObj::FlipH
     sta Ram_ActorFlags_bObj_arr + kOrc1ActorIndex
+_MoveOutOfLiftPlatform:
+    ;; If the player avatar spawns from the escape tunnel (e.g. after a reset),
+    ;; ensure that the avatar isn't inside the lift platform's initial
+    ;; position (otherwise it would be instantly crushed to death).
+    lda T0  ; bSpawn value
+    cmp #bSpawn::Passage | kEscapePassageIndex
+    bne @done
+    lda Zp_AvatarPosX_i16 + 0
+    cmp #<(kLiftPlatformLeft - kAvatarBoundingBoxRight)
+    blt @done
+    lda #<(kLiftPlatformLeft - kAvatarBoundingBoxRight)
+    sta Zp_AvatarPosX_i16 + 0
+    @done:
 _CheckIfReachedTunnel:
     ;; If the player has reached the tunnel before, then don't lock scrolling.
     flag_bit Sram_ProgressFlags_arr, eFlag::PrisonCellReachedTunnel
