@@ -35,7 +35,7 @@
 .IMPORT FuncA_Machine_Error
 .IMPORT FuncA_Objects_AnimateLavaTerrain
 .IMPORT FuncA_Objects_DrawBoilerMachine
-.IMPORT FuncA_Objects_DrawBoilerValve1
+.IMPORT FuncA_Objects_DrawBoilerValve
 .IMPORT FuncA_Room_MachineBoilerReset
 .IMPORT FuncA_Room_TurnSteamToSmokeIfConsoleOpen
 .IMPORT FuncA_Terrain_FadeInShortRoomWithLava
@@ -258,7 +258,7 @@ _ReadD:
 .PROC FuncC_Lava_CavernBoiler_Draw
     jsr FuncA_Objects_DrawBoilerMachine
     ldx #kValvePlatformIndex  ; param: platform index
-    jmp FuncA_Objects_DrawBoilerValve1
+    jmp FuncA_Objects_DrawBoilerValve
 .ENDPROC
 
 ;;;=========================================================================;;;

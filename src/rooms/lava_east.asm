@@ -47,8 +47,7 @@
 .IMPORT FuncA_Objects_DrawBlasterMachine
 .IMPORT FuncA_Objects_DrawBlasterMirror
 .IMPORT FuncA_Objects_DrawBoilerMachine
-.IMPORT FuncA_Objects_DrawBoilerValve1
-.IMPORT FuncA_Objects_DrawBoilerValve2
+.IMPORT FuncA_Objects_DrawBoilerValve
 .IMPORT FuncA_Room_MachineBoilerReset
 .IMPORT FuncA_Room_ReflectFireblastsOffMirror
 .IMPORT FuncA_Room_ResetLever
@@ -62,7 +61,6 @@
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrObjLava
 .IMPORT Ram_MachineGoalHorz_u8_arr
-.IMPORT Ram_MachineGoalVert_u8_arr
 .IMPORT Ram_MachineState1_byte_arr
 .IMPORT Ram_MachineState3_byte_arr
 .IMPORT Ram_PlatformLeft_i16_0_arr
@@ -89,19 +87,18 @@ kMirror3PlatformIndex = 3
 
 ;;; Platform indices for various parts of the LavaEastUpperBoiler machine.
 kUpperBoilerPlatformIndex = 4
-kUpperValve1PlatformIndex = 5
-kUpperValve2PlatformIndex = 6
-kUpperPipe1PlatformIndex  = 7
-kUpperPipe2PlatformIndex  = 8
+kUpperValvePlatformIndex  = 5
+kUpperPipe1PlatformIndex  = 6
+kUpperPipe2PlatformIndex  = 7
 
 ;;; Platform indices for various parts of the LavaEastLowerBoiler machine.
-kLowerBoilerPlatformIndex = 9
-kLowerPipe1PlatformIndex  = 10
+kLowerBoilerPlatformIndex = 8
+kLowerPipe1PlatformIndex  = 9
 
 ;;; Platform indices for pipes attached to "loose" boiler tanks.
-kLoosePipe1PlatformIndex  = 11
-kLoosePipe2PlatformIndex  = 12
-kLoosePipe3PlatformIndex  = 13
+kLoosePipe1PlatformIndex  = 10
+kLoosePipe2PlatformIndex  = 11
+kLoosePipe3PlatformIndex  = 12
 
 ;;; The initial value for the blaster's M register.
 kBlasterInitGoalM = 3
@@ -184,11 +181,11 @@ _Machines_sMachine_arr:
     D_STRUCT sMachine
     d_byte Code_eProgram, eProgram::LavaEastUpperBoiler
     d_byte Breaker_eFlag, 0
-    d_byte Flags_bMachine, bMachine::Act | bMachine::WriteCEF
+    d_byte Flags_bMachine, bMachine::Act | bMachine::WriteCE
     d_byte Status_eDiagram, eDiagram::Boiler
     d_word ScrollGoalX_u16, $010
     d_byte ScrollGoalY_u8, $40
-    d_byte RegNames_u8_arr4, "L", 0, "V", "E"
+    d_byte RegNames_u8_arr4, "L", 0, "V", 0
     d_byte MainPlatform_u8, kUpperBoilerPlatformIndex
     d_addr Init_func_ptr, Func_Noop
     d_addr ReadReg_func_ptr, FuncC_Lava_EastUpperBoiler_ReadReg
@@ -260,21 +257,13 @@ _Platforms_sPlatform_arr:
     d_word Left_i16,  $0080
     d_word Top_i16,   $0090
     D_END
-    .assert * - :- = kUpperValve1PlatformIndex * .sizeof(sPlatform), error
+    .assert * - :- = kUpperValvePlatformIndex * .sizeof(sPlatform), error
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Zone
     d_word WidthPx_u16, $08
     d_byte HeightPx_u8, $08
     d_word Left_i16,  $0054
     d_word Top_i16,   $0084
-    D_END
-    .assert * - :- = kUpperValve2PlatformIndex * .sizeof(sPlatform), error
-    D_STRUCT sPlatform
-    d_byte Type_ePlatform, ePlatform::Zone
-    d_word WidthPx_u16, $08
-    d_byte HeightPx_u8, $08
-    d_word Left_i16,  $0034
-    d_word Top_i16,   $00b4
     D_END
     .assert * - :- = kUpperPipe1PlatformIndex * .sizeof(sPlatform), error
     D_STRUCT sPlatform
@@ -507,10 +496,8 @@ _Blaster:
 
 .PROC FuncC_Lava_EastUpperBoiler_Draw
     jsr FuncA_Objects_DrawBoilerMachine
-    ldx #kUpperValve1PlatformIndex  ; param: platform index
-    jsr FuncA_Objects_DrawBoilerValve1
-    ldx #kUpperValve2PlatformIndex  ; param: platform index
-    jmp FuncA_Objects_DrawBoilerValve2
+    ldx #kUpperValvePlatformIndex  ; param: platform index
+    jmp FuncA_Objects_DrawBoilerValve
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -606,35 +593,18 @@ _WriteL:
 ;;; TryAct implemention for the LavaEastUpperBoiler machine.
 ;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
 .PROC FuncA_Machine_LavaEastUpperBoiler_TryAct
-_Valve1:
-    lda Ram_MachineGoalHorz_u8_arr + kUpperBoilerMachineIndex  ; valve 1 angle
-    and #$03
-    tax  ; valve 1 angle (in tau/8 units, mod 4)
-    ldy _Valve1ExitPlatformIndex_u8_arr4, x  ; platform index
-    cpy #kUpperValve2PlatformIndex
-    beq _Valve2
+    lda Ram_MachineGoalHorz_u8_arr + kUpperBoilerMachineIndex  ; valve angle
+    mod #4
+    cmp #2
+    beq @lowerPipe
+    @upperPipe:
+    ldy #kUpperPipe1PlatformIndex
     jsr Func_EmitSteamUpFromPipe
     jmp FuncA_Machine_BoilerFinishEmittingSteam
-_Valve2:
-    lda Ram_MachineGoalVert_u8_arr + kUpperBoilerMachineIndex  ; valve 2 angle
-    and #$03
-    tax  ; valve 2 angle (in tau/8 units, mod 4)
-    ldy _Valve2ExitPlatformIndex_u8_arr4, x  ; platform index
-    bmi _Error
+    @lowerPipe:
+    ldy #kUpperPipe2PlatformIndex
     jsr Func_EmitSteamRightFromPipe
     jmp FuncA_Machine_BoilerFinishEmittingSteam
-_Error:
-    jmp FuncA_Machine_Error
-_Valve1ExitPlatformIndex_u8_arr4:
-    .byte kUpperPipe1PlatformIndex
-    .byte kUpperPipe1PlatformIndex
-    .byte kUpperValve2PlatformIndex
-    .byte kUpperPipe1PlatformIndex
-_Valve2ExitPlatformIndex_u8_arr4:
-    .byte $ff
-    .byte $ff
-    .byte kUpperPipe2PlatformIndex
-    .byte kUpperPipe2PlatformIndex
 .ENDPROC
 
 ;;; TryAct implemention for the LavaEastLowerBoiler machine.

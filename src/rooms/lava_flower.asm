@@ -41,7 +41,7 @@
 .IMPORT FuncA_Machine_WriteToLever
 .IMPORT FuncA_Objects_AnimateLavaTerrain
 .IMPORT FuncA_Objects_DrawBoilerMachine
-.IMPORT FuncA_Objects_DrawBoilerValve1
+.IMPORT FuncA_Objects_DrawBoilerValve
 .IMPORT FuncA_Room_MachineBoilerReset
 .IMPORT FuncA_Room_RemoveFlowerDeviceIfCarriedOrDelivered
 .IMPORT FuncA_Room_ResetLever
@@ -250,7 +250,7 @@ _ReadL:
 .PROC FuncC_Lava_FlowerBoiler_Draw
     jsr FuncA_Objects_DrawBoilerMachine
     ldx #kValvePlatformIndex  ; param: platform index
-    jmp FuncA_Objects_DrawBoilerValve1
+    jmp FuncA_Objects_DrawBoilerValve
 .ENDPROC
 
 ;;;=========================================================================;;;

@@ -52,7 +52,7 @@
 .IMPORT FuncA_Objects_Draw1x1Shape
 .IMPORT FuncA_Objects_DrawBlasterMachine
 .IMPORT FuncA_Objects_DrawBoilerMachine
-.IMPORT FuncA_Objects_DrawBoilerValve1
+.IMPORT FuncA_Objects_DrawBoilerValve
 .IMPORT FuncA_Objects_DrawBoss
 .IMPORT FuncA_Objects_DrawPlatformVolcanicVert
 .IMPORT FuncA_Objects_MoveShapeDownByA
@@ -964,7 +964,7 @@ _RegR:
 .PROC FuncC_Boss_LavaBoiler_Draw
     jsr FuncA_Objects_DrawBoilerMachine
     ldx #kValvePlatformIndex  ; param: platform index
-    jmp FuncA_Objects_DrawBoilerValve1
+    jmp FuncA_Objects_DrawBoilerValve
 .ENDPROC
 
 ;;;=========================================================================;;;

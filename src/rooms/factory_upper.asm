@@ -311,7 +311,7 @@ _BottomSmallWheel:
     .byte "L/R:lever  M:mirror$"
     .byte "  P:power  S:sensor$"
     .byte "  T:turn   U:upper$"
-    .byte "V/E:valve  W:weight#"
+    .byte "  V:valve  W:weight#"
 .ENDPROC
 
 .PROC DataA_Text1_PaperManual4_Page3_u8_arr

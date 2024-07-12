@@ -34,10 +34,8 @@
 .IMPORT FuncA_Objects_SetShapePosToMachineTopLeft
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
 .IMPORT Ram_MachineGoalHorz_u8_arr
-.IMPORT Ram_MachineGoalVert_u8_arr
 .IMPORT Ram_MachineState1_byte_arr
 .IMPORT Ram_MachineState2_byte_arr
-.IMPORT Ram_MachineState3_byte_arr
 .IMPORTZP Zp_MachineIndex_u8
 
 ;;;=========================================================================;;;
@@ -60,13 +58,7 @@ kPaletteObjValve       = 0
 .EXPORT Func_MachineBoilerReadReg
 .PROC Func_MachineBoilerReadReg
     ldx Zp_MachineIndex_u8
-    cmp #$0f
-    beq @valve2
-    @valve1:
-    lda Ram_MachineGoalHorz_u8_arr, x
-    rts
-    @valve2:
-    lda Ram_MachineGoalVert_u8_arr, x
+    lda Ram_MachineGoalHorz_u8_arr, x  ; valve goal
     rts
 .ENDPROC
 
@@ -80,8 +72,7 @@ kPaletteObjValve       = 0
 .PROC FuncA_Room_MachineBoilerReset
     ldx Zp_MachineIndex_u8
     lda #0
-    sta Ram_MachineGoalHorz_u8_arr, x
-    sta Ram_MachineGoalVert_u8_arr, x
+    sta Ram_MachineGoalHorz_u8_arr, x  ; valve goal
     rts
 .ENDPROC
 
@@ -96,17 +87,9 @@ kPaletteObjValve       = 0
 .EXPORT FuncA_Machine_BoilerWriteReg
 .PROC FuncA_Machine_BoilerWriteReg
     ldy Zp_MachineIndex_u8
-    cpx #$0f
-    beq @valve2
-    @valve1:
-    cmp Ram_MachineGoalHorz_u8_arr, y
+    cmp Ram_MachineGoalHorz_u8_arr, y  ; valve goal
     beq @done
-    sta Ram_MachineGoalHorz_u8_arr, y
-    jmp FuncA_Machine_StartWorking
-    @valve2:
-    cmp Ram_MachineGoalVert_u8_arr, y
-    beq @done
-    sta Ram_MachineGoalVert_u8_arr, y
+    sta Ram_MachineGoalHorz_u8_arr, y  ; valve goal
     jmp FuncA_Machine_StartWorking
     @done:
     rts
@@ -119,45 +102,24 @@ kPaletteObjValve       = 0
 .PROC FuncA_Machine_BoilerTick
     ldx Zp_MachineIndex_u8
 _CoolDown:
-    lda Ram_MachineState3_byte_arr, x  ; ignition cooldown
+    lda Ram_MachineState2_byte_arr, x  ; ignition cooldown
     beq @done
-    dec Ram_MachineState3_byte_arr, x  ; ignition cooldown
+    dec Ram_MachineState2_byte_arr, x  ; ignition cooldown
     @done:
-_MoveValves:
-    lda #0
-    sta T0  ; num valves moved
-_Valve1:
-    lda Ram_MachineGoalHorz_u8_arr, x
+_Valve:
+    lda Ram_MachineGoalHorz_u8_arr, x  ; valve goal
     mul #kBoilerValveAnimSlowdown
-    cmp Ram_MachineState1_byte_arr, x  ; valve 1 angle
-    beq @done
+    cmp Ram_MachineState1_byte_arr, x  ; valve angle
+    beq @reachedGoal
     blt @decrement
     @increment:
-    inc Ram_MachineState1_byte_arr, x  ; valve 1 angle
-    bne @moved  ; unconditional
-    @decrement:
-    dec Ram_MachineState1_byte_arr, x  ; valve 1 angle
-    @moved:
-    inc T0  ; num valves moved
-    @done:
-_Valve2:
-    lda Ram_MachineGoalVert_u8_arr, x
-    mul #kBoilerValveAnimSlowdown
-    cmp Ram_MachineState2_byte_arr, x  ; valve 2 angle
-    beq @done
-    blt @decrement
-    @increment:
-    inc Ram_MachineState2_byte_arr, x  ; valve 2 angle
-    bne @moved  ; unconditional
-    @decrement:
-    dec Ram_MachineState2_byte_arr, x  ; valve 2 angle
-    @moved:
-    inc T0  ; num valves moved
-    @done:
-_Finish:
-    lda T0  ; num valves moved
-    jeq FuncA_Machine_ReachedGoal
+    inc Ram_MachineState1_byte_arr, x  ; valve angle
     rts
+    @decrement:
+    dec Ram_MachineState1_byte_arr, x  ; valve angle
+    rts
+    @reachedGoal:
+    jmp FuncA_Machine_ReachedGoal
 .ENDPROC
 
 ;;; Called at the end of a boiler machine's TryAct function after it has
@@ -168,7 +130,7 @@ _Finish:
     ;; TODO play a sound
     ldx Zp_MachineIndex_u8
     lda #kSteamNumFrames
-    sta Ram_MachineState3_byte_arr, x  ; ignition cooldown
+    sta Ram_MachineState2_byte_arr, x  ; ignition cooldown
     lda #kBoilerActCooldown  ; param: num frames
     jmp FuncA_Machine_StartWaiting
 .ENDPROC
@@ -188,7 +150,7 @@ _Finish:
     jsr FuncA_Objects_Draw1x1Shape
     ;; Draw the ignition flame (if active).
     ldx Zp_MachineIndex_u8
-    ldy Ram_MachineState3_byte_arr, x  ; ignition cooldown
+    ldy Ram_MachineState2_byte_arr, x  ; ignition cooldown
     beq @done
     jsr FuncA_Objects_MoveShapeRightOneTile  ; preserves Y
     lda #9  ; param: offset
@@ -204,31 +166,13 @@ _Finish:
     rts
 .ENDPROC
 
-;;; Draws the second valve for a boiler machine.  The valve platform should be
-;;; 8x8 pixels and centered on the center of the valve.
-;;; @param X The platform index for the valve.
-.EXPORT FuncA_Objects_DrawBoilerValve2
-.PROC FuncA_Objects_DrawBoilerValve2
-    ldy Zp_MachineIndex_u8
-    lda Ram_MachineState2_byte_arr, y  ; param: valve angle (in tau/32 units)
-    bpl FuncA_Objects_DrawBoilerValve  ; unconditional
-.ENDPROC
-
-;;; Draws the first valve for a boiler machine.  The valve platform should be
-;;; 8x8 pixels and centered on the center of the valve.
-;;; @param X The platform index for the valve.
-.EXPORT FuncA_Objects_DrawBoilerValve1
-.PROC FuncA_Objects_DrawBoilerValve1
-    ldy Zp_MachineIndex_u8
-    lda Ram_MachineState1_byte_arr, y  ; param: valve angle (in tau/32 units)
-    .assert * = FuncA_Objects_DrawBoilerValve, error, "fallthrough"
-.ENDPROC
-
-;;; Draws a valve for a boiler machine.  The valve platform should be 8x8
+;;; Draws the valve for a boiler machine.  The valve platform should be 8x8
 ;;; pixels and centered on the center of the valve.
-;;; @param A The absolute valve angle, in increments of tau/32.
 ;;; @param X The platform index for the valve.
+.EXPORT FuncA_Objects_DrawBoilerValve
 .PROC FuncA_Objects_DrawBoilerValve
+    ldy Zp_MachineIndex_u8
+    lda Ram_MachineState1_byte_arr, y  ; valve angle (in tau/32 units)
     div #2
     tay  ; valve angle (in tau/16 units)
     jsr FuncA_Objects_SetShapePosToPlatformTopLeft  ; preserves Y

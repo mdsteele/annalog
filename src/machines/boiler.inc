@@ -18,11 +18,10 @@
 ;;;=========================================================================;;;
 
 ;;; State bytes for boiler machines:
-;;;   * State1: The current angle of valve #1, which tends toward
+;;;   * State1: The current angle of the valve, which tends toward
 ;;;     MachineGoalHorz * kBoilerValveAnimSlowdown.
-;;;   * State2: The current angle of valve #2, which tends toward
-;;;     MachineGoalVert * kBoilerValveAnimSlowdown.
-;;;   * State3: A cooldown timer for drawing the ignition flame.
+;;;   * State2: A cooldown timer for drawing the ignition flame.
+;;;   * State3: Unused.
 
 ;;; The number of frames between valve angles when animating a boiler valve.
 .DEFINE kBoilerValveAnimSlowdown 4
