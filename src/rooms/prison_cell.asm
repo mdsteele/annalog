@@ -63,6 +63,7 @@
 .IMPORT FuncM_SwitchPrgcAndLoadRoom
 .IMPORT Func_FadeOutToBlackSlowly
 .IMPORT Func_FindActorWithType
+.IMPORT Func_InitActorBadOrc
 .IMPORT Func_InitActorSmokeExplosion
 .IMPORT Func_IsPointInPlatform
 .IMPORT Func_MovePointLeftByA
@@ -80,8 +81,13 @@
 .IMPORT Main_Explore_EnterRoom
 .IMPORT Ppu_ChrObjTown
 .IMPORT Ram_ActorFlags_bObj_arr
+.IMPORT Ram_ActorState1_byte_arr
 .IMPORT Ram_ActorState2_byte_arr
 .IMPORT Ram_ActorType_eActor_arr
+.IMPORT Ram_ActorVelX_i16_0_arr
+.IMPORT Ram_ActorVelX_i16_1_arr
+.IMPORT Ram_ActorVelY_i16_0_arr
+.IMPORT Ram_ActorVelY_i16_1_arr
 .IMPORT Ram_DeviceAnim_u8_arr
 .IMPORT Ram_DeviceType_eDevice_arr
 .IMPORT Ram_MachineGoalHorz_u8_arr
@@ -120,10 +126,6 @@ kLiftConsoleDeviceIndex = 2
 ;;; The index of the console device for the PrisonCellLauncher machine.
 kLauncherConsoleDeviceIndex = 3
 
-;;; The actor indices for the orcs in this room.
-kOrc1ActorIndex = 0
-kOrc2ActorIndex = 1
-
 ;;; The machine indices for the machines in this room.
 kLiftMachineIndex = 0
 kLauncherMachineIndex = 1
@@ -152,6 +154,11 @@ kTrapZonePlatformIndex = 9
 ;;; How much to shake the room when the trap floor collapses.
 kTrapFloorShakeFrames = 4
 
+;;; The room block row for the top of the gate when it's shut.
+kGateBlockRow = 10
+
+;;;=========================================================================;;;
+
 ;;; The initial and maximum permitted vertical goal values for the lift.
 kLiftInitGoalY = 0
 kLiftMaxGoalY = 1
@@ -162,6 +169,8 @@ kLiftPlatformLeft = $0020
 ;;; The maximum and initial Y-positions for the top of the lift platform.
 kLiftMaxPlatformTop = $0080
 kLiftInitPlatformTop = kLiftMaxPlatformTop - kLiftInitGoalY * kBlockHeightPx
+
+;;;=========================================================================;;;
 
 ;;; The initial and maximum permitted horizontal goal values for the launcher.
 kLauncherInitGoalX = 1
@@ -174,8 +183,16 @@ kLauncherInitPlatformLeft = \
     kLauncherMinPlatformLeft + kLauncherInitGoalX * kBlockWidthPx
 .LINECONT -
 
-;;; The room block row for the top of the gate when it's shut.
-kGateBlockRow = 10
+;;;=========================================================================;;;
+
+;;; The actor indices for the orcs in this room.
+kOrc1ActorIndex = 0
+kOrc2ActorIndex = 1
+
+;;; The velocity applied to orc #1 (on the left side) when it gets flung by the
+;;; rocket blast, in subpixels per frame.
+kOrc1FlingVelX = -700
+kOrc1FlingVelY = -300
 
 ;;;=========================================================================;;;
 
@@ -365,7 +382,7 @@ _Actors_sActor_arr:
 :   .assert * - :- = kOrc1ActorIndex * .sizeof(sActor), error
     D_STRUCT sActor
     d_byte Type_eActor, eActor::NpcOrc
-    d_word PosX_i16, $0175
+    d_word PosX_i16, $0171
     d_word PosY_i16, $00b8
     d_byte Param_byte, eNpcOrc::GruntStanding
     D_END
@@ -569,9 +586,22 @@ _RocketImpact:
     sta Ram_PlatformType_ePlatform_arr + kUpperFloor2PlatformIndex
     ldx #eFlag::PrisonCellBlastedRocks
     jsr Func_SetFlag
-    ;; TODO: Make the orcs go flying and run away, instead of removing them.
+    ;; Make orc #1 (on the left side) go flying and collapse.
+    ldx #kOrc1ActorIndex  ; param: actor index
+    lda #bObj::FlipH  ; param: actor flags
+    jsr Func_InitActorBadOrc  ; preserves X
+    lda #eBadOrc::Collapsing
+    sta Ram_ActorState1_byte_arr, x  ; current eBadOrc mode
+    lda #<kOrc1FlingVelX
+    sta Ram_ActorVelX_i16_0_arr, x
+    lda #>kOrc1FlingVelX
+    sta Ram_ActorVelX_i16_1_arr, x
+    lda #<kOrc1FlingVelY
+    sta Ram_ActorVelY_i16_0_arr, x
+    lda #>kOrc1FlingVelY
+    sta Ram_ActorVelY_i16_1_arr, x
+    ;; TODO: Make orc #2 (on the right side) flinch and run out of the room.
     lda #eActor::None
-    sta Ram_ActorType_eActor_arr + kOrc1ActorIndex
     sta Ram_ActorType_eActor_arr + kOrc2ActorIndex
     @done:
 _TrapFloor:

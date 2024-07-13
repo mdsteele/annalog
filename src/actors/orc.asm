@@ -45,8 +45,10 @@
 .IMPORT FuncA_Actor_SetVelXForward
 .IMPORT FuncA_Actor_ZeroVelX
 .IMPORT FuncA_Objects_BobActorShapePosUpAndDown
+.IMPORT FuncA_Objects_Draw2x1Shape
 .IMPORT FuncA_Objects_Draw2x2Shape
 .IMPORT FuncA_Objects_GetNpcActorFlags
+.IMPORT FuncA_Objects_MoveShapeLeftByA
 .IMPORT FuncA_Objects_MoveShapeUpByA
 .IMPORT FuncA_Objects_SetShapePosToActorCenter
 .IMPORT FuncA_Room_TurnProjectilesToSmoke
@@ -76,6 +78,7 @@
 .IMPORT Ram_ActorState3_byte_arr
 .IMPORT Ram_ActorState4_byte_arr
 .IMPORT Ram_ActorSubX_u8_arr
+.IMPORT Ram_ActorType_eActor_arr
 .IMPORT Ram_ActorVelX_i16_0_arr
 .IMPORT Ram_ActorVelX_i16_1_arr
 .IMPORT Ram_ActorVelY_i16_0_arr
@@ -583,6 +586,7 @@ _Done:
     D_TABLE .enum, eBadOrc
     d_entry table, Standing,      FuncA_Actor_TickBadOrc_Standing
     d_entry table, Chasing,       FuncA_Actor_TickBadOrc_Chasing
+    d_entry table, Collapsing,    FuncA_Actor_TickBadOrc_Collapsing
     d_entry table, Patrolling,    FuncA_Actor_TickBadOrc_Patrolling
     d_entry table, Punching,      FuncA_Actor_TickBadOrc_Punching
     d_entry table, Jumping,       FuncA_Actor_TickBadOrc_Jumping
@@ -591,6 +595,25 @@ _Done:
     d_entry table, TrapPounding,  FuncA_Actor_TickBadOrc_TrapPounding
     D_END
 .ENDREPEAT
+.ENDPROC
+
+;;; Performs per-frame updates for an orc baddie actor that's in Collapsing
+;;; mode.
+;;; @param X The actor index.
+;;; @preserve X
+.PROC FuncA_Actor_TickBadOrc_Collapsing
+    .assert <kOrcMaxFallSpeed = 0, error
+    lda #>kOrcMaxFallSpeed  ; param: terminal velocity
+    jsr FuncA_Actor_ApplyGravityWithTerminalVelocity  ; preserves X
+    lda #5  ; param: bounding box down
+    jsr FuncA_Actor_LandOnTerrain  ; preserves X, returns C
+    bcc @done
+    jsr Func_PlaySfxFlopDown  ; preserves X
+    lda #eActor::NpcOrcSleeping
+    sta Ram_ActorType_eActor_arr, x
+    jmp FuncA_Actor_ZeroVelX  ; preserves X
+    @done:
+    rts
 .ENDPROC
 
 ;;; Performs per-frame updates for an orc baddie actor that's in Standing mode.
@@ -867,6 +890,24 @@ _IsBlocked:
 
 .SEGMENT "PRGA_Objects"
 
+;;; Draws a sleeping orc NPC actor.
+;;; @param X The actor index.
+;;; @preserve X
+.EXPORT FuncA_Objects_DrawActorNpcOrcSleeping
+.PROC FuncA_Objects_DrawActorNpcOrcSleeping
+    jsr FuncA_Objects_SetShapePosToActorCenter  ; preserves X
+    lda #3  ; param: offset
+    jsr FuncA_Objects_MoveShapeUpByA  ; preserves X
+    lda #kTileIdObjOrcGruntSleepingFirst + 2  ; param: first tile ID
+    ldy #0  ; param: object flags
+    jsr FuncA_Objects_Draw2x1Shape  ; preserves X
+    lda #kTileWidthPx * 2  ; param: offset
+    jsr FuncA_Objects_MoveShapeLeftByA  ; preserves X
+    lda #kTileIdObjOrcGruntSleepingFirst + 0  ; param: first tile ID
+    ldy #0  ; param: object flags
+    jmp FuncA_Objects_Draw2x1Shape  ; preserves X
+.ENDPROC
+
 ;;; Draws a Gronta baddie actor.
 ;;; @param X The actor index.
 ;;; @preserve X
@@ -945,6 +986,8 @@ _Poses_eNpcOrc_arr:
     beq @surprised
     cmp #eBadOrc::TrapPounding
     beq @pounding
+    cmp #eBadOrc::Collapsing
+    beq @kneeling
     cmp #eBadOrc::Jumping
     bne @running
     @jumping:
@@ -956,6 +999,9 @@ _Poses_eNpcOrc_arr:
     bpl FuncA_Objects_DrawActorOrcInPose  ; unconditional
     @standing:
     lda #eNpcOrc::GruntStanding  ; param: pose
+    bpl FuncA_Objects_DrawActorOrcInPose  ; unconditional
+    @kneeling:
+    lda #eNpcOrc::GruntKneeling  ; param: pose
     bpl FuncA_Objects_DrawActorOrcInPose  ; unconditional
     @pounding:
     lda Ram_ActorState3_byte_arr, x  ; animation counter
@@ -1026,11 +1072,8 @@ _TileIdHead_u8_arr:
     d_byte GruntThrowing1,   kTileIdObjOrcGruntThrowingFirst  + $00
     d_byte GruntThrowing2,   kTileIdObjOrcGruntThrowingFirst  + $08
     d_byte GruntStanding,    kTileIdObjOrcGruntHeadHigh
+    d_byte GruntKneeling,    kTileIdObjOrcGruntThrowingFirst  + $00
     d_byte GhostStanding,    kTileIdObjOrcGhostFirst          + $00
-    d_byte GrontaRunning1,   kTileIdObjOrcGrontaHeadLow
-    d_byte GrontaRunning2,   kTileIdObjOrcGrontaHeadHigh
-    d_byte GrontaRunning3,   kTileIdObjOrcGrontaHeadLow
-    d_byte GrontaRunning4,   kTileIdObjOrcGrontaHeadHigh
     d_byte GrontaArmsRaised, kTileIdObjOrcGrontaStandingFirst + $04
     d_byte GrontaCrouching,  kTileIdObjOrcGrontaCrouchFirst   + $00
     d_byte GrontaJumping,    kTileIdObjOrcGrontaStandingFirst + $04
@@ -1038,6 +1081,10 @@ _TileIdHead_u8_arr:
     d_byte GrontaParley,     kTileIdObjOrcGrontaHeadHigh
     d_byte GrontaStanding,   kTileIdObjOrcGrontaHeadHigh
     d_byte GrontaThrowing,   kTileIdObjOrcGrontaHeadLow
+    d_byte GrontaRunning1,   kTileIdObjOrcGrontaHeadLow
+    d_byte GrontaRunning2,   kTileIdObjOrcGrontaHeadHigh
+    d_byte GrontaRunning3,   kTileIdObjOrcGrontaHeadLow
+    d_byte GrontaRunning4,   kTileIdObjOrcGrontaHeadHigh
     d_byte EireneParley,     kTileIdObjEireneParleyFirst      + $00
     D_END
 _TileIdFeet_u8_arr:
@@ -1049,11 +1096,8 @@ _TileIdFeet_u8_arr:
     d_byte GruntThrowing1,   kTileIdObjOrcGruntThrowingFirst  + $04
     d_byte GruntThrowing2,   kTileIdObjOrcGruntThrowingFirst  + $0c
     d_byte GruntStanding,    kTileIdObjOrcGruntFeetStanding
+    d_byte GruntKneeling,    kTileIdObjOrcGruntKneelingFirst
     d_byte GhostStanding,    kTileIdObjOrcGhostFirst          + $04
-    d_byte GrontaRunning1,   kTileIdObjOrcGrontaFeetRunning1
-    d_byte GrontaRunning2,   kTileIdObjOrcGrontaFeetRunning2
-    d_byte GrontaRunning3,   kTileIdObjOrcGrontaFeetRunning3
-    d_byte GrontaRunning4,   kTileIdObjOrcGrontaFeetRunning2
     d_byte GrontaArmsRaised, kTileIdObjOrcGrontaStandingFirst + $0c
     d_byte GrontaCrouching,  kTileIdObjOrcGrontaCrouchFirst   + $04
     d_byte GrontaJumping,    kTileIdObjOrcGrontaJumpingFirst
@@ -1061,6 +1105,10 @@ _TileIdFeet_u8_arr:
     d_byte GrontaParley,     kTileIdObjOrcGrontaParleyFirst
     d_byte GrontaStanding,   kTileIdObjOrcGrontaStandingFirst + $08
     d_byte GrontaThrowing,   kTileIdObjOrcGrontaThrowingFirst
+    d_byte GrontaRunning1,   kTileIdObjOrcGrontaFeetRunning1
+    d_byte GrontaRunning2,   kTileIdObjOrcGrontaFeetRunning2
+    d_byte GrontaRunning3,   kTileIdObjOrcGrontaFeetRunning3
+    d_byte GrontaRunning4,   kTileIdObjOrcGrontaFeetRunning2
     d_byte EireneParley,     kTileIdObjEireneParleyFirst      + $04
     D_END
 .ENDPROC

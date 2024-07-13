@@ -1475,7 +1475,7 @@ _chr_begin:
     chr_inc "gate",                kTileIdObjGateFirst
     chr_inc "orc_grunt_standing",  kTileIdObjOrcGruntStandingFirst
     chr_inc "launcher_vert",       kTileIdObjLauncherVertFirst
-    chr_res $04
+    chr_inc "orc_grunt_kneeling",  kTileIdObjOrcGruntKneelingFirst
     chr_inc "platform_rocks",      kTileIdObjPlatformRocksFirst
     chr_res $06
     chr_inc "orc_gronta_standing", kTileIdObjOrcGrontaStandingFirst
@@ -1483,7 +1483,7 @@ _chr_begin:
     chr_inc "orc_grunt_throwing",  kTileIdObjOrcGruntThrowingFirst
     chr_inc "adult_woman",         kTileIdObjAdultWomanFirst
     chr_inc "adult_man",           kTileIdObjAdultManFirst
-    chr_res $04
+    chr_inc "orc_grunt_sleeping",  kTileIdObjOrcGruntSleepingFirst
     chr_inc "child_stand",         kTileIdObjChildStandFirst
     END_CHR_BANK
 .ENDPROC

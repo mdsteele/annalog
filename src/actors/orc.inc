@@ -88,6 +88,7 @@ kBadGrontaMaxJumpUpBlocks = 2
 .ENUM eBadOrc
     Standing       ; standing guard
     Chasing        ; chasing the player avatar
+    Collapsing     ; falling over after a grievous injury
     Patrolling     ; running to and fro after losing sight of the player avatar
     Punching       ; pausing for a short time after hitting the player avatar
     Jumping        ; jumping towards the player avatar
@@ -107,12 +108,9 @@ kBadGrontaMaxJumpUpBlocks = 2
     GruntThrowing1
     GruntThrowing2
     GruntStanding
+    GruntKneeling
     GhostStanding
     ;; Gronta (or Eirene) (red palette for head):
-    GrontaRunning1
-    GrontaRunning2
-    GrontaRunning3
-    GrontaRunning4
     GrontaArmsRaised
     GrontaCrouching
     GrontaJumping
@@ -120,6 +118,10 @@ kBadGrontaMaxJumpUpBlocks = 2
     GrontaParley
     GrontaStanding
     GrontaThrowing
+    GrontaRunning1
+    GrontaRunning2
+    GrontaRunning3
+    GrontaRunning4
     EireneParley  ; not really an orc, but drawn like Gronta
     NUM_VALUES
 .ENDENUM
@@ -153,7 +155,9 @@ kTileIdObjOrcGrontaParleyFirst   = $9c
 kTileIdObjOrcGrontaRunningFirst  = $b0
 kTileIdObjOrcGrontaStandingFirst = $a0
 kTileIdObjOrcGrontaThrowingFirst = $c0
+kTileIdObjOrcGruntKneelingFirst  = $94
 kTileIdObjOrcGruntRunningFirst   = $b0
+kTileIdObjOrcGruntSleepingFirst  = $dc
 kTileIdObjOrcGruntStandingFirst  = $88
 kTileIdObjOrcGruntThrowingFirst  = $c0
 kTileIdObjEireneParleyFirst      = $90

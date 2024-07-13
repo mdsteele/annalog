@@ -57,6 +57,7 @@ kMaxActors = 16
     NpcChild         ; used for human children
     NpcDuck          ; used for the ducks in SewerPool
     NpcOrc           ; used for orcs, and Queen Eirene when she's standing
+    NpcOrcSleeping   ; used for an orc that's unconscious on the ground
     NpcQueen         ; used for Queen Eirene when she's seated
     NpcToddler       ; used for baby Nina
     ProjAcid         ; acid dropped by a flydrop baddie
