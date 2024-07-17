@@ -182,7 +182,7 @@ _Devices_sDevice_arr:
     d_byte Type_eDevice, eDevice::Paper
     d_byte BlockRow_u8, 4
     d_byte BlockCol_u8, 27
-    d_byte Target_byte, eFlag::PaperManual3
+    d_byte Target_byte, eFlag::PaperManual4
     D_END
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None
@@ -243,10 +243,10 @@ _ValvePipePlatformIndex_u8_arr4:
 
 .SEGMENT "PRGA_Dialog"
 
-.EXPORT DataA_Dialog_PaperManual3_sDialog
-.PROC DataA_Dialog_PaperManual3_sDialog
-    dlg_Text Paper, DataA_Text0_PaperManual3_Page1_u8_arr
-    dlg_Text Paper, DataA_Text0_PaperManual3_Page2_u8_arr
+.EXPORT DataA_Dialog_PaperManual4_sDialog
+.PROC DataA_Dialog_PaperManual4_sDialog
+    dlg_Text Paper, DataA_Text0_PaperManual4_Page1_u8_arr
+    dlg_Text Paper, DataA_Text0_PaperManual4_Page2_u8_arr
     dlg_Done
 .ENDPROC
 
@@ -254,14 +254,14 @@ _ValvePipePlatformIndex_u8_arr4:
 
 .SEGMENT "PRGA_Text0"
 
-.PROC DataA_Text0_PaperManual3_Page1_u8_arr
-    .byte "CPU FIELD MANUAL p.3:$"
+.PROC DataA_Text0_PaperManual4_Page1_u8_arr
+    .byte "CPU FIELD MANUAL p.4:$"
     .byte "Every machine has an$"
     .byte "`A' register that you$"
     .byte "can COPY values into.#"
 .ENDPROC
 
-.PROC DataA_Text0_PaperManual3_Page2_u8_arr
+.PROC DataA_Text0_PaperManual4_Page2_u8_arr
     .byte "Unlike other registers$"
     .byte "it does nothing on its$"
     .byte "own, but it can store$"

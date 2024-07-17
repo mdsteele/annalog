@@ -217,7 +217,7 @@ _Devices_sDevice_arr:
     d_byte Type_eDevice, eDevice::Paper
     d_byte BlockRow_u8, 11
     d_byte BlockCol_u8, 1
-    d_byte Target_byte, eFlag::PaperManual5
+    d_byte Target_byte, eFlag::PaperManual6
     D_END
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None
@@ -299,10 +299,10 @@ _Passages_sPassage_arr:
 
 .SEGMENT "PRGA_Dialog"
 
-.EXPORT DataA_Dialog_PaperManual5_sDialog
-.PROC DataA_Dialog_PaperManual5_sDialog
-    dlg_Text Paper, DataA_Text0_PaperManual5_Page1_u8_arr
-    dlg_Text Paper, DataA_Text0_PaperManual5_Page2_u8_arr
+.EXPORT DataA_Dialog_PaperManual6_sDialog
+.PROC DataA_Dialog_PaperManual6_sDialog
+    dlg_Text Paper, DataA_Text0_PaperManual6_Page1_u8_arr
+    dlg_Text Paper, DataA_Text0_PaperManual6_Page2_u8_arr
     dlg_Done
 .ENDPROC
 
@@ -310,14 +310,14 @@ _Passages_sPassage_arr:
 
 .SEGMENT "PRGA_Text0"
 
-.PROC DataA_Text0_PaperManual5_Page1_u8_arr
-    .byte "CPU FIELD MANUAL p.5:$"
+.PROC DataA_Text0_PaperManual6_Page1_u8_arr
+    .byte "CPU FIELD MANUAL p.6:$"
     .byte "It can be useful to$"
     .byte "compare one register$"
     .byte "directly to another.#"
 .ENDPROC
 
-.PROC DataA_Text0_PaperManual5_Page2_u8_arr
+.PROC DataA_Text0_PaperManual6_Page2_u8_arr
     .byte "For example$"
     .byte "  :IF Y>L$"
     .byte "  :MOVE ", kTileIdBgArrowDown, "$"

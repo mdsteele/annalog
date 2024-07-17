@@ -21,6 +21,7 @@
 .INCLUDE "../actors/grub.inc"
 .INCLUDE "../charmap.inc"
 .INCLUDE "../device.inc"
+.INCLUDE "../dialog.inc"
 .INCLUDE "../flag.inc"
 .INCLUDE "../machine.inc"
 .INCLUDE "../machines/lift.inc"
@@ -181,6 +182,12 @@ _Devices_sDevice_arr:
     d_byte BlockCol_u8, 4
     d_byte Target_byte, sState::Lever_u8
     D_END
+    D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::Paper
+    d_byte BlockRow_u8, 13
+    d_byte BlockCol_u8, 7
+    d_byte Target_byte, eFlag::PaperManual3
+    D_END
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None
 _Passages_sPassage_arr:
@@ -279,6 +286,34 @@ _ReadL:
     jmp Func_InitActorSmokeExplosion
     @noSquish:
     rts
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Dialog"
+
+.EXPORT DataA_Dialog_PaperManual3_sDialog
+.PROC DataA_Dialog_PaperManual3_sDialog
+    dlg_Text Paper, DataA_Text2_PaperManual3_Page1_u8_arr
+    dlg_Text Paper, DataA_Text2_PaperManual3_Page2_u8_arr
+    dlg_Done
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Text2"
+
+.PROC DataA_Text2_PaperManual3_Page1_u8_arr
+    .byte "CPU FIELD MANUAL p.3:$"
+    .byte "A program loops until$"
+    .byte "an END is reached or$"
+    .byte "an error occurs.#"
+.ENDPROC
+
+.PROC DataA_Text2_PaperManual3_Page2_u8_arr
+    .byte "An error occurs if a$"
+    .byte "machine tries to MOVE$"
+    .byte "or ACT but cannot.#"
 .ENDPROC
 
 ;;;=========================================================================;;;

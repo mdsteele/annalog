@@ -226,6 +226,7 @@ _SetFlags:
     .byte eFlag::GardenLandingDroppedIn
     .byte eFlag::PaperJerome13
     .byte eFlag::UpgradeOpIf
+    .byte eFlag::PaperManual6
     .byte eFlag::PaperJerome12
     .byte eFlag::GardenEastTalkedToCorra
     .byte eFlag::MermaidHut1MetQueen
@@ -243,6 +244,7 @@ _SetFlags:
     .byte eFlag::UpgradeOpTil
     .byte eFlag::TempleAltarColumnBroken
     .byte eFlag::PaperJerome28
+    .byte eFlag::PaperManual9
     .byte eFlag::BossTemple
     .byte eFlag::UpgradeRam2
     .byte eFlag::BreakerTemple

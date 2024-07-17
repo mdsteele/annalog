@@ -183,6 +183,7 @@ kDialogEntryCutscene = $ff  ; ends the dialog and starts a new cutscene
     PaperManual3
     PaperManual4
     PaperManual5
+    PaperManual6
     PaperManual9
     PrisonFlowerSign
     PrisonUpperAlexCell
