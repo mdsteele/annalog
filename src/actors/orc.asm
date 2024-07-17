@@ -37,6 +37,7 @@
 .IMPORT FuncA_Actor_HarmAvatarIfCollision
 .IMPORT FuncA_Actor_IsAvatarWithinHorzDistance
 .IMPORT FuncA_Actor_IsAvatarWithinVertDistances
+.IMPORT FuncA_Actor_IsInRoomBounds
 .IMPORT FuncA_Actor_IsPointInRoomBounds
 .IMPORT FuncA_Actor_LandOnTerrain
 .IMPORT FuncA_Actor_MovePointTowardVelXDir
@@ -587,6 +588,8 @@ _Done:
     d_entry table, Standing,      FuncA_Actor_TickBadOrc_Standing
     d_entry table, Chasing,       FuncA_Actor_TickBadOrc_Chasing
     d_entry table, Collapsing,    FuncA_Actor_TickBadOrc_Collapsing
+    d_entry table, Escaping,      FuncA_Actor_TickBadOrc_Escaping
+    d_entry table, Flinching,     FuncA_Actor_TickBadOrc_Flinching
     d_entry table, Patrolling,    FuncA_Actor_TickBadOrc_Patrolling
     d_entry table, Punching,      FuncA_Actor_TickBadOrc_Punching
     d_entry table, Jumping,       FuncA_Actor_TickBadOrc_Jumping
@@ -612,6 +615,45 @@ _Done:
     lda #eActor::NpcOrcSleeping
     sta Ram_ActorType_eActor_arr, x
     jmp FuncA_Actor_ZeroVelX  ; preserves X
+    @done:
+    rts
+.ENDPROC
+
+;;; Performs per-frame updates for an orc baddie actor that's in Escaping mode.
+;;; @param X The actor index.
+;;; @preserve X
+.PROC FuncA_Actor_TickBadOrc_Escaping
+    jsr FuncA_Actor_TickBadOrc_AccelerateForward  ; preserves X
+    ;; Remove the orc once it leaves the room.
+    jsr FuncA_Actor_IsInRoomBounds  ; preserves X, returns C
+    bcs @done  ; still in the room
+    lda #eActor::None
+    sta Ram_ActorType_eActor_arr, x
+    @done:
+    rts
+.ENDPROC
+
+;;; Performs per-frame updates for an orc baddie actor that's in Flinching
+;;; mode.
+;;; @param X The actor index.
+;;; @preserve X
+.PROC FuncA_Actor_TickBadOrc_Flinching
+    ;; Decelerate.
+    lda Ram_ActorVelX_i16_0_arr, x
+    sub #15
+    sta Ram_ActorVelX_i16_0_arr, x
+    lda Ram_ActorVelX_i16_1_arr, x
+    sbc #0
+    bpl @setVelHi
+    lda #0
+    sta Ram_ActorVelX_i16_0_arr, x
+    @setVelHi:
+    sta Ram_ActorVelX_i16_1_arr, x
+    ;; Once the mode timer expires, run out of the room.
+    lda Ram_ActorState2_byte_arr, x  ; mode timer
+    bne @done
+    lda #eBadOrc::Escaping
+    sta Ram_ActorState1_byte_arr, x  ; current eBadOrc mode
     @done:
     rts
 .ENDPROC
@@ -988,6 +1030,8 @@ _Poses_eNpcOrc_arr:
     beq @pounding
     cmp #eBadOrc::Collapsing
     beq @kneeling
+    cmp #eBadOrc::Flinching
+    beq @surprised
     cmp #eBadOrc::Jumping
     bne @running
     @jumping:

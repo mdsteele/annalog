@@ -194,6 +194,10 @@ kOrc2ActorIndex = 1
 kOrc1FlingVelX = -700
 kOrc1FlingVelY = -300
 
+;;; The velocity applied to orc #2 (on the right side) when it flinches from
+;;; the rocket blast, in subpixels per frame.
+kOrc2FlinchVelX = 400
+
 ;;;=========================================================================;;;
 
 ;;; Defines room-specific state data for this particular room.
@@ -382,14 +386,14 @@ _Actors_sActor_arr:
 :   .assert * - :- = kOrc1ActorIndex * .sizeof(sActor), error
     D_STRUCT sActor
     d_byte Type_eActor, eActor::NpcOrc
-    d_word PosX_i16, $0171
+    d_word PosX_i16, $0173
     d_word PosY_i16, $00b8
     d_byte Param_byte, eNpcOrc::GruntStanding
     D_END
     .assert * - :- = kOrc2ActorIndex * .sizeof(sActor), error
     D_STRUCT sActor
     d_byte Type_eActor, eActor::NpcOrc
-    d_word PosX_i16, $01a2
+    d_word PosX_i16, $01ac
     d_word PosY_i16, $00b8
     d_byte Param_byte, eNpcOrc::GruntStanding
     D_END
@@ -471,7 +475,7 @@ _InitOrcs:
     sta Ram_ActorState2_byte_arr + kOrc1ActorIndex
     sta Ram_ActorState2_byte_arr + kOrc2ActorIndex
     lda #bObj::FlipH
-    sta Ram_ActorFlags_bObj_arr + kOrc1ActorIndex
+    sta Ram_ActorFlags_bObj_arr + kOrc2ActorIndex
 _MoveOutOfLiftPlatform:
     ;; If the player avatar spawns from the escape tunnel (e.g. after a reset),
     ;; ensure that the avatar isn't inside the lift platform's initial
@@ -600,9 +604,20 @@ _RocketImpact:
     sta Ram_ActorVelY_i16_0_arr, x
     lda #>kOrc1FlingVelY
     sta Ram_ActorVelY_i16_1_arr, x
-    ;; TODO: Make orc #2 (on the right side) flinch and run out of the room.
-    lda #eActor::None
-    sta Ram_ActorType_eActor_arr + kOrc2ActorIndex
+    ;; Make orc #2 (on the right side) flinch and run away.
+    ldx #kOrc2ActorIndex  ; param: actor index
+    lda #bObj::FlipH  ; param: actor flags
+    jsr Func_InitActorBadOrc  ; preserves X
+    lda #0
+    sta Ram_ActorFlags_bObj_arr, x
+    lda #eBadOrc::Flinching
+    sta Ram_ActorState1_byte_arr, x  ; current eBadOrc mode
+    lda #60
+    sta Ram_ActorState2_byte_arr, x  ; mode timer
+    lda #<kOrc2FlinchVelX
+    sta Ram_ActorVelX_i16_0_arr, x
+    lda #>kOrc2FlinchVelX
+    sta Ram_ActorVelX_i16_1_arr, x
     @done:
 _TrapFloor:
     ;; If the trap floor is already gone, it can't collapse again.
