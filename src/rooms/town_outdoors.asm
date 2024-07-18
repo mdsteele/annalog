@@ -410,9 +410,14 @@ _MakeOrcGruntsJump:
     dlg_Call DataC_Town_OutdoorsScrollOrcsIntoView
     dlg_Text OrcGronta, DataA_Text0_TownOutdoorsGronta_Search1_u8_arr
     dlg_Text OrcGronta, DataA_Text0_TownOutdoorsGronta_Search2_u8_arr
-    dlg_Text OrcMale, DataA_Text0_TownOutdoorsGronta_YesChief_u8_arr
+    dlg_Call _MakeThurgSalute
+    dlg_Text OrcMaleShout, DataA_Text0_TownOutdoorsGronta_YesChief_u8_arr
     dlg_Call _LockScrolling
     dlg_Done
+_MakeThurgSalute:
+    lda #eNpcOrc::GruntThrowing1
+    sta Ram_ActorState1_byte_arr + kThurgActorIndex
+    rts
 _LockScrolling:
     lda #bScroll::LockHorz
     sta Zp_Camera_bScroll
