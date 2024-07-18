@@ -89,7 +89,8 @@ kSandraActorIndex = 2
 kOrc1ActorIndex   = 1
 kOrc2ActorIndex   = 2
 kGrontaActorIndex = 3
-kThurgActorIndex  = 4
+kOrc3ActorIndex   = 4
+kThurgActorIndex  = 5
 
 ;;; The room pixel X-position that the Alex actor should be at when kneeling
 ;;; down to pick up the metal thing he found.
@@ -519,8 +520,8 @@ _SetFace:
 .PROC DataA_Text0_TownOutdoorsGronta_Search1_u8_arr
     .byte "Lieutenent Thurg! Have$"
     .byte "the grunts round up$"
-    .byte "the townsfolk, and$"
-    .byte "lock these kids up.#"
+    .byte "the townsfolk and lock$"
+    .byte "these kids up.#"
 .ENDPROC
 
 .PROC DataA_Text0_TownOutdoorsGronta_Search2_u8_arr
@@ -655,10 +656,12 @@ _InitOrcs:
     act_CallFunc Func_PlaySfxFlopDown
     act_SetAvatarPose eAvatar::Sleeping
     act_WaitFrames 30
-    act_CallFunc _InitThurg
-    act_WalkNpcOrc kThurgActorIndex, $05ec
+    act_CallFunc _InitThurgAndGrunt
+    act_WalkNpcOrc kThurgActorIndex, kOrc1InitPosX
     act_SetActorState1 kThurgActorIndex, eNpcOrc::GruntStanding
-    act_WaitFrames 70
+    act_WalkNpcOrc kOrc3ActorIndex, kOrc2InitPosX
+    act_SetActorState1 kOrc3ActorIndex, eNpcOrc::GruntStanding
+    act_WaitFrames 60
     act_RunDialog eDialog::TownOutdoorsGronta
     act_JumpToMain Main_LoadPrisonCellAndStartCutscene
 _AnnaHasLanded:
@@ -669,14 +672,19 @@ _SetHarmTimer:
     lda #kAvatarHarmHealFrames - kAvatarHarmInvincibleFrames - 1
     sta Zp_AvatarHarmTimer_u8
     rts
-_InitThurg:
-    ldax #kThurgInitPosX
-    stx Ram_ActorPosX_i16_0_arr + kThurgActorIndex
-    sta Ram_ActorPosX_i16_1_arr + kThurgActorIndex
-    ldax #kOrcInitPosY
-    stx Ram_ActorPosY_i16_0_arr + kThurgActorIndex
-    sta Ram_ActorPosY_i16_1_arr + kThurgActorIndex
+_InitThurgAndGrunt:
     ldx #kThurgActorIndex  ; param: actor index
+    jsr @init
+    ldx #kOrc3ActorIndex  ; param: actor index
+    @init:
+    lda #<kThurgInitPosX
+    sta Ram_ActorPosX_i16_0_arr, x
+    lda #>kThurgInitPosX
+    sta Ram_ActorPosX_i16_1_arr, x
+    lda #<kOrcInitPosY
+    sta Ram_ActorPosY_i16_0_arr, x
+    lda #>kOrcInitPosY
+    sta Ram_ActorPosY_i16_1_arr, x
     lda #eNpcOrc::GruntStanding  ; param: eNpcOrc value
     jmp Func_InitActorNpcOrc
 .ENDPROC
