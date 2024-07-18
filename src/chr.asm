@@ -1477,7 +1477,8 @@ _chr_begin:
     chr_inc "launcher_vert",       kTileIdObjLauncherVertFirst
     chr_inc "orc_grunt_kneeling",  kTileIdObjOrcGruntKneelingFirst
     chr_inc "platform_rocks",      kTileIdObjPlatformRocksFirst
-    chr_res $06
+    chr_inc "child_sleep",         kTileIdObjChildSleepFirst
+    chr_res $04
     chr_inc "orc_gronta_standing", kTileIdObjOrcGrontaStandingFirst
     chr_inc "orc_grunt_running",   kTileIdObjOrcGruntRunningFirst
     chr_inc "orc_grunt_throwing",  kTileIdObjOrcGruntThrowingFirst

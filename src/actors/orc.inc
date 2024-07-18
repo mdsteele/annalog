@@ -129,7 +129,7 @@ kBadGrontaMaxJumpUpBlocks = 2
 .ENDENUM
 
 ;;; eNpcOrc values greater than or equal to this are Gronta (or Queen Eirene).
-kNpcOrcFirstGronta = eNpcOrc::GrontaRunning1
+kNpcOrcFirstGronta = eNpcOrc::GrontaArmsRaised
 
 ;;; How far an orc actor's bounding box extends in each direction from the
 ;;; actor's center position.

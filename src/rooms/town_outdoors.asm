@@ -89,6 +89,7 @@ kSandraActorIndex = 2
 kOrc1ActorIndex   = 1
 kOrc2ActorIndex   = 2
 kGrontaActorIndex = 3
+kThurgActorIndex  = 4
 
 ;;; The room pixel X-position that the Alex actor should be at when kneeling
 ;;; down to pick up the metal thing he found.
@@ -99,6 +100,7 @@ kOrcInitPosY    = $0098
 kGrontaInitPosX = $05d7
 kOrc1InitPosX   = $05e8
 kOrc2InitPosX   = $05f9
+kThurgInitPosX  = $0608
 
 ;;;=========================================================================;;;
 
@@ -106,6 +108,8 @@ kOrc2InitPosX   = $05f9
 .STRUCT sState
     ;; Timer for making the second orc jump.
     OrcJumpTimer_u8  .byte
+    ;; Timer for making Alex get knocked unconscious.
+    AlexSleepTimer_u8  .byte
 .ENDSTRUCT
 .ASSERT .sizeof(sState) <= kRoomStateSize, error
 
@@ -264,7 +268,18 @@ _MakeOrcJump:
     dec Zp_RoomState + sState::OrcJumpTimer_u8
     bne @done
     ldx #kOrc2ActorIndex
-    jmp FuncC_Town_Outdoors_MakeOrcJump  ; unconditional
+    jsr FuncC_Town_Outdoors_MakeOrcJump  ; unconditional
+    @done:
+_KnockOutAlex:
+    lda Zp_RoomState + sState::AlexSleepTimer_u8
+    beq @done
+    dec Zp_RoomState + sState::AlexSleepTimer_u8
+    bne @done
+    lda #eNpcChild::AlexSleeping
+    sta Ram_ActorState1_byte_arr + kAlexActorIndex
+    lda #bObj::FlipH
+    sta Ram_ActorFlags_bObj_arr + kAlexActorIndex
+    jsr Func_PlaySfxFlopDown
     @done:
 _DetectAvatarDeath:
     ;; If the player avatar would die (because they were caught by the orcs;
@@ -290,16 +305,16 @@ _DetectAvatarDeath:
     sta Zp_PpuScrollX_u8
     ;; Compute the IRQ latch value to set between the bottom of the treeline
     ;; and the top of the window (if any), and set that as Param4_byte.
-    lda <(Zp_Buffered_sIrq + sIrq::Latch_u8)
+    lda Zp_Buffered_sIrq + sIrq::Latch_u8
     sub #kTreelineBottomY
     add Zp_RoomScrollY_u8
-    sta <(Zp_Buffered_sIrq + sIrq::Param4_byte)  ; window latch
+    sta Zp_Buffered_sIrq + sIrq::Param4_byte  ; window latch
     ;; Set up our own sIrq struct to handle parallax scrolling.
     lda #kTreelineTopY - 1
     sub Zp_RoomScrollY_u8
-    sta <(Zp_Buffered_sIrq + sIrq::Latch_u8)
+    sta Zp_Buffered_sIrq + sIrq::Latch_u8
     ldax #Int_TownOutdoorsTreeTopIrq
-    stax <(Zp_Buffered_sIrq + sIrq::FirstIrq_int_ptr)
+    stax Zp_Buffered_sIrq + sIrq::FirstIrq_int_ptr
     ;; Compute the PPU scroll-X for the treeline (which scrolls horizontally at
     ;; 1/4 speed) and houses (which scroll at full speed), and set those as
     ;; Param1_byte and Param2_byte, respectively.
@@ -307,11 +322,11 @@ _DetectAvatarDeath:
     lsr a
     sta T0
     lda Zp_RoomScrollX_u16 + 0
-    sta <(Zp_Buffered_sIrq + sIrq::Param2_byte)  ; houses scroll-X
+    sta Zp_Buffered_sIrq + sIrq::Param2_byte  ; houses scroll-X
     ror a
     lsr T0
     ror a
-    sta <(Zp_Buffered_sIrq + sIrq::Param1_byte)  ; treeline scroll-X
+    sta Zp_Buffered_sIrq + sIrq::Param1_byte  ; treeline scroll-X
     rts
 .ENDPROC
 
@@ -382,6 +397,8 @@ _RaiseGrontaArms:
 _MakeOrcGruntsJump:
     lda #30
     sta Zp_RoomState + sState::OrcJumpTimer_u8
+    lda #75
+    sta Zp_RoomState + sState::AlexSleepTimer_u8
     ldx #kOrc1ActorIndex
     jmp FuncC_Town_Outdoors_MakeOrcJump
 .ENDPROC
@@ -621,8 +638,7 @@ _InitOrcs:
     jsr Func_InitActorBadOrc
     ldx #kOrc2ActorIndex  ; param: actor index
     lda #bObj::FlipH  ; param: actor flags
-    jsr Func_InitActorBadOrc
-    rts
+    jmp Func_InitActorBadOrc
 .ENDPROC
 
 .EXPORT DataA_Cutscene_TownOutdoorsGetCaught_sCutscene
@@ -638,7 +654,11 @@ _InitOrcs:
     act_WaitFrames 4
     act_CallFunc Func_PlaySfxFlopDown
     act_SetAvatarPose eAvatar::Sleeping
-    act_WaitFrames 120
+    act_WaitFrames 30
+    act_CallFunc _InitThurg
+    act_WalkNpcOrc kThurgActorIndex, $05ec
+    act_SetActorState1 kThurgActorIndex, eNpcOrc::GruntStanding
+    act_WaitFrames 70
     act_RunDialog eDialog::TownOutdoorsGronta
     act_JumpToMain Main_LoadPrisonCellAndStartCutscene
 _AnnaHasLanded:
@@ -649,10 +669,16 @@ _SetHarmTimer:
     lda #kAvatarHarmHealFrames - kAvatarHarmInvincibleFrames - 1
     sta Zp_AvatarHarmTimer_u8
     rts
-_ScrollToGronta:
-    lda #kAvatarHarmHealFrames - kAvatarHarmInvincibleFrames - 1
-    sta Zp_AvatarHarmTimer_u8
-    rts
+_InitThurg:
+    ldax #kThurgInitPosX
+    stx Ram_ActorPosX_i16_0_arr + kThurgActorIndex
+    sta Ram_ActorPosX_i16_1_arr + kThurgActorIndex
+    ldax #kOrcInitPosY
+    stx Ram_ActorPosY_i16_0_arr + kThurgActorIndex
+    sta Ram_ActorPosY_i16_1_arr + kThurgActorIndex
+    ldx #kThurgActorIndex  ; param: actor index
+    lda #eNpcOrc::GruntStanding  ; param: eNpcOrc value
+    jmp Func_InitActorNpcOrc
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -689,7 +715,7 @@ _ScrollToGronta:
     lda #kTreelineTopY  ; new scroll-Y value
     sta Hw_PpuScroll_w2
     ;; Scroll the treeline horizontally.
-    lda <(Zp_Active_sIrq + sIrq::Param1_byte)  ; treeline scroll-X
+    lda Zp_Active_sIrq + sIrq::Param1_byte  ; treeline scroll-X
     tax  ; new scroll-X value
     div #8
     ora #(kTreelineTopY & $38) << 2
@@ -728,7 +754,7 @@ _ScrollToGronta:
     sta Hw_PpuAddr_w2
     lda #kTreelineBottomY  ; new scroll-Y value
     sta Hw_PpuScroll_w2
-    lda <(Zp_Active_sIrq + sIrq::Param2_byte)  ; houses scroll-X
+    lda Zp_Active_sIrq + sIrq::Param2_byte  ; houses scroll-X
     tax  ; new scroll-X value
     div #8
     ora #(kTreelineBottomY & $38) << 2
