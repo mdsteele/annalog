@@ -1,30 +1,31 @@
 @BG 0 0 0 25x24
 >mermaid_0
 >mermaid_1
+>mermaid_2
+>mermaid_3
 >mermaid_4
->mermaid_5
 
-                CHCHCHCHCHCHCHCHCHCHCHCHCHCHCHCHCH
-          CHCHCI                    BH
-        CN  BH                      BH
-        CN  BH                      BH          BE
-      CHCI  BH                      BH      BEAOAN
-CHCHCI      BH                      BH    AOANANAN
+                DHDHDHDHDHDHDHDHDHDHDHDHDHDHDHDHDH
+          DHDHDI                    BH
+        DN  BH                      BH
+        DN  BH                      BH          BE
+      DHDI  BH                      BH      BEAOAN
+DHDHDI      BH                      BH    AOANANAN
             BH                      BH  AOANANANAN
             BH                      BH  AI
-BPBPBPBPBPBPBIBPBPBPBPCO            BH  AIAM    AH
-                      CP    BBCOBPBPBIBPBFBPBPBPAF
-                BJBKDMCP    CACPDMDADBDDDCDADCDBDA
-DBDBDBDADBDADBDCDCDFDNCP      CPCPCPCPDODBDCDADCDD
-CPCPCPCPCPCPCPCPCPCPCPCPCC      BH    CPCPCPCPCPCP
-  CNCPCK            BH          BH          BH
-  CNCM              BH      CO  BH          BH
-  CNCM              BH          BH          BHAOAN
-  CN      AOAP      BH  COBPBPBPBICO        BHAI
-  CN    AOANANAP    BH  CPCPCPCPCPCPCC      BHAKAM
-  CN  AOANANANANAP  BH        BH            BHAK
-  CN  AI        AJ  BH        BH        COBPBIBFBP
-  CN  AK  AH  AMAJ  BH        BH      BACPBL  AK
-  CNBPBFBPAFBPBPBGBPBIBPBPBPBPBIBPBPBPDMCPDODDDDDB
-  CNDMDDDADDDCDADCDEDBDBDCDFDADBDCDADEDPCPDODBDCDE
-  CNDMDADCDBDDDCDADBDADBDCDADCDDDADDDBDPCPDODDDCDB
+BPBPBPBPBPBPBIBPBPBPBPDO            BH  AIAM    AH
+              CK      DP    BBDOCJBPBIBPBFBPBPBPAF
+      CM    CNCOBJBKEMDP    DADPEMEAEBEDECEAECEBEA
+EBEBEBEAEBEAEBECECEFENDP      DPDPDPDPEOEBECEAECED
+DPDPDPDPDPDPDPDPDPDPDPDPDC      BH    DPDPDPDPDPDP
+  DNDPDK            BH          BH          BH
+  DNDM              BH      DO  BH          BH
+  DNDM              BH          BH          BHAOAN
+  DN      AOAP      BH  DOBPBPBPBIDO        BHAI
+  DN    AOANANAP    BH  DPDPDPDPDPDPDC      BHAKAM
+  DN  AOANANANANAP  BH        BH            BHAK
+  DN  AI        AJ  BH        BH        DOBPBIBFBP
+  DN  AK  AH  AMAJ  BH        BH      BADPBLCLAK
+  DNCIBFBPAFBPBPBGBPBICDCDCJCIBICICDBPEMDPEOEDEDEB
+  DNEMEDEAEDECEAECEEEBEBECEFEAEBECEAEEEPDPEOEBECEE
+  DNEMEAECEBEDECEAEBEAEBECEAECEDEAEDEBEPDPEOEDECEB

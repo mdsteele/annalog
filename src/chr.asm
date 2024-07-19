@@ -153,7 +153,7 @@ _chr_begin:
     chr_inc "water_anim0"
     chr_inc "acid_anim0"
     chr_inc "waterfall_anim0"
-    chr_res $02
+    chr_inc "anim_seaweed_0"
     chr_inc "thorns_anim0"
     chr_inc "sewage_anim0"
     chr_inc "circuit_anim0"
@@ -169,7 +169,7 @@ _chr_begin:
     chr_inc "water_anim0"
     chr_inc "acid_anim1"
     chr_inc "waterfall_anim1"
-    chr_res $02
+    chr_inc "anim_seaweed_0"
     chr_inc "thorns_anim1"
     chr_inc "sewage_anim1"
     chr_inc "circuit_anim1"
@@ -185,7 +185,7 @@ _chr_begin:
     chr_inc "water_anim1"
     chr_inc "acid_anim2"
     chr_inc "waterfall_anim2"
-    chr_res $02
+    chr_inc "anim_seaweed_1"
     chr_inc "thorns_anim2"
     chr_inc "sewage_anim2"
     chr_inc "circuit_anim2"
@@ -201,7 +201,7 @@ _chr_begin:
     chr_inc "water_anim1"
     chr_inc "acid_anim3"
     chr_inc "waterfall_anim3"
-    chr_res $02
+    chr_inc "anim_seaweed_1"
     chr_inc "thorns_anim3"
     chr_inc "sewage_anim3"
     chr_inc "circuit_anim3"
@@ -217,7 +217,7 @@ _chr_begin:
     chr_inc "water_anim2"
     chr_inc "acid_anim4"
     chr_inc "waterfall_anim0"
-    chr_res $02
+    chr_inc "anim_seaweed_2"
     chr_inc "thorns_anim4"
     chr_inc "sewage_anim0"
     chr_inc "circuit_anim4"
@@ -233,7 +233,7 @@ _chr_begin:
     chr_inc "water_anim2"
     chr_inc "acid_anim5"
     chr_inc "waterfall_anim1"
-    chr_res $02
+    chr_inc "anim_seaweed_2"
     chr_inc "thorns_anim5"
     chr_inc "sewage_anim1"
     chr_inc "circuit_anim5"
@@ -249,7 +249,7 @@ _chr_begin:
     chr_inc "water_anim1"
     chr_inc "acid_anim6"
     chr_inc "waterfall_anim2"
-    chr_res $02
+    chr_inc "anim_seaweed_3"
     chr_inc "thorns_anim6"
     chr_inc "sewage_anim2"
     chr_inc "circuit_anim6"
@@ -265,7 +265,7 @@ _chr_begin:
     chr_inc "water_anim1"
     chr_inc "acid_anim7"
     chr_inc "waterfall_anim3"
-    chr_res $02
+    chr_inc "anim_seaweed_3"
     chr_inc "thorns_anim7"
     chr_inc "sewage_anim3"
     chr_inc "circuit_anim7"

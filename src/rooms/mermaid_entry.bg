@@ -1,21 +1,22 @@
 @BG 0 0 0 34x15
 >mermaid_0
 >mermaid_1
+>mermaid_2
+>mermaid_3
 >mermaid_4
->mermaid_5
 
-                CHCHCHCHCHCHCHCHCHCHCH
-            CHCI            BH        CGCHCHCHCHCH
-      CHCHCI                BH            BH      CGCHCH
-CHCHCI                      BH            BH            CGCHCH
-                            BH            BH              BH  CM
-  BA            CACBCBCC    BH            BHCO            BH  CM
-CKCKCL                      BH  CO        BHCP            BH  CM
-    CKCKCLBA                BH  CP        BHCP    CACC    BH  CM
-        CNDEDNBKBLBAAD      BH  CPCO      BHCP            BHCADJCHCH
-        CNDDDADDDADCDADNBPBPBIBPCPCP      BHCP            BH
-        CKDODBDADADADCDFDNBL    CPCP      BH          CO  BH
-          DODADCDFDDDDDADADBDEDNCPCPBPBPBPBIBPBPBPBPBPCPBPBIBPBPBPBP
-          DODDDDDADADADCDCDBDCDDCPCP                  CP
-          CKDODBDBDADCDDDEDCDBDCCPCPDMDEDNBKBL        CP
-            DODADADCDDDBDBDBDBDADDDDDCDDDBDCDADADADADNCPDMDDDADCDBDB
+                DHDHDHDHDHDHDHDHDHDHDH
+            DHDI            BH        DGDHDHDHDHDH
+      DHDHDI                BH            BH      DGDHDH
+DHDHDI                      BH            BH            DGDHDH
+                            BH            BH              BH  DM
+  BA            DADBDBDC    BH            BHDO            BH  DM
+DKDKDL                      BH  DO        BHDP            BH  DM
+    DKDKDLBA                BH  DP        BHDP    DADC    BH  DM
+        DNEEENBKBLBAAD      BH  DPDO      BHDP            BHDAEJDHDH
+        DNEDEAEDEAECEAENCIBPBIBPDPDP      BHDP            BH
+        DKEOEBEAEAEAECEFENBL  CMDPDP      BH          DO  BH
+          EOEAECEFEDEDEAEAEBEEENDPDPBPCJBPBIBPBPBPBPBPDPBPBIBPBPBPBP
+          EOEDEDEAEAEAECECEBECEDDPDPCNCP        CK    DPCL
+          DKEOEBEBEAECEDEEECEBECDPDPEMEEENBKBL  COCN  DPCN    CM
+            EOEAEAECEDEBEBEBEBEAEDEDECEDEBECEAEAEAEAENDPEMEDEAECEBEB

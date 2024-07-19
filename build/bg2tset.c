@@ -45,8 +45,9 @@ static const struct {
 } tile_files[] = {
   {0x48, "acid_anim0"},
   {0x48, "anim_conveyor_0"},
-  {0xb0, "arch"},
   {0x68, "anim_rocks_fall_1"},
+  {0x4e, "anim_seaweed_0"},
+  {0xb0, "arch"},
   {0xa0, "beach"},
   {0xb4, "boiler"},
   {0x80, "building1"},
