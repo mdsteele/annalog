@@ -589,10 +589,9 @@ _chr_begin:
     CHR1_BANK $80
     chr_inc "cave"
     chr_inc "hut"
-    chr_inc "beach"
-    chr_res $08
+    chr_inc "terrain_mermaid_2"
+    chr_inc "terrain_mermaid_3"
     chr_inc "pump"
-    chr_res $0c
     END_CHR_BANK
 .ENDPROC
 
@@ -1006,8 +1005,8 @@ _chr_begin:
     chr_inc "sewer1"
     chr_inc "sewer2"
     chr_res $10
-    chr_inc "pump"
     chr_res $0c
+    chr_inc "pump"
     END_CHR_BANK
 .ENDPROC
 
