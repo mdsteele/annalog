@@ -1,9 +1,9 @@
 @BG 0 0 0 17x24
 >garden_0
 >garden_1
->garden_4
 >garden_5
 >garden_6
+>garden_7
 
     DDDDDDDDDDDDDDDDDDDDDDDDDD
   CJ  AL  BCBO  BC  BFAOBN    CI
@@ -12,7 +12,7 @@
 CJBB        DGDHDHDHDI  BC
 CJBD              BOBF  BC
 CJ  AC              BG  BC  DGDADA
-  CECD              BE  BM  BBCI
+ECCECD              BE  BM  BBCI
   AN  CEEA          BF  BC  BDCI
 APDDDDDDCL        ANDB  BA    CI
 CJ  BD            DGCJ  BC    CI

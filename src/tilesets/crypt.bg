@@ -5,6 +5,7 @@
 >terrain_shared_0
 >terrain_shared_1
 >water_anim0
+>circuit_anim0
 
     DMDN    DCDD    ACADECED        BE            BGBF  BDBF  BA
     DODPDEDF    AAABACAD          BB      BABH          BE  BBBC
@@ -12,7 +13,7 @@ CCCDCCCDCCCHCCCH  CJCJ    CJCJ    CKCL                      FAFA
 CECFCGCFCECFCGCF  CJCJ                    CMCMCNCM
 
 
-                                                        CICI
-                                                        CACBCICI
+GEGF    GKGLGMGNGKGLGEGF                                CICI
+GEGF  GKGLGMGN  GEGMCACB                                CACBCICI
 CBCACBCACB    CACB    CACBCA              CACB  CBCA
 CA    CBCA    CBCACBCACB    CACB  CBCA          CACB

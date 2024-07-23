@@ -20,8 +20,11 @@
 .INCLUDE "../actor.inc"
 .INCLUDE "../charmap.inc"
 .INCLUDE "../device.inc"
+.INCLUDE "../flag.inc"
+.INCLUDE "../irq.inc"
 .INCLUDE "../machine.inc"
 .INCLUDE "../macros.inc"
+.INCLUDE "../mmc3.inc"
 .INCLUDE "../platform.inc"
 .INCLUDE "../platforms/lava.inc"
 .INCLUDE "../ppu.inc"
@@ -33,9 +36,9 @@
 .IMPORT FuncA_Machine_BoilerTick
 .IMPORT FuncA_Machine_BoilerWriteReg
 .IMPORT FuncA_Machine_Error
-.IMPORT FuncA_Objects_AnimateLavaTerrain
 .IMPORT FuncA_Objects_DrawBoilerMachine
 .IMPORT FuncA_Objects_DrawBoilerValve
+.IMPORT FuncA_Objects_SetUpLavaAnimationIrq
 .IMPORT FuncA_Room_MachineBoilerReset
 .IMPORT FuncA_Room_TurnSteamToSmokeIfConsoleOpen
 .IMPORT FuncA_Terrain_FadeInShortRoomWithLava
@@ -45,9 +48,12 @@
 .IMPORT Func_Noop
 .IMPORT Func_SetPointToActorCenter
 .IMPORT Func_SetPointToAvatarCenter
+.IMPORT Ppu_ChrBgAnimStatic
 .IMPORT Ppu_ChrObjLava
 .IMPORT Ram_ActorType_eActor_arr
 .IMPORT Ram_MachineGoalHorz_u8_arr
+.IMPORT Sram_ProgressFlags_arr
+.IMPORTZP Zp_Chr04Bank_u8
 
 ;;;=========================================================================;;;
 
@@ -92,7 +98,7 @@ _Ext_sRoomExt:
     d_addr Enter_func_ptr, Func_Noop
     d_addr FadeIn_func_ptr, FuncA_Terrain_FadeInShortRoomWithLava
     d_addr Tick_func_ptr, FuncA_Room_TurnSteamToSmokeIfConsoleOpen
-    d_addr Draw_func_ptr, FuncA_Objects_AnimateLavaTerrain
+    d_addr Draw_func_ptr, FuncC_Lava_Cavern_DrawRoom
     D_END
 _TerrainData:
 :   .incbin "out/rooms/lava_cavern.room"
@@ -253,6 +259,19 @@ _ReadD:
     lda T0  ; minimum distance so far, in pixels
     div #kBlockWidthPx
     rts
+.ENDPROC
+
+.PROC FuncC_Lava_Cavern_DrawRoom
+_AnimateCircuit:
+    ;; If the lava breaker hasn't been activated yet, disable the BG circuit
+    ;; animation.
+    flag_bit Sram_ProgressFlags_arr, eFlag::BreakerLava
+    bne @done
+    lda #<.bank(Ppu_ChrBgAnimStatic)
+    sta Zp_Chr04Bank_u8
+    @done:
+_SetUpIrq:
+    jmp FuncA_Objects_SetUpLavaAnimationIrq
 .ENDPROC
 
 .PROC FuncC_Lava_CavernBoiler_Draw

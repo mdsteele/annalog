@@ -30,13 +30,15 @@
 .INCLUDE "../room.inc"
 
 .IMPORT DataA_Room_Shadow_sTileset
-.IMPORT FuncA_Objects_AnimateLavaTerrain
+.IMPORT FuncA_Objects_SetUpLavaAnimationIrq
 .IMPORT FuncA_Room_GetDarknessZoneFade
 .IMPORT FuncA_Terrain_FadeInShortRoomWithLava
 .IMPORT Func_SetAndTransferBgFade
+.IMPORT Ppu_ChrBgAnimStatic
 .IMPORT Ppu_ChrObjShadow
 .IMPORT Ram_ActorType_eActor_arr
 .IMPORT Sram_ProgressFlags_arr
+.IMPORTZP Zp_Chr04Bank_u8
 .IMPORTZP Zp_GoalBg_eFade
 .IMPORTZP Zp_RoomState
 
@@ -80,7 +82,7 @@ _Ext_sRoomExt:
     d_addr Enter_func_ptr, FuncA_Room_ShadowDepths_EnterRoom
     d_addr FadeIn_func_ptr, FuncA_Terrain_ShadowDepths_FadeInRoom
     d_addr Tick_func_ptr, FuncA_Room_ShadowDepths_TickRoom
-    d_addr Draw_func_ptr, FuncA_Objects_AnimateLavaTerrain
+    d_addr Draw_func_ptr, FuncC_Shadow_Depths_DrawRoom
     D_END
 _TerrainData:
 :   .incbin "out/rooms/shadow_depths1.room"
@@ -217,6 +219,19 @@ _Passages_sPassage_arr:
     d_byte SpawnAdjust_byte, 0
     D_END
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
+.ENDPROC
+
+.PROC FuncC_Shadow_Depths_DrawRoom
+_AnimateCircuit:
+    ;; If the shadow breaker hasn't been activated yet, disable the BG circuit
+    ;; animation.
+    flag_bit Sram_ProgressFlags_arr, eFlag::BreakerShadow
+    bne @done
+    lda #<.bank(Ppu_ChrBgAnimStatic)
+    sta Zp_Chr04Bank_u8
+    @done:
+_SetUpIrq:
+    jmp FuncA_Objects_SetUpLavaAnimationIrq
 .ENDPROC
 
 ;;;=========================================================================;;;

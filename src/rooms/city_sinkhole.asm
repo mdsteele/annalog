@@ -20,6 +20,7 @@
 .INCLUDE "../actor.inc"
 .INCLUDE "../charmap.inc"
 .INCLUDE "../device.inc"
+.INCLUDE "../flag.inc"
 .INCLUDE "../machine.inc"
 .INCLUDE "../machines/lift.inc"
 .INCLUDE "../macros.inc"
@@ -34,9 +35,12 @@
 .IMPORT FuncA_Machine_LiftTryMove
 .IMPORT FuncA_Objects_DrawLiftMachine
 .IMPORT Func_Noop
+.IMPORT Ppu_ChrBgAnimStatic
 .IMPORT Ppu_ChrObjCity
 .IMPORT Ram_MachineGoalVert_u8_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
+.IMPORT Sram_ProgressFlags_arr
+.IMPORTZP Zp_Chr04Bank_u8
 
 ;;;=========================================================================;;;
 
@@ -82,7 +86,7 @@ _Ext_sRoomExt:
     d_addr Enter_func_ptr, Func_Noop
     d_addr FadeIn_func_ptr, Func_Noop
     d_addr Tick_func_ptr, Func_Noop
-    d_addr Draw_func_ptr, Func_Noop
+    d_addr Draw_func_ptr, FuncC_City_Sinkhole_DrawRoom
     D_END
 _TerrainData:
 :   .incbin "out/rooms/city_sinkhole.room"
@@ -146,6 +150,17 @@ _Passages_sPassage_arr:
     d_byte SpawnAdjust_byte, $e5
     D_END
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
+.ENDPROC
+
+.PROC FuncC_City_Sinkhole_DrawRoom
+    ;; If the city breaker hasn't been activated yet, disable the BG circuit
+    ;; animation.
+    flag_bit Sram_ProgressFlags_arr, eFlag::BreakerCity
+    bne @done
+    lda #<.bank(Ppu_ChrBgAnimStatic)
+    sta Zp_Chr04Bank_u8
+    @done:
+    rts
 .ENDPROC
 
 .PROC FuncC_City_SinkholeLift_ReadReg

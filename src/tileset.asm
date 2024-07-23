@@ -173,7 +173,7 @@
     d_addr UpperRight_u8_arr_ptr, DataA_Terrain_GardenUpperRight_u8_arr
     d_addr LowerRight_u8_arr_ptr, DataA_Terrain_GardenLowerRight_u8_arr
     d_byte Chr08Bank_u8, <.bank(Ppu_ChrBgGarden)
-    d_byte FirstSolidTerrainType_u8, $40
+    d_byte FirstSolidTerrainType_u8, $50
     D_END
 .ENDPROC
 

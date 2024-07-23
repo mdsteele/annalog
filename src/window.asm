@@ -73,7 +73,7 @@ Zp_WindowNextRowToTransfer_u8: .res 1
 .PROC Func_Window_Disable
     lda #$ff
     sta Zp_WindowTop_u8
-    .assert * = Func_Window_SetUpIrq, error, "fallthrough"
+    fall Func_Window_SetUpIrq
 .ENDPROC
 
 ;;; Populates Ram_Buffered_sIrq appropriately for the current value of
@@ -290,7 +290,7 @@ _Disable:
     sta Zp_NextIrq_int_ptr + 1
     ;; Ack and set latch for the window.
     lda Zp_Active_sIrq + sIrq::Param4_byte  ; window latch
-    .assert * = Func_AckIrqAndSetLatch, error, "fallthrough"
+    fall Func_AckIrqAndSetLatch
 .ENDPROC
 
 ;;; Acks the current HBlank IRQ, writes a new latch value, and then immediately
@@ -306,6 +306,17 @@ _Disable:
     sta Hw_Mmc3IrqLatch_wo
     sta Hw_Mmc3IrqReload_wo
     rts
+.ENDPROC
+
+;;; HBlank IRQ handler function to switch the terrain animation CHR04 bank
+;;; partway through the screen vertically.
+.EXPORT Int_SetChr04ToParam3ThenLatchWindowFromParam4
+.PROC Int_SetChr04ToParam3ThenLatchWindowFromParam4
+    pha
+    jsr Func_AckIrqAndLatchWindowFromParam4  ; preserves X and Y
+    irq_chr04 Zp_Active_sIrq + sIrq::Param3_byte  ; terrain CHR04 bank
+    pla
+    rti
 .ENDPROC
 
 ;;; HBlank IRQ handler function for the top edge of the window.  Sets the PPU
@@ -400,7 +411,7 @@ _Disable:
     sta Hw_Mmc3IrqReload_wo
     ;; Restore the A register and finish.
     pla
-    .assert * = Int_NoopIrq, error, "fallthrough"
+    fall Int_NoopIrq
 .ENDPROC
 
 ;;; HBlank IRQ handler function that does nothing other than ack the IRQ.

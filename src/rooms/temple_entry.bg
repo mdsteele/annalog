@@ -17,14 +17,14 @@ CNCN        CACGCCCD            DP
 COCO        AN    AN            DP
 COCO        AO    AO    DPDP    DP
 CPCP        AO    AO            DP
-CBCCCD      AO    AO          DPBN
+CBCCCD      AO    AO          DPCI
 CBCCCD      AO    AO          DP
-CNCN        AP    AP        DPBN
+CNCN        AP    AP        DPCI
 COCO        CACBCCCD        DPDPDPDP
 CPCP        AN    AN
 DPDPDP      AO    AO
 DPDPDM      AO    AO
   DPDP      AO    AO        DPDNDNDN
   DLDPBPBPBPBOBPBPBOBPBPBPBPDO
-    DP      AP    AP  AJ  DPBN
-    BMDPDPDPDPDPDPDPDPDPDNBN
+    DP      AP    AP  AJ  DPCI
+    CHDPDPDPDPDPDPDPDPDPDNCI

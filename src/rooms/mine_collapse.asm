@@ -43,12 +43,13 @@
 .IMPORT Func_MovePlatformLeftTowardPointX
 .IMPORT Func_MovePlatformTopTowardPointY
 .IMPORT Func_Noop
-.IMPORT Ppu_ChrBgAnimB0
+.IMPORT Ppu_ChrBgAnimStatic
 .IMPORT Ppu_ChrObjMine
 .IMPORT Ram_MachineGoalHorz_u8_arr
 .IMPORT Ram_MachineGoalVert_u8_arr
 .IMPORT Ram_PlatformLeft_i16_0_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
+.IMPORT Sram_ProgressFlags_arr
 .IMPORTZP Zp_Chr04Bank_u8
 .IMPORTZP Zp_PointX_i16
 .IMPORTZP Zp_PointY_i16
@@ -70,8 +71,8 @@ kCraneInitGoalZ = 0
 kCraneMaxGoalZ = 8
 
 ;;; The initial and maximum permitted values for the trolley's X-goal.
-kTrolleyInitGoalX = 0
-kTrolleyMaxGoalX  = 7
+kTrolleyInitGoalX = 5
+kTrolleyMaxGoalX  = 8
 
 ;;; The minimum, initial, and maximum room pixel position for the top edge of
 ;;; the crane.
@@ -82,7 +83,7 @@ kCraneMaxPlatformTop  = kCraneMinPlatformTop + kBlockHeightPx * kCraneMaxGoalZ
 ;;; The minimum, initial, and maximum room pixel position for the left edge of
 ;;; the trolley.
 .LINECONT +
-kTrolleyMinPlatformLeft = $40
+kTrolleyMinPlatformLeft = $30
 kTrolleyInitPlatformLeft = \
     kTrolleyMinPlatformLeft + kBlockWidthPx * kTrolleyInitGoalX
 kTrolleyMaxPlatformLeft = \
@@ -136,9 +137,9 @@ _Machines_sMachine_arr:
     d_addr Init_func_ptr, FuncC_Mine_CollapseTrolley_InitReset
     d_addr ReadReg_func_ptr, FuncC_Mine_CollapseTrolley_ReadReg
     d_addr WriteReg_func_ptr, Func_Noop
-    d_addr TryMove_func_ptr, FuncC_Mine_CollapseTrolley_TryMove
+    d_addr TryMove_func_ptr, FuncA_Machine_MineCollapseTrolley_TryMove
     d_addr TryAct_func_ptr, FuncA_Machine_Error
-    d_addr Tick_func_ptr, FuncC_Mine_CollapseTrolley_Tick
+    d_addr Tick_func_ptr, FuncA_Machine_MineCollapseTrolley_Tick
     d_addr Draw_func_ptr, FuncA_Objects_DrawTrolleyMachine
     d_addr Reset_func_ptr, FuncC_Mine_CollapseTrolley_InitReset
     D_END
@@ -155,9 +156,9 @@ _Machines_sMachine_arr:
     d_addr Init_func_ptr, FuncC_Mine_CollapseCrane_InitReset
     d_addr ReadReg_func_ptr, FuncC_Mine_CollapseCrane_ReadReg
     d_addr WriteReg_func_ptr, FuncA_Machine_Error
-    d_addr TryMove_func_ptr, FuncC_Mine_CollapseCrane_TryMove
+    d_addr TryMove_func_ptr, FuncA_Machine_MineCollapseCrane_TryMove
     d_addr TryAct_func_ptr, FuncC_Mine_CollapseCrane_TryAct
-    d_addr Tick_func_ptr, FuncC_Mine_CollapseCrane_Tick
+    d_addr Tick_func_ptr, FuncA_Machine_MineCollapseCrane_Tick
     d_addr Draw_func_ptr, FuncA_Objects_MineCollapseCrane_Draw
     d_addr Reset_func_ptr, FuncC_Mine_CollapseCrane_InitReset
     D_END
@@ -184,13 +185,13 @@ _Platforms_sPlatform_arr:
 _Devices_sDevice_arr:
 :   D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::ConsoleFloor
-    d_byte BlockRow_u8, 11
+    d_byte BlockRow_u8, 12
     d_byte BlockCol_u8, 12
     d_byte Target_byte, kTrolleyMachineIndex
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::ConsoleFloor
-    d_byte BlockRow_u8, 11
+    d_byte BlockRow_u8, 12
     d_byte BlockCol_u8, 13
     d_byte Target_byte, kCraneMachineIndex
     D_END
@@ -213,8 +214,13 @@ _Passages_sPassage_arr:
 .ENDPROC
 
 .PROC DataC_Mine_Collapse_DrawRoom
-    lda #<.bank(Ppu_ChrBgAnimB0)
+    ;; If the mine breaker hasn't been activated yet, disable the BG circuit
+    ;; animation.
+    flag_bit Sram_ProgressFlags_arr, eFlag::BreakerMine
+    bne @done
+    lda #<.bank(Ppu_ChrBgAnimStatic)
     sta Zp_Chr04Bank_u8
+    @done:
     rts
 .ENDPROC
 
@@ -269,7 +275,19 @@ _RegZ:
     rts
 .ENDPROC
 
-.PROC FuncC_Mine_CollapseTrolley_TryMove
+.PROC FuncC_Mine_CollapseCrane_TryAct
+    lda Ram_MachineGoalHorz_u8_arr + kCraneMachineIndex
+    eor #$ff
+    sta Ram_MachineGoalHorz_u8_arr + kCraneMachineIndex
+    lda #kCraneActCooldown  ; param: num frames
+    jmp FuncA_Machine_StartWaiting
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Machine"
+
+.PROC FuncA_Machine_MineCollapseTrolley_TryMove
     cpx #eDir::Left
     beq @moveLeft
     @moveRight:
@@ -288,7 +306,7 @@ _RegZ:
     jmp FuncA_Machine_Error
 .ENDPROC
 
-.PROC FuncC_Mine_CollapseCrane_TryMove
+.PROC FuncA_Machine_MineCollapseCrane_TryMove
     .assert eDir::Up = 0, error
     txa
     beq @moveUp
@@ -308,15 +326,7 @@ _RegZ:
     jmp FuncA_Machine_Error
 .ENDPROC
 
-.PROC FuncC_Mine_CollapseCrane_TryAct
-    lda Ram_MachineGoalHorz_u8_arr + kCraneMachineIndex
-    eor #$ff
-    sta Ram_MachineGoalHorz_u8_arr + kCraneMachineIndex
-    lda #kCraneActCooldown  ; param: num frames
-    jmp FuncA_Machine_StartWaiting
-.ENDPROC
-
-.PROC FuncC_Mine_CollapseTrolley_Tick
+.PROC FuncA_Machine_MineCollapseTrolley_Tick
     ;; Calculate the desired X-position for the left edge of the trolley, in
     ;; room-space pixels, storing it in Zp_PointX_i16.
     lda Ram_MachineGoalHorz_u8_arr + kTrolleyMachineIndex
@@ -339,7 +349,7 @@ _RegZ:
     jmp FuncA_Machine_ReachedGoal
 .ENDPROC
 
-.PROC FuncC_Mine_CollapseCrane_Tick
+.PROC FuncA_Machine_MineCollapseCrane_Tick
     ;; Calculate the desired Y-position for the top edge of the crane, in
     ;; room-space pixels, storing it in Zp_PointY_i16.
     lda Ram_MachineGoalVert_u8_arr + kCraneMachineIndex

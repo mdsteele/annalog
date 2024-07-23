@@ -8,13 +8,14 @@
 >lava_anim0
 >boiler
 >arch
+>circuit_anim0
 
     CMCN    CICJ    DCDDEPEOEOEP            HB  AB    AA
     COCPCECFCKCLFCFD                      FEHD  AD    ACENEMEMEN
 EI    EIEI    EI        EJELELEJEJ    EJ  ELEL      GA  ICIDGAGB
 EKEIEIEKEK    EK  EIEI  EL    ELEL    EL        IAIBGB  ICIDGBGA
-EDECEDECFAECEDFB                                FH            FG
-        EL    EL                                      FHFG
+EDECEDECFAECEDFBJRJQJPJO      JEJF    JE        FH            FG
+        EL    EL  JRJQJPJO    JEJF    JR              FHFG
 BABA    BB    BB          BGBH  BGBABABH          BE
     BABABB    BB  BEBF                  BEBABABF  BB        BJ
 EAEBEBEAEDECEDDFEEEFEFEEEEEFEFEEEDECEDECEAEBEAEBEDECEAEBED  BMBN

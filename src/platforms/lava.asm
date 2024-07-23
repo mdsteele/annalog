@@ -17,14 +17,24 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
+.INCLUDE "../irq.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../ppu.inc"
 
 .IMPORT Func_WriteToLowerAttributeTable
 .IMPORT Func_WriteToUpperAttributeTable
+.IMPORT Int_SetChr04ToParam3ThenLatchWindowFromParam4
 .IMPORT Ppu_ChrBgAnimB0
+.IMPORTZP Zp_Buffered_sIrq
 .IMPORTZP Zp_Chr04Bank_u8
 .IMPORTZP Zp_FrameCounter_u8
+.IMPORTZP Zp_RoomScrollY_u8
+
+;;;=========================================================================;;;
+
+;;; The screen pixel Y-position at which the lava IRQ should change the CHR04
+;;; bank.
+kLavaChr04IrqY = $cf
 
 ;;;=========================================================================;;;
 
@@ -64,16 +74,50 @@
 
 .SEGMENT "PRGA_Objects"
 
-;;; Animates lava platform terrain tiles.  This should be called from a room's
-;;; Draw_func_ptr.
-.EXPORT FuncA_Objects_AnimateLavaTerrain
-.PROC FuncA_Objects_AnimateLavaTerrain
+;;; Calulates the CHR04 bank number to use for animated lava terrain this
+;;; frame.
+;;; @return A The CHR04 bank number.
+.PROC FuncA_Objects_GetLavaAnimationBank
     lda Zp_FrameCounter_u8
     div #8
     mod #4
     .assert .bank(Ppu_ChrBgAnimB0) .mod 4 = 0, error
     ora #<.bank(Ppu_ChrBgAnimB0)
+    rts
+.ENDPROC
+
+;;; Animates lava platform terrain tiles.  This should be called from a room's
+;;; Draw_func_ptr.
+.EXPORT FuncA_Objects_AnimateLavaTerrain
+.PROC FuncA_Objects_AnimateLavaTerrain
+    jsr FuncA_Objects_GetLavaAnimationBank  ; returns A
     sta Zp_Chr04Bank_u8
+    rts
+.ENDPROC
+
+;;; Sets up an HBlank IRQ to animate lava platform terrain tiles in a room that
+;;; must use a different CHR04 bank for the upper portion of the room.  This
+;;; should be called from a room's Draw_func_ptr.
+.EXPORT FuncA_Objects_SetUpLavaAnimationIrq
+.PROC FuncA_Objects_SetUpLavaAnimationIrq
+    ;; Compute the IRQ latch value to set between the top of the lava and the
+    ;; top of the window (if any), and set that as Param4_byte.
+    lda #kLavaChr04IrqY
+    sub Zp_RoomScrollY_u8
+    sta T0  ; IRQ latch for lava
+    rsub Zp_Buffered_sIrq + sIrq::Latch_u8
+    blt @done  ; window top is above lava top
+    sta Zp_Buffered_sIrq + sIrq::Param4_byte  ; window latch
+    ;; Set up our own sIrq struct to handle lava animation.
+    lda T0  ; IRQ latch for lava
+    sta Zp_Buffered_sIrq + sIrq::Latch_u8
+    ldax #Int_SetChr04ToParam3ThenLatchWindowFromParam4
+    stax Zp_Buffered_sIrq + sIrq::FirstIrq_int_ptr
+    ;; Calculate and store the CHR04 bank that the IRQ should set for the
+    ;; bottom part of the terrain.
+    jsr FuncA_Objects_GetLavaAnimationBank  ; returns A
+    sta Zp_Buffered_sIrq + sIrq::Param3_byte  ; lava CHR04 bank
+    @done:
     rts
 .ENDPROC
 

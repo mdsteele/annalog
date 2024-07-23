@@ -19,6 +19,7 @@
 
 .INCLUDE "../actor.inc"
 .INCLUDE "../device.inc"
+.INCLUDE "../flag.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../platform.inc"
 .INCLUDE "../room.inc"
@@ -26,7 +27,10 @@
 .IMPORT DataA_Room_Temple_sTileset
 .IMPORT Data_Empty_sPlatform_arr
 .IMPORT Func_Noop
+.IMPORT Ppu_ChrBgAnimStatic
 .IMPORT Ppu_ChrObjSewer
+.IMPORT Sram_ProgressFlags_arr
+.IMPORTZP Zp_Chr04Bank_u8
 
 ;;;=========================================================================;;;
 
@@ -56,7 +60,7 @@ _Ext_sRoomExt:
     d_addr Enter_func_ptr, Func_Noop
     d_addr FadeIn_func_ptr, Func_Noop
     d_addr Tick_func_ptr, Func_Noop
-    d_addr Draw_func_ptr, Func_Noop
+    d_addr Draw_func_ptr, FuncC_Temple_Spire_DrawRoom
     D_END
 _TerrainData:
 :   .incbin "out/rooms/temple_spire.room"
@@ -87,6 +91,17 @@ _Passages_sPassage_arr:
     d_byte SpawnAdjust_byte, $49
     D_END
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
+.ENDPROC
+
+.PROC FuncC_Temple_Spire_DrawRoom
+    ;; If the temple breaker hasn't been activated yet, disable the BG circuit
+    ;; animation.
+    flag_bit Sram_ProgressFlags_arr, eFlag::BreakerTemple
+    bne @done
+    lda #<.bank(Ppu_ChrBgAnimStatic)
+    sta Zp_Chr04Bank_u8
+    @done:
+    rts
 .ENDPROC
 
 ;;;=========================================================================;;;
