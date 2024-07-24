@@ -19,6 +19,7 @@
 
 .INCLUDE "../actor.inc"
 .INCLUDE "../device.inc"
+.INCLUDE "../flag.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
 .INCLUDE "../platform.inc"
@@ -27,6 +28,7 @@
 .IMPORT DataA_Room_Core_sTileset
 .IMPORT Data_Empty_sDevice_arr
 .IMPORT Data_Empty_sPlatform_arr
+.IMPORT FuncA_Objects_AnimateCircuitIfBreakerActive
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrObjGarden
 
@@ -58,7 +60,7 @@ _Ext_sRoomExt:
     d_addr Enter_func_ptr, Func_Noop
     d_addr FadeIn_func_ptr, Func_Noop
     d_addr Tick_func_ptr, Func_Noop
-    d_addr Draw_func_ptr, Func_Noop
+    d_addr Draw_func_ptr, FuncC_Core_Junction_DrawRoom
     D_END
 _TerrainData:
 :   .incbin "out/rooms/core_junction.room"
@@ -104,6 +106,11 @@ _Passages_sPassage_arr:
     d_byte SpawnAdjust_byte, $c1
     D_END
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
+.ENDPROC
+
+.PROC FuncC_Core_Junction_DrawRoom
+    ldx #eFlag::BreakerCrypt  ; param: breaker flag
+    jmp FuncA_Objects_AnimateCircuitIfBreakerActive
 .ENDPROC
 
 ;;;=========================================================================;;;

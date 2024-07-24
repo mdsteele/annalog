@@ -43,6 +43,7 @@
 .IMPORT FuncA_Machine_WinchReachedGoal
 .IMPORT FuncA_Machine_WinchStartFalling
 .IMPORT FuncA_Machine_WriteToLever
+.IMPORT FuncA_Objects_AnimateCircuitIfBreakerActive
 .IMPORT FuncA_Objects_DrawWinchBreakableFloor
 .IMPORT FuncA_Objects_DrawWinchMachineWithSpikeball
 .IMPORT FuncA_Room_ResetLever
@@ -54,7 +55,6 @@
 .IMPORT Func_SetFlag
 .IMPORT Func_WriteToLowerAttributeTable
 .IMPORT Func_WriteToUpperAttributeTable
-.IMPORT Ppu_ChrBgAnimStatic
 .IMPORT Ppu_ChrObjCrypt
 .IMPORT Ram_MachineGoalHorz_u8_arr
 .IMPORT Ram_MachineGoalVert_u8_arr
@@ -62,7 +62,6 @@
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORT Ram_PlatformType_ePlatform_arr
 .IMPORT Sram_ProgressFlags_arr
-.IMPORTZP Zp_Chr04Bank_u8
 .IMPORTZP Zp_PointX_i16
 .IMPORTZP Zp_PointY_i16
 .IMPORTZP Zp_RoomState
@@ -323,14 +322,8 @@ _Passages_sPassage_arr:
     dex
     bpl @loop
 _AnimateCircuit:
-    ;; If the crypt breaker hasn't been activated yet, disable the BG circuit
-    ;; animation.
-    flag_bit Sram_ProgressFlags_arr, eFlag::BreakerCrypt
-    bne @done
-    lda #<.bank(Ppu_ChrBgAnimStatic)
-    sta Zp_Chr04Bank_u8
-    @done:
-    rts
+    ldx #eFlag::BreakerCrypt  ; param: breaker flag
+    jmp FuncA_Objects_AnimateCircuitIfBreakerActive
 .ENDPROC
 
 .PROC FuncC_Crypt_TombWinch_ReadReg

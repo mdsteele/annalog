@@ -36,6 +36,7 @@
 .IMPORT FuncA_Machine_BoilerTick
 .IMPORT FuncA_Machine_BoilerWriteReg
 .IMPORT FuncA_Machine_Error
+.IMPORT FuncA_Objects_AnimateCircuitIfBreakerActive
 .IMPORT FuncA_Objects_DrawBoilerMachine
 .IMPORT FuncA_Objects_DrawBoilerValve
 .IMPORT FuncA_Objects_SetUpLavaAnimationIrq
@@ -48,12 +49,9 @@
 .IMPORT Func_Noop
 .IMPORT Func_SetPointToActorCenter
 .IMPORT Func_SetPointToAvatarCenter
-.IMPORT Ppu_ChrBgAnimStatic
 .IMPORT Ppu_ChrObjLava
 .IMPORT Ram_ActorType_eActor_arr
 .IMPORT Ram_MachineGoalHorz_u8_arr
-.IMPORT Sram_ProgressFlags_arr
-.IMPORTZP Zp_Chr04Bank_u8
 
 ;;;=========================================================================;;;
 
@@ -263,13 +261,8 @@ _ReadD:
 
 .PROC FuncC_Lava_Cavern_DrawRoom
 _AnimateCircuit:
-    ;; If the lava breaker hasn't been activated yet, disable the BG circuit
-    ;; animation.
-    flag_bit Sram_ProgressFlags_arr, eFlag::BreakerLava
-    bne @done
-    lda #<.bank(Ppu_ChrBgAnimStatic)
-    sta Zp_Chr04Bank_u8
-    @done:
+    ldx #eFlag::BreakerLava  ; param: breaker flag
+    jsr FuncA_Objects_AnimateCircuitIfBreakerActive
 _SetUpIrq:
     jmp FuncA_Objects_SetUpLavaAnimationIrq
 .ENDPROC

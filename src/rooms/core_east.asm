@@ -27,11 +27,9 @@
 .IMPORT DataA_Room_Core_sTileset
 .IMPORT Data_Empty_sDevice_arr
 .IMPORT Data_Empty_sPlatform_arr
+.IMPORT FuncA_Objects_AnimateCircuitIfBreakerActive
 .IMPORT Func_Noop
-.IMPORT Ppu_ChrBgAnimStatic
 .IMPORT Ppu_ChrObjTemple
-.IMPORT Sram_ProgressFlags_arr
-.IMPORTZP Zp_Chr04Bank_u8
 
 ;;;=========================================================================;;;
 
@@ -87,14 +85,8 @@ _Passages_sPassage_arr:
 .ENDPROC
 
 .PROC FuncC_Core_East_DrawRoom
-    ;; If the mine breaker hasn't been activated yet, disable the BG circuit
-    ;; animation.
-    flag_bit Sram_ProgressFlags_arr, eFlag::BreakerMine
-    bne @done
-    lda #<.bank(Ppu_ChrBgAnimStatic)
-    sta Zp_Chr04Bank_u8
-    @done:
-    rts
+    ldx #eFlag::BreakerMine  ; param: breaker flag
+    jmp FuncA_Objects_AnimateCircuitIfBreakerActive
 .ENDPROC
 
 ;;;=========================================================================;;;

@@ -26,11 +26,9 @@
 
 .IMPORT DataA_Room_Temple_sTileset
 .IMPORT Data_Empty_sPlatform_arr
+.IMPORT FuncA_Objects_AnimateCircuitIfBreakerActive
 .IMPORT Func_Noop
-.IMPORT Ppu_ChrBgAnimStatic
 .IMPORT Ppu_ChrObjSewer
-.IMPORT Sram_ProgressFlags_arr
-.IMPORTZP Zp_Chr04Bank_u8
 
 ;;;=========================================================================;;;
 
@@ -94,14 +92,8 @@ _Passages_sPassage_arr:
 .ENDPROC
 
 .PROC FuncC_Temple_Spire_DrawRoom
-    ;; If the temple breaker hasn't been activated yet, disable the BG circuit
-    ;; animation.
-    flag_bit Sram_ProgressFlags_arr, eFlag::BreakerTemple
-    bne @done
-    lda #<.bank(Ppu_ChrBgAnimStatic)
-    sta Zp_Chr04Bank_u8
-    @done:
-    rts
+    ldx #eFlag::BreakerTemple  ; param: breaker flag
+    jmp FuncA_Objects_AnimateCircuitIfBreakerActive
 .ENDPROC
 
 ;;;=========================================================================;;;

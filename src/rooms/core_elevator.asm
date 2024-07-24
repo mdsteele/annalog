@@ -37,6 +37,7 @@
 .IMPORT FuncA_Machine_JetTick
 .IMPORT FuncA_Machine_WriteToLever
 .IMPORT FuncA_Machine_WriteToPhantomLever
+.IMPORT FuncA_Objects_AnimateCircuitIfBreakerActive
 .IMPORT FuncA_Objects_DrawJetMachine
 .IMPORT FuncA_Room_InitElevatorJetState
 .IMPORT FuncA_Room_ResetLever
@@ -101,7 +102,7 @@ _Ext_sRoomExt:
     d_addr Enter_func_ptr, FuncA_Room_CoreElevator_EnterRoom
     d_addr FadeIn_func_ptr, Func_Noop
     d_addr Tick_func_ptr, FuncA_Room_CoreElevator_TickRoom
-    d_addr Draw_func_ptr, Func_Noop
+    d_addr Draw_func_ptr, FuncC_Core_Elevator_DrawRoom
     D_END
 _TerrainData:
 :   .incbin "out/rooms/core_elevator.room"
@@ -175,6 +176,11 @@ _Passages_sPassage_arr:
     d_byte SpawnAdjust_byte, $f0
     D_END
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
+.ENDPROC
+
+.PROC FuncC_Core_Elevator_DrawRoom
+    ldx #eFlag::BreakerLava  ; param: breaker flag
+    jmp FuncA_Objects_AnimateCircuitIfBreakerActive
 .ENDPROC
 
 .PROC FuncC_Core_ElevatorJet_ReadReg

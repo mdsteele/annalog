@@ -33,14 +33,12 @@
 .IMPORT FuncA_Machine_Error
 .IMPORT FuncA_Machine_LiftTick
 .IMPORT FuncA_Machine_LiftTryMove
+.IMPORT FuncA_Objects_AnimateCircuitIfBreakerActive
 .IMPORT FuncA_Objects_DrawLiftMachine
 .IMPORT Func_Noop
-.IMPORT Ppu_ChrBgAnimStatic
 .IMPORT Ppu_ChrObjCity
 .IMPORT Ram_MachineGoalVert_u8_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
-.IMPORT Sram_ProgressFlags_arr
-.IMPORTZP Zp_Chr04Bank_u8
 
 ;;;=========================================================================;;;
 
@@ -153,14 +151,8 @@ _Passages_sPassage_arr:
 .ENDPROC
 
 .PROC FuncC_City_Sinkhole_DrawRoom
-    ;; If the city breaker hasn't been activated yet, disable the BG circuit
-    ;; animation.
-    flag_bit Sram_ProgressFlags_arr, eFlag::BreakerCity
-    bne @done
-    lda #<.bank(Ppu_ChrBgAnimStatic)
-    sta Zp_Chr04Bank_u8
-    @done:
-    rts
+    ldx #eFlag::BreakerCity  ; param: breaker flag
+    jmp FuncA_Objects_AnimateCircuitIfBreakerActive
 .ENDPROC
 
 .PROC FuncC_City_SinkholeLift_ReadReg

@@ -41,6 +41,7 @@
 .IMPORT FuncA_Machine_GenericTryMoveY
 .IMPORT FuncA_Machine_LauncherTryAct
 .IMPORT FuncA_Machine_ReachedGoal
+.IMPORT FuncA_Objects_AnimateCircuitIfBreakerActive
 .IMPORT FuncA_Objects_DrawLauncherMachineHorz
 .IMPORT FuncA_Objects_DrawRocksPlatformVert
 .IMPORT Func_FindActorWithType
@@ -50,7 +51,6 @@
 .IMPORT Func_SetFlag
 .IMPORT Func_SetPointToActorCenter
 .IMPORT Func_ShakeRoom
-.IMPORT Ppu_ChrBgAnimStatic
 .IMPORT Ppu_ChrObjCity
 .IMPORT Ram_ActorState2_byte_arr
 .IMPORT Ram_ActorType_eActor_arr
@@ -60,7 +60,6 @@
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORT Ram_PlatformType_ePlatform_arr
 .IMPORT Sram_ProgressFlags_arr
-.IMPORTZP Zp_Chr04Bank_u8
 
 ;;;=========================================================================;;;
 
@@ -238,13 +237,8 @@ _Passages_sPassage_arr:
 
 .PROC FuncC_City_Outskirts_DrawRoom
 _BgAnimation:
-    ;; If the city breaker hasn't been activated yet, disable the BG circuit
-    ;; animation.
-    flag_bit Sram_ProgressFlags_arr, eFlag::BreakerCity
-    bne @done
-    lda #<.bank(Ppu_ChrBgAnimStatic)
-    sta Zp_Chr04Bank_u8
-    @done:
+    ldx #eFlag::BreakerCity  ; param: breaker flag
+    jsr FuncA_Objects_AnimateCircuitIfBreakerActive
 _RockWall:
     ldx #kRockWallPlatformIndex  ; param: platform index
     jmp FuncA_Objects_DrawRocksPlatformVert

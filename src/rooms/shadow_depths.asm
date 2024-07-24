@@ -30,15 +30,14 @@
 .INCLUDE "../room.inc"
 
 .IMPORT DataA_Room_Shadow_sTileset
+.IMPORT FuncA_Objects_AnimateCircuitIfBreakerActive
 .IMPORT FuncA_Objects_SetUpLavaAnimationIrq
 .IMPORT FuncA_Room_GetDarknessZoneFade
 .IMPORT FuncA_Terrain_FadeInShortRoomWithLava
 .IMPORT Func_SetAndTransferBgFade
-.IMPORT Ppu_ChrBgAnimStatic
 .IMPORT Ppu_ChrObjShadow
 .IMPORT Ram_ActorType_eActor_arr
 .IMPORT Sram_ProgressFlags_arr
-.IMPORTZP Zp_Chr04Bank_u8
 .IMPORTZP Zp_GoalBg_eFade
 .IMPORTZP Zp_RoomState
 
@@ -223,13 +222,8 @@ _Passages_sPassage_arr:
 
 .PROC FuncC_Shadow_Depths_DrawRoom
 _AnimateCircuit:
-    ;; If the shadow breaker hasn't been activated yet, disable the BG circuit
-    ;; animation.
-    flag_bit Sram_ProgressFlags_arr, eFlag::BreakerShadow
-    bne @done
-    lda #<.bank(Ppu_ChrBgAnimStatic)
-    sta Zp_Chr04Bank_u8
-    @done:
+    ldx #eFlag::BreakerShadow  ; param: breaker flag
+    jsr FuncA_Objects_AnimateCircuitIfBreakerActive
 _SetUpIrq:
     jmp FuncA_Objects_SetUpLavaAnimationIrq
 .ENDPROC

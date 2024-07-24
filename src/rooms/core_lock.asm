@@ -38,12 +38,12 @@
 .IMPORT FuncA_Machine_Error
 .IMPORT FuncA_Machine_LiftTick
 .IMPORT FuncA_Machine_LiftTryMove
+.IMPORT FuncA_Objects_AnimateCircuitIfBreakerActive
 .IMPORT FuncA_Objects_DrawLiftMachine
 .IMPORT Func_MovePlatformVert
 .IMPORT Func_Noop
 .IMPORT Func_PlaySfxExplodeBig
 .IMPORT Main_Breaker_FadeBackToBreakerRoom
-.IMPORT Ppu_ChrBgAnimStatic
 .IMPORT Ppu_ChrObjBoss3
 .IMPORT Ram_ActorState2_byte_arr
 .IMPORT Ram_ActorType_eActor_arr
@@ -52,8 +52,6 @@
 .IMPORT Ram_MachineGoalVert_u8_arr
 .IMPORT Ram_MachineStatus_eMachine_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
-.IMPORT Sram_ProgressFlags_arr
-.IMPORTZP Zp_Chr04Bank_u8
 .IMPORTZP Zp_MachineIndex_u8
 .IMPORTZP Zp_Next_eCutscene
 
@@ -257,14 +255,8 @@ _Passages_sPassage_arr:
 .ENDPROC
 
 .PROC FuncC_Core_Lock_DrawRoom
-    ;; If the temple breaker hasn't been activated yet, disable the BG circuit
-    ;; animation.
-    flag_bit Sram_ProgressFlags_arr, eFlag::BreakerTemple
-    bne @done
-    lda #<.bank(Ppu_ChrBgAnimStatic)
-    sta Zp_Chr04Bank_u8
-    @done:
-    rts
+    ldx #eFlag::BreakerTemple  ; param: breaker flag
+    jmp FuncA_Objects_AnimateCircuitIfBreakerActive
 .ENDPROC
 
 .PROC FuncC_Core_LockLift1_ReadReg

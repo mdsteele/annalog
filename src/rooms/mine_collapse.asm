@@ -36,6 +36,7 @@
 .IMPORT FuncA_Machine_ReachedGoal
 .IMPORT FuncA_Machine_StartWaiting
 .IMPORT FuncA_Machine_StartWorking
+.IMPORT FuncA_Objects_AnimateCircuitIfBreakerActive
 .IMPORT FuncA_Objects_DrawCraneMachine
 .IMPORT FuncA_Objects_DrawCraneRopeToPulley
 .IMPORT FuncA_Objects_DrawTrolleyMachine
@@ -43,14 +44,11 @@
 .IMPORT Func_MovePlatformLeftTowardPointX
 .IMPORT Func_MovePlatformTopTowardPointY
 .IMPORT Func_Noop
-.IMPORT Ppu_ChrBgAnimStatic
 .IMPORT Ppu_ChrObjMine
 .IMPORT Ram_MachineGoalHorz_u8_arr
 .IMPORT Ram_MachineGoalVert_u8_arr
 .IMPORT Ram_PlatformLeft_i16_0_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
-.IMPORT Sram_ProgressFlags_arr
-.IMPORTZP Zp_Chr04Bank_u8
 .IMPORTZP Zp_PointX_i16
 .IMPORTZP Zp_PointY_i16
 
@@ -159,7 +157,7 @@ _Machines_sMachine_arr:
     d_addr TryMove_func_ptr, FuncA_Machine_MineCollapseCrane_TryMove
     d_addr TryAct_func_ptr, FuncC_Mine_CollapseCrane_TryAct
     d_addr Tick_func_ptr, FuncA_Machine_MineCollapseCrane_Tick
-    d_addr Draw_func_ptr, FuncA_Objects_MineCollapseCrane_Draw
+    d_addr Draw_func_ptr, FuncC_Mine_MineCollapseCrane_Draw
     d_addr Reset_func_ptr, FuncC_Mine_CollapseCrane_InitReset
     D_END
     .assert * - :- <= kMaxMachines * .sizeof(sMachine), error
@@ -214,14 +212,8 @@ _Passages_sPassage_arr:
 .ENDPROC
 
 .PROC DataC_Mine_Collapse_DrawRoom
-    ;; If the mine breaker hasn't been activated yet, disable the BG circuit
-    ;; animation.
-    flag_bit Sram_ProgressFlags_arr, eFlag::BreakerMine
-    bne @done
-    lda #<.bank(Ppu_ChrBgAnimStatic)
-    sta Zp_Chr04Bank_u8
-    @done:
-    rts
+    ldx #eFlag::BreakerMine  ; param: breaker flag
+    jmp FuncA_Objects_AnimateCircuitIfBreakerActive
 .ENDPROC
 
 .PROC FuncC_Mine_CollapseTrolley_InitReset
@@ -281,6 +273,12 @@ _RegZ:
     sta Ram_MachineGoalHorz_u8_arr + kCraneMachineIndex
     lda #kCraneActCooldown  ; param: num frames
     jmp FuncA_Machine_StartWaiting
+.ENDPROC
+
+.PROC FuncC_Mine_MineCollapseCrane_Draw
+    jsr FuncA_Objects_DrawCraneMachine
+    ldx #kTrolleyPlatformIndex  ; param: pulley platform index
+    jmp FuncA_Objects_DrawCraneRopeToPulley
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -367,16 +365,6 @@ _RegZ:
     rts
     @done:
     jmp FuncA_Machine_ReachedGoal
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Objects"
-
-.PROC FuncA_Objects_MineCollapseCrane_Draw
-    jsr FuncA_Objects_DrawCraneMachine
-    ldx #kTrolleyPlatformIndex  ; param: pulley platform index
-    jmp FuncA_Objects_DrawCraneRopeToPulley
 .ENDPROC
 
 ;;;=========================================================================;;;
