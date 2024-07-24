@@ -113,7 +113,7 @@
     d_addr UpperRight_u8_arr_ptr, DataA_Terrain_BuildingUpperRight_u8_arr
     d_addr LowerRight_u8_arr_ptr, DataA_Terrain_BuildingLowerRight_u8_arr
     d_byte Chr08Bank_u8, <.bank(Ppu_ChrBgBuilding)
-    d_byte FirstSolidTerrainType_u8, $40
+    d_byte FirstSolidTerrainType_u8, $30
     D_END
 .ENDPROC
 
@@ -149,7 +149,7 @@
     d_addr UpperRight_u8_arr_ptr, DataA_Terrain_CryptUpperRight_u8_arr
     d_addr LowerRight_u8_arr_ptr, DataA_Terrain_CryptLowerRight_u8_arr
     d_byte Chr08Bank_u8, <.bank(Ppu_ChrBgCrypt)
-    d_byte FirstSolidTerrainType_u8, $40
+    d_byte FirstSolidTerrainType_u8, $30
     D_END
 .ENDPROC
 
@@ -293,7 +293,7 @@
     d_addr UpperRight_u8_arr_ptr, DataA_Terrain_TempleUpperRight_u8_arr
     d_addr LowerRight_u8_arr_ptr, DataA_Terrain_TempleLowerRight_u8_arr
     d_byte Chr08Bank_u8, <.bank(Ppu_ChrBgTemple)
-    d_byte FirstSolidTerrainType_u8, $40
+    d_byte FirstSolidTerrainType_u8, $30
     D_END
 .ENDPROC
 

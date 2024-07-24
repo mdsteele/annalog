@@ -1,4 +1,4 @@
-@BG 0 0 0 32x10
+@BG 0 0 0 32x8
 >arch
 >cobweb
 >crypt
@@ -11,8 +11,6 @@
     DODPDEDF    AAABACAD          BB      BABH          BE  BBBC
 CCCDCCCDCCCHCCCH  CJCJ    CJCJ    CKCL                      FAFA
 CECFCGCFCECFCGCF  CJCJ                    CMCMCNCM
-
-
 GEGF    GKGLGMGNGKGLGEGF                                CICI
 GEGF  GKGLGMGN  GEGMCACB                                CACBCICI
 CBCACBCACB    CACB    CACBCA              CACB  CBCA
