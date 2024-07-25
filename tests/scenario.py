@@ -193,6 +193,7 @@ def load_room(filepath, prgc_name):
                       for row in range(start_row, start_row + height)
                       for col in range(start_col, start_col + width))
     # Load the passage data for this room.
+    devices = []
     doors = []
     papers = []
     passages = []
@@ -202,11 +203,16 @@ def load_room(filepath, prgc_name):
         struct_type = match.group(1)
         if struct_type == 'sDevice':
             device_type = read_match_line(file, DEVICE_TYPE_RE).group(1)
+            block_row = read_int_line(file, DEVICE_ROW_RE)
+            block_col = read_int_line(file, DEVICE_COL_RE)
+            devices.append({
+                'type': device_type,
+                'block_row': block_row,
+                'block_col': block_col,
+            })
             if device_type.startswith('Door'):
                 door_number = device_type[4]
                 assert door_number in '123'
-                block_row = read_int_line(file, DEVICE_ROW_RE)
-                block_col = read_int_line(file, DEVICE_COL_RE)
                 door_dest = read_match_line(file, DOOR_TARGET_RE).group(1)
                 cell_row = start_row + (1 if is_tall and block_row >= 12
                                         else 0)
@@ -245,6 +251,7 @@ def load_room(filepath, prgc_name):
     return {
         'area': area_name,
         'cells': cells,
+        'devices': devices,
         'doors': doors,
         'papers': papers,
         'passages': passages,
@@ -381,6 +388,22 @@ def test_room_cells(areas):
                 failed = True
     return failed
 
+def test_room_devices(areas):
+    failed = False
+    for area_name, area in areas.items():
+        for room_name, room in area['rooms'].items():
+            device_locations = {}
+            for device in room['devices']:
+                location = (device['block_row'], device['block_col'])
+                if location in device_locations:
+                    print('SCENARIO: {} has {} and {} both at {}'.format(
+                        room_name, device['type'],
+                        device_locations[location]['type'], location))
+                    failed = True
+                else:
+                    device_locations[location] = device
+    return failed
+
 def test_room_doors(areas):
     failed = False
     for area_name, area in areas.items():
@@ -501,6 +524,7 @@ def run_tests():
     minimap = load_minimap()
     failed |= test_minimap_coverage(areas, minimap)
     failed |= test_room_cells(areas)
+    failed |= test_room_devices(areas)
     failed |= test_room_doors(areas)
     failed |= test_room_passages(areas)
     failed |= test_marker_rooms(areas, markers)
