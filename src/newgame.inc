@@ -26,6 +26,7 @@
     Spire     ; start just outside the temple boss room
     Breaker2  ; start in the temple boss room, just after defeating it
     Rescue    ; start just inside the prison caves, on the way to rescue Alex
+    Petition  ; start in the mermaid village after rescuing the kids
     Nave      ; start in the temple nave, when Alex is waiting there
     Tomb      ; start just outside the crypt boss room
     Breaker3  ; start in the crypt boss room, just after defeating it

@@ -20,6 +20,7 @@
 .INCLUDE "../actor.inc"
 .INCLUDE "../actors/adult.inc"
 .INCLUDE "../actors/child.inc"
+.INCLUDE "../avatar.inc"
 .INCLUDE "../charmap.inc"
 .INCLUDE "../cpu.inc"
 .INCLUDE "../cutscene.inc"
@@ -41,6 +42,8 @@
 .IMPORT Ram_ActorFlags_bObj_arr
 .IMPORT Ram_ActorState2_byte_arr
 .IMPORT Ram_ActorType_eActor_arr
+.IMPORT Ram_ActorVelY_i16_0_arr
+.IMPORT Ram_ActorVelY_i16_1_arr
 .IMPORT Sram_ProgressFlags_arr
 .IMPORTZP Zp_Next_eCutscene
 
@@ -210,14 +213,39 @@ _Alex:
 .EXPORT DataA_Cutscene_MermaidHut1AlexPetition_sCutscene
 .PROC DataA_Cutscene_MermaidHut1AlexPetition_sCutscene
     act_RunDialog eDialog::MermaidHut1AlexPetition
+    ;; Make Alex walk to the edge of the platform.
     act_WalkNpcAlex kAlexActorIndex, $00a0
-    ;; TODO: animate Alex hopping into the water
+    act_SetActorState1 kAlexActorIndex, eNpcChild::AlexStanding
+    act_ForkStart 1, _SwimAvatar_sCutscene
+    act_WaitFrames 6
+    ;; Make Alex jump into the water.
+    act_SetActorState1 kAlexActorIndex, eNpcChild::AlexWalking1
+    act_SetActorVelX kAlexActorIndex, -$100
+    act_SetActorVelY kAlexActorIndex, -$100
+    act_SetCutsceneFlags bCutscene::TickAllActors
+    act_RepeatFunc 20, _ApplyAlexGravity
+    act_SetCutsceneFlags 0
+    act_SetActorVelX kAlexActorIndex, 0
+    act_SetActorVelY kAlexActorIndex, 0
     act_SetActorPosY kAlexActorIndex, $00c4
-    act_SwimNpcAlex kAlexActorIndex, $0078
+    ;; Make Alex swim to the door and exit the room.
+    act_SwimNpcAlex kAlexActorIndex, $0077
     act_SetActorState1 kAlexActorIndex, eNpcChild::AlexSwimDoor
-    act_WaitFrames 10
+    act_WaitFrames 15
     act_CallFunc _RemoveAlex
     act_ContinueExploring
+_SwimAvatar_sCutscene:
+    act_SwimAvatar $0066
+    act_SetAvatarFlags kPaletteObjAvatarNormal
+    act_ForkStop $ff
+_ApplyAlexGravity:
+    lda #kAvatarGravity
+    add Ram_ActorVelY_i16_0_arr + kAlexActorIndex
+    sta Ram_ActorVelY_i16_0_arr + kAlexActorIndex
+    lda #0
+    adc Ram_ActorVelY_i16_1_arr + kAlexActorIndex
+    sta Ram_ActorVelY_i16_1_arr + kAlexActorIndex
+    rts
 _RemoveAlex:
     lda #eActor::None
     sta Ram_ActorType_eActor_arr + kAlexActorIndex

@@ -159,6 +159,10 @@ kMaxForks = 4
     ;; Shakes the room by the specified amount, then the current cutscene fork
     ;; immediately continues on to the next action.
     ShakeRoom          ; args: num shake frames
+    ;; Causes the player avatar to swim to the specified room pixel X-position.
+    ;; Suspends the current cutscene fork until the avatar reaches the goal
+    ;; position.
+    SwimAvatar         ; args: goal X-position (2 bytes)
     ;; Causes the specified actor to swim to the specified room pixel
     ;; X-position.  Suspends the current cutscene fork until the actor reaches
     ;; the goal position.
@@ -335,6 +339,11 @@ kMaxForks = 4
 
 .MACRO act_ShakeRoom FRAMES
     .byte eAction::ShakeRoom, FRAMES
+.ENDMACRO
+
+.MACRO act_SwimAvatar GOALX
+    .byte eAction::SwimAvatar
+    .word GOALX
 .ENDMACRO
 
 .MACRO act_SwimNpcAlex INDEX, GOALX

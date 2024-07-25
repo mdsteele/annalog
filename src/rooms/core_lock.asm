@@ -367,14 +367,14 @@ _Passages_sPassage_arr:
     act_WaitFrames 2
     act_PlaySfxSample eSample::JumpGronta
     act_SetActorState1 kGrontaActorIndex, eNpcOrc::GrontaRunning3
-    act_SetActorVelX  kGrontaActorIndex, $98
-    act_SetActorVelY  kGrontaActorIndex, -$330
+    act_SetActorVelX kGrontaActorIndex, $98
+    act_SetActorVelY kGrontaActorIndex, -$330
     act_SetCutsceneFlags bCutscene::TickAllActors
     act_RepeatFunc 24, _ApplyGrontaGravity
     act_SetCutsceneFlags 0
     act_SetActorState1 kGrontaActorIndex, eNpcOrc::GrontaStanding
-    act_SetActorVelX  kGrontaActorIndex, 0
-    act_SetActorVelY  kGrontaActorIndex, 0
+    act_SetActorVelX kGrontaActorIndex, 0
+    act_SetActorVelY kGrontaActorIndex, 0
     ;; Make Gronta run through the eastern passage.
     act_WaitFrames 20
     act_WalkNpcGronta kGrontaActorIndex, $0118

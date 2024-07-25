@@ -106,6 +106,7 @@ _SetFlags:
     d_byte Spire,    " TEMPLE "
     d_byte Breaker2, "BREAKER2"
     d_byte Rescue,   " RESCUE "
+    d_byte Petition, "PETITION"
     d_byte Nave,     "  NAVE  "
     d_byte Tomb,     "  TOMB  "
     d_byte Breaker3, "BREAKER3"
@@ -136,6 +137,7 @@ _SetFlags:
     d_byte Spire,    eRoom::TempleSpire
     d_byte Breaker2, eRoom::BossTemple
     d_byte Rescue,   eRoom::PrisonEast
+    d_byte Petition, eRoom::MermaidVillage
     d_byte Nave,     eRoom::TempleNave
     d_byte Tomb,     eRoom::CryptTomb
     d_byte Breaker3, eRoom::BossCrypt
@@ -166,6 +168,7 @@ _SetFlags:
     d_byte Spire,    bSpawn::Device | 0  ; TODO: use a constant
     d_byte Breaker2, bSpawn::Device | kBossDoorDeviceIndex
     d_byte Rescue,   bSpawn::Passage | 1
+    d_byte Petition, bSpawn::Device | 0
     d_byte Nave,     bSpawn::Passage | 3
     d_byte Tomb,     bSpawn::Device | 3  ; TODO: use a constant
     d_byte Breaker3, bSpawn::Device | kBossDoorDeviceIndex
@@ -196,6 +199,7 @@ _SetFlags:
     d_byte Spire,    eFlag::BossTemple
     d_byte Breaker2, eFlag::BreakerTemple
     d_byte Rescue,   eFlag::PrisonEastEastGateOpen
+    d_byte Petition, eFlag::MermaidHut1AlexPetition
     d_byte Nave,     eFlag::TempleNaveTalkedToAlex
     d_byte Tomb,     eFlag::BossCrypt
     d_byte Breaker3, eFlag::BreakerCrypt

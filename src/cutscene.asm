@@ -404,6 +404,7 @@ _InitMainFork:
     d_entry table, SetDeviceAnim,     _SetDeviceAnim
     d_entry table, SetScrollFlags,    _SetScrollFlags
     d_entry table, ShakeRoom,         _ShakeRoom
+    d_entry table, SwimAvatar,        _SwimAvatar
     d_entry table, SwimNpcAlex,       _SwimNpcAlex
     d_entry table, WaitFrames,        _WaitFrames
     d_entry table, WaitUntilC,        _WaitUntilC
@@ -721,20 +722,28 @@ _WaitUntilZ:
 _DoneWaitingUntil:
     ldy #3  ; param: byte offset
     jmp FuncA_Cutscene_AdvanceForkAndExecute
+_MoveAvatarReachedGoal:
+    ldy #3  ; param: byte offset
+    jmp FuncA_Cutscene_AdvanceForkAndExecute
+_SwimAvatar:
+    jsr _StartMoveAvatar  ; returns Z and N
+    beq _MoveAvatarReachedGoal
+    jsr FuncA_Cutscene_AnimateAvatarSwimming
+    clc  ; cutscene should continue
+    rts
 _WalkAvatar:
+    jsr _StartMoveAvatar  ; returns Z and N
+    beq _MoveAvatarReachedGoal
+    jsr FuncA_Cutscene_AnimateAvatarWalking
+    clc  ; cutscene should continue
+    rts
+_StartMoveAvatar:
     lda (T1T0), y
     sta Zp_PointX_i16 + 0
     iny
     lda (T1T0), y
     sta Zp_PointX_i16 + 1
-    jsr FuncA_Cutscene_MoveAvatarTowardPointX  ; returns Z and N
-    beq @reachedGoal
-    jsr FuncA_Cutscene_AnimateAvatarWalking
-    clc  ; cutscene should continue
-    rts
-    @reachedGoal:
-    ldy #3  ; param: byte offset
-    jmp FuncA_Cutscene_AdvanceForkAndExecute
+    jmp FuncA_Cutscene_MoveAvatarTowardPointX  ; returns Z and N
 _MoveNpcReachedGoal:
     ldy #4  ; param: byte offset
     jmp FuncA_Cutscene_AdvanceForkAndExecute
@@ -904,18 +913,31 @@ _MoveByYA:
     rts
 .ENDPROC
 
+;;; Updates the flags and pose of the player avatar for a swimming animation.
+;;; @param N If set, the avatar will face left; otherwise, it will face right.
+;;; @preserve X, Y, T0+
+.PROC FuncA_Cutscene_AnimateAvatarSwimming
+    jsr FuncA_Cutscene_FaceAvatarTowardsN
+_AnimatePose:
+    lda Zp_FrameCounter_u8
+    and #$10
+    beq @swim2
+    @swim1:
+    lda #eAvatar::Swimming1
+    .assert eAvatar::Swimming1 > 0, error
+    bne @setPose  ; unconditional
+    @swim2:
+    lda #eAvatar::Swimming2
+    @setPose:
+    sta Zp_AvatarPose_eAvatar
+    rts
+.ENDPROC
+
 ;;; Updates the flags and pose of the player avatar for a walking animation.
 ;;; @param N If set, the avatar will face left; otherwise, it will face right.
 ;;; @preserve X, Y, T0+
 .PROC FuncA_Cutscene_AnimateAvatarWalking
-    bpl @faceRight
-    @faceLeft:
-    lda #kPaletteObjAvatarNormal | bObj::FlipH
-    bne @setFace  ; unconditional
-    @faceRight:
-    lda #kPaletteObjAvatarNormal
-    @setFace:
-    sta Zp_AvatarFlags_bObj
+    jsr FuncA_Cutscene_FaceAvatarTowardsN
     lda #0
     sta Zp_AvatarState_bAvatar
 _AnimatePose:
@@ -1114,19 +1136,25 @@ _AnimatePose:
 ;;; @param X The actor index.
 ;;; @preserve X, Y, T0+
 .PROC FuncA_Cutscene_FaceAvatarTowardsActor
-    lda Zp_AvatarPosX_i16 + 0
-    cmp Ram_ActorPosX_i16_0_arr, x
-    lda Zp_AvatarPosX_i16 + 1
-    sbc Ram_ActorPosX_i16_1_arr, x
-    bvc @noOverflow  ; N eor V
-    eor #$80
-    @noOverflow:
-    bmi @faceRight
+    lda Ram_ActorPosX_i16_0_arr, x
+    cmp Zp_AvatarPosX_i16 + 0
+    lda Ram_ActorPosX_i16_1_arr, x
+    sbc Zp_AvatarPosX_i16 + 1
+    fall FuncA_Cutscene_FaceAvatarTowardsN  ; preserves X, Y, and T0+
+.ENDPROC
+
+;;; Sets the player avatar's FlipH flag bit based on the N flag.
+;;; @param N If set, the actor will face left; otherwise, it will face right.
+;;; @preserve X, Y, T0+
+.PROC FuncA_Cutscene_FaceAvatarTowardsN
+    bpl @faceRight
     @faceLeft:
-    lda #bObj::FlipH | kPaletteObjAvatarNormal
+    lda Zp_AvatarFlags_bObj
+    ora #bObj::FlipH
     bne @setFace  ; unconditional
     @faceRight:
-    lda #kPaletteObjAvatarNormal
+    lda Zp_AvatarFlags_bObj
+    and #<~bObj::FlipH
     @setFace:
     sta Zp_AvatarFlags_bObj
     rts
