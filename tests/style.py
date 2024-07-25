@@ -48,6 +48,8 @@ INCLUDE_PATTERN = re.compile(r'^\.INCLUDE +"([^"]+)"')
 
 USE_PATTERN = re.compile(r'[^.A-Za-z0-9_]((?:__)?[A-Z][A-Za-z0-9_]+)')
 
+CHR_INC_PATTERN = re.compile(r'^ *chr_inc *"([^"]*)"')
+
 #=============================================================================#
 
 def src_and_test_entries():
@@ -66,6 +68,12 @@ def src_and_test_filepaths(*exts):
                     yield os.path.join(dirpath, filename)
                     break
 
+def ahi_filenames():
+    for (dirpath, dirnames, filenames) in os.walk('src/tiles'):
+        for filename in filenames:
+            if filename.endswith('.ahi'):
+                yield filename
+
 #=============================================================================#
 
 def run_tests():
@@ -73,6 +81,7 @@ def run_tests():
     files = {}
     errors = {}
     all_imports = set()
+    all_chr_inc_filenames = set()
     for filepath in src_and_test_filepaths('.asm', '.inc'):
         includes = []
         imports = []
@@ -132,6 +141,10 @@ def run_tests():
             # Check which imports are used.
             for match in USE_PATTERN.finditer(line.split(';', 1)[0]):
                 uses.add(match.group(1))
+            # Check chr_inc macros.
+            match = CHR_INC_PATTERN.match(line)
+            if match:
+                all_chr_inc_filenames.add(match.group(1) + '.ahi')
         files[filepath] = {'exports': exports}
         # Check that the includes are sorted.
         if includes != sorted(includes):
@@ -154,6 +167,13 @@ def run_tests():
             print('STYLE: found unused exports in {}'.format(filepath))
             for identifier in sorted(unused_exports):
                 print('  {}'.format(identifier))
+    # Check that all AHI files are used.
+    unused_ahi_filenames = set(ahi_filenames()) - all_chr_inc_filenames
+    if unused_ahi_filenames:
+        failed[0] = True
+        print('STYLE: found unused AHI files')
+        for filename in sorted(unused_ahi_filenames):
+            print('  {}'.format(filename))
     # Report errors.
     for (message, examples) in errors.items():
         failed[0] = True
