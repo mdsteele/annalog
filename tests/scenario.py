@@ -307,6 +307,8 @@ def load_markers():
         not_flag = read_match_line(file, MARKER_NOT_RE).group(1)
         markers.append({
             'cell': (row, col),
+            'if_flag': if_flag,
+            'not_flag': not_flag,
             'name': '{}/{}'.format(if_flag, not_flag),
             'room': room,
         })
@@ -482,6 +484,36 @@ def test_marker_rooms(areas, markers):
             failed = True
     return failed
 
+def test_flower_rooms(areas, markers):
+    failed = False
+    flower_rooms = set()
+    for area_name, area in areas.items():
+        for room_name, room in area['rooms'].items():
+            is_flower_room = room_name.endswith('Flower')
+            has_flower_device = any(device['type'] == 'Flower'
+                                    for device in room['devices'])
+            if is_flower_room:
+                if has_flower_device:
+                    flower_rooms.add(room_name)
+                else:
+                    print('SCENARIO: no Flower device in room {}'.format(
+                        room_name))
+                    failed = True
+            elif has_flower_device:
+                print('SCENARIO: unexpected Flower device in room {}'.format(
+                    room_name))
+                failed = True
+    flower_marker_rooms = set()
+    for marker in markers:
+        if marker['not_flag'].startswith('Flower') and not marker['if_flag']:
+            room_name = marker['room']
+            flower_marker_rooms.add(room_name)
+    for room_name in sorted(flower_rooms):
+        if room_name not in flower_marker_rooms:
+            print('SCENARIO: no minimap marker found for {}'.format(room_name))
+            failed = True
+    return failed
+
 def test_paper_rooms(areas, papers):
     failed = False
     for paper_name, paper in papers.items():
@@ -528,6 +560,7 @@ def run_tests():
     failed |= test_room_doors(areas)
     failed |= test_room_passages(areas)
     failed |= test_marker_rooms(areas, markers)
+    failed |= test_flower_rooms(areas, markers)
     papers = load_papers()
     failed |= test_paper_rooms(areas, papers)
     return failed

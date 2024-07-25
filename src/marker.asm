@@ -196,7 +196,7 @@
     D_END
     D_STRUCT sMarker
     d_byte Row_u8, 12
-    d_byte Col_u8, 17  ; room: LavaStation
+    d_byte Col_u8, 18  ; room: LavaStation
     d_byte If_eFlag, 0
     d_byte Not_eFlag, eFlag::UpgradeOpCopy
     D_END
@@ -205,6 +205,12 @@
     d_byte Col_u8, 0  ; room: BossCrypt
     d_byte If_eFlag, 0
     d_byte Not_eFlag, eFlag::BreakerCrypt
+    D_END
+    D_STRUCT sMarker
+    d_byte Row_u8, 13
+    d_byte Col_u8, 3  ; room: ShadowFlower
+    d_byte If_eFlag, 0
+    d_byte Not_eFlag, eFlag::FlowerShadow
     D_END
     D_STRUCT sMarker
     d_byte Row_u8, 13
