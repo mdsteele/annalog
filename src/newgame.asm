@@ -325,6 +325,8 @@ _SetFlags:
     .byte eFlag::BossCity
     .byte eFlag::UpgradeBRemote
     .byte eFlag::BreakerCity
+    .byte eFlag::CityCenterTalkedToAlex
+    .byte eFlag::ShadowTeleportEnteredLab
     .byte eFlag::PaperJerome01
     .byte eFlag::ShadowHallInitialized
     .byte eFlag::ShadowHallGlassBroken

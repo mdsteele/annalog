@@ -115,6 +115,7 @@ kDialogEntryCutscene = $ff  ; ends the dialog and starts a new cutscene
 .ENUM eDialog
     CityBuilding2Screen
     CityBuilding6Screen
+    CityCenterAlex
     CityCenterBreakerCity1
     CityFlowerOrcAngry
     CityFlowerOrcCalm

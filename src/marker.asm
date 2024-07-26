@@ -214,6 +214,12 @@
     D_END
     D_STRUCT sMarker
     d_byte Row_u8, 13
+    d_byte Col_u8, 13  ; room: LavaTeleport
+    d_byte If_eFlag, eFlag::CityCenterTalkedToAlex
+    d_byte Not_eFlag, eFlag::ShadowTeleportEnteredLab
+    D_END
+    D_STRUCT sMarker
+    d_byte Row_u8, 13
     d_byte Col_u8, 23  ; room: MinePit
     d_byte If_eFlag, 0
     d_byte Not_eFlag, eFlag::UpgradeOpSync

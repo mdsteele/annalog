@@ -187,15 +187,15 @@ _ThrowDuckFood:
 
 .EXPORT DataA_Dialog_SewerPoolSign_sDialog
 .PROC DataA_Dialog_SewerPoolSign_sDialog
-    dlg_Text Sign, DataA_Text1_SewerPoolSign_u8_arr
+    dlg_Text Sign, DataA_Text2_SewerPoolSign_u8_arr
     dlg_Done
 .ENDPROC
 
 ;;;=========================================================================;;;
 
-.SEGMENT "PRGA_Text1"
+.SEGMENT "PRGA_Text2"
 
-.PROC DataA_Text1_SewerPoolSign_u8_arr
+.PROC DataA_Text2_SewerPoolSign_u8_arr
     .byte "    - NOTICE -$"
     .byte "$"
     .byte "   Please do ", $9d, $9e, $9f, "$"

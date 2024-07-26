@@ -480,7 +480,8 @@ _LookingForCorra_sDialog:
 .PROC DataA_Dialog_MermaidVillageBruno_sDialog
     dlg_Func _WhereIsAlexFunc
 _WhereIsAlexFunc:
-    ;; If Alex hasn't started waiting in the temple, then report that he's
+    ;; Bruno isn't here until the kids are rescued.  Once that happens, if Alex
+    ;; hasn't yet started waiting in the temple, then report that he's still
     ;; meeting with the mermaid queen.
     flag_bit Sram_ProgressFlags_arr, eFlag::TempleNaveAlexWaiting
     bne @notWithQueen
@@ -513,6 +514,21 @@ _WhereIsAlexFunc:
     ldya #_AlexAtSpring_sDialog
     rts
     @notAtSpring:
+    ;; Between when Anna returns from under the mermaid spring and when she
+    ;; talks to Alex in the factory vault, Alex is in the vault.  However,
+    ;; during that period, Bruno is in the factory elevator rather than here,
+    ;; so no need to report on that.  Once Bruno returns here, Alex is nowhere
+    ;; to be found until the city breaker has been activated, so until then
+    ;; just report that Alex is off exploring somewhere.
+    flag_bit Sram_ProgressFlags_arr, eFlag::BreakerCity
+    beq @exploring
+    ;; Otherwise, if Anna hasn't yet entered the Shadow Labs, report that Alex
+    ;; is in the city.
+    flag_bit Sram_ProgressFlags_arr, eFlag::ShadowTeleportEnteredLab
+    bne @notInCity
+    ldya #_AlexInCity_sDialog
+    rts
+    @notInCity:
     ;; TODO: report other places where Alex can be
     ;; If all else fails, just report that Alex is off exploring somewhere.
     @exploring:
@@ -529,6 +545,9 @@ _AlexNearCity_sDialog:
     dlg_Done
 _AlexAtSpring_sDialog:
     dlg_Text ChildBruno, DataA_Text1_MermaidVillageBruno_AlexAtSpring_u8_arr
+    dlg_Done
+_AlexInCity_sDialog:
+    dlg_Text ChildBruno, DataA_Text1_MermaidVillageBruno_AlexInCity_u8_arr
     dlg_Done
 _AlexExploring_sDialog:
     dlg_Text ChildBruno, DataA_Text1_MermaidVillageBruno_AlexExploring_u8_arr
@@ -675,6 +694,13 @@ _AlexExploring_sDialog:
     .byte "Alex, he's waiting for$"
     .byte "you at the hot spring,$"
     .byte "east of the village.#"
+.ENDPROC
+
+.PROC DataA_Text1_MermaidVillageBruno_AlexInCity_u8_arr
+    .byte "If you're looking for$"
+    .byte "Alex, I think he went$"
+    .byte "up to explore that$"
+    .byte "ancient human city.#"
 .ENDPROC
 
 .PROC DataA_Text1_MermaidVillageBruno_AlexExploring_u8_arr

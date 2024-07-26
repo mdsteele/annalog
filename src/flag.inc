@@ -145,6 +145,7 @@ kSaveMagicNumber = $b2
     CityCenterDoorUnlocked
     CityCenterEnteredCity
     CityCenterKeygenConnected
+    CityCenterTalkedToAlex
     CityOutskirtsBlastedRocks
     CityOutskirtsTalkedToAlex
     CoreSouthCorraHelped
@@ -187,6 +188,7 @@ kSaveMagicNumber = $b2
     ShadowHeartTaggedGhost
     ShadowOfficeRemovedWall
     ShadowOfficeTaggedGhost
+    ShadowTeleportEnteredLab
     ShadowTrapDisarmed
     TempleAltarColumnBroken
     TempleEntryColumnRaised

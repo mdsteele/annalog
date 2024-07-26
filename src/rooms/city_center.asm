@@ -18,6 +18,7 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "../actor.inc"
+.INCLUDE "../actors/child.inc"
 .INCLUDE "../charmap.inc"
 .INCLUDE "../cutscene.inc"
 .INCLUDE "../device.inc"
@@ -48,6 +49,7 @@
 .IMPORT Func_UnlockDoorDevice
 .IMPORT Main_Breaker_FadeBackToBreakerRoom
 .IMPORT Ppu_ChrObjCity
+.IMPORT Ram_ActorType_eActor_arr
 .IMPORT Ram_DeviceType_eDevice_arr
 .IMPORT Ram_MachineGoalHorz_u8_arr
 .IMPORT Ram_MachineState1_byte_arr
@@ -58,6 +60,12 @@
 .IMPORTZP Zp_RoomState
 
 ;;;=========================================================================;;;
+
+;;; The actor index for Alex in this room.
+kAlexActorIndex = 0
+;;; The talk device indices for Alex in this room.
+kAlexDeviceIndexRight = 14
+kAlexDeviceIndexLeft  = 15
 
 ;;; The device index for the locked door in this room.
 kLockedDoorDeviceIndex = 1
@@ -255,7 +263,14 @@ _Platforms_sPlatform_arr:
     .assert * - :- <= kMaxPlatforms * .sizeof(sPlatform), error
     .byte ePlatform::None
 _Actors_sActor_arr:
-:   ;; TODO: add Alex/Gronta NPCs for cutscene
+:   .assert * - :- = kAlexActorIndex * .sizeof(sActor), error
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::NpcChild
+    d_word PosX_i16, $02b0
+    d_word PosY_i16, $0148
+    d_byte Param_byte, eNpcChild::AlexStanding
+    D_END
+    ;; TODO: add Gronta NPC for cutscene
     D_STRUCT sActor
     d_byte Type_eActor, eActor::BadRhino
     d_word PosX_i16, $00b0
@@ -270,7 +285,7 @@ _Actors_sActor_arr:
     D_END
     D_STRUCT sActor
     d_byte Type_eActor, eActor::BadOrc
-    d_word PosX_i16, $0324
+    d_word PosX_i16, $034c
     d_word PosY_i16, $0158
     d_byte Param_byte, bObj::FlipH
     D_END
@@ -361,6 +376,20 @@ _Devices_sDevice_arr:
     d_byte BlockRow_u8, 16
     d_byte BlockCol_u8, 43
     d_byte Target_byte, eRoom::CityBuilding5
+    D_END
+    .assert * - :- = kAlexDeviceIndexRight * .sizeof(sDevice), error
+    D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::TalkRight
+    d_byte BlockRow_u8, 20
+    d_byte BlockCol_u8, 42
+    d_byte Target_byte, eDialog::CityCenterAlex
+    D_END
+    .assert * - :- = kAlexDeviceIndexLeft * .sizeof(sDevice), error
+    D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::TalkLeft
+    d_byte BlockRow_u8, 20
+    d_byte BlockCol_u8, 43
+    d_byte Target_byte, eDialog::CityCenterAlex
     D_END
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None
@@ -486,7 +515,20 @@ _WriteRegLock:
 
 .PROC FuncA_Room_CityCenter_EnterRoom
     ;; TODO: If cutscene, halt machines and remove baddies.
-    ;; TODO: If not cutscene, remove Alex/Gronta actors.
+    ;; TODO: If not cutscene, remove Gronta actor.
+_RemoveAlex:
+    flag_bit Sram_ProgressFlags_arr, eFlag::BreakerCity
+    beq @removeAlex
+    flag_bit Sram_ProgressFlags_arr, eFlag::ShadowTeleportEnteredLab
+    beq @keepAlex
+    @removeAlex:
+    lda #0
+    .assert eActor::None = 0, error
+    sta Ram_ActorType_eActor_arr + kAlexActorIndex
+    .assert eDevice::None = 0, error
+    sta Ram_DeviceType_eDevice_arr + kAlexDeviceIndexLeft
+    sta Ram_DeviceType_eDevice_arr + kAlexDeviceIndexRight
+    @keepAlex:
 _UnlockDoor:
     ;; If the door has already been unlocked, unlock it.
     flag_bit Sram_ProgressFlags_arr, eFlag::CityCenterDoorUnlocked
@@ -562,6 +604,19 @@ _SetFlag:
     dlg_Done
 .ENDPROC
 
+.EXPORT DataA_Dialog_CityCenterAlex_sDialog
+.PROC DataA_Dialog_CityCenterAlex_sDialog
+    dlg_IfSet CityCenterTalkedToAlex, _MarkedMap_sDialog
+    dlg_Text ChildAlex, DataA_Text2_CityCenterAlex_Part1_u8_arr
+    dlg_Text ChildAlex, DataA_Text2_CityCenterAlex_Part2_u8_arr
+    dlg_Quest CityCenterTalkedToAlex
+_MarkedMap_sDialog:
+    dlg_Text ChildAlex, DataA_Text2_CityCenterAlex_Part3_u8_arr
+    dlg_Text ChildAlex, DataA_Text2_CityCenterAlex_Part4_u8_arr
+    dlg_Text ChildAlex, DataA_Text2_CityCenterAlex_Part5_u8_arr
+    dlg_Done
+.ENDPROC
+
 ;;;=========================================================================;;;
 
 .SEGMENT "PRGA_Text2"
@@ -620,6 +675,40 @@ _SetFlag:
     .byte "will be a `next time'$"
     .byte "for humans in charge$"
     .byte "over my dead body!#"
+.ENDPROC
+
+.PROC DataA_Text2_CityCenterAlex_Part1_u8_arr
+    .byte "Anna, you found it!$"
+    .byte "That's the remote that$"
+    .byte "the orcs have been$"
+    .byte "looking for!#"
+.ENDPROC
+
+.PROC DataA_Text2_CityCenterAlex_Part2_u8_arr
+    .byte "We'll need that to$"
+    .byte "restore the complex.$"
+    .byte "But first, there's one$"
+    .byte "more circuit to find.#"
+.ENDPROC
+
+.PROC DataA_Text2_CityCenterAlex_Part3_u8_arr
+    .byte "Down in the lava pits,$"
+    .byte "there's some kind of$"
+    .byte "gateway. I'll mark it$"
+    .byte "on your map.#"
+.ENDPROC
+
+.PROC DataA_Text2_CityCenterAlex_Part4_u8_arr
+    .byte "I don't know how to$"
+    .byte "use it, but I'm sure$"
+    .byte "you can figure it out.$"
+    .byte "We've almost got this!#"
+.ENDPROC
+
+.PROC DataA_Text2_CityCenterAlex_Part5_u8_arr
+    .byte "Very soon, all this$"
+    .byte "technology will be$"
+    .byte "back in human hands!#"
 .ENDPROC
 
 ;;;=========================================================================;;;
