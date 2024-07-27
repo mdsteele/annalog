@@ -138,6 +138,8 @@ Zp_BreakerBeingActivated_eFlag: .res 1
 .EXPORT Main_Breaker_FadeBackToBreakerRoom
 .PROC Main_Breaker_FadeBackToBreakerRoom
     jsr Func_FadeOutToBlack
+    ldx Zp_BreakerBeingActivated_eFlag  ; param: eFlag value
+    jsr Func_SetFlag
     ;; Reload the room that the breaker was in.
     ldx Zp_Breaker_eRoom  ; param: room to load
     jsr FuncM_SwitchPrgcAndLoadRoom
@@ -299,8 +301,6 @@ _BlinkCircuit:
     jsr Func_SetLastSpawnPointToActiveDevice  ; preserves X
     lda Ram_DeviceTarget_byte_arr, x
     sta Zp_BreakerBeingActivated_eFlag
-    tax  ; param: eFlag value
-    jsr Func_SetFlag
     ;; Hide the floating HUD.
     lda Zp_FloatingHud_bHud
     ora #bHud::Hidden

@@ -19,6 +19,8 @@
 
 .INCLUDE "../actor.inc"
 .INCLUDE "../actors/child.inc"
+.INCLUDE "../actors/orc.inc"
+.INCLUDE "../avatar.inc"
 .INCLUDE "../charmap.inc"
 .INCLUDE "../cutscene.inc"
 .INCLUDE "../device.inc"
@@ -49,14 +51,22 @@
 .IMPORT Func_UnlockDoorDevice
 .IMPORT Main_Breaker_FadeBackToBreakerRoom
 .IMPORT Ppu_ChrObjCity
+.IMPORT Ppu_ChrObjParley
+.IMPORT Ram_ActorState1_byte_arr
+.IMPORT Ram_ActorState2_byte_arr
 .IMPORT Ram_ActorType_eActor_arr
+.IMPORT Ram_ActorVelY_i16_0_arr
+.IMPORT Ram_ActorVelY_i16_1_arr
 .IMPORT Ram_DeviceType_eDevice_arr
 .IMPORT Ram_MachineGoalHorz_u8_arr
 .IMPORT Ram_MachineState1_byte_arr
 .IMPORT Ram_MachineState2_byte_arr
 .IMPORT Ram_MachineState3_byte_arr
+.IMPORT Ram_MachineStatus_eMachine_arr
 .IMPORT Sram_ProgressFlags_arr
+.IMPORTZP Zp_Current_sRoom
 .IMPORTZP Zp_MachineIndex_u8
+.IMPORTZP Zp_Next_eCutscene
 .IMPORTZP Zp_RoomState
 
 ;;;=========================================================================;;;
@@ -66,6 +76,11 @@ kAlexActorIndex = 0
 ;;; The talk device indices for Alex in this room.
 kAlexDeviceIndexRight = 14
 kAlexDeviceIndexLeft  = 15
+
+;;; The actor index for Gronta in this room.
+kGrontaActorIndex = 1
+;;; The actor index for the eastern orc in this room.
+kEastOrcActorIndex = 2
 
 ;;; The device index for the locked door in this room.
 kLockedDoorDeviceIndex = 1
@@ -270,7 +285,20 @@ _Actors_sActor_arr:
     d_word PosY_i16, $0148
     d_byte Param_byte, eNpcChild::AlexStanding
     D_END
-    ;; TODO: add Gronta NPC for cutscene
+    .assert * - :- = kGrontaActorIndex * .sizeof(sActor), error
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::NpcOrc
+    d_word PosX_i16, $03e4
+    d_word PosY_i16, $0158
+    d_byte Param_byte, eNpcOrc::GrontaStanding
+    D_END
+    .assert * - :- = kEastOrcActorIndex * .sizeof(sActor), error
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::BadOrc
+    d_word PosX_i16, $034c
+    d_word PosY_i16, $0158
+    d_byte Param_byte, bObj::FlipH
+    D_END
     D_STRUCT sActor
     d_byte Type_eActor, eActor::BadRhino
     d_word PosX_i16, $00b0
@@ -282,12 +310,6 @@ _Actors_sActor_arr:
     d_word PosX_i16, $0170
     d_word PosY_i16, $0158
     d_byte Param_byte, 0
-    D_END
-    D_STRUCT sActor
-    d_byte Type_eActor, eActor::BadOrc
-    d_word PosX_i16, $034c
-    d_word PosY_i16, $0158
-    d_byte Param_byte, bObj::FlipH
     D_END
     .assert * - :- <= kMaxActors * .sizeof(sActor), error
     .byte eActor::None
@@ -514,8 +536,36 @@ _WriteRegLock:
 .SEGMENT "PRGA_Room"
 
 .PROC FuncA_Room_CityCenter_EnterRoom
-    ;; TODO: If cutscene, halt machines and remove baddies.
-    ;; TODO: If not cutscene, remove Gronta actor.
+_RemoveEastOrc:
+    ;; The eastern orc leaves once the B-remote has been collected (including
+    ;; during the city breaker cutscene).
+    flag_bit Sram_ProgressFlags_arr, eFlag::UpgradeBRemote
+    beq @keepOrc
+    lda #eActor::None
+    sta Ram_ActorType_eActor_arr + kEastOrcActorIndex
+    @keepOrc:
+_CheckForBreakerCutscene:
+    ;; If the city breaker cutscene is playing, initialize it (and skip the
+    ;; checking of progress flags below).  Otherwise, remove the orc NPCs
+    ;; (which only appear in the cutscene).
+    lda Zp_Next_eCutscene
+    cmp #eCutscene::CityCenterBreakerCity
+    bne @noCutscene
+    @initCutscene:
+    lda #<.bank(Ppu_ChrObjParley)
+    sta Zp_Current_sRoom + sRoom::Chr18Bank_u8
+    lda #eMachine::Halted
+    sta Ram_MachineStatus_eMachine_arr + kSemaphore1MachineIndex
+    sta Ram_MachineStatus_eMachine_arr + kSemaphore2MachineIndex
+    sta Ram_MachineStatus_eMachine_arr + kSemaphore3MachineIndex
+    sta Ram_MachineStatus_eMachine_arr + kSemaphore4MachineIndex
+    lda #$ff
+    sta Ram_ActorState2_byte_arr + kAlexActorIndex
+    sta Ram_ActorState2_byte_arr + kGrontaActorIndex
+    rts
+    @noCutscene:
+    lda #eActor::None
+    sta Ram_ActorType_eActor_arr + kGrontaActorIndex
 _RemoveAlex:
     flag_bit Sram_ProgressFlags_arr, eFlag::BreakerCity
     beq @removeAlex
@@ -578,12 +628,77 @@ _SetFlag:
 .EXPORT DataA_Cutscene_CityCenterBreakerCity_sCutscene
 .PROC DataA_Cutscene_CityCenterBreakerCity_sCutscene
     act_WaitFrames 60
+    act_SetActorPosX kAlexActorIndex, $0304
+    act_SetActorPosY kAlexActorIndex, $00f8
+    ;; Make Alex jump from offscreen onto the building roof.
+    ;; TODO: play a sound for Alex jumping
+    act_SetActorState1 kAlexActorIndex, eNpcChild::AlexWalking1
+    act_SetActorVelX kAlexActorIndex, $180
+    act_SetActorVelY kAlexActorIndex, -$200
+    act_SetCutsceneFlags bCutscene::TickAllActors
+    act_RepeatFunc 26, _ApplyAlexGravity
+    act_SetCutsceneFlags 0
+    act_SetActorPosY kAlexActorIndex, $00f8
+    act_SetActorState1 kAlexActorIndex, eNpcChild::AlexKneeling
+    act_SetActorFlags kGrontaActorIndex, bObj::FlipH
+    act_WaitFrames 20
+    act_SetActorState1 kAlexActorIndex, eNpcChild::AlexStanding
+    act_WaitFrames 30
+    ;; Make Alex walk over to talk to Gronta.
+    act_WalkNpcAlex kAlexActorIndex, $0346
+    act_SetActorState1 kAlexActorIndex, eNpcChild::AlexStanding
     act_RunDialog eDialog::CityCenterBreakerCity1
+    act_SetActorState1 kGrontaActorIndex, eNpcOrc::GrontaStanding
     act_WaitFrames 60
+    ;; Shake the room, and make Gronta look around in surprise.
     act_CallFunc Func_PlaySfxExplodeBig
     act_ShakeRoom 30
-    act_WaitFrames 110
+    act_WaitFrames 20
+    act_SetActorFlags kGrontaActorIndex, 0
+    act_WaitFrames 10
+    act_SetActorFlags kAlexActorIndex, bObj::FlipH
+    act_WaitFrames 10
+    act_SetActorFlags kGrontaActorIndex, bObj::FlipH
+    act_WaitFrames 10
+    act_SetActorFlags kAlexActorIndex, 0
+    act_WaitFrames 10
+    act_SetActorFlags kGrontaActorIndex, 0
+    act_WaitFrames 10
+    act_SetActorFlags kAlexActorIndex, bObj::FlipH
+    act_WaitFrames 80
+    ;; Make Gronta mutter to herself, then walk offscreen.
+    act_SetActorFlags kAlexActorIndex, 0
+    act_RunDialog eDialog::CityCenterBreakerCity2
+    act_WalkNpcGronta kGrontaActorIndex, $0418
+    act_WaitFrames 90
+    ;; Make Alex walk to the edge of the roof.
+    act_WalkNpcAlex kAlexActorIndex, $0322
+    act_SetActorState1 kAlexActorIndex, eNpcChild::AlexStanding
+    act_WaitFrames 6
+    act_SetActorState1 kAlexActorIndex, eNpcChild::AlexKneeling
+    act_WaitFrames 10
+    act_SetActorState1 kAlexActorIndex, eNpcChild::AlexStanding
+    act_WaitFrames 2
+    ;; Make Alex jump offscreen toward the next building to the west.
+    ;; TODO: play a sound for Alex jumping
+    act_SetActorState1 kAlexActorIndex, eNpcChild::AlexWalking1
+    act_SetActorVelX kAlexActorIndex, -$180
+    act_SetActorVelY kAlexActorIndex, -$200
+    act_SetCutsceneFlags bCutscene::TickAllActors
+    act_RepeatFunc 20, _ApplyAlexGravity
+    act_SetCutsceneFlags 0
+    act_SetActorVelX kAlexActorIndex, 0
+    act_SetActorVelY kAlexActorIndex, 0
+    act_WaitFrames 80
     act_JumpToMain Main_Breaker_FadeBackToBreakerRoom
+_ApplyAlexGravity:
+    lda #kAvatarGravity
+    add Ram_ActorVelY_i16_0_arr + kAlexActorIndex
+    sta Ram_ActorVelY_i16_0_arr + kAlexActorIndex
+    lda #0
+    adc Ram_ActorVelY_i16_1_arr + kAlexActorIndex
+    sta Ram_ActorVelY_i16_1_arr + kAlexActorIndex
+    rts
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -593,14 +708,35 @@ _SetFlag:
 .EXPORT DataA_Dialog_CityCenterBreakerCity1_sDialog
 .PROC DataA_Dialog_CityCenterBreakerCity1_sDialog
     .assert kTileIdBgPortraitGrontaFirst = kTileIdBgPortraitAlexFirst, error
-    dlg_Text OrcGronta, DataA_Text2_CityCenterBreakerCity_Part1_u8_arr
-    dlg_Text ChildAlex, DataA_Text2_CityCenterBreakerCity_Part2_u8_arr
-    dlg_Text OrcGronta, DataA_Text2_CityCenterBreakerCity_Part3_u8_arr
-    dlg_Text OrcGronta, DataA_Text2_CityCenterBreakerCity_Part4_u8_arr
-    dlg_Text OrcGronta, DataA_Text2_CityCenterBreakerCity_Part5_u8_arr
-    dlg_Text OrcGronta, DataA_Text2_CityCenterBreakerCity_Part6_u8_arr
-    dlg_Text ChildAlex, DataA_Text2_CityCenterBreakerCity_Part7_u8_arr
-    dlg_Text OrcGrontaShout, DataA_Text2_CityCenterBreakerCity_Part8_u8_arr
+    dlg_Text OrcGronta, DataA_Text2_CityCenterBreakerCity1_Part1_u8_arr
+    dlg_Call _AlexRaiseArm
+    dlg_Text ChildAlex, DataA_Text2_CityCenterBreakerCity1_Part2_u8_arr
+    dlg_Text OrcGronta, DataA_Text2_CityCenterBreakerCity1_Part3_u8_arr
+    dlg_Call _AlexLowerArm
+    dlg_Text OrcGronta, DataA_Text2_CityCenterBreakerCity1_Part4_u8_arr
+    dlg_Text OrcGronta, DataA_Text2_CityCenterBreakerCity1_Part5_u8_arr
+    dlg_Text OrcGronta, DataA_Text2_CityCenterBreakerCity1_Part6_u8_arr
+    dlg_Text ChildAlex, DataA_Text2_CityCenterBreakerCity1_Part7_u8_arr
+    dlg_Call _GrontaRaiseArm
+    dlg_Text OrcGrontaShout, DataA_Text2_CityCenterBreakerCity1_Part8_u8_arr
+    dlg_Done
+_AlexRaiseArm:
+    lda #eNpcChild::AlexHolding
+    sta Ram_ActorState1_byte_arr + kAlexActorIndex
+    rts
+_AlexLowerArm:
+    lda #eNpcChild::AlexStanding
+    sta Ram_ActorState1_byte_arr + kAlexActorIndex
+    rts
+_GrontaRaiseArm:
+    lda #eNpcOrc::GrontaArmsRaised
+    sta Ram_ActorState1_byte_arr + kGrontaActorIndex
+    rts
+.ENDPROC
+
+.EXPORT DataA_Dialog_CityCenterBreakerCity2_sDialog
+.PROC DataA_Dialog_CityCenterBreakerCity2_sDialog
+    dlg_Text OrcGronta, DataA_Text2_CityCenterBreakerCity2_Part1_u8_arr
     dlg_Done
 .ENDPROC
 
@@ -621,60 +757,67 @@ _MarkedMap_sDialog:
 
 .SEGMENT "PRGA_Text2"
 
-.PROC DataA_Text2_CityCenterBreakerCity_Part1_u8_arr
+.PROC DataA_Text2_CityCenterBreakerCity1_Part1_u8_arr
     .byte "Pfagh, you again? If$"
     .byte "you value your life,$"
     .byte "boy, you should leave$"
     .byte "these ruins to us.#"
 .ENDPROC
 
-.PROC DataA_Text2_CityCenterBreakerCity_Part2_u8_arr
+.PROC DataA_Text2_CityCenterBreakerCity1_Part2_u8_arr
     .byte "You're the ones who'd$"
     .byte "better leave! This$"
     .byte "is a human city. It$"
     .byte "belongs to us!#"
 .ENDPROC
 
-.PROC DataA_Text2_CityCenterBreakerCity_Part3_u8_arr
+.PROC DataA_Text2_CityCenterBreakerCity1_Part3_u8_arr
     .byte "Oh? And did YOU build$"
     .byte "these buildings? Did$"
     .byte "your townsfolk create$"
     .byte "these machines?#"
 .ENDPROC
 
-.PROC DataA_Text2_CityCenterBreakerCity_Part4_u8_arr
+.PROC DataA_Text2_CityCenterBreakerCity1_Part4_u8_arr
     .byte "Of course you didn't.$"
     .byte "The people who did$"
     .byte "have all been dead$"
     .byte "for centuries.#"
 .ENDPROC
 
-.PROC DataA_Text2_CityCenterBreakerCity_Part5_u8_arr
+.PROC DataA_Text2_CityCenterBreakerCity1_Part5_u8_arr
     .byte "Those humans couldn't$"
     .byte "handle the power they$"
     .byte "created. And now you$"
     .byte "think YOU deserve it?#"
 .ENDPROC
 
-.PROC DataA_Text2_CityCenterBreakerCity_Part6_u8_arr
+.PROC DataA_Text2_CityCenterBreakerCity1_Part6_u8_arr
     .byte "You have less claim$"
     .byte "than we do. At least$"
     .byte "orcs never collapsed$"
     .byte "advanced civilization.#"
 .ENDPROC
 
-.PROC DataA_Text2_CityCenterBreakerCity_Part7_u8_arr
+.PROC DataA_Text2_CityCenterBreakerCity1_Part7_u8_arr
     .byte "You never created it,$"
     .byte "either. Humans can$"
     .byte "learn. And next time,$"
     .byte "we'll do it right!#"
 .ENDPROC
 
-.PROC DataA_Text2_CityCenterBreakerCity_Part8_u8_arr
+.PROC DataA_Text2_CityCenterBreakerCity1_Part8_u8_arr
     .byte "`Next time?' There$"
     .byte "will be a `next time'$"
     .byte "for humans in charge$"
     .byte "over my dead body!#"
+.ENDPROC
+
+.PROC DataA_Text2_CityCenterBreakerCity2_Part1_u8_arr
+    .byte "...Another circuit?$"
+    .byte "But that must mean$"
+    .byte "that the power core$"
+    .byte "is almost...hmm.#"
 .ENDPROC
 
 .PROC DataA_Text2_CityCenterAlex_Part1_u8_arr

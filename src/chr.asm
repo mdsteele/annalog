@@ -1188,15 +1188,13 @@ _chr_begin:
 .EXPORT Ppu_ChrObjBoss3
 .PROC Ppu_ChrObjBoss3
     CHR2_BANK $80
-    chr_res $06
-    chr_inc "upgrade_opif",        kTileIdObjUpgradeOpIfFirst
+    chr_res $08
     chr_inc "cannon",              kTileIdObjCannonFirst
-    chr_res $02
-    chr_inc "eirene_parley",       kTileIdObjEireneParleyFirst
+    chr_res $0a
     chr_inc "blaster",             kTileIdObjBlasterFirst
     chr_res $01
     chr_inc "fireblast",           kTileIdObjFireblastFirst
-    chr_inc "orc_gronta_parley",   kTileIdObjOrcGrontaParleyFirst
+    chr_res $04
     chr_inc "orc_gronta_standing", kTileIdObjOrcGrontaStandingFirst
     chr_inc "orc_gronta_running",  kTileIdObjOrcGrontaRunningFirst
     chr_inc "orc_gronta_throwing", kTileIdObjOrcGrontaThrowingFirst
@@ -1360,6 +1358,26 @@ _chr_begin:
     chr_res $1c
     chr_inc "bad_fish",       kTileIdObjBadFishFirst
     chr_res $20
+    END_CHR_BANK
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "CHR_ObjParley"
+
+.EXPORT Ppu_ChrObjParley
+.PROC Ppu_ChrObjParley
+    CHR2_BANK $80
+    chr_res $06
+    chr_inc "upgrade_opif",        kTileIdObjUpgradeOpIfFirst
+    chr_res $08
+    chr_inc "eirene_parley",       kTileIdObjEireneParleyFirst
+    chr_res $04
+    chr_inc "orc_gronta_parley",   kTileIdObjOrcGrontaParleyFirst
+    chr_inc "orc_gronta_standing", kTileIdObjOrcGrontaStandingFirst
+    chr_inc "orc_gronta_running",  kTileIdObjOrcGrontaRunningFirst
+    chr_res $20
+    chr_inc "child_stand",         kTileIdObjChildStandFirst
     END_CHR_BANK
 .ENDPROC
 

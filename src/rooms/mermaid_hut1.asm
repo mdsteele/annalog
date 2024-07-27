@@ -219,6 +219,7 @@ _Alex:
     act_ForkStart 1, _SwimAvatar_sCutscene
     act_WaitFrames 6
     ;; Make Alex jump into the water.
+    ;; TODO: play a sound for Alex jumping
     act_SetActorState1 kAlexActorIndex, eNpcChild::AlexWalking1
     act_SetActorVelX kAlexActorIndex, -$100
     act_SetActorVelY kAlexActorIndex, -$100

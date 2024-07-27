@@ -117,6 +117,7 @@ kDialogEntryCutscene = $ff  ; ends the dialog and starts a new cutscene
     CityBuilding6Screen
     CityCenterAlex
     CityCenterBreakerCity1
+    CityCenterBreakerCity2
     CityFlowerOrcAngry
     CityFlowerOrcCalm
     CityOutskirtsAlex1

@@ -39,6 +39,7 @@
 .IMPORT DataA_Dialog_CityBuilding6Screen_sDialog
 .IMPORT DataA_Dialog_CityCenterAlex_sDialog
 .IMPORT DataA_Dialog_CityCenterBreakerCity1_sDialog
+.IMPORT DataA_Dialog_CityCenterBreakerCity2_sDialog
 .IMPORT DataA_Dialog_CityFlowerOrcAngry_sDialog
 .IMPORT DataA_Dialog_CityFlowerOrcCalm_sDialog
 .IMPORT DataA_Dialog_CityOutskirtsAlex1_sDialog
@@ -445,6 +446,8 @@ _Finish:
     d_entry t, CityCenterAlex,       DataA_Dialog_CityCenterAlex_sDialog
     d_entry t, CityCenterBreakerCity1, \
             DataA_Dialog_CityCenterBreakerCity1_sDialog
+    d_entry t, CityCenterBreakerCity2, \
+            DataA_Dialog_CityCenterBreakerCity2_sDialog
     d_entry t, CityFlowerOrcAngry,   DataA_Dialog_CityFlowerOrcAngry_sDialog
     d_entry t, CityFlowerOrcCalm,    DataA_Dialog_CityFlowerOrcCalm_sDialog
     d_entry t, CityOutskirtsAlex1,   DataA_Dialog_CityOutskirtsAlex1_sDialog
