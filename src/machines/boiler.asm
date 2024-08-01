@@ -58,7 +58,9 @@ kPaletteObjValve       = 0
 .EXPORT Func_MachineBoilerReadReg
 .PROC Func_MachineBoilerReadReg
     ldx Zp_MachineIndex_u8
-    lda Ram_MachineGoalHorz_u8_arr, x  ; valve goal
+    lda Ram_MachineState1_byte_arr, x  ; valve angle
+    add #kBoilerValveAnimSlowdown / 2
+    div #kBoilerValveAnimSlowdown
     rts
 .ENDPROC
 
@@ -157,7 +159,7 @@ _Valve:
     jsr FuncA_Objects_MoveShapeDownByA  ; preserves Y
     tya  ; ignition cooldown
     div #2
-    and #$01
+    mod #2
     .assert kTileIdObjBoilerFlameFirst .mod 2 = 0, error
     ora #kTileIdObjBoilerFlameFirst  ; param: tile ID
     ldy #kPaletteObjBoilerFlame  ; param: object flags
@@ -168,23 +170,34 @@ _Valve:
 
 ;;; Draws the valve for a boiler machine.  The valve platform should be 8x8
 ;;; pixels and centered on the center of the valve.
+;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
 ;;; @param X The platform index for the valve.
 .EXPORT FuncA_Objects_DrawBoilerValve
 .PROC FuncA_Objects_DrawBoilerValve
+    jsr FuncA_Objects_SetShapePosToPlatformTopLeft
     ldy Zp_MachineIndex_u8
     lda Ram_MachineState1_byte_arr, y  ; valve angle (in tau/32 units)
+    fall FuncA_Objects_DrawValveShape
+.ENDPROC
+
+;;; Draws a valve for a boiler or multiplexer machine at the current shape
+;;; position.
+;;; @param A The angle of the valve (in tau/32 units)
+;;; @preserve X
+.EXPORT FuncA_Objects_DrawValveShape
+.PROC FuncA_Objects_DrawValveShape
     div #2
-    tay  ; valve angle (in tau/16 units)
-    jsr FuncA_Objects_SetShapePosToPlatformTopLeft  ; preserves Y
-    tya  ; valve angle (in tau/16 units)
+    pha  ; valve angle (in tau/16 units)
     div #4
-    and #$03
-    tax
-    tya  ; valve angle (in tau/16 units)
-    ldy _Flags_bObj_arr4, x  ; param: object flags
-    and #$07
-    tax  ; valve angle (in tau/16 units, mod 8)
-    lda _TileId_u8_arr8, x  ; param: tile ID
+    mod #4
+    tay  ; valve angle (in tau/4 units, mod 4)
+    lda _Flags_bObj_arr4, y
+    sta T0  ; object flags
+    pla  ; valve angle (in tau/16 units)
+    mod #8
+    tay  ; valve angle (in tau/16 units, mod 8)
+    lda _TileId_u8_arr8, y  ; param: tile ID
+    ldy T0  ; param: object flags
     jmp FuncA_Objects_Draw1x1Shape
 _TileId_u8_arr8:
     .byte kTileIdObjValveFirst + 0

@@ -85,6 +85,7 @@ kMaxActors = 16
     SmokeParticle    ; a single particle of smoke
     SmokeSteamHorz   ; like ProjSteamHorz, but without any physics interactions
     SmokeSteamUp     ; like ProjSteamUp, but without any physics interactions
+    SmokeWaterfall   ; pours out of a water pipe
     NUM_VALUES
 .ENDENUM
 

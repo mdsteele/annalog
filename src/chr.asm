@@ -1002,9 +1002,9 @@ _chr_begin:
 .EXPORT Ppu_ChrBgSewer
 .PROC Ppu_ChrBgSewer
     CHR1_BANK $80
+    chr_inc "steam_pipes"
     chr_inc "sewer1"
     chr_inc "sewer2"
-    chr_res $10
     chr_res $0c
     chr_inc "pump"
     END_CHR_BANK
@@ -1298,7 +1298,7 @@ _chr_begin:
     chr_inc "mermaid_corra",       kTileIdObjMermaidCorraFirst
     chr_inc "bad_vinebug",         kTileIdObjBadVinebugFirst
     chr_inc "anchor",              kTileIdObjAnchorFirst
-    chr_res $05
+    chr_inc "valve",               kTileIdObjValveFirst
     chr_inc "bad_beetle",          kTileIdObjBadBeetleFirst
     chr_res $04
     chr_inc "bad_fish",            kTileIdObjBadFishFirst

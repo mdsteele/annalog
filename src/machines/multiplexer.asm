@@ -48,8 +48,8 @@
 
 .SEGMENT "PRGA_Objects"
 
-;;; Draws a multiplexer machine.  The movable platform indices must be
-;;; contiguous, starting at zero.
+;;; Draws a multiplexer machine with movable platforms.  The movable platform
+;;; indices must be contiguous, starting at zero.
 ;;; @param X The number of movable platforms.
 .EXPORT FuncA_Objects_DrawMultiplexerMachine
 .PROC FuncA_Objects_DrawMultiplexerMachine
@@ -67,13 +67,15 @@ _MovablePlatforms:
     txa
     bne @loop
 _MainPlatform:
+    fall FuncA_Objects_DrawMultiplexerMachineMainPlatform
+.ENDPROC
+
+;;; Draws a multiplexer machine's main platform.
+.EXPORT FuncA_Objects_DrawMultiplexerMachineMainPlatform
+.PROC FuncA_Objects_DrawMultiplexerMachineMainPlatform
     jsr FuncA_Objects_SetShapePosToMachineTopLeft
     jsr FuncA_Objects_GetMachineLightTileId  ; returns A
     ldy #kPaletteObjMachineLight  ; param: object flags
-    jsr FuncA_Objects_Draw1x1Shape  ; preserves X
-    jsr FuncA_Objects_MoveShapeDownOneTile
-    lda #kTileIdObjMachineCorner  ; param: tile ID
-    ldy #kPaletteObjMachineLight | bObj::FlipH  ; param: object flags
     jmp FuncA_Objects_Draw1x1Shape
 .ENDPROC
 

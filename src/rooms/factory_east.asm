@@ -248,7 +248,7 @@ _DrawWaterfall:
     ;; Determine the waterfall tile ID.
     lda Zp_FrameCounter_u8
     div #2
-    and #$03
+    mod #4
     sta T2  ; waterfall animation (0-3)
     ;; Draw the waterfall object.
     lda #$14  ; param: offset
@@ -272,7 +272,7 @@ _DrawWaterfall:
     @done:
 _DrawWaterSurface:
     ldx #kMovableWaterPlatformIndex  ; param: platform index
-    jsr FuncA_Objects_SetShapePosToPlatformTopLeft
+    jsr FuncA_Objects_SetShapePosToPlatformTopLeft  ; preserves X
     ;; Determine the water tile ID.
     lda Zp_FrameCounter_u8
     div #8

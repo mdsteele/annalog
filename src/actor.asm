@@ -80,6 +80,7 @@
 .IMPORT FuncA_Actor_TickSmokeParticle
 .IMPORT FuncA_Actor_TickSmokeSteamHorz
 .IMPORT FuncA_Actor_TickSmokeSteamUp
+.IMPORT FuncA_Actor_TickSmokeWaterfall
 .IMPORT FuncA_Objects_DrawActorBadBat
 .IMPORT FuncA_Objects_DrawActorBadBeetleHorz
 .IMPORT FuncA_Objects_DrawActorBadBeetleVert
@@ -139,6 +140,7 @@
 .IMPORT FuncA_Objects_DrawActorSmokeParticle
 .IMPORT FuncA_Objects_DrawActorSmokeSteamHorz
 .IMPORT FuncA_Objects_DrawActorSmokeSteamUp
+.IMPORT FuncA_Objects_DrawActorSmokeWaterfall
 .IMPORT FuncA_Room_InitActorBadBird
 .IMPORT FuncA_Room_InitActorBadFirefly
 .IMPORT FuncA_Room_InitActorBadFlydrop
@@ -155,6 +157,7 @@
 .IMPORT FuncA_Room_InitActorProjSpine
 .IMPORT FuncA_Room_InitActorSmokeBlood
 .IMPORT FuncA_Room_InitActorSmokeDirt
+.IMPORT FuncA_Room_InitActorSmokeWaterfall
 .IMPORT Func_InitActorBadGronta
 .IMPORT Func_InitActorBadOrc
 .IMPORT Func_InitActorNpcOrc
@@ -548,6 +551,7 @@ _NoHit:
     d_byte SmokeParticle,   kSmokeParticleRadius
     d_byte SmokeSteamHorz,  kSteamMinorRadius
     d_byte SmokeSteamUp,    kSteamMajorRadius
+    d_byte SmokeWaterfall,   0
     D_END
 .ENDPROC
 .PROC DataA_Actor_BoundingBoxDown_u8_arr
@@ -613,6 +617,7 @@ _NoHit:
     d_byte SmokeParticle,   kSmokeParticleRadius
     d_byte SmokeSteamHorz,  kSteamMinorRadius
     d_byte SmokeSteamUp,    kSteamMajorRadius
+    d_byte SmokeWaterfall,   8
     D_END
 .ENDPROC
 .PROC DataA_Actor_BoundingBoxSide_u8_arr
@@ -678,6 +683,7 @@ _NoHit:
     d_byte SmokeParticle,   kSmokeParticleRadius
     d_byte SmokeSteamHorz,  kSteamMajorRadius
     d_byte SmokeSteamUp,    kSteamMinorRadius
+    d_byte SmokeWaterfall,   4
     D_END
 .ENDPROC
 
@@ -811,6 +817,7 @@ _TypeSpecificTick:
     d_entry table, SmokeParticle,   FuncA_Actor_TickSmokeParticle
     d_entry table, SmokeSteamHorz,  FuncA_Actor_TickSmokeSteamHorz
     d_entry table, SmokeSteamUp,    FuncA_Actor_TickSmokeSteamUp
+    d_entry table, SmokeWaterfall,  FuncA_Actor_TickSmokeWaterfall
     D_END
 .ENDREPEAT
 .ENDPROC
@@ -981,6 +988,7 @@ _Finish:
     d_entry table, SmokeParticle,   Func_InitActorSmokeParticle
     d_entry table, SmokeSteamHorz,  Func_InitActorSmokeSteamHorz
     d_entry table, SmokeSteamUp,    Func_InitActorSmokeSteamUp
+    d_entry table, SmokeWaterfall,  FuncA_Room_InitActorSmokeWaterfall
     D_END
 .ENDREPEAT
 .ENDPROC
@@ -1075,6 +1083,7 @@ _Finish:
     d_entry table, SmokeParticle,   FuncA_Objects_DrawActorSmokeParticle
     d_entry table, SmokeSteamHorz,  FuncA_Objects_DrawActorSmokeSteamHorz
     d_entry table, SmokeSteamUp,    FuncA_Objects_DrawActorSmokeSteamUp
+    d_entry table, SmokeWaterfall,  FuncA_Objects_DrawActorSmokeWaterfall
     D_END
 .ENDREPEAT
 .ENDPROC

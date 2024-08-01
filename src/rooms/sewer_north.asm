@@ -17,15 +17,92 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
+.INCLUDE "../actor.inc"
+.INCLUDE "../charmap.inc"
+.INCLUDE "../device.inc"
+.INCLUDE "../machine.inc"
+.INCLUDE "../machines/boiler.inc"
 .INCLUDE "../macros.inc"
+.INCLUDE "../oam.inc"
+.INCLUDE "../platform.inc"
+.INCLUDE "../platforms/water.inc"
+.INCLUDE "../program.inc"
 .INCLUDE "../room.inc"
 
 .IMPORT DataA_Room_Sewer_sTileset
 .IMPORT Data_Empty_sActor_arr
-.IMPORT Data_Empty_sDevice_arr
-.IMPORT Data_Empty_sPlatform_arr
+.IMPORT FuncA_Machine_Error
+.IMPORT FuncA_Machine_ReachedGoal
+.IMPORT FuncA_Machine_StartWorking
+.IMPORT FuncA_Machine_WriteToLever
+.IMPORT FuncA_Objects_Draw1x1Shape
+.IMPORT FuncA_Objects_DrawMultiplexerMachineMainPlatform
+.IMPORT FuncA_Objects_DrawValveShape
+.IMPORT FuncA_Objects_MoveShapeRightByA
+.IMPORT FuncA_Objects_MoveShapeRightOneTile
+.IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
+.IMPORT FuncA_Room_InitActorSmokeWaterfall
+.IMPORT FuncA_Room_ResetLever
+.IMPORT Func_FindEmptyActorSlot
 .IMPORT Func_Noop
-.IMPORT Ppu_ChrObjSewer
+.IMPORT Func_SetActorCenterToPoint
+.IMPORT Func_SetPointToPlatformCenter
+.IMPORT Ppu_ChrObjGarden
+.IMPORT Ram_ActorState1_byte_arr
+.IMPORT Ram_ActorState2_byte_arr
+.IMPORT Ram_ActorState3_byte_arr
+.IMPORT Ram_ActorState4_byte_arr
+.IMPORT Ram_ActorType_eActor_arr
+.IMPORT Ram_MachineGoalHorz_u8_arr
+.IMPORT Ram_PlatformTop_i16_0_arr
+.IMPORTZP Zp_FrameCounter_u8
+.IMPORTZP Zp_RoomState
+
+;;;=========================================================================;;;
+
+;;; The device indices for the levers in this room.
+kLeverLeftDeviceIndex = 0
+kLeverRightDeviceIndex = 1
+
+;;; The number of valves in this room.
+.DEFINE kNumValves 10
+
+;;; The machine index for the SewerNorthMultiplexer machine in this room.
+kMultiplexerMachineIndex = 0
+;;; The main platform index for the SewerNorthMultiplexer machine.
+kMultiplexerMainPlatformIndex = 0
+;;; The platform index for the zone containing all the valves.
+kValvesPlatformIndex = 1
+;;; The platform indices for the pipes that water can come out of.
+kPipe1PlatformIndex = 2
+kPipe2PlatformIndex = 3
+kPipe3PlatformIndex = 4
+kPipe4PlatformIndex = 5
+kPipe5PlatformIndex = 6
+;;; The platform indices for the pools of water in this room.
+kWestWaterPlatformIndex   = 7
+kCenterWaterPlatformIndex = 8
+kEastWaterPlatformIndex   = 9
+
+;;;=========================================================================;;;
+
+;;; Defines room-specific state data for this particular room.
+.STRUCT sState
+    ;; The current states of the room's two levers.
+    LeverLeft_u8  .byte
+    LeverRight_u8 .byte
+    ;; The platform index for the pipe that's currently pouring water, or $ff
+    ;; if none.
+    ActivePipePlatformIndex_u8 .byte
+    ;; The actor index for the waterfall smoke that's currently pouring out of
+    ;; the active pipe, or $ff if none.
+    ActiveWaterfallActorIndex_u8 .byte
+    ;; The goal position for each valve, in (tau/8) units (0-9).
+    ValveGoal_u8_arr  .byte kNumValves
+    ;; The current angle for each valve, in (tau/32) units (0-36).
+    ValveAngle_u8_arr .byte kNumValves
+.ENDSTRUCT
+.ASSERT .sizeof(sState) <= kRoomStateSize, error
 
 ;;;=========================================================================;;;
 
@@ -40,31 +117,158 @@
     d_byte MinimapStartRow_u8, 5
     d_byte MinimapStartCol_u8, 20
     d_addr TerrainData_ptr, _TerrainData
-    d_byte NumMachines_u8, 0
-    d_addr Machines_sMachine_arr_ptr, 0
-    d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjSewer)
+    d_byte NumMachines_u8, 1
+    d_addr Machines_sMachine_arr_ptr, _Machines_sMachine_arr
+    d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjGarden)
     d_addr Ext_sRoomExt_ptr, _Ext_sRoomExt
     D_END
 _Ext_sRoomExt:
     D_STRUCT sRoomExt
     d_addr Terrain_sTileset_ptr, DataA_Room_Sewer_sTileset
-    d_addr Platforms_sPlatform_arr_ptr, Data_Empty_sPlatform_arr
+    d_addr Platforms_sPlatform_arr_ptr, _Platforms_sPlatform_arr
     d_addr Actors_sActor_arr_ptr, Data_Empty_sActor_arr
-    d_addr Devices_sDevice_arr_ptr, Data_Empty_sDevice_arr
+    d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
     d_addr Passages_sPassage_arr_ptr, _Passages_sPassage_arr
-    d_addr Enter_func_ptr, Func_Noop
+    d_addr Enter_func_ptr, FuncA_Room_SewerNorth_EnterRoom
     d_addr FadeIn_func_ptr, Func_Noop
-    d_addr Tick_func_ptr, Func_Noop
-    d_addr Draw_func_ptr, Func_Noop
+    d_addr Tick_func_ptr, FuncA_Room_SewerNorth_TickRoom
+    d_addr Draw_func_ptr, FuncC_Sewer_North_DrawRoom
     D_END
 _TerrainData:
 :   .incbin "out/rooms/sewer_north.room"
     .assert * - :- = 34 * 15, error
+_Machines_sMachine_arr:
+:   .assert * - :- = kMultiplexerMachineIndex * .sizeof(sMachine), error
+    D_STRUCT sMachine
+    d_byte Code_eProgram, eProgram::SewerNorthMultiplexer
+    d_byte Breaker_eFlag, 0
+    d_byte Flags_bMachine, bMachine::WriteCDEF
+    d_byte Status_eDiagram, eDiagram::Multiplexer  ; TODO
+    d_word ScrollGoalX_u16, $0010
+    d_byte ScrollGoalY_u8, $00
+    d_byte RegNames_u8_arr4, "L", "R", "J", "V"
+    d_byte MainPlatform_u8, kMultiplexerMainPlatformIndex
+    d_addr Init_func_ptr, Func_Noop
+    d_addr ReadReg_func_ptr, FuncC_Sewer_NorthMultiplexer_ReadReg
+    d_addr WriteReg_func_ptr, FuncA_Machine_SewerNorthMultiplexer_WriteReg
+    d_addr TryMove_func_ptr, FuncA_Machine_Error
+    d_addr TryAct_func_ptr, FuncA_Machine_Error
+    d_addr Tick_func_ptr, FuncA_Machine_SewerNorthMultiplexer_Tick
+    d_addr Draw_func_ptr, FuncC_Sewer_NorthMultiplexer_Draw
+    d_addr Reset_func_ptr, FuncA_Room_SewerNorthMultiplexer_Reset
+    D_END
+    .assert * - :- <= kMaxMachines * .sizeof(sMachine), error
+_Platforms_sPlatform_arr:
+:   .assert * - :- = kMultiplexerMainPlatformIndex * .sizeof(sPlatform), error
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Solid
+    d_word WidthPx_u16, $10
+    d_byte HeightPx_u8, $10
+    d_word Left_i16,  $0038
+    d_word Top_i16,   $0020
+    D_END
+    .assert * - :- = kValvesPlatformIndex * .sizeof(sPlatform), error
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Zone
+    d_word WidthPx_u16, $178
+    d_byte HeightPx_u8,  $08
+    d_word Left_i16,   $0054
+    d_word Top_i16,    $0024
+    D_END
+    .assert * - :- = kPipe1PlatformIndex * .sizeof(sPlatform), error
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Solid
+    d_word WidthPx_u16, $08
+    d_byte HeightPx_u8, $08
+    d_word Left_i16,  $0048
+    d_word Top_i16,   $0030
+    D_END
+    .assert * - :- = kPipe2PlatformIndex * .sizeof(sPlatform), error
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Solid
+    d_word WidthPx_u16, $08
+    d_byte HeightPx_u8, $08
+    d_word Left_i16,  $00a0
+    d_word Top_i16,   $0030
+    D_END
+    .assert * - :- = kPipe3PlatformIndex * .sizeof(sPlatform), error
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Solid
+    d_word WidthPx_u16, $08
+    d_byte HeightPx_u8, $08
+    d_word Left_i16,  $00e0
+    d_word Top_i16,   $0030
+    D_END
+    .assert * - :- = kPipe4PlatformIndex * .sizeof(sPlatform), error
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Solid
+    d_word WidthPx_u16, $08
+    d_byte HeightPx_u8, $08
+    d_word Left_i16,  $0168
+    d_word Top_i16,   $0030
+    D_END
+    .assert * - :- = kPipe5PlatformIndex * .sizeof(sPlatform), error
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Solid
+    d_word WidthPx_u16, $08
+    d_byte HeightPx_u8, $08
+    d_word Left_i16,  $01c8
+    d_word Top_i16,   $0030
+    D_END
+    .assert * - :- = kWestWaterPlatformIndex * .sizeof(sPlatform), error
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Water
+    d_word WidthPx_u16, $20
+    d_byte HeightPx_u8, $10
+    d_word Left_i16,  $0040
+    d_word Top_i16,   $00c4
+    D_END
+    .assert * - :- = kCenterWaterPlatformIndex * .sizeof(sPlatform), error
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Water
+    d_word WidthPx_u16, $f0
+    d_byte HeightPx_u8, $30
+    d_word Left_i16,  $0090
+    d_word Top_i16,   $00b4
+    D_END
+    .assert * - :- = kEastWaterPlatformIndex * .sizeof(sPlatform), error
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Water
+    d_word WidthPx_u16, $20
+    d_byte HeightPx_u8, $10
+    d_word Left_i16,  $01b0
+    d_word Top_i16,   $00c4
+    D_END
+    .assert * - :- <= kMaxPlatforms * .sizeof(sPlatform), error
+    .byte ePlatform::None
+_Devices_sDevice_arr:
+:   .assert * - :- = kLeverLeftDeviceIndex * .sizeof(sDevice), error
+    D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::LeverFloor
+    d_byte BlockRow_u8, 8
+    d_byte BlockCol_u8, 7
+    d_byte Target_byte, sState::LeverLeft_u8
+    D_END
+    .assert * - :- = kLeverRightDeviceIndex * .sizeof(sDevice), error
+    D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::LeverFloor
+    d_byte BlockRow_u8, 8
+    d_byte BlockCol_u8, 25
+    d_byte Target_byte, sState::LeverRight_u8
+    D_END
+    D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::ConsoleFloor
+    d_byte BlockRow_u8, 10
+    d_byte BlockCol_u8, 16
+    d_byte Target_byte, kMultiplexerMachineIndex
+    D_END
+    .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
+    .byte eDevice::None
 _Passages_sPassage_arr:
 :   D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Western | 0
     d_byte Destination_eRoom, eRoom::SewerWest
-    d_byte SpawnBlock_u8, 8
+    d_byte SpawnBlock_u8, 6
     d_byte SpawnAdjust_byte, 0
     D_END
     D_STRUCT sPassage
@@ -74,6 +278,312 @@ _Passages_sPassage_arr:
     d_byte SpawnAdjust_byte, 0
     D_END
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
+.ENDPROC
+
+.PROC FuncC_Sewer_North_DrawRoom
+    ;; Determine the water tile ID.
+    lda Zp_FrameCounter_u8
+    div #8
+    and #$03
+    tax
+    lda _WaterTileIds_u8_arr4, x
+    sta T2  ; water tile ID
+    ;; Draw the water.
+    ldx #kWestWaterPlatformIndex  ; param: platform index
+    jsr _DrawWaterSurface
+    ldx #kEastWaterPlatformIndex  ; param: platform index
+_DrawWaterSurface:
+    jsr FuncA_Objects_SetShapePosToPlatformTopLeft  ; preserves X
+    ;; Draw the water objects.
+    ;; TODO: Don't draw water on top of solid terrain.
+    ldx #4
+    @loop:
+    ldy #kPaletteObjWater  ; param: object flags
+    lda T2  ; param: water tile ID
+    jsr FuncA_Objects_Draw1x1Shape  ; preserves X and T2+
+    jsr FuncA_Objects_MoveShapeRightOneTile  ; preserves X and T0+
+    dex
+    bne @loop
+    rts
+_WaterTileIds_u8_arr4:
+    .byte kTileIdObjPlatformWaterFirst + 0
+    .byte kTileIdObjPlatformWaterFirst + 1
+    .byte kTileIdObjPlatformWaterFirst + 2
+    .byte kTileIdObjPlatformWaterFirst + 1
+.ENDPROC
+
+.PROC FuncC_Sewer_NorthMultiplexer_ReadReg
+    cmp #$d
+    blt _ReadL
+    beq _ReadR
+    cmp #$e
+    beq _ReadJ
+_ReadV:
+    ldx Ram_MachineGoalHorz_u8_arr + kMultiplexerMachineIndex  ; J register
+    lda Zp_RoomState + sState::ValveAngle_u8_arr, x
+    add #kBoilerValveAnimSlowdown / 2
+    div #kBoilerValveAnimSlowdown
+    rts
+_ReadJ:
+    lda Ram_MachineGoalHorz_u8_arr + kMultiplexerMachineIndex  ; J register
+    rts
+_ReadL:
+    lda Zp_RoomState + sState::LeverLeft_u8
+    rts
+_ReadR:
+    lda Zp_RoomState + sState::LeverRight_u8
+    rts
+.ENDPROC
+
+.PROC FuncC_Sewer_NorthMultiplexer_Draw
+    ldx #kValvesPlatformIndex  ; param: platform index
+    jsr FuncA_Objects_SetShapePosToPlatformTopLeft
+    ldx #0
+    @loop:
+    lda Zp_RoomState + sState::ValveAngle_u8_arr, x  ; param: valve angle
+    jsr FuncA_Objects_DrawValveShape  ; preserves X
+    lda _ValveOffset_u8_arr, x
+    jsr FuncA_Objects_MoveShapeRightByA  ; preserves X
+    inx
+    cpx #kNumValves
+    blt @loop
+    jmp FuncA_Objects_DrawMultiplexerMachineMainPlatform
+_ValveOffset_u8_arr:
+    .byte $20, $30, $20, $20, $40, $30, $20, $30, $20, $00
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Room"
+
+.PROC FuncA_Room_SewerNorth_EnterRoom
+    ;; Set active pipe/waterfall indices to $ff.
+    dec Zp_RoomState + sState::ActivePipePlatformIndex_u8
+    dec Zp_RoomState + sState::ActiveWaterfallActorIndex_u8
+    rts
+.ENDPROC
+
+;;; Finds the waterfall smoke actor, if any, that is currently pouring water
+;;; into the specified water platform.
+;;; @param Y The platform index of the water.
+;;; @return C Set if no waterfall actor is pouring into this water.
+;;; @return X The actor index of the waterfall (if any).
+;;; @preserve Y
+.PROC FuncA_Room_FindWaterfallPouringIntoWater
+    sty T0  ; water platform index
+    ldx #kMaxActors - 1
+    @loop:
+    lda Ram_ActorType_eActor_arr, x
+    cmp #eActor::SmokeWaterfall
+    bne @continue  ; not a waterfall actor
+    lda Ram_ActorState4_byte_arr, x  ; has hit water (boolean)
+    bpl @continue  ; this waterfall hasn't hit water yet
+    lda Ram_ActorState1_byte_arr, x  ; water platform index
+    cmp T0  ; water platform index
+    bne @continue
+    clc  ; Clear C to indicate that a waterfall is pouring into the water.
+    rts
+    @continue:
+    dex
+    .assert kMaxActors <= $80, error
+    bpl @loop
+    sec  ; Set C to indicate that no waterfall is pouring into the water.
+    rts
+.ENDPROC
+
+;;; Raises the water level of the specified water platform if a waterfall is
+;;; pouring into it, otherwise lower it.
+;;; @param Y The platform index of the water.
+.PROC FuncA_Room_SewerNorth_RaiseOrLowerWaterLevel
+    jsr FuncA_Room_FindWaterfallPouringIntoWater  ; preserves Y; returns C, X
+    bcs _LowerWater
+_RaiseWater:
+    lda Ram_PlatformTop_i16_0_arr, y
+    cmp #$95
+    blt @done
+    ;; TODO: raise water level more slowly
+    sbc #1  ; carry is already set
+    sta Ram_PlatformTop_i16_0_arr, y
+    dec Ram_ActorState2_byte_arr, x  ; waterfall height in pixels
+    @done:
+    rts
+_LowerWater:
+    lda Ram_PlatformTop_i16_0_arr, y
+    cmp #$c4
+    bge @done
+    ;; TODO: lower water level more slowly
+    adc #1  ; carry is already clear
+    sta Ram_PlatformTop_i16_0_arr, y
+    @done:
+    rts
+.ENDPROC
+
+.PROC FuncA_Room_SewerNorth_TickRoom
+    ldy #kWestWaterPlatformIndex  ; param: water platform index
+    jsr FuncA_Room_SewerNorth_RaiseOrLowerWaterLevel
+    ldy #kEastWaterPlatformIndex  ; param: water platform index
+    jsr FuncA_Room_SewerNorth_RaiseOrLowerWaterLevel
+_UpdatePipe:
+    ldx #0
+    ;; Valve 0:
+    jsr _GetNextValve  ; advances X, returns A
+    cmp #3
+    bne @pipe1
+    ;; Valve 1:
+    jsr _GetNextValve  ; advances X, returns A
+    cmp #1
+    bne @noPipe
+    ;; Valve 2:
+    jsr _GetNextValve  ; advances X, returns A and Z
+    beq @pipe2
+    ;; Valve 3:
+    jsr _GetNextValve  ; advances X, returns A
+    cmp #3
+    bne @noPipe
+    ;; Valve 4:
+    jsr _GetNextValve  ; advances X, returns A
+    cmp #1
+    bne @pipe3
+    ;; Valve 5:
+    jsr _GetNextValve  ; advances X, returns A
+    cmp #2
+    bne @noPipe
+    ;; Valve 6:
+    jsr _GetNextValve  ; advances X, returns A
+    cmp #1
+    bne @noPipe
+    ;; Valve 7:
+    jsr _GetNextValve  ; advances X, returns A
+    cmp #2
+    bne @pipe4
+    ;; Valve 8:
+    jsr _GetNextValve  ; advances X, returns A
+    cmp #2
+    bne @pipe4
+    ;; Valve 9:
+    jsr _GetNextValve  ; advances X, returns A
+    cmp #3
+    bne @noPipe
+    @pipe5:
+    ldy #kPipe5PlatformIndex
+    lda #kEastWaterPlatformIndex
+    bpl _SetPipe  ; unconditional
+    @pipe4:
+    ldy #kPipe4PlatformIndex
+    bpl @middlePipe  ; unconditional
+    @pipe3:
+    ldy #kPipe3PlatformIndex
+    bpl @middlePipe  ; unconditional
+    @pipe2:
+    ldy #kPipe2PlatformIndex
+    @middlePipe:
+    lda #kCenterWaterPlatformIndex
+    bpl _SetPipe  ; unconditional
+    @pipe1:
+    ldy #kPipe1PlatformIndex
+    lda #kWestWaterPlatformIndex
+    bpl _SetPipe  ; unconditional
+    @noPipe:
+    ldy #$ff
+_SetPipe:
+    cpy Zp_RoomState + sState::ActivePipePlatformIndex_u8
+    beq _Return  ; no change to current pipe
+    sta T0  ; param: platform index for water below (if any)
+    lda #$ff
+    sta Zp_RoomState + sState::ActivePipePlatformIndex_u8
+_ShutOffOldWaterfall:
+    ldx Zp_RoomState + sState::ActiveWaterfallActorIndex_u8
+    bmi @done  ; no currently-pouring waterfall actor
+    lda #$ff
+    sta Ram_ActorState3_byte_arr, x  ; is shut off (boolean)
+    sta Zp_RoomState + sState::ActiveWaterfallActorIndex_u8
+    @done:
+_StartNewWaterfall:
+    tya  ; pipe platform index
+    bmi _Return  ; no active pipe
+    jsr Func_FindEmptyActorSlot  ; preserves Y and T0+, returns C and X
+    bcs _Return  ; no free actor slots; we'll try again next frame
+    stx Zp_RoomState + sState::ActiveWaterfallActorIndex_u8
+    sty Zp_RoomState + sState::ActivePipePlatformIndex_u8
+    jsr Func_SetPointToPlatformCenter  ; preserves X and T0+
+    jsr Func_SetActorCenterToPoint  ; preserves X and T0+
+    lda T0  ; param: platform index for water below
+    jmp FuncA_Room_InitActorSmokeWaterfall
+_GetNextValve:
+    lda Zp_RoomState + sState::ValveAngle_u8_arr, x
+    inx
+    add #kBoilerValveAnimSlowdown / 2
+    div #kBoilerValveAnimSlowdown
+    mod #4
+_Return:
+    rts
+.ENDPROC
+
+.PROC FuncA_Room_SewerNorthMultiplexer_Reset
+    lda #0
+    sta Ram_MachineGoalHorz_u8_arr + kMultiplexerMachineIndex  ; J register
+    ldx #kNumValves - 1
+    @loop:
+    sta Zp_RoomState + sState::ValveGoal_u8_arr, x
+    dex
+    .assert kNumValves <= $80, error
+    bpl @loop
+    ldx #kLeverLeftDeviceIndex  ; param: device index
+    jsr FuncA_Room_ResetLever
+    ldx #kLeverRightDeviceIndex  ; param: device index
+    jmp FuncA_Room_ResetLever
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Machine"
+
+.PROC FuncA_Machine_SewerNorthMultiplexer_WriteReg
+    cpx #$d
+    blt _WriteL
+    beq _WriteR
+    cpx #$e
+    beq _WriteJ
+_WriteV:
+    ldx Ram_MachineGoalHorz_u8_arr + kMultiplexerMachineIndex  ; J register
+    cmp Zp_RoomState + sState::ValveGoal_u8_arr, x
+    beq _Return
+    sta Zp_RoomState + sState::ValveGoal_u8_arr, x
+    jmp FuncA_Machine_StartWorking
+_WriteJ:
+    sta Ram_MachineGoalHorz_u8_arr + kMultiplexerMachineIndex  ; J register
+_Return:
+    rts
+_WriteL:
+    ldx #kLeverLeftDeviceIndex  ; param: device index
+    jmp FuncA_Machine_WriteToLever
+_WriteR:
+    ldx #kLeverRightDeviceIndex  ; param: device index
+    jmp FuncA_Machine_WriteToLever
+.ENDPROC
+
+.PROC FuncA_Machine_SewerNorthMultiplexer_Tick
+    ldy #0  ; num valves moved
+    ldx #kNumValves - 1
+    @loop:
+    lda Zp_RoomState + sState::ValveGoal_u8_arr, x
+    mul #kBoilerValveAnimSlowdown
+    cmp Zp_RoomState + sState::ValveAngle_u8_arr, x
+    beq @continue
+    iny  ; num valves moved
+    blt @decrement
+    @increment:
+    inc Zp_RoomState + sState::ValveAngle_u8_arr, x
+    bne @continue  ; unconditional
+    @decrement:
+    dec Zp_RoomState + sState::ValveAngle_u8_arr, x
+    @continue:
+    dex
+    .assert kNumValves <= $80, error
+    bpl @loop
+    tya  ; num valves moved
+    jeq FuncA_Machine_ReachedGoal
+    rts
 .ENDPROC
 
 ;;;=========================================================================;;;

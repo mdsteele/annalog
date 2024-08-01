@@ -184,6 +184,7 @@
     PrisonEscapeTrolley
     SewerBasinMultiplexer
     SewerFlowerPump
+    SewerNorthMultiplexer
     SewerSouthMultiplexer
     SewerTrapLift
     SewerWestMultiplexer
