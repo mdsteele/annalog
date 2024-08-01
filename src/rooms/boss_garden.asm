@@ -245,7 +245,7 @@ _Ext_sRoomExt:
     d_addr Actors_sActor_arr_ptr, Data_Empty_sActor_arr
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
     d_addr Passages_sPassage_arr_ptr, 0
-    d_addr Enter_func_ptr, FuncC_Boss_Garden_EnterRoom
+    d_addr Enter_func_ptr, FuncA_Room_BossGarden_EnterRoom
     d_addr FadeIn_func_ptr, Func_Noop
     d_addr Tick_func_ptr, FuncC_Boss_Garden_TickRoom
     d_addr Draw_func_ptr, FuncA_Objects_DrawBoss
@@ -271,7 +271,7 @@ _Machines_sMachine_arr:
     d_addr TryAct_func_ptr, FuncA_Machine_CannonTryAct
     d_addr Tick_func_ptr, FuncA_Machine_CannonTick
     d_addr Draw_func_ptr, FuncA_Objects_DrawCannonMachine
-    d_addr Reset_func_ptr, FuncC_Boss_GardenCannon_Reset
+    d_addr Reset_func_ptr, FuncA_Room_BossGardenCannon_Reset
     D_END
     .assert * - :- <= kMaxMachines * .sizeof(sMachine), error
 _Platforms_sPlatform_arr:
@@ -368,34 +368,8 @@ _Devices_sDevice_arr:
     d_byte Boss_eFlag, eFlag::BossGarden
     d_byte BodyPlatform_u8, kBossBodyPlatformIndex
     d_addr Tick_func_ptr, FuncC_Boss_Garden_TickBoss
-    d_addr Draw_func_ptr, FuncA_Objects_BossGarden_DrawBoss
+    d_addr Draw_func_ptr, FuncC_Boss_Garden_DrawBoss
     D_END
-.ENDPROC
-
-.PROC FuncC_Boss_Garden_EnterRoom
-_LockScrolling:
-    lda #0
-    sta Zp_RoomScrollY_u8
-    lda #bScroll::LockVert
-    sta Zp_Camera_bScroll
-_InitBoss:
-    ldax #DataC_Boss_Garden_sBoss  ; param: sBoss ptr
-    jsr FuncA_Room_InitBoss  ; sets Z if boss is alive
-    beq _BossIsAlive
-_BossIsDead:
-    ;; Remove the boss's thorns.
-    lda #ePlatform::Zone
-    sta Ram_PlatformType_ePlatform_arr + kThornsPlatformIndex
-    rts
-_BossIsAlive:
-    lda #kBossInitHealthPerEye
-    sta Zp_RoomState + sState::BossEyeHealth_u8_arr2 + 0
-    sta Zp_RoomState + sState::BossEyeHealth_u8_arr2 + 1
-    lda #kBossInitCooldown
-    sta Zp_RoomState + sState::BossCooldown_u8
-    lda #eBossMode::Waiting
-    sta Zp_RoomState + sState::Current_eBossMode
-    rts
 .ENDPROC
 
 ;;; Room tick function for the BossGarden room.
@@ -411,13 +385,14 @@ _Boss:
 .ENDPROC
 
 ;;; Performs per-frame upates for the boss (if it's still alive).
+;;; @prereq PRGA_Room is loaded.
 .PROC FuncC_Boss_Garden_TickBoss
-    jsr FuncC_Boss_Garden_CheckForGrenadeHit
+    jsr FuncA_Room_BossGarden_CheckForGrenadeHit
     ;; Tick eyes.
     ldx #eEye::Left  ; param: eye to tick
-    jsr FuncC_Boss_Garden_TickEye
+    jsr FuncA_Room_BossGarden_TickEye
     ldx #eEye::Right  ; param: eye to tick
-    jsr FuncC_Boss_Garden_TickEye
+    jsr FuncA_Room_BossGarden_TickEye
 _TickThorns:
     ;; Move thorns quickly when hurt.
     lda Zp_RoomState + sState::BossThornHurt_u8
@@ -467,6 +442,7 @@ _CheckMode:
 
 ;;; Performs a state transition for the boss when it's in SprayWindup mode and
 ;;; the cooldown has expired.
+;;; @prereq PRGA_Room is loaded.
 .PROC FuncC_Boss_Garden_TickBossSprayWindup
     lda #eBossMode::SprayFire
     sta Zp_RoomState + sState::Current_eBossMode
@@ -475,6 +451,7 @@ _CheckMode:
 
 ;;; Performs a state transition for the boss when it's in SprayFire mode and
 ;;; the cooldown has expired.
+;;; @prereq PRGA_Room is loaded.
 .PROC FuncC_Boss_Garden_TickBossSprayFire
     jsr Func_GetRandomByte  ; returns A
     ldy #11  ; param: divisor
@@ -485,7 +462,7 @@ _CheckMode:
     ;; Decrement the projectile counter; if it reaches zero, return to waiting
     ;; mode.
     dec Zp_RoomState + sState::BossProjCount_u8
-    jeq FuncC_Boss_Garden_StartWaiting
+    jeq FuncA_Room_BossGarden_StartWaiting
     ;; Otherwise, set the cooldown for the next fireball.
     lda #kBossSprayFireballCooldown
     sta Zp_RoomState + sState::BossCooldown_u8
@@ -494,13 +471,14 @@ _CheckMode:
 
 ;;; Performs a state transition for the boss when it's in Shoot mode and the
 ;;; cooldown has expired.
+;;; @prereq PRGA_Room is loaded.
 .PROC FuncC_Boss_Garden_TickBossShoot
     ldy Zp_RoomState + sState::BossActive_eEye  ; param: eye to shoot from
     jsr FuncC_Boss_Garden_ShootFireballAtAvatar
     ;; Decrement the projectile counter; if it reaches zero, return to waiting
     ;; mode.
     dec Zp_RoomState + sState::BossProjCount_u8
-    jeq FuncC_Boss_Garden_StartWaiting
+    jeq FuncA_Room_BossGarden_StartWaiting
     ;; Otherwise, set the cooldown for the next fireball.
     lda #kBossShootFireballCooldown
     sta Zp_RoomState + sState::BossCooldown_u8
@@ -509,20 +487,47 @@ _CheckMode:
 
 ;;; Performs a state transition for the boss when it's in Angry mode and the
 ;;; cooldown has expired.
+;;; @prereq PRGA_Room is loaded.
 .PROC FuncC_Boss_Garden_TickBossAngry
-    jsr FuncC_Boss_Garden_DropSpike
+_DropSpike:
+    ;; Drop a spike from a random location.
+    jsr Func_FindEmptyActorSlot  ; sets C on failure, returns X
+    bcs @done
+    ;; Set random X-position within room:
+    jsr Func_GetRandomByte  ; returns A, preserves X
+    cmp #$a0
+    blt @noWrap
+    sbc #$80
+    @noWrap:
+    adc #$30
+    sta Ram_ActorPosX_i16_0_arr, x
+    ;; Set Y-position based on the room block column of the X-position:
+    div #kTileWidthPx * 2
+    tay
+    lda _SpikePosY_u8_arr, y
+    sta Ram_ActorPosY_i16_0_arr, x
+    ;; Initialize the spike:
+    lda #0
+    sta Ram_ActorPosX_i16_1_arr, x
+    sta Ram_ActorPosY_i16_1_arr, x
+    jsr Func_InitActorProjSpike
+    @done:
+_UpdateMode:
     ;; Decrement the projectile counter; if it reaches zero, return to waiting
     ;; mode.
     dec Zp_RoomState + sState::BossProjCount_u8
-    jeq FuncC_Boss_Garden_StartWaiting
+    jeq FuncA_Room_BossGarden_StartWaiting
     ;; Otherwise, set the cooldown for the next spike.
     lda #kBossAngrySpikeCooldown
     sta Zp_RoomState + sState::BossCooldown_u8
     rts
+_SpikePosY_u8_arr:
+    .byte $00, $00, $41, $39, $41, $49, $61, $61, $71, $81, $81, $81, $81, $81
 .ENDPROC
 
 ;;; Performs a state transition for the boss when it's in Waiting mode and the
 ;;; cooldown has expired.
+;;; @prereq PRGA_Room is loaded.
 .PROC FuncC_Boss_Garden_TickBossWaiting
 _SetActiveEye:
     ;; If one of the eyes is at zero health, pick the other eye.
@@ -573,34 +578,6 @@ _StartShootMode:
     sta Zp_RoomState + sState::BossCooldown_u8
     lda #eBossMode::Shoot
     sta Zp_RoomState + sState::Current_eBossMode
-    rts
-.ENDPROC
-
-;;; Opens or closes the specified boss eye, depending on the boss mode.
-;;; @param X Which eEye to update.
-.PROC FuncC_Boss_Garden_TickEye
-    lda Zp_RoomState + sState::BossEyeFlash_u8_arr2, x
-    beq @noFlash
-    dec Zp_RoomState + sState::BossEyeFlash_u8_arr2, x
-    @noFlash:
-_CheckIfOpenOrClosed:
-    lda Zp_RoomState + sState::Current_eBossMode
-    cmp #kFirstOpenEyeMode
-    blt _Close
-    cpx Zp_RoomState + sState::BossActive_eEye
-    bne _Close
-_Open:
-    lda Zp_RoomState + sState::BossEyeOpen_u8_arr2, x
-    cmp #kBossEyeOpenFrames
-    bge @done
-    inc Zp_RoomState + sState::BossEyeOpen_u8_arr2, x
-    @done:
-    rts
-_Close:
-    lda Zp_RoomState + sState::BossEyeOpen_u8_arr2, x
-    beq @done
-    dec Zp_RoomState + sState::BossEyeOpen_u8_arr2, x
-    @done:
     rts
 .ENDPROC
 
@@ -656,52 +633,211 @@ _FireballAngle_u8_arr2_arr:
     .byte 16,  12
 .ENDPROC
 
-;;; Drops a spike from a random horizontal position.
-.PROC FuncC_Boss_Garden_DropSpike
-    ;; Drop a spike from a random location.
-    jsr Func_FindEmptyActorSlot  ; sets C on failure, returns X
-    bcs @done
-    ;; Set random X-position within room:
-    jsr Func_GetRandomByte  ; returns A, preserves X
-    cmp #$a0
-    blt @noWrap
-    sbc #$80
-    @noWrap:
-    adc #$30
-    sta Ram_ActorPosX_i16_0_arr, x
-    ;; Set Y-position based on the room block column of the X-position:
-    div #kTileWidthPx * 2
-    tay
-    lda _SpikePosY_u8_arr, y
-    sta Ram_ActorPosY_i16_0_arr, x
-    ;; Initialize the spike:
-    lda #0
-    sta Ram_ActorPosX_i16_1_arr, x
-    sta Ram_ActorPosY_i16_1_arr, x
-    jsr Func_InitActorProjSpike
-    @done:
+.PROC FuncC_Boss_GardenCannon_ReadReg
+    cmp #$d
+    blt _ReadL
+    beq _ReadR
+_ReadY:
+    jmp Func_MachineCannonReadRegY
+_ReadL:
+    lda Zp_RoomState + sState::LeverLeft_u8
     rts
-_SpikePosY_u8_arr:
-    .byte $00, $00, $41, $39, $41, $49, $61, $61, $71, $81, $81, $81, $81, $81
+_ReadR:
+    lda Zp_RoomState + sState::LeverRight_u8
+    rts
 .ENDPROC
 
-;;; Makes the boss enter waiting mode for a random amount of time (between
-;;; about 1-2 seconds).
+;;; Draws the boss.
+.PROC FuncC_Boss_Garden_DrawBoss
+_AnimateThorns:
+    lda Zp_RoomState + sState::BossThornCounter_u8
+    div #4
+    and #$07
+    add #<.bank(Ppu_ChrBgAnimA0)
+    sta Zp_Chr04Bank_u8
+_SetUpIrq:
+    ;; Compute the IRQ latch value to set between the bottom of the boss's zone
+    ;; and the top of the window (if any), and set that as Param4_byte.
+    lda <(Zp_Buffered_sIrq + sIrq::Latch_u8)
+    sub #kBossZoneBottomY
+    add Zp_RoomScrollY_u8
+    sta <(Zp_Buffered_sIrq + sIrq::Param4_byte)  ; window latch
+    ;; Set up our own sIrq struct to handle boss movement.
+    lda #kBossZoneTopY - 1
+    sub Zp_RoomScrollY_u8
+    sta <(Zp_Buffered_sIrq + sIrq::Latch_u8)
+    ldax #Int_BossGardenZoneTopIrq
+    stax <(Zp_Buffered_sIrq + sIrq::FirstIrq_int_ptr)
+_DrawBossLeftMiniEyes:
+    ldx #kLeftEyePlatformIndex
+    jsr FuncA_Objects_SetShapePosToPlatformTopLeft
+    ldx #4 - 1
+    @loop:
+    lda _LeftMiniEyeHorzShift_i8_arr4, x  ; param: signed offset
+    jsr FuncA_Objects_MoveShapeHorz  ; preserves X
+    lda _LeftMiniEyeVertShift_i8_arr4, x  ; param: signed offset
+    jsr FuncA_Objects_MoveShapeVert  ; preserves X
+    cpx Zp_RoomState + sState::BossEyeHealth_u8_arr2 + eEye::Left  ; param: C
+    jsr FuncC_Boss_Garden_DrawMiniEyeShape  ; preserves X
+    dex
+    bpl @loop
+_DrawBossRightMiniEyes:
+    ldx #kRightEyePlatformIndex
+    jsr FuncA_Objects_SetShapePosToPlatformTopLeft
+    ldx #4 - 1
+    @loop:
+    lda _RightMiniEyeHorzShift_i8_arr4, x  ; param: signed offset
+    jsr FuncA_Objects_MoveShapeHorz  ; preserves X
+    lda _RightMiniEyeVertShift_i8_arr4, x  ; param: signed offset
+    jsr FuncA_Objects_MoveShapeVert  ; preserves X
+    lda #kTileIdObjBossGardenEyeMiniFirst + 0  ; param: tile ID
+    cpx Zp_RoomState + sState::BossEyeHealth_u8_arr2 + eEye::Right  ; param: C
+    jsr FuncC_Boss_Garden_DrawMiniEyeShape  ; preserves X
+    dex
+    bpl @loop
+_DrawBossEyes:
+    ldx #eEye::Left  ; param: eye
+    jsr FuncC_Boss_Garden_DrawEye  ; preserves X
+    .assert eEye::Right = 1 + eEye::Left, error
+    inx  ; param: eye
+    jmp FuncC_Boss_Garden_DrawEye
+_LeftMiniEyeHorzShift_i8_arr4:
+    .byte 16, <-24, 48, <-8
+_LeftMiniEyeVertShift_i8_arr4:
+    .byte 32, <-16, 8, <-24
+_RightMiniEyeHorzShift_i8_arr4:
+    .byte <-8, <-8, 40, 8
+_RightMiniEyeVertShift_i8_arr4:
+    .byte 16, <-40, 16, <-16
+.ENDPROC
+
+;;; Draws a single mini-eye for the garden boss.
+;;; @prereq Zp_ShapePos*_i16 is set to the top-left corner of the mini-eye.
+;;; @param C Set if the eye is potentially open.
+;;; @param X The index of the mini eye.
 ;;; @preserve X
-.PROC FuncC_Boss_Garden_StartWaiting
+.PROC FuncC_Boss_Garden_DrawMiniEyeShape
+    ;; If the C paramters is cleared, the eye is definitely closed.
+    bcc _EyeIsClosed
+    ;; Otherwise, the eye is still closed if the boss is dropping spikes.
+    lda Zp_RoomState + sState::Current_eBossMode
+    cmp #eBossMode::Angry
+    bne _EyeIsOpen
+_EyeIsClosed:
+    lda #kTileIdObjBossGardenEyeMiniFirst + 0  ; param: tile ID
+    .assert kTileIdObjBossGardenEyeMiniFirst > 0, error
+    bne _DrawEye  ; unconditional
+_EyeIsOpen:
+    txa
+    mul #2
+    sta T0
+    lda Zp_FrameCounter_u8
+    div #8
+    add T0
+    and #$0f
+    tay
+    lda _OpenEyeTileId_u8_arr16, y  ; param: tile ID
+_DrawEye:
+    ldy #kPaletteObjBossEye  ; param: objects flags
+    jmp FuncA_Objects_Draw1x1Shape  ; preserves X
+_OpenEyeTileId_u8_arr16:
+    .byte kTileIdObjBossGardenEyeMiniFirst + 2
+    .byte kTileIdObjBossGardenEyeMiniFirst + 2
+    .byte kTileIdObjBossGardenEyeMiniFirst + 1
+    .byte kTileIdObjBossGardenEyeMiniFirst + 1
+    .byte kTileIdObjBossGardenEyeMiniFirst + 1
+    .byte kTileIdObjBossGardenEyeMiniFirst + 2
+    .byte kTileIdObjBossGardenEyeMiniFirst + 2
+    .byte kTileIdObjBossGardenEyeMiniFirst + 3
+    .byte kTileIdObjBossGardenEyeMiniFirst + 3
+    .byte kTileIdObjBossGardenEyeMiniFirst + 3
+    .byte kTileIdObjBossGardenEyeMiniFirst + 2
+    .byte kTileIdObjBossGardenEyeMiniFirst + 2
+    .byte kTileIdObjBossGardenEyeMiniFirst + 3
+    .byte kTileIdObjBossGardenEyeMiniFirst + 2
+    .byte kTileIdObjBossGardenEyeMiniFirst + 2
+    .byte kTileIdObjBossGardenEyeMiniFirst + 1
+.ENDPROC
+
+;;; Allocates and populates OAM slots for one of the boss's eyes.
+;;; @param X Which eEye to draw.
+;;; @preserve X
+.PROC FuncC_Boss_Garden_DrawEye
+    ;; Assert that we can use the eEye value as a platform index.
+    .assert kLeftEyePlatformIndex = eEye::Left, error
+    .assert kRightEyePlatformIndex = eEye::Right, error
+    jsr FuncA_Objects_SetShapePosToPlatformTopLeft  ; preserves X
+    jsr FuncA_Objects_MoveShapeDownAndRightOneTile  ; preserves X
+    lda #kPaletteObjBossEye  ; param: flags
+    jsr FuncA_Objects_Alloc2x2Shape  ; preserves X, returns C and Y
+    bcs @done
+    ;; Determine if the eye should be flashing red this frame.
+    lda Zp_RoomState + sState::BossEyeFlash_u8_arr2, x
+    beq @noFlash
+    lda Zp_FrameCounter_u8
+    and #$02
+    beq @noFlash
+    lda #$10
+    @noFlash:
+    sta T0  ; flash bit (0 or $10)
+    ;; Compute the first tile ID based on the current eye openness.
+    lda Zp_RoomState + sState::BossEyeOpen_u8_arr2, x
+    div #2
+    and #$fe
+    ora T0  ; flash bit (0 or $10)
+    .linecont +
+    .assert kTileIdObjBossGardenEyeWhiteFirst + $10 = \
+            kTileIdObjBossGardenEyeRedFirst, error
+    .linecont -
+    add #kTileIdObjBossGardenEyeWhiteFirst
+    ;; Set tile IDs:
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Tile_u8, y
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Tile_u8, y
+    adc #1  ; carry bit will already be clear
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Tile_u8, y
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Tile_u8, y
+    ;; Set flags:
+    lda #kPaletteObjBossEye | bObj::FlipH
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Flags_bObj, y
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Flags_bObj, y
+    @done:
+    rts
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Room"
+
+.PROC FuncA_Room_BossGarden_EnterRoom
+_LockScrolling:
+    lda #0
+    sta Zp_RoomScrollY_u8
+    lda #bScroll::LockVert
+    sta Zp_Camera_bScroll
+_InitBoss:
+    ldax #DataC_Boss_Garden_sBoss  ; param: sBoss ptr
+    jsr FuncA_Room_InitBoss  ; sets Z if boss is alive
+    beq _BossIsAlive
+_BossIsDead:
+    ;; Remove the boss's thorns.
+    lda #ePlatform::Zone
+    sta Ram_PlatformType_ePlatform_arr + kThornsPlatformIndex
+    rts
+_BossIsAlive:
+    lda #kBossInitHealthPerEye
+    sta Zp_RoomState + sState::BossEyeHealth_u8_arr2 + 0
+    sta Zp_RoomState + sState::BossEyeHealth_u8_arr2 + 1
+    lda #kBossInitCooldown
+    sta Zp_RoomState + sState::BossCooldown_u8
     lda #eBossMode::Waiting
     sta Zp_RoomState + sState::Current_eBossMode
-    jsr Func_GetRandomByte  ; preserves X, returns A
-    and #$3f
-    ora #$40
-    sta Zp_RoomState + sState::BossCooldown_u8
     rts
 .ENDPROC
 
 ;;; Checks if a grenade has hit a boss eye; if so, explodes the grenade and
 ;;; makes the boss react accordingly.
 ;;; @prereq PRGA_Room is loaded.
-.PROC FuncC_Boss_Garden_CheckForGrenadeHit
+.PROC FuncA_Room_BossGarden_CheckForGrenadeHit
     ;; Find the actor index for the grenade in flight (if any).  If we don't
     ;; find one, then we're done.
     jsr FuncA_Room_FindGrenadeActor  ; returns C and X
@@ -769,7 +905,7 @@ _HitOpenEye:
     sta Zp_RoomState + sState::BossEyeFlash_u8_arr2, y
     lda #$10
     sta Zp_RoomState + sState::BossThornHurt_u8
-    jsr FuncC_Boss_Garden_StartWaiting  ; preserves X
+    jsr FuncA_Room_BossGarden_StartWaiting  ; preserves X
 _ExplodeGrenade:
     ;; At this point, X is still the grenade actor index.
     jsr Func_InitActorSmokeExplosion
@@ -778,23 +914,48 @@ _Done:
     rts
 .ENDPROC
 
-.PROC FuncC_Boss_GardenCannon_ReadReg
-    cmp #$c
-    beq @readL
-    cmp #$d
-    beq @readR
-    @readY:
-    jmp Func_MachineCannonReadRegY
-    @readL:
-    lda Zp_RoomState + sState::LeverLeft_u8
+;;; Opens or closes the specified boss eye, depending on the boss mode.
+;;; @param X Which eEye to update.
+.PROC FuncA_Room_BossGarden_TickEye
+    lda Zp_RoomState + sState::BossEyeFlash_u8_arr2, x
+    beq @noFlash
+    dec Zp_RoomState + sState::BossEyeFlash_u8_arr2, x
+    @noFlash:
+_CheckIfOpenOrClosed:
+    lda Zp_RoomState + sState::Current_eBossMode
+    cmp #kFirstOpenEyeMode
+    blt _Close
+    cpx Zp_RoomState + sState::BossActive_eEye
+    bne _Close
+_Open:
+    lda Zp_RoomState + sState::BossEyeOpen_u8_arr2, x
+    cmp #kBossEyeOpenFrames
+    bge @done
+    inc Zp_RoomState + sState::BossEyeOpen_u8_arr2, x
+    @done:
     rts
-    @readR:
-    lda Zp_RoomState + sState::LeverRight_u8
+_Close:
+    lda Zp_RoomState + sState::BossEyeOpen_u8_arr2, x
+    beq @done
+    dec Zp_RoomState + sState::BossEyeOpen_u8_arr2, x
+    @done:
     rts
 .ENDPROC
 
-;;; @prereq PRGA_Room is loaded.
-.PROC FuncC_Boss_GardenCannon_Reset
+;;; Makes the garden boss enter waiting mode for a random amount of time
+;;; (between about 1-2 seconds).
+;;; @preserve X
+.PROC FuncA_Room_BossGarden_StartWaiting
+    lda #eBossMode::Waiting
+    sta Zp_RoomState + sState::Current_eBossMode
+    jsr Func_GetRandomByte  ; preserves X, returns A
+    and #$3f
+    ora #$40
+    sta Zp_RoomState + sState::BossCooldown_u8
+    rts
+.ENDPROC
+
+.PROC FuncA_Room_BossGardenCannon_Reset
     ldx #kLeverLeftDeviceIndex  ; param: device index
     jsr FuncA_Room_ResetLever
     ldx #kLeverRightDeviceIndex  ; param: device index
@@ -805,9 +966,7 @@ _Done:
     ;; boss opens an eye).
     lda Zp_RoomState + sState::Current_eBossMode
     cmp #kFirstOpenEyeMode
-    blt @done
-    jmp FuncC_Boss_Garden_StartWaiting
-    @done:
+    bge FuncA_Room_BossGarden_StartWaiting
     rts
 .ENDPROC
 
@@ -824,167 +983,6 @@ _WriteL:
 _WriteR:
     ldx #kLeverRightDeviceIndex  ; param: device index
     jmp FuncA_Machine_WriteToLever
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Objects"
-
-;;; Draws the boss.
-.PROC FuncA_Objects_BossGarden_DrawBoss
-_AnimateThorns:
-    lda Zp_RoomState + sState::BossThornCounter_u8
-    div #4
-    and #$07
-    add #<.bank(Ppu_ChrBgAnimA0)
-    sta Zp_Chr04Bank_u8
-_SetUpIrq:
-    ;; Compute the IRQ latch value to set between the bottom of the boss's zone
-    ;; and the top of the window (if any), and set that as Param4_byte.
-    lda <(Zp_Buffered_sIrq + sIrq::Latch_u8)
-    sub #kBossZoneBottomY
-    add Zp_RoomScrollY_u8
-    sta <(Zp_Buffered_sIrq + sIrq::Param4_byte)  ; window latch
-    ;; Set up our own sIrq struct to handle boss movement.
-    lda #kBossZoneTopY - 1
-    sub Zp_RoomScrollY_u8
-    sta <(Zp_Buffered_sIrq + sIrq::Latch_u8)
-    ldax #Int_BossGardenZoneTopIrq
-    stax <(Zp_Buffered_sIrq + sIrq::FirstIrq_int_ptr)
-_DrawBossLeftMiniEyes:
-    ldx #kLeftEyePlatformIndex
-    jsr FuncA_Objects_SetShapePosToPlatformTopLeft
-    ldx #4 - 1
-    @loop:
-    lda _LeftMiniEyeHorzShift_i8_arr4, x  ; param: signed offset
-    jsr FuncA_Objects_MoveShapeHorz  ; preserves X
-    lda _LeftMiniEyeVertShift_i8_arr4, x  ; param: signed offset
-    jsr FuncA_Objects_MoveShapeVert  ; preserves X
-    cpx Zp_RoomState + sState::BossEyeHealth_u8_arr2 + eEye::Left  ; param: C
-    jsr FuncA_Objects_BossGarden_DrawMiniEyeShape  ; preserves X
-    dex
-    bpl @loop
-_DrawBossRightMiniEyes:
-    ldx #kRightEyePlatformIndex
-    jsr FuncA_Objects_SetShapePosToPlatformTopLeft
-    ldx #4 - 1
-    @loop:
-    lda _RightMiniEyeHorzShift_i8_arr4, x  ; param: signed offset
-    jsr FuncA_Objects_MoveShapeHorz  ; preserves X
-    lda _RightMiniEyeVertShift_i8_arr4, x  ; param: signed offset
-    jsr FuncA_Objects_MoveShapeVert  ; preserves X
-    lda #kTileIdObjBossGardenEyeMiniFirst + 0  ; param: tile ID
-    cpx Zp_RoomState + sState::BossEyeHealth_u8_arr2 + eEye::Right  ; param: C
-    jsr FuncA_Objects_BossGarden_DrawMiniEyeShape  ; preserves X
-    dex
-    bpl @loop
-_DrawBossEyes:
-    ldx #eEye::Left  ; param: eye
-    jsr FuncA_Objects_BossGarden_DrawEye  ; preserves X
-    .assert eEye::Right = 1 + eEye::Left, error
-    inx  ; param: eye
-    jmp FuncA_Objects_BossGarden_DrawEye
-_LeftMiniEyeHorzShift_i8_arr4:
-    .byte 16, <-24, 48, <-8
-_LeftMiniEyeVertShift_i8_arr4:
-    .byte 32, <-16, 8, <-24
-_RightMiniEyeHorzShift_i8_arr4:
-    .byte <-8, <-8, 40, 8
-_RightMiniEyeVertShift_i8_arr4:
-    .byte 16, <-40, 16, <-16
-.ENDPROC
-
-;;; Draws a single mini-eye for the garden boss.
-;;; @prereq Zp_ShapePos*_i16 is set to the top-left corner of the mini-eye.
-;;; @param C Set if the eye is potentially open.
-;;; @param X The index of the mini eye.
-;;; @preserve X
-.PROC FuncA_Objects_BossGarden_DrawMiniEyeShape
-    ;; If the C paramters is cleared, the eye is definitely closed.
-    bcc _EyeIsClosed
-    ;; Otherwise, the eye is still closed if the boss is dropping spikes.
-    lda Zp_RoomState + sState::Current_eBossMode
-    cmp #eBossMode::Angry
-    bne _EyeIsOpen
-_EyeIsClosed:
-    lda #kTileIdObjBossGardenEyeMiniFirst + 0  ; param: tile ID
-    .assert kTileIdObjBossGardenEyeMiniFirst > 0, error
-    bne _DrawEye  ; unconditional
-_EyeIsOpen:
-    txa
-    mul #2
-    sta T0
-    lda Zp_FrameCounter_u8
-    div #8
-    add T0
-    and #$0f
-    tay
-    lda _OpenEyeTileId_u8_arr16, y  ; param: tile ID
-_DrawEye:
-    ldy #kPaletteObjBossEye  ; param: objects flags
-    jmp FuncA_Objects_Draw1x1Shape  ; preserves X
-_OpenEyeTileId_u8_arr16:
-    .byte kTileIdObjBossGardenEyeMiniFirst + 2
-    .byte kTileIdObjBossGardenEyeMiniFirst + 2
-    .byte kTileIdObjBossGardenEyeMiniFirst + 1
-    .byte kTileIdObjBossGardenEyeMiniFirst + 1
-    .byte kTileIdObjBossGardenEyeMiniFirst + 1
-    .byte kTileIdObjBossGardenEyeMiniFirst + 2
-    .byte kTileIdObjBossGardenEyeMiniFirst + 2
-    .byte kTileIdObjBossGardenEyeMiniFirst + 3
-    .byte kTileIdObjBossGardenEyeMiniFirst + 3
-    .byte kTileIdObjBossGardenEyeMiniFirst + 3
-    .byte kTileIdObjBossGardenEyeMiniFirst + 2
-    .byte kTileIdObjBossGardenEyeMiniFirst + 2
-    .byte kTileIdObjBossGardenEyeMiniFirst + 3
-    .byte kTileIdObjBossGardenEyeMiniFirst + 2
-    .byte kTileIdObjBossGardenEyeMiniFirst + 2
-    .byte kTileIdObjBossGardenEyeMiniFirst + 1
-.ENDPROC
-
-;;; Allocates and populates OAM slots for one of the boss's eyes.
-;;; @param X Which eEye to draw.
-;;; @preserve X
-.PROC FuncA_Objects_BossGarden_DrawEye
-    ;; Assert that we can use the eEye value as a platform index.
-    .assert kLeftEyePlatformIndex = eEye::Left, error
-    .assert kRightEyePlatformIndex = eEye::Right, error
-    jsr FuncA_Objects_SetShapePosToPlatformTopLeft  ; preserves X
-    jsr FuncA_Objects_MoveShapeDownAndRightOneTile  ; preserves X
-    lda #kPaletteObjBossEye  ; param: flags
-    jsr FuncA_Objects_Alloc2x2Shape  ; preserves X, returns C and Y
-    bcs @done
-    ;; Determine if the eye should be flashing red this frame.
-    lda Zp_RoomState + sState::BossEyeFlash_u8_arr2, x
-    beq @noFlash
-    lda Zp_FrameCounter_u8
-    and #$02
-    beq @noFlash
-    lda #$10
-    @noFlash:
-    sta T0  ; flash bit (0 or $10)
-    ;; Compute the first tile ID based on the current eye openness.
-    lda Zp_RoomState + sState::BossEyeOpen_u8_arr2, x
-    div #2
-    and #$fe
-    ora T0  ; flash bit (0 or $10)
-    .linecont +
-    .assert kTileIdObjBossGardenEyeWhiteFirst + $10 = \
-            kTileIdObjBossGardenEyeRedFirst, error
-    .linecont -
-    add #kTileIdObjBossGardenEyeWhiteFirst
-    ;; Set tile IDs:
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Tile_u8, y
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Tile_u8, y
-    adc #1  ; carry bit will already be clear
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Tile_u8, y
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Tile_u8, y
-    ;; Set flags:
-    lda #kPaletteObjBossEye | bObj::FlipH
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Flags_bObj, y
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Flags_bObj, y
-    @done:
-    rts
 .ENDPROC
 
 ;;;=========================================================================;;;
