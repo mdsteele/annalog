@@ -276,7 +276,7 @@ _Ext_sRoomExt:
     d_addr Actors_sActor_arr_ptr, Data_Empty_sActor_arr
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
     d_addr Passages_sPassage_arr_ptr, 0
-    d_addr Enter_func_ptr, FuncC_Boss_Crypt_EnterRoom
+    d_addr Enter_func_ptr, FuncA_Room_BossCrypt_EnterRoom
     d_addr FadeIn_func_ptr, FuncA_Terrain_BossCrypt_FadeInRoom
     d_addr Tick_func_ptr, FuncA_Room_BossCrypt_TickRoom
     d_addr Draw_func_ptr, FuncA_Objects_DrawBoss
@@ -301,7 +301,7 @@ _Machines_sMachine_arr:
     d_addr TryMove_func_ptr, FuncA_Machine_BossCryptWinch_TryMove
     d_addr TryAct_func_ptr, FuncA_Machine_BossCryptWinch_TryAct
     d_addr Tick_func_ptr, FuncC_Boss_CryptWinch_Tick
-    d_addr Draw_func_ptr, FuncA_Objects_BossCryptWinch_Draw
+    d_addr Draw_func_ptr, FuncC_Boss_CryptWinch_Draw
     d_addr Reset_func_ptr, FuncC_Boss_CryptWinch_Reset
     D_END
     .assert * - :- <= kMaxMachines * .sizeof(sMachine), error
@@ -492,35 +492,12 @@ _Inner:
     rts
 .ENDPROC
 
-;;; Room init function for the BossCrypt room.
-;;; @prereq PRGA_Room is loaded.
-.PROC FuncC_Boss_Crypt_EnterRoom
-    jsr FuncC_Boss_Crypt_SetBossEyeDir
-_InitBoss:
-    ldax #DataC_Boss_Crypt_sBoss  ; param: sBoss ptr
-    jsr FuncA_Room_InitBoss  ; sets Z if boss is alive
-    bne _BossIsDead
-_BossIsAlive:
-    lda #eBossMode::Firing
-    sta Zp_RoomState + sState::Current_eBossMode
-    lda #kBossInitHealth
-    sta Zp_RoomState + sState::BossHealth_u8
-    lda #120  ; 2 seconds
-    sta Zp_RoomState + sState::BossCooldown_u8
-    lda #kBossInitPosX
-    sta Zp_RoomState + sState::BossGoalPosX_u8
-    lda #kBossInitPosY
-    sta Zp_RoomState + sState::BossGoalPosY_u8
-_BossIsDead:
-    rts
-.ENDPROC
-
 ;;; Performs per-frame upates for the boss in this room.
 ;;; @prereq PRGA_Room is loaded.
 .PROC FuncC_Boss_Crypt_TickBoss
     jsr FuncC_Boss_Crypt_CheckForSpikeballHit
     jsr FuncC_Boss_Crypt_MoveBossTowardGoal
-    jsr FuncC_Boss_Crypt_SetBossEyeDir
+    jsr FuncA_Room_BossCrypt_SetBossEyeDir
 _CoolDown:
     lda Zp_RoomState + sState::BossCooldown_u8
     beq _CheckMode
@@ -820,24 +797,6 @@ _ApplyDragY:
     rts
 .ENDPROC
 
-;;; Sets Boss_eEyeDir so that the boss's eye is looking at the player avatar.
-;;; Note that this is called from the room's Enter_func_ptr, so no PRGA bank
-;;; can be assumed.
-.PROC FuncC_Boss_Crypt_SetBossEyeDir
-    ldy #kBossBodyPlatformIndex  ; param: platform index
-    jsr Func_SetPointToPlatformCenter
-    jsr Func_GetAngleFromPointToAvatar  ; returns A
-    add #$50
-    div #$20
-    tax
-    lda _Dir_eEyeDir_arr8, x
-    sta Zp_RoomState + sState::Boss_eEyeDir
-    rts
-_Dir_eEyeDir_arr8:
-    .byte eEyeDir::Down, eEyeDir::Right,    eEyeDir::Right, eEyeDir::DownRight
-    .byte eEyeDir::Down, eEyeDir::DownLeft, eEyeDir::Left,  eEyeDir::Left
-.ENDPROC
-
 ;;; A template (with unset payload bytes) for a pair of PPU transfer entries
 ;;; for changing the BG tiles of the boss's eye.
 .PROC DataC_Boss_CryptEyeTransferTemplate_arr
@@ -994,9 +953,54 @@ _EyeOffsetY_u8_arr:
     D_END
 .ENDPROC
 
+.PROC FuncC_Boss_CryptWinch_Draw
+    ldx #kSpikeballPlatformIndex  ; param: spikeball platform index
+    jmp FuncA_Objects_DrawWinchMachineWithSpikeball
+.ENDPROC
+
 ;;;=========================================================================;;;
 
 .SEGMENT "PRGA_Room"
+
+;;; Room init function for the BossCrypt room.
+.PROC FuncA_Room_BossCrypt_EnterRoom
+_InitBoss:
+    ldax #DataC_Boss_Crypt_sBoss  ; param: sBoss ptr
+    jsr FuncA_Room_InitBoss  ; sets Z if boss is alive
+    beq _BossIsAlive
+_BossIsDead:
+    rts
+_BossIsAlive:
+    lda #eBossMode::Firing
+    sta Zp_RoomState + sState::Current_eBossMode
+    lda #kBossInitHealth
+    sta Zp_RoomState + sState::BossHealth_u8
+    lda #120  ; 2 seconds
+    sta Zp_RoomState + sState::BossCooldown_u8
+    lda #kBossInitPosX
+    sta Zp_RoomState + sState::BossGoalPosX_u8
+    lda #kBossInitPosY
+    sta Zp_RoomState + sState::BossGoalPosY_u8
+    fall FuncA_Room_BossCrypt_SetBossEyeDir
+.ENDPROC
+
+;;; Sets Boss_eEyeDir so that the boss's eye is looking at the player avatar.
+;;; Note that this is called from the room's Enter_func_ptr, so no PRGA bank
+;;; can be assumed.
+.PROC FuncA_Room_BossCrypt_SetBossEyeDir
+    ldy #kBossBodyPlatformIndex  ; param: platform index
+    jsr Func_SetPointToPlatformCenter
+    jsr Func_GetAngleFromPointToAvatar  ; returns A
+    add #$50
+    div #$20
+    tax
+    lda _Dir_eEyeDir_arr8, x
+    sta Zp_RoomState + sState::Boss_eEyeDir
+    rts
+_Dir_eEyeDir_arr8:
+    .byte eEyeDir::Down, eEyeDir::Right,    eEyeDir::Right, eEyeDir::DownRight
+    .byte eEyeDir::Down, eEyeDir::DownLeft, eEyeDir::Left,  eEyeDir::Left
+.ENDPROC
 
 ;;; Room tick function for the BossCrypt room.
 .PROC FuncA_Room_BossCrypt_TickRoom
@@ -1162,16 +1166,6 @@ _Return:
     ldax #DataA_Terrain_BossCryptInitTransfer_arr  ; param: data pointer
     ldy #.sizeof(DataA_Terrain_BossCryptInitTransfer_arr)  ; param: data length
     jmp Func_BufferPpuTransfer
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Objects"
-
-;;; Draws the BossCryptWinch machine.
-.PROC FuncA_Objects_BossCryptWinch_Draw
-    ldx #kSpikeballPlatformIndex  ; param: spikeball platform index
-    jmp FuncA_Objects_DrawWinchMachineWithSpikeball
 .ENDPROC
 
 ;;;=========================================================================;;;

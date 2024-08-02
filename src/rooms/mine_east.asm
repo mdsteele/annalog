@@ -138,14 +138,14 @@ _Machines_sMachine_arr:
     d_byte ScrollGoalY_u8, $10
     d_byte RegNames_u8_arr4, 0, 0, 0, "Z"
     d_byte MainPlatform_u8, kHoistPlatformIndex
-    d_addr Init_func_ptr, FuncC_Mine_EastHoist_InitReset
+    d_addr Init_func_ptr, FuncA_Room_MineEastHoist_InitReset
     d_addr ReadReg_func_ptr, FuncC_Mine_EastHoist_ReadReg
     d_addr WriteReg_func_ptr, Func_Noop
     d_addr TryMove_func_ptr, FuncA_Machine_MineEastHoist_TryMove
     d_addr TryAct_func_ptr, FuncA_Machine_Error
     d_addr Tick_func_ptr, FuncA_Machine_MineEastHoist_Tick
-    d_addr Draw_func_ptr, FuncA_Objects_MineEastHoist_Draw
-    d_addr Reset_func_ptr, FuncC_Mine_EastHoist_InitReset
+    d_addr Draw_func_ptr, FuncC_Mine_EastHoist_Draw
+    d_addr Reset_func_ptr, FuncA_Room_MineEastHoist_InitReset
     D_END
     .assert * - :- = kLiftMachineIndex * .sizeof(sMachine), error
     D_STRUCT sMachine
@@ -157,14 +157,14 @@ _Machines_sMachine_arr:
     d_byte ScrollGoalY_u8, $50
     d_byte RegNames_u8_arr4, 0, 0, 0, "Y"
     d_byte MainPlatform_u8, kLiftPlatformIndex
-    d_addr Init_func_ptr, FuncC_Mine_EastLift_InitReset
+    d_addr Init_func_ptr, FuncA_Room_MineEastLift_InitReset
     d_addr ReadReg_func_ptr, FuncC_Mine_EastLift_ReadReg
     d_addr WriteReg_func_ptr, Func_Noop
     d_addr TryMove_func_ptr, FuncA_Machine_MineEastLift_TryMove
     d_addr TryAct_func_ptr, FuncA_Machine_Error
     d_addr Tick_func_ptr, FuncA_Machine_MineEastLift_Tick
     d_addr Draw_func_ptr, FuncA_Objects_DrawLiftMachine
-    d_addr Reset_func_ptr, FuncC_Mine_EastLift_InitReset
+    d_addr Reset_func_ptr, FuncA_Room_MineEastLift_InitReset
     D_END
     .assert * - :- <= kMaxMachines * .sizeof(sMachine), error
 _Platforms_sPlatform_arr:
@@ -265,22 +265,10 @@ _Passages_sPassage_arr:
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
 .ENDPROC
 
-.PROC FuncC_Mine_EastHoist_InitReset
-    lda #kHoistInitGoalZ
-    sta Ram_MachineGoalVert_u8_arr + kHoistMachineIndex
-    rts
-.ENDPROC
-
 .PROC FuncC_Mine_EastHoist_ReadReg
     lda Ram_PlatformTop_i16_0_arr + kLowerGirderPlatformIndex
     sub #kLowerGirderMinPlatformTop - kTileHeightPx
     div #kBlockHeightPx
-    rts
-.ENDPROC
-
-.PROC FuncC_Mine_EastLift_InitReset
-    lda #kLiftInitGoalY
-    sta Ram_MachineGoalVert_u8_arr + kLiftMachineIndex
     rts
 .ENDPROC
 
@@ -289,6 +277,50 @@ _Passages_sPassage_arr:
     lda #kLiftMaxPlatformTop + kTileHeightPx
     sub Ram_PlatformTop_i16_0_arr + kLiftPlatformIndex
     div #kBlockHeightPx
+    rts
+.ENDPROC
+
+.PROC FuncC_Mine_EastHoist_Draw
+_Pulley:
+    ldx #kPulleyPlatformIndex  ; param: platform index
+    ldy Ram_PlatformTop_i16_0_arr + kUpperGirderPlatformIndex  ; param: rope
+    jsr FuncA_Objects_DrawHoistPulley
+_LowerGirder:
+    ldx #kLowerGirderPlatformIndex  ; param: platform index
+    jsr FuncA_Objects_DrawGirderPlatform
+    jsr FuncA_Objects_MoveShapeLeftHalfTile
+    ldx #kGirderSpacingTiles - 1
+    @loop:
+    jsr FuncA_Objects_MoveShapeUpOneTile
+    ldy #kPaletteObjHoistRope  ; param: object flags
+    lda #kTileIdObjHoistRopeVert  ; param: tile ID
+    jsr FuncA_Objects_Draw1x1Shape  ; preserves X
+    dex
+    bne @loop
+_UpperGirder:
+    ldx #kUpperGirderPlatformIndex  ; param: platform index
+    jsr FuncA_Objects_DrawGirderPlatform
+    jsr FuncA_Objects_MoveShapeLeftHalfTile
+    ldx #kPulleyPlatformIndex  ; param: platform index
+    jsr FuncA_Objects_DrawHoistRopeToPulley
+_Hoist:
+    lda Ram_PlatformTop_i16_0_arr + kUpperGirderPlatformIndex  ; param: rope
+    jmp FuncA_Objects_DrawHoistMachine
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Room"
+
+.PROC FuncA_Room_MineEastHoist_InitReset
+    lda #kHoistInitGoalZ
+    sta Ram_MachineGoalVert_u8_arr + kHoistMachineIndex
+    rts
+.ENDPROC
+
+.PROC FuncA_Room_MineEastLift_InitReset
+    lda #kLiftInitGoalY
+    sta Ram_MachineGoalVert_u8_arr + kLiftMachineIndex
     rts
 .ENDPROC
 
@@ -318,38 +350,6 @@ _Passages_sPassage_arr:
 .PROC FuncA_Machine_MineEastLift_Tick
     ldax #kLiftMaxPlatformTop  ; param: max platform top
     jmp FuncA_Machine_LiftTick
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Objects"
-
-.PROC FuncA_Objects_MineEastHoist_Draw
-_Pulley:
-    ldx #kPulleyPlatformIndex  ; param: platform index
-    ldy Ram_PlatformTop_i16_0_arr + kUpperGirderPlatformIndex  ; param: rope
-    jsr FuncA_Objects_DrawHoistPulley
-_LowerGirder:
-    ldx #kLowerGirderPlatformIndex  ; param: platform index
-    jsr FuncA_Objects_DrawGirderPlatform
-    jsr FuncA_Objects_MoveShapeLeftHalfTile
-    ldx #kGirderSpacingTiles - 1
-    @loop:
-    jsr FuncA_Objects_MoveShapeUpOneTile
-    ldy #kPaletteObjHoistRope  ; param: object flags
-    lda #kTileIdObjHoistRopeVert  ; param: tile ID
-    jsr FuncA_Objects_Draw1x1Shape  ; preserves X
-    dex
-    bne @loop
-_UpperGirder:
-    ldx #kUpperGirderPlatformIndex  ; param: platform index
-    jsr FuncA_Objects_DrawGirderPlatform
-    jsr FuncA_Objects_MoveShapeLeftHalfTile
-    ldx #kPulleyPlatformIndex  ; param: platform index
-    jsr FuncA_Objects_DrawHoistRopeToPulley
-_Hoist:
-    lda Ram_PlatformTop_i16_0_arr + kUpperGirderPlatformIndex  ; param: rope
-    jmp FuncA_Objects_DrawHoistMachine
 .ENDPROC
 
 ;;;=========================================================================;;;

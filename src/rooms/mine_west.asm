@@ -150,7 +150,7 @@ _Ext_sRoomExt:
     d_addr Enter_func_ptr, Func_Noop
     d_addr FadeIn_func_ptr, Func_Noop
     d_addr Tick_func_ptr, Func_Noop
-    d_addr Draw_func_ptr, FuncA_Objects_MineWest_DrawRoom
+    d_addr Draw_func_ptr, FuncC_Mine_West_DrawRoom
     D_END
 _TerrainData:
 :   .incbin "out/rooms/mine_west.room"
@@ -171,8 +171,8 @@ _Machines_sMachine_arr:
     d_addr WriteReg_func_ptr, Func_Noop
     d_addr TryMove_func_ptr, FuncA_Machine_MineWestCrane_TryMove
     d_addr TryAct_func_ptr, FuncA_Machine_MineWestCrane_TryAct
-    d_addr Tick_func_ptr, FuncC_Mine_WestCrane_Tick
-    d_addr Draw_func_ptr, FuncA_Objects_MineWestCrane_Draw
+    d_addr Tick_func_ptr, FuncA_Machine_MineWestCrane_Tick
+    d_addr Draw_func_ptr, FuncC_Mine_WestCrane_Draw
     d_addr Reset_func_ptr, FuncA_Room_MineWestCrane_InitReset
     D_END
     .assert * - :- <= kMaxMachines * .sizeof(sMachine), error
@@ -258,6 +258,31 @@ _Passages_sPassage_arr:
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
 .ENDPROC
 
+.PROC FuncC_Mine_West_DrawRoom
+    ldx #kCageUpperPlatformIndex
+    jsr FuncA_Objects_DrawGirderPlatform
+    jsr FuncA_Objects_MoveShapeUpOneTile
+    jsr FuncA_Objects_MoveShapeLeftOneTile
+    ldy #kPaletteObjCageHandle  ; param: object flags
+    lda #kTileIdObjCageHandle  ; param: tile ID
+    jsr FuncA_Objects_Draw1x1Shape
+    ldx #kCageLowerPlatformIndex
+    jsr FuncA_Objects_SetShapePosToPlatformTopLeft
+    jsr _DrawCageSide
+    ldx #kCageLowerPlatformIndex
+    jsr FuncA_Objects_DrawGirderPlatform
+_DrawCageSide:
+    ldx #4
+    @loop:
+    jsr FuncA_Objects_MoveShapeUpOneTile
+    ldy #kPaletteObjCageRods  ; param: object flags
+    lda #kTileIdObjCageRods  ; param: tile ID
+    jsr FuncA_Objects_Draw1x1Shape  ; preserves X; returns C and Y
+    dex
+    bne @loop
+    rts
+.ENDPROC
+
 .PROC FuncC_Mine_WestCrane_ReadReg
     cmp #$f
     beq _ReadZ
@@ -278,8 +303,54 @@ _ReadZ:
     rts
 .ENDPROC
 
-.PROC FuncC_Mine_WestCrane_Tick
-    jsr FuncC_Mine_West_TickCage
+.PROC FuncC_Mine_WestCrane_Draw
+    jsr FuncA_Objects_DrawCraneMachine
+    ldx #kPulleyPlatformIndex  ; param: platform index
+    jmp FuncA_Objects_DrawCranePulleyAndRope
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Room"
+
+.PROC FuncA_Room_MineWestCrane_InitReset
+    lda #0
+    sta Ram_MachineGoalHorz_u8_arr + kCraneMachineIndex  ; is closed
+    sta Zp_RoomState + sState::CageIsGrasped_bool
+    lda #kCraneInitGoalZ
+    sta Ram_MachineGoalVert_u8_arr + kCraneMachineIndex
+    rts
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Machine"
+
+.PROC FuncA_Machine_MineWestCrane_TryMove
+    lda #kCraneMaxGoalZ  ; param: max goal vert
+    jmp FuncA_Machine_GenericTryMoveZ
+.ENDPROC
+
+.PROC FuncA_Machine_MineWestCrane_TryAct
+    lda Ram_MachineGoalHorz_u8_arr + kCraneMachineIndex  ; is closed
+    eor #$ff
+    sta Ram_MachineGoalHorz_u8_arr + kCraneMachineIndex  ; is closed
+    bne _TryGrasp
+    sta Zp_RoomState + sState::CageIsGrasped_bool
+    beq _Finish  ; unconditional
+_TryGrasp:
+    lda Ram_MachineGoalVert_u8_arr + kCraneMachineIndex
+    cmp #kCraneMaxGoalZ
+    blt _Finish
+    lda #$ff
+    sta Zp_RoomState + sState::CageIsGrasped_bool
+_Finish:
+    lda #kCraneActCooldown  ; param: num frames
+    jmp FuncA_Machine_StartWaiting
+.ENDPROC
+
+.PROC FuncA_Machine_MineWestCrane_Tick
+    jsr FuncA_Machine_MineWest_TickCage
     ;; Move the crane itself.
     ldya #kCraneMinPlatformTop  ; param: min platform top
     jsr FuncA_Machine_CraneMoveTowardGoal  ; returns Z and A
@@ -298,7 +369,7 @@ _ReadZ:
     rts
 .ENDPROC
 
-.PROC FuncC_Mine_West_TickCage
+.PROC FuncA_Machine_MineWest_TickCage
     ;; If the crane is grasping the cage, we're done.
     bit Zp_RoomState + sState::CageIsGrasped_bool
     bmi _Done
@@ -347,82 +418,6 @@ _MoveCagePlatforms:
     jmp Func_MovePlatformVert
 _Done:
     rts
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Room"
-
-.PROC FuncA_Room_MineWestCrane_InitReset
-    lda #0
-    sta Ram_MachineGoalHorz_u8_arr + kCraneMachineIndex  ; is closed
-    sta Zp_RoomState + sState::CageIsGrasped_bool
-    lda #kCraneInitGoalZ
-    sta Ram_MachineGoalVert_u8_arr + kCraneMachineIndex
-    rts
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Machine"
-
-.PROC FuncA_Machine_MineWestCrane_TryMove
-    lda #kCraneMaxGoalZ  ; param: max goal vert
-    jmp FuncA_Machine_GenericTryMoveZ
-.ENDPROC
-
-.PROC FuncA_Machine_MineWestCrane_TryAct
-    lda Ram_MachineGoalHorz_u8_arr + kCraneMachineIndex  ; is closed
-    eor #$ff
-    sta Ram_MachineGoalHorz_u8_arr + kCraneMachineIndex  ; is closed
-    bne _TryGrasp
-    sta Zp_RoomState + sState::CageIsGrasped_bool
-    beq _Finish  ; unconditional
-_TryGrasp:
-    lda Ram_MachineGoalVert_u8_arr + kCraneMachineIndex
-    cmp #kCraneMaxGoalZ
-    blt _Finish
-    lda #$ff
-    sta Zp_RoomState + sState::CageIsGrasped_bool
-_Finish:
-    lda #kCraneActCooldown  ; param: num frames
-    jmp FuncA_Machine_StartWaiting
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Objects"
-
-.PROC FuncA_Objects_MineWest_DrawRoom
-    ldx #kCageUpperPlatformIndex
-    jsr FuncA_Objects_DrawGirderPlatform
-    jsr FuncA_Objects_MoveShapeUpOneTile
-    jsr FuncA_Objects_MoveShapeLeftOneTile
-    ldy #kPaletteObjCageHandle  ; param: object flags
-    lda #kTileIdObjCageHandle  ; param: tile ID
-    jsr FuncA_Objects_Draw1x1Shape
-    ldx #kCageLowerPlatformIndex
-    jsr FuncA_Objects_SetShapePosToPlatformTopLeft
-    jsr _DrawCageSide
-    ldx #kCageLowerPlatformIndex
-    jsr FuncA_Objects_DrawGirderPlatform
-_DrawCageSide:
-    ldx #4
-    @loop:
-    jsr FuncA_Objects_MoveShapeUpOneTile
-    ldy #kPaletteObjCageRods  ; param: object flags
-    lda #kTileIdObjCageRods  ; param: tile ID
-    jsr FuncA_Objects_Draw1x1Shape  ; preserves X; returns C and Y
-    dex
-    bne @loop
-    rts
-.ENDPROC
-
-;;; Draws the MineWestCrane machine.
-.PROC FuncA_Objects_MineWestCrane_Draw
-    jsr FuncA_Objects_DrawCraneMachine
-    ldx #kPulleyPlatformIndex  ; param: platform index
-    jmp FuncA_Objects_DrawCranePulleyAndRope
 .ENDPROC
 
 ;;;=========================================================================;;;

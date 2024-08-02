@@ -370,7 +370,7 @@ _Machines_sMachine_arr:
     d_addr TryMove_func_ptr, FuncA_Machine_BossMineCrane_TryMove
     d_addr TryAct_func_ptr, FuncC_Boss_MineCrane_TryAct
     d_addr Tick_func_ptr, FuncA_Machine_BossMineCrane_Tick
-    d_addr Draw_func_ptr, FuncA_Objects_BossMineCrane_Draw
+    d_addr Draw_func_ptr, FuncC_Boss_MineCrane_Draw
     d_addr Reset_func_ptr, FuncC_Boss_MineCrane_InitReset
     D_END
     .assert * - :- <= kMaxMachines * .sizeof(sMachine), error
@@ -989,6 +989,12 @@ _StartWaiting:
     jmp FuncA_Machine_StartWaiting
 .ENDPROC
 
+.PROC FuncC_Boss_MineCrane_Draw
+    jsr FuncA_Objects_DrawCraneMachine
+    ldx #kTrolleyPlatformIndex  ; param: pulley platform index
+    jmp FuncA_Objects_DrawCraneRopeToPulley
+.ENDPROC
+
 ;;;=========================================================================;;;
 
 .SEGMENT "PRGA_Room"
@@ -1374,16 +1380,6 @@ _Error:
     rts
     @done:
     jmp FuncA_Machine_ReachedGoal
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Objects"
-
-.PROC FuncA_Objects_BossMineCrane_Draw
-    jsr FuncA_Objects_DrawCraneMachine
-    ldx #kTrolleyPlatformIndex  ; param: pulley platform index
-    jmp FuncA_Objects_DrawCraneRopeToPulley
 .ENDPROC
 
 ;;;=========================================================================;;;
