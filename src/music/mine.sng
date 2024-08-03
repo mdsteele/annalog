@@ -1,11 +1,13 @@
 @PRGC_Mine
 
-!SONG Mine "A|B"
+!SONG Mine "|ABBCBBCD"
 
 =tempo q36
 =key 3b  % c minor
 
-!INST 1A PulsePiano $07 d1/2
+!INST 1A PulsePluck $07 d1/2
+!INST 1D PulsePluck $04 d1/2
+!INST 1P PulsePiano $07 d1/2
 !INST 2A PulsePluck $07 d1/4
 !INST 2B PulsePluck $06 d1/4
 !INST 2C PulsePluck $05 d1/4
@@ -30,8 +32,26 @@ N| p(iD x3e x1 r x1)NA :16 |
 
 !PART B
 
-1| p(iA c3e g c^ fvq g iA ee)1A :6 |
- | p(iA g3e f e fq d bve | g3e f e fq b fe)1C |
+1| p(iP c3e g c^ fvq g ee)1A :6 |
+ | p(g3e f e fq d bve | g3e f e fq b fe)1C |
 2=:A2
 T| iA c3w+ | +q.. rs cq d | eh+q gq | fh b | gw+ | +h cq d | eh+q gq | fh d |
 N=:AN
+
+!PART C
+
+1| iP c3q |
+2=:B2
+T=:BT
+N=:BN
+
+!PART D
+
+1| p(iA c6e iD c ' iA gv iD g)DC ' pDC |
+ | p(iA e5e iD e ' iA g  iD g)DE ' pDC |
+ | p(iA b5e iD b ' iA g  iD g)DB ' pDB |
+ | p(iA d6e    e '    d    bv)DZ ' pDC |
+ | pDC pDC | pDE pDC | pDB pDB | pDZ pDC |
+2=:B2
+T=:BT
+N=:BN
