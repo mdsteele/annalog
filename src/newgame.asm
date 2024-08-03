@@ -113,7 +113,8 @@ _SetFlags:
     d_byte Spring,   " SPRING "
     d_byte Cavern,   " CAVERN "
     d_byte Breaker4, "BREAKER4"
-    d_byte Collapse, "  MINE  "
+    d_byte Mine,     "  MINE  "
+    d_byte Collapse, "COLLAPSE"
     d_byte Breaker5, "BREAKER5"
     d_byte Pass,     "  PASS  "
     d_byte City,     "  CITY  "
@@ -144,6 +145,7 @@ _SetFlags:
     d_byte Spring,   eRoom::MermaidSpring
     d_byte Cavern,   eRoom::LavaCavern
     d_byte Breaker4, eRoom::BossLava
+    d_byte Mine,     eRoom::MineEntry
     d_byte Collapse, eRoom::MineCollapse
     d_byte Breaker5, eRoom::BossMine
     d_byte Pass,     eRoom::FactoryPass
@@ -175,6 +177,7 @@ _SetFlags:
     d_byte Spring,   bSpawn::Passage | 0
     d_byte Cavern,   bSpawn::Device | 0  ; TODO: use a constant
     d_byte Breaker4, bSpawn::Device | kBossDoorDeviceIndex
+    d_byte Mine,     bSpawn::Passage | 0
     d_byte Collapse, bSpawn::Device | 2  ; TODO: use a constant
     d_byte Breaker5, bSpawn::Device | kBossDoorDeviceIndex
     d_byte Pass,     bSpawn::Passage | 1
@@ -206,6 +209,7 @@ _SetFlags:
     d_byte Spring,   eFlag::MermaidSpringConsoleFixed
     d_byte Cavern,   eFlag::BossLava
     d_byte Breaker4, eFlag::BreakerLava
+    d_byte Mine,     eFlag::UpgradeOpSync
     d_byte Collapse, eFlag::BossMine
     d_byte Breaker5, eFlag::BreakerMine
     d_byte Pass,     eFlag::FactoryPassLoweredRocks
@@ -297,6 +301,7 @@ _SetFlags:
     .byte eFlag::LavaCenterChain3Broken
     .byte eFlag::LavaCenterChain1Broken
     .byte eFlag::LavaCenterChain2Broken
+    .byte eFlag::PaperJerome27
     .byte eFlag::BossLava
     .byte eFlag::UpgradeRam3
     .byte eFlag::BreakerLava

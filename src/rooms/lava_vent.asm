@@ -224,7 +224,7 @@ _Passages_sPassage_arr:
 .PROC DataA_Text2_LavaVentSign_u8_arr
     .byte "Salt Mines ", kTileIdBgArrowRight, "$"
     .byte "$"
-    .byte kTileIdBgArrowLeft, " Geothermal Control#"
+    .byte kTileIdBgArrowDown, " Geothermal Station#"
 .ENDPROC
 
 ;;;=========================================================================;;;

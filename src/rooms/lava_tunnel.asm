@@ -17,13 +17,16 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
+.INCLUDE "../charmap.inc"
+.INCLUDE "../device.inc"
+.INCLUDE "../dialog.inc"
+.INCLUDE "../flag.inc"
 .INCLUDE "../macros.inc"
+.INCLUDE "../platform.inc"
 .INCLUDE "../room.inc"
 
 .IMPORT DataA_Room_Lava_sTileset
 .IMPORT Data_Empty_sActor_arr
-.IMPORT Data_Empty_sDevice_arr
-.IMPORT Data_Empty_sPlatform_arr
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrObjLava
 
@@ -31,6 +34,7 @@
 
 .SEGMENT "PRGC_Lava"
 
+;;; TODO: Rename this room (now that it's no longer tunnel-shaped).
 .EXPORT DataC_Lava_Tunnel_sRoom
 .PROC DataC_Lava_Tunnel_sRoom
     D_STRUCT sRoom
@@ -48,9 +52,9 @@
 _Ext_sRoomExt:
     D_STRUCT sRoomExt
     d_addr Terrain_sTileset_ptr, DataA_Room_Lava_sTileset
-    d_addr Platforms_sPlatform_arr_ptr, Data_Empty_sPlatform_arr
+    d_addr Platforms_sPlatform_arr_ptr, _Platforms_sPlatform_arr
     d_addr Actors_sActor_arr_ptr, Data_Empty_sActor_arr
-    d_addr Devices_sDevice_arr_ptr, Data_Empty_sDevice_arr
+    d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
     d_addr Passages_sPassage_arr_ptr, _Passages_sPassage_arr
     d_addr Enter_func_ptr, Func_Noop
     d_addr FadeIn_func_ptr, Func_Noop
@@ -60,14 +64,98 @@ _Ext_sRoomExt:
 _TerrainData:
 :   .incbin "out/rooms/lava_tunnel.room"
     .assert * - :- = 17 * 15, error
+_Platforms_sPlatform_arr:
+:   D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Harm
+    d_word WidthPx_u16, $30
+    d_byte HeightPx_u8, $08
+    d_word Left_i16,  $0090
+    d_word Top_i16,   $001a
+    D_END
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Harm
+    d_word WidthPx_u16, $0e
+    d_byte HeightPx_u8, $08
+    d_word Left_i16,  $0071
+    d_word Top_i16,   $003e
+    D_END
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Harm
+    d_word WidthPx_u16, $0f
+    d_byte HeightPx_u8, $08
+    d_word Left_i16,  $0030
+    d_word Top_i16,   $004e
+    D_END
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Harm
+    d_word WidthPx_u16, $0e
+    d_byte HeightPx_u8, $08
+    d_word Left_i16,  $0071
+    d_word Top_i16,   $009a
+    D_END
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Harm
+    d_word WidthPx_u16, $b0
+    d_byte HeightPx_u8, $08
+    d_word Left_i16,  $0020
+    d_word Top_i16,   $00de
+    D_END
+    .assert * - :- <= kMaxPlatforms * .sizeof(sPlatform), error
+    .byte ePlatform::None
+_Devices_sDevice_arr:
+:   D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::Paper
+    d_byte BlockRow_u8, 4
+    d_byte BlockCol_u8, 2
+    d_byte Target_byte, eFlag::PaperJerome27
+    D_END
+    .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
+    .byte eDevice::None
 _Passages_sPassage_arr:
 :   D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Eastern | 0
     d_byte Destination_eRoom, eRoom::LavaVent
-    d_byte SpawnBlock_u8, 6
+    d_byte SpawnBlock_u8, 7
     d_byte SpawnAdjust_byte, 0
     D_END
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Dialog"
+
+.EXPORT DataA_Dialog_PaperJerome27_sDialog
+.PROC DataA_Dialog_PaperJerome27_sDialog
+    dlg_Text Paper, DataA_Text3_PaperJerome27_Page1_u8_arr
+    dlg_Text Paper, DataA_Text3_PaperJerome27_Page2_u8_arr
+    dlg_Text Paper, DataA_Text3_PaperJerome27_Page3_u8_arr
+    dlg_Done
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Text3"
+
+.PROC DataA_Text3_PaperJerome27_Page1_u8_arr
+    .byte "Day 27: By 2250 things$"
+    .byte "had settled down a$"
+    .byte "bit, but the mistrust$"
+    .byte "never really ended.#"
+.ENDPROC
+
+.PROC DataA_Text3_PaperJerome27_Page2_u8_arr
+    .byte "We built the Peace$"
+    .byte "Temple together with$"
+    .byte "the mermaids, but it$"
+    .byte "was a feeble gesture.#"
+.ENDPROC
+
+.PROC DataA_Text3_PaperJerome27_Page3_u8_arr
+    .byte "The orcs continued to$"
+    .byte "seethe. The mermaids$"
+    .byte "soon grew disgusted$"
+    .byte "with us both.#"
 .ENDPROC
 
 ;;;=========================================================================;;;
