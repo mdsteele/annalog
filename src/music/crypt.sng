@@ -1,5 +1,7 @@
 @PRGC_Crypt
 
+!DPCM K Data_SampleKickDrum_arr657 657
+
 !SONG Crypt "A|BBCDD"
 
 =tempo q40
@@ -11,6 +13,7 @@
 !INST 2D PulsePluck $08 d1/4
 !INST TS TriangleSlide
 !INST ND Staccato   $0a       % drum
+!INST DK Constant   $4e       % kick drum
 
 !PART A
 
@@ -25,6 +28,7 @@ N| iD x9e x9 ' x5 x9 ' x9q ' x5 :4 |
  | re d5e ' dq ' re de de re |
 T=:AT
 N=:AN
+D| rw iK sK13w :2 |
 
 !PART C
 
@@ -33,6 +37,8 @@ N=:AN
  | d4q a ge ae bq | fq a eh |
 T=:BT
 N=:BN
+D| p(iK sK13w)DW :3 |
+ | p(iK sK13h)DH :2 |
 
 !PART D
 
@@ -43,3 +49,5 @@ N=:BN
  |    c5s d  av d^s+ ' +s ae gs ' ee    c  ' dq         |
 T=:CT
 N=:CN
+D| pDW :3 |
+ | pDH sK13q sK13q |

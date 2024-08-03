@@ -1,23 +1,37 @@
 @PRGC_Mine
 
-!SONG MinePlaceholder "|A"
+!SONG Mine "A|B"
 
 =tempo q36
 =key 3b  % c minor
 
-!INST 1A PulseBasic $0c d1/2
-!INST 1B PulseBasic $0c d1/4
-!INST TA Constant   $ff
-!INST ND Staccato   $0c
+!INST 1A PulsePiano $07 d1/2
+!INST 2A PulsePluck $07 d1/4
+!INST 2B PulsePluck $06 d1/4
+!INST 2C PulsePluck $05 d1/4
+!INST 2D PulsePluck $04 d1/4
+!INST 2E PulsePluck $03 d1/4
+!INST TA TriangleVibrato
+!INST ND Staccato   $06
 
 !PART A
 
-1| p(iA c3e g c^ iB fvq g iA ee)1A | p1A | p1A | p1A |
- | p1A | p1A | p1A | p1A |
-T| p(iA c5w | gv | e^ | bv)TA | pTA |
-N| p(iD x3e x1 r x1)NA pNA | pNA pNA | pNA pNA | pNA pNA |
- | pNA pNA | pNA pNA | pNA pNA | pNA pNA |
+2| p(iA re c5e ' iB cs ce iC cs+ ' +s ce cs ' iD ce iE ce)EC |
+ | pEC |
+ | p(iA re e5e ' iB es ee iC es+ ' +s ee es ' iD ee iE ee)EE |
+ | p(iA re f5e ' iB fs fe iC fs+ ' +s fe fs ' iD fe iE fe)EF |
+ | p(iA re g5e ' iB gs ge iC gs+ ' +s ge gs ' iD ge iE ge)EG |
+ | pEG |
+ | pEE |
+ | pEF |
+T| iA c3w+ | +q.. rs cq d | eh+q gq | fh b |
+ |    g3w+ | +q.. rs cq d | eh+q gq | fh d |
+N| p(iD x3e x1 r x1)NA :16 |
 
-1| p1A | p1A | p1A | p1A |
-T| c5w |
-N| pNA pNA | pNA pNA | pNA pNA | pNA pNA |
+!PART B
+
+1| p(iA c3e g c^ fvq g iA ee)1A :6 |
+ | p(iA g3e f e fq d bve | g3e f e fq b fe)1C |
+2=:A2
+T| iA c3w+ | +q.. rs cq d | eh+q gq | fh b | gw+ | +h cq d | eh+q gq | fh d |
+N=:AN
