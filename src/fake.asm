@@ -21,6 +21,7 @@
 .INCLUDE "console.inc"
 .INCLUDE "cpu.inc"
 .INCLUDE "fake.inc"
+.INCLUDE "flag.inc"
 .INCLUDE "joypad.inc"
 .INCLUDE "machine.inc"
 .INCLUDE "machines/emitter.inc"
@@ -35,9 +36,12 @@
 .IMPORT FuncA_Console_AdjustAvatar
 .IMPORT FuncA_Console_WriteDiagramTransferDataForDiagram
 .IMPORT FuncA_Objects_Draw1x1Shape
+.IMPORT FuncA_Terrain_TransferTileColumn
 .IMPORT FuncM_ConsoleScrollTowardsGoalAndTick
 .IMPORT FuncM_DrawObjectsForRoom
 .IMPORT Func_ClearRestOfOamAndProcessFrame
+.IMPORT Func_ProcessFrame
+.IMPORT Func_SetFlag
 .IMPORT Func_Window_PrepareRowTransfer
 .IMPORT Func_Window_ScrollUp
 .IMPORT Func_Window_TransferBottomBorder
@@ -96,6 +100,7 @@ _GameLoop:
 .PROC Main_FakeConsole_Message
 _GameLoop:
     jsr FuncM_DrawFakeConsoleObjectsAndProcessFrame
+    jsr_prga FuncA_Terrain_OnFakeConsoleOpen
     lda Zp_P1ButtonsPressed_bJoypad
     and #bJoypad::AButton | bJoypad::BButton
     beq _GameLoop
@@ -347,6 +352,40 @@ _NoPower4_u8_arr19:
 _NoPower5_u8_arr19:
 :   .byte "9999999999999999999"
     .assert * - :- = kFakeConsoleMessageCols, error
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Terrain"
+
+;;; Called when a fake console window is fully open.  Makes the orc tank in the
+;;; ShadowOffice room appear the first time the CoreDump fake console is
+;;; used.
+;;; @prereq Zp_Current_eFake is initialized.
+.PROC FuncA_Terrain_OnFakeConsoleOpen
+    ;; Do nothing unless this is the CoreDump fake console.
+    lda Zp_Current_eFake
+    .assert eFake::CoreDump = 0, error
+    bne @done
+    ;; Set the ShadowOfficeRemovedWall flag; do nothing else if it was already
+    ;; set.
+    ldx #eFlag::ShadowOfficeRemovedWall  ; param: flag
+    jsr Func_SetFlag  ; sets C if flag was already set
+    bcs @done
+    ;; Restore the original terrain tiles for the six room tile columns from 12
+    ;; through 17.  To avoid overflowing the PPU buffer, just do one tile
+    ;; column per frame.
+    lda #12  ; param: room tile col
+    sta T2  ; next room tile col
+    @loop:
+    jsr FuncA_Terrain_TransferTileColumn  ; preserves T2+
+    jsr Func_ProcessFrame  ; preserves T0+
+    inc T2  ; next room tile col
+    lda T2  ; param: next room tile col
+    cmp #18
+    blt @loop
+    @done:
+    rts
 .ENDPROC
 
 ;;;=========================================================================;;;

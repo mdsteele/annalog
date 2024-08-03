@@ -352,14 +352,14 @@ _Done:
 
 ;;; Buffers a PPU transfer to update one tile column from the current room.
 ;;; @param A The index of the room tile column to transfer.
+;;; @preserve T2+
 .EXPORT FuncA_Terrain_TransferTileColumn
 .PROC FuncA_Terrain_TransferTileColumn
-    tax
-    .assert kScreenWidthTiles = $20, error
-    and #$1f
+    tax  ; room tile column index
+    mod #kScreenWidthTiles
     sta T1  ; nametable column index
     txa  ; param: room tile column index
-    jsr FuncA_Terrain_GetColumnPtrForTileIndex
+    jsr FuncA_Terrain_GetColumnPtrForTileIndex  ; preserves T0+
     ;; Buffer a PPU transfer for the upper nametable.
 _UpperTransfer:
     ldx Zp_PpuTransferLen_u8

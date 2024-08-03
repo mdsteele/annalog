@@ -25,12 +25,17 @@
 .DEFINE kTileHeightPx 8
 .DEFINE kBlockWidthPx 16
 .DEFINE kBlockHeightPx 16
-kScreenWidthBlocks = 16
-kScreenHeightBlocks = 15
-kScreenWidthTiles = kScreenWidthBlocks * 2
-kScreenHeightTiles = kScreenHeightBlocks * 2
+.DEFINE kScreenWidthBlocks 16
+.DEFINE kScreenHeightBlocks 15
+.DEFINE kScreenWidthTiles 32
+.DEFINE kScreenHeightTiles 30
 kScreenWidthPx = kScreenWidthTiles * kTileWidthPx
 kScreenHeightPx = kScreenHeightTiles * kTileHeightPx
+
+.ASSERT kBlockWidthPx = kTileWidthPx * 2, error
+.ASSERT kBlockHeightPx = kTileHeightPx * 2, error
+.ASSERT kScreenWidthTiles = kScreenWidthBlocks * 2, error
+.ASSERT kScreenHeightTiles = kScreenHeightBlocks * 2, error
 
 ;;;=========================================================================;;;
 

@@ -28,12 +28,14 @@
 .INCLUDE "../macros.inc"
 .INCLUDE "../platform.inc"
 .INCLUDE "../platforms/lava.inc"
+.INCLUDE "../ppu.inc"
 .INCLUDE "../room.inc"
 
 .IMPORT DataA_Room_Shadow_sTileset
 .IMPORT FuncA_Objects_AnimateLavaTerrain
 .IMPORT FuncA_Room_MakeNpcGhostDisappear
 .IMPORT FuncA_Terrain_FadeInShortRoomWithLava
+.IMPORT Func_BufferPpuTransfer
 .IMPORT Func_FindEmptyActorSlot
 .IMPORT Func_InitActorSmokeExplosion
 .IMPORT Func_IsPointInPlatform
@@ -42,7 +44,6 @@
 .IMPORT Func_SetPointToAvatarCenter
 .IMPORT Ppu_ChrObjShadow
 .IMPORT Ram_ActorPosY_i16_1_arr
-.IMPORT Ram_ActorType_eActor_arr
 .IMPORT Ram_PlatformType_ePlatform_arr
 .IMPORT Sram_ProgressFlags_arr
 .IMPORTZP Zp_AvatarPosX_i16
@@ -59,6 +60,28 @@ kGhostTagZonePlatformIndex = 0
 
 ;;; The platform index for the wall that blocks the ghost tank at first.
 kGhostWallPlatformIndex = 1
+
+;;;=========================================================================;;;
+
+;;; The tile row/col in the upper nametable for the top-left corner of the
+;;; ghost wall's BG tiles.
+kWallStartRow = 19
+kWallStartCol = 12
+
+;;; The PPU addresses for the start (left) of each row of the ghost wall's BG
+;;; tiles.
+.LINECONT +
+Ppu_WallRow0Start = Ppu_Nametable0_sName + sName::Tiles_u8_arr + \
+    kScreenWidthTiles * (kWallStartRow + 0) + kWallStartCol
+Ppu_WallRow1Start = Ppu_Nametable0_sName + sName::Tiles_u8_arr + \
+    kScreenWidthTiles * (kWallStartRow + 1) + kWallStartCol
+Ppu_WallRow2Start = Ppu_Nametable0_sName + sName::Tiles_u8_arr + \
+    kScreenWidthTiles * (kWallStartRow + 2) + kWallStartCol
+Ppu_WallRow3Start = Ppu_Nametable0_sName + sName::Tiles_u8_arr + \
+    kScreenWidthTiles * (kWallStartRow + 3) + kWallStartCol
+Ppu_WallRow4Start = Ppu_Nametable0_sName + sName::Tiles_u8_arr + \
+    kScreenWidthTiles * (kWallStartRow + 4) + kWallStartCol
+.LINECONT -
 
 ;;;=========================================================================;;;
 
@@ -86,7 +109,7 @@ _Ext_sRoomExt:
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
     d_addr Passages_sPassage_arr_ptr, _Passages_sPassage_arr
     d_addr Enter_func_ptr, FuncA_Room_ShadowOffice_EnterRoom
-    d_addr FadeIn_func_ptr, FuncA_Terrain_FadeInShortRoomWithLava
+    d_addr FadeIn_func_ptr, FuncA_Terrain_ShadowOffice_FadeInRoom
     d_addr Tick_func_ptr, FuncA_Room_ShadowOffice_TickRoom
     d_addr Draw_func_ptr, FuncA_Objects_AnimateLavaTerrain
     D_END
@@ -219,25 +242,6 @@ _Passages_sPassage_arr:
 
 .SEGMENT "PRGA_Room"
 
-.PROC FuncA_Room_ShadowOffice_EnterRoom
-_MaybeRemoveWall:
-    flag_bit Sram_ProgressFlags_arr, eFlag::ShadowOfficeRemovedWall
-    beq _Return
-    lda #ePlatform::Zone
-    sta Ram_PlatformType_ePlatform_arr + kGhostWallPlatformIndex
-_MaybeRevealGhost:
-    flag_bit Sram_ProgressFlags_arr, eFlag::ShadowOfficeTaggedGhost
-    bne _RemoveGhost
-    lda #0
-    sta Ram_ActorPosY_i16_1_arr + kGhostActorIndex
-    rts
-_RemoveGhost:
-    lda #eActor::None
-    sta Ram_ActorType_eActor_arr + kGhostActorIndex
-_Return:
-    rts
-.ENDPROC
-
 .PROC FuncA_Room_ShadowOffice_TickRoom
 _MaybeTagGhost:
     ;; If the avatar isn't in the tag zone, don't tag the ghost.
@@ -254,7 +258,66 @@ _MaybeTagGhost:
     ldy #eActor::BadGhostOrc  ; param: new actor type
     jmp FuncA_Room_MakeNpcGhostDisappear
     @done:
+_MaybeRemoveWallAndRevealGhost:
+    fall FuncA_Room_ShadowOffice_EnterRoom
+.ENDPROC
+
+.PROC FuncA_Room_ShadowOffice_EnterRoom
+_MaybeRemoveWall:
+    flag_bit Sram_ProgressFlags_arr, eFlag::ShadowOfficeRemovedWall
+    beq _Return
+    lda #ePlatform::Zone
+    sta Ram_PlatformType_ePlatform_arr + kGhostWallPlatformIndex
+_MaybeRevealGhost:
+    flag_bit Sram_ProgressFlags_arr, eFlag::ShadowOfficeTaggedGhost
+    bne _Return
+    lda #0
+    sta Ram_ActorPosY_i16_1_arr + kGhostActorIndex
     rts
+_Return:
+    rts
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Terrain"
+
+.PROC DataA_Terrain_ShadowOfficeTransfer_arr
+    ;; Row 0:
+    .byte kPpuCtrlFlagsHorz
+    .dbyt Ppu_WallRow0Start  ; transfer destination
+    .byte 6
+    .byte $14, $8a, $8a, $8a, $8a, $15
+    ;; Row 1:
+    .byte kPpuCtrlFlagsHorz
+    .dbyt Ppu_WallRow1Start  ; transfer destination
+    .byte 6
+    .byte $88, $87, $8b, $8b, $86, $89
+    ;; Row 2:
+    .byte kPpuCtrlFlagsHorz
+    .dbyt Ppu_WallRow2Start  ; transfer destination
+    .byte 6
+    .byte $16, $17, $14, $15, $88, $89
+    ;; Row 3:
+    .byte kPpuCtrlFlagsHorz
+    .dbyt Ppu_WallRow3Start  ; transfer destination
+    .byte 6
+    .byte $14, $8a, $84, $89, $88, $89
+    ;; Row 4:
+    .byte kPpuCtrlFlagsHorz
+    .dbyt Ppu_WallRow4Start  ; transfer destination
+    .byte 6
+    .byte $16, $8b, $8b, $17, $16, $17
+.ENDPROC
+
+.PROC FuncA_Terrain_ShadowOffice_FadeInRoom
+    flag_bit Sram_ProgressFlags_arr, eFlag::ShadowOfficeRemovedWall
+    bne @noGhostWall
+    ldax #DataA_Terrain_ShadowOfficeTransfer_arr  ; param: data pointer
+    ldy #.sizeof(DataA_Terrain_ShadowOfficeTransfer_arr)  ; param: data length
+    jsr Func_BufferPpuTransfer
+    @noGhostWall:
+    jmp FuncA_Terrain_FadeInShortRoomWithLava
 .ENDPROC
 
 ;;;=========================================================================;;;

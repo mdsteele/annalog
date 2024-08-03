@@ -113,6 +113,41 @@ _Platforms_sPlatform_arr:
     d_word Left_i16,  $00e8
     d_word Top_i16, kBarrierShutTop
     D_END
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Solid
+    d_word WidthPx_u16, $10
+    d_byte HeightPx_u8, $08
+    d_word Left_i16,  $0060
+    d_word Top_i16,   $0078
+    D_END
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Solid
+    d_word WidthPx_u16, $10
+    d_byte HeightPx_u8, $08
+    d_word Left_i16,  $00b0
+    d_word Top_i16,   $0078
+    D_END
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Solid
+    d_word WidthPx_u16, $10
+    d_byte HeightPx_u8, $08
+    d_word Left_i16,  $0070
+    d_word Top_i16,   $0090
+    D_END
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Solid
+    d_word WidthPx_u16, $10
+    d_byte HeightPx_u8, $08
+    d_word Left_i16,  $00a0
+    d_word Top_i16,   $0090
+    D_END
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Solid
+    d_word WidthPx_u16, $20
+    d_byte HeightPx_u8, $08
+    d_word Left_i16,  $0080
+    d_word Top_i16,   $0110
+    D_END
     ;; Lava:
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Kill
