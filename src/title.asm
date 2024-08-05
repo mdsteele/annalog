@@ -31,9 +31,8 @@
 .INCLUDE "ppu.inc"
 .INCLUDE "program.inc"
 
-.IMPORT DataA_Title_NewGameName_u8_arr8_arr
-.IMPORT DataC_Title_Title_sMusic
-.IMPORT FuncA_Title_ResetSramForNewGame
+.IMPORT DataC_Title_NewGameName_u8_arr8_arr
+.IMPORT FuncC_Title_ResetSramForNewGame
 .IMPORT Func_AckIrqAndSetLatch
 .IMPORT Func_AllocObjects
 .IMPORT Func_AllocOneObject
@@ -47,6 +46,7 @@
 .IMPORT Func_SignedDivFrac
 .IMPORT Func_Sine
 .IMPORT Func_Window_Disable
+.IMPORT MainC_Title_Prologue
 .IMPORT Main_Explore_SpawnInLastSafeRoom
 .IMPORT Ppu_ChrBgFontUpper
 .IMPORT Ppu_ChrBgTitle
@@ -131,10 +131,10 @@ Ppu_TitleAreYouSureStart = Ppu_Nametable0_sName + sName::Tiles_u8_arr + \
 
 ;;;=========================================================================;;;
 
-.SEGMENT "PRGA_Title"
+.SEGMENT "PRGC_Title"
 
 ;;; The concatenated string data for all title screen menu items.
-.PROC DataA_Title_Letters_u8_arr
+.PROC DataC_Title_Letters_u8_arr
 .PROC Continue
     .byte "CONTINUE"
 .ENDPROC
@@ -152,38 +152,38 @@ Ppu_TitleAreYouSureStart = Ppu_Nametable0_sName + sName::Tiles_u8_arr + \
 .ENDPROC
 .ENDPROC
 
-;;; Maps from eTitle values to byte offsets into DataA_Title_Letters_u8_arr and
+;;; Maps from eTitle values to byte offsets into DataC_Title_Letters_u8_arr and
 ;;; Ram_TitleLetterOffset_i8_arr for each menu item.
-.PROC DataA_Title_MenuItemOffset_u8_arr
+.PROC DataC_Title_MenuItemOffset_u8_arr
     .linecont +
     D_ARRAY .enum, eTitle
     d_byte TopContinue, \
-           DataA_Title_Letters_u8_arr::Continue - DataA_Title_Letters_u8_arr
+           DataC_Title_Letters_u8_arr::Continue - DataC_Title_Letters_u8_arr
     d_byte TopNew, \
-           DataA_Title_Letters_u8_arr::NewGame  - DataA_Title_Letters_u8_arr
+           DataC_Title_Letters_u8_arr::NewGame  - DataC_Title_Letters_u8_arr
     d_byte TopCredits, \
-           DataA_Title_Letters_u8_arr::Credits  - DataA_Title_Letters_u8_arr
+           DataC_Title_Letters_u8_arr::Credits  - DataC_Title_Letters_u8_arr
     d_byte NewCancel, \
-           DataA_Title_Letters_u8_arr::Cancel   - DataA_Title_Letters_u8_arr
+           DataC_Title_Letters_u8_arr::Cancel   - DataC_Title_Letters_u8_arr
     d_byte NewDelete, \
-           DataA_Title_Letters_u8_arr::Delete   - DataA_Title_Letters_u8_arr
+           DataC_Title_Letters_u8_arr::Delete   - DataC_Title_Letters_u8_arr
     D_END
     .linecont -
 .ENDPROC
 
 ;;; Maps from eTitle values to string lengths in bytes for each menu item.
-.PROC DataA_Title_MenuItemLength_u8_arr
+.PROC DataC_Title_MenuItemLength_u8_arr
     D_ARRAY .enum, eTitle
-    d_byte TopContinue, .sizeof(DataA_Title_Letters_u8_arr::Continue)
-    d_byte TopNew,      .sizeof(DataA_Title_Letters_u8_arr::NewGame)
-    d_byte TopCredits,  .sizeof(DataA_Title_Letters_u8_arr::Credits)
-    d_byte NewCancel,   .sizeof(DataA_Title_Letters_u8_arr::Cancel)
-    d_byte NewDelete,   .sizeof(DataA_Title_Letters_u8_arr::Delete)
+    d_byte TopContinue, .sizeof(DataC_Title_Letters_u8_arr::Continue)
+    d_byte TopNew,      .sizeof(DataC_Title_Letters_u8_arr::NewGame)
+    d_byte TopCredits,  .sizeof(DataC_Title_Letters_u8_arr::Credits)
+    d_byte NewCancel,   .sizeof(DataC_Title_Letters_u8_arr::Cancel)
+    d_byte NewDelete,   .sizeof(DataC_Title_Letters_u8_arr::Delete)
     D_END
 .ENDPROC
 
 ;;; Maps from eTitle values to the base screen Y-position for each menu item.
-.PROC DataA_Title_MenuItemPosY_u8_arr
+.PROC DataC_Title_MenuItemPosY_u8_arr
     D_ARRAY .enum, eTitle
     d_byte TopContinue, 0 * kTitleMenuItemStridePx + kTitleMenuFirstItemY
     d_byte TopNew,      1 * kTitleMenuItemStridePx + kTitleMenuFirstItemY
@@ -207,7 +207,7 @@ Zp_Current_eTitle: .res 1
 ;;; The current Y-position for the title screen menu line.
 Zp_TitleMenuLinePosY_u8: .res 1
 
-;;; The index into DataA_Title_CheatSequence_bJoypad_arr for the next button to
+;;; The index into DataC_Title_CheatSequence_bJoypad_arr for the next button to
 ;;; press for the cheat code.
 Zp_CheatSequenceIndex_u8: .res 1
 
@@ -220,7 +220,7 @@ Zp_Cheat_eNewGame: .res 1
 
 ;;; The current vertical offset, in pixels, from the base Y-position for each
 ;;; letter of each title menu item.
-Ram_TitleLetterOffset_i8_arr: .res .sizeof(DataA_Title_Letters_u8_arr)
+Ram_TitleLetterOffset_i8_arr: .res .sizeof(DataC_Title_Letters_u8_arr)
 
 ;;;=========================================================================;;;
 
@@ -230,23 +230,22 @@ Ram_TitleLetterOffset_i8_arr: .res .sizeof(DataA_Title_Letters_u8_arr)
 ;;; @prereq Rendering is disabled.
 .EXPORT Main_Title
 .PROC Main_Title
-    main_prgc #<.bank(DataC_Title_Title_sMusic)
-    jmp_prga MainA_Title_Menu
+    jmp_prgc MainC_Title_Menu
 .ENDPROC
 
 ;;;=========================================================================;;;
 
-.SEGMENT "PRGA_Title"
+.SEGMENT "PRGC_Title"
 
 ;;; The tile ID grid for the game title (stored in row-major order).
-.PROC DataA_Title_Map_u8_arr
+.PROC DataC_Title_Map_u8_arr
 :   .incbin "out/data/title.map"
     .assert * - :- = kScreenWidthTiles * 3, error
 .ENDPROC
 
 ;;; The PPU transfer entry for displaying the confirmation message for deleting
 ;;; a saved game.
-.PROC DataA_Title_AreYouSureTransfer_arr
+.PROC DataC_Title_AreYouSureTransfer_arr
     .byte kPpuCtrlFlagsHorz
     .dbyt Ppu_TitleAreYouSureStart  ; transfer destination
     .byte kAreYouSureLength         ; transfer length
@@ -256,7 +255,7 @@ Ram_TitleLetterOffset_i8_arr: .res .sizeof(DataA_Title_Letters_u8_arr)
 
 ;;; The PPU transfer entry for hiding the confirmation message for deleting a
 ;;; saved game.
-.PROC DataA_Title_DoneConfirmTransfer_arr
+.PROC DataC_Title_DoneConfirmTransfer_arr
     .byte kPpuCtrlFlagsHorz
     .dbyt Ppu_TitleAreYouSureStart  ; transfer destination
     .byte kAreYouSureLength         ; transfer length
@@ -264,7 +263,7 @@ Ram_TitleLetterOffset_i8_arr: .res .sizeof(DataA_Title_Letters_u8_arr)
 .ENDPROC
 
 ;;; The sequence of button presses need for the New Game cheat code.
-.PROC DataA_Title_CheatSequence_bJoypad_arr
+.PROC DataC_Title_CheatSequence_bJoypad_arr
     .byte bJoypad::Down     ;   Down
     .byte bJoypad::Left     ;  lEft
     .byte bJoypad::BButton  ;   B
@@ -278,13 +277,13 @@ Ram_TitleLetterOffset_i8_arr: .res .sizeof(DataA_Title_Letters_u8_arr)
 ;;; Mode for displaying the title screen.
 ;;; @prereq PRGC_Title is loaded.
 ;;; @prereq Rendering is disabled.
-.PROC MainA_Title_Menu
-    jsr FuncA_Title_InitAndFadeIn
+.PROC MainC_Title_Menu
+    jsr FuncC_Title_InitAndFadeIn
 _GameLoop:
-    jsr FuncA_Title_DrawMenu
+    jsr FuncC_Title_DrawMenu
     jsr Func_ClearRestOfOamAndProcessFrame
     jsr Func_GetRandomByte  ; tick the RNG (and discard the result)
-    jsr FuncA_Title_TickMenu
+    jsr FuncC_Title_TickMenu
 _CheckForCheatInput:
     ;; Only allow the New Game cheat if there's no saved game data.
     lda Sram_MagicNumber_u8
@@ -295,13 +294,13 @@ _CheckForCheatInput:
     lda Zp_P1ButtonsPressed_bJoypad
     beq @done  ; no button pressed
     ldx Zp_CheatSequenceIndex_u8
-    cmp DataA_Title_CheatSequence_bJoypad_arr, x
+    cmp DataC_Title_CheatSequence_bJoypad_arr, x
     bne @resetCheatIndex  ; incorrect cheat sequence
     ;; If the cheat sequence has been fully entered, switch to the cheat menu.
     inx
-    cpx #.sizeof(DataA_Title_CheatSequence_bJoypad_arr)
+    cpx #.sizeof(DataC_Title_CheatSequence_bJoypad_arr)
     blt @setCheatIndex  ; cheat sequence still in progress
-    jmp MainA_Title_CheatMenu
+    jmp MainC_Title_CheatMenu
     @resetCheatIndex:
     ldx #0
     @setCheatIndex:
@@ -343,7 +342,7 @@ _HandleMenuItem:
     D_TABLE_LO table, _JumpTable_ptr_0_arr
     D_TABLE_HI table, _JumpTable_ptr_1_arr
     D_TABLE .enum, eTitle
-    d_entry table, TopContinue, MainA_Title_BeginGame
+    d_entry table, TopContinue, MainC_Title_BeginGame
     d_entry table, TopNew,      _MenuItemNewGame
     d_entry table, TopCredits,  _GameLoop  ; TODO
     d_entry table, NewCancel,   _MenuItemCancel
@@ -356,8 +355,8 @@ _MenuItemNewGame:
     cmp #kSaveMagicNumber
     bne _BeginNewGame
     ;; Otherwise, ask for confirmation before erasing the saved game.
-    ldax #DataA_Title_AreYouSureTransfer_arr  ; param: data pointer
-    ldy #.sizeof(DataA_Title_AreYouSureTransfer_arr)  ; param: data length
+    ldax #DataC_Title_AreYouSureTransfer_arr  ; param: data pointer
+    ldy #.sizeof(DataC_Title_AreYouSureTransfer_arr)  ; param: data length
     jsr Func_BufferPpuTransfer
     lda #eTitle::NewCancel
     sta Zp_Current_eTitle
@@ -366,8 +365,9 @@ _MenuItemNewGame:
     sta Zp_Last_eTitle
     jmp _GameLoop
 _BeginNewGame:
-    lda #eNewGame::Town  ; param: eNewGame value
-    jmp MainA_Title_BeginGame
+    ;; TODO: play a sound
+    jsr Func_FadeOutToBlack
+    jmp MainC_Title_Prologue
 _MenuItemDelete:
     lda #<~kSaveMagicNumber
     ;; Enable writes to SRAM.
@@ -380,8 +380,8 @@ _MenuItemDelete:
     sty Hw_Mmc3PrgRamProtect_wo
     ;; TODO: play a sound
 _MenuItemCancel:
-    ldax #DataA_Title_DoneConfirmTransfer_arr  ; param: data pointer
-    ldy #.sizeof(DataA_Title_DoneConfirmTransfer_arr)  ; param: data length
+    ldax #DataC_Title_DoneConfirmTransfer_arr  ; param: data pointer
+    ldy #.sizeof(DataC_Title_DoneConfirmTransfer_arr)  ; param: data length
     jsr Func_BufferPpuTransfer
     ldx #eTitle::TopCredits
     stx Zp_Last_eTitle
@@ -401,12 +401,12 @@ _MenuItemCancel:
 
 ;;; Mode for using the New Game cheat code menu.
 ;;; @prereq Rendering is enabled.
-.PROC MainA_Title_CheatMenu
+.PROC MainC_Title_CheatMenu
     jsr Func_Window_Disable
     lda #eNewGame::Town
     sta Zp_Cheat_eNewGame
 _GameLoop:
-    jsr FuncA_Title_DrawCheatMenu
+    jsr FuncC_Title_DrawCheatMenu
     jsr Func_ClearRestOfOamAndProcessFrame
 _CheckForMenuInput:
     ;; Check Up button.
@@ -434,14 +434,15 @@ _CheckForMenuInput:
     beq _GameLoop
 _BeginNewGame:
     lda Zp_Cheat_eNewGame  ; param: eNewGame value
-    fall MainA_Title_BeginGame
+    fall MainC_Title_BeginGame
 .ENDPROC
 
 ;;; Mode for starting the game, either continuing from existing save data (if
 ;;; any), or for a new game.
 ;;; @prereq Rendering is enabled.
 ;;; @param A The eNewGame value (ignored if save data exists).
-.PROC MainA_Title_BeginGame
+.EXPORT MainC_Title_BeginGame
+.PROC MainC_Title_BeginGame
     pha  ; eNewGame value
     ;; TODO: play a sound
     jsr Func_FadeOutToBlack
@@ -450,7 +451,7 @@ _BeginNewGame:
     cpx #kSaveMagicNumber
     beq @spawn
     tay  ; param: eNewGame value
-    jsr FuncA_Title_ResetSramForNewGame
+    jsr FuncC_Title_ResetSramForNewGame
     @spawn:
     jmp Main_Explore_SpawnInLastSafeRoom
 .ENDPROC
@@ -458,7 +459,7 @@ _BeginNewGame:
 ;;; Initializes title mode, then fades in the screen.
 ;;; @prereq PRGC_Title is loaded.
 ;;; @prereq Rendering is disabled.
-.PROC FuncA_Title_InitAndFadeIn
+.PROC FuncC_Title_InitAndFadeIn
     jsr Func_Window_Disable
     main_chr08_bank Ppu_ChrBgTitle
     main_chr10_bank Ppu_ChrObjPause
@@ -472,19 +473,19 @@ _StartMusic:
     sta Zp_Next_sAudioCtrl + sAudioCtrl::Music_eMusic
 _ClearNametables:
     ldxy #Ppu_Nametable0_sName  ; param: nametable addr
-    jsr FuncA_Title_ClearNametableTiles
+    jsr FuncC_Title_ClearNametableTiles
     ldxy #Ppu_Nametable3_sName  ; param: nametable addr
-    jsr FuncA_Title_ClearNametableTiles
+    jsr FuncC_Title_ClearNametableTiles
 _DrawTitleLogoBgTiles:
     lda #kPpuCtrlFlagsHorz
     sta Hw_PpuCtrl_wo
     ldax #Ppu_TitleTopLeft
     sta Hw_PpuAddr_w2
     stx Hw_PpuAddr_w2
-    ldy #.sizeof(DataA_Title_Map_u8_arr)
+    ldy #.sizeof(DataC_Title_Map_u8_arr)
     ldx #0
     @loop:
-    lda DataA_Title_Map_u8_arr, x
+    lda DataC_Title_Map_u8_arr, x
     sta Hw_PpuData_rw
     inx
     dey
@@ -531,12 +532,12 @@ _InitMenu:
     @setFirstItem:
     stx Zp_First_eTitle
     stx Zp_Current_eTitle
-    lda DataA_Title_MenuItemPosY_u8_arr, x
+    lda DataC_Title_MenuItemPosY_u8_arr, x
     sta Zp_TitleMenuLinePosY_u8
     lda #0
     sta Zp_CheatSequenceIndex_u8
 _FadeIn:
-    jsr FuncA_Title_DrawMenu
+    jsr FuncC_Title_DrawMenu
     lda #bPpuMask::BgMain | bPpuMask::ObjMain
     sta Zp_Render_bPpuMask
     lda #0
@@ -548,7 +549,8 @@ _FadeIn:
 ;;; Fills the specified nametable with blank BG tiles.
 ;;; @prereq Rendering is disabled.
 ;;; @param XY The PPU address for the nametable to clear.
-.PROC FuncA_Title_ClearNametableTiles
+.EXPORT FuncC_Title_ClearNametableTiles
+.PROC FuncC_Title_ClearNametableTiles
     lda #kPpuCtrlFlagsHorz
     sta Hw_PpuCtrl_wo
     bit Hw_PpuStatus_ro  ; reset the Hw_PpuAddr_w2 write-twice latch
@@ -567,11 +569,11 @@ _FadeIn:
 .ENDPROC
 
 ;;; Performs per-frame updates for the title screen menu.
-.PROC FuncA_Title_TickMenu
+.PROC FuncC_Title_TickMenu
 _TickMenuLine:
     ;; Get the goal Y-position for the menu line.
     ldx Zp_Current_eTitle
-    lda DataA_Title_MenuItemPosY_u8_arr, x
+    lda DataC_Title_MenuItemPosY_u8_arr, x
     ;; Compute the delta from the current menu line Y-position to the goal
     ;; position, storing it in A.  If the delta is zero, we're done.
     sub Zp_TitleMenuLinePosY_u8
@@ -608,7 +610,7 @@ _TickMenuItems:
     ;; Loop over all menu items.
     ldy #eTitle::NUM_VALUES - 1
     @loop:
-    jsr FuncA_Title_TickMenuItem  ; preserves Y
+    jsr FuncC_Title_TickMenuItem  ; preserves Y
     dey
     .assert eTitle::NUM_VALUES <= $80, error
     bpl @loop
@@ -619,10 +621,10 @@ _TickMenuItems:
 ;;; Performs per-frame updates for the specified title screen menu item.
 ;;; @param Y The eTitle value for the menu item to tick.
 ;;; @preserve Y
-.PROC FuncA_Title_TickMenuItem
-    lda DataA_Title_MenuItemLength_u8_arr, y
+.PROC FuncC_Title_TickMenuItem
+    lda DataC_Title_MenuItemLength_u8_arr, y
     sta T5  ; num letters remaining
-    ldx DataA_Title_MenuItemOffset_u8_arr, y
+    ldx DataC_Title_MenuItemOffset_u8_arr, y
 _Loop:
     cpy Zp_Current_eTitle
     beq @active
@@ -657,7 +659,7 @@ _Loop:
 .ENDPROC
 
 ;;; Draws objects and sets up IRQ for the title screen menu.
-.PROC FuncA_Title_DrawMenu
+.PROC FuncC_Title_DrawMenu
 _SetUpIrq:
     lda Zp_TitleMenuLinePosY_u8
     sta <(Zp_Buffered_sIrq + sIrq::Latch_u8)
@@ -666,7 +668,7 @@ _SetUpIrq:
 _DrawMenuWords:
     ldx Zp_First_eTitle
     @loop:
-    jsr FuncA_Title_DrawMenuItem  ; preserves X
+    jsr FuncC_Title_DrawMenuItem  ; preserves X
     inx
     cpx Zp_Last_eTitle
     blt @loop
@@ -677,16 +679,16 @@ _DrawMenuWords:
 ;;; Draws objects for the specified title screen menu item.
 ;;; @param X The eTitle value for the menu item to draw.
 ;;; @preserve X
-.PROC FuncA_Title_DrawMenuItem
+.PROC FuncC_Title_DrawMenuItem
     stx T3  ; eTitle value
-    lda DataA_Title_MenuItemLength_u8_arr, x
+    lda DataC_Title_MenuItemLength_u8_arr, x
     sta T2  ; num letters remaining
     mul #kTileWidthPx / 2
     rsub #kScreenWidthPx / 2
     sta T1  ; current X pos
-    lda DataA_Title_MenuItemPosY_u8_arr, x
+    lda DataC_Title_MenuItemPosY_u8_arr, x
     sta T0  ; base Y pos
-    lda DataA_Title_MenuItemOffset_u8_arr, x
+    lda DataC_Title_MenuItemOffset_u8_arr, x
     tax
 _Loop:
     jsr Func_AllocOneObject  ; preserves X and T0+, returns Y
@@ -697,7 +699,7 @@ _Loop:
     sta Ram_Oam_sObj_arr64 + sObj::XPos_u8, y
     add #kTileWidthPx
     sta T1  ; current X pos
-    lda DataA_Title_Letters_u8_arr, x
+    lda DataC_Title_Letters_u8_arr, x
     sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
     lda #kPaletteObjTitleMenuItem
     sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
@@ -709,7 +711,7 @@ _Loop:
 .ENDPROC
 
 ;;; Draws objects for the New Game cheat code menu.
-.PROC FuncA_Title_DrawCheatMenu
+.PROC FuncC_Title_DrawCheatMenu
 _DrawArrows:
     lda #4  ; param: num objects
     jsr Func_AllocObjects  ; returns Y
@@ -769,7 +771,7 @@ _DrawMenuItem:
     lda Zp_Cheat_eNewGame
     .assert eNewGame::NUM_VALUES * 8 < $100, error
     mul #8
-    tax  ; index into DataA_Title_NewGameName_u8_arr8_arr
+    tax  ; index into DataC_Title_NewGameName_u8_arr8_arr
     adc #8
     sta T1  ; index limit
     lda #(kScreenWidthPx - kTileWidthPx * 8) / 2
@@ -782,7 +784,7 @@ _DrawMenuItem:
     sta Ram_Oam_sObj_arr64 + sObj::XPos_u8, y
     add #kTileWidthPx
     sta T0  ; current X pos
-    lda DataA_Title_NewGameName_u8_arr8_arr, x
+    lda DataC_Title_NewGameName_u8_arr8_arr, x
     sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
     lda #kPaletteObjTitleMenuItem
     sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y

@@ -198,11 +198,11 @@ kSelectPrgc  = kMmc3BankFlags | eMmc3Bank::PrgBank8OrC
 ;;;     main_prga Zp_BankNumber_u8          ; gets bank number from variable
 ;;;     main_prga Data_Banks_u8_arr, x      ; gets bank number from array
 ;;;     main_prga (Zp_Banks_u8_arr_ptr), y  ; gets bank number from indirection
-;;;     main_prga x                         ; uses X as the bank number
+;;;     main_prga a                         ; uses A as the bank number
 .MACRO main_prga ARG1, ARG2
     .if .not .blank(ARG2)
     lda ARG1, ARG2
-    .else
+    .elseif .not .match({ARG1}, a)
     lda ARG1
     .endif
     jsr FuncM_SwitchPrgaBank
@@ -251,6 +251,30 @@ kSelectPrgc  = kMmc3BankFlags | eMmc3Bank::PrgBank8OrC
 .MACRO main_prgc ARG1, ARG2
     main_bank_select kSelectPrgc
     _bank_data ARG1, ARG2
+.ENDMACRO
+
+;;; Switches PRGC banks on the main thread, setting it to the bank number of
+;;; the given PRGC symbol.  The A register and the N and Z flags are destroyed
+;;; in the process.
+;;;
+;;; Examples:
+;;;     main_prgc_bank DataC_Foo_Bar_u8_arr
+.MACRO main_prgc_bank ARG
+    .assert ARG >= $c000 && ARG < $e000, error
+    main_prgc #<.bank(ARG)
+.ENDMACRO
+
+;;; Switches the PRGC bank number to that of the given function, then jumps to
+;;; that function; this is useful for jumping from a Main to a MainC.  Use this
+;;; only on the main thread.  Note that the A register and the N and Z flags
+;;; are destroyed by the bank-switching process, so this cannot be used for
+;;; functions that take any of those as arguments.
+;;;
+;;; Example:
+;;;     jmp_prgc MainC_Baz_Foobar  ; switches to PRGC_Baz and jumps to main
+.MACRO jmp_prgc ARG
+    main_prgc_bank ARG
+    jmp ARG
 .ENDMACRO
 
 ;;; Switches CHR00 banks on the main thread, setting it from the given value.

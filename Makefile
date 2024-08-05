@@ -26,6 +26,7 @@ DATA_OUT_DIR = $(OUTDIR)/data
 DM_OUT_DIR = $(OUTDIR)/samples
 LIB_OUT_DIR = $(OUTDIR)/lib
 MUSIC_OUT_DIR = $(OUTDIR)/music
+PCM_OUT_DIR = $(OUTDIR)/pcm
 ROOM_OUT_DIR = $(OUTDIR)/rooms
 SIM65_OUT_DIR = $(OUTDIR)/sim65
 TILE_OUT_DIR = $(OUTDIR)/tiles
@@ -38,6 +39,7 @@ BG2TSET = $(BUILD_OUT_DIR)/bg2tset
 LABEL2NL = $(BUILD_OUT_DIR)/label2nl
 SNG2ASM = $(BUILD_OUT_DIR)/sng2asm
 WAV2DM = $(BUILD_OUT_DIR)/wav2dm
+WAV2PCM = $(BUILD_OUT_DIR)/wav2pcm
 
 INC_FILES := $(shell find src -name '*.inc' | sort)
 
@@ -47,6 +49,8 @@ INST_DM_FILES := \
 SFX_WAV_FILES := $(shell find src/samples -name 'sfx_*.wav' | sort)
 SFX_DM_FILES := \
   $(patsubst src/samples/%.wav,$(DM_OUT_DIR)/%.dm,$(SFX_WAV_FILES))
+PCM_WAV_FILES := $(shell find src/pcm -name '*.wav' | sort)
+PCM_FILES := $(patsubst src/pcm/%.wav,$(PCM_OUT_DIR)/%.pcm,$(PCM_WAV_FILES))
 
 MUSIC_SNG_FILES := $(shell find src/music -name '*.sng' | sort)
 MUSIC_ASM_FILES := \
@@ -174,6 +178,9 @@ $(SNG2ASM): build/sng2asm.c $(BUILD_OUT_DIR)/util.o
 $(WAV2DM): build/wav2dm.c
 	$(compile-c-bin)
 
+$(WAV2PCM): build/wav2pcm.c
+	$(compile-c-bin)
+
 #=============================================================================#
 # Generated files:
 
@@ -220,6 +227,12 @@ $(DM_OUT_DIR)/%.dm: src/samples/%.wav $(WAV2DM)
 	@$(WAV2DM) < $< > $@
 .SECONDARY: $(INST_DM_FILES) $(SFX_DM_FILES)
 
+$(PCM_OUT_DIR)/%.pcm: src/pcm/%.wav $(WAV2PCM)
+	@echo "Converting $<"
+	@mkdir -p $(@D)
+	@$(WAV2PCM) < $< > $@
+.SECONDARY: $(PCM_FILES)
+
 $(ROM_BIN_FILE).ram.nl: $(ROM_LABEL_FILE) $(LABEL2NL)
 	@echo "Generating $@"
 	@mkdir -p $(@D)
@@ -256,6 +269,9 @@ $(OBJDIR)/inst.o: src/inst.asm $(INC_FILES) $(INST_DM_FILES)
 	$(compile-asm)
 
 $(OBJDIR)/minimap.o: src/minimap.asm $(INC_FILES) $(DATA_OUT_DIR)/minimap.map
+	$(compile-asm)
+
+$(OBJDIR)/pcm.o: src/pcm.asm $(INC_FILES) $(PCM_FILES)
 	$(compile-asm)
 
 $(OBJDIR)/sample.o: src/sample.asm $(INC_FILES) $(SFX_DM_FILES)

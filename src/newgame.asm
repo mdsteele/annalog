@@ -37,12 +37,12 @@
 
 ;;;=========================================================================;;;
 
-.SEGMENT "PRGA_Title"
+.SEGMENT "PRGC_Title"
 
 ;;; Erases all of SRAM and creates a save file for a new game.
 ;;; @param Y The eNewGame value to use to initialize the save file.
-.EXPORT FuncA_Title_ResetSramForNewGame
-.PROC FuncA_Title_ResetSramForNewGame
+.EXPORT FuncC_Title_ResetSramForNewGame
+.PROC FuncC_Title_ResetSramForNewGame
     ;; Enable writes to SRAM.
     lda #bMmc3PrgRam::Enable
     sta Hw_Mmc3PrgRamProtect_wo
@@ -67,9 +67,9 @@
     blt @minimapLoop
 .ENDIF
     ;; Set starting location.
-    lda DataA_Title_NewGameStarting_eRoom_arr, y
+    lda DataC_Title_NewGameStarting_eRoom_arr, y
     sta Sram_LastSafe_eRoom
-    lda DataA_Title_NewGameStarting_bSpawn_arr, y
+    lda DataC_Title_NewGameStarting_bSpawn_arr, y
     sta Sram_LastSafe_bSpawn
     ;; Mark the save file as present.
     lda #kSaveMagicNumber
@@ -79,25 +79,25 @@
     sta Hw_Mmc3PrgRamProtect_wo
 _SetFlags:
     ;; Set flags based on the eNewGame value.
-    lda DataA_Title_NewGameFirstMissing_eFlag_arr, y
+    lda DataC_Title_NewGameFirstMissing_eFlag_arr, y
     sta T1  ; first missing eFlag
     ldy #0
     beq @start  ; unconditional
     @loop:
-    sty T0  ; index into DataA_Title_NewGameFlags_eFlag_arr
+    sty T0  ; index into DataC_Title_NewGameFlags_eFlag_arr
     jsr Func_SetFlag  ; preserves T0+
-    ldy T0  ; index into DataA_Title_NewGameFlags_eFlag_arr
+    ldy T0  ; index into DataC_Title_NewGameFlags_eFlag_arr
     iny
     @start:
-    ldx DataA_Title_NewGameFlags_eFlag_arr, y
+    ldx DataC_Title_NewGameFlags_eFlag_arr, y
     cpx T1  ; first missing eFlag
     bne @loop
     rts
 .ENDPROC
 
 ;;; Maps from eNewGame values to 8-byte name strings.
-.EXPORT DataA_Title_NewGameName_u8_arr8_arr
-.PROC DataA_Title_NewGameName_u8_arr8_arr
+.EXPORT DataC_Title_NewGameName_u8_arr8_arr
+.PROC DataC_Title_NewGameName_u8_arr8_arr
     D_ARRAY .enum, eNewGame, 8
     d_byte Town,     "  TOWN  "
     d_byte Prison,   " PRISON "
@@ -129,7 +129,7 @@ _SetFlags:
 .ENDPROC
 
 ;;; Maps from eNewGame values to the starting room.
-.PROC DataA_Title_NewGameStarting_eRoom_arr
+.PROC DataC_Title_NewGameStarting_eRoom_arr
     D_ARRAY .enum, eNewGame
     d_byte Town,     eRoom::TownHouse2
     d_byte Prison,   eRoom::PrisonCell
@@ -161,7 +161,7 @@ _SetFlags:
 .ENDPROC
 
 ;;; Maps from eNewGame values to the starting spawn location.
-.PROC DataA_Title_NewGameStarting_bSpawn_arr
+.PROC DataC_Title_NewGameStarting_bSpawn_arr
     D_ARRAY .enum, eNewGame
     d_byte Town,     bSpawn::Device | 0
     d_byte Prison,   bSpawn::Device | 0
@@ -193,7 +193,7 @@ _SetFlags:
 .ENDPROC
 
 ;;; Maps from eNewGame values to the first flag to *not* start with.
-.PROC DataA_Title_NewGameFirstMissing_eFlag_arr
+.PROC DataC_Title_NewGameFirstMissing_eFlag_arr
     D_ARRAY .enum, eNewGame
     d_byte Town,     eFlag::PaperJerome36
     d_byte Prison,   eFlag::PaperJerome36
@@ -226,7 +226,7 @@ _SetFlags:
 
 ;;; A list of all flags that can potentially be set when starting a new game,
 ;;; in collection order.
-.PROC DataA_Title_NewGameFlags_eFlag_arr
+.PROC DataC_Title_NewGameFlags_eFlag_arr
     .byte eFlag::PaperJerome36
     .byte eFlag::PaperManual2
     .byte eFlag::PrisonCellReachedTunnel

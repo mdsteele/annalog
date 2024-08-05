@@ -387,13 +387,14 @@ Zp_GoalObj_eFade: .res 1
 
 ;;; Calls Func_ProcessFrame the specified number of times.
 ;;; @param X The number of frames to wait (must be nonzero).
-;;; @preserve X
+;;; @preserve X, T0+
+.EXPORT Func_WaitXFrames
 .PROC Func_WaitXFrames
     txa
     pha
     @waitLoop:
     pha
-    jsr Func_ProcessFrame
+    jsr Func_ProcessFrame  ; preserves T0+
     pla
     sub #1
     bne @waitLoop
