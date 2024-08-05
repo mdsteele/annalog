@@ -55,7 +55,6 @@
 .IMPORT FuncA_Room_InitAllMachinesAndCallRoomEnter
 .IMPORT FuncA_Terrain_DirectDrawWindowTopBorder
 .IMPORT FuncA_Terrain_InitRoomScrollAndNametables
-.IMPORT FuncA_Upgrade_ComputeMaxInstructions
 .IMPORT FuncM_DrawObjectsForRoomAndProcessFrame
 .IMPORT FuncM_ScrollTowardsAvatar
 .IMPORT FuncM_SwitchPrgcAndLoadRoom
@@ -135,7 +134,6 @@ Zp_Next_eCutscene: .res 1
 ;;; @prereq Rendering is disabled.
 .EXPORT Main_Explore_SpawnInLastSafeRoom
 .PROC Main_Explore_SpawnInLastSafeRoom
-    jsr_prga FuncA_Upgrade_ComputeMaxInstructions
     ldx Sram_LastSafe_eRoom  ; param: room to load
     jsr FuncM_SwitchPrgcAndLoadRoom
     jsr_prga FuncA_Avatar_SpawnAtLastSafePoint

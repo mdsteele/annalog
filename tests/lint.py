@@ -238,19 +238,23 @@ def run_tests():
                 if segment.startswith('PRGA_Text'):
                     match = DIALOG_TEXT_LINE_PATTERN.match(line)
                     if match:
+                        is_upgrade_text = '_Upgrade' in proc_stack[0]
                         text = parse_dialog_text(match.group(1))
                         if (dialog_text_lines and
                             is_end_of_dialog_text(dialog_text_lines[-1])):
                             fail('another dialog text line after end-of-text')
                         else:
                             dialog_text_lines.append(text)
-                            if len(dialog_text_lines) > 4:
-                                fail('too many dialog text lines')
+                            kind = 'upgrade' if is_upgrade_text else 'dialog'
+                            max_lines = 3 if is_upgrade_text else 4
+                            max_len = 25 if is_upgrade_text else 23
+                            if len(dialog_text_lines) > max_lines:
+                                fail(f'too many {kind} text lines')
                             elif not (text.endswith('$') or
                                       is_end_of_dialog_text(text)):
-                                fail('unterminated dialog text line')
-                            elif len(text) > 23:
-                                fail('over-long dialog text line')
+                                fail(f'unterminated {kind} text line')
+                            elif len(text) > max_len:
+                                fail(f'over-long {kind} text line')
     for (filepath, start_string, end_string, skip) in SORT_PATTERNS:
         def fail(message):
             print('LINT: {}: {}'.format(filepath, message))

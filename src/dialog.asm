@@ -269,6 +269,7 @@ Zp_DialogStatus_bDialog: .res 1
 Zp_Current_ePortrait: .res 1
 
 ;;; The index into Ram_DialogText_u8_arr for the next character to draw.
+.EXPORTZP Zp_DialogTextIndex_u8
 Zp_DialogTextIndex_u8: .res 1
 
 ;;; The window tile row/col where the next character of dialog text will be
@@ -291,6 +292,7 @@ Zp_Next_sDialog_ptr: .res kSizeofAddr
 
 ;;; A copy of the current pane of dialog text, including the end-of-line/text
 ;;; markers.
+.EXPORT Ram_DialogText_u8_arr
 Ram_DialogText_u8_arr: .res (kDialogTextMaxCols + 1) * kDialogNumTextRows
 
 ;;;=========================================================================;;;
@@ -421,6 +423,7 @@ _Finish:
 ;;; Ram_DialogText_u8_arr.
 ;;; @param T2 The PRGA bank that contains the dialog text.
 ;;; @param T1T0 A pointer to the start of the dialog text.
+.EXPORT FuncM_CopyDialogText
 .PROC FuncM_CopyDialogText
     main_prga T2
     ldy #$ff

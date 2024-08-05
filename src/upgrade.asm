@@ -22,6 +22,7 @@
 .INCLUDE "charmap.inc"
 .INCLUDE "cpu.inc"
 .INCLUDE "device.inc"
+.INCLUDE "dialog.inc"
 .INCLUDE "flag.inc"
 .INCLUDE "hud.inc"
 .INCLUDE "joypad.inc"
@@ -34,6 +35,7 @@
 .INCLUDE "upgrade.inc"
 .INCLUDE "window.inc"
 
+.IMPORT FuncM_CopyDialogText
 .IMPORT FuncM_DrawObjectsForRoomAndProcessFrame
 .IMPORT FuncM_ScrollTowardsAvatar
 .IMPORT FuncM_ScrollTowardsGoal
@@ -48,12 +50,14 @@
 .IMPORT Main_Explore_Continue
 .IMPORT Ram_DeviceTarget_byte_arr
 .IMPORT Ram_DeviceType_eDevice_arr
+.IMPORT Ram_DialogText_u8_arr
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORT Ram_PpuTransfer_arr
 .IMPORT Sram_ProgressFlags_arr
 .IMPORTZP Zp_AvatarHarmTimer_u8
 .IMPORTZP Zp_AvatarPose_eAvatar
 .IMPORTZP Zp_AvatarState_bAvatar
+.IMPORTZP Zp_DialogTextIndex_u8
 .IMPORTZP Zp_FloatingHud_bHud
 .IMPORTZP Zp_FrameCounter_u8
 .IMPORTZP Zp_MachineMaxInstructions_u8
@@ -120,11 +124,12 @@ Zp_UpgradePrev_eMusic: .res 1
 ;;; @prereq Zp_Nearby_bDevice holds an active upgrade device.
 .EXPORT Main_Upgrade_UseDevice
 .PROC Main_Upgrade_UseDevice
-    jsr_prga FuncA_Upgrade_Init
+    jsr_prga FuncA_Avatar_InitUpgradeMode  ; returns T2 and T1T0
+    jsr FuncM_CopyDialogText
 _GameLoop:
     jsr FuncM_DrawUpgradeObjectsAndProcessFrame
 _UpdateWindow:
-    jsr_prga FuncA_Upgrade_ScrollWindowUp  ; returns C
+    jsr_prga FuncA_Dialog_ScrollUpgradeWindowUp  ; returns C
     bcs Main_Upgrade_RunWindow
 _UpdateScrolling:
     jsr FuncM_ScrollTowardsGoal
@@ -176,11 +181,13 @@ _UpdateScrolling:
 
 ;;;=========================================================================;;;
 
-.SEGMENT "PRGA_Upgrade"
+.SEGMENT "PRGA_Avatar"
 
 ;;; Initializes upgrade mode.
 ;;; @prereq Zp_Nearby_bDevice holds an active upgrade device.
-.PROC FuncA_Upgrade_Init
+;;; @return T2 The PRGA bank number that contains the upgrade text.
+;;; @return T1T0 A pointer to the start of the upgrade text.
+.PROC FuncA_Avatar_InitUpgradeMode
     lda #0
     sta Zp_AvatarState_bAvatar
     sta Zp_AvatarHarmTimer_u8
@@ -210,22 +217,31 @@ _CollectUpgrade:
     jsr Func_SetLastSpawnPointToActiveDevice
     lda Zp_Nearby_bDevice
     and #bDevice::IndexMask
-    tax  ; device index
+    tay  ; device index
+    ldx Ram_DeviceTarget_byte_arr, y  ; eFlag value
+    stx Zp_CurrentUpgrade_eFlag
     ;; Remove the upgrade device from the room.
     lda #eDevice::None
-    sta Ram_DeviceType_eDevice_arr, x
+    sta Ram_DeviceType_eDevice_arr, y
+    .assert eDevice::None = 0, error
+    sta Zp_DialogTextIndex_u8
+    ;; Set up return values for FuncM_CopyDialogText.
+    lda DataA_Avatar_UpgradeText_ptr_0_arr, x
+    sta T0
+    lda DataA_Avatar_UpgradeText_ptr_1_arr, x
+    sta T1
+    lda #<.bank(DataA_Text3_UpgradeRam_u8_arr)
+    sta T2
     ;; Set the upgrade's flag in SRAM.
-    lda Ram_DeviceTarget_byte_arr, x
-    sta Zp_CurrentUpgrade_eFlag
-    tax  ; param: eFlag value
-    jsr Func_SetFlag
+    jsr Func_SetFlag  ; preserves T0+
     ;; Update Zp_MachineMaxInstructions_u8, in case we just got a RAM upgrade.
-    .assert * = FuncA_Upgrade_ComputeMaxInstructions, error, "fallthrough"
+    fall FuncA_Avatar_ComputeMaxInstructions  ; preserves T0+
 .ENDPROC
 
 ;;; Recomputes Zp_MachineMaxInstructions_u8 from Sram_ProgressFlags_arr.
-.EXPORT FuncA_Upgrade_ComputeMaxInstructions
-.PROC FuncA_Upgrade_ComputeMaxInstructions
+;;; @preserve T0+
+.EXPORT FuncA_Avatar_ComputeMaxInstructions
+.PROC FuncA_Avatar_ComputeMaxInstructions
     ;; Store the RAM upgrade flags in the bottom kNumRamUpgrades bits of A.
     .assert eFlag::UpgradeRam1 = 1, error
     .assert eFlag::UpgradeRam2 = 2, error
@@ -254,57 +270,45 @@ _CollectUpgrade:
     rts
 .ENDPROC
 
-.PROC DataA_Upgrade_Descriptions
-Ram1_u8_arr:      .byte "     PROGRAM RAM", $ff
-Ram2_u8_arr:      .byte "Increases max program", $ff
-Ram3_u8_arr:      .byte "size by 2 instructions.", $ff
-BRemote1_u8_arr:  .byte "       B-REMOTE", $ff
-BRemote2_u8_arr:  .byte "Uses the B button to", $ff
-BRemote3_u8_arr:  .byte "control the B register.", $ff
-OpIf1_u8_arr:     .byte "      IF OPCODE", $ff
-OpIf2_u8_arr:     .byte "Skips next instruction", $ff
-OpIf3_u8_arr:     .byte "unless condition is met.", $ff
-OpTil1_u8_arr:    .byte "      TIL OPCODE", $ff
-OpTil2_u8_arr:    .byte "Repeats last instruction", $ff
-OpTil3_u8_arr:    .byte "until condition is met.", $ff
-OpCopy1_u8_arr:   .byte "     COPY OPCODE", $ff
-OpCopy2_u8_arr:   .byte "Copies a value into a", $ff
-OpCopy3_u8_arr:   .byte "register.", $ff
-OpAddSub1_u8_arr: .byte "   ADD/SUB OPCODES", $ff
-OpAddSub2_u8_arr: .byte "Adds or subtracts one", $ff
-OpAddSub3_u8_arr: .byte "value from another.", $ff
-OpMul1_u8_arr:    .byte "      MUL OPCODE", $ff
-OpMul2_u8_arr:    .byte "Multiplies one value by", $ff
-OpMul3_u8_arr:    .byte "another.", $ff
-OpGoto1_u8_arr:   .byte "     GOTO OPCODE", $ff
-OpGoto2_u8_arr:   .byte "Jumps directly to a", $ff
-OpGoto3_u8_arr:   .byte "specific instruction.", $ff
-OpSkip1_u8_arr:   .byte "     SKIP OPCODE", $ff
-OpSkip2_u8_arr:   .byte "Skips over a variable", $ff
-OpSkip3_u8_arr:   .byte "number of instructions.", $ff
-OpRest1_u8_arr:   .byte "     REST OPCODE", $ff
-OpRest2_u8_arr:   .byte "Pauses execution for a", $ff
-OpRest3_u8_arr:   .byte "short time.", $ff
-OpSync1_u8_arr:   .byte "     SYNC OPCODE", $ff
-OpSync2_u8_arr:   .byte "Pauses execution until", $ff
-OpSync3_u8_arr:   .byte "all machines sync.", $ff
-OpBeep1_u8_arr:   .byte "     BEEP OPCODE", $ff
-OpBeep2_u8_arr:   .byte "Plays one of ten musical", $ff
-OpBeep3_u8_arr:   .byte "tones.", $ff
-.ENDPROC
+.REPEAT 2, table
+    D_TABLE_LO table, DataA_Avatar_UpgradeText_ptr_0_arr
+    D_TABLE_HI table, DataA_Avatar_UpgradeText_ptr_1_arr
+    D_TABLE kNumUpgradeFlags + kFirstUpgradeFlag
+    d_entry table, eFlag::None,            DataA_Text3_UpgradeRam_u8_arr
+    d_entry table, eFlag::UpgradeRam1,     DataA_Text3_UpgradeRam_u8_arr
+    d_entry table, eFlag::UpgradeRam2,     DataA_Text3_UpgradeRam_u8_arr
+    d_entry table, eFlag::UpgradeRam3,     DataA_Text3_UpgradeRam_u8_arr
+    d_entry table, eFlag::UpgradeRam4,     DataA_Text3_UpgradeRam_u8_arr
+    d_entry table, eFlag::UpgradeBRemote,  DataA_Text3_UpgradeBRemote_u8_arr
+    d_entry table, eFlag::UpgradeOpIf,     DataA_Text3_UpgradeOpIf_u8_arr
+    d_entry table, eFlag::UpgradeOpTil,    DataA_Text3_UpgradeOpTil_u8_arr
+    d_entry table, eFlag::UpgradeOpCopy,   DataA_Text3_UpgradeOpCopy_u8_arr
+    d_entry table, eFlag::UpgradeOpAddSub, DataA_Text3_UpgradeOpAddSub_u8_arr
+    d_entry table, eFlag::UpgradeOpMul,    DataA_Text3_UpgradeOpMul_u8_arr
+    d_entry table, eFlag::UpgradeOpBeep,   DataA_Text3_UpgradeOpBeep_u8_arr
+    d_entry table, eFlag::UpgradeOpGoto,   DataA_Text3_UpgradeOpGoto_u8_arr
+    d_entry table, eFlag::UpgradeOpSkip,   DataA_Text3_UpgradeOpSkip_u8_arr
+    d_entry table, eFlag::UpgradeOpRest,   DataA_Text3_UpgradeOpRest_u8_arr
+    d_entry table, eFlag::UpgradeOpSync,   DataA_Text3_UpgradeOpSync_u8_arr
+    D_END
+.ENDREPEAT
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Dialog"
 
 ;;; Scrolls the upgrade window in a bit, and transfers PPU data as needed; call
 ;;; this each frame when the window is opening.
 ;;; @return C Set if the window is now fully scrolled in.
-.PROC FuncA_Upgrade_ScrollWindowUp
-    jsr FuncA_Upgrade_TransferNextWindowRow
+.PROC FuncA_Dialog_ScrollUpgradeWindowUp
+    jsr FuncA_Dialog_TransferNextUpgradeWindowRow
     lda #kUpgradeWindowScrollSpeed  ; param: scroll by
     jmp Func_Window_ScrollUp  ; sets C if fully scrolled in
 .ENDPROC
 
 ;;; Transfers the next upgrade window row (if any) that still needs to be
 ;;; transferred to the PPU.
-.PROC FuncA_Upgrade_TransferNextWindowRow
+.PROC FuncA_Dialog_TransferNextUpgradeWindowRow
     ldy Zp_WindowNextRowToTransfer_u8
     dey
     cpy #kUpgradeNumInteriorRows
@@ -334,32 +338,17 @@ _Interior:
     dey
     bne @indentLoop
 _CopyUpgradeDescription:
-    ;; Store a pointer to the description text for this row in T1T0.
-    ldy Zp_WindowNextRowToTransfer_u8
-    dey
-    dey
-    sty T2  ; text row
-    lda Zp_CurrentUpgrade_eFlag
-    mul #2
-    adc Zp_CurrentUpgrade_eFlag
-    adc T2  ; text row
-    mul #kSizeofAddr
-    tay  ; kSizeofAddr * (eFlag * 3 + text_row)
-    lda _DescTable_ptr_arr, y
-    sta T0  ; text pointer (lo)
-    iny
-    lda _DescTable_ptr_arr, y
-    sta T1  ; text pointer (hi)
-    ;; Copy upgrade description.
-    ldy #0
+    ldy Zp_DialogTextIndex_u8
     @loop:
-    lda (T1T0), y
-    bmi @done
+    lda Ram_DialogText_u8_arr, y
+    iny
+    cmp #kDialogTextNewline
+    bge @break
     sta Ram_PpuTransfer_arr, x
     inx
-    iny
     bne @loop  ; unconditional
-    @done:
+    @break:
+    sty Zp_DialogTextIndex_u8
 _ClearRest:
     lda #' '
     @loop:
@@ -373,58 +362,6 @@ _ClearRest:
     lda #kTileIdBgWindowVert
     sta Ram_PpuTransfer_arr, x
     rts
-_DescTable_ptr_arr:
-    .res 6
-    .assert * - _DescTable_ptr_arr = 6 * kFirstRamUpgradeFlag, error
-    .repeat kNumRamUpgrades
-    .addr DataA_Upgrade_Descriptions::Ram1_u8_arr
-    .addr DataA_Upgrade_Descriptions::Ram2_u8_arr
-    .addr DataA_Upgrade_Descriptions::Ram3_u8_arr
-    .endrepeat
-    .assert * - _DescTable_ptr_arr = 6 * eFlag::UpgradeBRemote, error
-    .addr DataA_Upgrade_Descriptions::BRemote1_u8_arr
-    .addr DataA_Upgrade_Descriptions::BRemote2_u8_arr
-    .addr DataA_Upgrade_Descriptions::BRemote3_u8_arr
-    .assert * - _DescTable_ptr_arr = 6 * eFlag::UpgradeOpIf, error
-    .addr DataA_Upgrade_Descriptions::OpIf1_u8_arr
-    .addr DataA_Upgrade_Descriptions::OpIf2_u8_arr
-    .addr DataA_Upgrade_Descriptions::OpIf3_u8_arr
-    .assert * - _DescTable_ptr_arr = 6 * eFlag::UpgradeOpTil, error
-    .addr DataA_Upgrade_Descriptions::OpTil1_u8_arr
-    .addr DataA_Upgrade_Descriptions::OpTil2_u8_arr
-    .addr DataA_Upgrade_Descriptions::OpTil3_u8_arr
-    .assert * - _DescTable_ptr_arr = 6 * eFlag::UpgradeOpCopy, error
-    .addr DataA_Upgrade_Descriptions::OpCopy1_u8_arr
-    .addr DataA_Upgrade_Descriptions::OpCopy2_u8_arr
-    .addr DataA_Upgrade_Descriptions::OpCopy3_u8_arr
-    .assert * - _DescTable_ptr_arr = 6 * eFlag::UpgradeOpAddSub, error
-    .addr DataA_Upgrade_Descriptions::OpAddSub1_u8_arr
-    .addr DataA_Upgrade_Descriptions::OpAddSub2_u8_arr
-    .addr DataA_Upgrade_Descriptions::OpAddSub3_u8_arr
-    .assert * - _DescTable_ptr_arr = 6 * eFlag::UpgradeOpMul, error
-    .addr DataA_Upgrade_Descriptions::OpMul1_u8_arr
-    .addr DataA_Upgrade_Descriptions::OpMul2_u8_arr
-    .addr DataA_Upgrade_Descriptions::OpMul3_u8_arr
-    .assert * - _DescTable_ptr_arr = 6 * eFlag::UpgradeOpBeep, error
-    .addr DataA_Upgrade_Descriptions::OpBeep1_u8_arr
-    .addr DataA_Upgrade_Descriptions::OpBeep2_u8_arr
-    .addr DataA_Upgrade_Descriptions::OpBeep3_u8_arr
-    .assert * - _DescTable_ptr_arr = 6 * eFlag::UpgradeOpGoto, error
-    .addr DataA_Upgrade_Descriptions::OpGoto1_u8_arr
-    .addr DataA_Upgrade_Descriptions::OpGoto2_u8_arr
-    .addr DataA_Upgrade_Descriptions::OpGoto3_u8_arr
-    .assert * - _DescTable_ptr_arr = 6 * eFlag::UpgradeOpSkip, error
-    .addr DataA_Upgrade_Descriptions::OpSkip1_u8_arr
-    .addr DataA_Upgrade_Descriptions::OpSkip2_u8_arr
-    .addr DataA_Upgrade_Descriptions::OpSkip3_u8_arr
-    .assert * - _DescTable_ptr_arr = 6 * eFlag::UpgradeOpRest, error
-    .addr DataA_Upgrade_Descriptions::OpRest1_u8_arr
-    .addr DataA_Upgrade_Descriptions::OpRest2_u8_arr
-    .addr DataA_Upgrade_Descriptions::OpRest3_u8_arr
-    .assert * - _DescTable_ptr_arr = 6 * eFlag::UpgradeOpSync, error
-    .addr DataA_Upgrade_Descriptions::OpSync1_u8_arr
-    .addr DataA_Upgrade_Descriptions::OpSync2_u8_arr
-    .addr DataA_Upgrade_Descriptions::OpSync3_u8_arr
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -502,6 +439,82 @@ _YOffsets_u8_arr16:
     lda #kTileIdObjUpgradeBottomRight
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Tile_u8, y
     rts
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Text3"
+
+.PROC DataA_Text3_UpgradeRam_u8_arr
+    .byte "     PROGRAM RAM$"
+    .byte "Increases max program$"
+    .byte "size by 2 instructions.#"
+.ENDPROC
+
+.PROC DataA_Text3_UpgradeBRemote_u8_arr
+    .byte "       B-REMOTE$"
+    .byte "Uses the B button to$"
+    .byte "control the B register.#"
+.ENDPROC
+
+.PROC DataA_Text3_UpgradeOpIf_u8_arr
+    .byte "      IF OPCODE$"
+    .byte "Skips next instruction$"
+    .byte "unless condition is met.#"
+.ENDPROC
+
+.PROC DataA_Text3_UpgradeOpTil_u8_arr
+    .byte "      TIL OPCODE$"
+    .byte "Repeats last instruction$"
+    .byte "until condition is met.#"
+.ENDPROC
+
+.PROC DataA_Text3_UpgradeOpCopy_u8_arr
+    .byte "     COPY OPCODE$"
+    .byte "Copies a value into a$"
+    .byte "register.#"
+.ENDPROC
+
+.PROC DataA_Text3_UpgradeOpAddSub_u8_arr
+    .byte "   ADD/SUB OPCODES$"
+    .byte "Adds or subtracts one$"
+    .byte "value from another.#"
+.ENDPROC
+
+.PROC DataA_Text3_UpgradeOpMul_u8_arr
+    .byte "      MUL OPCODE$"
+    .byte "Multiplies one value by$"
+    .byte "another.#"
+.ENDPROC
+
+.PROC DataA_Text3_UpgradeOpGoto_u8_arr
+    .byte "     GOTO OPCODE$"
+    .byte "Jumps directly to a$"
+    .byte "specific instruction.#"
+.ENDPROC
+
+.PROC DataA_Text3_UpgradeOpSkip_u8_arr
+    .byte "     SKIP OPCODE$"
+    .byte "Skips over a variable$"
+    .byte "number of instructions.#"
+.ENDPROC
+
+.PROC DataA_Text3_UpgradeOpRest_u8_arr
+    .byte "     REST OPCODE$"
+    .byte "Pauses execution for a$"
+    .byte "short time.#"
+.ENDPROC
+
+.PROC DataA_Text3_UpgradeOpSync_u8_arr
+    .byte "     SYNC OPCODE$"
+    .byte "Pauses execution until$"
+    .byte "all machines sync.#"
+.ENDPROC
+
+.PROC DataA_Text3_UpgradeOpBeep_u8_arr
+    .byte "     BEEP OPCODE$"
+    .byte "Plays one of ten musical$"
+    .byte "tones.#"
 .ENDPROC
 
 ;;;=========================================================================;;;

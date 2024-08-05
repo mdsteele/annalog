@@ -30,6 +30,7 @@
 .INCLUDE "room.inc"
 .INCLUDE "spawn.inc"
 
+.IMPORT FuncA_Avatar_ComputeMaxInstructions
 .IMPORT FuncA_Avatar_InitMotionless
 .IMPORT FuncA_Room_InitAllMachines
 .IMPORT Func_TryPushAvatarVert
@@ -85,7 +86,7 @@ Zp_LastPoint_eRoom: .res 1
     lda Zp_Nearby_bDevice
     and #bDevice::IndexMask
     ora #bSpawn::Device  ; param: bSpawn value
-    .assert * = Func_SetLastSpawnPoint, error, "fallthrough"
+    fall Func_SetLastSpawnPoint
 .ENDPROC
 
 ;;; Sets the last spawn point to the specified point in the current room.  If
@@ -116,7 +117,7 @@ Zp_LastPoint_eRoom: .res 1
     @markSafe:
     and #<~bRoom::Unsafe
     sta Zp_Current_sRoom + sRoom::Flags_bRoom
-    .assert * = Func_UpdateLastSafePoint, error, "fallthrough"
+    fall Func_UpdateLastSafePoint
 .ENDPROC
 
 ;;; Copies Zp_LastPoint_* to Sram_LastSafe_*.
@@ -144,6 +145,7 @@ Zp_LastPoint_eRoom: .res 1
 ;;; @prereq The last safe room is loaded.
 .EXPORT FuncA_Avatar_SpawnAtLastSafePoint
 .PROC FuncA_Avatar_SpawnAtLastSafePoint
+    jsr FuncA_Avatar_ComputeMaxInstructions
     lda Sram_LastSafe_eRoom
     sta Zp_LastPoint_eRoom
     lda Sram_LastSafe_bSpawn
@@ -157,7 +159,7 @@ _SpawnAtDevice:
     jmp FuncA_Avatar_SpawnAtDevice
 _SpawnAtPassage:
     and #bSpawn::IndexMask  ; param: passage index
-    .assert * = FuncA_Avatar_SpawnAtPassage, error, "fallthrough"
+    fall FuncA_Avatar_SpawnAtPassage
 .ENDPROC
 
 ;;; Spawns the player avatar into the current room at the specified passage.
@@ -365,7 +367,7 @@ _FoundMatchingDoor:
     ora #bSpawn::Device  ; param: bSpawn value
     jsr Func_SetLastSpawnPoint  ; preserves X
     ;; Spawn the avatar.
-    .assert * = FuncA_Avatar_SpawnAtDevice, error, "fallthrough"
+    fall FuncA_Avatar_SpawnAtDevice
 .ENDPROC
 
 ;;; Spawns the player avatar into the current room at the specified device.
