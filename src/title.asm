@@ -224,17 +224,6 @@ Ram_TitleLetterOffset_i8_arr: .res .sizeof(DataC_Title_Letters_u8_arr)
 
 ;;;=========================================================================;;;
 
-.SEGMENT "PRG8"
-
-;;; Mode for displaying the title screen.
-;;; @prereq Rendering is disabled.
-.EXPORT Main_Title
-.PROC Main_Title
-    jmp_prgc MainC_Title_Menu
-.ENDPROC
-
-;;;=========================================================================;;;
-
 .SEGMENT "PRGC_Title"
 
 ;;; The tile ID grid for the game title (stored in row-major order).
@@ -277,6 +266,7 @@ Ram_TitleLetterOffset_i8_arr: .res .sizeof(DataC_Title_Letters_u8_arr)
 ;;; Mode for displaying the title screen.
 ;;; @prereq PRGC_Title is loaded.
 ;;; @prereq Rendering is disabled.
+.EXPORT MainC_Title_Menu
 .PROC MainC_Title_Menu
     jsr FuncC_Title_InitAndFadeIn
 _GameLoop:

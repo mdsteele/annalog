@@ -27,7 +27,7 @@
 .IMPORT Func_AudioReset
 .IMPORT Func_ClearRestOfOam
 .IMPORT Int_NoopIrq
-.IMPORT Main_Title
+.IMPORT MainC_Title_Menu
 .IMPORT Ppu_ChrBgFontLower
 .IMPORT Ppu_ChrObjAnnaNormal
 .IMPORTZP Zp_Active_sIrq
@@ -52,15 +52,24 @@ kSharedBgColor = $0f  ; black
     ;; Initialize stack pointer.
     dex  ; now x is $ff
     txs
-    ;; Set mapper PRG ROM bank for $a000 and jump to rest of reset code.
-    jmp_prga MainA_Reset_Ext
+    ;; Initialize the MMC and load PRGC_Title.  Since all NMI/IRQ interrupts
+    ;; are disabled at this point, we can just do this directly rather than
+    ;; using the main_prgc_bank macro, which uses extra instructions in order
+    ;; to be interrupt-safe.
+    lda #kSelectPrgc
+    sta Hw_Mmc3BankSelect_wo
+    lda #<.bank(MainC_Title_Reset)
+    sta Hw_Mmc3BankData_wo
+    ;; Jump to the rest of the reset code (stored in a swappable bank, to save
+    ;; valuable space in PRG8 and PRGE).
+    jmp MainC_Title_Reset
 .ENDPROC
 
 ;;;=========================================================================;;;
 
-.SEGMENT "PRGA_Reset"
+.SEGMENT "PRGC_Title"
 
-.PROC MainA_Reset_Ext
+.PROC MainC_Title_Reset
     ;; Enable SRAM, but disable writes for now.
     lda #bMmc3PrgRam::Enable | bMmc3PrgRam::DenyWrites
     sta Hw_Mmc3PrgRamProtect_wo
@@ -153,7 +162,7 @@ _Finish:
     sta Hw_PpuCtrl_wo        ; enable VBlank NMI
     sta Hw_Mmc3IrqEnable_wo  ; enable HBlank IRQ
     cli                      ; enable maskable (IRQ) interrupts
-    jmp Main_Title
+    jmp MainC_Title_Menu
 .ENDPROC
 
 ;;;=========================================================================;;;

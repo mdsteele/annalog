@@ -33,7 +33,7 @@ Zp_MainSelect_bMmc3Bank: .res 1
 
 ;;;=========================================================================;;;
 
-.SEGMENT "PRGE_Reset"
+.SEGMENT "PRG8"
 
 ;;; Switches PRGA banks to the given bank number.  This is called by the
 ;;; main_prga macro in mmc3.inc.  Putting these few loads and stores in a
@@ -41,10 +41,6 @@ Zp_MainSelect_bMmc3Bank: .res 1
 ;;; switch; because there are so many PRGA bank switches within PRG8 code, this
 ;;; adds up to a significant space savings.  (PRGC and CHR bank switches are
 ;;; less common, so we don't bother for those.)
-;;;
-;;; This function must be in PRGE rather than PRG8, so that it can be used in
-;;; Main_Reset to initialize the MMC3 (PRG8 can't be used until the MMC3 has
-;;; been initialized).
 ;;;
 ;;; @param A The PRGA bank number to switch to.
 ;;; @preserve X, Y, T0+
