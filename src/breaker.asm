@@ -97,7 +97,7 @@ Zp_BreakerBeingActivated_eFlag: .res 1
 ;;; @prereq Zp_Nearby_bDevice holds an active breaker device.
 .EXPORT Main_Breaker_UseDevice
 .PROC Main_Breaker_UseDevice
-    jmp_prga MainA_Breaker_FlipBreakerDevice
+    jmp_prga MainA_Cutscene_FlipBreakerDevice
 .ENDPROC
 
 ;;; Mode for the circuit-tracing cutscene that plays when activating a breaker.
@@ -117,7 +117,7 @@ Zp_BreakerBeingActivated_eFlag: .res 1
     ldx #eRoom::CoreBoss  ; param: room to load
     ldy #eMusic::Silence  ; param: music to play
     jsr FuncM_SwitchPrgcAndLoadRoomWithMusic
-    jmp_prga MainA_Breaker_EnterCoreRoom
+    jmp_prga MainA_Cutscene_EnterCoreBreakerRoom
 .ENDPROC
 
 ;;; Mode to fade out from the "power up circuit" cutscene and transition to the
@@ -127,9 +127,9 @@ Zp_BreakerBeingActivated_eFlag: .res 1
 .PROC Main_Breaker_TransitionToBreakerCutscene
     jsr Func_FadeOutToBlack
     main_chr00_bank Ppu_ChrBgFontLower
-    jsr_prga FuncA_Breaker_GetCutsceneRoomAndMusic  ; returns X and Y
+    jsr_prga FuncA_Cutscene_GetBreakerCutsceneRoomAndMusic  ; returns X and Y
     jsr FuncM_SwitchPrgcAndLoadRoomWithMusic
-    jmp_prga MainA_Breaker_EnterCutsceneRoom
+    jmp_prga MainA_Cutscene_EnterBreakerCutsceneRoom
 .ENDPROC
 
 ;;; Mode for fading to black from a breaker cutscene and switching back to
@@ -286,15 +286,11 @@ _BlinkCircuit:
     rts
 .ENDPROC
 
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Breaker"
-
 ;;; Mode for activating a circuit breaker device.
 ;;; @prereq Rendering is enabled.
 ;;; @prereq Explore mode is initialized.
 ;;; @prereq Zp_Nearby_bDevice holds an active breaker device.
-.PROC MainA_Breaker_FlipBreakerDevice
+.PROC MainA_Cutscene_FlipBreakerDevice
     lda Zp_Current_eRoom
     sta Zp_Breaker_eRoom
     ;; Set the spawn point and mark the breaker as activated.
@@ -322,7 +318,7 @@ _BlinkCircuit:
 ;;; Sets up the CoreBossPowerUpCircuit cutscene, then jumps to
 ;;; Main_Explore_EnterRoom.
 ;;; @prereq Rendering is disabled.
-.PROC MainA_Breaker_EnterCoreRoom
+.PROC MainA_Cutscene_EnterCoreBreakerRoom
     ;; Hide the player avatar.
     lda #eAvatar::Hidden
     sta Zp_AvatarPose_eAvatar
@@ -346,7 +342,7 @@ _BlinkCircuit:
 ;;; place in.
 ;;; @return X The eRoom value for the cutscene room.
 ;;; @return Y The eMusic value for the music to play in the cutscene room.
-.PROC FuncA_Breaker_GetCutsceneRoomAndMusic
+.PROC FuncA_Cutscene_GetBreakerCutsceneRoomAndMusic
     ;; Set Y to the eBreaker value for the breaker that just got activated.
     lda Zp_BreakerBeingActivated_eFlag
     .assert kFirstBreakerFlag > 0, error
@@ -385,7 +381,7 @@ _Cutscene_eCutscene_arr:
 ;;; then jumps to Main_Explore_EnterRoom.
 ;;; @prereq Rendering is disabled.
 ;;; @prereq Static room data is loaded.
-.PROC MainA_Breaker_EnterCutsceneRoom
+.PROC MainA_Cutscene_EnterBreakerCutsceneRoom
     ;; Hide the player avatar.
     lda #eAvatar::Hidden
     sta Zp_AvatarPose_eAvatar
