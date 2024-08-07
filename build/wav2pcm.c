@@ -113,38 +113,60 @@ int main(int argc, char **argv) {
   expect_u32("fmt subchunk size", 16);
   expect_u16("audio format", 1);  // 1 = PCM
   expect_u16("num channels", 1);
-  int sample_rate = read_u32("sample rate");
+  const int sample_rate = read_u32("sample rate");
   expect_u32("byte rate", sample_rate);
   expect_u16("bytes per sample", 1);
   expect_u16("bits per sample", 8);
 
   expect_tag("data");
-  unsigned long num_samples = read_u32("data subchunk size");
+  const unsigned long num_wav_samples = read_u32("data subchunk size");
+  const unsigned long num_pcm_bytes = 0x2000;
 
-  unsigned long num_pcm_bytes = 0x2000;
-  unsigned long num_padding_bytes =
-    num_pcm_bytes < num_samples ? 0 : num_pcm_bytes - num_samples;
-  unsigned long num_samples_to_use =
-    num_pcm_bytes < num_samples ? num_pcm_bytes : num_samples;
-  unsigned long num_samples_to_discard = num_samples - num_samples_to_use;
-
-  for (unsigned long i = 0; i < num_samples_to_use; ++i) {
-    unsigned char sample = read_u8("sample");
-    unsigned char pcm_byte = sample / 2;
-    fputc(pcm_byte, stdout);
+  unsigned long wav_samples_remaining = num_wav_samples;
+  unsigned long pcm_bytes_remaining = num_pcm_bytes;
+  unsigned long num_padding_samples = 0;
+  while (pcm_bytes_remaining > 0) {
+    // Each PCM sample is seven bits.  Collect eight PCM samples at a time.
+    unsigned char pcm_samples[8];
+    for (int i = 0; i < 8; ++i) {
+      if (wav_samples_remaining > 0) {
+        const unsigned char sample = read_u8("sample");
+        --wav_samples_remaining;
+        pcm_samples[i] = sample / 2;
+      } else {
+        pcm_samples[i] = 0x40;
+        ++num_padding_samples;
+      }
+    }
+    // Emit seven PCM bytes for each group of eight PCM samples.  For the ith
+    // byte, the bottom seven bits are the seven bits of pcm_samples[i], and
+    // the highest bit is the ith bit from the top of pcm_samples[7].
+    for (int i = 0; i < 7; ++i) {
+      const unsigned char pcm_byte =
+        pcm_samples[i] | (((pcm_samples[7] >> (6 - i)) & 1) << 7);
+      if (pcm_bytes_remaining > 0) {
+        fputc(pcm_byte, stdout);
+        --pcm_bytes_remaining;
+      }
+    }
   }
-  for (unsigned long i = 0; i < num_samples_to_discard; ++i) {
+  const unsigned long wav_samples_discarded = wav_samples_remaining;
+  while (wav_samples_remaining > 0) {
     read_u8("sample");
+    --wav_samples_remaining;
   }
   expect_eof();
-  for (unsigned long i = 0; i < num_padding_bytes; ++i) {
-    fputc(0x40, stdout);
-  }
 
-  fprintf(stderr, "    sample_rate       = %d\n", sample_rate);
-  fprintf(stderr, "    num_samples       = $%04lx\n", num_samples);
-  fprintf(stderr, "    num_padding_bytes = $%04lx\n", num_padding_bytes);
-  fprintf(stderr, "    samples_discarded = $%04lx\n", num_samples_to_discard);
+  fprintf(stderr, "    sample_rate           = %d Hz\n", sample_rate);
+  fprintf(stderr, "    num_wav_samples       = $%04lx (%4d ms)\n",
+          num_wav_samples,
+          (int)(1000 * (double)num_wav_samples / (double)sample_rate));
+  fprintf(stderr, "    num_padding_samples   = $%04lx (%4d ms)\n",
+          num_padding_samples,
+          (int)(1000 * (double)num_padding_samples / (double)sample_rate));
+  fprintf(stderr, "    wav_samples_discarded = $%04lx (%4d ms)\n",
+          wav_samples_discarded,
+          (int)(1000 * (double)wav_samples_discarded / (double)sample_rate));
   return EXIT_SUCCESS;
 }
 

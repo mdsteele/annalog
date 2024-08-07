@@ -63,43 +63,85 @@
 ;;; @prereq The PRGA bank for the PCM data is loaded.
 .EXPORT Func_PlayPrgaPcm
 .PROC Func_PlayPrgaPcm
-    ;; Disable all NMI and IRQ interrupts.
+    ;; Disable all interrupts.
     sei                 ; disable maskable (IRQ) interrupts
     ldx #0
     stx Hw_PpuCtrl_wo   ; disable VBlank NMI
-_PlayPcmData:
-    ldy #0    ; byte offset from base address
-    sty T0    ; base address (lo)
+_Initialize:
     lda #$a0
-    sta T1    ; base address (hi)
-    ldx #$20  ; num pages to play
-    ;; Loop over all of PRGA, sending one sample at a time to Hw_DmcLevel_wo,
-    ;; once every 218 cycles.
-    @sampleLoop:
-    pha  ; 3 cycles   (Just wasting time so that the
-    pla  ; 4 cycles    sample and page loops take the
-    nop  ; 2 cycles    same number of cycles.)
-    @pageLoop:
-    lda (T1T0), y       ; 5 cycles (no page is crossed because T0 = 0)
-    sta Hw_DmcLevel_wo  ; 4 cycles
-    ;; Waste 195 cycles so that the sample loop totals 218 cycles.
-    nop                 ; 2 cycles
-    lda #38             ; 2 cycles
-    sec                 ; 2 cycles
-    @busyLoop:
-    sbc #1              ; 2 cycles
-    bne @busyLoop       ; 3 cycles if taken, 2 if not (no page is crossed)
-    ;; Advance to the next sample.
-    iny                 ; 2 cycles
-    bne @sampleLoop     ; 3 cycles if taken, 2 if not (no page is crossed)
-    inc T1              ; 5 cycles
-    dex                 ; 2 cycles
-    bne @pageLoop       ; 3 cycles if taken, 2 if not (no page is crossed)
-    ;; Assert that all of the timing-sensitive code is in the same ROM page (so
-    ;; none of the branches will cross a page boundary, and thus all have
-    ;; predictable timing).
-    .assert (* / $100) = (_PlayPcmData / $100), error
+    sta T1  ; page addr (hi)
+    ldy #0  ; byte offset in page
+    sty T0  ; page addr (lo)
+    ldx #7  ; buffer bits needed
+    lda #$40
+    ;; We wish to play PCM data at 8192 samples per second.  An NTSC NES CPU
+    ;; runs at 1789773 cycles per second, so we must write one sample every 218
+    ;; cycles.
+_SampleLoop:
+    ;; [4 cycles] At this point, A holds the next sample; write it to the APU.
+    sta Hw_DmcLevel_wo                    ; 4 cycles
+    ;; [166 cycles] Waste some time to make the sample rate correct.
+    lda #15                               ; 2 cycles
+    @loop:
+    nop                                   ; 30 cycles (2 per iter)
+    nop                                   ; 30 cycles (2 per iter)
+    sec                                   ; 30 cycles (2 per iter)
+    sbc #1                                ; 30 cycles (2 per iter)
+    bne @loop                             ; 44 cycles (2 or 3 per iter)
+    ;; [48 cycles] Fetch the next sample.  If the eighth-sample buffer is full,
+    ;; use it; otherwise, read the next data byte.  Both of these branches end
+    ;; by jumping back up to _SampleLoop, and either one always takes exactly
+    ;; 48 cycles (including these next two instructions).
+    txa  ; buffer bits needed             ; 2 cycles
+    bne _ReadNextByte                     ; 2 or 3 cycles
+_UseBufferedSample:
+    ;; [36 cycles] Burn some cycles so that the _UseBufferedSample branch takes
+    ;; the same number of cycles as the _ReadNextByte branch.  Along the way,
+    ;; set buffer bits needed to 7, to indicate that the buffer is empty.
+    ldx #2  ; buffer bits needed          ; 2 cycles
+    @loop:
+    inx     ; buffer bits needed          ; 10 cycles (2 per iter)
+    cpx #7                                ; 10 cycles (2 per iter)
+    bne @loop                             ; 14 cycles (2 or 3 per iter)
+    ;; [8 cycles] Send the contents of eighth-sample buffer to the APU (after
+    ;; chopping off the top bit, which holds garbage data).
+    lda T2  ; eighth-sample buffer        ; 3 cycles
+    and #$7f                              ; 2 cycles
+    bpl _SampleLoop  ; unconditional      ; 3 cycles
+_ReadNextByte:
+    ;; [7 cycles] If there are no more data bytes to read (i.e. the page
+    ;; address is no longer in PRGA), then we're done.
+    lda T1  ; page addr (hi)              ; 3 cycles
+    cmp #$c0                              ; 2 cycles
+    bge _Finish                           ; 2 cycles (ignoring taken case)
+    ;; [19 cycles] Read the next data byte, shift its top bit into the bottom
+    ;; of the eighth-sample buffer, and send the bottom seven bits to the APU.
+    lda (T1T0), y                         ; 5 cycles
+    asl a                                 ; 2 cycles
+    rol T2  ; eighth-sample buffer        ; 5 cycles
+    dex     ; buffer bits needed          ; 2 cycles
+    lsr a                                 ; 2 cycles
+    sta T3  ; next sample                 ; 3 cycles
+    ;; [12 cycles] Increment the data pointer.  To do this, we increment Y (the
+    ;; byte offset within the ROM page), and when Y rolls over, we increment
+    ;; the high byte of the page address.  If Y doesn't roll over, we burn some
+    ;; cycles instead.
+    iny     ; byte offset in page         ; 2 cycles
+    bne @noPageFlip                       ; 2 or 3 cycles
+    inc T1  ; page addr (hi)              ; 5 cycles
+    bne @donePageFlip  ; unconditional    ; 3 cycles
+    @noPageFlip:
+    pha     ; (just burning cycles)       ; 3 cycles
+    pla     ; (just burning cycles)       ; 4 cycles
+    @donePageFlip:
+    ;; [5 cycles] Send the next sample to the APU.
+    lda T3  ; next sample                 ; 2 cycles
+    bpl _SampleLoop  ; unconditional      ; 3 cycles
 _Finish:
+    ;; The code between _SampleLoop and here is timing-sensitive, and assumes
+    ;; that none of its branch instructions will cross a page boundary (doing
+    ;; so would change their timing), so assert that that assumption is true.
+    .assert (* / $100) = (_SampleLoop / $100), error
     ;; Re-enable interrupts.
     lda #kPpuCtrlFlagsHorz
     sta Hw_PpuCtrl_wo   ; enable VBlank NMI
