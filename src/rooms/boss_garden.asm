@@ -247,7 +247,7 @@ _Ext_sRoomExt:
     d_addr Passages_sPassage_arr_ptr, 0
     d_addr Enter_func_ptr, FuncA_Room_BossGarden_EnterRoom
     d_addr FadeIn_func_ptr, Func_Noop
-    d_addr Tick_func_ptr, FuncC_Boss_Garden_TickRoom
+    d_addr Tick_func_ptr, FuncA_Room_BossGarden_TickRoom
     d_addr Draw_func_ptr, FuncA_Objects_DrawBoss
     D_END
 _TerrainData:
@@ -370,18 +370,6 @@ _Devices_sDevice_arr:
     d_addr Tick_func_ptr, FuncC_Boss_Garden_TickBoss
     d_addr Draw_func_ptr, FuncC_Boss_Garden_DrawBoss
     D_END
-.ENDPROC
-
-;;; Room tick function for the BossGarden room.
-;;; @prereq PRGA_Room is loaded.
-.PROC FuncC_Boss_Garden_TickRoom
-_MachineProjectiles:
-    lda #eActor::ProjGrenade  ; param: projectile type
-    jsr FuncA_Room_TurnProjectilesToSmokeIfConsoleOpen  ; preserves X
-_Boss:
-    .assert eBossMode::Dead = 0, error
-    lda Zp_RoomState + sState::Current_eBossMode  ; param: zero if boss is dead
-    jmp FuncA_Room_TickBoss
 .ENDPROC
 
 ;;; Performs per-frame upates for the boss (if it's still alive).
@@ -832,6 +820,16 @@ _BossIsAlive:
     lda #eBossMode::Waiting
     sta Zp_RoomState + sState::Current_eBossMode
     rts
+.ENDPROC
+
+.PROC FuncA_Room_BossGarden_TickRoom
+_MachineProjectiles:
+    lda #eActor::ProjGrenade  ; param: projectile type
+    jsr FuncA_Room_TurnProjectilesToSmokeIfConsoleOpen  ; preserves X
+_Boss:
+    .assert eBossMode::Dead = 0, error
+    lda Zp_RoomState + sState::Current_eBossMode  ; param: zero if boss is dead
+    jmp FuncA_Room_TickBoss
 .ENDPROC
 
 ;;; Checks if a grenade has hit a boss eye; if so, explodes the grenade and

@@ -309,7 +309,7 @@ _Ext_sRoomExt:
     d_addr Passages_sPassage_arr_ptr, 0
     d_addr Enter_func_ptr, FuncA_Room_BossCity_EnterRoom
     d_addr FadeIn_func_ptr, FuncA_Terrain_BossCity_FadeInRoom
-    d_addr Tick_func_ptr, FuncC_Boss_City_TickRoom
+    d_addr Tick_func_ptr, FuncA_Room_BossCity_TickRoom
     d_addr Draw_func_ptr, FuncC_Boss_City_DrawRoom
     D_END
 _TerrainData:
@@ -576,57 +576,6 @@ _Devices_sDevice_arr:
     .dbyt Ppu_BossRow3Start + 3  ; transfer destination
     .byte 2
     .byte $48, $49
-.ENDPROC
-
-;;; Room tick function for the BossCity room.
-;;; @prereq PRGA_Room is loaded.
-.PROC FuncC_Boss_City_TickRoom
-    ;; Check for a rocket (in this room, it's not possible for there to be more
-    ;; than one on screen at once).
-    lda #eActor::ProjRocket  ; param: actor type
-    jsr Func_FindActorWithType  ; returns C and X
-    bcs @done  ; no rocket found
-    ;; Check if the rocket has hit a platform (other than its launcher).
-    jsr Func_SetPointToActorCenter  ; preserves X
-    jsr Func_IsPointInAnySolidPlatform  ; preserves X, returns C and Y
-    bcc @done  ; no collision
-    cpy #kLauncherPlatformIndex
-    beq @done  ; still exiting launcher
-    ;; If the rocket hits the reloader, explode the rocket and shake the room.
-    cpy #kReloaderPlatformIndex
-    beq @shakeRoom
-    ;; If the rocket hits the boss's core, make the boss react to getting hit.
-    cpy #kBossCorePlatformIndex
-    bne @notBossCore
-    ;; TODO: play a sound for hurting the boss
-    lda #eBossMode::Hurt
-    sta Zp_RoomState + sState::Current_eBossMode
-    lda #kBossHurtCooldown
-    sta Zp_RoomState + sState::BossCooldown_u8
-    .assert kBossHurtCooldown > 0, error
-    bne @explodeRocket  ; unconditional
-    @notBossCore:
-    ;; If the rocket hits the left wall, damage the wall.
-    cpy #kLeftWallPlatformIndex
-    bne @explodeRocket
-    lda Ram_ActorPosY_i16_0_arr, x
-    sbc #kBossZoneTopY  ; carry bit is already set from the CPY
-    div #kBlockHeightPx
-    tay  ; damage bit index
-    lda Data_PowersOfTwo_u8_arr8, y
-    ora Zp_RoomState + sState::LeftWallDamage_u8
-    sta Zp_RoomState + sState::LeftWallDamage_u8
-    @shakeRoom:
-    lda #kRocketShakeFrames  ; param: num frames
-    jsr Func_ShakeRoom  ; preserves X
-    @explodeRocket:
-    jsr Func_InitActorSmokeExplosion
-    ;; TODO: play a sound for the rocket exploding
-    @done:
-_TickBoss:
-    .assert eBossMode::Dead = 0, error
-    lda Zp_RoomState + sState::Current_eBossMode  ; param: zero if boss dead
-    jmp FuncA_Room_TickBoss
 .ENDPROC
 
 ;;; Performs per-frame upates for the boss in this room.
@@ -1044,7 +993,6 @@ _RegR:
 
 .SEGMENT "PRGA_Room"
 
-;;; Room init function for the BossCity room.
 .PROC FuncA_Room_BossCity_EnterRoom
     ldax #DataC_Boss_City_sBoss  ; param: sBoss ptr
     jsr FuncA_Room_InitBoss  ; sets Z if boss is alive
@@ -1057,6 +1005,55 @@ _BossIsAlive:
     lda #eBossMode::Close
     sta Zp_RoomState + sState::Current_eBossMode
     rts
+.ENDPROC
+
+.PROC FuncA_Room_BossCity_TickRoom
+    ;; Check for a rocket (in this room, it's not possible for there to be more
+    ;; than one on screen at once).
+    lda #eActor::ProjRocket  ; param: actor type
+    jsr Func_FindActorWithType  ; returns C and X
+    bcs @done  ; no rocket found
+    ;; Check if the rocket has hit a platform (other than its launcher).
+    jsr Func_SetPointToActorCenter  ; preserves X
+    jsr Func_IsPointInAnySolidPlatform  ; preserves X, returns C and Y
+    bcc @done  ; no collision
+    cpy #kLauncherPlatformIndex
+    beq @done  ; still exiting launcher
+    ;; If the rocket hits the reloader, explode the rocket and shake the room.
+    cpy #kReloaderPlatformIndex
+    beq @shakeRoom
+    ;; If the rocket hits the boss's core, make the boss react to getting hit.
+    cpy #kBossCorePlatformIndex
+    bne @notBossCore
+    ;; TODO: play a sound for hurting the boss
+    lda #eBossMode::Hurt
+    sta Zp_RoomState + sState::Current_eBossMode
+    lda #kBossHurtCooldown
+    sta Zp_RoomState + sState::BossCooldown_u8
+    .assert kBossHurtCooldown > 0, error
+    bne @explodeRocket  ; unconditional
+    @notBossCore:
+    ;; If the rocket hits the left wall, damage the wall.
+    cpy #kLeftWallPlatformIndex
+    bne @explodeRocket
+    lda Ram_ActorPosY_i16_0_arr, x
+    sbc #kBossZoneTopY  ; carry bit is already set from the CPY
+    div #kBlockHeightPx
+    tay  ; damage bit index
+    lda Data_PowersOfTwo_u8_arr8, y
+    ora Zp_RoomState + sState::LeftWallDamage_u8
+    sta Zp_RoomState + sState::LeftWallDamage_u8
+    @shakeRoom:
+    lda #kRocketShakeFrames  ; param: num frames
+    jsr Func_ShakeRoom  ; preserves X
+    @explodeRocket:
+    jsr Func_InitActorSmokeExplosion
+    ;; TODO: play a sound for the rocket exploding
+    @done:
+_TickBoss:
+    .assert eBossMode::Dead = 0, error
+    lda Zp_RoomState + sState::Current_eBossMode  ; param: zero if boss dead
+    jmp FuncA_Room_TickBoss
 .ENDPROC
 
 ;;; Changes the boss's shell/core platforms' types from Harm to Zone.  Call

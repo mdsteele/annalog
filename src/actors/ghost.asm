@@ -80,6 +80,7 @@
     d_entry table, Idle,         Func_Noop
     d_entry table, Disappearing, FuncA_Actor_TickBadGhost_Disappearing
     d_entry table, Reappearing,  FuncA_Actor_TickBadGhost_Reappearing
+    d_entry table, Attacking,    Func_Noop
     D_END
 .ENDREPEAT
 .ENDPROC
@@ -103,6 +104,7 @@
     d_entry table, Idle,         Func_Noop
     d_entry table, Disappearing, FuncA_Actor_TickBadGhost_Disappearing
     d_entry table, Reappearing,  FuncA_Actor_TickBadGhost_Reappearing
+    d_entry table, Attacking,    Func_Noop
     D_END
 .ENDREPEAT
 .ENDPROC
@@ -162,6 +164,7 @@ _FirstTileId_u8_arr:
     d_byte Idle,         kTileIdObjMermaidGhostFirst + 0
     d_byte Disappearing, kTileIdObjMermaidGhostFirst + 0
     d_byte Reappearing,  kTileIdObjMermaidGhostFirst + 0
+    d_byte Attacking,    kTileIdObjMermaidGhostFirst + 6
     D_END
 .ENDPROC
 
@@ -196,6 +199,7 @@ _FirstTileId_u8_arr:
     d_byte Idle,         kTileIdObjOrcGhostFirst + 4
     d_byte Disappearing, kTileIdObjOrcGhostFirst + 4
     d_byte Reappearing,  kTileIdObjOrcGhostFirst + 4
+    d_byte Attacking,    kTileIdObjOrcGhostFirst + 8
     D_END
 .ENDPROC
 
