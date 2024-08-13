@@ -1039,9 +1039,8 @@ _DrawBoss:
     @rowLoop:
     ldx _BossRowStart_ptr_0_arr, y
     lda _BossRowStart_ptr_1_arr, y
-    bit Hw_PpuStatus_ro  ; reset the Hw_PpuAddr_w2 write-twice latch
-    sta Hw_PpuAddr_w2
-    stx Hw_PpuAddr_w2
+    sta Hw_PpuAddr_w2  ; PPU address (hi)
+    stx Hw_PpuAddr_w2  ; PPU address (lo)
     lda _BossRowFirstTileId_u8_arr, y
     ldx #kBossBodyWidthTiles
     clc
@@ -1070,7 +1069,6 @@ _DrawStripe:
     tax  ; PPU address (lo)
     lda #0
     adc #>Ppu_BossMarginStart
-    bit Hw_PpuStatus_ro  ; reset the Hw_PpuAddr_w2 write-twice latch
     sta Hw_PpuAddr_w2  ; PPU address (hi)
     stx Hw_PpuAddr_w2  ; PPU address (lo)
     pla  ; BG tile ID

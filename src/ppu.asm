@@ -100,19 +100,18 @@
 ;;; Writes the specified byte to a portion of the specified attribute table.
 ;;; @prereq Rendering is disabled.
 ;;; @param A The hi byte of the PPU address for the attribute table.
-;;; @param T0 The initial byte offset into the attribute table.
+;;; @param T0 The initial byte offset into the attribute table (0-63).
 ;;; @param X The number of bytes to write (1-64).
 ;;; @param Y The attribute byte value to write.
 ;;; @preserve Y
 .PROC Func_WriteToAttributeTable
-    bit Hw_PpuStatus_ro  ; reset the Hw_PpuAddr_w2 write-twice latch
-    sta Hw_PpuAddr_w2
+    sta Hw_PpuAddr_w2  ; PPU address (hi)
     lda T0  ; byte offset
     .assert <Ppu_Nametable0_sName .mod $100 = 0, error
     .assert <Ppu_Nametable3_sName .mod $100 = 0, error
     .assert <sName::Attrs_u8_arr64 .mod 64 = 0, error
     ora #<sName::Attrs_u8_arr64
-    sta Hw_PpuAddr_w2
+    sta Hw_PpuAddr_w2  ; PPU address (lo)
     lda #kPpuCtrlFlagsHorz
     sta Hw_PpuCtrl_wo
     @loop:

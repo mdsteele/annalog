@@ -132,30 +132,6 @@ _InitPpuMapping:
     main_chr0c_bank Ppu_ChrBgFontLower
     main_chr10_bank Ppu_ChrObjAnnaNormal
     main_chr18_bank Ppu_ChrObjAnnaNormal
-_InitAttributeTable0:
-    ;; Set all blocks in nametable 0 to use BG palette 0.
-    ldax #Ppu_Nametable0_sName + sName::Attrs_u8_arr64
-    bit Hw_PpuStatus_ro  ; reset the Hw_PpuAddr_w2 write-twice latch
-    sta Hw_PpuAddr_w2
-    stx Hw_PpuAddr_w2
-    lda #0
-    ldx #64
-    @loop:
-    sta Hw_PpuData_rw
-    dex
-    bne @loop
-_InitAttributeTable3:
-    ;; Set all blocks in nametable 3 to use BG palette 0.
-    ldax #Ppu_Nametable3_sName + sName::Attrs_u8_arr64
-    bit Hw_PpuStatus_ro  ; reset the Hw_PpuAddr_w2 write-twice latch
-    sta Hw_PpuAddr_w2
-    stx Hw_PpuAddr_w2
-    lda #0
-    ldx #64
-    @loop:
-    sta Hw_PpuData_rw
-    dex
-    bne @loop
 _Finish:
     ;; Enable interrupts and start the game.
     lda #kPpuCtrlFlagsHorz

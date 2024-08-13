@@ -543,7 +543,6 @@ _FadeIn:
 .PROC FuncC_Title_ClearNametableTiles
     lda #kPpuCtrlFlagsHorz
     sta Hw_PpuCtrl_wo
-    bit Hw_PpuStatus_ro  ; reset the Hw_PpuAddr_w2 write-twice latch
     .assert sName::Tiles_u8_arr = 0, error
     stx Hw_PpuAddr_w2
     sty Hw_PpuAddr_w2

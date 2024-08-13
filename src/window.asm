@@ -251,9 +251,8 @@ _Disable:
     lda #kPpuCtrlFlagsHorz
     sta Hw_PpuCtrl_wo
     ldax #Ppu_WindowTopLeft
-    bit Hw_PpuStatus_ro  ; reset the Hw_PpuAddr_w2 write-twice latch
-    sta Hw_PpuAddr_w2
-    stx Hw_PpuAddr_w2
+    sta Hw_PpuAddr_w2  ; PPU address (hi)
+    stx Hw_PpuAddr_w2  ; PPU address (lo)
     lda #' '
     sta Hw_PpuData_rw
     lda #kTileIdBgWindowTopLeft

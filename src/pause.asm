@@ -268,11 +268,10 @@ _FadeIn:
 .PROC FuncA_Pause_DirectDrawBg
     lda #kPpuCtrlFlagsHorz
     sta Hw_PpuCtrl_wo
-    bit Hw_PpuStatus_ro  ; reset the Hw_PpuAddr_w2 write-twice latch
 _BeginUpperNametable:
     ldax #Ppu_Nametable0_sName + sName::Tiles_u8_arr
-    sta Hw_PpuAddr_w2
-    stx Hw_PpuAddr_w2
+    sta Hw_PpuAddr_w2  ; PPU address (hi)
+    stx Hw_PpuAddr_w2  ; PPU address (lo)
     ldy #kScreenWidthTiles * 2  ; param: num blank tiles to draw
     jsr FuncA_Pause_DirectDrawBlankTiles
     jsr FuncA_Pause_DirectDrawWindowTopBorder

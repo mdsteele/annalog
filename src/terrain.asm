@@ -220,7 +220,6 @@ _TallRoom:
     sta T0  ; current room tile column index
     add #kScreenWidthTiles - 1
     sta T1  ; final room tile column index
-    bit Hw_PpuStatus_ro  ; reset the Hw_PpuAddr_w2 write-twice latch
     ldx #kPpuCtrlFlagsVert
     stx Hw_PpuCtrl_wo
 _TileColumnLoop:
@@ -235,9 +234,9 @@ _TileColumnLoop:
     ldx #>Ppu_Nametable0_sName
     .assert <Ppu_Nametable0_sName = 0, error
     lda T0  ; room tile column index
-    and #$1f
-    stx Hw_PpuAddr_w2
-    sta Hw_PpuAddr_w2
+    mod #kScreenWidthTiles
+    stx Hw_PpuAddr_w2  ; PPU address (hi)
+    sta Hw_PpuAddr_w2  ; PPU address (lo)
     @tileLoop:
     lda (Zp_TerrainColumn_u8_arr_ptr), y
     sty T2  ; room block row index
