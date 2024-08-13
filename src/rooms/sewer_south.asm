@@ -34,6 +34,7 @@
 .IMPORT DataA_Room_Sewer_sTileset
 .IMPORT FuncA_Machine_Error
 .IMPORT FuncA_Machine_GetMultiplexerMoveSpeed
+.IMPORT FuncA_Machine_MultiplexerWriteRegJ
 .IMPORT FuncA_Machine_ReachedGoal
 .IMPORT FuncA_Machine_StartWorking
 .IMPORT FuncA_Objects_DrawMultiplexerMachine
@@ -41,7 +42,8 @@
 .IMPORT Func_MovePlatformTopTowardPointY
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrObjSewer
-.IMPORT Ram_MachineGoalHorz_u8_arr
+.IMPORT Ram_MachineState1_byte_arr
+.IMPORT Ram_MachineState2_byte_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORTZP Zp_PointY_i16
 .IMPORTZP Zp_RoomState
@@ -126,7 +128,7 @@ _Machines_sMachine_arr:
     d_addr Init_func_ptr, FuncC_Sewer_SouthMultiplexer_InitReset
     d_addr ReadReg_func_ptr, FuncC_Sewer_SouthMultiplexer_ReadReg
     d_addr WriteReg_func_ptr, FuncA_Machine_SewerSouthMultiplexer_WriteReg
-    d_addr TryMove_func_ptr, FuncC_Sewer_SouthMultiplexer_TryMove
+    d_addr TryMove_func_ptr, FuncA_Machine_SewerSouthMultiplexer_TryMove
     d_addr TryAct_func_ptr, FuncA_Machine_Error
     d_addr Tick_func_ptr, FuncA_Machine_SewerSouthMultiplexer_Tick
     d_addr Draw_func_ptr, FuncC_Sewer_SouthMultiplexer_Draw
@@ -218,21 +220,6 @@ _Passages_sPassage_arr:
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
 .ENDPROC
 
-;;; Returns the platform index currently selected by the J register of the
-;;; SewerSouthMultiplexer machine.
-;;; @return Y The platform index.
-.PROC FuncC_Sewer_SouthMultiplexer_GetPlatformIndex
-    lda Ram_MachineGoalHorz_u8_arr + kMultiplexerMachineIndex  ; J register
-    .assert 9 >= kMultiplexerNumPlatforms, error
-    cmp #kMultiplexerNumPlatforms
-    blt @setIndex
-    sbc #kMultiplexerNumPlatforms  ; carry is already set
-    .assert 9 - kMultiplexerNumPlatforms < kMultiplexerNumPlatforms, error
-    @setIndex:
-    tay
-    rts
-.ENDPROC
-
 .PROC FuncC_Sewer_SouthMultiplexer_InitReset
     lda #kMultiplexerInitGoalY
     ldx #kMultiplexerNumPlatforms - 1
@@ -241,7 +228,8 @@ _Passages_sPassage_arr:
     dex
     bpl @loop
     inx  ; now X is zero
-    stx Ram_MachineGoalHorz_u8_arr + kMultiplexerMachineIndex  ; J register
+    stx Ram_MachineState1_byte_arr + kMultiplexerMachineIndex  ; J register
+    stx Ram_MachineState2_byte_arr + kMultiplexerMachineIndex  ; platform index
     rts
 .ENDPROC
 
@@ -249,10 +237,10 @@ _Passages_sPassage_arr:
     cmp #$f
     beq _ReadY
 _ReadJ:
-    lda Ram_MachineGoalHorz_u8_arr + kMultiplexerMachineIndex  ; J register
+    lda Ram_MachineState1_byte_arr + kMultiplexerMachineIndex  ; J register
     rts
 _ReadY:
-    jsr FuncC_Sewer_SouthMultiplexer_GetPlatformIndex  ; returns Y
+    ldy Ram_MachineState2_byte_arr + kMultiplexerMachineIndex  ; platform index
     lda #kMultiplexerMaxPlatformTop + kTileHeightPx
     sub Ram_PlatformTop_i16_0_arr, y
     div #kBlockHeightPx
@@ -264,8 +252,17 @@ _ReadY:
     jmp FuncA_Objects_DrawMultiplexerMachine
 .ENDPROC
 
-.PROC FuncC_Sewer_SouthMultiplexer_TryMove
-    jsr FuncC_Sewer_SouthMultiplexer_GetPlatformIndex  ; returns Y
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Machine"
+
+.PROC FuncA_Machine_SewerSouthMultiplexer_WriteReg
+    ldx #kMultiplexerNumPlatforms  ; param: number of movable platforms
+    jmp FuncA_Machine_MultiplexerWriteRegJ
+.ENDPROC
+
+.PROC FuncA_Machine_SewerSouthMultiplexer_TryMove
+    ldy Ram_MachineState2_byte_arr + kMultiplexerMachineIndex  ; platform index
     lda Zp_RoomState + sState::MultiplexerGoalVert_u8_arr, y
     cpx #eDir::Down
     beq @moveDown
@@ -290,15 +287,6 @@ _MinGoalY_u8_arr:
     .byte 0, 1, 1, 1, 1
 _MaxGoalY_u8_arr:
     .byte 9, 9, 8, 7, 8
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Machine"
-
-.PROC FuncA_Machine_SewerSouthMultiplexer_WriteReg
-    sta Ram_MachineGoalHorz_u8_arr + kMultiplexerMachineIndex  ; J register
-    rts
 .ENDPROC
 
 .PROC FuncA_Machine_SewerSouthMultiplexer_Tick

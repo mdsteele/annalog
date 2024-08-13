@@ -198,7 +198,7 @@ _ThrowDuckFood:
 .PROC DataA_Text2_SewerPoolSign_u8_arr
     .byte "    - NOTICE -$"
     .byte "$"
-    .byte "   Please do ", $9d, $9e, $9f, "$"
+    .byte "   Please do ", $ad, $ae, $af, "$"
     .byte "  feed the ducks.#"
 .ENDPROC
 

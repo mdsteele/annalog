@@ -32,6 +32,6 @@ kChrBankDiagramPump = $0a
 kTileIdBgDiagramPumpFirst = $e0
 
 ;;; The OBJ tile ID for the indicator light on a pump machine.
-kTileIdObjPumpLight = $83
+kTileIdObjPumpLight = $81
 
 ;;;=========================================================================;;;

@@ -18,8 +18,8 @@
 ;;;=========================================================================;;;
 
 ;;; State bytes for multiplexer machines:
-;;;   * State1: Unused.
-;;;   * State2: Unused.
+;;;   * State1: The value of the J register (0-9).
+;;;   * State2: The platform index of the selected platform.
 ;;;   * State3: Unused.
 
 ;;; The CHR bank number containing the diagram for multiplexer machines.

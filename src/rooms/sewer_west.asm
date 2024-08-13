@@ -35,6 +35,7 @@
 .IMPORT Data_Empty_sActor_arr
 .IMPORT FuncA_Machine_Error
 .IMPORT FuncA_Machine_GetMultiplexerMoveSpeed
+.IMPORT FuncA_Machine_MultiplexerWriteRegJ
 .IMPORT FuncA_Machine_ReachedGoal
 .IMPORT FuncA_Machine_StartWorking
 .IMPORT FuncA_Objects_DrawMultiplexerMachine
@@ -42,7 +43,8 @@
 .IMPORT Func_MovePlatformLeftTowardPointX
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrObjSewer
-.IMPORT Ram_MachineGoalVert_u8_arr
+.IMPORT Ram_MachineState1_byte_arr
+.IMPORT Ram_MachineState2_byte_arr
 .IMPORT Ram_PlatformLeft_i16_0_arr
 .IMPORTZP Zp_PointX_i16
 .IMPORTZP Zp_RoomState
@@ -191,7 +193,8 @@ _Passages_sPassage_arr:
 
 .PROC FuncC_Sewer_WestMultiplexer_InitReset
     lda #0
-    sta Ram_MachineGoalVert_u8_arr + kMultiplexerMachineIndex  ; J register
+    sta Ram_MachineState1_byte_arr + kMultiplexerMachineIndex  ; J register
+    sta Ram_MachineState2_byte_arr + kMultiplexerMachineIndex  ; platform index
     .assert kMultiplexerInitGoalX = 0, error
     ldx #kMultiplexerNumPlatforms - 1
     @loop:
@@ -202,13 +205,13 @@ _Passages_sPassage_arr:
 .ENDPROC
 
 .PROC FuncC_Sewer_WestMultiplexer_ReadReg
-    ldy Ram_MachineGoalVert_u8_arr + kMultiplexerMachineIndex  ; J register
     cmp #$e
     beq _ReadX
 _ReadJ:
-    tya
+    lda Ram_MachineState1_byte_arr + kMultiplexerMachineIndex  ; J register
     rts
 _ReadX:
+    ldy Ram_MachineState2_byte_arr + kMultiplexerMachineIndex  ; platform index
     lda Ram_PlatformLeft_i16_0_arr, y
     sub #<(kMultiplexerMinPlatformLeft - kTileWidthPx)
     div #kBlockWidthPx
@@ -227,12 +230,12 @@ _ReadX:
 ;;; @param A The value to write (0-9).
 ;;; @param X The register to write to ($c-$f).
 .PROC FuncA_Machine_SewerWestMultiplexer_WriteReg
-    sta Ram_MachineGoalVert_u8_arr + kMultiplexerMachineIndex  ; J register
-    rts
+    ldx #kMultiplexerNumPlatforms  ; param: number of movable platforms
+    jmp FuncA_Machine_MultiplexerWriteRegJ
 .ENDPROC
 
 .PROC FuncA_Machine_SewerWestMultiplexer_TryMove
-    ldy Ram_MachineGoalVert_u8_arr + kMultiplexerMachineIndex  ; J register
+    ldy Ram_MachineState1_byte_arr + kMultiplexerMachineIndex  ; J register
     lda Zp_RoomState + sState::MultiplexerGoalHorz_u8_arr, y
     cpx #eDir::Right
     bne @moveLeft

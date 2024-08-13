@@ -35,6 +35,7 @@
 .IMPORT DataA_Room_Sewer_sTileset
 .IMPORT FuncA_Machine_Error
 .IMPORT FuncA_Machine_GetMultiplexerMoveSpeed
+.IMPORT FuncA_Machine_MultiplexerWriteRegJ
 .IMPORT FuncA_Machine_ReachedGoal
 .IMPORT FuncA_Machine_StartWorking
 .IMPORT FuncA_Objects_DrawMultiplexerMachine
@@ -43,7 +44,8 @@
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrObjSewer
 .IMPORT Ram_DeviceType_eDevice_arr
-.IMPORT Ram_MachineGoalHorz_u8_arr
+.IMPORT Ram_MachineState1_byte_arr
+.IMPORT Ram_MachineState2_byte_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORT Sram_ProgressFlags_arr
 .IMPORTZP Zp_PointY_i16
@@ -133,9 +135,9 @@ _Machines_sMachine_arr:
     d_addr Init_func_ptr, FuncA_Room_SewerBasinMultiplexer_InitReset
     d_addr ReadReg_func_ptr, FuncC_Sewer_BasinMultiplexer_ReadReg
     d_addr WriteReg_func_ptr, FuncA_Machine_SewerBasinMultiplexer_WriteReg
-    d_addr TryMove_func_ptr, FuncC_Sewer_BasinMultiplexer_TryMove
+    d_addr TryMove_func_ptr, FuncA_Machine_SewerBasinMultiplexer_TryMove
     d_addr TryAct_func_ptr, FuncA_Machine_Error
-    d_addr Tick_func_ptr, FuncC_Sewer_BasinMultiplexer_Tick
+    d_addr Tick_func_ptr, FuncA_Machine_SewerBasinMultiplexer_Tick
     d_addr Draw_func_ptr, FuncC_Sewer_BasinMultiplexer_Draw
     d_addr Reset_func_ptr, FuncA_Room_SewerBasinMultiplexer_InitReset
     D_END
@@ -246,37 +248,62 @@ _Passages_sPassage_arr:
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
 .ENDPROC
 
-;;; Returns the platform index currently selected by the J register of the
-;;; SewerBasinMultiplexer machine.
-;;; @return Y The platform index.
-.PROC FuncC_Sewer_BasinMultiplexer_GetPlatformIndex
-    lda Ram_MachineGoalHorz_u8_arr + kMultiplexerMachineIndex  ; J register
-    bpl @start  ; unconditional
-    @loop:
-    sbc #kMultiplexerNumPlatforms  ; carry is already set
-    @start:
-    cmp #kMultiplexerNumPlatforms
-    bge @loop
-    tay
-    rts
-.ENDPROC
-
 .PROC FuncC_Sewer_BasinMultiplexer_ReadReg
     cmp #$f
     beq _ReadY
 _ReadJ:
-    lda Ram_MachineGoalHorz_u8_arr + kMultiplexerMachineIndex  ; J register
+    lda Ram_MachineState1_byte_arr + kMultiplexerMachineIndex  ; J register
     rts
 _ReadY:
-    jsr FuncC_Sewer_BasinMultiplexer_GetPlatformIndex  ; returns Y
+    ldy Ram_MachineState2_byte_arr + kMultiplexerMachineIndex  ; platform index
     lda #kMultiplexerMaxPlatformTop + kTileHeightPx
     sub Ram_PlatformTop_i16_0_arr, y
     div #kBlockHeightPx
     rts
 .ENDPROC
 
-.PROC FuncC_Sewer_BasinMultiplexer_TryMove
-    jsr FuncC_Sewer_BasinMultiplexer_GetPlatformIndex  ; returns Y
+.PROC FuncC_Sewer_BasinMultiplexer_Draw
+    ldx #kMultiplexerNumPlatforms  ; param: num platforms
+    jmp FuncA_Objects_DrawMultiplexerMachine
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Room"
+
+.PROC FuncA_Room_SewerBasin_EnterRoom
+    flag_bit Sram_ProgressFlags_arr, kUpgradeFlag
+    beq @done
+    lda #eDevice::None
+    sta Ram_DeviceType_eDevice_arr + kUpgradeDeviceIndex
+    @done:
+    rts
+.ENDPROC
+
+.PROC FuncA_Room_SewerBasinMultiplexer_InitReset
+    lda #kMultiplexerInitGoalY
+    ldx #kMultiplexerNumPlatforms - 1
+    @loop:
+    sta Zp_RoomState + sState::MultiplexerGoalVert_u8_arr, x
+    dex
+    bpl @loop
+    inx  ; now X is zero
+    stx Ram_MachineState1_byte_arr + kMultiplexerMachineIndex  ; J register
+    stx Ram_MachineState2_byte_arr + kMultiplexerMachineIndex  ; platform index
+    rts
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Machine"
+
+.PROC FuncA_Machine_SewerBasinMultiplexer_WriteReg
+    ldx #kMultiplexerNumPlatforms  ; param: number of movable platforms
+    jmp FuncA_Machine_MultiplexerWriteRegJ
+.ENDPROC
+
+.PROC FuncA_Machine_SewerBasinMultiplexer_TryMove
+    ldy Ram_MachineState2_byte_arr + kMultiplexerMachineIndex  ; platform index
     lda Zp_RoomState + sState::MultiplexerGoalVert_u8_arr, y
     cpx #eDir::Down
     beq @moveDown
@@ -300,7 +327,7 @@ _MaxGoalY_u8_arr:
     .byte 8, 6, 4
 .ENDPROC
 
-.PROC FuncC_Sewer_BasinMultiplexer_Tick
+.PROC FuncA_Machine_SewerBasinMultiplexer_Tick
     lda #0
     pha  ; num platforms done
     ldx #kMultiplexerNumPlatforms - 1
@@ -332,45 +359,6 @@ _Finish:
     bne @notReachedGoal
     jmp FuncA_Machine_ReachedGoal
     @notReachedGoal:
-    rts
-.ENDPROC
-
-.PROC FuncC_Sewer_BasinMultiplexer_Draw
-    ldx #kMultiplexerNumPlatforms  ; param: num platforms
-    jmp FuncA_Objects_DrawMultiplexerMachine
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Room"
-
-.PROC FuncA_Room_SewerBasin_EnterRoom
-    flag_bit Sram_ProgressFlags_arr, kUpgradeFlag
-    beq @done
-    lda #eDevice::None
-    sta Ram_DeviceType_eDevice_arr + kUpgradeDeviceIndex
-    @done:
-    rts
-.ENDPROC
-
-.PROC FuncA_Room_SewerBasinMultiplexer_InitReset
-    lda #kMultiplexerInitGoalY
-    ldx #kMultiplexerNumPlatforms - 1
-    @loop:
-    sta Zp_RoomState + sState::MultiplexerGoalVert_u8_arr, x
-    dex
-    bpl @loop
-    inx  ; now X is zero
-    stx Ram_MachineGoalHorz_u8_arr + kMultiplexerMachineIndex  ; J register
-    rts
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Machine"
-
-.PROC FuncA_Machine_SewerBasinMultiplexer_WriteReg
-    sta Ram_MachineGoalHorz_u8_arr + kMultiplexerMachineIndex  ; J register
     rts
 .ENDPROC
 

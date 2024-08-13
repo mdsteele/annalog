@@ -1402,9 +1402,8 @@ _chr_begin:
 .PROC Ppu_ChrObjSewer
     CHR2_BANK $80
     chr_inc "spike",              kTileIdObjSpike
-    chr_res $01
-    chr_inc "multiplexer",        kTileIdObjMultiplexerFirst
     chr_inc "pump_light",         kTileIdObjPumpLight
+    chr_inc "multiplexer",        kTileIdObjMultiplexerFirst
     chr_inc "platform_water",     kTileIdObjPlatformWaterFirst
     chr_inc "bad_jelly",          kTileIdObjBadJellyFirst
     chr_inc "machine_trombone",   kTileIdObjMachineTromboneFirst
