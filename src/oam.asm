@@ -272,7 +272,6 @@ Ram_Oam_sObj_arr64: .res .sizeof(sObj) * kNumOamSlots
 ;;; @return C Set if no OAM slot was allocated, cleared otherwise.
 ;;; @return Y The OAM byte offset for the allocated object.
 ;;; @preserve X, T0+
-.EXPORT FuncA_Objects_Alloc1x1Shape
 .PROC FuncA_Objects_Alloc1x1Shape
     ;; If the shape is offscreen horizontally, return without allocating any
     ;; objects.

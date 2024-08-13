@@ -43,7 +43,7 @@
 .IMPORT FuncA_Machine_Error
 .IMPORT FuncA_Machine_GenericTryMoveY
 .IMPORT FuncA_Machine_PumpTick
-.IMPORT FuncA_Objects_Alloc1x1Shape
+.IMPORT FuncA_Objects_Draw1x1Shape
 .IMPORT FuncA_Objects_DrawMonitorPlatform
 .IMPORT FuncA_Objects_DrawPumpMachine
 .IMPORT FuncA_Objects_DrawRocksPlatformHorz
@@ -66,7 +66,6 @@
 .IMPORT Ram_DeviceType_eDevice_arr
 .IMPORT Ram_MachineGoalVert_u8_arr
 .IMPORT Ram_MachineStatus_eMachine_arr
-.IMPORT Ram_Oam_sObj_arr64
 .IMPORT Ram_PlatformLeft_i16_0_arr
 .IMPORT Ram_PlatformLeft_i16_1_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
@@ -315,17 +314,13 @@ _Water:
     ;; Determine the width of the water in tiles, and draw that many objects.
     ldx _WaterWidth_u8_arr, y
     @loop:
-    jsr FuncA_Objects_Alloc1x1Shape  ; preserves X, returns C and Y
-    bcs @continue
     lda Zp_FrameCounter_u8
     div #8
-    and #$03
-    .assert kTileIdObjPlatformHotSpringFirst & $03 = 0, error
-    ora #kTileIdObjPlatformHotSpringFirst
-    sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
-    lda #kPaletteObjHotSpring | bObj::Pri
-    sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
-    @continue:
+    mod #4
+    .assert kTileIdObjPlatformHotSpringFirst .mod 4 = 0, error
+    ora #kTileIdObjPlatformHotSpringFirst  ; param: tile ID
+    ldy #kPaletteObjHotSpring | bObj::Pri  ; param: object flags
+    jsr FuncA_Objects_Draw1x1Shape  ; preserves X
     jsr FuncA_Objects_MoveShapeRightOneTile  ; preserves X
     dex
     bne @loop

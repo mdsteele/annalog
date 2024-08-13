@@ -18,13 +18,11 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "../macros.inc"
-.INCLUDE "../oam.inc"
 .INCLUDE "../ppu.inc"
 
-.IMPORT FuncA_Objects_Alloc1x1Shape
+.IMPORT FuncA_Objects_Draw1x1Shape
 .IMPORT FuncA_Objects_MoveShapeRightOneTile
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
-.IMPORT Ram_Oam_sObj_arr64
 .IMPORT Ram_PlatformLeft_i16_0_arr
 .IMPORT Ram_PlatformRight_i16_0_arr
 
@@ -59,13 +57,9 @@ kTileIdObjGirder = $04
     @loop:
     jsr FuncA_Objects_MoveShapeRightOneTile  ; preserves X
     @startLoop:
-    jsr FuncA_Objects_Alloc1x1Shape  ; preserves X, returns C and Y
-    bcs @continue
-    lda #kTileIdObjGirder
-    sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
-    lda #kPaletteObjGirder
-    sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
-    @continue:
+    lda #kTileIdObjGirder  ; param: tile ID
+    ldy #kPaletteObjGirder  ; param: object flags
+    jsr FuncA_Objects_Draw1x1Shape  ; preserves X
     dex
     bne @loop
     rts

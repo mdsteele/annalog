@@ -24,13 +24,12 @@
 .INCLUDE "lever.inc"
 
 .IMPORT FuncA_Machine_StartWaiting
-.IMPORT FuncA_Objects_Alloc1x1Shape
+.IMPORT FuncA_Objects_Draw1x1Shape
 .IMPORT FuncA_Objects_MoveShapeDownByA
 .IMPORT FuncA_Objects_MoveShapeRightOneTile
 .IMPORT FuncA_Objects_SetShapePosToDeviceTopLeft
 .IMPORT Ram_DeviceAnim_u8_arr
 .IMPORT Ram_DeviceTarget_byte_arr
-.IMPORT Ram_Oam_sObj_arr64
 .IMPORTZP Zp_RoomState
 
 ;;;=========================================================================;;;
@@ -208,8 +207,6 @@ _AdjustPosition:
     @moveDown:
     jsr FuncA_Objects_MoveShapeDownByA  ; preserves X and T0+
 _AllocateObject:
-    jsr FuncA_Objects_Alloc1x1Shape  ; preserves X and T0+, returns C and Y
-    bcs @done
     stx T2  ; device index
     ldx T0  ; animation frame
     lda T1  ; object flags
@@ -217,12 +214,10 @@ _AllocateObject:
     blt @noFlip
     eor #bObj::FlipH
     @noFlip:
-    sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
-    lda _LeverTileIds_u8_arr, x
-    sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
+    tay  ; param: object flags
+    lda _LeverTileIds_u8_arr, x  ; param: tile ID
     ldx T2  ; device index
-    @done:
-    rts
+    jmp FuncA_Objects_Draw1x1Shape  ; preserves X
 _LeverTileIds_u8_arr:
     .byte kTileIdObjLeverHandleDown
     .byte kTileIdObjLeverHandleUp

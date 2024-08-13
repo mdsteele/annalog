@@ -27,7 +27,7 @@
 .IMPORT FuncA_Actor_CenterHitsTerrain
 .IMPORT FuncA_Actor_HarmAvatarIfCollision
 .IMPORT FuncA_Actor_NegateVelX
-.IMPORT FuncA_Objects_Alloc1x1Shape
+.IMPORT FuncA_Objects_Draw1x1Shape
 .IMPORT FuncA_Objects_MoveShapeLeftHalfTile
 .IMPORT FuncA_Objects_MoveShapeUpOneTile
 .IMPORT FuncA_Objects_SetShapePosToActorCenter
@@ -39,7 +39,6 @@
 .IMPORT Ram_ActorState2_byte_arr
 .IMPORT Ram_ActorVelX_i16_0_arr
 .IMPORT Ram_ActorVelX_i16_1_arr
-.IMPORT Ram_Oam_sObj_arr64
 .IMPORTZP Zp_FrameCounter_u8
 
 ;;;=========================================================================;;;
@@ -149,26 +148,22 @@ _Expire:
     bcs _Tall
 _Short:
     lda #2
-    sta T0  ; num tiles
+    sta T2  ; num tiles
     lda #kTileIdObjBreakfireFirst + 4
-    sta T1  ; first tile ID
+    sta T3  ; first tile ID
     bne _Loop  ; unconditional
 _Tall:
     lda #3
-    sta T0  ; num tiles
+    sta T2  ; num tiles
     lda #kTileIdObjBreakfireFirst + 2
-    sta T1  ; first tile ID
+    sta T3  ; first tile ID
 _Loop:
-    jsr FuncA_Objects_Alloc1x1Shape  ; preserves X and T0+, returns C and Y
-    bcs @continue
-    lda T1  ; tile ID
-    sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
-    lda #kPaletteObjBreakfire
-    sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
-    @continue:
+    lda T3  ; param: tile ID
+    ldy #kPaletteObjBreakfire  ; param: object flags
+    jsr FuncA_Objects_Draw1x1Shape  ; preserves X and T2+
     jsr FuncA_Objects_MoveShapeUpOneTile  ; preserves X and T0+
-    dec T1  ; tile ID
-    dec T0  ; num tiles
+    dec T3  ; tile ID
+    dec T2  ; num tiles
     bne _Loop
     rts
 .ENDPROC

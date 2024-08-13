@@ -28,8 +28,8 @@
 .IMPORT FuncA_Machine_Error
 .IMPORT FuncA_Machine_ReachedGoal
 .IMPORT FuncA_Machine_StartWaiting
-.IMPORT FuncA_Objects_Alloc1x1Shape
 .IMPORT FuncA_Objects_Alloc2x1Shape
+.IMPORT FuncA_Objects_Draw1x1Shape
 .IMPORT FuncA_Objects_GetMachineLightTileId
 .IMPORT FuncA_Objects_MoveShapeDownOneTile
 .IMPORT FuncA_Objects_MoveShapeRightOneTile
@@ -210,23 +210,17 @@ _Delta_u8_arr:
 .PROC FuncA_Objects_DrawBridgeMachine
     ldy #sMachine::MainPlatform_u8
     lda (Zp_Current_sMachine_ptr), y
+    sta T2  ; pivot platform index
 _SegmentLoop:
-    pha  ; pivot platform index
-    jsr FuncA_Objects_SetShapePosToPlatformTopLeft  ; preserves X
-    jsr FuncA_Objects_Alloc1x1Shape ; preserves X, returns Y and C
-    bcs @continue
-    lda #kTileIdObjBridgeSegment
-    sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
-    lda #kPaletteObjBridgeSegment
-    sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
-    @continue:
-    pla  ; pivot platform index
-    sta T0  ; pivot platform index
+    jsr FuncA_Objects_SetShapePosToPlatformTopLeft  ; preserves X and T0+
+    lda #kTileIdObjBridgeSegment  ; param: tile ID
+    ldy #kPaletteObjBridgeSegment  ; param: object flags
+    jsr FuncA_Objects_Draw1x1Shape ; preserves X and T2+
     dex
-    cpx T0  ; pivot platform index
+    cpx T2  ; pivot platform index
     bne _SegmentLoop
 _MainMachine:
-    tax  ; param: platform index
+    ;; At this point, X holds the machine's pivot (main) platform index.
     jsr FuncA_Objects_SetShapePosToPlatformTopLeft
     jsr FuncA_Objects_MoveShapeDownOneTile
     ldy #sMachine::Flags_bMachine

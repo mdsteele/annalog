@@ -19,11 +19,10 @@
 
 .INCLUDE "../actor.inc"
 .INCLUDE "../macros.inc"
-.INCLUDE "../oam.inc"
 .INCLUDE "../ppu.inc"
 .INCLUDE "smoke.inc"
 
-.IMPORT FuncA_Objects_Alloc1x1Shape
+.IMPORT FuncA_Objects_Draw1x1Shape
 .IMPORT FuncA_Objects_MoveShapeDownByA
 .IMPORT FuncA_Objects_MoveShapeLeftByA
 .IMPORT FuncA_Objects_MoveShapeLeftOneTile
@@ -32,15 +31,16 @@
 .IMPORT FuncA_Objects_MoveShapeUpOneTile
 .IMPORT FuncA_Objects_SetShapePosToActorCenter
 .IMPORT Func_InitActorDefault
-.IMPORT Ram_ActorFlags_bObj_arr
 .IMPORT Ram_ActorState1_byte_arr
 .IMPORT Ram_ActorType_eActor_arr
-.IMPORT Ram_Oam_sObj_arr64
 
 ;;;=========================================================================;;;
 
 ;;; How long a smoke actor animates before disappearing, in frames.
 kSmokeNumFrames = 12
+
+;;; The OBJ palette number used for smoke explosion actors.
+kPaletteObjExplosion = 0
 
 ;;;=========================================================================;;;
 
@@ -108,16 +108,11 @@ _TopRight:
     add #kTileHeightPx  ; param: offset
     jsr FuncA_Objects_MoveShapeUpByA  ; preserves X
 _DrawSmokeParticle:
-    jsr FuncA_Objects_Alloc1x1Shape  ; preserves X
-    bcs @done
     lda Ram_ActorState1_byte_arr, x
     div #2
-    add #kTileIdObjSmokeFirst
-    sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
-    lda Ram_ActorFlags_bObj_arr, x
-    sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
-    @done:
-    rts
+    add #kTileIdObjSmokeFirst  ; param: tile ID
+    ldy #kPaletteObjExplosion  ; param: object flags
+    jmp FuncA_Objects_Draw1x1Shape  ; preserves X
 .ENDPROC
 
 ;;;=========================================================================;;;

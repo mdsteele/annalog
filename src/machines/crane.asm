@@ -25,7 +25,6 @@
 .INCLUDE "shared.inc"
 
 .IMPORT FuncA_Machine_GetGenericMoveSpeed
-.IMPORT FuncA_Objects_Alloc1x1Shape
 .IMPORT FuncA_Objects_Alloc2x2Shape
 .IMPORT FuncA_Objects_Draw1x1Shape
 .IMPORT FuncA_Objects_DrawGirderPlatform
@@ -144,23 +143,14 @@ _Claw:
     @done:
 _RightClaw:
     jsr FuncA_Objects_MoveShapeDownOneTile  ; preserves X
-    jsr FuncA_Objects_Alloc1x1Shape  ; preserves X; returns C and Y
-    bcs @done
-    txa  ; tile ID
-    sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
-    lda #kPaletteObjMachineLight | bObj::FlipH
-    sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
-    @done:
+    txa  ; param: tile ID
+    ldy #kPaletteObjMachineLight | bObj::FlipH  ; param: object flags
+    jsr FuncA_Objects_Draw1x1Shape  ; preserves X
 _LeftClaw:
     jsr FuncA_Objects_MoveShapeLeftOneTile  ; preserves X
-    jsr FuncA_Objects_Alloc1x1Shape  ; preserves X; returns C and Y
-    bcs @done
-    txa  ; tile ID
-    sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
-    lda #kPaletteObjMachineLight
-    sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
-    @done:
-    rts
+    txa  ; param: tile ID
+    ldy #kPaletteObjMachineLight  ; param: object flags
+    jmp FuncA_Objects_Draw1x1Shape
 .ENDPROC
 
 ;;; Draw implemention for trolley machines.
@@ -249,13 +239,9 @@ _DrawRope:
     jsr FuncA_Objects_MoveShapeRightByA  ; preserves X
     @loop:
     jsr FuncA_Objects_MoveShapeUpOneTile  ; preserves X
-    jsr FuncA_Objects_Alloc1x1Shape  ; preserves X, returns C and Y
-    bcs @continue
-    lda #kTileIdObjCraneRope
-    sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
-    lda #kPaletteObjRope
-    sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
-    @continue:
+    lda #kTileIdObjCraneRope  ; param: tile ID
+    ldy #kPaletteObjRope  ; param: object flags
+    jsr FuncA_Objects_Draw1x1Shape  ; preserves X, returns C and Y
     dex
     bne @loop
 _Return:
@@ -276,13 +262,9 @@ _Return:
     jsr FuncA_Objects_MoveShapeRightByA  ; preserves X
     @loop:
     jsr FuncA_Objects_MoveShapeDownOneTile  ; preserves X
-    jsr FuncA_Objects_Alloc1x1Shape  ; preserves X, returns C and Y
-    bcs @continue
-    lda #kTileIdObjTrolleyRope
-    sta Ram_Oam_sObj_arr64 + sObj::Tile_u8, y
-    lda #kPaletteObjRope
-    sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
-    @continue:
+    lda #kTileIdObjTrolleyRope  ; param: tile ID
+    ldy #kPaletteObjRope  ; param: object flags
+    jsr FuncA_Objects_Draw1x1Shape  ; preserves X
     dex
     bne @loop
     rts
