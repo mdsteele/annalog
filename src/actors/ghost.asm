@@ -24,6 +24,8 @@
 .INCLUDE "orc.inc"
 
 .IMPORT Data_PowersOfTwo_u8_arr8
+.IMPORT FuncA_Actor_FaceTowardsAvatar
+.IMPORT FuncA_Actor_SetPointInFrontOfActor
 .IMPORT FuncA_Objects_BobActorShapePosUpAndDown
 .IMPORT FuncA_Objects_Draw2x2Shape
 .IMPORT FuncA_Objects_Draw2x3TownsfolkShape
@@ -32,13 +34,29 @@
 .IMPORT FuncA_Objects_MoveShapeVert
 .IMPORT FuncA_Objects_SetShapePosToActorCenter
 .IMPORT Func_Cosine
+.IMPORT Func_FindEmptyActorSlot
+.IMPORT Func_GetAngleFromPointToAvatar
+.IMPORT Func_GetRandomByte
+.IMPORT Func_InitActorProjFireball
 .IMPORT Func_InitActorWithState1
+.IMPORT Func_MovePointUpByA
 .IMPORT Func_Noop
+.IMPORT Func_SetActorCenterToPoint
+.IMPORT Func_SetPointToActorCenter
 .IMPORT Func_SignedMult
 .IMPORT Func_Sine
 .IMPORT Ram_ActorFlags_bObj_arr
 .IMPORT Ram_ActorState1_byte_arr
 .IMPORT Ram_ActorState2_byte_arr
+.IMPORT Ram_ActorState4_byte_arr
+
+;;;=========================================================================;;;
+
+;;; How long a mermaid ghost attack salve lasts, in frames.
+kBadGhostMermaidAttackFrames = 100
+
+;;; How long an orc ghost poses after attacking, in frames.
+kBadGhostOrcAttackFrames = 70
 
 ;;;=========================================================================;;;
 
@@ -77,10 +95,10 @@
     D_TABLE_HI table, _JumpTable_ptr_1_arr
     D_TABLE .enum, eBadGhost
     d_entry table, Absent,       Func_Noop
-    d_entry table, Idle,         Func_Noop
+    d_entry table, Idle,         FuncA_Actor_FaceTowardsAvatar
     d_entry table, Disappearing, FuncA_Actor_TickBadGhost_Disappearing
     d_entry table, Reappearing,  FuncA_Actor_TickBadGhost_Reappearing
-    d_entry table, Attacking,    Func_Noop
+    d_entry table, Attacking,    FuncA_Actor_TickBadGhostMermaid_Attacking
     D_END
 .ENDREPEAT
 .ENDPROC
@@ -101,10 +119,10 @@
     D_TABLE_HI table, _JumpTable_ptr_1_arr
     D_TABLE .enum, eBadGhost
     d_entry table, Absent,       Func_Noop
-    d_entry table, Idle,         Func_Noop
+    d_entry table, Idle,         FuncA_Actor_FaceTowardsAvatar
     d_entry table, Disappearing, FuncA_Actor_TickBadGhost_Disappearing
     d_entry table, Reappearing,  FuncA_Actor_TickBadGhost_Reappearing
-    d_entry table, Attacking,    Func_Noop
+    d_entry table, Attacking,    FuncA_Actor_TickBadGhostOrc_Attacking
     D_END
 .ENDREPEAT
 .ENDPROC
@@ -119,7 +137,7 @@
     lda Ram_ActorState2_byte_arr, x  ; mode timer
     cmp #kBadGhostAppearFrames
     blt @done
-    ;; When the timer finishes, make the ghost absent (and clear its timer).
+    ;; When the timer finishes, make the ghost absent and clear its timer.
     lda #eBadGhost::Absent
     sta Ram_ActorState1_byte_arr, x  ; current eBadGhost mode
     .assert eBadGhost::Absent = 0, error
@@ -133,13 +151,111 @@
 ;;; @param X The actor index.
 ;;; @preserve X
 .PROC FuncA_Actor_TickBadGhost_Reappearing
-    ;; Increment timer until it reaches zero.
+    ;; Decrement timer until it reaches zero.
     dec Ram_ActorState2_byte_arr, x  ; mode timer
     bne @done
     ;; When the timer finishes, make the ghost idle.  Its timer will already be
     ;; clear.
     lda #eBadGhost::Idle
     sta Ram_ActorState1_byte_arr, x  ; current eBadGhost mode
+    @done:
+    rts
+.ENDPROC
+
+;;; Performs per-frame updates for a mermaid ghost baddie actor that's in
+;;; Attacking mode.
+;;; @param X The actor index.
+;;; @preserve X
+.PROC FuncA_Actor_TickBadGhostMermaid_Attacking
+    jsr FuncA_Actor_FaceTowardsAvatar  ; preserves X
+_ShootProjectile:
+    ;; Shoot a fireball every 16 frames.
+    lda Ram_ActorState2_byte_arr, x  ; mode timer
+    mod #16
+    cmp #15
+    bne @done
+    ;; Position the point in fromt of the mermaid ghost's hands.
+    lda #8  ; param: offset
+    jsr FuncA_Actor_SetPointInFrontOfActor  ; preserves X
+    lda #4  ; param: offset
+    jsr Func_MovePointUpByA  ; preserves X
+    ;; Shoot a fireball towards the player avatar.
+    stx T4  ; mermaid ghost actor index
+    jsr Func_FindEmptyActorSlot  ; preserves T0+, returns C and X
+    bcs @break  ; no room for any more projectiles
+    jsr Func_SetActorCenterToPoint  ; preserves X and T0+
+    jsr Func_GetAngleFromPointToAvatar  ; preserves X and T4+, returns A
+    sta T0  ; center angle
+    ;; Randomize the fireball angle +/- 4 binary degrees.
+    jsr Func_GetRandomByte  ; preserves T0+, returns A
+    mod #8
+    sub #4
+    add T0  ; center angle
+    jsr Func_InitActorProjFireball  ; preserves T3+
+    @break:
+    ldx T4  ; mermaid ghost actor index
+    @done:
+_IncrementTimer:
+    ;; Increment timer until it reaches its end value.
+    inc Ram_ActorState2_byte_arr, x  ; mode timer
+    lda Ram_ActorState2_byte_arr, x  ; mode timer
+    cmp #kBadGhostMermaidAttackFrames
+    blt @done
+    ;; When the timer finishes, make the ghost idle and clear its timer.
+    lda #eBadGhost::Idle
+    sta Ram_ActorState1_byte_arr, x  ; current eBadGhost mode
+    lda #0
+    sta Ram_ActorState2_byte_arr, x  ; mode timer
+    @done:
+    rts
+.ENDPROC
+
+;;; Performs per-frame updates for a orc ghost baddie actor that's in Attacking
+;;; mode.
+;;; @param X The actor index.
+;;; @preserve X
+.PROC FuncA_Actor_TickBadGhostOrc_Attacking
+_ShootProjectiles:
+    ;; If the timer is still at zero, fire a ring of projectiles.
+    lda Ram_ActorState2_byte_arr, x  ; mode timer
+    bne @done
+    ;; Choose a random angle delta of -1 or 1.
+    jsr Func_GetRandomByte  ; preserves X, returns A
+    mod #2  ; now A is 0 or 1
+    mul #2  ; now A is 0 or 2
+    tay     ; now Y is 0 or 2
+    dey     ; now Y is -1 or 1
+    sty T5  ; angle delta
+    ;; Fire a ring of projectiles.
+    jsr Func_SetPointToActorCenter  ; preserves X
+    stx T4  ; orc ghost actor index
+    lda #10  ; starting angle
+    @loop:
+    sta T3  ; current angle
+    jsr Func_FindEmptyActorSlot  ; preserves T0+, returns C and X
+    bcs @break  ; no room for any more projectiles
+    jsr Func_SetActorCenterToPoint  ; preserves X and T0+
+    lda T3  ; param: angle
+    jsr Func_InitActorProjFireball  ; preserves X and T3+
+    lda T5  ; angle delta
+    sta Ram_ActorState4_byte_arr, x  ; angle delta
+    lda T3  ; param: angle
+    add #43  ; tau/6 (approximately)
+    bcc @loop
+    @break:
+    ldx T4  ; orc ghost actor index
+    @done:
+_IncrementTimer:
+    ;; Increment timer until it reaches its end value.
+    inc Ram_ActorState2_byte_arr, x  ; mode timer
+    lda Ram_ActorState2_byte_arr, x  ; mode timer
+    cmp #kBadGhostOrcAttackFrames
+    blt @done
+    ;; When the timer finishes, make the ghost idle and clear its timer.
+    lda #eBadGhost::Idle
+    sta Ram_ActorState1_byte_arr, x  ; current eBadGhost mode
+    lda #0
+    sta Ram_ActorState2_byte_arr, x  ; mode timer
     @done:
     rts
 .ENDPROC

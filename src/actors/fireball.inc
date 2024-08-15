@@ -28,6 +28,8 @@
 ;;;     can hit a mirror again.  This is set to a nonzero value when the
 ;;;     fireblast hits a mirror (so that it can't immediately hit the same
 ;;;     mirror again), and decrements each frame when nonzero.
+;;;   * State4: For fireballs only, a delta to be added to the projectile angle
+;;;     each frame, in increments of tau/256.
 
 ;;; Tile IDs for drawing fireball/fireblast projectile actors.
 kTileIdObjFireballFirst  = $c0

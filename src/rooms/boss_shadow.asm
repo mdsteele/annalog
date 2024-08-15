@@ -58,6 +58,7 @@
 .IMPORT FuncA_Room_TickBoss
 .IMPORT FuncA_Terrain_FadeInShortRoomWithLava
 .IMPORT Func_AckIrqAndLatchWindowFromParam4
+.IMPORT Func_DivMod
 .IMPORT Func_GetRandomByte
 .IMPORT Func_IsPointInPlatform
 .IMPORT Func_MachineEmitterReadReg
@@ -76,6 +77,8 @@
 .IMPORT Ram_PlatformType_ePlatform_arr
 .IMPORTZP Zp_Buffered_sIrq
 .IMPORTZP Zp_FrameCounter_u8
+.IMPORTZP Zp_PointX_i16
+.IMPORTZP Zp_PointY_i16
 .IMPORTZP Zp_RoomScrollY_u8
 .IMPORTZP Zp_RoomState
 
@@ -528,7 +531,21 @@ _BossMode_SingleAttackPending:
     lda Zp_RoomState + sState::BossCooldown_u8
     bne @done
     ;; Chose a random point for the ghost to appear at.
-    nop  ; TODO set point
+    jsr Func_GetRandomByte  ; returns A
+    ldy #10  ; param: divisor
+    jsr Func_DivMod  ; returns remainder in A
+    mul #kBlockWidthPx
+    adc #kForcefieldMinPlatformLeft + kTileWidthPx  ; carry is already clear
+    sta Zp_PointX_i16 + 0
+    jsr Func_GetRandomByte  ; returns A
+    ldy #7  ; param: divisor
+    jsr Func_DivMod  ; returns remainder in A
+    mul #kBlockHeightPx
+    adc #kForcefieldMinPlatformTop + kTileHeightPx  ; carry is already clear
+    sta Zp_PointY_i16 + 0
+    lda #0
+    sta Zp_PointX_i16 + 1
+    sta Zp_PointY_i16 + 1
     ;; Get the actor index for the ghost that should attack this time (and
     ;; toggle it for the next time), and also set the subboss mode for that
     ;; ghost.
@@ -570,7 +587,7 @@ _BeginNextAttackWave:
     ;; If there are no more attack waves left in this group, perform a special
     ;; attack.
     lda Zp_RoomState + sState::AttackWavesRemaining_u8
-    beq _BeginSpecialAttack
+    ;; TODO: beq _BeginSpecialAttack
     dec Zp_RoomState + sState::AttackWavesRemaining_u8
     ;; If boss health is at half or below, perform double-attack waves.
     ;; Otherwise, perform single-attack waves.
@@ -730,21 +747,16 @@ _BossMermaidMode_AttackAppearing:
     @done:
     rts
 _BossMermaidMode_AttackSpraying:
-    ;; When the cooldown expires, start dodging.
-    lda Zp_RoomState + sState::GhostCooldown_u8_arr + kGhostMermaidActorIndex
+    ;; Wait for the ghost to be idle, then start dodging.
+    lda Ram_ActorState1_byte_arr + kGhostMermaidActorIndex  ; eBadGhost mode
+    cmp #eBadGhost::Idle
     beq _StartAttackDodging
-    ;; Shoot a fireball every 32 frames.
-    mod #32
-    cmp #31
-    bne @done
-    ;; TODO: Shoot a fireball at the player avatar.
-    @done:
     rts
 _StartAttackDodging:
     ;; TODO pick destination
     ;; TODO set velocity
     lda #eBossMermaidMode::AttackDodging
-    sta Zp_RoomState + sState::Current_eBossOrcMode
+    sta Zp_RoomState + sState::Current_eBossMermaidMode
     ;; TODO set cooldown
     rts
 _BossMermaidMode_AttackDodging:
@@ -813,26 +825,28 @@ _BossOrcMode_AttackMoving:
     jsr Func_GetRandomByte  ; returns N
     bmi _StartAttackMoving
     ;; Start attack pattern.
-    ;; TODO spawn projectiles
     lda #eBossOrcMode::AttackSpraying
     sta Zp_RoomState + sState::Current_eBossOrcMode
-    lda #120
-    sta Zp_RoomState + sState::GhostCooldown_u8_arr + kGhostOrcActorIndex
     lda #eBadGhost::Attacking
     sta Ram_ActorState1_byte_arr + kGhostOrcActorIndex  ; eBadGhost mode
     @done:
     rts
-_BossOrcMode_Injured:
 _BossOrcMode_AttackSpraying:
-    ;; Wait for the cooldown to expire.
+    ;; Wait for the ghost to be idle, then disappear.
+    lda Ram_ActorState1_byte_arr + kGhostOrcActorIndex  ; eBadGhost mode
+    cmp #eBadGhost::Idle
+    beq _Disappear
+_Return:
+    rts
+_BossOrcMode_Injured:
+    ;; Wait for the cooldown to expire, then disappear.
     lda Zp_RoomState + sState::GhostCooldown_u8_arr + kGhostOrcActorIndex
-    bne @done
-    ;; Disappear.
+    bne _Return
+_Disappear:
     lda #eBossOrcMode::Disappearing
     sta Zp_RoomState + sState::Current_eBossOrcMode
     lda #eBadGhost::Disappearing
     sta Ram_ActorState1_byte_arr + kGhostOrcActorIndex  ; eBadGhost mode
-    @done:
     rts
 _BossOrcMode_LavaAppearing:
     ;; Wait for the cooldown to expire.

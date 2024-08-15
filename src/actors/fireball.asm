@@ -36,6 +36,7 @@
 .IMPORT Ram_ActorState1_byte_arr
 .IMPORT Ram_ActorState2_byte_arr
 .IMPORT Ram_ActorState3_byte_arr
+.IMPORT Ram_ActorState4_byte_arr
 .IMPORT Ram_ActorType_eActor_arr
 .IMPORT Ram_DeviceTarget_byte_arr
 .IMPORT Ram_DeviceType_eDevice_arr
@@ -115,6 +116,13 @@ _HandleCollision:
     bcc FuncA_Actor_RemoveProjFireballOrFireblast  ; preserves X
     jsr FuncA_Actor_CenterHitsTerrain  ; preserves X, returns C
     bcs FuncA_Actor_ExpireProjFireballOrFireblast  ; preserves X
+_UpdateAngle:
+    lda Ram_ActorState4_byte_arr, x  ; angle delta
+    beq @done
+    add Ram_ActorState1_byte_arr, x  ; current angle
+    sta Ram_ActorState1_byte_arr, x  ; current angle
+    jmp Func_ReinitActorProjFireblastVelocity  ; preserves X
+    @done:
     rts
 .ENDPROC
 

@@ -35,7 +35,7 @@
     Idle          ; visible, waiting for a new mode to be set
     Disappearing  ; disappearing
     Reappearing   ; reappearing
-    Attacking     ; visible in attack pose, waiting for a new mode to be set
+    Attacking     ; running attack cycle
     NUM_VALUES
 .ENDENUM
 
