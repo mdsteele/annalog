@@ -260,6 +260,7 @@ _SetFlags:
     .byte eFlag::FlowerFactory
     .byte eFlag::CoreSouthCorraWaiting
     .byte eFlag::PaperManual4
+    .byte eFlag::PaperJerome18
     .byte eFlag::CoreSouthCorraHelped
     .byte eFlag::PrisonEastEastGateOpen
     .byte eFlag::PrisonEastLowerGateShut
@@ -273,6 +274,7 @@ _SetFlags:
     .byte eFlag::PrisonCellGateOpen
     .byte eFlag::FlowerPrison
     .byte eFlag::MermaidHut1AlexPetition
+    .byte eFlag::PaperJerome31
     .byte eFlag::FlowerCore
     .byte eFlag::TempleNaveAlexWaiting
     .byte eFlag::TempleNaveTalkedToAlex
@@ -310,6 +312,7 @@ _SetFlags:
     .byte eFlag::BossMine
     .byte eFlag::UpgradeRam4
     .byte eFlag::BreakerMine
+    .byte eFlag::PaperJerome19
     .byte eFlag::UpgradeOpAddSub
     .byte eFlag::FactoryPassLoweredRocks
     .byte eFlag::FactoryElevatorTalkedToBruno
@@ -318,6 +321,7 @@ _SetFlags:
     .byte eFlag::FactoryVaultTalkedToAlex
     .byte eFlag::FactoryEastCorraHelped
     .byte eFlag::FlowerLava
+    .byte eFlag::PaperJerome05
     .byte eFlag::PaperJerome03
     .byte eFlag::FlowerSewer
     .byte eFlag::CityCenterEnteredCity

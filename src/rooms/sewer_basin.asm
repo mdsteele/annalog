@@ -21,6 +21,7 @@
 .INCLUDE "../actors/jelly.inc"
 .INCLUDE "../charmap.inc"
 .INCLUDE "../device.inc"
+.INCLUDE "../dialog.inc"
 .INCLUDE "../flag.inc"
 .INCLUDE "../machine.inc"
 .INCLUDE "../machines/multiplexer.inc"
@@ -230,6 +231,12 @@ _Devices_sDevice_arr:
     d_byte BlockCol_u8, 26
     d_byte Target_byte, kMultiplexerMachineIndex
     D_END
+    D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::Paper
+    d_byte BlockRow_u8, 2
+    d_byte BlockCol_u8, 16
+    d_byte Target_byte, eFlag::PaperJerome19
+    D_END
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None
 _Passages_sPassage_arr:
@@ -360,6 +367,35 @@ _Finish:
     jmp FuncA_Machine_ReachedGoal
     @notReachedGoal:
     rts
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Dialog"
+
+.EXPORT DataA_Dialog_PaperJerome19_sDialog
+.PROC DataA_Dialog_PaperJerome19_sDialog
+    dlg_Text Paper, DataA_Text3_PaperJerome19_Page1_u8_arr
+    dlg_Text Paper, DataA_Text3_PaperJerome19_Page2_u8_arr
+    dlg_Done
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Text3"
+
+.PROC DataA_Text3_PaperJerome19_Page1_u8_arr
+    .byte "Day 19: We sought$"
+    .byte "better life through$"
+    .byte "chemistry. We spewed$"
+    .byte "substances recklessly.#"
+.ENDPROC
+
+.PROC DataA_Text3_PaperJerome19_Page2_u8_arr
+    .byte "And yet, we eventually$"
+    .byte "got most of it cleaned$"
+    .byte "up. Enough of it,$"
+    .byte "anyway.#"
 .ENDPROC
 
 ;;;=========================================================================;;;

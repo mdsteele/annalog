@@ -20,6 +20,7 @@
 .INCLUDE "../actor.inc"
 .INCLUDE "../charmap.inc"
 .INCLUDE "../device.inc"
+.INCLUDE "../dialog.inc"
 .INCLUDE "../flag.inc"
 .INCLUDE "../machine.inc"
 .INCLUDE "../machines/crane.inc"
@@ -164,10 +165,10 @@ _Devices_sDevice_arr:
     d_byte Target_byte, kCraneMachineIndex
     D_END
     D_STRUCT sDevice
-    d_byte Type_eDevice, eDevice::Placeholder  ; TODO: Paper
+    d_byte Type_eDevice, eDevice::Paper
     d_byte BlockRow_u8, 3
     d_byte BlockCol_u8, 2
-    d_byte Target_byte, 0  ; TODO: eFlag::Paper???
+    d_byte Target_byte, eFlag::PaperJerome18
     D_END
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None
@@ -254,6 +255,33 @@ _ReadZ:
     jsr FuncA_Machine_CraneMoveTowardGoal  ; returns Z
     jeq FuncA_Machine_ReachedGoal
     rts
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Dialog"
+
+.EXPORT DataA_Dialog_PaperJerome18_sDialog
+.PROC DataA_Dialog_PaperJerome18_sDialog
+    dlg_Text Paper, DataA_Text3_PaperJerome18_Page1_u8_arr
+    dlg_Text Paper, DataA_Text3_PaperJerome18_Page2_u8_arr
+    dlg_Done
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Text3"
+
+.PROC DataA_Text3_PaperJerome18_Page1_u8_arr
+    .byte "Day 18: We developed$"
+    .byte "artificial minds so$"
+    .byte "smart, they could have$"
+    .byte "ruled us. Enslaved us.#"
+.ENDPROC
+
+.PROC DataA_Text3_PaperJerome18_Page2_u8_arr
+    .byte "But it turned out that$"
+    .byte "they didn't want to.#"
 .ENDPROC
 
 ;;;=========================================================================;;;

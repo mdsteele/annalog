@@ -18,8 +18,10 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "../actor.inc"
+.INCLUDE "../charmap.inc"
 .INCLUDE "../device.inc"
 .INCLUDE "../devices/flower.inc"
+.INCLUDE "../dialog.inc"
 .INCLUDE "../flag.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
@@ -114,6 +116,12 @@ _Devices_sDevice_arr:
     d_byte BlockCol_u8, 14
     d_byte Target_byte, eFlag::FlowerCore
     D_END
+    D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::Paper
+    d_byte BlockRow_u8, 19
+    d_byte BlockCol_u8, 3
+    d_byte Target_byte, eFlag::PaperJerome31
+    D_END
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None
 _Passages_sPassage_arr:
@@ -135,6 +143,35 @@ _Passages_sPassage_arr:
 .PROC FuncC_Core_Flower_DrawRoom
     ldx #eFlag::BreakerShadow  ; param: breaker flag
     jmp FuncA_Objects_AnimateCircuitIfBreakerActive
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Dialog"
+
+.EXPORT DataA_Dialog_PaperJerome31_sDialog
+.PROC DataA_Dialog_PaperJerome31_sDialog
+    dlg_Text Paper, DataA_Text3_PaperJerome31_Page1_u8_arr
+    dlg_Text Paper, DataA_Text3_PaperJerome31_Page2_u8_arr
+    dlg_Done
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Text3"
+
+.PROC DataA_Text3_PaperJerome31_Page1_u8_arr
+    .byte "Day 31: Despite how we$"
+    .byte "chose to use all our$"
+    .byte "technology, it needn't$"
+    .byte "have gone that way.#"
+.ENDPROC
+
+.PROC DataA_Text3_PaperJerome31_Page2_u8_arr
+    .byte "The complex core and$"
+    .byte "all these machines$"
+    .byte "could one day be put$"
+    .byte "to a different use.#"
 .ENDPROC
 
 ;;;=========================================================================;;;

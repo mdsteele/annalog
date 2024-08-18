@@ -20,6 +20,7 @@
 .INCLUDE "../actor.inc"
 .INCLUDE "../charmap.inc"
 .INCLUDE "../device.inc"
+.INCLUDE "../dialog.inc"
 .INCLUDE "../flag.inc"
 .INCLUDE "../machine.inc"
 .INCLUDE "../machines/multiplexer.inc"
@@ -156,6 +157,12 @@ _Platforms_sPlatform_arr:
     .byte ePlatform::None
 _Devices_sDevice_arr:
 :   D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::Paper
+    d_byte BlockRow_u8, 14
+    d_byte BlockCol_u8, 12
+    d_byte Target_byte, eFlag::PaperJerome05
+    D_END
+    D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::ConsoleFloor
     d_byte BlockRow_u8, 20
     d_byte BlockCol_u8, 13
@@ -291,6 +298,42 @@ _Finish:
     jmp FuncA_Machine_ReachedGoal
     @notReachedGoal:
     rts
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Dialog"
+
+.EXPORT DataA_Dialog_PaperJerome05_sDialog
+.PROC DataA_Dialog_PaperJerome05_sDialog
+    dlg_Text Paper, DataA_Text3_PaperJerome05_Page1_u8_arr
+    dlg_Text Paper, DataA_Text3_PaperJerome05_Page2_u8_arr
+    dlg_Text Paper, DataA_Text3_PaperJerome05_Page3_u8_arr
+    dlg_Done
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Text3"
+
+.PROC DataA_Text3_PaperJerome05_Page1_u8_arr
+    .byte "Day 5: Indeed, most$"
+    .byte "who chose to become$"
+    .byte "mermaids were highly$"
+    .byte "idealistic.#"
+.ENDPROC
+
+.PROC DataA_Text3_PaperJerome05_Page2_u8_arr
+    .byte "They felt that they$"
+    .byte "could create a new$"
+    .byte "society without the$"
+    .byte "baggage of humanity.#"
+.ENDPROC
+
+.PROC DataA_Text3_PaperJerome05_Page3_u8_arr
+    .byte "A perfect society,$"
+    .byte "free of conflict and$"
+    .byte "greed.#"
 .ENDPROC
 
 ;;;=========================================================================;;;
