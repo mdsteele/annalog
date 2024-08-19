@@ -40,6 +40,7 @@
 .IMPORT FuncA_Console_MoveFieldCursor
 .IMPORT FuncA_Console_WriteDiagramTransferDataForCurrentMachine
 .IMPORT FuncA_Console_WriteNeedsPowerTransferData
+.IMPORT FuncA_Machine_ExecuteAll
 .IMPORT FuncA_Machine_TickAll
 .IMPORT FuncA_Objects_DrawHudInWindow
 .IMPORT FuncA_Objects_DrawObjectsForRoom
@@ -266,8 +267,8 @@ _Tick:
 .PROC FuncM_ConsoleTick
     jsr_prga FuncA_Actor_TickAllSmokeActors
     jsr Func_TickAllDevices
-    jsr_prga FuncA_Room_CallRoomTick
-    jmp_prga FuncA_Machine_TickAll
+    jsr_prga FuncA_Machine_ConsoleTickOrExecuteAll
+    jmp_prga FuncA_Room_CallRoomTick
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -297,6 +298,21 @@ _MaybeResetMachine:
     jmp FuncA_Room_MachineResetRun
     @noReset:
     rts
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Machine"
+
+;;; If the console machine is in Syncing mode (which can only be true when
+;;; using the debugger), executes all machines; otherwise, ticks all machines
+;;; without executing.
+.PROC FuncA_Machine_ConsoleTickOrExecuteAll
+    ldx Zp_ConsoleMachineIndex_u8
+    lda Ram_MachineStatus_eMachine_arr, x
+    cmp #eMachine::Syncing
+    jeq FuncA_Machine_ExecuteAll
+    jmp FuncA_Machine_TickAll
 .ENDPROC
 
 ;;;=========================================================================;;;

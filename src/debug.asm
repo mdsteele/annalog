@@ -120,7 +120,6 @@ _HandleAButton:
     lda Ram_MachineStatus_eMachine_arr, x
     .assert eMachine::Running = 0, error
     beq _ExecuteNext
-    ;; TODO: If status is Syncing, skip past the SYNC instruction.
     ;; If the machine is Halted or Error, stop debugging.  Otherwise, the
     ;; machine is either resetting or still blocked on the current instruction;
     ;; in either case the debugger can't advance yet, so we do nothing.
