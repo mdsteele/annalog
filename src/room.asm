@@ -210,15 +210,17 @@
 
 .ZEROPAGE
 
-;;; The room number for the previously-loaded room.
+;;; The room number for the previously-loaded room, or $ff if none.
 .EXPORTZP Zp_Previous_eRoom
 Zp_Previous_eRoom: .res 1
+.ASSERT eRoom::NUM_VALUES <= $ff, error
 
-;;; The room number for the currently-loaded room.
+;;; The room number for the currently-loaded room, or $ff if none.
 .EXPORTZP Zp_Current_eRoom
 Zp_Current_eRoom: .res 1
 
-;;; Data for the currently-loaded room.
+;;; Data for the currently-loaded room, if any.  If Zp_Current_eRoom is $ff,
+;;; then all of this struct's fields should be considered invalid.
 .EXPORTZP Zp_Current_sRoom
 Zp_Current_sRoom: .tag sRoom
 
@@ -252,16 +254,18 @@ Zp_RoomState: .res kRoomStateSize
 ;;; Queues up the music for the specified room (if it's not already playing),
 ;;; switches PRGC banks, then loads and initializes data for the room.
 ;;; @prereq Rendering is disabled.
+;;; @prereq Zp_Current_eRoom and Zp_Current_sRoom are initialized.
 ;;; @param X The eRoom value for the room to load.
 .EXPORT FuncM_SwitchPrgcAndLoadRoom
 .PROC FuncM_SwitchPrgcAndLoadRoom
     jsr_prga FuncA_Room_ChooseMusicForRoom  ; preserves X, returns Y
-    .assert * = FuncM_SwitchPrgcAndLoadRoomWithMusic, error
+    fall FuncM_SwitchPrgcAndLoadRoomWithMusic
 .ENDPROC
 
 ;;; Queues up the specified music (if it's not already playing), switches PRGC
 ;;; banks, then loads and initializes data for the specified room.
 ;;; @prereq Rendering is disabled.
+;;; @prereq Zp_Current_eRoom and Zp_Current_sRoom are initialized.
 ;;; @param X The eRoom value for the room to load.
 ;;; @param Y The eMusic value for the music to play in the new room.
 .EXPORT FuncM_SwitchPrgcAndLoadRoomWithMusic
@@ -644,14 +648,19 @@ _PrisonMusic:
 .ENDPROC
 
 ;;; Loads and initializes data for the specified room.
-;;; @prereq The correct PRGC bank has been set for the room to be loaded.
+;;; @prereq Zp_Current_eRoom and Zp_Current_sRoom are initialized.
+;;; @prereq The correct PRGC bank has been set for the new room to be loaded.
 ;;; @param X The eRoom value for the room to load.
 .PROC FuncA_Room_Load
-    lda Zp_Current_eRoom
-    sta Zp_Previous_eRoom
-    lda Zp_Current_sRoom + sRoom::Flags_bRoom
-    sta T2  ; previous room's flags
+    ldy Zp_Current_eRoom
+    sty Zp_Previous_eRoom
     stx Zp_Current_eRoom
+    lda #0
+    cpy #$ff
+    beq @setPrevRoomFlags
+    lda Zp_Current_sRoom + sRoom::Flags_bRoom
+    @setPrevRoomFlags:
+    sta T2  ; previous room's flags
 _CopyRoomStruct:
     ;; Get a pointer to the sRoom struct and store it in T1T0.
     lda DataA_Room_Table_sRoom_ptr_0_arr, x

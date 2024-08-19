@@ -91,6 +91,7 @@
 .IMPORTZP Zp_AvatarPose_eAvatar
 .IMPORTZP Zp_AvatarState_bAvatar
 .IMPORTZP Zp_Chr04Bank_u8
+.IMPORTZP Zp_Current_eRoom
 .IMPORTZP Zp_Current_sRoom
 .IMPORTZP Zp_Current_sTileset
 .IMPORTZP Zp_FloatingHud_bHud
@@ -134,6 +135,8 @@ Zp_Next_eCutscene: .res 1
 ;;; @prereq Rendering is disabled.
 .EXPORT Main_Explore_SpawnInLastSafeRoom
 .PROC Main_Explore_SpawnInLastSafeRoom
+    lda #$ff
+    sta Zp_Current_eRoom
     ldx Sram_LastSafe_eRoom  ; param: room to load
     jsr FuncM_SwitchPrgcAndLoadRoom
     jsr_prga FuncA_Avatar_SpawnAtLastSafePoint
