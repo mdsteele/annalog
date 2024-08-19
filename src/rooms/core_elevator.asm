@@ -43,6 +43,7 @@
 .IMPORT FuncA_Room_ResetLever
 .IMPORT FuncA_Room_StoreElevatorJetState
 .IMPORT Func_MachineJetReadRegY
+.IMPORT Func_MarkMinimap
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrObjFactory
 .IMPORT Ram_MachineGoalVert_u8_arr
@@ -53,6 +54,11 @@
 
 ;;; The index of the vertical passage at the bottom of the room.
 kLowerShaftPassageIndex = 2
+
+;;; The minimap column/row for the bottom of the vertical shaft that leads into
+;;; this room.
+kShaftMinimapCol = 14
+kShaftMinimapBottomRow = 5
 
 ;;; The device index for the lever in this room.
 kUpperJetUpperLeverDeviceIndex = 1
@@ -209,8 +215,12 @@ _Passages_sPassage_arr:
     ;; If the player avatar didn't enter from the lower shaft, do nothing.
     cmp #bSpawn::Passage | kLowerShaftPassageIndex
     bne @done
+    ;; Mark the bottom minimap cell of the shaft as explored.
+    lda #kShaftMinimapCol        ; param: minimap col
+    ldy #kShaftMinimapBottomRow  ; param: minimap row
+    jsr Func_MarkMinimap
     ;; If the player avatar didn't actually come from the FactoryElevator room
-    ;; (e.g. due to respawning from the lower shaft after saving), do nothing.
+    ;; (e.g. due to respawning from the lower shaft after saving), we're done.
     lda Zp_Previous_eRoom
     cmp #eRoom::FactoryElevator
     bne @done

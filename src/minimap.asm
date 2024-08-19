@@ -68,6 +68,48 @@ Zp_CameraMinimapCol_u8: .res 1
 
 ;;;=========================================================================;;;
 
+.SEGMENT "PRG8"
+
+;;; Marks a cell on the minimap as having been visited.
+;;; @param A The minimap column (0-23).
+;;; @param Y The minimap row (0-14).
+.EXPORT Func_MarkMinimap
+.PROC Func_MarkMinimap
+    pha  ; minimap col
+    ;; Determine the bitmask to use for Sram_Minimap_u16_arr, and store it in
+    ;; T0.
+    tya  ; minimap row
+    mod #8
+    tax
+    lda Data_PowersOfTwo_u8_arr8, x
+    sta T0  ; mask
+    ;; Calculate the byte offset into Sram_Minimap_u16_arr and store it in X.
+    pla  ; minimap col
+    mul #2
+    tax  ; byte offset into Sram_Minimap_u16_arr
+    cpy #8
+    blt @loByte
+    inx
+    @loByte:
+    ;; Check if minimap needs to be updated.
+    lda Sram_Minimap_u16_arr, x
+    ora T0  ; mask
+    cmp Sram_Minimap_u16_arr, x
+    beq @done
+    ;; Enable writes to SRAM.
+    ldy #bMmc3PrgRam::Enable
+    sty Hw_Mmc3PrgRamProtect_wo
+    ;; Update minimap.
+    sta Sram_Minimap_u16_arr, x
+    ;; Disable writes to SRAM.
+    ldy #bMmc3PrgRam::Enable | bMmc3PrgRam::DenyWrites
+    sty Hw_Mmc3PrgRamProtect_wo
+    @done:
+    rts
+.ENDPROC
+
+;;;=========================================================================;;;
+
 .SEGMENT "PRGA_Terrain"
 
 ;;; Recomputes Zp_CameraMinimapRow_u8 and Zp_CameraMinimapCol_u8 from the
@@ -78,7 +120,7 @@ Zp_CameraMinimapCol_u8: .res 1
     ;; Don't update the minimap if the avatar is hidden for a cutscene.
     lda Zp_AvatarPose_eAvatar
     .assert eAvatar::Hidden = 0, error
-    beq _Done
+    beq _Return
 _UpdateMinimapRow:
     ldy <(Zp_Current_sRoom + sRoom::MinimapStartRow_u8)
     bit <(Zp_Current_sRoom + sRoom::Flags_bRoom)
@@ -106,37 +148,10 @@ _UpdateMinimapCol:
     add <(Zp_Current_sRoom + sRoom::MinimapStartCol_u8)
     sta Zp_CameraMinimapCol_u8
 _MarkMinimap:
-    ;; Determine the bitmask to use for Sram_Minimap_u16_arr, and store it in
-    ;; T0.
-    lda Zp_CameraMinimapRow_u8
-    tay
-    and #$07
-    tax
-    lda Data_PowersOfTwo_u8_arr8, x
-    sta T0  ; mask
-    ;; Calculate the byte offset into Sram_Minimap_u16_arr and store it in X.
-    lda Zp_CameraMinimapCol_u8
-    mul #2
-    tax  ; byte offset into Sram_Minimap_u16_arr
-    cpy #$08
-    blt @loByte
-    inx
-    @loByte:
-    ;; Check if minimap needs to be updated.
-    lda Sram_Minimap_u16_arr, x
-    ora T0  ; mask
-    cmp Sram_Minimap_u16_arr, x
-    beq @done
-    ;; Enable writes to SRAM.
-    ldy #bMmc3PrgRam::Enable
-    sty Hw_Mmc3PrgRamProtect_wo
-    ;; Update minimap.
-    sta Sram_Minimap_u16_arr, x
-    ;; Disable writes to SRAM.
-    ldy #bMmc3PrgRam::Enable | bMmc3PrgRam::DenyWrites
-    sty Hw_Mmc3PrgRamProtect_wo
-    @done:
-_Done:
+    lda Zp_CameraMinimapCol_u8  ; param: minimap col
+    ldy Zp_CameraMinimapRow_u8  ; param: minimap row
+    jmp Func_MarkMinimap
+_Return:
     rts
 .ENDPROC
 

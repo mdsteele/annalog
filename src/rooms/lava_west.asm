@@ -32,6 +32,7 @@
 .INCLUDE "../ppu.inc"
 .INCLUDE "../program.inc"
 .INCLUDE "../room.inc"
+.INCLUDE "../spawn.inc"
 
 .IMPORT DataA_Room_Lava_sTileset
 .IMPORT FuncA_Machine_BoilerFinishEmittingSteam
@@ -49,6 +50,7 @@
 .IMPORT Func_DistanceSensorRightDetectPoint
 .IMPORT Func_EmitSteamUpFromPipe
 .IMPORT Func_MachineBoilerReadReg
+.IMPORT Func_MarkMinimap
 .IMPORT Func_Noop
 .IMPORT Func_SetPointToAvatarCenter
 .IMPORT Ppu_ChrObjLava
@@ -56,6 +58,14 @@
 .IMPORTZP Zp_RoomState
 
 ;;;=========================================================================;;;
+
+;;; The index of the vertical passage at the top of the room.
+kShaftPassageIndex = 0
+
+;;; The minimap column/row for the bottom of the vertical shaft that leads into
+;;; this room.
+kShaftMinimapCol = 14
+kShaftMinimapBottomRow = 12
 
 ;;; The device index for the lever in this room.
 kLeverDeviceIndex = 1
@@ -104,7 +114,7 @@ _Ext_sRoomExt:
     d_addr Actors_sActor_arr_ptr, _Actors_sActor_arr
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
     d_addr Passages_sPassage_arr_ptr, _Passages_sPassage_arr
-    d_addr Enter_func_ptr, Func_Noop
+    d_addr Enter_func_ptr, FuncA_Room_LavaWest_EnterRoom
     d_addr FadeIn_func_ptr, FuncA_Terrain_FadeInTallRoomWithLava
     d_addr Tick_func_ptr, FuncA_Room_TurnSteamToSmokeIfConsoleOpen
     d_addr Draw_func_ptr, FuncA_Objects_AnimateLavaTerrain
@@ -274,7 +284,8 @@ _Devices_sDevice_arr:
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None
 _Passages_sPassage_arr:
-:   D_STRUCT sPassage
+:   .assert * - :- = kShaftPassageIndex * .sizeof(sPassage), error
+    D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Top | 0
     d_byte Destination_eRoom, eRoom::MermaidSpring
     d_byte SpawnBlock_u8, 8
@@ -329,6 +340,20 @@ _ReadD:
 ;;;=========================================================================;;;
 
 .SEGMENT "PRGA_Room"
+
+;;; Called when the player avatar enters the LavaWest room.
+;;; @param A The bSpawn value for where the avatar is entering the room.
+.PROC FuncA_Room_LavaWest_EnterRoom
+    ;; If the player avatar didn't enter from the shaft, do nothing.
+    cmp #bSpawn::Passage | kShaftPassageIndex
+    bne @done
+    ;; Mark the bottom minimap cell of the shaft as explored.
+    lda #kShaftMinimapCol        ; param: minimap col
+    ldy #kShaftMinimapBottomRow  ; param: minimap row
+    jmp Func_MarkMinimap
+    @done:
+    rts
+.ENDPROC
 
 .PROC FuncA_Room_LavaWestBoiler_Reset
     ldx #kLeverDeviceIndex  ; param: device index

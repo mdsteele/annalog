@@ -46,6 +46,7 @@
 .IMPORT FuncA_Room_ResetLever
 .IMPORT Func_IsPointInPlatform
 .IMPORT Func_MachineJetReadRegY
+.IMPORT Func_MarkMinimap
 .IMPORT Func_Noop
 .IMPORT Func_SetMachineIndex
 .IMPORT Func_SetPointToAvatarCenter
@@ -86,6 +87,11 @@ kWaitUpZonePlatformIndex = 2
 ;;; The indices of the vertical passages at the top and bottom of the room.
 kUpperShaftPassageIndex = 4
 kLowerShaftPassageIndex = 5
+
+;;; The minimap column/row for the bottom of the upper shaft that leads into
+;;; the top of this room.
+kUpperShaftMinimapCol = 14
+kUpperShaftMinimapBottomRow = 5
 
 ;;; The device indices for the levers in this room.
 kUpperJetLowerLeverDeviceIndex = 1
@@ -376,8 +382,12 @@ _CheckPassage:
 _Return:
     rts
 _UpperShaft:
+    ;; Mark the bottom minimap cell of the shaft as explored.
+    lda #kUpperShaftMinimapCol        ; param: minimap col
+    ldy #kUpperShaftMinimapBottomRow  ; param: minimap row
+    jsr Func_MarkMinimap
     ;; If the player avatar didn't actually come from the CoreElevator room
-    ;; (e.g. due to respawning from the upper shaft after saving), do nothing.
+    ;; (e.g. due to respawning from the upper shaft after saving), stop.
     lda Zp_Previous_eRoom
     cmp #eRoom::CoreElevator
     bne _Return

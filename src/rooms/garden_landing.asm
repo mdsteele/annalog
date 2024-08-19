@@ -25,7 +25,6 @@
 .INCLUDE "../flag.inc"
 .INCLUDE "../irq.inc"
 .INCLUDE "../macros.inc"
-.INCLUDE "../mmc3.inc"
 .INCLUDE "../platform.inc"
 .INCLUDE "../ppu.inc"
 .INCLUDE "../room.inc"
@@ -35,10 +34,10 @@
 .IMPORT DataA_Room_Garden_sTileset
 .IMPORT Data_Empty_sActor_arr
 .IMPORT Func_AckIrqAndLatchWindowFromParam4
+.IMPORT Func_MarkMinimap
 .IMPORT Func_Noop
 .IMPORT Func_SetFlag
 .IMPORT Ppu_ChrObjGarden
-.IMPORT Sram_Minimap_u16_arr
 .IMPORTZP Zp_Active_sIrq
 .IMPORTZP Zp_AvatarPosY_i16
 .IMPORTZP Zp_Buffered_sIrq
@@ -52,13 +51,10 @@
 ;;; The index of the vertical passage at the top of the room.
 kShaftPassageIndex = 1
 
-;;; The minimal column/row for the top of the vertical shaft that leads into
+;;; The minimap column/row for the top of the vertical shaft that leads into
 ;;; this room.
 kShaftMinimapCol = 6
 kShaftMinimapTopRow = 4
-
-;;; The byte offset into Sram_Minimap_u16_arr for the vertical shaft.
-kShaftMinimapByteOffset = 2 * kShaftMinimapCol + kShaftMinimapTopRow / 8
 
 ;;; How many times to teleport the camera and player avatar upwards while
 ;;; falling down the shaft.  These teleports are used to create the illusion
@@ -218,24 +214,13 @@ _EnterFromShaft:
     ;; Set the flag indicating that the player entered the garden.
     ldx #eFlag::GardenLandingDroppedIn  ; param: flag
     jsr Func_SetFlag
-    ;; Compute the minimap byte we need to write to SRAM.  We want to mark the
-    ;; top two minimap cells of the shaft as explored.
-    .assert kShaftMinimapTopRow = 4, error
-    lda Sram_Minimap_u16_arr + kShaftMinimapByteOffset
-    ora #%11 << kShaftMinimapTopRow
-    ;; If no change is needed to SRAM, then we're done.
-    cmp Sram_Minimap_u16_arr + kShaftMinimapByteOffset
-    beq @done
-    ;; Enable writes to SRAM.
-    ldy #bMmc3PrgRam::Enable
-    sty Hw_Mmc3PrgRamProtect_wo
-    ;; Update minimap.
-    sta Sram_Minimap_u16_arr + kShaftMinimapByteOffset
-    ;; Disable writes to SRAM.
-    ldy #bMmc3PrgRam::Enable | bMmc3PrgRam::DenyWrites
-    sty Hw_Mmc3PrgRamProtect_wo
-    @done:
-    rts
+    ;; Mark the top two minimap cells of the shaft as explored.
+    lda #kShaftMinimapCol         ; param: minimap col
+    ldy #kShaftMinimapTopRow + 0  ; param: minimap row
+    jsr Func_MarkMinimap
+    lda #kShaftMinimapCol         ; param: minimap col
+    ldy #kShaftMinimapTopRow + 1  ; param: minimap row
+    jmp Func_MarkMinimap
 .ENDPROC
 
 .PROC FuncA_Room_GardenLanding_TickRoom
