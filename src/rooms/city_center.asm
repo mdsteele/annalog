@@ -35,6 +35,8 @@
 .INCLUDE "../ppu.inc"
 .INCLUDE "../program.inc"
 .INCLUDE "../room.inc"
+.INCLUDE "../spawn.inc"
+.INCLUDE "city_center.inc"
 
 .IMPORT DataA_Room_City_sTileset
 .IMPORT FuncA_Machine_SemaphoreTick
@@ -82,6 +84,9 @@ kGrontaActorIndex = 1
 ;;; The actor index for the eastern orc in this room.
 kEastOrcActorIndex = 2
 
+;;; The device index for the door that leads to/from CityBuilding2.
+kCityBuilding2DoorDeviceIndex = 7
+
 ;;; The device index for the locked door in this room.
 kLockedDoorDeviceIndex = 1
 
@@ -97,16 +102,7 @@ kSemaphore2PlatformIndex = 1
 kSemaphore3PlatformIndex = 2
 kSemaphore4PlatformIndex = 3
 
-;;;=========================================================================;;;
-
-;;; Defines room-specific state data for this particular room.
-.STRUCT sState
-    ;; The combination that must be entered into the lock to unlock the door.
-    Key_u8_arr  .res kNumSemaphoreKeyDigits
-    ;; The combination currently entered into the door.
-    Lock_u8_arr .res kNumSemaphoreKeyDigits
-.ENDSTRUCT
-.ASSERT .sizeof(sState) <= kRoomStateSize, error
+.ASSERT .sizeof(sCityCenterState) <= kRoomStateSize, error
 
 ;;;=========================================================================;;;
 
@@ -117,7 +113,7 @@ kSemaphore4PlatformIndex = 3
     D_STRUCT sRoom
     d_byte MinScrollX_u8, $10
     d_word MaxScrollX_u16, $310
-    d_byte Flags_bRoom, bRoom::Tall | eArea::City
+    d_byte Flags_bRoom, bRoom::Tall | bRoom::ShareState | eArea::City
     d_byte MinimapStartRow_u8, 1
     d_byte MinimapStartCol_u8, 19
     d_addr TerrainData_ptr, _TerrainData
@@ -155,7 +151,7 @@ _Machines_sMachine_arr:
     d_byte MainPlatform_u8, kSemaphore1PlatformIndex
     d_addr Init_func_ptr, Func_Noop
     d_addr ReadReg_func_ptr, FuncC_City_CenterSemaphore_ReadReg
-    d_addr WriteReg_func_ptr, FuncC_City_CenterSemaphore_WriteReg
+    d_addr WriteReg_func_ptr, FuncA_Machine_CityCenterSemaphore_WriteReg
     d_addr TryMove_func_ptr, FuncA_Machine_SemaphoreTryMove
     d_addr TryAct_func_ptr, FuncA_Machine_SemaphoreTryAct
     d_addr Tick_func_ptr, FuncA_Machine_SemaphoreTick
@@ -174,7 +170,7 @@ _Machines_sMachine_arr:
     d_byte MainPlatform_u8, kSemaphore2PlatformIndex
     d_addr Init_func_ptr, Func_Noop
     d_addr ReadReg_func_ptr, FuncC_City_CenterSemaphore_ReadReg
-    d_addr WriteReg_func_ptr, FuncC_City_CenterSemaphore_WriteReg
+    d_addr WriteReg_func_ptr, Func_Noop
     d_addr TryMove_func_ptr, FuncA_Machine_SemaphoreTryMove
     d_addr TryAct_func_ptr, FuncA_Machine_SemaphoreTryAct
     d_addr Tick_func_ptr, FuncA_Machine_SemaphoreTick
@@ -193,7 +189,7 @@ _Machines_sMachine_arr:
     d_byte MainPlatform_u8, kSemaphore3PlatformIndex
     d_addr Init_func_ptr, Func_Noop
     d_addr ReadReg_func_ptr, FuncC_City_CenterSemaphore_ReadReg
-    d_addr WriteReg_func_ptr, FuncC_City_CenterSemaphore_WriteReg
+    d_addr WriteReg_func_ptr, Func_Noop
     d_addr TryMove_func_ptr, FuncA_Machine_SemaphoreTryMove
     d_addr TryAct_func_ptr, FuncA_Machine_SemaphoreTryAct
     d_addr Tick_func_ptr, FuncA_Machine_SemaphoreTick
@@ -210,14 +206,14 @@ _Machines_sMachine_arr:
     d_byte ScrollGoalY_u8, $0d
     d_byte RegNames_u8_arr4, "J", "K", "S", "Y"
     d_byte MainPlatform_u8, kSemaphore4PlatformIndex
-    d_addr Init_func_ptr, Func_Noop
+    d_addr Init_func_ptr, FuncA_Room_CityCenterSemaphore4_InitReset
     d_addr ReadReg_func_ptr, FuncC_City_CenterSemaphore_ReadReg
-    d_addr WriteReg_func_ptr, FuncC_City_CenterSemaphore_WriteReg
+    d_addr WriteReg_func_ptr, FuncA_Machine_CityCenterSemaphore_WriteReg
     d_addr TryMove_func_ptr, FuncA_Machine_SemaphoreTryMove
     d_addr TryAct_func_ptr, FuncA_Machine_SemaphoreTryAct
     d_addr Tick_func_ptr, FuncA_Machine_SemaphoreTick
     d_addr Draw_func_ptr, FuncA_Objects_DrawSemaphoreLockMachine
-    d_addr Reset_func_ptr, FuncA_Room_MachineSemaphoreReset
+    d_addr Reset_func_ptr, FuncA_Room_CityCenterSemaphore4_InitReset
     D_END
     .assert * - :- <= kMaxMachines * .sizeof(sMachine), error
 _Platforms_sPlatform_arr:
@@ -357,6 +353,7 @@ _Devices_sDevice_arr:
     d_byte BlockCol_u8, 57
     d_byte Target_byte, kSemaphore4MachineIndex
     D_END
+    .assert * - :- = kCityBuilding2DoorDeviceIndex * .sizeof(sDevice), error
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Door1Open
     d_byte BlockRow_u8, 8
@@ -481,13 +478,13 @@ _ReadRegJ:
 _ReadRegKey:
     flag_bit Sram_ProgressFlags_arr, eFlag::CityCenterKeygenConnected
     beq @done
-    jsr FuncC_City_GetSemaphoreArrayIndex  ; returns X
-    lda Zp_RoomState + sState::Key_u8_arr, x
+    ldx Ram_MachineGoalHorz_u8_arr, y  ; combination array index
+    lda Zp_RoomState + sCityCenterState::Key_u8_arr, x
     @done:
     rts
 _ReadRegLock:
-    jsr FuncC_City_GetSemaphoreArrayIndex  ; returns X
-    lda Zp_RoomState + sState::Lock_u8_arr, x
+    ldx Ram_MachineGoalHorz_u8_arr, y  ; combination array index
+    lda Zp_RoomState + sCityCenterState::Lock_u8_arr, x
     rts
 _ReadRegY:
     lda Ram_MachineState3_byte_arr, y  ; vertical offset
@@ -496,46 +493,14 @@ _ReadRegY:
     rts
 .ENDPROC
 
-;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
-;;; @prereq PRGA_Machine is loaded.
-;;; @param A The value to write (0-9).
-;;; @param X The register to write to ($c-$f).
-.PROC FuncC_City_CenterSemaphore_WriteReg
-    ldy Zp_MachineIndex_u8
-    cpx #$c
-    bne _WriteRegLock
-_WriteRegJ:
-    sta Ram_MachineGoalHorz_u8_arr, y  ; combination array index
-    rts
-_WriteRegLock:
-    pha  ; value to write
-    jsr FuncC_City_GetSemaphoreArrayIndex  ; returns X
-    pla  ; value to write
-    sta Zp_RoomState + sState::Lock_u8_arr, x
-    rts
-.ENDPROC
-
-;;; Returns the combination array index for the specified semaphore machine,
-;;; modulo kNumSemaphoreKeyDigits.
-;;; @param Y The machine index.
-;;; @return X The array index.
-;;; @preserve Y, T0+
-.PROC FuncC_City_GetSemaphoreArrayIndex
-    lda Ram_MachineGoalHorz_u8_arr, y  ; combination array index
-    .assert kNumSemaphoreKeyDigits >= 5, error
-    cmp #kNumSemaphoreKeyDigits
-    blt @setIndex
-    sbc #kNumSemaphoreKeyDigits  ; carry is already set
-    @setIndex:
-    tax
-    rts
-.ENDPROC
-
 ;;;=========================================================================;;;
 
 .SEGMENT "PRGA_Room"
 
+;;; Called when the player avatar enters the CityCenter room.
+;;; @param A The bSpawn value for where the avatar is entering the room.
 .PROC FuncA_Room_CityCenter_EnterRoom
+    sta T0  ; bSpawn value
 _RemoveEastOrc:
     ;; The eastern orc leaves once the B-remote has been collected (including
     ;; during the city breaker cutscene).
@@ -587,16 +552,22 @@ _UnlockDoor:
     sta Ram_DeviceType_eDevice_arr + kLockedDoorDeviceIndex
     @done:
 _GenerateKey:
+    ;; If the player avatar entered from CityBuilding2 (with which this room
+    ;; shares state), don't re-randomize the key.
+    lda T0  ; bSpawn value
+    cmp #bSpawn::Device | kCityBuilding2DoorDeviceIndex
+    beq @done
     ;; TODO: Play a sound for random key generation.
     ;; Generate a random key combination, with each digit between 1 and 4.
     ldx #kNumSemaphoreKeyDigits - 1
     @loop:
-    jsr Func_GetRandomByte  ; preserves X, returns A
+    jsr Func_GetRandomByte  ; preserves X and Y, returns A
     and #$03
     add #1
-    sta Zp_RoomState + sState::Key_u8_arr, x
+    sta Zp_RoomState + sCityCenterState::Key_u8_arr, x
     dex
     bpl @loop
+    @done:
 _SetFlag:
     ldx #eFlag::CityCenterEnteredCity  ; param: flag
     jmp Func_SetFlag
@@ -606,8 +577,8 @@ _SetFlag:
     ;; Check the lock combination against the key.
     ldx #kNumSemaphoreKeyDigits - 1
     @loop:
-    lda Zp_RoomState + sState::Lock_u8_arr, x
-    cmp Zp_RoomState + sState::Key_u8_arr, x
+    lda Zp_RoomState + sCityCenterState::Lock_u8_arr, x
+    cmp Zp_RoomState + sCityCenterState::Key_u8_arr, x
     bne @done  ; combination is incorrect
     dex
     bpl @loop
@@ -618,6 +589,36 @@ _SetFlag:
     ldx #kLockedDoorDeviceIndex  ; param: device index
     jsr Func_UnlockDoorDevice
     @done:
+    rts
+.ENDPROC
+
+.PROC FuncA_Room_CityCenterSemaphore4_InitReset
+    lda #0
+    ldx #kNumSemaphoreKeyDigits - 1
+    @loop:
+    sta Zp_RoomState + sCityCenterState::Lock_u8_arr, x
+    dex
+    bpl @loop
+    jmp FuncA_Room_MachineSemaphoreReset
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Machine"
+
+;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
+;;; @param A The value to write (0-9).
+;;; @param X The register to write to ($c-$f).
+.PROC FuncA_Machine_CityCenterSemaphore_WriteReg
+    ldy Zp_MachineIndex_u8
+    cpx #$c
+    bne _WriteRegLock
+_WriteRegJ:
+    sta Ram_MachineGoalHorz_u8_arr, y  ; combination array index
+    rts
+_WriteRegLock:
+    ldx Ram_MachineGoalHorz_u8_arr, y  ; combination array index
+    sta Zp_RoomState + sCityCenterState::Lock_u8_arr, x
     rts
 .ENDPROC
 

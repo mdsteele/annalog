@@ -103,7 +103,7 @@
 .INCLUDE "rooms/boss_mine.inc"
 .INCLUDE "rooms/boss_shadow.inc"
 .INCLUDE "rooms/boss_temple.inc"
-.INCLUDE "rooms/city_building2.inc"
+.INCLUDE "rooms/city_center.inc"
 .INCLUDE "rooms/garden_tower.inc"
 .INCLUDE "rooms/mine_west.inc"
 .INCLUDE "upgrade.inc"

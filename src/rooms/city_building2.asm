@@ -21,17 +21,18 @@
 .INCLUDE "../device.inc"
 .INCLUDE "../dialog.inc"
 .INCLUDE "../flag.inc"
-.INCLUDE "../machines/semaphore.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../platform.inc"
 .INCLUDE "../ppu.inc"
 .INCLUDE "../room.inc"
-.INCLUDE "city_building2.inc"
+.INCLUDE "city_center.inc"
 
 .IMPORT DataA_Room_Building_sTileset
 .IMPORT Data_Empty_sActor_arr
 .IMPORT FuncA_Objects_Draw1x1Shape
 .IMPORT FuncA_Objects_MoveShapeLeftByA
+.IMPORT FuncA_Objects_MoveShapeRightByA
+.IMPORT FuncA_Objects_MoveShapeUpByA
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
 .IMPORT Func_GetRandomByte
 .IMPORT Func_Noop
@@ -57,18 +58,7 @@ kPerDigitSpinFrames = 10
 ;;; The OBJ palette number for drawing key combination digits.
 kPaletteObjComboDigit = 1
 
-;;;=========================================================================;;;
-
-;;; Defines room-specific state data for this particular room.
-.STRUCT sState
-    ;; The combination that appears on the monitors.
-    Key_u8_arr .res kNumSemaphoreKeyDigits
-    ;; The number of digits that have stopped spinning so far.
-    NumDigitsSet_u8 .byte
-    ;; How many more frames until the next digit stops spinning.
-    SpinTimer_u8 .byte
-.ENDSTRUCT
-.ASSERT .sizeof(sState) <= kRoomStateSize, error
+.ASSERT .sizeof(sCityCenterState) <= kRoomStateSize, error
 
 ;;;=========================================================================;;;
 
@@ -79,7 +69,7 @@ kPaletteObjComboDigit = 1
     D_STRUCT sRoom
     d_byte MinScrollX_u8, $0
     d_word MaxScrollX_u16, $0
-    d_byte Flags_bRoom, eArea::City
+    d_byte Flags_bRoom, bRoom::ShareState | eArea::City
     d_byte MinimapStartRow_u8, 1
     d_byte MinimapStartCol_u8, 19
     d_addr TerrainData_ptr, _TerrainData
@@ -110,7 +100,7 @@ _Platforms_sPlatform_arr:
     d_word WidthPx_u16, $08
     d_byte HeightPx_u8, $08
     d_word Left_i16,  $00a4
-    d_word Top_i16,   $0058
+    d_word Top_i16,   $0068
     D_END
     .assert * - :- <= kMaxPlatforms * .sizeof(sPlatform), error
     .byte ePlatform::None
@@ -138,9 +128,9 @@ _Devices_sDevice_arr:
     jsr FuncA_Objects_SetShapePosToPlatformTopLeft
     ldx #kNumSemaphoreKeyDigits - 1
     @loop:
-    cpx Zp_RoomState + sState::NumDigitsSet_u8
+    cpx Zp_RoomState + sCityCenterState::NumDigitsSet_u8
     bge @spinning
-    lda Zp_RoomState + sState::Key_u8_arr, x
+    lda Zp_RoomState + sCityCenterState::Key_u8_arr, x
     sbc #0  ; carry is clear
     bpl @draw  ; unconditional
     @spinning:
@@ -154,6 +144,13 @@ _Devices_sDevice_arr:
     jsr FuncA_Objects_Draw1x1Shape  ; preserves X
     lda #kBlockWidthPx  ; param: offset
     jsr FuncA_Objects_MoveShapeLeftByA  ; preserves X
+    cpx #5
+    bne @continue
+    lda #kBlockHeightPx  ; param: offset
+    jsr FuncA_Objects_MoveShapeUpByA  ; preserves X
+    lda #kBlockWidthPx * 5  ; param: offset
+    jsr FuncA_Objects_MoveShapeRightByA  ; preserves X
+    @continue:
     dex
     bpl @loop
     @done:
@@ -169,29 +166,31 @@ _Devices_sDevice_arr:
     bne @done
     ;; TODO: Play a sound for random key generation.
     lda #kInitialSpinFrames
-    sta Zp_RoomState + sState::SpinTimer_u8
+    sta Zp_RoomState + sCityCenterState::SpinTimer_u8
     ;; Generate a random key combination, with each digit between 1 and 4.
     ldx #kNumSemaphoreKeyDigits - 1
     @loop:
     jsr Func_GetRandomByte  ; preserves X, returns A
     and #$03
     add #1
-    sta Zp_RoomState + sState::Key_u8_arr, x
+    sta Zp_RoomState + sCityCenterState::Key_u8_arr, x
     dex
     bpl @loop
+    inx  ; now X is zero
+    stx Zp_RoomState + sCityCenterState::NumDigitsSet_u8
     @done:
     rts
 .ENDPROC
 
 .PROC FuncA_Room_CityBuilding2_TickRoom
-    dec Zp_RoomState + sState::SpinTimer_u8
+    dec Zp_RoomState + sCityCenterState::SpinTimer_u8
     bne @done
-    lda Zp_RoomState + sState::NumDigitsSet_u8
+    lda Zp_RoomState + sCityCenterState::NumDigitsSet_u8
     cmp #kNumSemaphoreKeyDigits
     bge @done
-    inc Zp_RoomState + sState::NumDigitsSet_u8
+    inc Zp_RoomState + sCityCenterState::NumDigitsSet_u8
     lda #kPerDigitSpinFrames
-    sta Zp_RoomState + sState::SpinTimer_u8
+    sta Zp_RoomState + sCityCenterState::SpinTimer_u8
     @done:
     rts
 .ENDPROC

@@ -25,10 +25,6 @@
 ;;;   * State3: The current upward vertical offset of the movable actuator, in
 ;;;     pixels (0-16).
 
-;;; The number of digits in the combination key that must be transferred by
-;;; semaphore.
-.DEFINE kNumSemaphoreKeyDigits 5
-
 ;;; The CHR bank numbers containing the diagrams for semaphore machines.
 kChrBankDiagramSemaphoreComm = $0a
 kChrBankDiagramSemaphoreKey  = $0b
