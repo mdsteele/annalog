@@ -1224,10 +1224,9 @@ _chr_begin:
     chr_inc "launcher_horz",        kTileIdObjLauncherHorzFirst
     chr_res $04
     chr_inc "platform_rocks",       kTileIdObjPlatformRocksFirst
-    chr_res $02
-    chr_inc "combo",                kTileIdObjComboFirst
     chr_inc "bad_rodent",           kTileIdObjBadRodentFirst
-    chr_res $07
+    chr_res $03
+    chr_inc "combo",                kTileIdObjComboFirst
     chr_inc "orc_grunt_running",    kTileIdObjOrcGruntRunningFirst
     chr_inc "orc_grunt_throwing",   kTileIdObjOrcGruntThrowingFirst
     chr_inc "bad_rhino",            kTileIdObjBadRhinoFirst

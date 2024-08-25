@@ -55,9 +55,6 @@ kInitialSpinFrames = 30
 ;;; spinning.
 kPerDigitSpinFrames = 10
 
-;;; The OBJ palette number for drawing key combination digits.
-kPaletteObjComboDigit = 1
-
 .ASSERT .sizeof(sCityCenterState) <= kRoomStateSize, error
 
 ;;;=========================================================================;;;
@@ -131,15 +128,14 @@ _Devices_sDevice_arr:
     cpx Zp_RoomState + sCityCenterState::NumDigitsSet_u8
     bge @spinning
     lda Zp_RoomState + sCityCenterState::Key_u8_arr, x
-    sbc #0  ; carry is clear
     bpl @draw  ; unconditional
     @spinning:
     txa
     adc Zp_FrameCounter_u8  ; carry is set
     and #$03
+    add #1
     @draw:
-    .assert kTileIdObjComboFirst .mod 4 = 0, error
-    ora #kTileIdObjComboFirst  ; param: tile ID
+    add #kTileIdObjComboFirst  ; param: tile ID
     ldy #kPaletteObjComboDigit  ; param: object flags
     jsr FuncA_Objects_Draw1x1Shape  ; preserves X
     lda #kBlockWidthPx  ; param: offset

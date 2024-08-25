@@ -26,6 +26,6 @@
 ;;;   * State4: Unused.
 
 ;;; Tile IDs for drawing rodent baddie actors.
-kTileIdObjBadRodentFirst = $a0
+kTileIdObjBadRodentFirst = $9a
 
 ;;;=========================================================================;;;

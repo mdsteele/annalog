@@ -33,9 +33,16 @@
     ;; For CityBuilding2 only, how many more frames until the next digit stops
     ;; spinning.
     SpinTimer_u8 .byte
+    ;; For CityCenter only, true ($ff) while a semaphore machine's reset
+    ;; function is being called, false ($00) at all other times. (This is used
+    ;; to help limit stack depth.)
+    SemaphoreReset_bool .byte
 .ENDSTRUCT
 
 ;;; OBJ tile IDs for drawing key combination digits.
-kTileIdObjComboFirst = $9c
+kTileIdObjComboFirst = $a6
+
+;;; The OBJ palette number for drawing key combination digits.
+kPaletteObjComboDigit = 1
 
 ;;;=========================================================================;;;

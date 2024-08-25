@@ -42,14 +42,18 @@
 .IMPORT FuncA_Machine_SemaphoreTick
 .IMPORT FuncA_Machine_SemaphoreTryAct
 .IMPORT FuncA_Machine_SemaphoreTryMove
+.IMPORT FuncA_Objects_Draw1x1Shape
 .IMPORT FuncA_Objects_DrawSemaphoreCommMachine
 .IMPORT FuncA_Objects_DrawSemaphoreKeyMachine
 .IMPORT FuncA_Objects_DrawSemaphoreLockMachine
+.IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
+.IMPORT FuncA_Room_MachineResetRun
 .IMPORT FuncA_Room_MachineSemaphoreReset
 .IMPORT Func_GetRandomByte
 .IMPORT Func_Noop
 .IMPORT Func_PlaySfxExplodeBig
 .IMPORT Func_SetFlag
+.IMPORT Func_SetMachineIndex
 .IMPORT Func_UnlockDoorDevice
 .IMPORT Main_Breaker_FadeBackToBreakerRoom
 .IMPORT Ppu_ChrObjCity
@@ -69,6 +73,7 @@
 .IMPORTZP Zp_Current_sRoom
 .IMPORTZP Zp_MachineIndex_u8
 .IMPORTZP Zp_Next_eCutscene
+.IMPORTZP Zp_Previous_eRoom
 .IMPORTZP Zp_RoomState
 
 ;;;=========================================================================;;;
@@ -102,6 +107,10 @@ kSemaphore2PlatformIndex = 1
 kSemaphore3PlatformIndex = 2
 kSemaphore4PlatformIndex = 3
 
+;;; The platform indices for the semaphore display screens in this room.
+kKeyScreenPlatformIndex = 4
+kLockScreenPlatformIndex = 5
+
 .ASSERT .sizeof(sCityCenterState) <= kRoomStateSize, error
 
 ;;;=========================================================================;;;
@@ -132,7 +141,7 @@ _Ext_sRoomExt:
     d_addr Enter_func_ptr, FuncA_Room_CityCenter_EnterRoom
     d_addr FadeIn_func_ptr, Func_Noop
     d_addr Tick_func_ptr, FuncA_Room_CityCenter_TickRoom
-    d_addr Draw_func_ptr, Func_Noop
+    d_addr Draw_func_ptr, FuncC_City_Center_DrawRoom
     D_END
 _TerrainData:
 :   .incbin "out/rooms/city_center1.room"
@@ -156,7 +165,7 @@ _Machines_sMachine_arr:
     d_addr TryAct_func_ptr, FuncA_Machine_SemaphoreTryAct
     d_addr Tick_func_ptr, FuncA_Machine_SemaphoreTick
     d_addr Draw_func_ptr, FuncA_Objects_DrawSemaphoreKeyMachine
-    d_addr Reset_func_ptr, FuncA_Room_MachineSemaphoreReset
+    d_addr Reset_func_ptr, FuncA_Room_CityCenterSemaphore_Reset
     D_END
     .assert * - :- = kSemaphore2MachineIndex * .sizeof(sMachine), error
     D_STRUCT sMachine
@@ -175,7 +184,7 @@ _Machines_sMachine_arr:
     d_addr TryAct_func_ptr, FuncA_Machine_SemaphoreTryAct
     d_addr Tick_func_ptr, FuncA_Machine_SemaphoreTick
     d_addr Draw_func_ptr, FuncA_Objects_DrawSemaphoreCommMachine
-    d_addr Reset_func_ptr, FuncA_Room_MachineSemaphoreReset
+    d_addr Reset_func_ptr, FuncA_Room_CityCenterSemaphore_Reset
     D_END
     .assert * - :- = kSemaphore3MachineIndex * .sizeof(sMachine), error
     D_STRUCT sMachine
@@ -194,7 +203,7 @@ _Machines_sMachine_arr:
     d_addr TryAct_func_ptr, FuncA_Machine_SemaphoreTryAct
     d_addr Tick_func_ptr, FuncA_Machine_SemaphoreTick
     d_addr Draw_func_ptr, FuncA_Objects_DrawSemaphoreCommMachine
-    d_addr Reset_func_ptr, FuncA_Room_MachineSemaphoreReset
+    d_addr Reset_func_ptr, FuncA_Room_CityCenterSemaphore_Reset
     D_END
     .assert * - :- = kSemaphore4MachineIndex * .sizeof(sMachine), error
     D_STRUCT sMachine
@@ -206,14 +215,14 @@ _Machines_sMachine_arr:
     d_byte ScrollGoalY_u8, $0d
     d_byte RegNames_u8_arr4, "J", "K", "S", "Y"
     d_byte MainPlatform_u8, kSemaphore4PlatformIndex
-    d_addr Init_func_ptr, FuncA_Room_CityCenterSemaphore4_InitReset
+    d_addr Init_func_ptr, FuncA_Room_CityCenterSemaphore_InitLock
     d_addr ReadReg_func_ptr, FuncC_City_CenterSemaphore_ReadReg
     d_addr WriteReg_func_ptr, FuncA_Machine_CityCenterSemaphore_WriteReg
     d_addr TryMove_func_ptr, FuncA_Machine_SemaphoreTryMove
     d_addr TryAct_func_ptr, FuncA_Machine_SemaphoreTryAct
     d_addr Tick_func_ptr, FuncA_Machine_SemaphoreTick
     d_addr Draw_func_ptr, FuncA_Objects_DrawSemaphoreLockMachine
-    d_addr Reset_func_ptr, FuncA_Room_CityCenterSemaphore4_InitReset
+    d_addr Reset_func_ptr, FuncA_Room_CityCenterSemaphore_Reset
     D_END
     .assert * - :- <= kMaxMachines * .sizeof(sMachine), error
 _Platforms_sPlatform_arr:
@@ -248,6 +257,22 @@ _Platforms_sPlatform_arr:
     d_byte HeightPx_u8, $08
     d_word Left_i16,  $0388
     d_word Top_i16,   $0048
+    D_END
+    .assert * - :- = kKeyScreenPlatformIndex * .sizeof(sPlatform), error
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Zone
+    d_word WidthPx_u16, $08
+    d_byte HeightPx_u8, $08
+    d_word Left_i16,  $0084
+    d_word Top_i16,   $0050
+    D_END
+    .assert * - :- = kLockScreenPlatformIndex * .sizeof(sPlatform), error
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Zone
+    d_word WidthPx_u16, $08
+    d_byte HeightPx_u8, $08
+    d_word Left_i16,  $0394
+    d_word Top_i16,   $0050
     D_END
     ;; Bridges:
     D_STRUCT sPlatform
@@ -434,18 +459,44 @@ _Passages_sPassage_arr:
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
 .ENDPROC
 
+.PROC FuncC_City_Center_DrawRoom
+    ;; Once the door is unlocked, disable both display screens.
+    flag_bit Sram_ProgressFlags_arr, eFlag::CityCenterDoorUnlocked
+    bne _Return
+    ;; Draw the lock display screen.
+    ldx Ram_MachineGoalHorz_u8_arr + kSemaphore4MachineIndex  ; lock index
+    ldy Zp_RoomState + sCityCenterState::Lock_u8_arr, x  ; param: digit
+    ldx #kLockScreenPlatformIndex  ; param: platform index
+    jsr _DrawScreen
+    ;; Until the keygen is connected, disable the key display screen.
+    flag_bit Sram_ProgressFlags_arr, eFlag::CityCenterKeygenConnected
+    beq _Return
+    ;; Draw the key display screen.
+    ldx Ram_MachineGoalHorz_u8_arr + kSemaphore1MachineIndex  ; key index
+    ldy Zp_RoomState + sCityCenterState::Key_u8_arr, x  ; param: digit
+    ldx #kKeyScreenPlatformIndex  ; param: platform index
+_DrawScreen:
+    jsr FuncA_Objects_SetShapePosToPlatformTopLeft  ; preserves Y
+    ldx Ram_MachineGoalHorz_u8_arr + kSemaphore1MachineIndex  ; key array index
+    tya  ; digit
+    add #kTileIdObjComboFirst  ; param: tile ID
+    ldy #kPaletteObjComboDigit  ; param: object flags
+    jmp FuncA_Objects_Draw1x1Shape
+_Return:
+    rts
+.ENDPROC
+
 ;;; ReadReg implemention for the semaphore machines in this room.
 ;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
 ;;; @param A The register to read ($c-$f).
 ;;; @return A The value of the register (0-9).
 .PROC FuncC_City_CenterSemaphore_ReadReg
     ldy Zp_MachineIndex_u8
-    cmp #$f
-    beq _ReadRegY
-    cmp #$c
-    beq _ReadRegJ
     cmp #$e
     beq @regE
+    bge _ReadRegY
+    cmp #$c
+    beq _ReadRegJ
     @regD:
     cpy #kSemaphore4MachineIndex
     beq _ReadRegLock
@@ -497,10 +548,7 @@ _ReadRegY:
 
 .SEGMENT "PRGA_Room"
 
-;;; Called when the player avatar enters the CityCenter room.
-;;; @param A The bSpawn value for where the avatar is entering the room.
 .PROC FuncA_Room_CityCenter_EnterRoom
-    sta T0  ; bSpawn value
 _RemoveEastOrc:
     ;; The eastern orc leaves once the B-remote has been collected (including
     ;; during the city breaker cutscene).
@@ -554,8 +602,8 @@ _UnlockDoor:
 _GenerateKey:
     ;; If the player avatar entered from CityBuilding2 (with which this room
     ;; shares state), don't re-randomize the key.
-    lda T0  ; bSpawn value
-    cmp #bSpawn::Device | kCityBuilding2DoorDeviceIndex
+    lda Zp_Previous_eRoom
+    cmp #eRoom::CityBuilding2
     beq @done
     ;; TODO: Play a sound for random key generation.
     ;; Generate a random key combination, with each digit between 1 and 4.
@@ -592,14 +640,51 @@ _SetFlag:
     rts
 .ENDPROC
 
-.PROC FuncA_Room_CityCenterSemaphore4_InitReset
+.PROC FuncA_Room_CityCenterSemaphore_Reset
+    ;; Reset this semaphore machine.
+    jsr FuncA_Room_MachineSemaphoreReset
+    ;; We need to reset the other semaphore machines too.  If one of the other
+    ;; semaphore machines is already doing that, then we're done.
+    lda Zp_RoomState + sCityCenterState::SemaphoreReset_bool
+    beq @resetOthers
+    rts
+    @resetOthers:
+    ;; Save this machine's index so we can restore it later, and set
+    ;; SemaphoreReset_bool to true so the other machines don't do this too.
+    lda Zp_MachineIndex_u8
+    pha  ; this machine's index
+    dec Zp_RoomState + sCityCenterState::SemaphoreReset_bool  ; now $ff
+    ;; Loop over all semaphore machines in the room, and reset any that aren't
+    ;; already resetting.
+    ldx #3  ; param: machine index
+    @loop:
+    lda Ram_MachineStatus_eMachine_arr, x
+    cmp #kFirstResetStatus
+    bge @continue
+    jsr Func_SetMachineIndex
+    jsr FuncA_Room_MachineResetRun
+    ldx Zp_MachineIndex_u8
+    @continue:
+    dex
+    bpl @loop
+    ;; Set SemaphoreReset_bool back to false, and restore the original machine
+    ;; index.
+    inc Zp_RoomState + sCityCenterState::SemaphoreReset_bool  ; now $00
+    pla  ; this machine's index
+    tax  ; param: machine index
+    jsr Func_SetMachineIndex
+    ;; Finally, reset the Lock_u8_arr array as well.
+    fall FuncA_Room_CityCenterSemaphore_InitLock
+.ENDPROC
+
+.PROC FuncA_Room_CityCenterSemaphore_InitLock
     lda #0
     ldx #kNumSemaphoreKeyDigits - 1
     @loop:
     sta Zp_RoomState + sCityCenterState::Lock_u8_arr, x
     dex
     bpl @loop
-    jmp FuncA_Room_MachineSemaphoreReset
+    rts
 .ENDPROC
 
 ;;;=========================================================================;;;
