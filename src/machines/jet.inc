@@ -29,6 +29,15 @@
 kJetPlatformWidthPx  = $20
 kJetPlatformHeightPx = $0b
 
+;;; The size of a jet machine's flame platform, in pixels.
+kJetFlameWidthPx  = $18
+kJetFlameHeightPx = $05
+
+;;; The offset for a jet machine's flame platform position, releative to its
+;;; main platform position.
+kJetFlameOffsetX = (kJetPlatformWidthPx - kJetFlameWidthPx) / 2
+kJetFlameOffsetY = $08
+
 ;;; How many pixels a jet machine moves per tick of its Y register.
 .DEFINE kJetMoveInterval $30
 

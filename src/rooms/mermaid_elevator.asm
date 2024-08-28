@@ -135,6 +135,13 @@ _Platforms_sPlatform_arr:
     d_word Left_i16,  $0080
     d_word Top_i16, kJetInitPlatformTop
     D_END
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Harm
+    d_word WidthPx_u16, kJetFlameWidthPx
+    d_byte HeightPx_u8, kJetFlameHeightPx
+    d_word Left_i16,  $0080 + kJetFlameOffsetX
+    d_word Top_i16, kJetInitPlatformTop + kJetFlameOffsetY
+    D_END
     ;; Water:
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Water

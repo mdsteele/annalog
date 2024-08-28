@@ -86,7 +86,7 @@ kBrunoDeviceIndexLeft = 5
 kBrunoDeviceIndexRight = 4
 
 ;;; The platform index for the zone where Bruno asks you to wait up.
-kWaitUpZonePlatformIndex = 2
+kWaitUpZonePlatformIndex = 4
 
 ;;;=========================================================================;;;
 
@@ -109,7 +109,7 @@ kLowerJetMachineIndex = 1
 
 ;;; The platform indices for the jet machines in this room.
 kUpperJetPlatformIndex = 0
-kLowerJetPlatformIndex = 1
+kLowerJetPlatformIndex = 2
 
 ;;; The initial and maximum permitted values for the jets' Y-goals.
 kUpperJetInitGoalY = 9
@@ -213,6 +213,13 @@ _Platforms_sPlatform_arr:
     d_word Left_i16,  $0080
     d_word Top_i16, $ffff & kUpperJetInitPlatformTop
     D_END
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Harm
+    d_word WidthPx_u16, kJetFlameWidthPx
+    d_byte HeightPx_u8, kJetFlameHeightPx
+    d_word Left_i16,  $0080 + kJetFlameOffsetX
+    d_word Top_i16, $ffff & (kUpperJetInitPlatformTop + kJetFlameOffsetY)
+    D_END
     .assert * - :- = kLowerJetPlatformIndex * .sizeof(sPlatform), error
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Solid
@@ -220,6 +227,13 @@ _Platforms_sPlatform_arr:
     d_byte HeightPx_u8, kJetPlatformHeightPx
     d_word Left_i16,  $0080
     d_word Top_i16, kLowerJetInitPlatformTop
+    D_END
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Harm
+    d_word WidthPx_u16, kJetFlameWidthPx
+    d_byte HeightPx_u8, kJetFlameHeightPx
+    d_word Left_i16,  $0080 + kJetFlameOffsetX
+    d_word Top_i16, kLowerJetInitPlatformTop + kJetFlameOffsetY
     D_END
     .assert * - :- = kWaitUpZonePlatformIndex * .sizeof(sPlatform), error
     D_STRUCT sPlatform
@@ -512,6 +526,20 @@ _Hud:
     lda Ram_PlatformTop_i16_1_arr, y
     adc #0
     sta Ram_PlatformBottom_i16_1_arr, y
+    ;; Set flame platform top position relative to main platform.
+    lda Ram_PlatformTop_i16_0_arr, y
+    add #kJetFlameOffsetY
+    sta Ram_PlatformTop_i16_0_arr + 1, y
+    lda Ram_PlatformTop_i16_1_arr, y
+    adc #0
+    sta Ram_PlatformTop_i16_1_arr + 1, y
+    ;; Set flame platform bottom position relative to top.
+    lda Ram_PlatformTop_i16_0_arr + 1, y
+    add #kJetFlameHeightPx
+    sta Ram_PlatformBottom_i16_0_arr + 1, y
+    lda Ram_PlatformTop_i16_1_arr, y
+    adc #0
+    sta Ram_PlatformBottom_i16_1_arr + 1, y
     ;; Init machine state from previous room.
     lda Zp_RoomState + sElevatorState::PrevJetStatus_eMachine
     sta Ram_MachineStatus_eMachine_arr, x

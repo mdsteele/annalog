@@ -33,6 +33,7 @@
 .IMPORT FuncA_Objects_SetShapePosToMachineTopLeft
 .IMPORT Func_DivMod
 .IMPORT Func_MovePlatformTopTowardPointY
+.IMPORT Func_MovePlatformVert
 .IMPORT Ram_MachineGoalVert_u8_arr
 .IMPORT Ram_MachineState1_byte_arr
 .IMPORT Ram_Oam_sObj_arr64
@@ -140,9 +141,12 @@ kTileIdObjJetLowerMiddleFirst = kTileIdObjJetFirst + 1
     jsr FuncA_Machine_DoubleIfResetting  ; preserves T0+, returns A
     ;; Move the jet vertically, as necessary.
     ldx T1  ; param: platform index
-    jsr Func_MovePlatformTopTowardPointY  ; returns Z
+    jsr Func_MovePlatformTopTowardPointY  ; preserves X, returns Z and A
     beq _ReachedGoal
 _Moved:
+    ;; Move the jet's flame platform to match.
+    inx  ; param: platform index
+    jsr Func_MovePlatformVert
     ldx Zp_MachineIndex_u8
     lda #kJetMaxFlamePower
     sta Ram_MachineState1_byte_arr, x  ; flame power
