@@ -34,6 +34,7 @@
 .IMPORT Func_DivMod
 .IMPORT Func_MovePlatformTopTowardPointY
 .IMPORT Ram_MachineGoalVert_u8_arr
+.IMPORT Ram_MachineState1_byte_arr
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORT Ram_PlatformTop_i16_1_arr
@@ -140,8 +141,30 @@ kTileIdObjJetLowerMiddleFirst = kTileIdObjJetFirst + 1
     ;; Move the jet vertically, as necessary.
     ldx T1  ; param: platform index
     jsr Func_MovePlatformTopTowardPointY  ; returns Z
-    jeq FuncA_Machine_ReachedGoal
+    beq _ReachedGoal
+_Moved:
+    ldx Zp_MachineIndex_u8
+    lda #kJetMaxFlamePower
+    sta Ram_MachineState1_byte_arr, x  ; flame power
     rts
+_ReachedGoal:
+    ;; Determine minimum flame power (0 if at min/max height, or
+    ;; kJetMaxFlamePower/2 if hovering).
+    ldx Zp_MachineIndex_u8
+    lda #0
+    ldy Ram_MachineGoalVert_u8_arr, x
+    beq @setMin  ; jet is at minimum height
+    cpy #9
+    beq @setMin  ; jet is at maximum height
+    @hovering:
+    lda #kJetMaxFlamePower / 2
+    @setMin:
+    ;; Decrement flame power (down to minimum).
+    cmp Ram_MachineState1_byte_arr, x  ; flame power
+    bge @done
+    dec Ram_MachineState1_byte_arr, x  ; flame power
+    @done:
+    jmp FuncA_Machine_ReachedGoal
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -155,39 +178,47 @@ kTileIdObjJetLowerMiddleFirst = kTileIdObjJetFirst + 1
     jsr FuncA_Objects_SetShapePosToMachineTopLeft
     ;; Calculate the offset to use for the tile IDs for the bottom of the jet.
     ldx Zp_MachineIndex_u8
-    lda Ram_MachineGoalVert_u8_arr, x
-    beq @done
+    ldy #0  ; flame level
+    lda Ram_MachineState1_byte_arr, x  ; flame power
+    beq @doneFlameLevel
+    iny  ; now Y is 1
+    cmp #kJetMaxFlamePower / 2 + 1
+    blt @checkFrameCounter
+    iny  ; now Y is 2
+    @checkFrameCounter:
     lda Zp_FrameCounter_u8
     and #$04
-    lsr a
-    adc #$02
-    @done:
-    tax  ; tile ID offset
+    beq @doneFlameLevel
+    iny
+    @doneFlameLevel:
+    tya  ; flame level
+    mul #2
+    sta T2  ; tile ID offset
 _LeftHalf:
     ;; Allocate objects.
-    jsr FuncA_Objects_MoveShapeDownAndRightOneTile  ; preserves X
+    jsr FuncA_Objects_MoveShapeDownAndRightOneTile  ; preserves T0+
     lda #kPaletteObjMachineLight  ; param: object flags
-    jsr FuncA_Objects_Alloc2x2Shape  ; preserves X, returns C and Y
+    jsr FuncA_Objects_Alloc2x2Shape  ; preserves T2+, returns C and Y
     bcs @done
     ;; Set tile IDs.
-    stx T0  ; tile ID offset
     jsr FuncA_Objects_GetMachineLightTileId  ; preserves Y and T0+, returns A
-    ldx T0  ; param: tile ID offset
-    jsr FuncA_Objects_SetJetMachineTiles  ; preserves X and Y
+    ldx T2  ; param: tile ID offset
+    jsr FuncA_Objects_SetJetMachineTiles  ; preserves T1+
     @done:
 _RightHalf:
     ;; Allocate objects.
     lda #kTileWidthPx * 2  ; param: offset
-    jsr FuncA_Objects_MoveShapeRightByA  ; preserves X
+    jsr FuncA_Objects_MoveShapeRightByA
     lda #kPaletteObjMachineLight | bObj::FlipH  ; param: object flags
-    jsr FuncA_Objects_Alloc2x2Shape  ; preserves X; returns C and Y
+    jsr FuncA_Objects_Alloc2x2Shape  ; preserves T2+, returns C and Y
     bcc @notDone
     rts
     @notDone:
     lda #kPaletteObjMachineLight | bObj::FlipV
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Flags_bObj, y
-    lda #kTileIdObjJetUpperCorner
-    .assert * = FuncA_Objects_SetJetMachineTiles, error, "fallthrough"
+    lda #kTileIdObjJetUpperCorner  ; param: upper corner tile ID
+    ldx T2  ; param: tile ID offset
+    fall FuncA_Objects_SetJetMachineTiles
 .ENDPROC
 
 ;;; Helper function for FuncA_Objects_DrawJetMachine.  Populates object tile
@@ -195,7 +226,7 @@ _RightHalf:
 ;;; @param A The tile ID for the upper corner tile.
 ;;; @param X The tile ID offset for the bottom two tiles.
 ;;; @param Y The OAM byte offset for the first of the four tiles.
-;;; @preserve X, Y
+;;; @preserve X, Y, T1+
 .PROC FuncA_Objects_SetJetMachineTiles
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Tile_u8, y
     stx T0  ; tile ID offset

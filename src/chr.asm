@@ -1264,7 +1264,6 @@ _chr_begin:
 .EXPORT Ppu_ChrObjFactory
 .PROC Ppu_ChrObjFactory
     CHR2_BANK $80
-    chr_res $02
     chr_inc "jet",            kTileIdObjJetFirst
     chr_inc "rotor",          kTileIdObjRotorFirst
     chr_res $07

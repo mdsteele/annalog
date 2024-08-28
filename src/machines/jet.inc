@@ -18,7 +18,10 @@
 ;;;=========================================================================;;;
 
 ;;; State bytes for jet machines:
-;;;   * State1: Unused.
+;;;   * State1: The jet flame power, from 0 to kJetMaxFlamePower.  This gets
+;;;     set to kJetMaxFlamePower when the jet is moving; decrements when the
+;;;     jet is not moving (down to kJetMaxFlamePower/2 if hovering, or down to
+;;;     zero if at min/max height).
 ;;;   * State2: Unused.
 ;;;   * State3: Unused.
 
@@ -32,6 +35,9 @@ kJetPlatformHeightPx = $0b
 ;;; How many pixels a jet machine normally moves per frame.
 kJetMoveSpeed = 3
 
+;;; The maximum value for a jet machine's flame power stored in State1.
+kJetMaxFlamePower = 24
+
 ;;; The CHR bank number containing the diagram for jet machines.
 kChrBankDiagramJet = $09
 
@@ -39,6 +45,6 @@ kChrBankDiagramJet = $09
 kTileIdBgDiagramJetFirst = $f0
 
 ;;; The start of OBJ tile IDs used for drawing jet machines.
-kTileIdObjJetFirst = $82
+kTileIdObjJetFirst = $80
 
 ;;;=========================================================================;;;
