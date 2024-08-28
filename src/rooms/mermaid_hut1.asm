@@ -34,6 +34,39 @@
 .INCLUDE "../room.inc"
 
 .IMPORT DataA_Room_Hut_sTileset
+.IMPORT DataA_Text0_MermaidHut1AlexPetition_Part1_u8_arr
+.IMPORT DataA_Text0_MermaidHut1AlexPetition_Part2_u8_arr
+.IMPORT DataA_Text0_MermaidHut1AlexPetition_Part3_u8_arr
+.IMPORT DataA_Text0_MermaidHut1AlexPetition_Part4_u8_arr
+.IMPORT DataA_Text0_MermaidHut1AlexPetition_Part5_u8_arr
+.IMPORT DataA_Text0_MermaidHut1BreakerCrypt_Part1_u8_arr
+.IMPORT DataA_Text0_MermaidHut1BreakerCrypt_Part2_u8_arr
+.IMPORT DataA_Text0_MermaidHut1BreakerCrypt_Part3_u8_arr
+.IMPORT DataA_Text0_MermaidHut1BreakerCrypt_Part4_u8_arr
+.IMPORT DataA_Text0_MermaidHut1BreakerCrypt_Part5_u8_arr
+.IMPORT DataA_Text0_MermaidHut1BreakerCrypt_Part6_u8_arr
+.IMPORT DataA_Text0_MermaidHut1BreakerCrypt_Part7_u8_arr
+.IMPORT DataA_Text0_MermaidHut1BreakerGarden_u8_arr
+.IMPORT DataA_Text0_MermaidHut1Guard_u8_arr
+.IMPORT DataA_Text0_MermaidHut1Queen_FindYourFriends_u8_arr
+.IMPORT DataA_Text0_MermaidHut1Queen_FirstMeeting1_u8_arr
+.IMPORT DataA_Text0_MermaidHut1Queen_FirstMeeting2_u8_arr
+.IMPORT DataA_Text0_MermaidHut1Queen_FirstMeeting3_u8_arr
+.IMPORT DataA_Text0_MermaidHut1Queen_FirstMeeting4_u8_arr
+.IMPORT DataA_Text0_MermaidHut1Queen_GardenBossDead1_u8_arr
+.IMPORT DataA_Text0_MermaidHut1Queen_GardenBossDead2_u8_arr
+.IMPORT DataA_Text0_MermaidHut1Queen_GrantAsylum_u8_arr
+.IMPORT DataA_Text0_MermaidHut1Queen_HelpFarmers_u8_arr
+.IMPORT DataA_Text0_MermaidHut1Queen_KidsRescued1_u8_arr
+.IMPORT DataA_Text0_MermaidHut1Queen_KidsRescued2_u8_arr
+.IMPORT DataA_Text0_MermaidHut1Queen_OtherRuins_u8_arr
+.IMPORT DataA_Text0_MermaidHut1Queen_TempleBossDead1_u8_arr
+.IMPORT DataA_Text0_MermaidHut1Queen_TempleBossDead2_u8_arr
+.IMPORT DataA_Text0_MermaidHut1Queen_TempleBossDead3_u8_arr
+.IMPORT DataA_Text0_MermaidHut1Queen_TempleBossDead4_u8_arr
+.IMPORT DataA_Text0_MermaidHut1Queen_TempleBossDead5_u8_arr
+.IMPORT DataA_Text0_MermaidHut1Queen_TempleEntry_u8_arr
+.IMPORT DataA_Text0_MermaidHut1Queen_TempleProblem_u8_arr
 .IMPORT Func_Noop
 .IMPORT Func_PlaySfxExplodeBig
 .IMPORT Func_SetFlag
@@ -298,7 +331,7 @@ _RemoveAlex:
 
 .EXPORT DataA_Dialog_MermaidHut1Guard_sDialog
 .PROC DataA_Dialog_MermaidHut1Guard_sDialog
-    dlg_Text AdultMan, DataA_Text2_MermaidHut1Guard_u8_arr
+    dlg_Text AdultMan, DataA_Text0_MermaidHut1Guard_u8_arr
     dlg_Done
 .ENDPROC
 
@@ -356,300 +389,73 @@ _Quest3Func:
     ldya #_OtherRuins_sDialog
     rts
 _FirstMeeting_sDialog:
-    dlg_Text MermaidEirene, DataA_Text2_MermaidHut1Queen_FirstMeeting1_u8_arr
-    dlg_Text MermaidEirene, DataA_Text2_MermaidHut1Queen_FirstMeeting2_u8_arr
-    dlg_Text MermaidEirene, DataA_Text2_MermaidHut1Queen_FirstMeeting3_u8_arr
-    dlg_Text MermaidEirene, DataA_Text2_MermaidHut1Queen_FirstMeeting4_u8_arr
+    dlg_Text MermaidEirene, DataA_Text0_MermaidHut1Queen_FirstMeeting1_u8_arr
+    dlg_Text MermaidEirene, DataA_Text0_MermaidHut1Queen_FirstMeeting2_u8_arr
+    dlg_Text MermaidEirene, DataA_Text0_MermaidHut1Queen_FirstMeeting3_u8_arr
+    dlg_Text MermaidEirene, DataA_Text0_MermaidHut1Queen_FirstMeeting4_u8_arr
 _GrantAsylum_sDialog:
-    dlg_Text MermaidEirene, DataA_Text2_MermaidHut1Queen_GrantAsylum_u8_arr
+    dlg_Text MermaidEirene, DataA_Text0_MermaidHut1Queen_GrantAsylum_u8_arr
     dlg_Quest MermaidHut1MetQueen
-    dlg_Text MermaidEirene, DataA_Text2_MermaidHut1Queen_HelpFarmers_u8_arr
+    dlg_Text MermaidEirene, DataA_Text0_MermaidHut1Queen_HelpFarmers_u8_arr
     dlg_Done
 _GardenBossDead_sDialog:
-    dlg_Text MermaidEirene, DataA_Text2_MermaidHut1Queen_GardenBossDead1_u8_arr
-    dlg_Text MermaidEirene, DataA_Text2_MermaidHut1Queen_GardenBossDead2_u8_arr
+    dlg_Text MermaidEirene, DataA_Text0_MermaidHut1Queen_GardenBossDead1_u8_arr
+    dlg_Text MermaidEirene, DataA_Text0_MermaidHut1Queen_GardenBossDead2_u8_arr
 _TempleProblem_sDialog:
-    dlg_Text MermaidEirene, DataA_Text2_MermaidHut1Queen_TempleProblem_u8_arr
+    dlg_Text MermaidEirene, DataA_Text0_MermaidHut1Queen_TempleProblem_u8_arr
     dlg_Quest TempleEntryPermission
-    dlg_Text MermaidEirene, DataA_Text2_MermaidHut1Queen_TempleEntry_u8_arr
+    dlg_Text MermaidEirene, DataA_Text0_MermaidHut1Queen_TempleEntry_u8_arr
     dlg_Done
 _TempleBossDead_sDialog:
-    dlg_Text MermaidEirene, DataA_Text2_MermaidHut1Queen_TempleBossDead1_u8_arr
-    dlg_Text MermaidEirene, DataA_Text2_MermaidHut1Queen_TempleBossDead2_u8_arr
-    dlg_Text MermaidEirene, DataA_Text2_MermaidHut1Queen_TempleBossDead3_u8_arr
-    dlg_Text MermaidEirene, DataA_Text2_MermaidHut1Queen_TempleBossDead4_u8_arr
-    dlg_Text MermaidEirene, DataA_Text2_MermaidHut1Queen_TempleBossDead5_u8_arr
+    dlg_Text MermaidEirene, DataA_Text0_MermaidHut1Queen_TempleBossDead1_u8_arr
+    dlg_Text MermaidEirene, DataA_Text0_MermaidHut1Queen_TempleBossDead2_u8_arr
+    dlg_Text MermaidEirene, DataA_Text0_MermaidHut1Queen_TempleBossDead3_u8_arr
+    dlg_Text MermaidEirene, DataA_Text0_MermaidHut1Queen_TempleBossDead4_u8_arr
+    dlg_Text MermaidEirene, DataA_Text0_MermaidHut1Queen_TempleBossDead5_u8_arr
 _OtherRuins_sDialog:
-    dlg_Text MermaidEirene, DataA_Text2_MermaidHut1Queen_OtherRuins_u8_arr
+    dlg_Text MermaidEirene, DataA_Text0_MermaidHut1Queen_OtherRuins_u8_arr
     dlg_Quest CoreSouthCorraWaiting
-    dlg_Text MermaidEirene, DataA_Text2_MermaidHut1Queen_FindYourFriends_u8_arr
+    dlg_Text MermaidEirene, DataA_Text0_MermaidHut1Queen_FindYourFriends_u8_arr
     dlg_Done
 _KidsRescued_sDialog:
-    dlg_Text MermaidEirene, DataA_Text2_MermaidHut1Queen_KidsRescued1_u8_arr
-    dlg_Text MermaidEirene, DataA_Text2_MermaidHut1Queen_KidsRescued2_u8_arr
+    dlg_Text MermaidEirene, DataA_Text0_MermaidHut1Queen_KidsRescued1_u8_arr
+    dlg_Text MermaidEirene, DataA_Text0_MermaidHut1Queen_KidsRescued2_u8_arr
     dlg_Done
 .ENDPROC
 
 .EXPORT DataA_Dialog_MermaidHut1BreakerGarden_sDialog
 .PROC DataA_Dialog_MermaidHut1BreakerGarden_sDialog
-    dlg_Text MermaidEireneShout, DataA_Text2_MermaidHut1BreakerGarden_u8_arr
+    dlg_Text MermaidEireneShout, DataA_Text0_MermaidHut1BreakerGarden_u8_arr
     dlg_Done
 .ENDPROC
 
 .EXPORT DataA_Dialog_MermaidHut1AlexPetition_sDialog
 .PROC DataA_Dialog_MermaidHut1AlexPetition_sDialog
     .assert kTileIdBgPortraitAlexFirst = kTileIdBgPortraitEireneFirst, error
-    dlg_Text ChildAlex, DataA_Text2_MermaidHut1AlexPetition_Part1_u8_arr
-    dlg_Text MermaidEirene, DataA_Text2_MermaidHut1AlexPetition_Part2_u8_arr
-    dlg_Text ChildAlex, DataA_Text2_MermaidHut1AlexPetition_Part3_u8_arr
-    dlg_Text MermaidEirene, DataA_Text2_MermaidHut1AlexPetition_Part4_u8_arr
-    dlg_Text ChildAlex, DataA_Text2_MermaidHut1AlexPetition_Part5_u8_arr
+    dlg_Text ChildAlex, DataA_Text0_MermaidHut1AlexPetition_Part1_u8_arr
+    dlg_Text MermaidEirene, DataA_Text0_MermaidHut1AlexPetition_Part2_u8_arr
+    dlg_Text ChildAlex, DataA_Text0_MermaidHut1AlexPetition_Part3_u8_arr
+    dlg_Text MermaidEirene, DataA_Text0_MermaidHut1AlexPetition_Part4_u8_arr
+    dlg_Text ChildAlex, DataA_Text0_MermaidHut1AlexPetition_Part5_u8_arr
     dlg_Done
 .ENDPROC
 
 .EXPORT DataA_Dialog_MermaidHut1BreakerCrypt1_sDialog
 .PROC DataA_Dialog_MermaidHut1BreakerCrypt1_sDialog
     .assert kTileIdBgPortraitAlexFirst = kTileIdBgPortraitEireneFirst, error
-    dlg_Text ChildAlex, DataA_Text2_MermaidHut1BreakerCrypt_Part1_u8_arr
-    dlg_Text MermaidEirene, DataA_Text2_MermaidHut1BreakerCrypt_Part2_u8_arr
-    dlg_Text MermaidEirene, DataA_Text2_MermaidHut1BreakerCrypt_Part3_u8_arr
-    dlg_Text ChildAlex, DataA_Text2_MermaidHut1BreakerCrypt_Part4_u8_arr
-    dlg_Text ChildAlex, DataA_Text2_MermaidHut1BreakerCrypt_Part5_u8_arr
-    dlg_Text MermaidEirene, DataA_Text2_MermaidHut1BreakerCrypt_Part6_u8_arr
+    dlg_Text ChildAlex, DataA_Text0_MermaidHut1BreakerCrypt_Part1_u8_arr
+    dlg_Text MermaidEirene, DataA_Text0_MermaidHut1BreakerCrypt_Part2_u8_arr
+    dlg_Text MermaidEirene, DataA_Text0_MermaidHut1BreakerCrypt_Part3_u8_arr
+    dlg_Text ChildAlex, DataA_Text0_MermaidHut1BreakerCrypt_Part4_u8_arr
+    dlg_Text ChildAlex, DataA_Text0_MermaidHut1BreakerCrypt_Part5_u8_arr
+    dlg_Text MermaidEirene, DataA_Text0_MermaidHut1BreakerCrypt_Part6_u8_arr
     dlg_Done
 .ENDPROC
 
 .EXPORT DataA_Dialog_MermaidHut1BreakerCrypt2_sDialog
 .PROC DataA_Dialog_MermaidHut1BreakerCrypt2_sDialog
-    dlg_Text ChildAlex, DataA_Text2_MermaidHut1BreakerCrypt_Part7_u8_arr
+    dlg_Text ChildAlex, DataA_Text0_MermaidHut1BreakerCrypt_Part7_u8_arr
     dlg_Done
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Text2"
-
-.PROC DataA_Text2_MermaidHut1Guard_u8_arr
-    .byte "All hail Queen Eirene!#"
-.ENDPROC
-
-.PROC DataA_Text2_MermaidHut1Queen_FirstMeeting1_u8_arr
-    .byte "So, you must be the$"
-    .byte "human I've heard is$"
-    .byte "running around.#"
-.ENDPROC
-
-.PROC DataA_Text2_MermaidHut1Queen_FirstMeeting2_u8_arr
-    .byte "Humans belong on the$"
-    .byte "surface, not here. So$"
-    .byte "what are you doing$"
-    .byte "down here among us?#"
-.ENDPROC
-
-.PROC DataA_Text2_MermaidHut1Queen_FirstMeeting3_u8_arr
-    .byte "...I see. So the orcs$"
-    .byte "attacked, and now you$"
-    .byte "are a refugee. This$"
-    .byte "complicates things.#"
-.ENDPROC
-
-.PROC DataA_Text2_MermaidHut1Queen_FirstMeeting4_u8_arr
-    .byte "I will be honest: I do$"
-    .byte "not trust humans.$"
-    .byte "However, I don't care$"
-    .byte "for the orcs either.#"
-.ENDPROC
-
-.PROC DataA_Text2_MermaidHut1Queen_GrantAsylum_u8_arr
-    .byte "I will grant you safe$"
-    .byte "asylum in our village,$"
-    .byte "on one condition: that$"
-    .byte "you help us in return.#"
-.ENDPROC
-
-.PROC DataA_Text2_MermaidHut1Queen_HelpFarmers_u8_arr
-    .byte "Speak with our farmers$"
-    .byte "in this village. They$"
-    .byte "have a problem a human$"
-    .byte "could perhaps solve.#"
-.ENDPROC
-
-.PROC DataA_Text2_MermaidHut1Queen_GardenBossDead1_u8_arr
-    .byte "I heard you helped our$"
-    .byte "farmers. And you even$"
-    .byte "survived. I thank you.#"
-.ENDPROC
-
-.PROC DataA_Text2_MermaidHut1Queen_GardenBossDead2_u8_arr
-    .byte "Perhaps...perhaps you$"
-    .byte "could help us with one$"
-    .byte "more problem.#"
-.ENDPROC
-
-.PROC DataA_Text2_MermaidHut1Queen_TempleProblem_u8_arr
-    .byte "There's a temple west$"
-    .byte "of the gardens. It's$"
-    .byte "very important to us.$"
-    .byte "At least, it once was.#"
-.ENDPROC
-
-.PROC DataA_Text2_MermaidHut1Queen_TempleEntry_u8_arr
-    .byte "I'd like you to visit$"
-    .byte "the temple. The guards$"
-    .byte "east of my hut can$"
-    .byte "tell you more.#"
-.ENDPROC
-
-.PROC DataA_Text2_MermaidHut1Queen_TempleBossDead1_u8_arr
-    .byte "I take it that you've$"
-    .byte "seen the whole of the$"
-    .byte "ruined temple? Maybe$"
-    .byte "now you understand.#"
-.ENDPROC
-
-.PROC DataA_Text2_MermaidHut1Queen_TempleBossDead2_u8_arr
-    .byte "Our two peoples built$"
-    .byte "it together, centuries$"
-    .byte "ago. It was to be a$"
-    .byte "symbol of peace.#"
-.ENDPROC
-
-.PROC DataA_Text2_MermaidHut1Queen_TempleBossDead3_u8_arr
-    .byte "But before long, the$"
-    .byte "humans desecrated it$"
-    .byte "into a mechanized$"
-    .byte "fortress instead.#"
-.ENDPROC
-
-.PROC DataA_Text2_MermaidHut1Queen_TempleBossDead4_u8_arr
-    .byte "Humans are just like$"
-    .byte "the orcs. Violent and$"
-    .byte "untrustworthy, despite$"
-    .byte "our best efforts.#"
-.ENDPROC
-
-.PROC DataA_Text2_MermaidHut1Queen_TempleBossDead5_u8_arr
-    .byte "But enough. My scouts$"
-    .byte "tell me there is a way$"
-    .byte "for you to reach your$"
-    .byte "fellow villagers.#"
-.ENDPROC
-
-.PROC DataA_Text2_MermaidHut1Queen_OtherRuins_u8_arr
-    .byte "There are...another$"
-    .byte "kind of ruins buried$"
-    .byte "just above our humble$"
-    .byte "vale. Older ones.#"
-.ENDPROC
-
-.PROC DataA_Text2_MermaidHut1Queen_FindYourFriends_u8_arr
-    .byte "If you climb upwards$"
-    .byte "through there, you may$"
-    .byte "be able to find and$"
-    .byte "rescue your friends.#"
-.ENDPROC
-
-.PROC DataA_Text2_MermaidHut1Queen_KidsRescued1_u8_arr
-    .byte "The children from your$"
-    .byte "village have arrived$"
-    .byte "safely. I have granted$"
-    .byte "them asylum for now.#"
-.ENDPROC
-
-.PROC DataA_Text2_MermaidHut1Queen_KidsRescued2_u8_arr
-    .byte "You can find them in$"
-    .byte "the southeastern hut$"
-    .byte "of this village.#"
-.ENDPROC
-
-.PROC DataA_Text2_MermaidHut1BreakerGarden_u8_arr
-    .byte "What the...What did$"
-    .byte "that human girl just$"
-    .byte "do!?#"
-.ENDPROC
-
-.PROC DataA_Text2_MermaidHut1AlexPetition_Part1_u8_arr
-    .byte "Please, your highness,$"
-    .byte "I need to know more$"
-    .byte "about that complex$"
-    .byte "above here!#"
-.ENDPROC
-
-.PROC DataA_Text2_MermaidHut1AlexPetition_Part2_u8_arr
-    .byte "Knowledge can be a$"
-    .byte "dangerous thing,$"
-    .byte "child. Just leave$"
-    .byte "those ruins alone.#"
-.ENDPROC
-
-.PROC DataA_Text2_MermaidHut1AlexPetition_Part3_u8_arr
-    .byte "But that technology$"
-    .byte "could benefit all of$"
-    .byte "us! How did all that$"
-    .byte "end up forgotten?#"
-.ENDPROC
-
-.PROC DataA_Text2_MermaidHut1AlexPetition_Part4_u8_arr
-    .byte "That technology would$"
-    .byte "destroy you. Just like$"
-    .byte "before. I will speak$"
-    .byte "no more of it.#"
-.ENDPROC
-
-.PROC DataA_Text2_MermaidHut1AlexPetition_Part5_u8_arr
-    .byte "...fine, then, keep$"
-    .byte "your secrets. I guess$"
-    .byte "I'll just have to$"
-    .byte "figure it out myself.#"
-.ENDPROC
-
-.PROC DataA_Text2_MermaidHut1BreakerCrypt_Part1_u8_arr
-    .byte "Why are you so afraid$"
-    .byte "of the old technology,$"
-    .byte "anyway? Why won't you$"
-    .byte "help us revive it?#"
-.ENDPROC
-
-.PROC DataA_Text2_MermaidHut1BreakerCrypt_Part2_u8_arr
-    .byte "More technology gives$"
-    .byte "you more power. And$"
-    .byte "too much power always,$"
-    .byte "always corrupts.#"
-.ENDPROC
-
-.PROC DataA_Text2_MermaidHut1BreakerCrypt_Part3_u8_arr
-    .byte "Don't take MY word for$"
-    .byte "it. Human civilization$"
-    .byte "collapsed! You can't$"
-    .byte "be trusted with it.#"
-.ENDPROC
-
-.PROC DataA_Text2_MermaidHut1BreakerCrypt_Part4_u8_arr
-    .byte "So what, we should all$"
-    .byte "go back to being poor,$"
-    .byte "and spending winters$"
-    .byte "trying not to starve?#"
-.ENDPROC
-
-.PROC DataA_Text2_MermaidHut1BreakerCrypt_Part5_u8_arr
-    .byte "If high civilization$"
-    .byte "failed last time, we$"
-    .byte "should learn from it,$"
-    .byte "and try again!#"
-.ENDPROC
-
-.PROC DataA_Text2_MermaidHut1BreakerCrypt_Part6_u8_arr
-    .byte "If you had learned$"
-    .byte "anything, you would$"
-    .byte "give up on this path.$"
-    .byte "It's a dead end.#"
-.ENDPROC
-
-.PROC DataA_Text2_MermaidHut1BreakerCrypt_Part7_u8_arr
-    .byte "And if you'd learned$"
-    .byte "anything about humans,$"
-    .byte "you'd know that we$"
-    .byte "NEVER give up.#"
 .ENDPROC
 
 ;;;=========================================================================;;;

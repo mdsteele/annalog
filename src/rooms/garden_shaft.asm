@@ -21,7 +21,6 @@
 .INCLUDE "../actors/adult.inc"
 .INCLUDE "../charmap.inc"
 .INCLUDE "../device.inc"
-.INCLUDE "../dialog.inc"
 .INCLUDE "../flag.inc"
 .INCLUDE "../machine.inc"
 .INCLUDE "../machines/bridge.inc"
@@ -293,35 +292,6 @@ _Passages_sPassage_arr:
     lda #kUpperBridgePivotPlatformIndex  ; param: fixed segment platform index
     ldx #kUpperBridgePivotPlatformIndex + kNumMovableUpperBridgeSegments
     jmp FuncA_Machine_BridgeTick
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Dialog"
-
-.EXPORT DataA_Dialog_PaperManual6_sDialog
-.PROC DataA_Dialog_PaperManual6_sDialog
-    dlg_Text Paper, DataA_Text0_PaperManual6_Page1_u8_arr
-    dlg_Text Paper, DataA_Text0_PaperManual6_Page2_u8_arr
-    dlg_Done
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Text0"
-
-.PROC DataA_Text0_PaperManual6_Page1_u8_arr
-    .byte "CPU FIELD MANUAL p.6:$"
-    .byte "It can be useful to$"
-    .byte "compare one register$"
-    .byte "directly to another.#"
-.ENDPROC
-
-.PROC DataA_Text0_PaperManual6_Page2_u8_arr
-    .byte "For example$"
-    .byte "  :IF Y>L$"
-    .byte "  :MOVE ", kTileIdBgArrowDown, "$"
-    .byte "or the reverse.#"
 .ENDPROC
 
 ;;;=========================================================================;;;

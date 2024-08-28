@@ -21,7 +21,6 @@
 .INCLUDE "../audio.inc"
 .INCLUDE "../charmap.inc"
 .INCLUDE "../device.inc"
-.INCLUDE "../dialog.inc"
 .INCLUDE "../flag.inc"
 .INCLUDE "../machine.inc"
 .INCLUDE "../machines/carriage.inc"
@@ -320,35 +319,6 @@ _MoveToBottomRight:
     lda #kCarriageInitGoalY
     sta Ram_MachineGoalVert_u8_arr + kCarriageMachineIndex
     rts
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Dialog"
-
-.EXPORT DataA_Dialog_PaperManual1_sDialog
-.PROC DataA_Dialog_PaperManual1_sDialog
-    dlg_Text Paper, DataA_Text0_PaperManual1_Page1_u8_arr
-    dlg_Text Paper, DataA_Text0_PaperManual1_Page2_u8_arr
-    dlg_Done
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Text0"
-
-.PROC DataA_Text0_PaperManual1_Page1_u8_arr
-    .byte "CPU FIELD MANUAL p.1:$"
-    .byte "Basic console control:$"
-    .byte " A: confirm$"
-    .byte " B: cancel/exit#"
-.ENDPROC
-
-.PROC DataA_Text0_PaperManual1_Page2_u8_arr
-    .byte " SELECT: insert new$"
-    .byte "   instruction$"
-    .byte " START: activate$"
-    .byte "   debugger#"
 .ENDPROC
 
 ;;;=========================================================================;;;

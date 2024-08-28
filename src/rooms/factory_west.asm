@@ -258,30 +258,3 @@ _ReadZ:
 .ENDPROC
 
 ;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Dialog"
-
-.EXPORT DataA_Dialog_PaperJerome18_sDialog
-.PROC DataA_Dialog_PaperJerome18_sDialog
-    dlg_Text Paper, DataA_Text3_PaperJerome18_Page1_u8_arr
-    dlg_Text Paper, DataA_Text3_PaperJerome18_Page2_u8_arr
-    dlg_Done
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Text3"
-
-.PROC DataA_Text3_PaperJerome18_Page1_u8_arr
-    .byte "Day 18: We developed$"
-    .byte "artificial minds so$"
-    .byte "smart, they could have$"
-    .byte "ruled us. Enslaved us.#"
-.ENDPROC
-
-.PROC DataA_Text3_PaperJerome18_Page2_u8_arr
-    .byte "But it turned out that$"
-    .byte "they didn't want to.#"
-.ENDPROC
-
-;;;=========================================================================;;;

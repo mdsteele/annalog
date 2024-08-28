@@ -32,6 +32,7 @@
 .INCLUDE "../room.inc"
 
 .IMPORT DataA_Room_Lava_sTileset
+.IMPORT DataA_Text0_LavaVentSign_u8_arr
 .IMPORT FuncA_Machine_Error
 .IMPORT FuncA_Machine_LiftTick
 .IMPORT FuncA_Machine_LiftTryMove
@@ -213,18 +214,8 @@ _Passages_sPassage_arr:
 
 .EXPORT DataA_Dialog_LavaVentSign_sDialog
 .PROC DataA_Dialog_LavaVentSign_sDialog
-    dlg_Text Sign, DataA_Text2_LavaVentSign_u8_arr
+    dlg_Text Sign, DataA_Text0_LavaVentSign_u8_arr
     dlg_Done
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Text2"
-
-.PROC DataA_Text2_LavaVentSign_u8_arr
-    .byte "Salt Mines ", kTileIdBgArrowRight, "$"
-    .byte "$"
-    .byte kTileIdBgArrowDown, " Geothermal Station#"
 .ENDPROC
 
 ;;;=========================================================================;;;

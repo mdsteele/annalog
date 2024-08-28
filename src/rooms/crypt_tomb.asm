@@ -33,6 +33,8 @@
 .INCLUDE "../spawn.inc"
 
 .IMPORT DataA_Room_Crypt_sTileset
+.IMPORT DataA_Text0_CryptTombPlaque_Page1_u8_arr
+.IMPORT DataA_Text0_CryptTombPlaque_Page2_u8_arr
 .IMPORT Data_Empty_sActor_arr
 .IMPORT FuncA_Machine_Error
 .IMPORT FuncA_Machine_GetWinchHorzSpeed
@@ -663,24 +665,6 @@ _SolidFloorZ_u8_arr:
     dlg_Text Plaque, DataA_Text0_CryptTombPlaque_Page1_u8_arr
     dlg_Text Plaque, DataA_Text0_CryptTombPlaque_Page2_u8_arr
     dlg_Done
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Text0"
-
-.PROC DataA_Text0_CryptTombPlaque_Page1_u8_arr
-    .byte "Here lies Dr. Zoe Alda$"
-    .byte "      2192-2275$"
-    .byte "Daughter of humans and$"
-    .byte "The mother of mermaids#"
-.ENDPROC
-
-.PROC DataA_Text0_CryptTombPlaque_Page2_u8_arr
-    .byte "May we ever remember$"
-    .byte "    her service,$"
-    .byte "  And never repeat$"
-    .byte "    her mistakes.#"
 .ENDPROC
 
 ;;;=========================================================================;;;

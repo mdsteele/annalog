@@ -1,0 +1,880 @@
+@CityBuilding2Screen_Unlocked
+   SECURITY STATUS
+Eastern door: UNLOCKED
+Continuous key
+randomization:     N/A#
+
+@CityBuilding2Screen_Locked
+   SECURITY STATUS
+Eastern door:   LOCKED
+Continuous key
+randomization: ENABLED#
+
+@CityBuilding2Screen_Question
+Connect key generator
+to western semaphore?%
+
+@CityBuilding2Screen_Connected
+Western semaphore is
+now connected to key
+generator output.#
+
+@CityFlowerOrcAngry
+Hey! Thief! You take
+my flower!#
+
+@CityFlowerOrcCalm_Part1
+Who you? Human? Seem
+too small to fight...
+Not know why we fight
+humans.#
+
+@CityFlowerOrcCalm_Part2
+Happier in pretty orc
+village. Humans happy
+in ugly human village.
+Why fight? Pointless.#
+
+@CoreSouthCorra_HelloAgain1
+Hello again! I heard
+that you were going to
+try to rescue your
+friends from the orcs.#
+
+@CoreSouthCorra_HelloAgain2
+I've never seen ANY
+place like this. Who
+could have built
+something like this?#
+
+@CoreSouthCorra_HelloAgain3
+Are you going to climb
+up? Let me see if I
+can help you...#
+
+@CoreSouthCorra_AlreadyHelped
+Good luck! And be
+careful!#
+
+@CryptTombPlaque_Page1
+Here lies Dr. Zoe Alda
+      2192-2275
+Daughter of humans and
+The mother of mermaids#
+
+@CryptTombPlaque_Page2
+May we ever remember
+    her service,
+  And never repeat
+    her mistakes.#
+
+@GardenEastCorra_Question
+Are you...a human?
+A real human girl?%
+
+@GardenEastCorra_No
+Ha! You can't fool me.#
+
+@GardenEastCorra_Yes
+But...humans aren't
+supposed to be down
+here! I've never even
+met one before.#
+
+@GardenEastCorra_MeetQueen
+You should meet with
+our queen. She will
+know what to do with
+you.#
+
+@GardenEastCorra_MarkMap
+I'll mark her hut on
+your map.#
+
+@FactoryEastCorra_Intro
+Oh, Anna! Your brother
+told me that mermaids
+used to be humans.
+That we're the same.#
+
+@FactoryEastCorra_Question
+But...that can't be
+true! Is it?%
+
+@FactoryEastCorra_Yes
+I can't...I can't
+believe it...#
+
+@FactoryEastCorra_No
+Of course...I knew it
+couldn't really be
+true...#
+
+@FactoryEastCorra_Mid1
+We mermaids are so
+different from humans.
+We live in peace. We
+don't judge others.#
+
+@FactoryEastCorra_Mid2
+...Anna, I don't know
+what to think. But I
+want to help you save
+your people.#
+
+@FactoryEastCorra_Mid3
+If you're trying to
+get into that city
+above us, I can help
+you climb up.#
+
+@FactoryEastCorra_End
+Good luck, Anna. I
+hope that I'll meet
+you again someday.#
+
+@GardenShrineBreakerMine1_Part1
+If you wish to parley,
+speak quickly. You are
+not welcome in our
+vale, orc.#
+
+@GardenShrineBreakerMine1_Part2
+Ha! Nor are humans,
+and yet you harbor
+them even now.#
+
+@GardenShrineBreakerMine1_Part3
+They are your enemies
+as much as we. Maybe
+more so. So why do you
+protect them from us?#
+
+@GardenShrineBreakerMine1_Part4
+I do not consider the
+humans enemies, merely
+dangerous fools. Much
+like you.#
+
+@GardenShrineBreakerMine1_Part5
+I admit, I had hoped
+that they might listen
+to reason.#
+
+@GardenShrineBreakerMine1_Part6
+You act all wise, fish
+woman, but unlike us,
+you have no vision and
+no will.#
+
+@GardenShrineBreakerMine1_Part7
+The humans failed. You
+mermaids are cowards.
+So it falls to orcs to
+lead the way forward.#
+
+@GardenShrineBreakerMine2_Part1
+Oh? And will you
+destroy yourselves, as
+the humans did?#
+
+@GardenShrineBreakerMine2_Part2
+Better death than to
+rot down here, as you
+have apparently chosen
+to do!#
+
+@FactoryElevatorBruno_Wait
+Hey Anna, wait up!#
+
+@FactoryElevatorBruno_Hi1
+Whew, glad you made it
+out of there OK, Anna.
+Alex asked me to keep
+an eye out for you.#
+
+@FactoryElevatorBruno_Hi2
+A lot's been happening
+while you were gone.
+Orcs on the move, more
+machines turning on...#
+
+@FactoryElevatorBruno_Hi3
+Queen Eirene seems
+pretty agitated, but
+she's still letting us
+stay for now.#
+
+@FactoryElevatorBruno_Hi4
+And, uh...Alex found
+something weird. He
+wanted you to meet him
+when you got back.#
+
+@FactoryElevatorBruno_Hi5
+I'll mark it on your
+map.#
+
+@FactoryVaultAlex1_Part1
+Anna, you're back!
+Would you look at this
+place? It opened up
+while you were gone.#
+
+@FactoryVaultAlex1_Part2
+I think we finally
+found what the ancient
+humans were building
+in this factory.#
+
+@FactoryVaultAlex2_Part1
+Hmm, it's got a label.
+Let's see...
+`Human Mutation Tank
+ Serial No. 94209382'#
+
+@FactoryVaultAlex2_Part2
+Human...mutation?#
+
+@FactoryVaultAlex3_Part1
+Anna...remember how
+you found out that the
+first mermaids were
+created by humans?#
+
+@FactoryVaultAlex3_Part2
+If I'm understanding
+this right...it looks
+like those mermaids
+were made FROM humans.#
+
+@FactoryVaultAlex3_Part3
+This was all centuries
+ago. And now we're two
+different peoples. But
+why do any of that?#
+
+@FactoryVaultAlex3_Part4
+They had practically
+unlimited technology
+and knowledge. So why
+this? I don't get it.#
+
+@FactoryVaultAlex4_Part1
+Well, if you got the
+pass into the sewers
+opened up, then the
+city is our next goal.#
+
+@FactoryVaultAlex4_Part2
+The orcs are already
+there, looking for
+something. I'm not
+exactly sure what.#
+
+@FactoryVaultAlex4_Part3
+Whatever it is, we've
+got to find it first!#
+
+@FactoryVaultScreen_Page1
+ERROR: Gene mutation
+tank production line
+has been stalled.#
+
+@FactoryVaultScreen_Page2
+Current batch: Q6382A
+Designated for:
+  Volunteer group 922
+  <Mermaid Aspect>#
+
+@FactoryVaultScreen_Page3
+Due date: 2245 Feb 21
+Overdue by: 495 years
+Report to supervisor
+for instructions.#
+
+@LavaVentSign
+Salt Mines {kTileIdBgArrowRight}
+
+{kTileIdBgArrowDown} Geothermal Station#
+
+@MermaidEntrySign
+{kTileIdBgArrowLeft} Hanging Gardens
+
+Mermaid Village {kTileIdBgArrowRight}#
+
+@MermaidHut1Guard
+All hail Queen Eirene!#
+
+@MermaidHut1Queen_FirstMeeting1
+So, you must be the
+human I've heard is
+running around.#
+
+@MermaidHut1Queen_FirstMeeting2
+Humans belong on the
+surface, not here. So
+what are you doing
+down here among us?#
+
+@MermaidHut1Queen_FirstMeeting3
+...I see. So the orcs
+attacked, and now you
+are a refugee. This
+complicates things.#
+
+@MermaidHut1Queen_FirstMeeting4
+I will be honest: I do
+not trust humans.
+However, I don't care
+for the orcs either.#
+
+@MermaidHut1Queen_GrantAsylum
+I will grant you safe
+asylum in our village,
+on one condition: that
+you help us in return.#
+
+@MermaidHut1Queen_HelpFarmers
+Speak with our farmers
+in this village. They
+have a problem a human
+could perhaps solve.#
+
+@MermaidHut1Queen_GardenBossDead1
+I heard you helped our
+farmers. And you even
+survived. I thank you.#
+
+@MermaidHut1Queen_GardenBossDead2
+Perhaps...perhaps you
+could help us with one
+more problem.#
+
+@MermaidHut1Queen_TempleProblem
+There's a temple west
+of the gardens. It's
+very important to us.
+At least, it once was.#
+
+@MermaidHut1Queen_TempleEntry
+I'd like you to visit
+the temple. The guards
+east of my hut can
+tell you more.#
+
+@MermaidHut1Queen_TempleBossDead1
+I take it that you've
+seen the whole of the
+ruined temple? Maybe
+now you understand.#
+
+@MermaidHut1Queen_TempleBossDead2
+Our two peoples built
+it together, centuries
+ago. It was to be a
+symbol of peace.#
+
+@MermaidHut1Queen_TempleBossDead3
+But before long, the
+humans desecrated it
+into a mechanized
+fortress instead.#
+
+@MermaidHut1Queen_TempleBossDead4
+Humans are just like
+the orcs. Violent and
+untrustworthy, despite
+our best efforts.#
+
+@MermaidHut1Queen_TempleBossDead5
+But enough. My scouts
+tell me there is a way
+for you to reach your
+fellow villagers.#
+
+@MermaidHut1Queen_OtherRuins
+There are...another
+kind of ruins buried
+just above our humble
+vale. Older ones.#
+
+@MermaidHut1Queen_FindYourFriends
+If you climb upwards
+through there, you may
+be able to find and
+rescue your friends.#
+
+@MermaidHut1Queen_KidsRescued1
+The children from your
+village have arrived
+safely. I have granted
+them asylum for now.#
+
+@MermaidHut1Queen_KidsRescued2
+You can find them in
+the southeastern hut
+of this village.#
+
+@MermaidHut1BreakerGarden
+What the...What did
+that human girl just
+do!?#
+
+@MermaidHut1AlexPetition_Part1
+Please, your highness,
+I need to know more
+about that complex
+above here!#
+
+@MermaidHut1AlexPetition_Part2
+Knowledge can be a
+dangerous thing,
+child. Just leave
+those ruins alone.#
+
+@MermaidHut1AlexPetition_Part3
+But that technology
+could benefit all of
+us! How did all that
+end up forgotten?#
+
+@MermaidHut1AlexPetition_Part4
+That technology would
+destroy you. Just like
+before. I will speak
+no more of it.#
+
+@MermaidHut1AlexPetition_Part5
+...fine, then, keep
+your secrets. I guess
+I'll just have to
+figure it out myself.#
+
+@MermaidHut1BreakerCrypt_Part1
+Why are you so afraid
+of the old technology,
+anyway? Why won't you
+help us revive it?#
+
+@MermaidHut1BreakerCrypt_Part2
+More technology gives
+you more power. And
+too much power always,
+always corrupts.#
+
+@MermaidHut1BreakerCrypt_Part3
+Don't take MY word for
+it. Human civilization
+collapsed! You can't
+be trusted with it.#
+
+@MermaidHut1BreakerCrypt_Part4
+So what, we should all
+go back to being poor,
+and spending winters
+trying not to starve?#
+
+@MermaidHut1BreakerCrypt_Part5
+If high civilization
+failed last time, we
+should learn from it,
+and try again!#
+
+@MermaidHut1BreakerCrypt_Part6
+If you had learned
+anything, you would
+give up on this path.
+It's a dead end.#
+
+@MermaidHut1BreakerCrypt_Part7
+And if you'd learned
+anything about humans,
+you'd know that we
+NEVER give up.#
+
+@MermaidHut3Daphne_Intro
+There's a natural hot
+spring just east of
+this village.#
+
+@MermaidHut3Daphne_Open
+The water is heated by
+magma flows far below.
+It's a great place to
+relax.#
+
+@MermaidHut3Daphne_Closed
+Unfortunately, all the
+water got drained out
+somehow. So now we
+can't use it.#
+
+@MermaidHut3Phoebe
+You're so lucky that
+you get to go on an
+adventure. I'm stuck
+here at home.#
+
+@MermaidSpringAlex_Part1
+Thanks for coming. I
+hate to ask, but...
+well, you're the best
+with these machines.#
+
+@MermaidSpringAlex_Part2
+I'm convinced we'll
+find answers in that
+city, but every way
+in is blocked off.#
+
+@MermaidSpringAlex_Part3
+However, I think we
+can get there via the
+caves, by approaching
+from below.#
+
+@MermaidSpringAlex_Part4
+The mermaids aren't
+helping. But I found
+something they had
+stashed away...#
+
+@MermaidSpringAlex_Part5
+What do you think? I'd
+say it's time to start
+delving deeper around
+here.#
+
+@MermaidSpringSign_Open
+   - Hot Spring -
+Please enjoy a restful
+and relaxing soak.#
+
+@MermaidSpringSign_Closed
+   - Hot Spring -
+Currently closed for
+maintenance.#
+
+@PrisonFlowerSign
+Surface Access {kTileIdBgArrowRight}
+
+{kTileIdBgArrowLeft} Holding Cells#
+
+@PrisonUpperBreakerTemple1_Part1
+Oktok! Chief Gronta
+say come quick!#
+
+@PrisonUpperBreakerTemple1_Part2
+More machines, they
+are turning on!#
+
+@PrisonUpperBreakerTemple2
+...Hey! What about us?#
+
+@PrisonUpperAlexCell_Intro
+Anna! Thank goodness
+you're here! The orcs
+threw us in here, but
+they're gone now.#
+
+@PrisonUpperAlexCell_GetDoorOpen
+See if you can find a
+way to get this door
+open.#
+
+@PrisonUpperAlexFree_Part1
+Thanks! That door was
+too heavy, but I think
+I can pick the locks
+on the other cells.#
+
+@PrisonUpperAlexFree_Part2
+I'll let the others
+out, then scout ahead.
+Be right back.#
+
+@PrisonUpperAlexLast_Part1
+Bad news: the passage
+up to the surface has
+collapsed. I don't
+know another way yet.#
+
+@PrisonUpperAlexLast_Part2
+We'll need a safe spot
+to camp. Where have
+you been staying since
+you escaped, Anna?#
+
+@PrisonUpperAlexLast_Part3
+...Mermaid village?
+Wait, seriously?
+Mermaids are real?#
+
+@PrisonUpperAlexLast_Part4
+All right. I'll lead
+the other kids down
+and meet up with you
+there. See you soon.#
+
+@PrisonUpperBruno_Adults
+Are the adults OK?#
+
+@PrisonUpperBruno_ClimbUp
+I think you're going
+to have to climb up
+top.#
+
+@PrisonUpperMarie_GoTalkToAlex
+It's Anna! Quick, go
+talk to Alex! He's in
+the cell up ahead.#
+
+@PrisonUpperMarie_LooseBrick
+I can help. There's a
+loose brick up there.
+If I push it, I can
+get you a foothold.#
+
+@PrisonUpperMarie_StandCareful
+There! I think you can
+stand on that brick if
+you're careful.#
+
+@PrisonUpperNora
+My sister STILL keeps
+peeing her pants!#
+
+@ShadowGateScreen_Page1
+Our social divide is
+irreparable. We want
+to live different. We
+want to BE different.#
+
+@ShadowGateScreen_Page2
+Finally, we can now
+make that a reality.#
+
+@ShadowTeleportScreen_Page1
+Long have we tried and
+failed to use modern
+technology to solve
+old social problems.#
+
+@ShadowTeleportScreen_Page2
+And yet, sometimes an
+advancement can render
+a seemingly unsolvable
+problem irrelevant.#
+
+@TempleAltarPlaque
+- Temple of Peace -
+ Built together by
+mermaids and humans.
+   - A.D. 2250 -#
+
+@TempleNaveAlexStand_Part1
+Good to see you, Anna.
+I've been exploring
+this temple. Learning
+a lot.#
+
+@TempleNaveAlexStand_Part2
+I guess humans and
+mermaids used to be
+friends. They built
+this place together.#
+
+@TempleNaveAlexStand_Part3
+But all this advanced
+technology...it's from
+humans. How did we
+lose that knowledge?#
+
+@TempleNaveAlexBoost1
+Anna, I think there's
+something hidden under
+this temple. We should
+find out what it is.#
+
+@TempleNaveAlexBoost2
+Hop on up. I'll give
+you a boost.#
+
+@TownHouse1Nora
+My baby sister keeps
+peeing her pants!#
+
+@TownHouse2Stela_Part1
+Can't sleep, Anna?#
+
+@TownHouse2Stela_Part2
+Your brother Alex is
+up late, too.#
+
+@TownHouse2Stela_Part3
+I think he went
+outside somewhere. Why
+don't you go find him?#
+
+@TownHouse3Smith_Part1
+You lookin' fer yer
+brother? Haven't seen
+`im. Probably pokin'
+around somewhere.#
+
+@TownHouse3Smith_Part2
+That boy's a good
+apprentice. Good smith
+someday. Too curious
+fer `is own good, tho.#
+
+@TownHouse4Laura_Waiting1
+Your Uncle Martin and
+I are waiting here for
+Elder Roman to meet
+with us.#
+
+@TownHouse4Laura_Waiting2
+I wonder what's taking
+him so long?#
+
+@TownHouse4Martin
+I hope Nora is taking
+good care of her baby
+sister Nina back at
+home...#
+
+@TownHouse4BreakerLava1_Part1
+I ask only one more
+time: where is the
+B-Remote?#
+
+@TownHouse4BreakerLava1_Part2
+What's a bee-re-moat?
+I don't know what
+you're talking about!#
+
+@TownHouse4BreakerLava1_Part3
+You cannot hide it
+from me! We orcs WILL
+take over control of
+all your machines!#
+
+@TownHouse4BreakerLava1_Part4
+What machines? All we
+humans have is farming
+and smithing. The same
+as you brutes!#
+
+@TownHouse4BreakerLava2_Part1
+How dare talk back to
+me? I am Thurg, son of
+Gurg! Lieutenent of
+great Chief Gronta!#
+
+@TownHouse4BreakerLava2_Part2
+Humans aren't fit to
+wield even their own
+inventions. Now is OUR
+turn to show you how.#
+
+@TownHouse4BreakerLava3
+Grunt Hobok! Continue
+the interrogation. I
+go now to report to
+the Chief.#
+
+@TownHouse6Elder_Part1
+...zzz...When're Laura
+and Martin going to be
+here?...#
+
+@TownHouse6Elder_Part2
+...Old Man Roman has
+been waiting here for
+a long time...zzz...#
+
+@TownOutdoorsAlex1
+Hi, Anna! I wanted to
+show you something.
+Look at what I found
+in the dirt over here!#
+
+@TownOutdoorsAlex2_Part1
+It's some weird metal
+thing. But nothing
+like the iron or steel
+Smith Dominic uses.#
+
+@TownOutdoorsAlex2_Part2
+No idea what it is. It
+almost looks like part
+of a machine, but it
+seems so...advanced.#
+
+@TownOutdoorsAlex2_Part3
+I wonder where a thing
+like this could have
+come from...#
+
+@TownOutdoorsAlex3_Explore1
+Do you ever wish we
+could just leave this
+town and go exploring?
+You and me?#
+
+@TownOutdoorsAlex3_Explore2
+Mom always says it's
+too dangerous, but I
+bet we could handle
+anything out there...#
+
+@TownOutdoorsAlex3_HandleThis
+Handle THIS, human.#
+
+@TownOutdoorsAlex3_WhaWhat
+Wha- what?#
+
+@TownOutdoorsAlex3_Attack1
+Orcs, attaaaaaack!#
+
+@TownOutdoorsAlex3_Attack2
+Anna, run!#
+
+@TownOutdoorsGronta_Search1
+Lieutenent Thurg! Have
+the grunts round up
+the townsfolk and lock
+these kids up.#
+
+@TownOutdoorsGronta_Search2
+Then we can begin our
+search.#
+
+@TownOutdoorsGronta_YesChief
+Yes, Chief Gronta!#
+
+@TownOutdoorsIvan_Part1
+The harvest isn't
+looking good, Sandra.
+This might be a tough
+winter for all of us.#
+
+@TownOutdoorsIvan_Part2
+Oh, sorry Anna, I
+didn't see you there.#
+
+@TownOutdoorsSandra_Part1
+Looking for Alex? He
+popped by the house
+earlier to see Bruno
+and Marie.#
+
+@TownOutdoorsSandra_Part2
+One of them might know
+where he went.#
+
+@TownOutdoorsSign
+
+ Bartik Town Hall#

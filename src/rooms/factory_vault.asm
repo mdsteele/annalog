@@ -20,7 +20,6 @@
 .INCLUDE "../actor.inc"
 .INCLUDE "../actors/child.inc"
 .INCLUDE "../avatar.inc"
-.INCLUDE "../charmap.inc"
 .INCLUDE "../cutscene.inc"
 .INCLUDE "../device.inc"
 .INCLUDE "../devices/dialog.inc"
@@ -32,6 +31,20 @@
 .INCLUDE "../room.inc"
 
 .IMPORT DataA_Room_Factory_sTileset
+.IMPORT DataA_Text0_FactoryVaultAlex1_Part1_u8_arr
+.IMPORT DataA_Text0_FactoryVaultAlex1_Part2_u8_arr
+.IMPORT DataA_Text0_FactoryVaultAlex2_Part1_u8_arr
+.IMPORT DataA_Text0_FactoryVaultAlex2_Part2_u8_arr
+.IMPORT DataA_Text0_FactoryVaultAlex3_Part1_u8_arr
+.IMPORT DataA_Text0_FactoryVaultAlex3_Part2_u8_arr
+.IMPORT DataA_Text0_FactoryVaultAlex3_Part3_u8_arr
+.IMPORT DataA_Text0_FactoryVaultAlex3_Part4_u8_arr
+.IMPORT DataA_Text0_FactoryVaultAlex4_Part1_u8_arr
+.IMPORT DataA_Text0_FactoryVaultAlex4_Part2_u8_arr
+.IMPORT DataA_Text0_FactoryVaultAlex4_Part3_u8_arr
+.IMPORT DataA_Text0_FactoryVaultScreen_Page1_u8_arr
+.IMPORT DataA_Text0_FactoryVaultScreen_Page2_u8_arr
+.IMPORT DataA_Text0_FactoryVaultScreen_Page3_u8_arr
 .IMPORT Func_Noop
 .IMPORT Func_SetFlag
 .IMPORT Ppu_ChrObjVillage
@@ -219,32 +232,32 @@ _SetFlag:
 .PROC DataA_Dialog_FactoryVaultAlex1_sDialog
     dlg_IfSet FactoryVaultTalkedToAlex, _CityGoal_sDialog
 _LookAtThisPlace_sDialog:
-    dlg_Text ChildAlex, DataA_Text2_FactoryVaultAlex1_Part1_u8_arr
-    dlg_Text ChildAlex, DataA_Text2_FactoryVaultAlex1_Part2_u8_arr
+    dlg_Text ChildAlex, DataA_Text0_FactoryVaultAlex1_Part1_u8_arr
+    dlg_Text ChildAlex, DataA_Text0_FactoryVaultAlex1_Part2_u8_arr
     dlg_Cutscene eCutscene::FactoryVaultLookAtTank
 _CityGoal_sDialog:
-    dlg_Text ChildAlex, DataA_Text2_FactoryVaultAlex4_Part1_u8_arr
-    dlg_Text ChildAlex, DataA_Text2_FactoryVaultAlex4_Part2_u8_arr
-    dlg_Text ChildAlex, DataA_Text2_FactoryVaultAlex4_Part3_u8_arr
+    dlg_Text ChildAlex, DataA_Text0_FactoryVaultAlex4_Part1_u8_arr
+    dlg_Text ChildAlex, DataA_Text0_FactoryVaultAlex4_Part2_u8_arr
+    dlg_Text ChildAlex, DataA_Text0_FactoryVaultAlex4_Part3_u8_arr
     dlg_Done
 .ENDPROC
 
 .EXPORT DataA_Dialog_FactoryVaultAlex2_sDialog
 .PROC DataA_Dialog_FactoryVaultAlex2_sDialog
-    dlg_Text ChildAlex, DataA_Text2_FactoryVaultAlex2_Part1_u8_arr
+    dlg_Text ChildAlex, DataA_Text0_FactoryVaultAlex2_Part1_u8_arr
     dlg_Call FuncA_Dialog_FactoryVault_AlexStand
-    dlg_Text ChildAlex, DataA_Text2_FactoryVaultAlex2_Part2_u8_arr
+    dlg_Text ChildAlex, DataA_Text0_FactoryVaultAlex2_Part2_u8_arr
     dlg_Done
 .ENDPROC
 
 .EXPORT DataA_Dialog_FactoryVaultAlex3_sDialog
 .PROC DataA_Dialog_FactoryVaultAlex3_sDialog
-    dlg_Text ChildAlex, DataA_Text2_FactoryVaultAlex3_Part1_u8_arr
+    dlg_Text ChildAlex, DataA_Text0_FactoryVaultAlex3_Part1_u8_arr
     dlg_Call FuncA_Dialog_FactoryVault_AlexStand
-    dlg_Text ChildAlex, DataA_Text2_FactoryVaultAlex3_Part2_u8_arr
+    dlg_Text ChildAlex, DataA_Text0_FactoryVaultAlex3_Part2_u8_arr
     dlg_Call _LookLeft
-    dlg_Text ChildAlex, DataA_Text2_FactoryVaultAlex3_Part3_u8_arr
-    dlg_Text ChildAlex, DataA_Text2_FactoryVaultAlex3_Part4_u8_arr
+    dlg_Text ChildAlex, DataA_Text0_FactoryVaultAlex3_Part3_u8_arr
+    dlg_Text ChildAlex, DataA_Text0_FactoryVaultAlex3_Part4_u8_arr
     dlg_Done
 _LookLeft:
     lda #bObj::FlipH
@@ -260,106 +273,10 @@ _LookLeft:
 
 .EXPORT DataA_Dialog_FactoryVaultScreen_sDialog
 .PROC DataA_Dialog_FactoryVaultScreen_sDialog
-    dlg_Text Screen, DataA_Text2_FactoryVaultScreen_Page1_u8_arr
-    dlg_Text Screen, DataA_Text2_FactoryVaultScreen_Page2_u8_arr
-    dlg_Text Screen, DataA_Text2_FactoryVaultScreen_Page3_u8_arr
+    dlg_Text Screen, DataA_Text0_FactoryVaultScreen_Page1_u8_arr
+    dlg_Text Screen, DataA_Text0_FactoryVaultScreen_Page2_u8_arr
+    dlg_Text Screen, DataA_Text0_FactoryVaultScreen_Page3_u8_arr
     dlg_Done
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Text2"
-
-.PROC DataA_Text2_FactoryVaultAlex1_Part1_u8_arr
-    .byte "Anna, you're back!$"
-    .byte "Would you look at this$"
-    .byte "place? It opened up$"
-    .byte "while you were gone.#"
-.ENDPROC
-
-.PROC DataA_Text2_FactoryVaultAlex1_Part2_u8_arr
-    .byte "I think we finally$"
-    .byte "found what the ancient$"
-    .byte "humans were building$"
-    .byte "in this factory.#"
-.ENDPROC
-
-.PROC DataA_Text2_FactoryVaultAlex2_Part1_u8_arr
-    .byte "Hmm, it's got a label.$"
-    .byte "Let's see...$"
-    .byte "`Human Mutation Tank$"
-    .byte " Serial No. 94209382'#"
-.ENDPROC
-
-.PROC DataA_Text2_FactoryVaultAlex2_Part2_u8_arr
-    .byte "Human...mutation?#"
-.ENDPROC
-
-.PROC DataA_Text2_FactoryVaultAlex3_Part1_u8_arr
-    .byte "Anna...remember how$"
-    .byte "you found out that the$"
-    .byte "first mermaids were$"
-    .byte "created by humans?#"
-.ENDPROC
-
-.PROC DataA_Text2_FactoryVaultAlex3_Part2_u8_arr
-    .byte "If I'm understanding$"
-    .byte "this right...it looks$"
-    .byte "like those mermaids$"
-    .byte "were made FROM humans.#"
-.ENDPROC
-
-.PROC DataA_Text2_FactoryVaultAlex3_Part3_u8_arr
-    .byte "This was all centuries$"
-    .byte "ago. And now we're two$"
-    .byte "different peoples. But$"
-    .byte "why do any of that?#"
-.ENDPROC
-
-.PROC DataA_Text2_FactoryVaultAlex3_Part4_u8_arr
-    .byte "They had practically$"
-    .byte "unlimited technology$"
-    .byte "and knowledge. So why$"
-    .byte "this? I don't get it.#"
-.ENDPROC
-
-.PROC DataA_Text2_FactoryVaultAlex4_Part1_u8_arr
-    .byte "Well, if you got the$"
-    .byte "pass into the sewers$"
-    .byte "opened up, then the$"
-    .byte "city is our next goal.#"
-.ENDPROC
-
-.PROC DataA_Text2_FactoryVaultAlex4_Part2_u8_arr
-    .byte "The orcs are already$"
-    .byte "there, looking for$"
-    .byte "something. I'm not$"
-    .byte "exactly sure what.#"
-.ENDPROC
-
-.PROC DataA_Text2_FactoryVaultAlex4_Part3_u8_arr
-    .byte "Whatever it is, we've$"
-    .byte "got to find it first!#"
-.ENDPROC
-
-.PROC DataA_Text2_FactoryVaultScreen_Page1_u8_arr
-    .byte "ERROR: Gene mutation$"
-    .byte "tank production line$"
-    .byte "has been stalled.#"
-.ENDPROC
-
-.PROC DataA_Text2_FactoryVaultScreen_Page2_u8_arr
-    .byte "Current batch: Q6382A$"
-    .byte "Designated for:$"
-    .byte "  Volunteer group 922$"
-    .byte "  <Mermaid Aspect>#"
-.ENDPROC
-
-.PROC DataA_Text2_FactoryVaultScreen_Page3_u8_arr
-    .byte "Due date: 2245 Feb 21$"
-    .byte "Overdue by: 495 years$"
-    .byte "Report to supervisor$"
-    .byte "for instructions.#"
 .ENDPROC
 
 ;;;=========================================================================;;;

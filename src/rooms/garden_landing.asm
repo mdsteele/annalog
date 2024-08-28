@@ -18,10 +18,8 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "../actor.inc"
-.INCLUDE "../charmap.inc"
 .INCLUDE "../cpu.inc"
 .INCLUDE "../device.inc"
-.INCLUDE "../dialog.inc"
 .INCLUDE "../flag.inc"
 .INCLUDE "../irq.inc"
 .INCLUDE "../macros.inc"
@@ -279,34 +277,6 @@ _TeleportUp:
     dec Zp_RoomState + sState::RemainingTeleports_u8
     @done:
     rts
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Dialog"
-
-.EXPORT DataA_Dialog_PaperJerome13_sDialog
-.PROC DataA_Dialog_PaperJerome13_sDialog
-    dlg_Text Paper, DataA_Text0_PaperJerome13_Page1_u8_arr
-    dlg_Text Paper, DataA_Text0_PaperJerome13_Page2_u8_arr
-    dlg_Done
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Text0"
-
-.PROC DataA_Text0_PaperJerome13_Page1_u8_arr
-    .byte "Day 13: And now, there$"
-    .byte "is nothing left of us$"
-    .byte "but our machines.#"
-.ENDPROC
-
-.PROC DataA_Text0_PaperJerome13_Page2_u8_arr
-    .byte "I wonder for how long$"
-    .byte "those will keep on$"
-    .byte "working. A long time.$"
-    .byte "Maybe forever.#"
 .ENDPROC
 
 ;;;=========================================================================;;;

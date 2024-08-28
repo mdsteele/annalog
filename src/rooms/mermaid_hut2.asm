@@ -19,7 +19,6 @@
 
 .INCLUDE "../actor.inc"
 .INCLUDE "../actors/adult.inc"
-.INCLUDE "../charmap.inc"
 .INCLUDE "../device.inc"
 .INCLUDE "../dialog.inc"
 .INCLUDE "../flag.inc"
@@ -28,6 +27,10 @@
 .INCLUDE "../room.inc"
 
 .IMPORT DataA_Room_Hut_sTileset
+.IMPORT DataA_Text1_MermaidHut2Guard_Impressed1_u8_arr
+.IMPORT DataA_Text1_MermaidHut2Guard_Impressed2_u8_arr
+.IMPORT DataA_Text1_MermaidHut2Guard_WatchOut1_u8_arr
+.IMPORT DataA_Text1_MermaidHut2Guard_WatchOut2_u8_arr
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrObjVillage
 
@@ -114,45 +117,13 @@ _Devices_sDevice_arr:
 .PROC DataA_Dialog_MermaidHut2Guard_sDialog
     dlg_IfSet CityCenterEnteredCity, _Impressed_sDialog
 _WatchOut_sDialog:
-    dlg_Text AdultMan, DataA_Text2_MermaidHut2Guard_WatchOut1_u8_arr
-    dlg_Text AdultMan, DataA_Text2_MermaidHut2Guard_WatchOut2_u8_arr
+    dlg_Text AdultMan, DataA_Text1_MermaidHut2Guard_WatchOut1_u8_arr
+    dlg_Text AdultMan, DataA_Text1_MermaidHut2Guard_WatchOut2_u8_arr
     dlg_Done
 _Impressed_sDialog:
-    dlg_Text AdultMan, DataA_Text2_MermaidHut2Guard_Impressed1_u8_arr
-    dlg_Text AdultMan, DataA_Text2_MermaidHut2Guard_Impressed2_u8_arr
+    dlg_Text AdultMan, DataA_Text1_MermaidHut2Guard_Impressed1_u8_arr
+    dlg_Text AdultMan, DataA_Text1_MermaidHut2Guard_Impressed2_u8_arr
     dlg_Done
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Text2"
-
-.PROC DataA_Text2_MermaidHut2Guard_WatchOut1_u8_arr
-    .byte "The queen would never$"
-    .byte "let the orcs into our$"
-    .byte "vale, nor could they$"
-    .byte "best us by force.#"
-.ENDPROC
-
-.PROC DataA_Text2_MermaidHut2Guard_WatchOut2_u8_arr
-    .byte "Still, be wary if you$"
-    .byte "ever face their war$"
-    .byte "rhinos. They are not$"
-    .byte "to be trifled with.#"
-.ENDPROC
-
-.PROC DataA_Text2_MermaidHut2Guard_Impressed1_u8_arr
-    .byte "I heard that the orcs$"
-    .byte "and their war rhinos$"
-    .byte "have invaded the old$"
-    .byte "human ruins.#"
-.ENDPROC
-
-.PROC DataA_Text2_MermaidHut2Guard_Impressed2_u8_arr
-    .byte "Is it true that you$"
-    .byte "faced them alone, and$"
-    .byte "survived? If so, I am$"
-    .byte "impressed.#"
 .ENDPROC
 
 ;;;=========================================================================;;;

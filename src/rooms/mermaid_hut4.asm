@@ -19,7 +19,6 @@
 
 .INCLUDE "../actor.inc"
 .INCLUDE "../actors/adult.inc"
-.INCLUDE "../charmap.inc"
 .INCLUDE "../cpu.inc"
 .INCLUDE "../device.inc"
 .INCLUDE "../devices/flower.inc"
@@ -31,6 +30,59 @@
 .INCLUDE "../room.inc"
 
 .IMPORT DataA_Room_Hut_sTileset
+.IMPORT DataA_Text1_MermaidHut4Florist_AllDone_u8_arr
+.IMPORT DataA_Text1_MermaidHut4Florist_Brought_u8_arr
+.IMPORT DataA_Text1_MermaidHut4Florist_Eight1_u8_arr
+.IMPORT DataA_Text1_MermaidHut4Florist_Eight2_u8_arr
+.IMPORT DataA_Text1_MermaidHut4Florist_Eight3_u8_arr
+.IMPORT DataA_Text1_MermaidHut4Florist_Eight4_u8_arr
+.IMPORT DataA_Text1_MermaidHut4Florist_Eleven1_u8_arr
+.IMPORT DataA_Text1_MermaidHut4Florist_Eleven2_u8_arr
+.IMPORT DataA_Text1_MermaidHut4Florist_Eleven3_u8_arr
+.IMPORT DataA_Text1_MermaidHut4Florist_Eleven4_u8_arr
+.IMPORT DataA_Text1_MermaidHut4Florist_Five1_u8_arr
+.IMPORT DataA_Text1_MermaidHut4Florist_Five2_u8_arr
+.IMPORT DataA_Text1_MermaidHut4Florist_Five3_u8_arr
+.IMPORT DataA_Text1_MermaidHut4Florist_Five4_u8_arr
+.IMPORT DataA_Text1_MermaidHut4Florist_Four1_u8_arr
+.IMPORT DataA_Text1_MermaidHut4Florist_Four2_u8_arr
+.IMPORT DataA_Text1_MermaidHut4Florist_Four3_u8_arr
+.IMPORT DataA_Text1_MermaidHut4Florist_Four4_u8_arr
+.IMPORT DataA_Text1_MermaidHut4Florist_Meet1_u8_arr
+.IMPORT DataA_Text1_MermaidHut4Florist_Meet2_u8_arr
+.IMPORT DataA_Text1_MermaidHut4Florist_NeverMind1_u8_arr
+.IMPORT DataA_Text1_MermaidHut4Florist_NeverMind2_u8_arr
+.IMPORT DataA_Text1_MermaidHut4Florist_Nine1_u8_arr
+.IMPORT DataA_Text1_MermaidHut4Florist_Nine2_u8_arr
+.IMPORT DataA_Text1_MermaidHut4Florist_Nine3_u8_arr
+.IMPORT DataA_Text1_MermaidHut4Florist_Nine4_u8_arr
+.IMPORT DataA_Text1_MermaidHut4Florist_One1_u8_arr
+.IMPORT DataA_Text1_MermaidHut4Florist_One2_u8_arr
+.IMPORT DataA_Text1_MermaidHut4Florist_One3_u8_arr
+.IMPORT DataA_Text1_MermaidHut4Florist_Seven1_u8_arr
+.IMPORT DataA_Text1_MermaidHut4Florist_Seven2_u8_arr
+.IMPORT DataA_Text1_MermaidHut4Florist_Seven3_u8_arr
+.IMPORT DataA_Text1_MermaidHut4Florist_Seven4_u8_arr
+.IMPORT DataA_Text1_MermaidHut4Florist_Six1_u8_arr
+.IMPORT DataA_Text1_MermaidHut4Florist_Six2_u8_arr
+.IMPORT DataA_Text1_MermaidHut4Florist_Six3_u8_arr
+.IMPORT DataA_Text1_MermaidHut4Florist_Six4_u8_arr
+.IMPORT DataA_Text1_MermaidHut4Florist_Ten1_u8_arr
+.IMPORT DataA_Text1_MermaidHut4Florist_Ten2_u8_arr
+.IMPORT DataA_Text1_MermaidHut4Florist_Ten3_u8_arr
+.IMPORT DataA_Text1_MermaidHut4Florist_Ten4_u8_arr
+.IMPORT DataA_Text1_MermaidHut4Florist_Three1_u8_arr
+.IMPORT DataA_Text1_MermaidHut4Florist_Three2_u8_arr
+.IMPORT DataA_Text1_MermaidHut4Florist_Three3_u8_arr
+.IMPORT DataA_Text1_MermaidHut4Florist_Twelve1_u8_arr
+.IMPORT DataA_Text1_MermaidHut4Florist_Twelve2_u8_arr
+.IMPORT DataA_Text1_MermaidHut4Florist_Twelve3_u8_arr
+.IMPORT DataA_Text1_MermaidHut4Florist_Two1_u8_arr
+.IMPORT DataA_Text1_MermaidHut4Florist_Two2_u8_arr
+.IMPORT DataA_Text1_MermaidHut4Florist_Two3_u8_arr
+.IMPORT DataA_Text1_MermaidHut4Florist_Zero1_u8_arr
+.IMPORT DataA_Text1_MermaidHut4Florist_Zero2_u8_arr
+.IMPORT DataA_Text1_MermaidHut4Florist_Zero3_u8_arr
 .IMPORT FuncA_Objects_Draw1x1Shape
 .IMPORT Func_CountDeliveredFlowers
 .IMPORT Func_DropFlower
@@ -350,365 +402,6 @@ _OpenCellar_sDialog:
 _AllDone_sDialog:
     dlg_Text MermaidFlorist, DataA_Text1_MermaidHut4Florist_AllDone_u8_arr
     dlg_Done
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Text1"
-
-.PROC DataA_Text1_MermaidHut4Florist_Meet1_u8_arr
-    .byte "Ah...you must be that$"
-    .byte "human that I've been$"
-    .byte "hearing about.#"
-.ENDPROC
-
-.PROC DataA_Text1_MermaidHut4Florist_Meet2_u8_arr
-    .byte "I don't suppose you'd$"
-    .byte "like to do me a favor?%"
-.ENDPROC
-
-.PROC DataA_Text1_MermaidHut4Florist_NeverMind1_u8_arr
-    .byte "Yes, well, I suppose$"
-    .byte "you must be very busy,$"
-    .byte "running around and$"
-    .byte "causing trouble.#"
-.ENDPROC
-
-.PROC DataA_Text1_MermaidHut4Florist_NeverMind2_u8_arr
-    .byte "Come back if you ever$"
-    .byte "change your mind.#"
-.ENDPROC
-
-.PROC DataA_Text1_MermaidHut4Florist_Zero1_u8_arr
-    .byte "As you can see, my$"
-    .byte "home is looking rather$"
-    .byte "drab. Could you bring$"
-    .byte "me a flower?#"
-.ENDPROC
-
-.PROC DataA_Text1_MermaidHut4Florist_Zero2_u8_arr
-    .byte "If you go east from$"
-    .byte "this village and then$"
-    .byte "up a bit, you'll find$"
-    .byte "the one I want.#"
-.ENDPROC
-
-.PROC DataA_Text1_MermaidHut4Florist_Zero3_u8_arr
-    .byte "It's very delicate.$"
-    .byte "Don't get hurt and$"
-    .byte "break it, or you'll$"
-    .byte "have to get another.#"
-.ENDPROC
-
-.PROC DataA_Text1_MermaidHut4Florist_Brought_u8_arr
-    .byte "Ah, I see you've$"
-    .byte "brought me a flower!$"
-    .byte "How kind of you.#"
-.ENDPROC
-
-.PROC DataA_Text1_MermaidHut4Florist_One1_u8_arr
-    .byte "It does look nice up$"
-    .byte "there, don't you$"
-    .byte "think?#"
-.ENDPROC
-
-.PROC DataA_Text1_MermaidHut4Florist_One2_u8_arr
-    .byte "Only...it seems lonely$"
-    .byte "by itself. I suppose$"
-    .byte "you'll need to find$"
-    .byte "some more.#"
-.ENDPROC
-
-.PROC DataA_Text1_MermaidHut4Florist_One3_u8_arr
-    .byte "Not from where you got$"
-    .byte "this one, of course.$"
-    .byte "You'll have to look$"
-    .byte "elsewhere.#"
-.ENDPROC
-
-.PROC DataA_Text1_MermaidHut4Florist_Two1_u8_arr
-    .byte "You may be wondering$"
-    .byte "why our queen doesn't$"
-    .byte "trust humans. I assure$"
-    .byte "you, she has reasons.#"
-.ENDPROC
-
-.PROC DataA_Text1_MermaidHut4Florist_Two2_u8_arr
-    .byte "Truth be told, I don't$"
-    .byte "trust humans either.$"
-    .byte "Though your bringing$"
-    .byte "me flowers does help.#"
-.ENDPROC
-
-.PROC DataA_Text1_MermaidHut4Florist_Two3_u8_arr
-    .byte "Perhaps I could$"
-    .byte "trouble you to find$"
-    .byte "another? I would so$"
-    .byte "appreciate it.#"
-.ENDPROC
-
-.PROC DataA_Text1_MermaidHut4Florist_Three1_u8_arr
-    .byte "Humans and mermaids$"
-    .byte "used to be close$"
-    .byte "friends, you know.#"
-.ENDPROC
-
-.PROC DataA_Text1_MermaidHut4Florist_Three2_u8_arr
-    .byte "But humans were never$"
-    .byte "able to shed their$"
-    .byte "violent ways, the way$"
-    .byte "we mermaids have.#"
-.ENDPROC
-
-.PROC DataA_Text1_MermaidHut4Florist_Three3_u8_arr
-    .byte "And not just violence.$"
-    .byte "Shortsightedness in$"
-    .byte "general. Which is why$"
-    .byte "so few humans remain.#"
-.ENDPROC
-
-.PROC DataA_Text1_MermaidHut4Florist_Four1_u8_arr
-    .byte "I suppose there's no$"
-    .byte "hiding it: by now you$"
-    .byte "have seen the complex$"
-    .byte "above our vale.#"
-.ENDPROC
-
-.PROC DataA_Text1_MermaidHut4Florist_Four2_u8_arr
-    .byte "Unlike our temple,$"
-    .byte "it was built by humans$"
-    .byte "alone. It predates$"
-    .byte "even us mermaids.#"
-.ENDPROC
-
-.PROC DataA_Text1_MermaidHut4Florist_Four3_u8_arr
-    .byte "And who knows? If not$"
-    .byte "for it, perhaps human$"
-    .byte "civilization could$"
-    .byte "have survived.#"
-.ENDPROC
-
-.PROC DataA_Text1_MermaidHut4Florist_Four4_u8_arr
-    .byte "Probably not, though.#"
-.ENDPROC
-
-.PROC DataA_Text1_MermaidHut4Florist_Five1_u8_arr
-    .byte "We've noticed you've$"
-    .byte "been restoring power$"
-    .byte "to those ancient$"
-    .byte "circuits, one by one.#"
-.ENDPROC
-
-.PROC DataA_Text1_MermaidHut4Florist_Five2_u8_arr
-    .byte "The queen isn't happy$"
-    .byte "about it. But we are a$"
-    .byte "people of peace, and$"
-    .byte "she promised you aid.#"
-.ENDPROC
-
-.PROC DataA_Text1_MermaidHut4Florist_Five3_u8_arr
-    .byte "If you really want to$"
-    .byte "doom your people all$"
-    .byte "over again, I suppose$"
-    .byte "that's your choice.#"
-.ENDPROC
-
-.PROC DataA_Text1_MermaidHut4Florist_Five4_u8_arr
-    .byte "But woe be upon you if$"
-    .byte "you bring that down on$"
-    .byte "us mermaids as well.#"
-.ENDPROC
-
-.PROC DataA_Text1_MermaidHut4Florist_Six1_u8_arr
-    .byte "Did you know there$"
-    .byte "used to be a human$"
-    .byte "city near here,$"
-    .byte "centuries ago?#"
-.ENDPROC
-
-.PROC DataA_Text1_MermaidHut4Florist_Six2_u8_arr
-    .byte "It was once the center$"
-    .byte "of everything around$"
-    .byte "here. A shining beacon$"
-    .byte "on a hill.#"
-.ENDPROC
-
-.PROC DataA_Text1_MermaidHut4Florist_Six3_u8_arr
-    .byte "The humans reveled in$"
-    .byte "all that they had$"
-    .byte "built: civilization,$"
-    .byte "sophistication.#"
-.ENDPROC
-
-.PROC DataA_Text1_MermaidHut4Florist_Six4_u8_arr
-    .byte "Now it's all forgotten$"
-    .byte "and forever buried$"
-    .byte "under the rubble.#"
-.ENDPROC
-
-.PROC DataA_Text1_MermaidHut4Florist_Seven1_u8_arr
-    .byte "...You've been inside$"
-    .byte "the crypt, haven't$"
-    .byte "you? Perhaps the only$"
-    .byte "living soul who has.#"
-.ENDPROC
-
-.PROC DataA_Text1_MermaidHut4Florist_Seven2_u8_arr
-    .byte "We know it's there,$"
-    .byte "but we don't like$"
-    .byte "to talk about it. Too$"
-    .byte "much painful history.#"
-.ENDPROC
-
-.PROC DataA_Text1_MermaidHut4Florist_Seven3_u8_arr
-    .byte "Very few mermaids who$"
-    .byte "are alive today have$"
-    .byte "even heard the name of$"
-    .byte "Zoe Alda.#"
-.ENDPROC
-
-.PROC DataA_Text1_MermaidHut4Florist_Seven4_u8_arr
-    .byte "As for me, suffice to$"
-    .byte "say I have...mixed$"
-    .byte "feelings about her$"
-    .byte "and her work.#"
-.ENDPROC
-
-.PROC DataA_Text1_MermaidHut4Florist_Eight1_u8_arr
-    .byte "I'm sure you know by$"
-    .byte "now why the orcs$"
-    .byte "attacked your town.#"
-.ENDPROC
-
-.PROC DataA_Text1_MermaidHut4Florist_Eight2_u8_arr
-    .byte "They want to claim the$"
-    .byte "ancient complex here$"
-    .byte "for themselves. They$"
-    .byte "think they deserve it.#"
-.ENDPROC
-
-.PROC DataA_Text1_MermaidHut4Florist_Eight3_u8_arr
-    .byte "And you poor people$"
-    .byte "didn't even know you$"
-    .byte "lived atop such an$"
-    .byte "attractive nuisance.#"
-.ENDPROC
-
-.PROC DataA_Text1_MermaidHut4Florist_Eight4_u8_arr
-    .byte "Like the Pearl Of The$"
-    .byte "World, you would have$"
-    .byte "been better off$"
-    .byte "without it.#"
-.ENDPROC
-
-.PROC DataA_Text1_MermaidHut4Florist_Nine1_u8_arr
-    .byte "One wonders why the$"
-    .byte "orcs have never tried$"
-    .byte "to seize the ancient$"
-    .byte "ruins before now.#"
-.ENDPROC
-
-.PROC DataA_Text1_MermaidHut4Florist_Nine2_u8_arr
-    .byte "Perhaps the orcs of$"
-    .byte "centuries past simply$"
-    .byte "didn't want to?#"
-.ENDPROC
-
-.PROC DataA_Text1_MermaidHut4Florist_Nine3_u8_arr
-    .byte "Unlike the orcs of$"
-    .byte "today, they remembered$"
-    .byte "what happened to the$"
-    .byte "people who built them.#"
-.ENDPROC
-
-.PROC DataA_Text1_MermaidHut4Florist_Nine4_u8_arr
-    .byte "I'm sure over time,$"
-    .byte "they've forgotten as$"
-    .byte "much history as you$"
-    .byte "humans obviously have.#"
-.ENDPROC
-
-.PROC DataA_Text1_MermaidHut4Florist_Ten1_u8_arr
-    .byte "I know you know where$"
-    .byte "we mermaids came from.$"
-    .byte "And now, you know that$"
-    .byte "I know you know.#"
-.ENDPROC
-
-.PROC DataA_Text1_MermaidHut4Florist_Ten2_u8_arr
-    .byte "Most mermaids today$"
-    .byte "don't, and they would$"
-    .byte "be ashamed to learn we$"
-    .byte "came from humans.#"
-.ENDPROC
-
-.PROC DataA_Text1_MermaidHut4Florist_Ten3_u8_arr
-    .byte "I am not ashamed. My$"
-    .byte "human ancestors who$"
-    .byte "chose to become$"
-    .byte "mermaids chose well!#"
-.ENDPROC
-
-.PROC DataA_Text1_MermaidHut4Florist_Ten4_u8_arr
-    .byte "But the question is,$"
-    .byte "did Zoe Alda and her$"
-    .byte "colleagues choose well$"
-    .byte "for humanity?#"
-.ENDPROC
-
-.PROC DataA_Text1_MermaidHut4Florist_Eleven1_u8_arr
-    .byte "By now I'm sure you've$"
-    .byte "seen the ruins of the$"
-    .byte "ancient human city$"
-    .byte "with your own eyes.#"
-.ENDPROC
-
-.PROC DataA_Text1_MermaidHut4Florist_Eleven2_u8_arr
-    .byte "It wasn't destroyed in$"
-    .byte "the war with the orcs.$"
-    .byte "Most of the buildings$"
-    .byte "there still stand!#"
-.ENDPROC
-
-.PROC DataA_Text1_MermaidHut4Florist_Eleven3_u8_arr
-    .byte "No, it simply wasted$"
-    .byte "away, after human$"
-    .byte "civilization finished$"
-    .byte "tearing itself apart.#"
-.ENDPROC
-
-.PROC DataA_Text1_MermaidHut4Florist_Eleven4_u8_arr
-    .byte "The forces were always$"
-    .byte "there, but it was your$"
-    .byte "technology that made$"
-    .byte "the rupture possible.#"
-.ENDPROC
-
-.PROC DataA_Text1_MermaidHut4Florist_Twelve1_u8_arr
-    .byte "And that makes an even$"
-    .byte "dozen! How lovely. I$"
-    .byte "do appreciate all your$"
-    .byte "help, young one.#"
-.ENDPROC
-
-.PROC DataA_Text1_MermaidHut4Florist_Twelve2_u8_arr
-    .byte "In exchange for this$"
-    .byte "gift of beauty...I'd$"
-    .byte "like to give you the$"
-    .byte "gift of music.#"
-.ENDPROC
-
-.PROC DataA_Text1_MermaidHut4Florist_Twelve3_u8_arr
-    .byte "I'll unlock my cellar.$"
-    .byte "You may take what you$"
-    .byte "find there.#"
-.ENDPROC
-
-.PROC DataA_Text1_MermaidHut4Florist_AllDone_u8_arr
-    .byte "Perhaps this gift will$"
-    .byte "give you a better use$"
-    .byte "for all those terrible$"
-    .byte "machines.#"
 .ENDPROC
 
 ;;;=========================================================================;;;

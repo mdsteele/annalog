@@ -32,6 +32,16 @@
 .INCLUDE "../room.inc"
 
 .IMPORT DataA_Room_House_sTileset
+.IMPORT DataA_Text0_TownHouse4BreakerLava1_Part1_u8_arr
+.IMPORT DataA_Text0_TownHouse4BreakerLava1_Part2_u8_arr
+.IMPORT DataA_Text0_TownHouse4BreakerLava1_Part3_u8_arr
+.IMPORT DataA_Text0_TownHouse4BreakerLava1_Part4_u8_arr
+.IMPORT DataA_Text0_TownHouse4BreakerLava2_Part1_u8_arr
+.IMPORT DataA_Text0_TownHouse4BreakerLava2_Part2_u8_arr
+.IMPORT DataA_Text0_TownHouse4BreakerLava3_u8_arr
+.IMPORT DataA_Text0_TownHouse4Laura_Waiting1_u8_arr
+.IMPORT DataA_Text0_TownHouse4Laura_Waiting2_u8_arr
+.IMPORT DataA_Text0_TownHouse4Martin_u8_arr
 .IMPORT Data_Empty_sPlatform_arr
 .IMPORT Func_Noop
 .IMPORT Func_PlaySfxExplodeBig
@@ -235,32 +245,32 @@ _RemoveThurg:
 
 .EXPORT DataA_Dialog_TownHouse4Laura_sDialog
 .PROC DataA_Dialog_TownHouse4Laura_sDialog
-    dlg_Text AdultWoman, DataA_Text2_TownHouse4Laura_Waiting1_u8_arr
-    dlg_Text AdultWoman, DataA_Text2_TownHouse4Laura_Waiting2_u8_arr
+    dlg_Text AdultWoman, DataA_Text0_TownHouse4Laura_Waiting1_u8_arr
+    dlg_Text AdultWoman, DataA_Text0_TownHouse4Laura_Waiting2_u8_arr
     dlg_Done
 .ENDPROC
 
 .EXPORT DataA_Dialog_TownHouse4Martin_sDialog
 .PROC DataA_Dialog_TownHouse4Martin_sDialog
-    dlg_Text AdultMan, DataA_Text2_TownHouse4Martin_u8_arr
+    dlg_Text AdultMan, DataA_Text0_TownHouse4Martin_u8_arr
     dlg_Done
 .ENDPROC
 
 .EXPORT DataA_Dialog_TownHouse4BreakerLava1_sDialog
 .PROC DataA_Dialog_TownHouse4BreakerLava1_sDialog
     .assert kTileIdBgPortraitOrcFirst = kTileIdBgPortraitWomanFirst, error
-    dlg_Text OrcMale, DataA_Text2_TownHouse4BreakerLava1_Part1_u8_arr
-    dlg_Text AdultWoman, DataA_Text2_TownHouse4BreakerLava1_Part2_u8_arr
-    dlg_Text OrcMale, DataA_Text2_TownHouse4BreakerLava1_Part3_u8_arr
-    dlg_Text AdultWoman, DataA_Text2_TownHouse4BreakerLava1_Part4_u8_arr
+    dlg_Text OrcMale, DataA_Text0_TownHouse4BreakerLava1_Part1_u8_arr
+    dlg_Text AdultWoman, DataA_Text0_TownHouse4BreakerLava1_Part2_u8_arr
+    dlg_Text OrcMale, DataA_Text0_TownHouse4BreakerLava1_Part3_u8_arr
+    dlg_Text AdultWoman, DataA_Text0_TownHouse4BreakerLava1_Part4_u8_arr
     dlg_Done
 .ENDPROC
 
 .EXPORT DataA_Dialog_TownHouse4BreakerLava2_sDialog
 .PROC DataA_Dialog_TownHouse4BreakerLava2_sDialog
-    dlg_Text OrcMaleShout, DataA_Text2_TownHouse4BreakerLava2_Part1_u8_arr
+    dlg_Text OrcMaleShout, DataA_Text0_TownHouse4BreakerLava2_Part1_u8_arr
     dlg_Call _ThurgStanding
-    dlg_Text OrcMale, DataA_Text2_TownHouse4BreakerLava2_Part2_u8_arr
+    dlg_Text OrcMale, DataA_Text0_TownHouse4BreakerLava2_Part2_u8_arr
     dlg_Done
 _ThurgStanding:
     lda #eNpcOrc::GruntStanding
@@ -270,78 +280,8 @@ _ThurgStanding:
 
 .EXPORT DataA_Dialog_TownHouse4BreakerLava3_sDialog
 .PROC DataA_Dialog_TownHouse4BreakerLava3_sDialog
-    dlg_Text OrcMale, DataA_Text2_TownHouse4BreakerLava3_u8_arr
+    dlg_Text OrcMale, DataA_Text0_TownHouse4BreakerLava3_u8_arr
     dlg_Done
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Text2"
-
-.PROC DataA_Text2_TownHouse4Laura_Waiting1_u8_arr
-    .byte "Your Uncle Martin and$"
-    .byte "I are waiting here for$"
-    .byte "Elder Roman to meet$"
-    .byte "with us.#"
-.ENDPROC
-
-.PROC DataA_Text2_TownHouse4Laura_Waiting2_u8_arr
-    .byte "I wonder what's taking$"
-    .byte "him so long?#"
-.ENDPROC
-
-.PROC DataA_Text2_TownHouse4Martin_u8_arr
-    .byte "I hope Nora is taking$"
-    .byte "good care of her baby$"
-    .byte "sister Nina back at$"
-    .byte "home...#"
-.ENDPROC
-
-.PROC DataA_Text2_TownHouse4BreakerLava1_Part1_u8_arr
-    .byte "I ask only one more$"
-    .byte "time: where is the$"
-    .byte "B-Remote?#"
-.ENDPROC
-
-.PROC DataA_Text2_TownHouse4BreakerLava1_Part2_u8_arr
-    .byte "What's a bee-re-moat?$"
-    .byte "I don't know what$"
-    .byte "you're talking about!#"
-.ENDPROC
-
-.PROC DataA_Text2_TownHouse4BreakerLava1_Part3_u8_arr
-    .byte "You cannot hide it$"
-    .byte "from me! We orcs WILL$"
-    .byte "take over control of$"
-    .byte "all your machines!#"
-.ENDPROC
-
-.PROC DataA_Text2_TownHouse4BreakerLava1_Part4_u8_arr
-    .byte "What machines? All we$"
-    .byte "humans have is farming$"
-    .byte "and smithing. The same$"
-    .byte "as you brutes!#"
-.ENDPROC
-
-.PROC DataA_Text2_TownHouse4BreakerLava2_Part1_u8_arr
-    .byte "How dare talk back to$"
-    .byte "me? I am Thurg, son of$"
-    .byte "Gurg! Lieutenent of$"
-    .byte "great Chief Gronta!#"
-.ENDPROC
-
-.PROC DataA_Text2_TownHouse4BreakerLava2_Part2_u8_arr
-    .byte "Humans aren't fit to$"
-    .byte "wield even their own$"
-    .byte "inventions. Now is OUR$"
-    .byte "turn to show you how.#"
-.ENDPROC
-
-.PROC DataA_Text2_TownHouse4BreakerLava3_u8_arr
-    .byte "Grunt Hobok! Continue$"
-    .byte "the interrogation. I$"
-    .byte "go now to report to$"
-    .byte "the Chief.#"
 .ENDPROC
 
 ;;;=========================================================================;;;

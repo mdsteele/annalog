@@ -21,7 +21,6 @@
 .INCLUDE "../actors/lavaball.inc"
 .INCLUDE "../charmap.inc"
 .INCLUDE "../device.inc"
-.INCLUDE "../dialog.inc"
 .INCLUDE "../flag.inc"
 .INCLUDE "../machine.inc"
 .INCLUDE "../machines/boiler.inc"
@@ -395,27 +394,6 @@ _ValvePipePlatformIndex_u8_arr4:
     .byte kPipe1PlatformIndex
     .byte kPipe2PlatformIndex
     .byte kPipe2PlatformIndex
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Dialog"
-
-.EXPORT DataA_Dialog_PaperJerome10_sDialog
-.PROC DataA_Dialog_PaperJerome10_sDialog
-    dlg_Text Paper, DataA_Text0_PaperJerome10_u8_arr
-    dlg_Done
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Text0"
-
-.PROC DataA_Text0_PaperJerome10_u8_arr
-    .byte "Day 10: The orcs would$"
-    .byte "rule in our place, if$"
-    .byte "we let them. I doubt$"
-    .byte "that would go well.#"
 .ENDPROC
 
 ;;;=========================================================================;;;

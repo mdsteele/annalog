@@ -35,6 +35,11 @@
 .INCLUDE "../room.inc"
 
 .IMPORT DataA_Room_Garden_sTileset
+.IMPORT DataA_Text0_GardenEastCorra_MarkMap_u8_arr
+.IMPORT DataA_Text0_GardenEastCorra_MeetQueen_u8_arr
+.IMPORT DataA_Text0_GardenEastCorra_No_u8_arr
+.IMPORT DataA_Text0_GardenEastCorra_Question_u8_arr
+.IMPORT DataA_Text0_GardenEastCorra_Yes_u8_arr
 .IMPORT FuncA_Machine_BridgeTick
 .IMPORT FuncA_Machine_BridgeTryMove
 .IMPORT FuncA_Machine_CannonTick
@@ -474,38 +479,6 @@ _Later_sDialog:
     dlg_Quest GardenEastTalkedToCorra
     dlg_Text MermaidCorra, DataA_Text0_GardenEastCorra_MarkMap_u8_arr
     dlg_Done
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Text0"
-
-.PROC DataA_Text0_GardenEastCorra_Question_u8_arr
-    .byte "Are you...a human?$"
-    .byte "A real human girl?%"
-.ENDPROC
-
-.PROC DataA_Text0_GardenEastCorra_No_u8_arr
-    .byte "Ha! You can't fool me.#"
-.ENDPROC
-
-.PROC DataA_Text0_GardenEastCorra_Yes_u8_arr
-    .byte "But...humans aren't$"
-    .byte "supposed to be down$"
-    .byte "here! I've never even$"
-    .byte "met one before.#"
-.ENDPROC
-
-.PROC DataA_Text0_GardenEastCorra_MeetQueen_u8_arr
-    .byte "You should meet with$"
-    .byte "our queen. She will$"
-    .byte "know what to do with$"
-    .byte "you.#"
-.ENDPROC
-
-.PROC DataA_Text0_GardenEastCorra_MarkMap_u8_arr
-    .byte "I'll mark her hut on$"
-    .byte "your map.#"
 .ENDPROC
 
 ;;;=========================================================================;;;

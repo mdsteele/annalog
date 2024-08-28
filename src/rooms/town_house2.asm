@@ -32,6 +32,9 @@
 .INCLUDE "../spawn.inc"
 
 .IMPORT DataA_Room_House_sTileset
+.IMPORT DataA_Text0_TownHouse2Stela_Part1_u8_arr
+.IMPORT DataA_Text0_TownHouse2Stela_Part2_u8_arr
+.IMPORT DataA_Text0_TownHouse2Stela_Part3_u8_arr
 .IMPORT Data_Empty_sPlatform_arr
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrObjTown
@@ -159,29 +162,10 @@ _Devices_sDevice_arr:
 
 .EXPORT DataA_Dialog_TownHouse2Stela_sDialog
 .PROC DataA_Dialog_TownHouse2Stela_sDialog
-    dlg_Text AdultWoman, DataA_Text0_TownHouse2Stela_Page1_u8_arr
-    dlg_Text AdultWoman, DataA_Text0_TownHouse2Stela_Page2_u8_arr
-    dlg_Text AdultWoman, DataA_Text0_TownHouse2Stela_Page3_u8_arr
+    dlg_Text AdultWoman, DataA_Text0_TownHouse2Stela_Part1_u8_arr
+    dlg_Text AdultWoman, DataA_Text0_TownHouse2Stela_Part2_u8_arr
+    dlg_Text AdultWoman, DataA_Text0_TownHouse2Stela_Part3_u8_arr
     dlg_Done
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Text0"
-
-.PROC DataA_Text0_TownHouse2Stela_Page1_u8_arr
-    .byte "Can't sleep, Anna?#"
-.ENDPROC
-
-.PROC DataA_Text0_TownHouse2Stela_Page2_u8_arr
-    .byte "Your brother Alex is$"
-    .byte "up late, too.#"
-.ENDPROC
-
-.PROC DataA_Text0_TownHouse2Stela_Page3_u8_arr
-    .byte "I think he went$"
-    .byte "outside somewhere. Why$"
-    .byte "don't you go find him?#"
 .ENDPROC
 
 ;;;=========================================================================;;;

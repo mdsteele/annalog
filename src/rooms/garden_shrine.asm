@@ -31,6 +31,15 @@
 .INCLUDE "../room.inc"
 
 .IMPORT DataA_Room_Garden_sTileset
+.IMPORT DataA_Text0_GardenShrineBreakerMine1_Part1_u8_arr
+.IMPORT DataA_Text0_GardenShrineBreakerMine1_Part2_u8_arr
+.IMPORT DataA_Text0_GardenShrineBreakerMine1_Part3_u8_arr
+.IMPORT DataA_Text0_GardenShrineBreakerMine1_Part4_u8_arr
+.IMPORT DataA_Text0_GardenShrineBreakerMine1_Part5_u8_arr
+.IMPORT DataA_Text0_GardenShrineBreakerMine1_Part6_u8_arr
+.IMPORT DataA_Text0_GardenShrineBreakerMine1_Part7_u8_arr
+.IMPORT DataA_Text0_GardenShrineBreakerMine2_Part1_u8_arr
+.IMPORT DataA_Text0_GardenShrineBreakerMine2_Part2_u8_arr
 .IMPORT Data_Empty_sPlatform_arr
 .IMPORT Func_Noop
 .IMPORT Func_PlaySfxExplodeBig
@@ -189,86 +198,22 @@ _Passages_sPassage_arr:
 .EXPORT DataA_Dialog_GardenShrineBreakerMine1_sDialog
 .PROC DataA_Dialog_GardenShrineBreakerMine1_sDialog
     .assert kTileIdBgPortraitEireneFirst = kTileIdBgPortraitGrontaFirst, error
-    dlg_Text MermaidEirene, DataA_Text2_GardenShrineBreakerMine1_Part1_u8_arr
-    dlg_Text OrcGronta, DataA_Text2_GardenShrineBreakerMine1_Part2_u8_arr
-    dlg_Text OrcGronta, DataA_Text2_GardenShrineBreakerMine1_Part3_u8_arr
-    dlg_Text MermaidEirene, DataA_Text2_GardenShrineBreakerMine1_Part4_u8_arr
-    dlg_Text MermaidEirene, DataA_Text2_GardenShrineBreakerMine1_Part5_u8_arr
-    dlg_Text OrcGronta, DataA_Text2_GardenShrineBreakerMine1_Part6_u8_arr
-    dlg_Text OrcGronta, DataA_Text2_GardenShrineBreakerMine1_Part7_u8_arr
+    dlg_Text MermaidEirene, DataA_Text0_GardenShrineBreakerMine1_Part1_u8_arr
+    dlg_Text OrcGronta, DataA_Text0_GardenShrineBreakerMine1_Part2_u8_arr
+    dlg_Text OrcGronta, DataA_Text0_GardenShrineBreakerMine1_Part3_u8_arr
+    dlg_Text MermaidEirene, DataA_Text0_GardenShrineBreakerMine1_Part4_u8_arr
+    dlg_Text MermaidEirene, DataA_Text0_GardenShrineBreakerMine1_Part5_u8_arr
+    dlg_Text OrcGronta, DataA_Text0_GardenShrineBreakerMine1_Part6_u8_arr
+    dlg_Text OrcGronta, DataA_Text0_GardenShrineBreakerMine1_Part7_u8_arr
     dlg_Done
 .ENDPROC
 
 .EXPORT DataA_Dialog_GardenShrineBreakerMine2_sDialog
 .PROC DataA_Dialog_GardenShrineBreakerMine2_sDialog
     .assert kTileIdBgPortraitEireneFirst = kTileIdBgPortraitGrontaFirst, error
-    dlg_Text MermaidEirene, DataA_Text2_GardenShrineBreakerMine2_Part1_u8_arr
-    dlg_Text OrcGrontaShout, DataA_Text2_GardenShrineBreakerMine2_Part2_u8_arr
+    dlg_Text MermaidEirene, DataA_Text0_GardenShrineBreakerMine2_Part1_u8_arr
+    dlg_Text OrcGrontaShout, DataA_Text0_GardenShrineBreakerMine2_Part2_u8_arr
     dlg_Done
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Text2"
-
-.PROC DataA_Text2_GardenShrineBreakerMine1_Part1_u8_arr
-    .byte "If you wish to parley,$"
-    .byte "speak quickly. You are$"
-    .byte "not welcome in our$"
-    .byte "vale, orc.#"
-.ENDPROC
-
-.PROC DataA_Text2_GardenShrineBreakerMine1_Part2_u8_arr
-    .byte "Ha! Nor are humans,$"
-    .byte "and yet you harbor$"
-    .byte "them even now.#"
-.ENDPROC
-
-.PROC DataA_Text2_GardenShrineBreakerMine1_Part3_u8_arr
-    .byte "They are your enemies$"
-    .byte "as much as we. Maybe$"
-    .byte "more so. So why do you$"
-    .byte "protect them from us?#"
-.ENDPROC
-
-.PROC DataA_Text2_GardenShrineBreakerMine1_Part4_u8_arr
-    .byte "I do not consider the$"
-    .byte "humans enemies, merely$"
-    .byte "dangerous fools. Much$"
-    .byte "like you.#"
-.ENDPROC
-
-.PROC DataA_Text2_GardenShrineBreakerMine1_Part5_u8_arr
-    .byte "I admit, I had hoped$"
-    .byte "that they might listen$"
-    .byte "to reason.#"
-.ENDPROC
-
-.PROC DataA_Text2_GardenShrineBreakerMine1_Part6_u8_arr
-    .byte "You act all wise, fish$"
-    .byte "woman, but unlike us,$"
-    .byte "you have no vision and$"
-    .byte "no will.#"
-.ENDPROC
-
-.PROC DataA_Text2_GardenShrineBreakerMine1_Part7_u8_arr
-    .byte "The humans failed. You$"
-    .byte "mermaids are cowards.$"
-    .byte "So it falls to orcs to$"
-    .byte "lead the way forward.#"
-.ENDPROC
-
-.PROC DataA_Text2_GardenShrineBreakerMine2_Part1_u8_arr
-    .byte "Oh? And will you$"
-    .byte "destroy yourselves, as$"
-    .byte "the humans did?#"
-.ENDPROC
-
-.PROC DataA_Text2_GardenShrineBreakerMine2_Part2_u8_arr
-    .byte "Better death than to$"
-    .byte "rot down here, as you$"
-    .byte "have apparently chosen$"
-    .byte "to do!#"
 .ENDPROC
 
 ;;;=========================================================================;;;

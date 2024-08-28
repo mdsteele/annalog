@@ -21,7 +21,6 @@
 .INCLUDE "../charmap.inc"
 .INCLUDE "../cpu.inc"
 .INCLUDE "../device.inc"
-.INCLUDE "../dialog.inc"
 .INCLUDE "../flag.inc"
 .INCLUDE "../machine.inc"
 .INCLUDE "../macros.inc"
@@ -233,35 +232,6 @@ _Passages_sPassage_arr:
     jmp Func_MovePlatformHorz
     @done:
     jmp FuncA_Machine_ReachedGoal
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Dialog"
-
-.EXPORT DataA_Dialog_PaperManual2_sDialog
-.PROC DataA_Dialog_PaperManual2_sDialog
-    dlg_Text Paper, DataA_Text0_PaperManual2_Page1_u8_arr
-    dlg_Text Paper, DataA_Text0_PaperManual2_Page2_u8_arr
-    dlg_Done
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Text0"
-
-.PROC DataA_Text0_PaperManual2_Page1_u8_arr
-    .byte "CPU FIELD MANUAL p.2:$"
-    .byte "Programs are saved$"
-    .byte "automatically when$"
-    .byte "a console is closed.#"
-.ENDPROC
-
-.PROC DataA_Text0_PaperManual2_Page2_u8_arr
-    .byte "Progress is also saved$"
-    .byte "automatically whenever$"
-    .byte "entering or leaving a$"
-    .byte "room.#"
 .ENDPROC
 
 ;;;=========================================================================;;;

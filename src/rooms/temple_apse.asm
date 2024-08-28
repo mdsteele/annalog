@@ -18,10 +18,8 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "../actor.inc"
-.INCLUDE "../charmap.inc"
 .INCLUDE "../cpu.inc"
 .INCLUDE "../device.inc"
-.INCLUDE "../dialog.inc"
 .INCLUDE "../flag.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../platform.inc"
@@ -142,35 +140,6 @@ _Passages_sPassage_arr:
     d_byte SpawnAdjust_byte, 0
     D_END
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Dialog"
-
-.EXPORT DataA_Dialog_PaperManual9_sDialog
-.PROC DataA_Dialog_PaperManual9_sDialog
-    dlg_Text Paper, DataA_Text0_PaperManual9_Page1_u8_arr
-    dlg_Text Paper, DataA_Text0_PaperManual9_Page2_u8_arr
-    dlg_Done
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Text0"
-
-.PROC DataA_Text0_PaperManual9_Page1_u8_arr
-    .byte "CPU FIELD MANUAL p.9:$"
-    .byte "An IF can guard a TIL$"
-    .byte "loop whose condition$"
-    .byte "is already met.#"
-.ENDPROC
-
-.PROC DataA_Text0_PaperManual9_Page2_u8_arr
-    .byte "For example:$"
-    .byte "  :IF X<5$"
-    .byte "  :MOVE ", kTileIdBgArrowRight, "$"
-    .byte "  :TIL X", kTileIdBgCmpGe, "5#"
 .ENDPROC
 
 ;;;=========================================================================;;;

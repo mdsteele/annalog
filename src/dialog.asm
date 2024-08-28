@@ -159,6 +159,7 @@
 .IMPORT FuncA_Dialog_PlaySfxDialogText
 .IMPORT FuncA_Dialog_PlaySfxQuestMarker
 .IMPORT FuncA_Objects_DrawObjectsForRoom
+.IMPORT FuncM_CopyDialogText
 .IMPORT FuncM_DrawObjectsForRoomAndProcessFrame
 .IMPORT FuncM_ScrollTowardsAvatar
 .IMPORT FuncM_ScrollTowardsGoal
@@ -420,24 +421,6 @@ _Finish:
     ;; it can tranfser more without overfilling the buffer.
     jsr Func_ClearRestOfOamAndProcessFrame
     jmp_prga MainA_Pause_Papers
-.ENDPROC
-
-;;; Given the bank/pointer returned by FuncA_Dialog_GetNextDialogTextPointer,
-;;; switches the PRGA bank and copies the dialog text into
-;;; Ram_DialogText_u8_arr.
-;;; @param T2 The PRGA bank that contains the dialog text.
-;;; @param T1T0 A pointer to the start of the dialog text.
-.EXPORT FuncM_CopyDialogText
-.PROC FuncM_CopyDialogText
-    main_prga T2
-    ldy #$ff
-    @loop:
-    iny
-    lda (T1T0), y
-    sta Ram_DialogText_u8_arr, y
-    cmp #kDialogTextNewline + 1
-    blt @loop
-    rts
 .ENDPROC
 
 ;;;=========================================================================;;;

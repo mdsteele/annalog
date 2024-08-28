@@ -18,7 +18,6 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "../actor.inc"
-.INCLUDE "../charmap.inc"
 .INCLUDE "../cpu.inc"
 .INCLUDE "../device.inc"
 .INCLUDE "../devices/flower.inc"
@@ -30,6 +29,7 @@
 .INCLUDE "../room.inc"
 
 .IMPORT DataA_Room_Prison_sTileset
+.IMPORT DataA_Text0_PrisonFlowerSign_u8_arr
 .IMPORT FuncA_Room_RemoveFlowerDeviceIfCarriedOrDelivered
 .IMPORT FuncA_Room_RespawnFlowerDeviceIfDropped
 .IMPORT Func_Noop
@@ -128,16 +128,6 @@ _Passages_sPassage_arr:
 .PROC DataA_Dialog_PrisonFlowerSign_sDialog
     dlg_Text Sign, DataA_Text0_PrisonFlowerSign_u8_arr
     dlg_Done
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Text0"
-
-.PROC DataA_Text0_PrisonFlowerSign_u8_arr
-    .byte "Surface Access ", kTileIdBgArrowRight, "$"
-    .byte "$"
-    .byte kTileIdBgArrowLeft, " Holding Cells#"
 .ENDPROC
 
 ;;;=========================================================================;;;

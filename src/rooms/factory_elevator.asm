@@ -37,6 +37,12 @@
 .INCLUDE "elevator.inc"
 
 .IMPORT DataA_Room_Factory_sTileset
+.IMPORT DataA_Text0_FactoryElevatorBruno_Hi1_u8_arr
+.IMPORT DataA_Text0_FactoryElevatorBruno_Hi2_u8_arr
+.IMPORT DataA_Text0_FactoryElevatorBruno_Hi3_u8_arr
+.IMPORT DataA_Text0_FactoryElevatorBruno_Hi4_u8_arr
+.IMPORT DataA_Text0_FactoryElevatorBruno_Hi5_u8_arr
+.IMPORT DataA_Text0_FactoryElevatorBruno_Wait_u8_arr
 .IMPORT FuncA_Machine_Error
 .IMPORT FuncA_Machine_GenericTryMoveY
 .IMPORT FuncA_Machine_JetTick
@@ -622,7 +628,7 @@ _WriteL:
 
 .EXPORT DataA_Dialog_FactoryElevatorBrunoWait_sDialog
 .PROC DataA_Dialog_FactoryElevatorBrunoWait_sDialog
-    dlg_Text ChildBruno, DataA_Text2_FactoryElevatorBruno_Wait_u8_arr
+    dlg_Text ChildBruno, DataA_Text0_FactoryElevatorBruno_Wait_u8_arr
     dlg_Done
 .ENDPROC
 
@@ -630,55 +636,14 @@ _WriteL:
 .PROC DataA_Dialog_FactoryElevatorBrunoHi_sDialog
     dlg_IfSet FactoryElevatorTalkedToBruno, _ALot_sDialog
 _Whew_sDialog:
-    dlg_Text ChildBruno, DataA_Text2_FactoryElevatorBruno_Hi1_u8_arr
+    dlg_Text ChildBruno, DataA_Text0_FactoryElevatorBruno_Hi1_u8_arr
 _ALot_sDialog:
-    dlg_Text ChildBruno, DataA_Text2_FactoryElevatorBruno_Hi2_u8_arr
-    dlg_Text ChildBruno, DataA_Text2_FactoryElevatorBruno_Hi3_u8_arr
-    dlg_Text ChildBruno, DataA_Text2_FactoryElevatorBruno_Hi4_u8_arr
+    dlg_Text ChildBruno, DataA_Text0_FactoryElevatorBruno_Hi2_u8_arr
+    dlg_Text ChildBruno, DataA_Text0_FactoryElevatorBruno_Hi3_u8_arr
+    dlg_Text ChildBruno, DataA_Text0_FactoryElevatorBruno_Hi4_u8_arr
     dlg_Quest FactoryElevatorTalkedToBruno
-    dlg_Text ChildBruno, DataA_Text2_FactoryElevatorBruno_Hi5_u8_arr
+    dlg_Text ChildBruno, DataA_Text0_FactoryElevatorBruno_Hi5_u8_arr
     dlg_Done
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Text2"
-
-.PROC DataA_Text2_FactoryElevatorBruno_Wait_u8_arr
-    .byte "Hey Anna, wait up!#"
-.ENDPROC
-
-.PROC DataA_Text2_FactoryElevatorBruno_Hi1_u8_arr
-    .byte "Whew, glad you made it$"
-    .byte "out of there OK, Anna.$"
-    .byte "Alex asked me to keep$"
-    .byte "an eye out for you.#"
-.ENDPROC
-
-.PROC DataA_Text2_FactoryElevatorBruno_Hi2_u8_arr
-    .byte "A lot's been happening$"
-    .byte "while you were gone.$"
-    .byte "Orcs on the move, more$"
-    .byte "machines turning on...#"
-.ENDPROC
-
-.PROC DataA_Text2_FactoryElevatorBruno_Hi3_u8_arr
-    .byte "Queen Eirene seems$"
-    .byte "pretty agitated, but$"
-    .byte "she's still letting us$"
-    .byte "stay for now.#"
-.ENDPROC
-
-.PROC DataA_Text2_FactoryElevatorBruno_Hi4_u8_arr
-    .byte "And, uh...Alex found$"
-    .byte "something weird. He$"
-    .byte "wanted you to meet him$"
-    .byte "when you got back.#"
-.ENDPROC
-
-.PROC DataA_Text2_FactoryElevatorBruno_Hi5_u8_arr
-    .byte "I'll mark it on your$"
-    .byte "map.#"
 .ENDPROC
 
 ;;;=========================================================================;;;

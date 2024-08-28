@@ -20,7 +20,6 @@
 .INCLUDE "../actor.inc"
 .INCLUDE "../charmap.inc"
 .INCLUDE "../device.inc"
-.INCLUDE "../dialog.inc"
 .INCLUDE "../flag.inc"
 .INCLUDE "../machine.inc"
 .INCLUDE "../machines/minigun.inc"
@@ -565,35 +564,6 @@ _Broken:
     ldy #$aa  ; param: attribute value
     lda #$30  ; param: initial byte offset
     jmp Func_WriteToUpperAttributeTable
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Dialog"
-
-.EXPORT DataA_Dialog_PaperJerome02_sDialog
-.PROC DataA_Dialog_PaperJerome02_sDialog
-    dlg_Text Paper, DataA_Text0_PaperJerome02_Page1_u8_arr
-    dlg_Text Paper, DataA_Text0_PaperJerome02_Page2_u8_arr
-    dlg_Done
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Text0"
-
-.PROC DataA_Text0_PaperJerome02_Page1_u8_arr
-    .byte "Day 2: I had joined$"
-    .byte "the research effort as$"
-    .byte "a junior bioengineer$"
-    .byte "in early 2230.#"
-.ENDPROC
-
-.PROC DataA_Text0_PaperJerome02_Page2_u8_arr
-    .byte "It was a great honor$"
-    .byte "for me to be working$"
-    .byte "alongside the famed$"
-    .byte "Dr. Zoe Alda.#"
 .ENDPROC
 
 ;;;=========================================================================;;;

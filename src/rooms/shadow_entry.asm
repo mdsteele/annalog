@@ -21,7 +21,6 @@
 .INCLUDE "../actors/firefly.inc"
 .INCLUDE "../charmap.inc"
 .INCLUDE "../device.inc"
-.INCLUDE "../dialog.inc"
 .INCLUDE "../flag.inc"
 .INCLUDE "../machine.inc"
 .INCLUDE "../machines/lift.inc"
@@ -245,33 +244,6 @@ _Passages_sPassage_arr:
     ldy #$aa  ; param: attribute value
     lda #$19  ; param: initial byte offset
     jmp Func_WriteToLowerAttributeTable
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Dialog"
-
-.EXPORT DataA_Dialog_PaperJerome01_sDialog
-.PROC DataA_Dialog_PaperJerome01_sDialog
-    dlg_Text Paper, DataA_Text0_PaperJerome01_Page1_u8_arr
-    dlg_Text Paper, DataA_Text0_PaperJerome01_Page2_u8_arr
-    dlg_Done
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Text0"
-
-.PROC DataA_Text0_PaperJerome01_Page1_u8_arr
-    .byte "Day 1: My name is$"
-    .byte "Jerome. It was I who$"
-    .byte "created the orcs.#"
-.ENDPROC
-
-.PROC DataA_Text0_PaperJerome01_Page2_u8_arr
-    .byte "In these pages, I feel$"
-    .byte "compelled to make my$"
-    .byte "confession.#"
 .ENDPROC
 
 ;;;=========================================================================;;;

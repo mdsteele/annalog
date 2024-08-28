@@ -21,7 +21,6 @@
 .INCLUDE "../actors/grub.inc"
 .INCLUDE "../charmap.inc"
 .INCLUDE "../device.inc"
-.INCLUDE "../dialog.inc"
 .INCLUDE "../flag.inc"
 .INCLUDE "../machine.inc"
 .INCLUDE "../machines/lift.inc"
@@ -286,34 +285,6 @@ _ReadL:
     jmp Func_InitActorSmokeExplosion
     @noSquish:
     rts
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Dialog"
-
-.EXPORT DataA_Dialog_PaperManual3_sDialog
-.PROC DataA_Dialog_PaperManual3_sDialog
-    dlg_Text Paper, DataA_Text2_PaperManual3_Page1_u8_arr
-    dlg_Text Paper, DataA_Text2_PaperManual3_Page2_u8_arr
-    dlg_Done
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Text2"
-
-.PROC DataA_Text2_PaperManual3_Page1_u8_arr
-    .byte "CPU FIELD MANUAL p.3:$"
-    .byte "A program loops until$"
-    .byte "an END is reached or$"
-    .byte "an error occurs.#"
-.ENDPROC
-
-.PROC DataA_Text2_PaperManual3_Page2_u8_arr
-    .byte "An error occurs if a$"
-    .byte "machine tries to MOVE$"
-    .byte "or ACT but cannot.#"
 .ENDPROC
 
 ;;;=========================================================================;;;

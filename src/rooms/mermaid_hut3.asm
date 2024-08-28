@@ -19,7 +19,6 @@
 
 .INCLUDE "../actor.inc"
 .INCLUDE "../actors/adult.inc"
-.INCLUDE "../charmap.inc"
 .INCLUDE "../cpu.inc"
 .INCLUDE "../device.inc"
 .INCLUDE "../dialog.inc"
@@ -29,6 +28,10 @@
 .INCLUDE "../room.inc"
 
 .IMPORT DataA_Room_Hut_sTileset
+.IMPORT DataA_Text0_MermaidHut3Daphne_Closed_u8_arr
+.IMPORT DataA_Text0_MermaidHut3Daphne_Intro_u8_arr
+.IMPORT DataA_Text0_MermaidHut3Daphne_Open_u8_arr
+.IMPORT DataA_Text0_MermaidHut3Phoebe_u8_arr
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrObjVillage
 
@@ -145,37 +148,6 @@ _HotSpringClosed_sDialog:
 .PROC DataA_Dialog_MermaidHut3Phoebe_sDialog
     dlg_Text MermaidPhoebe, DataA_Text0_MermaidHut3Phoebe_u8_arr
     dlg_Done
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Text0"
-
-.PROC DataA_Text0_MermaidHut3Daphne_Intro_u8_arr
-    .byte "There's a natural hot$"
-    .byte "spring just east of$"
-    .byte "this village.#"
-.ENDPROC
-
-.PROC DataA_Text0_MermaidHut3Daphne_Open_u8_arr
-    .byte "The water is heated by$"
-    .byte "magma flows far below.$"
-    .byte "It's a great place to$"
-    .byte "relax.#"
-.ENDPROC
-
-.PROC DataA_Text0_MermaidHut3Daphne_Closed_u8_arr
-    .byte "Unfortunately, all the$"
-    .byte "water got drained out$"
-    .byte "somehow. So now we$"
-    .byte "can't use it.#"
-.ENDPROC
-
-.PROC DataA_Text0_MermaidHut3Phoebe_u8_arr
-    .byte "You're so lucky that$"
-    .byte "you get to go on an$"
-    .byte "adventure. I'm stuck$"
-    .byte "here at home.#"
 .ENDPROC
 
 ;;;=========================================================================;;;

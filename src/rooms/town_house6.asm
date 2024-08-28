@@ -28,6 +28,8 @@
 .INCLUDE "../room.inc"
 
 .IMPORT DataA_Room_House_sTileset
+.IMPORT DataA_Text0_TownHouse6Elder_Part1_u8_arr
+.IMPORT DataA_Text0_TownHouse6Elder_Part2_u8_arr
 .IMPORT Data_Empty_sPlatform_arr
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrObjVillage
@@ -143,25 +145,9 @@ _Devices_sDevice_arr:
 
 .EXPORT DataA_Dialog_TownHouse6Elder_sDialog
 .PROC DataA_Dialog_TownHouse6Elder_sDialog
-    dlg_Text AdultElder, DataA_Text2_TownHouse6Elder_Part1_u8_arr
-    dlg_Text AdultElder, DataA_Text2_TownHouse6Elder_Part2_u8_arr
+    dlg_Text AdultElder, DataA_Text0_TownHouse6Elder_Part1_u8_arr
+    dlg_Text AdultElder, DataA_Text0_TownHouse6Elder_Part2_u8_arr
     dlg_Done
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Text2"
-
-.PROC DataA_Text2_TownHouse6Elder_Part1_u8_arr
-    .byte "...zzz...When're Laura$"
-    .byte "and Martin going to be$"
-    .byte "here?...#"
-.ENDPROC
-
-.PROC DataA_Text2_TownHouse6Elder_Part2_u8_arr
-    .byte "...Old Man Roman has$"
-    .byte "been waiting here for$"
-    .byte "a long time...zzz...#"
 .ENDPROC
 
 ;;;=========================================================================;;;

@@ -20,7 +20,6 @@
 .INCLUDE "../actor.inc"
 .INCLUDE "../charmap.inc"
 .INCLUDE "../device.inc"
-.INCLUDE "../dialog.inc"
 .INCLUDE "../flag.inc"
 .INCLUDE "../machine.inc"
 .INCLUDE "../machines/boiler.inc"
@@ -237,35 +236,6 @@ _ValvePipePlatformIndex_u8_arr4:
     .byte kPipe2PlatformIndex
     .byte kPipe2PlatformIndex
     .byte kPipe1PlatformIndex
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Dialog"
-
-.EXPORT DataA_Dialog_PaperManual4_sDialog
-.PROC DataA_Dialog_PaperManual4_sDialog
-    dlg_Text Paper, DataA_Text0_PaperManual4_Page1_u8_arr
-    dlg_Text Paper, DataA_Text0_PaperManual4_Page2_u8_arr
-    dlg_Done
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Text0"
-
-.PROC DataA_Text0_PaperManual4_Page1_u8_arr
-    .byte "CPU FIELD MANUAL p.4:$"
-    .byte "Every machine has an$"
-    .byte "`A' register that you$"
-    .byte "can COPY values into.#"
-.ENDPROC
-
-.PROC DataA_Text0_PaperManual4_Page2_u8_arr
-    .byte "Unlike other registers$"
-    .byte "it does nothing on its$"
-    .byte "own, but it can store$"
-    .byte "a value for later.#"
 .ENDPROC
 
 ;;;=========================================================================;;;

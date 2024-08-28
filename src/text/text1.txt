@@ -1,0 +1,739 @@
+@CityCenterBreakerCity1_Part1
+Pfagh, you again? If
+you value your life,
+boy, you should leave
+these ruins to us.#
+
+@CityCenterBreakerCity1_Part2
+You're the ones who'd
+better leave! This
+is a human city. It
+belongs to us!#
+
+@CityCenterBreakerCity1_Part3
+Oh? And did YOU build
+these buildings? Did
+your townsfolk create
+these machines?#
+
+@CityCenterBreakerCity1_Part4
+Of course you didn't.
+The people who did
+have all been dead
+for centuries.#
+
+@CityCenterBreakerCity1_Part5
+Those humans couldn't
+handle the power they
+created. And now you
+think YOU deserve it?#
+
+@CityCenterBreakerCity1_Part6
+You have less claim
+than we do. At least
+orcs never collapsed
+advanced civilization.#
+
+@CityCenterBreakerCity1_Part7
+You never created it,
+either. Humans can
+learn. And next time,
+we'll do it right!#
+
+@CityCenterBreakerCity1_Part8
+`Next time?' There
+will be a `next time'
+for humans in charge
+over my dead body!#
+
+@CityCenterBreakerCity2_Part1
+...Another circuit?
+But that must mean
+that the power core
+is almost...hmm.#
+
+@CityCenterAlex_Part1
+Anna, you found it!
+That's the remote that
+the orcs have been
+looking for!#
+
+@CityCenterAlex_Part2
+We'll need that to
+restore the complex.
+But first, there's one
+more circuit to find.#
+
+@CityCenterAlex_Part3
+Down in the lava pits,
+there's some kind of
+gateway. I'll mark it
+on your map.#
+
+@CityCenterAlex_Part4
+I don't know how to
+use it, but I'm sure
+you can figure it out.
+We've almost got this!#
+
+@CityCenterAlex_Part5
+Very soon, all this
+technology will be
+back in human hands!#
+
+@CityOutskirtsAlex_Part1
+Anna, you made it! I
+knew you'd do great.
+What did you find out
+under the temple?#
+
+@CityOutskirtsAlex_Part2
+Huh? The mermaids were
+CREATED by humans? But
+how? And...why? Argh,
+we know so little...#
+
+@CityOutskirtsAlex_Part3
+I've been out scouting
+while you were away,
+but I keep coming back
+here. I can't help it.#
+
+@CityOutskirtsAlex_Part4
+Do you see all that?
+We're on the outskirts
+of a human city. Lost
+and buried for years.#
+
+@CityOutskirtsAlex_Part5
+At home, we're barely
+smithing iron. Can you
+believe what we used
+to be able to build?#
+
+@CityOutskirtsAlex_Part6
+We've GOT to find a
+way into that city.
+Meet me down in the
+mermaid village, OK?#
+
+@CoreBossGrontaIntro_Part1
+Ahhhh...here you are,
+little human. You have
+the remote, don't you?#
+
+@CoreBossGrontaIntro_Part2
+The remote that will
+determine whether it
+will be orcs or humans
+that rule this place.#
+
+@CoreBossGrontaIntro_Demand
+I demand that you give
+it to me!%
+
+@CoreBossGrontaIntro_HandItOver
+You're just going to
+hand it over, then?%
+
+@CoreBossGrontaIntro_PreparedToFight
+Oh ho! Then are you
+prepared to fight me?%
+
+@CoreBossGrontaGive_Part1
+Bwahahaha! What a
+coward!#
+
+@CoreBossGrontaGive_Part2
+Now we orcs shall take
+our rightful place as
+masters of this world!#
+
+@CoreBossGrontaDying_Part1
+Argh...defeated by a
+child!? Technology
+gives you so much
+power...#
+
+@CoreBossGrontaDying_Part2
+But human civilization
+will just fail again!
+You'd be better off
+with orcs in charge...#
+
+@CoreBossGrontaDying_Part3
+Maybe...after you've
+destroyed yourselves
+a second time...we'll
+get our chance...#
+
+@CoreBossScreen_Intro
+B-REMOTE RECOGNIZED.
+CORE IS ONLINE AND
+AWAITING COMMANDS.
+>>>#
+
+@CoreBossScreen_Reactivate
+REACTIVATE COMPLEX?
+>>>%
+
+@CoreBossScreen_SelfDestruct
+BEGIN SELF-DESTRUCT?
+>>>%
+
+@CoreLockBreakerShadow_Part1
+At last! The way to
+the core has been
+opened!#
+
+@CoreLockBreakerShadow_Part2
+The humans have had
+their chance with this
+technology. Now it's
+OUR turn.#
+
+@MermaidHut2Guard_WatchOut1
+The queen would never
+let the orcs into our
+vale, nor could they
+best us by force.#
+
+@MermaidHut2Guard_WatchOut2
+Still, be wary if you
+ever face their war
+rhinos. They are not
+to be trifled with.#
+
+@MermaidHut2Guard_Impressed1
+I heard that the orcs
+and their war rhinos
+have invaded the old
+human ruins.#
+
+@MermaidHut2Guard_Impressed2
+Is it true that you
+faced them alone, and
+survived? If so, I am
+impressed.#
+
+@MermaidHut4Florist_Meet1
+Ah...you must be that
+human that I've been
+hearing about.#
+
+@MermaidHut4Florist_Meet2
+I don't suppose you'd
+like to do me a favor?%
+
+@MermaidHut4Florist_NeverMind1
+Yes, well, I suppose
+you must be very busy,
+running around and
+causing trouble.#
+
+@MermaidHut4Florist_NeverMind2
+Come back if you ever
+change your mind.#
+
+@MermaidHut4Florist_Zero1
+As you can see, my
+home is looking rather
+drab. Could you bring
+me a flower?#
+
+@MermaidHut4Florist_Zero2
+If you go east from
+this village and then
+up a bit, you'll find
+the one I want.#
+
+@MermaidHut4Florist_Zero3
+It's very delicate.
+Don't get hurt and
+break it, or you'll
+have to get another.#
+
+@MermaidHut4Florist_Brought
+Ah, I see you've
+brought me a flower!
+How kind of you.#
+
+@MermaidHut4Florist_One1
+It does look nice up
+there, don't you
+think?#
+
+@MermaidHut4Florist_One2
+Only...it seems lonely
+by itself. I suppose
+you'll need to find
+some more.#
+
+@MermaidHut4Florist_One3
+Not from where you got
+this one, of course.
+You'll have to look
+elsewhere.#
+
+@MermaidHut4Florist_Two1
+You may be wondering
+why our queen doesn't
+trust humans. I assure
+you, she has reasons.#
+
+@MermaidHut4Florist_Two2
+Truth be told, I don't
+trust humans either.
+Though your bringing
+me flowers does help.#
+
+@MermaidHut4Florist_Two3
+Perhaps I could
+trouble you to find
+another? I would so
+appreciate it.#
+
+@MermaidHut4Florist_Three1
+Humans and mermaids
+used to be close
+friends, you know.#
+
+@MermaidHut4Florist_Three2
+But humans were never
+able to shed their
+violent ways, the way
+we mermaids have.#
+
+@MermaidHut4Florist_Three3
+And not just violence.
+Shortsightedness in
+general. Which is why
+so few humans remain.#
+
+@MermaidHut4Florist_Four1
+I suppose there's no
+hiding it: by now you
+have seen the complex
+above our vale.#
+
+@MermaidHut4Florist_Four2
+Unlike our temple,
+it was built by humans
+alone. It predates
+even us mermaids.#
+
+@MermaidHut4Florist_Four3
+And who knows? If not
+for it, perhaps human
+civilization could
+have survived.#
+
+@MermaidHut4Florist_Four4
+Probably not, though.#
+
+@MermaidHut4Florist_Five1
+We've noticed you've
+been restoring power
+to those ancient
+circuits, one by one.#
+
+@MermaidHut4Florist_Five2
+The queen isn't happy
+about it. But we are a
+people of peace, and
+she promised you aid.#
+
+@MermaidHut4Florist_Five3
+If you really want to
+doom your people all
+over again, I suppose
+that's your choice.#
+
+@MermaidHut4Florist_Five4
+But woe be upon you if
+you bring that down on
+us mermaids as well.#
+
+@MermaidHut4Florist_Six1
+Did you know there
+used to be a human
+city near here,
+centuries ago?#
+
+@MermaidHut4Florist_Six2
+It was once the center
+of everything around
+here. A shining beacon
+on a hill.#
+
+@MermaidHut4Florist_Six3
+The humans reveled in
+all that they had
+built: civilization,
+sophistication.#
+
+@MermaidHut4Florist_Six4
+Now it's all forgotten
+and forever buried
+under the rubble.#
+
+@MermaidHut4Florist_Seven1
+...You've been inside
+the crypt, haven't
+you? Perhaps the only
+living soul who has.#
+
+@MermaidHut4Florist_Seven2
+We know it's there,
+but we don't like
+to talk about it. Too
+much painful history.#
+
+@MermaidHut4Florist_Seven3
+Very few mermaids who
+are alive today have
+even heard the name of
+Zoe Alda.#
+
+@MermaidHut4Florist_Seven4
+As for me, suffice to
+say I have...mixed
+feelings about her
+and her work.#
+
+@MermaidHut4Florist_Eight1
+I'm sure you know by
+now why the orcs
+attacked your town.#
+
+@MermaidHut4Florist_Eight2
+They want to claim the
+ancient complex here
+for themselves. They
+think they deserve it.#
+
+@MermaidHut4Florist_Eight3
+And you poor people
+didn't even know you
+lived atop such an
+attractive nuisance.#
+
+@MermaidHut4Florist_Eight4
+Like the Pearl Of The
+World, you would have
+been better off
+without it.#
+
+@MermaidHut4Florist_Nine1
+One wonders why the
+orcs have never tried
+to seize the ancient
+ruins before now.#
+
+@MermaidHut4Florist_Nine2
+Perhaps the orcs of
+centuries past simply
+didn't want to?#
+
+@MermaidHut4Florist_Nine3
+Unlike the orcs of
+today, they remembered
+what happened to the
+people who built them.#
+
+@MermaidHut4Florist_Nine4
+I'm sure over time,
+they've forgotten as
+much history as you
+humans obviously have.#
+
+@MermaidHut4Florist_Ten1
+I know you know where
+we mermaids came from.
+And now, you know that
+I know you know.#
+
+@MermaidHut4Florist_Ten2
+Most mermaids today
+don't, and they would
+be ashamed to learn we
+came from humans.#
+
+@MermaidHut4Florist_Ten3
+I am not ashamed. My
+human ancestors who
+chose to become
+mermaids chose well!#
+
+@MermaidHut4Florist_Ten4
+But the question is,
+did Zoe Alda and her
+colleagues choose well
+for humanity?#
+
+@MermaidHut4Florist_Eleven1
+By now I'm sure you've
+seen the ruins of the
+ancient human city
+with your own eyes.#
+
+@MermaidHut4Florist_Eleven2
+It wasn't destroyed in
+the war with the orcs.
+Most of the buildings
+there still stand!#
+
+@MermaidHut4Florist_Eleven3
+No, it simply wasted
+away, after human
+civilization finished
+tearing itself apart.#
+
+@MermaidHut4Florist_Eleven4
+The forces were always
+there, but it was your
+technology that made
+the rupture possible.#
+
+@MermaidHut4Florist_Twelve1
+And that makes an even
+dozen! How lovely. I
+do appreciate all your
+help, young one.#
+
+@MermaidHut4Florist_Twelve2
+In exchange for this
+gift of beauty...I'd
+like to give you the
+gift of music.#
+
+@MermaidHut4Florist_Twelve3
+I'll unlock my cellar.
+You may take what you
+find there.#
+
+@MermaidHut4Florist_AllDone
+Perhaps this gift will
+give you a better use
+for all those terrible
+machines.#
+
+@MermaidHut5Marie
+The mermaid queen is
+letting us stay here,
+but she doesn't seem
+happy about it.#
+
+@MermaidHut5Nora
+Well...if we're stuck
+here, I guess I may as
+well potty train my
+little sister.#
+
+@MermaidVillageAlex_Part1
+Anna! Did you SEE that
+place we went through
+to get down here? It's
+right under our town!#
+
+@MermaidVillageAlex_Part2
+It must be where that
+metal thing I found is
+from! ...And what the
+orcs came looking for.#
+
+@MermaidVillageAlex_Part3
+We need to learn more.
+But the queen won't
+help! She's all upset
+about some temple...#
+
+@MermaidVillageAlex_Part4
+Wait...she said humans
+put machines in the
+temple? Maybe we could
+find some clues there.#
+
+@MermaidVillageAlex_Part5
+I'm going to go check
+it out. Meet up with
+me there later, OK?
+I'll see you there.#
+
+@MermaidVillageGuard_Guarding
+I am helping to guard
+this village. See that
+you behave honorably
+while you are here.#
+
+@MermaidVillageGuard_Temple1
+You'll find the temple
+entrance just beyond
+the northwest end of
+the gardens.#
+
+@MermaidVillageGuard_Temple2
+The queen has already
+sent word to the guard
+there to allow you to
+enter.#
+
+@MermaidVillageGuard_Temple3
+Just be careful. The
+temple is not as safe
+a place as it once
+was.#
+
+@MermaidVillageFarmer_Farming
+I am farming seaweed.
+The harvest has not
+been good this year,
+though.#
+
+@MermaidVillageFarmer_NeedHelp
+The queen sent you?
+Thank goodness. We
+could use your help.#
+
+@MermaidVillageFarmer_Monster
+West of our village,
+there is a tower in
+the gardens. A monster
+has taken it over.#
+
+@MermaidVillageFarmer_OpenTheWay
+Perhaps one with your
+ingenuity could get
+rid of it? We'll open
+the way up for you.#
+
+@MermaidVillageFarmer_ThankYou
+You did it! Thank you
+for your help. You
+should go see the
+queen.#
+
+@MermaidVillageFarmer_LookingFor
+Are you looking for
+Corra? I think she
+went exploring in the
+caves above our vale.#
+
+@MermaidVillageCorra
+Oh, hi! I met you back
+in the gardens. I'm
+Corra, by the way.#
+
+@MermaidVillageBruno_AlexWithQueen
+If you're looking for
+Alex, I think he went
+to go talk with the
+mermaid queen.#
+
+@MermaidVillageBruno_AlexInTemple
+If you're looking for
+Alex, I think he's
+waiting for you in the
+temple.#
+
+@MermaidVillageBruno_AlexNearCity
+If you're looking for
+Alex, I think he went
+back up to that core
+place up above.#
+
+@MermaidVillageBruno_AlexAtSpring
+If you're looking for
+Alex, he's waiting for
+you at the hot spring,
+east of the village.#
+
+@MermaidVillageBruno_AlexInCity
+If you're looking for
+Alex, I think he went
+up to explore that
+ancient human city.#
+
+@MermaidVillageBruno_AlexExploring
+I think Alex went off
+exploring somewhere.
+Not sure where he is
+right now.#
+
+@SewerPoolSign
+    - NOTICE -
+
+   Please do[00ad][aeaf]
+  feed the ducks.#
+
+@TempleEntryCorra_Wait
+Hey Anna, wait up!#
+
+@TempleEntryCorra_Question
+Hi! Did you come to
+the temple to pray?%
+
+@TempleEntryCorra_Yes
+Me too! I was taught
+to pray always for
+peace. I didn't think
+humans did that.#
+
+@TempleEntryCorra_Whom
+I'm not sure whom I'm
+praying to, though.
+...I guess they never
+taught me that.#
+
+@TempleEntryCorra_No
+Oh, right...humans
+never evolved to seek
+after peace, like we
+did...#
+
+@TempleEntryCorra_Taught
+Er, at least, that's
+what I was taught.#
+
+@TempleEntryCorra_AlexAsked
+Oh, I almost forgot!
+Alex asked me to tell
+you where to find him
+if I saw you.#
+
+@TempleEntryCorra_MarkMap
+Here, I'll just mark
+it on your map.#
+
+@TempleEntryGuard_Intro
+I am guarding the
+entrance to the temple
+you see above us.#
+
+@TempleEntryGuard_NoPermission
+I cannot help you to
+enter it without the
+queen's permission.#
+
+@TempleEntryGuard_Enter
+Our queen has sent
+word: I am to allow
+you to enter.#
+
+@TownHouse5Bruno
+If you're looking for
+Alex, he wanted to
+show you something at
+the east end of town.#
+
+@TownHouse5Marie_Part1
+They try not to show
+it, but the adults all
+seem pretty worried
+lately.#
+
+@TownHouse5Marie_Part2
+What will we do if we
+don't have enough food
+to last through the
+winter?#

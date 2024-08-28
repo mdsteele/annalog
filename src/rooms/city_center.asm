@@ -39,6 +39,20 @@
 .INCLUDE "city_center.inc"
 
 .IMPORT DataA_Room_City_sTileset
+.IMPORT DataA_Text1_CityCenterAlex_Part1_u8_arr
+.IMPORT DataA_Text1_CityCenterAlex_Part2_u8_arr
+.IMPORT DataA_Text1_CityCenterAlex_Part3_u8_arr
+.IMPORT DataA_Text1_CityCenterAlex_Part4_u8_arr
+.IMPORT DataA_Text1_CityCenterAlex_Part5_u8_arr
+.IMPORT DataA_Text1_CityCenterBreakerCity1_Part1_u8_arr
+.IMPORT DataA_Text1_CityCenterBreakerCity1_Part2_u8_arr
+.IMPORT DataA_Text1_CityCenterBreakerCity1_Part3_u8_arr
+.IMPORT DataA_Text1_CityCenterBreakerCity1_Part4_u8_arr
+.IMPORT DataA_Text1_CityCenterBreakerCity1_Part5_u8_arr
+.IMPORT DataA_Text1_CityCenterBreakerCity1_Part6_u8_arr
+.IMPORT DataA_Text1_CityCenterBreakerCity1_Part7_u8_arr
+.IMPORT DataA_Text1_CityCenterBreakerCity1_Part8_u8_arr
+.IMPORT DataA_Text1_CityCenterBreakerCity2_Part1_u8_arr
 .IMPORT FuncA_Machine_SemaphoreTick
 .IMPORT FuncA_Machine_SemaphoreTryAct
 .IMPORT FuncA_Machine_SemaphoreTryMove
@@ -794,17 +808,17 @@ _ApplyAlexGravity:
 .EXPORT DataA_Dialog_CityCenterBreakerCity1_sDialog
 .PROC DataA_Dialog_CityCenterBreakerCity1_sDialog
     .assert kTileIdBgPortraitGrontaFirst = kTileIdBgPortraitAlexFirst, error
-    dlg_Text OrcGronta, DataA_Text2_CityCenterBreakerCity1_Part1_u8_arr
+    dlg_Text OrcGronta, DataA_Text1_CityCenterBreakerCity1_Part1_u8_arr
     dlg_Call _AlexRaiseArm
-    dlg_Text ChildAlex, DataA_Text2_CityCenterBreakerCity1_Part2_u8_arr
-    dlg_Text OrcGronta, DataA_Text2_CityCenterBreakerCity1_Part3_u8_arr
+    dlg_Text ChildAlex, DataA_Text1_CityCenterBreakerCity1_Part2_u8_arr
+    dlg_Text OrcGronta, DataA_Text1_CityCenterBreakerCity1_Part3_u8_arr
     dlg_Call _AlexLowerArm
-    dlg_Text OrcGronta, DataA_Text2_CityCenterBreakerCity1_Part4_u8_arr
-    dlg_Text OrcGronta, DataA_Text2_CityCenterBreakerCity1_Part5_u8_arr
-    dlg_Text OrcGronta, DataA_Text2_CityCenterBreakerCity1_Part6_u8_arr
-    dlg_Text ChildAlex, DataA_Text2_CityCenterBreakerCity1_Part7_u8_arr
+    dlg_Text OrcGronta, DataA_Text1_CityCenterBreakerCity1_Part4_u8_arr
+    dlg_Text OrcGronta, DataA_Text1_CityCenterBreakerCity1_Part5_u8_arr
+    dlg_Text OrcGronta, DataA_Text1_CityCenterBreakerCity1_Part6_u8_arr
+    dlg_Text ChildAlex, DataA_Text1_CityCenterBreakerCity1_Part7_u8_arr
     dlg_Call _GrontaRaiseArm
-    dlg_Text OrcGrontaShout, DataA_Text2_CityCenterBreakerCity1_Part8_u8_arr
+    dlg_Text OrcGrontaShout, DataA_Text1_CityCenterBreakerCity1_Part8_u8_arr
     dlg_Done
 _AlexRaiseArm:
     lda #eNpcChild::AlexHolding
@@ -822,122 +836,21 @@ _GrontaRaiseArm:
 
 .EXPORT DataA_Dialog_CityCenterBreakerCity2_sDialog
 .PROC DataA_Dialog_CityCenterBreakerCity2_sDialog
-    dlg_Text OrcGronta, DataA_Text2_CityCenterBreakerCity2_Part1_u8_arr
+    dlg_Text OrcGronta, DataA_Text1_CityCenterBreakerCity2_Part1_u8_arr
     dlg_Done
 .ENDPROC
 
 .EXPORT DataA_Dialog_CityCenterAlex_sDialog
 .PROC DataA_Dialog_CityCenterAlex_sDialog
     dlg_IfSet CityCenterTalkedToAlex, _MarkedMap_sDialog
-    dlg_Text ChildAlex, DataA_Text2_CityCenterAlex_Part1_u8_arr
-    dlg_Text ChildAlex, DataA_Text2_CityCenterAlex_Part2_u8_arr
+    dlg_Text ChildAlex, DataA_Text1_CityCenterAlex_Part1_u8_arr
+    dlg_Text ChildAlex, DataA_Text1_CityCenterAlex_Part2_u8_arr
     dlg_Quest CityCenterTalkedToAlex
 _MarkedMap_sDialog:
-    dlg_Text ChildAlex, DataA_Text2_CityCenterAlex_Part3_u8_arr
-    dlg_Text ChildAlex, DataA_Text2_CityCenterAlex_Part4_u8_arr
-    dlg_Text ChildAlex, DataA_Text2_CityCenterAlex_Part5_u8_arr
+    dlg_Text ChildAlex, DataA_Text1_CityCenterAlex_Part3_u8_arr
+    dlg_Text ChildAlex, DataA_Text1_CityCenterAlex_Part4_u8_arr
+    dlg_Text ChildAlex, DataA_Text1_CityCenterAlex_Part5_u8_arr
     dlg_Done
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Text2"
-
-.PROC DataA_Text2_CityCenterBreakerCity1_Part1_u8_arr
-    .byte "Pfagh, you again? If$"
-    .byte "you value your life,$"
-    .byte "boy, you should leave$"
-    .byte "these ruins to us.#"
-.ENDPROC
-
-.PROC DataA_Text2_CityCenterBreakerCity1_Part2_u8_arr
-    .byte "You're the ones who'd$"
-    .byte "better leave! This$"
-    .byte "is a human city. It$"
-    .byte "belongs to us!#"
-.ENDPROC
-
-.PROC DataA_Text2_CityCenterBreakerCity1_Part3_u8_arr
-    .byte "Oh? And did YOU build$"
-    .byte "these buildings? Did$"
-    .byte "your townsfolk create$"
-    .byte "these machines?#"
-.ENDPROC
-
-.PROC DataA_Text2_CityCenterBreakerCity1_Part4_u8_arr
-    .byte "Of course you didn't.$"
-    .byte "The people who did$"
-    .byte "have all been dead$"
-    .byte "for centuries.#"
-.ENDPROC
-
-.PROC DataA_Text2_CityCenterBreakerCity1_Part5_u8_arr
-    .byte "Those humans couldn't$"
-    .byte "handle the power they$"
-    .byte "created. And now you$"
-    .byte "think YOU deserve it?#"
-.ENDPROC
-
-.PROC DataA_Text2_CityCenterBreakerCity1_Part6_u8_arr
-    .byte "You have less claim$"
-    .byte "than we do. At least$"
-    .byte "orcs never collapsed$"
-    .byte "advanced civilization.#"
-.ENDPROC
-
-.PROC DataA_Text2_CityCenterBreakerCity1_Part7_u8_arr
-    .byte "You never created it,$"
-    .byte "either. Humans can$"
-    .byte "learn. And next time,$"
-    .byte "we'll do it right!#"
-.ENDPROC
-
-.PROC DataA_Text2_CityCenterBreakerCity1_Part8_u8_arr
-    .byte "`Next time?' There$"
-    .byte "will be a `next time'$"
-    .byte "for humans in charge$"
-    .byte "over my dead body!#"
-.ENDPROC
-
-.PROC DataA_Text2_CityCenterBreakerCity2_Part1_u8_arr
-    .byte "...Another circuit?$"
-    .byte "But that must mean$"
-    .byte "that the power core$"
-    .byte "is almost...hmm.#"
-.ENDPROC
-
-.PROC DataA_Text2_CityCenterAlex_Part1_u8_arr
-    .byte "Anna, you found it!$"
-    .byte "That's the remote that$"
-    .byte "the orcs have been$"
-    .byte "looking for!#"
-.ENDPROC
-
-.PROC DataA_Text2_CityCenterAlex_Part2_u8_arr
-    .byte "We'll need that to$"
-    .byte "restore the complex.$"
-    .byte "But first, there's one$"
-    .byte "more circuit to find.#"
-.ENDPROC
-
-.PROC DataA_Text2_CityCenterAlex_Part3_u8_arr
-    .byte "Down in the lava pits,$"
-    .byte "there's some kind of$"
-    .byte "gateway. I'll mark it$"
-    .byte "on your map.#"
-.ENDPROC
-
-.PROC DataA_Text2_CityCenterAlex_Part4_u8_arr
-    .byte "I don't know how to$"
-    .byte "use it, but I'm sure$"
-    .byte "you can figure it out.$"
-    .byte "We've almost got this!#"
-.ENDPROC
-
-.PROC DataA_Text2_CityCenterAlex_Part5_u8_arr
-    .byte "Very soon, all this$"
-    .byte "technology will be$"
-    .byte "back in human hands!#"
 .ENDPROC
 
 ;;;=========================================================================;;;

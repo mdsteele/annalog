@@ -22,7 +22,6 @@
 .INCLUDE "../actors/orc.inc"
 .INCLUDE "../actors/toddler.inc"
 .INCLUDE "../avatar.inc"
-.INCLUDE "../charmap.inc"
 .INCLUDE "../cpu.inc"
 .INCLUDE "../cutscene.inc"
 .INCLUDE "../device.inc"
@@ -40,6 +39,23 @@
 .INCLUDE "../scroll.inc"
 
 .IMPORT DataA_Room_Prison_sTileset
+.IMPORT DataA_Text0_PrisonUpperAlexCell_GetDoorOpen_u8_arr
+.IMPORT DataA_Text0_PrisonUpperAlexCell_Intro_u8_arr
+.IMPORT DataA_Text0_PrisonUpperAlexFree_Part1_u8_arr
+.IMPORT DataA_Text0_PrisonUpperAlexFree_Part2_u8_arr
+.IMPORT DataA_Text0_PrisonUpperAlexLast_Part1_u8_arr
+.IMPORT DataA_Text0_PrisonUpperAlexLast_Part2_u8_arr
+.IMPORT DataA_Text0_PrisonUpperAlexLast_Part3_u8_arr
+.IMPORT DataA_Text0_PrisonUpperAlexLast_Part4_u8_arr
+.IMPORT DataA_Text0_PrisonUpperBreakerTemple1_Part1_u8_arr
+.IMPORT DataA_Text0_PrisonUpperBreakerTemple1_Part2_u8_arr
+.IMPORT DataA_Text0_PrisonUpperBreakerTemple2_u8_arr
+.IMPORT DataA_Text0_PrisonUpperBruno_Adults_u8_arr
+.IMPORT DataA_Text0_PrisonUpperBruno_ClimbUp_u8_arr
+.IMPORT DataA_Text0_PrisonUpperMarie_GoTalkToAlex_u8_arr
+.IMPORT DataA_Text0_PrisonUpperMarie_LooseBrick_u8_arr
+.IMPORT DataA_Text0_PrisonUpperMarie_StandCareful_u8_arr
+.IMPORT DataA_Text0_PrisonUpperNora_u8_arr
 .IMPORT Data_Empty_sDialog
 .IMPORT FuncA_Objects_DrawStepstonePlatform
 .IMPORT FuncC_Prison_DrawGatePlatform
@@ -741,111 +757,6 @@ _LockScrolling:
 .PROC DataA_Dialog_PrisonUpperNora_sDialog
     dlg_Text ChildNora, DataA_Text0_PrisonUpperNora_u8_arr
     dlg_Done
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Text0"
-
-.PROC DataA_Text0_PrisonUpperBreakerTemple1_Part1_u8_arr
-    .byte "Oktok! Chief Gronta$"
-    .byte "say come quick!#"
-.ENDPROC
-
-.PROC DataA_Text0_PrisonUpperBreakerTemple1_Part2_u8_arr
-    .byte "More machines, they$"
-    .byte "are turning on!#"
-.ENDPROC
-
-.PROC DataA_Text0_PrisonUpperBreakerTemple2_u8_arr
-    .byte "...Hey! What about us?#"
-.ENDPROC
-
-.PROC DataA_Text0_PrisonUpperAlexCell_Intro_u8_arr
-    .byte "Anna! Thank goodness$"
-    .byte "you're here! The orcs$"
-    .byte "threw us in here, but$"
-    .byte "they're gone now.#"
-.ENDPROC
-
-.PROC DataA_Text0_PrisonUpperAlexCell_GetDoorOpen_u8_arr
-    .byte "See if you can find a$"
-    .byte "way to get this door$"
-    .byte "open.#"
-.ENDPROC
-
-.PROC DataA_Text0_PrisonUpperAlexFree_Part1_u8_arr
-    .byte "Thanks! That door was$"
-    .byte "too heavy, but I think$"
-    .byte "I can pick the locks$"
-    .byte "on the other cells.#"
-.ENDPROC
-
-.PROC DataA_Text0_PrisonUpperAlexFree_Part2_u8_arr
-    .byte "I'll let the others$"
-    .byte "out, then scout ahead.$"
-    .byte "Be right back.#"
-.ENDPROC
-
-.PROC DataA_Text0_PrisonUpperAlexLast_Part1_u8_arr
-    .byte "Bad news: the passage$"
-    .byte "up to the surface has$"
-    .byte "collapsed. I don't$"
-    .byte "know another way yet.#"
-.ENDPROC
-
-.PROC DataA_Text0_PrisonUpperAlexLast_Part2_u8_arr
-    .byte "We'll need a safe spot$"
-    .byte "to camp. Where have$"
-    .byte "you been staying since$"
-    .byte "you escaped, Anna?#"
-.ENDPROC
-
-.PROC DataA_Text0_PrisonUpperAlexLast_Part3_u8_arr
-    .byte "...Mermaid village?$"
-    .byte "Wait, seriously?$"
-    .byte "Mermaids are real?#"
-.ENDPROC
-
-.PROC DataA_Text0_PrisonUpperAlexLast_Part4_u8_arr
-    .byte "All right. I'll lead$"
-    .byte "the other kids down$"
-    .byte "and meet up with you$"
-    .byte "there. See you soon.#"
-.ENDPROC
-
-.PROC DataA_Text0_PrisonUpperBruno_Adults_u8_arr
-    .byte "Are the adults OK?#"
-.ENDPROC
-
-.PROC DataA_Text0_PrisonUpperBruno_ClimbUp_u8_arr
-    .byte "I think you're going$"
-    .byte "to have to climb up$"
-    .byte "top.#"
-.ENDPROC
-
-.PROC DataA_Text0_PrisonUpperMarie_GoTalkToAlex_u8_arr
-    .byte "It's Anna! Quick, go$"
-    .byte "talk to Alex! He's in$"
-    .byte "the cell up ahead.#"
-.ENDPROC
-
-.PROC DataA_Text0_PrisonUpperMarie_LooseBrick_u8_arr
-    .byte "I can help. There's a$"
-    .byte "loose brick up there.$"
-    .byte "If I push it, I can$"
-    .byte "get you a foothold.#"
-.ENDPROC
-
-.PROC DataA_Text0_PrisonUpperMarie_StandCareful_u8_arr
-    .byte "There! I think you can$"
-    .byte "stand on that brick if$"
-    .byte "you're careful.#"
-.ENDPROC
-
-.PROC DataA_Text0_PrisonUpperNora_u8_arr
-    .byte "My sister STILL keeps$"
-    .byte "peeing her pants!#"
 .ENDPROC
 
 ;;;=========================================================================;;;

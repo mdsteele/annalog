@@ -20,7 +20,6 @@
 .INCLUDE "../actor.inc"
 .INCLUDE "../charmap.inc"
 .INCLUDE "../device.inc"
-.INCLUDE "../dialog.inc"
 .INCLUDE "../flag.inc"
 .INCLUDE "../machine.inc"
 .INCLUDE "../macros.inc"
@@ -245,34 +244,6 @@ _Passages_sPassage_arr:
 .PROC FuncA_Machine_GardenHallwayLift_Tick
     ldax #kLiftMaxPlatformTop  ; param: max platform top
     jmp FuncA_Machine_LiftTick
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Dialog"
-
-.EXPORT DataA_Dialog_PaperJerome12_sDialog
-.PROC DataA_Dialog_PaperJerome12_sDialog
-    dlg_Text Paper, DataA_Text0_PaperJerome12_Page1_u8_arr
-    dlg_Text Paper, DataA_Text0_PaperJerome12_Page2_u8_arr
-    dlg_Done
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Text0"
-
-.PROC DataA_Text0_PaperJerome12_Page1_u8_arr
-    .byte "Day 12: So where do I$"
-    .byte "even start? We were a$"
-    .byte "great civilization$"
-    .byte "once, before the orcs.#"
-.ENDPROC
-
-.PROC DataA_Text0_PaperJerome12_Page2_u8_arr
-    .byte "But we were already$"
-    .byte "crumbling long before$"
-    .byte "they attacked.#"
 .ENDPROC
 
 ;;;=========================================================================;;;

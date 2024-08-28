@@ -31,6 +31,10 @@
 .INCLUDE "../room.inc"
 
 .IMPORT DataA_Room_Core_sTileset
+.IMPORT DataA_Text0_CoreSouthCorra_AlreadyHelped_u8_arr
+.IMPORT DataA_Text0_CoreSouthCorra_HelloAgain1_u8_arr
+.IMPORT DataA_Text0_CoreSouthCorra_HelloAgain2_u8_arr
+.IMPORT DataA_Text0_CoreSouthCorra_HelloAgain3_u8_arr
 .IMPORT FuncA_Objects_Draw1x1Shape
 .IMPORT FuncA_Objects_DrawCratePlatform
 .IMPORT FuncA_Objects_MoveShapeDownByA
@@ -481,42 +485,13 @@ _AnimateSwimmingUpFunc:
 .PROC DataA_Dialog_CoreSouthCorra_sDialog
     dlg_IfSet CoreSouthCorraHelped, _AlreadyHelped_sDialog
 _HelloAgain_sDialog:
-    dlg_Text MermaidCorra, DataA_Text0_CoreSouthCorra1_HelloAgain1_u8_arr
-    dlg_Text MermaidCorra, DataA_Text0_CoreSouthCorra1_HelloAgain2_u8_arr
-    dlg_Text MermaidCorra, DataA_Text0_CoreSouthCorra1_HelloAgain3_u8_arr
+    dlg_Text MermaidCorra, DataA_Text0_CoreSouthCorra_HelloAgain1_u8_arr
+    dlg_Text MermaidCorra, DataA_Text0_CoreSouthCorra_HelloAgain2_u8_arr
+    dlg_Text MermaidCorra, DataA_Text0_CoreSouthCorra_HelloAgain3_u8_arr
     dlg_Cutscene eCutscene::CoreSouthCorraHelping
 _AlreadyHelped_sDialog:
-    dlg_Text MermaidCorra, DataA_Text0_CoreSouthCorra2_u8_arr
+    dlg_Text MermaidCorra, DataA_Text0_CoreSouthCorra_AlreadyHelped_u8_arr
     dlg_Done
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Text0"
-
-.PROC DataA_Text0_CoreSouthCorra1_HelloAgain1_u8_arr
-    .byte "Hello again! I heard$"
-    .byte "that you were going to$"
-    .byte "try to rescue your$"
-    .byte "friends from the orcs.#"
-.ENDPROC
-
-.PROC DataA_Text0_CoreSouthCorra1_HelloAgain2_u8_arr
-    .byte "I've never seen ANY$"
-    .byte "place like this. Who$"
-    .byte "could have built$"
-    .byte "something like this?#"
-.ENDPROC
-
-.PROC DataA_Text0_CoreSouthCorra1_HelloAgain3_u8_arr
-    .byte "Are you going to climb$"
-    .byte "up? Let me see if I$"
-    .byte "can help you...#"
-.ENDPROC
-
-.PROC DataA_Text0_CoreSouthCorra2_u8_arr
-    .byte "Good luck! And be$"
-    .byte "careful!#"
 .ENDPROC
 
 ;;;=========================================================================;;;

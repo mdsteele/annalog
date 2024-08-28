@@ -18,9 +18,7 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "../actor.inc"
-.INCLUDE "../charmap.inc"
 .INCLUDE "../device.inc"
-.INCLUDE "../dialog.inc"
 .INCLUDE "../flag.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../platform.inc"
@@ -152,33 +150,6 @@ _Passages_sPassage_arr:
     ldx #4    ; param: num bytes to write
     lda #$32  ; param: initial byte offset
     jmp Func_WriteToUpperAttributeTable
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Dialog"
-
-.EXPORT DataA_Dialog_PaperJerome11_sDialog
-.PROC DataA_Dialog_PaperJerome11_sDialog
-    dlg_Text Paper, DataA_Text0_PaperJerome11_Page1_u8_arr
-    dlg_Text Paper, DataA_Text0_PaperJerome11_Page2_u8_arr
-    dlg_Done
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Text0"
-
-.PROC DataA_Text0_PaperJerome11_Page1_u8_arr
-    .byte "Day 11: And yet, who$"
-    .byte "am I to judge? Perhaps$"
-    .byte "they would do better$"
-    .byte "than we did.#"
-.ENDPROC
-
-.PROC DataA_Text0_PaperJerome11_Page2_u8_arr
-    .byte "It's not as though the$"
-    .byte "bar is very high.#"
 .ENDPROC
 
 ;;;=========================================================================;;;

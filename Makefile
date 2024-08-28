@@ -29,6 +29,7 @@ MUSIC_OUT_DIR = $(OUTDIR)/music
 PCM_OUT_DIR = $(OUTDIR)/pcm
 ROOM_OUT_DIR = $(OUTDIR)/rooms
 SIM65_OUT_DIR = $(OUTDIR)/sim65
+TEXT_OUT_DIR = $(OUTDIR)/text
 TILE_OUT_DIR = $(OUTDIR)/tiles
 TSET_OUT_DIR = $(OUTDIR)/tilesets
 
@@ -66,6 +67,13 @@ ROOM_BG_FILES := $(shell find src/rooms -name '*.bg' | sort)
 ROOM_ROOM_FILES := \
   $(patsubst src/rooms/%.bg,$(ROOM_OUT_DIR)/%.room,$(ROOM_BG_FILES))
 ROOM_LIB_FILE = $(LIB_OUT_DIR)/rooms.lib
+
+TEXT_TXT_FILES := $(shell find src/text -name '*.txt' | sort)
+TEXT_ASM_FILES := \
+  $(patsubst src/text/%.txt,$(TEXT_OUT_DIR)/%.asm,$(TEXT_TXT_FILES))
+TEXT_OBJ_FILES := \
+  $(patsubst $(TEXT_OUT_DIR)/%.asm,$(TEXT_OUT_DIR)/%.o,$(TEXT_ASM_FILES))
+TEXT_LIB_FILE = $(LIB_OUT_DIR)/text.lib
 
 TILE_AHI_FILES := $(shell find src/tiles -name '*.ahi' | sort)
 TILE_CHR_FILES := \
@@ -214,6 +222,12 @@ $(MUSIC_OUT_DIR)/%.asm: src/music/%.sng $(SNG2ASM)
 	@$(SNG2ASM) < $< > $@
 .SECONDARY: $(MUSIC_ASM_FILES)
 
+$(TEXT_OUT_DIR)/%.asm: src/text/%.txt build/text2asm.py
+	@echo "Generating $@"
+	@mkdir -p $(@D)
+	@python3 build/text2asm.py $< > $@
+.SECONDARY: $(TEXT_ASM_FILES)
+
 $(TSET_OUT_DIR)/%.asm: src/tilesets/%.bg $(BG2TSET) $(TILE_AHI_FILES)
 	@echo "Generating $@"
 	@mkdir -p $(@D)
@@ -317,6 +331,10 @@ $(MUSIC_OUT_DIR)/%.o: $(MUSIC_OUT_DIR)/%.asm $(INC_FILES)
 	$(compile-asm)
 .SECONDARY: $(MUSIC_OBJ_FILES)
 
+$(TEXT_OUT_DIR)/%.o: $(TEXT_OUT_DIR)/%.asm $(INC_FILES)
+	$(compile-asm)
+.SECONDARY: $(TEXT_OBJ_FILES)
+
 $(TSET_OUT_DIR)/%.o: $(TSET_OUT_DIR)/%.asm $(INC_FILES)
 	$(compile-asm)
 .SECONDARY: $(TSET_OBJ_FILES)
@@ -333,6 +351,9 @@ $(MUSIC_LIB_FILE): $(MUSIC_OBJ_FILES)
 $(ROOM_LIB_FILE): $(ROOM_OBJ_FILES)
 	$(update-archive)
 
+$(TEXT_LIB_FILE): $(TEXT_OBJ_FILES)
+	$(update-archive)
+
 $(TSET_LIB_FILE): $(TSET_OBJ_FILES)
 	$(update-archive)
 
@@ -341,13 +362,14 @@ $(TSET_LIB_FILE): $(TSET_OBJ_FILES)
 
 $(ROM_BIN_FILE) $(ROM_LABEL_FILE): \
   tests/lint.py $(ROM_CFG_FILE) $(ROM_OBJ_FILES) \
-  $(MUSIC_LIB_FILE) $(ROOM_LIB_FILE) $(TSET_LIB_FILE)
+  $(MUSIC_LIB_FILE) $(ROOM_LIB_FILE) $(TEXT_LIB_FILE) $(TSET_LIB_FILE)
 	python3 tests/lint.py
 	@echo "Linking $@"
 	@mkdir -p $(@D)
 	@ld65 -Ln $(ROM_LABEL_FILE) -m $(ROM_MAP_FILE) -o $@ \
 	      -C $(ROM_CFG_FILE) $(ROM_OBJ_FILES) \
-	      $(MUSIC_LIB_FILE) $(ROOM_LIB_FILE) $(TSET_LIB_FILE)
+	      $(MUSIC_LIB_FILE) $(ROOM_LIB_FILE) $(TEXT_LIB_FILE) \
+	      $(TSET_LIB_FILE)
 $(ROM_LABEL_FILE): $(ROM_BIN_FILE)
 
 #=============================================================================#

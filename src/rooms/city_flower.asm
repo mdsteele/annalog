@@ -19,7 +19,6 @@
 
 .INCLUDE "../actor.inc"
 .INCLUDE "../actors/orc.inc"
-.INCLUDE "../charmap.inc"
 .INCLUDE "../cutscene.inc"
 .INCLUDE "../device.inc"
 .INCLUDE "../devices/flower.inc"
@@ -31,6 +30,9 @@
 .INCLUDE "../room.inc"
 
 .IMPORT DataA_Room_Building_sTileset
+.IMPORT DataA_Text0_CityFlowerOrcAngry_u8_arr
+.IMPORT DataA_Text0_CityFlowerOrcCalm_Part1_u8_arr
+.IMPORT DataA_Text0_CityFlowerOrcCalm_Part2_u8_arr
 .IMPORT FuncA_Objects_DrawCratePlatform
 .IMPORT FuncA_Room_RemoveFlowerDeviceIfCarriedOrDelivered
 .IMPORT FuncA_Room_RespawnFlowerDeviceIfDropped
@@ -201,29 +203,6 @@ _MakeOrcAttack:
     dlg_Text OrcMale, DataA_Text0_CityFlowerOrcCalm_Part1_u8_arr
     dlg_Text OrcMale, DataA_Text0_CityFlowerOrcCalm_Part2_u8_arr
     dlg_Done
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Text0"
-
-.PROC DataA_Text0_CityFlowerOrcAngry_u8_arr
-    .byte "Hey! Thief! You take$"
-    .byte "my flower!#"
-.ENDPROC
-
-.PROC DataA_Text0_CityFlowerOrcCalm_Part1_u8_arr
-    .byte "Who you? Human? Seem$"
-    .byte "too small to fight...$"
-    .byte "Not know why we fight$"
-    .byte "humans.#"
-.ENDPROC
-
-.PROC DataA_Text0_CityFlowerOrcCalm_Part2_u8_arr
-    .byte "Happier in pretty orc$"
-    .byte "village. Humans happy$"
-    .byte "in ugly human village.$"
-    .byte "Why fight? Pointless.#"
 .ENDPROC
 
 ;;;=========================================================================;;;

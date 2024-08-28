@@ -32,6 +32,8 @@
 .INCLUDE "../room.inc"
 
 .IMPORT DataA_Room_Shadow_sTileset
+.IMPORT DataA_Text0_ShadowTeleportScreen_Page1_u8_arr
+.IMPORT DataA_Text0_ShadowTeleportScreen_Page2_u8_arr
 .IMPORT Data_Empty_sActor_arr
 .IMPORT FuncA_Machine_Error
 .IMPORT FuncA_Machine_FieldTick
@@ -197,24 +199,6 @@ _Passages_sPassage_arr:
     dlg_Text Screen, DataA_Text0_ShadowTeleportScreen_Page1_u8_arr
     dlg_Text Screen, DataA_Text0_ShadowTeleportScreen_Page2_u8_arr
     dlg_Done
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Text0"
-
-.PROC DataA_Text0_ShadowTeleportScreen_Page1_u8_arr
-    .byte "Long have we tried and$"
-    .byte "failed to use modern$"
-    .byte "technology to solve$"
-    .byte "old social problems.#"
-.ENDPROC
-
-.PROC DataA_Text0_ShadowTeleportScreen_Page2_u8_arr
-    .byte "And yet, sometimes an$"
-    .byte "advancement can render$"
-    .byte "a seemingly unsolvable$"
-    .byte "problem irrelevant.#"
 .ENDPROC
 
 ;;;=========================================================================;;;

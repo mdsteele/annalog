@@ -34,6 +34,7 @@
 .INCLUDE "../spawn.inc"
 
 .IMPORT DataA_Room_Temple_sTileset
+.IMPORT DataA_Text0_TempleAltarPlaque_u8_arr
 .IMPORT FuncA_Machine_CarriageTryMove
 .IMPORT FuncA_Machine_GenericMoveTowardGoalHorz
 .IMPORT FuncA_Machine_GenericMoveTowardGoalVert
@@ -613,17 +614,6 @@ _WriteR:
 .PROC DataA_Dialog_TempleAltarPlaque_sDialog
     dlg_Text Plaque, DataA_Text0_TempleAltarPlaque_u8_arr
     dlg_Done
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Text0"
-
-.PROC DataA_Text0_TempleAltarPlaque_u8_arr
-    .byte "- Temple of Peace -$"
-    .byte " Built together by$"
-    .byte "mermaids and humans.$"
-    .byte "   - A.D. 2250 -#"
 .ENDPROC
 
 ;;;=========================================================================;;;

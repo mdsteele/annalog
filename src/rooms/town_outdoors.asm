@@ -22,7 +22,6 @@
 .INCLUDE "../actors/child.inc"
 .INCLUDE "../actors/orc.inc"
 .INCLUDE "../avatar.inc"
-.INCLUDE "../charmap.inc"
 .INCLUDE "../cpu.inc"
 .INCLUDE "../cutscene.inc"
 .INCLUDE "../device.inc"
@@ -38,6 +37,24 @@
 .INCLUDE "../scroll.inc"
 
 .IMPORT DataA_Room_Outdoors_sTileset
+.IMPORT DataA_Text0_TownOutdoorsAlex1_u8_arr
+.IMPORT DataA_Text0_TownOutdoorsAlex2_Part1_u8_arr
+.IMPORT DataA_Text0_TownOutdoorsAlex2_Part2_u8_arr
+.IMPORT DataA_Text0_TownOutdoorsAlex2_Part3_u8_arr
+.IMPORT DataA_Text0_TownOutdoorsAlex3_Attack1_u8_arr
+.IMPORT DataA_Text0_TownOutdoorsAlex3_Attack2_u8_arr
+.IMPORT DataA_Text0_TownOutdoorsAlex3_Explore1_u8_arr
+.IMPORT DataA_Text0_TownOutdoorsAlex3_Explore2_u8_arr
+.IMPORT DataA_Text0_TownOutdoorsAlex3_HandleThis_u8_arr
+.IMPORT DataA_Text0_TownOutdoorsAlex3_WhaWhat_u8_arr
+.IMPORT DataA_Text0_TownOutdoorsGronta_Search1_u8_arr
+.IMPORT DataA_Text0_TownOutdoorsGronta_Search2_u8_arr
+.IMPORT DataA_Text0_TownOutdoorsGronta_YesChief_u8_arr
+.IMPORT DataA_Text0_TownOutdoorsIvan_Part1_u8_arr
+.IMPORT DataA_Text0_TownOutdoorsIvan_Part2_u8_arr
+.IMPORT DataA_Text0_TownOutdoorsSandra_Part1_u8_arr
+.IMPORT DataA_Text0_TownOutdoorsSandra_Part2_u8_arr
+.IMPORT DataA_Text0_TownOutdoorsSign_u8_arr
 .IMPORT Data_Empty_sPlatform_arr
 .IMPORT Func_AckIrqAndLatchWindowFromParam4
 .IMPORT Func_AckIrqAndSetLatch
@@ -459,112 +476,6 @@ _SetFace:
     ldax #$0500
     stax Zp_ScrollGoalX_u16
     rts
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Text0"
-
-.PROC DataA_Text0_TownOutdoorsAlex1_u8_arr
-    .byte "Hi, Anna! I wanted to$"
-    .byte "show you something.$"
-    .byte "Look at what I found$"
-    .byte "in the dirt over here!#"
-.ENDPROC
-
-.PROC DataA_Text0_TownOutdoorsAlex2_Part1_u8_arr
-    .byte "It's some weird metal$"
-    .byte "thing. But nothing$"
-    .byte "like the iron or steel$"
-    .byte "Smith Dominic uses.#"
-.ENDPROC
-
-.PROC DataA_Text0_TownOutdoorsAlex2_Part2_u8_arr
-    .byte "No idea what it is. It$"
-    .byte "almost looks like part$"
-    .byte "of a machine, but it$"
-    .byte "seems so...advanced.#"
-.ENDPROC
-
-.PROC DataA_Text0_TownOutdoorsAlex2_Part3_u8_arr
-    .byte "I wonder where a thing$"
-    .byte "like this could have$"
-    .byte "come from...#"
-.ENDPROC
-
-.PROC DataA_Text0_TownOutdoorsAlex3_Explore1_u8_arr
-    .byte "Do you ever wish we$"
-    .byte "could just leave this$"
-    .byte "town and go exploring?$"
-    .byte "You and me?#"
-.ENDPROC
-
-.PROC DataA_Text0_TownOutdoorsAlex3_Explore2_u8_arr
-    .byte "Mom always says it's$"
-    .byte "too dangerous, but I$"
-    .byte "bet we could handle$"
-    .byte "anything out there...#"
-.ENDPROC
-
-.PROC DataA_Text0_TownOutdoorsAlex3_HandleThis_u8_arr
-    .byte "Handle THIS, human.#"
-.ENDPROC
-
-.PROC DataA_Text0_TownOutdoorsAlex3_WhaWhat_u8_arr
-    .byte "Wha- what?#"
-.ENDPROC
-
-.PROC DataA_Text0_TownOutdoorsAlex3_Attack1_u8_arr
-    .byte "Orcs, attaaaaaack!#"
-.ENDPROC
-
-.PROC DataA_Text0_TownOutdoorsAlex3_Attack2_u8_arr
-    .byte "Anna, run!#"
-.ENDPROC
-
-.PROC DataA_Text0_TownOutdoorsGronta_Search1_u8_arr
-    .byte "Lieutenent Thurg! Have$"
-    .byte "the grunts round up$"
-    .byte "the townsfolk and lock$"
-    .byte "these kids up.#"
-.ENDPROC
-
-.PROC DataA_Text0_TownOutdoorsGronta_Search2_u8_arr
-    .byte "Then we can begin our$"
-    .byte "search.#"
-.ENDPROC
-
-.PROC DataA_Text0_TownOutdoorsGronta_YesChief_u8_arr
-    .byte "Yes, Chief Gronta!#"
-.ENDPROC
-
-.PROC DataA_Text0_TownOutdoorsIvan_Part1_u8_arr
-    .byte "The harvest isn't$"
-    .byte "looking good, Sandra.$"
-    .byte "This might be a tough$"
-    .byte "winter for all of us.#"
-.ENDPROC
-
-.PROC DataA_Text0_TownOutdoorsIvan_Part2_u8_arr
-    .byte "Oh, sorry Anna, I$"
-    .byte "didn't see you there.#"
-.ENDPROC
-
-.PROC DataA_Text0_TownOutdoorsSandra_Part1_u8_arr
-    .byte "Looking for Alex? He$"
-    .byte "popped by the house$"
-    .byte "earlier to see Bruno$"
-    .byte "and Marie.#"
-.ENDPROC
-
-.PROC DataA_Text0_TownOutdoorsSandra_Part2_u8_arr
-    .byte "One of them might know$"
-    .byte "where he went.#"
-.ENDPROC
-
-.PROC DataA_Text0_TownOutdoorsSign_u8_arr
-    .byte "$"
-    .byte " Bartik Town Hall#"
 .ENDPROC
 
 ;;;=========================================================================;;;

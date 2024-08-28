@@ -30,6 +30,7 @@
 .INCLUDE "../room.inc"
 
 .IMPORT DataA_Room_Sewer_sTileset
+.IMPORT DataA_Text1_SewerPoolSign_u8_arr
 .IMPORT FuncA_Room_SewagePushAvatar
 .IMPORT Func_FindEmptyActorSlot
 .IMPORT Func_GetRandomByte
@@ -187,19 +188,8 @@ _ThrowDuckFood:
 
 .EXPORT DataA_Dialog_SewerPoolSign_sDialog
 .PROC DataA_Dialog_SewerPoolSign_sDialog
-    dlg_Text Sign, DataA_Text2_SewerPoolSign_u8_arr
+    dlg_Text Sign, DataA_Text1_SewerPoolSign_u8_arr
     dlg_Done
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Text2"
-
-.PROC DataA_Text2_SewerPoolSign_u8_arr
-    .byte "    - NOTICE -$"
-    .byte "$"
-    .byte "   Please do ", $ad, $ae, $af, "$"
-    .byte "  feed the ducks.#"
 .ENDPROC
 
 ;;;=========================================================================;;;

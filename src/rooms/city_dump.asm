@@ -18,9 +18,7 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "../actor.inc"
-.INCLUDE "../charmap.inc"
 .INCLUDE "../device.inc"
-.INCLUDE "../dialog.inc"
 .INCLUDE "../flag.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
@@ -108,40 +106,6 @@ _Passages_sPassage_arr:
     d_byte SpawnAdjust_byte, 0
     D_END
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Dialog"
-
-.EXPORT DataA_Dialog_PaperJerome35_sDialog
-.PROC DataA_Dialog_PaperJerome35_sDialog
-    dlg_Text Paper, DataA_Text0_PaperJerome35_Page1_u8_arr
-    dlg_Text Paper, DataA_Text0_PaperJerome35_Page2_u8_arr
-    dlg_Text Paper, DataA_Text0_PaperJerome35_Page3_u8_arr
-    dlg_Done
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Text0"
-
-.PROC DataA_Text0_PaperJerome35_Page1_u8_arr
-    .byte "Day 35: I have hidden$"
-    .byte "the remote. Without it$"
-    .byte "the complex can never$"
-    .byte "be fully put to use.#"
-.ENDPROC
-
-.PROC DataA_Text0_PaperJerome35_Page2_u8_arr
-    .byte "I can't bring myself$"
-    .byte "to destroy our work.$"
-    .byte "Maybe, someday, we'll$"
-    .byte "be responsible enough.#"
-.ENDPROC
-
-.PROC DataA_Text0_PaperJerome35_Page3_u8_arr
-    .byte "Maybe someday...#"
 .ENDPROC
 
 ;;;=========================================================================;;;

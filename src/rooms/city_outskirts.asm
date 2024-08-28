@@ -36,6 +36,12 @@
 .INCLUDE "../room.inc"
 
 .IMPORT DataA_Room_City_sTileset
+.IMPORT DataA_Text1_CityOutskirtsAlex_Part1_u8_arr
+.IMPORT DataA_Text1_CityOutskirtsAlex_Part2_u8_arr
+.IMPORT DataA_Text1_CityOutskirtsAlex_Part3_u8_arr
+.IMPORT DataA_Text1_CityOutskirtsAlex_Part4_u8_arr
+.IMPORT DataA_Text1_CityOutskirtsAlex_Part5_u8_arr
+.IMPORT DataA_Text1_CityOutskirtsAlex_Part6_u8_arr
 .IMPORT FuncA_Machine_Error
 .IMPORT FuncA_Machine_GenericMoveTowardGoalVert
 .IMPORT FuncA_Machine_GenericTryMoveY
@@ -398,52 +404,6 @@ _MakeAlexFaceAnna:
 .PROC DataA_Dialog_CityOutskirtsMeetAtHotSpring_sDialog
     dlg_Text ChildAlex, DataA_Text1_CityOutskirtsAlex_Part6_u8_arr
     dlg_Done
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Text1"
-
-.PROC DataA_Text1_CityOutskirtsAlex_Part1_u8_arr
-    .byte "Anna, you made it! I$"
-    .byte "knew you'd do great.$"
-    .byte "What did you find out$"
-    .byte "under the temple?#"
-.ENDPROC
-
-.PROC DataA_Text1_CityOutskirtsAlex_Part2_u8_arr
-    .byte "Huh? The mermaids were$"
-    .byte "CREATED by humans? But$"
-    .byte "how? And...why? Argh,$"
-    .byte "we know so little...#"
-.ENDPROC
-
-.PROC DataA_Text1_CityOutskirtsAlex_Part3_u8_arr
-    .byte "I've been out scouting$"
-    .byte "while you were away,$"
-    .byte "but I keep coming back$"
-    .byte "here. I can't help it.#"
-.ENDPROC
-
-.PROC DataA_Text1_CityOutskirtsAlex_Part4_u8_arr
-    .byte "Do you see all that?$"
-    .byte "We're on the outskirts$"
-    .byte "of a human city. Lost$"
-    .byte "and buried for years.#"
-.ENDPROC
-
-.PROC DataA_Text1_CityOutskirtsAlex_Part5_u8_arr
-    .byte "At home, we're barely$"
-    .byte "smithing iron. Can you$"
-    .byte "believe what we used$"
-    .byte "to be able to build?#"
-.ENDPROC
-
-.PROC DataA_Text1_CityOutskirtsAlex_Part6_u8_arr
-    .byte "We've GOT to find a$"
-    .byte "way into that city.$"
-    .byte "Meet me down in the$"
-    .byte "mermaid village, OK?#"
 .ENDPROC
 
 ;;;=========================================================================;;;

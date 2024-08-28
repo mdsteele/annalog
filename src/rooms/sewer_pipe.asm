@@ -18,9 +18,7 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "../actor.inc"
-.INCLUDE "../charmap.inc"
 .INCLUDE "../device.inc"
-.INCLUDE "../dialog.inc"
 .INCLUDE "../flag.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
@@ -233,35 +231,6 @@ _Passages_sPassage_arr:
     d_byte SpawnAdjust_byte, 0
     D_END
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Dialog"
-
-.EXPORT DataA_Dialog_PaperJerome03_sDialog
-.PROC DataA_Dialog_PaperJerome03_sDialog
-    dlg_Text Paper, DataA_Text1_PaperJerome03_Page1_u8_arr
-    dlg_Text Paper, DataA_Text1_PaperJerome03_Page2_u8_arr
-    dlg_Done
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Text1"
-
-.PROC DataA_Text1_PaperJerome03_Page1_u8_arr
-    .byte "Day 3: In 2235 we had$"
-    .byte "the breakthrough that$"
-    .byte "made the creation of$"
-    .byte "the mermaids possible.#"
-.ENDPROC
-
-.PROC DataA_Text1_PaperJerome03_Page2_u8_arr
-    .byte "Dr. Alda envisioned a$"
-    .byte "newfound freedom for$"
-    .byte "anyone who wanted a$"
-    .byte "new life.#"
 .ENDPROC
 
 ;;;=========================================================================;;;

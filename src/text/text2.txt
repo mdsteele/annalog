@@ -1,0 +1,448 @@
+@PaperJerome01_Page1
+Day 1: My name is
+Jerome. It was I who
+created the orcs.#
+
+@PaperJerome01_Page2
+In these pages, I feel
+compelled to make my
+confession.#
+
+@PaperJerome02_Page1
+Day 2: I had joined
+the research effort as
+a junior bioengineer
+in early 2230.#
+
+@PaperJerome02_Page2
+It was a great honor
+for me to be working
+alongside the famed
+Dr. Zoe Alda.#
+
+@PaperJerome03_Page1
+Day 3: In 2235 we had
+the breakthrough that
+made the creation of
+the mermaids possible.#
+
+@PaperJerome03_Page2
+Dr. Alda envisioned a
+newfound freedom for
+anyone who wanted a
+new life.#
+
+@PaperJerome04_Page1
+Day 4: As much as I
+admired Dr. Alda, I
+felt that we needed
+a counterbalance.#
+
+@PaperJerome04_Page2
+Surely, not everyone
+who wanted to change
+would subscribe to the
+mermaids' ideals.#
+
+@PaperJerome05_Page1
+Day 5: Indeed, most
+who chose to become
+mermaids were highly
+idealistic.#
+
+@PaperJerome05_Page2
+They felt that they
+could create a new
+society without the
+baggage of humanity.#
+
+@PaperJerome05_Page3
+A perfect society,
+free of conflict and
+greed.#
+
+@PaperJerome07_Page1
+Day 7: At least, that
+was the idea. Clearly,
+it failed.#
+
+@PaperJerome07_Page2
+A cautionary tale, if
+only there were anyone
+left to caution.#
+
+@PaperJerome08_Page1
+Day 8: The mermaids
+seek utopia. They say
+they've rid themselves
+of hate and violence.#
+
+@PaperJerome08_Page2
+Of violence? I admit
+that they seem to have
+succeeded where humans
+have always failed.#
+
+@PaperJerome08_Page3
+But of hate? Of pride?
+They have only deluded
+themselves.#
+
+@PaperJerome09_Page1
+Day 9: Meanwhile, the
+orcs value conviction.
+Honor. Valor. All fine
+qualities.#
+
+@PaperJerome09_Page2
+But I fear they are
+fast losing sight of
+what they claim their
+convictions stand for.#
+
+@PaperJerome09_Page3
+And so they, too, are
+no better than us
+humans.#
+
+@PaperJerome10
+Day 10: The orcs would
+rule in our place, if
+we let them. I doubt
+that would go well.#
+
+@PaperJerome11_Page1
+Day 11: And yet, who
+am I to judge? Perhaps
+they would do better
+than we did.#
+
+@PaperJerome11_Page2
+It's not as though the
+bar is very high.#
+
+@PaperJerome12_Page1
+Day 12: So where do I
+even start? We were a
+great civilization
+once, before the orcs.#
+
+@PaperJerome12_Page2
+But we were already
+crumbling long before
+they attacked.#
+
+@PaperJerome13_Page1
+Day 13: And now, there
+is nothing left of us
+but our machines.#
+
+@PaperJerome13_Page2
+I wonder for how long
+those will keep on
+working. A long time.
+Maybe forever.#
+
+@PaperJerome14_Page1
+Day 14: It saddens me
+that we couldn't build
+a society as robust as
+our technology.#
+
+@PaperJerome14_Page2
+We had the knowledge,
+but not the wisdom
+necessary. Nor the
+humility we needed.#
+
+@PaperJerome15_Page1
+Day 15: Now facing our
+apocalypse, I find
+myself musing on how
+it came to happen.#
+
+@PaperJerome15_Page2
+Our demise always
+seemed likely, but
+oddly, none of the
+likely causes arose.#
+
+@PaperJerome18_Page1
+Day 18: We developed
+artificial minds so
+smart, they could have
+ruled us. Enslaved us.#
+
+@PaperJerome18_Page2
+But it turned out that
+they didn't want to.#
+
+@PaperJerome19_Page1
+Day 19: We sought
+better life through
+chemistry. We spewed
+substances recklessly.#
+
+@PaperJerome19_Page2
+And yet, we eventually
+got most of it cleaned
+up. Enough of it,
+anyway.#
+
+@PaperJerome20_Page1
+Day 20: In the end,
+the problem wasn't our
+technology. It was us.#
+
+@PaperJerome21_Page1
+Day 21: When Dr. Alda
+created the mermaids,
+she was trying to help
+solve that problem.#
+
+@PaperJerome21_Page2
+But frankly, I think
+she only made things
+worse. Not that I did
+any better, of course.#
+
+@PaperJerome23_Page1
+Day 23: But human
+nature was still
+there. The mermaids
+proved this, I think.#
+
+@PaperJerome23_Page2
+The orcs, more so.#
+
+@PaperJerome27_Page1
+Day 27: By 2250 things
+had settled down a
+bit, but the mistrust
+never really ended.#
+
+@PaperJerome27_Page2
+We built the Peace
+Temple together with
+the mermaids, but it
+was a feeble gesture.#
+
+@PaperJerome27_Page3
+The orcs continued to
+seethe. The mermaids
+soon grew disgusted
+with us both.#
+
+@PaperJerome28_Page1
+Day 28: We tried to
+make peace with them,
+of course. In the end
+it wasn't possible.#
+
+@PaperJerome28_Page2
+But after all, that's
+why we and they were
+different in the first
+place, isn't it?#
+
+@PaperJerome31_Page1
+Day 31: Despite how we
+chose to use all our
+technology, it needn't
+have gone that way.#
+
+@PaperJerome31_Page2
+The complex core and
+all these machines
+could one day be put
+to a different use.#
+
+@PaperJerome34_Page1
+Day 34: Our technology
+is amazing, but lest
+we forget, we're all
+still just mortals.#
+
+@PaperJerome34_Page2
+No matter how high we
+build, in the end the
+grave still comes for
+us all.#
+
+@PaperJerome35_Page1
+Day 35: I have hidden
+the remote. Without it
+the complex can never
+be fully put to use.#
+
+@PaperJerome35_Page2
+I can't bring myself
+to destroy our work.
+Maybe, someday, we'll
+be responsible enough.#
+
+@PaperJerome35_Page3
+Maybe someday...#
+
+@PaperJerome36_Page1
+Day 36: By now there's
+probably not much time
+left to finish this.#
+
+@PaperJerome36_Page2
+I'm going to start
+pinning up all these
+pages. Maybe someday
+someone'll find them.#
+
+@PaperJerome36_Page3
+By then, I'm sure I'll
+be long gone.#
+
+@PaperManual1_Page1
+CPU FIELD MANUAL p.1:
+Basic console control:
+ A: confirm
+ B: cancel/exit#
+
+@PaperManual1_Page2
+ SELECT: insert new
+   instruction
+ START: activate
+   debugger#
+
+@PaperManual2_Page1
+CPU FIELD MANUAL p.2:
+Programs are saved
+automatically when
+a console is closed.#
+
+@PaperManual2_Page2
+Progress is also saved
+automatically whenever
+entering or leaving a
+room.#
+
+@PaperManual3_Page1
+CPU FIELD MANUAL p.3:
+A program loops until
+an END is reached or
+an error occurs.#
+
+@PaperManual3_Page2
+An error occurs if a
+machine tries to MOVE
+or ACT but cannot.#
+
+@PaperManual4_Page1
+CPU FIELD MANUAL p.4:
+Every machine has an
+`A' register that you
+can COPY values into.#
+
+@PaperManual4_Page2
+Unlike other registers
+it does nothing on its
+own, but it can store
+a value for later.#
+
+@PaperManual5_Page1
+CPU FIELD MANUAL p.5:
+Common register names:
+ F:flag    D:distance
+ J:index   K:key/lock#
+
+@PaperManual5_Page2
+L/R:lever  M:mirror
+  P:power  S:sensor
+  T:turn   U:upper
+  V:valve  W:weight#
+
+@PaperManual5_Page3
+ X:horzizontal offset
+ Y:vertical ascent
+ Z:vertical descent#
+
+@PaperManual6_Page1
+CPU FIELD MANUAL p.6:
+It can be useful to
+compare one register
+directly to another.#
+
+@PaperManual6_Page2
+For example:
+  :IF Y>L
+  :MOVE {kTileIdBgArrowDown}
+or the reverse.#
+
+@PaperManual9_Page1
+CPU FIELD MANUAL p.9:
+An IF can guard a TIL
+loop whose condition
+is already met.#
+
+@PaperManual9_Page2
+For example:
+  :IF X<5
+  :MOVE {kTileIdBgArrowRight}
+  :TIL X{kTileIdBgCmpGe}5#
+
+@UpgradeRam
+     PROGRAM RAM
+Increases max program
+size by 2 instructions.#
+
+@UpgradeBRemote
+       B-REMOTE
+Uses the B button to
+control the B register.#
+
+@UpgradeOpIf
+      IF OPCODE
+Skips next instruction
+unless condition is met.#
+
+@UpgradeOpTil
+      TIL OPCODE
+Repeats last instruction
+until condition is met.#
+
+@UpgradeOpCopy
+     COPY OPCODE
+Copies a value into a
+register.#
+
+@UpgradeOpAddSub
+   ADD/SUB OPCODES
+Adds or subtracts one
+value from another.#
+
+@UpgradeOpMul
+      MUL OPCODE
+Multiplies one value by
+another.#
+
+@UpgradeOpGoto
+     GOTO OPCODE
+Jumps directly to a
+specific instruction.#
+
+@UpgradeOpSkip
+     SKIP OPCODE
+Skips over a variable
+number of instructions.#
+
+@UpgradeOpRest
+     REST OPCODE
+Pauses execution for a
+short time.#
+
+@UpgradeOpSync
+     SYNC OPCODE
+Pauses execution until
+all machines sync.#
+
+@UpgradeOpBeep
+     BEEP OPCODE
+Plays one of ten musical
+tones.#

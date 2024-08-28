@@ -17,9 +17,7 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
-.INCLUDE "../charmap.inc"
 .INCLUDE "../device.inc"
-.INCLUDE "../dialog.inc"
 .INCLUDE "../flag.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../platform.inc"
@@ -119,43 +117,6 @@ _Passages_sPassage_arr:
     d_byte SpawnAdjust_byte, 0
     D_END
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Dialog"
-
-.EXPORT DataA_Dialog_PaperJerome27_sDialog
-.PROC DataA_Dialog_PaperJerome27_sDialog
-    dlg_Text Paper, DataA_Text3_PaperJerome27_Page1_u8_arr
-    dlg_Text Paper, DataA_Text3_PaperJerome27_Page2_u8_arr
-    dlg_Text Paper, DataA_Text3_PaperJerome27_Page3_u8_arr
-    dlg_Done
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Text3"
-
-.PROC DataA_Text3_PaperJerome27_Page1_u8_arr
-    .byte "Day 27: By 2250 things$"
-    .byte "had settled down a$"
-    .byte "bit, but the mistrust$"
-    .byte "never really ended.#"
-.ENDPROC
-
-.PROC DataA_Text3_PaperJerome27_Page2_u8_arr
-    .byte "We built the Peace$"
-    .byte "Temple together with$"
-    .byte "the mermaids, but it$"
-    .byte "was a feeble gesture.#"
-.ENDPROC
-
-.PROC DataA_Text3_PaperJerome27_Page3_u8_arr
-    .byte "The orcs continued to$"
-    .byte "seethe. The mermaids$"
-    .byte "soon grew disgusted$"
-    .byte "with us both.#"
 .ENDPROC
 
 ;;;=========================================================================;;;

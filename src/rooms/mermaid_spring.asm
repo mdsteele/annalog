@@ -40,6 +40,13 @@
 .INCLUDE "../scroll.inc"
 
 .IMPORT DataA_Room_Mermaid_sTileset
+.IMPORT DataA_Text0_MermaidSpringAlex_Part1_u8_arr
+.IMPORT DataA_Text0_MermaidSpringAlex_Part2_u8_arr
+.IMPORT DataA_Text0_MermaidSpringAlex_Part3_u8_arr
+.IMPORT DataA_Text0_MermaidSpringAlex_Part4_u8_arr
+.IMPORT DataA_Text0_MermaidSpringAlex_Part5_u8_arr
+.IMPORT DataA_Text0_MermaidSpringSign_Closed_u8_arr
+.IMPORT DataA_Text0_MermaidSpringSign_Open_u8_arr
 .IMPORT FuncA_Machine_Error
 .IMPORT FuncA_Machine_GenericTryMoveY
 .IMPORT FuncA_Machine_PumpTick
@@ -541,57 +548,6 @@ _Open_sDialog:
 _Closed_sDialog:
     dlg_Text Sign, DataA_Text0_MermaidSpringSign_Closed_u8_arr
     dlg_Done
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Text0"
-
-.PROC DataA_Text0_MermaidSpringAlex_Part1_u8_arr
-    .byte "Thanks for coming. I$"
-    .byte "hate to ask, but...$"
-    .byte "well, you're the best$"
-    .byte "with these machines.#"
-.ENDPROC
-
-.PROC DataA_Text0_MermaidSpringAlex_Part2_u8_arr
-    .byte "I'm convinced we'll$"
-    .byte "find answers in that$"
-    .byte "city, but every way$"
-    .byte "in is blocked off.#"
-.ENDPROC
-
-.PROC DataA_Text0_MermaidSpringAlex_Part3_u8_arr
-    .byte "However, I think we$"
-    .byte "can get there via the$"
-    .byte "caves, by approaching$"
-    .byte "from below.#"
-.ENDPROC
-
-.PROC DataA_Text0_MermaidSpringAlex_Part4_u8_arr
-    .byte "The mermaids aren't$"
-    .byte "helping. But I found$"
-    .byte "something they had$"
-    .byte "stashed away...#"
-.ENDPROC
-
-.PROC DataA_Text0_MermaidSpringAlex_Part5_u8_arr
-    .byte "What do you think? I'd$"
-    .byte "say it's time to start$"
-    .byte "delving deeper around$"
-    .byte "here.#"
-.ENDPROC
-
-.PROC DataA_Text0_MermaidSpringSign_Open_u8_arr
-    .byte "   - Hot Spring -$"
-    .byte "Please enjoy a restful$"
-    .byte "and relaxing soak.#"
-.ENDPROC
-
-.PROC DataA_Text0_MermaidSpringSign_Closed_u8_arr
-    .byte "   - Hot Spring -$"
-    .byte "Currently closed for$"
-    .byte "maintenance.#"
 .ENDPROC
 
 ;;;=========================================================================;;;

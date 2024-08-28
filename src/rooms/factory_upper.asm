@@ -20,7 +20,6 @@
 .INCLUDE "../actor.inc"
 .INCLUDE "../charmap.inc"
 .INCLUDE "../device.inc"
-.INCLUDE "../dialog.inc"
 .INCLUDE "../flag.inc"
 .INCLUDE "../machine.inc"
 .INCLUDE "../machines/rotor.inc"
@@ -282,42 +281,6 @@ _BottomSmallWheel:
     mul #2  ; param: rotation angle
     ldx #kBotSmWheelCenterPlatformIndex  ; param: center platform index
     jmp FuncA_Objects_DrawRotorWheelSmall
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Dialog"
-
-.EXPORT DataA_Dialog_PaperManual5_sDialog
-.PROC DataA_Dialog_PaperManual5_sDialog
-    dlg_Text Paper, DataA_Text1_PaperManual5_Page1_u8_arr
-    dlg_Text Paper, DataA_Text1_PaperManual5_Page2_u8_arr
-    dlg_Text Paper, DataA_Text1_PaperManual5_Page3_u8_arr
-    dlg_Done
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Text1"
-
-.PROC DataA_Text1_PaperManual5_Page1_u8_arr
-    .byte "CPU FIELD MANUAL p.5:$"
-    .byte "Common register names:$"
-    .byte " F:flag    D:distance$"
-    .byte " J:index   K:key/lock#"
-.ENDPROC
-
-.PROC DataA_Text1_PaperManual5_Page2_u8_arr
-    .byte "L/R:lever  M:mirror$"
-    .byte "  P:power  S:sensor$"
-    .byte "  T:turn   U:upper$"
-    .byte "  V:valve  W:weight#"
-.ENDPROC
-
-.PROC DataA_Text1_PaperManual5_Page3_u8_arr
-    .byte " X:horzizontal offset$"
-    .byte " Y:vertical ascent$"
-    .byte " Z:vertical descent#"
 .ENDPROC
 
 ;;;=========================================================================;;;

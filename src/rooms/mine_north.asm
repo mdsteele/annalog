@@ -21,7 +21,6 @@
 .INCLUDE "../actors/wasp.inc"
 .INCLUDE "../charmap.inc"
 .INCLUDE "../device.inc"
-.INCLUDE "../dialog.inc"
 .INCLUDE "../flag.inc"
 .INCLUDE "../machine.inc"
 .INCLUDE "../machines/conveyor.inc"
@@ -381,42 +380,6 @@ _MotionOffset_i8_arr10:
     .byte <-3, 0, 3
     .byte <-6, 0, 6
     .byte <-9, 0, 9
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Dialog"
-
-.EXPORT DataA_Dialog_PaperJerome09_sDialog
-.PROC DataA_Dialog_PaperJerome09_sDialog
-    dlg_Text Paper, DataA_Text1_PaperJerome09_Page1_u8_arr
-    dlg_Text Paper, DataA_Text1_PaperJerome09_Page2_u8_arr
-    dlg_Text Paper, DataA_Text1_PaperJerome09_Page3_u8_arr
-    dlg_Done
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Text1"
-
-.PROC DataA_Text1_PaperJerome09_Page1_u8_arr
-    .byte "Day 9: Meanwhile, the$"
-    .byte "orcs value conviction.$"
-    .byte "Honor. Valor. All fine$"
-    .byte "qualities.#"
-.ENDPROC
-
-.PROC DataA_Text1_PaperJerome09_Page2_u8_arr
-    .byte "But I fear they are$"
-    .byte "fast losing sight of$"
-    .byte "what they claim their$"
-    .byte "convictions stand for.#"
-.ENDPROC
-
-.PROC DataA_Text1_PaperJerome09_Page3_u8_arr
-    .byte "And so they, too, are$"
-    .byte "no better than us$"
-    .byte "humans.#"
 .ENDPROC
 
 ;;;=========================================================================;;;

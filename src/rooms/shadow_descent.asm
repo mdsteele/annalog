@@ -18,9 +18,7 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "../actor.inc"
-.INCLUDE "../charmap.inc"
 .INCLUDE "../device.inc"
-.INCLUDE "../dialog.inc"
 .INCLUDE "../flag.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
@@ -271,26 +269,6 @@ _RaiseBothBarriers:
     sty Ram_PlatformType_ePlatform_arr + kBarrier1PlatformIndex
     sty Ram_PlatformType_ePlatform_arr + kBarrier2PlatformIndex
     rts
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Dialog"
-
-.EXPORT DataA_Dialog_PaperJerome20_sDialog
-.PROC DataA_Dialog_PaperJerome20_sDialog
-    dlg_Text Paper, DataA_Text2_PaperJerome20_Page1_u8_arr
-    dlg_Done
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Text2"
-
-.PROC DataA_Text2_PaperJerome20_Page1_u8_arr
-    .byte "Day 20: In the end,$"
-    .byte "the problem wasn't our$"
-    .byte "technology. It was us.#"
 .ENDPROC
 
 ;;;=========================================================================;;;

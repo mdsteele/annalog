@@ -21,7 +21,6 @@
 .INCLUDE "../actors/jelly.inc"
 .INCLUDE "../charmap.inc"
 .INCLUDE "../device.inc"
-.INCLUDE "../dialog.inc"
 .INCLUDE "../flag.inc"
 .INCLUDE "../machine.inc"
 .INCLUDE "../machines/multiplexer.inc"
@@ -367,35 +366,6 @@ _Finish:
     jmp FuncA_Machine_ReachedGoal
     @notReachedGoal:
     rts
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Dialog"
-
-.EXPORT DataA_Dialog_PaperJerome19_sDialog
-.PROC DataA_Dialog_PaperJerome19_sDialog
-    dlg_Text Paper, DataA_Text3_PaperJerome19_Page1_u8_arr
-    dlg_Text Paper, DataA_Text3_PaperJerome19_Page2_u8_arr
-    dlg_Done
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Text3"
-
-.PROC DataA_Text3_PaperJerome19_Page1_u8_arr
-    .byte "Day 19: We sought$"
-    .byte "better life through$"
-    .byte "chemistry. We spewed$"
-    .byte "substances recklessly.#"
-.ENDPROC
-
-.PROC DataA_Text3_PaperJerome19_Page2_u8_arr
-    .byte "And yet, we eventually$"
-    .byte "got most of it cleaned$"
-    .byte "up. Enough of it,$"
-    .byte "anyway.#"
 .ENDPROC
 
 ;;;=========================================================================;;;

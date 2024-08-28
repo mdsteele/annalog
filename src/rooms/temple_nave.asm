@@ -36,6 +36,11 @@
 .INCLUDE "../room.inc"
 
 .IMPORT DataA_Room_Temple_sTileset
+.IMPORT DataA_Text0_TempleNaveAlexBoost1_u8_arr
+.IMPORT DataA_Text0_TempleNaveAlexBoost2_u8_arr
+.IMPORT DataA_Text0_TempleNaveAlexStand_Part1_u8_arr
+.IMPORT DataA_Text0_TempleNaveAlexStand_Part2_u8_arr
+.IMPORT DataA_Text0_TempleNaveAlexStand_Part3_u8_arr
 .IMPORT FuncA_Machine_CarriageTryMove
 .IMPORT FuncA_Machine_Error
 .IMPORT FuncA_Machine_GenericMoveTowardGoalHorz
@@ -709,43 +714,6 @@ _SetUpBoostingPlatform:
 .PROC DataA_Dialog_TempleNaveAlexBoost2_sDialog
     dlg_Text ChildAlex, DataA_Text0_TempleNaveAlexBoost2_u8_arr
     dlg_Done
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Text0"
-
-.PROC DataA_Text0_TempleNaveAlexStand_Part1_u8_arr
-    .byte "Good to see you, Anna.$"
-    .byte "I've been exploring$"
-    .byte "this temple. Learning$"
-    .byte "a lot.#"
-.ENDPROC
-
-.PROC DataA_Text0_TempleNaveAlexStand_Part2_u8_arr
-    .byte "I guess humans and$"
-    .byte "mermaids used to be$"
-    .byte "friends. They built$"
-    .byte "this place together.#"
-.ENDPROC
-
-.PROC DataA_Text0_TempleNaveAlexStand_Part3_u8_arr
-    .byte "But all this advanced$"
-    .byte "technology...it's from$"
-    .byte "humans. How did we$"
-    .byte "lose that knowledge?#"
-.ENDPROC
-
-.PROC DataA_Text0_TempleNaveAlexBoost1_u8_arr
-    .byte "Anna, I think there's$"
-    .byte "something hidden under$"
-    .byte "this temple. We should$"
-    .byte "find out what it is.#"
-.ENDPROC
-
-.PROC DataA_Text0_TempleNaveAlexBoost2_u8_arr
-    .byte "Hop on up. I'll give$"
-    .byte "you a boost.#"
 .ENDPROC
 
 ;;;=========================================================================;;;

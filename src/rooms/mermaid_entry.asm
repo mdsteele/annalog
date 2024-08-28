@@ -18,7 +18,6 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "../actor.inc"
-.INCLUDE "../charmap.inc"
 .INCLUDE "../cpu.inc"
 .INCLUDE "../device.inc"
 .INCLUDE "../dialog.inc"
@@ -28,6 +27,7 @@
 .INCLUDE "../room.inc"
 
 .IMPORT DataA_Room_Mermaid_sTileset
+.IMPORT DataA_Text0_MermaidEntrySign_u8_arr
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrObjSewer
 
@@ -150,16 +150,6 @@ _Passages_sPassage_arr:
 .PROC DataA_Dialog_MermaidEntrySign_sDialog
     dlg_Text Sign, DataA_Text0_MermaidEntrySign_u8_arr
     dlg_Done
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Text0"
-
-.PROC DataA_Text0_MermaidEntrySign_u8_arr
-    .byte kTileIdBgArrowLeft, " Hanging Gardens$"
-    .byte "$"
-    .byte "Mermaid Village ", kTileIdBgArrowRight, "#"
 .ENDPROC
 
 ;;;=========================================================================;;;

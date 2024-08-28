@@ -18,9 +18,7 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "../actor.inc"
-.INCLUDE "../charmap.inc"
 .INCLUDE "../device.inc"
-.INCLUDE "../dialog.inc"
 .INCLUDE "../flag.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../platform.inc"
@@ -118,42 +116,6 @@ _Passages_sPassage_arr:
     ldy #$05  ; param: attribute value
     lda #$34  ; param: initial byte offset
     jmp Func_WriteToUpperAttributeTable
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Dialog"
-
-.EXPORT DataA_Dialog_PaperJerome08_sDialog
-.PROC DataA_Dialog_PaperJerome08_sDialog
-    dlg_Text Paper, DataA_Text0_PaperJerome08_Page1_u8_arr
-    dlg_Text Paper, DataA_Text0_PaperJerome08_Page2_u8_arr
-    dlg_Text Paper, DataA_Text0_PaperJerome08_Page3_u8_arr
-    dlg_Done
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Text0"
-
-.PROC DataA_Text0_PaperJerome08_Page1_u8_arr
-    .byte "Day 8: The mermaids$"
-    .byte "seek utopia. They say$"
-    .byte "they've rid themselves$"
-    .byte "of hate and violence.#"
-.ENDPROC
-
-.PROC DataA_Text0_PaperJerome08_Page2_u8_arr
-    .byte "Of violence? I admit$"
-    .byte "that they seem to have$"
-    .byte "succeeded where humans$"
-    .byte "have always failed.#"
-.ENDPROC
-
-.PROC DataA_Text0_PaperJerome08_Page3_u8_arr
-    .byte "But of hate? Of pride?$"
-    .byte "They have only deluded$"
-    .byte "themselves.#"
 .ENDPROC
 
 ;;;=========================================================================;;;

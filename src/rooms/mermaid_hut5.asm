@@ -19,7 +19,6 @@
 
 .INCLUDE "../actor.inc"
 .INCLUDE "../actors/child.inc"
-.INCLUDE "../charmap.inc"
 .INCLUDE "../cpu.inc"
 .INCLUDE "../device.inc"
 .INCLUDE "../dialog.inc"
@@ -29,6 +28,8 @@
 .INCLUDE "../room.inc"
 
 .IMPORT DataA_Room_Hut_sTileset
+.IMPORT DataA_Text1_MermaidHut5Marie_u8_arr
+.IMPORT DataA_Text1_MermaidHut5Nora_u8_arr
 .IMPORT Data_Empty_sPlatform_arr
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrObjTown
@@ -188,24 +189,6 @@ _Devices_sDevice_arr:
     ;; TODO: at some point in the game, change dialog
     dlg_Text ChildNora, DataA_Text1_MermaidHut5Nora_u8_arr
     dlg_Done
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Text1"
-
-.PROC DataA_Text1_MermaidHut5Marie_u8_arr
-    .byte "The mermaid queen is$"
-    .byte "letting us stay here,$"
-    .byte "but she doesn't seem$"
-    .byte "happy about it.#"
-.ENDPROC
-
-.PROC DataA_Text1_MermaidHut5Nora_u8_arr
-    .byte "Well...if we're stuck$"
-    .byte "here, I guess I may as$"
-    .byte "well potty train my$"
-    .byte "little sister.#"
 .ENDPROC
 
 ;;;=========================================================================;;;

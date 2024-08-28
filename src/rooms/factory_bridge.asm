@@ -19,9 +19,7 @@
 
 .INCLUDE "../actor.inc"
 .INCLUDE "../actors/bird.inc"
-.INCLUDE "../charmap.inc"
 .INCLUDE "../device.inc"
-.INCLUDE "../dialog.inc"
 .INCLUDE "../flag.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
@@ -116,33 +114,6 @@ _Passages_sPassage_arr:
     d_byte SpawnAdjust_byte, 0
     D_END
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Dialog"
-
-.EXPORT DataA_Dialog_PaperJerome07_sDialog
-.PROC DataA_Dialog_PaperJerome07_sDialog
-    dlg_Text Paper, DataA_Text1_PaperJerome07_Page1_u8_arr
-    dlg_Text Paper, DataA_Text1_PaperJerome07_Page2_u8_arr
-    dlg_Done
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Text1"
-
-.PROC DataA_Text1_PaperJerome07_Page1_u8_arr
-    .byte "Day 7: At least, that$"
-    .byte "was the idea. Clearly,$"
-    .byte "it failed.#"
-.ENDPROC
-
-.PROC DataA_Text1_PaperJerome07_Page2_u8_arr
-    .byte "A cautionary tale, if$"
-    .byte "only there were anyone$"
-    .byte "left to caution.#"
 .ENDPROC
 
 ;;;=========================================================================;;;

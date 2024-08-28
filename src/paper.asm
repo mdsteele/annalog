@@ -29,6 +29,75 @@
 .INCLUDE "ppu.inc"
 .INCLUDE "room.inc"
 
+.IMPORT DataA_Text2_PaperJerome01_Page1_u8_arr
+.IMPORT DataA_Text2_PaperJerome01_Page2_u8_arr
+.IMPORT DataA_Text2_PaperJerome02_Page1_u8_arr
+.IMPORT DataA_Text2_PaperJerome02_Page2_u8_arr
+.IMPORT DataA_Text2_PaperJerome03_Page1_u8_arr
+.IMPORT DataA_Text2_PaperJerome03_Page2_u8_arr
+.IMPORT DataA_Text2_PaperJerome04_Page1_u8_arr
+.IMPORT DataA_Text2_PaperJerome04_Page2_u8_arr
+.IMPORT DataA_Text2_PaperJerome05_Page1_u8_arr
+.IMPORT DataA_Text2_PaperJerome05_Page2_u8_arr
+.IMPORT DataA_Text2_PaperJerome05_Page3_u8_arr
+.IMPORT DataA_Text2_PaperJerome07_Page1_u8_arr
+.IMPORT DataA_Text2_PaperJerome07_Page2_u8_arr
+.IMPORT DataA_Text2_PaperJerome08_Page1_u8_arr
+.IMPORT DataA_Text2_PaperJerome08_Page2_u8_arr
+.IMPORT DataA_Text2_PaperJerome08_Page3_u8_arr
+.IMPORT DataA_Text2_PaperJerome09_Page1_u8_arr
+.IMPORT DataA_Text2_PaperJerome09_Page2_u8_arr
+.IMPORT DataA_Text2_PaperJerome09_Page3_u8_arr
+.IMPORT DataA_Text2_PaperJerome10_u8_arr
+.IMPORT DataA_Text2_PaperJerome11_Page1_u8_arr
+.IMPORT DataA_Text2_PaperJerome11_Page2_u8_arr
+.IMPORT DataA_Text2_PaperJerome12_Page1_u8_arr
+.IMPORT DataA_Text2_PaperJerome12_Page2_u8_arr
+.IMPORT DataA_Text2_PaperJerome13_Page1_u8_arr
+.IMPORT DataA_Text2_PaperJerome13_Page2_u8_arr
+.IMPORT DataA_Text2_PaperJerome14_Page1_u8_arr
+.IMPORT DataA_Text2_PaperJerome14_Page2_u8_arr
+.IMPORT DataA_Text2_PaperJerome15_Page1_u8_arr
+.IMPORT DataA_Text2_PaperJerome15_Page2_u8_arr
+.IMPORT DataA_Text2_PaperJerome18_Page1_u8_arr
+.IMPORT DataA_Text2_PaperJerome18_Page2_u8_arr
+.IMPORT DataA_Text2_PaperJerome19_Page1_u8_arr
+.IMPORT DataA_Text2_PaperJerome19_Page2_u8_arr
+.IMPORT DataA_Text2_PaperJerome20_Page1_u8_arr
+.IMPORT DataA_Text2_PaperJerome21_Page1_u8_arr
+.IMPORT DataA_Text2_PaperJerome21_Page2_u8_arr
+.IMPORT DataA_Text2_PaperJerome23_Page1_u8_arr
+.IMPORT DataA_Text2_PaperJerome23_Page2_u8_arr
+.IMPORT DataA_Text2_PaperJerome27_Page1_u8_arr
+.IMPORT DataA_Text2_PaperJerome27_Page2_u8_arr
+.IMPORT DataA_Text2_PaperJerome27_Page3_u8_arr
+.IMPORT DataA_Text2_PaperJerome28_Page1_u8_arr
+.IMPORT DataA_Text2_PaperJerome28_Page2_u8_arr
+.IMPORT DataA_Text2_PaperJerome31_Page1_u8_arr
+.IMPORT DataA_Text2_PaperJerome31_Page2_u8_arr
+.IMPORT DataA_Text2_PaperJerome34_Page1_u8_arr
+.IMPORT DataA_Text2_PaperJerome34_Page2_u8_arr
+.IMPORT DataA_Text2_PaperJerome35_Page1_u8_arr
+.IMPORT DataA_Text2_PaperJerome35_Page2_u8_arr
+.IMPORT DataA_Text2_PaperJerome35_Page3_u8_arr
+.IMPORT DataA_Text2_PaperJerome36_Page1_u8_arr
+.IMPORT DataA_Text2_PaperJerome36_Page2_u8_arr
+.IMPORT DataA_Text2_PaperJerome36_Page3_u8_arr
+.IMPORT DataA_Text2_PaperManual1_Page1_u8_arr
+.IMPORT DataA_Text2_PaperManual1_Page2_u8_arr
+.IMPORT DataA_Text2_PaperManual2_Page1_u8_arr
+.IMPORT DataA_Text2_PaperManual2_Page2_u8_arr
+.IMPORT DataA_Text2_PaperManual3_Page1_u8_arr
+.IMPORT DataA_Text2_PaperManual3_Page2_u8_arr
+.IMPORT DataA_Text2_PaperManual4_Page1_u8_arr
+.IMPORT DataA_Text2_PaperManual4_Page2_u8_arr
+.IMPORT DataA_Text2_PaperManual5_Page1_u8_arr
+.IMPORT DataA_Text2_PaperManual5_Page2_u8_arr
+.IMPORT DataA_Text2_PaperManual5_Page3_u8_arr
+.IMPORT DataA_Text2_PaperManual6_Page1_u8_arr
+.IMPORT DataA_Text2_PaperManual6_Page2_u8_arr
+.IMPORT DataA_Text2_PaperManual9_Page1_u8_arr
+.IMPORT DataA_Text2_PaperManual9_Page2_u8_arr
 .IMPORT Data_PowersOfTwo_u8_arr8
 .IMPORT FuncA_Pause_DirectDrawWindowBlankLine
 .IMPORT FuncA_Pause_DirectDrawWindowLineSide
@@ -607,6 +676,239 @@ _Right:
     inx  ; now X is zero and Z is set
     @return:
     rts
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Dialog"
+
+.EXPORT DataA_Dialog_PaperJerome01_sDialog
+.PROC DataA_Dialog_PaperJerome01_sDialog
+    dlg_Text Paper, DataA_Text2_PaperJerome01_Page1_u8_arr
+    dlg_Text Paper, DataA_Text2_PaperJerome01_Page2_u8_arr
+    dlg_Done
+.ENDPROC
+
+.EXPORT DataA_Dialog_PaperJerome02_sDialog
+.PROC DataA_Dialog_PaperJerome02_sDialog
+    dlg_Text Paper, DataA_Text2_PaperJerome02_Page1_u8_arr
+    dlg_Text Paper, DataA_Text2_PaperJerome02_Page2_u8_arr
+    dlg_Done
+.ENDPROC
+
+.EXPORT DataA_Dialog_PaperJerome03_sDialog
+.PROC DataA_Dialog_PaperJerome03_sDialog
+    dlg_Text Paper, DataA_Text2_PaperJerome03_Page1_u8_arr
+    dlg_Text Paper, DataA_Text2_PaperJerome03_Page2_u8_arr
+    dlg_Done
+.ENDPROC
+
+.EXPORT DataA_Dialog_PaperJerome04_sDialog
+.PROC DataA_Dialog_PaperJerome04_sDialog
+    dlg_Text Paper, DataA_Text2_PaperJerome04_Page1_u8_arr
+    dlg_Text Paper, DataA_Text2_PaperJerome04_Page2_u8_arr
+    dlg_Done
+.ENDPROC
+
+.EXPORT DataA_Dialog_PaperJerome05_sDialog
+.PROC DataA_Dialog_PaperJerome05_sDialog
+    dlg_Text Paper, DataA_Text2_PaperJerome05_Page1_u8_arr
+    dlg_Text Paper, DataA_Text2_PaperJerome05_Page2_u8_arr
+    dlg_Text Paper, DataA_Text2_PaperJerome05_Page3_u8_arr
+    dlg_Done
+.ENDPROC
+
+.EXPORT DataA_Dialog_PaperJerome07_sDialog
+.PROC DataA_Dialog_PaperJerome07_sDialog
+    dlg_Text Paper, DataA_Text2_PaperJerome07_Page1_u8_arr
+    dlg_Text Paper, DataA_Text2_PaperJerome07_Page2_u8_arr
+    dlg_Done
+.ENDPROC
+
+.EXPORT DataA_Dialog_PaperJerome08_sDialog
+.PROC DataA_Dialog_PaperJerome08_sDialog
+    dlg_Text Paper, DataA_Text2_PaperJerome08_Page1_u8_arr
+    dlg_Text Paper, DataA_Text2_PaperJerome08_Page2_u8_arr
+    dlg_Text Paper, DataA_Text2_PaperJerome08_Page3_u8_arr
+    dlg_Done
+.ENDPROC
+
+.EXPORT DataA_Dialog_PaperJerome09_sDialog
+.PROC DataA_Dialog_PaperJerome09_sDialog
+    dlg_Text Paper, DataA_Text2_PaperJerome09_Page1_u8_arr
+    dlg_Text Paper, DataA_Text2_PaperJerome09_Page2_u8_arr
+    dlg_Text Paper, DataA_Text2_PaperJerome09_Page3_u8_arr
+    dlg_Done
+.ENDPROC
+
+.EXPORT DataA_Dialog_PaperJerome10_sDialog
+.PROC DataA_Dialog_PaperJerome10_sDialog
+    dlg_Text Paper, DataA_Text2_PaperJerome10_u8_arr
+    dlg_Done
+.ENDPROC
+
+.EXPORT DataA_Dialog_PaperJerome11_sDialog
+.PROC DataA_Dialog_PaperJerome11_sDialog
+    dlg_Text Paper, DataA_Text2_PaperJerome11_Page1_u8_arr
+    dlg_Text Paper, DataA_Text2_PaperJerome11_Page2_u8_arr
+    dlg_Done
+.ENDPROC
+
+.EXPORT DataA_Dialog_PaperJerome12_sDialog
+.PROC DataA_Dialog_PaperJerome12_sDialog
+    dlg_Text Paper, DataA_Text2_PaperJerome12_Page1_u8_arr
+    dlg_Text Paper, DataA_Text2_PaperJerome12_Page2_u8_arr
+    dlg_Done
+.ENDPROC
+
+.EXPORT DataA_Dialog_PaperJerome13_sDialog
+.PROC DataA_Dialog_PaperJerome13_sDialog
+    dlg_Text Paper, DataA_Text2_PaperJerome13_Page1_u8_arr
+    dlg_Text Paper, DataA_Text2_PaperJerome13_Page2_u8_arr
+    dlg_Done
+.ENDPROC
+
+.EXPORT DataA_Dialog_PaperJerome14_sDialog
+.PROC DataA_Dialog_PaperJerome14_sDialog
+    dlg_Text Paper, DataA_Text2_PaperJerome14_Page1_u8_arr
+    dlg_Text Paper, DataA_Text2_PaperJerome14_Page2_u8_arr
+    dlg_Done
+.ENDPROC
+
+.EXPORT DataA_Dialog_PaperJerome15_sDialog
+.PROC DataA_Dialog_PaperJerome15_sDialog
+    dlg_Text Paper, DataA_Text2_PaperJerome15_Page1_u8_arr
+    dlg_Text Paper, DataA_Text2_PaperJerome15_Page2_u8_arr
+    dlg_Done
+.ENDPROC
+
+.EXPORT DataA_Dialog_PaperJerome18_sDialog
+.PROC DataA_Dialog_PaperJerome18_sDialog
+    dlg_Text Paper, DataA_Text2_PaperJerome18_Page1_u8_arr
+    dlg_Text Paper, DataA_Text2_PaperJerome18_Page2_u8_arr
+    dlg_Done
+.ENDPROC
+
+.EXPORT DataA_Dialog_PaperJerome19_sDialog
+.PROC DataA_Dialog_PaperJerome19_sDialog
+    dlg_Text Paper, DataA_Text2_PaperJerome19_Page1_u8_arr
+    dlg_Text Paper, DataA_Text2_PaperJerome19_Page2_u8_arr
+    dlg_Done
+.ENDPROC
+
+.EXPORT DataA_Dialog_PaperJerome20_sDialog
+.PROC DataA_Dialog_PaperJerome20_sDialog
+    dlg_Text Paper, DataA_Text2_PaperJerome20_Page1_u8_arr
+    dlg_Done
+.ENDPROC
+
+.EXPORT DataA_Dialog_PaperJerome21_sDialog
+.PROC DataA_Dialog_PaperJerome21_sDialog
+    dlg_Text Paper, DataA_Text2_PaperJerome21_Page1_u8_arr
+    dlg_Text Paper, DataA_Text2_PaperJerome21_Page2_u8_arr
+    dlg_Done
+.ENDPROC
+
+.EXPORT DataA_Dialog_PaperJerome23_sDialog
+.PROC DataA_Dialog_PaperJerome23_sDialog
+    dlg_Text Paper, DataA_Text2_PaperJerome23_Page1_u8_arr
+    dlg_Text Paper, DataA_Text2_PaperJerome23_Page2_u8_arr
+    dlg_Done
+.ENDPROC
+
+.EXPORT DataA_Dialog_PaperJerome27_sDialog
+.PROC DataA_Dialog_PaperJerome27_sDialog
+    dlg_Text Paper, DataA_Text2_PaperJerome27_Page1_u8_arr
+    dlg_Text Paper, DataA_Text2_PaperJerome27_Page2_u8_arr
+    dlg_Text Paper, DataA_Text2_PaperJerome27_Page3_u8_arr
+    dlg_Done
+.ENDPROC
+
+.EXPORT DataA_Dialog_PaperJerome28_sDialog
+.PROC DataA_Dialog_PaperJerome28_sDialog
+    dlg_Text Paper, DataA_Text2_PaperJerome28_Page1_u8_arr
+    dlg_Text Paper, DataA_Text2_PaperJerome28_Page2_u8_arr
+    dlg_Done
+.ENDPROC
+
+.EXPORT DataA_Dialog_PaperJerome31_sDialog
+.PROC DataA_Dialog_PaperJerome31_sDialog
+    dlg_Text Paper, DataA_Text2_PaperJerome31_Page1_u8_arr
+    dlg_Text Paper, DataA_Text2_PaperJerome31_Page2_u8_arr
+    dlg_Done
+.ENDPROC
+
+.EXPORT DataA_Dialog_PaperJerome34_sDialog
+.PROC DataA_Dialog_PaperJerome34_sDialog
+    dlg_Text Paper, DataA_Text2_PaperJerome34_Page1_u8_arr
+    dlg_Text Paper, DataA_Text2_PaperJerome34_Page2_u8_arr
+    dlg_Done
+.ENDPROC
+
+.EXPORT DataA_Dialog_PaperJerome35_sDialog
+.PROC DataA_Dialog_PaperJerome35_sDialog
+    dlg_Text Paper, DataA_Text2_PaperJerome35_Page1_u8_arr
+    dlg_Text Paper, DataA_Text2_PaperJerome35_Page2_u8_arr
+    dlg_Text Paper, DataA_Text2_PaperJerome35_Page3_u8_arr
+    dlg_Done
+.ENDPROC
+
+.EXPORT DataA_Dialog_PaperJerome36_sDialog
+.PROC DataA_Dialog_PaperJerome36_sDialog
+    dlg_Text Paper, DataA_Text2_PaperJerome36_Page1_u8_arr
+    dlg_Text Paper, DataA_Text2_PaperJerome36_Page2_u8_arr
+    dlg_Text Paper, DataA_Text2_PaperJerome36_Page3_u8_arr
+    dlg_Done
+.ENDPROC
+
+.EXPORT DataA_Dialog_PaperManual1_sDialog
+.PROC DataA_Dialog_PaperManual1_sDialog
+    dlg_Text Paper, DataA_Text2_PaperManual1_Page1_u8_arr
+    dlg_Text Paper, DataA_Text2_PaperManual1_Page2_u8_arr
+    dlg_Done
+.ENDPROC
+
+.EXPORT DataA_Dialog_PaperManual2_sDialog
+.PROC DataA_Dialog_PaperManual2_sDialog
+    dlg_Text Paper, DataA_Text2_PaperManual2_Page1_u8_arr
+    dlg_Text Paper, DataA_Text2_PaperManual2_Page2_u8_arr
+    dlg_Done
+.ENDPROC
+
+.EXPORT DataA_Dialog_PaperManual3_sDialog
+.PROC DataA_Dialog_PaperManual3_sDialog
+    dlg_Text Paper, DataA_Text2_PaperManual3_Page1_u8_arr
+    dlg_Text Paper, DataA_Text2_PaperManual3_Page2_u8_arr
+    dlg_Done
+.ENDPROC
+
+.EXPORT DataA_Dialog_PaperManual4_sDialog
+.PROC DataA_Dialog_PaperManual4_sDialog
+    dlg_Text Paper, DataA_Text2_PaperManual4_Page1_u8_arr
+    dlg_Text Paper, DataA_Text2_PaperManual4_Page2_u8_arr
+    dlg_Done
+.ENDPROC
+
+.EXPORT DataA_Dialog_PaperManual5_sDialog
+.PROC DataA_Dialog_PaperManual5_sDialog
+    dlg_Text Paper, DataA_Text2_PaperManual5_Page1_u8_arr
+    dlg_Text Paper, DataA_Text2_PaperManual5_Page2_u8_arr
+    dlg_Text Paper, DataA_Text2_PaperManual5_Page3_u8_arr
+    dlg_Done
+.ENDPROC
+
+.EXPORT DataA_Dialog_PaperManual6_sDialog
+.PROC DataA_Dialog_PaperManual6_sDialog
+    dlg_Text Paper, DataA_Text2_PaperManual6_Page1_u8_arr
+    dlg_Text Paper, DataA_Text2_PaperManual6_Page2_u8_arr
+    dlg_Done
+.ENDPROC
+
+.EXPORT DataA_Dialog_PaperManual9_sDialog
+.PROC DataA_Dialog_PaperManual9_sDialog
+    dlg_Text Paper, DataA_Text2_PaperManual9_Page1_u8_arr
+    dlg_Text Paper, DataA_Text2_PaperManual9_Page2_u8_arr
+    dlg_Done
 .ENDPROC
 
 ;;;=========================================================================;;;

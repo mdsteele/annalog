@@ -28,6 +28,8 @@
 .INCLUDE "../room.inc"
 
 .IMPORT DataA_Room_Shadow_sTileset
+.IMPORT DataA_Text0_ShadowGateScreen_Page1_u8_arr
+.IMPORT DataA_Text0_ShadowGateScreen_Page2_u8_arr
 .IMPORT FuncA_Room_GetDarknessZoneFade
 .IMPORT Func_Noop
 .IMPORT Func_SetAndTransferBgFade
@@ -177,22 +179,6 @@ _Passages_sPassage_arr:
     dlg_Text Screen, DataA_Text0_ShadowGateScreen_Page1_u8_arr
     dlg_Text Screen, DataA_Text0_ShadowGateScreen_Page2_u8_arr
     dlg_Done
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Text0"
-
-.PROC DataA_Text0_ShadowGateScreen_Page1_u8_arr
-    .byte "Our social divide is$"
-    .byte "irreparable. We want$"
-    .byte "to live different. We$"
-    .byte "want to BE different.#"
-.ENDPROC
-
-.PROC DataA_Text0_ShadowGateScreen_Page2_u8_arr
-    .byte "Finally, we can now$"
-    .byte "make that a reality.#"
 .ENDPROC
 
 ;;;=========================================================================;;;

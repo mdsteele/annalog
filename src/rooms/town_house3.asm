@@ -19,7 +19,6 @@
 
 .INCLUDE "../actor.inc"
 .INCLUDE "../actors/adult.inc"
-.INCLUDE "../charmap.inc"
 .INCLUDE "../cpu.inc"
 .INCLUDE "../device.inc"
 .INCLUDE "../dialog.inc"
@@ -28,6 +27,8 @@
 .INCLUDE "../room.inc"
 
 .IMPORT DataA_Room_House_sTileset
+.IMPORT DataA_Text0_TownHouse3Smith_Part1_u8_arr
+.IMPORT DataA_Text0_TownHouse3Smith_Part2_u8_arr
 .IMPORT Data_Empty_sPlatform_arr
 .IMPORT FuncA_Room_PlaySfxMetallicClang
 .IMPORT Func_Noop
@@ -161,24 +162,6 @@ _Devices_sDevice_arr:
     dlg_Text AdultSmith, DataA_Text0_TownHouse3Smith_Part1_u8_arr
     dlg_Text AdultSmith, DataA_Text0_TownHouse3Smith_Part2_u8_arr
     dlg_Done
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Text0"
-
-.PROC DataA_Text0_TownHouse3Smith_Part1_u8_arr
-    .byte "You lookin' fer yer$"
-    .byte "brother? Haven't seen$"
-    .byte "`im. Probably pokin'$"
-    .byte "around somewhere.#"
-.ENDPROC
-
-.PROC DataA_Text0_TownHouse3Smith_Part2_u8_arr
-    .byte "That boy's a good$"
-    .byte "apprentice. Good smith$"
-    .byte "someday. Too curious$"
-    .byte "fer `is own good, tho.#"
 .ENDPROC
 
 ;;;=========================================================================;;;

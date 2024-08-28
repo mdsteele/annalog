@@ -36,6 +36,17 @@
 .INCLUDE "../spawn.inc"
 
 .IMPORT DataA_Room_Temple_sTileset
+.IMPORT DataA_Text1_TempleEntryCorra_AlexAsked_u8_arr
+.IMPORT DataA_Text1_TempleEntryCorra_MarkMap_u8_arr
+.IMPORT DataA_Text1_TempleEntryCorra_No_u8_arr
+.IMPORT DataA_Text1_TempleEntryCorra_Question_u8_arr
+.IMPORT DataA_Text1_TempleEntryCorra_Taught_u8_arr
+.IMPORT DataA_Text1_TempleEntryCorra_Wait_u8_arr
+.IMPORT DataA_Text1_TempleEntryCorra_Whom_u8_arr
+.IMPORT DataA_Text1_TempleEntryCorra_Yes_u8_arr
+.IMPORT DataA_Text1_TempleEntryGuard_Enter_u8_arr
+.IMPORT DataA_Text1_TempleEntryGuard_Intro_u8_arr
+.IMPORT DataA_Text1_TempleEntryGuard_NoPermission_u8_arr
 .IMPORT FuncC_Temple_DrawColumnPlatform
 .IMPORT Func_IsPointInPlatform
 .IMPORT Func_MovePlatformTopTowardPointY
@@ -381,7 +392,7 @@ _MoveColumn:
 
 .EXPORT DataA_Dialog_TempleEntryCorraWait_sDialog
 .PROC DataA_Dialog_TempleEntryCorraWait_sDialog
-    dlg_Text MermaidCorra, DataA_Text2_TempleEntryCorra_Wait_u8_arr
+    dlg_Text MermaidCorra, DataA_Text1_TempleEntryCorra_Wait_u8_arr
     dlg_Done
 .ENDPROC
 
@@ -389,105 +400,36 @@ _MoveColumn:
 .PROC DataA_Dialog_TempleEntryCorraHi_sDialog
     dlg_IfSet TempleEntryTalkedToCorra, _AlexAsked_sDialog
 _Question_sDialog:
-    dlg_Text MermaidCorra, DataA_Text2_TempleEntryCorra_Question_u8_arr
+    dlg_Text MermaidCorra, DataA_Text1_TempleEntryCorra_Question_u8_arr
     dlg_IfYes _YesAnswer_sDialog
 _NoAnswer_sDialog:
-    dlg_Text MermaidCorra, DataA_Text2_TempleEntryCorra_No_u8_arr
-    dlg_Text MermaidCorra, DataA_Text2_TempleEntryCorra_Taught_u8_arr
+    dlg_Text MermaidCorra, DataA_Text1_TempleEntryCorra_No_u8_arr
+    dlg_Text MermaidCorra, DataA_Text1_TempleEntryCorra_Taught_u8_arr
     dlg_Goto _AlexAsked_sDialog
 _YesAnswer_sDialog:
-    dlg_Text MermaidCorra, DataA_Text2_TempleEntryCorra_Yes_u8_arr
-    dlg_Text MermaidCorra, DataA_Text2_TempleEntryCorra_Whom_u8_arr
+    dlg_Text MermaidCorra, DataA_Text1_TempleEntryCorra_Yes_u8_arr
+    dlg_Text MermaidCorra, DataA_Text1_TempleEntryCorra_Whom_u8_arr
 _AlexAsked_sDialog:
-    dlg_Text MermaidCorra, DataA_Text2_TempleEntryCorra_AlexAsked_u8_arr
+    dlg_Text MermaidCorra, DataA_Text1_TempleEntryCorra_AlexAsked_u8_arr
     dlg_Quest TempleEntryTalkedToCorra
-    dlg_Text MermaidCorra, DataA_Text2_TempleEntryCorra_MarkMap_u8_arr
+    dlg_Text MermaidCorra, DataA_Text1_TempleEntryCorra_MarkMap_u8_arr
     dlg_Done
 .ENDPROC
 
 .EXPORT DataA_Dialog_TempleEntryGuard_sDialog
 .PROC DataA_Dialog_TempleEntryGuard_sDialog
-    dlg_Text MermaidGuardF, DataA_Text2_TempleEntryGuard_Intro_u8_arr
+    dlg_Text MermaidGuardF, DataA_Text1_TempleEntryGuard_Intro_u8_arr
     dlg_IfSet TempleEntryPermission, _Enter_sDialog
 _NoPermission_sDialog:
-    dlg_Text MermaidGuardF, DataA_Text2_TempleEntryGuard_NoPermission_u8_arr
+    dlg_Text MermaidGuardF, DataA_Text1_TempleEntryGuard_NoPermission_u8_arr
     dlg_Done
 _Enter_sDialog:
     dlg_Call _RaiseColumn
-    dlg_Text MermaidGuardF, DataA_Text2_TempleEntryGuard_Enter_u8_arr
+    dlg_Text MermaidGuardF, DataA_Text1_TempleEntryGuard_Enter_u8_arr
     dlg_Done
 _RaiseColumn:
     ldx #eFlag::TempleEntryColumnRaised  ; param: flag
     jmp Func_SetFlag
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Text2"
-
-.PROC DataA_Text2_TempleEntryCorra_Wait_u8_arr
-    .byte "Hey Anna, wait up!#"
-.ENDPROC
-
-.PROC DataA_Text2_TempleEntryCorra_Question_u8_arr
-    .byte "Hi! Did you come to$"
-    .byte "the temple to pray?%"
-.ENDPROC
-
-.PROC DataA_Text2_TempleEntryCorra_Yes_u8_arr
-    .byte "Me too! I was taught$"
-    .byte "to pray always for$"
-    .byte "peace. I didn't think$"
-    .byte "humans did that.#"
-.ENDPROC
-
-.PROC DataA_Text2_TempleEntryCorra_Whom_u8_arr
-    .byte "I'm not sure whom I'm$"
-    .byte "praying to, though.$"
-    .byte "...I guess they never$"
-    .byte "taught me that.#"
-.ENDPROC
-
-.PROC DataA_Text2_TempleEntryCorra_No_u8_arr
-    .byte "Oh, right...humans$"
-    .byte "never evolved to seek$"
-    .byte "after peace, like we$"
-    .byte "did...#"
-.ENDPROC
-
-.PROC DataA_Text2_TempleEntryCorra_Taught_u8_arr
-    .byte "Er, at least, that's$"
-    .byte "what I was taught.#"
-.ENDPROC
-
-.PROC DataA_Text2_TempleEntryCorra_AlexAsked_u8_arr
-    .byte "Oh, I almost forgot!$"
-    .byte "Alex asked me to tell$"
-    .byte "you where to find him$"
-    .byte "if I saw you.#"
-.ENDPROC
-
-.PROC DataA_Text2_TempleEntryCorra_MarkMap_u8_arr
-    .byte "Here, I'll just mark$"
-    .byte "it on your map.#"
-.ENDPROC
-
-.PROC DataA_Text2_TempleEntryGuard_Intro_u8_arr
-    .byte "I am guarding the$"
-    .byte "entrance to the temple$"
-    .byte "you see above us.#"
-.ENDPROC
-
-.PROC DataA_Text2_TempleEntryGuard_NoPermission_u8_arr
-    .byte "I cannot help you to$"
-    .byte "enter it without the$"
-    .byte "queen's permission.#"
-.ENDPROC
-
-.PROC DataA_Text2_TempleEntryGuard_Enter_u8_arr
-    .byte "Our queen has sent$"
-    .byte "word: I am to allow$"
-    .byte "you to enter.#"
 .ENDPROC
 
 ;;;=========================================================================;;;

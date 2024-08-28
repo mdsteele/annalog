@@ -18,10 +18,8 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "../actor.inc"
-.INCLUDE "../charmap.inc"
 .INCLUDE "../device.inc"
 .INCLUDE "../devices/flower.inc"
-.INCLUDE "../dialog.inc"
 .INCLUDE "../flag.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../platform.inc"
@@ -124,35 +122,6 @@ _Passages_sPassage_arr:
     d_byte SpawnAdjust_byte, $3a
     D_END
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Dialog"
-
-.EXPORT DataA_Dialog_PaperJerome14_sDialog
-.PROC DataA_Dialog_PaperJerome14_sDialog
-    dlg_Text Paper, DataA_Text0_PaperJerome14_Page1_u8_arr
-    dlg_Text Paper, DataA_Text0_PaperJerome14_Page2_u8_arr
-    dlg_Done
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Text0"
-
-.PROC DataA_Text0_PaperJerome14_Page1_u8_arr
-    .byte "Day 14: It saddens me$"
-    .byte "that we couldn't build$"
-    .byte "a society as robust as$"
-    .byte "our technology.#"
-.ENDPROC
-
-.PROC DataA_Text0_PaperJerome14_Page2_u8_arr
-    .byte "We had the knowledge,$"
-    .byte "but not the wisdom$"
-    .byte "necessary. Nor the$"
-    .byte "humility we needed.#"
 .ENDPROC
 
 ;;;=========================================================================;;;

@@ -17,7 +17,6 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
-.INCLUDE "../charmap.inc"
 .INCLUDE "../device.inc"
 .INCLUDE "../dialog.inc"
 .INCLUDE "../flag.inc"
@@ -28,6 +27,10 @@
 .INCLUDE "city_center.inc"
 
 .IMPORT DataA_Room_Building_sTileset
+.IMPORT DataA_Text0_CityBuilding2Screen_Connected_u8_arr
+.IMPORT DataA_Text0_CityBuilding2Screen_Locked_u8_arr
+.IMPORT DataA_Text0_CityBuilding2Screen_Question_u8_arr
+.IMPORT DataA_Text0_CityBuilding2Screen_Unlocked_u8_arr
 .IMPORT Data_Empty_sActor_arr
 .IMPORT FuncA_Objects_Draw1x1Shape
 .IMPORT FuncA_Objects_MoveShapeLeftByA
@@ -218,37 +221,6 @@ _Unlocked_sDialog:
 _ConnectKeygen:
     ldx #eFlag::CityCenterKeygenConnected  ; param: flag
     jmp Func_SetFlag
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Text0"
-
-.EXPORT DataA_Text0_CityBuilding2Screen_Unlocked_u8_arr
-.PROC DataA_Text0_CityBuilding2Screen_Unlocked_u8_arr
-    .byte "   SECURITY STATUS$"
-    .byte "Eastern door: UNLOCKED$"
-    .byte "Continuous key$"
-    .byte "randomization:     N/A#"
-.ENDPROC
-
-.EXPORT DataA_Text0_CityBuilding2Screen_Locked_u8_arr
-.PROC DataA_Text0_CityBuilding2Screen_Locked_u8_arr
-    .byte "   SECURITY STATUS$"
-    .byte "Eastern door:   LOCKED$"
-    .byte "Continuous key$"
-    .byte "randomization: ENABLED#"
-.ENDPROC
-
-.PROC DataA_Text0_CityBuilding2Screen_Question_u8_arr
-    .byte "Connect key generator$"
-    .byte "to western semaphore?%"
-.ENDPROC
-
-.PROC DataA_Text0_CityBuilding2Screen_Connected_u8_arr
-    .byte "Western semaphore is$"
-    .byte "now connected to key$"
-    .byte "generator output.#"
 .ENDPROC
 
 ;;;=========================================================================;;;

@@ -19,7 +19,6 @@
 
 .INCLUDE "../actor.inc"
 .INCLUDE "../actors/child.inc"
-.INCLUDE "../charmap.inc"
 .INCLUDE "../cpu.inc"
 .INCLUDE "../device.inc"
 .INCLUDE "../dialog.inc"
@@ -28,6 +27,7 @@
 .INCLUDE "../room.inc"
 
 .IMPORT DataA_Room_House_sTileset
+.IMPORT DataA_Text0_TownHouse1Nora_u8_arr
 .IMPORT Data_Empty_sPlatform_arr
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrObjTown
@@ -111,15 +111,6 @@ _Devices_sDevice_arr:
 .PROC DataA_Dialog_TownHouse1Nora_sDialog
     dlg_Text ChildNora, DataA_Text0_TownHouse1Nora_u8_arr
     dlg_Done
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Text0"
-
-.PROC DataA_Text0_TownHouse1Nora_u8_arr
-    .byte "My baby sister keeps$"
-    .byte "peeing her pants!#"
 .ENDPROC
 
 ;;;=========================================================================;;;

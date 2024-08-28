@@ -35,6 +35,8 @@
 .INCLUDE "../sample.inc"
 
 .IMPORT DataA_Room_Core_sTileset
+.IMPORT DataA_Text1_CoreLockBreakerShadow_Part1_u8_arr
+.IMPORT DataA_Text1_CoreLockBreakerShadow_Part2_u8_arr
 .IMPORT FuncA_Machine_Error
 .IMPORT FuncA_Machine_LiftTick
 .IMPORT FuncA_Machine_LiftTryMove
@@ -398,46 +400,11 @@ _ApplyGrontaGravity:
 
 .SEGMENT "PRGA_Dialog"
 
-.EXPORT DataA_Dialog_PaperJerome23_sDialog
-.PROC DataA_Dialog_PaperJerome23_sDialog
-    dlg_Text Paper, DataA_Text1_PaperJerome23_Page1_u8_arr
-    dlg_Text Paper, DataA_Text1_PaperJerome23_Page2_u8_arr
-    dlg_Done
-.ENDPROC
-
 .EXPORT DataA_Dialog_CoreLockBreakerShadow_sDialog
 .PROC DataA_Dialog_CoreLockBreakerShadow_sDialog
     dlg_Text OrcGrontaShout, DataA_Text1_CoreLockBreakerShadow_Part1_u8_arr
     dlg_Text OrcGronta, DataA_Text1_CoreLockBreakerShadow_Part2_u8_arr
     dlg_Done
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Text1"
-
-.PROC DataA_Text1_PaperJerome23_Page1_u8_arr
-    .byte "Day 23: But human$"
-    .byte "nature was still$"
-    .byte "there. The mermaids$"
-    .byte "proved this, I think.#"
-.ENDPROC
-
-.PROC DataA_Text1_PaperJerome23_Page2_u8_arr
-    .byte "The orcs, more so.#"
-.ENDPROC
-
-.PROC DataA_Text1_CoreLockBreakerShadow_Part1_u8_arr
-    .byte "At last! The way to$"
-    .byte "the core has been$"
-    .byte "opened!#"
-.ENDPROC
-
-.PROC DataA_Text1_CoreLockBreakerShadow_Part2_u8_arr
-    .byte "The humans have had$"
-    .byte "their chance with this$"
-    .byte "technology. Now it's$"
-    .byte "OUR turn.#"
 .ENDPROC
 
 ;;;=========================================================================;;;

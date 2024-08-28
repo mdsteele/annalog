@@ -18,9 +18,7 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "../actor.inc"
-.INCLUDE "../charmap.inc"
 .INCLUDE "../device.inc"
-.INCLUDE "../dialog.inc"
 .INCLUDE "../flag.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../platform.inc"
@@ -144,35 +142,6 @@ _Passages_sPassage_arr:
     d_byte SpawnAdjust_byte, 0
     D_END
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Dialog"
-
-.EXPORT DataA_Dialog_PaperJerome21_sDialog
-.PROC DataA_Dialog_PaperJerome21_sDialog
-    dlg_Text Paper, DataA_Text1_PaperJerome21_Page1_u8_arr
-    dlg_Text Paper, DataA_Text1_PaperJerome21_Page2_u8_arr
-    dlg_Done
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Text1"
-
-.PROC DataA_Text1_PaperJerome21_Page1_u8_arr
-    .byte "Day 21: When Dr. Alda$"
-    .byte "created the mermaids,$"
-    .byte "she was trying to help$"
-    .byte "solve that problem.#"
-.ENDPROC
-
-.PROC DataA_Text1_PaperJerome21_Page2_u8_arr
-    .byte "But frankly, I think$"
-    .byte "she only made things$"
-    .byte "worse. Not that I did$"
-    .byte "any better, of course.#"
 .ENDPROC
 
 ;;;=========================================================================;;;

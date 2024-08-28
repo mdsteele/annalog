@@ -42,6 +42,19 @@
 .INCLUDE "../scroll.inc"
 
 .IMPORT DataA_Room_Core_sTileset
+.IMPORT DataA_Text1_CoreBossGrontaDying_Part1_u8_arr
+.IMPORT DataA_Text1_CoreBossGrontaDying_Part2_u8_arr
+.IMPORT DataA_Text1_CoreBossGrontaDying_Part3_u8_arr
+.IMPORT DataA_Text1_CoreBossGrontaGive_Part1_u8_arr
+.IMPORT DataA_Text1_CoreBossGrontaGive_Part2_u8_arr
+.IMPORT DataA_Text1_CoreBossGrontaIntro_Demand_u8_arr
+.IMPORT DataA_Text1_CoreBossGrontaIntro_HandItOver_u8_arr
+.IMPORT DataA_Text1_CoreBossGrontaIntro_Part1_u8_arr
+.IMPORT DataA_Text1_CoreBossGrontaIntro_Part2_u8_arr
+.IMPORT DataA_Text1_CoreBossGrontaIntro_PreparedToFight_u8_arr
+.IMPORT DataA_Text1_CoreBossScreen_Intro_u8_arr
+.IMPORT DataA_Text1_CoreBossScreen_Reactivate_u8_arr
+.IMPORT DataA_Text1_CoreBossScreen_SelfDestruct_u8_arr
 .IMPORT FuncA_Machine_BlasterTick
 .IMPORT FuncA_Machine_BlasterTryAct
 .IMPORT FuncA_Machine_BlasterWriteRegM
@@ -2117,87 +2130,6 @@ _ReactivateCutscene_sDialog:
     dlg_Cutscene eCutscene::CoreBossFinaleReactivate
 _SelfDestructCutscene_sDialog:
     dlg_Cutscene eCutscene::CoreBossFinaleSelfDestruct
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Text1"
-
-.PROC DataA_Text1_CoreBossGrontaIntro_Part1_u8_arr
-    .byte "Ahhhh...here you are,$"
-    .byte "little human. You have$"
-    .byte "the remote, don't you?#"
-.ENDPROC
-
-.PROC DataA_Text1_CoreBossGrontaIntro_Part2_u8_arr
-    .byte "The remote that will$"
-    .byte "determine whether it$"
-    .byte "will be orcs or humans$"
-    .byte "that rule this place.#"
-.ENDPROC
-
-.PROC DataA_Text1_CoreBossGrontaIntro_Demand_u8_arr
-    .byte "I demand that you give$"
-    .byte "it to me!%"
-.ENDPROC
-
-.PROC DataA_Text1_CoreBossGrontaIntro_HandItOver_u8_arr
-    .byte "You're just going to$"
-    .byte "hand it over, then?%"
-.ENDPROC
-
-.PROC DataA_Text1_CoreBossGrontaIntro_PreparedToFight_u8_arr
-    .byte "Oh ho! Then are you$"
-    .byte "prepared to fight me?%"
-.ENDPROC
-
-.PROC DataA_Text1_CoreBossGrontaGive_Part1_u8_arr
-    .byte "Bwahahaha! What a$"
-    .byte "coward!#"
-.ENDPROC
-
-.PROC DataA_Text1_CoreBossGrontaGive_Part2_u8_arr
-    .byte "Now we orcs shall take$"
-    .byte "our rightful place as$"
-    .byte "masters of this world!#"
-.ENDPROC
-
-.PROC DataA_Text1_CoreBossGrontaDying_Part1_u8_arr
-    .byte "Argh...defeated by a$"
-    .byte "child!? Technology$"
-    .byte "gives you so much$"
-    .byte "power...#"
-.ENDPROC
-
-.PROC DataA_Text1_CoreBossGrontaDying_Part2_u8_arr
-    .byte "But human civilization$"
-    .byte "will just fail again!$"
-    .byte "You'd be better off$"
-    .byte "with orcs in charge...#"
-.ENDPROC
-
-.PROC DataA_Text1_CoreBossGrontaDying_Part3_u8_arr
-    .byte "Maybe...after you've$"
-    .byte "destroyed yourselves$"
-    .byte "a second time...we'll$"
-    .byte "get our chance...#"
-.ENDPROC
-
-.PROC DataA_Text1_CoreBossScreen_Intro_u8_arr
-    .byte "B-REMOTE RECOGNIZED.$"
-    .byte "CORE IS ONLINE AND$"
-    .byte "AWAITING COMMANDS.$"
-    .byte ">>>#"
-.ENDPROC
-
-.PROC DataA_Text1_CoreBossScreen_Reactivate_u8_arr
-    .byte "REACTIVATE COMPLEX?$"
-    .byte ">>>%"
-.ENDPROC
-
-.PROC DataA_Text1_CoreBossScreen_SelfDestruct_u8_arr
-    .byte "BEGIN SELF-DESTRUCT?$"
-    .byte ">>>%"
 .ENDPROC
 
 ;;;=========================================================================;;;

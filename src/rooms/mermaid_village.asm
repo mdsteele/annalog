@@ -20,7 +20,6 @@
 .INCLUDE "../actor.inc"
 .INCLUDE "../actors/adult.inc"
 .INCLUDE "../actors/child.inc"
-.INCLUDE "../charmap.inc"
 .INCLUDE "../cpu.inc"
 .INCLUDE "../cutscene.inc"
 .INCLUDE "../device.inc"
@@ -31,6 +30,28 @@
 .INCLUDE "../room.inc"
 
 .IMPORT DataA_Room_Mermaid_sTileset
+.IMPORT DataA_Text1_MermaidVillageAlex_Part1_u8_arr
+.IMPORT DataA_Text1_MermaidVillageAlex_Part2_u8_arr
+.IMPORT DataA_Text1_MermaidVillageAlex_Part3_u8_arr
+.IMPORT DataA_Text1_MermaidVillageAlex_Part4_u8_arr
+.IMPORT DataA_Text1_MermaidVillageAlex_Part5_u8_arr
+.IMPORT DataA_Text1_MermaidVillageBruno_AlexAtSpring_u8_arr
+.IMPORT DataA_Text1_MermaidVillageBruno_AlexExploring_u8_arr
+.IMPORT DataA_Text1_MermaidVillageBruno_AlexInCity_u8_arr
+.IMPORT DataA_Text1_MermaidVillageBruno_AlexInTemple_u8_arr
+.IMPORT DataA_Text1_MermaidVillageBruno_AlexNearCity_u8_arr
+.IMPORT DataA_Text1_MermaidVillageBruno_AlexWithQueen_u8_arr
+.IMPORT DataA_Text1_MermaidVillageCorra_u8_arr
+.IMPORT DataA_Text1_MermaidVillageFarmer_Farming_u8_arr
+.IMPORT DataA_Text1_MermaidVillageFarmer_LookingFor_u8_arr
+.IMPORT DataA_Text1_MermaidVillageFarmer_Monster_u8_arr
+.IMPORT DataA_Text1_MermaidVillageFarmer_NeedHelp_u8_arr
+.IMPORT DataA_Text1_MermaidVillageFarmer_OpenTheWay_u8_arr
+.IMPORT DataA_Text1_MermaidVillageFarmer_ThankYou_u8_arr
+.IMPORT DataA_Text1_MermaidVillageGuard_Guarding_u8_arr
+.IMPORT DataA_Text1_MermaidVillageGuard_Temple1_u8_arr
+.IMPORT DataA_Text1_MermaidVillageGuard_Temple2_u8_arr
+.IMPORT DataA_Text1_MermaidVillageGuard_Temple3_u8_arr
 .IMPORT Func_Noop
 .IMPORT Func_SetFlag
 .IMPORT Ppu_ChrObjVillage
@@ -552,162 +573,6 @@ _AlexInCity_sDialog:
 _AlexExploring_sDialog:
     dlg_Text ChildBruno, DataA_Text1_MermaidVillageBruno_AlexExploring_u8_arr
     dlg_Done
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Text1"
-
-.PROC DataA_Text1_MermaidVillageAlex_Part1_u8_arr
-    .byte "Anna! Did you SEE that$"
-    .byte "place we went through$"
-    .byte "to get down here? It's$"
-    .byte "right under our town!#"
-.ENDPROC
-
-.PROC DataA_Text1_MermaidVillageAlex_Part2_u8_arr
-    .byte "It must be where that$"
-    .byte "metal thing I found is$"
-    .byte "from! ...And what the$"
-    .byte "orcs came looking for.#"
-.ENDPROC
-
-.PROC DataA_Text1_MermaidVillageAlex_Part3_u8_arr
-    .byte "We need to learn more.$"
-    .byte "But the queen won't$"
-    .byte "help! She's all upset$"
-    .byte "about some temple...#"
-.ENDPROC
-
-.PROC DataA_Text1_MermaidVillageAlex_Part4_u8_arr
-    .byte "Wait...she said humans$"
-    .byte "put machines in the$"
-    .byte "temple? Maybe we could$"
-    .byte "find some clues there.#"
-.ENDPROC
-
-.PROC DataA_Text1_MermaidVillageAlex_Part5_u8_arr
-    .byte "I'm going to go check$"
-    .byte "it out. Meet up with$"
-    .byte "me there later, OK?$"
-    .byte "I'll see you there.#"
-.ENDPROC
-
-.PROC DataA_Text1_MermaidVillageGuard_Guarding_u8_arr
-    .byte "I am helping to guard$"
-    .byte "this village. See that$"
-    .byte "you behave honorably$"
-    .byte "while you are here.#"
-.ENDPROC
-
-.PROC DataA_Text1_MermaidVillageGuard_Temple1_u8_arr
-    .byte "You'll find the temple$"
-    .byte "entrance just beyond$"
-    .byte "the northwest end of$"
-    .byte "the gardens.#"
-.ENDPROC
-
-.PROC DataA_Text1_MermaidVillageGuard_Temple2_u8_arr
-    .byte "The queen has already$"
-    .byte "sent word to the guard$"
-    .byte "there to allow you to$"
-    .byte "enter.#"
-.ENDPROC
-
-.PROC DataA_Text1_MermaidVillageGuard_Temple3_u8_arr
-    .byte "Just be careful. The$"
-    .byte "temple is not as safe$"
-    .byte "a place as it once$"
-    .byte "was.#"
-.ENDPROC
-
-.PROC DataA_Text1_MermaidVillageFarmer_Farming_u8_arr
-    .byte "I am farming seaweed.$"
-    .byte "The harvest has not$"
-    .byte "been good this year,$"
-    .byte "though.#"
-.ENDPROC
-
-.PROC DataA_Text1_MermaidVillageFarmer_NeedHelp_u8_arr
-    .byte "The queen sent you?$"
-    .byte "Thank goodness. We$"
-    .byte "could use your help.#"
-.ENDPROC
-
-.PROC DataA_Text1_MermaidVillageFarmer_Monster_u8_arr
-    .byte "West of our village,$"
-    .byte "there is a tower in$"
-    .byte "the gardens. A monster$"
-    .byte "has taken it over.#"
-.ENDPROC
-
-.PROC DataA_Text1_MermaidVillageFarmer_OpenTheWay_u8_arr
-    .byte "Perhaps one with your$"
-    .byte "ingenuity could get$"
-    .byte "rid of it? We'll open$"
-    .byte "the way up for you.#"
-.ENDPROC
-
-.PROC DataA_Text1_MermaidVillageFarmer_ThankYou_u8_arr
-    .byte "You did it! Thank you$"
-    .byte "for your help. You$"
-    .byte "should go see the$"
-    .byte "queen.#"
-.ENDPROC
-
-.PROC DataA_Text1_MermaidVillageFarmer_LookingFor_u8_arr
-    .byte "Are you looking for$"
-    .byte "Corra? I think she$"
-    .byte "went exploring in the$"
-    .byte "caves above our vale.#"
-.ENDPROC
-
-.PROC DataA_Text1_MermaidVillageCorra_u8_arr
-    .byte "Oh, hi! I met you back$"
-    .byte "in the gardens. I'm$"
-    .byte "Corra, by the way.#"
-.ENDPROC
-
-.PROC DataA_Text1_MermaidVillageBruno_AlexWithQueen_u8_arr
-    .byte "If you're looking for$"
-    .byte "Alex, I think he went$"
-    .byte "to go talk with the$"
-    .byte "mermaid queen.#"
-.ENDPROC
-
-.PROC DataA_Text1_MermaidVillageBruno_AlexInTemple_u8_arr
-    .byte "If you're looking for$"
-    .byte "Alex, I think he's$"
-    .byte "waiting for you in the$"
-    .byte "temple.#"
-.ENDPROC
-
-.PROC DataA_Text1_MermaidVillageBruno_AlexNearCity_u8_arr
-    .byte "If you're looking for$"
-    .byte "Alex, I think he went$"
-    .byte "back up to that core$"
-    .byte "place up above.#"
-.ENDPROC
-
-.PROC DataA_Text1_MermaidVillageBruno_AlexAtSpring_u8_arr
-    .byte "If you're looking for$"
-    .byte "Alex, he's waiting for$"
-    .byte "you at the hot spring,$"
-    .byte "east of the village.#"
-.ENDPROC
-
-.PROC DataA_Text1_MermaidVillageBruno_AlexInCity_u8_arr
-    .byte "If you're looking for$"
-    .byte "Alex, I think he went$"
-    .byte "up to explore that$"
-    .byte "ancient human city.#"
-.ENDPROC
-
-.PROC DataA_Text1_MermaidVillageBruno_AlexExploring_u8_arr
-    .byte "I think Alex went off$"
-    .byte "exploring somewhere.$"
-    .byte "Not sure where he is$"
-    .byte "right now.#"
 .ENDPROC
 
 ;;;=========================================================================;;;
