@@ -18,7 +18,7 @@
 ;;;=========================================================================;;;
 
 ;;; Various OBJ tile IDs used for drawing upgrades.
-kTileIdObjUpgradeBottomFirst   = $0e
+kTileIdObjUpgradeBottomFirst   = $0c
 kTileIdObjUpgradeRamFirst      = $82
 kTileIdObjUpgradeBRemoteFirst  = $84
 kTileIdObjUpgradeOpIfFirst     = $86

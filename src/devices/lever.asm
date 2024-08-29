@@ -35,8 +35,8 @@
 ;;;=========================================================================;;;
 
 ;;; OBJ tile IDs used for drawing lever handles.
-kTileIdObjLeverHandleDown = $0c
-kTileIdObjLeverHandleUp   = $0d
+kTileIdObjLeverHandleDown = $04
+kTileIdObjLeverHandleUp   = $05
 
 ;;; The OBJ palette number used for drawing lever handles.
 kPaletteObjLeverHandle = 0

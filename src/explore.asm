@@ -368,6 +368,11 @@ _DeviceFakeConsole:
     bmi _ReturnYA  ; unconditional
 _DeviceDoor:
     lda #eAvatar::Reading
+    bit Zp_AvatarState_bAvatar
+    .assert bAvatar::Swimming = bProc::Overflow, error
+    bvc @setPose  ; not swimming
+    lda #eAvatar::SwimDoor
+    @setPose:
     sta Zp_AvatarPose_eAvatar
 _SetSpawnPoint:
     ;; We'll soon be setting the entrance door in the destination room as the

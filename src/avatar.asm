@@ -29,12 +29,13 @@
 .INCLUDE "sample.inc"
 
 .IMPORT FuncA_Avatar_UpdateWaterDepth
-.IMPORT FuncA_Objects_Draw2x2Shape
+.IMPORT FuncA_Objects_Alloc2x2Shape
 .IMPORT Func_MovePointUpByA
 .IMPORT Func_PlaySfxSample
 .IMPORT Func_SignedAtan2
 .IMPORT Func_TryPushAvatarHorz
 .IMPORT Func_TryPushAvatarVert
+.IMPORT Ram_Oam_sObj_arr64
 .IMPORTZP Zp_AvatarCollided_ePlatform
 .IMPORTZP Zp_AvatarExit_ePassage
 .IMPORTZP Zp_AvatarPushDelta_i8
@@ -846,13 +847,41 @@ _InAirReverseGravity:
     @notInvincible:
 _DrawObjects:
     jsr FuncA_Objects_SetShapePosToAvatarCenter
-    lda Zp_AvatarPose_eAvatar  ; param: first tile ID
+    lda Zp_AvatarPose_eAvatar
     .assert eAvatar::Hidden = 0, error
     beq _Done
-    ldy Zp_AvatarFlags_bObj  ; param: object flags
-    jmp FuncA_Objects_Draw2x2Shape
+    mul #4
+    tax
+    lda Zp_AvatarFlags_bObj  ; param: object flags
+    jsr FuncA_Objects_Alloc2x2Shape  ; preserves X, returns C and Y
+    bcs _Done
+    .repeat 4, i
+    lda _Tiles_u8_arr4_arr + i, x
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * i + sObj::Tile_u8, y
+    .endrepeat
 _Done:
     rts
+_Tiles_u8_arr4_arr:
+    D_ARRAY .enum, eAvatar, 4
+    d_byte Hidden,    $00, $00, $00, $00
+    d_byte Standing,  $10, $11, $12, $13
+    d_byte Looking,   $14, $11, $16, $13
+    d_byte Reaching,  $14, $11, $17, $15
+    d_byte Straining, $18, $19, $1a, $1b
+    d_byte Kneeling,  $1c, $1d, $1e, $1f
+    d_byte Landing,   $20, $21, $22, $23
+    d_byte Reading,   $24, $25, $26, $27
+    d_byte Running1,  $28, $29, $2a, $2b
+    d_byte Running2,  $2c, $2d, $2a, $2f
+    d_byte Swimming1, $30, $31, $32, $33
+    d_byte Swimming2, $34, $35, $12, $37
+    d_byte SwimDoor,  $38, $39, $3a, $37
+    d_byte Jumping,   $3c, $3d, $3e, $3f
+    d_byte Hovering,  $40, $41, $12, $43
+    d_byte Falling,   $44, $45, $3e, $47
+    d_byte Slumping,  $48, $49, $4a, $4b
+    d_byte Sleeping,  $3b, $42, $3b, $46
+    D_END
 .ENDPROC
 
 ;;; Sets Zp_ShapePosX_i16 and Zp_ShapePosY_i16 to the screen-space position of

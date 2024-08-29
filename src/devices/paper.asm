@@ -27,7 +27,7 @@
 ;;;=========================================================================;;;
 
 ;;; The OBJ tile ID used for drawing paper devices.
-kTileIdObjPaper = $05
+kTileIdObjPaper = $64
 
 ;;; The OBJ palette number to use for drawing paper devices.
 kPaletteObjPaper = 0

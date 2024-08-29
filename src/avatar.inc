@@ -72,27 +72,27 @@ kPaletteObjAvatarDeath  = 3
 
 ;;;=========================================================================;;;
 
-;;; Poses that the player avatar can be in.  The number for each of these enum
-;;; values is the starting tile ID to use for the avatar objects when the
-;;; avatar is in that pose.
+;;; Poses that the player avatar can be in.
 .ENUM eAvatar
-    Hidden    = $00  ; not drawn (e.g. for cutscenes)
-    Standing  = $10  ; (grounded) standing still on the ground
-    Looking   = $14  ; (grounded) standing still and looking upward
-    Reaching  = $18  ; (grounded) standing still and reaching upward
-    Straining = $1c  ; (grounded) standing still and reaching way upward
-    Kneeling  = $20  ; (grounded) kneeling down on the ground
-    Landing   = $24  ; (grounded) just landed from a jump
-    Reading   = $28  ; (grounded) facing away from camera (e.g. to read a sign)
-    Running1  = $2c  ; (grounded) running along the ground (1st frame)
-    Running2  = $30  ; (grounded) running along the ground (2nd frame)
-    Swimming1 = $34  ; (swimming) swimming in water (1st frame)
-    Swimming2 = $38  ; (swimming) swimming in water (2nd frame)
-    Jumping   = $3c  ; (airborne) jumping up
-    Hovering  = $40  ; (airborne) mid-jump hang time
-    Falling   = $44  ; (airborne) falling down
-    Slumping  = $48  ; (sleeping) falling down unconscious
-    Sleeping  = $4c  ; (sleeping) lying down unconscious
+    Hidden     ; not drawn (e.g. for cutscenes)
+    Standing   ; (grounded) standing still on the ground
+    Looking    ; (grounded) standing still and looking upward
+    Reaching   ; (grounded) standing still and reaching upward
+    Straining  ; (grounded) standing still and reaching way upward
+    Kneeling   ; (grounded) kneeling down on the ground
+    Landing    ; (grounded) just landed from a jump
+    Reading    ; (grounded) facing away from camera (e.g. to read a sign)
+    Running1   ; (grounded) running along the ground (1st frame)
+    Running2   ; (grounded) running along the ground (2nd frame)
+    Swimming1  ; (swimming) swimming in water (1st frame)
+    Swimming2  ; (swimming) swimming in water (2nd frame)
+    SwimDoor   ; (swimming) facing into a doorway while swimming
+    Jumping    ; (airborne) jumping up
+    Hovering   ; (airborne) mid-jump hang time
+    Falling    ; (airborne) falling down
+    Slumping   ; (sleeping) falling down unconscious
+    Sleeping   ; (sleeping) lying down unconscious
+    NUM_VALUES
 .ENDENUM
 
 ;;;=========================================================================;;;

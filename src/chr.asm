@@ -1091,7 +1091,8 @@ _chr_begin:
     CHR2_BANK $00
     chr_inc "device"
     chr_inc "upgrade_bottom", kTileIdObjUpgradeBottomFirst
-    chr_inc "player_flower",  eAvatar::Standing
+    chr_res $02
+    chr_inc "player_flower"
     chr_inc "font_hilight"
     chr_inc "crate",          kTileIdObjCrateFirst
     END_CHR_BANK
@@ -1106,7 +1107,8 @@ _chr_begin:
     CHR2_BANK $00
     chr_inc "device"
     chr_inc "upgrade_bottom", kTileIdObjUpgradeBottomFirst
-    chr_inc "player_normal",  eAvatar::Standing
+    chr_res $02
+    chr_inc "player_normal"
     chr_inc "font_hilight"
     chr_inc "crate",          kTileIdObjCrateFirst
     END_CHR_BANK
