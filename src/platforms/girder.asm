@@ -19,6 +19,7 @@
 
 .INCLUDE "../macros.inc"
 .INCLUDE "../ppu.inc"
+.INCLUDE "girder.inc"
 
 .IMPORT FuncA_Objects_Draw1x1Shape
 .IMPORT FuncA_Objects_MoveShapeRightOneTile
@@ -29,9 +30,7 @@
 ;;;=========================================================================;;;
 
 ;;; The OBJ palette number used for FuncA_Objects_DrawGirderPlatform.
-kPaletteObjGirder = 0
-;;; The OBJ tile ID used for FuncA_Objects_DrawGirderPlatform.
-kTileIdObjGirder = $04
+kPaletteObjPlatformGirder = 0
 
 ;;;=========================================================================;;;
 
@@ -57,8 +56,8 @@ kTileIdObjGirder = $04
     @loop:
     jsr FuncA_Objects_MoveShapeRightOneTile  ; preserves X
     @startLoop:
-    lda #kTileIdObjGirder  ; param: tile ID
-    ldy #kPaletteObjGirder  ; param: object flags
+    lda #kTileIdObjPlatformGirder  ; param: tile ID
+    ldy #kPaletteObjPlatformGirder  ; param: object flags
     jsr FuncA_Objects_Draw1x1Shape  ; preserves X
     dex
     bne @loop

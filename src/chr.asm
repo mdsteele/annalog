@@ -91,6 +91,7 @@
 .INCLUDE "platforms/crate.inc"
 .INCLUDE "platforms/force.inc"
 .INCLUDE "platforms/gate.inc"
+.INCLUDE "platforms/girder.inc"
 .INCLUDE "platforms/glass.inc"
 .INCLUDE "platforms/monitor.inc"
 .INCLUDE "platforms/stepstone.inc"
@@ -1241,18 +1242,19 @@ _chr_begin:
 .EXPORT Ppu_ChrObjCrypt
 .PROC Ppu_ChrObjCrypt
     CHR2_BANK $80
-    chr_res $12
-    chr_inc "upgrade_opgoto", kTileIdObjUpgradeOpGotoFirst
+    chr_inc "platform_girder", kTileIdObjPlatformGirder
+    chr_res $11
+    chr_inc "upgrade_opgoto",  kTileIdObjUpgradeOpGotoFirst
     chr_res $08
-    chr_inc "bad_bat",        kTileIdObjBadBatFirst
+    chr_inc "bad_bat",         kTileIdObjBadBatFirst
     chr_res $18
-    chr_inc "breakable",      kTileIdObjWeakFloorFirst
+    chr_inc "breakable",       kTileIdObjWeakFloorFirst
     chr_res $02
-    chr_inc "bad_spider",     kTileIdObjBadSpiderFirst
+    chr_inc "bad_spider",      kTileIdObjBadSpiderFirst
     chr_res $04
-    chr_inc "bad_fish",       kTileIdObjBadFishFirst
-    chr_inc "crusher",        kTileIdObjCrusherFirst
-    chr_inc "winch",          kTileIdObjWinchFirst
+    chr_inc "bad_fish",        kTileIdObjBadFishFirst
+    chr_inc "crusher",         kTileIdObjCrusherFirst
+    chr_inc "winch",           kTileIdObjWinchFirst
     chr_res $14
     END_CHR_BANK
 .ENDPROC
@@ -1343,18 +1345,19 @@ _chr_begin:
 .EXPORT Ppu_ChrObjMine
 .PROC Ppu_ChrObjMine
     CHR2_BANK $80
-    chr_res $04
-    chr_inc "hoist_obj",      kTileIdObjHoistFirst
-    chr_inc "mine_cage",      kTileIdObjMineCageFirst
+    chr_inc "platform_girder", kTileIdObjPlatformGirder
+    chr_res $03
+    chr_inc "hoist_obj",       kTileIdObjHoistFirst
+    chr_inc "mine_cage",       kTileIdObjMineCageFirst
     chr_res $0e
-    chr_inc "upgrade_opsync", kTileIdObjUpgradeOpSyncFirst
-    chr_inc "fireblast",      kTileIdObjFireblastFirst
-    chr_res $04
-    chr_inc "bad_firefly",    kTileIdObjBadFireflyFirst
-    chr_inc "bad_wasp",       kTileIdObjBadWaspFirst
-    chr_inc "crane",          kTileIdObjCraneFirst
-    chr_res $1c
-    chr_inc "bad_fish",       kTileIdObjBadFishFirst
+    chr_inc "upgrade_opsync",  kTileIdObjUpgradeOpSyncFirst
+    chr_inc "fireblast",       kTileIdObjFireblastFirst
+    chr_inc "bad_grub",        kTileIdObjBadGrubFirst
+    chr_inc "bad_wasp",        kTileIdObjBadWaspFirst
+    chr_inc "crane",           kTileIdObjCraneFirst
+    chr_inc "bad_firefly",     kTileIdObjBadFireflyFirst
+    chr_res $14
+    chr_inc "bad_fish",        kTileIdObjBadFishFirst
     chr_res $20
     END_CHR_BANK
 .ENDPROC
