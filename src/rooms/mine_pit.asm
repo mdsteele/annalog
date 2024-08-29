@@ -137,7 +137,7 @@ _Machines_sMachine_arr:
     d_addr TryMove_func_ptr, FuncA_Machine_MinePitHoistWest_TryMove
     d_addr TryAct_func_ptr, FuncA_Machine_Error
     d_addr Tick_func_ptr, FuncA_Machine_MinePitHoistWest_Tick
-    d_addr Draw_func_ptr, FuncA_Objects_MinePitHoistWest_Draw
+    d_addr Draw_func_ptr, FuncC_Mine_PitHoistWest_Draw
     d_addr Reset_func_ptr, FuncC_Mine_PitHoistWest_InitReset
     D_END
     .assert * - :- = kHoistEastMachineIndex * .sizeof(sMachine), error
@@ -156,7 +156,7 @@ _Machines_sMachine_arr:
     d_addr TryMove_func_ptr, FuncA_Machine_MinePitHoistEast_TryMove
     d_addr TryAct_func_ptr, FuncA_Machine_Error
     d_addr Tick_func_ptr, FuncA_Machine_MinePitHoistEast_Tick
-    d_addr Draw_func_ptr, FuncA_Objects_MinePitHoistEast_Draw
+    d_addr Draw_func_ptr, FuncC_Mine_PitHoistEast_Draw
     d_addr Reset_func_ptr, FuncC_Mine_PitHoistEast_InitReset
     D_END
     .assert * - :- <= kMaxMachines * .sizeof(sMachine), error
@@ -278,6 +278,30 @@ _Passages_sPassage_arr:
     rts
 .ENDPROC
 
+.PROC FuncC_Mine_PitHoistWest_Draw
+    ldx #kPulleyWestPlatformIndex  ; param: platform index
+    ldy Ram_PlatformTop_i16_0_arr + kGirderWestPlatformIndex  ; param: rope
+    jsr FuncA_Objects_DrawHoistPulley
+    ldx #kGirderWestPlatformIndex  ; param: platform index
+    jsr FuncA_Objects_DrawHoistGirder
+    ldx #kPulleyWestPlatformIndex  ; param: platform index
+    jsr FuncA_Objects_DrawHoistRopeToPulley
+    lda Ram_PlatformTop_i16_0_arr + kGirderWestPlatformIndex  ; param: rope
+    jmp FuncA_Objects_DrawHoistMachine
+.ENDPROC
+
+.PROC FuncC_Mine_PitHoistEast_Draw
+    ldx #kPulleyEastPlatformIndex  ; param: platform index
+    ldy Ram_PlatformTop_i16_0_arr + kGirderEastPlatformIndex  ; param: rope
+    jsr FuncA_Objects_DrawHoistPulley
+    ldx #kGirderEastPlatformIndex  ; param: platform index
+    jsr FuncA_Objects_DrawHoistGirder
+    ldx #kPulleyEastPlatformIndex  ; param: platform index
+    jsr FuncA_Objects_DrawHoistRopeToPulley
+    lda Ram_PlatformTop_i16_0_arr + kGirderEastPlatformIndex  ; param: rope
+    jmp FuncA_Objects_DrawHoistMachine
+.ENDPROC
+
 ;;;=========================================================================;;;
 
 .SEGMENT "PRGA_Machine"
@@ -306,34 +330,6 @@ _Passages_sPassage_arr:
     jsr FuncA_Machine_HoistMoveTowardGoal  ; returns C
     jcs FuncA_Machine_ReachedGoal
     rts
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Objects"
-
-.PROC FuncA_Objects_MinePitHoistWest_Draw
-    ldx #kPulleyWestPlatformIndex  ; param: platform index
-    ldy Ram_PlatformTop_i16_0_arr + kGirderWestPlatformIndex  ; param: rope
-    jsr FuncA_Objects_DrawHoistPulley
-    ldx #kGirderWestPlatformIndex  ; param: platform index
-    jsr FuncA_Objects_DrawHoistGirder
-    ldx #kPulleyWestPlatformIndex  ; param: platform index
-    jsr FuncA_Objects_DrawHoistRopeToPulley
-    lda Ram_PlatformTop_i16_0_arr + kGirderWestPlatformIndex  ; param: rope
-    jmp FuncA_Objects_DrawHoistMachine
-.ENDPROC
-
-.PROC FuncA_Objects_MinePitHoistEast_Draw
-    ldx #kPulleyEastPlatformIndex  ; param: platform index
-    ldy Ram_PlatformTop_i16_0_arr + kGirderEastPlatformIndex  ; param: rope
-    jsr FuncA_Objects_DrawHoistPulley
-    ldx #kGirderEastPlatformIndex  ; param: platform index
-    jsr FuncA_Objects_DrawHoistGirder
-    ldx #kPulleyEastPlatformIndex  ; param: platform index
-    jsr FuncA_Objects_DrawHoistRopeToPulley
-    lda Ram_PlatformTop_i16_0_arr + kGirderEastPlatformIndex  ; param: rope
-    jmp FuncA_Objects_DrawHoistMachine
 .ENDPROC
 
 ;;;=========================================================================;;;

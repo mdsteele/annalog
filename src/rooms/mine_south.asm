@@ -141,7 +141,7 @@ _Machines_sMachine_arr:
     d_addr TryMove_func_ptr, FuncA_Machine_MineSouthTrolley_TryMove
     d_addr TryAct_func_ptr, FuncA_Machine_Error
     d_addr Tick_func_ptr, FuncA_Machine_MineSouthTrolley_Tick
-    d_addr Draw_func_ptr, FuncA_Objects_MineSouthTrolley_Draw
+    d_addr Draw_func_ptr, FuncC_Mine_SouthTrolley_Draw
     d_addr Reset_func_ptr, FuncC_Mine_SouthTrolley_InitReset
     D_END
     .assert * - :- = kHoistMachineIndex * .sizeof(sMachine), error
@@ -160,7 +160,7 @@ _Machines_sMachine_arr:
     d_addr TryMove_func_ptr, FuncA_Machine_MineSouthHoist_TryMove
     d_addr TryAct_func_ptr, FuncA_Machine_Error
     d_addr Tick_func_ptr, FuncA_Machine_MineSouthHoist_Tick
-    d_addr Draw_func_ptr, FuncA_Objects_MineSouthHoist_Draw
+    d_addr Draw_func_ptr, FuncC_Mine_SouthHoist_Draw
     d_addr Reset_func_ptr, FuncC_Mine_SouthHoist_InitReset
     D_END
     .assert * - :- <= kMaxMachines * .sizeof(sMachine), error
@@ -304,6 +304,26 @@ _Passages_sPassage_arr:
     rts
 .ENDPROC
 
+.PROC FuncC_Mine_SouthTrolley_Draw
+    jsr FuncA_Objects_DrawTrolleyMachine
+    ldx #5  ; param: num rope tiles
+    jsr FuncA_Objects_DrawTrolleyRopeWithLength
+    ldx #kTrolleyGirderPlatformIndex  ; param: platform index
+    jmp FuncA_Objects_DrawTrolleyGirder
+.ENDPROC
+
+.PROC FuncC_Mine_SouthHoist_Draw
+    ldx #kHoistPulleyPlatformIndex  ; param: platform index
+    ldy Ram_PlatformTop_i16_0_arr + kHoistGirderPlatformIndex  ; param: rope
+    jsr FuncA_Objects_DrawHoistPulley
+    ldx #kHoistGirderPlatformIndex  ; param: platform index
+    jsr FuncA_Objects_DrawHoistGirder
+    ldx #kHoistPulleyPlatformIndex  ; param: platform index
+    jsr FuncA_Objects_DrawHoistRopeToPulley
+    lda Ram_PlatformTop_i16_0_arr + kHoistGirderPlatformIndex  ; param: rope
+    jmp FuncA_Objects_DrawHoistMachine
+.ENDPROC
+
 ;;;=========================================================================;;;
 
 .SEGMENT "PRGA_Machine"
@@ -336,30 +356,6 @@ _Passages_sPassage_arr:
     jsr FuncA_Machine_HoistMoveTowardGoal  ; returns C
     jcs FuncA_Machine_ReachedGoal
     rts
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Objects"
-
-.PROC FuncA_Objects_MineSouthTrolley_Draw
-    jsr FuncA_Objects_DrawTrolleyMachine
-    ldx #5  ; param: num rope tiles
-    jsr FuncA_Objects_DrawTrolleyRopeWithLength
-    ldx #kTrolleyGirderPlatformIndex  ; param: platform index
-    jmp FuncA_Objects_DrawTrolleyGirder
-.ENDPROC
-
-.PROC FuncA_Objects_MineSouthHoist_Draw
-    ldx #kHoistPulleyPlatformIndex  ; param: platform index
-    ldy Ram_PlatformTop_i16_0_arr + kHoistGirderPlatformIndex  ; param: rope
-    jsr FuncA_Objects_DrawHoistPulley
-    ldx #kHoistGirderPlatformIndex  ; param: platform index
-    jsr FuncA_Objects_DrawHoistGirder
-    ldx #kHoistPulleyPlatformIndex  ; param: platform index
-    jsr FuncA_Objects_DrawHoistRopeToPulley
-    lda Ram_PlatformTop_i16_0_arr + kHoistGirderPlatformIndex  ; param: rope
-    jmp FuncA_Objects_DrawHoistMachine
 .ENDPROC
 
 ;;;=========================================================================;;;

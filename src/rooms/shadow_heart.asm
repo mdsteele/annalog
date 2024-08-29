@@ -125,7 +125,7 @@ _Ext_sRoomExt:
     d_addr Enter_func_ptr, FuncA_Room_ShadowHeart_EnterRoom
     d_addr FadeIn_func_ptr, FuncA_Terrain_ShadowHeart_FadeInRoom
     d_addr Tick_func_ptr, FuncA_Room_ShadowHeart_TickRoom
-    d_addr Draw_func_ptr, FuncA_Objects_ShadowHeart_DrawRoom
+    d_addr Draw_func_ptr, FuncC_Shadow_Heart_DrawRoom
     D_END
 _TerrainData:
 :   .incbin "out/rooms/shadow_heart.room"
@@ -147,7 +147,7 @@ _Machines_sMachine_arr:
     d_addr TryMove_func_ptr, FuncA_Machine_Error
     d_addr TryAct_func_ptr, FuncA_Machine_EmitterTryAct
     d_addr Tick_func_ptr, FuncA_Machine_ReachedGoal
-    d_addr Draw_func_ptr, FuncA_Objects_ShadowHeartEmitterX_Draw
+    d_addr Draw_func_ptr, FuncC_Shadow_HeartEmitterX_Draw
     d_addr Reset_func_ptr, FuncA_Room_ShadowHeartEmitterX_InitReset
     D_END
     .assert * - :- = kEmitterYMachineIndex * .sizeof(sMachine), error
@@ -166,7 +166,7 @@ _Machines_sMachine_arr:
     d_addr TryMove_func_ptr, FuncA_Machine_Error
     d_addr TryAct_func_ptr, FuncA_Machine_EmitterTryAct
     d_addr Tick_func_ptr, FuncA_Machine_ReachedGoal
-    d_addr Draw_func_ptr, FuncA_Objects_ShadowHeartEmitterY_Draw
+    d_addr Draw_func_ptr, FuncC_Shadow_HeartEmitterY_Draw
     d_addr Reset_func_ptr, FuncA_Room_ShadowHeartEmitterY_InitReset
     D_END
     .assert * - :- <= kMaxMachines * .sizeof(sMachine), error
@@ -291,6 +291,24 @@ _Passages_sPassage_arr:
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
 .ENDPROC
 
+.PROC FuncC_Shadow_Heart_DrawRoom
+    ldx #kEmitterForcefieldPlatformIndex  ; param: platform index
+    jmp FuncA_Objects_DrawForcefieldPlatform
+.ENDPROC
+
+.PROC FuncC_Shadow_HeartEmitterX_Draw
+    ldx Ram_MachineGoalHorz_u8_arr + kEmitterXMachineIndex
+    ldy _BeamLength_u8_arr, x  ; param: beam length in tiles
+    jmp FuncA_Objects_DrawEmitterXMachine
+_BeamLength_u8_arr:
+    .byte 18, 20, 20, 20, 16, 20, 20, 20, 20, 18
+.ENDPROC
+
+.PROC FuncC_Shadow_HeartEmitterY_Draw
+    ldy #24  ; param: beam length in tiles
+    jmp FuncA_Objects_DrawEmitterYMachine
+.ENDPROC
+
 ;;;=========================================================================;;;
 
 .SEGMENT "PRGA_Room"
@@ -360,29 +378,6 @@ _SetTerrainFade:
     ldy #$aa  ; param: attribute value
     lda #$30  ; param: initial byte offset
     jmp Func_WriteToUpperAttributeTable
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Objects"
-
-;;; Draw function for the ShadowHeart room.
-.PROC FuncA_Objects_ShadowHeart_DrawRoom
-    ldx #kEmitterForcefieldPlatformIndex  ; param: platform index
-    jmp FuncA_Objects_DrawForcefieldPlatform
-.ENDPROC
-
-.PROC FuncA_Objects_ShadowHeartEmitterX_Draw
-    ldx Ram_MachineGoalHorz_u8_arr + kEmitterXMachineIndex
-    ldy _BeamLength_u8_arr, x  ; param: beam length in tiles
-    jmp FuncA_Objects_DrawEmitterXMachine
-_BeamLength_u8_arr:
-    .byte 18, 20, 20, 20, 16, 20, 20, 20, 20, 18
-.ENDPROC
-
-.PROC FuncA_Objects_ShadowHeartEmitterY_Draw
-    ldy #24  ; param: beam length in tiles
-    jmp FuncA_Objects_DrawEmitterYMachine
 .ENDPROC
 
 ;;;=========================================================================;;;
