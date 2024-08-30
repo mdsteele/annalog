@@ -462,6 +462,14 @@ _UpDownPassage:
     bit Zp_AvatarState_bAvatar
     .assert bAvatar::Airborne = bProc::Negative, error
     bmi @noneNearby
+    ;; If the player is swimming below the surface of the water, treat them as
+    ;; not near any device.
+    .assert bAvatar::Swimming = bProc::Overflow, error
+    bvc @notSwimming
+    lda Zp_AvatarState_bAvatar
+    and #bAvatar::DepthMask
+    bne @noneNearby
+    @notSwimming:
     ;; Check if there's a device nearby.
     jsr Func_SetPointToAvatarCenter
     jsr Func_FindDeviceNearPoint  ; returns N and Y

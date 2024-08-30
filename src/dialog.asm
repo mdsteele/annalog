@@ -312,7 +312,7 @@ Ram_DialogText_u8_arr: .res (kDialogTextMaxCols + 1) * kDialogNumTextRows
 .EXPORT Main_Dialog_UseDevice
 .PROC Main_Dialog_UseDevice
     ldy Ram_DeviceTarget_byte_arr, x  ; param: eDialog value
-    .assert * = Main_Dialog_WhileExploring, error, "fallthrough"
+    fall Main_Dialog_WhileExploring
 .ENDPROC
 
 ;;; Mode for beginning dialog within a cutscene.
@@ -334,7 +334,7 @@ Ram_DialogText_u8_arr: .res (kDialogTextMaxCols + 1) * kDialogNumTextRows
 .PROC Main_Dialog_WithinCutscene
     lda #bDialog::Cutscene
     sta Zp_DialogStatus_bDialog
-    .assert * = Main_Dialog_OpenWindow, error, "fallthrough"
+    fall Main_Dialog_OpenWindow
 .ENDPROC
 
 ;;; Mode for scrolling in the dialog window.
@@ -354,7 +354,8 @@ _UpdateScrolling:
     jmp _GameLoop
 .ENDPROC
 
-;;; Mode for ending dialog an
+;;; Mode for ending dialog and returning to explore or cutscene mode, as
+;;; needed.
 ;;; @prereq Rendering is enabled.
 ;;; @prereq Explore mode is initialized.
 ;;; @prereq The dialog window is fully scrolled out.
@@ -389,7 +390,7 @@ _GameLoop:
     jsr_prga FuncA_Objects_DrawDialogCursorAndObjectsForRoom
     jsr Func_ClearRestOfOamAndProcessFrame
 _Tick:
-    jsr_prga FuncA_Dialog_Tick  ; returns C, Z, T2, and T1T0
+    jsr_prga FuncA_Dialog_TickAvatarAndText  ; returns C, Z, T2, and T1T0
     bcs Main_Dialog_CloseWindow
     beq @done
     jsr FuncM_CopyDialogText
@@ -412,7 +413,7 @@ _CopyText:
 _GameLoop:
     jsr_prga FuncA_Objects_DrawDialogCursor
     jsr Func_ClearRestOfOamAndProcessFrame
-    jsr_prga FuncA_Dialog_Tick  ; returns C, Z, T2, and T1T0
+    jsr_prga FuncA_Dialog_TickText  ; returns C, Z, T2, and T1T0
     bcs _Finish
     beq _GameLoop
     bne _CopyText  ; unconditional
@@ -697,6 +698,35 @@ _Done:
     rts
 .ENDPROC
 
+;;; Animates the player avatar as needed during dialog.  In particular, if the
+;;; avatar is swimming, updates the swimming animation.
+.PROC FuncA_Dialog_TickAvatar
+    bit Zp_AvatarState_bAvatar
+    .assert bAvatar::Swimming = bProc::Overflow, error
+    bvc _Return  ; player avatar is not swimming
+_SetSwimmingPose:
+    ldy #eAvatar::Swimming2
+    lda Zp_FrameCounter_u8
+    and #$10
+    bne @setAvatarPose
+    @swimming1:
+    ldy #eAvatar::Swimming1
+    @setAvatarPose:
+    sty Zp_AvatarPose_eAvatar
+_Return:
+    rts
+.ENDPROC
+
+;;; Calls FuncA_Dialog_TickAvatar and then FuncA_Dialog_TickText.
+;;; @return C Set if dialog is finished and the window should be closed.
+;;; @return Z Cleared if we should copy the next pane of dialog text.
+;;; @return T2 The PRGA bank number that contains the next dialog text.
+;;; @return T1T0 A pointer to the start of the next dialog text.
+.PROC FuncA_Dialog_TickAvatarAndText
+    jsr FuncA_Dialog_TickAvatar
+    fall FuncA_Dialog_TickText  ; returns C, Z, T2, and T1T0
+.ENDPROC
+
 ;;; Updates the dialog text based on joypad input and animates the dialog
 ;;; portrait appropriately.  The return values indicate whether dialog should
 ;;; end or continue, and whether it's time to copy the next pane of dialog
@@ -705,7 +735,7 @@ _Done:
 ;;; @return Z Cleared if we should copy the next pane of dialog text.
 ;;; @return T2 The PRGA bank number that contains the next dialog text.
 ;;; @return T1T0 A pointer to the start of the next dialog text.
-.PROC FuncA_Dialog_Tick
+.PROC FuncA_Dialog_TickText
 _CheckDPad:
     ;; Ignore the D-pad if yes-or-no question mode isn't currently active.
     bit Zp_DialogStatus_bDialog
@@ -897,6 +927,8 @@ _UpdateDialogPointer:
 ;;; is closing.
 ;;; @return C Set if the window is now fully scrolled out.
 .PROC FuncA_Dialog_ScrollWindowDown
+    jsr FuncA_Dialog_TickAvatar
+_ScrollWindow:
     lda Zp_WindowTop_u8
     add #kDialogWindowScrollSpeed
     cmp #kScreenHeightPx
@@ -923,7 +955,8 @@ _FullyClosed:
 ;;; this each frame when the window is opening.
 ;;; @return C Set if the window is now fully scrolled in.
 .PROC FuncA_Dialog_ScrollWindowUp
-_AdjustAvatar:
+    jsr FuncA_Dialog_TickAvatar
+_AdjustAvatarHorz:
     ;; Only adjust the player avatar's position if this dialog was started by
     ;; using a device, rather than from a cutscene.
     lda Zp_DialogStatus_bDialog
@@ -1088,7 +1121,7 @@ _Newline:
     inc Zp_DialogTextRow_u8
     rts
 _YesNoQuestion:
-    .assert * = FuncA_Dialog_BeginYesNoQuestion, error, "fallthrough"
+    fall FuncA_Dialog_BeginYesNoQuestion
 .ENDPROC
 
 ;;; Gets dialog ready for a yes-or-no question.
@@ -1231,7 +1264,7 @@ _EndOfLine:
 ;;; Draws the dialog cursor/prompt, as well as any objects in the room.
 .PROC FuncA_Objects_DrawDialogCursorAndObjectsForRoom
     jsr FuncA_Objects_DrawObjectsForRoom
-    .assert * = FuncA_Objects_DrawDialogCursor, error, "fallthrough"
+    fall FuncA_Objects_DrawDialogCursor
 .ENDPROC
 
 ;;; Draws the dialog cursor/prompt.
@@ -1243,7 +1276,7 @@ _EndOfLine:
     @paused:
     .assert bDialog::YesNo = bProc::Overflow, error
     bvs FuncA_Objects_DrawDialogYesNoCursor
-    .assert * = FuncA_Objects_DrawDialogButtonPrompt, error, "fallthrough"
+    fall FuncA_Objects_DrawDialogButtonPrompt
 .ENDPROC
 
 ;;; Draws the dialog-paused button prompt.
