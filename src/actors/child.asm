@@ -31,6 +31,7 @@
 .IMPORT Ram_ActorFlags_bObj_arr
 .IMPORT Ram_ActorState1_byte_arr
 .IMPORT Ram_Oam_sObj_arr64
+.IMPORTZP Zp_FrameCounter_u8
 
 ;;;=========================================================================;;;
 
@@ -79,9 +80,20 @@ kPaletteObjChild = 1
     lda Ram_ActorState1_byte_arr, x
     stx T0  ; actor index
     tax  ; eNpcChild value
+    ;; Special case: for eNpcChild::AlexSwimming1, automatically animate
+    ;; between AlexSwimming1 and AlexSwimming2.
+    cpx #eNpcChild::AlexSwimming1
+    bne @setTiles
+    lda Zp_FrameCounter_u8
+    adc #6  ; offset so swimming animation isn't synced with player avatar
+    and #$10
+    bne @setTiles
+    ldx #eNpcChild::AlexSwimming2
+    @setTiles:
+    ;; Set tile IDs for the objects.
     lda _Feet_u8_arr, x
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Tile_u8, y
-    adc #1
+    add #1
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Tile_u8, y
     lda _Head_u8_arr, x
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Tile_u8, y

@@ -251,16 +251,7 @@ _SetPoseInAir:
     sta Zp_AvatarPose_eAvatar
     rts
 _SetPoseInWater:
-    ;; The player avatar is in water, so set its pose to Swimming.
-    lda Zp_FrameCounter_u8
-    and #$10
-    bne @swimming2
-    @swimming1:
-    lda #eAvatar::Swimming1
-    bne @setAvatarPose  ; unconditional
-    @swimming2:
-    lda #eAvatar::Swimming2
-    @setAvatarPose:
+    lda #eAvatar::Swimming1  ; animates automatically
     sta Zp_AvatarPose_eAvatar
     rts
 _SetPoseOnGround:
@@ -847,11 +838,23 @@ _InAirReverseGravity:
     @notInvincible:
 _DrawObjects:
     jsr FuncA_Objects_SetShapePosToAvatarCenter
-    lda Zp_AvatarPose_eAvatar
+    ;; If the player avatar is hidden, don't draw it.
+    ldx Zp_AvatarPose_eAvatar
     .assert eAvatar::Hidden = 0, error
     beq _Done
+    ;; Special case: for eAvatar::Swimming1, automatically animate between
+    ;; Swimming1 and Swimming2.
+    cpx #eAvatar::Swimming1
+    bne @drawPose
+    lda Zp_FrameCounter_u8
+    and #$10
+    bne @drawPose
+    ldx #eAvatar::Swimming2
+    @drawPose:
+    ;; Draw objects for the player avatar.
+    txa  ; eAvatar value
     mul #4
-    tax
+    tax  ; byte index into _Tiles_u8_arr4_arr
     lda Zp_AvatarFlags_bObj  ; param: object flags
     jsr FuncA_Objects_Alloc2x2Shape  ; preserves X, returns C and Y
     bcs _Done

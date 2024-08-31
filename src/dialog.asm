@@ -390,7 +390,7 @@ _GameLoop:
     jsr_prga FuncA_Objects_DrawDialogCursorAndObjectsForRoom
     jsr Func_ClearRestOfOamAndProcessFrame
 _Tick:
-    jsr_prga FuncA_Dialog_TickAvatarAndText  ; returns C, Z, T2, and T1T0
+    jsr_prga FuncA_Dialog_TickText  ; returns C, Z, T2, and T1T0
     bcs Main_Dialog_CloseWindow
     beq @done
     jsr FuncM_CopyDialogText
@@ -698,35 +698,6 @@ _Done:
     rts
 .ENDPROC
 
-;;; Animates the player avatar as needed during dialog.  In particular, if the
-;;; avatar is swimming, updates the swimming animation.
-.PROC FuncA_Dialog_TickAvatar
-    bit Zp_AvatarState_bAvatar
-    .assert bAvatar::Swimming = bProc::Overflow, error
-    bvc _Return  ; player avatar is not swimming
-_SetSwimmingPose:
-    ldy #eAvatar::Swimming2
-    lda Zp_FrameCounter_u8
-    and #$10
-    bne @setAvatarPose
-    @swimming1:
-    ldy #eAvatar::Swimming1
-    @setAvatarPose:
-    sty Zp_AvatarPose_eAvatar
-_Return:
-    rts
-.ENDPROC
-
-;;; Calls FuncA_Dialog_TickAvatar and then FuncA_Dialog_TickText.
-;;; @return C Set if dialog is finished and the window should be closed.
-;;; @return Z Cleared if we should copy the next pane of dialog text.
-;;; @return T2 The PRGA bank number that contains the next dialog text.
-;;; @return T1T0 A pointer to the start of the next dialog text.
-.PROC FuncA_Dialog_TickAvatarAndText
-    jsr FuncA_Dialog_TickAvatar
-    fall FuncA_Dialog_TickText  ; returns C, Z, T2, and T1T0
-.ENDPROC
-
 ;;; Updates the dialog text based on joypad input and animates the dialog
 ;;; portrait appropriately.  The return values indicate whether dialog should
 ;;; end or continue, and whether it's time to copy the next pane of dialog
@@ -927,7 +898,6 @@ _UpdateDialogPointer:
 ;;; is closing.
 ;;; @return C Set if the window is now fully scrolled out.
 .PROC FuncA_Dialog_ScrollWindowDown
-    jsr FuncA_Dialog_TickAvatar
 _ScrollWindow:
     lda Zp_WindowTop_u8
     add #kDialogWindowScrollSpeed
@@ -955,7 +925,6 @@ _FullyClosed:
 ;;; this each frame when the window is opening.
 ;;; @return C Set if the window is now fully scrolled in.
 .PROC FuncA_Dialog_ScrollWindowUp
-    jsr FuncA_Dialog_TickAvatar
 _AdjustAvatarHorz:
     ;; Only adjust the player avatar's position if this dialog was started by
     ;; using a device, rather than from a cutscene.

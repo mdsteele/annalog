@@ -918,17 +918,7 @@ _MoveByYA:
 ;;; @preserve X, Y, T0+
 .PROC FuncA_Cutscene_AnimateAvatarSwimming
     jsr FuncA_Cutscene_FaceAvatarTowardsN
-_AnimatePose:
-    lda Zp_FrameCounter_u8
-    and #$10
-    beq @swim2
-    @swim1:
-    lda #eAvatar::Swimming1
-    .assert eAvatar::Swimming1 > 0, error
-    bne @setPose  ; unconditional
-    @swim2:
-    lda #eAvatar::Swimming2
-    @setPose:
+    lda #eAvatar::Swimming1  ; animates automatically
     sta Zp_AvatarPose_eAvatar
     rts
 .ENDPROC
@@ -964,17 +954,8 @@ _AnimatePose:
     jsr FuncA_Cutscene_SetActorFlipHFromN  ; preserves X, Y and T0+
     lda #$ff
     sta Ram_ActorState2_byte_arr, x
-_AnimatePose:
-    lda Zp_FrameCounter_u8
-    and #$10
-    beq @swim2
-    @swim1:
+    ;; Set pose to AlexSwimming1; this will animate automatically.
     lda #eNpcChild::AlexSwimming1
-    .assert eNpcChild::AlexSwimming1 > 0, error
-    bne @setState  ; unconditional
-    @swim2:
-    lda #eNpcChild::AlexSwimming2
-    @setState:
     sta Ram_ActorState1_byte_arr, x
     rts
 .ENDPROC
