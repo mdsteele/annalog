@@ -187,6 +187,7 @@
 .IMPORTZP Zp_AvatarPushDelta_i8
 .IMPORTZP Zp_AvatarState_bAvatar
 .IMPORTZP Zp_AvatarVelX_i16
+.IMPORTZP Zp_AvatarVelY_i16
 .IMPORTZP Zp_FloatingHud_bHud
 .IMPORTZP Zp_FrameCounter_u8
 .IMPORTZP Zp_Nearby_bDevice
@@ -648,8 +649,10 @@ _InitAvatar:
     bvc @done
     ;; Make the player avatar stand still.
     lda #0
-    sta Zp_AvatarVelX_i16 + 0
-    sta Zp_AvatarVelX_i16 + 1
+    sta Zp_AvatarVelX_i16 + 0  ; Zero the horizontal velocity, in case the
+    sta Zp_AvatarVelX_i16 + 1  ; avatar is e.g. running on the ground.
+    sta Zp_AvatarVelY_i16 + 0  ; Zero the vertical velocity, in case the
+    sta Zp_AvatarVelY_i16 + 1  ; avatar is e.g. falling into the water.
     ;; Set the player avatar's appearance and facing direction based on the
     ;; device type.
     lda Zp_Nearby_bDevice

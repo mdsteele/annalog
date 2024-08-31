@@ -106,6 +106,12 @@
 
 ;;;=========================================================================;;;
 
+;;; If the player avatar is swimming this many pixels or more below the surface
+;;; of the water, then interactive devices can't be used.  The particular value
+;;; chosen here is the smallest such that the ceiling lever in the
+;;; MermaidSpring room can still be used while the pump water height is at Y=1.
+kDeviceWaterDepthLimit = 4
+
 ;;; The OBJ palette number and tile ID used for the visual prompt that appears
 ;;; when the player avatar is near a device.
 kPaletteObjDevicePrompt = 1
@@ -468,7 +474,8 @@ _UpDownPassage:
     bvc @notSwimming
     lda Zp_AvatarState_bAvatar
     and #bAvatar::DepthMask
-    bne @noneNearby
+    cmp #kDeviceWaterDepthLimit
+    bge @noneNearby
     @notSwimming:
     ;; Check if there's a device nearby.
     jsr Func_SetPointToAvatarCenter
