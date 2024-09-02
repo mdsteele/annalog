@@ -44,6 +44,7 @@
 .INCLUDE "actors/lavaball.inc"
 .INCLUDE "actors/orc.inc"
 .INCLUDE "actors/queen.inc"
+.INCLUDE "actors/raindrop.inc"
 .INCLUDE "actors/rhino.inc"
 .INCLUDE "actors/rodent.inc"
 .INCLUDE "actors/slime.inc"
@@ -1322,13 +1323,15 @@ _chr_begin:
     chr_res $03
     chr_inc "upgrade_opcopy",    kTileIdObjUpgradeOpCopyFirst
     chr_inc "boiler_flame",      kTileIdObjBoilerFlameFirst
-    chr_res $0a
+    chr_res $02
+    chr_inc "bad_lavaball",      kTileIdObjBadLavaballFirst
     chr_inc "blaster",           kTileIdObjBlasterFirst
     chr_res $01
     chr_inc "fireblast",         kTileIdObjFireblastFirst
     chr_res $04
     chr_inc "bad_hothead",       kTileIdObjBadHotheadFirst
-    chr_inc "bad_lavaball",      kTileIdObjBadLavaballFirst
+    chr_res $07
+    chr_inc "raindrop",          kTileIdObjRaindrop
     chr_inc "anchor",            kTileIdObjAnchorFirst
     chr_inc "valve",             kTileIdObjValveFirst
     chr_res $08
@@ -1418,7 +1421,8 @@ _chr_begin:
     chr_res $02
     chr_inc "bad_grub",           kTileIdObjBadGrubFirst
     chr_inc "bad_slime",          kTileIdObjBadSlimeFirst
-    chr_res $0a
+    chr_res $09
+    chr_inc "raindrop",           kTileIdObjRaindrop
     chr_inc "bad_toad",           kTileIdObjBadToadFirst
     chr_inc "bad_bird",           kTileIdObjBadBirdFirst
     chr_inc "bad_crab",           kTileIdObjBadCrabFirst

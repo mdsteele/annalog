@@ -83,6 +83,7 @@ kMaxActors = 16
     SmokeExplosion   ; a puff of smoke for when something explodes
     SmokeFragment    ; a fragment that falls under gravity
     SmokeParticle    ; a single particle of smoke
+    SmokeRaindrop    ; a falling drop of water
     SmokeSteamHorz   ; like ProjSteamHorz, but without any physics interactions
     SmokeSteamUp     ; like ProjSteamUp, but without any physics interactions
     SmokeWaterfall   ; pours out of a water pipe

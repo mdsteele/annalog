@@ -42,18 +42,25 @@
 .IMPORT FuncA_Objects_AnimateLavaTerrain
 .IMPORT FuncA_Objects_DrawBoilerMachine
 .IMPORT FuncA_Objects_DrawBoilerValve
+.IMPORT FuncA_Room_InitActorSmokeRaindrop
 .IMPORT FuncA_Room_MachineBoilerReset
 .IMPORT FuncA_Room_ResetLever
 .IMPORT FuncA_Room_TurnSteamToSmokeIfConsoleOpen
 .IMPORT FuncA_Terrain_FadeInTallRoomWithLava
 .IMPORT Func_DistanceSensorRightDetectPoint
 .IMPORT Func_EmitSteamUpFromPipe
+.IMPORT Func_FindEmptyActorSlot
 .IMPORT Func_MachineBoilerReadReg
 .IMPORT Func_MarkMinimap
 .IMPORT Func_Noop
+.IMPORT Func_SetActorCenterToPoint
+.IMPORT Func_SetFlag
 .IMPORT Func_SetPointToAvatarCenter
 .IMPORT Ppu_ChrObjLava
+.IMPORT Ram_ActorVelY_i16_1_arr
 .IMPORT Ram_MachineGoalHorz_u8_arr
+.IMPORTZP Zp_PointX_i16
+.IMPORTZP Zp_PointY_i16
 .IMPORTZP Zp_RoomState
 
 ;;;=========================================================================;;;
@@ -346,12 +353,42 @@ _ReadD:
     ;; If the player avatar didn't enter from the shaft, do nothing.
     cmp #bSpawn::Passage | kShaftPassageIndex
     bne @done
+    ;; Set the flag indicating that the player entered the lava pits.
+    ldx #eFlag::LavaWestDroppedIn  ; param: flag
+    jsr Func_SetFlag  ; sets C if flag was already set
+    bcs @doneRaindrops
+    ;; The first time the player avatar drops in from the shaft, have some
+    ;; water droplets fall in too.
+    lda #0
+    sta Zp_PointX_i16 + 1
+    sta Zp_PointY_i16 + 1
+    ldy #3
+    @loop:
+    lda _RaindropPosX_u8_arr, y
+    sta Zp_PointX_i16 + 0
+    lda _RaindropPosY_u8_arr, y
+    sta Zp_PointY_i16 + 0
+    jsr Func_FindEmptyActorSlot  ; preserves Y, returns C and X
+    bcs @doneRaindrops  ; no more actor slots available
+    jsr Func_SetActorCenterToPoint  ; preserves X and Y
+    sty T0  ; loop index
+    jsr FuncA_Room_InitActorSmokeRaindrop  ; preserves X and T0+
+    ldy T0  ; loop index
+    lda #2
+    sta Ram_ActorVelY_i16_1_arr, x
+    dey
+    bpl @loop
+    @doneRaindrops:
     ;; Mark the bottom minimap cell of the shaft as explored.
     lda #kShaftMinimapCol        ; param: minimap col
     ldy #kShaftMinimapBottomRow  ; param: minimap row
     jmp Func_MarkMinimap
     @done:
     rts
+_RaindropPosX_u8_arr:
+    .byte $73, $85, $8d, $7c
+_RaindropPosY_u8_arr:
+    .byte $08, $01, $0f, $1c
 .ENDPROC
 
 .PROC FuncA_Room_LavaWestBoiler_Reset

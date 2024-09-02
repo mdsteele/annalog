@@ -164,6 +164,7 @@ kSaveMagicNumber = $b2
     LavaCenterChain1Broken
     LavaCenterChain2Broken
     LavaCenterChain3Broken
+    LavaWestDroppedIn
     MermaidHut1AlexPetition
     MermaidHut1MetQueen
     MermaidHut4MetFlorist

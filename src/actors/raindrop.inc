@@ -17,20 +17,15 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
-;;; State bytes for lavaball baddies:
-;;;   * Param: Controls the jump height (1-9).
+;;; State bytes for raindrop smoke:
 ;;;   * Flags: Unused.
-;;;   * State1: Controls the jump height (1-9).
-;;;   * State2: The number of frames until the next time the lavaball jumps, or
-;;;     zero if the lavaball is currently jumping.
-;;;   * State3: An animation counter that increments each frame.
+;;;   * State1: Counter that starts at zero and increments every frame; if it
+;;;     wraps back around to zero before the raindrop hits the floor, then the
+;;;     raindrop is removed.
+;;;   * State2: Unused.
+;;;   * State3: Unused.
 ;;;   * State4: Unused.
 
-;;; The starting Y-position of a lavaball baddie in short/tall rooms.
-kLavaballStartYShort = $d4
-kLavaballStartYTall = $164
-
-;;; Tile IDs for drawing lavaball baddie actors.
-kTileIdObjBadLavaballFirst = $90
+kTileIdObjRaindrop = $b7
 
 ;;;=========================================================================;;;

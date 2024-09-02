@@ -297,6 +297,7 @@ _SetFlags:
     .byte eFlag::FlowerGarden
     .byte eFlag::MermaidSpringConsoleFixed
     .byte eFlag::MermaidSpringUnplugged
+    .byte eFlag::LavaWestDroppedIn
     .byte eFlag::UpgradeOpCopy
     .byte eFlag::PaperManual3
     .byte eFlag::PaperJerome10

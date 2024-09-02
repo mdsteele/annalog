@@ -57,6 +57,7 @@
 .IMPORT FuncA_Objects_MoveShapeRightByA
 .IMPORT FuncA_Objects_MoveShapeRightOneTile
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
+.IMPORT FuncA_Room_InitActorSmokeRaindrop
 .IMPORT Func_FindEmptyActorSlot
 .IMPORT Func_InitActorSmokeExplosion
 .IMPORT Func_MovePlatformLeftTowardPointX
@@ -70,6 +71,7 @@
 .IMPORT Func_ShakeRoom
 .IMPORT Ppu_ChrObjSewer
 .IMPORT Ram_ActorType_eActor_arr
+.IMPORT Ram_ActorVelY_i16_0_arr
 .IMPORT Ram_DeviceType_eDevice_arr
 .IMPORT Ram_MachineGoalVert_u8_arr
 .IMPORT Ram_MachineStatus_eMachine_arr
@@ -436,7 +438,26 @@ _RemoveRocksAndWater:
     lda #30  ; param: num frames
     jsr Func_ShakeRoom
 _AnimateFallingWater:
-    ;; TODO: start animating falling water
+    lda #0
+    sta Zp_PointX_i16 + 1
+    sta Zp_PointY_i16 + 1
+    lda #$f6
+    sta Zp_PointY_i16 + 0
+    ldy #3
+    @loop:
+    lda _RaindropPosX_u8_arr, y
+    sta Zp_PointX_i16 + 0
+    jsr Func_FindEmptyActorSlot  ; preserves Y, returns C and X
+    bcs @done  ; no more actor slots available
+    jsr Func_SetActorCenterToPoint  ; preserves X and Y
+    sty T0  ; loop index
+    jsr FuncA_Room_InitActorSmokeRaindrop  ; preserves X and T0+
+    ldy T0  ; loop index
+    lda _RaindropVelY_u8_arr, y
+    sta Ram_ActorVelY_i16_0_arr, x
+    dey
+    bpl @loop
+    @done:
 _AnimateExplodingRocks:
     ldy #kRocksPlatformIndex  ; param: platform index
     jsr Func_SetPointToPlatformCenter
@@ -452,6 +473,10 @@ _SpawnExplosionAtPoint:
     jmp Func_InitActorSmokeExplosion
     @done:
     rts
+_RaindropPosX_u8_arr:
+    .byte $74, $84, $8c, $7c
+_RaindropVelY_u8_arr:
+    .byte $20, $00, $40, $80
 .ENDPROC
 
 ;;;=========================================================================;;;
