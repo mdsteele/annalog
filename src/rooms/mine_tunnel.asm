@@ -19,6 +19,7 @@
 
 .INCLUDE "../actor.inc"
 .INCLUDE "../macros.inc"
+.INCLUDE "../oam.inc"
 .INCLUDE "../platform.inc"
 .INCLUDE "../room.inc"
 
@@ -87,6 +88,36 @@ _Platforms_sPlatform_arr:
     .byte ePlatform::None
 _Actors_sActor_arr:
 :   ;; TODO: Add some baddies
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::BadGrub
+    d_word PosX_i16, $00b8
+    d_word PosY_i16, $00a8
+    d_byte Param_byte, 0
+    D_END
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::BadGrub
+    d_word PosX_i16, $00e8
+    d_word PosY_i16, $0058
+    d_byte Param_byte, bObj::FlipH
+    D_END
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::BadGrub
+    d_word PosX_i16, $0120
+    d_word PosY_i16, $0038
+    d_byte Param_byte, bObj::FlipH
+    D_END
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::BadGrub
+    d_word PosX_i16, $0148
+    d_word PosY_i16, $00c8
+    d_byte Param_byte, 0
+    D_END
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::BadGrub
+    d_word PosX_i16, $01d0
+    d_word PosY_i16, $00b8
+    d_byte Param_byte, 0
+    D_END
     .assert * - :- <= kMaxActors * .sizeof(sActor), error
     .byte eActor::None
 _Passages_sPassage_arr:
