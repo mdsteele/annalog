@@ -40,6 +40,9 @@
 .IMPORT DataA_Text2_PaperJerome05_Page1_u8_arr
 .IMPORT DataA_Text2_PaperJerome05_Page2_u8_arr
 .IMPORT DataA_Text2_PaperJerome05_Page3_u8_arr
+.IMPORT DataA_Text2_PaperJerome06_Page1_u8_arr
+.IMPORT DataA_Text2_PaperJerome06_Page2_u8_arr
+.IMPORT DataA_Text2_PaperJerome06_Page3_u8_arr
 .IMPORT DataA_Text2_PaperJerome07_Page1_u8_arr
 .IMPORT DataA_Text2_PaperJerome07_Page2_u8_arr
 .IMPORT DataA_Text2_PaperJerome08_Page1_u8_arr
@@ -261,7 +264,7 @@ Ram_CollectedPapers_u8_arr: .res kPaperGridCols
     d_byte eFlag::PaperJerome03, eDialog::PaperJerome03
     d_byte eFlag::PaperJerome04, eDialog::PaperJerome04
     d_byte eFlag::PaperJerome05, eDialog::PaperJerome05
-    d_byte eFlag::PaperJerome06, 0  ; TODO
+    d_byte eFlag::PaperJerome06, eDialog::PaperJerome06
     d_byte eFlag::PaperJerome07, eDialog::PaperJerome07
     d_byte eFlag::PaperJerome08, eDialog::PaperJerome08
     d_byte eFlag::PaperJerome09, eDialog::PaperJerome09
@@ -313,7 +316,7 @@ Ram_CollectedPapers_u8_arr: .res kPaperGridCols
     d_byte eFlag::PaperJerome03, eArea::Sewer    ; room: SewerPipe
     d_byte eFlag::PaperJerome04, eArea::Shadow   ; room: ShadowHeart
     d_byte eFlag::PaperJerome05, eArea::Sewer    ; room: SewerWest
-    d_byte eFlag::PaperJerome06, $ff  ; TODO
+    d_byte eFlag::PaperJerome06, eArea::Shadow   ; room: ShadowOffice
     d_byte eFlag::PaperJerome07, eArea::Factory  ; room: FactoryBridge
     d_byte eFlag::PaperJerome08, eArea::Crypt    ; room: CryptCenter
     d_byte eFlag::PaperJerome09, eArea::Mine     ; room: MineNorth
@@ -715,6 +718,14 @@ _Right:
     dlg_Text Paper, DataA_Text2_PaperJerome05_Page1_u8_arr
     dlg_Text Paper, DataA_Text2_PaperJerome05_Page2_u8_arr
     dlg_Text Paper, DataA_Text2_PaperJerome05_Page3_u8_arr
+    dlg_Done
+.ENDPROC
+
+.EXPORT DataA_Dialog_PaperJerome06_sDialog
+.PROC DataA_Dialog_PaperJerome06_sDialog
+    dlg_Text Paper, DataA_Text2_PaperJerome06_Page1_u8_arr
+    dlg_Text Paper, DataA_Text2_PaperJerome06_Page2_u8_arr
+    dlg_Text Paper, DataA_Text2_PaperJerome06_Page3_u8_arr
     dlg_Done
 .ENDPROC
 

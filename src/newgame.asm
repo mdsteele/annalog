@@ -257,6 +257,7 @@ _SetFlags:
     .byte eFlag::UpgradeRam2
     .byte eFlag::BreakerTemple
     .byte eFlag::FlowerTemple
+    .byte eFlag::PaperJerome07
     .byte eFlag::FlowerFactory
     .byte eFlag::CoreSouthCorraWaiting
     .byte eFlag::PaperManual4
@@ -345,6 +346,7 @@ _SetFlags:
     .byte eFlag::ShadowTrapDisarmed
     .byte eFlag::PaperJerome04
     .byte eFlag::ShadowHeartTaggedGhost
+    .byte eFlag::PaperJerome06
     .byte eFlag::ShadowOfficeRemovedWall
     .byte eFlag::ShadowOfficeTaggedGhost
     .byte eFlag::PaperJerome20

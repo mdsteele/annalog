@@ -194,6 +194,7 @@
     ShadowHallMinigun
     ShadowHeartEmitterX
     ShadowHeartEmitterY
+    ShadowOfficeLift
     ShadowTeleportField
     ShadowTrapLaser
     TempleAltarLowerMinigun

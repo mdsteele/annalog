@@ -74,23 +74,42 @@ kTileIdObjLiftSurface = kTileIdObjMachineSurfaceVert
 
 .SEGMENT "PRGA_Objects"
 
-;;; Draw implemention for lift machines.
+;;; Draw implemention for lift machines that appear behind the background.
+;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
+.EXPORT FuncA_Objects_DrawLiftMachineBg
+.PROC FuncA_Objects_DrawLiftMachineBg
+    lda #kPaletteObjMachineLight | bObj::Pri
+    bne FuncA_Objects_DrawLiftMachineWithFlags  ; unconditional
+.ENDPROC
+
+;;; Draw implemention for normal lift machines (that appear in front of the
+;;; background).
 ;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
 .EXPORT FuncA_Objects_DrawLiftMachine
 .PROC FuncA_Objects_DrawLiftMachine
-    jsr FuncA_Objects_SetShapePosToMachineTopLeft
+    lda #kPaletteObjMachineLight
+    fall FuncA_Objects_DrawLiftMachineWithFlags
+.ENDPROC
+
+;;; Draw implemention for lift machines.
+;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
+;;; @param A The base object flags to set.
+.PROC FuncA_Objects_DrawLiftMachineWithFlags
+    sta T2  ; base object flags
+    jsr FuncA_Objects_SetShapePosToMachineTopLeft  ; preserves T0+
 _TopHalf:
     ;; Allocate objects.
-    jsr FuncA_Objects_MoveShapeDownAndRightOneTile
-    lda #kPaletteObjMachineLight  ; param: object flags
-    jsr FuncA_Objects_Alloc2x2Shape  ; sets C if offscreen; returns Y
+    jsr FuncA_Objects_MoveShapeDownAndRightOneTile  ; preserves T0+
+    lda T2  ; param: base object flags
+    jsr FuncA_Objects_Alloc2x2Shape  ; preserves T2+, returns C and Y
     bcs @done
     ;; Set flags and tile IDs.
-    lda #kPaletteObjMachineLight | bObj::FlipH | bObj::FlipV
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Flags_bObj, y
-    lda #kPaletteObjMachineLight | bObj::FlipH
+    lda T2  ; base object flags
+    eor #bObj::FlipH
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Flags_bObj, y
-    lda #kPaletteObjMachineLight | bObj::FlipV
+    eor #bObj::FlipV
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Flags_bObj, y
+    eor #bObj::FlipH
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Flags_bObj, y
     lda #kTileIdObjLiftCorner
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Tile_u8, y
@@ -102,15 +121,16 @@ _TopHalf:
 _BottomHalf:
     ;; Allocate objects.
     lda #kTileHeightPx * 2  ; param: offset
-    jsr FuncA_Objects_MoveShapeDownByA
-    lda #kPaletteObjMachineLight  ; param: object flags
-    jsr FuncA_Objects_Alloc2x2Shape  ; sets C if offscreen; returns Y
+    jsr FuncA_Objects_MoveShapeDownByA  ; preserves T0+
+    lda T2  ; param: base object flags
+    jsr FuncA_Objects_Alloc2x2Shape  ; preserves T2+, returns C and Y
     bcs @done
     ;; Set flags and tile IDs.
-    lda #kPaletteObjMachineLight | bObj::FlipH
+    lda T2  ; base object flags
+    eor #bObj::FlipH
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Flags_bObj, y
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Flags_bObj, y
-    lda #kPaletteObjMachineLight | bObj::FlipH | bObj::FlipV
+    eor #bObj::FlipV
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Flags_bObj, y
     lda #kTileIdObjLiftCorner
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Tile_u8, y

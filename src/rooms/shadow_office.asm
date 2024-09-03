@@ -25,25 +25,35 @@
 .INCLUDE "../dialog.inc"
 .INCLUDE "../fake.inc"
 .INCLUDE "../flag.inc"
+.INCLUDE "../machine.inc"
+.INCLUDE "../machines/lift.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../platform.inc"
 .INCLUDE "../platforms/lava.inc"
 .INCLUDE "../ppu.inc"
+.INCLUDE "../program.inc"
 .INCLUDE "../room.inc"
 
 .IMPORT DataA_Room_Shadow_sTileset
+.IMPORT FuncA_Machine_Error
+.IMPORT FuncA_Machine_LiftTick
+.IMPORT FuncA_Machine_LiftTryMove
 .IMPORT FuncA_Objects_AnimateLavaTerrain
+.IMPORT FuncA_Objects_DrawLiftMachineBg
 .IMPORT FuncA_Room_MakeNpcGhostDisappear
 .IMPORT FuncA_Terrain_FadeInShortRoomWithLava
 .IMPORT Func_BufferPpuTransfer
 .IMPORT Func_FindEmptyActorSlot
 .IMPORT Func_InitActorSmokeExplosion
 .IMPORT Func_IsPointInPlatform
+.IMPORT Func_Noop
 .IMPORT Func_SetActorCenterToPoint
 .IMPORT Func_SetFlag
 .IMPORT Func_SetPointToAvatarCenter
 .IMPORT Ppu_ChrObjShadow
 .IMPORT Ram_ActorPosY_i16_1_arr
+.IMPORT Ram_MachineGoalVert_u8_arr
+.IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORT Ram_PlatformType_ePlatform_arr
 .IMPORT Sram_ProgressFlags_arr
 .IMPORTZP Zp_AvatarPosX_i16
@@ -85,6 +95,23 @@ Ppu_WallRow4Start = Ppu_Nametable0_sName + sName::Tiles_u8_arr + \
 
 ;;;=========================================================================;;;
 
+;;; The machine index for the ShadowOfficeLift machine in this room.
+kLiftMachineIndex = 0
+
+;;; The primary platform index for the ShadowOfficeLift machine.
+kLiftPlatformIndex = 2
+
+;;; The initial and maximum permitted vertical goal values for the lift.
+kLiftInitGoalY = 0
+kLiftMaxGoalY = 2
+
+;;; The maximum and initial Y-positions for the top of the lift platform.
+kLiftMaxPlatformTop = $00e0
+kLiftMinPlatformTop = kLiftMaxPlatformTop - kLiftMaxGoalY * kBlockHeightPx
+kLiftInitPlatformTop = kLiftMaxPlatformTop - kLiftInitGoalY * kBlockHeightPx
+
+;;;=========================================================================;;;
+
 .SEGMENT "PRGC_Shadow"
 
 .EXPORT DataC_Shadow_Office_sRoom
@@ -96,8 +123,8 @@ Ppu_WallRow4Start = Ppu_Nametable0_sName + sName::Tiles_u8_arr + \
     d_byte MinimapStartRow_u8, 14
     d_byte MinimapStartCol_u8, 3
     d_addr TerrainData_ptr, _TerrainData
-    d_byte NumMachines_u8, 0
-    d_addr Machines_sMachine_arr_ptr, 0
+    d_byte NumMachines_u8, 1
+    d_addr Machines_sMachine_arr_ptr, _Machines_sMachine_arr
     d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjShadow)
     d_addr Ext_sRoomExt_ptr, _Ext_sRoomExt
     D_END
@@ -116,6 +143,27 @@ _Ext_sRoomExt:
 _TerrainData:
 :   .incbin "out/rooms/shadow_office.room"
     .assert * - :- = 17 * 15, error
+_Machines_sMachine_arr:
+:   .assert * - :- = kLiftMachineIndex * .sizeof(sMachine), error
+    D_STRUCT sMachine
+    d_byte Code_eProgram, eProgram::ShadowOfficeLift
+    d_byte Breaker_eFlag, 0
+    d_byte Flags_bMachine, bMachine::MoveV
+    d_byte Status_eDiagram, eDiagram::Lift
+    d_word ScrollGoalX_u16, $00
+    d_byte ScrollGoalY_u8, $00
+    d_byte RegNames_u8_arr4, 0, 0, 0, "Y"
+    d_byte MainPlatform_u8, kLiftPlatformIndex
+    d_addr Init_func_ptr, FuncA_Room_ShadowOfficeLift_InitReset
+    d_addr ReadReg_func_ptr, FuncC_Shadow_OfficeLift_ReadReg
+    d_addr WriteReg_func_ptr, Func_Noop
+    d_addr TryMove_func_ptr, FuncA_Machine_ShadowOfficeLift_TryMove
+    d_addr TryAct_func_ptr, FuncA_Machine_Error
+    d_addr Tick_func_ptr, FuncA_Machine_ShadowOfficeLift_Tick
+    d_addr Draw_func_ptr, FuncA_Objects_DrawLiftMachineBg
+    d_addr Reset_func_ptr, FuncA_Room_ShadowOfficeLift_InitReset
+    D_END
+    .assert * - :- <= kMaxMachines * .sizeof(sMachine), error
 _Platforms_sPlatform_arr:
 :   .assert * - :- = kGhostTagZonePlatformIndex * .sizeof(sPlatform), error
     D_STRUCT sPlatform
@@ -132,6 +180,14 @@ _Platforms_sPlatform_arr:
     d_byte HeightPx_u8, $30
     d_word Left_i16,  $0060
     d_word Top_i16,   $0090
+    D_END
+    .assert * - :- = kLiftPlatformIndex * .sizeof(sPlatform), error
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Solid
+    d_word WidthPx_u16, kLiftMachineWidthPx
+    d_byte HeightPx_u8, kLiftMachineHeightPx
+    d_word Left_i16,  $0010
+    d_word Top_i16, kLiftInitPlatformTop
     D_END
     ;; Lava:
     D_STRUCT sPlatform
@@ -173,10 +229,10 @@ _Devices_sDevice_arr:
     d_byte Target_byte, eFake::InsufficientData  ; TODO
     D_END
     D_STRUCT sDevice
-    d_byte Type_eDevice, eDevice::FakeConsole
+    d_byte Type_eDevice, eDevice::ConsoleFloor
     d_byte BlockRow_u8, 3
     d_byte BlockCol_u8, 13
-    d_byte Target_byte, eFake::InsufficientData  ; TODO
+    d_byte Target_byte, kLiftMachineIndex
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::FakeConsole
@@ -226,6 +282,12 @@ _Devices_sDevice_arr:
     d_byte BlockCol_u8, 11
     d_byte Target_byte, eFake::NoPower
     D_END
+    D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::Paper
+    d_byte BlockRow_u8, 11
+    d_byte BlockCol_u8, 1
+    d_byte Target_byte, eFlag::PaperJerome06
+    D_END
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None
 _Passages_sPassage_arr:
@@ -236,6 +298,13 @@ _Passages_sPassage_arr:
     d_byte SpawnAdjust_byte, 0
     D_END
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
+.ENDPROC
+
+.PROC FuncC_Shadow_OfficeLift_ReadReg
+    lda #kLiftMaxPlatformTop + kTileHeightPx
+    sub Ram_PlatformTop_i16_0_arr + kLiftPlatformIndex
+    div #kBlockHeightPx
+    rts
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -276,6 +345,26 @@ _MaybeRevealGhost:
     rts
 _Return:
     rts
+.ENDPROC
+
+.PROC FuncA_Room_ShadowOfficeLift_InitReset
+    lda #kLiftInitGoalY
+    sta Ram_MachineGoalVert_u8_arr + kLiftMachineIndex
+    rts
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Machine"
+
+.PROC FuncA_Machine_ShadowOfficeLift_TryMove
+    lda #kLiftMaxGoalY  ; param: max goal vert
+    jmp FuncA_Machine_LiftTryMove
+.ENDPROC
+
+.PROC FuncA_Machine_ShadowOfficeLift_Tick
+    ldax #kLiftMaxPlatformTop  ; param: max platform top
+    jmp FuncA_Machine_LiftTick
 .ENDPROC
 
 ;;;=========================================================================;;;
