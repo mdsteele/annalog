@@ -183,6 +183,7 @@ kDialogEntryCutscene = $ff  ; ends the dialog and starts a new cutscene
     PaperJerome27
     PaperJerome28
     PaperJerome31
+    PaperJerome32
     PaperJerome34
     PaperJerome35
     PaperJerome36

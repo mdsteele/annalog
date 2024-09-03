@@ -51,7 +51,7 @@
 .IMPORT DataA_Text2_PaperJerome09_Page1_u8_arr
 .IMPORT DataA_Text2_PaperJerome09_Page2_u8_arr
 .IMPORT DataA_Text2_PaperJerome09_Page3_u8_arr
-.IMPORT DataA_Text2_PaperJerome10_u8_arr
+.IMPORT DataA_Text2_PaperJerome10_Page1_u8_arr
 .IMPORT DataA_Text2_PaperJerome11_Page1_u8_arr
 .IMPORT DataA_Text2_PaperJerome11_Page2_u8_arr
 .IMPORT DataA_Text2_PaperJerome12_Page1_u8_arr
@@ -78,6 +78,9 @@
 .IMPORT DataA_Text2_PaperJerome28_Page2_u8_arr
 .IMPORT DataA_Text2_PaperJerome31_Page1_u8_arr
 .IMPORT DataA_Text2_PaperJerome31_Page2_u8_arr
+.IMPORT DataA_Text2_PaperJerome32_Page1_u8_arr
+.IMPORT DataA_Text2_PaperJerome32_Page2_u8_arr
+.IMPORT DataA_Text2_PaperJerome32_Page3_u8_arr
 .IMPORT DataA_Text2_PaperJerome34_Page1_u8_arr
 .IMPORT DataA_Text2_PaperJerome34_Page2_u8_arr
 .IMPORT DataA_Text2_PaperJerome35_Page1_u8_arr
@@ -290,7 +293,7 @@ Ram_CollectedPapers_u8_arr: .res kPaperGridCols
     d_byte eFlag::PaperJerome29, 0  ; TODO
     d_byte eFlag::PaperJerome30, 0  ; TODO
     d_byte eFlag::PaperJerome31, eDialog::PaperJerome31
-    d_byte eFlag::PaperJerome32, 0  ; TODO
+    d_byte eFlag::PaperJerome32, eDialog::PaperJerome32
     d_byte eFlag::PaperJerome33, 0  ; TODO
     d_byte eFlag::PaperJerome34, eDialog::PaperJerome34
     d_byte eFlag::PaperJerome35, eDialog::PaperJerome35
@@ -342,7 +345,7 @@ Ram_CollectedPapers_u8_arr: .res kPaperGridCols
     d_byte eFlag::PaperJerome29, $ff  ; TODO
     d_byte eFlag::PaperJerome30, $ff  ; TODO
     d_byte eFlag::PaperJerome31, eArea::Core     ; room: CoreFlower
-    d_byte eFlag::PaperJerome32, $ff  ; TODO
+    d_byte eFlag::PaperJerome32, eArea::Shadow   ; room: ShadowDepths
     d_byte eFlag::PaperJerome33, $ff  ; TODO
     d_byte eFlag::PaperJerome34, eArea::Temple   ; room: TemplePit
     d_byte eFlag::PaperJerome35, eArea::City     ; room: CityDump
@@ -754,7 +757,7 @@ _Right:
 
 .EXPORT DataA_Dialog_PaperJerome10_sDialog
 .PROC DataA_Dialog_PaperJerome10_sDialog
-    dlg_Text Paper, DataA_Text2_PaperJerome10_u8_arr
+    dlg_Text Paper, DataA_Text2_PaperJerome10_Page1_u8_arr
     dlg_Done
 .ENDPROC
 
@@ -846,6 +849,14 @@ _Right:
 .PROC DataA_Dialog_PaperJerome31_sDialog
     dlg_Text Paper, DataA_Text2_PaperJerome31_Page1_u8_arr
     dlg_Text Paper, DataA_Text2_PaperJerome31_Page2_u8_arr
+    dlg_Done
+.ENDPROC
+
+.EXPORT DataA_Dialog_PaperJerome32_sDialog
+.PROC DataA_Dialog_PaperJerome32_sDialog
+    dlg_Text Paper, DataA_Text2_PaperJerome32_Page1_u8_arr
+    dlg_Text Paper, DataA_Text2_PaperJerome32_Page2_u8_arr
+    dlg_Text Paper, DataA_Text2_PaperJerome32_Page3_u8_arr
     dlg_Done
 .ENDPROC
 

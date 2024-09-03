@@ -124,7 +124,7 @@ And so they, too, are
 no better than us
 humans.#
 
-@PaperJerome10
+@PaperJerome10_Page1
 Day 10: The orcs would
 rule in our place, if
 we let them. I doubt
@@ -275,6 +275,21 @@ The complex core and
 all these machines
 could one day be put
 to a different use.#
+
+@PaperJerome32_Page1
+Day 32: We had so much
+potential. Exploring
+space. Eradicating
+disease. Fusion power.#
+
+@PaperJerome32_Page2
+But instead we brought
+all of our knowledge
+to bear on a single
+problem:#
+
+@PaperJerome32_Page3
+Having to compromise.#
 
 @PaperJerome34_Page1
 Day 34: Our technology
