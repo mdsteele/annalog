@@ -333,6 +333,7 @@ _SetFlags:
     .byte eFlag::PaperJerome35
     .byte eFlag::FlowerCity
     .byte eFlag::CityBuilding3BlastedCrates
+    .byte eFlag::PaperManual8
     .byte eFlag::CityCenterDoorUnlocked
     .byte eFlag::BossCity
     .byte eFlag::UpgradeBRemote

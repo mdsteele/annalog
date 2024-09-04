@@ -421,6 +421,18 @@ For example:
   :MOVE {kTileIdBgArrowDown}
 or the reverse.#
 
+@PaperManual8_Page1
+CPU FIELD MANUAL p.8:
+Three IFs can combine
+to test that both of
+two conditions hold.#
+
+@PaperManual8_Page2
+e.g. for A{kTileIdBgCmpGe}3 AND A{kTileIdBgCmpLe}7:
+ :IF A{kTileIdBgCmpGe}3
+ :IF A>7
+ :IF 0=1#
+
 @PaperManual9_Page1
 CPU FIELD MANUAL p.9:
 An IF can guard a TIL

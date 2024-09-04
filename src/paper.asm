@@ -104,6 +104,8 @@
 .IMPORT DataA_Text2_PaperManual5_Page3_u8_arr
 .IMPORT DataA_Text2_PaperManual6_Page1_u8_arr
 .IMPORT DataA_Text2_PaperManual6_Page2_u8_arr
+.IMPORT DataA_Text2_PaperManual8_Page1_u8_arr
+.IMPORT DataA_Text2_PaperManual8_Page2_u8_arr
 .IMPORT DataA_Text2_PaperManual9_Page1_u8_arr
 .IMPORT DataA_Text2_PaperManual9_Page2_u8_arr
 .IMPORT Data_PowersOfTwo_u8_arr8
@@ -307,7 +309,7 @@ Ram_CollectedPapers_u8_arr: .res kPaperGridCols
     d_byte eFlag::PaperManual5, eDialog::PaperManual5
     d_byte eFlag::PaperManual6, eDialog::PaperManual6
     d_byte eFlag::PaperManual7, 0  ; TODO
-    d_byte eFlag::PaperManual8, 0  ; TODO
+    d_byte eFlag::PaperManual8, eDialog::PaperManual8
     d_byte eFlag::PaperManual9, eDialog::PaperManual9
     D_END
 .ENDPROC
@@ -359,7 +361,7 @@ Ram_CollectedPapers_u8_arr: .res kPaperGridCols
     d_byte eFlag::PaperManual5,  eArea::Factory  ; room: FactoryUpper
     d_byte eFlag::PaperManual6,  eArea::Garden   ; room: GardenShaft
     d_byte eFlag::PaperManual7,  $ff  ; TODO
-    d_byte eFlag::PaperManual8,  $ff  ; TODO
+    d_byte eFlag::PaperManual8,  eArea::City     ; room: CityBuilding3
     d_byte eFlag::PaperManual9,  eArea::Temple   ; room: TempleApse
     D_END
 .ENDPROC
@@ -932,6 +934,13 @@ _Right:
 .PROC DataA_Dialog_PaperManual6_sDialog
     dlg_Text Paper, DataA_Text2_PaperManual6_Page1_u8_arr
     dlg_Text Paper, DataA_Text2_PaperManual6_Page2_u8_arr
+    dlg_Done
+.ENDPROC
+
+.EXPORT DataA_Dialog_PaperManual8_sDialog
+.PROC DataA_Dialog_PaperManual8_sDialog
+    dlg_Text Paper, DataA_Text2_PaperManual8_Page1_u8_arr
+    dlg_Text Paper, DataA_Text2_PaperManual8_Page2_u8_arr
     dlg_Done
 .ENDPROC
 
