@@ -189,10 +189,10 @@ _Devices_sDevice_arr:
     d_byte Target_byte, sElevatorState::LowerJetLowerLever_u8
     D_END
     D_STRUCT sDevice
-    d_byte Type_eDevice, eDevice::Placeholder  ; TODO: Paper
+    d_byte Type_eDevice, eDevice::Paper
     d_byte BlockRow_u8, 4
     d_byte BlockCol_u8, 11
-    d_byte Target_byte, 0  ; TODO: eFlag::Paper???
+    d_byte Target_byte, eFlag::PaperJerome29
     D_END
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None

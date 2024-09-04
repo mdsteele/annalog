@@ -234,14 +234,14 @@ _SetFlags:
     .byte eFlag::GardenLandingDroppedIn
     .byte eFlag::PaperJerome13
     .byte eFlag::UpgradeOpIf
-    .byte eFlag::PaperManual6
+    .byte eFlag::PaperManual3
     .byte eFlag::PaperJerome12
     .byte eFlag::GardenEastTalkedToCorra
     .byte eFlag::MermaidHut1MetQueen
     .byte eFlag::MermaidHut4MetFlorist
     .byte eFlag::GardenTowerCratesPlaced
     .byte eFlag::FlowerMermaid
-    .byte eFlag::PaperManual5
+    .byte eFlag::PaperManual6
     .byte eFlag::GardenTowerWallBroken
     .byte eFlag::BossGarden
     .byte eFlag::UpgradeRam1
@@ -257,10 +257,11 @@ _SetFlags:
     .byte eFlag::UpgradeRam2
     .byte eFlag::BreakerTemple
     .byte eFlag::FlowerTemple
+    .byte eFlag::PaperJerome29
     .byte eFlag::PaperJerome07
     .byte eFlag::FlowerFactory
+    .byte eFlag::PaperManual5
     .byte eFlag::CoreSouthCorraWaiting
-    .byte eFlag::PaperManual4
     .byte eFlag::PaperJerome18
     .byte eFlag::CoreSouthCorraHelped
     .byte eFlag::PrisonEastEastGateOpen
@@ -300,7 +301,7 @@ _SetFlags:
     .byte eFlag::MermaidSpringUnplugged
     .byte eFlag::LavaWestDroppedIn
     .byte eFlag::UpgradeOpCopy
-    .byte eFlag::PaperManual3
+    .byte eFlag::PaperManual4
     .byte eFlag::PaperJerome10
     .byte eFlag::LavaCenterChain3Broken
     .byte eFlag::LavaCenterChain1Broken
