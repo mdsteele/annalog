@@ -78,6 +78,9 @@
 .IMPORT DataA_Text2_PaperJerome28_Page2_u8_arr
 .IMPORT DataA_Text2_PaperJerome29_Page1_u8_arr
 .IMPORT DataA_Text2_PaperJerome29_Page2_u8_arr
+.IMPORT DataA_Text2_PaperJerome30_Page1_u8_arr
+.IMPORT DataA_Text2_PaperJerome30_Page2_u8_arr
+.IMPORT DataA_Text2_PaperJerome30_Page3_u8_arr
 .IMPORT DataA_Text2_PaperJerome31_Page1_u8_arr
 .IMPORT DataA_Text2_PaperJerome31_Page2_u8_arr
 .IMPORT DataA_Text2_PaperJerome32_Page1_u8_arr
@@ -295,7 +298,7 @@ Ram_CollectedPapers_u8_arr: .res kPaperGridCols
     d_byte eFlag::PaperJerome27, eDialog::PaperJerome27
     d_byte eFlag::PaperJerome28, eDialog::PaperJerome28
     d_byte eFlag::PaperJerome29, eDialog::PaperJerome29
-    d_byte eFlag::PaperJerome30, 0  ; TODO
+    d_byte eFlag::PaperJerome30, eDialog::PaperJerome30
     d_byte eFlag::PaperJerome31, eDialog::PaperJerome31
     d_byte eFlag::PaperJerome32, eDialog::PaperJerome32
     d_byte eFlag::PaperJerome33, 0  ; TODO
@@ -347,7 +350,7 @@ Ram_CollectedPapers_u8_arr: .res kPaperGridCols
     d_byte eFlag::PaperJerome27, eArea::Lava     ; room: LavaTunnel
     d_byte eFlag::PaperJerome28, eArea::Temple   ; room: TempleChevet
     d_byte eFlag::PaperJerome29, eArea::Mermaid  ; room: MermaidElevator
-    d_byte eFlag::PaperJerome30, $ff  ; TODO
+    d_byte eFlag::PaperJerome30, eArea::City     ; room: CityBuilding5
     d_byte eFlag::PaperJerome31, eArea::Core     ; room: CoreFlower
     d_byte eFlag::PaperJerome32, eArea::Shadow   ; room: ShadowDepths
     d_byte eFlag::PaperJerome33, $ff  ; TODO
@@ -853,6 +856,14 @@ _Right:
 .PROC DataA_Dialog_PaperJerome29_sDialog
     dlg_Text Paper, DataA_Text2_PaperJerome29_Page1_u8_arr
     dlg_Text Paper, DataA_Text2_PaperJerome29_Page2_u8_arr
+    dlg_Done
+.ENDPROC
+
+.EXPORT DataA_Dialog_PaperJerome30_sDialog
+.PROC DataA_Dialog_PaperJerome30_sDialog
+    dlg_Text Paper, DataA_Text2_PaperJerome30_Page1_u8_arr
+    dlg_Text Paper, DataA_Text2_PaperJerome30_Page2_u8_arr
+    dlg_Text Paper, DataA_Text2_PaperJerome30_Page3_u8_arr
     dlg_Done
 .ENDPROC
 

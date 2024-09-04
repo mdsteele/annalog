@@ -265,6 +265,7 @@ _SetFlags:
     .byte eFlag::PaperJerome18  ; room: FactoryWest
     .byte eFlag::CoreSouthCorraHelped
     .byte eFlag::PrisonEastEastGateOpen
+    .byte eFlag::PaperJerome15  ; room: PrisonLower
     .byte eFlag::PrisonEastLowerGateShut
     .byte eFlag::PrisonEastOrcTrapped
     .byte eFlag::PrisonEastWestGateOpen
@@ -335,6 +336,7 @@ _SetFlags:
     .byte eFlag::CityBuilding3BlastedCrates
     .byte eFlag::PaperManual8   ; room: CityBuilding3
     .byte eFlag::CityCenterDoorUnlocked
+    .byte eFlag::PaperJerome30  ; room: CityBuilding5
     .byte eFlag::BossCity
     .byte eFlag::UpgradeBRemote
     .byte eFlag::BreakerCity
@@ -352,6 +354,7 @@ _SetFlags:
     .byte eFlag::ShadowOfficeRemovedWall
     .byte eFlag::ShadowOfficeTaggedGhost
     .byte eFlag::PaperJerome20  ; room: ShadowDescent
+    .byte eFlag::PaperJerome32  ; room: ShadowDepths
     .byte eFlag::BossShadow
     .byte eFlag::UpgradeOpMul
     .byte eFlag::BreakerShadow
