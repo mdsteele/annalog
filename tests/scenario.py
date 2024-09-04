@@ -85,6 +85,11 @@ ROOM_NAME_RE = re.compile(r'^([A-Z][a-z]*)([A-Z][a-z0-9]*)$')
 
 D_STRUCT_RE = re.compile(r'^:? *D_STRUCT +(s[A-Za-z0-9]+)')
 
+FLAG_ENUM_RE = re.compile(r'^\.ENUM +eFlag')
+NEWGAME_FLAGS_RE = re.compile(r'^\.PROC +DataC_Title_NewGameFlags_eFlag_arr')
+NEWGAME_FLAG_RE = re.compile(
+    r'^ *\.byte +eFlag::([A-Za-z0-9]+)(?: *; *room: *([A-Za-z0-9]+))?')
+
 MARKER_ROW_RE = re.compile(r'^ *d_byte +Row_u8, *([0-9]+)')
 MARKER_COL_RE = re.compile(
     r'^ *d_byte +Col_u8, *([0-9]+) *; *room: *([A-Za-z0-9]+)')
@@ -150,6 +155,32 @@ def scan_for_int(file, pattern, radix=10):
     return int(scan_for_match(file, pattern).group(1), radix)
 
 #=============================================================================#
+
+def load_all_flags():
+    flags = []
+    with open('src/flag.inc') as file:
+        scan_for_match(file, FLAG_ENUM_RE)
+        for line in file:
+            assert line, f'unclosed .ENUM eFlag in {file.name}'
+            line = line.lstrip()
+            if line.startswith(';'): continue
+            if line.startswith('.ENDENUM'): break
+            flag = line.split(maxsplit=1)[0]
+            if flag == 'NUM_VALUES': continue
+            flags.append(flag)
+    return flags
+
+def load_newgame_flags():
+    flags = []
+    with open('src/newgame.asm') as file:
+        scan_for_match(file, NEWGAME_FLAGS_RE)
+        while True:
+            match = scan_for_match(file, NEWGAME_FLAG_RE)
+            flag = match.group(1)
+            room = match.group(2)
+            flags.append((flag, room))
+            if flag == 'None': break
+    return flags
 
 def load_minimap():
     minimap = set()
@@ -545,6 +576,33 @@ def test_paper_rooms(areas, papers):
                     failed = True
     return failed
 
+def test_newgame_flags(newgame_flags, all_flags, papers):
+    failed = False
+    unused_flags = set(all_flags)
+    for flag, room in newgame_flags:
+        if flag not in unused_flags:
+            print(f'SCENARIO: repeated newgame flag {flag}')
+            failed = True
+            continue
+        unused_flags.remove(flag)
+        if flag.startswith('Paper'):
+            if room != papers[flag]['room']:
+                print(f'SCENARIO: newgame flag {flag} has room {room} instead'
+                      f" of {papers[flag]['room']}")
+                failed = True
+        elif room is not None:
+            print(f'SCENARIO: newgame flag {flag} has needless room comment')
+            failed = True
+    # TODO: remove this filter once all papers are added
+    unused_flags = set(flag for flag in unused_flags
+                       if not flag.startswith('Paper'))
+    if unused_flags:
+        print('SCENARIO: missing newgame flags:')
+        for flag in sorted(unused_flags):
+            print(f'    {flag}')
+        failed = True
+    return failed
+
 #=============================================================================#
 
 def run_tests():
@@ -563,6 +621,9 @@ def run_tests():
     failed |= test_flower_rooms(areas, markers)
     papers = load_papers()
     failed |= test_paper_rooms(areas, papers)
+    all_flags = load_all_flags()
+    newgame_flags = load_newgame_flags()
+    failed |= test_newgame_flags(newgame_flags, all_flags, papers)
     return failed
 
 #=============================================================================#

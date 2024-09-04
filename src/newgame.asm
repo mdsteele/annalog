@@ -227,42 +227,42 @@ _SetFlags:
 ;;; A list of all flags that can potentially be set when starting a new game,
 ;;; in collection order.
 .PROC DataC_Title_NewGameFlags_eFlag_arr
-    .byte eFlag::PaperJerome36
-    .byte eFlag::PaperManual2
+    .byte eFlag::PaperJerome36  ; room: PrisonCell
+    .byte eFlag::PaperManual2   ; room: PrisonEscape
     .byte eFlag::PrisonCellReachedTunnel
     .byte eFlag::PrisonCellBlastedRocks
     .byte eFlag::GardenLandingDroppedIn
-    .byte eFlag::PaperJerome13
+    .byte eFlag::PaperJerome13  ; room: GardenLanding
     .byte eFlag::UpgradeOpIf
-    .byte eFlag::PaperManual3
-    .byte eFlag::PaperJerome12
+    .byte eFlag::PaperManual3   ; room: GardenCrossroad
+    .byte eFlag::PaperJerome12  ; room: GardenHallway
     .byte eFlag::GardenEastTalkedToCorra
     .byte eFlag::MermaidHut1MetQueen
     .byte eFlag::MermaidHut4MetFlorist
     .byte eFlag::GardenTowerCratesPlaced
     .byte eFlag::FlowerMermaid
-    .byte eFlag::PaperManual6
+    .byte eFlag::PaperManual6   ; room: GardenShaft
     .byte eFlag::GardenTowerWallBroken
     .byte eFlag::BossGarden
     .byte eFlag::UpgradeRam1
     .byte eFlag::BreakerGarden
     .byte eFlag::TempleEntryPermission
     .byte eFlag::TempleEntryColumnRaised
-    .byte eFlag::PaperManual1
+    .byte eFlag::PaperManual1   ; room: TempleFoyer
     .byte eFlag::UpgradeOpTil
     .byte eFlag::TempleAltarColumnBroken
-    .byte eFlag::PaperJerome28
-    .byte eFlag::PaperManual9
+    .byte eFlag::PaperJerome28  ; room: TempleChevet
+    .byte eFlag::PaperManual9   ; room: TempleApse
     .byte eFlag::BossTemple
     .byte eFlag::UpgradeRam2
     .byte eFlag::BreakerTemple
     .byte eFlag::FlowerTemple
-    .byte eFlag::PaperJerome29
-    .byte eFlag::PaperJerome07
+    .byte eFlag::PaperJerome29  ; room: MermaidElevator
+    .byte eFlag::PaperJerome07  ; room: FactoryBridge
     .byte eFlag::FlowerFactory
-    .byte eFlag::PaperManual5
+    .byte eFlag::PaperManual5   ; room: FactoryUpper
     .byte eFlag::CoreSouthCorraWaiting
-    .byte eFlag::PaperJerome18
+    .byte eFlag::PaperJerome18  ; room: FactoryWest
     .byte eFlag::CoreSouthCorraHelped
     .byte eFlag::PrisonEastEastGateOpen
     .byte eFlag::PrisonEastLowerGateShut
@@ -276,82 +276,82 @@ _SetFlags:
     .byte eFlag::PrisonCellGateOpen
     .byte eFlag::FlowerPrison
     .byte eFlag::MermaidHut1AlexPetition
-    .byte eFlag::PaperJerome31
+    .byte eFlag::PaperJerome31  ; room: CoreFlower
     .byte eFlag::FlowerCore
     .byte eFlag::TempleNaveAlexWaiting
     .byte eFlag::TempleNaveTalkedToAlex
-    .byte eFlag::PaperJerome34
+    .byte eFlag::PaperJerome34  ; room: TemplePit
     .byte eFlag::CryptLandingDroppedIn
-    .byte eFlag::PaperJerome08
-    .byte eFlag::PaperJerome11
+    .byte eFlag::PaperJerome08  ; room: CryptCenter
+    .byte eFlag::PaperJerome11  ; room: CryptSpiral
     .byte eFlag::UpgradeOpGoto
     .byte eFlag::CryptSouthBrokeFloor
     .byte eFlag::CryptTombBrokeFloors
     .byte eFlag::BossCrypt
     .byte eFlag::UpgradeOpRest
     .byte eFlag::BreakerCrypt
-    .byte eFlag::PaperJerome21
+    .byte eFlag::PaperJerome21  ; room: CryptEscape
     .byte eFlag::TempleEntryTalkedToCorra
     .byte eFlag::FlowerCrypt
     .byte eFlag::CityOutskirtsTalkedToAlex
     .byte eFlag::UpgradeOpSkip
-    .byte eFlag::PaperJerome14
+    .byte eFlag::PaperJerome14  ; room: GardenFlower
     .byte eFlag::FlowerGarden
     .byte eFlag::MermaidSpringConsoleFixed
     .byte eFlag::MermaidSpringUnplugged
     .byte eFlag::LavaWestDroppedIn
     .byte eFlag::UpgradeOpCopy
-    .byte eFlag::PaperManual4
-    .byte eFlag::PaperJerome10
+    .byte eFlag::PaperManual4   ; room: LavaStation
+    .byte eFlag::PaperJerome10  ; room: LavaWest
     .byte eFlag::LavaCenterChain3Broken
     .byte eFlag::LavaCenterChain1Broken
     .byte eFlag::LavaCenterChain2Broken
-    .byte eFlag::PaperJerome27
+    .byte eFlag::PaperJerome27  ; room: LavaTunnel
     .byte eFlag::BossLava
     .byte eFlag::UpgradeRam3
     .byte eFlag::BreakerLava
     .byte eFlag::UpgradeOpSync
-    .byte eFlag::PaperJerome09
+    .byte eFlag::PaperJerome09  ; room: MineNorth
     .byte eFlag::BossMine
     .byte eFlag::UpgradeRam4
     .byte eFlag::BreakerMine
-    .byte eFlag::PaperJerome19
+    .byte eFlag::PaperJerome19  ; room: SewerBasin
     .byte eFlag::UpgradeOpAddSub
     .byte eFlag::FactoryPassLoweredRocks
     .byte eFlag::FactoryElevatorTalkedToBruno
-    .byte eFlag::PaperJerome23
+    .byte eFlag::PaperJerome23  ; room: CoreLock
     .byte eFlag::FlowerMine
     .byte eFlag::FactoryVaultTalkedToAlex
     .byte eFlag::FactoryEastCorraHelped
     .byte eFlag::FlowerLava
-    .byte eFlag::PaperJerome05
-    .byte eFlag::PaperJerome03
+    .byte eFlag::PaperJerome05  ; room: SewerWest
+    .byte eFlag::PaperJerome03  ; room: SewerPipe
     .byte eFlag::FlowerSewer
     .byte eFlag::CityCenterEnteredCity
     .byte eFlag::CityOutskirtsBlastedRocks
     .byte eFlag::CityCenterKeygenConnected
-    .byte eFlag::PaperJerome35
+    .byte eFlag::PaperJerome35  ; room: CityDump
     .byte eFlag::FlowerCity
     .byte eFlag::CityBuilding3BlastedCrates
-    .byte eFlag::PaperManual8
+    .byte eFlag::PaperManual8   ; room: CityBuilding3
     .byte eFlag::CityCenterDoorUnlocked
     .byte eFlag::BossCity
     .byte eFlag::UpgradeBRemote
     .byte eFlag::BreakerCity
     .byte eFlag::CityCenterTalkedToAlex
     .byte eFlag::ShadowTeleportEnteredLab
-    .byte eFlag::PaperJerome01
+    .byte eFlag::PaperJerome01  ; room: ShadowEntry
     .byte eFlag::ShadowHallInitialized
     .byte eFlag::ShadowHallGlassBroken
-    .byte eFlag::PaperJerome02
+    .byte eFlag::PaperJerome02  ; room: ShadowHall
     .byte eFlag::ShadowDrillClearedGoo
     .byte eFlag::ShadowTrapDisarmed
-    .byte eFlag::PaperJerome04
+    .byte eFlag::PaperJerome04  ; room: ShadowHeart
     .byte eFlag::ShadowHeartTaggedGhost
-    .byte eFlag::PaperJerome06
+    .byte eFlag::PaperJerome06  ; room: ShadowOffice
     .byte eFlag::ShadowOfficeRemovedWall
     .byte eFlag::ShadowOfficeTaggedGhost
-    .byte eFlag::PaperJerome20
+    .byte eFlag::PaperJerome20  ; room: ShadowDescent
     .byte eFlag::BossShadow
     .byte eFlag::UpgradeOpMul
     .byte eFlag::BreakerShadow
