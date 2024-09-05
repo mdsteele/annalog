@@ -77,6 +77,8 @@
 .IMPORT DataA_Text2_PaperJerome22_Page2_u8_arr
 .IMPORT DataA_Text2_PaperJerome23_Page1_u8_arr
 .IMPORT DataA_Text2_PaperJerome23_Page2_u8_arr
+.IMPORT DataA_Text2_PaperJerome24_Page1_u8_arr
+.IMPORT DataA_Text2_PaperJerome24_Page2_u8_arr
 .IMPORT DataA_Text2_PaperJerome27_Page1_u8_arr
 .IMPORT DataA_Text2_PaperJerome27_Page2_u8_arr
 .IMPORT DataA_Text2_PaperJerome27_Page3_u8_arr
@@ -301,7 +303,7 @@ Ram_CollectedPapers_u8_arr: .res kPaperGridCols
     d_byte eFlag::PaperJerome21, eDialog::PaperJerome21
     d_byte eFlag::PaperJerome22, eDialog::PaperJerome22
     d_byte eFlag::PaperJerome23, eDialog::PaperJerome23
-    d_byte eFlag::PaperJerome24, 0  ; TODO
+    d_byte eFlag::PaperJerome24, eDialog::PaperJerome24
     d_byte eFlag::PaperJerome25, 0  ; TODO
     d_byte eFlag::PaperJerome26, 0  ; TODO
     d_byte eFlag::PaperJerome27, eDialog::PaperJerome27
@@ -353,7 +355,7 @@ Ram_CollectedPapers_u8_arr: .res kPaperGridCols
     d_byte eFlag::PaperJerome21, eArea::Crypt    ; room: CryptEscape
     d_byte eFlag::PaperJerome22, eArea::Sewer    ; room: SewerFlower
     d_byte eFlag::PaperJerome23, eArea::Core     ; room: CoreLock
-    d_byte eFlag::PaperJerome24, $ff  ; TODO
+    d_byte eFlag::PaperJerome24, eArea::City     ; room: CityBuilding1
     d_byte eFlag::PaperJerome25, $ff  ; TODO
     d_byte eFlag::PaperJerome26, $ff  ; TODO
     d_byte eFlag::PaperJerome27, eArea::Lava     ; room: LavaTunnel
@@ -864,6 +866,13 @@ _Right:
 .PROC DataA_Dialog_PaperJerome23_sDialog
     dlg_Text Paper, DataA_Text2_PaperJerome23_Page1_u8_arr
     dlg_Text Paper, DataA_Text2_PaperJerome23_Page2_u8_arr
+    dlg_Done
+.ENDPROC
+
+.EXPORT DataA_Dialog_PaperJerome24_sDialog
+.PROC DataA_Dialog_PaperJerome24_sDialog
+    dlg_Text Paper, DataA_Text2_PaperJerome24_Page1_u8_arr
+    dlg_Text Paper, DataA_Text2_PaperJerome24_Page2_u8_arr
     dlg_Done
 .ENDPROC
 

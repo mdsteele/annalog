@@ -20,6 +20,7 @@
 .INCLUDE "../actor.inc"
 .INCLUDE "../device.inc"
 .INCLUDE "../devices/mousehole.inc"
+.INCLUDE "../flag.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../room.inc"
 
@@ -78,6 +79,12 @@ _Actors_sActor_arr:
     .byte eActor::None
 _Devices_sDevice_arr:
 :   D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::Paper
+    d_byte BlockRow_u8, 2
+    d_byte BlockCol_u8, 8
+    d_byte Target_byte, eFlag::PaperJerome24
+    D_END
+    D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Mousehole
     d_byte BlockRow_u8, 2
     d_byte BlockCol_u8, 11
