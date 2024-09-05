@@ -313,8 +313,9 @@ _SetFlags:
     .byte eFlag::UpgradeRam3
     .byte eFlag::BreakerLava
     .byte eFlag::UpgradeOpSync
+    .byte eFlag::PaperJerome09  ; room: MineFlower
     .byte eFlag::PaperJerome26  ; room: MineEast
-    .byte eFlag::PaperJerome09  ; room: MineNorth
+    .byte eFlag::PaperJerome25  ; room: MineNorth
     .byte eFlag::BossMine
     .byte eFlag::UpgradeRam4
     .byte eFlag::BreakerMine

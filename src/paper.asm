@@ -79,6 +79,9 @@
 .IMPORT DataA_Text2_PaperJerome23_Page2_u8_arr
 .IMPORT DataA_Text2_PaperJerome24_Page1_u8_arr
 .IMPORT DataA_Text2_PaperJerome24_Page2_u8_arr
+.IMPORT DataA_Text2_PaperJerome25_Page1_u8_arr
+.IMPORT DataA_Text2_PaperJerome25_Page2_u8_arr
+.IMPORT DataA_Text2_PaperJerome25_Page3_u8_arr
 .IMPORT DataA_Text2_PaperJerome26_Page1_u8_arr
 .IMPORT DataA_Text2_PaperJerome26_Page2_u8_arr
 .IMPORT DataA_Text2_PaperJerome27_Page1_u8_arr
@@ -308,7 +311,7 @@ Ram_CollectedPapers_u8_arr: .res kPaperGridCols
     d_byte eFlag::PaperJerome22, eDialog::PaperJerome22
     d_byte eFlag::PaperJerome23, eDialog::PaperJerome23
     d_byte eFlag::PaperJerome24, eDialog::PaperJerome24
-    d_byte eFlag::PaperJerome25, 0  ; TODO
+    d_byte eFlag::PaperJerome25, eDialog::PaperJerome25
     d_byte eFlag::PaperJerome26, eDialog::PaperJerome26
     d_byte eFlag::PaperJerome27, eDialog::PaperJerome27
     d_byte eFlag::PaperJerome28, eDialog::PaperJerome28
@@ -344,7 +347,7 @@ Ram_CollectedPapers_u8_arr: .res kPaperGridCols
     d_byte eFlag::PaperJerome06, eArea::Shadow   ; room: ShadowOffice
     d_byte eFlag::PaperJerome07, eArea::Factory  ; room: FactoryBridge
     d_byte eFlag::PaperJerome08, eArea::Crypt    ; room: CryptCenter
-    d_byte eFlag::PaperJerome09, eArea::Mine     ; room: MineNorth
+    d_byte eFlag::PaperJerome09, eArea::Mine     ; room: MineFlower
     d_byte eFlag::PaperJerome10, eArea::Lava     ; room: LavaWest
     d_byte eFlag::PaperJerome11, eArea::Crypt    ; room: CryptSpiral
     d_byte eFlag::PaperJerome12, eArea::Garden   ; room: GardenHallway
@@ -360,7 +363,7 @@ Ram_CollectedPapers_u8_arr: .res kPaperGridCols
     d_byte eFlag::PaperJerome22, eArea::Sewer    ; room: SewerFlower
     d_byte eFlag::PaperJerome23, eArea::Core     ; room: CoreLock
     d_byte eFlag::PaperJerome24, eArea::City     ; room: CityBuilding1
-    d_byte eFlag::PaperJerome25, $ff  ; TODO
+    d_byte eFlag::PaperJerome25, eArea::Mine     ; room: MineNorth
     d_byte eFlag::PaperJerome26, eArea::Mine     ; room: MineEast
     d_byte eFlag::PaperJerome27, eArea::Lava     ; room: LavaTunnel
     d_byte eFlag::PaperJerome28, eArea::Temple   ; room: TempleChevet
@@ -877,6 +880,14 @@ _Right:
 .PROC DataA_Dialog_PaperJerome24_sDialog
     dlg_Text Paper, DataA_Text2_PaperJerome24_Page1_u8_arr
     dlg_Text Paper, DataA_Text2_PaperJerome24_Page2_u8_arr
+    dlg_Done
+.ENDPROC
+
+.EXPORT DataA_Dialog_PaperJerome25_sDialog
+.PROC DataA_Dialog_PaperJerome25_sDialog
+    dlg_Text Paper, DataA_Text2_PaperJerome25_Page1_u8_arr
+    dlg_Text Paper, DataA_Text2_PaperJerome25_Page2_u8_arr
+    dlg_Text Paper, DataA_Text2_PaperJerome25_Page3_u8_arr
     dlg_Done
 .ENDPROC
 

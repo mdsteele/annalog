@@ -238,7 +238,7 @@ _Devices_sDevice_arr:
     d_byte Type_eDevice, eDevice::Paper
     d_byte BlockRow_u8, 3
     d_byte BlockCol_u8, 18
-    d_byte Target_byte, eFlag::PaperJerome09
+    d_byte Target_byte, eFlag::PaperJerome25
     D_END
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None
