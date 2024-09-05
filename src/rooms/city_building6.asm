@@ -121,6 +121,12 @@ _Devices_sDevice_arr:
     d_byte Target_byte, eDialog::CityBuilding6Screen
     D_END
     D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::Paper
+    d_byte BlockRow_u8, 11
+    d_byte BlockCol_u8, 5
+    d_byte Target_byte, eFlag::PaperJerome16
+    D_END
+    D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Mousehole
     d_byte BlockRow_u8, 3
     d_byte BlockCol_u8, 12
