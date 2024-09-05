@@ -327,6 +327,7 @@ _SetFlags:
     .byte eFlag::FlowerLava
     .byte eFlag::PaperJerome05  ; room: SewerWest
     .byte eFlag::PaperJerome03  ; room: SewerPipe
+    .byte eFlag::PaperJerome22  ; room: SewerFlower
     .byte eFlag::FlowerSewer
     .byte eFlag::CityCenterEnteredCity
     .byte eFlag::PaperJerome16  ; room: CityBuilding6

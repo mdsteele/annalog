@@ -164,6 +164,12 @@ _Devices_sDevice_arr:
     d_byte Target_byte, eFlag::FlowerSewer
     D_END
     D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::Paper
+    d_byte BlockRow_u8, 4
+    d_byte BlockCol_u8, 4
+    d_byte Target_byte, eFlag::PaperJerome22
+    D_END
+    D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::ConsoleFloor
     d_byte BlockRow_u8, 6
     d_byte BlockCol_u8, 10
