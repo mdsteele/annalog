@@ -20,6 +20,7 @@
 .INCLUDE "../actor.inc"
 .INCLUDE "../device.inc"
 .INCLUDE "../devices/mousehole.inc"
+.INCLUDE "../flag.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../room.inc"
 
@@ -94,6 +95,12 @@ _Devices_sDevice_arr:
     d_byte BlockRow_u8, 21
     d_byte BlockCol_u8, 9
     d_byte Target_byte, eRoom::CityCenter
+    D_END
+    D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::Paper
+    d_byte BlockRow_u8, 11
+    d_byte BlockCol_u8, 11
+    d_byte Target_byte, eFlag::PaperJerome17
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Mousehole

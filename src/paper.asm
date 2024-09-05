@@ -64,6 +64,8 @@
 .IMPORT DataA_Text2_PaperJerome15_Page2_u8_arr
 .IMPORT DataA_Text2_PaperJerome16_Page1_u8_arr
 .IMPORT DataA_Text2_PaperJerome16_Page2_u8_arr
+.IMPORT DataA_Text2_PaperJerome17_Page1_u8_arr
+.IMPORT DataA_Text2_PaperJerome17_Page2_u8_arr
 .IMPORT DataA_Text2_PaperJerome18_Page1_u8_arr
 .IMPORT DataA_Text2_PaperJerome18_Page2_u8_arr
 .IMPORT DataA_Text2_PaperJerome19_Page1_u8_arr
@@ -287,7 +289,7 @@ Ram_CollectedPapers_u8_arr: .res kPaperGridCols
     d_byte eFlag::PaperJerome14, eDialog::PaperJerome14
     d_byte eFlag::PaperJerome15, eDialog::PaperJerome15
     d_byte eFlag::PaperJerome16, eDialog::PaperJerome16
-    d_byte eFlag::PaperJerome17, 0  ; TODO
+    d_byte eFlag::PaperJerome17, eDialog::PaperJerome17
     d_byte eFlag::PaperJerome18, eDialog::PaperJerome18
     d_byte eFlag::PaperJerome19, eDialog::PaperJerome19
     d_byte eFlag::PaperJerome20, eDialog::PaperJerome20
@@ -339,7 +341,7 @@ Ram_CollectedPapers_u8_arr: .res kPaperGridCols
     d_byte eFlag::PaperJerome14, eArea::Garden   ; room: GardenFlower
     d_byte eFlag::PaperJerome15, eArea::Prison   ; room: PrisonLower
     d_byte eFlag::PaperJerome16, eArea::City     ; room: CityBuilding6
-    d_byte eFlag::PaperJerome17, $ff  ; TODO
+    d_byte eFlag::PaperJerome17, eArea::City     ; room: CityBuilding4
     d_byte eFlag::PaperJerome18, eArea::Factory  ; room: FactoryWest
     d_byte eFlag::PaperJerome19, eArea::Sewer    ; room: SewerBasin
     d_byte eFlag::PaperJerome20, eArea::Shadow   ; room: ShadowDescent
@@ -809,6 +811,13 @@ _Right:
 .PROC DataA_Dialog_PaperJerome16_sDialog
     dlg_Text Paper, DataA_Text2_PaperJerome16_Page1_u8_arr
     dlg_Text Paper, DataA_Text2_PaperJerome16_Page2_u8_arr
+    dlg_Done
+.ENDPROC
+
+.EXPORT DataA_Dialog_PaperJerome17_sDialog
+.PROC DataA_Dialog_PaperJerome17_sDialog
+    dlg_Text Paper, DataA_Text2_PaperJerome17_Page1_u8_arr
+    dlg_Text Paper, DataA_Text2_PaperJerome17_Page2_u8_arr
     dlg_Done
 .ENDPROC
 
