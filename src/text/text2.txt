@@ -510,6 +510,18 @@ For example:
   :MOVE {kTileIdBgArrowDown}
 or the reverse.#
 
+@PaperManual7_Page1
+CPU FIELD MANUAL p.7:
+Two IFs can combine to
+test that either of
+two conditions hold.#
+
+@PaperManual7_Page2
+e.g. for A=3 OR A=7:
+ :IF A{kTileIdBgCmpNe}3
+ :IF A=7
+ :then this#
+
 @PaperManual8_Page1
 CPU FIELD MANUAL p.8:
 Three IFs can combine

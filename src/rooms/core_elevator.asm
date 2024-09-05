@@ -166,6 +166,12 @@ _Devices_sDevice_arr:
     d_byte BlockCol_u8, 7
     d_byte Target_byte, sElevatorState::UpperJetUpperLever_u8
     D_END
+    D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::Paper
+    d_byte BlockRow_u8, 20
+    d_byte BlockCol_u8, 6
+    d_byte Target_byte, eFlag::PaperManual7
+    D_END
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None
 _Passages_sPassage_arr:

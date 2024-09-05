@@ -294,6 +294,7 @@ _SetFlags:
     .byte eFlag::PaperJerome21  ; room: CryptEscape
     .byte eFlag::TempleEntryTalkedToCorra
     .byte eFlag::FlowerCrypt
+    .byte eFlag::PaperManual7   ; room: CoreElevator
     .byte eFlag::CityOutskirtsTalkedToAlex
     .byte eFlag::UpgradeOpSkip
     .byte eFlag::PaperJerome14  ; room: GardenFlower
