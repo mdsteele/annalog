@@ -334,6 +334,7 @@ _SetFlags:
     .byte eFlag::CityOutskirtsBlastedRocks
     .byte eFlag::CityCenterKeygenConnected
     .byte eFlag::PaperJerome35  ; room: CityDump
+    .byte eFlag::PaperJerome33  ; room: CityDrain
     .byte eFlag::FlowerCity
     .byte eFlag::CityBuilding3BlastedCrates
     .byte eFlag::PaperManual8   ; room: CityBuilding3

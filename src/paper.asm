@@ -90,6 +90,9 @@
 .IMPORT DataA_Text2_PaperJerome32_Page1_u8_arr
 .IMPORT DataA_Text2_PaperJerome32_Page2_u8_arr
 .IMPORT DataA_Text2_PaperJerome32_Page3_u8_arr
+.IMPORT DataA_Text2_PaperJerome33_Page1_u8_arr
+.IMPORT DataA_Text2_PaperJerome33_Page2_u8_arr
+.IMPORT DataA_Text2_PaperJerome33_Page3_u8_arr
 .IMPORT DataA_Text2_PaperJerome34_Page1_u8_arr
 .IMPORT DataA_Text2_PaperJerome34_Page2_u8_arr
 .IMPORT DataA_Text2_PaperJerome35_Page1_u8_arr
@@ -305,7 +308,7 @@ Ram_CollectedPapers_u8_arr: .res kPaperGridCols
     d_byte eFlag::PaperJerome30, eDialog::PaperJerome30
     d_byte eFlag::PaperJerome31, eDialog::PaperJerome31
     d_byte eFlag::PaperJerome32, eDialog::PaperJerome32
-    d_byte eFlag::PaperJerome33, 0  ; TODO
+    d_byte eFlag::PaperJerome33, eDialog::PaperJerome33
     d_byte eFlag::PaperJerome34, eDialog::PaperJerome34
     d_byte eFlag::PaperJerome35, eDialog::PaperJerome35
     d_byte eFlag::PaperJerome36, eDialog::PaperJerome36
@@ -357,7 +360,7 @@ Ram_CollectedPapers_u8_arr: .res kPaperGridCols
     d_byte eFlag::PaperJerome30, eArea::City     ; room: CityBuilding5
     d_byte eFlag::PaperJerome31, eArea::Core     ; room: CoreFlower
     d_byte eFlag::PaperJerome32, eArea::Shadow   ; room: ShadowDepths
-    d_byte eFlag::PaperJerome33, $ff  ; TODO
+    d_byte eFlag::PaperJerome33, eArea::City     ; room: CityDrain
     d_byte eFlag::PaperJerome34, eArea::Temple   ; room: TemplePit
     d_byte eFlag::PaperJerome35, eArea::City     ; room: CityDump
     d_byte eFlag::PaperJerome36, eArea::Prison   ; room: PrisonCell
@@ -897,6 +900,14 @@ _Right:
     dlg_Text Paper, DataA_Text2_PaperJerome32_Page1_u8_arr
     dlg_Text Paper, DataA_Text2_PaperJerome32_Page2_u8_arr
     dlg_Text Paper, DataA_Text2_PaperJerome32_Page3_u8_arr
+    dlg_Done
+.ENDPROC
+
+.EXPORT DataA_Dialog_PaperJerome33_sDialog
+.PROC DataA_Dialog_PaperJerome33_sDialog
+    dlg_Text Paper, DataA_Text2_PaperJerome33_Page1_u8_arr
+    dlg_Text Paper, DataA_Text2_PaperJerome33_Page2_u8_arr
+    dlg_Text Paper, DataA_Text2_PaperJerome33_Page3_u8_arr
     dlg_Done
 .ENDPROC
 

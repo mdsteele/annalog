@@ -19,12 +19,13 @@
 
 .INCLUDE "../actor.inc"
 .INCLUDE "../actors/bird.inc"
+.INCLUDE "../device.inc"
+.INCLUDE "../flag.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../platform.inc"
 .INCLUDE "../room.inc"
 
 .IMPORT DataA_Room_City_sTileset
-.IMPORT Data_Empty_sDevice_arr
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrObjSewer
 
@@ -51,7 +52,7 @@ _Ext_sRoomExt:
     d_addr Terrain_sTileset_ptr, DataA_Room_City_sTileset
     d_addr Platforms_sPlatform_arr_ptr, _Platforms_sPlatform_arr
     d_addr Actors_sActor_arr_ptr, _Actors_sActor_arr
-    d_addr Devices_sDevice_arr_ptr, Data_Empty_sDevice_arr
+    d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
     d_addr Passages_sPassage_arr_ptr, _Passages_sPassage_arr
     d_addr Enter_func_ptr, Func_Noop
     d_addr FadeIn_func_ptr, Func_Noop
@@ -87,6 +88,15 @@ _Actors_sActor_arr:
     D_END
     .assert * - :- <= kMaxActors * .sizeof(sActor), error
     .byte eActor::None
+_Devices_sDevice_arr:
+:   D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::Paper
+    d_byte BlockRow_u8, 19
+    d_byte BlockCol_u8, 7
+    d_byte Target_byte, eFlag::PaperJerome33
+    D_END
+    .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
+    .byte eDevice::None
 _Passages_sPassage_arr:
 :   D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Western | 0
