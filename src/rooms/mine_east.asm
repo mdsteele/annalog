@@ -228,7 +228,7 @@ _Platforms_sPlatform_arr:
 _Actors_sActor_arr:
 :   D_STRUCT sActor
     d_byte Type_eActor, eActor::BadFirefly
-    d_word PosX_i16, $00e8
+    d_word PosX_i16, $00e4
     d_word PosY_i16, $00b0
     d_byte Param_byte, (bBadFirefly::ThetaMask & $00) | bBadFirefly::FlipH
     D_END
@@ -246,6 +246,12 @@ _Devices_sDevice_arr:
     d_byte BlockRow_u8, 20
     d_byte BlockCol_u8, 13
     d_byte Target_byte, kLiftMachineIndex
+    D_END
+    D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::Paper
+    d_byte BlockRow_u8, 9
+    d_byte BlockCol_u8, 15
+    d_byte Target_byte, eFlag::PaperJerome26
     D_END
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None
