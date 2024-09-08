@@ -221,9 +221,9 @@ Ram_CollectedPapers_u8_arr: .res kPaperGridCols
     ;; TODO: play a sound for collecting a new paper
     @doneSfx:
     pla  ; eFlag::Paper* value
-    sub #kFirstPaperFlag
-    tax
-    ldy DataA_Pause_PaperDialogs_eDialog_arr, x  ; param: eDialog value
+    .assert eDialog::PaperJerome01 > eFlag::PaperJerome01, error
+    add #eDialog::PaperJerome01 - eFlag::PaperJerome01
+    tay  ; param: eDialog value
     jmp Main_Dialog_WhileExploring
 .ENDPROC
 
@@ -278,61 +278,9 @@ Ram_CollectedPapers_u8_arr: .res kPaperGridCols
     ldy #kPaperGridCols  ; param: multiplier
     jsr Func_UnsignedMult  ; returns YA
     add Zp_PaperCursorCol_u8
-    tax
-    ldy DataA_Pause_PaperDialogs_eDialog_arr, x  ; param: eDialog
+    adc #eDialog::PaperJerome01  ; carry is clear
+    tay  ; param: eDialog
     jmp Main_Dialog_OnPauseScreen
-.ENDPROC
-
-;;; Maps from eFlag::Paper* values to eDialog::Paper* values.
-;;; TODO: Once all papers exist, we can remove this and just use arithmetic.
-.PROC DataA_Pause_PaperDialogs_eDialog_arr
-    D_ARRAY kNumPaperFlags, kFirstPaperFlag
-    d_byte eFlag::PaperJerome01, eDialog::PaperJerome01
-    d_byte eFlag::PaperJerome02, eDialog::PaperJerome02
-    d_byte eFlag::PaperJerome03, eDialog::PaperJerome03
-    d_byte eFlag::PaperJerome04, eDialog::PaperJerome04
-    d_byte eFlag::PaperJerome05, eDialog::PaperJerome05
-    d_byte eFlag::PaperJerome06, eDialog::PaperJerome06
-    d_byte eFlag::PaperJerome07, eDialog::PaperJerome07
-    d_byte eFlag::PaperJerome08, eDialog::PaperJerome08
-    d_byte eFlag::PaperJerome09, eDialog::PaperJerome09
-    d_byte eFlag::PaperJerome10, eDialog::PaperJerome10
-    d_byte eFlag::PaperJerome11, eDialog::PaperJerome11
-    d_byte eFlag::PaperJerome12, eDialog::PaperJerome12
-    d_byte eFlag::PaperJerome13, eDialog::PaperJerome13
-    d_byte eFlag::PaperJerome14, eDialog::PaperJerome14
-    d_byte eFlag::PaperJerome15, eDialog::PaperJerome15
-    d_byte eFlag::PaperJerome16, eDialog::PaperJerome16
-    d_byte eFlag::PaperJerome17, eDialog::PaperJerome17
-    d_byte eFlag::PaperJerome18, eDialog::PaperJerome18
-    d_byte eFlag::PaperJerome19, eDialog::PaperJerome19
-    d_byte eFlag::PaperJerome20, eDialog::PaperJerome20
-    d_byte eFlag::PaperJerome21, eDialog::PaperJerome21
-    d_byte eFlag::PaperJerome22, eDialog::PaperJerome22
-    d_byte eFlag::PaperJerome23, eDialog::PaperJerome23
-    d_byte eFlag::PaperJerome24, eDialog::PaperJerome24
-    d_byte eFlag::PaperJerome25, eDialog::PaperJerome25
-    d_byte eFlag::PaperJerome26, eDialog::PaperJerome26
-    d_byte eFlag::PaperJerome27, eDialog::PaperJerome27
-    d_byte eFlag::PaperJerome28, eDialog::PaperJerome28
-    d_byte eFlag::PaperJerome29, eDialog::PaperJerome29
-    d_byte eFlag::PaperJerome30, eDialog::PaperJerome30
-    d_byte eFlag::PaperJerome31, eDialog::PaperJerome31
-    d_byte eFlag::PaperJerome32, eDialog::PaperJerome32
-    d_byte eFlag::PaperJerome33, eDialog::PaperJerome33
-    d_byte eFlag::PaperJerome34, eDialog::PaperJerome34
-    d_byte eFlag::PaperJerome35, eDialog::PaperJerome35
-    d_byte eFlag::PaperJerome36, eDialog::PaperJerome36
-    d_byte eFlag::PaperManual1, eDialog::PaperManual1
-    d_byte eFlag::PaperManual2, eDialog::PaperManual2
-    d_byte eFlag::PaperManual3, eDialog::PaperManual3
-    d_byte eFlag::PaperManual4, eDialog::PaperManual4
-    d_byte eFlag::PaperManual5, eDialog::PaperManual5
-    d_byte eFlag::PaperManual6, eDialog::PaperManual6
-    d_byte eFlag::PaperManual7, eDialog::PaperManual7
-    d_byte eFlag::PaperManual8, eDialog::PaperManual8
-    d_byte eFlag::PaperManual9, eDialog::PaperManual9
-    D_END
 .ENDPROC
 
 ;;; Maps from eFlag::Paper* values to the eArea where each paper is located.

@@ -593,9 +593,6 @@ def test_newgame_flags(newgame_flags, all_flags, papers):
         elif room is not None:
             print(f'SCENARIO: newgame flag {flag} has needless room comment')
             failed = True
-    # TODO: remove this filter once all papers are added
-    unused_flags = set(flag for flag in unused_flags
-                       if flag in papers or not flag.startswith('Paper'))
     if unused_flags:
         print('SCENARIO: missing newgame flags:')
         for flag in sorted(unused_flags):
