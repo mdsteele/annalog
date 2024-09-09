@@ -213,7 +213,7 @@ _SetFlags:
     d_byte Collapse, eFlag::BossMine
     d_byte Breaker5, eFlag::BreakerMine
     d_byte Pass,     eFlag::FactoryPassLoweredRocks
-    d_byte City,     eFlag::CityOutskirtsBlastedRocks
+    d_byte City,     eFlag::CityCenterEnteredCity
     d_byte Sinkhole, eFlag::BossCity
     d_byte Breaker6, eFlag::BreakerCity
     d_byte Shadow,   eFlag::PaperJerome01

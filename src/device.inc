@@ -49,7 +49,6 @@ kMaxDevices = 16
     LeverCeiling
     LeverFloor
     Paper           ; collects the paper, and initiates dialogue for it
-    PaperBg         ; collects the paper, and initiates dialogue for it
     ScreenGreen     ; initiates dialogue with the avatar's back to the camera
     ScreenRed       ; initiates dialogue with the avatar's back to the camera
     Sign            ; initiates dialogue with the avatar's back to the camera

@@ -1092,7 +1092,6 @@ _chr_begin:
     CHR2_BANK $00
     chr_inc "device"
     chr_inc "upgrade_bottom", kTileIdObjUpgradeBottomFirst
-    chr_res $02
     chr_inc "player_flower"
     chr_inc "font_hilight"
     chr_inc "crate",          kTileIdObjCrateFirst
@@ -1108,7 +1107,6 @@ _chr_begin:
     CHR2_BANK $00
     chr_inc "device"
     chr_inc "upgrade_bottom", kTileIdObjUpgradeBottomFirst
-    chr_res $02
     chr_inc "player_normal"
     chr_inc "font_hilight"
     chr_inc "crate",          kTileIdObjCrateFirst

@@ -262,7 +262,7 @@ _Actors_sActor_arr:
     .byte eActor::None
 _Devices_sDevice_arr:
 :   D_STRUCT sDevice
-    d_byte Type_eDevice, eDevice::PaperBg
+    d_byte Type_eDevice, eDevice::Paper
     d_byte BlockRow_u8, 5
     d_byte BlockCol_u8, 4
     d_byte Target_byte, eFlag::PaperJerome04

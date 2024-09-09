@@ -23,11 +23,14 @@
 .IMPORT FuncA_Objects_Draw1x1Shape
 .IMPORT FuncA_Objects_MoveShapeRightHalfTile
 .IMPORT FuncA_Objects_SetShapePosToDeviceTopLeft
+.IMPORT Func_IsFlagSet
+.IMPORT Ram_DeviceTarget_byte_arr
 
 ;;;=========================================================================;;;
 
-;;; The OBJ tile ID used for drawing paper devices.
-kTileIdObjPaper = $64
+;;; OBJ tile IDs used for drawing paper devices.
+kTileIdObjPaperCollected    = $0c
+kTileIdObjPaperNotCollected = $0d
 
 ;;; The OBJ palette number to use for drawing paper devices.
 kPaletteObjPaper = 0
@@ -43,9 +46,20 @@ kPaletteObjPaper = 0
 .PROC FuncA_Objects_DrawDevicePaper
     jsr FuncA_Objects_SetShapePosToDeviceTopLeft  ; preserves X
     jsr FuncA_Objects_MoveShapeRightHalfTile  ; preserves X
+    lda Ram_DeviceTarget_byte_arr, x  ; eFlag::Paper* value
+    stx T0  ; device index
+    tax  ; param: flag
+    jsr Func_IsFlagSet  ; preserves T0+, returns Z
+    beq @notCollected
+    @collected:
+    lda #kTileIdObjPaperCollected  ; param: tile ID
+    bne @doneTileId  ; unconditional
+    @notCollected:
+    lda #kTileIdObjPaperNotCollected  ; param: tile ID
+    @doneTileId:
+    ldx T0  ; device index
     ldy #kPaletteObjPaper  ; param: object flags
-    lda #kTileIdObjPaper  ; param: tile ID
-    jmp FuncA_Objects_Draw1x1Shape
+    jmp FuncA_Objects_Draw1x1Shape  ; preserves X
 .ENDPROC
 
 ;;;=========================================================================;;;
