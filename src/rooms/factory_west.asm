@@ -154,7 +154,6 @@ _Actors_sActor_arr:
     d_word PosY_i16, $0158
     d_byte Param_byte, bObj::FlipH
     D_END
-    ;; TODO: add more baddies
     .assert * - :- <= kMaxActors * .sizeof(sActor), error
     .byte eActor::None
 _Devices_sDevice_arr:

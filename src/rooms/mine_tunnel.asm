@@ -87,8 +87,7 @@ _Platforms_sPlatform_arr:
     .assert * - :- <= kMaxPlatforms * .sizeof(sPlatform), error
     .byte ePlatform::None
 _Actors_sActor_arr:
-:   ;; TODO: Add some baddies
-    D_STRUCT sActor
+:   D_STRUCT sActor
     d_byte Type_eActor, eActor::BadGrub
     d_word PosX_i16, $00b8
     d_word PosY_i16, $00a8
