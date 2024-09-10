@@ -255,7 +255,7 @@ _DrawCursors:
 .EXPORT FuncA_Console_DrawFieldCursor
 .PROC FuncA_Console_DrawFieldCursor
     lda #$00  ; param: cursor diminished bool ($00 = undiminished)
-    .assert * = FuncA_Console_DrawFieldCursorFullOrDim, error, "fallthrough"
+    fall FuncA_Console_DrawFieldCursorFullOrDim
 .ENDPROC
 
 ;;; Draws the console instruction field cursor, possibly diminished.
@@ -290,7 +290,7 @@ _DrawCursor:
     sta T2  ; cursor width - 1
     bit T3  ; cursor diminished bool
     bpl FuncA_Console_DrawFullCursor
-    .assert * = FuncA_Console_DrawDiminishedCursor, error, "fallthrough"
+    fall FuncA_Console_DrawDiminishedCursor
 .ENDPROC
 
 ;;; Draws a diminished window cursor at the specified position on the screen.
@@ -367,7 +367,7 @@ _ObjectLoop:
 .ENDPROC
 
 ;;; Draws the console debug cursor.
-;;; @prereq The machine console is open.
+;;; @prereq The (real) machine console is open.
 .EXPORT FuncA_Console_DrawDebugCursor
 .PROC FuncA_Console_DrawDebugCursor
     ldx Zp_ConsoleMachineIndex_u8
@@ -397,25 +397,35 @@ _Resetting:
     rts
 _DrawSolid:
     lda #$00  ; param: diminished bool
-    beq FuncA_Console_DrawInstructionCursor  ; unconditional
+    beq FuncA_Console_DrawPcCursor  ; unconditional
 _DrawDim:
     lda #$ff  ; param: diminished bool
-    .assert * = FuncA_Console_DrawInstructionCursor, error, "fallthrough"
+    fall FuncA_Console_DrawPcCursor
 .ENDPROC
 
 ;;; Draws a console debug cursor that hilights the instruction number for the
 ;;; console machine's current PC.
-;;; @prereq The machine console is open.
+;;; @prereq The (real) machine console is open.
 ;;; @param A True ($ff) to draw the cursor diminished, false ($00) otherwise.
+.PROC FuncA_Console_DrawPcCursor
+    ldy Zp_ConsoleMachineIndex_u8
+    ldx Ram_MachinePc_u8_arr, y  ; param: instruction number
+    fall FuncA_Console_DrawInstructionCursor
+.ENDPROC
+
+;;; Draws a console debug cursor that hilights the specified instruction
+;;; number.
+;;; @prereq Zp_ConsoleNumInstRows_u8 is initialized.
+;;; @param A True ($ff) to draw the cursor diminished, false ($00) otherwise.
+;;; @param X The instruction number.
+.EXPORT FuncA_Console_DrawInstructionCursor
 .PROC FuncA_Console_DrawInstructionCursor
-    sta T1  ; cursor diminished bool
+    sta T0  ; cursor diminished bool
     lda #2  ; param: num objects
-    jsr Func_AllocObjects  ; preserves T0+, returns Y
+    jsr Func_AllocObjects  ; preserves X and T0+, returns Y
 _YPosition:
     ;; Calculate the window row that the cursor is in.
-    ldx Zp_ConsoleMachineIndex_u8
-    lda Ram_MachinePc_u8_arr, x
-    sta T0  ; instruction number
+    txa  ; instruction number
     cmp Zp_ConsoleNumInstRows_u8
     blt @leftColumn
     sub Zp_ConsoleNumInstRows_u8
@@ -429,7 +439,6 @@ _YPosition:
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::YPos_u8, y
 _XPosition:
     lda #kTileWidthPx * 2
-    ldx T0  ; instruction number
     cpx Zp_ConsoleNumInstRows_u8
     blt @leftColumn
     lda #kTileWidthPx * 12
@@ -439,7 +448,7 @@ _XPosition:
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::XPos_u8, y
 _TileAndFlags:
     lda #kTileIdObjCursorSolidLeft
-    bit T1  ; cursor diminished bool
+    bit T0  ; cursor diminished bool
     bpl @undiminished
     lda #kTileIdObjCursorDimLeft
     @undiminished:

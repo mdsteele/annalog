@@ -21,6 +21,7 @@
 ;;; room, as it happens).
 .ENUM eFake
     CoreDump
+    EndThis
     Ethical
     InsufficientData
     NoPower

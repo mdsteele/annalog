@@ -220,13 +220,13 @@ _Devices_sDevice_arr:
     d_byte Type_eDevice, eDevice::FakeConsole
     d_byte BlockRow_u8, 2
     d_byte BlockCol_u8, 6
-    d_byte Target_byte, eFake::InsufficientData  ; TODO
+    d_byte Target_byte, eFake::InsufficientData  ; TODO shock vert
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::FakeConsole
     d_byte BlockRow_u8, 2
     d_byte BlockCol_u8, 10
-    d_byte Target_byte, eFake::InsufficientData  ; TODO
+    d_byte Target_byte, eFake::EndThis
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::ConsoleFloor
@@ -238,7 +238,7 @@ _Devices_sDevice_arr:
     d_byte Type_eDevice, eDevice::FakeConsole
     d_byte BlockRow_u8, 5
     d_byte BlockCol_u8, 2
-    d_byte Target_byte, eFake::InsufficientData  ; TODO
+    d_byte Target_byte, eFake::InsufficientData  ; TODO shock horz
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::FakeConsole

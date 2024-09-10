@@ -22,8 +22,10 @@
 .INCLUDE "cpu.inc"
 .INCLUDE "fake.inc"
 .INCLUDE "flag.inc"
+.INCLUDE "hud.inc"
 .INCLUDE "joypad.inc"
 .INCLUDE "machine.inc"
+.INCLUDE "machines/carriage.inc"
 .INCLUDE "machines/emitter.inc"
 .INCLUDE "machines/lift.inc"
 .INCLUDE "machines/shared.inc"
@@ -34,6 +36,7 @@
 .INCLUDE "window.inc"
 
 .IMPORT FuncA_Console_AdjustAvatar
+.IMPORT FuncA_Console_DrawInstructionCursor
 .IMPORT FuncA_Console_WriteDiagramTransferDataForDiagram
 .IMPORT FuncA_Objects_Draw1x1Shape
 .IMPORT FuncA_Terrain_TransferTileColumn
@@ -51,6 +54,8 @@
 .IMPORT Ram_PpuTransfer_arr
 .IMPORTZP Zp_ConsoleNeedsPower_u8
 .IMPORTZP Zp_ConsoleNumInstRows_u8
+.IMPORTZP Zp_FloatingHud_bHud
+.IMPORTZP Zp_FrameCounter_u8
 .IMPORTZP Zp_P1ButtonsPressed_bJoypad
 .IMPORTZP Zp_ShapePosX_i16
 .IMPORTZP Zp_ShapePosY_i16
@@ -98,7 +103,10 @@ _GameLoop:
 ;;; @prereq Zp_Current_eFake is initialized.
 ;;; @prereq The console window is fully visible.
 .PROC Main_FakeConsole_Message
+    lda #bHud::NoMachine | bHud::Hidden
+    sta Zp_FloatingHud_bHud
 _GameLoop:
+    jsr_prga FuncA_Console_DrawFakeConsoleCursor
     jsr FuncM_DrawFakeConsoleObjectsAndProcessFrame
     jsr_prga FuncA_Terrain_OnFakeConsoleOpen
     lda Zp_P1ButtonsPressed_bJoypad
@@ -149,6 +157,7 @@ _InitWindow:
 _Chr0cBank_u8_arr:
     D_ARRAY .enum, eFake
     d_byte CoreDump,         $61  ; TODO
+    d_byte EndThis,          kChrBankDiagramCarriage
     d_byte Ethical,          $60  ; TODO
     d_byte InsufficientData, $50  ; TODO
     d_byte NoPower,          kChrBankDiagramLift
@@ -211,6 +220,7 @@ _DrawStatus:
 _Fake_eDiagram:
     D_ARRAY .enum, eFake
     d_byte CoreDump,         eDiagram::MinigunDown  ; TODO
+    d_byte EndThis,          eDiagram::Carriage
     d_byte Ethical,          eDiagram::MinigunDown  ; TODO
     d_byte InsufficientData, eDiagram::MinigunDown  ; TODO
     d_byte NoPower,          eDiagram::Lift
@@ -267,6 +277,15 @@ _Fake_eDiagram:
     .addr _CoreDump5_u8_arr19
     .addr _CoreDump6_u8_arr19
     .addr _CoreDump7_u8_arr19
+    d_byte EndThis
+    .addr _EndThis0_u8_arr19
+    .addr _EndThis1_u8_arr19
+    .addr _EndThis2_u8_arr19
+    .addr _EndThis3_u8_arr19
+    .addr _EndThis4_u8_arr19
+    .addr _EndThis5_u8_arr19
+    .addr _EndThis6_u8_arr19
+    .addr _EndThis7_u8_arr19
     d_byte Ethical
     .addr _Blank_u8_arr19
     .addr _Blank_u8_arr19
@@ -322,6 +341,30 @@ _CoreDump6_u8_arr19:
 _CoreDump7_u8_arr19:
 :   .byte "7:       ", kTileIdBgWindowVert, '0' + 15, ":       "
     .assert * - :- = kFakeConsoleMessageCols, error
+_EndThis0_u8_arr19:
+:   .byte "0:END    ", kTileIdBgWindowVert, "8:END    "
+    .assert * - :- = kFakeConsoleMessageCols, error
+_EndThis1_u8_arr19:
+:   .byte "1:END    ", kTileIdBgWindowVert, "9:END    "
+    .assert * - :- = kFakeConsoleMessageCols, error
+_EndThis2_u8_arr19:
+:   .byte "2:END    ", kTileIdBgWindowVert, '0' + 10, ":END    "
+    .assert * - :- = kFakeConsoleMessageCols, error
+_EndThis3_u8_arr19:
+:   .byte "3:END    ", kTileIdBgWindowVert, '0' + 11, ":END    "
+    .assert * - :- = kFakeConsoleMessageCols, error
+_EndThis4_u8_arr19:
+:   .byte "4:END    ", kTileIdBgWindowVert, '0' + 12, ":END    "
+    .assert * - :- = kFakeConsoleMessageCols, error
+_EndThis5_u8_arr19:
+:   .byte "5:END    ", kTileIdBgWindowVert, '0' + 13, ":END    "
+    .assert * - :- = kFakeConsoleMessageCols, error
+_EndThis6_u8_arr19:
+:   .byte "6:END    ", kTileIdBgWindowVert, '0' + 14, ":THIS,  "
+    .assert * - :- = kFakeConsoleMessageCols, error
+_EndThis7_u8_arr19:
+:   .byte "7:END    ", kTileIdBgWindowVert, '0' + 15, ":PLEASE "
+    .assert * - :- = kFakeConsoleMessageCols, error
 _Ethical2_u8_arr19:
 :   .byte "SYNTAX ERROR:      "
     .assert * - :- = kFakeConsoleMessageCols, error
@@ -352,6 +395,23 @@ _NoPower4_u8_arr19:
 _NoPower5_u8_arr19:
 :   .byte "9999999999999999999"
     .assert * - :- = kFakeConsoleMessageCols, error
+.ENDPROC
+
+;;; Draws the cursor (if any) for the current fake console window.
+;;; @prereq Zp_Current_eFake is initialized.
+;;; @prereq Zp_ConsoleNumInstRows_u8 is initialized.
+.PROC FuncA_Console_DrawFakeConsoleCursor
+    lda Zp_Current_eFake
+    cmp #eFake::EndThis
+    bne @done
+    lda Zp_FrameCounter_u8
+    and #$04
+    bne @done
+    lda #0  ; param: diminished bool
+    tax     ; param: instruction number
+    jmp FuncA_Console_DrawInstructionCursor
+    @done:
+    rts
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -409,6 +469,7 @@ _NoPower5_u8_arr19:
 _ShapeX_u8_arr:
     D_ARRAY .enum, eFake
     d_byte CoreDump,         $60
+    d_byte EndThis,          $47
     d_byte Ethical,          $47
     d_byte InsufficientData, $a0
     d_byte NoPower,          $77
@@ -416,6 +477,7 @@ _ShapeX_u8_arr:
 _ShapeY_u8_arr:
     D_ARRAY .enum, eFake
     d_byte CoreDump,         $80
+    d_byte EndThis,          $37
     d_byte Ethical,          $a0
     d_byte InsufficientData, $c0
     d_byte NoPower,          $67
