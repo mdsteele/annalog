@@ -216,6 +216,7 @@ kDialogEntryCutscene = $ff  ; ends the dialog and starts a new cutscene
     PrisonUpperNora
     SewerPoolFood
     SewerPoolSign
+    ShadowDrillScreen
     ShadowGateScreen
     ShadowOfficeTeleport
     ShadowTeleportScreen

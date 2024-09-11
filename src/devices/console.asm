@@ -33,6 +33,11 @@
 
 ;;;=========================================================================;;;
 
+;;; The vertical object offset to apply for drawing floor and ceiling
+;;; consoles/screens.
+kFloorScreenOffset   = 0
+kCeilingScreenOffset = 5
+
 ;;; OBJ tile IDs used for drawing console devices.
 kTileIdObjConsoleOk  = $08
 kTileIdObjConsoleErr = $09
@@ -52,8 +57,9 @@ kPaletteObjScreen     = 1
 ;;; @preserve X
 .EXPORT FuncA_Objects_DrawDeviceConsoleCeiling
 .PROC FuncA_Objects_DrawDeviceConsoleCeiling
-    ldy #5  ; param: vertical offset
-    bne FuncA_Objects_DrawDeviceConsole  ; unconditional; preserves X
+    ldy #kCeilingScreenOffset  ; param: vertical offset
+    .assert kCeilingScreenOffset < $80, error
+    bpl FuncA_Objects_DrawDeviceConsole  ; unconditional; preserves X
 .ENDPROC
 
 ;;; Draws a floor console device.
@@ -61,7 +67,7 @@ kPaletteObjScreen     = 1
 ;;; @preserve X
 .EXPORT FuncA_Objects_DrawDeviceConsoleFloor
 .PROC FuncA_Objects_DrawDeviceConsoleFloor
-    ldy #0  ; param: vertical offset
+    ldy #kFloorScreenOffset  ; param: vertical offset
     fall FuncA_Objects_DrawDeviceConsole  ; preserves X
 .ENDPROC
 
@@ -99,7 +105,18 @@ _Blank:
     rts
 .ENDPROC
 
-;;; Draws a fake console device.
+;;; Draws a red ceiling screen device.
+;;; @param X The device index.
+;;; @preserve X
+.EXPORT FuncA_Objects_DrawDeviceScreenCeiling
+.PROC FuncA_Objects_DrawDeviceScreenCeiling
+    lda #kPaletteObjScreen  ; param: object flags
+    ldy #kCeilingScreenOffset  ; param: vertical offset
+    .assert kCeilingScreenOffset < $80, error
+    bpl FuncA_Objects_DrawDeviceScreen  ; unconditional, preserves X
+.ENDPROC
+
+;;; Draws a fake floor console device.
 ;;; @param X The device index.
 ;;; @preserve X
 .EXPORT FuncA_Objects_DrawDeviceFakeConsole
@@ -107,45 +124,46 @@ _Blank:
     fall FuncA_Objects_DrawDeviceScreenGreen  ; preserves X
 .ENDPROC
 
-;;; Draws a green screen device.
+;;; Draws a green floor screen device.
 ;;; @param X The device index.
 ;;; @preserve X
 .EXPORT FuncA_Objects_DrawDeviceScreenGreen
 .PROC FuncA_Objects_DrawDeviceScreenGreen
     lda #kPaletteObjConsoleOk  ; param: object flags
     .assert kPaletteObjConsoleOk <> 0, error
-    bne FuncA_Objects_DrawDeviceScreen  ; unconditional, preserves X
+    bne FuncA_Objects_DrawDeviceScreenFloor  ; unconditional, preserves X
 .ENDPROC
 
-;;; Draws a red screen device.
+;;; Draws a red floor screen device.
 ;;; @param X The device index.
 ;;; @preserve X
 .EXPORT FuncA_Objects_DrawDeviceScreenRed
 .PROC FuncA_Objects_DrawDeviceScreenRed
     lda #kPaletteObjScreen  ; param: object flags
+    fall FuncA_Objects_DrawDeviceScreenFloor
+.ENDPROC
+
+;;; Draws a floor screen device.
+;;; @param X The device index.
+;;; @param A The bObj value for the object flags.
+;;; @preserve X
+.PROC FuncA_Objects_DrawDeviceScreenFloor
+    ldy #kFloorScreenOffset  ; param: vertical offset
     fall FuncA_Objects_DrawDeviceScreen
 .ENDPROC
 
 ;;; Draws a screen device.
 ;;; @param X The device index.
+;;; @param Y The vertical offset for the object to draw.
 ;;; @param A The bObj value for the object flags.
 ;;; @preserve X
 .PROC FuncA_Objects_DrawDeviceScreen
     pha  ; object flags
-    jsr FuncA_Objects_SetShapePosForDeviceScreenNormal  ; preserves X
+    jsr FuncA_Objects_SetShapePosForDeviceScreenWithOffset  ; preserves X
     pla  ; object flags
     tay  ; param: object flags
     lda #kTileIdObjScreen  ; param: tile ID
     jmp FuncA_Objects_Draw1x1Shape  ; preserves X
-.ENDPROC
-
-;;; Sets the shape position for drawing a console or screen device with no
-;;; vertical offset.
-;;; @param X The device index.
-;;; @preserve X
-.PROC FuncA_Objects_SetShapePosForDeviceScreenNormal
-    ldy #0  ; param: vertical offset
-    fall FuncA_Objects_SetShapePosForDeviceScreenWithOffset
 .ENDPROC
 
 ;;; Sets the shape position for drawing a console or screen device with the

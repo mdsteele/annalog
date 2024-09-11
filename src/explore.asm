@@ -346,6 +346,7 @@ _CheckForActivateDevice:
     d_entry table, LeverCeiling,   _DeviceLever
     d_entry table, LeverFloor,     _DeviceLever
     d_entry table, Paper,          _DevicePaper
+    d_entry table, ScreenCeiling,  _DeviceDialog
     d_entry table, ScreenGreen,    _DeviceDialog
     d_entry table, ScreenRed,      _DeviceDialog
     d_entry table, Sign,           _DeviceDialog

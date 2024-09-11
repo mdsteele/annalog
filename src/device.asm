@@ -34,6 +34,7 @@
 .IMPORT FuncA_Objects_DrawDeviceLeverFloor
 .IMPORT FuncA_Objects_DrawDeviceLockedDoor
 .IMPORT FuncA_Objects_DrawDevicePaper
+.IMPORT FuncA_Objects_DrawDeviceScreenCeiling
 .IMPORT FuncA_Objects_DrawDeviceScreenGreen
 .IMPORT FuncA_Objects_DrawDeviceScreenRed
 .IMPORT FuncA_Objects_DrawDeviceTeleporter
@@ -193,6 +194,7 @@ _Continue:
     d_entry table, LeverCeiling,   FuncA_Objects_DrawDeviceLeverCeiling
     d_entry table, LeverFloor,     FuncA_Objects_DrawDeviceLeverFloor
     d_entry table, Paper,          FuncA_Objects_DrawDevicePaper
+    d_entry table, ScreenCeiling,  FuncA_Objects_DrawDeviceScreenCeiling
     d_entry table, ScreenGreen,    FuncA_Objects_DrawDeviceScreenGreen
     d_entry table, ScreenRed,      FuncA_Objects_DrawDeviceScreenRed
     d_entry table, Sign,           Func_Noop

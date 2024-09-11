@@ -20,6 +20,7 @@
 .INCLUDE "../actor.inc"
 .INCLUDE "../charmap.inc"
 .INCLUDE "../device.inc"
+.INCLUDE "../dialog.inc"
 .INCLUDE "../flag.inc"
 .INCLUDE "../machine.inc"
 .INCLUDE "../machines/laser.inc"
@@ -32,6 +33,9 @@
 .INCLUDE "../spawn.inc"
 
 .IMPORT DataA_Room_Shadow_sTileset
+.IMPORT DataA_Text0_ShadowDrillScreen_Page1_u8_arr
+.IMPORT DataA_Text0_ShadowDrillScreen_Page2_u8_arr
+.IMPORT DataA_Text0_ShadowDrillScreen_Page3_u8_arr
 .IMPORT FuncA_Machine_GenericMoveTowardGoalHorz
 .IMPORT FuncA_Machine_GenericTryMoveX
 .IMPORT FuncA_Machine_LaserTryAct
@@ -206,8 +210,14 @@ _Devices_sDevice_arr:
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::ConsoleCeiling
     d_byte BlockRow_u8, 17
-    d_byte BlockCol_u8, 12
+    d_byte BlockCol_u8, 4
     d_byte Target_byte, kLaserMachineIndex
+    D_END
+    D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::ScreenCeiling
+    d_byte BlockRow_u8, 17
+    d_byte BlockCol_u8, 12
+    d_byte Target_byte, eDialog::ShadowDrillScreen
     D_END
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None
@@ -358,6 +368,18 @@ _LaserBottom_i16_1_arr:
     ldy #$a0  ; param: attribute value
     lda #$19  ; param: initial byte offset
     jmp Func_WriteToLowerAttributeTable
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Dialog"
+
+.EXPORT DataA_Dialog_ShadowDrillScreen_sDialog
+.PROC DataA_Dialog_ShadowDrillScreen_sDialog
+    dlg_Text Screen, DataA_Text0_ShadowDrillScreen_Page1_u8_arr
+    dlg_Text Screen, DataA_Text0_ShadowDrillScreen_Page2_u8_arr
+    dlg_Text Screen, DataA_Text0_ShadowDrillScreen_Page3_u8_arr
+    dlg_Done
 .ENDPROC
 
 ;;;=========================================================================;;;
