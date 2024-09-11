@@ -143,6 +143,7 @@
 .IMPORT DataA_Dialog_SewerPoolSign_sDialog
 .IMPORT DataA_Dialog_ShadowDrillScreen_sDialog
 .IMPORT DataA_Dialog_ShadowGateScreen_sDialog
+.IMPORT DataA_Dialog_ShadowOfficeFireball_sDialog
 .IMPORT DataA_Dialog_ShadowOfficeTeleport_sDialog
 .IMPORT DataA_Dialog_ShadowTeleportScreen_sDialog
 .IMPORT DataA_Dialog_TempleAltarPlaque_sDialog
@@ -566,6 +567,7 @@ _Finish:
     d_entry t, SewerPoolSign,        DataA_Dialog_SewerPoolSign_sDialog
     d_entry t, ShadowDrillScreen,    DataA_Dialog_ShadowDrillScreen_sDialog
     d_entry t, ShadowGateScreen,     DataA_Dialog_ShadowGateScreen_sDialog
+    d_entry t, ShadowOfficeFireball, DataA_Dialog_ShadowOfficeFireball_sDialog
     d_entry t, ShadowOfficeTeleport, DataA_Dialog_ShadowOfficeTeleport_sDialog
     d_entry t, ShadowTeleportScreen, DataA_Dialog_ShadowTeleportScreen_sDialog
     d_entry t, TempleAltarPlaque,    DataA_Dialog_TempleAltarPlaque_sDialog

@@ -44,9 +44,11 @@
 .IMPORT FuncA_Terrain_FadeInShortRoomWithLava
 .IMPORT Func_BufferPpuTransfer
 .IMPORT Func_FindEmptyActorSlot
+.IMPORT Func_InitActorProjFireball
 .IMPORT Func_InitActorSmokeExplosion
 .IMPORT Func_IsPointInPlatform
 .IMPORT Func_Noop
+.IMPORT Func_PlaySfxShootFire
 .IMPORT Func_SetActorCenterToPoint
 .IMPORT Func_SetFlag
 .IMPORT Func_SetPointToAvatarCenter
@@ -58,6 +60,8 @@
 .IMPORT Sram_ProgressFlags_arr
 .IMPORTZP Zp_AvatarPosX_i16
 .IMPORTZP Zp_AvatarPosY_i16
+.IMPORTZP Zp_PointX_i16
+.IMPORTZP Zp_RoomState
 
 ;;;=========================================================================;;;
 
@@ -109,6 +113,15 @@ kLiftMaxGoalY = 2
 kLiftMaxPlatformTop = $00e0
 kLiftMinPlatformTop = kLiftMaxPlatformTop - kLiftMaxGoalY * kBlockHeightPx
 kLiftInitPlatformTop = kLiftMaxPlatformTop - kLiftInitGoalY * kBlockHeightPx
+
+;;;=========================================================================;;;
+
+;;; Defines room-specific state data for this particular room.
+.STRUCT sState
+    ;; How many more frames until the fireball console can be activated again.
+    FireballCooldown_u8 .byte
+.ENDSTRUCT
+.ASSERT .sizeof(sState) <= kRoomStateSize, error
 
 ;;;=========================================================================;;;
 
@@ -235,10 +248,10 @@ _Devices_sDevice_arr:
     d_byte Target_byte, kLiftMachineIndex
     D_END
     D_STRUCT sDevice
-    d_byte Type_eDevice, eDevice::FakeConsole
+    d_byte Type_eDevice, eDevice::ScreenGreen
     d_byte BlockRow_u8, 5
     d_byte BlockCol_u8, 2
-    d_byte Target_byte, eFake::InsufficientData  ; TODO shock horz
+    d_byte Target_byte, eDialog::ShadowOfficeFireball
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::FakeConsole
@@ -312,6 +325,11 @@ _Passages_sPassage_arr:
 .SEGMENT "PRGA_Room"
 
 .PROC FuncA_Room_ShadowOffice_TickRoom
+_CoolDownFireball:
+    lda Zp_RoomState + sState::FireballCooldown_u8
+    beq @done
+    dec Zp_RoomState + sState::FireballCooldown_u8
+    @done:
 _MaybeTagGhost:
     ;; If the avatar isn't in the tag zone, don't tag the ghost.
     jsr Func_SetPointToAvatarCenter
@@ -412,6 +430,28 @@ _Return:
 ;;;=========================================================================;;;
 
 .SEGMENT "PRGA_Dialog"
+
+.EXPORT DataA_Dialog_ShadowOfficeFireball_sDialog
+.PROC DataA_Dialog_ShadowOfficeFireball_sDialog
+    dlg_Call _ShootFireball
+    dlg_Done
+_ShootFireball:
+    lda Zp_RoomState + sState::FireballCooldown_u8
+    bne @done
+    jsr Func_FindEmptyActorSlot  ; returns C and X
+    bcs @done
+    jsr Func_SetPointToAvatarCenter  ; preserves X
+    lda #$11
+    sta Zp_PointX_i16 + 0
+    jsr Func_SetActorCenterToPoint  ; preserves X
+    lda #$00  ; param: angle
+    jsr Func_InitActorProjFireball
+    lda #30
+    sta Zp_RoomState + sState::FireballCooldown_u8
+    jmp Func_PlaySfxShootFire
+    @done:
+    rts
+.ENDPROC
 
 .EXPORT DataA_Dialog_ShadowOfficeTeleport_sDialog
 .PROC DataA_Dialog_ShadowOfficeTeleport_sDialog
