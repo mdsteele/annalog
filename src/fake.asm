@@ -157,9 +157,10 @@ _InitWindow:
 _Chr0cBank_u8_arr:
     D_ARRAY .enum, eFake
     d_byte CoreDump,         $61  ; TODO
+    d_byte Corrupted,        $61  ; TODO
     d_byte EndThis,          kChrBankDiagramCarriage
-    d_byte Ethical,          $60  ; TODO
     d_byte InsufficientData, $50  ; TODO
+    d_byte IsThisEthical,    $60  ; TODO
     d_byte NoPower,          kChrBankDiagramLift
     D_END
 .ENDPROC
@@ -220,9 +221,10 @@ _DrawStatus:
 _Fake_eDiagram:
     D_ARRAY .enum, eFake
     d_byte CoreDump,         eDiagram::MinigunDown  ; TODO
+    d_byte Corrupted,        eDiagram::MinigunDown  ; TODO
     d_byte EndThis,          eDiagram::Carriage
-    d_byte Ethical,          eDiagram::MinigunDown  ; TODO
     d_byte InsufficientData, eDiagram::MinigunDown  ; TODO
+    d_byte IsThisEthical,    eDiagram::MinigunDown  ; TODO
     d_byte NoPower,          eDiagram::Lift
     D_END
 .ENDPROC
@@ -277,6 +279,15 @@ _Fake_eDiagram:
     .addr _CoreDump5_u8_arr19
     .addr _CoreDump6_u8_arr19
     .addr _CoreDump7_u8_arr19
+    d_byte Corrupted
+    .addr _Corrupted0_u8_arr19
+    .addr _Corrupted1_u8_arr19
+    .addr _Corrupted2_u8_arr19
+    .addr _Corrupted3_u8_arr19
+    .addr _Corrupted4_u8_arr19
+    .addr _Corrupted5_u8_arr19
+    .addr _Corrupted6_u8_arr19
+    .addr _Corrupted7_u8_arr19
     d_byte EndThis
     .addr _EndThis0_u8_arr19
     .addr _EndThis1_u8_arr19
@@ -286,15 +297,6 @@ _Fake_eDiagram:
     .addr _EndThis5_u8_arr19
     .addr _EndThis6_u8_arr19
     .addr _EndThis7_u8_arr19
-    d_byte Ethical
-    .addr _Blank_u8_arr19
-    .addr _Blank_u8_arr19
-    .addr _Ethical2_u8_arr19
-    .addr _Ethical3_u8_arr19
-    .addr _Ethical4_u8_arr19
-    .addr _Ethical5_u8_arr19
-    .addr _Blank_u8_arr19
-    .addr _Blank_u8_arr19
     d_byte InsufficientData
     .addr _CoreDump0_u8_arr19
     .addr _CoreDump1_u8_arr19
@@ -304,6 +306,15 @@ _Fake_eDiagram:
     .addr _InsufficientData5_u8_arr19
     .addr _CoreDump6_u8_arr19
     .addr _CoreDump7_u8_arr19
+    d_byte IsThisEthical
+    .addr _Blank_u8_arr19
+    .addr _Blank_u8_arr19
+    .addr _IsThisEthical2_u8_arr19
+    .addr _IsThisEthical3_u8_arr19
+    .addr _IsThisEthical4_u8_arr19
+    .addr _IsThisEthical5_u8_arr19
+    .addr _Blank_u8_arr19
+    .addr _Blank_u8_arr19
     d_byte NoPower
     .addr _Blank_u8_arr19
     .addr _Blank_u8_arr19
@@ -341,6 +352,38 @@ _CoreDump6_u8_arr19:
 _CoreDump7_u8_arr19:
 :   .byte "7:       ", kTileIdBgWindowVert, '0' + 15, ":       "
     .assert * - :- = kFakeConsoleMessageCols, error
+_Corrupted0_u8_arr19:
+:   .byte "0:MOzE ", kTileIdBgArrowUp, "?", kTileIdBgWindowVert
+    .byte "8:!OTO ", '0' + 11, ":"
+    .assert * - :- = kFakeConsoleMessageCols, error
+_Corrupted1_u8_arr19:
+:   .byte "1:TIL YYY", kTileIdBgWindowVert
+    .byte "9:IF Y>0 "
+    .assert * - :- = kFakeConsoleMessageCols, error
+_Corrupted2_u8_arr19:
+:   .byte "2 SYmC   ", kTileIdBgWindowVert
+    .byte "A:MOVE7", kTileIdBgArrowDown, " "
+    .assert * - :- = kFakeConsoleMessageCols, error
+_Corrupted3_u8_arr19:
+:   .byte "3:SYNC ", kTileIdBgArrowRight, " ", kTileIdBgWindowVert
+    .byte '0' + 11, ":IF r=0>"
+    .assert * - :- = kFakeConsoleMessageCols, error
+_Corrupted4_u8_arr19:
+:   .byte "4:FI L", kTileIdBgCmpNe, "00", kTileIdBgWindowVert
+    .byte '0' + 12, ":GOTO 4 "
+    .assert * - :- = kFakeConsoleMessageCols, error
+_Corrupted5_u8_arr19:
+:   .byte "5:GOGO 9 ", kTileIdBgWindowVert
+    .byte "d:A9T    "
+    .assert * - :- = kFakeConsoleMessageCols, error
+_Corrupted6_u8_arr19:
+:   .byte "-:IF Y<7 ", kTileIdBgWindowVert
+    .byte "X:R", kTileIdBgArrowLeft, kTileIdBgArrowRight, "L   "
+    .assert * - :- = kFakeConsoleMessageCols, error
+_Corrupted7_u8_arr19:
+:   .byte "7:m0VE", kTileIdBgArrowLeft, kTileIdBgArrowUp, kTileIdBgArrowRight
+    .byte kTileIdBgWindowVert, '0' + 15, ":KILL   "
+    .assert * - :- = kFakeConsoleMessageCols, error
 _EndThis0_u8_arr19:
 :   .byte "0:END    ", kTileIdBgWindowVert, "8:END    "
     .assert * - :- = kFakeConsoleMessageCols, error
@@ -365,18 +408,6 @@ _EndThis6_u8_arr19:
 _EndThis7_u8_arr19:
 :   .byte "7:END    ", kTileIdBgWindowVert, '0' + 15, ":PLEASE "
     .assert * - :- = kFakeConsoleMessageCols, error
-_Ethical2_u8_arr19:
-:   .byte "SYNTAX ERROR:      "
-    .assert * - :- = kFakeConsoleMessageCols, error
-_Ethical3_u8_arr19:
-:   .byte " `Is this ethical?'"
-    .assert * - :- = kFakeConsoleMessageCols, error
-_Ethical4_u8_arr19:
-:   .byte "IS NOT A VALID     "
-    .assert * - :- = kFakeConsoleMessageCols, error
-_Ethical5_u8_arr19:
-:   .byte "INSTRUCTION.       "
-    .assert * - :- = kFakeConsoleMessageCols, error
 _InsufficientData3_u8_arr19:
 :   .byte "ERROR: INSUFFICIENT"
     .assert * - :- = kFakeConsoleMessageCols, error
@@ -386,11 +417,23 @@ _InsufficientData4_u8_arr19:
 _InsufficientData5_u8_arr19:
 :   .byte "RESPONSIBILITY.    "
     .assert * - :- = kFakeConsoleMessageCols, error
+_IsThisEthical2_u8_arr19:
+:   .byte "SYNTAX ERROR:      "
+    .assert * - :- = kFakeConsoleMessageCols, error
+_IsThisEthical3_u8_arr19:
+:   .byte " `Is this ethical?'"
+    .assert * - :- = kFakeConsoleMessageCols, error
+_IsThisEthical4_u8_arr19:
+:   .byte "IS NOT A VALID     "
+    .assert * - :- = kFakeConsoleMessageCols, error
+_IsThisEthical5_u8_arr19:
+:   .byte "INSTRUCTION.       "
+    .assert * - :- = kFakeConsoleMessageCols, error
 _NoPower3_u8_arr19:
 :   .byte "  ERROR: NO POWER  "
     .assert * - :- = kFakeConsoleMessageCols, error
 _NoPower4_u8_arr19:
-:   .byte "    ON CIRCUIT 9379"
+:   .byte "    ON CIRCUIT 9999"
     .assert * - :- = kFakeConsoleMessageCols, error
 _NoPower5_u8_arr19:
 :   .byte "9999999999999999999"
@@ -401,16 +444,25 @@ _NoPower5_u8_arr19:
 ;;; @prereq Zp_Current_eFake is initialized.
 ;;; @prereq Zp_ConsoleNumInstRows_u8 is initialized.
 .PROC FuncA_Console_DrawFakeConsoleCursor
-    lda Zp_Current_eFake
-    cmp #eFake::EndThis
-    bne @done
     lda Zp_FrameCounter_u8
+    ldy Zp_Current_eFake
+    cpy #eFake::EndThis
+    beq _EndThis
+    cpy #eFake::Corrupted
+    bne _NoCursor
+_Corrupted:
+    and #$10
+    bne _NoCursor
+    ldx #15
+    bpl _DrawCursor  ; unconditional
+_EndThis:
     and #$04
-    bne @done
+    bne _NoCursor
+    tax     ; param: instruction number (zero)
+_DrawCursor:
     lda #0  ; param: diminished bool
-    tax     ; param: instruction number
     jmp FuncA_Console_DrawInstructionCursor
-    @done:
+_NoCursor:
     rts
 .ENDPROC
 
@@ -469,17 +521,19 @@ _NoPower5_u8_arr19:
 _ShapeX_u8_arr:
     D_ARRAY .enum, eFake
     d_byte CoreDump,         $60
+    d_byte Corrupted,        $47
     d_byte EndThis,          $47
-    d_byte Ethical,          $47
     d_byte InsufficientData, $a0
+    d_byte IsThisEthical,    $d0
     d_byte NoPower,          $77
     D_END
 _ShapeY_u8_arr:
     D_ARRAY .enum, eFake
     d_byte CoreDump,         $80
+    d_byte Corrupted,        $a0
     d_byte EndThis,          $37
-    d_byte Ethical,          $a0
     d_byte InsufficientData, $c0
+    d_byte IsThisEthical,    $40
     d_byte NoPower,          $67
     D_END
 .ENDPROC

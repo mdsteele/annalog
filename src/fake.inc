@@ -21,9 +21,10 @@
 ;;; room, as it happens).
 .ENUM eFake
     CoreDump
+    Corrupted
     EndThis
-    Ethical
     InsufficientData
+    IsThisEthical
     NoPower
     NUM_VALUES
 .ENDENUM
