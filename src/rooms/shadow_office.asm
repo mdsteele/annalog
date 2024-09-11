@@ -120,6 +120,10 @@ kLiftInitPlatformTop = kLiftMaxPlatformTop - kLiftInitGoalY * kBlockHeightPx
 .STRUCT sState
     ;; How many more frames until the fireball console can be activated again.
     FireballCooldown_u8 .byte
+    ;; How many more frames until the teleport count resets.
+    TeleportCooldown_u8 .byte
+    ;; How many times in a row the player avatar has teleported.
+    TeleportCount_u8 .byte
 .ENDSTRUCT
 .ASSERT .sizeof(sState) <= kRoomStateSize, error
 
@@ -330,6 +334,15 @@ _CoolDownFireball:
     beq @done
     dec Zp_RoomState + sState::FireballCooldown_u8
     @done:
+_CoolDownTeleport:
+    lda Zp_RoomState + sState::TeleportCooldown_u8
+    beq @resetTeleportCount
+    dec Zp_RoomState + sState::TeleportCooldown_u8
+    bne @done
+    @resetTeleportCount:
+    lda #0
+    sta Zp_RoomState + sState::TeleportCount_u8
+    @done:
 _MaybeTagGhost:
     ;; If the avatar isn't in the tag zone, don't tag the ghost.
     jsr Func_SetPointToAvatarCenter
@@ -458,14 +471,21 @@ _ShootFireball:
     dlg_Call _TeleportAvatar
     dlg_Done
 _TeleportAvatar:
+    inc Zp_RoomState + sState::TeleportCount_u8
+    lda #120
+    sta Zp_RoomState + sState::TeleportCooldown_u8
     jsr _SpawnPoofOnAvatar
     lda Zp_AvatarPosX_i16 + 0
     bpl @teleportRight
     @teleportLeft:
-    ;; TODO: If the player teleports a bunch of times in a row, instead
-    ;; teleport the avatar over the lava.
     ldx #$48
     ldy #$58
+    ;; If the player teleports a bunch of times in a row, instead teleport the
+    ;; avatar over the lava.
+    lda Zp_RoomState + sState::TeleportCount_u8
+    cmp #6
+    blt @setAvatarPos
+    ldx #$18
     bne @setAvatarPos  ; unconditional
     @teleportRight:
     ldx #$c8
