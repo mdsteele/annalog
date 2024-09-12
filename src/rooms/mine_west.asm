@@ -101,8 +101,8 @@ kCageMaxTop = kCageMaxBottom - (kCagePlatformHeight * 2 + kCageInteriorHeight)
 kCageShakeFrames = 15
 
 ;;; OBJ tile IDs for drawing the cage.
-kTileIdObjCageHandle = kTileIdObjMineCageFirst + 0
-kTileIdObjCageRods   = kTileIdObjMineCageFirst + 1
+kTileIdObjCageHandle = kTileIdObjMineCageFirst + 1
+kTileIdObjCageRods   = kTileIdObjMineCageFirst + 3
 
 ;;; OBJ palette numbers for drawing the cage.
 kPaletteObjCageHandle = 0

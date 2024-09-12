@@ -25,10 +25,13 @@
 .INCLUDE "../machine.inc"
 .INCLUDE "../machines/hoist.inc"
 .INCLUDE "../macros.inc"
+.INCLUDE "../oam.inc"
 .INCLUDE "../platform.inc"
+.INCLUDE "../platforms/girder.inc"
 .INCLUDE "../ppu.inc"
 .INCLUDE "../program.inc"
 .INCLUDE "../room.inc"
+.INCLUDE "mine_west.inc"
 
 .IMPORT DataA_Room_Mine_sTileset
 .IMPORT Data_Empty_sActor_arr
@@ -37,11 +40,13 @@
 .IMPORT FuncA_Machine_HoistTryMove
 .IMPORT FuncA_Machine_ReachedGoal
 .IMPORT FuncA_Objects_Draw1x1Shape
+.IMPORT FuncA_Objects_Draw2x2Shape
 .IMPORT FuncA_Objects_DrawGirderPlatform
 .IMPORT FuncA_Objects_DrawHoistMachine
 .IMPORT FuncA_Objects_DrawHoistPulley
 .IMPORT FuncA_Objects_DrawHoistRopeToPulley
 .IMPORT FuncA_Objects_MoveShapeLeftOneTile
+.IMPORT FuncA_Objects_MoveShapeRightOneTile
 .IMPORT FuncA_Objects_MoveShapeUpOneTile
 .IMPORT FuncA_Room_RemoveFlowerDeviceIfCarriedOrDelivered
 .IMPORT FuncA_Room_RespawnFlowerDeviceIfDropped
@@ -49,6 +54,7 @@
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrObjMine
 .IMPORT Ram_MachineGoalVert_u8_arr
+.IMPORT Ram_Oam_sObj_arr64
 .IMPORT Ram_PlatformTop_i16_0_arr
 
 ;;;=========================================================================;;;
@@ -65,19 +71,21 @@ kHoistEastPlatformIndex = 1
 ;;; Platform indices for the two pulleys.
 kPulleyWestPlatformIndex = 2
 kPulleyEastPlatformIndex = 3
-;;; The platform indices for the ceilings/floors of the cages.
-kCageWestUpperPlatformIndex = 4
-kCageWestLowerPlatformIndex = 5
-kCageEastUpperPlatformIndex = 6
-kCageEastLowerPlatformIndex = 7
+;;; The platform indices for the spikes/ceilings/floors of the cages.
+kCageWestSpikePlatformIndex = 4
+kCageWestUpperPlatformIndex = 5
+kCageWestLowerPlatformIndex = 6
+kCageEastSpikePlatformIndex = 7
+kCageEastUpperPlatformIndex = 8
+kCageEastLowerPlatformIndex = 9
 
 ;;; The width and height for each platform that makes up the cages.
 kCagePlatformWidth = kTileWidthPx * 2
-kCagePlatformHeight = kTileHeightPx
+kCagePlatformHeight = kTileHeightPx - 1
 
 ;;; The vertical distance, in pixels, between the tops of the upper and lower
 ;;; platforms in each cage.
-kCagePlatformSpacing = kCagePlatformHeight + $10
+kCagePlatformSpacing = $18
 
 ;;; The room pixel X-positions of the left sides of the cages.
 kCageWestPlatformLeft = $80
@@ -205,6 +213,14 @@ _Platforms_sPlatform_arr:
     d_word Left_i16,  $0098
     d_word Top_i16,   $0060
     D_END
+    .assert * - :- = kCageWestSpikePlatformIndex * .sizeof(sPlatform), error
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Harm
+    d_word WidthPx_u16, kCagePlatformWidth - 2
+    d_byte HeightPx_u8, kCagePlatformHeight
+    d_word Left_i16, kCageWestPlatformLeft + 1
+    d_word Top_i16, kCageWestInitTop - 2
+    D_END
     .assert * - :- = kCageWestUpperPlatformIndex * .sizeof(sPlatform), error
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Solid
@@ -220,6 +236,14 @@ _Platforms_sPlatform_arr:
     d_byte HeightPx_u8, kCagePlatformHeight
     d_word Left_i16, kCageWestPlatformLeft
     d_word Top_i16, kCageWestInitTop + kCagePlatformSpacing
+    D_END
+    .assert * - :- = kCageEastSpikePlatformIndex * .sizeof(sPlatform), error
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Harm
+    d_word WidthPx_u16, kCagePlatformWidth - 2
+    d_byte HeightPx_u8, kCagePlatformHeight
+    d_word Left_i16, kCageEastPlatformLeft + 1
+    d_word Top_i16, kCageEastInitTop - 2
     D_END
     .assert * - :- = kCageEastUpperPlatformIndex * .sizeof(sPlatform), error
     D_STRUCT sPlatform
@@ -295,10 +319,8 @@ _Passages_sPassage_arr:
     ldx #kPulleyWestPlatformIndex  ; param: platform index
     ldy Ram_PlatformTop_i16_0_arr + kCageWestUpperPlatformIndex  ; param: rope
     jsr FuncA_Objects_DrawHoistPulley
-    ldx #kCageWestUpperPlatformIndex  ; param: platform index
-    jsr FuncA_Objects_DrawGirderPlatform
     ldx #kCageWestLowerPlatformIndex  ; param: platform index
-    jsr FuncC_Mine_Flower_DrawCageBottom
+    jsr FuncC_Mine_Flower_DrawCage
     ldx #kPulleyWestPlatformIndex  ; param: platform index
     jsr FuncA_Objects_DrawHoistRopeToPulley
     lda Ram_PlatformTop_i16_0_arr + kCageWestUpperPlatformIndex  ; param: rope
@@ -309,25 +331,38 @@ _Passages_sPassage_arr:
     ldx #kPulleyEastPlatformIndex  ; param: platform index
     ldy Ram_PlatformTop_i16_0_arr + kCageEastUpperPlatformIndex  ; param: rope
     jsr FuncA_Objects_DrawHoistPulley
-    ldx #kCageEastUpperPlatformIndex  ; param: platform index
-    jsr FuncA_Objects_DrawGirderPlatform
     ldx #kCageEastLowerPlatformIndex  ; param: platform index
-    jsr FuncC_Mine_Flower_DrawCageBottom
+    jsr FuncC_Mine_Flower_DrawCage
     ldx #kPulleyEastPlatformIndex  ; param: platform index
     jsr FuncA_Objects_DrawHoistRopeToPulley
     lda Ram_PlatformTop_i16_0_arr + kCageEastUpperPlatformIndex  ; param: rope
     jmp FuncA_Objects_DrawHoistMachine
 .ENDPROC
 
-;;; Draws the bottom platform for one of the cages in this room, and the rope
-;;; connecting it to the upper platform, and leaves the shape position ready to
-;;; feed into FuncA_Objects_DrawHoistRopeToPulley.
+;;; Draws the girder platforms, connecting rope, and spikes for one of the
+;;; cages in this room, and leaves the shape position ready to feed into
+;;; FuncA_Objects_DrawHoistRopeToPulley.
 ;;; @param X The platform index for the lower platform of the cage.
-.PROC FuncC_Mine_Flower_DrawCageBottom
+.PROC FuncC_Mine_Flower_DrawCage
+    ;; Draw lower girder:
     jsr FuncA_Objects_DrawGirderPlatform
-    jsr FuncA_Objects_MoveShapeLeftOneTile
-    jsr FuncA_Objects_MoveShapeUpOneTile
+    ;; Draw connecting rope:
+    jsr _MoveUpLeft
     jsr _DrawRope
+    jsr _DrawRope
+    jsr FuncA_Objects_MoveShapeRightOneTile
+    ;; Draw upper girder and spikes:
+    ldy #kPaletteObjHoistRope  ; param: object flags
+    lda #kTileIdObjMineCageFirst  ; param: tile ID
+    jsr FuncA_Objects_Draw2x2Shape  ; returns C and Y
+    bcs @done
+    lda #kTileIdObjPlatformGirder
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Tile_u8, y
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Tile_u8, y
+    @done:
+_MoveUpLeft:
+    jsr FuncA_Objects_MoveShapeLeftOneTile
+    jmp FuncA_Objects_MoveShapeUpOneTile
 _DrawRope:
     ldy #kPaletteObjHoistRope  ; param: object flags
     lda #kTileIdObjHoistRopeVert  ; param: tile ID
@@ -365,6 +400,10 @@ _DrawRope:
     ldya #kCageWestMinTop  ; param: min platform top
     jsr FuncA_Machine_HoistMoveTowardGoal  ; returns C and A
     jcs FuncA_Machine_ReachedGoal
+    pha  ; move by
+    ldx #kCageWestSpikePlatformIndex  ; param: platform index
+    jsr Func_MovePlatformVert
+    pla  ; param: move by
     ldx #kCageWestLowerPlatformIndex  ; param: platform index
     jmp Func_MovePlatformVert
 .ENDPROC
@@ -379,6 +418,10 @@ _DrawRope:
     ldya #kCageEastMinTop  ; param: min platform top
     jsr FuncA_Machine_HoistMoveTowardGoal  ; returns C and A
     jcs FuncA_Machine_ReachedGoal
+    pha  ; move by
+    ldx #kCageEastSpikePlatformIndex  ; param: platform index
+    jsr Func_MovePlatformVert
+    pla  ; param: move by
     ldx #kCageEastLowerPlatformIndex  ; param: platform index
     jmp Func_MovePlatformVert
 .ENDPROC

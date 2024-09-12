@@ -1352,7 +1352,7 @@ _chr_begin:
     chr_res $03
     chr_inc "hoist_obj",       kTileIdObjHoistFirst
     chr_inc "mine_cage",       kTileIdObjMineCageFirst
-    chr_res $0e
+    chr_res $0c
     chr_inc "upgrade_opsync",  kTileIdObjUpgradeOpSyncFirst
     chr_inc "fireblast",       kTileIdObjFireblastFirst
     chr_inc "bad_grub",        kTileIdObjBadGrubFirst
