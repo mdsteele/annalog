@@ -155,7 +155,9 @@ int main(int argc, char **argv) {
     read_u8("sample");
     --wav_samples_remaining;
   }
-  expect_eof();
+  if (num_wav_samples % 2 == 1) {
+    read_u8("padding");
+  }
 
   fprintf(stderr, "    sample_rate           = %d Hz\n", sample_rate);
   fprintf(stderr, "    num_wav_samples       = $%04lx (%4d ms)\n",
@@ -167,6 +169,8 @@ int main(int argc, char **argv) {
   fprintf(stderr, "    wav_samples_discarded = $%04lx (%4d ms)\n",
           wav_samples_discarded,
           (int)(1000 * (double)wav_samples_discarded / (double)sample_rate));
+  expect_eof();
+
   return EXIT_SUCCESS;
 }
 

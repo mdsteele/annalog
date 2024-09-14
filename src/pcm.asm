@@ -28,7 +28,7 @@
 .EXPORT DataA_Pcm0_Well_arr
 .PROC DataA_Pcm0_Well_arr
 :   .assert * = $a000, error
-    .incbin "out/pcm/maybe_this_time.pcm"  ; TODO
+    .incbin "out/pcm/well.pcm"
     .assert * - :- = $2000, error
 .ENDPROC
 
@@ -50,7 +50,7 @@
 .EXPORT DataA_Pcm2_WillBeDifferent_arr
 .PROC DataA_Pcm2_WillBeDifferent_arr
 :   .assert * = $a000, error
-    .incbin "out/pcm/maybe_this_time.pcm"  ; TODO
+    .incbin "out/pcm/will_be_different.pcm"
     .assert * - :- = $2000, error
 .ENDPROC
 
