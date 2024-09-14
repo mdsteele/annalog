@@ -501,10 +501,9 @@ _BlinkBreakableGlass:
     stx T4  ; bullet actor index
     ldx Zp_RoomState + sState::BreakableGlassHits_u8_arr2, y
     inx
-    txa
-    sta Zp_RoomState + sState::BreakableGlassHits_u8_arr2, y
+    stx Zp_RoomState + sState::BreakableGlassHits_u8_arr2, y
     ;; Check if the glass is broken yet.
-    cmp #kNumHitsToBreakGlass
+    cpx #kNumHitsToBreakGlass
     bge _Broken
 _NotBroken:
     jsr FuncA_Room_PlaySfxCrack  ; preserves T0+

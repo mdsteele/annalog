@@ -97,8 +97,7 @@ _SoundFinished:
 .EXPORT Func_PlaySfxSequence
 .PROC Func_PlaySfxSequence
     sta Zp_Next_sChanSfx_arr + sChanSfx::Param1_byte, x
-    tya
-    sta Zp_Next_sChanSfx_arr + sChanSfx::Param2_byte, x
+    sty Zp_Next_sChanSfx_arr + sChanSfx::Param2_byte, x
     lda #0
     sta Zp_Next_sChanSfx_arr + sChanSfx::Timer_u8, x
     lda #eSound::Sequence

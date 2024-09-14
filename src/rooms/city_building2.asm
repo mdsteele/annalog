@@ -171,8 +171,9 @@ _Devices_sDevice_arr:
     @loop:
     jsr Func_GetRandomByte  ; preserves X, returns A
     and #$03
-    add #1
-    sta Zp_RoomState + sCityCenterState::Key_u8_arr, x
+    tay
+    iny
+    sty Zp_RoomState + sCityCenterState::Key_u8_arr, x
     dex
     bpl @loop
     inx  ; now X is zero

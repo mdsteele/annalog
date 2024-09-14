@@ -256,8 +256,7 @@ _ReadX:
     beq @error
     dex
     @success:
-    txa
-    sta Zp_RoomState + sState::MultiplexerGoalHorz_u8_arr, y
+    stx Zp_RoomState + sState::MultiplexerGoalHorz_u8_arr, y
     jmp FuncA_Machine_StartWorking
     @error:
     jmp FuncA_Machine_Error
