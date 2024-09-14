@@ -20,6 +20,7 @@
 ;;; Music songs that can be played.
 .ENUM eMusic
     Silence
+    Attack
     Boss1
     Boss2
     Calm

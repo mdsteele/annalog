@@ -30,6 +30,7 @@
 .IMPORT DataC_Temple_TemplePlaceholder_sMusic
 .IMPORT DataC_Title_Credits_sMusic
 .IMPORT DataC_Title_Title_sMusic
+.IMPORT DataC_Town_Attack_sMusic
 .IMPORT Data_Calm_sMusic
 .IMPORT Data_Empty_bMusic_arr
 .IMPORT Data_Upgrade_sMusic
@@ -46,6 +47,7 @@
     D_TABLE_HI table, Data_Music_sMusic_ptr_1_arr
     D_TABLE .enum, eMusic
     d_entry table, Silence, Data_Silence_sMusic
+    d_entry table, Attack,  DataC_Town_Attack_sMusic
     d_entry table, Boss1,   DataC_Boss_BossPlaceholder_sMusic
     d_entry table, Boss2,   DataC_Core_Boss2_sMusic
     d_entry table, Calm,    Data_Calm_sMusic

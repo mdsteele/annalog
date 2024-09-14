@@ -270,25 +270,8 @@ Zp_RoomState: .res kRoomStateSize
 ;;; @param Y The eMusic value for the music to play in the new room.
 .EXPORT FuncM_SwitchPrgcAndLoadRoomWithMusic
 .PROC FuncM_SwitchPrgcAndLoadRoomWithMusic
-_ChangeMusicIfNeeded:
-    ;; If the music will be different in the new room, then we need to disable
-    ;; audio before performing the PRGC bank switch (since the old music may be
-    ;; in the old PRGC bank).
-    cpy Zp_Next_sAudioCtrl + sAudioCtrl::Music_eMusic
-    beq @done
-    sty Zp_Next_sAudioCtrl + sAudioCtrl::Music_eMusic
-    lda #0
-    sta Zp_Next_sAudioCtrl + sAudioCtrl::Enable_bool
-    txa  ; eRoom to load
-    pha  ; eRoom to load
-    jsr Func_ProcessFrame
-    lda #$ff
-    sta Zp_Next_sAudioCtrl + sAudioCtrl::Enable_bool
-    pla  ; eRoom to load
-    tax  ; eRoom to load
-    @done:
-_LoadNewRoom:
     main_prga_bank DataA_Room_Banks_u8_arr
+    jsr FuncA_Room_ChangeMusicIfNeeded  ; preserves X
     main_prgc DataA_Room_Banks_u8_arr, x
     jmp FuncA_Room_Load
 .ENDPROC
@@ -645,6 +628,30 @@ _PrisonMusic:
     d_byte TownHouse6,      eMusic::Silence
     d_byte TownOutdoors,    eMusic::Silence
     D_END
+.ENDPROC
+
+;;; If the specified music is different than what's currently playing, disables
+;;; the audio system (processing an extra frame to do so), then sets up
+;;; Zp_Next_sAudioCtrl to re-enable the audio system and play the new music
+;;; next frame.
+;;; @prereq Rendering is disabled.
+;;; @param Y The eMusic value for the music to play in the new room.
+;;; @preserve X
+.PROC FuncA_Room_ChangeMusicIfNeeded
+    cpy Zp_Next_sAudioCtrl + sAudioCtrl::Music_eMusic
+    beq @done
+    lda #0
+    sta Zp_Next_sAudioCtrl + sAudioCtrl::Enable_bool
+    sty T1  ; eMusic to play
+    stx T0
+    jsr Func_ProcessFrame  ; preserves T0+
+    ldx T0
+    lda #$ff
+    sta Zp_Next_sAudioCtrl + sAudioCtrl::Enable_bool
+    lda T1  ; eMusic to play
+    sta Zp_Next_sAudioCtrl + sAudioCtrl::Music_eMusic
+    @done:
+    rts
 .ENDPROC
 
 ;;; Loads and initializes data for the specified room.

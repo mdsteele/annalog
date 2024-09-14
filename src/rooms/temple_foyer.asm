@@ -232,7 +232,7 @@ _Passages_sPassage_arr:
 
 .PROC FuncC_Temple_Foyer_EnterRoom
     ;; Clear the music flag.
-    lda #bMusic::UsesFlag
+    lda #bMusic::UsesFlag | 0
     sta Zp_Next_sAudioCtrl + sAudioCtrl::MusicFlag_bMusic
     ;; Remove the upgrade if it's already been collected.
     flag_bit Sram_ProgressFlags_arr, kUpgradeFlag

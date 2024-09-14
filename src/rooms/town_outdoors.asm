@@ -21,6 +21,7 @@
 .INCLUDE "../actors/adult.inc"
 .INCLUDE "../actors/child.inc"
 .INCLUDE "../actors/orc.inc"
+.INCLUDE "../audio.inc"
 .INCLUDE "../avatar.inc"
 .INCLUDE "../cpu.inc"
 .INCLUDE "../cutscene.inc"
@@ -29,6 +30,7 @@
 .INCLUDE "../irq.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../mmc3.inc"
+.INCLUDE "../music.inc"
 .INCLUDE "../oam.inc"
 .INCLUDE "../platform.inc"
 .INCLUDE "../portrait.inc"
@@ -86,6 +88,7 @@
 .IMPORTZP Zp_Camera_bScroll
 .IMPORTZP Zp_NextIrq_int_ptr
 .IMPORTZP Zp_Next_eCutscene
+.IMPORTZP Zp_Next_sAudioCtrl
 .IMPORTZP Zp_PpuScrollX_u8
 .IMPORTZP Zp_RoomScrollX_u16
 .IMPORTZP Zp_RoomScrollY_u8
@@ -309,6 +312,8 @@ _DetectAvatarDeath:
     lda #0
     sta Zp_AvatarHarmTimer_u8
     jsr Func_HarmAvatar
+    lda #bMusic::UsesFlag | bMusic::FlagMask
+    sta Zp_Next_sAudioCtrl + sAudioCtrl::MusicFlag_bMusic
     lda #eCutscene::TownOutdoorsGetCaught
     sta Zp_Next_eCutscene
     @done:
@@ -395,6 +400,7 @@ _AlexStanding:
     dlg_Text ChildAlex, DataA_Text0_TownOutdoorsAlex3_WhaWhat_u8_arr
     dlg_Call _RaiseGrontaArms
     dlg_Text OrcGrontaShout, DataA_Text0_TownOutdoorsAlex3_Attack1_u8_arr
+    dlg_Call _StartAttackMusic
     dlg_Text ChildAlexShout, DataA_Text0_TownOutdoorsAlex3_Attack2_u8_arr
     dlg_Call _MakeOrcGruntsJump
     dlg_Done
@@ -411,6 +417,12 @@ _TurnKidsAround:
 _RaiseGrontaArms:
     lda #eNpcOrc::GrontaArmsRaised
     sta Ram_ActorState1_byte_arr + kGrontaActorIndex
+    rts
+_StartAttackMusic:
+    lda #eMusic::Attack
+    sta Zp_Next_sAudioCtrl + sAudioCtrl::Music_eMusic
+    lda #bMusic::UsesFlag | 0
+    sta Zp_Next_sAudioCtrl + sAudioCtrl::MusicFlag_bMusic
     rts
 _MakeOrcGruntsJump:
     lda #30

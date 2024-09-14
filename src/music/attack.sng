@@ -1,0 +1,42 @@
+@PRGC_Town
+
+!DPCM K Data_SampleKickDrum_arr657 657
+
+!SONG Attack "aA ?1b A ?1b A bB ?0a C"
+
+=tempo q28
+=key 3#  % F# minor
+
+!INST 1A PulseBasic   $0c d3/4
+!INST 1E PulseBasic   $0a d1/8  % echo 1
+!INST 1F PulseBasic   $07 d1/8  % echo 2
+!INST 1G PulseBasic   $04 d1/8  % echo 3
+!INST 2A PulseBasic   $0c d1/8
+!INST 2B Constant     $0a d1/8
+!INST TK TriangleDrum $20       % kick drum
+!INST ND Staccato     $0c
+!INST DK Constant     $4e       % kick drum
+
+!PART A
+
+1| p(iA c5e c  ' ds de ds)1A ' c5e c  ' dq |
+2| p(iA c4e c  ' ds de ds)2A ' c4e c  ' dq |
+T| iK c4e re ' e4e re :2 |
+N| iD x1e x6 ' x3s x3e x3s :2 |
+D| p(iK sK13h)DK :2 |
+
+!PART B
+
+1| p1A '    f5s fN e d ' c bv a g |
+2| p2A ' iB f4s fN e d ' c bv a g |
+T=:AT
+N=:AN
+D=:AD
+
+!PART C
+
+1| iA f4e re ' iE f3e re ' iF f3e re ' iG f3e |
+2| iB f3e '
+T| iK c4e '
+N| iD xAe '
+D| pDK    '

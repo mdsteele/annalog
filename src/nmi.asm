@@ -159,6 +159,10 @@ _DoneUpdatingPpu:
     stax Zp_NextIrq_int_ptr
     ;; Everything up until this point *must* finish before VBlank ends, while
     ;; everything after this point is safe to extend past the VBlank period.
+    ;; Just in case it does, we'll re-enable IRQs for the remainder of this NMI
+    ;; handler, so that HBlank interrupts can still happen while we're working
+    ;; on e.g. audio processing.
+    cli
 _AfterVBlank:
     ;; These updates should only happen this frame if the main thread was ready
     ;; for this NMI, but unlike the above, they don't need to happen during

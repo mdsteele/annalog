@@ -266,18 +266,11 @@ _CopyMusicStruct:
     .assert .sizeof(sMusic) <= $80, error
     bpl @loop
 _ResetChannels:
-    ldx #0
-    stx Zp_MusicOpcodeIndex_u8
-    @loop:
-    lda #<Data_Empty_bChain_arr
-    sta Zp_Music_sChanNext_arr + sChanNext::Next_bChain_ptr + 0, x
-    lda #>Data_Empty_bChain_arr
-    sta Zp_Music_sChanNext_arr + sChanNext::Next_bChain_ptr + 1, x
-    lda #<Data_Empty_sPhrase
-    sta Zp_Music_sChanNext_arr + sChanNext::PhraseNext_ptr + 0, x
-    lda #>Data_Empty_sPhrase
-    sta Zp_Music_sChanNext_arr + sChanNext::PhraseNext_ptr + 1, x
     lda #0
+    sta Zp_MusicOpcodeIndex_u8
+    tax  ; now X is zero
+    @loop:
+    ;; At this point, A is still zero.
     sta Ram_Music_sChanNote_arr + sChanNote::ElapsedFrames_u8, x
     sta Ram_Music_sChanNote_arr + sChanNote::DurationFrames_u8, x
     sta Ram_Music_sChanNote_arr + sChanNote::TimerLo_byte, x
@@ -285,6 +278,13 @@ _ResetChannels:
     sta Ram_Music_sChanInst_arr + sChanInst::Instrument_eInst, x
     sta Ram_Music_sChanInst_arr + sChanInst::Param_byte, x
     sta Ram_Music_sChanInst_arr + sChanInst::RepeatCount_u8, x
+    .assert Data_Empty_bChain_arr = Data_Empty_sPhrase, error
+    ldy #<Data_Empty_bChain_arr
+    sty Zp_Music_sChanNext_arr + sChanNext::Next_bChain_ptr + 0, x
+    sty Zp_Music_sChanNext_arr + sChanNext::PhraseNext_ptr + 0, x
+    ldy #>Data_Empty_bChain_arr
+    sty Zp_Music_sChanNext_arr + sChanNext::Next_bChain_ptr + 1, x
+    sty Zp_Music_sChanNext_arr + sChanNext::PhraseNext_ptr + 1, x
     .repeat .sizeof(sChanNext)
     inx
     .endrepeat
