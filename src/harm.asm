@@ -103,7 +103,7 @@ _SetVelX:
     sta Zp_AvatarFlags_bObj
     lda #kAvatarHarmDeath
     sta Zp_AvatarHarmTimer_u8
-    .assert * = Func_DropFlower, error, "fallthrough"
+    fall Func_DropFlower  ; preserves X, Y, and T0+
 .ENDPROC
 
 ;;; If the player avatar is carrying a flower, drops the flower.  Otherwise,

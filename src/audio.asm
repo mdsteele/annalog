@@ -303,7 +303,7 @@ _ResetChannels:
     rts
 _Enabled:
     jsr Func_AudioContinueAllSfx
-    .assert * = Func_AudioContinueMusic, error, "fallthrough"
+    fall Func_AudioContinueMusic
 .ENDPROC
 
 ;;; Continues playing the current music.
@@ -674,7 +674,7 @@ _SoundFinished:
     lda #eSound::None
     sta Ram_Sound_sChanSfx_arr + sChanSfx::Sfx_eSound, x
     ;; Disable the channel.
-    .assert * = Func_DisableCurrentChannel, error, "fallthrough"
+    fall Func_DisableCurrentChannel  ; preserves X
 .ENDPROC
 
 ;;; Disables the current APU channel.

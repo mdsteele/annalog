@@ -32,7 +32,7 @@
 .EXPORT Func_Cosine
 .PROC Func_Cosine
     add #$40
-    .assert * = Func_Sine, error, "fallthrough"
+    fall Func_Sine
 .ENDPROC
 
 ;;; Computes the sine of an angle.

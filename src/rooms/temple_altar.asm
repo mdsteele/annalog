@@ -551,7 +551,7 @@ _MoveToUpperRight:
 _MoveToLowerRight:
     lda #eResetSeq::LowerRight
     sta Zp_RoomState + sState::LowerMinigun_eResetSeq
-    .assert * = FuncC_Temple_AltarLowerMinigun_Init, error, "fallthrough"
+    fall FuncC_Temple_AltarLowerMinigun_Init
 .ENDPROC
 
 .PROC FuncC_Temple_AltarLowerMinigun_Init

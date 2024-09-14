@@ -466,7 +466,7 @@ _MoveHorz:
 _Finished:
     lda Zp_RoomState + sState::WinchReset_eResetSeq
     jeq FuncA_Machine_WinchReachedGoal
-    .assert * = FuncC_Crypt_SouthWinch_Reset, error, "fallthrough"
+    fall FuncC_Crypt_SouthWinch_Reset
 .ENDPROC
 
 .PROC FuncC_Crypt_SouthWinch_Reset

@@ -65,7 +65,7 @@ Zp_PointY_i16: .res 2
 .PROC Func_MovePointLeftByA
     eor #$ff  ; param: negative offset
     sec  ; param: carry bit
-    .assert * = Func_MovePointHorzNegative, error, "fallthrough"
+    fall Func_MovePointHorzNegative  ; preserves X, Y, and T0+
 .ENDPROC
 
 ;;; Helper function for Func_MovePointHorz and Func_MovePointLeftByA.
@@ -113,7 +113,7 @@ Zp_PointY_i16: .res 2
 .PROC Func_MovePointUpByA
     eor #$ff  ; param: negative offset
     sec  ; param: carry bit
-    .assert * = Func_MovePointVertNegative, error, "fallthrough"
+    fall Func_MovePointVertNegative  ; preserves X, Y, and T0+
 .ENDPROC
 
 ;;; Helper function for Func_MovePointVert and Func_MovePointUpByA.

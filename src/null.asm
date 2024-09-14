@@ -27,44 +27,26 @@
 .SEGMENT "PRG8"
 
 ;;; An empty sActor array (that is immediately terminated by eActor::None).
-.EXPORT Data_Empty_sActor_arr
-.PROC Data_Empty_sActor_arr
-    .assert eActor::None = 0, error
-    .assert * = Data_Zero_u8, error, "fallthrough"
-.ENDPROC
+.EXPORT Data_Empty_sActor_arr := Data_Zero_u8
+.ASSERT eActor::None = 0, error
 
 ;;; A music chain that contains nothing but a HALT ($00) item.
-.EXPORT Data_Empty_bChain_arr
-.PROC Data_Empty_bChain_arr
-    .assert * = Data_Zero_u8, error, "fallthrough"
-.ENDPROC
+.EXPORT Data_Empty_bChain_arr := Data_Zero_u8
 
 ;;; An empty sDevice array (that is immediately terminated by eDevice::None).
-.EXPORT Data_Empty_sDevice_arr
-.PROC Data_Empty_sDevice_arr
-    .assert eDevice::None = 0, error
-    .assert * = Data_Zero_u8, error, "fallthrough"
-.ENDPROC
+.EXPORT Data_Empty_sDevice_arr := Data_Zero_u8
+.ASSERT eDevice::None = 0, error
 
 ;;; A music opcode array that contains nothing but a STOP ($00) opcode.
-.EXPORT Data_Empty_bMusic_arr
-.PROC Data_Empty_bMusic_arr
-    .assert * = Data_Zero_u8, error, "fallthrough"
-.ENDPROC
+.EXPORT Data_Empty_bMusic_arr := Data_Zero_u8
 
 ;;; A sPhrase struct that contains nothing but a DONE ($00) note.
-.EXPORT Data_Empty_sPhrase
-.PROC Data_Empty_sPhrase
-    .assert * = Data_Zero_u8, error, "fallthrough"
-.ENDPROC
+.EXPORT Data_Empty_sPhrase := Data_Zero_u8
 
 ;;; An empty sPlatform array (that is immediately terminated by
 ;;; ePlatform::None).
-.EXPORT Data_Empty_sPlatform_arr
-.PROC Data_Empty_sPlatform_arr
-    .assert ePlatform::None = 0, error
-    .assert * = Data_Zero_u8, error, "fallthrough"
-.ENDPROC
+.EXPORT Data_Empty_sPlatform_arr := Data_Zero_u8
+.ASSERT ePlatform::None = 0, error
 
 ;;; A byte that is zero, which can serve as a null value for all of the above
 ;;; exported symbols.

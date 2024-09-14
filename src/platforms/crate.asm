@@ -57,7 +57,7 @@ kPaletteObjPlatformStack = 0
 .EXPORT FuncA_Objects_DrawCratePlatform
 .PROC FuncA_Objects_DrawCratePlatform
     lda #kTileIdObjCrateFirst  ; param: first tile ID
-    .assert * = FuncA_Objects_Draw2x2PlatformStack, error, "fallthrough"
+    fall FuncA_Objects_Draw2x2PlatformStack
 .ENDPROC
 
 ;;; Draws a platform that is a stack of one or more 2x2 shapes.  The
