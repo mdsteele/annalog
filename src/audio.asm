@@ -168,7 +168,8 @@ Ram_Sound_sChanSfx_arr: .res .sizeof(sChanSfx) * kNumApuChannels
     sta Zp_AudioEnabled_bool
     sta Zp_MusicFlag_bMusic
 _HaltMusic:
-    ldx #eMusic::Silence  ; param: eMusic to play
+    .assert eMusic::Silence = 0, error
+    tax  ; param: eMusic to play (A is zero, so this is eMusic::Silence)
     jsr Func_AudioRestartMusic
 _HaltSfx:
     lda #0

@@ -29,7 +29,7 @@
 ;;;=========================================================================;;;
 
 kVersion       = 1      ; version number; 1 = NSF, 2 = NSF2
-kNumSongs      = eMusic::NUM_VALUES
+kNumSongs      = eMusic::NUM_VALUES - 1  ; (exclude eMusic::Silence)
 kFirstSong     = 1
 kDataLoadAddr  = $8000
 kDataInitAddr  = Func_NsfInit
@@ -89,7 +89,10 @@ kSoundChip     = 0      ; 0 = no extra sound chips
     pha  ; song number
     jsr Func_AudioReset
     pla  ; song number
-    sta Zp_Next_sAudioCtrl + sAudioCtrl::Music_eMusic
+    tay  ; song number
+    .assert eMusic::Silence = 0, error
+    iny
+    sty Zp_Next_sAudioCtrl + sAudioCtrl::Music_eMusic
     lda #$ff
     sta Zp_Next_sAudioCtrl + sAudioCtrl::Enable_bool
     sta Zp_Next_sAudioCtrl + sAudioCtrl::MasterVolume_u8
