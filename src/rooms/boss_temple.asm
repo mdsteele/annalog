@@ -188,7 +188,7 @@ kBossInitBottomY = kBossInitTopY + kBossBodyHeightPx
 
 ;;; How many frames the boss waits, after you first enter the room, before
 ;;; taking action.
-kBossInitCooldown = 120
+kBossInitCooldown = 160
 ;;; How many frames it takes for an eye to fully open or close.
 .DEFINE kBossEyeOpenFrames 15
 ;;; How many frames the boss pauses for between all boss projectiles expiring

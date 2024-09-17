@@ -1,64 +1,79 @@
 @PRGC_Boss
 
-!SONG BossPlaceholder "A|BCCADDEEFFEEMMAB"
+!DPCM K Data_SampleKickDrum_arr657 657
+
+!SONG Boss1 "A|BCCADDEEFFEEGGAB"
 
 =tempo q28
 =key 3#  % F# minor
 
-!INST 1D PulseBasic $0c d3/4
-!INST 2D PulseBasic $0c d1/8
-!INST TB TriangleVibrato
-!INST ND Staccato   $0c
+!INST 1A PulseVibrato $0a d3/4
+!INST 1B PulseVibrato $08 d3/4
+!INST 2A PulseVibrato $0a d1/8
+!INST 2B PulseVibrato $08 d1/8
+!INST TB Constant     $ff       % bass
+!INST TK TriangleDrum $20       % kick drum
+!INST ND Staccato     $0b       % drum
+!INST DK Constant     $4e       % kick drum
 
 !PART A
 
-1| iD c5e c  ' ds de ds :4 |
-2| iD c4e c  ' ds de ds :4 |
-T| iB f4q    ' c        :4 |
-N| p(iD x1e x6 ' x3s x3e x3s)NA :4 |
+1| iA c5e c  ' ds de ds :4 |
+2| iA c4e c  ' ds de ds :4 |
+T| p(iK d4s d d d ' fNe re)TA :4 |
+N| p(iD x3e x9 ' x5s x5e x5s)NA :4 |
+D| p(iK sK13q)DA :8 |
 
 !PART B
 
-T| p(iB f3e c)3B ' p3B ' p3B ' p3B | p3B ' p3B ' p3B ' p3B |
+T| p(iK d4e iB f3e ' iK d4e iB c3e)TB :4 |
 N=:AN
+D=:AD
 
 !PART C
 
-2| iD re f3 ' g a ' b as g ' ae f |
+2| iB re f3 ' g a ' b as g ' ae f |
  | a3e fs e ' fe c ' g e ' fq |
 T=:BT
 N=:AN
+D=:BD
 
 !PART D
 
-2| iD re f4 ' g a ' b as g ' ae f |
+2| iB re f4 ' g a ' b as g ' ae f |
  | a4e gs f ' ge e ' g e# ' fq |
 T=:BT
 N=:AN
+D=:BD
 
 !PART E
 
-1| iD rq ' c4q ' f ' c |
+1| iB rq ' c4q ' f ' c |
 2=:C2
 T=:CT
 N=:CN
+D=:CD
 
 !PART F
 
-1| iD rq    ' rq ' f5e gs a ' ge e |
+1| iB rq    ' rq ' f5e gs a ' ge e |
  | g5s g ee ' fq '
 2=:D2
 T=:DT
 N=:DN
+D=:DD
 
-!PART M
+!PART G
 
 1| f3q r f r | f3q r g r |
  | a3q c4 a3 d4 | a3q f e# g |
-2| p(f4s f  f  f)2M  ' a4q ' p2M  ' bq |
- | p2M  ' c5e a4 ' d5 b4 ' c5 e#4 |
- | p2M  ' a4e f ' p2M  ' be f |
- | p2M  ' c5s d c b4 ' a b a g ' c5 b4 a g |
-T| f3e c ' a  c  ' f c ' b c |
- | f3e c ' c4 a3 ' f c ' f c :2 |
+2| p(f4s f  f  f)2G  ' a4q ' p2G  ' bq |
+ | p2G  ' c5e a4 ' d5 b4 ' c5 e#4 |
+ | p2G  ' a4e f ' p2G  ' be f |
+ | p2G  ' c5s d c b4 ' a b a g ' c5 b4 a g |
+T| pTA ' pTA |
+ | p(iK d4s d d d ' fNe de ' fNe de ' fNe de)TG |
+ | pTA ' pTA |
+ | pTG |
 N| pNA :8 |
+D| pDA :16 |

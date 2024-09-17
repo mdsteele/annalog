@@ -7,14 +7,14 @@
 =tempo q28
 =key 3#  % F# minor
 
-!INST 1A PulseBasic   $0c d3/4
-!INST 1E PulseBasic   $0a d1/8  % echo 1
-!INST 1F PulseBasic   $07 d1/8  % echo 2
-!INST 1G PulseBasic   $04 d1/8  % echo 3
-!INST 2A PulseBasic   $0c d1/8
+!INST 1A PulseVibrato $0a d3/4
+!INST 1E PulseVibrato $08 d1/8  % echo 1
+!INST 1F PulseVibrato $06 d1/8  % echo 2
+!INST 1G PulseVibrato $04 d1/8  % echo 3
+!INST 2A PulseVibrato $0a d1/8
 !INST 2B Constant     $0a d1/8
 !INST TK TriangleDrum $20       % kick drum
-!INST ND Staccato     $0c
+!INST ND Staccato     $0b
 !INST DK Constant     $4e       % kick drum
 
 !PART A
@@ -22,7 +22,7 @@
 1| p(iA c5e c  ' ds de ds)1A ' c5e c  ' dq |
 2| p(iA c4e c  ' ds de ds)2A ' c4e c  ' dq |
 T| iK c4e re ' e4e re :2 |
-N| iD x1e x6 ' x3s x3e x3s :2 |
+N| iD x3e x9 ' x5s x5e x5s :2 |
 D| p(iK sK13h)DK :2 |
 
 !PART B

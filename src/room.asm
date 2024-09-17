@@ -463,8 +463,8 @@ _BossMusic:
     bne @bossDead
     @bossAlive:
     ldy #eMusic::Boss1
-    .assert eMusic::Boss1 > 0, error
-    bne @setMusic  ; unconditional
+    .assert eMusic::Boss1 < $80, error
+    bpl @setMusic  ; unconditional
     @bossDead:
     ldy #eMusic::Calm
     @setMusic:

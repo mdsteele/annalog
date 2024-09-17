@@ -115,7 +115,7 @@ kBossInitHealthPerEye = 4
 
 ;;; How many frames the boss waits, after you first enter the room, before
 ;;; taking action.
-kBossInitCooldown = 120
+kBossInitCooldown = 160
 ;;; How many frames to wait between spikes when the boss is in Angry mode.
 kBossAngrySpikeCooldown = 15
 ;;; How many frames to wait between fireballs when the boss is in Shoot mode.

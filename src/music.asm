@@ -20,7 +20,7 @@
 .INCLUDE "macros.inc"
 .INCLUDE "music.inc"
 
-.IMPORT DataC_Boss_BossPlaceholder_sMusic
+.IMPORT DataC_Boss_Boss1_sMusic
 .IMPORT DataC_Core_Boss2_sMusic
 .IMPORT DataC_Crypt_Crypt_sMusic
 .IMPORT DataC_Garden_Garden_sMusic
@@ -48,7 +48,7 @@
     D_TABLE .enum, eMusic
     d_entry table, Silence, Data_Silence_sMusic
     d_entry table, Attack,  DataC_Town_Attack_sMusic
-    d_entry table, Boss1,   DataC_Boss_BossPlaceholder_sMusic
+    d_entry table, Boss1,   DataC_Boss_Boss1_sMusic
     d_entry table, Boss2,   DataC_Core_Boss2_sMusic
     d_entry table, Calm,    Data_Calm_sMusic
     d_entry table, Credits, DataC_Title_Credits_sMusic
