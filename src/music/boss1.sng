@@ -2,7 +2,7 @@
 
 !DPCM K Data_SampleKickDrum_arr657 657
 
-!SONG Boss1 "A|BCCADDEEFFEEGGAB"
+!SONG Boss1 "A|BCCHDDEEFFEEGGAB"
 
 =tempo q28
 =key 3#  % F# minor
@@ -77,3 +77,10 @@ T| pTA ' pTA |
  | pTG |
 N| pNA :8 |
 D| pDA :16 |
+
+!PART H
+
+2=:A2
+T=:AT
+N=:AN
+D=:AD

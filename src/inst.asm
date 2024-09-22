@@ -64,6 +64,7 @@
     D_TABLE_HI table, Data_Instruments_func_ptr_1_arr
     D_TABLE .enum, eInst
     d_entry table, Constant,        Func_InstrumentConstant
+    d_entry table, NoiseSnare,      Func_InstrumentNoiseSnare
     d_entry table, PulseBasic,      Func_InstrumentPulseBasic
     d_entry table, PulseEcho,       Func_InstrumentPulseEcho
     d_entry table, PulsePiano,      Func_InstrumentPulsePiano
@@ -108,7 +109,7 @@ _Vibrato:
     ;; instrument for pitches right next to a TimerLo carry boundary, then
     ;; TimerHi wouldn't change anyway, and everything will sound fine.
 _Envelope:
-    fall Func_InstrumentPulseBasic
+    fall Func_InstrumentPulseBasic  ; preserves X
 .ENDPROC
 
 ;;; A basic instrument for the pulse channels.  The bottom four bits of the
@@ -181,7 +182,7 @@ _Decay:
     div #2
     rsub Zp_AudioTmp1_byte  ; max volume
     blt Func_InstrumentSilent
-    fall Func_CombineVolumeWithDuty
+    fall Func_CombineVolumeWithDuty  ; preserves X
 .ENDPROC
 
 ;;; Combines the given volume value with the pulse duty bits from the
@@ -251,6 +252,26 @@ _VibratoDelta_i8_arr4:
 
 ;;; An instrument for the pulse and noise channels.  The bottom four bits of
 ;;; the instrument param specify the initial volume, which starts fading out
+;;; immediately.  The top four bits of the instrument param specify a delta to
+;;; add to the noise period (mod 16) after the initial hit.
+;;; @param X The channel number (0-4) times four (so, 0, 4, 8, 12, or 16).
+;;; @return A The duty/envelope byte to use.
+;;; @preserve X
+.PROC Func_InstrumentNoiseSnare
+    lda Ram_Music_sChanNote_arr + sChanNote::ElapsedFrames_u8, x
+    cmp #2
+    bne @done
+    lda Ram_Music_sChanInst_arr + sChanInst::Param_byte, x
+    div #$10
+    add Ram_Music_sChanNote_arr + sChanNote::TimerLo_byte, x
+    mod #$10
+    sta Hw_Channels_sChanRegs_arr5 + sChanRegs::TimerLo_wo, x
+    @done:
+    fall Func_InstrumentStaccato  ; preserves X
+.ENDPROC
+
+;;; An instrument for the pulse and noise channels.  The bottom four bits of
+;;; the instrument param specify the initial volume, which starts fading out
 ;;; immediately.  The top two bits of the instrument param specify the pulse
 ;;; duty (ignored for the noise channel).
 ;;; @param X The channel number (0-4) times four (so, 0, 4, 8, 12, or 16).
@@ -261,7 +282,7 @@ _VibratoDelta_i8_arr4:
     and #bEnvelope::VolMask
     sub Ram_Music_sChanNote_arr + sChanNote::ElapsedFrames_u8, x
     bge Func_CombineVolumeWithDuty
-    fall Func_InstrumentSilent
+    fall Func_InstrumentSilent  ; preserves X
 .ENDPROC
 
 ;;; An instrument for the pulse and noise channels that silences the channel.
@@ -314,7 +335,7 @@ _Slide:
     sta Ram_Music_sChanNote_arr + sChanNote::TimerHi_byte, x
     @done:
 _Vibrato:
-    fall Func_InstrumentTriangleVibrato
+    fall Func_InstrumentTriangleVibrato  ; preserves X
 .ENDPROC
 
 ;;; An instrument for the triangle channel that applies vibrato.  The

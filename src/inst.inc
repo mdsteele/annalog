@@ -20,6 +20,7 @@
 ;;; Instruments that can be used for music notes.
 .ENUM eInst
     Constant
+    NoiseSnare
     PulseBasic
     PulseEcho
     PulsePiano
