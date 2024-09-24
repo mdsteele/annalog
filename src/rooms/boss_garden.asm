@@ -115,19 +115,22 @@ kBossInitHealthPerEye = 4
 
 ;;; How many frames the boss waits, after you first enter the room, before
 ;;; taking action.
-kBossInitCooldown = 160
+kBossInitCooldown = 150
 ;;; How many frames to wait between spikes when the boss is in Angry mode.
-kBossAngrySpikeCooldown = 15
+kBossAngrySpikeCooldown = 18
 ;;; How many frames to wait between fireballs when the boss is in Shoot mode.
-kBossShootFireballCooldown = 60
+kBossShootFireballCooldown = 70
 ;;; How many frames to wait between fireballs when the boss is in Spray mode.
-kBossSprayFireballCooldown = 15
+kBossSprayFireballCooldown = 18
 ;;; How many frames the boss stays in SprayWindup mode before starting to shoot
 ;;; the spray.
 kBossSprayWindupCooldown = 80
+;;; How many extra frames the boss waits between opening its eye and shooting
+;;; its first fireball in Shoot mode.
+kBossShootWindupFrames = 15
 
 ;;; How many spikes to drop when the boss is in Angry mode.
-kBossAngryNumSpikes = 3
+kBossAngryNumSpikes = 2
 
 ;;; How many frames it takes for an eye to fully open or close.
 kBossEyeOpenFrames = 20
@@ -544,7 +547,7 @@ _ChooseNewBossMode:
     dec Zp_RoomState + sState::BossShootsUntilNextSpray_u8
     jmp _StartShootMode
 _StartSprayMode:
-    lda #7
+    lda #5
     sta Zp_RoomState + sState::BossProjCount_u8
     ;; Set BossShootsUntilNextSpray_u8 to a random value from 2-3.
     jsr Func_GetRandomByte  ; returns A
@@ -559,10 +562,10 @@ _StartSprayMode:
 _StartShootMode:
     ;; Choose a random number of fireballs to shoot, from 4-7.
     jsr Func_GetRandomByte  ; returns A
-    and #$03
-    add #4
+    mod #4
+    ora #4
     sta Zp_RoomState + sState::BossProjCount_u8
-    lda #kBossEyeOpenFrames
+    lda #kBossEyeOpenFrames + kBossShootWindupFrames
     sta Zp_RoomState + sState::BossCooldown_u8
     lda #eBossMode::Shoot
     sta Zp_RoomState + sState::Current_eBossMode
@@ -941,14 +944,14 @@ _Close:
 .ENDPROC
 
 ;;; Makes the garden boss enter waiting mode for a random amount of time
-;;; (between about 1-2 seconds).
+;;; (between about 2-3 seconds).
 ;;; @preserve X
 .PROC FuncA_Room_BossGarden_StartWaiting
     lda #eBossMode::Waiting
     sta Zp_RoomState + sState::Current_eBossMode
     jsr Func_GetRandomByte  ; preserves X, returns A
-    and #$3f
-    ora #$40
+    mod #$40
+    ora #$80
     sta Zp_RoomState + sState::BossCooldown_u8
     rts
 .ENDPROC

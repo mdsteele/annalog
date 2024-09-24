@@ -45,7 +45,8 @@
 ;;;=========================================================================;;;
 
 ;;; The speed of a fireball/fireblast, in half-pixels per frame.
-kFireballSpeed = 5
+kFireballSpeed  = 3
+kFireblastSpeed = 5
 
 ;;; The OBJ palette numbers used for fireball and fireblast actors.
 kPaletteObjFireball  = 1
@@ -63,8 +64,17 @@ kPaletteObjFireblast = 1
 .EXPORT Func_InitActorProjFireblast
 .PROC Func_InitActorProjFireblast
     ldy #eActor::ProjFireblast  ; param: actor type
-    .assert eActor::ProjFireblast > 0, error
-    bne Func_InitActorProjFireballOrFireblast  ; unconditional
+    jsr Func_InitActorWithState1  ; preserves X and T0+
+    fall Func_ReinitActorProjFireblastVelocity  ; preserves X and T3+
+.ENDPROC
+
+;;; Sets a fireblast projectile's velocity from its State1 angle value.
+;;; @param X The actor index.
+;;; @preserve X, T3+
+.EXPORT Func_ReinitActorProjFireblastVelocity
+.PROC Func_ReinitActorProjFireblastVelocity
+    ldy #kFireblastSpeed  ; param: speed
+    bne Func_ReinitActorProjFireballOrFireblastVelocity  ; unconditional
 .ENDPROC
 
 ;;; Initializes the specified actor as a fireball projectile.
@@ -75,25 +85,24 @@ kPaletteObjFireblast = 1
 .EXPORT Func_InitActorProjFireball
 .PROC Func_InitActorProjFireball
     ldy #eActor::ProjFireball  ; param: actor type
-    fall Func_InitActorProjFireballOrFireblast  ; preserves X and T3+
-.ENDPROC
-
-;;; Initializes the specified actor as a fireball or fireblast projectile.
-;;; @prereq The actor's pixel position has already been initialized.
-;;; @param A The angle to fire at, measured in increments of tau/256.
-;;; @param X The actor index.
-;;; @preserve X, T3+
-.PROC Func_InitActorProjFireballOrFireblast
     jsr Func_InitActorWithState1  ; preserves X and T0+
-    fall Func_ReinitActorProjFireblastVelocity  ; preserves X and T3+
+    fall Func_ReinitActorProjFireballVelocity  ; preserves X and T3+
 .ENDPROC
 
 ;;; Sets a fireball projectile's velocity from its State1 angle value.
 ;;; @param X The actor index.
 ;;; @preserve X, T3+
-.EXPORT Func_ReinitActorProjFireblastVelocity
-.PROC Func_ReinitActorProjFireblastVelocity
+.PROC Func_ReinitActorProjFireballVelocity
     ldy #kFireballSpeed  ; param: speed
+    fall Func_ReinitActorProjFireballOrFireblastVelocity  ; preserves X and T3+
+.ENDPROC
+
+;;; Sets a fireball/fireblast projectile's velocity from its State1 angle
+;;; value.
+;;; @param X The actor index.
+;;; @param Y The speed, in half-pixels per frame.
+;;; @preserve X, T3+
+.PROC Func_ReinitActorProjFireballOrFireblastVelocity
     lda Ram_ActorState1_byte_arr, x  ; param: angle
     jmp Func_SetActorVelocityPolar  ; preserves X and T3+
 .ENDPROC
@@ -121,7 +130,7 @@ _UpdateAngle:
     beq @done
     add Ram_ActorState1_byte_arr, x  ; current angle
     sta Ram_ActorState1_byte_arr, x  ; current angle
-    jmp Func_ReinitActorProjFireblastVelocity  ; preserves X
+    jmp Func_ReinitActorProjFireballVelocity  ; preserves X
     @done:
     rts
 .ENDPROC
