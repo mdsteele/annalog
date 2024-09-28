@@ -26,7 +26,6 @@
     PulsePiano
     PulsePluck
     PulseVibrato
-    RampUp  ; TODO: get rid of this
     Staccato
     TriangleDrum
     TriangleSlide

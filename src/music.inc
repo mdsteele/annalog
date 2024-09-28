@@ -28,6 +28,7 @@
     Crypt
     Florist
     Garden
+    Mermaid
     Mine
     Prison
     Temple

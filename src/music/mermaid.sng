@@ -1,0 +1,29 @@
+@PRGC_Mermaid
+
+!DPCM B Data_SampleBongo_arr193 193
+
+!SONG Mermaid "I|A"
+
+=tempo q32
+=key 3#  % f# minor
+
+!INST 1A PulseVibrato $07 d1/2
+!INST 2A PulsePiano   $08 d1/4
+!INST TV TriangleVibrato
+!INST ND Staccato     $08       % drum
+!INST DE Constant     $4c       % bongo drum
+!INST DF Constant     $4e       % bongo drum
+
+!PART I
+
+D| iF sB3e sB3s sB3t sB3t sB3e sB3e |
+
+!PART A
+
+1| iA f3q. c4q. f3e g3 | a3q. e4e+h          |
+ | d4e b3 ' c4 a3 ' b3 g3 ' d4 b3 | c4e a3 ' b3 g3 ' a3 f3 ' g3 fN3 |
+ | f3q. c3q.   f3e  g3 | a3q. e3e+h          |
+ | a3q. e3q c3e e3  a3 | g3q. fN3q c3e a3 g3 |
+T| iV f2w e d e f e a fN |
+N| iD x1q :32 |
+D| iE sB3s sB3s sB4e iF sB3q :16 |

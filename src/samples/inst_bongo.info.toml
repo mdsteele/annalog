@@ -1,0 +1,9 @@
+name = "bongo_manoteo_lowdrum.flac"
+artist = "KJose"
+license = "CC0"
+year = 2022
+url = "https://freesound.org/people/KJose/sounds/620242/"
+comments = """
+The original sound contained a sequence of drum hits; this file was trimmed to
+just the second drum hit in the sequence.
+"""

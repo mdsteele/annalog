@@ -557,19 +557,19 @@ _PrisonMusic:
     d_byte LavaTunnel,      eMusic::Silence
     d_byte LavaVent,        eMusic::Silence
     d_byte LavaWest,        eMusic::Silence
-    d_byte MermaidCellar,   eMusic::Silence
-    d_byte MermaidEast,     eMusic::Silence
-    d_byte MermaidElevator, eMusic::Silence
-    d_byte MermaidEntry,    eMusic::Silence
-    d_byte MermaidFlower,   eMusic::Silence
-    d_byte MermaidHut1,     eMusic::Silence
-    d_byte MermaidHut2,     eMusic::Silence
-    d_byte MermaidHut3,     eMusic::Silence
+    d_byte MermaidCellar,   eMusic::Florist
+    d_byte MermaidEast,     eMusic::Mermaid
+    d_byte MermaidElevator, eMusic::Mermaid
+    d_byte MermaidEntry,    eMusic::Mermaid
+    d_byte MermaidFlower,   eMusic::Mermaid
+    d_byte MermaidHut1,     eMusic::Mermaid
+    d_byte MermaidHut2,     eMusic::Mermaid
+    d_byte MermaidHut3,     eMusic::Mermaid
     d_byte MermaidHut4,     eMusic::Florist
-    d_byte MermaidHut5,     eMusic::Silence
+    d_byte MermaidHut5,     eMusic::Mermaid
     d_byte MermaidHut6,     eMusic::Silence
-    d_byte MermaidSpring,   eMusic::Silence
-    d_byte MermaidVillage,  eMusic::Silence
+    d_byte MermaidSpring,   eMusic::Mermaid
+    d_byte MermaidVillage,  eMusic::Mermaid
     d_byte MineCenter,      eMusic::Mine
     d_byte MineCollapse,    eMusic::Mine
     d_byte MineDrift,       eMusic::Mine

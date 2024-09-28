@@ -1,5 +1,7 @@
 @PRGC_Mermaid
 
+!DPCM B Data_SampleBongo_arr193 193
+
 !SONG Florist "|ABB"
 
 =tempo q36
@@ -8,11 +10,13 @@
 !INST 1A Staccato $0a d1/8
 !INST TB Constant $ff         % bass
 !INST ND Staccato $07         % drum
+!INST DF Constant $4f
 
 !PART A
 
 T| p(iB c3e r ' gv r ' c^ r ' gv r)TA :2 |
 N| p(iD x4q ' x6s x6 x6e ' x4e x6s x6s+ ' +s x6s x6e)NA :2 |
+D| p(iF rq sB3q)DA :4 |
 
 !PART B
 
@@ -22,3 +26,5 @@ N| p(iD x4q ' x6s x6 x6e ' x4e x6s x6s+ ' +s x6s x6e)NA :2 |
  | g4q ' fe e ' ds e fe ' eq | dq ' bNv ' c^e cv ' cq |
 T| pTA :8 |
 N| pNA :8 |
+D| pDA :7 | p(re sB3e sB3q)DB |
+ | pDA :7 | pDB |
