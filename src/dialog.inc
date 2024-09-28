@@ -277,6 +277,15 @@ kDialogEntryCutscene = $ff  ; ends the dialog and starts a new cutscene
 .ENDMACRO
 
 ;;; Expands to a sDialog entry that jumps to another sDialog entry if the
+;;; specified flag is clear, and otherwise continues to the next entry.
+.MACRO dlg_IfClear FLAG, LABEL
+    .local end
+    dlg_IfSet FLAG, end
+    dlg_Goto LABEL
+end:
+.ENDMACRO
+
+;;; Expands to a sDialog entry that jumps to another sDialog entry if the
 ;;; player answered "YES" to the previous YES/NO dialog question, and otherwise
 ;;; continues to the next entry.
 .MACRO dlg_IfYes LABEL

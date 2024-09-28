@@ -276,8 +276,8 @@ _Passages_sPassage_arr:
 .ENDPROC
 
 .PROC FuncC_Core_South_EnterRoom
-_CheckIfAlexHasBeenFoundYet:
-    flag_bit Sram_ProgressFlags_arr, eFlag::PrisonUpperFoundAlex
+_CheckIfKidsAreFreedYet:
+    flag_bit Sram_ProgressFlags_arr, eFlag::PrisonUpperFreedKids
     beq @done
     jsr _RemoveCorra
     jmp _ReleaseCrates

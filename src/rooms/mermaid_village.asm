@@ -41,13 +41,23 @@
 .IMPORT DataA_Text1_MermaidVillageBruno_AlexInTemple_u8_arr
 .IMPORT DataA_Text1_MermaidVillageBruno_AlexNearCity_u8_arr
 .IMPORT DataA_Text1_MermaidVillageBruno_AlexWithQueen_u8_arr
-.IMPORT DataA_Text1_MermaidVillageCorra_u8_arr
+.IMPORT DataA_Text1_MermaidVillageCorra_FoundFriends_u8_arr
+.IMPORT DataA_Text1_MermaidVillageCorra_Hello1_u8_arr
+.IMPORT DataA_Text1_MermaidVillageCorra_Hello2_u8_arr
+.IMPORT DataA_Text1_MermaidVillageCorra_VisitTemple1_u8_arr
+.IMPORT DataA_Text1_MermaidVillageCorra_VisitTemple2_u8_arr
+.IMPORT DataA_Text1_MermaidVillageFarmer_CoreSouth_u8_arr
+.IMPORT DataA_Text1_MermaidVillageFarmer_CorraGone1_u8_arr
+.IMPORT DataA_Text1_MermaidVillageFarmer_CorraGone2_u8_arr
+.IMPORT DataA_Text1_MermaidVillageFarmer_FactoryEast_u8_arr
 .IMPORT DataA_Text1_MermaidVillageFarmer_Farming_u8_arr
-.IMPORT DataA_Text1_MermaidVillageFarmer_LookingFor_u8_arr
 .IMPORT DataA_Text1_MermaidVillageFarmer_Monster_u8_arr
 .IMPORT DataA_Text1_MermaidVillageFarmer_NeedHelp_u8_arr
 .IMPORT DataA_Text1_MermaidVillageFarmer_OpenTheWay_u8_arr
+.IMPORT DataA_Text1_MermaidVillageFarmer_TempleEntry_u8_arr
 .IMPORT DataA_Text1_MermaidVillageFarmer_ThankYou_u8_arr
+.IMPORT DataA_Text1_MermaidVillageFarmer_TowerDanger_u8_arr
+.IMPORT DataA_Text1_MermaidVillageFarmer_TowerSafe_u8_arr
 .IMPORT DataA_Text1_MermaidVillageGuard_Guarding_u8_arr
 .IMPORT DataA_Text1_MermaidVillageGuard_Temple1_u8_arr
 .IMPORT DataA_Text1_MermaidVillageGuard_Temple2_u8_arr
@@ -185,7 +195,7 @@ _Actors_sActor_arr:
     d_byte Type_eActor, eActor::NpcChild
     d_word PosX_i16, $0160
     d_word PosY_i16, $0094
-    d_byte Param_byte, eNpcChild::AlexSwimming1  ; TODO: animate Alex swimming
+    d_byte Param_byte, eNpcChild::AlexSwimming1
     D_END
     D_STRUCT sActor
     d_byte Type_eActor, eActor::NpcAdult
@@ -373,9 +383,24 @@ _Corra:
     ;; Until Anna meets the mermaid queen, Corra is in GardenEast, not here.
     flag_bit Sram_ProgressFlags_arr, eFlag::MermaidHut1MetQueen
     beq @removeCorra
-    ;; Once Corra is waiting in CoreSouth, she's no longer here.
+    ;; Then, until Corra is waiting in CoreSouth, she's here.
     flag_bit Sram_ProgressFlags_arr, eFlag::CoreSouthCorraWaiting
     beq @keepCorra
+    ;; Then, until Anna frees the other kids, Corra is in CoreSouth, not here.
+    flag_bit Sram_ProgressFlags_arr, eFlag::PrisonUpperFreedKids
+    beq @removeCorra
+    ;; Then, until the crypt breaker is activated, Corra is here.
+    flag_bit Sram_ProgressFlags_arr, eFlag::BreakerCrypt
+    beq @keepCorra
+    ;; Then, until Anna meets up with Alex in the city outskirts, Corra is in
+    ;; TempleEntry, not here.
+    flag_bit Sram_ProgressFlags_arr, eFlag::CityOutskirtsTalkedToAlex
+    beq @removeCorra
+    ;; Then, until Anna meets up with Alex in the vault, Corra is here.
+    flag_bit Sram_ProgressFlags_arr, eFlag::FactoryVaultTalkedToAlex
+    beq @keepCorra
+    ;; Once Anna meets up with Alex in the vault, Corra is in FactoryEast for a
+    ;; while, and then she disappears from the game, so she's not here.
     @removeCorra:
     lda #0
     .assert eActor::None = 0, error
@@ -437,124 +462,111 @@ _Temple_sDialog:
 
 .EXPORT DataA_Dialog_MermaidVillageFarmer_sDialog
 .PROC DataA_Dialog_MermaidVillageFarmer_sDialog
-    dlg_Func _InitialFunc
-_InitialFunc:
-    flag_bit Sram_ProgressFlags_arr, eFlag::MermaidHut1MetQueen
-    beq _NoQuestFunc
-    ;; First quest: Defeat the Garden boss.
-    flag_bit Sram_ProgressFlags_arr, eFlag::BreakerGarden
-    beq _Quest1Func
-    ;; To be safe, set the "crates placed" flag (although normally, you can't
-    ;; reach the garden breaker without the crates being placed).
-    ldx #eFlag::GardenTowerCratesPlaced  ; param: flag
-    jsr Func_SetFlag
-    ;; Intermission: Thanks for defeating the garden boss.
-    flag_bit Sram_ProgressFlags_arr, eFlag::CoreSouthCorraWaiting
-    beq _ThankYouFunc
-    ;; Third quest: Rescue Alex and the other children.
-    flag_bit Sram_ProgressFlags_arr, eFlag::PrisonUpperFreedKids
-    beq _Quest2Func
-    ;; Otherwise, back to no quest.
-_NoQuestFunc:
-    ldya #_Farming_sDialog
-    rts
-_Quest1Func:
-    flag_bit Sram_ProgressFlags_arr, eFlag::GardenTowerCratesPlaced
-    bne @monster
-    ldya #_NeedHelp_sDialog
-    rts
-    @monster:
-    ldya #_Monster_sDialog
-    rts
-_ThankYouFunc:
-    ldya #_ThankYou_sDialog
-    rts
-_Quest2Func:
-    ldya #_LookingForCorra_sDialog
-    rts
-_Farming_sDialog:
-    dlg_Text MermaidFarmer, DataA_Text1_MermaidVillageFarmer_Farming_u8_arr
-    dlg_Done
+    ;; Don't talk about the garden quest until Anna has met Queen Eirene.
+    dlg_IfClear MermaidHut1MetQueen, _Farming_sDialog
+    ;; No longer talk about the garden quest once it's completed.
+    dlg_IfSet BreakerGarden, _GardenTowerCleared_sDialog
 _NeedHelp_sDialog:
+    dlg_IfSet GardenTowerCratesPlaced, @monster
     dlg_Text MermaidFarmer, DataA_Text1_MermaidVillageFarmer_NeedHelp_u8_arr
-_Monster_sDialog:
+    @monster:
     dlg_Text MermaidFarmer, DataA_Text1_MermaidVillageFarmer_Monster_u8_arr
     dlg_Quest GardenTowerCratesPlaced
     dlg_Text MermaidFarmer, DataA_Text1_MermaidVillageFarmer_OpenTheWay_u8_arr
     dlg_Done
-_ThankYou_sDialog:
+_GardenTowerCleared_sDialog:
+    ;; To be safe, set the "crates placed" flag (although normally, you can't
+    ;; reach the garden breaker without the crates being placed).
+    dlg_Call _PlaceCrates
+    ;; If Corra is in CoreSouth, report that she went there.
+    dlg_IfClear CoreSouthCorraWaiting, _CorraNotInCoreSouth_sDialog
+    dlg_IfSet PrisonUpperFreedKids, _CorraNotInCoreSouth_sDialog
+    dlg_Text MermaidFarmer, DataA_Text1_MermaidVillageFarmer_CoreSouth_u8_arr
+    dlg_Done
+_CorraNotInCoreSouth_sDialog:
+    ;; If Corra is in TempleEntry, report that she went there.
+    dlg_IfClear BreakerCrypt, _CorraNotInTempleEntry_sDialog
+    dlg_IfSet CityOutskirtsTalkedToAlex, _CorraNotInTempleEntry_sDialog
+    dlg_Text MermaidFarmer, DataA_Text1_MermaidVillageFarmer_TempleEntry_u8_arr
+    dlg_Done
+_CorraNotInTempleEntry_sDialog:
+    ;; If Corra is in FactoryEast, report that she went there.
+    dlg_IfClear FactoryVaultTalkedToAlex, _CorraInVillage_sDialog
+    dlg_IfSet CityCenterEnteredCity, _CorraGone_sDialog
+    dlg_Text MermaidFarmer, DataA_Text1_MermaidVillageFarmer_FactoryEast_u8_arr
+    dlg_Done
+_CorraInVillage_sDialog:
+    dlg_IfSet TempleEntryPermission, _Farming_sDialog
     dlg_Text MermaidFarmer, DataA_Text1_MermaidVillageFarmer_ThankYou_u8_arr
     dlg_Done
-_LookingForCorra_sDialog:
-    dlg_Text MermaidFarmer, DataA_Text1_MermaidVillageFarmer_LookingFor_u8_arr
+_Farming_sDialog:
+    dlg_Text MermaidFarmer, DataA_Text1_MermaidVillageFarmer_Farming_u8_arr
+    dlg_IfSet BreakerGarden, _TowerFixed_sDialog
+_TowerDanger_sDialog:
+    dlg_Text MermaidFarmer, DataA_Text1_MermaidVillageFarmer_TowerDanger_u8_arr
     dlg_Done
+_TowerFixed_sDialog:
+    dlg_Text MermaidFarmer, DataA_Text1_MermaidVillageFarmer_TowerSafe_u8_arr
+    dlg_Done
+_CorraGone_sDialog:
+    dlg_Text MermaidFarmer, DataA_Text1_MermaidVillageFarmer_CorraGone1_u8_arr
+    dlg_Text MermaidFarmer, DataA_Text1_MermaidVillageFarmer_CorraGone2_u8_arr
+    dlg_Done
+_PlaceCrates:
+    ldx #eFlag::GardenTowerCratesPlaced  ; param: flag
+    jmp Func_SetFlag
 .ENDPROC
 
 .EXPORT DataA_Dialog_MermaidVillageCorra_sDialog
 .PROC DataA_Dialog_MermaidVillageCorra_sDialog
-    dlg_Text MermaidCorra, DataA_Text1_MermaidVillageCorra_u8_arr
-    ;; TODO: more dialog
+    dlg_IfSet TempleEntryTalkedToCorra, _VisitTemple_sDialog
+    dlg_IfSet PrisonUpperFreedKids, _FoundFriends_sDialog
+_Hello_sDialog:
+    dlg_Text MermaidCorra, DataA_Text1_MermaidVillageCorra_Hello1_u8_arr
+    dlg_Text MermaidCorra, DataA_Text1_MermaidVillageCorra_Hello2_u8_arr
+    dlg_Done
+_FoundFriends_sDialog:
+    dlg_Text MermaidCorra, DataA_Text1_MermaidVillageCorra_FoundFriends_u8_arr
+    dlg_Done
+_VisitTemple_sDialog:
+    dlg_Text MermaidCorra, DataA_Text1_MermaidVillageCorra_VisitTemple1_u8_arr
+    dlg_Text MermaidCorra, DataA_Text1_MermaidVillageCorra_VisitTemple2_u8_arr
     dlg_Done
 .ENDPROC
 
 .EXPORT DataA_Dialog_MermaidVillageBruno_sDialog
 .PROC DataA_Dialog_MermaidVillageBruno_sDialog
-    dlg_Func _WhereIsAlexFunc
-_WhereIsAlexFunc:
     ;; Bruno isn't here until the kids are rescued.  Once that happens, if Alex
     ;; hasn't yet started waiting in the temple, then report that he's still
     ;; meeting with the mermaid queen.
-    flag_bit Sram_ProgressFlags_arr, eFlag::TempleNaveAlexWaiting
-    bne @notWithQueen
-    ldya #_AlexWithQueen_sDialog
-    rts
-    @notWithQueen:
+    dlg_IfClear TempleNaveAlexWaiting, _AlexWithQueen_sDialog
     ;; Otherwise, if Anna hasn't yet visited the crypt, then report that Alex
     ;; is still in the temple.
-    flag_bit Sram_ProgressFlags_arr, eFlag::CryptLandingDroppedIn
-    bne @notInTemple
-    ldya #_AlexInTemple_sDialog
-    rts
-    @notInTemple:
+    dlg_IfClear CryptLandingDroppedIn, _AlexInTemple_sDialog
     ;; Otherwise, if the crypt breaker hasn't yet been activated, then how did
     ;; Anna get out of the crypt to talk to Bruno? Whatever, just report that
     ;; Alex is off exploring somewhere.
-    flag_bit Sram_ProgressFlags_arr, eFlag::BreakerCrypt
-    beq @exploring
+    dlg_IfClear BreakerCrypt, _AlexExploring_sDialog
     ;; Otherwise, if Anna hasn't yet met with Alex in the city outskirts, then
     ;; report that Alex is up near the city.
-    flag_bit Sram_ProgressFlags_arr, eFlag::CityOutskirtsTalkedToAlex
-    bne @notNearCity
-    ldya #_AlexNearCity_sDialog
-    rts
-    @notNearCity:
+    dlg_IfClear CityOutskirtsTalkedToAlex, _AlexNearCity_sDialog
     ;; Otherwise, if the hot spring hasn't been unplugged yet, report that Alex
     ;; is at the spring.
-    flag_bit Sram_ProgressFlags_arr, eFlag::MermaidSpringUnplugged
-    bne @notAtSpring
-    ldya #_AlexAtSpring_sDialog
-    rts
-    @notAtSpring:
+    dlg_IfClear MermaidSpringUnplugged, _AlexAtSpring_sDialog
     ;; Between when Anna returns from under the mermaid spring and when she
     ;; talks to Alex in the factory vault, Alex is in the vault.  However,
     ;; during that period, Bruno is in the factory elevator rather than here,
     ;; so no need to report on that.  Once Bruno returns here, Alex is nowhere
     ;; to be found until the city breaker has been activated, so until then
     ;; just report that Alex is off exploring somewhere.
-    flag_bit Sram_ProgressFlags_arr, eFlag::BreakerCity
-    beq @exploring
+    dlg_IfClear BreakerCity, _AlexExploring_sDialog
     ;; Otherwise, if Anna hasn't yet entered the Shadow Labs, report that Alex
     ;; is in the city.
-    flag_bit Sram_ProgressFlags_arr, eFlag::ShadowTeleportEnteredLab
-    bne @notInCity
-    ldya #_AlexInCity_sDialog
-    rts
-    @notInCity:
-    ;; TODO: report other places where Alex can be
+    dlg_IfClear ShadowTeleportEnteredLab, _AlexInCity_sDialog
+_AlexExploring_sDialog:
     ;; If all else fails, just report that Alex is off exploring somewhere.
-    @exploring:
-    ldya #_AlexExploring_sDialog
-    rts
+    dlg_Text ChildBruno, DataA_Text1_MermaidVillageBruno_AlexExploring_u8_arr
+    dlg_Done
 _AlexWithQueen_sDialog:
     dlg_Text ChildBruno, DataA_Text1_MermaidVillageBruno_AlexWithQueen_u8_arr
     dlg_Done
@@ -569,9 +581,6 @@ _AlexAtSpring_sDialog:
     dlg_Done
 _AlexInCity_sDialog:
     dlg_Text ChildBruno, DataA_Text1_MermaidVillageBruno_AlexInCity_u8_arr
-    dlg_Done
-_AlexExploring_sDialog:
-    dlg_Text ChildBruno, DataA_Text1_MermaidVillageBruno_AlexExploring_u8_arr
     dlg_Done
 .ENDPROC
 

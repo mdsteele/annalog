@@ -317,8 +317,8 @@ have seen the complex
 above our vale.#
 
 @MermaidHut4Florist_Four2
-Unlike our temple,
-it was built by humans
+Unlike our temple, it
+was built by humans
 alone. It predates
 even us mermaids.#
 
@@ -585,10 +585,20 @@ a place as it once
 was.#
 
 @MermaidVillageFarmer_Farming
-I am farming seaweed.
-The harvest has not
-been good this year,
-though.#
+Our seaweed crop is
+coming along well
+enough this season.#
+
+@MermaidVillageFarmer_TowerDanger
+The tower in the
+gardens has been
+giving us some
+trouble, though.#
+
+@MermaidVillageFarmer_TowerSafe
+And thanks to you, the
+garden tower is once
+again safe for us.#
 
 @MermaidVillageFarmer_NeedHelp
 The queen sent you?
@@ -613,16 +623,59 @@ for your help. You
 should go see the
 queen.#
 
-@MermaidVillageFarmer_LookingFor
+@MermaidVillageFarmer_CoreSouth
 Are you looking for
 Corra? I think she
 went exploring in the
 caves above our vale.#
 
-@MermaidVillageCorra
+@MermaidVillageFarmer_TempleEntry
+Are you looking for
+Corra? I think she
+went to the temple to
+pray.#
+
+@MermaidVillageFarmer_FactoryEast
+Are you looking for
+Corra? I think she
+went exploring near
+the old waterway.#
+
+@MermaidVillageFarmer_CorraGone1
+Are you looking for
+Corra? I haven't seen
+her for a while now.
+I hope she's safe.#
+
+@MermaidVillageFarmer_CorraGone2
+I hope she'll come
+home soon...#
+
+@MermaidVillageCorra_Hello1
 Oh, hi! I met you back
 in the gardens. I'm
 Corra, by the way.#
+
+@MermaidVillageCorra_Hello2
+I like to go exploring
+sometimes, so maybe
+I'll see you around?#
+
+@MermaidVillageCorra_FoundFriends
+Welcome back! I'm so
+glad you found your
+friends. They'll be
+safe here.#
+
+@MermaidVillageCorra_VisitTemple1
+I always feel at peace
+whenever I visit the
+temple...not that I
+ever go inside.#
+
+@MermaidVillageCorra_VisitTemple2
+I guess I just like to
+know that it's there.#
 
 @MermaidVillageBruno_AlexWithQueen
 If you're looking for
