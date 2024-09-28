@@ -23,6 +23,7 @@
 .INCLUDE "../oam.inc"
 .INCLUDE "flower.inc"
 
+.IMPORT FuncA_Avatar_PlaySfxPickUpFlower
 .IMPORT FuncA_Objects_Draw1x1Shape
 .IMPORT FuncA_Objects_MoveShapeDownOneTile
 .IMPORT FuncA_Objects_MoveShapeRightHalfTile
@@ -61,7 +62,7 @@ kFlowerAnimCountdown = 48
     ;; Remove flower device (for now).
     lda #eDevice::Placeholder
     sta Ram_DeviceType_eDevice_arr, x
-    rts
+    jmp FuncA_Avatar_PlaySfxPickUpFlower
 .ENDPROC
 
 ;;;=========================================================================;;;

@@ -24,6 +24,7 @@
 .INCLUDE "oam.inc"
 .INCLUDE "sample.inc"
 
+.IMPORT Func_PlaySfxBreakFlower
 .IMPORT Func_PlaySfxSample
 .IMPORT Ppu_ChrObjAnnaNormal
 .IMPORT Sram_CarryingFlower_eFlag
@@ -56,7 +57,7 @@ kAvatarStunVelY = $ffff & -350
     blt Func_KillAvatar
     rts
 _Harm:
-    jsr Func_DropFlower  ; preserves X, Y, and T0+
+    jsr Func_BreakFlowerIfAny  ; preserves X, Y, and T0+
     lda #eSample::Harm  ; param: eSample to play
     jsr Func_PlaySfxSample  ; preserves X, Y, and T0+
     ;; Mark the avatar as damaged.
@@ -103,16 +104,25 @@ _SetVelX:
     sta Zp_AvatarFlags_bObj
     lda #kAvatarHarmDeath
     sta Zp_AvatarHarmTimer_u8
+    fall Func_BreakFlowerIfAny  ; preserves X, Y, and T0+
+.ENDPROC
+
+;;; If the player avatar is carrying a flower, breaks the flower.  Otherwise,
+;;; does nothing.
+;;; @preserve X, Y, T0+
+.PROC Func_BreakFlowerIfAny
+    lda Sram_CarryingFlower_eFlag
+    bne @breakFlower
+    rts
+    @breakFlower:
+    jsr Func_PlaySfxBreakFlower  ; preserves X, Y, and T0+
     fall Func_DropFlower  ; preserves X, Y, and T0+
 .ENDPROC
 
-;;; If the player avatar is carrying a flower, drops the flower.  Otherwise,
-;;; does nothing.
+;;; Drops the flower that the player avatar is carrying.
 ;;; @preserve X, Y, T0+
 .EXPORT Func_DropFlower
 .PROC Func_DropFlower
-    lda Sram_CarryingFlower_eFlag
-    beq @done
     main_chr10_bank Ppu_ChrObjAnnaNormal
     ;; Enable writes to SRAM.
     lda #bMmc3PrgRam::Enable
@@ -123,7 +133,6 @@ _SetVelX:
     ;; Disable writes to SRAM.
     lda #bMmc3PrgRam::Enable | bMmc3PrgRam::DenyWrites
     sta Hw_Mmc3PrgRamProtect_wo
-    @done:
     rts
 .ENDPROC
 
