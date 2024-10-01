@@ -69,7 +69,7 @@ kPerDigitSpinFrames = 10
     D_STRUCT sRoom
     d_byte MinScrollX_u8, $0
     d_word MaxScrollX_u16, $0
-    d_byte Flags_bRoom, bRoom::ShareState | eArea::City
+    d_byte Flags_bRoom, bRoom::ReduceMusic | bRoom::ShareState | eArea::City
     d_byte MinimapStartRow_u8, 1
     d_byte MinimapStartCol_u8, 19
     d_addr TerrainData_ptr, _TerrainData

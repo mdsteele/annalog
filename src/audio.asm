@@ -75,6 +75,10 @@ Zp_Next_sAudioCtrl: .tag sAudioCtrl
 .EXPORTZP Zp_Next_sChanSfx_arr
 Zp_Next_sChanSfx_arr: .res .sizeof(sChanSfx) * kNumApuChannels
 
+;;; The current settings for whether audio is enabled.
+.EXPORTZP Zp_Current_bAudio
+Zp_Current_bAudio: .res 1
+
 ;;; The currently-playing music.
 Zp_Current_eMusic: .res 1
 
@@ -88,16 +92,6 @@ Zp_Current_sMusic: .tag sMusic
 ;;; X-Indexed Zero Page Indirect addressing mode to read these next bytes while
 ;;; indexing by APU channel number.
 Zp_Music_sChanNext_arr: .res .sizeof(sChanNext) * kNumApuChannels
-
-;;; If true ($ff), then Func_AudioUpdate will perform audio playback; if false
-;;; ($00), then Func_AudioUpdate is a no-op.  Invariant: all APU channels are
-;;; disabled when this is false.
-Zp_AudioEnabled_bool: .res 1
-
-;;; Master volume that is applied to all channels in conjunction with their
-;;; individual volume envelopes.  The bottom four bits of this variable are
-;;; always zero.
-Zp_MasterVolume_u8: .res 1
 
 ;;; This must be all zero bits except for bMusic::FlagMask; those bits indicate
 ;;; the current music flag value.
@@ -165,7 +159,7 @@ Ram_Sound_sChanSfx_arr: .res .sizeof(sChanSfx) * kNumApuChannels
     dex
     bpl @loop
     ;; Disable audio and reset music flag.
-    sta Zp_AudioEnabled_bool
+    sta Zp_Current_bAudio
     sta Zp_MusicFlag_bMusic
 _HaltMusic:
     .assert eMusic::Silence = 0, error
@@ -186,17 +180,16 @@ _HaltSfx:
 ;;; @prereq Caller is within the NMI handler, and Func_ProcessFrame is pending.
 .EXPORT Func_AudioSync
 .PROC Func_AudioSync
-    lda <(Zp_Next_sAudioCtrl + sAudioCtrl::Enable_bool)
+    lda Zp_Next_sAudioCtrl + sAudioCtrl::Next_bAudio
+    .assert bAudio::Enable = bProc::Negative, error
     bmi _Enable
 _Disable:
-    bit Zp_AudioEnabled_bool
+    bit Zp_Current_bAudio
+    .assert bAudio::Enable = bProc::Negative, error
     bmi Func_AudioReset
     rts
 _Enable:
-    sta Zp_AudioEnabled_bool
-    lda <(Zp_Next_sAudioCtrl + sAudioCtrl::MasterVolume_u8)
-    and #$f0
-    sta Zp_MasterVolume_u8
+    sta Zp_Current_bAudio
 _SyncMusicFlag:
     lda Zp_Next_sAudioCtrl + sAudioCtrl::MusicFlag_bMusic
     .assert bMusic::UsesFlag = bProc::Negative, error
@@ -299,7 +292,8 @@ _ResetChannels:
 ;;; @prereq Caller is within the NMI handler.
 .EXPORT Func_AudioUpdate
 .PROC Func_AudioUpdate
-    bit Zp_AudioEnabled_bool
+    bit Zp_Current_bAudio
+    .assert bAudio::Enable = bProc::Negative, error
     bmi _Enabled
     rts
 _Enabled:
@@ -532,6 +526,10 @@ _NoteToneOrSame:
     cpx #eChan::Dmc
     bne @notDmc
     @isDmc:
+    ;; Skip DMC notes entirely when music volume is reduced.
+    bit Zp_Current_bAudio
+    .assert bAudio::ReduceMusic = bProc::Overflow, error
+    bvs _SkipToneOrSame
     lda #$40
     bne @setSweep  ; unconditional
     @notDmc:

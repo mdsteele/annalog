@@ -251,6 +251,19 @@ Zp_RoomState: .res kRoomStateSize
 
 .SEGMENT "PRG8"
 
+;;; Enables audio and sets the music volume according to the current room's
+;;; bRoom::ReduceMusic flag.
+.EXPORT Func_SetMusicVolumeForCurrentRoom
+.PROC Func_SetMusicVolumeForCurrentRoom
+    lda Zp_Current_sRoom + sRoom::Flags_bRoom
+    and #bRoom::ReduceMusic
+    .assert bRoom::ReduceMusic << 1 = bAudio::ReduceMusic, error
+    asl a
+    ora #bAudio::Enable
+    sta Zp_Next_sAudioCtrl + sAudioCtrl::Next_bAudio
+    rts
+.ENDPROC
+
 ;;; Queues up the music for the specified room (if it's not already playing),
 ;;; switches PRGC banks, then loads and initializes data for the room.
 ;;; @prereq Rendering is disabled.
@@ -641,13 +654,13 @@ _PrisonMusic:
     cpy Zp_Next_sAudioCtrl + sAudioCtrl::Music_eMusic
     beq @done
     lda #0
-    sta Zp_Next_sAudioCtrl + sAudioCtrl::Enable_bool
+    sta Zp_Next_sAudioCtrl + sAudioCtrl::Next_bAudio
     sty T1  ; eMusic to play
     stx T0
     jsr Func_ProcessFrame  ; preserves T0+
     ldx T0
-    lda #$ff
-    sta Zp_Next_sAudioCtrl + sAudioCtrl::Enable_bool
+    lda #bAudio::Enable
+    sta Zp_Next_sAudioCtrl + sAudioCtrl::Next_bAudio
     lda T1  ; eMusic to play
     sta Zp_Next_sAudioCtrl + sAudioCtrl::Music_eMusic
     @done:
@@ -889,7 +902,7 @@ _SetVars:
     stx Zp_AvatarPlatformIndex_u8
     stx Zp_ConsoleMachineIndex_u8
     stx Zp_FloatingHud_bHud  ; disable the floating HUD
-    rts
+    jmp Func_SetMusicVolumeForCurrentRoom
 .ENDPROC
 
 ;;; Calls the current room's Tick_func_ptr function.

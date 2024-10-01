@@ -210,10 +210,20 @@ kMaxPassages = 8
 
 ;;; Flag bits for a room.
 .SCOPE bRoom
-    Unsafe     = %10000000  ; while set, this room won't be set as spawn point
-    Tall       = %01000000  ; if set, room is kTallRoomHeightBlocks blocks tall
-    ShareState = %00100000  ; don't zero room state between two rooms with this
-    AreaMask   = %00001111  ; mask for this room's eArea value
+    ;; When set, passages and devices in this room won't be set as safe spawn
+    ;; points.  This can be dynamically disabled for a room (e.g. when a boss
+    ;; is defeated) by calling Func_MarkRoomSafe.
+    Unsafe      = %10000000
+    ;; If set, this room's terrain is kTallRoomHeightBlocks blocks tall instead
+    ;; of kScreenHeightBlocks blocks tall.
+    Tall        = %01000000
+    ;; If set, music is played at a reduced volume in this room.
+    ReduceMusic = %00100000
+    ;; If two rooms both have this bit set, then Zp_RoomState will not be
+    ;; zeroed by default when moving directly between those two rooms.
+    ShareState  = %00010000
+    ;; Bits used for storing this room's eArea value.
+    AreaMask    = %00001111
 .ENDSCOPE
 
 ;;; Assert that an eArea value will fit into the AreaMask.

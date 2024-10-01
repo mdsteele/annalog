@@ -17,6 +17,7 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
+.INCLUDE "audio.inc"
 .INCLUDE "avatar.inc"
 .INCLUDE "charmap.inc"
 .INCLUDE "console.inc"
@@ -55,6 +56,7 @@
 .IMPORT Func_ProcessFrame
 .IMPORT Func_SetLastSpawnPoint
 .IMPORT Func_SetMachineIndex
+.IMPORT Func_SetMusicVolumeForCurrentRoom
 .IMPORT Func_TickAllDevices
 .IMPORT Func_Window_GetRowPpuAddr
 .IMPORT Func_Window_PrepareRowTransfer
@@ -78,6 +80,7 @@
 .IMPORTZP Zp_Current_sProgram_ptr
 .IMPORTZP Zp_FloatingHud_bHud
 .IMPORTZP Zp_MachineMaxInstructions_u8
+.IMPORTZP Zp_Next_sAudioCtrl
 .IMPORTZP Zp_P1ButtonsPressed_bJoypad
 .IMPORTZP Zp_PpuTransferLen_u8
 .IMPORTZP Zp_ScrollGoalX_u16
@@ -219,6 +222,7 @@ _UpdateScrolling:
 _Done:
     lda #$ff
     sta Zp_ConsoleMachineIndex_u8
+    jsr Func_SetMusicVolumeForCurrentRoom
     jmp Main_Explore_Continue
 .ENDPROC
 
@@ -280,6 +284,9 @@ _Tick:
 ;;; and resets the machine if it's not Halted/Error.
 ;;; @param X The console device index.
 .PROC FuncA_Room_BeginUsingConsoleDevice
+    ;; Reduce music volume while the console is open.
+    lda #bAudio::Enable | bAudio::ReduceMusic
+    sta Zp_Next_sAudioCtrl + sAudioCtrl::Next_bAudio
 _SetSpawnPoint:
     txa  ; console device index
     ora #bSpawn::Device  ; param: bSpawn value

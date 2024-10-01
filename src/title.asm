@@ -456,9 +456,8 @@ _BeginNewGame:
     lda #<.bank(Ppu_ChrBgFontUpper)
     sta Zp_Chr04Bank_u8
 _StartMusic:
-    lda #$ff
-    sta Zp_Next_sAudioCtrl + sAudioCtrl::Enable_bool
-    sta Zp_Next_sAudioCtrl + sAudioCtrl::MasterVolume_u8
+    lda #bAudio::Enable
+    sta Zp_Next_sAudioCtrl + sAudioCtrl::Next_bAudio
     lda #eMusic::Title
     sta Zp_Next_sAudioCtrl + sAudioCtrl::Music_eMusic
 _ClearNametables:

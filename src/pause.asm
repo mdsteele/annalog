@@ -17,6 +17,7 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
+.INCLUDE "audio.inc"
 .INCLUDE "charmap.inc"
 .INCLUDE "cpu.inc"
 .INCLUDE "devices/flower.inc"
@@ -55,6 +56,7 @@
 .IMPORT Func_FillLowerAttributeTable
 .IMPORT Func_FillUpperAttributeTable
 .IMPORT Func_IsFlagSet
+.IMPORT Func_SetMusicVolumeForCurrentRoom
 .IMPORT Func_Window_Disable
 .IMPORT Func_Window_ScrollDown
 .IMPORT Func_Window_ScrollUp
@@ -72,6 +74,7 @@
 .IMPORTZP Zp_Current_sRoom
 .IMPORTZP Zp_FrameCounter_u8
 .IMPORTZP Zp_NextIrq_int_ptr
+.IMPORTZP Zp_Next_sAudioCtrl
 .IMPORTZP Zp_P1ButtonsPressed_bJoypad
 .IMPORTZP Zp_PaperCursorRow_u8
 .IMPORTZP Zp_PpuScrollX_u8
@@ -131,7 +134,7 @@ Zp_ActivatedBreakers_byte: .res 1
     main_chr0c_bank Ppu_ChrBgMinimap
     main_chr18_bank Ppu_ChrObjPause
     jsr FuncA_Pause_InitAndFadeIn
-    .assert * = MainA_Pause_Minimap, error, "fallthrough"
+    fall MainA_Pause_Minimap
 .ENDPROC
 
 ;;; Mode for running the pause screen while the minimap is visible.
@@ -151,13 +154,14 @@ _CheckForUnpause:
     lda Zp_P1ButtonsPressed_bJoypad
     and #bJoypad::Start | bJoypad::BButton
     beq _GameLoop
-    .assert * = MainA_Pause_FadeOut, error, "fallthrough"
+    fall MainA_Pause_FadeOut
 .ENDPROC
 
 ;;; Mode for fading out the pause screen and resuming explore mode.
 ;;; @prereq Rendering is enabled.
 .PROC MainA_Pause_FadeOut
     jsr Func_FadeOutToBlack
+    jsr Func_SetMusicVolumeForCurrentRoom
     jmp Main_Explore_FadeIn
 .ENDPROC
 
@@ -174,7 +178,7 @@ _GameLoop:
     jsr Func_Window_ScrollUp  ; sets C if fully scrolled in
     bcc _GameLoop
     jsr FuncA_Pause_MovePaperCursorNext
-    .assert * = MainA_Pause_Papers, error, "fallthrough"
+    fall MainA_Pause_Papers
 .ENDPROC
 
 ;;; Mode for running the pause screen while the papers window is visible.
@@ -246,6 +250,10 @@ _InitActivatedBreakers:
     dex
     cpx #kFirstBreakerFlag
     bge @loop
+_ReduceMusic:
+    ;; Reduce music volume while on the pause screen.
+    lda #bAudio::Enable | bAudio::ReduceMusic
+    sta Zp_Next_sAudioCtrl + sAudioCtrl::Next_bAudio
 _DrawScreen:
     ldy #$00  ; param: fill byte
     jsr Func_FillUpperAttributeTable  ; preserves Y
@@ -385,7 +393,7 @@ _FinishLowerNametable:
     bne @loop
     jsr FuncA_Pause_DirectDrawWindowBottomBorder
     ldy #kScreenWidthTiles * 5  ; param: num blank tiles to draw
-    .assert * = FuncA_Pause_DirectDrawBlankTiles, error, "fallthrough"
+    fall FuncA_Pause_DirectDrawBlankTiles
 .ENDPROC
 
 ;;; Draws the specified number of blank BG tiles to Hw_PpuData_rw.
@@ -520,7 +528,7 @@ _CircuitBreakers_byte_arr8_arr6:
     jsr FuncA_Pause_DirectDrawWindowLineSide  ; preserves X and T0+
     ldy #kScreenWidthTiles - 6  ; param: num blank tiles to draw
     jsr FuncA_Pause_DirectDrawBlankTiles  ; preserves X and T0+
-    .assert * = FuncA_Pause_DirectDrawWindowLineSide, error, "fallthrough"
+    fall FuncA_Pause_DirectDrawWindowLineSide  ; preserves X and T0+
 .ENDPROC
 
 ;;; Draws the left or right side of one pause window line, including margins;

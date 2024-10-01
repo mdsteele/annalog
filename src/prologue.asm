@@ -83,7 +83,7 @@ Ppu_PrologueTextRow3Start = Ppu_Nametable0_sName + sName::Tiles_u8_arr + \
     jsr Func_ClearRestOfOam
     ;; Disable audio.
     lda #0
-    sta Zp_Next_sAudioCtrl + sAudioCtrl::Enable_bool
+    sta Zp_Next_sAudioCtrl + sAudioCtrl::Next_bAudio
     jsr Func_ProcessFrame
     ;; Clear the upper nametable.
     ldxy #Ppu_Nametable0_sName  ; param: nametable addr

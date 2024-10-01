@@ -70,6 +70,20 @@
 
 ;;;=========================================================================;;;
 
+;;; Flags for controlling whether audio is enabled.
+.SCOPE bAudio
+    ;; Controls whether audio is enabled.  When audio is disabled, all music
+    ;; and sound effects are stopped, all APU channels are muted, and the audio
+    ;; driver will not read any more audio data until audio is re-enabled.
+    ;; Note that since this game generally stores music data in PRGC, it is
+    ;; only safe to switch PRGC banks when audio is disabled.
+    Enable      = %10000000
+    ;; Controls the music volume.  When this bit is set, certain music
+    ;; instruments will play at reduced volume or not at all.  Sound effects
+    ;; are unaffected.
+    ReduceMusic = %01000000
+.ENDSCOPE
+
 ;;; Instructions to be sent to the audio driver the next time Func_ProcessFrame
 ;;; is called.
 .STRUCT sAudioCtrl
@@ -78,22 +92,18 @@
     ;; driver will not read any more audio data until audio is re-enabled.
     ;; Note that since this game generally stores music data in PRGC, it is
     ;; only safe to switch PRGC banks when audio is disabled.
-    Enable_bool      .byte
-    ;; Sets the master volume (0-255).  This should normally be left at 255
-    ;; (full volume), but can be reduced over the course of several frames to
-    ;; fade out audio before disabling it.  Note that only the top four bits
-    ;; are actually used.
-    MasterVolume_u8  .byte
+    Next_bAudio      .byte
+    ;; Controls which music to play.  When Func_ProcessFrame is called, if this
+    ;; is different than the currently-playing music (and audio is enabled),
+    ;; then the current music will be stopped, and this music will be started
+    ;; from the beginning.
+    Music_eMusic     .byte
     ;; Controls the music flag.  If bMusic::UsesFlag is set, then the music
     ;; flag will be set to this & bMusic::FlagMask when Func_ProcessFrame is
     ;; called; otherwise, the music flag will be unchanged.  Either way, this
     ;; field will be updated to the (new) current value of the of the music
     ;; flag when Func_ProcessFrame is called.
     MusicFlag_bMusic .byte
-    ;; Controls which music to play.  When Func_ProcessFrame is called, if this
-    ;; is different than the currently-playing music, then the current music
-    ;; will be stopped, and this music will be started from the beginning.
-    Music_eMusic     .byte
 .ENDSTRUCT
 
 ;;;=========================================================================;;;

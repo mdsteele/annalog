@@ -19,6 +19,7 @@
 
 .INCLUDE "apu.inc"
 .INCLUDE "audio.inc"
+.INCLUDE "cpu.inc"
 .INCLUDE "inst.inc"
 .INCLUDE "macros.inc"
 .INCLUDE "music.inc"
@@ -27,6 +28,7 @@
 .IMPORT Ram_Music_sChanNote_arr
 .IMPORTZP Zp_AudioTmp1_byte
 .IMPORTZP Zp_AudioTmp2_byte
+.IMPORTZP Zp_Current_bAudio
 
 ;;;=========================================================================;;;
 
@@ -166,6 +168,11 @@ _Decay:
 ;;; @return A The duty/envelope byte to use.
 ;;; @preserve X
 .PROC Func_CombineVolumeWithDuty
+    bit Zp_Current_bAudio
+    .assert bAudio::ReduceMusic = bProc::Overflow, error
+    bvc @noReduce
+    div #2
+    @noReduce:
     sta Zp_AudioTmp1_byte  ; volume
     lda Ram_Music_sChanInst_arr + sChanInst::Param_byte, x
     and #bEnvelope::DutyMask

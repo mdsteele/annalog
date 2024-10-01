@@ -72,7 +72,7 @@ kHobokActorIndex  = 3
     D_STRUCT sRoom
     d_byte MinScrollX_u8, $0
     d_word MaxScrollX_u16, $0
-    d_byte Flags_bRoom, eArea::Town
+    d_byte Flags_bRoom, bRoom::ReduceMusic | eArea::Town
     d_byte MinimapStartRow_u8, 0
     d_byte MinimapStartCol_u8, 13
     d_addr TerrainData_ptr, _TerrainData

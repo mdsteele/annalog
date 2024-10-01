@@ -142,9 +142,8 @@ ResetAudio:
     ldy #$00
     jsr Func_ExpectAEqualsY
 EnableAndStartMusic:
-    lda #$ff
-    sta Zp_Next_sAudioCtrl + sAudioCtrl::Enable_bool
-    sta Zp_Next_sAudioCtrl + sAudioCtrl::MasterVolume_u8
+    lda #bAudio::Enable
+    sta Zp_Next_sAudioCtrl + sAudioCtrl::Next_bAudio
     lda #bMusic::UsesFlag
     sta Zp_Next_sAudioCtrl + sAudioCtrl::MusicFlag_bMusic
     lda #0
@@ -189,8 +188,8 @@ PlayMusic:
     ldy #0
     jsr Func_ExpectAEqualsY
 DisableAudio:
-    lda #$00
-    sta Zp_Next_sAudioCtrl + sAudioCtrl::Enable_bool
+    lda #0
+    sta Zp_Next_sAudioCtrl + sAudioCtrl::Next_bAudio
     jsr Func_AudioSync
     lda Hw_ApuStatus_rw
     ldy #0

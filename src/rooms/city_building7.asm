@@ -36,7 +36,7 @@
     D_STRUCT sRoom
     d_byte MinScrollX_u8, $0
     d_word MaxScrollX_u16, $0
-    d_byte Flags_bRoom, eArea::City
+    d_byte Flags_bRoom, bRoom::ReduceMusic | eArea::City
     d_byte MinimapStartRow_u8, 3
     d_byte MinimapStartCol_u8, 23
     d_addr TerrainData_ptr, _TerrainData

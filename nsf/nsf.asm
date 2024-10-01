@@ -93,9 +93,8 @@ kSoundChip     = 0      ; 0 = no extra sound chips
     .assert eMusic::Silence = 0, error
     iny
     sty Zp_Next_sAudioCtrl + sAudioCtrl::Music_eMusic
-    lda #$ff
-    sta Zp_Next_sAudioCtrl + sAudioCtrl::Enable_bool
-    sta Zp_Next_sAudioCtrl + sAudioCtrl::MasterVolume_u8
+    lda #bAudio::Enable
+    sta Zp_Next_sAudioCtrl + sAudioCtrl::Next_bAudio
     jmp Func_AudioSync
 .ENDPROC
 

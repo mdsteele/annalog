@@ -54,6 +54,7 @@
 .IMPORT Func_AllocObjects
 .IMPORT Func_SetFlag
 .IMPORT Func_SetLastSpawnPointToActiveDevice
+.IMPORT Func_SetMusicVolumeForCurrentRoom
 .IMPORT Func_Window_PrepareRowTransfer
 .IMPORT Func_Window_ScrollDown
 .IMPORT Func_Window_ScrollUp
@@ -165,6 +166,7 @@ _UpdateScrolling:
 _ResumeExploring:
     lda Zp_UpgradePrev_eMusic
     sta Zp_Next_sAudioCtrl + sAudioCtrl::Music_eMusic
+    jsr Func_SetMusicVolumeForCurrentRoom
     jmp Main_Explore_Continue
 .ENDPROC
 
@@ -225,6 +227,9 @@ _StartMusic:
     sta Zp_UpgradePrev_eMusic
     lda #eMusic::Upgrade
     sta Zp_Next_sAudioCtrl + sAudioCtrl::Music_eMusic
+    ;; Set music to full volume (no ReduceMusic flag).
+    lda #bAudio::Enable
+    sta Zp_Next_sAudioCtrl + sAudioCtrl::Next_bAudio
 _CollectUpgrade:
     jsr Func_SetLastSpawnPointToActiveDevice
     lda Zp_Nearby_bDevice
