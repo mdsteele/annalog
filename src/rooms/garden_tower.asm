@@ -22,6 +22,7 @@
 .INCLUDE "../charmap.inc"
 .INCLUDE "../device.inc"
 .INCLUDE "../flag.inc"
+.INCLUDE "../irq.inc"
 .INCLUDE "../machine.inc"
 .INCLUDE "../machines/cannon.inc"
 .INCLUDE "../macros.inc"
@@ -55,6 +56,7 @@
 .IMPORT Func_SetFlag
 .IMPORT Func_SetPointToActorCenter
 .IMPORT Func_ShakeRoom
+.IMPORT Int_SetChr04ToParam3ThenLatchWindowFromParam4
 .IMPORT Ppu_ChrBgAnimA0
 .IMPORT Ppu_ChrBgAnimStatic
 .IMPORT Ppu_ChrObjGarden
@@ -62,6 +64,7 @@
 .IMPORT Ram_ActorPosY_i16_1_arr
 .IMPORT Ram_PlatformType_ePlatform_arr
 .IMPORT Sram_ProgressFlags_arr
+.IMPORTZP Zp_Buffered_sIrq
 .IMPORTZP Zp_Chr04Bank_u8
 .IMPORTZP Zp_RoomState
 
@@ -82,6 +85,10 @@ kCannonPlatformIndex = 0
 kThornsFirstPlatformIndex = 4
 ;;; The number of thorns platforms.
 kThornsNumPlatforms = 5
+
+;;; The screen pixel Y-position at which the circuit IRQ should change the
+;;; CHR04 bank.
+kCircuitChr04IrqY = $90
 
 ;;;=========================================================================;;;
 
@@ -540,19 +547,40 @@ _ResetMachine:
 _AnimateThorns:
     flag_bit Sram_ProgressFlags_arr, eFlag::BossGarden
     beq @bossAlive
-    ;; If the garden boss has been defeated, disable the BG thorns animation.
+    ;; If the garden boss has been defeated, disable the BG thorns animation,
+    ;; but animate the circuit normally.
     @bossDead:
+    lda Zp_Chr04Bank_u8
+    sta Zp_Buffered_sIrq + sIrq::Param3_byte  ; circuit CHR04 bank
     lda #<.bank(Ppu_ChrBgAnimStatic)
     sta Zp_Chr04Bank_u8
     .assert <.bank(Ppu_ChrBgAnimStatic) > 0, error
     bne @done  ; unconditional
-    ;; If the garden boss hasn't been defeated, animate the thorns.
+    ;; If the garden boss hasn't been defeated, animate the thorns, but make
+    ;; the circuit animation static.
     @bossAlive:
     lda Zp_RoomState + sState::ThornCounter_u8
     div #4
     and #$07
     add #<.bank(Ppu_ChrBgAnimA0)
     sta Zp_Chr04Bank_u8
+    lda #<.bank(Ppu_ChrBgAnimStatic)
+    sta Zp_Buffered_sIrq + sIrq::Param3_byte  ; circuit CHR04 bank
+    @done:
+_SetUpCircuitIrq:
+    ;; Compute the IRQ latch value to set between the top of the circuit
+    ;; animation zone and the top of the window (if any), and set that as
+    ;; Param4_byte.
+    lda #kCircuitChr04IrqY
+    sta T0  ; IRQ latch for circuit anim
+    rsub Zp_Buffered_sIrq + sIrq::Latch_u8
+    blt @done  ; window top is above circuit top
+    sta Zp_Buffered_sIrq + sIrq::Param4_byte  ; window latch
+    ;; Set up our own sIrq struct to handle circuit animation.
+    lda T0  ; IRQ latch for lava
+    sta Zp_Buffered_sIrq + sIrq::Latch_u8
+    ldax #Int_SetChr04ToParam3ThenLatchWindowFromParam4
+    stax Zp_Buffered_sIrq + sIrq::FirstIrq_int_ptr
     @done:
 _BreakableWall:
     ;; If the breakble wall platform is completely destroyed, we're done.
