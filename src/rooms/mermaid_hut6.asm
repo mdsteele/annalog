@@ -56,6 +56,7 @@
 .IMPORT Ram_MachineGoalHorz_u8_arr
 .IMPORT Ram_MachineGoalVert_u8_arr
 .IMPORT Ram_MachineSlowdown_u8_arr
+.IMPORT Ram_MachineStatus_eMachine_arr
 .IMPORT Ram_PlatformLeft_i16_0_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORTZP Zp_PointX_i16
@@ -424,8 +425,13 @@ _MachineLight:
 .PROC FuncA_Machine_MermaidHut6Drums_TryMove
     lda #1  ; param: max vertical goal
     jsr FuncA_Machine_GenericTryMoveY
+    lda Ram_MachineStatus_eMachine_arr + kDrumsMachineIndex
+    cmp #eMachine::Error
+    beq @done
     lda #$08  ; param: num frames
     jmp FuncA_Machine_StartWaiting
+    @done:
+    rts
 .ENDPROC
 
 .PROC FuncA_Machine_MermaidHut6Drums_TryAct
