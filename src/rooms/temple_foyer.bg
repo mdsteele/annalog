@@ -4,28 +4,29 @@
 >temple_2
 >temple_3
 >temple_4
+>temple_5
 
-DPDP              DP          AP        AP                    DPDPDP
-DCDBDCDGDCDGDCDBDCDBDCDGDCDBDCDBDCDGDCDBDCDGDCDBDCDBDCDGDCDBDCDBDCDB
-DMDM              DN          AN        AN                    DNDNDN
-DCDFDD            DO          AO        AO                    DODODO
-            BF    DO    BB    AO        AP                    DODODO
-            BD    DO    BC    AO      DADFDD          DADFDD  DODODO
-DCDBDCDD          DO          AP        AN      DM      DM    DPDODO
-DNDN              DP        DADFDD      AO      DADGDCDBDCDBDCDDDODO
-DODO            DADFDD                  AP                    DNDODO
-DODO              DM      CACGCGCGCGCGDADFDDCGCB              DODODO
-DODO        DADGDCDBDCDD  CE            DN    CF              DODODO
-DODO          AN          CE    DN      DO    CF              DODODO
-DODADD  AM    AO          CE    DO      DO    CF    BF  BA    DODODO
-DODO    AP    AP          CE    DO      DO    CF    BC  BD    DODODO
-DODADBDCDBDCDGDCDD        CE    DO      DO    CF              DODODO
-DODO                      CE    DO      DP    CF              DPDPDP
-DODO                      CE    DO            CF    AB        DADFDB
-DODO        DN            CE    DP            CF  DADFDD    DADBDCDB
-DPDP        DO            CCCHDADFDDCHCHCHCHCHCD    AN
-DBDCDD      DO      AL        AN  AN            DE  AO
-            DP      AO        AO  AO    DADFDD  AN  AO
-          DADFDD    AP  CL    AP  AP      AK    AP  AP      DADGDCDB
-DBDCDBDCDBDCDBDCDBDCDBDCDGDCDBDCDGDCDBDCDBDCDGDCDBDCDBDCDGDCDBDCDBDC
-EPEPEPEPEPEPEPEPEPEPEPEPEPEPEPEPEPEPEPEPEPEPEPEPEPEPEPEO  DN  DNDNDN
+EPEP              EP          AP        AP                    EPEPEP
+ECEBECEGECEGECEBECEBECEGECEBECEBECEGECEBECEGECEBECEBECEGECEBECEBECEB
+EMEM              EN          AN        AN                    ENENEN
+ECEFED            EO          AO        AO                    EOEOEO
+            BF    EO    BB    AO        AP                    EOEOEO
+            BD    EO    BC    AO      EAEFED          EAEFED  EOEOEO
+ECEBECED          EO          AP        AN      EM      EM    EPEOEO
+ENEN              EP        EAEFED      AO      EAEGECEBECEBECEDEOEO
+EOEO            EAEFED                  AP                    ENEOEO
+EOEO              EM      CACGCGCGCGCGEAEFEDCGCB              EOEOEO
+EOEO        EAEGECEBECED  CEDKDKDKDKDKDKENDKDKCF              EOEOEO
+EOEO          AN          CEDKDKENDKDKDKEODKDKCF              EOEOEO
+EOEAED  AM    AO          CEDKDKEODKDKDKEODKDKCF    BF  BA    EOEOEO
+EOEO    AP    AP          CEDKDKEODKDKDKEODKDKCF    BC  BD    EOEOEO
+EOEAEBECEBECEGECED        CEDKDKEODKDKDKEODKDKCF              EOEOEO
+EOEO                      CEDKDKEODKDKDKEPDKDKCF              EPEPEP
+EOEO                      CEDKDKEODKDKDKDKDKDKCF    AB        EAEFEB
+EOEO        EN            CEDKDKEPDKDKDKDKDKDKCF  EAEFED    EAEBECEB
+EPEP        EO            CCCHEAEFEDCHCHCHCHCHCD    AN
+EBECED      EO      AL        AN  AN            EE  AO
+            EP      AO        AO  AO    EAEFED  AN  AO
+          EAEFED    AP  CL    AP  AP      AK    AP  AP      EAEGECEB
+EBECEBECEBECEBECEBECEBECEGECEBECEGECEBECEBECEGECEBECEBECEGECEBECEBEC
+FPFPFPFPFPFPFPFPFPFPFPFPFPFPFPFPFPFPFPFPFPFPFPFPFPFPFPFO  EN  ENENEN

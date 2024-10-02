@@ -4,28 +4,29 @@
 >temple_2
 >temple_3
 >temple_4
+>temple_5
 
-DPDP        DP              DP            DP          DP        DPDP
-DCDBDCDGDCDBDCDBDCDGDCDGDCDBDCDGDCDBDCDBDCDBDCDGDCDBDCDBDCDGDCDBDCDB
-            DN              DN                        DN
-            DO          CACGDPCGCGCGCGCGCGDNCB        DO
-DFDFDD      DO          CE  AIAI          DOCF        DO      DADFDF
-DNDN        DP          CE  DADD          DPCF        DP        DNDN
-DODO      DADFDD        CE    DADD  DADBDCDDCF  AI  DADFDD      DODO
-DODO      AK  AK        CE    AK        DM  CF  DE  AN  AN      DPDP
-DODO    DADFDBDCDD      CE  DADBDCDFDGDCDBDCDD      AO  AP    DADBDC
-DODO                    CE                  CF      AP  DE      DNDN
-DODO                    CCCHCHCHCHCHCHCHCHCHCD      DE          DODO
-DODO      BA                                            BA      DODO
-DODO      BC            CACGCGCGCGCGCGCGCGCGCB          BD      DODO
-DODO                    CEDE    DADFDD  DADDCF        AIAIAIAIAIDPDP
-DPDPAIAIAIAIAIAI        CEAG    AGAGAG  AGAGCF        DADGDCDBDCDBDC
-DCDBDCDGDCDBDCDD        CE                  CF                  DNDN
-DNDN                  DADBDCDGDCDD  DADFDD  CF                  DPDP
-DODO              BA  ANCE                  CF    BF        DADBDCDB
-DPDP              BD  AOCCCHCHCHCHCHCHCHCHCHCD    BC            DMDM
-DBDCDD    DN          AO                      DE      DE      DADFDF
-          DO          AO        DADFDD        AN      AN
-        DMDP          AP    AB  AK  AK  AB    AP      AP
-DCDBDCDGDCDBDCDBDCDGDCDBDCDGDCDBDCDBDCDBDCDGDCDBDCDBDCDGDCDBDCDBDCDB
-DNDN                  DN                      DN                DNDN
+EPEP        EP              EP            EP          EP        EPEP
+ECEBECEGECEBECEBECEGECEGECEBECEGECEBECEBECEBECEGECEBECEBECEGECEBECEB
+            EN              EN                        EN
+            EO          CACGEPCGCGCGCGCGCGENCB        EO
+EFEFED      EO          CEDKDMDMDKDKDKDKDKEOCF        EO      EAEFEF
+ENEN        EP          CEDKEAEDDKDKDKDKDKEPCF        EP        ENEN
+EOEO      EAEFED        CEDKDKEAEDDKEAEBECEDCF  AI  EAEFED      EOEO
+EOEO      AK  AK        CEDKDKAKDKDKDKDKEMDKCF  EE  AN  AN      EPEP
+EOEO    EAEFEBECED      CEDKEAEBECEFEGECEBECED      AO  AP    EAEBEC
+EOEO                    CEDKDKDKDKDKDKDKDKDKCF      AP  EE      ENEN
+EOEO                    CCCHCHCHCHCHCHCHCHCHCD      EE          EOEO
+EOEO      BA                                            BA      EOEO
+EOEO      BC            CACGCGCGCGCGCGCGCGCGCB          BD      EOEO
+EOEO                    CEEEDKDKEAEFEDDKEAEDCF        AIAIAIAIAIEPEP
+EPEPAIAIAIAIAIAI        CEDLDKDKDLDLDLDKDLDLCF        EAEGECEBECEBEC
+ECEBECEGECEBECED        CEDKDKDKDKDKDKDKDKDKCF                  ENEN
+ENEN                  EAEBECEGECEDDKEAEFEDDKCF                  EPEP
+EOEO              BA  ANCEDKDKDKDKDKDKDKDKDKCF    BF        EAEBECEB
+EPEP              BD  AOCCCHCHCHCHCHCHCHCHCHCD    BC            EMEM
+EBECED    EN          AO                      EE      EE      EAEFEF
+          EO          AO        EAEFED        AN      AN
+        EMEP          AP    AB  AK  AK  AB    AP      AP
+ECEBECEGECEBECEBECEGECEBECEGECEBECEBECEBECEGECEBECEBECEGECEBECEBECEB
+ENEN                  EN                      EN                ENEN
