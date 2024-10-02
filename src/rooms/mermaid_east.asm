@@ -92,12 +92,21 @@ _Platforms_sPlatform_arr:
     d_word Left_i16,   $0030
     d_word Top_i16,    $0134
     D_END
+    ;; Sand:
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Solid
     d_word WidthPx_u16, $10
     d_byte HeightPx_u8, $08
     d_word Left_i16,  $0030
     d_word Top_i16,   $0078
+    D_END
+    ;; Rocks:
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Solid
+    d_word WidthPx_u16, $08
+    d_byte HeightPx_u8, $18
+    d_word Left_i16,  $0190
+    d_word Top_i16,   $0080
     D_END
     .assert * - :- <= kMaxPlatforms * .sizeof(sPlatform), error
     .byte ePlatform::None
