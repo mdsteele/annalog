@@ -91,12 +91,13 @@ ROM_ASM_FILES := \
 ROM_OBJ_FILES := $(patsubst src/%.asm,$(OBJDIR)/%.o,$(ROM_ASM_FILES))
 ROM_CFG_FILE = src/linker.cfg
 ROM_LABEL_FILE = $(OUTDIR)/$(ROMNAME).labels.txt
-ROM_MAP_FILE = $(OUTDIR)/$(ROMNAME).map.txt
+ROM_MAP_FILE = $(OUTDIR)/$(ROMNAME)-nes-map.txt
 ROM_BIN_FILE = $(OUTDIR)/$(ROMNAME).nes
 
 NSF_CFG_FILE = nsf/nsf.cfg
 NSF_OBJ_FILES := $(OUTDIR)/nsf/nsf.o \
   $(OBJDIR)/audio.o $(OBJDIR)/inst.o $(OBJDIR)/music.o $(OBJDIR)/null.o
+NSF_MAP_FILE = $(OUTDIR)/$(ROMNAME)-nsf-map.txt
 NSF_BIN_FILE = $(OUTDIR)/$(ROMNAME).nsf
 
 SIM65_ASM_FILES := $(shell find tests -name '*.asm' | sort)
@@ -378,6 +379,7 @@ $(ROM_LABEL_FILE): $(ROM_BIN_FILE)
 $(NSF_BIN_FILE): $(NSF_CFG_FILE) $(NSF_OBJ_FILES) $(MUSIC_LIB_FILE)
 	@echo "Linking $@"
 	@mkdir -p $(@D)
-	@ld65 -o $@ -C $(NSF_CFG_FILE) $(NSF_OBJ_FILES) $(MUSIC_LIB_FILE)
+	@ld65 -m $(NSF_MAP_FILE) -o $@ \
+	      -C $(NSF_CFG_FILE) $(NSF_OBJ_FILES) $(MUSIC_LIB_FILE)
 
 #=============================================================================#
