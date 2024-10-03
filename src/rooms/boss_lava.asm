@@ -98,6 +98,7 @@
 .IMPORT Ram_MachineGoalHorz_u8_arr
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORT Ram_PlatformLeft_i16_0_arr
+.IMPORT Ram_PlatformType_ePlatform_arr
 .IMPORT Ram_PpuTransfer_arr
 .IMPORTZP Zp_Active_sIrq
 .IMPORTZP Zp_Buffered_sIrq
@@ -665,6 +666,8 @@ _BossHurt:
     bne _StartScuttling  ; boss is not dead yet
     .assert eBossMode::Dead = 0, error
     sta Zp_RoomState + sState::Current_eBossMode
+    lda #ePlatform::Zone
+    sta Ram_PlatformType_ePlatform_arr + kBossBodyPlatformIndex
     rts
 _StartScuttling:
     lda #eBossMode::Scuttling
@@ -976,7 +979,12 @@ _RegR:
 .PROC FuncA_Room_BossLava_EnterRoom
     ldax #DataC_Boss_Lava_sBoss  ; param: sBoss ptr
     jsr FuncA_Room_InitBoss  ; sets Z if boss is alive
-    bne _BossIsDead
+    beq _BossIsAlive
+_BossIsDead:
+    ;; Remove the boss's body.
+    lda #ePlatform::Zone
+    sta Ram_PlatformType_ePlatform_arr + kBossBodyPlatformIndex
+    rts
 _BossIsAlive:
     lda #kBossInitHealth
     sta Zp_RoomState + sState::BossHealth_u8
@@ -988,7 +996,6 @@ _BossIsAlive:
     lda #kBossInitGoalX
     sta Zp_RoomState + sState::BossGoalX_u8
     .assert kBossInitGoalY = 0, error
-_BossIsDead:
     rts
 .ENDPROC
 

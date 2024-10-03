@@ -17,6 +17,7 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
+.INCLUDE "actor.inc"
 .INCLUDE "audio.inc"
 .INCLUDE "boss.inc"
 .INCLUDE "device.inc"
@@ -34,7 +35,9 @@
 .IMPORT Func_DivMod
 .IMPORT Func_FindEmptyActorSlot
 .IMPORT Func_GetRandomByte
+.IMPORT Func_InitActorDefault
 .IMPORT Func_InitActorSmokeExplosion
+.IMPORT Func_InitActorSmokeParticle
 .IMPORT Func_IsFlagSet
 .IMPORT Func_LockDoorDevice
 .IMPORT Func_MarkRoomSafe
@@ -47,6 +50,7 @@
 .IMPORT Func_SetMachineIndex
 .IMPORT Func_ShakeRoom
 .IMPORT Func_UnlockDoorDevice
+.IMPORT Ram_ActorType_eActor_arr
 .IMPORT Ram_DeviceAnim_u8_arr
 .IMPORT Ram_DeviceTarget_byte_arr
 .IMPORT Ram_DeviceType_eDevice_arr
@@ -222,6 +226,7 @@ _BossBattle:
     jsr Func_SetFlag
     jsr Func_MarkRoomSafe
     jsr FuncA_Room_DisableAllMachinesAndConsoles
+    jsr FuncA_Room_ExpireAllBossProjectiles
     ;; Turn off the boss music.
     lda #eMusic::Silence
     sta Zp_Next_sAudioCtrl + sAudioCtrl::Music_eMusic
@@ -438,6 +443,47 @@ _DisableConsoles:
     @while:
     cpx <(Zp_Current_sRoom + sRoom::NumMachines_u8)
     blt @loop
+    rts
+.ENDPROC
+
+;;; Expires all boss-fired projectiles, either turning them to smoke or just
+;;; removing them.
+.PROC FuncA_Room_ExpireAllBossProjectiles
+    ldx #kMaxActors - 1
+_Loop:
+    jsr _MaybeExpireActor  ; preserves X
+    dex
+    .assert kMaxActors <= $80, error
+    bpl _Loop
+    rts
+_MaybeExpireActor:
+    lda Ram_ActorType_eActor_arr, x
+    cmp #eActor::ProjFireball
+    beq _ExpireFireball
+    cmp #eActor::ProjBreakfire
+    beq _ExpireBreakfire
+    cmp #eActor::ProjBreakball
+    beq _ExpireBreakball
+    cmp #eActor::ProjFlamestrike
+    beq _ExpireFlamestrike
+    cmp #eActor::ProjSpine
+    beq _ExpireSpine
+    cmp #eActor::ProjBreakbomb
+    beq _ExpireBreakbomb
+    rts
+_ExpireBreakbomb:
+_ExpireFireball:
+_ExpireSpine:
+    ldy #eActor::SmokeParticle  ; param: actor type
+    jmp Func_InitActorDefault  ; preserves X
+_ExpireBreakfire:
+    lda #$c0  ; param: angle ($c0 = up)
+    jmp Func_InitActorSmokeParticle  ; preserves X
+_ExpireBreakball:
+    jmp Func_InitActorSmokeExplosion  ; preserves X
+_ExpireFlamestrike:
+    lda #eActor::None
+    sta Ram_ActorType_eActor_arr, x
     rts
 .ENDPROC
 
