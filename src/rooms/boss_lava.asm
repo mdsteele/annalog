@@ -242,21 +242,23 @@ kPaletteObjBossLava = 1
 ;;; Defines room-specific state data for this particular room.
 .STRUCT sState
     ;; The current states of the room's two levers.
-    LeverLeft_u8      .byte
-    LeverRight_u8     .byte
+    LeverLeft_u8       .byte
+    LeverRight_u8      .byte
     ;; What mode the boss is in.
-    Current_eBossMode .byte
+    Current_eBossMode  .byte
+    ;; Mode-specific parameter/counter for the current boss mode.
+    BossModeParam_byte .byte
     ;; How many more blaster hits are needed before the boss dies.
-    BossHealth_u8     .byte
+    BossHealth_u8      .byte
     ;; Timer that ticks down each frame when nonzero.  Used to time transitions
     ;; between boss modes.
-    BossCooldown_u8   .byte
+    BossCooldown_u8    .byte
     ;; The goal position for the boss within its zone, in blocks.
-    BossGoalX_u8      .byte  ; 0-9
-    BossGoalY_u8      .byte  ; 0-3
+    BossGoalX_u8       .byte  ; 0-9
+    BossGoalY_u8       .byte  ; 0-3
     ;; How open the boss's jaws are (0 = fully closed, kBossJawsOpenFrames =
     ;; fully open).
-    BossJawsOpen_u8   .byte
+    BossJawsOpen_u8    .byte
 .ENDSTRUCT
 .ASSERT .sizeof(sState) <= kRoomStateSize, error
 
@@ -413,6 +415,14 @@ _Platforms_sPlatform_arr:
     d_byte HeightPx_u8, kBossTailHeightPx
     d_word Left_i16, kBossBodyInitCenterX - kBossTailWidthPx / 2
     d_word Top_i16, kBossBodyInitTopY - kBossTailHeightPx
+    D_END
+    ;; Girders:
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Solid
+    d_word WidthPx_u16, $90
+    d_byte HeightPx_u8, $10
+    d_word Left_i16,  $0038
+    d_word Top_i16,   $00b0
     D_END
     ;; Lava:
     D_STRUCT sPlatform
@@ -571,6 +581,8 @@ _BossFiresprayWindup:
     sta Zp_RoomState + sState::Current_eBossMode
     lda #$31
     sta Zp_RoomState + sState::BossCooldown_u8
+    jsr Func_GetRandomByte  ; returns A
+    sta Zp_RoomState + sState::BossModeParam_byte
     @done:
     rts
 _BossFlamestrikePrepare:
@@ -578,6 +590,15 @@ _BossFlamestrikePrepare:
     ;; Wait until the boss is in position.
     jsr FuncC_Boss_Lava_BossMoveTowardGoal  ; sets C when goal is reached
     bcc @done
+    ;; Wait until no other flamestrike projectile exists.
+    ldx #kMaxActors - 1
+    @loop:
+    lda Ram_ActorType_eActor_arr, x
+    cmp #eActor::ProjFlamestrike
+    beq @done
+    dex
+    .assert kMaxActors <= $80, error
+    bpl @loop
     ;; Change modes to shoot the flamestrike.
     lda #eBossMode::FlamestrikeShoot
     sta Zp_RoomState + sState::Current_eBossMode
@@ -629,16 +650,16 @@ _BossFlamestrikeRetreat:
     lda Zp_RoomState + sState::BossCooldown_u8
     beq _StartFirespray
     rts
-_StartFlamestrike:
-    ;; Choose a random valid position for firing a flamestrike.
+_StartFirespray:
+    ;; Choose a random valid position for shooting a fireball spray.
     jsr Func_GetRandomByte  ; returns A
-    and #$03
-    add #3
+    and #$07
+    add #1
     sta Zp_RoomState + sState::BossGoalX_u8
-    lda #2
+    lda #1
     sta Zp_RoomState + sState::BossGoalY_u8
-    ;; Change modes to move to the firing position and shoot a flamestrike.
-    lda #eBossMode::FlamestrikePrepare
+    ;; Change modes to move to the firing position and shoot a fireball spray.
+    lda #eBossMode::FiresprayPrepare
     sta Zp_RoomState + sState::Current_eBossMode
     rts
 _BossHurt:
@@ -670,6 +691,12 @@ _BossHurt:
     sta Ram_PlatformType_ePlatform_arr + kBossBodyPlatformIndex
     rts
 _StartScuttling:
+    ;; Choose a random number of times to scuttle, from 2-5.
+    jsr Func_GetRandomByte  ; returns A
+    mod #4
+    add #2
+    sta Zp_RoomState + sState::BossModeParam_byte
+_StartNextScuttle:
     lda #eBossMode::Scuttling
     sta Zp_RoomState + sState::Current_eBossMode
     ;; Pick a new goal position.
@@ -682,34 +709,6 @@ _StartScuttling:
     jsr Func_DivMod  ; returns remainder in A
     sta Zp_RoomState + sState::BossGoalY_u8
 _Return:
-    rts
-_StartFirespray:
-    ;; Choose a random valid position for shooting a fireball spray.
-    jsr Func_GetRandomByte  ; returns A
-    and #$07
-    add #1
-    sta Zp_RoomState + sState::BossGoalX_u8
-    lda #1
-    sta Zp_RoomState + sState::BossGoalY_u8
-    ;; Change modes to move to the firing position and shoot a fireball spray.
-    lda #eBossMode::FiresprayPrepare
-    sta Zp_RoomState + sState::Current_eBossMode
-    rts
-_BossScuttling:
-    ;; Wait for cooldown.
-    lda Zp_RoomState + sState::BossCooldown_u8
-    bne FuncC_Boss_Lava_BossOpenJaws
-    ;; Close jaws while scuttling.
-    jsr FuncC_Boss_Lava_BossCloseJaws
-    ;; Move towards the goal.
-    jsr FuncC_Boss_Lava_BossMoveTowardGoal  ; sets C when goal is reached
-    bcc @done  ; hasn't reached goal yet
-    ;; Set a cooldown before proceeding to the next goal position.
-    lda #kBossScuttleCooldown
-    sta Zp_RoomState + sState::BossCooldown_u8
-    .assert kBossScuttleCooldown > 0, error
-    bne _StartFlamestrike  ; unconditional  TODO: only flamestrike sometimes
-    @done:
     rts
 _BossFiresprayShoot:
     ;; Only shoot every eight frames.
@@ -726,13 +725,49 @@ _BossFiresprayShoot:
     jsr Func_SetActorCenterToPoint  ; preserves X
     lda Zp_RoomState + sState::BossCooldown_u8
     mul #2  ; clears the carry bit
+    bit Zp_RoomState + sState::BossModeParam_byte
+    bmi @sweepRightToLeft
+    @sweepLeftToRight:
     adc #$10  ; param: aim angle
+    bne @shootFireball  ; unconditional
+    @sweepRightToLeft:
+    rsub #$70  ; param: aim angle
+    @shootFireball:
     jsr Func_InitActorProjFireball
     jsr Func_PlaySfxShootFire
     ;; When the last fireball is fired, change modes.
     lda Zp_RoomState + sState::BossCooldown_u8
     beq _StartScuttling
     @done:
+    rts
+_BossScuttling:
+    ;; Wait for cooldown.
+    lda Zp_RoomState + sState::BossCooldown_u8
+    bne FuncC_Boss_Lava_BossOpenJaws
+    ;; Close jaws while scuttling.
+    jsr FuncC_Boss_Lava_BossCloseJaws
+    ;; Move towards the goal.
+    jsr FuncC_Boss_Lava_BossMoveTowardGoal  ; sets C when goal is reached
+    bcc _Return  ; hasn't reached goal yet
+    ;; Set a cooldown before proceeding to the next goal position.
+    lda #kBossScuttleCooldown
+    sta Zp_RoomState + sState::BossCooldown_u8
+    dec Zp_RoomState + sState::BossModeParam_byte
+    beq _StartFlamestrike
+    lda #60
+    sta Zp_RoomState + sState::BossCooldown_u8
+    bne _StartNextScuttle  ; unconditional
+_StartFlamestrike:
+    ;; Choose a random valid position for firing a flamestrike.
+    jsr Func_GetRandomByte  ; returns A
+    and #$03
+    add #3
+    sta Zp_RoomState + sState::BossGoalX_u8
+    lda #2
+    sta Zp_RoomState + sState::BossGoalY_u8
+    ;; Change modes to move to the firing position and shoot a flamestrike.
+    lda #eBossMode::FlamestrikePrepare
+    sta Zp_RoomState + sState::Current_eBossMode
     rts
 .ENDPROC
 
@@ -996,6 +1031,8 @@ _BossIsAlive:
     lda #kBossInitGoalX
     sta Zp_RoomState + sState::BossGoalX_u8
     .assert kBossInitGoalY = 0, error
+    lda #2
+    sta Zp_RoomState + sState::BossModeParam_byte
     rts
 .ENDPROC
 
