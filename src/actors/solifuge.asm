@@ -17,6 +17,7 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
+.INCLUDE "../actor.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
 .INCLUDE "../ppu.inc"
@@ -26,11 +27,13 @@
 
 .IMPORT FuncA_Actor_AccelerateForward
 .IMPORT FuncA_Actor_ApplyGravity
+.IMPORT FuncA_Actor_CenterHitsTerrainOrSolidPlatform
 .IMPORT FuncA_Actor_ClampVelX
 .IMPORT FuncA_Actor_FaceTowardsAvatar
 .IMPORT FuncA_Actor_GetRoomBlockRow
 .IMPORT FuncA_Actor_HarmAvatarIfCollision
 .IMPORT FuncA_Actor_IsAvatarWithinHorzDistance
+.IMPORT FuncA_Actor_IsAvatarWithinVertDistances
 .IMPORT FuncA_Actor_IsPointInRoomBounds
 .IMPORT FuncA_Actor_LandOnTerrain
 .IMPORT FuncA_Actor_MovePointTowardVelXDir
@@ -39,8 +42,8 @@
 .IMPORT Func_GetTerrainColumnPtrForPointX
 .IMPORT Func_InitActorDefault
 .IMPORT Func_InitActorSmokeExplosion
-.IMPORT Func_PointHitsTerrain
 .IMPORT Func_SetPointToActorCenter
+.IMPORT Ram_ActorFlags_bObj_arr
 .IMPORT Ram_ActorPosY_i16_0_arr
 .IMPORT Ram_ActorPosY_i16_1_arr
 .IMPORT Ram_ActorState1_byte_arr
@@ -56,7 +59,7 @@
 ;;;=========================================================================;;;
 
 ;;; How fast a solifuge baddie can move horizontally, in subpixels per frame.
-kSolifugeMaxSpeedX = $1c0
+kSolifugeMaxSpeedX = $180
 
 ;;; How many pixels in front of its center a solifuge baddie actor checks for
 ;;; solid terrain to see if it needs to stop.
@@ -84,13 +87,17 @@ kPaletteObjSolifuge = 0
 
 ;;;=========================================================================;;;
 
-.SEGMENT "PRGA_Room"
+.SEGMENT "PRG8"
 
 ;;; Initializes a solifuge baddie actor.
 ;;; @prereq The actor's pixel position has already been initialized.
 ;;; @param X The actor index.
 ;;; @preserve X
-.EXPORT FuncA_Room_InitActorBadSolifuge := Func_InitActorDefault
+.EXPORT Func_InitActorBadSolifuge
+.PROC Func_InitActorBadSolifuge
+    ldy #eActor::BadSolifuge  ; param: actor type
+    jmp Func_InitActorDefault  ; preserves X
+.ENDPROC
 
 ;;;=========================================================================;;;
 
@@ -120,8 +127,7 @@ _AlreadyJumping:
 _Steamed:
     jsr FuncA_Actor_ApplyGravity  ; preserves X
     ;; If the solifuge hits the ceiling, kill it.
-    jsr Func_SetPointToActorCenter  ; preserves X
-    jsr Func_PointHitsTerrain  ; preserves X, returns C
+    jsr FuncA_Actor_CenterHitsTerrainOrSolidPlatform  ; preserves X, returns C
     bcc @noHitCeiling
     ;; TODO: play a sound
     jmp Func_InitActorSmokeExplosion  ; preserves X
@@ -156,7 +162,12 @@ _MaybeJumpAtAvatar:
     sta Ram_ActorVelY_i16_1_arr, x
     @done:
 _ChaseAvatar:
+    ldy #$3c  ; param: distance below avatar
+    lda #$0c  ; param: distance above avatar
+    jsr FuncA_Actor_IsAvatarWithinVertDistances  ; preserves X, returns C
+    bcc @noChase
     jsr FuncA_Actor_FaceTowardsAvatar  ; preserves X
+    @noChase:
     lda #kSolifugeHorzAccel  ; param: acceleration
     jsr FuncA_Actor_AccelerateForward  ; preserves X
     ldya #kSolifugeMaxSpeedX  ; param: max speed
@@ -168,6 +179,7 @@ _StopIfBlockedHorz:
     jsr FuncA_Actor_IsPointInRoomBounds  ; preserves X, returns C
     bcc @blocked
     jsr Func_GetTerrainColumnPtrForPointX  ; preserves X
+    ;; TODO: also check terrain at corners of bounding box (not ground level)
     ldy Ram_ActorState2_byte_arr, x  ; grounded room block row
     ;; Check the wall in front of the solifuge (at ground level).
     lda (Zp_TerrainColumn_u8_arr_ptr), y
@@ -180,6 +192,10 @@ _StopIfBlockedHorz:
     bge @done  ; floor is solid
     @blocked:
     jsr FuncA_Actor_ZeroVelX  ; preserves X
+    ;; TODO: factor this out into a shared actor function
+    lda Ram_ActorFlags_bObj_arr, x
+    eor #bObj::FlipH
+    sta Ram_ActorFlags_bObj_arr, x
     @done:
     rts
 .ENDPROC

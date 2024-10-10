@@ -35,6 +35,10 @@ kMaxPlatforms = 16
 ;;; Platform types greater than or equal to this are solid.
 kFirstSolidPlatformType = ePlatform::Solid
 
+;;; Platform types greater than or equal to this will harm or kill the player
+;;; avatar on contact.
+kFirstHarmfulPlatformType = ePlatform::Harm
+
 ;;;=========================================================================;;;
 
 ;;; Describes a platform's initial size and position.

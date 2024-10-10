@@ -34,6 +34,6 @@ kTileIdBgDiagramCraneFirst   = $f0
 kTileIdBgDiagramTrolleyFirst = $e0
 
 ;;; Various OBJ tile IDs used for drawing crane/trolley machines.
-kTileIdObjCraneFirst = $b0
+kTileIdObjCraneFirst = $c8
 
 ;;;=========================================================================;;;

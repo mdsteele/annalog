@@ -35,4 +35,10 @@
     Jumping = %01000000  ; if set, the solifuge is jumping
 .ENDSCOPE
 
+;;; How far a solifuge baddie actor's bounding box extends in each direction
+;;; from the actor's center position.
+kBadSolifugeBoundingBoxUp   = 2
+kBadSolifugeBoundingBoxDown = 8
+kBadSolifugeBoundingBoxSide = 6
+
 ;;;=========================================================================;;;

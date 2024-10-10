@@ -31,6 +31,7 @@
 .INCLUDE "actors/crawler.inc"
 .INCLUDE "actors/dirt.inc"
 .INCLUDE "actors/duck.inc"
+.INCLUDE "actors/egg.inc"
 .INCLUDE "actors/ember.inc"
 .INCLUDE "actors/fireball.inc"
 .INCLUDE "actors/firefly.inc"
@@ -1126,7 +1127,8 @@ _chr_begin:
     chr_inc "ember",                 kTileIdObjEmber
     chr_res $01
     chr_inc "cannon",                kTileIdObjCannonFirst
-    chr_res $08
+    chr_res $06
+    chr_inc "dirt",                  kTileIdObjDirtFirst
     chr_inc "upgrade_oprest",        kTileIdObjUpgradeOpRestFirst
     chr_res $08
     chr_inc "boss_garden_eye_white", kTileIdObjBossGardenEyeWhiteFirst
@@ -1135,7 +1137,10 @@ _chr_begin:
     chr_inc "platform_crypt_bricks", kTileIdObjPlatformCryptBricksFirst
     chr_inc "boss_crypt_pupil",      kTileIdObjBossCryptPupilFirst
     chr_inc "fireball",              kTileIdObjFireballFirst
-    chr_res $1c
+    chr_inc "boulder",               kTileIdObjBoulderFirst
+    chr_inc "crane",                 kTileIdObjCraneFirst
+    chr_res $08
+    chr_inc "boss_mine_eye",         kTileIdObjBossMineEyeFirst
     chr_inc "crusher",               kTileIdObjCrusherFirst
     chr_inc "winch",                 kTileIdObjWinchFirst
     chr_inc "grenade",               kTileIdObjGrenadeFirst
@@ -1159,21 +1164,22 @@ _chr_begin:
     chr_inc "boiler_flame",         kTileIdObjBoilerFlameFirst
     chr_inc "bullet",               kTileIdObjBulletFirst
     chr_inc "launcher_horz",        kTileIdObjLauncherHorzFirst
-    chr_inc "boulder",              kTileIdObjBoulderFirst
+    chr_inc "dirt",                 kTileIdObjDirtFirst
+    chr_res $02
     chr_inc "blaster",              kTileIdObjBlasterFirst
-    chr_res $01
+    chr_inc "proj_egg",             kTileIdObjProjEgg
     chr_inc "fireblast",            kTileIdObjFireblastFirst
     chr_inc "platform_city_walls",  kTileIdObjPlatformCityWalls
     chr_inc "outbreak_obj",         kTileIdObjOutbreakFirst
-    chr_inc "dirt",                 kTileIdObjDirtFirst
+    chr_res $02
     chr_inc "breakfire",            kTileIdObjBreakfireFirst
-    chr_inc "crane",                kTileIdObjCraneFirst
+    chr_res $08
     chr_inc "proj_spine",           kTileIdObjProjSpineFirst
     chr_inc "valve",                kTileIdObjValveFirst
     chr_inc "fireball",             kTileIdObjFireballFirst
     chr_inc "breakball",            kTileIdObjBreakballFirst
     chr_inc "platform_volcanic",    kTileIdObjPlatformVolcanicFirst
-    chr_inc "boss_mine_eye",        kTileIdObjBossMineEyeFirst
+    chr_inc "bad_spider",           kTileIdObjBadSpiderFirst
     chr_inc "boss_lava_jaws",       kTileIdObjBossLavaJawsFirst
     chr_inc "flamestrike",          kTileIdObjFlamestrikeFirst
     chr_inc "minigun_vert",         kTileIdObjMinigunVertFirst
@@ -1272,9 +1278,9 @@ _chr_begin:
     chr_inc "upgrade_opskip", kTileIdObjUpgradeOpSkipFirst
     chr_res $06
     chr_inc "bad_grub",       kTileIdObjBadGrubFirst
-    chr_res $08
+    chr_res $20
     chr_inc "crane",          kTileIdObjCraneFirst
-    chr_res $28
+    chr_res $10
     chr_inc "child_stand",    kTileIdObjChildStandFirst
     END_CHR_BANK
 .ENDPROC
@@ -1356,9 +1362,11 @@ _chr_begin:
     chr_inc "fireblast",       kTileIdObjFireblastFirst
     chr_inc "bad_grub",        kTileIdObjBadGrubFirst
     chr_inc "bad_wasp",        kTileIdObjBadWaspFirst
-    chr_inc "crane",           kTileIdObjCraneFirst
+    chr_res $08
     chr_inc "bad_firefly",     kTileIdObjBadFireflyFirst
-    chr_res $14
+    chr_res $08
+    chr_inc "crane",           kTileIdObjCraneFirst
+    chr_res $04
     chr_inc "bad_fish",        kTileIdObjBadFishFirst
     chr_res $20
     END_CHR_BANK

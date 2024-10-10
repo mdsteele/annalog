@@ -67,6 +67,7 @@ kMaxActors = 16
     ProjBreakbomb    ; a falling bomb shot by the city boss
     ProjBreakfire    ; sweeps out horizontally from an exploding breakball
     ProjBullet       ; shot by minigun machines
+    ProjEgg          ; dropped by the lava boss; hatches into a BadSolifuge
     ProjEmber        ; fire dropped by a hothead baddie
     ProjFireball     ; shot by various bosses
     ProjFireblast    ; shot by firefly baddies and blaster machines

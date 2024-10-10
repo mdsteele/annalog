@@ -17,15 +17,14 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
-;;; BG tile IDs for animating the mine boss emerging from the wall.
-kTileIdBgAnimWyrmFirst = $70
-;;; BG tile IDs for drawing the conveyor for the mine boss.
-kTileIdBgTerrainConveyorFirst = $b8
+;;; State bytes for solifuge egg projectiles:
+;;;   * Flags: Unused.
+;;;   * State1: Unused.
+;;;   * State2: Unused.
+;;;   * State3: Unused.
+;;;   * State4: Unused
 
-;;; OBJ tile IDs for drawing the mine boss.
-kTileIdObjBossMineEyeFirst = $d8
-
-;;; The OBJ palette number to use for drawing the mine boss's eye.
-kPaletteObjBossMineEye = 1
+;;; The tile ID for drawing solifuge egg projectile actors.
+kTileIdObjProjEgg  = $99
 
 ;;;=========================================================================;;;

@@ -458,14 +458,22 @@ _Loop:
     rts
 _MaybeExpireActor:
     lda Ram_ActorType_eActor_arr, x
+    ;; Common boss projectiles:
     cmp #eActor::ProjFireball
     beq _ExpireFireball
     cmp #eActor::ProjBreakfire
     beq _ExpireBreakfire
+    ;; Temple boss projectiles:
     cmp #eActor::ProjBreakball
     beq _ExpireBreakball
+    ;; Lava boss projectiles:
+    cmp #eActor::ProjEgg
+    beq _ExpireEgg
     cmp #eActor::ProjFlamestrike
     beq _ExpireFlamestrike
+    cmp #eActor::BadSolifuge
+    beq _ExpireSolifuge
+    ;; City boss projectiles:
     cmp #eActor::ProjSpine
     beq _ExpireSpine
     cmp #eActor::ProjBreakbomb
@@ -480,6 +488,8 @@ _ExpireBreakfire:
     lda #$c0  ; param: angle ($c0 = up)
     jmp Func_InitActorSmokeParticle  ; preserves X
 _ExpireBreakball:
+_ExpireEgg:
+_ExpireSolifuge:
     jmp Func_InitActorSmokeExplosion  ; preserves X
 _ExpireFlamestrike:
     lda #eActor::None

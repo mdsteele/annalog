@@ -21,6 +21,7 @@
 .INCLUDE "actors/breakball.inc"
 .INCLUDE "actors/grub.inc"
 .INCLUDE "actors/orc.inc"
+.INCLUDE "actors/solifuge.inc"
 .INCLUDE "avatar.inc"
 .INCLUDE "macros.inc"
 .INCLUDE "ppu.inc"
@@ -62,6 +63,7 @@
 .IMPORT FuncA_Actor_TickProjBreakbomb
 .IMPORT FuncA_Actor_TickProjBreakfire
 .IMPORT FuncA_Actor_TickProjBullet
+.IMPORT FuncA_Actor_TickProjEgg
 .IMPORT FuncA_Actor_TickProjEmber
 .IMPORT FuncA_Actor_TickProjFireball
 .IMPORT FuncA_Actor_TickProjFireblast
@@ -123,6 +125,7 @@
 .IMPORT FuncA_Objects_DrawActorProjBreakbomb
 .IMPORT FuncA_Objects_DrawActorProjBreakfire
 .IMPORT FuncA_Objects_DrawActorProjBullet
+.IMPORT FuncA_Objects_DrawActorProjEgg
 .IMPORT FuncA_Objects_DrawActorProjEmber
 .IMPORT FuncA_Objects_DrawActorProjFireball
 .IMPORT FuncA_Objects_DrawActorProjFireblast
@@ -148,13 +151,13 @@
 .IMPORT FuncA_Room_InitActorBadFlydrop
 .IMPORT FuncA_Room_InitActorBadGooRed
 .IMPORT FuncA_Room_InitActorBadLavaball
-.IMPORT FuncA_Room_InitActorBadSolifuge
 .IMPORT FuncA_Room_InitActorBadToad
 .IMPORT FuncA_Room_InitActorBadWasp
 .IMPORT FuncA_Room_InitActorNpcChild
 .IMPORT FuncA_Room_InitActorNpcToddler
 .IMPORT FuncA_Room_InitActorProjBreakball
 .IMPORT FuncA_Room_InitActorProjBreakbomb
+.IMPORT FuncA_Room_InitActorProjEgg
 .IMPORT FuncA_Room_InitActorProjFlamestrike
 .IMPORT FuncA_Room_InitActorProjSpine
 .IMPORT FuncA_Room_InitActorSmokeBlood
@@ -163,6 +166,7 @@
 .IMPORT FuncA_Room_InitActorSmokeWaterfall
 .IMPORT Func_InitActorBadGronta
 .IMPORT Func_InitActorBadOrc
+.IMPORT Func_InitActorBadSolifuge
 .IMPORT Func_InitActorNpcOrc
 .IMPORT Func_InitActorProjAcid
 .IMPORT Func_InitActorProjAxe
@@ -195,6 +199,7 @@ kBadJellyRadius       = 5
 kProjAxeRadius        = 5
 kProjBreakbombRadius  = 3
 kProjBulletRadius     = 1
+kProjEggRadius        = 3
 kProjFireballRadius   = 3
 kProjFireblastRadius  = 3
 kProjFoodRadius       = 1
@@ -517,7 +522,7 @@ _NoHit:
     d_byte BadRhino,         4
     d_byte BadRodent,        2
     d_byte BadSlime,         4
-    d_byte BadSolifuge,      2
+    d_byte BadSolifuge,     kBadSolifugeBoundingBoxDown
     d_byte BadSpider,        8
     d_byte BadToad,          9
     d_byte BadVinebug,       7
@@ -536,6 +541,7 @@ _NoHit:
     d_byte ProjBreakbomb,   kProjBreakbombRadius
     d_byte ProjBreakfire,   12
     d_byte ProjBullet,      kProjBulletRadius
+    d_byte ProjEgg,         kProjEggRadius
     d_byte ProjEmber,        1
     d_byte ProjFireball,    kProjFireballRadius
     d_byte ProjFireblast,   kProjFireblastRadius
@@ -584,7 +590,7 @@ _NoHit:
     d_byte BadRhino,         8
     d_byte BadRodent,        2
     d_byte BadSlime,         2
-    d_byte BadSolifuge,      8
+    d_byte BadSolifuge,     kBadSolifugeBoundingBoxDown
     d_byte BadSpider,        2
     d_byte BadToad,          0
     d_byte BadVinebug,       7
@@ -603,6 +609,7 @@ _NoHit:
     d_byte ProjBreakbomb,   kProjBreakbombRadius
     d_byte ProjBreakfire,    8
     d_byte ProjBullet,      kProjBulletRadius
+    d_byte ProjEgg,         kProjEggRadius
     d_byte ProjEmber,        3
     d_byte ProjFireball,    kProjFireballRadius
     d_byte ProjFireblast,   kProjFireblastRadius
@@ -651,7 +658,7 @@ _NoHit:
     d_byte BadRhino,        10
     d_byte BadRodent,        2
     d_byte BadSlime,         6
-    d_byte BadSolifuge,      6
+    d_byte BadSolifuge,     kBadSolifugeBoundingBoxSide
     d_byte BadSpider,        6
     d_byte BadToad,          7
     d_byte BadVinebug,       5
@@ -670,6 +677,7 @@ _NoHit:
     d_byte ProjBreakbomb,   kProjBreakbombRadius
     d_byte ProjBreakfire,    3
     d_byte ProjBullet,      kProjBulletRadius
+    d_byte ProjEgg,         kProjEggRadius
     d_byte ProjEmber,        2
     d_byte ProjFireball,    kProjFireballRadius
     d_byte ProjFireblast,   kProjFireblastRadius
@@ -805,6 +813,7 @@ _TypeSpecificTick:
     d_entry table, ProjBreakbomb,   FuncA_Actor_TickProjBreakbomb
     d_entry table, ProjBreakfire,   FuncA_Actor_TickProjBreakfire
     d_entry table, ProjBullet,      FuncA_Actor_TickProjBullet
+    d_entry table, ProjEgg,         FuncA_Actor_TickProjEgg
     d_entry table, ProjEmber,       FuncA_Actor_TickProjEmber
     d_entry table, ProjFireball,    FuncA_Actor_TickProjFireball
     d_entry table, ProjFireblast,   FuncA_Actor_TickProjFireblast
@@ -958,7 +967,7 @@ _Finish:
     d_entry table, BadRhino,        Func_InitActorWithFlags
     d_entry table, BadRodent,       Func_InitActorDefault
     d_entry table, BadSlime,        Func_InitActorWithFlags
-    d_entry table, BadSolifuge,     FuncA_Room_InitActorBadSolifuge
+    d_entry table, BadSolifuge,     Func_InitActorBadSolifuge
     d_entry table, BadSpider,       Func_InitActorDefault
     d_entry table, BadToad,         FuncA_Room_InitActorBadToad
     d_entry table, BadVinebug,      Func_InitActorDefault
@@ -977,6 +986,7 @@ _Finish:
     d_entry table, ProjBreakbomb,   FuncA_Room_InitActorProjBreakbomb
     d_entry table, ProjBreakfire,   Func_InitActorProjBreakfire
     d_entry table, ProjBullet,      Func_InitActorProjBullet
+    d_entry table, ProjEgg,         FuncA_Room_InitActorProjEgg
     d_entry table, ProjEmber,       Func_InitActorProjEmber
     d_entry table, ProjFireball,    Func_InitActorProjFireball
     d_entry table, ProjFireblast,   Func_InitActorProjFireblast
@@ -1073,6 +1083,7 @@ _Finish:
     d_entry table, ProjBreakbomb,   FuncA_Objects_DrawActorProjBreakbomb
     d_entry table, ProjBreakfire,   FuncA_Objects_DrawActorProjBreakfire
     d_entry table, ProjBullet,      FuncA_Objects_DrawActorProjBullet
+    d_entry table, ProjEgg,         FuncA_Objects_DrawActorProjEgg
     d_entry table, ProjEmber,       FuncA_Objects_DrawActorProjEmber
     d_entry table, ProjFireball,    FuncA_Objects_DrawActorProjFireball
     d_entry table, ProjFireblast,   FuncA_Objects_DrawActorProjFireblast

@@ -26,6 +26,6 @@
 ;;;   * State4: Unused.
 
 ;;; Tile IDs for drawing dirt smoke actors.
-kTileIdObjDirtFirst = $a9
+kTileIdObjDirtFirst = $94
 
 ;;;=========================================================================;;;

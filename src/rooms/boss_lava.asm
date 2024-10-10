@@ -59,6 +59,7 @@
 .IMPORT FuncA_Objects_MoveShapeRightByA
 .IMPORT FuncA_Objects_MoveShapeUpByA
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
+.IMPORT FuncA_Room_InitActorProjEgg
 .IMPORT FuncA_Room_InitActorProjFlamestrike
 .IMPORT FuncA_Room_InitBoss
 .IMPORT FuncA_Room_MachineBoilerReset
@@ -204,6 +205,9 @@ Ppu_BossBodyAttrs = Ppu_Nametable3_sName + sName::Attrs_u8_arr64 + \
 ;;; Modes that the boss in this room can be in.
 .ENUM eBossMode
     Dead
+    EggPrepare          ; move into position to drop an egg
+    EggDrop             ; drop an egg
+    EggWait             ; wait for the egg to hatch and the solifuge killed
     FiresprayPrepare    ; move into position to shoot a spray of fireballs
     FiresprayWindup     ; open jaws before shooting a spray of fireballs
     FiresprayShoot      ; shoot a spray of fireballs
@@ -508,6 +512,7 @@ _CheckForHitTail:
     lda #eActor::ProjFireblast  ; param: actor type
     jsr Func_FindActorWithType  ; returns C and X
     bcs @done  ; no fireblast found
+    ;; TODO: Check if the fireblast has hit a solifuge.
     ;; Check if the fireblast has hit the tail.
     jsr Func_SetPointToActorCenter  ; preserves X
     ldy #kBossTailPlatformIndex  ; param: platform index
@@ -547,6 +552,9 @@ _CheckMode:
     D_TABLE_HI table, _JumpTable_ptr_1_arr
     D_TABLE .enum, eBossMode
     d_entry table, Dead,               Func_Noop
+    d_entry table, EggPrepare,         _BossEggPrepare
+    d_entry table, EggDrop,            _BossEggDrop
+    d_entry table, EggWait,            _BossEggWait
     d_entry table, FiresprayPrepare,   _BossFiresprayPrepare
     d_entry table, FiresprayWindup,    _BossFiresprayWindup
     d_entry table, FiresprayShoot,     _BossFiresprayShoot
@@ -558,6 +566,49 @@ _CheckMode:
     d_entry table, Scuttling,          _BossScuttling
     D_END
 .ENDREPEAT
+_BossEggPrepare:
+    jsr FuncC_Boss_Lava_BossCloseJaws
+    ;; Wait until the boss is in position.
+    jsr FuncC_Boss_Lava_BossMoveTowardGoal  ; sets C when goal is reached
+    bcc @done
+    ;; Change modes to drop an egg.
+    lda #eBossMode::EggDrop
+    sta Zp_RoomState + sState::Current_eBossMode
+    @done:
+    rts
+_BossEggDrop:
+    ;; Wait until the boss's jaws are fully open.
+    jsr FuncC_Boss_Lava_BossOpenJaws  ; sets Z when jaws are fully open
+    bne @done
+    ;; Drop an egg.
+    lda #kBossHeightPx / 2 + kTileHeightPx / 2  ; param: offset
+    jsr FuncC_Boss_Lava_SetPointBelowBossCenter
+    jsr Func_FindEmptyActorSlot  ; returns C and X
+    bcs @done
+    jsr Func_SetActorCenterToPoint  ; preserves X
+    jsr FuncA_Room_InitActorProjEgg
+    ;; Change modes to wait for the egg to hatch and the solifuge be killed.
+    lda #eBossMode::EggWait
+    sta Zp_RoomState + sState::Current_eBossMode
+    @done:
+    rts
+_BossEggWait:
+    jsr FuncC_Boss_Lava_BossCloseJaws
+    ;; Wait until no egg or solifuge exists.
+    ldx #kMaxActors - 1
+    @loop:
+    lda Ram_ActorType_eActor_arr, x
+    cmp #eActor::ProjEgg
+    beq @done
+    cmp #eActor::BadSolifuge
+    beq @done
+    dex
+    .assert kMaxActors <= $80, error
+    bpl @loop
+    ;; Switch modes.
+    jmp _StartFirespray
+    @done:
+    rts
 _BossFiresprayPrepare:
     jsr FuncC_Boss_Lava_BossCloseJaws
     ;; Wait until the boss is in position.
@@ -614,10 +665,8 @@ _BossFlamestrikeShoot:
     lda #70
     sta Zp_RoomState + sState::BossCooldown_u8
     ;; Shoot a flamestrike projectile.
-    ldy #kBossBodyPlatformIndex  ; param: platform index
-    jsr Func_SetPointToPlatformCenter
     lda #kBossHeightPx / 2 - 1  ; param: offset
-    jsr Func_MovePointDownByA
+    jsr FuncC_Boss_Lava_SetPointBelowBossCenter
     jsr Func_FindEmptyActorSlot  ; returns C and X
     bcs @done
     jsr Func_SetActorCenterToPoint  ; preserves X
@@ -716,10 +765,8 @@ _BossFiresprayShoot:
     and #$07
     bne @done
     ;; Shoot a fireball.
-    ldy #kBossBodyPlatformIndex  ; param: platform index
-    jsr Func_SetPointToPlatformCenter
     lda #kBossHeightPx / 2 + kTileHeightPx / 2  ; param: offset
-    jsr Func_MovePointDownByA
+    jsr FuncC_Boss_Lava_SetPointBelowBossCenter
     jsr Func_FindEmptyActorSlot  ; returns C and X
     bcs @done
     jsr Func_SetActorCenterToPoint  ; preserves X
@@ -753,20 +800,38 @@ _BossScuttling:
     lda #kBossScuttleCooldown
     sta Zp_RoomState + sState::BossCooldown_u8
     dec Zp_RoomState + sState::BossModeParam_byte
-    beq _StartFlamestrike
+    beq @attack
     lda #60
     sta Zp_RoomState + sState::BossCooldown_u8
     bne _StartNextScuttle  ; unconditional
+    @attack:
+    jsr Func_GetRandomByte  ; returns N
+    bmi _StartEgg
+    bpl _StartFlamestrike  ; unconditional
 _StartFlamestrike:
-    ;; Choose a random valid position for firing a flamestrike.
-    jsr Func_GetRandomByte  ; returns A
-    and #$03
-    add #3
-    sta Zp_RoomState + sState::BossGoalX_u8
+    ;; Choose a random valid position for firing a flamestrike (Y is 2, and X
+    ;; is in in the range 3-6).
     lda #2
     sta Zp_RoomState + sState::BossGoalY_u8
+    jsr Func_GetRandomByte  ; returns A
+    mod #4
+    add #3
+    sta Zp_RoomState + sState::BossGoalX_u8
     ;; Change modes to move to the firing position and shoot a flamestrike.
     lda #eBossMode::FlamestrikePrepare
+    sta Zp_RoomState + sState::Current_eBossMode
+    rts
+_StartEgg:
+    ;; Choose a random valid position for dropping an egg (Y is 0, and X is in
+    ;; in the range 4-5).
+    lda #0
+    sta Zp_RoomState + sState::BossGoalY_u8
+    jsr Func_GetRandomByte  ; returns A
+    mod #2
+    add #4
+    sta Zp_RoomState + sState::BossGoalX_u8
+    ;; Change modes to move to the dropping position and drop an egg.
+    lda #eBossMode::EggPrepare
     sta Zp_RoomState + sState::Current_eBossMode
     rts
 .ENDPROC
@@ -839,6 +904,17 @@ _StartFlamestrike:
     @setJaws:
     sta Zp_RoomState + sState::BossJawsOpen_u8
     rts
+.ENDPROC
+
+;;; Sets Zp_PointX_i16 to the horizontal center of the boss, and sets
+;;; Zp_PointY_i16 to a position A pixels below the vertical center of the boss.
+;;; @param A How many pixels below the center of the boss to set the point.
+.PROC FuncC_Boss_Lava_SetPointBelowBossCenter
+    pha  ; offset
+    ldy #kBossBodyPlatformIndex  ; param: platform index
+    jsr Func_SetPointToPlatformCenter
+    pla  ; param: offset
+    jmp Func_MovePointDownByA
 .ENDPROC
 
 ;;; Draw function for the BossLava room.
