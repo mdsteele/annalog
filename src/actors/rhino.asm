@@ -23,6 +23,7 @@
 .INCLUDE "../tileset.inc"
 .INCLUDE "rhino.inc"
 
+.IMPORT FuncA_Actor_FaceOppositeDir
 .IMPORT FuncA_Actor_HarmAvatarIfCollision
 .IMPORT FuncA_Actor_IsAvatarWithinHorzDistance
 .IMPORT FuncA_Actor_IsAvatarWithinVertDistances
@@ -130,9 +131,7 @@ kPaletteObjRhino = 0
     ;; Check if the terrain forces the rhino to turn around.
     jsr FuncA_Actor_MustRhinoTurn  ; preserves X, returns C
     bcc @noTerrainTurn
-    lda Ram_ActorFlags_bObj_arr, x
-    eor #bObj::FlipH
-    sta Ram_ActorFlags_bObj_arr, x
+    jsr FuncA_Actor_FaceOppositeDir  ; preserves X
     @noTerrainTurn:
     ;; Check if the player avatar is nearby.
     ldy #kRhinoVertProximity  ; param: distance below avatar
@@ -152,9 +151,7 @@ _NotFacingAvatar:
     lda #kRhinoSneakDistance  ; param: distance
     jsr FuncA_Actor_IsAvatarWithinHorzDistance  ; preserves X, returns C
     bcc _SetVelocity
-    lda Ram_ActorFlags_bObj_arr, x
-    eor #bObj::FlipH
-    sta Ram_ActorFlags_bObj_arr, x
+    jsr FuncA_Actor_FaceOppositeDir  ; preserves X
     lda #kRhinoAngeredBehindFrames
 _BecomeAngered:
     sta Ram_ActorState2_byte_arr, x  ; mode timer

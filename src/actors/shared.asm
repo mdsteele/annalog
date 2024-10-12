@@ -294,6 +294,18 @@ _NotInRoom:
     rts
 .ENDPROC
 
+;;; Toggles the actor's bObj::FlipH bit.
+;;; @param X The actor index.
+;;; @return A The new bObj value that was set for the actor.
+;;; @preserve X, Y, T0+
+.EXPORT FuncA_Actor_FaceOppositeDir
+.PROC FuncA_Actor_FaceOppositeDir
+    lda Ram_ActorFlags_bObj_arr, x
+    eor #bObj::FlipH
+    sta Ram_ActorFlags_bObj_arr, x
+    rts
+.ENDPROC
+
 ;;; Sets or clears bObj::FlipH in the actor's flags so as to face the actor
 ;;; horizontally towards the direction of the actor's X-velocity.
 ;;; @param X The actor index.

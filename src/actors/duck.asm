@@ -22,6 +22,7 @@
 .INCLUDE "../oam.inc"
 .INCLUDE "duck.inc"
 
+.IMPORT FuncA_Actor_FaceOppositeDir
 .IMPORT FuncA_Actor_FaceTowardsPoint
 .IMPORT FuncA_Actor_SetPointInFrontOfActor
 .IMPORT FuncA_Actor_SetPointToOtherActorCenter
@@ -30,7 +31,6 @@
 .IMPORT FuncA_Objects_Draw1x1Actor
 .IMPORT Func_GetRandomByte
 .IMPORT Func_PointHitsTerrain
-.IMPORT Ram_ActorFlags_bObj_arr
 .IMPORT Ram_ActorPosX_i16_0_arr
 .IMPORT Ram_ActorPosX_i16_1_arr
 .IMPORT Ram_ActorState1_byte_arr
@@ -130,9 +130,7 @@ _MaybeTurnAround:
     mod #4
     bne _PickNewSpeed  ; do not turn around
 _DoTurnAround:
-    lda Ram_ActorFlags_bObj_arr, x
-    eor #bObj::FlipH
-    sta Ram_ActorFlags_bObj_arr, x
+    jsr FuncA_Actor_FaceOppositeDir  ; preserves X
 _PickNewSpeed:
     ;; Wander for a random amount of time between about 1-2 seconds.
     jsr Func_GetRandomByte  ; preserves X, returns A

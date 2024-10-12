@@ -21,12 +21,12 @@
 .INCLUDE "../oam.inc"
 .INCLUDE "fish.inc"
 
+.IMPORT FuncA_Actor_FaceOppositeDir
 .IMPORT FuncA_Actor_HarmAvatarIfCollision
 .IMPORT FuncA_Actor_SetPointInFrontOfActor
 .IMPORT FuncA_Actor_SetVelXForward
 .IMPORT FuncA_Objects_Draw2x2Actor
 .IMPORT Func_PointHitsTerrain
-.IMPORT Ram_ActorFlags_bObj_arr
 .IMPORT Ram_ActorState1_byte_arr
 
 ;;;=========================================================================;;;
@@ -55,11 +55,7 @@ kPaletteObjFish = 0
     jsr FuncA_Actor_SetPointInFrontOfActor  ; preserves X
     jsr Func_PointHitsTerrain  ; preserves X, returns C
     bcc @continueForward
-    ;; Make the fish face the opposite direction.
-    @turnAround:
-    lda Ram_ActorFlags_bObj_arr, x
-    eor #bObj::FlipH
-    sta Ram_ActorFlags_bObj_arr, x
+    jsr FuncA_Actor_FaceOppositeDir  ; preserves X
     @continueForward:
 _SetVelocity:
     ldya #kFishSpeed  ; param: speed

@@ -24,6 +24,7 @@
 .INCLUDE "slime.inc"
 .INCLUDE "spike.inc"
 
+.IMPORT FuncA_Actor_FaceOppositeDir
 .IMPORT FuncA_Actor_HarmAvatarIfCollision
 .IMPORT FuncA_Actor_IsAvatarAboveOrBelow
 .IMPORT FuncA_Actor_IsAvatarWithinHorzDistance
@@ -42,7 +43,6 @@
 .IMPORT Func_PointHitsTerrain
 .IMPORT Func_SetActorCenterToPoint
 .IMPORT Func_SetPointToActorCenter
-.IMPORT Ram_ActorFlags_bObj_arr
 .IMPORT Ram_ActorState1_byte_arr
 .IMPORT Ram_ActorState2_byte_arr
 .IMPORT Ram_ActorVelY_i16_1_arr
@@ -95,9 +95,7 @@ _Move:
     bge @continueForward
     ;; Make the slime face the opposite direction.
     @turnAround:
-    lda Ram_ActorFlags_bObj_arr, x
-    eor #bObj::FlipH
-    sta Ram_ActorFlags_bObj_arr, x
+    jsr FuncA_Actor_FaceOppositeDir  ; preserves X
     ;; Set the slime's velocity.
     @continueForward:
     lda Ram_ActorState2_byte_arr, x  ; animation timer

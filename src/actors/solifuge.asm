@@ -29,6 +29,7 @@
 .IMPORT FuncA_Actor_ApplyGravity
 .IMPORT FuncA_Actor_CenterHitsTerrainOrSolidPlatform
 .IMPORT FuncA_Actor_ClampVelX
+.IMPORT FuncA_Actor_FaceOppositeDir
 .IMPORT FuncA_Actor_FaceTowardsAvatar
 .IMPORT FuncA_Actor_GetRoomBlockRow
 .IMPORT FuncA_Actor_HarmAvatarIfCollision
@@ -43,7 +44,6 @@
 .IMPORT Func_InitActorDefault
 .IMPORT Func_InitActorSmokeExplosion
 .IMPORT Func_SetPointToActorCenter
-.IMPORT Ram_ActorFlags_bObj_arr
 .IMPORT Ram_ActorPosY_i16_0_arr
 .IMPORT Ram_ActorPosY_i16_1_arr
 .IMPORT Ram_ActorState1_byte_arr
@@ -192,10 +192,7 @@ _StopIfBlockedHorz:
     bge @done  ; floor is solid
     @blocked:
     jsr FuncA_Actor_ZeroVelX  ; preserves X
-    ;; TODO: factor this out into a shared actor function
-    lda Ram_ActorFlags_bObj_arr, x
-    eor #bObj::FlipH
-    sta Ram_ActorFlags_bObj_arr, x
+    jmp FuncA_Actor_FaceOppositeDir  ; preserves X
     @done:
     rts
 .ENDPROC

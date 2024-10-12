@@ -22,6 +22,7 @@
 .INCLUDE "../oam.inc"
 .INCLUDE "flydrop.inc"
 
+.IMPORT FuncA_Actor_FaceOppositeDir
 .IMPORT FuncA_Actor_FaceTowardsAvatar
 .IMPORT FuncA_Actor_HarmAvatarIfCollision
 .IMPORT FuncA_Actor_IsAvatarAboveOrBelow
@@ -36,7 +37,6 @@
 .IMPORT Func_MovePointDownByA
 .IMPORT Func_PointHitsTerrain
 .IMPORT Func_SetActorCenterToPoint
-.IMPORT Ram_ActorFlags_bObj_arr
 .IMPORT Ram_ActorState1_byte_arr
 .IMPORT Ram_ActorState2_byte_arr
 .IMPORT Ram_ActorVelX_i16_0_arr
@@ -163,10 +163,7 @@ _TurnRandomly:
     jsr FuncA_Actor_FaceTowardsAvatar  ; preserves X
     jmp _SetVelocity
 _TurnAround:
-    ;; Make the flydrop face the opposite direction.
-    lda Ram_ActorFlags_bObj_arr, x
-    eor #bObj::FlipH
-    sta Ram_ActorFlags_bObj_arr, x
+    jsr FuncA_Actor_FaceOppositeDir  ; preserves X
     lda #kFlydropRandomTurnCooldownFrames
     sta Ram_ActorState2_byte_arr, x  ; random turn cooldown
 _SetVelocity:

@@ -23,6 +23,7 @@
 .INCLUDE "../tileset.inc"
 .INCLUDE "crab.inc"
 
+.IMPORT FuncA_Actor_FaceOppositeDir
 .IMPORT FuncA_Actor_HarmAvatarIfCollision
 .IMPORT FuncA_Actor_SetPointInFrontOfActor
 .IMPORT FuncA_Objects_Draw2x2Actor
@@ -94,9 +95,7 @@ _StartMove:
     bne @continueForward
     ;; Make the crab face the opposite direction.
     @turnAround:
-    lda Ram_ActorFlags_bObj_arr, x
-    eor #bObj::FlipH
-    sta Ram_ActorFlags_bObj_arr, x
+    jsr FuncA_Actor_FaceOppositeDir  ; preserves X
     ;; Start a new movement cycle for the crab.
     @continueForward:
     lda #$1f

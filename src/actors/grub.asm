@@ -23,6 +23,7 @@
 .INCLUDE "../tileset.inc"
 .INCLUDE "grub.inc"
 
+.IMPORT FuncA_Actor_FaceOppositeDir
 .IMPORT FuncA_Actor_FaceTowardsAvatar
 .IMPORT FuncA_Actor_HarmAvatarIfCollision
 .IMPORT FuncA_Actor_IsAvatarWithinVertDistances
@@ -180,9 +181,7 @@ _StartMove:
     bge @continueForward
     ;; Make the grub face the opposite direction.
     @turnAround:
-    lda Ram_ActorFlags_bObj_arr, x
-    eor #bObj::FlipH
-    sta Ram_ActorFlags_bObj_arr, x
+    jsr FuncA_Actor_FaceOppositeDir  ; preserves X
     ;; Start a new movement cycle for the grub.
     @continueForward:
     lda #$1f

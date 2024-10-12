@@ -23,6 +23,7 @@
 .INCLUDE "../oam.inc"
 .INCLUDE "toddler.inc"
 
+.IMPORT FuncA_Actor_FaceOppositeDir
 .IMPORT FuncA_Objects_Draw1x2Actor
 .IMPORT Func_InitActorWithState1
 .IMPORT Ram_ActorFlags_bObj_arr
@@ -73,9 +74,7 @@ kToddlerTime = 64
     dec Ram_ActorState1_byte_arr, x
     bne @move
     @turnAround:
-    lda Ram_ActorFlags_bObj_arr, x
-    eor #bObj::FlipH
-    sta Ram_ActorFlags_bObj_arr, x
+    jsr FuncA_Actor_FaceOppositeDir  ; preserves X
     lda #kToddlerTime
     sta Ram_ActorState1_byte_arr, x
     @move:

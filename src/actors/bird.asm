@@ -25,6 +25,7 @@
 .INCLUDE "../ppu.inc"
 .INCLUDE "bird.inc"
 
+.IMPORT FuncA_Actor_FaceOppositeDir
 .IMPORT FuncA_Actor_HarmAvatarIfCollision
 .IMPORT FuncA_Actor_SetPointInFrontOfActor
 .IMPORT FuncA_Actor_SetVelXForward
@@ -109,10 +110,7 @@ _Moving:
     bcc _Done
 _LandOnWall:
     jsr FuncA_Actor_ZeroVelX  ; preserves X
-    ;; Make the bird face the opposite direction.
-    lda Ram_ActorFlags_bObj_arr, x
-    eor #bObj::FlipH
-    sta Ram_ActorFlags_bObj_arr, x
+    jsr FuncA_Actor_FaceOppositeDir  ; preserves X
     ;; Adjust position to be on the wall.
     lda #0
     sta Ram_ActorSubX_u8_arr, x

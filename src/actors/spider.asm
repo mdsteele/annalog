@@ -24,6 +24,7 @@
 .INCLUDE "../tileset.inc"
 .INCLUDE "spider.inc"
 
+.IMPORT FuncA_Actor_FaceOppositeDir
 .IMPORT FuncA_Actor_HarmAvatarIfCollision
 .IMPORT FuncA_Actor_IsAvatarAboveOrBelow
 .IMPORT FuncA_Actor_IsAvatarWithinHorzDistance
@@ -179,9 +180,7 @@ _StartNewMovementCycle:
     bne @continueForward
     ;; Make the spider face the opposite direction.
     @turnAround:
-    lda Ram_ActorFlags_bObj_arr, x
-    eor #bObj::FlipH
-    sta Ram_ActorFlags_bObj_arr, x
+    jsr FuncA_Actor_FaceOppositeDir  ; preserves X
     @continueForward:
 _SetVelocityForMove:
     ldya #kSpiderMoveSpeed * $100  ; param: speed
