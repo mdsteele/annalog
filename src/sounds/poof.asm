@@ -28,9 +28,8 @@
 
 .SEGMENT "PRG8"
 
-;;; SFX sequence data for pulse channel portion of the "spawn upgrade" sound
-;;; effect.
-.PROC Data_SpawnUpgradePulse_sSfxSeq_arr
+;;; SFX sequence data for pulse channel portion of the "poof" sound effect.
+.PROC Data_PoofPulse_sSfxSeq_arr
     .linecont +
     D_STRUCT sSfxSeq
     d_byte Duration_u8, 12
@@ -43,9 +42,8 @@
     .linecont -
 .ENDPROC
 
-;;; SFX sequence data for pulse channel portion of the "spawn upgrade" sound
-;;; effect.
-.PROC Data_SpawnUpgradeNoise_sSfxSeq_arr
+;;; SFX sequence data for pulse channel portion of the "poof" sound effect.
+.PROC Data_PoofNoise_sSfxSeq_arr
     D_STRUCT sSfxSeq
     d_byte Duration_u8, 15
     d_byte Env_bEnvelope, bEnvelope::NoLength | 3
@@ -57,18 +55,24 @@
 
 ;;;=========================================================================;;;
 
-.SEGMENT "PRGA_Room"
+.SEGMENT "PRG8"
 
-;;; Starts playing the sound for when an upgrade is spawned.
-;;; @preserve T0+
-.EXPORT FuncA_Room_PlaySfxSpawnUpgrade
-.PROC FuncA_Room_PlaySfxSpawnUpgrade
+;;; Starts playing the sound for a poof of smoke e.g. when an upgrade spawns,
+;;; or a chain is broken, or an egg hatches.
+;;; @preserve X, T0+
+.EXPORT Func_PlaySfxPoof
+.PROC Func_PlaySfxPoof
+    txa
+    pha
     ldx #eChan::Pulse2
-    ldya #Data_SpawnUpgradePulse_sSfxSeq_arr
+    ldya #Data_PoofPulse_sSfxSeq_arr
     jsr Func_PlaySfxSequence  ; preserves T0+
     ldx #eChan::Noise
-    ldya #Data_SpawnUpgradeNoise_sSfxSeq_arr
-    jmp Func_PlaySfxSequence  ; preserves T0+
+    ldya #Data_PoofNoise_sSfxSeq_arr
+    jsr Func_PlaySfxSequence  ; preserves T0+
+    pla
+    tax
+    rts
 .ENDPROC
 
 ;;;=========================================================================;;;

@@ -34,6 +34,7 @@
 .IMPORT Func_InitActorDefault
 .IMPORT Func_InitActorSmokeExplosion
 .IMPORT Func_IsPointInAnySolidPlatform
+.IMPORT Func_PlaySfxPoof
 .IMPORT Func_PointHitsTerrain
 .IMPORT Func_SetActorCenterToPoint
 .IMPORT Func_SetPointToActorCenter
@@ -113,7 +114,7 @@ _Hatch:
     @noSpawn:
     ldx T0  ; egg actor index
 _Break:
-    ;; TODO: play a sound for the egg breaking/hatching
+    jsr Func_PlaySfxPoof  ; preserves X
     jmp Func_InitActorSmokeExplosion  ; preserves X
 _Remove:
     lda #eActor::None

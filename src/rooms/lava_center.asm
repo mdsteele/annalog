@@ -58,6 +58,7 @@
 .IMPORT Func_MachineBlasterReadRegM
 .IMPORT Func_MovePlatformTopTowardPointY
 .IMPORT Func_MovePlatformVert
+.IMPORT Func_PlaySfxPoof
 .IMPORT Func_SetFlag
 .IMPORT Func_SetPointToActorCenter
 .IMPORT Ppu_ChrObjLava
@@ -608,7 +609,7 @@ _Mirrors:
     jsr Func_SetFlag  ; preserves T0+
     ldx T1  ; actor index
     jsr Func_InitActorSmokeExplosion  ; preserves X and T0+
-    ;; TODO: play a sound for the chain breaking
+    jsr Func_PlaySfxPoof  ; preserves X and T0+
     @continue:
     dex
     .assert kMaxActors <= $80, error

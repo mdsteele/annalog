@@ -47,6 +47,7 @@
 .IMPORT Func_MovePointDownByA
 .IMPORT Func_MovePointVert
 .IMPORT Func_Noop
+.IMPORT Func_PlaySfxPoof
 .IMPORT Func_SetActorCenterToPoint
 .IMPORT Func_SetFlag
 .IMPORT Func_SetPlatformTopToPointY
@@ -451,6 +452,7 @@ _ReleaseCratesFunc:
     jsr Func_SetActorCenterToPoint  ; preserves X
     jsr Func_InitActorSmokeExplosion
     @doneSmoke:
+    jsr Func_PlaySfxPoof
     ldx #eFlag::CoreSouthCorraHelped  ; param: flag
     jmp Func_SetFlag
 _SwimUpFunc:
