@@ -571,13 +571,12 @@ _SetUpCircuitIrq:
     ;; Compute the IRQ latch value to set between the top of the circuit
     ;; animation zone and the top of the window (if any), and set that as
     ;; Param4_byte.
-    lda #kCircuitChr04IrqY
-    sta T0  ; IRQ latch for circuit anim
-    rsub Zp_Buffered_sIrq + sIrq::Latch_u8
+    lda Zp_Buffered_sIrq + sIrq::Latch_u8
+    sub #kCircuitChr04IrqY + 1
     blt @done  ; window top is above circuit top
     sta Zp_Buffered_sIrq + sIrq::Param4_byte  ; window latch
     ;; Set up our own sIrq struct to handle circuit animation.
-    lda T0  ; IRQ latch for lava
+    lda #kCircuitChr04IrqY
     sta Zp_Buffered_sIrq + sIrq::Latch_u8
     ldax #Int_SetChr04ToParam3ThenLatchWindowFromParam4
     stax Zp_Buffered_sIrq + sIrq::FirstIrq_int_ptr
