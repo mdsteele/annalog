@@ -22,7 +22,7 @@
 .INCLUDE "../macros.inc"
 .INCLUDE "../sound.inc"
 
-.IMPORT Func_PlaySfxSequence
+.IMPORT Func_PlaySfxSequenceNoise
 
 ;;;=========================================================================;;;
 
@@ -47,9 +47,8 @@
 ;;; @preserve T0+
 .EXPORT FuncA_Machine_PlaySfxShootBullet
 .PROC FuncA_Machine_PlaySfxShootBullet
-    ldx #eChan::Noise
     ldya #Data_ShootBullet_sSfxSeq_arr
-    jmp Func_PlaySfxSequence  ; preserves T0+
+    jmp Func_PlaySfxSequenceNoise  ; preserves T0+
 .ENDPROC
 
 ;;;=========================================================================;;;

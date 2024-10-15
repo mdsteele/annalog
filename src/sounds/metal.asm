@@ -22,7 +22,8 @@
 .INCLUDE "../macros.inc"
 .INCLUDE "../sound.inc"
 
-.IMPORT Func_PlaySfxSequence
+.IMPORT Func_PlaySfxSequenceNoise
+.IMPORT Func_PlaySfxSequencePulse2
 
 ;;;=========================================================================;;;
 
@@ -62,9 +63,8 @@
 .PROC Func_PlaySfxMetallicDing
     txa
     pha
-    ldx #eChan::Noise
     ldya #Data_MetallicDing_sSfxSeq_arr
-    jsr Func_PlaySfxSequence  ; preserves T0+
+    jsr Func_PlaySfxSequenceNoise  ; preserves T0+
     pla
     tax
     rts
@@ -78,9 +78,8 @@
 ;;; @preserve T0+
 .EXPORT FuncA_Room_PlaySfxMetallicClang
 .PROC FuncA_Room_PlaySfxMetallicClang
-    ldx #eChan::Pulse2
     ldya #Data_MetallicClang_sSfxSeq_arr
-    jmp Func_PlaySfxSequence  ; preserves T0+
+    jmp Func_PlaySfxSequencePulse2  ; preserves T0+
 .ENDPROC
 
 ;;;=========================================================================;;;

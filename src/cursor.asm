@@ -33,6 +33,7 @@
 .IMPORT FuncA_Console_SetFieldForNominalOffset
 .IMPORT Func_AllocObjects
 .IMPORT Func_AllocOneObject
+.IMPORT Func_PlaySfxMenuMove
 .IMPORT Ram_Console_sProgram
 .IMPORT Ram_MachinePc_u8_arr
 .IMPORT Ram_MachineStatus_eMachine_arr
@@ -59,6 +60,8 @@
 .EXPORT FuncA_Console_MoveFieldCursor
 .PROC FuncA_Console_MoveFieldCursor
 .PROC _MoveCursorVertically
+    lda Zp_ConsoleInstNumber_u8
+    sta T0  ; old instruction number
 _CheckDown:
     lda Zp_P1ButtonsPressed_bJoypad
     and #bJoypad::Down
@@ -112,11 +115,21 @@ _CheckUp:
     @select:
     stx Zp_ConsoleInstNumber_u8
 _FinishUpDown:
+    ;; Check if the cursor actually moved vertically; if so, play a sound and
+    ;; set the field number from the nominal field offset.
+    lda Zp_ConsoleInstNumber_u8
+    cmp T0  ; old instruction number
+    beq _NoUpOrDown  ; cursor didn't actually move
+    jsr Func_PlaySfxMenuMove
     jsr FuncA_Console_SetFieldForNominalOffset
 _NoUpOrDown:
 .ENDPROC
 .PROC _MoveCursorHorizontally
-    jsr FuncA_Console_GetCurrentInstNumFields  ; returns X
+    lda Zp_ConsoleInstNumber_u8
+    sta T2  ; old instruction number
+    lda Zp_ConsoleFieldNumber_u8
+    sta T1  ; old field number
+    jsr FuncA_Console_GetCurrentInstNumFields  ; preserves T0+, returns X
     stx T0  ; num fields
 _CheckLeft:
     lda Zp_P1ButtonsPressed_bJoypad
@@ -134,7 +147,7 @@ _CheckLeft:
     ;; Looks like we're in the right-hand column, so move to the last field of
     ;; the instruction on the same row in the left-hand column.
     sta Zp_ConsoleInstNumber_u8
-    jsr FuncA_Console_GetCurrentInstNumFields  ; returns X
+    jsr FuncA_Console_GetCurrentInstNumFields  ; preserves T0+ returns X
     dex
     @setFieldNumber:
     stx Zp_ConsoleFieldNumber_u8
@@ -159,7 +172,7 @@ _CheckRight:
     sta Zp_ConsoleInstNumber_u8
     ;; If we're now beyond the first empty instruction, then undo what we just
     ;; did, and go back to the left-hand instruction column.
-    jsr FuncA_Console_IsPrevInstructionEmpty  ; returns Z
+    jsr FuncA_Console_IsPrevInstructionEmpty  ; preserves T0+, returns Z
     bne @prevInstNotEmpty
     lda Zp_ConsoleInstNumber_u8
     sub Zp_ConsoleNumInstRows_u8
@@ -172,6 +185,16 @@ _CheckRight:
     @setFieldNumber:
     stx Zp_ConsoleFieldNumber_u8
 _FinishLeftRight:
+    ;; Check if the cursor actually moved horizontally; if so, play a sound and
+    ;; set the nominal field offset from the actual field offset.
+    lda Zp_ConsoleFieldNumber_u8
+    cmp T1  ; old field number
+    bne @didMove
+    lda Zp_ConsoleInstNumber_u8
+    cmp T2  ; old instruction number
+    beq _NoLeftOrRight  ; didn't move
+    @didMove:
+    jsr Func_PlaySfxMenuMove
     jsr FuncA_Console_GetCurrentFieldOffset  ; returns A
     sta Zp_ConsoleNominalFieldOffset_u8
 _NoLeftOrRight:
@@ -183,6 +206,8 @@ _NoLeftOrRight:
 ;;; on the current joypad state.
 .EXPORT FuncA_Console_MoveMenuCursor
 .PROC FuncA_Console_MoveMenuCursor
+    lda Zp_MenuItem_u8
+    pha  ; prev menu item
 _MoveCursorUp:
     lda Zp_P1ButtonsPressed_bJoypad
     and #bJoypad::Up
@@ -211,6 +236,12 @@ _MoveCursorRight:
     ldy #sMenu::OnRight_func_ptr
     jsr _MenuFunc
     @noRight:
+_CheckIfMoved:
+    pla  ; prev menu item
+    cmp Zp_MenuItem_u8
+    beq @done  ; menu item didn't change
+    jsr Func_PlaySfxMenuMove
+    @done:
     rts
 _MenuFunc:
     lda (Zp_Current_sMenu_ptr), y

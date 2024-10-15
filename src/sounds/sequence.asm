@@ -90,6 +90,25 @@ _SoundFinished:
     rts
 .ENDPROC
 
+;;; Starts playing a sSfxSeq-based sound effect on the Noise channel.
+;;; @param YA The sSfxSeq_arr_ptr value for the sequence.
+;;; @preserve T0+
+.EXPORT Func_PlaySfxSequenceNoise
+.PROC Func_PlaySfxSequenceNoise
+    ldx #eChan::Noise  ; param: eChan value
+    .assert eChan::Noise > 0, error
+    bne Func_PlaySfxSequence  ; unconditional; preserves T0+
+.ENDPROC
+
+;;; Starts playing a sSfxSeq-based sound effect on the Pulse2 channel.
+;;; @param YA The sSfxSeq_arr_ptr value for the sequence.
+;;; @preserve T0+
+.EXPORT Func_PlaySfxSequencePulse2
+.PROC Func_PlaySfxSequencePulse2
+    ldx #eChan::Pulse2  ; param: eChan value
+    fall Func_PlaySfxSequence  ; preserves T0+
+.ENDPROC
+
 ;;; Starts playing a sSfxSeq-based sound effect.
 ;;; @param X The eChan value for channel to play the sound on.
 ;;; @param YA The sSfxSeq_arr_ptr value for the sequence.

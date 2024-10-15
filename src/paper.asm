@@ -135,6 +135,7 @@
 .IMPORT Func_AllocObjects
 .IMPORT Func_BufferPpuTransfer
 .IMPORT Func_IsFlagSet
+.IMPORT Func_PlaySfxMenuMove
 .IMPORT Func_SetFlag
 .IMPORT Func_UnsignedMult
 .IMPORT Main_Dialog_OnPauseScreen
@@ -493,6 +494,10 @@ _InitCollectedPapers:
 ;;; Moves the paper grid cursor based on the D-pad buttons.
 .EXPORT FuncA_Pause_MovePaperCursor
 .PROC FuncA_Pause_MovePaperCursor
+    lda Zp_PaperCursorRow_u8
+    pha  ; old row
+    lda Zp_PaperCursorCol_u8
+    pha  ; old column
 _Down:
     lda Zp_P1ButtonsPressed_bJoypad
     and #bJoypad::Down
@@ -516,6 +521,19 @@ _Right:
     and #bJoypad::Right
     beq @done
     jsr FuncA_Pause_MovePaperCursorNext
+    @done:
+_CheckIfMoved:
+    pla  ; old column
+    tax
+    pla  ; old row
+    cmp Zp_PaperCursorRow_u8
+    bne @didMove
+    cpx Zp_PaperCursorCol_u8
+    beq @done  ; didn't move
+    @didMove:
+    lda Zp_PaperCursorRow_u8
+    bmi @done  ; window is about to close
+    jsr Func_PlaySfxMenuMove
     @done:
     rts
 .ENDPROC

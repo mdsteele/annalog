@@ -22,7 +22,7 @@
 .INCLUDE "../macros.inc"
 .INCLUDE "../sound.inc"
 
-.IMPORT Func_PlaySfxSequence
+.IMPORT Func_PlaySfxSequencePulse2
 
 ;;;=========================================================================;;;
 
@@ -93,27 +93,24 @@
 ;;; @preserve T0+
 .EXPORT FuncA_Machine_PlaySfxEnd
 .PROC FuncA_Machine_PlaySfxEnd
-    ldx #eChan::Pulse2
     ldya #Data_MachineEnd_sSfxSeq_arr
-    jmp Func_PlaySfxSequence  ; preserves T0+
+    jmp Func_PlaySfxSequencePulse2  ; preserves T0+
 .ENDPROC
 
 ;;; Starts playing the sound for when a machine encounters an error.
 ;;; @preserve T0+
 .EXPORT FuncA_Machine_PlaySfxError
 .PROC FuncA_Machine_PlaySfxError
-    ldx #eChan::Pulse2
     ldya #Data_MachineError_sSfxSeq_arr
-    jmp Func_PlaySfxSequence  ; preserves T0+
+    jmp Func_PlaySfxSequencePulse2  ; preserves T0+
 .ENDPROC
 
 ;;; Starts playing the sound for when all machines SYNC up.
 ;;; @preserve T0+
 .EXPORT FuncA_Machine_PlaySfxSync
 .PROC FuncA_Machine_PlaySfxSync
-    ldx #eChan::Pulse2
     ldya #Data_MachineSync_sSfxSeq_arr
-    jmp Func_PlaySfxSequence  ; preserves T0+
+    jmp Func_PlaySfxSequencePulse2  ; preserves T0+
 .ENDPROC
 
 ;;;=========================================================================;;;

@@ -23,6 +23,7 @@
 .INCLUDE "../sound.inc"
 
 .IMPORT Func_PlaySfxSequence
+.IMPORT Func_PlaySfxSequenceNoise
 
 ;;;=========================================================================;;;
 
@@ -88,9 +89,8 @@
     pha
     tya
     pha
-    ldx #eChan::Noise
     ldya #Data_BreakFlower_sSfxSeq_arr
-    jsr Func_PlaySfxSequence  ; preserves T0+
+    jsr Func_PlaySfxSequenceNoise  ; preserves T0+
     pla
     tay
     pla

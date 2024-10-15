@@ -41,6 +41,8 @@
 .IMPORT FuncA_Console_TransferInstruction
 .IMPORT FuncM_ConsoleScrollTowardsGoalAndTick
 .IMPORT FuncM_DrawObjectsForRoomAndProcessFrame
+.IMPORT Func_PlaySfxMenuCancel
+.IMPORT Func_PlaySfxMenuConfirm
 .IMPORT Func_SetMachineIndex
 .IMPORT Func_Window_GetRowPpuAddr
 .IMPORT Main_Console_ContinueEditing
@@ -88,6 +90,7 @@ Ram_MenuCols_u8_arr: .res kMaxMenuItems
 
 ;;; Initializes console menu mode.
 .PROC FuncA_Console_InitMenu
+    jsr Func_PlaySfxMenuConfirm
     jsr FuncA_Console_SetUpCurrentFieldMenu
     ;; Transfer menu rows.
     ldx #0  ; param: menu row to transfer
@@ -358,12 +361,13 @@ _RedrawInstructions:
     bvs _Cancel
     ;; A button:
     .assert bJoypad::AButton = bProc::Negative, error
-    bmi _SetValue
+    bmi _Confirm
     ;; D-pad:
     jsr FuncA_Console_MoveMenuCursor
     clc
     rts
 _Cancel:
+    jsr Func_PlaySfxMenuCancel
     ;; If we cancel editing a NOP opcode (i.e. we were inserting a new
     ;; instruction), then delete that instruction (thus cancelling the
     ;; insertion).  In all other cases, we can simply exit the menu.
@@ -375,6 +379,10 @@ _Cancel:
     bne _ExitMenu
     lda #eOpcode::Empty
     sta Zp_MenuItem_u8
+    .assert eOpcode::Empty = 0, error
+    beq _SetValue  ; unconditional
+_Confirm:
+    jsr Func_PlaySfxMenuConfirm
 _SetValue:
     jsr FuncA_Console_MenuSetValue
 _ExitMenu:

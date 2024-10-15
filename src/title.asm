@@ -43,6 +43,10 @@
 .IMPORT Func_FillLowerAttributeTable
 .IMPORT Func_FillUpperAttributeTable
 .IMPORT Func_GetRandomByte
+.IMPORT Func_PlaySfxExplodeFracture
+.IMPORT Func_PlaySfxMenuCancel
+.IMPORT Func_PlaySfxMenuConfirm
+.IMPORT Func_PlaySfxMenuMove
 .IMPORT Func_SignedDivFrac
 .IMPORT Func_Sine
 .IMPORT Func_Window_Disable
@@ -122,7 +126,7 @@ Ppu_TitleAreYouSureStart = Ppu_Nametable0_sName + sName::Tiles_u8_arr + \
 ;;; Title screen menu items that can be selected.
 .ENUM eTitle
     TopContinue
-    TopNew
+    TopNewGame
     TopCredits
     NewCancel
     NewDelete
@@ -159,7 +163,7 @@ Ppu_TitleAreYouSureStart = Ppu_Nametable0_sName + sName::Tiles_u8_arr + \
     D_ARRAY .enum, eTitle
     d_byte TopContinue, \
            DataC_Title_Letters_u8_arr::Continue - DataC_Title_Letters_u8_arr
-    d_byte TopNew, \
+    d_byte TopNewGame, \
            DataC_Title_Letters_u8_arr::NewGame  - DataC_Title_Letters_u8_arr
     d_byte TopCredits, \
            DataC_Title_Letters_u8_arr::Credits  - DataC_Title_Letters_u8_arr
@@ -175,7 +179,7 @@ Ppu_TitleAreYouSureStart = Ppu_Nametable0_sName + sName::Tiles_u8_arr + \
 .PROC DataC_Title_MenuItemLength_u8_arr
     D_ARRAY .enum, eTitle
     d_byte TopContinue, .sizeof(DataC_Title_Letters_u8_arr::Continue)
-    d_byte TopNew,      .sizeof(DataC_Title_Letters_u8_arr::NewGame)
+    d_byte TopNewGame,  .sizeof(DataC_Title_Letters_u8_arr::NewGame)
     d_byte TopCredits,  .sizeof(DataC_Title_Letters_u8_arr::Credits)
     d_byte NewCancel,   .sizeof(DataC_Title_Letters_u8_arr::Cancel)
     d_byte NewDelete,   .sizeof(DataC_Title_Letters_u8_arr::Delete)
@@ -186,7 +190,7 @@ Ppu_TitleAreYouSureStart = Ppu_Nametable0_sName + sName::Tiles_u8_arr + \
 .PROC DataC_Title_MenuItemPosY_u8_arr
     D_ARRAY .enum, eTitle
     d_byte TopContinue, 0 * kTitleMenuItemStridePx + kTitleMenuFirstItemY
-    d_byte TopNew,      1 * kTitleMenuItemStridePx + kTitleMenuFirstItemY
+    d_byte TopNewGame,  1 * kTitleMenuItemStridePx + kTitleMenuFirstItemY
     d_byte TopCredits,  2 * kTitleMenuItemStridePx + kTitleMenuFirstItemY
     d_byte NewCancel,   2 * kTitleMenuItemStridePx + kTitleMenuFirstItemY
     d_byte NewDelete,   3 * kTitleMenuItemStridePx + kTitleMenuFirstItemY
@@ -305,7 +309,7 @@ _CheckForMenuInput:
     cmp Zp_First_eTitle
     beq @noUp
     dec Zp_Current_eTitle
-    ;; TODO: play a sound
+    jsr Func_PlaySfxMenuMove
     @noUp:
     ;; Check Down button.
     lda Zp_P1ButtonsPressed_bJoypad
@@ -315,7 +319,7 @@ _CheckForMenuInput:
     cmp Zp_Last_eTitle
     beq @noDown
     inc Zp_Current_eTitle
-    ;; TODO: play a sound
+    jsr Func_PlaySfxMenuMove
     @noDown:
     ;; Check START button.
     lda Zp_P1ButtonsPressed_bJoypad
@@ -332,14 +336,18 @@ _HandleMenuItem:
     D_TABLE_LO table, _JumpTable_ptr_0_arr
     D_TABLE_HI table, _JumpTable_ptr_1_arr
     D_TABLE .enum, eTitle
-    d_entry table, TopContinue, MainC_Title_BeginGame
-    d_entry table, TopNew,      _MenuItemNewGame
+    d_entry table, TopContinue, _MenuItemContinue
+    d_entry table, TopNewGame,  _MenuItemNewGame
     d_entry table, TopCredits,  _GameLoop  ; TODO
     d_entry table, NewCancel,   _MenuItemCancel
     d_entry table, NewDelete,   _MenuItemDelete
     D_END
 .ENDREPEAT
+_MenuItemContinue:
+    jsr Func_PlaySfxMenuConfirm
+    jmp MainC_Title_BeginGame
 _MenuItemNewGame:
+    jsr Func_PlaySfxMenuConfirm
     ;; If no save file exists, go ahead and start a new game.
     lda Sram_MagicNumber_u8
     cmp #kSaveMagicNumber
@@ -355,10 +363,11 @@ _MenuItemNewGame:
     sta Zp_Last_eTitle
     jmp _GameLoop
 _BeginNewGame:
-    ;; TODO: play a sound
     jsr Func_FadeOutToBlack
     jmp MainC_Title_Prologue
 _MenuItemDelete:
+    jsr Func_PlaySfxExplodeFracture
+    jsr Func_PlaySfxMenuConfirm
     lda #<~kSaveMagicNumber
     ;; Enable writes to SRAM.
     ldy #bMmc3PrgRam::Enable
@@ -368,20 +377,22 @@ _MenuItemDelete:
     ;; Disable writes to SRAM.
     ldy #bMmc3PrgRam::Enable | bMmc3PrgRam::DenyWrites
     sty Hw_Mmc3PrgRamProtect_wo
-    ;; TODO: play a sound
+    bne _ExitEraseMenu  ; unconditional
 _MenuItemCancel:
+    jsr Func_PlaySfxMenuCancel
+_ExitEraseMenu:
     ldax #DataC_Title_DoneConfirmTransfer_arr  ; param: data pointer
     ldy #.sizeof(DataC_Title_DoneConfirmTransfer_arr)  ; param: data length
     jsr Func_BufferPpuTransfer
     ldx #eTitle::TopCredits
     stx Zp_Last_eTitle
-    .assert eTitle::TopNew = eTitle::TopCredits - 1, error
-    dex  ; now X is eTitle::TopNew
+    .assert eTitle::TopNewGame = eTitle::TopCredits - 1, error
+    dex  ; now X is eTitle::TopNewGame
     stx Zp_Current_eTitle
     lda Sram_MagicNumber_u8
     cmp #kSaveMagicNumber
     bne @setFirstItem  ; no save file exists
-    .assert eTitle::TopContinue = eTitle::TopNew - 1, error
+    .assert eTitle::TopContinue = eTitle::TopNewGame - 1, error
     dex  ; now X is eTitle::TopContinue
     @setFirstItem:
     stx Zp_First_eTitle
@@ -406,7 +417,7 @@ _CheckForMenuInput:
     lda Zp_Cheat_eNewGame
     beq @noUp
     dec Zp_Cheat_eNewGame
-    ;; TODO: play a sound
+    jsr Func_PlaySfxMenuMove
     @noUp:
     ;; Check Down button.
     lda Zp_P1ButtonsPressed_bJoypad
@@ -416,7 +427,7 @@ _CheckForMenuInput:
     cmp #eNewGame::NUM_VALUES - 1
     bge @noDown
     inc Zp_Cheat_eNewGame
-    ;; TODO: play a sound
+    jsr Func_PlaySfxMenuMove
     @noDown:
     ;; Check START button.
     lda Zp_P1ButtonsPressed_bJoypad
@@ -434,7 +445,6 @@ _BeginNewGame:
 .EXPORT MainC_Title_BeginGame
 .PROC MainC_Title_BeginGame
     pha  ; eNewGame value
-    ;; TODO: play a sound
     jsr Func_FadeOutToBlack
     pla  ; eNewGame value
     ldx Sram_MagicNumber_u8
@@ -511,12 +521,12 @@ _InitAttributeTables:
 _InitMenu:
     ldx #eTitle::TopCredits
     stx Zp_Last_eTitle
-    .assert eTitle::TopNew = eTitle::TopCredits - 1, error
-    dex  ; now X is eTitle::TopNew
+    .assert eTitle::TopNewGame = eTitle::TopCredits - 1, error
+    dex  ; now X is eTitle::TopNewGame
     lda Sram_MagicNumber_u8
     cmp #kSaveMagicNumber
     bne @setFirstItem  ; no save file exists
-    .assert eTitle::TopContinue = eTitle::TopNew - 1, error
+    .assert eTitle::TopContinue = eTitle::TopNewGame - 1, error
     dex  ; now X is eTitle::TopContinue
     @setFirstItem:
     stx Zp_First_eTitle

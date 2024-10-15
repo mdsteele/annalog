@@ -23,7 +23,7 @@
 .INCLUDE "../macros.inc"
 .INCLUDE "../sound.inc"
 
-.IMPORT Func_PlaySfxSequence
+.IMPORT Func_PlaySfxSequenceNoise
 
 ;;;=========================================================================;;;
 
@@ -65,9 +65,8 @@
 ;;; @preserve T0+
 .EXPORT FuncA_Cutscene_PlaySfxFlipBreaker
 .PROC FuncA_Cutscene_PlaySfxFlipBreaker
-    ldx #eChan::Noise
     ldya #Data_FlipBreaker_sSfxSeq_arr
-    jmp Func_PlaySfxSequence  ; preserves T0+
+    jmp Func_PlaySfxSequenceNoise  ; preserves T0+
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -78,9 +77,8 @@
 ;;; @preserve T0+
 .EXPORT FuncA_Room_PlaySfxBreakerRising
 .PROC FuncA_Room_PlaySfxBreakerRising
-    ldx #eChan::Noise
     ldya #Data_BreakerRising_sSfxSeq_arr
-    jmp Func_PlaySfxSequence  ; preserves T0+
+    jmp Func_PlaySfxSequenceNoise  ; preserves T0+
 .ENDPROC
 
 ;;;=========================================================================;;;

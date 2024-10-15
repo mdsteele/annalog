@@ -22,7 +22,7 @@
 .INCLUDE "../macros.inc"
 .INCLUDE "../sound.inc"
 
-.IMPORT Func_PlaySfxSequence
+.IMPORT Func_PlaySfxSequencePulse2
 
 ;;;=========================================================================;;;
 
@@ -52,9 +52,8 @@
 ;;; @preserve X, T0+
 .EXPORT FuncA_Room_PlaySfxAlarm
 .PROC FuncA_Room_PlaySfxAlarm
-    ldx #eChan::Pulse2
     ldya #Data_Alarm_sSfxSeq_arr
-    jmp Func_PlaySfxSequence  ; preserves T0+
+    jmp Func_PlaySfxSequencePulse2  ; preserves T0+
 .ENDPROC
 
 ;;;=========================================================================;;;

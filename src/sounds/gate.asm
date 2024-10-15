@@ -22,7 +22,7 @@
 .INCLUDE "../macros.inc"
 .INCLUDE "../sound.inc"
 
-.IMPORT Func_PlaySfxSequence
+.IMPORT Func_PlaySfxSequenceNoise
 
 ;;;=========================================================================;;;
 
@@ -47,9 +47,8 @@
 ;;; @preserve T0+
 .EXPORT FuncC_Prison_PlaySfxPrisonGate
 .PROC FuncC_Prison_PlaySfxPrisonGate
-    ldx #eChan::Noise
     ldya #Data_PrisonGate_sSfxSeq_arr
-    jmp Func_PlaySfxSequence  ; preserves T0+
+    jmp Func_PlaySfxSequenceNoise  ; preserves T0+
 .ENDPROC
 
 ;;;=========================================================================;;;

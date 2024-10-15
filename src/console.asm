@@ -997,6 +997,7 @@ _WriteComparisonOperator:
 ;;; instruction in the program.
 ;;; @return Z Set if the previous instruction is empty; cleared if the previous
 ;;;     instruction is not empty (or if we're on the first instruction).
+;;; @preserve T0+
 .EXPORT FuncA_Console_IsPrevInstructionEmpty
 .PROC FuncA_Console_IsPrevInstructionEmpty
     ldy Zp_ConsoleInstNumber_u8

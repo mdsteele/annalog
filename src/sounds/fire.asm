@@ -22,7 +22,7 @@
 .INCLUDE "../macros.inc"
 .INCLUDE "../sound.inc"
 
-.IMPORT Func_PlaySfxSequence
+.IMPORT Func_PlaySfxSequenceNoise
 
 ;;;=========================================================================;;;
 
@@ -69,9 +69,8 @@
 .PROC Func_PlaySfxShootFire
     txa
     pha
-    ldx #eChan::Noise
     ldya #Data_ShootFire_sSfxSeq_arr
-    jsr Func_PlaySfxSequence  ; preserves T0+
+    jsr Func_PlaySfxSequenceNoise  ; preserves T0+
     pla
     tax
     rts

@@ -22,7 +22,8 @@
 .INCLUDE "../macros.inc"
 .INCLUDE "../sound.inc"
 
-.IMPORT Func_PlaySfxSequence
+.IMPORT Func_PlaySfxSequenceNoise
+.IMPORT Func_PlaySfxSequencePulse2
 
 ;;;=========================================================================;;;
 
@@ -64,12 +65,10 @@
 .PROC Func_PlaySfxPoof
     txa
     pha
-    ldx #eChan::Pulse2
     ldya #Data_PoofPulse_sSfxSeq_arr
-    jsr Func_PlaySfxSequence  ; preserves T0+
-    ldx #eChan::Noise
+    jsr Func_PlaySfxSequencePulse2  ; preserves T0+
     ldya #Data_PoofNoise_sSfxSeq_arr
-    jsr Func_PlaySfxSequence  ; preserves T0+
+    jsr Func_PlaySfxSequenceNoise  ; preserves T0+
     pla
     tax
     rts

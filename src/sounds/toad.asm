@@ -22,7 +22,7 @@
 .INCLUDE "../macros.inc"
 .INCLUDE "../sound.inc"
 
-.IMPORT Func_PlaySfxSequence
+.IMPORT Func_PlaySfxSequencePulse2
 
 ;;;=========================================================================;;;
 
@@ -49,9 +49,8 @@
 .PROC FuncA_Actor_PlaySfxToadJump
     txa
     pha
-    ldx #eChan::Pulse2
     ldya #Data_ToadJump_sSfxSeq_arr
-    jsr Func_PlaySfxSequence  ; preserves T0+
+    jsr Func_PlaySfxSequencePulse2  ; preserves T0+
     pla
     tax
     rts
