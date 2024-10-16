@@ -48,6 +48,7 @@
 .IMPORT Func_InitActorSmokeExplosion
 .IMPORT Func_IsPointInPlatform
 .IMPORT Func_Noop
+.IMPORT Func_PlaySfxPoof
 .IMPORT Func_PlaySfxShootFire
 .IMPORT Func_SetActorCenterToPoint
 .IMPORT Func_SetFlag
@@ -498,9 +499,9 @@ _SpawnPoofOnAvatar:
     jsr Func_FindEmptyActorSlot  ; returns C and X
     bcs @done
     jsr Func_SetActorCenterToPoint  ; preserves X
-    jmp Func_InitActorSmokeExplosion
+    jsr Func_InitActorSmokeExplosion
     @done:
-    rts
+    jmp Func_PlaySfxPoof
 .ENDPROC
 
 ;;;=========================================================================;;;

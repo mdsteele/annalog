@@ -53,6 +53,8 @@
 .IMPORT Func_ClearRestOfOamAndProcessFrame
 .IMPORT Func_GetMachineProgram
 .IMPORT Func_IsFlagSet
+.IMPORT Func_PlaySfxWindowClose
+.IMPORT Func_PlaySfxWindowOpen
 .IMPORT Func_ProcessFrame
 .IMPORT Func_SetLastSpawnPoint
 .IMPORT Func_SetMachineIndex
@@ -208,6 +210,7 @@ _UpdateScrolling:
 ;;; @prereq Explore mode is initialized.
 .EXPORT Main_Console_CloseWindow
 .PROC Main_Console_CloseWindow
+    jsr Func_PlaySfxWindowClose
 _GameLoop:
     jsr_prga FuncA_Objects_DrawHudInWindowAndObjectsForRoom
     jsr Func_ClearRestOfOamAndProcessFrame
@@ -405,7 +408,7 @@ _InitWindow:
     mul #kTileHeightPx
     rsub #kScreenHeightPx - (kTileHeightPx * 2 + kWindowMarginBottomPx)
     sta Zp_WindowTopGoal_u8
-    rts
+    jmp Func_PlaySfxWindowOpen
 .ENDPROC
 
 ;;; Makes Zp_ConsoleSram_sProgram_ptr point to the current machine's program in

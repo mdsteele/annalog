@@ -43,6 +43,7 @@
 .IMPORT FuncM_ConsoleScrollTowardsGoalAndTick
 .IMPORT FuncM_DrawObjectsForRoom
 .IMPORT Func_ClearRestOfOamAndProcessFrame
+.IMPORT Func_PlaySfxWindowOpen
 .IMPORT Func_ProcessFrame
 .IMPORT Func_SetFlag
 .IMPORT Func_Window_PrepareRowTransfer
@@ -153,7 +154,7 @@ _InitWindow:
          kTileHeightPx * kFakeConsoleMessageRows
     .linecont -
     sta Zp_WindowTopGoal_u8
-    rts
+    jmp Func_PlaySfxWindowOpen
 _Chr0cBank_u8_arr:
     D_ARRAY .enum, eFake
     d_byte CoreDump,         $61  ; TODO

@@ -56,6 +56,8 @@
 .IMPORT Func_FillLowerAttributeTable
 .IMPORT Func_FillUpperAttributeTable
 .IMPORT Func_IsFlagSet
+.IMPORT Func_PlaySfxWindowClose
+.IMPORT Func_PlaySfxWindowOpen
 .IMPORT Func_SetMusicVolumeForCurrentRoom
 .IMPORT Func_Window_Disable
 .IMPORT Func_Window_ScrollDown
@@ -168,6 +170,7 @@ _CheckForUnpause:
 ;;; Mode for scrolling up the papers window, thus making it visible.
 ;;; @prereq Rendering is enabled.
 .PROC MainA_Pause_ScrollPapersUp
+    jsr Func_PlaySfxWindowOpen
     lda #kPapersWindowTopGoal
     sta Zp_WindowTopGoal_u8
     lda #kScreenHeightPx - kPapersWindowScrollSpeed
@@ -206,6 +209,7 @@ _CheckButtons:
 ;;; Mode for scrolling down the papers window, thus making the minimap visible.
 ;;; @prereq Rendering is enabled.
 .PROC MainA_Pause_ScrollPapersDown
+    jsr Func_PlaySfxWindowClose
     lda #$ff
     sta Zp_PaperCursorRow_u8
     ;; Restore CHR0C bank for minimap (in case it was changed by dialog mode
