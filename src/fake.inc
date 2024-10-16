@@ -26,6 +26,7 @@
     InsufficientData
     IsThisEthical
     NoPower
+    NoResponse
     NUM_VALUES
 .ENDENUM
 

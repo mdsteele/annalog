@@ -28,6 +28,7 @@
 .INCLUDE "machines/carriage.inc"
 .INCLUDE "machines/emitter.inc"
 .INCLUDE "machines/lift.inc"
+.INCLUDE "machines/semaphore.inc"
 .INCLUDE "machines/shared.inc"
 .INCLUDE "macros.inc"
 .INCLUDE "mmc3.inc"
@@ -163,6 +164,7 @@ _Chr0cBank_u8_arr:
     d_byte InsufficientData, $50  ; TODO
     d_byte IsThisEthical,    $60  ; TODO
     d_byte NoPower,          kChrBankDiagramLift
+    d_byte NoResponse,       kChrBankDiagramSemaphoreComm
     D_END
 .ENDPROC
 
@@ -227,6 +229,7 @@ _Fake_eDiagram:
     d_byte InsufficientData, eDiagram::MinigunDown  ; TODO
     d_byte IsThisEthical,    eDiagram::MinigunDown  ; TODO
     d_byte NoPower,          eDiagram::Lift
+    d_byte NoResponse,       eDiagram::SemaphoreComm
     D_END
 .ENDPROC
 
@@ -325,6 +328,15 @@ _Fake_eDiagram:
     .addr _NoPower5_u8_arr19
     .addr _NoPower5_u8_arr19
     .addr _NoPower5_u8_arr19
+    d_byte NoResponse
+    .addr _NoResponse0_u8_arr19
+    .addr _NoResponse1_u8_arr19
+    .addr _NoResponse2_u8_arr19
+    .addr _Blank_u8_arr19
+    .addr _NoResponse4_u8_arr19
+    .addr _NoResponse5_u8_arr19
+    .addr _NoResponse6_u8_arr19
+    .addr _NoResponse7_u8_arr19
     D_END
 _Blank_u8_arr19:
 :   .byte "                   "
@@ -439,6 +451,27 @@ _NoPower4_u8_arr19:
 _NoPower5_u8_arr19:
 :   .byte "9999999999999999999"
     .assert * - :- = kFakeConsoleMessageCols, error
+_NoResponse0_u8_arr19:
+:   .byte "ERROR: NO RESPONSE "
+    .assert * - :- = kFakeConsoleMessageCols, error
+_NoResponse1_u8_arr19:
+:   .byte "FROM REMOTE SERVER "
+    .assert * - :- = kFakeConsoleMessageCols, error
+_NoResponse2_u8_arr19:
+:   .byte "SINCE 2280-05-31   "
+    .assert * - :- = kFakeConsoleMessageCols, error
+_NoResponse4_u8_arr19:
+:   .byte "EXPONENTIAL BACKOFF"
+    .assert * - :- = kFakeConsoleMessageCols, error
+_NoResponse5_u8_arr19:
+:   .byte "MODE: NEXT PING IN "
+    .assert * - :- = kFakeConsoleMessageCols, error
+_NoResponse6_u8_arr19:
+:   .byte "8589934592 SECONDS "
+    .assert * - :- = kFakeConsoleMessageCols, error
+_NoResponse7_u8_arr19:
+:   .byte "<APPROX. 272 YEARS>"
+    .assert * - :- = kFakeConsoleMessageCols, error
 .ENDPROC
 
 ;;; Draws the cursor (if any) for the current fake console window.
@@ -527,6 +560,7 @@ _ShapeX_u8_arr:
     d_byte InsufficientData, $a0
     d_byte IsThisEthical,    $d0
     d_byte NoPower,          $77
+    d_byte NoResponse,       $e0
     D_END
 _ShapeY_u8_arr:
     D_ARRAY .enum, eFake
@@ -536,6 +570,7 @@ _ShapeY_u8_arr:
     d_byte InsufficientData, $c0
     d_byte IsThisEthical,    $40
     d_byte NoPower,          $67
+    d_byte NoResponse,       $20
     D_END
 .ENDPROC
 
